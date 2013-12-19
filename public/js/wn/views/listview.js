@@ -42,7 +42,7 @@ wn.views.ListView = Class.extend({
 		}
 		
 		$.each(wn.model.get("DocField", {"parent":this.doctype, "in_list_view":1}), function(i,d) {
-			if(wn.perm.has_perm(me.doctype, d.permlevel, READ)) {
+			if(wn.perm.has_perm(me.doctype, d.permlevel, "read")) {
 				if(d.fieldtype=="Image" && d.options) {
 					me.fields.push(t + "`" + d.options + "`");
 				} else {

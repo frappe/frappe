@@ -141,7 +141,7 @@ wn.ui.form.Toolbar = Class.extend({
 		}
 		
 		// rename
-		if(me.frm.meta.allow_rename && me.frm.perm[0][WRITE]) {
+		if(me.frm.meta.allow_rename && me.frm.perm[0].write) {
 			this.appframe.add_dropdown_button("File", wn._("Rename..."), function() { 
 				me.frm.rename_doc();}, 'icon-retweet');
 		}
@@ -209,7 +209,7 @@ wn.ui.form.Toolbar = Class.extend({
 			
 			// show update button if unsaved
 			var docstatus = cint(me.frm.doc.docstatus);
-			if(docstatus==1 && me.frm.perm[0][SUBMIT]) {
+			if(docstatus==1 && me.frm.perm[0].submit) {
 				this.appframe.set_title_right("Update", function() { me.frm.save('Update', null, this); } );
 			}
 		})

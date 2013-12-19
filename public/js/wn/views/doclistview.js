@@ -103,7 +103,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 	
 	show_match_help: function() {
 		var me = this;
-		var match_rules = wn.perm.get_match_rule(this.doctype);
+		var match_rules = wn.perm.get_match_rules(this.doctype);
 		if(keys(match_rules).length) {
 			var match_text = []
 			$.each(match_rules, function(key, values) {

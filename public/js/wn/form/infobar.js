@@ -35,7 +35,7 @@ wn.ui.form.InfoBar = Class.extend({
 				function() { me.frm.toolbar.show_linked_with(); });
 		
 		// link to user restrictions
-		if(wn.model.can_restrict(me.frm.doctype)) {
+		if(wn.model.can_restrict(me.frm.doctype, me.frm)) {
 			this.$user_properties = this.appframe.add_icon_btn("2", "icon-shield", 
 				wn._("User Permission Restrictions"), function() {
 					wn.route_options = {
@@ -46,12 +46,12 @@ wn.ui.form.InfoBar = Class.extend({
 				});
 		}
 
-		if(!me.frm.meta.allow_print) {
+		if(me.frm.perm[0].print===1) {
 			this.$print = this.appframe.add_icon_btn("2", "icon-print", wn._("Print"), 
 				function() { me.frm.print_doc(); });
 		}
 
-		if(!me.frm.meta.allow_email) {
+		if(me.frm.perm[0].email===1) {
 			this.$print = this.appframe.add_icon_btn("2", "icon-envelope", wn._("Email"), 
 				function() { me.frm.email_doc(); });
 		}

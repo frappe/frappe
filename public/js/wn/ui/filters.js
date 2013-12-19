@@ -324,7 +324,7 @@ wn.ui.FieldSelect = Class.extend({
 		// main table
 		var main_table_fields = std_filters.concat(wn.meta.docfield_list[me.doctype]);
 		$.each(wn.utils.sort(main_table_fields, "label", "string"), function(i, df) {
-			if(wn.perm.has_perm(me.doctype, df.permlevel, READ))
+			if(wn.perm.has_perm(me.doctype, df.permlevel, "read"))
 				me.add_field_option(df);
 		});
 
@@ -333,7 +333,7 @@ wn.ui.FieldSelect = Class.extend({
 			if(table_df.options) {
 				var child_table_fields = [].concat(wn.meta.docfield_list[table_df.options]);
 				$.each(wn.utils.sort(child_table_fields, "label", "string"), function(i, df) {
-					if(wn.perm.has_perm(me.doctype, df.permlevel, READ))
+					if(wn.perm.has_perm(me.doctype, df.permlevel, "read"))
 						me.add_field_option(df);
 				});
 			}

@@ -46,4 +46,7 @@ wn.defaults = {
 			}			
 		}
 	},
+	get_restrictions: function() {
+		return wn.boot.restrictions;
+	},
 }

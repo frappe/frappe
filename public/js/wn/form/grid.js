@@ -295,7 +295,7 @@ wn.ui.form.GridRow = Class.extend({
 		this.static_display_template = [];
 		for(var ci in this.docfields) {
 			var df = this.docfields[ci];
-			if(!df.hidden && df.in_list_view && this.grid.frm.get_perm(df.permlevel, READ)
+			if(!df.hidden && df.in_list_view && this.grid.frm.get_perm(df.permlevel, "read")
 				&& !in_list(["Section Break", "Column Break"], df.fieldtype)) {
 					var colsize = 2;
 					switch(df.fieldtype) {

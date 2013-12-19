@@ -11,7 +11,7 @@ def check_admin_or_system_manager():
 	 	(webnotes.session.user!="Administrator"):
 		msgprint("Only Allowed for Role System Manager or Administrator", raise_exception=True)
 		
-def has_permission(doctype, ptype="read", refdoc=None):
+def has_permission(doctype, ptype="read", refdoc=None, verbose=True):
 	"""check if user has permission"""
 	if webnotes.session.user=="Administrator" or webnotes.conn.get_value("DocType", doctype, "istable")==1:
 		return True
@@ -27,7 +27,7 @@ def has_permission(doctype, ptype="read", refdoc=None):
 		if isinstance(refdoc, basestring):
 			refdoc = webnotes.doc(meta[0].name, refdoc)
 		
-		if has_only_permitted_data(meta, refdoc) and has_match(perms, refdoc):
+		if (has_only_permitted_data(meta, refdoc, verbose=verbose) and has_match(perms, refdoc)):
 			return True
 		else:
 			return False
@@ -35,42 +35,40 @@ def has_permission(doctype, ptype="read", refdoc=None):
 		return True
 		
 def get_user_perms(meta, ptype, user=None):
-	from webnotes.utils import cint
 	user_roles = webnotes.get_roles(user)
 	
 	return [p for p in meta.get({"doctype": "DocPerm"})
 			if cint(p.get(ptype))==1 and cint(p.permlevel)==0 and (p.role=="All" or p.role in user_roles)]
 
-def has_only_permitted_data(meta, refdoc):
+def has_only_permitted_data(meta, refdoc, verbose=True):
 	from webnotes.defaults import get_restrictions
+	restrictions = get_restrictions()
+	if not restrictions:
+		return True
+	
+	fields_to_check = meta.get_restricted_fields(restrictions.keys())
+	
+	if meta[0].name in restrictions:
+		fields_to_check.append(_dict({"label":"Name", "fieldname":"name", "options": meta[0].name}))
 	
 	has_restricted_data = False
-	restrictions = get_restrictions()
-	
-	if restrictions:
-		fields_to_check = meta.get_restricted_fields(restrictions.keys())
-		
-		if meta[0].name in restrictions:
-			fields_to_check.append(_dict({"label":"Name", "fieldname":"name", "options": meta[0].name}))
-		
-		for df in fields_to_check:
-			if refdoc.get(df.fieldname) and refdoc.get(df.fieldname) not in restrictions[df.options]:
+	for df in fields_to_check:
+		if refdoc.get(df.fieldname) and refdoc.get(df.fieldname) not in restrictions[df.options]:
+			if verbose:
 				msg = "{not_allowed}: {doctype} {having} {label} = {value}".format(
 					not_allowed=_("Sorry, you are not allowed to access"), doctype=_(df.options),
 					having=_("having"), label=_(df.label), value=refdoc.get(df.fieldname))
-				
+			
 				if refdoc.parentfield:
 					msg = "{doctype}, {row} #{idx}, ".format(doctype=_(refdoc.doctype),
 						row=_("Row"), idx=refdoc.idx) + msg
-				
+			
 				msgprint(msg)
-				has_restricted_data = True
+			
+			has_restricted_data = True
 	
-	if has_restricted_data:
-		# check all restrictions before returning
-		return False
-	else:
-		return True
+	# check all restrictions before returning
+	return False if has_restricted_data else True
 
 def has_match(perms, refdoc):
 	"""check owner match (if exists)"""
@@ -93,7 +91,7 @@ def can_restrict_user(user, doctype, docname=None):
 	meta = webnotes.get_doctype(doctype)
 	
 	# check if target user does not have restrict permission
-	if has_non_restrict_role(meta, user):
+	if has_only_non_restrict_role(meta, user):
 		return True
 	
 	return False
@@ -119,7 +117,7 @@ def has_restrict_permission(meta=None, user=None):
 	return any((perm for perm in get_user_perms(meta, "read", user)
 		if cint(perm.restrict)==1))
 	
-def has_non_restrict_role(meta, user):
+def has_only_non_restrict_role(meta, user):
 	# check if target user does not have restrict permission
 	if has_restrict_permission(meta, user):
 		return False

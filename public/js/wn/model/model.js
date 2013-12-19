@@ -161,8 +161,15 @@ $.extend(wn.model, {
 		return wn.boot.profile.can_email.indexOf(doctype)!==-1;
 	},
 	
-	can_restrict: function(doctype) {
-		return wn.boot.profile.can_restrict.indexOf(doctype)!==-1;
+	can_restrict: function(doctype, frm) {
+		// system manager can always restrict
+		if(user_roles.indexOf("System Manager")!==-1) return true;
+		
+		if(frm) {
+			return frm.perm[0].restrict===1;
+		} else {
+			return wn.boot.profile.can_restrict.indexOf(doctype)!==-1;
+		}
 	},
 	
 	has_value: function(dt, dn, fn) {

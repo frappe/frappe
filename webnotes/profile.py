@@ -196,7 +196,8 @@ def add_system_manager(email, first_name=None, last_name=None):
 		"email": email,
 		"enabled": 1,
 		"first_name": first_name or email,
-		"last_name": last_name
+		"last_name": last_name,
+		"user_type": "System User"
 	})
 	profile.insert()
 	
