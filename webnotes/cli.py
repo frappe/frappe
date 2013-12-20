@@ -563,13 +563,13 @@ def mysql():
 	webnotes.destroy()
 
 @cmd
-def python():
+def python(site):
 	import webnotes 
 	import commands, os
 	python = commands.getoutput('which python')
 	if site:
 		os.environ["site"] = site
-	os.environ["PYTHONSTARTUP"] = os.path.join(os.path.dirname(__file__), "pythonrc.py")
+	os.environ["PYTHONSTARTUP"] = os.path.join(os.path.dirname(webnotes.__file__), "pythonrc.py")
 	os.execv(python, [python])
 	webnotes.destroy()
 

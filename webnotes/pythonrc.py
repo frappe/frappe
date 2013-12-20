@@ -5,8 +5,6 @@
 
 from __future__ import unicode_literals
 
-import os, sys
-sys.path = [".", "lib", "app"] + sys.path
-
+import os
 import webnotes
 webnotes.connect(site=os.environ.get("site"))

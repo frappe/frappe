@@ -40,7 +40,8 @@ wn.call = function(opts) {
 		btn: opts.btn,
 		freeze: opts.freeze,
 		show_spinner: !opts.no_spinner,
-		progress_bar: opts.progress_bar
+		progress_bar: opts.progress_bar,
+		async: opts.async
 	});
 }
 
@@ -64,7 +65,8 @@ wn.request.call = function(opts) {
 			wn.request.cleanup(opts, {});
 			show_alert(wn._("Unable to complete request: ") + textStatus)
 			opts.error && opts.error(xhr)
-		}
+		},
+		async: opts.async
 	};
 	
 	wn.last_request = ajax_args.data;

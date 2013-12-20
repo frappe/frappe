@@ -48,7 +48,8 @@ class TestTranslations(unittest.TestCase):
 		
 	def test_write_csv(self):
 		tpath = webnotes.get_pymodule_path("webnotes", "translations", "de.csv")
-		os.remove(tpath)
+		if os.path.exists(tpath):
+			os.remove(tpath)
 		webnotes.translate.write_translations_file("webnotes", "de")
 		self.assertTrue(os.path.exists(tpath))
 		self.assertEquals(dict(webnotes.translate.read_csv_file(tpath)).get("Row"), "Reihe")

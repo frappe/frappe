@@ -13,10 +13,7 @@ wn.require = function(items) {
 
 	for(var i=0; i< l; i++) {
 		var src = items[i];
-		//if(!(src in wn.assets.executed_)) {
-			// check if available in localstorage
 		wn.assets.execute(src);
-		//}
 	}
 };
 
@@ -83,23 +80,19 @@ wn.assets = {
 	// load an asset via
 	load: function(src) {
 		// this is virtual page load, only get the the source
-		// *without* the template
-		var t = src;
-		
+		// *without* the template		
 		wn.set_loading();
 
-		$.ajax({
-			url: t,
-			data: {
-				q: Math.floor(Math.random()*1000)
+		wn.call({
+			method:"webnotes.client.get_js",
+			args: {
+				"src": src
 			},
-			dataType: 'text',
-			success: function(txt) {
-				// add it to localstorage
-				wn.assets.add(src, txt);				
+			callback: function(r) {
+				wn.assets.add(src, r.message);
 			},
 			async: false
-		});
+		})
 		
 		wn.done_loading();
 	},

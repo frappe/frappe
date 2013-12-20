@@ -26,7 +26,7 @@ def getpage():
 	if has_permission(doclist):
 		# load translations
 		if webnotes.lang != "en":
-			webnotes.response["__messages"] = webnotes.get_lang_dict("page", d.name)
+			webnotes.response["__messages"] = webnotes.get_lang_dict("page", page)
 
 		webnotes.response['docs'] = doclist
 	else:

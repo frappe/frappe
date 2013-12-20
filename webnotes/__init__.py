@@ -257,7 +257,9 @@ def clear_cache(user=None, doctype=None):
 	elif user:
 		clear_cache(user)
 	else: # everything
+		import translate
 		clear_cache()
+		translate.clear_cache()
 		reset_metadata_version()
 	
 def get_roles(username=None):

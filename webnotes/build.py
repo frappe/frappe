@@ -10,12 +10,14 @@ Build the `public` folders and setup languages
 
 import os, sys, webnotes, json
 from cssmin import cssmin
+import webnotes.translate
 
 def bundle(no_compress):
 	"""concat / minify js files"""
 	# build js files
 	make_site_public_dirs()
 	build(no_compress)
+	webnotes.translate.clear_cache()
 	
 def watch(no_compress):
 	"""watch and rebuild if necessary"""
@@ -53,8 +55,7 @@ def make_site_public_dirs():
 	site_public_assets = os.path.join(site_public_path, "assets")
 	if not os.path.exists(site_public_assets):
 		os.symlink(os.path.abspath(assets_path), site_public_assets)
-	
-				
+
 def clear_pyc_files():
 	from webnotes.utils import get_base_path
 	for path, folders, files in os.walk(get_base_path()):

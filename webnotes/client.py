@@ -6,7 +6,7 @@ import webnotes
 from webnotes import _
 import webnotes.model
 import webnotes.utils
-import json
+import json, os
 
 @webnotes.whitelist()
 def get(doctype, name=None, filters=None):
@@ -119,3 +119,15 @@ def bulk_update(docs):
 def has_permission(doctype, docname, perm_type="read"):
 	# perm_type can be one of read, write, create, submit, cancel, report
 	return {"has_permission": webnotes.has_permission(doctype, perm_type.lower(), docname)}
+	
+@webnotes.whitelist()
+def get_js(src):
+	contentpath = os.path.join(webnotes.local.sites_path, src)
+	with open(contentpath, "r") as srcfile:
+		code = srcfile.read()
+	
+	if webnotes.local.lang != "en":
+		code += "\n\n$.extend(wn._messages, {})".format(json.dumps(\
+			webnotes.get_lang_dict("jsfile", contentpath)))
+	return code
+	
