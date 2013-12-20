@@ -5,6 +5,13 @@ wn.pages['data-import-tool'].onload = function(wrapper) {
 		icon: "data-import-tool"
 	});
 	
+	// check permission for import
+	if(!((wn.boot.profile.can_import && wn.boot.profile.can_import.length) ||
+		user_roles.indexOf("System Manager")!==-1)) {
+			wn.show_not_permitted("data-import-tool");
+			return false;
+		}
+	
 	$(wrapper).find('.layout-main-section').append('<h3>1. Download Template</h3>\
 		<div style="min-height: 150px">\
 			<p class="help">Download a template for importing a table.</p>\
@@ -64,12 +71,31 @@ wn.pages['data-import-tool'].onload = function(wrapper) {
 		}
 	}
 	
+	// check if template with_data is allowed
+	var validate_download_with_data = function(doctype, verbose) {
+		// if no export permission, uncheck with data
+		var with_data = $('[name="dit-with-data"]').prop("checked");
+		if(with_data && !wn.model.can_export(doctype)) {
+			$('[name="dit-with-data"]').prop("checked", false);
+			with_data = false;
+			
+			if(verbose) {
+				msgprint(wn._("You are not allowed to export the data of") + ": " + wn._(doctype)
+					+ ". " + wn._("Downloading empty template") + ".");
+			}
+		}
+		return with_data;
+	};
+	
 	wrapper.add_template_download_link = function(doctype) {
 		return $('<a style="cursor: pointer">')
 			.html(doctype)
 			.data('doctype', doctype)
 			.data('all_doctypes', "No")
 			.click(function() {
+				var doctype = $(this).data('doctype');
+				var parent_doctype = $('[name="dit-doctype"]').val();
+				var with_data = validate_download_with_data(parent_doctype || doctype, true);
 				window.location.href = repl(wn.request.url 
 					+ '?cmd=%(cmd)s&doctype=%(doctype)s'
 					+ '&parent_doctype=%(parent_doctype)s'
@@ -77,9 +103,9 @@ wn.pages['data-import-tool'].onload = function(wrapper) {
 					+ '&all_doctypes=%(all_doctypes)s',
 					{ 
 						cmd: 'core.page.data_import_tool.data_import_tool.get_template',
-						doctype: $(this).data('doctype'),
-						parent_doctype: $('[name="dit-doctype"]').val(),
-						with_data: $('[name="dit-with-data"]:checked').length ? 'Yes' : 'No',
+						doctype: doctype,
+						parent_doctype: parent_doctype,
+						with_data: with_data ? 'Yes' : 'No',
 						all_doctypes: $(this).data('all_doctypes')
 					});
 			})
@@ -91,6 +117,8 @@ wn.pages['data-import-tool'].onload = function(wrapper) {
 		var val = $(this).val()
 		if(val!='Select...') {
 			$('#dit-download').empty();
+			
+			validate_download_with_data(val);
 			
 			// get options
 			return wn.call({
@@ -121,7 +149,7 @@ wn.pages['data-import-tool'].onload = function(wrapper) {
 		}
 	});
 	
-	write_messages = function(r) {
+	var write_messages = function(r) {
 		$(wrapper).find(".dit-progress-area").toggle(false);
 		$("#dit-output").empty();
 
@@ -139,35 +167,41 @@ wn.pages['data-import-tool'].onload = function(wrapper) {
 		});
 	}
 	
+	var onerror = function(r) {
+		r.messages = $.map(r.message.messages, function(v) {
+			var msg = v.replace("Inserted", "Valid")
+				.replace("Updated", "Valid").split("<");
+			if (msg.length > 1) {
+				v = msg[0] + (msg[1].split(">").slice(-1)[0]);
+			} else {
+				v = msg[0];
+			}
+			return v;
+		});
+		
+		r.messages = ["<h4 style='color:red'>Import Failed!</h4>"]
+			.concat(r.messages);
+			
+		write_messages(r);
+	};
+	
 	// upload
 	wn.upload.make({
 		parent: $('#dit-upload-area'),
 		args: {
 			method: 'core.page.data_import_tool.data_import_tool.upload'
 		},
-		onerror: function(r) {
-			r.messages = $.map(r.message.messages, function(v) {
-				var msg = v.replace("Inserted", "Valid")
-					.replace("Updated", "Valid").split("<");
-				if (msg.length > 1) {
-					v = msg[0] + (msg[1].split(">").slice(-1)[0]);
-				} else {
-					v = msg[0];
-				}
-				return v;
-			});
-			
-			r.messages = ["<h4 style='color:red'>Import Failed!</h4>"]
-				.concat(r.messages);
-				
-			write_messages(r);
-		},
+		onerror: onerror,
 		callback: function(fid, filename, r) {
-			// replace links if error has occured
-			r.messages = ["<h4 style='color:green'>Import Successful!</h4>"].
-				concat(r.message.messages)
+			if(r.message.error) {
+				onerror(r);
+			} else {
+				// replace links if error has occured
+				r.messages = ["<h4 style='color:green'>Import Successful!</h4>"].
+					concat(r.message.messages)
 			
-			write_messages(r);
+				write_messages(r);
+			}
 		}
 	});
 		

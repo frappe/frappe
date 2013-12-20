@@ -16,8 +16,12 @@ import webnotes.plugins
 def get_report_doc(report_name):
 	bean = webnotes.bean("Report", report_name)
 	if not bean.has_read_perm():
-		raise webnotes.PermissionError
-	
+		raise webnotes.PermissionError("You don't have access to: {report}".format(report=report_name))
+		
+	if not webnotes.has_permission(bean.ref_doctype, "report"):
+		raise webnotes.PermissionError("You don't have access to get a report on: {doctype}".format(
+			doctype=bean.ref_doctype))
+		
 	return bean.doc
 
 @webnotes.whitelist()

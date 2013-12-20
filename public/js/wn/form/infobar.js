@@ -46,12 +46,12 @@ wn.ui.form.InfoBar = Class.extend({
 				});
 		}
 
-		if(me.frm.perm[0].print===1) {
+		if(wn.model.can_print(me.frm.doctype, me.frm)) {
 			this.$print = this.appframe.add_icon_btn("2", "icon-print", wn._("Print"), 
 				function() { me.frm.print_doc(); });
 		}
 
-		if(me.frm.perm[0].email===1) {
+		if(wn.model.can_email(me.frm.doctype, me.frm)) {
 			this.$print = this.appframe.add_icon_btn("2", "icon-envelope", wn._("Email"), 
 				function() { me.frm.email_doc(); });
 		}

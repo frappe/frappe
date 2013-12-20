@@ -59,7 +59,7 @@ $.extend(wn.model, {
 				},
 				callback: function(r) {
 					if(r.exc) {
-						wn.msgprint(wn._("Unable to load") + ": " + wn._(doctype));
+						msgprint(wn._("Unable to load") + ": " + wn._(doctype));
 						throw "No doctype";
 						return;
 					}
@@ -69,6 +69,7 @@ $.extend(wn.model, {
 						localStorage["_doctype:" + doctype] = JSON.stringify(r.docs);
 					}
 					wn.model.init_doctype(doctype);
+					wn.defaults.set_restrictions(r.restrictions);
 					callback(r);
 				}
 			});
@@ -145,19 +146,23 @@ $.extend(wn.model, {
 		return locals.DocType[doctype] && locals.DocType[doctype].is_submittable;
 	},
 	
-	can_import: function(doctype) {
+	can_import: function(doctype, frm) {
+		if(frm) return frm.perm[0].import===1;
 		return wn.boot.profile.can_import.indexOf(doctype)!==-1;
 	},
 	
-	can_export: function(doctype) {
+	can_export: function(doctype, frm) {
+		if(frm) return frm.perm[0].export===1;
 		return wn.boot.profile.can_export.indexOf(doctype)!==-1;
 	},
 	
-	can_print: function(doctype) {
+	can_print: function(doctype, frm) {
+		if(frm) return frm.perm[0].print===1;
 		return wn.boot.profile.can_print.indexOf(doctype)!==-1;
 	},
 	
-	can_email: function(doctype) {
+	can_email: function(doctype, frm) {
+		if(frm) return frm.perm[0].email===1;
 		return wn.boot.profile.can_email.indexOf(doctype)!==-1;
 	},
 	
@@ -165,11 +170,9 @@ $.extend(wn.model, {
 		// system manager can always restrict
 		if(user_roles.indexOf("System Manager")!==-1) return true;
 		
-		if(frm) {
-			return frm.perm[0].restrict===1;
-		} else {
-			return wn.boot.profile.can_restrict.indexOf(doctype)!==-1;
-		}
+		if(frm) return frm.perm[0].restrict===1;
+		
+		return wn.boot.profile.can_restrict.indexOf(doctype)!==-1;
 	},
 	
 	has_value: function(dt, dn, fn) {

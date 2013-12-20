@@ -229,13 +229,8 @@ wn.UserProperties = Class.extend({
 				}
 				
 				d.fields_dict["defvalue"].get_query = function(txt) {
-					var key = d.get_value("defkey");
-					var doctype = $.map(me.options.link_fields, function(l) {
-						if(l[0]==key) return l[1];
-					})[0];
-					
 					return {
-						doctype: doctype
+						doctype: d.get_value("defkey")
 					}
 				};
 				

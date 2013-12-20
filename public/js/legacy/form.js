@@ -171,7 +171,7 @@ _f.Frm.prototype.print_doc = function() {
 		this.hide_print();
 		return;
 	}
-	if(!wn.model.can_print(this.doc.doctype)) {
+	if(!wn.model.can_print(this.doc.doctype, cur_frm)) {
 		msgprint(wn._("You are not allowed to Print this document."));
 		return;
 	}

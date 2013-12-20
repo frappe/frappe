@@ -225,11 +225,13 @@ def validate_permissions_for_doctype(doctype, for_remove=False):
 
 def validate_permissions(permissions, for_remove=False):
 	doctype = permissions and permissions[0].parent
-	issingle = issubmittable = False
+	issingle = issubmittable = isimportable = False
 	if doctype:
-		issingle = cint(webnotes.conn.get_value("DocType", doctype, "issingle"))
-		issubmittable = cint(webnotes.conn.get_value("DocType", doctype, "is_submittable"))
-		isimportable = cint(webnotes.conn.get_value("DocType", doctype, "allow_import"))
+		values = webnotes.conn.get_value("DocType", doctype, 
+			["issingle", "is_submittable", "allow_import"], as_dict=True)
+		issingle = cint(values.issingle)
+		issubmittable = cint(values.is_submittable)
+		isimportable = cint(values.allow_import)
 			
 	def get_txt(d):
 		return "For %s (level %s) in %s, row #%s:" % (d.role, d.permlevel, d.parent, d.idx)
@@ -272,6 +274,9 @@ def validate_permissions(permissions, for_remove=False):
 				raise_exception=True)
 		if (d.fields.get("import") or d.export) and not d.report:
 			webnotes.msgprint(get_txt(d) + " Cannot set Import or Export permission if Report is not set.",
+				raise_exception=True)
+		if d.fields.get("import") and not d.create:
+			webnotes.msgprint(get_txt(d) + " Cannot set Import if Create is not set.",
 				raise_exception=True)
 	
 	def remove_rights_for_single(d):

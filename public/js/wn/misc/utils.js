@@ -120,12 +120,6 @@ wn.utils = {
 				return null; 
 		}).join("&") || "";
 	},
-	disable_export_btn: function(btn) {
-		if(!wn.user.is_report_manager()) {
-			btn.prop("disabled", true).attr("title", 
-				wn._("Can only be exported by users with role 'Report Manager'"));
-		}		
-	},
 	validate_type: function ( val, type ) {
 		// from https://github.com/guillaumepotier/Parsley.js/blob/master/parsley.js#L81
 		var regExp;

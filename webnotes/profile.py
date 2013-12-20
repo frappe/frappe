@@ -46,7 +46,6 @@ class Profile:
 			
 	def build_perm_map(self):
 		"""build map of permissions at level 0"""
-		
 		self.perm_map = {}
 		for r in webnotes.conn.sql("""select parent, `read`, `write`, `create`, `submit`, `cancel`,
 			`report`, `import`, `export`, `print`, `email`, `restrict`
@@ -54,17 +53,16 @@ class Profile:
 			and ifnull(permlevel,0)=0
 			and parent not like "old_parent:%%" 
 			and role in ('%s')""" % "','".join(self.get_roles()), as_dict=1):
-			
 			dt = r['parent']
 			
 			if not dt in  self.perm_map:
 				self.perm_map[dt] = {}
 				
-			for k in ('read', 'write', 'create', 'submit', 'cancel', 'report'
-				'import', 'export', 'print', 'email', 'restrict'):
+			for k in ('read', 'write', 'create', 'submit', 'cancel', 'amend',
+				'report', 'import', 'export', 'print', 'email', 'restrict'):
 				if not self.perm_map[dt].get(k):
 					self.perm_map[dt][k] = r.get(k)
-						
+		
 	def build_permissions(self):
 		"""build lists of what the user can read / write / create
 		quirks: 
@@ -73,11 +71,11 @@ class Profile:
 		"""
 		self.build_doctype_map()
 		self.build_perm_map()
-				
+		
 		for dt in self.doctype_map:
 			dtp = self.doctype_map[dt]
 			p = self.perm_map.get(dt, {})
-
+			
 			if not dtp.get('istable'):
 				if p.get('create') and not dtp.get('issingle'):
 					if dtp.get('in_create'):
@@ -112,7 +110,7 @@ class Profile:
 		self.can_write += self.in_create
 		self.can_read += self.can_write
 		self.all_read += self.can_read
-
+		
 	def get_defaults(self):
 		import webnotes.defaults
 		self.defaults = webnotes.defaults.get_defaults(self.name)
@@ -135,6 +133,11 @@ class Profile:
 		
 		rdl = [new_rd] + rdl
 		r = webnotes.cache().set_value("recent:" + self.name, rdl)
+		
+	def _get(self, key):
+		if not self.can_read:
+			self.build_permissions()
+		return getattr(self, key)
 	
 	def get_can_read(self):
 		"""return list of doctypes that the user can read"""

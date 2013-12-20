@@ -13,10 +13,19 @@ def check_admin_or_system_manager():
 		
 def has_permission(doctype, ptype="read", refdoc=None, verbose=True):
 	"""check if user has permission"""
-	if webnotes.session.user=="Administrator" or webnotes.conn.get_value("DocType", doctype, "istable")==1:
+	if webnotes.conn.get_value("DocType", doctype, "istable")==1:
 		return True
 	
 	meta = webnotes.get_doctype(doctype)
+	
+	if ptype=="submit" and not cint(meta[0].is_submittable):
+		return False
+	
+	if ptype=="import" and not cint(meta[0].allow_import):
+		return False
+	
+	if webnotes.session.user=="Administrator":
+		return True
 	
 	# get user permissions
 	perms = get_user_perms(meta, ptype)
@@ -47,9 +56,6 @@ def has_only_permitted_data(meta, refdoc, verbose=True):
 		return True
 	
 	fields_to_check = meta.get_restricted_fields(restrictions.keys())
-	
-	if meta[0].name in restrictions:
-		fields_to_check.append(_dict({"label":"Name", "fieldname":"name", "options": meta[0].name}))
 	
 	has_restricted_data = False
 	for df in fields_to_check:
@@ -125,3 +131,20 @@ def has_only_non_restrict_role(meta, user):
 	# and has non-restrict role
 	return any((perm for perm in get_user_perms(meta, "read", user)
 		if cint(perm.restrict)==0))
+
+def can_import(doctype, raise_exception=False):
+	if not ("System Manager" in webnotes.get_roles() or has_permission(doctype, "import")):
+		if raise_exception:
+			raise webnotes.PermissionError("You are not allowed to import: {doctype}".format(doctype=doctype))
+		else:
+			return False
+	return True
+	
+def can_export(doctype, raise_exception=False):
+	if not ("System Manager" in webnotes.get_roles() or has_permission(doctype, "export")):
+		if raise_exception:
+			raise webnotes.PermissionError("You are not allowed to export: {doctype}".format(doctype=doctype))
+		else:
+			return False
+	return True
+	

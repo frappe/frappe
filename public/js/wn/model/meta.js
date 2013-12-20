@@ -55,7 +55,7 @@ $.extend(wn.meta, {
 	
 	get_restricted_fields: function(doctype, name, restricted_types) {
 		return $.map(wn.meta.get_docfields(doctype, name), function(i, df) {
-			return (df.fieldtype==="Link" && df.ignore_restriction!==1 &&
+			return (df.fieldtype==="Link" && df.ignore_restrictions!==1 &&
 				restricted_types.indexOf(df.options)!==-1) ? df : null;
 		});
 	},

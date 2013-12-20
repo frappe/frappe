@@ -108,9 +108,9 @@ wn.views.DocListView = wn.ui.Listing.extend({
 			var match_text = []
 			$.each(match_rules, function(key, values) {
 				if(values.length==0) {
-					match_text.push(wn._(wn.meta.get_label(me.doctype, key)) + wn._(" is not set"));
+					match_text.push(wn._(key) + wn._(" is not set"));
 				} else if(values.length) {
-					match_text.push(wn._(wn.meta.get_label(me.doctype, key)) + " = " + wn.utils.comma_or(values));
+					match_text.push(wn._(key) + " = " + wn.utils.comma_or(values));
 				}
 			});
 			wn.utils.set_footnote(this, this.$page.find(".layout-main-section"), 
@@ -254,15 +254,14 @@ wn.views.DocListView = wn.ui.Listing.extend({
 					me.$page.find('.list-delete:checked').length ? false : true);
 			});
 		}
-		if(in_list(user_roles, "System Manager")) {
-			var meta = locals.DocType[this.doctype];
-			if(meta.allow_import || meta.document_type==="Master") {
-				this.appframe.add_icon_btn("2", "icon-upload", wn._("Import"), function() {
-					wn.set_route("data-import-tool", {
-						doctype: me.doctype
-					})
+		if(wn.model.can_import(this.doctype)) {
+			this.appframe.add_icon_btn("2", "icon-upload", wn._("Import"), function() {
+				wn.set_route("data-import-tool", {
+					doctype: me.doctype
 				})
-			};
+			});
+		}
+		if(in_list(user_roles, "System Manager")) {
 			this.appframe.add_icon_btn("2", "icon-glass", wn._("Customize"), function() {
 				wn.set_route("Form", "Customize Form", {
 					doctype: me.doctype

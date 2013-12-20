@@ -47,6 +47,10 @@ wn.defaults = {
 		}
 	},
 	get_restrictions: function() {
-		return wn.boot.restrictions;
+		return wn.defaults.restrictions;
 	},
+	set_restrictions: function(restrictions) {
+		if(!restrictions) return;
+		wn.defaults.restrictions = $.extend(wn.defaults.restrictions || {}, restrictions);
+	}
 }

@@ -65,6 +65,8 @@ def getdoctype(doctype, with_parent=False, cached_timestamp=None):
 	if not doclist:
 		doclist = webnotes.model.doctype.get(doctype, processed=True)
 	
+	webnotes.response['restrictions'] = get_restrictions(doclist)
+	
 	if cached_timestamp and doclist[0].modified==cached_timestamp:
 		return "use_cache"
 	
@@ -76,6 +78,13 @@ def set_docinfo(doctype, name):
 		"comments": add_comments(doctype, name),
 		"assignments": add_assignments(doctype, name)
 	}
+	
+def get_restrictions(meta):
+	out = {}
+	all_restrictions = webnotes.defaults.get_restrictions()
+	for df in meta.get_restricted_fields(all_restrictions):
+		out[df.options] = all_restrictions[df.options]
+	return out
 
 def add_attachments(dt, dn):
 	attachments = {}

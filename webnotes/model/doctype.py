@@ -411,13 +411,16 @@ class DocTypeDocList(webnotes.model.doclist.DocList):
 		return webnotes.doclist([self[0]] + self.get({"parent": self[0].name}))
 		
 	def get_restricted_fields(self, restricted_types):
-		return self.get({
+		restricted_fields = self.get({
 			"doctype":"DocField", 
 			"fieldtype":"Link", 
-			"parent": self[0].get("name"), 
-			"ignore_restriction":("!=", 1), 
+			"parent": self[0].name, 
+			"ignore_restrictions":("!=", 1), 
 			"options":("in", restricted_types)
 		})
+		if self[0].name in restricted_types:
+			restricted_fields.append(webnotes._dict({"label":"Name", "fieldname":"name", "options": self[0].name}))
+		return restricted_fields
 
 def rename_field(doctype, old_fieldname, new_fieldname, lookup_field=None):
 	"""this function assumes that sync is NOT performed"""

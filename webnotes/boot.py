@@ -27,7 +27,6 @@ def get_bootinfo():
 	# system info
 	bootinfo['control_panel'] = webnotes._dict(cp.copy())
 	bootinfo['sysdefaults'] = webnotes.defaults.get_defaults()
-	bootinfo['restrictions'] = webnotes.defaults.get_restrictions()
 	bootinfo['server_date'] = webnotes.utils.nowdate()
 	bootinfo["send_print_in_body_and_attachment"] = webnotes.conn.get_value("Email Settings", 
 		None, "send_print_in_body_and_attachment")

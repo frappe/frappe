@@ -424,12 +424,14 @@ wn.views.ReportView = wn.ui.Listing.extend({
 	// setup export
 	make_export: function() {
 		var me = this;
+		if(!wn.model.can_export(this.doctype)) {
+			return;
+		}
 		var export_btn = this.page.appframe.add_button(wn._('Export'), function() {
 			var args = me.get_args();
 			args.cmd = 'webnotes.widgets.reportview.export_query'
 			open_url_post(wn.request.url, args);
 		}, 'icon-download-alt');
-		wn.utils.disable_export_btn(export_btn);
 	},
 
 	// save

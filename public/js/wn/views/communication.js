@@ -291,6 +291,11 @@ wn.views.CommunicationComposer = Class.extend({
 		}
 		
 		if(form_values.send_email) {
+			if(cur_frm && !wn.model.can_email(me.doc.doctype, cur_frm)) {
+				msgprint(wn._("You are not allowed to send emails related to this document."));
+				return;
+			}
+			
 			form_values.communication_medium = "Email";
 			form_values.sent_or_received = "Sent";
 		};

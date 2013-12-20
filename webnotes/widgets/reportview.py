@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 
 import webnotes, json
 import webnotes.defaults
+import webnotes.permissions
 
 @webnotes.whitelist()
 def get():
@@ -104,8 +105,6 @@ def load_doctypes():
 	"""load all doctypes and roles"""
 	import webnotes.model.doctype
 
-	webnotes.local.reportview_roles = webnotes.get_roles()
-	
 	if not getattr(webnotes.local, "reportview_doctypes", None):
 		webnotes.local.reportview_doctypes = {}
 
@@ -284,11 +283,11 @@ def save_report():
 @webnotes.whitelist()
 def export_query():
 	"""export from report builder"""
+	form_params = get_form_params()
 	
-	# TODO: validate use is allowed to export
-	verify_export_allowed()
+	webnotes.permissions.can_export(form_params.doctype, raise_exception=True)
 	
-	ret = execute(**get_form_params())
+	ret = execute(**form_params)
 
 	columns = [x[0] for x in webnotes.conn.get_description()]
 	data = [['Sr'] + get_labels(columns),]
@@ -316,14 +315,6 @@ def export_query():
 	webnotes.response['result'] = unicode(f.read(), 'utf-8')
 	webnotes.response['type'] = 'csv'
 	webnotes.response['doctype'] = [t[4:-1] for t in webnotes.local.reportview_tables][0]
-
-def verify_export_allowed():
-	"""throw exception if user is not allowed to export"""
-	webnotes.local.reportview_roles = webnotes.get_roles()
-	if not ('Administrator' in webnotes.local.reportview_roles or \
-		'System Manager' in webnotes.local.reportview_roles or \
-		'Report Manager' in webnotes.local.reportview_roles):
-		raise webnotes.PermissionError
 
 def get_labels(columns):
 	"""get column labels based on column names"""

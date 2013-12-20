@@ -35,14 +35,16 @@ wn.views.pageview = {
 	},
 	show: function(name) {
 		if(!name) name = (wn.boot ? wn.boot.home_page : window.page_name);
-		wn.views.pageview.with_page(name, function(r) {
-			if(r && r.exc) {
-				if(!r['403'])
-					wn.show_not_found(name);
-			} else if(!wn.pages[name]) {
-				new wn.views.Page(name);
-			}
-			wn.container.change_to(name);
+		wn.model.with_doctype("Page", function() {
+			wn.views.pageview.with_page(name, function(r) {
+				if(r && r.exc) {
+					if(!r['403'])
+						wn.show_not_found(name);
+				} else if(!wn.pages[name]) {
+					new wn.views.Page(name);
+				}
+				wn.container.change_to(name);
+			});
 		});
 	}
 }

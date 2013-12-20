@@ -62,17 +62,15 @@ wn.views.QueryReport = Class.extend({
 		
 		// Edit
 		var edit_btn = this.appframe.add_primary_action(wn._('Edit'), function() {
+			if(!wn.user.is_report_manager()) {
+				msgprint(wn._("You are not allowed to create / edit reports"));
+				return false;
+			}
 			wn.set_route("Form", "Report", me.report_name);
 		}, "icon-edit");
 		
-		if(!in_list(user_roles, "System Manager")) {
-			edit_btn.prop("disabled", true)
-				.attr("title", wn._("Only System Manager can create / edit reports"));
-		}
-
-		var export_btn = this.appframe.add_primary_action(wn._('Export'), function() { me.export_report(); }, 
+		this.appframe.add_primary_action(wn._('Export'), function() { me.export_report(); },
 			"icon-download");
-		wn.utils.disable_export_btn(export_btn);
 		
 		if(wn.model.can_restrict("Report")) {
 			this.appframe.add_primary_action(wn._("User Restrictions"), function() {
@@ -95,23 +93,26 @@ wn.views.QueryReport = Class.extend({
 				me.appframe.set_title(wn._("Query Report")+": " + wn._(me.report_name));
 				
 				wn.model.with_doc("Report", me.report_name, function() {
-					if(!wn.query_reports[me.report_name]) {
-						return wn.call({
-							method:"webnotes.widgets.query_report.get_script",
-							args: {
-								report_name: me.report_name
-							},
-							callback: function(r) {
-								me.appframe.set_title(wn._("Query Report")+": " + wn._(me.report_name));
-								wn.dom.eval(r.message || "");
-								me.setup_filters();
-								me.refresh();
-							}
-						});
-					} else {
-						me.setup_filters();
-						me.refresh();
-					}
+					me.report_doc = wn.model.get_doc("Report", me.report_name);
+					wn.model.with_doctype(me.report_doc.ref_doctype, function() {
+						if(!wn.query_reports[me.report_name]) {
+							return wn.call({
+								method:"webnotes.widgets.query_report.get_script",
+								args: {
+									report_name: me.report_name
+								},
+								callback: function(r) {
+									me.appframe.set_title(wn._("Query Report")+": " + wn._(me.report_name));
+									wn.dom.eval(r.message || "");
+									me.setup_filters();
+									me.refresh();
+								}
+							});
+						} else {
+							me.setup_filters();
+							me.refresh();
+						}
+					});
 				});
 			}
 		} else {
@@ -422,12 +423,17 @@ wn.views.QueryReport = Class.extend({
 	    });
 	},
 	export_report: function() {
+		if(!wn.model.can_export(this.report_doc.ref_doctype)) {
+			msgprint(wn._("You are not allowed to export this report."));
+			return false;
+		}
+		
 		var result = $.map(wn.slickgrid_tools.get_view_data(this.columns, this.dataView),
 		 	function(row) {
 				return [row.splice(1)];
 		});
 		this.title = this.report_name;
-		wn.tools.downloadify(result, ["Report Manager", "System Manager"], this);
+		wn.tools.downloadify(result, null, this);
 		return false;
 	}
 })
