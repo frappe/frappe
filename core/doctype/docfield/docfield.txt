@@ -2,14 +2,12 @@
  {
   "creation": "2013-02-22 01:27:33", 
   "docstatus": 0, 
-  "modified": "2013-11-26 16:34:15", 
+  "modified": "2013-12-20 19:23:10", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
  {
   "allow_copy": 0, 
-  "allow_email": 0, 
-  "allow_print": 0, 
   "autoname": "FL.#####", 
   "doctype": "DocType", 
   "hide_heading": 0, 
@@ -135,7 +133,7 @@
  {
   "description": "User restrictions should not apply for this Link", 
   "doctype": "DocField", 
-  "fieldname": "ignore_restriction", 
+  "fieldname": "ignore_restrictions", 
   "fieldtype": "Check", 
   "label": "Ignore Restriction"
  }, 

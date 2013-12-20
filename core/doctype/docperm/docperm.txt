@@ -2,14 +2,12 @@
  {
   "creation": "2013-02-22 01:27:33", 
   "docstatus": 0, 
-  "modified": "2013-12-17 12:29:13", 
+  "modified": "2013-12-20 19:23:11", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
  {
   "allow_copy": 0, 
-  "allow_email": 0, 
-  "allow_print": 0, 
   "autoname": "PERM.#####", 
   "doctype": "DocType", 
   "hide_heading": 0, 

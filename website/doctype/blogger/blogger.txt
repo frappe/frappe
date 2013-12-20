@@ -2,12 +2,13 @@
  {
   "creation": "2013-03-25 16:00:51", 
   "docstatus": 0, 
-  "modified": "2013-08-30 16:35:24", 
+  "modified": "2013-12-20 19:23:57", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
  {
   "allow_attach": 1, 
+  "allow_import": 1, 
   "autoname": "field:short_name", 
   "description": "Profile of a Blogger", 
   "doctype": "DocType", 
@@ -27,11 +28,13 @@
  }, 
  {
   "doctype": "DocPerm", 
+  "email": 1, 
   "name": "__common__", 
   "parent": "Blogger", 
   "parentfield": "permissions", 
   "parenttype": "DocType", 
   "permlevel": 0, 
+  "print": 1, 
   "read": 1, 
   "write": 1
  }, 
@@ -96,7 +99,6 @@
  }, 
  {
   "doctype": "DocPerm", 
-  "match": "owner:profile", 
   "role": "Blogger"
  }
 ]

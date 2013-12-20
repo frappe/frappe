@@ -2,15 +2,14 @@
  {
   "creation": "2013-03-07 11:54:44", 
   "docstatus": 0, 
-  "modified": "2013-11-03 11:10:54", 
+  "modified": "2013-12-20 19:24:17", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
  {
   "allow_attach": 1, 
   "allow_copy": 0, 
-  "allow_email": 0, 
-  "allow_print": 0, 
+  "allow_import": 1, 
   "allow_rename": 1, 
   "description": "Profile Represents a User in the system.", 
   "doctype": "DocType", 
@@ -401,25 +400,36 @@
   "cancel": 1, 
   "create": 1, 
   "doctype": "DocPerm", 
+  "email": 1, 
   "permlevel": 0, 
+  "print": 1, 
   "report": 1, 
   "role": "System Manager", 
   "submit": 0, 
   "write": 1
  }, 
  {
+  "cancel": 0, 
+  "create": 0, 
   "doctype": "DocPerm", 
+  "email": 1, 
   "permlevel": 0, 
-  "role": "All"
+  "print": 1, 
+  "role": "All", 
+  "write": 0
  }, 
  {
+  "cancel": 0, 
+  "create": 0, 
   "doctype": "DocPerm", 
+  "email": 1, 
   "match": "owner", 
   "permlevel": 0, 
+  "print": 1, 
   "report": 1, 
   "role": "All", 
   "submit": 0, 
-  "write": 1
+  "write": 0
  }, 
  {
   "amend": 0, 

@@ -2,7 +2,7 @@
  {
   "creation": "2012-11-22 17:45:46", 
   "docstatus": 0, 
-  "modified": "2013-11-03 11:09:55", 
+  "modified": "2013-12-20 19:24:13", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -25,11 +25,13 @@
  }, 
  {
   "doctype": "DocPerm", 
+  "email": 1, 
   "name": "__common__", 
   "parent": "Letter Head", 
   "parentfield": "permissions", 
   "parenttype": "DocType", 
   "permlevel": 0, 
+  "print": 1, 
   "read": 1, 
   "report": 1
  }, 

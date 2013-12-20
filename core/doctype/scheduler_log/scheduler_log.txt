@@ -2,7 +2,7 @@
  {
   "creation": "2013-01-16 13:09:40", 
   "docstatus": 0, 
-  "modified": "2013-07-05 14:54:45", 
+  "modified": "2013-12-20 19:24:34", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -27,11 +27,13 @@
   "cancel": 1, 
   "create": 1, 
   "doctype": "DocPerm", 
+  "email": 1, 
   "name": "__common__", 
   "parent": "Scheduler Log", 
   "parentfield": "permissions", 
   "parenttype": "DocType", 
   "permlevel": 0, 
+  "print": 1, 
   "read": 1, 
   "report": 1, 
   "role": "System Manager", 

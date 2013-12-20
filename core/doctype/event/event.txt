@@ -2,7 +2,7 @@
  {
   "creation": "2013-06-10 13:17:47", 
   "docstatus": 0, 
-  "modified": "2013-11-20 12:45:15", 
+  "modified": "2013-12-20 19:24:07", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -26,11 +26,13 @@
  {
   "create": 1, 
   "doctype": "DocPerm", 
+  "email": 1, 
   "name": "__common__", 
   "parent": "Event", 
   "parentfield": "permissions", 
   "parenttype": "DocType", 
   "permlevel": 0, 
+  "print": 1, 
   "read": 1, 
   "report": 1, 
   "submit": 0, 
