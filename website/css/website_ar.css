@@ -1,219 +1,47 @@
-.container {
-    max-width: 800px;
-}
-
-h1, h2, h3, h4, h5 {
-    font-weight: bold;
-}
-
-a {
-    cursor: pointer;
-}
-
-img {
-    max-width: 100%;
-}
-
-.content {
-    margin-bottom: 22px;
-}
-
-.banner {
-    margin-top: 20px;
-    padding: 0px 20px;
-}
-
-.missing-image {
-    background-color: #eee;
-    padding: 40px;
-    width: 112px;
-    font-size: 32px;
-    color: #888;
-}
-
-.social-icons i {
-    font-size: 120%;
-}
-
-.social-icons a:hover {
-    text-decoration: none;
-}
-
-.social-icons a i:hover {
-    text-decoration: none;
-}
-
 .social-icons i {
     margin-right: 5px;
-}
-
-.web-footer {
-    margin-top: 10px;
-    padding-bottom: 20px;
-}
-
-.avatar {
-    display: inline-block;
-    vertical-align: middle;
-    overflow: hidden;
-    background-color: #ddd;
-    border: 1px solid #eee;
+    margin-left: 0px;
 }
 
 .avatar-small {
     margin-left: 5px;
-    width: 30px;
-    height: 30px;
-    border-radius: 30px;
-    -moz-border-radius: 30px;
-    -webkit-border-radius: 30px;
+    margin-right: 0px;
 }
-
-    .avatar-small img {
-        width: 30px;
-    }
 
 .avatar-medium {
     margin-left: 5px;
-    width: 48px;
-    height: 48px;
-    border-radius: 48px;
-    -moz-border-radius: 48px;
-    -webkit-border-radius: 48px;
+    margin-right: 0px;
 }
-
-    .avatar-medium img {
-        width: 48px;
-    }
 
 .avatar-large {
     margin-left: 10px;
-    width: 72px;
-    height: 72px;
-    border-radius: 72px;
-    -moz-border-radius: 72px;
-    -webkit-border-radius: 72px;
+    margin-right: 0px;
 }
-
-    .avatar-large img {
-        width: 72px;
-    }
 
 .avatar-x-large {
     margin-left: 10px;
-    width: 100px;
-    height: 100px;
-    border-radius: 100px;
-    -moz-border-radius: 100px;
-    -webkit-border-radius: 100px;
+    margin-right: 0px;
 }
-
-    .avatar-x-large img {
-        width: 100px;
-    }
 
 .carousel-control .icon {
-    position: absolute;
-    top: 50%;
     left: 50%;
-    z-index: 5;
-    display: inline-block;
-    width: 20px;
-    height: 20px;
-    margin-top: -10px;
+    right: 0;
     margin-right: -10px;
-}
-
-.hidden-xs-inline, .hidden-xs-inline-block {
-    display: none;
-}
-
-@media (min-width: 768px) {
-    .hidden-xs-inline {
-        display: inline;
-    }
-
-    .hidden-xs-inline-block {
-        display: inline-block;
-    }
-}
-
-.visible-xs-inline {
-    display: inline;
-}
-
-.visible-xs-inline-block {
-    display: inline-block;
-}
-
-@media (min-width: 768px) {
-    .visible-xs-inline, .visible-xs-inline-block {
-        display: none;
-    }
-}
-
-/* the element that this class is applied to, should have a max width for this to work*/
-.ellipsis {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    display: inline-block;
-}
-
-.navbar {
-    box-shadow: none;
-    border-radius: 0px;
-    margin-bottom: 7px;
+    margin-left : 0px;
 }
 
 .navbar-brand {
     padding-left: 30px;
-    max-width: 80%;
-}
-
-@media (min-width: 768px) {
-    .navbar-brand {
-        max-width: 300px;
-    }
-}
-
-.panel-container {
-    margin-top: 35px;
+    padding-right: 0px;
 }
 
 .panel-heading,
 .panel-body {
     padding-right: 15px;
-}
-
-
-fieldset {
-    margin-bottom: 20px;
+    padding-left : 0px;
 }
 
 .message-overlay {
-    position: fixed;
-    top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 1040;
-    background-color: #fff;
-    display: table;
-}
-
-    .message-overlay .content {
-        display: table-cell;
-        vertical-align: middle;
-        text-align: center;
-    }
-
-.web-page-editable {
-    margin: -15px;
-    padding: 15px;
-    border-radius: 4px;
-}
-
-.slide-image {
-    width: 100%;
+    right: 0;
 }

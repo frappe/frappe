@@ -11,7 +11,6 @@
 		"public/css/all-web_ar.css": [
 			"lib/public/css/bootstrap_ar.css",
 			"lib/public/css/font-awesome_ar.css",
-			"lib/public/css/nprogress.css",
 			"lib/website/css/website_ar.css"
 		]
 	},
@@ -52,18 +51,12 @@
 	},
 	{
 		"public/css/all-app_ar.css": [
-			"lib/public/js/lib/jquery/bootstrap_theme/jquery-ui.selected.css",
-			"lib/public/js/lib/slickgrid/slick.grid.css",
-			"lib/public/js/lib/slickgrid/slick-default-theme.css",
-
 			"lib/public/css/tag-it_ar.css",
 			"lib/public/css/bootstrap_ar.css",
 			"lib/public/css/bootstrap-responsive_ar.css",
 			"lib/public/css/font-awesome_ar.css",
 			"lib/public/css/forms_ar.css",
 			"lib/public/css/common_ar.css",
-			"lib/public/css/tree_grid.css",
-			"lib/public/css/nprogress.css",
 		]
 	},
 	{

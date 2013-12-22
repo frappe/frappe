@@ -1,16 +1,3 @@
 .user-role {
-	padding: 5px;
-	width: 45%;
 	float: right;
-}
-
-table.user-perm {
-	border-collapse: collapse;
-}
-
-table.user-perm td, table.user-perm th {
-	padding: 5px;
-	text-align: center;
-	border-bottom: 1px solid #aaa;
-	min-width: 30px;
 }

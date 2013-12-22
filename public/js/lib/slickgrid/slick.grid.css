@@ -9,6 +9,7 @@ classes should alter those!
   width: 100%;
   overflow: hidden;
   border-left: 0px;
+  direction: ltr;
 }
 
 .slick-header-columns, .slick-headerrow-columns {
@@ -16,6 +17,7 @@ classes should alter those!
   white-space: nowrap;
   cursor: default;
   overflow: hidden;
+  direction: ltr;
 }
 
 .slick-header-column.ui-state-default {

@@ -33,8 +33,7 @@ wn.Application = Class.extend({
 						return;
 					}
           if ( typeof wn.boot.lang !== "undefined" && wn.boot.lang !== false && wn.boot.lang == "ar") {
-						wn.require("lib/js/lib/cssReplacer.js");
-						userLanguage  = "ar";
+						wn.require("css/all-app_ar.css");
 					}
 					me.startup();
 				}
