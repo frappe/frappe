@@ -92,7 +92,7 @@ wn.Application = Class.extend({
 		if(wn.boot.metadata_version != localStorage.metadata_version) {
 			localStorage.clear();
 			console.log("Cleared Cache - New Metadata");
-			localStorage.metadata_version = wn.boot.metadata_version;
+			wn.assets.init_local_storage();
 		}
 	},
 	
