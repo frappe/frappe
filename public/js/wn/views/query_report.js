@@ -124,11 +124,22 @@ wn.views.QueryReport = Class.extend({
 				if(df.get_query) f.get_query = df.get_query;
 			}
 		});
+		this.set_route_filters()
 		this.set_filters_by_name();
 	},
 	clear_filters: function() {
 		this.filters = [];
 		this.appframe.parent.find('.appframe-form .filters').remove();
+	},
+	set_route_filters: function() {
+		var me = this;
+		if(wn.route_options) {
+			$.each(this.filters || [], function(i, f) {
+				if(wn.route_options[f.df.fieldname]!=null)
+					f.set_input(wn.route_options[f.df.fieldname]);
+			});
+		}
+		wn.route_options = null;
 	},
 	set_filters_by_name: function() {
 		this.filters_by_name = {};
