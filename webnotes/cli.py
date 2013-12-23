@@ -589,7 +589,9 @@ def smtp_debug_server():
 @cmd
 def run_tests(app=None, module=None, doctype=None, verbose=False):
 	import webnotes.test_runner
-	webnotes.test_runner.main(app and app[0], module and module[0], doctype and doctype[0], verbose)
+	ret = webnotes.test_runner.main(app and app[0], module and module[0], doctype and doctype[0], verbose)
+	if ret.failures > 0:
+		exit(1)
 
 @cmd
 def serve(port=8000, profile=False):
