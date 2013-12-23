@@ -13,6 +13,7 @@ import json
 from webnotes.utils import cint
 import webnotes.model.doctype
 import webnotes.defaults
+import webnotes.translate
 
 @webnotes.whitelist()
 def clear(user=None):
@@ -30,6 +31,7 @@ def clear_cache(user=None):
 	
 	if user:
 		cache.delete_value("bootinfo:" + user)
+		cache.delete_value("lang:" + user)
 		
 		# clear notifications
 		webnotes.conn.sql("""delete from `tabNotification Count` where owner=%s""", user)
@@ -43,7 +45,8 @@ def clear_cache(user=None):
 						cache.delete_value("session:" + sid)
 	else:
 		for sess in webnotes.conn.sql("""select user, sid from tabSessions""", as_dict=1):
-			cache.delete_value("sesssion:" + sess.sid)
+			cache.delete_value("lang:" + sess.user)
+			cache.delete_value("session:" + sess.sid)
 			cache.delete_value("bootinfo:" + sess.user)
 
 def clear_sessions(user=None, keep_current=False):
@@ -141,12 +144,13 @@ class Session:
 		data = self.get_session_record()
 		if data:
 			# set language
-			if data.lang and self.user!="demo@erpnext.com": 
-				webnotes.local.lang = data.lang
 			self.data = webnotes._dict({'data': data, 
 				'user':data.user, 'sid': self.sid})
 		else:
 			self.start_as_guest()
+			
+		webnotes.local.lang = webnotes.cache().get_value("lang:" + data.user, 
+			lambda: webnotes.translate.get_user_lang(data.user))
 
 	def get_session_record(self):
 		"""get session record, or return the standard Guest Record"""

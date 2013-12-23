@@ -74,17 +74,20 @@ def make_connection(root_login, root_password):
 			root_password = getpass.getpass("MySQL root password: ")
 	return webnotes.db.Database(user=root_login, password=root_password)
 
+@webnotes.whitelist()
 def install_app(name, verbose=False):
+	app_hooks = webnotes.get_hooks(name)
+	webnotes.check_admin_or_system_manager()
 	webnotes.flags.in_install_app = True
 	webnotes.clear_cache()
-	manage = webnotes.get_module(name + ".manage") 
-	if hasattr(manage, "before_install"):
-		manage.before_install()
+
+	for before_install in app_hooks.before_install or []:
+		webnotes.get_attr(before_install)()
 	
 	sync_for(name, force=True, sync_everything=True, verbose=verbose)
 
-	if hasattr(manage, "after_install"):
-		manage.after_install()
+	for after_install in app_hooks.after_install or []:
+		webnotes.get_attr(after_install)()
 
 	set_all_patches_as_completed(name)
 	installed_apps = json.loads(webnotes.conn.get_global("installed_apps") or "[]") or []

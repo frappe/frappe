@@ -147,6 +147,7 @@ def setup_utilities(parser):
 		help="Create new conf.py file")
 	parser.add_argument("--set_admin_password", metavar='ADMIN-PASSWORD', nargs=1,
 		help="Set administrator password")
+	parser.add_argument("--request", metavar='URL-ARGS', nargs=1, help="Run request as admin")
 	parser.add_argument("--mysql", action="store_true", help="get mysql shell for a site")
 	parser.add_argument("--serve", action="store_true", help="Run development server")
 	parser.add_argument("--profile", action="store_true", help="enable profiling in development server")
@@ -595,6 +596,15 @@ def run_tests(app=None, module=None, doctype=None, verbose=False):
 def serve(port=8000, profile=False):
 	import webnotes.app
 	webnotes.app.serve(port=port, profile=profile)
+	
+@cmd
+def request(args):
+	import webnotes.handler
+	webnotes.connect()
+	webnotes.form_dict = webnotes._dict([a.split("=") for a in args.split("&")])
+	webnotes.handler.execute_cmd(webnotes.form_dict.cmd)
+	print webnotes.response
+	webnotes.destroy()
 
 def replace_code(start, txt1, txt2, extn, search=None, force=False):
 	"""replace all txt1 by txt2 in files with extension (extn)"""

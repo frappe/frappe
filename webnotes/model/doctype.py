@@ -336,7 +336,7 @@ def add_search_fields(doclist):
 
 def update_language(doclist):
 	"""update language"""
-	if webnotes.lang != 'en':
+	if webnotes.local.lang != 'en':
 		doclist[0].fields["__messages"] = webnotes.get_lang_dict("doctype", doclist[0].name)
 
 class DocTypeDocList(webnotes.model.doclist.DocList):

@@ -38,6 +38,7 @@ class DocType:
 		make_module_and_roles(self.doclist, "Page Role")
 		
 		if not webnotes.flags.in_import and getattr(conf,'developer_mode', 0) and self.doc.standard=='Yes':
+			print "here"
 			from webnotes.modules.export_file import export_to_files
 			from webnotes.modules import get_module_path, scrub
 			import os

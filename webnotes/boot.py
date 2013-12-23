@@ -38,8 +38,9 @@ def get_bootinfo():
 		
 	# home page
 	bootinfo.modules = {}
-	for get_desktop_icons in hooks.get_desktop_icons:
-		bootinfo.modules.update(webnotes.get_attr(get_desktop_icons)())
+	for app in webnotes.get_installed_apps():
+		desktop_icons_path = webnotes.get_pymodule_path(app, "desktop.json")
+		bootinfo.modules.update(json.loads(webnotes.read_file(desktop_icons_path) or "{}"))
 
 	bootinfo.hidden_modules = webnotes.conn.get_global("hidden_modules")
 	bootinfo.doctype_icons = dict(webnotes.conn.sql("""select name, icon from 

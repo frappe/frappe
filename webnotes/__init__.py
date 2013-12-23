@@ -157,7 +157,6 @@ def errprint(msg):
 
 def log(msg):
 	if not request:
-		import conf
 		if conf.get("logging") or False:
 			print repr(msg)
 	
@@ -445,7 +444,7 @@ def get_hooks(app_name=None):
 				hooks[key].append(value)
 		return hooks
 	if app_name:
-		return _dict(load_app_hooks(app_name=None))
+		return _dict(load_app_hooks(app_name))
 	else:
 		return _dict(cache().get_value("app_hooks", load_app_hooks))
 
@@ -469,12 +468,18 @@ def setup_module_map():
 			_cache.set_value("module_app", local.module_app)
 		
 def get_file_items(path):
-	if os.path.exists(path):
-		with open(path, "r") as f: 
-			content = unicode(f.read(), encoding="utf-8")
+	content = read_file(path)
+	if content:
 		return [p.strip() for p in content.splitlines() if p.strip() and not p.startswith("#")]
 	else: 
 		return []
+
+def read_file(path):
+	if os.path.exists(path):
+		with open(path, "r") as f: 
+			return unicode(f.read(), encoding="utf-8")
+	else:
+		return None
 
 def get_attr(method_string):
 	modulename = '.'.join(method_string.split('.')[:-1])

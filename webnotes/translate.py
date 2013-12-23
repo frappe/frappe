@@ -18,6 +18,11 @@ Contributing:
 
 import webnotes, os, re, codecs, json
 
+def get_user_lang(user=None):
+	if not user:
+		user = webnotes.session.user
+	return get_lang_dict().get(webnotes.conn.get_value("Profile", user, "language") or "english")
+
 def get_all_languages():
 	return [a.split()[0] for a in get_lang_info()]
 
@@ -43,7 +48,7 @@ def get_dict(fortype, name=None):
 	fortype = fortype.lower()
 	cache = webnotes.cache()
 	cache_key = "translation_assets:" + webnotes.local.lang
-	asset_key = fortype + ":" + name
+	asset_key = fortype + ":" + (name or "-")
 	translation_assets = cache.get_value(cache_key) or {}
 	
 	if not asset_key in translation_assets:

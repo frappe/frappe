@@ -122,7 +122,8 @@ def execute_cmd(cmd):
 		webnotes.response['message'] = ret
 
 	# update session
-	webnotes.local.session_obj.update()
+	if "session_obj" in webnotes.local:
+		webnotes.local.session_obj.update()
 
 
 def call(fn, args):

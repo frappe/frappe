@@ -11,8 +11,6 @@ cur_frm.cscript.onload = function(doc, dt, dn, callback) {
 }
 
 cur_frm.cscript.before_load = function(doc, dt, dn, callback) {
-	wn.provide("wn.langauges");
-	
 	var update_language_select = function() {
 		cur_frm.set_df_property("language", "options", wn.languages || ["", "English"]);
 		callback();
@@ -22,6 +20,7 @@ cur_frm.cscript.before_load = function(doc, dt, dn, callback) {
 		wn.call({
 			method: "webnotes.core.doctype.profile.profile.get_languages",
 			callback: function(r) {
+				console.log(r.message);
 				wn.languages = r.message;
 				update_language_select();
 			}
@@ -36,6 +35,11 @@ cur_frm.cscript.user_image = function(doc) {
 }
 
 cur_frm.cscript.refresh = function(doc) {
+	if(!doc.__unsaved && doc.language !== wn.boot.profile.language) {
+		msgprint("Refreshing...");
+		window.location.reload();
+	}
+	
 	cur_frm.toggle_display('change_password', !doc.__islocal);
 
 	cur_frm.toggle_display(['sb1', 'sb3'], false);

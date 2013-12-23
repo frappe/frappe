@@ -133,7 +133,7 @@ class Profile:
 	
 	def load_profile(self):
 		d = webnotes.conn.sql("""select email, first_name, last_name, 
-			email_signature, background_image, user_type
+			email_signature, background_image, user_type, language
 			from tabProfile where name = %s""", self.name, as_dict=1)[0]
 
 		if not self.can_read:

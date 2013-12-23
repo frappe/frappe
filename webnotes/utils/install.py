@@ -3,13 +3,6 @@
 
 import webnotes
 
-def get_hooks():
-	return {
-		"app_include_js": ["assets/js/webnotes.min.js"],
-		"app_include_css": ["assets/webnotes/css/splash.css", "assets/css/webnotes.css"],
-		"desktop_icons": get_desktop_icons()
-	}
-
 def after_install():
 	# reset installed apps for re-install
 	webnotes.conn.set_global("installed_apps", "[]")
@@ -39,42 +32,3 @@ def after_install():
 	_update_password("Administrator", webnotes.conf.get("admin_password"))
 
 	webnotes.conn.commit()
-
-		
-def get_desktop_icons():
-	return {
-		"Calendar": {
-			"color": "#2980b9", 
-			"icon": "icon-calendar", 
-			"label": "Calendar", 
-			"link": "Calendar/Event", 
-			"type": "view"
-		}, 
-		"Finder": {
-			"color": "#14C7DE", 
-			"icon": "icon-folder-open", 
-			"label": "Finder", 
-			"link": "finder", 
-			"type": "page"
-		}, 
-		"Messages": {
-			"color": "#9b59b6", 
-			"icon": "icon-comments", 
-			"label": "Messages", 
-			"link": "messages", 
-			"type": "page"
-		}, 
-		"To Do": {
-			"color": "#f1c40f", 
-			"icon": "icon-check", 
-			"label": "To Do", 
-			"link": "todo", 
-			"type": "page"
-		}, 
-		"Website": {
-			"color": "#16a085", 
-			"icon": "icon-globe", 
-			"link": "website-home", 
-			"type": "module"
-		}
-	}
