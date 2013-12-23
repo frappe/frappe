@@ -75,21 +75,32 @@ wn.PermissionEngine = Class.extend({
 			method: "get_roles_and_doctypes",
 			callback: function(r) {
 				me.options = r.message;
-				me.doctype_select 
-					= me.wrapper.appframe.add_select("doctypes", 
-						[wn._("Select Document Type")+"..."].concat(r.message.doctypes))
-						.change(function() {
-							wn.set_route("permission-manager", $(this).val())
-						});
-				me.role_select 
-					= me.wrapper.appframe.add_select("roles", 
-						[wn._("Select Role")+"..."].concat(r.message.roles))
-						.change(function() {
-							me.refresh();
-						});
-				me.set_from_route();
+				me.setup_appframe();
 			}
 		});
+	},
+	setup_appframe: function() {
+		var me = this;
+		this.doctype_select 
+			= this.wrapper.appframe.add_select("doctypes", 
+				[wn._("Select Document Type")+"..."].concat(this.options.doctypes))
+				.change(function() {
+					wn.set_route("permission-manager", $(this).val());
+				});
+		this.role_select 
+			= this.wrapper.appframe.add_select("roles", 
+				[wn._("Select Role")+"..."].concat(this.options.roles))
+				.change(function() {
+					me.refresh();
+				});
+		this.standard_permissions_link = $('<div class="form-group pull-right"><a>Show Standard Permissions</a></div>')
+			.appendTo(me.wrapper.appframe.parent.find(".appframe-form .container"))
+			.css({"margin-top": "7px"})
+			.find("a")
+			.on("click", function() {
+				return me.show_standard_permissions();
+			});
+		this.set_from_route();
 	},
 	set_from_route: function() {
 		if(wn.get_route()[1] && this.doctype_select) {
@@ -98,6 +109,23 @@ wn.PermissionEngine = Class.extend({
 		} else {
 			this.refresh();
 		}
+	},
+	show_standard_permissions: function() {
+		return;
+		
+		var doctype = this.doctype_select.val();
+		if(doctype) {
+			wn.call({
+				module:"core",
+				page:"permission_manager",
+				method: "get_standard_permissions",
+				args: {doctype: doctype},
+				callback: function(r) {
+					console.log(r);
+				}
+			});
+		}
+		return false;
 	},
 	make_reset_button: function() {
 		var me = this;

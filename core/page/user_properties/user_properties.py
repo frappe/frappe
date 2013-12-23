@@ -53,14 +53,16 @@ def _build_conditions(filters):
 @webnotes.whitelist()
 def remove(user, name, defkey, defvalue):
 	if not webnotes.permissions.can_restrict_user(user, defkey, defvalue):
-		raise webnotes.PermissionError
+		raise webnotes.PermissionError("Cannot Remove Restriction for User: {user} on DocType: {doctype} and Name: {name}".format(
+			user=user, doctype=defkey, name=defvalue))
 	
 	webnotes.defaults.clear_default(name=name)
 	
 @webnotes.whitelist()
 def add(user, defkey, defvalue):
 	if not webnotes.permissions.can_restrict_user(user, defkey, defvalue):
-		raise webnotes.PermissionError
+		raise webnotes.PermissionError("Cannot Restrict User: {user} for DocType: {doctype} and Name: {name}".format(
+			user=user, doctype=defkey, name=defvalue))
 	
 	# check if already exists
 	d = webnotes.conn.sql("""select name from tabDefaultValue 

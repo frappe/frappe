@@ -2,7 +2,7 @@
  {
   "creation": "2013-02-22 01:27:32", 
   "docstatus": 0, 
-  "modified": "2013-12-20 19:23:05", 
+  "modified": "2013-12-23 16:12:45", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -135,6 +135,12 @@
   "reqd": 0, 
   "search_index": 0, 
   "width": "50px"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "ignore_restrictions", 
+  "fieldtype": "Check", 
+  "label": "Ignore Restrictions"
  }, 
  {
   "doctype": "DocField", 

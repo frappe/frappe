@@ -114,7 +114,8 @@ wn.views.DocListView = wn.ui.Listing.extend({
 				}
 			});
 			wn.utils.set_footnote(this, this.$page.find(".layout-main-section"), 
-				wn._("Showing only for") + ": " + match_text.join(" & "));
+				"<p>" + wn._("Showing only for") + ":</p><ul>" 
+				+ $.map(match_text, function(txt) { return "<li>"+txt+"</li>" }).join("")) + "</ul>";
 			$(this.footnote_area).css({"margin-top":"0px", "margin-bottom":"20px"});
 		}
 	},

@@ -21,16 +21,24 @@ def get_user_default_as_list(key, user=None):
 	d = get_defaults(user or webnotes.session.user).get(key, None)
 	return (not isinstance(d, list)) and [d] or d
 
-def get_restrictions():
-	if webnotes.local.restrictions is None:
-		out = {}
-		for key, value in webnotes.conn.sql("""select defkey, defvalue 
-			from tabDefaultValue where parent=%s and parenttype='Restriction'""", webnotes.session.user):
-			out.setdefault(key, [])
-			out[key].append(value)
-			
-		webnotes.local.restrictions = out
-	return webnotes.local.restrictions
+def get_restrictions(user=None):
+	if not user:
+		user = webnotes.session.user
+	
+	if user == webnotes.session.user:
+		if webnotes.local.restrictions is None:
+			webnotes.local.restrictions = build_restrictions(user)
+		return webnotes.local.restrictions
+	else:
+		return build_restrictions(user)
+	
+def build_restrictions(user):
+	out = {}
+	for key, value in webnotes.conn.sql("""select defkey, defvalue 
+		from tabDefaultValue where parent=%s and parenttype='Restriction'""", user):
+		out.setdefault(key, [])
+		out[key].append(value)
+	return out
 
 def get_defaults(user=None):
 	if not user and webnotes.session:

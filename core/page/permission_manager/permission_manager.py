@@ -34,9 +34,6 @@ def remove(doctype, name):
 	webnotes.conn.sql("""delete from tabDocPerm where name=%s""", name)
 	validate_and_reset(doctype, for_remove=True)
 	
-	if match:
-		webnotes.defaults.clear_cache()
-
 @webnotes.whitelist()
 def add(parent, role, permlevel):
 	webnotes.only_for("System Manager")
@@ -60,16 +57,12 @@ def update(name, doctype, ptype, value=0):
 	 	% (ptype, '%s', '%s'), (value, name))
 	validate_and_reset(doctype)
 	
-	if ptype == "read" and webnotes.conn.get_value("DocPerm", name, "`match`"):
-		webnotes.defaults.clear_cache()
-	
 @webnotes.whitelist()
 def update_match(name, doctype, match=""):
 	webnotes.only_for("System Manager")
 	webnotes.conn.sql("""update tabDocPerm set `match`=%s where name=%s""",
 		(match, name))
 	validate_and_reset(doctype)
-	webnotes.defaults.clear_cache()
 	
 def validate_and_reset(doctype, for_remove=False):
 	from core.doctype.doctype.doctype import validate_permissions_for_doctype
@@ -81,7 +74,6 @@ def reset(doctype):
 	webnotes.only_for("System Manager")
 	webnotes.reset_perms(doctype)
 	clear_doctype_cache(doctype)
-	webnotes.defaults.clear_cache()
 
 def clear_doctype_cache(doctype):
 	webnotes.clear_cache(doctype=doctype)
@@ -99,3 +91,8 @@ def get_users_with_role(role):
 			and tabProfile.name != "Administrator"
 			and tabUserRole.parent = tabProfile.name
 			and ifnull(tabProfile.enabled,0)=1""", role)]
+
+@webnotes.whitelist
+def get_standard_permissions():
+	# TODO
+	pass

@@ -2,7 +2,7 @@
  {
   "creation": "2013-01-10 16:34:01", 
   "docstatus": 0, 
-  "modified": "2013-12-20 19:24:00", 
+  "modified": "2013-12-23 15:07:56", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -44,29 +44,10 @@
  }, 
  {
   "doctype": "DocField", 
-  "fieldname": "details", 
-  "fieldtype": "Column Break", 
-  "label": "Details", 
-  "oldfieldtype": "Column Break", 
-  "print_width": "50%", 
-  "width": "50%"
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "trash_reason", 
-  "fieldtype": "Small Text", 
-  "label": "Trash Reason", 
-  "no_copy": 0, 
-  "oldfieldname": "trash_reason", 
-  "oldfieldtype": "Small Text", 
-  "read_only": 1, 
-  "search_index": 0
- }, 
- {
-  "doctype": "DocField", 
   "fieldname": "dt", 
   "fieldtype": "Link", 
   "in_filter": 1, 
+  "in_list_view": 1, 
   "label": "Document", 
   "no_copy": 0, 
   "oldfieldname": "dt", 
@@ -95,15 +76,27 @@
   "oldfieldtype": "HTML"
  }, 
  {
+  "description": "Select the label after which you want to insert new field.", 
+  "doctype": "DocField", 
+  "fieldname": "insert_after", 
+  "fieldtype": "Select", 
+  "label": "Insert After", 
+  "no_copy": 1, 
+  "oldfieldname": "insert_after", 
+  "oldfieldtype": "Select", 
+  "search_index": 0
+ }, 
+ {
   "doctype": "DocField", 
   "fieldname": "fieldtype", 
   "fieldtype": "Select", 
   "in_filter": 1, 
+  "in_list_view": 1, 
   "label": "Field Type", 
   "no_copy": 0, 
   "oldfieldname": "fieldtype", 
   "oldfieldtype": "Select", 
-  "options": "\nButton\nCheck\nCode\nColumn Break\nCurrency\nData\nDate\nFloat\nHTML\nInt\nLink\nRead Only\nSection Break\nSelect\nSmall Text\nText\nText Editor\nTime\nTable", 
+  "options": "Button\nCheck\nCode\nColumn Break\nCurrency\nData\nDate\nDatetime\nFloat\nHTML\nImage\nInt\nLink\nLong Text\nPassword\nPercent\nRead Only\nSection Break\nSelect\nSmall Text\nTable\nText\nText Editor\nTime", 
   "reqd": 1, 
   "search_index": 0
  }, 
@@ -118,6 +111,7 @@
   "doctype": "DocField", 
   "fieldname": "options", 
   "fieldtype": "Text", 
+  "in_list_view": 1, 
   "label": "Options", 
   "no_copy": 0, 
   "oldfieldname": "options", 
@@ -138,6 +132,17 @@
  }, 
  {
   "doctype": "DocField", 
+  "fieldname": "fieldname", 
+  "fieldtype": "Data", 
+  "label": "Fieldname", 
+  "no_copy": 1, 
+  "oldfieldname": "fieldname", 
+  "oldfieldtype": "Data", 
+  "read_only": 1, 
+  "search_index": 0
+ }, 
+ {
+  "doctype": "DocField", 
   "fieldname": "properties", 
   "fieldtype": "Column Break", 
   "label": "Properties", 
@@ -146,14 +151,48 @@
   "width": "50%"
  }, 
  {
-  "description": "Select the label after which you want to insert new field.", 
+  "default": "0", 
   "doctype": "DocField", 
-  "fieldname": "insert_after", 
-  "fieldtype": "Select", 
-  "label": "Insert After", 
-  "no_copy": 1, 
-  "oldfieldname": "insert_after", 
-  "oldfieldtype": "Select", 
+  "fieldname": "permlevel", 
+  "fieldtype": "Int", 
+  "label": "Permission Level", 
+  "no_copy": 0, 
+  "oldfieldname": "permlevel", 
+  "oldfieldtype": "Int", 
+  "search_index": 0
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "reqd", 
+  "fieldtype": "Check", 
+  "in_list_view": 1, 
+  "label": "Is Mandatory Field", 
+  "no_copy": 0, 
+  "oldfieldname": "reqd", 
+  "oldfieldtype": "Check", 
+  "search_index": 0
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "read_only", 
+  "fieldtype": "Check", 
+  "label": "Read Only"
+ }, 
+ {
+  "depends_on": "eval:doc.fieldtype===\"Link\"", 
+  "doctype": "DocField", 
+  "fieldname": "ignore_restrictions", 
+  "fieldtype": "Check", 
+  "label": "Ignore Restrictions"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "width", 
+  "fieldtype": "Data", 
+  "label": "Width", 
+  "no_copy": 0, 
+  "oldfieldname": "width", 
+  "oldfieldtype": "Data", 
   "search_index": 0
  }, 
  {
@@ -168,32 +207,49 @@
  }, 
  {
   "doctype": "DocField", 
-  "fieldname": "fieldname", 
-  "fieldtype": "Data", 
-  "label": "Fieldname", 
-  "no_copy": 1, 
-  "oldfieldname": "fieldname", 
-  "oldfieldtype": "Data", 
-  "read_only": 1, 
-  "search_index": 0
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "width", 
-  "fieldtype": "Data", 
-  "label": "Width", 
-  "no_copy": 0, 
-  "oldfieldname": "width", 
-  "oldfieldtype": "Data", 
-  "search_index": 0
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "reqd", 
+  "fieldname": "hidden", 
   "fieldtype": "Check", 
-  "label": "Is Mandatory Field", 
+  "label": "Hidden"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "depends_on", 
+  "fieldtype": "Data", 
+  "label": "Depends On"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "print_hide", 
+  "fieldtype": "Check", 
+  "label": "Print Hide", 
   "no_copy": 0, 
-  "oldfieldname": "reqd", 
+  "oldfieldname": "print_hide", 
+  "oldfieldtype": "Check", 
+  "search_index": 0
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "print_width", 
+  "fieldtype": "Data", 
+  "label": "Print Width"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "no_copy", 
+  "fieldtype": "Check", 
+  "label": "No Copy", 
+  "no_copy": 0, 
+  "oldfieldname": "no_copy", 
+  "oldfieldtype": "Check", 
+  "search_index": 0
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "allow_on_submit", 
+  "fieldtype": "Check", 
+  "label": "Allow on Submit", 
+  "no_copy": 0, 
+  "oldfieldname": "allow_on_submit", 
   "oldfieldtype": "Check", 
   "search_index": 0
  }, 
@@ -215,65 +271,12 @@
  }, 
  {
   "doctype": "DocField", 
-  "fieldname": "no_copy", 
-  "fieldtype": "Check", 
-  "label": "No Copy", 
-  "no_copy": 0, 
-  "oldfieldname": "no_copy", 
-  "oldfieldtype": "Check", 
-  "search_index": 0
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "read_only", 
-  "fieldtype": "Check", 
-  "label": "Read Only"
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "hidden", 
-  "fieldtype": "Check", 
-  "label": "Hidden"
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "print_hide", 
-  "fieldtype": "Check", 
-  "label": "Print Hide", 
-  "no_copy": 0, 
-  "oldfieldname": "print_hide", 
-  "oldfieldtype": "Check", 
-  "search_index": 0
- }, 
- {
-  "doctype": "DocField", 
   "fieldname": "report_hide", 
   "fieldtype": "Check", 
   "label": "Report Hide", 
   "no_copy": 0, 
   "oldfieldname": "report_hide", 
   "oldfieldtype": "Check", 
-  "search_index": 0
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "allow_on_submit", 
-  "fieldtype": "Check", 
-  "label": "Allow on Submit", 
-  "no_copy": 0, 
-  "oldfieldname": "allow_on_submit", 
-  "oldfieldtype": "Check", 
-  "search_index": 0
- }, 
- {
-  "default": "0", 
-  "doctype": "DocField", 
-  "fieldname": "permlevel", 
-  "fieldtype": "Int", 
-  "label": "Permission Level", 
-  "no_copy": 0, 
-  "oldfieldname": "permlevel", 
-  "oldfieldtype": "Int", 
   "search_index": 0
  }, 
  {

@@ -32,6 +32,7 @@ class DocType:
 			'width',
 			'print_width',
 			'reqd',
+			'ignore_restrictions',
 			'in_filter',
 			'in_list_view',
 			'hidden',

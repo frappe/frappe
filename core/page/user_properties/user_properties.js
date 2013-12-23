@@ -83,9 +83,10 @@ wn.UserProperties = Class.extend({
 	},
 	set_from_route: function() {
 		var me = this;
-		if(wn.route_options && this.filters) {
+		if(wn.route_options && this.filters && !$.isEmptyObject(this.filters)) {
 			$.each(wn.route_options, function(key, value) {
-				me.set_filter(key, value);
+				if(me.filters[key] && wn.route_options[key]!=null)
+					me.set_filter(key, value);
 			});
 			wn.route_options = null;
 		}

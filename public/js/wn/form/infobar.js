@@ -93,7 +93,7 @@ wn.ui.form.InfoBar = Class.extend({
 		this.$comments
 			.popover("destroy")
 		
-		if(this.docinfo.comments.length) {
+		if(this.docinfo.comments && this.docinfo.comments.length) {
 			var last = this.docinfo.comments[0];
 			this.$comments
 				.popover({
@@ -110,7 +110,7 @@ wn.ui.form.InfoBar = Class.extend({
 		}
 		
 		$.each(["comments", "attachments", "assignments"], function(i, v) {
-			if(me.docinfo[v].length)
+			if(me.docinfo[v] && me.docinfo[v].length)
 				me["$" + v].addClass("appframe-iconbar-active");
 			else
 				me["$" + v].removeClass("appframe-iconbar-active");
