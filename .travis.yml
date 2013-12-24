@@ -16,8 +16,12 @@ script:
     webnotes --run_tests -v test_site
 
 branches:
-  only:
-    - testing
+  except:
+    - develop
+    - master
+    - 3.x.x
+    - slow
+    - webshop_refactor
 
 before_script:
   - mysql -e 'create database travis' &&
