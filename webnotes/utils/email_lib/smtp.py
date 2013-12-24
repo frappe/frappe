@@ -106,8 +106,10 @@ class EMail:
 		"""append a footer (signature)"""		
 		footer = footer or ""
 		footer += webnotes.conn.get_value('Control Panel',None,'mail_footer') or ''
+
+		other_footers = webnotes.get_hooks().mail_footer or []
 		
-		for f in webnotes.get_hooks().mail_footer:
+		for f in other_footers:
 			footer += f
 		
 		return footer

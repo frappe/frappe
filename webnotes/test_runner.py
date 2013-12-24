@@ -20,7 +20,7 @@ def main(app=None, module=None, doctype=None, verbose=False):
 		webnotes.connect()
 	
 	if doctype:
-		run_unittest(doctype, verbose=verbose)
+		ret = run_unittest(doctype, verbose=verbose)
 	elif module:
 		import importlib
 		
@@ -31,14 +31,15 @@ def main(app=None, module=None, doctype=None, verbose=False):
 				make_test_records(doctype, verbose=verbose)
 		
 		test_suite.addTest(unittest.TestLoader().loadTestsFromModule(sys.modules[module]))
-		unittest.TextTestRunner(verbosity=1+(verbose and 1 or 0)).run(test_suite)
+		ret = unittest.TextTestRunner(verbosity=1+(verbose and 1 or 0)).run(test_suite)
 	else:
-		run_all_tests(app, verbose)
+		ret = run_all_tests(app, verbose)
+	return ret
 
 def run_all_tests(app=None, verbose=False):
 	import os
 
-	apps = [apps] if app else webnotes.get_installed_apps()
+	apps = [app] if app else webnotes.get_installed_apps()
 
 	test_suite = unittest.TestSuite()
 	for app in apps:
@@ -54,7 +55,7 @@ def run_all_tests(app=None, verbose=False):
 					# print filename[:-3]
 					_run_test(path, filename, verbose, test_suite=test_suite, run=False)
 				
-	unittest.TextTestRunner(verbosity=1+(verbose and 1 or 0)).run(test_suite)
+	return unittest.TextTestRunner(verbosity=1+(verbose and 1 or 0)).run(test_suite)
 
 def _run_test(path, filename, verbose, test_suite=None, run=True):
 	import os, imp
@@ -176,4 +177,4 @@ def run_unittest(doctype, verbose=False):
 	test_suite = unittest.TestSuite()	
 	module = webnotes.get_module(test_module)
 	test_suite.addTest(unittest.TestLoader().loadTestsFromModule(module))
-	unittest.TextTestRunner(verbosity=1+(verbose and 1 or 0)).run(test_suite)
+	return unittest.TextTestRunner(verbosity=1+(verbose and 1 or 0)).run(test_suite)

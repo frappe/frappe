@@ -16,12 +16,19 @@ from webnotes.model.sync import sync_for
 from webnotes.utils import cstr
 
 def install_db(root_login="root", root_password=None, db_name=None, source_sql=None,
-	admin_password = 'admin', verbose=True, force=0, site_config=None):
+	admin_password = 'admin', verbose=True, force=0, site_config=None, reinstall=False):
 	webnotes.flags.in_install_db = True
 	make_conf(db_name, site_config=site_config)
-	webnotes.local.conn = make_connection(root_login, root_password)
-	webnotes.local.session = webnotes._dict({'user':'Administrator'})
-	create_database_and_user(force, verbose)
+	if reinstall:
+		webnotes.connect(db_name=db_name)
+		dbman = DbManager(webnotes.local.conn)
+		dbman.create_database(db_name)
+
+	else:
+		webnotes.local.conn = make_connection(root_login, root_password)
+		webnotes.local.session = webnotes._dict({'user':'Administrator'})
+		create_database_and_user(force, verbose)
+
 	webnotes.conf.admin_password = admin_password
 
 	webnotes.connect(db_name=db_name)

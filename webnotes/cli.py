@@ -206,10 +206,10 @@ def setup_translation(parser):
 # install
 @cmd
 def install(db_name, root_login="root", root_password=None, source_sql=None,
-	 admin_password = 'admin', verbose=True, force=False, site_config=None):
+	 admin_password = 'admin', verbose=True, force=False, site_config=None, reinstall=False):
 	from webnotes.installer import install_db, install_app
 	install_db(root_login=root_login, root_password=root_password, db_name=db_name, source_sql=source_sql,
-		admin_password = admin_password, verbose=verbose, force=force, site_config=site_config)
+		admin_password = admin_password, verbose=verbose, force=force, site_config=site_config, reinstall=reinstall)
 	install_app("webnotes", verbose=verbose)
 	webnotes.destroy()
 
@@ -222,7 +222,7 @@ def install_app(app_name, verbose=False):
 
 @cmd
 def reinstall(verbose=True):
-	install(db_name=webnotes.conf.db_name, verbose=verbose, force=True)
+	install(db_name=webnotes.conf.db_name, verbose=verbose, force=True, reinstall=True)
 
 @cmd
 def restore(db_name, source_sql, verbose=True, force=False):
@@ -590,7 +590,9 @@ def smtp_debug_server():
 @cmd
 def run_tests(app=None, module=None, doctype=None, verbose=False):
 	import webnotes.test_runner
-	webnotes.test_runner.main(app and app[0], module and module[0], doctype and doctype[0], verbose)
+	ret = webnotes.test_runner.main(app and app[0], module and module[0], doctype and doctype[0], verbose)
+	if ret.failures > 0:
+		exit(1)
 
 @cmd
 def serve(port=8000, profile=False):
