@@ -39,7 +39,7 @@ def main(app=None, module=None, doctype=None, verbose=False):
 def run_all_tests(app=None, verbose=False):
 	import os
 
-	apps = [apps] if app else webnotes.get_installed_apps()
+	apps = [app] if app else webnotes.get_installed_apps()
 
 	test_suite = unittest.TestSuite()
 	for app in apps:
