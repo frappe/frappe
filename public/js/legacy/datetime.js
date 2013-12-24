@@ -83,20 +83,18 @@ wn.datetime = {
 		return dateutil.obj_to_str(new_dt);
 	},
 	
-	month_start: function() { 
-		var d = new Date();
-		return d.getFullYear() + '-' + int_to_str(d.getMonth()+1,2) + '-01';
+	month_start: function(d, month) { 
+		if(!d)var d = new Date();
+		var m = month ? cint(month) : d.getMonth() + 1;
+		return d.getFullYear() + '-' + int_to_str(m, 2) + '-01';
 	},
 	
-	month_end: function(d) { 
-		if(!d)var d = new Date(); 
-		var m = d.getMonth() + 1; 
+	month_end: function(d, month) { 
+		if(!d)var d = new Date();
+		var m = month ? cint(month) : d.getMonth() + 1;
 		var y = d.getFullYear();
-		
-		last_date = month_last[m];
-		if(m==2 && (y % 4)==0 && ((y % 100)!=0 || (y % 400)==0)) // leap year test
-			last_date = 29;
-		return y+'-'+int_to_str(m,2)+'-'+last_date;
+		var last_date = new Date(y, m, 0).getDate();
+		return y + '-' + int_to_str(m, 2) + '-' + int_to_str(last_date, 2);
 	},
 	
 	get_user_fmt: function() {
