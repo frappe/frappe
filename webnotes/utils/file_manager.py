@@ -32,7 +32,7 @@ def upload():
 def save_uploaded(dt, dn):
 	fname, content = get_uploaded_content()
 	if content:
-		return save_file(fname, content, dt, dn)
+		return save_file(fname, content, dt, dn);
 	else: 
 		raise Exception
 
@@ -48,7 +48,10 @@ def save_url(file_url, dt, dn):
 		"attached_to_name": dn
 	})
 	f.ignore_permissions = True
-	f.insert();
+	try:
+		f.insert();
+	except webnotes.DuplicateEntryError:
+		return webnotes.doc("File Data", f.doc.duplicate_entry)		
 	return f.doc
 
 def get_uploaded_content():	
@@ -88,7 +91,7 @@ def save_file(fname, content, dt, dn, decode=False):
 	
 	import filecmp
 	from webnotes.model.code import load_doctype_module
-	files_path = get_site_path(conf.files_path)
+	files_path = os.path.join(webnotes.local.site_path, "public", "files")
 	module = load_doctype_module(dt, webnotes.conn.get_value("DocType", dt, "module"))
 	
 	if hasattr(module, "attachments_folder"):
@@ -135,8 +138,7 @@ def save_file(fname, content, dt, dn, decode=False):
 
 	f = webnotes.bean({
 		"doctype": "File Data",
-		"file_name": os.path.relpath(os.path.join(files_path, fname), 
-			get_site_path(conf.get("public_path", "public"))),
+		"file_name": os.path.relpath(os.path.join(files_path, fname), get_site_path("public")),
 		"attached_to_doctype": dt,
 		"attached_to_name": dn,
 		"file_size": file_size
@@ -145,7 +147,7 @@ def save_file(fname, content, dt, dn, decode=False):
 	try:
 		f.insert();
 	except webnotes.DuplicateEntryError:
-		return {"file_name": f.doc.file_name}
+		return webnotes.doc("File Data", f.doc.duplicate_entry)
 
 	return f.doc
 
@@ -212,7 +214,7 @@ def remove_all(dt, dn):
 		if e.args[0]!=1054: raise # (temp till for patched)
 
 def remove_file(fid):
-	"""Remove file and File Data entry"""	
+	"""Remove file and File Data entry"""
 	webnotes.delete_doc("File Data", fid)
 		
 def get_file(fname):

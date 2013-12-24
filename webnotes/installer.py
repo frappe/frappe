@@ -42,6 +42,7 @@ def create_database_and_user(force, verbose):
 	dbman = DbManager(webnotes.local.conn)
 	if force or (db_name not in dbman.get_database_list()):
 		dbman.delete_user(db_name)
+		dbman.drop_database(db_name)
 	else:
 		raise Exception("Database %s already exists" % (db_name,))
 
@@ -83,10 +84,19 @@ def make_connection(root_login, root_password):
 
 @webnotes.whitelist()
 def install_app(name, verbose=False):
-	app_hooks = webnotes.get_hooks(name)
-	webnotes.check_admin_or_system_manager()
-	webnotes.flags.in_install_app = True
+	webnotes.flags.in_install_app = name
 	webnotes.clear_cache()
+
+	app_hooks = webnotes.get_hooks(name)
+	installed_apps = json.loads(webnotes.conn.get_global("installed_apps") or "[]") or []
+
+	if name in installed_apps:
+		print "App Already Installed"
+		webnotes.msgprint("App Already Installed.")
+		return
+		
+	if name != "webnotes":
+		webnotes.check_admin_or_system_manager()
 
 	for before_install in app_hooks.before_install or []:
 		webnotes.get_attr(before_install)()
@@ -97,7 +107,6 @@ def install_app(name, verbose=False):
 		webnotes.get_attr(after_install)()
 
 	set_all_patches_as_completed(name)
-	installed_apps = json.loads(webnotes.conn.get_global("installed_apps") or "[]") or []
 	installed_apps.append(name)
 	webnotes.conn.set_global("installed_apps", json.dumps(installed_apps))
 	webnotes.clear_cache()

@@ -80,31 +80,39 @@ wn.ui.form.Attachments = Class.extend({
 				var remove_btn = this;
 				wn.confirm(wn._("Are you sure you want to delete the attachment?"),
 					function() {
-						var data = $(remove_btn).data("fileid");
-						return wn.call({
-							method: 'webnotes.widgets.form.utils.remove_attach',
-							args: {
-								fid: data, 
-								dt: me.frm.doctype, 
-								dn: me.frm.docname 
-							},
-							callback: function(r,rt) {
-								if(r.exc) {
-									if(!r._server_messages)
-										msgprint("There were errors.");
-									return;
-								}
-								me.remove_fileid(data);
-								me.frm.toolbar.show_infobar();
-							}
-						});
-					});
+						me.remove_attachment($(remove_btn).data("fileid"))
+					}
+				);
 				return false;
 			});
 			
 		if(!wn.model.can_write(this.frm.doctype, this.frm.name)) {
 			$close.remove();
 		}
+	},
+	remove_attachment_by_filename: function(filename, callback) {
+		this.remove_attachment(this.get_attachments()[filename], callback);
+	},
+	remove_attachment: function(fileid, callback) {
+		var me = this;
+		return wn.call({
+			method: 'webnotes.widgets.form.utils.remove_attach',
+			args: {
+				fid: fileid, 
+				dt: me.frm.doctype, 
+				dn: me.frm.docname 
+			},
+			callback: function(r,rt) {
+				if(r.exc) {
+					if(!r._server_messages)
+						msgprint("There were errors.");
+					return;
+				}
+				me.remove_fileid(fileid);
+				me.frm.toolbar.show_infobar();
+				if(callback) callback();
+			}
+		});
 	},
 	new_attachment: function(fieldname) {
 		var me = this;

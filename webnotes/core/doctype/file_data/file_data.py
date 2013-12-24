@@ -20,15 +20,18 @@ class DocType():
 	
 	def on_update(self):
 		# check duplicate assignement
-		n_records = webnotes.conn.sql("""select count(*) from `tabFile Data`
+		n_records = webnotes.conn.sql("""select name from `tabFile Data`
 			where file_name=%s 
+			and name!=%s
 			and attached_to_doctype=%s 
-			and attached_to_name=%s""", (self.doc.file_name, self.doc.attached_to_doctype,
-				self.doc.attached_to_name))[0][0]
-		if n_records > 1:
+			and attached_to_name=%s""", (self.doc.file_name, self.doc.name, self.doc.attached_to_doctype,
+				self.doc.attached_to_name))
+		if len(n_records) > 0:
+			self.doc.duplicate_entry = n_records[0][0]
 			webnotes.msgprint(webnotes._("Same file has already been attached to the record"))
+			webnotes.conn.rollback()
 			raise webnotes.DuplicateEntryError
-			
+
 	def on_trash(self):
 		if self.doc.attached_to_name:
 			# check persmission
@@ -46,7 +49,7 @@ class DocType():
 				if self.doc.file_name.startswith("files/"):
 					path = webnotes.utils.get_site_path("public", self.doc.file_name)
 				else:
-					path = webnotes.utils.get_site_path(conf.files_path, self.doc.file_name)
+					path = webnotes.utils.get_site_path("public", "files", self.doc.file_name)
 				if os.path.exists(path):
 					os.remove(path)
 

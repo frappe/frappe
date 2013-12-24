@@ -814,26 +814,16 @@ def get_base_path():
 	return os.path.dirname(os.path.abspath(conf.__file__))
 	
 def get_site_base_path(sites_dir=None, hostname=None):
-	if not sites_dir:
-		sites_dir = conf.sites_dir
-	
-	if not hostname:
-		hostname = conf.site
-		
-	if not (sites_dir and hostname):
-		return get_base_path()
-
-	import os
-	return os.path.join(sites_dir, hostname)
+	return webnotes.local.site_path
 
 def get_site_path(*path):
 	return get_path(base=get_site_base_path(), *path)
 	
 def get_files_path():
-	return get_site_path(webnotes.conf.files_path)
+	return get_site_path("public", "files")
 
 def get_backups_path():
-	return get_site_path(webnotes.conf.backup_path) 
+	return get_site_path("public", "backup") 
 	
 def get_url(uri=None):
 	url = get_request_site_address()

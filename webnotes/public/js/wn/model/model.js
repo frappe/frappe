@@ -186,7 +186,8 @@ $.extend(wn.model, {
 		var doc = locals[doctype] && locals[doctype][name] || null;
 		if(doc && doc[fieldname] !== value) {
 			doc[fieldname] = value;
-			wn.model.trigger(fieldname, value, doc);
+			// trigger this after an interval since this will stop propogation
+			setTimeout(10, function() { wn.model.trigger(fieldname, value, doc); });
 			return true;
 		} else {
 			// execute link triggers (want to reselect to execute triggers)

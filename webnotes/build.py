@@ -26,7 +26,7 @@ def watch(no_compress):
 
 	while True:
 		if files_dirty():
-			build_js_css_packs()
+			build(no_compress=True)
 		
 		time.sleep(3)
 

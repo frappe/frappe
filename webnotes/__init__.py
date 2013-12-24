@@ -248,16 +248,16 @@ def whitelist(allow_guest=False, allow_roles=None):
 	
 def clear_cache(user=None, doctype=None):
 	"""clear cache"""
-	from webnotes.sessions import clear_cache
+	import webnotes.sessions
 	if doctype:
 		from webnotes.model.doctype import clear_cache
-		clear_cache(doctype)
+		webnotes.sessions.clear_cache(doctype)
 		reset_metadata_version()
 	elif user:
-		clear_cache(user)
+		webnotes.sessions.clear_cache(user)
 	else: # everything
 		import translate
-		clear_cache()
+		webnotes.sessions.clear_cache()
 		translate.clear_cache()
 		reset_metadata_version()
 	

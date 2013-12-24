@@ -163,7 +163,7 @@ wn.ui.form.Layout = Class.extend({
 		var me = this;
 		this.wrapper.on("keydown", function(ev) {
 			if(ev.which==9) {
-				var current = $(ev.target).trigger("change"),
+				var current = $(ev.target),
 					doctype = current.attr("data-doctype"),
 					fieldname = current.attr("data-fieldname");
 				if(doctype)

@@ -52,7 +52,7 @@ wn.pages['applications'].onload = function(wrapper) {
 								if(!r.exc) {
 									msgprint("<i class='icon-ok'></i> Installed");
 									msgprint("Refreshing...");
-									setTimeout(window.location.reload, 2000)
+									setTimeout(2000, window.location.reload)
 								}
 							}
 						})

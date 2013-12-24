@@ -23,18 +23,14 @@ def clear(user=None):
 
 def clear_cache(user=None):
 	cache = webnotes.cache()
-
-	cache.delete_value(["app_hooks", "installed_apps", "app_modules", "module_apps"])
-
-	# clear doctype cache
-	webnotes.model.doctype.clear_cache()
 	
 	if user:
 		cache.delete_value("bootinfo:" + user)
 		cache.delete_value("lang:" + user)
 		
 		# clear notifications
-		webnotes.conn.sql("""delete from `tabNotification Count` where owner=%s""", user)
+		if webnotes.flags.in_install_app!="webnotes":
+			webnotes.conn.sql("""delete from `tabNotification Count` where owner=%s""", user)
 		
 		if webnotes.session:
 			if user==webnotes.session.user and webnotes.session.sid:
@@ -43,11 +39,17 @@ def clear_cache(user=None):
 				for sid in webnotes.conn.sql_list("""select sid from tabSessions
 					where user=%s""", user):
 						cache.delete_value("session:" + sid)
+
+		webnotes.defaults.clear_cache(user)
 	else:
+		cache.delete_value(["app_hooks", "installed_apps", "app_modules", "module_apps"])
+		webnotes.model.doctype.clear_cache()
+
 		for sess in webnotes.conn.sql("""select user, sid from tabSessions""", as_dict=1):
 			cache.delete_value("lang:" + sess.user)
 			cache.delete_value("session:" + sess.sid)
 			cache.delete_value("bootinfo:" + sess.user)
+		webnotes.defaults.clear_cache()
 
 def clear_sessions(user=None, keep_current=False):
 	if not user:

@@ -632,6 +632,12 @@ _f.Frm.prototype.reload_doc = function() {
 var validated;
 _f.Frm.prototype.save = function(save_action, callback, btn, on_error) {
 	$(document.activeElement).blur();
+	
+	// let any pending js process finish
+	setTimeout(10, this._save(save_action, callback, btn, on_error));
+}
+
+_f.Frm.prototype._save = function(save_action, callback, btn, on_error) {
 	var me = this;
 	
 	if((!this.meta.in_dialog || this.in_form) && !this.meta.istable)

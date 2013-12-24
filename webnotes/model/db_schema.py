@@ -31,6 +31,7 @@ type_map = {
 	,'password':	('varchar', '180')
 	,'select':		('varchar', '180')
 	,'read only':	('varchar', '180')
+	,'attach':		('varchar', '180')
 }
 
 default_columns = ['name', 'creation', 'modified', 'modified_by', 'owner', 'docstatus', 'parent',\

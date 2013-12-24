@@ -59,11 +59,11 @@ classes should alter those!
 }
 
 .slick-group-toggle.expanded {
-  background: url(../assets/webnotes/js/lib/slickgrid/images/collapse.gif) no-repeat center center;
+  background: url(../webnotes/js/lib/slickgrid/images/collapse.gif) no-repeat center center;
 }
 
 .slick-group-toggle.collapsed {
-  background: url(../assets/webnotes/js/lib/slickgrid/images/expand.gif) no-repeat center center;
+  background: url(../webnotes/js/lib/slickgrid/images/expand.gif) no-repeat center center;
 }
 
 .slick-group-totals {

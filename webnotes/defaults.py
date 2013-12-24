@@ -4,6 +4,8 @@
 from __future__ import unicode_literals
 import webnotes
 
+common_keys = ["Control Panel", "__global"]
+
 def set_user_default(key, value, user=None):
 	set_default(key, value, user or webnotes.session.user)
 
@@ -53,7 +55,7 @@ def set_default(key, value, parent):
 		# update
 		webnotes.conn.sql("""update `tabDefaultValue` set defvalue=%s 
 			where parent=%s and defkey=%s""", (value, parent, key))
-		clear_cache(parent)
+		_clear_cache(parent)
 	else:
 		add_default(key, value, parent)
 
@@ -67,7 +69,7 @@ def add_default(key, value, parent):
 		"defvalue": value
 	})
 	d.insert()
-	clear_cache(parent)
+	_clear_cache(parent)
 	
 def clear_default(key=None, value=None, parent=None, name=None):
 	conditions = []
@@ -93,7 +95,7 @@ def clear_default(key=None, value=None, parent=None, name=None):
 		raise Exception, "[clear_default] No key specified."
 	
 	webnotes.conn.sql("""delete from tabDefaultValue where %s""" % " and ".join(conditions), values)
-	clear_cache()
+	_clear_cache(parent)
 	
 def get_defaults_for(parent="Control Panel"):
 	"""get all defaults"""
@@ -136,16 +138,17 @@ def get_defaults_for_match(userd):
 
 	return out
 
-def clear_cache(parent=None):
-	def all_profiles():
-		return webnotes.conn.sql_list("select name from tabProfile") + ["Control Panel", "__global"]
-		
-	if parent=="Control Panel" or not parent:
-		parent = all_profiles()
-	elif isinstance(parent, basestring):
-		parent = [parent]
-		
-	for p in parent:
-		webnotes.cache().delete_value("__defaults:" + p)
+def _clear_cache(parent):
+	if parent in common_keys:
+		webnotes.clear_cache()
+	else:
+		webnotes.clear_cache(user=webnotes.session.user)
 
-	webnotes.clear_cache()
+def clear_cache(user=None):	
+	to_clear = []
+	if user:
+		to_clear = [user]
+	elif webnotes.flags.in_install_app!="webnotes":
+		to_clear = webnotes.conn.sql_list("select name from tabProfile")
+	for p in to_clear + common_keys:
+		webnotes.cache().delete_value("__defaults:" + p)

@@ -212,9 +212,23 @@ wn.ui.form.ControlInput = wn.ui.form.Control.extend({
 	},
 	bind_change_event: function() {
 		var me = this;
-		this.$input && this.$input.on("change", this.change || function() { 
-			me.doctype && me.docname && me.get_value 
-				&& me.parse_validate_and_set_in_model(me.get_value()); } );
+		this.$input && this.$input.on("change", this.change || function(e) { 
+			if(me.doctype && me.docname && me.get_value) {
+				me.parse_validate_and_set_in_model(me.get_value());
+			} else {
+				// inline
+				var value = me.get_value();
+				if(me.parse) {
+					value = me.parse(value);
+				}
+				if(me.validate) {
+					me.validate(value, function(value1) { 
+						if(value !== value1)
+							me.set_input(value1) 
+					});
+				}
+			}
+		});
 	},
 	set_label: function(label) {
 		if(label) this.df.label = label;
@@ -513,11 +527,42 @@ wn.ui.form.ControlButton = wn.ui.form.ControlData.extend({
 	}
 });
 
-wn.ui.form.ControlAttach = wn.ui.form.ControlButton.extend({
+wn.ui.form.ControlAttach = wn.ui.form.ControlData.extend({
+	make_input: function() {
+		var me = this;
+		this.$input = $('<button class="btn btn-default">')
+			.html(wn._("Upload"))
+			.prependTo(me.input_area)
+			.on("click", function() {
+				me.onclick();
+			});
+		this.$value = $('<div class="alert alert-info">\
+			<a class="attached-file text-ellipsis" style="width: 80%" target="_blank"></a>\
+			<a class="close">&times;</a></div>')
+			.prependTo(me.input_area)
+			.toggle(false);
+		this.input = this.$input.get(0);
+		this.set_input_attributes();
+		this.has_input = true;
+		
+		this.$value.find(".close").on("click", function() {
+			if(me.frm) {
+				me.frm.attachments.remove_attachment_by_filename(me.value, function() {
+					me.parse_validate_and_set_in_model(null);
+					me.refresh();
+				});
+			} else {
+				me.dataurl = null;
+				me.fileobj = null;
+				me.set_input(null);
+				me.refresh();
+			}
+		})
+	},
 	onclick: function() {
 		if(!this.dialog) {
 			this.dialog = new wn.ui.Dialog({
-				title: wn._(this.df.label || "Upload Attachment"),
+				title: wn._(this.df.label || wn._("Upload")),
 			});
 		}
 
@@ -535,10 +580,9 @@ wn.ui.form.ControlAttach = wn.ui.form.ControlButton.extend({
 			args: {},
 			max_width: this.df.max_width,
 			max_height: this.df.max_height,
-			callback: function() { 
+			callback: function(fileid, filename, r) { 
 				me.dialog.hide();
 				me.on_upload_complete(fileid, filename, r);
-				me.show_ok_on_button();
 			},
 			onerror: function() {
 				me.dialog.hide();
@@ -562,36 +606,62 @@ wn.ui.form.ControlAttach = wn.ui.form.ControlButton.extend({
 				if(me.df.on_attach) {
 					me.df.on_attach(fileobj, dataurl);
 				}
-				me.show_ok_on_button();
+				me.on_upload_complete();
 			}
 		}
 	},
 	
+	set_input: function(value, dataurl) {
+		this.value = value;
+		if(this.value) {
+			this.$input.toggle(false);
+			this.$value.toggle(true).find(".attached-file")
+				.html(this.value)
+				.attr("href", dataurl || this.value);
+		} else {
+			this.$input.toggle(true);
+			this.$value.toggle(false);
+		}
+	},
+	
 	get_value: function() {
-		return this.fileobj ? (this.fileobj.filename + "," + this.dataurl) : null;
+		if(this.frm) {
+			return this.value;
+		} else {
+			return this.fileobj ? (this.fileobj.filename + "," + this.dataurl) : null;
+		}
 	},
 	
 	on_upload_complete: function(fileid, filename, r) {
-		this.frm && this.frm.attachments.update_attachment(fileid, filename, this.df.fieldname, r);
-	},
-	
-	show_ok_on_button: function() {
-		if(!$(this.input).find(".icon-ok").length) {
-			$(this.input).html('<i class="icon-ok"></i> ' + this.df.label);
+		if(this.frm) {
+			this.parse_validate_and_set_in_model(filename);
+			this.refresh();
+			this.frm.attachments.update_attachment(fileid, filename, this.df.fieldname, r);
+		} else {
+			this.set_input(this.fileobj.filename, this.dataurl);
+			this.refresh();
 		}
-	}
+	},
 });
 
 wn.ui.form.ControlAttachImage = wn.ui.form.ControlAttach.extend({
 	make_input: function() {
 		this._super();
 		this.img = $("<img class='img-responsive'>").appendTo($('<div style="margin: 7px 0px;">\
-			<div class="missing-image"><i class="icon-camera"></i></div></div>').prependTo(this.input_area)).toggle(false);
+			<div class="missing-image"><i class="icon-camera"></i></div></div>')
+			.prependTo(this.input_area)).toggle(false);
+			
+		var me = this;
+		this.$wrapper.on("refresh", function() {
+			if(me.value) {
+				$(me.input_area).find(".missing-image").toggle(false);
+				me.img.attr("src", me.dataurl ? me.dataurl : me.value).toggle(true);
+			} else {
+				$(me.input_area).find(".missing-image").toggle(true);
+				me.img.toggle(false);
+			}
+		});
 	},
-	on_attach: function() {
-		$(this.input_area).find(".missing-image").toggle(false);
-		this.img.attr("src", this.dataurl).toggle(true);
-	}
 });
 
 
