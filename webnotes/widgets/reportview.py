@@ -160,14 +160,18 @@ def build_conditions(doctype, fields, filters, docstatus):
 		
 def build_filter_conditions(filters, conditions):
 	"""build conditions from user filters"""
-	from webnotes.utils import cstr
+	from webnotes.utils import cstr, flt
 	if not getattr(webnotes.local, "reportview_tables", None):
 		webnotes.local.reportview_tables = []
-	
+		
+	doclist = {}
 	for f in filters:
 		if isinstance(f, basestring):
 			conditions.append(f)
 		else:
+			# get doclist of given doctype
+			doclist.setdefault(f[0], webnotes.model.doctype.get(f[0]))
+			
 			tname = ('`tab' + f[0] + '`')
 			if not tname in webnotes.local.reportview_tables:
 				webnotes.local.reportview_tables.append(tname)
@@ -176,14 +180,18 @@ def build_filter_conditions(filters, conditions):
 			if f[2] in ['in', 'not in']:
 				opts = ["'" + t.strip().replace("'", "\\'") + "'" for t in f[3].split(',')]
 				f[3] = "(" + ', '.join(opts) + ")"
-				conditions.append(tname + '.' + f[1] + " " + f[2] + " " + f[3])	
+				conditions.append('ifnull(' + tname + '.' + f[1] + ", '') " + f[2] + " " + f[3])
 			else:
-				if isinstance(f[3], basestring):
-					f[3] = "'" + f[3].replace("'", "\\'") + "'"	
-					conditions.append(tname + '.' + f[1] + " " + f[2] + " " + f[3])	
+				fieldtype = doclist[f[0]].get({"doctype": "DocField", 
+					"fieldname": f[1]})[0].fieldtype
+				if fieldtype in ["Float", "Int", "Currency", "Percent"]:
+					conditions.append('ifnull(' + tname + '.' + f[1] + ", 0) " + f[2] \
+						+ " " + cstr(flt(f[3])))
 				else:
-					conditions.append('ifnull(' + tname + '.' + f[1] + ",0) " + f[2] \
-						+ " " + cstr(f[3]))
+					f[3] = "'" + f[3].replace("'", "\\'") + "'"	
+					conditions.append('ifnull(' + tname + '.' + f[1] + ", '') " + f[2] + \
+						" " + cstr(f[3]))
+					
 					
 def build_match_conditions(doctype, fields=None, as_condition=True):
 	"""add match conditions if applicable"""
