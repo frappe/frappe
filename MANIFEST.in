@@ -13,7 +13,6 @@ recursive-include webnotes *.jpg
 recursive-include webnotes *.js
 recursive-include webnotes *.json
 recursive-include webnotes *.md
-recursive-include webnotes *.no_timestamps
 recursive-include webnotes *.otf
 recursive-include webnotes *.png
 recursive-include webnotes *.py
