@@ -229,9 +229,7 @@ wn.ui.form.GridRow = Class.extend({
 		
 		// refersh form fields
 		if(this.show) {
-			$.each(this.fields, function(i, f) {
-				f.refresh();
-			});
+			this.layout.refresh(this.doc);
 		} 
 	},
 	make_static_display: function() {
@@ -400,54 +398,67 @@ wn.ui.form.GridRow = Class.extend({
 		this.make_form();
 		this.form_area.empty();
 		
-		var me = this,
-			make_row = function(label) {
-				if(label)
-					$('<div><h4 style="margin-bottom: 0px;"><b>'+ label +'</b></h4>\
-						<hr style="margin-top: 10px;"></div>')
-						.appendTo(me.form_area);
-
-				var row = $('<div class="row">')
-					.appendTo(me.form_area);
-				
-				var col_spans = 6;
-				if(row.parents(".form-column:first").hasClass("col-md-6"))
-					col_spans = 12;
-				
-				var col1 = $('<div class="col-md-'+col_spans+'"></div>').appendTo(row),
-					col2 = $('<div class="col-md-'+col_spans+'"></div>').appendTo(row);
-				
-				return [col1, col2];
-			},
-			cols = make_row(),
-			cnt = 0;
-			
-		$.each(me.docfields, function(ci, df) {
-			if(!df.hidden) {
-				if(df.fieldtype=="Section Break") {
-					cols = make_row(df.label);
-					cnt = 0;
-					return;
-				}
-				var fieldwrapper = $('<div>')
-					.appendTo(cols[cnt % 2])
-				var fieldobj = make_field(df, me.parent_df.options, 
-					fieldwrapper.get(0), me.frm);
-				fieldobj.docname = me.doc.name;
-				fieldobj.refresh();
-				fieldobj.input &&
-					$(fieldobj.input).css({"max-height": "100px"});
-					
-				// set field properties
-				// used for setting custom get queries in links
-				if(me.grid.fieldinfo[df.fieldname])
-					$.extend(fieldobj, me.grid.fieldinfo[df.fieldname]);
-
-				me.fields.push(fieldobj);
-				me.fields_dict[df.fieldname] = fieldobj;
-				cnt++;
-			}
+		this.layout = new wn.ui.form.Layout({
+			fields: this.docfields,
+			body: this.form_area,
+			no_submit_on_enter: true,
+			frm: this.frm,
 		});
+		this.layout.make();
+		this.layout.refresh(this.doc)
+		
+		this.fields = this.layout.fields;
+		this.fields_dict = this.layout.fields_dict;
+		
+		
+		// var me = this,
+		// 	make_row = function(label) {
+		// 		if(label)
+		// 			$('<div><h4 style="margin-bottom: 0px;"><b>'+ label +'</b></h4>\
+		// 				<hr style="margin-top: 10px;"></div>')
+		// 				.appendTo(me.form_area);
+		// 
+		// 		var row = $('<div class="row">')
+		// 			.appendTo(me.form_area);
+		// 		
+		// 		var col_spans = 6;
+		// 		if(row.parents(".form-column:first").hasClass("col-md-6"))
+		// 			col_spans = 12;
+		// 		
+		// 		var col1 = $('<div class="col-md-'+col_spans+'"></div>').appendTo(row),
+		// 			col2 = $('<div class="col-md-'+col_spans+'"></div>').appendTo(row);
+		// 		
+		// 		return [col1, col2];
+		// 	},
+		// 	cols = make_row(),
+		// 	cnt = 0;
+		// 	
+		// $.each(me.docfields, function(ci, df) {
+		// 	if(!df.hidden) {
+		// 		if(df.fieldtype=="Section Break") {
+		// 			cols = make_row(df.label);
+		// 			cnt = 0;
+		// 			return;
+		// 		}
+		// 		var fieldwrapper = $('<div>')
+		// 			.appendTo(cols[cnt % 2])
+		// 		var fieldobj = make_field(df, me.parent_df.options, 
+		// 			fieldwrapper.get(0), me.frm);
+		// 		fieldobj.docname = me.doc.name;
+		// 		fieldobj.refresh();
+		// 		fieldobj.input &&
+		// 			$(fieldobj.input).css({"max-height": "100px"});
+		// 			
+		// 		// set field properties
+		// 		// used for setting custom get queries in links
+		// 		if(me.grid.fieldinfo[df.fieldname])
+		// 			$.extend(fieldobj, me.grid.fieldinfo[df.fieldname]);
+		// 
+		// 		me.fields.push(fieldobj);
+		// 		me.fields_dict[df.fieldname] = fieldobj;
+		// 		cnt++;
+		// 	}
+		// });
 		
 		this.toggle_add_delete_button_display(this.wrapper.find(".panel:first"));
 		

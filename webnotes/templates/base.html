@@ -27,10 +27,10 @@
 </head>
 <body>
 	{% block banner %}{{ banner_html or "" }}{% endblock %}
-	{% block navbar %}{% include "website/templates/includes/navbar.html" %}{% endblock %}
+	{% block navbar %}{% include "templates/includes/navbar.html" %}{% endblock %}
 	<div class="page-container" id="page-{{ name }}">
 		{% block content %}{% endblock %}
 	</div>
-	{% block footer %}{% include "website/templates/includes/footer.html" %}{% endblock %}
+	{% block footer %}{% include "templates/includes/footer.html" %}{% endblock %}
 </body>
 </html>

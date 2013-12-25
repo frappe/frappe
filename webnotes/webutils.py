@@ -105,7 +105,7 @@ def build_page(page_name):
 	context.update(get_website_settings())
 
 	jenv = webnotes.get_jenv()
-	context["base_template"] = jenv.get_template("portal/templates/base.html")
+	context["base_template"] = jenv.get_template("templates/base.html")
 	
 	template_name = page_options['template_path']	
 	context["_"] = webnotes._

@@ -184,10 +184,10 @@ $.extend(wn.model, {
 		/* help: Set a value locally (if changed) and execute triggers */
 		if(!name) name = doctype;
 		var doc = locals[doctype] && locals[doctype][name] || null;
+		
 		if(doc && doc[fieldname] !== value) {
 			doc[fieldname] = value;
-			// trigger this after an interval since this will stop propogation
-			setTimeout(10, function() { wn.model.trigger(fieldname, value, doc); });
+			wn.model.trigger(fieldname, value, doc); 
 			return true;
 		} else {
 			// execute link triggers (want to reselect to execute triggers)
@@ -206,7 +206,7 @@ $.extend(wn.model, {
 		    raise "CustomerAgeError";
 		  }
 		}) */
-
+		console.log([doctype, fieldname])
 		wn.provide("wn.model.events." + doctype);
 		if(!wn.model.events[doctype][fieldname]) {
 			wn.model.events[doctype][fieldname] = [];
@@ -215,12 +215,13 @@ $.extend(wn.model, {
 	},
 	
 	trigger: function(fieldname, value, doc) {
+
 		var run = function(events, event_doc) {
 			$.each(events || [], function(i, fn) {
 				fn && fn(fieldname, value, event_doc || doc);
 			});
 		};
-		
+				
 		if(wn.model.events[doc.doctype]) {
 						
 			// field-level

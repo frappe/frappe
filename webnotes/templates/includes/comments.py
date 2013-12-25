@@ -52,7 +52,7 @@ def add_comment(args=None):
 		message='%(comment)s<p>By %(comment_by_fullname)s</p>' % args,
 		ref_doctype=comment.doc.comment_doctype, ref_docname=comment.doc.comment_docname)
 	
-	template = webnotes.get_template("lib/website/templates/includes/comment.html")
+	template = webnotes.get_template("templates/includes/comment.html")
 	
 	return template.render({"comment": comment.doc.fields})
 	

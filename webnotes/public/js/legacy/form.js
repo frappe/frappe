@@ -432,7 +432,7 @@ _f.Frm.prototype.refresh_field = function(fname) {
 }
 
 _f.Frm.prototype.refresh_fields = function() {
-	this.layout.refresh();
+	this.layout.refresh(this.doc);
 	this.layout.primary_button = $(this.wrapper).find(".btn-primary");
 
 	// cleanup activities after refresh
@@ -634,7 +634,7 @@ _f.Frm.prototype.save = function(save_action, callback, btn, on_error) {
 	$(document.activeElement).blur();
 	
 	// let any pending js process finish
-	setTimeout(10, this._save(save_action, callback, btn, on_error));
+	setTimeout(100, this._save(save_action, callback, btn, on_error));
 }
 
 _f.Frm.prototype._save = function(save_action, callback, btn, on_error) {

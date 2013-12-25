@@ -151,8 +151,8 @@ class Session:
 		else:
 			self.start_as_guest()
 			
-		webnotes.local.lang = webnotes.cache().get_value("lang:" + data.user, 
-			lambda: webnotes.translate.get_user_lang(data.user))
+		webnotes.local.lang = webnotes.cache().get_value("lang:" + self.data.user, 
+			lambda: webnotes.translate.get_user_lang(self.data.user))
 
 	def get_session_record(self):
 		"""get session record, or return the standard Guest Record"""

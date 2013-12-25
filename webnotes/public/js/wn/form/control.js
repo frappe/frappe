@@ -187,7 +187,7 @@ wn.ui.form.ControlInput = wn.ui.form.Control.extend({
 				if(me.doctype && me.docname) {
 					me.value = wn.model.get_value(me.doctype, me.docname, me.df.fieldname);
 				}
-
+				
 				if(me.disp_status=="Write") {
 					me.disp_area && $(me.disp_area).toggle(false);
 					$(me.input_area).toggle(true);

@@ -102,6 +102,7 @@ def init(site, sites_path=None):
 	local.rollback_observers = []
 	local.module_app = None
 	local.app_modules = None
+	local.user = None
 
 	setup_module_map()
 
@@ -263,8 +264,10 @@ def clear_cache(user=None, doctype=None):
 	
 def get_roles(username=None):
 	import webnotes.profile
-	if not username or username==session.user:
-		return user.get_roles()
+	if not local.session:
+		return ["Guest"]
+	elif not username or username==local.session.user:
+		return local.user.get_roles()
 	else:
 		return webnotes.profile.Profile(username).get_roles()
 

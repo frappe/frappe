@@ -15,7 +15,7 @@
 	{%- endif %}
 	{%- endblock %}
 	
-	{% include "website/doctype/website_slideshow/templates/includes/slideshow.html" %}
+	{% include "templates/includes/slideshow.html" %}
 	<div class="web-page-content" id="{{ name }}">
 	{{ main_section or "" }}
 	</div>
@@ -50,7 +50,7 @@
 	{% if enable_comments -%}
 	<hr>
 	<h3>Discuss</h3>
-	{% include 'website/templates/includes/comments.html' %}
+	{% include 'templates/includes/comments.html' %}
 	{%- endif %}
 	{%- endblock %}
 </div>
@@ -58,7 +58,7 @@
 $(function() {
 	if(window.logged_in && getCookie("system_user")==="yes") {
 		wn.has_permission("Web Page", "{{ name }}", "write", function(r) {
-			wn.require("js/wn/website/editable.js");
+			wn.require("assets/webnotes/js/wn/website/editable.js");
 			wn.make_editable($(".web-page-content"), "Web Page", "{{ name }}", "main_section");
 		});
 	}

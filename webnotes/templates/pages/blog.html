@@ -2,13 +2,13 @@
 
 {% block javascript %}
 <script>
-	{% include "website/doctype/blog_post/templates/includes/blog.js" %}
+	{% include "templates/includes/blog.js" %}
 </script>
 {% endblock %}
 
 {% block css %}
 <style>
-	{% include "website/doctype/blog_post/templates/includes/blog.css" %}
+	{% include "templates/includes/blog.css" %}
 </style>
 {% endblock %}
 
@@ -33,5 +33,5 @@
 			style="display:none;">More...</button>
 	</div>
 </div>
-{% include 'website/doctype/blog_post/templates/includes/blog_footer.html' %}
+{% include 'templates/includes/blog_footer.html' %}
 {% endblock %}

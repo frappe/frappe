@@ -6,7 +6,7 @@
 
 <div itemscope itemtype="http://schema.org/UserComments" id="comment-list">
 	{% for comment in comment_list %}
-	{% include "website/templates/includes/comment.html" %}
+	{% include "templates/includes/comment.html" %}
 	{% endfor %}
 </div>
 
@@ -65,7 +65,7 @@ $(document).ready(function() {
 		wn.call({
 			btn: this,
 			type: "POST",
-			method: "website.templates.includes.comments.add_comment",
+			method: "webnotes.templates.includes.comments.add_comment",
 			args: args,
 			callback: function(r) {
 				if(r.exc) {

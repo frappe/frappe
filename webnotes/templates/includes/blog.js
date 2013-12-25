@@ -28,7 +28,7 @@ var blog = {
 			method: "GET",
 			url: "/",
 			data: {
-				cmd: "website.doctype.blog_post.blog_post.get_blog_list",
+				cmd: "webnotes.website.doctype.blog_post.blog_post.get_blog_list",
 				start: blog.start,
 				by: get_url_arg("by"),
 				category: get_url_arg("category")

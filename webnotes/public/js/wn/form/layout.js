@@ -36,13 +36,15 @@ wn.ui.form.Layout = Class.extend({
 			this.wrapper.toggle(true);
 		}
 	},
-	refresh: function() {
+	refresh: function(doc) {
 		var me = this;
+		if(doc) this.doc = doc;
 		$.each(this.fields_list, function(i, fieldobj) {
-			if(me.frm) {
-				fieldobj.docname = me.frm.docname;
-				fieldobj.df = wn.meta.get_docfield(me.frm.doctype, 
-					fieldobj.df.fieldname, me.frm.docname);
+			if(me.doc) {
+				fieldobj.doctype = me.doc.doctype;
+				fieldobj.docname = me.doc.name;
+				fieldobj.df = wn.meta.get_docfield(me.doc.doctype, 
+					fieldobj.df.fieldname, me.doc.name);
 				// on form change, permissions can change
 				fieldobj.perm = me.frm.perm;
 			};

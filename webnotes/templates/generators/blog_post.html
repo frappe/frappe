@@ -15,21 +15,21 @@
 	<!-- end blog content -->
 	{% if blogger_info %}
 	<hr />
-	{% include "website/doctype/blog_post/templates/includes/blogger.html" %}
+	{% include "templates/includes/blogger.html" %}
 	{% endif %}
 	<hr>
 	<h3>Comments</h3>
-	{% include 'website/templates/includes/comments.html' %}
+	{% include 'templates/includes/comments.html' %}
 </div>
 <script>
 $(function() {
 	if(window.logged_in && getCookie("system_user")==="yes") {
 		wn.has_permission("Blog Post", "{{ name }}", "write", function(r) {
-			wn.require("js/wn/website/editable.js");
+			wn.require("assets/webnotes/js/wn/website/editable.js");
 			wn.make_editable($('[itemprop="articleBody"]'), "Blog Post", "{{ name }}", "content");
 		});
 	}
 });
 </script>
-{% include 'website/doctype/blog_post/templates/includes/blog_footer.html' %}
+{% include 'templates/includes/blog_footer.html' %}
 {% endblock %}

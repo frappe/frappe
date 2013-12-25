@@ -44,7 +44,7 @@
 					{# powered #}
 					<p class="text-right footer-powered">
 					{% block powered %}
-						<a href="http://getwebnotes.org" style="color: #aaa">Built on Web Notes</a>
+						{% include "templates/includes/footer_powered.html" %}
 					{% endblock %}
 					</p>
 				</div>
@@ -52,6 +52,6 @@
 		</div>
 	</section>
 	<section>
-		{% block extension %}{% endblock %}
+		{% block extension %}{% include "templates/includes/footer_extension.html" %}{% endblock %}
 	</section>
 </footer>
