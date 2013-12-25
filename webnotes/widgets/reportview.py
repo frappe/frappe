@@ -182,15 +182,20 @@ def build_filter_conditions(filters, conditions):
 				f[3] = "(" + ', '.join(opts) + ")"
 				conditions.append('ifnull(' + tname + '.' + f[1] + ", '') " + f[2] + " " + f[3])
 			else:
-				fieldtype = doclist[f[0]].get({"doctype": "DocField", 
-					"fieldname": f[1]})[0].fieldtype
-				if fieldtype in ["Float", "Int", "Currency", "Percent"]:
-					conditions.append('ifnull(' + tname + '.' + f[1] + ", 0) " + f[2] \
-						+ " " + cstr(flt(f[3])))
+				if isinstance(f[3], basestring):
+					docfield = doclist[f[0]].get({"doctype": "DocField", "fieldname": f[1]})
+					
+					if docfield and docfield[0].fieldtype in ["Float", 
+							"Int", "Currency", "Percent"]:
+						conditions.append('ifnull(' + tname + '.' + f[1] + ", 0) " + f[2] \
+							+ " " + cstr(flt(f[3])))
+					else:
+						f[3] = "'" + f[3].replace("'", "\\'") + "'"	
+						conditions.append('ifnull(' + tname + '.' + f[1] + ", '') " + f[2] + \
+							" " + cstr(f[3]))
 				else:
-					f[3] = "'" + f[3].replace("'", "\\'") + "'"	
-					conditions.append('ifnull(' + tname + '.' + f[1] + ", '') " + f[2] + \
-						" " + cstr(f[3]))
+					conditions.append('ifnull(' + tname + '.' + f[1] + ", 0) " + f[2] \
+						+ " " + cstr(f[3]))
 					
 					
 def build_match_conditions(doctype, fields=None, as_condition=True):
