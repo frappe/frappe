@@ -86,7 +86,7 @@ def init(site, sites_path=None):
 
 	if not sites_path:
 		sites_path = '.'
-			
+		
 	local.error_log = []
 	local.site = site
 	local.sites_path = sites_path

@@ -4,7 +4,7 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-import sys
+import sys, os
 
 import webnotes
 
@@ -13,8 +13,12 @@ def main():
 	fn = get_function(parsed_args)
 	if not parsed_args.get("sites_path"):
 		parsed_args["sites_path"] = "."
+		
 	if not parsed_args.get("site"):
 		print "Site argument required"
+		return
+	if not os.path.exists(parsed_args.get("site")):
+		print "Did not find folder `{}`. Are you in sites folder?".format(parsed_args.get("site"))
 		return
 	if parsed_args.get("site")=="all":
 		for site in get_sites():

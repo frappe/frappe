@@ -1,0 +1,1073 @@
+ by Role ,பாத்திரம் மூலம்
+ can not be marked as a ledger as it has existing child,"இது ஏற்கனவே உள்ள குழந்தை, ஒரு பேரேட்டில் குறிக்கப்படும்"
+ cannot be deleted.,இதை நீக்க முடியாது.
+ is not set,அமைக்கப்படவில்லை
+"""Company History""",&quot;நிறுவனத்தின் வரலாறு&quot;
+"""Team Members"" or ""Management""",&quot;குழு உறுப்பினர்&quot; அல்லது &quot;மேலாண்மை&quot;
+0,0
+"000 is black, fff is white","000 கருப்பு, fff வெள்ளை"
+1,1
+12px,12px
+13px,13px
+14px,14px
+15px,15px
+16px,16px
+2,2
+2 days ago,2 நாட்களுக்கு முன்பு
+"<a onclick=""msgprint('<ol>\
+<li><b>field:[fieldname]</b> - By Field\
+<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\
+<li><b>Prompt</b> - Prompt user for a name\
+<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\
+</ol>')"">Naming Options</a>",
+<b>Cancel</b> allows you change Submitted documents by cancelling them and amending them.,<b>ரத்து</b> அவற்றை ரத்து அவற்றை திருத்தி சமர்ப்பிக்க ஆவணங்கள் மாற்ற அனுமதிக்கிறது.
+A new popup will open that will ask you to select further conditions.,ஒரு புதிய பாப் என்று மேலும் நிலைமைகள் தேர்ந்தெடுக்க நீங்கள் கேட்க வேண்டும் திறக்கும்.
+A user can have multiple values for a property.,ஒரு பயனர் ஒரு சொத்து பல மதிப்புகள் முடியும்.
+About,பற்றி
+About Us Settings,பற்றி எங்களை அமைப்புகள்
+About Us Team Member,எங்களை குழு உறுப்பினர் பற்றி
+Account Id,கணக்கு அடையாளம்
+Action,செயல்
+Actions,செயல்கள்
+Add,சேர்
+Add A New Rule,ஒரு புதிய விதி சேர்க்க
+Add A Property,ஒரு சொத்து சேர்க்க
+Add Attachments,இணைப்புகள் சேர்க்க
+Add Bookmark,Bookmark சேர்க்க
+Add CSS,CSS ஐ சேர்
+Add Column,நெடுவரிசையை சேர்க்க
+Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,"எ.கா.: கூகுள் அனலிட்டிக்ஸ் ஐடி சேர்க்க. UA-89XXX57-1. மேலும் தகவலுக்கு, Google அனலிட்டிக்ஸ் குறித்த உதவி தேட வேண்டும்."
+Add Message,செய்தி சேர்க்க
+Add New Permission Rule,புதிய அனுமதி விதி சேர்க்க
+Add Reply,பதில் சேர்க்க
+Add Total Row,மொத்த ரோ சேர்க்க
+Add a banner to the site. (small banners are usually good),தளத்தில் ஒரு பேனர் சேர்க்க. (சிறிய பதாகைகள் பொதுவாக நல்ல)
+Add attachment,இணைப்பை சேர்
+Add code as &lt;script&gt;,&lt;script&gt; என குறியீடு சேர்க்க
+Add new row,புதிய வரிசை சேர்க்க
+"Add the name of <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> e.g. ""Open Sans""","பெயர் சேர்க்க <a href=""http://google.com/webfonts"" target=""_blank"">Google வலை எழுத்துரு</a> எ.கா. &quot;திறந்த சான்ஸ்&quot;"
+Add to To Do,செய்யவேண்டியவை சேர்க்க
+Add to To Do List of,பட்டியல் செய்யவேண்டியவை சேர்க்க
+Additional Info,கூடுதல் தகவல்
+Address,முகவரி
+Address and other legal information you may want to put in the footer.,முகவரி மற்றும் பிற சட்ட தகவல் நீங்கள் அடிக்குறிப்பில் உள்ள வைக்க வேண்டும்.
+Address to be displayed on the Contact Page,தொடர்பு பக்கம் காட்டப்படும் முகவரி
+Adds a custom field to a DocType,ஒரு டாக்டைப்பின் ஒரு தனிபயன் துறையில் சேர்க்கிறது
+Adds a custom script (client or server) to a DocType,ஒரு டாக்டைப்பின் ஒரு தனிபயன் ஸ்கிரிப்ட் (கிளையன் அல்லது சர்வர்) சேர்க்கிறது
+Advanced Scripting,மேம்பட்ட ஸ்கிரிப்ட்டிங்
+Advanced Settings,மேம்பட்ட அமைப்புகள்
+All Day,அனைத்து தினம்
+"All possible Workflow States and roles of the workflow. <br>Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""","அனைத்து பணியோட்ட அமெரிக்கா மற்றும் பணிப்பாய்வு பாத்திரங்களை. <br> Docstatus விருப்பங்கள்: 0 &quot;சேமிக்கப்பட்ட&quot; என்பது, 1 &quot;Submitted&quot; மற்றும் 2 &quot;ரத்து&quot; என்று"
+Allow Attach,இணை அனுமதி
+Allow Import,இறக்குமதி அனுமதி
+Allow Import via Data Import Tool,தரவு இறக்குமதி கருவி வழியாக இறக்குமதி அனுமதி
+Allow Rename,மறுபெயரிடு அனுமதி
+Allow on Submit,சமர்ப்பி மீது அனுமதிக்க
+Allow user to login only after this hour (0-24),பயனர் இந்த மணி நேரத்திற்கு பிறகு மட்டுமே உள்நுழைய அனுமதி (0-24)
+Allow user to login only before this hour (0-24),பயனர் இந்த மணி நேரத்திற்கு முன் தான் உள்ளே செல்ல அனுமதிக்க (0-24)
+Allowed,அனுமதித்த
+Already Registered,ஏற்கனவே பதிவு
+Amend,முன்னேற்று
+"An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [<a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a>]",". Ico நீட்டிப்பு ஒரு ஐகான் கோப்பு. 16 x 16 px இருக்க வேண்டும். ஃபேவிகான் ஜெனரேட்டர் பயன்படுத்தி உருவாக்கப்படும். [ <a href=""http://favicon-generator.org/"" target=""_blank"">ஃபேவிகான்-generator.org</a> ]"
+Are you sure you want to delete the attachment?,நீங்கள் இணைப்பு நீக்க வேண்டுமா?
+Arial,Arial
+"As a best practice, do not assign the same set of permission rule to different Roles instead set multiple Roles to the User","ஒரு சிறந்த போல், அதற்கு பதிலாக பயனர் பல பாத்திரங்கள் அமைக்க பல்வேறு பாத்திரங்கள் அனுமதி ஆட்சி ஒரே தொகுதி ஒதுக்க தேவையில்லை"
+Ascending,ஏறுமுகம்
+Assign To,என்று ஒதுக்க
+Assigned By,ஒதுக்கப்படுகின்றன
+Assigned To,ஒதுக்கப்படும்
+Assigned To/Owner,/ உரிமையாளர் ஒதுக்கப்படும்
+Attach,ஒட்டு
+Attach Document Print,ஆவண அச்சிடுக இணைக்கவும்
+Attach as web link,இணைய இணைப்பு இணை
+Attached To DocType,Doctype இணைக்கப்பட்டுள்ளது
+Attached To Name,பெயர் இணைக்கப்பட்டுள்ளது
+Attachments,இணைப்புகள்
+Attributions,பண்புக்கூறுகளை
+Auto Name,கார் பெயர்
+Auto generated,உருவாக்கப்பட்ட கார்
+Avatar,சின்னம்
+Background Color,பின்புல நிறம்
+Background Image,பின்புல படம்
+Banner,சிறிய கொடி
+Banner HTML,பதாகை HTML
+Banner Image,பதாகை படம்
+Banner is above the Top Menu Bar.,பதாகை மேலே மெனு பார் மேலே உள்ளது.
+Begin this page with a slideshow of images,படங்களை ஒரு காட்சியை இந்த பக்கம் தொடங்க
+Belongs to,சொந்தம்
+Bio,உயிரி
+Birth Date,பிறந்த தேதி
+Blog Category,வலைப்பதிவு பகுப்பு
+Blog Intro,வலைப்பதிவு அறிமுகம்
+Blog Introduction,வலைப்பதிவு அறிமுகம்
+Blog Post,வலைப்பதிவு இடுகை
+Blog Settings,வலைப்பதிவு அமைப்புகள்
+Blog Title,தலைப்பு
+Blogger,பதிவர்
+Bookmarks,புக்மார்க்குகள்
+Brand HTML,பிராண்ட் HTML
+"Brand is what appears on the top-right of the toolbar. If it is an image, make sure it
+has a transparent background and use the &lt;img /&gt; tag. Keep size as 200px x 30px",
+Bulk Email,மொத்த மின்னஞ்சல்
+Bulk Email records.,மொத்த மின்னஞ்சல் பதிவுகள்.
+Button,பொத்தான்
+By,மூலம்
+COMM-,Comm-
+CSS,CSS
+Calendar,அட்டவணை
+Can only be exported by users with role 'Report Manager',மட்டுமே பங்கு &#39;அறிக்கை மேலாளர்&#39; பயனர்களுக்கு மூலம் ஏற்றுமதி
+Cancel,ரத்து
+Cancel permission also allows the user to delete a document (if it is not linked to any other document).,ரத்து அனுமதி கூட பயனர் ஒரு ஆவணம் (அது வேறு ஆவணம் இணைக்கப்படவில்லை என்றால்) நீக்க அனுமதிக்கிறது.
+Cancelled,ரத்து
+Cannot Update: Incorrect / Expired Link.,புதுப்பிக்க முடியாது : காலாவதியான / தவறான இணைப்பு .
+Cannot Update: Incorrect Password,புதுப்பிக்க முடியாது : தவறான கடவுச்சொல்
+Cannot change from,மாற்ற முடியாது
+Cannot edit standard fields,நிலையான துறைகள் திருத்த முடியாது
+Cannot map because following condition fails: ,"பின்வரும் நிலையில் முடியவில்லை, ஏனெனில் வரைய முடியாது:"
+"Cannot update a non-exiting record, try inserting.","ஒரு அல்லாத வெளியேறும் பதிவு புதுப்பிக்க முடியவில்லை , சேர்க்கைக்கு முயற்சி ."
+Categorize blog posts.,இடுகைகள் வகைப்படுத்தவும்.
+Category,வகை
+Category Name,வகை பெயர்
+Center,மையம்
+"Certain documents should not be changed once final, like an Invoice for example. The final state for such documents is called <b>Submitted</b>. You can restrict which roles can Submit.",சில ஆவணங்களை உதாரணமாக ஒரு விலைப்பட்டியல் போன்ற முறை இறுதி மாற்ற கூடாது. அத்தகைய ஆவணங்களை இறுதி மாநில <b>Submitted</b> அழைக்கப்படுகிறது. நீங்கள் நடிக்க சமர்ப்பி இது கட்டுப்படுத்த முடியும்.
+Chat,அரட்டை
+Check,சோதனை
+Check / Uncheck roles assigned to the Profile. Click on the Role to find out what permissions that Role has.,பதிவு செய்தது ஒதுக்கப்படும் / தேர்வுநீக்கு வேடங்களில் பாருங்கள். பங்கு உண்டு என்று என்ன அனுமதிகள் கண்டுபிடிக்க பங்கு கிளிக்.
+Check this to make this the default letter head in all prints,அனைத்து அச்சிட்டு இந்த முன்னிருப்பு கடிதம் தலை செய்ய இந்த சோதனை
+Checked,சதுர அமைப்பு கொண்டுள்ள
+Child Tables are shown as a Grid in other DocTypes.,குழந்தை அட்டவணைகள் மற்ற டாக்டைப்கள் ஒரு கட்டம் காட்டப்படும்.
+Clear Cache & Refresh,தெளிவான Cache &amp; புதுப்பி
+Click on button in the 'Condition' column and select the option 'User is the creator of the document',&#39;நிலை&#39; நிரலில் பொத்தானை கிளிக் மற்றும் விருப்பத்தை &#39;பயனர் ஆவணம் உருவாக்கியவர்&#39; தேர்வு
+Click on row to edit.,திருத்த வரிசையில் கிளிக் .
+Click to Expand / Collapse,சுருக்கு / விரிவாக்கு சொடுக்கவும்
+Client,கிளையன்
+Close,மூடவும்
+Code,குறியீடு
+Color,நிறம்
+Column Break,நெடுவரிசை பிரிப்பு
+Comment,கருத்து
+Comment By,By கருத்து
+Comment By Fullname,FULLNAME என்பவர் உங்களை மூலம் கருத்து
+Comment Date,தேதி கருத்து
+Comment Docname,Docname கருத்து
+Comment Doctype,DOCTYPE கருத்து
+Comment Time,நேரம் கருத்து
+Comments,கருத்துரைகள்
+Communication,தகவல்
+Communication Medium,தொடர்பு மொழி
+Company History,நிறுவனத்தின் வரலாறு
+Company Introduction,நிறுவனம் அறிமுகம்
+Company Name,நிறுவனத்தின் பெயர்
+Complaint,புகார்
+Complete By,மூலம் நிறைவு
+Condition Field,நிலை புலம்
+Contact Us Settings,எங்களை அமைப்புகள் தொடர்பு
+"Contact options, like ""Sales Query, Support Query"" etc each on a new line or separated by commas.","தொடர்பு விருப்பங்கள், ஒரு புதிய பாதையில் ஹிப்ரு ஒவ்வொரு &quot;விற்பனை கேள்வி, வினா ஆதரவு&quot; அல்லது பிரிக்கப்பட்ட."
+Content,உள்ளடக்கம்
+Content in markdown format that appears on the main side of your page,உங்கள் பக்கம் முக்கிய பக்கத்தில் தோன்றும் markdown வடிவமைப்பில் உள்ளடக்கத்தை
+Content web page.,உள்ளடக்கத்தை வலைப்பக்கத்தில்.
+Control Panel,கண்ட்ரோல் பேனல்
+Controller,கட்டுப்பாட்டாளர்
+Copy,நகலெடுக்க
+Copyright,பதிப்புரிமை
+Core,உள்ளகம்
+Count,கவுண்ட்
+Country,நாடு
+Create,உருவாக்கு
+Created Customer Issue,உருவாக்கிய வாடிக்கையாளர் வெளியீடு
+Created Opportunity,வாய்ப்பு உருவாக்கப்பட்டது
+Created Support Ticket,உருவாக்கிய ஆதரவு டிக்கெட்
+Currency,நாணய
+Currency Format,நாணய வடிவமைப்பு
+Current status,தற்போதைய நிலை
+Custom CSS,தனிப்பயன் CSS
+Custom Field,தனிப்பயன் புலம்
+Custom Reports,தனிபயன் அறிக்கைகள்
+Custom Script,தனிப்பயன் உரை
+Custom Startup Code,தனிபயன் தொடக்க கோட்
+Custom?,தனிபயன்?
+Customize,தனிப்பயனாக்கு
+Customize Form,படிவம் தனிப்பயனாக்கு
+Customize Form Field,படிவம் புலம் தனிப்பயனாக்கு
+"Customize Label, Print Hide, Default etc.","லேபிள், அச்சு மறை, இயல்புநிலை போன்ற தனிப்பயனாக்கு"
+Daily Event Digest is sent for Calendar Events where reminders are set.,தினசரி நிகழ்வு டைஜஸ்ட் ஒன்றுள்ளது எங்கே அட்டவணை நிகழ்வுகள் அனுப்பப்பட்டுள்ளது.
+Danger,ஆபத்து
+Data,தரவு
+Data missing in table,அட்டவணையில் காணாமல் தரவு
+Date,தேதி
+Date Format,தேதி வடிவமைப்பு
+Date must be in format,தேதி வடிவமைப்பில் இருக்க வேண்டும்
+Datetime,நாள்நேரம்
+Dear,அன்பே
+Default,தவறுதல்
+Default Home Page,இயல்புநிலை முகப்பு பக்கம்
+Default Home Pages,இயல்புநிலை முகப்பு பக்கங்கள்
+Default Print Format,முன்னிருப்பு அச்சு வடிவம்
+Default Value,முன்னிருப்பு மதிப்பு
+"Default: ""Contact Us""",இயல்புநிலை: &quot;எங்களை&quot;
+DefaultValue,DefaultValue
+Defaults,இயல்புநிலைக்கு
+Defines actions on states and the next step and allowed roles.,மாநிலங்களில் நடவடிக்கைகளை அடுத்த படிநிலை மற்றும் அனுமதிக்கப்பட்ட வேடங்களில் வரையறுக்கிறது.
+Defines workflow states and rules for a document.,பணியோட்டம் மாநிலங்கள் மற்றும் ஒரு ஆவணம் விதிகளை வரையறுக்கிறது.
+Delete,நீக்கு
+Delete Row,வரிசையை நீக்கு
+Depends On,பொறுத்தது
+Descending,இறங்கு
+Description,விளக்கம்
+"Description for listing page, in plain text, only a couple of lines. (max 140 characters)","வெற்று உரையாக பட்டியல் பக்கம் விளக்கங்களும், வரிகளை மட்டும் ஒரு ஜோடி. (அதிகபட்சம் 140 எழுத்துக்கள்)"
+Description for page header.,பக்கம் தலைப்பு விளக்கம்.
+Desktop,டெஸ்க்டாப்
+Details,விவரம்
+Did not add.,சேர்க்க முடியவில்லை.
+Did not cancel,ரத்து
+Did not save,சேமிக்க முடியவில்லை
+"Different ""States"" this document can exist in. Like ""Open"", ""Pending Approval"" etc.","வெவ்வேறு &quot;அமெரிக்கா&quot; இந்த ஆவணம் &quot;ஏற்பு நிலுவையில்&quot; போன்ற, &quot;திற&quot; போல உள்ளே இருக்க முடியும்"
+Disable Customer Signup link in Login page,உள்நுழைவு பக்கம் வாடிக்கையாளர் பதிவு இணைப்பு முடக்கு
+Disable Signup,பதிவுசெய்தல் முடக்கு
+Disabled,முடக்கப்பட்டது
+Display Settings,அமைப்புகள் காட்ட
+Doc Status,Doc நிலைமை
+DocField,DocField
+DocPerm,DocPerm
+DocType,DOCTYPE
+DocType Details,DOCTYPE விவரம்
+DocType can not be merged,DOCTYPE ஒன்றாக்க முடியாது
+DocType is a Table / Form in the application.,DOCTYPE பயன்பாடு ஒரு அட்டவணை / படிவம் உள்ளது.
+DocType on which this Workflow is applicable.,இந்த பணியோட்ட பொருந்தும் எந்த டாக்டைப்பின்.
+DocType or Field,DOCTYPE அல்லது புலம்
+Docname,Docname
+Document,பத்திரம்
+Document Status transition from ,முதல் ஆவண நிலைமை மாற்றம்
+Document Type,ஆவண வகை
+Document Types,ஆவண வகைகள்
+Document is only editable by users of role,ஆவண பங்கு பயனர்கள் மட்டுமே திருத்தக்கூடிய
+Documents,ஆவணங்கள்
+Download Backup,காப்பு பதிவிறக்க
+Draft,காற்று வீச்சு
+Drafts,வரைவுகள்
+Drag to sort columns,வகை நெடுவரிசைகள் இழுக்கவும்
+Edit,திருத்த
+Editable,திருத்தும்படி
+Email,மின்னஞ்சல்
+Email Host,மின்னஞ்சல் புரவலன்
+Email Id where users will send support request e.g. support@example.com,பயனர்கள் ஆதரவு கோரிக்கையை எ.கா. அனுப்ப அங்கு Email Id support@example.com
+Email Login,மின்னஞ்சல் தேதி
+Email Password,மின்னஞ்சல் கடவுச்சொல்
+Email Sent,மின்னஞ்சல் அனுப்பப்பட்டது
+Email Settings,மின்னஞ்சல் அமைப்புகள்
+Email Signature,மின்னஞ்சல் கையொப்பம்
+Email Use SSL,பயன்பாட்டு SSL மின்னஞ்சல்
+"Email addresses, separted by commas","கமாவால் separted மின்னஞ்சல் முகவரிகள்,"
+Email...,மின்னஞ்சல் ...
+Embed image slideshows in website pages.,இணைய பக்கங்களில் உள்ள படத்தை ஸ்லைடு உட்பொதிக்கவும்.
+Enable Comments,கருத்துரைகளை இயக்கு
+Enabled,இயலுமைப்படுத்த
+Ends on,முனைகளில்
+Enter Form Type,படிவம் வகை உள்ளிடவும்
+"Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set ""match"" permission rules. To see list of fields, go to <a href=""#Form/Customize Form/Customize Form"">Customize Form</a>.","முன்னிருப்பு மதிப்பு துறைகளில் (விசைகளை) மற்றும் மதிப்புகள் உள்ளிடவும். நீங்கள் ஒரு துறையில் பல மதிப்புகள் சேர்க்க என்றால், முதலில் ஒரு தயக்கம். இந்த முன்னிருப்புகள் கூட &quot;போட்டி&quot; அனுமதி விதிகளை அமைக்க பயன்படுத்தப்படுகிறது. துறைகளில் பட்டியலை பார்க்க, சென்று <a href=""#Form/Customize Form/Customize Form"">படிவம் தனிப்பயனாக்கு</a> ."
+Equals,சமங்களின்
+Error,பிழை
+Error: Document has been modified after you have opened it,பிழை: நீங்கள் அதை திறந்து பின் ஆவண மாற்றம்
+Event,சம்பவம்
+Event End must be after Start,நிகழ்வு முடிவு பின்னர் இருக்க வேண்டும்
+Event Individuals,நிகழ்வு தனிநபர்கள்
+Event Role,நிகழ்வு பாத்திரம்
+Event Roles,நிகழ்வு பங்களிப்பு
+Event Type,நிகழ்வு வகை
+Event User,நிகழ்வு பயனர்
+Events In Today's Calendar,இன்றைய அட்டவணை நிகழ்வுகள்
+Every Day,ஒவ்வொரு நாள்
+Every Month,ஒவ்வொரு மாதமும்
+Every Week,ஒவ்வொரு வாரமும்
+Every Year,ஒவ்வொரு ஆண்டும்
+Example:,உதாரணமாக:
+Export,ஏற்றுமதி செய்
+Facebook Share,Facebook பகிர்
+FavIcon,ஃபேவிகான்
+Female,பெண்
+Field Description,புலம் விளக்கம்
+Field Name,புலம் பெயர்
+Field Type,புலம் வகை
+"Field that represents the Workflow State of the transaction (if field is not present, a new hidden Custom Field will be created)","(புலம் இல்லை என்றால், ஒரு புதிய மறைக்கப்பட்ட தனிப்பயன் புலம் உருவாக்கப்படும்) பரிமாற்றத்தின் பணியோட்ட மாநிலம் பிரதிபலிக்கிறது என்று புலம்"
+Fieldname,FIELDNAME
+Fields,புலங்கள்
+"Fields separated by comma (,) will be included in the<br /><b>Search By</b> list of Search dialog box","கமா (,) மூலம் பிரித்து துறைகளில் சேர்க்கப்படும் <br /> திரைப்பட உரையாடல் பெட்டி பட்டியல் <b>மூலம் தேட</b>"
+File,கோப்பு
+File Data,கோப்பு தகவல்கள்
+File Name,கோப்பு பெயர்
+File Size,கோப்பு அளவு
+File URL,கோப்பு URL
+File size exceeded the maximum allowed size,கோப்பு அளவு அனுமதிக்கப்பட்ட அதிகபட்ச அளவை தாண்டியது
+Filter,வடிகட்ட
+Finder,தேடல்
+First Name,முதல் பெயர்
+Float,மிதப்பதற்கு
+Font (Heading),எழுத்துரு (தலைப்பு)
+Font (Text),எழுத்துரு (உரை)
+Font Size (Text),எழுத்துரு அளவு (உரை)
+Fonts,எழுத்துருக்கள்
+Footer,அடிக்குறிப்பு
+Footer Items,அடிக்குறிப்பு உருப்படிகள்
+For All Users,அனைத்து பயனர்களுக்கான
+For DocType,DOCTYPE பொறுத்தவரை
+"For Links, enter the DocType as range
+For Select, enter list of Options separated by comma",
+"For comparative filters, start with","ஒப்பீட்டு வடிப்பான்களின், துவக்க"
+For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,நீங்கள் ரத்து &#39;INV004&#39; திருத்தும் உதாரணமாக இது ஒரு புதிய ஆவணம் &#39;INV004-1&#39; போம். இந்த ஒவ்வொரு திருத்த கண்காணிக்க உதவுகிறது.
+For example: You want to restrict users to transactions marked with a certain property called 'Territory',எடுத்துக்காட்டாக: நீங்கள் &#39;மண்டலம்&#39; என்று ஒரு சில சொத்து குறிக்கப்பட்ட நடவடிக்கைகள் பயனர்களை தடுக்க வேண்டும்
+For ranges,வரம்புகள்
+Form,படிவம்
+"Format: hh:mm example for one hour expiry set as 01:00. 
+Max expiry will be 72 hours. Default is 24 hours",
+Forward To Email Address,முன்னோக்கி மின்னஞ்சல் முகவரியை
+Friday,வெள்ளி
+From Date must be before To Date,தேதி முதல் தேதி முன் இருக்க வேண்டும்
+Full Name,முழு பெயர்
+Gantt Chart,காண்ட் விளக்கப்படம்
+Gender,பாலினம்
+General,பொதுவான
+Generator,மக்களை பெறுபவர்
+Georgia,ஜோர்ஜியா
+Get,கிடைக்கும்
+Get From ,முதல் கிடைக்கும்
+"Go to Setup > <a href='#user-properties'>User Properties</a> to set \
+			'territory' for diffent Users.",
+Google Analytics ID,கூகுள் அனலிட்டிக்ஸ் ஐடி
+Google Plus One,கூகிள் பிளஸ் ஒன்
+Google Web Font (Heading),Google வலை எழுத்துரு (தலைப்பு)
+Google Web Font (Text),Google வலை எழுத்துரு (உரை)
+Greater or equals,கிரேட்டர் அல்லது சமமாக
+Greater than,அதிகமாக
+Groups,குழுக்கள்
+HTML,HTML
+Header,தலை கீழாக நீரில் மூழ்குதல்
+Heading,செய்தித்தாளின் தலைப்பு
+Heading Text As,என உரை தலைப்பு
+Help,உதவி
+Helvetica Neue,ஹெல்வெடிகா நியீ
+Hey! There should remain at least one System Manager,ஏய்! குறைந்தது ஒரு கணினி மேலாளர் அங்கு இருக்க வேண்டும்
+Hidden,மறைந்துள்ள
+Hide Actions,செயல்கள் மறைக்க
+Hide Copy,நகல் மறைக்க
+Hide Email,மின்னஞ்சல் மறைக்க
+Hide Heading,தலைப்பு மறைக்க
+Hide Print,அச்சு மறைக்க
+Hide Toolbar,கருவிப்பட்டியை மறை
+Highlight,சிறப்புக்கூறு
+History,வரலாறு
+Home Page,முகப்பு பக்கம்
+Home Page is Products,முகப்பு பக்கம் தயாரிப்புகள் ஆகும்
+Home Pages,முகப்பு பக்கங்கள்
+ID,ஐடி
+ID (name) of the entity whose property is to be set,அதன் சொத்து அமைக்க வேண்டும் நிறுவனம் ஐடி (பெயர்)
+Icon,உருவம்
+Icon will appear on the button,ஐகான் பொத்தானை தோன்றும்
+"If a User does not have access at Level 0, then higher levels are meaningless","ஒரு பயனர் நிலை 0 அணுகல் இல்லை என்றால், பிறகு அதிக அளவு பொருளற்றது ஆகும்"
+"If checked, all other workflows become inactive.","சரி என்றால், அனைத்து பிற பணிப்பாய்வுகளும் செயலற்று போகும்."
+"If checked, the Home page will be the default Item Group for the website.","தேர்வுசெய்யப்பட்டால், முகப்பு பக்கம் இணைய முன்னிருப்பு உருப்படி குழு இருக்கும்."
+"If image is selected, color will be ignored (attach first)","படத்தை தேர்வு செய்தால், நிறம் (முதல் இணைக்கவும்) புறக்கணிக்கப்படும்"
+"If not, create a","இல்லை என்றால், ஒரு உருவாக்க"
+"If the 'territory' Link Field exists, it will give you an option to select it","&#39;பகுதியில்&#39; இணைப்பு புலம் உள்ளது என்றால், அதை நீங்கள் தேர்ந்தெடுக்க ஒரு விருப்பத்தை தரும்"
+"If these instructions where not helpful, please add in your suggestions at <a href='https://github.com/webnotes/wnframework/issues'>GitHub Issues</a>","இந்த வழிமுறைகளை அங்கு பயனுள்ளதாக இல்லை என்றால், மிக href='https://github.com/webnotes/wnframework/issues'> மகிழ்ச்சியா சிக்கல்கள் < / a> உங்கள் ஆலோசனைகளை சேர்க்க தயவு செய்து"
+"If you set this, this Item will come in a drop-down under the selected parent.","நீங்கள் இந்த அமைக்க என்றால், இந்த பொருள் தேர்வு பெற்றோர் கீழ் ஒரு துளி கீழே வரும் ."
+Image,படம்
+Image Link,படம் இணைப்பு
+Import,இறக்குமதி பொருள்கள்
+In,இல்
+In Dialog,உரையாடல்
+In Filter,வடிகட்டி உள்ள
+In List View,பட்டியல் இல்
+In Report Filter,அறிக்கை வடிகட்டி உள்ள
+In response to,பதில்
+"In the Permission Manager, click on the button in the 'Condition' column for the Role you want to restrict.","அனுமதி மேலாளர், நீங்கள் தடுக்க வேண்டும் பாத்திரத்தில் ஒரு &#39;நிலை&#39; நிரலில் பொத்தானை கிளிக் செய்யவும்."
+Index,குறியீட்டெண்
+Individuals,தனிநபர்கள்
+Industry,தொழில்
+Info,தகவல்
+Insert After,பிறகு செருகு
+Insert Below,கீழே நுழைக்கவும்
+Insert Code,கோட் செருக
+Insert Row,ரோ நுழைக்க
+Insert Style,உடை செருக
+Int,முகப்பு
+Integrations,ஒருங்கிணைவுகளையும்
+Introduce your company to the website visitor.,இணைய பார்வையாளர் உங்கள் நிறுவனம் அறிமுகம்.
+Introduction,அறிமுகப்படுத்துதல்
+Introductory information for the Contact Us Page,எங்களை பக்கம் ஒரு அறிமுக தகவல்
+Invalid Email,தவறான மின்னஞ்சல்
+Inverse,தலைகீழான
+Is Active,செயலில் உள்ளது
+Is Child Table,குழந்தைகள் அட்டவணை உள்ளது
+Is Default,இது இயல்பு
+Is Mandatory Field,இன்றியமையாதது ஆகும்
+Is Single,ஒற்றை உள்ளது
+Is Standard,ஸ்டாண்டர்ட் உள்ளது
+Is Submittable,Submittable உள்ளது
+JSON,JSON
+JavaScript Format: wn.query_reports['REPORTNAME'] = {},ஜாவா வடிவம்: wn.query_reports [' REPORTNAME '] = { }
+Javascript,ஜாவா ஸ்கிரிப்ட்
+Javascript to append to the head section of the page.,Javascript பக்கம் தலை பிரிவில் சேர்க்க வேண்டும்.
+Keep a track of all communications,அனைத்து தொடர்புகளையும் ஒரு கண்காணிக்க
+Key,சாவி
+Label,சிட்டை
+Label Help,லேபிள் உதவி
+Lacs,Lacs
+Landing Page,இறங்கும் பக்கம்
+Language,மொழி
+Language preference for user interface (only if available).,பயனர் இடைமுக மொழி முன்னுரிமை (மட்டுமே கிடைக்கும் என்றால்).
+Last IP,கடந்த ஐபி
+Last Login,கடைசியாக உட்சென்ற தேதி
+Last Name,கடந்த பெயர்
+Last updated by,கடந்த மூலம் மேம்படுத்தப்பட்டது
+Lastmod,Lastmod
+Lato,Lato
+Leave blank to repeat always,எப்போதும் மீண்டும் வெறுமையாக விடவும்
+Left,விட்டு
+Less or equals,குறைவாக அல்லது சமமாக
+Less than,குறைவான
+Letter Head,முகவரியடங்கல்
+Letter Head Image,கடிதத்தை தலைமை படம்
+Letter Head Name,கடிதத்தை தலைமை பெயர்
+Letter Head in HTML,HTML இல் கடிதம் தலைமை
+Level,நிலை
+"Level 0 is for document level permissions, higher levels for field level permissions.","நிலை 0 ஆவணம் நிலை அனுமதிகள், புலம் நிலை அனுமதிகள் அதிக அளவு உள்ளது."
+Like,போன்ற
+Link,இணைப்பு
+Link Name,தொடுப்பு பெயர்
+Link to other pages in the side bar and next section,பக்க பட்டியில் மற்ற பக்கங்களை அடுத்த பிரிவில் இணைக்க
+Link to the page you want to open,நீங்கள் திறக்க வேண்டும் பக்கம் இணைப்பு
+Linked In Share,பங்கு தொடர்பு
+Linked With,உடன் இணைக்கப்பட்ட
+List,பட்டியல்
+List of patches executed,கொலை இணைப்பினை பட்டியல்
+Loading,சுமையேற்றம்
+Loading Report,அறிக்கை ஏற்றும்
+Loading...,ஏற்றுகிறது ...
+Log of Scheduler Errors,திட்டமிடுதல் பிழைகளின் பதிவு
+Login,புகுபதிகை
+Login After,பின்னர் உள்
+Login Before,முன் login
+Logout,விடு பதிகை
+Long Text,நீண்ட உரை
+Lucida Grande,Lucida கிராண்டி
+Mail Footer,அஞ்சல் அடிக்குறிப்பு
+Mail Server,அஞ்சல் வழங்கன்
+Main Section,முக்கிய பகுதி
+Make a new,ஒரு புதிய செய்ய
+Make sure that the transactions you want to restrict have a Link field 'territory' that maps to a 'Territory' master.,நீங்கள் தடுக்க வேண்டும் நடவடிக்கைகளுக்கு ஒரு இணைப்பு துறையில் &#39;பகுதியில்&#39; என்று உறுதி என்று ஒரு &#39;மண்டலம்&#39; குருவுக்கு வரைபடங்கள்.
+Male,ஆண்
+Mandatory,அதிகாரம் சார்ந்த
+Mandatory filters required:\n,கட்டாய வடிகட்டிகள் தேவை: \ n
+Master,தலைவன்
+Match,போட்டி
+Max Attachments,மேக்ஸ் இணைப்புகள்
+"Meaning of Submit, Cancel, Amend","திருத்தி, ரத்து, சமர்ப்பி அர்த்தம்"
+"Menu items in the Top Bar. For setting the color of the Top Bar, go to <a href=""#Form/Style Settings"">Style Settings</a>","சிறந்த பட்டை உள்ள பட்டி உருப்படிகள். மேல் பட்டி வண்ணம் அமைக்க, போய் <a href=""#Form/Style Settings"">உடை அமைப்புகள்</a>"
+"Merging is only possible between Group-to-Group or 
+					Ledger-to-Ledger",
+Message,செய்தி
+Method,வகை
+Middle Name (Optional),நடுத்தர பெயர் (கட்டாயமில்லை)
+Millions,மில்லியன் கணக்கான
+Misc,மற்றவை
+Miscellaneous,நானாவிதமான
+Missing Values Required,தேவையான காணவில்லை கலாச்சாரம்
+Modified by,திருத்தியது
+Module,தொகுதி
+Module Def,தொகுதி டெப்
+Module Name,தொகுதி பெயர்
+Modules,தொகுதிகள்
+Monday,திங்கட்கிழமை
+More,அதிக
+More content for the bottom of the page.,பக்கம் கீழே அதிக உள்ளடக்கம்.
+Must have report permission to access this report.,இந்த அறிக்கை அணுக அறிக்கை அனுமதி பெற்றிருக்க வேண்டும்.
+Must specify a Query to run,இயக்க ஒரு கேள்வி குறிப்பிட வேண்டும்
+Name,பெயர்
+Name Case,பெயர் வழக்கு
+Name Exists,பெயர் முன்பே உள்ளது
+Naming Series mandatory,கட்டாய தொடர் பெயரிடும்
+New,புதிய
+New Password,புதிய கடவுச்சொல்
+New Record,புதிய பதிவு
+New value to be set,அமைக்க புதிய மதிப்பு
+Next Communcation On,அடுத்த Communcation இல்
+Next State,அடுத்த மாநிலம்
+Next actions,அடுத்த நடவடிக்கைகள்
+No,இல்லை
+No Action,இல்லை அதிரடி
+No Cache,இல்லை Cache
+No Communication tagged with this ,இந்த குறிச்சொல் இல்லை தொடர்பாடல்
+No Copy,இல்லை நகல்
+No Permission,இல்லை அனுமதி
+No Permission to ,எந்த அனுமதி
+No Permissions set for this criteria.,இல்லை அனுமதிகள் இந்த அடிப்படை அமைக்க.
+No Report Loaded. Please use query-report/[Report Name] to run a report.,"எந்த அறிக்கை ஏற்றப்பட்டது. பயன்படுத்த கேள்வி, அறிக்கை / [அறிக்கை பெயர்] ஒரு அறிக்கை ரன் செய்யவும்."
+No Sitemap,இல்லை தள வரைபடம்
+No User Properties found.,எந்த பயனர் பண்புகள் காணப்படும்.
+No further records,மேலும் பதிவுகள்
+No one,எந்த ஒரு
+No permission to edit,திருத்த அனுமதி இல்லை
+No permission to write / remove.,எழுத அனுமதி இல்லை / நீக்க.
+No records tagged.,இல்லை பதிவுகளை குறித்துள்ளார்.
+None,None
+None: End of Workflow,None: பணியோட்ட முடிவு
+Not Found,எதுவும் இல்லை
+Not Linked to any record.,எந்த பதிவு இணைந்தது.
+Not Permitted,அனுமதிக்கப்பட்ட
+Not allowed for: ,அனுமதி:
+Not enough permission to see links.,இல்லை இணைப்புகளை பார்க்க போதுமான அனுமதி.
+Not equals,சமம்
+"Note: For best results, images must be of the same size and width must be greater than height.","குறிப்பு: சிறந்த முடிவுகளுக்கு, படங்களை அதே அளவு மற்றும் அகலம் இருக்க வேண்டும் உயரத்தை விட அதிகமாக இருக்க வேண்டும்."
+Note: Other permission rules may also apply,குறிப்பு: பிற அனுமதி விதிகளை கூட பொருந்தும்
+Note: maximum attachment size = 1mb,குறிப்பு: அதிகபட்ச இணைப்பு அளவு = 1MB
+Nothing to show,காண்பிக்க ஒன்றும்
+Nothing to show for this selection,இந்த தேர்வு காண்பிக்க ஒன்றும்
+Notification Count,அறிவித்தல் எண ¯
+Notify By Email,மின்னஞ்சல் மூலம் தெரிவிக்க
+On,மீது
+"Once you have set this, the users will only be able access documents with that property.","இந்த அமைக்க பின், பயனர்கள் மட்டுமே அந்த சொத்துக்கள் முடியும் அணுகல் ஆவணங்கள் இருக்கும்."
+Only Administrator allowed to create Query / Script Reports,ஒரே நிர்வாகி கேள்வி / ஸ்கிரிப்ட் அறிக்கைகள் உருவாக்க அனுமதி
+Only Administrator can save a standard report. Please rename and save.,ஒரே நிர்வாகி ஒரு தரமான அறிக்கையை சேமிக்க முடியும். மறுபெயர் காப்பாற்றுங்கள்.
+Only Allow Edit For,மட்டும் திருத்து அனுமதி
+Only System Manager can create / edit reports,ஒரே அமைப்பு மேலாளர் அறிக்கைகள் உருவாக்க / திருத்த முடியாது
+Open Count,திறந்த எண ¯
+Open Sans,திறந்த சான்ஸ்
+Options,விருப்பங்கள்
+Options Help,விருப்பங்கள் உதவி
+Org History,org வரலாறு
+Org History Heading,Org வரலாறு தலைப்பு
+Original Message,அசல் செய்தி
+Other,வேறு
+POP3 Mail Server (e.g. pop.gmail.com),POP3 அஞ்சல் சேவையகம் (எ.கா. pop.gmail.com)
+Page,பக்கம்
+Page Background,பக்கம் பின்னணி
+Page Border,பக்கம் பார்டர்
+Page HTML,பக்கம் HTML
+Page Headings,பக்கம் தலைப்புகள்
+Page Links,பக்கம் இணைப்புகள்
+Page Name,பக்கம் பெயர்
+Page Name Field,பக்கத்தின் பெயர் பீல்டு
+Page Role,பக்கம் பாத்திரம்
+Page Text,பக்கம் உரை
+Page already exists,பக்கம் ஏற்கெனவே உள்ளது
+Page content,பக்கம் உள்ளடக்கம்
+Page not found,பக்கம் காணவில்லை
+Page or Generator,பக்கம் அல்லது ஜெனரேட்டர்
+Page text and background is same color. Please change.,பக்கம் உரை மற்றும் பின்னணி அதே நிறம். மாற்றம் செய்யுங்கள்.
+"Page to show on the website
+",
+"Page url name (auto-generated) (add "".html"")",பக்கம் இணைய பெயர் (தானாக உருவாக்கப்பட்ட) (சேர்க்க &quot;. Html&quot;)
+Parent Label,பெற்றோர் லேபிள்
+Parent is required.,பெற்றோர் தேவைப்படுகிறது.
+Participants,பங்கேற்பாளர்கள்
+Password,கடவுச்சொல்
+Password Expires in (days),கடவுச்சொல் காலாவதியாகும் தேதி (நாட்கள்)
+Password Updated,கடவுச்சொல் இற்றை
+Patch,சிறு நிலம்
+Patch Log,இணைப்பு புகுபதிகை
+Percent,சதவீதம்
+Perm Level,நிலை PERM
+Permission Level,அனுமதி நிலை
+Permission Levels,அனுமதி நிலைகள்
+Permission Manager,அனுமதி மேலாளர்
+Permission Rules,அனுமதி விதிமுறைகள்
+Permissions,அனுமதிகள்
+Permissions Settings,அனுமதிகள் அமைப்புகள்
+Permissions are automatically translated to Standard Reports and Searches,அனுமதிகள் தானாக தரநிலை அறிக்கைகள் மற்றும் தேடல்கள் மொழிபெயர்க்கப்பட்ட
+"Permissions are set on Roles and Document Types (called DocTypes) by restricting read, edit, make new, submit, cancel, amend and report rights.","அனுமதிகள் புதிய செய்து, திருத்த, படிக்க கட்டுப்படுத்த மூலம் பங்களிப்பு மற்றும் ஆவண வகைகள் (டாக்டைப்கள் அழைக்கப்படும்) இல் அமைக்கப்பட்டது,, ரத்து, &#39;to திருத்தி மற்றும் உரிமைகள் அறிக்கை."
+Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful incase you want to hide or make certain field read-only.,உயர் மட்டங்களில் அனுமதிகள் &#39;புலம் நிலை&#39; அனுமதிகள் உள்ளன. அனைத்து புலங்கள் அவர்களுக்கு எதிராக ஒரு &#39;அனுமதி நிலை&#39; அமைப்பு மற்றும் அனுமதிகள் உள்ள வரையறுக்கப்பட்ட விதிகளை துறையில் பொருந்தும். நீங்கள் படிக்க மட்டுமே மறைக்க அல்லது சில புலம் செய்ய வேண்டும் incase இந்த பயனுள்ளதாக இருக்கும்.
+"Permissions at level 0 are 'Document Level' permissions, i.e. they are primary for access to the document.","நிலை 0 அனுமதிகள் &#39;ஆவண நிலை&#39; அனுமதிகள் உள்ளன, அதாவது அவர்கள் ஆவணத்தை அணுக முதன்மையான இருக்கும்."
+Permissions translate to Users based on what Role they are assigned,அனுமதிகள் அவர்கள் ஒதுக்கப்படுகின்றன என்ன பங்கு அடிப்படையில் பயனர்கள் மொழிபெயர்ப்பு
+Person,ஒரு நபர்
+Phone,தொலைபேசி
+Phone No.,தொலைபேசி எண்
+Pick Columns,பத்திகள் தேர்வு
+Please attach a file first.,முதல் ஒரு கோப்பை இணைக்கவும்.
+Please attach a file or set a URL,ஒரு கோப்பை இணைக்கவும் அல்லது ஒரு URL ஐ அமைக்கவும்
+Please change the value,"மதிப்பை மாற்ற , தயவு செய்து"
+Please enable pop-ups,பாப் அப்களை தயவுசெய்து
+Please make sure that there are no empty columns in the file.,கோப்பு எந்த காலியாக பத்திகள் உள்ளன என்று உறுதிப்படுத்தி கொள்ளுங்கள்.
+Please refresh to get the latest document.,சமீபத்திய ஆவணத்தை பெற புதுப்பிக்கவும்.
+Please select a file or url,ஒரு கோப்பு அல்லது url தேர்ந்தெடுக்கவும்
+Please specify,குறிப்பிடவும்
+Plugin,நீட்சியை
+Post Publicly,பொதுவாக வெளியிட
+Post Topic,யாழ் பதிவு
+Post to user,பயனர் பதிவு
+Posts,பதிவுகள்
+Primary,முதல்
+Print Format,வடிவமைப்பு அச்சிட
+Print Format Type,வடிவமைப்பு வகை அச்சிட
+Print Hide,மறை அச்சிட
+Print Width,அச்சு அகலம்
+Print...,அச்சு ...
+Priority,முதன்மை
+Private,தனிப்பட்ட
+Profile,சுயவிவரத்தை
+Profile Defaults,சுயவிவரத்தை இயல்புநிலைகளுக்கு
+Profile Represents a User in the system.,சுயவிவரத்தை கணினியில் ஒரு பயனர் குறிக்கிறது.
+Profile of a Blogger,", ஒரு, பிளாகரின் சுயவிவரத்தை"
+Profile of a blog writer.,ஒரு வலைப்பதிவு எழுத்தாளர் பற்றிய சுயவிவரத்தை.
+Properties,பண்புகள்
+Property,சொத்து
+Property Setter,சொத்து செட்டர்
+Property Setter overrides a standard DocType or Field property,சொத்து செட்டர் ஒரு நிலையான டாக்டைப்பின் அல்லது புலம் சொத்து மீறப்படும்
+Property Type,சொத்து வகை
+Public,பொது
+Published,வெளியிடப்பட்ட
+Published On,ம் தேதி வெளியிடப்பட்ட
+Pull Emails from the Inbox and attach them as Communication records (for known contacts).,இன்பாக்ஸ் இருந்து மின்னஞ்சல்கள் இழுக்க தொடர்பாடல் பதிவுகளை (அழைக்கப்படும் தொடர்புகளை) என அவற்றை இணைக்கலாம்.
+Query,வினா
+Query Options,கேள்வி விருப்பங்கள்
+Query Report,கேள்வி அறிக்கை
+Query must be a SELECT,"வினவல், ஒரு SELECT இருக்க வேண்டும்"
+Quick Help for Setting Permissions,"அனுமதிகள் அமைத்தல், விரைவான உதவி"
+Quick Help for User Properties,"பயனர் பண்புகள், விரைவான உதவி"
+Read,வாசிக்க
+Read Only,படிக்க மட்டும்
+Received,பெற்றார்
+Recipient,பெறுபவர்
+Recipients,பெறுநர்கள்
+Ref DocType,Ref டாக்டைப்பின்
+Ref Name,Ref பெயர்
+Ref Type,Ref வகை
+Reference,குறிப்பு
+Reference DocName,குறிப்பு DocName
+Reference DocType,குறிப்பு Doctype
+Reference Name,குறிப்பு பெயர்
+Reference Type,குறிப்பு வகை
+Refresh,இளைப்பா (ற்) று
+Registered but disabled.,பதிவு ஆனால் முடக்கப்பட்டுள்ளது.
+Registration Details Emailed.,பதிவு விவரங்கள் மின்னஞ்சல்.
+Remove Bookmark,Bookmark நீக்க
+Rename...,மறுபெயர் ...
+Repeat On,ஆன் செய்யவும்
+Repeat Till,வரை மீண்டும்
+Repeat this Event,இந்த நிகழ்வு மீண்டும்
+Report,புகார்
+Report Builder,அறிக்கை பில்டர்
+Report Builder reports are managed directly by the report builder. Nothing to do.,அறிக்கை பில்டர் அறிக்கைகள் அறிக்கை கட்டடம் மூலம் நேரடியாக நிர்வகிக்கப்படுகிறது. இல்லை.
+Report Hide,மறை அறிக்கை
+Report Name,அறிக்கை பெயர்
+Report Type,வகை புகார்
+Report was not saved (there were errors),அறிக்கை சேமிக்க (பிழைகள் இருந்தன)
+Represents the states allowed in one document and role assigned to change the state.,ஒரு ஆவணம் மற்றும் மாநில மாற்ற ஒதுக்கப்படும் பங்கு அனுமதி மாநிலங்களில் பிரதிபலிக்கிறது.
+Reqd,Reqd
+Reset Password Key,கடவுச்சொல் முக்கிய மீட்டமை
+Restrict IP,ஐபி கட்டுப்படுத்த
+Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111),இந்த ஐபி முகவரியை இருந்து பயனர் கட்டுப்படுத்த. பல ஐபி முகவரிகள் கமாவால் பிரித்து சேர்க்க முடியும். மேலும் போன்ற பகுதி ஐபி முகவரிகள் (111.111.111) ஏற்றுக்கொள்கிறார்
+Restricting By User,பயனர் மூலம் கட்டுப்படுத்த
+Right,சரியான
+Role,பங்கு
+Role Name,பங்கு பெயர்
+Roles,பாத்திரங்கள்
+Roles Assigned,ஒதுக்கப்பட்ட பாத்திரங்கள்
+Roles Assigned To User,பயனர் ஒதுக்கப்படும் பாத்திரங்கள்
+Roles HTML,பாத்திரங்கள் HTML
+Root ,வேர்
+Row,வரிசை
+Rules defining transition of state in the workflow.,பணியோட்டம் அரசு மாற்றம் வரையறுக்கும் விதிகள்.
+"Rules for how states are transitions, like next state and which role is allowed to change state etc.",மாநிலங்களில் அடுத்த மாநில மற்றும் அதில் பங்கு போன்ற மாற்றங்கள் எப்படி விதிகளை அரசு பல மாற்றலாம்
+SMS,எஸ்எம்எஸ்
+Sales,விற்பனை
+Same file has already been attached to the record,அதே கோப்பு ஏற்கனவே பதிவு இணைக்கப்பட்டுள்ள
+Saturday,சனிக்கிழமை
+Save,சேமிக்கவும்
+Scheduler Log,திட்ட புகுபதிகை
+Script,ஸ்கிரிப்ட்
+Script Report,ஸ்கிரிப்ட் அறிக்கை
+Script Type,ஸ்கிரிப்ட் வகை
+Script to attach to all web pages.,ஸ்கிரிப்ட் பக்கங்களை ஒட்டியிருக்கும்.
+Search,தேடல்
+Search Fields,தேடல் புலங்கள்
+Section Break,பகுதி பிரேக்
+Security Settings,பாதுகாப்பு அமைப்புகள்
+Select,தேர்ந்தெடு
+Select All,அனைத்து தேர்வு
+Select Attachments,இணைப்புகள் தேர்வு
+Select Document Type,ஆவண வகை தேர்வு
+Select Document Type or Role to start.,ஆவண வகை அல்லது துவக்க பங்கு தேர்ந்தெடுக்கவும்.
+Select Module,தேர்ந்தெடு தொகுதி
+Select Print Format,அச்சு வடிவம் தேர்வு
+Select Report Name,அறிக்கை பெயர் தேர்வு
+Select Role,பங்கு தேர்வு
+Select Type,வகை தேர்வு
+Select User or Property to start.,பயனர் அல்லது தொடங்க சொத்து தேர்ந்தெடுக்கவும்.
+Select a Banner Image first.,முதல் ஒரு பேனர் பட தேர்ந்தெடுக்கவும்.
+Select an image of approx width 150px with a transparent background for best results.,சிறந்த முடிவுகளை ஒரு வெளிப்படையான பின்னணி கொண்ட சுமார் அகலம் 150px ஒரு படத்தை தேர்ந்தெடுக்கவும்.
+Select dates to create a new ,ஒரு புதிய உருவாக்க தேதிகளில் தேர்வு
+Select or drag across time slots to create a new event.,தேர்வு அல்லது ஒரு புதிய நிகழ்வை உருவாக்க நேரம் இடங்கள் முழுவதும் இழுக்கவும்.
+"Select target = ""_blank"" to open in a new page.","தேர்ந்தெடு இலக்கு ஒரு புதிய பக்கம் திறக்க = ""_blank"" ."
+Select the label after which you want to insert new field.,நீங்கள் புதிய துறையில் சேர்க்க வேண்டும் பின்னர் லேபிள் தேர்வு.
+Send,அனுப்பு
+Send As Email,மின்னஞ்சல் அனுப்பு
+Send Me A Copy,என்னை ஒரு நகல் அனுப்ப
+Send an email reminder in the morning,காலையில் ஒரு நினைவூட்டல் மின்னஞ்சலை அனுப்ப
+Send enquiries to this email address,இந்த மின்னஞ்சல் முகவரியை விசாரணைகள் அனுப்பவும்
+Sender,அனுப்புபவர்
+Sent,அனுப்பப்பட்டது
+Sent Mail,அனுப்பிய அஞ்சல்
+Sent Quotation,அனுப்பி விலைப்பட்டியல்
+Sent or Received,அனுப்பப்படும் அல்லது பெறப்படும்
+Series,தொடர்
+Server,சர்வர்
+Session Expired. Logging you out,அமர்வு காலாவதியானது. உங்களை வெளியேற்றுகிறோம்
+Session Expires in (time),கூட்டத்தில் காலாவதியாகிறது (நேரம்)
+Set Banner from Image,பட இருந்து பதாகை அமைக்க
+Set Link,அமை இணைப்பு
+Set Password,அமை கடவுச்சொல்
+Set Value,மதிப்பு அமைக்க
+"Set your background color, font and image (tiled)","உங்கள் பின்னணி வண்ணம், எழுத்துரு மற்றும் படம் (ஓடுகளையுடைய) அமைக்க"
+Settings for About Us Page.,எங்களை பற்றி பக்கம் அமைப்புகளை.
+Settings for Contact Us Page,எங்களை பக்கம் தொடர்புக்கு அமைப்புகளை
+Settings for Contact Us Page.,அமைப்புகளை எங்களை பக்கம் தொடர்புக்கு.
+Settings for the About Us Page,எங்களை பற்றி பக்கம் அமைப்புகளை
+Setup of fonts and background.,எழுத்துருக்கள் மற்றும் பின்னணி அமைப்பு.
+"Setup of top navigation bar, footer and logo.","மேல் திசை பட்டையில், பூட்டர் மற்றும் லோகோ அமைப்பு."
+Short Bio,குறுகிய உயிரி
+Short Name,குறுகிய பெயர்
+Shortcut,குறுக்கு வழி
+Show Breadcrumbs,காட்டு நனைக்கப்பட்டு
+Show Details,விவரங்கள் காட்டுகின்றன
+Show Print First,காட்டு முதலில் அச்சிடவும்
+Show Table of Contents,பொருளடக்கம் காட்டு அட்டவணை
+Show Tags,நிகழ்ச்சி குறிச்சொற்களை
+Show Title,காட்டு தலைப்பு
+Show rows with zero values,பூஜ்ய மதிப்புகள் வரிசைகள் காட்டு
+Showing only for,மட்டுமே காட்டும்
+Single Post (article).,ஒற்றை போஸ்ட் (கட்டுரை).
+Single Types have only one record no tables associated. Values are stored in tabSingles,ஒற்றை வகைகள் தொடர்புடைய ஒரே ஒரு சாதனையை எந்த அட்டவணைகள் வேண்டும் . கலாச்சாரம் tabSingles சேமிக்கப்படும்
+Slideshow,ஸ்லைடுஷோ
+Slideshow Items,எஸ் உருப்படிகள்
+Slideshow Name,எஸ் பெயர்
+Slideshow like display for the website,வலைத்தளத்தை காட்சி போன்ற ஸ்லைடு
+Small Text,சிறிய உரை
+Solid background color (default light gray),திட பின்னணி நிறம் (முன்னிருப்பாக ஒளி சாம்பல்)
+Sorry we were unable to find what you were looking for.,"மன்னிக்கவும், நீங்கள் தேடும் என்ன கண்டுபிடிக்க முடியவில்லை."
+Sorry you are not permitted to view this page.,"மன்னிக்கவும், நீங்கள் இந்த பக்கம் பார்க்க அனுமதியில்லை."
+Sort By,வரிசைப்படுத்து
+Special Page Settings,சிறப்பு பக்கம் அமைப்புகள்
+Standard,நிலையான
+Start Report For,இந்த அறிக்கை தொடங்க
+Starts on,தொடங்குகிறது
+Startup,தொடக்கத்தில்
+State,நிலை
+States,அமெரிக்கா
+Status,அந்தஸ்து
+Step 1: Set the name and save.,படி 1: பெயர் அமைக்கவும் மற்றும் சேமிக்க .
+Step 2: Set Letterhead content.,படி 2: லெட்டர் உள்ளடக்கத்தை அமைத்தல் .
+Style,உடை
+Style Settings,உடை அமைப்புகள்
+"Style represents the button color: Success - Green, Danger - Red, Inverse - Black, Primary - Dark Blue, Info - Light Blue, Warning - Orange","- பசுமை, ஆபத்து - ரெட், எதிர்மாறான - பிளாக், முதன்மை - டார்க் ப்ளூ, தகவல் - லைட் ப்ளூ, எச்சரிக்கை - ஆரஞ்சு வெற்றி: உடை பொத்தானை நிறம் குறிக்கிறது"
+Sub-domain provided by erpnext.com,Erpnext.com வழங்கிய துணை டொமைன்
+Subdomain,சப்டொமைன்
+Subject,பொருள்
+Submit,Submit &#39;
+Submitted,சமர்ப்பிக்கப்பட்டது
+Submitted Record cannot be deleted,சமர்ப்பிக்கப்பட்ட பதிவு நீக்க முடியாது
+Success,வெற்றி
+Suggestion,யோசனை
+Sunday,ஞாயிற்றுக்கிழமை
+Support Email Id,மின்னஞ்சல் விலாசம் ஆதரவு
+Sync Inbox,Sync இன்பாக்ஸ்
+System,முறை
+System Defaults,கணினி இயல்புநிலைகளை
+System User,கணினி பயனர்
+Table,மேசை
+Table of Contents,பொருளடக்கம்
+Tag,Tag
+Tag Name,Tag பெயர்
+Tags,குறிச்சொற்கள்
+Tahoma,தஹோமா
+Target,இலக்கு
+Team Members,குழு உறுப்பினர்
+Team Members Heading,குழு உறுப்பினர் தலைப்பு
+Template Path,டெம்ப்ளேட் பாதை
+Test,சோதனை
+Test Runner,டெஸ்ட் ரன்னர்
+Text,உரை
+Text Align,உரை சீரமை
+Text Editor,உரை திருத்தி
+"The ""Web Page"" that is the website home page",இணையதளம் முகப்பு பக்கம் என்று &quot;வலை பக்கம்&quot;
+The name of your company / website as you want to appear on browser title bar. All pages will have this as the prefix to the title.,நீங்கள் உலாவி தலைப்பு பட்டியில் தோன்றும் வேண்டும் என்று உங்கள் நிறுவனம் / வலைத்தளத்தின் பெயர். அனைத்து பக்கங்கள் தலைப்பை முன்னொட்டு இந்த சாப்பிடும்.
+"The system provides pre-defined roles, but you can <a href='#List/Role'>add new roles</a> to set finer permissions","கணினி முன் வரையறுக்கப்பட்ட பங்களிப்பு வழங்குகிறது, ஆனால் நீங்கள் முடியும் <a href='#List/Role'>புதிய பாத்திரங்களை சேர்க்க</a> நேர்த்தியான அனுமதிகளை அமைக்க"
+Then By (optional),பின்னர் (விரும்பினால்) மூலம்
+These properties are Link Type fields from all Documents.,இந்த பண்புகள் அனைத்து ஆவணங்கள் இருந்து இணைப்பு வகை துறைகளில் உள்ளன.
+"These properties can also be used to 'assign' a particular document, whose property matches with the User's property to a User. These can be set using the <a href='#permission-manager'>Permission Manager</a>","இந்த பண்புகளை கூட யாருடைய சொத்து ஒரு பயனர் பயனர் சொத்து ஒத்துப்போகிறது ஒரு குறிப்பிட்ட ஆவணம், &#39;ஒதுக்க&#39; பயன்படுத்தலாம். இந்த பயன்படுத்தி அமைக்க <a href='#permission-manager'>அனுமதி மேலாளர்</a>"
+These properties will appear as values in forms that contain them.,இந்த பண்புகள் அவர்களுக்கு கொண்ட வடிவங்களில் மதிப்புகள் என தோன்றும்.
+These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,இந்த மதிப்புகள் தானாக நடவடிக்கைகளில் புதுப்பிக்கப்படும் மேலும் இந்த மதிப்புகள் கொண்ட பரிமாற்றங்களை இந்த பயனர் அனுமதிகள் கட்டுப்படுத்த பயனுள்ளதாக இருக்கும்.
+"This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>
+myfield
+eval:doc.myfield=='My Value'<br>
+eval:doc.age>18",
+This goes above the slideshow.,இந்த காட்சியை மேலே செல்கிறது.
+This is PERMANENT action and you cannot undo. Continue?,"இந்த நிரந்தர செயலாகும், நீங்கள் செயல்தவிர்க்க முடியாது. தொடர்ந்து?"
+This is permanent action and you cannot undo. Continue?,இந்த நிரந்தர நடவடிக்கை மற்றும் நீங்கள் செயல்தவிர்க்க முடியாது. தொடர்ந்து?
+Thursday,வியாழக்கிழமை
+Time,காலம்
+Time Zone,நேரம் மண்டல
+Title,தலைப்பு
+Title / headline of your page,தலைப்பு / உங்கள் பக்கம் தலைப்பு
+Title Case,தலைப்பு வழக்கு
+Title Prefix,தலைப்பு முன்னொட்டுக்கு
+To,வேண்டும்
+"To format columns, give column labels in the query.",", பத்திகள் வடிவமைக்க கேள்வியை நிரலை அடையாளங்கள் கொடுக்க. செய்ய"
+"To further restrict permissions based on certain values in a document, use the 'Condition' settings.","மேலும் ஒரு ஆவணத்தில் குறிப்பிட்ட மதிப்புகள் அடிப்படையில் அனுமதிகளை கட்டுப்படுத்த, &#39;கண்டிஷன்&#39; அமைப்புகளை பயன்படுத்த."
+To restrict a User of a particular Role to documents that are explicitly assigned to them,வெளிப்படையாக அவர்களுக்கு ஒதுக்கப்படும் என்று ஆவணங்களை ஒரு குறிப்பிட்ட கதாபாத்திரம் ஒரு பயனர் தடை
+To restrict a User of a particular Role to documents that are only self-created.,ஒரே சுய உருவாக்கப்பட்ட என்று ஆவணங்களை ஒரு குறிப்பிட்ட கதாபாத்திரம் ஒரு பயனர் கட்டுப்படுத்துகின்றது.
+"To set user roles, just go to <a href='#List/Profile'>Setup > Users</a> and click on the user to assign roles.","பயனர் பாத்திரங்களை அமைக்க, தான் சென்று <a href='#List/Profile'>&gt; பயனர்கள் அமைக்கவும்</a> மற்றும் பாத்திரங்கள் ஒதுக்க பயனர் கிளிக்."
+ToDo,TODO
+Tools,கருவிகள்
+Top Bar,மேல் பட்டை
+Top Bar Background,மேல் பட்டி விருப்பம்
+Top Bar Item,மேல் பட்டி உருப்படி
+Top Bar Items,மேல் பட்டி உருப்படிகள்
+Top Bar Text,மேல் பட்டை உரை
+Top Bar text and background is same color. Please change.,மேல் பட்டை உரை மற்றும் பின்னணி அதே நிறம். மாற்றம் செய்யுங்கள்.
+Total SMS Sent,மொத்த எஸ்எம்எஸ் அனுப்பிய
+Transaction,பரிவர்த்தனை
+Transition Rules,மாற்றம் விதிகள்
+Trash Reason,குப்பை காரணம்
+Tuesday,செவ்வாய்க்கிழமை
+Tweet will be shared via your user account (if specified),(குறிப்பிட்ட என்றால்) Tweet உங்கள் பயனர் கணக்கு வழியாக பகிர்ந்து
+Twitter Share,ட்விட்டர் பகிர்
+Twitter Share via,ட்விட்டர் பகிர் வழியாக
+Type,மாதிரி
+UPPER CASE,மேல் தட்டு
+UPPERCASE,மேல்வரிசை
+URL,URL
+Unable to complete request: ,கோரிக்கையை பூர்த்தி செய்ய முடியவில்லை:
+Unable to load,ஏற்ற முடியவில்லை
+"Unknown file encoding. Tried utf-8, windows-1250, windows-1252.","தெரியாத கோப்பு குறியாக்க . முயற்சி UTF-8 , விண்டோஸ் 1250 , விண்டோஸ் 1252 ."
+Unread Messages,படிக்காத செய்திகள்
+Unsubscribed,குழுவிலகப்பட்டது
+Upcoming Events for Today,இன்று வரவிருக்கும் நிகழ்வுகள்
+Update,புதுப்பிக்க
+Update Field,புலம் புதுப்பிக்க
+Update Value,மதிப்பு மேம்படுத்த
+Upload,பதிவேற்று
+Upload Attachment,இணைப்பு பதிவேற்று
+Upload a file,ஒரு கோப்பை பதிவேற்று
+Upload and Import,பதிவேற்ற மற்றும் இறக்குமதி
+Uploading...,பதிவேற்ற ...
+User,பயனர்
+User Cannot Create,பயனர் உருவாக்க முடியாது
+User Cannot Search,பயனர் தேட முடியாது
+User Image,பயனர் படம்
+User Tags,பயனர் குறிச்சொற்கள்
+User Type,பயனர் வகை
+User not allowed to delete.,பயனர் நீக்க அனுமதி இல்லை.
+UserRole,UserRole
+Value,மதிப்பு
+Value missing for,மதிப்பு காணாமல்
+Verdana,Verdana
+Visit,வருகை
+Warning,எச்சரிக்கை
+Web Content,வலை உள்ளடக்கம்
+Web Page,வலை பக்கம்
+Website,இணையதளம்
+Website Overall Settings,இணைய மொத்தத்தில் அமைப்புகள்
+Website Script,இணைய உரை
+Website Settings,இணைய அமைப்புகள்
+Website Sitemap,இணையத்தளம் தள வரைபடம்
+Website Sitemap Config,இணையத்தளம் தள வரைபடம் கட்டமைப்பு
+Website Slideshow,இணைய ப
+Website Slideshow Item,இணைய ப பொருள்
+Website User,வலைத்தளம் பயனர்
+Wednesday,புதன்கிழமை
+Welcome Email Sent,வரவேற்கிறோம் மின்னஞ்சல் அனுப்பப்பட்டது
+"When you <b>Amend</b> a document after cancel and save it, it will get a new number that is a version of the old number.","அதை ரத்து சேமிக்க பிறகு நீங்கள் ஒரு ஆவணம் <b>திருத்தும்</b> போது, பழைய எண் ஒரு பதிப்பு என்று ஒரு புதிய எண் வரும்."
+Width,அகலம்
+Will be used in url (usually first name).,URL (வழக்கமாக முதல் பெயர்) பயன்படுத்தப்படுகிறது.
+Workflow,பணியோட்டம்
+Workflow Action,பணியோட்டம் அதிரடி
+Workflow Action Master,பணியோட்டம் அதிரடி மாஸ்டர்
+Workflow Action Name,பணியோட்டம் அதிரடி பெயர்
+Workflow Document State,பணியோட்டம் ஆவண மாநிலம்
+Workflow Document States,பணியோட்டம் ஆவண அமெரிக்கா
+Workflow Name,பணியோட்டம் பெயர்
+Workflow State,பணியோட்டம் மாநிலம்
+Workflow State Field,பணியோட்டம் மாநிலம் புலம்
+Workflow Transition,பணியோட்டம் மாற்றம்
+Workflow Transitions,பணியோட்டம் மாற்றங்கள்
+Workflow state represents the current state of a document.,பணியோட்டம் அரசு ஒரு ஆவணத்தின் தற்போதைய அரசு பிரதிநிதித்துவப்படுத்துகிறது.
+Workflow will start after saving.,பணியோட்டம் சேமிப்பு பின்னர் ஆரம்பிக்கும்.
+Write,எழுது
+Write a Python file in the same folder where this is saved and return column and result.,அதே இந்த சேமிக்கப்பட்ட அமைந்துள்ள அடைவு மற்றும் திரும்ப நிரல் மற்றும் விளைவாக ஒரு பைதான் கோப்பை எழுத.
+Write a SELECT query. Note result is not paged (all data is sent in one go).,ஒரு குறிப்பிட்ட கேள்வி எழுது. குறிப்பு விளைவாக (அனைத்து தரவு ஒரே முறையில் அனுப்பப்பட்ட) பேஜ் பண்ணி.
+Write titles and introductions to your blog.,உங்கள் வலைப்பதிவில் தலைப்புகள் மற்றும் அறிமுகங்கள் எழுத.
+Writers Introduction,எழுத்தாளர்கள் அறிமுகம்
+Year,ஆண்டு
+Yes,ஆம்
+Yesterday,நேற்று
+You can set various 'properties' to Users to set default values and apply permission rules based on the value of these properties in various forms.,நீங்கள் முன்னிருப்பு மதிப்புகளை அமைக்க பல்வேறு வடிவங்களில் இந்த சொத்துக்களின் மதிப்பு அடிப்படையில் அனுமதி விதிகளை விண்ணப்பிக்க பயனர்கள் பல்வேறு &#39;பண்புகள்&#39; அமைக்க முடியும்.
+You can use <a href='#Form/Customize Form'>Customize Form</a> to set levels on fields.,நீங்கள் பயன்படுத்தலாம் <a href='#Form/Customize Form'>படிவம் தனிப்பயனாக்கு</a> துறைகளில் உள்ள நிலைகளை அமைக்க.
+"Your download is being built, this may take a few moments...","உங்கள் பதிவிறக்க கட்டப்பட உள்ளது, இந்த ஒரு சில நிமிடங்கள் ஆகலாம் ..."
+[Label]:[Field Type]/[Options]:[Width],[லேபிள்]: [புல வகை] / [விருப்பங்கள்]: [அகலம்]
+add your own CSS (careful!),உங்கள் சொந்த CSS (careful!) சேர்க்க
+adjust,சரிக்கட்டு
+align-center,align-சென்டர்
+align-justify,align-நியாயப்படுத்த
+align-left,align-விட்டு
+align-right,align வலது
+and,மற்றும்
+arrow-down,அம்புக்குறி-கீழே
+arrow-left,அம்பு இடது
+arrow-right,அம்பு வலது
+arrow-up,அம்புக்குறி அப்
+asterisk,நட்சத்திர குறி
+backward,பின்னோக்கி
+ban-circle,தடையை-வட்டம்
+barcode,பார்கோடு
+bell,மணி
+bold,துணிவுள்ள
+book,புத்தகம்
+bookmark,புக்மார்க்
+briefcase,பெட்டி
+bullhorn,bullhorn
+calendar,நாள்காட்டி
+camera,நிழற்பட கருவி
+cannot be empty,காலியாக இருக்க முடியாது
+cannot be in its own,அதன் சொந்த இருக்க முடியாது
+"cannot have a URL, because it has child item(s)","அது குழந்தை உருப்படியை (கள்) ஏனெனில், ஒரு URL முடியாது"
+cannot start with,தொடங்க முடியாது
+certificate,சான்றிதழ்
+check,சோதனை
+chevron-down,செவ்ரான்-கீழே
+chevron-left,செவ்ரான்-விட்டு
+chevron-right,செவ்ரான் வலது
+chevron-up,செவ்ரான் அப்
+circle-arrow-down,"வட்டம், அம்பு, கீழே"
+circle-arrow-left,வட்டத்தை-அம்பு இடது
+circle-arrow-right,வட்டத்தை-அம்பு வலது
+circle-arrow-up,வட்டத்தை-அம்பு அப்
+cog,இயந்திர சக்கரத்தின் பல்
+comment,கருத்து
+comments,கருத்துக்கள்
+create a Custom Field of type Link (Profile) and then use the 'Condition' settings to map that field to the Permission rule.,"வகை இணைப்பு (செய்தது) ஒரு தனிப்பயன் புலம் உருவாக்க, பின்னர் அனுமதி ஆட்சிக்கு என்று துறையில் கண்டறிவதில் &#39;கண்டிஷன்&#39; அமைப்புகளை பயன்படுத்த."
+dd-mm-yyyy,dd-mm-yyyy
+dd/mm/yyyy,dd / mm / yyyy
+does not exist,இல்லை
+download,பதிவிறக்கம்
+download-alt,பதிவிறக்க-alt
+edit,திருத்த
+eject,ஒருவரை வெளியே துரத்து
+envelope,கடித உறை
+exclamation-sign,ஆச்சரியக்குறி-அறிகுறி
+eye-close,கண் நெருக்கமான
+eye-open,கண் திறக்க
+facetime-video,facetime-வீடியோ
+fast-backward,வேகமாக பின்தங்கிய
+fast-forward,வேகமாக முன்னோக்கி
+file,கோப்பு
+film,படம்
+filter,வடிகட்ட
+fire,தீ
+flag,கொடி
+folder-close,கோப்புறையை-நெருக்கமான
+folder-open,கோப்புறையை திறக்க
+font,எழுத்துரு
+forward,முன்
+found,இல்லை
+fullscreen,முழுத்திரை
+gift,நன்கொடை
+glass,கண்ணாடி
+globe,உலகு
+hand-down,கை கீழே
+hand-left,கையை இடது
+hand-right,கையை வலது
+hand-up,கை அப்
+hdd,hdd
+headphones,ஹெட்ஃபோன்கள்
+heart,இதயம்
+home,வீட்டுக்கு
+icon,உருவம்
+in,இல்
+inbox,இன்பாக்ஸ்
+indent-left,உள்தள் இடது
+indent-right,உள்தள் வலது
+info-sign,தகவல்-அறிகுறி
+is linked in,தொடர்பு
+is not allowed.,அனுமதி இல்லை.
+italic,(அச்செழுத்துக்கள் வலப்பக்கம்) சாய்ந்துள்ள
+leaf,இலை
+list,பட்டியல்
+list-alt,பட்டியல்-alt
+lock,குஞ்சம்
+lowercase,சிற்றெழுத்து
+magnet,காந்தம்
+map-marker,வரைபடத்தை-மார்க்கர்
+minus,குறைய
+minus-sign,கழித்தல்-அறிகுறி
+mm-dd-yyyy,mm-dd-yyyy
+mm/dd/yyyy,dd / mm / yyyy
+move,நகர்த்து
+music,இசை
+not in,இல்லை
+of type Link,வகை இணைப்பு
+off,ஆஃப்
+ok,சரியா
+ok-circle,"சரி, வட்டம்"
+ok-sign,"சரி, அறிகுறி"
+or,அல்லது
+pause,ஓய்வு
+pencil,பென்சில்
+picture,ஓவியம்
+plane,விமானம்
+play,விளையாட
+play-circle,விளையாட்டு வட்டம்
+plus,உடன் சேர்க்கப்பட்டு
+plus-sign,பிளஸ்-கையெழுத்திட
+print,அச்சடி
+qrcode,qrcode
+question-sign,கேள்வி குறி
+random,குறிப்பான நோக்கம் ஏதுமற்ற
+refresh,இளைப்பா (ற்) று
+remove,நீக்கு
+remove-circle,நீக்க-வட்டம்
+remove-sign,நீக்க-கையெழுத்திட
+repeat,ஒப்பி
+resize-full,மறுஅளவீடு-முழு
+resize-horizontal,மறுஅளவீடு-கிடைமட்ட
+resize-small,மறுஅளவீடு சிறிய
+resize-vertical,மறுஅளவீடு-செங்குத்து
+retweet,மறு ட்வீட் செய்க
+road,சாலை
+screenshot,திரை
+search,தேடல்
+share,பங்கு
+share-alt,பங்கு-alt
+shopping-cart,ஷாப்பிங் வண்டி
+signal,அடையாளம்
+star,நட்சத்திரம்
+star-empty,நட்சத்திர-காலியாக
+step-backward,படி-பின்தங்கிய
+step-forward,படி-முன்னோக்கி
+stop,நில்
+tag,ஒட்டு
+tags,குறிச்சொற்கள்
+"target = ""_blank""",இலக்கு = &quot;_blank&quot;
+tasks,பணிகள்
+text-height,உரை உயரம்
+text-width,உரை அகலம்
+th,வது
+th-large,"ம், பெரிய"
+th-list,வது பட்டியல்
+thumbs-down,கட்டைவிரலை டவுன்
+thumbs-up,கட்டைவிரலை அப்
+time,காலம்
+tint,இலேசான நிறம்
+to,வேண்டும்
+trash,குப்பைக்கு
+upload,பதிவேற்ற
+user,பயனர்
+user_image_show,user_image_show
+values and dates,மதிப்புகள் மற்றும் தேதிகள்
+volume-down,தொகுதி-கீழே
+volume-off,தொகுதி-ஆஃப்
+volume-up,தொகுதி அப்
+warning-sign,எச்சரிக்கை-அறிகுறி
+wrench,பிடுங்கு
+yyyy-mm-dd,yyyy-mm-dd
+zoom-in,ஜூம்-இல்
+zoom-out,ஜூம்-அவுட்

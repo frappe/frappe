@@ -1,0 +1,1073 @@
+ by Role ,بالتخصص
+ can not be marked as a ledger as it has existing child,لا يمكن أن تكون علامة ليدجر كما فعلت الأطفال الحالية
+ cannot be deleted.,لا يمكن حذف.
+ is not set,لم يتم تعيين
+"""Company History""",&quot;نبذة عن تاريخ الشركة&quot;
+"""Team Members"" or ""Management""",&quot;أعضاء الفريق&quot; أو &quot;إدارة&quot;
+0,0
+"000 is black, fff is white",000 سوداء، بيضاء FFF
+1,1
+12px,12px
+13px,13px
+14px,14px
+15px,15px
+16px,16px
+2,2
+2 days ago,2 منذ أيام
+"<a onclick=""msgprint('<ol>\
+<li><b>field:[fieldname]</b> - By Field\
+<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\
+<li><b>Prompt</b> - Prompt user for a name\
+<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\
+</ol>')"">Naming Options</a>",
+<b>Cancel</b> allows you change Submitted documents by cancelling them and amending them.,<b>إلغاء</b> يسمح لك بتغيير الوثائق المقدمة من إلغائها وتعديلها.
+A new popup will open that will ask you to select further conditions.,وهناك المنبثق الجديدة التي فتح سوف يطلب منك تحديد شروط أخرى.
+A user can have multiple values for a property.,يمكن للمستخدم تحتوي على قيم متعددة لخاصية.
+About,حول
+About Us Settings,حول بنا إعدادات
+About Us Team Member,حول عضو فريق بنا
+Account Id,رقم الحساب
+Action,عمل
+Actions,الإجراءات
+Add,إضافة
+Add A New Rule,إضافة قاعدة جديدة
+Add A Property,إضافة خاصية
+Add Attachments,إضافة مرفقات
+Add Bookmark,إضافة علامة
+Add CSS,إضافة CSS
+Add Column,إضافة عمود
+Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,إضافة خدمة Google Analytics ID: على سبيل المثال. UA-89XXX57-1. الرجاء بحث المساعدة على تحليلات جوجل لمزيد من المعلومات.
+Add Message,إضافة رسالة
+Add New Permission Rule,إضافة قاعدة جديدة إذن
+Add Reply,إضافة رد
+Add Total Row,إضافة صف الإجمالي
+Add a banner to the site. (small banners are usually good),إضافة لافتة إلى الموقع. (لافتات صغيرة عادة ما تكون جيدة)
+Add attachment,إضافة المرفقات
+Add code as &lt;script&gt;,إضافة التعليمات البرمجية كما &lt;script&gt;
+Add new row,إضافة صف جديد
+"Add the name of <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> e.g. ""Open Sans""","إضافة اسم <a href=""http://google.com/webfonts"" target=""_blank"">جوجل خط ويب</a> على سبيل المثال &quot;بلا فتح&quot;"
+Add to To Do,إضافة إلى المهام
+Add to To Do List of,إضافة إلى قائمة المهام من
+Additional Info,معلومات إضافية
+Address,عنوان
+Address and other legal information you may want to put in the footer.,العنوان وغيرها من المعلومات القانونية قد تحتاج لوضع في تذييل الصفحة.
+Address to be displayed on the Contact Page,معالجة ليتم عرضها في صفحة الاتصال
+Adds a custom field to a DocType,يضيف حقل مخصص لDOCTYPE
+Adds a custom script (client or server) to a DocType,يضيف برنامج نصي مخصص (العميل أو الملقم) إلى DOCTYPE
+Advanced Scripting,برمجة متقدمة
+Advanced Settings,إعدادات متقدمة
+All Day,كل يوم
+"All possible Workflow States and roles of the workflow. <br>Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""",جميع الدول سير العمل والأدوار الممكنة لسير العمل. <br> Docstatus خيارات: هو &quot;المحفوظة&quot; 0، يتم &quot;المقدمة&quot; (1) ويتم &quot;إلغاء&quot; 2
+Allow Attach,تسمح إرفاق
+Allow Import,تسمح استيراد
+Allow Import via Data Import Tool,تسمح استيراد عبر أداة استيراد البيانات
+Allow Rename,تسمح إعادة تسمية
+Allow on Submit,السماح على تقديم
+Allow user to login only after this hour (0-24),تسمح للمستخدم لتسجيل الدخول فقط بعد هذه الساعة (0-24)
+Allow user to login only before this hour (0-24),تسمح للمستخدم لتسجيل الدخول فقط قبل هذه الساعة (0-24)
+Allowed,سمح
+Already Registered,مسجل بالفعل
+Amend,تعديل
+"An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [<a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a>]","ملف رمز التمديد مع منظمة البن الدولية. يجب أن تكون 16 × 16 بكسل. تم إنشاؤها باستخدام مولد فافيكون. [ <a href=""http://favicon-generator.org/"" target=""_blank"">فافيكون-generator.org</a> ]"
+Are you sure you want to delete the attachment?,هل أنت متأكد أنك تريد حذف المرفق؟
+Arial,ارييل
+"As a best practice, do not assign the same set of permission rule to different Roles instead set multiple Roles to the User",باعتبارها أفضل الممارسات، عدم تعيين نفس المجموعة من الحكم إذن لتعيين الأدوار المختلفة بدلا الأدوار المتعددة للمستخدم
+Ascending,تصاعدي
+Assign To,تعيين إلى
+Assigned By,يكلفه بها
+Assigned To,تعيين ل
+Assigned To/Owner,تعيين ل / المالك
+Attach,تعلق
+Attach Document Print,إرفاق طباعة المستند
+Attach as web link,كما نعلق رابط موقع
+Attached To DocType,تعلق على DOCTYPE
+Attached To Name,تعلق على اسم
+Attachments,المرفقات
+Attributions,صفات
+Auto Name,السيارات اسم
+Auto generated,ولدت السيارات
+Avatar,الصورة الرمزية
+Background Color,لون الخلفية
+Background Image,صورة الخلفية
+Banner,راية
+Banner HTML,راية HTML
+Banner Image,راية صورة
+Banner is above the Top Menu Bar.,راية فوق أعلى شريط القوائم.
+Begin this page with a slideshow of images,تبدأ هذه الصفحة مع عرض شرائح من الصور
+Belongs to,ينتمي إلى
+Bio,الحيوية
+Birth Date,تاريخ الميلاد
+Blog Category,بلوق التصنيف
+Blog Intro,بلوق مقدمة
+Blog Introduction,بلوق مقدمة
+Blog Post,بلوق وظيفة
+Blog Settings,إعدادات بلوق
+Blog Title,بلوق العنوان
+Blogger,مدون
+Bookmarks,الإشارات المرجعية
+Brand HTML,العلامة التجارية HTML
+"Brand is what appears on the top-right of the toolbar. If it is an image, make sure it
+has a transparent background and use the &lt;img /&gt; tag. Keep size as 200px x 30px",
+Bulk Email,الجزء الأكبر البريد الإلكتروني
+Bulk Email records.,الجزء الأكبر البريد الإلكتروني السجلات.
+Button,زر
+By,بواسطة
+COMM-,COMM-
+CSS,CSS
+Calendar,تقويم
+Can only be exported by users with role 'Report Manager',لا يمكن إلا أن تصدر من قبل المستخدمين مع &#39;إدارة التقارير &quot;دور
+Cancel,إلغاء
+Cancel permission also allows the user to delete a document (if it is not linked to any other document).,إلغاء إذن كما يسمح للمستخدم حذف وثيقة (إذا لم يتم ربطه أي وثيقة أخرى).
+Cancelled,إلغاء
+Cannot Update: Incorrect / Expired Link.,لا يمكن تحديث : رابط غير الصحيحة / منتهية الصلاحية .
+Cannot Update: Incorrect Password,لا يمكن تحديث : كلمة المرور غير صحيحة
+Cannot change from,لا يمكن تغيير من
+Cannot edit standard fields,لا تستطيع تعديل الحقول القياسية
+Cannot map because following condition fails: ,لا يمكن تعيين بسبب فشل الشرط التالي:
+"Cannot update a non-exiting record, try inserting.",لا يمكن تحديث سجل غير الخروج ، حاول إدراج .
+Categorize blog posts.,تصنيف بلوق وظيفة.
+Category,فئة
+Category Name,اسم التصنيف
+Center,مركز
+"Certain documents should not be changed once final, like an Invoice for example. The final state for such documents is called <b>Submitted</b>. You can restrict which roles can Submit.",يجب أن لا يتم تغيير بعض الوثائق النهائية مرة واحدة، مثل الفاتورة على سبيل المثال. ويسمى <b>قدمت</b> الدولة النهائية لهذه الوثائق. يمكنك تقييد الأدوار التي يمكن أن تقدم.
+Chat,الدردشة
+Check,تحقق
+Check / Uncheck roles assigned to the Profile. Click on the Role to find out what permissions that Role has.,تحقق أدوار ازل / المسندة إلى الملف. انقر على دور لمعرفة ما الأذونات التي الدور الذي.
+Check this to make this the default letter head in all prints,التحقق من ذلك لجعل هذه الرسالة الافتراضية الرأس في جميع الطبعات
+Checked,فحص
+Child Tables are shown as a Grid in other DocTypes.,وتظهر جداول الطفل بأنه في الشبكة DocTypes أخرى.
+Clear Cache & Refresh,مسح ذاكرة التخزين المؤقت وتحديث
+Click on button in the 'Condition' column and select the option 'User is the creator of the document',انقر على زر في عمود &quot;الحالة&quot; وحدد الخيار &quot;المستخدم هو الخالق من وثيقة&quot;
+Click on row to edit.,انقر على التوالي في تحريرها.
+Click to Expand / Collapse,انقر لتوسيع / ​​طي
+Client,زبون
+Close,أغلق
+Code,رمز
+Color,اللون
+Column Break,العمود استراحة
+Comment,تعليق
+Comment By,تعليق من جانب
+Comment By Fullname,التعليق بواسطة الاسم بالكامل
+Comment Date,التعليق تاريخ
+Comment Docname,التعليق Docname
+Comment Doctype,التعليق DOCTYPE
+Comment Time,التعليق الوقت
+Comments,تعليقات
+Communication,اتصالات
+Communication Medium,الاتصالات متوسطة
+Company History,نبذة عن تاريخ الشركة
+Company Introduction,الشركة مقدمة
+Company Name,اسم الشركة
+Complaint,شكوى
+Complete By,الكامل من جانب
+Condition Field,حالة الميدان
+Contact Us Settings,الاتصال بنا إعدادات
+"Contact options, like ""Sales Query, Support Query"" etc each on a new line or separated by commas.",خيارات الاتصال، مثل &quot;الاستعلام المبيعات والدعم الاستعلام&quot; الخ كل على سطر جديد أو مفصولة بفواصل.
+Content,محتوى
+Content in markdown format that appears on the main side of your page,المحتوى في شكل تخفيض السعر الذي يظهر على الجانب الرئيسي من الصفحة الخاصة بك
+Content web page.,محتوى الويب الصفحة.
+Control Panel,لوحة التحكم
+Controller,مراقب
+Copy,نسخ
+Copyright,حق النشر
+Core,جوهر
+Count,عد
+Country,بلد
+Create,خلق
+Created Customer Issue,إنشاء العدد العملاء
+Created Opportunity,خلق الفرص
+Created Support Ticket,إنشاء تذكرة دعم
+Currency,عملة
+Currency Format,تنسيق العملة
+Current status,الوضع الحالي
+Custom CSS,العرف CSS
+Custom Field,مخصص الميدانية
+Custom Reports,تقارير مخصصة
+Custom Script,سيناريو مخصص
+Custom Startup Code,بدء التشغيل التعليمات البرمجية المخصصة
+Custom?,العرف؟
+Customize,تخصيص
+Customize Form,تخصيص نموذج
+Customize Form Field,تخصيص حقل نموذج
+"Customize Label, Print Hide, Default etc.",تخصيص تسمية، إخفاء طباعة، الخ الافتراضي
+Daily Event Digest is sent for Calendar Events where reminders are set.,يتم إرسالها حدث الموجز اليومي على أحداث التقويم حيث يتم تعيين التذكير.
+Danger,خطر
+Data,معطيات
+Data missing in table,البيانات الناقصة في الجدول
+Date,تاريخ
+Date Format,تنسيق التاريخ
+Date must be in format,يجب أن يكون التاريخ في شكل
+Datetime,التاريخ والوقت
+Dear,العزيز
+Default,الافتراضي
+Default Home Page,الصفحة الرئيسية الافتراضية
+Default Home Pages,الصفحات الرئيسية الافتراضية
+Default Print Format,طباعة شكل الافتراضي
+Default Value,القيمة الافتراضية
+"Default: ""Contact Us""",الافتراضي: &quot;اتصل بنا&quot;
+DefaultValue,الافتراضية
+Defaults,الافتراضات
+Defines actions on states and the next step and allowed roles.,يحدد الإجراءات على الدول والخطوة التالية والأدوار المسموح بها.
+Defines workflow states and rules for a document.,تعرف الولايات سير العمل وقواعد وثيقة.
+Delete,حذف
+Delete Row,حذف صف
+Depends On,يعتمد على
+Descending,تنازلي
+Description,وصف
+"Description for listing page, in plain text, only a couple of lines. (max 140 characters)",وصف لصفحة القائمة، في نص عادي، فقط بضعة أسطر. (حد أقصى 140 حرف)
+Description for page header.,وصف لرأس الصفحة.
+Desktop,سطح المكتب
+Details,تفاصيل
+Did not add.,لم تضف.
+Did not cancel,لم إلغاء
+Did not save,لم ينقذ
+"Different ""States"" this document can exist in. Like ""Open"", ""Pending Approval"" etc.",مختلفة &quot;الدول&quot; هذه الوثيقة يمكن أن توجد فيها مثل &quot;فتح&quot; و &quot;الموافقة معلقة&quot; الخ.
+Disable Customer Signup link in Login page,تعطيل الرابط اشترك العملاء في صفحة تسجيل الدخول
+Disable Signup,تعطيل الاشتراك
+Disabled,معاق
+Display Settings,عرض إعدادات
+Doc Status,الحالة ثيقة
+DocField,DocField
+DocPerm,DocPerm
+DocType,DOCTYPE
+DocType Details,DOCTYPE تفاصيل
+DocType can not be merged,لا يمكن دمج DOCTYPE
+DocType is a Table / Form in the application.,DOCTYPE هو جدول / نموذج في التطبيق.
+DocType on which this Workflow is applicable.,DOCTYPE على سير العمل هذا الذي ينطبق.
+DocType or Field,DOCTYPE أو حقل
+Docname,Docname
+Document,وثيقة
+Document Status transition from ,وثيقة الانتقال من الحالة
+Document Type,نوع الوثيقة
+Document Types,أنواع الوثيقة
+Document is only editable by users of role,الوثيقة للتحرير فقط من قبل المستخدمين من دور
+Documents,وثائق
+Download Backup,تحميل النسخ الاحتياطي
+Draft,مسودة
+Drafts,الداما
+Drag to sort columns,اسحب لفرز الأعمدة
+Edit,تحرير
+Editable,للتحرير
+Email,البريد الإلكتروني
+Email Host,البريد الإلكتروني المضيف
+Email Id where users will send support request e.g. support@example.com,رقم البريد الإلكتروني حيث سيكون للمستخدمين بإرسال طلب الدعم مثل support@example.com
+Email Login,دخول البريد الالكتروني
+Email Password,البريد الالكتروني كلمة السر
+Email Sent,إرسال البريد الإلكتروني
+Email Settings,إعدادات البريد الإلكتروني
+Email Signature,البريد الإلكتروني التوقيع
+Email Use SSL,إرسال استخدام SSL
+"Email addresses, separted by commas",عناوين البريد الإلكتروني، separted بفواصل
+Email...,البريد الإلكتروني ...
+Embed image slideshows in website pages.,تضمين عرض الشرائح صورة في صفحات الموقع.
+Enable Comments,تمكين تعليقات
+Enabled,تمكين
+Ends on,ينتهي في
+Enter Form Type,أدخل نوع النموذج
+"Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set ""match"" permission rules. To see list of fields, go to <a href=""#Form/Customize Form/Customize Form"">Customize Form</a>.","الدخول في مجالات القيمة الافتراضية (مفاتيح) والقيم. إذا قمت بإضافة قيم متعددة لحقل، سيتم اختار أول واحد. كما تستخدم هذه الافتراضات لوضع القواعد &quot;مباراة&quot; إذن. لمعرفة قائمة الحقول، انتقل إلى <a href=""#Form/Customize Form/Customize Form"">تخصيص الشكل</a> ."
+Equals,التساوي
+Error,خطأ
+Error: Document has been modified after you have opened it,تم تعديل الوثيقة بعد أن كنت قد فتحه: خطأ
+Event,حدث
+Event End must be after Start,يجب أن يكون نهاية الحدث بعد بدء
+Event Individuals,الحدث الأفراد
+Event Role,الحدث الدور
+Event Roles,الحدث الأدوار
+Event Type,نوع الحدث
+Event User,حدث المستخدم
+Events In Today's Calendar,الأحداث في التقويم اليوم
+Every Day,كل يوم
+Every Month,كل شهر
+Every Week,كل أسبوع
+Every Year,كل سنة
+Example:,على سبيل المثال:
+Export,تصدير
+Facebook Share,الفيسبوك شارك
+FavIcon,فافيكون
+Female,أنثى
+Field Description,حقل الوصف
+Field Name,حقل الاسم
+Field Type,نوع الحقل
+"Field that represents the Workflow State of the transaction (if field is not present, a new hidden Custom Field will be created)",الحقل الذي يمثل حالة سير العمل للصفقة (إذا حقل غير موجود، سيتم إنشاء حقل مخصص جديد مخفي)
+Fieldname,Fieldname
+Fields,الحقول
+"Fields separated by comma (,) will be included in the<br /><b>Search By</b> list of Search dialog box",وسيتم إدراج حقول مفصولة بفواصل (،) في <br /> <b>البحث حسب</b> قائمة مربع الحوار بحث
+File,ملف
+File Data,ملف البيانات
+File Name,اسم الملف
+File Size,حجم الملف
+File URL,ملف URL
+File size exceeded the maximum allowed size,حجم الملف تجاوز الحجم الأقصى المسموح به
+Filter,تحديد
+Finder,مكتشف
+First Name,الاسم الأول
+Float,الطفو
+Font (Heading),الخط (العنوان)
+Font (Text),الخط (نص)
+Font Size (Text),حجم الخط (نص)
+Fonts,الخطوط
+Footer,تذييل
+Footer Items,تذييل العناصر
+For All Users,لكافة المستخدمين
+For DocType,ل DOCTYPE
+"For Links, enter the DocType as range
+For Select, enter list of Options separated by comma",
+"For comparative filters, start with",للمرشحات النسبية، وتبدأ مع
+For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,على سبيل المثال إذا قمت بإلغاء وتعديل &#39;INV004&#39; سوف تصبح الوثيقة الجديدة &quot;INV004-1&quot;. هذا يساعدك على تتبع كل تعديل.
+For example: You want to restrict users to transactions marked with a certain property called 'Territory',على سبيل المثال: كنت ترغب في تقييد المستخدمين من وضع علامة المعاملات مع خاصية معينة تسمى &quot;الأرض&quot;
+For ranges,للنطاقات
+Form,شكل
+"Format: hh:mm example for one hour expiry set as 01:00. 
+Max expiry will be 72 hours. Default is 24 hours",
+Forward To Email Address,انتقل إلى عنوان البريد الإلكتروني
+Friday,الجمعة
+From Date must be before To Date,يجب أن تكون من تاريخ إلى تاريخ قبل
+Full Name,بدر تام
+Gantt Chart,مخطط جانت
+Gender,جنس
+General,عام
+Generator,مولد كهربائي
+Georgia,جورجيا
+Get,الحصول على
+Get From ,عليه من
+"Go to Setup > <a href='#user-properties'>User Properties</a> to set \
+			'territory' for diffent Users.",
+Google Analytics ID,جوجل تحليلات ID
+Google Plus One,جوجل زائد واحد
+Google Web Font (Heading),Google ويب الخط (العنوان)
+Google Web Font (Text),Google ويب الخط (نص)
+Greater or equals,أكبر أو يساوي
+Greater than,أكبر من
+Groups,مجموعات
+HTML,HTML
+Header,رأس
+Heading,عنوان
+Heading Text As,عنوان النص
+Help,مساعدة
+Helvetica Neue,هلفتيكا نويه
+Hey! There should remain at least one System Manager,مهلا! هناك ينبغي أن تظل إدارة نظام واحد على الأقل
+Hidden,مخفي
+Hide Actions,إخفاء عمليات
+Hide Copy,إخفاء نسخة
+Hide Email,إخفاء البريد الإلكتروني
+Hide Heading,إخفاء عنوان
+Hide Print,إخفاء طباعة
+Hide Toolbar,إخفاء شريط الأدوات
+Highlight,تسليط الضوء على
+History,تاريخ
+Home Page,الصفحة الرئيسية
+Home Page is Products,الصفحة الرئيسية المنتجات غير
+Home Pages,الصفحات الرئيسية
+ID,ID
+ID (name) of the entity whose property is to be set,ID (اسم) للكيان الذي هو الملكية التي سيتم تحديدها
+Icon,رمز
+Icon will appear on the button,سوف تظهر أيقونة على زر
+"If a User does not have access at Level 0, then higher levels are meaningless",وإذا كان المستخدم لا يملك الوصول على المستوى 0، ثم لا معنى لها مستويات أعلى
+"If checked, all other workflows become inactive.",إذا تم، جميع مهام سير العمل الأخرى تصبح خاملة.
+"If checked, the Home page will be the default Item Group for the website.",إذا تم، سيكون في الصفحة الرئيسية يجب أن يكون فريق المدينة الافتراضية للموقع.
+"If image is selected, color will be ignored (attach first)",إذا تم تحديد الصورة، سيتم تجاهل اللون (إرفاق الأولى)
+"If not, create a",إن لم يكن، إنشاء
+"If the 'territory' Link Field exists, it will give you an option to select it",إذا حقل &#39;الأرض&#39; لينك موجود، وسوف تعطيك الخيار لتحديده
+"If these instructions where not helpful, please add in your suggestions at <a href='https://github.com/webnotes/wnframework/issues'>GitHub Issues</a>",إذا هذه التعليمات حيث لم تكن مفيدة ، يرجى إضافة في اقتراحاتكم في <a href='https://github.com/webnotes/wnframework/issues'> جيثب قضايا < / A>
+"If you set this, this Item will come in a drop-down under the selected parent.",إذا قمت بتعيين هذا ، فإن هذا البند تأتي في قائمة منسدلة تحت الأصل المحدد .
+Image,صورة
+Image Link,رابط الصورة
+Import,استيراد
+In,في
+In Dialog,في مربع حوار
+In Filter,في تصفية
+In List View,في عرض القائمة
+In Report Filter,في تصفية التقرير
+In response to,ردا على
+"In the Permission Manager, click on the button in the 'Condition' column for the Role you want to restrict.",في إدارة إذن، انقر على زر في عمود &quot;الحالة&quot; لدور تريد تقييد.
+Index,مؤشر
+Individuals,الأفراد
+Industry,صناعة
+Info,معلومات
+Insert After,إدراج بعد
+Insert Below,إدراج بالأسفل
+Insert Code,إدراج رمز
+Insert Row,إدراج صف
+Insert Style,إدراج شكل
+Int,الباحث
+Integrations,التكاملات
+Introduce your company to the website visitor.,تقديم الشركة للزائر الموقع.
+Introduction,مقدمة
+Introductory information for the Contact Us Page,المعلومات التمهيدية لصفحة اتصل بنا
+Invalid Email,البريد الإلكتروني غير صحيح
+Inverse,معكوس
+Is Active,نشط
+Is Child Table,هو الجدول التابع
+Is Default,افتراضي
+Is Mandatory Field,هو حقل إلزامي
+Is Single,هو واحدة
+Is Standard,هو معيار
+Is Submittable,هو Submittable
+JSON,JSON
+JavaScript Format: wn.query_reports['REPORTNAME'] = {},جافا سكريبت الصيغة: wn.query_reports [' REPORTNAME '] = { }
+Javascript,جافا سكريبت
+Javascript to append to the head section of the page.,جافا سكريبت لإلحاق رئيس قسم من الصفحة.
+Keep a track of all communications,حفاظ على تعقب من كافة الاتصالات
+Key,مفتاح
+Label,ملصق
+Label Help,التسمية تعليمات
+Lacs,البحيرات
+Landing Page,الصفحة المقصودة
+Language,لغة
+Language preference for user interface (only if available).,تفضيل لغة واجهة المستخدم (إلا إذا وجدت).
+Last IP,مشاركة IP
+Last Login,آخر تسجيل دخول
+Last Name,اسم العائلة
+Last updated by,اخر تحديث قام به
+Lastmod,Lastmod
+Lato,اتو
+Leave blank to repeat always,اتركه فارغا لتكرار دائما
+Left,ترك
+Less or equals,أقل أو يساوي
+Less than,أقل من
+Letter Head,رسالة رئيس
+Letter Head Image,رسالة رئيس الصور
+Letter Head Name,رسالة رئيس الاسم
+Letter Head in HTML,رسالة رئيس في HTML
+Level,مستوى
+"Level 0 is for document level permissions, higher levels for field level permissions.",0 هو مستوى الأذونات لمستوى الوثيقة، مستويات أعلى للحصول على أذونات المستوى الميداني.
+Like,مثل
+Link,رابط
+Link Name,اسم الرابط
+Link to other pages in the side bar and next section,ربط إلى صفحات أخرى في شريط الجانب والمقطع التالي
+Link to the page you want to open,الرابط إلى الصفحة التي تريد فتح
+Linked In Share,ترتبط في حصة
+Linked With,ترتبط
+List,قائمة
+List of patches executed,قائمة من بقع تنفيذها
+Loading,تحميل
+Loading Report,تحميل تقرير
+Loading...,تحميل ...
+Log of Scheduler Errors,سجل أخطاء جدولة
+Login,دخول
+Login After,بعد الدخول
+Login Before,تسجيل الدخول قبل
+Logout,خروج
+Long Text,نص طويل
+Lucida Grande,سدا غراندي
+Mail Footer,البريد تذييل
+Mail Server,خادم البريد
+Main Section,القسم العام
+Make a new,جعل جديدة
+Make sure that the transactions you want to restrict have a Link field 'territory' that maps to a 'Territory' master.,تأكد من أن المعاملات التي تريد تقييد يكون &#39;إقليم&#39; حقل الارتباط التي تعين على الماجستير الأرض &#39;.
+Male,ذكر
+Mandatory,إلزامي
+Mandatory filters required:\n,مرشحات الإلزامية المطلوبة: \ ن
+Master,سيد
+Match,مباراة
+Max Attachments,المرفقات ماكس
+"Meaning of Submit, Cancel, Amend",معنى تقديم، إلغاء وتعديل
+"Menu items in the Top Bar. For setting the color of the Top Bar, go to <a href=""#Form/Style Settings"">Style Settings</a>","عناصر القائمة في الشريط العلوي. لتحديد لون الشريط العلوي، انتقل إلى <a href=""#Form/Style Settings"">إعدادات نمط</a>"
+"Merging is only possible between Group-to-Group or 
+					Ledger-to-Ledger",
+Message,رسالة
+Method,طريقة
+Middle Name (Optional),الاسم الأوسط (اختياري)
+Millions,الملايين
+Misc,منوعات
+Miscellaneous,متفرقات
+Missing Values Required,في عداد المفقودين القيم المطلوبة
+Modified by,تعديلها من قبل
+Module,وحدة
+Module Def,وحدة مواطنه
+Module Name,اسم وحدة
+Modules,وحدات
+Monday,يوم الاثنين
+More,أكثر
+More content for the bottom of the page.,المزيد من المحتوى لأسفل الصفحة.
+Must have report permission to access this report.,يجب أن يكون لديك إذن للوصول إلى تقرير هذا التقرير.
+Must specify a Query to run,يجب تحديد استعلام لتشغيل
+Name,اسم
+Name Case,اسم القضية
+Name Exists,اسم موجود
+Naming Series mandatory,تسمية السلسلة إلزامية
+New,جديد
+New Password,كلمة مرور جديدة
+New Record,رقم قياسي جديد
+New value to be set,القيمة الجديدة التي سيتم تحديدها
+Next Communcation On,وفي المراسلات القادمة
+Next State,الدولة القادمة
+Next actions,الإجراءات التالية
+No,لا
+No Action,أي إجراء
+No Cache,لا الكاش
+No Communication tagged with this ,لا الاتصالات المفتاحية هذه
+No Copy,اي نسخة
+No Permission,لا يوجد تصريح
+No Permission to ,لا توجد صلاحية ل
+No Permissions set for this criteria.,لم يحدد ضوابط لهذه المعايير.
+No Report Loaded. Please use query-report/[Report Name] to run a report.,أي تقرير المحملة. الرجاء استخدام استعلام تقرير / [اسم التقرير] لتشغيل التقرير.
+No Sitemap,لا خريطة الموقع
+No User Properties found.,العثور على خصائص المستخدم.
+No further records,لا توجد سجلات أخرى
+No one,لا احد
+No permission to edit,لا توجد صلاحية ل تعديل
+No permission to write / remove.,لا توجد صلاحية لكتابة / إزالة.
+No records tagged.,لا توجد سجلات المعلمة.
+None,لا شيء
+None: End of Workflow,لا شيء: نهاية سير العمل
+Not Found,لم يتم العثور على
+Not Linked to any record.,لا يرتبط أي سجل.
+Not Permitted,لا يسمح
+Not allowed for: ,لا يسمح لل:
+Not enough permission to see links.,لا إذن بما يكفي لرؤية الروابط.
+Not equals,لا يساوي
+"Note: For best results, images must be of the same size and width must be greater than height.",ملاحظة: للحصول على أفضل النتائج، يجب أن تكون الصور من نفس الحجم والعرض يجب أن تكون أكبر من الارتفاع.
+Note: Other permission rules may also apply,ملاحظة: قد قواعد أخرى إذن تنطبق أيضا
+Note: maximum attachment size = 1mb,ملاحظة: الحد الأقصى لحجم المرفقات 1MB =
+Nothing to show,لا شيء لإظهار
+Nothing to show for this selection,شيء لاظهار هذا الاختيار
+Notification Count,عدد إعلام
+Notify By Email,إبلاغ عن طريق البريد الإلكتروني
+On,في
+"Once you have set this, the users will only be able access documents with that property.",وبمجرد الانتهاء من تعيين هذا، سوف يكون المستخدمون قادرين الوصول إلى المستندات فقط مع تلك الممتلكات.
+Only Administrator allowed to create Query / Script Reports,المسؤول الوحيد المسموح به لإنشاء تقارير الاستعلام / سكربت
+Only Administrator can save a standard report. Please rename and save.,مسؤول فقط يمكن حفظ تقرير القياسية. الرجاء إعادة تسمية وحفظ.
+Only Allow Edit For,السماح فقط للتحرير
+Only System Manager can create / edit reports,لا يمكن إلا أن إدارة نظام إنشاء / تحرير التقارير
+Open Count,فتح عدد
+Open Sans,مفتوحة بلا
+Options,خيارات
+Options Help,خيارات مساعدة
+Org History,غزاله التاريخ
+Org History Heading,غزاله التاريخ مداخل
+Original Message,رسالة الأصلي
+Other,آخر
+POP3 Mail Server (e.g. pop.gmail.com),POP3 خادم البريد (على سبيل المثال pop.gmail.com)
+Page,صفحة
+Page Background,خلفية الصفحة
+Page Border,حد الصفحة
+Page HTML,صفحة HTML
+Page Headings,عناوين الصفحة
+Page Links,الصفحة روابط
+Page Name,الصفحة اسم
+Page Name Field,الصفحة اسم الحقل
+Page Role,الصفحة الدور
+Page Text,نص الصفحة
+Page already exists,الصفحة موجود بالفعل
+Page content,صفحة المحتوى
+Page not found,لم يتم العثور على الصفحة
+Page or Generator,الصفحة أو مولد
+Page text and background is same color. Please change.,نص الصفحة والخلفية هي نفس اللون. الرجاء تغيير.
+"Page to show on the website
+",
+"Page url name (auto-generated) (add "".html"")",الصفحة اسم عنوان (تم إنشاؤه تلقائيا) (إضافة &quot;. HTML&quot;)
+Parent Label,الأصل تسمية
+Parent is required.,مطلوب الأصل.
+Participants,المشاركين
+Password,كلمة السر
+Password Expires in (days),انتهاء صلاحية كلمة المرور في (الأيام)
+Password Updated,تحديث كلمة السر
+Patch,بقعة
+Patch Log,سجل التصحيح
+Percent,في المئة
+Perm Level,بيرم المستوى
+Permission Level,إذن المستوى
+Permission Levels,إذن مستويات
+Permission Manager,إذن إدارة
+Permission Rules,إذن قوانين
+Permissions,أذونات
+Permissions Settings,أذونات إعدادات
+Permissions are automatically translated to Standard Reports and Searches,يتم تحويل تلقائيا إلى أذونات تقارير الموحدة والبحث
+"Permissions are set on Roles and Document Types (called DocTypes) by restricting read, edit, make new, submit, cancel, amend and report rights.",يتم تعيين الأذونات على الأدوار وأنواع المستندات (وتسمى DocTypes) عن طريق تقييد قراءة وتحرير، وجعل جديدة، يقدم، إلغاء وتعديل وتقرير حقوق.
+Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful incase you want to hide or make certain field read-only.,الأذونات على مستويات أعلى من الأذونات &quot;المستوى الميداني. جميع الحقول لديك مجموعة من &quot;مستوى إذن&quot; ضدهم والقواعد المحددة في تلك الأذونات تنطبق على هذا المجال. هذا مفيد طارئ تريد إخفاء أو مجال معين جعل للقراءة فقط.
+"Permissions at level 0 are 'Document Level' permissions, i.e. they are primary for access to the document.",الأذونات في 0 مستوى الأذونات هي &quot;مستوى الوثيقة، أي أنها الأساسي للوصول إلى المستند.
+Permissions translate to Users based on what Role they are assigned,ترجمة أذونات للمستخدمين استنادا إلى ما هو الدور الذي أوكل إليهم
+Person,شخص
+Phone,هاتف
+Phone No.,رقم الهاتف
+Pick Columns,اختيار الأعمدة
+Please attach a file first.,يرجى إرفاق ملف الأول.
+Please attach a file or set a URL,يرجى إرفاق ملف أو تعيين URL
+Please change the value,يرجى تغيير قيمة
+Please enable pop-ups,يرجى تمكين النوافذ المنبثقة
+Please make sure that there are no empty columns in the file.,يرجى التأكد من أنه لا توجد أعمدة فارغة في الملف.
+Please refresh to get the latest document.,يرجى تحديث للحصول على أحدث وثيقة.
+Please select a file or url,يرجى تحديد ملف أو URL
+Please specify,يرجى تحديد
+Plugin,المساعد
+Post Publicly,أضف علنا
+Post Topic,كتابة موضوع
+Post to user,أضف إلى مستخدم
+Posts,المشاركات
+Primary,أساسي
+Print Format,طباعة شكل
+Print Format Type,طباعة نوع تنسيق
+Print Hide,طباعة إخفاء
+Print Width,طباعة العرض
+Print...,طباعة ...
+Priority,أفضلية
+Private,خاص
+Profile,الملف الشخصي
+Profile Defaults,الملف الشخصي الافتراضيات
+Profile Represents a User in the system.,الملف الشخصي يمثل مستخدم في النظام.
+Profile of a Blogger,الملف الشخصي من مدون
+Profile of a blog writer.,الملف الشخصي للكاتب بلوق.
+Properties,خصائص
+Property,ممتلكات
+Property Setter,الملكية واضعة
+Property Setter overrides a standard DocType or Field property,واضعة الملكية يتجاوز خاصية DOCTYPE أو حقل القياسية
+Property Type,نوع الملكية
+Public,جمهور
+Published,نشرت
+Published On,نشرت يوم
+Pull Emails from the Inbox and attach them as Communication records (for known contacts).,سحب رسائل البريد الإلكتروني من علبة الوارد وإرفاقها كسجلات الاتصالات (الاتصالات المعروفة لل).
+Query,سؤال
+Query Options,خيارات الاستعلام
+Query Report,الاستعلام عن
+Query must be a SELECT,يجب أن يكون الاستعلام SELECT
+Quick Help for Setting Permissions,مساعدة سريعة لوضع ضوابط
+Quick Help for User Properties,مساعدة سريعة عن خصائص المستخدم
+Read,قرأ
+Read Only,للقراءة فقط
+Received,تلقى
+Recipient,مستلم
+Recipients,المستلمين
+Ref DocType,المرجع DOCTYPE
+Ref Name,المرجع اسم
+Ref Type,المرجع نوع
+Reference,مرجع
+Reference DocName,إشارة DocName
+Reference DocType,إشارة DOCTYPE
+Reference Name,مرجع اسم
+Reference Type,مرجع نوع
+Refresh,تحديث
+Registered but disabled.,سجل لكن تعطيل.
+Registration Details Emailed.,تفاصيل التسجيل عبر البريد الالكتروني.
+Remove Bookmark,أضف إزالة
+Rename...,إعادة تسمية ...
+Repeat On,كرر على
+Repeat Till,تكرار حتى
+Repeat this Event,كرر هذا الحدث
+Report,تقرير
+Report Builder,تقرير منشئ
+Report Builder reports are managed directly by the report builder. Nothing to do.,تدار تقارير منشئ التقرير مباشرة بواسطة منشئ التقرير. لا شيء للقيام به.
+Report Hide,تقرير إخفاء
+Report Name,تقرير الاسم
+Report Type,نوع التقرير
+Report was not saved (there were errors),لم يتم حفظ التقرير (كانت هناك أخطاء)
+Represents the states allowed in one document and role assigned to change the state.,يمثل الدول المسموح بها في وثيقة واحدة والدور المنوط تغيير حالة.
+Reqd,Reqd
+Reset Password Key,إعادة تعيين كلمة المرور الرئيسية
+Restrict IP,تقييد IP
+Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111),تقييد المستخدم من هذا العنوان IP فقط. يمكن إضافة عناوين IP متعددة عن طريق فصل بفواصل. يقبل أيضا عناوين IP جزئية مثل (111.111.111)
+Restricting By User,تقييد بواسطة المستخدم
+Right,حق
+Role,دور
+Role Name,دور الاسم
+Roles,الأدوار
+Roles Assigned,الأدوار المسندة
+Roles Assigned To User,الأدوار المسندة إلى المستخدم
+Roles HTML,الأدوار HTML
+Root ,جذر
+Row,صف
+Rules defining transition of state in the workflow.,قواعد تحديد الانتقال من الدولة في سير العمل.
+"Rules for how states are transitions, like next state and which role is allowed to change state etc.",ويسمح النظام لكيفية قيام الولايات التحولات، مثل الدولة والتي المقبل دور في تغيير الدولة الخ.
+SMS,SMS
+Sales,مبيعات
+Same file has already been attached to the record,وقد تم بالفعل تعلق نفس الملف إلى السجل
+Saturday,السبت
+Save,حفظ
+Scheduler Log,جدولة دخول
+Script,سيناريو
+Script Report,تقرير النصي
+Script Type,نوع البرنامج النصي
+Script to attach to all web pages.,نصي لنعلق على كل صفحات الويب.
+Search,البحث
+Search Fields,البحث الحقول
+Section Break,قسم استراحة
+Security Settings,إعدادات الأمان
+Select,حدد
+Select All,حدد كافة
+Select Attachments,حدد المرفقات
+Select Document Type,حدد نوع الوثيقة
+Select Document Type or Role to start.,حدد نوع الوثيقة أو دور للبدء.
+Select Module,حدد وحدة
+Select Print Format,حدد تنسيق طباعة
+Select Report Name,حدد اسم التقرير
+Select Role,حدد دور
+Select Type,حدد نوع
+Select User or Property to start.,حدد المستخدم أو عقار للبدء.
+Select a Banner Image first.,تحديد صورة بانر الأول.
+Select an image of approx width 150px with a transparent background for best results.,اختر صورة من تقريبا عرض 150px مع خلفية شفافة للحصول على أفضل النتائج.
+Select dates to create a new ,قم بتحديد مواعيد لخلق جديد
+Select or drag across time slots to create a new event.,حدد أو اسحب عبر فتحات الوقت لإنشاء حدث جديد.
+"Select target = ""_blank"" to open in a new page.","حدد الهدف = "" _blank "" لفتح صفحة جديدة في ."
+Select the label after which you want to insert new field.,حدد التسمية بعد الذي تريد إدراج حقل جديد.
+Send,إرسال
+Send As Email,أرسل للبريد الالكتروني
+Send Me A Copy,أرسل لي نسخة
+Send an email reminder in the morning,إرسال رسالة تذكير في الصباح
+Send enquiries to this email address,إرسال الاستفسارات إلى عنوان البريد الإلكتروني هذا
+Sender,مرسل
+Sent,أرسلت
+Sent Mail,إرسال بريد
+Sent Quotation,أرسلت اقتباس
+Sent or Received,المرسلة أو المتلقاة
+Series,سلسلة
+Server,خادم
+Session Expired. Logging you out,انتهى الدورة. تسجيل خروجك
+Session Expires in (time),ينتهي في الدورة (الزمان)
+Set Banner from Image,تعيين راية من الصورة
+Set Link,تعيين لينك
+Set Password,تعيين كلمة المرور
+Set Value,تعيين القيمة
+"Set your background color, font and image (tiled)",قم بضبط لون الخلفية والخط والصورة (البلاط)
+Settings for About Us Page.,من نحن إعدادات الصفحة.
+Settings for Contact Us Page,إعدادات الاتصال بنا الصفحة
+Settings for Contact Us Page.,إعدادات الاتصال بنا الصفحة.
+Settings for the About Us Page,إعدادات الصفحة من نحن
+Setup of fonts and background.,إعداد الخطوط والخلفية.
+"Setup of top navigation bar, footer and logo.",الإعداد من أعلى الملاحة تذييل وبار والشعار.
+Short Bio,بيو قصيرة
+Short Name,الاسم المختصر
+Shortcut,الاختصار
+Show Breadcrumbs,عرض فتات الخبز
+Show Details,عرض التفاصيل
+Show Print First,تظهر أولا طباعة
+Show Table of Contents,عرض جدول المحتويات
+Show Tags,تظهر الكلمات
+Show Title,مشاهدة العنوان
+Show rows with zero values,عرض الصفوف مع قيم الصفر
+Showing only for,تظهر فقط لل
+Single Post (article).,مشاركة واحدة (المادة).
+Single Types have only one record no tables associated. Values are stored in tabSingles,أنواع واحد يكون سجل واحد فقط لا الجداول المرتبطة . يتم تخزين القيم في tabSingles
+Slideshow,عرض الشرائح
+Slideshow Items,عرض الشرائح عناصر
+Slideshow Name,العرض اسم
+Slideshow like display for the website,عرض الشرائح مثل العرض للموقع
+Small Text,نص صغير
+Solid background color (default light gray),لون الخلفية الصلبة (الافتراضي رمادي فاتح)
+Sorry we were unable to find what you were looking for.,وآسف نتمكن من العثور على ما كنت تبحث عنه.
+Sorry you are not permitted to view this page.,عذرا غير مسموح لك بعرض هذه الصفحة.
+Sort By,فرز حسب
+Special Page Settings,إعدادات الصفحة الخاصة
+Standard,معيار
+Start Report For,تقرير عن بدء
+Starts on,يبدأ يوم
+Startup,بدء التشغيل
+State,دولة
+States,الدول
+Status,حالة
+Step 1: Set the name and save.,الخطوة 1 : تعيين اسم و حفظ.
+Step 2: Set Letterhead content.,الخطوة 2 : تعيين محتوى رأسية .
+Style,أسلوب
+Style Settings,نمط الضبط
+"Style represents the button color: Success - Green, Danger - Red, Inverse - Black, Primary - Dark Blue, Info - Light Blue, Warning - Orange",النمط يمثل لون الزر: النجاح - الخضراء، خطر -، معكوس الأحمر - الأسود، الابتدائية - أزرق داكن، معلومات - أزرق فاتح، تحذير - أورانج
+Sub-domain provided by erpnext.com,النطاق الفرعي المقدمة من erpnext.com
+Subdomain,نطاق فرعي
+Subject,موضوع
+Submit,عرض
+Submitted,المقدمة
+Submitted Record cannot be deleted,لا يمكن حذف سجل المقدمة
+Success,نجاح
+Suggestion,اقتراح
+Sunday,الأحد
+Support Email Id,دعم البريد الإلكتروني معرف
+Sync Inbox,مزامنة البريد الوارد
+System,نظام
+System Defaults,نظام الافتراضيات
+System User,نظام المستخدم
+Table,جدول
+Table of Contents,جدول المحتويات
+Tag,بطاقة
+Tag Name,علامة الاسم
+Tags,به
+Tahoma,تاهوما
+Target,الهدف
+Team Members,أعضاء الفريق
+Team Members Heading,الأعضاء فريق عنوان
+Template Path,مسار القالب
+Test,اختبار
+Test Runner,اختبار عداء
+Text,نص
+Text Align,محاذاة النص
+Text Editor,النص محرر
+"The ""Web Page"" that is the website home page",&quot;صفحة ويب&quot; هذا هو الصفحة الرئيسية في الموقع
+The name of your company / website as you want to appear on browser title bar. All pages will have this as the prefix to the title.,اسم الشركة / الموقع كما تريد أن يظهر على شريط العنوان في المتصفح. وسوف يكون هذا كل الصفحات كما البادئة على اللقب.
+"The system provides pre-defined roles, but you can <a href='#List/Role'>add new roles</a> to set finer permissions",ويوفر نظام أدوار محددة مسبقا، ولكن يمكنك <a href='#List/Role'>إضافة أدوار جديدة</a> لتعيين أذونات فاينر
+Then By (optional),ثم (اختياري)
+These properties are Link Type fields from all Documents.,هذه الخصائص هي حقول نوع الارتباط من جميع المستندات.
+"These properties can also be used to 'assign' a particular document, whose property matches with the User's property to a User. These can be set using the <a href='#permission-manager'>Permission Manager</a>",ويمكن أيضا أن تستخدم هذه الخصائص إلى &#39;تعيين&#39; وثيقة معينة، والتي تطابق مع خاصية الخاصية المستخدم إلى المستخدم. يمكن تعيين هذه باستخدام <a href='#permission-manager'>مدير إذن</a>
+These properties will appear as values in forms that contain them.,وهذه الخصائص تظهر في أشكال القيم التي تحتوي عليها.
+These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,وسيتم تحديث هذه القيم تلقائيا في المعاملات وأيضا سوف تكون مفيدة لتقييد الأذونات لهذا المستخدم على المعاملات التي تحتوي على هذه القيم.
+"This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>
+myfield
+eval:doc.myfield=='My Value'<br>
+eval:doc.age>18",
+This goes above the slideshow.,هذا يذهب فوق عرض الشرائح.
+This is PERMANENT action and you cannot undo. Continue?,هذا هو العمل الدائم ويمكنك التراجع لا. المتابعة؟
+This is permanent action and you cannot undo. Continue?,هذا هو العمل الدائم ويمكنك التراجع لا. المتابعة؟
+Thursday,الخميس
+Time,مرة
+Time Zone,منطقة زمنية
+Title,لقب
+Title / headline of your page,عنوان / عنوان الصفحة الخاصة بك
+Title Case,عنوان القضية
+Title Prefix,عنوان الاختصار
+To,إلى
+"To format columns, give column labels in the query.",لتنسيق الأعمدة، وإعطاء تسميات الأعمدة في الاستعلام.
+"To further restrict permissions based on certain values in a document, use the 'Condition' settings.",لفرض مزيد من القيود أذونات استنادا إلى قيم معينة في وثيقة، استخدم &#39;حالة&#39; الإعدادات.
+To restrict a User of a particular Role to documents that are explicitly assigned to them,لتقييد المستخدم من دور خاص للوثائق التي تم تعيينها بشكل صريح لهم
+To restrict a User of a particular Role to documents that are only self-created.,لتقييد المستخدم من دور خاص للوثائق التي ليست سوى الذاتي الإنشاء.
+"To set user roles, just go to <a href='#List/Profile'>Setup > Users</a> and click on the user to assign roles.",لتعيين أدوار المستخدمين، واذهبوا إلى <a href='#List/Profile'>إعداد المستخدمين&gt;</a> وانقر على المستخدم لتعيين الأدوار.
+ToDo,قائمة المهام
+Tools,أدوات
+Top Bar,مقهى الأعلى
+Top Bar Background,الأعلى بار الخلفية
+Top Bar Item,أفضل شريط الإغلاق
+Top Bar Items,قطع الشريط العلوي
+Top Bar Text,الشريط العلوي نص
+Top Bar text and background is same color. Please change.,أعلى نص شريط والخلفية هي نفس اللون. الرجاء تغيير.
+Total SMS Sent,SMS المرسلة مجموع
+Transaction,صفقة
+Transition Rules,الانتقال قوانين
+Trash Reason,السبب القمامة
+Tuesday,الثلاثاء
+Tweet will be shared via your user account (if specified),وسيتم تقاسم تويت عبر حساب المستخدم الخاص بك (في حالة تحديد)
+Twitter Share,تويتر شارك
+Twitter Share via,Twitter المشاركة عبر
+Type,نوع
+UPPER CASE,حروف كبيرة
+UPPERCASE,أحرف كبيرة
+URL,URL
+Unable to complete request: ,غير قادر على إكمال الطلب:
+Unable to load,غير قادر على تحميل
+"Unknown file encoding. Tried utf-8, windows-1250, windows-1252.",ترميز الملفات غير معروف . حاول UTF- 8 ، ويندوز 1250، ويندوز 1252 .
+Unread Messages,رسائل غير مقروءة
+Unsubscribed,إلغاء اشتراكك
+Upcoming Events for Today,الأحداث القادمة لهذا اليوم
+Update,تحديث
+Update Field,تحديث الميدانية
+Update Value,تحديث القيمة
+Upload,تحميل
+Upload Attachment,تحميل المرفقات
+Upload a file,تحميل ملف
+Upload and Import,تحميل واستيراد
+Uploading...,تحميل ...
+User,مستخدم
+User Cannot Create,لا يمكن للمستخدم إنشاء
+User Cannot Search,لا يمكن للمستخدم البحث
+User Image,صورة العضو
+User Tags,الكلمات المستخدم
+User Type,نوع المستخدم
+User not allowed to delete.,المستخدم لا يسمح لحذفه.
+UserRole,UserRole
+Value,قيمة
+Value missing for,قيمة مفقودة لل
+Verdana,فيردانا
+Visit,زيارة
+Warning,تحذير
+Web Content,محتوى الويب
+Web Page,صفحة على الإنترنت
+Website,الموقع
+Website Overall Settings,إعدادات الموقع بشكل عام
+Website Script,الموقع سكربت
+Website Settings,موقع إعدادات
+Website Sitemap,خريطة الموقع الموقع
+Website Sitemap Config,الموقع خريطة الموقع التكوين
+Website Slideshow,موقع عرض الشرائح
+Website Slideshow Item,موقع السلعة عرض شرائح
+Website User,موقع العضو
+Wednesday,الأربعاء
+Welcome Email Sent,نرحب البريد الإلكتروني المرسلة
+"When you <b>Amend</b> a document after cancel and save it, it will get a new number that is a version of the old number.",عند <b>تعديل</b> وثيقة بعد إلغاء وحفظه، وسوف تحصل على عدد جديد هو نسخة من الرقم القديم.
+Width,عرض
+Will be used in url (usually first name).,وسوف تستخدم في رابط (عادة الاسم الأول).
+Workflow,سير العمل
+Workflow Action,سير العمل العمل
+Workflow Action Master,سير العمل العمل ماجستير
+Workflow Action Name,سير العمل اسم العمل
+Workflow Document State,سير العمل الوثيقة الدولة
+Workflow Document States,سير العمل الوثيقة الدول
+Workflow Name,اسم سير العمل
+Workflow State,الدولة سير العمل
+Workflow State Field,سير العمل الميدانية الدولة
+Workflow Transition,الانتقال سير العمل
+Workflow Transitions,انتقالات سير العمل
+Workflow state represents the current state of a document.,الدولة سير العمل يمثل الحالة الراهنة للمستند.
+Workflow will start after saving.,سوف تبدأ العمل بعد الحفظ.
+Write,الكتابة
+Write a Python file in the same folder where this is saved and return column and result.,كتابة ملف بيثون في نفس المجلد حيث تم حفظ هذا العمود والعودة والنتيجة.
+Write a SELECT query. Note result is not paged (all data is sent in one go).,كتابة استعلام SELECT. لم يتم ترحيلها علما نتيجة (يتم إرسال جميع البيانات دفعة واحدة).
+Write titles and introductions to your blog.,تكتب العناوين والمقدمات لبلوق الخاص بك.
+Writers Introduction,الكتاب مقدمة
+Year,عام
+Yes,نعم
+Yesterday,أمس
+You can set various 'properties' to Users to set default values and apply permission rules based on the value of these properties in various forms.,يمكنك تعيين مختلف &#39;خصائص&#39; للمستخدمين لضبط القيم الافتراضية وتطبيق القواعد إذن على أساس قيمة هذه الخصائص في أشكال مختلفة.
+You can use <a href='#Form/Customize Form'>Customize Form</a> to set levels on fields.,يمكنك استخدام <a href='#Form/Customize Form'>نموذج تخصيص</a> لتحديد مستويات على الحقول.
+"Your download is being built, this may take a few moments...",ويجري بناء التنزيل، وهذا قد يستغرق بضع لحظات ...
+[Label]:[Field Type]/[Options]:[Width],[تسمية]: [نوع الحقل] / [خيارات]: [العرض]
+add your own CSS (careful!),إضافة CSS الخاصة بك (careful!)
+adjust,ضبط
+align-center,محاذاة الوسط
+align-justify,محاذاة-تبرير
+align-left,محاذاة يسار
+align-right,محاذاة اليمين
+and,و
+arrow-down,سهم لأسفل
+arrow-left,سهم يسار
+arrow-right,سهم يمين
+arrow-up,سهم لأعلى
+asterisk,النجمة
+backward,الى الوراء
+ban-circle,دائرة الحظر
+barcode,الباركود
+bell,جرس
+bold,جريء
+book,كتاب
+bookmark,المرجعية
+briefcase,حقيبة
+bullhorn,البوق
+calendar,تقويم
+camera,كاميرا
+cannot be empty,لا يمكن أن تكون فارغة
+cannot be in its own,لا يمكن أن يكون بنفسها
+"cannot have a URL, because it has child item(s)",لا يمكن أن يكون URL، لأنه لديه بند الطفل (ق)
+cannot start with,لا يمكن أن تبدأ مع
+certificate,شهادة
+check,تحقق
+chevron-down,شيفرون لأسفل
+chevron-left,شيفرون يسار
+chevron-right,شيفرون اليمين
+chevron-up,شيفرون المتابعة
+circle-arrow-down,دائرة السهم لأسفل
+circle-arrow-left,دائرة السهم اليسار
+circle-arrow-right,دائرة السهم الأيمن
+circle-arrow-up,دائرة السهم إلى أعلى
+cog,تحكم في
+comment,تعليق
+comments,تعليقات
+create a Custom Field of type Link (Profile) and then use the 'Condition' settings to map that field to the Permission rule.,إنشاء حقل مخصص من نوع لينك (الملف الشخصي) ثم استخدام &#39;حالة&#39; إعدادات لتعيين هذا الحقل إلى الحكم إذن.
+dd-mm-yyyy,DD-MM-YYYY
+dd/mm/yyyy,اليوم / الشهر / السنة
+does not exist,غير موجود
+download,تحميل
+download-alt,تحميل بديل
+edit,تحرير
+eject,طرد
+envelope,مغلف
+exclamation-sign,تعجب علامة-
+eye-close,إغلاق العين
+eye-open,فتح العين
+facetime-video,فيس تايم عن طريق الفيديو
+fast-backward,سريع إلى الوراء
+fast-forward,سريع إلى الأمام
+file,ملف
+film,فيلم
+filter,تصفية
+fire,حريق
+flag,علم
+folder-close,المجلد مسافة قريبة
+folder-open,فتح مجلد
+font,الخط
+forward,إلى الأمام
+found,أسس
+fullscreen,ملء الشاشة
+gift,هدية
+glass,زجاج
+globe,العالم
+hand-down,إلى أسفل اليد
+hand-left,اليد اليسرى
+hand-right,ومن جهة اليمين
+hand-up,ومن ناحية المتابعة
+hdd,الأقراص الصلبة
+headphones,سماعة الرأس
+heart,قلب
+home,منزل
+icon,رمز
+in,في
+inbox,البريد الوارد
+indent-left,المسافة البادئة اليسرى
+indent-right,المسافة البادئة اليمنى
+info-sign,معلومات تسجيل الدخول،
+is linked in,ويرتبط في
+is not allowed.,غير مسموح به.
+italic,مائل
+leaf,ورق
+list,قائمة
+list-alt,قائمة بديل
+lock,قفل
+lowercase,أحرف صغيرة
+magnet,مغناطيس
+map-marker,الخرائط علامة
+minus,ناقص
+minus-sign,علامة ناقص
+mm-dd-yyyy,MM-DD-YYYY
+mm/dd/yyyy,مم / اليوم / السنة
+move,تحرك
+music,موسيقى
+not in,ليس في
+of type Link,لينك نوع
+off,بعيدا
+ok,حسنا
+ok-circle,دائرة OK-
+ok-sign,علامة OK-
+or,أو
+pause,وقفة
+pencil,قلم رصاص
+picture,صور
+plane,طائرة
+play,لعب
+play-circle,لعب دائرة
+plus,زائد
+plus-sign,زائد توقيع
+print,طباعة
+qrcode,qrcode
+question-sign,علامة سؤال
+random,عشوائي
+refresh,تحديث
+remove,نزع
+remove-circle,إزالة دائرة،
+remove-sign,إزالة التوقيع،
+repeat,كرر
+resize-full,تغيير حجم كامل
+resize-horizontal,تغيير حجم الأفقي،
+resize-small,تغيير حجم صغير
+resize-vertical,تغيير حجم عمودية
+retweet,retweet
+road,طريق
+screenshot,لقطة شاشة
+search,البحث
+share,حصة
+share-alt,حصة بديل
+shopping-cart,عربة التسوق
+signal,إشارة
+star,نجم
+star-empty,النجوم فارغة
+step-backward,خطوة إلى الوراء
+step-forward,خطوة إلى الأمام
+stop,توقف
+tag,بطاقة
+tags,به
+"target = ""_blank""",الهدف = &quot;_blank&quot;
+tasks,المهام
+text-height,ارتفاع النص
+text-width,عرض النص
+th,ال
+th-large,TH-الكبيرة
+th-list,TH-قائمة
+thumbs-down,علامة إستهجان
+thumbs-up,الابهام إلى أعلى
+time,مرة
+tint,لون
+to,إلى
+trash,القمامة
+upload,تحميل
+user,مستخدم
+user_image_show,user_image_show
+values and dates,القيم والتواريخ
+volume-down,حجم إلى أسفل
+volume-off,حجم حالا
+volume-up,حجم المتابعة
+warning-sign,علامة إنذار
+wrench,وجع
+yyyy-mm-dd,YYYY-MM-DD
+zoom-in,التكبير في
+zoom-out,تكبير المغادرة

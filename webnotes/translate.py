@@ -94,10 +94,11 @@ def get_full_dict(lang):
 def load_lang(lang, apps=None):
 	out = {}
 	for app in (apps or webnotes.get_all_apps(True)):
-		path = webnotes.get_pymodule_path(app, "translations", lang + ".csv")
+		path = os.path.join(webnotes.get_pymodule_path(app), "translations", lang + ".csv")
 		if os.path.exists(path):
 			cleaned = dict([item for item in dict(read_csv_file(path)).iteritems() if item[1]])
 			out.update(cleaned)
+			
 	return out
 	
 def clear_cache():
@@ -244,7 +245,7 @@ def get_untranslated(lang, untranslated_file):
 		messages.extend(get_messages_for_app(app))
 	
 	full_dict = get_full_dict(lang)
-	
+		
 	for m in messages:
 		if not full_dict.get(m):
 			untranslated.append(m)

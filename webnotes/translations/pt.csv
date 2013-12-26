@@ -1,0 +1,1073 @@
+ by Role ,por função
+ can not be marked as a ledger as it has existing child,"não pode ser marcado como um livro, pois tem criança existente"
+ cannot be deleted.,não pode ser excluído.
+ is not set,não está definido
+"""Company History""",&quot;História da Companhia&quot;
+"""Team Members"" or ""Management""",&quot;Membros da Equipe&quot; ou &quot;gerenciamento&quot;
+0,0
+"000 is black, fff is white","000 é preto, é branco fff"
+1,1
+12px,12px
+13px,13px
+14px,14px
+15px,15px
+16px,16px
+2,2
+2 days ago,Há 2 dias
+"<a onclick=""msgprint('<ol>\
+<li><b>field:[fieldname]</b> - By Field\
+<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\
+<li><b>Prompt</b> - Prompt user for a name\
+<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\
+</ol>')"">Naming Options</a>",
+<b>Cancel</b> allows you change Submitted documents by cancelling them and amending them.,<b>Cancelar</b> permite alterar documentos apresentados por cancelá-los e altera-los.
+A new popup will open that will ask you to select further conditions.,Um pop-up será aberto novo que vai pedir para você selecionar outras condições.
+A user can have multiple values for a property.,Um usuário pode ter vários valores para uma propriedade.
+About,Sobre
+About Us Settings,Quem Somos Configurações
+About Us Team Member,Quem Somos Membro da Equipe
+Account Id,Id da conta
+Action,Ação
+Actions,acties
+Add,Adicionar
+Add A New Rule,Adicionar uma nova regra
+Add A Property,Adicione uma propriedade
+Add Attachments,Adicionar anexos
+Add Bookmark,Adicionar marcadores
+Add CSS,Adicionar CSS
+Add Column,Adicionar coluna
+Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,"Adicionar Google Analytics ID: por exemplo. UA-89XXX57-1. Por favor, procure ajuda no Google Analytics para obter mais informações."
+Add Message,Adicionar mensagem
+Add New Permission Rule,Adicionar regra nova permissão
+Add Reply,Adicione Responder
+Add Total Row,Adicionar Linha de Total
+Add a banner to the site. (small banners are usually good),Adicionar um banner para o site. (Pequenos banners são geralmente boas)
+Add attachment,Adicionar anexo
+Add code as &lt;script&gt;,Adicionar código como &lt;script&gt;
+Add new row,Adicionar nova linha
+"Add the name of <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> e.g. ""Open Sans""","Adicione o nome do <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> por exemplo, &quot;Sans Abertas&quot;"
+Add to To Do,Adicionar ao que fazer
+Add to To Do List of,Adicionar ao fazer a lista de
+Additional Info,Informações Adicionais
+Address,Endereço
+Address and other legal information you may want to put in the footer.,Endereço e informações jurídicas outro que você pode querer colocar no rodapé.
+Address to be displayed on the Contact Page,O endereço deve ser exibida na página de contato
+Adds a custom field to a DocType,Adiciona um campo personalizado para um DocType
+Adds a custom script (client or server) to a DocType,Adiciona um script personalizado (cliente ou servidor) para um DocType
+Advanced Scripting,Script Avançadas
+Advanced Settings,Configurações avançadas
+All Day,Dia de Todos os
+"All possible Workflow States and roles of the workflow. <br>Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""","Todos os eventuais Estados de fluxo de trabalho e os papéis do fluxo de trabalho. <br> Docstatus Opções: 0 é &quot;Salvo&quot;, 1 é &quot;Enviado&quot; e 2 é &quot;Cancelado&quot;"
+Allow Attach,Permitir Anexar
+Allow Import,Permitir a importação
+Allow Import via Data Import Tool,Permitir a importação via ferramenta de importação de dados
+Allow Rename,Permitir Renomear
+Allow on Submit,Permitir em Enviar
+Allow user to login only after this hour (0-24),Permitir que o usuário fazer o login somente após esta hora (0-24)
+Allow user to login only before this hour (0-24),Permitir que o usuário fazer o login antes só esta hora (0-24)
+Allowed,Permitido
+Already Registered,Já registrado
+Amend,Emendar
+"An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [<a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a>]","Um arquivo com ícone. Extensão ico. Deve ser de 16 x 16 px. Gerado usando um gerador de favicon. [ <a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a> ]"
+Are you sure you want to delete the attachment?,Tem certeza de que deseja excluir o anexo?
+Arial,Arial
+"As a best practice, do not assign the same set of permission rule to different Roles instead set multiple Roles to the User","Como uma boa prática, não atribuir o mesmo conjunto de regra de permissão para diferentes funções, em vez estabelecidos múltiplos papéis ao Usuário"
+Ascending,Ascendente
+Assign To,Atribuir a
+Assigned By,Atribuído por
+Assigned To,toegewezen aan
+Assigned To/Owner,Toegewezen aan / Eigenaar
+Attach,Anexar
+Attach Document Print,Anexar cópia do documento
+Attach as web link,Bevestig als weblink
+Attached To DocType,Anexado To DOCTYPE
+Attached To Name,Anexado Para Nome
+Attachments,Anexos
+Attributions,Atribuições
+Auto Name,Nome Auto
+Auto generated,Auto gerado
+Avatar,Avatar
+Background Color,Cor de Fundo
+Background Image,Imagem de Fundo
+Banner,Bandeira
+Banner HTML,HTML bandeira
+Banner Image,Banner Image
+Banner is above the Top Menu Bar.,Bandeira está acima da barra de menu superior.
+Begin this page with a slideshow of images,Comece esta página com um slideshow de imagens
+Belongs to,hoort bij
+Bio,Bio
+Birth Date,Data de Nascimento
+Blog Category,Categoria Blog
+Blog Intro,Blog Intro
+Blog Introduction,Blog Introdução
+Blog Post,Blog Mensagem
+Blog Settings,Configurações Blog
+Blog Title,Blog Title
+Blogger,Blogger
+Bookmarks,Marcadores
+Brand HTML,Marca HTML
+"Brand is what appears on the top-right of the toolbar. If it is an image, make sure it
+has a transparent background and use the &lt;img /&gt; tag. Keep size as 200px x 30px",
+Bulk Email,E-mail em massa
+Bulk Email records.,Volume de registros e-mail.
+Button,Botão
+By,Por
+COMM-,COMM-
+CSS,CSS
+Calendar,Calendário
+Can only be exported by users with role 'Report Manager',Só podem ser exportados por usuários com &quot;Gerenciador de Relatórios&quot; papel
+Cancel,Cancelar
+Cancel permission also allows the user to delete a document (if it is not linked to any other document).,Cancelar permissão também permite ao usuário excluir um documento (se ele não está vinculado a qualquer outro documento).
+Cancelled,Cancelado
+Cannot Update: Incorrect / Expired Link.,Kan niet bijwerken : Onjuiste / verlopen Link .
+Cannot Update: Incorrect Password,Kan niet bijwerken : Incorrect Password
+Cannot change from,Não pode mudar de
+Cannot edit standard fields,Kan standaard velden niet bewerken
+Cannot map because following condition fails: ,Não é possível mapear porque seguinte condição de falha:
+"Cannot update a non-exiting record, try inserting.","Kan een niet- spannende plaat niet bijwerken , probeer het invoegen ."
+Categorize blog posts.,Categorizar posts.
+Category,Categoria
+Category Name,Nome da Categoria
+Center,Centro
+"Certain documents should not be changed once final, like an Invoice for example. The final state for such documents is called <b>Submitted</b>. You can restrict which roles can Submit.","Alguns documentos não deve ser alterado, uma vez final, como uma nota fiscal, por exemplo. O estado final de tais documentos é chamado <b>Enviado.</b> Você pode restringir as funções que podem Enviar."
+Chat,Conversar
+Check,Verificar
+Check / Uncheck roles assigned to the Profile. Click on the Role to find out what permissions that Role has.,Verifique / Desmarque papéis atribuídos ao perfil. Clique sobre o Papel para descobrir o que as permissões que papel tem.
+Check this to make this the default letter head in all prints,Marque esta opção para tornar esta a cabeça carta padrão em todas as impressões
+Checked,Verificado
+Child Tables are shown as a Grid in other DocTypes.,Mesas para crianças são mostrados como uma grade no DOCTYPEs outros.
+Clear Cache & Refresh,Limpar Cache &amp; Atualizar
+Click on button in the 'Condition' column and select the option 'User is the creator of the document',Clique no botão no &#39;Condição&#39; coluna e selecione a opção &quot;Usuário é o criador do documento &#39;
+Click on row to edit.,Klik op de rij te bewerken .
+Click to Expand / Collapse,Clique para Expandir / Recolher
+Client,Cliente
+Close,Fechar
+Code,Código
+Color,Cor
+Column Break,Quebra de coluna
+Comment,Comentário
+Comment By,Comentário por
+Comment By Fullname,Comentário por Fullname
+Comment Date,Comentário Data
+Comment Docname,Comentário docName
+Comment Doctype,Comentário Doctype
+Comment Time,Comentário Tempo
+Comments,Comentários
+Communication,Comunicação
+Communication Medium,Meio de comunicação
+Company History,História da Empresa
+Company Introduction,Introdução da Empresa
+Company Name,Nome da empresa
+Complaint,Reclamação
+Complete By,Ao completar
+Condition Field,voorwaarde Veld
+Contact Us Settings,Contato Configurações
+"Contact options, like ""Sales Query, Support Query"" etc each on a new line or separated by commas.","Opções de contato, como &quot;consulta de vendas, suporte de consulta&quot; etc cada um em uma nova linha ou separados por vírgulas."
+Content,Conteúdo
+Content in markdown format that appears on the main side of your page,Conteúdos em formato markdown que aparece no lado principal de sua página
+Content web page.,Página web de conteúdo.
+Control Panel,Painel de controle
+Controller,controleur
+Copy,Copie
+Copyright,Direitos autorais
+Core,Núcleo
+Count,tellen
+Country,País
+Create,Criar
+Created Customer Issue,Problema do cliente criado
+Created Opportunity,Criado Oportunidade
+Created Support Ticket,Ticket Suporte criado
+Currency,Moeda
+Currency Format,Formato de moeda
+Current status,Estado atual
+Custom CSS,CSS personalizado
+Custom Field,Campo personalizado
+Custom Reports,Relatórios Customizados
+Custom Script,Script personalizado
+Custom Startup Code,Código de inicialização personalizada
+Custom?,Personalizado?
+Customize,Personalize
+Customize Form,Personalize Forma
+Customize Form Field,Personalize campo de formulário
+"Customize Label, Print Hide, Default etc.","Personalize Etiqueta, Esconder-impressão, etc Padrão"
+Daily Event Digest is sent for Calendar Events where reminders are set.,Diariamente Evento Digest é enviado para Calendário de eventos onde os lembretes são definidos.
+Danger,Perigo
+Data,Dados
+Data missing in table,Falta de dados na tabela
+Date,Data
+Date Format,Formato de data
+Date must be in format,A data deve estar no formato
+Datetime,Datetime
+Dear,Caro
+Default,Omissão
+Default Home Page,Home Page padrão
+Default Home Pages,Início Páginas padrão
+Default Print Format,Formato de impressão padrão
+Default Value,Valor padrão
+"Default: ""Contact Us""",Padrão: &quot;Fale Conosco&quot;
+DefaultValue,DefaultValue
+Defaults,Padrões
+Defines actions on states and the next step and allowed roles.,Define ações em estados e no próximo passo e papéis permitidos.
+Defines workflow states and rules for a document.,Define os estados do workflow e regras para um documento.
+Delete,Excluir
+Delete Row,Apagar Linha
+Depends On,Depende
+Descending,Descendente
+Description,Descrição
+"Description for listing page, in plain text, only a couple of lines. (max 140 characters)","Descrição da página perfil, em texto simples, apenas um par de linhas. (Máximo 140 caracteres)"
+Description for page header.,Descrição cabeçalho da página.
+Desktop,Área de trabalho
+Details,Detalhes
+Did not add.,Não adicionar.
+Did not cancel,Não cancelar
+Did not save,Não salvar
+"Different ""States"" this document can exist in. Like ""Open"", ""Pending Approval"" etc.","Diferente &quot;Estados&quot;, este documento pode existir dentro Como &quot;Abrir&quot;, &quot;Aprovação Pendente&quot; etc"
+Disable Customer Signup link in Login page,Cliente ligação Cadastro Desativar página de login
+Disable Signup,Desativar Registre-se
+Disabled,Inválido
+Display Settings,Configurações de exibição
+Doc Status,Estado Doc
+DocField,DocField
+DocPerm,DocPerm
+DocType,DOCTYPE
+DocType Details,Detalhes DOCTYPE
+DocType can not be merged,DocType kan niet worden samengevoegd
+DocType is a Table / Form in the application.,DocType é uma Tabela / Form na aplicação.
+DocType on which this Workflow is applicable.,DOCTYPE em que este fluxo de trabalho é aplicável.
+DocType or Field,DocType ou Campo
+Docname,DocName
+Document,Documento
+Document Status transition from ,Documento transição Estado de
+Document Type,Tipo de Documento
+Document Types,document Types
+Document is only editable by users of role,Documento só é editável por usuários de papel
+Documents,Documentos
+Download Backup,Descarregar o Backup
+Draft,Rascunho
+Drafts,Rascunhos
+Drag to sort columns,Arraste para classificar colunas
+Edit,Editar
+Editable,Editável
+Email,E-mail
+Email Host,Anfitrião e-mail
+Email Id where users will send support request e.g. support@example.com,Email Id waar gebruikers verzoek om ondersteuning bijv. sturen support@example.com
+Email Login,Login Email
+Email Password,Senha de e-mail
+Email Sent,E-mail enviado
+Email Settings,Configurações de e-mail
+Email Signature,Assinatura de e-mail
+Email Use SSL,Email Usar SSL
+"Email addresses, separted by commas","Endereços de email, separted por vírgulas"
+Email...,E-mail ...
+Embed image slideshows in website pages.,Incorporar apresentações de imagem em páginas do site.
+Enable Comments,Enable Reacties
+Enabled,Habilitado
+Ends on,Termina em
+Enter Form Type,Digite o Tipo de formulário
+"Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set ""match"" permission rules. To see list of fields, go to <a href=""#Form/Customize Form/Customize Form"">Customize Form</a>.","Digite campos padrão de valor (teclas) e valores. Se você adicionar vários valores para um campo, o primeiro vai ser escolhido. Esses padrões são usados ​​também para definir &quot;combinar&quot; regras de permissão. Para ver a lista de campos, ir para <a href=""#Form/Customize Form/Customize Form"">Personalizar formulário</a> ."
+Equals,equals
+Error,Erro
+Error: Document has been modified after you have opened it,Erro: O documento foi modificado depois de abri-la
+Event,Evento
+Event End must be after Start,Evento Final deverá ser após o início
+Event Individuals,Indivíduos de eventos
+Event Role,Papel evento
+Event Roles,Papéis de eventos
+Event Type,Tipo de evento
+Event User,Usuário evento
+Events In Today's Calendar,Eventos no calendário de hoje
+Every Day,Every Day
+Every Month,Todos os meses
+Every Week,Todas as semanas
+Every Year,Todo Ano
+Example:,Exemplo:
+Export,Exportar
+Facebook Share,Facebook Compartilhar
+FavIcon,FavIcon
+Female,Feminino
+Field Description,Campo Descrição
+Field Name,Nome do Campo
+Field Type,Tipo de campo
+"Field that represents the Workflow State of the transaction (if field is not present, a new hidden Custom Field will be created)","Campo que representa o Estado de fluxo de trabalho da transação (se o campo não estiver presente, um campo oculto novo Custom será criado)"
+Fieldname,Fieldname
+Fields,Campos
+"Fields separated by comma (,) will be included in the<br /><b>Search By</b> list of Search dialog box","Campos separados por vírgula (,) serão incluídos no <br /> <b>Pesquisa por</b> lista de caixa de diálogo Pesquisar"
+File,Arquivo
+File Data,Dados de arquivo
+File Name,Nome do arquivo
+File Size,Tamanho
+File URL,URL do arquivo
+File size exceeded the maximum allowed size,O tamanho do arquivo excedeu o tamanho máximo permitido
+Filter,Filtre
+Finder,vinder
+First Name,Nome
+Float,Flutuar
+Font (Heading),Font (rubrica)
+Font (Text),Fonte (texto)
+Font Size (Text),Tamanho da fonte (texto)
+Fonts,Fontes
+Footer,Rodapé
+Footer Items,Itens Rodapé
+For All Users,Para todos os usuários
+For DocType,voor DocType
+"For Links, enter the DocType as range
+For Select, enter list of Options separated by comma",
+"For comparative filters, start with","Para filtros comparativos, comece com"
+For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,"Por exemplo, se você cancelar e alterar &#39;INV004&#39; ele vai se tornar um novo documento &quot;INV004-1 &#39;. Isso ajuda você a manter o controle de cada emenda."
+For example: You want to restrict users to transactions marked with a certain property called 'Territory',Por exemplo: Você quer restringir os usuários a transações marcadas com uma certa propriedade chamado &#39;Território&#39;
+For ranges,Para faixas
+Form,Forma
+"Format: hh:mm example for one hour expiry set as 01:00. 
+Max expiry will be 72 hours. Default is 24 hours",
+Forward To Email Address,Forward naar emailadres
+Friday,Sexta-feira
+From Date must be before To Date,A partir da data deve ser anterior a Data
+Full Name,Nome Completo
+Gantt Chart,Gantt
+Gender,Sexo
+General,Geral
+Generator,generator
+Georgia,Geórgia
+Get,Obter
+Get From ,Obter do
+"Go to Setup > <a href='#user-properties'>User Properties</a> to set \
+			'territory' for diffent Users.",
+Google Analytics ID,Google Analytics ID
+Google Plus One,Google Plus One
+Google Web Font (Heading),Google Web Font (rubrica)
+Google Web Font (Text),Google Web Font (Texto)
+Greater or equals,Groter of gelijk
+Greater than,groter dan
+Groups,Grupos
+HTML,HTML
+Header,Cabeçalho
+Heading,Título
+Heading Text As,Como o texto do título
+Help,Ajudar
+Helvetica Neue,Helvetica Neue
+Hey! There should remain at least one System Manager,Hey! Não deve permanecer pelo menos um System Manager
+Hidden,Escondido
+Hide Actions,Ocultar Ações
+Hide Copy,Ocultar Copiar
+Hide Email,Esconder-mail
+Hide Heading,Ocultar título
+Hide Print,Ocultar Imprimir
+Hide Toolbar,Ocultar barra de ferramentas
+Highlight,Realçar
+History,História
+Home Page,Home Page
+Home Page is Products,Home Page é produtos
+Home Pages,Home Pages
+ID,ID
+ID (name) of the entity whose property is to be set,ID (nome) da entidade cuja propriedade está a ser definida
+Icon,Ícone
+Icon will appear on the button,Ícone aparecerá no botão
+"If a User does not have access at Level 0, then higher levels are meaningless","Se um usuário não tem acesso no nível 0, então os níveis mais altos são sem sentido"
+"If checked, all other workflows become inactive.","Se marcada, todos os outros fluxos de trabalho tornam-se inativos."
+"If checked, the Home page will be the default Item Group for the website.","Se selecionado, a página inicial será o Grupo item padrão para o site."
+"If image is selected, color will be ignored (attach first)","Se a imagem for selecionada, a cor será ignorado (anexar primeiro)"
+"If not, create a","Se não, crie um"
+"If the 'territory' Link Field exists, it will give you an option to select it","Se o campo da &#39;território&#39; Link existe, ele vai te dar uma opção para selecioná-la"
+"If these instructions where not helpful, please add in your suggestions at <a href='https://github.com/webnotes/wnframework/issues'>GitHub Issues</a>","Als deze aanwijzingen waar niet behulpzaam , gelieve toe te voegen in uw suggesties op <a href='https://github.com/webnotes/wnframework/issues'> GitHub Issues < / a>"
+"If you set this, this Item will come in a drop-down under the selected parent.","Als u dit instelt , zal deze post in een drop -down onder de gekozen basismotor ."
+Image,Imagem
+Image Link,Link da imagem
+Import,Importar
+In,in
+In Dialog,Em diálogo
+In Filter,Em Filtro
+In List View,Na exibição de lista
+In Report Filter,No Relatório Filtro
+In response to,Em resposta aos
+"In the Permission Manager, click on the button in the 'Condition' column for the Role you want to restrict.","No Gerenciador de Permissão, clique no botão no &#39;Condição&#39; coluna para a função que deseja restringir."
+Index,Índice
+Individuals,Indivíduos
+Industry,Indústria
+Info,Informações
+Insert After,Depois de inserir
+Insert Below,Inserir Abaixo
+Insert Code,Insira Código
+Insert Row,Inserir Linha
+Insert Style,Insira Estilo
+Int,Int.
+Integrations,Integrações
+Introduce your company to the website visitor.,Apresente sua empresa para o visitante do site.
+Introduction,Introdução
+Introductory information for the Contact Us Page,Informação introdutória para a página Fale Conosco
+Invalid Email,E-mail inválido
+Inverse,Inverso
+Is Active,É Ativo
+Is Child Table,É tabela filho
+Is Default,É Default
+Is Mandatory Field,É campo obrigatório
+Is Single,É único
+Is Standard,É Padrão
+Is Submittable,É Submittable
+JSON,JSON
+JavaScript Format: wn.query_reports['REPORTNAME'] = {},JavaScript Formaat : wn.query_reports [ ' ReportName ' ] = { }
+Javascript,Javascript
+Javascript to append to the head section of the page.,Javascript para acrescentar à seção principal da página.
+Keep a track of all communications,Manter um controle de todas as comunicações
+Key,Chave
+Label,Etiqueta
+Label Help,Ajuda rótulo
+Lacs,Lacs
+Landing Page,Landing Page
+Language,Linguagem
+Language preference for user interface (only if available).,Preferência de idioma para interface de usuário (se disponível).
+Last IP,Última IP
+Last Login,Último Login
+Last Name,Sobrenome
+Last updated by,Laatst gewijzigd door
+Lastmod,lastmod
+Lato,Lato
+Leave blank to repeat always,Laat leeg om altijd te herhalen
+Left,Esquerda
+Less or equals,Minder of gelijk
+Less than,minder dan
+Letter Head,Cabeça letra
+Letter Head Image,Imagem Cabeça letra
+Letter Head Name,Nome Cabeça letra
+Letter Head in HTML,Brief Hoofd in HTML
+Level,Nível
+"Level 0 is for document level permissions, higher levels for field level permissions.","Nível 0 é para permissões de nível de documento, os níveis mais elevados de permissões de nível de campo."
+Like,zoals
+Link,Link
+Link Name,Link Naam
+Link to other pages in the side bar and next section,Link para outras páginas na barra lateral e seção seguinte
+Link to the page you want to open,Link naar de pagina die u wilt openen
+Linked In Share,Linked In Compartilhar
+Linked With,Com ligados
+List,Lista
+List of patches executed,Lista de patches executados
+Loading,Carregamento
+Loading Report,Relatório de carregamento
+Loading...,Loading ...
+Log of Scheduler Errors,Registro de erros Scheduler
+Login,login
+Login After,Após entrar
+Login Before,Login antes
+Logout,Sair
+Long Text,Texto Longo
+Lucida Grande,Lucida Grande
+Mail Footer,Rodapé correio
+Mail Server,Servidor de Correio
+Main Section,Seção Principal
+Make a new,Faça um novo
+Make sure that the transactions you want to restrict have a Link field 'territory' that maps to a 'Territory' master.,Certifique-se de que as operações que pretende restringir ter &quot;território&quot; de um campo Link que mapeia para um &quot;território&quot; mestre.
+Male,Masculino
+Mandatory,Obrigatório
+Mandatory filters required:\n,Verplichte filters nodig : \ n
+Master,Mestre
+Match,Combinar
+Max Attachments,Anexos Max.
+"Meaning of Submit, Cancel, Amend","Significado do Submit, Cancelar, Alterar"
+"Menu items in the Top Bar. For setting the color of the Top Bar, go to <a href=""#Form/Style Settings"">Style Settings</a>","Os itens de menu na barra superior. Para definir a cor da barra superior, vá até <a href=""#Form/Style Settings"">Settings</a>"
+"Merging is only possible between Group-to-Group or 
+					Ledger-to-Ledger",
+Message,Mensagem
+Method,Método
+Middle Name (Optional),Nome do Meio (Opcional)
+Millions,Milhões
+Misc,Variados
+Miscellaneous,Diverso
+Missing Values Required,Ontbrekende Vereiste waarden
+Modified by,Modificado por
+Module,Módulo
+Module Def,Módulo Def
+Module Name,Nome do Módulo
+Modules,Módulos
+Monday,Segunda-feira
+More,Mais
+More content for the bottom of the page.,Mais conteúdo para o fundo da página.
+Must have report permission to access this report.,Deve ter permissão de relatório para acessar este relatório.
+Must specify a Query to run,Deve especificar uma consulta para executar
+Name,Nome
+Name Case,Caso Nome
+Name Exists,naam bestaat
+Naming Series mandatory,Nomeando obrigatório Series
+New,novo
+New Password,Nova senha
+New Record,Novo Registro
+New value to be set,Novo valor a ser definido
+Next Communcation On,No próximo Communcation
+Next State,Estado próximo
+Next actions,Próximas ações
+No,Não
+No Action,Nenhuma ação
+No Cache,No Cache
+No Communication tagged with this ,Nenhuma comunicação com etiquetas com esta
+No Copy,Nenhuma cópia
+No Permission,Nenhuma permissão
+No Permission to ,Sem permissão para
+No Permissions set for this criteria.,Sem permissões definidas para este critério.
+No Report Loaded. Please use query-report/[Report Name] to run a report.,No Report Loaded. Utilize query-report / [Report Name] para executar um relatório.
+No Sitemap,geen Sitemap
+No User Properties found.,Não Propriedades do usuário encontrado.
+No further records,Não há mais registros
+No one,Ninguém
+No permission to edit,Geen toestemming te bewerken
+No permission to write / remove.,Sem permissão para escrever / remover.
+No records tagged.,Não há registros marcados.
+None,Nenhum
+None: End of Workflow,Nenhum: Fim do fluxo de trabalho
+Not Found,Não encontrado
+Not Linked to any record.,Não relacionado a qualquer registro.
+Not Permitted,Não Permitido
+Not allowed for: ,Não permitido para:
+Not enough permission to see links.,Não permissão suficiente para ver os links.
+Not equals,niet gelijken
+"Note: For best results, images must be of the same size and width must be greater than height.","Nota: Para melhores resultados, as imagens devem ser do mesmo tamanho e largura não deve ser maior do que a altura."
+Note: Other permission rules may also apply,Nota: As regras de permissão Outros também se podem aplicar
+Note: maximum attachment size = 1mb,Nota: tamanho máximo do anexo = 1mb
+Nothing to show,Nada para mostrar
+Nothing to show for this selection,Niets te tonen voor deze selectie
+Notification Count,kennisgeving Graaf
+Notify By Email,Notificar por e-mail
+On,Em
+"Once you have set this, the users will only be able access documents with that property.","Depois de ter definido isso, os usuários só acessar documentos capazes com essa propriedade."
+Only Administrator allowed to create Query / Script Reports,Somente Administrador autorizado a criar consultas / Script Reports
+Only Administrator can save a standard report. Please rename and save.,"Somente Administrador pode salvar um relatório padrão. Por favor, renomear e salvar."
+Only Allow Edit For,Somente permitir editar para
+Only System Manager can create / edit reports,System Manager só pode criar / editar relatórios
+Open Count,Open Graaf
+Open Sans,Sans abertas
+Options,Opções
+Options Help,Opções Ajuda
+Org History,org Geschiedenis
+Org History Heading,Org Geschiedenis rubriek
+Original Message,Mensagem original
+Other,Outro
+POP3 Mail Server (e.g. pop.gmail.com),"POP3 Mail Server (por exemplo, pop.gmail.com)"
+Page,Página
+Page Background,Fundo da Página
+Page Border,Border página
+Page HTML,Página HTML
+Page Headings,Títulos de página
+Page Links,Pagina Links
+Page Name,Nome da Página
+Page Name Field,Pagina Naamveld
+Page Role,Papel página
+Page Text,Página de texto
+Page already exists,Pagina al bestaat
+Page content,O conteúdo da página
+Page not found,Página não encontrada
+Page or Generator,Pagina of Generator
+Page text and background is same color. Please change.,"Texto da página e no fundo é a mesma cor. Por favor, altere."
+"Page to show on the website
+",
+"Page url name (auto-generated) (add "".html"")",Nome da página url (gerado automaticamente) (adicione &quot;. Html&quot;)
+Parent Label,Etiqueta pai
+Parent is required.,É necessário Parent.
+Participants,Participantes
+Password,Senha
+Password Expires in (days),Senha expira em (dias)
+Password Updated,wachtwoord update
+Patch,Remendo
+Patch Log,Log remendo
+Percent,Por cento
+Perm Level,Perm Nível
+Permission Level,Nível de Permissão
+Permission Levels,Níveis de Permissão
+Permission Manager,Gerente de Permissão
+Permission Rules,Regras de permissão
+Permissions,Permissões
+Permissions Settings,Configurações de permissões
+Permissions are automatically translated to Standard Reports and Searches,As permissões são automaticamente traduzidos para Relatórios Padrão e Pesquisas
+"Permissions are set on Roles and Document Types (called DocTypes) by restricting read, edit, make new, submit, cancel, amend and report rights.","As permissões são definidas em Funções e tipos de documentos (chamados DOCTYPEs) restringindo ler, editar, fazer novos, enviar, cancelar, alterar e denunciar direitos."
+Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful incase you want to hide or make certain field read-only.,Permissões em níveis mais elevados são permissões &quot;nível de campo&quot;. Todos os campos têm um conjunto &#39;Nível de Permissão &quot;contra eles e as regras definidas em que as permissões se aplicam ao campo. Isto é útil no caso de você querer esconder ou fazer determinado campo somente leitura.
+"Permissions at level 0 are 'Document Level' permissions, i.e. they are primary for access to the document.","Permissões no nível 0 são permissões &#39;Nível de Documento &quot;, ou seja, são primário para o acesso ao documento."
+Permissions translate to Users based on what Role they are assigned,Permissões traduzir aos usuários com base em papel que são atribuídos
+Person,Pessoa
+Phone,Telefone
+Phone No.,Não. telefone
+Pick Columns,Escolha Colunas
+Please attach a file first.,"Por favor, anexar um arquivo pela primeira vez."
+Please attach a file or set a URL,"Por favor, anexar um arquivo ou definir uma URL"
+Please change the value,Wijzig de waarde
+Please enable pop-ups,Schakel pop - ups
+Please make sure that there are no empty columns in the file.,"Por favor, certifique-se de que não existem colunas vazias no arquivo."
+Please refresh to get the latest document.,Por favor de atualização para obter as últimas documento.
+Please select a file or url,"Por favor, selecione um arquivo ou url"
+Please specify,"Por favor, especifique"
+Plugin,plugin
+Post Publicly,Plaats Publiekelijk
+Post Topic,Postar Tópico
+Post to user,Inlenende
+Posts,Posts
+Primary,Primário
+Print Format,Imprimir Formato
+Print Format Type,Tipo de impressão Formato
+Print Hide,Imprimir Ocultar
+Print Width,Largura de impressão
+Print...,Imprimir ...
+Priority,Prioridade
+Private,Privado
+Profile,Perfil
+Profile Defaults,Padrões de Perfil
+Profile Represents a User in the system.,Perfil Representa um usuário no sistema.
+Profile of a Blogger,Perfil de um Blogger
+Profile of a blog writer.,Perfil de um escritor do blog.
+Properties,Propriedades
+Property,Propriedade
+Property Setter,Setter propriedade
+Property Setter overrides a standard DocType or Field property,Setter propriedade substitui uma propriedade DocType ou Campo padrão
+Property Type,Tipo de propriedade
+Public,Público
+Published,Publicado
+Published On,Publicado no
+Pull Emails from the Inbox and attach them as Communication records (for known contacts).,Puxe-mails da caixa de entrada e anexá-los como registros de comunicação (por contatos conhecidos).
+Query,Pergunta
+Query Options,Opções de Consulta
+Query Report,Query Report
+Query must be a SELECT,Consulta deve ser um SELECT
+Quick Help for Setting Permissions,Ajuda rápida para definir permissões
+Quick Help for User Properties,Ajuda rápida para Propriedades do usuário
+Read,Ler
+Read Only,Somente leitura
+Received,ontvangen
+Recipient,Beneficiário
+Recipients,Destinatários
+Ref DocType,Ref DocType
+Ref Name,Nome Ref
+Ref Type,Tipo Ref
+Reference,Referência
+Reference DocName,Referência DocNome
+Reference DocType,Referência TipoDoc
+Reference Name,Nome de referência
+Reference Type,Tipo de referência
+Refresh,Refrescar
+Registered but disabled.,"Registrado, mas desativado."
+Registration Details Emailed.,Detalhes do registro enviado por email.
+Remove Bookmark,Remover Bookmark
+Rename...,Renomear ...
+Repeat On,Repita On
+Repeat Till,Repita até que
+Repeat this Event,Repita este evento
+Report,Relatório
+Report Builder,Report Builder
+Report Builder reports are managed directly by the report builder. Nothing to do.,Os relatórios do Construtor são gerenciados diretamente pelo construtor relatório. Nada a fazer.
+Report Hide,Hide
+Report Name,Nome do Relatório
+Report Type,Tipo de relatório
+Report was not saved (there were errors),Relatório não foi salvo (houve erros)
+Represents the states allowed in one document and role assigned to change the state.,Representa os estados permitidos em um documento e papel atribuído a alterações do estado.
+Reqd,Reqd
+Reset Password Key,Reset Password Key
+Restrict IP,Restringir IP
+Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111),Restringir usuário a partir deste endereço IP. Vários endereços IP podem ser adicionados ao separar com vírgulas. Também aceita parciais endereços IP como (111.111.111)
+Restricting By User,Restringir por usuário
+Right,Direito
+Role,Papel
+Role Name,Nome da Função
+Roles,Funções
+Roles Assigned,Funções atribuídas
+Roles Assigned To User,Funções atribuídas ao Usuário
+Roles HTML,Funções HTML
+Root ,Raiz
+Row,Linha
+Rules defining transition of state in the workflow.,Regras que definem a transição de estado do fluxo de trabalho.
+"Rules for how states are transitions, like next state and which role is allowed to change state etc.","Regras de como os estados são transições, como o próximo estado e que terá permissão para mudar de estado etc"
+SMS,SMS
+Sales,De vendas
+Same file has already been attached to the record,Mesmo arquivo já foi anexado ao registro
+Saturday,Sábado
+Save,salvar
+Scheduler Log,Scheduler Log
+Script,Escrita
+Script Report,Relatório de Script
+Script Type,Tipo de roteiro
+Script to attach to all web pages.,Script para anexar a todas as páginas da web.
+Search,Pesquisar
+Search Fields,Campos de Pesquisa
+Section Break,Quebra de seção
+Security Settings,Configurações de Segurança
+Select,Selecionar
+Select All,Selecionar tudo
+Select Attachments,Selecione Anexos
+Select Document Type,Selecione Tipo de Documento
+Select Document Type or Role to start.,Selecione tipo de documento ou papel para começar.
+Select Module,Select Module
+Select Print Format,Selecione Formato de Impressão
+Select Report Name,Selecione Nome do Relatório
+Select Role,Selecione Papel
+Select Type,Selecione o Tipo
+Select User or Property to start.,Selecione Usuário ou propriedade para começar.
+Select a Banner Image first.,Selecione um Banner Image primeiro.
+Select an image of approx width 150px with a transparent background for best results.,Selecione uma imagem de aproximadamente 150px de largura com um fundo transparente para melhores resultados.
+Select dates to create a new ,Selecione as datas para criar uma nova
+Select or drag across time slots to create a new event.,Selecione ou arraste intervalos de tempo para criar um novo evento.
+"Select target = ""_blank"" to open in a new page.","Selecteer target = "" _blank "" te openen in een nieuwe pagina ."
+Select the label after which you want to insert new field.,Selecione o rótulo após o qual você deseja inserir novo campo.
+Send,Enviar
+Send As Email,Verstuur als e-mail
+Send Me A Copy,Envie-me uma cópia
+Send an email reminder in the morning,Enviar um e-mail lembrete na parte da manhã
+Send enquiries to this email address,Stuur uw vragen naar dit e-mailadres
+Sender,Remetente
+Sent,verzonden
+Sent Mail,E-mails enviados
+Sent Quotation,Cotação enviada
+Sent or Received,Verzonden of ontvangen
+Series,serie
+Server,Servidor
+Session Expired. Logging you out,Sessão expirada. Deslogar você
+Session Expires in (time),Expira em sessão (tempo)
+Set Banner from Image,Jogo da bandeira da Imagem
+Set Link,Stel Link
+Set Password,Wachtwoord instellen
+Set Value,Definir valor
+"Set your background color, font and image (tiled)","Defina sua cor de fundo, fonte e imagem (lado a lado)"
+Settings for About Us Page.,Sobre as definições para nós página.
+Settings for Contact Us Page,Configurações para Contacte-nos Página
+Settings for Contact Us Page.,Configurações para página Fale conosco.
+Settings for the About Us Page,Definições para a página Sobre nós
+Setup of fonts and background.,Instalação de fontes e de fundo.
+"Setup of top navigation bar, footer and logo.","Configuração de topo barra de navegação do rodapé, e logotipo."
+Short Bio,Curta Bio
+Short Name,Nome Curto
+Shortcut,Atalho
+Show Breadcrumbs,Toon Breadcrumbs
+Show Details,Ver detalhes
+Show Print First,Mostrar Primeira Impressão
+Show Table of Contents,Inhoudsopgave weergeven
+Show Tags,Toon Tags
+Show Title,Toon titel
+Show rows with zero values,Mostrar as linhas com valores zero
+Showing only for,Mostrando apenas para
+Single Post (article).,Resposta Única (artigo).
+Single Types have only one record no tables associated. Values are stored in tabSingles,Enkele soorten hebben slechts een record geen tafels verbonden . Waarden worden opgeslagen in tabSingles
+Slideshow,Slideshow
+Slideshow Items,Itens slideshow
+Slideshow Name,Nome slideshow
+Slideshow like display for the website,Slideshow como display para o site
+Small Text,Texto Pequeno
+Solid background color (default light gray),Cor sólida (cinza claro padrão)
+Sorry we were unable to find what you were looking for.,"Desculpe, não foram capazes de encontrar o que você estava procurando."
+Sorry you are not permitted to view this page.,"Desculpe, você não tem permissão para visualizar esta página."
+Sort By,Classificar por
+Special Page Settings,Especiais Configurações da página
+Standard,Padrão
+Start Report For,Para começar Relatório
+Starts on,Inicia em
+Startup,Startup
+State,Estado
+States,Estados
+Status,Estado
+Step 1: Set the name and save.,Stap 1 : Stel de naam en sla .
+Step 2: Set Letterhead content.,Stap 2 : Stel Briefhoofd inhoud .
+Style,Estilo
+Style Settings,Settings
+"Style represents the button color: Success - Green, Danger - Red, Inverse - Black, Primary - Dark Blue, Info - Light Blue, Warning - Orange","Estilo representa a cor do botão: Sucesso - Verde, Perigo - vermelho, Inverse - Preto, Primário - Dark Info, azul - azul claro, Aviso - Orange"
+Sub-domain provided by erpnext.com,Sub-domínio fornecido pelo erpnext.com
+Subdomain,Subdomínio
+Subject,Assunto
+Submit,Submeter
+Submitted,Enviado
+Submitted Record cannot be deleted,Registro apresentado não pode ser excluído
+Success,Sucesso
+Suggestion,Sugestão
+Sunday,Domingo
+Support Email Id,Suporte E-mail Id
+Sync Inbox,Sincronização Caixa de Entrada
+System,Sistema
+System Defaults,Padrões do sistema
+System User,Usuário do Sistema
+Table,Tabela
+Table of Contents,Inhoudsopgave
+Tag,Etiqueta
+Tag Name,Nome tag
+Tags,Etiquetas
+Tahoma,Tahoma
+Target,Alvo
+Team Members,Membros da Equipe
+Team Members Heading,Membros da Equipe título
+Template Path,template Path
+Test,Teste
+Test Runner,Test Runner
+Text,Texto
+Text Align,Alinhar texto
+Text Editor,Editor de Texto
+"The ""Web Page"" that is the website home page","A &quot;Página Web&quot;, que é a página inicial do site"
+The name of your company / website as you want to appear on browser title bar. All pages will have this as the prefix to the title.,O nome da sua empresa / site como você quer que apareça na barra de título do navegador. Todas as páginas vão ter isso como o prefixo para o título.
+"The system provides pre-defined roles, but you can <a href='#List/Role'>add new roles</a> to set finer permissions","O sistema fornece papéis pré-definidos, mas você pode <a href='#List/Role'>adicionar novas funções</a> para definir as permissões mais finos"
+Then By (optional),"Em seguida, por (opcional)"
+These properties are Link Type fields from all Documents.,Estas propriedades são campos tipo de ligação de todos os documentos.
+"These properties can also be used to 'assign' a particular document, whose property matches with the User's property to a User. These can be set using the <a href='#permission-manager'>Permission Manager</a>","Essas propriedades também podem ser usados ​​para &quot;atribuir&quot; um documento particular, cuja propriedade coincide com a propriedade do usuário para um usuário. Estes podem ser definidos usando o <a href='#permission-manager'>Gerente de Permissão</a>"
+These properties will appear as values in forms that contain them.,Estas propriedades aparecerá como valores em formas que os contêm.
+These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,Esses valores serão atualizados automaticamente em transações e também será útil para restringir as permissões para este usuário em operações que contenham esses valores.
+"This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>
+myfield
+eval:doc.myfield=='My Value'<br>
+eval:doc.age>18",
+This goes above the slideshow.,Isto vai acima do slideshow.
+This is PERMANENT action and you cannot undo. Continue?,Esta é uma ação permanente e você não pode desfazer. Continuar?
+This is permanent action and you cannot undo. Continue?,Esta é uma ação permanente e você não pode desfazer. Continuar?
+Thursday,Quinta-feira
+Time,Tempo
+Time Zone,Fuso horário
+Title,Título
+Title / headline of your page,Título / manchete de sua página
+Title Case,Caso título
+Title Prefix,Prefixo título
+To,Para
+"To format columns, give column labels in the query.","Para formatar colunas, dar rótulos de coluna na consulta."
+"To further restrict permissions based on certain values in a document, use the 'Condition' settings.","Para restringir ainda mais permissões com base em determinados valores em um documento, use a &#39;condição&#39; definições."
+To restrict a User of a particular Role to documents that are explicitly assigned to them,Para restringir um usuário de um papel especial a documentos que são explicitamente atribuídos a eles
+To restrict a User of a particular Role to documents that are only self-created.,Para restringir um usuário de um papel especial a documentos que são apenas auto-criado.
+"To set user roles, just go to <a href='#List/Profile'>Setup > Users</a> and click on the user to assign roles.","Para definir funções de usuário, basta ir a <a href='#List/Profile'>Configuração&gt; Usuários</a> e clique sobre o usuário para atribuir funções."
+ToDo,ToDo
+Tools,Ferramentas
+Top Bar,Top Bar
+Top Bar Background,Fundo da barra superior
+Top Bar Item,Item da barra de topo
+Top Bar Items,Top Bar Itens
+Top Bar Text,Top Bar Texto
+Top Bar text and background is same color. Please change.,"Top Bar texto eo fundo é a mesma cor. Por favor, altere."
+Total SMS Sent,SMS total enviado
+Transaction,Transação
+Transition Rules,Regras de transição
+Trash Reason,Razão lixo
+Tuesday,Terça-feira
+Tweet will be shared via your user account (if specified),Tweet serão compartilhados através da sua conta de usuário (se especificado)
+Twitter Share,Twitter Compartilhar
+Twitter Share via,Compartilhar via Twitter
+Type,Tipo
+UPPER CASE,MAIÚSCULAS
+UPPERCASE,Maiúsculas
+URL,URL
+Unable to complete request: ,Não é possível concluir pedido:
+Unable to load,Kan niet worden geladen
+"Unknown file encoding. Tried utf-8, windows-1250, windows-1252.","Onbekend bestand codering . Probeerde UTF-8 , windows- 1250 , windows- 1252 ."
+Unread Messages,Mensagens não lidas
+Unsubscribed,Inscrição cancelada
+Upcoming Events for Today,Próximos Eventos para Hoje
+Update,Atualizar
+Update Field,Atualizar campo
+Update Value,Atualize Valor
+Upload,uploaden
+Upload Attachment,Envie anexos
+Upload a file,Enviar um arquivo
+Upload and Import,Carregar e Importar
+Uploading...,Upload ...
+User,Usuário
+User Cannot Create,Usuário não pode criar
+User Cannot Search,O usuário não pode pesquisar
+User Image,Imagem do usuário
+User Tags,Etiquetas de usuários
+User Type,Tipo de Usuário
+User not allowed to delete.,Usuário não tem permissão para excluir.
+UserRole,UserRole
+Value,Valor
+Value missing for,Valor em falta para
+Verdana,Verdana
+Visit,Visitar
+Warning,Aviso
+Web Content,Conteúdo da Web
+Web Page,Página Web
+Website,Site
+Website Overall Settings,Configurações do site em geral
+Website Script,Script site
+Website Settings,Configurações do site
+Website Sitemap,website Sitemap
+Website Sitemap Config,Website Sitemap Config
+Website Slideshow,Slideshow site
+Website Slideshow Item,Item Slideshow site
+Website User,Site do Usuário
+Wednesday,Quarta-feira
+Welcome Email Sent,Welkom verzonden e-mail
+"When you <b>Amend</b> a document after cancel and save it, it will get a new number that is a version of the old number.","Quando você <b>alterar</b> um documento depois de cancelar e salvá-lo, ele vai ter um novo número que é uma versão do número antigo."
+Width,Largura
+Will be used in url (usually first name).,Será utilizado na url (geralmente o primeiro nome).
+Workflow,Fluxo de trabalho
+Workflow Action,Ação de fluxo de trabalho
+Workflow Action Master,Mestre ação de fluxo de trabalho
+Workflow Action Name,Nome da ação de fluxo de trabalho
+Workflow Document State,Estado Documento de fluxo de trabalho
+Workflow Document States,Fluxo de trabalho Documento Estados
+Workflow Name,Nome de fluxo de trabalho
+Workflow State,Estado de fluxo de trabalho
+Workflow State Field,Campo do Estado de fluxo de trabalho
+Workflow Transition,Transição de fluxo de trabalho
+Workflow Transitions,Transições de fluxo de trabalho
+Workflow state represents the current state of a document.,Estado de fluxo de trabalho representa o estado atual de um documento.
+Workflow will start after saving.,Fluxo de trabalho terá início após a poupança.
+Write,Escrever
+Write a Python file in the same folder where this is saved and return column and result.,Gravar um arquivo Python na mesma pasta onde esta é salvo e coluna de retorno e resultado.
+Write a SELECT query. Note result is not paged (all data is sent in one go).,Escreva uma consulta SELECT. Nota resultado não é paginada (todos os dados são enviados de uma só vez).
+Write titles and introductions to your blog.,Escreva títulos e introduções para o seu blog.
+Writers Introduction,Escritores Introdução
+Year,Ano
+Yes,Sim
+Yesterday,Ontem
+You can set various 'properties' to Users to set default values and apply permission rules based on the value of these properties in various forms.,Você pode definir vários &#39;propriedades&#39; para usuários para definir os valores padrão e aplicar regras de permissão com base no valor dessas propriedades em várias formas.
+You can use <a href='#Form/Customize Form'>Customize Form</a> to set levels on fields.,Você pode usar <a href='#Form/Customize Form'>Personalizar Formulário</a> para definir os níveis em campos.
+"Your download is being built, this may take a few moments...","O seu download está sendo construída, isso pode demorar alguns instantes ..."
+[Label]:[Field Type]/[Options]:[Width],[Etiqueta]: [Tipo de campo] / [Options]: [Largura]
+add your own CSS (careful!),adicionar seu próprio CSS (cuidado!)
+adjust,ajustar
+align-center,alinhar-centro
+align-justify,alinhar-justificar
+align-left,alinhar-esquerda
+align-right,alinhar à direita
+and,e
+arrow-down,seta para baixo
+arrow-left,seta para a esquerda
+arrow-right,seta para a direita
+arrow-up,seta para cima
+asterisk,asterisco
+backward,para trás
+ban-circle,proibição de círculo
+barcode,código de barras
+bell,sino
+bold,negrito
+book,livro
+bookmark,marcar
+briefcase,pasta
+bullhorn,megafone
+calendar,calendário
+camera,câmera
+cannot be empty,não pode ser vazio
+cannot be in its own,kan niet in zijn eigen
+"cannot have a URL, because it has child item(s)","Não é possível ter um URL, porque tem filho item (s)"
+cannot start with,não pode começar com
+certificate,certidão
+check,verificar
+chevron-down,chevron-down
+chevron-left,chevron-esquerda
+chevron-right,Chevron-direito
+chevron-up,chevron-up
+circle-arrow-down,círculo de seta para baixo
+circle-arrow-left,círculo de seta para a esquerda
+circle-arrow-right,círculo de seta à direita
+circle-arrow-up,círculo de seta para cima
+cog,roda dentada
+comment,comentário
+comments,reacties
+create a Custom Field of type Link (Profile) and then use the 'Condition' settings to map that field to the Permission rule.,Criar um campo personalizado de ligação tipo (perfil) e depois usar as configurações de &#39;condição&#39; para mapear o campo para a regra de permissão.
+dd-mm-yyyy,dd-mm-aaaa
+dd/mm/yyyy,dd / mm / aaaa
+does not exist,não existe
+download,baixar
+download-alt,download-alt
+edit,editar
+eject,ejetar
+envelope,envelope
+exclamation-sign,exclamação sinal-
+eye-close,olho-
+eye-open,olho-aberto
+facetime-video,facetime vídeo
+fast-backward,rápido para trás
+fast-forward,avançar
+file,arquivo
+film,filme
+filter,filtrar
+fire,fogo
+flag,bandeira
+folder-close,pasta close-
+folder-open,pasta-aberto
+font,fonte
+forward,para a frente
+found,gevonden
+fullscreen,fullscreen
+gift,dom
+glass,vidro
+globe,globo
+hand-down,mão-down
+hand-left,mão esquerda
+hand-right,mão direita
+hand-up,mão-
+hdd,hdd
+headphones,fones de ouvido
+heart,coração
+home,casa
+icon,ícone
+in,em
+inbox,caixa de entrada
+indent-left,travessão esquerdo
+indent-right,travessão direito
+info-sign,Informações sinal-
+is linked in,está ligado na
+is not allowed.,não é permitido.
+italic,itálico
+leaf,folha
+list,lista
+list-alt,lista de alt-
+lock,trancar
+lowercase,minúsculas
+magnet,ímã
+map-marker,mapa marcador
+minus,menos
+minus-sign,sinal de menos-
+mm-dd-yyyy,mm-dd-aaaa
+mm/dd/yyyy,dd / mm / aaaa
+move,mover
+music,música
+not in,não em
+of type Link,Tipo de Link
+off,fora
+ok,ok
+ok-circle,ok círculo
+ok-sign,ok-sinal
+or,ou
+pause,pausa
+pencil,lápis
+picture,quadro
+plane,avião
+play,jogar
+play-circle,jogo-círculo
+plus,mais
+plus-sign,plus-assinar
+print,imprimir
+qrcode,QRCode
+question-sign,pergunta sinal-
+random,acaso
+refresh,refrescar
+remove,remover
+remove-circle,remove-círculo
+remove-sign,remover-assinar
+repeat,repetir
+resize-full,redimensionamento completo
+resize-horizontal,redimensionamento horizontal
+resize-small,redimensionamento pequeno
+resize-vertical,redimensionamento vertical
+retweet,retwitar
+road,estrada
+screenshot,tela
+search,pesquisar
+share,ação
+share-alt,partes alt-
+shopping-cart,carrinho de compras
+signal,sinalizar
+star,estrela
+star-empty,estrelas vazio
+step-backward,passo para trás-
+step-forward,passo-
+stop,parar
+tag,etiqueta
+tags,etiquetas
+"target = ""_blank""",target = &quot;_blank&quot;
+tasks,tarefas
+text-height,texto de altura
+text-width,texto de largura
+th,ª
+th-large,ª-grande
+th-list,ª-lista
+thumbs-down,polegares para baixo
+thumbs-up,polegar para cima
+time,tempo
+tint,matiz
+to,para
+trash,lixo
+upload,carregar
+user,usuário
+user_image_show,user_image_show
+values and dates,valores e as datas
+volume-down,volume baixo
+volume-off,volume de off-
+volume-up,volume-
+warning-sign,sinal de alerta-
+wrench,chave inglesa
+yyyy-mm-dd,aaaa-mm-dd
+zoom-in,zoom-in
+zoom-out,zoom-out

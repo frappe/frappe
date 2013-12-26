@@ -19,7 +19,7 @@ class Database:
 	def __init__(self, host=None, user=None, password=None, ac_name=None, use_default = 0):
 		self.host = host or webnotes.conf.db_host or 'localhost'
 		self.user = user or webnotes.conf.db_name
-		
+				
 		if ac_name:
 			self.user = self.get_db_login(ac_name) or webnotes.conf.db_name
 		
