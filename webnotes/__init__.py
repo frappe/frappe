@@ -541,18 +541,6 @@ def repsond_as_web_page(title, html):
 	local.message = "<h3>" + title + "</h3>" + html
 	local.response['type'] = 'page'
 	local.response['page_name'] = 'message.html'
-<<<<<<< HEAD
-=======
-
-def load_json(obj):
-	if isinstance(obj, basestring):
-		try:
-			obj = json.loads(obj)
-		except ValueError:
-			pass
-		
-	return obj
->>>>>>> 55003f860c12c6b77a4d21d0ccf41573e7e3e545
 	
 def build_match_conditions(doctype, fields=None, as_condition=True):
 	import webnotes.widgets.reportview
