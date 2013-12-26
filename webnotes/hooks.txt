@@ -1,0 +1,16 @@
+app_name				Web Notes
+app_publisher			Web Notes Technologies
+app_description			Full Stack Web Application Framwork in Python
+app_icon				icon-cog
+app_version				4.0.0-wip
+app_color				#3498db
+
+after_install			webnotes.utils.install.after_install
+
+app_include_js			assets/js/webnotes.min.js
+app_include_css			assets/webnotes/css/splash.css
+app_include_css			assets/css/webnotes.css
+web_include_js			assets/js/webnotes-web.min.js
+web_include_css			assets/css/webnotes-web.css
+get_desktop_icons		webnotes.manage.get_desktop_icons
+notification_config		webnotes.core.notifications.get_notification_config

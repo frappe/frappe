@@ -11,7 +11,6 @@ from webnotes import _
 from webnotes.modules import scrub, get_module_path
 from webnotes.utils import flt, cint
 import webnotes.widgets.reportview
-import webnotes.plugins
 
 def get_report_doc(report_name):
 	bean = webnotes.bean("Report", report_name)
@@ -38,9 +37,6 @@ def get_script(report_name):
 		with open(script_path, "r") as script:
 			script = script.read()
 	
-	if not script and report.is_standard == "No":
-		script = webnotes.plugins.read_file(module, "Report", report.name, extn="js", cache=True)
-
 	if not script and report.javascript:
 		script = report.javascript
 	
@@ -49,22 +45,12 @@ def get_script(report_name):
 		
 	# load translations
 	if webnotes.lang != "en":
-		from webnotes.translate import get_lang_data
-		if os.path.exists(report_folder):
-			messages = get_lang_data(report_folder, webnotes.lang, 'js')
-			webnotes.response["__messages"] = messages
-		else:
-			# TODO check if language files get exported here
-			plugins_report_folder = webnotes.plugins.get_path(module, "Report", report.name)
-			if os.path.exists(plugins_report_folder):
-				messages = get_lang_data(plugins_report_folder, webnotes.lang, 'js')
-				webnotes.response["__messages"] = messages
+		webnotes.response["__messages"] = webnotes.get_lang_dict("report", report_name)
 		
 	return script
 
 @webnotes.whitelist()
 def run(report_name, filters=None):
-	from webnotes.plugins import get_code_and_execute
 	
 	report = get_report_doc(report_name)
 	
@@ -88,11 +74,9 @@ def run(report_name, filters=None):
 	else:
 		module = webnotes.conn.get_value("DocType", report.ref_doctype, "module")
 		if report.is_standard=="Yes":
-			method_name = scrub(module) + ".report." + scrub(report.name) + "." + scrub(report.name) + ".execute"
-			columns, result = webnotes.get_method(method_name)(filters or {})
-		else:
-			namespace = get_code_and_execute(module, "Report", report.name)
-			columns, result = namespace["execute"](filters or {})
+			method_name = webnotes.local.module_app[scrub(module)] + "." + scrub(module) \
+				+ ".report." + scrub(report.name) + "." + scrub(report.name) + ".execute"
+			columns, result = webnotes.get_attr(method_name)(filters or {})
 	
 	result = get_filtered_data(report.ref_doctype, columns, result)
 	

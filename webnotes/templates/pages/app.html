@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<head>
+	<meta charset="utf-8">
+	<title>Application</title>
+	<meta name="author" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon">
+	<link rel="icon" href="images/favicon.ico" type="image/x-icon">
+</head>
+<body>
+	<div class="splash">{% include "public/images/splash.svg" %}</div>
+	<header></header>
+	<div id="body_div">
+	</div>
+	<footer></footer>
+	{% for include in include_css -%}
+	<link type="text/css" rel="stylesheet" href="{{ include }}">
+	{%- endfor -%}
+	<script type="text/javascript" src="assets/webnotes/js/lib/jquery/jquery.min.js"></script>
+	<script type="text/javascript">
+	window._version_number = "{{ build_version }}";
+	// browser support
+	window.app = true;
+	</script>
+
+	{% for include in include_js -%}
+	<script type="text/javascript" src="{{ include }}"></script>
+	{%- endfor -%}
+</body>

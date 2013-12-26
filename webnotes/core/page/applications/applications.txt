@@ -1,0 +1,33 @@
+[
+ {
+  "creation": "2013-12-23 11:01:52", 
+  "docstatus": 0, 
+  "modified": "2013-12-23 11:01:52", 
+  "modified_by": "Administrator", 
+  "owner": "Administrator"
+ }, 
+ {
+  "doctype": "Page", 
+  "icon": "icon-magic", 
+  "module": "Core", 
+  "name": "__common__", 
+  "page_name": "applications", 
+  "standard": "Yes", 
+  "title": "Applications"
+ }, 
+ {
+  "doctype": "Page Role", 
+  "name": "__common__", 
+  "parent": "applications", 
+  "parentfield": "roles", 
+  "parenttype": "Page", 
+  "role": "System Manager"
+ }, 
+ {
+  "doctype": "Page", 
+  "name": "applications"
+ }, 
+ {
+  "doctype": "Page Role"
+ }
+]

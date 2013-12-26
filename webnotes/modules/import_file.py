@@ -5,33 +5,28 @@ from __future__ import unicode_literals
 
 import webnotes, os
 from webnotes.modules import scrub, get_module_path, scrub_dt_dn
-import webnotes.plugins
 
-def import_files(module, dt=None, dn=None, plugin=None, force=False):
+def import_files(module, dt=None, dn=None, force=False):
 	if type(module) is list:
 		out = []
 		for m in module:
-			out.append(import_file(m[0], m[1], m[2], plugin=plugin, force=force))
+			out.append(import_file(m[0], m[1], m[2], force=force))
 		return out
 	else:
-		return import_file(module, dt, dn, plugin=plugin, force=force)
+		return import_file(module, dt, dn, force=force)
 		
-def import_file(module, dt, dn, plugin=None, force=False):
+def import_file(module, dt, dn, force=False):
 	"""Sync a file from txt if modifed, return false if not updated"""
-	webnotes.flags.in_import = True
 	dt, dn = scrub_dt_dn(dt, dn)
 	
-	if plugin:
-		path = webnotes.plugins.get_path(module, dt, dn, plugin, extn="txt")
-	else:
-		path = os.path.join(get_module_path(module), 
-			os.path.join(dt, dn, dn + '.txt'))
+	path = os.path.join(get_module_path(module), 
+		os.path.join(dt, dn, dn + '.txt'))
 	
 	ret = import_file_by_path(path, force)
-	webnotes.flags.in_import = False
 	return ret
 
 def import_file_by_path(path, force=False):
+	webnotes.flags.in_import = True
 	if os.path.exists(path):
 		from webnotes.modules.utils import peval_doclist
 		
@@ -55,9 +50,11 @@ def import_file_by_path(path, force=False):
 				(doc['doctype'], '%s', '%s'), 
 				(original_modified, doc['name']))
 
-			return True
 	else:
 		raise Exception, '%s missing' % path
+
+	webnotes.flags.in_import = False
+	return True
 
 ignore_values = { 
 	"Report": ["disabled"], 

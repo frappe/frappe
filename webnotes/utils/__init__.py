@@ -87,19 +87,8 @@ def random_string(length):
 	import string
 	from random import choice
 	return ''.join([choice(string.letters + string.digits) for i in range(length)])
-
-def load_json(arg):
-	# already a dictionary?
-	if not isinstance(arg, basestring):
-		return arg
 	
-	import json
-	return json.loads(arg, encoding='utf-8')
-	
-# Get Traceback
-# ==============================================================================
-
-def getTraceback():
+def get_traceback():
 	"""
 		 Returns the traceback of the Exception
 	"""
@@ -825,26 +814,16 @@ def get_base_path():
 	return os.path.dirname(os.path.abspath(conf.__file__))
 	
 def get_site_base_path(sites_dir=None, hostname=None):
-	if not sites_dir:
-		sites_dir = conf.sites_dir
-	
-	if not hostname:
-		hostname = conf.site
-		
-	if not (sites_dir and hostname):
-		return get_base_path()
-
-	import os
-	return os.path.join(sites_dir, hostname)
+	return webnotes.local.site_path
 
 def get_site_path(*path):
 	return get_path(base=get_site_base_path(), *path)
 	
 def get_files_path():
-	return get_site_path(webnotes.conf.files_path)
+	return get_site_path("public", "files")
 
 def get_backups_path():
-	return get_site_path(webnotes.conf.backup_path) 
+	return get_site_path("public", "backup") 
 	
 def get_url(uri=None):
 	url = get_request_site_address()
@@ -929,3 +908,47 @@ def expand_partial_links(html):
 	if not url.endswith("/"): url += "/"
 	return re.sub('(href|src){1}([\s]*=[\s]*[\'"]?)((?!http)[^\'" >]+)([\'"]?)', 
 		'\g<1>\g<2>{}\g<3>\g<4>'.format(url), html)
+
+class HashAuthenticatedCommand(object):
+	def __init__(self):
+		if hasattr(self, 'command'):
+			import inspect
+			self.fnargs, varargs, varkw, defaults = inspect.getargspec(self.command)
+			self.fnargs.append('signature')
+
+	def __call__(self, *args, **kwargs):
+		signature = kwargs.pop('signature')
+		if self.verify_signature(kwargs, signature):
+			return self.command(*args, **kwargs)
+		else:
+			self.signature_error()
+
+	def command(self):
+		raise NotImplementedError
+		
+	def signature_error(self):
+		raise InvalidSignatureError
+
+	def get_signature(self, params, ignore_params=None):
+		import hmac
+		params = self.get_param_string(params, ignore_params=ignore_params)
+		secret = "secret"
+		signature = hmac.new(self.get_nonce())
+		signature.update(secret)
+		signature.update(params)
+		return signature.hexdigest()
+
+	def get_param_string(self, params, ignore_params=None):
+		if not ignore_params:
+			ignore_params = []
+		params = [unicode(param) for param in params if param not in ignore_params]
+		params = ''.join(params)
+		return params
+
+	def get_nonce():
+		raise NotImplementedError
+
+	def verify_signature(self, params, signature):
+		if signature == self.get_signature(params):
+			return True
+		return False

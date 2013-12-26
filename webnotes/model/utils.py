@@ -2,7 +2,7 @@
 # MIT License. See license.txt 
 
 from __future__ import unicode_literals
-import webnotes
+import webnotes, json
 from webnotes import _
 from webnotes.model.doc import Document
 """
@@ -19,9 +19,7 @@ def expand(docs):
 			d[a[i]] = b[i]
 		return d
 
-	from webnotes.utils import load_json
-
-	docs = load_json(docs)
+	docs = json.loads(docs)
 	clist = []
 	for d in docs['_vl']:
 		doc = xzip(docs['_kl'][d[0]], d);

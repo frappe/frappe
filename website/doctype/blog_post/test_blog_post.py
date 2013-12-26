@@ -99,7 +99,7 @@ class TestBlogPost(unittest.TestCase):
 		self.assertFalse("_test-blog-post-1" in names)
 		
 	def test_restrict(self):
-		from core.page.user_properties.user_properties import add, remove, get_properties
+		from webnotes.core.page.user_properties.user_properties import add, remove, get_properties
 		
 		# restrictor can add restriction
 		webnotes.set_user("test1@example.com")

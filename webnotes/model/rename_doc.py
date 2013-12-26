@@ -52,7 +52,7 @@ def rename_doc(doctype, old, new, force=False, merge=False):
 	# update restrictions
 	webnotes.conn.sql("""update tabDefaultValue set defvalue=%s where parenttype='Restriction' 
 		and defkey=%s and defvalue=%s""", (new, doctype, old))
-	webnotes.clear_cache(sessions_only=True)
+	webnotes.clear_cache()
 	
 	return new
 

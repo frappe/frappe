@@ -3,9 +3,8 @@
 
 from __future__ import unicode_literals
 import webnotes
-import memc
 
-# User
+common_keys = ["Control Panel", "__global"]
 
 def set_user_default(key, value, user=None, parenttype=None):
 	set_default(key, value, user or webnotes.session.user, parenttype)
@@ -41,18 +40,11 @@ def build_restrictions(user):
 	return out
 
 def get_defaults(user=None):
-	if not user and webnotes.session:
-		user = webnotes.session.user
+	if not user:
+		user = webnotes.session.user if webnotes.session else "Guest"
 
-	if user:
-		userd = get_defaults_for(user)
-		
-		if user in ["__global", "Control Panel"]:
-			userd.update({"user": webnotes.session.user, "owner": webnotes.session.user})
-		else:
-			userd.update({"user": user, "owner": user})
-	else:
-		userd = {}
+	userd = get_defaults_for(user)
+	userd.update({"user": user, "owner": user})
 	
 	globald = get_defaults_for()
 	globald.update(userd)
@@ -82,7 +74,7 @@ def set_default(key, value, parent, parenttype="Control Panel"):
 		# update
 		webnotes.conn.sql("""update `tabDefaultValue` set defvalue=%s, parenttype=%s 
 			where parent=%s and defkey=%s""", (value, parenttype, parent, key))
-		clear_cache(parent)
+		_clear_cache(parent)
 	else:
 		add_default(key, value, parent)
 
@@ -98,7 +90,7 @@ def add_default(key, value, parent, parenttype=None):
 	d.insert()
 	if parenttype=="Restriction":
 		webnotes.local.restrictions = None
-	clear_cache(parent)
+	_clear_cache(parent)
 	
 def clear_default(key=None, value=None, parent=None, name=None, parenttype=None):
 	conditions = []
@@ -134,7 +126,7 @@ def clear_default(key=None, value=None, parent=None, name=None, parenttype=None)
 		raise Exception, "[clear_default] No key specified."
 	
 	webnotes.conn.sql("""delete from tabDefaultValue where %s""" % " and ".join(conditions), values)
-	webnotes.clear_cache(sessions_only=True)
+	_clear_cache(parent)
 	
 def get_defaults_for(parent="Control Panel"):
 	"""get all defaults"""
@@ -159,19 +151,17 @@ def get_defaults_for(parent="Control Panel"):
 	
 	return defaults
 
-def clear_cache(parent=None):
-	if webnotes.flags.in_install: 
-		return
+def _clear_cache(parent):
+	if parent in common_keys:
+		webnotes.clear_cache()
+	else:
+		webnotes.clear_cache(user=webnotes.session.user)
 
-	def all_profiles():
-		return webnotes.conn.sql_list("select name from tabProfile") + ["Control Panel", "__global"]
-		
-	if parent=="Control Panel" or not parent:
-		parent = all_profiles()
-	elif isinstance(parent, basestring):
-		parent = [parent]
-		
-	for p in parent:
+def clear_cache(user=None):	
+	to_clear = []
+	if user:
+		to_clear = [user]
+	elif webnotes.flags.in_install_app!="webnotes":
+		to_clear = webnotes.conn.sql_list("select name from tabProfile")
+	for p in to_clear + common_keys:
 		webnotes.cache().delete_value("__defaults:" + p)
-
-	webnotes.clear_cache(sessions_only=True)

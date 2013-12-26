@@ -6,12 +6,11 @@ from __future__ import unicode_literals
 import webnotes, os
 import webnotes.model.doc
 from webnotes.modules import scrub, get_module_path, lower_case_files_for, scrub_dt_dn
-from webnotes.plugins import get_plugin_path
 
 def export_doc(doc):
 	export_to_files([[doc.doctype, doc.name]])
 
-def export_to_files(record_list=None, record_module=None, verbose=0, plugin=None, create_init=None):
+def export_to_files(record_list=None, record_module=None, verbose=0, create_init=None):
 	"""
 		Export record_list to files. record_list is a list of lists ([doctype],[docname] )  ,
 	"""
@@ -22,9 +21,9 @@ def export_to_files(record_list=None, record_module=None, verbose=0, plugin=None
 	if record_list:
 		for record in record_list:
 			write_document_file(webnotes.model.doc.get(record[0], record[1]), 
-				record_module, plugin=plugin, create_init=create_init)
+				record_module, create_init=create_init)
 	
-def write_document_file(doclist, record_module=None, plugin=None, create_init=None):
+def write_document_file(doclist, record_module=None, create_init=None):
 	from webnotes.modules.utils import pprint_doclist
 
 	doclist = [filter_fields(d.fields) for d in doclist]
@@ -34,7 +33,7 @@ def write_document_file(doclist, record_module=None, plugin=None, create_init=No
 		create_init = doclist[0]['doctype'] in lower_case_files_for
 	
 	# create folder
-	folder = create_folder(module, doclist[0]['doctype'], doclist[0]['name'], create_init, plugin=plugin)
+	folder = create_folder(module, doclist[0]['doctype'], doclist[0]['name'], create_init)
 	
 	# write the data file	
 	fname = (doclist[0]['doctype'] in lower_case_files_for and scrub(doclist[0]['name'])) or doclist[0]['name']
@@ -73,11 +72,8 @@ def get_module_name(doclist):
 
 	return module
 		
-def create_folder(module, dt, dn, create_init, plugin=None):
-	if plugin:
-		module_path = os.path.join(get_plugin_path(plugin), scrub(module))
-	else:
-		module_path = get_module_path(module)
+def create_folder(module, dt, dn, create_init):
+	module_path = get_module_path(module)
 
 	dt, dn = scrub_dt_dn(dt, dn)
 	

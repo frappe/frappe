@@ -16,6 +16,7 @@ import webnotes.webutils
 def get_bootinfo():
 	"""build and return boot info"""
 	bootinfo = webnotes._dict()
+	hooks = webnotes.get_hooks()
 	doclist = []
 
 	# profile
@@ -36,7 +37,11 @@ def get_bootinfo():
 		bootinfo['sid'] = webnotes.session['sid'];
 		
 	# home page
-	bootinfo.modules = webnotes.get_config().modules
+	bootinfo.modules = {}
+	for app in webnotes.get_installed_apps():
+		desktop_icons_path = webnotes.get_pymodule_path(app, "desktop.json")
+		bootinfo.modules.update(json.loads(webnotes.read_file(desktop_icons_path) or "{}"))
+
 	bootinfo.hidden_modules = webnotes.conn.get_global("hidden_modules")
 	bootinfo.doctype_icons = dict(webnotes.conn.sql("""select name, icon from 
 		tabDocType where ifnull(icon,'')!=''"""))
@@ -55,13 +60,9 @@ def get_bootinfo():
 	# add docs
 	bootinfo['docs'] = doclist
 	
-	# plugins
-	try:
-		import startup.boot
-		startup.boot.boot_session(bootinfo)
-	except ImportError:
-		pass
-	
+	for method in hooks.boot_session:
+		webnotes.get_attr(method)(bootinfo)
+		
 	from webnotes.model.utils import compress
 	bootinfo['docs'] = compress(bootinfo['docs'])
 
@@ -88,12 +89,7 @@ def load_translations(bootinfo):
 	webnotes.set_user_lang(webnotes.session.user)
 	
 	if webnotes.lang != 'en':
-		from webnotes.translate import get_lang_data
-		from webnotes.utils import get_path
-		# framework
-		bootinfo["__messages"] = get_lang_data(get_path("lib","public", "js", "wn"), None, "js")
-		# doctype and module names
-		bootinfo["__messages"].update(get_lang_data(get_path("app","public", "js"), None, "js"))
+		bootinfo["__messages"] = webnotes.get_lang_dict("include")
 		bootinfo["lang"] = webnotes.lang
 
 def get_fullnames():

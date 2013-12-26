@@ -9,12 +9,11 @@ Session bootstraps info needed by common client side activities including
 permission, homepage, control panel variables, system defaults etc
 """
 import webnotes
-import conf
 import json
 from webnotes.utils import cint
 import webnotes.model.doctype
 import webnotes.defaults
-import webnotes.plugins
+import webnotes.translate
 
 @webnotes.whitelist()
 def clear(user=None):
@@ -27,14 +26,16 @@ def clear(user=None):
 def clear_cache(user=None):
 	cache = webnotes.cache()
 
-	# clear doctype cache
 	webnotes.model.doctype.clear_cache()
 	
-	# clear plugins code cache
-	webnotes.plugins.clear_cache()
-
 	if user:
 		cache.delete_value("bootinfo:" + user)
+		cache.delete_value("lang:" + user)
+		
+		# clear notifications
+		if webnotes.flags.in_install_app!="webnotes":
+			webnotes.conn.sql("""delete from `tabNotification Count` where owner=%s""", user)
+		
 		if webnotes.session:
 			if user==webnotes.session.user and webnotes.session.sid:
 				cache.delete_value("session:" + webnotes.session.sid)
@@ -42,14 +43,16 @@ def clear_cache(user=None):
 				for sid in webnotes.conn.sql_list("""select sid from tabSessions
 					where user=%s""", user):
 						cache.delete_value("session:" + sid)
-	else:
-		clear_all_session_cache()
 
-def clear_all_session_cache():
-	cache = webnotes.cache()
-	for sess in webnotes.conn.sql("""select user, sid from tabSessions""", as_dict=1):
-		cache.delete_value("sesssion:" + sess.sid)
-		cache.delete_value("bootinfo:" + sess.user)
+		webnotes.defaults.clear_cache(user)
+	else:
+		cache.delete_value(["app_hooks", "installed_apps", "app_modules", "module_apps"])
+
+		for sess in webnotes.conn.sql("""select user, sid from tabSessions""", as_dict=1):
+			cache.delete_value("lang:" + sess.user)
+			cache.delete_value("session:" + sess.sid)
+			cache.delete_value("bootinfo:" + sess.user)
+		webnotes.defaults.clear_cache()
 
 def clear_sessions(user=None, keep_current=False):
 	if not user:
@@ -63,15 +66,17 @@ def clear_sessions(user=None, keep_current=False):
 
 def get():
 	"""get session boot info"""
-	from core.doctype.notification_count.notification_count import get_notification_info_for_boot
-
+	from webnotes.core.doctype.notification_count.notification_count import \
+		get_notification_info_for_boot, get_notifications
+	
 	bootinfo = None
-	if not getattr(conf,'auto_cache_clear',None):
+	if not getattr(webnotes.conf,'disable_session_cache',None):
 		# check if cache exists
 		bootinfo = webnotes.cache().get_value('bootinfo:' + webnotes.session.user)
 		if bootinfo:
 			bootinfo['from_cache'] = 1
-			
+			bootinfo["notification_info"].update(get_notifications())
+		
 	if not bootinfo:
 		if not webnotes.cache().get_stats():
 			webnotes.msgprint("memcached is not working / stopped. Please start memcached for best results.")
@@ -82,7 +87,6 @@ def get():
 		bootinfo["notification_info"] = get_notification_info_for_boot()
 		webnotes.cache().set_value('bootinfo:' + webnotes.session.user, bootinfo)
 	
-		
 	return bootinfo
 
 class Session:
@@ -145,12 +149,13 @@ class Session:
 		data = self.get_session_record()
 		if data:
 			# set language
-			if data.lang and self.user!="demo@erpnext.com": 
-				webnotes.local.lang = data.lang
 			self.data = webnotes._dict({'data': data, 
 				'user':data.user, 'sid': self.sid})
 		else:
 			self.start_as_guest()
+			
+		webnotes.local.lang = webnotes.cache().get_value("lang:" + self.data.user, 
+			lambda: webnotes.translate.get_user_lang(self.data.user))
 
 	def get_session_record(self):
 		"""get session record, or return the standard Guest Record"""

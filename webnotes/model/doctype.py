@@ -230,11 +230,9 @@ def cache_name(doctype, processed):
 	return "doctype:" + doctype + suffix
 
 def clear_cache(doctype=None):
-	import webnotes.plugins
 	def clear_single(dt):
 		webnotes.cache().delete_value(cache_name(dt, False))
 		webnotes.cache().delete_value(cache_name(dt, True))
-		webnotes.plugins.clear_cache("DocType", dt)
 
 		if doctype_cache and (dt in doctype_cache):
 			del doctype_cache[dt]
@@ -248,7 +246,7 @@ def clear_cache(doctype=None):
 			clear_single(dt[0])
 		
 		# clear all notifications
-		from core.doctype.notification_count.notification_count import delete_notification_count_for
+		from webnotes.core.doctype.notification_count.notification_count import delete_notification_count_for
 		delete_notification_count_for(doctype)
 		
 	else:
@@ -283,23 +281,18 @@ def add_embedded_js(doc):
 	import re, os
 	from webnotes import conf
 
+	js = doc.fields.get('__js') or ''
+
 	# custom script
 	custom = webnotes.conn.get_value("Custom Script", {"dt": doc.name, 
 		"script_type": "Client"}, "script") or ""
-	doc.fields['__js'] = ((doc.fields.get('__js') or '') + '\n' + custom).encode("utf-8")
+	js = (js + '\n' + custom).encode("utf-8")
+
+	if "{% include" in js:
+		js = webnotes.get_jenv().from_string(js).render()
 	
-	def _sub(match):
-		require_path = re.search('["\'][^"\']*["\']', match.group(0)).group(0)[1:-1]
-		fpath = os.path.join(get_base_path(), require_path)
-		if os.path.exists(fpath):
-			with open(fpath, 'r') as f:
-				return '\n' + unicode(f.read(), "utf-8") + '\n'
-		else:
-			return 'wn.require("%s")' % require_path
-	
-	if doc.fields.get('__js'):
-		doc.fields['__js'] = re.sub('(wn.require\([^\)]*.)', _sub, doc.fields['__js'])
-		
+	doc.fields["__js"] = js
+			
 def expand_selects(doclist):
 	for d in filter(lambda d: d.fieldtype=='Select' \
 		and (d.options or '').startswith('link:'), doclist):
@@ -345,31 +338,8 @@ def add_search_fields(doclist):
 
 def update_language(doclist):
 	"""update language"""
-	if webnotes.lang != 'en':
-		from webnotes.modules import get_doc_path
-		if not hasattr(webnotes.local, 'translations'):
-			webnotes.local.translations = {}
-		translations = webnotes.local.translations
-
-		# load languages for each doctype
-		from webnotes.translate import get_lang_data
-		_messages = {}
-
-		for d in doclist:
-			if d.doctype=='DocType':
-				_messages.update(get_lang_data(get_doc_path(d.module, d.doctype, d.name), 
-					webnotes.lang, 'doc'))
-				_messages.update(get_lang_data(get_doc_path(d.module, d.doctype, d.name), 
-					webnotes.lang, 'js'))
-
-		doc = doclist[0]
-
-		# attach translations to client
-		doc.fields["__messages"] = _messages
-		
-		if not webnotes.lang in translations:
-			translations[webnotes.lang] = webnotes._dict({})
-		translations[webnotes.lang].update(_messages)
+	if webnotes.local.lang != 'en':
+		doclist[0].fields["__messages"] = webnotes.get_lang_dict("doctype", doclist[0].name)
 
 class DocTypeDocList(webnotes.model.doclist.DocList):
 	def get_field(self, fieldname, parent=None, parentfield=None):

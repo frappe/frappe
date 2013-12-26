@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>{{ title }}</title>
+	<meta name="generator" content="wnframework">
+	<script type="text/javascript" src="assets/webnotes/js/lib/jquery/jquery.min.js"></script>
+	<link rel="shortcut icon" href="{{ favicon }}" type="image/x-icon">
+	<link rel="icon" href="{{ favicon }}" type="image/x-icon">
+	{% block head %}
+		{% if meta_description -%}
+		<meta name="description" content="{{ meta_description }}">{%- endif %}
+		{% for link in web_include_js -%}
+		<script type="text/javascript" src="{{ link }}"></script>
+		{%- endfor %}
+		{% for link in web_include_css -%}
+		<link type="text/css" rel="stylesheet" href="{{ link }}">
+		{%- endfor %}
+	{% endblock %}
+	{% block javascript -%}
+		{% if javascript %}<script>{{ javascript }}</script>{% endif %}
+	{%- endblock %}
+	{% block css -%}
+		{% if css %}<style>{{ css }}</style>{% endif %}
+	{%- endblock %}
+</head>
+<body>
+	{% block banner %}
+	{% if banner_html -%}
+	<header class="container">{{ banner_html or "" }}</header>
+	{%- endif %}
+	{% endblock %}
+	{% block navbar %}{% include "templates/includes/navbar.html" %}{% endblock %}
+	<div class="page-container" id="page-{{ name }}">
+		{% block content %}{% endblock %}
+	</div>
+	{% block footer %}{% include "templates/includes/footer.html" %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,1073 @@
+ by Role ,रोल से
+ can not be marked as a ledger as it has existing child,यह मौजूदा बच्चे के रूप में एक खाता के रूप में चिह्नित नहीं किया जा सकता
+ cannot be deleted.,हटाया नहीं जा सकता.
+ is not set,सेट नहीं है
+"""Company History""",&quot;कंपनी इतिहास&quot;
+"""Team Members"" or ""Management""",&quot;टीम के सदस्यों&quot; या &quot;प्रबंधन&quot;
+0,0
+"000 is black, fff is white","000 काला है, fff सफेद है"
+1,1
+12px,12px
+13px,13px
+14px,14px
+15px,15px
+16px,16px
+2,2
+2 days ago,2 दिन पहले
+"<a onclick=""msgprint('<ol>\
+<li><b>field:[fieldname]</b> - By Field\
+<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\
+<li><b>Prompt</b> - Prompt user for a name\
+<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\
+</ol>')"">Naming Options</a>",
+<b>Cancel</b> allows you change Submitted documents by cancelling them and amending them.,<b>रद्द</b> आप उन्हें रद्द करने और उन्हें में संशोधन प्रस्तुत दस्तावेजों को बदलने की अनुमति देता है.
+A new popup will open that will ask you to select further conditions.,एक नया पॉपअप खुल जाएगा कि आप से पूछना आगे शर्तों का चयन करेंगे.
+A user can have multiple values for a property.,एक उपयोगकर्ता एक संपत्ति के लिए एकाधिक मान हो सकते हैं.
+About,के बारे में
+About Us Settings,हमारे बारे में सेटिंग्स
+About Us Team Member,हमारे दल के सदस्य के बारे में
+Account Id,खाता आईडी
+Action,कार्रवाई
+Actions,क्रियाएँ
+Add,जोड़ना
+Add A New Rule,एक नया नियम जोड़ें
+Add A Property,एक संपत्ति जोड़ें
+Add Attachments,अनुलग्नकों को जोड़
+Add Bookmark,बुकमार्क जोड़ें
+Add CSS,सीएसएस जोड़ें
+Add Column,कॉलम जोड़ें
+Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,उदाहरण के लिए: गूगल एनालिटिक्स आईडी जोड़ें. यूए-89XXX57-1. अधिक जानकारी के लिए गूगल एनालिटिक्स पर मदद की खोज करें.
+Add Message,संदेश जोड़ें
+Add New Permission Rule,नई अनुमति नियम जोड़ें
+Add Reply,प्रत्युत्तर जोड़ें
+Add Total Row,कुल पंक्ति जोड़ें
+Add a banner to the site. (small banners are usually good),साइट के लिए एक बैनर जोड़ें. (छोटे बैनर आमतौर पर अच्छा कर रहे हैं)
+Add attachment,लगाव जोड़ें
+Add code as &lt;script&gt;,&lt;script&gt; कोड के रूप में जोड़ें
+Add new row,नई पंक्ति जोड़ें
+"Add the name of <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> e.g. ""Open Sans""","के नाम जोड़ें <a href=""http://google.com/webfonts"" target=""_blank"">Google वेब फ़ॉन्ट</a> उदाहरण के लिए &quot;ओपन सेन्स&quot;"
+Add to To Do,जोड़ें करने के लिए क्या
+Add to To Do List of,को जोड़ने के लिए की सूची
+Additional Info,अतिरिक्त जानकारी
+Address,पता
+Address and other legal information you may want to put in the footer.,पता और अन्य कानूनी जानकारी आप पाद लेख में डाल सकते हैं.
+Address to be displayed on the Contact Page,पता संपर्क पृष्ठ पर प्रदर्शित किया
+Adds a custom field to a DocType,एक DOCTYPE एक कस्टम फ़ील्ड जोड़ता है
+Adds a custom script (client or server) to a DocType,एक DOCTYPE के लिए एक कस्टम स्क्रिप्ट (क्लाइंट या सर्वर) जोड़ता है
+Advanced Scripting,उन्नत स्क्रीप्टिंग
+Advanced Settings,उन्नत सेटिंग्स
+All Day,सभी दिन
+"All possible Workflow States and roles of the workflow. <br>Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""","सभी संभव कार्यप्रवाह राज्यों और कार्यप्रवाह की भूमिका. <br> Docstatus विकल्प: 0 &quot;बच&quot;, 1 &quot;प्रस्तुत&quot; है और 2 &quot;रद्द&quot;"
+Allow Attach,अनुमति देते
+Allow Import,आयात की अनुमति दें
+Allow Import via Data Import Tool,डेटा आयात उपकरण के माध्यम से आयात करने की अनुमति दें
+Allow Rename,नाम बदलें की अनुमति दें
+Allow on Submit,भेजें पर अनुमति दें
+Allow user to login only after this hour (0-24),उपयोगकर्ता इस घंटे के बाद ही प्रवेश करने की अनुमति दें (0-24)
+Allow user to login only before this hour (0-24),उपयोगकर्ता इस घंटे से पहले ही प्रवेश करने की अनुमति दें (0-24)
+Allowed,रख सकते है
+Already Registered,पहले से पंजीकृत है
+Amend,संशोधन करना
+"An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [<a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a>]","Ico विस्तार के साथ एक आइकन फ़ाइल. 16 x 16 पिक्सल होना चाहिए. एक favicon जनरेटर का उपयोग करते हुए उत्पन्न. [ <a href=""http://favicon-generator.org/"" target=""_blank"">favicon generator.org</a> ]"
+Are you sure you want to delete the attachment?,क्या आप सुनिश्चित करें कि आप अनुलग्नक हटाना चाहते हैं?
+Arial,Arial
+"As a best practice, do not assign the same set of permission rule to different Roles instead set multiple Roles to the User","एक सबसे अच्छा अभ्यास के रूप में, अलग भूमिकाओं बजाय उपयोगकर्ता को कई भूमिकाएं निर्धारित अनुमति शासन के एक ही सेट प्रदान नहीं करते"
+Ascending,आरोही
+Assign To,करने के लिए निरुपित
+Assigned By,द्वारा सौंपा
+Assigned To,को सौंपा
+Assigned To/Owner,/ स्वामी को सौंपा
+Attach,संलग्न करना
+Attach Document Print,दस्तावेज़ प्रिंट संलग्न
+Attach as web link,वेब लिंक के रूप में संलग्न करें
+Attached To DocType,टैग से जुड़ी
+Attached To Name,नाम से जुड़ी
+Attachments,किए गए अनुलग्नकों के
+Attributions,Attributions
+Auto Name,ऑटो नाम
+Auto generated,उत्पन्न ऑटो
+Avatar,अवतार
+Background Color,पृष्ठभूमि रंग
+Background Image,पृष्ठभूमि छवि
+Banner,बैनर
+Banner HTML,बैनर HTML
+Banner Image,बैनर छवि
+Banner is above the Top Menu Bar.,बैनर शीर्ष मेनू बार से ऊपर है.
+Begin this page with a slideshow of images,छवियों का एक स्लाइड शो के साथ शुरू इस पृष्ठ
+Belongs to,संबंधित
+Bio,जैव
+Birth Date,जन्म तिथि
+Blog Category,ब्लॉग श्रेणी
+Blog Intro,ब्लॉग परिचय
+Blog Introduction,ब्लॉग परिचय
+Blog Post,ब्लॉग पोस्ट
+Blog Settings,ब्लॉग सेटिंग्स
+Blog Title,ब्लॉग शीर्षक
+Blogger,ब्लॉगर
+Bookmarks,बुकमार्क
+Brand HTML,ब्रांड HTML
+"Brand is what appears on the top-right of the toolbar. If it is an image, make sure it
+has a transparent background and use the &lt;img /&gt; tag. Keep size as 200px x 30px",
+Bulk Email,थोक ईमेल
+Bulk Email records.,थोक ईमेल रिकॉर्ड.
+Button,बटन
+By,द्वारा
+COMM-,कॉम -
+CSS,सीएसएस
+Calendar,कैलेंडर
+Can only be exported by users with role 'Report Manager',उपयोगकर्ताओं द्वारा केवल भूमिका &#39;रिपोर्ट प्रबंधक&#39; के साथ निर्यात किया जा सकता है
+Cancel,रद्द करें
+Cancel permission also allows the user to delete a document (if it is not linked to any other document).,रद्द करें अनुमति भी उपयोगकर्ता एक दस्तावेज़ (अगर यह किसी भी अन्य दस्तावेज से नहीं जुड़ा है) को नष्ट करने के लिए अनुमति देता है.
+Cancelled,Cancelled
+Cannot Update: Incorrect / Expired Link.,अद्यतन नहीं कर सकता : समय सीमा समाप्त / गलत लिंक .
+Cannot Update: Incorrect Password,अद्यतन नहीं कर सकता : गलत पासवर्ड
+Cannot change from,से नहीं बदला जा सकता
+Cannot edit standard fields,मानक फ़ील्ड्स संपादित नहीं कर सकते
+Cannot map because following condition fails: ,निम्न स्थिति में विफल रहता है क्योंकि मैप नहीं कर सकते हैं:
+"Cannot update a non-exiting record, try inserting.","एक गैर बाहर निकलने रिकॉर्ड अद्यतन नहीं कर सकते , डालने का प्रयास करें."
+Categorize blog posts.,ब्लॉग पोस्ट श्रेणीबद्ध.
+Category,श्रेणी
+Category Name,श्रेणी नाम
+Center,केंद्र
+"Certain documents should not be changed once final, like an Invoice for example. The final state for such documents is called <b>Submitted</b>. You can restrict which roles can Submit.","कुछ दस्तावेजों एक बार अंतिम नहीं उदाहरण के लिए एक चालान की तरह बदल गया है,. ऐसे दस्तावेजों के लिए अंतिम राज्य <b>प्रस्तुत</b> कहा जाता है. आप को सीमित कर सकते हैं जो भूमिका प्रस्तुत कर सकते हैं."
+Chat,बातचीत
+Check,चेक
+Check / Uncheck roles assigned to the Profile. Click on the Role to find out what permissions that Role has.,/ अनचेक करें प्रोफ़ाइल को सौंपा भूमिकाओं की जाँच करें. रोल पर क्लिक करें पता लगाने के लिए अनुमति है कि क्या भूमिका है.
+Check this to make this the default letter head in all prints,इस जाँच के लिए सभी प्रिंट में इस डिफ़ॉल्ट पत्र सिर
+Checked,जाँचा गया
+Child Tables are shown as a Grid in other DocTypes.,बाल टेबल्स अन्य doctypes में एक ग्रिड के रूप में दिखाया जाता है.
+Clear Cache & Refresh,कैशे साफ और ताज़ा
+Click on button in the 'Condition' column and select the option 'User is the creator of the document',&#39;स्थिति&#39; कॉलम में बटन पर क्लिक करें और चुनें विकल्प &#39;प्रयोक्ता दस्तावेज़ के निर्माता है&#39;
+Click on row to edit.,संपादित करने के लिए पंक्ति पर क्लिक करें .
+Click to Expand / Collapse,/ विस्तार करें संकुचित करने के लिए क्लिक करें
+Client,ग्राहक
+Close,बंद करें
+Code,कोड
+Color,रंग
+Column Break,स्तंभ विराम
+Comment,टिप्पणी
+Comment By,द्वारा टिप्पणी
+Comment By Fullname,Fullname द्वारा टिप्पणी
+Comment Date,तिथि टिप्पणी
+Comment Docname,Docname टिप्पणी
+Comment Doctype,Doctype टिप्पणी
+Comment Time,समय टिप्पणी
+Comments,टिप्पणियां
+Communication,संचार
+Communication Medium,संचार माध्यम
+Company History,कंपनी इतिहास
+Company Introduction,कंपनी का परिचय
+Company Name,कंपनी का नाम
+Complaint,शिकायत
+Complete By,द्वारा पूरा करें
+Condition Field,हालत फील्ड
+Contact Us Settings,हमसे सेटिंग्स संपर्क
+"Contact options, like ""Sales Query, Support Query"" etc each on a new line or separated by commas.","संपर्क विकल्प, आदि एक नई लाइन पर प्रत्येक &quot;बिक्री प्रश्न, प्रश्न समर्थन&quot; कोमा से विभाजित."
+Content,सामग्री
+Content in markdown format that appears on the main side of your page,Markdown प्रारूप में सामग्री है कि अपने पृष्ठ के मुख्य पक्ष पर प्रकट होता है
+Content web page.,सामग्री वेब पेज.
+Control Panel,नियंत्रण कक्ष
+Controller,नियंत्रक
+Copy,कॉपी करें
+Copyright,सर्वाधिकार
+Core,मूल
+Count,गणना
+Country,देश
+Create,बनाना
+Created Customer Issue,बनाया ग्राहक के मुद्दे
+Created Opportunity,अवसर पैदा
+Created Support Ticket,बनाया समर्थन टिकट
+Currency,मुद्रा
+Currency Format,मुद्रा स्वरूप
+Current status,वर्तमान स्थिति
+Custom CSS,कस्टम सीएसएस
+Custom Field,कस्टम फ़ील्ड
+Custom Reports,कस्टम रिपोर्ट
+Custom Script,कस्टम स्क्रिप्ट
+Custom Startup Code,कस्टम स्टार्टअप कोड
+Custom?,कस्टम?
+Customize,को मनपसंद
+Customize Form,प्रपत्र को अनुकूलित
+Customize Form Field,प्रपत्र फ़ील्ड अनुकूलित
+"Customize Label, Print Hide, Default etc.","लेबल, प्रिंट छिपाएँ, Default आदि अनुकूलित"
+Daily Event Digest is sent for Calendar Events where reminders are set.,रोज की घटना डाइजेस्ट अनुस्मारक सेट कर रहे हैं जहां कैलेंडर घटनाक्रम के लिए भेज दिया जाता है.
+Danger,खतरा
+Data,डेटा
+Data missing in table,तालिका में लापता डेटा
+Date,तारीख
+Date Format,दिनांक स्वरूप
+Date must be in format,तिथि प्रारूप में होना चाहिए
+Datetime,Datetime
+Dear,प्रिय
+Default,चूक
+Default Home Page,डिफॉल्ट होम पेज
+Default Home Pages,डिफॉल्ट होम पेज
+Default Print Format,डिफ़ॉल्ट प्रिंट प्रारूप
+Default Value,डिफ़ॉल्ट मान
+"Default: ""Contact Us""",डिफ़ॉल्ट: &quot;हमसे संपर्क करें&quot;
+DefaultValue,DefaultValue
+Defaults,डिफ़ॉल्ट्स
+Defines actions on states and the next step and allowed roles.,राज्यों पर कार्रवाई और अगले कदम और अनुमति भूमिकाओं को परिभाषित करता है.
+Defines workflow states and rules for a document.,कार्यप्रवाह राज्यों और एक दस्तावेज़ के लिए नियमों को परिभाषित करता है.
+Delete,हटाना
+Delete Row,पंक्ति हटाएँ
+Depends On,पर निर्भर करता है
+Descending,अवरोही
+Description,विवरण
+"Description for listing page, in plain text, only a couple of lines. (max 140 characters)","सादे पाठ में सूची पृष्ठ के लिए विवरण, लाइनों का केवल एक जोड़े. (अधिकतम 140 अक्षर)"
+Description for page header.,पृष्ठ शीर्षक के लिए विवरण.
+Desktop,डेस्कटॉप
+Details,विवरण
+Did not add.,जोड़ नहीं था.
+Did not cancel,रद्द नहीं किया
+Did not save,बचाने के लिए नहीं किया
+"Different ""States"" this document can exist in. Like ""Open"", ""Pending Approval"" etc.","विभिन्न इस दस्तावेज़ &quot;राज्य अमेरिका&quot; की तरह &quot;ओपन&quot; अंदर मौजूद है, &quot;अनुमोदन लंबित&quot; आदि कर सकते हैं"
+Disable Customer Signup link in Login page,लॉगइन पेज में ग्राहक पंजीकरण कड़ी अक्षम
+Disable Signup,पंजीकरण अक्षम
+Disabled,विकलांग
+Display Settings,सेटिंग्स प्रदर्शित करें
+Doc Status,डॉक्टर स्थिति
+DocField,DocField
+DocPerm,DocPerm
+DocType,Doctype
+DocType Details,DOCTYPE विवरण
+DocType can not be merged,टैग विलय हो नहीं सकता
+DocType is a Table / Form in the application.,DOCTYPE / आवेदन तालिका के रूप में है.
+DocType on which this Workflow is applicable.,Doctype जिस पर इस कार्यप्रवाह लागू है.
+DocType or Field,Doctype या फील्ड
+Docname,Docname
+Document,दस्तावेज़
+Document Status transition from ,से दस्तावेज स्थिति संक्रमण
+Document Type,दस्तावेज़ प्रकार
+Document Types,दस्तावेज़ प्रकार
+Document is only editable by users of role,दस्तावेज़ भूमिका के उपयोगकर्ताओं द्वारा केवल संपादन है
+Documents,दस्तावेज़
+Download Backup,बैकअप डाउनलोड
+Draft,मसौदा
+Drafts,ड्राफ्ट्स
+Drag to sort columns,तरह स्तंभों को खींचें
+Edit,संपादित करें
+Editable,संपादन
+Email,ईमेल
+Email Host,ईमेल होस्ट
+Email Id where users will send support request e.g. support@example.com,उपयोगकर्ताओं को समर्थन अनुरोध जैसे भेजेंगे जहां ईमेल आईडी support@example.com
+Email Login,ईमेल लॉगइन
+Email Password,ईमेल पासवर्ड
+Email Sent,ईमेल भेजा गया
+Email Settings,ईमेल सेटिंग
+Email Signature,ईमेल हस्ताक्षर
+Email Use SSL,ईमेल में इस्तेमाल SSL
+"Email addresses, separted by commas","ईमेल पते, अल्पविराम के द्वारा separted"
+Email...,ईमेल ...
+Embed image slideshows in website pages.,वेबसाइट के पन्नों में छवि स्लाइडशो चलाने एम्बेड करें.
+Enable Comments,टिप्पणियां सक्षम
+Enabled,Enabled
+Ends on,पर समाप्त होता है
+Enter Form Type,प्रपत्र प्रकार दर्ज करें
+"Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set ""match"" permission rules. To see list of fields, go to <a href=""#Form/Customize Form/Customize Form"">Customize Form</a>.","डिफ़ॉल्ट मान (कुंजी) क्षेत्रों और मूल्यों दर्ज करें. यदि आप एक क्षेत्र के लिए अनेक मान जोड़ने के लिए, 1 एक उठाया जाएगा. ये चूक भी &quot;मैच&quot; अनुमति नियमों के सेट करने के लिए किया जाता है. क्षेत्रों की सूची देखने के लिए <a href=""#Form/Customize Form/Customize Form"">प्रपत्र को अनुकूलित</a> ."
+Equals,बराबरी
+Error,त्रुटि
+Error: Document has been modified after you have opened it,त्रुटि: आप इसे खोल दिया है के बाद दस्तावेज़ संशोधित किया गया है
+Event,घटना
+Event End must be after Start,घटना अंत प्रारंभ के बाद होना चाहिए
+Event Individuals,घटना व्यक्तियों
+Event Role,घटना रोल
+Event Roles,घटना भूमिकाओं
+Event Type,इवेंट प्रकार
+Event User,इवेंट उपयोगकर्ता के
+Events In Today's Calendar,आज के कैलेंडर में घटनाक्रम
+Every Day,हर दिन
+Every Month,हर महीने
+Every Week,हर हफ्ते
+Every Year,हर साल
+Example:,उदाहरण:
+Export,निर्यात
+Facebook Share,फेसबुक के शेयर
+FavIcon,FavIcon
+Female,महिला
+Field Description,फील्ड विवरण
+Field Name,फ़ील्ड का नाम
+Field Type,फ़ील्ड प्रकार
+"Field that represents the Workflow State of the transaction (if field is not present, a new hidden Custom Field will be created)","फील्ड है कि लेन - देन की कार्यप्रवाह राज्य का प्रतिनिधित्व करता है (अगर क्षेत्र मौजूद नहीं है, एक नया छिपा कस्टम फ़ील्ड बनाया जाएगा)"
+Fieldname,FIELDNAME
+Fields,फील्ड्स
+"Fields separated by comma (,) will be included in the<br /><b>Search By</b> list of Search dialog box","अल्पविराम (,) द्वारा अलग क्षेत्रों में शामिल किया जाएगा <br /> खोज संवाद बॉक्स की सूची <b>तक खोजें</b>"
+File,फ़ाइल
+File Data,डेटा फ़ाइल
+File Name,फ़ाइल नाम
+File Size,फ़ाइल का आकार
+File URL,फ़ाइल URL
+File size exceeded the maximum allowed size,फ़ाइल का आकार अधिकतम आकार से अधिक
+Filter,फ़िल्टर
+Finder,खोजक
+First Name,प्रथम नाम
+Float,नाव
+Font (Heading),फॉन्ट (शीर्षक)
+Font (Text),फ़ॉन्ट (पाठ)
+Font Size (Text),फॉन्ट साइज (पाठ)
+Fonts,फ़ॉन्ट्स
+Footer,पाद लेख
+Footer Items,पाद लेख आइटम
+For All Users,सभी उपयोगकर्ताओं के लिए
+For DocType,टैग के लिए
+"For Links, enter the DocType as range
+For Select, enter list of Options separated by comma",
+"For comparative filters, start with","तुलनात्मक फिल्टर करने के लिए, के साथ शुरू"
+For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,उदाहरण के लिए यदि आप रद्द और &#39;INV004&#39; में संशोधन करने के लिए यह एक नया दस्तावेज़ INV004-1 &#39;बन जाएगा. यह आप प्रत्येक संशोधन का ट्रैक रखने में मदद करता है.
+For example: You want to restrict users to transactions marked with a certain property called 'Territory',उदाहरण के लिए: आप एक निश्चित &#39;क्षेत्र&#39; कहा जाता है संपत्ति के साथ लेनदेन के रूप में चिह्नित करने के लिए उपयोगकर्ताओं को सीमित करना चाहते हैं
+For ranges,श्रेणियों के लिए
+Form,प्रपत्र
+"Format: hh:mm example for one hour expiry set as 01:00. 
+Max expiry will be 72 hours. Default is 24 hours",
+Forward To Email Address,फॉरवर्ड ईमेल पते पर
+Friday,शुक्रवार
+From Date must be before To Date,दिनांक से पहले तिथि करने के लिए होना चाहिए
+Full Name,पूरा नाम
+Gantt Chart,Gantt चार्ट
+Gender,लिंग
+General,सामान्य
+Generator,जनरेटर
+Georgia,जॉर्जिया
+Get,जाना
+Get From ,से प्राप्त करें
+"Go to Setup > <a href='#user-properties'>User Properties</a> to set \
+			'territory' for diffent Users.",
+Google Analytics ID,गूगल एनालिटिक्स आईडी
+Google Plus One,गूगल प्लस एक
+Google Web Font (Heading),Google वेब फ़ॉन्ट (शीर्षक)
+Google Web Font (Text),Google वेब फ़ॉन्ट (पाठ)
+Greater or equals,ग्रेटर या बराबर होती है
+Greater than,इससे बड़ा
+Groups,समूह
+HTML,HTML
+Header,हैडर
+Heading,शीर्षक
+Heading Text As,जैसा कि पाठ शीर्षक
+Help,मदद
+Helvetica Neue,Helvetica Neue
+Hey! There should remain at least one System Manager,अरे! कम से कम एक सिस्टम मैनेजर वहाँ रहना चाहिए
+Hidden,छुपा
+Hide Actions,प्रक्रिया छिपाएँ
+Hide Copy,प्रतिलिपि बनाएँ छिपाएँ
+Hide Email,ईमेल छुपाएँ
+Hide Heading,शीर्षक छिपाएँ
+Hide Print,प्रिंट छिपाएँ
+Hide Toolbar,टूलबार छिपाएँ
+Highlight,हाइलाइट
+History,इतिहास
+Home Page,मुख पृष्ठ
+Home Page is Products,होम पेज उत्पाद है
+Home Pages,घर पन्ने
+ID,आईडी
+ID (name) of the entity whose property is to be set,इकाई जिनकी संपत्ति को सेट किया जा रहा है की आईडी (नाम)
+Icon,आइकॉन
+Icon will appear on the button,आइकन बटन पर दिखाई देगा
+"If a User does not have access at Level 0, then higher levels are meaningless","यदि एक उपयोगकर्ता पहुंच 0 स्तर पर नहीं है, तो उच्च स्तर व्यर्थ कर रहे हैं"
+"If checked, all other workflows become inactive.","अगर जाँच की है, सभी अन्य वर्कफ़्लोज़ निष्क्रिय हो जाते हैं."
+"If checked, the Home page will be the default Item Group for the website.",अगर चेक्ड होम पेज वेबसाइट के लिए डिफ़ॉल्ट आइटम समूह होगा.
+"If image is selected, color will be ignored (attach first)","यदि छवि का चयन किया गया है, रंग (1 देते हैं) पर ध्यान नहीं दिया जाएगा"
+"If not, create a","यदि नहीं, तो एक बनाने के लिए"
+"If the 'territory' Link Field exists, it will give you an option to select it","यदि &#39;क्षेत्र&#39; लिंक क्षेत्र में मौजूद है, यह आप एक का चयन करने के लिए यह विकल्प दे देंगे"
+"If these instructions where not helpful, please add in your suggestions at <a href='https://github.com/webnotes/wnframework/issues'>GitHub Issues</a>","इन निर्देशों जहां मददगार नहीं हैं, <a href='https://github.com/webnotes/wnframework/issues'> GitHub मुद्दे </ a> पर अपने सुझाव में जोड़ने के लिए कृपया"
+"If you set this, this Item will come in a drop-down under the selected parent.","आप यह निर्धारित करते हैं, इस आइटम का चयन माता पिता के नीचे एक ड्रॉप डाउन में आ जाएगा ."
+Image,छवि
+Image Link,फोटो लिंक
+Import,आयात
+In,में
+In Dialog,संवाद में
+In Filter,फिल्टर में
+In List View,सूची दृश्य में
+In Report Filter,रिपोर्ट फिल्टर में
+In response to,के जवाब में
+"In the Permission Manager, click on the button in the 'Condition' column for the Role you want to restrict.","अनुमति मैनेजर में, &#39;स्थिति&#39; कॉलम में रोल आप प्रतिबंधित करना चाहते हैं, उसके लिए बटन पर क्लिक करें."
+Index,अनुक्रमणिका
+Individuals,व्यक्तियों
+Industry,उद्योग
+Info,जानकारी
+Insert After,बाद सम्मिलित करें
+Insert Below,नीचे डालें
+Insert Code,कोड डालने के लिए
+Insert Row,पंक्ति डालें
+Insert Style,शैली सम्मिलित करें
+Int,इंट
+Integrations,एकीकरण
+Introduce your company to the website visitor.,वेबसाइट आगंतुक के लिए अपनी कंपनी शुरू.
+Introduction,परिचय
+Introductory information for the Contact Us Page,हमसे संपर्क करें पृष्ठ के लिए परिचयात्मक जानकारी
+Invalid Email,अवैध ईमेल
+Inverse,उलटा
+Is Active,सक्रिय है
+Is Child Table,चाइल्ड तालिका
+Is Default,डिफ़ॉल्ट है
+Is Mandatory Field,अनिवार्य क्षेत्र है
+Is Single,एकल
+Is Standard,मानक है
+Is Submittable,Submittable है
+JSON,JSON
+JavaScript Format: wn.query_reports['REPORTNAME'] = {},जावास्क्रिप्ट स्वरूप: wn.query_reports [' REPORTNAME '] = {}
+Javascript,जावास्क्रिप्ट
+Javascript to append to the head section of the page.,जावास्क्रिप्ट पृष्ठ के सिर अनुभाग को संलग्न करने के लिए.
+Keep a track of all communications,सभी संचार के एक ट्रैक रखें
+Key,कुंजी
+Label,लेबल
+Label Help,लेबल मदद
+Lacs,लाख
+Landing Page,लैंडिंग पेज
+Language,भाषा
+Language preference for user interface (only if available).,उपयोगकर्ता इंटरफ़ेस के लिए भाषा वरीयता (केवल यदि उपलब्ध हो).
+Last IP,अंतिम IP
+Last Login,अंतिम लॉगिन
+Last Name,सरनेम
+Last updated by,अंतिम अद्यतन
+Lastmod,lastmod
+Lato,Lato
+Leave blank to repeat always,हमेशा दोहराने के लिए खाली छोड़ें
+Left,वाम
+Less or equals,कम या बराबर होती है
+Less than,से भी कम
+Letter Head,पत्रशीर्ष
+Letter Head Image,लेटर हेड छवि
+Letter Head Name,लेटर हेड का नाम
+Letter Head in HTML,एचटीएमएल में लेटर हेड
+Level,स्तर
+"Level 0 is for document level permissions, higher levels for field level permissions.","0 स्तर दस्तावेज़ स्तर अनुमतियाँ, क्षेत्र स्तर अनुमति के लिए उच्च स्तर के लिए है."
+Like,जैसा
+Link,लिंक
+Link Name,लिंक का नाम
+Link to other pages in the side bar and next section,साइड बार में अन्य पृष्ठों और अगले अनुभाग लिंक
+Link to the page you want to open,आप खोलना चाहते पेज से लिंक करें
+Linked In Share,शेयर में लिंक्ड
+Linked With,के साथ जुड़ा हुआ
+List,सूची
+List of patches executed,निष्पादित पैच की सूची
+Loading,लदान
+Loading Report,रिपोर्ट लोड हो रहा है
+Loading...,लोड हो रहा है ...
+Log of Scheduler Errors,समयबद्धक त्रुटियों की लॉग इन करें
+Login,लॉगिन
+Login After,बाद कीजिये
+Login Before,इससे पहले कीजिये
+Logout,लॉगआउट
+Long Text,लंबी पाठ
+Lucida Grande,ल्युसिडा Grande
+Mail Footer,मेल फूटर
+Mail Server,मेल सर्वर
+Main Section,मुख्य धारा
+Make a new,एक नया
+Make sure that the transactions you want to restrict have a Link field 'territory' that maps to a 'Territory' master.,कि यह सुनिश्चित करें कि आप लेनदेन के लिए प्रतिबंधित करना चाहते हैं एक लिंक फ़ील्ड &#39;क्षेत्र&#39; एक &#39;क्षेत्र&#39; मास्टर नक्शे.
+Male,नर
+Mandatory,अनिवार्य
+Mandatory filters required:\n,अनिवार्य फिल्टर की आवश्यकता है: \ n
+Master,मास्टर
+Match,मैच
+Max Attachments,अधिकतम किए गए अनुलग्नकों के
+"Meaning of Submit, Cancel, Amend","अर्थ की सबमिट रद्द, संशोधन"
+"Menu items in the Top Bar. For setting the color of the Top Bar, go to <a href=""#Form/Style Settings"">Style Settings</a>","शीर्ष पट्टी में मेनू आइटम है. शीर्ष पट्टी का रंग की स्थापना के लिए जाना <a href=""#Form/Style Settings"">शैली सेटिंग्स</a>"
+"Merging is only possible between Group-to-Group or 
+					Ledger-to-Ledger",
+Message,संदेश
+Method,विधि
+Middle Name (Optional),मध्य नाम (वैकल्पिक)
+Millions,लाखों
+Misc,विविध
+Miscellaneous,विविध
+Missing Values Required,आवश्यक लापता मूल्यों
+Modified by,के द्वारा जाँचा गया
+Module,मॉड्यूल
+Module Def,मॉड्यूल Def
+Module Name,मॉड्यूल नाम
+Modules,मॉड्यूल
+Monday,सोमवार
+More,अधिक
+More content for the bottom of the page.,पृष्ठ के नीचे के लिए सामग्री.
+Must have report permission to access this report.,इस रिपोर्ट का उपयोग करने की रिपोर्ट की अनुमति होनी चाहिए.
+Must specify a Query to run,को चलाने के लिए एक प्रश्न जरूर निर्दिष्ट
+Name,नाम
+Name Case,नाम प्रकरण
+Name Exists,नाम से मौजूद है
+Naming Series mandatory,अनिवार्य श्रृंखला का नामकरण
+New,नई
+New Password,नया पासवर्ड
+New Record,नया रिकॉर्ड
+New value to be set,नई करने के लिए सेट किया जा मूल्य
+Next Communcation On,अगला कम्युनिकेशन
+Next State,अगले राज्य
+Next actions,अगली कार्रवाई
+No,नहीं
+No Action,कोई कार्रवाई नहीं
+No Cache,कोई कैश
+No Communication tagged with this ,इस के साथ टैग कोई संचार
+No Copy,कोई नकल
+No Permission,अनुमति नहीं है
+No Permission to ,करने के लिए कोई अनुमति
+No Permissions set for this criteria.,कोई अनुमतियाँ इस मापदंड के लिए निर्धारित किया है.
+No Report Loaded. Please use query-report/[Report Name] to run a report.,कोई रिपोर्ट भरा हुआ है. उपयोग क्वेरी रिपोर्ट / [रिपोर्ट नाम] की एक रिपोर्ट चलाने के लिए कृपया.
+No Sitemap,कोई साइटमैप
+No User Properties found.,कोई उपयोगकर्ता के गुण पाया.
+No further records,आगे कोई रिकॉर्ड
+No one,कोई नहीं
+No permission to edit,संपादित करने के लिए कोई अनुमति नहीं
+No permission to write / remove.,लिखने के लिए कोई अनुमति / हटा दें.
+No records tagged.,कोई रिकॉर्ड टैग.
+None,कोई नहीं
+None: End of Workflow,कोई नहीं: कार्यप्रवाह समाप्ति
+Not Found,नहीं मिला
+Not Linked to any record.,लिंक्ड कोई रिकॉर्ड नहीं है.
+Not Permitted,अनुमति नहीं
+Not allowed for: ,के लिए अनुमति नहीं है:
+Not enough permission to see links.,पर्याप्त के लिए लिंक को देखने की अनुमति नहीं है.
+Not equals,नहीं के बराबर होती है
+"Note: For best results, images must be of the same size and width must be greater than height.","नोट: सर्वोत्तम परिणामों के लिए, छवियों को एक ही आकार और चौड़ाई का होना आवश्यक ऊंचाई से अधिक होना चाहिए."
+Note: Other permission rules may also apply,नोट: अन्य अनुमति के नियम भी लागू हो सकता है
+Note: maximum attachment size = 1mb,नोट: अधिकतम कुर्की आकार 1mb =
+Nothing to show,दिखाने के लिए कुछ भी नहीं
+Nothing to show for this selection,इस चयन के लिए दिखाने के लिए कुछ भी नहीं
+Notification Count,अधिसूचना गणना
+Notify By Email,ईमेल से सूचित
+On,पर
+"Once you have set this, the users will only be able access documents with that property.","एक बार जब आप यह निर्धारित किया है, उपयोगकर्ताओं को केवल उस संपत्ति के साथ सक्षम पहुँच दस्तावेज होगा."
+Only Administrator allowed to create Query / Script Reports,केवल प्रशासक प्रश्न / स्क्रिप्ट रिपोर्टें बनाने की अनुमति
+Only Administrator can save a standard report. Please rename and save.,केवल प्रशासक एक मानक रिपोर्ट बचा सकता है. नाम बदलने और बचा लो.
+Only Allow Edit For,केवल के लिए संपादित करें अनुमति दें
+Only System Manager can create / edit reports,केवल सिस्टम मैनेजर रिपोर्ट बनाने / संपादित कर सकते हैं
+Open Count,ओपन गणना
+Open Sans,ओपन संस
+Options,विकल्प
+Options Help,विकल्पों की मदद से
+Org History,संगठन इतिहास
+Org History Heading,संगठन इतिहास शीर्षक
+Original Message,मूल संदेश
+Other,अन्य
+POP3 Mail Server (e.g. pop.gmail.com),POP3 मेल सर्वर (जैसे pop.gmail.com)
+Page,पेज
+Page Background,पृष्ठ पृष्ठभूमि
+Page Border,पृष्ठ बॉर्डर
+Page HTML,पृष्ठ HTML
+Page Headings,पृष्ठ शीर्षकों
+Page Links,पेज लिंक
+Page Name,पेज का नाम
+Page Name Field,पेज का नाम फील्ड
+Page Role,पृष्ठ रोल
+Page Text,पृष्ठ पाठ
+Page already exists,पृष्ठ पहले से मौजूद है
+Page content,पृष्ठ सामग्री
+Page not found,पृष्ठ नहीं मिला
+Page or Generator,पेज या जेनरेटर
+Page text and background is same color. Please change.,पृष्ठ पाठ और पृष्ठभूमि एक ही रंग है. बदलाव करें.
+"Page to show on the website
+",
+"Page url name (auto-generated) (add "".html"")",पृष्ठ url (ऑटो उत्पन्न) नाम (जोड़ &quot;html.&quot;)
+Parent Label,माता - पिता लेबल
+Parent is required.,माता - पिता की आवश्यकता है.
+Participants,प्रतिभागियों
+Password,पासवर्ड
+Password Expires in (days),पासवर्ड में समाप्त (दिन)
+Password Updated,पासवर्ड अपडेट
+Patch,पैच
+Patch Log,पैच प्रवेश करें
+Percent,प्रतिशत
+Perm Level,स्तर Perm
+Permission Level,अनुमति स्तर
+Permission Levels,अनुमति स्तरों
+Permission Manager,अनुमति प्रबंधक
+Permission Rules,अनुमति नियम
+Permissions,अनुमतियाँ
+Permissions Settings,अनुमतियाँ सेटिंग्स
+Permissions are automatically translated to Standard Reports and Searches,अनुमतियाँ स्वतः मानक रिपोर्टों और खोज पर अनुवाद कर रहे हैं
+"Permissions are set on Roles and Document Types (called DocTypes) by restricting read, edit, make new, submit, cancel, amend and report rights.","अनुमतियाँ भूमिकाओं और दस्तावेज़ प्रकार (नामक doctypes) पर पढ़ने, संपादित, नया बनाने के लिए सीमित द्वारा स्थापित कर रहे हैं, सबमिट रद्द, संशोधन और अधिकार की रिपोर्ट."
+Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful incase you want to hide or make certain field read-only.,उच्च स्तर पर अनुमतियाँ &#39;फील्ड लेवल अनुमतियाँ हैं. सभी क्षेत्रों उनके खिलाफ एक &#39;अनुमति स्तर&#39; सेट और कि अनुमति पर परिभाषित नियमों क्षेत्र के लिए लागू होते हैं. यह उपयोगी है बैठाना आप को छिपाने के लिए या कुछ क्षेत्र केवल पढ़ने के लिए करना चाहते हैं.
+"Permissions at level 0 are 'Document Level' permissions, i.e. they are primary for access to the document.","स्तर 0 पर अनुमतियाँ हैं &#39;दस्तावेज़ स्तर&#39; की अनुमति है, यानी वे दस्तावेज़ तक पहुँच के लिए प्राथमिक रहे हैं."
+Permissions translate to Users based on what Role they are assigned,अनुमतियाँ क्या भूमिका वे आवंटित कर रहे है इस आधार पर उपयोगकर्ताओं के लिए अनुवाद
+Person,व्यक्ति
+Phone,फ़ोन
+Phone No.,फोन नंबर
+Pick Columns,स्तंभ उठाओ
+Please attach a file first.,पहले एक फ़ाइल संलग्न करें.
+Please attach a file or set a URL,एक फ़ाइल संलग्न या एक यूआरएल निर्धारित करें
+Please change the value,मूल्य में बदलाव करें
+Please enable pop-ups,पॉप अप सक्षम करें
+Please make sure that there are no empty columns in the file.,फाइल में कोई रिक्त स्तंभ हैं कि कृपया सुनिश्चित करें.
+Please refresh to get the latest document.,नवीनतम दस्तावेज प्राप्त करने के लिए ताज़ा करें.
+Please select a file or url,एक फाइल या यूआरएल का चयन करें
+Please specify,कृपया बताएं
+Plugin,प्लगइन
+Post Publicly,सार्वजनिक रूप से पोस्ट
+Post Topic,विषय पोस्ट
+Post to user,उपयोगकर्ता को पोस्ट
+Posts,डाक
+Primary,प्राथमिक
+Print Format,प्रारूप प्रिंट
+Print Format Type,प्रारूप टाइप प्रिंट
+Print Hide,छिपाएँ प्रिंट
+Print Width,प्रिंट चौड़ाई
+Print...,प्रिंट ...
+Priority,प्राथमिकता
+Private,निजी
+Profile,रूपरेखा
+Profile Defaults,प्रोफ़ाइल डिफ़ॉल्ट्स
+Profile Represents a User in the system.,प्रणाली में एक उपयोगकर्ता का प्रतिनिधित्व करता है.
+Profile of a Blogger,एक ब्लॉगर की प्रोफाइल
+Profile of a blog writer.,एक ब्लॉग लेखक का प्रोफ़ाइल.
+Properties,गुण
+Property,संपत्ति
+Property Setter,संपत्ति सेटर
+Property Setter overrides a standard DocType or Field property,संपत्ति सेटर ओवरराइड एक मानक doctype या फील्ड संपत्ति
+Property Type,सम्पत्ती के प्रकार
+Public,सार्वजनिक
+Published,प्रकाशित
+Published On,पर प्रकाशित
+Pull Emails from the Inbox and attach them as Communication records (for known contacts).,ईमेल इनबॉक्स से खींचो और उन्हें संचार रिकॉर्ड (ज्ञात संपर्कों के लिए) के रूप में देते हैं.
+Query,प्रश्न
+Query Options,क्वेरी विकल्प
+Query Report,क्वेरी रिपोर्ट
+Query must be a SELECT,प्रश्न एक का चयन किया जाना चाहिए
+Quick Help for Setting Permissions,अनुमतियाँ सेट करने के लिए त्वरित मदद
+Quick Help for User Properties,उपयोगकर्ता के गुण के लिए त्वरित सहायता
+Read,पढ़ना
+Read Only,केवल पठनीय
+Received,प्राप्त
+Recipient,प्राप्तकर्ता
+Recipients,प्राप्तकर्ता
+Ref DocType,रेफरी doctype
+Ref Name,रेफरी नाम
+Ref Type,रेफरी के प्रकार
+Reference,संदर्भ
+Reference DocName,संदर्भ DocName
+Reference DocType,संदर्भ टैग
+Reference Name,संदर्भ नाम
+Reference Type,संदर्भ प्रकार
+Refresh,ताज़ा करना
+Registered but disabled.,पंजीकृत लेकिन अक्षम.
+Registration Details Emailed.,पंजीकरण विवरण ईमेल किया.
+Remove Bookmark,बुकमार्क निकालें
+Rename...,नाम बदलें ...
+Repeat On,पर दोहराएँ
+Repeat Till,जब तक दोहराएँ
+Repeat this Event,इस इवेंट दोहराएँ
+Report,रिपोर्ट
+Report Builder,रिपोर्ट बिल्डर
+Report Builder reports are managed directly by the report builder. Nothing to do.,रिपोर्ट बिल्डर रिपोर्टों रिपोर्ट बिल्डर द्वारा सीधे प्रबंधित कर रहे हैं. ऐसा करने के लिए कुछ भी नहीं है.
+Report Hide,छिपाएँ रिपोर्ट
+Report Name,रिपोर्ट नाम
+Report Type,टाइप रिपोर्ट
+Report was not saved (there were errors),रिपोर्ट नहीं बचाया (वहाँ त्रुटियों थे)
+Represents the states allowed in one document and role assigned to change the state.,एक दस्तावेज़ और राज्य में बदल सौंपा भूमिका में अनुमति दी राज्यों का प्रतिनिधित्व करता है.
+Reqd,Reqd
+Reset Password Key,पासवर्ड को रीसेट
+Restrict IP,आईपी ​​प्रतिबंधित करें
+Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111),इस आईपी पते से ही उपयोगकर्ता प्रतिबंधित. एकाधिक आईपी पतों को अल्पविरामों से अलग से जोड़ा जा सकता है. इसके अलावा तरह आंशिक आईपी पते (111.111.111) स्वीकार
+Restricting By User,USER के द्वारा प्रतिबंधित
+Right,सही
+Role,भूमिका
+Role Name,भूमिका का नाम
+Roles,भूमिकाओं
+Roles Assigned,निरुपित भूमिकाओं
+Roles Assigned To User,उपयोगकर्ता को असाइन भूमिकाओं
+Roles HTML,भूमिकाओं HTML
+Root ,जड़
+Row,पंक्ति
+Rules defining transition of state in the workflow.,नियम कार्यप्रवाह में राज्य के संक्रमण को परिभाषित.
+"Rules for how states are transitions, like next state and which role is allowed to change state etc.","कैसे राज्यों बदलाव अगले राज्य और जो भूमिका की तरह कर रहे हैं, के लिए नियम आदि राज्य को बदलने की अनुमति दी है"
+SMS,एसएमएस
+Sales,विक्रय
+Same file has already been attached to the record,एक ही फाइल पहले से रिकॉर्ड करने के लिए संलग्न किया गया है
+Saturday,शनिवार
+Save,बचाना
+Scheduler Log,समयबद्धक प्रवेश
+Script,लिपि
+Script Report,स्क्रिप्ट की रिपोर्ट
+Script Type,लिखावट टाइप
+Script to attach to all web pages.,स्क्रिप्ट सभी वेब पृष्ठों के लिए देते हैं.
+Search,खोजें
+Search Fields,खोज फ़ील्ड्स
+Section Break,अनुभाग विराम
+Security Settings,सुरक्षा सेटिंग्स
+Select,चयन
+Select All,सभी का चयन
+Select Attachments,किए गए अनुलग्नकों के चयन करें
+Select Document Type,दस्तावेज़ प्रकार का चयन करें
+Select Document Type or Role to start.,दस्तावेज़ प्रकार या शुरू करने के लिए रोल का चयन करें.
+Select Module,मोड्युल चुनें
+Select Print Format,प्रिंट प्रारूप का चयन करें
+Select Report Name,रिपोर्ट नाम का चयन करें
+Select Role,रोल का चयन करें
+Select Type,प्रकार का चयन करें
+Select User or Property to start.,उपयोगकर्ता या शुरू करने के लिए संपत्ति का चयन करें.
+Select a Banner Image first.,पहले एक बैनर छवि का चयन करें.
+Select an image of approx width 150px with a transparent background for best results.,अच्छे परिणाम के लिए एक पारदर्शी पृष्ठभूमि के साथ लगभग चौड़ाई 150px की एक छवि का चयन करें.
+Select dates to create a new ,एक नया बनाने की दिनांक चुने
+Select or drag across time slots to create a new event.,का चयन करें या एक नई घटना बनाने के लिए टाइम स्लॉट भर में खींचें.
+"Select target = ""_blank"" to open in a new page.","चुनने का लक्ष्य एक नया पेज में खोलने के लिए = "" _blank"" ."
+Select the label after which you want to insert new field.,लेबल का चयन करें जिसके बाद आप नए क्षेत्र सम्मिलित करना चाहते हैं.
+Send,भेजें
+Send As Email,ईमेल के रूप में भेजें
+Send Me A Copy,मुझे एक कॉपी भेज
+Send an email reminder in the morning,सुबह में एक ईमेल अनुस्मारक भेजें
+Send enquiries to this email address,इस ईमेल पते पर पूछताछ भेजें
+Sender,प्रेषक
+Sent,भेजे गए
+Sent Mail,भेजी गई मेल
+Sent Quotation,भेजे गए कोटेशन
+Sent or Received,भेजा या प्राप्त
+Series,कई
+Server,सेवक
+Session Expired. Logging you out,सत्र समाप्त हो गया. आप लॉग आउट
+Session Expires in (time),सत्र में समाप्त (समय)
+Set Banner from Image,छवि से बैनर सेट
+Set Link,सेट लिंक
+Set Password,पासवर्ड सेट
+Set Value,मूल्य सेट
+"Set your background color, font and image (tiled)","अपनी पृष्ठभूमि रंग, फ़ॉन्ट और छवि (टाइलों) सेट"
+Settings for About Us Page.,हमारे बारे में पृष्ठ के लिए सेटिंग्स.
+Settings for Contact Us Page,हमसे संपर्क करें पृष्ठ के लिए सेटिंग्स
+Settings for Contact Us Page.,के लिए सेटिंग्स हमसे संपर्क पृष्ठ.
+Settings for the About Us Page,हमारे बारे में पृष्ठ के लिए सेटिंग्स
+Setup of fonts and background.,फ़ॉन्ट और पृष्ठभूमि का सेटअप.
+"Setup of top navigation bar, footer and logo.","शीर्ष नेविगेशन पट्टी, पाद लेख, और लोगो का सेटअप."
+Short Bio,लघु जैव
+Short Name,संक्षिप्त नाम
+Shortcut,शॉर्टकट
+Show Breadcrumbs,दिखाएँ Breadcrumbs
+Show Details,विवरण दिखाएं
+Show Print First,शो के पहले प्रिंट
+Show Table of Contents,सामग्री दिखाएँ टेबल
+Show Tags,दिखाएँ टैग
+Show Title,शो का शीर्षक
+Show rows with zero values,शून्य मान के साथ पंक्तियों दिखाएं
+Showing only for,के लिए ही दिखा रहा है
+Single Post (article).,सिंगल पोस्ट (लेख).
+Single Types have only one record no tables associated. Values are stored in tabSingles,सिंगल प्रकार जुड़े केवल एक रिकॉर्ड कोई टेबल है . मान tabSingles में जमा हो जाती है
+Slideshow,स्लाइड शो
+Slideshow Items,स्लाइड शो आइटम
+Slideshow Name,स्लाइड शो नाम
+Slideshow like display for the website,वेबसाइट के लिए प्रदर्शन की तरह स्लाइड शो
+Small Text,छोटे पाठ
+Solid background color (default light gray),ठोस पृष्ठभूमि रंग (डिफ़ॉल्ट हल्के भूरे रंग)
+Sorry we were unable to find what you were looking for.,खेद है कि हम खोजने के लिए आप क्या देख रहे थे करने में असमर्थ थे.
+Sorry you are not permitted to view this page.,खेद है कि आपको इस पृष्ठ को देखने की अनुमति नहीं है.
+Sort By,द्वारा क्रमबद्ध करें
+Special Page Settings,विशेष पृष्ठ सेटिंग
+Standard,मानक
+Start Report For,प्रारंभ लिए रिपोर्ट
+Starts on,पर शुरू होता है
+Startup,स्टार्टअप
+State,राज्य
+States,राज्य अमेरिका
+Status,हैसियत
+Step 1: Set the name and save.,चरण 1: नाम निर्धारित करें और बचाने के लिए.
+Step 2: Set Letterhead content.,चरण 2: लेटरहेड सामग्री निर्धारित करें.
+Style,शैली
+Style Settings,शैली सेटिंग्स
+"Style represents the button color: Success - Green, Danger - Red, Inverse - Black, Primary - Dark Blue, Info - Light Blue, Warning - Orange","- ग्रीन, खतरा - लाल, उलटा - काले, प्राथमिक - डार्क ब्लू जानकारी, लाइट ब्लू, चेतावनी - ऑरेंज सफलता: शैली बटन रंग का प्रतिनिधित्व करता है"
+Sub-domain provided by erpnext.com,Erpnext.com द्वारा प्रदान की उप - डोमेन
+Subdomain,उपडोमेन
+Subject,विषय
+Submit,प्रस्तुत करना
+Submitted,पेश
+Submitted Record cannot be deleted,प्रस्तुत रिकार्ड नष्ट नहीं किया जा सकता है
+Success,सफलता
+Suggestion,सुझाव
+Sunday,रविवार
+Support Email Id,ईमेल आईडी का समर्थन
+Sync Inbox,सिंक इनबॉक्स
+System,प्रणाली
+System Defaults,सिस्टम मूलभूत
+System User,सिस्टम उपयोगकर्ता को
+Table,तालिका
+Table of Contents,सामग्री तालिका
+Tag,टैग
+Tag Name,टैग का नाम
+Tags,टैग
+Tahoma,Tahoma
+Target,लक्ष्य
+Team Members,टीम के सदस्यों को
+Team Members Heading,टीम के सदस्यों शीर्षक
+Template Path,टेम्पलेट पथ
+Test,परीक्षण
+Test Runner,परीक्षण धावक
+Text,पाठ
+Text Align,पाठ संरेखित
+Text Editor,पाठ संपादक
+"The ""Web Page"" that is the website home page",&quot;वेब पेज&quot; कि वेबसाइट के होम पेज
+The name of your company / website as you want to appear on browser title bar. All pages will have this as the prefix to the title.,/ अपनी कंपनी की वेबसाइट के नाम के रूप में आप ब्राउज़र शीर्षक पट्टी पर प्रकट करना चाहते हैं. सभी पृष्ठों शीर्षक उपसर्ग के रूप में होगा.
+"The system provides pre-defined roles, but you can <a href='#List/Role'>add new roles</a> to set finer permissions","प्रणाली पूर्व निर्धारित भूमिका प्रदान करता है, लेकिन आप यह कर सकते हैं <a href='#List/Role'>नई भूमिकाओं को जोड़ने के</a> लिए बेहतर अनुमतियाँ सेट"
+Then By (optional),तब तक (वैकल्पिक)
+These properties are Link Type fields from all Documents.,इन गुणों लिंक सभी दस्तावेजों से टाइप क्षेत्रों हैं.
+"These properties can also be used to 'assign' a particular document, whose property matches with the User's property to a User. These can be set using the <a href='#permission-manager'>Permission Manager</a>","इन गुणों को भी &#39;निर्दिष्ट&#39; करने के लिए एक विशेष दस्तावेज़, जिनकी संपत्ति उपयोगकर्ता एक उपयोगकर्ता के लिए संपत्ति के साथ मैच करने के लिए इस्तेमाल किया जा सकता है. इन का उपयोग कर सेट किया जा सकता है <a href='#permission-manager'>अनुमति प्रबंधक</a>"
+These properties will appear as values in forms that contain them.,इन गुणों रूपों है कि उन्हें रोकने में मूल्यों के रूप में दिखाई देगा.
+These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,लेनदेन में इन मूल्यों को स्वचालित रूप से अद्यतन किया जाएगा और भी इन मूल्यों से युक्त लेनदेन पर इस उपयोगकर्ता के लिए अनुमति को प्रतिबंधित करने के लिए उपयोगी हो जाएगा.
+"This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>
+myfield
+eval:doc.myfield=='My Value'<br>
+eval:doc.age>18",
+This goes above the slideshow.,इस स्लाइड शो से ऊपर चला जाता है.
+This is PERMANENT action and you cannot undo. Continue?,यह स्थायी कार्रवाई की है और आप पूर्ववत नहीं कर सकते. जारी रखें?
+This is permanent action and you cannot undo. Continue?,यह स्थायी कार्रवाई है और आप पूर्ववत नहीं कर सकते. जारी रखें?
+Thursday,बृहस्पतिवार
+Time,समय
+Time Zone,समय क्षेत्र
+Title,शीर्षक
+Title / headline of your page,शीर्षक / अपने पृष्ठ का शीर्षक
+Title Case,शीर्षक केस
+Title Prefix,शीर्षक उपसर्ग
+To,से
+"To format columns, give column labels in the query.",", कॉलम प्रारूप क्वेरी में स्तंभ लेबल दे. करने के लिए"
+"To further restrict permissions based on certain values in a document, use the 'Condition' settings.","आगे एक दस्तावेज़ में कुछ मूल्यों के आधार पर अनुमति को प्रतिबंधित करने के लिए, &#39;स्थिति&#39; सेटिंग का उपयोग करें."
+To restrict a User of a particular Role to documents that are explicitly assigned to them,दस्तावेजों है कि स्पष्ट रूप से उन्हें करने के लिए आवंटित कर रहे हैं एक विशेष भूमिका के एक प्रयोक्ता को प्रतिबंधित
+To restrict a User of a particular Role to documents that are only self-created.,दस्तावेजों कि केवल स्वयं बनाया हैं एक विशेष भूमिका के एक प्रयोक्ता को प्रतिबंधित.
+"To set user roles, just go to <a href='#List/Profile'>Setup > Users</a> and click on the user to assign roles.","उपयोगकर्ता भूमिकाओं सेट, बस जाने के <a href='#List/Profile'>सेटअप&gt; उपयोगकर्ता</a> और उपयोगकर्ता पर क्लिक करने के लिए भूमिकाएँ असाइन."
+ToDo,ToDo
+Tools,उपकरण
+Top Bar,शीर्ष बार
+Top Bar Background,शीर्ष बार पृष्ठभूमि
+Top Bar Item,शीर्ष बार आइटम
+Top Bar Items,शीर्ष बार आइटम
+Top Bar Text,शीर्ष बार पाठ
+Top Bar text and background is same color. Please change.,शीर्ष बार पाठ और पृष्ठभूमि एक ही रंग है. बदलाव करें.
+Total SMS Sent,कुल एसएमएस भेजा
+Transaction,लेन - देन
+Transition Rules,संक्रमण नियम
+Trash Reason,ट्रैश कारण
+Tuesday,मंगलवार
+Tweet will be shared via your user account (if specified),(निर्दिष्ट) कलरव अपने उपयोगकर्ता खाते के माध्यम से साझा किया जाएगा
+Twitter Share,Twitter पर साझा
+Twitter Share via,ट्विटर शेयर के माध्यम से
+Type,टाइप
+UPPER CASE,बड़े अक्षर
+UPPERCASE,अपरकेस
+URL,यूआरएल
+Unable to complete request: ,अनुरोध पूरा करने में असमर्थ:
+Unable to load,लोड करने में असमर्थ
+"Unknown file encoding. Tried utf-8, windows-1250, windows-1252.","अज्ञात फाइल एन्कोडिंग . कोशिश की UTF -8 , विंडोज 1250 , विंडोज 1252 ."
+Unread Messages,अपठित संदेशों
+Unsubscribed,आपकी सदस्यता समाप्त कर दी
+Upcoming Events for Today,आज के लिए आगामी घटनाएँ
+Update,अद्यतन
+Update Field,फील्ड अद्यतन
+Update Value,मूल्य अद्यतन
+Upload,अपलोड
+Upload Attachment,अनुलग्नक अपलोड करें
+Upload a file,एक फ़ाइल अपलोड करें
+Upload and Import,अपलोड करें और आयात करें
+Uploading...,अपलोड हो रहा है ...
+User,उपयोगकर्ता
+User Cannot Create,प्रयोक्ता नहीं बना सकते हैं
+User Cannot Search,प्रयोक्ता नहीं खोज सकते हैं
+User Image,User Image
+User Tags,उपयोगकर्ता के टैग
+User Type,प्रयोक्ता प्रकार
+User not allowed to delete.,प्रयोक्ता को नष्ट करने की अनुमति नहीं है.
+UserRole,UserRole
+Value,मूल्य
+Value missing for,मूल्य के लिए लापता
+Verdana,Verdana
+Visit,भेंट
+Warning,चेतावनी
+Web Content,वेब सामग्री
+Web Page,वेब पेज
+Website,वेबसाइट
+Website Overall Settings,वेबसाइट कुल मिलाकर सेटिंग्स
+Website Script,वेबसाइट स्क्रिप्ट
+Website Settings,वेबसाइट सेटिंग
+Website Sitemap,वेबसाइट साइटमैप
+Website Sitemap Config,वेबसाइट साइटमैप विन्यास
+Website Slideshow,वेबसाइट स्लाइड शो
+Website Slideshow Item,वेबसाइट स्लाइड शो आइटम
+Website User,वेबसाइट प्रयोक्ता
+Wednesday,बुधवार
+Welcome Email Sent,स्वागत ईमेल भेजा गया
+"When you <b>Amend</b> a document after cancel and save it, it will get a new number that is a version of the old number.","जब आप किसी दस्तावेज़ में <b>संशोधन के</b> बाद रद्द कर सकते हैं और इसे बचाने के लिए, यह एक नया नंबर कि पुराना नंबर के एक संस्करण है मिल जाएगा."
+Width,चौडाई
+Will be used in url (usually first name).,यूआरएल (आम तौर पर पहला नाम) में इस्तेमाल किया जाएगा.
+Workflow,कार्यप्रवाह
+Workflow Action,वर्कफ़्लो लड़ाई
+Workflow Action Master,वर्कफ़्लो कार्रवाई मास्टर
+Workflow Action Name,वर्कफ़्लो कार्य का नाम
+Workflow Document State,वर्कफ़्लो दस्तावेज़ राज्य
+Workflow Document States,कार्यप्रवाह दस्तावेज़ राज्य अमेरिका
+Workflow Name,वर्कफ़्लो नाम
+Workflow State,कार्यप्रवाह राज्य
+Workflow State Field,वर्कफ़्लो राज्य फील्ड
+Workflow Transition,वर्कफ़्लो संक्रमण
+Workflow Transitions,कार्यप्रवाह बदलाव
+Workflow state represents the current state of a document.,कार्यप्रवाह राज्य एक दस्तावेज़ की वर्तमान स्थिति का प्रतिनिधित्व करता है.
+Workflow will start after saving.,कार्यप्रवाह सहेजने के बाद शुरू कर देंगे.
+Write,लिखना
+Write a Python file in the same folder where this is saved and return column and result.,वही इस सहेजा गया है जहां फ़ोल्डर और बदले स्तंभ और परिणाम में एक अजगर फ़ाइल लिखें.
+Write a SELECT query. Note result is not paged (all data is sent in one go).,एक का चयन करें क्वेरी लिखें. नोट परिणाम (सभी डेटा एक ही बार में भेज दिया जाता है) संपर्क नहीं है.
+Write titles and introductions to your blog.,अपने ब्लॉग के शीर्षक और परिचय लिखें.
+Writers Introduction,राइटर्स परिचय
+Year,वर्ष
+Yes,हां
+Yesterday,कल
+You can set various 'properties' to Users to set default values and apply permission rules based on the value of these properties in various forms.,आप विभिन्न &#39;गुण&#39; उपयोगकर्ताओं को स्थापित करने के लिए मूलभूत मूल्यों को निर्धारित करने के लिए और अनुमति विभिन्न रूपों में इन गुणों के मूल्य के आधार पर नियमों को लागू कर सकते हैं.
+You can use <a href='#Form/Customize Form'>Customize Form</a> to set levels on fields.,आप <a href='#Form/Customize Form'>प्रपत्र को अनुकूलित</a> करने के लिए खेतों पर स्तर सेट का उपयोग कर सकते हैं .
+"Your download is being built, this may take a few moments...","आपका डाउनलोड का निर्माण किया जा रहा है, इसमें कुछ समय लग सकता है ..."
+[Label]:[Field Type]/[Options]:[Width],[लेबल] [फील्ड प्रकार] / [विकल्प] [चौड़ाई]
+add your own CSS (careful!),अपने खुद के सीएसएस (careful!) जोड़ें
+adjust,को समायोजित
+align-center,संरेखित करें केंद्र
+align-justify,संरेखित करें - का औचित्य साबित
+align-left,संरेखित करें बाएं
+align-right,संरेखित करें सही
+and,और
+arrow-down,नीचे तीर
+arrow-left,तीर बाएँ
+arrow-right,तीर सही
+arrow-up,तीर अप
+asterisk,तारांकन
+backward,पिछड़ा
+ban-circle,प्रतिबंध चक्र
+barcode,बारकोड
+bell,घंटी
+bold,बोल्ड
+book,किताब
+bookmark,बुकमार्क
+briefcase,ब्रीफ़केस
+bullhorn,bullhorn
+calendar,कैलेंडर
+camera,कैमरा
+cannot be empty,खाली नहीं हो सकता
+cannot be in its own,अपने आप में नहीं हो सकता
+"cannot have a URL, because it has child item(s)","यह बच्चा मद (s) है, क्योंकि एक यूआरएल नहीं कर सकते"
+cannot start with,के साथ शुरू नहीं कर सकते
+certificate,प्रमाणपत्र
+check,चेक
+chevron-down,शेवरॉन नीचे
+chevron-left,शेवरॉन छोड़ दिया
+chevron-right,शेवरॉन सही
+chevron-up,शहतीर अप
+circle-arrow-down,वृत्त - तीर - नीचे
+circle-arrow-left,वृत्त - तीर बाएँ
+circle-arrow-right,वृत्त - तीर - सही
+circle-arrow-up,वृत्त - तीर अप
+cog,दांत
+comment,टिप्पणी
+comments,टिप्पणियां
+create a Custom Field of type Link (Profile) and then use the 'Condition' settings to map that field to the Permission rule.,प्रकार लिंक (प्रोफाइल) के एक कस्टम फ़ील्ड बना सकते हैं और फिर &#39;स्थिति&#39; सेटिंग का उपयोग करने के लिए अनुमति शासन करने के लिए है कि क्षेत्र के नक्शे.
+dd-mm-yyyy,डीडी-mm-yyyy
+dd/mm/yyyy,dd / mm / yyyy
+does not exist,मौजूद नहीं है
+download,डाउनलोड
+download-alt,डाउनलोड-Alt
+edit,संपादित करें
+eject,बेदखल करना
+envelope,लिफाफा
+exclamation-sign,विस्मयादिबोधक हस्ताक्षर
+eye-close,आंख को बंद
+eye-open,आंख खोलने के
+facetime-video,FaceTime वीडियो
+fast-backward,तेजी से पिछड़े
+fast-forward,तेजी से आगे
+file,फ़ाइल
+film,फ़िल्म
+filter,फ़िल्टर करने के लिए
+fire,आग
+flag,झंडा
+folder-close,फ़ोल्डर बंद
+folder-open,फ़ोल्डर खोलने के
+font,फॉन्ट
+forward,आगे
+found,पाया
+fullscreen,fullscreen
+gift,उपहार
+glass,कांच
+globe,ग्लोब
+hand-down,हाथ नीचे
+hand-left,हाथ बाएँ
+hand-right,हाथ - सही
+hand-up,हाथ
+hdd,hdd
+headphones,headphones
+heart,दिल
+home,घर
+icon,आइकॉन
+in,में
+inbox,इनबॉक्स
+indent-left,इंडेंट - बाएँ
+indent-right,इंडेंट सही
+info-sign,जानकारी के संकेत
+is linked in,में जुड़ा हुआ है
+is not allowed.,अनुमति नहीं है.
+italic,तिरछा
+leaf,पत्ती
+list,सूची
+list-alt,सूची Alt
+lock,ताला
+lowercase,लोअरकेस
+magnet,चुंबक
+map-marker,नक्शा मार्कर
+minus,ऋण
+minus-sign,ऋण पर हस्ताक्षर
+mm-dd-yyyy,mm-dd-yyyy
+mm/dd/yyyy,dd / mm / yyyy
+move,चाल
+music,संगीत
+not in,नहीं में
+of type Link,किस प्रकार की कड़ी
+off,बंद
+ok,ठीक
+ok-circle,ठीक चक्र
+ok-sign,ठीक है पर हस्ताक्षर
+or,या
+pause,ठहराव
+pencil,पेंसिल
+picture,तस्वीर
+plane,विमान
+play,खेल
+play-circle,खेलने सर्कल
+plus,प्लस
+plus-sign,प्लस पर हस्ताक्षर
+print,प्रिंट
+qrcode,qrcode
+question-sign,सवाल संकेत
+random,यादृच्छिक
+refresh,ताज़ा करना
+remove,हटाना
+remove-circle,Remove-वृत्त
+remove-sign,हटाने के हस्ताक्षर
+repeat,दोहराना
+resize-full,का आकार परिवर्तन भरा
+resize-horizontal,का आकार परिवर्तन क्षैतिज
+resize-small,का आकार परिवर्तन छोटे
+resize-vertical,का आकार परिवर्तन खड़ी
+retweet,retweet
+road,सड़क
+screenshot,स्क्रीनशॉट
+search,खोज
+share,शेयर
+share-alt,शेयर Alt
+shopping-cart,शॉपिंग गाड़ी
+signal,संकेत
+star,सितारा
+star-empty,सितारा खाली
+step-backward,कदम से पिछड़े
+step-forward,कदम आगे
+stop,रोक
+tag,टैग
+tags,टैग
+"target = ""_blank""",लक्ष्य = &quot;_blank&quot;
+tasks,कार्यों
+text-height,पाठ ऊंचाई
+text-width,पाठ चौड़ाई
+th,वें
+th-large,वें बड़े
+th-list,वें सूची
+thumbs-down,नीचे अंगूठे
+thumbs-up,अंगूठे अप
+time,समय
+tint,टिंट
+to,से
+trash,कचरा
+upload,अपलोड
+user,उपयोगकर्ता
+user_image_show,user_image_show
+values and dates,मूल्यों और तारीखें
+volume-down,मात्रा नीचे
+volume-off,वॉल्यूम बंद
+volume-up,मात्रा
+warning-sign,चेतावनी संकेत
+wrench,रिंच
+yyyy-mm-dd,yyyy-mm-dd
+zoom-in,ज़ूम
+zoom-out,ज़ूम आउट

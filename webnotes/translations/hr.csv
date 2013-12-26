@@ -1,0 +1,1073 @@
+ by Role ,prema ulozi
+ can not be marked as a ledger as it has existing child,"Ne može biti označena kao knjigu, kao da ima postojeće dijete"
+ cannot be deleted.,nije moguće izbrisati.
+ is not set,nije postavljen
+"""Company History""",&quot;Povijest tvrtke&quot;
+"""Team Members"" or ""Management""",&quot;Članovi tima&quot; ili &quot;upravljanje&quot;
+0,0
+"000 is black, fff is white","000 je crno, FFF je bijela"
+1,1
+12px,12px
+13px,13px
+14px,14px
+15px,15px
+16px,16px
+2,2
+2 days ago,Prije 2 dana
+"<a onclick=""msgprint('<ol>\
+<li><b>field:[fieldname]</b> - By Field\
+<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\
+<li><b>Prompt</b> - Prompt user for a name\
+<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\
+</ol>')"">Naming Options</a>",
+<b>Cancel</b> allows you change Submitted documents by cancelling them and amending them.,<b>Odustani</b> vam promijeniti Poslao dokumente tako da ih otkazivanjem i njihovih izmjena i dopuna.
+A new popup will open that will ask you to select further conditions.,Novi popup će se otvoriti koji će od vas tražiti da odaberete dodatne uvjete.
+A user can have multiple values for a property.,Korisnik može imati više vrijednosti za imovinu.
+About,Oko
+About Us Settings,O nama Postavke
+About Us Team Member,O nama reprezentativka
+Account Id,ID računa
+Action,Akcija
+Actions,akcije
+Add,Dodati
+Add A New Rule,Dodaj novo pravilo
+Add A Property,Dodaj nekretninu
+Add Attachments,Dodaj privitke
+Add Bookmark,Dodaj Bookmark
+Add CSS,Dodaj CSS
+Add Column,Dodaj stupac
+Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,Dodaj Google Analytics ID: npr.. UA-89XXX57-1. Molimo potražiti pomoć na Google Analytics za više informacija.
+Add Message,Dodaj poruku
+Add New Permission Rule,Dodati novo pravilo dozvolu
+Add Reply,Dodaj Odgovor
+Add Total Row,Dodaj Ukupno Row
+Add a banner to the site. (small banners are usually good),Dodaj banner na licu mjesta. (Mali banneri su obično dobar)
+Add attachment,Dodaj privitak
+Add code as &lt;script&gt;,Dodaj kod kao &lt;script&gt;
+Add new row,Dodaj novi redak
+"Add the name of <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> e.g. ""Open Sans""","Dodaj ime <a href=""http://google.com/webfonts"" target=""_blank"">Google Web slova</a> npr. &quot;Otvoreni Sans&quot;"
+Add to To Do,Dodaj u Raditi
+Add to To Do List of,Dodaj u napraviti popis od
+Additional Info,Dodatne informacije
+Address,Adresa
+Address and other legal information you may want to put in the footer.,Adresa i druge pravne informacije koje svibanj želite staviti u podnožje.
+Address to be displayed on the Contact Page,Adresa biti prikazana na Kontakt stranici
+Adds a custom field to a DocType,Dodaje prilagođeni polja DOCTYPE
+Adds a custom script (client or server) to a DocType,Dodaje prilagođeni scenarij (klijent ili poslužitelj) na DOCTYPE
+Advanced Scripting,Napredna Scripting
+Advanced Settings,Napredne postavke
+All Day,All Day
+"All possible Workflow States and roles of the workflow. <br>Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""","Sve moguće Workflow Države i uloge tijeka rada. <br> Docstatus Opcije: 0 je &quot;Spremljeno&quot;, jedan je &quot;Zaprimljeno&quot; i 2. &quot;Otkazano&quot;"
+Allow Attach,Dopustite Priloži
+Allow Import,Dopustite Uvoz
+Allow Import via Data Import Tool,Dopustite uvoz preko Data Import Alat
+Allow Rename,Dopustite Preimenuj
+Allow on Submit,Dopusti na Submit
+Allow user to login only after this hour (0-24),Dopustite korisniku da prijavite tek nakon tog vremena (0-24)
+Allow user to login only before this hour (0-24),Dopustite korisniku se prijaviti samo prije tog vremena (0-24)
+Allowed,Dozvoljen
+Already Registered,Već registracije
+Amend,Ispraviti
+"An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [<a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a>]","Ikona datoteke s nastavkom. Ico. Treba biti 16 x 16 px. Generirano pomoću favicon generator. [ <a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a> ]"
+Are you sure you want to delete the attachment?,Jeste li sigurni da želite izbrisati privitak?
+Arial,Arial
+"As a best practice, do not assign the same set of permission rule to different Roles instead set multiple Roles to the User","Kao najbolje prakse, ne dodijeliti isti skup dozvola pravilu se različitim ulogama umjesto postaviti više uloge Korisniku"
+Ascending,Uzlazni
+Assign To,Dodijeliti
+Assigned By,Dodijeljen od strane
+Assigned To,Dodijeljeno
+Assigned To/Owner,Dodijeljeno / VLASNIK
+Attach,Pričvrstiti
+Attach Document Print,Priloži dokument Ispis
+Attach as web link,Pričvrstite kao web veze
+Attached To DocType,U prilogu vrstu dokumenata
+Attached To Name,U prilogu naziv
+Attachments,Privitci
+Attributions,Pripisivanje
+Auto Name,Auto Ime
+Auto generated,Automatski generirano
+Avatar,Avatar
+Background Color,Boja pozadine
+Background Image,Pozadina slike
+Banner,Zastava
+Banner HTML,Banner HTML
+Banner Image,Banner slika
+Banner is above the Top Menu Bar.,Banner je iznad gornjem izborniku.
+Begin this page with a slideshow of images,Počnite ovu stranicu s slideshow slika
+Belongs to,pripada
+Bio,Bio
+Birth Date,Datum rođenja
+Blog Category,Blog Kategorija
+Blog Intro,Blog Intro
+Blog Introduction,Blog Uvod
+Blog Post,Blog post
+Blog Settings,Blog Postavke
+Blog Title,Blog Naslov
+Blogger,Blogger
+Bookmarks,Favoriti
+Brand HTML,Marka HTML
+"Brand is what appears on the top-right of the toolbar. If it is an image, make sure it
+has a transparent background and use the &lt;img /&gt; tag. Keep size as 200px x 30px",
+Bulk Email,Bulk Email
+Bulk Email records.,Bulk Email Records.
+Button,Dugme
+By,Po
+COMM-,COMM-
+CSS,CSS
+Calendar,Kalendar
+Can only be exported by users with role 'Report Manager',Može biti samo izvoze od strane korisnika s ulogom &#39;Report Manager&#39;
+Cancel,Otkazati
+Cancel permission also allows the user to delete a document (if it is not linked to any other document).,Odustani dozvola također omogućuje korisniku da izbrisati dokument (ako nije povezan s bilo kojim drugim dokumentom).
+Cancelled,Otkazan
+Cannot Update: Incorrect / Expired Link.,Ne možete ažurirati : Nepravilan / istekla .
+Cannot Update: Incorrect Password,Ne možete ažurirati : Pogrešna zaporka
+Cannot change from,Ne mogu promijeniti iz
+Cannot edit standard fields,Ne možete uređivati ​​standardnih polja
+Cannot map because following condition fails: ,Ne mogu mapirati jer sljedeći uvjet ne uspije:
+"Cannot update a non-exiting record, try inserting.","Ne mogu ažurirati bez izlaska snimiti , pokušajte umetnuti ."
+Categorize blog posts.,Kategorizacija blogu.
+Category,Kategorija
+Category Name,Naziv kategorije
+Center,Centar
+"Certain documents should not be changed once final, like an Invoice for example. The final state for such documents is called <b>Submitted</b>. You can restrict which roles can Submit.","Određene dokumente ne treba mijenjati jednom finalu, kao i račun za primjer. Konačno stanje za takvim dokumentima se zove <b>Postavio.</b> Možete ograničiti koje uloge mogu Submit."
+Chat,Razgovor
+Check,Provjeriti
+Check / Uncheck roles assigned to the Profile. Click on the Role to find out what permissions that Role has.,Provjerite / Odznačite uloge dodijeljene profil. Kliknite na ulozi saznati što dozvole da uloga.
+Check this to make this the default letter head in all prints,Provjerite to napraviti ovu glavu zadani slovo u svim otisaka
+Checked,Provjeren
+Child Tables are shown as a Grid in other DocTypes.,Dijete Tablice su prikazane kao Grid u drugim DocTypes.
+Clear Cache & Refresh,Clear Cache &amp; Osvježi
+Click on button in the 'Condition' column and select the option 'User is the creator of the document',Kliknite na gumb u &#39;hotela&#39; stupcu i odaberite opciju &#39;Korisnik je kreator dokument&#39;
+Click on row to edit.,Kliknite na red za uređivanje .
+Click to Expand / Collapse,Kliknite na Proširi / Sažmi
+Client,Klijent
+Close,Zatvoriti
+Code,Šifra
+Color,Boja
+Column Break,Kolona Break
+Comment,Komentirati
+Comment By,Komentar
+Comment By Fullname,Komentar FULLNAME
+Comment Date,Komentar Datum
+Comment Docname,Komentar Docname
+Comment Doctype,Komentar DOCTYPE
+Comment Time,Komentar Vrijeme
+Comments,Komentari
+Communication,Komunikacija
+Communication Medium,Komunikacija srednje
+Company History,Povijest tvrtke
+Company Introduction,Tvrtka Uvod
+Company Name,Ime tvrtke
+Complaint,Prigovor
+Complete By,Kompletan Do
+Condition Field,Stanje Field
+Contact Us Settings,Kontaktirajte nas Settings
+"Contact options, like ""Sales Query, Support Query"" etc each on a new line or separated by commas.","Kontakt opcije, poput &quot;Sales Query, Podrška upit&quot; itd jedni na novoj liniji ili odvojene zarezima."
+Content,Sadržaj
+Content in markdown format that appears on the main side of your page,Sadržaj u smanjenje formatu koji se pojavljuje na glavnoj strani stranice
+Content web page.,Sadržaj web stranica.
+Control Panel,Upravljačka ploča
+Controller,kontrolor
+Copy,Kopirajte
+Copyright,Autorsko pravo
+Core,Srž
+Count,računati
+Country,Zemlja
+Create,Stvoriti
+Created Customer Issue,Objavljeno Kupac Issue
+Created Opportunity,Objavljeno Opportunity
+Created Support Ticket,Objavljeno Podrška karata
+Currency,Valuta
+Currency Format,Valuta Format
+Current status,Trenutni status
+Custom CSS,Prilagođena CSS
+Custom Field,Prilagođena polja
+Custom Reports,Prilagođena izvješća
+Custom Script,Prilagođena skripta
+Custom Startup Code,Prilagođena Pokretanje Šifra
+Custom?,Prilagođena?
+Customize,Prilagodite
+Customize Form,Prilagodite obrazac
+Customize Form Field,Prilagodba polja obrasca
+"Customize Label, Print Hide, Default etc.","Prilagodite oznaku, print sakriti, Zadani itd."
+Daily Event Digest is sent for Calendar Events where reminders are set.,"Dnevni događaji Digest je poslan za kalendar događanja, gdje su postavljene podsjetnici."
+Danger,Opasnost
+Data,Podaci
+Data missing in table,Podaci koji nedostaju u tablici
+Date,Datum
+Date Format,Datum Format
+Date must be in format,Datum mora biti u obliku
+Datetime,Datetime
+Dear,Drag
+Default,Zadani
+Default Home Page,Zadani Početna stranica
+Default Home Pages,Zadani Početna stranica
+Default Print Format,Zadani Ispis Format
+Default Value,Zadana vrijednost
+"Default: ""Contact Us""",Default: &quot;Kontaktirajte nas&quot;
+DefaultValue,DefaultValue
+Defaults,Zadani
+Defines actions on states and the next step and allowed roles.,Definira aktivnosti na članicama i sljedeći korak i dopušteni uloge.
+Defines workflow states and rules for a document.,Definira tijeka stanja i pravila za dokument.
+Delete,Izbrisati
+Delete Row,Izbriši redak
+Depends On,Ovisi o
+Descending,Spuštanje
+Description,Opis
+"Description for listing page, in plain text, only a couple of lines. (max 140 characters)","Opis za unos stranici, kao običan tekst, samo par redaka. (Max 140 znakova)"
+Description for page header.,Opis za zaglavlje stranice.
+Desktop,Desktop
+Details,Detalji
+Did not add.,Nije li dodati.
+Did not cancel,Nije li otkazati
+Did not save,Nije li spremiti
+"Different ""States"" this document can exist in. Like ""Open"", ""Pending Approval"" etc.","Različite &quot;Države&quot;, ovaj dokument može postojati u. Kao &quot;Otvoreno&quot;, &quot;na čekanju za odobrenje&quot;, itd."
+Disable Customer Signup link in Login page,Bez Korisnička prijavom vezu u stranicu za prijavu
+Disable Signup,Bez Prijava
+Disabled,Onesposobljen
+Display Settings,Postavke prikaza
+Doc Status,Doc Status
+DocField,DocField
+DocPerm,DocPerm
+DocType,DOCTYPE
+DocType Details,DOCTYPE Detalji
+DocType can not be merged,DOCTYPE ne mogu se spajati
+DocType is a Table / Form in the application.,DOCTYPE je tablica / Forma u primjeni.
+DocType on which this Workflow is applicable.,DOCTYPE na koje se ovaj tijek je primjenjivo.
+DocType or Field,DOCTYPE ili polja
+Docname,Docname
+Document,Dokument
+Document Status transition from ,Dokument Status prijelaz iz
+Document Type,Document Type
+Document Types,vrste dokumenata
+Document is only editable by users of role,Dokument je samo uređivati ​​korisnika ulozi
+Documents,Dokumenti
+Download Backup,Preuzmite Backup
+Draft,Skica
+Drafts,Nacrti
+Drag to sort columns,Povuci za sortiranje stupaca
+Edit,Uredi
+Editable,Uređivati
+Email,E-mail
+Email Host,E-mail Host
+Email Id where users will send support request e.g. support@example.com,E-mail Id gdje će korisnik poslati podršku zahtjev npr. support@example.com
+Email Login,E-mail Prijava
+Email Password,E-mail Lozinka
+Email Sent,E-mail poslan
+Email Settings,Postavke e-pošte
+Email Signature,E-mail potpis
+Email Use SSL,Pošaljite Use
+"Email addresses, separted by commas","E-mail adrese, separted zarezom"
+Email...,E-mail ...
+Embed image slideshows in website pages.,Postavi slikovne prezentacije u web stranicama.
+Enable Comments,Omogućite Komentari
+Enabled,Omogućeno
+Ends on,Završava
+Enter Form Type,Unesite Obrazac Vid
+"Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set ""match"" permission rules. To see list of fields, go to <a href=""#Form/Customize Form/Customize Form"">Customize Form</a>.","Unesite polja zadane vrijednosti (ključevi) i vrijednosti. Ako ste dodali više vrijednosti za polje, prvi će se podići. Ove postavke su također koristi za postavljanje &quot;match&quot; dozvola pravila. Da biste vidjeli popis polja, idite na <a href=""#Form/Customize Form/Customize Form"">Prilagodi obrazac</a> ."
+Equals,jednakima
+Error,Pogreška
+Error: Document has been modified after you have opened it,Pogreška: Dokument je promijenjen nakon što ste ga otvorili
+Event,Događaj
+Event End must be after Start,Događaj Kraj mora biti nakon početnog
+Event Individuals,Događaj Pojedinci
+Event Role,Događaj Uloga
+Event Roles,Događaj Uloge
+Event Type,Vrsta događaja
+Event User,Događaj Upute
+Events In Today's Calendar,Događanja u današnjem kalendaru
+Every Day,Svaki dan
+Every Month,Svaki mjesec
+Every Week,Svaki tjedan
+Every Year,Svaki Godina
+Example:,Primjer:
+Export,Izvoz
+Facebook Share,Facebook Share
+FavIcon,Favicon
+Female,Ženski
+Field Description,Opis polja
+Field Name,Naziv polja
+Field Type,Vrsta polja
+"Field that represents the Workflow State of the transaction (if field is not present, a new hidden Custom Field will be created)","Područje koje predstavlja tijeka državu transakcije (ako polje nije prisutan, novi skriveno Custom Field će biti stvoren)"
+Fieldname,"Podataka, Naziv Polja"
+Fields,Polja
+"Fields separated by comma (,) will be included in the<br /><b>Search By</b> list of Search dialog box","Polja odvojene zarezom (,) će biti uključen u <br /> <b>Traži po</b> popisu Pretraživanje dijaloškom okviru"
+File,File
+File Data,File Podaci
+File Name,File Name
+File Size,Veličina
+File URL,URL datoteke
+File size exceeded the maximum allowed size,Veličina premašila maksimalnu dopuštenu veličinu
+Filter,Filter
+Finder,nalazač
+First Name,Ime
+Float,Plutati
+Font (Heading),Font (Heading)
+Font (Text),Font (Tekst)
+Font Size (Text),Veličina fonta (Tekst)
+Fonts,Fontovi
+Footer,Footer
+Footer Items,Footer Proizvodi
+For All Users,Za sve korisnike
+For DocType,za DOCTYPEhtml
+"For Links, enter the DocType as range
+For Select, enter list of Options separated by comma",
+"For comparative filters, start with","Za komparativne filtera, početi s"
+For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,"Na primjer, ako ste odustali i dopune &#39;INV004&#39; postat će novi dokument &#39;INV004-1&#39;. To vam pomaže pratiti svaku izmjenu i dopunu."
+For example: You want to restrict users to transactions marked with a certain property called 'Territory',Na primjer: Vi želite ograničiti korisnike transakcija označena s određenom objektu koji se zove &#39;teritorij&#39;
+For ranges,Za raspone
+Form,Oblik
+"Format: hh:mm example for one hour expiry set as 01:00. 
+Max expiry will be 72 hours. Default is 24 hours",
+Forward To Email Address,Napadač na e-mail adresu
+Friday,Petak
+From Date must be before To Date,Od datuma mora biti prije do danas
+Full Name,Ime i prezime
+Gantt Chart,Gantogram
+Gender,Rod
+General,Opći
+Generator,generator
+Georgia,Gruzija
+Get,Dobiti
+Get From ,Nabavite Od
+"Go to Setup > <a href='#user-properties'>User Properties</a> to set \
+			'territory' for diffent Users.",
+Google Analytics ID,Google Analytics ID
+Google Plus One,Google Plus One
+Google Web Font (Heading),Google Web Font (Heading)
+Google Web Font (Text),Google Web Font (Tekst)
+Greater or equals,Veće ili jednaki
+Greater than,veći od
+Groups,Grupe
+HTML,HTML
+Header,Kombajn
+Heading,Naslov
+Heading Text As,Naslov teksta koji je
+Help,Pomoći
+Helvetica Neue,Helvetica Neue
+Hey! There should remain at least one System Manager,Hej! Tu bi trebao ostati barem jedan Manager sustav
+Hidden,Skriven
+Hide Actions,Sakrij Akcije
+Hide Copy,Sakrij Copy
+Hide Email,Sakrij e
+Hide Heading,Sakrij Naslov
+Hide Print,Sakrij Ispis
+Hide Toolbar,Sakrij alatne trake
+Highlight,Istaknuti
+History,Povijest
+Home Page,Početna stranica
+Home Page is Products,Početna stranica je proizvodi
+Home Pages,Početna stranica
+ID,ID
+ID (name) of the entity whose property is to be set,ID (ime) subjekta čiji je objekt se postaviti
+Icon,Ikona
+Icon will appear on the button,Ikona će se pojaviti na gumb
+"If a User does not have access at Level 0, then higher levels are meaningless","Ako korisnik ne imati pristup na razini 0, onda je viša razina su besmislene"
+"If checked, all other workflows become inactive.","Ako je označeno, svi ostali tijekovi postaju neaktivne."
+"If checked, the Home page will be the default Item Group for the website.","Ako je označeno, stranica Home će biti zadana Grupa za web stranice predmeta."
+"If image is selected, color will be ignored (attach first)","Ako je slika odabrana, boja će biti ignoriran (priložiti prvi)"
+"If not, create a","Ako ne, stvoriti"
+"If the 'territory' Link Field exists, it will give you an option to select it","Ako &#39;teritoriju&#39; Link Polje postoji, to će vam dati mogućnost da ga odabrali"
+"If these instructions where not helpful, please add in your suggestions at <a href='https://github.com/webnotes/wnframework/issues'>GitHub Issues</a>","Ako ove upute gdje nije korisno , dodajte u svojim prijedlozima na <a href='https://github.com/webnotes/wnframework/issues'> GitHub pitanja < / a>"
+"If you set this, this Item will come in a drop-down under the selected parent.","Ako postavite ovo , ova stavka će doći u padajućem okviru odabranog roditelja ."
+Image,Slika
+Image Link,Slika Link
+Import,Uvoz
+In,u
+In Dialog,U Dialog
+In Filter,U filtru
+In List View,U prikazu popisa
+In Report Filter,U Prijavi Filter
+In response to,U odgovoru na
+"In the Permission Manager, click on the button in the 'Condition' column for the Role you want to restrict.","U dozvole Manager, kliknite na gumb u &#39;hotela&#39; stupcu za ulogu želite ograničiti."
+Index,Indeks
+Individuals,Pojedinci
+Industry,Industrija
+Info,Info
+Insert After,Umetni Nakon
+Insert Below,Umetnite Ispod
+Insert Code,Umetnite kod
+Insert Row,Umetnite Row
+Insert Style,Umetni stil
+Int,Interesi
+Integrations,Integracije
+Introduce your company to the website visitor.,Uvesti svoju tvrtku za web stranice posjetitelja.
+Introduction,Uvod
+Introductory information for the Contact Us Page,Uvodni podaci za kontaktiranje stranice
+Invalid Email,Nevažeći Email
+Inverse,Inverzan
+Is Active,Je aktivna
+Is Child Table,Je Dijete Tablica
+Is Default,Je Default
+Is Mandatory Field,Je Obvezno polje
+Is Single,Je Samac
+Is Standard,Je Standardni
+Is Submittable,Je Submittable
+JSON,JSON
+JavaScript Format: wn.query_reports['REPORTNAME'] = {},JavaScript format : wn.query_reports [ ' REPORTNAME ' ] = { }
+Javascript,Javascript
+Javascript to append to the head section of the page.,Javascript da doda glave dijelu stranice.
+Keep a track of all communications,Držite praćenje svih komunikacija
+Key,Ključ
+Label,Oznaka
+Label Help,Oznaka Pomoć
+Lacs,Lacs
+Landing Page,Odredišna stranica
+Language,Jezik
+Language preference for user interface (only if available).,Jezik sklonost za korisničko sučelje (samo ako je dostupan).
+Last IP,Posljednja IP
+Last Login,Zadnji Login
+Last Name,Prezime
+Last updated by,Posljednji put ažurirao
+Lastmod,lastmod
+Lato,Lato
+Leave blank to repeat always,Ostavite prazno ponoviti uvijek
+Left,Lijevo
+Less or equals,Manje ili jednaki
+Less than,manje od
+Letter Head,Pismo Head
+Letter Head Image,Pismo Head slike
+Letter Head Name,Pismo Head Ime
+Letter Head in HTML,Pismo glava u HTML
+Level,Nivo
+"Level 0 is for document level permissions, higher levels for field level permissions.","Razina 0 je za dokument na razini dozvole, višim razinama za terenske razine dozvola."
+Like,kao
+Link,Link
+Link Name,Link Ime
+Link to other pages in the side bar and next section,Link na drugim stranicama na strani bar i sljedeću sekciju
+Link to the page you want to open,Link na stranicu koju želite otvoriti
+Linked In Share,Podijeli povezane
+Linked With,Povezan s
+List,Popis
+List of patches executed,Popis zakrpe izvršenih
+Loading,Utovar
+Loading Report,Učitavanje izvješće
+Loading...,Loading ...
+Log of Scheduler Errors,Prijavite od Raspoređivač pogrešaka
+Login,prijava
+Login After,Prijavite Nakon
+Login Before,Prijavite Prije
+Logout,Odjava
+Long Text,Dugo Tekst
+Lucida Grande,Lucidi Grande
+Mail Footer,Mail Footer
+Mail Server,Mail Server
+Main Section,Glavni Odjeljak
+Make a new,Napravite novi
+Make sure that the transactions you want to restrict have a Link field 'territory' that maps to a 'Territory' master.,Pobrinite se da su transakcije želite ograničiti imati vezu polje &#39;teritorij&#39; koji mapira u &#39;teritorij&#39; gospodara.
+Male,Muški
+Mandatory,Obavezan
+Mandatory filters required:\n,Obvezni filteri potrebni : \ n
+Master,Majstor
+Match,Odgovarati
+Max Attachments,Max Privitci
+"Meaning of Submit, Cancel, Amend","Značenje Podnijeti, Odustani, Izmijeniti"
+"Menu items in the Top Bar. For setting the color of the Top Bar, go to <a href=""#Form/Style Settings"">Style Settings</a>","Opcije izbornika u gornjoj traci. Za postavljanje boju Top Baru, idite na <a href=""#Form/Style Settings"">Postavke stila</a>"
+"Merging is only possible between Group-to-Group or 
+					Ledger-to-Ledger",
+Message,Poruka
+Method,Način
+Middle Name (Optional),Krsno ime (opcionalno)
+Millions,Milijuni
+Misc,Ostalo
+Miscellaneous,Razni
+Missing Values Required,Nedostaje vrijednosti potrebne
+Modified by,Izmijenio
+Module,Modul
+Module Def,Modul Def
+Module Name,Modul Ime
+Modules,Moduli
+Monday,Ponedjeljak
+More,Više
+More content for the bottom of the page.,Više sadržaja za dnu stranice.
+Must have report permission to access this report.,Mora imati izvješće dozvolu za pristup ovom izvješću.
+Must specify a Query to run,Mora se odrediti upita za pokretanje
+Name,Ime
+Name Case,Ime slučaja
+Name Exists,ime Exists
+Naming Series mandatory,Imenovanje serije obaveznu
+New,novi
+New Password,Novi Lozinka
+New Record,Novi rekord
+New value to be set,Nova vrijednost treba postaviti
+Next Communcation On,Sljedeća komunikacijski Na
+Next State,Sljedeća država
+Next actions,Sljedeći akcije
+No,Ne
+No Action,Nema Akcija
+No Cache,Ne Cache
+No Communication tagged with this ,Ne Komunikacija označio s ovim
+No Copy,Ne Kopirajte
+No Permission,Bez dozvole
+No Permission to ,Nema dozvole za
+No Permissions set for this criteria.,Nema dozvole postavljen za ove kriterije.
+No Report Loaded. Please use query-report/[Report Name] to run a report.,Ne Izvješće Loaded. Molimo koristite upita izvješće / [Prijavi Ime] pokrenuti izvješće.
+No Sitemap,nema Mapa
+No User Properties found.,Nema Svojstva korisnika pronađena.
+No further records,Nema daljnjih zapisi
+No one,Niko
+No permission to edit,Nema dozvole za uređivanje
+No permission to write / remove.,Nema dozvole za pisanje / uklanjanje.
+No records tagged.,Nema zapisa tagged.
+None,Nijedan
+None: End of Workflow,Ništa: Kraj Workflow
+Not Found,Not Found
+Not Linked to any record.,Nije povezan s bilo rekord.
+Not Permitted,Nije dopušteno
+Not allowed for: ,Nije dopušteno:
+Not enough permission to see links.,Nije dovoljno dozvolu za vidjeti linkove.
+Not equals,nisu jednaki
+"Note: For best results, images must be of the same size and width must be greater than height.","Napomena: Za najbolje rezultate, slike moraju biti iste veličine i širine mora biti veća od visine."
+Note: Other permission rules may also apply,Napomena: Ostala pravila dozvole također može primijeniti
+Note: maximum attachment size = 1mb,Napomena: maksimalna veličina privitka = 1MB
+Nothing to show,Ništa pokazati
+Nothing to show for this selection,Ništa za pokazati ovom izboru
+Notification Count,Obavijest Točka
+Notify By Email,Obavijesti e-poštom
+On,Na
+"Once you have set this, the users will only be able access documents with that property.","Nakon što ste postavili ovo, korisnici će moći pristupom dokumentima s tom imovinom."
+Only Administrator allowed to create Query / Script Reports,Samo administrator dopustio stvaranje upita / Skripta Izvješća
+Only Administrator can save a standard report. Please rename and save.,Samo administrator može uštedjeti standardne izvješće. Molimo preimenovati i spasiti.
+Only Allow Edit For,Samo Dopusti Uredi za
+Only System Manager can create / edit reports,Samo Manager sustav može stvoriti / uređivati ​​izvješća
+Open Count,Otvorena Točka
+Open Sans,Otvoreni Sans
+Options,Mogućnosti
+Options Help,Opcije Pomoć
+Org History,org Povijest
+Org History Heading,Org Povijest Heading
+Original Message,Izvorni Poruka
+Other,Drugi
+POP3 Mail Server (e.g. pop.gmail.com),POP3 Mail Server (npr. pop.gmail.com)
+Page,Stranica
+Page Background,Page Pozadinska
+Page Border,Stranica granica
+Page HTML,Stranica HTML
+Page Headings,Stranica Naslovi
+Page Links,Stranica Linkovi
+Page Name,Stranica Ime
+Page Name Field,Stranica Naziv polja
+Page Role,Stranica Uloga
+Page Text,Stranica Tekst
+Page already exists,Stranica već postoji
+Page content,Sadržaj stranice
+Page not found,Stranica nije pronađena
+Page or Generator,Stranica ili Generator
+Page text and background is same color. Please change.,Stranica tekst i pozadina iste boje. Molimo promijeniti.
+"Page to show on the website
+",
+"Page url name (auto-generated) (add "".html"")",Stranica url ime (automatski generirani) (dodaj &quot;. Html&quot;)
+Parent Label,Roditelj Label
+Parent is required.,Roditelj je potrebno.
+Participants,Sudionici
+Password,Lozinka
+Password Expires in (days),Lozinka Istječe (dana)
+Password Updated,Lozinka Updated
+Patch,Zakrpa
+Patch Log,Patch Prijava
+Percent,Postotak
+Perm Level,Perm Level
+Permission Level,Dopuštenje Razina
+Permission Levels,Razine dozvola
+Permission Manager,Dopuštenje Manager
+Permission Rules,Dopuštenje Pravila
+Permissions,Dopuštenja
+Permissions Settings,Dozvole Postavke
+Permissions are automatically translated to Standard Reports and Searches,Dozvole automatski su prevedeni na standardnih izvješća i traži
+"Permissions are set on Roles and Document Types (called DocTypes) by restricting read, edit, make new, submit, cancel, amend and report rights.","Dozvole su postavljene na ulogama i vrstama dokumenata (zove DocTypes) ograničavanjem čitati, uređivati, napraviti novi, podnijeti, otkazati, izmijeniti i prijaviti prava."
+Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful incase you want to hide or make certain field read-only.,Dozvole na višim razinama &#39;terenu&#39; dozvole. Svi Polja imaju &#39;razinu dozvole&#39; set protiv njih i pravilima definiranim u to dozvole primjenjuju se na terenu. To je korisno obložiti želite sakriti ili napraviti određenu polje samo za čitanje.
+"Permissions at level 0 are 'Document Level' permissions, i.e. they are primary for access to the document.","Dozvole na razini 0 su &#39;dokument razini&#39; dozvole, odnosno oni su primarni za pristup dokumentu."
+Permissions translate to Users based on what Role they are assigned,Dozvole prevesti na korisnike na temelju onoga što Uloga im se dodjeljuju
+Person,Osoba
+Phone,Telefon
+Phone No.,Telefonski broj
+Pick Columns,Pick stupce
+Please attach a file first.,Molimo priložite datoteku prva.
+Please attach a file or set a URL,Molimo priložite datoteku ili postaviti URL
+Please change the value,Molimo promjenu vrijednosti
+Please enable pop-ups,Molimo omogućite pop-up prozora
+Please make sure that there are no empty columns in the file.,Molimo provjerite da nema praznih stupaca u datoteci.
+Please refresh to get the latest document.,Osvježite se dobiti najnovije dokument.
+Please select a file or url,Molimo odaberite datoteku ili url
+Please specify,Navedite
+Plugin,plugin
+Post Publicly,Objavi javno
+Post Topic,Post Tema
+Post to user,Postavljati na korisnika
+Posts,Postovi
+Primary,Osnovni
+Print Format,Ispis formata
+Print Format Type,Ispis formatu
+Print Hide,Ispis Sakrij
+Print Width,Širina ispisa
+Print...,Ispis ...
+Priority,Prioritet
+Private,Privatan
+Profile,Profil
+Profile Defaults,Profil Zadano
+Profile Represents a User in the system.,Profil Predstavlja korisnika u sustavu.
+Profile of a Blogger,Profil od Bloggeru
+Profile of a blog writer.,Profil blog pisac.
+Properties,Nekretnine
+Property,Vlasništvo
+Property Setter,Nekretnine seter
+Property Setter overrides a standard DocType or Field property,Nekretnine seter nadjačava standardni DOCTYPE ili polja nekretnine
+Property Type,Vrsta nekretnine
+Public,Javni
+Published,Objavljen
+Published On,Objavljeno Dana
+Pull Emails from the Inbox and attach them as Communication records (for known contacts).,"Povucite e-pošte iz mape Primljeno, te ih priložiti kao Communication zapisa (za poznate kontakte)."
+Query,Pitanje
+Query Options,Upita Mogućnosti
+Query Report,Izvješće upita
+Query must be a SELECT,Upit mora biti SELECT
+Quick Help for Setting Permissions,Brza pomoć za postavljanje dopuštenja
+Quick Help for User Properties,Brza pomoć za korisnike Nekretnine
+Read,Čitati
+Read Only,Read Only
+Received,primljen
+Recipient,Primalac
+Recipients,Primatelji
+Ref DocType,Ref. DOCTYPE
+Ref Name,Ref. Ime
+Ref Type,Ref. Tip
+Reference,Upućivanje
+Reference DocName,Referentna DocName
+Reference DocType,Referentna DOCTYPEhtml
+Reference Name,Referenca Ime
+Reference Type,Referentna Tip
+Refresh,Osvježiti
+Registered but disabled.,Registrirani ali onemogućen.
+Registration Details Emailed.,Registracija Detalji Poslano.
+Remove Bookmark,Uklonite Bookmark
+Rename...,Promjena naziva ...
+Repeat On,Ponovite Na
+Repeat Till,Ponovite Do
+Repeat this Event,Ponovite ovaj događaj
+Report,Prijavi
+Report Builder,Report Builder
+Report Builder reports are managed directly by the report builder. Nothing to do.,Report Builder izvješća se izravno upravlja Report Builder. Ništa učiniti.
+Report Hide,Prijavi Sakrij
+Report Name,Naziv izvješća
+Report Type,Prijavi Vid
+Report was not saved (there were errors),Izvješće nije spašen (bilo pogrešaka)
+Represents the states allowed in one document and role assigned to change the state.,Predstavlja stanja dopušteni u jednom dokumentu i uloge dodijeljene promijeniti stanje.
+Reqd,Reqd
+Reset Password Key,Reset Password ključ
+Restrict IP,Zabraniti IP
+Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111),Zabraniti korisnika iz ove IP adrese samo. Višestruki IP adrese može biti dodan odvajajući zarezima. Također prihvaća djelomične IP adrese kao što su (111.111.111)
+Restricting By User,Ograničavanje strane korisnika
+Right,Desno
+Role,Uloga
+Role Name,Uloga Ime
+Roles,Uloge
+Roles Assigned,Uloge Dodijeljeni
+Roles Assigned To User,Uloge dodijeljena Korisniku
+Roles HTML,Uloge HTML
+Root ,Korijen
+Row,Red
+Rules defining transition of state in the workflow.,Pravila definiraju prijelaz stanja u tijek rada.
+"Rules for how states are transitions, like next state and which role is allowed to change state etc.","Pravila za koliko su države prijelaza, kao i sljedeći države i koja uloga je dozvoljeno da promijeni stanje itd."
+SMS,SMS
+Sales,Prodajni
+Same file has already been attached to the record,Sve file već priključen na zapisnik
+Saturday,Subota
+Save,spasiti
+Scheduler Log,Planer Prijava
+Script,Skripta
+Script Report,Skripta Prijavi
+Script Type,Skripta Tip
+Script to attach to all web pages.,Skripta se priključiti na svim web stranicama.
+Search,Traži
+Search Fields,Search Polja
+Section Break,Odjeljak Break
+Security Settings,Sigurnosne postavke
+Select,Odabrati
+Select All,Odaberite sve
+Select Attachments,Odaberite privitke
+Select Document Type,Odaberite vrstu dokumenta
+Select Document Type or Role to start.,Odaberite vrstu dokumenta ili ulogu za početak.
+Select Module,Odaberite modul
+Select Print Format,Odaberite Print Format
+Select Report Name,Odaberite Naziv izvješća
+Select Role,Odaberite Uloga
+Select Type,Odaberite Vid
+Select User or Property to start.,Odaberite korisnika ili imovina za početak.
+Select a Banner Image first.,Odaberite Slika Banner prvi.
+Select an image of approx width 150px with a transparent background for best results.,Odaberite sliku od cca 150px širine s transparentnom pozadinom za najbolje rezultate.
+Select dates to create a new ,Odaberite datume za stvaranje nove
+Select or drag across time slots to create a new event.,Odaberite ili povucite preko minutaže stvoriti novi događaj.
+"Select target = ""_blank"" to open in a new page.","Select target = "" _blank "" otvara se u novu stranicu ."
+Select the label after which you want to insert new field.,Odaberite oznaku nakon što želite umetnuti novo polje.
+Send,Poslati
+Send As Email,Pošalji kao e-mail
+Send Me A Copy,Pošaljite mi kopiju
+Send an email reminder in the morning,Pošaljite e-mail podsjetnik u jutarnjim satima
+Send enquiries to this email address,Upite slati na ovu e-mail adresu
+Sender,Pošiljalac
+Sent,Poslano
+Sent Mail,Poslana pošta
+Sent Quotation,Sent Ponuda
+Sent or Received,Poslana ili primljena
+Series,serija
+Server,Server
+Session Expired. Logging you out,Sjednica je istekao. Odjavljivanje
+Session Expires in (time),Sjednica Istječe u (vrijeme)
+Set Banner from Image,Postavite banner sa slike
+Set Link,Postavite link
+Set Password,Postavi lozinku
+Set Value,Postavite vrijednost
+"Set your background color, font and image (tiled)","Postavite boju pozadine, font i sliku (popločan)"
+Settings for About Us Page.,Postavke za O nama Page.
+Settings for Contact Us Page,Postavke za Kontaktirajte nas stranicu
+Settings for Contact Us Page.,Postavke za Kontaktirajte nas stranicu.
+Settings for the About Us Page,Postavke za O nama Page
+Setup of fonts and background.,Postavljanje fontova i pozadine.
+"Setup of top navigation bar, footer and logo.","Postavljanje gornjoj navigacijskoj traci, podnožje i logo."
+Short Bio,Kratka Biografija
+Short Name,Kratko Ime
+Shortcut,Prečac
+Show Breadcrumbs,Pokaži Breadcrumbs
+Show Details,Prikaži pojedinosti
+Show Print First,Pokaži Ispis Prvo
+Show Table of Contents,Pokaži Sadržaj
+Show Tags,Pokaži Oznake
+Show Title,Pokaži Naslov
+Show rows with zero values,Prikaži retke s nula vrijednosti
+Showing only for,Prikaz samo za
+Single Post (article).,Single Post (članak).
+Single Types have only one record no tables associated. Values are stored in tabSingles,Pojedinačne vrste imaju samo jedan zapis nema tablice povezane . Vrijednosti su pohranjeni u tabSingles
+Slideshow,Slideshow
+Slideshow Items,Slideshow Proizvodi
+Slideshow Name,SLIKA Naziv
+Slideshow like display for the website,Slideshow kao prikaz za web
+Small Text,Mali Tekst
+Solid background color (default light gray),Čvrsta boja pozadine (zadano svijetlo siva)
+Sorry we were unable to find what you were looking for.,Nažalost nismo uspjeli pronaći ono što su tražili.
+Sorry you are not permitted to view this page.,Žao nam je što nije dozvoljeno da vidite ovu stranicu.
+Sort By,Sortiraj po
+Special Page Settings,Posebni stranica Postavke
+Standard,Standard
+Start Report For,Početak izvješće za
+Starts on,Počinje na
+Startup,Stavljanje u pogon
+State,Država
+States,Države
+Status,Status
+Step 1: Set the name and save.,Korak 1 : Postavite ime i spremiti .
+Step 2: Set Letterhead content.,2. korak : Postavite papir sa zaglavljem sadržaja .
+Style,Stil
+Style Settings,Stil Postavke
+"Style represents the button color: Success - Green, Danger - Red, Inverse - Black, Primary - Dark Blue, Info - Light Blue, Warning - Orange","Stil predstavlja boju gumba: Uspjeh - zelena, opasnosti - Crvena, Inverzni - crna, Primarni - tamnoplava, info - svjetlo plava, upozorenje - Orange"
+Sub-domain provided by erpnext.com,Pod-domene pruža erpnext.com
+Subdomain,Poddomena
+Subject,Predmet
+Submit,Podnijeti
+Submitted,Prijavljen
+Submitted Record cannot be deleted,Postavio Zapis se ne može izbrisati
+Success,Uspjeh
+Suggestion,Prijedlog
+Sunday,Nedjelja
+Support Email Id,Podrška Email ID
+Sync Inbox,Sync inbox
+System,Sistem
+System Defaults,Sustav Zadano
+System User,Sustav Upute
+Table,Stol
+Table of Contents,Pregled sadržaja
+Tag,Privjesak
+Tag Name,Oznaka Ime
+Tags,Oznake
+Tahoma,Tahoma
+Target,Meta
+Team Members,Članovi tima
+Team Members Heading,Članovi tima Naslov
+Template Path,Put predložak
+Test,Test
+Test Runner,Test Runner
+Text,Tekst
+Text Align,Tekst Poravnajte
+Text Editor,Tekst Editor
+"The ""Web Page"" that is the website home page",&quot;Web stranica&quot; da je stranica web kući
+The name of your company / website as you want to appear on browser title bar. All pages will have this as the prefix to the title.,Naziv tvrtke / web stranice kao što želite da se pojavi na naslovnoj traci preglednika. Sve stranice će imati to kao prefiks na naslov.
+"The system provides pre-defined roles, but you can <a href='#List/Role'>add new roles</a> to set finer permissions","Sustav pruža unaprijed definiranim ulogama, ali možete <a href='#List/Role'>dodati nove uloge</a> postaviti finije dozvole"
+Then By (optional),Zatim Do (opcionalno)
+These properties are Link Type fields from all Documents.,Ta svojstva su Link Tip polja iz svih dokumenata.
+"These properties can also be used to 'assign' a particular document, whose property matches with the User's property to a User. These can be set using the <a href='#permission-manager'>Permission Manager</a>","Ta svojstva se također može koristiti za &#39;dodijeliti&#39; određeni dokument, čija imovina utakmice s Korisničkom imovine korisniku. To se može podesiti pomoću <a href='#permission-manager'>dozvolu Manager</a>"
+These properties will appear as values in forms that contain them.,Ta svojstva će se pojaviti kao vrijednosti u oblicima koji ih sadrže.
+These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,"Ove vrijednosti će se automatski ažuriraju u prometu, te će također biti korisno ograničiti dozvole za ovog korisnika o transakcijama koje sadrže te vrijednosti."
+"This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>
+myfield
+eval:doc.myfield=='My Value'<br>
+eval:doc.age>18",
+This goes above the slideshow.,To ide iznad slideshow.
+This is PERMANENT action and you cannot undo. Continue?,"To je stalna akcija, a ne možete poništiti. Nastaviti?"
+This is permanent action and you cannot undo. Continue?,"To je stalna akcija, a ne možete poništiti. Nastaviti?"
+Thursday,Četvrtak
+Time,Vrijeme
+Time Zone,Time Zone
+Title,Naslov
+Title / headline of your page,Naslov / naslov vaše stranice
+Title Case,Naslov slučaja
+Title Prefix,Naslov Prefiks
+To,Na
+"To format columns, give column labels in the query.","Za formatiranje stupaca, daju natpise stupaca u upitu."
+"To further restrict permissions based on certain values in a document, use the 'Condition' settings.","Kako bi se dodatno ograničiti dozvole na temelju određenih vrijednosti u dokumentu, koristite &#39;stanje&#39; postavke."
+To restrict a User of a particular Role to documents that are explicitly assigned to them,Da biste ograničili korisnik određenu ulogu na dokumente koji su izričito dodijeljene im
+To restrict a User of a particular Role to documents that are only self-created.,Da biste ograničili korisnik određenu ulogu dokumentima koji su samo self-kreirana.
+"To set user roles, just go to <a href='#List/Profile'>Setup > Users</a> and click on the user to assign roles.","Da biste postavili korisničke uloge, samo idite na <a href='#List/Profile'>Postavke&gt; Korisnici</a> i kliknite na korisnika dodijeliti uloge."
+ToDo,ToDo
+Tools,Alat
+Top Bar,Najbolje Bar
+Top Bar Background,Najbolje Bar Pozadina
+Top Bar Item,Najbolje Bar artikla
+Top Bar Items,Top Bar Proizvodi
+Top Bar Text,Top Bar Tekst
+Top Bar text and background is same color. Please change.,Najbolje bar tekst i pozadina iste boje. Molimo promijeniti.
+Total SMS Sent,Ukupno SMS Sent
+Transaction,Transakcija
+Transition Rules,Prijelazna pravila
+Trash Reason,Otpad Razlog
+Tuesday,Utorak
+Tweet will be shared via your user account (if specified),Tweet će se dijeliti putem vašeg korisničkog računa (ako je određeno)
+Twitter Share,Twitter Share
+Twitter Share via,Twitter Podijeli putem
+Type,Vrsta
+UPPER CASE,Velika slova
+UPPERCASE,Velikim slovima
+URL,URL
+Unable to complete request: ,Nije moguće dovršiti zahtjev:
+Unable to load,Nije moguće učitati
+"Unknown file encoding. Tried utf-8, windows-1250, windows-1252.","Nepoznato spis. Pokušao UTF - 8 , Windows 1250, Windows - 1252 ."
+Unread Messages,Nepročitane poruke
+Unsubscribed,Pretplatu
+Upcoming Events for Today,Buduća događanja za danas
+Update,Ažurirati
+Update Field,Update Field
+Update Value,Ažurirajte vrijednost
+Upload,Pošalji
+Upload Attachment,Prenesi Prilog
+Upload a file,Prenesi datoteku
+Upload and Import,Upload i uvoz
+Uploading...,Prijenos ...
+User,Korisnik
+User Cannot Create,Korisnik ne može stvoriti
+User Cannot Search,Korisnik ne može tražiti
+User Image,Upute slike
+User Tags,Upute Tags
+User Type,Vrsta korisnika
+User not allowed to delete.,Korisnik ne smije izbrisati.
+UserRole,UserRole
+Value,Vrijednost
+Value missing for,Vrijednost nestao
+Verdana,Verdana
+Visit,Posjetiti
+Warning,Upozorenje
+Web Content,Web sadržaj
+Web Page,Web stranica
+Website,Website
+Website Overall Settings,Website Ukupni Postavke
+Website Script,Web Skripta
+Website Settings,Website Postavke
+Website Sitemap,web stranica Mapa
+Website Sitemap Config,Web stranica Mapa Config
+Website Slideshow,Web Slideshow
+Website Slideshow Item,Web Slideshow artikla
+Website User,Web User
+Wednesday,Srijeda
+Welcome Email Sent,Dobrodošli E-mail poslan
+"When you <b>Amend</b> a document after cancel and save it, it will get a new number that is a version of the old number.","Kada <b>Izmijeniti</b> dokument nakon otkazati i spasiti ga, on će dobiti novi broj koji je verzija starog broja."
+Width,Širina
+Will be used in url (usually first name).,Hoće li se koristi u URL-u (obično ime).
+Workflow,Workflow
+Workflow Action,Workflow Akcija
+Workflow Action Master,Workflow Akcija Master
+Workflow Action Name,Workflow Akcija Ime
+Workflow Document State,Workflow dokument Država
+Workflow Document States,Workflow dokument Države
+Workflow Name,Workflow ime
+Workflow State,Workflow država
+Workflow State Field,Workflow Državna polja
+Workflow Transition,Tijek tranzicije
+Workflow Transitions,Workflow Prijelazi
+Workflow state represents the current state of a document.,Workflow država predstavlja trenutno stanje dokumenta.
+Workflow will start after saving.,Workflow će početi nakon štednje.
+Write,Pisati
+Write a Python file in the same folder where this is saved and return column and result.,Napišite Python datoteku u istu mapu gdje je spremljena i povratka stupcu i rezultat.
+Write a SELECT query. Note result is not paged (all data is sent in one go).,Napišite SELECT upita. Napomena rezultat nije zvao (svi podaci se šalju u jednom potezu).
+Write titles and introductions to your blog.,Napišite naslova i uvoda u svoj blog.
+Writers Introduction,Pisci Uvod
+Year,Godina
+Yes,Da
+Yesterday,Jučer
+You can set various 'properties' to Users to set default values and apply permission rules based on the value of these properties in various forms.,Možete postaviti različite &#39;Properties&#39; za korisnike postaviti zadane vrijednosti i primjenjivati ​​pravila dozvola na temelju vrijednosti tih svojstava u različitim oblicima.
+You can use <a href='#Form/Customize Form'>Customize Form</a> to set levels on fields.,Možete koristiti <a href='#Form/Customize Form'>Prilagodite obrazac</a> za postavljanje razine na poljima.
+"Your download is being built, this may take a few moments...","Vaš preuzimanje se gradi, to može potrajati nekoliko trenutaka ..."
+[Label]:[Field Type]/[Options]:[Width],[Label]: [Field Type] / [Options]: [Širina]
+add your own CSS (careful!),dodati svoj vlastiti CSS (careful!)
+adjust,prilagoditi
+align-center,poravnajte-centar
+align-justify,poravnajte-opravdati
+align-left,poravnajte-lijevo
+align-right,poravnati desno
+and,i
+arrow-down,strelica prema dolje
+arrow-left,strelica lijevo
+arrow-right,Strelica desno
+arrow-up,strelica prema gore
+asterisk,zvjezdica
+backward,natrag
+ban-circle,zabrana-krug
+barcode,barkod
+bell,zvono
+bold,odvažan
+book,knjiga
+bookmark,bookmark
+briefcase,aktovka
+bullhorn,bullhorn
+calendar,kalendar
+camera,kamera
+cannot be empty,ne može biti prazan
+cannot be in its own,Ne može biti u vlastitu
+"cannot have a URL, because it has child item(s)","ne može imati URL, jer ima dijete stavku (e)"
+cannot start with,Ne mogu početi s
+certificate,certifikat
+check,provjeriti
+chevron-down,Chevron-dolje
+chevron-left,Chevron-lijevo
+chevron-right,Chevron-desno
+chevron-up,Chevron-up
+circle-arrow-down,krug sa strelicom prema dolje
+circle-arrow-left,krug sa strelicom nalijevo
+circle-arrow-right,krug sa strelicom desno
+circle-arrow-up,krug sa strelicom prema gore
+cog,vršak
+comment,komentirati
+comments,komentari
+create a Custom Field of type Link (Profile) and then use the 'Condition' settings to map that field to the Permission rule.,"stvoriti Custom Field tipa Link (Profil), a zatim koristiti &#39;stanje&#39; postavke na karti koje polje na dozvole vladavine."
+dd-mm-yyyy,dd-mm-yyyy
+dd/mm/yyyy,dd / mm / gggg
+does not exist,ne postoji
+download,preuzimanje
+download-alt,download-alt
+edit,urediti
+eject,izbaciti
+envelope,omotnica
+exclamation-sign,usklik-znak
+eye-close,oka u blizini
+eye-open,oku-otvaranje
+facetime-video,FaceTime-video
+fast-backward,brzo unatrag
+fast-forward,brzo naprijed
+file,file
+film,film
+filter,filtriranje
+fire,vatra
+flag,zastava
+folder-close,mapa-blizu
+folder-open,mapa otvoriti
+font,krstionica
+forward,naprijed
+found,nađen
+fullscreen,fullscreen
+gift,dar
+glass,staklo
+globe,globus
+hand-down,rukom prema dolje
+hand-left,ruka-lijeva
+hand-right,ruka-desna
+hand-up,ruka-up
+hdd,HDD
+headphones,slušalice
+heart,srce
+home,dom
+icon,ikona
+in,u
+inbox,inbox
+indent-left,alineje-lijevo
+indent-right,alineje-desno
+info-sign,info-znak
+is linked in,je povezan u
+is not allowed.,nije dopušteno.
+italic,kurzivan
+leaf,list
+list,popis
+list-alt,popis-alt
+lock,zaključati
+lowercase,malim slovima
+magnet,magnet
+map-marker,Karta marker
+minus,minus
+minus-sign,minus znak
+mm-dd-yyyy,dd-mm-yyyy
+mm/dd/yyyy,dd / mm / gggg
+move,premjestiti
+music,glazba
+not in,nije u
+of type Link,tipa Link
+off,isključen
+ok,u redu
+ok-circle,ok-krug
+ok-sign,ok-prijava
+or,ili
+pause,stanka
+pencil,olovka
+picture,slika
+plane,avion
+play,igrati
+play-circle,play-krug
+plus,plus
+plus-sign,plus-potpisati
+print,tiskati
+qrcode,qrcode
+question-sign,pitanje-prijava
+random,slučajan
+refresh,osvježiti
+remove,ukloniti
+remove-circle,uklanjanje-krug
+remove-sign,uklanjanje-potpisati
+repeat,ponoviti
+resize-full,resize-pun
+resize-horizontal,resize-horizontalna
+resize-small,resize-mala
+resize-vertical,resize-vertikalna
+retweet,retweet
+road,cesta
+screenshot,slike
+search,traženje
+share,udio
+share-alt,Udio-alt
+shopping-cart,shopping-cart
+signal,signal
+star,zvijezda
+star-empty,zvijezda-prazna
+step-backward,korak unatrag
+step-forward,korak naprijed
+stop,zaustaviti
+tag,privjesak
+tags,oznake
+"target = ""_blank""",target = &quot;_blank&quot;
+tasks,zadaci
+text-height,tekst-visina
+text-width,tekst širine
+th,og
+th-large,og veliki
+th-list,og-popis
+thumbs-down,palac dolje
+thumbs-up,palac gore
+time,vrijeme
+tint,nijansa
+to,na
+trash,smeće
+upload,upload
+user,korisnik
+user_image_show,user_image_show
+values and dates,Vrijednosti i datumi
+volume-down,glasnoće prema dolje
+volume-off,volumen-off
+volume-up,glasnoće prema gore
+warning-sign,upozorenje-znak
+wrench,ključ
+yyyy-mm-dd,gggg-mm-dd
+zoom-in,zoom-u
+zoom-out,zoom-out

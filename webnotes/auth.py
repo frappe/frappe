@@ -48,15 +48,14 @@ class HTTPRequest:
 
 		# run login triggers
 		if webnotes.form_dict.get('cmd')=='login':
-			webnotes.local.login_manager.run_trigger('on_login_post_session')
+			webnotes.local.login_manager.run_trigger('on_session_creation')
 
 		# write out cookies
 		webnotes.local.cookie_manager.set_cookies()
 
 	def set_lang(self, lang):
 		import translate
-		lang_list = translate.get_lang_dict()
-		lang_list = lang_list and lang_list.values() or []
+		lang_list = translate.get_all_languages() or []
 
 		if not lang: 
 			return
@@ -114,7 +113,7 @@ class LoginManager:
 			webnotes._response.set_cookie("user_id", self.user)
 
 	def post_login(self):
-		self.run_trigger()
+		self.run_trigger('on_login')
 		self.validate_ip_address()
 		self.validate_hour()
 	
@@ -149,15 +148,8 @@ class LoginManager:
 		
 	
 	def run_trigger(self, method='on_login'):
-		try:
-			from startup import event_handlers
-			if hasattr(event_handlers, method):
-				getattr(event_handlers, method)(self)
-		except ImportError, e:
-			pass
-			
-		cp = webnotes.bean("Control Panel", "Control Panel")
-		cp.run_method(method)
+		for method in webnotes.get_hooks().get("method", []):
+			webnotes.get_attr(method)(self)
 	
 	def validate_ip_address(self):
 		"""check if IP Address is valid"""

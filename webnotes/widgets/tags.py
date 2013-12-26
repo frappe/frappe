@@ -25,7 +25,6 @@ Design:
 """
 
 import webnotes
-from webnotes.utils import load_json
 
 def check_user_tags(dt):
 	"if the user does not have a tags column, then it creates one"

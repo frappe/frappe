@@ -58,9 +58,9 @@ def uploadfile():
 				webnotes.conn.rollback()
 		else:
 			if webnotes.form_dict.get('method'):
-				ret = webnotes.get_method(webnotes.form_dict.method)()
+				ret = webnotes.get_attr(webnotes.form_dict.method)()
 	except Exception, e:
-		webnotes.errprint(webnotes.utils.getTraceback())
+		webnotes.errprint(webnotes.utils.get_traceback())
 		ret = None
 
 	return ret
@@ -77,16 +77,16 @@ def handle():
 		try:
 			execute_cmd(cmd)
 		except webnotes.ValidationError, e:
-			webnotes.errprint(webnotes.utils.getTraceback())
+			webnotes.errprint(webnotes.utils.get_traceback())
 			if webnotes.request_method == "POST":
 				webnotes.conn.rollback()
 		except webnotes.PermissionError, e:
-			webnotes.errprint(webnotes.utils.getTraceback())
+			webnotes.errprint(webnotes.utils.get_traceback())
 			webnotes.response['403'] = 1
 			if webnotes.request_method == "POST":
 				webnotes.conn.rollback()
 		except:
-			webnotes.errprint(webnotes.utils.getTraceback())
+			webnotes.errprint(webnotes.utils.get_traceback())
 			if webnotes.request_method == "POST":
 				webnotes.conn and webnotes.conn.rollback()
 
@@ -102,7 +102,7 @@ def handle():
 
 def execute_cmd(cmd):
 	"""execute a request as python module"""
-	method = get_method(cmd)
+	method = get_attr(cmd)
 
 	# check if whitelisted
 	if webnotes.session['user'] == 'Guest':
@@ -122,7 +122,8 @@ def execute_cmd(cmd):
 		webnotes.response['message'] = ret
 
 	# update session
-	webnotes.local.session_obj.update()
+	if "session_obj" in webnotes.local:
+		webnotes.local.session_obj.update()
 
 
 def call(fn, args):
@@ -139,10 +140,10 @@ def call(fn, args):
 			newargs[a] = args.get(a)
 	return fn(**newargs)
 
-def get_method(cmd):
+def get_attr(cmd):
 	"""get method object from cmd"""
 	if '.' in cmd:
-		method = webnotes.get_method(cmd)
+		method = webnotes.get_attr(cmd)
 	else:
 		method = globals()[cmd]
 	webnotes.log("method:" + cmd)

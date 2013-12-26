@@ -1,0 +1,1073 @@
+ by Role ,โดยบทบาท
+ can not be marked as a ledger as it has existing child,ไม่สามารถทำเครื่องหมายเป็นบัญ​​ชีแยกประเภทตามที่มีเด็กที่มีอยู่
+ cannot be deleted.,ไม่สามารถลบได้
+ is not set,ไม่ได้ตั้งค่า
+"""Company History""",&quot;ประวัติ บริษัท &quot;
+"""Team Members"" or ""Management""",&quot;สมาชิกทีม&quot; หรือ &quot;จัดการ&quot;
+0,0
+"000 is black, fff is white",000 เป็นสีดำเป็นสีขาว fff
+1,1
+12px,12px
+13px,13px
+14px,14px
+15px,15px
+16px,16px
+2,2
+2 days ago,2 วันที่ผ่านมา
+"<a onclick=""msgprint('<ol>\
+<li><b>field:[fieldname]</b> - By Field\
+<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\
+<li><b>Prompt</b> - Prompt user for a name\
+<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\
+</ol>')"">Naming Options</a>",
+<b>Cancel</b> allows you change Submitted documents by cancelling them and amending them.,<b>ช่วยให้คุณสามารถยกเลิกการเปลี่ยนแปลงเอกสารที่ยื่นโดยการยกเลิกพวกเขาและพวกเขาแก้</b>
+A new popup will open that will ask you to select further conditions.,ป๊อปอัพใหม่จะเปิดที่จะขอให้คุณเลือกเงื่อนไขเพิ่มเติม
+A user can have multiple values for a property.,ผู้ใช้สามารถมีค่าหลายค่าสำหรับสถานที่ให้บริการ
+About,เกี่ยวกับ
+About Us Settings,เกี่ยวกับการตั้งค่าเรา
+About Us Team Member,เกี่ยวกับสมาชิกในทีมเรา
+Account Id,หมายเลขบัญชีที่
+Action,การกระทำ
+Actions,การปฏิบัติ
+Add,เพิ่ม
+Add A New Rule,เพิ่มกฎใหม่
+Add A Property,เพิ่มสถานที่ให้บริการ
+Add Attachments,เพิ่มสิ่งที่แนบ
+Add Bookmark,เพิ่มบุ๊คมาร์ค
+Add CSS,เพิ่ม CSS
+Add Column,เพิ่มคอลัมน์
+Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,เพิ่ม Google Analytics ID: เช่น UA-89XXX57-1 กรุณาค้นหาความช่วยเหลือใน Google Analytics สำหรับข้อมูลเพิ่มเติม
+Add Message,เพิ่มข้อความ
+Add New Permission Rule,เพิ่มกฎการอนุญาตใหม่
+Add Reply,เพิ่มตอบ
+Add Total Row,เพิ่มแถวผลรวม
+Add a banner to the site. (small banners are usually good),เพิ่มแบนเนอร์ไปยังเว็บไซต์ (ป้ายขนาดเล็กมักจะดี)
+Add attachment,เพิ่มสิ่งที่แนบมา
+Add code as &lt;script&gt;,เพิ่มรหัสเป็น &lt;script&gt;
+Add new row,เพิ่มแถวใหม่
+"Add the name of <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> e.g. ""Open Sans""","เพิ่มชื่อของ <a href=""http://google.com/webfonts"" target=""_blank"">Google Font เว็บ</a> เช่น &quot;Sans เปิด&quot;"
+Add to To Do,เพิ่มสิ่งที่ต้องทำ
+Add to To Do List of,เพิ่มไป To Do List ของ
+Additional Info,ข้อมูลเพิ่มเติม
+Address,ที่อยู่
+Address and other legal information you may want to put in the footer.,ที่อยู่และข้อมูลทางกฎหมายอื่น ๆ ที่คุณอาจต้องการที่จะนำในส่วนท้าย
+Address to be displayed on the Contact Page,ที่อยู่ที่จะปรากฏบนหน้าติดต่อ
+Adds a custom field to a DocType,เพิ่มเขตข้อมูลที่กำหนดเองเพื่อ DocType
+Adds a custom script (client or server) to a DocType,เพิ่มสคริปต์ที่กำหนดเอง (ไคลเอ็นต์หรือเซิร์ฟเวอร์) เพื่อ DocType
+Advanced Scripting,การเขียนสคริปต์ขั้นสูง
+Advanced Settings,ตั้งค่าขั้นสูง
+All Day,วันทั้งหมด
+"All possible Workflow States and roles of the workflow. <br>Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""","ทุกประเทศที่เป็นไปได้เวิร์กโฟลว์และบทบาทของเวิร์กโฟลว์ <br> Docstatus ตัวเลือก: 0 ถูก &quot;บันทึก&quot;, 1 คือ &quot;Submitted&quot; และ 2 คือ &quot;ยกเลิก&quot;"
+Allow Attach,อนุญาตให้แนบ
+Allow Import,อนุญาตให้นำเข้า
+Allow Import via Data Import Tool,อนุญาตให้นำเข้าได้ดูผ่านเครื่องมือนำเข้าข้อมูล
+Allow Rename,อนุญาตให้เปลี่ยนชื่อ
+Allow on Submit,อนุญาตให้ส่ง
+Allow user to login only after this hour (0-24),อนุญาตให้ผู้ใช้เข้าสู่ระบบเท่านั้นหลังจากชั่วโมงนี้ (0-24)
+Allow user to login only before this hour (0-24),อนุญาตให้ผู้ใช้เข้าสู่ระบบก่อนที่จะชั่วโมงนี้ (0-24)
+Allowed,อนุญาต
+Already Registered,ลงทะเบียนเรียบร้อยแล้ว
+Amend,แก้ไข
+"An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [<a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a>]","file icon มี. ขยาย ICO ควรจะขนาด 16 x 16 px สร้างขึ้นโดยใช้เครื่องกำเนิดไฟฟ้า favicon [ <a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a> ]"
+Are you sure you want to delete the attachment?,คุณแน่ใจหรือว่าต้องการลบสิ่งที่แนบมา?
+Arial,Arial
+"As a best practice, do not assign the same set of permission rule to different Roles instead set multiple Roles to the User",เป็นวิธีที่ดีที่สุดไม่ได้กำหนดชุดเดียวกันของกฎอนุญาตให้บทบาทที่แตกต่างกันแทนที่จะตั้งหลายบทบาทให้กับผู้ใช้
+Ascending,Ascending
+Assign To,กำหนดให้
+Assigned By,ได้รับมอบหมายจาก
+Assigned To,มอบหมายให้
+Assigned To/Owner,มอบหมายให้ / เจ้าของ
+Attach,แนบ
+Attach Document Print,แนบเอกสารพิมพ์
+Attach as web link,แนบ เป็นลิงค์ เว็บ
+Attached To DocType,ที่แนบมากับ DOCTYPE
+Attached To Name,ที่แนบมากับชื่อ
+Attachments,สิ่งที่แนบมา
+Attributions,เหตุผล
+Auto Name,ชื่ออัตโนมัติ
+Auto generated,ออโต้สร้าง
+Avatar,Avatar
+Background Color,สีพื้นหลัง
+Background Image,ภาพพื้นหลัง
+Banner,ธง
+Banner HTML,HTML แบนเนอร์
+Banner Image,ภาพแบนเนอร์
+Banner is above the Top Menu Bar.,แบนเนอร์บนแถบเมนูด้านบน
+Begin this page with a slideshow of images,เริ่มต้นหน้านี้ให้กับสไลด์โชว์จากภาพ
+Belongs to,เป็นของ
+Bio,ไบโอ
+Birth Date,วันเกิด
+Blog Category,หมวดหมู่บล็อก
+Blog Intro,แนะนำบล็อก
+Blog Introduction,แนะนำบล็อก
+Blog Post,โพสต์บล็อก
+Blog Settings,การตั้งค่าบล็อก
+Blog Title,หัวข้อบล็อก
+Blogger,Blogger
+Bookmarks,ที่คั่นหน้า
+Brand HTML,HTML ยี่ห้อ
+"Brand is what appears on the top-right of the toolbar. If it is an image, make sure it
+has a transparent background and use the &lt;img /&gt; tag. Keep size as 200px x 30px",
+Bulk Email,อีเมล์ขยะ
+Bulk Email records.,บันทึกอีเมล์ขยะ
+Button,ปุ่ม
+By,โดย
+COMM-,COMM-
+CSS,CSS
+Calendar,ปฏิทิน
+Can only be exported by users with role 'Report Manager',สามารถส่งออกโดยผู้ใช้ที่มี &#39;จัดการรายงานบทบาท
+Cancel,ยกเลิก
+Cancel permission also allows the user to delete a document (if it is not linked to any other document).,ได้รับอนุญาตยกเลิกยังช่วยให้ผู้ใช้สามารถลบเอกสาร (ถ้ายังไม่ได้เชื่อมโยงกับเอกสารอื่น)
+Cancelled,ยกเลิก
+Cannot Update: Incorrect / Expired Link.,ไม่สามารถ อัปเดต : ไม่ถูกต้อง Link / หมดอายุ
+Cannot Update: Incorrect Password,ไม่สามารถ อัปเดต : รหัสผ่าน ไม่ถูกต้อง
+Cannot change from,ไม่สามารถเปลี่ยนจาก
+Cannot edit standard fields,ไม่สามารถแก้ไข เขตข้อมูลมาตรฐาน
+Cannot map because following condition fails: ,ไม่สามารถ map เพราะเงื่อนไขดังต่อไปนี้ล้มเหลว:
+"Cannot update a non-exiting record, try inserting.",ไม่สามารถปรับปรุงการบันทึก ที่ไม่ ออก ให้ลอง ใส่
+Categorize blog posts.,แบ่งหมวดหมู่ของบล็อกโพสต์
+Category,หมวดหมู่
+Category Name,ชื่อหมวดหมู่
+Center,ศูนย์
+"Certain documents should not be changed once final, like an Invoice for example. The final state for such documents is called <b>Submitted</b>. You can restrict which roles can Submit.",เอกสารบางอย่างไม่ควรจะมีการเปลี่ยนแปลงครั้งสุดท้ายเช่นใบแจ้งหนี้สำหรับตัวอย่าง รัฐสุดท้ายสำหรับเอกสารดังกล่าวเรียกว่า <b>Submitted</b> คุณสามารถ จำกัด การซึ่งสามารถส่งบทบาท
+Chat,พูดคุย
+Check,ตรวจสอบ
+Check / Uncheck roles assigned to the Profile. Click on the Role to find out what permissions that Role has.,ตรวจสอบ / บทบาทที่กำหนดให้ยกเลิกการเลือกรายละเอียด คลิกที่บทบาทเพื่อหาสิ่งที่สิทธิ์บทบาทที่ได้
+Check this to make this the default letter head in all prints,ตรวจสอบนี้จะทำให้เรื่องนี้หัวจดหมายเริ่มต้นในการพิมพ์ทั้งหมด
+Checked,ถูกตรวจสอบ
+Child Tables are shown as a Grid in other DocTypes.,ตารางเด็กจะปรากฏเป็นเส้นตารางใน doctypes อื่น ๆ
+Clear Cache & Refresh,ล้างแคช &amp; รีเฟรช
+Click on button in the 'Condition' column and select the option 'User is the creator of the document',คลิกที่ปุ่มใน &#39;สภาพ&#39; คอลัมน์และเลือกตัวเลือก &#39;ผู้ใช้เป็นผู้สร้างเอกสาร&#39;
+Click on row to edit.,คลิกที่ แถว ที่จะแก้ไข
+Click to Expand / Collapse,คลิกที่นี่เพื่อขยาย / ยุบ
+Client,ลูกค้า
+Close,ปิด
+Code,รหัส
+Color,สี
+Column Break,ตัวแบ่งคอลัมน์
+Comment,ความเห็น
+Comment By,ความคิดเห็นที่
+Comment By Fullname,ความคิดเห็นที่ Fullname
+Comment Date,ความคิดเห็นวันที่
+Comment Docname,ความคิดเห็น Docname
+Comment Doctype,ความคิดเห็น DOCTYPE
+Comment Time,ความคิดเห็นเวลา
+Comments,ความเห็น
+Communication,การสื่อสาร
+Communication Medium,กลางการสื่อสาร
+Company History,ประวัติ บริษัท
+Company Introduction,แนะนำ บริษัท
+Company Name,ชื่อ บริษัท
+Complaint,การร้องเรียน
+Complete By,เสร็จสมบูรณ์โดย
+Condition Field,สภาพ สนาม
+Contact Us Settings,ติดต่อเราตั้งค่า
+"Contact options, like ""Sales Query, Support Query"" etc each on a new line or separated by commas.",ตัวเลือกการติดต่อเช่น &quot;แบบสอบถามขายการสนับสนุนแบบสอบถาม&quot; ฯลฯ แต่ละบรรทัดใหม่หรือคั่นด้วยเครื่องหมายจุลภาค
+Content,เนื้อหา
+Content in markdown format that appears on the main side of your page,เนื้อหาในรูปแบบ markdown ซึ่งปรากฏบนด้านหลักของหน้าเว็บของคุณ
+Content web page.,หน้าเว็บเนื้อหา
+Control Panel,แผงควบคุม
+Controller,ตัวควบคุม
+Copy,คัดลอก
+Copyright,ลิขสิทธิ์
+Core,แกน
+Count,นับ
+Country,ประเทศ
+Create,สร้าง
+Created Customer Issue,ปัญหาของลูกค้าที่สร้างไว้
+Created Opportunity,สร้างโอกาส
+Created Support Ticket,ตั๋วสนับสนุนสร้าง
+Currency,เงินตรา
+Currency Format,รูปแบบสกุลเงิน
+Current status,สถานะปัจจุบัน
+Custom CSS,CSS ที่กำหนดเอง
+Custom Field,ฟิลด์ที่กำหนดเอง
+Custom Reports,รายงานที่กำหนดเอง
+Custom Script,สคริปต์ที่กำหนดเอง
+Custom Startup Code,รหัสเริ่มต้นที่กำหนดเอง
+Custom?,กำหนดเองได้อย่างไร
+Customize,ปรับแต่ง
+Customize Form,ปรับแต่งรูปแบบ
+Customize Form Field,กำหนดเขตข้อมูลฟอร์ม
+"Customize Label, Print Hide, Default etc.","กำหนด Label, ซ่อนพิมพ์ ฯลฯ เริ่มต้น"
+Daily Event Digest is sent for Calendar Events where reminders are set.,ประจำวันเหตุการณ์สำคัญจะถูกส่งสำหรับปฏิทินเหตุการณ์การแจ้งเตือนที่มีการตั้งค่า
+Danger,อันตราย
+Data,ข้อมูล
+Data missing in table,ข้อมูลที่หายไปในตาราง
+Date,วันที่
+Date Format,รูปแบบวันที่
+Date must be in format,วันที่จะต้องอยู่ในรูปแบบ
+Datetime,datetime
+Dear,น่ารัก
+Default,ผิดนัด
+Default Home Page,หน้าแรกเริ่มต้น
+Default Home Pages,หน้าแรกเริ่มต้น
+Default Print Format,รูปแบบการพิมพ์เริ่มต้น
+Default Value,ค่าเริ่มต้น
+"Default: ""Contact Us""",เริ่มต้น: &quot;ติดต่อเรา&quot;
+DefaultValue,เริ่มต้น
+Defaults,เริ่มต้น
+Defines actions on states and the next step and allowed roles.,กำหนดดำเนินการกับรัฐและขั้นตอนต่อไปและบทบาทอนุญาต
+Defines workflow states and rules for a document.,กำหนดรัฐเวิร์กโฟลว์และกฎระเบียบสำหรับเอกสาร
+Delete,ลบ
+Delete Row,ลบแถว
+Depends On,ขึ้นอยู่กับ
+Descending,น้อย
+Description,ลักษณะ
+"Description for listing page, in plain text, only a couple of lines. (max 140 characters)",คำอธิบายสำหรับหน้าแสดงรายการในข้อความธรรมดาเพียงคู่สาย (สูงสุด 140 ตัวอักษร)
+Description for page header.,คำอธิบายสำหรับส่วนหัวของหน้า
+Desktop,สก์ท็อป
+Details,รายละเอียด
+Did not add.,ไม่ได้เพิ่ม
+Did not cancel,ไม่ได้ยกเลิก
+Did not save,ไม่ได้บันทึก
+"Different ""States"" this document can exist in. Like ""Open"", ""Pending Approval"" etc.","ที่แตกต่างกัน &quot;รัฐ&quot; เอกสารนี้สามารถอยู่มาชอบ &quot;เปิด&quot;, &quot;รอการอนุมัติ&quot; ฯลฯ"
+Disable Customer Signup link in Login page,ปิดการใช้งานของลูกค้าที่ลิงค์สมัครสมาชิกในหน้าเข้าสู่ระบบ
+Disable Signup,ปิดการใช้งานลงทะเบียน
+Disabled,พิการ
+Display Settings,แสดงการตั้งค่า
+Doc Status,สถานะ Doc
+DocField,DocField
+DocPerm,DocPerm
+DocType,DOCTYPE
+DocType Details,รายละเอียด DocType
+DocType can not be merged,DocType ไม่สามารถ รวม
+DocType is a Table / Form in the application.,DocType เป็นตาราง / แบบฟอร์มในใบสมัคร
+DocType on which this Workflow is applicable.,DOCTYPE ที่เวิร์กโฟลว์นี้ใช้ได้
+DocType or Field,DocType หรือสาขา
+Docname,docName
+Document,เอกสาร
+Document Status transition from ,การเปลี่ยนแปลงสถานะเอกสารจาก
+Document Type,ประเภทเอกสาร
+Document Types,ประเภท เอกสาร
+Document is only editable by users of role,เอกสารเป็นเพียงแก้ไขได้โดยผู้ใช้ของบทบาท
+Documents,เอกสาร
+Download Backup,ดาวน์โหลดสำรอง
+Draft,ร่าง
+Drafts,ร่าง
+Drag to sort columns,ลากเพื่อเรียงลำดับคอลัมน์
+Edit,แก้ไข
+Editable,ที่สามารถแก้ไขได้
+Email,อีเมล์
+Email Host,โฮสต์อีเมล์
+Email Id where users will send support request e.g. support@example.com,Email รหัส ที่ผู้ใช้ จะส่ง ขอความช่วยเหลือ เช่น support@example.com
+Email Login,เข้าสู่ระบบอีเมล์
+Email Password,รหัสผ่าน Email
+Email Sent,อีเมลที่ส่ง
+Email Settings,การตั้งค่าอีเมล
+Email Signature,ลายเซ็นอีเมล
+Email Use SSL,ส่งอีเมลใช้ SSL
+"Email addresses, separted by commas","ที่อยู่อีเมล, separted ด้วยเครื่องหมายจุลภาค"
+Email...,อีเมล์ ...
+Embed image slideshows in website pages.,ฝังภาพสไลด์ภาพในหน้าเว็บไซต์
+Enable Comments,ให้ ความเห็น
+Enabled,เปิดการใช้งาน
+Ends on,สิ้นสุด
+Enter Form Type,ป้อนประเภทแบบฟอร์ม
+"Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set ""match"" permission rules. To see list of fields, go to <a href=""#Form/Customize Form/Customize Form"">Customize Form</a>.","ใส่เขตข้อมูลค่าเริ่มต้น (คีย์) และค่า ถ้าคุณเพิ่มค่าหลายค่าสำหรับเขตที่คนแรกที่จะถูกเลือก เริ่มต้นเหล่านี้ยังใช้ในการตั้งค่า &quot;การแข่งขัน&quot; กฎอนุญาต เพื่อดูรายชื่อของเขตข้อมูลไป <a href=""#Form/Customize Form/Customize Form"">กำหนดรูปแบบ</a> ."
+Equals,เท่ากับ
+Error,ความผิดพลาด
+Error: Document has been modified after you have opened it,ข้อผิดพลาด: เอกสารได้รับการแก้ไขหลังจากที่คุณได้เปิดมัน
+Event,เหตุการณ์
+Event End must be after Start,สุดท้ายเหตุการณ์จะต้องหลังจากที่เริ่มต้น
+Event Individuals,บุคคลเหตุการณ์
+Event Role,บทบาทเหตุการณ์
+Event Roles,บทบาทเหตุการณ์
+Event Type,ชนิดเหตุการณ์
+Event User,ผู้ใช้งาน
+Events In Today's Calendar,เหตุการณ์ในปฏิทินของวันนี้
+Every Day,ทุกวัน
+Every Month,ทุกเดือน
+Every Week,ทุกสัปดาห์
+Every Year,ทุกปี
+Example:,ตัวอย่าง:
+Export,ส่งออก
+Facebook Share,Facebook แบ่งปัน
+FavIcon,favicon
+Female,หญิง
+Field Description,ฟิลด์คำอธิบาย
+Field Name,ชื่อเขต
+Field Type,ฟิลด์ชนิด
+"Field that represents the Workflow State of the transaction (if field is not present, a new hidden Custom Field will be created)",สนามที่แสดงถึงรัฐเวิร์กโฟลว์ของการทำธุรกรรม (ถ้าเขตข้อมูลไม่ใช่ปัจจุบันฟิลด์ที่กำหนดเองใหม่ซ่อนจะถูกสร้างขึ้น)
+Fieldname,fieldname
+Fields,สาขา
+"Fields separated by comma (,) will be included in the<br /><b>Search By</b> list of Search dialog box","เขตคั่นด้วยเครื่องหมายจุลภาค (,) จะรวมอยู่ใน <br /> <b>ค้นหาตามรายชื่อของกล่องโต้ตอบค้นหา</b>"
+File,ไฟล์
+File Data,แฟ้มข้อมูล
+File Name,ชื่อไฟล์
+File Size,ขนาดไฟล์
+File URL,ไฟล์ URL
+File size exceeded the maximum allowed size,ขนาดไฟล์เกินขนาดสูงสุดที่อนุญาตให้
+Filter,กรอง
+Finder,Finder
+First Name,ชื่อแรก
+Float,ลอย
+Font (Heading),แบบอักษร (หนังสือ)
+Font (Text),แบบอักษร (ข้อความ)
+Font Size (Text),ขนาดแบบอักษร (ข้อความ)
+Fonts,แบบอักษร
+Footer,ส่วนท้าย
+Footer Items,รายการส่วนท้าย
+For All Users,สำหรับผู้ใช้ทั้งหมด
+For DocType,สำหรับ DocType
+"For Links, enter the DocType as range
+For Select, enter list of Options separated by comma",
+"For comparative filters, start with",สำหรับตัวกรองเปรียบเทียบเริ่มต้นด้วย
+For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,ตัวอย่างเช่นถ้าคุณยกเลิกและแก้ไข &#39;INV004&#39; มันจะกลายเป็นเอกสารใหม่ &#39;INV004-1&#39; นี้จะช่วยให้คุณสามารถติดตามการแก้ไขแต่ละ
+For example: You want to restrict users to transactions marked with a certain property called 'Territory',ตัวอย่างเช่นคุณต้องการ จำกัด ผู้ใช้กับการทำธุรกรรมที่มีเครื่องหมายคุณสมบัติบางอย่างที่เรียกว่า &#39;พื้นที่&#39;
+For ranges,สำหรับช่วง
+Form,ฟอร์ม
+"Format: hh:mm example for one hour expiry set as 01:00. 
+Max expiry will be 72 hours. Default is 24 hours",
+Forward To Email Address,ไปข้างหน้า เพื่อ ที่อยู่อีเมล์
+Friday,วันศุกร์
+From Date must be before To Date,นับ แต่วันที่ต้องอยู่ก่อนวันที่ต้องการ
+Full Name,ชื่อเต็ม
+Gantt Chart,แผนภูมิแกนต์
+Gender,เพศ
+General,ทั่วไป
+Generator,เครื่องกำเนิดไฟฟ้า
+Georgia,จอร์เจีย
+Get,ได้รับ
+Get From ,ได้รับจาก
+"Go to Setup > <a href='#user-properties'>User Properties</a> to set \
+			'territory' for diffent Users.",
+Google Analytics ID,ID ของ Google Analytics
+Google Plus One,Google Plus One
+Google Web Font (Heading),Google เว็บแบบอักษร (หนังสือ)
+Google Web Font (Text),Google เว็บแบบอักษร (ข้อความ)
+Greater or equals,ที่มากกว่าหรือ เท่ากับ
+Greater than,ที่ยิ่งใหญ่กว่า
+Groups,กลุ่ม
+HTML,HTML
+Header,ส่วนหัว
+Heading,หัวเรื่อง
+Heading Text As,ในฐานะที่เป็นหัวเรื่องข้อความ
+Help,ช่วย
+Helvetica Neue,Neue Helvetica
+Hey! There should remain at least one System Manager,Hey! ควรมีตัวจัดการระบบยังคงอยู่อย่างน้อยหนึ่ง
+Hidden,ซ่อน
+Hide Actions,ซ่อนการดำเนินการ
+Hide Copy,ซ่อนคัดลอก
+Hide Email,ซ่อนอีเมล์
+Hide Heading,ซ่อนหัวเรื่อง
+Hide Print,ซ่อนพิมพ์
+Hide Toolbar,ซ่อนแถบเครื่องมือ
+Highlight,เน้น
+History,ประวัติศาสตร์
+Home Page,หน้าแรก
+Home Page is Products,หน้าแรกคือผลิตภัณฑ์
+Home Pages,หน้าแรก
+ID,ID
+ID (name) of the entity whose property is to be set,ID (ชื่อ) ของกิจการที่มีสถานที่ให้บริการจะถูกกำหนด
+Icon,ไอคอน
+Icon will appear on the button,ไอคอนจะปรากฏบนปุ่ม
+"If a User does not have access at Level 0, then higher levels are meaningless","หากผู้ใช้ไม่สามารถเข้าถึงที่ระดับ 0, ระดับที่สูงขึ้นแล้วมีความหมาย"
+"If checked, all other workflows become inactive.",หากตร​​วจสอบทุกขั้นตอนการทำงานอื่น ๆ เป็นที่รอ
+"If checked, the Home page will be the default Item Group for the website.",หากการตรวจสอบหน้าแรกจะเริ่มต้นกลุ่มสินค้าสำหรับเว็บไซต์
+"If image is selected, color will be ignored (attach first)",หากภาพถูกเลือกสีจะถูกละเว้น (แนบแรก)
+"If not, create a",ถ้าไม่สร้าง
+"If the 'territory' Link Field exists, it will give you an option to select it",ถ้าฟิลด์ &#39;ดินแดน&#39; แล้วก็จะให้คุณเลือกที่จะเลือก
+"If these instructions where not helpful, please add in your suggestions at <a href='https://github.com/webnotes/wnframework/issues'>GitHub Issues</a>",ถ้า คำแนะนำเหล่านี้ ที่ ไม่เป็นประโยชน์ โปรดเพิ่ม ใน คำแนะนำของคุณ ที่ href='https://github.com/webnotes/wnframework/issues'> <a GitHub ปัญหา </ a>
+"If you set this, this Item will come in a drop-down under the selected parent.",ถ้าคุณตั้งค่า นี้ รายการ นี้ จะมาในแบบเลื่อนลง ภายใต้การ ปกครอง ที่เลือก
+Image,ภาพ
+Image Link,ลิงก์รูปภาพ
+Import,นำเข้า
+In,ใน
+In Dialog,ในกล่องโต้ตอบ
+In Filter,กรอง
+In List View,ในมุมมองรายการ
+In Report Filter,ในรายงานกรอง
+In response to,ในการตอบสนองต่อ
+"In the Permission Manager, click on the button in the 'Condition' column for the Role you want to restrict.",ในตัวจัดการการอนุญาตให้คลิกที่ปุ่มใน &#39;สภาพ&#39; คอลัมน์บทบาทที่คุณต้องการ จำกัด
+Index,ดัชนี
+Individuals,บุคคล
+Industry,อุตสาหกรรม
+Info,ข้อมูล
+Insert After,ใส่หลังจาก
+Insert Below,ใส่ด้านล่าง
+Insert Code,ใส่รหัส
+Insert Row,ใส่แถวของ
+Insert Style,ใส่สไตล์
+Int,int
+Integrations,Integrations
+Introduce your company to the website visitor.,แนะนำ บริษัท ของคุณเพื่อเข้าชมเว็บไซต์
+Introduction,การแนะนำ
+Introductory information for the Contact Us Page,ข้อมูลเบื้องต้นสำหรับการติดต่อเราหน้า
+Invalid Email,อีเมล์ที่ไม่ถูกต้อง
+Inverse,ผกผัน
+Is Active,มีการใช้งาน
+Is Child Table,เป็นตารางเด็ก
+Is Default,เป็นค่าเริ่มต้น
+Is Mandatory Field,เขตบังคับเป็น
+Is Single,เป็นโสด
+Is Standard,เป็นมาตรฐาน
+Is Submittable,เป็น Submittable
+JSON,JSON
+JavaScript Format: wn.query_reports['REPORTNAME'] = {},รูปแบบ JavaScript : wn.query_reports [ 'ชื่อรายงาน ] = { }
+Javascript,javascript
+Javascript to append to the head section of the page.,จาวาสคริปต์เพื่อผนวกกับส่วนหัวของหน้า
+Keep a track of all communications,ติดตามการติดต่อสื่อสารทั้งหมด
+Key,คีย์
+Label,ฉลาก
+Label Help,ช่วยเหลือฉลาก
+Lacs,Lacs
+Landing Page,หน้า Landing Page
+Language,ภาษา
+Language preference for user interface (only if available).,การตั้งค่าภาษาสำหรับส่วนติดต่อผู้ใช้ (เฉพาะถ้ามี)
+Last IP,IP สุดท้าย
+Last Login,เข้าสู่ระบบล่าสุด
+Last Name,นามสกุล
+Last updated by,ปรับปรุง ครั้งล่าสุดโดย
+Lastmod,lastmod
+Lato,lato
+Leave blank to repeat always,ปล่อยว่าง ที่จะทำซ้ำ เสมอ
+Left,ซ้าย
+Less or equals,น้อยกว่าหรือ เท่ากับ
+Less than,น้อยกว่า
+Letter Head,หัวจดหมาย
+Letter Head Image,รูปภาพหัวจดหมาย
+Letter Head Name,ชื่อหัวจดหมาย
+Letter Head in HTML,ตัวอักษรตัว ใหญ่ ในรูปแบบ HTML
+Level,ชั้น
+"Level 0 is for document level permissions, higher levels for field level permissions.",ระดับ 0 คือสำหรับสิทธิ์ระดับเอกสารระดับที่สูงขึ้นสำหรับสิทธิ์ในระดับเขต
+Like,เช่น
+Link,ลิงค์
+Link Name,ชื่อ ลิงค์
+Link to other pages in the side bar and next section,เชื่อมโยงไปยังหน้าอื่น ๆ ในแถบด้านข้างและส่วนถัดไป
+Link to the page you want to open,เชื่อมโยงไปยัง เพจที่คุณต้องการ เปิด
+Linked In Share,ที่เชื่อมโยงในแบ่งปัน
+Linked With,เชื่อมโยงกับ
+List,รายการ
+List of patches executed,รายชื่อของแพทช์ที่ดำเนินการ
+Loading,โหลด
+Loading Report,โหลดรายงาน
+Loading...,กำลังโหลด ...
+Log of Scheduler Errors,เข้าสู่ระบบของข้อผิดพลาดตัวจัดตารางเวลา
+Login,เข้าสู่ระบบ
+Login After,เข้าสู่ระบบหลังจากที่
+Login Before,เข้าสู่ระบบก่อน
+Logout,ออกจากระบบ
+Long Text,ข้อความยาว
+Lucida Grande,แกรนด์ Lucida
+Mail Footer,ส่วนท้ายของจดหมาย
+Mail Server,Mail Server ที่
+Main Section,มาตราหลัก
+Make a new,ทำให้ใหม่
+Make sure that the transactions you want to restrict have a Link field 'territory' that maps to a 'Territory' master.,ตรวจสอบให้แน่ใจว่าการทำธุรกรรมที่คุณต้องการที่จะ จำกัด การมี &#39;ดินแดน&#39; ฟิลด์ที่แผนที่เพื่อ &#39;พื้นที่&#39; ต้นแบบ
+Male,ชาย
+Mandatory,จำเป็น
+Mandatory filters required:\n,กรอง ต้อง บังคับ : \ n
+Master,เจ้านาย
+Match,การแข่งขัน
+Max Attachments,สิ่งที่แนบมาแม็กซ์
+"Meaning of Submit, Cancel, Amend","ความหมายของ Submit, ยกเลิกอัพเดท"
+"Menu items in the Top Bar. For setting the color of the Top Bar, go to <a href=""#Form/Style Settings"">Style Settings</a>","รายการเมนูที่อยู่แถบบน สำหรับการตั้งค่าสีของบาร์ด้านบนให้ไปที่ <a href=""#Form/Style Settings"">การตั้งค่ารูปแบบของ</a>"
+"Merging is only possible between Group-to-Group or 
+					Ledger-to-Ledger",
+Message,ข่าวสาร
+Method,วิธี
+Middle Name (Optional),ชื่อกลาง (ถ้ามี)
+Millions,ล้าน
+Misc,misc
+Miscellaneous,เบ็ดเตล็ด
+Missing Values Required,ค่านิยม ที่จำเป็น ขาดหายไป
+Modified by,ดัดแปลงโดย
+Module,โมดูล
+Module Def,Def โมดูล
+Module Name,ชื่อโมดูล
+Modules,โมดูล
+Monday,วันจันทร์
+More,ขึ้น
+More content for the bottom of the page.,เนื้อหาเพิ่มเติมสำหรับด้านล่างของหน้า
+Must have report permission to access this report.,ต้องได้รับอนุญาตรายงานการเข้าถึงรายงานนี้
+Must specify a Query to run,ต้องระบุแบบสอบถามที่จะเรียกใช้
+Name,ชื่อ
+Name Case,กรณีชื่อ
+Name Exists,ชื่อ ที่มีอยู่
+Naming Series mandatory,การตั้งชื่อชุดบังคับ
+New,ใหม่
+New Password,รหัสผ่านใหม่
+New Record,การบันทึกใหม่
+New value to be set,ค่าใหม่ที่จะตั้ง
+Next Communcation On,ถัดไป communcation เกี่ยวกับ
+Next State,รัฐต่อไป
+Next actions,ดำเนินการต่อไป
+No,ไม่
+No Action,ไม่มีการดำเนินการ
+No Cache,ไม่มี แคช
+No Communication tagged with this ,การสื่อสารที่มีแท็กนี้
+No Copy,คัดลอกไม่มี
+No Permission,ไม่ได้รับอนุญาต
+No Permission to ,ไม่มีการอนุญาตให้
+No Permissions set for this criteria.,ไม่มีสิทธิ์ที่กำหนดไว้สำหรับเกณฑ์นี้
+No Report Loaded. Please use query-report/[Report Name] to run a report.,รายงาน Loaded ไม่มี กรุณาใช้แบบสอบถามรายงาน / [ชื่อรายงาน] เพื่อเรียกใช้รายงาน
+No Sitemap,ไม่มี แผนผังเว็บไซต์
+No User Properties found.,ไม่มีคุณสมบัติของผู้ใช้พบว่า
+No further records,ไม่มีระเบียนใด
+No one,ไม่มีใคร
+No permission to edit,ได้รับอนุญาตให้ แก้ไข ไม่
+No permission to write / remove.,ได้รับอนุญาตให้เขียน / ลบไม่มี
+No records tagged.,ระเบียนที่ไม่มีการติดแท็ก
+None,ไม่
+None: End of Workflow,: ไม่มีสิ้นสุดเวิร์กโฟลว์
+Not Found,ไม่พบ
+Not Linked to any record.,ไม่ได้เชื่อมโยงไปยังระเบียนใด ๆ
+Not Permitted,ไม่ได้รับอนุญาต
+Not allowed for: ,ไม่ได้รับอนุญาตสำหรับ:
+Not enough permission to see links.,ไม่ได้รับอนุญาตพอที่จะเห็นการเชื่อมโยง
+Not equals,ไม่ เท่ากับ
+"Note: For best results, images must be of the same size and width must be greater than height.",หมายเหตุ: สำหรับผลลัพธ์ที่ดีที่สุดภาพต้องมีขนาดเท่ากันและความกว้างต้องมากกว่าความสูง
+Note: Other permission rules may also apply,หมายเหตุ: กฎอนุญาตอื่น ๆ ที่ยังอาจมี
+Note: maximum attachment size = 1mb,หมายเหตุ: ขนาดไฟล์แนบสูงสุด = 1MB
+Nothing to show,ไม่มีอะไรที่จะแสดง
+Nothing to show for this selection,อะไรที่จะแสดง การเลือกนี้
+Notification Count,จำนวน การแจ้งเตือน
+Notify By Email,แจ้งทางอีเมล์
+On,บน
+"Once you have set this, the users will only be able access documents with that property.",เมื่อคุณได้ตั้งค่านี้ผู้ใช้จะสามารถเข้าถึงเอกสารสามารถกับทรัพย์สินที่
+Only Administrator allowed to create Query / Script Reports,เฉพาะผู้ดูแลระบบอนุญาตให้สร้างรายงานคำ / Script
+Only Administrator can save a standard report. Please rename and save.,เฉพาะผู้บริหารสามารถบันทึกรายงานมาตรฐาน กรุณาเปลี่ยนชื่อและบันทึก
+Only Allow Edit For,อนุญาตให้เฉพาะสำหรับแก้ไข
+Only System Manager can create / edit reports,จัดการระบบเท่านั้นที่สามารถสร้าง / แก้ไขรายงาน
+Open Count,เปิด จำนวน
+Open Sans,Sans เปิด
+Options,ตัวเลือก
+Options Help,ตัวเลือกความช่วยเหลือ
+Org History,ประวัติ องค์กร
+Org History Heading,ประวัติ org หัวเรื่อง
+Original Message,ข้อความเดิม
+Other,อื่น ๆ
+POP3 Mail Server (e.g. pop.gmail.com),POP3 Mail Server (เช่น pop.gmail.com)
+Page,หน้า
+Page Background,พื้นหลังหน้า
+Page Border,เส้นขอบหน้ากระดาษ
+Page HTML,HTML หน้า
+Page Headings,ส่วนหัวของหน้า
+Page Links,ลิงค์หน้า
+Page Name,ชื่อเพจ
+Page Name Field,หน้า ชื่อเขตข้อมูล
+Page Role,บทบาทหน้าที่
+Page Text,ข้อความหน้า
+Page already exists,หน้า อยู่แล้ว
+Page content,เนื้อหาของหน้า
+Page not found,ไม่พบหน้าเว็บ
+Page or Generator,หน้า หรือ Generator
+Page text and background is same color. Please change.,หน้าข้อความและพื้นหลังเป็นสีเดียวกัน โปรดเปลี่ยน
+"Page to show on the website
+",
+"Page url name (auto-generated) (add "".html"")",ชื่อ URL หน้า (สร้างขึ้นโดยอัตโนมัติ) (เพิ่ม &quot;. html&quot;)
+Parent Label,ป้ายแม่
+Parent is required.,ผู้ปกครองจะต้อง
+Participants,เข้าร่วม
+Password,รหัสผ่าน
+Password Expires in (days),รหัสผ่านจะหมดอายุใน (วัน)
+Password Updated,รหัสผ่าน การปรับปรุง
+Patch,แก้ไข
+Patch Log,เข้าสู่ระบบแพทช์
+Percent,เปอร์เซ็นต์
+Perm Level,Perm ระดับ
+Permission Level,ระดับของสิทธิ์
+Permission Levels,ระดับสิทธิ์
+Permission Manager,ผู้จัดการได้รับอนุญาต
+Permission Rules,กฎการอนุญาต
+Permissions,สิทธิ์
+Permissions Settings,การตั้งค่าสิทธิ์
+Permissions are automatically translated to Standard Reports and Searches,สิทธิ์มีการแปลโดยอัตโนมัติเพื่อรายงานมาตรฐานและการค้นหา
+"Permissions are set on Roles and Document Types (called DocTypes) by restricting read, edit, make new, submit, cancel, amend and report rights.",สิทธิ์ถูกกำหนดบทบาทและเอกสารประเภท (เรียกว่า doctypes) โดยการ จำกัด การอ่านแก้ไขให้ใหม่ส่งยกเลิกแก้ไขและแจ้งสิทธิ
+Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful incase you want to hide or make certain field read-only.,สิทธิ์ &#39;ระดับฟิลด์&#39; สิทธิ์ในระดับที่สูงเป็น เขตข้อมูลทั้งหมดมีชุด &#39;ระดับของสิทธิ์&#39; กับพวกเขาและกฎระเบียบที่กำหนดไว้ในการอนุญาตที่นำไปใช้กับสนาม นี้จะเป็นประโยชน์กรณีที่คุณต้องการซ่อนหรือทำให้สาขาบางแบบอ่านอย่างเดียว
+"Permissions at level 0 are 'Document Level' permissions, i.e. they are primary for access to the document.",สิทธิ์ &#39;ระดับเอกสาร&#39; สิทธิ์ที่ 0 ระดับคือพวกเขาเป็นหลักสำหรับการเข้าถึงเอกสาร
+Permissions translate to Users based on what Role they are assigned,แปลสิทธิ์ให้ผู้ใช้งานตามสิ่งที่พวกเขาบทบาทที่ได้รับมอบหมาย
+Person,คน
+Phone,โทรศัพท์
+Phone No.,หมายเลขโทรศัพท์
+Pick Columns,เลือกคอลัมน์
+Please attach a file first.,กรุณาแนบไฟล์แรก
+Please attach a file or set a URL,กรุณาแนบไฟล์หรือตั้งค่า URL
+Please change the value,กรุณา เปลี่ยนค่า
+Please enable pop-ups,กรุณาเปิดใช้งาน ป๊อปอัพ
+Please make sure that there are no empty columns in the file.,กรุณาตรวจสอบให้แน่ใจว่าไม่มีคอลัมน์ที่ว่างเปล่าในแฟ้ม
+Please refresh to get the latest document.,กรุณารีเฟรชที่จะได้รับเอกสารล่าสุด
+Please select a file or url,โปรดเลือกไฟล์หรือพิมพ์ URL
+Please specify,โปรดระบุ
+Plugin,ปลั๊กอิน
+Post Publicly,โพสต์ สาธารณชน
+Post Topic,เริ่มหัวข้อ
+Post to user,โพสต์ ไปยังผู้ใช้
+Posts,กระทู้
+Primary,ประถม
+Print Format,พิมพ์รูปแบบ
+Print Format Type,พิมพ์รูปแบบประเภท
+Print Hide,พิมพ์ซ่อน
+Print Width,ความกว้างพิมพ์
+Print...,พิมพ์ ...
+Priority,บุริมสิทธิ์
+Private,ส่วนตัว
+Profile,รายละเอียด
+Profile Defaults,ค่าดี​​ฟอลต์รายละเอียด
+Profile Represents a User in the system.,รายละเอียดหมายถึงผู้ใช้ในระบบ
+Profile of a Blogger,ดูรายละเอียดของ Blogger
+Profile of a blog writer.,ดูรายละเอียดของนักเขียนบล็อก
+Properties,สรรพคุณ
+Property,คุณสมบัติ
+Property Setter,สถานที่ให้บริการ Setter
+Property Setter overrides a standard DocType or Field property,สถานที่ให้บริการ Setter แทนที่สถานที่ให้บริการหรือสาขา DocType มาตรฐาน
+Property Type,ประเภทอสังหาริมทรัพย์
+Public,สาธารณะ
+Published,เผยแพร่
+Published On,เผยแพร่เมื่อ
+Pull Emails from the Inbox and attach them as Communication records (for known contacts).,ดึงอีเมลจากกล่องขาเข้าและแนบพวกเขาเป็นบันทึกการสื่อสาร (สำหรับรายชื่อที่รู้จักกัน)
+Query,สอบถาม
+Query Options,ตัวเลือกแบบสอบถาม
+Query Report,รายงานแบบสอบถาม
+Query must be a SELECT,แบบสอบถามจะต้องเลือก
+Quick Help for Setting Permissions,ความช่วยเหลือด่วนสำหรับการตั้งค่าสิทธิ์
+Quick Help for User Properties,ความช่วยเหลือด่วนสำหรับคุณสมบัติของผู้ใช้
+Read,อ่าน
+Read Only,อ่านอย่างเดียว
+Received,ที่ได้รับ
+Recipient,ผู้รับ
+Recipients,ผู้รับ
+Ref DocType,DocType Ref
+Ref Name,ชื่อ Ref
+Ref Type,ประเภท Ref
+Reference,การอ้างอิง
+Reference DocName,DocName อ้างอิง
+Reference DocType,DocType อ้างอิง
+Reference Name,ชื่ออ้างอิง
+Reference Type,ชนิดการอ้างอิง
+Refresh,รีเฟรช
+Registered but disabled.,สมาชิก แต่ปิดการใช้งาน
+Registration Details Emailed.,รายละเอียดการลงทะเบียนส่งอีเมล
+Remove Bookmark,ลบบุ๊คมาร์ค
+Rename...,เปลี่ยนชื่อ ...
+Repeat On,ทำซ้ำ
+Repeat Till,ทำซ้ำจน
+Repeat this Event,ทำซ้ำเหตุการณ์นี้
+Report,รายงาน
+Report Builder,สร้างรายงาน
+Report Builder reports are managed directly by the report builder. Nothing to do.,รายงานตัวสร้างรายงานที่มีการจัดการโดยตรงโดยการสร้างรายงาน ไม่มีอะไรจะทำ
+Report Hide,แจ้งซ่อน
+Report Name,ชื่อรายงาน
+Report Type,ประเภทรายงาน
+Report was not saved (there were errors),รายงานไม่ถูกบันทึกไว้ (มีข้อผิดพลาด)
+Represents the states allowed in one document and role assigned to change the state.,หมายถึงรัฐที่ได้รับอนุญาตในเอกสารหนึ่งและบทบาทที่ได้รับมอบหมายในการเปลี่ยนสถานะ
+Reqd,reqd
+Reset Password Key,รีเซ็ต รหัสผ่าน ที่สำคัญ
+Restrict IP,จำกัด IP
+Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111),จำกัด ผู้ใช้จากที่อยู่ IP นี้เท่านั้น ที่อยู่ IP หลายสามารถเพิ่มโดยการแยกด้วยเครื่องหมายจุลภาค ยังยอมรับที่อยู่ IP บางส่วนเช่น (111.111.111)
+Restricting By User,จำกัด ของผู้ใช้
+Right,ขวา
+Role,บทบาท
+Role Name,ชื่อบทบาท
+Roles,บทบาท
+Roles Assigned,บทบาทที่ได้รับมอบหมาย
+Roles Assigned To User,บทบาทที่ได้รับมอบหมายให้กับผู้ใช้
+Roles HTML,HTML บทบาท
+Root ,ราก
+Row,แถว
+Rules defining transition of state in the workflow.,กฎการกำหนดเปลี่ยนแปลงของรัฐในเวิร์กโฟลว์
+"Rules for how states are transitions, like next state and which role is allowed to change state etc.",กฎสำหรับวิธีการเปลี่ยนรัฐเช่นรัฐต่อไปและบทบาทที่ได้รับอนุญาตให้เปลี่ยนสถานะ ฯลฯ
+SMS,SMS
+Sales,ขาย
+Same file has already been attached to the record,ไฟล์เดียวกันได้ถูกแนบมากับบันทึก
+Saturday,วันเสาร์
+Save,ประหยัด
+Scheduler Log,เข้าสู่ระบบการจัดตารางเวลา
+Script,ต้นฉบับ
+Script Report,รายงานสคริปต์
+Script Type,ประเภทสคริปต์
+Script to attach to all web pages.,สคริปต์ที่จะแนบไปหน้าเว็บทั้งหมด
+Search,ค้นหา
+Search Fields,เขตข้อมูลการค้นหา
+Section Break,แบ่งส่วน
+Security Settings,การตั้งค่าการรักษาความปลอดภัย
+Select,เลือก
+Select All,เลือกทั้งหมด
+Select Attachments,เลือกสิ่งที่แนบ
+Select Document Type,เลือกประเภทของเอกสาร
+Select Document Type or Role to start.,เลือกประเภทของเอกสารหรือบทบาทที่จะเริ่มต้น
+Select Module,เลือก โมดูล
+Select Print Format,เลือกรูปแบบพิมพ์
+Select Report Name,เลือกชื่อรายงาน
+Select Role,เลือกบทบาท
+Select Type,เลือกประเภท
+Select User or Property to start.,เลือกผู้ใช้หรือทรัพย์สินที่จะเริ่มต้น
+Select a Banner Image first.,เลือกภาพแบนเนอร์แรก
+Select an image of approx width 150px with a transparent background for best results.,เลือกภาพจาก 150px ความกว้างประมาณกับพื้นหลังโปร่งใสเพื่อให้ได้ผลลัพธ์ที่ดีที่สุด
+Select dates to create a new ,เลือกวันที่จะสร้างใหม่
+Select or drag across time slots to create a new event.,เลือกหรือลากผ่านช่วงเวลาที่จะสร้างเหตุการณ์ใหม่
+"Select target = ""_blank"" to open in a new page.","เลือก target = ""_blank"" จะเปิดใน หน้าใหม่"
+Select the label after which you want to insert new field.,เลือกป้ายชื่อหลังจากที่คุณต้องการแทรกเขตข้อมูลใหม่
+Send,ส่ง
+Send As Email,ส่งเป็น อีเมล์
+Send Me A Copy,ส่งสำเนา
+Send an email reminder in the morning,ส่งอีเมลเตือนในตอนเช้า
+Send enquiries to this email address,ส่งคำถาม ไปยังที่อยู่ อีเมลนี้
+Sender,ผู้ส่ง
+Sent,ส่ง
+Sent Mail,จดหมายที่ส่ง
+Sent Quotation,ใบเสนอราคาส่ง
+Sent or Received,ส่งหรือ ได้รับ
+Series,ชุด
+Server,เซิร์ฟเวอร์
+Session Expired. Logging you out,เซสชันหมดอายุ คุณออกจากระบบ
+Session Expires in (time),เซสชั่นจะหมดอายุใน (เวลา)
+Set Banner from Image,ตั้งป้ายโฆษณาจากภาพ
+Set Link,ตั้งค่า การเชื่อมโยง
+Set Password,ตั้งรหัสผ่าน
+Set Value,ตั้งค่า
+"Set your background color, font and image (tiled)",ตั้งค่าพื้นหลังสีแบบอักษรของคุณและภาพ (กระเบื้อง)
+Settings for About Us Page.,การตั้งค่าสำหรับหน้าเกี่ยวกับเรา
+Settings for Contact Us Page,การตั้งค่าสำหรับหน้าติดต่อเรา
+Settings for Contact Us Page.,การตั้งค่าสำหรับหน้าติดต่อเรา
+Settings for the About Us Page,การตั้งค่าสำหรับหน้าเกี่ยวกับเรา
+Setup of fonts and background.,การติดตั้งแบบอักษรและพื้นหลัง
+"Setup of top navigation bar, footer and logo.",การติดตั้งจากด้านบนแถบนำทางท้ายและโลโก้
+Short Bio,ประวัติย่อ
+Short Name,ชื่อสั้น
+Shortcut,ทางลัด
+Show Breadcrumbs,แสดง Breadcrumbs
+Show Details,แสดงรายละเอียด
+Show Print First,แสดงพิมพ์ครั้งแรก
+Show Table of Contents,แสดง สารบัญ
+Show Tags,แสดง แท็ก
+Show Title,แสดง ชื่อเรื่อง
+Show rows with zero values,แสดงแถวที่มีค่าศูนย์
+Showing only for,แสดงเฉพาะสำหรับ
+Single Post (article).,คำตอบเดียว (บทความ)
+Single Types have only one record no tables associated. Values are stored in tabSingles,ประเภท เดียว มีเพียง หนึ่งระเบียน ในตาราง ที่เกี่ยวข้อง ค่าที่ เก็บไว้ใน tabSingles
+Slideshow,สไลด์โชว์
+Slideshow Items,รายการสไลด์โชว์
+Slideshow Name,ชื่อสไลด์โชว์
+Slideshow like display for the website,สไลด์โชว์เหมือนการแสดงผลสำหรับเว็บไซต์
+Small Text,ข้อความขนาดเล็ก
+Solid background color (default light gray),สีพื้นหลังที่เป็นของแข็ง (สีเทาอ่อนค่าเริ่มต้น)
+Sorry we were unable to find what you were looking for.,ขออภัยเราไม่สามารถที่จะหาสิ่งที่คุณกำลังมองหา
+Sorry you are not permitted to view this page.,ขออภัยคุณไม่ได้รับอนุญาตให้ดูหน้านี้
+Sort By,เรียงลำดับตาม
+Special Page Settings,การตั้งค่าหน้าพิเศษ
+Standard,มาตรฐาน
+Start Report For,เริ่มรายงานสำหรับ
+Starts on,เริ่มเมื่อ
+Startup,เริ่มต้น
+State,รัฐ
+States,รัฐ
+Status,สถานะ
+Step 1: Set the name and save.,ขั้นที่ 1: การตั้ง ชื่อ และบันทึก
+Step 2: Set Letterhead content.,ขั้นที่ 2 : ตั้งค่า เนื้อหา จดหมาย
+Style,สไตล์
+Style Settings,การตั้งค่าลักษณะ
+"Style represents the button color: Success - Green, Danger - Red, Inverse - Black, Primary - Dark Blue, Info - Light Blue, Warning - Orange","สไตล์เป็นสีของปุ่ม: ความสำเร็จ - สีเขียว, อันตราย - แดง, Inverse - ดำ, ประถม - มืดข้อมูล, บลู - Light Blue, คำเตือน - ออเรนจ์"
+Sub-domain provided by erpnext.com,โดเมนย่อยโดย erpnext.com
+Subdomain,subdomain
+Subject,เรื่อง
+Submit,เสนอ
+Submitted,Submitted
+Submitted Record cannot be deleted,บันทึก Submitted ไม่สามารถลบได้
+Success,ความสำเร็จ
+Suggestion,ข้อเสนอแนะ
+Sunday,วันอาทิตย์
+Support Email Id,สนับสนุน ID อีเมล์
+Sync Inbox,กล่องขาเข้าซิงค์
+System,ระบบ
+System Defaults,เริ่มต้นของระบบ
+System User,ผู้ใช้ระบบ
+Table,ตาราง
+Table of Contents,สารบัญ
+Tag,แท็ก
+Tag Name,ชื่อแท็ก
+Tags,แท็ก
+Tahoma,Tahoma
+Target,เป้า
+Team Members,สมาชิกในทีม
+Team Members Heading,สมาชิกในทีมหัวเรื่อง
+Template Path,เส้นทาง แม่
+Test,ทดสอบ
+Test Runner,วิ่งทดสอบ
+Text,ข้อความ
+Text Align,ข้อความตําแหน่ง
+Text Editor,แก้ไขข้อความ
+"The ""Web Page"" that is the website home page",&quot;Web Page&quot; นั่นคือหน้าแรกของเว็บไซต์
+The name of your company / website as you want to appear on browser title bar. All pages will have this as the prefix to the title.,ชื่อ บริษัท / เว็บไซต์ของคุณตามที่คุณต้องการให้ปรากฏบนแถบชื่อเบราว์เซอร์ หน้าทั้งหมดที่จะมีนี้เป็นคำนำหน้าชื่อ
+"The system provides pre-defined roles, but you can <a href='#List/Role'>add new roles</a> to set finer permissions",ระบบให้บทบาทกำหนดไว้ล่วงหน้า แต่คุณสามารถ <a href='#List/Role'>เพิ่มบทบาทใหม่</a> ในการกำหนดสิทธิ์ปลีกย่อย
+Then By (optional),แล้วโดย (ไม่จำเป็น)
+These properties are Link Type fields from all Documents.,คุณสมบัติเหล่านี้เป็นเขตประเภท Link จากเอกสารทั้งหมด
+"These properties can also be used to 'assign' a particular document, whose property matches with the User's property to a User. These can be set using the <a href='#permission-manager'>Permission Manager</a>",คุณสมบัติเหล่านี้ยังสามารถใช้ในการ &#39;กำหนด&#39; เอกสารโดยเฉพาะอย่างยิ่งที่มีสถานที่ให้บริการตรงกับสถานที่ให้บริการผู้ใช้ไปยังผู้ใช้ เหล่านี้สามารถตั้งค่าการใช้ <a href='#permission-manager'>งานการอนุญาต</a>
+These properties will appear as values in forms that contain them.,คุณสมบัติเหล่านี้จะปรากฏเป็นค่าในรูปแบบที่มีพวกเขา
+These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,ค่าเหล่านี้จะถูกปรับปรุงโดยอัตโนมัติในการทำธุรกรรมและยังจะเป็นประโยชน์เพื่อ จำกัด สิทธิ์สำหรับผู้ใช้นี้ในการทำธุรกรรมที่มีค่าเหล่านี้
+"This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>
+myfield
+eval:doc.myfield=='My Value'<br>
+eval:doc.age>18",
+This goes above the slideshow.,นี้สูงกว่าสไลด์โชว์
+This is PERMANENT action and you cannot undo. Continue?,นี้คือการกระทำที่เป็นการถาวรและคุณไม่สามารถยกเลิกการ ต่อหรือไม่
+This is permanent action and you cannot undo. Continue?,นี้คือการกระทำอย่างถาวรและคุณไม่สามารถยกเลิก ต่อหรือไม่
+Thursday,วันพฤหัสบดี
+Time,เวลา
+Time Zone,โซนเวลา
+Title,ชื่อเรื่อง
+Title / headline of your page,ชื่อเรื่อง / พาดหัวของหน้าเว็บของคุณ
+Title Case,กรณีชื่อ
+Title Prefix,คำนำหน้าชื่อ
+To,ไปยัง
+"To format columns, give column labels in the query.",การจัดรูปแบบคอลัมน์ให้ป้ายชื่อคอลัมน์ในแบบสอบถาม
+"To further restrict permissions based on certain values in a document, use the 'Condition' settings.",เพื่อ จำกัด สิทธิ์ตามค่าบางอย่างในเอกสารให้ใช้การตั้งค่า &#39;สภาพ&#39;
+To restrict a User of a particular Role to documents that are explicitly assigned to them,เพื่อ จำกัด ผู้ใช้โดยเฉพาะอย่างยิ่งบทบาทของเอกสารที่ได้รับมอบหมายอย่างชัดเจนเพื่อให้พวกเขา
+To restrict a User of a particular Role to documents that are only self-created.,เพื่อ จำกัด ผู้ใช้โดยเฉพาะอย่างยิ่งบทบาทของเอกสารที่มีเฉพาะที่สร้างขึ้นเอง
+"To set user roles, just go to <a href='#List/Profile'>Setup > Users</a> and click on the user to assign roles.",การตั้งบทบาทผู้ใช้เพียงแค่ไปที่ <a href='#List/Profile'>การตั้งค่า&gt; Users</a> และคลิกที่ผู้ใช้สามารถกำหนดบทบาท
+ToDo,สิ่งที่ต้องทำ
+Tools,เครื่องมือ
+Top Bar,Bar สถานที่ยอด
+Top Bar Background,พื้นหลังของแถบด้านบน
+Top Bar Item,รายการ Bar สถานที่ยอด
+Top Bar Items,รายการ Bar สถานที่ยอด
+Top Bar Text,ข้อความแถบด้านบน
+Top Bar text and background is same color. Please change.,ข้อความที่บาร์ด้านบนและพื้นหลังเป็นสีเดียวกัน โปรดเปลี่ยน
+Total SMS Sent,SMS ทั้งหมดที่ส่ง
+Transaction,การซื้อขาย
+Transition Rules,กฎการเปลี่ยน
+Trash Reason,เหตุผลถังขยะ
+Tuesday,วันอังคาร
+Tweet will be shared via your user account (if specified),ผู้จะใช้ร่วมกันผ่านทางบัญชีผู้ใช้ของคุณ (ถ้าระบุ)
+Twitter Share,Twitter แบ่งปัน
+Twitter Share via,แบ่งปัน Twitter ผ่าน
+Type,ชนิด
+UPPER CASE,ตัวพิมพ์ใหญ่
+UPPERCASE,ตัวพิมพ์ใหญ่
+URL,URL
+Unable to complete request: ,ไม่สามารถดำเนินการตามคำขอ:
+Unable to load,ไม่สามารถโหลด
+"Unknown file encoding. Tried utf-8, windows-1250, windows-1252.","การเข้ารหัส ไฟล์ ที่ไม่รู้จัก พยายาม UTF -8 , Windows - 1250 1252 หน้าต่าง"
+Unread Messages,ไม่ได้อ่านข้อความ
+Unsubscribed,ยกเลิกการสมัคร
+Upcoming Events for Today,เหตุการณ์จะเกิดขึ้นสำหรับวันนี้
+Update,อัพเดท
+Update Field,ปรับปรุงเขต
+Update Value,ปรับปรุงค่า
+Upload,อัปโหลด
+Upload Attachment,อัพโหลดไฟล์แนบ
+Upload a file,อัปโหลดไฟล์
+Upload and Import,อัปโหลดและนำเข้า
+Uploading...,อัพโหลด ...
+User,ผู้ใช้งาน
+User Cannot Create,ผู้ใช้ไม่สามารถสร้าง
+User Cannot Search,ผู้ใช้ไม่สามารถค้นหา
+User Image,รูปภาพของผู้ใช้
+User Tags,แท็กผู้ใช้
+User Type,ประเภทผู้ใช้
+User not allowed to delete.,ผู้ใช้ไม่ได้รับอนุญาตที่จะลบ
+UserRole,UserRole
+Value,มูลค่า
+Value missing for,ค่าที่หายไปสำหรับ
+Verdana,Verdana
+Visit,เยี่ยม
+Warning,คำเตือน
+Web Content,เนื้อหาเว็บ
+Web Page,หน้าเว็บ
+Website,เว็บไซต์
+Website Overall Settings,การตั้งค่าโดยรวมของเว็บไซต์
+Website Script,สคริปต์เว็บไซต์
+Website Settings,การตั้งค่าเว็บไซต์
+Website Sitemap,Sitemap เว็บไซต์
+Website Sitemap Config,เว็บไซต์ แผนผังเว็บไซต์ Config
+Website Slideshow,สไลด์โชว์เว็บไซต์
+Website Slideshow Item,รายการสไลด์โชว์เว็บไซต์
+Website User,ผู้ใช้งานเว็บไซต์
+Wednesday,วันพุธ
+Welcome Email Sent,อีเมล์ ยินดีต้อนรับคุณ ส่ง
+"When you <b>Amend</b> a document after cancel and save it, it will get a new number that is a version of the old number.",<b>เมื่อคุณอัพเดทเอกสารหลังจากยกเลิกและบันทึกมันจะได้รับหมายเลขใหม่ที่เป็นรุ่นของหมายเลขเดิม</b>
+Width,ความกว้าง
+Will be used in url (usually first name).,จะใช้ใน URL (ชื่อแรกปกติ)
+Workflow,เวิร์กโฟลว์
+Workflow Action,การกระทำเวิร์กโฟลว์
+Workflow Action Master,ปริญญาโทการกระทำเวิร์กโฟลว์
+Workflow Action Name,ชื่อการกระทำเวิร์กโฟลว์
+Workflow Document State,รัฐเอกสารเวิร์กโฟลว์
+Workflow Document States,รัฐเวิร์กโฟลว์เอกสาร
+Workflow Name,ชื่อเวิร์กโฟลว์
+Workflow State,รัฐเวิร์กโฟลว์
+Workflow State Field,ฟิลด์รัฐเวิร์กโฟลว์
+Workflow Transition,เปลี่ยนเวิร์กโฟลว์
+Workflow Transitions,ช่วงการเปลี่ยนเวิร์กโฟลว์
+Workflow state represents the current state of a document.,รัฐเวิร์กโฟลว์แสดงสถานะปัจจุบันของเอกสาร
+Workflow will start after saving.,เวิร์กโฟลว์จะเริ่มหลังจากการบันทึก
+Write,เขียน
+Write a Python file in the same folder where this is saved and return column and result.,เขียนไฟล์หลามในโฟลเดอร์เดียวกันที่นี้จะถูกบันทึกไว้และคอลัมน์ผลตอบแทนและผล
+Write a SELECT query. Note result is not paged (all data is sent in one go).,เขียนแบบสอบถาม SELECT ผลหมายเหตุไม่เอาเพจ (ข้อมูลทั้งหมดจะถูกส่งไปในครั้งเดียว)
+Write titles and introductions to your blog.,เขียนชื่อและที่จะแนะนำบล็อกของคุณ
+Writers Introduction,แนะนำนักเขียน
+Year,ปี
+Yes,ใช่
+Yesterday,เมื่อวาน
+You can set various 'properties' to Users to set default values and apply permission rules based on the value of these properties in various forms.,คุณสามารถตั้งค่า &#39;สมบัติ&#39; ต่างๆเพื่อผู้ใช้สามารถตั้งค่าเริ่มต้นและใช้กฎการอนุญาตขึ้นอยู่กับค่าของคุณสมบัติเหล่านี้ในรูปแบบต่างๆ
+You can use <a href='#Form/Customize Form'>Customize Form</a> to set levels on fields.,คุณสามารถใช้ <a href='#Form/Customize Form'>แบบฟอร์มที่กำหนดเอง</a> เพื่อตั้งค่าระดับบนทุ่ง
+"Your download is being built, this may take a few moments...",การดาวน์โหลดของคุณจะถูกสร้างขึ้นนี้อาจใช้เวลาสักครู่ ...
+[Label]:[Field Type]/[Options]:[Width],[Label] แล: [ฟิลด์ชนิด] / [ตัวเลือก]: [กว้าง]
+add your own CSS (careful!),เพิ่มเอง CSS ของคุณ (careful!)
+adjust,ปรับ
+align-center,จัดศูนย์
+align-justify,จัดแสดงให้เห็นถึง-
+align-left,จัดซ้าย
+align-right,จัดขวา
+and,และ
+arrow-down,ลูกศรชี้ลง
+arrow-left,ศรซ้าย
+arrow-right,ลูกศรขวา
+arrow-up,ลูกศรขึ้น-
+asterisk,เครื่องหมายดอกจัน
+backward,ย้อนกลับ
+ban-circle,ห้ามวงกลม
+barcode,บาร์โค้ด
+bell,ระฆัง
+bold,กล้า
+book,หนังสือ
+bookmark,ที่คั่นหนังสือ
+briefcase,กระเป๋าเอกสาร
+bullhorn,โทรโข่ง
+calendar,ปฏิทิน
+camera,กล้อง
+cannot be empty,ไม่สามารถเว้นว่าง
+cannot be in its own,ไม่สามารถอยู่ใน ตัวของมันเอง
+"cannot have a URL, because it has child item(s)",ไม่สามารถมี URL เพราะมีรายการเด็ก (s)
+cannot start with,ไม่สามารถเริ่มต้นด้วย
+certificate,ใบรับรอง
+check,ตรวจสอบ
+chevron-down,วีลง
+chevron-left,วีซ้าย
+chevron-right,วีขวา
+chevron-up,บั้งขึ้น
+circle-arrow-down,วงกลมลูกศรลง
+circle-arrow-left,วงกลมศรซ้าย
+circle-arrow-right,วงกลมลูกศรขวา
+circle-arrow-up,วงกลมลูกศรขึ้น
+cog,ฟันเฟือง
+comment,ความเห็น
+comments,ความเห็น
+create a Custom Field of type Link (Profile) and then use the 'Condition' settings to map that field to the Permission rule.,สร้างฟิลด์ที่กำหนดเองของ Link ชนิด (รายละเอียด) แล้วใช้การตั้งค่า &#39;สภาพ&#39; to map เขตข้อมูลนั้นไปกฎการอนุญาต
+dd-mm-yyyy,dd-mm-yyyy
+dd/mm/yyyy,วัน / เดือน / ปี
+does not exist,ไม่ได้อยู่
+download,ดาวน์โหลด
+download-alt,ดาวน์โหลด alt-
+edit,แก้ไข
+eject,ขับ
+envelope,ซองจดหมาย
+exclamation-sign,อัศเจรีย์เข้าสู่ระบบ
+eye-close,ตาใกล้
+eye-open,ตาเปิด
+facetime-video,FaceTime วิดีโอ
+fast-backward,ย้อนกลับอย่างรวดเร็ว
+fast-forward,อย่างรวดเร็วไปข้างหน้า
+file,ไฟล์
+film,ฟิล์ม
+filter,กรอง
+fire,ไฟ
+flag,ธง
+folder-close,โฟลเดอร์ใกล้
+folder-open,โฟลเดอร์เปิด
+font,ตัวอักษร
+forward,ข้างหน้า
+found,พบ
+fullscreen,เต็มจอ
+gift,ของขวัญ
+glass,แก้ว
+globe,โลก
+hand-down,มือลง
+hand-left,มือซ้าย
+hand-right,มือข้างขวา-
+hand-up,มือขึ้น
+hdd,ฮาร์ดดิสก์
+headphones,หูฟัง
+heart,หัวใจ
+home,บ้าน
+icon,ไอคอน
+in,ใน
+inbox,กล่องจดหมาย
+indent-left,เยื้องซ้าย
+indent-right,เยื้องขวา
+info-sign,ข้อมูลการเข้าสู่ระบบ
+is linked in,มีการเชื่อมโยงใน
+is not allowed.,ไม่ได้รับอนุญาต
+italic,ตัวเอียง
+leaf,ใบไม้
+list,รายการ
+list-alt,รายการ ALT-
+lock,ล็อค
+lowercase,ตัวพิมพ์เล็ก
+magnet,แม่เหล็ก
+map-marker,แผนที่เครื่องหมาย
+minus,ลบ
+minus-sign,ลบการลงชื่อเข้าใช้
+mm-dd-yyyy,dd-mm-ปี
+mm/dd/yyyy,dd / mm / ปี
+move,ย้าย
+music,เพลง
+not in,ไม่ได้อยู่ใน
+of type Link,ประเภทของ Link
+off,ปิด
+ok,ok
+ok-circle,ok วงกลม
+ok-sign,OK-เครื่องหมาย
+or,หรือ
+pause,หยุด
+pencil,ดินสอ
+picture,ภาพ
+plane,เครื่องบิน
+play,เล่น
+play-circle,เล่นวงกลม
+plus,บวก
+plus-sign,บวกเซ็น
+print,พิมพ์
+qrcode,QRCode
+question-sign,คำถามการลงชื่อเข้าใช้
+random,สุ่ม
+refresh,รีเฟรช
+remove,ถอด
+remove-circle,ลบวงกลม
+remove-sign,ลบเซ็น
+repeat,ทำซ้ำ
+resize-full,ปรับขนาดเต็ม
+resize-horizontal,ปรับขนาดในแนวนอน-
+resize-small,ปรับขนาดเล็ก
+resize-vertical,ปรับขนาดในแนวตั้ง
+retweet,retweet
+road,ถนน
+screenshot,ภาพหน้าจอ
+search,ค้นหา
+share,หุ้น
+share-alt,หุ้น Alt-
+shopping-cart,ช้อปปิ้งรถเข็น
+signal,สัญญาณ
+star,ดาว
+star-empty,ดาวที่ว่างเปล่า
+step-backward,ขั้นตอนย้อนหลัง
+step-forward,ก้าวไปข้างหน้า-
+stop,หยุด
+tag,แท็ก
+tags,แท็ก
+"target = ""_blank""",target = &quot;_blank&quot;
+tasks,งาน
+text-height,ข้อความที่มีความสูง
+text-width,ข้อความความกว้าง
+th,th
+th-large,-th ใหญ่
+th-list,th-list
+thumbs-down,ยกนิ้วลง
+thumbs-up,ยกนิ้วขึ้น
+time,เวลา
+tint,สี
+to,ไปยัง
+trash,ถังขยะ
+upload,อัปโหลด
+user,ผู้ใช้งาน
+user_image_show,user_image_show
+values and dates,ค่านิยมและวันที่
+volume-down,ปริมาณลง
+volume-off,ปริมาณออก
+volume-up,ปริมาณขึ้น
+warning-sign,ป้ายเตือน-
+wrench,ประแจ
+yyyy-mm-dd,YYYY-MM-DD
+zoom-in,ซูมใน
+zoom-out,ซูมออก

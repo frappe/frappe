@@ -7,8 +7,11 @@ import json
 import copy
 
 @webnotes.whitelist()
-def get_data(doctypes, last_modified):
-	from startup.report_data_map import data_map
+def get_data(doctypes, last_modified):	
+	data_map = {}
+	for dump_report_map in webnotes.get_hooks().dump_report_map:
+		data_map.update(webnotes.get_attr(dump_report_map))
+	
 	import datetime
 	out = {}
 	

@@ -13,8 +13,8 @@ lower_case_files_for = ['DocType', 'Page', 'Report',
 	"Workflow", 'Module Def', 'Desktop Item', 'Workflow State', 'Workflow Action']
 
 def scrub(txt):
-	return txt.replace(' ','_').replace('-', '_').replace('/', '_').lower()
-
+	return webnotes.scrub(txt)
+	
 def scrub_dt_dn(dt, dn):
 	"""Returns in lowercase and code friendly names of doctype and name for certain types"""
 	ndt, ndn = dt, dn
@@ -25,30 +25,23 @@ def scrub_dt_dn(dt, dn):
 			
 def get_module_path(module):
 	"""Returns path of the given module"""
-	m = scrub(module)
+	return webnotes.get_module_path(module)
 	
-	app_path = webnotes.utils.get_base_path()
-	
-	if m in ('core', 'website'):
-		return os.path.join(app_path, 'lib', m)
-	else:
-		return os.path.join(app_path, 'app', m)
-
 def get_doc_path(module, doctype, name):
 	dt, dn = scrub_dt_dn(doctype, name)
 	return os.path.join(get_module_path(module), dt, dn)
 
-def reload_doc(module, dt=None, dn=None, plugin=None, force=True):
+def reload_doc(module, dt=None, dn=None, force=True):
 	from webnotes.modules.import_file import import_files
-	return import_files(module, dt, dn, plugin=plugin, force=force)
+	return import_files(module, dt, dn, force=force)
 
-def export_doc(doctype, name, module=None, plugin=None):
+def export_doc(doctype, name, module=None):
 	"""write out a doc"""
 	from webnotes.modules.export_file import write_document_file
 	import webnotes.model.doc
 
 	if not module: module = webnotes.conn.get_value(doctype, name, 'module')
-	write_document_file(webnotes.model.doc.get(doctype, name), module, plugin=plugin)
+	write_document_file(webnotes.model.doc.get(doctype, name), module)
 
 def get_doctype_module(doctype):
-	return webnotes.conn.get_value('DocType', doctype, 'module')
+	return webnotes.conn.get_value('DocType', doctype, 'module') or "core"

@@ -65,30 +65,25 @@ def execute(site=None):
 def trigger(method):
 	"""trigger method in startup.schedule_handler"""
 	traceback = ""
-	try:
-		import startup.schedule_handlers
+	
+	for scheduler_event in webnotes.get_hooks().scheduler_event:
+		event_name, handler = scheduler_event.split(":")
 		
-		if hasattr(startup.schedule_handlers, method):
-			getattr(startup.schedule_handlers, method)()
-	except Exception:
-		traceback += log(method)
-	else:
-		webnotes.conn.commit()
-		
-	try:
-		cp = webnotes.bean("Control Panel", "Control Panel")
-		cp.run_method(method)
-	except Exception:
-		traceback += log("Control Panel: "+method)
-	else:
-		webnotes.conn.commit()
-		
+		if method==event_name:
+			try:
+				webnotes.get_attr(handler)()
+				webnotes.conn.commit()
+			except Exception:
+				traceback += log("Method: {method}, Handler: {handler}".format(method, handler))
+				traceback += log(webnotes.get_traceback())
+				webnotes.conn.rollback()
+				
 	return traceback or 'ok'
 
 def log(method, message=None):
 	"""log error in patch_log"""
 	message = webnotes.utils.cstr(message) + "\n" if message else ""
-	message += webnotes.getTraceback()
+	message += webnotes.get_traceback()
 	
 	if not (webnotes.conn and webnotes.conn._conn):
 		webnotes.connect()

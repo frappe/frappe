@@ -10,441 +10,282 @@ Contributing:
 3. Then run translate
 """
 
-import webnotes
-import os
-import codecs
-import json
-import re
-from csv import reader
-from webnotes.modules import get_doc_path,get_doctype_module
-from webnotes.utils import get_base_path, cstr
+# loading
+# doctype, page, report
+# boot(startup)
+# wn.require
+# webnotes._
 
-def translate(lang=None):
-	languages = [lang]
-	if lang=="all" or lang==None:
-		languages = get_all_languages()
+import webnotes, os, re, codecs, json
 
-	print "Extracting / updating translatable strings..."
-	build_message_files()
-	
-	print "Compiling messages in one file..."
-	export_messages(lang, '_lang_tmp.csv')
-	
-	for lang in languages:
-		if lang != "en":
-			filename = 'app/translations/'+lang+'.csv'
-			print "For " + lang + ":"
-			print "Translating via Google Translate..."
-			google_translate(lang, '_lang_tmp.csv', filename)
-			print "Updating language files..."
-			import_messages(lang, filename)
-	
-	print "Deleting temp file..."
-	os.remove('_lang_tmp.csv')
+def get_user_lang(user=None):
+	if not user:
+		user = webnotes.session.user
+	return get_lang_dict().get(webnotes.conn.get_value("Profile", user, "language") or "english")
 
 def get_all_languages():
-	try:
-		return [f[:-4] for f in os.listdir("app/translations") if f.endswith(".csv")]
-	except OSError, e:
-		if e.args[0]==2:
-			return []
-		else:
-			raise
+	return [a.split()[0] for a in get_lang_info()]
 
 def get_lang_dict():
-	languages_path = os.path.join(get_base_path(), "app", "translations", "languages.json")
-	if os.path.exists(languages_path):
-		with open(languages_path, "r") as langfile:
-			return json.loads(langfile.read())
-	else: return {}
-
-def update_translations():
-	"""
-	compare language file timestamps with last updated timestamps in `.wnf-lang-status`
-	if timestamps are missing / changed, build new `.json` files in the `lang folders`
-	"""
-	langstatus = {}
-	languages = get_all_languages()
-	message_updated = False
-	status_file_path = "app/.wnf-lang-status"
+	return dict([[a[1], a[0]] for a in [a.split() for a in get_lang_info()]])
 	
-	if not os.path.exists(os.path.join('app', 'translations')):
-		return
-	if os.path.exists(status_file_path):
-		with open(status_file_path, "r") as langstatusfile:
-			langstatus = eval(langstatusfile.read())
-			
-	for lang in languages:
-		filename = os.path.join('app', 'translations', lang + '.csv')
-		if langstatus.get(lang, None)!=os.path.getmtime(filename):
-			print "Setting up lang files for " + lang + "..."
-			if not message_updated:
-				print "Extracting / updating translatable strings..."
-				build_message_files()
-				message_updated = True
-			print "Writing translations..."
-			import_messages(lang, filename)
-			langstatus[lang] = os.path.getmtime(filename)
+def get_lang_info():
+	return webnotes.cache().get_value("langinfo", 
+		lambda:webnotes.get_file_items(os.path.join(webnotes.local.sites_path, "languages.txt")))
 	
-	with open(status_file_path, "w") as langstatusfile:
-		langstatus = langstatusfile.write(str(langstatus))
+def rebuild_all_translation_files():
+	for lang in get_all_languages():
+		for app in get_all_apps():
+			write_translations_file(app, lang)
+	
+def write_translations_file(app, lang, full_dict=None):
+	tpath = webnotes.get_pymodule_path(app, "translations")
+	webnotes.create_folder(tpath)
+	write_csv_file(os.path.join(tpath, lang + ".csv"),
+		get_messages_for_app(app), full_dict or get_full_dict(lang))
 
-def build_message_files():
-	"""build from doctypes, pages, database and framework"""
-	if not webnotes.conn:
-		webnotes.connect()
+def get_dict(fortype, name=None):
+	fortype = fortype.lower()
+	cache = webnotes.cache()
+	cache_key = "translation_assets:" + webnotes.local.lang
+	asset_key = fortype + ":" + (name or "-")
+	translation_assets = cache.get_value(cache_key) or {}
+	
+	if not asset_key in translation_assets:
+		if fortype=="doctype":
+			messages = get_messages_from_doctype(name)
+		elif fortype=="page":
+			messages = get_messages_from_page(name)
+		elif fortype=="report":
+			messages = get_messages_from_report(name)
+		elif fortype=="include":
+			messages = get_messages_from_include_files()
+		elif fortype=="jsfile":
+			messages = get_messages_from_file(name)
 		
-	build_for_pages('lib/core')
-	build_for_pages('app')
-
-	build_from_doctype_code('lib/core')
-	build_from_doctype_code('app')
-
-	#reports
-	build_from_query_report()
-	
-	# doctype
-	build_from_database()
-	
-	build_for_framework('lib/webnotes', 'py', with_doctype_names=True)
-	build_for_framework('lib/public/js/wn', 'js')
-	build_for_framework('app/public/js', 'js', with_doctype_names=True)
-	
-def build_for_pages(path):
-	"""make locale files for framework py and js (all)"""
-	messages = []
-	for (basepath, folders, files) in os.walk(path):
-		if 'locale' in folders: folders.remove('locale')
-		if os.path.basename(os.path.dirname(basepath))=="page":
-			messages_js, messages_py = [], []
-			for fname in files:
-				fname = cstr(fname)
-				if fname.endswith('.js'):
-					messages_js += get_message_list(os.path.join(basepath, fname))	
-				if fname.endswith('.py'):
-					messages_py += get_message_list(os.path.join(basepath, fname))	
-			if messages_js:
-				write_messages_file(basepath, messages_js, "js")
-			if messages_py:
-				write_messages_file(basepath, messages_py, "py")
-	
-def build_from_query_report():
-	"""make locale for the query reports from database and the framework js and py files"""
-	import re
-	for item in webnotes.conn.sql("""select name, report_name,ref_doctype, query 
-			from `tabReport`""", as_dict=1):
-		messages_js, messages_py = [], []
-
-		if item:
-			messages_js.append(item.report_name)
-			messages_py.append(item.report_name)
-			# get the messages from the query using the regex :
-			# if we have the string "Production Date:Date:180" in the query then the regex will search for string between " and : .
-			# the regex will take "Production Date" and store them into messages
-			if item.query :
-				messages_query = re.findall('"([^:,^"]*):', item.query)
-				messages_js += messages_query
-				messages_py += messages_query
-			
-			module = get_doctype_module(item.ref_doctype)		
-			if module :
-				doctype_path = get_doc_path(module, "Report", item.name)
-				if os.path.exists(doctype_path):
-					for (basepath, folders, files) in os.walk(doctype_path):
-						if 'locale' in folders: folders.remove('locale')
-						for fname in files:
-							if fname.endswith('.js'):
-								messages_js += get_message_list(os.path.join(basepath, fname))	
-							if fname.endswith('.py'):
-								messages_py += get_message_list(os.path.join(basepath, fname))
-						break			
-					write_messages_file(doctype_path, messages_js, 'js')
-					write_messages_file(doctype_path, messages_py, 'py')
-
-
-def build_from_database():
-	"""make doctype labels, names, options, descriptions"""
-	def get_select_options(doc):
-		if doc.doctype=="DocField" and doc.fieldtype=='Select' and doc.options \
-			and not doc.options.startswith("link:") \
-			and not doc.options.startswith("attach_files:"):
-			return doc.options.split('\n')
-		else:
-			return []
-
-	build_for_doc_from_database(webnotes._dict({
-		"doctype": "DocType",
-		"module_field": "module",
-		"DocType": ["name", "description", "module"],
-		"DocField": ["label", "description"],
-		"custom": get_select_options
-	}))
-
-def build_for_doc_from_database(fields):
-	for item in webnotes.conn.sql("""select name from `tab%s`""" % fields.doctype, as_dict=1):
-		messages = []
-		doclist = webnotes.bean(fields.doctype, item.name).doclist
-
-		for doc in doclist:
-			if doc.doctype in fields:
-				messages += map(lambda x: x in fields[doc.doctype] and doc.fields.get(x) or None, 
-					doc.fields.keys())
-					
-			if fields.custom:
-				messages += fields.custom(doc)	
+		translation_assets[asset_key] = make_dict_from_messages(messages)
+		cache.set_value(cache_key, translation_assets)
 		
-		doc = doclist[0]
-		if doc.fields.get(fields.module_field):
-			doctype_path = get_doc_path(doc.fields[fields.module_field], 
-				doc.doctype, doc.name)
-			write_messages_file(doctype_path, messages, 'doc')
+	return translation_assets[asset_key]
 	
-def build_for_framework(path, mtype, with_doctype_names = False):
-	"""make locale files for framework py and js (all)"""
-	messages = []
-	for (basepath, folders, files) in os.walk(path):
-		if 'locale' in folders: folders.remove('locale')
-		for fname in files:
-			fname = cstr(fname)
-			if fname.endswith('.' + mtype):
-				messages += get_message_list(os.path.join(basepath, fname))
-				
-				
-	# append module & doctype names
-	if with_doctype_names:
-		for m in webnotes.conn.sql("""select name, module from `tabDocType`"""):
-			messages.append(m[0])
-			messages.append(m[1])
-			
-	# append labels from config.json
-	config = webnotes.get_config()
-	for moduleinfo in config["modules"].values():
-		if moduleinfo.get("label"):
-			messages.append(moduleinfo["label"])
-	
-	if messages:
-		write_messages_file(path, messages, mtype)
-	
-def build_from_doctype_code(path):
-	"""walk and make locale files in all folders"""
-	for (basepath, folders, files) in os.walk(path):
-		messagespy = []
-		messagesjs = []
-		for fname in files:
-			fname = cstr(fname)
-			if fname.endswith('py'):
-				messagespy += get_message_list(os.path.join(basepath, fname))
-			if fname.endswith('js'):
-				messagesjs += get_message_list(os.path.join(basepath, fname))
+def add_lang_dict(code):
+	messages = extract_messages_from_code(code)
+	code += "\n\n$.extend(wn._messages, %s)" % json.dumps(make_dict_from_messages(messages))
+	return code
 
-		if messagespy:
-			write_messages_file(basepath, messagespy, 'py')
-
-		if messagespy:
-			write_messages_file(basepath, messagesjs, 'js')
-
-def get_message_list(path):
-	"""get list of messages from a code file"""
-	import re
-	messages = []
-	with open(path, 'r') as sourcefile:
-		txt = sourcefile.read()
-		messages += re.findall('_\("([^"]*)".*\)', txt)
-		messages += re.findall("_\('([^']*)'.*\)", txt)
-		messages += re.findall('_\("{3}([^"]*)"{3}.*\)', txt, re.S)	
-		
-	return messages
+def make_dict_from_messages(messages, full_dict=None):
+	out = {}
+	if full_dict==None:
+		full_dict = get_full_dict(webnotes.local.lang)
 	
-def write_messages_file(path, messages, mtype):
-	"""write messages to translation file"""
-	if not os.path.exists(path):
-		return
-		
-	if not os.path.exists(os.path.join(path, 'locale')):
-		os.makedirs(os.path.join(path, 'locale'))
-	
-	fname = os.path.join(path, 'locale', '_messages_' + mtype + '.json')
-	messages = list(set(messages))
-	filtered = []
 	for m in messages:
-		if m and re.search('[a-zA-Z]+', m):
-			filtered.append(m)
-	with open(fname, 'w') as msgfile:
-		msgfile.write(json.dumps(filtered, indent=1))
-		
-def export_messages(lang, outfile):
-	"""get list of all messages"""
-	messages = {}
-	# extract messages
-	for (basepath, folders, files) in os.walk('.'):
-		def _get_messages(messages, basepath, mtype):
-			mlist = get_messages(basepath, mtype)
-			if not mlist:
-				return
-								
-			# update messages with already existing translations
-			langdata = get_lang_data(basepath, lang, mtype)
-			for m in mlist:
-				if not messages.get(m):
-					messages[m] = langdata.get(m, "")
-		
-		if os.path.basename(basepath)=='locale':
-			_get_messages(messages, basepath, 'doc')
-			_get_messages(messages, basepath, 'py')
-			_get_messages(messages, basepath, 'js')
+		if m in full_dict:
+			out[m] = full_dict[m]
 				
-	# remove duplicates
-	if outfile:
-		from csv import writer
-		with open(outfile, 'w') as msgfile:
-			w = writer(msgfile)
-			keys = messages.keys()
-			keys.sort()
-			for m in keys:
-				
-				w.writerow([m.encode('utf-8'), messages.get(m, '').encode('utf-8')])
-	
-def import_messages(lang, infile):
-	"""make individual message files for each language"""
-	data = dict(get_all_messages_from_file(infile))
-		
-	for (basepath, folders, files) in os.walk('.'):
-		def _update_lang_file(mtype):
-			"""create a langauge file for the given message type"""
-			messages = get_messages(basepath, mtype)
-			if not messages: return
+	return out
 
-			# read existing
-			langdata = get_lang_data(basepath, lang, mtype)
-							
-			# update fresh
-			for m in messages:				
-				if data.get(m):
-					langdata[m] = data.get(m)
+def get_lang_js(fortype, name):
+	return "\n\n$.extend(wn._messages, %s)" % json.dumps(get_dict(fortype, name))
+
+def get_full_dict(lang):
+	if lang == "en": return {}
+	return webnotes.cache().get_value("lang:" + lang, lambda:load_lang(lang))
+
+def load_lang(lang, apps=None):
+	out = {}
+	for app in (apps or webnotes.get_all_apps(True)):
+		path = os.path.join(webnotes.get_pymodule_path(app), "translations", lang + ".csv")
+		if os.path.exists(path):
+			cleaned = dict([item for item in dict(read_csv_file(path)).iteritems() if item[1]])
+			out.update(cleaned)
 			
-			if langdata:
-				# write new langfile
-				langfilename = os.path.join(basepath, lang + '-' + mtype + '.json')
-				with open(langfilename, 'w') as langfile:
-					langfile.write(json.dumps(langdata, indent=1, sort_keys=True).encode('utf-8'))
-				#print 'wrote ' + langfilename
-				
-		if os.path.basename(basepath)=='locale':
-			# make / update lang files for each type of message file (doc, js, py)
-			# example: hi-doc.json, hi-js.json, hi-py.json
-			_update_lang_file('doc')
-			_update_lang_file('js')
-			_update_lang_file('py')
-
-def load_doc_messages(module, doctype, name):
-	if webnotes.lang=="en":
-		return {}
-
-	if not webnotes.local.translated_docs:
-		webnotes.local.translated_docs = []
-
-	doc_path = get_doc_path(module, doctype, name)
-
-	# don't repload the same doc again
-	if (webnotes.lang + ":" + doc_path) in webnotes.local.translated_docs:
-		return
-
-	if not docs_loaded:
-		webnotes.local.translate_docs_loaded = []
-	webnotes.local.translated_docs.append(webnotes.lang + ":" + doc_path)
-
-	webnotes.local.translations.update(get_lang_data(doc_path, None, 'doc'))
-
-def get_lang_data(basepath, lang, mtype):
-	"""get language dict from langfile"""
-
-	# add "locale" folder if reqd
-	if os.path.basename(basepath) != 'locale':
-		basepath = os.path.join(basepath, 'locale')
+	return out
 	
-	if not lang: lang = webnotes.local.lang
+def clear_cache():
+	cache = webnotes.cache()
+	cache.delete_value("langinfo")
+	for lang in get_all_languages():
+		cache.delete_value("lang:" + lang)
+		cache.delete_value("translation_assets:" + lang)
 	
-	path = os.path.join(basepath, lang + '-' + mtype + '.json')
-		
-	langdata = {}
-	if os.path.exists(path):
-		with codecs.open(path, 'r', 'utf-8') as langfile:
-			langdata = json.loads(langfile.read())
-
-	return langdata
-
-def get_messages(basepath, mtype):
-	"""load list of messages from _message files"""
-	# get message list
-	path = os.path.join(basepath, '_messages_' + mtype + '.json')
+def get_messages_for_app(app):
 	messages = []
-	if os.path.exists(path):
-		with open(path, 'r') as msgfile:
-			messages = json.loads(msgfile.read())
+	modules = ", ".join(['"{}"'.format(m.title().replace("_", " ")) \
+		for m in webnotes.local.app_modules[app]])
 			
-	return messages
+	# doctypes
+	for name in webnotes.conn.sql_list("""select name from tabDocType 
+		where module in ({})""".format(modules)):
+		messages.extend(get_messages_from_doctype(name))
 
-def update_lang_js(jscode, path):
-	return jscode + "\n\n$.extend(wn._messages, %s)" % \
-		json.dumps(get_lang_data(path, webnotes.lang, 'js'))
+	# pages
+	for name in webnotes.conn.sql_list("""select name from tabPage 
+		where module in ({})""".format(modules)):
+		messages.extend(get_messages_from_page(name))
+	
+	# reports
+	for name in webnotes.conn.sql_list("""select tabReport.name from tabDocType, tabReport 
+		where tabReport.ref_doctype = tabDocType.name 
+			and tabDocType.module in ({})""".format(modules)):
+		messages.extend(get_messages_from_report(name))
+	
+	# app_include_files
+	messages.extend(get_messages_from_include_files(app))
+
+	# server_messages
+	messages.extend(get_server_messages(app))
+
+	return list(set(messages))
+
+
+def get_messages_from_doctype(name):
+	messages = []
+	meta = webnotes.get_doctype(name)
+	
+	messages = [meta[0].name, meta[0].description, meta[0].module]
+	
+	for d in meta.get({"doctype":"DocField"}):
+		messages.extend([d.label, d.description])
 		
-def get_all_messages_from_file(path):
+		if d.fieldtype=='Select' and d.options \
+			and not d.options.startswith("link:") \
+			and not d.options.startswith("attach_files:"):
+			options = d.options.split('\n')
+			if not "icon" in options[0]:
+				messages.extend(options)
+				
+	# extract from js, py files
+	doctype_file_path = webnotes.get_module_path(meta[0].module, "doctype", meta[0].name, meta[0].name)
+	messages.extend(get_messages_from_file(doctype_file_path + ".js"))
+	return clean(messages)
+	
+def get_messages_from_page(name):
+	return get_messages_from_page_or_report("Page", name)
+	
+def get_messages_from_report(name):
+	report = webnotes.doc("Report", name)
+	messages = get_messages_from_page_or_report("Report", name, 
+		webnotes.conn.get_value("DocType", report.ref_doctype, "module"))
+	if report.query:
+		messages.extend(re.findall('"([^:,^"]*):', report.query))
+		messages.append(report.report_name)
+	return clean(messages)
+
+def get_messages_from_page_or_report(doctype, name, module=None):
+	if not module:
+		module = webnotes.conn.get_value(doctype, name, "module")
+	file_path = webnotes.get_module_path(module, doctype, name, name)
+	messages = get_messages_from_file(file_path + ".js")
+	
+	return clean(messages)
+	
+def get_server_messages(app):
+	messages = []
+	for basepath, folders, files in os.walk(webnotes.get_pymodule_path(app)):
+		for dontwalk in (".git", "public", "locale"):
+			if dontwalk in folders: folders.remove(dontwalk)
+		
+		for f in files:
+			if f.endswith(".py") or f.endswith(".html"):
+				messages.extend(get_messages_from_file(os.path.join(basepath, f)))
+
+	return clean(messages)
+	
+def get_messages_from_include_files(app_name=None):
+	messages = []
+	hooks = webnotes.get_hooks(app_name)
+	for file in (hooks.app_include_js or []) + (hooks.web_include_js or []):
+		messages.extend(get_messages_from_file(os.path.join(webnotes.local.sites_path, file)))
+		
+	return messages
+	
+def get_messages_from_file(path):
+	"""get list of messages from a code file"""
+	if os.path.exists(path):
+		with open(path, 'r') as sourcefile:
+			return extract_messages_from_code(sourcefile.read(), path.endswith(".py"))
+	else:
+		return []
+
+def extract_messages_from_code(code, is_py=False):
+	messages = []
+	messages += re.findall('_\("([^"]*)"\)', code)
+	messages += re.findall("_\('([^']*)'\)", code)
+	if is_py:
+		messages += re.findall('_\("{3}([^"]*)"{3}.*\)', code, re.S)	
+	return messages
+	
+def clean(messages):
+	return filter(lambda t: t if t else None, list(set(messages)))
+
+def read_csv_file(path):
+	from csv import reader
 	with codecs.open(path, 'r', 'utf-8') as msgfile:
 		data = msgfile.read()
 		data = reader([r.encode('utf-8') for r in data.splitlines()])
-		newdata = []
-		for row in data:
-			newrow = []
-			for val in row:
-				newrow.append(unicode(val, 'utf-8'))
-			newdata.append(newrow)
-
+		newdata = [[unicode(val, 'utf-8') for val in row] for row in data]
 	return newdata
-
-def google_translate(lang, infile, outfile):
-	"""translate objects using Google API. Add you own API key for translation"""
-	data = get_all_messages_from_file(infile)
-		
-	import requests
-	from webnotes import conf
 	
-	old_translations = {}
-	
-	# update existing translations
-	if os.path.exists(outfile):
-		with codecs.open(outfile, "r", "utf-8") as oldfile:
-			old_data = oldfile.read()
-			old_translations = dict(reader([r.encode('utf-8').strip() for r in old_data.splitlines()]))
-		
-	with open(outfile, 'w') as msgfile:
-		from csv import writer
+def write_csv_file(path, app_messages, lang_dict):
+	app_messages.sort()
+	from csv import writer
+	with open(path, 'w') as msgfile:
 		w = writer(msgfile)
-		for row in data:
-			if row[0] and row[0].strip():
-				if old_translations.get(row[0].strip()):
-					row[1] = old_translations[row[0].strip()]
-				else:
-					print 'translating: ' + row[0]
-					response = requests.get("""https://www.googleapis.com/language/translate/v2""",
-						params = {
-							"key": conf.google_api_key,
-							"source": "en",
-							"target": lang,
-							"q": row[0]
-						})
-			
-					data = response.json()
-			
-					if "error" in data:
-						print data
-						continue
-					
-					row[1] = data["data"]["translations"][0]["translatedText"]
-					if not row[1]:
-						row[1] = row[0] # google unable to translate!
-			
-					row[1] = row[1].encode('utf-8')
+		for m in app_messages:
+			w.writerow([m.encode('utf-8'), lang_dict.get(m, '').encode('utf-8')])
+	
+def get_untranslated(lang, untranslated_file):
+	"""translate objects using Google API. Add you own API key for translation"""	
+	clear_cache()
+	apps = webnotes.get_all_apps(True)
+	
+	messages = []
+	untranslated = []
+	for app in apps:
+		messages.extend(get_messages_for_app(app))
+	
+	full_dict = get_full_dict(lang)
+		
+	for m in messages:
+		if not full_dict.get(m):
+			untranslated.append(m)
+	
+	if untranslated:
+		print str(len(untranslated)) + " missing translations of " + str(len(messages))
+		with open(untranslated_file, "w") as f:
+			f.write("\n".join(untranslated))
+	else:
+		print "all translated!"
 
-				row[0] = row[0].encode('utf-8')
-				w.writerow(row)
+def update_translations(lang, untranslated_file, translated_file):
+	clear_cache()
+	full_dict = get_full_dict(lang)
+	
+	full_dict.update(dict(zip(webnotes.get_file_items(untranslated_file), 
+		webnotes.get_file_items(translated_file))))
 
+	for app in webnotes.get_all_apps(True):
+		write_translations_file(app, lang, full_dict)
+			
+def google_translate(lang, untranslated):
+	import requests
+	if untranslated:
+		response = requests.get("""https://www.googleapis.com/language/translate/v2""",
+			params = {
+				"key": webnotes.conf.google_api_key,
+				"source": "en",
+				"target": lang,
+				"q": "\n".join(untranslated)
+			})
+			
+		data = response.json()
+
+		if "error" in data:
+			print data
+
+		translated = data["data"]["translations"][0]["translatedText"]
+		if translated:
+			return dict(zip(untranslated, translated))
+		else:
+			print "unable to translate"
+			return {}

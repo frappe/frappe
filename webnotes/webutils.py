@@ -8,7 +8,7 @@ import json, os, time
 from webnotes import _
 import webnotes.utils
 import mimetypes
-from website.doctype.website_sitemap.website_sitemap import add_to_sitemap
+from webnotes.website.doctype.website_sitemap.website_sitemap import add_to_sitemap
 
 class PageNotFoundError(Exception): pass
 
@@ -38,7 +38,7 @@ def render_page(page_name):
 		page_name = page_name[:-5]
 	html = ''
 		
-	if not conf.auto_cache_clear:
+	if not conf.disable_website_cache:
 		html = webnotes.cache().get_value("page:" + page_name)
 		from_cache = True
 
@@ -50,7 +50,7 @@ def render_page(page_name):
 		raise PageNotFoundError
 
 	if page_name=="error":
-		html = html.replace("%(error)s", webnotes.getTraceback())
+		html = html.replace("%(error)s", webnotes.get_traceback())
 	elif "text/html" in webnotes._response.headers["Content-Type"]:
 		comments = "\npage:"+page_name+\
 			"\nload status: " + (from_cache and "cache" or "fresh")
@@ -82,9 +82,7 @@ def build_page(page_name):
 	else:
 		page_options["page_name"] = page_name
 	
-	basepath = webnotes.utils.get_base_path()
 	no_cache = page_options.get("no_cache")
-	
 
 	# if generator, then load bean, pass arguments
 	if page_options.get("page_or_generator")=="Generator":
@@ -107,9 +105,10 @@ def build_page(page_name):
 	context.update(get_website_settings())
 
 	jenv = webnotes.get_jenv()
-	context["base_template"] = jenv.get_template(webnotes.get_config().get("base_template"))
+	context["base_template"] = jenv.get_template("templates/base.html")
 	
 	template_name = page_options['template_path']	
+	context["_"] = webnotes._
 	html = jenv.get_template(template_name).render(context)
 	
 	if not no_cache:
@@ -130,7 +129,9 @@ def get_home_page():
 def get_website_settings():
 	from webnotes.utils import get_request_site_address, encode, cint
 	from urllib import quote
-		
+	
+	hooks = webnotes.get_hooks()
+	
 	all_top_items = webnotes.conn.sql("""\
 		select * from `tabTop Bar Item`
 		where parent='Website Settings' and parentfield='top_bar_items'
@@ -179,12 +180,12 @@ def get_website_settings():
 	context.url = quote(str(get_request_site_address(full_address=True)), str(""))
 	context.encoded_title = quote(encode(context.title or ""), str(""))
 	
-	try:
-		import startup.webutils
-		if hasattr(startup.webutils, "get_website_settings"):
-			startup.webutils.get_website_settings(context)
-	except:
-		pass
+	for update_website_context in hooks.update_website_context or []:
+		webnotes.get_attr(update_website_context)(context)
+		
+	context.web_include_js = hooks.web_include_js or []
+	context.web_include_css = hooks.web_include_css or []
+	
 	return context
 
 
@@ -217,10 +218,14 @@ def is_signup_enabled():
 
 class WebsiteGenerator(object):
 	def setup_generator(self):
+		if webnotes.flags.in_install_app:
+			return
 		self._website_config = webnotes.conn.get_values("Website Sitemap Config", 
 			{"ref_doctype": self.doc.doctype}, "*")[0]
 		
 	def on_update(self, page_name=None):
+		if webnotes.flags.in_install_app:
+			return
 		self.setup_generator()
 		if self._website_config.condition_field:
 			if not self.doc.fields.get(self._website_config.condition_field):
