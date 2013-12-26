@@ -23,6 +23,8 @@ def clear(user=None):
 
 def clear_cache(user=None):
 	cache = webnotes.cache()
+
+	webnotes.model.doctype.clear_cache()
 	
 	if user:
 		cache.delete_value("bootinfo:" + user)
@@ -43,7 +45,6 @@ def clear_cache(user=None):
 		webnotes.defaults.clear_cache(user)
 	else:
 		cache.delete_value(["app_hooks", "installed_apps", "app_modules", "module_apps"])
-		webnotes.model.doctype.clear_cache()
 
 		for sess in webnotes.conn.sql("""select user, sid from tabSessions""", as_dict=1):
 			cache.delete_value("lang:" + sess.user)

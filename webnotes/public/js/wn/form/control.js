@@ -119,17 +119,6 @@ wn.ui.form.ControlImage = wn.ui.form.Control.extend({
 	}
 });
 
-wn.ui.form.ControlReadOnly = wn.ui.form.Control.extend({
-	make: function() {
-		this._super();
-		var me = this;
-		this.$wrapper.on("refresh", function() {
-			var value = wn.model.get_value(me.doctype, me.docname, me.fieldname);
-			me.$wrapper.html(value);
-		})
-	},
-});
-
 wn.ui.form.ControlInput = wn.ui.form.Control.extend({
 	horizontal: true,
 	make: function() {
@@ -332,6 +321,16 @@ wn.ui.form.ControlData = wn.ui.form.ControlInput.extend({
 		}
 	}
 });
+
+wn.ui.form.ControlReadOnly = wn.ui.form.ControlData.extend({
+	get_status: function(explain) {
+		var status = this._super(explain);
+		if(status==="Write") 
+			status = "Read";
+		return;
+	}
+});
+
 
 wn.ui.form.ControlPassword = wn.ui.form.ControlData.extend({
 	input_type: "password"

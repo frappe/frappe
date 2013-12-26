@@ -206,7 +206,6 @@ $.extend(wn.model, {
 		    raise "CustomerAgeError";
 		  }
 		}) */
-		console.log([doctype, fieldname])
 		wn.provide("wn.model.events." + doctype);
 		if(!wn.model.events[doctype][fieldname]) {
 			wn.model.events[doctype][fieldname] = [];
