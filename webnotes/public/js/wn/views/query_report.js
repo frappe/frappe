@@ -111,20 +111,35 @@ wn.views.QueryReport = Class.extend({
 		this.clear_filters();
 		var me = this;
 		$.each(wn.query_reports[this.report_name].filters || [], function(i, df) {
-			var f = me.appframe.add_field(df);
-			$(f.wrapper).addClass("filters pull-left");
-			me.filters.push(f);
-			if(df["default"]) {
-				f.set_input(df["default"]);
-			}
+			if(df.fieldtype==="Break") {
+				me.appframe.add_break();
+			} else {
+				var f = me.appframe.add_field(df);
+				$(f.wrapper).addClass("filters pull-left");
+				me.filters.push(f);
+				if(df["default"]) {
+					f.set_input(df["default"]);
+				}
 			
-			if(df.get_query) f.get_query = df.get_query;
+				if(df.get_query) f.get_query = df.get_query;
+			}
 		});
+		this.set_route_filters()
 		this.set_filters_by_name();
 	},
 	clear_filters: function() {
 		this.filters = [];
 		this.appframe.parent.find('.appframe-form .filters').remove();
+	},
+	set_route_filters: function() {
+		var me = this;
+		if(wn.route_options) {
+			$.each(this.filters || [], function(i, f) {
+				if(wn.route_options[f.df.fieldname]!=null)
+					f.set_input(wn.route_options[f.df.fieldname]);
+			});
+		}
+		wn.route_options = null;
 	},
 	set_filters_by_name: function() {
 		this.filters_by_name = {};

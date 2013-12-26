@@ -125,11 +125,13 @@ wn.views.ReportView = wn.ui.Listing.extend({
 		var me = this;
 		if(opts.columns) this.columns = opts.columns;
 		if(opts.filters) $.each(opts.filters, function(i, f) {
-			// fieldname, condition, value
-			if (wn.meta.get_docfield(f[0], f[1]).fieldtype == "Check")
-				value = f[3] ? "Yes" : "No";
-			else
-				value = f[3];
+			// f = [doctype, fieldname, condition, value]
+			var df = wn.meta.get_docfield(f[0], f[1]);
+			if (df && df.fieldtype == "Check") {
+				var value = f[3] ? "Yes" : "No";
+			} else {
+				var value = f[3];
+			}
 			me.filter_list.add_filter(f[0], f[1], f[2], value);
 		});
 

@@ -38,8 +38,14 @@ wn.assets = {
 			localStorage.clear();
 			console.log("Cleared localstorage");
 		}
+		
+		wn.assets.init_local_storage();
+	},
+	
+	init_local_storage: function() {
 		localStorage._last_load = new Date();
 		localStorage._version_number = window._version_number;
+		if(wn.boot) localStorage.metadata_version = wn.boot.metadata_version;
 	},
 	
 	// check if the asset exists in

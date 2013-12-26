@@ -52,10 +52,10 @@ def application(request):
 			webnotes.http_request = webnotes.auth.HTTPRequest()
 		except webnotes.AuthenticationError, e:
 			pass
-		
+
 		if webnotes.form_dict.cmd:
 			webnotes.handler.handle()
-		elif webnotes.local.request.method == 'GET':
+		elif webnotes.local.request.method in ('GET', 'HEAD'):
 			webnotes.webutils.render(webnotes.request.path[1:])
 		else:
 			raise NotFound

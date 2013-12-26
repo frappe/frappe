@@ -216,7 +216,7 @@ def get_request_header(key, default=None):
 logger = None
 whitelisted = []
 guest_methods = []
-def whitelist(allow_guest=False, allow_roles=None):
+def whitelist(allow_guest=False):
 	"""
 	decorator for whitelisting a function
 	
@@ -232,21 +232,18 @@ def whitelist(allow_guest=False, allow_roles=None):
 		if allow_guest:
 			guest_methods.append(fn)
 
-		if allow_roles:
-			roles = get_roles()
-			allowed = False
-			for role in allow_roles:
-				if role in roles:
-					allowed = True
-					break
-			
-			if not allowed:
-				raise PermissionError, "Method not allowed"
-
 		return fn
 	
 	return innerfn
 	
+def only_for(roles):
+	if not isinstance(roles, (tuple, list)):
+		roles = (roles,)
+	roles = set(roles)
+	myroles = set(get_roles())
+	if not roles.intersection(myroles):
+		raise PermissionError
+			
 def clear_cache(user=None, doctype=None):
 	"""clear cache"""
 	import webnotes.sessions
@@ -544,6 +541,18 @@ def repsond_as_web_page(title, html):
 	local.message = "<h3>" + title + "</h3>" + html
 	local.response['type'] = 'page'
 	local.response['page_name'] = 'message.html'
+<<<<<<< HEAD
+=======
+
+def load_json(obj):
+	if isinstance(obj, basestring):
+		try:
+			obj = json.loads(obj)
+		except ValueError:
+			pass
+		
+	return obj
+>>>>>>> 55003f860c12c6b77a4d21d0ccf41573e7e3e545
 	
 def build_match_conditions(doctype, fields=None, as_condition=True):
 	import webnotes.widgets.reportview

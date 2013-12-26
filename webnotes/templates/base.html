@@ -26,8 +26,12 @@
 	{%- endblock %}
 </head>
 <body>
-	{% block banner %}{{ banner_html or "" }}{% endblock %}
-	{% block navbar %}{% include "templates/includes/navbar.html" %}{% endblock %}
+	{% block banner %}
+	{% if banner_html -%}
+	<header class="container">{{ banner_html or "" }}</header>
+	{%- endif %}
+	{% endblock %}
+	{% block navbar %}{% include "lib/website/templates/includes/navbar.html" %}{% endblock %}
 	<div class="page-container" id="page-{{ name }}">
 		{% block content %}{% endblock %}
 	</div>

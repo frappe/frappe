@@ -118,7 +118,7 @@ wn.print.Table = Class.extend({
 				var tr = $("<tr>").appendTo(table);
 				
 				$.each(me.columns, function(ci, fieldname) {
-					if(fieldname==="Sr") 
+					if(fieldname.toLowerCase()==="sr")
 						var value = row.idx;
 					else
 						var value = row[fieldname];

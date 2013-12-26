@@ -99,22 +99,31 @@ def log(method, message=None):
 	webnotes.conn.commit()
 	
 	return message
-
-def report_errors():
-	from webnotes.utils.email_lib import sendmail_to_system_managers
-	from webnotes.utils import get_url
 	
-	errors = [("""<p>Time: %(modified)s</p>
-<pre><code>%(error)s</code></pre>""" % d) for d in webnotes.conn.sql("""select modified, error 
-		from `tabScheduler Log` where DATEDIFF(NOW(), modified) < 1 
-		and error not like '%%[Errno 110] Connection timed out%%' 
-		limit 10""", as_dict=True)]
+def get_errors(from_date, to_date, limit):
+	errors = webnotes.conn.sql("""select modified, method, error from `tabScheduler Log`
+		where date(modified) between %s and %s
+		and error not like '%%[Errno 110] Connection timed out%%'
+		order by modified limit %s""", (from_date, to_date, limit), as_dict=True)
+	return ["""<p>Time: {modified}</p><pre><code>Method: {method}\n{error}</code></pre>""".format(**e)
+		for e in errors]
 		
+def get_error_report(from_date=None, to_date=None, limit=10):
+	from webnotes.utils import get_url, now_datetime, add_days
+	
+	if not from_date:
+		from_date = add_days(now_datetime().date(), -1)
+	if not to_date:
+		to_date = add_days(now_datetime().date(), -1)
+	
+	errors = get_errors(from_date, to_date, limit)
+	
 	if errors:
-		sendmail_to_system_managers("ERPNext Scheduler Failure Report", ("""
-	<p>Dear System Managers,</p>
-	<p>Reporting ERPNext failed scheduler events for the day (max 10):</p>
-	<p>URL: <a href="%(url)s" target="_blank">%(url)s</a></p><hr>""" % {"url":get_url()}) + "<hr>".join(errors))
+		return 1, """<h4>Scheduler Failed Events (max {limit}):</h4>
+			<p>URL: <a href="{url}" target="_blank">{url}</a></p><hr>{errors}""".format(
+			limit=limit, url=get_url(), errors="<hr>".join(errors))
+	else:
+		return 0, "<p>Scheduler didn't encounter any problems.</p>"
 
 if __name__=='__main__':
 	execute()

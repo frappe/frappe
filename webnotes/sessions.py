@@ -17,6 +17,8 @@ import webnotes.translate
 
 @webnotes.whitelist()
 def clear(user=None):
+	webnotes.local.session_obj.update(force=True)
+	webnotes.local.conn.commit()
 	clear_cache(webnotes.session.user)
 	webnotes.response['message'] = "Cache Cleared"
 
@@ -217,7 +219,7 @@ class Session:
 		webnotes.local.login_manager.login_as_guest()
 		self.start()
 
-	def update(self):
+	def update(self, force=False):
 		"""extend session expiry"""
 		self.data['data']['last_updated'] = webnotes.utils.now()
 		self.data['data']['lang'] = unicode(webnotes.lang)
@@ -231,8 +233,8 @@ class Session:
 			time_diff = webnotes.utils.time_diff_in_seconds(webnotes.utils.now(), 
 				last_updated)
 		
-		if webnotes.session['user'] != 'Guest' and \
-			((time_diff==None) or (time_diff > 1800)):
+		if force or (webnotes.session['user'] != 'Guest' and \
+			((time_diff==None) or (time_diff > 1800))):
 			# database persistence is secondary, don't update it too often
 			webnotes.conn.sql("""update tabSessions set sessiondata=%s, 
 				lastupdate=NOW() where sid=%s""" , (str(self.data['data']), 
