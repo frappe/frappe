@@ -580,3 +580,15 @@ ul.linked-with-list li {
 
 /* hack */
 .ui-datepicker { z-index: 9999999 !important; }
+
+.bold,
+.strong {
+	font-weight: bold;
+}
+
+.tree-node-toolbar {
+	padding: 2px 5px;
+	margin-left: 15px;
+	border-radius: 3px;
+	background-color: #ddd;
+}

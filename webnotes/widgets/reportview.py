@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 
 import webnotes, json
 import webnotes.defaults
+import webnotes.permissions
 
 @webnotes.whitelist()
 def get():
@@ -104,8 +105,6 @@ def load_doctypes():
 	"""load all doctypes and roles"""
 	import webnotes.model.doctype
 
-	webnotes.local.reportview_roles = webnotes.get_roles()
-	
 	if not getattr(webnotes.local, "reportview_doctypes", None):
 		webnotes.local.reportview_doctypes = {}
 
@@ -187,52 +186,50 @@ def build_filter_conditions(filters, conditions):
 					
 def build_match_conditions(doctype, fields=None, as_condition=True):
 	"""add match conditions if applicable"""
-	
+	import webnotes.permissions
 	match_filters = {}
 	match_conditions = []
-	match = True
 
 	if not getattr(webnotes.local, "reportview_tables", None) \
 		or not getattr(webnotes.local, "reportview_doctypes", None):
 		webnotes.local.reportview_tables = get_tables(doctype, fields)
 		load_doctypes()
-
-	if not getattr(webnotes.local, "reportview_roles", None):
-		webnotes.local.reportview_roles = webnotes.get_roles()
-
-	for d in webnotes.local.reportview_doctypes[doctype]:
-		if d.doctype == 'DocPerm' and d.parent == doctype:
-			if d.role in webnotes.local.reportview_roles:
-				if d.match: # role applicable
-					if ':' in d.match:
-						document_key, default_key = d.match.split(":")
-					else:
-						default_key = document_key = d.match
-					for v in webnotes.defaults.get_user_default_as_list(default_key, \
-						webnotes.session.user) or ["** No Match **"]:
-						if as_condition:
-							match_conditions.append('`tab%s`.%s="%s"' % (doctype,
-								document_key, v))
-						else:
-							if v:
-								match_filters.setdefault(document_key, [])
-								if v not in match_filters[document_key]:
-									match_filters[document_key].append(v)
-							
-				elif d.read == 1 and d.permlevel == 0:
-					# don't restrict if another read permission at level 0 
-					# exists without a match restriction
-					match = False
-					match_filters = {}
 	
-	if as_condition:
-		conditions = ""
-		if match_conditions and match:
-			conditions =  '('+ ' or '.join(match_conditions) +')'
+	# get restrictions
+	restrictions = webnotes.defaults.get_restrictions()
+	
+	if restrictions:
+		fields_to_check = webnotes.local.reportview_doctypes[doctype].get_restricted_fields(restrictions.keys())
+		if doctype in restrictions:
+			fields_to_check.append(webnotes._dict({"fieldname":"name", "options":doctype}))
 		
+		# check in links
+		for df in fields_to_check:
+			if as_condition:
+				match_conditions.append('`tab{doctype}`.{fieldname} in ({values})'.format(doctype=doctype,
+					fieldname=df.fieldname, 
+					values=", ".join([('"'+v.replace('"', '\"')+'"') for v in restrictions[df.options]])))
+			else:
+				match_filters.setdefault(df.fieldname, [])
+				match_filters[df.fieldname]= restrictions[df.options]
+				
+	# add owner match
+	owner_match = True
+	for p in webnotes.permissions.get_user_perms(webnotes.local.reportview_doctypes[doctype], "read"):
+		if not (p.match and p.match=="owner"):
+			owner_match = False
+			break
+		
+	if owner_match:
+		match_conditions.append('`tab{doctype}`.`owner`="{user}"'.format(doctype=doctype, 
+			user=webnotes.local.session.user))
+		match_filters["owner"] = [webnotes.local.session.user]
+						
+	if as_condition:
+		conditions = " and ".join(match_conditions)
 		doctype_conditions = get_doctype_conditions(doctype)
 		if doctype_conditions:
-				conditions += ' and ' + doctype_conditions if conditions else doctype_conditions
+			conditions += ' and ' + doctype_conditions if conditions else doctype_conditions
 		return conditions
 	else:
 		return match_filters
@@ -286,11 +283,11 @@ def save_report():
 @webnotes.whitelist()
 def export_query():
 	"""export from report builder"""
+	form_params = get_form_params()
 	
-	# TODO: validate use is allowed to export
-	verify_export_allowed()
+	webnotes.permissions.can_export(form_params.doctype, raise_exception=True)
 	
-	ret = execute(**get_form_params())
+	ret = execute(**form_params)
 
 	columns = [x[0] for x in webnotes.conn.get_description()]
 	data = [['Sr'] + get_labels(columns),]
@@ -319,14 +316,6 @@ def export_query():
 	webnotes.response['type'] = 'csv'
 	webnotes.response['doctype'] = [t[4:-1] for t in webnotes.local.reportview_tables][0]
 
-def verify_export_allowed():
-	"""throw exception if user is not allowed to export"""
-	webnotes.local.reportview_roles = webnotes.get_roles()
-	if not ('Administrator' in webnotes.local.reportview_roles or \
-		'System Manager' in webnotes.local.reportview_roles or \
-		'Report Manager' in webnotes.local.reportview_roles):
-		raise webnotes.PermissionError
-
 def get_labels(columns):
 	"""get column labels based on column names"""
 	label_dict = {}
@@ -341,7 +330,6 @@ def get_labels(columns):
 def delete_items():
 	"""delete selected items"""
 	import json
-	from webnotes.model import delete_doc
 	from webnotes.model.code import get_obj
 
 	il = json.loads(webnotes.form_dict.get('items'))
@@ -352,7 +340,7 @@ def delete_items():
 			dt_obj = get_obj(doctype, d)
 			if hasattr(dt_obj, 'on_trash'):
 				dt_obj.on_trash()
-			delete_doc(doctype, d)
+			webnotes.delete_doc(doctype, d)
 		except Exception, e:
 			webnotes.errprint(webnotes.get_traceback())
 			pass

@@ -48,7 +48,12 @@ def rename_doc(doctype, old, new, force=False, merge=False):
 	new_obj = webnotes.get_obj(doctype, new)
 	if hasattr(new_obj, 'after_rename'):
 		new_obj.after_rename(old, new, merge)
-		
+	
+	# update restrictions
+	webnotes.conn.sql("""update tabDefaultValue set defvalue=%s where parenttype='Restriction' 
+		and defkey=%s and defvalue=%s""", (new, doctype, old))
+	webnotes.clear_cache()
+	
 	return new
 
 def update_attachments(doctype, old, new):

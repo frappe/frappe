@@ -24,7 +24,7 @@ wn.print.Table = Class.extend({
 		var perms = wn.perm.get_perm(this.doctype, this.docname);
 		return ['Sr'].concat($.map(wn.meta.docfield_list[this.tabletype], function(df) {
 			return (cint(df.print_hide) || !(perms[df.permlevel] && 
-				perms[df.permlevel][READ])) ? null : df.fieldname;
+				perms[df.permlevel].read)) ? null : df.fieldname;
 		}));
 	},
 	get_data: function() {

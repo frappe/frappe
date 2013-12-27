@@ -57,6 +57,7 @@ class TestTranslations(unittest.TestCase):
 	def test_get_dict(self):
 		webnotes.local.lang = "de"
 		self.assertEquals(webnotes.get_lang_dict("doctype", "Role").get("Role"), "Rolle")
+		webnotes.local.lang = "en"
 
 if __name__=="__main__":
 	webnotes.connect("site1")

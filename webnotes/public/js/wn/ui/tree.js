@@ -47,9 +47,9 @@ wn.ui.TreeNode = Class.extend({
 			.appendTo(this.parent);
 		
 		// label with icon
-		var icon_html = '<i class="icon-file"></i>';
+		var icon_html = '<i class="icon-fixed-width icon-file"></i>';
 		if(this.expandable) {
-			icon_html = '<i class="icon-folder-close"></i>';
+			icon_html = '<i class="icon-fixed-width icon-folder-close"></i>';
 		}
 		$(icon_html + ' <a class="tree-label">' + this.label + "</a>").
 			appendTo(this.$a);
@@ -66,9 +66,9 @@ wn.ui.TreeNode = Class.extend({
 			// open close icon
 			this.$a.find('i').removeClass();
 			if(this.$ul.css('display').toLowerCase()=='block') {
-				this.$a.find('i').addClass('icon-folder-open');
+				this.$a.find('i').addClass('icon-fixed-width icon-folder-open');
 			} else {
-				this.$a.find('i').addClass('icon-folder-close');				
+				this.$a.find('i').addClass('icon-fixed-width icon-folder-close');
 			}
 		}
 		
@@ -80,7 +80,7 @@ wn.ui.TreeNode = Class.extend({
 	},
 	reload: function() {
 		if(this.expanded) {
-			this.$a.click(); // collapse			
+			this.$a.click(); // collapse
 		}
 		if(this.$ul) {
 			this.$ul.empty();
@@ -101,8 +101,8 @@ wn.ui.TreeNode = Class.extend({
 	},
 	load: function() {
 		var me = this;
-		args = $.extend(this.tree.args, {
-			parent: this.label
+		args = $.extend(this.tree.args || {}, {
+			parent: this.data ? this.data.value : null
 		});
 
 		$(me.$a).set_working();
@@ -116,7 +116,9 @@ wn.ui.TreeNode = Class.extend({
 				if (r.message) {
 					$.each(r.message, function(i, v) {
 						node = me.addnode(v);
-						node.$a.data('node-data', v);
+						node.$a
+							.data('node-data', v)
+							.data('node', node);
 					});
 				}
 				
@@ -126,5 +128,5 @@ wn.ui.TreeNode = Class.extend({
 				me.selectnode();
 			}
 		})
-	}	
+	}
 })

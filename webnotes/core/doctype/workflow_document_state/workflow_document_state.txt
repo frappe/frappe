@@ -2,11 +2,12 @@
  {
   "creation": "2013-02-22 01:27:36", 
   "docstatus": 0, 
-  "modified": "2013-07-10 14:54:25", 
+  "modified": "2013-12-20 19:21:55", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
  {
+  "allow_import": 1, 
   "description": "Represents the states allowed in one document and role assigned to change the state.", 
   "doctype": "DocType", 
   "document_type": "Master", 

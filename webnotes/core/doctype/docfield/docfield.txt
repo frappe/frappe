@@ -8,8 +8,6 @@
  }, 
  {
   "allow_copy": 0, 
-  "allow_email": 0, 
-  "allow_print": 0, 
   "autoname": "FL.#####", 
   "doctype": "DocType", 
   "hide_heading": 0, 
@@ -131,6 +129,13 @@
   "label": "Read Only", 
   "print_width": "50px", 
   "width": "50px"
+ }, 
+ {
+  "description": "User restrictions should not apply for this Link", 
+  "doctype": "DocField", 
+  "fieldname": "ignore_restrictions", 
+  "fieldtype": "Check", 
+  "label": "Ignore Restrictions"
  }, 
  {
   "doctype": "DocField", 

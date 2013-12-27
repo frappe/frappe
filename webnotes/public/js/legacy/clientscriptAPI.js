@@ -237,3 +237,11 @@ _f.Frm.prototype.call = function(opts) {
 _f.Frm.prototype.get_field = function(field) {
 	return cur_frm.fields_dict[field];
 };
+
+_f.Frm.prototype.set_read_only = function() {
+	var perm = [];
+	$.each(wn.perm.get_perm(cur_frm.doc.doctype, cur_frm.doc.name), function(i, permlevel) {
+		if(permlevel!=null) perm[permlevel] = {read:1};
+	});
+	cur_frm.perm = perm;
+}

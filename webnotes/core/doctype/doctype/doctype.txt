@@ -2,15 +2,13 @@
  {
   "creation": "2013-02-18 13:36:19", 
   "docstatus": 0, 
-  "modified": "2013-11-26 10:57:00", 
+  "modified": "2013-12-20 19:24:05", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
  {
   "allow_attach": 0, 
   "allow_copy": 0, 
-  "allow_email": 0, 
-  "allow_print": 0, 
   "autoname": "Prompt", 
   "custom": 0, 
   "description": "DocType is a Table / Form in the application.", 
@@ -35,11 +33,13 @@
  }, 
  {
   "doctype": "DocPerm", 
+  "email": 1, 
   "name": "__common__", 
   "parent": "DocType", 
   "parentfield": "permissions", 
   "parenttype": "DocType", 
   "permlevel": 0, 
+  "print": 1, 
   "read": 1, 
   "report": 1, 
   "submit": 0
@@ -317,28 +317,6 @@
   "hidden": 0, 
   "label": "Hide Toolbar", 
   "oldfieldname": "hide_toolbar", 
-  "oldfieldtype": "Check", 
-  "reqd": 0, 
-  "search_index": 0
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "allow_print", 
-  "fieldtype": "Check", 
-  "hidden": 0, 
-  "label": "Hide Print", 
-  "oldfieldname": "allow_print", 
-  "oldfieldtype": "Check", 
-  "reqd": 0, 
-  "search_index": 0
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "allow_email", 
-  "fieldtype": "Check", 
-  "hidden": 0, 
-  "label": "Hide Email", 
-  "oldfieldname": "allow_email", 
   "oldfieldtype": "Check", 
   "reqd": 0, 
   "search_index": 0

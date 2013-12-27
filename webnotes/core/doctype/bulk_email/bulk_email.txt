@@ -2,7 +2,7 @@
  {
   "creation": "2012-08-02 15:17:28", 
   "docstatus": 0, 
-  "modified": "2013-08-06 15:36:00", 
+  "modified": "2013-12-20 19:23:58", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -26,11 +26,13 @@
  }, 
  {
   "doctype": "DocPerm", 
+  "email": 1, 
   "name": "__common__", 
   "parent": "Bulk Email", 
   "parentfield": "permissions", 
   "parenttype": "DocType", 
   "permlevel": 0, 
+  "print": 1, 
   "read": 1, 
   "role": "System Manager"
  }, 

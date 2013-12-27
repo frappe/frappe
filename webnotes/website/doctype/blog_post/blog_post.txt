@@ -2,7 +2,7 @@
  {
   "creation": "2013-03-28 10:35:30", 
   "docstatus": 0, 
-  "modified": "2013-10-10 15:07:21", 
+  "modified": "2013-12-20 19:23:56", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -25,11 +25,13 @@
  }, 
  {
   "doctype": "DocPerm", 
+  "email": 1, 
   "name": "__common__", 
   "parent": "Blog Post", 
   "parentfield": "permissions", 
   "parenttype": "DocType", 
   "permlevel": 0, 
+  "print": 1, 
   "read": 1, 
   "report": 1, 
   "submit": 0
@@ -116,8 +118,10 @@
   "label": "Email Sent"
  }, 
  {
+  "cancel": 1, 
   "create": 1, 
   "doctype": "DocPerm", 
+  "restrict": 1, 
   "role": "Website Manager", 
   "write": 1
  }, 

@@ -49,12 +49,13 @@ def get_args():
 		}
 		
 	bean = webnotes.bean(webnotes.form_dict.doctype, webnotes.form_dict.name)
-	if not bean.has_read_perm():
-		return {
-			"body": """<h1>Error</h1>
-				<p>No read permission</p>"""
-		}
-	
+	for ptype in ("read", "print"):
+		if not webnotes.has_permission(bean.doc.doctype, ptype, bean.doc):
+			return {
+				"body": """<h1>Error</h1>
+					<p>No {ptype} permission</p>""".format(ptype=ptype)
+			}
+		
 	return {
 		"body": get_html(bean.doc, bean.doclist),
 		"css": get_print_style(webnotes.form_dict.style),

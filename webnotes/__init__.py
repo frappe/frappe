@@ -1,5 +1,5 @@
 # Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt 
+# MIT License. See license.txt
 """
 globals attached to webnotes module
 + some utility functions that should probably be moved
@@ -7,7 +7,7 @@ globals attached to webnotes module
 
 from __future__ import unicode_literals
 
-from werkzeug.local import Local
+from werkzeug.local import Local, release_local
 from werkzeug.exceptions import NotFound
 from MySQLdb import ProgrammingError as SQLError
 
@@ -23,9 +23,9 @@ class _dict(dict):
 		return self.get(key)
 	def __setattr__(self, key, value):
 		self[key] = value
-	def __getstate__(self): 
+	def __getstate__(self):
 		return self
-	def __setstate__(self, d): 
+	def __setstate__(self, d):
 		self.update(d)
 	def update(self, d):
 		"""update and return self -- the missing dict feature in python"""
@@ -36,7 +36,7 @@ class _dict(dict):
 
 def __getattr__(self, key):
 	return local.get("key", None)
-	
+
 def _(msg):
 	"""translate object in current lang, if exists"""
 	if local.lang == "en":
@@ -53,10 +53,10 @@ def get_lang_dict(fortype, name=None):
 	
 def set_user_lang(user, user_language=None):
 	from webnotes.translate import get_lang_dict
-		
+	
 	if not user_language:
 		user_language = conn.get_value("Profile", user, "language")
-
+	
 	if user_language:
 		lang_dict = get_lang_dict()
 		if user_language in lang_dict:
@@ -73,6 +73,7 @@ _response = local("_response")
 session = local("session")
 user = local("user")
 flags = local("flags")
+restrictions = local("restrictions")
 
 error_log = local("error_log")
 debug_log = local("debug_log")
@@ -103,6 +104,7 @@ def init(site, sites_path=None):
 	local.module_app = None
 	local.app_modules = None
 	local.user = None
+	local.restrictions = None
 
 	setup_module_map()
 
@@ -119,7 +121,6 @@ def destroy():
 	if conn:
 		conn.close()
 	
-	from werkzeug.local import release_local
 	release_local(local)
 
 _memc = None
@@ -132,7 +133,7 @@ def cache():
 		from webnotes.memc import MClient
 		_memc = MClient(['localhost:11211'])
 	return _memc
-		
+
 class DuplicateEntryError(Exception): pass
 class ValidationError(Exception): pass
 class AuthenticationError(Exception): pass
@@ -153,7 +154,7 @@ def errprint(msg):
 	from utils import cstr
 	if not request:
 		print cstr(msg)
-
+	
 	error_log.append(cstr(msg))
 
 def log(msg):
@@ -174,11 +175,11 @@ def msgprint(msg, small=0, raise_exception=0, as_table=False):
 				raise raise_exception, msg
 			else:
 				raise ValidationError, msg
-
+	
 	if flags.mute_messages:
 		_raise_exception()
 		return
-
+	
 	from utils import cstr
 	if as_table and type(msg) in (list, tuple):
 		msg = '<table border="1px" style="border-collapse: collapse" cellpadding="2px">' + ''.join(['<tr>'+''.join(['<td>%s</td>' % c for c in r])+'</tr>' for r in msg]) + '</table>'
@@ -191,7 +192,7 @@ def msgprint(msg, small=0, raise_exception=0, as_table=False):
 
 def throw(msg, exc=ValidationError):
 	msgprint(msg, raise_exception=exc)
-	
+
 def create_folder(path):
 	if not os.path.exists(path): os.makedirs(path)
 			
@@ -204,12 +205,13 @@ def connect(site=None, db_name=None):
 	local.form_dict = _dict()
 	local.session = _dict()
 	set_user("Administrator")
-	
+
 def set_user(username):
 	import webnotes.profile
 	local.session["user"] = username
 	local.user = webnotes.profile.Profile(username)
-	
+	local.restrictions = None
+
 def get_request_header(key, default=None):
 	return request.headers.get(key, default)
 
@@ -228,7 +230,7 @@ def whitelist(allow_guest=False):
 	def innerfn(fn):
 		global whitelisted, guest_methods
 		whitelisted.append(fn)
-
+		
 		if allow_guest:
 			guest_methods.append(fn)
 
@@ -248,8 +250,8 @@ def clear_cache(user=None, doctype=None):
 	"""clear cache"""
 	import webnotes.sessions
 	if doctype:
-		from webnotes.model.doctype import clear_cache
-		webnotes.sessions.clear_cache(doctype)
+		import webnotes.model.doctype
+		webnotes.model.doctype.clear_cache(doctype)
 		reset_metadata_version()
 	elif user:
 		webnotes.sessions.clear_cache(user)
@@ -258,7 +260,7 @@ def clear_cache(user=None, doctype=None):
 		webnotes.sessions.clear_cache()
 		translate.clear_cache()
 		reset_metadata_version()
-	
+
 def get_roles(username=None):
 	import webnotes.profile
 	if not local.session:
@@ -267,62 +269,18 @@ def get_roles(username=None):
 		return local.user.get_roles()
 	else:
 		return webnotes.profile.Profile(username).get_roles()
-
-def check_admin_or_system_manager():
-	if ("System Manager" not in get_roles()) and \
-	 	(session.user!="Administrator"):
-		msgprint("Only Allowed for Role System Manager or Administrator", raise_exception=True)
-
+		
 def has_permission(doctype, ptype="read", refdoc=None):
-	"""check if user has permission"""
-	from webnotes.utils import cint
+	import webnotes.permissions
+	return webnotes.permissions.has_permission(doctype, ptype, refdoc)
 	
-	if session.user=="Administrator" or conn.get_value("DocType", doctype, "istable")==1:
-		return True
-		
-	meta = get_doctype(doctype)
-	
-	# get user permissions
-	user_roles = get_roles()
-	perms = [p for p in meta.get({"doctype": "DocPerm"}) 
-		if cint(p.get(ptype))==1 and cint(p.permlevel)==0 and (p.role=="All" or p.role in user_roles)]
-	
-	if refdoc:
-		return has_match(meta, perms, refdoc)
-	else:
-		return perms and True or False
-		
-def has_match(meta, perms, refdoc):
-	from webnotes.defaults import get_user_default_as_list
-	
-	if isinstance(refdoc, basestring):
-		refdoc = doc(meta[0].name, refdoc)
-	
-	match_failed = {}
-	for p in perms:
-		if p.match:
-			if ":" in p.match:
-				keys = p.match.split(":")
-			else:
-				keys = [p.match, p.match]
-			
-			if refdoc.fields.get(keys[0],"[No Value]") in get_user_default_as_list(keys[1]):
-				return True
-			else:
-				match_failed[keys[0]] = refdoc.fields.get(keys[0],"[No Value]")
-		else:
-			# found a permission without a match
-			return True
+def clear_perms(doctype):
+	conn.sql("""delete from tabDocPerm where parent=%s""", doctype)
 
-	# no valid permission found
-	if match_failed:
-		msg = _("Not allowed for: ")
-		for key in match_failed:
-			msg += "\n" + (meta.get_field(key) and meta.get_label(key) or key) \
-				+ " = " + (match_failed[key] or "None")
-		msgprint(msg)
-	
-	return False
+def reset_perms(doctype):
+	clear_perms(doctype)
+	reload_doc(conn.get_value("DocType", doctype, "module"), 
+		"DocType", doctype, force=True)
 
 def generate_hash():
 	"""Generates random hash for session id"""
@@ -334,7 +292,7 @@ def reset_metadata_version():
 	cache().set_value("metadata_version", v)
 	return v
 
-def get_obj(dt = None, dn = None, doc=None, doclist=[], with_children = True):
+def get_obj(dt = None, dn = None, doc=None, doclist=None, with_children = True):
 	from webnotes.model.code import get_obj
 	return get_obj(dt, dn, doc, doclist, with_children)
 
@@ -368,29 +326,25 @@ def set_value(doctype, docname, fieldname, value):
 
 def get_doclist(doctype, name=None):
 	return bean(doctype, name).doclist
-	
+
 def get_doctype(doctype, processed=False):
 	import webnotes.model.doctype
 	return webnotes.model.doctype.get(doctype, processed)
 
-def delete_doc(doctype=None, name=None, doclist = None, force=0, ignore_doctypes=None, for_reload=False, ignore_permissions=False):
-	import webnotes.model.utils
-
-	if not ignore_doctypes: 
+def delete_doc(doctype=None, name=None, doclist = None, force=0, ignore_doctypes=None,
+	for_reload=False, ignore_permissions=False):
+	import webnotes.model.delete_doc
+	
+	if not ignore_doctypes:
 		ignore_doctypes = []
 	
 	if isinstance(name, list):
 		for n in name:
-			webnotes.model.utils.delete_doc(doctype, n, doclist, force, ignore_doctypes, for_reload, ignore_permissions)
+			webnotes.model.delete_doc.delete_doc(doctype, n, doclist, force, ignore_doctypes,
+				for_reload, ignore_permissions)
 	else:
-		webnotes.model.utils.delete_doc(doctype, name, doclist, force, ignore_doctypes, for_reload, ignore_permissions)
-
-def clear_perms(doctype):
-	conn.sql("""delete from tabDocPerm where parent=%s""", doctype)
-
-def reset_perms(doctype):
-	clear_perms(doctype)
-	reload_doc(conn.get_value("DocType", doctype, "module"), "DocType", doctype, force=True)
+		webnotes.model.delete_doc.delete_doc(doctype, name, doclist, force, ignore_doctypes,
+			for_reload, ignore_permissions)
 
 def reload_doc(module, dt=None, dn=None, force=False):
 	import webnotes.modules
@@ -484,9 +438,9 @@ def read_file(path):
 def get_attr(method_string):
 	modulename = '.'.join(method_string.split('.')[:-1])
 	methodname = method_string.split('.')[-1]
-
-	return getattr(get_module(modulename), methodname)
 	
+	return getattr(get_module(modulename), methodname)
+
 def make_property_setter(args):
 	args = _dict(args)
 	bean([{
@@ -502,9 +456,9 @@ def make_property_setter(args):
 
 def get_application_home_page(user='Guest'):
 	"""get home page for user"""
-	hpl = conn.sql("""select home_page 
+	hpl = conn.sql("""select home_page
 		from `tabDefault Home Page`
-		where parent='Control Panel' 
+		where parent='Control Panel'
 		and role in ('%s') order by idx asc limit 1""" % "', '".join(get_roles(user)))
 	if hpl:
 		return hpl[0][0]
@@ -529,29 +483,31 @@ def copy_doclist(in_doclist):
 			parent_doc = newd
 		
 		new_doclist.append(newd.fields if is_dict else newd)
-
+	
 	return doclist(new_doclist)
 
 def compare(val1, condition, val2):
 	import webnotes.utils
 	return webnotes.utils.compare(val1, condition, val2)
-	
+
 def repsond_as_web_page(title, html):
 	local.message_title = title
 	local.message = "<h3>" + title + "</h3>" + html
 	local.response['type'] = 'page'
 	local.response['page_name'] = 'message.html'
 	
+	return obj
+
 def build_match_conditions(doctype, fields=None, as_condition=True):
 	import webnotes.widgets.reportview
 	return webnotes.widgets.reportview.build_match_conditions(doctype, fields, as_condition)
 
-def get_list(doctype, filters=None, fields=None, docstatus=None, 
-			group_by=None, order_by=None, limit_start=0, limit_page_length=None, 
+def get_list(doctype, filters=None, fields=None, docstatus=None,
+			group_by=None, order_by=None, limit_start=0, limit_page_length=None,
 			as_list=False, debug=False):
 	import webnotes.widgets.reportview
-	return webnotes.widgets.reportview.execute(doctype, filters=filters, fields=fields, docstatus=docstatus, 
-				group_by=group_by, order_by=order_by, limit_start=limit_start, limit_page_length=limit_page_length, 
+	return webnotes.widgets.reportview.execute(doctype, filters=filters, fields=fields, docstatus=docstatus,
+				group_by=group_by, order_by=order_by, limit_start=limit_start, limit_page_length=limit_page_length,
 				as_list=as_list, debug=debug)
 
 jenv = None

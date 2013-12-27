@@ -2,14 +2,12 @@
  {
   "creation": "2013-02-22 01:27:33", 
   "docstatus": 0, 
-  "modified": "2013-07-22 17:01:58", 
+  "modified": "2013-12-20 19:23:11", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
  {
   "allow_copy": 0, 
-  "allow_email": 0, 
-  "allow_print": 0, 
   "autoname": "PERM.#####", 
   "doctype": "DocType", 
   "hide_heading": 0, 
@@ -149,6 +147,36 @@
   "label": "Report", 
   "print_width": "32px", 
   "width": "32px"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "export", 
+  "fieldtype": "Check", 
+  "label": "Export"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "import", 
+  "fieldtype": "Check", 
+  "label": "Import"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "print", 
+  "fieldtype": "Check", 
+  "label": "Print"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "email", 
+  "fieldtype": "Check", 
+  "label": "Email"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "restrict", 
+  "fieldtype": "Check", 
+  "label": "Restrict"
  }, 
  {
   "doctype": "DocField", 

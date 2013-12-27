@@ -1,6 +1,7 @@
 // Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 wn.provide("wn.ui.form");
+
 wn.ui.form.Layout = Class.extend({
 	init: function(opts) {
 		this.views = {};
@@ -150,7 +151,7 @@ wn.ui.form.Layout = Class.extend({
 		section.refresh = function() {
 			if(!this.df) return;
 			$(this).toggle(this.df.hidden || this.df.hidden_due_to_dependency 
-				? false : (cur_frm ? !!cur_frm.get_perm(this.df.permlevel, READ) : true))
+				? false : (cur_frm ? !!cur_frm.get_perm(this.df.permlevel, "read") : true))
 		}
 		this.column = null;
 		section.refresh.call(section);

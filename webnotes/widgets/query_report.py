@@ -12,9 +12,20 @@ from webnotes.modules import scrub, get_module_path
 from webnotes.utils import flt, cint
 import webnotes.widgets.reportview
 
+def get_report_doc(report_name):
+	bean = webnotes.bean("Report", report_name)
+	if not bean.has_read_perm():
+		raise webnotes.PermissionError("You don't have access to: {report}".format(report=report_name))
+		
+	if not webnotes.has_permission(bean.doc.ref_doctype, "report"):
+		raise webnotes.PermissionError("You don't have access to get a report on: {doctype}".format(
+			doctype=bean.doc.ref_doctype))
+		
+	return bean.doc
+
 @webnotes.whitelist()
 def get_script(report_name):
-	report = webnotes.doc("Report", report_name)
+	report = get_report_doc(report_name)
 	
 	module = webnotes.conn.get_value("DocType", report.ref_doctype, "module")
 	module_path = get_module_path(module)
@@ -41,7 +52,7 @@ def get_script(report_name):
 @webnotes.whitelist()
 def run(report_name, filters=None):
 	
-	report = webnotes.doc("Report", report_name)
+	report = get_report_doc(report_name)
 	
 	if filters and isinstance(filters, basestring):
 		filters = json.loads(filters)

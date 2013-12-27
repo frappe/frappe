@@ -20,7 +20,9 @@ import webnotes
 from webnotes.modules import get_doctype_module
 import webnotes.model.doc
 
-def get_obj(dt = None, dn = None, doc=None, doclist=[], with_children = 0):
+def get_obj(dt = None, dn = None, doc=None, doclist=None, with_children = 0):
+	import webnotes.model.doc
+	if not doclist: doclist = []
 	if dt:
 		if isinstance(dt, list):
 			return get_server_obj(dt[0], dt)

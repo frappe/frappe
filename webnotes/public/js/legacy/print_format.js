@@ -116,7 +116,12 @@ $.extend(_p, {
 		};
 	
 		if(!cur_frm) {
-			alert('No Document Selected');
+			msgprint(wn._("No document selected."));
+			return;
+		}
+		
+		if(!wn.model.can_print(cur_frm.doctype, cur_frm)) {
+			msgprint(wn._("You are not allowed to print this document."));
 			return;
 		}
 				

@@ -11,6 +11,8 @@ from webnotes.model.doc import Document
 from webnotes.utils import cstr
 from webnotes.utils.datautils import UnicodeWriter, check_record, import_doc, getlink, cint, flt
 from webnotes import _
+import webnotes.permissions
+from webnotes.widgets import reportview
 
 data_keys = webnotes._dict({
 	"data_separator": 'Start entering data below this line',
@@ -22,8 +24,11 @@ data_keys = webnotes._dict({
 
 @webnotes.whitelist()
 def get_doctypes():
-    return [r[0] for r in webnotes.conn.sql("""select name from `tabDocType` 
-		where document_type = 'Master' or allow_import = 1""")]
+	if "System Manager" in webnotes.get_roles():
+	    return [r[0] for r in webnotes.conn.sql("""select name from `tabDocType` 
+			where allow_import = 1""")]
+	else:
+		return webnotes.user._get("can_import")
 		
 @webnotes.whitelist()
 def get_doctype_options():
@@ -34,7 +39,7 @@ def get_doctype_options():
 
 @webnotes.whitelist()
 def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data="No"):
-	webnotes.check_admin_or_system_manager()
+	import webnotes.permissions
 	all_doctypes = all_doctypes=="Yes"
 	if not parent_doctype:
 		parent_doctype = doctype
@@ -167,9 +172,11 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 			for i, c in enumerate(columns[column_start_end[dt].start:column_start_end[dt].end]):
 				row[column_start_end[dt].start + i + 1] = d.get(c, "")
 
-		if with_data=='Yes':			
-			data = webnotes.conn.sql("""select * from `tab%s` where docstatus<2""" \
-				% doctype, as_dict=1)
+		if with_data=='Yes':
+			webnotes.permissions.can_export(parent_doctype, raise_exception=True)
+			
+			# get permitted data only
+			data = reportview.get(doctype, fields="*")
 			for doc in data:
 				# add main table
 				row_group = []
@@ -217,8 +224,8 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 @webnotes.whitelist()
 def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, overwrite=False, ignore_links=False):
 	"""upload data"""
+	import webnotes.permissions
 	webnotes.flags.mute_emails = True
-	webnotes.check_admin_or_system_manager()
 	# extra input params
 	params = json.loads(webnotes.form_dict.get("params") or '{}')
 	
@@ -350,13 +357,17 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 	if submit_after_import and not cint(webnotes.conn.get_value("DocType", 
 			doctype, "is_submittable")):
 		submit_after_import = False
-		
 
 	parenttype = get_header_row(data_keys.parent_table)
 	
 	if len(parenttype) > 1:
 		parenttype = parenttype[1]
 		parentfield = get_parent_field(doctype, parenttype)
+
+	# check permissions
+	if not webnotes.permissions.can_import(parenttype or doctype):
+		webnotes.flags.mute_emails = False
+		return {"messages": [_("Not allowed to Import") + ": " + _(doctype)], "error": True}
 		
 	# allow limit rows to be uploaded
 	check_data_length()

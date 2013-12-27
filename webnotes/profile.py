@@ -22,6 +22,11 @@ class Profile:
 		self.can_cancel = []
 		self.can_search = []
 		self.can_get_report = []
+		self.can_import = []
+		self.can_export = []
+		self.can_print = []
+		self.can_email = []
+		self.can_restrict = []
 		self.allow_modules = []
 		self.in_create = []
 
@@ -41,23 +46,23 @@ class Profile:
 			
 	def build_perm_map(self):
 		"""build map of permissions at level 0"""
-		
 		self.perm_map = {}
-		for r in webnotes.conn.sql("""select parent, `read`, `write`, `create`, `submit`, `cancel`, `report` 
+		for r in webnotes.conn.sql("""select parent, `read`, `write`, `create`, `submit`, `cancel`,
+			`report`, `import`, `export`, `print`, `email`, `restrict`
 			from tabDocPerm where docstatus=0 
 			and ifnull(permlevel,0)=0
 			and parent not like "old_parent:%%" 
 			and role in ('%s')""" % "','".join(self.get_roles()), as_dict=1):
-			
 			dt = r['parent']
 			
 			if not dt in  self.perm_map:
 				self.perm_map[dt] = {}
 				
-			for k in ('read', 'write', 'create', 'submit', 'cancel', 'report'):
+			for k in ('read', 'write', 'create', 'submit', 'cancel', 'amend',
+				'report', 'import', 'export', 'print', 'email', 'restrict'):
 				if not self.perm_map[dt].get(k):
 					self.perm_map[dt][k] = r.get(k)
-						
+		
 	def build_permissions(self):
 		"""build lists of what the user can read / write / create
 		quirks: 
@@ -66,11 +71,11 @@ class Profile:
 		"""
 		self.build_doctype_map()
 		self.build_perm_map()
-				
+		
 		for dt in self.doctype_map:
 			dtp = self.doctype_map[dt]
 			p = self.perm_map.get(dt, {})
-
+			
 			if not dtp.get('istable'):
 				if p.get('create') and not dtp.get('issingle'):
 					if dtp.get('in_create'):
@@ -91,6 +96,10 @@ class Profile:
 			if (p.get('read') or p.get('write') or p.get('create')):
 				if p.get('report'):
 					self.can_get_report.append(dt)
+				for key in ("import", "export", "print", "email", "restrict"):
+					if p.get(key):
+						getattr(self, "can_" + key).append(dt)
+					
 				if not dtp.get('istable'):
 					if not dtp.get('issingle') and not dtp.get('read_only'):
 						self.can_search.append(dt)
@@ -101,7 +110,7 @@ class Profile:
 		self.can_write += self.in_create
 		self.can_read += self.can_write
 		self.all_read += self.can_read
-
+		
 	def get_defaults(self):
 		import webnotes.defaults
 		self.defaults = webnotes.defaults.get_defaults(self.name)
@@ -124,6 +133,11 @@ class Profile:
 		
 		rdl = [new_rd] + rdl
 		r = webnotes.cache().set_value("recent:" + self.name, rdl)
+		
+	def _get(self, key):
+		if not self.can_read:
+			self.build_permissions()
+		return getattr(self, key)
 	
 	def get_can_read(self):
 		"""return list of doctypes that the user can read"""
@@ -144,15 +158,13 @@ class Profile:
 				
 		d['roles'] = self.get_roles()
 		d['defaults'] = self.get_defaults()
-		d['can_create'] = self.can_create
-		d['can_write'] = self.can_write
-		d['can_read'] = list(set(self.can_read))
-		d['can_cancel'] = list(set(self.can_cancel))
-		d['can_get_report'] = list(set(self.can_get_report))
-		d['allow_modules'] = self.allow_modules
-		d['all_read'] = self.all_read
-		d['can_search'] = list(set(self.can_search))
-		d['in_create'] = self.in_create
+		
+		for key in ("can_create", "can_write", "can_read", "can_cancel",
+			"can_get_report", "allow_modules", "all_read", "can_search",
+			"in_create", "can_export", "can_import", "can_print", "can_email",
+			"can_restrict"):
+			
+			d[key] = list(set(getattr(self, key)))
 		
 		return d
 		
@@ -177,13 +189,7 @@ def get_system_managers(only_name=False):
 		return [email.utils.formataddr((p.fullname, p.name)) for p in system_managers]
 	
 def add_role(profile, role):
-	profile_wrapper = webnotes.bean("Profile", profile)
-	profile_wrapper.doclist.append({
-		"doctype": "UserRole",
-		"parentfield": "user_roles",
-		"role": role
-	})
-	profile_wrapper.save()
+	profile_wrapper = webnotes.bean("Profile", profile).get_controller().add_roles([role])
 
 def add_system_manager(email, first_name=None, last_name=None):
 	# add profile
@@ -193,14 +199,15 @@ def add_system_manager(email, first_name=None, last_name=None):
 		"email": email,
 		"enabled": 1,
 		"first_name": first_name or email,
-		"last_name": last_name
+		"last_name": last_name,
+		"user_type": "System User"
 	})
 	profile.insert()
 	
 	# add roles
 	roles = webnotes.conn.sql_list("""select name from `tabRole`
 		where name not in ("Administrator", "Guest", "All")""")
-	profile.make_controller().add_roles(*roles)
+	profile.get_controller().add_roles(*roles)
 	
 def get_roles(username=None, with_standard=True):
 	"""get roles of current user"""

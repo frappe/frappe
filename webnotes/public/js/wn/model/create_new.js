@@ -64,7 +64,13 @@ $.extend(wn.model, {
 			"Today": dateutil.get_today(),
 		}
 		
-		if(wn.defaults.get_user_default(df.fieldname))
+		var restrictions = wn.defaults.get_restrictions();
+		if(df.fieldtype==="Link" && restrictions
+			&& df.ignore_restrictions != 1
+			&& restrictions[df.options] 
+			&& (restrictions[df.options].length===1))
+			return restrictions[df.options][0];
+		else if(wn.defaults.get_user_default(df.fieldname))
 			return wn.defaults.get_user_default(df.fieldname);
 		else if(df["default"] && df["default"][0]===":")
 			return wn.model.get_default_from_boot_docs(df, doc, parent_doc);

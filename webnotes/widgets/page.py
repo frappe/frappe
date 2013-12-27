@@ -12,8 +12,13 @@ def get(name):
 	   Return the :term:`doclist` of the `Page` specified by `name`
 	"""
 	page = webnotes.bean("Page", name)
-	page.run_method("get_from_files")
-	return page.doclist
+	if has_permission(page.doclist):
+		page.run_method("get_from_files")
+		return page.doclist
+	else:
+		webnotes.response['403'] = 1
+		raise webnotes.PermissionError, 'No read permission for Page %s' % \
+			(page.doclist[0].title or name,)
 
 @webnotes.whitelist(allow_guest=True)
 def getpage():
@@ -22,7 +27,7 @@ def getpage():
 	"""
 	page = webnotes.form_dict.get('name')
 	doclist = get(page)
-	
+
 	if has_permission(doclist):
 		# load translations
 		if webnotes.lang != "en":
@@ -39,10 +44,16 @@ def has_permission(page_doclist):
 		return True
 		
 	page_roles = [d.role for d in page_doclist if d.fields.get("doctype")=="Page Role"]
-	if webnotes.user.name == "Guest" and not (page_roles and "Guest" in page_roles):
+	if page_roles:
+		if webnotes.session.user == "Guest" and "Guest" not in page_roles:
+			return False
+		elif not set(page_roles).intersection(set(webnotes.get_roles())):
+			# check if roles match
+			return False
+		
+	if not webnotes.has_permission("Page", ptype="read", refdoc=page_doclist[0].name):
+		# check if there are any restrictions
 		return False
-	
-	elif page_roles and not (set(page_roles) & set(webnotes.user.get_roles())):
-		return False
-
-	return True
+	else:
+		# hack for home pages! if no page roles, allow everyone to see!
+		return True

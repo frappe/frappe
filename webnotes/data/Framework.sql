@@ -34,6 +34,7 @@ CREATE TABLE `tabDocField` (
   `trigger` varchar(180) DEFAULT NULL,
   `depends_on` varchar(180) DEFAULT NULL,
   `permlevel` int(11) DEFAULT '0',
+  `ignore_restrictions` int(1) DEFAULT NULL,
   `width` varchar(180) DEFAULT NULL,
   `print_width` varchar(180) DEFAULT NULL,
   `default` text,
@@ -78,6 +79,11 @@ CREATE TABLE `tabDocPerm` (
   `cancel` int(1) DEFAULT NULL,
   `amend` int(1) DEFAULT NULL,
   `report` int(1) DEFAULT NULL,
+  `export` int(1) DEFAULT NULL,
+  `import` int(1) DEFAULT NULL,
+  `print` int(1) DEFAULT NULL,
+  `email` int(1) DEFAULT NULL,
+  `restrict` int(1) DEFAULT NULL,
   PRIMARY KEY (`name`),
   KEY `parent` (`parent`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

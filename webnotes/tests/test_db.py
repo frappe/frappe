@@ -28,4 +28,3 @@ class TestDB(unittest.TestCase):
 		self.assertEquals("test1@example.com", webnotes.conn.get_value("Profile", {"modified": [">", now]}))
 		self.assertEquals("test1@example.com", webnotes.conn.get_value("Profile", {"modified": [">=", now]}))
 		
-		

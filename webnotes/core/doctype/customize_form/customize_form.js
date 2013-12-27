@@ -28,7 +28,7 @@ cur_frm.fields_dict.doc_type.get_query = function(doc, dt, dn) {
 			['DocType', 'issingle', '=', 0],
 			['DocType', 'in_create', '=', 0],
 			['DocType', 'name', 'not in', 'DocType, DocField, DocPerm, Profile, Role, UserRole,\
-				 Page, Page Role, Module Def, Print Format, Report']
+				 Page, Page Role, Module Def, Print Format, Report, Customize Form, Customize Form Field']
 		]
 	}
 }
@@ -37,7 +37,7 @@ cur_frm.cscript.refresh = function() {
 	cur_frm.disable_save();
 	cur_frm.frm_head.appframe.iconbar.clear("1");
 
-	cur_frm.add_custom_button('Update', function() {
+	cur_frm.appframe.set_title_right("Update", function() {
 		if(cur_frm.doc.doc_type) {
 			return cur_frm.call({
 				doc: cur_frm.doc,
@@ -54,12 +54,12 @@ cur_frm.cscript.refresh = function() {
 	
 	cur_frm.add_custom_button('Refresh Form', function() {
 		cur_frm.script_manager.trigger("doc_type");
-	});
+	}, "icon-refresh");
 	
 	cur_frm.add_custom_button('Reset to defaults', function() {
 		cur_frm.confirm('This will <b>remove the customizations</b> defined for this form.<br /><br />' 
 		+ 'Are you sure you want to <i>reset to defaults</i>?', cur_frm.doc, cur_frm.doctype, cur_frm.docname);
-	});
+	}, "icon-eraser");
 
 	if(!cur_frm.doc.doc_type) {
 		var frm_head = cur_frm.frm_head.appframe;

@@ -5,6 +5,8 @@ from __future__ import unicode_literals
 """assign/unassign to ToDo"""
 
 import webnotes
+from webnotes import _
+from webnotes.utils import cint
 
 @webnotes.whitelist()
 def get(args=None):
@@ -44,6 +46,16 @@ def add(args=None):
 		from webnotes.model.meta import has_field
 		if has_field(args['doctype'], "assigned_to"):
 			webnotes.conn.set_value(args['doctype'], args['name'], "assigned_to", args['assign_to'])
+			
+	try:
+		if cint(args.get("restrict")):
+			from webnotes.core.page.user_properties import user_properties
+			user_properties.add(args['assign_to'], args['doctype'], args['name'])
+			webnotes.msgprint(_("Restriction added"))
+	except webnotes.PermissionError:
+		webnotes.throw("{cannot}: {user}, {_for}: {doctype} {_and}: {name}".format(cannot=_("You cannot restrict User"), 
+			user=args['assign_to'], _for=_("for DocType"), doctype=_(args['doctype']), _and=_("and Name"),
+			name=args['name']))
 
 	# notify
 	if not args.get("no_notification"):
@@ -57,7 +69,7 @@ def add(args=None):
 			'[%s] Assigned to %s' % (d.priority, get_fullname(d.owner)), '#C78F58')
 	except ImportError, e:
 		pass
-	
+		
 	return get(args)
 
 @webnotes.whitelist()

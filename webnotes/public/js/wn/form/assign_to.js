@@ -39,7 +39,7 @@ wn.ui.form.AssignTo = Class.extend({
 			this.dialog.hide();			
 		}
 
-		if(d.length) {
+		if(d && d.length) {
 			for(var i=0; i<d.length; i++) {	
 				var info = wn.user_info(d[i]);
 				info.owner = d[i];
@@ -90,10 +90,24 @@ wn.ui.form.AssignTo = Class.extend({
 					{fieldtype:'Select', fieldname:'priority', label: wn._("Priority"),
 						options:'Low\nMedium\nHigh', 'default':'Medium'},
 					{fieldtype:'Check', fieldname:'notify', 
-						label: wn._("Notify By Email"), "default": 1},
+						label:wn._("Notify By Email"), "default":1},
+					{fieldtype:'Check', fieldname:'restrict',
+						label:wn._("Add This To User's Restrictions")
+							+ ' <a class="assign-user-properties"><i class="icon-share"></i></a>'},
 					{fieldtype:'Button', label:wn._("Add"), fieldname:'add_btn'}
 				]
 			});
+			
+			me.dialog.fields_dict.restrict.$wrapper
+				.find(".assign-user-properties")
+				.on("click", function() {
+					wn.route_options = {
+						property: me.frm.doctype,
+						user: me.dialog.get_value("assign_to")
+					};
+					wn.set_route("user-properties");
+				});
+			
 			me.dialog.fields_dict.add_btn.input.onclick = function() {
 				
 				var assign_to = me.dialog.fields_dict.assign_to.get_value();
@@ -104,8 +118,8 @@ wn.ui.form.AssignTo = Class.extend({
 						args: $.extend(args, {
 							doctype: me.frm.doctype,
 							name: me.frm.docname,
-							assign_to: assign_to,
-						}), 
+							assign_to: assign_to
+						}),
 						callback: function(r,rt) {
 							if(!r.exc) {
 								me.render(r.message);
@@ -119,6 +133,13 @@ wn.ui.form.AssignTo = Class.extend({
 			me.dialog.fields_dict.assign_to.get_query = "core.doctype.profile.profile.profile_query";
 		}
 		me.dialog.clear();
+		
+		(function toggle_restrict() {
+			var can_restrict = wn.model.can_restrict(me.frm.doctype, me.frm);
+			me.dialog.fields_dict.restrict.$wrapper.toggle(can_restrict);
+			me.dialog.get_input("restrict").prop("checked", can_restrict);
+		})();
+		
 		me.dialog.show();
 	}
 });

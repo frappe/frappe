@@ -171,8 +171,13 @@ _f.Frm.prototype.print_doc = function() {
 		this.hide_print();
 		return;
 	}
+	if(!wn.model.can_print(this.doc.doctype, cur_frm)) {
+		msgprint(wn._("You are not allowed to Print this document."));
+		return;
+	}
+	
 	if(this.doc.docstatus==2)  {
-		msgprint("Cannot Print Cancelled Documents.");
+		msgprint(wn._("Cannot Print Cancelled Documents."));
 		return;
 	}
 	this.print_wrapper.toggle(true);
@@ -333,7 +338,7 @@ _f.Frm.prototype.check_doc_perm = function() {
 	var dn = this.parent_docname?this.parent_docname : this.docname;
 	this.perm = wn.perm.get_perm(dt, dn);
 				  
-	if(!this.perm[0][READ]) { 
+	if(!this.perm[0].read) { 
 		return 0;
 	}
 	return 1
@@ -567,7 +572,7 @@ _f.Frm.prototype.runscript = function(scriptname, callingfield, onrefresh) {
 }
 
 _f.Frm.prototype.copy_doc = function(onload, from_amend) {
-	if(!this.perm[0][CREATE]) {
+	if(!this.perm[0].create) {
 		msgprint('You are not allowed to create '+this.meta.name);
 		return;
 	}

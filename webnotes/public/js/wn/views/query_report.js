@@ -62,17 +62,25 @@ wn.views.QueryReport = Class.extend({
 		
 		// Edit
 		var edit_btn = this.appframe.add_primary_action(wn._('Edit'), function() {
+			if(!wn.user.is_report_manager()) {
+				msgprint(wn._("You are not allowed to create / edit reports"));
+				return false;
+			}
 			wn.set_route("Form", "Report", me.report_name);
 		}, "icon-edit");
 		
-		if(!in_list(user_roles, "System Manager")) {
-			edit_btn.prop("disabled", true)
-				.attr("title", wn._("Only System Manager can create / edit reports"));
-		}
-
-		var export_btn = this.appframe.add_primary_action(wn._('Export'), function() { me.export_report(); }, 
+		this.appframe.add_primary_action(wn._('Export'), function() { me.export_report(); },
 			"icon-download");
-		wn.utils.disable_export_btn(export_btn);
+		
+		if(wn.model.can_restrict("Report")) {
+			this.appframe.add_primary_action(wn._("User Restrictions"), function() {
+				wn.route_options = {
+					property: "Report",
+					restriction: me.report_name
+				};
+				wn.set_route("user-properties");
+			}, "icon-shield");
+		}
 	},
 	load: function() {
 		// load from route
@@ -84,23 +92,28 @@ wn.views.QueryReport = Class.extend({
 				this.wrapper.find(".no-report-area").toggle(false);
 				me.appframe.set_title(wn._("Query Report")+": " + wn._(me.report_name));
 				
-				if(!wn.query_reports[me.report_name]) {
-					return wn.call({
-						method:"webnotes.widgets.query_report.get_script",
-						args: {
-							report_name: me.report_name
-						},
-						callback: function(r) {
-							me.appframe.set_title(wn._("Query Report")+": " + wn._(me.report_name));
-							wn.dom.eval(r.message || "");
+				wn.model.with_doc("Report", me.report_name, function() {
+					me.report_doc = wn.model.get_doc("Report", me.report_name);
+					wn.model.with_doctype(me.report_doc.ref_doctype, function() {
+						if(!wn.query_reports[me.report_name]) {
+							return wn.call({
+								method:"webnotes.widgets.query_report.get_script",
+								args: {
+									report_name: me.report_name
+								},
+								callback: function(r) {
+									me.appframe.set_title(wn._("Query Report")+": " + wn._(me.report_name));
+									wn.dom.eval(r.message || "");
+									me.setup_filters();
+									me.refresh();
+								}
+							});
+						} else {
 							me.setup_filters();
 							me.refresh();
 						}
-					})
-				} else {
-					me.setup_filters();
-					me.refresh();
-				}
+					});
+				});
 			}
 		} else {
 			var msg = wn._("No Report Loaded. Please use query-report/[Report Name] to run a report.")
@@ -154,11 +167,11 @@ wn.views.QueryReport = Class.extend({
 		this.waiting = wn.messages.waiting(this.wrapper.find(".waiting-area").empty().toggle(true), 
 			"Loading Report...");
 		this.wrapper.find(".results").toggle(false);
-		filters = this.get_values();
-		
-		if(this.report_ajax) this.report_ajax.abort();
-		
-		this.report_ajax = wn.call({
+		var filters = {};
+		$.each(this.filters || [], function(i, f) {
+			filters[f.df.fieldname] = f.get_parsed_value();
+		})
+		return wn.call({
 			method: "webnotes.widgets.query_report.run",
 			type: "GET",
 			args: {
@@ -410,12 +423,17 @@ wn.views.QueryReport = Class.extend({
 	    });
 	},
 	export_report: function() {
+		if(!wn.model.can_export(this.report_doc.ref_doctype)) {
+			msgprint(wn._("You are not allowed to export this report."));
+			return false;
+		}
+		
 		var result = $.map(wn.slickgrid_tools.get_view_data(this.columns, this.dataView),
 		 	function(row) {
 				return [row.splice(1)];
 		});
 		this.title = this.report_name;
-		wn.tools.downloadify(result, ["Report Manager", "System Manager"], this);
+		wn.tools.downloadify(result, null, this);
 		return false;
 	}
 })

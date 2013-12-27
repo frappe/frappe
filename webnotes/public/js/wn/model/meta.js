@@ -53,6 +53,13 @@ $.extend(wn.meta, {
 		return docfields;
 	},
 	
+	get_restricted_fields: function(doctype, name, restricted_types) {
+		return $.map(wn.meta.get_docfields(doctype, name), function(df) {
+			return (df.fieldtype==="Link" && df.ignore_restrictions!==1 &&
+				restricted_types.indexOf(df.options)!==-1) ? df : null;
+		});
+	},
+	
 	sort_docfields: function(docs) {
 		return values(docs).sort(function(a, b) { return a.idx - b.idx });
 	},

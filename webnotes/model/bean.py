@@ -13,6 +13,7 @@ import webnotes
 from webnotes import _, msgprint
 from webnotes.utils import cint, cstr, flt
 from webnotes.model.doc import Document
+import webnotes.permissions
 
 class DocstatusTransitionError(webnotes.ValidationError): pass
 class BeanPermissionError(webnotes.ValidationError): pass
@@ -30,6 +31,7 @@ class Bean:
 		self.ignore_validate = False
 		self.ignore_fields = False
 		self.ignore_mandatory = False
+		self.ignore_restrictions = False
 		
 		if isinstance(dt, basestring) and not dn:
 			dn = dt
@@ -156,20 +158,6 @@ class Bean:
 			webnotes.msgprint(_("Cannot change from") + ": " + labels[db_docstatus] + " > " + \
 				labels[self.to_docstatus], raise_exception=DocstatusTransitionError)
 
-	def check_links(self):
-		if self.ignore_links:
-			return
-		ref, err_list = {}, []
-		for d in self.doclist:
-			if not ref.get(d.doctype):
-				ref[d.doctype] = d.make_link_list()
-
-			err_list += d.validate_links(ref[d.doctype])
-
-		if err_list:
-			webnotes.msgprint("""[Link Validation] Could not find the following values: %s.
-			Please correct and resave. Document Not Saved.""" % ', '.join(err_list), raise_exception=1)
-
 	def update_timestamps_and_docstatus(self):
 		from webnotes.utils import now
 		ts = now()
@@ -200,8 +188,7 @@ class Bean:
 			
 		if method != "cancel":
 			self.extract_images_from_text_editor()
-			self.check_links()
-
+	
 	def update_parent_info(self):
 		idx_map = {}
 		is_local = cint(self.doc.fields.get("__islocal"))
@@ -287,14 +274,13 @@ class Bean:
 			perm_to_check = "create"
 			if not self.doc.owner:
 				self.doc.owner = webnotes.session.user
-				
+		
 		if self.ignore_permissions or webnotes.has_permission(self.doc.doctype, perm_to_check, self.doc):
 			self.to_docstatus = 0
 			self.prepare_for_save("save")
 			if not self.ignore_validate:
 				self.run_method('validate')
-			if not self.ignore_mandatory:
-				self.check_mandatory()
+			self.validate_doclist()
 			self.save_main()
 			self.save_children()
 			self.run_method('on_update')
@@ -310,7 +296,7 @@ class Bean:
 			self.to_docstatus = 1
 			self.prepare_for_save("submit")
 			self.run_method('validate')
-			self.check_mandatory()
+			self.validate_doclist()
 			self.save_main()
 			self.save_children()
 			self.run_method('on_update')
@@ -341,6 +327,7 @@ class Bean:
 			self.to_docstatus = 1
 			self.prepare_for_save("update_after_submit")
 			self.run_method('before_update_after_submit')
+			self.validate_doclist()
 			self.save_main()
 			self.save_children()
 			self.run_method('on_update_after_submit')
@@ -396,10 +383,13 @@ class Bean:
 			_("No Permission to ") + ptype, raise_exception=BeanPermissionError)
 			
 	def check_no_back_links_exist(self):
-		from webnotes.model.utils import check_if_doc_is_linked
+		from webnotes.model.delete_doc import check_if_doc_is_linked
 		check_if_doc_is_linked(self.doc.doctype, self.doc.name, method="Cancel")
 		
 	def check_mandatory(self):
+		if self.ignore_mandatory:
+			return
+			
 		missing = []
 		for doc in self.doclist:
 			for df in self.meta:
@@ -440,6 +430,37 @@ class Bean:
 		if self.doc.doctype != "DocType":
 			for df in self.meta.get({"doctype": "DocField", "parent": self.doc.doctype, "fieldtype":"Text Editor"}):
 				extract_images_from_html(self.doc, df.fieldname)
+				
+	def validate_doclist(self):
+		self.check_mandatory()
+		self.validate_restrictions()
+		self.check_links()
+	
+	def check_links(self):
+		if self.ignore_links:
+			return
+		ref, err_list = {}, []
+		for d in self.doclist:
+			if not ref.get(d.doctype):
+				ref[d.doctype] = d.make_link_list()
+
+			err_list += d.validate_links(ref[d.doctype])
+			
+		if err_list:
+			webnotes.msgprint("""[Link Validation] Could not find the following values: %s.
+			Please correct and resave. Document Not Saved.""" % ', '.join(err_list), raise_exception=1)
+	
+	def validate_restrictions(self):
+		if self.ignore_restrictions:
+			return
+		
+		has_restricted_data = False
+		for d in self.doclist:
+			if not webnotes.permissions.has_only_permitted_data(webnotes.get_doctype(d.doctype), d):
+				has_restricted_data = True
+				
+		if has_restricted_data:
+			raise BeanPermissionError
 
 def clone(source_wrapper):
 	""" make a clone of a document"""

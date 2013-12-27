@@ -101,6 +101,7 @@ wn.views.ReportView = wn.ui.Listing.extend({
 		this.make_export();
 		this.set_init_columns();
 		this.make_save();
+		this.make_user_restrictions();
 		this.set_tag_and_status_filter();
 	},
 
@@ -412,7 +413,7 @@ wn.views.ReportView = wn.ui.Listing.extend({
 		// button actions
 		this.page.appframe.add_button(wn._('Sort By'), function() {
 			me.sort_dialog.show();
-		}, 'icon-arrow-down');
+		}, 'icon-sort-by-alphabet');
 		
 		$(this.sort_dialog.body).find('.btn-info').click(function() { 
 			me.sort_dialog.hide();
@@ -423,12 +424,14 @@ wn.views.ReportView = wn.ui.Listing.extend({
 	// setup export
 	make_export: function() {
 		var me = this;
+		if(!wn.model.can_export(this.doctype)) {
+			return;
+		}
 		var export_btn = this.page.appframe.add_button(wn._('Export'), function() {
 			var args = me.get_args();
 			args.cmd = 'webnotes.widgets.reportview.export_query'
 			open_url_post(wn.request.url, args);
 		}, 'icon-download-alt');
-		wn.utils.disable_export_btn(export_btn);
 	},
 
 	// save
@@ -470,7 +473,7 @@ wn.views.ReportView = wn.ui.Listing.extend({
 							wn.set_route('Report', me.doctype, r.message);
 					}
 				});
-			}, 'icon-upload');
+			}, 'icon-save');
 		}
 	},
 
@@ -508,6 +511,19 @@ wn.views.ReportView = wn.ui.Listing.extend({
 					}));
 				
 			}, 'icon-remove');
+		}
+	},
+	
+	make_user_restrictions: function() {
+		var me = this;
+		if(this.docname && wn.model.can_restrict("Report")) {
+			this.page.appframe.add_button(wn._("User Permission Restrictions"), function() {
+				wn.route_options = {
+					property: "Report",
+					restriction: me.docname
+				};
+				wn.set_route("user-properties");
+			}, "icon-shield");
 		}
 	},
 });

@@ -199,7 +199,9 @@ def from_cache(doctype, processed):
 
 	# from memory
 	if doctype_cache and not processed and doctype in doctype_cache:
-		return doctype_cache[doctype]
+		doclist = doctype_cache[doctype]
+		doclist[0].fields["__from_cache"] = 1
+		return doclist
 
 	doclist = webnotes.cache().get_value(cache_name(doctype, processed))
 	if doclist:
@@ -232,7 +234,7 @@ def clear_cache(doctype=None):
 		webnotes.cache().delete_value(cache_name(dt, False))
 		webnotes.cache().delete_value(cache_name(dt, True))
 
-		if doctype_cache and doctype in doctype_cache:
+		if doctype_cache and (dt in doctype_cache):
 			del doctype_cache[dt]
 
 	if doctype:
@@ -377,6 +379,18 @@ class DocTypeDocList(webnotes.model.doclist.DocList):
 		
 	def get_parent_doclist(self):
 		return webnotes.doclist([self[0]] + self.get({"parent": self[0].name}))
+		
+	def get_restricted_fields(self, restricted_types):
+		restricted_fields = self.get({
+			"doctype":"DocField", 
+			"fieldtype":"Link", 
+			"parent": self[0].name, 
+			"ignore_restrictions":("!=", 1), 
+			"options":("in", restricted_types)
+		})
+		if self[0].name in restricted_types:
+			restricted_fields.append(webnotes._dict({"label":"Name", "fieldname":"name", "options": self[0].name}))
+		return restricted_fields
 
 def rename_field(doctype, old_fieldname, new_fieldname, lookup_field=None):
 	"""this function assumes that sync is NOT performed"""
