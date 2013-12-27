@@ -8,7 +8,7 @@ from webnotes.utils.minify import JavascriptMinify
 Build the `public` folders and setup languages
 """
 
-import os, sys, webnotes, json
+import os, sys, webnotes, json, shutil
 from cssmin import cssmin
 import webnotes.translate
 
@@ -73,6 +73,7 @@ def build(no_compress=False):
 	for target, sources in get_build_maps().iteritems():
 		pack(os.path.join(assets_path, target), sources, no_compress)	
 
+	shutil.copy(os.path.join(os.path.dirname(os.path.abspath(webnotes.__file__)), 'data', 'languages.txt'), webnotes.local.sites_path)
 	# reset_app_html()
 
 def get_build_maps():
