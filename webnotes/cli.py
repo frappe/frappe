@@ -595,7 +595,7 @@ def smtp_debug_server():
 def run_tests(app=None, module=None, doctype=None, verbose=False):
 	import webnotes.test_runner
 	ret = webnotes.test_runner.main(app and app[0], module and module[0], doctype and doctype[0], verbose)
-	if ret.failures > 0:
+	if len(ret.failures) > 0 or len(ret.errors) > 0:
 		exit(1)
 
 @cmd
