@@ -47,7 +47,7 @@ wn.core.pages.messages = Class.extend({
 			var txt = $('#post-message textarea').val();
 			if(txt) {
 				return wn.call({
-					module:'core',
+					module: 'webnotes.core',
 					page:'messages',
 					method:'post',
 					args: {
@@ -159,7 +159,7 @@ wn.core.pages.messages = Class.extend({
 	show_active_users: function() {
 		var me = this;
 		return wn.call({
-			module:'core',
+			module:'webnotes.core',
 			page:'messages',
 			method:'get_active_users',
 			callback: function(r,rt) {

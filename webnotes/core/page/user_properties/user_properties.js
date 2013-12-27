@@ -35,7 +35,7 @@ wn.UserProperties = Class.extend({
 	make: function() {
 		var me = this;
 		return wn.call({
-			module:"core",
+			module:"webnotes.core",
 			page:"user_properties",
 			method: "get_users_and_links",
 			callback: function(r) {
@@ -130,7 +130,7 @@ wn.UserProperties = Class.extend({
 		}
 		// get permissions
 		return wn.call({
-			module: "core",
+			module: "webnotes.core",
 			page: "user_properties",
 			method: "get_properties",
 			args: {
@@ -179,7 +179,7 @@ wn.UserProperties = Class.extend({
 			.attr("data-defvalue", d.defvalue)
 			.click(function() {
 				return wn.call({
-					module: "core",
+					module: "webnotes.core",
 					page: "user_properties",
 					method: "remove",
 					args: {
@@ -241,7 +241,7 @@ wn.UserProperties = Class.extend({
 						return;
 					}
 					wn.call({
-						module: "core",
+						module: "webnotes.core",
 						page: "user_properties",
 						method: "add",
 						args: args,

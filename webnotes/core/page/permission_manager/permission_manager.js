@@ -70,7 +70,7 @@ wn.PermissionEngine = Class.extend({
 		
 		me.make_reset_button();
 		return wn.call({
-			module:"core",
+			module:"webnotes.core",
 			page:"permission_manager",
 			method: "get_roles_and_doctypes",
 			callback: function(r) {
@@ -116,7 +116,7 @@ wn.PermissionEngine = Class.extend({
 		var doctype = this.doctype_select.val();
 		if(doctype) {
 			wn.call({
-				module:"core",
+				module:"webnotes.core",
 				page:"permission_manager",
 				method: "get_standard_permissions",
 				args: {doctype: doctype},
@@ -132,7 +132,7 @@ wn.PermissionEngine = Class.extend({
 		me.reset_button = me.wrapper.appframe.set_title_right("Reset Permissions", function() {
 			if(wn.confirm("Reset Permissions for " + me.get_doctype() + "?", function() {
 					return wn.call({
-						module:"core",
+						module:"webnotes.core",
 						page:"permission_manager",
 						method:"reset",
 						args: {
@@ -163,7 +163,7 @@ wn.PermissionEngine = Class.extend({
 		}
 		// get permissions
 		wn.call({
-			module: "core",
+			module: "webnotes.core",
 			page: "permission_manager",
 			method: "get_permissions",
 			args: {
@@ -265,7 +265,7 @@ wn.PermissionEngine = Class.extend({
 			.click(function() {
 				var role = $(this).attr("data-role");
 				wn.call({
-					module: "core",
+					module: "webnotes.core",
 					page: "permission_manager",
 					method: "get_users_with_role",
 					args: {
@@ -305,7 +305,7 @@ wn.PermissionEngine = Class.extend({
 			.attr("data-doctype", d.parent)
 			.click(function() {
 				return wn.call({
-					module: "core",
+					module: "webnotes.core",
 					page: "permission_manager",
 					method: "remove",
 					args: {
@@ -333,7 +333,7 @@ wn.PermissionEngine = Class.extend({
 				value: chk.prop("checked") ? 1 : 0
 			}
 			return wn.call({
-				module: "core",
+				module: "webnotes.core",
 				page: "permission_manager",
 				method: "update",
 				args: args,
@@ -381,7 +381,7 @@ wn.PermissionEngine = Class.extend({
 						return;
 					}
 					wn.call({
-						module: "core",
+						module: "webnotes.core",
 						page: "permission_manager",
 						method: "add",
 						args: args,
@@ -425,7 +425,7 @@ wn.PermissionEngine = Class.extend({
 					var match_value = $(dialog.wrapper).find(":radio:checked").val();
 					var perm = me.get_perm($(this).attr('data-name'))
 					return wn.call({
-						module: "core",
+						module: "webnotes.core",
 						page: "permission_manager",
 						method: "update_match",
 						args: {

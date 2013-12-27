@@ -96,7 +96,7 @@ def install_app(name, verbose=False):
 		return
 		
 	if name != "webnotes":
-		webnotes.check_admin_or_system_manager()
+		webnotes.only_for("System Manager")
 
 	for before_install in app_hooks.before_install or []:
 		webnotes.get_attr(before_install)()
