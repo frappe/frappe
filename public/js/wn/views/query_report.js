@@ -178,6 +178,7 @@ wn.views.QueryReport = Class.extend({
 		var mandatory_fields = [];
 		$.each(this.filters || [], function(i, f) {
 			var v = f.get_parsed_value();
+			if(v === '%') v = null;
 			if(f.df.reqd && !v) mandatory_fields.push(f.df.label);
 			if(v) filters[f.df.fieldname] = v;
 		})
