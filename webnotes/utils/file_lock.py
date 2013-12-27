@@ -1,6 +1,11 @@
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# MIT License. See license.txt 
+
+from __future__ import unicode_literals
+
 import os
 from time import time
-from webnotes.utils import get_site_path
+from webnotes.utils import get_site_path, touch_file
 
 class LockTimeoutError(Exception):
     pass
@@ -11,11 +16,6 @@ def create_lock(name):
 		return touch_file(lock_path)
 	else:
 		return False
-
-def touch_file(path):
-	with open(path, 'a'):
-		os.utime(path, None)
-	return True
 
 def check_lock(path):
 	if not os.path.exists(path):

@@ -7,7 +7,7 @@ from __future__ import unicode_literals
 from webnotes import conf
 
 import webnotes
-
+import os
 
 no_value_fields = ['Section Break', 'Column Break', 'HTML', 'Table', 'FlexTable',
 	'Button', 'Image', 'Graph']
@@ -64,8 +64,6 @@ def validate_email_add(email_str):
 
 def get_request_site_address(full_address=False):
 	"""get app url from request"""
-	import os
-	
 	host_name = conf.host_name
 
 	if not host_name:
@@ -617,7 +615,6 @@ def get_file_timestamp(fn):
 	"""
 		Returns timestamp of the given file
 	"""
-	import os
 	from webnotes.utils import cint
 	
 	try:
@@ -804,15 +801,9 @@ def filter_strip_join(some_list, sep):
 def get_path(*path, **kwargs):
 	base = kwargs.get('base')
 	if not base:
-		base = get_base_path()
-	import os
+		base = webnotes.local.site_path
 	return os.path.join(base, *path)
-	
-def get_base_path():
-	import conf
-	import os
-	return os.path.dirname(os.path.abspath(conf.__file__))
-	
+		
 def get_site_base_path(sites_dir=None, hostname=None):
 	return webnotes.local.site_path
 
@@ -895,7 +886,6 @@ def get_site_name(hostname):
 
 def get_disk_usage():
 	"""get disk usage of files folder"""
-	import os
 	files_path = get_files_path()
 	if not os.path.exists(files_path):
 		return 0
@@ -907,7 +897,13 @@ def expand_partial_links(html):
 	url = get_url()
 	if not url.endswith("/"): url += "/"
 	return re.sub('(href|src){1}([\s]*=[\s]*[\'"]?)((?!http)[^\'" >]+)([\'"]?)', 
-		'\g<1>\g<2>{}\g<3>\g<4>'.format(url), html)
+		'\g<1>\g<2>{}\g<3>\g<4>'.format(url), 
+		html)
+
+def touch_file(path):
+	with open(path, 'a'):
+		os.utime(path, None)
+	return True
 
 class HashAuthenticatedCommand(object):
 	def __init__(self):

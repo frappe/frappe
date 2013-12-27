@@ -2,7 +2,7 @@
  {
   "creation": "2013-04-30 12:58:46", 
   "docstatus": 0, 
-  "modified": "2013-12-20 19:21:54", 
+  "modified": "2013-12-27 16:37:52", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -45,12 +45,11 @@
   "label": "Landing Page"
  }, 
  {
-  "description": "The \"Web Page\" that is the website home page", 
+  "description": "Link that is the website home page. Standard Links (index, login, products, blog, about, contact)", 
   "doctype": "DocField", 
   "fieldname": "home_page", 
-  "fieldtype": "Link", 
+  "fieldtype": "Data", 
   "label": "Home Page", 
-  "options": "Web Page", 
   "reqd": 0
  }, 
  {

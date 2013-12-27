@@ -28,7 +28,7 @@ wn.pages['applications'].onload = function(wrapper) {
 						<div style="margin-left: 70px;">\
 							<div class="row">\
 								<div class="col-xs-10">\
-									<p><b>%(app_name)s</b></p>\
+									<p><b>%(app_title)s</b></p>\
 									<p class="text-muted">%(app_description)s\
 										<br>Publisher: %(app_publisher)s; Version: %(app_version)s</p>\
 								</div>\
@@ -43,7 +43,7 @@ wn.pages['applications'].onload = function(wrapper) {
 						<i class="icon-ok"></i> Installed</button>');
 				} else {
 					$btn = $('<button class="btn btn-info">Install</button>')
-						.attr("data-app", app_key)
+						.attr("data-app", app.app_name)
 						.on("click", function() {
 						wn.call({
 							method:"webnotes.installer.install_app",

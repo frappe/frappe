@@ -56,17 +56,6 @@ def make_site_public_dirs():
 	if not os.path.exists(site_public_assets):
 		os.symlink(os.path.abspath(assets_path), site_public_assets)
 
-def clear_pyc_files():
-	from webnotes.utils import get_base_path
-	for path, folders, files in os.walk(get_base_path()):
-		for dontwalk in ('locale', '.git', 'public'):
-			if dontwalk in folders: 
-				folders.remove(dontwalk)
-			
-		for f in files:
-			if f.decode("utf-8").endswith(".pyc"):
-				os.remove(os.path.join(path, f))
-
 def build(no_compress=False):
 	assets_path = os.path.join(webnotes.local.sites_path, "assets")
 

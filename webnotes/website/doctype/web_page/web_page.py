@@ -21,7 +21,6 @@ class DocType(DocListController, WebsiteGenerator):
 
 	def on_update(self):
 		WebsiteGenerator.on_update(self)
-		self.if_home_clear_cache()
 		
 		# clear all cache if it has toc
 		if self.doclist.get({"parentfield": "toc"}):
@@ -39,20 +38,6 @@ class DocType(DocListController, WebsiteGenerator):
 		if self.doclist.get({"parentfield": "toc"}):
 			from webnotes.webutils import clear_cache
 			clear_cache()
-
-	def if_home_clear_cache(self):
-		"""if home page, clear cache"""
-		if webnotes.conn.get_value("Website Settings", None, "home_page")==self.doc.name:
-			if webnotes.conn.exists("Website Sitemap", "index"):
-				webnotes.delete_doc("Website Sitemap", "index", ignore_permissions=True)
-			WebsiteGenerator.on_update(self, page_name="index")
-
-			from webnotes.sessions import clear_cache
-			clear_cache('Guest')
-			
-			from webnotes.webutils import clear_cache
-			clear_cache(self.doc.page_name)
-			clear_cache('index')
 			
 	def get_context(self):
 		if self.doc.slideshow:

@@ -16,15 +16,9 @@ def render(page_name):
 	"""render html page"""
 	if not page_name:
 		page_name = "index"
+
 	try:
 		html = render_page(page_name)
-	except PageNotFoundError:
-		html = render_page("404")
-	except webnotes.DoesNotExistError:
-		if page_name in ("index", "index.html"):
-			html = render_page("login")
-		else:
-			html = render_page("404")
 	except Exception:
 		html = render_page("error")
 	
@@ -37,18 +31,15 @@ def render_page(page_name):
 	if page_name.endswith('.html'):
 		page_name = page_name[:-5]
 	html = ''
-		
+			
 	if not conf.disable_website_cache:
 		html = webnotes.cache().get_value("page:" + page_name)
 		from_cache = True
 
-	if not html:		
+	if not html:
 		html = build_page(page_name)
 		from_cache = False
 	
-	if not html:
-		raise PageNotFoundError
-
 	if page_name=="error":
 		html = html.replace("%(error)s", webnotes.get_traceback())
 	elif "text/html" in webnotes._response.headers["Content-Type"]:
@@ -69,18 +60,22 @@ def build_page(page_name):
 	if not webnotes.conn:
 		webnotes.connect()
 
-	sitemap_options = webnotes.doc("Website Sitemap", page_name).fields
-	
-	page_options = webnotes.doc("Website Sitemap Config", 
-		sitemap_options.get("website_sitemap_config")).fields.update({
-			"page_name":sitemap_options.page_name,
-			"docname":sitemap_options.docname
-		})
+	if page_name=="index":
+		page_name = webnotes.conn.get_value("Website Settings", None, "home_page")
+		if not page_name:
+			page_name = "login"
+
+	try:
+		sitemap_options = webnotes.doc("Website Sitemap", page_name).fields
+		page_options = webnotes.doc("Website Sitemap Config", 
+			sitemap_options.get("website_sitemap_config")).fields.update({
+				"page_name":sitemap_options.page_name,
+				"docname":sitemap_options.docname
+			})
+	except webnotes.DoesNotExistError:
+		return build_page("404")
 		
-	if not page_options:
-		raise PageNotFoundError
-	else:
-		page_options["page_name"] = page_name
+	page_options["page_name"] = page_name
 	
 	no_cache = page_options.get("no_cache")
 
@@ -122,10 +117,10 @@ def get_home_page():
 	if doc_name:
 		page_name = webnotes.conn.get_value('Web Page', doc_name, 'page_name')
 	else:
-		page_name = 'login'
+		page_name = 'index'
 
 	return page_name
-
+	
 def get_website_settings():
 	from webnotes.utils import get_request_site_address, encode, cint
 	from urllib import quote

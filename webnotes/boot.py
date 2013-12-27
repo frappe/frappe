@@ -24,7 +24,7 @@ def get_bootinfo():
 	
 	# control panel
 	cp = webnotes.model.doc.getsingle('Control Panel')
-	
+		
 	# system info
 	bootinfo['control_panel'] = webnotes._dict(cp.copy())
 	bootinfo['sysdefaults'] = webnotes.defaults.get_defaults()
@@ -52,6 +52,7 @@ def get_bootinfo():
 	add_allowed_pages(bootinfo)
 	load_translations(bootinfo)
 	load_conf_settings(bootinfo)
+	load_startup_js(bootinfo)
 
 	# ipinfo
 	if webnotes.session['data'].get('ipinfo'):
@@ -110,6 +111,11 @@ def get_fullnames():
 			'email': r[4] or r[0]}
 
 	return d
+
+def load_startup_js(bootinfo):
+	bootinfo.startup_js = ""
+	for method in webnotes.get_hooks().startup_js or []:
+		bootinfo.startup_js += webnotes.get_attr(method)()
 		
 def get_profile(bootinfo):
 	"""get profile info"""

@@ -57,7 +57,7 @@ wn.Application = Class.extend({
 		this.setup_keyboard_shortcuts();
 		
 		// control panel startup code
-		this.run_custom_startup_code();
+		this.run_startup_js();
 
 		if(wn.boot) {
 			// route to home page
@@ -248,8 +248,8 @@ wn.Application = Class.extend({
 
 	},
 	
-	run_custom_startup_code: function() {
-		if(wn.control_panel.custom_startup_code)
-			eval(wn.control_panel.custom_startup_code);
+	run_startup_js: function() {
+		if(wn.boot.startup_js)
+			eval(wn.boot.startup_js);
 	}
 })

@@ -384,16 +384,15 @@ def get_all_apps(with_webnotes=False):
 def get_installed_apps():
 	if flags.in_install_db:
 		return []
-	def load_installed_apps():
-		return json.loads(conn.get_global("installed_apps") or "[]")
-	return cache().get_value("installed_apps", load_installed_apps)
+	return json.loads(conn.get_global("installed_apps") or "[]")
 
 def get_hooks(app_name=None):
 	def load_app_hooks(app_name=None):
 		hooks = {}
 		for app in [app_name] if app_name else get_installed_apps():
 			for item in get_file_items(get_pymodule_path(app, "hooks.txt")):
-				key, value = item.split(None, 1)
+				key, value = item.split("=", 1)
+				key, value = key.strip(), value.strip()
 				hooks.setdefault(key, [])
 				hooks[key].append(value)
 		return hooks
@@ -411,10 +410,10 @@ def setup_module_map():
 	
 	if not local.app_modules:
 		local.module_app, local.app_modules = {}, {}
-		for app in get_all_apps(True):
+		for app in get_all_apps(True):	
+			local.app_modules.setdefault(app, [])
 			for module in get_module_list(app):
 				local.module_app[module] = app
-				local.app_modules.setdefault(app, [])
 				local.app_modules[app].append(module)
 	
 		if conf.db_name:
@@ -438,7 +437,6 @@ def read_file(path):
 def get_attr(method_string):
 	modulename = '.'.join(method_string.split('.')[:-1])
 	methodname = method_string.split('.')[-1]
-	
 	return getattr(get_module(modulename), methodname)
 
 def make_property_setter(args):
@@ -516,7 +514,7 @@ def get_jenv():
 	global jenv
 	if not jenv:
 		from jinja2 import Environment, ChoiceLoader, PackageLoader
-		from webnotes.utils import get_base_path, global_date_format
+		from webnotes.utils import global_date_format
 		from markdown2 import markdown
 		from json import dumps
 

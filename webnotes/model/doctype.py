@@ -18,7 +18,7 @@ import webnotes
 import webnotes.model
 import webnotes.model.doc
 import webnotes.model.doclist
-from webnotes.utils import cint, get_base_path
+from webnotes.utils import cint
 
 doctype_cache = webnotes.local('doctype_doctype_cache')
 docfield_types = webnotes.local('doctype_docfield_types')

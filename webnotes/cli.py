@@ -13,21 +13,25 @@ def main():
 	fn = get_function(parsed_args)
 	if not parsed_args.get("sites_path"):
 		parsed_args["sites_path"] = "."
-		
-	if not parsed_args.get("site"):
-		print "Site argument required"
-		return
-	if not os.path.exists(parsed_args.get("site")):
-		print "Did not find folder `{}`. Are you in sites folder?".format(parsed_args.get("site"))
-		return
-	if parsed_args.get("site")=="all":
-		for site in get_sites():
-			args = parsed_args.copy()
-			args["site"] = site
-			webnotes.init(site)
-			run(fn, args)
+	
+	if not parsed_args.get("make_app"):
+		if not parsed_args.get("site"):
+			print "Site argument required"
+			return
+		if not os.path.exists(parsed_args.get("site")):
+			print "Did not find folder '{}'. Are you in sites folder?".format(parsed_args.get("site"))
+			return
+			
+		if parsed_args.get("site")=="all":
+			for site in get_sites():
+				args = parsed_args.copy()
+				args["site"] = site
+				webnotes.init(site)
+				run(fn, args)
+		else:
+			webnotes.init(parsed_args.get("site"))
+			run(fn, parsed_args)
 	else:
-		webnotes.init(parsed_args.get("site"))
 		run(fn, parsed_args)
 
 def cmd(fn):
@@ -73,7 +77,7 @@ def setup_parser():
 	setup_translation(parser)
 	setup_test(parser)
 	
-	parser.add_argument("site")
+	parser.add_argument("site", nargs="?")
 	
 	# common
 	parser.add_argument("-f", "--force", default=False, action="store_true",
@@ -84,6 +88,8 @@ def setup_parser():
 	return parser.parse_args()
 	
 def setup_install(parser):
+	parser.add_argument("--make_app", default=False, action="store_true",
+		help="Make a new application with boilerplate")
 	parser.add_argument("--install", metavar="DB-NAME", nargs=1,
 		help="Install a new db")
 	parser.add_argument("--install_app", metavar="APP-NAME", nargs=1,
@@ -94,10 +100,6 @@ def setup_install(parser):
 		help="Install a fresh app in db_name specified in conf.py")
 	parser.add_argument("--restore", metavar=("DB-NAME", "SQL-FILE"), nargs=2,
 		help="Restore from an sql file")
-	parser.add_argument("--make_demo", default=False, action="store_true",
-		help="Install demo in demo_db_name specified in conf.py")
-	parser.add_argument("--make_demo_fresh", default=False, action="store_true",
-		help="(Re)Install demo in demo_db_name specified in conf.py")
 	parser.add_argument("--add_system_manager", nargs="+", 
 		metavar=("EMAIL", "[FIRST-NAME] [LAST-NAME]"), help="Add a user with all roles")
 
@@ -206,6 +208,10 @@ def setup_translation(parser):
 		help="""Update translated strings.""")
 
 # methods
+@cmd
+def make_app():
+	from webnotes.utils.boilerplate import make_boilerplate
+	make_boilerplate()
 
 # install
 @cmd
@@ -243,18 +249,6 @@ def add_system_manager(email, first_name=None, last_name=None):
 	webnotes.connect()
 	webnotes.profile.add_system_manager(email, first_name, last_name)
 	webnotes.conn.commit()
-	webnotes.destroy()
-
-@cmd
-def make_demo():
-	import utilities.demo.make_demo
-	utilities.demo.make_demo.make()
-	webnotes.destroy()
-
-@cmd
-def make_demo_fresh():
-	import utilities.demo.make_demo
-	utilities.demo.make_demo.make(reset=True)
 	webnotes.destroy()
 	
 # utilities
@@ -677,7 +671,7 @@ def get_site_status(verbose=False):
 		'system_managers': "\n".join(get_system_managers()),
 		'default_company': webnotes.conn.get_default("company"),
 		'disk_usage': webnotes.utils.get_disk_usage(),
-		'working_directory': webnotes.utils.get_base_path()
+		'working_directory': webnotes.local.site_path
 	}
 	
 	# country, timezone, industry

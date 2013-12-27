@@ -5,7 +5,6 @@ from __future__ import unicode_literals
 import webnotes, os
 from webnotes import conf
 import webnotes.utils
-from webnotes.utils import get_base_path
 from webnotes.modules import get_doc_path
 
 class DocType:

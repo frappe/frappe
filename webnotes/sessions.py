@@ -264,10 +264,9 @@ def get_geo_ip_country(ip_addr):
 		return
 	
 	import os
-	from webnotes.utils import get_base_path
 
 	try:
-		geo_ip_file = os.path.join(get_base_path(), "lib", "data", "GeoIP.dat")
+		geo_ip_file = os.path.join(os.path.dirname(webnotes.__file__), "data", "GeoIP.dat")
 		geo_ip = pygeoip.GeoIP(geo_ip_file, pygeoip.MEMORY_CACHE)
 		return geo_ip.country_name_by_addr(ip_addr)
 	except Exception, e:

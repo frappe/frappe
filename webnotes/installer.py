@@ -88,7 +88,7 @@ def install_app(name, verbose=False):
 	webnotes.clear_cache()
 
 	app_hooks = webnotes.get_hooks(name)
-	installed_apps = json.loads(webnotes.conn.get_global("installed_apps") or "[]") or []
+	installed_apps = webnotes.get_installed_apps()
 
 	if name in installed_apps:
 		print "App Already Installed"
@@ -107,17 +107,21 @@ def install_app(name, verbose=False):
 		webnotes.get_attr(after_install)()
 
 	set_all_patches_as_completed(name)
-	installed_apps.append(name)
-	webnotes.conn.set_global("installed_apps", json.dumps(installed_apps))
-	webnotes.clear_cache()
-	webnotes.conn.commit()
-	
-	from webnotes.website.doctype.website_sitemap_config.website_sitemap_config import rebuild_website_sitemap_config
-	rebuild_website_sitemap_config()
-
-	webnotes.clear_cache()
+	add_to_installed_apps(name)
+		
 	webnotes.flags.in_install_app = False
 	
+def add_to_installed_apps(app_name):
+	installed_apps = webnotes.get_installed_apps()
+	if not app_name in installed_apps:
+		installed_apps.append(app_name)
+		webnotes.conn.set_global("installed_apps", json.dumps(installed_apps))
+		webnotes.conn.commit()
+
+		from webnotes.website.doctype.website_sitemap_config.website_sitemap_config import rebuild_website_sitemap_config
+		rebuild_website_sitemap_config()
+
+		webnotes.clear_cache()
 
 def set_all_patches_as_completed(app):
 	patch_path = os.path.join(webnotes.get_pymodule_path(app), "patches.txt")

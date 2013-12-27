@@ -1,9 +1,7 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt 
-
-# reload core doctypes
 execute:webnotes.reload_doc('core', 'doctype', 'doctype', force=True) #2013-13-26
 execute:webnotes.reload_doc('core', 'doctype', 'docfield', force=True) #2013-13-26
 execute:webnotes.reload_doc('core', 'doctype', 'docperm') #2013-13-26
 execute:webnotes.reload_doc('core', 'doctype', 'page') #2013-13-26
 execute:webnotes.reload_doc('core', 'doctype', 'report') #2013-13-26
+
+webnotes.patches.4_0.remove_index_sitemap
