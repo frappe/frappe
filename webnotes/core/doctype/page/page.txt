@@ -2,7 +2,7 @@
  {
   "creation": "2012-12-20 17:16:49", 
   "docstatus": 0, 
-  "modified": "2013-12-20 19:24:15", 
+  "modified": "2013-12-30 13:48:02", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -79,11 +79,11 @@
  {
   "doctype": "DocField", 
   "fieldname": "module", 
-  "fieldtype": "Select", 
+  "fieldtype": "Link", 
   "label": "Module", 
   "oldfieldname": "module", 
   "oldfieldtype": "Select", 
-  "options": "link:Module Def", 
+  "options": "Module Def", 
   "reqd": 1
  }, 
  {

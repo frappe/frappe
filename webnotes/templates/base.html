@@ -24,6 +24,7 @@
 	{% block css -%}
 		{% if css %}<style>{{ css }}</style>{% endif %}
 	{%- endblock %}
+	{% block style -%}{%- endblock %}
 </head>
 <body>
 	{% block banner %}
@@ -36,5 +37,6 @@
 		{% block content %}{% endblock %}
 	</div>
 	{% block footer %}{% include "templates/includes/footer.html" %}{% endblock %}
+	{% block script -%}{%- endblock %}
 </body>
 </html>

@@ -904,7 +904,7 @@ def touch_file(path):
 	with open(path, 'a'):
 		os.utime(path, None)
 	return True
-
+	
 class HashAuthenticatedCommand(object):
 	def __init__(self):
 		if hasattr(self, 'command'):

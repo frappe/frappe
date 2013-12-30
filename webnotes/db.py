@@ -490,7 +490,16 @@ class Database:
 			return webnotes.conn.sql("""select count(*)
 				from `tab%s`""" % (dt,))[0][0]
 			
-				
+	
+	def get_creation_count(self, doctype, minutes):
+		"""get count of records created in the last x minutes"""
+		from webnotes.utils import now_datetime
+		from dateutil.relativedelta import relativedelta
+		
+		return webnotes.conn.sql("""select count(name) from `tab{doctype}`
+			where creation >= %s""".format(doctype=doctype),
+			now_datetime() - relativedelta(minutes=minutes))[0][0]
+			
 	def get_table_columns(self, doctype):
 		return [r[0] for r in self.sql("DESC `tab%s`" % doctype)]
 
