@@ -404,8 +404,10 @@ class Database:
 		
 	def touch(self, doctype, docname):
 		from webnotes.utils import now
+		modified = now()
 		webnotes.conn.sql("""update `tab{doctype}` set `modified`=%s 
-			where name=%s""".format(doctype=doctype), (now(), docname))
+			where name=%s""".format(doctype=doctype), (modified, docname))
+		return modified
 
 	def set_global(self, key, val, user='__global'):
 		self.set_default(key, val, user)
