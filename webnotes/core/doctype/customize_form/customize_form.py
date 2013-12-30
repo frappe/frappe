@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 	Customize Form is a Single DocType used to mask the Property Setter
 	Thus providing a better UI from user perspective
 """
-import webnotes
+import webnotes, json
 from webnotes.utils import cstr
 
 class DocType:
@@ -42,14 +42,13 @@ class DocType:
 			'depends_on',
 			'description',
 			'default',
-			'name'
+			'name',
 		]
 
 		self.property_restrictions = {
 			'fieldtype': [['Currency', 'Float'], ['Small Text', 'Data'], ['Text', 'Text Editor', 'Code']],
 		}
 
-		self.forbidden_properties = ['idx']
 
 	def get(self):
 		"""
@@ -137,7 +136,11 @@ class DocType:
 			dt_doclist = doc.get('DocType', self.doc.doc_type)
 			
 			# get a list of property setter docs
+			self.idx_dirty = False
 			diff_list = self.diff(this_doclist, ref_doclist, dt_doclist)
+			
+			if self.idx_dirty:
+				self.make_idx_property_setter(this_doclist, diff_list)
 			
 			self.set_properties(diff_list)
 
@@ -160,7 +163,10 @@ class DocType:
 				if ref_d.doctype == 'DocField' and new_d.name == ref_d.name:
 					for prop in self.docfield_properties:
 						# do not set forbidden properties like idx
-						if prop in self.forbidden_properties: continue
+						if prop=="idx": 
+							if ref_d.idx != new_d.idx:
+								self.idx_dirty = True
+							continue
 						
 						# check if its custom field:
 						if ref_d.get("__custom_field"):
@@ -280,6 +286,21 @@ class DocType:
 
 		else: return None
 
+
+	def make_idx_property_setter(self, doclist, diff_list):
+		fields = []
+		doclist.sort(lambda a, b: a.idx < b.idx)
+		for d in doclist:
+			if d.doctype=="Customize Form Field":
+				fields.append(d.fieldname)
+		
+		d = webnotes.doc('Property Setter')
+		d.doctype_or_field = 'DocType'
+		d.doc_type = self.doc.doc_type
+		d.property = "_idx"
+		d.value = json.dumps(fields)
+		d.property_type = "Text"
+		diff_list.append(d)		
 
 	def set_properties(self, ps_doclist):
 		"""

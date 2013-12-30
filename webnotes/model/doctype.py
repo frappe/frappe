@@ -14,6 +14,7 @@ Get metadata (main doctype with fields and permissions with all table doctypes)
 from __future__ import unicode_literals
 
 # imports
+import json
 import webnotes
 import webnotes.model
 import webnotes.model.doc
@@ -90,24 +91,32 @@ def get_doctype_doclist(doctype):
 
 def sort_fields(doclist):
 	"""sort on basis of previous_field"""
+
 	from webnotes.model.doclist import DocList
 	newlist = DocList([])
-	pending = filter(lambda d: d.doctype=='DocField', doclist)
-	
-	maxloops = 20
-	while (pending and maxloops>0):
-		maxloops -= 1
-		for d in pending[:]:
-			if d.previous_field:
-				# field already added
-				for n in newlist:
-					if n.fieldname==d.previous_field:
-						newlist.insert(newlist.index(n)+1, d)
-						pending.remove(d)
-						break
-			else:
-				newlist.append(d)
-				pending.remove(d)
+	pending = doclist.get({"doctype":"DocField"})
+
+	if doclist[0].get("_idx"):
+		for fieldname in json.loads(doclist[0].get("_idx")):
+			d = doclist.get({"fieldname": fieldname})
+			if d:
+				newlist.append(d[0])
+				pending.remove(d[0])
+	else:
+		maxloops = 20
+		while (pending and maxloops>0):
+			maxloops -= 1
+			for d in pending[:]:
+				if d.previous_field:
+					# field already added
+					for n in newlist:
+						if n.fieldname==d.previous_field:
+							newlist.insert(newlist.index(n)+1, d)
+							pending.remove(d)
+							break
+				else:
+					newlist.append(d)
+					pending.remove(d)
 
 	# recurring at end	
 	if pending:

@@ -18,7 +18,7 @@ cur_frm.cscript.doc_type = function() {
 }
 
 cur_frm.cscript.onload = function(doc, dt, dn) {
-	cur_frm.fields_dict.fields.grid.static_rows = true;
+	cur_frm.fields_dict.fields.grid.cannot_add_rows = true;
 	cur_frm.add_fields_help();
 }
 

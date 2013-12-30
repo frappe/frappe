@@ -78,7 +78,7 @@ wn.ui.form.Grid = Class.extend({
 				this.grid_rows_by_docname[d.name] = grid_row;
 			}
 			
-			this.wrapper.find(".grid-add-row").toggle(this.is_editable());
+			this.wrapper.find(".grid-add-row").toggle(this.can_add_rows());
 			if(this.is_editable()) {
 				this.make_sortable($rows);
 			}
@@ -172,6 +172,9 @@ wn.ui.form.Grid = Class.extend({
 	is_editable: function() {
 		return this.display_status=="Write" && !this.static_rows
 	},
+	can_add_rows: function() {
+		return this.is_editable() && !this.cannot_add_rows
+	}
 });
 
 wn.ui.form.GridRow = Class.extend({
