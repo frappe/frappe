@@ -118,34 +118,36 @@ wn.pages['data-import-tool'].onload = function(wrapper) {
 		if(val!='Select...') {
 			$('#dit-download').empty();
 			
-			validate_download_with_data(val);
+			wn.model.with_doctype(val, function() {
+				validate_download_with_data(val);
 			
-			// get options
-			return wn.call({
-				method: 'webnotes.core.page.data_import_tool.data_import_tool.get_doctype_options',
-				args: {doctype: val},
-				callback: function(r) {
-					$('<h4>Select Template:</h4>').appendTo('#dit-download');
-					var with_data = $('[name="dit-with-data"]:checked').length ? 'Yes' : 'No';
-					// download link
-					$.each(r.message, function(i, v) {
-						if(i==0)
-							$('<span>Main Table:</span><br>').appendTo('#dit-download');
-						if(i==1)
-							$('<br><span>Child Tables:</span><br>').appendTo('#dit-download');
+				// get options
+				return wn.call({
+					method: 'webnotes.core.page.data_import_tool.data_import_tool.get_doctype_options',
+					args: {doctype: val},
+					callback: function(r) {
+						$('<h4>Select Template:</h4>').appendTo('#dit-download');
+						var with_data = $('[name="dit-with-data"]:checked').length ? 'Yes' : 'No';
+						// download link
+						$.each(r.message, function(i, v) {
+							if(i==0)
+								$('<span>Main Table:</span><br>').appendTo('#dit-download');
+							if(i==1)
+								$('<br><span>Child Tables:</span><br>').appendTo('#dit-download');
 							
-						wrapper.add_template_download_link(v);
-						$('#dit-download').append('<br>');
-					});
+							wrapper.add_template_download_link(v);
+							$('#dit-download').append('<br>');
+						});
 					
-					if(r.message.length > 1) {
-						$('<br><span>All Tables (Main + Child Tables):</span><br>').appendTo('#dit-download');
-						var link = wrapper
-							.add_template_download_link(r.message[0])
-							.data('all_doctypes', "Yes")
+						if(r.message.length > 1) {
+							$('<br><span>All Tables (Main + Child Tables):</span><br>').appendTo('#dit-download');
+							var link = wrapper
+								.add_template_download_link(r.message[0])
+								.data('all_doctypes', "Yes")
+						}
 					}
-				}
-			})
+				})
+			});
 		}
 	});
 	

@@ -176,7 +176,7 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 			webnotes.permissions.can_export(parent_doctype, raise_exception=True)
 			
 			# get permitted data only
-			data = reportview.get(doctype, fields="*")
+			data = reportview.execute(doctype, fields="*")
 			for doc in data:
 				# add main table
 				row_group = []

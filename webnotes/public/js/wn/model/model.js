@@ -147,11 +147,17 @@ $.extend(wn.model, {
 	},
 	
 	can_import: function(doctype, frm) {
+		// system manager can always import
+		if(user_roles.indexOf("System Manager")!==-1) return true;
+		
 		if(frm) return frm.perm[0].import===1;
 		return wn.boot.profile.can_import.indexOf(doctype)!==-1;
 	},
 	
 	can_export: function(doctype, frm) {
+		// system manager can always export
+		if(user_roles.indexOf("System Manager")!==-1) return true;
+		
 		if(frm) return frm.perm[0].export===1;
 		return wn.boot.profile.can_export.indexOf(doctype)!==-1;
 	},
@@ -171,7 +177,6 @@ $.extend(wn.model, {
 		if(user_roles.indexOf("System Manager")!==-1) return true;
 		
 		if(frm) return frm.perm[0].restrict===1;
-		
 		return wn.boot.profile.can_restrict.indexOf(doctype)!==-1;
 	},
 	
