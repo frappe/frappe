@@ -184,15 +184,15 @@ def build_filter_conditions(filters, conditions):
 						"fieldname": f[1]})
 					
 					if df and df[0].fieldtype in ["Float", "Int", "Currency", "Percent"]:
-						val, default_null_val = flt(f[3]), 0
+						val, default_null_val = flt(f[3]), "0"
 					else:
-						val, default_null_val = ("'" + f[3].replace("'", "\\'") + "'"), ""
+						val, default_null_val = ("'" + f[3].replace("'", "\\'") + "'"), '""'
 				else:
-					val, default_null_val = f[3], 0
+					val, default_null_val = f[3], '0'
 				
-				conditions.append('ifnull(' + tname + '.' + f[1] + ", '"+ default_null_val +"') " \
-					+ f[2] + " " + cstr(val))
-					
+				conditions.append('ifnull({tname}.{fname}, {default_val}) {operator} {value}'.format(
+					tname=tname, fname=f[1], default_val=default_null_val, operator=f[2],
+					value=cstr(val)))
 					
 def build_match_conditions(doctype, fields=None, as_condition=True):
 	"""add match conditions if applicable"""
