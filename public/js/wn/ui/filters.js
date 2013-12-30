@@ -272,7 +272,7 @@ wn.ui.Filter = Class.extend({
 			if ((val.length === 0) || (val.lastIndexOf("%") !== (val.length - 1))) {
 				val = (val || "") + '%';
 			}
-		}
+		} else if(val === '%') val = null;
 		
 		return [me.fieldselect.$select.find('option:selected').attr('table'), 
 			me.field.df.fieldname, me.$w.find('.condition').val(), val];
