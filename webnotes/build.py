@@ -50,11 +50,6 @@ def make_site_public_dirs():
 
 		if not os.path.exists(target) and os.path.exists(source):
 			os.symlink(os.path.abspath(source), target)
-			
-	# symlink assets > site/public/assets
-	site_public_assets = os.path.join(site_public_path, "assets")
-	if not os.path.exists(site_public_assets):
-		os.symlink(os.path.abspath(assets_path), site_public_assets)
 
 def build(no_compress=False):
 	assets_path = os.path.join(webnotes.local.sites_path, "assets")

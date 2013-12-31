@@ -8,6 +8,8 @@ import sys, os
 
 import webnotes
 
+site_arg_optional = ['serve']
+
 def main():
 	parsed_args = webnotes._dict(vars(setup_parser()))
 	fn = get_function(parsed_args)
@@ -15,12 +17,12 @@ def main():
 		parsed_args["sites_path"] = "."
 	
 	if not parsed_args.get("make_app"):
-		if not parsed_args.get("site"):
+		if not parsed_args.get("site") and not fn in site_arg_optional:
 			print "Site argument required"
-			return
-		if not os.path.exists(parsed_args.get("site")):
+			exit(1)
+		if fn not in site_arg_optional and (fn != 'install' and not os.path.exists(parsed_args.get("site"))):
 			print "Did not find folder '{}'. Are you in sites folder?".format(parsed_args.get("site"))
-			return
+			exit(1)
 			
 		if parsed_args.get("site")=="all":
 			for site in get_sites():
@@ -29,7 +31,8 @@ def main():
 				webnotes.init(site)
 				run(fn, args)
 		else:
-			webnotes.init(parsed_args.get("site"))
+			if not fn in site_arg_optional:
+				webnotes.init(parsed_args.get("site"))
 			run(fn, parsed_args)
 	else:
 		run(fn, parsed_args)
@@ -593,9 +596,9 @@ def run_tests(app=None, module=None, doctype=None, verbose=False):
 		exit(1)
 
 @cmd
-def serve(port=8000, profile=False):
+def serve(port=8000, profile=False, site=None):
 	import webnotes.app
-	webnotes.app.serve(port=port, profile=profile)
+	webnotes.app.serve(port=port, profile=profile, site=site)
 	
 @cmd
 def request(args):
