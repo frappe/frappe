@@ -4,7 +4,7 @@
 # util __init__.py
 
 from __future__ import unicode_literals
-from webnotes import conf
+from werkzeug.test import Client
 
 import webnotes
 import os
@@ -64,7 +64,7 @@ def validate_email_add(email_str):
 
 def get_request_site_address(full_address=False):
 	"""get app url from request"""
-	host_name = conf.host_name
+	host_name = webnotes.local.conf.host_name
 
 	if not host_name:
 		if webnotes.request:
@@ -904,3 +904,7 @@ def touch_file(path):
 	with open(path, 'a'):
 		os.utime(path, None)
 	return True
+
+def get_test_client():
+	from webnotes.app import application
+	return Client(application)

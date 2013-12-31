@@ -23,10 +23,14 @@ def get_signature(params, nonce, secret=None):
 	signature.update(params)
 	return signature.hexdigest()
 
-def verify_using_bean(bean, signature):
+def verify_using_bean(bean, signature, cmd):
 	controller = bean.get_controller()
-	return signature == get_signature(controller.get_signature_params(), controller.get_nonce())
+	params = controller.get_signature_params()
+	params["cmd"] = cmd
+	return signature == get_signature(params, controller.get_nonce())
 	
-def get_url_using_bean(bean):
+def get_url_using_bean(bean, cmd):
 	controller = bean.get_controller()
-	return get_url(controller.get_signature_params(), controller.get_nonce())
+	params = controller.get_signature_params()
+	params["cmd"] = cmd
+	return get_url(params, controller.get_nonce())
