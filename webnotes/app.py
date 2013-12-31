@@ -10,7 +10,7 @@ sys.path.insert(0, 'lib')
 
 from werkzeug.wrappers import Request, Response
 from werkzeug.local import LocalManager
-from webnotes.middlewares import StaticDataMiddleware
+from werkzeug.wsgi import SharedDataMiddleware
 from werkzeug.exceptions import HTTPException, NotFound
 from werkzeug.contrib.profiler import ProfilerMiddleware
 
@@ -19,9 +19,11 @@ import webnotes
 import webnotes.handler
 import webnotes.auth
 import webnotes.webutils
+from webnotes.utils import get_site_name
 
 local_manager = LocalManager([webnotes.local])
-site = None
+
+_site = None
 
 def handle_session_stopped():
 	res = Response("""<html>
@@ -41,7 +43,12 @@ def application(request):
 	webnotes.local.request = request
 	
 	try:
-		webnotes.init(site=site or request.host)
+		site = _site or get_site_name(request.host)
+		webnotes.init(site=site)
+		
+		if not webnotes.local.conf:
+			# site does not exist
+			raise NotFound
 		
 		webnotes.local.form_dict = webnotes._dict({ k:v[0] if isinstance(v, (list, tuple)) else v \
 			for k, v in (request.form or request.args).iteritems() })
@@ -74,10 +81,9 @@ def application(request):
 
 application = local_manager.make_middleware(application)
 
-def serve(port=8000, profile=False):
-	global application, site
-	
-	site = webnotes.local.site
+def serve(port=8000, profile=False, site=None):
+	global application, _site
+	_site = site
 	
 	from werkzeug.serving import run_simple
 
@@ -85,11 +91,14 @@ def serve(port=8000, profile=False):
 		application = ProfilerMiddleware(application)
 
 	if not os.environ.get('NO_STATICS'):
-		application = StaticDataMiddleware(application, {
-			'/': 'public',
+		application = SharedDataMiddleware(application, {
+			'/assets': 'assets',
 		})
-		application.site = site
-
+	
+	if site:
+		application = SharedDataMiddleware(application, {
+			'/files': os.path.join(site, 'public', 'files')
+		})
 
 	run_simple('0.0.0.0', int(port), application, use_reloader=True, 
 		use_debugger=True, use_evalex=True)
