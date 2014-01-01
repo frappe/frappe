@@ -25,7 +25,7 @@ $(window).on("hashchange", function() {
 login.do_login = function(){
 	var args = {};
 	if(window.is_sign_up) {
-		args.cmd = "core.doctype.profile.profile.sign_up";
+		args.cmd = "webnotes.core.doctype.profile.profile.sign_up";
 		args.email = ($("#login_id").val() || "").trim();
 		args.full_name = ($("#full_name").val() || "").trim();
 
@@ -34,7 +34,7 @@ login.do_login = function(){
 			return false;
 		}
 	} else if(window.is_forgot) {
-		args.cmd = "core.doctype.profile.profile.reset_password";
+		args.cmd = "webnotes.core.doctype.profile.profile.reset_password";
 		args.user = ($("#login_id").val() || "").trim();
 		
 		if(!args.user) {

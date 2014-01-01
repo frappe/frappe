@@ -301,7 +301,7 @@ wn.views.CommunicationComposer = Class.extend({
 		};
 		
 		return wn.call({
-			method:"core.doctype.communication.communication.make",
+			method:"webnotes.core.doctype.communication.communication.make",
 			args: {
 				sender: [wn.user_info(user).fullname, wn.boot.profile.email],
 				recipients: form_values.recipients,
