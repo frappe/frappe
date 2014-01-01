@@ -187,9 +187,22 @@ _f.Frm.prototype.set_query = function(fieldname, opt1, opt2) {
 _f.Frm.prototype.set_value = function(field, value) {
 	var me = this;
 	var _set = function(f, v) {
-		if(me.fields_dict[f]) {
-			me.doc[f] = v;
-			me.fields_dict[f].refresh();
+		var fieldobj = me.fields_dict[f];
+		if(fieldobj) {
+			if(fieldobj.df.fieldtype==="Table" && $.isArray(v)) {
+
+				wn.model.clear_table(fieldobj.df.options, me.doctype, 
+					me.doc.name, fieldobj.df.fieldname);
+
+				$.each(v, function(i, d) {
+					var child = wn.model.add_child(me.frm.doc, fieldobj.df.options, 
+						fieldobj.df.fieldname, i+1);
+					$.extend(child, d);
+				});
+				
+			} else {
+				wn.model.set_value(me.doctype, me.doc.name, f, v);
+			}
 		}
 	}
 	

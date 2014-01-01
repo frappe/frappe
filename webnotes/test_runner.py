@@ -81,7 +81,7 @@ def make_test_records(doctype, verbose=0):
 	webnotes.flags.mute_emails = True
 	if not webnotes.conn:
 		webnotes.connect()
-	
+			
 	for options in get_dependencies(doctype):
 		if options.startswith("link:"):
 			options = options[5:]
@@ -124,8 +124,8 @@ def make_test_records_for_doctype(doctype, verbose=0):
 	if verbose:
 		print "Making for " + doctype
 
-	if hasattr(test_module, "make_test_records"):
-		webnotes.test_objects[doctype] += test_module.make_test_records(verbose)
+	if hasattr(test_module, "_make_test_records"):
+		webnotes.test_objects[doctype] += test_module._make_test_records(verbose)
 
 	elif hasattr(test_module, "test_records"):
 		webnotes.test_objects[doctype] += make_test_objects(doctype, test_module.test_records, verbose)

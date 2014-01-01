@@ -1,6 +1,18 @@
 // Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
+wn.provide("wn.ui.form.handlers");
+
+wn.ui.form.on_change = function(doctype, fieldname, handler) {
+	if(!wn.ui.form.handlers[doctype]) {
+		wn.ui.form.handlers[doctype] = {};
+	}
+	if(!wn.ui.form.handlers[doctype][fieldname]) {
+		wn.ui.form.handlers[doctype][fieldname] = [];
+	}
+	wn.ui.form.handlers[doctype][fieldname].push(handler)
+}
+
 wn.ui.form.ScriptManager = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
@@ -12,16 +24,26 @@ wn.ui.form.ScriptManager = Class.extend({
 		var me = this;
 		doctype = doctype || this.frm.doctype;
 		name = name || this.frm.docname;
+		handlers = this.get_handlers(event_name, doctype, name, callback);
+		if(callback) handlers.push(callback);
+		
+		$.each(handlers, function(i, fn) {
+			fn();
+		})
+	},
+	get_handlers: function(event_name, doctype, name, callback) {
+		var handlers = [];
+		var me = this;
+		if(wn.ui.form.handlers[doctype] && wn.ui.form.handlers[doctype][event_name]) {
+			handlers.extend(function() { wn.ui.form.handlers[doctype][event_name](me.frm, doctype, name) });
+		} 
 		if(this.frm.cscript[event_name]) {
-			$.when(this.frm.cscript[event_name](this.frm.doc, doctype, name, callback)).then(function() {
-				if(me.frm.cscript["custom_" + event_name])
-					me.frm.cscript["custom_" + event_name](me.frm.doc, doctype, name, callback);
-			});
-		} else if(this.frm.cscript["custom_" + event_name]) {
-			this.frm.cscript["custom_" + event_name](this.frm.doc, doctype, name, callback);
-		} else if(callback) {
-			callback();
+			handlers.push(function() { me.frm.cscript[event_name](me.frm.doc, doctype, name); });
 		}
+		if(this.frm.cscript["custom_" + event_name]) {
+			handlers.push(function() { me.frm.cscript["custom_" + event_name](me.frm.doc, doctype, name); });
+		}
+		return handlers;
 	},
 	setup: function() {
 		var doctype = this.frm.meta;

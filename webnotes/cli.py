@@ -111,9 +111,9 @@ def setup_test(parser):
 		help="Run tests options [-d doctype], [-m module]")
 	parser.add_argument("--app", metavar="APP-NAME", nargs=1,
 		help="Run command for specified app")
-	parser.add_argument("--doctype", metavar="DOCTYPE", nargs=1,
+	parser.add_argument("-d", "--doctype", metavar="DOCTYPE", nargs=1,
 		help="Run command for specified doctype")
-	parser.add_argument("--module", metavar="MODULE", nargs=1,
+	parser.add_argument("-m", "--module", metavar="MODULE", nargs=1,
 		help="Run command for specified module")
 
 def setup_utilities(parser):

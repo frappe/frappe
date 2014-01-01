@@ -71,10 +71,14 @@ def get_build_maps():
 		path = os.path.join(app_path, 'public', 'build.json')
 		if os.path.exists(path):
 			with open(path) as f:
-				for target, sources in json.loads(f.read()).iteritems():
-					# update app path
-					sources = [os.path.join(app_path, source) for source in sources]	
-					build_maps[target] = sources
+				try:
+					for target, sources in json.loads(f.read()).iteritems():
+						# update app path
+						sources = [os.path.join(app_path, source) for source in sources]	
+						build_maps[target] = sources
+				except Exception, e:
+					print path
+					raise
 		
 	return build_maps
 
