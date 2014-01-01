@@ -103,7 +103,7 @@ def get_fullnames():
 	d = {}
 	for r in ret:
 		if not r[2]:
-			r[2] = 'lib/images/ui/avatar.png'
+			r[2] = '/assets/webnotes/images/ui/avatar.png'
 		else:
 			r[2] = r[2]
 			
