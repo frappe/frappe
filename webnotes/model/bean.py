@@ -326,6 +326,7 @@ class Bean:
 		if self.ignore_permissions or webnotes.has_permission(self.doc.doctype, "write", self.doc):
 			self.to_docstatus = 1
 			self.prepare_for_save("update_after_submit")
+			self.run_method('validate')
 			self.run_method('before_update_after_submit')
 			self.validate_doclist()
 			self.save_main()
