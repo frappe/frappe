@@ -4,7 +4,7 @@
 # util __init__.py
 
 from __future__ import unicode_literals
-from webnotes import conf
+from werkzeug.test import Client
 
 import webnotes
 import os
@@ -64,7 +64,7 @@ def validate_email_add(email_str):
 
 def get_request_site_address(full_address=False):
 	"""get app url from request"""
-	host_name = conf.host_name
+	host_name = webnotes.local.conf.host_name
 
 	if not host_name:
 		if webnotes.request:
@@ -904,47 +904,7 @@ def touch_file(path):
 	with open(path, 'a'):
 		os.utime(path, None)
 	return True
-	
-class HashAuthenticatedCommand(object):
-	def __init__(self):
-		if hasattr(self, 'command'):
-			import inspect
-			self.fnargs, varargs, varkw, defaults = inspect.getargspec(self.command)
-			self.fnargs.append('signature')
 
-	def __call__(self, *args, **kwargs):
-		signature = kwargs.pop('signature')
-		if self.verify_signature(kwargs, signature):
-			return self.command(*args, **kwargs)
-		else:
-			self.signature_error()
-
-	def command(self):
-		raise NotImplementedError
-		
-	def signature_error(self):
-		raise InvalidSignatureError
-
-	def get_signature(self, params, ignore_params=None):
-		import hmac
-		params = self.get_param_string(params, ignore_params=ignore_params)
-		secret = "secret"
-		signature = hmac.new(self.get_nonce())
-		signature.update(secret)
-		signature.update(params)
-		return signature.hexdigest()
-
-	def get_param_string(self, params, ignore_params=None):
-		if not ignore_params:
-			ignore_params = []
-		params = [unicode(param) for param in params if param not in ignore_params]
-		params = ''.join(params)
-		return params
-
-	def get_nonce():
-		raise NotImplementedError
-
-	def verify_signature(self, params, signature):
-		if signature == self.get_signature(params):
-			return True
-		return False
+def get_test_client():
+	from webnotes.app import application
+	return Client(application)

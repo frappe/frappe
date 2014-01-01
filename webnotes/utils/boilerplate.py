@@ -28,6 +28,7 @@ def make_boilerplate():
 	webnotes.create_folder(os.path.join(hooks.app_name, hooks.app_name, "templates"))
 	touch_file(os.path.join(hooks.app_name, hooks.app_name, "__init__.py"))
 	touch_file(os.path.join(hooks.app_name, hooks.app_name, hooks.app_name, "__init__.py"))
+	touch_file(os.path.join(hooks.app_name, hooks.app_name, "templates", "__init__.py"))
 	
 	with open(os.path.join(hooks.app_name, "MANIFEST.in"), "w") as f:
 		f.write(manifest_template.format(**hooks))

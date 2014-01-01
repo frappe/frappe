@@ -81,14 +81,11 @@ def build_page(page_name):
 
 	# if generator, then load bean, pass arguments
 	if page_options.get("page_or_generator")=="Generator":
-		doctype = page_options.get("ref_doctype")
-		obj = webnotes.get_obj(doctype, page_options["docname"], with_children=True)
+		bean = webnotes.bean(page_options.get("ref_doctype"), page_options["docname"])
+		bean.run_method("get_context")
 
-		if hasattr(obj, 'get_context'):
-			obj.get_context()
-
-		context = webnotes._dict(obj.doc.fields)
-		context["obj"] = obj
+		context = webnotes._dict(bean.doc.fields)
+		context["obj"] = bean.get_controller()
 	else:
 		# page
 		context = webnotes._dict({ 'name': page_name })
