@@ -169,12 +169,14 @@ def build_filter_conditions(filters, conditions):
 		if isinstance(f, basestring):
 			conditions.append(f)
 		else:
+			
 			tname = ('`tab' + f[0] + '`')
 			if not tname in webnotes.local.reportview_tables:
 				webnotes.local.reportview_tables.append(tname)
 				
-			if not hasattr(webnotes.local, "reportview_doctypes"):
-				load_doctypes()
+			if not hasattr(webnotes.local, "reportview_doctypes") \
+				or not webnotes.local.reportview_doctypes.has_key(tname):
+					load_doctypes()
 		
 			# prepare in condition
 			if f[2] in ['in', 'not in']:
