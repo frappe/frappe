@@ -1,7 +1,7 @@
 cur_frm.cscript.onload = function(doc) {
 	cur_frm.fields_dict.user.get_query = function() {
 		return {
-			query: "core.doctype.communication.communication.get_user"
+			query: "webnotes.core.doctype.communication.communication.get_user"
 		}
 	};
 		

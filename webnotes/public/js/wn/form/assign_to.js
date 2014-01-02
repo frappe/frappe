@@ -130,7 +130,7 @@ wn.ui.form.AssignTo = Class.extend({
 					});
 				}
 			}
-			me.dialog.fields_dict.assign_to.get_query = "core.doctype.profile.profile.profile_query";
+			me.dialog.fields_dict.assign_to.get_query = "webnotes.core.doctype.profile.profile.profile_query";
 		}
 		me.dialog.clear();
 		
