@@ -572,4 +572,7 @@ ul.linked-with-list li {
 }
 
 /* hack */
-.ui-datepicker { z-index: 9999999 !important; }
+.ui-datepicker,
+.ui-autocomplete { 
+	z-index: 9999999 !important; 
+}
