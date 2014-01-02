@@ -20,11 +20,10 @@ cur_frm.cscript.before_load = function(doc, dt, dn, callback) {
 		wn.call({
 			method: "webnotes.core.doctype.profile.profile.get_languages",
 			callback: function(r) {
-				console.log(r.message);
 				wn.languages = r.message;
 				update_language_select();
 			}
-		})
+		});
 	} else {
 		update_language_select();
 	}
