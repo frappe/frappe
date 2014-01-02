@@ -2,7 +2,7 @@
  {
   "creation": "2013-02-22 01:27:33", 
   "docstatus": 0, 
-  "modified": "2013-12-24 13:08:46", 
+  "modified": "2014-01-02 10:50:02", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -30,6 +30,12 @@
  {
   "doctype": "DocType", 
   "name": "DocField"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "label_and_type", 
+  "fieldtype": "Section Break", 
+  "label": "Label and Type"
  }, 
  {
   "doctype": "DocField", 
@@ -71,19 +77,6 @@
   "search_index": 1
  }, 
  {
-  "description": "For Links, enter the DocType as range\nFor Select, enter list of Options separated by comma", 
-  "doctype": "DocField", 
-  "fieldname": "options", 
-  "fieldtype": "Text", 
-  "hidden": 0, 
-  "in_list_view": 1, 
-  "label": "Options", 
-  "oldfieldname": "options", 
-  "oldfieldtype": "Text", 
-  "reqd": 0, 
-  "search_index": 0
- }, 
- {
   "doctype": "DocField", 
   "fieldname": "reqd", 
   "fieldtype": "Check", 
@@ -99,14 +92,56 @@
  }, 
  {
   "doctype": "DocField", 
-  "fieldname": "description", 
+  "fieldname": "search_index", 
+  "fieldtype": "Check", 
+  "hidden": 0, 
+  "label": "Index", 
+  "oldfieldname": "search_index", 
+  "oldfieldtype": "Check", 
+  "print_width": "50px", 
+  "reqd": 0, 
+  "search_index": 0, 
+  "width": "50px"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "in_list_view", 
+  "fieldtype": "Check", 
+  "label": "In List View", 
+  "print_width": "70px", 
+  "width": "70px"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "column_break_6", 
+  "fieldtype": "Column Break"
+ }, 
+ {
+  "description": "For Links, enter the DocType as range\nFor Select, enter list of Options separated by comma", 
+  "doctype": "DocField", 
+  "fieldname": "options", 
   "fieldtype": "Text", 
+  "hidden": 0, 
   "in_list_view": 1, 
-  "label": "Description", 
-  "oldfieldname": "description", 
+  "label": "Options", 
+  "oldfieldname": "options", 
   "oldfieldtype": "Text", 
-  "print_width": "300px", 
-  "width": "300px"
+  "reqd": 0, 
+  "search_index": 0
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "permissions", 
+  "fieldtype": "Section Break", 
+  "label": "Permissions"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "depends_on", 
+  "fieldtype": "Data", 
+  "label": "Depends On", 
+  "oldfieldname": "depends_on", 
+  "oldfieldtype": "Data"
  }, 
  {
   "default": "0", 
@@ -124,11 +159,29 @@
  }, 
  {
   "doctype": "DocField", 
+  "fieldname": "hidden", 
+  "fieldtype": "Check", 
+  "hidden": 0, 
+  "label": "Hidden", 
+  "oldfieldname": "hidden", 
+  "oldfieldtype": "Check", 
+  "print_width": "50px", 
+  "reqd": 0, 
+  "search_index": 0, 
+  "width": "50px"
+ }, 
+ {
+  "doctype": "DocField", 
   "fieldname": "read_only", 
   "fieldtype": "Check", 
   "label": "Read Only", 
   "print_width": "50px", 
   "width": "50px"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "column_break_13", 
+  "fieldtype": "Column Break"
  }, 
  {
   "description": "User restrictions should not apply for this Link", 
@@ -139,16 +192,29 @@
  }, 
  {
   "doctype": "DocField", 
-  "fieldname": "width", 
-  "fieldtype": "Data", 
-  "hidden": 0, 
-  "label": "Width", 
-  "oldfieldname": "width", 
-  "oldfieldtype": "Data", 
+  "fieldname": "allow_on_submit", 
+  "fieldtype": "Check", 
+  "label": "Allow on Submit", 
+  "oldfieldname": "allow_on_submit", 
+  "oldfieldtype": "Check", 
   "print_width": "50px", 
-  "reqd": 0, 
-  "search_index": 0, 
   "width": "50px"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "report_hide", 
+  "fieldtype": "Check", 
+  "label": "Report Hide", 
+  "oldfieldname": "report_hide", 
+  "oldfieldtype": "Check", 
+  "print_width": "50px", 
+  "width": "50px"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "display", 
+  "fieldtype": "Section Break", 
+  "label": "Display"
  }, 
  {
   "doctype": "DocField", 
@@ -163,24 +229,39 @@
  }, 
  {
   "doctype": "DocField", 
-  "fieldname": "hidden", 
+  "fieldname": "in_filter", 
   "fieldtype": "Check", 
-  "hidden": 0, 
-  "label": "Hidden", 
-  "oldfieldname": "hidden", 
+  "label": "In Filter", 
+  "oldfieldname": "in_filter", 
   "oldfieldtype": "Check", 
   "print_width": "50px", 
-  "reqd": 0, 
-  "search_index": 0, 
   "width": "50px"
  }, 
  {
   "doctype": "DocField", 
-  "fieldname": "depends_on", 
-  "fieldtype": "Data", 
-  "label": "Depends On", 
-  "oldfieldname": "depends_on", 
-  "oldfieldtype": "Data"
+  "fieldname": "no_copy", 
+  "fieldtype": "Check", 
+  "label": "No Copy", 
+  "oldfieldname": "no_copy", 
+  "oldfieldtype": "Check", 
+  "print_width": "50px", 
+  "width": "50px"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "column_break_22", 
+  "fieldtype": "Column Break"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "description", 
+  "fieldtype": "Text", 
+  "in_list_view": 1, 
+  "label": "Description", 
+  "oldfieldname": "description", 
+  "oldfieldtype": "Text", 
+  "print_width": "300px", 
+  "width": "300px"
  }, 
  {
   "doctype": "DocField", 
@@ -203,60 +284,12 @@
  }, 
  {
   "doctype": "DocField", 
-  "fieldname": "no_copy", 
-  "fieldtype": "Check", 
-  "label": "No Copy", 
-  "oldfieldname": "no_copy", 
-  "oldfieldtype": "Check", 
-  "print_width": "50px", 
-  "width": "50px"
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "allow_on_submit", 
-  "fieldtype": "Check", 
-  "label": "Allow on Submit", 
-  "oldfieldname": "allow_on_submit", 
-  "oldfieldtype": "Check", 
-  "print_width": "50px", 
-  "width": "50px"
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "in_filter", 
-  "fieldtype": "Check", 
-  "label": "In Filter", 
-  "oldfieldname": "in_filter", 
-  "oldfieldtype": "Check", 
-  "print_width": "50px", 
-  "width": "50px"
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "in_list_view", 
-  "fieldtype": "Check", 
-  "label": "In List View", 
-  "print_width": "70px", 
-  "width": "70px"
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "report_hide", 
-  "fieldtype": "Check", 
-  "label": "Report Hide", 
-  "oldfieldname": "report_hide", 
-  "oldfieldtype": "Check", 
-  "print_width": "50px", 
-  "width": "50px"
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "search_index", 
-  "fieldtype": "Check", 
+  "fieldname": "width", 
+  "fieldtype": "Data", 
   "hidden": 0, 
-  "label": "Index", 
-  "oldfieldname": "search_index", 
-  "oldfieldtype": "Check", 
+  "label": "Width", 
+  "oldfieldname": "width", 
+  "oldfieldtype": "Data", 
   "print_width": "50px", 
   "reqd": 0, 
   "search_index": 0, 

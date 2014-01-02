@@ -35,7 +35,9 @@ wn.ui.form.ScriptManager = Class.extend({
 		var handlers = [];
 		var me = this;
 		if(wn.ui.form.handlers[doctype] && wn.ui.form.handlers[doctype][event_name]) {
-			handlers.extend(function() { wn.ui.form.handlers[doctype][event_name](me.frm, doctype, name) });
+			$.each(wn.ui.form.handlers[doctype][event_name], function(i, fn) {
+				handlers.push(function() { fn(me.frm, doctype, name) });
+			});
 		} 
 		if(this.frm.cscript[event_name]) {
 			handlers.push(function() { me.frm.cscript[event_name](me.frm.doc, doctype, name); });

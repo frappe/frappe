@@ -195,10 +195,12 @@ _f.Frm.prototype.set_value = function(field, value) {
 					me.doc.name, fieldobj.df.fieldname);
 
 				$.each(v, function(i, d) {
-					var child = wn.model.add_child(me.frm.doc, fieldobj.df.options, 
+					var child = wn.model.add_child(me.doc, fieldobj.df.options, 
 						fieldobj.df.fieldname, i+1);
 					$.extend(child, d);
 				});
+				
+				me.refresh_field(f);
 				
 			} else {
 				wn.model.set_value(me.doctype, me.doc.name, f, v);
