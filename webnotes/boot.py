@@ -61,7 +61,7 @@ def get_bootinfo():
 	# add docs
 	bootinfo['docs'] = doclist
 	
-	for method in hooks.boot_session:
+	for method in hooks.boot_session or []:
 		webnotes.get_attr(method)(bootinfo)
 		
 	from webnotes.model.utils import compress
