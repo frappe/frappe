@@ -20,7 +20,7 @@ class TestProfile(unittest.TestCase):
 		delete_doc("Profile", "_test@example.com")
 		
 		self.assertTrue(not webnotes.conn.sql("""select * from `tabToDo` where owner=%s""",
-			"_test@example.com"))
+			("_test@example.com",)))
 		
 		from webnotes.core.doctype.role.test_role import test_records as role_records
 		webnotes.bean(copy=role_records[1]).insert()

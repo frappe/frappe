@@ -26,7 +26,7 @@ class DocType(WebsiteGenerator):
 		# update posts
 		webnotes.conn.sql("""update tabBlogger set posts=(select count(*) from `tabBlog Post` 
 			where ifnull(blogger,'')=tabBlogger.name)
-			where name=%s""", self.doc.blogger)
+			where name=%s""", (self.doc.blogger,))
 
 	def on_update(self):
 		WebsiteGenerator.on_update(self)
@@ -56,7 +56,7 @@ class DocType(WebsiteGenerator):
 		self.doc.comment_list = webnotes.conn.sql("""\
 			select comment, comment_by_fullname, creation
 			from `tabComment` where comment_doctype="Blog Post"
-			and comment_docname=%s order by creation""", self.doc.name, as_dict=1) or []
+			and comment_docname=%s order by creation""", (self.doc.name,), as_dict=1) or []
 						
 			
 def clear_blog_cache():

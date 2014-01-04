@@ -375,7 +375,7 @@ class Document:
 		if '\n' in dt:
 			dt = dt.split('\n')[0]
 		tmp = webnotes.conn.sql("""SELECT name FROM `tab%s` 
-			WHERE name = %s""" % (dt, '%s'), dn)
+			WHERE name = %s""" % (dt, '%s'), (dn,))
 		return tmp and tmp[0][0] or ''# match case
 	
 	def _update_values(self, issingle, link_list, ignore_fields=0, keep_timestamps=False):
@@ -441,7 +441,7 @@ class Document:
 		"""update parent type and parent field, if not explicitly specified"""
 
 		tmp = webnotes.conn.sql("""select parent, fieldname from tabDocField 
-			where fieldtype='Table' and options=%s""", self.doctype)
+			where fieldtype='Table' and options=%s""", (self.doctype,))
 			
 		if len(tmp)==0:
 			raise Exception, 'Incomplete parent info in child table (%s, %s)' \
@@ -587,15 +587,15 @@ def make_autoname(key, doctype=''):
 
 def getseries(key, digits, doctype=''):
 	# series created ?
-	current = webnotes.conn.sql("select `current` from `tabSeries` where name=%s for update", key)
+	current = webnotes.conn.sql("select `current` from `tabSeries` where name=%s for update", (key,))
 	if current and current[0][0] is not None:
 		current = current[0][0]
 		# yes, update it
-		webnotes.conn.sql("update tabSeries set current = current+1 where name=%s", key)
+		webnotes.conn.sql("update tabSeries set current = current+1 where name=%s", (key,))
 		current = cint(current) + 1
 	else:
 		# no, create it
-		webnotes.conn.sql("insert into tabSeries (name, current) values (%s, 1)", key)
+		webnotes.conn.sql("insert into tabSeries (name, current) values (%s, 1)", (key,))
 		current = 1
 	return ('%0'+str(digits)+'d') % current
 
@@ -633,7 +633,7 @@ def check_page_perm(doc):
 	if doc.publish:
 		return
 
-	if not webnotes.conn.sql("select name from `tabPage Role` where parent=%s and role='Guest'", doc.name):
+	if not webnotes.conn.sql("select name from `tabPage Role` where parent=%s and role='Guest'", (doc.name,)):
 		webnotes.response['403'] = 1
 		raise webnotes.PermissionError, '[WNF] No read permission for %s %s' % ('Page', doc.name)
 
@@ -669,7 +669,7 @@ def get(dt, dn='', with_children = 1, from_controller = 0):
 
 def getsingle(doctype):
 	"""get single doc as dict"""
-	dataset = webnotes.conn.sql("select field, value from tabSingles where doctype=%s", doctype)
+	dataset = webnotes.conn.sql("select field, value from tabSingles where doctype=%s", (doctype,))
 	return dict(dataset)
 	
 def copy_common_fields(from_doc, to_doc):
@@ -685,7 +685,7 @@ def copy_common_fields(from_doc, to_doc):
 			
 def validate_name(doctype, name, case=None, merge=False):
 	if not merge:
-		if webnotes.conn.sql('select name from `tab%s` where name=%s' % (doctype,'%s'), name):
+		if webnotes.conn.sql('select name from `tab%s` where name=%s' % (doctype,'%s'), (name,)):
 			raise NameError, 'Name %s already exists' % name
 	
 	# no name

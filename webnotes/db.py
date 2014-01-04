@@ -469,7 +469,7 @@ class Database:
 			if dt==dn:
 				return True # single always exists (!)
 			try:
-				return self.sql('select name from `tab%s` where name=%s' % (dt, '%s'), dn)
+				return self.sql('select name from `tab%s` where name=%s' % (dt, '%s'), (dn,))
 			except:
 				return None
 		elif isinstance(dt, dict) and dt.get('doctype'):

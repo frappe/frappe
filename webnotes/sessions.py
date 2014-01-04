@@ -35,14 +35,14 @@ def clear_cache(user=None):
 		
 		# clear notifications
 		if webnotes.flags.in_install_app!="webnotes":
-			webnotes.conn.sql("""delete from `tabNotification Count` where owner=%s""", user)
+			webnotes.conn.sql("""delete from `tabNotification Count` where owner=%s""", (user,))
 		
 		if webnotes.session:
 			if user==webnotes.session.user and webnotes.session.sid:
 				cache.delete_value("session:" + webnotes.session.sid)
 			else:
 				for sid in webnotes.conn.sql_list("""select sid from tabSessions
-					where user=%s""", user):
+					where user=%s""", (user,)):
 						cache.delete_value("session:" + sid)
 
 		webnotes.defaults.clear_cache(user)
@@ -56,12 +56,12 @@ def clear_cache(user=None):
 def clear_sessions(user=None, keep_current=False):
 	if not user:
 		user = webnotes.session.user
-	for sid in webnotes.conn.sql("""select sid from tabSessions where user=%s""", user):
+	for sid in webnotes.conn.sql("""select sid from tabSessions where user=%s""", (user,)):
 		if keep_current and webnotes.session.sid==sid[0]:
 			pass
 		else:
 			webnotes.cache().delete_value("session:" + sid[0])
-			webnotes.conn.sql("""delete from tabSessions where sid=%s""", sid[0])
+			webnotes.conn.sql("""delete from tabSessions where sid=%s""", (sid[0],))
 
 def get():
 	"""get session boot info"""
@@ -211,7 +211,7 @@ class Session:
 
 	def delete_session(self):
 		webnotes.cache().delete_value("session:" + self.sid)
-		r = webnotes.conn.sql("""delete from tabSessions where sid=%s""", self.sid)
+		r = webnotes.conn.sql("""delete from tabSessions where sid=%s""", (self.sid,))
 
 	def start_as_guest(self):
 		"""all guests share the same 'Guest' session"""

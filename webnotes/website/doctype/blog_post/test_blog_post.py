@@ -66,8 +66,10 @@ class TestBlogPost(unittest.TestCase):
 	def test_restriction_in_report(self):
 		webnotes.defaults.add_default("Blog Category", "_Test Blog Category 1", "test1@example.com", 
 			"Restriction")
-
+		webnotes.local.reportview_doctypes = {}
+		
 		names = [d.name for d in webnotes.get_list("Blog Post", fields=["name", "blog_category"])]
+
 		self.assertTrue("_test-blog-post-1" in names)
 		self.assertFalse("_test-blog-post" in names)
 		

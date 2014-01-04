@@ -220,17 +220,17 @@ Thank you,<br>
 			webnotes.local.login_manager.logout(user=self.doc.name)
 		
 		# delete their password
-		webnotes.conn.sql("""delete from __Auth where user=%s""", self.doc.name)
+		webnotes.conn.sql("""delete from __Auth where user=%s""", (self.doc.name,))
 		
 		# delete todos
-		webnotes.conn.sql("""delete from `tabToDo` where owner=%s""", self.doc.name)
+		webnotes.conn.sql("""delete from `tabToDo` where owner=%s""", (self.doc.name,))
 		webnotes.conn.sql("""update tabToDo set assigned_by=null where assigned_by=%s""",
-			self.doc.name)
+			(self.doc.name,))
 		
 		# delete events
 		webnotes.conn.sql("""delete from `tabEvent` where owner=%s
-			and event_type='Private'""", self.doc.name)
-		webnotes.conn.sql("""delete from `tabEvent User` where person=%s""", self.doc.name)
+			and event_type='Private'""", (self.doc.name,))
+		webnotes.conn.sql("""delete from `tabEvent User` where person=%s""", (self.doc.name,))
 			
 		# delete messages
 		webnotes.conn.sql("""delete from `tabComment` where comment_doctype='Message'
@@ -315,7 +315,7 @@ def get_perm_info(arg=None):
 	return webnotes.conn.sql("""select parent, permlevel, `read`, `write`, submit,
 		cancel, amend from tabDocPerm where role=%s 
 		and docstatus<2 order by parent, permlevel""", 
-			webnotes.form_dict['role'], as_dict=1)
+			(webnotes.form_dict['role'],), as_dict=1)
 
 @webnotes.whitelist(allow_guest=True)
 def update_password(new_password, key=None, old_password=None):
@@ -368,7 +368,7 @@ def reset_password(user):
 	if user in ["demo@erpnext.com", "Administrator"]:
 		return "Not allowed"
 		
-	if webnotes.conn.sql("""select name from tabProfile where name=%s""", user):
+	if webnotes.conn.sql("""select name from tabProfile where name=%s""", (user,)):
 		# Hack!
 		webnotes.session["user"] = "Administrator"
 		profile = webnotes.bean("Profile", user)

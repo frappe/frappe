@@ -148,7 +148,7 @@ class Profile:
 	def load_profile(self):
 		d = webnotes.conn.sql("""select email, first_name, last_name, 
 			email_signature, background_image, user_type, language
-			from tabProfile where name = %s""", self.name, as_dict=1)[0]
+			from tabProfile where name = %s""", (self.name,), as_dict=1)[0]
 
 		if not self.can_read:
 			self.build_permissions()
@@ -169,7 +169,7 @@ class Profile:
 		return d
 		
 def get_user_fullname(user):
-	fullname = webnotes.conn.sql("SELECT CONCAT_WS(' ', first_name, last_name) FROM `tabProfile` WHERE name=%s", user)
+	fullname = webnotes.conn.sql("SELECT CONCAT_WS(' ', first_name, last_name) FROM `tabProfile` WHERE name=%s", (user,))
 	return fullname and fullname[0][0] or ''
 
 def get_system_managers(only_name=False):
@@ -218,7 +218,7 @@ def get_roles(username=None, with_standard=True):
 		return ['Guest']
 	
 	roles = [r[0] for r in webnotes.conn.sql("""select role from tabUserRole 
-		where parent=%s and role!='All'""", username)] + ['All']
+		where parent=%s and role!='All'""", (username,))] + ['All']
 		
 	# filter standard if required
 	if not with_standard:

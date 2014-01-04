@@ -100,7 +100,7 @@ class DbTable:
 		try:
 			custom_fl = webnotes.conn.sql("""\
 				SELECT * FROM `tabCustom Field`
-				WHERE dt = %s AND docstatus < 2""", self.doctype, as_dict=1)
+				WHERE dt = %s AND docstatus < 2""", (self.doctype,), as_dict=1)
 			if custom_fl: fl += custom_fl
 		except Exception, e:
 			if e.args[0]!=1146: # ignore no custom field
@@ -393,7 +393,7 @@ def updatedb(dt):
 	   * updates columns
 	   * updates indices
 	"""
-	res = webnotes.conn.sql("select ifnull(issingle, 0) from tabDocType where name=%s", dt)
+	res = webnotes.conn.sql("select ifnull(issingle, 0) from tabDocType where name=%s", (dt,))
 	if not res:
 		raise Exception, 'Wrong doctype "%s" in updatedb' % dt
 	

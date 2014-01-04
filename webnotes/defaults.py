@@ -34,7 +34,7 @@ def get_restrictions(user=None):
 def build_restrictions(user):
 	out = {}
 	for key, value in webnotes.conn.sql("""select defkey, defvalue 
-		from tabDefaultValue where parent=%s and parenttype='Restriction'""", user):
+		from tabDefaultValue where parent=%s and parenttype='Restriction'""", (user,)):
 		out.setdefault(key, [])
 		out[key].append(value)
 	return out
@@ -133,7 +133,7 @@ def get_defaults_for(parent="Control Panel"):
 	defaults = webnotes.cache().get_value("__defaults:" + parent)
 	if not defaults:
 		res = webnotes.conn.sql("""select defkey, defvalue from `tabDefaultValue` 
-			where parent = %s order by creation""", parent, as_dict=1)
+			where parent = %s order by creation""", (parent,), as_dict=1)
 
 		defaults = webnotes._dict({})
 		for d in res:
