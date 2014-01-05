@@ -36,10 +36,10 @@ def delete_doc(doctype=None, name=None, doclist = None, force=0, ignore_doctypes
 		
 	try:
 		tablefields = webnotes.model.meta.get_table_fields(doctype)
-		webnotes.conn.sql("delete from `tab%s` where name=%s" % (doctype, "%s"), name)
+		webnotes.conn.sql("delete from `tab%s` where name=%s" % (doctype, "%s"), (name,))
 		for t in tablefields:
 			if t[0] not in ignore_doctypes:
-				webnotes.conn.sql("delete from `tab%s` where parent = %s" % (t[0], '%s'), name)
+				webnotes.conn.sql("delete from `tab%s` where parent = %s" % (t[0], '%s'), (name,))
 	except Exception, e:
 		if e.args[0]==1451:
 			webnotes.msgprint("Cannot delete %s '%s' as it is referenced in another record. You must delete the referred record first" % (doctype, name))

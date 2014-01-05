@@ -149,7 +149,7 @@ def get_link_fields(doctype):
 			df.parent not like "old%%%%" and df.parent != '0' and
 			((df.options=%s and df.fieldtype='Link') or
 			(df.options='link:%s' and df.fieldtype='Select'))""" \
-		% ('%s', doctype), doctype, as_dict=1)
+		% ('%s', doctype), (doctype,), as_dict=1)
 	
 	# get link fields from tabCustom Field
 	custom_link_fields = webnotes.conn.sql("""\
@@ -161,7 +161,7 @@ def get_link_fields(doctype):
 			df.dt not like "old%%%%" and df.dt != '0' and
 			((df.options=%s and df.fieldtype='Link') or
 			(df.options='link:%s' and df.fieldtype='Select'))""" \
-		% ('%s', doctype), doctype, as_dict=1)
+		% ('%s', doctype), (doctype,), as_dict=1)
 	
 	# add custom link fields list to link fields list
 	link_fields += custom_link_fields
@@ -176,7 +176,7 @@ def get_link_fields(doctype):
 			ps.property_type='options' and
 			ps.field_name is not null and
 			(ps.value=%s or ps.value='link:%s')""" \
-		% ('%s', doctype), doctype, as_dict=1)
+		% ('%s', doctype), (doctype,), as_dict=1)
 		
 	link_fields += property_setter_link_fields
 	
@@ -211,7 +211,7 @@ def get_select_fields(old, new):
 			df.parent != %s and df.fieldtype = 'Select' and
 			df.options not like "link:%%%%" and
 			(df.options like "%%%%%s%%%%")""" \
-		% ('%s', old), new, as_dict=1)
+		% ('%s', old), (new,), as_dict=1)
 	
 	# get link fields from tabCustom Field
 	custom_select_fields = webnotes.conn.sql("""\
@@ -224,7 +224,7 @@ def get_select_fields(old, new):
 			df.dt != %s and df.fieldtype = 'Select' and
 			df.options not like "link:%%%%" and
 			(df.options like "%%%%%s%%%%")""" \
-		% ('%s', old), new, as_dict=1)
+		% ('%s', old), (new,), as_dict=1)
 	
 	# add custom link fields list to link fields list
 	select_fields += custom_select_fields
@@ -241,7 +241,7 @@ def get_select_fields(old, new):
 			ps.field_name is not null and
 			ps.value not like "link:%%%%" and
 			(ps.value like "%%%%%s%%%%")""" \
-		% ('%s', old), new, as_dict=1)
+		% ('%s', old), (new,), as_dict=1)
 		
 	select_fields += property_setter_select_fields
 	
@@ -275,11 +275,11 @@ def update_select_field_values(old, new):
 def update_parenttype_values(old, new):
 	child_doctypes = webnotes.conn.sql("""\
 		select options, fieldname from `tabDocField`
-		where parent=%s and fieldtype='Table'""", new, as_dict=1)
+		where parent=%s and fieldtype='Table'""", (new,), as_dict=1)
 
 	custom_child_doctypes = webnotes.conn.sql("""\
 		select options, fieldname from `tabCustom Field`
-		where dt=%s and fieldtype='Table'""", new, as_dict=1)
+		where dt=%s and fieldtype='Table'""", (new,), as_dict=1)
 
 	child_doctypes += custom_child_doctypes
 	fields = [d['fieldname'] for d in child_doctypes]
@@ -288,7 +288,7 @@ def update_parenttype_values(old, new):
 		select value as options from `tabProperty Setter`
 		where doc_type=%s and property='options' and
 		field_name in ("%s")""" % ('%s', '", "'.join(fields)),
-		new)
+		(new,))
 		
 	child_doctypes += property_setter_child_doctypes
 	child_doctypes = (d['options'] for d in child_doctypes)

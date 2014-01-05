@@ -111,6 +111,9 @@ def load_doctypes():
 	for t in webnotes.local.reportview_tables:
 		if t.startswith('`'):
 			doctype = t[4:-1]
+			if webnotes.local.reportview_doctypes.get(doctype):
+				continue
+			
 			if not webnotes.has_permission(doctype):
 				raise webnotes.PermissionError, doctype
 			webnotes.local.reportview_doctypes[doctype] = webnotes.model.doctype.get(doctype)
@@ -172,8 +175,7 @@ def build_filter_conditions(filters, conditions):
 			if not tname in webnotes.local.reportview_tables:
 				webnotes.local.reportview_tables.append(tname)
 				
-			if not hasattr(webnotes.local, "reportview_doctypes"):
-				load_doctypes()
+			load_doctypes()
 		
 			# prepare in condition
 			if f[2] in ['in', 'not in']:
@@ -202,10 +204,10 @@ def build_match_conditions(doctype, fields=None, as_condition=True):
 	match_filters = {}
 	match_conditions = []
 
-	if not getattr(webnotes.local, "reportview_tables", None) \
-		or not getattr(webnotes.local, "reportview_doctypes", None):
+	if not getattr(webnotes.local, "reportview_tables", None):
 		webnotes.local.reportview_tables = get_tables(doctype, fields)
-		load_doctypes()
+	
+	load_doctypes()
 	
 	# get restrictions
 	restrictions = webnotes.defaults.get_restrictions()

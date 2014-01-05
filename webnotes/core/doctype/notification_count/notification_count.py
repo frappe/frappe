@@ -18,7 +18,7 @@ def get_notifications():
 	open_count_module = {}
 
 	notification_count = dict(webnotes.conn.sql("""select for_doctype, open_count 
-		from `tabNotification Count` where owner=%s""", webnotes.session.user))
+		from `tabNotification Count` where owner=%s""", (webnotes.session.user,)))
 
 	for d in config.for_doctype:
 		if d in can_read:
@@ -51,7 +51,7 @@ def get_notifications():
 
 def delete_notification_count_for(doctype):
 	if webnotes.flags.in_import: return
-	webnotes.conn.sql("""delete from `tabNotification Count` where for_doctype = %s""", doctype)
+	webnotes.conn.sql("""delete from `tabNotification Count` where for_doctype = %s""", (doctype,))
 
 def delete_event_notification_count():
 	delete_notification_count_for("Event")

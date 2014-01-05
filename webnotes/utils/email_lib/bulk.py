@@ -61,7 +61,7 @@ def send(recipients=None, sender=None, doctype='Profile', email_field='email',
 	
 	for r in filter(None, list(set(recipients))):
 		rdata = webnotes.conn.sql("""select * from `tab%s` where %s=%s""" % (doctype, 
-			email_field, '%s'), r, as_dict=1)
+			email_field, '%s'), (r,), as_dict=1)
 		
 		doc = rdata and rdata[0] or {}
 		
@@ -95,7 +95,7 @@ def unsubscribe():
 	email = webnotes.form_dict.get('email')
 
 	webnotes.conn.sql("""update `tab%s` set unsubscribed=1
-		where `%s`=%s""" % (doctype, field, '%s'), email)
+		where `%s`=%s""" % (doctype, field, '%s'), (email,))
 	
 	if not webnotes.form_dict.get("from_test"):
 		webnotes.conn.commit()
@@ -129,13 +129,13 @@ def flush(from_test=False):
 			break
 			
 		webnotes.conn.sql("""update `tabBulk Email` set status='Sending' where name=%s""", 
-			email["name"], auto_commit=auto_commit)
+			(email["name"],), auto_commit=auto_commit)
 		try:
 			if not from_test:
 				smptserver.sess.sendmail(email["sender"], email["recipient"], email["message"])
 
 			webnotes.conn.sql("""update `tabBulk Email` set status='Sent' where name=%s""", 
-				email["name"], auto_commit=auto_commit)
+				(email["name"],), auto_commit=auto_commit)
 
 		except Exception, e:
 			webnotes.conn.sql("""update `tabBulk Email` set status='Error', error=%s 

@@ -132,7 +132,7 @@ def sort_fields(doclist):
 			
 def apply_property_setters(doctype, doclist):		
 	for ps in webnotes.conn.sql("""select * from `tabProperty Setter` where
-		doc_type=%s""", doctype, as_dict=1):
+		doc_type=%s""", (doctype,), as_dict=1):
 		if ps['doctype_or_field']=='DocType':
 			if ps.get('property_type', None) in ('Int', 'Check'):
 				ps['value'] = cint(ps['value'])
@@ -149,7 +149,7 @@ def apply_property_setters(doctype, doclist):
 def add_custom_fields(doctype, doclist):
 	try:
 		res = webnotes.conn.sql("""SELECT * FROM `tabCustom Field`
-			WHERE dt = %s AND docstatus < 2""", doctype, as_dict=1)
+			WHERE dt = %s AND docstatus < 2""", (doctype,), as_dict=1)
 	except Exception, e:
 		if e.args[0]==1146:
 			return doclist
@@ -251,7 +251,7 @@ def clear_cache(doctype=None):
 	
 		# clear all parent doctypes
 		for dt in webnotes.conn.sql("""select parent from tabDocField 
-			where fieldtype="Table" and options=%s""", doctype):
+			where fieldtype="Table" and options=%s""", (doctype,)):
 			clear_single(dt[0])
 		
 		# clear all notifications
@@ -312,7 +312,7 @@ def expand_selects(doclist):
 
 def add_print_formats(doclist):
 	print_formats = webnotes.conn.sql("""select * FROM `tabPrint Format`
-		WHERE doc_type=%s AND docstatus<2""", doclist[0].name, as_dict=1)
+		WHERE doc_type=%s AND docstatus<2""", (doclist[0].name,), as_dict=1)
 	for pf in print_formats:
 		doclist.append(webnotes.model.doc.Document('Print Format', fielddata=pf))
 
@@ -334,7 +334,7 @@ def get_link_fields(doctype):
 		
 def add_validators(doctype, doclist):
 	for validator in webnotes.conn.sql("""select name from `tabDocType Validator` where
-		for_doctype=%s""", doctype, as_dict=1):
+		for_doctype=%s""", (doctype,), as_dict=1):
 		doclist.extend(webnotes.get_doclist('DocType Validator', validator.name))
 		
 def add_search_fields(doclist):
