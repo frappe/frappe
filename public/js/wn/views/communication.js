@@ -38,7 +38,7 @@ wn.views.CommunicationList = Class.extend({
 	clear_list: function() {
 		this.body.remove();
 		$("<p class='text-muted'>" + wn._("No Communication tagged with this ") 
-			+ this.doc.doctype +" yet.</p>").appendTo(this.wrapper);	
+			+ wn._(this.doc.doctype) +" yet.</p>").appendTo(this.wrapper);	
 	},
 	make_body: function() {
 		$(this.parent)
