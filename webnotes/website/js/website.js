@@ -213,6 +213,8 @@ function getCookie(name) {
 	return getCookies()[name];
 }
 
+wn.get_cookie = getCookie;
+
 function getCookies() {
 	var c = document.cookie, v = 0, cookies = {};
 	if (document.cookie.match(/^\s*\$Version=(?:"1"|1);\s*(.*)/)) {

@@ -74,8 +74,15 @@ def get_build_maps():
 				try:
 					for target, sources in json.loads(f.read()).iteritems():
 						# update app path
-						sources = [os.path.join(app_path, source) for source in sources]	
-						build_maps[target] = sources
+						source_paths = []
+						for source in sources:
+							if isinstance(source, list):
+								s = webnotes.get_pymodule_path(source[0], *source[1].split("/"))
+							else:
+								s = os.path.join(app_path, source)
+							source_paths.append(s)
+								
+						build_maps[target] = source_paths
 				except Exception, e:
 					print path
 					raise

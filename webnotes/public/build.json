@@ -77,6 +77,7 @@
 		"public/js/wn/model/workflow.js",
 
 		"public/js/wn/misc/user.js",
+		"public/js/wn/misc/pretty_date.js",
 		"public/js/wn/misc/utils.js",
 		"public/js/wn/misc/tools.js",
 		"public/js/wn/misc/datetime.js",
