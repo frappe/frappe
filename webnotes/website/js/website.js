@@ -21,7 +21,11 @@ $.extend(wn, {
 			async: false, 
 			dataType: "text", 
 			success: function(data) {
-				var el = document.createElement('script');
+				if(url.split(".").splice(-1) == "js") {
+					var el = document.createElement('script');
+				} else {
+					var el = document.createElement('style');
+				}
 				el.appendChild(document.createTextNode(data));
 				document.getElementsByTagName('head')[0].appendChild(el);
 			}
