@@ -8,8 +8,9 @@ Boot session from cache or build
 Session bootstraps info needed by common client side activities including
 permission, homepage, control panel variables, system defaults etc
 """
+import webnotes, os, json
 import webnotes
-import json
+import webnotes.utils
 from webnotes.utils import cint
 import webnotes.model.doctype
 import webnotes.defaults
@@ -89,49 +90,49 @@ def get():
 	return bootinfo
 
 class Session:
-	def __init__(self, user=None):
-		self.user = user
+	def __init__(self, user, resume=False):
 		self.sid = webnotes.form_dict.get('sid') or webnotes.request.cookies.get('sid', 'Guest')
-		self.data = webnotes._dict({'user':user,'data': webnotes._dict({})})
+		self.user = user
+		self.data = webnotes._dict({'data': webnotes._dict({})})
 		self.time_diff = None
-
-		if webnotes.form_dict.get('cmd')=='login':
+		if resume:
+			self.resume()
+		else:
 			self.start()
-			return
-			
-		self.load()
 
 	def start(self):
-		"""start a new session"""
-		import os
-		import webnotes
-		import webnotes.utils
-		
+		"""start a new session"""		
 		# generate sid
-		if webnotes.local.login_manager.user=='Guest':
+		if self.user=='Guest':
 			sid = 'Guest'
 		else:
 			sid = webnotes.generate_hash()
 		
-		self.data['user'] = webnotes.local.login_manager.user
+		self.data['user'] = self.user
 		self.data['sid'] = sid
-		self.data['data']['user'] = webnotes.local.login_manager.user
+		self.data['data']['user'] = self.user
 		self.data['data']['session_ip'] = webnotes.get_request_header('REMOTE_ADDR')
-		self.data['data']['last_updated'] = webnotes.utils.now()
-		self.data['data']['session_expiry'] = self.get_expiry_period()
+		if self.user != "Guest":
+			self.data['data']['last_updated'] = webnotes.utils.now()
+			self.data['data']['session_expiry'] = self.get_expiry_period()
 		self.data['data']['session_country'] = get_geo_ip_country(webnotes.get_request_header('REMOTE_ADDR'))
 		
 		# insert session
-		webnotes.conn.begin()
-		self.insert_session_record()
+		if self.user!="Guest":
+			webnotes.conn.begin()
+			self.insert_session_record()
 
-		# update profile
-		webnotes.conn.sql("""UPDATE tabProfile SET last_login = '%s', last_ip = '%s' 
-			where name='%s'""" % (webnotes.utils.now(), webnotes.get_request_header('REMOTE_ADDR'), self.data['user']))
-		webnotes.conn.commit()
+			# update profile
+			webnotes.conn.sql("""UPDATE tabProfile SET last_login = '%s', last_ip = '%s' 
+				where name='%s'""" % (webnotes.utils.now(), webnotes.get_request_header('REMOTE_ADDR'), self.data['user']))
+			webnotes.conn.commit()
 		
 		# set cookies to write
 		webnotes.local.session = self.data
+		
+		# write cookies
+		webnotes.local.cookie_manager.set_cookies()
+		
 
 	def insert_session_record(self):
 		webnotes.conn.sql("""insert into tabSessions 
@@ -142,7 +143,7 @@ class Session:
 		# also add to memcache
 		webnotes.cache().set_value("session:" + self.data.sid, self.data)
 
-	def load(self):
+	def resume(self):
 		"""non-login request: load a session"""
 		import webnotes		
 		data = self.get_session_record()
@@ -167,6 +168,9 @@ class Session:
 		return r
 
 	def get_session_data(self):
+		if self.sid=="Guest":
+			return webnotes._dict({"user":"Guest"})
+			
 		data = self.get_session_data_from_cache()
 		if not data:
 			data = self.get_session_data_from_db()
@@ -187,14 +191,10 @@ class Session:
 		return data and data.data
 
 	def get_session_data_from_db(self):
-		if self.sid=="Guest":
-			rec = webnotes.conn.sql("""select user, sessiondata from 
-				tabSessions where sid='Guest' """)
-		else:
-			rec = webnotes.conn.sql("""select user, sessiondata 
-				from tabSessions where sid=%s and 
-				TIMEDIFF(NOW(), lastupdate) < TIME(%s)""", (self.sid, 
-					self.get_expiry_period()))
+		rec = webnotes.conn.sql("""select user, sessiondata 
+			from tabSessions where sid=%s and 
+			TIMEDIFF(NOW(), lastupdate) < TIME(%s)""", (self.sid, 
+				self.get_expiry_period()))
 		if rec:
 			data = webnotes._dict(eval(rec and rec[0][1] or '{}'))
 			data.user = rec[0][0]
@@ -215,7 +215,7 @@ class Session:
 
 	def start_as_guest(self):
 		"""all guests share the same 'Guest' session"""
-		webnotes.local.login_manager.login_as_guest()
+		self.user = "Guest"
 		self.start()
 
 	def update(self, force=False):

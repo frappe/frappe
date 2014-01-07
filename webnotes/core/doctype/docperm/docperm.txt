@@ -2,7 +2,7 @@
  {
   "creation": "2013-02-22 01:27:33", 
   "docstatus": 0, 
-  "modified": "2013-12-20 19:23:11", 
+  "modified": "2014-01-04 22:26:35", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -56,7 +56,7 @@
   "oldfieldtype": "Link", 
   "options": "Role", 
   "print_width": "150px", 
-  "reqd": 0, 
+  "reqd": 1, 
   "search_index": 0, 
   "width": "150px"
  }, 

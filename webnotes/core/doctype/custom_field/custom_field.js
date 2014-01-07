@@ -36,12 +36,13 @@ cur_frm.cscript.label = function(doc){
 
 
 cur_frm.fields_dict['dt'].get_query = function(doc, dt, dn) {
-	return{
-		filters:[
-			['DocType', 'issingle', '=', 0],
-			['DocType', 'module', '!=', 'Core']
-		]
+	filters = [
+		['DocType', 'issingle', '=', 0],
+	];
+	if(user!=="Administrator") {
+		filters.push(['DocType', 'module', '!=', 'Core'])
 	}
+	return filters
 }
 
 cur_frm.cscript.fieldtype = function(doc, dt, dn) {

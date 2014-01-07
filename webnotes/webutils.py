@@ -61,10 +61,7 @@ def build_page(page_name):
 		webnotes.connect()
 
 	if page_name=="index":
-		page_name = webnotes.conn.get_value("Website Settings", None, "home_page")
-		if not page_name:
-			page_name = "login"
-
+		page_name = get_home_page()
 	try:
 		sitemap_options = webnotes.doc("Website Sitemap", page_name).fields
 		page_options = webnotes.doc("Website Sitemap Config", 
@@ -73,7 +70,9 @@ def build_page(page_name):
 				"docname":sitemap_options.docname
 			})
 	except webnotes.DoesNotExistError:
-		return build_page("404")
+		hooks = webnotes.get_hooks()
+		if hooks.website_catch_all:
+			return build_page(hooks.website_catch_all[0])
 		
 	page_options["page_name"] = page_name
 	
@@ -108,15 +107,8 @@ def build_page(page_name):
 	return html
 		
 def get_home_page():
-	if not webnotes.conn:
-		webnotes.connect()
-	doc_name = webnotes.conn.get_value('Website Settings', None, 'home_page')
-	if doc_name:
-		page_name = webnotes.conn.get_value('Web Page', doc_name, 'page_name')
-	else:
-		page_name = 'index'
-
-	return page_name
+	return webnotes.cache().get_value("home_page", \
+		lambda: webnotes.conn.get_value("Website Settings", None, "home_page") or "login")
 	
 def get_website_settings():
 	from webnotes.utils import get_request_site_address, encode, cint
@@ -189,6 +181,7 @@ def clear_cache(page_name=None):
 		for p in webnotes.conn.sql_list("""select name from `tabWebsite Sitemap`"""):
 			if p is not None:
 				cache.delete_value("page:" + p)
+		cache.delete_value("home_page")
 		cache.delete_value("page:index")
 		cache.delete_value("website_sitemap")
 		cache.delete_value("website_sitemap_config")

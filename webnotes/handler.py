@@ -169,7 +169,7 @@ def print_json():
 	make_logs()
 	cleanup_docs()
 
-	webnotes._response.headers["Content-Type"] = "text/html; charset: utf-8"
+	webnotes._response.headers["Content-Type"] = "text/json; charset: utf-8"
 
 	import json
 	

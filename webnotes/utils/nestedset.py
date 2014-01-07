@@ -18,15 +18,16 @@ from webnotes import msgprint, _
 # called in the on_update method
 def update_nsm(doc_obj):
 	# get fields, data from the DocType
-	
-	pf, opf = 'parent_node', 'old_parent'
+	opf = 'old_parent'
 
 	if str(doc_obj.__class__)=='webnotes.model.doc.Document':
 		# passed as a Document object
 		d = doc_obj
+		pf = "parent_" + webnotes.scrub(d.doctype)
 	else:
 		# passed as a DocType object
 		d = doc_obj.doc
+		pf = "parent_" + webnotes.scrub(d.doctype)
 	
 		if hasattr(doc_obj,'nsm_parent_field'):
 			pf = doc_obj.nsm_parent_field
@@ -182,6 +183,8 @@ class DocTypeNestedSet(object):
 		self.validate_ledger()
 		
 	def on_trash(self):
+		if not self.nsm_parent_field:
+			self.nsm_parent_field = webnotes.scrub(self.doc.doctype) + "_parent"
 		parent = self.doc.fields[self.nsm_parent_field]
 		if not parent:
 			msgprint(_("Root ") + self.doc.doctype + _(" cannot be deleted."), raise_exception=1)

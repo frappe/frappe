@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import webnotes, json
 from webnotes.utils import cint, now, cstr
 from webnotes import _
+from webnotes.auth import _update_password
 
 class DocType:
 	def __init__(self, doc, doclist):
@@ -29,12 +30,17 @@ class DocType:
 		self.check_enable_disable()
 		if self.in_insert:
 			if self.doc.name not in ("Guest", "Administrator"):
-				self.send_welcome_mail()
-				webnotes.msgprint(_("Welcome Email Sent"))
+				if self.doc.new_password:
+					# new password given, no email required
+					_update_password(self.doc.name, self.doc.new_password)
+				else:
+					self.send_welcome_mail()
+					webnotes.msgprint(_("Welcome Email Sent"))
 		else:
 			self.email_new_password()
-
+		
 		self.doc.new_password = ""
+
 
 	def check_enable_disable(self):
 		# do not allow disabling administrator/guest
@@ -86,7 +92,6 @@ class DocType:
 	
 	def email_new_password(self):
 		if self.doc.new_password and not self.in_insert:
-			from webnotes.auth import _update_password
 			_update_password(self.doc.name, self.doc.new_password)
 
 			self.password_update_mail(self.doc.new_password)
@@ -330,7 +335,6 @@ def update_password(new_password, key=None, old_password=None):
 			and user=%s""", (old_password, user)):
 			return _("Cannot Update: Incorrect Password")
 	
-	from webnotes.auth import _update_password
 	_update_password(user, new_password)
 	
 	webnotes.conn.set_value("Profile", user, "reset_password_key", "")

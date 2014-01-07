@@ -160,7 +160,6 @@ class Database:
 			if not webnotes.flags.in_test and self.transaction_writes > 10000:
 				if self.auto_commit_on_many_writes:
 					webnotes.conn.commit()
-					webnotes.conn.begin()
 				else:
 					webnotes.msgprint('A very long query was encountered. If you are trying to import data, please do so using smaller files')
 					raise Exception, 'Bad Query!!! Too many writes'

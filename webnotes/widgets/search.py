@@ -24,7 +24,7 @@ def search_widget(doctype, txt, query=None, searchfield="name", start=0,
 
 	meta = webnotes.get_doctype(doctype)
 
-	standard_queries = webnotes.get_hooks().standard_queries
+	standard_queries = webnotes.get_hooks().standard_queries or []
 	if standard_queries:
 		standard_queries = dict([v.split(":") for v in standard_queries])
 		

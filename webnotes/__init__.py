@@ -283,10 +283,10 @@ def reset_perms(doctype):
 	reload_doc(conn.get_value("DocType", doctype, "module"), 
 		"DocType", doctype, force=True)
 
-def generate_hash():
+def generate_hash(txt=None):
 	"""Generates random hash for session id"""
 	import hashlib, time
-	return hashlib.sha224(str(time.time())).hexdigest()
+	return hashlib.sha224((txt or "") + str(time.time())).hexdigest()
 
 def reset_metadata_version():
 	v = generate_hash()

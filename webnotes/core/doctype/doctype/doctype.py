@@ -16,6 +16,8 @@ class DocType:
 		self.doclist = doclist
 
 	def validate(self):
+		if not webnotes.conf.get("developer_mode"):
+			webnotes.throw("Not in Developer Mode! Set in site_config.json")
 		for c in [".", "/", "#", "&", "=", ":", "'", '"']:
 			if c in self.doc.name:
 				webnotes.msgprint(c + " not allowed in name", raise_exception=1)
@@ -183,7 +185,7 @@ def validate_fields(fields):
 					raise_exception=1)
 			if d.options=="[Select]":
 				return
-			if not webnotes.conn.exists("DocType", d.options):
+			if d.options != d.parent and not webnotes.conn.exists("DocType", d.options):
 				webnotes.msgprint("""#%(idx)s %(label)s: Options %(options)s must be a valid "DocType" for Link and Table type fields""" % d.fields, 
 					raise_exception=1)
 
@@ -226,13 +228,13 @@ def validate_permissions_for_doctype(doctype, for_remove=False):
 def validate_permissions(permissions, for_remove=False):
 	doctype = permissions and permissions[0].parent
 	issingle = issubmittable = isimportable = False
-	if doctype:
+	if doctype and not doctype.startswith("New DocType"):
 		values = webnotes.conn.get_value("DocType", doctype, 
 			["issingle", "is_submittable", "allow_import"], as_dict=True)
 		issingle = cint(values.issingle)
 		issubmittable = cint(values.is_submittable)
 		isimportable = cint(values.allow_import)
-			
+
 	def get_txt(d):
 		return "For %s (level %s) in %s, row #%s:" % (d.role, d.permlevel, d.parent, d.idx)
 		

@@ -34,10 +34,6 @@ class HTTPRequest:
 		# login
 		webnotes.local.login_manager = LoginManager()
 
-		# start session
-		webnotes.local.session_obj = Session()
-		webnotes.local.session = webnotes.local.session_obj.data
-
 		# check status
 		if webnotes.conn.get_global("__session_status")=='stop':
 			webnotes.msgprint(webnotes.conn.get_global("__session_status_message"))
@@ -49,9 +45,6 @@ class HTTPRequest:
 		# run login triggers
 		if webnotes.form_dict.get('cmd')=='login':
 			webnotes.local.login_manager.run_trigger('on_session_creation')
-
-		# write out cookies
-		webnotes.local.cookie_manager.set_cookies()
 
 	def set_lang(self, lang):
 		import translate
@@ -93,29 +86,47 @@ class HTTPRequest:
 
 class LoginManager:
 	def __init__(self):
+		self.user = None
 		if webnotes.form_dict.get('cmd')=='login':
-			# clear cache
-			webnotes.clear_cache(user = webnotes.form_dict.get('usr'))
-
-			self.authenticate()
-			self.post_login()
-			info = webnotes.conn.get_value("Profile", self.user, ["user_type", "first_name", "last_name"], as_dict=1)
-			if info.user_type=="Website User":
-				webnotes._response.set_cookie("system_user", "no")
-				webnotes.response["message"] = "No App"
-			else:
-				webnotes._response.set_cookie("system_user", "yes")
-				webnotes.response['message'] = 'Logged In'
-
-			full_name = " ".join(filter(None, [info.first_name, info.last_name]))
-			webnotes.response["full_name"] = full_name
-			webnotes._response.set_cookie("full_name", full_name)
-			webnotes._response.set_cookie("user_id", self.user)
+			self.login()
+		else:
+			self.make_session(resume=True)
+			
+	def login(self):
+		# clear cache
+		webnotes.clear_cache(user = webnotes.form_dict.get('usr'))
+		self.authenticate()
+		self.post_login()
 
 	def post_login(self):
 		self.run_trigger('on_login')
 		self.validate_ip_address()
 		self.validate_hour()
+		self.make_session()
+		self.set_user_info()
+	
+	def set_user_info(self):
+		info = webnotes.conn.get_value("Profile", self.user, 
+			["user_type", "first_name", "last_name"], as_dict=1)
+		if info.user_type=="Website User":
+			webnotes._response.set_cookie("system_user", "no")
+			webnotes.response["message"] = "No App"
+		else:
+			webnotes._response.set_cookie("system_user", "yes")
+			webnotes.response['message'] = 'Logged In'
+
+		full_name = " ".join(filter(None, [info.first_name, info.last_name]))
+		webnotes.response["full_name"] = full_name
+		webnotes._response.set_cookie("full_name", full_name)
+		webnotes._response.set_cookie("user_id", self.user)
+		
+	def make_session(self, resume=False):
+		# start session
+		webnotes.local.session_obj = Session(user=self.user, resume=resume)
+		
+		# reset user if changed to Guest
+		self.user = webnotes.local.session_obj.user
+		webnotes.local.session = webnotes.local.session_obj.data
 	
 	def authenticate(self, user=None, pwd=None):
 		if not (user and pwd):	
@@ -214,7 +225,7 @@ class CookieManager:
 		pass
 		
 	def set_cookies(self):
-		if not webnotes.session.get('sid'): return		
+		if not webnotes.local.session.get('sid'): return		
 		import datetime
 
 		# sid expires in 3 days
