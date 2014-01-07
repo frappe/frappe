@@ -103,11 +103,12 @@ def install_app(name, verbose=False):
 	
 	sync_for(name, force=True, sync_everything=True, verbose=verbose)
 
+	add_to_installed_apps(name)
+	set_all_patches_as_completed(name)
+
 	for after_install in app_hooks.after_install or []:
 		webnotes.get_attr(after_install)()
 
-	set_all_patches_as_completed(name)
-	add_to_installed_apps(name)
 		
 	webnotes.flags.in_install_app = False
 	
