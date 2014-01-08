@@ -5,7 +5,7 @@ import webnotes
 
 def after_install():
 	# reset installed apps for re-install
-	webnotes.conn.set_global("installed_apps", "[]")
+	webnotes.conn.set_global("installed_apps", '["webnotes"]')
 	
 	# core users / roles
 	install_docs = [
