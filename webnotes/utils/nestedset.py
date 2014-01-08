@@ -34,7 +34,7 @@ def update_nsm(doc_obj):
 		if hasattr(doc_obj,'nsm_oldparent_field'):
 			opf = doc_obj.nsm_oldparent_field
 
-	p, op = d.fields.get(pf, ''), d.fields.get(opf, '')
+	p, op = d.fields.get(pf) or None, d.fields.get(opf) or None
 	
 	# has parent changed (?) or parent is None (root)
 	if not d.lft and not d.rgt:
