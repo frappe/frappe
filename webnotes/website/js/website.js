@@ -15,7 +15,9 @@ $.extend(wn, {
 		}
 		return parent;
 	},
+	_assets_loaded: [],
 	require: function(url) {
+		if(wn._assets_loaded.indexOf(url)!==-1) return;
 		$.ajax({
 			url: url + "?q=" + Math.floor(Math.random() * 1000), 
 			async: false, 
@@ -28,6 +30,7 @@ $.extend(wn, {
 				}
 				el.appendChild(document.createTextNode(data));
 				document.getElementsByTagName('head')[0].appendChild(el);
+				wn._assets_loaded.push(url);
 			}
 		});
 	},
