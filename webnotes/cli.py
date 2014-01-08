@@ -42,8 +42,9 @@ def cmd(fn):
 		import inspect
 		fnargs, varargs, varkw, defaults = inspect.getargspec(fn)
 		new_kwargs = {}
-		for a in fnargs:
-			if a in kwargs:
+		for i, a in enumerate(fnargs):
+			# should not pass an argument more than once
+			if i >= len(args) and a in kwargs:
 				new_kwargs[a] = kwargs.get(a)
 		
 		return fn(*args, **new_kwargs)
