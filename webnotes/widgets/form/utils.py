@@ -42,13 +42,13 @@ def validate_link():
 		webnotes.response['message'] = 'Ok'
 		return
 		
-	if webnotes.conn.sql("select name from `tab%s` where name=%s" % (options, '%s'), value):
+	if webnotes.conn.sql("select name from `tab%s` where name=%s" % (options, '%s'), (value,)):
 	
 		# get fetch values
 		if fetch:
 			webnotes.response['fetch_values'] = [webnotes.utils.parse_val(c) \
 				for c in webnotes.conn.sql("select %s from `tab%s` where name=%s" \
-					% (fetch, options, '%s'), value)[0]]
+					% (fetch, options, '%s'), (value,))[0]]
 	
 		webnotes.response['message'] = 'Ok'
 
