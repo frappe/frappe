@@ -10,6 +10,10 @@ from webnotes import conf
 
 class MaxFileSizeReachedError(webnotes.ValidationError): pass
 
+def get_file_url(file_data_name):
+	data = webnotes.conn.get_value("File Data", file_data_name, ["file_name", "file_url"], as_dict=True)
+	return data.file_name or data.file_url
+
 def upload():
 	# get record details
 	dt = webnotes.form_dict.doctype
