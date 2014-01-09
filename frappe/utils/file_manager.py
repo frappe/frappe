@@ -4,6 +4,8 @@
 from __future__ import unicode_literals
 import frappe
 import os, base64, re
+import hashlib
+import mimetypes
 from frappe.utils import cstr, cint, get_site_path
 from frappe import _
 from frappe import conf
@@ -92,16 +94,40 @@ def save_file(fname, content, dt, dn, decode=False):
 		if isinstance(content, unicode):
 			content = content.encode("utf-8")
 		content = base64.b64decode(content)
+
+	file_size = check_max_file_size(content)
+	content_hash = get_content_hash(content)
+	content_type = mimetypes.guess_type(fname)[0]
+
+	method = (webnotes.get_hooks().get('write_file'))
+	if method:
+		method = webnotes.get_attr(method[0])
+	else:
+		method = save_file_on_filesystem
+	file_path = method(fname, content, content_hash, content_type=content_type)
+
+	f = webnotes.bean({
+		"doctype": "File Data",
+		"file_name": file_path,
+		"attached_to_doctype": dt,
+		"attached_to_name": dn,
+		"file_size": file_size,
+		"file_hash": content_hash
+	})
+	f.ignore_permissions = True
+	try:
+		f.insert();
+	except webnotes.DuplicateEntryError:
+		return webnotes.doc("File Data", f.doc.duplicate_entry)
+
+	return f.doc
 	
+def save_file_on_filesystem(fname, content, content_hash, content_type=None):
 	import filecmp
 	from frappe.modules import load_doctype_module
 	files_path = os.path.join(frappe.local.site_path, "public", "files")
 	module = load_doctype_module(dt, frappe.db.get_value("DocType", dt, "module"))
 	
-	if hasattr(module, "attachments_folder"):
-		files_path = os.path.join(files_path, module.attachments_folder)
-
-	file_size = check_max_file_size(content)
 	temp_fname = write_file(content, files_path)
 	fname = scrub_file_name(fname)
 
@@ -139,21 +165,8 @@ def save_file(fname, content, dt, dn, decode=False):
 			frappe.throw("File already exists: " + fname)
 		
 		os.rename(temp_fname, fpath.encode("utf-8"))
-
-	f = frappe.get_doc({
-		"doctype": "File Data",
-		"file_name": os.path.relpath(os.path.join(files_path, fname), get_site_path("public")),
-		"attached_to_doctype": dt,
-		"attached_to_name": dn,
-		"file_size": file_size
-	})
-	f.ignore_permissions = True
-	try:
-		f.insert();
-	except frappe.DuplicateEntryError:
-		return frappe.get_doc("File Data", f.duplicate_entry)
-
-	return f
+	return  os.path.relpath(fpath, 
+			get_site_path(conf.get("public_path", "public")))
 
 def get_file_versions(files_path, main, extn):
 	out = []
@@ -220,6 +233,22 @@ def remove_all(dt, dn):
 def remove_file(fid):
 	"""Remove file and File Data entry"""
 	frappe.delete_doc("File Data", fid)
+
+def delete_file_data_content(path):
+	method = (frappe.get_hooks().get('delete_file_data_content'))
+	if method:
+		method = frappe.get_attr(method[0])
+	else:
+		method = delete_file_from_filesystem
+	method(path)
+
+def delete_file_from_filesystem(path):
+	if path.startswith("files/"):
+		path = frappe.utils.get_site_path("public", self.doc.file_name)
+	else:
+		path = frappe.utils.get_site_path("public", "files", self.doc.file_name)
+	if os.path.exists(path):
+		os.remove(path)
 		
 def get_file(fname):
 	f = frappe.db.sql("""select file_name from `tabFile Data` 
@@ -237,3 +266,18 @@ def get_file(fname):
 		content = f.read()
 
 	return [file_name, content]
+
+def get_content_hash(content):
+	return hashlib.md5(content).hexdigest()
+
+def get_file_url(file_data_doc):
+	if file_data_doc.file_url:
+		return file_url
+
+	method = (webnotes.get_hooks().get('get_file_data_url'))
+	if method:
+		method = webnotes.get_attr(method[0])
+		return method(file_data_doc.file_name)
+	else:
+		return file_name
+

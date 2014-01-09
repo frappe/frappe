@@ -11,6 +11,7 @@ naming for same name files: file.gif, file-1.gif, file-2.gif etc
 import frappe, frappe.utils, os
 from frappe import conf
 from frappe.model.document import Document
+from frappe.utils.file_manager import delete_file_data_content
 
 class FileData(Document):
 	def before_insert(self):
@@ -45,12 +46,7 @@ class FileData(Document):
 		# if file not attached to any other record, delete it
 		if self.file_name and not frappe.db.count("File Data", 
 			{"file_name": self.file_name, "name": ["!=", self.name]}):
-				if self.file_name.startswith("files/"):
-					path = frappe.utils.get_site_path("public", self.file_name)
-				else:
-					path = frappe.utils.get_site_path("public", "files", self.file_name)
-				if os.path.exists(path):
-					os.remove(path)
+				delete_file_data_content(self.file_name)
 
 	def on_rollback(self):
 		self.on_trash()
