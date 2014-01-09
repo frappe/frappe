@@ -2,7 +2,7 @@
  {
   "creation": "2012-12-12 11:19:22", 
   "docstatus": 0, 
-  "modified": "2014-01-20 17:48:46", 
+  "modified": "2014-01-20 17:49:46", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -20,8 +20,7 @@
   "parent": "File Data", 
   "parentfield": "fields", 
   "parenttype": "DocType", 
-  "permlevel": 0, 
-  "read_only": 1
+  "permlevel": 0
  }, 
  {
   "cancel": 1, 
@@ -48,14 +47,16 @@
   "fieldtype": "Data", 
   "label": "File Name", 
   "oldfieldname": "file_name", 
-  "oldfieldtype": "Data"
+  "oldfieldtype": "Data", 
+  "read_only": 1
  }, 
  {
   "doctype": "DocField", 
   "fieldname": "file_url", 
   "fieldtype": "Data", 
   "in_list_view": 1, 
-  "label": "File URL"
+  "label": "File URL", 
+  "read_only": 1
  }, 
  {
   "doctype": "DocField", 
@@ -64,6 +65,7 @@
   "in_list_view": 1, 
   "label": "Attached To DocType", 
   "options": "DocType", 
+  "read_only": 1, 
   "search_index": 1
  }, 
  {
@@ -72,6 +74,7 @@
   "fieldtype": "Data", 
   "in_list_view": 1, 
   "label": "Attached To Name", 
+  "read_only": 1, 
   "search_index": 1
  }, 
  {
@@ -79,7 +82,15 @@
   "fieldname": "file_size", 
   "fieldtype": "Int", 
   "in_list_view": 1, 
-  "label": "File Size"
+  "label": "File Size", 
+  "read_only": 1
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "file_hash", 
+  "fieldtype": "Data", 
+  "label": "File Hash", 
+  "search_index": 1
  }, 
  {
   "doctype": "DocPerm"
