@@ -91,6 +91,8 @@ class Bean:
 			self.obj.doc = self.doc
 
 	def make_controller(self):
+		if not self.doc.doctype:
+			raise webnotes.DataError("Bean doctype not specified")
 		if self.obj:
 			# update doclist before running any method
 			self.obj.doclist = self.doclist
