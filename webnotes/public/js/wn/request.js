@@ -57,13 +57,19 @@ wn.request.call = function(opts) {
 		data: opts.args,
 		type: 'POST',
 		dataType: opts.dataType || 'json',
-		success: function(r, xhr) {
-			wn.request.cleanup(opts, r);
-			opts.success && opts.success(r, xhr.responseText);
+		statusCode: {
+			403: function(xhr) {
+				wn.request.cleanup(opts, {});
+				msgprint("Not Permitted");
+				opts.error && opts.error(xhr)
+			},
+			200: function(data, xhr) {
+				wn.request.cleanup(opts, data);
+				opts.success && opts.success(data, xhr.responseText);
+			}
 		},
-		error: function(xhr, textStatus) {
+		fail: function(xhr, textStatus) {
 			wn.request.cleanup(opts, {});
-			show_alert(wn._("Unable to complete request: ") + textStatus)
 			opts.error && opts.error(xhr)
 		},
 		async: opts.async
@@ -173,10 +179,6 @@ wn.request.cleanup = function(opts, r) {
 		console.log("-")
 	}
 	
-	if(r['403']) {
-		wn.show_not_permitted(wn.get_route_str());
-	}
-
 	if(r.docs) {
 		r.docs = wn.model.sync(r);
 	}

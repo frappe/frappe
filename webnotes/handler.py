@@ -82,7 +82,7 @@ def handle():
 				webnotes.conn.rollback()
 		except webnotes.PermissionError, e:
 			webnotes.errprint(webnotes.utils.get_traceback())
-			webnotes.response['403'] = 1
+			webnotes._response.status_code = 403
 			if webnotes.request_method == "POST":
 				webnotes.conn.rollback()
 		except:
@@ -107,13 +107,12 @@ def execute_cmd(cmd):
 	# check if whitelisted
 	if webnotes.session['user'] == 'Guest':
 		if (method not in webnotes.guest_methods):
-			webnotes.response['403'] = 1
-			raise Exception, 'Not Allowed, %s' % str(method)
+			raise webnotes.PermissionError('Not Allowed, %s' % str(method))
 	else:
 		if not method in webnotes.whitelisted:
-			webnotes.response['403'] = 1
+			webnotes._response.status_code = 403
 			webnotes.msgprint('Not Allowed, %s' % str(method))
-			raise Exception, 'Not Allowed, %s' % str(method)
+			raise webnotes.PermissionError('Not Allowed, %s' % str(method))
 		
 	ret = call(method, webnotes.form_dict)
 
