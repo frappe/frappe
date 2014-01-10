@@ -2,7 +2,7 @@
  {
   "creation": "2013-01-10 16:34:01", 
   "docstatus": 0, 
-  "modified": "2013-11-05 20:11:18", 
+  "modified": "2014-01-09 18:13:31", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -23,18 +23,14 @@
   "permlevel": 0
  }, 
  {
-  "cancel": 1, 
-  "create": 1, 
   "doctype": "DocPerm", 
   "name": "__common__", 
   "parent": "Custom Field", 
   "parentfield": "permissions", 
   "parenttype": "DocType", 
-  "permlevel": 0, 
   "read": 1, 
   "report": 1, 
-  "submit": 0, 
-  "write": 1
+  "submit": 0
  }, 
  {
   "doctype": "DocType", 
@@ -245,6 +241,15 @@
  }, 
  {
   "doctype": "DocField", 
+  "fieldname": "print_width", 
+  "fieldtype": "Data", 
+  "hidden": 1, 
+  "label": "Print Width", 
+  "no_copy": 1, 
+  "print_hide": 1
+ }, 
+ {
+  "doctype": "DocField", 
   "fieldname": "report_hide", 
   "fieldtype": "Check", 
   "label": "Report Hide", 
@@ -275,11 +280,61 @@
   "search_index": 0
  }, 
  {
+  "doctype": "DocField", 
+  "fieldname": "depends_on", 
+  "fieldtype": "Data", 
+  "hidden": 1, 
+  "label": "Depends On", 
+  "no_copy": 1, 
+  "print_hide": 1
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "search_index", 
+  "fieldtype": "Check", 
+  "hidden": 1, 
+  "label": "Index", 
+  "no_copy": 1, 
+  "print_hide": 1
+ }, 
+ {
+  "cancel": 1, 
+  "create": 1, 
   "doctype": "DocPerm", 
+  "permlevel": 0, 
+  "role": "Administrator", 
+  "write": 1
+ }, 
+ {
+  "amend": 0, 
+  "cancel": 0, 
+  "create": 0, 
+  "doctype": "DocPerm", 
+  "permlevel": 1, 
   "role": "Administrator"
  }, 
  {
+  "amend": 0, 
+  "cancel": 0, 
+  "create": 0, 
   "doctype": "DocPerm", 
+  "permlevel": 2, 
+  "role": "Administrator"
+ }, 
+ {
+  "cancel": 1, 
+  "create": 1, 
+  "doctype": "DocPerm", 
+  "permlevel": 0, 
+  "role": "System Manager", 
+  "write": 1
+ }, 
+ {
+  "amend": 0, 
+  "cancel": 0, 
+  "create": 0, 
+  "doctype": "DocPerm", 
+  "permlevel": 1, 
   "role": "System Manager"
  }
 ]
