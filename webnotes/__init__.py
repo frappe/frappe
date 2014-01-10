@@ -528,8 +528,12 @@ def get_jenv():
 		jenv.filters["global_date_format"] = global_date_format
 		jenv.filters["markdown"] = markdown
 		jenv.filters["json"] = dumps
-	
+		
 	return jenv
 
-def get_template(path):
-	return get_jenv().get_template(path)
+def get_template(path, filters=None):
+	_jenv = get_jenv()
+	if filters:
+		_jenv.filters.update(filters)
+	
+	return _jenv.get_template(path)

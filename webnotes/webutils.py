@@ -16,6 +16,9 @@ def render(page_name):
 	"""render html page"""
 	if not page_name:
 		page_name = "index"
+	
+	if "/" in page_name:
+		page_name = page_name.split("/")[0]
 
 	try:
 		html = render_page(page_name)
