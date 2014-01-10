@@ -7,7 +7,7 @@ httplib2
 jinja2
 markdown2
 markupsafe
-mysql-python
+mysql-python==1.2.4
 pygeoip
 python-dateutil
 python-memcached

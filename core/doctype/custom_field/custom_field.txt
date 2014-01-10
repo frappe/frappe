@@ -2,7 +2,7 @@
  {
   "creation": "2013-01-10 16:34:01", 
   "docstatus": 0, 
-  "modified": "2014-01-09 18:13:31", 
+  "modified": "2014-01-10 15:04:04", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -61,6 +61,7 @@
   "fieldname": "dt", 
   "fieldtype": "Link", 
   "in_filter": 1, 
+  "in_list_view": 1, 
   "label": "Document", 
   "no_copy": 0, 
   "oldfieldname": "dt", 
@@ -93,6 +94,7 @@
   "fieldname": "fieldtype", 
   "fieldtype": "Select", 
   "in_filter": 1, 
+  "in_list_view": 1, 
   "label": "Field Type", 
   "no_copy": 0, 
   "oldfieldname": "fieldtype", 
@@ -164,6 +166,7 @@
   "doctype": "DocField", 
   "fieldname": "fieldname", 
   "fieldtype": "Data", 
+  "in_list_view": 1, 
   "label": "Fieldname", 
   "no_copy": 1, 
   "oldfieldname": "fieldname", 
