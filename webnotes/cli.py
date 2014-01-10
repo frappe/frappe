@@ -164,6 +164,7 @@ def setup_utilities(parser):
 	parser.add_argument("--smtp", action="store_true", help="Run smtp debug server",
 		dest="smtp_debug_server")
 	parser.add_argument("--python", action="store_true", help="get python shell for a site")
+	parser.add_argument("--flush_memcache", action="store_true", help="flush memcached")
 	parser.add_argument("--ipython", action="store_true", help="get ipython shell for a site")
 	parser.add_argument("--get_site_status", action="store_true", help="Get site details")
 	parser.add_argument("--update_site_config", nargs=1, 
@@ -609,6 +610,11 @@ def request(args):
 	webnotes.handler.execute_cmd(webnotes.form_dict.cmd)
 	print webnotes.response
 	webnotes.destroy()
+
+@cmd
+def flush_memcache():
+	webnotes.cache().flush_all()
+
 
 def replace_code(start, txt1, txt2, extn, search=None, force=False):
 	"""replace all txt1 by txt2 in files with extension (extn)"""
