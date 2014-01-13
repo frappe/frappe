@@ -38,7 +38,7 @@ wn.views.CommunicationList = Class.extend({
 	clear_list: function() {
 		this.body.remove();
 		$("<p class='text-muted'>" + wn._("No Communication tagged with this ") 
-			+ this.doc.doctype +" yet.</p>").appendTo(this.wrapper);	
+			+ wn._(this.doc.doctype) +" yet.</p>").appendTo(this.wrapper);	
 	},
 	make_body: function() {
 		$(this.parent)
@@ -61,7 +61,7 @@ wn.views.CommunicationList = Class.extend({
 		var subject = this.doc.subject;
 		if(!subject && this.list.length) {
 			// get subject from previous message
-			subject = this.list[0].subject || "[No Subject]";
+			subject = this.list[0].subject || wn._("[No Subject]");
 			if(strip(subject.toLowerCase().split(":")[0])!="re") {
 				subject = "Re: " + subject;
 			}
@@ -76,13 +76,13 @@ wn.views.CommunicationList = Class.extend({
 	prepare: function(doc) {
 		//doc.when = comment_when(this.doc.modified);
 		doc.when = doc.creation;
-		if(!doc.content) doc.content = "[no content]";
+		if(!doc.content) doc.content = wn._("[no content]");
 		if(!wn.utils.is_html(doc.content)) {
 			doc.content = doc.content.replace(/\n/g, "<br>");
 		}
 		doc.content = wn.utils.remove_script_and_style(doc.content);
 
-		if(!doc.sender) doc.sender = "[unknown sender]";
+		if(!doc.sender) doc.sender = wn._("[unknown sender]");
 		doc._sender = doc.sender.replace(/</, "&lt;").replace(/>/, "&gt;");
 		doc.content = doc.content.split("-----"+wn._("In response to")+"-----")[0];
 		doc.content = doc.content.split("-----"+wn._("Original Message")+"-----")[0];
