@@ -2,7 +2,7 @@
  {
   "creation": "2013-01-10 16:34:01", 
   "docstatus": 0, 
-  "modified": "2014-01-10 15:04:04", 
+  "modified": "2014-01-13 17:46:08", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -29,7 +29,6 @@
   "parentfield": "permissions", 
   "parenttype": "DocType", 
   "read": 1, 
-  "report": 1, 
   "submit": 0
  }, 
  {
@@ -79,7 +78,7 @@
   "no_copy": 1, 
   "oldfieldname": "label", 
   "oldfieldtype": "Data", 
-  "reqd": 1, 
+  "reqd": 0, 
   "search_index": 0
  }, 
  {
@@ -286,7 +285,7 @@
   "doctype": "DocField", 
   "fieldname": "depends_on", 
   "fieldtype": "Data", 
-  "hidden": 1, 
+  "hidden": 0, 
   "label": "Depends On", 
   "no_copy": 1, 
   "print_hide": 1
@@ -305,6 +304,7 @@
   "create": 1, 
   "doctype": "DocPerm", 
   "permlevel": 0, 
+  "report": 1, 
   "role": "Administrator", 
   "write": 1
  }, 
@@ -329,6 +329,7 @@
   "create": 1, 
   "doctype": "DocPerm", 
   "permlevel": 0, 
+  "report": 1, 
   "role": "System Manager", 
   "write": 1
  }, 
