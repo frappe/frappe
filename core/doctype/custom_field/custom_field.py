@@ -3,8 +3,8 @@
 
 from __future__ import unicode_literals
 import webnotes
-
 from webnotes.utils import cint, cstr
+from webnotes import _
 
 class DocType:
 	def __init__(self, d, dl):
@@ -16,8 +16,11 @@ class DocType:
 
 	def set_fieldname(self):
 		if not self.doc.fieldname:
+			if not self.doc.label:
+				webnotes.throw(_("Label is mandatory"))
 			# remove special characters from fieldname
-			self.doc.fieldname = filter(lambda x: x.isdigit() or x.isalpha() or '_', cstr(self.doc.label).lower().replace(' ','_'))
+			self.doc.fieldname = filter(lambda x: x.isdigit() or x.isalpha() or '_', 
+				cstr(self.doc.label).lower().replace(' ','_'))
 
 	def validate(self):
 		from webnotes.model.doctype import get
