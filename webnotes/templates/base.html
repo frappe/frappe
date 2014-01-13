@@ -5,17 +5,17 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>{{ title }}</title>
 	<meta name="generator" content="wnframework">
-	<script type="text/javascript" src="assets/webnotes/js/lib/jquery/jquery.min.js"></script>
+	<script type="text/javascript" src="/assets/webnotes/js/lib/jquery/jquery.min.js"></script>
 	<link rel="shortcut icon" href="{{ favicon }}" type="image/x-icon">
 	<link rel="icon" href="{{ favicon }}" type="image/x-icon">
 	{% block head %}
 		{% if meta_description -%}
 		<meta name="description" content="{{ meta_description }}">{%- endif %}
 		{% for link in web_include_js -%}
-		<script type="text/javascript" src="{{ link }}"></script>
+		<script type="text/javascript" src="/{{ link }}"></script>
 		{%- endfor %}
 		{% for link in web_include_css -%}
-		<link type="text/css" rel="stylesheet" href="{{ link }}">
+		<link type="text/css" rel="stylesheet" href="/{{ link }}">
 		{%- endfor %}
 	{% endblock %}
 	{% block javascript -%}
