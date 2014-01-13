@@ -436,10 +436,10 @@ $.extend(wn.model, {
 	delete_doc: function(doctype, docname, callback) {
 		wn.confirm("Permanently delete "+ docname + "?", function() {
 			return wn.call({
-				method: 'webnotes.model.delete_doc',
+				method: 'webnotes.client.delete',
 				args: {
-					dt:doctype, 
-					dn:docname
+					doctype: doctype, 
+					name: docname
 				},
 				callback: function(r, rt) {
 					if(!r.exc) {

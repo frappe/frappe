@@ -15,3 +15,8 @@ web_include_js = assets/js/webnotes-web.min.js
 web_include_css = assets/css/webnotes-web.css
 get_desktop_icons = webnotes.manage.get_desktop_icons
 notification_config = webnotes.core.notifications.get_notification_config
+
+scheduler_event = all:webnotes.utils.email_lib.bulk.flush
+scheduler_event = daily:webnotes.utils.email_lib.bulk.clear_outbox
+scheduler_event = daily:webnotes.core.doctype.notification_count.notification_count.delete_event_notification_count
+scheduler_event = daily:webnotes.core.doctype.event.event.send_event_digest

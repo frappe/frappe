@@ -119,7 +119,7 @@ def flush(from_test=False):
 	if webnotes.flags.mute_emails or conf.get("mute_emails") or False:
 		webnotes.msgprint("Emails are muted")
 		from_test = True
-
+		
 	for i in xrange(500):		
 		email = webnotes.conn.sql("""select * from `tabBulk Email` where 
 			status='Not Sent' limit 1 for update""", as_dict=1)

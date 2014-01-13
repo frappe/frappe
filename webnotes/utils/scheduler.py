@@ -47,25 +47,24 @@ def execute(site=None):
 
 		if nowtime.day != last.day:
 			# if first task of the day execute daily tasks
-			out.append(nowtime.strftime("%Y-%m-%d %H:%M:%S") + ' - daily:' + trigger('execute_daily'))
+			out.append(nowtime.strftime("%Y-%m-%d %H:%M:%S") + ' - daily:' + trigger('daily'))
 
 			if nowtime.month != last.month:
-				out.append(nowtime.strftime("%Y-%m-%d %H:%M:%S") + ' - monthly:' + trigger('execute_monthly'))
+				out.append(nowtime.strftime("%Y-%m-%d %H:%M:%S") + ' - monthly:' + trigger('monthly'))
 					
 			if nowtime.weekday()==0:
-				out.append(nowtime.strftime("%Y-%m-%d %H:%M:%S") + ' - weekly:' + trigger('execute_weekly'))
+				out.append(nowtime.strftime("%Y-%m-%d %H:%M:%S") + ' - weekly:' + trigger('weekly'))
 			
 		if nowtime.hour != last.hour:
-			out.append(nowtime.strftime("%Y-%m-%d %H:%M:%S") + ' - hourly:' + trigger('execute_hourly'))
+			out.append(nowtime.strftime("%Y-%m-%d %H:%M:%S") + ' - hourly:' + trigger('hourly'))
 
-	out.append(nowtime.strftime("%Y-%m-%d %H:%M:%S") + ' - all:' + trigger('execute_all'))
+	out.append(nowtime.strftime("%Y-%m-%d %H:%M:%S") + ' - all:' + trigger('all'))
 	
 	return '\n'.join(out)
 	
 def trigger(method):
 	"""trigger method in startup.schedule_handler"""
 	traceback = ""
-	
 	for scheduler_event in webnotes.get_hooks().scheduler_event:
 		event_name, handler = scheduler_event.split(":")
 		

@@ -447,7 +447,7 @@ def run_scheduler():
 def run_scheduler_event(event):
 	import webnotes.utils.scheduler
 	webnotes.connect()
-	print webnotes.utils.scheduler.trigger("execute_" + event)
+	print webnotes.utils.scheduler.trigger(event)
 	webnotes.destroy()
 	
 # replace
