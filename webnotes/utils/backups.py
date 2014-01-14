@@ -191,7 +191,7 @@ def is_file_old(db_file_name, older_than=24):
 
 def get_backup_path():
 	import os
-	backup_path = webnotes.utils.get_site_path(conf.get("backup_path", "public/backups"))
+	backup_path = webnotes.utils.get_site_path(conf.get("backup_path", "private/backups"))
 	return backup_path
 
 #-------------------------------------------------------------------------------

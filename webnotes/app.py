@@ -53,6 +53,8 @@ def application(request):
 
 		if webnotes.form_dict.cmd:
 			webnotes.handler.handle()
+		elif request.path.startswith('/backups'):
+			webnotes.utils.download_backup(request.path)
 		elif webnotes.local.request.method in ('GET', 'HEAD'):
 			webnotes.webutils.render(webnotes.request.path[1:])
 		else:
