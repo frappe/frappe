@@ -145,7 +145,8 @@ wn.ui.Filter = Class.extend({
 					me.field.desc_area = $a(me.field.wrapper, 'span', 'help', null,
 						'values separated by comma');				
 			} else {
-				me.set_field(me.field.df.parent, me.field.df.fieldname);				
+				me.set_field(me.field.df.parent, me.field.df.fieldname, null, 
+					me.$w.find('.condition').val());				
 			}
 		});
 		
@@ -166,7 +167,7 @@ wn.ui.Filter = Class.extend({
 		if(value!=null) this.field.set_input(value);
 	},
 	
-	set_field: function(tablename, fieldname, fieldtype) {
+	set_field: function(tablename, fieldname, fieldtype, condition) {
 		var me = this;
 		
 		// set in fieldname (again)
@@ -212,7 +213,7 @@ wn.ui.Filter = Class.extend({
 		if(old_text) 
 			me.field.set_input(old_text);
 		
-		this.set_default_condition(df, fieldtype);
+		if(!condition) this.set_default_condition(df, fieldtype);
 		
 		$(me.field.wrapper).find(':input').keydown(function(ev) {
 			if(ev.which==13) {
