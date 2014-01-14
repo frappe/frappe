@@ -517,23 +517,29 @@ def get_jenv():
 	global jenv
 	if not jenv:
 		from jinja2 import Environment, ChoiceLoader, PackageLoader
-		from webnotes.utils import global_date_format
-		from markdown2 import markdown
-		from json import dumps
 
 		# webnotes will be loaded last, so app templates will get precedence
 		jenv = Environment(loader = ChoiceLoader([PackageLoader(app, ".") \
 			for app in get_all_apps() + ["webnotes"]]))
 
-		jenv.filters["global_date_format"] = global_date_format
-		jenv.filters["markdown"] = markdown
-		jenv.filters["json"] = dumps
+		set_filters(jenv)
 		
 	return jenv
-
-def get_template(path, filters=None):
-	_jenv = get_jenv()
-	if filters:
-		_jenv.filters.update(filters)
 	
-	return _jenv.get_template(path)
+def set_filters(jenv):
+	from webnotes.utils import global_date_format
+	from markdown2 import markdown
+	from json import dumps
+	
+	jenv.filters["global_date_format"] = global_date_format
+	jenv.filters["markdown"] = markdown
+	jenv.filters["json"] = dumps
+	
+	# load jenv_filters from hooks.txt
+	for app in get_all_apps(True):
+		for jenv_filter in (get_hooks(app).jenv_filter or []):
+			filter_name, filter_function = jenv_filter.split(":")
+			jenv.filters[filter_name] = get_attr(filter_function)
+
+def get_template(path):
+	return get_jenv().get_template(path)

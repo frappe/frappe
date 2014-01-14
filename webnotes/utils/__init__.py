@@ -32,13 +32,18 @@ def getCSVelement(v):
 
 def get_fullname(profile):
 	"""get the full name (first name + last name) of the user from Profile"""
-	p = webnotes.conn.sql("""select first_name, last_name from `tabProfile`
-		where name=%s""", profile, as_dict=1)
-	if p:
-		profile = " ".join(filter(None, 
-			[p[0].get('first_name'), p[0].get('last_name')])) or profile
+	if not hasattr(webnotes.local, "fullnames"):
+		webnotes.local.fullnames = {}
 	
-	return profile
+	if not webnotes.local.fullnames.get(profile):
+		p = webnotes.conn.get_value("Profile", profile, ["first_name", "last_name"], as_dict=True)
+		if p:
+			webnotes.local.fullnames[profile] = " ".join(filter(None, 
+				[p.get('first_name'), p.get('last_name')])) or profile
+		else:
+			webnotes.local.fullnames[profile] = profile
+	
+	return webnotes.local.fullnames.get(profile)
 
 def get_formatted_email(user):
 	"""get email id of user formatted as: John Doe <johndoe@example.com>"""
@@ -896,7 +901,7 @@ def expand_partial_links(html):
 	import re
 	url = get_url()
 	if not url.endswith("/"): url += "/"
-	return re.sub('(href|src){1}([\s]*=[\s]*[\'"]?)((?!http)[^\'" >]+)([\'"]?)', 
+	return re.sub('(href|src){1}([\s]*=[\s]*[\'"]?)/*((?!http)[^\'" >]+)([\'"]?)', 
 		'\g<1>\g<2>{}\g<3>\g<4>'.format(url), 
 		html)
 

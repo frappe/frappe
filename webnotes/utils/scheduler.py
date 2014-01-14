@@ -73,7 +73,7 @@ def trigger(method):
 				webnotes.get_attr(handler)()
 				webnotes.conn.commit()
 			except Exception:
-				traceback += log("Method: {method}, Handler: {handler}".format(method, handler))
+				traceback += log("Method: {method}, Handler: {handler}".format(method=method, handler=handler))
 				traceback += log(webnotes.get_traceback())
 				webnotes.conn.rollback()
 				
