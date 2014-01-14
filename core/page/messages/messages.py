@@ -3,6 +3,8 @@
 
 from __future__ import unicode_literals
 import webnotes
+from core.doctype.notification_count.notification_count import delete_notification_count_for
+
 
 @webnotes.whitelist()
 def get_list(arg=None):
@@ -17,6 +19,9 @@ def get_list(arg=None):
 	set docstatus = 1 where comment_doctype in ('My Company', 'Message')
 	and comment_docname = %s
 	""", webnotes.user.name)
+	
+	delete_notification_count_for("Messages")
+	
 	webnotes.conn.commit()
 
 	if webnotes.form_dict['contact'] == webnotes.session['user']:
@@ -69,6 +74,8 @@ def post(arg=None):
 	d.comment_docname = arg['contact']
 	d.comment_doctype = 'Message'
 	d.save()
+	
+	delete_notification_count_for("Messages")
 
 	import webnotes.utils
 	if webnotes.utils.cint(arg.get('notify')):
