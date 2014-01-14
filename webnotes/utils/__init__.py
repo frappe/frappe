@@ -935,7 +935,10 @@ def expand_partial_links(html):
 		'\g<1>\g<2>{}\g<3>\g<4>'.format(url), html)
 
 def download_backup(path):
-	webnotes.only_for(("System Manager", "Administrator"))
+	try:
+		webnotes.only_for(("System Manager", "Administrator"))
+	except webnotes.PermissionError:
+		raise NotFound
 	send_private_file(path)
 
 def send_private_file(path):
