@@ -127,7 +127,9 @@ class DocType:
 	def password_reset_mail(self, link):
 		"""reset password"""
 		txt = """
-## Password Reset
+## %(title)s
+
+#### Password Reset
 
 Dear %(first_name)s,
 
@@ -143,7 +145,9 @@ Thank you,<br>
 	
 	def password_update_mail(self, password):
 		txt = """
-## Password Update Notification
+## %(title)s
+
+#### Password Update Notification
 
 Dear %(first_name)s,
 
@@ -165,7 +169,7 @@ Thank you,<br>
 		link = get_url("/update-password?key=" + self.doc.reset_password_key)
 		
 		txt = """
-## %(company)s
+## %(title)s
 
 Dear %(first_name)s,
 
@@ -191,6 +195,9 @@ Thank you,<br>
 		from webnotes.profile import get_user_fullname
 		from webnotes.utils import get_url
 		
+		mail_titles = webnotes.get_hooks().get("login_mail_title", [])
+		title = webnotes.conn.get_default('company') or (mail_titles and mail_titles[0]) or ""
+		
 		full_name = get_user_fullname(webnotes.session['user'])
 		if full_name == "Guest":
 			full_name = "Administrator"
@@ -198,7 +205,7 @@ Thank you,<br>
 		args = {
 			'first_name': self.doc.first_name or self.doc.last_name or "user",
 			'user': self.doc.name,
-			'company': webnotes.conn.get_default('company'),
+			'title': title,
 			'login_url': get_url(),
 			'user_fullname': full_name
 		}
