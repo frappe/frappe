@@ -33,7 +33,7 @@ class DocType:
 				if self.doc.new_password:
 					# new password given, no email required
 					_update_password(self.doc.name, self.doc.new_password)
-				else:
+				if not getattr(self, "no_welcome_mail", False):
 					self.send_welcome_mail()
 					webnotes.msgprint(_("Welcome Email Sent"))
 		else:
