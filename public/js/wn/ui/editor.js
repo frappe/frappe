@@ -123,8 +123,10 @@ bsEditor = Class.extend({
 	},
 
 	clean_html: function() {
+		
 		var html = this.editor.html() || "";
-		html = html.replace(/(<br>|\s|<div><br><\/div>|&nbsp;)*$/, '');
+		if(!strip(this.editor.text())) html = "";
+		// html = html.replace(/(<br>|\s|<div><br><\/div>|&nbsp;)*$/, '');
 
 		// remove custom typography (use CSS!)
 		if(this.options.remove_typography) {
