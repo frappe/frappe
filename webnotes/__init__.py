@@ -388,7 +388,8 @@ def get_all_apps(with_webnotes=False):
 def get_installed_apps():
 	if flags.in_install_db:
 		return []
-	return json.loads(conn.get_global("installed_apps") or "[]")
+	installed = json.loads(conn.get_global("installed_apps") or "[]")
+	return installed
 
 def get_hooks(app_name=None):
 	def load_app_hooks(app_name=None):

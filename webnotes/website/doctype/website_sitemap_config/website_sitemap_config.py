@@ -75,7 +75,11 @@ def add_website_sitemap_config(page_or_generator, app, path, fname, basepath):
 		wsc.ref_doctype = getattr(module, "doctype", None)
 		wsc.page_name_field = getattr(module, "page_name_field", "page_name")
 		wsc.condition_field = getattr(module, "condition_field", None)
-		
+	
+	if webnotes.conn.exists("Website Sitemap Config", wsc.link_name):
+		# found by earlier app, override
+		webnotes.delete_doc("Website Sitemap Config", wsc.link_name)
+	
 	webnotes.bean(wsc).insert()
 	
 	return name
