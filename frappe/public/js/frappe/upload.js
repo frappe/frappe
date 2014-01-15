@@ -91,9 +91,9 @@ frappe.upload = {
 							opts.onerror ? opts.onerror(r) : opts.callback(null, null, r);
 							return;
 						}
-						opts.callback(r.message.fid, r.message.filename, r);
+						opts.callback(r.message.name , r.message.file_name, r.message.file_url, r);
 						$(document).trigger("upload_complete", 
-							[r.message.fid, r.message.filename]);
+							[r.message.name , r.message.file_name]);
 					}
 				});
 			}

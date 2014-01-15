@@ -41,13 +41,14 @@ frappe.ui.form.Attachments = Class.extend({
 		this.$list.empty();
 
 		var attachments = this.get_attachments();
-		var file_names = keys(attachments).sort();
+		var that = this;
+
 		
 		// add attachment objects
-		if(file_names.length) {
-			for(var i=0; i<file_names.length; i++) {
-				this.add_attachment(file_names[i], attachments);
-			}
+		if(attachments.length) {
+			attachments.forEach(function(attachment) {
+				that.add_attachment(attachment)
+			});
 		} else {
 			$('<p class="text-muted">' + frappe._("None") + '</p>').appendTo(this.$list);
 		}
@@ -58,18 +59,20 @@ frappe.ui.form.Attachments = Class.extend({
 	get_attachments: function() {
 		return this.frm.get_docinfo().attachments;
 	},
-	add_attachment: function(filename, attachments) {
-		var fileid = attachments[filename];
+	add_attachment: function(attachment) {
+		var file_name = attachment.file_name;
+		var file_url = attachment.file_url;
+		var fileid = attachment.name;
 		
 		var me = this;
 		var $attach = $(repl('<div class="alert alert-info" style="margin-bottom: 7px">\
 			<span style="display: inline-block; width: 90%; \
 				text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">\
-				<i class="icon-file"></i> <a href="%(href)s"\
-					target="_blank" title="%(filename)s">%(filename)s</a></span><a href="#" class="close">&times;</a>\
+				<i class="icon-file"></i> <a href="%(file_url)s"\
+					target="_blank" title="%(file_name)s">%(file_name)s</a></span><a href="#" class="close">&times;</a>\
 			</div>', {
-				filename: filename,
-				href: frappe.utils.get_file_link(filename)
+				file_name: file_name,
+				file_url: file_url
 			}))
 			.appendTo(this.$list)
 			
@@ -83,7 +86,7 @@ frappe.ui.form.Attachments = Class.extend({
 						me.remove_attachment($(remove_btn).data("fileid"))
 					}
 				);
-				return false;
+				return false
 			});
 			
 		if(!frappe.model.can_write(this.frm.doctype, this.frm.name)) {
@@ -131,9 +134,9 @@ frappe.ui.form.Attachments = Class.extend({
 				doctype: this.frm.doctype,
 				docname: this.frm.docname,
 			},
-			callback: function(fileid, filename, r) {
+			callback: function(fileid, filename, file_url, r) {
 				me.dialog.hide();
-				me.update_attachment(fileid, filename, fieldname, r);
+				me.update_attachment(fileid, filename, file_url, fieldname, r.message);
 			},
 			onerror: function() {
 				me.dialog.hide();
@@ -142,26 +145,27 @@ frappe.ui.form.Attachments = Class.extend({
 			max_height: this.frm.cscript ? this.frm.cscript.attachment_max_height : null,
 		});
 	},
-	update_attachment: function(fileid, filename, fieldname, r) {
+	update_attachment: function(fileid, filename, fieldname, file_url, attachment) {
 		if(fileid) {
-			this.add_to_attachments(fileid, filename);
+			this.add_to_attachments(attachment);
 			this.refresh();
 			if(fieldname) {
-				this.frm.set_value(fieldname, frappe.utils.get_file_link(filename));
+				this.frm.set_value(fieldname, file_url);
 				this.frm.cscript[fieldname] && this.frm.cscript[fieldname](this.frm.doc);
 				this.frm.toolbar.show_infobar();
 			}
 		}
 	},
-	add_to_attachments: function(fileid, filename) {
-		this.get_attachments()[filename] = fileid;
+	add_to_attachments: function (attachment) {
+		this.get_attachments().push(attachment);
 	},
 	remove_fileid: function(fileid) {
 		var attachments = this.get_attachments();
-		var new_attachments = {};
-		$.each(attachments, function(key, value) {
-			if(value!=fileid)
-				new_attachments[key] = value;
+		var new_attachments = [];
+		$.each(attachments, function(i, attachment) {
+			if(attachment.name!=fileid) {
+				new_attachments.push(attachment);
+			}
 		});
 		this.frm.get_docinfo().attachments = new_attachments;
 		this.refresh();

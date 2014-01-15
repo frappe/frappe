@@ -5,7 +5,6 @@ from __future__ import unicode_literals
 import frappe, json
 import frappe.model.doc
 import frappe.utils
-from frappe.utils.file_manager import get_file_url
 
 @frappe.whitelist()
 def getdoc(doctype, name, user=None):
@@ -88,11 +87,15 @@ def get_restrictions(meta):
 	return out
 
 def add_attachments(dt, dn):
-	attachments = {}
+	attachments = []
 	for f in frappe.db.sql("""select name, file_name, file_url from
 		`tabFile Data` where attached_to_name=%s and attached_to_doctype=%s""", 
 			(dn, dt), as_dict=True):
-		attachments[get_file_url(f)] = f.name
+		attachments.append({
+			'name': f.name,
+			'file_url': f.file_url,
+			'file_name': f.file_name
+		})
 
 	return attachments
 		

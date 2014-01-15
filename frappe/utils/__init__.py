@@ -930,3 +930,11 @@ def touch_file(path):
 def get_test_client():
 	from frappe.app import application
 	return Client(application)
+
+def get_hook_method(hook_name, fallback=None):
+	method = (frappe.get_hooks().get(hook_name))
+	if method:
+		method = frappe.get_attr(method[0])
+		return method
+	if fallback:
+		return fallback
