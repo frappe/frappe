@@ -1,15 +1,5 @@
 {% extends base_template %}
 
-{% block banner %}{% endblock %}
-{% block navbar %}{% endblock %}
-{% block footer %}{% endblock %}
-
-{% block javascript %}
-<script>
-	{% include "templates/includes/login.js" %}
-</script>
-{% endblock %}
-
 {% block css %}
 <style>
 	@media (min-width: 992px) {
@@ -25,7 +15,7 @@
 {% block content %}
 
 {% if not top_bar_items %}
-<style>body { background-color: #F5EFE6; }</style>
+<!--<style>body { background-color: #F5EFE6; }</style>-->
 {% endif %}
 
 <div class="container content">
@@ -67,5 +57,9 @@
 		</div>
 	</div>
 </div>
+<script>
+	{% include "templates/includes/login.js" %}
+</script>
+
 
 {% endblock %}
