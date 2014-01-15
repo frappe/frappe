@@ -147,6 +147,7 @@ class DoesNotExistError(ValidationError): pass
 class MandatoryError(ValidationError): pass
 class InvalidSignatureError(ValidationError): pass
 class RateLimitExceededError(ValidationError): pass
+class OutgoingEmailError(Exception): pass
 		
 def get_traceback():
 	import utils

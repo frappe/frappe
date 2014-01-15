@@ -37,8 +37,11 @@ class DocType:
 					self.send_welcome_mail()
 					webnotes.msgprint(_("Welcome Email Sent"))
 		else:
-			self.email_new_password()
-		
+			try:
+				self.email_new_password()
+			except webnotes.OutgoingEmailError:
+				pass # email server not set, don't send email
+				
 		self.doc.new_password = ""
 
 

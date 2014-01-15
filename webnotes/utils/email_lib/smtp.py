@@ -13,8 +13,6 @@ from webnotes import msgprint
 from webnotes.utils import cint, expand_partial_links
 import email.utils
 
-class OutgoingEmailError(webnotes.ValidationError): pass
-
 def get_email(recipients, sender='', msg='', subject='[No Subject]', text_content = None, footer=None):
 	"""send an html email as multipart with attachments and all"""
 	email = EMail(sender, recipients, subject)

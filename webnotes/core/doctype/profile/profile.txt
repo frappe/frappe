@@ -2,7 +2,7 @@
  {
   "creation": "2013-03-07 11:54:44", 
   "docstatus": 0, 
-  "modified": "2013-12-20 19:24:17", 
+  "modified": "2014-01-15 11:32:52", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -183,18 +183,16 @@
  {
   "doctype": "DocField", 
   "fieldname": "user_image", 
-  "fieldtype": "Select", 
+  "fieldtype": "Attach", 
   "hidden": 0, 
-  "label": "User Image", 
-  "options": "attach_files:"
+  "label": "User Image"
  }, 
  {
   "doctype": "DocField", 
   "fieldname": "background_image", 
-  "fieldtype": "Select", 
+  "fieldtype": "Attach", 
   "hidden": 0, 
-  "label": "Background Image", 
-  "options": "attach_files:"
+  "label": "Background Image"
  }, 
  {
   "doctype": "DocField", 

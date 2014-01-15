@@ -206,6 +206,7 @@ wn.Application = Class.extend({
 				return false;
 			})
 			.keydown("meta+s ctrl+s", function(e) {
+				e.preventDefault();
 				if(cur_frm) {
 					cur_frm.save_or_update();
 				} else if(wn.container.page.save_action) {
