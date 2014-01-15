@@ -6,9 +6,10 @@ import frappe
 import os, base64, re
 import hashlib
 import mimetypes
-from frappe.utils import cstr, cint, get_site_path
+from frappe.utils import cstr, cint, get_site_path, get_hook_method
 from frappe import _
 from frappe import conf
+from copy import copy
 
 class MaxFileSizeReachedError(frappe.ValidationError): pass
 
@@ -33,7 +34,11 @@ def upload():
 	elif file_url:
 		filedata = save_url(file_url, dt, dn)
 		
-	return {"fid": filedata.name, "filename": filedata.file_name or filedata.file_url }
+	return {
+		"name": filedata.name, 
+		"file_name": filedata.file_name,
+		"file_url": filedata.file_url 
+	}
 
 def save_uploaded(dt, dn):
 	fname, content = get_uploaded_content()
@@ -78,11 +83,11 @@ def extract_images_from_html(doc, fieldname):
 		data = match.group(1)
 		headers, content = data.split(",")
 		filename = headers.split("filename=")[-1]
-		filename = save_file(filename, content, doc.doctype, doc.name, decode=True).get("file_name")
+		file_url = save_file(filename, content, doc.doctype, doc.name, decode=True).get("file_url")
 		if not frappe.flags.has_dataurl:
 			frappe.flags.has_dataurl = True
 		
-		return '<img src="{filename}"'.format(filename = filename)
+		return '<img src="{file_url}"'.format(file_url=file_url)
 	
 	if content:
 		content = re.sub('<img\s*src=\s*["\'](data:[^"\']*)["\']', _save_file, content)
@@ -98,22 +103,21 @@ def save_file(fname, content, dt, dn, decode=False):
 	file_size = check_max_file_size(content)
 	content_hash = get_content_hash(content)
 	content_type = mimetypes.guess_type(fname)[0]
+	fname = get_file_name(fname, content_hash[-6:])
 
-	method = (webnotes.get_hooks().get('write_file'))
-	if method:
-		method = webnotes.get_attr(method[0])
-	else:
-		method = save_file_on_filesystem
-	file_path = method(fname, content, content_hash, content_type=content_type)
+	method = get_hook_method('write_file', fallback=save_file_on_filesystem)
 
-	f = webnotes.bean({
+	file_data = method(fname, content, content_type=content_type)
+	file_data = copy(file_data)
+	file_data.update({
 		"doctype": "File Data",
-		"file_name": file_path,
 		"attached_to_doctype": dt,
 		"attached_to_name": dn,
 		"file_size": file_size,
 		"file_hash": content_hash
 	})
+
+	f = webnotes.bean(file_data)
 	f.ignore_permissions = True
 	try:
 		f.insert();
@@ -122,82 +126,16 @@ def save_file(fname, content, dt, dn, decode=False):
 
 	return f.doc
 	
-def save_file_on_filesystem(fname, content, content_hash, content_type=None):
+def save_file_on_filesystem(fname, content, content_type=None):
 	import filecmp
 	from frappe.modules import load_doctype_module
-	files_path = os.path.join(frappe.local.site_path, "public", "files")
-	module = load_doctype_module(dt, frappe.db.get_value("DocType", dt, "module"))
-	
-	temp_fname = write_file(content, files_path)
-	fname = scrub_file_name(fname)
-
-	fname_parts = fname.split(".", -1)
-	main = ".".join(fname_parts[:-1])
-	extn = fname_parts[-1]
-	versions = get_file_versions(files_path, main, extn)
-	
-	if versions:
-		found_match = False
-		for version in versions:
-			if filecmp.cmp(os.path.join(files_path, version), temp_fname):
-				# remove new file, already exists!
-				os.remove(temp_fname)
-				fname = version
-				fpath = os.path.join(files_path, fname)
-				found_match = True
-				break
-				
-		if not found_match:
-			# get_new_version name
-			fname = get_new_fname_based_on_version(files_path, main, extn, versions)
-			fpath = os.path.join(files_path, fname)
-			
-			# rename
-			if os.path.exists(fpath.encode("utf-8")):
-				frappe.throw("File already exists: " + fname)
-				
-			os.rename(temp_fname, fpath.encode("utf-8"))
-	else:
-		fpath = os.path.join(files_path, fname)
-		
-		# rename new file
-		if os.path.exists(fpath.encode("utf-8")):
-			frappe.throw("File already exists: " + fname)
-		
-		os.rename(temp_fname, fpath.encode("utf-8"))
-	return  os.path.relpath(fpath, 
-			get_site_path(conf.get("public_path", "public")))
-
-def get_file_versions(files_path, main, extn):
-	out = []
-	for f in os.listdir(files_path):
-		f = cstr(f)
-		if f.startswith(main) and f.endswith(extn):
-			out.append(f)
-	return out
-
-def get_new_fname_based_on_version(files_path, main, extn, versions):
-	versions.sort()
-	if "-" in versions[-1]:
-		version = cint(versions[-1].split("-")[-1]) or 1
-	else:
-		version = 1
-	
-	new_fname = main + "-" + str(version) + "." + extn
-	while os.path.exists(os.path.join(files_path, new_fname).encode("utf-8")):
-		version += 1
-		new_fname = main + "-" + str(version) + "." + extn
-		if version > 100:
-			frappe.msgprint("Too many versions", raise_exception=True)
-			
-	return new_fname
-
-def scrub_file_name(fname):		
-	if '\\' in fname:
-		fname = fname.split('\\')[-1]
-	if '/' in fname:
-		fname = fname.split('/')[-1]
-	return fname
+	public_path = os.path.join(frappe.local.site_path, "public", "files")
+	temp_fname = write_file(content, public_path, fname)
+	path =  os.path.relpath(fpath, public_path)
+	return {
+		'file_name': path,
+		'file_path': path
+	}
 	
 def check_max_file_size(content):
 	max_file_size = conf.get('max_file_size') or 1000000
@@ -209,16 +147,13 @@ def check_max_file_size(content):
 			
 	return file_size
 
-def write_file(content, files_path):
+def write_file(content, file_path, fname):
 	"""write file to disk with a random name (to compare)"""
-	# create account folder (if not exists)
+	# create directory (if not exists)
 	frappe.create_folder(files_path)
-	fname = os.path.join(files_path, frappe.generate_hash())
-
 	# write the file
 	with open(fname, 'w+') as f:
 		f.write(content)
-
 	return fname	
 
 def remove_all(dt, dn):
@@ -234,15 +169,12 @@ def remove_file(fid):
 	"""Remove file and File Data entry"""
 	frappe.delete_doc("File Data", fid)
 
-def delete_file_data_content(path):
-	method = (frappe.get_hooks().get('delete_file_data_content'))
-	if method:
-		method = frappe.get_attr(method[0])
-	else:
-		method = delete_file_from_filesystem
-	method(path)
+def delete_file_data_content(doc):
+	method = get_hook_method('delete_file_data_content', fallback=delete_file_from_filesystem)
+	method(doc)
 
-def delete_file_from_filesystem(path):
+def delete_file_from_filesystem(doc):
+	path = doc.file_name
 	if path.startswith("files/"):
 		path = frappe.utils.get_site_path("public", self.doc.file_name)
 	else:
@@ -270,14 +202,10 @@ def get_file(fname):
 def get_content_hash(content):
 	return hashlib.md5(content).hexdigest()
 
-def get_file_url(file_data_doc):
-	if file_data_doc.file_url:
-		return file_url
-
-	method = (webnotes.get_hooks().get('get_file_data_url'))
-	if method:
-		method = webnotes.get_attr(method[0])
-		return method(file_data_doc.file_name)
-	else:
-		return file_name
+def get_file_name(fname, optional_suffix):
+	n_records = webnotes.conn.sql("select name from `tabFile Data` where file_name='{}'".format(fname))
+	if len(n_records) > 0:
+		partial, extn = fname.rsplit('.', 1)
+		return '{partial}{suffix}.{extn}'.format(partial=partial, extn=extn, suffix=optional_suffix)
+	return fname
 

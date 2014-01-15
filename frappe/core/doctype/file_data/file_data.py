@@ -46,7 +46,7 @@ class FileData(Document):
 		# if file not attached to any other record, delete it
 		if self.file_name and not frappe.db.count("File Data", 
 			{"file_name": self.file_name, "name": ["!=", self.name]}):
-				delete_file_data_content(self.file_name)
+				delete_file_data_content(self)
 
 	def on_rollback(self):
 		self.on_trash()
