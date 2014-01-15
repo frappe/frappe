@@ -953,7 +953,7 @@ def send_private_file(path):
 		filepath = get_site_path(path)
 		try:
 			f = open(filepath, 'rb')
-		except:
+		except IOError:
 			raise NotFound
 		webnotes.local._response = Response(wrap_file(webnotes.local.request.environ, f))
 		webnotes.local._response.headers.add('Content-Disposition', 'attachment', filename=filename)
