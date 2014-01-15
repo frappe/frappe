@@ -11,7 +11,7 @@ import mimetypes
 import os
 from werkzeug.wsgi import wrap_file
 from werkzeug.wrappers import Response
-from werkzeug.exceptions import NotFound
+from werkzeug.exceptions import NotFound, Unauthorized
 
 
 no_value_fields = ['Section Break', 'Column Break', 'HTML', 'Table', 'FlexTable',
@@ -938,7 +938,7 @@ def download_backup(path):
 	try:
 		webnotes.only_for(("System Manager", "Administrator"))
 	except webnotes.PermissionError:
-		raise NotFound
+		raise Unauthorized
 	send_private_file(path)
 
 def send_private_file(path):
