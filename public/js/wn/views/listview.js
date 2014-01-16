@@ -87,25 +87,26 @@ wn.views.ListView = Class.extend({
 		var overridden = $.map(this.settings.add_columns || [], function(d) { 
 			return d.content;
 		});
+		var docfields_in_list_view = wn.model.get("DocField", {"parent":this.doctype, 
+			"in_list_view":1}).sort(function(a, b) { return a.idx - b.idx })
 		
-		$.each(wn.model.get("DocField", {"parent":this.doctype, "in_list_view":1}), 
-			function(i,d) {
-				if(in_list(overridden, d.fieldname)) {
-					return;
-				}
-				// field width
-				var colspan = "3";
-				if(in_list(["Int", "Percent", "Select"], d.fieldtype)) {
-					colspan = "2";
-				} else if(d.fieldtype=="Check") {
-					colspan = "1";
-				} else if(in_list(["name", "subject", "title"], d.fieldname)) { // subjects are longer
-					colspan = "4";
-				} else if(d.fieldtype=="Text Editor" || d.fieldtype=="Text") {
-					colspan = "4";
-				}
-				me.columns.push({colspan: colspan, content: d.fieldname, 
-					type:d.fieldtype, df:d, title:wn._(d.label) });
+		$.each(docfields_in_list_view, function(i,d) {
+			if(in_list(overridden, d.fieldname)) {
+				return;
+			}
+			// field width
+			var colspan = "3";
+			if(in_list(["Int", "Percent", "Select"], d.fieldtype)) {
+				colspan = "2";
+			} else if(d.fieldtype=="Check") {
+				colspan = "1";
+			} else if(in_list(["name", "subject", "title"], d.fieldname)) { // subjects are longer
+				colspan = "4";
+			} else if(d.fieldtype=="Text Editor" || d.fieldtype=="Text") {
+				colspan = "4";
+			}
+			me.columns.push({colspan: colspan, content: d.fieldname, 
+				type:d.fieldtype, df:d, title:wn._(d.label) });
 		});
 
 		// additional columns
