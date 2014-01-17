@@ -2,7 +2,7 @@
  {
   "creation": "2013-01-29 17:54:08", 
   "docstatus": 0, 
-  "modified": "2013-11-03 11:06:11", 
+  "modified": "2014-01-15 16:16:23", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -120,7 +120,7 @@
   "search_index": 0
  }, 
  {
-  "depends_on": "eval:doc.allow_attach", 
+  "depends_on": "eval:cint(doc.allow_attach)", 
   "doctype": "DocField", 
   "fieldname": "max_attachments", 
   "fieldtype": "Int", 
