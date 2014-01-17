@@ -37,6 +37,8 @@ def get_bootinfo():
 		
 	# home page
 	bootinfo.modules = webnotes.get_config().modules
+	bootinfo.app_version = webnotes.get_config().app_version
+	bootinfo.framework_version = webnotes.get_config().framework_version
 	bootinfo.hidden_modules = webnotes.conn.get_global("hidden_modules")
 	bootinfo.doctype_icons = dict(webnotes.conn.sql("""select name, icon from 
 		tabDocType where ifnull(icon,'')!=''"""))
