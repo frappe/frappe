@@ -58,18 +58,17 @@ wn.request.call = function(opts) {
 		type: 'POST',
 		dataType: opts.dataType || 'json',
 		statusCode: {
+			404: function(xhr) {
+				msgprint("Not Found");
+			},
 			403: function(xhr) {
-				wn.request.cleanup(opts, {});
 				msgprint("Not Permitted");
-				opts.error && opts.error(xhr)
 			},
 			200: function(data, xhr) {
-				wn.request.cleanup(opts, data);
 				opts.success && opts.success(data, xhr.responseText);
 			}
 		},
 		fail: function(xhr, textStatus) {
-			wn.request.cleanup(opts, {});
 			opts.error && opts.error(xhr)
 		},
 		async: opts.async
@@ -101,7 +100,9 @@ wn.request.call = function(opts) {
 		})
 	}
 	
-	return $.ajax(ajax_args);
+	return $.ajax(ajax_args).always(function(data) {
+		wn.request.cleanup(opts, data);
+	});
 }
 
 // call execute serverside request

@@ -62,23 +62,27 @@ login.do_login = function(){
 		url: "/",
 		data: args,
 		dataType: "json",
-		success: function(data) {
-			$("#login-spinner").toggle(false);
-			$('#login_btn').prop("disabled", false);
-			if(data.message=="Logged In") {
-				window.location.href = "app.html";
-			} else if(data.message=="No App") {
-				if(localStorage) {
-					var last_visited = localStorage.getItem("last_visited") || "index";
-					localStorage.removeItem("last_visited");
-					window.location.href = last_visited;
-				} else {
-					window.location.href = "index";
-				}
-			} else {
-				login.set_message(data.message || data._server_messages);
+		statusCode: {
+			200: function(data) {
+				if(data.message=="Logged In") {
+					window.location.href = "app.html";
+				} else if(data.message=="No App") {
+					if(localStorage) {
+						var last_visited = localStorage.getItem("last_visited") || "index";
+						localStorage.removeItem("last_visited");
+						window.location.href = last_visited;
+					} else {
+						window.location.href = "index";
+					}
+				}				
+			},
+			401: function(xhr, data) {
+				login.set_message("Invalid Login");
 			}
 		}
+	}).always(function(){
+		$("#login-spinner").toggle(false);
+		$('#login_btn').prop("disabled", false);
 	})
 	
 	return false;

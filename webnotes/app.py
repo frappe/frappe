@@ -54,11 +54,7 @@ def application(request):
 			for k, v in (request.form or request.args).iteritems() })
 				
 		webnotes.local._response = Response()
-
-		try:
-			webnotes.http_request = webnotes.auth.HTTPRequest()
-		except webnotes.AuthenticationError, e:
-			pass
+		webnotes.http_request = webnotes.auth.HTTPRequest()
 
 		if webnotes.form_dict.cmd:
 			webnotes.handler.handle()
@@ -69,6 +65,9 @@ def application(request):
 
 	except HTTPException, e:
 		return e
+		
+	except webnotes.AuthenticationError, e:
+		webnotes._response.status_code=401
 		
 	except webnotes.SessionStopped, e:
 		webnotes.local._response = handle_session_stopped()

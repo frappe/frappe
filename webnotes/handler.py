@@ -68,30 +68,33 @@ def uploadfile():
 def handle():
 	"""handle request"""
 	cmd = webnotes.form_dict['cmd']
+	
+	def _error(status_code):
+		webnotes.errprint(webnotes.utils.get_traceback())
+		webnotes._response.status_code = status_code
+		if webnotes.request_method == "POST":
+			webnotes.conn.rollback()
 
 	if cmd!='login':
 		# login executed in webnotes.auth
 		if webnotes.request_method == "POST":
 			webnotes.conn.begin()
 		
+		status_codes = {
+			webnotes.PermissionError: 403,
+			webnotes.AuthenticationError: 401,
+			webnotes.DoesNotExistError: 404,
+			webnotes.SessionStopped: 503,
+			webnotes.OutgoingEmailError: 501
+		}
+		
 		try:
 			execute_cmd(cmd)
-		except webnotes.ValidationError, e:
-			webnotes.errprint(webnotes.utils.get_traceback())
-			if webnotes.request_method == "POST":
-				webnotes.conn.rollback()
-		except webnotes.PermissionError, e:
-			webnotes.errprint(webnotes.utils.get_traceback())
-			webnotes._response.status_code = 403
-			if webnotes.request_method == "POST":
-				webnotes.conn.rollback()
-		except:
-			webnotes.errprint(webnotes.utils.get_traceback())
-			if webnotes.request_method == "POST":
-				webnotes.conn and webnotes.conn.rollback()
-
-		if webnotes.request_method == "POST" and webnotes.conn:
-			webnotes.conn.commit()
+		except Exception, e:
+			_error(status_codes.get(e.__class__, 500))
+		else:
+			if webnotes.request_method == "POST" and webnotes.conn:
+				webnotes.conn.commit()
 				
 	print_response()
 
