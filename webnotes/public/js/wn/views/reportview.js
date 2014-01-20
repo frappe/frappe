@@ -38,10 +38,16 @@ wn.views.ReportViewPage = Class.extend({
 		});
 	},
 	make_page: function() {
+		var me = this;
 		this.page = wn.container.add_page(this.page_name);
 		wn.ui.make_app_page({parent:this.page, 
 			single_column:true});
 		wn.container.change_to(this.page_name);
+		
+		$(this.page).on('show', function(){
+			if(me.page.reportview.set_route_filters())
+				me.page.reportview.run();
+		})
 	},
 	make_report_view: function() {
 		var module = locals.DocType[this.doctype].module;
@@ -148,10 +154,12 @@ wn.views.ReportView = wn.ui.Listing.extend({
 	set_route_filters: function() {
 		var me = this;
 		if(wn.route_options) {
+			me.filter_list.clear_filters();
 			$.each(wn.route_options, function(key, value) {
 				me.filter_list.add_filter(me.doctype, key, "=", value);
 			});
 			wn.route_options = null;
+			return true;
 		}
 	},
 	

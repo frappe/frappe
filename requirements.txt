@@ -6,6 +6,7 @@ gunicorn
 httplib2
 jinja2
 markdown2
+markupsafe
 mysql-python
 pygeoip
 python-dateutil

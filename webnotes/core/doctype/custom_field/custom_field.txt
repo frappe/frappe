@@ -2,7 +2,7 @@
  {
   "creation": "2013-01-10 16:34:01", 
   "docstatus": 0, 
-  "modified": "2013-12-23 15:07:56", 
+  "modified": "2014-01-13 17:59:15", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -65,7 +65,7 @@
   "no_copy": 1, 
   "oldfieldname": "label", 
   "oldfieldtype": "Data", 
-  "reqd": 1, 
+  "reqd": 0, 
   "search_index": 0
  }, 
  {
@@ -134,6 +134,7 @@
   "doctype": "DocField", 
   "fieldname": "fieldname", 
   "fieldtype": "Data", 
+  "in_list_view": 1, 
   "label": "Fieldname", 
   "no_copy": 1, 
   "oldfieldname": "fieldname", 
@@ -231,7 +232,10 @@
   "doctype": "DocField", 
   "fieldname": "print_width", 
   "fieldtype": "Data", 
-  "label": "Print Width"
+  "hidden": 1, 
+  "label": "Print Width", 
+  "no_copy": 1, 
+  "print_hide": 1
  }, 
  {
   "doctype": "DocField", 
@@ -278,6 +282,24 @@
   "oldfieldname": "report_hide", 
   "oldfieldtype": "Check", 
   "search_index": 0
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "depends_on", 
+  "fieldtype": "Data", 
+  "hidden": 0, 
+  "label": "Depends On", 
+  "no_copy": 1, 
+  "print_hide": 1
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "search_index", 
+  "fieldtype": "Check", 
+  "hidden": 1, 
+  "label": "Index", 
+  "no_copy": 1, 
+  "print_hide": 1
  }, 
  {
   "doctype": "DocPerm", 

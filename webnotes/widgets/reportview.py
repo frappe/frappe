@@ -171,11 +171,14 @@ def build_filter_conditions(filters, conditions):
 		if isinstance(f, basestring):
 			conditions.append(f)
 		else:
+			
 			tname = ('`tab' + f[0] + '`')
 			if not tname in webnotes.local.reportview_tables:
 				webnotes.local.reportview_tables.append(tname)
 				
-			load_doctypes()
+			if not hasattr(webnotes.local, "reportview_doctypes") \
+				or not webnotes.local.reportview_doctypes.has_key(tname):
+					load_doctypes()
 		
 			# prepare in condition
 			if f[2] in ['in', 'not in']:
@@ -183,20 +186,18 @@ def build_filter_conditions(filters, conditions):
 				f[3] = "(" + ', '.join(opts) + ")"
 				conditions.append('ifnull(' + tname + '.' + f[1] + ", '') " + f[2] + " " + f[3])
 			else:
-				if isinstance(f[3], basestring):
-					df = webnotes.local.reportview_doctypes[f[0]].get({"doctype": "DocField", 
-						"fieldname": f[1]})
+				df = webnotes.local.reportview_doctypes[f[0]].get({"doctype": "DocField", 
+					"fieldname": f[1]})
 					
-					if df and df[0].fieldtype in ["Float", "Int", "Currency", "Percent"]:
-						val, default_null_val = flt(f[3]), "0"
-					else:
-						val, default_null_val = ("'" + f[3].replace("'", "\\'") + "'"), '""'
+				if f[2] == "like" or (isinstance(f[3], basestring) and 
+					(not df or df[0].fieldtype not in ["Float", "Int", "Currency", "Percent"])):
+						value, default_val = ("'" + f[3].replace("'", "\\'") + "'"), '""'
 				else:
-					val, default_null_val = f[3], '0'
-				
+					value, default_val = flt(f[3]), 0
+
 				conditions.append('ifnull({tname}.{fname}, {default_val}) {operator} {value}'.format(
-					tname=tname, fname=f[1], default_val=default_null_val, operator=f[2],
-					value=cstr(val)))
+					tname=tname, fname=f[1], default_val=default_val, operator=f[2],
+					value=value))
 					
 def build_match_conditions(doctype, fields=None, as_condition=True):
 	"""add match conditions if applicable"""

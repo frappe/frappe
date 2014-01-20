@@ -53,13 +53,13 @@ wn.print.Table = Class.extend({
 				}
 			});
 		});
-		
+
 		var columns = [],
 			widths = [],
 			head_labels = [];
 		
 		// make new arrays to remove empty cols, widths and head labels
-		$.each(cols_with_value, function(i, col_idx) {
+		$.each(cols_with_value.sort(), function(i, col_idx) {
 			columns.push(me.columns[col_idx]);
 			me.widths && widths.push(me.widths[col_idx]);
 			me.head_labels && head_labels.push(me.head_labels[col_idx]);

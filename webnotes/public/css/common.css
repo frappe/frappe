@@ -580,6 +580,9 @@ ul.linked-with-list li {
 
 /* hack */
 .ui-datepicker { z-index: 9999999 !important; }
+.ui-autocomplete { 
+	z-index: 9999999 !important; 
+}
 
 .bold,
 .strong {
@@ -591,4 +594,3 @@ ul.linked-with-list li {
 	margin-left: 15px;
 	border-radius: 3px;
 	background-color: #ddd;
-}
