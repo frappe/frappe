@@ -4,12 +4,14 @@
 from __future__ import unicode_literals
 import webnotes
 from webnotes.model.doc import Document
-from webnotes.utils import cint
+from webnotes.utils import cint, get_url
+import urllib
 
 class BulkLimitCrossedError(webnotes.ValidationError): pass
 
 def send(recipients=None, sender=None, doctype='Profile', email_field='email',
-		subject='[No Subject]', message='[No Content]', ref_doctype=None, ref_docname=None):
+		subject='[No Subject]', message='[No Content]', ref_doctype=None, ref_docname=None,
+		add_unsubscribe_link=True):
 	"""send bulk mail if not unsubscribed and within conf.bulk_mail_limit"""
 	import webnotes
 			
@@ -31,18 +33,18 @@ def send(recipients=None, sender=None, doctype='Profile', email_field='email',
 				raise_exception=BulkLimitCrossedError)
 
 	def update_message(doc):
-		from webnotes.utils import get_url
-		import urllib
-		updated = message + """<div style="padding: 7px; border-top: 1px solid #aaa;
-			margin-top: 17px;">
-			<small><a href="%s/?%s">
-			Unsubscribe</a> from this list.</small></div>""" % (get_url(), 
-			urllib.urlencode({
-				"cmd": "webnotes.utils.email_lib.bulk.unsubscribe",
-				"email": doc.get(email_field),
-				"type": doctype,
-				"email_field": email_field
-			}))
+		updated = message
+		if add_unsubscribe_link:
+			updated += """<div style="padding: 7px; border-top: 1px solid #aaa;
+				margin-top: 17px;">
+				<small><a href="%s/?%s">
+				Unsubscribe</a> from this list.</small></div>""" % (get_url(), 
+				urllib.urlencode({
+					"cmd": "webnotes.utils.email_lib.bulk.unsubscribe",
+					"email": doc.get(email_field),
+					"type": doctype,
+					"email_field": email_field
+				}))
 			
 		return updated
 	

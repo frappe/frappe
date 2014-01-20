@@ -508,6 +508,14 @@ class Database:
 			
 	def get_table_columns(self, doctype):
 		return [r[0] for r in self.sql("DESC `tab%s`" % doctype)]
+		
+	def add_index(self, doctype, fields, index_name=None):
+		if not index_name:
+			index_name = "_".join(fields) + "_index"
+		if not webnotes.conn.sql("""show index from `tab%s` where Key_name="%s" """ % (doctype, index_name)):
+			webnotes.conn.commit()
+			webnotes.conn.sql("""alter table `tab%s` 
+				add index %s(%s)""" % (doctype, index_name, ", ".join(fields)))
 
 	def close(self):
 		if self._conn:
