@@ -196,6 +196,7 @@ wn.ui.form.ControlInput = wn.ui.form.Control.extend({
 						me.set_input(me.value);
 				} else {
 					$(me.input_area).toggle(false);
+					$(me.input_area).find("input").prop("disabled", true);
 					me.disp_area && $(me.disp_area)
 						.toggle(true)
 						.html(
