@@ -2,7 +2,7 @@
  {
   "creation": "2013-02-22 01:27:33", 
   "docstatus": 0, 
-  "modified": "2014-01-04 22:26:35", 
+  "modified": "2014-01-20 15:32:25", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -101,6 +101,12 @@
   "reqd": 0, 
   "search_index": 0, 
   "width": "32px"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "delete", 
+  "fieldtype": "Check", 
+  "label": "Delete"
  }, 
  {
   "doctype": "DocField", 

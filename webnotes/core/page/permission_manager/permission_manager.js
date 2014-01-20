@@ -9,7 +9,7 @@ wn.pages['permission-manager'].onload = function(wrapper) {
 	<tr><td>\
 	<h4><i class='icon-question-sign'></i> "+wn._("Quick Help for Setting Permissions")+":</h4>\
 	<ol>\
-	<li>"+wn._("Permissions are set on Roles and Document Types (called DocTypes) by restricting read, edit, make new, submit, cancel, amend, report, import, export, print, email and restrict rights.")+"</li>\
+	<li>"+wn._("Permissions are set on Roles and Document Types (called DocTypes) by restricting read, edit, make new, delete, submit, cancel, amend, report, import, export, print, email and restrict rights.")+"</li>\
 	<li>"+wn._("Permissions translate to Users based on what Role they are assigned")+".</li>\
 	<li>"+wn._("To set user roles, just go to <a href='#List/Profile'>Setup > Users</a> and click on the user to assign roles.")+"</li>\
 	<li>"+wn._("The system provides pre-defined roles, but you can <a href='#List/Role'>add new roles</a> to set finer permissions")+".</li>\
@@ -243,6 +243,7 @@ wn.PermissionEngine = Class.extend({
 			add_check(perm_container, d, "read");
 			add_check(perm_container, d, "write");
 			add_check(perm_container, d, "create");
+			add_check(perm_container, d, "delete");
 			add_check(perm_container, d, "submit");
 			add_check(perm_container, d, "cancel");
 			add_check(perm_container, d, "amend");

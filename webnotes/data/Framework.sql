@@ -77,6 +77,7 @@ CREATE TABLE `tabDocPerm` (
   `create` int(1) DEFAULT NULL,
   `submit` int(1) DEFAULT NULL,
   `cancel` int(1) DEFAULT NULL,
+  `delete` int(1) DEFAULT NULL,
   `amend` int(1) DEFAULT NULL,
   `report` int(1) DEFAULT NULL,
   `export` int(1) DEFAULT NULL,

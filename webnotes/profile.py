@@ -20,6 +20,7 @@ class Profile:
 		self.can_read = []
 		self.can_write = []
 		self.can_cancel = []
+		self.can_delete = []
 		self.can_search = []
 		self.can_get_report = []
 		self.can_import = []
@@ -93,6 +94,9 @@ class Profile:
 			if p.get('cancel'):
 				self.can_cancel.append(dt)
 
+			if p.get('delete'):
+				self.can_delete.append(dt)
+
 			if (p.get('read') or p.get('write') or p.get('create')):
 				if p.get('report'):
 					self.can_get_report.append(dt)
@@ -159,7 +163,7 @@ class Profile:
 		d['roles'] = self.get_roles()
 		d['defaults'] = self.get_defaults()
 		
-		for key in ("can_create", "can_write", "can_read", "can_cancel",
+		for key in ("can_create", "can_write", "can_read", "can_cancel", "can_delete",
 			"can_get_report", "allow_modules", "all_read", "can_search",
 			"in_create", "can_export", "can_import", "can_print", "can_email",
 			"can_restrict"):

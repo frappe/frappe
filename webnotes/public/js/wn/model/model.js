@@ -138,6 +138,11 @@ $.extend(wn.model, {
 	
 	can_delete: function(doctype) {
 		if(!doctype) return false;
+		return wn.boot.profile.can_delete.indexOf(doctype)!==-1;
+	},
+
+	can_cancel: function(doctype) {
+		if(!doctype) return false;
 		return wn.boot.profile.can_cancel.indexOf(doctype)!==-1;
 	},
 	

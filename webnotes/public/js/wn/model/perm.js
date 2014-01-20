@@ -4,12 +4,12 @@
 wn.provide("wn.perm");
 
 // backward compatibilty
-var READ = "read", WRITE = "write", CREATE = "create"; 
+var READ = "read", WRITE = "write", CREATE = "create", DELETE = "delete"; 
 var SUBMIT = "submit", CANCEL = "cancel", AMEND = "amend";
 
 $.extend(wn.perm, {
 	rights: ["read", "write", "create", "submit", "cancel", "amend",
-		"report", "import", "export", "print", "email", "restrict"],
+		"report", "import", "export", "print", "email", "restrict", "delete"],
 		
 	doctype_perm: {},
 	
