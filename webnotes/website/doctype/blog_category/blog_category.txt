@@ -2,7 +2,7 @@
  {
   "creation": "2013-03-08 09:41:11", 
   "docstatus": 0, 
-  "modified": "2013-12-20 19:23:56", 
+  "modified": "2014-01-20 17:48:25", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -48,11 +48,13 @@
  {
   "cancel": 1, 
   "create": 1, 
+  "delete": 1, 
   "doctype": "DocPerm", 
   "role": "Website Manager", 
   "write": 1
  }, 
  {
+  "delete": 0, 
   "doctype": "DocPerm", 
   "role": "Blogger"
  }

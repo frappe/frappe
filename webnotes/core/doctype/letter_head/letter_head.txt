@@ -2,7 +2,7 @@
  {
   "creation": "2012-11-22 17:45:46", 
   "docstatus": 0, 
-  "modified": "2013-12-20 19:24:13", 
+  "modified": "2014-01-20 17:48:56", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -79,14 +79,16 @@
   "oldfieldtype": "Text Editor"
  }, 
  {
-  "cancel": 1, 
+  "cancel": 0, 
   "create": 1, 
+  "delete": 1, 
   "doctype": "DocPerm", 
   "role": "System Manager", 
   "submit": 0, 
   "write": 1
  }, 
  {
+  "delete": 0, 
   "doctype": "DocPerm", 
   "role": "All"
  }

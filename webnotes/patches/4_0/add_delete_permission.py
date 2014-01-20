@@ -8,3 +8,5 @@ def execute():
 	
 	# can't cancel if can't submit
 	webnotes.conn.sql("""update tabDocPerm set `cancel`=0 where `submit`=0""")
+	
+	webnotes.clear_cache()

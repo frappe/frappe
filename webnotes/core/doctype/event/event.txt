@@ -2,7 +2,7 @@
  {
   "creation": "2013-06-10 13:17:47", 
   "docstatus": 0, 
-  "modified": "2013-12-20 19:24:07", 
+  "modified": "2014-01-20 17:48:44", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -24,6 +24,7 @@
   "permlevel": 0
  }, 
  {
+  "cancel": 0, 
   "create": 1, 
   "doctype": "DocPerm", 
   "email": 1, 
@@ -279,11 +280,12 @@
   "search_index": 0
  }, 
  {
+  "delete": 0, 
   "doctype": "DocPerm", 
   "role": "All"
  }, 
  {
-  "cancel": 1, 
+  "delete": 1, 
   "doctype": "DocPerm", 
   "role": "System Manager"
  }

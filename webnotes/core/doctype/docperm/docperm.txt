@@ -2,7 +2,7 @@
  {
   "creation": "2013-02-22 01:27:33", 
   "docstatus": 0, 
-  "modified": "2014-01-20 15:32:25", 
+  "modified": "2014-01-20 17:48:11", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -106,6 +106,7 @@
   "doctype": "DocField", 
   "fieldname": "delete", 
   "fieldtype": "Check", 
+  "in_list_view": 1, 
   "label": "Delete"
  }, 
  {

@@ -2,7 +2,7 @@
  {
   "creation": "2013-01-10 16:34:01", 
   "docstatus": 0, 
-  "modified": "2014-01-13 17:59:15", 
+  "modified": "2014-01-20 17:48:31", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -23,8 +23,9 @@
   "permlevel": 0
  }, 
  {
-  "cancel": 1, 
+  "cancel": 0, 
   "create": 1, 
+  "delete": 1, 
   "doctype": "DocPerm", 
   "email": 1, 
   "name": "__common__", 
@@ -282,15 +283,6 @@
   "oldfieldname": "report_hide", 
   "oldfieldtype": "Check", 
   "search_index": 0
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "depends_on", 
-  "fieldtype": "Data", 
-  "hidden": 0, 
-  "label": "Depends On", 
-  "no_copy": 1, 
-  "print_hide": 1
  }, 
  {
   "doctype": "DocField", 

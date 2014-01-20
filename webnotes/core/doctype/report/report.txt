@@ -2,7 +2,7 @@
  {
   "creation": "2013-03-09 15:45:57", 
   "docstatus": 0, 
-  "modified": "2013-12-20 19:24:26", 
+  "modified": "2014-01-20 17:49:17", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -23,6 +23,7 @@
   "permlevel": 0
  }, 
  {
+  "cancel": 0, 
   "doctype": "DocPerm", 
   "email": 1, 
   "name": "__common__", 
@@ -126,27 +127,28 @@
   "read_only": 1
  }, 
  {
-  "cancel": 1, 
   "create": 1, 
+  "delete": 1, 
   "doctype": "DocPerm", 
   "role": "Administrator", 
   "write": 1
  }, 
  {
-  "cancel": 1, 
   "create": 1, 
+  "delete": 1, 
   "doctype": "DocPerm", 
   "role": "System Manager", 
   "write": 1
  }, 
  {
-  "cancel": 1, 
   "create": 1, 
+  "delete": 1, 
   "doctype": "DocPerm", 
   "role": "Report Manager", 
   "write": 1
  }, 
  {
+  "delete": 0, 
   "doctype": "DocPerm", 
   "role": "All"
  }

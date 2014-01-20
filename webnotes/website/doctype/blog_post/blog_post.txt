@@ -2,7 +2,7 @@
  {
   "creation": "2013-03-28 10:35:30", 
   "docstatus": 0, 
-  "modified": "2013-12-20 19:23:56", 
+  "modified": "2014-01-20 17:48:25", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -24,6 +24,7 @@
   "permlevel": 0
  }, 
  {
+  "cancel": 0, 
   "doctype": "DocPerm", 
   "email": 1, 
   "name": "__common__", 
@@ -118,8 +119,8 @@
   "label": "Email Sent"
  }, 
  {
-  "cancel": 1, 
   "create": 1, 
+  "delete": 1, 
   "doctype": "DocPerm", 
   "restrict": 1, 
   "role": "Website Manager", 
@@ -127,11 +128,13 @@
  }, 
  {
   "create": 1, 
+  "delete": 0, 
   "doctype": "DocPerm", 
   "role": "Blogger", 
   "write": 1
  }, 
  {
+  "delete": 0, 
   "doctype": "DocPerm", 
   "role": "Guest", 
   "write": 0

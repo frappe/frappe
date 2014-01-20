@@ -2,7 +2,7 @@
  {
   "creation": "2013-03-07 11:54:44", 
   "docstatus": 0, 
-  "modified": "2014-01-15 11:32:52", 
+  "modified": "2014-01-20 17:49:02", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -34,6 +34,7 @@
   "permlevel": 0
  }, 
  {
+  "cancel": 0, 
   "doctype": "DocPerm", 
   "name": "__common__", 
   "parent": "Profile", 
@@ -395,8 +396,8 @@
   "read_only": 1
  }, 
  {
-  "cancel": 1, 
   "create": 1, 
+  "delete": 1, 
   "doctype": "DocPerm", 
   "email": 1, 
   "permlevel": 0, 
@@ -407,8 +408,8 @@
   "write": 1
  }, 
  {
-  "cancel": 0, 
   "create": 0, 
+  "delete": 0, 
   "doctype": "DocPerm", 
   "email": 1, 
   "permlevel": 0, 
@@ -417,8 +418,8 @@
   "write": 0
  }, 
  {
-  "cancel": 0, 
   "create": 0, 
+  "delete": 0, 
   "doctype": "DocPerm", 
   "email": 1, 
   "match": "owner", 
@@ -431,8 +432,8 @@
  }, 
  {
   "amend": 0, 
-  "cancel": 0, 
   "create": 0, 
+  "delete": 0, 
   "doctype": "DocPerm", 
   "permlevel": 1, 
   "report": 1, 
