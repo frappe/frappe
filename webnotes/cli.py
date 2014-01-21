@@ -25,7 +25,7 @@ def main():
 			exit(1)
 			
 		if parsed_args.get("site")=="all":
-			for site in get_sites():
+			for site in get_sites(parsed_args["sites_path"]):
 				args = parsed_args.copy()
 				args["site"] = site
 				webnotes.init(site)
@@ -65,12 +65,13 @@ def get_function(args):
 		if (val or isinstance(val, list)) and globals().get(fn):
 			return fn
 	
-def get_sites():
+def get_sites(sites_path=None):
 	import os
-	import conf
-	return [site for site in os.listdir(conf.sites_dir)
-			if not os.path.islink(os.path.join(conf.sites_dir, site)) 
-				and os.path.isdir(os.path.join(conf.sites_dir, site))]
+	if not sites_path:
+		sites_path = '.'
+	return [site for site in os.listdir(sites_path)
+			if not os.path.islink(os.path.join(sites_path, site))
+				and os.path.isdir(os.path.join(sites_path, site))]
 	
 def setup_parser():
 	import argparse
