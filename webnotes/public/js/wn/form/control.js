@@ -157,7 +157,9 @@ wn.ui.form.ControlInput = wn.ui.form.Control.extend({
 		} else {
 			this.label_area = this.label_span = this.$wrapper.find("label").get(0);
 			this.input_area = this.$wrapper.find(".control-input").get(0);
-			this.disp_area = this.$wrapper.find(".control-value").get(0);	
+			// keep a separate display area to rendered formatted values
+			// like links, currencies, HTMLs etc.
+			this.disp_area = this.$wrapper.find(".control-value").get(0);
 		}
 	},
 	set_max_width: function() {

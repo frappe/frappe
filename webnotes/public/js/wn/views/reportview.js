@@ -208,6 +208,7 @@ wn.views.ReportView = wn.ui.Listing.extend({
 				var docfield = wn.model.get_std_field(c[0]);
 				if(c[0]=="name") { 
 					docfield.options = me.doctype;
+					docfield.parent = me.doctype;
 				}
 			}
 			coldef = {
@@ -284,6 +285,20 @@ wn.views.ReportView = wn.ui.Listing.extend({
 		this.dataView.onRowsChanged.subscribe(function (e, args) {
 			me.grid.invalidateRows(args.rows);
 			me.grid.render();
+		});
+
+		this.grid.onHeaderClick.subscribe(function(e, args) {
+			var df = args.column.docfield,
+				sort_by = df.parent + "." + df.fieldname;
+							
+			if(sort_by===me.sort_by_select.val()) {
+				me.sort_order_select.val(me.sort_order_select.val()==="asc" ? "desc" : "asc");
+			} else {
+				me.sort_by_select.val(df.parent + "." + df.fieldname);
+				me.sort_order_select.val("asc");
+			}
+
+			me.run();
 		});
 	},
 	

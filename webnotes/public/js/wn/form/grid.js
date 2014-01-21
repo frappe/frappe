@@ -17,7 +17,7 @@ wn.ui.form.Grid = Class.extend({
 				<div class="rows"></div>\
 				<div class="small">\
 					<a href="#" class="grid-add-row pull-right">+ '+wn._("Add new row")+'.</a>\
-					<span class="text-muted pull-right" style="margin-right: 5px;">' + wn._("Click on row to edit.") + '</span>\
+					<span class="text-muted pull-right" style="margin-right: 5px;">' + wn._("Click on row to view / edit.") + '</span>\
 					<div class="clearfix"></div>\
 				</div>\
 			</div>\
