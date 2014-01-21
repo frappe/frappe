@@ -107,18 +107,19 @@ wn.ui.Filter = Class.extend({
 		this.$w = this.flist.$w.find('.list_filter:last-child');
 	},
 	make_select: function() {
-		this.fieldselect = new wn.ui.FieldSelect(this.$w.find('.fieldname_select_area'), 
-			this.doctype, this.filter_fields);
+		var me = this;
+		this.fieldselect = new wn.ui.FieldSelect({
+			parent: this.$w.find('.fieldname_select_area'), 
+			doctype: this.doctype, 
+			filter_fields: this.filter_fields, 
+			select: function(doctype, fieldname) {
+				me.set_field(doctype, fieldname);
+			}
+		});
 	},
 	set_events: function() {
 		var me = this;
 		
-		// render fields		
-		this.fieldselect.$select.bind('change', function() {
-			var $selected = $(this).find("option:selected")
-			me.set_field($selected.attr("table"), $selected.attr("fieldname"));
-		});
-
 		this.$w.find('a.close').bind('click', function() { 
 			me.$w.css('display','none');
 			var value = me.field.get_parsed_value();
@@ -167,7 +168,7 @@ wn.ui.Filter = Class.extend({
 		if(value!=null) this.field.set_input(value);
 	},
 	
-	set_field: function(tablename, fieldname, fieldtype, condition) {
+	set_field: function(doctype, fieldname, fieldtype, condition) {
 		var me = this;
 		
 		// set in fieldname (again)
@@ -177,7 +178,15 @@ wn.ui.Filter = Class.extend({
 			parent: me.field.df.parent,
 		} : {}
 
-		var df = copy_dict(me.fieldselect.fields_by_name[tablename][fieldname]);
+		var original_docfield = me.fieldselect.fields_by_name[doctype][fieldname];
+
+		if(!original_docfield) {
+			msgprint("Field " + df.label + " is not selectable.");
+			return;
+		}
+
+
+		var df = copy_dict(me.fieldselect.fields_by_name[doctype][fieldname]);
 		this.set_fieldtype(df, fieldtype);
 			
 		// called when condition is changed, 
@@ -188,12 +197,8 @@ wn.ui.Filter = Class.extend({
 		}
 
 		// clear field area and make field
-		me.fieldselect.$select.val(tablename + "." + fieldname);
-		
-		if(me.fieldselect.$select.val() != tablename + "." + fieldname) {
-			msgprint("Field " + df.label + " is not selectable.");
-			return;
-		}
+		me.fieldselect.selected_doctype = doctype;
+		me.fieldselect.selected_fieldname = fieldname;
 		
 		// save old text
 		var old_text = null;
@@ -215,6 +220,7 @@ wn.ui.Filter = Class.extend({
 		
 		if(!condition) this.set_default_condition(df, fieldtype);
 		
+		// run on enter
 		$(me.field.wrapper).find(':input').keydown(function(ev) {
 			if(ev.which==13) {
 				me.flist.listobj.run();
@@ -275,7 +281,7 @@ wn.ui.Filter = Class.extend({
 			}
 		} else if(val === '%') val = null;
 		
-		return [me.fieldselect.$select.find('option:selected').attr('table'), 
+		return [me.fieldselect.selected_doctype, 
 			me.field.df.fieldname, me.$w.find('.condition').val(), val];
 	}
 
@@ -283,17 +289,73 @@ wn.ui.Filter = Class.extend({
 
 // <select> widget with all fields of a doctype as options
 wn.ui.FieldSelect = Class.extend({
-	init: function(parent, doctype, filter_fields, with_blank) {
-		this.doctype = doctype;
+	// opts parent, doctype, filter_fields, with_blank, select
+	init: function(opts) {
+		$.extend(this, opts);
 		this.fields_by_name = {};
-		this.with_blank = with_blank;
-		this.$select = $('<select class="form-control">').appendTo(parent);
-		if(filter_fields) {
-			for(var i in filter_fields)
+		this.options = [];
+		this.$select = $('<input class="form-control">').appendTo(this.parent);
+		var me = this;
+		this.$select.autocomplete({
+			source: me.options,
+			minLength: 0,
+			focus: function(event, ui) {
+				me.$select.val(ui.item.label);
+				return false;
+			},
+			select: function(event, ui) {
+				me.selected_doctype = ui.item.doctype;
+				me.selected_fieldname = ui.item.fieldname;
+				me.$select.val(ui.item.label);
+				if(me.select) me.select(ui.item.doctype, ui.item.fieldname);
+				return false;
+			}
+		});
+		
+		if(this.filter_fields) {
+			for(var i in this.filter_fields)
 				this.add_field_option(this.filter_fields[i])			
 		} else {
 			this.build_options();
 		}
+		this.set_value(this.doctype, "name");
+		window.last_filter = this;
+	},
+	get_value: function() {
+		return this.selected_doctype ? this.selected_doctype + "." + this.selected_fieldname : null;
+	},
+	val: function(value) {
+		if(value===undefined) {
+			return this.get_value()
+		} else {
+			this.set_value(value)
+		}
+	},
+	clear: function() {
+		this.selected_doctype = null;
+		this.selected_fieldname = null;
+		this.$select.val("");
+	},
+	set_value: function(doctype, fieldname) {
+		var me = this;
+		this.clear();
+		if(!doctype) return;
+		
+		// old style
+		if(doctype.indexOf(".")!==-1) {
+			parts = doctype.split(".");
+			doctype = parts[0];
+			fieldname = parts[1];
+		}
+		
+		$.each(this.options, function(i, v) {
+			if(v.doctype===doctype && v.fieldname===fieldname) {
+				me.selected_doctype = doctype;
+				me.selected_fieldname = fieldname;
+				me.$select.val(v.label);
+				return false;
+			}
+		});
 	},
 	build_options: function() {
 		var me = this;
@@ -317,9 +379,10 @@ wn.ui.FieldSelect = Class.extend({
 		
 		// blank
 		if(this.with_blank) {
-			this.$select.append($('<option>', {
-				value: ''
-			}).text(''));
+			this.options.push({
+				label:"",
+				value:"",
+			})
 		}
 
 		// main table
@@ -353,11 +416,12 @@ wn.ui.FieldSelect = Class.extend({
 		}
 		if(wn.model.no_value_type.indexOf(df.fieldtype)==-1 && 
 			!(me.fields_by_name[df.parent] && me.fields_by_name[df.parent][df.fieldname])) {
-			this.$select.append($('<option>', {
-				value: table + "." + df.fieldname,
-				fieldname: df.fieldname,
-				table: df.parent
-			}).text(wn._(label)));
+				this.options.push({
+					label: wn._(label),
+					value: table + "." + df.fieldname,
+					fieldname: df.fieldname,
+					doctype: df.parent
+				})
 			if(!me.fields_by_name[df.parent]) me.fields_by_name[df.parent] = {};
 			me.fields_by_name[df.parent][df.fieldname] = df;	
 		}

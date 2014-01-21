@@ -189,13 +189,15 @@ wn.views.ReportView = wn.ui.Listing.extend({
 		
 		return order_by;
 	},
-	get_selected_table_and_column: function($select) {
-		return this.get_full_column_name([$select.find('option:selected').attr('fieldname'), 
-			$select.find('option:selected').attr('table')]) 
+	
+	get_selected_table_and_column: function(select) {
+		return select.selected_doctype ? 
+			this.get_full_column_name([select.selected_fieldname, select.selected_doctype]) : "";
 	},
 	
 	// get table_name.column_name
 	get_full_column_name: function(v) {
+		if(!v) return;
 		return (v[1] ? ('`tab' + v[1] + '`') : this.tab_name) + '.' + v[0];
 	},
 
@@ -415,22 +417,27 @@ wn.views.ReportView = wn.ui.Listing.extend({
 			<div><button class="btn btn-info">'+wn._('Update')+'</div>');
 		
 		// first
-		this.sort_by_select = new wn.ui.FieldSelect($(this.sort_dialog.body).find('.sort-column'), 
-			this.doctype).$select;
-		this.sort_by_select.css('width', '60%');
+		this.sort_by_select = new wn.ui.FieldSelect({
+			parent: $(this.sort_dialog.body).find('.sort-column'),
+			doctype: this.doctype
+		});
+		this.sort_by_select.$select.css('width', '60%');
 		this.sort_order_select = $(this.sort_dialog.body).find('.sort-order');
 		
 		// second
-		this.sort_by_next_select = new wn.ui.FieldSelect($(this.sort_dialog.body).find('.sort-column-1'), 
-			this.doctype, null, true).$select;
-		this.sort_by_next_select.css('width', '60%');
+		this.sort_by_next_select = new wn.ui.FieldSelect({
+			parent: $(this.sort_dialog.body).find('.sort-column-1'),
+			doctype: this.doctype,
+			with_blank: true
+		});
+		this.sort_by_next_select.$select.css('width', '60%');
 		this.sort_order_next_select = $(this.sort_dialog.body).find('.sort-order-1');
 		
 		// initial values
-		this.sort_by_select.val(this.doctype + '.modified');
+		this.sort_by_select.set_value(this.doctype, 'modified');
 		this.sort_order_select.val('desc');
 		
-		this.sort_by_next_select.val('');
+		this.sort_by_next_select.clear();
 		this.sort_order_next_select.val('desc');
 		
 		// button actions
@@ -555,17 +562,9 @@ wn.ui.ColumnPicker = Class.extend({
 	init: function(list) {
 		this.list = list;
 		this.doctype = list.doctype;
-		this.selects = {};
 	},
-	show: function(columns) {
-		wn.require('assets/webnotes/js/lib/jquery/jquery.ui.interactions.min.js');
-		var me = this;
-		if(!this.dialog) {
-			this.dialog = new wn.ui.Dialog({
-				title: wn._("Pick Columns"),
-				width: '400'
-			});
-		}
+	clear: function() {
+		this.columns = [];
 		$(this.dialog.body).html('<div class="help">'+wn._("Drag to sort columns")+'</div>\
 			<div class="column-list"></div>\
 			<div><button class="btn btn-default btn-add"><i class="icon-plus"></i>\
@@ -573,7 +572,19 @@ wn.ui.ColumnPicker = Class.extend({
 			<hr>\
 			<div><button class="btn btn-info">'+wn._("Update")+'</div>');
 		
-		// show existing	
+	},
+	show: function(columns) {
+		var me = this;
+		if(!this.dialog) {
+			this.dialog = new wn.ui.Dialog({
+				title: wn._("Pick Columns"),
+				width: '400'
+			});
+		}
+
+		this.clear();
+
+		// show existing
 		$.each(columns, function(i, c) {
 			me.add_column(c);
 		});
@@ -589,12 +600,10 @@ wn.ui.ColumnPicker = Class.extend({
 		$(this.dialog.body).find('.btn-info').click(function() {
 			me.dialog.hide();
 			// selected columns as list of [column_name, table_name]
-			var columns = [];
-			$(me.dialog.body).find('select').each(function() {
-				var $selected = $(this).find('option:selected');
-				columns.push([$selected.attr('fieldname'), 
-					$selected.attr('table')]);
+			var columns = $.map(me.columns, function(v) {
+				return v ? [[v.selected_fieldname, v.selected_doctype]] : null;
 			});
+			
 			wn.defaults.set_default("_list_settings:" + me.doctype, columns);
 			me.list.columns = columns;
 			me.list.run();
@@ -603,6 +612,7 @@ wn.ui.ColumnPicker = Class.extend({
 		this.dialog.show();
 	},
 	add_column: function(c) {
+		if(!c) return;
 		var w = $('<div style="padding: 5px; background-color: #eee; \
 			width: 90%; margin-bottom: 10px; border-radius: 3px; cursor: move;">\
 			<img src="assets/webnotes/images/ui/drag-handle.png" style="margin-right: 10px;">\
@@ -610,15 +620,20 @@ wn.ui.ColumnPicker = Class.extend({
 			</div>')
 			.appendTo($(this.dialog.body).find('.column-list'));
 		
-		var fieldselect = new wn.ui.FieldSelect(w, this.doctype);
+		var fieldselect = new wn.ui.FieldSelect({parent:w, doctype:this.doctype}), 
+			me = this;
 		
 		fieldselect.$select.css({"display": "inline"});
 		
-		fieldselect.$select
-			.css({width: '70%', 'margin-top':'5px'})
-			.val((c[1] || this.doctype) + "." + c[0]);
-		w.find('.close').click(function() {
+		fieldselect.$select.css({width: '70%', 'margin-top':'5px'})
+		fieldselect.val((c[1] || this.doctype) + "." + c[0]);
+		
+		w.find('.close').data("fieldselect", fieldselect).click(function() {
+			console.log(me.columns.indexOf($(this).data('fieldselect')));
+			delete me.columns[me.columns.indexOf($(this).data('fieldselect'))];
 			$(this).parent().remove();
 		});
+		
+		this.columns.push(fieldselect);
 	}
 });
