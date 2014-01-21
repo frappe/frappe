@@ -472,6 +472,10 @@ div#freeze {
 }
 /* form */
 
+.wn-editor {
+	cursor: text;
+}
+
 .wn-editor img {
 	max-width: 100%;
 }
