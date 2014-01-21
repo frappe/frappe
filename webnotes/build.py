@@ -15,7 +15,7 @@ import webnotes.translate
 def bundle(no_compress):
 	"""concat / minify js files"""
 	# build js files
-	make_site_public_dirs()
+	make_asset_dirs()
 	build(no_compress)
 	webnotes.translate.clear_cache()
 	
@@ -30,12 +30,10 @@ def watch(no_compress):
 		
 		time.sleep(3)
 
-def make_site_public_dirs():	
+def make_asset_dirs():
 	assets_path = os.path.join(webnotes.local.sites_path, "assets")
 	site_public_path = os.path.join(webnotes.local.site_path, 'public')
 	for dir_path in [
-			os.path.join(site_public_path, 'backups'), 
-			os.path.join(site_public_path, 'files'),
 			os.path.join(assets_path, 'js'), 
 			os.path.join(assets_path, 'css')]:
 		
