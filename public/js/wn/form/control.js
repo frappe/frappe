@@ -191,6 +191,7 @@ wn.ui.form.ControlInput = wn.ui.form.Control.extend({
 				if(me.disp_status=="Write") {
 					me.disp_area && $(me.disp_area).toggle(false);
 					$(me.input_area).toggle(true);
+					$(me.input_area).find("input").prop("disabled", false);
 					!me.has_input && me.make_input();
 					if(me.doctype && me.docname)
 						me.set_input(me.value);
