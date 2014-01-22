@@ -138,7 +138,7 @@ wn.ui.form.ControlInput = wn.ui.form.Control.extend({
 			this.$wrapper = $('<div class="form-horizontal">\
 				<div class="form-group row" style="margin: 0px">\
 					<label class="control-label small col-xs-'+(this.horizontal?"4":"12")
-						+'" style="padding-right: 0px; color: #777;"></label>\
+						+'" style="padding-right: 0px;"></label>\
 					<div class="col-xs-'+(this.horizontal?"8":"12")+'">\
 						<div class="control-input"></div>\
 						<div class="control-value like-disabled-input" style="display: none;"></div>\
@@ -264,7 +264,7 @@ wn.ui.form.ControlData = wn.ui.form.ControlInput.extend({
 	make_input: function() {
 		this.$input = $("<"+ this.html_element +">")
 			.attr("type", this.input_type)
-			.addClass("col-md-12 input-with-feedback form-control")
+			.addClass("input-with-feedback form-control")
 			.prependTo(this.input_area)
 		
 		this.set_input_attributes();
@@ -479,7 +479,7 @@ wn.ui.form.ControlCheck = wn.ui.form.ControlData.extend({
 	},
 	make_input: function() {
 		this._super();
-		this.$input.removeClass("col-md-12 form-control");
+		this.$input.removeClass("form-control");
 	},
 	parse: function(value) {
 		return this.input.checked ? 1 : 0;
