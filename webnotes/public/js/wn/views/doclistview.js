@@ -104,6 +104,8 @@ wn.views.DocListView = wn.ui.Listing.extend({
 	show_match_help: function() {
 		var me = this;
 		var match_rules = wn.perm.get_match_rules(this.doctype);
+		var perm = wn.perm.get_perm(doctype);
+
 		if(keys(match_rules).length) {
 			var match_text = []
 			$.each(match_rules, function(key, values) {
@@ -113,6 +115,10 @@ wn.views.DocListView = wn.ui.Listing.extend({
 					match_text.push(wn._(key) + " = " + wn.utils.comma_or(values));
 				}
 			});
+			
+			if(perm[0].restricted) {
+				match_text.push(wn._("Or Created By") + " = " + user);
+			}
 			wn.utils.set_footnote(this, this.$page.find(".layout-main-section"), 
 				"<p>" + wn._("Showing only for") + ":</p><ul>" 
 				+ $.map(match_text, function(txt) { return "<li>"+txt+"</li>" }).join("")) + "</ul>";

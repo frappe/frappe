@@ -28,9 +28,7 @@ def get_permissions(doctype=None, role=None):
 			
 @webnotes.whitelist()
 def remove(doctype, name):
-	webnotes.only_for("System Manager")
-	match = webnotes.conn.get_value("DocPerm", name, "`match`")
-	
+	webnotes.only_for("System Manager")	
 	webnotes.conn.sql("""delete from tabDocPerm where name=%s""", name)
 	validate_and_reset(doctype, for_remove=True)
 	
@@ -56,14 +54,7 @@ def update(name, doctype, ptype, value=0):
 	webnotes.conn.sql("""update tabDocPerm set `%s`=%s where name=%s"""\
 	 	% (ptype, '%s', '%s'), (value, name))
 	validate_and_reset(doctype)
-	
-@webnotes.whitelist()
-def update_match(name, doctype, match=""):
-	webnotes.only_for("System Manager")
-	webnotes.conn.sql("""update tabDocPerm set `match`=%s where name=%s""",
-		(match, name))
-	validate_and_reset(doctype)
-	
+		
 def validate_and_reset(doctype, for_remove=False):
 	from webnotes.core.doctype.doctype.doctype import validate_permissions_for_doctype
 	validate_permissions_for_doctype(doctype, for_remove)

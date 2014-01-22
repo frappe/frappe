@@ -26,13 +26,15 @@ test_records = [
 import webnotes
 import webnotes.defaults
 import unittest
+from webnotes.core.page.user_properties.user_properties import add, remove, get_properties, clear_restrictions
+
 
 test_dependencies = ["Profile"]
 class TestBlogPost(unittest.TestCase):
 	def setUp(self):
-		webnotes.conn.sql("""update tabDocPerm set `match`='' where parent='Blog Post' 
+		webnotes.conn.sql("""update tabDocPerm set `restricted`=0 where parent='Blog Post' 
 			and ifnull(permlevel,0)=0""")
-		webnotes.conn.sql("""update `tabBlog Post` set owner='test1@example.com'
+		webnotes.conn.sql("""update `tabBlog Post` set owner='test2@example.com'
 			where name='_test-blog-post'""")
 
 		webnotes.clear_cache(doctype="Blog Post")
@@ -47,7 +49,8 @@ class TestBlogPost(unittest.TestCase):
 		
 	def tearDown(self):
 		webnotes.set_user("Administrator")
-		webnotes.defaults.clear_default(key="Blog Category", parenttype="Restriction")
+		clear_restrictions("Blog Category")
+		clear_restrictions("Blog Post")
 		
 	def test_basic_permission(self):
 		post = webnotes.bean("Blog Post", "_test-blog-post")
@@ -79,12 +82,17 @@ class TestBlogPost(unittest.TestCase):
 			
 		doc = webnotes.new_doc("Blog Post")
 		self.assertEquals(doc.get("blog_category"), "_Test Blog Category 1")
-		
-	def test_owner_match_bean(self):
-		webnotes.conn.sql("""update tabDocPerm set `match`='owner' where parent='Blog Post' 
+	
+	def add_restricted_on_blogger(self):
+		webnotes.conn.sql("""update tabDocPerm set `restricted`=1 where parent='Blog Post' and role='Blogger' 
 			and ifnull(permlevel,0)=0""")
 		webnotes.clear_cache(doctype="Blog Post")
-					
+	
+	def test_owner_match_bean(self):
+		self.add_restricted_on_blogger()
+
+		webnotes.set_user("test2@example.com")
+
 		post = webnotes.bean("Blog Post", "_test-blog-post")
 		self.assertTrue(post.has_read_perm())
 
@@ -92,28 +100,36 @@ class TestBlogPost(unittest.TestCase):
 		self.assertFalse(post1.has_read_perm())
 		
 	def test_owner_match_report(self):
-		webnotes.conn.sql("""update tabDocPerm set `match`='owner' where parent='Blog Post' 
+		webnotes.conn.sql("""update tabDocPerm set `restricted`=1 where parent='Blog Post' 
 			and ifnull(permlevel,0)=0""")
 		webnotes.clear_cache(doctype="Blog Post")
+
+		webnotes.set_user("test2@example.com")
 
 		names = [d.name for d in webnotes.get_list("Blog Post", fields=["name", "owner"])]
 		self.assertTrue("_test-blog-post" in names)
 		self.assertFalse("_test-blog-post-1" in names)
-		
-	def test_restrict(self):
-		from webnotes.core.page.user_properties.user_properties import add, remove, get_properties
-		
-		# restrictor can add restriction
+	
+	def add_restriction_to_user2(self):
 		webnotes.set_user("test1@example.com")
 		add("test2@example.com", "Blog Post", "_test-blog-post")
-		defname = get_properties("test2@example.com", "Blog Post", "_test-blog-post")[0].name
+	
+	def test_add_restriction(self):
+		# restrictor can add restriction
+		self.add_restriction_to_user2()
 		
+	def test_not_allowed_to_restrict(self):
 		webnotes.set_user("test2@example.com")
 		
 		# this user can't add restriction
 		self.assertRaises(webnotes.PermissionError, add, 
 			"test2@example.com", "Blog Post", "_test-blog-post")
-		
+
+	def test_not_allowed_to_restrict(self):
+		self.add_restriction_to_user2()
+
+		webnotes.set_user("test2@example.com")
+
 		# user can only access restricted blog post
 		bean = webnotes.bean("Blog Post", "_test-blog-post")
 		self.assertTrue(bean.has_read_perm())
@@ -121,12 +137,28 @@ class TestBlogPost(unittest.TestCase):
 		# and not this one
 		bean = webnotes.bean("Blog Post", "_test-blog-post-1")
 		self.assertFalse(bean.has_read_perm())
-		
+	
+	def test_not_allowed_to_remove_self(self):
+		self.add_restriction_to_user2()
+		defname = get_properties("test2@example.com", "Blog Post", "_test-blog-post")[0].name
+
+		webnotes.set_user("test2@example.com")
+
 		# user cannot remove their own restriction
 		self.assertRaises(webnotes.PermissionError, remove, 
 			"test2@example.com", defname, "Blog Post", "_test-blog-post")
-		
-		# but restrictor can
+				
+	def test_allow_in_restriction(self):
+		self.add_restricted_on_blogger()
+
+		webnotes.set_user("test2@example.com")
+		bean = webnotes.bean("Blog Post", "_test-blog-post-1")
+		self.assertFalse(bean.has_read_perm())
+
 		webnotes.set_user("test1@example.com")
-		remove("test2@example.com", defname, "Blog Post", "_test-blog-post")
-		
+		add("test2@example.com", "Blog Post", "_test-blog-post-1")
+
+		webnotes.set_user("test2@example.com")
+		bean = webnotes.bean("Blog Post", "_test-blog-post-1")
+
+		self.assertTrue(bean.has_read_perm())

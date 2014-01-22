@@ -26,35 +26,57 @@ def has_permission(doctype, ptype="read", refdoc=None, verbose=True):
 	
 	if webnotes.session.user=="Administrator":
 		return True
-	
+		
 	# get user permissions
-	perms = get_user_perms(meta, ptype)
-	
-	if not perms:
+	if not get_user_perms(meta).get(ptype):
 		return False
 	elif refdoc:
 		if isinstance(refdoc, basestring):
 			refdoc = webnotes.doc(meta[0].name, refdoc)
 		
-		if (has_only_permitted_data(meta, refdoc, verbose=verbose) and has_match(perms, refdoc)):
+		if has_unrestricted_access(meta, refdoc, verbose=verbose):
 			return True
 		else:
 			return False
 	else:
 		return True
 		
-def get_user_perms(meta, ptype, user=None):
-	user_roles = webnotes.get_roles(user)
-	
-	return [p for p in meta.get({"doctype": "DocPerm"})
-			if cint(p.get(ptype))==1 and cint(p.permlevel)==0 and (p.role=="All" or p.role in user_roles)]
+rights = ["read", "write", "create", "submit", "cancel", "amend",
+	"report", "import", "export", "print", "email", "restrict", "delete", "restricted"]
 
-def has_only_permitted_data(meta, refdoc, verbose=True):
+def get_user_perms(meta, user=None):
+	cache_key = (meta[0].name, user)
+	if not webnotes.local.user_perms.get(cache_key):
+		perms = webnotes._dict()
+		user_roles = webnotes.get_roles(user)
+	
+		for p in meta.get({"doctype": "DocPerm"}):
+			if cint(p.permlevel)==0 and (p.role=="All" or p.role in user_roles):
+				for ptype in rights:
+					if ptype == "restricted":
+						perms[ptype] = perms.get(ptype, 1) and cint(p.get(ptype))
+					else:
+						perms[ptype] = perms.get(ptype, 0) or cint(p.get(ptype))
+					
+		webnotes.local.user_perms[cache_key] = perms
+
+	return webnotes.local.user_perms[cache_key]
+		
+def has_unrestricted_access(meta, refdoc, verbose=True):
 	from webnotes.defaults import get_restrictions
 	restrictions = get_restrictions()
-	if not restrictions:
-		return True
+		
+	if get_user_perms(meta).restricted:
+		if refdoc.owner == webnotes.session.user:
+			# owner is always allowed for restricted permissions
+			return True
+		elif not restrictions:
+			return False
+	else:
+		if not restrictions:
+			return True
 	
+	# evaluate specific restrictions
 	fields_to_check = meta.get_restricted_fields(restrictions.keys())
 	
 	has_restricted_data = False
@@ -75,20 +97,6 @@ def has_only_permitted_data(meta, refdoc, verbose=True):
 	
 	# check all restrictions before returning
 	return False if has_restricted_data else True
-
-def has_match(perms, refdoc):
-	"""check owner match (if exists)"""
-	for p in perms:
-		if p.get("match")=="owner":
-			if refdoc.get("owner")==webnotes.local.session.user:
-				# owner matches :)
-				return True
-		else:
-			# found a permission without owner match :)
-			return True
-	
-	# no match :(
-	return False
 	
 def can_restrict_user(user, doctype, docname=None):
 	if not can_restrict(doctype, docname):
@@ -106,7 +114,6 @@ def can_restrict(doctype, docname=None):
 	# System Manager can always restrict
 	if "System Manager" in webnotes.get_roles():
 		return True
-
 	meta = webnotes.get_doctype(doctype)
 	
 	# check if current user has read permission for docname
@@ -120,8 +127,7 @@ def can_restrict(doctype, docname=None):
 	return True
 	
 def has_restrict_permission(meta=None, user=None):
-	return any((perm for perm in get_user_perms(meta, "read", user)
-		if cint(perm.restrict)==1))
+	return get_user_perms(meta, user).restrict==1
 	
 def has_only_non_restrict_role(meta, user):
 	# check if target user does not have restrict permission
@@ -129,8 +135,7 @@ def has_only_non_restrict_role(meta, user):
 		return False
 	
 	# and has non-restrict role
-	return any((perm for perm in get_user_perms(meta, "read", user)
-		if cint(perm.restrict)==0))
+	return get_user_perms(meta, user).restrict==0
 
 def can_import(doctype, raise_exception=False):
 	if not ("System Manager" in webnotes.get_roles() or has_permission(doctype, "import")):

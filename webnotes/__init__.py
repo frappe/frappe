@@ -105,6 +105,7 @@ def init(site, sites_path=None):
 	local.app_modules = None
 	local.user = None
 	local.restrictions = None
+	local.user_perms = {}
 
 	setup_module_map()
 
@@ -214,6 +215,7 @@ def set_user(username):
 	local.session["user"] = username
 	local.user = webnotes.profile.Profile(username)
 	local.restrictions = None
+	local.user_perms = {}
 
 def get_request_header(key, default=None):
 	return request.headers.get(key, default)
