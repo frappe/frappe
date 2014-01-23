@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 import webnotes
-from core.doctype.notification_count.notification_count import delete_notification_count_for
+from webnotes.core.doctype.notification_count.notification_count import delete_notification_count_for
 
 
 @webnotes.whitelist()
