@@ -68,9 +68,6 @@ wn.request.call = function(opts) {
 				opts.success && opts.success(data, xhr.responseText);
 			}
 		},
-		fail: function(xhr, textStatus) {
-			opts.error && opts.error(xhr)
-		},
 		async: opts.async
 	};
 	
@@ -100,7 +97,14 @@ wn.request.call = function(opts) {
 		})
 	}
 	
-	return $.ajax(ajax_args).always(function(data) {
+	return $.ajax(ajax_args)
+	.fail(function(xhr, textStatus) {
+		opts.error && opts.error(xhr)
+	})
+	.always(function(data) {
+		if(data.responseText) {
+			data = JSON.parse(data.responseText);
+		}
 		wn.request.cleanup(opts, data);
 	});
 }

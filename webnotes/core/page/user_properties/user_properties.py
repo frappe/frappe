@@ -58,6 +58,9 @@ def remove(user, name, defkey, defvalue):
 	
 	webnotes.defaults.clear_default(name=name)
 	
+def clear_restrictions(doctype):
+	webnotes.defaults.clear_default(parenttype="Restriction", key=doctype)
+	
 @webnotes.whitelist()
 def add(user, defkey, defvalue):
 	if not webnotes.permissions.can_restrict_user(user, defkey, defvalue):

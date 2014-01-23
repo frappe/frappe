@@ -1699,7 +1699,7 @@ output {
   border-radius: 4px;
 }
 .form-control:focus {
-  border-color: #000;
+  border-color: #66afe9;
   outline: 0;
 }
 .form-control:-moz-placeholder {

@@ -204,14 +204,23 @@ def build_match_conditions(doctype, fields=None, as_condition=True):
 	import webnotes.permissions
 	match_filters = {}
 	match_conditions = []
+	or_conditions = []
 
 	if not getattr(webnotes.local, "reportview_tables", None):
 		webnotes.local.reportview_tables = get_tables(doctype, fields)
 	
 	load_doctypes()
 	
+	# is restricted
+	restricted = webnotes.permissions.get_user_perms(webnotes.local.reportview_doctypes[doctype]).restricted
+	
 	# get restrictions
 	restrictions = webnotes.defaults.get_restrictions()
+	
+	if restricted:
+		or_conditions.append('`tab{doctype}`.`owner`="{user}"'.format(doctype=doctype, 
+			user=webnotes.local.session.user))
+		match_filters["owner"] = webnotes.session.user
 	
 	if restrictions:
 		fields_to_check = webnotes.local.reportview_doctypes[doctype].get_restricted_fields(restrictions.keys())
@@ -223,28 +232,25 @@ def build_match_conditions(doctype, fields=None, as_condition=True):
 			if as_condition:
 				match_conditions.append('`tab{doctype}`.{fieldname} in ({values})'.format(doctype=doctype,
 					fieldname=df.fieldname, 
-					values=", ".join([('"'+v.replace('"', '\"')+'"') for v in restrictions[df.options]])))
+					values=", ".join([('"'+v.replace('"', '\"')+'"') \
+						for v in restrictions[df.options]])))
 			else:
 				match_filters.setdefault(df.fieldname, [])
 				match_filters[df.fieldname]= restrictions[df.options]
-				
-	# add owner match
-	owner_match = True
-	for p in webnotes.permissions.get_user_perms(webnotes.local.reportview_doctypes[doctype], "read"):
-		if not (p.match and p.match=="owner"):
-			owner_match = False
-			break
-		
-	if owner_match:
-		match_conditions.append('`tab{doctype}`.`owner`="{user}"'.format(doctype=doctype, 
-			user=webnotes.local.session.user))
-		match_filters["owner"] = [webnotes.local.session.user]
-						
+										
 	if as_condition:
 		conditions = " and ".join(match_conditions)
 		doctype_conditions = get_doctype_conditions(doctype)
 		if doctype_conditions:
 			conditions += ' and ' + doctype_conditions if conditions else doctype_conditions
+			
+		if or_conditions:
+			if conditions:
+				conditions = '({conditions}) or {or_conditions}'.format(conditions=conditions, 
+					or_conditions = ' or '.join(or_conditions))
+			else:
+				conditions = " or ".join(or_conditions)
+				
 		return conditions
 	else:
 		return match_filters

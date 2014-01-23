@@ -459,7 +459,7 @@ class Bean:
 		
 		has_restricted_data = False
 		for d in self.doclist:
-			if not webnotes.permissions.has_only_permitted_data(webnotes.get_doctype(d.doctype), d):
+			if not webnotes.permissions.has_unrestricted_access(webnotes.get_doctype(d.doctype), d):
 				has_restricted_data = True
 				
 		if has_restricted_data:

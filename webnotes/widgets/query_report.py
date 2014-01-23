@@ -120,9 +120,12 @@ def get_filtered_data(ref_doctype, columns, data):
 		matched_columns = get_matched_columns(linked_doctypes, match_filters)
 		for row in data:
 			match = True
-			for col, idx in matched_columns.items():
-				if row[idx] not in match_filters[col]:
-					match = False
+			
+			if not ("owner" in match_filters and matched_columns.get("profile", None)==match_filters["owner"]):
+				for col, idx in matched_columns.items():
+					if row[idx] not in match_filters[col]:
+						match = False
+						break
 
 			if match:
 				result.append(row)

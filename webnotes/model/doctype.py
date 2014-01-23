@@ -400,6 +400,12 @@ class DocTypeDocList(webnotes.model.doclist.DocList):
 		if self[0].name in restricted_types:
 			restricted_fields.append(webnotes._dict({"label":"Name", "fieldname":"name", "options": self[0].name}))
 		return restricted_fields
+		
+	def get_permissions(self, user=None):
+		user_roles = webnotes.get_roles(user)
+		return [p for p in self.get({"doctype": "DocPerm"})
+				if cint(p.permlevel)==0 and (p.role=="All" or p.role in user_roles)]
+		
 
 def rename_field(doctype, old_fieldname, new_fieldname, lookup_field=None):
 	"""this function assumes that sync is NOT performed"""

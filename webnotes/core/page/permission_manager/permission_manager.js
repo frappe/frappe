@@ -9,7 +9,7 @@ wn.pages['permission-manager'].onload = function(wrapper) {
 	<tr><td>\
 	<h4><i class='icon-question-sign'></i> "+wn._("Quick Help for Setting Permissions")+":</h4>\
 	<ol>\
-	<li>"+wn._("Permissions are set on Roles and Document Types (called DocTypes) by restricting read, edit, make new, delete, submit, cancel, amend, report, import, export, print, email and restrict rights.")+"</li>\
+	<li>"+wn._("Permissions are set on Roles and Document Types (called DocTypes) by setting read, edit, make new, delete, submit, cancel, amend, report, import, export, print, email and restrict rights.")+"</li>\
 	<li>"+wn._("Permissions translate to Users based on what Role they are assigned")+".</li>\
 	<li>"+wn._("To set user roles, just go to <a href='#List/Profile'>Setup > Users</a> and click on the user to assign roles.")+"</li>\
 	<li>"+wn._("The system provides pre-defined roles, but you can <a href='#List/Role'>add new roles</a> to set finer permissions")+".</li>\
@@ -38,16 +38,13 @@ wn.pages['permission-manager'].onload = function(wrapper) {
 	</ol>\
 	</tr></td>\
 	<tr><td>\
-	<h4><i class='icon-user'></i> "+wn._("Restricting By User")+":</h4>\
+	<h4><i class='icon-cog'></i> "+wn._("Restricting Users")+":</h4>\
 	<ol>\
-		<li>"+wn._("To restrict a User of a particular Role to documents that are only self-created.")+
-			wn._("Click on button in the 'Condition' column and select the option 'User is the creator of the document'")+".</li></ol>\
-	</tr></td>\
-	<tr><td>\
-	<h4><i class='icon-cog'></i> "+wn._("Advanced Settings")+":</h4>\
-	<p>"+wn._("To further restrict permissions based on certain values, like Company or Territory in a document, please go to <a href='#user-properties'>User Restrictions</a>")+"</p>"+
-	"<p>"+wn._("Once you have set this, the users will only be able access documents where the link (e.g Company) exists.")+"</p>"+
-	"<p>"+wn._("Apart from System Manager, roles with Restrict permission can restrict other users for that Document Type")+"</p><hr>\
+	<li>"+wn._("To explictly give permissions to users to specific records, check the 'Restricted' permssion. To set which user has access to which record, go to <a href='#user-properties'>User Restrictions</a>")+"</li>"+
+	"<li>"+wn._("If 'Restricted' is not checked, you can still restrict permissions based on certain values, like Company or Territory in a document by setting <a href='#user-properties'>User Restrictions</a>. But unless any restriction is set, a user will have permissions based on the Role.")+"</li>"+
+	"<li>"+wn._("If 'Restricted' is checked, the owner is always allowed based on Role.")+"</li>"+
+	"<li>"+wn._("Once you have set this, the users will only be able access documents where the link (e.g Company) exists.")+"</li>"+
+	"<li>"+wn._("Apart from System Manager, roles with Restrict permission can restrict other users for that Document Type")+"</li></ol><hr>\
 	<p>"+wn._("If these instructions where not helpful, please add in your suggestions at <a href='https://github.com/webnotes/wnframework/issues'>GitHub Issues</a>")+"</p>\
 	</tr></td>\
 	</table>");
@@ -208,13 +205,14 @@ wn.PermissionEngine = Class.extend({
 				.html(d[fieldname]);
 		};
 		
-		var add_check = function(cell, d, fieldname) {
+		var add_check = function(cell, d, fieldname, label) {
+			if(!label) label = fieldname;
 			if(d.permlevel > 0 && ["read", "write"].indexOf(fieldname)==-1) {
 				return;
 			}
 			
 			var checkbox = $("<div class='col-md-4'><div class='checkbox'>\
-					<label><input type='checkbox'>"+fieldname+"</input></label>\
+					<label><input type='checkbox'>"+label+"</input></label>\
 				</div></div>").appendTo(cell)
 				.attr("data-fieldname", fieldname)
 				.css("text-transform", "capitalize");
@@ -241,6 +239,7 @@ wn.PermissionEngine = Class.extend({
 			var perm_cell = add_cell(row, d, "permissions").css("padding-top", 0);
 			var perm_container = $("<div class='row'></div>").appendTo(perm_cell);
 			add_check(perm_container, d, "read");
+			add_check(perm_container, d, "restricted");
 			add_check(perm_container, d, "write");
 			add_check(perm_container, d, "create");
 			add_check(perm_container, d, "delete");
@@ -252,7 +251,7 @@ wn.PermissionEngine = Class.extend({
 			add_check(perm_container, d, "export");
 			add_check(perm_container, d, "print");
 			add_check(perm_container, d, "email");
-			add_check(perm_container, d, "restrict");
+			add_check(perm_container, d, "restrict", "Can Restrict");
 						
 			// buttons
 			me.add_match_button(row, d);

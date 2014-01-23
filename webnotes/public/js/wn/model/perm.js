@@ -9,7 +9,7 @@ var SUBMIT = "submit", CANCEL = "cancel", AMEND = "amend";
 
 $.extend(wn.perm, {
 	rights: ["read", "write", "create", "submit", "cancel", "amend",
-		"report", "import", "export", "print", "email", "restrict", "delete"],
+		"report", "import", "export", "print", "email", "restrict", "delete", "restricted"],
 		
 	doctype_perm: {},
 	
@@ -55,7 +55,7 @@ $.extend(wn.perm, {
 			perm[0].read = 1;
 		}
 		
-		if(docname && !wn.perm.has_only_permitted_data(doctype, docname)) {
+		if(docname && !wn.perm.has_unrestricted_access(doctype, docname, perm[0].restricted)) {
 			// if has restricted data, return not permitted
 			return perm;
 		}
@@ -63,14 +63,17 @@ $.extend(wn.perm, {
 		var docperms = wn.model.get("DocPerm", {parent: doctype});
 		$.each(docperms, function(i, p) {
 			// if user has this role
-			if(user_roles.indexOf(p.role)!==-1 && 
-				(!docname || wn.perm.has_match(p, doctype, docname))) {
+			if(user_roles.indexOf(p.role)!==-1) {
 				var permlevel = cint(p.permlevel);
 				if(!perm[permlevel]) {
 					perm[permlevel] = {};
 				}
 				$.each(wn.perm.rights, function(i, key) {
-					perm[permlevel][key] = perm[permlevel][key] || (p[key] || 0);
+					if(key=="restricted") {
+						perm[permlevel][key] = (perm[permlevel][key] || 1) && (p[key] || 0);
+					} else {
+						perm[permlevel][key] = perm[permlevel][key] || (p[key] || 0);
+					}
 				});
 			}
 		});
@@ -78,10 +81,19 @@ $.extend(wn.perm, {
 		return perm;
 	},
 	
-	has_only_permitted_data: function(doctype, docname) {
+	has_unrestricted_access: function(doctype, docname, restricted) {
 		var restrictions = wn.defaults.get_restrictions();
-		if(!restrictions || $.isEmptyObject(restrictions)) {
-			return true;
+		var doc = wn.model.get_doc(doctype, docname);
+
+		if(restricted) {
+			if(doc.owner==user) return true;
+			if(!restrictions || $.isEmptyObject(restrictions)) {
+				return false;
+			}
+		} else {
+			if(!restrictions || $.isEmptyObject(restrictions)) {
+				return true;
+			}
 		}
 		
 		// prepare restricted fields
@@ -109,33 +121,10 @@ $.extend(wn.perm, {
 		}
 		return fields_to_check;
 	},
-	
-	has_match: function(docperm, doctype, docname) {
-		if(!docperm.match) return true;
-		if(docperm.match==="owner") {
-			var doc = wn.model.get_doc(doctype, docname);
-			if(doc.owner===user) {
-				return true;
-			}
-		}
-		return false;
-	},
-	
+		
 	get_match_rules: function(doctype) {
 		var match_rules = {};
-		
-		// Rule for owner match
-		var owner_match = false;
-		$.each(wn.model.get("DocPerm", {parent:doctype}), function(i, docperm) {
-			if(docperm.match==="owner") {
-				owner_match = true;
-			} else {
-				owner_match = false;
-				return false;
-			}
-		});
-		if(owner_match) match_rules["Created By"] = user;
-		
+						
 		// Rule for restrictions
 		var restrictions = wn.defaults.get_restrictions();
 		if(restrictions && !$.isEmptyObject(restrictions)) {

@@ -465,7 +465,7 @@ wn.ui.form.ControlCheck = wn.ui.form.ControlData.extend({
 				<label>\
 					<span class="input-area"></span>\
 					<span class="disp-area" style="display:none;"></span>\
-					<span class="label-area small text-muted"></span>\
+					<span class="label-area small"></span>\
 				</label>\
 				<p class="help-box small text-muted"></p>\
 			</div>\
