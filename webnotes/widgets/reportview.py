@@ -265,9 +265,11 @@ def get_permission_query_conditions(doctype):
 	if condition_methods:
 		conditions = []
 		for method in condition_methods:
-			conditions.append(webnotes.get_attr(method)())
+			c = webnotes.get_attr(method)()
+			if c:
+				conditions.append(c)
 				
-		return " and ".join(conditions)
+		return " and ".join(conditions) if conditions else None
 		
 def get_tables(doctype, fields):
 	"""extract tables from fields"""

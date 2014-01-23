@@ -7,18 +7,6 @@ from webnotes import msgprint, _
 from webnotes.utils import flt, cint, cstr
 from webnotes.model.meta import get_field_precision
 
-error_condition_map = {
-	"=": "!=",
-	"!=": "=",
-	"<": ">=",
-	">": "<=",
-	">=": "<",
-	"<=": ">",
-	"in": _("not in"),
-	"not in": _("in"),
-	"^": _("cannot start with"),
-}
-
 class EmptyTableError(webnotes.ValidationError): pass
 
 class DocListController(object):
@@ -37,6 +25,18 @@ class DocListController(object):
 	def validate_value(self, fieldname, condition, val2, doc=None, raise_exception=None):
 		"""check that value of fieldname should be 'condition' val2
 			else throw exception"""
+		error_condition_map = {
+			"=": "!=",
+			"!=": "=",
+			"<": ">=",
+			">": "<=",
+			">=": "<",
+			"<=": ">",
+			"in": _("not in"),
+			"not in": _("in"),
+			"^": _("cannot start with"),
+		}
+
 		if not doc:
 			doc = self.doc
 		
