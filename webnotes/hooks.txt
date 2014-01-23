@@ -22,3 +22,8 @@ scheduler_event = daily:webnotes.core.doctype.notification_count.notification_co
 scheduler_event = daily:webnotes.core.doctype.event.event.send_event_digest
 
 on_session_creation = webnotes.auth.notify_administrator_login
+
+# permissions
+
+permission_query_conditions:Event = webnotes.core.doctype.event.event.get_permission_query_conditions
+has_permission:Event =  webnotes.core.doctype.event.event.has_permission

@@ -97,7 +97,7 @@ wn.ui.form.AssignTo = Class.extend({
 					{fieldtype:'Button', label:wn._("Add"), fieldname:'add_btn'}
 				]
 			});
-			
+						
 			me.dialog.fields_dict.restrict.$wrapper
 				.find(".assign-user-properties")
 				.on("click", function() {
@@ -141,6 +141,11 @@ wn.ui.form.AssignTo = Class.extend({
 		})();
 		
 		me.dialog.show();
+		
+		if(!wn.perm.get_perm(me.frm.doctype)[0].restricted) {
+			me.dialog.fields_dict.restrict.set_input(0);
+			me.dialog.fields_dict.restrict.$wrapper.toggle(false);
+		}
 	}
 });
 

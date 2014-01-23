@@ -393,7 +393,7 @@ def get_installed_apps():
 	installed = json.loads(conn.get_global("installed_apps") or "[]")
 	return installed
 
-def get_hooks(app_name=None):
+def get_hooks(hook=None, app_name=None):
 	def load_app_hooks(app_name=None):
 		hooks = {}
 		for app in [app_name] if app_name else get_installed_apps():
@@ -404,9 +404,14 @@ def get_hooks(app_name=None):
 				hooks[key].append(value)
 		return hooks
 	if app_name:
-		return _dict(load_app_hooks(app_name))
+		hooks = _dict(load_app_hooks(app_name))
 	else:
-		return _dict(cache().get_value("app_hooks", load_app_hooks))
+		hooks = _dict(cache().get_value("app_hooks", load_app_hooks))
+		
+	if hook:
+		return hooks.get(hook) or []
+	else:
+		return hooks
 
 def setup_module_map():
 	_cache = cache()
@@ -544,7 +549,7 @@ def set_filters(jenv):
 	
 	# load jenv_filters from hooks.txt
 	for app in get_all_apps(True):
-		for jenv_filter in (get_hooks(app).jenv_filter or []):
+		for jenv_filter in (get_hooks(app_name=app).jenv_filter or []):
 			filter_name, filter_function = jenv_filter.split(":")
 			jenv.filters[filter_name] = get_attr(filter_function)
 
