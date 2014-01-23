@@ -8,13 +8,13 @@ class DocType:
 	def __init__(self, d, dl):
 		self.doc, self.doclist = d, dl
 		
-# todo is viewable if either user or assigned_to or System Manager in roles
+# todo is viewable if either owner or assigned_to or System Manager in roles
 
 def get_permission_query_conditions():
 	if "System Manager" in webnotes.get_roles():
 		return None
 	else:
-		return """(tabToDo.owner = '{user}' or tabToDo.assigned_to = '{user}' or )""".format(user=webnotes.session.user)
+		return """(tabToDo.owner = '{user}' or tabToDo.assigned_to = '{user}')""".format(user=webnotes.session.user)
 		
 def has_permission(doc):
 	if "System Manager" in webnotes.get_roles():
