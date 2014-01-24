@@ -14,11 +14,11 @@ def get_permission_query_conditions():
 	if "System Manager" in webnotes.get_roles():
 		return None
 	else:
-		return """(tabToDo.owner = '{user}' or tabToDo.assigned_to = '{user}')""".format(user=webnotes.session.user)
+		return """(tabToDo.owner = '{user}' or tabToDo.assigned_by = '{user}')""".format(user=webnotes.session.user)
 		
 def has_permission(doc):
 	if "System Manager" in webnotes.get_roles():
 		return True
 	else:
-		return doc.owner==webnotes.session.user or doc.assigned_to==webnotes.session.user
+		return doc.owner==webnotes.session.user or doc.assigned_by==webnotes.session.user
 		

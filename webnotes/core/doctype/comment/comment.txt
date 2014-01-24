@@ -2,7 +2,7 @@
  {
   "creation": "2012-08-08 10:40:11", 
   "docstatus": 0, 
-  "modified": "2014-01-20 17:48:28", 
+  "modified": "2014-01-24 13:00:20", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -12,7 +12,8 @@
   "icon": "icon-comments", 
   "issingle": 0, 
   "module": "Core", 
-  "name": "__common__"
+  "name": "__common__", 
+  "title_field": "comment"
  }, 
  {
   "doctype": "DocField", 

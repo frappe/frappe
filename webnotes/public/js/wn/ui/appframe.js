@@ -41,12 +41,11 @@ wn.ui.AppFrame = Class.extend({
 		return this.$title_area;
 	},
 
-	set_title: function(txt, full_text, user) {
+	set_title: function(txt) {
 		// strip icon
 		this.title = txt;
 		document.title = txt.replace(/<[^>]*>/g, "");
 		this.$title_area.find(".title-text").html(txt);
-		
 	},
 	
 	set_title_left: function(txt, click) {
@@ -63,14 +62,18 @@ wn.ui.AppFrame = Class.extend({
 			this.title_right = $("<a>")
 				.html((icon ? '<i class="'+icon+'"></i> ' : "") + txt)
 				.click(click)
-				.appendTo($right);
+				.appendTo($right.attr("data-text", txt));
 			return this.title_right;
 		} else {
-			$right.empty();
+			$right.empty().attr("data-text", "");
 			this.title_right = null;
 			this.primary_dropdown = null;
 			this.primary_action = null;
 		}
+	},
+	
+	get_title_right_text: function() {
+		return this.parent.find(".titlebar-item.text-right").attr("data-text");
 	},
 	
 	add_primary_action: function(label, click, icon) {

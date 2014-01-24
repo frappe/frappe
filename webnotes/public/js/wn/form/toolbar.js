@@ -11,17 +11,18 @@ wn.ui.form.Toolbar = Class.extend({
 		this.appframe.set_views_for(this.frm.meta.name, "form");
 	},
 	make: function() {
-		this.appframe.set_title_right(); // clear
 		this.set_title();
 		this.show_title_as_dirty();
 
 		if(this.frm.meta.hide_toolbar) {
+			this.appframe.set_title_right();
 			this.frm.save_disabled = true;
 			this.appframe.iconbar.hide();
 		} else {
 			this.appframe.iconbar.clear(1)
 			this.make_file_menu();
 			this.make_cancel_amend_button();
+			this.set_title_right();
 			this.show_infobar();
 			if(this.frm.doc.__islocal) {
 				this.appframe.iconbar.hide(2);
@@ -36,10 +37,13 @@ wn.ui.form.Toolbar = Class.extend({
 		this.make();
 	},
 	set_title: function() {
-		var title = wn._(this.frm.docname);
+		if(this.frm.meta.title_field) {
+			var title = this.frm.doc[this.frm.meta.title_field] || wn._(this.frm.docname);
+		} else {
+			var title = wn._(this.frm.docname);
+		}
 		var me = this;
-		this.appframe.set_title(title + this.get_lock_status(), wn._(this.frm.docname), 
-			this.frm.doc.modified_by);
+		this.appframe.set_title(title);
 		
 		if(this.frm.meta.issingle) {
 			this.appframe.set_title_left('<i class="icon-angle-left"></i> ' + wn._(this.frm.meta.module), 
@@ -103,16 +107,15 @@ wn.ui.form.Toolbar = Class.extend({
 		}
 		
 		// Cancel
-		if(docstatus==1 && p[CANCEL] && !this.read_only) {
+		if(this.can_cancel()) {
 			this.appframe.add_dropdown_button("File", wn._("Cancel"), function() { 
 				me.frm.savecancel(this);}, 'icon-remove');
 		}
 		
 		// Amend
-		if(docstatus==2 && p[AMEND] && !this.read_only) {
+		if(this.can_amend()) {
 			this.appframe.add_dropdown_button("File", wn._("Amend"), function() { 
 				me.frm.amend_doc();}, 'icon-pencil');
-			this.appframe.set_title_right("Amend", function() { me.frm.amend_doc(); });
 		}
 		
 		// Print
@@ -154,6 +157,41 @@ wn.ui.form.Toolbar = Class.extend({
 		}
 		
 	},
+	can_save: function() {
+		return this.get_docstatus()===0;
+	},
+	can_submit: function() {
+		return this.get_docstatus()===0 
+			&& !this.frm.doc.__islocal 
+			&& !this.frm.doc.__unsaved
+			&& this.frm.perm[0].submit
+			&& !this.has_workflow();
+	},
+	can_update: function() {
+		return this.get_docstatus()===1
+			&& !this.frm.doc.__islocal  
+			&& this.frm.perm[0].submit
+			&& this.frm.doc.__unsaved
+	},
+	can_cancel: function() {
+		return this.get_docstatus()===1 
+			&& this.frm.perm[0].cancel
+			&& !this.read_only
+			&& !this.has_workflow();
+	},
+	can_amend: function() {
+		return this.get_docstatus()===2 
+			&& this.frm.perm[0].amend
+			&& !this.read_only;
+	},
+	has_workflow: function() {
+		if(this._has_workflow === undefined)
+			this._has_workflow = wn.model.get("Workflow", {document_type: this.frm.doctype}).length;
+		return this._has_workflow;
+	},
+	get_docstatus: function() {
+		return cint(this.frm.doc.docstatus);
+	},
 	show_linked_with: function() {
 		if(!this.frm.linked_with) {
 			this.frm.linked_with = new wn.ui.form.LinkedWith({
@@ -162,29 +200,45 @@ wn.ui.form.Toolbar = Class.extend({
 		}
 		this.frm.linked_with.show();
 	},
-	set_title_button: function() {
-		var me = this;
-		var docstatus = cint(this.frm.doc.docstatus);
-		var p = this.frm.perm[0];
-		var has_workflow = wn.model.get("Workflow", {document_type: me.frm.doctype}).length;
-				
-		if(has_workflow && (this.frm.doc.__islocal || this.frm.doc.__unsaved)) {
-			this.make_save_button();
-		} else if(!has_workflow) {
-			if(docstatus==0 && p[SUBMIT] && (!me.frm.doc.__islocal) 
-				&& (!me.frm.doc.__unsaved)) {
-				this.appframe.set_title_right("Submit", function() { me.frm.savesubmit(this); } );
+	set_title_right: function() {
+		var me = this,
+			current = this.appframe.get_title_right_text(),
+			status = null;
+		
+		if(this.can_submit()) {
+			status = "Submit";
+		} else if(this.can_save()) {
+			if(!this.frm.save_disabled) {
+				status = "Save";
 			}
-			else if(docstatus==0) {
-				this.make_save_button();
-			}
+		} else if(this.can_update()) {
+			status = "Update";
+		} else if(this.can_cancel()) {
+			status = "Cancel";
+		} else if(this.can_amend()) {
+			status = "Amend";
 		}
+		
+		if(status) {
+			if(status!==current) {
+				this.appframe.set_title_right(status, {
+					"Save": function() { me.frm.save('Save', null, this); },
+					"Submit": function() { me.frm.savesubmit(this); },
+					"Update": function() { me.frm.save('Update', null, this); },
+					"Cancel": function() { me.frm.savecancel(this); },
+					"Amend": function() { me.frm.amend_doc(); }
+				}[status]);
+			}
+		} else {
+			this.appframe.set_title_right();
+		}
+
 	},
 	make_cancel_amend_button: function() {
 		var me = this;
 		var docstatus = cint(this.frm.doc.docstatus);
 		var p = this.frm.perm[0];
-		var has_workflow = wn.model.get("Workflow", {document_type: me.frm.doctype}).length;
+		var has_workflow = this.has_workflow();
 		
 		if(has_workflow) {
 			return;
@@ -196,22 +250,10 @@ wn.ui.form.Toolbar = Class.extend({
 				me.frm.amend_doc() }, 'icon-pencil', true);
 		}
 	},
-	make_save_button: function() {
-		if(this.frm.save_disabled)
-			return;
-		var me = this;
-		this.appframe.set_title_right("Save", function() { me.frm.save('Save', null, this); } );
-	},
 	add_update_button_on_dirty: function() {
 		var me = this;
 		$(this.frm.wrapper).on("dirty", function() {
 			me.show_title_as_dirty();
-			
-			// show update button if unsaved
-			var docstatus = cint(me.frm.doc.docstatus);
-			if(docstatus==1 && me.frm.perm[0].submit) {
-				this.appframe.set_title_right("Update", function() { me.frm.save('Update', null, this); } );
-			}
 		})
 	},
 	show_title_as_dirty: function() {
@@ -221,6 +263,6 @@ wn.ui.form.Toolbar = Class.extend({
 		this.appframe.get_title_area()
 			.toggleClass("text-warning", this.frm.doc.__unsaved ? true : false);
 		this.set_title();
-		this.set_title_button();
+		this.set_title_right();
 	}
 })

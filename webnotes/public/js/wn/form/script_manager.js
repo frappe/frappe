@@ -3,7 +3,7 @@
 
 wn.provide("wn.ui.form.handlers");
 
-wn.ui.form.on_change = function(doctype, fieldname, handler) {
+wn.ui.form.on = wn.ui.form.on_change = function(doctype, fieldname, handler) {
 	if(!wn.ui.form.handlers[doctype]) {
 		wn.ui.form.handlers[doctype] = {};
 	}

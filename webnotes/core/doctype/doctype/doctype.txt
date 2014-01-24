@@ -2,7 +2,7 @@
  {
   "creation": "2013-02-18 13:36:19", 
   "docstatus": 0, 
-  "modified": "2013-12-20 19:24:05", 
+  "modified": "2014-01-24 11:25:15", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -32,6 +32,8 @@
   "permlevel": 0
  }, 
  {
+  "cancel": 0, 
+  "delete": 0, 
   "doctype": "DocPerm", 
   "email": 1, 
   "name": "__common__", 
@@ -152,7 +154,8 @@
  {
   "doctype": "DocField", 
   "fieldname": "sb1", 
-  "fieldtype": "Section Break"
+  "fieldtype": "Section Break", 
+  "label": "Naming"
  }, 
  {
   "description": "<a onclick=\"msgprint('<ol>\\\n<li><b>field:[fieldname]</b> - By Field\\\n<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\\\n<li><b>Prompt</b> - Prompt user for a name\\\n<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\\\n</ol>')\">Naming Options</a>", 
@@ -179,6 +182,13 @@
   "doctype": "DocField", 
   "fieldname": "column_break_15", 
   "fieldtype": "Column Break"
+ }, 
+ {
+  "description": "Show this field as title", 
+  "doctype": "DocField", 
+  "fieldname": "title_field", 
+  "fieldtype": "Data", 
+  "label": "Title Field"
  }, 
  {
   "doctype": "DocField", 
@@ -354,7 +364,6 @@
   "role": "System Manager"
  }, 
  {
-  "cancel": 0, 
   "create": 1, 
   "doctype": "DocPerm", 
   "role": "Administrator", 

@@ -140,6 +140,10 @@ wn.ui.form.AssignTo = Class.extend({
 			me.dialog.get_input("restrict").prop("checked", can_restrict);
 		})();
 		
+		if(me.frm.meta.title_field) {
+			me.dialog.set_value("description", me.frm.doc[me.frm.meta.title_field])
+		}
+		
 		me.dialog.show();
 		
 		if(!wn.perm.get_perm(me.frm.doctype)[0].restricted) {

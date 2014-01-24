@@ -2,7 +2,7 @@
  {
   "creation": "2013-01-29 10:47:14", 
   "docstatus": 0, 
-  "modified": "2014-01-20 17:48:28", 
+  "modified": "2014-01-24 13:01:24", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -17,7 +17,8 @@
   "in_dialog": 0, 
   "issingle": 0, 
   "module": "Core", 
-  "name": "__common__"
+  "name": "__common__", 
+  "title_field": "subject"
  }, 
  {
   "doctype": "DocField", 

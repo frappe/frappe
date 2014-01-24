@@ -289,29 +289,9 @@ div#freeze {
 	color: orange;
 }
 
-.appframe .title-icon {
-	cursor: pointer;
-	display: inline-block;
-	float:left;
-	padding: 5px;
-	margin-right: 10px;
-	border-radius: 5px;
-	margin-top: -15px;
-	font-size: 24px;
-	text-align: center;
-	width: 27px;
-}
 
-.appframe .title-text {
-	display: inline-block;
-	float:left;
-	margin-top: -10px;
-}
-
-.appframe .title-icon:active {
-	-webkit-box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.3);
-			box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.3);
-
+.appframe-titlebar .title-text {
+	font-weight: bold;
 }
 
 .appframe-footer {

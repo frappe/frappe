@@ -23,9 +23,9 @@ class DocType:
 				webnotes.msgprint(c + " not allowed in name", raise_exception=1)
 		self.validate_series()
 		self.scrub_field_names()
+		self.validate_title_field()
 		validate_fields(self.doclist.get({"doctype":"DocField"}))
 		validate_permissions(self.doclist.get({"doctype":"DocPerm"}))
-		self.set_version()
 		self.make_amendable()
 		self.check_link_replacement_error()
 
@@ -52,9 +52,11 @@ class DocType:
 						d.fieldname = d.fieldtype.lower().replace(" ","_") + "_" + str(d.idx)
 						
 	
-	def set_version(self):
-		self.doc.version = cint(self.doc.version) + 1
-	
+	def validate_title_field(self):
+		if self.doc.title_field and \
+			self.doc.title_field not in [d.fieldname for d in self.doclist.get({"doctype":"DocField"})]:
+			webnotes.throw(_("Title field must be a valid fieldname"))
+			
 	def validate_series(self, autoname=None, name=None):
 		if not autoname: autoname = self.doc.autoname
 		if not name: name = self.doc.name

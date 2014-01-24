@@ -640,7 +640,8 @@ _f.Frm.prototype.save = function(save_action, callback, btn, on_error) {
 	$(document.activeElement).blur();
 	
 	// let any pending js process finish
-	setTimeout(100, this._save(save_action, callback, btn, on_error));
+	var me = this;
+	setTimeout(function() { me._save(save_action, callback, btn, on_error) }, 100);
 }
 
 _f.Frm.prototype._save = function(save_action, callback, btn, on_error) {

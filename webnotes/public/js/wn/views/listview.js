@@ -30,35 +30,50 @@ wn.views.ListView = Class.extend({
 	set_fields: function() {
 		var me = this;
 		var t = "`tab"+this.doctype+"`.";
-		this.fields = [t + 'name', t + 'owner', t + 'docstatus', 
-			t + '_user_tags', t + '_comments', t + 'modified', t + 'modified_by'];
+		this.fields = [];
 		this.stats = ['_user_tags'];
+
+		var add_field = function(fieldname) {
+			field = t + "`" + fieldname + "`"
+			if(me.fields.indexOf(field)=== -1)
+				me.fields.push(field);
+		}
+		
+		$.each(['name', 'owner', 'docstatus', '_user_tags', '_comments', 'modified', 
+			'modified_by'], function(i, fieldname) { add_field(fieldname); })
+
+		// add title field
+		var meta = wn.model.get("DocType", this.doctype)[0];
+		if(meta.title_field) {
+			this.title_field = meta.title_field;
+			add_field(meta.title_field);
+		}
 		
 		// add workflow field (as priority)
 		this.workflow_state_fieldname = wn.workflow.get_state_fieldname(this.doctype);
 		if(this.workflow_state_fieldname) {
-			this.fields.push(t + this.workflow_state_fieldname);
+			add_field(this.workflow_state_fieldname);
 			this.stats.push(this.workflow_state_fieldname);
 		}
-		
+				
 		$.each(wn.model.get("DocField", {"parent":this.doctype, "in_list_view":1}), function(i,d) {
 			if(wn.perm.has_perm(me.doctype, d.permlevel, "read")) {
 				if(d.fieldtype=="Image" && d.options) {
-					me.fields.push(t + "`" + d.options + "`");
+					add_field(d.options);
 				} else {
-					me.fields.push(t + "`" + d.fieldname + "`");
+					add_field(d.fieldname);
 				}
-
+				
 				if(d.fieldtype=="Select") {
-					me.stats.push(d.fieldname);
+					if(me.stats.indexOf(d.fieldname)===-1) me.stats.push(d.fieldname);
 				}
 
 				// currency field for symbol (multi-currency)
 				if(d.fieldtype=="Currency" && d.options) {
 					if(d.options.indexOf(":")!=-1) {
-						me.fields.push(t + "`" + d.options.split(":")[1] + "`");
+						add_field(d.options.split(":")[1]);
 					} else {
-						me.fields.push(t + "`" + d.options + "`");
+						add_field(d.options);
 					};
 				}
 			}
@@ -74,6 +89,7 @@ wn.views.ListView = Class.extend({
 	},
 	set_columns: function() {
 		this.columns = [];
+		this.total_colspans = 0;
 		var me = this;
 		if(this.workflow_state_fieldname) {
 			this.columns.push({
@@ -91,7 +107,7 @@ wn.views.ListView = Class.extend({
 			"in_list_view":1}).sort(function(a, b) { return a.idx - b.idx })
 		
 		$.each(docfields_in_list_view, function(i,d) {
-			if(in_list(overridden, d.fieldname)) {
+			if(in_list(overridden, d.fieldname) || d.fieldname === me.title_field) {
 				return;
 			}
 			// field width
@@ -105,6 +121,7 @@ wn.views.ListView = Class.extend({
 			} else if(d.fieldtype=="Text Editor" || d.fieldtype=="Text") {
 				colspan = "4";
 			}
+			me.total_colspans += parseInt(colspan);
 			me.columns.push({colspan: colspan, content: d.fieldname, 
 				type:d.fieldtype, df:d, title:wn._(d.label) });
 		});
@@ -113,8 +130,21 @@ wn.views.ListView = Class.extend({
 		if(this.settings.add_columns) {
 			$.each(this.settings.add_columns, function(i, d) {
 				me.columns.push(d);
+				me.total_colspans += parseInt(d.colspan);
 			});
 		}
+
+		var empty_cols = flt(12 - this.total_colspans);
+		this.shift_right = cint(empty_cols * 0.6667);
+		if(this.shift_right < 0) {
+			this.shift_right = 0;
+		} else if (this.shift_right > 1) {
+			// expand each column so that it fills up empty_cols
+			$.each(this.columns, function(i, c) {
+				c.colspan = cint(empty_cols / me.columns.length) + cint(c.colspan);
+			})
+		}
+
 	},
 	render: function(row, data) {
 		this.prepare_data(data);
@@ -123,16 +153,18 @@ wn.views.ListView = Class.extend({
 		
 		// maintain id_list to avoid duplication incase
 		// of filtering by child table
-		if(in_list(this.id_list, data.name))
+		if(in_list(this.id_list, data.name)) {
 			return;
-		else 
+		} else {
 			this.id_list.push(data.name);
+		}
 		
 		
+		var left_cols = 4 + this.shift_right, right_cols = 8 - this.shift_right;
 		var body = $('<div class="doclist-row row">\
-			<div class="list-row-id-area col-sm-4" style="white-space: nowrap;\
+			<div class="list-row-id-area col-sm-'+left_cols+'" style="white-space: nowrap;\
 				text-overflow: ellipsis; max-height: 30px"></div>\
-			<div class="list-row-content-area col-sm-8"></div>\
+			<div class="list-row-content-area col-sm-'+right_cols+'"></div>\
 		</div>').appendTo($(row).css({"position":"relative"})),
 			colspans = 0,
 			me = this;
@@ -236,10 +268,13 @@ wn.views.ListView = Class.extend({
 				title="%(docstatus_title)s"></i></span>', data));			
 		}
 
+		var title = data[this.title_field || "name"];
 		$("<a>")
 			.attr("href", "#Form/" + data.doctype + "/" + encodeURIComponent(data.name))
-			.html(data.name)
+			.html(title)
 			.appendTo(parent.css({"overflow":"hidden"}));
+			
+		parent.attr("title", title).tooltip();
 		
 	},
 	render_column: function(data, parent, opts) {

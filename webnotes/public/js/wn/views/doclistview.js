@@ -104,7 +104,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 	show_match_help: function() {
 		var me = this;
 		var match_rules = wn.perm.get_match_rules(this.doctype);
-		var perm = wn.perm.get_perm(doctype);
+		var perm = wn.perm.get_perm(this.doctype);
 
 		if(keys(match_rules).length) {
 			var match_text = []

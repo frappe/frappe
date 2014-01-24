@@ -116,6 +116,7 @@ CREATE TABLE `tabDocType` (
   `plugin` varchar(180) DEFAULT NULL,
   `autoname` varchar(180) DEFAULT NULL,
   `name_case` varchar(180) DEFAULT NULL,
+  `title_field` varchar(180) DEFAULT NULL,
   `description` text,
   `colour` varchar(180) DEFAULT NULL,
   `read_only` int(1) DEFAULT NULL,

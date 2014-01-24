@@ -1,4 +1,4 @@
-execute:webnotes.reload_doc('core', 'doctype', 'doctype', force=True) #2013-13-26
+execute:webnotes.reload_doc('core', 'doctype', 'doctype', force=True) #2014-01-24
 execute:webnotes.reload_doc('core', 'doctype', 'docfield', force=True) #2013-13-26
 execute:webnotes.reload_doc('core', 'doctype', 'docperm') #2013-13-26
 execute:webnotes.reload_doc('core', 'doctype', 'page') #2013-13-26
