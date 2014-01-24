@@ -74,7 +74,9 @@ login.do_login = function(){
 					} else {
 						window.location.href = "index";
 					}
-				}				
+				} else if(window.is_sign_up) {
+					wn.msgprint(data.message);
+				}			
 			},
 			401: function(xhr, data) {
 				login.set_message("Invalid Login");
