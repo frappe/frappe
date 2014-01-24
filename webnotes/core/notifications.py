@@ -22,7 +22,7 @@ def get_things_todo():
 	"""Returns a count of incomplete todos"""
 	incomplete_todos = webnotes.conn.sql("""\
 		SELECT COUNT(*) FROM `tabToDo`
-		WHERE IFNULL(checked, 0) = 0
+		WHERE status="Open"
 		AND (owner = %s or assigned_by=%s)""", (webnotes.session.user, webnotes.session.user))
 	return incomplete_todos[0][0]
 
