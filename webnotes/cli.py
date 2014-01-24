@@ -241,7 +241,7 @@ def reinstall(verbose=True):
 
 @cmd
 def restore(db_name, source_sql, verbose=True, force=False):
-	install(db_name, source_sql, verbose=verbose, force=force)
+	install(db_name, source_sql=source_sql, verbose=verbose, force=force)
 
 @cmd
 def install_fixtures():
