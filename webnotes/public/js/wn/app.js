@@ -29,7 +29,7 @@ wn.Application = Class.extend({
 					wn.provide('wn.boot');
 					wn.boot = r;
 					if(wn.boot.profile.name==='Guest' || wn.boot.profile.user_type==="Website User") {
-						window.location = 'index.html';
+						window.location = 'index';
 						return;
 					}
 					me.startup();

@@ -5,9 +5,8 @@ from __future__ import unicode_literals
 import webnotes
 from webnotes.webutils import WebsiteGenerator
 from webnotes import _
-from webnotes.model.controller import DocListController
 
-class DocType(DocListController, WebsiteGenerator):
+class DocType(WebsiteGenerator):
 	def autoname(self):
 		from webnotes.webutils import cleanup_page_name
 		self.doc.name = cleanup_page_name(self.doc.title)

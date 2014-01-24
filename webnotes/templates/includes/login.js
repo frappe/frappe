@@ -65,7 +65,7 @@ login.do_login = function(){
 		statusCode: {
 			200: function(data) {
 				if(data.message=="Logged In") {
-					window.location.href = "app.html";
+					window.location.href = "app";
 				} else if(data.message=="No App") {
 					if(localStorage) {
 						var last_visited = localStorage.getItem("last_visited") || "index";

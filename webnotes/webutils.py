@@ -7,6 +7,7 @@ import webnotes
 import json, os, time
 from webnotes import _
 import webnotes.utils
+from webnotes.model.controller import DocListController
 import mimetypes
 from webnotes.website.doctype.website_sitemap.website_sitemap import add_to_sitemap
 
@@ -175,7 +176,6 @@ def get_website_settings():
 	
 	return context
 
-
 def clear_cache(page_name=None):
 	if page_name:
 		delete_page_cache(page_name)
@@ -203,8 +203,11 @@ def is_signup_enabled():
 				webnotes.local.is_signup_enabled = False
 		
 	return webnotes.local.is_signup_enabled
-
-class WebsiteGenerator(object):
+	
+def call_website_generator(bean, method):
+	getattr(WebsiteGenerator(bean.doc, bean.doclist), method)()
+	
+class WebsiteGenerator(DocListController):
 	def setup_generator(self):
 		if webnotes.flags.in_install_app:
 			return
@@ -251,7 +254,7 @@ class WebsiteGenerator(object):
 	def on_trash(self):
 		self.setup_generator()
 		remove_page(self.doc.fields[self._website_config.page_name_field])
-
+		
 def remove_page(page_name):
 	if page_name:
 		delete_page_cache(page_name)

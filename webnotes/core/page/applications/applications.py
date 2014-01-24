@@ -10,7 +10,7 @@ def get_app_list():
 	installed = webnotes.get_installed_apps()
 	for app in webnotes.get_all_apps(True):
 		out[app] = {}
-		app_hooks = webnotes.get_hooks(app)
+		app_hooks = webnotes.get_hooks(app_name=app)
 		for key in ("app_name", "app_title", "app_description", "app_icon",
 			"app_publisher", "app_version", "app_url", "app_color"):
 			out[app][key] = app_hooks.get(key)

@@ -87,7 +87,7 @@ def install_app(name, verbose=False):
 	webnotes.flags.in_install_app = name
 	webnotes.clear_cache()
 
-	app_hooks = webnotes.get_hooks(name)
+	app_hooks = webnotes.get_hooks(app_name=name)
 	installed_apps = webnotes.get_installed_apps()
 
 	if name in installed_apps:

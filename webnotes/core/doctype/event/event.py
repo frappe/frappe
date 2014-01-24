@@ -16,7 +16,7 @@ class DocType:
 		if self.doc.starts_on and self.doc.ends_on and self.doc.starts_on > self.doc.ends_on:
 			webnotes.msgprint(webnotes._("Event End must be after Start"), raise_exception=True)
 			
-def get_match_conditions():
+def get_permission_query_conditions():
 	return """(tabEvent.event_type='Public' or tabEvent.owner='%(user)s'
 		or exists(select * from `tabEvent User` where 
 			`tabEvent User`.parent=tabEvent.name and `tabEvent User`.person='%(user)s')
@@ -27,7 +27,26 @@ def get_match_conditions():
 			"user": webnotes.session.user,
 			"roles": "', '".join(webnotes.get_roles(webnotes.session.user))
 		}
-			
+
+def has_permission(doc):
+	if doc.event_type=="Public" or doc.owner==webnotes.session.user:
+		return True
+		
+	# need full doclist to check roles and users
+	bean = webnotes.bean("Event", doc.name)
+		
+	if len(bean.doclist)==1:
+		return False
+	
+	if bean.doclist.get({"doctype":"Event User", "person":webnotes.session.user}):
+		return True
+		
+	if bean.doclist.get({"doctype":"Event Role", "role":("in", webnotes.get_roles())}):
+		return True
+		
+	return False
+
+
 def send_event_digest():
 	today = nowdate()
 	for user in webnotes.conn.sql("""select name, email, language 

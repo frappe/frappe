@@ -193,7 +193,7 @@ def get_system_managers(only_name=False):
 		return [email.utils.formataddr((p.fullname, p.name)) for p in system_managers]
 	
 def add_role(profile, role):
-	profile_wrapper = webnotes.bean("Profile", profile).get_controller().add_roles([role])
+	profile_wrapper = webnotes.bean("Profile", profile).get_controller().add_roles(role)
 
 def add_system_manager(email, first_name=None, last_name=None):
 	# add profile

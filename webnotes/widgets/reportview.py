@@ -171,7 +171,12 @@ def build_filter_conditions(filters, conditions):
 		if isinstance(f, basestring):
 			conditions.append(f)
 		else:
-			
+			if not isinstance(f, (list, tuple)):
+				webnotes.throw("Filter must be a tuple or list (in a list)")
+
+			if len(f) != 4:
+				webnotes.throw("Filter must have 4 values (doctype, fieldname, condition, value): " + str(f))
+				
 			tname = ('`tab' + f[0] + '`')
 			if not tname in webnotes.local.reportview_tables:
 				webnotes.local.reportview_tables.append(tname)
@@ -240,7 +245,7 @@ def build_match_conditions(doctype, fields=None, as_condition=True):
 										
 	if as_condition:
 		conditions = " and ".join(match_conditions)
-		doctype_conditions = get_doctype_conditions(doctype)
+		doctype_conditions = get_permission_query_conditions(doctype)
 		if doctype_conditions:
 			conditions += ' and ' + doctype_conditions if conditions else doctype_conditions
 			
@@ -255,12 +260,17 @@ def build_match_conditions(doctype, fields=None, as_condition=True):
 	else:
 		return match_filters
 		
-def get_doctype_conditions(doctype):
-	from webnotes.model.code import load_doctype_module
-	module = load_doctype_module(doctype)
-	if module and hasattr(module, 'get_match_conditions'):
-		return getattr(module, 'get_match_conditions')()
-
+def get_permission_query_conditions(doctype):
+	condition_methods = webnotes.get_hooks("permission_query_conditions:" + doctype)
+	if condition_methods:
+		conditions = []
+		for method in condition_methods:
+			c = webnotes.get_attr(method)()
+			if c:
+				conditions.append(c)
+				
+		return " and ".join(conditions) if conditions else None
+		
 def get_tables(doctype, fields):
 	"""extract tables from fields"""
 	tables = ['`tab' + doctype + '`']

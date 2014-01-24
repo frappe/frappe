@@ -331,8 +331,10 @@ def make_module_and_roles(doclist, perm_doctype="DocPerm"):
 			m = webnotes.bean({"doctype": "Module Def", "module_name": doclist[0].module})
 			m.insert()
 		
-		roles = list(set(p.role for p in doclist.get({"doctype": perm_doctype})))
-		for role in roles:
+		default_roles = ["Administrator", "Guest", "All"]
+		roles = [p.role for p in doclist.get({"doctype": perm_doctype})] + default_roles
+		
+		for role in list(set(roles)):
 			if not webnotes.conn.exists("Role", role):
 				r = webnotes.bean({"doctype": "Role", "role_name": role})
 				r.doc.role_name = role

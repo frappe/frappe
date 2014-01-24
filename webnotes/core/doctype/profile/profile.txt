@@ -2,7 +2,7 @@
  {
   "creation": "2013-03-07 11:54:44", 
   "docstatus": 0, 
-  "modified": "2014-01-22 16:05:34", 
+  "modified": "2014-01-23 13:27:37", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -30,8 +30,7 @@
   "name": "__common__", 
   "parent": "Profile", 
   "parentfield": "fields", 
-  "parenttype": "DocType", 
-  "permlevel": 0
+  "parenttype": "DocType"
  }, 
  {
   "cancel": 0, 
@@ -47,6 +46,13 @@
   "name": "Profile"
  }, 
  {
+  "doctype": "DocField", 
+  "fieldname": "sb0_5", 
+  "fieldtype": "Section Break", 
+  "label": "Personal Info", 
+  "permlevel": 0
+ }, 
+ {
   "default": "1", 
   "doctype": "DocField", 
   "fieldname": "enabled", 
@@ -55,19 +61,16 @@
   "label": "Enabled", 
   "oldfieldname": "enabled", 
   "oldfieldtype": "Check", 
+  "permlevel": 0, 
   "read_only": 1
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "sb0_5", 
-  "fieldtype": "Section Break"
  }, 
  {
   "doctype": "DocField", 
   "fieldname": "unsubscribed", 
   "fieldtype": "Check", 
   "hidden": 1, 
-  "label": "Unsubscribed"
+  "label": "Unsubscribed", 
+  "permlevel": 0
  }, 
  {
   "doctype": "DocField", 
@@ -77,6 +80,7 @@
   "label": "Email", 
   "oldfieldname": "email", 
   "oldfieldtype": "Data", 
+  "permlevel": 0, 
   "reqd": 1, 
   "search_index": 0
  }, 
@@ -88,6 +92,7 @@
   "label": "First Name", 
   "oldfieldname": "first_name", 
   "oldfieldtype": "Data", 
+  "permlevel": 0, 
   "reqd": 1
  }, 
  {
@@ -96,7 +101,8 @@
   "fieldtype": "Data", 
   "label": "Middle Name (Optional)", 
   "oldfieldname": "middle_name", 
-  "oldfieldtype": "Data"
+  "oldfieldtype": "Data", 
+  "permlevel": 0
  }, 
  {
   "doctype": "DocField", 
@@ -105,13 +111,15 @@
   "in_list_view": 1, 
   "label": "Last Name", 
   "oldfieldname": "last_name", 
-  "oldfieldtype": "Data"
+  "oldfieldtype": "Data", 
+  "permlevel": 0
  }, 
  {
   "doctype": "DocField", 
   "fieldname": "column_break0", 
   "fieldtype": "Column Break", 
   "oldfieldtype": "Column Break", 
+  "permlevel": 0, 
   "print_width": "50%", 
   "width": "50%"
  }, 
@@ -121,7 +129,8 @@
   "fieldname": "language", 
   "fieldtype": "Select", 
   "label": "Language", 
-  "options": "Loading..."
+  "options": "Loading...", 
+  "permlevel": 0
  }, 
  {
   "doctype": "DocField", 
@@ -129,7 +138,8 @@
   "fieldtype": "Date", 
   "label": "Birth Date", 
   "oldfieldname": "birth_date", 
-  "oldfieldtype": "Date"
+  "oldfieldtype": "Date", 
+  "permlevel": 0
  }, 
  {
   "default": "System User", 
@@ -140,6 +150,7 @@
   "oldfieldname": "user_type", 
   "oldfieldtype": "Select", 
   "options": "System User\nWebsite User", 
+  "permlevel": 0, 
   "read_only": 1, 
   "reqd": 1
  }, 
@@ -151,19 +162,22 @@
   "oldfieldname": "gender", 
   "oldfieldtype": "Select", 
   "options": "\nMale\nFemale\nOther", 
+  "permlevel": 0, 
   "search_index": 0
  }, 
  {
   "doctype": "DocField", 
   "fieldname": "change_password", 
   "fieldtype": "Section Break", 
-  "label": "Set Password"
+  "label": "Set Password", 
+  "permlevel": 0
  }, 
  {
   "doctype": "DocField", 
   "fieldname": "new_password", 
   "fieldtype": "Password", 
-  "label": "New Password"
+  "label": "New Password", 
+  "permlevel": 0
  }, 
  {
   "doctype": "DocField", 
@@ -171,6 +185,7 @@
   "fieldtype": "Data", 
   "hidden": 1, 
   "label": "Reset Password Key", 
+  "permlevel": 0, 
   "print_hide": 1, 
   "read_only": 1
  }, 
@@ -179,45 +194,52 @@
   "doctype": "DocField", 
   "fieldname": "display_settings", 
   "fieldtype": "Section Break", 
-  "label": "Display Settings"
+  "label": "Display Settings", 
+  "permlevel": 0
  }, 
  {
   "doctype": "DocField", 
   "fieldname": "user_image", 
   "fieldtype": "Attach", 
   "hidden": 0, 
-  "label": "User Image"
+  "label": "User Image", 
+  "permlevel": 0
  }, 
  {
   "doctype": "DocField", 
   "fieldname": "background_image", 
   "fieldtype": "Attach", 
   "hidden": 0, 
-  "label": "Background Image"
+  "label": "Background Image", 
+  "permlevel": 0
  }, 
  {
   "doctype": "DocField", 
   "fieldname": "cb21", 
-  "fieldtype": "Column Break"
+  "fieldtype": "Column Break", 
+  "permlevel": 0
  }, 
  {
   "doctype": "DocField", 
   "fieldname": "user_image_show", 
   "fieldtype": "Image", 
   "label": "user_image_show", 
-  "options": "user_image"
+  "options": "user_image", 
+  "permlevel": 0
  }, 
  {
   "doctype": "DocField", 
   "fieldname": "short_bio", 
   "fieldtype": "Section Break", 
-  "label": "Short Bio"
+  "label": "Short Bio", 
+  "permlevel": 0
  }, 
  {
   "doctype": "DocField", 
   "fieldname": "bio", 
   "fieldtype": "Small Text", 
-  "label": "Bio"
+  "label": "Bio", 
+  "permlevel": 0
  }, 
  {
   "description": "Check / Uncheck roles assigned to the Profile. Click on the Role to find out what permissions that Role has.", 
@@ -225,6 +247,7 @@
   "fieldname": "sb1", 
   "fieldtype": "Section Break", 
   "label": "Roles", 
+  "permlevel": 1, 
   "read_only": 1
  }, 
  {
@@ -232,29 +255,34 @@
   "fieldname": "roles_html", 
   "fieldtype": "HTML", 
   "label": "Roles HTML", 
+  "permlevel": 0, 
   "read_only": 1
  }, 
  {
   "doctype": "DocField", 
   "fieldname": "incoming_email_settings", 
   "fieldtype": "Section Break", 
-  "label": "Email Settings"
+  "label": "Email Settings", 
+  "permlevel": 1
  }, 
  {
   "doctype": "DocField", 
   "fieldname": "cb18", 
-  "fieldtype": "Column Break"
+  "fieldtype": "Column Break", 
+  "permlevel": 0
  }, 
  {
   "doctype": "DocField", 
   "fieldname": "email_signature", 
   "fieldtype": "Small Text", 
-  "label": "Email Signature"
+  "label": "Email Signature", 
+  "permlevel": 0
  }, 
  {
   "doctype": "DocField", 
   "fieldname": "cb20", 
-  "fieldtype": "Column Break"
+  "fieldtype": "Column Break", 
+  "permlevel": 0
  }, 
  {
   "description": "Pull Emails from the Inbox and attach them as Communication records (for known contacts).", 
@@ -262,7 +290,8 @@
   "fieldname": "sync_inbox", 
   "fieldtype": "Check", 
   "hidden": 1, 
-  "label": "Sync Inbox"
+  "label": "Sync Inbox", 
+  "permlevel": 0
  }, 
  {
   "description": "POP3 Mail Server (e.g. pop.gmail.com)", 
@@ -270,28 +299,32 @@
   "fieldname": "email_host", 
   "fieldtype": "Data", 
   "hidden": 1, 
-  "label": "Email Host"
+  "label": "Email Host", 
+  "permlevel": 0
  }, 
  {
   "doctype": "DocField", 
   "fieldname": "email_use_ssl", 
   "fieldtype": "Check", 
   "hidden": 1, 
-  "label": "Email Use SSL"
+  "label": "Email Use SSL", 
+  "permlevel": 0
  }, 
  {
   "doctype": "DocField", 
   "fieldname": "email_login", 
   "fieldtype": "Data", 
   "hidden": 1, 
-  "label": "Email Login"
+  "label": "Email Login", 
+  "permlevel": 0
  }, 
  {
   "doctype": "DocField", 
   "fieldname": "email_password", 
   "fieldtype": "Password", 
   "hidden": 1, 
-  "label": "Email Password"
+  "label": "Email Password", 
+  "permlevel": 0
  }, 
  {
   "description": "These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.", 
@@ -301,6 +334,7 @@
   "hidden": 1, 
   "label": "Defaults", 
   "oldfieldtype": "Column Break", 
+  "permlevel": 1, 
   "print_width": "50%", 
   "read_only": 1, 
   "width": "50%"
@@ -312,7 +346,8 @@
   "fieldtype": "Table", 
   "hidden": 1, 
   "label": "Profile Defaults", 
-  "options": "DefaultValue"
+  "options": "DefaultValue", 
+  "permlevel": 0
  }, 
  {
   "doctype": "DocField", 
@@ -320,6 +355,7 @@
   "fieldtype": "Section Break", 
   "label": "Security Settings", 
   "oldfieldtype": "Section Break", 
+  "permlevel": 0, 
   "read_only": 1
  }, 
  {
@@ -328,6 +364,7 @@
   "fieldname": "login_after", 
   "fieldtype": "Int", 
   "label": "Login After", 
+  "permlevel": 0, 
   "read_only": 1
  }, 
  {
@@ -336,6 +373,7 @@
   "fieldname": "login_before", 
   "fieldtype": "Int", 
   "label": "Login Before", 
+  "permlevel": 0, 
   "read_only": 1
  }, 
  {
@@ -344,6 +382,7 @@
   "fieldname": "restrict_ip", 
   "fieldtype": "Data", 
   "label": "Restrict IP", 
+  "permlevel": 0, 
   "read_only": 1
  }, 
  {
@@ -351,6 +390,7 @@
   "fieldname": "column_break1", 
   "fieldtype": "Column Break", 
   "oldfieldtype": "Column Break", 
+  "permlevel": 0, 
   "print_width": "50%", 
   "width": "50%"
  }, 
@@ -362,6 +402,7 @@
   "label": "Last Login", 
   "oldfieldname": "last_login", 
   "oldfieldtype": "Read Only", 
+  "permlevel": 0, 
   "read_only": 1, 
   "reqd": 0, 
   "search_index": 0
@@ -373,6 +414,7 @@
   "label": "Last IP", 
   "oldfieldname": "last_ip", 
   "oldfieldtype": "Read Only", 
+  "permlevel": 0, 
   "read_only": 1
  }, 
  {
@@ -382,6 +424,7 @@
   "hidden": 1, 
   "label": "Roles Assigned To User", 
   "no_copy": 0, 
+  "permlevel": 0, 
   "print_hide": 1, 
   "read_only": 1
  }, 
@@ -392,6 +435,7 @@
   "hidden": 1, 
   "label": "Roles Assigned", 
   "options": "UserRole", 
+  "permlevel": 0, 
   "print_hide": 1, 
   "read_only": 1
  }, 
@@ -415,19 +459,6 @@
   "permlevel": 0, 
   "print": 1, 
   "role": "All", 
-  "write": 0
- }, 
- {
-  "create": 0, 
-  "delete": 0, 
-  "doctype": "DocPerm", 
-  "email": 1, 
-  "permlevel": 0, 
-  "print": 1, 
-  "report": 1, 
-  "restricted": 1, 
-  "role": "All", 
-  "submit": 0, 
   "write": 0
  }, 
  {

@@ -30,16 +30,18 @@ def has_permission(doctype, ptype="read", refdoc=None, verbose=True):
 	# get user permissions
 	if not get_user_perms(meta).get(ptype):
 		return False
-	elif refdoc:
+		
+	if refdoc:
 		if isinstance(refdoc, basestring):
 			refdoc = webnotes.doc(meta[0].name, refdoc)
 		
-		if has_unrestricted_access(meta, refdoc, verbose=verbose):
-			return True
-		else:
+		if not has_unrestricted_access(meta, refdoc, verbose=verbose):
 			return False
-	else:
-		return True
+		
+		if not has_additional_permission(refdoc):
+			return False
+
+	return True
 		
 rights = ["read", "write", "create", "submit", "cancel", "amend",
 	"report", "import", "export", "print", "email", "restrict", "delete", "restricted"]
@@ -97,6 +99,14 @@ def has_unrestricted_access(meta, refdoc, verbose=True):
 	
 	# check all restrictions before returning
 	return False if has_restricted_data else True
+	
+def has_additional_permission(doc):
+	condition_methods = webnotes.get_hooks("has_permission:" + doc.doctype)
+	for method in webnotes.get_hooks("has_permission:" + doc.doctype):
+		if not webnotes.get_attr(method)(doc):
+			return False
+		
+	return True
 	
 def can_restrict_user(user, doctype, docname=None):
 	if not can_restrict(doctype, docname):
