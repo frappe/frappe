@@ -67,6 +67,7 @@ wn.ui.form.AssignTo = Class.extend({
 					callback:function(r,rt) {
 						me.render(r.message);
 						me.frm.toolbar.show_infobar();
+						me.frm.comments.refresh();
 					}
 				});
 				return false;
@@ -124,6 +125,7 @@ wn.ui.form.AssignTo = Class.extend({
 							if(!r.exc) {
 								me.render(r.message);
 								me.frm.toolbar.show_infobar();
+								me.frm.comments.refresh();
 							}
 						},
 						btn: this

@@ -36,6 +36,8 @@ class Bean:
 		if isinstance(dt, basestring) and not dn:
 			dn = dt
 		if dt and dn:
+			if isinstance(dn, dict):
+				dn = webnotes.conn.get_value(dt, dn, "name")
 			self.load_from_db(dt, dn)
 		elif isinstance(dt, list):
 			self.set_doclist(dt)
@@ -233,7 +235,10 @@ class Bean:
 		self.make_controller()
 		return getattr(self.controller, method, None)
 
-	def insert(self):
+	def insert(self, ignore_permissions=None):
+		if ignore_permissions:
+			self.ignore_permissions = True
+			
 		self.doc.fields["__islocal"] = 1
 			
 		self.set_defaults()
@@ -270,7 +275,9 @@ class Bean:
 	def has_read_perm(self):
 		return webnotes.has_permission(self.doc.doctype, "read", self.doc)
 	
-	def save(self, check_links=1):
+	def save(self, check_links=1, ignore_permissions=None):
+		if ignore_permissions:
+			self.ignore_permissions = ignore_permissions
 		perm_to_check = "write"
 		if self.doc.fields.get("__islocal"):
 			perm_to_check = "create"

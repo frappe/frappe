@@ -141,6 +141,9 @@ class Document:
 				raise webnotes.DoesNotExistError, '[WNF] %s %s does not exist' % (self.doctype, self.name)
 			self._load_values(dataset[0], webnotes.conn.get_description())
 
+	def is_new(self):
+		return self.fields.get("__islocal")
+
 	def _load_values(self, data, description):
 		if '__islocal' in self.fields:
 			del self.fields['__islocal']
@@ -206,7 +209,7 @@ class Document:
 
 		# if required, make new
 		if not self._meta.issingle:
-			if self.fields.get('__islocal'):
+			if self.is_new():
 				r = self._insert(make_autoname=make_autoname, keep_timestamps = keep_timestamps)
 				if r: 
 					return r

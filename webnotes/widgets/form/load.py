@@ -35,7 +35,7 @@ def getdoc(doctype, name, user=None):
 		doclist = bean.doclist
 
 		# add file list
-		set_docinfo(doctype, name)
+		get_docinfo(doctype, name)
 		
 	except Exception, e:
 		webnotes.errprint(webnotes.utils.get_traceback())
@@ -72,7 +72,7 @@ def getdoctype(doctype, with_parent=False, cached_timestamp=None):
 	
 	webnotes.response['docs'] = doclist
 
-def set_docinfo(doctype, name):
+def get_docinfo(doctype, name):
 	webnotes.response["docinfo"] = {
 		"attachments": add_attachments(doctype, name),
 		"comments": add_comments(doctype, name),
@@ -104,7 +104,7 @@ def add_comments(dt, dn, limit=20):
 	
 def add_assignments(dt, dn):
 	cl = webnotes.conn.sql_list("""select owner from `tabToDo`
-		where reference_type=%(doctype)s and reference_name=%(name)s
+		where reference_type=%(doctype)s and reference_name=%(name)s and status="Open"
 		order by modified desc limit 5""", {
 			"doctype": dt,
 			"name": dn

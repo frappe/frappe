@@ -8,66 +8,75 @@ $.extend(wn.model, {
 			extract doclist, docinfo (attachments, comments, assignments)
 			from incoming request and set in `locals` and `wn.model.docinfo`
 		*/
-		var doclist = r.docs ? r.docs : r;
 
-		if(doclist._kl)
-			doclist = wn.model.expand(doclist);
+		if(!r.docs && !r.docinfo) r = {docs:r};
 
-		if(doclist && doclist.length)
-			wn.model.clear_doclist(doclist[0].doctype, doclist[0].name)
+		if(r.docs) {
+			var doclist = r.docs;
+			if(doclist._kl)
+				doclist = wn.model.expand(doclist);
 
-		var last_parent_name = null;
-		var dirty = [];
-		$.each(doclist, function(i, d) {
-			if(!d.name && d.__islocal) { // get name (local if required)
-				d.name = wn.model.get_new_name(d.doctype);
-				wn.provide("wn.model.docinfo." + d.doctype + "." + d.name);	
-				if(!d.parenttype)
-					last_parent_name = d.name;
+			if(doclist && doclist.length)
+				wn.model.clear_doclist(doclist[0].doctype, doclist[0].name)
+
+			var last_parent_name = null;
+			var dirty = [];
+			$.each(doclist, function(i, d) {
+				if(!d.name && d.__islocal) { // get name (local if required)
+					d.name = wn.model.get_new_name(d.doctype);
+					wn.provide("wn.model.docinfo." + d.doctype + "." + d.name);	
+					if(!d.parenttype)
+						last_parent_name = d.name;
 					
-				if(dirty.indexOf(d.parenttype || d.doctype)===-1) dirty.push(d.parenttype || d.doctype);
-			}
-
-			// set parent for subsequent orphans
-			if(d.parenttype && !d.parent && d.__islocal) {
-				d.parent = last_parent_name;
-			}
-
-			if(!locals[d.doctype])
-				locals[d.doctype] = {};
-
-			locals[d.doctype][d.name] = d;
-			d.__last_sync_on = new Date();
-
-			if(cur_frm && cur_frm.doctype==d.doctype && cur_frm.docname==d.name) {
-				cur_frm.doc = d;
-			}
-
-			if(d.doctype=='DocField') wn.meta.add_field(d);
-			if(d.doctype=='DocType') wn.meta.sync_messages(d);
-
-			if(d.localname) {
-				wn.model.new_names[d.localname] = d.name;
-				$(document).trigger('rename', [d.doctype, d.localname, d.name]);
-				delete locals[d.doctype][d.localname];
-				
-				// update docinfo to new dict keys
-				if(i===0) {
-					wn.model.docinfo[d.doctype][d.name] = wn.model.docinfo[d.doctype][d.localname];
-					wn.model.docinfo[d.doctype][d.localname] = undefined;
+					if(dirty.indexOf(d.parenttype || d.doctype)===-1) dirty.push(d.parenttype || d.doctype);
 				}
-			}
-		});
+
+				// set parent for subsequent orphans
+				if(d.parenttype && !d.parent && d.__islocal) {
+					d.parent = last_parent_name;
+				}
+
+				if(!locals[d.doctype])
+					locals[d.doctype] = {};
+
+				locals[d.doctype][d.name] = d;
+				d.__last_sync_on = new Date();
+
+				if(cur_frm && cur_frm.doctype==d.doctype && cur_frm.docname==d.name) {
+					cur_frm.doc = d;
+				}
+
+				if(d.doctype=='DocField') wn.meta.add_field(d);
+				if(d.doctype=='DocType') wn.meta.sync_messages(d);
+
+				if(d.localname) {
+					wn.model.new_names[d.localname] = d.name;
+					$(document).trigger('rename', [d.doctype, d.localname, d.name]);
+					delete locals[d.doctype][d.localname];
+				
+					// update docinfo to new dict keys
+					if(i===0) {
+						wn.model.docinfo[d.doctype][d.name] = wn.model.docinfo[d.doctype][d.localname];
+						wn.model.docinfo[d.doctype][d.localname] = undefined;
+					}
+				}
+			});
+			
+			if(cur_frm && dirty.indexOf(cur_frm.doctype)!==-1) cur_frm.dirty();
+
+		}
 		
 		// set docinfo
 		if(r.docinfo) {
-			var doc = doclist[0]
+			if(doclist) {
+				var doc = doclist[0];
+			} else {
+				var doc = cur_frm.doc;
+			}
 			if(!wn.model.docinfo[doc.doctype])
 				wn.model.docinfo[doc.doctype] = {};
 			wn.model.docinfo[doc.doctype][doc.name] = r.docinfo;
 		}
-		
-		if(cur_frm && dirty.indexOf(cur_frm.doctype)!==-1) cur_frm.dirty();
 		
 		return doclist;
 	},

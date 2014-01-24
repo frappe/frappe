@@ -39,6 +39,9 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		$(this.page).on("show", function() {
 			me.refresh();
 		});
+		
+		// refresh on init
+		me.refresh();
 	},
 	
 	make_page: function() {
@@ -79,7 +82,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		this.$page.find('.wnlist-area').empty(),
 		this.setup_listview();
 		this.setup_docstatus_filter();
-		this.init_list();
+		this.init_list(false);
 		this.init_stats();
 		this.init_minbar();
 		this.show_match_help();
@@ -181,12 +184,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 	refresh: function() {
 		var me = this;
 		if(wn.route_options) {
-			me.filter_list.clear_filters();
-			$.each(wn.route_options, function(key, value) {
-				me.filter_list.add_filter(me.doctype, key, "=", value);
-			});
-			wn.route_options = null;
-			me.run();
+			me.set_route_options();
 		} else if(me.dirty) {
 			me.run();
 		} else {
@@ -195,6 +193,16 @@ wn.views.DocListView = wn.ui.Listing.extend({
 				me.run();
 			}
 		}
+	},
+	
+	set_route_options: function() {
+		var me = this;
+		me.filter_list.clear_filters();
+		$.each(wn.route_options, function(key, value) {
+			me.filter_list.add_filter(me.doctype, key, "=", value);
+		});
+		wn.route_options = null;
+		me.run();
 	},
 	
 	run: function(more) {

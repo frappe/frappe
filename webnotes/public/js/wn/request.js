@@ -184,7 +184,7 @@ wn.request.cleanup = function(opts, r) {
 		console.log("-")
 	}
 	
-	if(r.docs) {
+	if(r.docs || r.docinfo) {
 		r.docs = wn.model.sync(r);
 	}
 	if(r.__messages) {

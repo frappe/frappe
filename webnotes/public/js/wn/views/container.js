@@ -29,8 +29,7 @@ wn.views.Container = Class.extend({
 		return page;
 	},
 	change_to: function(label) {
-		if(this.page && this.page.label == label) {
-			// don't trigger double events
+		if(this.page && this.page.label === label) {
 			$(this.page).trigger('show');
 			return;
 		}

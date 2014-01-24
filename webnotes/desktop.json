@@ -24,8 +24,9 @@
 		"color": "#f1c40f", 
 		"icon": "icon-check", 
 		"label": "To Do", 
-		"link": "todo", 
-		"type": "page"
+		"link": "List/ToDo",
+		"doctype": "ToDo",
+		"type": "list"
 	}, 
 	"Website": {
 		"color": "#16a085", 

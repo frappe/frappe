@@ -7,14 +7,17 @@ from __future__ import unicode_literals
 import webnotes
 from webnotes import _
 from webnotes.utils import cint
+from webnotes.widgets.form.load import get_docinfo
 
-@webnotes.whitelist()
 def get(args=None):
 	"""get assigned to"""
 	if not args:
 		args = webnotes.local.form_dict
+		
+	get_docinfo(args.get("doctype"), args.get("name"))
+	
 	return webnotes.conn.sql_list("""select owner from `tabToDo`
-		where reference_type=%(doctype)s and reference_name=%(name)s
+		where reference_type=%(doctype)s and reference_name=%(name)s and status="Open"
 		order by modified desc limit 5""", args)
 		
 @webnotes.whitelist()
@@ -24,23 +27,24 @@ def add(args=None):
 		args = webnotes.local.form_dict
 		
 	if webnotes.conn.sql("""select owner from `tabToDo`
-		where reference_type=%(doctype)s and reference_name=%(name)s
+		where reference_type=%(doctype)s and reference_name=%(name)s and status="Open"
 		and owner=%(assign_to)s""", args):
 		webnotes.msgprint("Already in todo", raise_exception=True)
 		return
 	else:
-		from webnotes.model.doc import Document
 		from webnotes.utils import nowdate
 		
-		d = Document("ToDo")
-		d.owner = args['assign_to']
-		d.reference_type = args['doctype']
-		d.reference_name = args['name']
-		d.description = args.get('description')
-		d.priority = args.get('priority', 'Medium')
-		d.date = args.get('date', nowdate())
-		d.assigned_by = args.get('assigned_by', webnotes.user.name)
-		d.save(1)
+		d = webnotes.bean({
+			"doctype":"ToDo",
+			"owner": args['assign_to'],
+			"reference_type": args['doctype'],
+			"reference_name": args['name'],
+			"description": args.get('description'),
+			"priority": args.get("priority", "Medium"),
+			"status": "Open",
+			"date": args.get('date', nowdate()),
+			"assigned_by": args.get('assigned_by', webnotes.user.name),
+		}).insert(ignore_permissions=True).doc
 		
 		# set assigned_to if field exists
 		from webnotes.model.meta import has_field
@@ -75,21 +79,16 @@ def add(args=None):
 @webnotes.whitelist()
 def remove(doctype, name, assign_to):
 	"""remove from todo"""
-	res = webnotes.conn.sql("""\
-		select assigned_by, owner, reference_type, reference_name from `tabToDo`
-		where reference_type=%(doctype)s and reference_name=%(name)s
-		and owner=%(assign_to)s""", locals())
-
-	webnotes.conn.sql("""delete from `tabToDo`
-		where reference_type=%(doctype)s and reference_name=%(name)s
-		and owner=%(assign_to)s""", locals())
+	todo = webnotes.bean("ToDo", {"reference_type":doctype, "reference_name":name, "owner":assign_to, "status":"Open"})
+	todo.doc.status = "Closed"
+	todo.save(ignore_permissions=True)
 		
 	# clear assigned_to if field exists
 	from webnotes.model.meta import has_field
 	if has_field(doctype, "assigned_to"):
 		webnotes.conn.set_value(doctype, name, "assigned_to", None)
 
-	if res and res[0]: notify_assignment(res[0][0], res[0][1], res[0][2], res[0][3])
+	notify_assignment(todo.doc.assigned_by, todo.doc.owner, todo.doc.reference_type, todo.doc.reference_name)
 
 	return get({"doctype": doctype, "name": name})
 	
