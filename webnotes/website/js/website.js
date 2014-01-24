@@ -283,9 +283,10 @@ function is_html(txt) {
 }
 
 function ask_to_login() {
-	if(!full_name) {
+	if(!window.full_name) {
 		if(localStorage) {
-			localStorage.setItem("last_visited", window.location.href.split("/").slice(-1)[0]);
+			localStorage.setItem("last_visited",
+				window.location.href.replace(window.location.origin, ""));
 		}
 		window.location.href = "login";
 	}

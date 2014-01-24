@@ -50,8 +50,7 @@ def get_script(report_name):
 	return script
 
 @webnotes.whitelist()
-def run(report_name, filters=None):
-	
+def run(report_name, filters=()):
 	report = get_report_doc(report_name)
 	
 	if filters and isinstance(filters, basestring):

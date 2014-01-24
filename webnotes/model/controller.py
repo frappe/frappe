@@ -50,6 +50,10 @@ class DocListController(object):
 		elif df.fieldtype in ("Int", "Check"):
 			val1 = cint(val1)
 			val2 = cint(val2)
+		elif df.fieldtype in ("Data", "Text", "Small Text", "Long Text", 
+			"Text Editor", "Select", "Link"):
+				val1 = cstr(val1)
+				val2 = cstr(val2)
 		
 		if not webnotes.compare(val1, condition, val2):
 			msg = _("Error") + ": "
