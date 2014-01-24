@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import webnotes, json
 from webnotes.utils import cint, now, cstr
-from webnotes import _
+from webnotes import throw, msgprint, _
 from webnotes.auth import _update_password
 
 class DocType:
@@ -19,7 +19,7 @@ class DocType:
 			self.doc.name = self.doc.email
 			
 			if webnotes.conn.exists("Profile", self.doc.name):
-				webnotes.msgprint("Name Exists", raise_exception=True)
+				throw(_("Name Exists"))
 
 	def validate(self):
 		self.in_insert = self.doc.fields.get("__islocal")
@@ -35,7 +35,7 @@ class DocType:
 					_update_password(self.doc.name, self.doc.new_password)
 				if not getattr(self, "no_welcome_mail", False):
 					self.send_welcome_mail()
-					webnotes.msgprint(_("Welcome Email Sent"))
+					msgprint(_("Welcome Email Sent"))
 		else:
 			try:
 				self.email_new_password()
@@ -48,9 +48,11 @@ class DocType:
 	def check_enable_disable(self):
 		# do not allow disabling administrator/guest
 		if not cint(self.doc.enabled) and self.doc.name in ["Administrator", "Guest"]:
-			webnotes.msgprint("Hey! You cannot disable user: %s" % self.doc.name,
-				raise_exception=1)
-				
+			throw("{msg}: {name}".format(**{
+				"msg": _("Hey! You cannot disable user"), 
+				"name": self.doc.name
+			}))
+
 		if not cint(self.doc.enabled):
 			self.a_system_manager_should_exist()
 		
@@ -70,13 +72,13 @@ class DocType:
 				and ifnull(user_type, "System User") = "System User"
 				and name not in ('Administrator', 'Guest', %s)""", (self.doc.name,))[0][0]
 			if active_users >= conf.max_users and conf.max_users:
-				webnotes.msgprint("""
+				throw("""
 					You already have <b>%(active_users)s</b> active users, \
 					which is the maximum number that you are currently allowed to add. <br /><br /> \
 					So, to add more users, you can:<br /> \
 					1. <b>Upgrade to the unlimited users plan</b>, or<br /> \
 					2. <b>Disable one or more of your existing users and try again</b>""" \
-					% {'active_users': active_users}, raise_exception=1)
+					% {'active_users': active_users})
 						
 	def add_system_manager_role(self):
 		# if adding system manager, do nothing
@@ -85,7 +87,7 @@ class DocType:
 			return
 		
 		if self.doc.user_type == "System User" and not self.get_other_system_managers():
-			webnotes.msgprint("""Adding System Manager Role as there must 
+			msgprint("""Adding System Manager Role as there must 
 				be atleast one 'System Manager'.""")
 			self.doclist.append({
 				"doctype": "UserRole",
@@ -218,14 +220,15 @@ Thank you,<br>
 		
 	def a_system_manager_should_exist(self):
 		if not self.get_other_system_managers():
-			webnotes.msgprint(_("""Hey! There should remain at least one System Manager"""),
-				raise_exception=True)
+			throw(_("Hey! There should remain at least one System Manager"))
 		
 	def on_trash(self):
 		webnotes.clear_cache(user=self.doc.name)
 		if self.doc.name in ["Administrator", "Guest"]:
-			webnotes.msgprint("""Hey! You cannot delete user: %s""" % (self.name, ),
-				raise_exception=1)
+			throw("{msg}: {name}".format(**{
+				"msg": _("Hey! You cannot delete user"), 
+				"name": self.doc.name
+			}))
 		
 		self.a_system_manager_should_exist()
 				
@@ -258,8 +261,10 @@ Thank you,<br>
 	def validate_rename(self, olddn, newdn):
 		# do not allow renaming administrator and guest
 		if olddn in ["Administrator", "Guest"]:
-			webnotes.msgprint("""Hey! You are restricted from renaming the user: %s""" % \
-				(olddn, ), raise_exception=1)
+			throw("{msg}: {name}".format(**{
+				"msg": _("Hey! You are restricted from renaming the user"), 
+				"name": olddn
+			}))
 		
 		self.validate_email_type(newdn)
 	
@@ -268,8 +273,10 @@ Thank you,<br>
 	
 		email = email.strip()
 		if not validate_email_add(email):
-			webnotes.msgprint("%s is not a valid email id" % email)
-			raise Exception
+			throw("{email} {msg}".format(**{
+				"email": email, 
+				"msg": _("is not a valid email id")
+			}))
 	
 	def after_rename(self, olddn, newdn, merge=False):			
 		tables = webnotes.conn.sql("show tables")

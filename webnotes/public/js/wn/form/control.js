@@ -680,17 +680,17 @@ wn.ui.form.ControlSelect = wn.ui.form.ControlData.extend({
 	},
 	set_input: function(value) {
 		// refresh options first - (new ones??)
-		this.set_options();
-		
+		this.set_options(value || "");
+
 		this._super(value);
-		
+
 		// not a possible option, repair
 		if(this.doctype && this.docname) {
 			// model value is not an option,
 			// set the default option (displayed)
 			var input_value = this.$input.val();
 			var model_value = wn.model.get_value(this.doctype, this.docname, this.df.fieldname);
-			if(input_value != (model_value || "")) {
+			if(model_value == null && input_value != (model_value || "")) {
 				this.set_model_value(input_value);
 			} else {
 				this.last_value = value;
@@ -718,23 +718,22 @@ wn.ui.form.ControlSelect = wn.ui.form.ControlData.extend({
 			me.$attach.toggle(!me.frm.doc.__islocal);
 		});
 	},
-	set_options: function() {
+	set_options: function(value) {
 		var options = this.df.options || [];
 		if(this.df.options=="attach_files:") {
 			options = this.get_file_attachment_list();
 		} else if(typeof this.df.options==="string") {
 			options = this.df.options.split("\n");
 		}
-	
+
 		if(this.in_filter && options[0] != "") {
 			options = add_lists([''], options);
 		}
-	
-		var selected = this.$input.find(":selected").val();
 
+		var selected = this.$input.find(":selected").val();
 		this.$input.empty().add_options(options || []);
 
-		if(selected) this.$input.val(selected);
+		if(value===undefined && selected) this.$input.val(selected);
 	},
 	get_file_attachment_list: function() {
 		if(!this.frm) return;
