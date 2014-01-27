@@ -11,11 +11,11 @@ cur_frm.cscript.onload = function(doc, dt, dn, callback) {
 }
 
 cur_frm.cscript.before_load = function(doc, dt, dn, callback) {
-	var update_language_select = function() {
+	var update_language_select = function(profile_language) {
 		cur_frm.set_df_property("language", "options", wn.languages || ["", "English"]);
-		callback();
+		callback && callback();
 	}
-	
+
 	if(!wn.languages) {
 		wn.call({
 			method: "webnotes.core.doctype.profile.profile.get_languages",
@@ -43,7 +43,7 @@ cur_frm.cscript.refresh = function(doc) {
 
 	cur_frm.toggle_display(['sb1', 'sb3'], false);
 
- 	if(!doc.__islocal){		
+	if(!doc.__islocal){
 		cur_frm.add_custom_button("Set Properties", function() {
 			wn.route_options = {
 				"user": doc.name
@@ -185,7 +185,7 @@ wn.RoleEditor = Class.extend({
 		});
 		
 		refresh_field("user_roles");
-	},	
+	},
 	get_roles: function() {
 		var checked_roles = [];
 		var unchecked_roles = [];
@@ -258,5 +258,3 @@ wn.RoleEditor = Class.extend({
 		});
 	}
 });
-
-

@@ -34,15 +34,19 @@ set_multiple = function (dt, dn, dict, table_field) {
 	var d = locals[dt][dn];
 	for(var key in dict) {
 		d[key] = dict[key];
-	    if (table_field)	refresh_field(key, d.name, table_field);     
-		else 				refresh_field(key);	
+		if (table_field)
+			refresh_field(key, d.name, table_field);
+		else
+			refresh_field(key);
 	}
 }
 
 refresh_many = function (flist, dn, table_field) {
 	for(var i in flist) {
-		if (table_field) refresh_field(flist[i], dn, table_field);
-		else refresh_field(flist[i]);
+		if (table_field)
+			refresh_field(flist[i], dn, table_field);
+		else
+			refresh_field(flist[i]);
 	}
 }
 
