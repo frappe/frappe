@@ -71,7 +71,8 @@ def get_sites(sites_path=None):
 		sites_path = '.'
 	return [site for site in os.listdir(sites_path)
 			if not os.path.islink(os.path.join(sites_path, site))
-				and os.path.isdir(os.path.join(sites_path, site))]
+				and os.path.isdir(os.path.join(sites_path, site))
+				and not site in ('assets',)]
 	
 def setup_parser():
 	import argparse
