@@ -715,10 +715,10 @@ def update_site_config(site_config, verbose=False):
 	
 	config = webnotes.get_site_config()
 	config.update(site_config)
-	site_config_path = site_filepath = os.path.join(webnotes.local.site_path, "site_config.json")
+	site_config_path = os.path.join(webnotes.local.site_path, "site_config.json")
 	
 	with open(site_config_path, "w") as f:
-		json.dump(webnotes.conf.site_config, f, indent=1, sort_keys=True)
+		json.dump(config, f, indent=1, sort_keys=True)
 		
 	webnotes.destroy()
 
