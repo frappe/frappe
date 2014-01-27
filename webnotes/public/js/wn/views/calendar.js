@@ -36,6 +36,10 @@ wn.views.Calendar = Class.extend({
 		this.page.appframe.set_title(wn._("Calendar") + " - " + wn._(this.doctype));
 		this.page.appframe.add_module_icon(module==="Core" ? "Calendar" : module)
 		this.page.appframe.set_views_for(this.doctype, "calendar");
+		this.page.appframe.add_button("New", function() {
+			var doc = wn.model.get_new_doc(me.doctype);
+			wn.set_route("Form", me.doctype, doc.name);
+		}, "icon-plus");
 		
 		var me = this;
 		$(this.page).on("show", function() {
