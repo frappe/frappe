@@ -55,8 +55,10 @@ def send(recipients=None, sender=None, doctype='Profile', email_field='email',
 
 	import HTMLParser
 	from webnotes.utils.email_lib.html2text import html2text
+	from webnotes.utils import expand_partial_links
 	
 	try:
+		message = expand_partial_links(message)
 		text_content = html2text(message)
 	except HTMLParser.HTMLParseError:
 		text_content = "[See html attachment]"

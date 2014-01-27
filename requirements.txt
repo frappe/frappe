@@ -18,3 +18,4 @@ slugify
 termcolor
 werkzeug
 semantic_version
+inlinestyler
