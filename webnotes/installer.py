@@ -162,3 +162,11 @@ def get_conf_params(db_name=None, db_password=None):
 		db_password = random_string(16)
 	
 	return {"db_name": db_name, "db_password": db_password}
+
+def make_site_dirs():
+	site_public_path = os.path.join(webnotes.local.site_path, 'public')
+	for dir_path in (
+			os.path.join(site_public_path, 'backups'),
+			os.path.join(site_public_path, 'files')):
+		if not os.path.exists(dir_path):
+			os.makedirs(dir_path)

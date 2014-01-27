@@ -25,7 +25,7 @@ def main():
 			exit(1)
 			
 		if parsed_args.get("site")=="all":
-			for site in get_sites():
+			for site in get_sites(parsed_args["sites_path"]):
 				args = parsed_args.copy()
 				args["site"] = site
 				webnotes.init(site)
@@ -65,12 +65,14 @@ def get_function(args):
 		if (val or isinstance(val, list)) and globals().get(fn):
 			return fn
 	
-def get_sites():
+def get_sites(sites_path=None):
 	import os
-	import conf
-	return [site for site in os.listdir(conf.sites_dir)
-			if not os.path.islink(os.path.join(conf.sites_dir, site)) 
-				and os.path.isdir(os.path.join(conf.sites_dir, site))]
+	if not sites_path:
+		sites_path = '.'
+	return [site for site in os.listdir(sites_path)
+			if not os.path.islink(os.path.join(sites_path, site))
+				and os.path.isdir(os.path.join(sites_path, site))
+				and not site in ('assets',)]
 	
 def setup_parser():
 	import argparse
@@ -222,9 +224,10 @@ def make_app():
 @cmd
 def install(db_name, root_login="root", root_password=None, source_sql=None,
 	 admin_password = 'admin', verbose=True, force=False, site_config=None, reinstall=False):
-	from webnotes.installer import install_db, install_app
+	from webnotes.installer import install_db, install_app, make_site_dirs
 	install_db(root_login=root_login, root_password=root_password, db_name=db_name, source_sql=source_sql,
 		admin_password = admin_password, verbose=verbose, force=force, site_config=site_config, reinstall=reinstall)
+	make_site_dirs()
 	install_app("webnotes", verbose=verbose)
 	webnotes.destroy()
 
@@ -710,8 +713,9 @@ def update_site_config(site_config, verbose=False):
 	if isinstance(site_config, basestring):
 		site_config = json.loads(site_config)
 	
-	webnotes.conf.site_config.update(site_config)
-	site_config_path = webnotes.get_conf_path(webnotes.conf.sites_dir)
+	config = webnotes.get_site_config()
+	config.update(site_config)
+	site_config_path = site_filepath = os.path.join(webnotes.local.site_path, "site_config.json")
 	
 	with open(site_config_path, "w") as f:
 		json.dump(webnotes.conf.site_config, f, indent=1, sort_keys=True)
