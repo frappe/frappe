@@ -77,6 +77,8 @@ def build_page(page_name):
 		hooks = webnotes.get_hooks()
 		if hooks.website_catch_all:
 			return build_page(hooks.website_catch_all[0])
+		else:
+			return build_page("404")
 		
 	page_options["page_name"] = page_name
 	
