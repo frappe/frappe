@@ -713,8 +713,9 @@ def update_site_config(site_config, verbose=False):
 	if isinstance(site_config, basestring):
 		site_config = json.loads(site_config)
 	
-	webnotes.conf.site_config.update(site_config)
-	site_config_path = webnotes.get_conf_path(webnotes.conf.sites_dir)
+	config = webnotes.get_site_config()
+	config.update(site_config)
+	site_config_path = site_filepath = os.path.join(webnotes.local.site_path, "site_config.json")
 	
 	with open(site_config_path, "w") as f:
 		json.dump(webnotes.conf.site_config, f, indent=1, sort_keys=True)
