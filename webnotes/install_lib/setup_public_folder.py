@@ -16,7 +16,7 @@ def make(site=None):
 	site_path = get_site_base_path() if site else get_base_path()
 	
 	# setup standard folders
-	for param in (("public_path", "public"), ("backup_path", "public/backups"), ("files_path", "public/files")):
+	for param in (("private_path", "private"), ("public_path", "public"), ("backup_path", "private/backups"), ("files_path", "public/files")):
 		path = os.path.join(site_path, webnotes.conf.get(param[0], param[1]))
 		if not os.path.exists(path):
 			os.mkdir(path)

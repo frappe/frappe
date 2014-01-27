@@ -7,6 +7,11 @@ from __future__ import unicode_literals
 from webnotes import conf
 
 import webnotes
+import mimetypes
+import os
+from werkzeug.wsgi import wrap_file
+from werkzeug.wrappers import Response
+from werkzeug.exceptions import NotFound, Unauthorized
 
 
 no_value_fields = ['Section Break', 'Column Break', 'HTML', 'Table', 'FlexTable',
@@ -928,3 +933,29 @@ def expand_partial_links(html):
 	if not url.endswith("/"): url += "/"
 	return re.sub('(href|src){1}([\s]*=[\s]*[\'"]?)((?!http)[^\'" >]+)([\'"]?)', 
 		'\g<1>\g<2>{}\g<3>\g<4>'.format(url), html)
+
+def download_backup(path):
+	try:
+		webnotes.only_for(("System Manager", "Administrator"))
+	except webnotes.PermissionError:
+		raise Unauthorized
+	send_private_file(path)
+
+def send_private_file(path):
+	path = path[1:] if path.startswith('/') else path
+	path = os.path.join(webnotes.local.conf.get('private_path', 'private'), path)
+
+	if webnotes.local.request.headers.get('X-Use-X-Accel-Redirect'):
+		path = '/' + path
+		webnotes.local._response.headers['X-Accel-Redirect'] = path
+	else:
+		filename = os.path.basename(path)
+		filepath = get_site_path(path)
+		try:
+			f = open(filepath, 'rb')
+		except IOError:
+			raise NotFound
+		webnotes.local._response = Response(wrap_file(webnotes.local.request.environ, f))
+		webnotes.local._response.headers.add('Content-Disposition', 'attachment', filename=filename)
+		webnotes.local._response.headers['Content-Type'] = mimetypes.guess_type(filename)[0] or 'application/octet-stream'
+
