@@ -65,11 +65,16 @@ wn.ui.form.LinkedWith = Class.extend({
 						$.each(keys(r.message).sort(), function(i, doctype) {							
 							var listview = wn.views.get_listview(doctype, me);
 							listview.no_delete = true;
-							$("<h4>").html(wn._(doctype)).appendTo(parent);
+							
+							var wrapper = $('<div class="panel panel-default"><div>').appendTo(parent);
+							$('<div class="panel-heading">').html(wn._(doctype).bold()).appendTo(wrapper);
+							var body = $('<div class="panel-body">').appendTo(wrapper)
+								.css({"padding-top": "0px", "padding-bottom": "0px"});
 							
 							$.each(r.message[doctype], function(i, d) {
 								d.doctype = doctype;
-								listview.render($("<div>").appendTo(parent), d, me);
+								listview.render($("<div>")
+									.appendTo(body), d, me);
 							})
 						})
 					} else {

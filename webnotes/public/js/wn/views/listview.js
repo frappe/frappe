@@ -342,6 +342,20 @@ wn.views.ListView = Class.extend({
 				})
 				.appendTo(parent.css({"overflow":"hidden"}));
 		}
+		else if(opts.type=="link" && data[opts.content]) {
+			$("<span>")
+				.html(wn.format(data[opts.content], opts.df, null, data))
+				.appendTo(parent.css({"overflow":"hidden"}))
+				.click(function() {
+					me.doclistview.set_filter($(this).attr("data-fieldname"), 
+						$(this).attr("data-value"));
+					return false;
+				})
+				.attr("data-fieldname", opts.content)
+				.attr("data-value", data[opts.content])
+				.find("a").attr("href", "#");
+			
+		}
 		else if(data[opts.content]) {
 			$("<span>")
 				.html(wn.format(data[opts.content], opts.df, null, data))

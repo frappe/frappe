@@ -48,8 +48,8 @@ class Profile:
 	def build_perm_map(self):
 		"""build map of permissions at level 0"""
 		self.perm_map = {}
-		for r in webnotes.conn.sql("""select parent, `read`, `write`, `create`, `submit`, `cancel`,
-			`report`, `import`, `export`, `print`, `email`, `restrict`
+		for r in webnotes.conn.sql("""select parent, `read`, `write`, `create`, `delete`, `submit`, 
+			`cancel`,`report`, `import`, `export`, `print`, `email`, `restrict`
 			from tabDocPerm where docstatus=0 
 			and ifnull(permlevel,0)=0
 			and parent not like "old_parent:%%" 
@@ -59,11 +59,11 @@ class Profile:
 			if not dt in  self.perm_map:
 				self.perm_map[dt] = {}
 				
-			for k in ('read', 'write', 'create', 'submit', 'cancel', 'amend',
+			for k in ('read', 'write', 'create', 'submit', 'cancel', 'amend', 'delete',
 				'report', 'import', 'export', 'print', 'email', 'restrict'):
 				if not self.perm_map[dt].get(k):
 					self.perm_map[dt][k] = r.get(k)
-		
+							
 	def build_permissions(self):
 		"""build lists of what the user can read / write / create
 		quirks: 

@@ -2,7 +2,7 @@
  {
   "creation": "2013-02-18 13:36:19", 
   "docstatus": 0, 
-  "modified": "2014-01-24 11:25:15", 
+  "modified": "2014-01-27 11:57:14", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -33,7 +33,6 @@
  }, 
  {
   "cancel": 0, 
-  "delete": 0, 
   "doctype": "DocPerm", 
   "email": 1, 
   "name": "__common__", 
@@ -64,11 +63,13 @@
   "doctype": "DocField", 
   "fieldname": "module", 
   "fieldtype": "Link", 
+  "in_list_view": 1, 
   "label": "Module", 
   "oldfieldname": "module", 
   "oldfieldtype": "Link", 
   "options": "Module Def", 
-  "reqd": 1
+  "reqd": 1, 
+  "search_index": 1
  }, 
  {
   "description": "Child Tables are shown as a Grid in other DocTypes.", 
@@ -360,11 +361,13 @@
   "search_index": 0
  }, 
  {
+  "delete": 0, 
   "doctype": "DocPerm", 
   "role": "System Manager"
  }, 
  {
   "create": 1, 
+  "delete": 1, 
   "doctype": "DocPerm", 
   "role": "Administrator", 
   "write": 1
