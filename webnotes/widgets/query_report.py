@@ -52,7 +52,7 @@ def get_script(report_name):
 	return script
 
 @webnotes.whitelist()
-def run(report_name, filters=None):
+def run(report_name, filters=()):
 	from webnotes.plugins import get_code_and_execute
 	
 	report = webnotes.doc("Report", report_name)

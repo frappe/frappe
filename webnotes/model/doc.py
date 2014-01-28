@@ -348,8 +348,7 @@ class Document:
 				self.fields[f] = self._validate_link(link_list, f)
 
 			if old_val and not self.fields[f]:
-				s = link_list[f][1] + ': ' + old_val
-				err_list.append(s)
+				err_list.append("{}: {}".format(link_list[f][1], old_val))
 				
 		return err_list
 
