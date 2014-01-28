@@ -17,12 +17,6 @@ def main():
 		parsed_args["sites_path"] = "."
 	
 	if not parsed_args.get("make_app"):
-		if not parsed_args.get("site") and not fn in site_arg_optional:
-			print "Site argument required"
-			exit(1)
-		if fn not in site_arg_optional and (fn != 'install' and not os.path.exists(parsed_args.get("site"))):
-			print "Did not find folder '{}'. Are you in sites folder?".format(parsed_args.get("site"))
-			exit(1)
 			
 		if parsed_args.get("site")=="all":
 			for site in get_sites(parsed_args["sites_path"]):
@@ -32,7 +26,21 @@ def main():
 				run(fn, args)
 		else:
 			if not fn in site_arg_optional:
-				webnotes.init(parsed_args.get("site"))
+				if not parsed_args.get("site") and os.path.exists("currentsite.txt"):
+					with open("currentsite.txt", "r") as sitefile:
+						site = sitefile.read()
+				else:
+					site = parsed_args.get("site")
+
+				if not site:
+					print "Site argument required"
+					exit(1)
+
+				if fn != 'install' and not os.path.exists(site):
+					print "Did not find folder '{}'. Are you in sites folder?".format(parsed_args.get("site"))
+					exit(1)
+					
+				webnotes.init(site)
 			run(fn, parsed_args)
 	else:
 		run(fn, parsed_args)
@@ -173,6 +181,7 @@ def setup_utilities(parser):
 		metavar="site-CONFIG-JSON", 
 		help="Update site_config.json for a given site")
 	parser.add_argument("--port", default=8000, type=int, help="port for development server")
+	parser.add_argument("--use", action="store_true", help="Set current site for development.")
 	
 	# clear
 	parser.add_argument("--clear_web", default=False, action="store_true",
@@ -219,6 +228,11 @@ def setup_translation(parser):
 def make_app():
 	from webnotes.utils.boilerplate import make_boilerplate
 	make_boilerplate()
+
+@cmd
+def use():
+	with open("currentsite.txt", "w") as sitefile:
+		sitefile.write(webnotes.local.site)
 
 # install
 @cmd
