@@ -8,7 +8,7 @@ import sys, os
 
 import webnotes
 
-site_arg_optional = ['serve']
+site_arg_optional = []
 
 def main():
 	parsed_args = webnotes._dict(vars(setup_parser()))
@@ -615,9 +615,9 @@ def run_tests(app=None, module=None, doctype=None, verbose=False):
 		exit(1)
 
 @cmd
-def serve(port=8000, profile=False, site=None):
+def serve(port=8000, profile=False):
 	import webnotes.app
-	webnotes.app.serve(port=port, profile=profile, site=site)
+	webnotes.app.serve(port=port, profile=profile, site=webnotes.local.site)
 	
 @cmd
 def request(args):

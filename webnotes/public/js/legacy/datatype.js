@@ -23,14 +23,7 @@ function toTitle(str){
 }
 
 function is_null(v) {
-	if(v==null) {
-		return 1
-	} else if(v==0) {
-		if((v+'').length>=1) return 0;
-		else return 1;
-	} else {
-		return 0
-	}
+	if(v===null || v===undefined || v==="") return true;
 }
 
 function set_value_in(ele, v, ftype, fopt, doc) { 

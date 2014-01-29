@@ -187,6 +187,12 @@ class Document:
 		self.fields.update(d)
 		return self
 
+	def update_if_missing(self, d):
+		fields = self.get_valid_fields()
+		for key, value in d.iteritems():
+			if (key in fields) and (not self.fields.get(key)):
+				self.fields[key] = value
+
 	def insert(self):
 		self.fields['__islocal'] = 1
 		self.save()

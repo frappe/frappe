@@ -188,26 +188,32 @@ _f.Frm.prototype.set_query = function(fieldname, opt1, opt2) {
 	}
 }
 
-_f.Frm.prototype.set_value = function(field, value) {
+_f.Frm.prototype.set_value_if_missing = function(field, value) {
+	this.set_value(field, value, true);
+}
+
+_f.Frm.prototype.set_value = function(field, value, if_missing) {
 	var me = this;
 	var _set = function(f, v) {
 		var fieldobj = me.fields_dict[f];
 		if(fieldobj) {
-			if(fieldobj.df.fieldtype==="Table" && $.isArray(v)) {
+			if(!if_missing || !wn.model.has_value(me.doctype, me.doc.name, f)) {
+				if(fieldobj.df.fieldtype==="Table" && $.isArray(v)) {
 
-				wn.model.clear_table(fieldobj.df.options, me.doctype, 
-					me.doc.name, fieldobj.df.fieldname);
+					wn.model.clear_table(fieldobj.df.options, me.doctype, 
+						me.doc.name, fieldobj.df.fieldname);
 
-				$.each(v, function(i, d) {
-					var child = wn.model.add_child(me.doc, fieldobj.df.options, 
-						fieldobj.df.fieldname, i+1);
-					$.extend(child, d);
-				});
+					$.each(v, function(i, d) {
+						var child = wn.model.add_child(me.doc, fieldobj.df.options, 
+							fieldobj.df.fieldname, i+1);
+						$.extend(child, d);
+					});
 				
-				me.refresh_field(f);
+					me.refresh_field(f);
 				
-			} else {
-				wn.model.set_value(me.doctype, me.doc.name, f, v);
+				} else {
+					wn.model.set_value(me.doctype, me.doc.name, f, v);
+				}
 			}
 		}
 	}

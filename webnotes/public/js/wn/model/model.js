@@ -195,10 +195,11 @@ $.extend(wn.model, {
 			$.each(locals[df.options] || {}, function(k,d) {
 				if(d.parent==dn && d.parenttype==dt && d.parentfield==df.fieldname) {
 					ret = true;
+					return false;
 				}
 			});
 		} else {
-			var ret = !is_null(val);			
+			var ret = !is_null(val);
 		}
 		return ret ? true : false;
 	},

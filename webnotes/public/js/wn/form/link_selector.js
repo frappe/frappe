@@ -79,25 +79,29 @@ wn.ui.form.LinkSelector = Class.extend({
 			callback: function(r) {
 				var parent = me.dialog.fields_dict.results.$wrapper;
 				parent.empty();
-				$.each(r.values, function(i, v) {
-					var row = $(repl('<p><a href="#" data-value="%(name)s">%(name)s</a> \
-						<span class="text-muted">%(values)s</span></p>', {
-							name: v[0],
-							values: v.splice(1).join(", ")
-						})).appendTo(parent);
+				if(r.values.length) {
+					$.each(r.values, function(i, v) {
+						var row = $(repl('<p><a href="#" data-value="%(name)s">%(name)s</a> \
+							<span class="text-muted">%(values)s</span></p>', {
+								name: v[0],
+								values: v.splice(1).join(", ")
+							})).appendTo(parent);
 						
-					row.find("a").click(function() {
-						var value = $(this).attr("data-value");
-						if(me.target.doctype) 
-							me.target.parse_validate_and_set_in_model(value);
-						else {
-							me.target.set_input(value);
-							me.target.$input.trigger("change");
-						}
-						me.dialog.hide();
-						return false;
+						row.find("a").click(function() {
+							var value = $(this).attr("data-value");
+							if(me.target.doctype) 
+								me.target.parse_validate_and_set_in_model(value);
+							else {
+								me.target.set_input(value);
+								me.target.$input.trigger("change");
+							}
+							me.dialog.hide();
+							return false;
+						})
 					})
-				})
+				} else {
+					$('<div class="alert alert-info">' + wn._("No Results")  + '</div>').appendTo(parent);
+				}
 			}, 
 			btn: btn
 		});
