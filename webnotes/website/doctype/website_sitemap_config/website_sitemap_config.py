@@ -8,15 +8,23 @@ import webnotes
 import webnotes.utils
 import os
 
-from webnotes.website.doctype.website_sitemap.website_sitemap import add_to_sitemap
+from webnotes.website.doctype.website_sitemap.website_sitemap import add_to_sitemap, update_sitemap, cleanup_sitemap
+from webnotes.utils.nestedset import rebuild_tree
 
 class DocType:
 	def __init__(self, d, dl):
 		self.doc, self.doclist = d, dl
-
+		
 	def after_insert(self):
 		if self.doc.page_or_generator == "Page":
-			add_to_sitemap(self.doc.fields)
+			website_sitemap = webnotes.conn.get_value("Website Sitemap", 
+				{"website_sitemap_config": self.doc.name, "page_or_generator": "Page"})
+			
+			if website_sitemap:
+				update_sitemap(website_sitemap, self.doc.fields)
+			else:
+				add_to_sitemap(self.doc.fields)
+	
 		else:
 			condition = ""
 			if self.doc.condition_field:
@@ -25,17 +33,24 @@ class DocType:
 			for name in webnotes.conn.sql_list("""select name from `tab%s` %s""" \
 				% (self.doc.ref_doctype, condition)):
 				webnotes.bean(self.doc.ref_doctype, name).run_method("on_update")
-
-	def on_trash(self):
-		webnotes.conn.sql("""delete from `tabWebsite Sitemap` 
-			where website_sitemap_config = %s""", self.doc.name)
-
+		
 def rebuild_website_sitemap_config():
+	# TODO
+	webnotes.flags.in_rebuild_config = True
+	
 	webnotes.conn.sql("""delete from `tabWebsite Sitemap Config`""")
-	webnotes.conn.sql("""delete from `tabWebsite Sitemap`""")
 	for app in webnotes.get_installed_apps():
 		build_website_sitemap_config(app)
-
+		
+	cleanup_sitemap()
+	
+	webnotes.flags.in_rebuild_config = False
+	
+	# enable nested set and rebuild
+	rebuild_tree("Website Sitemap", "parent_website_sitemap")
+	
+	webnotes.conn.commit()
+		
 def build_website_sitemap_config(app):		
 	config = {"pages": {}, "generators":{}}
 	basepath = webnotes.get_pymodule_path(app)
@@ -78,7 +93,7 @@ def add_website_sitemap_config(page_or_generator, app, path, fname, basepath):
 	
 	if webnotes.conn.exists("Website Sitemap Config", wsc.link_name):
 		# found by earlier app, override
-		webnotes.delete_doc("Website Sitemap Config", wsc.link_name)
+		webnotes.conn.sql("""delete from `tabWebsite Sitemap Config` where name=%s""", (wsc.link_name,))
 	
 	webnotes.bean(wsc).insert()
 	

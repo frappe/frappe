@@ -3,4 +3,5 @@
 
 from __future__ import unicode_literals
 
-no_cache = True
+no_cache = 1
+no_sitemap = 1

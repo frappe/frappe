@@ -222,14 +222,17 @@ class Bean:
 	def run_method(self, method, *args, **kwargs):
 		self.make_controller()
 		
+		out = None
 		if hasattr(self.controller, method):
-			getattr(self.controller, method)(*args, **kwargs)
+			out = getattr(self.controller, method)(*args, **kwargs) or out
 		if hasattr(self.controller, 'custom_' + method):
-			getattr(self.controller, 'custom_' + method)(*args, **kwargs)
+			out = getattr(self.controller, 'custom_' + method)(*args, **kwargs) or out
 
-		notify(self, method, *args, **kwargs)
+		out = notify(self, method, *args, **kwargs) or out
 		
 		self.set_doclist(self.controller.doclist)
+		
+		return out
 		
 	def get_attr(self, method):
 		self.make_controller()
@@ -495,10 +498,12 @@ def clone(source_wrapper):
 	return new_wrapper
 
 def notify(bean, caller, *args, **kwargs):
+	out = None
 	for hook in webnotes.get_hooks().bean_event or []:
 		doctype, trigger, handler = hook.split(":")
 		if ((doctype=="*") or (doctype==bean.doc.doctype)) and caller==trigger:
-			webnotes.get_attr(handler)(bean, trigger, *args, **kwargs)
+			out = webnotes.get_attr(handler)(bean, trigger, *args, **kwargs) or out
+	return out
 
 # for bc
 def getlist(doclist, parentfield):

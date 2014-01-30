@@ -2,11 +2,12 @@
  {
   "creation": "2013-11-18 15:38:40", 
   "docstatus": 0, 
-  "modified": "2013-12-20 19:24:40", 
+  "modified": "2014-01-30 11:37:09", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
  {
+  "allow_rename": 1, 
   "autoname": "field:page_name", 
   "doctype": "DocType", 
   "module": "Website", 
@@ -19,6 +20,19 @@
   "parentfield": "fields", 
   "parenttype": "DocType", 
   "permlevel": 0
+ }, 
+ {
+  "create": 0, 
+  "doctype": "DocPerm", 
+  "name": "__common__", 
+  "parent": "Website Sitemap", 
+  "parentfield": "permissions", 
+  "parenttype": "DocType", 
+  "permlevel": 0, 
+  "read": 1, 
+  "report": 1, 
+  "role": "Website Manager", 
+  "write": 1
  }, 
  {
   "doctype": "DocType", 
@@ -37,7 +51,16 @@
   "fieldname": "page_name", 
   "fieldtype": "Data", 
   "label": "Page Name", 
-  "read_only": 1
+  "read_only": 1, 
+  "reqd": 1
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "ref_doctype", 
+  "fieldtype": "Link", 
+  "label": "Ref DocType", 
+  "options": "DocType", 
+  "reqd": 0
  }, 
  {
   "doctype": "DocField", 
@@ -58,5 +81,56 @@
   "fieldtype": "Link", 
   "label": "Website Sitemap Config", 
   "options": "Website Sitemap Config"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "parent_website_sitemap", 
+  "fieldtype": "Link", 
+  "in_list_view": 1, 
+  "label": "Parent Website Sitemap", 
+  "options": "Website Sitemap", 
+  "search_index": 1
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "lft", 
+  "fieldtype": "Int", 
+  "hidden": 1, 
+  "label": "lft", 
+  "read_only": 1, 
+  "search_index": 1
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "rgt", 
+  "fieldtype": "Int", 
+  "hidden": 1, 
+  "in_list_view": 0, 
+  "label": "rgt", 
+  "read_only": 1, 
+  "search_index": 1
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "old_parent", 
+  "fieldtype": "Data", 
+  "hidden": 1, 
+  "label": "Old Parent", 
+  "read_only": 1
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "public_read", 
+  "fieldtype": "Check", 
+  "label": "Anyone Can Read"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "public_write", 
+  "fieldtype": "Check", 
+  "label": "Anyone Can Write"
+ }, 
+ {
+  "doctype": "DocPerm"
  }
 ]

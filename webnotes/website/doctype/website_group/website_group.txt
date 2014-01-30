@@ -1,0 +1,118 @@
+[
+ {
+  "creation": "2014-01-29 15:57:42", 
+  "docstatus": 0, 
+  "modified": "2014-01-30 12:09:23", 
+  "modified_by": "Administrator", 
+  "owner": "Administrator"
+ }, 
+ {
+  "doctype": "DocType", 
+  "document_type": "Master", 
+  "module": "Website", 
+  "name": "__common__"
+ }, 
+ {
+  "doctype": "DocField", 
+  "name": "__common__", 
+  "parent": "Website Group", 
+  "parentfield": "fields", 
+  "parenttype": "DocType", 
+  "permlevel": 0
+ }, 
+ {
+  "create": 1, 
+  "delete": 1, 
+  "doctype": "DocPerm", 
+  "export": 1, 
+  "name": "__common__", 
+  "parent": "Website Group", 
+  "parentfield": "permissions", 
+  "parenttype": "DocType", 
+  "permlevel": 0, 
+  "read": 1, 
+  "report": 1, 
+  "role": "Website Manager", 
+  "write": 1
+ }, 
+ {
+  "doctype": "DocType", 
+  "name": "Website Group"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "group_name", 
+  "fieldtype": "Data", 
+  "label": "Group Name", 
+  "reqd": 1
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "group_title", 
+  "fieldtype": "Data", 
+  "label": "Group Title", 
+  "no_copy": 0, 
+  "reqd": 1
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "group_type", 
+  "fieldtype": "Select", 
+  "label": "Group Type", 
+  "options": "Forum\nTasks\nEvents", 
+  "reqd": 1
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "group_description", 
+  "fieldtype": "Text", 
+  "label": "Group Description"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "page_name", 
+  "fieldtype": "Data", 
+  "in_list_view": 1, 
+  "label": "Page Name", 
+  "no_copy": 1, 
+  "reqd": 0
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "public_read", 
+  "fieldtype": "Check", 
+  "label": "Anyone Can Read"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "public_write", 
+  "fieldtype": "Check", 
+  "label": "Anyone Can Write"
+ }, 
+ {
+  "description": "Display in the sidebar of this Website Sitemap node", 
+  "doctype": "DocField", 
+  "fieldname": "parent_website_sitemap", 
+  "fieldtype": "Link", 
+  "in_list_view": 0, 
+  "label": "Parent Website Node", 
+  "options": "Website Sitemap"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "upvotes", 
+  "fieldtype": "Int", 
+  "label": "Upvotes", 
+  "read_only": 1
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "replies", 
+  "fieldtype": "Int", 
+  "label": "Replies", 
+  "read_only": 1
+ }, 
+ {
+  "doctype": "DocPerm"
+ }
+]

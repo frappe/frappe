@@ -9,7 +9,7 @@ from webnotes import _
 import webnotes.utils
 from webnotes.model.controller import DocListController
 import mimetypes
-from webnotes.website.doctype.website_sitemap.website_sitemap import add_to_sitemap
+from webnotes.website.doctype.website_sitemap.website_sitemap import add_to_sitemap, update_sitemap, remove_sitemap
 
 class PageNotFoundError(Exception): pass
 
@@ -215,53 +215,74 @@ class WebsiteGenerator(DocListController):
 			return
 		self._website_config = webnotes.conn.get_values("Website Sitemap Config", 
 			{"ref_doctype": self.doc.doctype}, "*")[0]
-		
-	def on_update(self, page_name=None):
-		if webnotes.flags.in_install_app:
-			return
-		self.setup_generator()
-		if self._website_config.condition_field:
-			if not self.doc.fields.get(self._website_config.condition_field):
-				# condition field failed, return
-				remove_page(self.doc.fields.get(self._website_config.page_name_field))
-				return
-
-		if not page_name:
-			new_page_name = cleanup_page_name(self.get_page_title() \
-				if hasattr(self, "get_page_title") else (self.doc.title or self.doc.name))
-			self.check_if_page_name_is_unique(new_page_name)
-	
-			remove_page(self.doc.page_name)
-
-			if self.doc.fields.get(self._website_config.page_name_field)!=new_page_name: 
-				webnotes.conn.set(self.doc, self._website_config.page_name_field, new_page_name)
-				
-			page_name = new_page_name
-
-		add_to_sitemap(webnotes._dict({
-			"ref_doctype":self.doc.doctype, 
-			"docname": self.doc.name, 
-			"page_name": page_name,
-			"link_name": self._website_config.name,
-			"lastmod": webnotes.utils.get_datetime(self.doc.modified).strftime("%Y-%m-%d")
-		}))
 			
-	def check_if_page_name_is_unique(self, new_page_name):
-		if webnotes.conn.sql("""select name from `tabWebsite Sitemap` where name=%s 
-			and website_sitemap_config!=%s and docname!=%s""", (new_page_name, 
-				self._website_config.name, self.doc.name)):
-				webnotes.throw("%s: %s. %s: <b>%s<b>" % (new_page_name, _("Page already exists"),
-					_("Please change the value"), self.doc.title))
+	def on_update(self):
+		self.update_sitemap()
+		
+	def after_rename(self, olddn, newdn, merge):
+		webnotes.conn.sql("""update `tabWebsite Sitemap`
+			set docname=%s where ref_doctype=%s and docname=%s""", (newdn, self.doc.doctype, olddn))
+		
+		if merge:
+			self.setup_generator()
+			remove_sitemap(ref_doctype=self.doc.doctype, docname=olddn)
 		
 	def on_trash(self):
 		self.setup_generator()
-		remove_page(self.doc.fields[self._website_config.page_name_field])
+		remove_sitemap(ref_doctype=self.doc.doctype, docname=self.doc.name)
 		
-def remove_page(page_name):
-	if page_name:
-		delete_page_cache(page_name)
-		webnotes.conn.sql("delete from `tabWebsite Sitemap` where name=%s", page_name)	
-
+	def update_sitemap(self):
+		if webnotes.flags.in_install_app:
+			return
+		
+		self.setup_generator()
+		
+		if self._website_config.condition_field and \
+			not self.doc.fields.get(self._website_config.condition_field):
+			# condition field failed, remove and return!
+			remove_sitemap(ref_doctype=self.doc.doctype, docname=self.doc.name)
+			return
+				
+		self.add_or_update_sitemap()
+		
+	def add_or_update_sitemap(self):
+		page_name = self.get_page_name()
+		
+		existing_page_name = webnotes.conn.get_value("Website Sitemap", {"ref_doctype": self.doc.doctype,
+			"docname": self.doc.name})
+			
+		opts = webnotes._dict({
+			"page_or_generator": "Generator",
+			"ref_doctype":self.doc.doctype, 
+			"docname": self.doc.name,
+			"page_name": page_name,
+			"link_name": self._website_config.name,
+			"lastmod": webnotes.utils.get_datetime(self.doc.modified).strftime("%Y-%m-%d"),
+			"parent_website_sitemap": self.doc.parent_website_sitemap
+		})
+		
+		if self.meta.get_field("public_read"):
+			opts.public_read = self.doc.public_read
+			opts.public_write = self.doc.public_write
+		else:
+			opts.public_read = 1
+			
+		if existing_page_name:
+			if existing_page_name != page_name:
+				webnotes.rename_doc("Website Sitemap", existing_page_name, page_name, ignore_permissions=True)
+			update_sitemap(page_name, opts)
+		else:
+			add_to_sitemap(opts)
+		
+	def get_page_name(self):
+		if not self.doc.fields.get(self._website_config.page_name_field):
+			new_page_name = cleanup_page_name(self.get_page_title() \
+				if hasattr(self, "get_page_title") else (self.doc.title or self.doc.name))
+	
+			webnotes.conn.set(self.doc, self._website_config.page_name_field, new_page_name)
+			
+		return self.doc.fields.get(self._website_config.page_name_field)
+		
 def cleanup_page_name(title):
 	"""make page name from title"""
 	import re

@@ -1,0 +1,83 @@
+[
+ {
+  "creation": "2014-01-29 17:56:29", 
+  "docstatus": 0, 
+  "modified": "2014-01-29 18:05:29", 
+  "modified_by": "Administrator", 
+  "owner": "Administrator"
+ }, 
+ {
+  "autoname": "WSP.######", 
+  "doctype": "DocType", 
+  "module": "Website", 
+  "name": "__common__"
+ }, 
+ {
+  "doctype": "DocField", 
+  "in_list_view": 1, 
+  "name": "__common__", 
+  "parent": "Website Sitemap Permission", 
+  "parentfield": "fields", 
+  "parenttype": "DocType", 
+  "permlevel": 0
+ }, 
+ {
+  "create": 1, 
+  "delete": 1, 
+  "doctype": "DocPerm", 
+  "export": 1, 
+  "import": 0, 
+  "name": "__common__", 
+  "parent": "Website Sitemap Permission", 
+  "parentfield": "permissions", 
+  "parenttype": "DocType", 
+  "permlevel": 0, 
+  "read": 1, 
+  "report": 1, 
+  "role": "Website Manager", 
+  "write": 1
+ }, 
+ {
+  "doctype": "DocType", 
+  "name": "Website Sitemap Permission"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "website_sitemap", 
+  "fieldtype": "Link", 
+  "label": "Website Sitemap", 
+  "options": "Website Sitemap", 
+  "reqd": 1, 
+  "search_index": 1
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "profile", 
+  "fieldtype": "Link", 
+  "label": "Profile", 
+  "options": "Profile", 
+  "reqd": 1, 
+  "search_index": 1
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "read", 
+  "fieldtype": "Check", 
+  "label": "Read"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "write", 
+  "fieldtype": "Check", 
+  "label": "Write"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "admin", 
+  "fieldtype": "Check", 
+  "label": "Admin"
+ }, 
+ {
+  "doctype": "DocPerm"
+ }
+]
