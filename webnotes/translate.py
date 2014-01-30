@@ -277,6 +277,9 @@ def export_messages(lang, outfile):
 	messages = {}
 	# extract messages
 	for (basepath, folders, files) in os.walk('.'):
+		if 'files' in folders: folders.remove('files')
+		if 'backups' in folders: folders.remove('backups')
+		
 		def _get_messages(messages, basepath, mtype):
 			mlist = get_messages(basepath, mtype)
 			if not mlist:
@@ -309,6 +312,9 @@ def import_messages(lang, infile):
 	data = dict(get_all_messages_from_file(infile))
 		
 	for (basepath, folders, files) in os.walk('.'):
+		if 'files' in folders: folders.remove('files')
+		if 'backups' in folders: folders.remove('backups')
+		
 		def _update_lang_file(mtype):
 			"""create a langauge file for the given message type"""
 			messages = get_messages(basepath, mtype)
