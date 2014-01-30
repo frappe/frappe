@@ -32,6 +32,14 @@
   font-weight: normal;
   font-style: normal;
 }
+
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+  @font-face {
+    font-family: 'FontAwesome';
+    src: url('../lib/css/font/fontawesome-webfont.svg#fontawesomeregular?v=3.2.1') format('svg');
+  }
+}
+
 /* FONT AWESOME CORE
  * -------------------------- */
 [class^="icon-"],

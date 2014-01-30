@@ -100,13 +100,8 @@ $.extend(wn.meta, {
 	},
 	
 	get_print_formats: function(doctype) {
-		// if default print format is given, use it
-		var print_format_list = [];
-		if(locals.DocType[doctype].default_print_format)
-			print_format_list.push(locals.DocType[doctype].default_print_format)
-		
-		if(!in_list(print_format_list, "Standard"))
-			print_format_list.push("Standard");
+		var print_format_list = ["Standard"];
+		var default_print_format = locals.DocType[doctype].default_print_format;
 		
 		var print_formats = wn.model.get("Print Format", {doc_type: doctype})
 			.sort(function(a, b) { return (a > b) ? 1 : -1; });
@@ -114,6 +109,12 @@ $.extend(wn.meta, {
 			if(!in_list(print_format_list, d.name))
 				print_format_list.push(d.name);
 		});
+
+		if(default_print_format && default_print_format != "Standard") {
+			var index = print_format_list.indexOf(default_print_format) - 1;
+			print_format_list.sort().splice(index, 1);
+			print_format_list.unshift(default_print_format);
+		}
 		
 		return print_format_list;
 	},
