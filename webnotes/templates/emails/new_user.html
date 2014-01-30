@@ -1,0 +1,8 @@
+<h3>{{ title }}</h3>
+<p>Dear {{ first_name }}{% if last_name %} {{ last_name}}{% endif %},</p>
+<p>A new account has been created for you.</p>
+<p>Your login id is: <b>{{ user }}</b>
+<p>To complete your registration, please click on the link below:</p>
+<p><a href="{{ link }}">{{ link }}</a></p>
+<p>Thank you,<br>
+{{ user_fullname }}</p>

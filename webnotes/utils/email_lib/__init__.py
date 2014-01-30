@@ -5,6 +5,9 @@ from __future__ import unicode_literals
 import webnotes
 from webnotes import conf
 
+from webnotes.utils.email_lib.email_body import get_email
+from webnotes.utils.email_lib.smtp import send
+
 def sendmail_md(recipients, sender=None, msg=None, subject=None):
 	"""send markdown email"""		
 	import markdown2
@@ -12,12 +15,11 @@ def sendmail_md(recipients, sender=None, msg=None, subject=None):
 			
 def sendmail(recipients, sender='', msg='', subject='[No Subject]'):
 	"""send an html email as multipart with attachments and all"""
-	from webnotes.utils.email_lib.smtp import get_email
-	get_email(recipients, sender, msg, subject).send()
+	
+	send(get_email(recipients, sender, msg, subject))
 
 def sendmail_to_system_managers(subject, content):
-	from webnotes.utils.email_lib.smtp import get_email
-	get_email(get_system_managers(), None, content, subject).send()
+	send(get_email(get_system_managers(), None, content, subject))
 
 @webnotes.whitelist()
 def get_contact_list():
