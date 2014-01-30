@@ -28,7 +28,7 @@ var blog = {
 			method: "GET",
 			url: "/",
 			data: {
-				cmd: "webnotes.website.doctype.blog_post.blog_post.get_blog_list",
+				cmd: "webnotes.templates.generators.blog_post.get_blog_list",
 				start: blog.start,
 				by: get_url_arg("by"),
 				category: get_url_arg("category")
@@ -55,6 +55,7 @@ var blog = {
 			}
 			
 			b.page_name = encodeURIComponent(b.page_name);
+			b.avatar = b.avatar || "";
 			
 			$(repl('<div class="row">\
 					<div class="col-md-1">\

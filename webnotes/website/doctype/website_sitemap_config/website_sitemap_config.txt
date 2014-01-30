@@ -2,7 +2,7 @@
  {
   "creation": "2013-11-18 15:35:00", 
   "docstatus": 0, 
-  "modified": "2014-01-29 18:05:09", 
+  "modified": "2014-01-30 17:25:27", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -60,6 +60,13 @@
   "fieldname": "link_name", 
   "fieldtype": "Data", 
   "label": "Link Name", 
+  "read_only": 1
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "base_template_path", 
+  "fieldtype": "Data", 
+  "label": "Base Template Path", 
   "read_only": 1
  }, 
  {

@@ -199,7 +199,7 @@ def throw(msg, exc=ValidationError):
 
 def create_folder(path):
 	if not os.path.exists(path): os.makedirs(path)
-			
+	
 def connect(site=None, db_name=None):
 	from db import Database
 	if site:
@@ -546,13 +546,14 @@ def get_jenv():
 	return jenv
 	
 def set_filters(jenv):
-	from webnotes.utils import global_date_format
+	from webnotes.utils import global_date_format, scrub_relative_url
 	from markdown2 import markdown
 	from json import dumps
 	
 	jenv.filters["global_date_format"] = global_date_format
 	jenv.filters["markdown"] = markdown
 	jenv.filters["json"] = dumps
+	jenv.filters["scrub_relative_url"] = scrub_relative_url
 	
 	# load jenv_filters from hooks.txt
 	for app in get_all_apps(True):

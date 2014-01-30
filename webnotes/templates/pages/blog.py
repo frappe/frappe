@@ -3,6 +3,13 @@
 
 from __future__ import unicode_literals
 import webnotes
+from webnotes import _
 
-def get_context():
-	return webnotes.doc("Blog Settings", "Blog Settings").fields
+def get_context(context):
+	extended_context = webnotes.doc("Blog Settings", "Blog Settings").fields
+	extended_context.update(context)
+	
+	return {
+		"title": extended_context.blog_title or "Blog",
+		"content": context.template.render(extended_context)
+	}

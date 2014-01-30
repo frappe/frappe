@@ -8,11 +8,16 @@ app_color = #3498db
 
 after_install = webnotes.utils.install.after_install
 
+# website
 app_include_js = assets/js/webnotes.min.js
 app_include_css = assets/webnotes/css/splash.css
 app_include_css = assets/css/webnotes.css
 web_include_js = assets/js/webnotes-web.min.js
 web_include_css = assets/css/webnotes-web.css
+website_group_views:Forum = webnotes.templates.website_group.forum.get_views
+website_group_views:Events = webnotes.templates.website_group.events.get_views
+website_group_views:Tasks = webnotes.templates.website_group.tasks.get_views
+
 get_desktop_icons = webnotes.manage.get_desktop_icons
 notification_config = webnotes.core.notifications.get_notification_config
 
@@ -26,7 +31,7 @@ on_session_creation = webnotes.auth.notify_administrator_login
 # permissions
 
 permission_query_conditions:Event = webnotes.core.doctype.event.event.get_permission_query_conditions
-has_permission:Event =  webnotes.core.doctype.event.event.has_permission
+has_permission:Event = webnotes.core.doctype.event.event.has_permission
 
 permission_query_conditions:ToDo = webnotes.core.doctype.todo.todo.get_permission_query_conditions
-has_permission:ToDo =  webnotes.core.doctype.todo.todo.has_permission
+has_permission:ToDo = webnotes.core.doctype.todo.todo.has_permission

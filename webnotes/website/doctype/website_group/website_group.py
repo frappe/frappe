@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 import webnotes
 from webnotes.webutils import WebsiteGenerator, cleanup_page_name
+from webnotes.templates.generators.website_group import get_context
 
 class DocType(WebsiteGenerator):
 	def __init__(self, d, dl):
@@ -26,3 +27,6 @@ class DocType(WebsiteGenerator):
 		
 		if not self.doc.page_name:
 			webnotes.throw(_("Page Name is mandatory"), raise_exception=webnotes.MandatoryError)
+			
+	def get_context(self, page_options):
+		return get_context(self, page_options)

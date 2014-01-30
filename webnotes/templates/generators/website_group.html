@@ -1,4 +1,15 @@
 {% extends base_template %}
 
 {% block content %}
+{{ content }}
+
+{%- if access -%}
+<script>
+$(function() {
+	wn.provide("wn");
+	wn.access = {{ access|json }};
+})
+</script>
+{%- endif -%}
+
 {% endblock %}

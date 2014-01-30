@@ -2,7 +2,7 @@
  {
   "creation": "2013-11-18 15:38:40", 
   "docstatus": 0, 
-  "modified": "2014-01-30 11:37:09", 
+  "modified": "2014-01-30 16:50:49", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -53,6 +53,13 @@
   "label": "Page Name", 
   "read_only": 1, 
   "reqd": 1
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "page_title", 
+  "fieldtype": "Data", 
+  "label": "Page Title", 
+  "read_only": 1
  }, 
  {
   "doctype": "DocField", 
