@@ -1,10 +1,17 @@
-{% extends base_template %}
+{% block title %} About Us {% endblock %}
 
-{% set title="About Us" %}
+{% block header %}<h2>About Us</h2>{% endblock %}
 
 {% block content %}
-<div class="container content">
-	{{ obj.doc.company_introduction or "<h2>About Us</h2><p>Some Introduction about your company that you would like your website visitor to know. More people than you think will read your About page. People always like to know who the are doing business with. Be authentic and avoid using jargon like 'value added services' etc. Be sure to update your company history and list of key team members in Website > About Us Settings</p>" }}
+<div class="about-content">
+	{{ obj.doc.company_introduction or """<p>Some Introduction about your company that you would 
+			like your website visitor to know. 
+			More people than you think will read your About page. 
+			People always like to know who the are doing business with. 
+			Be authentic and avoid using jargon like 'value added services' etc. 
+			Be sure to update your company history and 
+			list of key team members in Website > About Us Settings</p>""" }}
+	
 	{% if obj.doclist.get({"doctype":"Company History"}) %}
 	<h3>{{ obj.doc.company_history_heading or "Company History" }}</h3>
 	{% for d in obj.doclist.get({"doctype":"Company History"}) %}
@@ -14,6 +21,7 @@
 	</div>
 	{% endfor %}
 	{% endif %}
+	
 	{% if obj.doclist.get({"doctype":"About Us Team Member"}) %}
 	<h3>{{ obj.doc.team_members_heading or "Team Members" }}</h3>
 	{% for d in obj.doclist.get({"doctype":"About Us Team Member"}) %}

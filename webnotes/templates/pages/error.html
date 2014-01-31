@@ -1,16 +1,13 @@
-{% extends base_template %}
+{% block title %}Error{% endblock %}
 
-{% set title="Error" %}
+{% block header %}
+<h2 class="text-danger">
+	<i class="icon-exclamation-sign"></i> Oops, a server error has occured
+</h2>
+{% endblock %}
 
 {% block content %}
-<div class="container content panel-container">
-	<div class="panel panel-danger">
-		<div class="panel-heading">
-				<i class="icon-exclamation-sign"></i> Oops, a server error has occured
-		</div>
-		<div class="panel-body">
-			<pre>%(error)s</pre>
-		</div>
-	</div>
+<div class="error-content">
+	<pre>%(error)s</pre>
 </div>
 {% endblock %}

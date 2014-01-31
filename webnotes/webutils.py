@@ -75,8 +75,7 @@ def build_page(page_name):
 	context = get_context(page_name)
 	context.update(get_website_settings())
 	
-	jenv = webnotes.get_jenv()
-	html = jenv.get_template(context.base_template_path).render(context)
+	html = webnotes.get_template(context.base_template_path).render(context)
 	
 	if can_cache(context.no_cache):
 		webnotes.cache().set_value("page:" + page_name, html)
@@ -92,13 +91,28 @@ def get_context(page_name):
 		context = webnotes.cache().get_value(cache_key)
 	
 	if not context:
-		sitemap_options = build_sitemap_options(page_name)
+		sitemap_options = get_sitemap_options(page_name)
 		context = build_context(sitemap_options)
 		if can_cache(context.no_cache):
 			webnotes.cache().set_value(cache_key, context)
 
 	context.update(context.data or {})
 	return context
+	
+def get_sitemap_options(page_name):
+	sitemap_options = None
+	cache_key = "sitemap_options:{}".format(page_name)
+
+	if can_cache():
+		sitemap_options = webnotes.cache().get_value(cache_key)
+	if sitemap_options:
+		return sitemap_options
+		
+	sitemap_options = build_sitemap_options(page_name)
+	if can_cache(sitemap_options.no_cache):
+		webnotes.cache().set_value(cache_key, sitemap_options)
+		
+	return sitemap_options
 	
 def build_sitemap_options(page_name):
 	sitemap_options = webnotes.doc("Website Sitemap", page_name).fields
@@ -121,7 +135,7 @@ def build_sitemap_options(page_name):
 		where lft < %s and rgt > %s order by lft asc""", (sitemap_options.lft, sitemap_options.rgt), as_dict=True)
 
 	sitemap_options.children = webnotes.conn.sql("""select * from `tabWebsite Sitemap`
-		where parent_website_sitemap=%s""", (sitemap_options.page_name,))
+		where parent_website_sitemap=%s""", (sitemap_options.page_name,), as_dict=True)
 	
 	# determine templates to be used
 	if not sitemap_options.base_template_path:
@@ -199,7 +213,7 @@ def get_website_settings():
 		"disable_signup"]:
 		context[k] = cint(context.get(k) or 0)
 	
-	context.url = quote(str(get_request_site_address(full_address=True)), str(""))
+	context.url = quote(str(get_request_site_address(full_address=True)), safe="/:")
 	context.encoded_title = quote(encode(context.title or ""), str(""))
 	
 	for update_website_context in hooks.update_website_context or []:
@@ -226,10 +240,11 @@ def scrub_page_name(page_name):
 	return page_name
 
 def insert_traceback(data):
+	traceback = webnotes.get_traceback()
 	if isinstance(data, dict):
-		data["error"] = webnotes.get_traceback()
+		data["error"] = traceback
 	else:
-		data = data.replace("%(error)s", webnotes.get_traceback())
+		data = data % {"error": traceback}
 		
 	return data
 	
@@ -391,5 +406,17 @@ def get_hex_shade(color, percent):
 	
 	return p(r) + p(g) + p(b)
 
-def get_access(sitemap):
-	pass
+def render_blocks(context):
+	"""returns a dict of block name and its rendered content"""
+	from jinja2.utils import concat
+	out = {}
+	template = context["template"]
+	
+	# required as per low level API
+	context = template.new_context(context)
+	
+	# render each block individually
+	for block, render in template.blocks.items():
+		out[block] = concat(render(context))
+
+	return out

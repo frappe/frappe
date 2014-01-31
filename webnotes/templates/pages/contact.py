@@ -5,8 +5,9 @@ from __future__ import unicode_literals
 
 import webnotes
 from webnotes.utils import now
+from webnotes.webutils import render_blocks
 
-def get_context():
+def get_context(context):
 	bean = webnotes.bean("Contact Us Settings", "Contact Us Settings")
 	
 	query_options = filter(None, bean.doc.query_options.replace(",", "\n").split()) if \
@@ -14,13 +15,15 @@ def get_context():
 	
 	address = webnotes.bean("Address", bean.doc.address).doc if bean.doc.address else None
 	
-	return {
+	contact_context = {
 		"query_options": query_options,
 		"address": address,
 		"heading": bean.doc.heading,
 		"introduction": bean.doc.introduction
 	}
-
+	contact_context.update(context)
+	
+	return render_blocks(context)
 
 max_communications_per_hour = 300
 

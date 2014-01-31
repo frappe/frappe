@@ -1,16 +1,9 @@
-{% extends base_template %}
+{% block title %}{{ heading or "Contact Us"}}{% endblock %}
 
-{% block javascript %}
-<script>
-	{% include "templates/includes/contact.js" %}
-</script>
-{% endblock %}
-
-{% set title="Contact Us" %}
+{% block header %}<h2>{{ heading or "Contact Us"}}</h2>{% endblock %}
 
 {% block content %}
-<div class="container content">
-	<h3>{{ heading or "Contact Us"}}</h3>
+<div class="contact-content">
 	<div class="row">
 		<div class="col-md-8">
 			<p id="contact-alert" class="alert alert-warning" 
@@ -62,6 +55,9 @@
 		</div>
 		{% endif %}
 	</div>
-	{{ introduction }}
+	{{ introduction or ""}}
 </div>
+<script>
+	{% include "templates/includes/contact.js" %}
+</script>
 {% endblock %}

@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 import markdown2
 import webnotes
 from webnotes.utils import global_date_format, get_fullname, cint
+from webnotes.webutils import render_blocks
 
 doctype = "Blog Post"
 condition_field = "published"
@@ -36,7 +37,7 @@ def get_context(context):
 	
 	blog_post.fields.update(context)
 	
-	return { "title": blog_post.title, "content": context.template.render(blog_post.fields) }
+	return render_blocks(blog_post.fields)
 	
 @webnotes.whitelist(allow_guest=True)
 def get_blog_list(start=0, by=None, category=None):

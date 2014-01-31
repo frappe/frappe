@@ -1,13 +1,12 @@
-{% extends base_template %}
+{%- block title -%}Not Found{%- endblock -%}
 
-{% set title="Not Found" %}
+{%- block header -%}
+<h2 class="text-danger"><i class="icon-exclamation-sign"></i> Page missing or moved</h2>
+{%- endblock -%}
 
 {% block content %}
-<div class="container content panel-container">
-	<div class="panel panel-danger">
-		<div class="panel-heading">
-				<i class="icon-exclamation-sign"></i> Page missing or moved
-		</div>
+<div class="404-content">
+	<div class="panel panel-default">
 		<div class="panel-body">
 			<p>We are very sorry for this, but the page you are looking for is missing
 				(this could be because of a typo in the address) or moved.</p>

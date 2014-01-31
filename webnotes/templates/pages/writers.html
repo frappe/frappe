@@ -1,18 +1,19 @@
-{% extends base_template %}
+{% block title %} Blog Writers {% endblock %}
 
-{% set title="Blog Writers" %}
+{% block header %}<h2>Blog Writers</h2>{% endblock %}
 
 {% block content %}
-<div class="container content">
-	<h2 id="blog-title">Blog Writers</h2>
+<div class="writers-content">
 	{% if writers_introduction %}
 	<p>{{ writers_introduction }}</p>
 	{% endif %}
-	<hr>
 	{% for blogger_info in bloggers %}
 	{% include "templates/includes/blogger.html" %}
 	{% if not loop.last %}<hr>{% endif %}
 	{% endfor %}
 </div>
-{% include 'templates/includes/blog_footer.html' %}
 {% endblock %}
+
+{% block footer %}{% include "templates/includes/blog_footer.html" %}{% endblock %}
+
+{% block sidebar %}{% include "templates/includes/sidebar.html" %}{% endblock %}

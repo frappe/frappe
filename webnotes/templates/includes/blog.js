@@ -64,10 +64,10 @@ var blog = {
 						</div>\
 					</div>\
 					<div class="col-md-11">\
-						<h4><a href="%(page_name)s">%(title)s</a></h4>\
+						<h4><a href="/%(page_name)s">%(title)s</a></h4>\
 						<p>%(content)s</p>\
 						<p style="color: #aaa; font-size: 90%">\
-							<a href="blog?by=%(blogger)s&by_name=%(full_name)s">\
+							<a href="/blog?by=%(blogger)s&by_name=%(full_name)s">\
 								%(full_name)s</a> wrote this on %(published)s / %(comment_text)s</p>\
 					</div>\
 				</div><hr>', b)).appendTo($wrap);

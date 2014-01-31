@@ -5,7 +5,7 @@
 				<div class="col-xs-9 web-footer-menu">
 					<ul class="list-inline">
 						{% for item in footer_items %}
-						<li><a href="{{ item.url }}" {{ item.target }}
+						<li><a href="{{ item.url | scrub_relative_url }}" {{ item.target }}
 							data-label="{{ item.label }}">{{ item.label }}</a></li>
 						{% endfor %}
 					</ul>

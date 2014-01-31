@@ -7,8 +7,9 @@ import os, urllib
 from webnotes.utils import escape_html, get_request_site_address, now, cstr
 
 no_cache = 1
+base_template_path = "templates/pages/rss.xml"
 
-def get_context():
+def get_context(context):
 	"""generate rss feed"""
 		
 	host = get_request_site_address()
@@ -19,7 +20,8 @@ def get_context():
 		order by published_on desc limit 20""", as_dict=1)
 
 	for blog in blog_list:
-		blog.link = cstr(urllib.quote((host + '/' + blog.name + '.html').encode("utf-8")))
+		blog_page = cstr(urllib.quote(blog.name.encode("utf-8"))) + ".html"
+		blog.link = urllib.basejoin(host, blog_page)
 		blog.content = escape_html(blog.content or "")
 	
 	if blog_list:

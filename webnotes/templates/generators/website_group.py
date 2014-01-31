@@ -2,23 +2,24 @@
 # MIT License. See license.txt
 
 import webnotes
-from webnotes.webutils import get_access
+from webnotes.webutils import get_access, render_blocks, can_cache
 
 doctype = "Website Group"
 no_cache = 1
 
-def get_context(controller, page_options):
-	group, view = guess_group_view(controller, page_options)
+def get_context(context):
+	bean = webnotes.bean(context.ref_doctype, context.docname)
+	group, view = guess_group_view(bean, context)
 	
 	try:
 		if not has_access(group, view):
 			raise webnotes.PermissionError
+			
+		group_context = get_group_context(group, view, bean)
+		group_context["access"] = get_access(group)
+		group_context.update(context)
 	
-		context = get_initial_context(group, view, controller)
-		context["access"] = get_access(group)
-		context["content"] = get_content(context)
-	
-		return context
+		return render_blocks(group_context)
 	
 	except webnotes.DoesNotExistError:
 		return {
@@ -31,68 +32,64 @@ def get_context(controller, page_options):
 				'You are not permitted to view this page.</div>'
 		}
 		
-def get_initial_context(group, view, controller):
-	def _get_initial_context():
-		if controller:
-			group = controller.doc
-		else:
-			group = webnotes.doc("Website Group", group)
+def get_group_context(group, view, bean):
+	cache_key = "website_group_context:{}:{}".format(group, view)
+	views = get_views(bean.doc.group_type)
+	view = views.get(view)
+	
+	if can_cache(view.get("no_cache")):
+		group_context = webnotes.cache().get_value(cache_key)
+		if group_context:
+			return group_context
+			
+	group_context = build_group_context(group, view, bean, views)
+	
+	if can_cache(view.get("no_cache")):
+		webnotes.cache().set_value(cache_key, group_context)
 		
-		# move all this to webutils
-		
-		
-		parents = webnotes.conn.sql("""select name, unit_title from tabUnit 
-			where lft < %s and rgt > %s order by lft asc""", (unit.lft, unit.rgt), as_dict=1)
-		
-		# update title
-		title = unit.unit_title
-		views = get_views(unit)
-		view_options = views.get(view, {})
-		if view_options:
-			title += " - " + view_options["label"]
-		
-		views = sorted([opts for v, opts in views.items()], key=lambda d: d.get("idx"))
-		context = {
-			"name": unit.name,
-			"public_read": unit.public_read,
-			"title": "Aam Aadmi Party: " + title,
-			"unit_title": title,
-			"public_write": unit.public_write,
-			"parents": parents,
-			"children": get_child_unit_items(unit.name, public_read=1),
-			"unit": unit.fields,
-			"view": view,
-			"views": views,
-			"view_options": view_options
-		}
-		return context
+	return group_context
+	
+def build_group_context(group, view, bean, views):
+	title = "{} - {}".format(bean.doc.group_title, view.get("label"))
+	
+	for name, opts in views.iteritems():
+		opts["url"] = opts["url"].format(group=group, post="")
+	
+	group_context = webnotes._dict({
+		"group": bean.doc.fields,
+		"view": view,
+		"views": (v[1] for v in sorted(views.iteritems(), key=lambda (k, v): v.get("idx"))),
+		"title": title
+	})
+	
+	handler = get_handler(bean.doc.group_type)
+	if handler:
+		group_context.update(handler.get_context(group_context))
+	
+	return group_context
 
-	if webnotes.conf.get("disable_website_cache"):
-		return _get_unit_context(unit, view)	
+def guess_group_view(bean, context):
+	group = context.docname
+	view = webnotes.form_dict.view
 	
-	return webnotes.cache().get_value("unit_context:{unit}:{view}".format(unit=unit.lower(), view=view), 
-		lambda:_get_unit_context(unit, view))
-	
-def get_content(context):
-	pass
-
-def guess_group_view(controller, page_options):
-	group = page_options.docname
-	
-	view = None
-	pathname = webnotes.request.path[1:]
-	if "/" in pathname:
-		view = pathname.split("/", 1)[1]
-		
 	if not view:
-		get_views = webnotes.get_hooks("website_group_views:{}".controller.doc.group_type)
-		if get_views:
-			for v, opts in webnotes.get_attr(get_views)(group).items():
-				if opts.get("default"):
-					view = v
-					break
-
+		for v, opts in get_views(bean.doc.group_type).iteritems():
+			if opts.get("default"):
+				view = v
+				break
+	
 	return group, view
+	
+def get_handler(group_type):
+	handler = webnotes.get_hooks("website_group_handler:{}".format(group_type))
+	if handler:
+		return webnotes.get_module(handler[0])
+	
+def get_views(group_type):
+	handler = get_handler(group_type)
+	if handler and hasattr(handler, "get_views"):
+		return handler.get_views()
+	return {}
 	
 def has_access(group, view):
 	access = get_access(group)

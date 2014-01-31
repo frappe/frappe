@@ -5,7 +5,8 @@ from __future__ import unicode_literals
 
 no_cache = 1
 no_sitemap = 1
+base_template_path = "templates/pages/print.html"
 
-def get_context():
+def get_context(context):
 	from webnotes.core.doctype.print_format.print_format import get_args
 	return get_args()

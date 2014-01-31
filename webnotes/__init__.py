@@ -532,14 +532,14 @@ jenv = None
 def get_jenv():
 	global jenv
 	if not jenv:
-		from jinja2 import Environment, ChoiceLoader, PackageLoader
+		from jinja2 import Environment, ChoiceLoader, PackageLoader, DebugUndefined
 
 		apps = get_installed_apps()
 		apps.remove("webnotes")
 		
 		# webnotes will be loaded last, so app templates will get precedence
 		jenv = Environment(loader = ChoiceLoader([PackageLoader(app, ".") \
-			for app in apps + ["webnotes"]]))
+			for app in apps + ["webnotes"]]), undefined=DebugUndefined)
 
 		set_filters(jenv)
 		

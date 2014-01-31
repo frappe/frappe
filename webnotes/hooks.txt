@@ -14,9 +14,10 @@ app_include_css = assets/webnotes/css/splash.css
 app_include_css = assets/css/webnotes.css
 web_include_js = assets/js/webnotes-web.min.js
 web_include_css = assets/css/webnotes-web.css
-website_group_views:Forum = webnotes.templates.website_group.forum.get_views
-website_group_views:Events = webnotes.templates.website_group.events.get_views
-website_group_views:Tasks = webnotes.templates.website_group.tasks.get_views
+
+website_group_handler:Forum = webnotes.templates.website_group.forum
+website_group_handler:Events = webnotes.templates.website_group.events
+website_group_handler:Tasks = webnotes.templates.website_group.tasks
 
 get_desktop_icons = webnotes.manage.get_desktop_icons
 notification_config = webnotes.core.notifications.get_notification_config

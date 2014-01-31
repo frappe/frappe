@@ -304,5 +304,12 @@ $(document).ready(function() {
 		$("#website-post-login .dropdown-menu").append('<li class="divider"></li>\
 			<li><a href="app.html"><i class="icon-fixed-width icon-th-large"></i> Switch To App</a></li>');
 	}
+	
+	$(document).trigger("page_change");
+});
+
+$(document).on("page_change", function() {
+	$(".page-header").toggleClass("hidden", !!!$(".page-header").text().trim());
+	$(".page-footer").toggleClass("hidden", !!!$(".page-footer").text().trim());
 });
 

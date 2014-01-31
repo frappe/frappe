@@ -3,9 +3,11 @@
 
 from __future__ import unicode_literals
 import webnotes
-no_sitemap = True
 
-def get_context():
+no_sitemap = 1
+base_template_path = "templates/pages/style_settings.css"
+
+def get_context(context):
 	"""returns web style"""
 	from webnotes.webutils import get_hex_shade
 	

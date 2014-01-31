@@ -1,0 +1,22 @@
+{%- block view -%}
+<div class="small text-muted post-list-help"></div>
+<div class="post-list">
+{{ post_list_html }}	
+</div>
+<div class="text-center">
+	<button class="btn btn-default btn-more hide">More</button>
+</div>
+{%- endblock -%}
+
+{%- block group_script -%}
+<script>
+$(function() {
+	app.setup_more_btn({
+		cmd: "webnotes.templates.website_group.forum.get_post_list_html"
+	});
+	app.toggle_edit(true);
+	app.setup_upvote();
+	app.toggle_upvote();
+});
+</script>
+{%- endblock -%}

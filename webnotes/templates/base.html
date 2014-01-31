@@ -11,7 +11,7 @@
 	<link rel="icon" href="{{ favicon | scrub_relative_url }}" type="image/x-icon">
 	
 	{%- block head -%}
-		{%- if meta_description -%}
+		{%- if meta_description is defined -%}
 		<meta name="description" content="{{ meta_description }}">
 		{%- endif -%}
 		
@@ -25,13 +25,13 @@
 	{%- endblock -%}
 	
 	{%- block javascript -%}
-		{%- if javascript -%}
+		{%- if javascript is defined -%}
 		<script>{{ javascript }}</script>
 		{%- endif -%}
 	{%- endblock -%}
 	
 	{%- block css -%}
-		{%- if css -%}
+		{%- if css is defined -%}
 		<style>{{ css }}</style>
 		{%- endif -%}
 	{%- endblock -%}
@@ -39,18 +39,38 @@
 	{%- block style -%}{%- endblock -%}
 </head>
 <body>
-	{%- block banner -%}
-		{% if banner_html -%}
-		<header class="container">{{ banner_html or "" }}</header>
-		{%- endif %}
-	{%- endblock -%}
+	<div id="wrap">
+		{%- block banner -%}
+			{% if banner_html -%}
+			<header class="container">{{ banner_html or "" }}</header>
+			{%- endif %}
+		{%- endblock -%}
 	
-	{%- block navbar -%}{% include "templates/includes/navbar.html" %}{%- endblock -%}
+		{%- block navbar -%}{% include "templates/includes/navbar.html" %}{%- endblock -%}
 	
-	<div class="page-container" id="page-{{ name or page_name }}">
-		{%- block content -%}{{ content }}{%- endblock -%}
+		<header class="page-header">
+			<div class="container">
+			{%- if header is defined -%}{{ header }}{%- endif -%}
+			</div>
+		</header>
+		<div class="container page-container" id="page-{{ name or page_name }}">
+			<div class="row">
+				<div class="col-sm-9 page-content">
+					{%- block content -%}{{ content }}{%- endblock -%}
+				</div>
+				<div class="col-sm-3 page-sidebar">
+					{%- block sidebar -%}{%- if sidebar is defined -%}{{ sidebar }}{%- endif -%}{%- endblock -%}
+				</div>
+			</div>
+		</div>
+		<footer class="page-footer">
+			<div class="container">
+				{%- if footer is defined -%}{{ footer }}{%- endif -%}
+			</div>
+		</footer>
 	</div>
-	
-	{%- block footer -%}{% include "templates/includes/footer.html" %}{%- endblock -%}
+	<div id="footer">
+		{%- block footer -%}{% include "templates/includes/footer.html" %}{%- endblock -%}
+	</div>
 </body>
 </html>

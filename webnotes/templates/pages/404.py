@@ -2,10 +2,10 @@
 # MIT License. See license.txt 
 
 from __future__ import unicode_literals
+
 import webnotes
 from webnotes.webutils import render_blocks
 
-no_cache = 1
 no_sitemap = 1
 
 def get_context(context):

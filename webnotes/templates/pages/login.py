@@ -1,7 +1,5 @@
 import webnotes
+from webnotes.webutils import render_blocks
 
 def get_context(context):
-	return {
-		"title": webnotes._("Login"),
-		"content": context.template.render(context)
-	}
+	return render_blocks(context)

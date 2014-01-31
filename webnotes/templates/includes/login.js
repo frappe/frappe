@@ -68,11 +68,11 @@ login.do_login = function(){
 					window.location.href = "app";
 				} else if(data.message=="No App") {
 					if(localStorage) {
-						var last_visited = localStorage.getItem("last_visited") || "index";
+						var last_visited = localStorage.getItem("last_visited") || "/index";
 						localStorage.removeItem("last_visited");
 						window.location.href = last_visited;
 					} else {
-						window.location.href = "index";
+						window.location.href = "/index";
 					}
 				} else if(window.is_sign_up) {
 					wn.msgprint(data.message);

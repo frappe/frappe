@@ -1,7 +1,13 @@
-{% block content %}
-<div class="container content" itemscope itemtype="http://schema.org/BlogPost">
-	<h2 itemprop="name headline">{{ title }}</h2>
+{% block title %} {{ title }} {% endblock %}
 
+{% block header %}
+<h2 itemprop="name headline" itemscope itemtype="http://schema.org/BlogPost">
+	{{ title }}
+</h2>
+{% endblock %}
+
+{% block content %}
+<div class="blog-content" itemscope itemtype="http://schema.org/BlogPost">
 	<!-- begin blog content -->
 	<div class="help" style="color: #aaa">
 		<span itemprop="author">{{ blogger_info and blogger_info.full_name or full_name }}</span> / 
@@ -29,5 +35,8 @@ $(function() {
 	}
 });
 </script>
-{% include 'templates/includes/blog_footer.html' %}
 {% endblock %}
+
+{% block footer %}{% include 'templates/includes/blog_footer.html' %}{% endblock %}
+
+{% block sidebar %}{% include "templates/includes/sidebar.html" %}{% endblock %}

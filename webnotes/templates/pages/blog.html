@@ -1,6 +1,9 @@
+{% block title %}{{ blog_title or "Blog" }}{% endblock %}
+
+{% block header %}<h2>{{ blog_title or "Blog" }}</h2>{% endblock %}
+
 {% block content %}
-<div class="container content">
-	<h2 id="blog-title">{{ blog_title }}</h2>
+<div class="blog-list-content">
 	{% if blog_introduction %}
 	<p>{{ blog_introduction }}</p>
 	{% endif %}
@@ -17,8 +20,11 @@
 			style="display:none;">More...</button>
 	</div>
 </div>
-{% include 'templates/includes/blog_footer.html' %}
 <script>
 	{% include "templates/includes/blog.js" %}
 </script>
 {% endblock %}
+
+{% block footer %}{% include 'templates/includes/blog_footer.html' %}{% endblock %}
+
+{% block sidebar %}{% include "templates/includes/sidebar.html" %}{% endblock %}
