@@ -9,12 +9,13 @@ from webnotes.utils import expand_partial_links
 import email.utils
 from inlinestyler.utils import inline_css
 
-def get_email(recipients, sender='', msg='', subject='[No Subject]', text_content = None, footer=None):
+def get_email(recipients, sender='', msg='', subject='[No Subject]', 
+	text_content = None, footer=None, formatted=None):
 	"""send an html email as multipart with attachments and all"""
 	email = EMail(sender, recipients, subject)
 	if (not '<br>' in msg) and (not '<p>' in msg) and (not '<div' in msg):
 		msg = msg.replace('\n', '<br>')
-	email.set_html(msg, text_content, footer=footer)
+	email.set_html(msg, text_content, footer=footer, formatted=formatted)
 
 	return email
 
@@ -47,15 +48,10 @@ class EMail:
 		self.cc = []
 		self.html_set = False
 	
-	def set_html(self, message, text_content = None, footer=None):
+	def set_html(self, message, text_content = None, footer=None, formatted=None):
 		"""Attach message in the html portion of multipart/alternative"""
-		message = expand_partial_links(message)
-
-		content_html = inline_css(webnotes.get_template("templates/emails/standard.html").render({
-			"content": message,
-			"footer": self.get_footer(footer),
-			"title": self.subject
-		}))
+		if not formatted:
+			formatted = get_formatted_html(self.subject, message, footer)
 		
 		# this is the first html part of a multi-part message, 
 		# convert to text well
@@ -65,7 +61,7 @@ class EMail:
 			else:
 				self.set_html_as_text(message)
 		
-		self.set_part_html(content_html)
+		self.set_part_html(formatted)
 		self.html_set = True
 		
 	def set_text(self, message):
@@ -101,19 +97,7 @@ class EMail:
 			part.add_header('Content-Disposition', 'attachment', filename=filename)
 		
 		self.msg_root.attach(part)
-	
-	def get_footer(self, footer=None):
-		"""append a footer (signature)"""		
-		footer = footer or ""
-		footer += webnotes.conn.get_value('Control Panel',None,'mail_footer') or ''
-		
-		for f in webnotes.get_hooks("mail_footer"):
-			footer += webnotes.get_attr(f)
-		
-		footer += "<!--unsubscribe link here-->"
-		
-		return footer
-		
+			
 	def attach_file(self, n):
 		"""attach a file from the `FileData` table"""
 		from webnotes.utils.file_manager import get_file		
@@ -207,3 +191,27 @@ class EMail:
 		self.validate()
 		self.make()
 		return self.msg_root.as_string()
+		
+def get_formatted_html(subject, message, footer=None):
+	message = expand_partial_links(message)
+
+	return inline_css(webnotes.get_template("templates/emails/standard.html").render({
+		"content": message,
+		"footer": get_footer(footer),
+		"title": subject
+	}))
+
+def get_footer(footer=None):
+	"""append a footer (signature)"""		
+	footer = footer or ""
+	
+	# control panel
+	footer += webnotes.conn.get_value('Control Panel',None,'mail_footer') or ''
+	
+	# hooks
+	for f in webnotes.get_hooks("mail_footer"):
+		footer += webnotes.get_attr(f)
+	
+	footer += "<!--unsubscribe link here-->"
+	
+	return footer

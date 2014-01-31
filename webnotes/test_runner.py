@@ -30,7 +30,7 @@ def main(app=None, module=None, doctype=None, verbose=False):
 			for doctype in module.test_dependencies:
 				make_test_records(doctype, verbose=verbose)
 		
-		test_suite.addTest(unittest.TestLoader().loadTestsFromModule(sys.modules[module]))
+		test_suite.addTest(unittest.TestLoader().loadTestsFromModule(module))
 		ret = unittest.TextTestRunner(verbosity=1+(verbose and 1 or 0)).run(test_suite)
 	else:
 		ret = run_all_tests(app, verbose)

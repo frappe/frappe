@@ -7,6 +7,8 @@ from webnotes import conf
 import webnotes.utils
 from webnotes.modules import get_doc_path
 
+standard_format = "templates/print_formats/standard.html"
+
 class DocType:
 	def __init__(self, d, dl):
 		self.doc, self.doclist = d,dl
@@ -39,8 +41,9 @@ class DocType:
 			webnotes.clear_cache(doctype=self.doc.doc_type)
 
 def get_args():
-	if not webnotes.form_dict.doctype or not webnotes.form_dict.name \
-		or not webnotes.form_dict.format:
+	if not webnotes.form_dict.format:
+		webnotes.form_dict.format = standard_format
+	if not webnotes.form_dict.doctype or not webnotes.form_dict.name:
 		return {
 			"body": """<h1>Error</h1>
 				<p>Parameters doctype, name and format required</p>
@@ -79,15 +82,18 @@ def get_html(doc, doclist, print_format=None):
 	html = template.render(args)
 	return html
 
-def get_print_format(doctype, format):
+def get_print_format(doctype, format_name):
+	if format_name==standard_format:
+		return format_name
+		
 	# server, find template
 	path = os.path.join(get_doc_path(webnotes.conn.get_value("DocType", doctype, "module"), 
-		"Print Format", format), format + ".html")
+		"Print Format", format_name), format_name + ".html")
 	if os.path.exists(path):
 		with open(path, "r") as pffile:
 			return pffile.read()
 	else:
-		html = webnotes.conn.get_value("Print Format", format, "html")
+		html = webnotes.conn.get_value("Print Format", format_name, "html")
 		if html:
 			return html
 		else:

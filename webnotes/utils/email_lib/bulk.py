@@ -6,7 +6,7 @@ import webnotes
 import HTMLParser
 import urllib
 from webnotes.utils.email_lib.smtp import SMTPServer, send
-from webnotes.utils.email_lib.email_body import get_email
+from webnotes.utils.email_lib.email_body import get_email, get_formatted_html
 from webnotes.utils.email_lib.html2text import html2text
 from webnotes.utils import cint, get_url, expand_partial_links, nowdate
 
@@ -30,8 +30,8 @@ def send(recipients=None, sender=None, doctype='Profile', email_field='email',
 			webnotes.msgprint("""Monthly Bulk Mail Limit (%s) Crossed""" % monthly_bulk_mail_limit,
 				raise_exception=BulkLimitCrossedError)
 
-	def update_message(doc):
-		updated = message
+	def update_message(formatted, doc, add_unsubscribe_link):
+		updated = formatted
 		if add_unsubscribe_link:
 			unsubscribe_link = """<div style="padding: 7px; border-top: 1px solid #aaa;
 				margin-top: 17px;">
@@ -43,7 +43,8 @@ def send(recipients=None, sender=None, doctype='Profile', email_field='email',
 					"type": doctype,
 					"email_field": email_field
 				}))
-			updated.replace("<!--unsubscribe link here-->", unsubscribe_link)
+						
+			updated = updated.replace("<!--unsubscribe link here-->", unsubscribe_link)
 			
 		return updated
 	
@@ -53,11 +54,12 @@ def send(recipients=None, sender=None, doctype='Profile', email_field='email',
 	check_bulk_limit(len(recipients))
 	
 	try:
-		message = expand_partial_links(message)
 		text_content = html2text(message)
 	except HTMLParser.HTMLParseError:
 		text_content = "[See html attachment]"
 	
+	formatted = get_formatted_html(subject, message)
+		
 	for r in filter(None, list(set(recipients))):
 		rdata = webnotes.conn.sql("""select * from `tab%s` where %s=%s""" % (doctype, 
 			email_field, '%s'), (r,), as_dict=1)
@@ -66,15 +68,17 @@ def send(recipients=None, sender=None, doctype='Profile', email_field='email',
 				
 		if not is_unsubscribed(doc):
 			# add to queue
-			add(r, sender, subject, update_message(doc), text_content, ref_doctype, ref_docname)
+			add(r, sender, subject, update_message(formatted, doc, add_unsubscribe_link), 
+				text_content, ref_doctype, ref_docname)
 
-def add(email, sender, subject, message, text_content=None, ref_doctype=None, ref_docname=None):
+def add(email, sender, subject, formatted, text_content=None, 
+	ref_doctype=None, ref_docname=None):
 	"""add to bulk mail queue"""	
 	e = webnotes.doc('Bulk Email')
 	e.sender = sender
 	e.recipient = email
 	try:
-		e.message = get_email(email, sender=e.sender, msg=message, subject=subject, 
+		e.message = get_email(email, sender=e.sender, formatted=formatted, subject=subject, 
 			text_content = text_content).as_string()
 	except webnotes.ValidationError:
 		# bad email id - don't add to queue
