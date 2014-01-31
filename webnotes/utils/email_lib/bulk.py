@@ -16,7 +16,8 @@ def send(recipients=None, sender=None, doctype='Profile', email_field='email',
 		subject='[No Subject]', message='[No Content]', ref_doctype=None, ref_docname=None,
 		add_unsubscribe_link=True):
 	def is_unsubscribed(rdata):
-		if not rdata: return 1
+		if not rdata: 
+			return 1
 		return cint(rdata.unsubscribed)
 
 	def check_bulk_limit(new_mails):
@@ -32,7 +33,7 @@ def send(recipients=None, sender=None, doctype='Profile', email_field='email',
 	def update_message(doc):
 		updated = message
 		if add_unsubscribe_link:
-			unsubscribe_link """<div style="padding: 7px; border-top: 1px solid #aaa;
+			unsubscribe_link = """<div style="padding: 7px; border-top: 1px solid #aaa;
 				margin-top: 17px;">
 				<small><a href="%s/?%s">
 				Unsubscribe</a> from this list.</small></div>""" % (get_url(), 
@@ -62,15 +63,13 @@ def send(recipients=None, sender=None, doctype='Profile', email_field='email',
 			email_field, '%s'), (r,), as_dict=1)
 		
 		doc = rdata and rdata[0] or {}
-		
+				
 		if not is_unsubscribed(doc):
 			# add to queue
 			add(r, sender, subject, update_message(doc), text_content, ref_doctype, ref_docname)
 
 def add(email, sender, subject, message, text_content=None, ref_doctype=None, ref_docname=None):
-	"""add to bulk mail queue"""
-	from webnotes.utils.email_lib.smtp import get_email
-	
+	"""add to bulk mail queue"""	
 	e = webnotes.doc('Bulk Email')
 	e.sender = sender
 	e.recipient = email
