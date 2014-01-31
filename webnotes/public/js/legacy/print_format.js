@@ -389,7 +389,7 @@ $.extend(_p, {
 			lh = cstr(wn.boot.letter_heads[cur_frm.doc.letter_head]);
 		} else if (cp.letter_head) {
 			lh = cp.letter_head;
-		}		
+		}
 		return lh;
 	},
 	

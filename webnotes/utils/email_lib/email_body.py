@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 
 import webnotes	
 
-from webnotes.utils import expand_partial_links
+from webnotes.utils import scrub_urls
 import email.utils
 from inlinestyler.utils import inline_css
 
@@ -193,7 +193,7 @@ class EMail:
 		return self.msg_root.as_string()
 		
 def get_formatted_html(subject, message, footer=None):
-	message = expand_partial_links(message)
+	message = scrub_urls(message)
 
 	return inline_css(webnotes.get_template("templates/emails/standard.html").render({
 		"content": message,

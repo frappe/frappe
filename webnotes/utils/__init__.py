@@ -5,9 +5,11 @@
 
 from __future__ import unicode_literals
 from werkzeug.test import Client
+import os
+import re
+import urllib
 
 import webnotes
-import os
 
 no_value_fields = ['Section Break', 'Column Break', 'HTML', 'Table', 'FlexTable',
 	'Button', 'Image', 'Graph']
@@ -64,7 +66,6 @@ def extract_email_id(email):
 def validate_email_add(email_str):
 	"""Validates the email string"""
 	email = extract_email_id(email_str)
-	import re
 	return re.match("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", email.lower())
 
 def get_request_site_address(full_address=False):
@@ -277,7 +278,6 @@ def dict_to_str(args, sep='&'):
 	"""
 	Converts a dictionary to URL
 	"""
-	import urllib
 	t = []
 	for k in args.keys():
 		t.append(str(k)+'='+urllib.quote(str(args[k] or '')))
@@ -670,7 +670,6 @@ def strip_html(text):
 	"""
 		removes anything enclosed in and including <>
 	"""
-	import re
 	return re.compile(r'<.*?>').sub('', text)
 	
 def escape_html(text):
@@ -831,7 +830,6 @@ def get_url(uri=None):
 				url = "http://" + subdomain
 				
 	if uri:
-		import urllib
 		url = urllib.basejoin(url, uri)
 	
 	return url
@@ -896,14 +894,26 @@ def get_disk_usage():
 		return 0
 	err, out = execute_in_shell("du -hsm {files_path}".format(files_path=files_path))
 	return cint(out.split("\n")[-2].split("\t")[0])
-
-def expand_partial_links(html):
-	import re
+	
+def scrub_urls(html):
+	html = expand_relative_urls(html)
+	html = quote_urls(html)
+	return html
+	
+def expand_relative_urls(html):
+	# expand relative urls
 	url = get_url()
 	if not url.endswith("/"): url += "/"
-	return re.sub('(href|src){1}([\s]*=[\s]*[\'"]?)/*((?!http)[^\'" >]+)([\'"]?)', 
-		'\g<1>\g<2>{}\g<3>\g<4>'.format(url), 
-		html)
+	return re.sub('(href|src){1}([\s]*=[\s]*[\'"]?)((?!http)[^\'" >]+)([\'"]?)', 
+		'\g<1>\g<2>{}\g<3>\g<4>'.format(url), html)
+		
+def quote_urls(html):
+	def _quote_url(match):
+		groups = list(match.groups())
+		groups[2] = urllib.quote(groups[2], safe="/:")
+		return "".join(groups)
+	return re.sub('(href|src){1}([\s]*=[\s]*[\'"]?)((?:http)[^\'">]+)([\'"]?)',
+		_quote_url, html)
 
 def touch_file(path):
 	with open(path, 'a'):

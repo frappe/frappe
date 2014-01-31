@@ -8,7 +8,7 @@ import urllib
 from webnotes.utils.email_lib.smtp import SMTPServer, send
 from webnotes.utils.email_lib.email_body import get_email, get_formatted_html
 from webnotes.utils.email_lib.html2text import html2text
-from webnotes.utils import cint, get_url, expand_partial_links, nowdate
+from webnotes.utils import cint, get_url, nowdate
 
 class BulkLimitCrossedError(webnotes.ValidationError): pass
 

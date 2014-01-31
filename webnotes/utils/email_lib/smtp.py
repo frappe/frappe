@@ -14,7 +14,6 @@ def send(email, as_bulk=False):
 		webnotes.msgprint("Emails are muted")
 		return
 	
-	
 	try:
 		smtpserver = SMTPServer()
 		if hasattr(smtpserver, "always_use_login_id_as_sender") and \
