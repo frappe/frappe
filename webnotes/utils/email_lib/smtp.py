@@ -10,7 +10,7 @@ Allows easy adding of Attachments of "File" objects
 import webnotes	
 from webnotes import conf
 from webnotes import msgprint
-from webnotes.utils import cint, expand_partial_links
+from webnotes.utils import cint, scrub_urls
 import email.utils
 
 class OutgoingEmailError(webnotes.ValidationError): pass
@@ -56,7 +56,7 @@ class EMail:
 	def set_html(self, message, text_content = None, footer=None):
 		"""Attach message in the html portion of multipart/alternative"""
 		message = message + self.get_footer(footer)
-		message = expand_partial_links(message)
+		message = scrub_urls(message)
 
 		# this is the first html part of a multi-part message, 
 		# convert to text well
