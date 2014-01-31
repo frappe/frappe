@@ -34,7 +34,7 @@ cur_frm.cscript.user_image = function(doc) {
 }
 
 cur_frm.cscript.refresh = function(doc) {
-	if(!doc.__unsaved && doc.language !== wn.boot.profile.language) {
+	if(!doc.__unsaved && wn.languages && doc.language !== wn.boot.profile.language) {
 		msgprint("Refreshing...");
 		window.location.reload();
 	}
