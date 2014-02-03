@@ -3,31 +3,29 @@
 
 from __future__ import unicode_literals
 import webnotes
-from webnotes import msgprint, throw, _
-from webnotes.model.doc import Document
-from webnotes.utils import cint, get_url
+import HTMLParser
 import urllib
+from webnotes import msgprint, throw, _
+from webnotes.utils.email_lib.smtp import SMTPServer, send
+from webnotes.utils.email_lib.email_body import get_email, get_formatted_html
+from webnotes.utils.email_lib.html2text import html2text
+from webnotes.utils import cint, get_url, nowdate
 
 class BulkLimitCrossedError(webnotes.ValidationError): pass
 
 def send(recipients=None, sender=None, doctype='Profile', email_field='email',
 		subject='[No Subject]', message='[No Content]', ref_doctype=None, ref_docname=None,
 		add_unsubscribe_link=True):
-	"""send bulk mail if not unsubscribed and within conf.bulk_mail_limit"""
-	import webnotes
-			
 	def is_unsubscribed(rdata):
-		if not rdata: return 1
+		if not rdata: 
+			return 1
 		return cint(rdata.unsubscribed)
 
 	def check_bulk_limit(new_mails):
-		from webnotes import conf
-		from webnotes.utils import nowdate
-
 		this_month = webnotes.conn.sql("""select count(*) from `tabBulk Email` where
 			month(creation)=month(%s)""" % nowdate())[0][0]
 
-		monthly_bulk_mail_limit = conf.get('monthly_bulk_mail_limit') or 500
+		monthly_bulk_mail_limit = webnotes.conf.get('monthly_bulk_mail_limit') or 500
 
 		if this_month + len(recipients) > monthly_bulk_mail_limit:
 			throw("{bulk} ({limit}) {cross}".format(**{
@@ -36,10 +34,10 @@ def send(recipients=None, sender=None, doctype='Profile', email_field='email',
 				"cross": _("crossed")
 			}), exc=BulkLimitCrossedError)
 
-	def update_message(doc):
-		updated = message
+	def update_message(formatted, doc, add_unsubscribe_link):
+		updated = formatted
 		if add_unsubscribe_link:
-			updated += """<div style="padding: 7px; border-top: 1px solid #aaa;
+			unsubscribe_link = """<div style="padding: 7px; border-top: 1px solid #aaa;
 				margin-top: 17px;">
 				<small><a href="%s/?%s">
 				Unsubscribe</a> from this list.</small></div>""" % (get_url(), 
@@ -49,6 +47,8 @@ def send(recipients=None, sender=None, doctype='Profile', email_field='email',
 					"type": doctype,
 					"email_field": email_field
 				}))
+						
+			updated = updated.replace("<!--unsubscribe link here-->", unsubscribe_link)
 			
 		return updated
 	
@@ -56,36 +56,33 @@ def send(recipients=None, sender=None, doctype='Profile', email_field='email',
 	if not sender or sender == "Administrator":
 		sender = webnotes.conn.get_value('Email Settings', None, 'auto_email_id')
 	check_bulk_limit(len(recipients))
-
-	import HTMLParser
-	from webnotes.utils.email_lib.html2text import html2text
-	from webnotes.utils import expand_partial_links
 	
 	try:
-		message = expand_partial_links(message)
 		text_content = html2text(message)
 	except HTMLParser.HTMLParseError:
 		text_content = "[See html attachment]"
 	
+	formatted = get_formatted_html(subject, message)
+
 	for r in filter(None, list(set(recipients))):
 		rdata = webnotes.conn.sql("""select * from `tab%s` where %s=%s""" % (doctype, 
 			email_field, '%s'), (r,), as_dict=1)
 
 		doc = rdata and rdata[0] or {}
-		
+				
 		if not is_unsubscribed(doc):
 			# add to queue
-			add(r, sender, subject, update_message(doc), text_content, ref_doctype, ref_docname)
+			add(r, sender, subject, update_message(formatted, doc, add_unsubscribe_link), 
+				text_content, ref_doctype, ref_docname)
 
-def add(email, sender, subject, message, text_content=None, ref_doctype=None, ref_docname=None):
-	"""add to bulk mail queue"""
-	from webnotes.utils.email_lib.smtp import get_email
-	
-	e = Document('Bulk Email')
+def add(email, sender, subject, formatted, text_content=None, 
+	ref_doctype=None, ref_docname=None):
+	"""add to bulk mail queue"""	
+	e = webnotes.doc('Bulk Email')
 	e.sender = sender
 	e.recipient = email
 	try:
-		e.message = get_email(email, sender=e.sender, msg=message, subject=subject, 
+		e.message = get_email(email, sender=e.sender, formatted=formatted, subject=subject, 
 			text_content = text_content).as_string()
 	except webnotes.ValidationError:
 		# bad email id - don't add to queue
@@ -116,15 +113,11 @@ def unsubscribe():
 	
 def flush(from_test=False):
 	"""flush email queue, every time: called from scheduler"""
-	import webnotes
-	from webnotes import conf
-	from webnotes.utils.email_lib.smtp import SMTPServer, get_email
-
 	smptserver = SMTPServer()
 	
 	auto_commit = not from_test
 	
-	if webnotes.flags.mute_emails or conf.get("mute_emails") or False:
+	if webnotes.flags.mute_emails or webnotes.conf.get("mute_emails") or False:
 		msgprint(_("Emails are muted"))
 		from_test = True
 		

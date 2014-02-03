@@ -89,23 +89,13 @@ def delete(arg=None):
 def notify(arg=None):
 	from webnotes.utils import cstr, get_fullname, get_url
 	
-	fn = get_fullname(webnotes.user.name) or webnotes.user.name
-	
-	url = get_url()
-	
-	message = '''You have a message from <b>%s</b>:
-	
-	%s
-	
-	To answer, please login to your erpnext account at \
-	<a href=\"%s\" target='_blank'>%s</a>
-	''' % (fn, arg['txt'], url, url)
-	
-	sender = webnotes.conn.get_value("Profile", webnotes.user.name, "email") \
-		or webnotes.user.name
-	recipient = [webnotes.conn.get_value("Profile", arg["contact"], "email") \
-		or arg["contact"]]
-	
-	from webnotes.utils.email_lib import sendmail
-	sendmail(recipient, sender, message, arg.get("subject") or "You have a message from %s" % (fn,))
-	
+	webnotes.sendmail(\
+		recipients=[webnotes.conn.get_value("Profile", arg["contact"], "email") or arg["contact"]],
+		sender= webnotes.conn.get_value("Profile", webnotes.session.user, "email"),
+		subject="New Message from " + get_fullname(webnotes.user.name),
+		message=webnotes.get_template("templates/emails/new_message.html").render({
+			"from": get_fullname(webnotes.user.name),
+			"message": arg['txt'],
+			"link": get_url()
+		})
+	)	

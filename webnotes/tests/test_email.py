@@ -4,10 +4,6 @@
 from __future__ import unicode_literals
 import os, sys
 
-sys.path.append('.')
-sys.path.append('lib/py')
-sys.path.append('erpnext')
-
 import unittest, webnotes
 
 from webnotes.test_runner import make_test_records

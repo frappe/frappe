@@ -220,6 +220,13 @@ def set_user(username):
 def get_request_header(key, default=None):
 	return request.headers.get(key, default)
 
+def sendmail(recipients=[], sender="", subject="No Subject", message="No Message", as_markdown=False):
+	import webnotes.utils.email_lib
+	if as_markdown:
+		webnotes.utils.email_lib.sendmail_md(recipients, sender=sender, subject=subject, msg=message)
+	else:
+		webnotes.utils.email_lib.sendmail(recipients, sender=sender, subject=subject, msg=message)
+
 logger = None
 whitelisted = []
 guest_methods = []

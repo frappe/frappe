@@ -2,7 +2,7 @@
 # MIT License. See license.txt 
 
 from __future__ import unicode_literals
-import webnotes, json
+import webnotes, json, os
 from webnotes.utils import cint, now, cstr
 from webnotes import throw, msgprint, _
 from webnotes.auth import _update_password
@@ -127,73 +127,21 @@ class DocType:
 			(self.doc.first_name and " " or '') + (self.doc.last_name or '')
 
 	def password_reset_mail(self, link):
-		"""reset password"""
-		txt = """
-## %(title)s
-
-#### Password Reset
-
-Dear %(first_name)s,
-
-Please click on the following link to update your new password:
-
-<a href="%(link)s">%(link)s</a>
-
-Thank you,<br>
-%(user_fullname)s
-		"""
-		self.send_login_mail("Password Reset", 
-			txt, {"link": link})
+		self.send_login_mail("Password Reset", "templates/emails/password_reset.html", {"link": link})
 	
 	def password_update_mail(self, password):
-		txt = """
-## %(title)s
-
-#### Password Update Notification
-
-Dear %(first_name)s,
-
-Your password has been updated. Here is your new password: %(new_password)s
-
-Thank you,<br>
-%(user_fullname)s
-		"""
-		self.send_login_mail("Password Update", 
-			txt, {"new_password": password})
-		
+		self.send_login_mail("Password Update", "templates/emails/password_update.html", {"new_password": password})
 
 	def send_welcome_mail(self):
-		"""send welcome mail to user with password and login url"""
-
 		from webnotes.utils import random_string, get_url
 
 		self.doc.reset_password_key = random_string(32)
 		link = get_url("/update-password?key=" + self.doc.reset_password_key)
+
+		self.send_login_mail("Verify Your Account", "templates/emails/new_user.html", {"link": link})
 		
-		txt = """
-## %(title)s
-
-Dear %(first_name)s,
-
-A new account has been created for you. 
-
-Your login id is: %(user)s
-
-To complete your registration, please click on the link below:
-
-<a href="%(link)s">%(link)s</a>
-
-Thank you,<br>
-%(user_fullname)s
-		"""
-		self.send_login_mail("New Account", txt, 
-			{ "link": link })
-
-	def send_login_mail(self, subject, txt, add_args):
+	def send_login_mail(self, subject, template, add_args):
 		"""send mail with login details"""
-		import os
-	
-		from webnotes.utils.email_lib import sendmail_md
 		from webnotes.profile import get_user_fullname
 		from webnotes.utils import get_url
 		
@@ -216,7 +164,8 @@ Thank you,<br>
 		
 		sender = webnotes.session.user not in ("Administrator", "Guest") and webnotes.session.user or None
 		
-		sendmail_md(recipients=self.doc.email, sender=sender, subject=subject, msg=txt % args)
+		webnotes.sendmail(recipients=self.doc.email, sender=sender, subject=subject, 
+			message=webnotes.get_template(template).render(args))
 		
 	def a_system_manager_should_exist(self):
 		if not self.get_other_system_managers():
