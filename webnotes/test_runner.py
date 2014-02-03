@@ -79,6 +79,7 @@ def _run_test(path, filename, verbose, test_suite=None, run=True):
 
 def make_test_records(doctype, verbose=0):
 	webnotes.flags.mute_emails = True
+		
 	if not webnotes.conn:
 		webnotes.connect()
 			
@@ -87,9 +88,9 @@ def make_test_records(doctype, verbose=0):
 			options = options[5:]
 		if options == "[Select]":
 			continue
-			
-		if options not in webnotes.test_objects:
-			webnotes.test_objects[options] = []
+
+		if options not in webnotes.local.test_objects:
+			webnotes.local.test_objects[options] = []
 			make_test_records(options, verbose)
 			make_test_records_for_doctype(options, verbose)
 
@@ -116,6 +117,7 @@ def get_dependencies(doctype):
 		for doctype_name in test_module.test_ignore:
 			if doctype_name in options_list:
 				options_list.remove(doctype_name)
+				
 	return options_list
 
 def make_test_records_for_doctype(doctype, verbose=0):
@@ -125,10 +127,10 @@ def make_test_records_for_doctype(doctype, verbose=0):
 		print "Making for " + doctype
 
 	if hasattr(test_module, "_make_test_records"):
-		webnotes.test_objects[doctype] += test_module._make_test_records(verbose)
+		webnotes.local.test_objects[doctype] += test_module._make_test_records(verbose)
 
 	elif hasattr(test_module, "test_records"):
-		webnotes.test_objects[doctype] += make_test_objects(doctype, test_module.test_records, verbose)
+		webnotes.local.test_objects[doctype] += make_test_objects(doctype, test_module.test_records, verbose)
 	elif verbose:
 		print_mandatory_fields(doctype)
 
@@ -141,7 +143,7 @@ def make_test_objects(doctype, test_records, verbose=None):
 			doclist[0]["doctype"] = doctype
 		d = webnotes.bean(copy=doclist)
 		
-		if webnotes.test_objects.get(d.doc.doctype):
+		if webnotes.local.test_objects.get(d.doc.doctype):
 			# do not create test records, if already exists
 			return []
 		if has_field(d.doc.doctype, "naming_series"):

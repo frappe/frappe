@@ -3,7 +3,6 @@
 
 from __future__ import unicode_literals
 import webnotes, os
-from webnotes import conf
 import webnotes.utils
 from webnotes.modules import get_doc_path
 
@@ -31,7 +30,7 @@ class DocType:
 	
 	def export_doc(self):
 		# export
-		if self.doc.standard == 'Yes' and (conf.get('developer_mode') or 0) == 1:
+		if self.doc.standard == 'Yes' and (webnotes.conf.get('developer_mode') or 0) == 1:
 			from webnotes.modules.export_file import export_to_files
 			export_to_files(record_list=[['Print Format', self.doc.name]], 
 				record_module=self.doc.module)	
@@ -66,9 +65,13 @@ def get_args():
 
 def get_html(doc, doclist, print_format=None):
 	from jinja2 import Environment
-	from webnotes.core.doctype.print_format.print_format import get_print_format
+	
+	if isinstance(doc, basestring) and isinstance(doclist, basestring):
+		bean = webnotes.bean(doc, doclist)
+		doc = bean.doc
+		doclist = bean.doclist
 
-	template = Environment().from_string(get_print_format(doc.doctype, 
+	template = Environment().from_string(get_print_format_name(doc.doctype, 
 		print_format or webnotes.form_dict.format))
 	doctype = webnotes.get_doctype(doc.doctype)
 	
@@ -82,7 +85,7 @@ def get_html(doc, doclist, print_format=None):
 	html = template.render(args)
 	return html
 
-def get_print_format(doctype, format_name):
+def get_print_format_name(doctype, format_name):
 	if format_name==standard_format:
 		return format_name
 		
@@ -111,5 +114,5 @@ def get_print_style(style=None):
 			return "/* Standard Style Missing ?? */"
 	else:
 		with open(path, 'r') as sfile:
-			return sfile.read() + """ \* test *\ """
+			return sfile.read()
 	

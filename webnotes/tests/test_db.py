@@ -21,8 +21,8 @@ class TestDB(unittest.TestCase):
 		self.assertEquals(webnotes.conn.get_value("Profile", {"modified": ["<=", now]}), "Administrator")
 
 		time.sleep(2)
-		if "Profile" in webnotes.test_objects:
-			del webnotes.test_objects["Profile"]
+		if "Profile" in webnotes.local.test_objects:
+			del webnotes.local.test_objects["Profile"]
 		make_test_records("Profile")
 		
 		self.assertEquals("test1@example.com", webnotes.conn.get_value("Profile", {"modified": [">", now]}))

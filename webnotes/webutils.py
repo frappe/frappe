@@ -26,12 +26,11 @@ def render(page_name):
 	except Exception:
 		html = render_page("error")
 	
+	set_content_type(page_name)
 	webnotes._response.data = html
 	
 def render_page(page_name):
-	"""get page html"""
-	set_content_type(page_name)
-	
+	"""get page html"""	
 	if page_name.endswith('.html'):
 		page_name = page_name[:-5]
 	html = ''
@@ -46,7 +45,7 @@ def render_page(page_name):
 	
 	if page_name=="error":
 		html = html.replace("%(error)s", webnotes.get_traceback())
-	elif "text/html" in webnotes._response.headers["Content-Type"]:
+	elif is_content_html(page_name):
 		comments = "\npage:"+page_name+\
 			"\nload status: " + (from_cache and "cache" or "fresh")
 		html += """\n<!-- %s -->""" % webnotes.utils.cstr(comments)
@@ -56,10 +55,13 @@ def render_page(page_name):
 def set_content_type(page_name):
 	webnotes._response.headers["Content-Type"] = "text/html; charset: utf-8"
 	
-	if "." in page_name and not page_name.endswith(".html"):
+	if not is_content_html(page_name):
 		content_type, encoding = mimetypes.guess_type(page_name)
 		webnotes._response.headers["Content-Type"] = content_type
 
+def is_content_html(page_name):
+	return False if ("." in page_name and not page_name.endswith(".html")) else True
+	
 def build_page(page_name):
 	if not webnotes.conn:
 		webnotes.connect()

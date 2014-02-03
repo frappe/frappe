@@ -6,7 +6,6 @@ from __future__ import unicode_literals
 	Utilities for using modules
 """
 import webnotes, os
-from webnotes import conf
 import webnotes.utils
 
 lower_case_files_for = ['DocType', 'Page', 'Report', 

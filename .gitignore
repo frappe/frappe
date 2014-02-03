@@ -7,3 +7,4 @@ locale
 *.swp
 *.egg-info
 dist/
+build/

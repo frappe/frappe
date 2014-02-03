@@ -15,6 +15,8 @@ import os, sys, importlib
 import json
 import semantic_version
 
+from webnotes.core.doctype.print_format.print_format import get_html as get_print_html
+
 local = Local()
 
 class _dict(dict):
@@ -106,6 +108,7 @@ def init(site, sites_path=None):
 	local.user = None
 	local.restrictions = None
 	local.user_perms = {}
+	local.test_objects = {}
 
 	setup_module_map()
 
@@ -125,7 +128,6 @@ def destroy():
 	release_local(local)
 
 _memc = None
-test_objects = {}
 
 # memcache
 def cache():
