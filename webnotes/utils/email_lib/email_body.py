@@ -2,9 +2,8 @@
 # MIT License. See license.txt 
 
 from __future__ import unicode_literals
-
 import webnotes	
-
+from webnotes import msgprint, throw, _
 from webnotes.utils import scrub_urls
 import email.utils
 from inlinestyler.utils import inline_css
@@ -153,19 +152,19 @@ class EMail:
 		def _validate(email):
 			"""validate an email field"""
 			if email and not validate_email_add(email):
-				webnotes.msgprint("%s is not a valid email id" % email,
-					raise_exception = 1)
+				throw("{email} {msg}".format(**{
+					"email": email,
+					"msg": _("is not a valid email id")
+				}))
 			return email
 		
 		if not self.sender:
 			self.sender = webnotes.conn.get_value('Email Settings', None,
 				'auto_email_id') or webnotes.conf.get('auto_email_id') or None
 			if not self.sender:
-				webnotes.msgprint("""Please specify 'Auto Email Id' \
-					in Setup > Email Settings""")
+				msgprint(_("Please specify 'Auto Email Id' in Setup > Email Settings"))
 				if not "expires_on" in webnotes.conf:
-					webnotes.msgprint("""Alternatively, \
-						you can also specify 'auto_email_id' in site_config.json""")
+					msgprint(_("Alternatively, you can also specify 'auto_email_id' in site_config.json"))
 				raise webnotes.ValidationError
 				
 		self.sender = _validate(self.sender)
@@ -206,7 +205,7 @@ def get_footer(footer=None):
 	footer = footer or ""
 	
 	# control panel
-	footer += webnotes.conn.get_value('Control Panel',None,'mail_footer') or ''
+	footer += webnotes.conn.get_value('Control Panel', None, 'mail_footer') or ''
 	
 	# hooks
 	for f in webnotes.get_hooks("mail_footer"):
