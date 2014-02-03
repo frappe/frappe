@@ -12,25 +12,28 @@ def get_views():
 	return views
 	
 def get_context(group_context):
-	forum_context = {}
+	tasks_context = {}
 	
-	if group_context.view.name in ("popular", "feed"):
-		forum_context["post_list_html"] = get_post_list_html(group_context["group"]["name"], group_context["view"])
+	if group_context.view.name in ("open", "closed"):
+		tasks_context["post_list_html"] = get_post_list_html(group_context["group"]["name"], group_context["view"])
 	
 	elif group_context.view.name == "edit":
-		forum_context["session_user"] = webnotes.session.user
-		forum_context["post"] = webnotes.doc("Post", webnotes.form_dict.name).fields
+		post = webnotes.doc("Post", webnotes.form_dict.name).fields
+		tasks_context["session_user"] = webnotes.session.user
+		tasks_context["post"] = post
+		if post.assigned_to:
+			tasks_context["profile"] = webnotes.doc("Profile", post.assigned_to)
 
 	elif group_context.view.name == "settings":
-		forum_context.update(get_settings_context(group_context))
+		tasks_context.update(get_settings_context(group_context))
 		
 	elif group_context.view.name == "post":
-		forum_context.update(get_post_context(group_context))
+		tasks_context.update(get_post_context(group_context))
 	
-	return forum_context
-
+	return tasks_context
+	
 @webnotes.whitelist(allow_guest=True)
-def get_post_list_html(group, view, limit_start=0, limit_length=20):
+def get_post_list_html(group, view, limit_start=0, limit_length=20, status="Open"):
 	access = get_access(group)
 	
 	if isinstance(view, basestring):
@@ -42,43 +45,43 @@ def get_post_list_html(group, view, limit_start=0, limit_length=20):
 	if webnotes.local.form_dict.cmd == "get_post_list_html":
 		if not access.get("read"):
 			return webnotes.PermissionError
-			
-	if view.name == "feed":
-		order_by = "p.creation desc"
-	else:
+	
+	if view.name=="open":
 		now = get_datetime_str(now_datetime())
-		order_by = """(p.upvotes + post_reply_count - (timestampdiff(hour, p.creation, \"{}\") / 2)) desc, 
-			p.creation desc""".format(now)
+		order_by = "(p.upvotes + post_reply_count - (timestampdiff(hour, p.creation, \"{}\") / 2)) desc, p.creation desc".format(now)
+	else:
+		status = "Closed"
+		order_by = "p.creation desc"
 	
 	posts = webnotes.conn.sql("""select p.*, pr.user_image, pr.first_name, pr.last_name,
 		(select count(pc.name) from `tabPost` pc where pc.parent_post=p.name) as post_reply_count
 		from `tabPost` p, `tabProfile` pr
 		where p.website_group = %s and pr.name = p.owner and ifnull(p.parent_post, '')=''
+		and p.is_task=1 and p.status=%s
 		order by {order_by} limit %s, %s""".format(order_by=order_by),
-		(group, int(limit_start), int(limit_length)), as_dict=True)
+		(group, status, int(limit_start), int(limit_length)), as_dict=True)
 		
 	context = {"posts": posts, "limit_start": limit_start, "view": view}
 	
 	return webnotes.get_template("templates/includes/post_list.html").render(context)
 	
 views = {
-	"popular": {
-		"name": "popular",
-		"template_path": "templates/website_group/forum.html",
+	"open": {
+		"name": "open",
+		"template_path": "templates/website_group/tasks.html",
 		"url": "/{group}",
-		"label": "Popular",
-		"icon": "icon-heart",
+		"label": "Open",
+		"icon": "icon-inbox",
 		"default": True,
 		"upvote": True,
 		"idx": 1
 	},
-	"feed": {
-		"name": "feed",
-		"template_path": "templates/website_group/forum.html",
-		"url": "/{group}?view=feed",
-		"label": "Feed",
-		"icon": "icon-rss",
-		"upvote": True,
+	"closed": {
+		"name": "closed",
+		"template_path": "templates/website_group/tasks.html",
+		"url": "/{group}?view=closed",
+		"label": "Closed",
+		"icon": "icon-smile",
 		"idx": 2
 	},
 	"post": {
@@ -87,9 +90,9 @@ views = {
 		"url": "/{group}?view=post&name={post}",
 		"label": "Post",
 		"icon": "icon-comments",
-		"upvote": True,
 		"hidden": True,
 		"no_cache": True,
+		"upvote": True,
 		"idx": 3
 	},
 	"edit": {

@@ -1,4 +1,4 @@
-@media (min-width: 992px) {
+@media (min-width: 768px) {
 	.login-wrapper {
 		border-right: 1px solid #f2f2f2;
 	}
@@ -163,6 +163,8 @@ img {
 .navbar-brand {
 	padding-right: 30px;
 	max-width: 80%;
+	min-height: 20px;
+	height: auto;
 }
 
 @media (min-width: 768px) {
@@ -283,6 +285,7 @@ body {
 
 .post .media-object {
 	border-radius: 4px;
+	max-width: 50px;
 }
 
 .post .media-heading {
@@ -298,4 +301,12 @@ body {
 	padding-left: 15px;
 	background-color: #f8f8f8;
 	margin-top: 0px;
+}
+
+textarea {
+	resize: vertical;
+}
+
+.post-add-textarea {
+	height: 200px !important;
 }

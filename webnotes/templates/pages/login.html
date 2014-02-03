@@ -33,6 +33,11 @@
 						<p id="forgot-link"></p>
 					</div>
 					<div class="col-sm-6">
+						{%- if fb_app_id is defined -%}
+						<div id="fb-root"></div>
+						<p><button type="button" class="btn btn-default btn-login">
+							Login via Facebook</button></p>
+						{%- endif -%}
 						<p id="switch-view"></p>
 					</div>
 				</div>

@@ -35,7 +35,7 @@ def get_context(context):
 def get_group_context(group, view, bean):
 	cache_key = "website_group_context:{}:{}".format(group, view)
 	views = get_views(bean.doc.group_type)
-	view = views.get(view)
+	view = webnotes._dict(views.get(view))
 	
 	if can_cache(view.get("no_cache")):
 		group_context = webnotes.cache().get_value(cache_key)
@@ -86,9 +86,10 @@ def get_handler(group_type):
 		return webnotes.get_module(handler[0])
 	
 def get_views(group_type):
+	from copy import deepcopy
 	handler = get_handler(group_type)
 	if handler and hasattr(handler, "get_views"):
-		return handler.get_views()
+		return deepcopy(handler.get_views() or {})
 	return {}
 	
 def has_access(group, view):

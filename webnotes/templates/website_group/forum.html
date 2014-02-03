@@ -1,4 +1,3 @@
-{%- block view -%}
 <div class="small text-muted post-list-help"></div>
 <div class="post-list">
 {{ post_list_html }}	
@@ -6,17 +5,24 @@
 <div class="text-center">
 	<button class="btn btn-default btn-more hide">More</button>
 </div>
-{%- endblock -%}
 
-{%- block group_script -%}
 <script>
 $(function() {
-	app.setup_more_btn({
-		cmd: "webnotes.templates.website_group.forum.get_post_list_html"
-	});
-	app.toggle_edit(true);
-	app.setup_upvote();
-	app.toggle_upvote();
+	if($(".post").length===20) {
+		wn.setup_pagination($(".btn-more"), {
+			args: {
+				cmd: "webnotes.templates.website_group.forum.get_post_list_html",
+				limit_start: $(".post").length,
+				limit_length: 20,
+				group: website.group,
+				view: website.view
+			},
+			$wrapper: $(".post-list")
+		});
+	}
+	
+	website.toggle_edit(true);
+	website.setup_upvote();
+	website.toggle_upvote();
 });
 </script>
-{%- endblock -%}

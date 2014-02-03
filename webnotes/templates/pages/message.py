@@ -13,7 +13,8 @@ def get_context(context):
 	if hasattr(webnotes.local, "message"):
 		message_context["title"] = webnotes.local.message_title
 		message_context["message"] = webnotes.local.message
-		message_context["success"] = webnotes.local.message_success
+		if hasattr(webnotes.local, "message_success"):
+			message_context["success"] = webnotes.local.message_success
 	
 	message_context.update(context)
 	return render_blocks(message_context)

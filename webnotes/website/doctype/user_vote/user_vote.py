@@ -5,6 +5,7 @@
 
 from __future__ import unicode_literals
 import webnotes
+from webnotes.webutils import get_access
 
 class DocType:
 	def __init__(self, d, dl):
@@ -31,3 +32,22 @@ class DocType:
 		
 def on_doctype_update():
 	webnotes.conn.add_index("User Vote", ["ref_doctype", "ref_name"])
+
+# don't allow guest to give vote
+@webnotes.whitelist()
+def set_vote(ref_doctype, ref_name):
+	website_group = webnotes.conn.get_value(ref_doctype, ref_name, "website_group")
+	if not get_access(website_group).get("read"):
+		raise webnotes.PermissionError
+	
+	try:
+		user_vote = webnotes.bean({
+			"doctype": "User Vote",
+			"ref_doctype": ref_doctype,
+			"ref_name": ref_name
+		})
+		user_vote.ignore_permissions = True
+		user_vote.insert()
+		return "ok"
+	except webnotes.DuplicateEntryError:
+		return "duplicate"

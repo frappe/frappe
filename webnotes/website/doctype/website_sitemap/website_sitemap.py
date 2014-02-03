@@ -8,7 +8,7 @@ import webnotes
 from webnotes.utils.nestedset import DocTypeNestedSet
 
 sitemap_fields = ("page_name", "ref_doctype", "docname", "page_or_generator", 
-	"lastmod", "parent_website_sitemap", "public_read", "public_write")
+	"lastmod", "parent_website_sitemap", "public_read", "public_write", "page_title")
 
 class DocType(DocTypeNestedSet):
 	def __init__(self, d, dl):

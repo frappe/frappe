@@ -12,23 +12,23 @@ def get_views():
 	return views
 	
 def get_context(group_context):
-	forum_context = {}
+	events_context = {}
 	
-	if group_context.view.name in ("popular", "feed"):
-		forum_context["post_list_html"] = get_post_list_html(group_context["group"]["name"], group_context["view"])
+	if group_context.view.name in ("upcoming", "past"):
+		events_context["post_list_html"] = get_post_list_html(group_context["group"]["name"], group_context["view"])
 	
 	elif group_context.view.name == "edit":
-		forum_context["session_user"] = webnotes.session.user
-		forum_context["post"] = webnotes.doc("Post", webnotes.form_dict.name).fields
+		events_context["session_user"] = webnotes.session.user
+		events_context["post"] = webnotes.doc("Post", webnotes.form_dict.name).fields
 
 	elif group_context.view.name == "settings":
-		forum_context.update(get_settings_context(group_context))
+		events_context.update(get_settings_context(group_context))
 		
 	elif group_context.view.name == "post":
-		forum_context.update(get_post_context(group_context))
+		events_context.update(get_post_context(group_context))
 	
-	return forum_context
-
+	return events_context
+	
 @webnotes.whitelist(allow_guest=True)
 def get_post_list_html(group, view, limit_start=0, limit_length=20):
 	access = get_access(group)
@@ -43,42 +43,45 @@ def get_post_list_html(group, view, limit_start=0, limit_length=20):
 		if not access.get("read"):
 			return webnotes.PermissionError
 			
-	if view.name == "feed":
-		order_by = "p.creation desc"
+	if view.name=="upcoming":
+		condition = "and p.event_datetime >= %s"
+		order_by = "p.event_datetime asc"
 	else:
-		now = get_datetime_str(now_datetime())
-		order_by = """(p.upvotes + post_reply_count - (timestampdiff(hour, p.creation, \"{}\") / 2)) desc, 
-			p.creation desc""".format(now)
+		condition = "and p.event_datetime < %s"
+		order_by = "p.event_datetime desc"
+		
+	# should show based on time upto precision of hour
+	# because the current hour should also be in upcoming
+	now = now_datetime().replace(minute=0, second=0, microsecond=0)
 	
 	posts = webnotes.conn.sql("""select p.*, pr.user_image, pr.first_name, pr.last_name,
 		(select count(pc.name) from `tabPost` pc where pc.parent_post=p.name) as post_reply_count
 		from `tabPost` p, `tabProfile` pr
 		where p.website_group = %s and pr.name = p.owner and ifnull(p.parent_post, '')=''
-		order by {order_by} limit %s, %s""".format(order_by=order_by),
-		(group, int(limit_start), int(limit_length)), as_dict=True)
+		and p.is_event=1 {condition}
+		order by {order_by} limit %s, %s""".format(condition=condition, order_by=order_by),
+		(group, now, int(limit_start), int(limit_length)), as_dict=True)
 		
 	context = {"posts": posts, "limit_start": limit_start, "view": view}
 	
 	return webnotes.get_template("templates/includes/post_list.html").render(context)
 	
 views = {
-	"popular": {
-		"name": "popular",
-		"template_path": "templates/website_group/forum.html",
+	"upcoming": {
+		"name": "upcoming",
+		"template_path": "templates/website_group/events.html",
 		"url": "/{group}",
-		"label": "Popular",
-		"icon": "icon-heart",
+		"label": "Upcoming",
+		"icon": "icon-calendar",
 		"default": True,
-		"upvote": True,
 		"idx": 1
 	},
-	"feed": {
-		"name": "feed",
-		"template_path": "templates/website_group/forum.html",
-		"url": "/{group}?view=feed",
-		"label": "Feed",
-		"icon": "icon-rss",
-		"upvote": True,
+	"past": {
+		"name": "past",
+		"template_path": "templates/website_group/events.html",
+		"url": "/{group}?view=past",
+		"label": "Past",
+		"icon": "icon-time",
 		"idx": 2
 	},
 	"post": {
@@ -87,7 +90,6 @@ views = {
 		"url": "/{group}?view=post&name={post}",
 		"label": "Post",
 		"icon": "icon-comments",
-		"upvote": True,
 		"hidden": True,
 		"no_cache": True,
 		"idx": 3

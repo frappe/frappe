@@ -13,8 +13,6 @@ from urllib import quote
 
 import mimetypes
 from webnotes.website.doctype.website_sitemap.website_sitemap import add_to_sitemap, update_sitemap, remove_sitemap
-
-# for access as webnotes.webutils.fn
 from webnotes.website.doctype.website_sitemap_permission.website_sitemap_permission \
 	import get_access
 
@@ -73,7 +71,6 @@ def build_json(page_name):
 	
 def build_page(page_name):
 	context = get_context(page_name)
-	context.update(get_website_settings())
 	
 	html = webnotes.get_template(context.base_template_path).render(context)
 	
@@ -149,6 +146,7 @@ def build_context(sitemap_options):
 	"""get_context method of bean or module is supposed to render content templates and push it into context"""
 	context = webnotes._dict({ "_": webnotes._ })
 	context.update(sitemap_options)
+	context.update(get_website_settings())
 	
 	if sitemap_options.get("controller"):
 		module = webnotes.get_module(sitemap_options.get("controller"))
@@ -195,7 +193,7 @@ def get_website_settings():
 		"utils": webnotes.utils,
 		"post_login": [
 			{"label": "Reset Password", "url": "update-password", "icon": "icon-key"},
-			{"label": "Logout", "url": "/?cmd=web_logout", "icon": "icon-signout"}
+			{"label": "Logout", "url": "?cmd=web_logout", "icon": "icon-signout"}
 		]
 	})
 		
@@ -221,6 +219,10 @@ def get_website_settings():
 		
 	context.web_include_js = hooks.web_include_js or []
 	context.web_include_css = hooks.web_include_css or []
+	
+	# get settings from site config
+	if webnotes.conf.get("fb_app_id"):
+		context.fb_app_id = webnotes.conf.fb_app_id
 	
 	return context
 	
@@ -342,7 +344,9 @@ class WebsiteGenerator(DocListController):
 			"page_name": page_name,
 			"link_name": self._website_config.name,
 			"lastmod": webnotes.utils.get_datetime(self.doc.modified).strftime("%Y-%m-%d"),
-			"parent_website_sitemap": self.doc.parent_website_sitemap
+			"parent_website_sitemap": self.doc.parent_website_sitemap,
+			"page_title": self.get_page_title() \
+				if hasattr(self, "get_page_title") else (self.doc.title or self.doc.name)
 		})
 		
 		if self.meta.get_field("public_read"):

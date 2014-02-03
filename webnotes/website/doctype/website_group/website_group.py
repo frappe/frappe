@@ -27,3 +27,6 @@ class DocType(WebsiteGenerator):
 		
 		if not self.doc.page_name:
 			webnotes.throw(_("Page Name is mandatory"), raise_exception=webnotes.MandatoryError)
+			
+	def get_page_title(self):
+		return self.doc.group_title

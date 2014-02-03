@@ -10,6 +10,7 @@ class DocType:
 		
 	def on_update(self):
 		remove_empty_permissions()
+		clear_permissions(self.doc.profile)
 		
 def remove_empty_permissions():
 	permissions_cache_to_be_cleared = webnotes.conn.sql_list("""select distinct profile 
@@ -21,20 +22,20 @@ def remove_empty_permissions():
 		
 	clear_permissions(permissions_cache_to_be_cleared)
 
-def get_access(website_node, profile=None):
+def get_access(sitemap_page, profile=None):
 	profile = profile or webnotes.session.user
 	key = "website_sitemap_permissions:{}".format(profile)
 	
 	cache = webnotes.cache()
 	permissions = cache.get_value(key) or {}
-	if not permissions.get(website_node):
-		permissions[website_node] = _get_access(website_node, profile)
+	if not permissions.get(sitemap_page):
+		permissions[sitemap_page] = _get_access(sitemap_page, profile)
 		cache.set_value(key, permissions)
 		
-	return permissions.get(website_node)
+	return permissions.get(sitemap_page)
 	
-def _get_access(website_node, profile):
-	lft, rgt, public_read, public_write = webnotes.conn.get_value("Website Sitemap", website_node, 
+def _get_access(sitemap_page, profile):
+	lft, rgt, public_read, public_write = webnotes.conn.get_value("Website Sitemap", sitemap_page, 
 		["lft", "rgt", "public_read", "public_write"])
 
 	if not (lft and rgt):
@@ -52,7 +53,7 @@ def _get_access(website_node, profile):
 
 	for perm in webnotes.conn.sql("""select wsp.`read`, wsp.`write`, wsp.`admin`, 
 		ws.lft, ws.rgt, ws.name
-		from `tabWebsite Sitemap Permission` up, `tabWebsite Sitemap` ws
+		from `tabWebsite Sitemap Permission` wsp, `tabWebsite Sitemap` ws
 		where wsp.profile = %s and wsp.website_sitemap = ws.name 
 		order by lft asc""", (profile,), as_dict=True):
 		if perm.lft <= lft and perm.rgt >= rgt:

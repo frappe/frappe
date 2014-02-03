@@ -347,6 +347,57 @@ def reset_password(user):
 	else:
 		return "No such user (%s)" % user
 
+@webnotes.whitelist(allow_guest=True)
+def facebook_login(data):
+	data = json.loads(data)
+	
+	if not (data.get("id") and data.get("fb_access_token")):
+		raise webnotes.ValidationError
+
+	user = data["email"]
+		
+	if not get_fb_userid(data.get("fb_access_token")):
+		# garbage
+		raise webnotes.ValidationError
+	
+	if not webnotes.conn.exists("Profile", user):
+		if data.get("birthday"):
+			b = data.get("birthday").split("/")
+			data["birthday"] = b[2] + "-" + b[0] + "-" + b[1]
+		
+		profile = webnotes.bean({
+			"doctype":"Profile",
+			"first_name": data["first_name"],
+			"last_name": data["last_name"],
+			"email": data["email"],
+			"enabled": 1,
+			"new_password": webnotes.generate_hash(data["email"]),
+			"fb_username": data["username"],
+			"fb_userid": data["id"],
+			"fb_location": data.get("location", {}).get("name"),
+			"fb_hometown": data.get("hometown", {}).get("name"),
+			"fb_age_range": data.get("age_range") and "{min}-{max}".format(**data.get("age_range")),
+			"birth_date":  data.get("birthday"),
+			"fb_bio": data.get("bio"),
+			"fb_education": data.get("education") and data.get("education")[-1].get("type"),
+			"user_type": "Website User"
+		})
+		profile.ignore_permissions = True
+		profile.get_controller().no_welcome_mail = True
+		profile.insert()
+	
+	webnotes.local.login_manager.user = user
+	webnotes.local.login_manager.post_login()
+	
+def get_fb_userid(fb_access_token):
+	import requests
+	response = requests.get("https://graph.facebook.com/me?access_token=" + fb_access_token)
+	if response.status_code==200:
+		print response.json()
+		return response.json().get("id")
+	else:
+		return webnotes.AuthenticationError
+		
 def profile_query(doctype, txt, searchfield, start, page_len, filters):
 	from webnotes.widgets.reportview import get_match_cond
 	return webnotes.conn.sql("""select name, concat_ws(' ', first_name, middle_name, last_name) 

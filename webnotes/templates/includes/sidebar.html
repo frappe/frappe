@@ -1,7 +1,7 @@
 {%- if children -%}
 {%- for child in children -%}
 <div class="sidebar-item">
-	<a href="/{{ child.url|lower }}">
+	<a href="/{{ child.name|lower }}">
 		{{ child.page_title }}
 		{% if not child.public_read %}
 		(<i class="icon-fixed-width icon-lock"></i>)

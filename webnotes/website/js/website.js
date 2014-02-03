@@ -1,20 +1,9 @@
 // Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
-// MIT License. See license.txt 
-if(!window.wn) wn = {};
+// MIT License. See license.txt
+
+wn.provide("website");
 
 $.extend(wn, {
-	provide: function(namespace) {
-		var nsl = namespace.split('.');
-		var parent = window;
-		for(var i=0; i<nsl.length; i++) {
-			var n = nsl[i];
-			if(!parent[n]) {
-				parent[n] = {}
-			}
-			parent = parent[n];
-		}
-		return parent;
-	},
 	_assets_loaded: [],
 	require: function(url) {
 		if(wn._assets_loaded.indexOf(url)!==-1) return;
@@ -41,17 +30,28 @@ $.extend(wn, {
 		// opts = {"method": "PYTHON MODULE STRING", "args": {}, "callback": function(r) {}}
 		wn.prepare_call(opts);
 		return $.ajax({
-			type: "POST",
+			type: opts.type || "POST",
 			url: "/",
 			data: opts.args,
 			dataType: "json",
-			success: function(data) {
-				wn.process_response(opts, data);
-			},
-			error: function(response) {
-				if(!opts.no_spinner) NProgress.done();
-				console.error ? console.error(response) : console.log(response);
+			statusCode: {
+				404: function(xhr) {
+					msgprint("Not Found");
+				},
+				403: function(xhr) {
+					msgprint("Not Permitted");
+				},
+				200: function(data, xhr) {
+					if(opts.callback)
+						opts.callback(data);
+				}
 			}
+		}).always(function(data) {
+			// executed before statusCode functions
+			if(data.responseText) {
+				data = JSON.parse(data.responseText);
+			}
+			wn.process_response(opts, data);
 		});
 	},
 	prepare_call: function(opts) {
@@ -87,10 +87,12 @@ $.extend(wn, {
 		}
 	},
 	process_response: function(opts, data) {
-		NProgress.done();
+		if(!opts.no_spinner) NProgress.done();
+		
 		if(opts.btn) {
 			$(opts.btn).prop("disabled", false);
 		}
+		
 		if(data.exc) {
 			if(opts.btn) {
 				$(opts.btn).addClass("btn-danger");
@@ -114,8 +116,6 @@ $.extend(wn, {
 		if(opts.msg && data.message) {
 			$(opts.msg).html(data.message).toggle(true);
 		}
-		if(opts.callback)
-			opts.callback(data);
 	},
 	show_message: function(text, icon) {
 		if(!icon) icon="icon-refresh icon-spin";
@@ -175,15 +175,25 @@ $.extend(wn, {
 				}
 			}
 		});
+	},
+	render_user: function() {
+		var sid = wn.get_cookie("sid");
+		if(sid && sid!=="Guest") {
+			$(".btn-login-area").toggle(false);
+			$(".logged-in").toggle(true);
+			$(".full-name").html(wn.get_cookie("full_name"));
+			$(".user-picture").attr("src", wn.get_cookie("user_image"));
+		}
 	}
 });
 
 
 // Utility functions
 
-function valid_email(id) { 
-	if(id.toLowerCase().search("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?")==-1) 
-		return 0; else return 1; }
+function valid_email(id) {
+	return (id.toLowerCase().search("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?")==-1) ? 0 : 1;
+
+}
 
 var validate_email = valid_email;
 
@@ -305,11 +315,20 @@ $(document).ready(function() {
 			<li><a href="app.html"><i class="icon-fixed-width icon-th-large"></i> Switch To App</a></li>');
 	}
 	
+	wn.render_user();
+	
 	$(document).trigger("page_change");
 });
 
 $(document).on("page_change", function() {
 	$(".page-header").toggleClass("hidden", !!!$(".page-header").text().trim());
 	$(".page-footer").toggleClass("hidden", !!!$(".page-footer").text().trim());
-});
 
+	// add prive pages to sidebar
+	if(website.private_pages && $(".page-sidebar").length) {
+		$(data.private_pages).prependTo(".page-sidebar");
+	}
+	
+	$(document).trigger("apply_permissions");
+	wn.datetime.refresh_when();
+});
