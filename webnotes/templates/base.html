@@ -49,27 +49,32 @@
 		{%- block navbar -%}{% include "templates/includes/navbar.html" %}{%- endblock -%}
 	
 		<header class="page-header">
-			<div class="container">
+			<div class="container" data-html-block="header">
 			{%- if header is defined -%}{{ header }}{%- endif -%}
+			</div>
+		</header>
+		<header class="page-breadcrumbs">
+			<div class="container" data-html-block="breadcrumbs">
+			{%- if breadcrumbs is defined -%}{{ breadcrumbs }}{%- endif -%}
 			</div>
 		</header>
 		<div class="container page-container" id="page-{{ name or page_name }}">
 			<div class="row">
-				<div class="col-sm-9 page-content">
+				<div class="col-sm-9 page-content" data-html-block="content">
 					{%- block content -%}{{ content }}{%- endblock -%}
 				</div>
-				<div class="col-sm-3 page-sidebar">
+				<div class="col-sm-3 page-sidebar" data-html-block="sidebar">
 					{%- block sidebar -%}{%- if sidebar is defined -%}{{ sidebar }}{%- endif -%}{%- endblock -%}
 				</div>
 			</div>
 		</div>
 		<footer class="page-footer">
-			<div class="container">
+			<div class="container" data-html-block="footer">
 				{%- if footer is defined -%}{{ footer }}{%- endif -%}
 			</div>
 		</footer>
 	</div>
-	<div id="footer">
+	<div id="wrap-footer">
 		{%- block footer -%}{% include "templates/includes/footer.html" %}{%- endblock -%}
 	</div>
 </body>

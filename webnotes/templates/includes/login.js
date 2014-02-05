@@ -1,20 +1,6 @@
 var disable_signup = {{ disable_signup and "true" or "false" }};
 var login = {};
 
-$(document).ready(function(wrapper) {
-	window.location.hash = "#login";
-	login.login();
-	
-	$('#login_btn').click(login.do_login);
-		
-	$('#pass').keypress(function(ev){
-		if(ev.which==13 && $('#pass').val()) {
-			$("#login_btn").click();
-		}
-	});
-	$(document).trigger('login_rendered');
-})
-
 $(window).on("hashchange", function() {
 	var route = window.location.hash.slice(1);
 	if(!route) route = "login";
@@ -148,7 +134,6 @@ login.login_handlers = {
 {% if fb_app_id is defined -%}
 // facebook login
 $(document).ready(function() {
-  $.ajaxSetup({ cache: true });
   var user_id = wn.get_cookie("user_id");
   var sid = wn.get_cookie("sid");
   
@@ -205,4 +190,18 @@ login.via_facebook = function() {
 		}
 	},{scope:"email"});	
 }
+
+$(document).ready(function(wrapper) {
+	window.location.hash = "#login";
+	login.login();
+	
+	$('#login_btn').click(login.do_login);
+		
+	$('#pass').keypress(function(ev){
+		if(ev.which==13 && $('#pass').val()) {
+			$("#login_btn").click();
+		}
+	});
+	$(document).trigger('login_rendered');
+})
 {%- endif %}

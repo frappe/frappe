@@ -239,6 +239,9 @@ def scrub_page_name(page_name):
 	if page_name.endswith('.html'):
 		page_name = page_name[:-5]
 		
+	if page_name == "index":
+		page_name = get_home_page()
+		
 	return page_name
 
 def insert_traceback(data):

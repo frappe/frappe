@@ -9,7 +9,6 @@ $.extend(website, {
 			$('li[data-view="add"]').toggleClass("hide", !website.access.write);
 			$('li[data-view="settings"]').toggleClass("hide", !website.access.admin);
 			$('li[data-view="edit"]').toggleClass("hide", website.view!=="edit");
-			// $('li[data-view="settings"]').toggleClass("hide", !website.access.admin);
 		
 			// show message
 			$(".post-list-help").html(!website.access.write ? "You do not have permission to post" : "");
@@ -203,8 +202,19 @@ $.extend(website, {
 		}
 	},
 	format_event_timestamps: function() {
+		var get_day = function(num) {
+			return ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday",
+				"Friday", "Saturday"][num];
+		}
+		
+		var get_month = function(num) {
+			return ["January", "February", "March", "April", "May", "June",
+				"July", "August", "September", "October", "November", "December"][num-1];
+		}
+		
 		var format = function(datetime) {
 			if(!datetime) return "";
+			
 			var date = datetime.split(" ")[0].split("-");
 			var time = datetime.split(" ")[1].split(":");
 			var tt = "am";
@@ -217,8 +227,18 @@ $.extend(website, {
 			}
 		
 			var hhmm = [time[0], time[1]].join(":")
-		
-			return [date[2], date[1], date[0]].join("-") + " " + hhmm + " " + tt;
+			
+			// DD, d MM, yy hh:mm tt
+			
+			var dateobj = new Date(date[0], date[1], date[2])
+			
+			return repl("%(day)s, %(date)s %(month)s, %(year)s %(time)s", {
+				day: get_day(dateobj.getDay()),
+				date: date[2],
+				month: get_month(dateobj.getMonth()),
+				year: date[0],
+				time: hhmm + " " + tt
+			})
 		}
 		$(".event-timestamp").each(function() {
 			$(this).html(format($(this).attr("data-timestamp")));
@@ -348,7 +368,7 @@ $.extend(website, {
 
 		opts.$control.datetimepicker({
 			timeFormat: "hh:mm tt",
-			dateFormat: 'dd-mm-yy',
+			dateFormat: 'DD, d MM, yy',
 			changeYear: true,
 			yearRange: "-70Y:+10Y",
 			stepMinute: 5,
@@ -385,7 +405,7 @@ $.extend(website, {
 			if (typeof(datetime)==="string") {
 				datetime = website.datetimepicker.str_to_obj(datetime);
 			}
-			var date_str = $.datepicker.formatDate("dd-mm-yy", datetime)
+			var date_str = $.datepicker.formatDate("DD, d MM, yy", datetime)
 			var time_str = $.datepicker.formatTime("hh:mm tt", {
 				hour: datetime.getHours(),
 				minute: datetime.getMinutes(),

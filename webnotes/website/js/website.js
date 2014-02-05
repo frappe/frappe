@@ -184,6 +184,101 @@ $.extend(wn, {
 			$(".full-name").html(wn.get_cookie("full_name"));
 			$(".user-picture").attr("src", wn.get_cookie("user_image"));
 		}
+	},
+	setup_push_state: function() {
+		if(wn.supports_pjax()) {
+			// hack for chrome's onload popstate call
+			window.initial_href = window.location.href
+			
+			$(document).on("click", "#wrap a", wn.handle_click);
+			
+			$(window).on("popstate", function(event) {
+				// hack for chrome's onload popstate call
+				if(window.initial_href==location.href && window.previous_href==undefined) {
+					wn.set_force_reload(true);
+					return;
+				}
+				
+				window.previous_href = location.href;
+				var state = event.originalEvent.state;
+				
+				if(state) {
+					wn.render_json(state);
+				} else {
+					console.log("state not found!");
+				}
+			});
+		}
+	},
+	handle_click: function(event) {
+		// taken from jquery pjax
+		var link = event.currentTarget
+		
+		if (link.tagName.toUpperCase() !== 'A')
+			throw "using pjax requires an anchor element"
+
+		// Middle click, cmd click, and ctrl click should open
+		// links in a new tab as normal.
+		if ( event.which > 1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey )
+			return
+			
+		// Ignore cross origin links
+		if ( location.protocol !== link.protocol || location.hostname !== link.hostname )
+			return
+
+		// Ignore anchors on the same page
+		if (link.hash && link.href.replace(link.hash, '') ===
+			 location.href.replace(location.hash, ''))
+			 return
+			 
+		// Ignore empty anchor "foo.html#"
+		if (link.href === location.href + '#')
+			return
+		
+		// our custom logic
+		if (link.href.indexOf("cmd=")!==-1)
+			return
+			
+		event.preventDefault()
+		wn.load_via_ajax(link.href);
+
+	},
+	load_via_ajax: function(href) {
+		console.log("calling ajax");
+		
+		window.previous_href = href;
+		history.pushState(null, null, href);
+		
+		$.ajax({ url: href, cache: false }).done(function(data) {
+			history.replaceState(data, data.title, href);
+			wn.render_json(data); 
+		})
+	},
+	render_json: function(data) {
+		if(data.reload) {
+			window.location = location.href;
+		// } else if(data.html) {
+		// 	var newDoc = document.open("text/html", "replace");
+		// 	newDoc.write(data.html);
+		// 	newDoc.close();
+		} else {
+			$('[data-html-block]').each(function(i, section) {
+				var $section = $(section);
+				$section.html(data[$section.attr("data-html-block")] || "");
+			});
+			if(data.title) $("title").html(data.title);
+			$(document).trigger("page_change");
+		}
+	},
+	set_force_reload: function(reload) {
+		// learned this from twitter's implementation
+		window.history.replaceState({"reload": reload}, 
+			window.document.title, location.href);
+	},
+	supports_pjax: function() {
+		return (window.history && window.history.pushState && window.history.replaceState &&
+		  // pushState isn't reliable on iOS until 5.
+		  !navigator.userAgent.match(/((iPod|iPhone|iPad).+\bOS\s+[1-4]|WebApps\/.+CFNetwork)/))
 	}
 });
 
@@ -316,6 +411,7 @@ $(document).ready(function() {
 	}
 	
 	wn.render_user();
+	wn.setup_push_state()
 	
 	$(document).trigger("page_change");
 });
@@ -323,6 +419,7 @@ $(document).ready(function() {
 $(document).on("page_change", function() {
 	$(".page-header").toggleClass("hidden", !!!$(".page-header").text().trim());
 	$(".page-footer").toggleClass("hidden", !!!$(".page-footer").text().trim());
+	$(".page-breadcrumbs").toggleClass("hidden", !!!$(".page-breadcrumbs").text().trim());
 
 	// add prive pages to sidebar
 	if(website.private_pages && $(".page-sidebar").length) {

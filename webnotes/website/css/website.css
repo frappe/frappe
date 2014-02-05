@@ -214,22 +214,33 @@ fieldset {
 }
 
 .page-header {
-	margin: 0 0 20px;
+	margin: 0px;
 	padding: 5px 0px;
+}
+
+.page-container {
+	margin-top: 15px;
 }
 
 .page-header h1,
 .page-header h2,
 .page-header h3 {
-	margin-top: 5px;
+	margin: 5px auto;
 }
 
 .page-header .lead {
 	margin-bottom: 5px;
 }
 
-.page-sidebar {
-	border-left: 1px solid #aaa;
+.sidebar-item {
+	margin: 15px auto;
+	color: #999;
+	font-size: 90%;
+}
+
+.sidebar-item a:hover {
+	color: #333;
+	border-bottom: 2px solid #999;
 }
 
 html,
@@ -250,7 +261,7 @@ body {
 }
 
 /* Set the fixed height of the footer here */
-#footer {
+#wrap-footer {
   height: 140px;
   background-color: #f5f5f5;
 }
@@ -268,9 +279,13 @@ body {
 
 /* post and post list */
 .post {
-	padding: 7px 0px;
+	padding: 15px 0px;
 	word-wrap: break-word;
 	border-bottom: 1px solid #eee;
+}
+
+.post:first-child {
+	margin-top: 15px !important;
 }
 
 .post .img-responsive {
@@ -310,3 +325,96 @@ textarea {
 .post-add-textarea {
 	height: 200px !important;
 }
+
+/* needs review */
+
+.btn-small, .post-editor .btn {
+	padding: 5px;
+	font-size: 90%;
+}
+
+.btn-right, .post-editor .btn {
+	margin-left: 5px;
+}
+
+.no-posts {
+	margin-top: 15px;
+}
+
+.full-page {
+	margin: 30px;
+}
+
+.img-responsive {
+	border-radius: 4px;
+}
+
+.user-profile {
+	min-height: 50px;
+	min-width: 70px;
+}
+
+.hidden-xs {
+	display: inline-block !important;
+}
+
+.visible-xs {
+	display: none !important;
+}
+
+@media (max-width: 767px) {
+	.hidden-xs {
+		display: none !important;
+	}
+	.visible-xs {
+		display: inline-block !important;
+	}
+}
+
+.nav-tabs > li > a {
+	padding: 7px 10px;
+}
+
+.btn-more {
+	margin-top: 15px;
+}
+
+.post-content img {
+	margin: 10px 0px;
+}
+
+.assigned-label, .event-label {
+	display: inline-block;
+	padding: .4em .6em .4em;
+	margin-bottom: 7px;
+}
+
+a.no-decoration {
+	text-decoration: none;
+	color: inherit;
+}
+
+.page-breadcrumbs {
+	border-bottom: 1px solid #eee;
+}
+
+.page-breadcrumbs .breadcrumb {
+	margin-bottom: 0px;
+	background-color: transparent;
+	border-radius: 0px;
+	padding: 8px 0px;
+}
+
+@media (min-width: 768px) {
+	.page-sidebar {
+		padding-left: 5em;
+	}
+	
+}
+
+.post:last-child {
+	border-bottom: none;
+}
+
+/* end - needs review */
+
