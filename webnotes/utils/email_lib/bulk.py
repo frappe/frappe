@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import webnotes
 import HTMLParser
 import urllib
+from webnotes import msgprint, throw, _
 from webnotes.utils.email_lib.smtp import SMTPServer, send
 from webnotes.utils.email_lib.email_body import get_email, get_formatted_html
 from webnotes.utils.email_lib.html2text import html2text
@@ -27,8 +28,11 @@ def send(recipients=None, sender=None, doctype='Profile', email_field='email',
 		monthly_bulk_mail_limit = webnotes.conf.get('monthly_bulk_mail_limit') or 500
 
 		if this_month + len(recipients) > monthly_bulk_mail_limit:
-			webnotes.msgprint("""Monthly Bulk Mail Limit (%s) Crossed""" % monthly_bulk_mail_limit,
-				raise_exception=BulkLimitCrossedError)
+			throw("{bulk} ({limit}) {cross}".format(**{
+				"bulk": _("Monthly Bulk Mail Limit"),
+				"limit": monthly_bulk_mail_limit,
+				"cross": _("crossed")
+			}), exc=BulkLimitCrossedError)
 
 	def update_message(formatted, doc, add_unsubscribe_link):
 		updated = formatted
@@ -59,11 +63,11 @@ def send(recipients=None, sender=None, doctype='Profile', email_field='email',
 		text_content = "[See html attachment]"
 	
 	formatted = get_formatted_html(subject, message)
-		
+
 	for r in filter(None, list(set(recipients))):
 		rdata = webnotes.conn.sql("""select * from `tab%s` where %s=%s""" % (doctype, 
 			email_field, '%s'), (r,), as_dict=1)
-		
+
 		doc = rdata and rdata[0] or {}
 				
 		if not is_unsubscribed(doc):
@@ -114,7 +118,7 @@ def flush(from_test=False):
 	auto_commit = not from_test
 	
 	if webnotes.flags.mute_emails or webnotes.conf.get("mute_emails") or False:
-		webnotes.msgprint("Emails are muted")
+		msgprint(_("Emails are muted"))
 		from_test = True
 		
 	for i in xrange(500):		
