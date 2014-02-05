@@ -354,18 +354,11 @@ textarea {
 	min-width: 70px;
 }
 
-.hidden-xs {
-	display: inline-block !important;
-}
-
 .visible-xs {
 	display: none !important;
 }
 
 @media (max-width: 767px) {
-	.hidden-xs {
-		display: none !important;
-	}
 	.visible-xs {
 		display: inline-block !important;
 	}
@@ -408,8 +401,15 @@ a.no-decoration {
 @media (min-width: 768px) {
 	.page-sidebar {
 		padding-left: 5em;
+	}	
+}
+
+@media (max-width: 767px) {
+	.page-sidebar {
+		padding-bottom: 15px;
+		margin-bottom: 15px;
+		border-bottom: 1px solid #eee;
 	}
-	
 }
 
 .post:last-child {

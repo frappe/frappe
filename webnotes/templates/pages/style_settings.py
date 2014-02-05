@@ -9,15 +9,10 @@ base_template_path = "templates/pages/style_settings.css"
 
 def get_context(context):
 	"""returns web style"""
-	from webnotes.webutils import get_hex_shade
-	
 	doc = webnotes.doc("Style Settings", "Style Settings")
 	prepare(doc)
 	
-	return {
-		"doc": doc,
-		"get_hex_shade": get_hex_shade
-	}
+	return { "doc": doc.fields }	
 
 def prepare(doc):
 	from webnotes.utils import cint, cstr

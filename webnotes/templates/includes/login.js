@@ -190,6 +190,7 @@ login.via_facebook = function() {
 		}
 	},{scope:"email"});	
 }
+{%- endif %}
 
 $(document).ready(function(wrapper) {
 	window.location.hash = "#login";
@@ -204,4 +205,3 @@ $(document).ready(function(wrapper) {
 	});
 	$(document).trigger('login_rendered');
 })
-{%- endif %}

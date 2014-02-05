@@ -12,7 +12,7 @@ def get_context(context):
 	
 	query_options = filter(None, bean.doc.query_options.replace(",", "\n").split()) if \
 			bean.doc.query_options else ["Sales", "Support", "General"]
-	
+			
 	address = webnotes.bean("Address", bean.doc.address).doc if bean.doc.address else None
 	
 	contact_context = {
@@ -23,7 +23,7 @@ def get_context(context):
 	}
 	contact_context.update(context)
 	
-	return render_blocks(context)
+	return render_blocks(contact_context)
 
 max_communications_per_hour = 300
 

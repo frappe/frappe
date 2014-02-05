@@ -6,6 +6,7 @@ app_icon = icon-cog
 app_version = 4.0.0-wip
 app_color = #3498db
 
+before_install = webnotes.utils.install.before_install
 after_install = webnotes.utils.install.after_install
 
 # website
@@ -14,6 +15,8 @@ app_include_css = assets/webnotes/css/splash.css
 app_include_css = assets/css/webnotes.css
 web_include_js = assets/js/webnotes-web.min.js
 web_include_css = assets/css/webnotes-web.css
+web_include_js = website_script.js
+web_include_css = style_settings.css
 
 website_group_handler:Forum = webnotes.templates.website_group.forum
 website_group_handler:Events = webnotes.templates.website_group.events

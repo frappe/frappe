@@ -13,7 +13,7 @@ def get_context(context):
 	web_page = webnotes.bean(context.ref_doctype, context.docname)
 	
 	if web_page.doc.slideshow:
-		get_slideshow(web_page)
+		web_page.doc.fields.update(get_slideshow(web_page))
 		
 	web_page.doc.meta_description = web_page.doc.description
 	
@@ -29,6 +29,11 @@ def get_context(context):
 			from `tabComment` where comment_doctype="Web Page"
 			and comment_docname=%s order by creation""", web_page.doc.name, as_dict=1) or []
 			
+	web_page.doc.fields.update({
+		"style": web_page.doc.css or "",
+		"script": web_page.doc.javascript or ""
+	})
+	
 	web_page.doc.fields.update(context)
 	
 	return render_blocks(web_page.doc.fields)

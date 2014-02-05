@@ -533,6 +533,7 @@ def get_jenv():
 	global jenv
 	if not jenv:
 		from jinja2 import Environment, ChoiceLoader, PackageLoader, DebugUndefined
+		import webnotes.utils
 
 		apps = get_installed_apps()
 		apps.remove("webnotes")
@@ -543,10 +544,16 @@ def get_jenv():
 
 		set_filters(jenv)
 		
+		jenv.globals.update({
+			"webnotes": sys.modules[__name__],
+			"webnotes.utils": webnotes.utils
+		})
+		
 	return jenv
 	
 def set_filters(jenv):
 	from webnotes.utils import global_date_format, scrub_relative_url
+	from webnotes.webutils import get_hex_shade
 	from markdown2 import markdown
 	from json import dumps
 	
@@ -554,6 +561,7 @@ def set_filters(jenv):
 	jenv.filters["markdown"] = markdown
 	jenv.filters["json"] = dumps
 	jenv.filters["scrub_relative_url"] = scrub_relative_url
+	jenv.filters["get_hex_shade"] = get_hex_shade
 	
 	# load jenv_filters from hooks.txt
 	for app in get_all_apps(True):

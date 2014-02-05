@@ -10,3 +10,4 @@ webnotes.patches.4_0.remove_index_sitemap
 webnotes.patches.4_0.add_delete_permission
 webnotes.patches.4_0.move_match_to_restricted
 webnotes.patches.4_0.set_todo_checked_as_closed
+webnotes.patches.4_0.website_sitemap_hierarchy

@@ -2,7 +2,7 @@
  {
   "creation": "2014-01-29 15:57:42", 
   "docstatus": 0, 
-  "modified": "2014-01-30 12:09:23", 
+  "modified": "2014-02-05 17:00:33", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -95,7 +95,7 @@
   "fieldname": "parent_website_sitemap", 
   "fieldtype": "Link", 
   "in_list_view": 0, 
-  "label": "Parent Website Node", 
+  "label": "Parent Website Page", 
   "options": "Website Sitemap"
  }, 
  {

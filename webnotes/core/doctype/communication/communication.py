@@ -36,6 +36,15 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 	if doctype and name and not webnotes.has_permission(doctype, "email", name):
 		raise webnotes.PermissionError("You are not allowed to send emails related to: {doctype} {name}".format(
 			doctype=doctype, name=name))
+			
+	_send(doctype=doctype, name=name, content=content, subject=subject, sent_or_received=sent_or_received,
+		sender=sender, recipients=recipients, communication_medium=communication_medium, send_email=send_email, 
+		print_html=print_html, attachments=attachments, send_me_a_copy=send_me_a_copy, set_lead=set_lead, 
+		date=date)
+	
+def _make(doctype=None, name=None, content=None, subject=None, sent_or_received = "Sent",
+	sender=None, recipients=None, communication_medium="Email", send_email=False, 
+	print_html=None, attachments='[]', send_me_a_copy=False, set_lead=True, date=None):
 	
 	# add to Communication
 	sent_via = None

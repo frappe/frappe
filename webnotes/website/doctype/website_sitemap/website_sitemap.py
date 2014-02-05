@@ -5,6 +5,7 @@
 
 from __future__ import unicode_literals
 import webnotes
+from webnotes import _
 from webnotes.utils.nestedset import DocTypeNestedSet
 
 sitemap_fields = ("page_name", "ref_doctype", "docname", "page_or_generator", 

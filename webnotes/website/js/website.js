@@ -404,6 +404,11 @@ $(document).ready(function() {
 	$("#website-login").toggleClass("hide", logged_in ? true : false);
 	$("#website-post-login").toggleClass("hide", logged_in ? false : true);
 	
+	$(".toggle-sidebar").on("click", function() {
+		$(".page-sidebar").toggleClass("hidden-xs");
+		$(".toggle-sidebar i").toggleClass("icon-rotate-180");
+	});
+	
 	// switch to app link
 	if(getCookie("system_user")==="yes") {
 		$("#website-post-login .dropdown-menu").append('<li class="divider"></li>\

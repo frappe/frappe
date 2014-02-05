@@ -2,7 +2,7 @@
  {
   "creation": "2013-03-28 10:35:30", 
   "docstatus": 0, 
-  "modified": "2014-01-20 17:49:35", 
+  "modified": "2014-02-05 17:02:09", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -184,6 +184,13 @@
   "fieldtype": "Table", 
   "label": "Table of Contents", 
   "options": "Table of Contents"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "parent_website_sitemap", 
+  "fieldtype": "Link", 
+  "label": "Parent Website Page", 
+  "options": "Website Sitemap"
  }, 
  {
   "doctype": "DocPerm"

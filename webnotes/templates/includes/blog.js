@@ -3,24 +3,6 @@
 
 // js inside blog page
 
-$(document).ready(function() {
-	// make list of blogs
-	blog.get_list();
-	
-	$("#next-page").click(function() {
-		blog.get_list();
-	})
-	
-	if(get_url_arg("by_name")) {
-		$("#blot-subtitle").html("Posts by " + get_url_arg("by_name")).toggle(true);
-	}
-
-	if(get_url_arg("category")) {
-		$("#blot-subtitle").html("Posts filed under " + get_url_arg("category")).toggle(true);
-	}
-
-});
-
 var blog = {
 	start: 0,
 	get_list: function() {
@@ -85,4 +67,22 @@ var blog = {
 			$("#next-page").toggle(true);
 		}
 	}
-}
+};
+
+$(document).ready(function() {
+	// make list of blogs
+	blog.get_list();
+	
+	$("#next-page").click(function() {
+		blog.get_list();
+	})
+	
+	if(get_url_arg("by_name")) {
+		$("#blot-subtitle").html("Posts by " + get_url_arg("by_name")).toggle(true);
+	}
+
+	if(get_url_arg("category")) {
+		$("#blot-subtitle").html("Posts filed under " + get_url_arg("category")).toggle(true);
+	}
+
+});

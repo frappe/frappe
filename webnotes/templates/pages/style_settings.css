@@ -54,7 +54,7 @@ div.outer {
 {% else %}
 {% if doc.background_color.lower() == doc.page_background.lower() %}
 .web-footer {
-	border-top: 1px solid #{{ get_hex_shade(doc.page_background, 15) }};
+	border-top: 1px solid #{{ doc.page_background | get_hex_shade(15) }};
 	padding-top: 10px;
 }
 {% endif %}
@@ -62,7 +62,7 @@ div.outer {
 
 .web-footer, .web-footer a {
 	font-size: 90%;
-	color: #{{ get_hex_shade(doc.background_color, 70) }};
+	color: #{{ doc.background_color | get_hex_shade(70) }};
 }
 
 /* Bootstrap Navbar */
@@ -75,7 +75,7 @@ div.outer {
     background-repeat: repeat-x;
 	background-image: none;
 	border-bottom: 1px solid {% if doc.top_bar_background.lower() == doc.page_background.lower() -%}
-		#{{ get_hex_shade(doc.page_background, 15) }};
+		#{{ doc.page_background | get_hex_shade(15) }};
 	{%- else -%}
 		transparent;
 	{%- endif %}
@@ -185,7 +185,7 @@ div.outer {
 }
 
 .breadcrumb {
-	background-color: #{{ get_hex_shade(doc.page_background, 5) }};
+	background-color: #{{ doc.page_background | get_hex_shade(5) }};
 }
 
 .breadcrumb > li {
@@ -195,41 +195,41 @@ div.outer {
 
 .table-striped tbody > tr:nth-child(odd) > td,
 .table-striped tbody > tr:nth-child(odd) > th {
-	background-color: #{{ get_hex_shade(doc.page_background, 5) }};
+	background-color: #{{ doc.page_background | get_hex_shade(5) }};
 }
 
 .table-hover tbody tr:hover td,
 .table-hover tbody tr:hover th {
-	background-color: #{{ get_hex_shade(doc.page_background, 10) }};
+	background-color: #{{ doc.page_background | get_hex_shade(10) }};
 }
 
 .table-bordered {
-	border: 1px solid #{{ get_hex_shade(doc.page_background, 15) }};
+	border: 1px solid #{{ doc.page_background | get_hex_shade(15) }};
 }
 
 .table th,
 .table td {
-  border-top: 1px solid #{{ get_hex_shade(doc.page_background, 15) }};
+  border-top: 1px solid #{{ doc.page_background | get_hex_shade(15) }};
 }
 
 .table-bordered th,
 .table-bordered td {
-	border-left: 1px solid #{{ get_hex_shade(doc.page_background, 15) }};
+	border-left: 1px solid #{{ doc.page_background | get_hex_shade(15) }};
 }
 
 
 
 .hero-unit {
-	background-color: #{{ get_hex_shade(doc.page_background, 15) }};
+	background-color: #{{ doc.page_background | get_hex_shade(15) }};
 }
 
 pre, code {
-	background-color: #{{ get_hex_shade(doc.page_background, 5) }};
+	background-color: #{{ doc.page_background | get_hex_shade(5) }};
 }
 
 hr {
-	border-top: 1px solid #{{ get_hex_shade(doc.page_background, 15) }};
-	border-bottom: 1px solid #{{ get_hex_shade(doc.page_background, 5) }};	
+	border-top: 1px solid #{{ doc.page_background | get_hex_shade(15) }};
+	border-bottom: 1px solid #{{ doc.page_background | get_hex_shade(5) }};	
 }
 
 {% if doc.add_css -%}

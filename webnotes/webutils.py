@@ -31,7 +31,7 @@ def render(page_name):
 	
 	data = set_content_type(data, page_name)
 	webnotes._response.data = data
-	webnotes._response.headers["Page Name"] = page_name
+	webnotes._response.headers[b"Page Name"] = page_name.encode("utf-8")
 	
 def render_page(page_name):
 	"""get page html"""
@@ -42,11 +42,11 @@ def render_page(page_name):
 	# try memcache
 	if can_cache():
 		out = webnotes.cache().get_value(cache_key)
-		if is_ajax():
+		if out and is_ajax():
 			out = out.get("data")
 			
 	if out:
-		webnotes._response.headers["From Cache"] = True
+		webnotes._response.headers[b"From Cache"] = True
 		return out
 	
 	return build(page_name)
@@ -102,13 +102,11 @@ def get_sitemap_options(page_name):
 
 	if can_cache():
 		sitemap_options = webnotes.cache().get_value(cache_key)
-	if sitemap_options:
-		return sitemap_options
-		
-	sitemap_options = build_sitemap_options(page_name)
-	if can_cache(sitemap_options.no_cache):
-		webnotes.cache().set_value(cache_key, sitemap_options)
-		
+	if not sitemap_options:
+		sitemap_options = build_sitemap_options(page_name)
+		if can_cache(sitemap_options.no_cache):
+			webnotes.cache().set_value(cache_key, sitemap_options)
+	
 	return sitemap_options
 	
 def build_sitemap_options(page_name):
@@ -138,8 +136,6 @@ def build_sitemap_options(page_name):
 	if not sitemap_options.base_template_path:
 		sitemap_options.base_template_path = "templates/base.html"
 		
-	sitemap_options.template = webnotes.get_jenv().get_template(sitemap_options.template_path)
-	
 	return sitemap_options
 	
 def build_context(sitemap_options):
@@ -152,7 +148,7 @@ def build_context(sitemap_options):
 		module = webnotes.get_module(sitemap_options.get("controller"))
 		if module and hasattr(module, "get_context"):
 			context.data = module.get_context(context) or {}
-			
+	
 	return context
 	
 def can_cache(no_cache=False):
@@ -189,8 +185,6 @@ def get_website_settings():
 			select * from `tabTop Bar Item`
 			where parent='Website Settings' and parentfield='footer_items'
 			order by idx asc""", as_dict=1),
-		"webnotes": webnotes,
-		"utils": webnotes.utils,
 		"post_login": [
 			{"label": "Reset Password", "url": "update-password", "icon": "icon-key"},
 			{"label": "Logout", "url": "?cmd=web_logout", "icon": "icon-signout"}
@@ -247,7 +241,7 @@ def scrub_page_name(page_name):
 def insert_traceback(data):
 	traceback = webnotes.get_traceback()
 	if isinstance(data, dict):
-		data["error"] = traceback
+		data["content"] = data["content"] % {"error": traceback}
 	else:
 		data = data % {"error": traceback}
 		
@@ -255,15 +249,15 @@ def insert_traceback(data):
 	
 def set_content_type(data, page_name):
 	if isinstance(data, dict):
-		webnotes._response.headers["Content-Type"] = "application/json; charset: utf-8"
+		webnotes._response.headers[b"Content-Type"] = b"application/json; charset: utf-8"
 		data = json.dumps(data)
 		return data
 	
-	webnotes._response.headers["Content-Type"] = "text/html; charset: utf-8"
+	webnotes._response.headers[b"Content-Type"] = b"text/html; charset: utf-8"
 	
 	if "." in page_name and not page_name.endswith(".html"):
 		content_type, encoding = mimetypes.guess_type(page_name)
-		webnotes._response.headers["Content-Type"] = content_type
+		webnotes._response.headers[b"Content-Type"] = content_type.encode("utf-8")
 	
 	return data
 
@@ -417,7 +411,8 @@ def render_blocks(context):
 	"""returns a dict of block name and its rendered content"""
 	from jinja2.utils import concat
 	out = {}
-	template = context["template"]
+	
+	template = webnotes.get_template(context["template_path"])
 	
 	# required as per low level API
 	context = template.new_context(context)

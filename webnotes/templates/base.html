@@ -10,33 +10,32 @@
 	<link rel="shortcut icon" href="{{ favicon | scrub_relative_url }}" type="image/x-icon">
 	<link rel="icon" href="{{ favicon | scrub_relative_url }}" type="image/x-icon">
 	
-	{%- block head -%}
+	{% block head -%}
 		{%- if meta_description is defined -%}
 		<meta name="description" content="{{ meta_description }}">
 		{%- endif -%}
 		
 		{%- for link in web_include_js -%}
-		<script type="text/javascript" src="/{{ link }}"></script>
+		<script type="text/javascript" src="{{ link | scrub_relative_url }}"></script>
 		{%- endfor -%}
 		
 		{%- for link in web_include_css -%}
-		<link type="text/css" rel="stylesheet" href="/{{ link }}">
+		<link type="text/css" rel="stylesheet" href="{{ link | scrub_relative_url }}">
 		{%- endfor -%}
-	{%- endblock -%}
+		
+		{% block script -%}
+			<script data-html-block="script">
+			{%- if script is defined -%}{{ script }}{%- endif -%}
+			</script>
+		{%- endblock %}
 	
-	{%- block javascript -%}
-		{%- if javascript is defined -%}
-		<script>{{ javascript }}</script>
-		{%- endif -%}
-	{%- endblock -%}
-	
-	{%- block css -%}
-		{%- if css is defined -%}
-		<style>{{ css }}</style>
-		{%- endif -%}
-	{%- endblock -%}
-	
-	{%- block style -%}{%- endblock -%}
+		{% block style -%}
+			<style data-html-block="style">
+			{%- if style is defined -%}{{ style }}{%- endif -%}
+			</style>
+		{%- endblock %}
+
+	{%- endblock %}
 </head>
 <body>
 	<div id="wrap">
@@ -60,11 +59,14 @@
 		</header>
 		<div class="container page-container" id="page-{{ name or page_name }}">
 			<div class="row">
-				<div class="col-sm-9 page-content" data-html-block="content">
-					{%- block content -%}{{ content }}{%- endblock -%}
-				</div>
-				<div class="col-sm-3 page-sidebar" data-html-block="sidebar">
+				<div class="col-sm-3 col-sm-push-9 page-sidebar hidden-xs" data-html-block="sidebar">
 					{%- block sidebar -%}{%- if sidebar is defined -%}{{ sidebar }}{%- endif -%}{%- endblock -%}
+				</div>
+				<div class="col-sm-9 col-sm-pull-3 page-content" data-html-block="content">
+					<div class="text-right"><a class="visible-xs toggle-sidebar no-decoration">
+						<i class="icon-chevron-down"></i>
+					</a></div>
+					{%- block content -%}{{ content }}{%- endblock -%}
 				</div>
 			</div>
 		</div>
