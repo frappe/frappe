@@ -11,7 +11,7 @@ from werkzeug.local import Local, release_local
 from werkzeug.exceptions import NotFound
 from MySQLdb import ProgrammingError as SQLError
 
-import os, sys, importlib
+import os, sys, importlib, inspect
 import json
 import semantic_version
 
@@ -459,6 +459,18 @@ def get_attr(method_string):
 	modulename = '.'.join(method_string.split('.')[:-1])
 	methodname = method_string.split('.')[-1]
 	return getattr(get_module(modulename), methodname)
+	
+def call(fn, *args, **kwargs):
+	if hasattr(fn, 'fnargs'):
+		fnargs = fn.fnargs
+	else:
+		fnargs, varargs, varkw, defaults = inspect.getargspec(fn)
+
+	newargs = {}
+	for a in fnargs:
+		if a in kwargs:
+			newargs[a] = kwargs.get(a)
+	return fn(*args, **newargs)
 
 def make_property_setter(args):
 	args = _dict(args)

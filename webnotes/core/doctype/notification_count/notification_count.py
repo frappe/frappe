@@ -56,12 +56,12 @@ def delete_notification_count_for(doctype):
 def delete_event_notification_count():
 	delete_notification_count_for("Event")
 
-def clear_doctype_notifications(controller, method=None):
+def clear_doctype_notifications(bean, method=None):
 	if webnotes.flags.in_import:
 		return
 		
 	config = get_notification_config()
-	doctype = controller.doc.doctype
+	doctype = bean.doc.doctype
 
 	if doctype in config.for_doctype:
 		delete_notification_count_for(doctype)

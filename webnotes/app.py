@@ -18,6 +18,7 @@ import mimetypes
 import webnotes
 import webnotes.handler
 import webnotes.auth
+import webnotes.api
 import webnotes.webutils
 from webnotes.utils import get_site_name
 
@@ -56,8 +57,10 @@ def application(request):
 		webnotes.local._response = Response()
 		webnotes.http_request = webnotes.auth.HTTPRequest()
 
-		if webnotes.form_dict.cmd:
+		if webnotes.local.form_dict.cmd:
 			webnotes.handler.handle()
+		elif webnotes.request.path.startswith("/api/"):
+			webnotes.api.handle()
 		elif webnotes.local.request.method in ('GET', 'HEAD'):
 			webnotes.webutils.render(webnotes.request.path[1:])
 		else:

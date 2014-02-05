@@ -87,11 +87,11 @@ class HTTPRequest:
 class LoginManager:
 	def __init__(self):
 		self.user = None
-		if webnotes.form_dict.get('cmd')=='login':
+		if webnotes.local.form_dict.get('cmd')=='login' or webnotes.local.request.path=="/api/method/login":
 			self.login()
 		else:
 			self.make_session(resume=True)
-			
+
 	def login(self):
 		# clear cache
 		webnotes.clear_cache(user = webnotes.form_dict.get('usr'))
@@ -109,16 +109,16 @@ class LoginManager:
 		info = webnotes.conn.get_value("Profile", self.user, 
 			["user_type", "first_name", "last_name"], as_dict=1)
 		if info.user_type=="Website User":
-			webnotes._response.set_cookie("system_user", "no")
-			webnotes.response["message"] = "No App"
+			webnotes.local._response.set_cookie("system_user", "no")
+			webnotes.local.response["message"] = "No App"
 		else:
-			webnotes._response.set_cookie("system_user", "yes")
-			webnotes.response['message'] = 'Logged In'
+			webnotes.local._response.set_cookie("system_user", "yes")
+			webnotes.local.response['message'] = 'Logged In'
 
 		full_name = " ".join(filter(None, [info.first_name, info.last_name]))
-		webnotes.response["full_name"] = full_name
-		webnotes._response.set_cookie("full_name", full_name)
-		webnotes._response.set_cookie("user_id", self.user)
+		webnotes.local.response["full_name"] = full_name
+		webnotes.local._response.set_cookie("full_name", full_name)
+		webnotes.local._response.set_cookie("user_id", self.user)
 		
 	def make_session(self, resume=False):
 		# start session
@@ -154,7 +154,7 @@ class LoginManager:
 			return user[0][0] # in correct case
 	
 	def fail(self, message):
-		webnotes.response['message'] = message
+		webnotes.local.response['message'] = message
 		raise webnotes.AuthenticationError
 		
 	
@@ -213,12 +213,12 @@ class LoginManager:
 
 		if user == webnotes.session.user:
 			webnotes.session.sid = ""
-			webnotes._response.delete_cookie("full_name")
-			webnotes._response.delete_cookie("user_id")
-			webnotes._response.delete_cookie("sid")
-			webnotes._response.set_cookie("full_name", "")
-			webnotes._response.set_cookie("user_id", "")
-			webnotes._response.set_cookie("sid", "")
+			webnotes.local._response.delete_cookie("full_name")
+			webnotes.local._response.delete_cookie("user_id")
+			webnotes.local._response.delete_cookie("sid")
+			webnotes.local._response.set_cookie("full_name", "")
+			webnotes.local._response.set_cookie("user_id", "")
+			webnotes.local._response.set_cookie("sid", "")
 
 class CookieManager:
 	def __init__(self):
@@ -231,9 +231,9 @@ class CookieManager:
 		# sid expires in 3 days
 		expires = datetime.datetime.now() + datetime.timedelta(days=3)
 		if webnotes.session.sid:
-			webnotes._response.set_cookie("sid", webnotes.session.sid, expires = expires)
+			webnotes.local._response.set_cookie("sid", webnotes.session.sid, expires = expires)
 		if webnotes.session.session_country:
-			webnotes._response.set_cookie('country', webnotes.session.get("session_country"))
+			webnotes.local._response.set_cookie('country', webnotes.session.get("session_country"))
 		
 	def set_remember_me(self):
 		from webnotes.utils import cint
@@ -247,7 +247,7 @@ class CookieManager:
 		expires = datetime.datetime.now() + \
 					datetime.timedelta(days=remember_days)
 
-		webnotes._response.set_cookie["remember_me"] = 1
+		webnotes.local._response.set_cookie["remember_me"] = 1
 
 
 def _update_password(user, password):

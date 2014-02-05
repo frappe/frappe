@@ -29,12 +29,25 @@ def get_form_params():
 def execute(doctype, query=None, filters=None, fields=None, docstatus=None, 
 		group_by=None, order_by=None, limit_start=0, limit_page_length=None, 
 		as_list=False, with_childnames=False, debug=False):
+		
+	"""
+	fields as list ["name", "owner"] or ["tabTask.name", "tabTask.owner"]
+	filters as list of list [["Task", "name", "=", "TASK00001"]]
+	"""
 
 	if query:
 		return run_custom_query(query)
 				
-	if not filters: filters = []
-	if not docstatus: docstatus = []
+	if not filters: 
+		filters = []
+	if isinstance(filters, basestring):
+		filters = json.loads(filters)
+	if not docstatus: 
+		docstatus = []
+	if not fields: 
+		fields = ["name"]
+	if isinstance(fields, basestring):
+		filters = json.loads(fields)
 
 	args = prepare_args(doctype, filters, fields, docstatus, group_by, order_by, with_childnames)
 	args.limit = add_limit(limit_start, limit_page_length)

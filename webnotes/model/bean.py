@@ -220,16 +220,27 @@ class Bean:
 			idx_map[d.parentfield] = d.idx
 
 	def run_method(self, method, *args, **kwargs):
+		if not args:
+			args = []
 		self.make_controller()
 		
+		def add_to_response(out, new_response):
+			if isinstance(new_response, dict):
+				out.update(new_response)
+						
 		if hasattr(self.controller, method):
-			getattr(self.controller, method)(*args, **kwargs)
+			add_to_response(webnotes.local.response, webnotes.call(getattr(self.controller, method), *args, **kwargs))
 		if hasattr(self.controller, 'custom_' + method):
-			getattr(self.controller, 'custom_' + method)(*args, **kwargs)
+			add_to_response(webnotes.local.response, webnotes.call(getattr(self.controller, 'custom_' + method), *args, **kwargs))
 
-		notify(self, method, *args, **kwargs)
-		
+		args = [self, method] + args
+		for handler in webnotes.get_hooks("bean_event:" + self.doc.doctype + ":" + method) \
+			+ webnotes.get_hooks("bean_event:*:" + method):
+			add_to_response(webnotes.local.response, webnotes.call(webnotes.get_attr(handler), *args, **kwargs))
+
 		self.set_doclist(self.controller.doclist)
+		
+		return webnotes.local.response
 		
 	def get_attr(self, method):
 		self.make_controller()
@@ -273,7 +284,10 @@ class Bean:
 		self.set_doclist(new_doclist)
 
 	def has_read_perm(self):
-		return webnotes.has_permission(self.doc.doctype, "read", self.doc)
+		return self.has_permission("read")
+		
+	def has_permission(self, permtype):
+		return webnotes.has_permission(self.doc.doctype, permtype, self.doc)
 	
 	def save(self, check_links=1, ignore_permissions=None):
 		if ignore_permissions:
@@ -493,12 +507,6 @@ def clone(source_wrapper):
 		})
 	
 	return new_wrapper
-
-def notify(bean, caller, *args, **kwargs):
-	for hook in webnotes.get_hooks().bean_event or []:
-		doctype, trigger, handler = hook.split(":")
-		if ((doctype=="*") or (doctype==bean.doc.doctype)) and caller==trigger:
-			webnotes.get_attr(handler)(bean, trigger, *args, **kwargs)
 
 # for bc
 def getlist(doclist, parentfield):

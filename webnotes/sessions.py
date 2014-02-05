@@ -148,8 +148,7 @@ class Session:
 		data = self.get_session_record()
 		if data:
 			# set language
-			self.data = webnotes._dict({'data': data, 
-				'user':data.user, 'sid': self.sid})
+			self.data = webnotes._dict({'data': data, 'user':data.user, 'sid': self.sid})
 		else:
 			self.start_as_guest()
 			
