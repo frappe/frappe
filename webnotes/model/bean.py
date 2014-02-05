@@ -229,9 +229,11 @@ class Bean:
 				out.update(new_response)
 						
 		if hasattr(self.controller, method):
-			add_to_response(webnotes.local.response, webnotes.call(getattr(self.controller, method), *args, **kwargs))
+			add_to_response(webnotes.local.response, 
+				webnotes.call(getattr(self.controller, method), *args, **kwargs))
 		if hasattr(self.controller, 'custom_' + method):
-			add_to_response(webnotes.local.response, webnotes.call(getattr(self.controller, 'custom_' + method), *args, **kwargs))
+			add_to_response(webnotes.local.response, 
+				webnotes.call(getattr(self.controller, 'custom_' + method), *args, **kwargs))
 
 		args = [self, method] + args
 		for handler in webnotes.get_hooks("bean_event:" + self.doc.doctype + ":" + method) \
@@ -239,7 +241,7 @@ class Bean:
 			add_to_response(webnotes.local.response, webnotes.call(webnotes.get_attr(handler), *args, **kwargs))
 
 		self.set_doclist(self.controller.doclist)
-		
+				
 		return webnotes.local.response
 		
 	def get_attr(self, method):

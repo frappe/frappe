@@ -48,14 +48,12 @@ def handle():
 				if webnotes.local.request.method=="GET":
 					if not bean.has_permission("read"):
 						webnotes.throw("No Permission", webnotes.PermissionError)
-					webnotes.local.response.update({"data": bean.run_method(webnotes.local.form_dict.run_method, 
-						**webnotes.local.form_dict)})
+					bean.run_method(webnotes.local.form_dict.run_method, **webnotes.local.form_dict)
 					
 				if webnotes.local.request.method=="POST":
 					if not bean.has_permission("write"):
 						webnotes.throw("No Permission", webnotes.PermissionError)
-					webnotes.local.response.update({"data":bean.run_method(webnotes.local.form_dict.run_method, 
-						**webnotes.local.form_dict)})
+					bean.run_method(webnotes.local.form_dict.run_method, **webnotes.local.form_dict)
 					webnotes.conn.commit()
 
 			else:
@@ -86,11 +84,13 @@ def handle():
 								doctype, **webnotes.local.form_dict)})
 				
 				else:
-					raise Exception("Bad API")
+					raise webnotes.DoesNotExistError
 		
 		else:
-			raise Exception("Bad API")
-			
+			raise webnotes.DoesNotExistError
+		
+	except webnotes.DoesNotExistError, e:
+		report_error(404)
 	except Exception, e:
 		report_error(500)
 	

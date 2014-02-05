@@ -27,7 +27,7 @@ def get_form_params():
 	return data
 	
 def execute(doctype, query=None, filters=None, fields=None, docstatus=None, 
-		group_by=None, order_by=None, limit_start=0, limit_page_length=None, 
+		group_by=None, order_by=None, limit_start=0, limit_page_length=20, 
 		as_list=False, with_childnames=False, debug=False):
 		
 	"""

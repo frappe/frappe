@@ -2,7 +2,7 @@
 # MIT License. See license.txt 
 
 from __future__ import unicode_literals
-import json, inspect
+import json
 import datetime
 import gzip, cStringIO
 import webnotes
@@ -12,7 +12,8 @@ import webnotes.model.utils
 from werkzeug.local import LocalProxy
 
 def report_error(status_code):
-	webnotes.errprint(webnotes.utils.get_traceback())
+	if status_code!=404:
+		webnotes.errprint(webnotes.utils.get_traceback())
 	webnotes._response.status_code = status_code
 	if webnotes.request_method == "POST":
 		webnotes.conn.rollback()
