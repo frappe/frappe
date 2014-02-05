@@ -1,0 +1,65 @@
+.help ol {
+  padding-left:0px;
+	padding-right: 19px;
+}
+
+.link-field-btn a, .link-field-btn a:hover {
+  margin-left:0px;
+	margin-right: 3px;
+}
+
+.list-timestamp {
+  right: 0px;
+	left: 5px;
+}
+
+.appframe-header .status-bar {
+	text-align: left;
+}
+
+.iconbar i {
+	margin-left: 4px;
+	margin-right: 0px;
+}
+
+.appframe .title-icon {
+	float:right;
+	margin-left: 10px;
+	margin-right: 0px;
+}
+
+.appframe .title-text {
+	float:right;
+}
+
+.navbar #spinner {
+	float: left;
+}
+
+#alert-container {
+	left: 8px;
+	right: 0px;
+}
+
+.avatar-small {
+	margin-left: 5px;
+	margin-right: 0px;
+}
+
+.avatar-large {
+	margin-left: 10px;
+	margin-right: 0px;
+}
+
+.grid-overflow-no-ellipsis {
+	padding-left: 0px;
+}
+
+.grid-overflow-ellipsis {
+	padding-left: 0px;
+}
+
+/* form */
+textarea.form-control {
+	direction:ltr;
+}

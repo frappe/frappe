@@ -32,6 +32,9 @@ wn.Application = Class.extend({
 						window.location = 'index.html';
 						return;
 					}
+          if ( typeof wn.boot.lang !== "undefined" && wn.boot.lang !== false && wn.boot.lang == "ar") {
+						wn.require("css/all-app_ar.css");
+					}
 					me.startup();
 				}
 			});

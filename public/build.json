@@ -7,6 +7,13 @@
 			"lib/website/css/website.css"
 		]
 	},
+	{
+		"public/css/all-web_ar.css": [
+			"lib/public/css/bootstrap_ar.css",
+			"lib/public/css/font-awesome_ar.css",
+			"lib/website/css/website_ar.css"
+		]
+	},
 
 	{
 		"public/js/all-web.min.js": [
@@ -42,7 +49,16 @@
 			"lib/public/css/nprogress.css",
 		]
 	},
-	
+	{
+		"public/css/all-app_ar.css": [
+			"lib/public/css/tag-it_ar.css",
+			"lib/public/css/bootstrap_ar.css",
+			"lib/public/css/bootstrap-responsive_ar.css",
+			"lib/public/css/font-awesome_ar.css",
+			"lib/public/css/forms_ar.css",
+			"lib/public/css/common_ar.css",
+		]
+	},
 	{
 		"public/js/all-app.min.js": [
 			"lib/public/js/lib/jquery/jquery.ui.min.js",

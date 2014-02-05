@@ -1,0 +1,47 @@
+.social-icons i {
+    margin-right: 5px;
+    margin-left: 0px;
+}
+
+.avatar-small {
+    margin-left: 5px;
+    margin-right: 0px;
+}
+
+.avatar-medium {
+    margin-left: 5px;
+    margin-right: 0px;
+}
+
+.avatar-large {
+    margin-left: 10px;
+    margin-right: 0px;
+}
+
+.avatar-x-large {
+    margin-left: 10px;
+    margin-right: 0px;
+}
+
+.carousel-control .icon {
+    left: 50%;
+    right: 0;
+    margin-right: -10px;
+    margin-left : 0px;
+}
+
+.navbar-brand {
+    padding-left: 30px;
+    padding-right: 0px;
+}
+
+.panel-heading,
+.panel-body {
+    padding-right: 15px;
+    padding-left : 0px;
+}
+
+.message-overlay {
+    left: 0;
+    right: 0;
+}

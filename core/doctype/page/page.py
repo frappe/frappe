@@ -73,10 +73,26 @@ class DocType:
 				self.doc.script = f.read()
 
 		# css
+		from webnotes import set_user_lang
+		set_user_lang(webnotes.session.user)
+
+		lang = ""
+		if webnotes.lang and webnotes.lang != "en":
+			lang = "_" + webnotes.lang
+		
+		#checking if the css file is existing or not,
+		# if it is existing, then load the css into the "self.doc.style".
 		fpath = os.path.join(path, scrub(self.doc.name) + '.css')
 		if os.path.exists(fpath):
 			with open(fpath, 'r') as f:
 				self.doc.style = f.read()
+				
+		#checking if the RTL css file is existing or not,
+		# if it is existing, then append the css into the "self.doc.style".		
+		fpath = os.path.join(path, scrub(self.doc.name) + lang + '.css')
+		if os.path.exists(fpath):
+			with open(fpath, 'r') as f:
+				self.doc.style += f.read()
 		
 		# html
 		fpath = os.path.join(path, scrub(self.doc.name) + '.html')

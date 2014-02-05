@@ -1,0 +1,9 @@
+.message {
+	padding-right: 17px;
+	padding-left: 0px;
+}
+
+.message-mark {
+	margin-right: -17px;
+	margin-left: 0px;
+}

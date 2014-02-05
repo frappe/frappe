@@ -1,0 +1,182 @@
+/*!
+ *  Font Awesome 3.2.1
+ *  the iconic font designed for Bootstrap
+ *  ------------------------------------------------------------------------------
+ *  The full suite of pictographic icons, examples, and documentation can be
+ *  found at http://fontawesome.io.  Stay up to date on Twitter at
+ *  http://twitter.com/fontawesome.
+ *
+ *  License
+ *  ------------------------------------------------------------------------------
+ *  - The Font Awesome font is licensed under SIL OFL 1.1 -
+ *    http://scripts.sil.org/OFL
+ *  - Font Awesome CSS, LESS, and SASS files are licensed under MIT License -
+ *    http://opensource.org/licenses/mit-license.html
+ *  - Font Awesome documentation licensed under CC BY 3.0 -
+ *    http://creativecommons.org/licenses/by/3.0/
+ *  - Attribution is no longer required in Font Awesome 3.0, but much appreciated:
+ *    "Font Awesome by Dave Gandy - http://fontawesome.io"
+ *
+ *  Author - Dave Gandy
+ *  ------------------------------------------------------------------------------
+ *  Email: dave@fontawesome.io
+ *  Twitter: http://twitter.com/byscuits
+ *  Work: Lead Product Designer @ Kyruus - http://kyruus.com
+ */
+
+/* FONT AWESOME CORE
+ * -------------------------- */
+[class^="icon-"],
+[class*=" icon-"] {
+  *margin-left: .3em;
+  *margin-right: 0px;
+}
+
+/* increased font size for icon-large */
+[class^="icon-"].icon-fixed-width,
+[class*=" icon-"].icon-fixed-width {
+  text-align: left;
+  padding-left: 0.2857142857142857em;
+  padding-right: 0px;
+}
+.icons-ul {
+  margin-right: 2.142857142857143em;
+  margin-left: 0;
+}
+
+.icons-ul .icon-li {
+  right: -2.142857142857143em;
+  left: 0;
+}
+
+.pull-left {
+  float: right;
+}
+.pull-right {
+  float: left;
+}
+[class^="icon-"].pull-right,
+[class*=" icon-"].pull-right {
+  margin-left: .3em;
+}
+[class^="icon-"].pull-left,
+[class*=" icon-"].pull-left {
+  margin-right: .3em;
+}
+
+.btn [class^="icon-"].pull-right.icon-2x,
+.btn [class*=" icon-"].pull-right.icon-2x,
+.btn [class^="icon-"].pull-left.icon-2x,
+.btn [class*=" icon-"].pull-left.icon-2x {
+  margin-top: .18em;
+}
+
+.btn.btn-small [class^="icon-"].pull-right.icon-2x,
+.btn.btn-small [class*=" icon-"].pull-right.icon-2x,
+.btn.btn-small [class^="icon-"].pull-left.icon-2x,
+.btn.btn-small [class*=" icon-"].pull-left.icon-2x {
+  margin-top: .25em;
+}
+
+.btn.btn-large [class^="icon-"].pull-right.icon-2x,
+.btn.btn-large [class*=" icon-"].pull-right.icon-2x,
+.btn.btn-large [class^="icon-"].pull-left.icon-2x,
+.btn.btn-large [class*=" icon-"].pull-left.icon-2x {
+  margin-top: .05em;
+}
+.btn.btn-large [class^="icon-"].pull-right.icon-2x,
+.btn.btn-large [class*=" icon-"].pull-right.icon-2x {
+  margin-left: .2em;
+  margin-right: 0;
+}
+.btn.btn-large [class^="icon-"].pull-left.icon-2x,
+.btn.btn-large [class*=" icon-"].pull-left.icon-2x {
+  margin-right: .2em;
+  margin-left: 0;
+}
+
+.icon-rotate-left:before,
+.icon-repeat:before {
+  content: "\f01e";
+}
+
+.icon-align-right:before {
+  content: "\f036";
+}
+
+.icon-align-left:before {
+  content: "\f038";
+}
+
+.icon-indent-right:before {
+  content: "\f03b";
+}
+.icon-indent-left:before {
+  content: "\f03c";
+}
+
+.icon-chevron-right:before {
+  content: "\f053";
+}
+.icon-chevron-left:before {
+  content: "\f054";
+}
+
+.icon-arrow-right:before {
+  content: "\f060";
+}
+.icon-arrow-left:before {
+  content: "\f061";
+}
+.icon-hand-left:before {
+  content: "\f0a4";
+}
+.icon-hand-right:before {
+  content: "\f0a5";
+}
+.icon-circle-arrow-right:before {
+  content: "\f0a8";
+}
+.icon-circle-arrow-left:before {
+  content: "\f0a9";
+}
+.icon-caret-right:before {
+  content: "\f0d9";
+}
+.icon-caret-left:before {
+  content: "\f0da";
+}
+.icon-rotate-right:before,
+.icon-undo:before {
+  content: "\f0e2";
+}
+.icon-double-angle-right:before {
+  content: "\f100";
+}
+.icon-double-angle-left:before {
+  content: "\f101";
+}
+.icon-angle-right:before {
+  content: "\f104";
+}
+.icon-angle-left:before {
+  content: "\f105";
+}
+.icon-quote-right:before {
+  content: "\f10d";
+}
+.icon-quote-left:before {
+  content: "\f10e";
+}
+.icon-chevron-sign-right:before {
+  content: "\f137";
+}
+.icon-chevron-sign-left:before {
+  content: "\f138";
+}
+.icon-long-arrow-right:before {
+  content: "\f177";
+}
+.icon-long-arrow-left:before {
+  content: "\f178";
+}

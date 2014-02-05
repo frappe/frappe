@@ -1,0 +1,9 @@
+.case-wrapper {
+    float: right;
+}
+
+/* Hover and click effects */
+.circle {
+    right: 5px;
+    left: 0;
+}

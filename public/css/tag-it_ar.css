@@ -1,0 +1,24 @@
+ul.tagit li {
+    float: right;
+}
+
+ul.tagit li.tagit-choice {
+	padding-left: 18px;
+	padding-right: 4px;
+}
+
+ul.tagit li.tagit-choice .tagit-close {
+    left: .1em;
+    right: 0;
+}
+
+ul.tagit li.tagit-choice input {
+    float: right;
+}
+
+/* in list */
+
+.list-tag ul.tagit {
+	margin-right: -4px;
+	margin-left : 0px;
+}
