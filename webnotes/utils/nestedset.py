@@ -15,6 +15,9 @@ from __future__ import unicode_literals
 import webnotes
 from webnotes import msgprint, _
 
+class NestedSetRecursionError(webnotes.ValidationError): pass
+class NestedSetMultipleRootsError(webnotes.ValidationError): pass
+
 # called in the on_update method
 def update_nsm(doc_obj):
 	# get fields, data from the DocType
@@ -175,7 +178,7 @@ def validate_loop(doctype, name, lft, rgt):
 	"""check if item not an ancestor (loop)"""
 	if name in webnotes.conn.sql_list("""select name from `tab%s` where lft <= %s and rgt >= %s""" % (doctype, 
 		"%s", "%s"), (lft, rgt)):
-		webnotes.throw("""Item cannot be added to its own descendents.""")
+		webnotes.throw("""Item cannot be added to its own descendents.""", NestedSetRecursionError)
 
 class DocTypeNestedSet(object):
 	def on_update(self):
@@ -208,7 +211,7 @@ class DocTypeNestedSet(object):
 		if not self.doc.fields[self.nsm_parent_field]:
 			if webnotes.conn.sql("""select count(*) from `tab%s` where
 				ifnull(%s, '')=''""" % (self.doc.doctype, self.nsm_parent_field))[0][0] > 1:
-				webnotes.throw(_("""Multiple root nodes not allowed."""))
+				webnotes.throw(_("""Multiple root nodes not allowed."""), NestedSetMultipleRootsError)
 
 	def validate_ledger(self, group_identifier="is_group"):
 		if self.doc.fields.get(group_identifier) == "No":
@@ -216,3 +219,17 @@ class DocTypeNestedSet(object):
 				(self.doc.doctype, self.nsm_parent_field, '%s'), (self.doc.name)):
 					webnotes.throw(self.doc.doctype + ": " + self.doc.name + 
 						_(" can not be marked as a ledger as it has existing child"))
+
+def get_root_of(doctype):
+	"""Get root element of a DocType with a tree structure"""
+	result = webnotes.conn.sql_list("""select name from `tab%s` 
+		where lft=1 and rgt=(select max(rgt) from `tab%s` where docstatus < 2)""" % 
+		(doctype, doctype))
+	return result[0] if result else None
+	
+def get_ancestors_of(doctype, name):
+	"""Get ancestor elements of a DocType with a tree structure"""
+	lft, rgt = webnotes.conn.get_value(doctype, name, ["lft", "rgt"])
+	result = webnotes.conn.sql_list("""select name from `tab%s` 
+		where lft<%s and rgt>%s order by lft desc""" % (doctype, "%s", "%s"), (lft, rgt))
+	return result or []
