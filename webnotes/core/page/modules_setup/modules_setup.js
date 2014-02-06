@@ -21,7 +21,7 @@ wn.modules_setup = {
 		$('#modules-list').empty();
 
 		$.each(keys(wn.modules).sort(), function(i, m) {
-			if(m!="Setup") {
+			if(m!="Setup" && !wn.modules[m].is_app) {
 				var $chk = $("<input type='checkbox' data-module='"+m+"' style='margin-top: -2px'>")
 					.prependTo($('<p><span> '+m+'</span></p>').appendTo("#modules-list"));
 				if(!wn.boot.hidden_modules || wn.boot.hidden_modules.indexOf(m)==-1) {

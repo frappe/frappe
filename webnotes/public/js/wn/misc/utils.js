@@ -200,6 +200,19 @@ wn.utils = {
 		return arr;
 	},
 	
+	dict: function(keys,values) {
+		// make dictionaries from keys and values
+		var out = [];
+		$.each(values, function(row_idx, row) {
+			var new_row = {};
+			$.each(keys, function(key_idx, key) {
+				new_row[key] = row[key_idx];
+			})
+			out.push(new_row);
+		});
+		return out;
+	},
+	
 	sum: function(list) {
 		return list.reduce(function(previous_value, current_value) { return flt(previous_value) + flt(current_value); }, 0.0);
 	},

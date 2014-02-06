@@ -6,13 +6,6 @@
 		"link": "Calendar/Event", 
 		"type": "view"
 	}, 
-	"Finder": {
-		"color": "#14C7DE", 
-		"icon": "icon-folder-open", 
-		"label": "Finder", 
-		"link": "finder", 
-		"type": "page"
-	}, 
 	"Messages": {
 		"color": "#9b59b6", 
 		"icon": "icon-comments", 

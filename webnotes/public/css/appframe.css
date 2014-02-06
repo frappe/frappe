@@ -1,0 +1,131 @@
+/* appframe header */
+
+.appframe {
+	padding-top: 15px;
+}
+
+.appframe-titlebar {
+	min-height: 30px;
+	background-color: #e7e7e7;
+}
+
+.titlebar-item {
+	padding-top: 10px;
+	padding-bottom: 10px;
+}
+
+.titlebar-item h4 {
+	width: 100%;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	margin: 0px;
+}
+
+.titlebar-center-item  {
+}
+
+.appframe-header {
+	margin-bottom: 20px;
+}
+
+.appframe-toolbar {
+	margin-bottom: 0px;
+}
+
+.appframe-header .status-bar {
+	text-align: right;
+}
+
+
+/* fixed navbar in appframe */
+
+.appframe .navbar {
+	margin-left: -15px;
+	margin-right: -15px;
+	margin-bottom: 0px;
+	border-radius: 0px;
+	border-bottom: 1px solid #e7e7e7;
+	min-height: 51px;
+}
+
+.appframe .navbar-form select,
+.appframe .navbar-form input,
+.appframe .navbar-form button,
+.appframe .navbar-form label {
+	margin-bottom: 5px;
+}
+
+.appframe .navbar-form {
+	margin-bottom: 2px;
+	width: 100%;
+}
+
+.appframe-iconbar, .appframe-form {
+	border-bottom: 1px solid #c7c7c7;
+}
+
+.appframe-form {
+	padding: 5px 0px;
+}
+
+.appframe-form input, .appframe-form select, .appframe-form label {
+	font-size: 90%;
+	padding: 4px;
+	margin: 3px 0px;
+}
+
+.appframe-form .form-group {
+	margin-bottom: 0px;
+}
+
+.appframe-form .form-control {
+	height: 28px;
+}
+
+.iconbar {
+	display: inline-block;
+	padding: 9px 0px;
+}
+
+.iconbar ul {
+	list-style: none;
+	margin: 0 0 0 0;
+	padding: 0 0 0 0;
+}
+
+.iconbar li {
+	display: inline-block;
+	padding-left: 4px;
+	padding-right: 4px;
+}
+
+.iconbar i {
+	margin-top: 4px;
+	margin-right: 4px;
+	color: #888;
+	cursor: pointer;
+	font-size: 16px;
+}
+
+.iconbar i:hover {
+	color: #000;
+}
+
+.iconbar i:active {
+	color: #5bc0de;
+}
+
+.iconbar .appframe-iconbar-active i {
+	font-weight: bold;
+	color: orange;
+}
+
+
+.appframe-titlebar .title-text {
+	font-weight: bold;
+}
+
+.appframe-footer {
+	margin-top: 15px;
+}

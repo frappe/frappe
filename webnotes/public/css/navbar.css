@@ -1,0 +1,56 @@
+.navbar-icon-home {
+	vertical-align: middle;
+}
+
+.navbar-icon-home:hover,
+.navbar-icon-home:focus,
+.navbar-icon-home:active,
+.navbar-icon-home-hover{
+	opacity:1;
+	Filter:alpha(opacity=100); /* For IE8 and earlier */
+}
+
+.navbar .brand {
+	max-height: 15px;
+}
+
+.navbar-brand {
+	min-height: 20px;
+	height: auto;
+}
+
+.navbar #spinner {
+	display: block;
+	float: right;
+	width: 20px;
+	margin-bottom: -5px;
+	margin-top: 14px;
+	visibility: hidden;
+}
+
+.navbar-new-comments {
+	margin: -3px 0px;
+	padding: 2px 5px;
+	min-width: 20px;
+	text-align: center;
+	display: inline-block;
+	border-radius: 2px;
+	color: #999999;
+	background-color: #333131;
+}
+
+.navbar-new-comments:hover,
+.navbar-new-comments:active,
+.navbar-new-comments:focus {
+	color: #fff;
+}
+
+.navbar-new-comments-true {
+	color: #fff;
+	background-color: #e74c3c;
+}
+
+
+.btn [class^="icon-"], .nav [class^="icon-"], .btn [class*=" icon-"], .nav [class*=" icon-"] {
+	display: inline-block;
+}

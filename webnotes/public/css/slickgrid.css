@@ -1,0 +1,21 @@
+.slick-cell { 
+	font-size: 12px; 
+}
+
+.slick-header-column, .slick-cell {
+  -webkit-box-sizing: content-box;
+     -moz-box-sizing: content-box;
+          box-sizing: content-box;
+}
+
+.slick-headerrow-column {
+	background: #87ceeb;
+	text-overflow: clip;
+}
+
+.slick-headerrow-column input {
+	margin: 0;
+	padding: 0;
+	width: 100%;
+	min-height: 20px;
+}

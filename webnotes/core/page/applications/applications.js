@@ -8,27 +8,43 @@ wn.pages['applications'].onload = function(wrapper) {
 	wn.call({
 		method:"webnotes.core.page.applications.applications.get_app_list",
 		callback: function(r) {
-			var $main = $(wrapper).find(".layout-main")
+			var $main = $(wrapper).find(".layout-main");
+			
 			if(!keys(r.message).length) {
 				$main.html('<div class="alert alert-info">No Apps Installed</div>');
 				return;
 			}
 			$main.empty();
+
+			// search
+			$('<div class="row">\
+				<div class="col-md-6">\
+					<input type="text" class="form-control app-search" placeholder="Search" name="search"/>\
+				</div>\
+			</div><hr>').appendTo($main).find(".app-search").on("keyup", function() {
+				var val = $(this).val();
+				$main.find(".app-listing").each(function() {
+					$(this).toggle($(this).attr("data-title").toLowerCase().indexOf(val)!==-1);
+				});
+			})
+
 			$.each(r.message, function(app_key, app) {
-				$.extend(app, app.app_icon);
-				$app = $($r('<div style="border-bottom: 1px solid #c7c7c7; margin-bottom: 10px;">\
-						<div style="float: left; width: 50px;">\
-							<span style="padding: 10px; background-color: %(app_color)s; \
-								border-radius: 5px; display: inline-block; ">\
-								<i class="%(app_icon)s icon-fixed-width" \
-									style="font-size: 30px; color: white; \
-										text-align: center; padding-right: 0px;"></i>\
-							</span>\
+				wn.modules[app_key] = {
+					label: app.app_title,
+					icon: app.app_icon,
+					color: app.app_color,
+					is_app: true
+				}
+				app.app_icon = wn.ui.app_icon.get_html(app_key);
+				$app = $($r('<div style="border-bottom: 1px solid #c7c7c7; margin-bottom: 10px;" \
+					class="app-listing" data-title="%(app_title)s">\
+						<div style="float: left; width: 80px;">\
+							%(app_icon)s\
 						</div>\
-						<div style="margin-left: 70px;">\
+						<div style="margin-left: 95px;">\
 							<div class="row">\
 								<div class="col-xs-10">\
-									<p><b>%(app_title)s</b></p>\
+									<p><b class="title">%(app_title)s</b></p>\
 									<p class="text-muted">%(app_description)s\
 										<br>Publisher: %(app_publisher)s; Version: %(app_version)s</p>\
 								</div>\

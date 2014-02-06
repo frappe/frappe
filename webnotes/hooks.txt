@@ -1,8 +1,8 @@
 app_name = webnotes
-app_title = Web Notes
+app_title = Frappe Framework
 app_publisher = Web Notes Technologies
 app_description = Full Stack Web Application Framwork in Python
-app_icon = icon-cog
+app_icon = assets/webnotes/images/frappe.svg
 app_version = 4.0.0-wip
 app_color = #3498db
 

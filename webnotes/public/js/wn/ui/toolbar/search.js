@@ -6,7 +6,7 @@ wn.ui.toolbar.Search = wn.ui.toolbar.SelectorDialog.extend({
 		this._super({
 			title: wn._("Search"),
 			execute: function(val) {
-				new wn.ui.Search({doctype:val});
+				wn.set_route("List", val);
 			},
 			help: wn._("Shortcut") + ": Ctrl+G"
 		});

@@ -34,8 +34,12 @@
 		"public/css/bootstrap.css",
 		"public/css/bootstrap-responsive.css",
 		"public/css/font-awesome.css",
-		"public/css/forms.css",
-		"public/css/common.css",
+		"public/css/app.css",
+		"public/css/appframe.css",
+		"public/css/app_icon.css",
+		"public/css/avatar.css",
+		"public/css/navbar.css",
+		"public/css/slickgrid.css",
 		"public/css/tree_grid.css",
 		"public/css/nprogress.css"
 	],
@@ -74,6 +78,7 @@
 		"public/js/wn/ui/field_group.js",
 		"public/js/wn/ui/dialog.js",
 		"public/js/wn/ui/button.js",
+		"public/js/wn/ui/app_icon.js",
 		
 		"public/js/wn/model/model.js",
 		"public/js/wn/model/meta.js",
@@ -92,7 +97,6 @@
 
 		"public/js/wn/upload.js",
 		"public/js/wn/ui/filters.js",
-		"public/js/wn/ui/search.js",
 		"public/js/wn/ui/tree.js",
 		"public/js/wn/ui/tags.js",
 

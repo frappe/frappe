@@ -71,8 +71,8 @@ $.extend(wn.user, {
 
 		if(modules_list) {
 			// add missing modules - they will be hidden anyways by the view
-			$.each(wn.modules, function(m, data) {
-				if(modules_list.indexOf(m)==-1) {
+			$.each(wn.modules, function(m, module) {
+				if(module.link && modules_list.indexOf(m)==-1) {
 					modules_list.push(m);
 				}
 			});
@@ -121,6 +121,13 @@ $.extend(wn.user, {
 		})
 
 		return modules_list;
+	},
+	get_user_desktop_items: function() {
+		var user_list = wn.defaults.get_default("_user_desktop_items");
+		if(!user_list) {
+			user_list = ["Calendar", "To Do", "Activity", "Messages"];
+		}
+		return user_list;
 	},
 	is_report_manager: function() {
 		return wn.user.has_role(['Administrator', 'System Manager', 'Report Manager']);

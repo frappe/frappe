@@ -119,14 +119,14 @@ wn.ui.toolbar.Toolbar = Class.extend({
 		wn.ui.toolbar.search = new wn.ui.toolbar.Search();
 		wn.ui.toolbar.report = new wn.ui.toolbar.Report();
 		$('.navbar .nav:first').append('<li class="dropdown">\
+			<a onclick="return wn.ui.toolbar.search.show();"><i class="icon-search"></i><li>');
+		$('.navbar .nav:first').append('<li class="dropdown">\
 			<a class="dropdown-toggle" href="#"  data-toggle="dropdown"\
 				title="'+wn._("File")+'"\
 				onclick="return false;">'+wn._("File")+'</a>\
 			<ul class="dropdown-menu" id="navbar-file">\
 				<li><a href="#" onclick="return wn.ui.toolbar.new_dialog.show();">\
 					<i class="icon-plus"></i> '+wn._('New')+'...</a></li>\
-				<li><a href="#" onclick="return wn.ui.toolbar.search.show();">\
-					<i class="icon-search"></i> '+wn._('Search')+'...</a></li>\
 				<li><a href="#" onclick="return wn.ui.toolbar.report.show();">\
 					<i class="icon-list"></i> '+wn._('Report')+'...</a></li>\
 			</ul>\
@@ -167,7 +167,34 @@ wn.ui.toolbar.Toolbar = Class.extend({
 		$('#toolbar-user').append('<li><a href="#" onclick="return wn.app.logout();">\
 			<i class="icon-fixed-width icon-signout"></i> '+wn._('Logout')+'</a></li>');
 	}
+
 });
+
+$.extend(wn.ui.toolbar, {
+	add_dropdown_button: function(parent, label, click, icon) {
+		var menu = wn.ui.toolbar.get_menu(parent);
+		if(menu.find("li:not(.custom-menu)").length && !menu.find(".divider").length) {
+			wn.ui.toolbar.add_menu_divider(menu);
+		}
+
+		return $('<li class="custom-menu"><a><i class="'
+			+icon+'"></i> '+label+'</a></li>')
+			.insertBefore(menu.find(".divider"))
+			.find("a")
+			.click(function() {
+				click();
+			});
+	},
+	get_menu: function(label) {
+		return $("#navbar-" + label.toLowerCase());
+	},
+	add_menu_divider: function(menu) {
+		menu = typeof menu == "string" ?
+			wn.ui.toolbar.get_menu(menu) : menu;
+			
+		$('<li class="divider custom-menu"></li>').prependTo(menu);
+	},
+})
 
 wn.ui.toolbar.update_notifications = function() {
 	var total = 0;

@@ -1,0 +1,25 @@
+.avatar {
+	display: inline-block; 
+	vertical-align: middle;
+	border-radius: 50%;
+	overflow: hidden;
+	background-color: #ddd;
+	border: 1px solid #eee;
+}
+
+.avatar img {
+	width: 100%;
+	height: auto;
+}
+
+.avatar-small {
+	margin-right: 5px;
+	width: 30px;
+	height: 30px;
+}
+
+.avatar-large {
+	margin-right: 10px;
+	width: 72px;
+	height: 72px;
+}

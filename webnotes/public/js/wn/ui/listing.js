@@ -294,15 +294,7 @@ wn.ui.Listing = Class.extend({
 	get_values_from_response: function(data) {
 		// make dictionaries from keys and values
 		if(data.keys) {
-			var values = [];
-			$.each(data.values, function(row_idx, row) {
-				var new_row = {};
-				$.each(data.keys, function(key_idx, key) {
-					new_row[key] = row[key_idx];
-				})
-				values.push(new_row);
-			});
-			return values;
+			return wn.utils.dict(data.keys, data.values);
 		} else {
 			return data;
 		}

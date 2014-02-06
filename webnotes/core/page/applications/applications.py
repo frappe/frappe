@@ -13,7 +13,8 @@ def get_app_list():
 		app_hooks = webnotes.get_hooks(app_name=app)
 		for key in ("app_name", "app_title", "app_description", "app_icon",
 			"app_publisher", "app_version", "app_url", "app_color"):
-			out[app][key] = app_hooks.get(key)
+			 val = app_hooks.get(key) or []
+			 out[app][key] = val[0] if len(val) else ""
 			
 		if app in installed:
 			out[app]["installed"] = 1

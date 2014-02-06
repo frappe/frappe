@@ -230,29 +230,8 @@ wn.ui.AppFrame = Class.extend({
 		return this.iconbar.add_btn("1", icon, wn._(label), click);
 	},
 	
-	// appframe::navbar links
 	add_dropdown_button: function(parent, label, click, icon) {
-		var menu = this.get_menu(parent);
-		if(menu.find("li:not(.custom-menu)").length && !menu.find(".divider").length) {
-			this.add_menu_divider(menu);
-		}
-
-		return $('<li class="custom-menu"><a><i class="'
-			+icon+'"></i> '+label+'</a></li>')
-			.insertBefore(menu.find(".divider"))
-			.find("a")
-			.click(function() {
-				click();
-			});
-	},
-	get_menu: function(label) {
-		return $("#navbar-" + label.toLowerCase());
-	},
-	add_menu_divider: function(menu) {
-		menu = typeof menu == "string" ?
-			this.get_menu(menu) : menu;
-			
-		$('<li class="divider custom-menu"></li>').prependTo(menu);
+		wn.ui.toolbar.add_dropdown_button(parent, label, click, icon);
 	},
 	
 	// appframe::form
