@@ -1,24 +1,7 @@
-{% extends base_template %}
-
-{% block css %}
-<style>
-	@media (min-width: 992px) {
-		.login-wrapper {
-			border-right: 1px solid #f2f2f2;
-		}
-	}
-</style>
-{% endblock %}
-
-{% set title=_("Login") %}
+{% block title %} Login {% endblock %}
 
 {% block content %}
-
-{% if not top_bar_items %}
-<!--<style>body { background-color: #F5EFE6; }</style>-->
-{% endif %}
-
-<div class="container content" style="max-width: 800px;">
+<div class="login-content container" style="max-width: 800px;">
 	<div class="row" style="margin-top: 70px; margin-bottom: 20px">
 		<div class="col-sm-offset-1 col-sm-10">
 			<div class="panel panel-default">
@@ -44,12 +27,17 @@
 						<div class="form-group">
 							<button type="submit" id="login_btn" 
 								class="btn btn-primary">{{ _("Login") }}</button>
-							<img src="assets/webnotes/images/ui/button-load.gif" id="login-spinner" 
+							<img src="/assets/webnotes/images/ui/button-load.gif" id="login-spinner" 
 								style="display: none;">
 						</div>
 						<p id="forgot-link"></p>
 					</div>
 					<div class="col-sm-6">
+						{%- if fb_app_id is defined -%}
+						<div id="fb-root"></div>
+						<p><button type="button" class="btn btn-default btn-login">
+							Login via Facebook</button></p>
+						{%- endif -%}
 						<p id="switch-view"></p>
 					</div>
 				</div>
@@ -60,6 +48,4 @@
 <script>
 	{% include "templates/includes/login.js" %}
 </script>
-
-
 {% endblock %}

@@ -201,7 +201,7 @@ def throw(msg, exc=ValidationError):
 
 def create_folder(path):
 	if not os.path.exists(path): os.makedirs(path)
-			
+	
 def connect(site=None, db_name=None):
 	from db import Database
 	if site:
@@ -546,27 +546,36 @@ jenv = None
 def get_jenv():
 	global jenv
 	if not jenv:
-		from jinja2 import Environment, ChoiceLoader, PackageLoader
+		from jinja2 import Environment, ChoiceLoader, PackageLoader, DebugUndefined
+		import webnotes.utils
 
 		apps = get_installed_apps()
 		apps.remove("webnotes")
 		
 		# webnotes will be loaded last, so app templates will get precedence
 		jenv = Environment(loader = ChoiceLoader([PackageLoader(app, ".") \
-			for app in apps + ["webnotes"]]))
+			for app in apps + ["webnotes"]]), undefined=DebugUndefined)
 
 		set_filters(jenv)
+		
+		jenv.globals.update({
+			"webnotes": sys.modules[__name__],
+			"webnotes.utils": webnotes.utils
+		})
 		
 	return jenv
 	
 def set_filters(jenv):
-	from webnotes.utils import global_date_format
+	from webnotes.utils import global_date_format, scrub_relative_url
+	from webnotes.webutils import get_hex_shade
 	from markdown2 import markdown
 	from json import dumps
 	
 	jenv.filters["global_date_format"] = global_date_format
 	jenv.filters["markdown"] = markdown
 	jenv.filters["json"] = dumps
+	jenv.filters["scrub_relative_url"] = scrub_relative_url
+	jenv.filters["get_hex_shade"] = get_hex_shade
 	
 	# load jenv_filters from hooks.txt
 	for app in get_all_apps(True):

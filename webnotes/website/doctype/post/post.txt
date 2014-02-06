@@ -1,0 +1,146 @@
+[
+ {
+  "creation": "2014-01-07 14:00:04", 
+  "docstatus": 0, 
+  "modified": "2014-01-29 16:27:45", 
+  "modified_by": "Administrator", 
+  "owner": "Administrator"
+ }, 
+ {
+  "autoname": "P.#######", 
+  "doctype": "DocType", 
+  "document_type": "Transaction", 
+  "module": "Website", 
+  "name": "__common__"
+ }, 
+ {
+  "doctype": "DocField", 
+  "name": "__common__", 
+  "parent": "Post", 
+  "parentfield": "fields", 
+  "parenttype": "DocType", 
+  "permlevel": 0
+ }, 
+ {
+  "cancel": 0, 
+  "create": 1, 
+  "delete": 1, 
+  "doctype": "DocPerm", 
+  "export": 1, 
+  "name": "__common__", 
+  "parent": "Post", 
+  "parentfield": "permissions", 
+  "parenttype": "DocType", 
+  "permlevel": 0, 
+  "read": 1, 
+  "report": 1, 
+  "role": "System Manager", 
+  "write": 1
+ }, 
+ {
+  "doctype": "DocType", 
+  "name": "Post"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "title", 
+  "fieldtype": "Data", 
+  "label": "Title", 
+  "reqd": 0
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "content", 
+  "fieldtype": "Text", 
+  "in_list_view": 1, 
+  "label": "Content", 
+  "reqd": 1
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "picture_url", 
+  "fieldtype": "Attach", 
+  "label": "Picture URL"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "website_group", 
+  "fieldtype": "Link", 
+  "in_list_view": 1, 
+  "label": "Website Group", 
+  "options": "Website Group", 
+  "reqd": 1, 
+  "search_index": 1
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "is_event", 
+  "fieldtype": "Check", 
+  "label": "Is Event"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "event_datetime", 
+  "fieldtype": "Datetime", 
+  "label": "Event Datetime"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "is_task", 
+  "fieldtype": "Check", 
+  "label": "Is Task"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "assigned_to", 
+  "fieldtype": "Link", 
+  "label": "Assigned To", 
+  "options": "Profile"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "assigned_to_fullname", 
+  "fieldtype": "Data", 
+  "label": "Assigned To Fullname"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "status", 
+  "fieldtype": "Select", 
+  "label": "Status", 
+  "options": "\nOpen\nClosed", 
+  "reqd": 0
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "parent_post", 
+  "fieldtype": "Link", 
+  "in_list_view": 1, 
+  "label": "Parent Post", 
+  "options": "Post", 
+  "search_index": 1
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "unsubscribe", 
+  "fieldtype": "Check", 
+  "label": "Unsubscribe"
+ }, 
+ {
+  "default": "0", 
+  "doctype": "DocField", 
+  "fieldname": "upvotes", 
+  "fieldtype": "Int", 
+  "label": "Upvotes"
+ }, 
+ {
+  "default": "0", 
+  "doctype": "DocField", 
+  "fieldname": "replies", 
+  "fieldtype": "Int", 
+  "label": "Replies"
+ }, 
+ {
+  "doctype": "DocPerm"
+ }
+]

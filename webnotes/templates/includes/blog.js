@@ -3,24 +3,6 @@
 
 // js inside blog page
 
-$(document).ready(function() {
-	// make list of blogs
-	blog.get_list();
-	
-	$("#next-page").click(function() {
-		blog.get_list();
-	})
-	
-	if(get_url_arg("by_name")) {
-		$("#blot-subtitle").html("Posts by " + get_url_arg("by_name")).toggle(true);
-	}
-
-	if(get_url_arg("category")) {
-		$("#blot-subtitle").html("Posts filed under " + get_url_arg("category")).toggle(true);
-	}
-
-});
-
 var blog = {
 	start: 0,
 	get_list: function() {
@@ -28,7 +10,7 @@ var blog = {
 			method: "GET",
 			url: "/",
 			data: {
-				cmd: "webnotes.website.doctype.blog_post.blog_post.get_blog_list",
+				cmd: "webnotes.templates.generators.blog_post.get_blog_list",
 				start: blog.start,
 				by: get_url_arg("by"),
 				category: get_url_arg("category")
@@ -55,6 +37,7 @@ var blog = {
 			}
 			
 			b.page_name = encodeURIComponent(b.page_name);
+			b.avatar = b.avatar || "";
 			
 			$(repl('<div class="row">\
 					<div class="col-md-1">\
@@ -63,10 +46,10 @@ var blog = {
 						</div>\
 					</div>\
 					<div class="col-md-11">\
-						<h4><a href="%(page_name)s">%(title)s</a></h4>\
+						<h4><a href="/%(page_name)s">%(title)s</a></h4>\
 						<p>%(content)s</p>\
 						<p style="color: #aaa; font-size: 90%">\
-							<a href="blog?by=%(blogger)s&by_name=%(full_name)s">\
+							<a href="/blog?by=%(blogger)s&by_name=%(full_name)s">\
 								%(full_name)s</a> wrote this on %(published)s / %(comment_text)s</p>\
 					</div>\
 				</div><hr>', b)).appendTo($wrap);
@@ -84,4 +67,22 @@ var blog = {
 			$("#next-page").toggle(true);
 		}
 	}
-}
+};
+
+$(document).ready(function() {
+	// make list of blogs
+	blog.get_list();
+	
+	$("#next-page").click(function() {
+		blog.get_list();
+	})
+	
+	if(get_url_arg("by_name")) {
+		$("#blot-subtitle").html("Posts by " + get_url_arg("by_name")).toggle(true);
+	}
+
+	if(get_url_arg("category")) {
+		$("#blot-subtitle").html("Posts filed under " + get_url_arg("category")).toggle(true);
+	}
+
+});

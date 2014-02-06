@@ -8,7 +8,7 @@ import webnotes.model.doctype
 from webnotes.model.doc import validate_name
 
 @webnotes.whitelist()
-def rename_doc(doctype, old, new, force=False, merge=False):
+def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=False):
 	"""
 		Renames a doc(dt, old) to doc(dt, new) and 
 		updates all linked fields of type "Link" or "Select" with "link:"
@@ -23,11 +23,9 @@ def rename_doc(doctype, old, new, force=False, merge=False):
 	doclist = webnotes.model.doctype.get(doctype)
 	
 	# call before_rename
-	old_obj = webnotes.get_obj(doctype, old)
-	if hasattr(old_obj, 'before_rename'):
-		new = old_obj.before_rename(old, new, merge) or new
+	new = webnotes.bean(doctype, old).run_method("before_rename", old, new, merge) or new
 		
-	new = validate_rename(doctype, new, doclist, merge, force)
+	new = validate_rename(doctype, new, doclist, merge, force, ignore_permissions)
 		
 	if not merge:
 		rename_parent_and_child(doctype, old, new, doclist)
@@ -45,9 +43,7 @@ def rename_doc(doctype, old, new, force=False, merge=False):
 		webnotes.delete_doc(doctype, old)
 		
 	# call after_rename
-	new_obj = webnotes.get_obj(doctype, new)
-	if hasattr(new_obj, 'after_rename'):
-		new_obj.after_rename(old, new, merge)
+	webnotes.bean(doctype, new).run_method("after_rename", old, new, merge)
 	
 	# update restrictions
 	webnotes.conn.sql("""update tabDefaultValue set defvalue=%s where parenttype='Restriction' 
@@ -71,7 +67,7 @@ def rename_parent_and_child(doctype, old, new, doclist):
 
 	update_child_docs(old, new, doclist)
 
-def validate_rename(doctype, new, doclist, merge, force):
+def validate_rename(doctype, new, doclist, merge, force, ignore_permissions):
 	exists = webnotes.conn.exists(doctype, new)
 
 	if merge and not exists:
@@ -80,7 +76,7 @@ def validate_rename(doctype, new, doclist, merge, force):
 	if (not merge) and exists:
 		webnotes.msgprint("%s: %s exists, select a new, new name." % (doctype, new), raise_exception=1)
 
-	if not webnotes.has_permission(doctype, "write"):
+	if not (ignore_permissions or webnotes.has_permission(doctype, "write")):
 		webnotes.msgprint("You need write permission to rename", raise_exception=1)
 
 	if not force and not doclist[0].allow_rename:

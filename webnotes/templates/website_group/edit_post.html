@@ -1,0 +1,19 @@
+{% include "templates/includes/post_editor.html" %}
+
+<script type="text/javascript" src="/assets/js/canvasResize.min.js"></script>
+<script>
+$(function() {
+	website.bind_add_post();
+	
+	{%- if view.name == "edit" -%}
+	website.bind_save_post();
+	{% if post -%} website.post = "{{ post.name }}"; {%- endif %}
+	{%- endif -%}
+	
+	{%- if group.group_type == "Events" -%}
+	website.setup_event_editor();
+	{%- elif group.group_type == "Tasks" -%}
+	website.setup_tasks_editor();
+	{%- endif -%}
+});
+</script>

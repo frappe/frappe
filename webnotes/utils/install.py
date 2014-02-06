@@ -3,6 +3,11 @@
 
 import webnotes
 
+def before_install():
+	webnotes.reload_doc("core", "doctype", "docfield")
+	webnotes.reload_doc("core", "doctype", "docperm")
+	webnotes.reload_doc("core", "doctype", "doctype")
+
 def after_install():
 	# reset installed apps for re-install
 	webnotes.conn.set_global("installed_apps", '["webnotes"]')
@@ -21,7 +26,10 @@ def after_install():
 	]
 	
 	for d in install_docs:
-		webnotes.bean(d).insert()
+		try:
+			webnotes.bean(d).insert()
+		except NameError:
+			pass
 
 	# all roles to admin
 	webnotes.bean("Profile", "Administrator").get_controller().add_roles(*webnotes.conn.sql_list("""

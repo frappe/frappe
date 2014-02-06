@@ -1,10 +1,11 @@
-{% extends base_template %}
+{% block title %} {{ title }} {% endblock %}
+
+{% block header %}{% if show_title %}<h2>{{ title }}</h2>{% endif %}{% endblock %}
 
 {% block content %}
-<div class="container content">
+<div class="webpage-content">
 	{# title, breadcrumbs, table of contents #}
 	{% block pre_content -%}
-	{% if show_title %}<h1>{{ title }}</h1>{% endif %}
 	{% if show_breadcrumbs and breadcrumbs -%}
 	<ul class="breadcrumb">
 		{% for b in breadcrumbs -%}
@@ -65,3 +66,9 @@ $(function() {
 });
 </script>
 {% endblock %}
+
+{% block sidebar %}{% include "templates/includes/sidebar.html" %}{% endblock %}
+
+{% block style %}{{ style }}{% endblock %}
+
+{% block script %}{{ script }}{% endblock %}

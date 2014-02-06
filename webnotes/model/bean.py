@@ -241,6 +241,8 @@ class Bean:
 				
 		return webnotes.local.response
 		
+		return out
+		
 	def get_attr(self, method):
 		self.make_controller()
 		return getattr(self.controller, method, None)

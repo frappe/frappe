@@ -316,6 +316,11 @@ div#freeze {
 	max-height: 15px;
 }
 
+.navbar-brand {
+	min-height: 20px;
+	height: auto;
+}
+
 .navbar #spinner {
 	display: block;
 	float: right;

@@ -119,4 +119,3 @@ def get_attr(cmd):
 		method = globals()[cmd]
 	webnotes.log("method:" + cmd)
 	return method
-			

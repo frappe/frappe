@@ -107,7 +107,7 @@ class LoginManager:
 	
 	def set_user_info(self):
 		info = webnotes.conn.get_value("Profile", self.user, 
-			["user_type", "first_name", "last_name"], as_dict=1)
+			["user_type", "first_name", "last_name", "user_image"], as_dict=1)
 		if info.user_type=="Website User":
 			webnotes.local._response.set_cookie("system_user", "no")
 			webnotes.local.response["message"] = "No App"
@@ -116,9 +116,10 @@ class LoginManager:
 			webnotes.local.response['message'] = 'Logged In'
 
 		full_name = " ".join(filter(None, [info.first_name, info.last_name]))
-		webnotes.local.response["full_name"] = full_name
-		webnotes.local._response.set_cookie("full_name", full_name)
-		webnotes.local._response.set_cookie("user_id", self.user)
+		webnotes.response["full_name"] = full_name
+		webnotes._response.set_cookie("full_name", full_name)
+		webnotes._response.set_cookie("user_id", self.user)
+		webnotes._response.set_cookie("user_image", info.user_image or "")
 		
 	def make_session(self, resume=False):
 		# start session

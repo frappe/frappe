@@ -7,10 +7,17 @@
 	],
 	"js/webnotes-web.min.js": [
 		"public/js/lib/bootstrap.min.js",
+		"public/js/wn/provide.js",
 		"public/js/wn/misc/number_format.js",
 		"public/js/lib/nprogress.js",
 		"public/js/wn/translate.js",
-		"website/js/website.js"
+		"public/js/wn/misc/pretty_date.js",
+		"website/js/website.js",
+		"website/js/website_group.js"
+	],
+	"js/canvasResize.min.js": [
+		"website/js/jquery.exif.js",
+		"website/js/jquery.canvasResize.js"
 	],
 	"js/editor.min.js": [
 		"public/js/lib/jquery/jquery.hotkeys.js",

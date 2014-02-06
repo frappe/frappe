@@ -3,10 +3,12 @@
 
 from __future__ import unicode_literals
 
-no_cache = True
+no_sitemap = 1
+base_template_path = "templates/pages/app.html"
+
 import webnotes, os
 
-def get_context():
+def get_context(context):
 	hooks = webnotes.get_hooks()
 	return {
 		"build_version": str(os.path.getmtime(os.path.join(webnotes.local.sites_path, "assets", "js", 

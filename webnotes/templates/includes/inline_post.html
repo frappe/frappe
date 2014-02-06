@@ -1,0 +1,57 @@
+{% set post_url = "/" + post.website_group + "?view=post&name=" + post.name %}
+{% set edit_url = "/" + post.website_group + "?view=edit&name=" + post.name %}
+
+<div class="media post {% if post.parent_post -%} child-post {%- endif %}" 
+		data-name="{{ post.name }}" 
+		data-group="{{ post.website_group }}" 
+		itemscope itemtype="http://schema.org/Article">
+	<a class="pull-left media-link" href="{{ post_url }}">
+		<img class="media-object post-avatar" src="{{ post.user_image|scrub_relative_url }}">
+	</a>
+	<div class="media-body">
+		{%- if not post.parent_post -%}
+		<h4 class="media-heading" itemprop="headline">
+			{%- if view != "post" -%}
+			<a class="no-decoration" 
+				href="{{ post_url }}">{{ post.title }}</a>
+			{%- else -%}
+			{{ post.title }}
+			{%- endif -%}
+		</h4>
+		{%- endif -%}
+		<ul class="list-inline small text-muted post-options">
+			{% if view and view.upvote %}<li class="upvote">
+				<a><span class="upvote-count {% if not post.upvotes %}hide{% endif %}">{{ post.upvotes }}</span>
+					<i class="icon-thumbs-up"></i></a></li>{% endif %}
+			{%- if not post.parent_post and view.name != "post" -%}
+			<li><a itemprop="url" href="{{ post_url }}">
+				{% if not post.post_reply_count -%}
+				<i class="icon-reply"></i> Reply
+				{% elif post.post_reply_count == 1 %}
+				{{ post.post_reply_count }} Reply
+				{% else %}
+				{{ post.post_reply_count }} Replies
+				{%- endif %}
+			</a></li>
+			{%- endif -%}
+			<li><span class="wn-timestamp" data-timestamp="{{ post.creation }}"></span></li>
+			<li>by <span itemprop="author">{{ post.first_name or "" }} {{ post.last_name or "" }}</span></li>
+			<li class="edit-post pull-right hide" data-owner="{{ post.owner }}">
+				<a class="text-muted" href="{{ edit_url }}">[edit]</a>
+			</li>
+		</ul>
+		<div itemprop="articleBody" class="post-content">
+			{%- if post.is_task==1 and post.assigned_to -%}
+			<span class="label label-info assigned-label">
+				<i class="icon-pencil"></i> {{ post.assigned_to_fullname }}</span>
+			{%- elif post.is_event==1 and post.event_datetime -%}
+			<span class="label label-info event-label"><i class="icon-calendar"></i>
+				<span class="event-timestamp" data-timestamp="{{ post.event_datetime }}"></span></span>
+			{%- endif -%}
+			{{ post.content|markdown }}
+			{%- if post.picture_url -%}
+			<img src="{{ post.picture_url|scrub_relative_url }}" class="img-responsive post-picture" />
+			{%- endif -%}
+		</div>
+	</div>
+</div>

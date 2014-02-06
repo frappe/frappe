@@ -1,0 +1,42 @@
+{% block title %}{{ title }}{% endblock %}
+
+{% block header %}
+<h2>{{ group.group_title }}</h2>
+{%- if group.group_description -%}
+<p class="lead">{{ group.group_description }}</p>
+{%- endif -%}
+{% endblock %}
+
+{% block breadcrumbs %}
+<ul class="breadcrumb">
+	{% for parent in parents %}
+		<li><a href="/{{ parent.name|lower }}">{{ parent.page_title }}</a></li>
+	{% endfor %}
+	<li class="active">{{ title }}</li>
+</ul>
+{% endblock %}
+
+{% block content %}
+<ul class="nav nav-tabs view-selector">
+	{%- for t in views -%}
+	<li class="{% if view.name==t.name -%} active {%- endif %} {% if t.hidden -%} hide {%- endif %}" 
+		data-view="{{ t.name }}">
+		<a href="{{ t.url or '' }}"><i class="{{ t.icon }}"></i>
+			<span class="nav-label">{{ t.label }}</span></a>
+	</li>
+	{%- endfor -%}
+</ul>
+
+<script>
+	{%- if access -%}
+	website.access = {{ access|json }};
+	{%- endif -%}
+	website.group = "{{ group.name }}";
+	website.view = "{{ view.name }}";
+</script>
+
+{% include view.template_path %}
+
+{% endblock %}
+
+{% block sidebar %}{% include "templates/includes/sidebar.html" %}{% endblock %}

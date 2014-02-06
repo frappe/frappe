@@ -9,10 +9,11 @@ import webnotes.defaults
 from webnotes.utils.file_manager import remove_all
 from webnotes import _
 
-def delete_doc(doctype=None, name=None, doclist = None, force=0, ignore_doctypes=[], for_reload=False, ignore_permissions=False):
+def delete_doc(doctype=None, name=None, doclist = None, force=0, ignore_doctypes=None, for_reload=False, ignore_permissions=False):
 	"""
 		Deletes a doc(dt, dn) and validates if it is not submitted and not linked in a live record
 	"""
+	if not ignore_doctypes: ignore_doctypes = []
 
 	# get from form
 	if not doctype:

@@ -1,0 +1,9 @@
+<div class="media">
+	<div class="pull-left">
+		<img class="media-object" src="{{ profile.user_image }}" style="width: 50px; min-height: 1px"/>
+	</div>
+	<div class="media-body">
+		<div>{{ profile.first_name or "" }} {{ profile.last_name or "" }}</div>
+		<div class="text-muted"><small>{{ profile.fb_location or profile.fb_hometown or "" }}</small></div>
+	</div>
+</div>

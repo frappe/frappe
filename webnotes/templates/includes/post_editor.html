@@ -1,0 +1,66 @@
+{% set parent_post = post.parent_post if post else parent_post %}
+<div class="post-editor well" 
+		{% if parent_post %}data-parent-post="{{ parent_post }}"{% endif %} 
+		{% if post %}data-post="{{ post.name }}"{% endif %}>
+	{%- if not (post and post.parent_post) and not parent_post-%}
+	<input type="text" class="form-group form-control h3" placeholder="Title" 
+		data-fieldname="title" {%- if post and post.title -%}value="{{ post.title }}"{%- endif -%}>
+	{%- endif -%}
+	<textarea class="form-group form-control post-add-textarea" placeholder="Enter text" 
+		data-fieldname="content">{%- if post and post.content -%}{{ post.content }}{%- endif -%}</textarea>
+
+	<!-- task and events related fields -->
+	{%- if view.name != "post" and not (post and post.parent_post) -%}
+	{%- if group.group_type == "Tasks" -%}
+	<input type="text" class="form-group form-control control-assign"
+		placeholder="Assign this task to someone" 
+		{%- if post and post.assigned_to_fullname -%}value="{{ post.assigned_to_fullname }}"{%- endif -%} />
+	<input type="hidden" class="form-group form-control hide" data-fieldname="assigned_to" 
+		{% if post and post.assigned_to %}value="{{ post.assigned_to }}"{% endif %}/>
+	<div class="assigned-to alert alert-success {% if not (post and post.assigned_to) %}hide{% endif %}" 
+		style="margin: 10px 0px;">
+		<div class="row">
+			<div class="col-xs-10">
+				<div class="assigned-profile user-profile">
+					{%- if post and profile -%}
+					{% include "templates/includes/profile_display.html" %}
+					{%- endif -%}
+				</div>
+			</div>
+			<div class="col-xs-2">
+				<a class="close">&times;</a>
+			</div>
+		</div>
+	</div>
+	<div class="form-group task-status {% if not (post and post.assigned_to) %}hide{% endif %}">
+		<label>Status</label>
+		<select class="form-control" data-fieldname="status">
+		    {% for opt in ("Open", "Closed") %}
+			<option value="{{ opt }}" {% if post and opt==post.status %}selected{% endif %}>{{ opt }}</option>
+			{% endfor %}
+		</select>
+	</div>
+	{%- elif group.group_type == "Events" -%}
+	<input type="text" class="form-group form-control control-event" 
+		placeholder="Enter Event Date and Time" />
+	<input type="hidden" class="form-group form-control hide" data-fieldname="event_datetime" 
+		{% if post and post.event_datetime %}value="{{ post.event_datetime }}"{% endif %}/>
+	{%- endif -%}
+	{%- endif -%}
+	
+	<div class="text-muted small">tab + enter to post / <a target="_blank" class="text-muted"
+		href="/markdown-cheatsheet" tabindex="-1">markdown formatting</a></div>
+	<div class="post-picture hide" style="margin: 10px 0px;">
+		<img src="{{ post.picture_url|scrub_relative_url if post else ''}}" class="img-responsive" />
+	</div>
+	<div class="clearfix">
+		<button class="btn btn-default btn-post-add pull-right"><i class="icon-plus"></i> Add Post</button>
+		<button class="btn btn-default btn-post-save pull-right hide"><i class="icon-ok"></i> Save Post</button>
+		<button class="btn btn-default btn-post-add-picture pull-right">
+			<i class="icon-camera"></i> Add Picture
+		</button>
+		<!-- hidden file input -->
+		<input type="file" class="control-post-add-picture hide" 
+			style="position: absolute; top: 0; width: 0; height: 0;">
+	</div>
+</div>

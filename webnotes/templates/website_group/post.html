@@ -1,0 +1,34 @@
+<div class="small text-muted post-list-help"></div>
+<div class="parent-post">{{ parent_post_html }}</div>
+<div class="text-center">
+	<button type="button" style="margin-bottom: 15px"
+		class="btn btn-default btn-earlier-replies hide">
+			<span class="btn-earlier-label">Show</span> Earlier Replies</button>
+</div>
+<div class="post-list">
+{{ post_list_html }}
+</div>
+<div style="margin-top: 15px">
+{% include "templates/includes/post_editor.html" %}
+</div>
+
+<script type="text/javascript" src="/assets/js/canvasResize.min.js"></script>
+<script>
+$(function() {
+	website.toggle_edit(true);
+	website.setup_upvote();
+	website.toggle_upvote();
+	website.bind_add_post();
+	
+	// show/hide earlier replies
+	website.toggle_earlier_replies();
+	
+	{%- if group.group_type == "Events" -%}
+	website.format_event_timestamps();
+	{%- endif -%}
+	
+	website.toggle_post_editor();
+	
+	$('[data-view="post"]').removeClass("hide");
+});
+</script>

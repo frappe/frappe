@@ -2,7 +2,7 @@
  {
   "creation": "2013-11-18 15:35:00", 
   "docstatus": 0, 
-  "modified": "2013-12-20 19:24:40", 
+  "modified": "2014-01-30 17:25:27", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -20,6 +20,20 @@
   "parentfield": "fields", 
   "parenttype": "DocType", 
   "permlevel": 0
+ }, 
+ {
+  "create": 0, 
+  "doctype": "DocPerm", 
+  "export": 0, 
+  "name": "__common__", 
+  "parent": "Website Sitemap Config", 
+  "parentfield": "permissions", 
+  "parenttype": "DocType", 
+  "permlevel": 0, 
+  "read": 1, 
+  "report": 1, 
+  "role": "System Manager", 
+  "write": 0
  }, 
  {
   "doctype": "DocType", 
@@ -46,6 +60,13 @@
   "fieldname": "link_name", 
   "fieldtype": "Data", 
   "label": "Link Name", 
+  "read_only": 1
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "base_template_path", 
+  "fieldtype": "Data", 
+  "label": "Base Template Path", 
   "read_only": 1
  }, 
  {
@@ -95,5 +116,8 @@
   "fieldtype": "Data", 
   "label": "Condition Field", 
   "read_only": 1
+ }, 
+ {
+  "doctype": "DocPerm"
  }
 ]

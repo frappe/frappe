@@ -6,37 +6,78 @@
 	<title>{{ title }}</title>
 	<meta name="generator" content="wnframework">
 	<script type="text/javascript" src="/assets/webnotes/js/lib/jquery/jquery.min.js"></script>
-	<link rel="shortcut icon" href="{{ favicon }}" type="image/x-icon">
-	<link rel="icon" href="{{ favicon }}" type="image/x-icon">
-	{% block head %}
-		{% if meta_description -%}
-		<meta name="description" content="{{ meta_description }}">{%- endif %}
-		{% for link in web_include_js -%}
-		<script type="text/javascript" src="/{{ link }}"></script>
-		{%- endfor %}
-		{% for link in web_include_css -%}
-		<link type="text/css" rel="stylesheet" href="/{{ link }}">
-		{%- endfor %}
-	{% endblock %}
-	{% block javascript -%}
-		{% if javascript %}<script>{{ javascript }}</script>{% endif %}
+	
+	<link rel="shortcut icon" href="{{ favicon | scrub_relative_url }}" type="image/x-icon">
+	<link rel="icon" href="{{ favicon | scrub_relative_url }}" type="image/x-icon">
+	
+	{% block head -%}
+		{%- if meta_description is defined -%}
+		<meta name="description" content="{{ meta_description }}">
+		{%- endif -%}
+		
+		{%- for link in web_include_js -%}
+		<script type="text/javascript" src="{{ link | scrub_relative_url }}"></script>
+		{%- endfor -%}
+		
+		{%- for link in web_include_css -%}
+		<link type="text/css" rel="stylesheet" href="{{ link | scrub_relative_url }}">
+		{%- endfor -%}
+		
+		{% block script -%}
+			<script data-html-block="script">
+			{%- if script is defined -%}{{ script }}{%- endif -%}
+			</script>
+		{%- endblock %}
+	
+		{% block style -%}
+			<style data-html-block="style">
+			{%- if style is defined -%}{{ style }}{%- endif -%}
+			</style>
+		{%- endblock %}
+
 	{%- endblock %}
-	{% block css -%}
-		{% if css %}<style>{{ css }}</style>{% endif %}
-	{%- endblock %}
-	{% block style -%}{%- endblock %}
 </head>
 <body>
-	{% block banner %}
-	{% if banner_html -%}
-	<header class="container">{{ banner_html or "" }}</header>
-	{%- endif %}
-	{% endblock %}
-	{% block navbar %}{% include "templates/includes/navbar.html" %}{% endblock %}
-	<div class="page-container" id="page-{{ name }}">
-		{% block content %}{% endblock %}
+	<div id="wrap">
+		{%- block banner -%}
+			{% if banner_html -%}
+			<header class="container">{{ banner_html or "" }}</header>
+			{%- endif %}
+		{%- endblock -%}
+	
+		{%- block navbar -%}{% include "templates/includes/navbar.html" %}{%- endblock -%}
+	
+		<header class="page-header">
+			<div class="container" data-html-block="header">
+			{%- if header is defined -%}{{ header }}{%- endif -%}
+			</div>
+		</header>
+		<header class="page-breadcrumbs">
+			<div class="container" data-html-block="breadcrumbs">
+			{%- if breadcrumbs is defined -%}{{ breadcrumbs }}{%- endif -%}
+			</div>
+		</header>
+		<div class="container page-container" id="page-{{ name or page_name }}">
+			<div class="row">
+				<div class="col-sm-3 col-sm-push-9 page-sidebar hidden-xs" data-html-block="sidebar">
+					{%- block sidebar -%}{%- if sidebar is defined -%}{{ sidebar }}{%- endif -%}{%- endblock -%}
+				</div>
+				<div class="col-sm-9 col-sm-pull-3 page-content" data-html-block="content">
+					<div class="text-right"><a class="visible-xs toggle-sidebar no-decoration">
+						<i class="icon-chevron-down"></i>
+					</a></div>
+					{%- block content -%}{{ content }}{%- endblock -%}
+				</div>
+			</div>
+		</div>
+		<footer class="page-footer">
+			<div class="container" data-html-block="footer">
+				{%- if footer is defined -%}{{ footer }}{%- endif -%}
+			</div>
+		</footer>
 	</div>
-	{% block footer %}{% include "templates/includes/footer.html" %}{% endblock %}
-	{% block script -%}{%- endblock %}
+	<div id="wrap-footer">
+		{%- block footer -%}{% include "templates/includes/footer.html" %}{%- endblock -%}
+	</div>
 </body>
 </html>
