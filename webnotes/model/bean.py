@@ -231,9 +231,6 @@ class Bean:
 		if hasattr(self.controller, method):
 			add_to_response(webnotes.local.response, 
 				webnotes.call(getattr(self.controller, method), *args, **kwargs))
-		if hasattr(self.controller, 'custom_' + method):
-			add_to_response(webnotes.local.response, 
-				webnotes.call(getattr(self.controller, 'custom_' + method), *args, **kwargs))
 
 		args = [self, method] + args
 		for handler in webnotes.get_hooks("bean_event:" + self.doc.doctype + ":" + method) \

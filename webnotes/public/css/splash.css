@@ -18,6 +18,9 @@
   }
 }
 
+.splash path {
+	fill: #888;
+}
 
 .splash {
 	margin: auto;
@@ -43,10 +46,10 @@
 }
 
 .splash:after {
-	content: "erpnext";
+	content: "frappe.io";
 	font-size: 30px;
 	font-weight: 300;
 	font-family: Helvetica, Arial, sans-serif;
 	position: relative;
-	top: -30px;
+	top: 0px;
 }
