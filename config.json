@@ -1,6 +1,6 @@
 {
  "base_template": "lib/website/templates/base.html", 
- "framework_version": "3.9.1", 
+ "framework_version": "3.9.2", 
  "modules": {
   "Calendar": {
    "color": "#2980b9", 
