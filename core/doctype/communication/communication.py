@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals
 import webnotes
+from webnotes.utils import scrub_urls
 
 class DocType():
 	def __init__(self, doc, doclist=[]):
@@ -108,6 +109,7 @@ def send_comm_email(d, name, sent_via=None, print_html=None, attachments='[]', s
 		mail.cc.append(webnotes.conn.get_value("Profile", webnotes.session.user, "email"))
 	
 	if print_html:
+		print_html = scrub_urls(print_html)
 		mail.add_attachment(name.replace(' ','').replace('/','-') + '.html', print_html)
 
 	for a in loads(attachments):
