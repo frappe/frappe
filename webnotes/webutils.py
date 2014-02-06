@@ -13,8 +13,10 @@ from urllib import quote
 
 import mimetypes
 from webnotes.website.doctype.website_sitemap.website_sitemap import add_to_sitemap, update_sitemap, remove_sitemap
+
+# frequently used imports (used by other modules)
 from webnotes.website.doctype.website_sitemap_permission.website_sitemap_permission \
-	import get_access
+	import get_access, clear_permissions
 
 class PageNotFoundError(Exception): pass
 
@@ -27,7 +29,6 @@ def render(page_name):
 	except Exception:
 		page_name = "error"
 		data = render_page(page_name)
-		data = insert_traceback(data)
 	
 	data = set_content_type(data, page_name)
 	webnotes._response.data = data
@@ -46,7 +47,9 @@ def render_page(page_name):
 			out = out.get("data")
 			
 	if out:
-		webnotes._response.headers[b"From Cache"] = True
+		if hasattr(webnotes, "_response"):
+			webnotes._response.headers[b"From Cache"] = True
+		
 		return out
 	
 	return build(page_name)
@@ -238,15 +241,6 @@ def scrub_page_name(page_name):
 		
 	return page_name
 
-def insert_traceback(data):
-	traceback = webnotes.get_traceback()
-	if isinstance(data, dict):
-		data["content"] = data["content"] % {"error": traceback}
-	else:
-		data = data % {"error": traceback}
-		
-	return data
-	
 def set_content_type(data, page_name):
 	if isinstance(data, dict):
 		webnotes._response.headers[b"Content-Type"] = b"application/json; charset: utf-8"
@@ -262,23 +256,27 @@ def set_content_type(data, page_name):
 	return data
 
 def clear_cache(page_name=None):
+	cache = webnotes.cache()
+	
 	if page_name:
 		delete_page_cache(page_name)
+		
 	else:
-		cache = webnotes.cache()
 		for p in webnotes.conn.sql_list("""select name from `tabWebsite Sitemap`"""):
 			if p is not None:
-				cache.delete_value("page:" + p)
-		cache.delete_value("home_page")
-		cache.delete_value("page:index")
-		cache.delete_value("website_sitemap")
-		cache.delete_value("website_sitemap_config")
+				delete_page_cache(p)
 		
+		cache.delete_value("home_page")
+		clear_permissions()
+	
+	for method in webnotes.get_hooks("website_clear_cache"):
+		webnotes.get_attr(method)(page_name)
+
 def delete_page_cache(page_name):
-	if page_name:
-		cache = webnotes.cache()
-		cache.delete_value("page:" + page_name)
-		cache.delete_value("website_sitemap")
+	cache = webnotes.cache()
+	cache.delete_value("page:" + page_name)
+	cache.delete_value("page_context:" + page_name)
+	cache.delete_value("sitemap_options:" + page_name)
 			
 def is_signup_enabled():
 	if getattr(webnotes.local, "is_signup_enabled", None) is None:

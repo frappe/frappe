@@ -68,9 +68,11 @@ def _get_access(sitemap_page, profile):
 
 	return { "read": read, "write": write, "admin": admin, "private_read": private_read }
 
-def clear_permissions(profiles):
+def clear_permissions(profiles=None):
 	if isinstance(profiles, basestring):
 		profiles = [profiles]
+	elif profiles is None:
+		profiles = webnotes.conn.sql_list("""select name from `tabProfile`""")
 	
 	cache = webnotes.cache()
 	for profile in profiles:

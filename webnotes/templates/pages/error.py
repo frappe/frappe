@@ -9,4 +9,7 @@ no_cache = 1
 no_sitemap = 1
 
 def get_context(context):
-	return render_blocks(context)
+	error_context = {"error": webnotes.get_traceback()}
+	error_context.update(context)
+	
+	return render_blocks(error_context)

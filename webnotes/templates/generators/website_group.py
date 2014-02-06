@@ -3,6 +3,7 @@
 
 import webnotes
 from webnotes.webutils import get_access, render_blocks, can_cache
+from webnotes.templates.website_group.post import clear_post_cache
 
 doctype = "Website Group"
 no_cache = 1
@@ -101,3 +102,23 @@ def has_access(group, view):
 		return access.get("write")
 	else:
 		return access.get("read")
+		
+def clear_cache(page_name=None, website_group=None):
+	if page_name or website_group:
+		filters = {"page_name": page_name} if page_name else website_group
+
+		website_group = webnotes.conn.get_value("Website Group", filters,
+			["page_name", "group_type"], as_dict=True)
+
+		if not website_group:
+			return
+
+		website_groups = [website_group]
+	else:
+		clear_post_cache()
+		website_groups = webnotes.conn.sql("""select page_name, group_type from `tabWebsite Group`""", as_dict=True)
+	
+	cache = webnotes.cache()
+	for group in website_groups:
+		for view in get_views(group.group_type):
+			cache.delete_value("website_group_context:{}:{}".format(group.page_name, view))

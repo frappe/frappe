@@ -52,14 +52,14 @@ class DocType(DocTypeNestedSet):
 				self.doc.public_read = self.doc.public_write = 0
 				
 	def on_trash(self):
-		from webnotes.webutils import delete_page_cache
+		from webnotes.webutils import clear_cache
 		
 		# remove website sitemap permissions
 		to_remove = webnotes.conn.sql_list("""select name from `tabWebsite Sitemap Permission` 
 			where website_sitemap=%s""", (self.doc.name,))
 		webnotes.delete_doc("Website Sitemap Permission", to_remove, ignore_permissions=True)
 		
-		delete_page_cache(self.doc.name)
+		clear_cache(self.doc.name)
 		
 def add_to_sitemap(options):
 	bean = webnotes.new_bean("Website Sitemap")

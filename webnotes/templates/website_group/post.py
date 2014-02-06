@@ -9,15 +9,19 @@ def get_post_context(group_context):
 	post = webnotes.doc("Post", webnotes.form_dict.name)
 	if post.parent_post:
 		raise webnotes.PermissionError
+		
+	def _get_post_context():
+		fullname = get_fullname(post.owner)
+		return {
+			"title": "{} by {}".format(post.title, fullname),
+			# "group_title": group_context.get("unit_title") + " by {}".format(fullname),
+			"parent_post_html": get_parent_post_html(post, group_context.get("view")),
+			"post_list_html": get_child_posts_html(post, group_context.get("view")),
+			"parent_post": post.name
+		}
 	
-	fullname = get_fullname(post.owner)
-	return {
-		"title": "{} by {}".format(post.title, fullname),
-		# "group_title": group_context.get("unit_title") + " by {}".format(fullname),
-		"parent_post_html": get_parent_post_html(post, group_context.get("view")),
-		"post_list_html": get_child_posts_html(post, group_context.get("view")),
-		"parent_post": post.name
-	}
+	cache_key = "website_group_post:".format(post.name)
+	return webnotes.cache().get_value(cache_key, lambda: _get_post_context())
 	
 def get_parent_post_html(post, view):
 	profile = webnotes.bean("Profile", post.owner).doc
@@ -39,3 +43,10 @@ def get_child_posts_html(post, view):
 			"parent_post": post.name,
 			"view": view
 		})
+		
+def clear_post_cache(post=None):
+	cache = webnotes.cache()
+	posts = [post] if post else webnotes.conn.sql_list("select name from `tabPost`")
+
+	for post in posts:
+		cache.delete_value("website_group_post:{}".format(post))

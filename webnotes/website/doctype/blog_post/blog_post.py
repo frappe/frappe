@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 
 import webnotes
-from webnotes.webutils import WebsiteGenerator, cleanup_page_name, delete_page_cache
+from webnotes.webutils import WebsiteGenerator, cleanup_page_name, clear_cache
 from webnotes import _
 from webnotes.utils import today
 
@@ -29,11 +29,11 @@ class DocType(WebsiteGenerator):
 
 	def on_update(self):
 		WebsiteGenerator.on_update(self)
-		delete_page_cache("writers")
+		clear_cache("writers")
 
 def clear_blog_cache():
 	for blog in webnotes.conn.sql_list("""select page_name from 
 		`tabBlog Post` where ifnull(published,0)=1"""):
-		delete_page_cache(blog)
+		clear_cache(blog)
 	
-	delete_page_cache("writers")
+	clear_cache("writers")

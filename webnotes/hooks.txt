@@ -18,6 +18,8 @@ web_include_css = assets/css/webnotes-web.css
 web_include_js = website_script.js
 web_include_css = style_settings.css
 
+website_clear_cache = webnotes.templates.generators.website_group.clear_cache
+
 website_group_handler:Forum = webnotes.templates.website_group.forum
 website_group_handler:Events = webnotes.templates.website_group.events
 website_group_handler:Tasks = webnotes.templates.website_group.tasks

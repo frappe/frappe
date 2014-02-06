@@ -12,10 +12,8 @@ from webnotes.utils.email_lib import sendmail
 from webnotes.utils.file_manager import save_file
 
 from webnotes.webutils import get_access
-
-# TODO move these functions to framework
-# from aapkamanch.post import clear_post_cache
-# from aapkamanch.unit import clear_unit_views
+from webnotes.templates.generators.website_group import clear_cache
+from webnotes.templates.website_group.post import clear_post_cache
 
 class DocType:
 	def __init__(self, d, dl):
@@ -44,8 +42,8 @@ class DocType:
 			self.doc.event_datetime = None
 			
 	def on_update(self):
-		# clear_unit_views(self.doc.website_group)
-		# clear_post_cache(self.doc.parent_post or self.doc.name)
+		clear_cache(website_group=self.doc.website_group)
+		clear_post_cache(self.doc.parent_post or self.doc.name)
 
 		if self.doc.assigned_to and self.doc.assigned_to != self.assigned_to \
 			and webnotes.session.user != self.doc.assigned_to:
@@ -181,7 +179,7 @@ def process_picture(post, picture_name, picture):
 	file_data = save_file(picture_name, picture, "Post", post.doc.name, decode=True)
 	post.doc.picture_url = file_data.file_name or file_data.file_url
 	webnotes.conn.set_value("Post", post.doc.name, "picture_url", post.doc.picture_url)
-	# clear_unit_views(post.doc.website_group)
+	clear_cache(website_group=post.doc.website_group)
 	
 @webnotes.whitelist()
 def suggest_user(group, term):
