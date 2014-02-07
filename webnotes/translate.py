@@ -21,7 +21,8 @@ import webnotes, os, re, codecs, json
 def get_user_lang(user=None):
 	if not user:
 		user = webnotes.session.user
-	return get_lang_dict().get(webnotes.conn.get_value("Profile", user, "language") or "english")
+	user_lang = webnotes.conn.get_value("Profile", user, "language")
+	return get_lang_dict().get(user_lang!="Loading..." and user_lang or "english")
 
 def get_all_languages():
 	return [a.split()[0] for a in get_lang_info()]

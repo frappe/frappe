@@ -1,4 +1,4 @@
-{%- if children -%}
+{% if children -%}
 {%- for child in children -%}
 <div class="sidebar-item">
 	<a href="/{{ child.name|lower }}" class="no-decoration">
@@ -9,4 +9,4 @@
 	</a>
 </div>
 {%- endfor -%}
-{%- endif -%}
+{%- endif %}

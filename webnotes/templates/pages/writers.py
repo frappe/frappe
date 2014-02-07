@@ -3,7 +3,6 @@
 
 from __future__ import unicode_literals
 import webnotes
-from webnotes.webutils import render_blocks
 
 def get_context(context):
 	bloggers = webnotes.conn.sql("""select * from `tabBlogger` 
@@ -19,6 +18,5 @@ def get_context(context):
 	}
 	
 	writers_context.update(webnotes.doc("Blog Settings", "Blog Settings").fields)
-	writers_context.update(context)
 	
-	return render_blocks(writers_context)
+	return writers_context

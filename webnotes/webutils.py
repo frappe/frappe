@@ -128,6 +128,9 @@ def build_sitemap_options(page_name):
 		"page_name_field", "condition_field"):
 		sitemap_options[fieldname] = sitemap_config.get(fieldname)
 	
+	sitemap_options.doctype = sitemap_options.ref_doctype
+	sitemap_options.title = sitemap_options.page_title
+	
 	# establish hierarchy
 	sitemap_options.parents = webnotes.conn.sql("""select name, page_title from `tabWebsite Sitemap`
 		where lft < %s and rgt > %s order by lft asc""", (sitemap_options.lft, sitemap_options.rgt), as_dict=True)
@@ -143,14 +146,24 @@ def build_sitemap_options(page_name):
 	
 def build_context(sitemap_options):
 	"""get_context method of bean or module is supposed to render content templates and push it into context"""
-	context = webnotes._dict({ "_": webnotes._ })
-	context.update(sitemap_options)
+	context = webnotes._dict(sitemap_options)
 	context.update(get_website_settings())
 	
-	if sitemap_options.get("controller"):
-		module = webnotes.get_module(sitemap_options.get("controller"))
+	# provide bean
+	if context.doctype and context.docname:
+		context.bean = webnotes.bean(context.doctype, context.docname)
+	
+	if context.controller:
+		module = webnotes.get_module(context.controller)
 		if module and hasattr(module, "get_context"):
-			context.data = module.get_context(context) or {}
+			context.update(module.get_context(context) or {})
+			
+	if context.get("base_template_path") != context.get("template_path") and not context.get("rendered"):
+		context.data = render_blocks(context)
+	
+	# remove bean, as it is not pickle friendly and its purpose is over
+	if context.bean:
+		del context["bean"]
 	
 	return context
 	

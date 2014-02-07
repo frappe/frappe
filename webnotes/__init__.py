@@ -563,7 +563,8 @@ def get_jenv():
 		
 		jenv.globals.update({
 			"webnotes": sys.modules[__name__],
-			"webnotes.utils": webnotes.utils
+			"webnotes.utils": webnotes.utils,
+			"_": _
 		})
 		
 	return jenv

@@ -6,13 +6,12 @@ from __future__ import unicode_literals
 import markdown2
 import webnotes
 from webnotes.utils import global_date_format, get_fullname, cint
-from webnotes.webutils import render_blocks
 
 doctype = "Blog Post"
 condition_field = "published"
 
 def get_context(context):
-	blog_post = webnotes.doc(context.ref_doctype, context.docname)
+	blog_post = context.bean.doc
 	
 	# this is for double precaution. usually it wont reach this code if not published
 	if not cint(blog_post.published):
@@ -35,9 +34,8 @@ def get_context(context):
 		from `tabComment` where comment_doctype="Blog Post"
 		and comment_docname=%s order by creation""", (blog_post.name,), as_dict=1) or []
 	
-	blog_post.fields.update(context)
 	
-	return render_blocks(blog_post.fields)
+	return blog_post.fields
 	
 @webnotes.whitelist(allow_guest=True)
 def get_blog_list(start=0, by=None, category=None):

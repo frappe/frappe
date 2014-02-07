@@ -3,14 +3,13 @@
 
 from __future__ import unicode_literals
 import webnotes
-from webnotes.webutils import render_blocks
 from webnotes.website.doctype.website_slideshow.website_slideshow import get_slideshow
 
 doctype = "Web Page"
 condition_field = "published"
 
 def get_context(context):
-	web_page = webnotes.bean(context.ref_doctype, context.docname)
+	web_page = context.bean
 	
 	if web_page.doc.slideshow:
 		web_page.doc.fields.update(get_slideshow(web_page))
@@ -36,7 +35,7 @@ def get_context(context):
 	
 	web_page.doc.fields.update(context)
 	
-	return render_blocks(web_page.doc.fields)
+	return web_page.doc.fields
 			
 def get_breadcrumbs(web_page):
 	breadcrumbs = []

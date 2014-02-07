@@ -12,7 +12,7 @@ from webnotes.utils.email_lib.email_body import get_email
 from webnotes.utils.email_lib.smtp import send
 
 class DocType():
-	def __init__(self, doc, doclist=[]):
+	def __init__(self, doc, doclist=None):
 		self.doc = doc
 		self.doclist = doclist
 		

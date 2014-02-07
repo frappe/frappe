@@ -1,0 +1,8 @@
+{% if parents -%}
+<ul class="breadcrumb">
+	{% for parent in parents %}
+		<li><a href="/{{ parent.name|lower }}">{{ parent.page_title }}</a></li>
+	{% endfor %}
+	<li class="active">{{ title }}</li>
+</ul>
+{%- endif %}

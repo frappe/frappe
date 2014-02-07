@@ -305,6 +305,8 @@ def update_password(new_password, key=None, old_password=None):
 	
 	webnotes.conn.set_value("Profile", user, "reset_password_key", "")
 	
+	webnotes.local.login_manager.logout()
+	
 	return _("Password Updated")
 	
 @webnotes.whitelist(allow_guest=True)

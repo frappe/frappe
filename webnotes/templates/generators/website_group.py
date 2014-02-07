@@ -2,7 +2,7 @@
 # MIT License. See license.txt
 
 import webnotes
-from webnotes.webutils import get_access, render_blocks, can_cache
+from webnotes.webutils import get_access, can_cache
 from webnotes.templates.website_group.post import clear_post_cache
 
 doctype = "Website Group"
@@ -20,7 +20,7 @@ def get_context(context):
 		group_context["access"] = get_access(group)
 		group_context.update(context)
 	
-		return render_blocks(group_context)
+		return group_context
 	
 	except webnotes.DoesNotExistError:
 		return {
