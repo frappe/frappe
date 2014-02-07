@@ -32,7 +32,7 @@ $.extend(wn.model, {
 		if(!cnt[doctype]) 
 			cnt[doctype] = 0;
 		cnt[doctype]++;
-		return 'New '+ doctype + ' ' + cnt[doctype];
+		return wn._('New') + ' '+ wn._(doctype) + ' ' + cnt[doctype];
 	},
 	
 	set_default_values: function(doc, parent_doc) {

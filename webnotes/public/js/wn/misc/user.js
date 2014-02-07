@@ -125,7 +125,7 @@ $.extend(wn.user, {
 	get_user_desktop_items: function() {
 		var user_list = wn.defaults.get_default("_user_desktop_items");
 		if(!user_list) {
-			user_list = ["Calendar", "To Do", "Activity", "Messages"];
+			user_list = wn.user.get_desktop_items();
 		}
 		return user_list;
 	},

@@ -1,7 +1,7 @@
 wn.pages['applications'].onload = function(wrapper) { 
 	wn.ui.make_app_page({
 		parent: wrapper,
-		title: 'Applications',
+		title: wn._('Application Installer'),
 		single_column: true
 	});
 

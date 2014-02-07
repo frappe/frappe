@@ -10,11 +10,10 @@ wn.ui.AppFrame = Class.extend({
 		this.fields_dict = {};
 		this.parent = parent;
 
-		this.$title_area = $('<div class="title-area">\
-			<h4>\
+		this.$title_area = $('<span class="title-area">\
 				<span class="title-icon text-muted" style="display: none"></span>\
 				<span class="title-text"></span>\
-			</h4></div>').appendTo(parent.find(".titlebar-item.text-center"));
+			</span>').appendTo(parent.find(".titlebar-center-item"));
 
 		this.setup_iconbar();
 		
@@ -50,16 +49,18 @@ wn.ui.AppFrame = Class.extend({
 	
 	set_title_left: function(txt, click) {
 		return $("<a>")
-			.html(txt)
+			.html('<i class="icon-angle-left text-muted" style="margin-right: 10px; \
+				font-weight: bold; text-decoration: none;"></i>')
 			.on("click", function() { click.apply(this); })
-			.appendTo(this.parent.find(".titlebar-item.text-left").empty());
+			.appendTo(this.parent.find(".titlebar-left-item").empty());
 	},
 	
-	set_title_right: function(txt, click, icon) {
+	set_title_right: function(txt, click, icon, btn_class) {
+		if(!btn_class) btn_class="btn-primary"
 		var $right = this.parent.find(".titlebar-item.text-right")
 		if(txt) {
 			this.title_right && this.title_right.remove();
-			this.title_right = $("<a>")
+			this.title_right = $("<a class='btn "+btn_class+"'>")
 				.html((icon ? '<i class="'+icon+'"></i> ' : "") + txt)
 				.click(click)
 				.appendTo($right.attr("data-text", txt));
@@ -80,10 +81,11 @@ wn.ui.AppFrame = Class.extend({
 		if(!this.primary_dropdown) {
 			if(!this.primary_action) {
 				var $right = this.parent.find(".titlebar-item.text-right");
-				this.primary_action = $("<a>")
+				this.btn_group = $('<div class="btn-group"></div>').prependTo($right);
+				this.primary_action = $("<a class='btn btn-default'>")
 					.html(wn._("Actions") + " <i class='icon-caret-down'></i>")
 					.css({"margin-right":"15px", "display":"inline-block"})
-					.prependTo($right);
+					.prependTo(this.btn_group);
 			}
 			
 			var id = "dropdown-" + wn.dom.set_unique_id();
@@ -95,7 +97,7 @@ wn.ui.AppFrame = Class.extend({
 					.addClass("dropdown")
 			this.primary_dropdown = $('<ul class="dropdown-menu pull-right" role="menu" \
 				aria-labelledby="'+ id +'"></ul>')
-				.appendTo(this.primary_action.parent()).dropdown();
+				.insertAfter(this.primary_action).dropdown();
 		}
 		
 		var $li = $('<li role="presentation"><a role="menuitem" class="text-left">'
@@ -310,9 +312,11 @@ wn.ui.make_app_page = function(opts) {
 	$('<div class="appframe-titlebar">\
 			<div class="container">\
 				<div class="row">\
-					<div class="titlebar-item text-left col-xs-3"></div>\
-					<div class="titlebar-item titlebar-center-item text-center col-xs-6"></div>\
-					<div class="titlebar-item text-right col-xs-3"></div>\
+					<div class="titlebar-item col-xs-8">\
+						<h2 class="titlebar-left-item"></h2>\
+						<h2 class="titlebar-center-item"></h2>\
+					</div>\
+					<div class="titlebar-item text-right col-xs-4"></div>\
 				</div>\
 			</div>\
 		</div>\

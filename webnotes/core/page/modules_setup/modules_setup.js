@@ -10,7 +10,8 @@ wn.pages['modules_setup'].onload = function(wrapper) {
 		wn.modules_setup.update(this);
 	})
 	
-	$('<div class="alert alert-info">Select modules to be shown.</div>').appendTo($(wrapper).find(".layout-main"));
+	$('<div class="alert alert-info">'
+		+wn._("Select modules to be shown (based on permission). If hidden, they will be hidden for all users.")+'</div>').appendTo($(wrapper).find(".layout-main"));
 	$('<div id="modules-list">').appendTo($(wrapper).find(".layout-main"));
 	
 	wn.modules_setup.refresh_page();
@@ -19,11 +20,17 @@ wn.pages['modules_setup'].onload = function(wrapper) {
 wn.modules_setup = {
 	refresh_page: function() {
 		$('#modules-list').empty();
+		
+		var wrapper = $('<div class="list-group"></div>').appendTo("#modules-list");
 
 		$.each(keys(wn.modules).sort(), function(i, m) {
-			if(m!="Setup" && !wn.modules[m].is_app) {
+			if(m!="Setup" && wn.modules[m].link) {
+				var row = $('<div class="list-group-item">\
+					<span class="check-area" style="margin-right: 10px;"></span> '
+						+wn.ui.app_icon.get_html(m, true) 
+						+ " <span> " +m+'</span></div>').appendTo("#modules-list");
 				var $chk = $("<input type='checkbox' data-module='"+m+"' style='margin-top: -2px'>")
-					.prependTo($('<p><span> '+m+'</span></p>').appendTo("#modules-list"));
+					.appendTo(row.find(".check-area"));
 				if(!wn.boot.hidden_modules || wn.boot.hidden_modules.indexOf(m)==-1) {
 					$chk.prop("checked", true);
 				}

@@ -121,8 +121,7 @@ _f.Frm.prototype.setup = function() {
 
 _f.Frm.prototype.setup_print_layout = function() {
 	this.print_wrapper = $('<div>\
-		<div class="print-toolbar row" style="background-color: #eee; \
-			padding-top: 5px; padding-bottom: 5px; margin-top: -15px; \
+		<div class="print-toolbar row" style="padding-top: 5px; padding-bottom: 5px; margin-top: -15px; \
 			margin-bottom: 15px; padding-left: 15px; position:relative;">\
 			<i class="text-muted icon-print" style="position: absolute; top: 13px; left: 10px; "></i>\
 			<div class="col-xs-3">\

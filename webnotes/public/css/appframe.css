@@ -5,8 +5,7 @@
 }
 
 .appframe-titlebar {
-	min-height: 30px;
-	background-color: #e7e7e7;
+	border-bottom: 1px solid #c7c7c7;
 }
 
 .titlebar-item {
@@ -14,15 +13,39 @@
 	padding-bottom: 10px;
 }
 
-.titlebar-item h4 {
-	width: 100%;
+.titlebar-item h2 {
+	display: inline-block;
+	font-weight: normal;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	margin: 0px;
 }
 
+.titlebar-item.text-left {
+	
+}
+.titlebar-left-item  {
+	float: left;
+	width: 30px;
+}
+
+h2.titlebar-left-item {
+	margin-top: -2px !important;
+}
+
 .titlebar-center-item  {
+	float: left;
+	width: 90%;
+}
+
+@media (max-width: 768px) {
+	.titlebar-center-item  {
+		width: 80%;
+	}
+	.titlebar-item h2 {
+		font-size: 20px;
+	}
 }
 
 .appframe-header {
@@ -83,6 +106,10 @@
 	height: 28px;
 }
 
+.appframe-iconbar {
+	background-color: #f2f2f2;
+}
+
 .iconbar {
 	display: inline-block;
 	padding: 9px 0px;
@@ -121,10 +148,6 @@
 	color: orange;
 }
 
-
-.appframe-titlebar .title-text {
-	font-weight: bold;
-}
 
 .appframe-footer {
 	margin-top: 15px;

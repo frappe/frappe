@@ -26,5 +26,11 @@
 		"icon": "icon-globe", 
 		"link": "website-home", 
 		"type": "module"
+	},
+	"Installer": {
+		"color": "#888", 
+		"icon": "icon-download", 
+		"link": "applications", 
+		"type": "page"
 	}
 }

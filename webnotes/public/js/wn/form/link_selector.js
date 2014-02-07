@@ -100,7 +100,13 @@ wn.ui.form.LinkSelector = Class.extend({
 						})
 					})
 				} else {
-					$('<div class="alert alert-info">' + wn._("No Results")  + '</div>').appendTo(parent);
+					$('<div class="alert alert-info">' + wn._("No Results")  
+						+ (wn.model.can_read(me.doctype) ? 
+							('. <a class="new-doc">'
+							+ wn._("Make a new") + " " + wn._(me.doctype) + "</a>") : '') 
+						+ '</div>').appendTo(parent).find(".new-doc").click(function() {
+							cur_frm.new_doc(me.doctype, me.target);
+						});
 				}
 			}, 
 			btn: btn

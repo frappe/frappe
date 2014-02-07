@@ -227,7 +227,7 @@ wn.ui.form.Toolbar = Class.extend({
 					"Update": function() { me.frm.save('Update', null, this); },
 					"Cancel": function() { me.frm.savecancel(this); },
 					"Amend": function() { me.frm.amend_doc(); }
-				}[status]);
+				}[status], null, status==="Cancel" ? "btn-default" : "btn-primary");
 			}
 		} else {
 			this.appframe.set_title_right();
@@ -261,7 +261,7 @@ wn.ui.form.Toolbar = Class.extend({
 			return;
 
 		this.appframe.get_title_area()
-			.toggleClass("text-warning", this.frm.doc.__unsaved ? true : false);
+			.toggleClass("text-warning", this.frm.doc.__unsaved ? true : false)
 		this.set_title();
 		this.set_title_right();
 	}
