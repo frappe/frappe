@@ -6,7 +6,7 @@
 		data-group="{{ post.website_group }}" 
 		itemscope itemtype="http://schema.org/Article">
 	<a class="pull-left media-link" href="{{ post_url }}">
-		<img class="media-object post-avatar" src="{{ post.user_image|scrub_relative_url }}">
+		<img class="media-object post-avatar" src="{{ post.user_image }}">
 	</a>
 	<div class="media-body">
 		{%- if not post.parent_post -%}
@@ -50,7 +50,7 @@
 			{%- endif -%}
 			{{ post.content|markdown }}
 			{%- if post.picture_url -%}
-			<img src="{{ post.picture_url|scrub_relative_url }}" class="img-responsive post-picture" />
+			<img src="{{ post.picture_url }}" class="img-responsive post-picture" />
 			{%- endif -%}
 		</div>
 	</div>

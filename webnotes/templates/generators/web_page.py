@@ -16,7 +16,7 @@ def get_context(context):
 		
 	web_page.doc.meta_description = web_page.doc.description
 	
-	web_page.doc.breadcrumbs = get_breadcrumbs(web_page)
+	# web_page.doc.breadcrumbs = get_breadcrumbs(web_page)
 	web_page.doc.toc_list = get_toc_list(web_page)
 	
 	# parent, child, next sibling links

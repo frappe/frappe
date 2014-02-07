@@ -570,7 +570,7 @@ def get_jenv():
 	return jenv
 	
 def set_filters(jenv):
-	from webnotes.utils import global_date_format, scrub_relative_url
+	from webnotes.utils import global_date_format
 	from webnotes.webutils import get_hex_shade
 	from markdown2 import markdown
 	from json import dumps
@@ -578,7 +578,6 @@ def set_filters(jenv):
 	jenv.filters["global_date_format"] = global_date_format
 	jenv.filters["markdown"] = markdown
 	jenv.filters["json"] = dumps
-	jenv.filters["scrub_relative_url"] = scrub_relative_url
 	jenv.filters["get_hex_shade"] = get_hex_shade
 	
 	# load jenv_filters from hooks.txt

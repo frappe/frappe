@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 import webnotes
-import json, os, time
+import json, os, time, re
 from webnotes import _
 import webnotes.utils
 from webnotes.utils import get_request_site_address, encode, cint
@@ -76,6 +76,7 @@ def build_page(page_name):
 	context = get_context(page_name)
 	
 	html = webnotes.get_template(context.base_template_path).render(context)
+	html = scrub_relative_urls(html)
 	
 	if can_cache(context.no_cache):
 		webnotes.cache().set_value("page:" + page_name, html)
@@ -430,6 +431,10 @@ def render_blocks(context):
 	
 	# render each block individually
 	for block, render in template.blocks.items():
-		out[block] = concat(render(context))
+		out[block] = scrub_relative_urls(concat(render(context)))
 
 	return out
+
+def scrub_relative_urls(html):
+	"""prepend a slash before a relative url"""
+	return re.sub("""(src|href)[^\w'"]*['"](?!http|ftp|/|#)([^'" >]+)['"]""", '\g<1> = "/\g<2>"', html)

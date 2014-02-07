@@ -51,7 +51,7 @@
 	<div class="text-muted small">tab + enter to post / <a target="_blank" class="text-muted"
 		href="/markdown-cheatsheet" tabindex="-1">markdown formatting</a></div>
 	<div class="post-picture hide" style="margin: 10px 0px;">
-		<img src="{{ post.picture_url|scrub_relative_url if post else ''}}" class="img-responsive" />
+		<img src="{{ post.picture_url if post else ''}}" class="img-responsive" />
 	</div>
 	<div class="clearfix">
 		<button class="btn btn-default btn-post-add pull-right"><i class="icon-plus"></i> Add Post</button>

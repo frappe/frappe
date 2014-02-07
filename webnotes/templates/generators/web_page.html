@@ -2,27 +2,18 @@
 
 {% block header %}{% if show_title %}<h2>{{ title }}</h2>{% endif %}{% endblock %}
 
+{% block breadcrumbs %}{% include "templates/includes/breadcrumbs.html" %}{% endblock %}
+
 {% block content %}
 <div class="webpage-content">
 	{# title, breadcrumbs, table of contents #}
-	{% block pre_content -%}
-	{% if show_breadcrumbs and breadcrumbs -%}
-	<ul class="breadcrumb">
-		{% for b in breadcrumbs -%}
-		<li><a href="{{ b.page_name }}">{{ b.title }}</a></li>
-		{%- endfor %}
-		<li class="active">{{ title }}</li>
-	</ul>
-	{%- endif %}
-	{%- endblock %}
-	
+
 	{% include "templates/includes/slideshow.html" %}
 	<div class="web-page-content" id="{{ name }}">
 	{{ main_section or "" }}
 	</div>
 	
 	{# toc, parent, child, next sibling #}
-	{% block post_content -%}
 	{% if show_toc and toc_list -%}
 	<div class="well">
 		<h4>Contents</h4>
@@ -53,7 +44,6 @@
 	<h3>Discuss</h3>
 	{% include 'templates/includes/comments.html' %}
 	{%- endif %}
-	{%- endblock %}
 </div>
 <script>
 $(function() {

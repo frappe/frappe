@@ -7,8 +7,8 @@
 	<meta name="generator" content="wnframework">
 	<script type="text/javascript" src="/assets/webnotes/js/lib/jquery/jquery.min.js"></script>
 	
-	<link rel="shortcut icon" href="{{ favicon | scrub_relative_url }}" type="image/x-icon">
-	<link rel="icon" href="{{ favicon | scrub_relative_url }}" type="image/x-icon">
+	<link rel="shortcut icon" href="{{ favicon }}" type="image/x-icon">
+	<link rel="icon" href="{{ favicon }}" type="image/x-icon">
 	
 	{% block head -%}
 		{%- if meta_description is defined -%}
@@ -16,11 +16,11 @@
 		{%- endif -%}
 		
 		{%- for link in web_include_js -%}
-		<script type="text/javascript" src="{{ link | scrub_relative_url }}"></script>
+		<script type="text/javascript" src="{{ link }}"></script>
 		{%- endfor -%}
 		
 		{%- for link in web_include_css -%}
-		<link type="text/css" rel="stylesheet" href="{{ link | scrub_relative_url }}">
+		<link type="text/css" rel="stylesheet" href="{{ link }}">
 		{%- endfor -%}
 		
 		{% block script -%}

@@ -842,11 +842,6 @@ def get_url_to_form(doctype, name, base_url=None, label=None):
 	
 	return """<a href="%(base_url)s/app.html#!Form/%(doctype)s/%(name)s">%(label)s</a>""" % locals()
 	
-def scrub_relative_url(url):
-	if not url or url.startswith("http"):
-		return url
-	return "/" + url
-
 def encode_dict(d, encoding="utf-8"):
 	for key in d:
 		if isinstance(d[key], basestring) and isinstance(d[key], unicode):
