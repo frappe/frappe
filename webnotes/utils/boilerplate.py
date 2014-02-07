@@ -26,9 +26,11 @@ def make_boilerplate():
 		
 	webnotes.create_folder(os.path.join(hooks.app_name, hooks.app_name, hooks.app_name))
 	webnotes.create_folder(os.path.join(hooks.app_name, hooks.app_name, "templates"))
+	webnotes.create_folder(os.path.join(hooks.app_name, hooks.app_name, "config"))
 	touch_file(os.path.join(hooks.app_name, hooks.app_name, "__init__.py"))
 	touch_file(os.path.join(hooks.app_name, hooks.app_name, hooks.app_name, "__init__.py"))
 	touch_file(os.path.join(hooks.app_name, hooks.app_name, "templates", "__init__.py"))
+	touch_file(os.path.join(hooks.app_name, hooks.app_name, "config", "__init__.py"))
 	
 	with open(os.path.join(hooks.app_name, "MANIFEST.in"), "w") as f:
 		f.write(manifest_template.format(**hooks))
@@ -55,7 +57,7 @@ def make_boilerplate():
 
 	touch_file(os.path.join(hooks.app_name, hooks.app_name, "patches.txt"))
 
-	with open(os.path.join(hooks.app_name, hooks.app_name, "desktop.json"), "w") as f:
+	with open(os.path.join(hooks.app_name, hooks.app_name, "config", "desktop.py"), "w") as f:
 		f.write(desktop_template.format(**hooks))
 		
 	
@@ -91,12 +93,14 @@ app_url = {app_url}
 app_version = 0.0.1
 """
 
-desktop_template = """{{
+desktop_template = """from webnotes import _
+
+data = {{
 	"{app_title}": {{
 		"color": "{app_color}", 
 		"icon": "{app_icon}", 
-		"label": "{app_title}"
-	}}	
+		"label": _("{app_title}")
+	}}
 }}
 """
 

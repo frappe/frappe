@@ -252,15 +252,17 @@ wn.views.GridReport = Class.extend({
 				input.autocomplete({
 					source: v.list || [],
 				});
-			} else if(v.fieldtype=='Button') {
+			} else if(v.fieldtype==='Button' && v.label==="Refresh") {
+				input = me.appframe.set_title_right(v.label, null, v.icon);
+			} else if(v.fieldtype==='Button') {
 				input = me.appframe.add_primary_action(v.label, null, v.icon);
-			} else if(v.fieldtype=='Date') {
+			} else if(v.fieldtype==='Date') {
 				input = me.appframe.add_date(v.label);
-			} else if(v.fieldtype=='Label') {
+			} else if(v.fieldtype==='Label') {
 				input = me.appframe.add_label(v.label);
-			} else if(v.fieldtype=='Data') {
+			} else if(v.fieldtype==='Data') {
 				input = me.appframe.add_data(v.label);
-			} else if(v.fieldtype=='Check') {
+			} else if(v.fieldtype==='Check') {
 				input = me.appframe.add_check(v.label);
 			}
 

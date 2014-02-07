@@ -381,7 +381,10 @@ def scrub(txt):
 def get_module_path(module, *joins):
 	module = scrub(module)
 	return get_pymodule_path(local.module_app[module] + "." + module, *joins)
-	
+
+def get_app_path(app_name, *joins):
+	return get_pymodule_path(app_name, *joins)
+
 def get_pymodule_path(modulename, *joins):
 	joins = [scrub(part) for part in joins]
 	return os.path.join(os.path.dirname(get_module(scrub(modulename)).__file__), *joins)

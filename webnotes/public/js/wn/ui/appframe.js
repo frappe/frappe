@@ -195,8 +195,7 @@ wn.ui.AppFrame = Class.extend({
 		}
 		var icon = wn.boot.doctype_icons[doctype] || module_info.icon;
 		
-		this.$title_area.find(".title-icon").html('<i class="'+icon+'"></i> ')
-			.toggle(true)
+		this.get_main_icon(icon)
 			.attr("doctype-name", doctype)
 			.attr("module-link", module_info.link)
 			.click(onclick || function() {
@@ -218,6 +217,10 @@ wn.ui.AppFrame = Class.extend({
 		}
 	},
 		
+	get_main_icon: function(icon) {
+		return this.$title_area.find(".title-icon").html('<i class="'+icon+'"></i> ').toggle(true);
+	},
+	
 	add_help_button: function(txt) {
 		this.add_icon_btn("2", "icon-question-sign", wn._("Help"), 
 			function() { msgprint($(this).data('help-text'), 'Help'); })
@@ -346,5 +349,5 @@ wn.ui.make_app_page = function(opts) {
 	if(opts.set_document_title!==undefined)
 		opts.parent.appframe.set_document_title = opts.set_document_title;
 	if(opts.title) opts.parent.appframe.set_title(opts.title);
-	if(opts.icon) opts.parent.appframe.add_module_icon(null, opts.icon);
+	if(opts.icon) opts.parent.appframe.get_main_icon(opts.icon);
 }

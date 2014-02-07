@@ -1,22 +1,24 @@
-{
+from webnotes import _
+
+data = {
 	"Calendar": {
 		"color": "#2980b9", 
 		"icon": "icon-calendar", 
-		"label": "Calendar", 
+		"label": _("Calendar"), 
 		"link": "Calendar/Event", 
 		"type": "view"
 	}, 
 	"Messages": {
 		"color": "#9b59b6", 
 		"icon": "icon-comments", 
-		"label": "Messages", 
+		"label": _("Messages"), 
 		"link": "messages", 
 		"type": "page"
 	}, 
 	"To Do": {
 		"color": "#f1c40f", 
 		"icon": "icon-check", 
-		"label": "To Do", 
+		"label": _("To Do"), 
 		"link": "List/ToDo",
 		"doctype": "ToDo",
 		"type": "list"
@@ -31,6 +33,7 @@
 		"color": "#888", 
 		"icon": "icon-download", 
 		"link": "applications", 
-		"type": "page"
+		"type": "page",
+		"label": _("Installer")
 	}
 }

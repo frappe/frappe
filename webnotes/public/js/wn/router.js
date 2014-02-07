@@ -83,6 +83,13 @@ wn.set_route = function() {
 	wn.app.set_favicon();
 }
 
+wn.set_re_route = function() {
+	var tmp = window.location.hash;
+	wn.set_route.apply(null, arguments);
+	wn.re_route[tmp] = window.location.hash;
+};
+
+
 wn._cur_route = null;
 
 $(window).on('hashchange', function() {

@@ -2,6 +2,7 @@ wn.pages['applications'].onload = function(wrapper) {
 	wn.ui.make_app_page({
 		parent: wrapper,
 		title: wn._('Application Installer'),
+		icon: "icon-download",
 		single_column: true
 	});
 

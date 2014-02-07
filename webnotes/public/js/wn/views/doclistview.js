@@ -8,10 +8,14 @@ wn.views.ListFactory = wn.views.Factory.extend({
 	make: function(route) {
 		var me = this;
 		wn.model.with_doctype(route[1], function() {
-			new wn.views.DocListView({
-				doctype: route[1], 
-				page: me.make_page(true)
-			});
+			if(locals["DocType"][route[1]].issingle) {
+				wn.set_re_route("Form", route[1]);
+			} else {
+				new wn.views.DocListView({
+					doctype: route[1], 
+					page: me.make_page(true)
+				});
+			}
 		});
 	}
 });
