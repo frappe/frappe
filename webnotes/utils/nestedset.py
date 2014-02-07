@@ -189,7 +189,7 @@ class DocTypeNestedSet(object):
 		self.doc.fields[self.nsm_parent_field] = ""
 		update_nsm(self)
 		
-	def before_rename(self, newdn, olddn, merge=False, group_fname="is_group"):
+	def before_rename(self, olddn, newdn, merge=False, group_fname="is_group"):
 		if merge:
 			is_group = webnotes.conn.get_value(self.doc.doctype, newdn, group_fname)
 			if self.doc.fields[group_fname] != is_group:
