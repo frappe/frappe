@@ -232,7 +232,7 @@ class Bean:
 			add_to_response(webnotes.local.response, 
 				webnotes.call(getattr(self.controller, method), *args, **kwargs))
 
-		args = [self, method] + args
+		args = [self, method] + list(args)
 		for handler in webnotes.get_hooks("bean_event:" + self.doc.doctype + ":" + method) \
 			+ webnotes.get_hooks("bean_event:*:" + method):
 			add_to_response(webnotes.local.response, webnotes.call(webnotes.get_attr(handler), *args, **kwargs))

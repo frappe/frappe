@@ -17,6 +17,8 @@ from webnotes import msgprint, _
 
 class NestedSetRecursionError(webnotes.ValidationError): pass
 class NestedSetMultipleRootsError(webnotes.ValidationError): pass
+class NestedSetChildExistsError(webnotes.ValidationError): pass
+class NestedSetInvalidMergeError(webnotes.ValidationError): pass
 
 # called in the on_update method
 def update_nsm(doc_obj):
@@ -188,19 +190,29 @@ class DocTypeNestedSet(object):
 	def on_trash(self):
 		if not self.nsm_parent_field:
 			self.nsm_parent_field = webnotes.scrub(self.doc.doctype) + "_parent"
+		
 		parent = self.doc.fields[self.nsm_parent_field]
 		if not parent:
 			msgprint(_("Root ") + self.doc.doctype + _(" cannot be deleted."), raise_exception=1)
+		
+		# cannot delete non-empty group
+		has_children = webnotes.conn.sql("""select count(name) from `tab{doctype}`
+			where `{nsm_parent_field}`=%s""".format(doctype=self.doc.doctype, nsm_parent_field=self.nsm_parent_field),
+			(self.doc.name,))[0][0]
+		if has_children:
+			webnotes.throw("{cannot_delete}. {children_exist}: {name}.".format(
+				children_exist=_("Children exist for"), name=self.doc.name,
+				cannot_delete=_("Cannot delete")), NestedSetChildExistsError)
 
 		self.doc.fields[self.nsm_parent_field] = ""
 		update_nsm(self)
 		
-	def before_rename(self, newdn, olddn, merge=False, group_fname="is_group"):
+	def before_rename(self, olddn, newdn, merge=False, group_fname="is_group"):
 		if merge:
 			is_group = webnotes.conn.get_value(self.doc.doctype, newdn, group_fname)
 			if self.doc.fields[group_fname] != is_group:
 				webnotes.throw(_("""Merging is only possible between Group-to-Group or 
-					Ledger-to-Ledger"""))
+					Ledger-to-Ledger"""), NestedSetInvalidMergeError)
 					
 	def after_rename(self, olddn, newdn, merge=False):
 		if merge:
