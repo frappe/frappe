@@ -32,27 +32,6 @@ data = [
 		]
 	},
 	{
-		"label": _("Workflow"),
-		"icon": "icon-random",
-		"items": [
-			{
-				"type": "doctype",
-				"name": "Workflow",
-				"description": _("Define workflows for forms.")
-			},
-			{
-				"type": "doctype",
-				"name": "Workflow State",
-				"description": _("States for workflow (e.g. Draft, Approved, Cancelled).")
-			},
-			{
-				"type": "doctype",
-				"name": "Workflow Action",
-				"description": _("Actions for workflow (e.g. Approve, Cancel).")
-			},
-		]
-	},
-	{
 		"label": _("Tools"),
 		"icon": "icon-wrench",
 		"items": [
@@ -88,6 +67,38 @@ data = [
 		]
 	},
 	{
+		"label": _("Workflow"),
+		"icon": "icon-random",
+		"items": [
+			{
+				"type": "doctype",
+				"name": "Workflow",
+				"description": _("Define workflows for forms.")
+			},
+			{
+				"type": "doctype",
+				"name": "Workflow State",
+				"description": _("States for workflow (e.g. Draft, Approved, Cancelled).")
+			},
+			{
+				"type": "doctype",
+				"name": "Workflow Action",
+				"description": _("Actions for workflow (e.g. Approve, Cancel).")
+			},
+		]
+	},
+	{
+		"label": _("Email"),
+		"icon": "icon-envelope",
+		"items": [
+			{
+				"type": "doctype",
+				"name": "Email Settings",
+				"description": _("Set outgoing mail server.")
+			},
+		]
+	},
+	{
 		"label": _("Customize"),
 		"icon": "icon-glass",
 		"items": [
@@ -106,6 +117,29 @@ data = [
 				"name": "Custom Script",
 				"description": _("Add custom javascript to forms.")
 			}
+		]
+	},
+	{
+		"label": _("System"),
+		"icon": "icon-cog",
+		"items": [
+			{
+				"type": "page",
+				"name": "applications",
+				"label": _("Application Installer"),
+				"description": _("Install Applications."),
+				"icon": "icon-download"
+			},
+			{
+				"type": "doctype",
+				"name": "Backup Manager",
+				"description": _("Manage cloud backups on Dropbox")
+			},
+			{
+				"type": "doctype",
+				"name": "Scheduler Log",
+				"description": _("Log of error on automated events (scheduler).")
+			},
 		]
 	}
 ]

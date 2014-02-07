@@ -39,20 +39,23 @@ wn.setup = {
 		var $sections = wrapper.find(".nav-pills");
 		$.each(data, function(i, d) {
 			d._label = d.label.toLowerCase().replace(/ /g, "_");
-			$nav = $sections.find('[data-label="'+d._label+'"]');
+			var $nav = $sections.find('[data-label="'+d._label+'"]');
 			
 			if(!$sections.find('[data-label="'+d._label+'"]').length) {
-				$nav = $('<li><a><i class="'+d.icon+'"></i> '
+				$nav = $('<li><a><i class="'+d.icon+' icon-fixed-width"></i> '
 					+ wn._(d.label)+'</a></li>')
 					.attr("data-label", d._label)
 					.appendTo($sections);
-				$content = $('<div class="panel panel-default"></div>')
+				var $content = $('<div class="panel panel-default"></div>')
 					.toggle(false)
 					.attr("id", d._label)
 					.appendTo(wrapper.find(".contents"))
 				$('<div class="panel-heading">').appendTo($content).html('<i class="'+d.icon+'"></i> ' 
 					+ d.label);
-				$list = $('<ul class="list-group">').appendTo($content);
+				var $list = $('<ul class="list-group">').appendTo($content);
+			} else {
+				var $content = $("#" + d._label);
+				var $list = $content.find(".list-group");
 			}
 			
 			// add items
@@ -69,14 +72,14 @@ wn.setup = {
 					
 					$list_item = $($r('<li class="list-group-item">\
 					<div class="row">\
-						<div class="col-xs-4"><a><i class="%(icon)s"></i> %(label)s</a></div>\
+						<div class="col-xs-4"><a><i class="%(icon)s icon-fixed-width"></i> %(label)s</a></div>\
 						<div class="col-xs-8 text-muted">%(description)s</div>\
 					</div>\
 					</li>', item)).appendTo($list);
 					
 					$list_item.find("a")
 						.attr("data-type", item.type)
-						.attr("data-name", item.name)
+						.attr("data-name", item.link || item.name)
 						.on("click", function() {
 							if($(this).attr("data-type")==="doctype") {
 								wn.set_route("List", $(this).attr("data-name"))
