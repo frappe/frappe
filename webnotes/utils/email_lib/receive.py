@@ -52,7 +52,10 @@ class IncomingMail:
 		else:
 			# assume that the encoding is utf-8
 			self.subject = self.subject.decode("utf-8")
-
+			
+		if not self.subject:
+			self.subject = "No Subject"
+			
 	def set_content_and_type(self):
 		self.content, self.content_type = '[Blank Email]', 'text/plain'
 		if self.text_content:
