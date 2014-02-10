@@ -18,7 +18,7 @@ def get_signature(params, nonce, secret=None):
 	if not secret:
 		secret = webnotes.local.conf.get("secret") or "secret"
 		
-	signature = hmac.new(nonce)
+	signature = hmac.new(str(nonce))
 	signature.update(secret)
 	signature.update(params)
 	return signature.hexdigest()
