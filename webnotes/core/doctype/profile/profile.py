@@ -43,7 +43,7 @@ class DocType:
 				pass # email server not set, don't send email
 				
 		self.doc.new_password = ""
-
+		self.update_gravatar()
 
 	def check_enable_disable(self):
 		# do not allow disabling administrator/guest
@@ -106,6 +106,15 @@ class DocType:
 		# owner is always name
 		webnotes.conn.set(self.doc, 'owner', self.doc.name)
 		webnotes.clear_cache(user=self.doc.name)
+		
+	def update_gravatar(self):
+		import md5
+		if not self.doc.user_image:
+			if self.doc.fb_username:
+				self.doc.user_image = "https://graph.facebook.com/" + self.doc.fb_username + "/picture"
+			else:
+				self.doc.user_image = "https://secure.gravatar.com/avatar/" + md5.md5(self.doc.name).hexdigest() \
+					+ "?d=retro"
 	
 	def reset_password(self):
 		from webnotes.utils import random_string, get_url

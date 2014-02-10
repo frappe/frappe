@@ -91,13 +91,24 @@ def get_context(page_name):
 	if can_cache():
 		context = webnotes.cache().get_value(cache_key)
 	
+	access = get_access(page_name)
 	if not context:
-		sitemap_options = get_sitemap_options(page_name)
-		context = build_context(sitemap_options)
+		context = get_sitemap_options(page_name)
+
+		# permission may be required for rendering
+		context["access"] = access
+
+		context = build_context(context)
+
 		if can_cache(context.no_cache):
+			del context["access"]
 			webnotes.cache().set_value(cache_key, context)
 
+	context["access"] = access
 	context.update(context.data or {})
+	
+	# TODO private pages
+	
 	return context
 	
 def get_sitemap_options(page_name):
@@ -133,8 +144,8 @@ def build_sitemap_options(page_name):
 		where lft < %s and rgt > %s order by lft asc""", (sitemap_options.lft, sitemap_options.rgt), as_dict=True)
 
 	sitemap_options.children = webnotes.conn.sql("""select * from `tabWebsite Sitemap`
-		where parent_website_sitemap=%s""", (sitemap_options.page_name,), as_dict=True)
-	
+		where parent_website_sitemap=%s and public_read=1""", (sitemap_options.page_name,), as_dict=True)
+		
 	# determine templates to be used
 	if not sitemap_options.base_template_path:
 		sitemap_options.base_template_path = "templates/base.html"

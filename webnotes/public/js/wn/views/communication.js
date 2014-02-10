@@ -274,22 +274,13 @@ wn.views.CommunicationComposer = Class.extend({
 		});
 	},
 	
-	send_email: function(btn, form_values, selected_attachments, print_format_html) {
+	send_email: function(btn, form_values, selected_attachments, print_html) {
 		var me = this;
 		
-		if(form_values.attach_document_print) {
-			var print_html = print_format_html;
-			if(cint(wn.boot.send_print_in_body_and_attachment)) {
-				form_values.content = form_values.content 
-					+ "<p></p><hr>" + print_html;
-			} else {
-				form_values.content = form_values.content + "<p>"
-					+ "Please see attachment for document details.</p>"
-			}
-		} else {
-			var print_html = "";
+		if(!form_values.attach_document_print) {
+			print_html = "";
 		}
-		
+
 		if(form_values.send_email) {
 			if(cur_frm && !wn.model.can_email(me.doc.doctype, cur_frm)) {
 				msgprint(wn._("You are not allowed to send emails related to this document."));

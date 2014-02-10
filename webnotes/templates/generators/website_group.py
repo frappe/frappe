@@ -17,7 +17,6 @@ def get_context(context):
 			raise webnotes.PermissionError
 			
 		group_context = get_group_context(group, view, bean, context)
-		group_context["access"] = get_access(group)
 		group_context.update(context)
 	
 		return group_context
@@ -122,3 +121,7 @@ def clear_cache(page_name=None, website_group=None):
 	for group in website_groups:
 		for view in get_views(group.group_type):
 			cache.delete_value("website_group_context:{}:{}".format(group.page_name, view))
+
+def clear_event_cache():
+	for group in webnotes.conn.sql_list("""select name from `tabWebsite Group` where group_type='Event'"""):
+			clear_unit_views(website_group=group)

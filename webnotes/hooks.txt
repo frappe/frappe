@@ -31,6 +31,7 @@ scheduler_event = all:webnotes.utils.email_lib.bulk.flush
 scheduler_event = daily:webnotes.utils.email_lib.bulk.clear_outbox
 scheduler_event = daily:webnotes.core.doctype.notification_count.notification_count.delete_event_notification_count
 scheduler_event = daily:webnotes.core.doctype.event.event.send_event_digest
+scheduler_event = hourly:webnotes.templates.generator.website_group.clear_event_cache
 
 on_session_creation = webnotes.auth.notify_administrator_login
 

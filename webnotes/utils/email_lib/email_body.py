@@ -9,12 +9,12 @@ import email.utils
 from inlinestyler.utils import inline_css
 
 def get_email(recipients, sender='', msg='', subject='[No Subject]', 
-	text_content = None, footer=None, formatted=None):
+	text_content = None, footer=None, print_html=None, formatted=None):
 	"""send an html email as multipart with attachments and all"""
 	email = EMail(sender, recipients, subject)
 	if (not '<br>' in msg) and (not '<p>' in msg) and (not '<div' in msg):
 		msg = msg.replace('\n', '<br>')
-	email.set_html(msg, text_content, footer=footer, formatted=formatted)
+	email.set_html(msg, text_content, footer=footer, print_html=print_html, formatted=formatted)
 
 	return email
 
@@ -47,10 +47,10 @@ class EMail:
 		self.cc = []
 		self.html_set = False
 	
-	def set_html(self, message, text_content = None, footer=None, formatted=None):
+	def set_html(self, message, text_content = None, footer=None, print_html=None, formatted=None):
 		"""Attach message in the html portion of multipart/alternative"""
 		if not formatted:
-			formatted = get_formatted_html(self.subject, message, footer)
+			formatted = get_formatted_html(self.subject, message, footer, print_html)
 		
 		# this is the first html part of a multi-part message, 
 		# convert to text well
@@ -68,12 +68,12 @@ class EMail:
 			Attach message in the text portion of multipart/alternative
 		"""
 		from email.mime.text import MIMEText
-		part = MIMEText(message.encode('utf-8'), 'plain', 'utf-8')		
+		part = MIMEText(message, 'plain', 'utf-8')		
 		self.msg_multipart.attach(part)
 			
 	def set_part_html(self, message):
 		from email.mime.text import MIMEText
-		part = MIMEText(message.encode('utf-8'), 'html', 'utf-8')
+		part = MIMEText(message, 'html', 'utf-8')
 		self.msg_multipart.attach(part)
 
 	def set_html_as_text(self, html):
@@ -191,13 +191,14 @@ class EMail:
 		self.make()
 		return self.msg_root.as_string()
 		
-def get_formatted_html(subject, message, footer=None):
+def get_formatted_html(subject, message, footer=None, print_html=None):
 	message = scrub_urls(message)
 
 	return inline_css(webnotes.get_template("templates/emails/standard.html").render({
 		"content": message,
 		"footer": get_footer(footer),
-		"title": subject
+		"title": subject,
+		"print_html": print_html
 	}))
 
 def get_footer(footer=None):

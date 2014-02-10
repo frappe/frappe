@@ -60,7 +60,12 @@
 		<div class="container page-container" id="page-{{ name or page_name }}">
 			<div class="row">
 				<div class="col-sm-3 col-sm-push-9 page-sidebar hidden-xs" data-html-block="sidebar">
-					{%- block sidebar -%}{%- if sidebar is defined -%}{{ sidebar }}{%- endif -%}{%- endblock -%}
+					{%- block sidebar -%}
+					{%- if sidebar is defined -%}
+						{{ sidebar }}
+						{{ private_pages or "" }}
+					{%- endif -%}
+					{%- endblock -%}
 				</div>
 				<div class="col-sm-9 col-sm-pull-3 page-content" data-html-block="content">
 					<div class="text-right"><a class="visible-xs toggle-sidebar no-decoration">

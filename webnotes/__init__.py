@@ -109,6 +109,7 @@ def init(site, sites_path=None):
 	local.restrictions = None
 	local.user_perms = {}
 	local.test_objects = {}
+	local.jenv = None
 
 	setup_module_map()
 
@@ -544,11 +545,8 @@ def get_list(doctype, filters=None, fields=None, docstatus=None,
 				group_by=group_by, order_by=order_by, limit_start=limit_start, limit_page_length=limit_page_length,
 				as_list=as_list, debug=debug)
 
-jenv = None
-
 def get_jenv():
-	global jenv
-	if not jenv:
+	if not local.jenv:
 		from jinja2 import Environment, ChoiceLoader, PackageLoader, DebugUndefined
 		import webnotes.utils
 
@@ -567,7 +565,9 @@ def get_jenv():
 			"_": _
 		})
 		
-	return jenv
+		local.jenv = jenv
+		
+	return local.jenv
 	
 def set_filters(jenv):
 	from webnotes.utils import global_date_format
