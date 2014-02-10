@@ -405,28 +405,3 @@ class DocTypeDocList(webnotes.model.doclist.DocList):
 		user_roles = webnotes.get_roles(user)
 		return [p for p in self.get({"doctype": "DocPerm"})
 				if cint(p.permlevel)==0 and (p.role=="All" or p.role in user_roles)]
-		
-
-def rename_field(doctype, old_fieldname, new_fieldname, lookup_field=None):
-	"""this function assumes that sync is NOT performed"""
-	import webnotes.model
-	doctype_list = get(doctype)
-	old_field = doctype_list.get_field(lookup_field or old_fieldname)
-	if not old_field:
-		print "rename_field: " + (lookup_field or old_fieldname) + " not found."
-		
-		
-	if old_field.fieldtype == "Table":
-		# change parentfield of table mentioned in options
-		webnotes.conn.sql("""update `tab%s` set parentfield=%s
-			where parentfield=%s""" % (old_field.options.split("\n")[0], "%s", "%s"),
-			(new_fieldname, old_fieldname))
-	elif old_field.fieldtype not in webnotes.model.no_value_fields:
-		# copy
-		if doctype_list[0].issingle:
-			webnotes.conn.sql("""update `tabSingles` set field=%s
-				where doctype=%s and field=%s""", 
-				(new_fieldname, doctype, old_fieldname))
-		else:
-			webnotes.conn.sql("""update `tab%s` set `%s`=`%s`""" % \
-				(doctype, new_fieldname, old_fieldname))	
