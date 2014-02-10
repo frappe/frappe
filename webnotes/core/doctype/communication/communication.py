@@ -37,7 +37,7 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 		raise webnotes.PermissionError("You are not allowed to send emails related to: {doctype} {name}".format(
 			doctype=doctype, name=name))
 			
-	_send(doctype=doctype, name=name, content=content, subject=subject, sent_or_received=sent_or_received,
+	_make(doctype=doctype, name=name, content=content, subject=subject, sent_or_received=sent_or_received,
 		sender=sender, recipients=recipients, communication_medium=communication_medium, send_email=send_email, 
 		print_html=print_html, attachments=attachments, send_me_a_copy=send_me_a_copy, set_lead=set_lead, 
 		date=date)
@@ -116,9 +116,13 @@ def send_comm_email(d, name, sent_via=None, print_html=None, attachments='[]', s
 			d.content = sent_via.get_content(d)
 			
 		footer = set_portal_link(sent_via, d)
-		
+	
+	send_print_in_body = webnotes.conn.get_value("Email Settings", None, "send_print_in_body_and_attachment")
+	if not send_print_in_body:
+		d.content += "<p>Please see attachment for document details.</p>"
+	
 	mail = get_email(d.recipients, sender=d.sender, subject=d.subject, 
-		msg=d.content, footer=footer)
+		msg=d.content, footer=footer, print_html=print_html if send_print_in_body else None)
 	
 	if send_me_a_copy:
 		mail.cc.append(webnotes.conn.get_value("Profile", webnotes.session.user, "email"))
