@@ -144,7 +144,7 @@ def build_sitemap_options(page_name):
 		where lft < %s and rgt > %s order by lft asc""", (sitemap_options.lft, sitemap_options.rgt), as_dict=True)
 
 	sitemap_options.children = webnotes.conn.sql("""select * from `tabWebsite Sitemap`
-		where parent_website_sitemap=%s and public_read=1""", (sitemap_options.page_name,), as_dict=True)
+		where parent_website_sitemap=%s and public_read=1""", (sitemap_options.name,), as_dict=True)
 		
 	# determine templates to be used
 	if not sitemap_options.base_template_path:
