@@ -17,7 +17,7 @@ def sync_all(force=0):
 	webnotes.clear_cache()
 
 def sync_for(app_name, force=0, sync_everything = False, verbose=False):
-	for module_name in webnotes.local.app_modules[app_name]:
+	for module_name in webnotes.local.app_modules.get(app_name) or []:
 		folder = os.path.dirname(webnotes.get_module(app_name + "." + module_name).__file__)
 		walk_and_sync(folder, force, sync_everything, verbose=verbose)
 

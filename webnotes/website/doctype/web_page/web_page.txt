@@ -2,7 +2,7 @@
  {
   "creation": "2013-03-28 10:35:30", 
   "docstatus": 0, 
-  "modified": "2014-02-10 16:17:48", 
+  "modified": "2014-02-10 18:07:28", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -139,6 +139,12 @@
   "options": "Left\nCenter\nRight"
  }, 
  {
+  "doctype": "DocField", 
+  "fieldname": "custom_javascript", 
+  "fieldtype": "Section Break", 
+  "label": "Custom Javascript"
+ }, 
+ {
   "description": "Add code as &lt;script&gt;", 
   "doctype": "DocField", 
   "fieldname": "insert_code", 
@@ -155,6 +161,12 @@
  }, 
  {
   "doctype": "DocField", 
+  "fieldname": "custom_css", 
+  "fieldtype": "Section Break", 
+  "label": "Custom CSS"
+ }, 
+ {
+  "doctype": "DocField", 
   "fieldname": "insert_style", 
   "fieldtype": "Check", 
   "label": "Insert Style"
@@ -166,6 +178,12 @@
   "fieldtype": "Code", 
   "label": "CSS", 
   "options": "CSS"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "table_of_contents", 
+  "fieldtype": "Section Break", 
+  "label": "Table of Contents"
  }, 
  {
   "doctype": "DocField", 

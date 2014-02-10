@@ -2,7 +2,7 @@
  {
   "creation": "2013-11-18 15:38:40", 
   "docstatus": 0, 
-  "modified": "2014-01-30 16:50:49", 
+  "modified": "2014-02-10 18:10:11", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -136,6 +136,12 @@
   "fieldname": "public_write", 
   "fieldtype": "Check", 
   "label": "Anyone Can Write"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "static_file_timestamp", 
+  "fieldtype": "Data", 
+  "label": "Static File Timestamp"
  }, 
  {
   "doctype": "DocPerm"
