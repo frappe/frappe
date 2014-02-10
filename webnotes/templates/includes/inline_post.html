@@ -1,5 +1,5 @@
-{% set post_url = "/" + post.website_group + "?view=post&name=" + post.name %}
-{% set edit_url = "/" + post.website_group + "?view=edit&name=" + post.name %}
+{% set post_url = webnotes.local.request.path + "?view=post&name=" + post.name %}
+{% set edit_url = webnotes.local.request.path + "?view=edit&name=" + post.name %}
 
 <div class="media post {% if post.parent_post -%} child-post {%- endif %}" 
 		data-name="{{ post.name }}" 

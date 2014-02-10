@@ -20,12 +20,12 @@ def get_post_context(group_context):
 			"parent_post": post.name
 		}
 	
-	cache_key = "website_group_post:".format(post.name)
+	cache_key = "website_group_post:{}".format(post.name)
 	return webnotes.cache().get_value(cache_key, lambda: _get_post_context())
 	
 def get_parent_post_html(post, view):
 	profile = webnotes.bean("Profile", post.owner).doc
-	for fieldname in ("first_name", "last_name", "user_image", "fb_hometown", "fb_location"):
+	for fieldname in ("first_name", "last_name", "user_image", "location"):
 		post.fields[fieldname] = profile.fields[fieldname]
 	
 	return webnotes.get_template("templates/includes/inline_post.html")\

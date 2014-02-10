@@ -2,7 +2,7 @@
  {
   "creation": "2014-01-29 15:57:42", 
   "docstatus": 0, 
-  "modified": "2014-02-05 17:00:33", 
+  "modified": "2014-02-10 14:38:12", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -41,6 +41,12 @@
  }, 
  {
   "doctype": "DocField", 
+  "fieldname": "name_and_description", 
+  "fieldtype": "Section Break", 
+  "label": "Name and Description"
+ }, 
+ {
+  "doctype": "DocField", 
   "fieldname": "group_name", 
   "fieldtype": "Data", 
   "label": "Group Name", 
@@ -63,6 +69,20 @@
   "reqd": 1
  }, 
  {
+  "description": "Display in the sidebar of this Website Sitemap node", 
+  "doctype": "DocField", 
+  "fieldname": "parent_website_sitemap", 
+  "fieldtype": "Link", 
+  "in_list_view": 0, 
+  "label": "Parent Website Page", 
+  "options": "Website Sitemap"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "column_break_6", 
+  "fieldtype": "Column Break"
+ }, 
+ {
   "doctype": "DocField", 
   "fieldname": "group_description", 
   "fieldtype": "Text", 
@@ -79,6 +99,12 @@
  }, 
  {
   "doctype": "DocField", 
+  "fieldname": "details", 
+  "fieldtype": "Section Break", 
+  "label": "Details"
+ }, 
+ {
+  "doctype": "DocField", 
   "fieldname": "public_read", 
   "fieldtype": "Check", 
   "label": "Anyone Can Read"
@@ -90,13 +116,9 @@
   "label": "Anyone Can Write"
  }, 
  {
-  "description": "Display in the sidebar of this Website Sitemap node", 
   "doctype": "DocField", 
-  "fieldname": "parent_website_sitemap", 
-  "fieldtype": "Link", 
-  "in_list_view": 0, 
-  "label": "Parent Website Page", 
-  "options": "Website Sitemap"
+  "fieldname": "column_break_12", 
+  "fieldtype": "Column Break"
  }, 
  {
   "doctype": "DocField", 

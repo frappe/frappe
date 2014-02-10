@@ -1,8 +1,6 @@
-{% if parents -%}
 <ul class="breadcrumb">
-	{% for parent in parents %}
+	{% for parent in parents or [] %}
 		<li><a href="/{{ parent.name|lower }}">{{ parent.page_title or parent.title }}</a></li>
 	{% endfor %}
 	<li class="active">{{ title }}</li>
 </ul>
-{%- endif %}

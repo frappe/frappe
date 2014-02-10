@@ -77,7 +77,7 @@ def build_page(page_name):
 	
 	html = webnotes.get_template(context.base_template_path).render(context)
 	html = scrub_relative_urls(html)
-	
+		
 	if can_cache(context.no_cache):
 		webnotes.cache().set_value("page:" + page_name, html)
 	
@@ -115,12 +115,7 @@ def get_sitemap_options(page_name):
 	
 def build_sitemap_options(page_name):
 	sitemap_options = webnotes.doc("Website Sitemap", page_name).fields
-	
-	# only non default fields
-	for fieldname in default_fields:
-		if fieldname in sitemap_options:
-			del sitemap_options[fieldname]
-	
+		
 	sitemap_config = webnotes.doc("Website Sitemap Config", 
 		sitemap_options.get("website_sitemap_config")).fields
 	
@@ -131,6 +126,7 @@ def build_sitemap_options(page_name):
 	
 	sitemap_options.doctype = sitemap_options.ref_doctype
 	sitemap_options.title = sitemap_options.page_title
+	sitemap_options.pathname = sitemap_options.name
 	
 	# establish hierarchy
 	sitemap_options.parents = webnotes.conn.sql("""select name, page_title from `tabWebsite Sitemap`
@@ -243,10 +239,7 @@ def is_ajax():
 def scrub_page_name(page_name):
 	if not page_name:
 		page_name = "index"
-	
-	if "/" in page_name:
-		page_name = page_name.split("/")[0]
-		
+			
 	if page_name.endswith('.html'):
 		page_name = page_name[:-5]
 		
@@ -305,6 +298,16 @@ def call_website_generator(bean, method):
 	getattr(WebsiteGenerator(bean.doc, bean.doclist), method)()
 	
 class WebsiteGenerator(DocListController):
+	def set_page_name(self):
+		"""set page name based on parent page_name and title"""
+		page_name = cleanup_page_name(self.get_page_title)
+		if self.doc.parent_website_sitemap:
+			page_name = self.doc.parent_website_sitemap + "/" + page_name
+
+		webnotes.conn.set(self.doc, self._website_config.page_name_field, page_name)
+
+		return page_name
+		
 	def setup_generator(self):
 		if webnotes.flags.in_install_app:
 			return
@@ -343,7 +346,7 @@ class WebsiteGenerator(DocListController):
 	def add_or_update_sitemap(self):
 		page_name = self.get_page_name()
 		
-		existing_page_name = webnotes.conn.get_value("Website Sitemap", {"ref_doctype": self.doc.doctype,
+		existing_site_map = webnotes.conn.get_value("Website Sitemap", {"ref_doctype": self.doc.doctype,
 			"docname": self.doc.name})
 			
 		opts = webnotes._dict({
@@ -354,31 +357,34 @@ class WebsiteGenerator(DocListController):
 			"link_name": self._website_config.name,
 			"lastmod": webnotes.utils.get_datetime(self.doc.modified).strftime("%Y-%m-%d"),
 			"parent_website_sitemap": self.doc.parent_website_sitemap,
-			"page_title": self.get_page_title() \
-				if hasattr(self, "get_page_title") else (self.doc.title or self.doc.name)
+			"page_title": self.get_page_title()
 		})
-		
+
+		self.update_permissions(opts)
+
+		if existing_site_map:
+			update_sitemap(existing_site_map, opts)
+		else:
+			add_to_sitemap(opts)
+	
+	def update_permissions(self, opts):
 		if self.meta.get_field("public_read"):
 			opts.public_read = self.doc.public_read
 			opts.public_write = self.doc.public_write
 		else:
 			opts.public_read = 1
-			
-		if existing_page_name:
-			if existing_page_name != page_name:
-				webnotes.rename_doc("Website Sitemap", existing_page_name, page_name, ignore_permissions=True)
-			update_sitemap(page_name, opts)
-		else:
-			add_to_sitemap(opts)
-		
-	def get_page_name(self):
-		if not self.doc.fields.get(self._website_config.page_name_field):
-			new_page_name = cleanup_page_name(self.get_page_title() \
-				if hasattr(self, "get_page_title") else (self.doc.title or self.doc.name))
 	
-			webnotes.conn.set(self.doc, self._website_config.page_name_field, new_page_name)
+	def get_page_name(self):
+		if not self._get_page_name():
+			self.set_page_name()
 			
+		return self._get_page_name()
+		
+	def _get_page_name(self):
 		return self.doc.fields.get(self._website_config.page_name_field)
+		
+	def get_page_title(self):
+		return self.doc.title or (self.doc.name.replace("-", " ").replace("_", " ").title())
 		
 def cleanup_page_name(title):
 	"""make page name from title"""
@@ -425,7 +431,7 @@ def render_blocks(context):
 	out = {}
 	
 	template = webnotes.get_template(context["template_path"])
-	
+		
 	# required as per low level API
 	context = template.new_context(context)
 	

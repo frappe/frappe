@@ -56,7 +56,7 @@ def get_post_list_html(group, view, limit_start=0, limit_length=20):
 		where p.website_group = %s and pr.name = p.owner and ifnull(p.parent_post, '')=''
 		order by {order_by} limit %s, %s""".format(order_by=order_by),
 		(group, int(limit_start), int(limit_length)), as_dict=True)
-		
+				
 	context = {"posts": posts, "limit_start": limit_start, "view": view}
 	
 	return webnotes.get_template("templates/includes/post_list.html").render(context)
@@ -65,7 +65,7 @@ views = {
 	"popular": {
 		"name": "popular",
 		"template_path": "templates/website_group/forum.html",
-		"url": "/{group}",
+		"url": "{pathname}",
 		"label": "Popular",
 		"icon": "icon-heart",
 		"default": True,
@@ -75,7 +75,7 @@ views = {
 	"feed": {
 		"name": "feed",
 		"template_path": "templates/website_group/forum.html",
-		"url": "/{group}?view=feed",
+		"url": "/{pathname}?view=feed",
 		"label": "Feed",
 		"icon": "icon-rss",
 		"upvote": True,
@@ -84,7 +84,7 @@ views = {
 	"post": {
 		"name": "post",
 		"template_path": "templates/website_group/post.html",
-		"url": "/{group}?view=post&name={post}",
+		"url": "/{pathname}?view=post&name={post}",
 		"label": "Post",
 		"icon": "icon-comments",
 		"upvote": True,
@@ -95,7 +95,7 @@ views = {
 	"edit": {
 		"name": "edit",
 		"template_path": "templates/website_group/edit_post.html",
-		"url": "/{group}?view=edit&name={post}",
+		"url": "/{pathname}?view=edit&name={post}",
 		"label": "Edit Post",
 		"icon": "icon-pencil",
 		"hidden": True,
@@ -105,7 +105,7 @@ views = {
 	"add": {
 		"name": "add",
 		"template_path": "templates/website_group/edit_post.html",
-		"url": "/{group}?view=add",
+		"url": "/{pathname}?view=add",
 		"label": "Add Post",
 		"icon": "icon-plus",
 		"hidden": True,
@@ -114,7 +114,7 @@ views = {
 	"settings": {
 		"name": "settings",
 		"template_path": "templates/website_group/settings.html",
-		"url": "/{group}?view=settings",
+		"url": "/{pathname}?view=settings",
 		"label": "Settings",
 		"icon": "icon-cog",
 		"hidden": True,
