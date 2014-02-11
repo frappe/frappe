@@ -25,7 +25,7 @@ def handle():
 	"""
 	parts = webnotes.request.path[1:].split("/")
 	call = doctype = name = None
-	
+		
 	if len(parts) > 1:
 		call = parts[1]
 		

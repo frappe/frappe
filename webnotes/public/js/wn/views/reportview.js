@@ -290,6 +290,9 @@ wn.views.ReportView = wn.ui.Listing.extend({
 		});
 
 		this.grid.onHeaderClick.subscribe(function(e, args) {
+			if(e.target.className === "slick-resizable-handle")
+				return;
+			
 			var df = args.column.docfield,
 				sort_by = df.parent + "." + df.fieldname;
 							

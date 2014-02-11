@@ -9,11 +9,11 @@ doctype = "Website Group"
 no_cache = 1
 
 def get_context(context):
-	bean = webnotes.bean(context.ref_doctype, context.docname)
+	bean = context.bean
 	group, view = guess_group_view(bean, context)
 	
 	try:
-		if not has_access(group, view):
+		if not has_access(context.access, view):
 			raise webnotes.PermissionError
 			
 		group_context = get_group_context(group, view, bean, context)
@@ -92,9 +92,7 @@ def get_views(group_type):
 		return deepcopy(handler.get_views() or {})
 	return {}
 	
-def has_access(group, view):
-	access = get_access(group)
-	
+def has_access(access, view):	
 	if view=="settings":
 		return access.get("admin")
 	elif view in ("add", "edit"):

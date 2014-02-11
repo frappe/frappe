@@ -633,9 +633,18 @@ def serve(port=8000, profile=False):
 @cmd
 def request(args):
 	import webnotes.handler
+	import webnotes.api
 	webnotes.connect()
-	webnotes.form_dict = webnotes._dict([a.split("=") for a in args.split("&")])
+	if "?" in args:
+		webnotes.local.form_dict = webnotes._dict([a.split("=") for a in args.split("?")[-1].split("&")])
+	else:
+		webnotes.local.form_dict = webnotes._dict()
+		
+	if args.startswith("/api/method"):
+		webnotes.local.form_dict.cmd = args.split("?")[0].split("/")[-1]
+	
 	webnotes.handler.execute_cmd(webnotes.form_dict.cmd)
+		
 	print webnotes.response
 	webnotes.destroy()
 

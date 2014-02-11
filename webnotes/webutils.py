@@ -91,12 +91,11 @@ def get_context(page_name):
 	if can_cache():
 		context = webnotes.cache().get_value(cache_key)
 	
-	access = get_access(page_name)
 	if not context:
 		context = get_sitemap_options(page_name)
 
 		# permission may be required for rendering
-		context["access"] = access
+		context["access"] = get_access(context.pathname)
 
 		context = build_context(context)
 
@@ -104,7 +103,9 @@ def get_context(page_name):
 			del context["access"]
 			webnotes.cache().set_value(cache_key, context)
 
-	context["access"] = access
+	else:
+		context["access"] = get_access(context.pathname)
+		
 	context.update(context.data or {})
 	
 	# TODO private pages
@@ -309,22 +310,25 @@ def call_website_generator(bean, method, *args, **kwargs):
 	getattr(WebsiteGenerator(bean.doc, bean.doclist), method)(*args, **kwargs)
 	
 class WebsiteGenerator(DocListController):
+	def autoname(self):
+		from webnotes.webutils import cleanup_page_name
+		self.doc.name = cleanup_page_name(self.get_page_title())
+
 	def set_page_name(self):
 		"""set page name based on parent page_name and title"""
 		page_name = cleanup_page_name(self.get_page_title())
-		if self.doc.parent_website_sitemap:
-			page_name = self.doc.parent_website_sitemap + "/" + page_name
 
-		webnotes.conn.set(self.doc, self._website_config.page_name_field, page_name)
+		if self.doc.is_new():
+			self.doc.fields[self._website_config.page_name_field] = page_name
+		else:
+			webnotes.conn.set(self.doc, self._website_config.page_name_field, page_name)
 
-		return page_name
-		
 	def setup_generator(self):
 		if webnotes.flags.in_install_app:
 			return
 		self._website_config = webnotes.conn.get_values("Website Sitemap Config", 
 			{"ref_doctype": self.doc.doctype}, "*")[0]
-			
+
 	def on_update(self):
 		self.update_sitemap()
 		

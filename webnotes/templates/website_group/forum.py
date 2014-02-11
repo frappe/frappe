@@ -15,7 +15,7 @@ def get_context(group_context):
 	forum_context = {}
 	
 	if group_context.view.name in ("popular", "feed"):
-		forum_context["post_list_html"] = get_post_list_html(group_context["group"]["name"], group_context["view"])
+		forum_context["post_list_html"] = get_post_list_html(group_context["group"]["name"], group_context["view"], group_context.pathname)
 	
 	elif group_context.view.name == "edit":
 		forum_context["session_user"] = webnotes.session.user
@@ -30,8 +30,9 @@ def get_context(group_context):
 	return forum_context
 
 @webnotes.whitelist(allow_guest=True)
-def get_post_list_html(group, view, limit_start=0, limit_length=20):
-	access = get_access(group)
+def get_post_list_html(group, view, pathname, limit_start=0, limit_length=20):
+	print pathname
+	access = get_access(pathname)
 	
 	if isinstance(view, basestring):
 		view = get_views()[view]

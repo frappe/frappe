@@ -7,11 +7,7 @@ from webnotes.webutils import WebsiteGenerator
 from webnotes import _
 from markdown2 import markdown
 
-class DocType(WebsiteGenerator):
-	def autoname(self):
-		from webnotes.webutils import cleanup_page_name
-		self.doc.name = cleanup_page_name(self.doc.title)
-		
+class DocType(WebsiteGenerator):		
 	def validate(self):
 		for d in self.doclist.get({"parentfield": "toc"}):
 			if d.web_page == self.doc.name:
