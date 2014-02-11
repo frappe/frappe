@@ -226,6 +226,8 @@ class Bean:
 		
 		def add_to_response(out, new_response):
 			if isinstance(new_response, dict):
+				print self.doc.doctype, self.doc.name, method
+				print "add to response", new_response
 				out.update(new_response)
 						
 		if hasattr(self.controller, method):
@@ -240,8 +242,6 @@ class Bean:
 		self.set_doclist(self.controller.doclist)
 				
 		return webnotes.local.response
-		
-		return out
 		
 	def get_attr(self, method):
 		self.make_controller()

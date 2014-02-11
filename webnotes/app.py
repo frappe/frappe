@@ -4,10 +4,6 @@
 import sys, os
 import json
 
-sys.path.insert(0, '.')
-sys.path.insert(0, 'app')
-sys.path.insert(0, 'lib')
-
 from werkzeug.wrappers import Request, Response
 from werkzeug.local import LocalManager
 from werkzeug.wsgi import SharedDataMiddleware

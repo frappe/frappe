@@ -23,8 +23,8 @@ def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=F
 	doclist = webnotes.model.doctype.get(doctype)
 	
 	# call before_rename
-	new = webnotes.bean(doctype, old).run_method("before_rename", old, new, merge) or new
-		
+	out = webnotes.bean(doctype, old).run_method("before_rename", old, new, merge) or {}
+	new = out.get("new") or new
 	new = validate_rename(doctype, new, doclist, merge, force, ignore_permissions)
 		
 	if not merge:

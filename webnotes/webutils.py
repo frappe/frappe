@@ -305,13 +305,13 @@ def is_signup_enabled():
 		
 	return webnotes.local.is_signup_enabled
 	
-def call_website_generator(bean, method):
-	getattr(WebsiteGenerator(bean.doc, bean.doclist), method)()
+def call_website_generator(bean, method, *args, **kwargs):
+	getattr(WebsiteGenerator(bean.doc, bean.doclist), method)(*args, **kwargs)
 	
 class WebsiteGenerator(DocListController):
 	def set_page_name(self):
 		"""set page name based on parent page_name and title"""
-		page_name = cleanup_page_name(self.get_page_title)
+		page_name = cleanup_page_name(self.get_page_title())
 		if self.doc.parent_website_sitemap:
 			page_name = self.doc.parent_website_sitemap + "/" + page_name
 
