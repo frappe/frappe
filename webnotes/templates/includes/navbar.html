@@ -10,7 +10,7 @@
 					<span class="icon-bar"></span>
 				</button>
 				<a class="navbar-brand ellipsis" href="/">
-					<span>{{ brand_html or "Home"}}</span>
+					<span>{{ brand_html or (webnotes.get_hooks("brand_html") or ["Home"])[0] }}</span>
 				</a>
 			</div>
 			<div class="collapse navbar-collapse navbar-responsive-collapse">

@@ -15,7 +15,7 @@ wn.module_page["Website"] = [
 			{
 				label: wn._("Website Group"),
 				description: wn._("Web Site Forum Page."),
-				doctype:"Web Page"
+				doctype:"Website Group"
 			},
 			{
 				label: wn._("Blog Post"),

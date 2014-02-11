@@ -20,23 +20,23 @@ from webnotes.website.doctype.website_sitemap_permission.website_sitemap_permiss
 
 class PageNotFoundError(Exception): pass
 
-def render(page_name):
+def render(path):
 	"""render html page"""
-	page_name = scrub_page_name(page_name)
+	path = resolve_path(path)
 	
 	try:
-		data = render_page(page_name)
+		data = render_page(path)
 	except Exception:
-		page_name = "error"
-		data = render_page(page_name)
+		path = "error"
+		data = render_page(path)
 	
-	data = set_content_type(data, page_name)
+	data = set_content_type(data, path)
 	webnotes._response.data = data
-	webnotes._response.headers[b"Page Name"] = page_name.encode("utf-8")
+	webnotes._response.headers[b"Page Name"] = path.encode("utf-8")
 	
-def render_page(page_name):
+def render_page(path):
 	"""get page html"""
-	cache_key = ("page_context:{}" if is_ajax() else "page:{}").format(page_name)
+	cache_key = ("page_context:{}" if is_ajax() else "page:{}").format(path)
 
 	out = None
 	
@@ -52,15 +52,15 @@ def render_page(page_name):
 		
 		return out
 	
-	return build(page_name)
+	return build(path)
 	
-def build(page_name):
+def build(path):
 	if not webnotes.conn:
 		webnotes.connect()
 	
 	build_method = (build_json if is_ajax() else build_page)
 	try:
-		return build_method(page_name)
+		return build_method(path)
 
 	except webnotes.DoesNotExistError:
 		hooks = webnotes.get_hooks()
@@ -69,30 +69,30 @@ def build(page_name):
 		else:
 			return build_method("404")
 	
-def build_json(page_name):
-	return get_context(page_name).data
+def build_json(path):
+	return get_context(path).data
 	
-def build_page(page_name):
-	context = get_context(page_name)
+def build_page(path):
+	context = get_context(path)
 	
 	html = webnotes.get_template(context.base_template_path).render(context)
 	html = scrub_relative_urls(html)
 		
 	if can_cache(context.no_cache):
-		webnotes.cache().set_value("page:" + page_name, html)
+		webnotes.cache().set_value("page:" + path, html)
 	
 	return html
 
-def get_context(page_name):
+def get_context(path):
 	context = None
-	cache_key = "page_context:{}".format(page_name)
+	cache_key = "page_context:{}".format(path)
 	
 	# try from memcache
 	if can_cache():
 		context = webnotes.cache().get_value(cache_key)
 	
 	if not context:
-		context = get_sitemap_options(page_name)
+		context = get_sitemap_options(path)
 
 		# permission may be required for rendering
 		context["access"] = get_access(context.pathname)
@@ -112,21 +112,22 @@ def get_context(page_name):
 	
 	return context
 	
-def get_sitemap_options(page_name):
+def get_sitemap_options(path):
 	sitemap_options = None
-	cache_key = "sitemap_options:{}".format(page_name)
+	cache_key = "sitemap_options:{}".format(path)
 
 	if can_cache():
 		sitemap_options = webnotes.cache().get_value(cache_key)
+
 	if not sitemap_options:
-		sitemap_options = build_sitemap_options(page_name)
+		sitemap_options = build_sitemap_options(path)
 		if can_cache(sitemap_options.no_cache):
 			webnotes.cache().set_value(cache_key, sitemap_options)
 	
 	return sitemap_options
 	
-def build_sitemap_options(page_name):
-	sitemap_options = webnotes.doc("Website Sitemap", page_name).fields
+def build_sitemap_options(path):
+	sitemap_options = webnotes.doc("Website Sitemap", path).fields
 		
 	sitemap_config = webnotes.doc("Website Sitemap Config", 
 		sitemap_options.get("website_sitemap_config")).fields
@@ -145,7 +146,8 @@ def build_sitemap_options(page_name):
 		where lft < %s and rgt > %s order by lft asc""", (sitemap_options.lft, sitemap_options.rgt), as_dict=True)
 
 	sitemap_options.children = webnotes.conn.sql("""select * from `tabWebsite Sitemap`
-		where parent_website_sitemap=%s and public_read=1""", (sitemap_options.name,), as_dict=True)
+		where parent_website_sitemap=%s 
+			and public_read=1 order by idx asc""", (sitemap_options.name,), as_dict=True)
 		
 	# determine templates to be used
 	if not sitemap_options.base_template_path:
@@ -180,8 +182,12 @@ def can_cache(no_cache=False):
 	return not (webnotes.conf.disable_website_cache or no_cache)
 	
 def get_home_page():
-	return webnotes.cache().get_value("home_page", \
-		lambda: webnotes.conn.get_value("Website Settings", None, "home_page") or "login")
+	home_page = webnotes.cache().get_value("home_page", \
+		lambda:  (webnotes.get_hooks("home_page") \
+			or [webnotes.conn.get_value("Website Settings", None, "home_page") \
+			or "login"])[0])
+
+	return home_page
 	
 def get_website_settings():
 	# TODO Cache this
@@ -248,19 +254,19 @@ def get_website_settings():
 def is_ajax():
 	return webnotes.get_request_header("X-Requested-With")=="XMLHttpRequest"
 	
-def scrub_page_name(page_name):
-	if not page_name:
-		page_name = "index"
+def resolve_path(path):
+	if not path:
+		path = "index"
 			
-	if page_name.endswith('.html'):
-		page_name = page_name[:-5]
+	if path.endswith('.html'):
+		path = path[:-5]
 		
-	if page_name == "index":
-		page_name = get_home_page()
+	if path == "index":
+		path = get_home_page()
 		
-	return page_name
+	return path
 
-def set_content_type(data, page_name):
+def set_content_type(data, path):
 	if isinstance(data, dict):
 		webnotes._response.headers[b"Content-Type"] = b"application/json; charset: utf-8"
 		data = json.dumps(data)
@@ -268,17 +274,17 @@ def set_content_type(data, page_name):
 	
 	webnotes._response.headers[b"Content-Type"] = b"text/html; charset: utf-8"
 	
-	if "." in page_name and not page_name.endswith(".html"):
-		content_type, encoding = mimetypes.guess_type(page_name)
+	if "." in path and not path.endswith(".html"):
+		content_type, encoding = mimetypes.guess_type(path)
 		webnotes._response.headers[b"Content-Type"] = content_type.encode("utf-8")
 	
 	return data
 
-def clear_cache(page_name=None):
+def clear_cache(path=None):
 	cache = webnotes.cache()
 	
-	if page_name:
-		delete_page_cache(page_name)
+	if path:
+		delete_page_cache(path)
 		
 	else:
 		for p in webnotes.conn.sql_list("""select name from `tabWebsite Sitemap`"""):
@@ -289,13 +295,13 @@ def clear_cache(page_name=None):
 		clear_permissions()
 	
 	for method in webnotes.get_hooks("website_clear_cache"):
-		webnotes.get_attr(method)(page_name)
+		webnotes.get_attr(method)(path)
 
-def delete_page_cache(page_name):
+def delete_page_cache(path):
 	cache = webnotes.cache()
-	cache.delete_value("page:" + page_name)
-	cache.delete_value("page_context:" + page_name)
-	cache.delete_value("sitemap_options:" + page_name)
+	cache.delete_value("page:" + path)
+	cache.delete_value("page_context:" + path)
+	cache.delete_value("sitemap_options:" + path)
 			
 def is_signup_enabled():
 	if getattr(webnotes.local, "is_signup_enabled", None) is None:
