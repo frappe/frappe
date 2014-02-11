@@ -10,6 +10,7 @@ from webnotes.webutils import is_signup_enabled
 from webnotes.utils import get_url, cstr
 from webnotes.utils.email_lib.email_body import get_email
 from webnotes.utils.email_lib.smtp import send
+from webnotes.utils import scrub_urls
 
 class DocType():
 	def __init__(self, doc, doclist=None):
@@ -128,6 +129,7 @@ def send_comm_email(d, name, sent_via=None, print_html=None, attachments='[]', s
 		mail.cc.append(webnotes.conn.get_value("Profile", webnotes.session.user, "email"))
 	
 	if print_html:
+		print_html = scrub_urls(print_html)
 		mail.add_attachment(name.replace(' ','').replace('/','-') + '.html', print_html)
 
 	for a in json.loads(attachments):
