@@ -16,7 +16,7 @@ def get_context(context):
 		if not has_access(group, view):
 			raise webnotes.PermissionError
 			
-		group_context = get_group_context(group, view, bean)
+		group_context = get_group_context(group, view, bean, context)
 		group_context.update(context)
 	
 		return group_context
@@ -32,7 +32,7 @@ def get_context(context):
 				'You are not permitted to view this page.</div>'
 		}
 		
-def get_group_context(group, view, bean):
+def get_group_context(group, view, bean, context):
 	cache_key = "website_group_context:{}:{}".format(group, view)
 	views = get_views(bean.doc.group_type)
 	view = webnotes._dict(views.get(view))
@@ -42,18 +42,18 @@ def get_group_context(group, view, bean):
 		if group_context:
 			return group_context
 			
-	group_context = build_group_context(group, view, bean, views)
+	group_context = build_group_context(group, view, bean, views, context)
 	
 	if can_cache(view.get("no_cache")):
 		webnotes.cache().set_value(cache_key, group_context)
 		
 	return group_context
 	
-def build_group_context(group, view, bean, views):
+def build_group_context(group, view, bean, views, context):
 	title = "{} - {}".format(bean.doc.group_title, view.get("label"))
 	
 	for name, opts in views.iteritems():
-		opts["url"] = opts["url"].format(group=group, post="")
+		opts["url"] = opts["url"].format(pathname=context.pathname, post="")
 	
 	group_context = webnotes._dict({
 		"group": bean.doc.fields,

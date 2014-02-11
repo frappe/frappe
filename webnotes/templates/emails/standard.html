@@ -8,14 +8,6 @@
 /* ------------------------------------- 
 		GLOBAL 
 ------------------------------------- */
-* { 
-	margin:0;
-	padding:0;
-	font-family: "Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; 
-	font-size: 100%;
-	line-height: 1.6;
-}
-
 img { 
 	max-width: 100%; 
 }
@@ -23,15 +15,26 @@ img {
 body {
 	-webkit-font-smoothing:antialiased; 
 	-webkit-text-size-adjust:none; 
-	width: 100%!important; 
+	width: 100% !important; 
 	height: 100%;
+}
+
+.wrapper {
 	background-color: #eee;
+}
+
+.wrapper * { 
+	margin:0;
+	padding:0;
+	font-family: "Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif; 
+	font-size: 100%;
+	line-height: 1.6;
 }
 
 /* ------------------------------------- 
 		ELEMENTS 
 ------------------------------------- */
-a { 
+.wrapper a { 
 	color: #348eda;
 }
 
@@ -69,7 +72,7 @@ a {
 	margin-bottom: 0;
 }
 
-.first{
+.first {
 	margin-top: 0;
 }
 
@@ -113,7 +116,9 @@ table.footer-wrap a{
 /* ------------------------------------- 
 		TYPOGRAPHY 
 ------------------------------------- */
-h1,h2,h3{
+.wrapper h1,
+.wrapper h2,
+.wrapper h3{
 	font-family: "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif; 
 	line-height: 1.1; 
 	margin-top:15px; 
@@ -123,26 +128,29 @@ h1,h2,h3{
 	font-weight:200; 
 }
 
-h1 {
+.wrapper h1 {
 	font-size: 36px;
 }
-h2 {
+.wrapper h2 {
 	font-size: 28px;
 }
-h3 {
+.wrapper h3 {
 	font-size: 22px;
 }
-hr {
+.wrapper hr {
     margin: 20px 0;
     border-top: 1px solid #eee;
 }
-p, ul, ol { 
+.wrapper p, 
+.wrapper ul, 
+.wrapper ol { 
 	margin-bottom: 10px; 
 	font-weight: normal; 
 	font-size:14px;
 }
 
-ul li, ol li {
+.wrapper ul li, 
+.wrapper ol li {
 	margin-left:5px;
 	list-style-position: inside;
 }
@@ -180,7 +188,9 @@ ul li, ol li {
 </style>
 </head>
  
-<body bgcolor="#f6f6f6">
+<body>
+
+<div class="wrapper">
 
 <!-- body -->
 <table class="body-wrap">
@@ -229,6 +239,10 @@ ul li, ol li {
 	</tr>
 </table>
 <!-- /footer -->
+
+</div>
+
+<div class="print-html">{{ print_html }}</div>
 
 </body>
 </html>

@@ -13,6 +13,11 @@ wn.module_page["Website"] = [
 				doctype:"Web Page"
 			},
 			{
+				label: wn._("Website Group"),
+				description: wn._("Web Site Forum Page."),
+				doctype:"Web Page"
+			},
+			{
 				label: wn._("Blog Post"),
 				description: wn._("Single Post (article)."),
 				doctype:"Blog Post"

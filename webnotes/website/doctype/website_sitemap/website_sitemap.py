@@ -17,12 +17,46 @@ class DocType(DocTypeNestedSet):
 		self.nsm_parent_field = "parent_website_sitemap"
 		
 	def autoname(self):
-		self.doc.name = self.doc.page_name
+		self.doc.name = self.get_url()
+
+	def get_url(self):
+		url = self.doc.page_name
+		if self.doc.parent_website_sitemap:
+			url = self.doc.parent_website_sitemap + "/" + url
+			
+		return url
 		
 	def validate(self):
+		if self.get_url() != self.doc.name:
+			self.rename()
 		self.check_if_page_name_is_unique()
 		self.make_private_if_parent_is_private()
-		
+	
+	def rename(self):
+		from webnotes.webutils import clear_cache
+		self.old_name = self.doc.name
+		self.doc.name = self.get_url()
+		webnotes.conn.sql("""update `tabWebsite Sitemap` set name=%s where name=%s""", 
+			(self.doc.name, self.old_name))
+		self.rename_links()
+		self.rename_descendants()
+		clear_cache(self.old_name)
+
+	def rename_links(self):
+		for doctype in webnotes.conn.sql_list("""select parent from tabDocField where fieldtype='Link' and 
+			fieldname='parent_website_sitemap' and options='Website Sitemap'"""):
+			for name in webnotes.conn.sql_list("""select name from `tab{}` 
+				where parent_website_sitemap=%s""".format(doctype), self.old_name):
+				webnotes.conn.set_value(doctype, name, "parent_website_sitemap", self.doc.name)
+				
+	def rename_descendants(self):
+		# rename children
+		for name in webnotes.conn.sql_list("""select name from `tabWebsite Sitemap`
+			where parent_website_sitemap=%s""", self.doc.name):
+			child = webnotes.bean("Website Sitemap", name)
+			child.doc.parent_website_sitemap = self.doc.name
+			child.save()
+	
 	def on_update(self):
 		if not webnotes.flags.in_rebuild_config:
 			DocTypeNestedSet.on_update(self)
@@ -50,10 +84,9 @@ class DocType(DocTypeNestedSet):
 			
 			if not parent_pubic_read:
 				self.doc.public_read = self.doc.public_write = 0
-				
-	def on_trash(self):
+			
+	def on_trash(self):		
 		from webnotes.webutils import clear_cache
-		
 		# remove website sitemap permissions
 		to_remove = webnotes.conn.sql_list("""select name from `tabWebsite Sitemap Permission` 
 			where website_sitemap=%s""", (self.doc.name,))
@@ -78,6 +111,7 @@ def update_sitemap(website_sitemap, options):
 	for key in sitemap_fields:
 		bean.doc.fields[key] = options.get(key)
 	if not bean.doc.page_name:
+		# for pages
 		bean.doc.page_name = options.link_name
 	
 	bean.doc.website_sitemap_config = options.link_name

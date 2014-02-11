@@ -77,7 +77,7 @@ $.extend(website, {
 				post: website.post || undefined
 			}, values),
 			callback: function(data) {
-				var url = "/" + website.group + "?view=post&name=" + data.message;
+				var url = window.location.pathname + "?view=post&name=" + data.message;
 				window.location.href = url;
 				
 				// if(history.pushState) {

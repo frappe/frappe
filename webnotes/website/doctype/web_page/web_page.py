@@ -2,9 +2,10 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-import webnotes
+import webnotes, os
 from webnotes.webutils import WebsiteGenerator
 from webnotes import _
+from markdown2 import markdown
 
 class DocType(WebsiteGenerator):
 	def autoname(self):
@@ -37,3 +38,66 @@ class DocType(WebsiteGenerator):
 		if self.doclist.get({"parentfield": "toc"}):
 			from webnotes.webutils import clear_cache
 			clear_cache()
+			
+def sync_statics():
+	synced = []
+	for app in webnotes.get_installed_apps():
+		statics_path = webnotes.get_app_path(app, "templates", "statics")
+		
+		if os.path.exists(webnotes.get_app_path(app, "templates", "statics")):
+			for basepath, folders, files in os.walk(statics_path):
+				for fname in files:
+					fpath = os.path.join(basepath, fname)
+
+					url = os.path.relpath(fpath, statics_path).rsplit(".", 1)[0]
+					if fname.rsplit(".", 1)[0]=="index":
+						url = os.path.dirname(url)
+					
+					parent_website_sitemap = os.path.dirname(url)
+					page_name = os.path.basename(url)
+
+					try:
+						sitemap = webnotes.bean("Website Sitemap", url)
+
+						if str(os.path.getmtime(fpath))!=sitemap.doc.static_file_timestamp:
+							page = webnotes.bean("Web Page", sitemap.doc.docname)
+							page.doc.main_section = get_static_content(fpath)
+							page.save()
+
+							sitemap = webnotes.bean("Website Sitemap", url)
+							sitemap.doc.static_file_timestamp = os.path.getmtime(fpath)
+							sitemap.save()
+						
+					except webnotes.DoesNotExistError:
+						
+						page = webnotes.bean({
+							"doctype":"Web Page",
+							"title": page_name.replace("-", " ").replace("_", " ").title(),
+							"page_name": page_name,
+							"main_section": get_static_content(fpath),
+							"published": 1,
+							"parent_website_sitemap": parent_website_sitemap
+						}).insert()
+					
+						# update timestamp
+						sitemap = webnotes.bean("Website Sitemap", {"ref_doctype": "Web Page", 
+							"docname": page.doc.name})
+						sitemap.doc.static_file_timestamp = os.path.getmtime(fpath)
+						sitemap.save()
+						
+					synced.append(url)
+					
+	# delete not synced
+	webnotes.delete_doc("Web Page", webnotes.conn.sql_list("""select docname from `tabWebsite Sitemap`
+		where ifnull(static_file_timestamp,'')!='' 
+			and name not in ({}) """.format(', '.join(["%s"]*len(synced))), tuple(synced)))
+
+def get_static_content(fpath):
+	with open(fpath, "r") as contentfile:
+		content = contentfile.read()
+		if fpath.endswith(".md"):
+			content = markdown(content)
+			
+		return content
+	
+				

@@ -37,7 +37,7 @@ wn.views.FormFactory = wn.views.Factory.extend({
 				// doc not found, but starts with New,
 				// make a new doc and set it
 				var new_str = wn._("New") + " ";
-				if(dn && dn.substr(0, new_str.length)==new_star) {
+				if(dn && dn.substr(0, new_str.length)==new_str) {
 					var new_name = wn.model.make_new_doc_and_get_name(dt);
 					if(new_name===dn) {
 						me.load(dt, dn);

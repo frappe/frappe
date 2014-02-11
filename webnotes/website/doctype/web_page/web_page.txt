@@ -2,7 +2,7 @@
  {
   "creation": "2013-03-28 10:35:30", 
   "docstatus": 0, 
-  "modified": "2014-02-05 17:02:09", 
+  "modified": "2014-02-10 18:07:28", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -61,13 +61,20 @@
   "reqd": 1
  }, 
  {
-  "description": "Page url name (auto-generated) (add \".html\")", 
+  "description": "Page url name (auto-generated)", 
   "doctype": "DocField", 
   "fieldname": "page_name", 
   "fieldtype": "Data", 
   "in_list_view": 1, 
   "label": "Page Name", 
-  "read_only": 1
+  "read_only": 0
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "parent_website_sitemap", 
+  "fieldtype": "Link", 
+  "label": "Parent Website Page", 
+  "options": "Website Sitemap"
  }, 
  {
   "doctype": "DocField", 
@@ -132,6 +139,12 @@
   "options": "Left\nCenter\nRight"
  }, 
  {
+  "doctype": "DocField", 
+  "fieldname": "custom_javascript", 
+  "fieldtype": "Section Break", 
+  "label": "Custom Javascript"
+ }, 
+ {
   "description": "Add code as &lt;script&gt;", 
   "doctype": "DocField", 
   "fieldname": "insert_code", 
@@ -148,6 +161,12 @@
  }, 
  {
   "doctype": "DocField", 
+  "fieldname": "custom_css", 
+  "fieldtype": "Section Break", 
+  "label": "Custom CSS"
+ }, 
+ {
+  "doctype": "DocField", 
   "fieldname": "insert_style", 
   "fieldtype": "Check", 
   "label": "Insert Style"
@@ -159,6 +178,12 @@
   "fieldtype": "Code", 
   "label": "CSS", 
   "options": "CSS"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "table_of_contents", 
+  "fieldtype": "Section Break", 
+  "label": "Table of Contents"
  }, 
  {
   "doctype": "DocField", 
@@ -184,13 +209,6 @@
   "fieldtype": "Table", 
   "label": "Table of Contents", 
   "options": "Table of Contents"
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "parent_website_sitemap", 
-  "fieldtype": "Link", 
-  "label": "Parent Website Page", 
-  "options": "Website Sitemap"
  }, 
  {
   "doctype": "DocPerm"

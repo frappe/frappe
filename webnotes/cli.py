@@ -188,6 +188,8 @@ def setup_utilities(parser):
 		help="Clear website cache")
 	parser.add_argument("--build_sitemap", default=False, action="store_true",
 		help="Build Website Sitemap")
+	parser.add_argument("--sync_statics", default=False, action="store_true",
+		help="Sync files from templates/statics to Web Pages")
 	parser.add_argument("--clear_cache", default=False, action="store_true",
 		help="Clear cache, doctype cache and defaults")
 	parser.add_argument("--reset_perms", default=False, action="store_true",
@@ -439,6 +441,14 @@ def build_sitemap():
 	from webnotes.website import rebuild_config
 	webnotes.connect()
 	rebuild_config()
+	webnotes.destroy()
+	
+@cmd
+def sync_statics():
+	from webnotes.website.doctype.web_page import web_page
+	webnotes.connect()
+	web_page.sync_statics()
+	webnotes.conn.commit()
 	webnotes.destroy()
 	
 @cmd
