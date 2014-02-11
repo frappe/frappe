@@ -1,8 +1,6 @@
 # Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-# For license information, please see license.txt
-
 from __future__ import unicode_literals
 import webnotes
 from webnotes.webutils import get_access
@@ -37,7 +35,10 @@ def on_doctype_update():
 @webnotes.whitelist()
 def set_vote(ref_doctype, ref_name):
 	website_group = webnotes.conn.get_value(ref_doctype, ref_name, "website_group")
-	if not get_access(website_group).get("read"):
+	pathname = webnotes.conn.get_value("Website Sitemap", {"ref_doctype": "Website Group",
+		"docname": website_group})
+	
+	if not get_access(pathname).get("read"):
 		raise webnotes.PermissionError
 	
 	try:

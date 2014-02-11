@@ -385,12 +385,8 @@ def facebook_login(data):
 			"new_password": webnotes.generate_hash(data["email"]),
 			"fb_username": data["username"],
 			"fb_userid": data["id"],
-			"fb_location": data.get("location", {}).get("name"),
-			"fb_hometown": data.get("hometown", {}).get("name"),
-			"fb_age_range": data.get("age_range") and "{min}-{max}".format(**data.get("age_range")),
+			"location": data.get("location", {}).get("name"),
 			"birth_date":  data.get("birthday"),
-			"fb_bio": data.get("bio"),
-			"fb_education": data.get("education") and data.get("education")[-1].get("type"),
 			"user_type": "Website User"
 		})
 		profile.ignore_permissions = True

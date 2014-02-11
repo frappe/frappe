@@ -49,6 +49,11 @@ wn.module_page["Website"] = [
 				doctype:"Blog Settings",
 				route: "Form/Blog Settings"
 			},
+			{
+				label: wn._("Website Page Permission"),
+				description: wn._("Define read, write, admin permissions for a Website Page."),
+				doctype:"Website Sitemap Permission",
+			},
 		]
 	},
 

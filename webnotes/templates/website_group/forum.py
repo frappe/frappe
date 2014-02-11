@@ -5,120 +5,61 @@ from __future__ import unicode_literals
 import webnotes
 from webnotes.utils import now_datetime, get_datetime_str
 from webnotes.webutils import get_access
-from webnotes.templates.website_group.settings import get_settings_context
-from webnotes.templates.website_group.post import get_post_context
-
-def get_views():
-	return views
-	
-def get_context(group_context):
-	forum_context = {}
-	
-	if group_context.view.name in ("popular", "feed"):
-		forum_context["post_list_html"] = get_post_list_html(group_context["group"]["name"], group_context["view"], group_context.pathname)
-	
-	elif group_context.view.name == "edit":
-		forum_context["session_user"] = webnotes.session.user
-		forum_context["post"] = webnotes.doc("Post", webnotes.form_dict.name).fields
-
-	elif group_context.view.name == "settings":
-		forum_context.update(get_settings_context(group_context))
-		
-	elif group_context.view.name == "post":
-		forum_context.update(get_post_context(group_context))
-	
-	return forum_context
 
 @webnotes.whitelist(allow_guest=True)
-def get_post_list_html(group, view, pathname, limit_start=0, limit_length=20):
-	print pathname
-	access = get_access(pathname)
-	
-	if isinstance(view, basestring):
-		view = get_views()[view]
-	
-	view = webnotes._dict(view)
+def get_post_list_html(group, view, limit_start=0, limit_length=20):
+	from webnotes.templates.generators.website_group import get_views
 	
 	# verify permission for paging
 	if webnotes.local.form_dict.cmd == "get_post_list_html":
+		pathname = webnotes.conn.get_value("Website Sitemap", 
+			{"ref_doctype": "Website Group", "docname": group})
+		access = get_access(pathname)
+		
 		if not access.get("read"):
 			return webnotes.PermissionError
 			
-	if view.name == "feed":
+	conditions = ""
+	values = [group]
+	
+	group_type = webnotes.conn.get_value("Website Group", group, "group_type")
+	if group_type == "Events":
+		# should show based on time upto precision of hour
+		# because the current hour should also be in upcoming
+		values.append(now_datetime().replace(minute=0, second=0, microsecond=0))
+	
+	if view in ("feed", "closed"):
 		order_by = "p.creation desc"
-	else:
+		
+		if view == "closed":
+			conditions += " and p.is_task=1 and p.status='Closed'"
+	
+	elif view in ("popular", "open"):
 		now = get_datetime_str(now_datetime())
 		order_by = """(p.upvotes + post_reply_count - (timestampdiff(hour, p.creation, \"{}\") / 2)) desc, 
 			p.creation desc""".format(now)
+			
+		if view == "open":
+			conditions += " and p.is_task=1 and p.status='Open'"
+	
+	elif view == "upcoming":
+		conditions += " and p.is_event=1 and p.event_datetime >= %s"
+		order_by = "p.event_datetime asc"
+		
+	elif view == "past":
+		conditions += " and p.is_event=1 and p.event_datetime < %s"
+		order_by = "p.event_datetime desc"
+			
+	values += [int(limit_start), int(limit_length)]
 	
 	posts = webnotes.conn.sql("""select p.*, pr.user_image, pr.first_name, pr.last_name,
 		(select count(pc.name) from `tabPost` pc where pc.parent_post=p.name) as post_reply_count
 		from `tabPost` p, `tabProfile` pr
-		where p.website_group = %s and pr.name = p.owner and ifnull(p.parent_post, '')=''
-		order by {order_by} limit %s, %s""".format(order_by=order_by),
-		(group, int(limit_start), int(limit_length)), as_dict=True)
-				
-	context = {"posts": posts, "limit_start": limit_start, "view": view}
+		where p.website_group = %s and pr.name = p.owner and ifnull(p.parent_post, '')='' 
+		{conditions} order by {order_by} limit %s, %s""".format(conditions=conditions, order_by=order_by),
+		tuple(values), as_dict=True, debug=True)
+	
+	context = { "posts": posts, "limit_start": limit_start, "view": get_views(group_type)[view] }
 	
 	return webnotes.get_template("templates/includes/post_list.html").render(context)
 	
-views = {
-	"popular": {
-		"name": "popular",
-		"template_path": "templates/website_group/forum.html",
-		"url": "{pathname}",
-		"label": "Popular",
-		"icon": "icon-heart",
-		"default": True,
-		"upvote": True,
-		"idx": 1
-	},
-	"feed": {
-		"name": "feed",
-		"template_path": "templates/website_group/forum.html",
-		"url": "/{pathname}?view=feed",
-		"label": "Feed",
-		"icon": "icon-rss",
-		"upvote": True,
-		"idx": 2
-	},
-	"post": {
-		"name": "post",
-		"template_path": "templates/website_group/post.html",
-		"url": "/{pathname}?view=post&name={post}",
-		"label": "Post",
-		"icon": "icon-comments",
-		"upvote": True,
-		"hidden": True,
-		"no_cache": True,
-		"idx": 3
-	},
-	"edit": {
-		"name": "edit",
-		"template_path": "templates/website_group/edit_post.html",
-		"url": "/{pathname}?view=edit&name={post}",
-		"label": "Edit Post",
-		"icon": "icon-pencil",
-		"hidden": True,
-		"no_cache": True,
-		"idx": 4
-	},
-	"add": {
-		"name": "add",
-		"template_path": "templates/website_group/edit_post.html",
-		"url": "/{pathname}?view=add",
-		"label": "Add Post",
-		"icon": "icon-plus",
-		"hidden": True,
-		"idx": 5
-	},
-	"settings": {
-		"name": "settings",
-		"template_path": "templates/website_group/settings.html",
-		"url": "/{pathname}?view=settings",
-		"label": "Settings",
-		"icon": "icon-cog",
-		"hidden": True,
-		"idx": 6
-	}
-}

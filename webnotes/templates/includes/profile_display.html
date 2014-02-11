@@ -4,6 +4,6 @@
 	</div>
 	<div class="media-body">
 		<div>{{ profile.first_name or "" }} {{ profile.last_name or "" }}</div>
-		<div class="text-muted"><small>{{ profile.fb_location or profile.fb_hometown or "" }}</small></div>
+		<div class="text-muted"><small>{{ profile.location or "" }}</small></div>
 	</div>
 </div>

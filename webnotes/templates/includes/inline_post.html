@@ -20,7 +20,7 @@
 		</h4>
 		{%- endif -%}
 		<ul class="list-inline small text-muted post-options">
-			{% if view and view.upvote %}<li class="upvote">
+			{% if view and view.upvote and not post.parent_post %}<li class="upvote">
 				<a><span class="upvote-count {% if not post.upvotes %}hide{% endif %}">{{ post.upvotes }}</span>
 					<i class="icon-thumbs-up"></i></a></li>{% endif %}
 			{%- if not post.parent_post and view.name != "post" -%}

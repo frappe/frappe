@@ -14,24 +14,28 @@ $.extend(website, {
 			$(".post-list-help").html(!website.access.write ? "You do not have permission to post" : "");
 		}
 	},
-	setup_pagination: function($btn, opts) {
-		$btn.removeClass("hide");
-	
-		$btn.on("click", function() {
-			wn.call($.extend({
-				btn: $btn,
-				type: "GET",
-				callback: function(data) {
-					if(opts.prepend) {
-						opts.$wrapper.prepend(data.message);
-					} else {
-						opts.$wrapper.append(data.message);
+	setup_pagination: function() {
+		var $btn = $(".btn-more")
+			.removeClass("hide")
+			.on("click", function() {
+				wn.call({
+					btn: $btn,
+					type: "GET",
+					args: {
+						cmd: "webnotes.templates.website_group.forum.get_post_list_html",
+						limit_start: $(".post").length,
+						limit_length: 20,
+						group: website.group,
+						view: website.view,
+						pathname: website.pathname
+					},
+					callback: function(data) {
+						$(".post-list").append(data.message);
+						$btn.toggleClass("hide", !(data.message && data.message.length===opts.args.limit_length));
+						website.toggle_upvote();
 					}
-				
-					$btn.toggleClass("hide", !(data.message && data.message.length===opts.args.limit_length));
-				}
-			}, opts))
-		});
+				})
+			});
 	},
 	bind_add_post: function() {
 		$(".btn-post-add").on("click", website.add_post);
@@ -47,7 +51,7 @@ $.extend(website, {
 			return;
 		}
 		
-		website._update_post(this, "webnotes.website.doctype.post.post.add_post");
+		website._update_post(this, "webnotes.templates.website_group.post.add_post");
 	},
 	bind_save_post: function() {
 		$(".btn-post-add").addClass("hide");
@@ -60,7 +64,7 @@ $.extend(website, {
 			return;
 		}
 	
-		website._update_post(this, "webnotes.website.doctype.post.post.save_post");
+		website._update_post(this, "webnotes.templates.website_group.post.save_post");
 	},
 	_update_post: function(btn, cmd) {
 		var values = website.get_editor_values();
@@ -74,17 +78,11 @@ $.extend(website, {
 			args: $.extend({
 				cmd: cmd,
 				group: website.group,
-				post: website.post || undefined
+				post: website.post || undefined,
 			}, values),
 			callback: function(data) {
 				var url = window.location.pathname + "?view=post&name=" + data.message;
 				window.location.href = url;
-				
-				// if(history.pushState) {
-				// 	app.get_content(url);
-				// } else {
-				// 	window.location.href = url;
-				// }
 			}
 		});
 	},
@@ -175,7 +173,7 @@ $.extend(website, {
 					$post_editor.find('[data-fieldname="assigned_to"]').val(value);
 					bind_close();
 				},
-				method: "webnotes.website.doctype.post.post.suggest_user"
+				method: "webnotes.templates.website_group.post.suggest_user"
 			});
 			bind_close();
 		}
@@ -271,7 +269,7 @@ $.extend(website, {
 		}
 	},
 	toggle_upvote: function() {
-		if(!website.access.read) {
+		if(!website.access.read || !website.upvote) {
 			$(".upvote").remove();
 		}
 	},
@@ -279,7 +277,13 @@ $.extend(website, {
 		$(".post-editor").toggleClass("hide", !website.access.write);
 	},
 	setup_upvote: function() {
-		$(".post-list, .parent-post").on("click", ".upvote a", function() {
+		if(window.website.setup_upvote_done) return;
+		
+		window.website.setup_upvote_done = true;
+		
+		$(document).on("click", ".post-list .upvote a, .parent-post .upvote a", function() {
+			console.log("clicked");
+			
 			var sid = wn.get_cookie("sid");
 			if(!sid || sid==="Guest") {
 				wn.msgprint("Please login to Upvote!");
@@ -315,6 +319,8 @@ $.extend(website, {
 			}).always(function() {
 				$btn.prop("disabled", false);
 			});
+			
+			return false;
 		});
 	},
 	setup_autosuggest: function(opts) {
@@ -490,7 +496,7 @@ $.extend(website, {
 				profile: $tr.attr("data-profile"),
 				perm: $chk.attr("data-perm"),
 				value: $chk.prop("checked") ? "1" : "0",
-				sitemap_page: website.group
+				group: website.group
 			},
 			statusCode: {
 				403: function() {
@@ -515,7 +521,7 @@ $.extend(website, {
 			data: {
 				cmd: "webnotes.templates.website_group.settings.add_sitemap_permission",
 				profile: profile,
-				sitemap_page: website.group
+				group: website.group
 			},
 			success: function(data) {
 				$(".add-user-control").val("");

@@ -3,8 +3,8 @@
 
 from __future__ import unicode_literals
 import webnotes
-from webnotes.webutils import WebsiteGenerator, cleanup_page_name
-from webnotes.templates.generators.website_group import get_context
+from webnotes.webutils import WebsiteGenerator
+from webnotes.templates.generators.website_group import clear_cache
 from webnotes.model.doc import make_autoname
 
 class DocType(WebsiteGenerator):
@@ -16,3 +16,10 @@ class DocType(WebsiteGenerator):
 		
 	def get_page_title(self):
 		return self.doc.group_title
+	
+	def on_update(self):
+		WebsiteGenerator.on_update(self)
+		clear_cache(website_group=self.doc.name)
+		
+	def after_insert(self):
+		clear_cache(path=self.doc.parent_website_sitemap)

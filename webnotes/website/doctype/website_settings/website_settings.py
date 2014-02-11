@@ -14,7 +14,7 @@ class DocType(DocListController):
 	
 	def validate_home_page(self):
 		if self.doc.home_page and \
-			not webnotes.conn.get_value("Website Sitemap", {"page_name": self.doc.home_page}):
+			not webnotes.conn.get_value("Website Sitemap", {"name": self.doc.home_page}):
 			webnotes.throw(_("Invalid Home Page") + " (Standard pages - index, login, products, blog, about, contact)")
 	
 	def validate_top_bar_items(self):

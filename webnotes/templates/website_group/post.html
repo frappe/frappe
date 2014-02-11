@@ -12,11 +12,10 @@
 {% include "templates/includes/post_editor.html" %}
 </div>
 
-<script type="text/javascript" src="/assets/js/canvasResize.min.js"></script>
 <script>
+wn.require("/assets/js/canvasResize.min.js");
 $(function() {
 	website.toggle_edit(true);
-	website.setup_upvote();
 	website.toggle_upvote();
 	website.bind_add_post();
 	

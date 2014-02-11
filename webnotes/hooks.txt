@@ -20,10 +20,6 @@ web_include_css = style_settings.css
 
 website_clear_cache = webnotes.templates.generators.website_group.clear_cache
 
-website_group_handler:Forum = webnotes.templates.website_group.forum
-website_group_handler:Events = webnotes.templates.website_group.events
-website_group_handler:Tasks = webnotes.templates.website_group.tasks
-
 get_desktop_icons = webnotes.manage.get_desktop_icons
 notification_config = webnotes.core.notifications.get_notification_config
 
@@ -42,3 +38,8 @@ has_permission:Event = webnotes.core.doctype.event.event.has_permission
 
 permission_query_conditions:ToDo = webnotes.core.doctype.todo.todo.get_permission_query_conditions
 has_permission:ToDo = webnotes.core.doctype.todo.todo.has_permission
+
+# bean
+
+bean_event:User Vote:after_insert = webnotes.templates.generators.website_group.clear_cache_on_bean_event
+bean_event:Website Sitemap Permission:on_update = webnotes.templates.generators.website_group.clear_cache_on_bean_event

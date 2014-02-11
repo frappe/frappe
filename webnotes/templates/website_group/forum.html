@@ -9,21 +9,19 @@
 <script>
 $(function() {
 	if($(".post").length===20) {
-		wn.setup_pagination($(".btn-more"), {
-			args: {
-				cmd: "webnotes.templates.website_group.forum.get_post_list_html",
-				limit_start: $(".post").length,
-				limit_length: 20,
-				group: website.group,
-				view: website.view,
-				pathname: website.pathname
-			},
-			$wrapper: $(".post-list")
-		});
+		wn.setup_pagination();
 	}
 	
+	{% if group.group_type == "Forum" -%}
 	website.toggle_edit(true);
-	website.setup_upvote();
-	website.toggle_upvote();
+
+	{% elif group.group_type == "Tasks" %}
+	website.toggle_edit();
+
+	{% elif group.group_type == "Events" %}
+	website.toggle_edit();
+	website.format_event_timestamps();
+
+	{%- endif %}
 });
 </script>

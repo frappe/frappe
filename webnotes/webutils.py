@@ -245,10 +245,6 @@ def get_website_settings():
 	context.web_include_js = hooks.web_include_js or []
 	context.web_include_css = hooks.web_include_css or []
 	
-	# get settings from site config
-	if webnotes.conf.get("fb_app_id"):
-		context.fb_app_id = webnotes.conf.fb_app_id
-	
 	return context
 	
 def is_ajax():
@@ -330,8 +326,6 @@ class WebsiteGenerator(DocListController):
 			webnotes.conn.set(self.doc, self._website_config.page_name_field, page_name)
 
 	def setup_generator(self):
-		if webnotes.flags.in_install_app:
-			return
 		self._website_config = webnotes.conn.get_values("Website Sitemap Config", 
 			{"ref_doctype": self.doc.doctype}, "*")[0]
 
@@ -351,9 +345,6 @@ class WebsiteGenerator(DocListController):
 		remove_sitemap(ref_doctype=self.doc.doctype, docname=self.doc.name)
 		
 	def update_sitemap(self):
-		if webnotes.flags.in_install_app:
-			return
-		
 		self.setup_generator()
 		
 		if self._website_config.condition_field and \

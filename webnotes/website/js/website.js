@@ -8,7 +8,7 @@ $.extend(wn, {
 	require: function(url) {
 		if(wn._assets_loaded.indexOf(url)!==-1) return;
 		$.ajax({
-			url: url, //+ "?q=" + Math.floor(Math.random() * 1000), 
+			url: url,
 			async: false, 
 			dataType: "text", 
 			success: function(data) {
