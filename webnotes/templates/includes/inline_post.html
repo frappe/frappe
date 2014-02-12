@@ -5,13 +5,13 @@
 		data-name="{{ post.name }}" 
 		data-group="{{ post.website_group }}" 
 		itemscope itemtype="http://schema.org/Article">
-	<a class="pull-left media-link" href="{{ post_url }}">
+	<a class="pull-left media-link" {% if view.name!="post" %} href="{{ post_url }}" {% endif %}>
 		<img class="media-object post-avatar" src="{{ post.user_image }}">
 	</a>
 	<div class="media-body">
 		{%- if not post.parent_post -%}
 		<h4 class="media-heading" itemprop="headline">
-			{%- if view != "post" -%}
+			{%- if view.name != "post" -%}
 			<a class="no-decoration" 
 				href="{{ post_url }}">{{ post.title }}</a>
 			{%- else -%}

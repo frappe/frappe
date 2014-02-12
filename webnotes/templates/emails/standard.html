@@ -78,6 +78,19 @@ body {
 	padding:10px 0;
 }
 
+.left-padding {
+	padding-left: 10px;
+}
+
+.breadcrumb {
+  list-style: none;
+}
+
+.breadcrumb > li {
+  display: inline-block;
+  margin-left: 0px;
+  margin-right: 5px;
+}
 
 /* ------------------------------------- 
 		BODY 
@@ -183,6 +196,19 @@ table.footer-wrap a{
 	width: 100%; 
 }
 
+a.no-decoration {
+	text-decoration: none;
+	color: inherit;
+}
+
+small, .small {
+    font-size: 85%;
+}
+
+.text-muted {
+	color: #999999;
+}
+
 </style>
 </head>
  
@@ -240,7 +266,7 @@ table.footer-wrap a{
 
 </div>
 
-<div class="print-html">{{ print_html }}</div>
+<div class="print-html">{{ print_html or "" }}</div>
 
 </body>
 </html>

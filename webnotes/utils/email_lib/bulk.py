@@ -47,7 +47,7 @@ def send(recipients=None, sender=None, doctype='Profile', email_field='email',
 					"type": doctype,
 					"email_field": email_field
 				}))
-						
+				
 			updated = updated.replace("<!--unsubscribe link here-->", unsubscribe_link)
 			
 		return updated
@@ -56,11 +56,6 @@ def send(recipients=None, sender=None, doctype='Profile', email_field='email',
 	if not sender or sender == "Administrator":
 		sender = webnotes.conn.get_value('Email Settings', None, 'auto_email_id')
 	check_bulk_limit(len(recipients))
-	
-	try:
-		text_content = html2text(message)
-	except HTMLParser.HTMLParseError:
-		text_content = "[See html attachment]"
 	
 	formatted = get_formatted_html(subject, message)
 
@@ -72,8 +67,13 @@ def send(recipients=None, sender=None, doctype='Profile', email_field='email',
 				
 		if not is_unsubscribed(doc):
 			# add to queue
-			add(r, sender, subject, update_message(formatted, doc, add_unsubscribe_link), 
-				text_content, ref_doctype, ref_docname)
+			updated = update_message(formatted, doc, add_unsubscribe_link)
+			try:
+				text_content = html2text(updated)
+			except HTMLParser.HTMLParseError:
+				text_content = "[See html attachment]"
+			
+			add(r, sender, subject, updated, text_content, ref_doctype, ref_docname)
 
 def add(email, sender, subject, formatted, text_content=None, 
 	ref_doctype=None, ref_docname=None):
@@ -83,7 +83,7 @@ def add(email, sender, subject, formatted, text_content=None,
 	e.recipient = email
 	try:
 		e.message = get_email(email, sender=e.sender, formatted=formatted, subject=subject, 
-			text_content = text_content).as_string()
+			text_content=text_content).as_string()
 	except webnotes.ValidationError:
 		# bad email id - don't add to queue
 		return
@@ -113,7 +113,7 @@ def unsubscribe():
 	
 def flush(from_test=False):
 	"""flush email queue, every time: called from scheduler"""
-	smptserver = SMTPServer()
+	smtpserver = SMTPServer()
 	
 	auto_commit = not from_test
 	
@@ -133,7 +133,7 @@ def flush(from_test=False):
 			(email["name"],), auto_commit=auto_commit)
 		try:
 			if not from_test:
-				smptserver.sess.sendmail(email["sender"], email["recipient"], email["message"])
+				smtpserver.sess.sendmail(email["sender"], email["recipient"], email["message"])
 
 			webnotes.conn.sql("""update `tabBulk Email` set status='Sent' where name=%s""", 
 				(email["name"],), auto_commit=auto_commit)

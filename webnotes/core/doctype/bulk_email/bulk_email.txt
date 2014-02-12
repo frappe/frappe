@@ -2,7 +2,7 @@
  {
   "creation": "2012-08-02 15:17:28", 
   "docstatus": 0, 
-  "modified": "2013-12-20 19:23:58", 
+  "modified": "2014-02-12 21:11:05", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -55,7 +55,7 @@
  {
   "doctype": "DocField", 
   "fieldname": "message", 
-  "fieldtype": "Text", 
+  "fieldtype": "Long Text", 
   "label": "Message"
  }, 
  {
