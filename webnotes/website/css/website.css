@@ -388,6 +388,12 @@ a.no-decoration {
 	color: inherit;
 }
 
+a.active {
+	pointer-events: none;
+	cursor: default;
+	color: initial;
+}
+
 .page-breadcrumbs .breadcrumb {
 	padding: 0px;
 	margin-bottom: 2px;

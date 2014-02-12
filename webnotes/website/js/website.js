@@ -244,23 +244,19 @@ $.extend(wn, {
 
 	},
 	load_via_ajax: function(href) {
-		console.log("calling ajax");
-		
+		// console.log("calling ajax");
 		window.previous_href = href;
 		history.pushState(null, null, href);
 		
 		$.ajax({ url: href, cache: false }).done(function(data) {
 			history.replaceState(data, data.title, href);
+			$("html, body").animate({ scrollTop: 0 }, "slow");
 			wn.render_json(data); 
 		})
 	},
 	render_json: function(data) {
 		if(data.reload) {
 			window.location = location.href;
-		// } else if(data.html) {
-		// 	var newDoc = document.open("text/html", "replace");
-		// 	newDoc.write(data.html);
-		// 	newDoc.close();
 		} else {
 			$('[data-html-block]').each(function(i, section) {
 				var $section = $(section);
