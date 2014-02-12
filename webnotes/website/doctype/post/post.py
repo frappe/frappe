@@ -9,8 +9,6 @@ import webnotes
 from webnotes.utils import get_fullname
 from webnotes.utils.email_lib.bulk import send
 from webnotes.utils.email_lib import sendmail
-from webnotes.templates.generators.website_group import clear_cache
-from webnotes.templates.website_group.post import clear_post_cache
 
 class DocType:
 	def __init__(self, d, dl):
@@ -39,6 +37,9 @@ class DocType:
 			self.doc.event_datetime = None
 			
 	def on_update(self):
+		from webnotes.templates.website_group.post import clear_post_cache
+		from webnotes.templates.generators.website_group import clear_cache
+
 		clear_cache(website_group=self.doc.website_group)
 		clear_post_cache(self.doc.parent_post or self.doc.name)
 

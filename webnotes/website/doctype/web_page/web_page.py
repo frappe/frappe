@@ -2,7 +2,7 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-import webnotes, os
+import webnotes, os, time
 from webnotes.webutils import WebsiteGenerator
 from webnotes import _
 from webnotes.utils import cint
@@ -35,8 +35,14 @@ class DocType(WebsiteGenerator):
 		if self.doclist.get({"parentfield": "toc"}):
 			from webnotes.webutils import clear_cache
 			clear_cache()
-			
+
 def sync_statics():
+	while True:
+		_sync_statics()
+		webnotes.conn.commit()
+		time.sleep(2)
+
+def _sync_statics():
 	synced = []
 	to_insert = []
 	
@@ -56,8 +62,9 @@ def sync_statics():
 				page = webnotes.bean("Web Page", sitemap.doc.docname)
 				title, content = get_static_content(fpath)
 				page.doc.main_section = content
-				if title:
-					page.doc.title = title
+				if not title:
+					title = page_name.replace("-", " ").replace("_", " ").title()
+				page.doc.title = title
 				page.save()
 
 				sitemap = webnotes.bean("Website Sitemap", url)
@@ -88,6 +95,7 @@ def sync_statics():
 			for basepath, folders, files in os.walk(statics_path):
 				# index file first!
 				index = []
+				has_index = False
 				if "index.txt" in files:
 					with open(os.path.join(basepath, "index.txt"), "r") as indexfile:
 						index = indexfile.read().splitlines()
@@ -96,11 +104,15 @@ def sync_statics():
 					page_name = fname.rsplit(".", 1)[0]					
 					if page_name=="index" and fname!="index.txt":
 						sync_file(fname, os.path.join(basepath, fname), statics_path)
+						has_index = True
 						break
-						
+				
+				if not has_index:
+					continue
+				
 				# other files
 				for fname in files:
-					page_name = fname.rsplit(".", 1)[0]					
+					page_name = fname.rsplit(".", 1)[0]
 					if page_name!="index":
 						sync_file(fname, os.path.join(basepath, fname), statics_path, 
 							index.index(page_name) if page_name in index else 0)
@@ -132,14 +144,15 @@ def get_static_content(fpath):
 		content = unicode(contentfile.read(), 'utf-8')
 
 		if fpath.endswith(".md"):
-			lines = content.splitlines()
-			first_line = lines[0].strip()
+			if content:
+				lines = content.splitlines()
+				first_line = lines[0].strip()
 
-			if first_line.startswith("# "):
-				title = first_line[2:]
-				content = "\n".join(lines[1:])
+				if first_line.startswith("# "):
+					title = first_line[2:]
+					content = "\n".join(lines[1:])
 
-			content = markdown(content)
+				content = markdown(content)
 			
 		content = unicode(content.encode("utf-8"), 'utf-8')
 			
