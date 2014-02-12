@@ -501,7 +501,7 @@ def export_csv(doctype, path):
 		csvfile.write(webnotes.response.result.encode("utf-8"))
 
 def export_json(doctype, name, path):
-	from webnotes.handler import json_handler
+	from webnotes.utils.response import json_handler
 	if not name or name=="-":
 		name = doctype
 	with open(path, "w") as outfile:

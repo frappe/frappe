@@ -54,7 +54,10 @@ def sync_statics():
 			if str(os.path.getmtime(fpath))!=sitemap.doc.static_file_timestamp \
 				or cint(sitemap.doc.idx) != cint(priority):
 				page = webnotes.bean("Web Page", sitemap.doc.docname)
-				page.doc.main_section = get_static_content(fpath)
+				title, content = get_static_content(fpath)
+				page.doc.main_section = content
+				if title:
+					page.doc.title = title
 				page.save()
 
 				sitemap = webnotes.bean("Website Sitemap", url)
@@ -65,12 +68,15 @@ def sync_statics():
 			synced.append(url)
 			
 		except webnotes.DoesNotExistError:
+			title, content = get_static_content(fpath)
+			if not title:
+				title = page_name.replace("-", " ").replace("_", " ").title()
 			to_insert.append([webnotes.bean({
 				"doctype":"Web Page",
 				"idx": priority,
-				"title": page_name.replace("-", " ").replace("_", " ").title(),
+				"title": title,
 				"page_name": page_name,
-				"main_section": get_static_content(fpath),
+				"main_section": content,
 				"published": 1,
 				"parent_website_sitemap": parent_website_sitemap
 			}), os.path.getmtime(fpath)])
@@ -100,11 +106,15 @@ def sync_statics():
 							index.index(page_name) if page_name in index else 0)
 					
 	# delete not synced
-	webnotes.delete_doc("Web Page", webnotes.conn.sql_list("""select docname from `tabWebsite Sitemap`
-		where ifnull(static_file_timestamp,'')!='' 
-			and name not in ({}) 
-			order by (rgt-lft) asc""".format(', '.join(["%s"]*len(synced))), tuple(synced)))
-			
+	if synced:
+		webnotes.delete_doc("Web Page", webnotes.conn.sql_list("""select docname from `tabWebsite Sitemap`
+			where ifnull(static_file_timestamp,'')!='' and name not in ({}) 
+				order by (rgt-lft) asc""".format(', '.join(["%s"]*len(synced))), tuple(synced)))
+	else:
+		webnotes.delete_doc("Web Page", webnotes.conn.sql_list("""select docname from `tabWebsite Sitemap`
+			where ifnull(static_file_timestamp,'')!='' order by (rgt-lft) asc"""))
+		
+
 	# insert
 	for page, mtime in to_insert:
 		page.insert()
@@ -118,11 +128,21 @@ def sync_statics():
 
 def get_static_content(fpath):
 	with open(fpath, "r") as contentfile:
+		title = None
 		content = unicode(contentfile.read(), 'utf-8')
+
 		if fpath.endswith(".md"):
+			lines = content.splitlines()
+			first_line = lines[0].strip()
+
+			if first_line.startswith("# "):
+				title = first_line[2:]
+				content = "\n".join(lines[1:])
+
 			content = markdown(content)
+			
 		content = unicode(content.encode("utf-8"), 'utf-8')
 			
-		return content
+		return title, content
 	
 				

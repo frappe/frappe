@@ -187,6 +187,8 @@ def get_home_page():
 			or [webnotes.conn.get_value("Website Settings", None, "home_page") \
 			or "login"])[0])
 
+	print home_page
+
 	return home_page
 	
 def get_website_settings():
