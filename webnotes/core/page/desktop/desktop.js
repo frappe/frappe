@@ -132,7 +132,7 @@ wn.desktop.show_all_modules = function() {
 			var module = wn.modules[m];
 			if(module.link && desktop_items.indexOf(m)!==-1) {
 				module.app_icon = wn.ui.app_icon.get_html(m, true);
-				$(repl('<div class="list-group-item" data-label="%(label)s">\
+				$(repl('<div class="list-group-item" data-label="%(name)s">\
 				<div class="row">\
 					<div class="col-xs-2"><a href="#%(link)s">%(app_icon)s</a></div>\
 					<div class="col-xs-10" style="padding-top: 14px;">\
