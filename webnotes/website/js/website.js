@@ -422,9 +422,10 @@ $(document).ready(function() {
 });
 
 $(document).on("page_change", function() {
-	$(".page-header").toggleClass("hidden", !!!$(".page-header").text().trim());
+	$(".page-header").toggleClass("hidden", !!!$("[data-html-block='header']").text().trim());
 	$(".page-footer").toggleClass("hidden", !!!$(".page-footer").text().trim());
-	//$(".page-breadcrumbs").toggleClass("hidden", !!!$(".page-breadcrumbs").text().trim());
+	$("[data-html-block='breadcrumbs'] .breadcrumb").toggleClass("hidden",
+		$("[data-html-block='breadcrumbs']").text().trim()==$("[data-html-block='header']").text().trim());
 
 	// add prive pages to sidebar
 	if(website.private_pages && $(".page-sidebar").length) {

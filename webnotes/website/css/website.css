@@ -215,7 +215,7 @@ fieldset {
 
 .page-header {
 	margin: 0px;
-	padding: 5px 0px;
+	padding: 15px 0px;
 }
 
 .page-container {
@@ -231,6 +231,10 @@ fieldset {
 
 .page-header .lead {
 	margin-bottom: 5px;
+}
+
+.page-content {
+	padding-top: 7px;
 }
 
 .sidebar-item {
@@ -388,15 +392,12 @@ a.no-decoration {
 	color: inherit;
 }
 
-.page-breadcrumbs {
-	border-bottom: 1px solid #eee;
-}
-
 .page-breadcrumbs .breadcrumb {
-	margin-bottom: 0px;
+	padding: 0px;
+	margin-bottom: 2px;
 	background-color: transparent;
 	border-radius: 0px;
-	padding: 8px 0px;
+	font-size: 85%;
 }
 
 @media (min-width: 768px) {
