@@ -240,7 +240,7 @@ fieldset {
 .sidebar-item {
 	margin: 15px auto;
 	color: #999;
-	font-size: 90%;
+	font-size: 85%;
 }
 
 .sidebar-item a:hover {
@@ -350,10 +350,6 @@ textarea {
 	margin: 30px;
 }
 
-.img-responsive {
-	border-radius: 4px;
-}
-
 .user-profile {
 	min-height: 50px;
 	min-width: 70px;
@@ -402,7 +398,7 @@ a.no-decoration {
 
 @media (min-width: 768px) {
 	.page-sidebar {
-		padding-left: 5em;
+		padding-left: 3em;
 	}	
 }
 
