@@ -48,7 +48,7 @@ def _sync_statics():
 	
 	def sync_file(fname, fpath, statics_path, priority=0):
 		url = os.path.relpath(fpath, statics_path).rsplit(".", 1)[0]
-		if fname.rsplit(".", 1)[0]=="index":
+		if fname.rsplit(".", 1)[0]=="index" and os.path.dirname(fpath) != statics_path:
 			url = os.path.dirname(url)
 				
 		parent_website_sitemap = os.path.dirname(url)
@@ -100,20 +100,21 @@ def _sync_statics():
 					with open(os.path.join(basepath, "index.txt"), "r") as indexfile:
 						index = indexfile.read().splitlines()
 								
-				for fname in files:
-					page_name = fname.rsplit(".", 1)[0]					
-					if page_name=="index" and fname!="index.txt":
-						sync_file(fname, os.path.join(basepath, fname), statics_path)
-						has_index = True
-						break
+				if basepath!=statics_path:
+					for fname in files:
+						page_name = fname.rsplit(".", 1)[0]					
+						if page_name=="index" and fname!="index.txt":
+							sync_file(fname, os.path.join(basepath, fname), statics_path)
+							has_index = True
+							break
 				
-				if not has_index:
-					continue
+					if not has_index:
+						continue
 				
 				# other files
 				for fname in files:
 					page_name = fname.rsplit(".", 1)[0]
-					if page_name!="index":
+					if not (page_name=="index" and basepath!=statics_path):
 						sync_file(fname, os.path.join(basepath, fname), statics_path, 
 							index.index(page_name) if page_name in index else 0)
 					

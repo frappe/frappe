@@ -147,7 +147,7 @@ def build_sitemap_options(path):
 
 	sitemap_options.children = webnotes.conn.sql("""select * from `tabWebsite Sitemap`
 		where parent_website_sitemap=%s 
-			and public_read=1 order by idx asc""", (sitemap_options.name,), as_dict=True)
+			and public_read=1 order by idx asc, page_title asc""", (sitemap_options.name,), as_dict=True)
 		
 	# determine templates to be used
 	if not sitemap_options.base_template_path:
