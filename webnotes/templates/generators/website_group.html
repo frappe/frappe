@@ -1,15 +1,10 @@
-{% block title %}{{ title }}{% endblock %}
+{% block header %}{{ group.group_title }}{% endblock %}
 
-{% block header %}
-<h2>{{ group.group_title }}</h2>
+{% block content %}
 {%- if group.group_description -%}
 <p class="lead">{{ group.group_description }}</p>
 {%- endif -%}
-{% endblock %}
 
-{% block breadcrumbs %}{% include "templates/includes/breadcrumbs.html" %}{% endblock %}
-
-{% block content %}
 <ul class="nav nav-tabs view-selector">
 	{%- for t in views -%}
 	{% set url = (pathname if t.default else "{}?view={}".format(pathname, t.name)) %}
@@ -39,5 +34,3 @@
 <script>$(function() { website.toggle_upvote(); });</script>
 
 {% endblock %}
-
-{% block sidebar %}{% include "templates/includes/sidebar.html" %}{% endblock %}

@@ -75,7 +75,7 @@ def run(report_name, filters=()):
 		if report.is_standard=="Yes":
 			method_name = webnotes.local.module_app[scrub(module)] + "." + scrub(module) \
 				+ ".report." + scrub(report.name) + "." + scrub(report.name) + ".execute"
-			columns, result = webnotes.get_attr(method_name)(filters or {})
+			columns, result = webnotes.get_attr(method_name)(webnotes._dict(filters))
 	
 	result = get_filtered_data(report.ref_doctype, columns, result)
 	

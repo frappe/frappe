@@ -105,12 +105,17 @@ def rename_field(doctype, old_fieldname, new_fieldname):
 				where doctype=%s and field=%s""", 
 				(new_fieldname, doctype, old_fieldname))
 		else:
+			# copy field value
 			webnotes.conn.sql("""update `tab%s` set `%s`=`%s`""" % \
 				(doctype, new_fieldname, old_fieldname))
-				
+	
+	# update in property setter
 	webnotes.conn.sql("""update `tabProperty Setter` set field_name = %s 
 		where doc_type=%s and field_name=%s""", (new_fieldname, doctype, old_fieldname))
 		
+	update_users_report_view_settings(doctype, old_fieldname)
+		
+def update_users_report_view_settings(doctype, ref_fieldname):
 	import json
 	user_report_cols = webnotes.conn.sql("""select defkey, defvalue from `tabDefaultValue` where 
 		defkey like '_list_settings:%'""")
@@ -118,7 +123,7 @@ def rename_field(doctype, old_fieldname, new_fieldname):
 		new_columns = []
 		columns_modified = False
 		for field, field_doctype in json.loads(value):
-			if field == old_fieldname and field_doctype == doctype:
+			if field == ref_fieldname and field_doctype == doctype:
 				new_columns.append([field, field_doctype])
 				columns_modified=True
 		if columns_modified:

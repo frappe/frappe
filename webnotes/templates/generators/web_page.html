@@ -1,9 +1,3 @@
-{% block title %} {{ title }} {% endblock %}
-
-{% block header %}<h2>{{ title }}</h2>{% endblock %}
-
-{% block breadcrumbs %}{% include "templates/includes/breadcrumbs.html" %}{% endblock %}
-
 {% block content %}
 <div class="webpage-content">
 	{# title, breadcrumbs, table of contents #}
@@ -48,16 +42,14 @@
 <script>
 $(function() {
 	if(window.logged_in && getCookie("system_user")==="yes") {
-		wn.has_permission("Web Page", "{{ name }}", "write", function(r) {
+		wn.has_permission("Web Page", "{{ docname }}", "write", function(r) {
 			wn.require("assets/webnotes/js/wn/website/editable.js");
-			wn.make_editable($(".web-page-content"), "Web Page", "{{ name }}", "main_section");
+			wn.make_editable($(".web-page-content"), "Web Page", "{{ docname }}", "main_section");
 		});
 	}
 });
 </script>
 {% endblock %}
-
-{% block sidebar %}{% include "templates/includes/sidebar.html" %}{% endblock %}
 
 {% block style %}{{ style }}{% endblock %}
 

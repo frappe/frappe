@@ -1,5 +1,5 @@
 wn.make_editable = function(editor, doctype, name, fieldname) {
-	wn.require("assets/js/editor.min.js");
+	wn.require("/assets/js/editor.min.js");
 	
 	WebPageEditor = bsEditor.extend({
 		onhide: function(action) {
@@ -15,7 +15,12 @@ wn.make_editable = function(editor, doctype, name, fieldname) {
 			this._super(bool);
 			
 			if(!bool) {
-				var $edit_btn = $(repl('<li><a href="#"><i class="icon-fixed-width icon-pencil"></i> Edit %(doctype)s</a></li>\
+				// remove existing web page editor toggles
+				$('li.editable-toggle + li').remove();
+				$('li.editable-toggle').remove();
+				
+				var $edit_btn = $(repl('<li class="editable-toggle">\
+					<a href="#"><i class="icon-fixed-width icon-pencil"></i>Edit %(doctype)s</a></li>\
 					<li class="divider"></li>', {doctype: doctype}))
 					.prependTo($("#website-post-login ul.dropdown-menu"));
 			

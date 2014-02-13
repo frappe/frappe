@@ -248,11 +248,14 @@ $.extend(wn, {
 		window.previous_href = href;
 		history.pushState(null, null, href);
 		
+		NProgress.start();
 		$.ajax({ url: href, cache: false }).done(function(data) {
 			history.replaceState(data, data.title, href);
 			$("html, body").animate({ scrollTop: 0 }, "slow");
 			wn.render_json(data); 
-		})
+		}).always(function() {
+			NProgress.done();
+		});
 	},
 	render_json: function(data) {
 		if(data.reload) {
@@ -270,6 +273,7 @@ $.extend(wn, {
 				}
 			});
 			if(data.title) $("title").html(data.title);
+			window.ga && ga('send', 'pageview', location.pathname);
 			$(document).trigger("page_change");
 		}
 	},
@@ -429,6 +433,10 @@ $(document).on("page_change", function() {
 	$(".page-footer").toggleClass("hidden", !!!$(".page-footer").text().trim());
 	$("[data-html-block='breadcrumbs'] .breadcrumb").toggleClass("hidden",
 		$("[data-html-block='breadcrumbs']").text().trim()==$("[data-html-block='header']").text().trim());
+		
+	if(!$(".page-sidebar").hasClass("hidden-xs")) {
+		$(".toggle-sidebar").trigger("click");
+	}
 
 	// add prive pages to sidebar
 	if(website.private_pages && $(".page-sidebar").length) {

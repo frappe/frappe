@@ -391,7 +391,7 @@ a.no-decoration {
 a.active {
 	pointer-events: none;
 	cursor: default;
-	color: initial;
+	border-bottom: inherit;
 }
 
 .page-breadcrumbs .breadcrumb {
