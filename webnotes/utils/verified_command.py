@@ -14,7 +14,7 @@ def get_url(params, nonce, secret=None):
 	return ''.join([webnotes.local.request.url_root, '?', urllib.urlencode(params)])
 	
 def get_signature(params, nonce, secret=None):
-	params = "".join((cstr(p) for p in params))
+	params = "".join((cstr(p) for p in params.values()))
 	if not secret:
 		secret = webnotes.local.conf.get("secret") or "secret"
 		
