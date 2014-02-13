@@ -466,7 +466,7 @@ def render_blocks(context):
 		out["title"] = context.get("title")
 	
 	if "header" not in out:
-		out["header"] = """<h2>{}</h2>""".format(out.get("title") or context.title)
+		out["header"] = out["title"]
 		
 	if "breadcrumbs" not in out:
 		out["breadcrumbs"] = scrub_relative_urls(

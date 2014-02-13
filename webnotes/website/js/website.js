@@ -426,6 +426,10 @@ $(document).on("page_change", function() {
 	$(".page-footer").toggleClass("hidden", !!!$(".page-footer").text().trim());
 	$("[data-html-block='breadcrumbs'] .breadcrumb").toggleClass("hidden",
 		$("[data-html-block='breadcrumbs']").text().trim()==$("[data-html-block='header']").text().trim());
+		
+	if(!$(".page-sidebar").hasClass("hidden-xs")) {
+		$(".toggle-sidebar").trigger("click");
+	}
 
 	// add prive pages to sidebar
 	if(website.private_pages && $(".page-sidebar").length) {
