@@ -86,11 +86,13 @@ def build_page(path):
 def get_context(path):
 	context = None
 	cache_key = "page_context:{}".format(path)
+	from pickle import dump
+	from StringIO import StringIO
 	
 	# try from memcache
 	if can_cache():
 		context = webnotes.cache().get_value(cache_key)
-	
+
 	if not context:
 		context = get_sitemap_options(path)
 
@@ -99,8 +101,7 @@ def get_context(path):
 
 		context = build_context(context)
 
-		if can_cache(context.no_cache):
-			del context["access"]
+		if can_cache(context.no_cache):				
 			webnotes.cache().set_value(cache_key, context)
 
 	else:
@@ -147,7 +148,14 @@ def build_sitemap_options(path):
 
 	sitemap_options.children = webnotes.conn.sql("""select * from `tabWebsite Sitemap`
 		where parent_website_sitemap=%s 
-			and public_read=1 order by idx asc""", (sitemap_options.name,), as_dict=True)
+			and public_read=1 order by -idx desc, page_title asc""", (sitemap_options.pathname,), as_dict=True)
+	
+	# leaf node, show siblings
+	if not sitemap_options.children:
+		sitemap_options.children = webnotes.conn.sql("""select * from `tabWebsite Sitemap`
+			where ifnull(parent_website_sitemap, '')=%s 
+				and public_read=1 order by -idx desc, page_title asc""", 
+				sitemap_options.parent_website_sitemap or "", as_dict=True)
 		
 	# determine templates to be used
 	if not sitemap_options.base_template_path:

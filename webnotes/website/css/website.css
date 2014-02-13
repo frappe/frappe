@@ -215,7 +215,7 @@ fieldset {
 
 .page-header {
 	margin: 0px;
-	padding: 5px 0px;
+	padding: 15px 0px;
 }
 
 .page-container {
@@ -233,10 +233,14 @@ fieldset {
 	margin-bottom: 5px;
 }
 
+.page-content {
+	padding-top: 7px;
+}
+
 .sidebar-item {
 	margin: 15px auto;
 	color: #999;
-	font-size: 90%;
+	font-size: 85%;
 }
 
 .sidebar-item a:hover {
@@ -346,10 +350,6 @@ textarea {
 	margin: 30px;
 }
 
-.img-responsive {
-	border-radius: 4px;
-}
-
 .user-profile {
 	min-height: 50px;
 	min-width: 70px;
@@ -388,20 +388,23 @@ a.no-decoration {
 	color: inherit;
 }
 
-.page-breadcrumbs {
-	border-bottom: 1px solid #eee;
+a.active {
+	pointer-events: none;
+	cursor: default;
+	color: initial;
 }
 
 .page-breadcrumbs .breadcrumb {
-	margin-bottom: 0px;
+	padding: 0px;
+	margin-bottom: 2px;
 	background-color: transparent;
 	border-radius: 0px;
-	padding: 8px 0px;
+	font-size: 85%;
 }
 
 @media (min-width: 768px) {
 	.page-sidebar {
-		padding-left: 5em;
+		padding-left: 3em;
 	}	
 }
 

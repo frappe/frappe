@@ -69,7 +69,6 @@ def get_bootinfo():
 	from webnotes.model.utils import compress
 	bootinfo['docs'] = compress(bootinfo['docs'])
 
-	# deal with __slots__ in lang
 	if bootinfo.lang:
 		bootinfo.lang = unicode(bootinfo.lang)
 	

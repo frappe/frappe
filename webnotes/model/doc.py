@@ -178,6 +178,8 @@ class Document:
 		elif self.fields.has_key(name):
 			return self.fields[name]	
 		else:
+			if name.startswith("__"):
+				raise AttributeError()
 			return ''
 	
 	def get(self, name, value=None):

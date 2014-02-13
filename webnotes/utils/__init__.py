@@ -903,9 +903,16 @@ def scrub_urls(html):
 def expand_relative_urls(html):
 	# expand relative urls
 	url = get_url()
-	if not url.endswith("/"): url += "/"
-	return re.sub('(href|src){1}([\s]*=[\s]*[\'"]?)((?!http)[^\'" >]+)([\'"]?)', 
-		'\g<1>\g<2>{}\g<3>\g<4>'.format(url), html)
+	if url.endswith("/"): url = url[:-1]
+	
+	def _expand_relative_urls(match):
+		to_expand = list(match.groups())
+		if not to_expand[2].startswith("/"):
+			to_expand[2] = "/" + to_expand[2]
+		to_expand.insert(2, url)
+		return "".join(to_expand)
+	
+	return re.sub('(href|src){1}([\s]*=[\s]*[\'"]?)((?!http)[^\'" >]+)([\'"]?)', _expand_relative_urls, html)
 		
 def quote_urls(html):
 	def _quote_url(match):
