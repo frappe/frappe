@@ -8,6 +8,10 @@ from webnotes.webutils import WebsiteGenerator, cleanup_page_name, clear_cache
 class DocType(WebsiteGenerator):
 	def __init__(self, d, dl):
 		self.doc, self.doclist = d, dl
+		
+	def autoname(self):
+		# to override autoname of WebsiteGenerator
+		self.doc.name = self.doc.category_name
 	
 	def get_page_title(self):
 		return self.doc.title
