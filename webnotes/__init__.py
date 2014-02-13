@@ -22,7 +22,10 @@ local = Local()
 class _dict(dict):
 	"""dict like object that exposes keys as attributes"""
 	def __getattr__(self, key):
-		return self.get(key)
+		ret = self.get(key)
+		if not ret and key.startswith("__"):
+			raise AttributeError()
+		return ret
 	def __setattr__(self, key, value):
 		self[key] = value
 	def __getstate__(self):

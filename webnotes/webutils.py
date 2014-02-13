@@ -86,11 +86,13 @@ def build_page(path):
 def get_context(path):
 	context = None
 	cache_key = "page_context:{}".format(path)
+	from pickle import dump
+	from StringIO import StringIO
 	
 	# try from memcache
 	if can_cache():
 		context = webnotes.cache().get_value(cache_key)
-	
+
 	if not context:
 		context = get_sitemap_options(path)
 
@@ -99,8 +101,7 @@ def get_context(path):
 
 		context = build_context(context)
 
-		if can_cache(context.no_cache):
-			del context["access"]
+		if can_cache(context.no_cache):				
 			webnotes.cache().set_value(cache_key, context)
 
 	else:
