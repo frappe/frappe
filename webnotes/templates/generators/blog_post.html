@@ -1,5 +1,3 @@
-{% block title %} {{ title }} {% endblock %}
-
 {% block header %}
 <h2 itemprop="name headline" itemscope itemtype="http://schema.org/BlogPost">
 	{{ title }}
@@ -38,5 +36,3 @@ $(function() {
 {% endblock %}
 
 {% block footer %}{% include 'templates/includes/blog_footer.html' %}{% endblock %}
-
-{% block sidebar %}{% include "templates/includes/sidebar.html" %}{% endblock %}

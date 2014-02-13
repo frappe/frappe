@@ -9,9 +9,18 @@ $.extend(website, {
 			$('li[data-view="add"]').toggleClass("hide", !website.access.write);
 			$('li[data-view="settings"]').toggleClass("hide", !website.access.admin);
 			$('li[data-view="edit"]').toggleClass("hide", website.view!=="edit");
-		
+			
 			// show message
-			$(".post-list-help").html(!website.access.write ? "You do not have permission to post" : "");
+			if(!website.access.write) {
+				var sid = wn.get_cookie("sid");
+				if(!sid || sid==="Guest") {
+					$(".post-list-help").html("Please login to post");
+				} else {
+					$(".post-list-help").html("You do not have permission to post");
+				}
+			} else {
+				$(".post-list-help").html("");
+			}
 		}
 	},
 	setup_pagination: function() {

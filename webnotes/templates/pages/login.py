@@ -7,4 +7,4 @@ import webnotes
 def get_context(context):
 	# get settings from site config
 	if webnotes.conf.get("fb_app_id"):
-		return { "fb_app_id": webnotes.conf.fb_app_id }
+		return { "fb_app_id": webnotes.conf.fb_app_id, "title": "Login" }

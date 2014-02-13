@@ -1,7 +1,5 @@
 {% block title %}{{ blog_title or "Blog" }}{% endblock %}
 
-{% block header %}<h2>{{ blog_title or "Blog" }}</h2>{% endblock %}
-
 {% block content %}
 <div class="blog-list-content">
 	{% if blog_introduction %}
@@ -26,5 +24,3 @@
 {% endblock %}
 
 {% block footer %}{% include 'templates/includes/blog_footer.html' %}{% endblock %}
-
-{% block sidebar %}{% include "templates/includes/sidebar.html" %}{% endblock %}

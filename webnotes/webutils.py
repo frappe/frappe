@@ -460,6 +460,21 @@ def render_blocks(context):
 	# render each block individually
 	for block, render in template.blocks.items():
 		out[block] = scrub_relative_urls(concat(render(context)))
+	
+	# default blocks if not found
+	if "title" not in out:
+		out["title"] = context.get("title")
+	
+	if "header" not in out:
+		out["header"] = """<h2>{}</h2>""".format(out.get("title") or context.title)
+		
+	if "breadcrumbs" not in out:
+		out["breadcrumbs"] = scrub_relative_urls(
+			webnotes.get_template("templates/includes/breadcrumbs.html").render(context))
+		
+	if "sidebar" not in out:
+		out["sidebar"] = scrub_relative_urls(
+			webnotes.get_template("templates/includes/sidebar.html").render(context))
 
 	return out
 

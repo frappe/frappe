@@ -8,7 +8,10 @@ no_sitemap = 1
 base_template_path = "templates/pages/website_script.js"
 
 def get_context(context):
-	return {
-		"javascript": webnotes.conn.get_value('Website Script', None, 'javascript'),
-		"google_analytics_id": webnotes.conn.get_value("Website Settings", "Website Settings", "google_analytics_id")
-	}
+	script_context = { "javascript": webnotes.conn.get_value('Website Script', None, 'javascript') }
+	
+	if not webnotes.conf.developer_mode:
+		script_context["google_analytics_id"] = webnotes.conn.get_value("Website Settings", "Website Settings",
+			"google_analytics_id")
+	
+	return script_context
