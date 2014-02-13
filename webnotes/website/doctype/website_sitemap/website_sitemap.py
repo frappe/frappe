@@ -113,9 +113,8 @@ def update_sitemap(website_sitemap, options):
 	if not bean.doc.page_name:
 		# for pages
 		bean.doc.page_name = options.link_name
-	
-	bean.doc.website_sitemap_config = options.link_name
 		
+	bean.doc.website_sitemap_config = options.link_name	
 	bean.save(ignore_permissions=True)
 	
 def remove_sitemap(page_name=None, ref_doctype=None, docname=None):

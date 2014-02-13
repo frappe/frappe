@@ -2,7 +2,7 @@
  {
   "creation": "2013-11-18 15:35:00", 
   "docstatus": 0, 
-  "modified": "2014-01-30 17:25:27", 
+  "modified": "2014-02-13 15:48:16", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -102,6 +102,12 @@
   "fieldtype": "Check", 
   "label": "No Sitemap", 
   "read_only": 1
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "no_sidebar", 
+  "fieldtype": "Check", 
+  "label": "No Sidebar"
  }, 
  {
   "doctype": "DocField", 

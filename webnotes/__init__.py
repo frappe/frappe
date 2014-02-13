@@ -113,6 +113,7 @@ def init(site, sites_path=None):
 	local.user_perms = {}
 	local.test_objects = {}
 	local.jenv = None
+	local.jloader =None
 
 	setup_module_map()
 
@@ -550,18 +551,13 @@ def get_list(doctype, filters=None, fields=None, docstatus=None,
 
 def get_jenv():
 	if not local.jenv:
-		from jinja2 import Environment, ChoiceLoader, PackageLoader, DebugUndefined
+		from jinja2 import Environment, DebugUndefined
 		import webnotes.utils
 
-		apps = get_installed_apps()
-		apps.remove("webnotes")
-		
 		# webnotes will be loaded last, so app templates will get precedence
-		jenv = Environment(loader = ChoiceLoader([PackageLoader(app, ".") \
-			for app in apps + ["webnotes"]]), undefined=DebugUndefined)
-
+		jenv = Environment(loader = get_jloader(), undefined=DebugUndefined)
 		set_filters(jenv)
-		
+
 		jenv.globals.update({
 			"webnotes": sys.modules[__name__],
 			"webnotes.utils": webnotes.utils,
@@ -571,6 +567,18 @@ def get_jenv():
 		local.jenv = jenv
 		
 	return local.jenv
+	
+def get_jloader():
+	if not local.jloader:
+		from jinja2 import ChoiceLoader, PackageLoader
+
+		apps = get_installed_apps()
+		apps.remove("webnotes")
+	
+		local.jloader = ChoiceLoader([PackageLoader(app, ".") \
+				for app in apps + ["webnotes"]])
+				
+	return local.jloader
 	
 def set_filters(jenv):
 	from webnotes.utils import global_date_format

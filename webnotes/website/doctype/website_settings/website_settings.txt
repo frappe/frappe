@@ -2,7 +2,7 @@
  {
   "creation": "2013-04-30 12:58:46", 
   "docstatus": 0, 
-  "modified": "2014-02-03 15:25:54", 
+  "modified": "2014-02-13 15:31:31", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -121,6 +121,20 @@
   "fieldname": "top_bar_items", 
   "fieldtype": "Table", 
   "label": "Top Bar Items", 
+  "options": "Top Bar Item"
+ }, 
+ {
+  "description": "Sidebar Links for Home Page only", 
+  "doctype": "DocField", 
+  "fieldname": "sidebar", 
+  "fieldtype": "Section Break", 
+  "label": "Sidebar"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "sidebar_items", 
+  "fieldtype": "Table", 
+  "label": "Sidebar Items", 
   "options": "Top Bar Item"
  }, 
  {

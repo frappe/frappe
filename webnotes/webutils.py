@@ -118,7 +118,7 @@ def get_sitemap_options(path):
 	cache_key = "sitemap_options:{}".format(path)
 
 	if can_cache():
-		sitemap_options = webnotes.cache().get_value(cache_key)
+		sitemap_options = webnotes._dict(webnotes.cache().get_value(cache_key))
 
 	if not sitemap_options:
 		sitemap_options = build_sitemap_options(path)
@@ -129,6 +129,7 @@ def get_sitemap_options(path):
 	
 def build_sitemap_options(path):
 	sitemap_options = webnotes.doc("Website Sitemap", path).fields
+	home_page = get_home_page()
 		
 	sitemap_config = webnotes.doc("Website Sitemap Config", 
 		sitemap_options.get("website_sitemap_config")).fields
@@ -142,21 +143,24 @@ def build_sitemap_options(path):
 	sitemap_options.title = sitemap_options.page_title
 	sitemap_options.pathname = sitemap_options.name
 	
+	def set_sidebar_items(pathname):
+		if pathname==home_page or not pathname:
+			sitemap_options.children = webnotes.conn.sql("""select url as name, label as page_title,
+				1 as public_read from `tabTop Bar Item` where parentfield='sidebar_items' order by idx""", as_dict=True)
+		else:
+			sitemap_options.children = webnotes.conn.sql("""select * from `tabWebsite Sitemap`
+				where ifnull(parent_website_sitemap,'')=%s 
+				and public_read=1 order by -idx desc, page_title asc""", pathname, as_dict=True)
+			
 	# establish hierarchy
 	sitemap_options.parents = webnotes.conn.sql("""select name, page_title from `tabWebsite Sitemap`
 		where lft < %s and rgt > %s order by lft asc""", (sitemap_options.lft, sitemap_options.rgt), as_dict=True)
 
-	sitemap_options.children = webnotes.conn.sql("""select * from `tabWebsite Sitemap`
-		where parent_website_sitemap=%s 
-			and public_read=1 order by -idx desc, page_title asc""", (sitemap_options.pathname,), as_dict=True)
-	
-	# leaf node, show siblings
-	if not sitemap_options.children:
-		sitemap_options.children = webnotes.conn.sql("""select * from `tabWebsite Sitemap`
-			where ifnull(parent_website_sitemap, '')=%s 
-				and public_read=1 order by -idx desc, page_title asc""", 
-				sitemap_options.parent_website_sitemap or "", as_dict=True)
-		
+	if not sitemap_options.no_sidebar:
+		set_sidebar_items(sitemap_options.pathname)
+		if not sitemap_options.children:
+			set_sidebar_items(sitemap_options.parent_website_sitemap)
+
 	# determine templates to be used
 	if not sitemap_options.base_template_path:
 		sitemap_options.base_template_path = "templates/base.html"
@@ -194,8 +198,6 @@ def get_home_page():
 		lambda:  (webnotes.get_hooks("home_page") \
 			or [webnotes.conn.get_value("Website Settings", None, "home_page") \
 			or "login"])[0])
-
-	print home_page
 
 	return home_page
 	
@@ -370,7 +372,7 @@ class WebsiteGenerator(DocListController):
 		
 		existing_site_map = webnotes.conn.get_value("Website Sitemap", {"ref_doctype": self.doc.doctype,
 			"docname": self.doc.name})
-			
+						
 		opts = webnotes._dict({
 			"page_or_generator": "Generator",
 			"ref_doctype":self.doc.doctype, 
@@ -379,11 +381,12 @@ class WebsiteGenerator(DocListController):
 			"link_name": self._website_config.name,
 			"lastmod": webnotes.utils.get_datetime(self.doc.modified).strftime("%Y-%m-%d"),
 			"parent_website_sitemap": self.doc.parent_website_sitemap,
-			"page_title": self.get_page_title()
+			"page_title": self.get_page_title(),
+			"public_read": 1 if not self._website_config.no_sidebar else 0
 		})
 
 		self.update_permissions(opts)
-
+		
 		if existing_site_map:
 			update_sitemap(existing_site_map, opts)
 		else:
@@ -450,16 +453,23 @@ def get_hex_shade(color, percent):
 def render_blocks(context):
 	"""returns a dict of block name and its rendered content"""
 	from jinja2.utils import concat
+	from jinja2 import meta
+
 	out = {}
 	
-	template = webnotes.get_template(context["template_path"])
+	env = webnotes.get_jenv()
 		
-	# required as per low level API
-	context = template.new_context(context)
+	def _render_blocks(template_path):
+		source = webnotes.local.jloader.get_source(webnotes.local.jenv, template_path)[0]
+		for referenced_template_path in meta.find_referenced_templates(env.parse(source)):
+			if referenced_template_path:
+				_render_blocks(referenced_template_path)
+				
+		template = webnotes.get_template(template_path)
+		for block, render in template.blocks.items():
+			out[block] = scrub_relative_urls(concat(render(template.new_context(context))))
 	
-	# render each block individually
-	for block, render in template.blocks.items():
-		out[block] = scrub_relative_urls(concat(render(context)))
+	_render_blocks(context["template_path"])
 
 	return out
 

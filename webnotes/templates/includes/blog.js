@@ -13,7 +13,7 @@ var blog = {
 				cmd: "webnotes.templates.generators.blog_post.get_blog_list",
 				start: blog.start,
 				by: get_url_arg("by"),
-				category: get_url_arg("category")
+				category: window.category || get_url_arg("category")
 			},
 			dataType: "json",
 			success: function(data) {

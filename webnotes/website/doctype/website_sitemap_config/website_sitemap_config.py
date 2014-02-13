@@ -20,10 +20,13 @@ class DocType:
 			website_sitemap = webnotes.conn.get_value("Website Sitemap", 
 				{"website_sitemap_config": self.doc.name, "page_or_generator": "Page"})
 			
+			opts = self.doc.fields.copy()
+			opts.update({"public_read": 1})
+			
 			if website_sitemap:
-				update_sitemap(website_sitemap, self.doc.fields)
+				update_sitemap(website_sitemap, opts)
 			else:
-				add_to_sitemap(self.doc.fields)
+				add_to_sitemap(opts)
 	
 		else:
 			condition = ""
@@ -87,6 +90,7 @@ def add_website_sitemap_config(page_or_generator, app, path, fname, basepath):
 		module = webnotes.get_module(wsc.controller)
 		wsc.no_cache = getattr(module, "no_cache", 0)
 		wsc.no_sitemap = wsc.no_cache or getattr(module, "no_sitemap", 0)
+		wsc.no_sidebar = wsc.no_sidebar or getattr(module, "no_sidebar", 0)
 		wsc.ref_doctype = getattr(module, "doctype", None)
 		wsc.page_name_field = getattr(module, "page_name_field", "page_name")
 		wsc.condition_field = getattr(module, "condition_field", None)

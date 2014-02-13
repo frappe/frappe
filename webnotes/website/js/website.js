@@ -260,7 +260,14 @@ $.extend(wn, {
 		} else {
 			$('[data-html-block]').each(function(i, section) {
 				var $section = $(section);
-				$section.html(data[$section.attr("data-html-block")] || "");
+				if($section.attr("data-html-block")==="script") {
+					$section.remove();
+					$("<script data-html-block='script'></script>")
+						.html(data[$section.attr("data-html-block")] || "")
+						.appendTo("body");
+				} else {
+					$section.html(data[$section.attr("data-html-block")] || "");
+				}
 			});
 			if(data.title) $("title").html(data.title);
 			$(document).trigger("page_change");

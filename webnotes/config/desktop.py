@@ -35,5 +35,11 @@ data = {
 		"link": "applications", 
 		"type": "page",
 		"label": _("Installer")
-	}
+	},
+	"Setup": {
+		"color": "#bdc3c7", 
+		"icon": "icon-wrench", 
+		"link": "Setup", 
+		"type": "setup"
+	}, 
 }

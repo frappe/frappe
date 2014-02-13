@@ -22,13 +22,7 @@
 		{%- for link in web_include_css -%}
 		<link type="text/css" rel="stylesheet" href="{{ link }}">
 		{%- endfor -%}
-		
-		{% block script -%}
-			<script data-html-block="script">
-			{%- if script is defined -%}{{ script }}{%- endif -%}
-			</script>
-		{%- endblock %}
-	
+			
 		{% block style -%}
 			<style data-html-block="style">
 			{%- if style is defined -%}{{ style }}{%- endif -%}
@@ -86,5 +80,10 @@
 	<div id="wrap-footer">
 		{%- block footer -%}{% include "templates/includes/footer.html" %}{%- endblock -%}
 	</div>
+	{% block script -%}
+		<script data-html-block="script">
+		{%- if script is defined -%}{{ script }}{%- endif -%}
+		</script>
+	{%- endblock %}
 </body>
 </html>
