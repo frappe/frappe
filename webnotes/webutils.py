@@ -116,16 +116,16 @@ def get_context(path):
 def get_sitemap_options(path):
 	sitemap_options = None
 	cache_key = "sitemap_options:{}".format(path)
-
+	
 	if can_cache():
-		sitemap_options = webnotes._dict(webnotes.cache().get_value(cache_key))
+		sitemap_options = webnotes.cache().get_value(cache_key)
 
 	if not sitemap_options:
 		sitemap_options = build_sitemap_options(path)
 		if can_cache(sitemap_options.no_cache):
 			webnotes.cache().set_value(cache_key, sitemap_options)
 	
-	return sitemap_options
+	return webnotes._dict(sitemap_options)
 	
 def build_sitemap_options(path):
 	sitemap_options = webnotes.doc("Website Sitemap", path).fields
