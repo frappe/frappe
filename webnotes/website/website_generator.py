@@ -4,12 +4,12 @@
 from __future__ import unicode_literals
 import webnotes
 from webnotes.model.controller import DocListController
+from webnotes.website.utils import cleanup_page_name
 
 from webnotes.website.doctype.website_sitemap.website_sitemap import add_to_sitemap, update_sitemap, remove_sitemap
 
 class WebsiteGenerator(DocListController):
 	def autoname(self):
-		from webnotes.website.utils import cleanup_page_name
 		self.doc.name = cleanup_page_name(self.get_page_title())
 
 	def set_page_name(self):
