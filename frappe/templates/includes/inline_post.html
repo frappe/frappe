@@ -34,7 +34,7 @@
 				{%- endif %}
 			</a></li>
 			{%- endif -%}
-			<li><span class="wn-timestamp" data-timestamp="{{ post.creation }}"></span></li>
+			<li><span class="frappe-timestamp" data-timestamp="{{ post.creation }}"></span></li>
 			<li>by <span itemprop="author">{{ post.first_name or "" }} {{ post.last_name or "" }}</span></li>
 			<li class="edit-post pull-right hide" data-owner="{{ post.owner }}">
 				<a class="text-muted" href="{{ edit_url }}">[edit]</a>

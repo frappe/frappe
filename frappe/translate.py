@@ -13,7 +13,7 @@ Contributing:
 # loading
 # doctype, page, report
 # boot(startup)
-# wn.require
+# frappe.require
 # frappe._
 
 import frappe, os, re, codecs, json
@@ -71,7 +71,7 @@ def get_dict(fortype, name=None):
 	
 def add_lang_dict(code):
 	messages = extract_messages_from_code(code)
-	code += "\n\n$.extend(wn._messages, %s)" % json.dumps(make_dict_from_messages(messages))
+	code += "\n\n$.extend(frappe._messages, %s)" % json.dumps(make_dict_from_messages(messages))
 	return code
 
 def make_dict_from_messages(messages, full_dict=None):
@@ -86,7 +86,7 @@ def make_dict_from_messages(messages, full_dict=None):
 	return out
 
 def get_lang_js(fortype, name):
-	return "\n\n$.extend(wn._messages, %s)" % json.dumps(get_dict(fortype, name))
+	return "\n\n$.extend(frappe._messages, %s)" % json.dumps(get_dict(fortype, name))
 
 def get_full_dict(lang):
 	if lang == "en": return {}

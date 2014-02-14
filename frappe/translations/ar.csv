@@ -368,7 +368,7 @@ Icon will appear on the button,سوف تظهر أيقونة على زر
 "If image is selected, color will be ignored (attach first)",إذا تم تحديد الصورة، سيتم تجاهل اللون (إرفاق الأولى)
 "If not, create a",إن لم يكن، إنشاء
 "If the 'territory' Link Field exists, it will give you an option to select it",إذا حقل &#39;الأرض&#39; لينك موجود، وسوف تعطيك الخيار لتحديده
-"If these instructions where not helpful, please add in your suggestions at <a href='https://github.com/webnotes/wnframework/issues'>GitHub Issues</a>",إذا هذه التعليمات حيث لم تكن مفيدة ، يرجى إضافة في اقتراحاتكم في <a href='https://github.com/webnotes/wnframework/issues'> جيثب قضايا < / A>
+"If these instructions where not helpful, please add in your suggestions at <a href='https://github.com/frappe/frappe/issues'>GitHub Issues</a>",إذا هذه التعليمات حيث لم تكن مفيدة ، يرجى إضافة في اقتراحاتكم في <a href='https://github.com/frappe/frappe/issues'> جيثب قضايا < / A>
 "If you set this, this Item will come in a drop-down under the selected parent.",إذا قمت بتعيين هذا ، فإن هذا البند تأتي في قائمة منسدلة تحت الأصل المحدد .
 Image,صورة
 Image Link,رابط الصورة
@@ -404,7 +404,7 @@ Is Single,هو واحدة
 Is Standard,هو معيار
 Is Submittable,هو Submittable
 JSON,JSON
-JavaScript Format: wn.query_reports['REPORTNAME'] = {},جافا سكريبت الصيغة: wn.query_reports [' REPORTNAME '] = { }
+JavaScript Format: frappe.query_reports['REPORTNAME'] = {},جافا سكريبت الصيغة: frappe.query_reports [' REPORTNAME '] = { }
 Javascript,جافا سكريبت
 Javascript to append to the head section of the page.,جافا سكريبت لإلحاق رئيس قسم من الصفحة.
 Keep a track of all communications,حفاظ على تعقب من كافة الاتصالات

@@ -368,7 +368,7 @@ Icon will appear on the button,图标将显示在按钮上
 "If image is selected, color will be ignored (attach first)",如果图像被选中，颜色将被忽略（先附上）
 "If not, create a",如果没有，请创建一个
 "If the 'territory' Link Field exists, it will give you an option to select it",如果&#39;领土&#39;链接字段存在，它会给你一个选项，选择它
-"If these instructions where not helpful, please add in your suggestions at <a href='https://github.com/webnotes/wnframework/issues'>GitHub Issues</a>",如果这些指令，其中没有帮助，请在您的建议添加<a href='https://github.com/webnotes/wnframework/issues'>GitHub的问题</a>
+"If these instructions where not helpful, please add in your suggestions at <a href='https://github.com/frappe/frappe/issues'>GitHub Issues</a>",如果这些指令，其中没有帮助，请在您的建议添加<a href='https://github.com/frappe/frappe/issues'>GitHub的问题</a>
 "If you set this, this Item will come in a drop-down under the selected parent.",如果你设置这个，这个项目会在一个下拉菜单中选定父下。
 Image,图像
 Image Link,图片链接
@@ -404,7 +404,7 @@ Is Single,单人
 Is Standard,为标准
 Is Submittable,是Submittable
 JSON,JSON
-JavaScript Format: wn.query_reports['REPORTNAME'] = {},JavaScript的格式：wn.query_reports [&#39;REPORTNAME&#39;] = {}
+JavaScript Format: frappe.query_reports['REPORTNAME'] = {},JavaScript的格式：frappe.query_reports [&#39;REPORTNAME&#39;] = {}
 Javascript,使用Javascript
 Javascript to append to the head section of the page.,Javascript来附加到页面的head部分。
 Keep a track of all communications,保持跟踪所有通信
