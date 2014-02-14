@@ -11,7 +11,6 @@ import webnotes.defaults
 import webnotes.model.doc
 import webnotes.widgets.page
 import json
-import webnotes.webutils
 
 def get_bootinfo():
 	"""build and return boot info"""

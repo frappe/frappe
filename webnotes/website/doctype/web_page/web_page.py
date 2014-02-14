@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 import webnotes, os, time
-from webnotes.webutils import WebsiteGenerator
+from webnotes.website.website_generator import WebsiteGenerator
 from webnotes import _
 from webnotes.utils import cint
 from markdown2 import markdown
@@ -21,7 +21,7 @@ class DocType(WebsiteGenerator):
 		
 		# clear all cache if it has toc
 		if self.doclist.get({"parentfield": "toc"}):
-			from webnotes.webutils import clear_cache
+			from webnotes.website.render import clear_cache
 			clear_cache()
 			
 	def on_trash(self):
@@ -33,7 +33,7 @@ class DocType(WebsiteGenerator):
 		
 		# clear all cache if it has toc
 		if self.doclist.get({"parentfield": "toc"}):
-			from webnotes.webutils import clear_cache
+			from webnotes.website.render import clear_cache
 			clear_cache()
 
 def sync_statics():

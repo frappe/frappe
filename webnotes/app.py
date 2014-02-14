@@ -15,7 +15,7 @@ import webnotes
 import webnotes.handler
 import webnotes.auth
 import webnotes.api
-import webnotes.webutils
+import webnotes.website.render
 from webnotes.utils import get_site_name
 
 local_manager = LocalManager([webnotes.local])
@@ -58,7 +58,7 @@ def application(request):
 		elif webnotes.request.path.startswith("/api/"):
 			webnotes.api.handle()
 		elif webnotes.local.request.method in ('GET', 'HEAD'):
-			webnotes.webutils.render(webnotes.request.path[1:])
+			webnotes.website.render.render(webnotes.request.path[1:])
 		else:
 			raise NotFound
 

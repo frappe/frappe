@@ -7,7 +7,7 @@ from __future__ import unicode_literals
 import webnotes
 import webnotes.utils
 import os
-
+from webnotes import _
 from webnotes.website.doctype.website_sitemap.website_sitemap import add_to_sitemap, update_sitemap, cleanup_sitemap
 from webnotes.utils.nestedset import rebuild_tree
 
@@ -95,6 +95,7 @@ def add_website_sitemap_config(page_or_generator, app, path, fname, basepath):
 		wsc.page_name_field = getattr(module, "page_name_field", "page_name")
 		wsc.condition_field = getattr(module, "condition_field", None)
 		wsc.base_template_path = getattr(module, "base_template_path", None)
+		wsc.page_title = getattr(module, "page_title", _(name.title()))
 	
 	if webnotes.conn.exists("Website Sitemap Config", wsc.link_name):
 		# found by earlier app, override

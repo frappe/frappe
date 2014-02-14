@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import webnotes
 from webnotes.utils import now_datetime, get_datetime_str
-from webnotes.webutils import get_access
+from webnotes.website.permissions import get_access
 
 @webnotes.whitelist(allow_guest=True)
 def get_post_list_html(group, view, limit_start=0, limit_length=20):

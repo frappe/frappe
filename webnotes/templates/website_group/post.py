@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import webnotes
 from webnotes.utils import get_fullname
-from webnotes.webutils import get_access
+from webnotes.website.permissions import get_access
 from webnotes.utils.file_manager import save_file
 from webnotes.templates.generators.website_group import get_pathname
 

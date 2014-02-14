@@ -588,7 +588,7 @@ def get_jloader():
 	
 def set_filters(jenv):
 	from webnotes.utils import global_date_format
-	from webnotes.webutils import get_hex_shade
+	from webnotes.website.utils import get_hex_shade
 	from markdown2 import markdown
 	from json import dumps
 	

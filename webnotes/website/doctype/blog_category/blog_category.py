@@ -3,7 +3,8 @@
 
 from __future__ import unicode_literals
 import webnotes
-from webnotes.webutils import WebsiteGenerator, cleanup_page_name, clear_cache
+from webnotes.website.website_generator import WebsiteGenerator
+from webnotes.website.render import clear_cache
 
 class DocType(WebsiteGenerator):
 	def __init__(self, d, dl):
@@ -18,7 +19,4 @@ class DocType(WebsiteGenerator):
 		
 	def on_update(self):
 		WebsiteGenerator.on_update(self)
-
-		from webnotes.webutils import clear_cache
 		clear_cache()
-		

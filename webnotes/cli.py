@@ -430,9 +430,9 @@ def clear_cache():
 
 @cmd
 def clear_web():
-	import webnotes.webutils
+	import webnotes.website.render
 	webnotes.connect()
-	webnotes.webutils.clear_cache()
+	webnotes.website.render.clear_cache()
 	webnotes.destroy()
 
 @cmd

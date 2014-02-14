@@ -2,7 +2,8 @@
 # MIT License. See license.txt
 
 import webnotes
-from webnotes.webutils import get_access, can_cache
+from webnotes.website.permissions import get_access
+from webnotes.website.render import can_cache
 from webnotes.templates.website_group.forum import get_post_list_html
 
 doctype = "Website Group"

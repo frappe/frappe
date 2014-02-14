@@ -36,7 +36,9 @@ var blog = {
 				b.comment_text = b.comments + ' comments.'
 			}
 			
-			b.page_name = encodeURIComponent(b.page_name);
+			b.page_name = $.map(b.page_name.split("/"), function(p) 
+				{ return encodeURIComponent(p); }).join("/");
+							
 			b.avatar = b.avatar || "";
 			
 			$(repl('<div class="row">\
@@ -71,7 +73,7 @@ var blog = {
 
 $(document).ready(function() {
 	// make list of blogs
-	blog.get_list();
+	setTimeout(blog.get_list, 100);
 	
 	$("#next-page").click(function() {
 		blog.get_list();

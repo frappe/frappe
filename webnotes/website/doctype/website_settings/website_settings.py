@@ -4,7 +4,9 @@
 from __future__ import unicode_literals
 import webnotes
 from webnotes import _, msgprint
+from webnotes.utils import get_request_site_address, encode
 from webnotes.model.controller import DocListController
+from urllib import quote
 
 class DocType(DocListController):
 	def validate(self):
@@ -43,6 +45,62 @@ class DocType(DocListController):
 		# make js and css
 		# clear web cache (for menus!)
 
-		from webnotes.webutils import clear_cache
+		from webnotes.website.render import clear_cache
 		clear_cache()
+
+def get_website_settings():
+	hooks = webnotes.get_hooks()
+	
+	all_top_items = webnotes.conn.sql("""\
+		select * from `tabTop Bar Item`
+		where parent='Website Settings' and parentfield='top_bar_items'
+		order by idx asc""", as_dict=1)
+	
+	top_items = [d for d in all_top_items if not d['parent_label']]
+	
+	# attach child items to top bar
+	for d in all_top_items:
+		if d['parent_label']:
+			for t in top_items:
+				if t['label']==d['parent_label']:
+					if not 'child_items' in t:
+						t['child_items'] = []
+					t['child_items'].append(d)
+					break
+					
+	context = webnotes._dict({
+		'top_bar_items': top_items,
+		'footer_items': webnotes.conn.sql("""\
+			select * from `tabTop Bar Item`
+			where parent='Website Settings' and parentfield='footer_items'
+			order by idx asc""", as_dict=1),
+		"post_login": [
+			{"label": "Reset Password", "url": "update-password", "icon": "icon-key"},
+			{"label": "Logout", "url": "?cmd=web_logout", "icon": "icon-signout"}
+		]
+	})
+		
+	settings = webnotes.doc("Website Settings", "Website Settings")
+	for k in ["banner_html", "brand_html", "copyright", "twitter_share_via",
+		"favicon", "facebook_share", "google_plus_one", "twitter_share", "linked_in_share",
+		"disable_signup"]:
+		if k in settings.fields:
+			context[k] = settings.fields.get(k)
 			
+	if settings.address:
+		context["footer_address"] = settings.address
+
+	for k in ["facebook_share", "google_plus_one", "twitter_share", "linked_in_share",
+		"disable_signup"]:
+		context[k] = int(context.get(k) or 0)
+	
+	context.url = quote(str(get_request_site_address(full_address=True)), safe="/:")
+	context.encoded_title = quote(encode(context.title or ""), str(""))
+	
+	for update_website_context in hooks.update_website_context or []:
+		webnotes.get_attr(update_website_context)(context)
+		
+	context.web_include_js = hooks.web_include_js or []
+	context.web_include_css = hooks.web_include_css or []
+	
+	return context

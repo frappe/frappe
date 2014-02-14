@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 import webnotes
-from webnotes.webutils import get_access
+from webnotes.website.permissions import get_access
 
 class DocType:
 	def __init__(self, d, dl):

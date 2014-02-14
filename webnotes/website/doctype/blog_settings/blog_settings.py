@@ -11,6 +11,6 @@ class DocType:
 		self.doc, self.doclist = d, dl
 		
 	def on_update(self):
-		from webnotes.webutils import clear_cache
+		from webnotes.website.render import clear_cache
 		clear_cache("blog")
 		clear_cache("writers")

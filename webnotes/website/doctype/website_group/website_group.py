@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 import webnotes
-from webnotes.webutils import WebsiteGenerator
+from webnotes.website.website_generator import WebsiteGenerator
 from webnotes.templates.generators.website_group import clear_cache
 from webnotes.model.doc import make_autoname
 

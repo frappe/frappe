@@ -4,16 +4,21 @@
 from __future__ import unicode_literals
 
 import webnotes
-from webnotes.webutils import WebsiteGenerator, cleanup_page_name, clear_cache
+
+from webnotes.website.website_generator import WebsiteGenerator
+from webnotes.website.render import clear_cache
 from webnotes import _
 from webnotes.utils import today
 
 class DocType(WebsiteGenerator):
 	def __init__(self, d, dl):
 		self.doc, self.doclist = d, dl
-
-	def autoname(self):
-		self.doc.name = cleanup_page_name(self.doc.title)
+		
+	def get_page_title(self):
+		return self.doc.title
+		
+	def get_parent_website_sitemap(self):
+		return webnotes.conn.get_value("Website Sitemap", {"ref_doctype": "Blog Category", "docname": self.doc.blog_category})
 
 	def validate(self):
 		if self.doc.blog_intro:

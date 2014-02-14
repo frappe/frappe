@@ -5,7 +5,6 @@ from __future__ import unicode_literals
 
 import urllib
 import webnotes
-import webnotes.webutils
 from webnotes.utils import get_request_site_address
 
 no_cache = 1

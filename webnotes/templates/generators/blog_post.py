@@ -46,14 +46,16 @@ def get_blog_list(start=0, by=None, category=None):
 		condition += " and t1.blog_category='%s'" % category.replace("'", "\'")
 	query = """\
 		select
-			t1.title, t1.name, t1.page_name, t1.published_on as creation, 
+			t1.title, t1.name, t3.name as page_name, t1.published_on as creation, 
 				ifnull(t1.blog_intro, t1.content) as content, 
 				t2.full_name, t2.avatar, t1.blogger,
 				(select count(name) from `tabComment` where
 					comment_doctype='Blog Post' and comment_docname=t1.name) as comments
-		from `tabBlog Post` t1, `tabBlogger` t2
+		from `tabBlog Post` t1, `tabBlogger` t2, `tabWebsite Sitemap` t3
 		where ifnull(t1.published,0)=1
 		and t1.blogger = t2.name
+		and t3.docname = t1.name
+		and t3.ref_doctype = "Blog Post"
 		%(condition)s
 		order by published_on desc, name asc
 		limit %(start)s, 20""" % {"start": start, "condition": condition}
@@ -63,8 +65,6 @@ def get_blog_list(start=0, by=None, category=None):
 	# strip html tags from content
 	for res in result:
 		res['published'] = global_date_format(res['creation'])
-		if not res['content']:
-			res['content'] = webnotes.webutils.get_html(res['page_name'])
 		res['content'] = res['content'][:140]
 		
 	return result

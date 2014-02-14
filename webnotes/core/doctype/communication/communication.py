@@ -6,7 +6,7 @@ import webnotes
 import json
 import urllib
 from email.utils import formataddr
-from webnotes.webutils import is_signup_enabled
+from webnotes.website.utils import is_signup_enabled
 from webnotes.utils import get_url, cstr
 from webnotes.utils.email_lib.email_body import get_email
 from webnotes.utils.email_lib.smtp import send

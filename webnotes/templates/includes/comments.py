@@ -3,6 +3,7 @@
 
 import webnotes
 import webnotes.utils, markdown2
+from webnotes.website.render import clear_cache
 
 from webnotes import _
 
@@ -34,7 +35,7 @@ def add_comment(args=None):
 	comment.insert()
 	
 	# since comments are embedded in the page, clear the web cache
-	webnotes.webutils.clear_cache(page_name)
+	clear_cache(page_name)
 
 	# notify commentors 
 	commentors = [d[0] for d in webnotes.conn.sql("""select comment_by from tabComment where

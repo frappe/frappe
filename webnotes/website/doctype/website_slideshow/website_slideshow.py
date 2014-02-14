@@ -12,7 +12,7 @@ class DocType:
 		
 	def on_update(self):
 		# a slide show can be in use and any change in it should get reflected
-		from webnotes.webutils import clear_cache
+		from webnotes.website.render import clear_cache
 		clear_cache()
 		
 def get_slideshow(bean):

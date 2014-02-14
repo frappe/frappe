@@ -15,5 +15,5 @@ class DocType:
 		from webnotes.sessions import clear_cache
 		clear_cache('Guest')
 
-		from webnotes.webutils import clear_cache
+		from webnotes.website.render import clear_cache
 		clear_cache()

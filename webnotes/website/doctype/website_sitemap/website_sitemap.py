@@ -1,8 +1,6 @@
 # Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-# For license information, please see license.txt
-
 from __future__ import unicode_literals
 import webnotes
 from webnotes import _
@@ -20,12 +18,16 @@ class DocType(DocTypeNestedSet):
 		self.doc.name = self.get_url()
 
 	def get_url(self):
+		parent_website_sitemap = self.get_parent_website_sitemap()
 		url = self.doc.page_name
-		if self.doc.parent_website_sitemap:
-			url = self.doc.parent_website_sitemap + "/" + url
+		if parent_website_sitemap:
+			url = parent_website_sitemap + "/" + url
 			
 		return url
-		
+	
+	def get_parent_website_sitemap(self):
+		return self.doc.parent_website_sitemap
+	
 	def validate(self):
 		if self.get_url() != self.doc.name:
 			self.rename()
@@ -33,7 +35,7 @@ class DocType(DocTypeNestedSet):
 		self.make_private_if_parent_is_private()
 	
 	def rename(self):
-		from webnotes.webutils import clear_cache
+		from webnotes.website.render import clear_cache
 		self.old_name = self.doc.name
 		self.doc.name = self.get_url()
 		webnotes.conn.sql("""update `tabWebsite Sitemap` set name=%s where name=%s""", 
@@ -86,7 +88,7 @@ class DocType(DocTypeNestedSet):
 				self.doc.public_read = self.doc.public_write = 0
 			
 	def on_trash(self):		
-		from webnotes.webutils import clear_cache
+		from webnotes.website.render import clear_cache
 		# remove website sitemap permissions
 		to_remove = webnotes.conn.sql_list("""select name from `tabWebsite Sitemap Permission` 
 			where website_sitemap=%s""", (self.doc.name,))

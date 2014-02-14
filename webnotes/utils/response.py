@@ -30,7 +30,7 @@ def build_response():
 
 def print_page():
 	"""print web page"""
-	from webnotes.webutils import render
+	from webnotes.website.render import render
 	render(webnotes.response['page_name'])
 
 def print_json():

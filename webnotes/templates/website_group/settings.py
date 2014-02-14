@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 import webnotes
-from webnotes.webutils import get_access, clear_permissions
+from webnotes.website.permissions import get_access, clear_permissions
 from webnotes.templates.generators.website_group import get_pathname
 from webnotes.utils.email_lib.bulk import send
 

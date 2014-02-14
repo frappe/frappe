@@ -29,6 +29,11 @@
 			</style>
 		{%- endblock %}
 
+		{% block script -%}
+			<script data-html-block="script">
+			{%- if script is defined -%}{{ script }}{%- endif -%}
+			</script>
+		{%- endblock %}
 	{%- endblock %}
 </head>
 <body>
@@ -80,10 +85,5 @@
 	<div id="wrap-footer">
 		{%- block footer -%}{% include "templates/includes/footer.html" %}{%- endblock -%}
 	</div>
-	{% block script -%}
-		<script data-html-block="script">
-		{%- if script is defined -%}{{ script }}{%- endif -%}
-		</script>
-	{%- endblock %}
 </body>
 </html>
