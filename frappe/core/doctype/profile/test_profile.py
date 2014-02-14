@@ -57,46 +57,59 @@ class TestProfile(unittest.TestCase):
 		self.assertEquals(len(p_meta.get({"fieldname": ["not in", ["first_name", "last_name"]]})), len(p_meta) - 2)
 		
 		
-test_records = [[{
-		"doctype":"Profile",
-		"email": "test@example.com",
-		"first_name": "_Test",
-		"new_password": "testpassword",
-		"enabled": 1
-	}, {
-		"doctype":"UserRole",
-		"parentfield":"user_roles",
-		"role": "_Test Role"
-	}, {
-		"doctype":"UserRole",
-		"parentfield":"user_roles",
-		"role": "System Manager"
-	}],
-	[{
-		"doctype":"Profile",
-		"email": "test1@example.com",
-		"first_name": "_Test1",
-		"new_password": "testpassword"
-	}],
-	[{
-		"doctype":"Profile",
-		"email": "test2@example.com",
-		"first_name": "_Test2",
-		"new_password": "testpassword"
-	}],
-	[{
-		"doctype":"Profile",
-		"email": "testdelete@example.com",
-		"first_name": "_Test",
-		"new_password": "testpassword",
-		"enabled": 1
-	}, {
-		"doctype":"UserRole",
-		"parentfield":"user_roles",
-		"role": "_Test Role 2"
-	}, {
-		"doctype":"UserRole",
-		"parentfield":"user_roles",
-		"role": "System Manager"
-	}],
+test_records = [
+	[
+		{
+			"doctype":"Profile",
+			"email": "test@example.com",
+			"first_name": "_Test",
+			"new_password": "testpassword",
+			"enabled": 1
+		},
+		{
+			"doctype":"UserRole",
+			"parentfield":"user_roles",
+			"role": "_Test Role"
+		},
+		{
+			"doctype":"UserRole",
+			"parentfield":"user_roles",
+			"role": "System Manager"
+		}
+	],
+	[
+		{
+			"doctype":"Profile",
+			"email": "test1@example.com",
+			"first_name": "_Test1",
+			"new_password": "testpassword"
+		}
+	],
+	[
+		{
+			"doctype":"Profile",
+			"email": "test2@example.com",
+			"first_name": "_Test2",
+			"new_password": "testpassword"
+		}
+	],
+	[
+		{
+			"doctype":"Profile",
+			"email": "testdelete@example.com",
+			"first_name": "_Test",
+			"new_password": "testpassword",
+			"enabled": 1
+		}, 
+		{
+			"doctype":"UserRole",
+			"parentfield":"user_roles",
+			"role": "_Test Role 2"
+		},
+		{
+			"doctype":"UserRole",
+			"parentfield":"user_roles",
+			"role": "System Manager"
+		}
+	],
 ]
