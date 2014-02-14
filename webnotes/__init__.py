@@ -118,12 +118,14 @@ def init(site, sites_path=None):
 	setup_module_map()
 
 def get_site_config():
-	site_filepath = os.path.join(local.site_path, "site_config.json")
-	if os.path.exists(site_filepath):
-		with open(site_filepath, 'r') as f:
-			return json.load(f)
-	else:
-		return _dict()
+	config = {}
+	sites_config_filepath = os.path.join(local.sites_path, "site_config.json")
+	site_config_filepath = os.path.join(local.site_path, "site_config.json")
+	if os.path.exists(sites_config_filepath):
+		config = get_file_json(sites_config_filepath)
+	if os.path.exists(site_config_filepath):
+		config.update(get_file_json(site_config_filepath))
+	return _dict(config)
 
 def destroy():
 	"""closes connection and releases werkzeug local"""
@@ -455,6 +457,10 @@ def get_file_items(path):
 		return [p.strip() for p in content.splitlines() if p.strip() and not p.startswith("#")]
 	else: 
 		return []
+
+def get_file_json(path):
+	with open(path, 'r') as f:
+		return json.load(f)
 
 def read_file(path):
 	if os.path.exists(path):
