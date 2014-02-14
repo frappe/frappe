@@ -12,9 +12,9 @@ install:
 
 script: 
     cd ./test_sites/ &&
-    webnotes --reinstall -v test_site &&
-    webnotes -b -v test_site &&
-    webnotes --run_tests -v test_site
+    frappe --reinstall -v test_site &&
+    frappe -b -v test_site &&
+    frappe --run_tests -v test_site
 
 branches:
   except:
