@@ -4,23 +4,23 @@ include *.json
 include *.md
 include *.py
 include *.txt
-recursive-include webnotes *.css
-recursive-include webnotes *.dat
-recursive-include webnotes *.eot
-recursive-include webnotes *.gif
-recursive-include webnotes *.html
-recursive-include webnotes *.jpg
-recursive-include webnotes *.js
-recursive-include webnotes *.json
-recursive-include webnotes *.md
-recursive-include webnotes *.otf
-recursive-include webnotes *.png
-recursive-include webnotes *.py
-recursive-include webnotes *.sql
-recursive-include webnotes *.svg
-recursive-include webnotes *.swf
-recursive-include webnotes *.ttf
-recursive-include webnotes *.woff
-recursive-include webnotes *.xml
-recursive-include webnotes *.txt
+recursive-include frappe *.css
+recursive-include frappe *.dat
+recursive-include frappe *.eot
+recursive-include frappe *.gif
+recursive-include frappe *.html
+recursive-include frappe *.jpg
+recursive-include frappe *.js
+recursive-include frappe *.json
+recursive-include frappe *.md
+recursive-include frappe *.otf
+recursive-include frappe *.png
+recursive-include frappe *.py
+recursive-include frappe *.sql
+recursive-include frappe *.svg
+recursive-include frappe *.swf
+recursive-include frappe *.ttf
+recursive-include frappe *.woff
+recursive-include frappe *.xml
+recursive-include frappe *.txt
 recursive-exclude * *.pyc

@@ -1,0 +1,1 @@
+frappe._("Test") // for test case
