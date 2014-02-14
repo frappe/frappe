@@ -15,7 +15,7 @@ bsEditor = Class.extend({
 			this.setup_fixed_toolbar();
 		} else if(this.options.parent) {
 			this.wrapper = $("<div></div>").appendTo(this.options.parent);
-			this.setup_editor($("<div class='frappe.editor'></div>").appendTo(this.wrapper));
+			this.setup_editor($("<div class='frappe-list'></div>").appendTo(this.wrapper));
 			this.setup_inline_toolbar();
 			this.editor.css(this.options.inline_editor_style);
 			this.set_editing();
@@ -223,8 +223,8 @@ bsEditorToolbar = Class.extend({
 	make: function(parent) {
 		if(!parent) 
 			parent = $("body");
-		if(!parent.find(".frappe.editor-toolbar").length) {
-			this.toolbar = $('<div class="frappe.editor-toolbar frappe.ignore-click">\
+		if(!parent.find(".frappe-list-toolbar").length) {
+			this.toolbar = $('<div class="frappe-list-toolbar frappe-ignore-click">\
 			<div class="btn-toolbar" data-role="editor-toolbar" style="margin-bottom: 7px;">\
 				<div class="btn-group form-group">\
 					<a class="btn btn-default btn-small dropdown-toggle" data-toggle="dropdown" \
@@ -438,7 +438,7 @@ bsHTMLEditor = Class.extend({
 			style="height: 400px; width: 100%; font-family: Monaco, \'Courier New\', monospace; font-size: 11px">\
 			</textarea><br>\
 			<button class="btn btn-primary" style="margin-top: 7px;">Save</button>');
-		this.modal.addClass("frappe.ignore-click");
+		this.modal.addClass("frappe-ignore-click");
 		this.modal.find(".btn-primary").on("click", function() {
 			var html = me.modal.find("textarea").val();
 			$.each(me.editor.dataurls, function(key, val) {
@@ -480,7 +480,7 @@ bsLinkEditor = Class.extend({
 			</div>\
 			<button class="btn btn-primary" style="margin-top: 7px;">Insert</button>');
 		
-		this.modal.addClass("frappe.ignore-click");
+		this.modal.addClass("frappe-ignore-click");
 		this.modal.find(".btn-primary").on("click", function() {
 			me.toolbar.restore_selection();
 			var url = me.modal.find("input[type=text]").val();

@@ -28,9 +28,9 @@ def main():
 			if not fn in site_arg_optional:
 				if not parsed_args.get("site") and os.path.exists("currentsite.txt"):
 					with open("currentsite.txt", "r") as sitefile:
-						site = sitefile.read()
-				else:
-					site = parsed_args.get("site")
+						parsed_args["site"] = sitefile.read()
+				
+				site = parsed_args.get("site")
 
 				if not site:
 					print "Site argument required"

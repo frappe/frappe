@@ -45,7 +45,7 @@ frappe.pages['permission-manager'].onload = function(wrapper) {
 	"<li>"+frappe._("If 'Restricted' is checked, the owner is always allowed based on Role.")+"</li>"+
 	"<li>"+frappe._("Once you have set this, the users will only be able access documents where the link (e.g Company) exists.")+"</li>"+
 	"<li>"+frappe._("Apart from System Manager, roles with Restrict permission can restrict other users for that Document Type")+"</li></ol><hr>\
-	<p>"+frappe._("If these instructions where not helpful, please add in your suggestions at <a href='https://github.com/frappe/frappe.ramework/issues'>GitHub Issues</a>")+"</p>\
+	<p>"+frappe._("If these instructions where not helpful, please add in your suggestions at <a href='https://github.com/frappe/frappe/issues'>GitHub Issues</a>")+"</p>\
 	</tr></td>\
 	</table>");
 	wrapper.permission_engine = new frappe.PermissionEngine(wrapper);

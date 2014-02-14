@@ -26,14 +26,14 @@ function prettyDate(time){
 
 
 var comment_when = function(datetime) {
-	return '<span class="frappe.timestamp" data-timestamp="'+datetime+'">' + prettyDate(datetime) + '</span>';
+	return '<span class="frappe-timestamp" data-timestamp="'+datetime+'">' + prettyDate(datetime) + '</span>';
 };
 
 frappe.provide("frappe.datetime");
 frappe.datetime.comment_when = prettyDate;
 frappe.datetime.refresh_when = function() {
 	if(jQuery) {
-		$(".frappe.timestamp").each(function() {
+		$(".frappe-timestamp").each(function() {
 			$(this).html(prettyDate($(this).attr("data-timestamp")));
 		})
 	}

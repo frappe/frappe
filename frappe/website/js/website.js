@@ -3,7 +3,7 @@
 
 frappe.provide("website");
 
-$.extend(frappe. {
+$.extend(frappe, {
 	_assets_loaded: [],
 	require: function(url) {
 		if(frappe._assets_loaded.indexOf(url)!==-1) return;

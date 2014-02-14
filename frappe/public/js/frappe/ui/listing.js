@@ -61,7 +61,7 @@ frappe.ui.Listing = Class.extend({
 		$.extend(this, this.opts);
 		
 		$(this.parent).html(repl('\
-			<div class="frappe.ist">\
+			<div class="frappe-list">\
 				<h3 class="title hide">%(title)s</h3>\
 				\
 				<div class="list-filters" style="display: none;">\
@@ -99,7 +99,7 @@ frappe.ui.Listing = Class.extend({
 				</p>\
 			</div>\
 		', this.opts));
-		this.$w = $(this.parent).find('.frappe.ist');
+		this.$w = $(this.parent).find('.frappe-list');
 		this.set_events();
 		
 		if(this.appframe) {

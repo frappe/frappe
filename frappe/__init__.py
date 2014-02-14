@@ -416,6 +416,7 @@ def get_hooks(hook=None, app_name=None):
 	def load_app_hooks(app_name=None):
 		hooks = {}
 		for app in [app_name] if app_name else get_installed_apps():
+			if app=="webnotes": app="frappe"
 			for item in get_file_items(get_pymodule_path(app, "hooks.txt")):
 				key, value = item.split("=", 1)
 				key, value = key.strip(), value.strip()
@@ -441,7 +442,8 @@ def setup_module_map():
 	
 	if not local.app_modules:
 		local.module_app, local.app_modules = {}, {}
-		for app in get_all_apps(True):	
+		for app in get_all_apps(True):
+			if app=="webnotes": app="frappe"
 			local.app_modules.setdefault(app, [])
 			for module in get_module_list(app):
 				local.module_app[module] = app

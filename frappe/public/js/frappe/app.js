@@ -173,7 +173,7 @@ frappe.Application = Class.extend({
 	make_nav_bar: function() {
 		// toolbar
 		if(frappe.boot) {
-			frappe.container.frappe.oolbar = new frappe.ui.toolbar.Toolbar();
+			frappe.container.frappe_toolbar = new frappe.ui.toolbar.Toolbar();
 		}
 	},
 	logout: function() {

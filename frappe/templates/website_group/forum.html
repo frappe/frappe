@@ -9,7 +9,7 @@
 <script>
 $(function() {
 	if($(".post").length===20) {
-		wn.setup_pagination();
+		frappe.setup_pagination();
 	}
 	
 	{% if group.group_type == "Forum" -%}
