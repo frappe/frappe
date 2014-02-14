@@ -125,7 +125,7 @@ bsEditor = Class.extend({
 	clean_html: function() {
 		
 		var html = this.editor.html() || "";
-		if(!strip(this.editor.text()) && !(this.editor.find("img"))) html = "";
+		if(!$.trim(this.editor.text()) && !(this.editor.find("img"))) html = "";
 		// html = html.replace(/(<br>|\s|<div><br><\/div>|&nbsp;)*$/, '');
 
 		// remove custom typography (use CSS!)
