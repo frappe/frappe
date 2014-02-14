@@ -1,0 +1,33 @@
+[
+ {
+  "creation": "2012-06-14 15:07:25", 
+  "docstatus": 0, 
+  "modified": "2014-02-13 16:09:26", 
+  "modified_by": "Administrator", 
+  "owner": "Administrator"
+ }, 
+ {
+  "doctype": "Page", 
+  "icon": "icon-upload", 
+  "module": "Core", 
+  "name": "__common__", 
+  "page_name": "Data Import Tool", 
+  "standard": "Yes", 
+  "title": "Data Import Tool"
+ }, 
+ {
+  "doctype": "Page Role", 
+  "name": "__common__", 
+  "parent": "data-import-tool", 
+  "parentfield": "roles", 
+  "parenttype": "Page", 
+  "role": "System Manager"
+ }, 
+ {
+  "doctype": "Page", 
+  "name": "data-import-tool"
+ }, 
+ {
+  "doctype": "Page Role"
+ }
+]

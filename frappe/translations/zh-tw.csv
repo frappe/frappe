@@ -1,0 +1,1073 @@
+ by Role ,按角色
+ can not be marked as a ledger as it has existing child,不能被標記為總賬，因為它已經存在的子
+ cannot be deleted.,
+ is not set,沒有設置
+"""Company History""",“公司歷史”
+"""Team Members"" or ""Management""",“團隊成員”或“管理”
+0,0
+"000 is black, fff is white",000是黑色的，FFF是白色的
+1,1
+12px,12px的
+13px,13px的
+14px,14px的
+15px,15px的
+16px,16px的
+2,借記賬戶（供應商）不與採購發票匹配
+2 days ago,3天前
+"<a onclick=""msgprint('<ol>\
+<li><b>field:[fieldname]</b> - By Field\
+<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\
+<li><b>Prompt</b> - Prompt user for a name\
+<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\
+</ol>')"">Naming Options</a>",
+<b>Cancel</b> allows you change Submitted documents by cancelling them and amending them.,<b>取消</b>允許你通過取消他們和修改他們改變提交的文件。
+A new popup will open that will ask you to select further conditions.,一個新的彈出窗口將打開，將要求您選擇其他條件。
+A user can have multiple values for a property.,一個用戶可以有一個屬性的多個值。
+About,關於
+About Us Settings,關於我們設置
+About Us Team Member,關於我們團隊成員
+Account Id,帳戶ID
+Action,行動
+Actions,操作
+Add,加
+Add A New Rule,添加新的規則
+Add A Property,添加屬性
+Add Attachments,添加附件
+Add Bookmark,添加書籤
+Add CSS,添加CSS
+Add Column,添加列
+Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,添加谷歌Analytics（分析）ID：例如。 UA-89XXX57-1。請搜索在谷歌Analytics（分析）幫助以獲取更多信息。
+Add Message,發表留言
+Add New Permission Rule,添加新的權限規則
+Add Reply,添加回复
+Add Total Row,添加總計行
+Add a banner to the site. (small banners are usually good),添加一個橫幅掛在了網站上。 （小橫幅通常是很好的）
+Add attachment,添加附件
+Add code as &lt;script&gt;,添加代碼為&lt;SCRIPT&gt;
+Add new row,添加新行
+"Add the name of <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> e.g. ""Open Sans""","新增的名稱<a href=""http://google.com/webfonts"" target=""_blank"">谷歌網頁字體</a>如“打開三世”"
+Add to To Do,添加到待辦事項
+Add to To Do List of,添加到待辦事項列表
+Additional Info,附加信息
+Address,地址
+Address and other legal information you may want to put in the footer.,地址和其他法律信息，你可能要放在頁腳。
+Address to be displayed on the Contact Page,地址作為聯繫頁面上顯示
+Adds a custom field to a DocType,添加一個自定義字段，以一個DOCTYPE
+Adds a custom script (client or server) to a DocType,添加一個自定義腳本（客戶端或服務器），以一個DOCTYPE
+Advanced Scripting,高級腳本
+Advanced Settings,高級設置
+All Day,全日
+"All possible Workflow States and roles of the workflow. <br>Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""",所有可能的工作流程狀態和工作流的角色。 <br> Docstatus選項：0是“保存”，1“已提交”和2“取消”
+Allow Attach,允許連接
+Allow Import,允許進口
+Allow Import via Data Import Tool,允許通過數據導入工具導入
+Allow Rename,允許重新命名
+Allow on Submit,允許在提交
+Allow user to login only after this hour (0-24),允許用戶僅這一小時後登陸（0-24）
+Allow user to login only before this hour (0-24),允許用戶僅在此之前登錄小時（0-24）
+Allowed,寵物
+Already Registered,已註冊
+Amend,修改
+"An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [<a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a>]","一個圖標文件，擴展名為。ico。應該是16×16像素。使用的favicon生成器生成。 [ <a href=""http://favicon-generator.org/"" target=""_blank"">網站圖標- generator.org</a> ]"
+Are you sure you want to delete the attachment?,您確定要刪除的附件？
+Arial,宋體
+"As a best practice, do not assign the same set of permission rule to different Roles instead set multiple Roles to the User",作為最佳實踐，不要在同一組的權限規則分配給不同的角色，而不是設置多個角色的用戶
+Ascending,升序
+Assign To,分配給
+Assigned By,通過分配
+Assigned To,分配給
+Assigned To/Owner,分配給/所有者
+Attach,附
+Attach Document Print,附加文檔打印
+Attach as web link,附加為網站鏈接
+Attached To DocType,附著的DocType
+Attached To Name,單身者姓名
+Attachments,附件
+Attributions,歸屬
+Auto Name,自動名稱
+Auto generated,自動生成
+Avatar,阿凡達
+Background Color,背景顏色
+Background Image,背景圖片
+Banner,旗幟
+Banner HTML,橫幅的HTML
+Banner Image,橫幅圖片
+Banner is above the Top Menu Bar.,旗幟就是上面的頂部菜單欄。
+Begin this page with a slideshow of images,開始這個頁面圖像的幻燈片
+Belongs to,屬於
+Bio,生物
+Birth Date,出生日期
+Blog Category,博客分類
+Blog Intro,博客介紹
+Blog Introduction,博客簡介
+Blog Post,博客公告
+Blog Settings,博客設置
+Blog Title,博客標題
+Blogger,博客
+Bookmarks,書籤
+Brand HTML,品牌的HTML
+"Brand is what appears on the top-right of the toolbar. If it is an image, make sure it
+has a transparent background and use the &lt;img /&gt; tag. Keep size as 200px x 30px",
+Bulk Email,大量電子郵件
+Bulk Email records.,大量電子郵件記錄。
+Button,鈕
+By,通過
+COMM-,COMM-
+CSS,CSS
+Calendar,日曆
+Can only be exported by users with role 'Report Manager',只能由用戶與角色“報表管理器”導出
+Cancel,取消
+Cancel permission also allows the user to delete a document (if it is not linked to any other document).,取消許可還允許用戶刪除一個文件（如果它不與任何其他文件）。
+Cancelled,註銷
+Cannot Update: Incorrect / Expired Link.,無法更新：不正確的/過期的鏈接。
+Cannot Update: Incorrect Password,無法更新：不正確的密碼
+Cannot change from,不能改變
+Cannot edit standard fields,不能編輯標準字段
+Cannot map because following condition fails: ,無法對應，因為以下條件失敗：
+"Cannot update a non-exiting record, try inserting.",無法更新非退出記錄，請嘗試插入。
+Categorize blog posts.,分類博客文章。
+Category,類別
+Category Name,分類名稱
+Center,中心
+"Certain documents should not be changed once final, like an Invoice for example. The final state for such documents is called <b>Submitted</b>. You can restrict which roles can Submit.",某些文件不應該改變最後一次，像發票為例。對這些文件的最後狀態被稱為<b>提交</b> 。您可以限制哪些角色可以提交。
+Chat,聊天
+Check,查
+Check / Uncheck roles assigned to the Profile. Click on the Role to find out what permissions that Role has.,查看/取消選中分配給個人的角色。點擊角色，找出哪些權限的角色了。
+Check this to make this the default letter head in all prints,勾選這個來讓這個默認的信頭中的所有打印
+Checked,檢查
+Child Tables are shown as a Grid in other DocTypes.,子表中顯示為其他文檔類型的Grid。
+Clear Cache & Refresh,清除緩存和刷新
+Click on button in the 'Condition' column and select the option 'User is the creator of the document',點擊在“條件”列按鈕，並選擇選項“用戶是文件的創建者”
+Click on row to edit.,單擊要編輯的行。
+Click to Expand / Collapse,點擊展開/折疊
+Client,客戶
+Close,關閉
+Code,碼
+Color,顏色
+Column Break,分欄符
+Comment,評論
+Comment By,評論人
+Comment By Fullname,評論人全名
+Comment Date,評論日期
+Comment Docname,可採用DocName評論
+Comment Doctype,註釋文檔類型
+Comment Time,評論時間
+Comments,評論
+Communication,通訊
+Communication Medium,通信介質
+Company History,公司歷史
+Company Introduction,公司簡介
+Company Name,公司名稱
+Complaint,抱怨
+Complete By,完成
+Condition Field,條件字段
+Contact Us Settings,聯繫我們設置
+"Contact options, like ""Sales Query, Support Query"" etc each on a new line or separated by commas.",聯繫人選項，如“銷售查詢，支持查詢”等每一個新行或以逗號分隔。
+Content,內容
+Content in markdown format that appears on the main side of your page,在降價格式的內容，在頁面的主側出現
+Content web page.,內容的網頁。
+Control Panel,控制面板
+Controller,調節器
+Copy,複製
+Copyright,版權
+Core,核心
+Count,算
+Country,國家
+Create,創建
+Created Customer Issue,創建客戶問題
+Created Opportunity,創造機會
+Created Support Ticket,創建支持票
+Currency,貨幣
+Currency Format,貨幣格式
+Current status,現狀
+Custom CSS,自定義CSS
+Custom Field,自定義字段
+Custom Reports,自定義報告
+Custom Script,自定義腳本
+Custom Startup Code,自定義啟動代碼
+Custom?,自定義？
+Customize,定制
+Customize Form,自定義表單
+Customize Form Field,自定義表單域
+"Customize Label, Print Hide, Default etc.",自定義標籤，打印隱藏，默認值等。
+Daily Event Digest is sent for Calendar Events where reminders are set.,每日賽事精華被送往何處提醒設置日曆事件。
+Danger,危險
+Data,數據
+Data missing in table,在表中的數據丟失
+Date,日期
+Date Format,日期格式
+Date must be in format,日期格式必須是
+Datetime,日期時間
+Dear,親愛
+Default,默認
+Default Home Page,默認主頁
+Default Home Pages,默認主頁
+Default Print Format,默認打印格式
+Default Value,默認值
+"Default: ""Contact Us""",默認：“聯繫我們”
+DefaultValue,默認值
+Defaults,默認
+Defines actions on states and the next step and allowed roles.,定義了國家行動和下一步和允許的角色。
+Defines workflow states and rules for a document.,定義了文檔工作流狀態和規則。
+Delete,刪除
+Delete Row,刪除行
+Depends On,取決於
+Descending,降
+Description,描述
+"Description for listing page, in plain text, only a couple of lines. (max 140 characters)",說明列表頁面，在純文本中，只有幾行。 （最多140個字符）
+Description for page header.,描述頁面標題。
+Desktop,桌面
+Details,詳細信息
+Did not add.,沒加。
+Did not cancel,沒有取消
+Did not save,沒救了
+"Different ""States"" this document can exist in. Like ""Open"", ""Pending Approval"" etc.",不同的“國家”這個文件可以存在。像“打開”，“待批准”等。
+Disable Customer Signup link in Login page,禁止在登錄頁面客戶註冊鏈接
+Disable Signup,禁止註冊
+Disabled,殘
+Display Settings,顯示設置
+Doc Status,文件狀態
+DocField,DocField
+DocPerm,DocPerm
+DocType,的DocType
+DocType Details,的DocType詳情
+DocType can not be merged,DocType文檔類型不能合併
+DocType is a Table / Form in the application.,的DocType是一個表/表格中的應用。
+DocType on which this Workflow is applicable.,DocType文檔類型上這個工作流是適用的。
+DocType or Field,的DocType或現場
+Docname,可採用DocName
+Document,文件
+Document Status transition from ,從文檔狀態過渡
+Document Type,文件類型
+Document Types,文檔類型
+Document is only editable by users of role,文件只有通過編輯角色的用戶
+Documents,文件
+Download Backup,下載備份
+Draft,草案
+Drafts,草稿箱
+Drag to sort columns,拖動進行排序的列
+Edit,編輯
+Editable,編輯
+Email,電子郵件
+Email Host,電子郵件主機
+Email Id where users will send support request e.g. support@example.com,電子郵件Id，用戶將發送支持請求，例如support@example.com
+Email Login,郵箱登錄
+Email Password,電子郵件密碼
+Email Sent,郵件發送
+Email Settings,電子郵件設置
+Email Signature,電子郵件簽名
+Email Use SSL,電子郵件使用SSL
+"Email addresses, separted by commas",電子郵件地址，以逗號separted
+Email...,電子郵件...
+Embed image slideshows in website pages.,嵌入圖像的幻燈片中的網頁。
+Enable Comments,啟用評論
+Enabled,啟用
+Ends on,結束於
+Enter Form Type,輸入表單類型
+"Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set ""match"" permission rules. To see list of fields, go to <a href=""#Form/Customize Form/Customize Form"">Customize Form</a>.","輸入默認值字段（鍵）和值。如果你對一個字段中添加多個值，則第一個將有所回升。這些默認值也可用來設置“匹配”的權限規則。要查看字段的列表，請訪問<a href=""#Form/Customize Form/Customize Form"">自定義表單</a> 。"
+Equals,等號
+Error,錯誤
+Error: Document has been modified after you have opened it,錯誤：你已經打開了它之後，文件已被修改
+Event,事件
+Event End must be after Start,活動結束必須開始後，
+Event Individuals,個人事件
+Event Role,事件角色
+Event Roles,事件角色
+Event Type,事件類型
+Event User,事件用戶
+Events In Today's Calendar,活動在今天的日曆
+Every Day,天天
+Every Month,每月
+Every Week,每一周
+Every Year,每年
+Example:,例如：
+Export,出口
+Facebook Share,Facebook分享
+FavIcon,網站圖標
+Female,女
+Field Description,字段說明
+Field Name,字段名稱
+Field Type,字段類型
+"Field that represents the Workflow State of the transaction (if field is not present, a new hidden Custom Field will be created)",現場，代表交易的工作流狀態（如果域不存在，一個新的隱藏的自定義字段將被創建）
+Fieldname,字段名
+Fields,領域
+"Fields separated by comma (,) will be included in the<br /><b>Search By</b> list of Search dialog box",字段用逗號（，）分隔將被納入<br /> <b>搜索</b>的搜索對話框列表
+File,文件
+File Data,文件數據
+File Name,文件名
+File Size,文件大小
+File URL,文件的URL
+File size exceeded the maximum allowed size,文件大小超過了允許的最大尺寸
+Filter,過濾器
+Finder,發現者
+First Name,名字
+Float,浮動
+Font (Heading),字體（標題）
+Font (Text),字體（文字）
+Font Size (Text),字體大小（文本）
+Fonts,字體
+Footer,頁腳
+Footer Items,頁腳項目
+For All Users,對於所有用戶
+For DocType,為的DocType
+"For Links, enter the DocType as range
+For Select, enter list of Options separated by comma",
+"For comparative filters, start with",對於比較器，開始
+For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,例如，如果你取消及修訂“INV004”它將成為一個新的文檔&#39;INV004-1&#39;。這可以幫助您跟踪每一項修正案。
+For example: You want to restrict users to transactions marked with a certain property called 'Territory',例如：你想限制用戶到標有某種屬性叫做&#39;領地&#39;交易
+For ranges,對於範圍
+Form,表格
+"Format: hh:mm example for one hour expiry set as 01:00. 
+Max expiry will be 72 hours. Default is 24 hours",
+Forward To Email Address,轉發到郵件地址
+Friday,星期五
+From Date must be before To Date,從日期必須是之前日期
+Full Name,全名
+Gantt Chart,甘特圖
+Gender,性別
+General,一般
+Generator,發電機
+Georgia,格魯吉亞
+Get,得到
+Get From ,得到
+"Go to Setup > <a href='#user-properties'>User Properties</a> to set \
+			'territory' for diffent Users.",
+Google Analytics ID,谷歌Analytics（分析）的ID
+Google Plus One,谷歌加一
+Google Web Font (Heading),谷歌網頁字體（標題）
+Google Web Font (Text),谷歌網頁字體（文字）
+Greater or equals,大於或等於
+Greater than,大於
+Groups,組
+HTML,HTML
+Header,頭
+Heading,標題
+Heading Text As,標題文字作為
+Help,幫助
+Helvetica Neue,Helvetica Neue字體
+Hey! There should remain at least one System Manager,嘿！應該保持至少一個系統管理器
+Hidden,隱
+Hide Actions,隱藏操作
+Hide Copy,隱藏副本
+Hide Email,隱藏電子郵件
+Hide Heading,隱藏標題
+Hide Print,隱藏打印
+Hide Toolbar,隱藏工具欄
+Highlight,突出
+History,歷史
+Home Page,首頁
+Home Page is Products,首頁產品是
+Home Pages,主頁
+ID,ID
+ID (name) of the entity whose property is to be set,其屬性是要設置的實體的ID（名稱）
+Icon,圖標
+Icon will appear on the button,圖標將顯示在按鈕上
+"If a User does not have access at Level 0, then higher levels are meaningless",如果用戶無權訪問級別為0級，那麼更高的水平是沒有意義的
+"If checked, all other workflows become inactive.",如果選中，所有其他的工作流程變得無效。
+"If checked, the Home page will be the default Item Group for the website.",如果選中，主頁將是默認的項目組的網站上。
+"If image is selected, color will be ignored (attach first)",如果圖像被選中，顏色將被忽略（先附上）
+"If not, create a",如果沒有，請創建一個
+"If the 'territory' Link Field exists, it will give you an option to select it",如果&#39;領土&#39;鏈接字段存在，它會給你一個選項，選擇它
+"If these instructions where not helpful, please add in your suggestions at <a href='https://github.com/webnotes/wnframework/issues'>GitHub Issues</a>",如果這些指令，其中沒有幫助，請在您的建議添加<a href='https://github.com/webnotes/wnframework/issues'>GitHub的問題</a>
+"If you set this, this Item will come in a drop-down under the selected parent.",如果你設置這個，這個項目會在一個下拉菜單中選定父下。
+Image,圖像
+Image Link,圖片鏈接
+Import,進口
+In,在
+In Dialog,在對話框
+In Filter,在過濾器
+In List View,在列表視圖
+In Report Filter,在報表篩選
+In response to,響應於
+"In the Permission Manager, click on the button in the 'Condition' column for the Role you want to restrict.",在權限管理器中，單擊在“狀態”列中的按鈕為要限制的作用。
+Index,指數
+Individuals,個人
+Industry,行業
+Info,信息
+Insert After,插入後
+Insert Below,下面插入
+Insert Code,插入代碼
+Insert Row,插入行
+Insert Style,插入式
+Int,詮釋
+Integrations,集成
+Introduce your company to the website visitor.,介紹貴公司的網站訪客。
+Introduction,介紹
+Introductory information for the Contact Us Page,介紹信息的聯繫我們頁面
+Invalid Email,無效的電子郵件
+Inverse,逆
+Is Active,為活躍
+Is Child Table,是子表
+Is Default,是默認
+Is Mandatory Field,是必須填寫
+Is Single,單人
+Is Standard,為標準
+Is Submittable,是Submittable
+JSON,JSON
+JavaScript Format: wn.query_reports['REPORTNAME'] = {},JavaScript的格式：wn.query_reports [&#39;REPORTNAME&#39;] = {}
+Javascript,使用Javascript
+Javascript to append to the head section of the page.,Javascript來附加到頁面的head部分。
+Keep a track of all communications,保持跟踪所有通信
+Key,關鍵
+Label,標籤
+Label Help,標籤說明
+Lacs,紫膠
+Landing Page,著陸頁
+Language,語
+Language preference for user interface (only if available).,語言首選項的用戶界面（僅如果有的話）。
+Last IP,最後一個IP
+Last Login,上次登錄
+Last Name,姓
+Last updated by,最後更新由
+Lastmod,LASTMOD
+Lato,拉托
+Leave blank to repeat always,留空將總是重複
+Left,左
+Less or equals,小於或等於
+Less than,小於
+Letter Head,信頭
+Letter Head Image,信頭圖片
+Letter Head Name,信頭名
+Letter Head in HTML,信頭中的HTML
+Level,級別
+"Level 0 is for document level permissions, higher levels for field level permissions.",0級是文件級權限，更高層次字段級權限。
+Like,喜歡
+Link,鏈接
+Link Name,鏈接名稱
+Link to other pages in the side bar and next section,鏈接到側欄和下一節其他頁面
+Link to the page you want to open,鏈接到你想打開的網頁
+Linked In Share,反向鏈接分享
+Linked With,掛具
+List,表
+List of patches executed,執行補丁列表
+Loading,載入中
+Loading Report,加載報表
+Loading...,載入中...
+Log of Scheduler Errors,調度程序錯誤日誌
+Login,註冊
+Login After,登錄後
+Login Before,登錄前
+Logout,註銷
+Long Text,長文本
+Lucida Grande,龍力大
+Mail Footer,郵件頁腳
+Mail Server,郵件服務器
+Main Section,主科
+Make a new,創建一個新的
+Make sure that the transactions you want to restrict have a Link field 'territory' that maps to a 'Territory' master.,請確保您要限制的交易有一個鏈接字段&#39;領土&#39;映射到一個&#39;領地&#39;師父。
+Male,男性
+Mandatory,強制性
+Mandatory filters required:\n,需要強制性的過濾器： \ ñ
+Master,主
+Match,比賽
+Max Attachments,最大附件
+"Meaning of Submit, Cancel, Amend",的含義提交，取消，修改
+"Menu items in the Top Bar. For setting the color of the Top Bar, go to <a href=""#Form/Style Settings"">Style Settings</a>","在頂欄菜單項。設置最上面一欄的顏色，去<a href=""#Form/Style Settings"">樣式設置</a>"
+"Merging is only possible between Group-to-Group or 
+					Ledger-to-Ledger",
+Message,信息
+Method,方法
+Middle Name (Optional),中間名（可選）
+Millions,百萬
+Misc,雜項
+Miscellaneous,雜項
+Missing Values Required,所需遺漏值
+Modified by,改性
+Module,模
+Module Def,模塊高清
+Module Name,模塊名稱
+Modules,模塊
+Monday,星期一
+More,更多
+More content for the bottom of the page.,更多的內容的頁面的底部。
+Must have report permission to access this report.,必須具有報告權限訪問此報告。
+Must specify a Query to run,必須指定一個查詢運行
+Name,名稱
+Name Case,案例名稱
+Name Exists,名稱存在
+Naming Series mandatory,命名系列強制性
+New,新
+New Password,新密碼
+New Record,新記錄
+New value to be set,新的值被設置
+Next Communcation On,下一步通信電子在
+Next State,下一狀態
+Next actions,下一步行動
+No,無
+No Action,無動作
+No Cache,無緩存
+No Communication tagged with this ,無標籤的通信與此
+No Copy,沒有複製
+No Permission,無權限
+No Permission to ,沒有權限
+No Permissions set for this criteria.,沒有權限設置此標準。
+No Report Loaded. Please use query-report/[Report Name] to run a report.,無報告加載。請使用查詢報告/ [報告名稱]運行報告。
+No Sitemap,沒有網站地圖
+No User Properties found.,沒有用戶屬性中找到。
+No further records,沒有進一步的記錄
+No one,沒有人
+No permission to edit,無權限進行編輯
+No permission to write / remove.,沒有權限寫入/刪除。
+No records tagged.,沒有記錄標記。
+None,無
+None: End of Workflow,無：結束的工作流程
+Not Found,未找到
+Not Linked to any record.,不鏈接到任何記錄。
+Not Permitted,不允許
+Not allowed for: ,不允許：
+Not enough permission to see links.,沒有足夠的權限查看鏈接。
+Not equals,不等於
+"Note: For best results, images must be of the same size and width must be greater than height.",注意：為達到最佳效果，圖像必須具有相同的尺寸和寬度必須大於高度。
+Note: Other permission rules may also apply,注：其它權限規則也可申請
+Note: maximum attachment size = 1mb,注：附件大小上限= 1MB
+Nothing to show,沒有顯示
+Nothing to show for this selection,沒什麼可顯示該選擇
+Notification Count,通知計數
+Notify By Email,通知通過電子郵件
+On,上
+"Once you have set this, the users will only be able access documents with that property.",一旦你設置這個，用戶將只能訪問文檔與該屬性。
+Only Administrator allowed to create Query / Script Reports,只有管​​理員可以創建查詢/報告的腳本
+Only Administrator can save a standard report. Please rename and save.,只有管​​理員可以保存一個標準的報告。請重新命名並保存。
+Only Allow Edit For,只允許編輯
+Only System Manager can create / edit reports,只有系統管理員可以創建/編輯報導
+Open Count,打開計數
+Open Sans,開放三世
+Options,選項
+Options Help,選項幫助
+Org History,組織歷史
+Org History Heading,組織歷史航向
+Original Message,原始消息
+Other,其他
+POP3 Mail Server (e.g. pop.gmail.com),POP3郵件服務器（如：pop.gmail.com）
+Page,頁面
+Page Background,頁面背景
+Page Border,頁面邊框
+Page HTML,頁面的HTML
+Page Headings,頁面標題
+Page Links,網頁鏈接
+Page Name,網頁名稱
+Page Name Field,頁面名稱字段
+Page Role,第角色
+Page Text,頁面文字
+Page already exists,頁面已經存在
+Page content,頁面內容
+Page not found,找不到網頁
+Page or Generator,頁或生成
+Page text and background is same color. Please change.,網頁文字及背景相同的顏色。請更改。
+"Page to show on the website
+",
+"Page url name (auto-generated) (add "".html"")",頁面的URL名稱（自動生成）（加上“。的HTML”）
+Parent Label,父標籤
+Parent is required.,家長是必需的。
+Participants,參與者
+Password,密碼
+Password Expires in (days),在（天）密碼過期
+Password Updated,密碼更新
+Patch,補丁
+Patch Log,補丁日誌
+Percent,百分之
+Perm Level,權限等級
+Permission Level,權限級別
+Permission Levels,權限級別
+Permission Manager,權限管理
+Permission Rules,權限規則
+Permissions,權限
+Permissions Settings,權限設置
+Permissions are automatically translated to Standard Reports and Searches,權限會自動轉換為標準報表和搜索
+"Permissions are set on Roles and Document Types (called DocTypes) by restricting read, edit, make new, submit, cancel, amend and report rights.",權限是通過限制讀取，編輯，做出新的，提交，取消，修改和報告權的角色和文件類型（稱為文檔類型）設置。
+Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful incase you want to hide or make certain field read-only.,在更高級別的權限是“現場級”的權限。所有欄位有一個“權限級別”設置對他們和那個權限應用到該字段中定義的規則。櫃面你想要隱藏或使某些領域只讀這是有用的。
+"Permissions at level 0 are 'Document Level' permissions, i.e. they are primary for access to the document.",在0級權限是“文件級”的權限，也就是說，它們是主要用於訪問文件。
+Permissions translate to Users based on what Role they are assigned,權限轉化為基於什麼樣的角色，他們被分配用戶
+Person,人
+Phone,電話
+Phone No.,電話號碼
+Pick Columns,摘列
+Please attach a file first.,請附上文件第一。
+Please attach a file or set a URL,請附上一個文件或設置一個URL
+Please change the value,請更改該值
+Please enable pop-ups,請啟用彈出窗口
+Please make sure that there are no empty columns in the file.,請確保沒有空列在文件中。
+Please refresh to get the latest document.,請刷新以獲得最新的文檔。
+Please select a file or url,請選擇一個文件或URL
+Please specify,請註明
+Plugin,插件
+Post Publicly,公開發布
+Post Topic,發表帖子
+Post to user,發布到用戶
+Posts,帖子
+Primary,初級
+Print Format,打印格式
+Print Format Type,打印格式類型
+Print Hide,打印隱藏
+Print Width,打印寬度
+Print...,打印...
+Priority,優先
+Private,私人
+Profile,輪廓
+Profile Defaults,簡介默認
+Profile Represents a User in the system.,資料表示系統中的一個用戶。
+Profile of a Blogger,是Blogger的個人資料
+Profile of a blog writer.,一個博客作家簡介。
+Properties,屬性
+Property,屬性
+Property Setter,屬性setter
+Property Setter overrides a standard DocType or Field property,屬性setter覆蓋一個標準的DocType或Field屬性
+Property Type,物業類型
+Public,公
+Published,發布時間
+Published On,發表於
+Pull Emails from the Inbox and attach them as Communication records (for known contacts).,從收件箱拉電子郵件，並將它們附加的通信記錄（稱為觸點）。
+Query,詢問
+Query Options,查詢選項
+Query Report,查詢報表
+Query must be a SELECT,查詢必須是一個SELECT
+Quick Help for Setting Permissions,快速幫助設置權限
+Quick Help for User Properties,快速幫助用戶屬性
+Read,閱讀
+Read Only,只讀
+Received,收到
+Recipient,接受者
+Recipients,受助人
+Ref DocType,參考的DocType
+Ref Name,樓盤名稱
+Ref Type,樓盤類型
+Reference,參考
+Reference DocName,可採用DocName參考
+Reference DocType,參考的DocType
+Reference Name,參考名稱
+Reference Type,參考類型
+Refresh,刷新
+Registered but disabled.,註冊但被禁用。
+Registration Details Emailed.,報名資料通過電子郵件發送。
+Remove Bookmark,刪除書籤
+Rename...,重命名...
+Repeat On,重複開
+Repeat Till,重複直到
+Repeat this Event,重複此事件
+Report,報告
+Report Builder,報表生成器
+Report Builder reports are managed directly by the report builder. Nothing to do.,報表生成器報表直接由報表生成器來管理。無事可做。
+Report Hide,報告隱藏
+Report Name,報告名稱
+Report Type,報告類型
+Report was not saved (there were errors),報告沒有被保存（有錯誤）
+Represents the states allowed in one document and role assigned to change the state.,代表一個文檔，並分配到改變國家角色允許的狀態。
+Reqd,REQD
+Reset Password Key,重設密碼鑰匙
+Restrict IP,限制IP
+Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111),僅此IP地址限制用戶。多個IP地址，可以通過用逗號分隔的補充。也接受像（111.111.111）部分的IP地址
+Restricting By User,通過限制用戶
+Right,右邊
+Role,角色
+Role Name,角色名稱
+Roles,角色
+Roles Assigned,角色分配
+Roles Assigned To User,角色分配給用戶
+Roles HTML,角色的HTML
+Root ,根
+Row,排
+Rules defining transition of state in the workflow.,規則定義的工作流狀態的過渡。
+"Rules for how states are transitions, like next state and which role is allowed to change state etc.",規則的狀態是如何過渡，就像下一個狀態以及作用是允許改變狀態等。
+SMS,短信
+Sales,銷售
+Same file has already been attached to the record,相同的文件已經被連接到記錄
+Saturday,星期六
+Save,節省
+Scheduler Log,調度日誌
+Script,腳本
+Script Report,腳本報告
+Script Type,腳本類型
+Script to attach to all web pages.,腳本附加到所有的網頁。
+Search,搜索
+Search Fields,搜索字段
+Section Break,分節符
+Security Settings,安全設置
+Select,選擇
+Select All,全選
+Select Attachments,選擇附件
+Select Document Type,選擇文件類型
+Select Document Type or Role to start.,選擇文件類型或角色開始。
+Select Module,選擇模塊
+Select Print Format,選擇打印格式
+Select Report Name,選擇報告名稱
+Select Role,選擇角色
+Select Type,選擇類型
+Select User or Property to start.,選擇用戶或物業開始。
+Select a Banner Image first.,首先選擇一個橫幅圖像。
+Select an image of approx width 150px with a transparent background for best results.,選擇約寬150像素的透明背景以獲得最佳效果的圖像。
+Select dates to create a new ,選擇日期以創建一個新的
+Select or drag across time slots to create a new event.,選擇或拖動整個時隙，以創建一個新的事件。
+"Select target = ""_blank"" to open in a new page.",選擇目標=“_blank”在新頁面中打開。
+Select the label after which you want to insert new field.,之後要插入新字段中選擇的標籤。
+Send,發送
+Send As Email,發送電子郵件
+Send Me A Copy,給我發一份
+Send an email reminder in the morning,發送電子郵件提醒，早上
+Send enquiries to this email address,發送諮詢到這個郵箱地址
+Sender,寄件人
+Sent,發送
+Sent Mail,發送郵件
+Sent Quotation,發送報價
+Sent or Received,發送或接收
+Series,系列
+Server,服務器
+Session Expired. Logging you out,會話過期。您的退出
+Session Expires in (time),會話過期的（時間）
+Set Banner from Image,從圖像設置橫幅
+Set Link,設置鏈接
+Set Password,設置密碼
+Set Value,設定值
+"Set your background color, font and image (tiled)",設置背景顏色，字體和圖像（平鋪）
+Settings for About Us Page.,設置關於我們頁面。
+Settings for Contact Us Page,設置聯繫我們頁面
+Settings for Contact Us Page.,設置聯繫我們頁面。
+Settings for the About Us Page,設置關於我們頁面
+Setup of fonts and background.,設置字體和背景。
+"Setup of top navigation bar, footer and logo.",安裝程序的頂部導航欄，頁腳和徽標。
+Short Bio,個人簡介
+Short Name,簡稱
+Shortcut,捷徑
+Show Breadcrumbs,顯示麵包屑
+Show Details,顯示詳細信息
+Show Print First,顯示打印首
+Show Table of Contents,顯示內容表格
+Show Tags,顯示標籤
+Show Title,顯示標題
+Show rows with zero values,秀行與零值
+Showing only for,僅顯示為
+Single Post (article).,單個帖子（文章）。
+Single Types have only one record no tables associated. Values are stored in tabSingles,單一類型只有一個記錄關聯的表。值被存儲在tabSingles
+Slideshow,連續播放
+Slideshow Items,幻燈片項目
+Slideshow Name,幻燈片放映名稱
+Slideshow like display for the website,像幻燈片顯示的網站
+Small Text,小文
+Solid background color (default light gray),純色背景色（默認淺灰色）
+Sorry we were unable to find what you were looking for.,對不起，我們無法找到您所期待的。
+Sorry you are not permitted to view this page.,對不起，您沒有權限瀏覽這個頁面。
+Sort By,排序
+Special Page Settings,特殊頁面設置
+Standard,標準
+Start Report For,啟動年報
+Starts on,開始於
+Startup,啟動
+State,態
+States,國家
+Status,狀態
+Step 1: Set the name and save.,第1步：設置名稱和保存。
+Step 2: Set Letterhead content.,第2步：設置信的內容。
+Style,風格
+Style Settings,樣式設置
+"Style represents the button color: Success - Green, Danger - Red, Inverse - Black, Primary - Dark Blue, Info - Light Blue, Warning - Orange",風格代表按鈕的顏色：成功 - 綠色，危險 - 紅，逆 - 黑色，而小學 - 深藍色，信息 - 淺藍，警告 - 橙
+Sub-domain provided by erpnext.com,由erpnext.com提供的子域
+Subdomain,子域名
+Subject,主題
+Submit,提交
+Submitted,提交
+Submitted Record cannot be deleted,提交記錄無法刪除
+Success,成功
+Suggestion,建議
+Sunday,星期天
+Support Email Id,支持電子郵件Id
+Sync Inbox,同步收件箱
+System,系統
+System Defaults,系統默認值
+System User,系統用戶
+Table,表
+Table of Contents,目錄
+Tag,標籤
+Tag Name,標籤名稱
+Tags,標籤
+Tahoma,宋體
+Target,目標
+Team Members,團隊成員
+Team Members Heading,小組成員標題
+Template Path,模板路徑
+Test,測試
+Test Runner,測試運行
+Text,文本
+Text Align,文本對齊
+Text Editor,文本編輯器
+"The ""Web Page"" that is the website home page",在“網頁”，也就是在網站首頁
+The name of your company / website as you want to appear on browser title bar. All pages will have this as the prefix to the title.,您的公司/網站的，你想要顯示在瀏覽器標題欄中的名稱。所有頁面都會有這樣的前綴稱號。
+"The system provides pre-defined roles, but you can <a href='#List/Role'>add new roles</a> to set finer permissions",該系統提供了預先定義的角色，但你可以<a href='#List/Role'>添加新角色</a>設定更精細的權限
+Then By (optional),再由（可選）
+These properties are Link Type fields from all Documents.,這些屬性是由所有文件鏈接類型字段。
+"These properties can also be used to 'assign' a particular document, whose property matches with the User's property to a User. These can be set using the <a href='#permission-manager'>Permission Manager</a>",這些屬性也可以用來&#39;分配&#39;一個特定的文件，其屬性與用戶的屬性相匹配的用戶。這些可以通過設置<a href='#permission-manager'>權限管理</a>
+These properties will appear as values in forms that contain them.,這些屬性將顯示為包含這些形式的值。
+These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,這些值將在交易中自動更新，也將是有益的權限限制在含有這些值交易這個用戶。
+"This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>
+myfield
+eval:doc.myfield=='My Value'<br>
+eval:doc.age>18",
+This goes above the slideshow.,這正好幻燈片上面。
+This is PERMANENT action and you cannot undo. Continue?,這是永久性的行動，你不能撤消。要繼續嗎？
+This is permanent action and you cannot undo. Continue?,這是永久的行動，你不能撤消。要繼續嗎？
+Thursday,星期四
+Time,時間
+Time Zone,時區
+Title,標題
+Title / headline of your page,你的頁面標題/標題
+Title Case,標題案例
+Title Prefix,標題前綴
+To,至
+"To format columns, give column labels in the query.",要格式化列，給列標籤在查詢中。
+"To further restrict permissions based on certain values in a document, use the 'Condition' settings.",為了進一步限制基於文檔中的某些價值觀的權限，使用&#39;條件&#39;的設置。
+To restrict a User of a particular Role to documents that are explicitly assigned to them,要限制某一特定角色的用戶來顯式分配給他們的文件
+To restrict a User of a particular Role to documents that are only self-created.,要限制某一特定角色的用戶到只有自己創建的文檔。
+"To set user roles, just go to <a href='#List/Profile'>Setup > Users</a> and click on the user to assign roles.",要設置用戶角色，只要進入<a href='#List/Profile'>設置&gt;用戶</a> ，然後單擊分配角色的用戶。
+ToDo,待辦事項
+Tools,工具
+Top Bar,頂欄
+Top Bar Background,頂欄背景
+Top Bar Item,頂欄項目
+Top Bar Items,頂欄項目
+Top Bar Text,頂欄文本
+Top Bar text and background is same color. Please change.,最上面一欄的文本和背景顏色相同。請更改。
+Total SMS Sent,共發送短信
+Transaction,交易
+Transition Rules,過渡規則
+Trash Reason,垃圾桶原因
+Tuesday,星期二
+Tweet will be shared via your user account (if specified),推文將通過您的用戶帳戶共享（如果指定）
+Twitter Share,Twitter分享
+Twitter Share via,Twitter分享通過
+Type,類型
+UPPER CASE,大寫
+UPPERCASE,大寫
+URL,網址
+Unable to complete request: ,無法完成請求：
+Unable to load,無法加載
+"Unknown file encoding. Tried utf-8, windows-1250, windows-1252.",未知文件編碼。嘗試UTF-8，windows-1250訪問，windows-1252訪問。
+Unread Messages,未讀消息
+Unsubscribed,退訂
+Upcoming Events for Today,近期活動今日
+Update,更新
+Update Field,更新域
+Update Value,更新值
+Upload,上載
+Upload Attachment,上傳附件
+Upload a file,上傳文件
+Upload and Import,上傳和導入
+Uploading...,上載...
+User,用戶
+User Cannot Create,用戶無法創建
+User Cannot Search,用戶不能搜索
+User Image,用戶圖片
+User Tags,用戶標籤
+User Type,用戶類型
+User not allowed to delete.,用戶不允許刪除。
+UserRole,的UserRole
+Value,值
+Value missing for,缺少值
+Verdana,宋體
+Visit,訪問
+Warning,警告
+Web Content,Web內容
+Web Page,網頁
+Website,網站
+Website Overall Settings,網站整體設置
+Website Script,網站腳本
+Website Settings,網站設置
+Website Sitemap,網站地圖
+Website Sitemap Config,網站地圖配置
+Website Slideshow,網站連續播放
+Website Slideshow Item,網站幻燈片項目
+Website User,網站用戶
+Wednesday,星期三
+Welcome Email Sent,歡迎發送電子郵件
+"When you <b>Amend</b> a document after cancel and save it, it will get a new number that is a version of the old number.",當您<b>修改</b>一個文件後，取消和保存，它會得到一個新的數字，是一個版本的舊號碼。
+Width,寬度
+Will be used in url (usually first name).,在URL（通常是第一個名字）將被使用。
+Workflow,工作流程
+Workflow Action,工作流操作
+Workflow Action Master,工作流操作主
+Workflow Action Name,工作流操作名稱
+Workflow Document State,工作流文檔狀態
+Workflow Document States,工作流文檔國
+Workflow Name,工作流名稱
+Workflow State,工作流狀態
+Workflow State Field,工作流狀態字段
+Workflow Transition,工作流程轉換
+Workflow Transitions,工作流程轉換
+Workflow state represents the current state of a document.,工作流狀態表示文檔的當前狀態。
+Workflow will start after saving.,保存後的工作流程將啟動。
+Write,寫
+Write a Python file in the same folder where this is saved and return column and result.,寫一個Python文件，在這個被保存在同一文件夾中，並返回列和結果。
+Write a SELECT query. Note result is not paged (all data is sent in one go).,寫一個SELECT查詢。注結果不分頁（所有數據都一氣呵成發送）。
+Write titles and introductions to your blog.,寫標題和介紹給你的博客。
+Writers Introduction,作家簡介
+Year,年
+Yes,是的
+Yesterday,昨天
+You can set various 'properties' to Users to set default values and apply permission rules based on the value of these properties in various forms.,您可以設置不同的“屬性”，以用戶設置的默認值，並基於各種形式的這些屬性值的權限規則。
+You can use <a href='#Form/Customize Form'>Customize Form</a> to set levels on fields.,您可以使用<a href='#Form/Customize Form'>自定義表單</a>上欄位設定水平。
+"Your download is being built, this may take a few moments...",您的下載正在修建，這可能需要一些時間......
+[Label]:[Field Type]/[Options]:[Width],[標籤]：[字段類型] / [選項]：[寬]
+add your own CSS (careful!),添加您自己的CSS（careful!）
+adjust,調整
+align-center,對準中心
+align-justify,對齊對齊
+align-left,對齊左
+align-right,對齊，右
+and,和
+arrow-down,箭頭向下
+arrow-left,箭頭左
+arrow-right,箭頭向右
+arrow-up,向上箭頭
+asterisk,星號
+backward,落後
+ban-circle,禁令圈
+barcode,條形碼
+bell,鐘
+bold,膽大
+book,書
+bookmark,書籤
+briefcase,公文包
+bullhorn,擴音器
+calendar,日曆
+camera,相機
+cannot be empty,不能為空
+cannot be in its own,不能在其自身的
+"cannot have a URL, because it has child item(s)",不能有一個URL ，因為它有子項（次）
+cannot start with,無法開始
+certificate,證書
+check,查
+chevron-down,雪佛龍跌
+chevron-left,人字形左
+chevron-right,雪佛龍 - 右
+chevron-up,雪佛龍達
+circle-arrow-down,圓圈箭頭向下
+circle-arrow-left,圓圈箭頭向左
+circle-arrow-right,圓圈箭頭向右
+circle-arrow-up,圓圈箭頭行動
+cog,COG
+comment,評論
+comments,評論
+create a Custom Field of type Link (Profile) and then use the 'Condition' settings to map that field to the Permission rule.,創建類型鏈接（配置文件）的自定義字段，然後使用“條件”設置到該字段映射到權限規則。
+dd-mm-yyyy,日 - 月 - 年
+dd/mm/yyyy,日/月/年
+does not exist,不存在
+download,下載
+download-alt,下載的Alt
+edit,編輯
+eject,噴射
+envelope,信封
+exclamation-sign,驚嘆號標誌
+eye-close,眼睛閉
+eye-open,眼開
+facetime-video,FaceTime的視頻
+fast-backward,快退
+fast-forward,快進
+file,文件
+film,電影
+filter,過濾器
+fire,火
+flag,旗
+folder-close,文件夾閉
+folder-open,文件夾打開
+font,字形
+forward,向前
+found,發現
+fullscreen,全屏
+gift,禮物
+glass,玻璃
+globe,地球
+hand-down,用手向下
+hand-left,手左
+hand-right,手右
+hand-up,手機
+hdd,硬盤
+headphones,頭戴耳機
+heart,心臟
+home,家
+icon,圖標
+in,在
+inbox,收件箱
+indent-left,縮進左
+indent-right,縮進，右
+info-sign,信息符號
+is linked in,在鏈接
+is not allowed.,是不允許的。
+italic,斜體
+leaf,葉
+list,表
+list-alt,列表ALT
+lock,鎖
+lowercase,小寫
+magnet,磁鐵
+map-marker,地圖標記物
+minus,減
+minus-sign,減號
+mm-dd-yyyy,MM-DD-YYYY
+mm/dd/yyyy,月/日/年
+move,移動
+music,音樂
+not in,不
+of type Link,鏈接類型
+off,離
+ok,行
+ok-circle,OK-圈
+ok-sign,OK-跡象
+or,或
+pause,暫停
+pencil,鉛筆
+picture,圖片
+plane,機
+play,玩
+play-circle,玩圈
+plus,加
+plus-sign,加號
+print,打印
+qrcode,QRcode的
+question-sign,問題符號
+random,隨機
+refresh,刷新
+remove,清除
+remove-circle,刪除圈
+remove-sign,刪除符號
+repeat,重複
+resize-full,調整滿
+resize-horizontal,調整大小，水平
+resize-small,調整大小小
+resize-vertical,調整垂直
+retweet,轉推
+road,道路
+screenshot,屏幕截圖
+search,搜索
+share,共享
+share-alt,股份ALT
+shopping-cart,購物推車
+signal,信號
+star,明星
+star-empty,明星空
+step-backward,一步落後
+step-forward,步向前
+stop,停止
+tag,標籤
+tags,標籤
+"target = ""_blank""",目標=“_blank”
+tasks,任務
+text-height,文字高度
+text-width,文字寬度
+th,日
+th-large,TH-大
+th-list,日列表
+thumbs-down,拇指向下
+thumbs-up,豎起大拇指
+time,時間
+tint,色彩
+to,至
+trash,垃圾
+upload,上載
+user,用戶
+user_image_show,user_image_show
+values and dates,值和日期
+volume-down,容積式
+volume-off,體積過
+volume-up,容積式
+warning-sign,警告符號
+wrench,扳手
+yyyy-mm-dd,年 - 月 - 日
+zoom-in,放大式
+zoom-out,拉遠

@@ -1,0 +1,84 @@
+[
+ {
+  "creation": "2013-01-10 16:34:01", 
+  "docstatus": 0, 
+  "modified": "2014-01-20 17:48:31", 
+  "modified_by": "Administrator", 
+  "owner": "Administrator"
+ }, 
+ {
+  "autoname": "CustomScript.####", 
+  "description": "Adds a custom script (client or server) to a DocType", 
+  "doctype": "DocType", 
+  "icon": "icon-glass", 
+  "module": "Core", 
+  "name": "__common__"
+ }, 
+ {
+  "doctype": "DocField", 
+  "name": "__common__", 
+  "parent": "Custom Script", 
+  "parentfield": "fields", 
+  "parenttype": "DocType", 
+  "permlevel": 0
+ }, 
+ {
+  "cancel": 0, 
+  "create": 1, 
+  "delete": 1, 
+  "doctype": "DocPerm", 
+  "email": 1, 
+  "name": "__common__", 
+  "parent": "Custom Script", 
+  "parentfield": "permissions", 
+  "parenttype": "DocType", 
+  "permlevel": 0, 
+  "print": 1, 
+  "read": 1, 
+  "report": 1, 
+  "submit": 0, 
+  "write": 1
+ }, 
+ {
+  "doctype": "DocType", 
+  "name": "Custom Script"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "dt", 
+  "fieldtype": "Link", 
+  "label": "DocType", 
+  "oldfieldname": "dt", 
+  "oldfieldtype": "Link", 
+  "options": "DocType"
+ }, 
+ {
+  "default": "Client", 
+  "doctype": "DocField", 
+  "fieldname": "script_type", 
+  "fieldtype": "Select", 
+  "hidden": 1, 
+  "label": "Script Type", 
+  "oldfieldname": "script_type", 
+  "oldfieldtype": "Select", 
+  "options": "Client", 
+  "read_only": 1
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "script", 
+  "fieldtype": "Code", 
+  "label": "Script", 
+  "oldfieldname": "script", 
+  "oldfieldtype": "Code", 
+  "options": "Script"
+ }, 
+ {
+  "doctype": "DocPerm", 
+  "role": "System Manager"
+ }, 
+ {
+  "doctype": "DocPerm", 
+  "role": "Administrator"
+ }
+]

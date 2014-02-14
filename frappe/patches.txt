@@ -1,0 +1,13 @@
+execute:import inlinestyler # new requirement
+
+execute:frappe.reload_doc('core', 'doctype', 'doctype', force=True) #2014-01-24
+execute:frappe.reload_doc('core', 'doctype', 'docfield', force=True) #2013-13-26
+execute:frappe.reload_doc('core', 'doctype', 'docperm') #2013-13-26
+execute:frappe.reload_doc('core', 'doctype', 'page') #2013-13-26
+execute:frappe.reload_doc('core', 'doctype', 'report') #2013-13-26
+
+frappe.patches.4_0.remove_index_sitemap
+frappe.patches.4_0.add_delete_permission
+frappe.patches.4_0.move_match_to_restricted
+frappe.patches.4_0.set_todo_checked_as_closed
+frappe.patches.4_0.website_sitemap_hierarchy

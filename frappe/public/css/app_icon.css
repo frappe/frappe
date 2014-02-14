@@ -1,0 +1,34 @@
+.app-icon {
+	border-radius: 5px;
+	padding: 20px;
+	display: inline-block;
+	margin: auto;
+	text-align: center;
+}
+
+
+.app-icon i {
+	font-size: 30px;
+	min-width: 30px;
+	color: #f8f8f8;
+	display: inline-block;
+}
+
+.app-icon svg {
+	height: 30px;
+	width: 30px;
+}
+
+.app-icon path {
+	fill: #f8f8f8;
+}
+
+.app-icon-small {
+	padding: 12px;
+}
+
+@media (max-width: 768px) {
+	.app-icon {
+		padding: 12px;
+	}
+}

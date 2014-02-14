@@ -1,0 +1,61 @@
+[
+ {
+  "creation": "2014-01-17 16:26:21", 
+  "docstatus": 0, 
+  "modified": "2014-01-21 15:45:30", 
+  "modified_by": "Administrator", 
+  "owner": "Administrator"
+ }, 
+ {
+  "autoname": "_VOTE.#######", 
+  "doctype": "DocType", 
+  "document_type": "Transaction", 
+  "module": "Website", 
+  "name": "__common__"
+ }, 
+ {
+  "doctype": "DocField", 
+  "name": "__common__", 
+  "parent": "User Vote", 
+  "parentfield": "fields", 
+  "parenttype": "DocType", 
+  "permlevel": 0, 
+  "search_index": 0
+ }, 
+ {
+  "cancel": 0, 
+  "create": 1, 
+  "delete": 1, 
+  "doctype": "DocPerm", 
+  "export": 1, 
+  "name": "__common__", 
+  "parent": "User Vote", 
+  "parentfield": "permissions", 
+  "parenttype": "DocType", 
+  "permlevel": 0, 
+  "read": 1, 
+  "report": 1, 
+  "role": "System Manager", 
+  "write": 1
+ }, 
+ {
+  "doctype": "DocType", 
+  "name": "User Vote"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "ref_doctype", 
+  "fieldtype": "Link", 
+  "label": "Ref DocType", 
+  "options": "DocType"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "ref_name", 
+  "fieldtype": "Data", 
+  "label": "Ref Name"
+ }, 
+ {
+  "doctype": "DocPerm"
+ }
+]

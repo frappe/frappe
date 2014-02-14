@@ -5,3 +5,6 @@
 locale
 .wnf-lang-status
 *.swp
+*.egg-info
+dist/
+build/

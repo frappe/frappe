@@ -1,0 +1,59 @@
+[
+ {
+  "creation": "2013-01-10 16:34:03", 
+  "docstatus": 0, 
+  "modified": "2014-01-20 17:48:58", 
+  "modified_by": "Administrator", 
+  "owner": "Administrator"
+ }, 
+ {
+  "allow_rename": 1, 
+  "autoname": "field:module_name", 
+  "doctype": "DocType", 
+  "icon": "icon-sitemap", 
+  "module": "Core", 
+  "name": "__common__"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "module_name", 
+  "fieldtype": "Data", 
+  "label": "Module Name", 
+  "name": "__common__", 
+  "oldfieldname": "module_name", 
+  "oldfieldtype": "Data", 
+  "parent": "Module Def", 
+  "parentfield": "fields", 
+  "parenttype": "DocType", 
+  "permlevel": 0
+ }, 
+ {
+  "amend": 0, 
+  "cancel": 0, 
+  "create": 1, 
+  "delete": 1, 
+  "doctype": "DocPerm", 
+  "email": 1, 
+  "name": "__common__", 
+  "parent": "Module Def", 
+  "parentfield": "permissions", 
+  "parenttype": "DocType", 
+  "permlevel": 0, 
+  "print": 1, 
+  "read": 1, 
+  "report": 1, 
+  "role": "Administrator", 
+  "submit": 0, 
+  "write": 1
+ }, 
+ {
+  "doctype": "DocType", 
+  "name": "Module Def"
+ }, 
+ {
+  "doctype": "DocField"
+ }, 
+ {
+  "doctype": "DocPerm"
+ }
+]

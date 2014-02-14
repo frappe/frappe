@@ -1,0 +1,8 @@
+<tr class="sitemap-permission" data-profile="{{ profile.name }}">
+	<td>
+		{% include "templates/includes/profile_display.html" %}
+	</td>
+	<td><input type="checkbox" data-perm="read" {% if profile.read %}checked{% endif %}></td>
+	<td><input type="checkbox" data-perm="write" {% if profile.write %}checked{% endif %}></td>
+	<td><input type="checkbox" data-perm="admin" {% if profile.admin %}checked{% endif %}></td>
+</tr>

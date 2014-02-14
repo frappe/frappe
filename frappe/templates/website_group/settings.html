@@ -1,0 +1,77 @@
+<div class="permission-editor-area">
+	<div class="well permission-editor">
+		<h4>1. Edit Description</h4>
+		<div class="row">
+			<div class="col-xs-12">
+				<p>
+					<textarea class="form-control control-description" 
+						style="height: 100px;">{{ group.group_description or "" }}</textarea>
+				</p>
+				<div>
+					<button class="btn btn-default btn-update-description" 
+						onclick="website.update_group_description()">Update</button>
+				</div>
+			</div>
+		</div>
+		<hr>
+		<h4>2. Add Sub Groups</h4>
+		<div class="row">
+			<div class="col-xs-12">
+				<div class="form-group">
+					<input class="form-control control-add-group" placeholder="New Group Name" />
+					<p class="help-block small">Only letters, numbers and spaces</p>
+				</div>
+				<div class="form-group">
+					<label>Group Type</label>
+					<select class="form-control control-add-group-type" data-fieldname="group_type">
+						{%- for group_type in ("Forum", "Tasks", "Events") -%}
+					    <option value="{{ group_type }}">{{ group_type }}</option>
+						{%- endfor -%}
+					</select>
+				</div>
+		        <div class="checkbox" style="position: static;">
+		            <label>
+		                <input type="checkbox" class="control-add-group-public_read" 
+							{{ "checked" if public_read else "disabled" }}> <span>Allow all users to read</span>
+		            </label>
+					<p class="help-block small">Private if unchecked, only users with explicit read access will be allowed to read</p>
+		        </div>
+		        <div class="checkbox" style="position: static;">
+		            <label>
+		                <input type="checkbox" class="control-add-group-public_write" 
+							{{ "checked" if public_write else "disabled" }}> <span>Allow all users to write</span>
+						<p class="help-block small">Public Forum</p>
+		            </label>
+		        </div>
+				<div>
+					<button class="btn btn-default btn-add-group"><i class="icon-plus"></i> Add</button>
+				</div>
+			</div>
+		</div>
+		<hr>
+		<h4>3. Manage Users</h4>
+		<input class="form-control add-user-control" type="text" placeholder="Select User" />
+		<br>
+		<table class="table table-bordered">
+			<thead>
+				<tr>
+					<th style="width: 55%">User</th>
+					<th style="width: 15%">Read</th>
+					<th style="width: 15%">Write</th>
+					<th style="width: 15%">Admin</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for profile in profiles %}
+					{% include "templates/includes/sitemap_permission.html" %}
+				{% endfor %}
+			</tbody>
+		</table>
+	</div>
+</div>
+
+<script>
+$(function() {
+	website.setup_settings();
+})
+</script>

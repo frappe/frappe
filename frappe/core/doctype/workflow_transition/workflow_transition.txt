@@ -1,0 +1,57 @@
+[
+ {
+  "creation": "2013-02-22 01:27:36", 
+  "docstatus": 0, 
+  "modified": "2013-12-20 19:21:55", 
+  "modified_by": "Administrator", 
+  "owner": "Administrator"
+ }, 
+ {
+  "description": "Defines actions on states and the next step and allowed roles.", 
+  "doctype": "DocType", 
+  "istable": 1, 
+  "module": "Core", 
+  "name": "__common__"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldtype": "Link", 
+  "in_list_view": 1, 
+  "name": "__common__", 
+  "parent": "Workflow Transition", 
+  "parentfield": "fields", 
+  "parenttype": "DocType", 
+  "permlevel": 0, 
+  "print_width": "200px", 
+  "reqd": 1, 
+  "width": "200px"
+ }, 
+ {
+  "doctype": "DocType", 
+  "name": "Workflow Transition"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "state", 
+  "label": "State", 
+  "options": "Workflow State"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "action", 
+  "label": "Action", 
+  "options": "Workflow Action"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "next_state", 
+  "label": "Next State", 
+  "options": "Workflow State"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "allowed", 
+  "label": "Allowed", 
+  "options": "Role"
+ }
+]
