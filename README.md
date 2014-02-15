@@ -13,22 +13,27 @@ Install:
 1. Go to the project folder
 1. Install frappe and your app:
 
-		$ git clone git@github.com:frappe/frappe lib
-		$ git clone git@github.com:frappe/[your app] app
-		$ lib/wnf.py --make_conf
-		$ lib/wnf.py --reinstall
-		$ lib/wnf.py --build
+	mkdir bench
+	cd bench
+	git clone https://github.com/frappe/frappe.git
+	git clone https://github.com/frappe/[your_app]
+	sudo pip install -e frappe/ erpnext/ your_app/
+	mkdir sites
+	echo app >> sites/apps.txt
+	cd sites
+	frappe site.local --install erpnext
+	frappe site.local --install_app your_app
 
 1. Run development server:
 
-		$ lib/wnf.py --serve
-
+	cd sites
+	frappe site.local --serve
 	
 enjoy!
 
 ## wnf.py
 
-`$ lib/wnf.py --help` for more info
+`frappe --help` for more info
 
 ## License
 
