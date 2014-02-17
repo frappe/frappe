@@ -21,7 +21,7 @@ from frappe.utils import get_site_name
 local_manager = LocalManager([frappe.local])
 
 _site = None
-_sites_path = '.'
+_sites_path = os.environ.get("SITES_PATH", ".")
 
 def handle_session_stopped():
 	res = Response("""<html>
