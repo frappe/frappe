@@ -290,7 +290,7 @@ def update(remote=None, branch=None, reload_gunicorn=False):
 		subprocess.check_output("killall -HUP gunicorn".split())
 
 @cmd
-def latest(verbose=True):
+def latest(verbose=True, rebuild_website_config=True):
 	import frappe.modules.patch_handler
 	import frappe.model.sync
 	from frappe.website import rebuild_config
@@ -308,7 +308,8 @@ def latest(verbose=True):
 		frappe.model.sync.sync_all()
 				
 		# build website config if any changes in templates etc.
-		rebuild_config()
+		if rebuild_website_config:
+			rebuild_config()
 		
 	except frappe.modules.patch_handler.PatchError, e:
 		print "\n".join(frappe.local.patch_log_list)

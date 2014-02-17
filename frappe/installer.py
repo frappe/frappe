@@ -112,15 +112,16 @@ def install_app(name, verbose=False):
 		
 	frappe.flags.in_install_app = False
 	
-def add_to_installed_apps(app_name):
+def add_to_installed_apps(app_name, rebuild_sitemap=True):
 	installed_apps = frappe.get_installed_apps()
 	if not app_name in installed_apps:
 		installed_apps.append(app_name)
 		frappe.conn.set_global("installed_apps", json.dumps(installed_apps))
 		frappe.conn.commit()
 
-		from frappe.website.doctype.website_sitemap_config.website_sitemap_config import rebuild_website_sitemap_config
-		rebuild_website_sitemap_config()
+		if rebuild_sitemap:
+			from frappe.website.doctype.website_sitemap_config.website_sitemap_config import rebuild_website_sitemap_config
+			rebuild_website_sitemap_config()
 
 		frappe.clear_cache()
 
