@@ -13,7 +13,8 @@ site_arg_optional = []
 def main():
 	parsed_args = frappe._dict(vars(setup_parser()))
 	fn = get_function(parsed_args)
-	parsed_args["sites_path"] = os.environ.get("SITES_DIR", ".")
+	if "site_path" not in parsed_args:
+		parsed_args["sites_path"] = os.environ.get("SITES_PATH", ".")
 	sites_path = parsed_args["sites_path"]
 	
 	if not parsed_args.get("make_app"):
@@ -106,6 +107,8 @@ def setup_install(parser):
 		help="Make a new application with boilerplate")
 	parser.add_argument("--install", metavar="DB-NAME", nargs=1,
 		help="Install a new db")
+	parser.add_argument("--sites_path", metavar="SITES_PATH", nargs=1,
+		help="path to directory with sites")
 	parser.add_argument("--install_app", metavar="APP-NAME", nargs=1,
 		help="Install a new app")
 	parser.add_argument("--root-password", nargs=1,
