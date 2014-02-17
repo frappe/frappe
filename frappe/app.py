@@ -21,6 +21,7 @@ from frappe.utils import get_site_name
 local_manager = LocalManager([frappe.local])
 
 _site = None
+_sites_path = '.'
 
 def handle_session_stopped():
 	res = Response("""<html>
@@ -41,7 +42,7 @@ def application(request):
 	
 	try:
 		site = _site or get_site_name(request.host)
-		frappe.init(site=site)
+		frappe.init(site=site, sites_path=_sites_path)
 		
 		if not frappe.local.conf:
 			# site does not exist
@@ -79,9 +80,10 @@ def application(request):
 
 application = local_manager.make_middleware(application)
 
-def serve(port=8000, profile=False, site=None):
-	global application, _site
+def serve(port=8000, profile=False, site=None, sites_path='.'):
+	global application, _site, _sites_path
 	_site = site
+	_sites_path = sites_path
 	
 	from werkzeug.serving import run_simple
 
@@ -90,12 +92,12 @@ def serve(port=8000, profile=False, site=None):
 
 	if not os.environ.get('NO_STATICS'):
 		application = SharedDataMiddleware(application, {
-			'/assets': 'assets',
+			'/assets': os.path.join(sites_path, 'assets'),
 		})
 	
 	if site:
 		application = SharedDataMiddleware(application, {
-			'/files': os.path.join(site, 'public', 'files')
+			'/files': os.path.join(sites_path, site, 'public', 'files')
 		})
 
 	run_simple('0.0.0.0', int(port), application, use_reloader=True, 
