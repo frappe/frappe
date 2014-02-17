@@ -13,9 +13,11 @@ site_arg_optional = []
 def main():
 	parsed_args = frappe._dict(vars(setup_parser()))
 	fn = get_function(parsed_args)
-	if "site_path" not in parsed_args:
+	if parsed_args.get("sites_path"):
+		parsed_args["sites_path"] = parsed_args["sites_path"][0]
+	else:
 		parsed_args["sites_path"] = os.environ.get("SITES_PATH", ".")
-	sites_path = parsed_args["sites_path"]
+	sites_path = parsed_args.get("sites_path")
 	
 	if not parsed_args.get("make_app"):
 			
@@ -41,7 +43,7 @@ def main():
 					print "Did not find folder '{}'. Are you in sites folder?".format(parsed_args.get("site"))
 					exit(1)
 					
-				frappe.init(site, sites_path=parsed_args["sites_path"])
+				frappe.init(site, sites_path=sites_path)
 			run(fn, parsed_args)
 	else:
 		run(fn, parsed_args)
