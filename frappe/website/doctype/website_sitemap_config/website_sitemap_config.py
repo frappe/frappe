@@ -43,6 +43,7 @@ def rebuild_website_sitemap_config():
 	
 	frappe.conn.sql("""delete from `tabWebsite Sitemap Config`""")
 	for app in frappe.get_installed_apps():
+		if app=="webnotes": app="frappe"
 		build_website_sitemap_config(app)
 		
 	cleanup_sitemap()

@@ -368,7 +368,7 @@ Icon will appear on the button,Ikona će se pojaviti na gumb
 "If image is selected, color will be ignored (attach first)","Ako je slika odabrana, boja će biti ignoriran (priložiti prvi)"
 "If not, create a","Ako ne, stvoriti"
 "If the 'territory' Link Field exists, it will give you an option to select it","Ako &#39;teritoriju&#39; Link Polje postoji, to će vam dati mogućnost da ga odabrali"
-"If these instructions where not helpful, please add in your suggestions at <a href='https://github.com/webnotes/wnframework/issues'>GitHub Issues</a>","Ako ove upute gdje nije korisno , dodajte u svojim prijedlozima na <a href='https://github.com/webnotes/wnframework/issues'> GitHub pitanja < / a>"
+"If these instructions where not helpful, please add in your suggestions at <a href='https://github.com/frappe/frappe/issues'>GitHub Issues</a>","Ako ove upute gdje nije korisno , dodajte u svojim prijedlozima na <a href='https://github.com/frappe/frappe/issues'> GitHub pitanja < / a>"
 "If you set this, this Item will come in a drop-down under the selected parent.","Ako postavite ovo , ova stavka će doći u padajućem okviru odabranog roditelja ."
 Image,Slika
 Image Link,Slika Link
@@ -404,7 +404,7 @@ Is Single,Je Samac
 Is Standard,Je Standardni
 Is Submittable,Je Submittable
 JSON,JSON
-JavaScript Format: wn.query_reports['REPORTNAME'] = {},JavaScript format : wn.query_reports [ ' REPORTNAME ' ] = { }
+JavaScript Format: frappe.query_reports['REPORTNAME'] = {},JavaScript format : frappe.query_reports [ ' REPORTNAME ' ] = { }
 Javascript,Javascript
 Javascript to append to the head section of the page.,Javascript da doda glave dijelu stranice.
 Keep a track of all communications,Držite praćenje svih komunikacija

@@ -2,7 +2,7 @@
 
 #### Application Name and Details
 
-1. `app_name` - slugified name e.g. "webnotes"
+1. `app_name` - slugified name e.g. "frappe"
 1. `app_title` - full title name e.g. "Web Notes"
 1. `app_publisher`
 1. `app_description`
@@ -19,10 +19,10 @@
 #### Javascript / CSS Builds
 
 1. `app_include_js` - include in "app"
-1. `app_include_css` - assets/webnotes/css/splash.css
+1. `app_include_css` - assets/frappe/css/splash.css
 
-1. `web_include_js` - assets/js/webnotes-web.min.js
-1. `web_include_css` - assets/css/webnotes-web.css
+1. `web_include_js` - assets/js/frappe-web.min.js
+1. `web_include_css` - assets/css/frappe-web.css
 
 #### Desktop
 

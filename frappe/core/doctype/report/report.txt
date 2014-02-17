@@ -112,7 +112,7 @@
  }, 
  {
   "depends_on": "eval:doc.report_type==\"Query Report\"", 
-  "description": "JavaScript Format: wn.query_reports['REPORTNAME'] = {}", 
+  "description": "JavaScript Format: frappe.query_reports['REPORTNAME'] = {}", 
   "doctype": "DocField", 
   "fieldname": "javascript", 
   "fieldtype": "Code", 

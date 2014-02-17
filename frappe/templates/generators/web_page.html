@@ -42,9 +42,9 @@
 <script>
 $(function() {
 	if(window.logged_in && getCookie("system_user")==="yes") {
-		wn.has_permission("Web Page", "{{ docname }}", "write", function(r) {
-			wn.require("assets/frappe/js/wn/website/editable.js");
-			wn.make_editable($(".web-page-content"), "Web Page", "{{ docname }}", "main_section");
+		frappe.has_permission("Web Page", "{{ docname }}", "write", function(r) {
+			frappe.require("assets/frappe/js/frappe/website/editable.js");
+			frappe.make_editable($(".web-page-content"), "Web Page", "{{ docname }}", "main_section");
 		});
 	}
 });

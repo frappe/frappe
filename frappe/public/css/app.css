@@ -216,11 +216,11 @@ div#freeze {
 }
 /* form */
 
-.wn-editor {
+.frappe-editor {
 	cursor: text;
 }
 
-.wn-editor img {
+.frappe-editor img {
 	max-width: 100%;
 }
 

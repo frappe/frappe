@@ -38,6 +38,9 @@ class Bean:
 		if dt and dn:
 			if isinstance(dn, dict):
 				dn = frappe.conn.get_value(dt, dn, "name")
+				if dn is None:
+					raise frappe.DoesNotExistError
+			
 			self.load_from_db(dt, dn)
 		elif isinstance(dt, list):
 			self.set_doclist(dt)

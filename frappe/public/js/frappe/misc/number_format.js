@@ -1,7 +1,7 @@
 // Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-if(!window.frappe. frappe.= {};
+if(!window.frappe) window.frappe = {};
 
 function flt(v, decimals, number_format) { 
 	if(v==null || v=='')return 0;

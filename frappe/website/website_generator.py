@@ -8,6 +8,9 @@ from frappe.website.utils import cleanup_page_name
 
 from frappe.website.doctype.website_sitemap.website_sitemap import add_to_sitemap, update_sitemap, remove_sitemap
 
+def call_website_generator(bean, method, *args, **kwargs):
+	getattr(WebsiteGenerator(bean.doc, bean.doclist), method)(*args, **kwargs)
+
 class WebsiteGenerator(DocListController):
 	def autoname(self):
 		self.doc.name = cleanup_page_name(self.get_page_title())

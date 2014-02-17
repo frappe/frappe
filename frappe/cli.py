@@ -13,8 +13,11 @@ site_arg_optional = []
 def main():
 	parsed_args = frappe._dict(vars(setup_parser()))
 	fn = get_function(parsed_args)
-	if not parsed_args.get("sites_path"):
-		parsed_args["sites_path"] = "."
+	if parsed_args.get("sites_path"):
+		parsed_args["sites_path"] = parsed_args["sites_path"][0]
+	else:
+		parsed_args["sites_path"] = os.environ.get("SITES_PATH", ".")
+	sites_path = parsed_args.get("sites_path")
 	
 	if not parsed_args.get("make_app"):
 			
@@ -22,25 +25,25 @@ def main():
 			for site in get_sites(parsed_args["sites_path"]):
 				args = parsed_args.copy()
 				args["site"] = site
-				frappe.init(site)
+				frappe.init(site, sites_path=sites_path)
 				run(fn, args)
 		else:
 			if not fn in site_arg_optional:
-				if not parsed_args.get("site") and os.path.exists("currentsite.txt"):
-					with open("currentsite.txt", "r") as sitefile:
-						site = sitefile.read()
-				else:
-					site = parsed_args.get("site")
+				if not parsed_args.get("site") and os.path.exists(os.path.join(sites_path, "currentsite.txt")):
+					with open(os.path.join(sites_path, "currentsite.txt"), "r") as sitefile:
+						parsed_args["site"] = sitefile.read().strip()
+				
+				site = parsed_args.get("site")
 
 				if not site:
 					print "Site argument required"
 					exit(1)
 
-				if fn != 'install' and not os.path.exists(site):
+				if fn != 'install' and not os.path.exists(os.path.join(parsed_args["sites_path"], site)):
 					print "Did not find folder '{}'. Are you in sites folder?".format(parsed_args.get("site"))
 					exit(1)
 					
-				frappe.init(site)
+				frappe.init(site, sites_path=sites_path)
 			run(fn, parsed_args)
 	else:
 		run(fn, parsed_args)
@@ -106,6 +109,8 @@ def setup_install(parser):
 		help="Make a new application with boilerplate")
 	parser.add_argument("--install", metavar="DB-NAME", nargs=1,
 		help="Install a new db")
+	parser.add_argument("--sites_path", metavar="SITES_PATH", nargs=1,
+		help="path to directory with sites")
 	parser.add_argument("--install_app", metavar="APP-NAME", nargs=1,
 		help="Install a new app")
 	parser.add_argument("--root-password", nargs=1,
@@ -290,7 +295,7 @@ def update(remote=None, branch=None, reload_gunicorn=False):
 		subprocess.check_output("killall -HUP gunicorn".split())
 
 @cmd
-def latest(verbose=True):
+def latest(verbose=True, rebuild_website_config=True):
 	import frappe.modules.patch_handler
 	import frappe.model.sync
 	from frappe.website import rebuild_config
@@ -308,7 +313,8 @@ def latest(verbose=True):
 		frappe.model.sync.sync_all()
 				
 		# build website config if any changes in templates etc.
-		rebuild_config()
+		if rebuild_website_config:
+			rebuild_config()
 		
 	except frappe.modules.patch_handler.PatchError, e:
 		print "\n".join(frappe.local.patch_log_list)
@@ -625,9 +631,9 @@ def run_tests(app=None, module=None, doctype=None, verbose=False):
 		exit(1)
 
 @cmd
-def serve(port=8000, profile=False):
+def serve(port=8000, profile=False, sites_path='.'):
 	import frappe.app
-	frappe.app.serve(port=port, profile=profile, site=frappe.local.site)
+	frappe.app.serve(port=port, profile=profile, site=frappe.local.site, sites_path=sites_path)
 	
 @cmd
 def request(args):

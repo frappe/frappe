@@ -11,3 +11,4 @@ frappe.patches.4_0.add_delete_permission
 frappe.patches.4_0.move_match_to_restricted
 frappe.patches.4_0.set_todo_checked_as_closed
 frappe.patches.4_0.website_sitemap_hierarchy
+frappe.patches.4_0.webnotes_to_frappe

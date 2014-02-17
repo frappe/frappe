@@ -368,7 +368,7 @@ Icon will appear on the button,ไอคอนจะปรากฏบนปุ�
 "If image is selected, color will be ignored (attach first)",หากภาพถูกเลือกสีจะถูกละเว้น (แนบแรก)
 "If not, create a",ถ้าไม่สร้าง
 "If the 'territory' Link Field exists, it will give you an option to select it",ถ้าฟิลด์ &#39;ดินแดน&#39; แล้วก็จะให้คุณเลือกที่จะเลือก
-"If these instructions where not helpful, please add in your suggestions at <a href='https://github.com/webnotes/wnframework/issues'>GitHub Issues</a>",ถ้า คำแนะนำเหล่านี้ ที่ ไม่เป็นประโยชน์ โปรดเพิ่ม ใน คำแนะนำของคุณ ที่ href='https://github.com/webnotes/wnframework/issues'> <a GitHub ปัญหา </ a>
+"If these instructions where not helpful, please add in your suggestions at <a href='https://github.com/frappe/frappe/issues'>GitHub Issues</a>",ถ้า คำแนะนำเหล่านี้ ที่ ไม่เป็นประโยชน์ โปรดเพิ่ม ใน คำแนะนำของคุณ ที่ href='https://github.com/frappe/frappe/issues'> <a GitHub ปัญหา </ a>
 "If you set this, this Item will come in a drop-down under the selected parent.",ถ้าคุณตั้งค่า นี้ รายการ นี้ จะมาในแบบเลื่อนลง ภายใต้การ ปกครอง ที่เลือก
 Image,ภาพ
 Image Link,ลิงก์รูปภาพ
@@ -404,7 +404,7 @@ Is Single,เป็นโสด
 Is Standard,เป็นมาตรฐาน
 Is Submittable,เป็น Submittable
 JSON,JSON
-JavaScript Format: wn.query_reports['REPORTNAME'] = {},รูปแบบ JavaScript : wn.query_reports [ 'ชื่อรายงาน ] = { }
+JavaScript Format: frappe.query_reports['REPORTNAME'] = {},รูปแบบ JavaScript : frappe.query_reports [ 'ชื่อรายงาน ] = { }
 Javascript,javascript
 Javascript to append to the head section of the page.,จาวาสคริปต์เพื่อผนวกกับส่วนหัวของหน้า
 Keep a track of all communications,ติดตามการติดต่อสื่อสารทั้งหมด

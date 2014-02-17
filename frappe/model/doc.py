@@ -15,7 +15,7 @@ from frappe.utils import *
 
 class Document:
 	"""
-	   The wn(meta-data)framework equivalent of a Database Record.
+	   The frappe(meta-data)framework equivalent of a Database Record.
 	   Stores,Retrieves,Updates the record in the corresponding table.
 	   Runs the triggers required.
 

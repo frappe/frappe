@@ -2,7 +2,8 @@
 // MIT License. See license.txt 
 
 // provide a namespace
-if(!window.frappe.frappe.= {}
+if(!window.frappe) 
+	window.frappe = {};
 frappe.provide = function(namespace) {
 	// docs: create a namespace //
 	var nsl = namespace.split('.');

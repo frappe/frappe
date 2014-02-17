@@ -368,7 +368,7 @@ Icon will appear on the button,आइकन बटन पर दिखाई द
 "If image is selected, color will be ignored (attach first)","यदि छवि का चयन किया गया है, रंग (1 देते हैं) पर ध्यान नहीं दिया जाएगा"
 "If not, create a","यदि नहीं, तो एक बनाने के लिए"
 "If the 'territory' Link Field exists, it will give you an option to select it","यदि &#39;क्षेत्र&#39; लिंक क्षेत्र में मौजूद है, यह आप एक का चयन करने के लिए यह विकल्प दे देंगे"
-"If these instructions where not helpful, please add in your suggestions at <a href='https://github.com/webnotes/wnframework/issues'>GitHub Issues</a>","इन निर्देशों जहां मददगार नहीं हैं, <a href='https://github.com/webnotes/wnframework/issues'> GitHub मुद्दे </ a> पर अपने सुझाव में जोड़ने के लिए कृपया"
+"If these instructions where not helpful, please add in your suggestions at <a href='https://github.com/frappe/frappe/issues'>GitHub Issues</a>","इन निर्देशों जहां मददगार नहीं हैं, <a href='https://github.com/frappe/frappe/issues'> GitHub मुद्दे </ a> पर अपने सुझाव में जोड़ने के लिए कृपया"
 "If you set this, this Item will come in a drop-down under the selected parent.","आप यह निर्धारित करते हैं, इस आइटम का चयन माता पिता के नीचे एक ड्रॉप डाउन में आ जाएगा ."
 Image,छवि
 Image Link,फोटो लिंक
@@ -404,7 +404,7 @@ Is Single,एकल
 Is Standard,मानक है
 Is Submittable,Submittable है
 JSON,JSON
-JavaScript Format: wn.query_reports['REPORTNAME'] = {},जावास्क्रिप्ट स्वरूप: wn.query_reports [' REPORTNAME '] = {}
+JavaScript Format: frappe.query_reports['REPORTNAME'] = {},जावास्क्रिप्ट स्वरूप: frappe.query_reports [' REPORTNAME '] = {}
 Javascript,जावास्क्रिप्ट
 Javascript to append to the head section of the page.,जावास्क्रिप्ट पृष्ठ के सिर अनुभाग को संलग्न करने के लिए.
 Keep a track of all communications,सभी संचार के एक ट्रैक रखें

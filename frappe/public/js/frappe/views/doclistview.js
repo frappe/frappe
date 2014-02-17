@@ -53,7 +53,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		this.page.doclistview = this;
 		this.$page = $(this.page).css({"min-height": "400px"});
 				
-		$('<div class="frappe.ist-area" style="margin-bottom: 25px;">\
+		$('<div class="frappe-list-area" style="margin-bottom: 25px;">\
 			<div class="help">'+frappe._('Loading')+'...</div></div>')
 			.appendTo(this.$page.find(".layout-main-section"));
 			
@@ -83,7 +83,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 	setup: function() {
 		this.can_delete = frappe.model.can_delete(this.doctype);
 		this.meta = locals.DocType[this.doctype];
-		this.$page.find('.frappe.ist-area').empty(),
+		this.$page.find('.frappe-list-area').empty(),
 		this.setup_listview();
 		this.setup_docstatus_filter();
 		this.init_list(false);
@@ -153,7 +153,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 	},
 	setup_listview: function() {
 		this.listview = frappe.views.get_listview(this.doctype, this);
-		this.wrapper = this.$page.find('.frappe.ist-area');
+		this.wrapper = this.$page.find('.frappe-list-area');
 		this.page_length = 20;
 		this.allow_delete = true;
 	},

@@ -1,8 +1,8 @@
-## wnframework
+## frappe
 
 Full-stack web application framework that uses Python/MySql on the server side and a tightly integrated client side library. Primarily built for erpnext.
 
-Projects: [erpnext](http://erpnext.org) | [webnotes/erpnext](https://github.com/webnotes/erpnext)
+Projects: [erpnext](http://erpnext.org) | [frappe/erpnext](https://github.com/frappe/erpnext)
 
 ## Setup
 
@@ -11,25 +11,30 @@ To start a new project, in the application root:
 Install:
 
 1. Go to the project folder
-1. Install webnotes and your app:
+1. Install frappe and your app:
 
-		$ git clone git@github.com:webnotes/wnframework lib
-		$ git clone git@github.com:webnotes/[your app] app
-		$ lib/wnf.py --make_conf
-		$ lib/wnf.py --reinstall
-		$ lib/wnf.py --build
+	mkdir bench
+	cd bench
+	git clone https://github.com/frappe/frappe.git
+	git clone https://github.com/frappe/[your_app]
+	sudo pip install -e frappe/ erpnext/ your_app/
+	mkdir sites
+	echo app >> sites/apps.txt
+	cd sites
+	frappe site.local --install erpnext
+	frappe site.local --install_app your_app
 
 1. Run development server:
 
-		$ lib/wnf.py --serve
-
+	cd sites
+	frappe site.local --serve
 	
 enjoy!
 
 ## wnf.py
 
-`$ lib/wnf.py --help` for more info
+`frappe --help` for more info
 
 ## License
 
-wnframework is freely available to use under the MIT License
+frappe is freely available to use under the MIT License

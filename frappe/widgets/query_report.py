@@ -41,7 +41,7 @@ def get_script(report_name):
 		script = report.javascript
 	
 	if not script:
-		script = "wn.query_reports['%s']={}" % report_name
+		script = "frappe.query_reports['%s']={}" % report_name
 		
 	# load translations
 	if frappe.lang != "en":

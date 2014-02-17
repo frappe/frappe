@@ -38,7 +38,7 @@ def install_db(root_login="root", root_password=None, db_name=None, source_sql=N
 	frappe.flags.in_install_db = False
 
 def create_database_and_user(force, verbose):
-	db_name = frappe.conf.db_name
+	db_name = frappe.local.conf.db_name
 	dbman = DbManager(frappe.local.conn)
 	if force or (db_name not in dbman.get_database_list()):
 		dbman.delete_user(db_name)
@@ -112,15 +112,16 @@ def install_app(name, verbose=False):
 		
 	frappe.flags.in_install_app = False
 	
-def add_to_installed_apps(app_name):
+def add_to_installed_apps(app_name, rebuild_sitemap=True):
 	installed_apps = frappe.get_installed_apps()
 	if not app_name in installed_apps:
 		installed_apps.append(app_name)
 		frappe.conn.set_global("installed_apps", json.dumps(installed_apps))
 		frappe.conn.commit()
 
-		from frappe.website.doctype.website_sitemap_config.website_sitemap_config import rebuild_website_sitemap_config
-		rebuild_website_sitemap_config()
+		if rebuild_sitemap:
+			from frappe.website.doctype.website_sitemap_config.website_sitemap_config import rebuild_website_sitemap_config
+			rebuild_website_sitemap_config()
 
 		frappe.clear_cache()
 
@@ -137,8 +138,9 @@ def set_all_patches_as_completed(app):
 def make_conf(db_name=None, db_password=None, site_config=None):
 	site = frappe.local.site
 	make_site_config(db_name, db_password, site_config)
+	sites_path = frappe.local.sites_path
 	frappe.destroy()
-	frappe.init(site)
+	frappe.init(site, sites_path=sites_path)
 
 def make_site_config(db_name=None, db_password=None, site_config=None):		
 	frappe.create_folder(os.path.join(frappe.local.site_path))

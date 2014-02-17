@@ -29,6 +29,9 @@ def run_all():
 def get_all_patches():
 	patches = []
 	for app in frappe.get_installed_apps():
+		# 3-to-4 fix
+		if app=="webnotes": 
+			app="frappe"
 		patches.extend(frappe.get_file_items(frappe.get_pymodule_path(app, "patches.txt")))
 			
 	return patches

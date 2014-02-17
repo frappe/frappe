@@ -49,8 +49,8 @@ class DocType:
 			# js
 			if not os.path.exists(path + '.js'):
 				with open(path + '.js', 'w') as f:
-					f.write("""wn.pages['%s'].onload = function(wrapper) { 
-	wn.ui.make_app_page({
+					f.write("""frappe.pages['%s'].onload = function(wrapper) { 
+	frappe.ui.make_app_page({
 		parent: wrapper,
 		title: '%s',
 		single_column: true

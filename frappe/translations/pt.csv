@@ -368,7 +368,7 @@ Icon will appear on the button,Ícone aparecerá no botão
 "If image is selected, color will be ignored (attach first)","Se a imagem for selecionada, a cor será ignorado (anexar primeiro)"
 "If not, create a","Se não, crie um"
 "If the 'territory' Link Field exists, it will give you an option to select it","Se o campo da &#39;território&#39; Link existe, ele vai te dar uma opção para selecioná-la"
-"If these instructions where not helpful, please add in your suggestions at <a href='https://github.com/webnotes/wnframework/issues'>GitHub Issues</a>","Als deze aanwijzingen waar niet behulpzaam , gelieve toe te voegen in uw suggesties op <a href='https://github.com/webnotes/wnframework/issues'> GitHub Issues < / a>"
+"If these instructions where not helpful, please add in your suggestions at <a href='https://github.com/frappe/frappe/issues'>GitHub Issues</a>","Als deze aanwijzingen waar niet behulpzaam , gelieve toe te voegen in uw suggesties op <a href='https://github.com/frappe/frappe/issues'> GitHub Issues < / a>"
 "If you set this, this Item will come in a drop-down under the selected parent.","Als u dit instelt , zal deze post in een drop -down onder de gekozen basismotor ."
 Image,Imagem
 Image Link,Link da imagem
@@ -404,7 +404,7 @@ Is Single,É único
 Is Standard,É Padrão
 Is Submittable,É Submittable
 JSON,JSON
-JavaScript Format: wn.query_reports['REPORTNAME'] = {},JavaScript Formaat : wn.query_reports [ ' ReportName ' ] = { }
+JavaScript Format: frappe.query_reports['REPORTNAME'] = {},JavaScript Formaat : frappe.query_reports [ ' ReportName ' ] = { }
 Javascript,Javascript
 Javascript to append to the head section of the page.,Javascript para acrescentar à seção principal da página.
 Keep a track of all communications,Manter um controle de todas as comunicações
