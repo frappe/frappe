@@ -6,7 +6,7 @@ frappe.ui.toolbar.Search = frappe.ui.toolbar.SelectorDialog.extend({
 		this._super({
 			title: frappe._("Search"),
 			execute: function(val) {
-				frappe.set_route("List", val);
+				frappe.set_route("List", val, {"name": "%"});
 			},
 			help: frappe._("Shortcut") + ": Ctrl+G"
 		});
