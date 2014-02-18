@@ -87,7 +87,7 @@ frappe.views.QueryReport = Class.extend({
 		var route = frappe.get_route();
 		var me = this;
 		if(route[1]) {
-			if((me.report_name!=route[1]) || wn.route_options) {
+			if((me.report_name!=route[1]) || frappe.route_options) {
 				me.report_name = route[1];
 				this.wrapper.find(".no-report-area").toggle(false);
 				me.appframe.set_title(frappe._("Query Report")+": " + frappe._(me.report_name));
