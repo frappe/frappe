@@ -293,6 +293,9 @@ class Bean:
 	def has_permission(self, permtype):
 		return frappe.has_permission(self.doc.doctype, permtype, self.doc)
 	
+	def update_value(self, field, value):
+		frappe.conn.set(self.doc, field, value)
+	
 	def save(self, check_links=1, ignore_permissions=None):
 		if ignore_permissions:
 			self.ignore_permissions = ignore_permissions

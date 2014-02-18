@@ -879,7 +879,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 					me.$input.trigger("change");
 				}
 			}
-		}).data('uiAutocomplete')._renderItem = function(ul, d) {
+		}).data('ui-autocomplete')._renderItem = function(ul, d) {
 			var html = "";
 			if(keys(d).length > 1) {
 				d.info = $.map(d, function(val, key) { return ["value", "label"].indexOf(key)!==-1 ? null : val }).join(", ") || "";

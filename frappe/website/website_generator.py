@@ -66,6 +66,7 @@ class WebsiteGenerator(DocListController):
 		opts = frappe._dict({
 			"page_or_generator": "Generator",
 			"ref_doctype":self.doc.doctype, 
+			"idx": self.doc.idx,
 			"docname": self.doc.name,
 			"page_name": page_name,
 			"link_name": self._website_config.name,
@@ -78,9 +79,12 @@ class WebsiteGenerator(DocListController):
 		self.update_permissions(opts)
 		
 		if existing_site_map:
-			update_sitemap(existing_site_map, opts)
+			idx = update_sitemap(existing_site_map, opts)
 		else:
-			add_to_sitemap(opts)
+			idx = add_to_sitemap(opts)
+			
+		if idx and self.doc.idx != idx:
+			self.update_value("idx", idx)
 	
 	def update_permissions(self, opts):
 		if self.meta.get_field("public_read"):
