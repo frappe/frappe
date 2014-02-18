@@ -1,5 +1,9 @@
 {% block title %}{{ blog_title or "Blog" }}{% endblock %}
 
+{% block script %}
+window.category = null;
+{% endblock %}
+
 {% block content %}
 <div class="blog-list-content">
 	{% if blog_introduction %}

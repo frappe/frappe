@@ -176,6 +176,7 @@ def setup_utilities(parser):
 	parser.add_argument("--python", action="store_true", help="get python shell for a site")
 	parser.add_argument("--flush_memcache", action="store_true", help="flush memcached")
 	parser.add_argument("--ipython", action="store_true", help="get ipython shell for a site")
+	parser.add_argument("--execute", help="execute a function", nargs=1, metavar="FUNCTION")
 	parser.add_argument("--get_site_status", action="store_true", help="Get site details")
 	parser.add_argument("--update_site_config", nargs=1, 
 		metavar="site-CONFIG-JSON", 
@@ -457,6 +458,13 @@ def reset_perms():
 		where ifnull(istable, 0)=0 and ifnull(custom, 0)=0"""):
 			frappe.clear_cache(doctype=d)
 			frappe.reset_perms(d)
+	frappe.destroy()
+
+@cmd
+def execute(method):
+	frappe.connect()
+	frappe.get_attr(method)()
+	frappe.conn.commit()
 	frappe.destroy()
 
 # scheduler

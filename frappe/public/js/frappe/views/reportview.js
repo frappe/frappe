@@ -208,9 +208,9 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 			var docfield = frappe.meta.docfield_map[c[1] || me.doctype][c[0]];
 			if(!docfield) {
 				var docfield = frappe.model.get_std_field(c[0]);
+				docfield.parent = me.doctype;
 				if(c[0]=="name") { 
 					docfield.options = me.doctype;
-					docfield.parent = me.doctype;
 				}
 			}
 			coldef = {
@@ -292,6 +292,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		this.grid.onHeaderClick.subscribe(function(e, args) {
 			if(e.target.className === "slick-resizable-handle")
 				return;
+			
 			
 			var df = args.column.docfield,
 				sort_by = df.parent + "." + df.fieldname;

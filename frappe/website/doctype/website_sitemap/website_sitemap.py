@@ -6,7 +6,7 @@ import frappe
 from frappe import _
 from frappe.utils.nestedset import DocTypeNestedSet
 
-sitemap_fields = ("page_name", "ref_doctype", "docname", "page_or_generator", 
+sitemap_fields = ("page_name", "ref_doctype", "docname", "page_or_generator", "idx",
 	"lastmod", "parent_website_sitemap", "public_read", "public_write", "page_title")
 
 class DocType(DocTypeNestedSet):
@@ -18,21 +18,27 @@ class DocType(DocTypeNestedSet):
 		self.doc.name = self.get_url()
 
 	def get_url(self):
-		parent_website_sitemap = self.get_parent_website_sitemap()
 		url = self.doc.page_name
-		if parent_website_sitemap:
-			url = parent_website_sitemap + "/" + url
+		if self.doc.parent_website_sitemap:
+			url = self.doc.parent_website_sitemap + "/" + url
 			
 		return url
-	
-	def get_parent_website_sitemap(self):
-		return self.doc.parent_website_sitemap
-	
+		
 	def validate(self):
 		if self.get_url() != self.doc.name:
 			self.rename()
 		self.check_if_page_name_is_unique()
 		self.make_private_if_parent_is_private()
+		self.set_idx()
+	
+	def set_idx(self):
+		if self.doc.idx==None:
+			self.doc.idx = frappe.conn.sql("""select count(*) from `tabWebsite Sitemap`
+				where ifnull(parent_website_sitemap, '')=%s 
+					and name<%s""", 
+					(self.doc.parent_website_sitemap or '', self.doc.name))[0][0]
+					
+			print self.doc.idx
 	
 	def rename(self):
 		from frappe.website.render import clear_cache

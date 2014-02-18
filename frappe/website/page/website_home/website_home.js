@@ -63,6 +63,13 @@ frappe.module_page["Website"] = [
 		right: true,
 		items: [
 			{
+				"route":"sitemap-browser",
+				"label":frappe._("Sitemap Browser"),
+				"description":frappe._("View or manage Website Sitemap tree."),
+				doctype:"Website Settings",
+				icon: "icon-sitemap"
+			},
+			{
 				"route":"Form/Website Settings",
 				"label":frappe._("Website Settings"),
 				"description":frappe._("Setup of top navigation bar, footer and logo."),

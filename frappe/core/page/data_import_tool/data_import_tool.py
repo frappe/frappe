@@ -489,11 +489,12 @@ def delete_child_rows(rows, doctype):
 	for p in list(set([r[1] for r in rows])):
 		frappe.conn.sql("""delete from `tab%s` where parent=%s""" % (doctype, '%s'), p)
 		
+import csv
 def import_file_by_path(path, ignore_links=False, overwrite=False):
 	from frappe.utils.datautils import read_csv_content
 	print "Importing " + path
 	with open(path, "r") as infile:
-		upload(rows = read_csv_content(infile.read()), ignore_links=ignore_links, overwrite=overwrite)
+		upload(rows = read_csv_content(infile), ignore_links=ignore_links, overwrite=overwrite)
 
 def export_csv(doctype, path):		
 	with open(path, "w") as csvfile:
@@ -513,18 +514,34 @@ def export_json(doctype, name, path):
 			d["__islocal"] = 1
 		outfile.write(json.dumps(doclist, default=json_handler, indent=1, sort_keys=True))
 
-def import_doclist(path, overwrite=False):
+def import_doclist(path, overwrite=False, ignore_links=False, ignore_insert=False):
 	import os
 	if os.path.isdir(path):
 		files = [os.path.join(path, f) for f in os.listdir(path)]
 	else:
 		files = [path]
-			
+	
+	def _import_doclist(d):
+		b = frappe.bean(d)
+		b.ignore_links = ignore_links
+		try:
+			b.insert_or_update()
+		except NameError:
+			if ignore_insert:
+				pass
+			else:
+				raise
+		print "Imported: " + b.doc.doctype + " / " + b.doc.name
+	
 	for f in files:
 		if f.endswith(".json"):
 			with open(f, "r") as infile:
-				b = frappe.bean(json.loads(infile.read())).insert_or_update()
-				print "Imported: " + b.doc.doctype + " / " + b.doc.name
+				data = json.loads(infile.read())
+				if isinstance(data, list):
+					for doc in data:
+						_import_doclist(doc)
+				else:
+					_import_doclist(data)
 				frappe.conn.commit()
 		if f.endswith(".csv"):
 			import_file_by_path(f, ignore_links=True, overwrite=overwrite)

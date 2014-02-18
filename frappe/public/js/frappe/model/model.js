@@ -13,6 +13,7 @@ $.extend(frappe.model, {
 	std_fields: [
 		{fieldname:'name', fieldtype:'Link', label:'ID'},
 		{fieldname:'owner', fieldtype:'Data', label:'Created By'},
+		{fieldname:'idx', fieldtype:'Int', label:'Index'},
 		{fieldname:'creation', fieldtype:'Date', label:'Created On'},
 		{fieldname:'modified', fieldtype:'Date', label:'Last Updated On'},
 		{fieldname:'modified_by', fieldtype:'Data', label:'Last Updated By'},
@@ -23,7 +24,6 @@ $.extend(frappe.model, {
 	
 	std_fields_table: [
 		{fieldname:'parent', fieldtype:'Data', label:'Parent'},
-		{fieldname:'idx', fieldtype:'Int', label:'Row No.'},
 	],
 
 	new_names: {},

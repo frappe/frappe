@@ -11,7 +11,7 @@ from frappe.utils import encode, cstr, cint, flt
 def read_csv_content_from_uploaded_file(ignore_encoding=False):
 	if getattr(frappe, "uploaded_file", None):
 		with open(frappe.uploaded_file, "r") as upfile:
-			fcontent = upfile.read()
+			fcontent = upfile
 	else:
 		from frappe.utils.file_manager import get_uploaded_content
 		fname, fcontent = get_uploaded_content()
@@ -35,21 +35,24 @@ def read_csv_content_from_attached_file(doc):
 def read_csv_content(fcontent, ignore_encoding=False):
 	rows = []
 
-	decoded = False
-	for encoding in ["utf-8", "windows-1250", "windows-1252"]:
-		try:
-			fcontent = unicode(fcontent, encoding)
-			decoded = True
-			break
-		except UnicodeDecodeError, e:
-			continue
+	if isinstance(fcontent, basestring):
+		decoded = False
+		for encoding in ["utf-8", "windows-1250", "windows-1252"]:
+			try:
+				fcontent = unicode(fcontent, encoding)
+				decoded = True
+				break
+			except UnicodeDecodeError, e:
+				continue
 
-	if not decoded:
-		frappe.msgprint(frappe._("Unknown file encoding. Tried utf-8, windows-1250, windows-1252."), 
-			raise_exception=True)
-
+		if not decoded:
+			frappe.msgprint(frappe._("Unknown file encoding. Tried utf-8, windows-1250, windows-1252."), 
+				raise_exception=True)
+				
+		fcontent = fcontent.encode("utf-8").splitlines(True)
+				
 	try:
-		reader = csv.reader(fcontent.encode("utf-8").splitlines(True))
+		reader = csv.reader(fcontent)
 		# decode everything
 		rows = [[unicode(val, "utf-8").strip() for val in row] for row in reader]
 		return rows

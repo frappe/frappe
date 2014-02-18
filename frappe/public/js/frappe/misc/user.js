@@ -31,7 +31,7 @@ frappe.avatar = function(user, large, title) {
 }
 
 frappe.ui.set_user_background = function(src) {
-	if(!src) src = "assets/frappe/images/ui/field.jpg";
+	if(!src) src = "assets/frappe/images/ui/background-4-1.jpg";
 	frappe.dom.set_style(repl('#page-desktop { \
 		position: fixed;\
 		left: 0px; min-width: 100%; height: 100%; overflow: auto;\

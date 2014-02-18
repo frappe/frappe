@@ -57,5 +57,5 @@ def build_sitemap_options(path):
 	# determine templates to be used
 	if not sitemap_options.base_template_path:
 		sitemap_options.base_template_path = "templates/base.html"
-		
+				
 	return sitemap_options

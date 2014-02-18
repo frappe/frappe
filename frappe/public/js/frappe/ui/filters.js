@@ -365,7 +365,7 @@ frappe.ui.FieldSelect = Class.extend({
 			if(d.fieldname=="name") opts.options = me.doctype;
 			return $.extend(copy_dict(d), opts);
 		});
-		
+				
 		// add parenttype column
 		var doctype_obj = locals['DocType'][me.doctype];
 		if(doctype_obj && cint(doctype_obj.istable)) {

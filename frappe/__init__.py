@@ -391,6 +391,9 @@ def get_module_path(module, *joins):
 
 def get_app_path(app_name, *joins):
 	return get_pymodule_path(app_name, *joins)
+	
+def get_site_path(*joins):
+	return os.path.join(local.site_path, *joins)
 
 def get_pymodule_path(modulename, *joins):
 	joins = [scrub(part) for part in joins]
@@ -511,6 +514,10 @@ def get_application_home_page(user='Guest'):
 		return hpl[0][0]
 	else:
 		return conn.get_value("Control Panel", None, "home_page")
+
+def import_doclist(path, ignore_links=False, ignore_insert=False):
+	from frappe.core.page.data_import_tool import data_import_tool
+	data_import_tool.import_doclist(path, ignore_links=ignore_links, ignore_insert=ignore_insert)
 
 def copy_doclist(in_doclist):
 	new_doclist = []

@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 
-import frappe
+import frappe, re
 
 from frappe.website.website_generator import WebsiteGenerator
 from frappe.website.render import clear_cache
@@ -21,6 +21,10 @@ class DocType(WebsiteGenerator):
 		return frappe.conn.get_value("Website Sitemap", {"ref_doctype": "Blog Category", "docname": self.doc.blog_category})
 
 	def validate(self):
+		if not self.doc.blog_intro:
+			self.doc.blog_intro = self.doc.content[:140]
+			re.sub("\<[^>]*\>", "", self.doc.blog_intro)
+		
 		if self.doc.blog_intro:
 			self.doc.blog_intro = self.doc.blog_intro[:140]
 			

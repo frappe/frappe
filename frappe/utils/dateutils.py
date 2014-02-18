@@ -56,7 +56,7 @@ def parse_date(date):
 		
 def get_user_date_format():
 	if getattr(frappe.local, "user_date_format", None) is None:
-		frappe.local.user_date_format = frappe.defaults.get_global_default("date_format")
+		frappe.local.user_date_format = frappe.defaults.get_global_default("date_format") or "yyyy-mm-dd"
 
 	return frappe.local.user_date_format
 	
