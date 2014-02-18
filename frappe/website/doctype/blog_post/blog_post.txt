@@ -2,7 +2,7 @@
  {
   "creation": "2013-03-28 10:35:30", 
   "docstatus": 0, 
-  "modified": "2014-01-20 17:48:25", 
+  "modified": "2014-02-17 13:00:42", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -25,6 +25,7 @@
  }, 
  {
   "cancel": 0, 
+  "delete": 0, 
   "doctype": "DocPerm", 
   "email": 1, 
   "name": "__common__", 
@@ -94,7 +95,7 @@
   "fieldtype": "Small Text", 
   "in_list_view": 1, 
   "label": "Blog Intro", 
-  "reqd": 1
+  "reqd": 0
  }, 
  {
   "doctype": "DocField", 
@@ -120,7 +121,6 @@
  }, 
  {
   "create": 1, 
-  "delete": 1, 
   "doctype": "DocPerm", 
   "restrict": 1, 
   "role": "Website Manager", 
@@ -128,13 +128,11 @@
  }, 
  {
   "create": 1, 
-  "delete": 0, 
   "doctype": "DocPerm", 
   "role": "Blogger", 
   "write": 1
  }, 
  {
-  "delete": 0, 
   "doctype": "DocPerm", 
   "role": "Guest", 
   "write": 0

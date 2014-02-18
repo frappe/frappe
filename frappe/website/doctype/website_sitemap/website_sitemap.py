@@ -36,8 +36,6 @@ class DocType(DocTypeNestedSet):
 			self.doc.idx = int(frappe.conn.sql("""select max(idx) from `tabWebsite Sitemap`
 				where parent_website_sitemap=%s and name!=%s""", (self.doc.parent_website_sitemap,
 					self.doc.name))[0][0] or 0) + 1
-					
-			
 		else:
 			if self.doc.idx != 0:
 				if not frappe.conn.get_value("Website Sitemap", {

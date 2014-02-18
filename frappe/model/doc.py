@@ -59,6 +59,8 @@ class Document:
 		if isinstance(doctype, dict):
 			fielddata = doctype
 			doctype = None
+		if doctype and isinstance(name, dict):
+			name = frappe.conn.get_value(doctype, name, "name") or None
 		
 		if fielddata: 
 			self.fields = frappe._dict(fielddata)

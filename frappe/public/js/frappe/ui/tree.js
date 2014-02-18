@@ -13,9 +13,13 @@ frappe.ui.Tree = Class.extend({
 			tree: this, 
 			parent: this.$w, 
 			label: this.label, 
+			parent_label: null,
 			expandable: true
 		});
 		this.set_style();
+	},
+	get_selected_node: function() {
+		return this.$w.find('.tree-link.selected').data('node');
 	},
 	set_style: function() {
 		frappe.dom.set_style("\
@@ -33,6 +37,8 @@ frappe.ui.TreeNode = Class.extend({
 		this.loaded = false;
 		this.expanded = false;
 		this.tree.nodes[this.label] = this;
+		if(this.parent_label)
+			this.parent_node = this.tree.nodes[this.parent_label];
 		this.$a = $('<span class="tree-link">')
 			.click(function() { 
 				if(me.expandable && me.tree.method && !me.loaded) {
@@ -44,6 +50,7 @@ frappe.ui.TreeNode = Class.extend({
 			})
 			.bind('reload', function() { me.reload(); })
 			.data('label', this.label)
+			.data('node', this)
 			.appendTo(this.parent);
 		
 		// label with icon
@@ -94,6 +101,7 @@ frappe.ui.TreeNode = Class.extend({
 		return new frappe.ui.TreeNode({
 			tree:this.tree, 
 			parent: $('<li>').appendTo(this.$ul), 
+			parent_label: this.label,
 			label: data.value, 
 			expandable: data.expandable,
 			data: data

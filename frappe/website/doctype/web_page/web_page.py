@@ -59,9 +59,11 @@ def _sync_statics():
 
 			if str(os.path.getmtime(fpath))!=sitemap.doc.static_file_timestamp \
 				or cint(sitemap.doc.idx) != cint(priority):
+
 				page = frappe.bean("Web Page", sitemap.doc.docname)
 				title, content = get_static_content(fpath)
 				page.doc.main_section = content
+				page.doc.idx = priority
 				if not title:
 					title = page_name.replace("-", " ").replace("_", " ").title()
 				page.doc.title = title
@@ -69,7 +71,6 @@ def _sync_statics():
 
 				sitemap = frappe.bean("Website Sitemap", url)
 				sitemap.doc.static_file_timestamp = os.path.getmtime(fpath)
-				sitemap.doc.idx = priority
 				sitemap.save()
 			
 			synced.append(url)

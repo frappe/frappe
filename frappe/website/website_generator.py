@@ -23,6 +23,8 @@ class WebsiteGenerator(DocListController):
 			self.doc.fields[self._website_config.page_name_field] = page_name
 		else:
 			frappe.conn.set(self.doc, self._website_config.page_name_field, page_name)
+			
+		return page_name
 
 	def get_parent_website_sitemap(self):
 		return self.doc.parent_website_sitemap
@@ -94,13 +96,17 @@ class WebsiteGenerator(DocListController):
 			opts.public_read = 1
 	
 	def get_page_name(self):
-		if not self._get_page_name():
-			self.set_page_name()
+		page_name = self._get_page_name()
+		if not page_name:
+			page_name = self.set_page_name()
 			
 		return self._get_page_name()
 		
 	def _get_page_name(self):
-		return self.doc.fields.get(self._website_config.page_name_field)
+		if self.meta.has_field(self._website_config.page_name_field):
+			return self.doc.fields.get(self._website_config.page_name_field)
+		else:
+			return cleanup_page_name(self.get_page_title())
 		
 	def get_page_title(self):
 		return self.doc.title or (self.doc.name.replace("-", " ").replace("_", " ").title())

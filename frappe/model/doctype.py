@@ -370,6 +370,9 @@ class DocTypeDocList(frappe.model.doclist.DocList):
 		fields = self.get(filters)
 		if fields:
 			return fields[0]
+			
+	def has_field(self, fieldname):
+		return fieldname in self.get_fieldnames()
 		
 	def get_fieldnames(self, filters=None):
 		if not filters: filters = {}
