@@ -36,7 +36,7 @@ def get_lang_info():
 	
 def rebuild_all_translation_files():
 	for lang in get_all_languages():
-		for app in get_all_apps():
+		for app in frappe.get_all_apps():
 			write_translations_file(app, lang)
 	
 def write_translations_file(app, lang, full_dict=None):
@@ -195,7 +195,7 @@ def get_server_messages(app):
 def get_messages_from_include_files(app_name=None):
 	messages = []
 	hooks = frappe.get_hooks(app_name)
-	for file in (hooks.app_include_js or []) + (hooks.web_include_js or []):
+	for file in (frappe.get_hooks("app_include_js") or []) + (frappe.get_hooks("web_include_js") or []):
 		messages.extend(get_messages_from_file(os.path.join(frappe.local.sites_path, file)))
 		
 	return messages
