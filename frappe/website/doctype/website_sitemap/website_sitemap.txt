@@ -2,7 +2,7 @@
  {
   "creation": "2013-11-18 15:38:40", 
   "docstatus": 0, 
-  "modified": "2014-02-10 18:10:11", 
+  "modified": "2014-02-18 15:23:12", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -22,7 +22,9 @@
   "permlevel": 0
  }, 
  {
+  "cancel": 0, 
   "create": 0, 
+  "delete": 1, 
   "doctype": "DocPerm", 
   "name": "__common__", 
   "parent": "Website Sitemap", 

@@ -2,7 +2,7 @@
  {
   "creation": "2013-03-08 09:41:11", 
   "docstatus": 0, 
-  "modified": "2014-02-13 17:31:52", 
+  "modified": "2014-02-18 15:25:04", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -24,6 +24,7 @@
   "permlevel": 0
  }, 
  {
+  "cancel": 0, 
   "doctype": "DocPerm", 
   "email": 1, 
   "name": "__common__", 
@@ -74,10 +75,10 @@
   "label": "Page Name"
  }, 
  {
-  "cancel": 0, 
   "create": 1, 
   "delete": 1, 
   "doctype": "DocPerm", 
+  "report": 1, 
   "role": "Website Manager", 
   "write": 1
  }, 

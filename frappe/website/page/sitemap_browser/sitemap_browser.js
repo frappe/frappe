@@ -25,7 +25,6 @@ frappe.pages['sitemap-browser'].onload = function(wrapper) {
 				"min-height": "300px",
 				"padding-bottom": "25px"
 			}));
-
 }
 
 frappe.provide("frappe.website");
@@ -49,7 +48,15 @@ frappe.website.SitemapBrowser = Class.extend({
 					me.cur_toolbar = link.toolbar;
 					$(me.cur_toolbar).toggle(true);					
 				}
-			}
+			},
+			// drop: function(dragged_node, dropped_node, dragged_element, dropped_element) {
+			// 	frappe.website.sitemap.update_parent(dragged_node.label, dropped_node.label, function(r) {
+			// 		if(!r.exc) {
+			// 			dragged_element.remove();
+			// 			dropped_node.reload();
+			// 		}
+			// 	});
+			// }
 		});
 		this.tree.rootnode.$a
 			.data('node-data', {value: "Sitemap", expandable:1})
@@ -65,64 +72,11 @@ frappe.website.SitemapBrowser = Class.extend({
 		var node_links = [];
 		
 		node_links.push('<a onclick="frappe.website.sitemap.open();">'+frappe._('Edit')+'</a>');
-		node_links.push('<a onclick="frappe.website.sitemap.move();">'+frappe._('Move')+'</a>');
+		node_links.push('<a onclick="frappe.website.sitemap.update_parent();">'+frappe._('Move')+'</a>');
 		node_links.push('<a onclick="frappe.website.sitemap.up_or_down(\'up\');">'+frappe._('Up')+'</a>');
 		node_links.push('<a onclick="frappe.website.sitemap.up_or_down(\'down\');">'+frappe._('Down')+'</a>');
-
-		// if(data.expandable) {
-		// 	node_links.push('<a onclick="frappe.website.sitemap.new_node();">' + frappe._('Add Child') + '</a>');
-		// }
-		// 	
-		// node_links.push('<a onclick="frappe.website.sitemap.delete()">' + frappe._('Delete') + '</a>');
 		
 		link.toolbar.append(node_links.join(" | "));
-	},
-	new_node: function() {
-		var me = this;
-		
-		var fields = [
-			{fieldtype:'Data', fieldname: 'name_field', 
-				label:'New ' + me.ctype + ' Name', reqd:true},
-			{fieldtype:'Select', fieldname:'is_group', label:'Group Node', options:'No\nYes', 
-				description: frappe._("Further nodes can be only created under 'Group' type nodes")}, 
-			{fieldtype:'Button', fieldname:'create_new', label:'Create New' }
-		]
-		
-		if(me.ctype == "Sales Person") {
-			fields.splice(-1, 0, {fieldtype:'Link', fieldname:'employee', label:'Employee',
-				options:'Employee', description: frappe._("Please enter Employee Id of this sales parson")});
-		}
-		
-		// the dialog
-		var d = new frappe.ui.Dialog({
-			title: frappe._('New ') + frappe._(me.ctype),
-			fields: fields
-		})		
-	
-		d.set_value("is_group", "No");
-		// create
-		$(d.fields_dict.create_new.input).click(function() {
-			var btn = this;
-			$(btn).set_working();
-			var v = d.get_values();
-			if(!v) return;
-			
-			var node = me.selected_node();
-			
-			v.parent = node.data('label');
-			v.ctype = me.ctype;
-			
-			return frappe.call({
-				method: 'erpnext.selling.page.sales_browser.sales_browser.add_node',
-				args: v,
-				callback: function() {
-					$(btn).done_working();
-					d.hide();
-					node.trigger('reload');
-				}	
-			})			
-		});
-		d.show();		
 	},
 	selected_node: function() {
 		return this.tree.$w.find('.tree-link.selected');
@@ -140,13 +94,16 @@ frappe.website.SitemapBrowser = Class.extend({
 				"up_or_down": up_or_down
 			},
 			callback: function(r) {
-				(node.parent_node || node).reload();
+				if(r.message==="ok") {
+					node.parent.insertBefore(up_or_down==="up" ? 
+						node.parent.prev() : node.parent.next().next());
+					//(node.parent_node || node).reload();
+				}
 			}
 		});
 	},
-	move: function() {
+	update_parent: function() {
 		var me = this;
-		var node = this.selected_node();
 		if(!this.move_dialog) {
 			this.move_dialog = new frappe.ui.Dialog({
 				title: frappe._("Move"),
@@ -166,23 +123,29 @@ frappe.website.SitemapBrowser = Class.extend({
 				]
 			});
 			this.move_dialog.get_input("update").on("click", function() {
+				var node = me.tree.get_selected_node();
 				var values = me.move_dialog.get_values();
 				if(!values) return;
-				frappe.call({
-					method: "frappe.website.page.sitemap_browser.sitemap_browser.update_parent",
-					args: {
-						"name": node.data("label"),
-						"new_parent": values.new_parent
-					},
-					callback: function(r) {
-						me.move_dialog.hide();
-						me.tree.rootnode.reload();
-					}
-				});
+				me.update_parent(node.label, values.new_parent, function(r) {
+					me.move_dialog.hide();
+					(node.parent_node || node).reload();
+				})
 			});
 		}
 		this.move_dialog.show();
 		this.move_dialog.get_input("new_parent").val("");
+	},
+	update_parent: function(name, parent, callback) {
+		frappe.call({
+			method: "frappe.website.page.sitemap_browser.sitemap_browser.update_parent",
+			args: {
+				"name": name,
+				"new_parent": parent
+			},
+			callback: function(r) {
+				callback(r);
+			}
+		});
 		
 	}
 });

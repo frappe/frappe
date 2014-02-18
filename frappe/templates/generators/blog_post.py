@@ -9,6 +9,8 @@ from frappe.utils import global_date_format, get_fullname, cint
 
 doctype = "Blog Post"
 condition_field = "published"
+sort_by = "published_on"
+sort_order = "desc"
 
 def get_context(context):
 	blog_post = context.bean.doc

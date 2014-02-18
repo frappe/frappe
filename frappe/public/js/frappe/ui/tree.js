@@ -26,6 +26,7 @@ frappe.ui.Tree = Class.extend({
 			.tree li { list-style: none; }\
 			.tree ul { margin-top: 2px; }\
 			.tree-link { cursor: pointer; }\
+			.tree-hover { background-color: #eee; min-height: 20px; border: 1px solid #ddd; }\
 		")
 	}
 })
@@ -52,7 +53,24 @@ frappe.ui.TreeNode = Class.extend({
 			.data('label', this.label)
 			.data('node', this)
 			.appendTo(this.parent);
-		
+
+		this.$ul = $('<ul class="tree-children">')
+			.css({"min-height": "5px"})
+			.toggle(false).appendTo(this.parent);
+		if(this.tree.drop && this.parent_label) {
+			this.$ul.droppable({
+				hoverClass: "tree-hover",
+				greedy: true,
+				drop: function(event, ui) {
+					event.preventDefault();
+					var dragged_node = $(ui.draggable).find(".tree-link:first").data("node");
+					var dropped_node = $(this).parent().find(".tree-link:first").data("node");
+					me.tree.drop(dragged_node, dropped_node, $(ui.draggable), $(this));
+					return false;
+				}
+			});
+		}
+			
 		// label with icon
 		var icon_html = '<i class="icon-fixed-width icon-file"></i>';
 		if(this.expandable) {
@@ -64,6 +82,18 @@ frappe.ui.TreeNode = Class.extend({
 		if(this.tree.onrender) {
 			this.tree.onrender(this);
 		}
+	},
+	addnode: function(data) {
+		var $li = $('<li class="tree-node">');
+		if(this.tree.drop) $li.draggable({revert:true});
+		return new frappe.ui.TreeNode({
+			tree:this.tree, 
+			parent: $li.appendTo(this.$ul), 
+			parent_label: this.label,
+			label: data.value, 
+			expandable: data.expandable,
+			data: data
+		});
 	},
 	selectnode: function() {
 		// expand children
@@ -93,19 +123,6 @@ frappe.ui.TreeNode = Class.extend({
 			this.$ul.empty();
 		}
 		this.load();
-	},
-	addnode: function(data) {
-		if(!this.$ul) {
-			this.$ul = $('<ul>').toggle(false).appendTo(this.parent);
-		}
-		return new frappe.ui.TreeNode({
-			tree:this.tree, 
-			parent: $('<li>').appendTo(this.$ul), 
-			parent_label: this.label,
-			label: data.value, 
-			expandable: data.expandable,
-			data: data
-		});
 	},
 	load: function() {
 		var me = this;
