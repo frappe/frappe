@@ -30,7 +30,8 @@ class DocType(DocTypeNestedSet):
 			self.rename()
 		self.check_if_page_name_is_unique()
 		self.make_private_if_parent_is_private()
-		self.renumber_if_moved()
+		if not self.doc.is_new():
+			self.renumber_if_moved()
 		self.set_idx()
 
 	def renumber_if_moved(self):

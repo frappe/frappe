@@ -41,6 +41,7 @@
 		"public/css/navbar.css",
 		"public/css/slickgrid.css",
 		"public/css/tree_grid.css",
+		"public/css/tree.css",
 		"public/css/nprogress.css"
 	],
 	"js/frappe.min.js": [

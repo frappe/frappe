@@ -344,13 +344,6 @@ ul.linked-with-list li {
 	font-weight: bold;
 }
 
-.tree-node-toolbar {
-	padding: 2px 5px;
-	margin-left: 15px;
-	border-radius: 3px;
-	background-color: #ddd;
-}
-
 .print-preview {
 	padding: 50px 20px;
 	margin: 0px -15px;

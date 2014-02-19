@@ -45,12 +45,7 @@ class DocType:
 def rebuild_website_sitemap_config():
 	# TODO
 	frappe.flags.in_rebuild_config = True
-	
-	frappe.conn.sql("""update `tabWeb Page` set idx=null""")
-	frappe.conn.sql("""update `tabBlog Post` set idx=null""")
-	frappe.conn.sql("""update `tabBlog Category` set idx=null""")
-	frappe.conn.sql("""update `tabWebsite Group` set idx=null""")
-	
+		
 	frappe.conn.sql("""delete from `tabWebsite Sitemap Config`""")
 	for app in frappe.get_installed_apps():
 		if app=="webnotes": app="frappe"
@@ -81,7 +76,7 @@ def build_website_sitemap_config(app):
 					if config_type=="pages":
 						pages.append(["Page", app, path, fname, basepath])
 					else:
-						generators(["Generator", app, path, fname, basepath])
+						generators.append(["Generator", app, path, fname, basepath])
 
 	for args in pages:
 		add_website_sitemap_config(*args)

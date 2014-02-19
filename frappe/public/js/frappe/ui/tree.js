@@ -16,38 +16,45 @@ frappe.ui.Tree = Class.extend({
 			parent_label: null,
 			expandable: true
 		});
-		this.set_style();
+		this.rootnode.toggle();
 	},
 	get_selected_node: function() {
-		return this.$w.find('.tree-link.selected').data('node');
+		return this.selected_node;
 	},
-	set_style: function() {
-		frappe.dom.set_style("\
-			.tree li { list-style: none; }\
-			.tree ul { margin-top: 2px; }\
-			.tree-link { cursor: pointer; }\
-			.tree-hover { background-color: #eee; min-height: 20px; border: 1px solid #ddd; }\
-		")
+	toggle: function() {
+		this.get_selected_node().toggle();
 	}
 })
 
 frappe.ui.TreeNode = Class.extend({
 	init: function(args) {
-		var me = this;
 		$.extend(this, args);
 		this.loaded = false;
 		this.expanded = false;
 		this.tree.nodes[this.label] = this;
 		if(this.parent_label)
 			this.parent_node = this.tree.nodes[this.parent_label];
+			
+		this.make();
+		this.setup_drag_drop();
+		
+		if(this.tree.onrender) {
+			this.tree.onrender(this);
+		}
+	},
+	make: function() {
+		var me = this;
 		this.$a = $('<span class="tree-link">')
 			.click(function() { 
-				if(me.expandable && me.tree.method && !me.loaded) {
-					me.load()
-				} else {
-					me.selectnode();
+				me.tree.selected_node = me;
+				if(me.tree.toolbar) {
+					me.show_toolbar();
 				}
-				if(me.tree.click) me.tree.click(this);
+				if(me.toggle_on_click) {
+					me.toggle();
+				}
+				if(me.tree.click) 
+					me.tree.click(this);
 			})
 			.bind('reload', function() { me.reload(); })
 			.data('label', this.label)
@@ -55,8 +62,53 @@ frappe.ui.TreeNode = Class.extend({
 			.appendTo(this.parent);
 
 		this.$ul = $('<ul class="tree-children">')
-			.css({"min-height": "5px"})
 			.toggle(false).appendTo(this.parent);
+			
+		this.make_icon();
+		
+	},
+	make_icon: function() {
+		// label with icon
+		var icon_html = '<i class="icon-fixed-width icon-file"></i>';
+		if(this.expandable) {
+			icon_html = '<i class="icon-fixed-width icon-folder-close"></i>';
+		}
+		$(icon_html + ' <a class="tree-label">' + this.label + "</a>").
+			appendTo(this.$a);
+	},
+	toggle: function(callback) {
+		if(this.expandable && this.tree.method && !this.loaded) {
+			this.load(callback)
+		} else {
+			this.toggle_node(callback);
+		}
+	},
+	show_toolbar: function() {
+		if(this.tree.cur_toolbar) 
+			$(this.tree.cur_toolbar).toggle(false);
+
+		if(!this.toolbar) 
+			this.make_toolbar();
+
+		this.tree.cur_toolbar = this.toolbar;
+		this.toolbar.toggle(true);
+	},
+	make_toolbar: function() {
+		var me = this;
+		this.toolbar = $('<span class="tree-node-toolbar"></span>').insertAfter(this.$a);
+		
+		$.each(this.tree.toolbar, function(i, d) {
+			$("<a class='tree-toolbar-item'>")
+				.html(d.label)
+				.appendTo(me.toolbar)
+				.click(function() { d.click(me, this); return false; });
+				
+		})
+				
+	},
+	setup_drag_drop: function() {
+		// experimental
+		var me = this;
 		if(this.tree.drop && this.parent_label) {
 			this.$ul.droppable({
 				hoverClass: "tree-hover",
@@ -70,18 +122,7 @@ frappe.ui.TreeNode = Class.extend({
 				}
 			});
 		}
-			
-		// label with icon
-		var icon_html = '<i class="icon-fixed-width icon-file"></i>';
-		if(this.expandable) {
-			icon_html = '<i class="icon-fixed-width icon-folder-close"></i>';
-		}
-		$(icon_html + ' <a class="tree-label">' + this.label + "</a>").
-			appendTo(this.$a);
 		
-		if(this.tree.onrender) {
-			this.tree.onrender(this);
-		}
 	},
 	addnode: function(data) {
 		var $li = $('<li class="tree-node">');
@@ -95,14 +136,16 @@ frappe.ui.TreeNode = Class.extend({
 			data: data
 		});
 	},
-	selectnode: function() {
+	toggle_node: function(callback) {
 		// expand children
 		if(this.$ul) {
-			this.$ul.toggle();
+			if(this.$ul.children().length) {
+				this.$ul.toggle(!this.expanded);
+			}
 			
 			// open close icon
 			this.$a.find('i').removeClass();
-			if(this.$ul.css('display').toLowerCase()=='block') {
+			if(!this.expanded) {
 				this.$a.find('i').addClass('icon-fixed-width icon-folder-open');
 			} else {
 				this.$a.find('i').addClass('icon-fixed-width icon-folder-close');
@@ -114,30 +157,22 @@ frappe.ui.TreeNode = Class.extend({
 			.removeClass('selected');
 		this.$a.toggleClass('selected');
 		this.expanded = !this.expanded;
+		if(callback) callback();
 	},
 	reload: function() {
-		if(this.expanded) {
-			this.$a.click(); // collapse
-		}
-		if(this.$ul) {
-			this.$ul.empty();
-		}
 		this.load();
 	},
-	load: function() {
+	load: function(callback) {
 		var me = this;
 		args = $.extend(this.tree.args || {}, {
 			parent: this.data ? this.data.value : null
 		});
 
-		$(me.$a).set_working();
-
 		return frappe.call({
 			method: this.tree.method,
 			args: args,
 			callback: function(r) {
-				$(me.$a).done_working();
-
+				me.$ul.empty();
 				if (r.message) {
 					$.each(r.message, function(i, v) {
 						node = me.addnode(v);
@@ -147,10 +182,10 @@ frappe.ui.TreeNode = Class.extend({
 					});
 				}
 				
+				if(!me.expanded)
+					me.toggle_node(callback);
 				me.loaded = true;
 				
-				// expand
-				me.selectnode();
 			}
 		})
 	}
