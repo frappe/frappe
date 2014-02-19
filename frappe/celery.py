@@ -21,6 +21,7 @@ def get_app():
 			backend=conf['celery_result_backend'])
 	app.autodiscover_tasks(frappe.get_all_apps(with_frappe=True, with_internal_apps=False))
 	app.conf.CELERY_TASK_SERIALIZER = 'json'
+	app.conf.CELERY_ACCEPT_CONTENT = ['json']
 	app.conf.CELERYBEAT_SCHEDULE = {
 	    'scheduler': {
 		        'task': 'frappe.tasks.enqueue_scheduler_events',
