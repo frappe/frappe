@@ -55,9 +55,8 @@
 	</form>
 	
 </div>
-<script>
-	{% include "templates/includes/login.js" %}
-</script>
 {% endblock %}
+
+{% block script_lib %}{% include "templates/includes/login.js" %}{% endblock %}
 
 {% block sidebar %}{% endblock %}

@@ -33,9 +33,12 @@ def get_context(path):
 
 	else:
 		context["access"] = get_access(context.pathname)
-		
-	context.update(context.data or {})
 	
+	if not context.data:
+		context.data = {}
+	context.data["path"] = path
+	context.update(context.data or {})
+		
 	# TODO private pages
 	
 	return context

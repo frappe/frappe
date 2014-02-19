@@ -263,13 +263,21 @@ $.extend(frappe, {
 		} else {
 			$('[data-html-block]').each(function(i, section) {
 				var $section = $(section);
-				if($section.attr("data-html-block")==="script") {
+				var stype = $section.attr("data-html-block");
+				if(stype==="script") {
 					$section.remove();
 					$("<script data-html-block='script'></script>")
-						.html(data[$section.attr("data-html-block")] || "")
+						.html(data[stype] || "")
 						.appendTo("body");
+				} else if(stype==="script_lib") {
+					// render once
+					if(!$("[data-block-html='script_lib'][data-path='"+data.path+"']").length) {
+						$("<script data-block-html='script_lib' data-path='"+data.path+"'></script>")
+						.html(data.script_lib)
+						.appendTo("body");
+					}
 				} else {
-					$section.html(data[$section.attr("data-html-block")] || "");
+					$section.html(data[stype] || "");
 				}
 			});
 			if(data.title) $("title").html(data.title);
@@ -286,6 +294,21 @@ $.extend(frappe, {
 		return (window.history && window.history.pushState && window.history.replaceState &&
 		  // pushState isn't reliable on iOS until 5.
 		  !navigator.userAgent.match(/((iPod|iPhone|iPad).+\bOS\s+[1-4]|WebApps\/.+CFNetwork)/))
+	},
+	get_pathname: function() {
+		return location.pathname && location.pathname.split("/")[1].split(".")[0];
+	},
+	page_ready_events: {},
+	ready: function(fn) {
+		if(!frappe.page_ready_events[frappe.get_pathname()]) {
+			frappe.page_ready_events[frappe.get_pathname()] = [];
+		}
+		frappe.page_ready_events[frappe.get_pathname()].push(fn);
+	},
+	trigger_ready: function() {
+		$.each((frappe.page_ready_events[frappe.get_pathname()] || []), function(i, fn) {
+			fn();
+		})
 	}
 });
 
@@ -445,4 +468,5 @@ $(document).on("page_change", function() {
 	
 	$(document).trigger("apply_permissions");
 	frappe.datetime.refresh_when();
+	frappe.trigger_ready();
 });
