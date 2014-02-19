@@ -1,5 +1,4 @@
-## frappe
-
+## frappe [![Build Status](https://travis-ci.org/frappe/frappe.png)](https://travis-ci.org/frappe/frappe)
 Full-stack web application framework that uses Python/MySql on the server side and a tightly integrated client side library. Primarily built for erpnext.
 
 Projects: [erpnext](http://erpnext.org) | [frappe/erpnext](https://github.com/frappe/erpnext)
