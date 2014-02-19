@@ -1,47 +1,59 @@
+{% block style %}{% include "templates/includes/login.css" %}{% endblock %}
+
 {% block content %}
 <div class="login-content container" style="max-width: 800px;">
-	<div class="row" style="margin-top: 70px; margin-bottom: 20px">
-		<div class="col-sm-offset-1 col-sm-10">
-			<div class="panel panel-default">
-				<div class="panel-heading">
-					<h4><i class="icon-lock"></i> {{ _("Login") }}</h4>
-				</div>
-				<div class="panel-body row" style="padding: 30px">
-					<div class="col-sm-6 login-wrapper">
-						<p id="login_message" class="alert alert-warning" 
-							style="display: none;"></p>
-						<div class="form-group">
-							<input id="login_id" type="text"
-								class="form-control" placeholder="Login Email Id">
-						</div>
-						<div class="form-group" id="full-name-row" style="display: none;">
-							<input id="full_name" type="text"
-								class="form-control" placeholder="Your Full Name">
-						</div>
-						<div class="form-group" id="password-row">
-							<input id="pass" type="password"
-								class="form-control" placeholder="Password">
-						</div>
-						<div class="form-group">
-							<button type="submit" id="login_btn" 
-								class="btn btn-primary">{{ _("Login") }}</button>
-							<img src="/assets/frappe/images/ui/button-load.gif" id="login-spinner" 
-								style="display: none;">
-						</div>
-						<p id="forgot-link"></p>
-					</div>
-					<div class="col-sm-6">
-						{%- if fb_app_id is defined -%}
-						<div id="fb-root"></div>
-						<p><button type="button" class="btn btn-default btn-login">
-							Login via Facebook</button></p>
-						{%- endif -%}
-						<p id="switch-view"></p>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
+	<form class="form-signin form-login" role="form">
+		<h2 class="form-signin-heading">{{ _("Login") }}</h2>
+		<input type="text" id="login_email" 
+			class="form-control" placeholder="{{ _('Email address') }}" required autofocus>
+		<input type="password" id="login_password"
+			class="form-control" placeholder="{{ _('Password') }}" required>
+		<!-- <label class="checkbox">
+			<input type="checkbox" value="remember-me"> Remember me
+		</label> -->
+		<br>
+		<button class="btn btn-lg btn-primary btn-block btn-login" type="submit">{{ _("Sign in") }}</button>
+		{%- if fb_app_id is defined -%}
+		<div id="fb-root"></div>
+		<p class="text-center">
+			<p class="text-muted text-center" style="margin: 10px;">or</p>
+			<button type="button" class="btn btn-lg btn-primary btn-block btn-facebook">
+			{{ _("Login via Facebook") }}</button></p>
+		{%- endif -%}
+		<p class="text-center">
+			<br><a href="#signup">{{ _("Not a user yet? Sign up") }}</a>
+		</p>
+		<p class="text-center">
+			<br><a href="#forgot" class="text-muted">{{ _("Forgot Password?") }}</a>
+		</p>
+
+	</form>
+	
+	<form class="form-signin form-signup" role="form">
+		<h2 class="form-signin-heading">{{ _("Sign Up") }}</h2>
+		<input type="text" id="signup_fullname" 
+			class="form-control" placeholder="{{ _('Full Name') }}" required autofocus>
+		<input type="email" id="signup_email"
+			class="form-control" placeholder="{{ _('Email Id') }}" required>
+		<button class="btn btn-lg btn-primary btn-block btn-signup" type="submit">{{ _("Sign up") }}</button>
+		<p class="text-center">
+			<br><a href="#login">{{ _("Have an account? Login") }}</a>
+		</p>
+
+	</form>
+	
+	<form class="form-signin form-forgot" role="form">
+		<h2 class="form-signin-heading">{{ _("Forgot Password") }}</h2>
+		<input type="email" id="forgot_email" 
+			class="form-control" placeholder="{{ _('Email Id') }}" required autofocus>
+		<br>
+		<button class="btn btn-lg btn-primary btn-block btn-forgot" type="submit">{{ _("Send Password") }}</button>
+		<p class="text-center">
+			<br><a href="#login">{{ _("Back to Login") }}</a>
+		</p>
+
+	</form>
+	
 </div>
 <script>
 	{% include "templates/includes/login.js" %}
