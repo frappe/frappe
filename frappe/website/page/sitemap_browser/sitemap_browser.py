@@ -14,7 +14,7 @@ def get_children(parent=None):
 		parent = ""
 
 	return frappe.conn.sql("""select name as value, 1 as expandable from `tabWebsite Sitemap` where 
-		ifnull(parent_website_sitemap, '')=%s order by -idx desc""", parent, as_dict=True)
+		ifnull(parent_website_sitemap, '')=%s and idx is not null order by -idx desc""", parent, as_dict=True)
 		
 @frappe.whitelist()
 def move(name, up_or_down):
@@ -51,6 +51,7 @@ def move(name, up_or_down):
 			ret = "ok"
 
 	clear_cache()
+	return ret
 	
 @frappe.whitelist()
 def update_parent(name, new_parent):

@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
+from frappe.utils import cint
 from frappe.utils.nestedset import DocTypeNestedSet
 
 sitemap_fields = ("page_name", "ref_doctype", "docname", "page_or_generator", "idx",
@@ -29,22 +30,38 @@ class DocType(DocTypeNestedSet):
 			self.rename()
 		self.check_if_page_name_is_unique()
 		self.make_private_if_parent_is_private()
+		if not self.doc.is_new():
+			self.renumber_if_moved()
 		self.set_idx()
+
+	def renumber_if_moved(self):
+		if self.doc.old_parent != self.doc.parent_website_sitemap:
+			frappe.conn.sql("""update `tabWebsite Sitemap` set idx=idx-1 
+				where parent_website_sitemap=%s and idx>%s""", (self.doc.old_parent, self.doc.idx))
+			frappe.conn.sql("""update `tab{}` set idx=idx-1 
+				where parent_website_sitemap=%s and idx>%s""".format(self.doc.ref_doctype), 
+					(self.doc.old_parent, self.doc.idx))
+			self.doc.idx = None
 	
 	def set_idx(self):
 		if self.doc.idx==None:
-			self.doc.idx = int(frappe.conn.sql("""select max(idx) from `tabWebsite Sitemap`
-				where parent_website_sitemap=%s and name!=%s""", (self.doc.parent_website_sitemap,
+			self.doc.idx = int(frappe.conn.sql("""select max(ifnull(idx, -1)) from `tabWebsite Sitemap`
+				where ifnull(parent_website_sitemap, '')=%s and name!=%s""", 
+					(self.doc.parent_website_sitemap or '',
 					self.doc.name))[0][0] or 0) + 1
 		else:
-			if self.doc.idx != 0 and self.doc.parent_website_sitemap:
-				if not frappe.conn.get_value("Website Sitemap", {
-					"idx": self.doc.idx -1, 
-					"parent_website_sitemap":self.doc.parent_website_sitemap
-				}):
+			if cint(self.doc.idx) != 0 and self.doc.parent_website_sitemap:
+				if not frappe.conn.sql("""select name from `tabWebsite Sitemap` where
+					ifnull(parent_website_sitemap, '')=%s and ifnull(idx, -1)=%s""", 
+						(self.doc.parent_website_sitemap or '', cint(self.doc.idx) - 1)):
+
 					frappe.throw("{}: {}".format(
 						_("Sitemap Ordering Error. Index missing"), self.doc.idx-1))
-						
+
+	def on_update(self):
+		if not frappe.flags.in_rebuild_config:
+			DocTypeNestedSet.on_update(self)
+												
 	def rename(self):
 		from frappe.website.render import clear_cache
 		self.old_name = self.doc.name
@@ -54,14 +71,14 @@ class DocType(DocTypeNestedSet):
 		self.rename_links()
 		self.rename_descendants()
 		clear_cache(self.old_name)
-
+		
 	def rename_links(self):
 		for doctype in frappe.conn.sql_list("""select parent from tabDocField where fieldtype='Link' and 
 			fieldname='parent_website_sitemap' and options='Website Sitemap'"""):
 			for name in frappe.conn.sql_list("""select name from `tab{}` 
 				where parent_website_sitemap=%s""".format(doctype), self.old_name):
 				frappe.conn.set_value(doctype, name, "parent_website_sitemap", self.doc.name)
-				
+	
 	def rename_descendants(self):
 		# rename children
 		for name in frappe.conn.sql_list("""select name from `tabWebsite Sitemap`
@@ -69,10 +86,6 @@ class DocType(DocTypeNestedSet):
 			child = frappe.bean("Website Sitemap", name)
 			child.doc.parent_website_sitemap = self.doc.name
 			child.save()
-	
-	def on_update(self):
-		if not frappe.flags.in_rebuild_config:
-			DocTypeNestedSet.on_update(self)
 		
 	def check_if_page_name_is_unique(self):
 		exists = False

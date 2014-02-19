@@ -8,7 +8,14 @@ import sys, os
 
 import frappe
 
-site_arg_optional = []
+site_arg_optional = ['serve']
+
+def get_site(parsed_args):
+	if not parsed_args.get("site") and os.path.exists(os.path.join(parsed_args["sites_path"], "currentsite.txt")):
+		with open(os.path.join(parsed_args["sites_path"], "currentsite.txt"), "r") as sitefile:
+			parsed_args["site"] = sitefile.read().strip()
+			return  parsed_args["site"]
+	return parsed_args.get("site")
 
 def main():
 	parsed_args = frappe._dict(vars(setup_parser()))
@@ -28,21 +35,11 @@ def main():
 				frappe.init(site, sites_path=sites_path)
 				run(fn, args)
 		else:
-			if not fn in site_arg_optional:
-				if not parsed_args.get("site") and os.path.exists(os.path.join(sites_path, "currentsite.txt")):
-					with open(os.path.join(sites_path, "currentsite.txt"), "r") as sitefile:
-						parsed_args["site"] = sitefile.read().strip()
-				
-				site = parsed_args.get("site")
-
-				if not site:
-					print "Site argument required"
-					exit(1)
-
-				if fn != 'install' and not os.path.exists(os.path.join(parsed_args["sites_path"], site)):
-					print "Did not find folder '{}'. Are you in sites folder?".format(parsed_args.get("site"))
-					exit(1)
-					
+			site = get_site(parsed_args)
+			if fn not in site_arg_optional and not site:
+				print 'site argument required'
+				exit(1)
+			elif site:
 				frappe.init(site, sites_path=sites_path)
 			run(fn, parsed_args)
 	else:
@@ -639,7 +636,7 @@ def run_tests(app=None, module=None, doctype=None, verbose=False):
 		exit(1)
 
 @cmd
-def serve(port=8000, profile=False, sites_path='.'):
+def serve(port=8000, profile=False, sites_path='.', site=None):
 	import frappe.app
 	frappe.app.serve(port=port, profile=profile, site=frappe.local.site, sites_path=sites_path)
 	

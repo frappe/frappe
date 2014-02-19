@@ -2,7 +2,7 @@
  {
   "creation": "2013-11-18 15:35:00", 
   "docstatus": 0, 
-  "modified": "2014-02-14 12:48:54", 
+  "modified": "2014-02-18 15:22:32", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -22,7 +22,9 @@
   "permlevel": 0
  }, 
  {
+  "cancel": 0, 
   "create": 0, 
+  "delete": 1, 
   "doctype": "DocPerm", 
   "export": 0, 
   "name": "__common__", 
@@ -128,6 +130,18 @@
   "fieldtype": "Data", 
   "label": "Condition Field", 
   "read_only": 1
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "sort_by", 
+  "fieldtype": "Data", 
+  "label": "Sort By"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "sort_order", 
+  "fieldtype": "Data", 
+  "label": "Sort Order"
  }, 
  {
   "doctype": "DocPerm"

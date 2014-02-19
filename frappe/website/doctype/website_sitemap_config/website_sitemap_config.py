@@ -45,7 +45,7 @@ class DocType:
 def rebuild_website_sitemap_config():
 	# TODO
 	frappe.flags.in_rebuild_config = True
-	
+		
 	frappe.conn.sql("""delete from `tabWebsite Sitemap Config`""")
 	for app in frappe.get_installed_apps():
 		if app=="webnotes": app="frappe"
@@ -64,15 +64,25 @@ def build_website_sitemap_config(app):
 	config = {"pages": {}, "generators":{}}
 	basepath = frappe.get_pymodule_path(app)
 	
-	# pages
+	pages = []
+	generators = []
+
 	for config_type in ("pages", "generators"):
 		path = os.path.join(basepath, "templates", config_type)
 		if os.path.exists(path):
 			for fname in os.listdir(path):
 				fname = frappe.utils.cstr(fname)
 				if fname.split(".")[-1] in ("html", "xml", "js", "css"):
-					name = add_website_sitemap_config("Page" if config_type=="pages" else "Generator", 
-						app, path, fname, basepath)
+					if config_type=="pages":
+						pages.append(["Page", app, path, fname, basepath])
+					else:
+						generators.append(["Generator", app, path, fname, basepath])
+
+	for args in pages:
+		add_website_sitemap_config(*args)
+
+	for args in generators:
+		add_website_sitemap_config(*args)
 					
 	frappe.conn.commit()
 
@@ -100,6 +110,8 @@ def add_website_sitemap_config(page_or_generator, app, path, fname, basepath):
 		wsc.ref_doctype = getattr(module, "doctype", None)
 		wsc.page_name_field = getattr(module, "page_name_field", "page_name")
 		wsc.condition_field = getattr(module, "condition_field", None)
+		wsc.sort_by = getattr(module, "sort_by", "name")
+		wsc.sort_order = getattr(module, "sort_order", "asc")
 		wsc.base_template_path = getattr(module, "base_template_path", None)
 		wsc.page_title = getattr(module, "page_title", _(name.title()))
 	
