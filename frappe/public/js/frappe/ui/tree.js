@@ -14,7 +14,12 @@ frappe.ui.Tree = Class.extend({
 			parent: this.$w, 
 			label: this.label, 
 			parent_label: null,
-			expandable: true
+			expandable: true,
+			root: true,
+			data: {
+				value: this.label,
+				expandable: true
+			}
 		});
 		this.rootnode.toggle();
 	},
@@ -45,7 +50,7 @@ frappe.ui.TreeNode = Class.extend({
 	make: function() {
 		var me = this;
 		this.$a = $('<span class="tree-link">')
-			.click(function() { 
+			.click(function(event) { 
 				me.tree.selected_node = me;
 				if(me.tree.toolbar) {
 					me.show_toolbar();
@@ -69,12 +74,17 @@ frappe.ui.TreeNode = Class.extend({
 	},
 	make_icon: function() {
 		// label with icon
+		var me= this;
 		var icon_html = '<i class="icon-fixed-width icon-file"></i>';
 		if(this.expandable) {
 			icon_html = '<i class="icon-fixed-width icon-folder-close"></i>';
 		}
 		$(icon_html + ' <a class="tree-label">' + this.label + "</a>").
 			appendTo(this.$a);
+			
+		this.$a.find('i').click(function() { 
+			setTimeout(function() { me.toolbar.find(".btn-expand").click(); }, 100);			
+		});
 	},
 	toggle: function(callback) {
 		if(this.expandable && this.tree.method && !this.loaded) {
@@ -97,12 +107,28 @@ frappe.ui.TreeNode = Class.extend({
 		var me = this;
 		this.toolbar = $('<span class="tree-node-toolbar"></span>').insertAfter(this.$a);
 		
-		$.each(this.tree.toolbar, function(i, d) {
-			$("<a class='tree-toolbar-item'>")
-				.html(d.label)
+		$.each(this.tree.toolbar, function(i, item) {
+			if(item.toggle_btn) {
+				item = {
+					condition: function() { return me.expandable; },
+					get_label: function() { return me.expanded ? __("Collapse") : __("Expand") },
+					click:function(node, btn) {
+						node.toggle(function() {
+							$(btn).html(node.expanded ? __("Collapse") : __("Expand"));
+						});
+					},
+					btnClass: "btn-expand"
+				}
+			}
+			if(item.condition) {
+				if(!item.condition(me)) return;
+			}
+			var link = $("<a class='tree-toolbar-item'>")
+				.html(item.get_label ? item.get_label() : item.label)
 				.appendTo(me.toolbar)
-				.click(function() { d.click(me, this); return false; });
+				.click(function() { item.click(me, this); return false; });
 				
+			if(item.btnClass) link.addClass(item.btnClass);
 		})
 				
 	},

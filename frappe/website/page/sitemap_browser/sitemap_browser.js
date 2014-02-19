@@ -39,12 +39,7 @@ frappe.website.SitemapBrowser = Class.extend({
 			method: 'frappe.website.page.sitemap_browser.sitemap_browser.get_children',
 			toolbar: [
 				{
-					label:frappe._("Expand"),
-					click:function(node, btn) {
-						node.toggle(function() {
-							$(btn).html(node.expanded ? frappe._("Collapse") : frappe._("Expand"));
-						});
-					}
+					toggle_btn: true,
 				},
 				{
 					label: frappe._("Update Parent"),

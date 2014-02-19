@@ -8,3 +8,4 @@ frappe._ = function(txt, replace) {
 	if(typeof(txt) != "string") return txt;
 	return frappe._messages[txt.replace(/\n/g, "")] || txt;
 };
+window.__ = frappe._
