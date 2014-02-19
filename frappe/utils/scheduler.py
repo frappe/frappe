@@ -17,7 +17,7 @@ on the need.
 
 import frappe
 import frappe.utils
-from frappe.utils.file_lock import create_lock, check_lock
+from frappe.utils.file_lock import create_lock, check_lock, delete_lock
 
 def execute(site):
 	"""
@@ -26,6 +26,10 @@ def execute(site):
 	Database connection: Ideally it should be connected from outside, if there is
 	no connection, it will connect from defs.py
 	"""
+	frappe.init(site=site)
+	if check_lock('scheduler'):
+		return
+	create_lock('scheduler')
 	from datetime import datetime
 	
 	format = '%Y-%m-%d %H:%M:%S'
@@ -60,7 +64,7 @@ def execute(site):
 			out.append(nowtime.strftime("%Y-%m-%d %H:%M:%S") + ' - hourly:' + trigger(site, 'hourly'))
 
 	out.append(nowtime.strftime("%Y-%m-%d %H:%M:%S") + ' - all:' + trigger(site, 'all'))
-	
+	delete_lock('scheduler')
 	return '\n'.join(out)
 	
 def trigger(site, event):

@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 
 import os
+import frappe
 from time import time
 from frappe.utils import get_site_path, touch_file
 
@@ -34,5 +35,6 @@ def delete_lock(name):
 
 def get_lock_path(name):
 	name = name.lower()
-	lock_path = get_site_path(name + '.lock')
+	locks_dir = frappe.local.conf.locks_dir or 'locks'
+	lock_path = get_site_path(locks_dir, name + '.lock')
 	return lock_path
