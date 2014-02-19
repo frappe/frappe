@@ -38,7 +38,7 @@ class DocType(DocTypeNestedSet):
 		if self.doc.old_parent != self.doc.parent_website_sitemap:
 			frappe.conn.sql("""update `tabWebsite Sitemap` set idx=idx-1 
 				where parent_website_sitemap=%s and idx>%s""", (self.doc.old_parent, self.doc.idx))
-			frappe.conn.sql("""update `tab{}` set idx=idx-1 
+			frappe.conn.sql("""update `tab{0}` set idx=idx-1 
 				where parent_website_sitemap=%s and idx>%s""".format(self.doc.ref_doctype), 
 					(self.doc.old_parent, self.doc.idx))
 			self.doc.idx = None
