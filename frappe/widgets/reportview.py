@@ -328,6 +328,7 @@ def save_report():
 def export_query():
 	"""export from report builder"""
 	form_params = get_form_params()
+	form_params["limit_page_length"] = None
 	
 	frappe.permissions.can_export(form_params.doctype, raise_exception=True)
 	
