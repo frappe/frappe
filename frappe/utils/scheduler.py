@@ -17,6 +17,7 @@ on the need.
 
 import frappe
 import frappe.utils
+from frappe.utils.file_lock import create_lock, check_lock
 
 def execute(site):
 	"""
@@ -67,8 +68,9 @@ def trigger(site, event):
 	from frappe.tasks import scheduler_task
 	for scheduler_event in frappe.get_hooks().scheduler_event:
 		event_name, handler = scheduler_event.split(":")
-		if event==event_name:
+		if event==event_name and not check_lock(handler):
 			scheduler_task.delay(site, event, handler)
+			create_lock(handler)
 	return 'enqueued'
 
 def log(method, message=None):
