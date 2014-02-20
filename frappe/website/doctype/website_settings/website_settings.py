@@ -87,6 +87,9 @@ def get_website_settings():
 		if k in settings.fields:
 			context[k] = settings.fields.get(k)
 			
+	if not context.get("favicon"):
+		context["favicon"] = "/assets/frappe/images/favicon.ico"
+			
 	if settings.address:
 		context["footer_address"] = settings.address
 
