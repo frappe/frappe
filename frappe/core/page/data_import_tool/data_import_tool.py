@@ -514,7 +514,7 @@ def export_json(doctype, name, path):
 			d["__islocal"] = 1
 		outfile.write(json.dumps(doclist, default=json_handler, indent=1, sort_keys=True))
 
-def import_doclist(path, overwrite=False, ignore_links=False, ignore_insert=False):
+def import_doclist(path, overwrite=False, ignore_links=False, ignore_insert=False, insert=False):
 	import os
 	if os.path.isdir(path):
 		files = [os.path.join(path, f) for f in os.listdir(path)]
@@ -524,6 +524,8 @@ def import_doclist(path, overwrite=False, ignore_links=False, ignore_insert=Fals
 	def _import_doclist(d):
 		b = frappe.bean(d)
 		b.ignore_links = ignore_links
+		if insert:
+			d.doc.fields["__islocal"] = True
 		try:
 			b.insert_or_update()
 		except NameError:

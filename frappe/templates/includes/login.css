@@ -1,6 +1,9 @@
-.page-header { display: none; }
-.page-sidebar {
+.page-sidebar, #wrap-footer, .page-header {
 	display: none;
+}
+
+#wrap {
+	background-color: #eee;
 }
 .page-content {
 	right: 0%;

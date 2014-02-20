@@ -51,6 +51,9 @@ frappe.ui.Listing = Class.extend({
 		if(!this.opts.no_result_message) {
 			this.opts.no_result_message = frappe._('Nothing to show');
 		}
+		if(!this.opts.page_length) {
+			this.opts.page_length = 20;
+		}
 		this.opts._more = frappe._("More");
 	},
 	make: function(opts) {
@@ -85,18 +88,26 @@ frappe.ui.Listing = Class.extend({
 						<img src="assets/frappe/images/ui/button-load.gif" \
 						class="img-load"/></div>\
 				</div><div style="clear:both"></div>\
-				\
 				<div class="no-result" style="display: none;">\
 					%(no_result_message)s\
 				</div>\
-				\
 				<div class="result">\
 					<div class="result-list"></div>\
 				</div>\
-				\
-				<p class="paging-button" style="text-align: center;">\
-					<button class="btn btn-default btn-more" style="display: none; margin: 15px 0px;">%(_more)s...</div>\
-				</p>\
+				<div class="paging-button" style="margin-top: 15px; display: none;">\
+					<div class="row">\
+						<div class="col-sm-6">\
+							<button class="btn btn-default btn-more">%(_more)s...</button>\
+						</div>\
+						<div class="col-sm-6">\
+							<div class="btn-group pull-right btn-group-paging">\
+								<button type="button" class="btn btn-default btn-small btn-info" data-value="20">20</button>\
+								<button type="button" class="btn btn-default btn-small" data-value="100">100</button>\
+								<button type="button" class="btn btn-default btn-small" data-value="500">500</button>\
+							</div>\
+						</div>\
+					</div>\
+				</div>\
 			</div>\
 		', this.opts));
 		this.$w = $(this.parent).find('.frappe-list');
@@ -137,6 +148,11 @@ frappe.ui.Listing = Class.extend({
 		this.$w.find('.btn-more').click(function() {
 			me.run({append: true });
 		});
+		
+		this.$w.find(".btn-group-paging .btn").click(function() {
+			me.page_length = cint($(this).attr("data-value"));
+			me.run({append: true});
+		})
 		
 		// title
 		if(this.title) {
@@ -213,7 +229,7 @@ frappe.ui.Listing = Class.extend({
 			
 		if(!me.opts.no_loading)
 			me.set_working(true);
-			
+					
 		return frappe.call({
 			method: this.opts.method || 'frappe.widgets.query_builder.runquery',
 			type: "GET",
@@ -259,7 +275,7 @@ frappe.ui.Listing = Class.extend({
 	render_results: function(r) {
 		if(this.start===0) this.clear();
 		
-		this.$w.find('.btn-more').toggle(false);
+		this.$w.find('.paging-button').toggle(false);
 
 		if(r.message) {
 			r.values = this.get_values_from_response(r.message);
@@ -313,7 +329,7 @@ frappe.ui.Listing = Class.extend({
 	},
 	update_paging: function(values) {
 		if(values.length >= this.page_length) {
-			this.$w.find('.btn-more').toggle(true);			
+			this.$w.find('.paging-button').toggle(true);			
 			this.start += this.page_length;
 		}
 	},
