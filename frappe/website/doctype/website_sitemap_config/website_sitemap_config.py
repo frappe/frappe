@@ -60,25 +60,13 @@ def rebuild_website_sitemap_config():
 	rebuild_tree("Website Sitemap", "parent_website_sitemap")
 	
 	frappe.conn.commit()
-		
+
+
 def build_website_sitemap_config(app):		
 	config = {"pages": {}, "generators":{}}
-	basepath = frappe.get_pymodule_path(app)
 	
-	pages = []
-	generators = []
-
-	for config_type in ("pages", "generators"):
-		path = os.path.join(basepath, "templates", config_type)
-		if os.path.exists(path):
-			for fname in os.listdir(path):
-				fname = frappe.utils.cstr(fname)
-				if fname.split(".")[-1] in ("html", "xml", "js", "css"):
-					if config_type=="pages":
-						pages.append(["Page", app, path, fname, basepath])
-					else:
-						generators.append(["Generator", app, path, fname, basepath])
-
+	pages, generators = get_pages_and_generators(app)
+	
 	for args in pages:
 		add_website_sitemap_config(*args)
 
@@ -87,21 +75,36 @@ def build_website_sitemap_config(app):
 					
 	frappe.conn.commit()
 
-def add_website_sitemap_config(page_or_generator, app, path, fname, basepath):
+def get_pages_and_generators(app):
+	pages = []
+	generators = []
+	app_path = frappe.get_app_path(app)
+
+	for config_type in ("pages", "generators"):
+		path = os.path.join(app_path, "templates", config_type)
+		if os.path.exists(path):
+			for fname in os.listdir(path):
+				fname = frappe.utils.cstr(fname)
+				if fname.split(".")[-1] in ("html", "xml", "js", "css"):
+					if config_type=="pages":
+						pages.append(["Page", app, path, fname, app_path])
+					else:
+						generators.append(["Generator", app, path, fname, app_path])
+						
+	return pages, generators
+	
+def add_website_sitemap_config(page_or_generator, app, path, fname, app_path):
 	name = fname[:-5] if fname.endswith(".html") else fname
 	
 	wsc = frappe._dict({
 		"doctype": "Website Sitemap Config",
 		"page_or_generator": page_or_generator,
 		"link_name": name,
-		"template_path": os.path.relpath(os.path.join(path, fname), basepath),
+		"template_path": os.path.relpath(os.path.join(path, fname), app_path),
 	})
-		
-	controller_name = fname.split(".")[0].replace("-", "_") + ".py"
-	controller_path = os.path.join(path, controller_name)
-	if os.path.exists(controller_path):
-		wsc.controller = app + "." + os.path.relpath(controller_path[:-3], basepath).replace(os.path.sep, ".")
-
+	
+	wsc.controller = get_template_controller(app, path, fname)
+	
 	if wsc.controller:
 		# verbose print wsc.controller
 		module = frappe.get_module(wsc.controller)
@@ -123,3 +126,13 @@ def add_website_sitemap_config(page_or_generator, app, path, fname, basepath):
 	frappe.bean(wsc).insert()
 	
 	return name
+	
+def get_template_controller(app, path, fname):
+	controller = None
+	controller_name = fname.split(".")[0].replace("-", "_") + ".py"
+	controller_path = os.path.join(path, controller_name)
+	if os.path.exists(controller_path):
+		controller = app + "." + os.path.relpath(controller_path[:-3], frappe.get_app_path(app)).replace(os.path.sep, ".")
+		
+	return controller
+	

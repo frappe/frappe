@@ -32,7 +32,7 @@ def get_doc_path(module, doctype, name):
 
 def reload_doc(module, dt=None, dn=None, force=True):
 	from frappe.modules.import_file import import_files
-	return import_files(module, dt, dn, force=force)
+	return import_files(scrub(module), scrub(dt), scrub(dn), force=force)
 
 def export_doc(doctype, name, module=None):
 	"""write out a doc"""

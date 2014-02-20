@@ -466,9 +466,11 @@ def reset_perms():
 @cmd
 def execute(method):
 	frappe.connect()
-	frappe.get_attr(method)()
+	ret = frappe.get_attr(method)()
 	frappe.conn.commit()
 	frappe.destroy()
+	if ret:
+		print ret
 
 # scheduler
 @cmd
