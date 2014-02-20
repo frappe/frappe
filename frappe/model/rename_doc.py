@@ -63,7 +63,7 @@ def update_attachments(doctype, old, new):
 			raise 
 
 def rename_versions(doctype, old, new):
-	frappe.conn.sql("""update tabVersion set docname=%s where doctype=%s and docname=%s""", 
+	frappe.conn.sql("""update tabVersion set docname=%s where ref_doctype=%s and docname=%s""", 
 		(new, doctype, old))
 
 def rename_parent_and_child(doctype, old, new, doclist):
