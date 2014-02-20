@@ -67,6 +67,7 @@ def handle():
 			frappe.PermissionError: 403,
 			frappe.AuthenticationError: 401,
 			frappe.DoesNotExistError: 404,
+			frappe.DuplicateEntryError: 409,
 			frappe.SessionStopped: 503,
 			frappe.OutgoingEmailError: 501
 		}
