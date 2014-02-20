@@ -35,6 +35,7 @@ class WebsiteGenerator(DocListController):
 
 	def on_update(self):
 		self.update_sitemap()
+		frappe.add_version(self.doclist)
 		
 	def after_rename(self, olddn, newdn, merge):
 		frappe.conn.sql("""update `tabWebsite Sitemap`

@@ -45,6 +45,8 @@ def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=F
 	# call after_rename
 	frappe.bean(doctype, new).run_method("after_rename", old, new, merge)
 	
+	rename_versions(doctype, old, new)
+	
 	# update restrictions
 	frappe.conn.sql("""update tabDefaultValue set defvalue=%s where parenttype='Restriction' 
 		and defkey=%s and defvalue=%s""", (new, doctype, old))
@@ -59,6 +61,10 @@ def update_attachments(doctype, old, new):
 	except Exception, e:
 		if e.args[0]!=1054: # in patch?
 			raise 
+
+def rename_versions(doctype, old, new):
+	frappe.conn.sql("""update tabVersion set docname=%s where doctype=%s and docname=%s""", 
+		(new, doctype, old))
 
 def rename_parent_and_child(doctype, old, new, doclist):
 	# rename the doc

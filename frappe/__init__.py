@@ -618,3 +618,11 @@ def get_template(path):
 	
 def get_website_sitemap(doctype, name):
 	return conn.get_value("Website Sitemap", {"ref_doctype": doctype, "docname": name})
+
+def add_version(doclist):
+	bean({
+		"doctype": "Version",
+		"ref_doctype": doclist[0].get("doctype"),
+		"docname": doclist[0].get("name"),
+		"doclist_json": json.dumps([d.fields for d in doclist])
+	}).insert()

@@ -23,7 +23,7 @@ class DocType(WebsiteGenerator):
 		if self.doclist.get({"parentfield": "toc"}):
 			from frappe.website.render import clear_cache
 			clear_cache()
-			
+						
 	def on_trash(self):
 		# delete entry from Table of Contents of other pages
 		WebsiteGenerator.on_trash(self)
