@@ -192,6 +192,9 @@ class EMail:
 		return self.msg_root.as_string()
 		
 def get_formatted_html(subject, message, footer=None, print_html=None):
+	if frappe.local.flags.in_test:
+		return message
+
 	message = scrub_urls(message)
 
 	return inline_css(frappe.get_template("templates/emails/standard.html").render({
