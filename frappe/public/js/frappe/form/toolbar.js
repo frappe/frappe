@@ -205,6 +205,8 @@ frappe.ui.form.Toolbar = Class.extend({
 			current = this.appframe.get_title_right_text(),
 			status = null;
 		
+		this.appframe.clear_primary_action();
+		
 		if(this.can_submit()) {
 			status = "Submit";
 		} else if(this.can_save()) {

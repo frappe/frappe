@@ -77,6 +77,13 @@ frappe.ui.AppFrame = Class.extend({
 		return this.parent.find(".titlebar-item.text-right").attr("data-text");
 	},
 	
+	clear_primary_action: function() {
+		if(this.primary_dropdown) {
+			this.primary_dropdown.remove();
+			this.primary_dropdown = null;
+		}
+	},
+	
 	add_primary_action: function(label, click, icon) {
 		if(!this.primary_dropdown) {
 			if(!this.primary_action) {

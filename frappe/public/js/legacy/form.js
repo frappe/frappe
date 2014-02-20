@@ -792,7 +792,7 @@ _f.Frm.prototype.add_custom_button = function(label, fn, icon) {
 	return this.appframe.add_primary_action(label, fn, icon || "icon-arrow-right");
 }
 _f.Frm.prototype.clear_custom_buttons = function() {
-	this.toolbar.refresh()
+	this.toolbar.clear_primary_action()
 }
 
 _f.Frm.prototype.add_fetch = function(link_field, src_field, tar_field) {
