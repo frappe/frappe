@@ -32,7 +32,7 @@ def prepare(doc):
 			doc.fields[d] = default_colours[d]
 	
 	if not doc.font_size:
-		doc.font_size = "13px"
+		doc.font_size = "14px"
 		
 	doc.small_font_size = cstr(cint(doc.font_size[:-2])-2) + 'px'
 	doc.page_border = cint(doc.page_border)

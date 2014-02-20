@@ -248,6 +248,10 @@ fieldset {
 	border-bottom: 2px solid #999;
 }
 
+.sidebar-item a.active {
+	border-bottom: 2px solid #999;
+}
+
 html,
 body {
   height: 100%;
@@ -392,7 +396,6 @@ a.no-decoration {
 a.active {
 	pointer-events: none;
 	cursor: default;
-	border-bottom: inherit;
 }
 
 .page-breadcrumbs .breadcrumb {
