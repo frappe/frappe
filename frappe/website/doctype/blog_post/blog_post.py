@@ -17,9 +17,6 @@ class DocType(WebsiteGenerator):
 	def get_page_title(self):
 		return self.doc.title
 		
-	def get_parent_website_sitemap(self):
-		return frappe.conn.get_value("Website Sitemap", {"ref_doctype": "Blog Category", "docname": self.doc.blog_category})
-
 	def validate(self):
 		if not self.doc.blog_intro:
 			self.doc.blog_intro = self.doc.content[:140]
@@ -31,10 +28,14 @@ class DocType(WebsiteGenerator):
 		if self.doc.published and not self.doc.published_on:
 			self.doc.published_on = today()
 
+		self.doc.parent_website_sitemap = frappe.conn.get_value("Website Sitemap",
+			{"ref_doctype": "Blog Category", "docname": self.doc.blog_category})
+
 		# update posts
 		frappe.conn.sql("""update tabBlogger set posts=(select count(*) from `tabBlog Post` 
 			where ifnull(blogger,'')=tabBlogger.name)
 			where name=%s""", (self.doc.blogger,))
+			
 
 	def on_update(self):
 		WebsiteGenerator.on_update(self)

@@ -2,7 +2,7 @@
  {
   "creation": "2013-03-28 10:35:30", 
   "docstatus": 0, 
-  "modified": "2014-02-17 13:00:42", 
+  "modified": "2014-02-20 12:55:06", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -82,6 +82,15 @@
   "in_list_view": 1, 
   "label": "Blog Category", 
   "options": "Blog Category"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "parent_website_sitemap", 
+  "fieldtype": "Link", 
+  "hidden": 1, 
+  "label": "Parent Website Sitemap", 
+  "options": "Website Sitemap", 
+  "read_only": 1
  }, 
  {
   "doctype": "DocField", 

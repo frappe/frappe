@@ -222,6 +222,11 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 					var docfield = columnDef.docfield;
 					if(docfield.fieldname==="_user_tags") docfield.fieldtype = "Tag";
 					if(docfield.fieldname==="_comments") docfield.fieldtype = "Comment";
+					if(docfield.fieldtype==="Link" && docfield.fieldname!=="name") {
+						docfield.link_onclick = 
+							repl('frappe.container.page.reportview.set_filter("%(fieldname)s", "%(value)s").page.reportview.run()', 
+								{fieldname:docfield.fieldname, value:value});
+					}
 					return frappe.format(value, docfield, null, dataContext);
 				}
 			}

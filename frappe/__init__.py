@@ -615,3 +615,6 @@ def set_filters(jenv):
 
 def get_template(path):
 	return get_jenv().get_template(path)
+	
+def get_website_sitemap(doctype, name):
+	return conn.get_value("Website Sitemap", {"ref_doctype": doctype, "docname": name})

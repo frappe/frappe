@@ -34,7 +34,10 @@ frappe.form.formatters = {
 			return value;
 		if(!value) 
 			return "";
-		if(docfield && docfield.options) {
+		if(docfield && docfield.link_onclick) {
+			return repl('<a onclick="%(onclick)s">%(value)s</a>', 
+				{onclick: docfield.link_onclick.replace(/"/g, '&quot;'), value:value});
+		} else if(docfield && docfield.options) {
 			return repl('%(icon)s<a href="#Form/%(doctype)s/%(name)s">%(label)s</a>', {
 				doctype: encodeURIComponent(docfield.options),
 				name: encodeURIComponent(value),

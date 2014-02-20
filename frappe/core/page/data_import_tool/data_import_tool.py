@@ -525,7 +525,7 @@ def import_doclist(path, overwrite=False, ignore_links=False, ignore_insert=Fals
 		b = frappe.bean(d)
 		b.ignore_links = ignore_links
 		if insert:
-			d.doc.fields["__islocal"] = True
+			b.doc.fields["__islocal"] = True
 		try:
 			b.insert_or_update()
 		except NameError:

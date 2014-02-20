@@ -41,9 +41,9 @@ def save_uploaded(dt, dn):
 		raise Exception
 
 def save_url(file_url, dt, dn):
-	if not (file_url.startswith("http://") or file_url.startswith("https://")):
-		frappe.msgprint("URL must start with 'http://' or 'https://'")
-		return None, None
+	# if not (file_url.startswith("http://") or file_url.startswith("https://")):
+	# 	frappe.msgprint("URL must start with 'http://' or 'https://'")
+	# 	return None, None
 		
 	f = frappe.bean({
 		"doctype": "File Data",

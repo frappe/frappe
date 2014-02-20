@@ -350,7 +350,7 @@ frappe.ui.Listing = Class.extend({
 			var v = filter.field.get_parsed_value();
 			if(v.indexOf(label)!=-1) {
 				// already set
-				return false;
+				return this;
 			} else {
 				// second filter set for this field
 				if(fieldname=='_user_tags') {
@@ -372,5 +372,6 @@ frappe.ui.Listing = Class.extend({
 				this.filter_list.add_filter(doctype, fieldname, '=', label);
 			}
 		}
+		return this;
 	}	
 });

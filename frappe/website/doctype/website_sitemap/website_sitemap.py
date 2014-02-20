@@ -45,18 +45,24 @@ class DocType(DocTypeNestedSet):
 	
 	def set_idx(self):
 		if self.doc.idx==None:
-			self.doc.idx = int(frappe.conn.sql("""select max(ifnull(idx, -1)) from `tabWebsite Sitemap`
+			self.doc.idx = int(frappe.conn.sql("""select ifnull(max(ifnull(idx, -1)), -1) 
+				from `tabWebsite Sitemap`
 				where ifnull(parent_website_sitemap, '')=%s and name!=%s""", 
 					(self.doc.parent_website_sitemap or '',
-					self.doc.name))[0][0] or 0) + 1
+					self.doc.name))[0][0]) + 1
+			
 		else:
-			if cint(self.doc.idx) != 0 and self.doc.parent_website_sitemap:
-				if not frappe.conn.sql("""select name from `tabWebsite Sitemap` where
-					ifnull(parent_website_sitemap, '')=%s and ifnull(idx, -1)=%s""", 
-						(self.doc.parent_website_sitemap or '', cint(self.doc.idx) - 1)):
-
-					frappe.throw("{}: {}".format(
-						_("Sitemap Ordering Error. Index missing"), self.doc.idx-1))
+			if self.doc.parent_website_sitemap:
+				self.doc.idx = cint(self.doc.idx)
+				previous_idx = frappe.conn.sql("""select max(idx) 
+						from `tab{}` where ifnull(parent_website_sitemap, '')=%s 
+						and ifnull(idx, -1) < %s""".format(self.doc.ref_doctype), 
+						(self.doc.parent_website_sitemap, self.doc.idx))[0][0]
+					
+				if previous_idx and previous_idx != self.doc.idx - 1:
+					frappe.throw("{}: {}, {}".format(
+						_("Sitemap Ordering Error. Index missing"), self.doc.name, self.doc.idx-1))
+						
 
 	def on_update(self):
 		if not frappe.flags.in_rebuild_config:
@@ -138,6 +144,7 @@ def update_sitemap(website_sitemap, options):
 	
 	for key in sitemap_fields:
 		bean.doc.fields[key] = options.get(key)
+	
 	if not bean.doc.page_name:
 		# for pages
 		bean.doc.page_name = options.link_name

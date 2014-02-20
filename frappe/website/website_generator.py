@@ -85,7 +85,7 @@ class WebsiteGenerator(DocListController):
 		else:
 			idx = add_to_sitemap(opts)
 			
-		if idx and self.doc.idx != idx:
+		if idx!=None and self.doc.idx != idx:
 			frappe.conn.set(self.doc, "idx", idx)
 	
 	def update_permissions(self, opts):

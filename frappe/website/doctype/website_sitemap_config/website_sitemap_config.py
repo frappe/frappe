@@ -32,15 +32,16 @@ class DocType:
 			condition = ""
 			if self.doc.condition_field:
 				condition = " where ifnull(%s, 0)=1" % self.doc.condition_field
-			
+						
 			for name in frappe.conn.sql_list("""select name from `tab{doctype}` 
-				{condition} order by {sort_field} {sort_order}""".format(
+				{condition} order by idx asc, {sort_field} {sort_order}""".format(
 					doctype = self.doc.ref_doctype,
 					condition = condition,
 					sort_field = self.doc.sort_field or "name",
 					sort_order = self.doc.sort_order or "asc"
 				)):
-				frappe.bean(self.doc.ref_doctype, name).run_method("on_update")
+				bean = frappe.bean(self.doc.ref_doctype, name)
+				bean.run_method("on_update")
 		
 def rebuild_website_sitemap_config():
 	# TODO
