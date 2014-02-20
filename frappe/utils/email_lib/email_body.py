@@ -192,17 +192,19 @@ class EMail:
 		return self.msg_root.as_string()
 		
 def get_formatted_html(subject, message, footer=None, print_html=None):
-	if frappe.local.flags.in_test:
-		return message
-
 	message = scrub_urls(message)
-
-	return inline_css(frappe.get_template("templates/emails/standard.html").render({
+	rendered_email = frappe.get_template("templates/emails/standard.html").render({
 		"content": message,
 		"footer": get_footer(footer),
 		"title": subject,
 		"print_html": print_html
-	}))
+	})
+
+	# if in a test case, do not inline css
+	if frappe.local.flags.in_test:
+		return rendered_email
+
+	return inline_css(rendered_email)
 
 def get_footer(footer=None):
 	"""append a footer (signature)"""		
