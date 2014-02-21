@@ -6,8 +6,8 @@ import frappe, re
 
 def scrub_relative_urls(html):
 	"""prepend a slash before a relative url"""
-	html = re.sub("""(src|href)[^\w'"]*['"](?!http|ftp|/|#)([^'" >]+)['"]""", '\g<1> = "/\g<2>"', html)
-	html = re.sub("""url\((?!http|ftp|/|#)([^\(\)]+)\)""", 'url(/\g<1>)', html)
+	html = re.sub("""(src|href)[^\w'"]*['"](?!http|ftp|/|#|%|{)([^'" >]+)['"]""", '\g<1> = "/\g<2>"', html)
+	html = re.sub("""url\((?!http|ftp|/|#|%|{)([^\(\)]+)\)""", 'url(/\g<1>)', html)
 	return html
 
 def can_cache(no_cache=False):
