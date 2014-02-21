@@ -41,6 +41,11 @@ var blog = {
 							
 			b.avatar = b.avatar || "";
 			
+			// convert relative url to absolute
+			if(b.avatar.match(/^(?!http|ftp|\/|#).*$/)) {
+				b.avatar = "/" + b.avatar;
+			}
+			
 			$(repl('<div class="row">\
 					<div class="col-md-1">\
 						<div class="avatar avatar-medium" style="margin-top: 6px;">\
