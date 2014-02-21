@@ -56,7 +56,22 @@ def _sync_statics():
 				
 		try:
 			sitemap = frappe.bean("Website Sitemap", url)
-
+		
+		except frappe.DoesNotExistError:
+			title, content = get_static_content(fpath)
+			if not title:
+				title = page_name.replace("-", " ").replace("_", " ").title()
+			to_insert.append([frappe.bean({
+				"doctype":"Web Page",
+				"idx": priority,
+				"title": title,
+				"page_name": page_name,
+				"main_section": content,
+				"published": 1,
+				"parent_website_sitemap": parent_website_sitemap
+			}), os.path.getmtime(fpath)])
+			
+		else:
 			if str(os.path.getmtime(fpath))!=sitemap.doc.static_file_timestamp \
 				or cint(sitemap.doc.idx) != cint(priority):
 
@@ -74,20 +89,6 @@ def _sync_statics():
 				sitemap.save()
 			
 			synced.append(url)
-			
-		except frappe.DoesNotExistError:
-			title, content = get_static_content(fpath)
-			if not title:
-				title = page_name.replace("-", " ").replace("_", " ").title()
-			to_insert.append([frappe.bean({
-				"doctype":"Web Page",
-				"idx": priority,
-				"title": title,
-				"page_name": page_name,
-				"main_section": content,
-				"published": 1,
-				"parent_website_sitemap": parent_website_sitemap
-			}), os.path.getmtime(fpath)])
 	
 	for app in frappe.get_installed_apps():
 		statics_path = frappe.get_app_path(app, "templates", "statics")

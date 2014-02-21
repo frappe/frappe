@@ -57,6 +57,9 @@ img {
 	overflow: hidden;
 	background-color: #ddd;
 	border: 1px solid #eee;
+	background-size: cover;
+	background-position: center center;
+	background-repeat: no-repeat;
 }
 
 .avatar-small {
@@ -425,4 +428,3 @@ a.active {
 }
 
 /* end - needs review */
-
