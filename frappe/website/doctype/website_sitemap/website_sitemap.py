@@ -35,12 +35,18 @@ class DocType(DocTypeNestedSet):
 		self.set_idx()
 
 	def renumber_if_moved(self):
-		if self.doc.old_parent != self.doc.parent_website_sitemap:
+		current_parent = frappe.conn.get_value("Website Sitemap", self.doc.name, "parent_website_sitemap")
+		if current_parent and current_parent != self.doc.parent_website_sitemap:
+			# move-up
+			
+			# sitemap
 			frappe.conn.sql("""update `tabWebsite Sitemap` set idx=idx-1 
-				where parent_website_sitemap=%s and idx>%s""", (self.doc.old_parent, self.doc.idx))
+				where parent_website_sitemap=%s and idx>%s""", (current_parent, self.doc.idx))
+				
+			# source table
 			frappe.conn.sql("""update `tab{0}` set idx=idx-1 
 				where parent_website_sitemap=%s and idx>%s""".format(self.doc.ref_doctype), 
-					(self.doc.old_parent, self.doc.idx))
+					(current_parent, self.doc.idx))
 			self.doc.idx = None
 	
 	def set_idx(self):
