@@ -4,6 +4,8 @@ def execute():
 	from frappe.website.doctype.website_template.website_template import \
 		get_pages_and_generators, get_template_controller
 
+	frappe.reload_doc("website", "doctype", "website_template")
+	frappe.reload_doc("website", "doctype", "website_route")
 
 	for app in frappe.get_installed_apps():
 		pages, generators = get_pages_and_generators(app)
