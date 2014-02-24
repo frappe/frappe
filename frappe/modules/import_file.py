@@ -17,44 +17,53 @@ def import_files(module, dt=None, dn=None, force=False):
 		
 def import_file(module, dt, dn, force=False):
 	"""Sync a file from txt if modifed, return false if not updated"""
+	path = get_file_path(module, dt, dn)
+	ret = import_file_by_path(path, force)
+	return ret
+	
+def get_file_path(module, dt, dn):
 	dt, dn = scrub_dt_dn(dt, dn)
 	
 	path = os.path.join(get_module_path(module), 
 		os.path.join(dt, dn, dn + '.txt'))
+		
+	return path
 	
-	ret = import_file_by_path(path, force)
-	return ret
-
 def import_file_by_path(path, force=False):
 	frappe.flags.in_import = True
+	doclist = read_doclist_from_file(path)
+	
+	if doclist:
+		doc = doclist[0]
+		
+		if not force:
+			# check if timestamps match
+			if doc['modified']==str(frappe.conn.get_value(doc['doctype'], doc['name'], 'modified')):
+				return False
+		
+		original_modified = doc["modified"]
+		
+		import_doclist(doclist)
+
+		# since there is a new timestamp on the file, update timestamp in
+		frappe.conn.sql("update `tab%s` set modified=%s where name=%s" % \
+			(doc['doctype'], '%s', '%s'), 
+			(original_modified, doc['name']))
+	
+	frappe.flags.in_import = False
+	return True
+	
+def read_doclist_from_file(path):
+	doclist = None
 	if os.path.exists(path):
 		from frappe.modules.utils import peval_doclist
 		
 		with open(path, 'r') as f:
 			doclist = peval_doclist(f.read())
-			
-		if doclist:
-			doc = doclist[0]
-			
-			if not force:
-				# check if timestamps match
-				if doc['modified']==str(frappe.conn.get_value(doc['doctype'], doc['name'], 'modified')):
-					return False
-			
-			original_modified = doc["modified"]
-			
-			import_doclist(doclist)
-
-			# since there is a new timestamp on the file, update timestamp in
-			frappe.conn.sql("update `tab%s` set modified=%s where name=%s" % \
-				(doc['doctype'], '%s', '%s'), 
-				(original_modified, doc['name']))
-
 	else:
 		raise Exception, '%s missing' % path
-
-	frappe.flags.in_import = False
-	return True
+			
+	return doclist
 
 ignore_values = { 
 	"Report": ["disabled"], 

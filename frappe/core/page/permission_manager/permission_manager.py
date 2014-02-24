@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 import frappe.defaults
+from frappe.modules.import_file import get_file_path, read_doclist_from_file
 
 @frappe.whitelist()
 def get_roles_and_doctypes():
@@ -83,7 +84,8 @@ def get_users_with_role(role):
 			and tabUserRole.parent = tabProfile.name
 			and ifnull(tabProfile.enabled,0)=1""", role)]
 
-@frappe.whitelist
-def get_standard_permissions():
-	# TODO
-	pass
+@frappe.whitelist()
+def get_standard_permissions(doctype):
+	module = frappe.conn.get_value("DocType", doctype, "module")
+	path = get_file_path(module, "DocType", doctype)
+	return [d for d in read_doclist_from_file(path) if d.get("doctype")=="DocPerm"]

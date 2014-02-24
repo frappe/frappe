@@ -80,7 +80,7 @@ frappe.PermissionEngine = Class.extend({
 		var me = this;
 		this.doctype_select 
 			= this.wrapper.appframe.add_select("doctypes", 
-				[frappe._("Select Document Type")+"..."].concat(this.options.doctypes))
+				[{value: "", label: frappe._("Select Document Type")+"..."}].concat(this.options.doctypes))
 				.change(function() {
 					frappe.set_route("permission-manager", $(this).val());
 				});
@@ -90,13 +90,6 @@ frappe.PermissionEngine = Class.extend({
 				.change(function() {
 					me.refresh();
 				});
-		this.standard_permissions_link = $('<div class="form-group pull-right"><a>Show Standard Permissions</a></div>')
-			.appendTo(me.wrapper.appframe.parent.find(".appframe-form .container"))
-			.css({"margin-top": "7px"})
-			.find("a")
-			.on("click", function() {
-				return me.show_standard_permissions();
-			});
 		this.set_from_route();
 	},
 	set_from_route: function() {
@@ -107,19 +100,15 @@ frappe.PermissionEngine = Class.extend({
 			this.refresh();
 		}
 	},
-	show_standard_permissions: function() {
-		return;
-		
-		var doctype = this.doctype_select.val();
+	get_standard_permissions: function(callback) {
+		var doctype = this.get_doctype();
 		if(doctype) {
-			frappe.call({
+			return frappe.call({
 				module:"frappe.core",
 				page:"permission_manager",
 				method: "get_standard_permissions",
 				args: {doctype: doctype},
-				callback: function(r) {
-					console.log(r);
-				}
+				callback: callback
 			});
 		}
 		return false;
@@ -127,7 +116,8 @@ frappe.PermissionEngine = Class.extend({
 	make_reset_button: function() {
 		var me = this;
 		me.reset_button = me.wrapper.appframe.set_title_right("Reset Permissions", function() {
-			if(frappe.confirm("Reset Permissions for " + me.get_doctype() + "?", function() {
+			me.get_standard_permissions(function(data) {
+				var d = frappe.confirm("Reset Permissions for " + me.get_doctype() + "?", function() {
 					return frappe.call({
 						module:"frappe.core",
 						page:"permission_manager",
@@ -137,8 +127,27 @@ frappe.PermissionEngine = Class.extend({
 						},
 						callback: function() { me.refresh(); }
 					});
-				}));
-			}).toggle(false);
+				});
+				
+				// show standard permissions
+				var $d = $(d.wrapper).find(".msgprint").append("<hr><h4>Standard Permissions</h4>");
+				var $wrapper = $("<p></p>").appendTo($d);
+				$.each(data.message, function(i, d) {
+					d.rights = [];
+					$.each(me.rights, function(i, r) {
+						if(d[r]===1) {
+							d.rights.push(r==="restrict" ? "Can Restrict" : toTitle(r));
+						}
+					});
+					d.rights = d.rights.join(", ");
+					d.match = d.match && "["+d.match+"]" || "";
+					$wrapper.append(repl('<div class="row">\
+						<div class="col-xs-4"><b>%(role)s</b>, Level %(permlevel)s %(match)s</div>\
+						<div class="col-xs-8">%(rights)s</div>\
+					</div><br>', d));
+				});
+			});
+		}).toggle(false);
 	},
 	get_doctype: function() {
 		var doctype = this.doctype_select.val();
@@ -238,26 +247,23 @@ frappe.PermissionEngine = Class.extend({
 			
 			var perm_cell = add_cell(row, d, "permissions").css("padding-top", 0);
 			var perm_container = $("<div class='row'></div>").appendTo(perm_cell);
-			add_check(perm_container, d, "read");
-			add_check(perm_container, d, "restricted");
-			add_check(perm_container, d, "write");
-			add_check(perm_container, d, "create");
-			add_check(perm_container, d, "delete");
-			add_check(perm_container, d, "submit");
-			add_check(perm_container, d, "cancel");
-			add_check(perm_container, d, "amend");
-			add_check(perm_container, d, "report");
-			add_check(perm_container, d, "import");
-			add_check(perm_container, d, "export");
-			add_check(perm_container, d, "print");
-			add_check(perm_container, d, "email");
-			add_check(perm_container, d, "restrict", "Can Restrict");
-						
+			
+			$.each(me.rights, function(i, r) {
+				if(r==="restrict") {
+					add_check(perm_container, d, "restrict", "Can Restrict");
+				} else {
+					add_check(perm_container, d, r);
+				}
+			})
+			
 			// buttons
 			me.add_match_button(row, d);
 			me.add_delete_button(row, d);
 		});
 	},
+	rights: ["read", "restricted", "write", "create", "delete", "submit", "cancel", "amend",
+		"report", "import", "export", "print", "email", "restrict"],
+	
 	set_show_users: function(cell, role) {
 		cell.html("<a href='#'>"+role+"</a>")
 			.find("a")
@@ -427,11 +433,12 @@ frappe.PermissionEngine = Class.extend({
 					return frappe.call({
 						module: "frappe.core",
 						page: "permission_manager",
-						method: "update_match",
+						method: "update",
 						args: {
 							name: perm.name,
 							doctype: perm.parent,
-							match: match_value
+							ptype: "match",
+							value: match_value
 						},
 						callback: function() {
 							dialog.hide();

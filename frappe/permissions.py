@@ -6,6 +6,9 @@ import frappe
 from frappe import _, msgprint, _dict
 from frappe.utils import cint
 
+rights = ["read", "write", "create", "submit", "cancel", "amend",
+	"report", "import", "export", "print", "email", "restrict", "delete", "restricted"]
+
 def check_admin_or_system_manager():
 	if ("System Manager" not in frappe.get_roles()) and \
 	 	(frappe.session.user!="Administrator"):
@@ -43,9 +46,6 @@ def has_permission(doctype, ptype="read", refdoc=None, verbose=True):
 
 	return True
 		
-rights = ["read", "write", "create", "submit", "cancel", "amend",
-	"report", "import", "export", "print", "email", "restrict", "delete", "restricted"]
-
 def get_user_perms(meta, user=None):
 	cache_key = (meta[0].name, user)
 	if not frappe.local.user_perms.get(cache_key):

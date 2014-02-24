@@ -239,7 +239,7 @@ frappe.dom.set_box_shadow = function(ele, spread) {
 		// create options
 		for(var i=0; i<options_list.length; i++) {
 			var v = options_list[i];
-			value = v.value || v;
+			value = v.value==undefined ? v : v.value;
 			label = frappe._(v.label || v);
 			$('<option>').html(label).attr('value', value).appendTo(this);
 		}

@@ -34,6 +34,8 @@ frappe.confirm = function(message, ifyes, ifno) {
 		d.hide();
 		ifno && ifno();	
 	});
+	
+	return d;
 }
 
 var msg_dialog=null;
