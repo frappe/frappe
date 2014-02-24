@@ -280,6 +280,15 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 				})
 			});
 		}
+		if(frappe.model.can_restrict(this.doctype)) {
+			this.appframe.add_icon_btn("2", "icon-shield", 
+				frappe._("User Permission Restrictions"), function() {
+					frappe.route_options = {
+						property: me.doctype
+					};
+					frappe.set_route("user-properties");
+				});
+		}
 		if(in_list(user_roles, "System Manager")) {
 			this.appframe.add_icon_btn("2", "icon-glass", frappe._("Customize"), function() {
 				frappe.set_route("Form", "Customize Form", {
