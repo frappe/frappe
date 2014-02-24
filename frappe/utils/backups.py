@@ -82,7 +82,7 @@ class BackupGenerator:
 		return (backup_path_db, backup_path_files)
 
 	def zip_files(self):
-		files_path = frappe.utils.get_site_path(conf.files_path)
+		files_path = frappe.get_site_path("public", "files")
 		cmd_string = """tar -cf %s %s""" % (self.backup_path_files, files_path)
 		err, out = frappe.utils.execute_in_shell(cmd_string)
 	

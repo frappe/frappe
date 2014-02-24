@@ -40,6 +40,7 @@ def sync_statics():
 	while True:
 		_sync_statics()
 		frappe.conn.commit()
+		print "sync complete"
 		time.sleep(2)
 
 def _sync_statics():
@@ -48,9 +49,13 @@ def _sync_statics():
 	
 	def sync_file(fname, fpath, statics_path, priority=0):
 		url = os.path.relpath(fpath, statics_path).rsplit(".", 1)[0]
+
 		if fname.rsplit(".", 1)[0]=="index" and os.path.dirname(fpath) != statics_path:
 			url = os.path.dirname(url)
-				
+		
+		if url in synced:
+			return
+		
 		parent_website_route = os.path.dirname(url)
 		page_name = os.path.basename(url)
 				
@@ -61,7 +66,7 @@ def _sync_statics():
 			title, content = get_static_content(fpath)
 			if not title:
 				title = page_name.replace("-", " ").replace("_", " ").title()
-			to_insert.append([frappe.bean({
+			page = frappe.bean({
 				"doctype":"Web Page",
 				"idx": priority,
 				"title": title,
@@ -69,8 +74,17 @@ def _sync_statics():
 				"main_section": content,
 				"published": 1,
 				"parent_website_route": parent_website_route
-			}), os.path.getmtime(fpath)])
-			
+			})
+
+			page.insert()
+
+			# update timestamp
+			sitemap = frappe.bean("Website Route", {"ref_doctype": "Web Page", 
+				"docname": page.doc.name})
+			sitemap.doc.static_file_timestamp = os.path.getmtime(fpath)
+			sitemap.save()
+
+			synced.append(url)
 		else:
 			if str(os.path.getmtime(fpath))!=sitemap.doc.static_file_timestamp \
 				or cint(sitemap.doc.idx) != cint(priority):
@@ -113,12 +127,29 @@ def _sync_statics():
 					if not has_index:
 						continue
 				
-				# other files
-				for fname in files:
-					page_name = fname.rsplit(".", 1)[0]
-					if not (page_name=="index" and basepath!=statics_path):
-						sync_file(fname, os.path.join(basepath, fname), statics_path, 
-							index.index(page_name) if page_name in index else 0)
+				if index:
+					# index.txt given
+					for i, page_name in enumerate(index):
+						if page_name in folders:
+							# for folder, sync inner index first (so that idx is set)
+							for extn in ("md", "html"):
+								path = os.path.join(basepath, page_name, "index." + extn)
+								if os.path.exists(path):
+									sync_file("index." + extn, path, statics_path, i)
+									break
+
+						# other files
+						for extn in ("md", "html"):
+							path = os.path.join(basepath, page_name + "." + extn)
+							if page_name + "." + extn in files:
+								sync_file(page_name + "." + extn, path, statics_path, i)
+								break
+
+				else:
+					for fname in files:
+						page_name = fname.rsplit(".", 1)[0]
+						if not (page_name=="index" and basepath!=statics_path):
+							sync_file(fname, os.path.join(basepath, fname), statics_path, None)
 					
 	# delete not synced
 	if synced:
@@ -128,18 +159,7 @@ def _sync_statics():
 	else:
 		frappe.delete_doc("Web Page", frappe.conn.sql_list("""select docname from `tabWebsite Route`
 			where ifnull(static_file_timestamp,'')!='' order by (rgt-lft) asc"""))
-		
-
-	# insert
-	for page, mtime in to_insert:
-		page.insert()
-
-		# update timestamp
-		sitemap = frappe.bean("Website Route", {"ref_doctype": "Web Page", 
-			"docname": page.doc.name})
-		sitemap.doc.static_file_timestamp = mtime
-		sitemap.save()
-		
+				
 
 def get_static_content(fpath):
 	with open(fpath, "r") as contentfile:
