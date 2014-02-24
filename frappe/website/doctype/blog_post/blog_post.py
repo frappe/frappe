@@ -28,7 +28,7 @@ class DocType(WebsiteGenerator):
 		if self.doc.published and not self.doc.published_on:
 			self.doc.published_on = today()
 
-		self.doc.parent_website_sitemap = frappe.conn.get_value("Website Sitemap",
+		self.doc.parent_website_route = frappe.conn.get_value("Website Route",
 			{"ref_doctype": "Blog Category", "docname": self.doc.blog_category})
 
 		# update posts

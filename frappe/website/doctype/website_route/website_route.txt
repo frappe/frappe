@@ -2,7 +2,7 @@
  {
   "creation": "2013-11-18 15:38:40", 
   "docstatus": 0, 
-  "modified": "2014-02-18 15:23:12", 
+  "modified": "2014-02-24 12:46:59", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -16,7 +16,7 @@
  {
   "doctype": "DocField", 
   "name": "__common__", 
-  "parent": "Website Sitemap", 
+  "parent": "Website Route", 
   "parentfield": "fields", 
   "parenttype": "DocType", 
   "permlevel": 0
@@ -27,7 +27,7 @@
   "delete": 1, 
   "doctype": "DocPerm", 
   "name": "__common__", 
-  "parent": "Website Sitemap", 
+  "parent": "Website Route", 
   "parentfield": "permissions", 
   "parenttype": "DocType", 
   "permlevel": 0, 
@@ -38,7 +38,7 @@
  }, 
  {
   "doctype": "DocType", 
-  "name": "Website Sitemap"
+  "name": "Website Route"
  }, 
  {
   "doctype": "DocField", 
@@ -86,18 +86,18 @@
  }, 
  {
   "doctype": "DocField", 
-  "fieldname": "website_sitemap_config", 
+  "fieldname": "website_template", 
   "fieldtype": "Link", 
-  "label": "Website Sitemap Config", 
-  "options": "Website Sitemap Config"
+  "label": "Website Template", 
+  "options": "Website Template"
  }, 
  {
   "doctype": "DocField", 
-  "fieldname": "parent_website_sitemap", 
+  "fieldname": "parent_website_route", 
   "fieldtype": "Link", 
   "in_list_view": 1, 
   "label": "Parent Website Sitemap", 
-  "options": "Website Sitemap", 
+  "options": "Website Route", 
   "search_index": 1
  }, 
  {

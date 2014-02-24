@@ -2,7 +2,7 @@
  {
   "creation": "2013-11-18 15:35:00", 
   "docstatus": 0, 
-  "modified": "2014-02-18 15:22:32", 
+  "modified": "2014-02-24 12:47:44", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -16,7 +16,7 @@
  {
   "doctype": "DocField", 
   "name": "__common__", 
-  "parent": "Website Sitemap Config", 
+  "parent": "Website Template", 
   "parentfield": "fields", 
   "parenttype": "DocType", 
   "permlevel": 0
@@ -28,7 +28,7 @@
   "doctype": "DocPerm", 
   "export": 0, 
   "name": "__common__", 
-  "parent": "Website Sitemap Config", 
+  "parent": "Website Template", 
   "parentfield": "permissions", 
   "parenttype": "DocType", 
   "permlevel": 0, 
@@ -39,7 +39,7 @@
  }, 
  {
   "doctype": "DocType", 
-  "name": "Website Sitemap Config"
+  "name": "Website Template"
  }, 
  {
   "doctype": "DocField", 

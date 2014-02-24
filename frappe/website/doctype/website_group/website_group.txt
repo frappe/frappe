@@ -2,7 +2,7 @@
  {
   "creation": "2014-01-29 15:57:42", 
   "docstatus": 0, 
-  "modified": "2014-02-10 14:38:12", 
+  "modified": "2014-02-10 14:38:13", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -69,13 +69,13 @@
   "reqd": 1
  }, 
  {
-  "description": "Display in the sidebar of this Website Sitemap node", 
+  "description": "Display in the sidebar of this Website Route node", 
   "doctype": "DocField", 
-  "fieldname": "parent_website_sitemap", 
+  "fieldname": "parent_website_route", 
   "fieldtype": "Link", 
   "in_list_view": 0, 
   "label": "Parent Website Page", 
-  "options": "Website Sitemap"
+  "options": "Website Route"
  }, 
  {
   "doctype": "DocField", 

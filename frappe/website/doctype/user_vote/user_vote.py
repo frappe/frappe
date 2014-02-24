@@ -35,7 +35,7 @@ def on_doctype_update():
 @frappe.whitelist()
 def set_vote(ref_doctype, ref_name):
 	website_group = frappe.conn.get_value(ref_doctype, ref_name, "website_group")
-	pathname = frappe.conn.get_value("Website Sitemap", {"ref_doctype": "Website Group",
+	pathname = frappe.conn.get_value("Website Route", {"ref_doctype": "Website Group",
 		"docname": website_group})
 	
 	if not get_access(pathname).get("read"):

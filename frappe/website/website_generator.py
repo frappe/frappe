@@ -6,7 +6,7 @@ import frappe
 from frappe.model.controller import DocListController
 from frappe.website.utils import cleanup_page_name
 
-from frappe.website.doctype.website_sitemap.website_sitemap import add_to_sitemap, update_sitemap, remove_sitemap
+from frappe.website.doctype.website_route.website_route import add_to_sitemap, update_sitemap, remove_sitemap
 
 def call_website_generator(bean, method, *args, **kwargs):
 	getattr(WebsiteGenerator(bean.doc, bean.doclist), method)(*args, **kwargs)
@@ -26,11 +26,11 @@ class WebsiteGenerator(DocListController):
 			
 		return page_name
 
-	def get_parent_website_sitemap(self):
-		return self.doc.parent_website_sitemap
+	def get_parent_website_route(self):
+		return self.doc.parent_website_route
 
 	def setup_generator(self):
-		self._website_config = frappe.conn.get_values("Website Sitemap Config", 
+		self._website_config = frappe.conn.get_values("Website Template", 
 			{"ref_doctype": self.doc.doctype}, "*")[0]
 
 	def on_update(self):
@@ -38,7 +38,7 @@ class WebsiteGenerator(DocListController):
 		frappe.add_version(self.doclist)
 		
 	def after_rename(self, olddn, newdn, merge):
-		frappe.conn.sql("""update `tabWebsite Sitemap`
+		frappe.conn.sql("""update `tabWebsite Route`
 			set docname=%s where ref_doctype=%s and docname=%s""", (newdn, self.doc.doctype, olddn))
 		
 		if merge:
@@ -63,7 +63,7 @@ class WebsiteGenerator(DocListController):
 	def add_or_update_sitemap(self):
 		page_name = self.get_page_name()
 		
-		existing_site_map = frappe.conn.get_value("Website Sitemap", {"ref_doctype": self.doc.doctype,
+		existing_site_map = frappe.conn.get_value("Website Route", {"ref_doctype": self.doc.doctype,
 			"docname": self.doc.name})
 						
 		opts = frappe._dict({
@@ -74,7 +74,7 @@ class WebsiteGenerator(DocListController):
 			"page_name": page_name,
 			"link_name": self._website_config.name,
 			"lastmod": frappe.utils.get_datetime(self.doc.modified).strftime("%Y-%m-%d"),
-			"parent_website_sitemap": self.get_parent_website_sitemap(),
+			"parent_website_route": self.get_parent_website_route(),
 			"page_title": self.get_page_title(),
 			"public_read": 1 if not self._website_config.no_sidebar else 0
 		})

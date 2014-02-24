@@ -7,28 +7,28 @@ from frappe.website.render import clear_cache
 
 @frappe.whitelist()
 def get_children(parent=None):
-	if not frappe.has_permission("Website Sitemap"):
+	if not frappe.has_permission("Website Route"):
 		raise frappe.PermissionError
 		
 	if parent=="Sitemap":
 		parent = ""
 
 	return frappe.conn.sql("""select name as value, 1 as expandable, ref_doctype, docname 
-		from `tabWebsite Sitemap` where 
-		ifnull(parent_website_sitemap, '')=%s 
+		from `tabWebsite Route` where 
+		ifnull(parent_website_route, '')=%s 
 			order by ifnull(idx,0), name asc""", parent, as_dict=True)
 		
 @frappe.whitelist()
 def move(name, up_or_down):
 	ret = None
-	if not frappe.has_permission("Website Sitemap"):
+	if not frappe.has_permission("Website Route"):
 		raise frappe.PermissionError
 
-	sitemap = frappe.doc("Website Sitemap", name)
+	sitemap = frappe.doc("Website Route", name)
 	if up_or_down=="up":
 		if sitemap.idx > 0:
-			prev = frappe.doc("Website Sitemap", {
-				"parent_website_sitemap": sitemap.parent_website_sitemap,
+			prev = frappe.doc("Website Route", {
+				"parent_website_route": sitemap.parent_website_route,
 				"idx": sitemap.idx - 1
 			})
 			if prev.name:
@@ -40,8 +40,8 @@ def move(name, up_or_down):
 				ret = "ok"
 
 	else:
-		nexts = frappe.doc("Website Sitemap", {
-			"parent_website_sitemap": sitemap.parent_website_sitemap,
+		nexts = frappe.doc("Website Route", {
+			"parent_website_route": sitemap.parent_website_route,
 			"idx": sitemap.idx + 1
 		})
 		if nexts.name:
@@ -57,16 +57,16 @@ def move(name, up_or_down):
 	
 @frappe.whitelist()
 def update_parent(name, new_parent):
-	if not frappe.has_permission("Website Sitemap"):
+	if not frappe.has_permission("Website Route"):
 		raise frappe.PermissionError
 	
-	sitemap = frappe.doc("Website Sitemap", name)
+	sitemap = frappe.doc("Website Route", name)
 	
 	if sitemap.ref_doctype:
 		generator = frappe.bean(sitemap.ref_doctype, sitemap.docname)
-		if not generator.meta.has_field("parent_website_sitemap"):
+		if not generator.meta.has_field("parent_website_route"):
 			frappe.throw("Does not allow moving.")
-		generator.doc.parent_website_sitemap = new_parent
+		generator.doc.parent_website_route = new_parent
 		generator.save()
 	else:
 		frappe.msgprint("Template Pages cannot be moved.")

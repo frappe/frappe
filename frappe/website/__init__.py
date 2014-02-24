@@ -3,5 +3,5 @@
 
 from __future__ import unicode_literals
 
-from frappe.website.doctype.website_sitemap_config.website_sitemap_config \
-	import rebuild_website_sitemap_config as rebuild_config
+from frappe.website.doctype.website_template.website_template \
+	import rebuild_website_template as rebuild_config

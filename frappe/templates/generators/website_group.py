@@ -75,8 +75,8 @@ def build_view_context(context):
 
 	elif context.view.name == "settings":
 		context.profiles = frappe.conn.sql("""select p.*, wsp.`read`, wsp.`write`, wsp.`admin`
-			from `tabProfile` p, `tabWebsite Sitemap Permission` wsp
-			where wsp.website_sitemap=%s and wsp.profile=p.name""", context.pathname, as_dict=True)
+			from `tabProfile` p, `tabWebsite Route Permission` wsp
+			where wsp.website_route=%s and wsp.profile=p.name""", context.pathname, as_dict=True)
 		
 	elif context.view.name == "post":
 		context.update(get_post_context(context))
@@ -119,7 +119,7 @@ def has_access(access, view):
 def clear_cache(path=None, website_group=None):
 	from frappe.templates.website_group.post import clear_post_cache
 	if path:
-		website_groups = [frappe.conn.get_value("Website Sitemap", path, "docname")]
+		website_groups = [frappe.conn.get_value("Website Route", path, "docname")]
 	elif website_group:
 		website_groups = [website_group]
 	else:
@@ -137,10 +137,10 @@ def clear_event_cache():
 		clear_unit_views(website_group=group)
 		
 def clear_cache_on_bean_event(bean, method, *args, **kwargs):
-	clear_cache(path=bean.doc.website_sitemap, website_group=bean.doc.website_group)
+	clear_cache(path=bean.doc.website_route, website_group=bean.doc.website_group)
 	
 def get_pathname(group):
-	return frappe.conn.get_value("Website Sitemap", {"ref_doctype": "Website Group",
+	return frappe.conn.get_value("Website Route", {"ref_doctype": "Website Group",
 		"docname": group})
 
 views = {

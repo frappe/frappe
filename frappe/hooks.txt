@@ -42,4 +42,4 @@ has_permission:ToDo = frappe.core.doctype.todo.todo.has_permission
 # bean
 
 bean_event:User Vote:after_insert = frappe.templates.generators.website_group.clear_cache_on_bean_event
-bean_event:Website Sitemap Permission:on_update = frappe.templates.generators.website_group.clear_cache_on_bean_event
+bean_event:Website Route Permission:on_update = frappe.templates.generators.website_group.clear_cache_on_bean_event

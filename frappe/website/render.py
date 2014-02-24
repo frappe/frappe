@@ -111,7 +111,7 @@ def clear_cache(path=None):
 		delete_page_cache(path)
 		
 	else:
-		for p in frappe.conn.sql_list("""select name from `tabWebsite Sitemap`"""):
+		for p in frappe.conn.sql_list("""select name from `tabWebsite Route`"""):
 			if p is not None:
 				delete_page_cache(p)
 		

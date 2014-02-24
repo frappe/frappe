@@ -2,7 +2,7 @@
  {
   "creation": "2014-01-29 17:56:29", 
   "docstatus": 0, 
-  "modified": "2014-02-11 19:26:33", 
+  "modified": "2014-02-24 13:17:17", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -23,8 +23,9 @@
   "permlevel": 0
  }, 
  {
+  "cancel": 0, 
   "create": 1, 
-  "delete": 1, 
+  "delete": 0, 
   "doctype": "DocPerm", 
   "export": 1, 
   "import": 0, 

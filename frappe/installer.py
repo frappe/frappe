@@ -120,8 +120,8 @@ def add_to_installed_apps(app_name, rebuild_sitemap=True):
 		frappe.conn.commit()
 
 		if rebuild_sitemap:
-			from frappe.website.doctype.website_sitemap_config.website_sitemap_config import rebuild_website_sitemap_config
-			rebuild_website_sitemap_config()
+			from frappe.website.doctype.website_template.website_template import rebuild_website_template
+			rebuild_website_template()
 
 		frappe.clear_cache()
 

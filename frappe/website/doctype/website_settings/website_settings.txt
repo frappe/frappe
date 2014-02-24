@@ -52,7 +52,7 @@
   "fieldname": "home_page", 
   "fieldtype": "Link", 
   "label": "Home Page", 
-  "options": "Website Sitemap", 
+  "options": "Website Route", 
   "reqd": 0
  }, 
  {

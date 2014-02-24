@@ -2,7 +2,7 @@
  {
   "creation": "2013-03-28 10:35:30", 
   "docstatus": 0, 
-  "modified": "2014-02-10 18:07:28", 
+  "modified": "2014-02-10 18:07:29", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -71,10 +71,10 @@
  }, 
  {
   "doctype": "DocField", 
-  "fieldname": "parent_website_sitemap", 
+  "fieldname": "parent_website_route", 
   "fieldtype": "Link", 
   "label": "Parent Website Page", 
-  "options": "Website Sitemap"
+  "options": "Website Route"
  }, 
  {
   "doctype": "DocField", 

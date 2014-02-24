@@ -12,7 +12,7 @@ def get_post_list_html(group, view, limit_start=0, limit_length=20):
 	
 	# verify permission for paging
 	if frappe.local.form_dict.cmd == "get_post_list_html":
-		pathname = frappe.conn.get_value("Website Sitemap", 
+		pathname = frappe.conn.get_value("Website Route", 
 			{"ref_doctype": "Website Group", "docname": group})
 		access = get_access(pathname)
 		

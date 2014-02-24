@@ -51,11 +51,11 @@ def _sync_statics():
 		if fname.rsplit(".", 1)[0]=="index" and os.path.dirname(fpath) != statics_path:
 			url = os.path.dirname(url)
 				
-		parent_website_sitemap = os.path.dirname(url)
+		parent_website_route = os.path.dirname(url)
 		page_name = os.path.basename(url)
 				
 		try:
-			sitemap = frappe.bean("Website Sitemap", url)
+			sitemap = frappe.bean("Website Route", url)
 		
 		except frappe.DoesNotExistError:
 			title, content = get_static_content(fpath)
@@ -68,7 +68,7 @@ def _sync_statics():
 				"page_name": page_name,
 				"main_section": content,
 				"published": 1,
-				"parent_website_sitemap": parent_website_sitemap
+				"parent_website_route": parent_website_route
 			}), os.path.getmtime(fpath)])
 			
 		else:
@@ -84,7 +84,7 @@ def _sync_statics():
 				page.doc.title = title
 				page.save()
 
-				sitemap = frappe.bean("Website Sitemap", url)
+				sitemap = frappe.bean("Website Route", url)
 				sitemap.doc.static_file_timestamp = os.path.getmtime(fpath)
 				sitemap.save()
 			
@@ -122,11 +122,11 @@ def _sync_statics():
 					
 	# delete not synced
 	if synced:
-		frappe.delete_doc("Web Page", frappe.conn.sql_list("""select docname from `tabWebsite Sitemap`
+		frappe.delete_doc("Web Page", frappe.conn.sql_list("""select docname from `tabWebsite Route`
 			where ifnull(static_file_timestamp,'')!='' and name not in ({}) 
 				order by (rgt-lft) asc""".format(', '.join(["%s"]*len(synced))), tuple(synced)))
 	else:
-		frappe.delete_doc("Web Page", frappe.conn.sql_list("""select docname from `tabWebsite Sitemap`
+		frappe.delete_doc("Web Page", frappe.conn.sql_list("""select docname from `tabWebsite Route`
 			where ifnull(static_file_timestamp,'')!='' order by (rgt-lft) asc"""))
 		
 
@@ -135,7 +135,7 @@ def _sync_statics():
 		page.insert()
 
 		# update timestamp
-		sitemap = frappe.bean("Website Sitemap", {"ref_doctype": "Web Page", 
+		sitemap = frappe.bean("Website Route", {"ref_doctype": "Web Page", 
 			"docname": page.doc.name})
 		sitemap.doc.static_file_timestamp = mtime
 		sitemap.save()

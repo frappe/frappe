@@ -395,16 +395,9 @@ class Database:
 					
 			if field!="modified":
 				self.set_value(dt, dn, "modified", modified or now())
-				
-	def set_in_doc(self, doc, field, val):
-		self.set(doc, field, val)
-		
+						
 	def set(self, doc, field, val):
-		from frappe.utils import now
-		doc.modified = now()
-		doc.modified_by = frappe.session["user"]
-		self.set_value(doc.doctype, doc.name, field, val, doc.modified, doc.modified_by)
-		doc.fields[field] = val
+		doc.set(field, val)
 		
 	def touch(self, doctype, docname):
 		from frappe.utils import now

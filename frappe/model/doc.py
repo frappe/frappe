@@ -10,7 +10,6 @@ _toc = ["frappe.model.doc.Document"]
 
 import frappe
 import frappe.model.meta
-
 from frappe.utils import *
 
 class Document:
@@ -304,7 +303,13 @@ class Document:
 		if not self.naming_series:
 			# pick default naming series
 			self.naming_series = get_default_naming_series(self.doctype)
-						
+	
+	def set(self, key, value):
+		self.modified = now()
+		self.modified_by = frappe.session["user"]
+		frappe.conn.set_value(self.doctype, self.name, key, value, self.modified, self.modified_by)
+		self.fields[key] = value
+			
 	def _insert(self, make_autoname=True, keep_timestamps=False):
 		# set name
 		if make_autoname:

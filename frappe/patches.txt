@@ -14,4 +14,5 @@ frappe.patches.4_0.set_todo_checked_as_closed
 frappe.patches.4_0.website_sitemap_hierarchy
 frappe.patches.4_0.webnotes_to_frappe
 execute:frappe.reset_perms("Module Def")
-frappe.patches.4_0.set_website_sitemap_idx
+frappe.patches.4_0.rename_sitemap_to_route
+frappe.patches.4_0.set_website_route_idx

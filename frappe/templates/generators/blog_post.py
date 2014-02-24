@@ -53,7 +53,7 @@ def get_blog_list(start=0, by=None, category=None):
 				t2.full_name, t2.avatar, t1.blogger,
 				(select count(name) from `tabComment` where
 					comment_doctype='Blog Post' and comment_docname=t1.name) as comments
-		from `tabBlog Post` t1, `tabBlogger` t2, `tabWebsite Sitemap` t3
+		from `tabBlog Post` t1, `tabBlogger` t2, `tabWebsite Route` t3
 		where ifnull(t1.published,0)=1
 		and t1.blogger = t2.name
 		and t3.docname = t1.name

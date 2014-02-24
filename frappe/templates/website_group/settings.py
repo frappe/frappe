@@ -19,8 +19,8 @@ def suggest_user(term, group):
 		where (pr.first_name like %(term)s or pr.last_name like %(term)s)
 		and pr.user_type = "Website User"
 		and pr.user_image is not null and pr.enabled=1
-		and not exists(select wsp.name from `tabWebsite Sitemap Permission` wsp 
-			where wsp.website_sitemap=%(group)s and wsp.profile=pr.name)""", 
+		and not exists(select wsp.name from `tabWebsite Route Permission` wsp 
+			where wsp.website_route=%(group)s and wsp.profile=pr.name)""", 
 		{"term": "%{}%".format(term), "group": pathname}, as_dict=True)
 	
 	template = frappe.get_template("templates/includes/profile_display.html")
@@ -37,8 +37,8 @@ def add_sitemap_permission(group, profile):
 		raise frappe.PermissionError
 		
 	permission = frappe.bean({
-		"doctype": "Website Sitemap Permission",
-		"website_sitemap": pathname,
+		"doctype": "Website Route Permission",
+		"website_route": pathname,
 		"profile": profile,
 		"read": 1
 	})
@@ -58,13 +58,13 @@ def update_permission(group, profile, perm, value):
 	if not get_access(pathname).get("admin"):
 		raise frappe.PermissionError
 		
-	permission = frappe.bean("Website Sitemap Permission", {"website_sitemap": pathname, "profile": profile})
+	permission = frappe.bean("Website Route Permission", {"website_route": pathname, "profile": profile})
 	permission.doc.fields[perm] = int(value)
 	permission.save(ignore_permissions=True)
 	
 	# send email
 	if perm=="admin" and int(value):
-		group_title = frappe.conn.get_value("Website Sitemap", pathname, "page_title")
+		group_title = frappe.conn.get_value("Website Route", pathname, "page_title")
 		
 		subject = "You have been made Administrator of Group " + group_title
 		
@@ -88,14 +88,14 @@ def add_website_group(group, new_group, public_read, public_write, group_type="F
 	if not get_access(get_pathname(group)).get("admin"):
 		raise frappe.PermissionError
 		
-	parent_website_sitemap = frappe.conn.get_value("Website Sitemap", 
+	parent_website_route = frappe.conn.get_value("Website Route", 
 		{"ref_doctype": "Website Group", "docname": group})
 	
 	frappe.bean({
 		"doctype": "Website Group",
 		"group_name": group + "-" + new_group,
 		"group_title": new_group,
-		"parent_website_sitemap": parent_website_sitemap,
+		"parent_website_route": parent_website_route,
 		"group_type": group_type,
 		"public_read": int(public_read),
 		"public_write": int(public_write)

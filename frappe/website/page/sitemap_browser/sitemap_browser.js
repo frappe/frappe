@@ -85,7 +85,7 @@ frappe.website.SitemapBrowser = Class.extend({
 	},
 	open: function() {
 		var node = this.selected_node();
-		frappe.set_route("Form", "Website Sitemap", node.data("label"));
+		frappe.set_route("Form", "Website Route", node.data("label"));
 	},
 	up_or_down: function(up_or_down) {
 		var node = this.tree.get_selected_node();
@@ -115,7 +115,7 @@ frappe.website.SitemapBrowser = Class.extend({
 						fieldname: "new_parent",
 						label: "New Parent", 
 						reqd: 1, 
-						options: "Website Sitemap"
+						options: "Website Route"
 					},
 					{ 
 						fieldtype: "Button", 

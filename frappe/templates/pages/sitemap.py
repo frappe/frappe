@@ -15,11 +15,11 @@ def get_context(context):
 	"""generate the sitemap XML"""
 	host = get_request_site_address()
 	links = []
-	for l in frappe.conn.sql("""select `tabWebsite Sitemap`.page_name, `tabWebsite Sitemap`.lastmod 
-		from `tabWebsite Sitemap`, `tabWebsite Sitemap Config` 
+	for l in frappe.conn.sql("""select `tabWebsite Route`.page_name, `tabWebsite Route`.lastmod 
+		from `tabWebsite Route`, `tabWebsite Template` 
 		where 
-			`tabWebsite Sitemap`.website_sitemap_config = `tabWebsite Sitemap Config`.name
-			and ifnull(`tabWebsite Sitemap Config`.no_sitemap, 0)=0""", 
+			`tabWebsite Route`.website_template = `tabWebsite Template`.name
+			and ifnull(`tabWebsite Template`.no_sitemap, 0)=0""", 
 		as_dict=True):
 		links.append({
 			"loc": urllib.basejoin(host, urllib.quote(l.page_name.encode("utf-8"))),

@@ -52,7 +52,7 @@ frappe.module_page["Website"] = [
 			{
 				label: frappe._("Website Page Permission"),
 				description: frappe._("Define read, write, admin permissions for a Website Page."),
-				doctype:"Website Sitemap Permission",
+				doctype:"Website Route Permission",
 			},
 		]
 	},
@@ -65,7 +65,7 @@ frappe.module_page["Website"] = [
 			{
 				"route":"sitemap-browser",
 				"label":frappe._("Sitemap Browser"),
-				"description":frappe._("View or manage Website Sitemap tree."),
+				"description":frappe._("View or manage Website Route tree."),
 				doctype:"Website Settings",
 				icon: "icon-sitemap"
 			},

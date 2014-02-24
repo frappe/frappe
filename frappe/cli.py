@@ -190,7 +190,7 @@ def setup_utilities(parser):
 	parser.add_argument("--clear_web", default=False, action="store_true",
 		help="Clear website cache")
 	parser.add_argument("--build_sitemap", default=False, action="store_true",
-		help="Build Website Sitemap")
+		help="Build Website Route")
 	parser.add_argument("--sync_statics", default=False, action="store_true",
 		help="Sync files from templates/statics to Web Pages")
 	parser.add_argument("--clear_cache", default=False, action="store_true",

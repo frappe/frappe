@@ -32,7 +32,7 @@ def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=F
 			
 	# update link fields' values
 	link_fields = get_link_fields(doctype)
-	update_link_field_values(link_fields, old, new)
+	update_link_field_values(link_fields, old, new, doctype)
 	
 	if doctype=='DocType':
 		rename_doctype(doctype, old, new, force)
@@ -99,7 +99,7 @@ def rename_doctype(doctype, old, new, force=False):
 	
 	# change options where select options are hardcoded i.e. listed
 	select_fields = get_select_fields(old, new)
-	update_link_field_values(select_fields, old, new)
+	update_link_field_values(select_fields, old, new, doctype)
 	update_select_field_values(old, new)
 	
 	# change parenttype for fieldtype Table
@@ -118,7 +118,7 @@ def update_child_docs(old, new, doclist):
 		frappe.conn.sql("update `tab%s` set parent=%s where parent=%s" \
 			% (child, '%s', '%s'), (new, old))
 
-def update_link_field_values(link_fields, old, new):
+def update_link_field_values(link_fields, old, new, doctype):
 	update_list = []
 	
 	# update values
@@ -133,13 +133,14 @@ def update_link_field_values(link_fields, old, new):
 				where doctype=%s and field=%s and value=%s""",
 				(new, field['parent'], field['fieldname'], old))
 		else:
-			frappe.conn.sql("""\
-				update `tab%s` set `%s`=%s
-				where `%s`=%s""" \
-				% (field['parent'], field['fieldname'], '%s',
-					field['fieldname'], '%s'),
-				(new, old))
-			
+			if doctype!='DocType' and field['parent']!=new:
+				frappe.conn.sql("""\
+					update `tab%s` set `%s`=%s
+					where `%s`=%s""" \
+					% (field['parent'], field['fieldname'], '%s',
+						field['fieldname'], '%s'),
+					(new, old), debug=1)
+								
 def get_link_fields(doctype):
 	# get link fields from tabDocField
 	link_fields = frappe.conn.sql("""\
@@ -181,7 +182,7 @@ def get_link_fields(doctype):
 		% ('%s', doctype), (doctype,), as_dict=1)
 		
 	link_fields += property_setter_link_fields
-	
+		
 	return link_fields
 	
 def update_parent_of_fieldtype_table(old, new):

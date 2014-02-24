@@ -22,4 +22,4 @@ class DocType(WebsiteGenerator):
 		clear_cache(website_group=self.doc.name)
 		
 	def after_insert(self):
-		clear_cache(path=self.doc.parent_website_sitemap)
+		clear_cache(path=self.doc.parent_website_route)

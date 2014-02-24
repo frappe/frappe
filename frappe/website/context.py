@@ -63,5 +63,5 @@ def build_context(sitemap_options):
 	# remove bean, as it is not pickle friendly and its purpose is over
 	if context.bean:
 		del context["bean"]
-	
+			
 	return context
