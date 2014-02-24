@@ -236,7 +236,7 @@ $.extend(frappe, {
 			return
 		
 		// our custom logic
-		if (link.href.indexOf("cmd=")!==-1)
+		if (link.href.indexOf("cmd=")!==-1 || link.hasAttribute("dont-use-ajax"))
 			return
 			
 		event.preventDefault()
@@ -255,6 +255,11 @@ $.extend(frappe, {
 			frappe.render_json(data); 
 		}).always(function() {
 			NProgress.done();
+		}).fail(function(xhr, status, error) {
+			if(!xhr.responseText && status==="error") {
+				// ajax failed without response. Try reloading the full page.
+				window.location.reload();
+			}
 		});
 	},
 	render_json: function(data) {
@@ -442,7 +447,7 @@ $(document).ready(function() {
 	// switch to app link
 	if(getCookie("system_user")==="yes") {
 		$("#website-post-login .dropdown-menu").append('<li class="divider"></li>\
-			<li><a href="app.html"><i class="icon-fixed-width icon-th-large"></i> Switch To App</a></li>');
+			<li><a href="/app" dont-use-ajax><i class="icon-fixed-width icon-th-large"></i> Switch To App</a></li>');
 	}
 	
 	frappe.render_user();

@@ -12,7 +12,7 @@
 	
 	{%- block head -%}
 		{%- if meta_description is defined %}
-		<meta name="description" content="{{ meta_description }}">
+		<meta name="description" content="{{ meta_description|striptags }}">
 		{%- endif -%}
 		
 		{%- for link in web_include_js %}

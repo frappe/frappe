@@ -27,7 +27,7 @@
 $(function() {
 	if(window.logged_in && getCookie("system_user")==="yes") {
 		frappe.has_permission("Blog Post", "{{ name }}", "write", function(r) {
-			frappe.require("assets/frappe/js/frappe/website/editable.js");
+			frappe.require("/assets/frappe/js/frappe/website/editable.js");
 			frappe.make_editable($('[itemprop="articleBody"]'), "Blog Post", "{{ name }}", "content");
 		});
 	}
