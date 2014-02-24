@@ -49,25 +49,24 @@ class DocType(DocTypeNestedSet):
 			self.doc.idx = None
 	
 	def set_idx(self):
-		if self.doc.idx==None:
-			self.doc.idx = int(frappe.conn.sql("""select ifnull(max(ifnull(idx, -1)), -1) 
-				from `tabWebsite Route`
-				where ifnull(parent_website_route, '')=%s and name!=%s""", 
-					(self.doc.parent_website_route or '',
-					self.doc.name))[0][0]) + 1
-			
-		else:
-			if self.doc.parent_website_route:
+		if self.doc.parent_website_route:
+			if self.doc.idx == None:
+				self.doc.idx = int(frappe.conn.sql("""select ifnull(max(ifnull(idx, -1)), -1) 
+					from `tabWebsite Route`
+					where ifnull(parent_website_route, '')=%s and name!=%s""", 
+						(self.doc.parent_website_route or '',
+						self.doc.name))[0][0]) + 1
+								
+			else:
 				self.doc.idx = cint(self.doc.idx)
 				previous_idx = frappe.conn.sql("""select max(idx) 
 						from `tab{}` where ifnull(parent_website_route, '')=%s 
 						and ifnull(idx, -1) < %s""".format(self.doc.ref_doctype), 
 						(self.doc.parent_website_route, self.doc.idx))[0][0]
-					
+				
 				if previous_idx and previous_idx != self.doc.idx - 1:
 					frappe.throw("{}: {}, {}".format(
 						_("Sitemap Ordering Error. Index missing"), self.doc.name, self.doc.idx-1))
-						
 
 	def on_update(self):
 		if not frappe.flags.in_rebuild_config:

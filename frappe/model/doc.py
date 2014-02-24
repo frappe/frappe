@@ -181,7 +181,7 @@ class Document:
 		else:
 			if name.startswith("__"):
 				raise AttributeError()
-			return ''
+			return None
 	
 	def get(self, name, value=None):
 		return self.fields.get(name, value)
