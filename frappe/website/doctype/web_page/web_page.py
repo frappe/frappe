@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import frappe, os, time
 from frappe.website.website_generator import WebsiteGenerator
 from frappe.website.utils import cleanup_page_name
+from frappe.utils import cint
 
 class DocType(WebsiteGenerator):
 	def autoname(self):
@@ -13,12 +14,12 @@ class DocType(WebsiteGenerator):
 			last = frappe.conn.sql("""select name from `tabWeb Page`
 				where name like '{}%' order by name desc limit 1""".format(self.doc.name))
 			count = last[0][0].replace(self.doc.name, "")
-			if count and "-" in name:
+			if count and "-" in count:
 				count = cint(count.split("-")[1])
 			else:
 				count = "1"
 				
-			self.doc.name = self.doc.name + "-" + count
+			self.doc.name = "{0}-{1}".format(self.doc.name, count)
 			
 		
 	def validate(self):
