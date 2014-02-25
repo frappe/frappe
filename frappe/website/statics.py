@@ -138,7 +138,8 @@ class sync(object):
 				
 				frappe.delete_doc("Web Page", page.doc.name)
 				page.insert() # retry
-				
+			
+			
 		# update timestamp
 		route_bean = frappe.bean("Website Route", {"ref_doctype": "Web Page", 
 			"docname": page.doc.name})

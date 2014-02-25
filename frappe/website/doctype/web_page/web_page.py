@@ -4,8 +4,23 @@
 from __future__ import unicode_literals
 import frappe, os, time
 from frappe.website.website_generator import WebsiteGenerator
+from frappe.website.utils import cleanup_page_name
 
-class DocType(WebsiteGenerator):		
+class DocType(WebsiteGenerator):
+	def autoname(self):
+		self.doc.name = cleanup_page_name(self.doc.title)
+		if frappe.conn.exists("Web Page", self.doc.name):
+			last = frappe.conn.sql("""select name from `tabWeb Page`
+				where name like '{}%' order by name desc limit 1""".format(self.doc.name))
+			count = last[0][0].replace(self.doc.name, "")
+			if count and "-" in name:
+				count = cint(count.split("-")[1])
+			else:
+				count = "1"
+				
+			self.doc.name = self.doc.name + "-" + count
+			
+		
 	def validate(self):
 		for d in self.doclist.get({"parentfield": "toc"}):
 			if d.web_page == self.doc.name:
