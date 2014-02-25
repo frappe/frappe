@@ -448,9 +448,9 @@ def build_sitemap():
 	
 @cmd
 def sync_statics():
-	from frappe.website.doctype.web_page import web_page
+	from frappe.website import statics
 	frappe.connect()
-	web_page.sync_statics()
+	statics.sync_statics()
 	frappe.conn.commit()
 	frappe.destroy()
 	
