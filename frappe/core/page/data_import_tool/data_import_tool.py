@@ -176,7 +176,7 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 			frappe.permissions.can_export(parent_doctype, raise_exception=True)
 			
 			# get permitted data only
-			data = reportview.execute(doctype, fields="*")
+			data = reportview.execute(doctype, fields=["*"], limit_page_length=None)
 			for doc in data:
 				# add main table
 				row_group = []
@@ -512,7 +512,7 @@ def export_json(doctype, name, path):
 				del d["parent"]
 				del d["name"]
 			d["__islocal"] = 1
-		outfile.write(json.dumps(doclist, default=json_handler, indent=1, sort_keys=True))
+		outfile.write(json.dumps([doclist], default=json_handler, indent=1, sort_keys=True))
 
 def import_doclist(path, overwrite=False, ignore_links=False, ignore_insert=False, insert=False):
 	import os

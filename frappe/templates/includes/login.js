@@ -97,7 +97,7 @@ login.login_handlers = {
 			} else {
 				window.location.href = "/index";
 			}
-		} else if(window.is_sign_up) {
+		} else if(["#signup", "#forgot"].indexOf(window.location.hash)!==-1) {
 			frappe.msgprint(data.message);
 		}			
 	},

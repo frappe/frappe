@@ -36,10 +36,10 @@ $.extend(frappe, {
 			dataType: "json",
 			statusCode: {
 				404: function(xhr) {
-					msgprint("Not Found");
+					frappe.msgprint("Not Found");
 				},
 				403: function(xhr) {
-					msgprint("Not Permitted");
+					frappe.msgprint("Not Permitted");
 				},
 				200: function(data, xhr) {
 					if(opts.callback)
