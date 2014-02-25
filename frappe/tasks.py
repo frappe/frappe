@@ -29,6 +29,8 @@ def scheduler_task(site, event, handler):
 		traceback += log(frappe.get_traceback())
 		logger.warn(traceback)
 		frappe.conn.rollback()
+		frappe.destroy()
+		raise
 	frappe.destroy()
 	logger.info('ran {handler} for {site} for event: {event}'.format(handler=handler, site=site, event=event))
 
