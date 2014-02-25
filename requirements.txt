@@ -1,7 +1,7 @@
 chardet
 cssmin
 dropbox
-google-api-python-client
+oauth2client
 gunicorn
 httplib2
 jinja2

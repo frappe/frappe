@@ -16,10 +16,8 @@ def sync_statics():
 		time.sleep(2)
 
 class sync(object):
-	def __init__(self):
-		self.synced = []
-
 	def start(self):
+		self.synced = []
 		for app in frappe.get_installed_apps():
 			self.sync_for_app(app)
 

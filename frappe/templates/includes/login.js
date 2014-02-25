@@ -174,3 +174,15 @@ frappe.ready(function() {
 });
 
 {%- endif %}
+
+{% if google_sign_in is defined -%}
+
+frappe.ready(function() {
+	$(".btn-google").click(function() {
+		frappe.call({
+			method: "frappe.templates.pages.login.get_google_auth_url"
+		})
+	})
+})
+
+{%- endif -%}

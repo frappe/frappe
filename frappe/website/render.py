@@ -24,7 +24,7 @@ def render(path):
 	
 	data = set_content_type(data, path)
 	frappe._response.data = data
-	frappe._response.headers[b"Page Name"] = path.encode("utf-8")
+	frappe._response.headers[b"X-Page-Name"] = path.encode("utf-8")
 	
 def render_page(path):
 	"""get page html"""
@@ -40,7 +40,7 @@ def render_page(path):
 			
 	if out:
 		if hasattr(frappe, "_response"):
-			frappe._response.headers[b"From Cache"] = True
+			frappe._response.headers[b"X-From-Cache"] = True
 		
 		return out
 	
