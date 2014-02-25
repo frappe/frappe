@@ -2,6 +2,8 @@
 # MIT License. See license.txt 
 
 from __future__ import unicode_literals
+import logging
+
 """
 Scheduler will call the following events from the module
 `startup.schedule_handler` and Control Panel (for server scripts)
@@ -17,7 +19,7 @@ on the need.
 
 import frappe
 import frappe.utils
-from frappe.utils.file_lock import create_lock, check_lock, delete_lock
+from frappe.utils.file_lock import create_lock, check_lock, delete_lock, LockTimeoutError
 
 def execute(site):
 	"""
@@ -26,10 +28,13 @@ def execute(site):
 	Database connection: Ideally it should be connected from outside, if there is
 	no connection, it will connect from defs.py
 	"""
+	logging.info('executing %', site)
 	frappe.init(site=site)
-	if check_lock('scheduler'):
+	try:
+		create_lock('scheduler')
+	except LockTimeoutError:
+		frappe.destroy()
 		return
-	create_lock('scheduler')
 	from datetime import datetime
 	
 	format = '%Y-%m-%d %H:%M:%S'

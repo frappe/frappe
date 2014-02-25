@@ -7,6 +7,15 @@ import os
 
 SITES_PATH = os.environ.get('SITES_PATH', '.')
 
+class SiteRouter(object):
+
+	def route_for_task(self, task, args=None, kwargs=None):
+		if hasattr(frappe.local, 'site'):
+			return {
+				'queue': frappe.local.site
+			}
+		return None
+
 def get_conf():
 	if hasattr(frappe.local, 'initialised'):
 		return frappe.local.conf
@@ -22,9 +31,14 @@ def get_app():
 	app.autodiscover_tasks(frappe.get_all_apps(with_frappe=True, with_internal_apps=False))
 	app.conf.CELERY_TASK_SERIALIZER = 'json'
 	app.conf.CELERY_ACCEPT_CONTENT = ['json']
+	app.conf.CELERY_ROUTES = (SiteRouter(),)
 	app.conf.CELERYBEAT_SCHEDULE = {
 	    'scheduler': {
 		        'task': 'frappe.tasks.enqueue_scheduler_events',
+		        'schedule': timedelta(seconds=conf['scheduler_interval'])
+		    },
+	    'sync_queues': {
+		        'task': 'frappe.tasks.sync_queues',
 		        'schedule': timedelta(seconds=conf['scheduler_interval'])
 		    },
 	}
