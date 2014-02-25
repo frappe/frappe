@@ -39,18 +39,17 @@ class sync(object):
 	def sync_folder(self, basepath, folders, files):
 		self.has_index = False
 		self.get_index_txt(basepath, files)
-
-		if basepath!=self.statics_path:
-			self.sync_index_page(basepath, files)
-		
-			if not self.has_index: # index.md or index.html is required, else skip
-				return
-				
-			if self.index:
-				self.sync_using_given_index(basepath, folders, files)
-				
-			else:
-				self.sync_alphabetically(basepath, folders, files)
+		self.sync_index_page(basepath, files)
+	
+		if not self.has_index and basepath!=self.statics_path: 
+			# index.md or index.html is required, else skip
+			return
+			
+		if self.index:
+			self.sync_using_given_index(basepath, folders, files)
+			
+		else:
+			self.sync_alphabetically(basepath, folders, files)
 				
 		
 	def get_index_txt(self, basepath, files):
