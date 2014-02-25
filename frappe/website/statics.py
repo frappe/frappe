@@ -18,11 +18,16 @@ def sync_statics():
 class sync(object):
 	def start(self):
 		self.synced = []
+		self.updated = 0
 		for app in frappe.get_installed_apps():
 			self.sync_for_app(app)
 
 		self.cleanup()
-		print "sync complete"
+		
+		if self.updated:
+			print str(self.updated) + " files updated"
+		else:
+			print "no change"
 		
 	def sync_for_app(self, app):
 		self.statics_path = frappe.get_app_path(app, "templates", "statics")
@@ -96,18 +101,18 @@ class sync(object):
 	
 		if route in self.synced:
 			return
-	
+		
 		parent_website_route = os.path.dirname(route)
 		page_name = os.path.basename(route)
-			
-		try:
-			route_bean = frappe.bean("Website Route", route)
-		except frappe.DoesNotExistError:
+		
+		route_details = frappe.conn.get_value("Website Route", route, 
+			["name", "idx", "static_file_timestamp", "docname"], as_dict=True)
+		
+		if route_details:
+			self.update_web_page(route_details, fpath, priority)
+		else:
 			# Route does not exist, new page
 			self.insert_web_page(route, fpath, page_name, priority, parent_website_route)
-		else:
-			self.update_web_page(route, route_bean, fpath, priority)
-		return None
 
 	def insert_web_page(self, route, fpath, page_name, priority, parent_website_route):
 		title, content = get_static_content(fpath)
@@ -138,29 +143,34 @@ class sync(object):
 		# update timestamp
 		route_bean = frappe.bean("Website Route", {"ref_doctype": "Web Page", 
 			"docname": page.doc.name})
-		route_bean.doc.static_file_timestamp = os.path.getmtime(fpath)
+		route_bean.doc.static_file_timestamp = cint(os.path.getmtime(fpath))
 		route_bean.save()
 
+		self.updated += 1
+		print route_bean.doc.name + " inserted"
 		self.synced.append(route)
 	
-	def update_web_page(self, route, route_bean, fpath, priority):
-		if str(os.path.getmtime(fpath))!=route_bean.doc.static_file_timestamp \
-			or cint(route_bean.doc.idx) != cint(priority):
+	def update_web_page(self, route_details, fpath, priority):
+		if str(cint(os.path.getmtime(fpath)))!= route_details.static_file_timestamp \
+			or (cint(route_details.idx) != cint(priority) and (priority is not None)):
 
-			page = frappe.bean("Web Page", route_bean.doc.docname)
+			page = frappe.bean("Web Page", route_details.docname)
 			title, content = get_static_content(fpath)
 			page.doc.main_section = content
 			page.doc.idx = priority
 			if not title:
-				title = route_bean.doc.docname.replace("-", " ").replace("_", " ").title()
+				title = route_details.docname.replace("-", " ").replace("_", " ").title()
 			page.doc.title = title
 			page.save()
 
-			route_bean = frappe.bean("Website Route", route)
-			route_bean.doc.static_file_timestamp = os.path.getmtime(fpath)
+			route_bean = frappe.bean("Website Route", route_details.name)
+			route_bean.doc.static_file_timestamp = cint(os.path.getmtime(fpath))
 			route_bean.save()
 
-			self.synced.append(route)
+			print route_bean.doc.name + " updated"
+			self.updated += 1
+			
+		self.synced.append(route_details.name)
 
 	def cleanup(self):
 		if self.synced:
