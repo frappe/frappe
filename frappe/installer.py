@@ -8,7 +8,7 @@ from __future__ import unicode_literals
 
 import os, sys, json
 import frappe
-import frappe.db
+import frappe.database
 import getpass
 
 from frappe.model.db_schema import DbManager
@@ -21,11 +21,11 @@ def install_db(root_login="root", root_password=None, db_name=None, source_sql=N
 	make_conf(db_name, site_config=site_config)
 	if reinstall:
 		frappe.connect(db_name=db_name)
-		dbman = DbManager(frappe.local.conn)
+		dbman = DbManager(frappe.local.db)
 		dbman.create_database(db_name)
 
 	else:
-		frappe.local.conn = make_connection(root_login, root_password)
+		frappe.local.db = make_connection(root_login, root_password)
 		frappe.local.session = frappe._dict({'user':'Administrator'})
 		create_database_and_user(force, verbose)
 
@@ -39,7 +39,7 @@ def install_db(root_login="root", root_password=None, db_name=None, source_sql=N
 
 def create_database_and_user(force, verbose):
 	db_name = frappe.local.conf.db_name
-	dbman = DbManager(frappe.local.conn)
+	dbman = DbManager(frappe.local.db)
 	if force or (db_name not in dbman.get_database_list()):
 		dbman.delete_user(db_name)
 		dbman.drop_database(db_name)
@@ -57,10 +57,10 @@ def create_database_and_user(force, verbose):
 	if verbose: print "Granted privileges to user %s and database %s" % (db_name, db_name)
 	
 	# close root connection
-	frappe.conn.close()
+	frappe.db.close()
 
 def create_auth_table():
-	frappe.conn.sql_ddl("""create table if not exists __Auth (
+	frappe.db.sql_ddl("""create table if not exists __Auth (
 		`user` VARCHAR(180) NOT NULL PRIMARY KEY,
 		`password` VARCHAR(180) NOT NULL
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8""")
@@ -70,7 +70,7 @@ def import_db_from_sql(source_sql, verbose):
 	db_name = frappe.conf.db_name
 	if not source_sql:
 		source_sql = os.path.join(os.path.dirname(frappe.__file__), 'data', 'Framework.sql')
-	DbManager(frappe.local.conn).restore_database(db_name, source_sql, db_name, frappe.conf.db_password)
+	DbManager(frappe.local.db).restore_database(db_name, source_sql, db_name, frappe.conf.db_password)
 	if verbose: print "Imported from database %s" % source_sql
 
 def make_connection(root_login, root_password):
@@ -116,8 +116,8 @@ def add_to_installed_apps(app_name, rebuild_sitemap=True):
 	installed_apps = frappe.get_installed_apps()
 	if not app_name in installed_apps:
 		installed_apps.append(app_name)
-		frappe.conn.set_global("installed_apps", json.dumps(installed_apps))
-		frappe.conn.commit()
+		frappe.db.set_global("installed_apps", json.dumps(installed_apps))
+		frappe.db.commit()
 
 		if rebuild_sitemap:
 			from frappe.website.doctype.website_template.website_template import rebuild_website_template
@@ -133,7 +133,7 @@ def set_all_patches_as_completed(app):
 				"doctype": "Patch Log",
 				"patch": patch
 			}).insert()
-		frappe.conn.commit()
+		frappe.db.commit()
 		
 def make_conf(db_name=None, db_password=None, site_config=None):
 	site = frappe.local.site

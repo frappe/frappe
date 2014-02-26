@@ -46,7 +46,7 @@ def copytables(srctype, src, srcfield, tartype, tar, tarfield, srcfields, tarfie
 
 def db_exists(dt, dn):
 	import frappe
-	return frappe.conn.exists(dt, dn)
+	return frappe.db.exists(dt, dn)
 
 def delete_fields(args_dict, delete=0):
 	"""
@@ -62,7 +62,7 @@ def delete_fields(args_dict, delete=0):
 		fields = args_dict[dt]
 		if not fields: continue
 		
-		frappe.conn.sql("""\
+		frappe.db.sql("""\
 			DELETE FROM `tabDocField`
 			WHERE parent=%s AND fieldname IN (%s)
 		""" % ('%s', ", ".join(['"' + f + '"' for f in fields])), dt)
@@ -70,20 +70,20 @@ def delete_fields(args_dict, delete=0):
 		# Delete the data / column only if delete is specified
 		if not delete: continue
 		
-		is_single = frappe.conn.sql("select issingle from tabDocType where name = '%s'" % dt)
+		is_single = frappe.db.sql("select issingle from tabDocType where name = '%s'" % dt)
 		is_single = is_single and frappe.utils.cint(is_single[0][0]) or 0
 		if is_single:
-			frappe.conn.sql("""\
+			frappe.db.sql("""\
 				DELETE FROM `tabSingles`
 				WHERE doctype=%s AND field IN (%s)
 			""" % ('%s', ", ".join(['"' + f + '"' for f in fields])), dt)
 		else:
-			existing_fields = frappe.conn.sql("desc `tab%s`" % dt)
+			existing_fields = frappe.db.sql("desc `tab%s`" % dt)
 			existing_fields = existing_fields and [e[0] for e in existing_fields] or []
 			query = "ALTER TABLE `tab%s` " % dt + \
 				", ".join(["DROP COLUMN `%s`" % f for f in fields if f in existing_fields])
-			frappe.conn.commit()
-			frappe.conn.sql(query)
+			frappe.db.commit()
+			frappe.db.sql(query)
 
 def rename_field(doctype, old_fieldname, new_fieldname):
 	"""This functions assumes that doctype is already synced"""
@@ -96,28 +96,28 @@ def rename_field(doctype, old_fieldname, new_fieldname):
 	
 	if new_field.fieldtype == "Table":
 		# change parentfield of table mentioned in options
-		frappe.conn.sql("""update `tab%s` set parentfield=%s
+		frappe.db.sql("""update `tab%s` set parentfield=%s
 			where parentfield=%s""" % (new_field.options.split("\n")[0], "%s", "%s"),
 			(new_fieldname, old_fieldname))
 	elif new_field.fieldtype not in no_value_fields:
 		if doctype_list[0].issingle:
-			frappe.conn.sql("""update `tabSingles` set field=%s
+			frappe.db.sql("""update `tabSingles` set field=%s
 				where doctype=%s and field=%s""", 
 				(new_fieldname, doctype, old_fieldname))
 		else:
 			# copy field value
-			frappe.conn.sql("""update `tab%s` set `%s`=`%s`""" % \
+			frappe.db.sql("""update `tab%s` set `%s`=`%s`""" % \
 				(doctype, new_fieldname, old_fieldname))
 	
 	# update in property setter
-	frappe.conn.sql("""update `tabProperty Setter` set field_name = %s 
+	frappe.db.sql("""update `tabProperty Setter` set field_name = %s 
 		where doc_type=%s and field_name=%s""", (new_fieldname, doctype, old_fieldname))
 		
 	update_users_report_view_settings(doctype, old_fieldname)
 		
 def update_users_report_view_settings(doctype, ref_fieldname):
 	import json
-	user_report_cols = frappe.conn.sql("""select defkey, defvalue from `tabDefaultValue` where 
+	user_report_cols = frappe.db.sql("""select defkey, defvalue from `tabDefaultValue` where 
 		defkey like '_list_settings:%'""")
 	for key, value in user_report_cols:
 		new_columns = []
@@ -127,5 +127,5 @@ def update_users_report_view_settings(doctype, ref_fieldname):
 				new_columns.append([field, field_doctype])
 				columns_modified=True
 		if columns_modified:
-			frappe.conn.sql("""update `tabDefaultValue` set defvalue=%s 
+			frappe.db.sql("""update `tabDefaultValue` set defvalue=%s 
 				where defkey=%s""" % ('%s', '%s'), (json.dumps(new_columns), key))

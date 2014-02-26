@@ -65,7 +65,7 @@ def _make(doctype=None, name=None, content=None, subject=None, sent_or_received 
 	d.subject = subject
 	d.content = content
 	d.sent_or_received = sent_or_received
-	d.sender = sender or frappe.conn.get_value("Profile", frappe.session.user, "email")
+	d.sender = sender or frappe.db.get_value("Profile", frappe.session.user, "email")
 	d.recipients = recipients
 	
 	# add as child
@@ -94,7 +94,7 @@ def get_customer_supplier(args=None):
 	if not args: args = frappe.local.form_dict
 	if not args.get('contact'):
 		raise Exception, "Please specify a contact to fetch Customer/Supplier"
-	result = frappe.conn.sql("""\
+	result = frappe.db.sql("""\
 		select customer, supplier
 		from `tabContact`
 		where name = %s""", args.get('contact'), as_dict=1)
@@ -118,7 +118,7 @@ def send_comm_email(d, name, sent_via=None, print_html=None, attachments='[]', s
 			
 		footer = set_portal_link(sent_via, d)
 	
-	send_print_in_body = frappe.conn.get_value("Email Settings", None, "send_print_in_body_and_attachment")
+	send_print_in_body = frappe.db.get_value("Email Settings", None, "send_print_in_body_and_attachment")
 	if not send_print_in_body:
 		d.content += "<p>Please see attachment for document details.</p>"
 	
@@ -126,7 +126,7 @@ def send_comm_email(d, name, sent_via=None, print_html=None, attachments='[]', s
 		msg=d.content, footer=footer, print_html=print_html if send_print_in_body else None)
 	
 	if send_me_a_copy:
-		mail.cc.append(frappe.conn.get_value("Profile", frappe.session.user, "email"))
+		mail.cc.append(frappe.db.get_value("Profile", frappe.session.user, "email"))
 	
 	if print_html:
 		print_html = scrub_urls(print_html)

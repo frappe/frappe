@@ -10,7 +10,7 @@ class DocType:
 		self.doc, self.doclist = d, dl
 		
 	def validate(self):
-		if cint(self.doc.fields.get("__islocal")) and frappe.conn.exists("UserRole", {
+		if cint(self.doc.fields.get("__islocal")) and frappe.db.exists("UserRole", {
 				"parent": self.doc.parent, "role": self.doc.role}):
 			frappe.msgprint("Role Already Exists", raise_exception=True)
 			

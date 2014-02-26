@@ -29,7 +29,7 @@ def switch_module(dt, dn, to, frm=None, export=None):
 		Change the module of the given doctype, if export is true, then also export txt and copy
 		code files from src
 	"""
-	frappe.conn.sql("update `tab"+dt+"` set module=%s where name=%s", (to, dn))
+	frappe.db.sql("update `tab"+dt+"` set module=%s where name=%s", (to, dn))
 
 	if export:
 		export_doc(dt, dn)

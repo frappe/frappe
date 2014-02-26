@@ -27,7 +27,7 @@ def get_report_doc(report_name):
 def get_script(report_name):
 	report = get_report_doc(report_name)
 	
-	module = frappe.conn.get_value("DocType", report.ref_doctype, "module")
+	module = frappe.db.get_value("DocType", report.ref_doctype, "module")
 	module_path = get_module_path(module)
 	report_folder = os.path.join(module_path, "report", scrub(report.name))
 	script_path = os.path.join(report_folder, scrub(report.name) + ".js")
@@ -68,10 +68,10 @@ def run(report_name, filters=()):
 		if not report.query.lower().startswith("select"):
 			frappe.msgprint(_("Query must be a SELECT"), raise_exception=True)
 		
-		result = [list(t) for t in frappe.conn.sql(report.query, filters)]
-		columns = [c[0] for c in frappe.conn.get_description()]
+		result = [list(t) for t in frappe.db.sql(report.query, filters)]
+		columns = [c[0] for c in frappe.db.get_description()]
 	else:
-		module = frappe.conn.get_value("DocType", report.ref_doctype, "module")
+		module = frappe.db.get_value("DocType", report.ref_doctype, "module")
 		if report.is_standard=="Yes":
 			method_name = frappe.local.module_app[scrub(module)] + "." + scrub(module) \
 				+ ".report." + scrub(report.name) + "." + scrub(report.name) + ".execute"

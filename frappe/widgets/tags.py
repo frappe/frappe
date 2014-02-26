@@ -29,7 +29,7 @@ import frappe
 def check_user_tags(dt):
 	"if the user does not have a tags column, then it creates one"
 	try:
-		frappe.conn.sql("select `_user_tags` from `tab%s` limit 1" % dt)
+		frappe.db.sql("select `_user_tags` from `tab%s` limit 1" % dt)
 	except Exception, e:
 		if e.args[0] == 1054:
 			DocTags(dt).setup()
@@ -63,11 +63,11 @@ class DocTags:
 		
 	def get_tag_fields(self):
 		"""returns tag_fields property"""
-		return frappe.conn.get_value('DocType', self.dt, 'tag_fields')
+		return frappe.db.get_value('DocType', self.dt, 'tag_fields')
 		
 	def get_tags(self, dn):
 		"""returns tag for a particular item"""
-		return frappe.conn.get_value(self.dt, dn, '_user_tags', ignore=1) or ''
+		return frappe.db.get_value(self.dt, dn, '_user_tags', ignore=1) or ''
 
 	def add(self, dn, tag):
 		"""add a new user tag"""
@@ -94,7 +94,7 @@ class DocTags:
 			tl = list(set(filter(lambda x: x, tl)))
 			tags = ',' + ','.join(tl)
 		try:
-			frappe.conn.sql("update `tab%s` set _user_tags=%s where name=%s" % \
+			frappe.db.sql("update `tab%s` set _user_tags=%s where name=%s" % \
 				(self.dt,'%s','%s'), (tags , dn))
 		except Exception, e:
 			if e.args[0]==1054: 

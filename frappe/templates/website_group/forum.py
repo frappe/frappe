@@ -12,7 +12,7 @@ def get_post_list_html(group, view, limit_start=0, limit_length=20):
 	
 	# verify permission for paging
 	if frappe.local.form_dict.cmd == "get_post_list_html":
-		pathname = frappe.conn.get_value("Website Route", 
+		pathname = frappe.db.get_value("Website Route", 
 			{"ref_doctype": "Website Group", "docname": group})
 		access = get_access(pathname)
 		
@@ -22,7 +22,7 @@ def get_post_list_html(group, view, limit_start=0, limit_length=20):
 	conditions = ""
 	values = [group]
 	
-	group_type = frappe.conn.get_value("Website Group", group, "group_type")
+	group_type = frappe.db.get_value("Website Group", group, "group_type")
 	if group_type == "Events":
 		# should show based on time upto precision of hour
 		# because the current hour should also be in upcoming
@@ -52,7 +52,7 @@ def get_post_list_html(group, view, limit_start=0, limit_length=20):
 			
 	values += [int(limit_start), int(limit_length)]
 	
-	posts = frappe.conn.sql("""select p.*, pr.user_image, pr.first_name, pr.last_name,
+	posts = frappe.db.sql("""select p.*, pr.user_image, pr.first_name, pr.last_name,
 		(select count(pc.name) from `tabPost` pc where pc.parent_post=p.name) as post_reply_count
 		from `tabPost` p, `tabProfile` pr
 		where p.website_group = %s and pr.name = p.owner and ifnull(p.parent_post, '')='' 

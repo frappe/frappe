@@ -131,10 +131,10 @@ def get_backup():
 		This function is executed when the user clicks on 
 		Toos > Download Backup
 	"""
-	#if verbose: print frappe.conn.cur_db_name + " " + conf.db_password
+	#if verbose: print frappe.db.cur_db_name + " " + conf.db_password
 	delete_temp_backups()
-	odb = BackupGenerator(frappe.conn.cur_db_name, frappe.conn.cur_db_name,\
-						  frappe.conf.db_password, db_host = frappe.conn.host)
+	odb = BackupGenerator(frappe.db.cur_db_name, frappe.db.cur_db_name,\
+						  frappe.conf.db_password, db_host = frappe.db.host)
 	odb.get_backup()
 	recipient_list = odb.send_email()
 	frappe.msgprint("""A download link to your backup will be emailed \
@@ -150,9 +150,9 @@ def scheduled_backup(older_than=6, ignore_files=False, backup_path_db=None, back
 
 def new_backup(older_than=6, ignore_files=False, backup_path_db=None, backup_path_files=None):
 	delete_temp_backups(older_than=168)
-	odb = BackupGenerator(frappe.conn.cur_db_name, frappe.conn.cur_db_name,\
+	odb = BackupGenerator(frappe.db.cur_db_name, frappe.db.cur_db_name,\
 						  frappe.conf.db_password, 
-						  backup_path_db=backup_path_db, backup_path_files=backup_path_files, db_host = frappe.conn.host)
+						  backup_path_db=backup_path_db, backup_path_files=backup_path_files, db_host = frappe.db.host)
 	odb.get_backup(older_than, ignore_files)
 	return odb
 

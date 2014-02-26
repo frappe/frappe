@@ -95,7 +95,7 @@ class DocListController(object):
 		
 		if not hasattr(self, "_precision"):
 			self._precision = frappe._dict({
-				"default": cint(frappe.conn.get_default("float_precision")) or 3,
+				"default": cint(frappe.db.get_default("float_precision")) or 3,
 				"options": {}
 			})
 		

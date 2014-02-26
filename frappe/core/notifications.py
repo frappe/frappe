@@ -20,7 +20,7 @@ def get_notification_config():
 
 def get_things_todo():
 	"""Returns a count of incomplete todos"""
-	incomplete_todos = frappe.conn.sql("""\
+	incomplete_todos = frappe.db.sql("""\
 		SELECT COUNT(*) FROM `tabToDo`
 		WHERE status="Open"
 		AND (owner = %s or assigned_by=%s)""", (frappe.session.user, frappe.session.user))
@@ -35,7 +35,7 @@ def get_todays_events():
 
 def get_unread_messages():
 	"returns unread (docstatus-0 messages for a user)"
-	return frappe.conn.sql("""\
+	return frappe.db.sql("""\
 		SELECT count(*)
 		FROM `tabComment`
 		WHERE comment_doctype IN ('My Company', 'Message')

@@ -22,7 +22,7 @@ class WebsiteGenerator(DocListController):
 		if self.doc.is_new():
 			self.doc.fields[self._website_config.page_name_field] = page_name
 		else:
-			frappe.conn.set(self.doc, self._website_config.page_name_field, page_name)
+			frappe.db.set(self.doc, self._website_config.page_name_field, page_name)
 			
 		return page_name
 
@@ -30,7 +30,7 @@ class WebsiteGenerator(DocListController):
 		return self.doc.parent_website_route
 
 	def setup_generator(self):
-		self._website_config = frappe.conn.get_values("Website Template", 
+		self._website_config = frappe.db.get_values("Website Template", 
 			{"ref_doctype": self.doc.doctype}, "*")[0]
 
 	def on_update(self):
@@ -38,7 +38,7 @@ class WebsiteGenerator(DocListController):
 		frappe.add_version(self.doclist)
 		
 	def after_rename(self, olddn, newdn, merge):
-		frappe.conn.sql("""update `tabWebsite Route`
+		frappe.db.sql("""update `tabWebsite Route`
 			set docname=%s where ref_doctype=%s and docname=%s""", (newdn, self.doc.doctype, olddn))
 		
 		if merge:
@@ -63,7 +63,7 @@ class WebsiteGenerator(DocListController):
 	def add_or_update_sitemap(self):
 		page_name = self.get_page_name()
 		
-		existing_site_map = frappe.conn.get_value("Website Route", {"ref_doctype": self.doc.doctype,
+		existing_site_map = frappe.db.get_value("Website Route", {"ref_doctype": self.doc.doctype,
 			"docname": self.doc.name})
 						
 		opts = frappe._dict({
@@ -87,7 +87,7 @@ class WebsiteGenerator(DocListController):
 			idx = add_to_sitemap(opts)
 			
 		if idx!=None and self.doc.idx != idx:
-			frappe.conn.set(self.doc, "idx", idx)
+			frappe.db.set(self.doc, "idx", idx)
 	
 	def update_permissions(self, opts):
 		if self.meta.get_field("public_read"):

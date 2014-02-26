@@ -44,7 +44,7 @@ class DocType:
 		states.sort(lambda x, y: x.idx - y.idx)
 		for d in self.doclist.get({"doctype": "Workflow Document State"}):
 			if not d.doc_status in docstatus_map:
-				frappe.conn.sql("""update `tab%s` set `%s` = %s where \
+				frappe.db.sql("""update `tab%s` set `%s` = %s where \
 					ifnull(`%s`, '')='' and docstatus=%s""" % (self.doc.document_type, self.doc.workflow_state_field,
 						'%s', self.doc.workflow_state_field, "%s"), (d.state, d.doc_status))
 				docstatus_map[d.doc_status] = d.state
@@ -52,6 +52,6 @@ class DocType:
 	def set_active(self):
 		if int(self.doc.is_active or 0):
 			# clear all other
-			frappe.conn.sql("""update tabWorkflow set is_active=0 
+			frappe.db.sql("""update tabWorkflow set is_active=0 
 				where document_type=%s""",
 				self.doc.document_type)

@@ -29,18 +29,18 @@ def execute(site=None):
 	
 	format = '%Y-%m-%d %H:%M:%S'
 	
-	if not frappe.conn:
+	if not frappe.db:
 		frappe.connect(site=site)
 	
 	out = []
 
 	nowtime = frappe.utils.now_datetime()
-	last = frappe.conn.get_global('scheduler_last_event')
+	last = frappe.db.get_global('scheduler_last_event')
 	
 	# set scheduler last event
-	frappe.conn.begin()
-	frappe.conn.set_global('scheduler_last_event', nowtime.strftime(format))
-	frappe.conn.commit()
+	frappe.db.begin()
+	frappe.db.set_global('scheduler_last_event', nowtime.strftime(format))
+	frappe.db.commit()
 	
 	if last:
 		last = datetime.strptime(last, format)
@@ -71,11 +71,11 @@ def trigger(method):
 		if method==event_name:
 			try:
 				frappe.get_attr(handler)()
-				frappe.conn.commit()
+				frappe.db.commit()
 			except Exception:
 				traceback += log("Method: {method}, Handler: {handler}".format(method=method, handler=handler))
 				traceback += log(frappe.get_traceback())
-				frappe.conn.rollback()
+				frappe.db.rollback()
 				
 	return traceback or 'ok'
 
@@ -84,23 +84,23 @@ def log(method, message=None):
 	message = frappe.utils.cstr(message) + "\n" if message else ""
 	message += frappe.get_traceback()
 	
-	if not (frappe.conn and frappe.conn._conn):
+	if not (frappe.db and frappe.db._conn):
 		frappe.connect()
 	
-	frappe.conn.rollback()
-	frappe.conn.begin()
+	frappe.db.rollback()
+	frappe.db.begin()
 
 	d = frappe.doc("Scheduler Log")
 	d.method = method
 	d.error = message
 	d.save()
 
-	frappe.conn.commit()
+	frappe.db.commit()
 	
 	return message
 	
 def get_errors(from_date, to_date, limit):
-	errors = frappe.conn.sql("""select modified, method, error from `tabScheduler Log`
+	errors = frappe.db.sql("""select modified, method, error from `tabScheduler Log`
 		where date(modified) between %s and %s
 		and error not like '%%[Errno 110] Connection timed out%%'
 		order by modified limit %s""", (from_date, to_date, limit), as_dict=True)

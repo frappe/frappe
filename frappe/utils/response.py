@@ -16,7 +16,7 @@ def report_error(status_code):
 		frappe.errprint(frappe.utils.get_traceback())
 	frappe._response.status_code = status_code
 	if frappe.request_method == "POST":
-		frappe.conn.rollback()
+		frappe.db.rollback()
 
 def build_response():
 	print_map = {

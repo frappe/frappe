@@ -10,7 +10,7 @@ def before_install():
 
 def after_install():
 	# reset installed apps for re-install
-	frappe.conn.set_global("installed_apps", '["frappe"]')
+	frappe.db.set_global("installed_apps", '["frappe"]')
 	
 	# core users / roles
 	install_docs = [
@@ -32,11 +32,11 @@ def after_install():
 			pass
 
 	# all roles to admin
-	frappe.bean("Profile", "Administrator").get_controller().add_roles(*frappe.conn.sql_list("""
+	frappe.bean("Profile", "Administrator").get_controller().add_roles(*frappe.db.sql_list("""
 		select name from tabRole"""))
 
 	# update admin password
 	from frappe.auth import _update_password
 	_update_password("Administrator", frappe.conf.get("admin_password"))
 
-	frappe.conn.commit()
+	frappe.db.commit()

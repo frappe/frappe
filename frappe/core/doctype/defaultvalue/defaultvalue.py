@@ -9,14 +9,14 @@ class DocType:
 		self.doc, self.doclist = d, dl
 		
 def on_doctype_update():
-	if not frappe.conn.sql("""show index from `tabDefaultValue` 
+	if not frappe.db.sql("""show index from `tabDefaultValue` 
 		where Key_name="defaultvalue_parent_defkey_index" """):
-		frappe.conn.commit()
-		frappe.conn.sql("""alter table `tabDefaultValue` 
+		frappe.db.commit()
+		frappe.db.sql("""alter table `tabDefaultValue` 
 			add index defaultvalue_parent_defkey_index(parent, defkey)""")
 
-	if not frappe.conn.sql("""show index from `tabDefaultValue` 
+	if not frappe.db.sql("""show index from `tabDefaultValue` 
 		where Key_name="defaultvalue_parent_parenttype_index" """):
-		frappe.conn.commit()
-		frappe.conn.sql("""alter table `tabDefaultValue` 
+		frappe.db.commit()
+		frappe.db.sql("""alter table `tabDefaultValue` 
 			add index defaultvalue_parent_parenttype_index(parent, parenttype)""")

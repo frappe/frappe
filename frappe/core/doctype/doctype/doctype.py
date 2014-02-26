@@ -32,10 +32,10 @@ class DocType:
 	def change_modified_of_parent(self):
 		if frappe.flags.in_import:
 			return
-		parent_list = frappe.conn.sql("""SELECT parent 
+		parent_list = frappe.db.sql("""SELECT parent 
 			from tabDocField where fieldtype="Table" and options="%s" """ % self.doc.name)
 		for p in parent_list:
-			frappe.conn.sql('''UPDATE tabDocType SET modified="%s" 
+			frappe.db.sql('''UPDATE tabDocType SET modified="%s" 
 				WHERE `name`="%s"''' % (now(), p[0]))
 
 	def scrub_field_names(self):
@@ -67,7 +67,7 @@ class DocType:
 		if autoname and (not autoname.startswith('field:')) and (not autoname.startswith('eval:')) \
 			and (not autoname=='Prompt') and (not autoname.startswith('naming_series:')):
 			prefix = autoname.split('.')[0]
-			used_in = frappe.conn.sql('select name from tabDocType where substring_index(autoname, ".", 1) = %s and name!=%s', (prefix, name))
+			used_in = frappe.db.sql('select name from tabDocType where substring_index(autoname, ".", 1) = %s and name!=%s', (prefix, name))
 			if used_in:
 				msgprint('<b>Series already in use:</b> The series "%s" is already used in "%s"' % (prefix, used_in[0][0]), raise_exception=1)
 
@@ -93,16 +93,16 @@ class DocType:
 
 	def check_link_replacement_error(self):
 		for d in self.doclist.get({"doctype":"DocField", "fieldtype":"Select"}):
-			if (frappe.conn.get_value("DocField", d.name, "options") or "").startswith("link:") \
+			if (frappe.db.get_value("DocField", d.name, "options") or "").startswith("link:") \
 				and not d.options.startswith("link:"):
 				frappe.msgprint("link: type Select fields are getting replaced. Please check for %s" % d.label,
 					raise_exception=True)
 
 	def on_trash(self):
-		frappe.conn.sql("delete from `tabCustom Field` where dt = %s", self.doc.name)
-		frappe.conn.sql("delete from `tabCustom Script` where dt = %s", self.doc.name)
-		frappe.conn.sql("delete from `tabProperty Setter` where doc_type = %s", self.doc.name)
-		frappe.conn.sql("delete from `tabReport` where ref_doctype=%s", self.doc.name)
+		frappe.db.sql("delete from `tabCustom Field` where dt = %s", self.doc.name)
+		frappe.db.sql("delete from `tabCustom Script` where dt = %s", self.doc.name)
+		frappe.db.sql("delete from `tabProperty Setter` where doc_type = %s", self.doc.name)
+		frappe.db.sql("delete from `tabReport` where ref_doctype=%s", self.doc.name)
 	
 	def before_rename(self, old, new, merge=False):
 		if merge:
@@ -110,9 +110,9 @@ class DocType:
 			
 	def after_rename(self, old, new, merge=False):
 		if self.doc.issingle:
-			frappe.conn.sql("""update tabSingles set doctype=%s where doctype=%s""", (new, old))
+			frappe.db.sql("""update tabSingles set doctype=%s where doctype=%s""", (new, old))
 		else:
-			frappe.conn.sql("rename table `tab%s` to `tab%s`" % (old, new))
+			frappe.db.sql("rename table `tab%s` to `tab%s`" % (old, new))
 	
 	def export_doc(self):
 		from frappe.modules.export_file import export_to_files
@@ -139,7 +139,7 @@ class DocType:
 			if is_submittable is set, add amended_from docfields
 		"""
 		if self.doc.is_submittable:
-			if not frappe.conn.sql("""select name from tabDocField 
+			if not frappe.db.sql("""select name from tabDocField 
 				where fieldname = 'amended_from' and parent = %s""", self.doc.name):
 					new = self.doc.addchild('fields', 'DocField', self.doclist)
 					new.label = 'Amended From'
@@ -153,7 +153,7 @@ class DocType:
 					new.idx = self.get_max_idx() + 1
 				
 	def get_max_idx(self):
-		max_idx = frappe.conn.sql("""select max(idx) from `tabDocField` where parent = %s""", 
+		max_idx = frappe.db.sql("""select max(idx) from `tabDocField` where parent = %s""", 
 			self.doc.name)
 		return max_idx and max_idx[0][0] or 0
 
@@ -187,7 +187,7 @@ def validate_fields(fields):
 					raise_exception=1)
 			if d.options=="[Select]":
 				return
-			if d.options != d.parent and not frappe.conn.exists("DocType", d.options):
+			if d.options != d.parent and not frappe.db.exists("DocType", d.options):
 				frappe.msgprint("""#%(idx)s %(label)s: Options %(options)s must be a valid "DocType" for Link and Table type fields""" % d.fields, 
 					raise_exception=1)
 
@@ -231,7 +231,7 @@ def validate_permissions(permissions, for_remove=False):
 	doctype = permissions and permissions[0].parent
 	issingle = issubmittable = isimportable = False
 	if doctype and not doctype.startswith("New DocType"):
-		values = frappe.conn.get_value("DocType", doctype, 
+		values = frappe.db.get_value("DocType", doctype, 
 			["issingle", "is_submittable", "allow_import"], as_dict=True)
 		issingle = cint(values.issingle)
 		issubmittable = cint(values.is_submittable)
@@ -329,7 +329,7 @@ def validate_permissions(permissions, for_remove=False):
 
 def make_module_and_roles(doclist, perm_doctype="DocPerm"):
 	try:
-		if not frappe.conn.exists("Module Def", doclist[0].module):
+		if not frappe.db.exists("Module Def", doclist[0].module):
 			m = frappe.bean({"doctype": "Module Def", "module_name": doclist[0].module})
 			m.insert()
 		
@@ -337,7 +337,7 @@ def make_module_and_roles(doclist, perm_doctype="DocPerm"):
 		roles = [p.role for p in doclist.get({"doctype": perm_doctype})] + default_roles
 		
 		for role in list(set(roles)):
-			if not frappe.conn.exists("Role", role):
+			if not frappe.db.exists("Role", role):
 				r = frappe.bean({"doctype": "Role", "role_name": role})
 				r.doc.role_name = role
 				r.insert()

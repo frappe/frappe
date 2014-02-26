@@ -12,7 +12,7 @@ class DocType:
 		if self.doc.is_new():
 			self.add_comment(frappe._("Assignment Added"))
 		else:
-			cur_status = frappe.conn.get_value("ToDo", self.doc.name, "status")
+			cur_status = frappe.db.get_value("ToDo", self.doc.name, "status")
 			if cur_status != self.doc.status:
 				self.add_comment(frappe._("Assignment Status Changed"))
 	

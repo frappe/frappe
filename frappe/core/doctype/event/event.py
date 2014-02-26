@@ -49,7 +49,7 @@ def has_permission(doc):
 
 def send_event_digest():
 	today = nowdate()
-	for user in frappe.conn.sql("""select name, email, language 
+	for user in frappe.db.sql("""select name, email, language 
 		from tabProfile where ifnull(enabled,0)=1 
 		and user_type='System User' and name not in ('Guest', 'Administrator')""", as_dict=1):
 		events = get_events(today, today, user.name, for_reminder=True)
@@ -75,7 +75,7 @@ def get_events(start, end, user=None, for_reminder=False):
 	if not user:
 		user = frappe.session.user
 	roles = frappe.get_roles(user)
-	events = frappe.conn.sql("""select name, subject, description,
+	events = frappe.db.sql("""select name, subject, description,
 		starts_on, ends_on, owner, all_day, event_type, repeat_this_event, repeat_on,
 		monday, tuesday, wednesday, thursday, friday, saturday, sunday
 		from tabEvent where ((

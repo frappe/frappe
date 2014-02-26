@@ -66,7 +66,7 @@ def get_module_name(doclist):
 	elif doclist[0]['doctype']=='Control Panel':
 		module = 'Core'
 	elif doclist[0]['doctype']=="Workflow":
-		module = frappe.conn.get_value("DocType", doclist[0]["document_type"], "module")
+		module = frappe.db.get_value("DocType", doclist[0]["document_type"], "module")
 	else:
 		module = doclist[0]['module']
 

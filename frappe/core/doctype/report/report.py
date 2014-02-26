@@ -32,4 +32,4 @@ class DocType:
 		from frappe.modules.export_file import export_to_files
 		if self.doc.is_standard == 'Yes' and (conf.get('developer_mode') or 0) == 1:
 			export_to_files(record_list=[['Report', self.doc.name]], 
-				record_module=frappe.conn.get_value("DocType", self.doc.ref_doctype, "module"))
+				record_module=frappe.db.get_value("DocType", self.doc.ref_doctype, "module"))

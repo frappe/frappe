@@ -11,7 +11,7 @@ from frappe import conf
 class MaxFileSizeReachedError(frappe.ValidationError): pass
 
 def get_file_url(file_data_name):
-	data = frappe.conn.get_value("File Data", file_data_name, ["file_name", "file_url"], as_dict=True)
+	data = frappe.db.get_value("File Data", file_data_name, ["file_name", "file_url"], as_dict=True)
 	return data.file_name or data.file_url
 
 def upload():
@@ -96,7 +96,7 @@ def save_file(fname, content, dt, dn, decode=False):
 	import filecmp
 	from frappe.model.code import load_doctype_module
 	files_path = os.path.join(frappe.local.site_path, "public", "files")
-	module = load_doctype_module(dt, frappe.conn.get_value("DocType", dt, "module"))
+	module = load_doctype_module(dt, frappe.db.get_value("DocType", dt, "module"))
 	
 	if hasattr(module, "attachments_folder"):
 		files_path = os.path.join(files_path, module.attachments_folder)
@@ -211,7 +211,7 @@ def write_file(content, files_path):
 def remove_all(dt, dn):
 	"""remove all files in a transaction"""
 	try:
-		for fid in frappe.conn.sql_list("""select name from `tabFile Data` where
+		for fid in frappe.db.sql_list("""select name from `tabFile Data` where
 			attached_to_doctype=%s and attached_to_name=%s""", (dt, dn)):
 			remove_file(fid)
 	except Exception, e:
@@ -222,7 +222,7 @@ def remove_file(fid):
 	frappe.delete_doc("File Data", fid)
 		
 def get_file(fname):
-	f = frappe.conn.sql("""select file_name from `tabFile Data` 
+	f = frappe.db.sql("""select file_name from `tabFile Data` 
 		where name=%s or file_name=%s""", (fname, fname))
 	if f:
 		file_name = f[0][0]

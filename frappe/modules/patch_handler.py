@@ -18,7 +18,7 @@ class PatchError(Exception): pass
 
 def run_all():
 	"""run all pending patches"""
-	executed = [p[0] for p in frappe.conn.sql("""select patch from `tabPatch Log`""")]
+	executed = [p[0] for p in frappe.db.sql("""select patch from `tabPatch Log`""")]
 		
 	for patch in get_all_patches():
 		if patch and (patch not in executed):
@@ -55,9 +55,9 @@ def execute_patch(patchmodule, method=None, methodargs=None):
 	"""execute the patch"""
 	success = False
 	block_user(True)
-	frappe.conn.begin()
+	frappe.db.begin()
 	try:
-		log('Executing %s in %s' % (patchmodule or str(methodargs), frappe.conn.cur_db_name))
+		log('Executing %s in %s' % (patchmodule or str(methodargs), frappe.db.cur_db_name))
 		if patchmodule:
 			if patchmodule.startswith("execute:"):
 				exec patchmodule.split("execute:")[1] in globals()
@@ -67,10 +67,10 @@ def execute_patch(patchmodule, method=None, methodargs=None):
 		elif method:
 			method(**methodargs)
 			
-		frappe.conn.commit()
+		frappe.db.commit()
 		success = True
 	except Exception, e:
-		frappe.conn.rollback()
+		frappe.db.rollback()
 		tb = frappe.get_traceback()
 		log(tb)
 		import os
@@ -91,32 +91,32 @@ def add_to_patch_log(tb):
 	
 def update_patch_log(patchmodule):
 	"""update patch_file in patch log"""	
-	if frappe.conn.table_exists("__PatchLog"):
-		frappe.conn.sql("""INSERT INTO `__PatchLog` VALUES (%s, now())""", \
+	if frappe.db.table_exists("__PatchLog"):
+		frappe.db.sql("""INSERT INTO `__PatchLog` VALUES (%s, now())""", \
 			patchmodule)
 	else:
 		frappe.doc({"doctype": "Patch Log", "patch": patchmodule}).insert()
 
 def executed(patchmodule):
 	"""return True if is executed"""
-	if frappe.conn.table_exists("__PatchLog"):
-		done = frappe.conn.sql("""select patch from __PatchLog where patch=%s""", patchmodule)
+	if frappe.db.table_exists("__PatchLog"):
+		done = frappe.db.sql("""select patch from __PatchLog where patch=%s""", patchmodule)
 	else:
-		done = frappe.conn.get_value("Patch Log", {"patch": patchmodule})
+		done = frappe.db.get_value("Patch Log", {"patch": patchmodule})
 	if done:
-		print "Patch %s executed in %s" % (patchmodule, frappe.conn.cur_db_name)
+		print "Patch %s executed in %s" % (patchmodule, frappe.db.cur_db_name)
 	return done
 	
 def block_user(block):
 	"""stop/start execution till patch is run"""
-	frappe.conn.begin()
+	frappe.db.begin()
 	msg = "Patches are being executed in the system. Please try again in a few moments."
-	frappe.conn.set_global('__session_status', block and 'stop' or None)
-	frappe.conn.set_global('__session_status_message', block and msg or None)
-	frappe.conn.commit()
+	frappe.db.set_global('__session_status', block and 'stop' or None)
+	frappe.db.set_global('__session_status_message', block and msg or None)
+	frappe.db.commit()
 
 def setup():
-	frappe.conn.sql("""CREATE TABLE IF NOT EXISTS `__PatchLog` (
+	frappe.db.sql("""CREATE TABLE IF NOT EXISTS `__PatchLog` (
 			patch TEXT, applied_on DATETIME) engine=InnoDB""")
 		
 def log(msg):

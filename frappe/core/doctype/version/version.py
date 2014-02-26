@@ -24,7 +24,7 @@ def restore(version):
 		for d in doclist[1:]:
 			d["parent"] = version.docname
 	
-	doclist[0]["modified"] = frappe.conn.get_value(version.ref_doctype, version.docname, "modified")
+	doclist[0]["modified"] = frappe.db.get_value(version.ref_doctype, version.docname, "modified")
 	
 	# overwrite
 	frappe.bean(doclist).save()

@@ -10,7 +10,7 @@ def fmt_money(amount, precision=None):
 	Convert to string with commas for thousands, millions etc
 	"""
 	
-	number_format = frappe.conn.get_default("number_format") or "#,###.##"
+	number_format = frappe.db.get_default("number_format") or "#,###.##"
 	decimal_str, comma_str, precision = get_number_format_info(number_format)
 	
 	
@@ -64,7 +64,7 @@ import unittest
 
 class TestFmtMoney(unittest.TestCase):
 	def test_standard(self):
-		frappe.conn.set_default("number_format", "#,###.##")
+		frappe.db.set_default("number_format", "#,###.##")
 		self.assertEquals(fmt_money(100), "100.00")
 		self.assertEquals(fmt_money(1000), "1,000.00")
 		self.assertEquals(fmt_money(10000), "10,000.00")
@@ -75,7 +75,7 @@ class TestFmtMoney(unittest.TestCase):
 		self.assertEquals(fmt_money(1000000000), "1,000,000,000.00")
 
 	def test_negative(self):
-		frappe.conn.set_default("number_format", "#,###.##")
+		frappe.db.set_default("number_format", "#,###.##")
 		self.assertEquals(fmt_money(-100), "-100.00")
 		self.assertEquals(fmt_money(-1000), "-1,000.00")
 		self.assertEquals(fmt_money(-10000), "-10,000.00")
@@ -86,7 +86,7 @@ class TestFmtMoney(unittest.TestCase):
 		self.assertEquals(fmt_money(-1000000000), "-1,000,000,000.00")
 
 	def test_decimal(self):
-		frappe.conn.set_default("number_format", "#.###,##")
+		frappe.db.set_default("number_format", "#.###,##")
 		self.assertEquals(fmt_money(-100), "-100,00")
 		self.assertEquals(fmt_money(-1000), "-1.000,00")
 		self.assertEquals(fmt_money(-10000), "-10.000,00")
@@ -98,7 +98,7 @@ class TestFmtMoney(unittest.TestCase):
 
 
 	def test_lacs(self):
-		frappe.conn.set_default("number_format", "#,##,###.##")
+		frappe.db.set_default("number_format", "#,##,###.##")
 		self.assertEquals(fmt_money(100), "100.00")
 		self.assertEquals(fmt_money(1000), "1,000.00")
 		self.assertEquals(fmt_money(10000), "10,000.00")
@@ -109,7 +109,7 @@ class TestFmtMoney(unittest.TestCase):
 		self.assertEquals(fmt_money(1000000000), "1,00,00,00,000.00")
 
 	def test_no_precision(self):
-		frappe.conn.set_default("number_format", "#,###")
+		frappe.db.set_default("number_format", "#,###")
 		self.assertEquals(fmt_money(0.3), "0")
 		self.assertEquals(fmt_money(100.3), "100")
 		self.assertEquals(fmt_money(1000.3), "1,000")

@@ -48,8 +48,8 @@ def get_new_doc(doctype, parent_doc = None, parentfield = None):
 				if parent_doc:
 					ref_docname = parent_doc.fields[ref_fieldname]
 				else:
-					ref_docname = frappe.conn.get_default(ref_fieldname)
-				doc.fields[d.fieldname] = frappe.conn.get_value(d.default[1:], 
+					ref_docname = frappe.db.get_default(ref_fieldname)
+				doc.fields[d.fieldname] = frappe.db.get_value(d.default[1:], 
 					ref_docname, d.fieldname)
 
 			else:

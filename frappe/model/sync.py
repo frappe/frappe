@@ -51,6 +51,6 @@ def walk_and_sync(start_path, force=0, sync_everything = False, verbose=False):
 						if import_file_by_path(os.path.join(path, f), force=force) and verbose:
 							print module_name + ' | ' + doctype + ' | ' + name
 
-						frappe.conn.commit()
+						frappe.db.commit()
 					
 	return modules

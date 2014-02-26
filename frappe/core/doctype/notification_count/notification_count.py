@@ -17,7 +17,7 @@ def get_notifications():
 	open_count_doctype = {}
 	open_count_module = {}
 
-	notification_count = dict(frappe.conn.sql("""select for_doctype, open_count 
+	notification_count = dict(frappe.db.sql("""select for_doctype, open_count 
 		from `tabNotification Count` where owner=%s""", (frappe.session.user,)))
 
 	for d in config.for_doctype:
@@ -51,7 +51,7 @@ def get_notifications():
 
 def delete_notification_count_for(doctype):
 	if frappe.flags.in_import: return
-	frappe.conn.sql("""delete from `tabNotification Count` where for_doctype = %s""", (doctype,))
+	frappe.db.sql("""delete from `tabNotification Count` where for_doctype = %s""", (doctype,))
 
 def delete_event_notification_count():
 	delete_notification_count_for("Event")
@@ -78,7 +78,7 @@ def get_notification_info_for_boot():
 	can_read = frappe.user.get_can_read()
 	conditions = {}
 	module_doctypes = {}
-	doctype_info = dict(frappe.conn.sql("""select name, module from tabDocType"""))
+	doctype_info = dict(frappe.db.sql("""select name, module from tabDocType"""))
 	
 	for d in list(set(can_read + config.for_doctype.keys())):
 		if d in config.for_doctype:
@@ -104,9 +104,9 @@ def get_notification_config():
 	return config
 
 def on_doctype_update():
-	if not frappe.conn.sql("""show index from `tabNotification Count` 
+	if not frappe.db.sql("""show index from `tabNotification Count` 
 		where Key_name="notification_count_owner_index" """):
-		frappe.conn.commit()
-		frappe.conn.sql("""alter table `tabNotification Count` 
+		frappe.db.commit()
+		frappe.db.sql("""alter table `tabNotification Count` 
 			add index notification_count_owner_index(owner)""")
 	

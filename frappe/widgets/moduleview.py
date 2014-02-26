@@ -33,7 +33,7 @@ def get_doctype_count_from_table(doctype):
 	
 def get_report_list(module):
 	"""return list on new style reports for modules"""	
-	return frappe.conn.sql("""
+	return frappe.db.sql("""
 		select distinct tabReport.name, tabReport.ref_doctype as doctype, 
 			if((tabReport.report_type='Query Report' or 
 				tabReport.report_type='Script Report'), 1, 0) as is_query_report

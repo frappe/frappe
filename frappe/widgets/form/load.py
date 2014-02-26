@@ -22,7 +22,7 @@ def getdoc(doctype, name, user=None):
 	if not name: 
 		name = doctype
 
-	if not frappe.conn.exists(doctype, name):
+	if not frappe.db.exists(doctype, name):
 		return []
 
 	try:
@@ -88,7 +88,7 @@ def get_restrictions(meta):
 
 def add_attachments(dt, dn):
 	attachments = {}
-	for f in frappe.conn.sql("""select name, file_name, file_url from
+	for f in frappe.db.sql("""select name, file_name, file_url from
 		`tabFile Data` where attached_to_name=%s and attached_to_doctype=%s""", 
 			(dn, dt), as_dict=True):
 		attachments[f.file_url or f.file_name] = f.name
@@ -96,14 +96,14 @@ def add_attachments(dt, dn):
 	return attachments
 		
 def add_comments(dt, dn, limit=20):
-	cl = frappe.conn.sql("""select name, comment, comment_by, creation from `tabComment` 
+	cl = frappe.db.sql("""select name, comment, comment_by, creation from `tabComment` 
 		where comment_doctype=%s and comment_docname=%s 
 		order by creation desc limit %s""" % ('%s','%s', limit), (dt, dn), as_dict=1)
 		
 	return cl
 	
 def add_assignments(dt, dn):
-	cl = frappe.conn.sql_list("""select owner from `tabToDo`
+	cl = frappe.db.sql_list("""select owner from `tabToDo`
 		where reference_type=%(doctype)s and reference_name=%(name)s and status="Open"
 		order by modified desc limit 5""", {
 			"doctype": dt,
@@ -119,6 +119,6 @@ def get_badge_info(doctypes, filters):
 	filters["docstatus"] = ["!=", 2]
 	out = {}
 	for doctype in doctypes:
-		out[doctype] = frappe.conn.get_value(doctype, filters, "count(*)")
+		out[doctype] = frappe.db.get_value(doctype, filters, "count(*)")
 
 	return out

@@ -12,7 +12,7 @@ def sync_statics():
 	s = sync()
 	while True:
 		s.start()
-		frappe.conn.commit()
+		frappe.db.commit()
 		time.sleep(2)
 
 class sync(object):
@@ -104,7 +104,7 @@ class sync(object):
 		parent_website_route = os.path.dirname(route)
 		page_name = os.path.basename(route)
 		
-		route_details = frappe.conn.get_value("Website Route", route, 
+		route_details = frappe.db.get_value("Website Route", route, 
 			["name", "idx", "static_file_timestamp", "docname"], as_dict=True)
 		
 		if route_details:
@@ -174,13 +174,13 @@ class sync(object):
 
 	def cleanup(self):
 		if self.synced:
-			frappe.delete_doc("Web Page", frappe.conn.sql_list("""select docname 
+			frappe.delete_doc("Web Page", frappe.db.sql_list("""select docname 
 				from `tabWebsite Route`
 				where ifnull(static_file_timestamp,'')!='' and name not in ({}) 
 				order by (rgt-lft) asc""".format(', '.join(["%s"]*len(self.synced))), 
 					tuple(self.synced)))
 		else:
-			frappe.delete_doc("Web Page", frappe.conn.sql_list("""select docname 
+			frappe.delete_doc("Web Page", frappe.db.sql_list("""select docname 
 				from `tabWebsite Route`
 				where ifnull(static_file_timestamp,'')!='' 
 				order by (rgt-lft) asc"""))

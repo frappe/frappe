@@ -149,7 +149,7 @@ class POP3Mailbox:
 		if not self.check_mails():
 			return # nothing to do
 		
-		frappe.conn.commit()
+		frappe.db.commit()
 		self.connect()
 		
 		try:
@@ -193,9 +193,9 @@ class POP3Mailbox:
 			msg = self.pop.retr(msg_num)
 
 			incoming_mail = IncomingMail(b'\n'.join(msg[1]))
-			frappe.conn.begin()
+			frappe.db.begin()
 			self.process_message(incoming_mail)
-			frappe.conn.commit()
+			frappe.db.commit()
 			
 		except (TotalSizeExceededError, EmailTimeoutError):
 			# propagate this error to break the loop
@@ -205,7 +205,7 @@ class POP3Mailbox:
 			# log performs rollback and logs error in scheduler log
 			log("receive.get_messages", self.make_error_msg(msg_num, incoming_mail))
 			self.errors = True
-			frappe.conn.rollback()
+			frappe.db.rollback()
 			
 			self.pop.dele(msg_num)
 		else:

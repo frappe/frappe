@@ -18,8 +18,8 @@ class DocType:
 		if (self.doc.name and self.doc.name.startswith('New Page')) or not self.doc.name:
 			self.doc.name = self.doc.page_name.lower().replace('"','').replace("'",'').\
 				replace(' ', '-')[:20]
-			if frappe.conn.exists('Page',self.doc.name):
-				cnt = frappe.conn.sql("""select name from tabPage 
+			if frappe.db.exists('Page',self.doc.name):
+				cnt = frappe.db.sql("""select name from tabPage 
 					where name like "%s-%%" order by name desc limit 1""" % self.doc.name)
 				if cnt:
 					cnt = cint(cnt[0][0].split('-')[-1]) + 1

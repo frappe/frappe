@@ -64,7 +64,7 @@ def get(doctype, processed=False, cached=True):
 	return DocTypeDocList(doclist)
 
 def load_docfield_types():
-	frappe.local.doctype_docfield_types = dict(frappe.conn.sql("""select fieldname, fieldtype from tabDocField
+	frappe.local.doctype_docfield_types = dict(frappe.db.sql("""select fieldname, fieldtype from tabDocField
 		where parent='DocField'"""))
 
 def add_workflows(doclist):
@@ -74,7 +74,7 @@ def add_workflows(doclist):
 	# get active workflow
 	workflow_name = get_workflow_name(doctype)
 
-	if workflow_name and frappe.conn.exists("Workflow", workflow_name):
+	if workflow_name and frappe.db.exists("Workflow", workflow_name):
 		doclist += frappe.get_doclist("Workflow", workflow_name)
 		
 		# add workflow states (for icons and style)
@@ -131,7 +131,7 @@ def sort_fields(doclist):
 	doclist.get({"doctype":["!=", "DocField"]}).extend(newlist)
 			
 def apply_property_setters(doctype, doclist):		
-	for ps in frappe.conn.sql("""select * from `tabProperty Setter` where
+	for ps in frappe.db.sql("""select * from `tabProperty Setter` where
 		doc_type=%s""", (doctype,), as_dict=1):
 		if ps['doctype_or_field']=='DocType':
 			if ps.get('property_type', None) in ('Int', 'Check'):
@@ -148,7 +148,7 @@ def apply_property_setters(doctype, doclist):
 
 def add_custom_fields(doctype, doclist):
 	try:
-		res = frappe.conn.sql("""SELECT * FROM `tabCustom Field`
+		res = frappe.db.sql("""SELECT * FROM `tabCustom Field`
 			WHERE dt = %s AND docstatus < 2""", (doctype,), as_dict=1)
 	except Exception, e:
 		if e.args[0]==1146:
@@ -174,10 +174,10 @@ def add_custom_fields(doctype, doclist):
 def add_linked_with(doclist):
 	"""add list of doctypes this doctype is 'linked' with"""
 	doctype = doclist[0].name
-	links = frappe.conn.sql("""select parent, fieldname from tabDocField
+	links = frappe.db.sql("""select parent, fieldname from tabDocField
 		where (fieldtype="Link" and options=%s)
 		or (fieldtype="Select" and options=%s)""", (doctype, "link:"+ doctype))
-	links += frappe.conn.sql("""select dt as parent, fieldname from `tabCustom Field`
+	links += frappe.db.sql("""select dt as parent, fieldname from `tabCustom Field`
 		where (fieldtype="Link" and options=%s)
 		or (fieldtype="Select" and options=%s)""", (doctype, "link:"+ doctype))
 
@@ -191,7 +191,7 @@ def add_linked_with(doclist):
 	for dt in links:
 		ret[dt] = { "fieldname": links[dt] }
 
-	for grand_parent, options in frappe.conn.sql("""select parent, options from tabDocField 
+	for grand_parent, options in frappe.db.sql("""select parent, options from tabDocField 
 		where fieldtype="Table" 
 			and options in (select name from tabDocType 
 				where istable=1 and name in (%s))""" % ", ".join(["%s"] * len(links)) ,tuple(links)):
@@ -250,7 +250,7 @@ def clear_cache(doctype=None):
 		clear_single(doctype)
 	
 		# clear all parent doctypes
-		for dt in frappe.conn.sql("""select parent from tabDocField 
+		for dt in frappe.db.sql("""select parent from tabDocField 
 			where fieldtype="Table" and options=%s""", (doctype,)):
 			clear_single(dt[0])
 		
@@ -260,7 +260,7 @@ def clear_cache(doctype=None):
 		
 	else:
 		# clear all
-		for dt in frappe.conn.sql("""select name from tabDocType"""):
+		for dt in frappe.db.sql("""select name from tabDocType"""):
 			clear_single(dt[0])
 
 def add_code(doctype, doclist):
@@ -293,7 +293,7 @@ def add_embedded_js(doc):
 	js = doc.fields.get('__js') or ''
 
 	# custom script
-	custom = frappe.conn.get_value("Custom Script", {"dt": doc.name, 
+	custom = frappe.db.get_value("Custom Script", {"dt": doc.name, 
 		"script_type": "Client"}, "script") or ""
 	js = (js + '\n' + custom).encode("utf-8")
 
@@ -307,11 +307,11 @@ def expand_selects(doclist):
 		and (d.options or '').startswith('link:'), doclist):
 		doctype = d.options.split("\n")[0][5:]
 		d.link_doctype = doctype
-		d.options = '\n'.join([''] + [o.name for o in frappe.conn.sql("""select 
+		d.options = '\n'.join([''] + [o.name for o in frappe.db.sql("""select 
 			name from `tab%s` where docstatus<2 order by name asc""" % doctype, as_dict=1)])
 
 def add_print_formats(doclist):
-	print_formats = frappe.conn.sql("""select * FROM `tabPrint Format`
+	print_formats = frappe.db.sql("""select * FROM `tabPrint Format`
 		WHERE doc_type=%s AND docstatus<2""", (doclist[0].name,), as_dict=1)
 	for pf in print_formats:
 		doclist.append(frappe.model.doc.Document('Print Format', fielddata=pf))
@@ -333,7 +333,7 @@ def get_link_fields(doctype):
 		"options": "^link:"}))
 		
 def add_validators(doctype, doclist):
-	for validator in frappe.conn.sql("""select name from `tabDocType Validator` where
+	for validator in frappe.db.sql("""select name from `tabDocType Validator` where
 		for_doctype=%s""", (doctype,), as_dict=1):
 		doclist.extend(frappe.get_doclist('DocType Validator', validator.name))
 		

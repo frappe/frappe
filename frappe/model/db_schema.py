@@ -76,7 +76,7 @@ class DbTable:
 		if t: add_text += ',\n'.join(self.get_index_definitions()) + ',\n'
 		
 		# create table
-		frappe.conn.sql("""create table `%s` (
+		frappe.db.sql("""create table `%s` (
 			name varchar(120) not null primary key, 
 			creation datetime,
 			modified datetime,
@@ -95,10 +95,10 @@ class DbTable:
 		"""
 			get columns from docfields and custom fields
 		"""
-		fl = frappe.conn.sql("SELECT * FROM tabDocField WHERE parent = '%s'" % self.doctype, as_dict = 1)
+		fl = frappe.db.sql("SELECT * FROM tabDocField WHERE parent = '%s'" % self.doctype, as_dict = 1)
 		
 		try:
-			custom_fl = frappe.conn.sql("""\
+			custom_fl = frappe.db.sql("""\
 				SELECT * FROM `tabCustom Field`
 				WHERE dt = %s AND docstatus < 2""", (self.doctype,), as_dict=1)
 			if custom_fl: fl += custom_fl
@@ -112,7 +112,7 @@ class DbTable:
 					f.get('search_index'), f.get('options'))
 	
 	def get_columns_from_db(self):
-		self.show_columns = frappe.conn.sql("desc `%s`" % self.name)
+		self.show_columns = frappe.db.sql("desc `%s`" % self.name)
 		for c in self.show_columns:
 			self.current_columns[c[0]] = {'name': c[0], 'type':c[1], 'index':c[3], 'default':c[4]}
 	
@@ -138,7 +138,7 @@ class DbTable:
 	# GET foreign keys
 	def get_foreign_keys(self):
 		fk_list = []
-		txt = frappe.conn.sql("show create table `%s`" % self.name)[0][1]
+		txt = frappe.db.sql("show create table `%s`" % self.name)[0][1]
 		for line in txt.split('\n'):
 			if line.strip().startswith('CONSTRAINT') and line.find('FOREIGN')!=-1:
 				try:
@@ -162,12 +162,12 @@ class DbTable:
 			
 		# drop
 		for col in self.drop_foreign_key:
-			frappe.conn.sql("set foreign_key_checks=0")
-			frappe.conn.sql("alter table `%s` drop foreign key `%s`" % (self.name, fk_dict[col.fieldname]))
-			frappe.conn.sql("set foreign_key_checks=1")
+			frappe.db.sql("set foreign_key_checks=0")
+			frappe.db.sql("alter table `%s` drop foreign key `%s`" % (self.name, fk_dict[col.fieldname]))
+			frappe.db.sql("set foreign_key_checks=1")
 		
 	def sync(self):
-		if not self.name in DbManager(frappe.conn).get_tables_list(frappe.conn.cur_db_name):
+		if not self.name in DbManager(frappe.db).get_tables_list(frappe.db.cur_db_name):
 			self.create()
 		else:
 			self.alter()
@@ -178,24 +178,24 @@ class DbTable:
 			col.check(self.current_columns.get(col.fieldname, None))
 
 		for col in self.add_column:
-			frappe.conn.sql("alter table `%s` add column `%s` %s" % (self.name, col.fieldname, col.get_definition()))
+			frappe.db.sql("alter table `%s` add column `%s` %s" % (self.name, col.fieldname, col.get_definition()))
 
 		for col in self.change_type:
-			frappe.conn.sql("alter table `%s` change `%s` `%s` %s" % (self.name, col.fieldname, col.fieldname, col.get_definition()))
+			frappe.db.sql("alter table `%s` change `%s` `%s` %s" % (self.name, col.fieldname, col.fieldname, col.get_definition()))
 
 		for col in self.add_index:
 			# if index key not exists
-			if not frappe.conn.sql("show index from `%s` where key_name = '%s'" % (self.name, col.fieldname)):
-				frappe.conn.sql("alter table `%s` add index `%s`(`%s`)" % (self.name, col.fieldname, col.fieldname))
+			if not frappe.db.sql("show index from `%s` where key_name = '%s'" % (self.name, col.fieldname)):
+				frappe.db.sql("alter table `%s` add index `%s`(`%s`)" % (self.name, col.fieldname, col.fieldname))
 
 		for col in self.drop_index:
 			if col.fieldname != 'name': # primary key
 				# if index key exists
-				if frappe.conn.sql("show index from `%s` where key_name = '%s'" % (self.name, col.fieldname)):
-					frappe.conn.sql("alter table `%s` drop index `%s`" % (self.name, col.fieldname))
+				if frappe.db.sql("show index from `%s` where key_name = '%s'" % (self.name, col.fieldname)):
+					frappe.db.sql("alter table `%s` drop index `%s`" % (self.name, col.fieldname))
 
 		for col in self.set_default:
-			frappe.conn.sql("alter table `%s` alter column `%s` set default %s" % (self.name, col.fieldname, '%s'), (col.default,))
+			frappe.db.sql("alter table `%s` alter column `%s` set default %s" % (self.name, col.fieldname, '%s'), (col.default,))
 
 class DbColumn:
 	def __init__(self, table, fieldname, fieldtype, length, default, set_index, options):
@@ -265,48 +265,48 @@ class DbManager:
 		1. Setter and getter for different mysql variables.
 		2. Setter and getter for mysql variables at global level??
 	"""	
-	def __init__(self,conn):
+	def __init__(self,db):
 		"""
 		Pass root_conn here for access to all databases.
 		"""
- 		if conn:
- 			self.conn = conn
+ 		if db:
+ 			self.db = db
 		
 
 	def get_variables(self,regex):
 		"""
 		Get variables that match the passed pattern regex
 		"""
-		return list(self.conn.sql("SHOW VARIABLES LIKE '%s'"%regex))
+		return list(self.db.sql("SHOW VARIABLES LIKE '%s'"%regex))
 			
 	def get_table_schema(self,table):
 		"""
 		Just returns the output of Desc tables.
 		"""
-		return list(self.conn.sql("DESC `%s`"%table))
+		return list(self.db.sql("DESC `%s`"%table))
 		
 			
 	def get_tables_list(self,target=None):
 		"""get list of tables"""
 		if target:
-			self.conn.use(target)
+			self.db.use(target)
 		
-		return [t[0] for t in self.conn.sql("SHOW TABLES")]
+		return [t[0] for t in self.db.sql("SHOW TABLES")]
 
 	def create_user(self,user,password):
 		#Create user if it doesn't exist.
 		try:
 			if password:
-				self.conn.sql("CREATE USER '%s'@'localhost' IDENTIFIED BY '%s';" % (user[:16], password))
+				self.db.sql("CREATE USER '%s'@'localhost' IDENTIFIED BY '%s';" % (user[:16], password))
 			else:
-				self.conn.sql("CREATE USER '%s'@'localhost';"%user[:16])
+				self.db.sql("CREATE USER '%s'@'localhost';"%user[:16])
 		except Exception, e:
 			raise
 
 	def delete_user(self,target):
 	# delete user if exists
 		try:
-			self.conn.sql("DROP USER '%s'@'localhost';" % target)
+			self.db.sql("DROP USER '%s'@'localhost';" % target)
 		except Exception, e:
 			if e.args[0]==1396:
 				pass
@@ -317,39 +317,39 @@ class DbManager:
 		if target in self.get_database_list():
 			self.drop_database(target)
 
-		self.conn.sql("CREATE DATABASE IF NOT EXISTS `%s` ;" % target)
+		self.db.sql("CREATE DATABASE IF NOT EXISTS `%s` ;" % target)
 
 	def drop_database(self,target):
 		try:
-			self.conn.sql("DROP DATABASE IF EXISTS `%s`;"%target)
+			self.db.sql("DROP DATABASE IF EXISTS `%s`;"%target)
 		except Exception,e:
 			raise
 
 	def grant_all_privileges(self,target,user):
 		try:
-			self.conn.sql("GRANT ALL PRIVILEGES ON `%s`.* TO '%s'@'localhost';" % (target, user))
+			self.db.sql("GRANT ALL PRIVILEGES ON `%s`.* TO '%s'@'localhost';" % (target, user))
 		except Exception,e:
 			raise
 
 	def grant_select_privilges(self,db,table,user):
 		try:
 			if table:
-				self.conn.sql("GRANT SELECT ON %s.%s to '%s'@'localhost';" % (db,table,user))
+				self.db.sql("GRANT SELECT ON %s.%s to '%s'@'localhost';" % (db,table,user))
 			else:
-				self.conn.sql("GRANT SELECT ON %s.* to '%s'@'localhost';" % (db,user))
+				self.db.sql("GRANT SELECT ON %s.* to '%s'@'localhost';" % (db,user))
 		except Exception,e:
 			raise
 
 	def flush_privileges(self):
 		try:
-			self.conn.sql("FLUSH PRIVILEGES")
+			self.db.sql("FLUSH PRIVILEGES")
 		except Exception,e:
 			raise
 
 
 	def get_database_list(self):
 		"""get list of databases"""
-		return [d[0] for d in self.conn.sql("SHOW DATABASES")]
+		return [d[0] for d in self.db.sql("SHOW DATABASES")]
 
 	def restore_database(self,target,source,user,password):
 		from frappe.utils import make_esc
@@ -366,14 +366,14 @@ class DbManager:
 		if not table_name in self.get_tables_list():
 			return
 		try:
-			self.conn.sql("DROP TABLE IF EXISTS %s "%(table_name))
+			self.db.sql("DROP TABLE IF EXISTS %s "%(table_name))
 		except Exception,e:
 			raise	
 
 	def set_transaction_isolation_level(self,scope='SESSION',level='READ COMMITTED'):
 		#Sets the transaction isolation level. scope = global/session
 		try:
-			self.conn.sql("SET %s TRANSACTION ISOLATION LEVEL %s"%(scope,level))
+			self.db.sql("SET %s TRANSACTION ISOLATION LEVEL %s"%(scope,level))
 		except Exception,e:
 			raise
 
@@ -393,20 +393,20 @@ def updatedb(dt):
 	   * updates columns
 	   * updates indices
 	"""
-	res = frappe.conn.sql("select ifnull(issingle, 0) from tabDocType where name=%s", (dt,))
+	res = frappe.db.sql("select ifnull(issingle, 0) from tabDocType where name=%s", (dt,))
 	if not res:
 		raise Exception, 'Wrong doctype "%s" in updatedb' % dt
 	
 	if not res[0][0]:
-		frappe.conn.commit()
+		frappe.db.commit()
 		tab = DbTable(dt, 'tab')
 		tab.sync()
-		frappe.conn.begin()
+		frappe.db.begin()
 
 def remove_all_foreign_keys():
-	frappe.conn.sql("set foreign_key_checks = 0")
-	frappe.conn.commit()
-	for t in frappe.conn.sql("select name from tabDocType where ifnull(issingle,0)=0"):
+	frappe.db.sql("set foreign_key_checks = 0")
+	frappe.db.commit()
+	for t in frappe.db.sql("select name from tabDocType where ifnull(issingle,0)=0"):
 		dbtab = frappe.model.db_schema.DbTable(t[0])
 		try:
 			fklist = dbtab.get_foreign_keys()
@@ -417,7 +417,7 @@ def remove_all_foreign_keys():
 				raise
 				
 		for f in fklist:
-			frappe.conn.sql("alter table `tab%s` drop foreign key `%s`" % (t[0], f[1]))
+			frappe.db.sql("alter table `tab%s` drop foreign key `%s`" % (t[0], f[1]))
 
 def get_definition(fieldtype):
 	d = type_map.get(fieldtype.lower())
@@ -432,7 +432,7 @@ def get_definition(fieldtype):
 
 
 def add_column(doctype, column_name, fieldtype):
-	frappe.conn.commit()
-	frappe.conn.sql("alter table `tab%s` add column %s %s" % (doctype, 
+	frappe.db.commit()
+	frappe.db.sql("alter table `tab%s` add column %s %s" % (doctype, 
 		column_name, get_definition(fieldtype)))
 	

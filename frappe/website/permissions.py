@@ -6,11 +6,11 @@ import frappe
 
 
 def remove_empty_permissions():
-	permissions_cache_to_be_cleared = frappe.conn.sql_list("""select distinct profile 
+	permissions_cache_to_be_cleared = frappe.db.sql_list("""select distinct profile 
 		from `tabWebsite Route Permission`
 		where ifnull(`read`, 0)=0 and ifnull(`write`, 0)=0 and ifnull(`admin`, 0)=0""")
 	
-	frappe.conn.sql("""delete from `tabWebsite Route Permission`
+	frappe.db.sql("""delete from `tabWebsite Route Permission`
 		where ifnull(`read`, 0)=0 and ifnull(`write`, 0)=0 and ifnull(`admin`, 0)=0""")
 		
 	clear_permissions(permissions_cache_to_be_cleared)
@@ -28,7 +28,7 @@ def get_access(sitemap_page, profile=None):
 	return permissions.get(sitemap_page)
 	
 def _get_access(sitemap_page, profile):
-	lft, rgt, public_read, public_write, page_or_generator = frappe.conn.get_value("Website Route", sitemap_page, 
+	lft, rgt, public_read, public_write, page_or_generator = frappe.db.get_value("Website Route", sitemap_page, 
 		["lft", "rgt", "public_read", "public_write", "page_or_generator"])
 
 	read = write = admin = private_read = 0
@@ -47,7 +47,7 @@ def _get_access(sitemap_page, profile):
 		elif public_read:
 			read = 1
 
-		for perm in frappe.conn.sql("""select wsp.`read`, wsp.`write`, wsp.`admin`, 
+		for perm in frappe.db.sql("""select wsp.`read`, wsp.`write`, wsp.`admin`, 
 			ws.lft, ws.rgt, ws.name
 			from `tabWebsite Route Permission` wsp, `tabWebsite Route` ws
 			where wsp.profile = %s and wsp.website_route = ws.name 
@@ -71,7 +71,7 @@ def clear_permissions(profiles=None):
 	if isinstance(profiles, basestring):
 		profiles = [profiles]
 	elif profiles is None:
-		profiles = frappe.conn.sql_list("""select name from `tabProfile`""")
+		profiles = frappe.db.sql_list("""select name from `tabProfile`""")
 	
 	cache = frappe.cache()
 	for profile in profiles:

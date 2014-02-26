@@ -28,11 +28,11 @@ class DocType(WebsiteGenerator):
 		if self.doc.published and not self.doc.published_on:
 			self.doc.published_on = today()
 
-		self.doc.parent_website_route = frappe.conn.get_value("Website Route",
+		self.doc.parent_website_route = frappe.db.get_value("Website Route",
 			{"ref_doctype": "Blog Category", "docname": self.doc.blog_category})
 
 		# update posts
-		frappe.conn.sql("""update tabBlogger set posts=(select count(*) from `tabBlog Post` 
+		frappe.db.sql("""update tabBlogger set posts=(select count(*) from `tabBlog Post` 
 			where ifnull(blogger,'')=tabBlogger.name)
 			where name=%s""", (self.doc.blogger,))
 			
@@ -42,7 +42,7 @@ class DocType(WebsiteGenerator):
 		clear_cache("writers")
 
 def clear_blog_cache():
-	for blog in frappe.conn.sql_list("""select page_name from 
+	for blog in frappe.db.sql_list("""select page_name from 
 		`tabBlog Post` where ifnull(published,0)=1"""):
 		clear_cache(blog)
 	

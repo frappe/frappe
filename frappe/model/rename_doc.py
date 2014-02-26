@@ -13,7 +13,7 @@ def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=F
 		Renames a doc(dt, old) to doc(dt, new) and 
 		updates all linked fields of type "Link" or "Select" with "link:"
 	"""
-	if not frappe.conn.exists(doctype, old):
+	if not frappe.db.exists(doctype, old):
 		return
 	
 	force = cint(force)
@@ -48,7 +48,7 @@ def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=F
 	rename_versions(doctype, old, new)
 	
 	# update restrictions
-	frappe.conn.sql("""update tabDefaultValue set defvalue=%s where parenttype='Restriction' 
+	frappe.db.sql("""update tabDefaultValue set defvalue=%s where parenttype='Restriction' 
 		and defkey=%s and defvalue=%s""", (new, doctype, old))
 	frappe.clear_cache()
 	
@@ -56,25 +56,25 @@ def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=F
 
 def update_attachments(doctype, old, new):
 	try:
-		frappe.conn.sql("""update `tabFile Data` set attached_to_name=%s
+		frappe.db.sql("""update `tabFile Data` set attached_to_name=%s
 			where attached_to_name=%s and attached_to_doctype=%s""", (new, old, doctype))
 	except Exception, e:
 		if e.args[0]!=1054: # in patch?
 			raise 
 
 def rename_versions(doctype, old, new):
-	frappe.conn.sql("""update tabVersion set docname=%s where ref_doctype=%s and docname=%s""", 
+	frappe.db.sql("""update tabVersion set docname=%s where ref_doctype=%s and docname=%s""", 
 		(new, doctype, old))
 
 def rename_parent_and_child(doctype, old, new, doclist):
 	# rename the doc
-	frappe.conn.sql("update `tab%s` set name=%s where name=%s" \
+	frappe.db.sql("update `tab%s` set name=%s where name=%s" \
 		% (doctype, '%s', '%s'), (new, old))
 
 	update_child_docs(old, new, doclist)
 
 def validate_rename(doctype, new, doclist, merge, force, ignore_permissions):
-	exists = frappe.conn.exists(doctype, new)
+	exists = frappe.db.exists(doctype, new)
 
 	if merge and not exists:
 		frappe.msgprint("%s: %s does not exist, select a new target to merge." % (doctype, new), raise_exception=1)
@@ -106,7 +106,7 @@ def rename_doctype(doctype, old, new, force=False):
 	update_parenttype_values(old, new)
 	
 	# rename comments
-	frappe.conn.sql("""update tabComment set comment_doctype=%s where comment_doctype=%s""",
+	frappe.db.sql("""update tabComment set comment_doctype=%s where comment_doctype=%s""",
 		(new, old))
 
 def update_child_docs(old, new, doclist):
@@ -115,7 +115,7 @@ def update_child_docs(old, new, doclist):
 		if d.doctype=='DocField' and d.fieldtype=='Table')
 	
 	for child in child_doctypes:
-		frappe.conn.sql("update `tab%s` set parent=%s where parent=%s" \
+		frappe.db.sql("update `tab%s` set parent=%s where parent=%s" \
 			% (child, '%s', '%s'), (new, old))
 
 def update_link_field_values(link_fields, old, new, doctype):
@@ -128,22 +128,22 @@ def update_link_field_values(link_fields, old, new, doctype):
 			continue
 		update_list.append([field['parent'], field['fieldname']])
 		if field['issingle']:
-			frappe.conn.sql("""\
+			frappe.db.sql("""\
 				update `tabSingles` set value=%s
 				where doctype=%s and field=%s and value=%s""",
 				(new, field['parent'], field['fieldname'], old))
 		else:
 			if doctype!='DocType' and field['parent']!=new:
-				frappe.conn.sql("""\
+				frappe.db.sql("""\
 					update `tab%s` set `%s`=%s
 					where `%s`=%s""" \
 					% (field['parent'], field['fieldname'], '%s',
 						field['fieldname'], '%s'),
-					(new, old), debug=1)
+					(new, old))
 								
 def get_link_fields(doctype):
 	# get link fields from tabDocField
-	link_fields = frappe.conn.sql("""\
+	link_fields = frappe.db.sql("""\
 		select parent, fieldname,
 			(select ifnull(issingle, 0) from tabDocType dt
 			where dt.name = df.parent) as issingle
@@ -155,7 +155,7 @@ def get_link_fields(doctype):
 		% ('%s', doctype), (doctype,), as_dict=1)
 	
 	# get link fields from tabCustom Field
-	custom_link_fields = frappe.conn.sql("""\
+	custom_link_fields = frappe.db.sql("""\
 		select dt as parent, fieldname,
 			(select ifnull(issingle, 0) from tabDocType dt
 			where dt.name = df.dt) as issingle
@@ -170,7 +170,7 @@ def get_link_fields(doctype):
 	link_fields += custom_link_fields
 	
 	# remove fields whose options have been changed using property setter
-	property_setter_link_fields = frappe.conn.sql("""\
+	property_setter_link_fields = frappe.db.sql("""\
 		select ps.doc_type as parent, ps.field_name as fieldname,
 			(select ifnull(issingle, 0) from tabDocType dt
 			where dt.name = ps.doc_type) as issingle
@@ -186,15 +186,15 @@ def get_link_fields(doctype):
 	return link_fields
 	
 def update_parent_of_fieldtype_table(old, new):
-	frappe.conn.sql("""\
+	frappe.db.sql("""\
 		update `tabDocField` set options=%s
 		where fieldtype='Table' and options=%s""", (new, old))
 	
-	frappe.conn.sql("""\
+	frappe.db.sql("""\
 		update `tabCustom Field` set options=%s
 		where fieldtype='Table' and options=%s""", (new, old))
 		
-	frappe.conn.sql("""\
+	frappe.db.sql("""\
 		update `tabProperty Setter` set value=%s
 		where property='options' and value=%s""", (new, old))
 		
@@ -204,7 +204,7 @@ def get_select_fields(old, new):
 		new line separated list
 	"""
 	# get link fields from tabDocField
-	select_fields = frappe.conn.sql("""\
+	select_fields = frappe.db.sql("""\
 		select parent, fieldname,
 			(select ifnull(issingle, 0) from tabDocType dt
 			where dt.name = df.parent) as issingle
@@ -217,7 +217,7 @@ def get_select_fields(old, new):
 		% ('%s', old), (new,), as_dict=1)
 	
 	# get link fields from tabCustom Field
-	custom_select_fields = frappe.conn.sql("""\
+	custom_select_fields = frappe.db.sql("""\
 		select dt as parent, fieldname,
 			(select ifnull(issingle, 0) from tabDocType dt
 			where dt.name = df.dt) as issingle
@@ -233,7 +233,7 @@ def get_select_fields(old, new):
 	select_fields += custom_select_fields
 	
 	# remove fields whose options have been changed using property setter
-	property_setter_select_fields = frappe.conn.sql("""\
+	property_setter_select_fields = frappe.db.sql("""\
 		select ps.doc_type as parent, ps.field_name as fieldname,
 			(select ifnull(issingle, 0) from tabDocType dt
 			where dt.name = ps.doc_type) as issingle
@@ -251,7 +251,7 @@ def get_select_fields(old, new):
 	return select_fields
 	
 def update_select_field_values(old, new):
-	frappe.conn.sql("""\
+	frappe.db.sql("""\
 		update `tabDocField` set options=replace(options, %s, %s)
 		where
 			parent != %s and parent not like "old%%%%" and
@@ -259,7 +259,7 @@ def update_select_field_values(old, new):
 			(options like "%%%%\\n%s%%%%" or options like "%%%%%s\\n%%%%")""" % \
 		('%s', '%s', '%s', old, old), (old, new, new))
 
-	frappe.conn.sql("""\
+	frappe.db.sql("""\
 		update `tabCustom Field` set options=replace(options, %s, %s)
 		where
 			dt != %s and dt not like "old%%%%" and
@@ -267,7 +267,7 @@ def update_select_field_values(old, new):
 			(options like "%%%%\\n%s%%%%" or options like "%%%%%s\\n%%%%")""" % \
 		('%s', '%s', '%s', old, old), (old, new, new))
 
-	frappe.conn.sql("""\
+	frappe.db.sql("""\
 		update `tabProperty Setter` set value=replace(value, %s, %s)
 		where
 			doc_type != %s and field_name is not null and
@@ -276,18 +276,18 @@ def update_select_field_values(old, new):
 		('%s', '%s', '%s', old, old), (old, new, new))
 		
 def update_parenttype_values(old, new):
-	child_doctypes = frappe.conn.sql("""\
+	child_doctypes = frappe.db.sql("""\
 		select options, fieldname from `tabDocField`
 		where parent=%s and fieldtype='Table'""", (new,), as_dict=1)
 
-	custom_child_doctypes = frappe.conn.sql("""\
+	custom_child_doctypes = frappe.db.sql("""\
 		select options, fieldname from `tabCustom Field`
 		where dt=%s and fieldtype='Table'""", (new,), as_dict=1)
 
 	child_doctypes += custom_child_doctypes
 	fields = [d['fieldname'] for d in child_doctypes]
 	
-	property_setter_child_doctypes = frappe.conn.sql("""\
+	property_setter_child_doctypes = frappe.db.sql("""\
 		select value as options from `tabProperty Setter`
 		where doc_type=%s and property='options' and
 		field_name in ("%s")""" % ('%s', '", "'.join(fields)),
@@ -297,7 +297,7 @@ def update_parenttype_values(old, new):
 	child_doctypes = (d['options'] for d in child_doctypes)
 		
 	for doctype in child_doctypes:
-		frappe.conn.sql("""\
+		frappe.db.sql("""\
 			update `tab%s` set parenttype=%s
 			where parenttype=%s""" % (doctype, '%s', '%s'),
 		(new, old))

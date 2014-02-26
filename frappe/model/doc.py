@@ -59,7 +59,7 @@ class Document:
 			fielddata = doctype
 			doctype = None
 		if doctype and isinstance(name, dict):
-			name = frappe.conn.get_value(doctype, name, "name") or None
+			name = frappe.db.get_value(doctype, name, "name") or None
 		
 		if fielddata: 
 			self.fields = frappe._dict(fielddata)
@@ -131,7 +131,7 @@ class Document:
 			self._loadsingle()
 		else:
 			try:
-				dataset = frappe.conn.sql('select * from `tab%s` where name="%s"' % (self.doctype, self.name.replace('"', '\"')))
+				dataset = frappe.db.sql('select * from `tab%s` where name="%s"' % (self.doctype, self.name.replace('"', '\"')))
 			except frappe.SQLError, e:
 				if e.args[0]==1146:
 					dataset = None
@@ -140,7 +140,7 @@ class Document:
 
 			if not dataset:
 				raise frappe.DoesNotExistError, '[WNF] %s %s does not exist' % (self.doctype, self.name)
-			self._load_values(dataset[0], frappe.conn.get_description())
+			self._load_values(dataset[0], frappe.db.get_description())
 
 	def is_new(self):
 		return self.fields.get("__islocal")
@@ -150,13 +150,13 @@ class Document:
 			del self.fields['__islocal']
 		for i in range(len(description)):
 			v = data[i]
-			self.fields[description[i][0]] = frappe.conn.convert_to_simple_type(v)
+			self.fields[description[i][0]] = frappe.db.convert_to_simple_type(v)
 
 	def _merge_values(self, data, description):
 		for i in range(len(description)):
 			v = data[i]
 			if v: # only if value, over-write
-				self.fields[description[i][0]] = frappe.conn.convert_to_simple_type(v)
+				self.fields[description[i][0]] = frappe.db.convert_to_simple_type(v)
 			
 	def _loadsingle(self):
 		self.name = self.doctype
@@ -223,7 +223,7 @@ class Document:
 				if r: 
 					return r
 			else:
-				if not frappe.conn.exists(self.doctype, self.name):
+				if not frappe.db.exists(self.doctype, self.name):
 					frappe.msgprint(frappe._("Cannot update a non-exiting record, try inserting.") + ": " + self.doctype + " / " + self.name, 
 						raise_exception=1)
 				
@@ -238,7 +238,7 @@ class Document:
 	def _get_amended_name(self):
 		am_id = 1
 		am_prefix = self.amended_from
-		if frappe.conn.sql('select amended_from from `tab%s` where name = "%s"' % (self.doctype, self.amended_from))[0][0] or '':
+		if frappe.db.sql('select amended_from from `tab%s` where name = "%s"' % (self.doctype, self.amended_from))[0][0] or '':
 			am_id = cint(self.amended_from.split('-')[-1]) + 1
 			am_prefix = '-'.join(self.amended_from.split('-')[:-1]) # except the last hyphen
 			
@@ -307,7 +307,7 @@ class Document:
 	def set(self, key, value):
 		self.modified = now()
 		self.modified_by = frappe.session["user"]
-		frappe.conn.set_value(self.doctype, self.name, key, value, self.modified, self.modified_by)
+		frappe.db.set_value(self.doctype, self.name, key, value, self.modified, self.modified_by)
 		self.fields[key] = value
 			
 	def _insert(self, make_autoname=True, keep_timestamps=False):
@@ -328,7 +328,7 @@ class Document:
 			else:
 				self.modified = now()
 			
-		frappe.conn.sql("insert into `tab%(doctype)s`" % self.fields \
+		frappe.db.sql("insert into `tab%(doctype)s`" % self.fields \
 			+ """ (name, owner, creation, modified, modified_by)
 			values (%(name)s, %(owner)s, %(creation)s, %(modified)s,
 				%(modified_by)s)""", self.fields)
@@ -337,7 +337,7 @@ class Document:
 		self.modified = now()
 		update_str, values = [], []
 		
-		frappe.conn.sql("delete from tabSingles where doctype='%s'" % self.doctype)
+		frappe.db.sql("delete from tabSingles where doctype='%s'" % self.doctype)
 		for f in self.fields.keys():
 			if not (f in ('modified', 'doctype', 'name', 'perm', 'localname', 'creation'))\
 				and (not f.startswith('__')): # fields not saved
@@ -355,7 +355,7 @@ class Document:
 					values.append(self.doctype)
 					values.append(f)
 					values.append(self.fields[f])
-		frappe.conn.sql("insert into tabSingles(doctype, field, value) values %s" % (', '.join(update_str)), values)
+		frappe.db.sql("insert into tabSingles(doctype, field, value) values %s" % (', '.join(update_str)), values)
 
 	def validate_links(self, link_list):
 		err_list = []
@@ -391,7 +391,7 @@ class Document:
 			dt = dt[5:]
 		if '\n' in dt:
 			dt = dt.split('\n')[0]
-		tmp = frappe.conn.sql("""SELECT name FROM `tab%s` 
+		tmp = frappe.db.sql("""SELECT name FROM `tab%s` 
 			WHERE name = %s""" % (dt, '%s'), (dn,))
 		return tmp and tmp[0][0] or ''# match case
 	
@@ -423,7 +423,7 @@ class Document:
 						update_str.append("`%s`=%s" % (f, '%s'))
 			if values:
 				values.append(self.name)
-				r = frappe.conn.sql("update `tab%s` set %s where name=%s" % \
+				r = frappe.db.sql("update `tab%s` set %s where name=%s" % \
 					(self.doctype, ', '.join(update_str), "%s"), values)
 					
 	def get_valid_fields(self):
@@ -443,13 +443,13 @@ class Document:
 					"fieldtype": ["not in", frappe.model.no_value_fields]})
 			else:
 				valid_fields_map[self.doctype] = \
-					frappe.conn.get_table_columns(self.doctype)
+					frappe.db.get_table_columns(self.doctype)
 			
 		return valid_fields_map.get(self.doctype)
 
 	def get_meta(self):
 		if not self._meta:
-			self._meta = frappe.conn.get_value("DocType", self.doctype, ["autoname", "issingle", 
+			self._meta = frappe.db.get_value("DocType", self.doctype, ["autoname", "issingle", 
 				"istable", "name_case"], as_dict=True) or frappe._dict()
 		return self._meta
 
@@ -457,7 +457,7 @@ class Document:
 	def update_parentinfo(self):
 		"""update parent type and parent field, if not explicitly specified"""
 
-		tmp = frappe.conn.sql("""select parent, fieldname from tabDocField 
+		tmp = frappe.db.sql("""select parent, fieldname from tabDocField 
 			where fieldtype='Table' and options=%s""", (self.doctype,))
 			
 		if len(tmp)==0:
@@ -474,7 +474,7 @@ class Document:
 
 	def set_idx(self):
 		"""set idx"""
-		self.idx = (frappe.conn.sql("""select max(idx) from `tab%s` 
+		self.idx = (frappe.db.sql("""select max(idx) from `tab%s` 
 			where parent=%s and parentfield=%s""" % (self.doctype, '%s', '%s'), 
 			(self.parent, self.parentfield))[0][0] or 0) + 1
 		
@@ -500,7 +500,7 @@ class Document:
 			doclist = filter(lambda d: d.name not in delete_list, doclist)
 		
 			# delete from db
-			frappe.conn.sql("""\
+			frappe.db.sql("""\
 				delete from `tab%s`
 				where parent=%s and parenttype=%s"""
 				% (table_list[0].doctype, '%s', '%s'),
@@ -604,15 +604,15 @@ def make_autoname(key, doctype=''):
 
 def getseries(key, digits, doctype=''):
 	# series created ?
-	current = frappe.conn.sql("select `current` from `tabSeries` where name=%s for update", (key,))
+	current = frappe.db.sql("select `current` from `tabSeries` where name=%s for update", (key,))
 	if current and current[0][0] is not None:
 		current = current[0][0]
 		# yes, update it
-		frappe.conn.sql("update tabSeries set current = current+1 where name=%s", (key,))
+		frappe.db.sql("update tabSeries set current = current+1 where name=%s", (key,))
 		current = cint(current) + 1
 	else:
 		# no, create it
-		frappe.conn.sql("insert into tabSeries (name, current) values (%s, 1)", (key,))
+		frappe.db.sql("insert into tabSeries (name, current) values (%s, 1)", (key,))
 		current = 1
 	return ('%0'+str(digits)+'d') % current
 
@@ -630,9 +630,9 @@ def getchildren(name, childtype, field='', parenttype='', from_doctype=0):
 		condition += ' and parenttype=%s '
 		values.append(parenttype)
 
-	dataset = frappe.conn.sql("""select * from `tab%s` where parent=%s %s order by idx""" \
+	dataset = frappe.db.sql("""select * from `tab%s` where parent=%s %s order by idx""" \
 		% (childtype, "%s", condition), tuple([name]+values))
-	desc = frappe.conn.get_description()
+	desc = frappe.db.get_description()
 
 	l = DocList()
 	
@@ -650,7 +650,7 @@ def check_page_perm(doc):
 	if doc.publish:
 		return
 
-	if not frappe.conn.sql("select name from `tabPage Role` where parent=%s and role='Guest'", (doc.name,)):
+	if not frappe.db.sql("select name from `tabPage Role` where parent=%s and role='Guest'", (doc.name,)):
 		frappe.response['403'] = 1
 		raise frappe.PermissionError, '[WNF] No read permission for %s %s' % ('Page', doc.name)
 
@@ -686,7 +686,7 @@ def get(dt, dn='', with_children = 1, from_controller = 0):
 
 def getsingle(doctype):
 	"""get single doc as dict"""
-	dataset = frappe.conn.sql("select field, value from tabSingles where doctype=%s", (doctype,))
+	dataset = frappe.db.sql("select field, value from tabSingles where doctype=%s", (doctype,))
 	return dict(dataset)
 	
 def copy_common_fields(from_doc, to_doc):
@@ -702,7 +702,7 @@ def copy_common_fields(from_doc, to_doc):
 			
 def validate_name(doctype, name, case=None, merge=False):
 	if not merge:
-		if frappe.conn.sql('select name from `tab%s` where name=%s' % (doctype,'%s'), (name,)):
+		if frappe.db.sql('select name from `tab%s` where name=%s' % (doctype,'%s'), (name,)):
 			raise NameError, 'Name %s already exists' % name
 	
 	# no name

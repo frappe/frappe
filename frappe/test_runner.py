@@ -16,7 +16,7 @@ def main(app=None, module=None, doctype=None, verbose=False):
 	frappe.flags.print_messages = verbose
 	frappe.flags.in_test = True
 	
-	if not frappe.conn:
+	if not frappe.db:
 		frappe.connect()
 	
 	if doctype:
@@ -80,7 +80,7 @@ def _run_test(path, filename, verbose, test_suite=None, run=True):
 def make_test_records(doctype, verbose=0):
 	frappe.flags.mute_emails = True
 		
-	if not frappe.conn:
+	if not frappe.db:
 		frappe.connect()
 			
 	for options in get_dependencies(doctype):
@@ -95,7 +95,7 @@ def make_test_records(doctype, verbose=0):
 			make_test_records_for_doctype(options, verbose)
 
 def get_modules(doctype):
-	module = frappe.conn.get_value("DocType", doctype, "module")
+	module = frappe.db.get_value("DocType", doctype, "module")
 	try:
 		test_module = load_doctype_module(doctype, module, "test_")
 		if test_module: 
@@ -173,7 +173,7 @@ def print_mandatory_fields(doctype):
 	print		
 
 def run_unittest(doctype, verbose=False):
-	module = frappe.conn.get_value("DocType", doctype, "module")
+	module = frappe.db.get_value("DocType", doctype, "module")
 	test_module = get_module_name(doctype, module, "test_")
 	make_test_records(doctype, verbose=verbose)
 	test_suite = unittest.TestSuite()	

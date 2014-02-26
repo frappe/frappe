@@ -20,7 +20,7 @@ class DocType():
 	
 	def on_update(self):
 		# check duplicate assignement
-		n_records = frappe.conn.sql("""select name from `tabFile Data`
+		n_records = frappe.db.sql("""select name from `tabFile Data`
 			where file_name=%s 
 			and name!=%s
 			and attached_to_doctype=%s 
@@ -29,7 +29,7 @@ class DocType():
 		if len(n_records) > 0:
 			self.doc.duplicate_entry = n_records[0][0]
 			frappe.msgprint(frappe._("Same file has already been attached to the record"))
-			frappe.conn.rollback()
+			frappe.db.rollback()
 			raise frappe.DuplicateEntryError
 
 	def on_trash(self):
@@ -44,7 +44,7 @@ class DocType():
 				pass
 
 		# if file not attached to any other record, delete it
-		if self.doc.file_name and not frappe.conn.count("File Data", 
+		if self.doc.file_name and not frappe.db.count("File Data", 
 			{"file_name": self.doc.file_name, "name": ["!=", self.doc.name]}):
 				if self.doc.file_name.startswith("files/"):
 					path = frappe.utils.get_site_path("public", self.doc.file_name)

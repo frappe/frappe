@@ -38,7 +38,7 @@ def import_file_by_path(path, force=False):
 		
 		if not force:
 			# check if timestamps match
-			if doc['modified']==str(frappe.conn.get_value(doc['doctype'], doc['name'], 'modified')):
+			if doc['modified']==str(frappe.db.get_value(doc['doctype'], doc['name'], 'modified')):
 				return False
 		
 		original_modified = doc["modified"]
@@ -46,7 +46,7 @@ def import_file_by_path(path, force=False):
 		import_doclist(doclist)
 
 		# since there is a new timestamp on the file, update timestamp in
-		frappe.conn.sql("update `tab%s` set modified=%s where name=%s" % \
+		frappe.db.sql("update `tab%s` set modified=%s where name=%s" % \
 			(doc['doctype'], '%s', '%s'), 
 			(original_modified, doc['name']))
 	
@@ -80,7 +80,7 @@ def import_doclist(doclist):
 	ignore = list(doctypes.intersection(set(ignore_doctypes)))
 	
 	if doctype in ignore_values:
-		if frappe.conn.exists(doctype, name):
+		if frappe.db.exists(doctype, name):
 			old_doc = frappe.doc(doctype, name)
 
 	# delete old
@@ -112,7 +112,7 @@ def remove_ignored_docs_if_they_already_exist(doclist, ignore, name):
 	if ignore:
 		has_records = []
 		for d in ignore:
-			if frappe.conn.get_value(d, {"parent":name}):
+			if frappe.db.get_value(d, {"parent":name}):
 				has_records.append(d)
 		
 		if has_records:

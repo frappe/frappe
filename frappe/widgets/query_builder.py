@@ -20,7 +20,7 @@ def get_sql_tables(q):
 
 def get_parent_dt(dt):
 	pdt = ''
-	if frappe.conn.sql('select name from `tabDocType` where istable=1 and name="%s"' % dt):
+	if frappe.db.sql('select name from `tabDocType` where istable=1 and name="%s"' % dt):
 		import frappe.model.meta
 		return frappe.model.meta.get_parent_dt(dt)
 	return pdt
@@ -44,7 +44,7 @@ def get_sql_meta(tl):
 			meta[dt]['parent'] = ('ID', 'Link', pdt, '200')
 
 		# get the field properties from DocField
-		res = frappe.conn.sql("select fieldname, label, fieldtype, options, width from tabDocField where parent='%s'" % dt)
+		res = frappe.db.sql("select fieldname, label, fieldtype, options, width from tabDocField where parent='%s'" % dt)
 		for r in res:
 			if r[0]:
 				meta[dt][r[0]] = (r[1], r[2], r[3], r[4]);
@@ -87,9 +87,9 @@ def exec_report(code, res, colnames=[], colwidths=[], coltypes=[], coloptions=[]
 	from frappe.utils import *
 	from frappe.model.doc import *
 
-	set = frappe.conn.set
-	get_value = frappe.conn.get_value
-	convert_to_lists = frappe.conn.convert_to_lists
+	set = frappe.db.set
+	get_value = frappe.db.get_value
+	convert_to_lists = frappe.db.convert_to_lists
 	NEWLINE = '\n'
 
 	exec str(code)
@@ -114,7 +114,7 @@ def guess_type(m):
 def build_description_simple():
 	colnames, coltypes, coloptions, colwidths = [], [], [], []
 
-	for m in frappe.conn.get_description():
+	for m in frappe.db.get_description():
 		colnames.append(m[0])
 		coltypes.append(guess_type[m[0]])
 		coloptions.append('')
@@ -124,7 +124,7 @@ def build_description_simple():
 
 def build_description_standard(meta, tl):
 
-	desc = frappe.conn.get_description()
+	desc = frappe.db.get_description()
 
 	colnames, coltypes, coloptions, colwidths = [], [], [], []
 
@@ -183,7 +183,7 @@ def runquery(q='', ret=0, from_export=0):
 			raise Exception, 'Query must be a SELECT'
 
 		as_dict = cint(frappe.form_dict.get('as_dict'))
-		res = frappe.conn.sql(q, as_dict = as_dict, as_list = not as_dict, formatted=formatted)
+		res = frappe.db.sql(q, as_dict = as_dict, as_list = not as_dict, formatted=formatted)
 
 		# build colnames etc from metadata
 		colnames, coltypes, coloptions, colwidths = [], [], [], []
@@ -202,7 +202,7 @@ def runquery(q='', ret=0, from_export=0):
 		q = q.replace('__user', frappe.session.user)
 		q = q.replace('__today', frappe.utils.nowdate())
 
-		res = frappe.conn.sql(q, as_list=1, formatted=formatted)
+		res = frappe.db.sql(q, as_list=1, formatted=formatted)
 
 		colnames, coltypes, coloptions, colwidths = build_description_standard(meta, tl)
 
@@ -235,7 +235,7 @@ def runquery(q='', ret=0, from_export=0):
 		if not frappe.form_dict.get('simple_query'):
 			qm = add_match_conditions(qm, tl)
 
-		out['n_values'] = frappe.utils.cint(frappe.conn.sql(qm)[0][0])
+		out['n_values'] = frappe.utils.cint(frappe.db.sql(qm)[0][0])
 
 
 @frappe.whitelist()

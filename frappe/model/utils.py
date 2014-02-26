@@ -113,8 +113,8 @@ def copy_doclist(doclist, no_copy = []):
 
 def set_default(doc, key):
 	if not doc.is_default:
-		frappe.conn.set(doc, "is_default", 1)
+		frappe.db.set(doc, "is_default", 1)
 	
-	frappe.conn.sql("""update `tab%s` set `is_default`=0
+	frappe.db.sql("""update `tab%s` set `is_default`=0
 		where `%s`=%s and name!=%s""" % (doc.doctype, key, "%s", "%s"), 
 		(doc.fields.get(key), doc.name))

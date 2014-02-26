@@ -22,7 +22,7 @@ def send(recipients=None, sender=None, doctype='Profile', email_field='email',
 		return cint(rdata.unsubscribed)
 
 	def check_bulk_limit(new_mails):
-		this_month = frappe.conn.sql("""select count(*) from `tabBulk Email` where
+		this_month = frappe.db.sql("""select count(*) from `tabBulk Email` where
 			month(creation)=month(%s)""" % nowdate())[0][0]
 
 		monthly_bulk_mail_limit = frappe.conf.get('monthly_bulk_mail_limit') or 500
@@ -54,13 +54,13 @@ def send(recipients=None, sender=None, doctype='Profile', email_field='email',
 	
 	if not recipients: recipients = []
 	if not sender or sender == "Administrator":
-		sender = frappe.conn.get_value('Email Settings', None, 'auto_email_id')
+		sender = frappe.db.get_value('Email Settings', None, 'auto_email_id')
 	check_bulk_limit(len(recipients))
 	
 	formatted = get_formatted_html(subject, message)
 
 	for r in filter(None, list(set(recipients))):
-		rdata = frappe.conn.sql("""select * from `tab%s` where %s=%s""" % (doctype, 
+		rdata = frappe.db.sql("""select * from `tab%s` where %s=%s""" % (doctype, 
 			email_field, '%s'), (r,), as_dict=1)
 
 		doc = rdata and rdata[0] or {}
@@ -99,11 +99,11 @@ def unsubscribe():
 	field = frappe.form_dict.get('email_field')
 	email = frappe.form_dict.get('email')
 
-	frappe.conn.sql("""update `tab%s` set unsubscribed=1
+	frappe.db.sql("""update `tab%s` set unsubscribed=1
 		where `%s`=%s""" % (doctype, field, '%s'), (email,))
 	
 	if not frappe.form_dict.get("from_test"):
-		frappe.conn.commit()
+		frappe.db.commit()
 
 	frappe.local.message_title = "Unsubscribe"
 	frappe.local.message = "<h3>Unsubscribed</h3><p>%s has been successfully unsubscribed.</p>" % email
@@ -122,27 +122,27 @@ def flush(from_test=False):
 		from_test = True
 		
 	for i in xrange(500):		
-		email = frappe.conn.sql("""select * from `tabBulk Email` where 
+		email = frappe.db.sql("""select * from `tabBulk Email` where 
 			status='Not Sent' limit 1 for update""", as_dict=1)
 		if email:
 			email = email[0]
 		else:
 			break
 			
-		frappe.conn.sql("""update `tabBulk Email` set status='Sending' where name=%s""", 
+		frappe.db.sql("""update `tabBulk Email` set status='Sending' where name=%s""", 
 			(email["name"],), auto_commit=auto_commit)
 		try:
 			if not from_test:
 				smtpserver.sess.sendmail(email["sender"], email["recipient"], email["message"])
 
-			frappe.conn.sql("""update `tabBulk Email` set status='Sent' where name=%s""", 
+			frappe.db.sql("""update `tabBulk Email` set status='Sent' where name=%s""", 
 				(email["name"],), auto_commit=auto_commit)
 
 		except Exception, e:
-			frappe.conn.sql("""update `tabBulk Email` set status='Error', error=%s 
+			frappe.db.sql("""update `tabBulk Email` set status='Error', error=%s 
 				where name=%s""", (unicode(e), email["name"]), auto_commit=auto_commit)
 
 def clear_outbox():
 	"""remove mails older than 30 days in Outbox"""
-	frappe.conn.sql("""delete from `tabBulk Email` where
+	frappe.db.sql("""delete from `tabBulk Email` where
 		datediff(now(), creation) > 30""")

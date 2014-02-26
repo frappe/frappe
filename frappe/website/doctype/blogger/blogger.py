@@ -18,7 +18,7 @@ class DocType:
 		clear_blog_cache()
 		
 		if self.doc.profile:
-			for blog in frappe.conn.sql_list("""select name from `tabBlog Post` where owner=%s 
+			for blog in frappe.db.sql_list("""select name from `tabBlog Post` where owner=%s 
 				and ifnull(blogger,'')=''""", self.doc.profile):
 				b = frappe.bean("Blog Post", blog)
 				b.doc.blogger = self.doc.name

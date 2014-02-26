@@ -34,13 +34,13 @@ def send_message(subject="Website Query", message="", sender=""):
 		return
 		
 	# guest method, cap max writes per hour
-	if frappe.conn.sql("""select count(*) from `tabCommunication`
+	if frappe.db.sql("""select count(*) from `tabCommunication`
 		where TIMEDIFF(%s, modified) < '01:00:00'""", now())[0][0] > max_communications_per_hour:
 		frappe.response["message"] = "Sorry: we believe we have received an unreasonably high number of requests of this kind. Please try later"
 		return
 	
 	# send email
-	forward_to_email = frappe.conn.get_value("Contact Us Settings", None, "forward_to_email")
+	forward_to_email = frappe.db.get_value("Contact Us Settings", None, "forward_to_email")
 	if forward_to_email:
 		from frappe.utils.email_lib import sendmail
 		sendmail(forward_to_email, sender, message, subject)

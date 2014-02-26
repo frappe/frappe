@@ -16,7 +16,7 @@ class DocType(DocListController):
 	
 	def validate_home_page(self):
 		if self.doc.home_page and \
-			not frappe.conn.get_value("Website Route", {"name": self.doc.home_page}):
+			not frappe.db.get_value("Website Route", {"name": self.doc.home_page}):
 			frappe.throw(_("Invalid Home Page") + " (Standard pages - index, login, products, blog, about, contact)")
 	
 	def validate_top_bar_items(self):
@@ -51,7 +51,7 @@ class DocType(DocListController):
 def get_website_settings():
 	hooks = frappe.get_hooks()
 	
-	all_top_items = frappe.conn.sql("""\
+	all_top_items = frappe.db.sql("""\
 		select * from `tabTop Bar Item`
 		where parent='Website Settings' and parentfield='top_bar_items'
 		order by idx asc""", as_dict=1)
@@ -70,7 +70,7 @@ def get_website_settings():
 					
 	context = frappe._dict({
 		'top_bar_items': top_items,
-		'footer_items': frappe.conn.sql("""\
+		'footer_items': frappe.db.sql("""\
 			select * from `tabTop Bar Item`
 			where parent='Website Settings' and parentfield='footer_items'
 			order by idx asc""", as_dict=1),

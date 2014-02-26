@@ -13,7 +13,7 @@ def suggest_user(term, group):
 	if not get_access(pathname).get("admin"):
 		raise frappe.PermissionError
 		
-	profiles = frappe.conn.sql("""select pr.name, pr.first_name, pr.last_name, 
+	profiles = frappe.db.sql("""select pr.name, pr.first_name, pr.last_name, 
 		pr.user_image, pr.location
 		from `tabProfile` pr 
 		where (pr.first_name like %(term)s or pr.last_name like %(term)s)
@@ -45,7 +45,7 @@ def add_sitemap_permission(group, profile):
 	permission.insert(ignore_permissions=True)
 	
 	profile = permission.doc.fields
-	profile.update(frappe.conn.get_value("Profile", profile.profile, 
+	profile.update(frappe.db.get_value("Profile", profile.profile, 
 		["name", "first_name", "last_name", "user_image", "location"], as_dict=True))
 	
 	return frappe.get_template("templates/includes/sitemap_permission.html").render({
@@ -64,7 +64,7 @@ def update_permission(group, profile, perm, value):
 	
 	# send email
 	if perm=="admin" and int(value):
-		group_title = frappe.conn.get_value("Website Route", pathname, "page_title")
+		group_title = frappe.db.get_value("Website Route", pathname, "page_title")
 		
 		subject = "You have been made Administrator of Group " + group_title
 		
@@ -88,7 +88,7 @@ def add_website_group(group, new_group, public_read, public_write, group_type="F
 	if not get_access(get_pathname(group)).get("admin"):
 		raise frappe.PermissionError
 		
-	parent_website_route = frappe.conn.get_value("Website Route", 
+	parent_website_route = frappe.db.get_value("Website Route", 
 		{"ref_doctype": "Website Group", "docname": group})
 	
 	frappe.bean({

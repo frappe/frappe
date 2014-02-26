@@ -23,7 +23,7 @@ def get_context(context):
 	web_page.doc.links = get_navigation_links(web_page)
 	
 	if web_page.doc.enable_comments:
-		web_page.doc.comment_list = frappe.conn.sql("""select 
+		web_page.doc.comment_list = frappe.db.sql("""select 
 			comment, comment_by_fullname, creation
 			from `tabComment` where comment_doctype="Web Page"
 			and comment_docname=%s order by creation""", web_page.doc.name, as_dict=1) or []
@@ -41,7 +41,7 @@ def get_breadcrumbs(web_page):
 	breadcrumbs = []
 	
 	def add_parent_of(web_page):
-		parent = frappe.conn.sql("""select name, page_name, title from `tabWeb Page`
+		parent = frappe.db.sql("""select name, page_name, title from `tabWeb Page`
 			where exists (select parent from `tabTable of Contents`
 				where `tabTable of Contents`.parent=`tabWeb Page`.name
 					and web_page=%s)""", web_page, as_dict=True)
@@ -58,7 +58,7 @@ def get_toc_list(web_page):
 	toc_list = web_page.doclist.get({"parentfield": "toc"})
 	if not toc_list: return []
 
-	out = frappe.conn.sql("""select name, page_name, title
+	out = frappe.db.sql("""select name, page_name, title
 		from `tabWeb Page` where name in (%s)""" % \
 		(", ".join(["%s"]*len(toc_list))),
 		tuple([d.web_page for d in toc_list]),
