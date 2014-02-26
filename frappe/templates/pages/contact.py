@@ -45,6 +45,4 @@ def send_message(subject="Website Query", message="", sender=""):
 		from frappe.utils.email_lib import sendmail
 		sendmail(forward_to_email, sender, message, subject)
 	
-	frappe.response.status = "okay"
-	
-	return True
+	return "okay"
