@@ -1,11 +1,11 @@
 /**
  * jscolor, JavaScript Color Picker
  *
- * @version 1.3.13
+ * @version 1.4.2
  * @license GNU Lesser General Public License, http://www.gnu.org/copyleft/lesser.html
  * @author  Jan Odvarko, http://odvarko.cz
  * @created 2008-06-15
- * @updated 2012-01-19
+ * @updated 2013-11-25
  * @link    http://jscolor.com
  */
 
@@ -13,7 +13,7 @@
 var jscolor = {
 
 
-	dir : 'lib/js/lib/jscolor/', // location of jscolor directory (leave empty to autodetect)
+	dir : 'assets/frappe/js/lib/jscolor/', // location of jscolor directory (leave empty to autodetect)
 	bindClass : 'color', // class name
 	binding : true, // automatic binding via <input class="...">
 	preloading : true, // use image preloading?
@@ -36,8 +36,8 @@ var jscolor = {
 
 	getDir : function() {
 		if(!jscolor.dir) {
-			//var detected = jscolor.detectDir();
-			jscolor.dir = "lib/js/lib/jscolor";
+			var detected = jscolor.detectDir();
+			jscolor.dir = detected!==false ? detected : 'assets/frappe/js/lib/';
 		}
 		return jscolor.dir;
 	},
@@ -75,7 +75,7 @@ var jscolor = {
 				var prop = {};
 				if(m[3]) {
 					try {
-						eval('prop='+m[3]);
+						prop = (new Function ('return (' + m[3] + ')'))();
 					} catch(eInvalidProp) {}
 				}
 				e[i].color = new jscolor.color(e[i], prop);
@@ -261,7 +261,7 @@ var jscolor = {
 					t.path = removeDotSegments(r.path);
 					t.query = r.query;
 				} else {
-					if(r.path === '') { // TODO: == or === ?
+					if(r.path === '') {
 						t.path = base.path;
 						if(r.query !== null) {
 							t.query = r.query;
@@ -272,7 +272,7 @@ var jscolor = {
 						if(r.path.substr(0,1) === '/') {
 							t.path = removeDotSegments(r.path);
 						} else {
-							if(base.authority !== null && base.path === '') { // TODO: == or === ?
+							if(base.authority !== null && base.path === '') {
 								t.path = '/'+r.path;
 							} else {
 								t.path = base.path.replace(/[^\/]+$/,'')+r.path;
@@ -318,10 +318,10 @@ var jscolor = {
 	},
 
 
-	/*
-	 * Usage example:
-	 * var myColor = new jscolor.color(myInputElement)
-	 */
+	//
+	// Usage example:
+	// var myColor = new jscolor.color(myInputElement)
+	//
 
 	color : function(target, prop) {
 
@@ -336,6 +336,12 @@ var jscolor = {
 		this.onImmediateChange = null; // onchange callback (can be either string or function)
 		this.hsv = [0, 0, 1]; // read-only  0-6, 0-1, 0-1
 		this.rgb = [1, 1, 1]; // read-only  0-1, 0-1, 0-1
+		this.minH = 0; // read-only  0-6
+		this.maxH = 6; // read-only  0-6
+		this.minS = 0; // read-only  0-1
+		this.maxS = 1; // read-only  0-1
+		this.minV = 0; // read-only  0-1
+		this.maxV = 1; // read-only  0-1
 
 		this.pickerOnfocus = true; // display picker on focus?
 		this.pickerMode = 'HSV'; // HSV | HVS
@@ -459,34 +465,44 @@ var jscolor = {
 
 
 		this.fromHSV = function(h, s, v, flags) { // null = don't change
-			h<0 && (h=0) || h>6 && (h=6);
-			s<0 && (s=0) || s>1 && (s=1);
-			v<0 && (v=0) || v>1 && (v=1);
+			if(h !== null) { h = Math.max(0.0, this.minH, Math.min(6.0, this.maxH, h)); }
+			if(s !== null) { s = Math.max(0.0, this.minS, Math.min(1.0, this.maxS, s)); }
+			if(v !== null) { v = Math.max(0.0, this.minV, Math.min(1.0, this.maxV, v)); }
+
 			this.rgb = HSV_RGB(
 				h===null ? this.hsv[0] : (this.hsv[0]=h),
 				s===null ? this.hsv[1] : (this.hsv[1]=s),
 				v===null ? this.hsv[2] : (this.hsv[2]=v)
 			);
+
 			this.exportColor(flags);
 		};
 
 
 		this.fromRGB = function(r, g, b, flags) { // null = don't change
-			r<0 && (r=0) || r>1 && (r=1);
-			g<0 && (g=0) || g>1 && (g=1);
-			b<0 && (b=0) || b>1 && (b=1);
+			if(r !== null) { r = Math.max(0.0, Math.min(1.0, r)); }
+			if(g !== null) { g = Math.max(0.0, Math.min(1.0, g)); }
+			if(b !== null) { b = Math.max(0.0, Math.min(1.0, b)); }
+
 			var hsv = RGB_HSV(
-				r===null ? this.rgb[0] : (this.rgb[0]=r),
-				g===null ? this.rgb[1] : (this.rgb[1]=g),
-				b===null ? this.rgb[2] : (this.rgb[2]=b)
+				r===null ? this.rgb[0] : r,
+				g===null ? this.rgb[1] : g,
+				b===null ? this.rgb[2] : b
 			);
 			if(hsv[0] !== null) {
-				this.hsv[0] = hsv[0];
+				this.hsv[0] = Math.max(0.0, this.minH, Math.min(6.0, this.maxH, hsv[0]));
 			}
 			if(hsv[2] !== 0) {
-				this.hsv[1] = hsv[1];
+				this.hsv[1] = hsv[1]===null ? null : Math.max(0.0, this.minS, Math.min(1.0, this.maxS, hsv[1]));
 			}
-			this.hsv[2] = hsv[2];
+			this.hsv[2] = hsv[2]===null ? null : Math.max(0.0, this.minV, Math.min(1.0, this.maxV, hsv[2]));
+
+			// update RGB according to final HSV, as some values might be trimmed
+			var rgb = HSV_RGB(this.hsv[0], this.hsv[1], this.hsv[2]);
+			this.rgb[0] = rgb[0];
+			this.rgb[1] = rgb[1];
+			this.rgb[2] = rgb[2];
+
 			this.exportColor(flags);
 		};
 
@@ -611,6 +627,23 @@ var jscolor = {
 					dispatchImmediateChange();
 				}
 			};
+			if('ontouchstart' in window) { // if touch device
+				var handle_touchmove = function(e) {
+					var event={
+						'offsetX': e.touches[0].pageX-touchOffset.X,
+						'offsetY': e.touches[0].pageY-touchOffset.Y
+					};
+					if (holdPad || holdSld) {
+						holdPad && setPad(event);
+						holdSld && setSld(event);
+						dispatchImmediateChange();
+					}
+					e.stopPropagation(); // prevent move "view" on broswer
+					e.preventDefault(); // prevent Default - Android Fix (else android generated only 1-2 touchmove events)
+				};
+				p.box.removeEventListener('touchmove', handle_touchmove, false)
+				p.box.addEventListener('touchmove', handle_touchmove, false)
+			}
 			p.padM.onmouseup =
 			p.padM.onmouseout = function() { if(holdPad) { holdPad=false; jscolor.fireEvent(valueElement,'change'); } };
 			p.padM.onmousedown = function(e) {
@@ -619,17 +652,43 @@ var jscolor = {
 					case 0: if (THIS.hsv[2] === 0) { THIS.fromHSV(null, null, 1.0); }; break;
 					case 1: if (THIS.hsv[1] === 0) { THIS.fromHSV(null, 1.0, null); }; break;
 				}
+				holdSld=false;
 				holdPad=true;
 				setPad(e);
 				dispatchImmediateChange();
 			};
+			if('ontouchstart' in window) {
+				p.padM.addEventListener('touchstart', function(e) {
+					touchOffset={
+						'X': e.target.offsetParent.offsetLeft,
+						'Y': e.target.offsetParent.offsetTop
+					};
+					this.onmousedown({
+						'offsetX':e.touches[0].pageX-touchOffset.X,
+						'offsetY':e.touches[0].pageY-touchOffset.Y
+					});
+				});
+			}
 			p.sldM.onmouseup =
 			p.sldM.onmouseout = function() { if(holdSld) { holdSld=false; jscolor.fireEvent(valueElement,'change'); } };
 			p.sldM.onmousedown = function(e) {
+				holdPad=false;
 				holdSld=true;
 				setSld(e);
 				dispatchImmediateChange();
 			};
+			if('ontouchstart' in window) {
+				p.sldM.addEventListener('touchstart', function(e) {
+					touchOffset={
+						'X': e.target.offsetParent.offsetLeft,
+						'Y': e.target.offsetParent.offsetTop
+					};
+					this.onmousedown({
+						'offsetX':e.touches[0].pageX-touchOffset.X,
+						'offsetY':e.touches[0].pageY-touchOffset.Y
+					});
+				});
+			}
 
 			// picker
 			var dims = getPickerDims(THIS);
@@ -861,11 +920,13 @@ var jscolor = {
 
 		function dispatchImmediateChange() {
 			if (THIS.onImmediateChange) {
+				var callback;
 				if (typeof THIS.onImmediateChange === 'string') {
-					eval(THIS.onImmediateChange);
+					callback = new Function (THIS.onImmediateChange);
 				} else {
-					THIS.onImmediateChange(THIS);
+					callback = THIS.onImmediateChange;
 				}
+				callback.call(THIS);
 			}
 		}
 
@@ -878,7 +939,8 @@ var jscolor = {
 			styleElement = jscolor.fetchElement(this.styleElement);
 		var
 			holdPad = false,
-			holdSld = false;
+			holdSld = false,
+			touchOffset = {};
 		var
 			leaveValue = 1<<0,
 			leaveStyle = 1<<1,

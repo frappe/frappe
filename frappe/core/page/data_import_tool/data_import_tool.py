@@ -3,16 +3,14 @@
 
 from __future__ import unicode_literals
 
-import frappe, json
-import frappe.model.doc
+import frappe, json, os
+import frappe.permissions
 import frappe.model.doctype
 from frappe.model.meta import get_table_fields
-from frappe.model.doc import Document
 from frappe.utils import cstr
 from frappe.utils.datautils import UnicodeWriter, check_record, import_doc, getlink, cint, flt
 from frappe import _
 import frappe.permissions
-from frappe.widgets import reportview
 
 data_keys = frappe._dict({
 	"data_separator": 'Start entering data below this line',
@@ -176,7 +174,7 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 			frappe.permissions.can_export(parent_doctype, raise_exception=True)
 			
 			# get permitted data only
-			data = reportview.execute(doctype, fields=["*"], limit_page_length=None)
+			data = frappe.get_list(doctype, fields=["*"], limit_page_length=None)
 			for doc in data:
 				# add main table
 				row_group = []
@@ -224,7 +222,6 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 @frappe.whitelist()
 def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, overwrite=False, ignore_links=False):
 	"""upload data"""
-	import frappe.permissions
 	frappe.flags.mute_emails = True
 	# extra input params
 	params = json.loads(frappe.form_dict.get("params") or '{}')
@@ -420,7 +417,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 
 				if parenttype:
 					# child doc
-					doc = Document(doctype)
+					doc = frappe.doc(doctype)
 					doc.fields.update(doclist[0])
 					if parenttype:
 						doc.parenttype = parenttype
@@ -514,8 +511,18 @@ def export_json(doctype, name, path):
 			d["__islocal"] = 1
 		outfile.write(json.dumps([doclist], default=json_handler, indent=1, sort_keys=True))
 
+@frappe.whitelist()
+def export_fixture(doctype, name, app):
+	if frappe.session.user != "Administrator":
+		raise frappe.PermissionError
+		
+	if not os.path.exists(frappe.get_app_path(app, "fixtures")):
+		os.mkdir(frappe.get_app_path(app, "fixtures"))
+		
+	export_json(doctype, name, frappe.get_app_path(app, "fixtures", frappe.scrub(name) + ".json"))
+	
+
 def import_doclist(path, overwrite=False, ignore_links=False, ignore_insert=False, insert=False):
-	import os
 	if os.path.isdir(path):
 		files = [os.path.join(path, f) for f in os.listdir(path)]
 	else:

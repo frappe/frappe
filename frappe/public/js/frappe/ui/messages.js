@@ -38,6 +38,23 @@ frappe.confirm = function(message, ifyes, ifno) {
 	return d;
 }
 
+frappe.get_value = function(field, callback) {
+	var d = new frappe.ui.Dialog({
+		fields: [field, {fieldtype:"Button", "label":"Submit"}],
+		title: __("Enter Value"),
+	})
+	d.get_input("submit").on("click", function() {
+		var values = d.get_values();
+		if(field.reqd && !values[field.fieldname]) {
+			// ask to re-enter
+		} else {
+			d.hide();
+			callback(values[field.fieldname]);
+		}
+	})
+	d.show();
+}
+
 var msg_dialog=null;
 function msgprint(msg, title) {
 	if(!msg) return;

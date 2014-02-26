@@ -47,7 +47,7 @@ def get(doctype, processed=False, cached=True):
 		
 	for table_doctype in table_types:
 		doclist += get_doctype_doclist(table_doctype)
-		
+			
 	if processed: 
 		add_code(doctype, doclist)
 		expand_selects(doclist)

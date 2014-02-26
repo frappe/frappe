@@ -297,6 +297,7 @@ def latest(verbose=True, rebuild_website_config=True):
 	import frappe.modules.patch_handler
 	import frappe.model.sync
 	from frappe.website import rebuild_config
+	from frappe.utils.fixtures import sync_fixtures
 	
 	frappe.connect()
 	
@@ -313,6 +314,8 @@ def latest(verbose=True, rebuild_website_config=True):
 		# build website config if any changes in templates etc.
 		if rebuild_website_config:
 			rebuild_config()
+		
+		sync_fixtures()
 		
 	except frappe.modules.patch_handler.PatchError, e:
 		print "\n".join(frappe.local.patch_log_list)
