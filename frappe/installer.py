@@ -80,7 +80,7 @@ def make_connection(root_login, root_password):
 		
 		if not root_password:
 			root_password = getpass.getpass("MySQL root password: ")
-	return frappe.db.Database(user=root_login, password=root_password)
+	return frappe.database.Database(user=root_login, password=root_password)
 
 @frappe.whitelist()
 def install_app(name, verbose=False):
