@@ -56,6 +56,8 @@ def build_sitemap_options(path):
 
 	# determine templates to be used
 	if not sitemap_options.base_template_path:
-		sitemap_options.base_template_path = "templates/base.html"
+		app_base = frappe.get_hooks("base_template")
+		print app_base
+		sitemap_options.base_template_path = app_base[0] if app_base else "templates/base.html"
 				
 	return sitemap_options

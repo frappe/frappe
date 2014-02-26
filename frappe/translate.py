@@ -267,26 +267,4 @@ def update_translations(lang, untranslated_file, translated_file):
 
 	for app in frappe.get_all_apps(True):
 		write_translations_file(app, lang, full_dict)
-			
-def google_translate(lang, untranslated):
-	import requests
-	if untranslated:
-		response = requests.get("""https://www.googleapis.com/language/translate/v2""",
-			params = {
-				"key": frappe.conf.google_api_key,
-				"source": "en",
-				"target": lang,
-				"q": "\n".join(untranslated)
-			})
-			
-		data = response.json()
-
-		if "error" in data:
-			print data
-
-		translated = data["data"]["translations"][0]["translatedText"]
-		if translated:
-			return dict(zip(untranslated, translated))
-		else:
-			print "unable to translate"
-			return {}
+		

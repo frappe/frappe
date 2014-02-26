@@ -9,7 +9,7 @@
 	
 	<link rel="shortcut icon" href="{{ favicon or "" }}" type="image/x-icon">
 	<link rel="icon" href="{{ favicon or "" }}" type="image/x-icon">
-	
+	{%- block head_include %}{% endblock -%}
 	{%- block head -%}
 		{%- if meta_description is defined %}
 		<meta name="description" content="{{ meta_description|striptags }}">
@@ -40,7 +40,6 @@
 			{%- if script_lib is defined -%}{{ script_lib }}{%- endif -%}
 			</script>
 		{%- endblock -%}
-
 	{%- endblock -%}
 </head>
 <body>
