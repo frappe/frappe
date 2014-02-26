@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import frappe
 
 def get_context(context):
-	bloggers = frappe.conn.sql("""select * from `tabBlogger` 
+	bloggers = frappe.db.sql("""select * from `tabBlogger` 
 	 	where ifnull(posts,0) > 0 and ifnull(disabled,0)=0 
 		order by posts desc""", as_dict=1)
 		
@@ -14,7 +14,7 @@ def get_context(context):
 		"texts": {
 			"all_posts_by": "All posts by"
 		},
-		"categories": frappe.conn.sql_list("select name from `tabBlog Category` order by name")
+		"categories": frappe.db.sql_list("select name from `tabBlog Category` order by name")
 	}
 	
 	writers_context.update(frappe.doc("Blog Settings", "Blog Settings").fields)

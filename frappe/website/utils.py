@@ -16,7 +16,7 @@ def can_cache(no_cache=False):
 def get_home_page():
 	home_page = frappe.cache().get_value("home_page", \
 		lambda:  (frappe.get_hooks("home_page") \
-			or [frappe.conn.get_value("Website Settings", None, "home_page") \
+			or [frappe.db.get_value("Website Settings", None, "home_page") \
 			or "login"])[0])
 
 	return home_page
@@ -24,7 +24,7 @@ def get_home_page():
 def is_signup_enabled():
 	if getattr(frappe.local, "is_signup_enabled", None) is None:
 		frappe.local.is_signup_enabled = True
-		if frappe.utils.cint(frappe.conn.get_value("Website Settings", 
+		if frappe.utils.cint(frappe.db.get_value("Website Settings", 
 			"Website Settings", "disable_signup")):
 				frappe.local.is_signup_enabled = False
 		

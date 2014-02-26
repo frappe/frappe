@@ -33,7 +33,7 @@ def get_restrictions(user=None):
 	
 def build_restrictions(user):
 	out = {}
-	for key, value in frappe.conn.sql("""select defkey, defvalue 
+	for key, value in frappe.db.sql("""select defkey, defvalue 
 		from tabDefaultValue where parent=%s and parenttype='Restriction'""", (user,)):
 		out.setdefault(key, [])
 		out[key].append(value)
@@ -69,10 +69,10 @@ def get_global_default(key):
 # Common
 
 def set_default(key, value, parent, parenttype="Control Panel"):
-	if frappe.conn.sql("""select defkey from `tabDefaultValue` where 
+	if frappe.db.sql("""select defkey from `tabDefaultValue` where 
 		defkey=%s and parent=%s """, (key, parent)):
 		# update
-		frappe.conn.sql("""update `tabDefaultValue` set defvalue=%s, parenttype=%s 
+		frappe.db.sql("""update `tabDefaultValue` set defvalue=%s, parenttype=%s 
 			where parent=%s and defkey=%s""", (value, parenttype, parent, key))
 		_clear_cache(parent)
 	else:
@@ -125,14 +125,14 @@ def clear_default(key=None, value=None, parent=None, name=None, parenttype=None)
 	if not conditions:
 		raise Exception, "[clear_default] No key specified."
 	
-	frappe.conn.sql("""delete from tabDefaultValue where %s""" % " and ".join(conditions), values)
+	frappe.db.sql("""delete from tabDefaultValue where %s""" % " and ".join(conditions), values)
 	_clear_cache(parent)
 	
 def get_defaults_for(parent="Control Panel"):
 	"""get all defaults"""
 	defaults = frappe.cache().get_value("__defaults:" + parent)
 	if not defaults:
-		res = frappe.conn.sql("""select defkey, defvalue from `tabDefaultValue` 
+		res = frappe.db.sql("""select defkey, defvalue from `tabDefaultValue` 
 			where parent = %s order by creation""", (parent,), as_dict=1)
 
 		defaults = frappe._dict({})
@@ -162,6 +162,6 @@ def clear_cache(user=None):
 	if user:
 		to_clear = [user]
 	elif frappe.flags.in_install_app!="frappe":
-		to_clear = frappe.conn.sql_list("select name from tabProfile")
+		to_clear = frappe.db.sql_list("select name from tabProfile")
 	for p in to_clear + common_keys:
 		frappe.cache().delete_value("__defaults:" + p)

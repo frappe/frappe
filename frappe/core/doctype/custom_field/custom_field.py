@@ -48,7 +48,7 @@ class DocType:
 
 	def on_trash(self):
 		# delete property setter entries
-		frappe.conn.sql("""\
+		frappe.db.sql("""\
 			DELETE FROM `tabProperty Setter`
 			WHERE doc_type = %s
 			AND field_name = %s""",
@@ -63,7 +63,7 @@ class DocType:
 		if label_index==-1: return
 
 		prev_field = field_list[label_index]
-		frappe.conn.sql("""\
+		frappe.db.sql("""\
 			DELETE FROM `tabProperty Setter`
 			WHERE doc_type = %s
 			AND field_name = %s
@@ -110,10 +110,10 @@ def get_fields_label(dt=None, form=1):
 
 def create_custom_field_if_values_exist(doctype, df):
 	df = frappe._dict(df)
-	if df.fieldname in frappe.conn.get_table_columns(doctype) and \
-		frappe.conn.sql("""select count(*) from `tab{doctype}` 
+	if df.fieldname in frappe.db.get_table_columns(doctype) and \
+		frappe.db.sql("""select count(*) from `tab{doctype}` 
 			where ifnull({fieldname},'')!=''""".format(doctype=doctype, fieldname=df.fieldname))[0][0] and \
-		not frappe.conn.get_value("Custom Field", {"dt": doctype, "fieldname": df.fieldname}):
+		not frappe.db.get_value("Custom Field", {"dt": doctype, "fieldname": df.fieldname}):
 			frappe.bean({
 				"doctype":"Custom Field",
 				"dt": doctype,

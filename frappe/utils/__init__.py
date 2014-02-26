@@ -38,7 +38,7 @@ def get_fullname(profile):
 		frappe.local.fullnames = {}
 	
 	if not frappe.local.fullnames.get(profile):
-		p = frappe.conn.get_value("Profile", profile, ["first_name", "last_name"], as_dict=True)
+		p = frappe.db.get_value("Profile", profile, ["first_name", "last_name"], as_dict=True)
 		if p:
 			frappe.local.fullnames[profile] = " ".join(filter(None, 
 				[p.get('first_name'), p.get('last_name')])) or profile
@@ -105,7 +105,7 @@ def get_traceback():
 		(unicode((b"").join(trace_list[:-1]), 'utf-8'), unicode(trace_list[-1], 'utf-8'))
 	
 	if frappe.logger:
-		frappe.logger.error('Db:'+(frappe.conn and frappe.conn.cur_db_name or '') \
+		frappe.logger.error('Db:'+(frappe.db and frappe.db.cur_db_name or '') \
 			+ ' - ' + body)
 	
 	return body
@@ -176,7 +176,7 @@ def get_user_time_zone():
 		frappe.local.user_time_zone = frappe.cache().get_value("time_zone")
 		
 	if not frappe.local.user_time_zone:
-		frappe.local.user_time_zone = frappe.conn.get_value('Control Panel', None, 'time_zone') \
+		frappe.local.user_time_zone = frappe.db.get_value('Control Panel', None, 'time_zone') \
 			or 'Asia/Calcutta'
 		frappe.cache().set_value("time_zone", frappe.local.user_time_zone)
 
@@ -261,7 +261,7 @@ def formatdate(string_date=None):
 		string_date = now_datetime().date()
 	
 	if getattr(frappe.local, "user_format", None) is None:
-		frappe.local.user_format = frappe.conn.get_default("date_format")
+		frappe.local.user_format = frappe.db.get_default("date_format")
 	
 	out = frappe.local.user_format
 	
@@ -378,7 +378,7 @@ def fmt_money(amount, precision=None, currency=None):
 	"""
 	Convert to string with commas for thousands, millions etc
 	"""	
-	number_format = frappe.conn.get_default("number_format") or "#,###.##"
+	number_format = frappe.db.get_default("number_format") or "#,###.##"
 	decimal_str, comma_str, precision = get_number_format_info(number_format)
 	
 	
@@ -413,7 +413,7 @@ def fmt_money(amount, precision=None, currency=None):
 	amount = minus + amount
 	
 	if currency:
-		symbol = frappe.conn.get_value("Currency", currency, "symbol")
+		symbol = frappe.db.get_value("Currency", currency, "symbol")
 		if symbol:
 			amount = symbol + " " + amount
 
@@ -444,15 +444,15 @@ def money_in_words(number, main_currency = None, fraction_currency=None):
 	if not main_currency:
 		main_currency = d.get('currency', 'INR')
 	if not fraction_currency:
-		fraction_currency = frappe.conn.get_value("Currency", main_currency, "fraction") or "Cent"
+		fraction_currency = frappe.db.get_value("Currency", main_currency, "fraction") or "Cent"
 
 	n = "%.2f" % flt(number)
 	main, fraction = n.split('.')
 	if len(fraction)==1: fraction += '0'
 	
 	
-	number_format = frappe.conn.get_value("Currency", main_currency, "number_format") or \
-		frappe.conn.get_default("number_format") or "#,###.##"
+	number_format = frappe.db.get_value("Currency", main_currency, "number_format") or \
+		frappe.db.get_default("number_format") or "#,###.##"
 	
 	in_million = True
 	if number_format == "#,##,###.##": in_million = False
@@ -530,13 +530,13 @@ def get_defaults(key=None):
 	"""
 	Get dictionary of default values from the :term:`Control Panel`, or a value if key is passed
 	"""
-	return frappe.conn.get_defaults(key)
+	return frappe.db.get_defaults(key)
 
 def set_default(key, val):
 	"""
 	Set / add a default value to :term:`Control Panel`
 	"""
-	return frappe.conn.set_default(key, val)
+	return frappe.db.set_default(key, val)
 
 def remove_blanks(d):
 	"""
@@ -688,12 +688,12 @@ def get_doctype_label(dt=None):
 		Gets label of a doctype
 	"""
 	if dt:
-		res = frappe.conn.sql("""\
+		res = frappe.db.sql("""\
 			SELECT name, dt_label FROM `tabDocType Label`
 			WHERE name=%s""", dt)
 		return res and res[0][0] or dt
 	else:
-		res = frappe.conn.sql("SELECT name, dt_label FROM `tabDocType Label`")
+		res = frappe.db.sql("SELECT name, dt_label FROM `tabDocType Label`")
 		dt_label_dict = {}
 		for r in res:
 			dt_label_dict[r[0]] = r[1]
@@ -705,7 +705,7 @@ def get_label_doctype(label):
 	"""
 		Gets doctype from its label
 	"""
-	res = frappe.conn.sql("""\
+	res = frappe.db.sql("""\
 		SELECT name FROM `tabDocType Label`
 		WHERE dt_label=%s""", label)
 
@@ -823,7 +823,7 @@ def get_backups_path():
 def get_url(uri=None):
 	url = get_request_site_address()
 	if not url or "localhost" in url:
-		subdomain = frappe.conn.get_value("Website Settings", "Website Settings",
+		subdomain = frappe.db.get_value("Website Settings", "Website Settings",
 			"subdomain")
 		if subdomain:
 			if "http" not in subdomain:

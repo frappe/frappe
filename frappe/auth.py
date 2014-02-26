@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe
-import frappe.db
+import frappe.database
 import frappe.utils
 import frappe.profile
 from frappe import conf
@@ -35,8 +35,8 @@ class HTTPRequest:
 		frappe.local.login_manager = LoginManager()
 
 		# check status
-		if frappe.conn.get_global("__session_status")=='stop':
-			frappe.msgprint(frappe.conn.get_global("__session_status_message"))
+		if frappe.db.get_global("__session_status")=='stop':
+			frappe.msgprint(frappe.db.get_global("__session_status_message"))
 			raise frappe.SessionStopped('Session Stopped')
 
 		# load profile
@@ -81,7 +81,7 @@ class HTTPRequest:
 
 	def connect(self, ac_name = None):
 		"""connect to db, from ac_name or db_name"""
-		frappe.local.conn = frappe.db.Database(user = self.get_db_name(), \
+		frappe.local.db = frappe.db.Database(user = self.get_db_name(), \
 			password = getattr(conf,'db_password', ''))
 
 class LoginManager:
@@ -106,7 +106,7 @@ class LoginManager:
 		self.set_user_info()
 	
 	def set_user_info(self):
-		info = frappe.conn.get_value("Profile", self.user, 
+		info = frappe.db.get_value("Profile", self.user, 
 			["user_type", "first_name", "last_name", "user_image"], as_dict=1)
 		if info.user_type=="Website User":
 			frappe.local._response.set_cookie("system_user", "no")
@@ -142,12 +142,12 @@ class LoginManager:
 		"""raise exception if user not enabled"""
 		from frappe.utils import cint
 		if user=='Administrator': return
-		if not cint(frappe.conn.get_value('Profile', user, 'enabled')):
+		if not cint(frappe.db.get_value('Profile', user, 'enabled')):
 			self.fail('User disabled or missing')
 
 	def check_password(self, user, pwd):
 		"""check password"""
-		user = frappe.conn.sql("""select `user` from __Auth where `user`=%s 
+		user = frappe.db.sql("""select `user` from __Auth where `user`=%s 
 			and `password`=password(%s)""", (user, pwd))
 		if not user:
 			self.fail('Incorrect password')
@@ -165,7 +165,7 @@ class LoginManager:
 	
 	def validate_ip_address(self):
 		"""check if IP Address is valid"""
-		ip_list = frappe.conn.get_value('Profile', self.user, 'restrict_ip', ignore=True)
+		ip_list = frappe.db.get_value('Profile', self.user, 'restrict_ip', ignore=True)
 		
 		if not ip_list:
 			return
@@ -182,8 +182,8 @@ class LoginManager:
 
 	def validate_hour(self):
 		"""check if user is logging in during restricted hours"""
-		login_before = int(frappe.conn.get_value('Profile', self.user, 'login_before', ignore=True) or 0)
-		login_after = int(frappe.conn.get_value('Profile', self.user, 'login_after', ignore=True) or 0)
+		login_before = int(frappe.db.get_value('Profile', self.user, 'login_before', ignore=True) or 0)
+		login_after = int(frappe.db.get_value('Profile', self.user, 'login_after', ignore=True) or 0)
 		
 		if not (login_before or login_after):
 			return
@@ -206,7 +206,7 @@ class LoginManager:
 		if not user: user = frappe.session.user
 		self.run_trigger('on_logout')
 		if user in ['demo@erpnext.com', 'Administrator']:
-			frappe.conn.sql('delete from tabSessions where sid=%s', frappe.session.get('sid'))
+			frappe.db.sql('delete from tabSessions where sid=%s', frappe.session.get('sid'))
 			frappe.cache().delete_value("session:" + frappe.session.get("sid"))
 		else:
 			from frappe.sessions import clear_sessions
@@ -241,7 +241,7 @@ class CookieManager:
 		
 		if not cint(frappe.form_dict.get('remember_me')): return
 		
-		remember_days = frappe.conn.get_value('Control Panel', None,
+		remember_days = frappe.db.get_value('Control Panel', None,
 			'remember_for_days') or 7
 			
 		import datetime
@@ -252,7 +252,7 @@ class CookieManager:
 
 
 def _update_password(user, password):
-	frappe.conn.sql("""insert into __Auth (user, `password`) 
+	frappe.db.sql("""insert into __Auth (user, `password`) 
 		values (%s, password(%s)) 
 		on duplicate key update `password`=password(%s)""", (user, 
 		password, password))

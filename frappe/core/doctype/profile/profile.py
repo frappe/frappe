@@ -18,7 +18,7 @@ class DocType:
 			self.doc.email = self.doc.email.strip()		
 			self.doc.name = self.doc.email
 			
-			if frappe.conn.exists("Profile", self.doc.name):
+			if frappe.db.exists("Profile", self.doc.name):
 				throw(_("Name Exists"))
 
 	def validate(self):
@@ -67,7 +67,7 @@ class DocType:
 		if 'max_users' in conf and self.doc.enabled and \
 				self.doc.name not in ["Administrator", "Guest"] and \
 				cstr(self.doc.user_type).strip() in ("", "System User"):
-			active_users = frappe.conn.sql("""select count(*) from tabProfile
+			active_users = frappe.db.sql("""select count(*) from tabProfile
 				where ifnull(enabled, 0)=1 and docstatus<2
 				and ifnull(user_type, "System User") = "System User"
 				and name not in ('Administrator', 'Guest', %s)""", (self.doc.name,))[0][0]
@@ -104,7 +104,7 @@ class DocType:
 			
 	def on_update(self):
 		# owner is always name
-		frappe.conn.set(self.doc, 'owner', self.doc.name)
+		frappe.db.set(self.doc, 'owner', self.doc.name)
 		frappe.clear_cache(user=self.doc.name)
 		
 	def update_gravatar(self):
@@ -120,11 +120,11 @@ class DocType:
 		from frappe.utils import random_string, get_url
 
 		key = random_string(32)
-		frappe.conn.set_value("Profile", self.doc.name, "reset_password_key", key)
+		frappe.db.set_value("Profile", self.doc.name, "reset_password_key", key)
 		self.password_reset_mail(get_url("/update-password?key=" + key))
 	
 	def get_other_system_managers(self):
-		return frappe.conn.sql("""select distinct parent from tabUserRole user_role
+		return frappe.db.sql("""select distinct parent from tabUserRole user_role
 			where role='System Manager' and docstatus<2
 			and parent not in ('Administrator', %s) and exists 
 				(select * from `tabProfile` profile 
@@ -155,7 +155,7 @@ class DocType:
 		from frappe.utils import get_url
 		
 		mail_titles = frappe.get_hooks().get("login_mail_title", [])
-		title = frappe.conn.get_default('company') or (mail_titles and mail_titles[0]) or ""
+		title = frappe.db.get_default('company') or (mail_titles and mail_titles[0]) or ""
 		
 		full_name = get_user_fullname(frappe.session['user'])
 		if full_name == "Guest":
@@ -196,20 +196,20 @@ class DocType:
 			frappe.local.login_manager.logout(user=self.doc.name)
 		
 		# delete their password
-		frappe.conn.sql("""delete from __Auth where user=%s""", (self.doc.name,))
+		frappe.db.sql("""delete from __Auth where user=%s""", (self.doc.name,))
 		
 		# delete todos
-		frappe.conn.sql("""delete from `tabToDo` where owner=%s""", (self.doc.name,))
-		frappe.conn.sql("""update tabToDo set assigned_by=null where assigned_by=%s""",
+		frappe.db.sql("""delete from `tabToDo` where owner=%s""", (self.doc.name,))
+		frappe.db.sql("""update tabToDo set assigned_by=null where assigned_by=%s""",
 			(self.doc.name,))
 		
 		# delete events
-		frappe.conn.sql("""delete from `tabEvent` where owner=%s
+		frappe.db.sql("""delete from `tabEvent` where owner=%s
 			and event_type='Private'""", (self.doc.name,))
-		frappe.conn.sql("""delete from `tabEvent User` where person=%s""", (self.doc.name,))
+		frappe.db.sql("""delete from `tabEvent User` where person=%s""", (self.doc.name,))
 			
 		# delete messages
-		frappe.conn.sql("""delete from `tabComment` where comment_doctype='Message'
+		frappe.db.sql("""delete from `tabComment` where comment_doctype='Message'
 			and (comment_docname=%s or owner=%s)""", (self.doc.name, self.doc.name))
 			
 	def before_rename(self, olddn, newdn, merge=False):
@@ -237,27 +237,27 @@ class DocType:
 			}))
 	
 	def after_rename(self, olddn, newdn, merge=False):			
-		tables = frappe.conn.sql("show tables")
+		tables = frappe.db.sql("show tables")
 		for tab in tables:
-			desc = frappe.conn.sql("desc `%s`" % tab[0], as_dict=1)
+			desc = frappe.db.sql("desc `%s`" % tab[0], as_dict=1)
 			has_fields = []
 			for d in desc:
 				if d.get('Field') in ['owner', 'modified_by']:
 					has_fields.append(d.get('Field'))
 			for field in has_fields:
-				frappe.conn.sql("""\
+				frappe.db.sql("""\
 					update `%s` set `%s`=%s
 					where `%s`=%s""" % \
 					(tab[0], field, '%s', field, '%s'), (newdn, olddn))
 					
 		# set email
-		frappe.conn.sql("""\
+		frappe.db.sql("""\
 			update `tabProfile` set email=%s
 			where name=%s""", (newdn, newdn))
 		
 		# update __Auth table
 		if not merge:
-			frappe.conn.sql("""update __Auth set user=%s where user=%s""", (newdn, olddn))
+			frappe.db.sql("""update __Auth set user=%s where user=%s""", (newdn, olddn))
 			
 	def add_roles(self, *roles):
 		for role in roles:
@@ -281,7 +281,7 @@ def get_languages():
 @frappe.whitelist()
 def get_all_roles(arg=None):
 	"""return all roles"""
-	return [r[0] for r in frappe.conn.sql("""select name from tabRole
+	return [r[0] for r in frappe.db.sql("""select name from tabRole
 		where name not in ('Administrator', 'Guest', 'All') order by name""")]
 		
 @frappe.whitelist()
@@ -292,7 +292,7 @@ def get_user_roles(arg=None):
 @frappe.whitelist()
 def get_perm_info(arg=None):
 	"""get permission info"""
-	return frappe.conn.sql("""select parent, permlevel, `read`, `write`, submit,
+	return frappe.db.sql("""select parent, permlevel, `read`, `write`, submit,
 		cancel, amend from tabDocPerm where role=%s 
 		and docstatus<2 order by parent, permlevel""", 
 			(frappe.form_dict['role'],), as_dict=1)
@@ -301,18 +301,18 @@ def get_perm_info(arg=None):
 def update_password(new_password, key=None, old_password=None):
 	# verify old password
 	if key:
-		user = frappe.conn.get_value("Profile", {"reset_password_key":key})
+		user = frappe.db.get_value("Profile", {"reset_password_key":key})
 		if not user:
 			return _("Cannot Update: Incorrect / Expired Link.")
 	elif old_password:
 		user = frappe.session.user
-		if not frappe.conn.sql("""select user from __Auth where password=password(%s) 
+		if not frappe.db.sql("""select user from __Auth where password=password(%s) 
 			and user=%s""", (old_password, user)):
 			return _("Cannot Update: Incorrect Password")
 	
 	_update_password(user, new_password)
 	
-	frappe.conn.set_value("Profile", user, "reset_password_key", "")
+	frappe.db.set_value("Profile", user, "reset_password_key", "")
 	
 	frappe.local.login_manager.logout()
 	
@@ -320,14 +320,14 @@ def update_password(new_password, key=None, old_password=None):
 	
 @frappe.whitelist(allow_guest=True)
 def sign_up(email, full_name):
-	profile = frappe.conn.get("Profile", {"email": email})
+	profile = frappe.db.get("Profile", {"email": email})
 	if profile:
 		if profile.disabled:
 			return _("Registered but disabled.")
 		else:
 			return _("Already Registered")
 	else:
-		if frappe.conn.sql("""select count(*) from tabProfile where 
+		if frappe.db.sql("""select count(*) from tabProfile where 
 			TIMEDIFF(%s, modified) > '1:00:00' """, now())[0][0] > 200:
 			raise Exception, "Too Many New Profiles"
 		from frappe.utils import random_string
@@ -349,7 +349,7 @@ def reset_password(user):
 	if user in ["demo@erpnext.com", "Administrator"]:
 		return "Not allowed"
 		
-	if frappe.conn.sql("""select name from tabProfile where name=%s""", (user,)):
+	if frappe.db.sql("""select name from tabProfile where name=%s""", (user,)):
 		# Hack!
 		frappe.session["user"] = "Administrator"
 		profile = frappe.bean("Profile", user)
@@ -371,7 +371,7 @@ def facebook_login(data):
 		# garbage
 		raise frappe.ValidationError
 	
-	if not frappe.conn.exists("Profile", user):
+	if not frappe.db.exists("Profile", user):
 		if data.get("birthday"):
 			b = data.get("birthday").split("/")
 			data["birthday"] = b[2] + "-" + b[0] + "-" + b[1]
@@ -407,7 +407,7 @@ def get_fb_userid(fb_access_token):
 		
 def profile_query(doctype, txt, searchfield, start, page_len, filters):
 	from frappe.widgets.reportview import get_match_cond
-	return frappe.conn.sql("""select name, concat_ws(' ', first_name, middle_name, last_name) 
+	return frappe.db.sql("""select name, concat_ws(' ', first_name, middle_name, last_name) 
 		from `tabProfile` 
 		where ifnull(enabled, 0)=1 
 			and docstatus < 2 
@@ -426,25 +426,25 @@ def profile_query(doctype, txt, searchfield, start, page_len, filters):
 
 def get_total_users():
 	"""Returns total no. of system users"""
-	return frappe.conn.sql("""select count(*) from `tabProfile`
+	return frappe.db.sql("""select count(*) from `tabProfile`
 		where enabled = 1 and user_type != 'Website User'
 		and name not in ('Administrator', 'Guest')""")[0][0]
 
 def get_active_users():
 	"""Returns No. of system users who logged in, in the last 3 days"""
-	return frappe.conn.sql("""select count(*) from `tabProfile`
+	return frappe.db.sql("""select count(*) from `tabProfile`
 		where enabled = 1 and user_type != 'Website User'
 		and name not in ('Administrator', 'Guest')
 		and hour(timediff(now(), last_login)) < 72""")[0][0]
 
 def get_website_users():
 	"""Returns total no. of website users"""
-	return frappe.conn.sql("""select count(*) from `tabProfile`
+	return frappe.db.sql("""select count(*) from `tabProfile`
 		where enabled = 1 and user_type = 'Website User'""")[0][0]
 	
 def get_active_website_users():
 	"""Returns No. of website users who logged in, in the last 3 days"""
-	return frappe.conn.sql("""select count(*) from `tabProfile`
+	return frappe.db.sql("""select count(*) from `tabProfile`
 		where enabled = 1 and user_type = 'Website User'
 		and hour(timediff(now(), last_login)) < 72""")[0][0]
 

@@ -17,7 +17,7 @@ class DocType:
 			frappe.msgprint("Standard Print Format cannot be updated.", raise_exception=1)
 		
 		# old_doc_type is required for clearing item cache
-		self.old_doc_type = frappe.conn.get_value('Print Format',
+		self.old_doc_type = frappe.db.get_value('Print Format',
 				self.doc.name, 'doc_type')
 
 	def on_update(self):
@@ -90,13 +90,13 @@ def get_print_format_name(doctype, format_name):
 		return format_name
 		
 	# server, find template
-	path = os.path.join(get_doc_path(frappe.conn.get_value("DocType", doctype, "module"), 
+	path = os.path.join(get_doc_path(frappe.db.get_value("DocType", doctype, "module"), 
 		"Print Format", format_name), format_name + ".html")
 	if os.path.exists(path):
 		with open(path, "r") as pffile:
 			return pffile.read()
 	else:
-		html = frappe.conn.get_value("Print Format", format_name, "html")
+		html = frappe.db.get_value("Print Format", format_name, "html")
 		if html:
 			return html
 		else:
@@ -104,7 +104,7 @@ def get_print_format_name(doctype, format_name):
 
 def get_print_style(style=None):
 	if not style:
-		style = frappe.conn.get_default("print_style") or "Standard"
+		style = frappe.db.get_default("print_style") or "Standard"
 	path = os.path.join(get_doc_path("Core", "DocType", "Print Format"), "styles", 
 		style.lower() + ".css")
 	if not os.path.exists(path):

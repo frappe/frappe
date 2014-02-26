@@ -37,7 +37,7 @@ class Bean:
 			dn = dt
 		if dt and dn:
 			if isinstance(dn, dict):
-				dn = frappe.conn.get_value(dt, dn, "name")
+				dn = frappe.db.get_value(dt, dn, "name")
 				if dn is None:
 					raise frappe.DoesNotExistError
 			
@@ -120,13 +120,13 @@ class Bean:
 		conflict = False
 		if not cint(self.doc.fields.get('__islocal')):
 			if is_single(self.doc.doctype):
-				modified = frappe.conn.get_value(self.doc.doctype, self.doc.name, "modified")
+				modified = frappe.db.get_value(self.doc.doctype, self.doc.name, "modified")
 				if isinstance(modified, list):
 					modified = modified[0]
 				if cstr(modified) and cstr(modified) != cstr(self.doc.modified):
 					conflict = True
 			else:
-				tmp = frappe.conn.sql("""select modified, docstatus from `tab%s` 
+				tmp = frappe.db.sql("""select modified, docstatus from `tab%s` 
 					where name="%s" for update"""
 					% (self.doc.doctype, self.doc.name), as_dict=True)
 
@@ -265,7 +265,7 @@ class Bean:
 		return self.save()
 	
 	def insert_or_update(self):
-		if self.doc.name and frappe.conn.exists(self.doc.doctype, self.doc.name):
+		if self.doc.name and frappe.db.exists(self.doc.doctype, self.doc.name):
 			return self.save()
 		else:
 			return self.insert()
@@ -371,7 +371,7 @@ class Bean:
 			frappe.msgprint('%s "%s" already exists' % (self.doc.doctype, self.doc.name))
 
 			# prompt if cancelled
-			if frappe.conn.get_value(self.doc.doctype, self.doc.name, 'docstatus')==2:
+			if frappe.db.get_value(self.doc.doctype, self.doc.name, 'docstatus')==2:
 				frappe.msgprint('[%s "%s" has been cancelled]' % (self.doc.doctype, self.doc.name))
 			frappe.errprint(frappe.utils.get_traceback())
 			raise
@@ -396,11 +396,11 @@ class Bean:
 			if dt[0] not in self.ignore_children_type:
 				cnames = child_map.get(dt[0]) or []
 				if cnames:
-					frappe.conn.sql("""delete from `tab%s` where parent=%s and parenttype=%s and
+					frappe.db.sql("""delete from `tab%s` where parent=%s and parenttype=%s and
 						name not in (%s)""" % (dt[0], '%s', '%s', ','.join(['%s'] * len(cnames))), 
 							tuple([self.doc.name, self.doc.doctype] + cnames))
 				else:
-					frappe.conn.sql("""delete from `tab%s` where parent=%s and parenttype=%s""" \
+					frappe.db.sql("""delete from `tab%s` where parent=%s and parenttype=%s""" \
 						% (dt[0], '%s', '%s'), (self.doc.name, self.doc.doctype))
 	
 	def delete(self):

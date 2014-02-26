@@ -15,7 +15,7 @@ def get_context(context):
 	"""generate the sitemap XML"""
 	host = get_request_site_address()
 	links = []
-	for l in frappe.conn.sql("""select `tabWebsite Route`.page_name, `tabWebsite Route`.lastmod 
+	for l in frappe.db.sql("""select `tabWebsite Route`.page_name, `tabWebsite Route`.lastmod 
 		from `tabWebsite Route`, `tabWebsite Template` 
 		where 
 			`tabWebsite Route`.website_template = `tabWebsite Template`.name

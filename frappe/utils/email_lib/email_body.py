@@ -159,7 +159,7 @@ class EMail:
 			return email
 		
 		if not self.sender:
-			self.sender = frappe.conn.get_value('Email Settings', None,
+			self.sender = frappe.db.get_value('Email Settings', None,
 				'auto_email_id') or frappe.conf.get('auto_email_id') or None
 			if not self.sender:
 				msgprint(_("Please specify 'Auto Email Id' in Setup > Email Settings"))
@@ -211,7 +211,7 @@ def get_footer(footer=None):
 	footer = footer or ""
 	
 	# control panel
-	footer += frappe.conn.get_value('Control Panel', None, 'mail_footer') or ''
+	footer += frappe.db.get_value('Control Panel', None, 'mail_footer') or ''
 	
 	# hooks
 	for f in frappe.get_hooks("mail_footer"):

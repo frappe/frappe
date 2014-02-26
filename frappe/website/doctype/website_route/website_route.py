@@ -34,16 +34,16 @@ class DocType(DocTypeNestedSet):
 		self.set_idx()
 
 	def renumber_if_moved(self):
-		current_parent = frappe.conn.get_value("Website Route", self.doc.name, "parent_website_route")
+		current_parent = frappe.db.get_value("Website Route", self.doc.name, "parent_website_route")
 		if current_parent and current_parent != self.doc.parent_website_route:
 			# move-up
 			
 			# sitemap
-			frappe.conn.sql("""update `tabWebsite Route` set idx=idx-1 
+			frappe.db.sql("""update `tabWebsite Route` set idx=idx-1 
 				where parent_website_route=%s and idx>%s""", (current_parent, self.doc.idx))
 				
 			# source table
-			frappe.conn.sql("""update `tab{0}` set idx=idx-1 
+			frappe.db.sql("""update `tab{0}` set idx=idx-1 
 				where parent_website_route=%s and idx>%s""".format(self.doc.ref_doctype), 
 					(current_parent, self.doc.idx))
 			self.doc.idx = None
@@ -51,7 +51,7 @@ class DocType(DocTypeNestedSet):
 	def set_idx(self):
 		if self.doc.parent_website_route:
 			if self.doc.idx == None:
-				self.doc.idx = int(frappe.conn.sql("""select ifnull(max(ifnull(idx, -1)), -1) 
+				self.doc.idx = int(frappe.db.sql("""select ifnull(max(ifnull(idx, -1)), -1) 
 					from `tabWebsite Route`
 					where ifnull(parent_website_route, '')=%s and name!=%s""", 
 						(self.doc.parent_website_route or '',
@@ -59,7 +59,7 @@ class DocType(DocTypeNestedSet):
 								
 			else:
 				self.doc.idx = cint(self.doc.idx)
-				previous_idx = frappe.conn.sql("""select max(idx) 
+				previous_idx = frappe.db.sql("""select max(idx) 
 						from `tab{}` where ifnull(parent_website_route, '')=%s 
 						and ifnull(idx, -1) < %s""".format(self.doc.ref_doctype), 
 						(self.doc.parent_website_route, self.doc.idx))[0][0]
@@ -76,22 +76,22 @@ class DocType(DocTypeNestedSet):
 		from frappe.website.render import clear_cache
 		self.old_name = self.doc.name
 		self.doc.name = self.get_url()
-		frappe.conn.sql("""update `tabWebsite Route` set name=%s where name=%s""", 
+		frappe.db.sql("""update `tabWebsite Route` set name=%s where name=%s""", 
 			(self.doc.name, self.old_name))
 		self.rename_links()
 		self.rename_descendants()
 		clear_cache(self.old_name)
 		
 	def rename_links(self):
-		for doctype in frappe.conn.sql_list("""select parent from tabDocField where fieldtype='Link' and 
+		for doctype in frappe.db.sql_list("""select parent from tabDocField where fieldtype='Link' and 
 			fieldname='parent_website_route' and options='Website Route'"""):
-			for name in frappe.conn.sql_list("""select name from `tab{}` 
+			for name in frappe.db.sql_list("""select name from `tab{}` 
 				where parent_website_route=%s""".format(doctype), self.old_name):
-				frappe.conn.set_value(doctype, name, "parent_website_route", self.doc.name)
+				frappe.db.set_value(doctype, name, "parent_website_route", self.doc.name)
 	
 	def rename_descendants(self):
 		# rename children
-		for name in frappe.conn.sql_list("""select name from `tabWebsite Route`
+		for name in frappe.db.sql_list("""select name from `tabWebsite Route`
 			where parent_website_route=%s""", self.doc.name):
 			child = frappe.bean("Website Route", name)
 			child.doc.parent_website_route = self.doc.name
@@ -101,11 +101,11 @@ class DocType(DocTypeNestedSet):
 		exists = False
 		if self.doc.page_or_generator == "Page":
 			# for a page, name and website sitemap config form a unique key
-			exists = frappe.conn.sql("""select name from `tabWebsite Route`
+			exists = frappe.db.sql("""select name from `tabWebsite Route`
 				where name=%s and website_template!=%s""", (self.doc.name, self.doc.website_template))
 		else:
 			# for a generator, name, ref_doctype and docname make a unique key
-			exists = frappe.conn.sql("""select name from `tabWebsite Route`
+			exists = frappe.db.sql("""select name from `tabWebsite Route`
 				where name=%s and (ifnull(ref_doctype, '')!=%s or ifnull(docname, '')!=%s)""", 
 				(self.doc.name, self.doc.ref_doctype, self.doc.docname))
 				
@@ -115,7 +115,7 @@ class DocType(DocTypeNestedSet):
 		
 	def make_private_if_parent_is_private(self):
 		if self.doc.parent_website_route:
-			parent_pubic_read = frappe.conn.get_value("Website Route", self.doc.parent_website_route,
+			parent_pubic_read = frappe.db.get_value("Website Route", self.doc.parent_website_route,
 				"public_read")
 			
 			if not parent_pubic_read:
@@ -124,7 +124,7 @@ class DocType(DocTypeNestedSet):
 	def on_trash(self):		
 		from frappe.website.render import clear_cache
 		# remove website sitemap permissions
-		to_remove = frappe.conn.sql_list("""select name from `tabWebsite Route Permission` 
+		to_remove = frappe.db.sql_list("""select name from `tabWebsite Route Permission` 
 			where website_route=%s""", (self.doc.name,))
 		frappe.delete_doc("Website Route Permission", to_remove, ignore_permissions=True)
 		
@@ -162,12 +162,12 @@ def remove_sitemap(page_name=None, ref_doctype=None, docname=None):
 	if page_name:
 		frappe.delete_doc("Website Route", page_name, ignore_permissions=True)
 	elif ref_doctype and docname:
-		frappe.delete_doc("Website Route", frappe.conn.sql_list("""select name from `tabWebsite Route`
+		frappe.delete_doc("Website Route", frappe.db.sql_list("""select name from `tabWebsite Route`
 			where ref_doctype=%s and docname=%s""", (ref_doctype, docname)), ignore_permissions=True)
 	
 def cleanup_sitemap():
 	"""remove sitemap records where its config do not exist anymore"""
-	to_delete = frappe.conn.sql_list("""select name from `tabWebsite Route` ws
+	to_delete = frappe.db.sql_list("""select name from `tabWebsite Route` ws
 			where not exists(select name from `tabWebsite Template` wsc
 				where wsc.name=ws.website_template)""")
 	

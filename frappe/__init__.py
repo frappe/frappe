@@ -60,7 +60,7 @@ def set_user_lang(user, user_language=None):
 	from frappe.translate import get_lang_dict
 	
 	if not user_language:
-		user_language = conn.get_value("Profile", user, "language")
+		user_language = db.get_value("Profile", user, "language")
 	
 	if user_language:
 		lang_dict = get_lang_dict()
@@ -68,7 +68,7 @@ def set_user_lang(user, user_language=None):
 			local.lang = lang_dict[user_language]
 
 # local-globals
-conn = local("conn")
+db = local("db")
 conf = local("conf")
 form = form_dict = local("form_dict")
 request = local("request")
@@ -129,8 +129,8 @@ def get_site_config():
 
 def destroy():
 	"""closes connection and releases werkzeug local"""
-	if conn:
-		conn.close()
+	if db:
+		db.close()
 	
 	release_local(local)
 
@@ -182,7 +182,7 @@ def msgprint(msg, small=0, raise_exception=0, as_table=False):
 	def _raise_exception():
 		if raise_exception:
 			if flags.rollback_on_exception:
-				conn.rollback()
+				db.rollback()
 			import inspect
 			if inspect.isclass(raise_exception) and issubclass(raise_exception, Exception):
 				raise raise_exception, msg
@@ -210,10 +210,10 @@ def create_folder(path):
 	if not os.path.exists(path): os.makedirs(path)
 	
 def connect(site=None, db_name=None):
-	from db import Database
+	from database import Database
 	if site:
 		init(site)
-	local.conn = Database(user=db_name or local.conf.db_name)
+	local.db = Database(user=db_name or local.conf.db_name)
 	local.response = _dict()
 	local.form_dict = _dict()
 	local.session = _dict()
@@ -296,11 +296,11 @@ def has_permission(doctype, ptype="read", refdoc=None):
 	return frappe.permissions.has_permission(doctype, ptype, refdoc)
 	
 def clear_perms(doctype):
-	conn.sql("""delete from tabDocPerm where parent=%s""", doctype)
+	db.sql("""delete from tabDocPerm where parent=%s""", doctype)
 
 def reset_perms(doctype):
 	clear_perms(doctype)
-	reload_doc(conn.get_value("DocType", doctype, "module"), 
+	reload_doc(db.get_value("DocType", doctype, "module"), 
 		"DocType", doctype, force=True)
 
 def generate_hash(txt=None):
@@ -413,7 +413,7 @@ def get_all_apps(with_frappe=False, with_internal_apps=True):
 def get_installed_apps():
 	if flags.in_install_db:
 		return []
-	installed = json.loads(conn.get_global("installed_apps") or "[]")
+	installed = json.loads(db.get_global("installed_apps") or "[]")
 	return installed
 
 def get_hooks(hook=None, app_name=None):
@@ -507,14 +507,14 @@ def make_property_setter(args):
 
 def get_application_home_page(user='Guest'):
 	"""get home page for user"""
-	hpl = conn.sql("""select home_page
+	hpl = db.sql("""select home_page
 		from `tabDefault Home Page`
 		where parent='Control Panel'
 		and role in ('%s') order by idx asc limit 1""" % "', '".join(get_roles(user)))
 	if hpl:
 		return hpl[0][0]
 	else:
-		return conn.get_value("Control Panel", None, "home_page")
+		return db.get_value("Control Panel", None, "home_page")
 
 def import_doclist(path, ignore_links=False, ignore_insert=False, insert=False):
 	from frappe.core.page.data_import_tool import data_import_tool
@@ -617,7 +617,7 @@ def get_template(path):
 	return get_jenv().get_template(path)
 	
 def get_website_route(doctype, name):
-	return conn.get_value("Website Route", {"ref_doctype": doctype, "docname": name})
+	return db.get_value("Website Route", {"ref_doctype": doctype, "docname": name})
 
 def add_version(doclist):
 	bean({

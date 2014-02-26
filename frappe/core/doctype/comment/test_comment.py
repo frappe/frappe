@@ -21,12 +21,12 @@ import frappe, unittest, json
 # 		self.cleanup()
 # 	
 # 	def cleanup(self):
-# 		frappe.conn.sql("""delete from tabEvent where subject='__Comment Test Event'""")
-# 		frappe.conn.sql("""delete from tabComment where comment='__Test Comment'""")
-# 		frappe.conn.commit()
-# 		if "_comments" in frappe.conn.get_table_columns("Event"):
-# 			frappe.conn.commit()
-# 			frappe.conn.sql("""alter table `tabEvent` drop column `_comments`""")
+# 		frappe.db.sql("""delete from tabEvent where subject='__Comment Test Event'""")
+# 		frappe.db.sql("""delete from tabComment where comment='__Test Comment'""")
+# 		frappe.db.commit()
+# 		if "_comments" in frappe.db.get_table_columns("Event"):
+# 			frappe.db.commit()
+# 			frappe.db.sql("""alter table `tabEvent` drop column `_comments`""")
 # 	
 # 	def test_add_comment(self):
 # 		self.comment = frappe.bean({

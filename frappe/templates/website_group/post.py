@@ -34,7 +34,7 @@ def get_parent_post_html(post, context):
 		.render({"post": post.fields, "view": context.view})
 
 def get_child_posts_html(post, context):
-	posts = frappe.conn.sql("""select p.*, pr.user_image, pr.first_name, pr.last_name
+	posts = frappe.db.sql("""select p.*, pr.user_image, pr.first_name, pr.last_name
 		from tabPost p, tabProfile pr
 		where p.parent_post=%s and pr.name = p.owner
 		order by p.creation asc""", (post.name,), as_dict=True)
@@ -48,7 +48,7 @@ def get_child_posts_html(post, context):
 		
 def clear_post_cache(post=None):
 	cache = frappe.cache()
-	posts = [post] if post else frappe.conn.sql_list("select name from `tabPost`")
+	posts = [post] if post else frappe.db.sql_list("select name from `tabPost`")
 
 	for post in posts:
 		cache.delete_value("website_group_post:{}".format(post))
@@ -62,7 +62,7 @@ def add_post(group, content, picture, picture_name, title=None, parent_post=None
 		raise frappe.PermissionError
 
 	if parent_post:
-		if frappe.conn.get_value("Post", parent_post, "parent_post"):
+		if frappe.db.get_value("Post", parent_post, "parent_post"):
 			frappe.throw("Cannot reply to a reply")
 		
 	group = frappe.doc("Website Group", group)	
@@ -133,13 +133,13 @@ def process_picture(post, picture_name, picture):
 	
 	file_data = save_file(picture_name, picture, "Post", post.doc.name, decode=True)
 	post.doc.picture_url = file_data.file_name or file_data.file_url
-	frappe.conn.set_value("Post", post.doc.name, "picture_url", post.doc.picture_url)
+	frappe.db.set_value("Post", post.doc.name, "picture_url", post.doc.picture_url)
 	clear_cache(website_group=post.doc.website_group)
 	
 @frappe.whitelist()
 def suggest_user(group, term):
 	"""suggest a user that has read permission in this group tree"""
-	profiles = frappe.conn.sql("""select 
+	profiles = frappe.db.sql("""select 
 		pr.name, pr.first_name, pr.last_name, 
 		pr.user_image, pr.location
 		from `tabProfile` pr

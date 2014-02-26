@@ -9,7 +9,7 @@ class DocType:
 		self.doc, self.doclist = d, dl
 		
 	def validate(self):
-		if frappe.conn.sql("""select count(*) from tabComment where comment_doctype=%s
+		if frappe.db.sql("""select count(*) from tabComment where comment_doctype=%s
 			and comment_docname=%s""", (self.doc.doctype, self.doc.name))[0][0] >= 50:
 			frappe.msgprint("Max Comments reached!", raise_exception=True)
 	
@@ -45,13 +45,13 @@ class DocType:
 					raise
 	
 	def get_comments_from_parent(self):
-		_comments = frappe.conn.get_value(self.doc.comment_doctype, 
+		_comments = frappe.db.get_value(self.doc.comment_doctype, 
 			self.doc.comment_docname, "_comments") or "[]"
 		return json.loads(_comments)
 	
 	def update_comments_in_parent(self, _comments):
 		# use sql, so that we do not mess with the timestamp
-		frappe.conn.sql("""update `tab%s` set `_comments`=%s where name=%s""" % (self.doc.comment_doctype,
+		frappe.db.sql("""update `tab%s` set `_comments`=%s where name=%s""" % (self.doc.comment_doctype,
 			"%s", "%s"), (json.dumps(_comments), self.doc.comment_docname))
 	
 	def on_trash(self):
@@ -63,8 +63,8 @@ class DocType:
 		self.update_comments_in_parent(_comments)
 		
 def on_doctype_update():
-	if not frappe.conn.sql("""show index from `tabComment` 
+	if not frappe.db.sql("""show index from `tabComment` 
 		where Key_name="comment_doctype_docname_index" """):
-		frappe.conn.commit()
-		frappe.conn.sql("""alter table `tabComment` 
+		frappe.db.commit()
+		frappe.db.sql("""alter table `tabComment` 
 			add index comment_doctype_docname_index(comment_doctype, comment_docname)""")

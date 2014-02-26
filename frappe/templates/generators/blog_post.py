@@ -29,9 +29,9 @@ def get_context(context):
 	blog_post.description = blog_post.blog_intro or blog_post.content[:140]
 	blog_post.meta_description = blog_post.description
 	
-	blog_post.categories = frappe.conn.sql_list("select name from `tabBlog Category` order by name")
+	blog_post.categories = frappe.db.sql_list("select name from `tabBlog Category` order by name")
 	
-	blog_post.comment_list = frappe.conn.sql("""\
+	blog_post.comment_list = frappe.db.sql("""\
 		select comment, comment_by_fullname, creation
 		from `tabComment` where comment_doctype="Blog Post"
 		and comment_docname=%s order by creation""", (blog_post.name,), as_dict=1) or []
@@ -62,7 +62,7 @@ def get_blog_list(start=0, by=None, category=None):
 		order by published_on desc, name asc
 		limit %(start)s, 20""" % {"start": start, "condition": condition}
 		
-	result = frappe.conn.sql(query, as_dict=1)
+	result = frappe.db.sql(query, as_dict=1)
 
 	# strip html tags from content
 	for res in result:

@@ -55,7 +55,7 @@ def execute(doctype, query=None, filters=None, fields=None, docstatus=None,
 	query = """select %(fields)s from %(tables)s where %(conditions)s
 		%(group_by)s order by %(order_by)s %(limit)s""" % args
 		
-	return frappe.conn.sql(query, as_dict=not as_list, debug=debug)
+	return frappe.db.sql(query, as_dict=not as_list, debug=debug)
 	
 def prepare_args(doctype, filters, fields, docstatus, group_by, order_by, with_childnames):
 	frappe.local.reportview_tables = get_tables(doctype, fields)
@@ -112,7 +112,7 @@ def run_custom_query(query):
 	"""run custom query"""
 	if '%(key)s' in query:
 		query = query.replace('%(key)s', 'name')
-	return frappe.conn.sql(query, as_dict=1)
+	return frappe.db.sql(query, as_dict=1)
 
 def load_doctypes():
 	"""load all doctypes and roles"""
@@ -311,7 +311,7 @@ def save_report():
 	from frappe.model.doc import Document
 	
 	data = frappe.local.form_dict
-	if frappe.conn.exists('Report', data['name']):
+	if frappe.db.exists('Report', data['name']):
 		d = Document('Report', data['name'])
 	else:
 		d = Document('Report')
@@ -334,7 +334,7 @@ def export_query():
 	
 	ret = execute(**form_params)
 
-	columns = [x[0] for x in frappe.conn.get_description()]
+	columns = [x[0] for x in frappe.db.get_description()]
 	data = [['Sr'] + get_labels(columns),]
 
 	# flatten dict
@@ -430,7 +430,7 @@ def scrub_user_tags(tagcount):
 	return rlist
 
 def get_table_columns(table):
-	res = frappe.conn.sql("DESC `tab%s`" % table, as_dict=1)
+	res = frappe.db.sql("DESC `tab%s`" % table, as_dict=1)
 	if res: return [r['Field'] for r in res]
 
 # used in building query in queries.py

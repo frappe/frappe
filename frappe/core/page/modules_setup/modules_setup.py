@@ -7,6 +7,6 @@ import frappe
 @frappe.whitelist()
 def update(ml):
 	"""update modules"""
-	frappe.conn.set_global('hidden_modules', ml)
+	frappe.db.set_global('hidden_modules', ml)
 	frappe.msgprint('Updated')
 	frappe.clear_cache()

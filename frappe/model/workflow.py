@@ -9,12 +9,12 @@ def get_workflow_name(doctype):
 		frappe.local.workflow_names = {}
 	
 	if doctype not in frappe.local.workflow_names:
-		workflow_name = frappe.conn.get_value("Workflow", {"document_type": doctype, 
+		workflow_name = frappe.db.get_value("Workflow", {"document_type": doctype, 
 			"is_active": "1"}, "name")
 	
 		# no active? get default workflow
 		if not workflow_name:
-			workflow_name = frappe.conn.get_value("Workflow", {"document_type": doctype}, 
+			workflow_name = frappe.db.get_value("Workflow", {"document_type": doctype}, 
 			"name")
 				
 		frappe.local.workflow_names[doctype] = workflow_name
@@ -23,9 +23,9 @@ def get_workflow_name(doctype):
 	
 def get_default_state(doctype):
 	workflow_name = get_workflow_name(doctype)
-	return frappe.conn.get_value("Workflow Document State", {"parent": workflow_name,
+	return frappe.db.get_value("Workflow Document State", {"parent": workflow_name,
 		"idx":1}, "state")
 		
 def get_state_fieldname(doctype):
 	workflow_name = get_workflow_name(doctype)
-	return frappe.conn.get_value("Workflow", workflow_name, "workflow_state_field")
+	return frappe.db.get_value("Workflow", workflow_name, "workflow_state_field")

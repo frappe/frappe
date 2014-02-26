@@ -16,7 +16,7 @@ class DocType:
 	def validate(self):
 		"""delete other property setters on this, if this is new"""
 		if self.doc.fields['__islocal']:
-			frappe.conn.sql("""delete from `tabProperty Setter` where
+			frappe.db.sql("""delete from `tabProperty Setter` where
 				doctype_or_field = %(doctype_or_field)s
 				and doc_type = %(doc_type)s
 				and ifnull(field_name,'') = ifnull(%(field_name)s, '')
@@ -26,7 +26,7 @@ class DocType:
 		frappe.clear_cache(doctype = self.doc.doc_type)
 	
 	def get_property_list(self, dt):
-		return frappe.conn.sql("""select fieldname, label, fieldtype 
+		return frappe.db.sql("""select fieldname, label, fieldtype 
 		from tabDocField
 		where parent=%s
 		and fieldtype not in ('Section Break', 'Column Break', 'HTML', 'Read Only', 'Table') 
@@ -35,19 +35,19 @@ class DocType:
 		
 	def get_setup_data(self):
 		return {
-			'doctypes': [d[0] for d in frappe.conn.sql("select name from tabDocType")],
+			'doctypes': [d[0] for d in frappe.db.sql("select name from tabDocType")],
 			'dt_properties': self.get_property_list('DocType'),
 			'df_properties': self.get_property_list('DocField')
 		}
 		
 	def get_field_ids(self):
-		return frappe.conn.sql("select name, fieldtype, label, fieldname from tabDocField where parent=%s", self.doc.doc_type, as_dict = 1)
+		return frappe.db.sql("select name, fieldtype, label, fieldname from tabDocField where parent=%s", self.doc.doc_type, as_dict = 1)
 	
 	def get_defaults(self):
 		if not self.doc.field_name:
-			return frappe.conn.sql("select * from `tabDocType` where name=%s", self.doc.doc_type, as_dict = 1)[0]
+			return frappe.db.sql("select * from `tabDocType` where name=%s", self.doc.doc_type, as_dict = 1)[0]
 		else:
-			return frappe.conn.sql("select * from `tabDocField` where fieldname=%s and parent=%s", 
+			return frappe.db.sql("select * from `tabDocField` where fieldname=%s and parent=%s", 
 				(self.doc.field_name, self.doc.doc_type), as_dict = 1)[0]
 				
 	def on_update(self):

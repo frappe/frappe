@@ -19,12 +19,12 @@ class DocType:
 	def set_as_default(self):
 		from frappe.utils import set_default
 		if not self.doc.is_default:
-			if not frappe.conn.sql("""select count(*) from `tabLetter Head` where ifnull(is_default,0)=1"""):
+			if not frappe.db.sql("""select count(*) from `tabLetter Head` where ifnull(is_default,0)=1"""):
 				self.doc.is_default = 1
 		if self.doc.is_default:
-			frappe.conn.sql("update `tabLetter Head` set is_default=0 where name != %s",
+			frappe.db.sql("update `tabLetter Head` set is_default=0 where name != %s",
 				self.doc.name)
 			set_default('letter_head', self.doc.name)
 
 			# update control panel - so it loads new letter directly
-			frappe.conn.set_value('Control Panel', None, 'letter_head', self.doc.content)
+			frappe.db.set_value('Control Panel', None, 'letter_head', self.doc.content)

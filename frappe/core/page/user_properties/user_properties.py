@@ -9,7 +9,7 @@ import frappe.permissions
 @frappe.whitelist()
 def get_users_and_links():
 	return {
-		"users": frappe.conn.sql_list("""select name from tabProfile where
+		"users": frappe.db.sql_list("""select name from tabProfile where
 			ifnull(enabled,0)=1 and
 			name not in ("Administrator", "Guest")"""),
 		"link_fields": get_restrictable_doctypes()
@@ -22,7 +22,7 @@ def get_properties(parent=None, defkey=None, defvalue=None):
 	
 	conditions, values = _build_conditions(locals())
 	
-	properties = frappe.conn.sql("""select name, parent, defkey, defvalue 
+	properties = frappe.db.sql("""select name, parent, defkey, defvalue 
 		from tabDefaultValue
 		where parent not in ('Control Panel', '__global')
 		and substr(defkey,1,1)!='_'
@@ -68,7 +68,7 @@ def add(user, defkey, defvalue):
 			user=user, doctype=defkey, name=defvalue))
 	
 	# check if already exists
-	d = frappe.conn.sql("""select name from tabDefaultValue 
+	d = frappe.db.sql("""select name from tabDefaultValue 
 		where parent=%s and parenttype='Restriction' and defkey=%s and defvalue=%s""", (user, defkey, defvalue))
 		
 	if not d:
@@ -84,6 +84,6 @@ def get_restrictable_doctypes():
 			and `tabDocPerm`.name in ({roles}))""".format(roles=", ".join(["%s"]*len(user_roles)))
 		values = user_roles
 	
-	return frappe.conn.sql_list("""select name from tabDocType 
+	return frappe.db.sql_list("""select name from tabDocType 
 		where ifnull(issingle,0)=0 and ifnull(istable,0)=0 {condition}""".format(condition=condition),
 		values)

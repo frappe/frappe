@@ -39,7 +39,7 @@ def search_widget(doctype, txt, query=None, searchfield="name", start=0,
 	else:
 		if query:
 			# custom query
-			frappe.response["values"] = frappe.conn.sql(scrub_custom_query(query, 
+			frappe.response["values"] = frappe.db.sql(scrub_custom_query(query, 
 				searchfield, txt))
 		else:
 			if isinstance(filters, dict):

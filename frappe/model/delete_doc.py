@@ -24,7 +24,7 @@ def delete_doc(doctype=None, name=None, doclist = None, force=0, ignore_doctypes
 		frappe.msgprint('Nothing to delete!', raise_exception =1)
 
 	# already deleted..?
-	if not frappe.conn.exists(doctype, name):
+	if not frappe.db.exists(doctype, name):
 		return
 
 	if not for_reload:
@@ -37,10 +37,10 @@ def delete_doc(doctype=None, name=None, doclist = None, force=0, ignore_doctypes
 		
 	try:
 		tablefields = frappe.model.meta.get_table_fields(doctype)
-		frappe.conn.sql("delete from `tab%s` where name=%s" % (doctype, "%s"), (name,))
+		frappe.db.sql("delete from `tab%s` where name=%s" % (doctype, "%s"), (name,))
 		for t in tablefields:
 			if t[0] not in ignore_doctypes:
-				frappe.conn.sql("delete from `tab%s` where parent = %s" % (t[0], '%s'), (name,))
+				frappe.db.sql("delete from `tab%s` where parent = %s" % (t[0], '%s'), (name,))
 	except Exception, e:
 		if e.args[0]==1451:
 			frappe.msgprint("Cannot delete %s '%s' as it is referenced in another record. You must delete the referred record first" % (doctype, name))
@@ -61,7 +61,7 @@ def check_permission_and_not_submitted(doctype, name, ignore_permissions=False):
 		frappe.msgprint(_("User not allowed to delete."), raise_exception=True)
 
 	# check if submitted
-	if frappe.conn.get_value(doctype, name, "docstatus") == 1:
+	if frappe.db.get_value(doctype, name, "docstatus") == 1:
 		frappe.msgprint(_("Submitted Record cannot be deleted")+": "+name+"("+doctype+")",
 			raise_exception=True)
 
@@ -86,7 +86,7 @@ def check_if_doc_is_linked(dt, dn, method="Delete"):
 
 	for link_dt, link_field, issingle in link_fields:
 		if not issingle:
-			item = frappe.conn.get_value(link_dt, {link_field:dn}, 
+			item = frappe.db.get_value(link_dt, {link_field:dn}, 
 				["name", "parent", "parenttype", "docstatus"], as_dict=True)
 			
 			if item and item.parent != dn and (method=="Delete" or 

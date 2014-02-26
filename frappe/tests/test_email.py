@@ -11,8 +11,8 @@ make_test_records("Profile")
 
 class TestEmail(unittest.TestCase):
 	def setUp(self):
-		frappe.conn.sql("""update tabProfile set unsubscribed=0""")
-		frappe.conn.sql("""delete from `tabBulk Email`""")
+		frappe.db.sql("""update tabProfile set unsubscribed=0""")
+		frappe.db.sql("""delete from `tabBulk Email`""")
 		
 	def test_send(self):
 		from frappe.utils.email_lib import sendmail
@@ -25,7 +25,7 @@ class TestEmail(unittest.TestCase):
 			doctype='Profile', email_field='email',
 			subject='Testing Bulk', message='This is a bulk mail!')
 		
-		bulk = frappe.conn.sql("""select * from `tabBulk Email` where status='Not Sent'""", as_dict=1)
+		bulk = frappe.db.sql("""select * from `tabBulk Email` where status='Not Sent'""", as_dict=1)
 		self.assertEquals(len(bulk), 2)
 		self.assertTrue('test@example.com' in [d['recipient'] for d in bulk])
 		self.assertTrue('test1@example.com' in [d['recipient'] for d in bulk])
@@ -35,7 +35,7 @@ class TestEmail(unittest.TestCase):
 		self.test_bulk()
 		from frappe.utils.email_lib.bulk import flush
 		flush(from_test=True)
-		bulk = frappe.conn.sql("""select * from `tabBulk Email` where status='Sent'""", as_dict=1)
+		bulk = frappe.db.sql("""select * from `tabBulk Email` where status='Sent'""", as_dict=1)
 		self.assertEquals(len(bulk), 2)
 		self.assertTrue('test@example.com' in [d['recipient'] for d in bulk])
 		self.assertTrue('test1@example.com' in [d['recipient'] for d in bulk])
@@ -55,7 +55,7 @@ class TestEmail(unittest.TestCase):
 			doctype='Profile', email_field='email', 
 			subject='Testing Bulk', message='This is a bulk mail!')
 		
-		bulk = frappe.conn.sql("""select * from `tabBulk Email` where status='Not Sent'""", 
+		bulk = frappe.db.sql("""select * from `tabBulk Email` where status='Not Sent'""", 
 			as_dict=1)
 		self.assertEquals(len(bulk), 1)
 		self.assertFalse('test@example.com' in [d['recipient'] for d in bulk])

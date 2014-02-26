@@ -19,7 +19,7 @@ import frappe.translate
 @frappe.whitelist()
 def clear(user=None):
 	frappe.local.session_obj.update(force=True)
-	frappe.local.conn.commit()
+	frappe.local.db.commit()
 	clear_cache(frappe.session.user)
 	frappe.response['message'] = "Cache Cleared"
 
@@ -36,19 +36,19 @@ def clear_cache(user=None):
 		
 		# clear notifications
 		if frappe.flags.in_install_app!="frappe":
-			frappe.conn.sql("""delete from `tabNotification Count` where owner=%s""", (user,))
+			frappe.db.sql("""delete from `tabNotification Count` where owner=%s""", (user,))
 		
 		if frappe.session:
 			if user==frappe.session.user and frappe.session.sid:
 				cache.delete_value("session:" + frappe.session.sid)
 			else:
-				for sid in frappe.conn.sql_list("""select sid from tabSessions
+				for sid in frappe.db.sql_list("""select sid from tabSessions
 					where user=%s""", (user,)):
 						cache.delete_value("session:" + sid)
 
 		frappe.defaults.clear_cache(user)
 	else:
-		for sess in frappe.conn.sql("""select user, sid from tabSessions""", as_dict=1):
+		for sess in frappe.db.sql("""select user, sid from tabSessions""", as_dict=1):
 			cache.delete_value("lang:" + sess.user)
 			cache.delete_value("session:" + sess.sid)
 			cache.delete_value("bootinfo:" + sess.user)
@@ -57,12 +57,12 @@ def clear_cache(user=None):
 def clear_sessions(user=None, keep_current=False):
 	if not user:
 		user = frappe.session.user
-	for sid in frappe.conn.sql("""select sid from tabSessions where user=%s""", (user,)):
+	for sid in frappe.db.sql("""select sid from tabSessions where user=%s""", (user,)):
 		if keep_current and frappe.session.sid==sid[0]:
 			pass
 		else:
 			frappe.cache().delete_value("session:" + sid[0])
-			frappe.conn.sql("""delete from tabSessions where sid=%s""", (sid[0],))
+			frappe.db.sql("""delete from tabSessions where sid=%s""", (sid[0],))
 
 def get():
 	"""get session boot info"""
@@ -125,16 +125,16 @@ class Session:
 		
 		# insert session
 		if self.user!="Guest":
-			frappe.conn.begin()
+			frappe.db.begin()
 			self.insert_session_record()
 
 			# update profile
-			frappe.conn.sql("""UPDATE tabProfile SET last_login = '%s', last_ip = '%s' 
+			frappe.db.sql("""UPDATE tabProfile SET last_login = '%s', last_ip = '%s' 
 				where name='%s'""" % (frappe.utils.now(), frappe.get_request_header('REMOTE_ADDR'), self.data['user']))
-			frappe.conn.commit()		
+			frappe.db.commit()		
 
 	def insert_session_record(self):
-		frappe.conn.sql("""insert into tabSessions 
+		frappe.db.sql("""insert into tabSessions 
 			(sessiondata, user, lastupdate, sid, status) 
 			values (%s , %s, NOW(), %s, 'Active')""", 
 				(str(self.data['data']), self.data['user'], self.data['sid']))
@@ -189,7 +189,7 @@ class Session:
 		return data and data.data
 
 	def get_session_data_from_db(self):
-		rec = frappe.conn.sql("""select user, sessiondata 
+		rec = frappe.db.sql("""select user, sessiondata 
 			from tabSessions where sid=%s and 
 			TIMEDIFF(NOW(), lastupdate) < TIME(%s)""", (self.sid, 
 				self.get_expiry_period()))
@@ -209,7 +209,7 @@ class Session:
 
 	def delete_session(self):
 		frappe.cache().delete_value("session:" + self.sid)
-		r = frappe.conn.sql("""delete from tabSessions where sid=%s""", (self.sid,))
+		r = frappe.db.sql("""delete from tabSessions where sid=%s""", (self.sid,))
 
 	def start_as_guest(self):
 		"""all guests share the same 'Guest' session"""
@@ -233,7 +233,7 @@ class Session:
 		if force or (frappe.session['user'] != 'Guest' and \
 			((time_diff==None) or (time_diff > 1800))):
 			# database persistence is secondary, don't update it too often
-			frappe.conn.sql("""update tabSessions set sessiondata=%s, 
+			frappe.db.sql("""update tabSessions set sessiondata=%s, 
 				lastupdate=NOW() where sid=%s""" , (str(self.data['data']), 
 				self.data['sid']))
 

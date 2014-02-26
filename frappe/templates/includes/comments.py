@@ -38,11 +38,11 @@ def add_comment(args=None):
 	clear_cache(page_name)
 
 	# notify commentors 
-	commentors = [d[0] for d in frappe.conn.sql("""select comment_by from tabComment where
+	commentors = [d[0] for d in frappe.db.sql("""select comment_by from tabComment where
 		comment_doctype=%s and comment_docname=%s and
 		ifnull(unsubscribed, 0)=0""", (comment.doc.comment_doctype, comment.doc.comment_docname))]
 	
-	owner = frappe.conn.get_value(comment.doc.comment_doctype, comment.doc.comment_docname, "owner")
+	owner = frappe.db.get_value(comment.doc.comment_doctype, comment.doc.comment_docname, "owner")
 	
 	from frappe.utils.email_lib.bulk import send
 	send(recipients=list(set(commentors + [owner])), 

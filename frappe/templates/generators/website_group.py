@@ -74,7 +74,7 @@ def build_view_context(context):
 			context.profile = frappe.doc("Profile", context.post.assigned_to)
 
 	elif context.view.name == "settings":
-		context.profiles = frappe.conn.sql("""select p.*, wsp.`read`, wsp.`write`, wsp.`admin`
+		context.profiles = frappe.db.sql("""select p.*, wsp.`read`, wsp.`write`, wsp.`admin`
 			from `tabProfile` p, `tabWebsite Route Permission` wsp
 			where wsp.website_route=%s and wsp.profile=p.name""", context.pathname, as_dict=True)
 		
@@ -119,12 +119,12 @@ def has_access(access, view):
 def clear_cache(path=None, website_group=None):
 	from frappe.templates.website_group.post import clear_post_cache
 	if path:
-		website_groups = [frappe.conn.get_value("Website Route", path, "docname")]
+		website_groups = [frappe.db.get_value("Website Route", path, "docname")]
 	elif website_group:
 		website_groups = [website_group]
 	else:
 		clear_post_cache()
-		website_groups = frappe.conn.sql_list("""select name from `tabWebsite Group`""")
+		website_groups = frappe.db.sql_list("""select name from `tabWebsite Group`""")
 	
 	cache = frappe.cache()
 	all_views = get_views()
@@ -133,14 +133,14 @@ def clear_cache(path=None, website_group=None):
 			cache.delete_value("website_group_context:{}:{}".format(group, view))
 
 def clear_event_cache():
-	for group in frappe.conn.sql_list("""select name from `tabWebsite Group` where group_type='Event'"""):
+	for group in frappe.db.sql_list("""select name from `tabWebsite Group` where group_type='Event'"""):
 		clear_unit_views(website_group=group)
 		
 def clear_cache_on_bean_event(bean, method, *args, **kwargs):
 	clear_cache(path=bean.doc.website_route, website_group=bean.doc.website_group)
 	
 def get_pathname(group):
-	return frappe.conn.get_value("Website Route", {"ref_doctype": "Website Group",
+	return frappe.db.get_value("Website Route", {"ref_doctype": "Website Group",
 		"docname": group})
 
 views = {

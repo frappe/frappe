@@ -17,7 +17,7 @@ class DocType:
 		
 	def after_insert(self):
 		if self.doc.page_or_generator == "Page":
-			website_route = frappe.conn.get_value("Website Route", 
+			website_route = frappe.db.get_value("Website Route", 
 				{"website_template": self.doc.name, "page_or_generator": "Page"})
 			
 			opts = self.doc.fields.copy()
@@ -33,7 +33,7 @@ class DocType:
 			if self.doc.condition_field:
 				condition = " where ifnull(%s, 0)=1" % self.doc.condition_field
 						
-			for name in frappe.conn.sql_list("""select name from `tab{doctype}` 
+			for name in frappe.db.sql_list("""select name from `tab{doctype}` 
 				{condition} order by idx asc, {sort_field} {sort_order}""".format(
 					doctype = self.doc.ref_doctype,
 					condition = condition,
@@ -49,7 +49,7 @@ def rebuild_website_template():
 	# TODO
 	frappe.flags.in_rebuild_config = True
 		
-	frappe.conn.sql("""delete from `tabWebsite Template`""")
+	frappe.db.sql("""delete from `tabWebsite Template`""")
 	for app in frappe.get_installed_apps():
 		if app=="webnotes": app="frappe"
 		build_website_template(app)
@@ -61,7 +61,7 @@ def rebuild_website_template():
 	# enable nested set and rebuild
 	rebuild_tree("Website Route", "parent_website_route")
 	
-	frappe.conn.commit()
+	frappe.db.commit()
 
 
 def build_website_template(app):		
@@ -75,7 +75,7 @@ def build_website_template(app):
 	for args in generators:
 		add_website_template(**args)
 					
-	frappe.conn.commit()
+	frappe.db.commit()
 
 def get_pages_and_generators(app):
 	pages = []
@@ -123,9 +123,9 @@ def add_website_template(page_or_generator, app, path, fname, app_path):
 		wsc.base_template_path = getattr(module, "base_template_path", None)
 		wsc.page_title = getattr(module, "page_title", _(name.title()))
 	
-	if frappe.conn.exists("Website Template", wsc.link_name):
+	if frappe.db.exists("Website Template", wsc.link_name):
 		# found by earlier app, override
-		frappe.conn.sql("""delete from `tabWebsite Template` where name=%s""", (wsc.link_name,))
+		frappe.db.sql("""delete from `tabWebsite Template` where name=%s""", (wsc.link_name,))
 	
 	frappe.bean(wsc).insert()
 	

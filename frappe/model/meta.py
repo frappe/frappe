@@ -9,18 +9,18 @@ from frappe.utils import cstr, cint
 	
 def is_single(doctype):
 	try:
-		return frappe.conn.get_value("DocType", doctype, "issingle")
+		return frappe.db.get_value("DocType", doctype, "issingle")
 	except IndexError, e:
 		raise Exception, 'Cannot determine whether %s is single' % doctype
 
 def get_parent_dt(dt):
-	parent_dt = frappe.conn.sql("""select parent from tabDocField 
+	parent_dt = frappe.db.sql("""select parent from tabDocField 
 		where fieldtype="Table" and options="%s" and (parent not like "old_parent:%%") 
 		limit 1""" % dt)
 	return parent_dt and parent_dt[0][0] or ''
 
 def set_fieldname(field_id, fieldname):
-	frappe.conn.set_value('DocField', field_id, 'fieldname', fieldname)
+	frappe.db.set_value('DocField', field_id, 'fieldname', fieldname)
 
 def get_link_fields(doctype):
 	"""
@@ -40,11 +40,11 @@ def get_link_fields(doctype):
 	]
 
 def get_table_fields(doctype):
-	child_tables = [[d[0], d[1]] for d in frappe.conn.sql("select options, fieldname from tabDocField \
+	child_tables = [[d[0], d[1]] for d in frappe.db.sql("select options, fieldname from tabDocField \
 		where parent='%s' and fieldtype='Table'" % doctype, as_list=1)]
 	
 	try:
-		custom_child_tables = [[d[0], d[1]] for d in frappe.conn.sql("select options, fieldname from `tabCustom Field` \
+		custom_child_tables = [[d[0], d[1]] for d in frappe.db.sql("select options, fieldname from `tabCustom Field` \
 			where dt='%s' and fieldtype='Table'" % doctype, as_list=1)]
 	except Exception, e:
 		if e.args[0]!=1146:
@@ -67,7 +67,7 @@ def get_field_currency(df, doc):
 	if ":" in cstr(df.options):
 		split_opts = df.options.split(":")
 		if len(split_opts)==3:
-			currency = frappe.conn.get_value(split_opts[0], doc.fields.get(split_opts[1]), 
+			currency = frappe.db.get_value(split_opts[0], doc.fields.get(split_opts[1]), 
 				split_opts[2])
 	else:
 		currency = doc.fields.get(df.options)
@@ -82,14 +82,14 @@ def get_field_precision(df, doc):
 	if df.fieldtype == "Currency":
 		currency = get_field_currency(df, doc)
 		if currency:
-			number_format = frappe.conn.get_value("Currency", currency, "number_format")
+			number_format = frappe.db.get_value("Currency", currency, "number_format")
 		
 	if not number_format:
-		number_format = frappe.conn.get_default("number_format") or "#,###.##"
+		number_format = frappe.db.get_default("number_format") or "#,###.##"
 		
 	decimal_str, comma_str, precision = get_number_format_info(number_format)
 
 	if df.fieldtype == "Float":
-		precision = cint(frappe.conn.get_default("float_precision")) or 3
+		precision = cint(frappe.db.get_default("float_precision")) or 3
 
 	return precision

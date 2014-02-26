@@ -22,7 +22,7 @@ def get_fields():
 		,'from':frappe.form_dict.get('from')
 		,'where':frappe.form_dict.get('where')
 	}
-	ret = frappe.conn.sql("select %(select)s from `%(from)s` where %(where)s limit 1" % args)
+	ret = frappe.db.sql("select %(select)s from `%(from)s` where %(where)s limit 1" % args)
 	if ret:
 		fl, i = frappe.form_dict.get('fields').split(','), 0
 		for f in fl:
@@ -42,12 +42,12 @@ def validate_link():
 		frappe.response['message'] = 'Ok'
 		return
 		
-	if frappe.conn.sql("select name from `tab%s` where name=%s" % (options, '%s'), (value,)):
+	if frappe.db.sql("select name from `tab%s` where name=%s" % (options, '%s'), (value,)):
 	
 		# get fetch values
 		if fetch:
 			frappe.response['fetch_values'] = [frappe.utils.parse_val(c) \
-				for c in frappe.conn.sql("select %s from `tab%s` where name=%s" \
+				for c in frappe.db.sql("select %s from `tab%s` where name=%s" \
 					% (fetch, options, '%s'), (value,))[0]]
 	
 		frappe.response['message'] = 'Ok'

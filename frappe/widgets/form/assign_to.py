@@ -16,7 +16,7 @@ def get(args=None):
 		
 	get_docinfo(args.get("doctype"), args.get("name"))
 	
-	return frappe.conn.sql_list("""select owner from `tabToDo`
+	return frappe.db.sql_list("""select owner from `tabToDo`
 		where reference_type=%(doctype)s and reference_name=%(name)s and status="Open"
 		order by modified desc limit 5""", args)
 		
@@ -26,7 +26,7 @@ def add(args=None):
 	if not args:
 		args = frappe.local.form_dict
 		
-	if frappe.conn.sql("""select owner from `tabToDo`
+	if frappe.db.sql("""select owner from `tabToDo`
 		where reference_type=%(doctype)s and reference_name=%(name)s and status="Open"
 		and owner=%(assign_to)s""", args):
 		frappe.msgprint("Already in todo", raise_exception=True)
@@ -49,7 +49,7 @@ def add(args=None):
 		# set assigned_to if field exists
 		from frappe.model.meta import has_field
 		if has_field(args['doctype'], "assigned_to"):
-			frappe.conn.set_value(args['doctype'], args['name'], "assigned_to", args['assign_to'])
+			frappe.db.set_value(args['doctype'], args['name'], "assigned_to", args['assign_to'])
 			
 	try:
 		if cint(args.get("restrict")):
@@ -86,14 +86,14 @@ def remove(doctype, name, assign_to):
 	# clear assigned_to if field exists
 	from frappe.model.meta import has_field
 	if has_field(doctype, "assigned_to"):
-		frappe.conn.set_value(doctype, name, "assigned_to", None)
+		frappe.db.set_value(doctype, name, "assigned_to", None)
 
 	notify_assignment(todo.doc.assigned_by, todo.doc.owner, todo.doc.reference_type, todo.doc.reference_name)
 
 	return get({"doctype": doctype, "name": name})
 	
 def clear(doctype, name):
-	for assign_to in frappe.conn.sql_list("""select owner from `tabToDo`
+	for assign_to in frappe.db.sql_list("""select owner from `tabToDo`
 		where reference_type=%(doctype)s and reference_name=%(name)s""", locals()):
 			remove(doctype, name, assign_to)
 

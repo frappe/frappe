@@ -174,7 +174,7 @@ class DocType:
 							if self.has_property_changed(ref_d, new_d, prop):
 								# using set_value not bean because validations are called
 								# in the end anyways
-								frappe.conn.set_value("Custom Field", ref_d.name, prop, new_d.get(prop))
+								frappe.db.set_value("Custom Field", ref_d.name, prop, new_d.get(prop))
 						else:
 							d = self.prepare_to_set(prop, new_d, ref_d, dt_dl)
 							if d: diff_list.append(d)
@@ -193,7 +193,7 @@ class DocType:
 		"""
 			Get fieldtype and default value for properties of a field
 		"""
-		df_defaults = frappe.conn.sql("""
+		df_defaults = frappe.db.sql("""
 			SELECT fieldname, fieldtype, `default`, label
 			FROM `tabDocField`
 			WHERE parent='DocField' or parent='DocType'""", as_dict=1)
@@ -312,12 +312,12 @@ class DocType:
 		for d in ps_doclist:
 			# Delete existing property setter entry
 			if not d.fields.get("field_name"):
-				frappe.conn.sql("""
+				frappe.db.sql("""
 					DELETE FROM `tabProperty Setter`
 					WHERE doc_type = %(doc_type)s
 					AND property = %(property)s""", d.fields)
 			else:
-				frappe.conn.sql("""
+				frappe.db.sql("""
 					DELETE FROM `tabProperty Setter`
 					WHERE doc_type = %(doc_type)s
 					AND field_name = %(field_name)s
@@ -334,7 +334,7 @@ class DocType:
 			and resets it to standard
 		"""
 		if self.doc.doc_type:
-			frappe.conn.sql("""
+			frappe.db.sql("""
 				DELETE FROM `tabProperty Setter`
 				WHERE doc_type = %s""", self.doc.doc_type)
 		

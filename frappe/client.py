@@ -11,7 +11,7 @@ import json, os
 @frappe.whitelist()
 def get(doctype, name=None, filters=None):
 	if filters and not name:
-		name = frappe.conn.get_value(doctype, json.loads(filters))
+		name = frappe.db.get_value(doctype, json.loads(filters))
 		if not name:
 			raise Exception, "No document found for given filters"
 	return [d.fields for d in frappe.bean(doctype, name).doclist]
@@ -23,14 +23,14 @@ def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False):
 		
 	if fieldname and fieldname.startswith("["):
 		fieldname = json.loads(fieldname)
-	return frappe.conn.get_value(doctype, json.loads(filters), fieldname, as_dict=as_dict, debug=debug)
+	return frappe.db.get_value(doctype, json.loads(filters), fieldname, as_dict=as_dict, debug=debug)
 
 @frappe.whitelist()
 def set_value(doctype, name, fieldname, value):
 	if fieldname in frappe.model.default_fields:
 		frappe.throw(_("Cannot edit standard fields"))
 		
-	doc = frappe.conn.get_value(doctype, name, ["parenttype", "parent"], as_dict=True)
+	doc = frappe.db.get_value(doctype, name, ["parenttype", "parent"], as_dict=True)
 	if doc and doc.parent:
 		bean = frappe.bean(doc.parenttype, doc.parent)
 		child = bean.doclist.getone({"doctype": doctype, "name": name})
@@ -90,7 +90,7 @@ def delete(doctype, name):
 @frappe.whitelist()
 def set_default(key, value, parent=None):
 	"""set a user default value"""
-	frappe.conn.set_default(key, value, parent or frappe.session.user)
+	frappe.db.set_default(key, value, parent or frappe.session.user)
 	frappe.clear_cache(user=frappe.session.user)
 
 @frappe.whitelist()

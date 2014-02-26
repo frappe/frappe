@@ -14,7 +14,7 @@ class Database:
 	"""
 	   Open a database connection with the given parmeters, if use_default is True, use the
 	   login details from `conf.py`. This is called by the request handler and is accessible using
-	   the `conn` global variable. the `sql` method is also global to run queries
+	   the `db` global variable. the `sql` method is also global to run queries
 	"""
 	def __init__(self, host=None, user=None, password=None, ac_name=None, use_default = 0):
 		self.host = host or frappe.conf.db_host or 'localhost'
@@ -164,7 +164,7 @@ class Database:
 			self.transaction_writes += 1
 			if not frappe.flags.in_test and self.transaction_writes > 10000:
 				if self.auto_commit_on_many_writes:
-					frappe.conn.commit()
+					frappe.db.commit()
 				else:
 					frappe.msgprint('A very long query was encountered. If you are trying to import data, please do so using smaller files')
 					raise Exception, 'Bad Query!!! Too many writes'
@@ -402,7 +402,7 @@ class Database:
 	def touch(self, doctype, docname):
 		from frappe.utils import now
 		modified = now()
-		frappe.conn.sql("""update `tab{doctype}` set `modified`=%s 
+		frappe.db.sql("""update `tab{doctype}` set `modified`=%s 
 			where name=%s""".format(doctype=doctype), (modified, docname))
 		return modified
 
@@ -483,10 +483,10 @@ class Database:
 	def count(self, dt, filters=None, debug=False):
 		if filters:
 			conditions, filters = self.build_conditions(filters)
-			return frappe.conn.sql("""select count(*)
+			return frappe.db.sql("""select count(*)
 				from `tab%s` where %s""" % (dt, conditions), filters, debug=debug)[0][0]
 		else:
-			return frappe.conn.sql("""select count(*)
+			return frappe.db.sql("""select count(*)
 				from `tab%s`""" % (dt,))[0][0]
 			
 	
@@ -495,7 +495,7 @@ class Database:
 		from frappe.utils import now_datetime
 		from dateutil.relativedelta import relativedelta
 		
-		return frappe.conn.sql("""select count(name) from `tab{doctype}`
+		return frappe.db.sql("""select count(name) from `tab{doctype}`
 			where creation >= %s""".format(doctype=doctype),
 			now_datetime() - relativedelta(minutes=minutes))[0][0]
 			
@@ -505,9 +505,9 @@ class Database:
 	def add_index(self, doctype, fields, index_name=None):
 		if not index_name:
 			index_name = "_".join(fields) + "_index"
-		if not frappe.conn.sql("""show index from `tab%s` where Key_name="%s" """ % (doctype, index_name)):
-			frappe.conn.commit()
-			frappe.conn.sql("""alter table `tab%s` 
+		if not frappe.db.sql("""show index from `tab%s` where Key_name="%s" """ % (doctype, index_name)):
+			frappe.db.commit()
+			frappe.db.sql("""alter table `tab%s` 
 				add index %s(%s)""" % (doctype, index_name, ", ".join(fields)))
 
 	def close(self):

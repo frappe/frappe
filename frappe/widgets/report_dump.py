@@ -36,7 +36,7 @@ def get_data(doctypes, last_modified):
 			if not args.get("conditions"):
 				args['conditions'] = []
 			args['conditions'].append(modified_table + "modified > '" + last_modified[d] + "'")
-			out[dt]["modified_names"] = frappe.conn.sql_list("""select %sname from %s
+			out[dt]["modified_names"] = frappe.db.sql_list("""select %sname from %s
 				where %smodified > %s""" % (modified_table, table, modified_table, "%s"), last_modified[d])
 		
 		if args.get("force_index"):
@@ -46,7 +46,7 @@ def get_data(doctypes, last_modified):
 		if args.get("order_by"):
 			order_by = " order by " + args["order_by"]
 		
-		out[dt]["data"] = [list(t) for t in frappe.conn.sql("""select %s from %s %s %s""" \
+		out[dt]["data"] = [list(t) for t in frappe.db.sql("""select %s from %s %s %s""" \
 			% (",".join(args["columns"]), table, conditions, order_by))]
 			
 		# last modified
@@ -54,7 +54,7 @@ def get_data(doctypes, last_modified):
 		if "," in table:
 			modified_table = " ".join(table.split(",")[0].split(" ")[:-1])
 			
-		tmp = frappe.conn.sql("""select `modified` 
+		tmp = frappe.db.sql("""select `modified` 
 			from %s order by modified desc limit 1""" % modified_table)
 		out[dt]["last_modified"] = tmp and tmp[0][0] or ""
 		out[dt]["columns"] = map(lambda c: c.split(" as ")[-1], args["columns"])

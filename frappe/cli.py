@@ -275,7 +275,7 @@ def install_fixtures():
 def add_system_manager(email, first_name=None, last_name=None):
 	frappe.connect()
 	frappe.profile.add_system_manager(email, first_name, last_name)
-	frappe.conn.commit()
+	frappe.db.commit()
 	frappe.destroy()
 	
 # utilities
@@ -355,7 +355,7 @@ def update_all_sites(remote=None, branch=None, verbose=True):
 def reload_doc(module, doctype, docname, force=False):
 	frappe.connect()
 	frappe.reload_doc(module, doctype, docname, force=force)
-	frappe.conn.commit()
+	frappe.db.commit()
 	frappe.destroy()
 
 @cmd
@@ -409,10 +409,10 @@ def move(dest_dir=None):
 def domain(host_url=None):
 	frappe.connect()
 	if host_url:
-		frappe.conn.set_value("Website Settings", None, "subdomain", host_url)
-		frappe.conn.commit()
+		frappe.db.set_value("Website Settings", None, "subdomain", host_url)
+		frappe.db.commit()
 	else:
-		print frappe.conn.get_value("Website Settings", None, "subdomain")
+		print frappe.db.get_value("Website Settings", None, "subdomain")
 	frappe.destroy()
 
 @cmd
@@ -454,13 +454,13 @@ def sync_statics():
 	from frappe.website import statics
 	frappe.connect()
 	statics.sync_statics()
-	frappe.conn.commit()
+	frappe.db.commit()
 	frappe.destroy()
 	
 @cmd
 def reset_perms():
 	frappe.connect()
-	for d in frappe.conn.sql_list("""select name from `tabDocType`
+	for d in frappe.db.sql_list("""select name from `tabDocType`
 		where ifnull(istable, 0)=0 and ifnull(custom, 0)=0"""):
 			frappe.clear_cache(doctype=d)
 			frappe.reset_perms(d)
@@ -470,7 +470,7 @@ def reset_perms():
 def execute(method):
 	frappe.connect()
 	ret = frappe.get_attr(method)()
-	frappe.conn.commit()
+	frappe.db.commit()
 	frappe.destroy()
 	if ret:
 		print ret
@@ -596,9 +596,9 @@ def checkout(branch):
 def set_admin_password(admin_password):
 	import frappe
 	frappe.connect()
-	frappe.conn.sql("""update __Auth set `password`=password(%s)
+	frappe.db.sql("""update __Auth set `password`=password(%s)
 		where user='Administrator'""", (admin_password,))
-	frappe.conn.commit()
+	frappe.db.commit()
 	frappe.destroy()
 
 @cmd
@@ -731,13 +731,13 @@ def get_site_status(verbose=False):
 		'active_website_users': get_active_website_users(),
 		'website_users': get_website_users(),
 		'system_managers': "\n".join(get_system_managers()),
-		'default_company': frappe.conn.get_default("company"),
+		'default_company': frappe.db.get_default("company"),
 		'disk_usage': frappe.utils.get_disk_usage(),
 		'working_directory': frappe.local.site_path
 	}
 	
 	# country, timezone, industry
-	control_panel_details = frappe.conn.get_value("Control Panel", "Control Panel", 
+	control_panel_details = frappe.db.get_value("Control Panel", "Control Panel", 
 		["country", "time_zone", "industry"], as_dict=True)
 	if control_panel_details:
 		ret.update(control_panel_details)
@@ -746,7 +746,7 @@ def get_site_status(verbose=False):
 	for doctype in ("Company", "Customer", "Item", "Quotation", "Sales Invoice",
 		"Journal Voucher", "Stock Ledger Entry"):
 			key = doctype.lower().replace(" ", "_") + "_exists"
-			ret[key] = 1 if frappe.conn.count(doctype) else 0
+			ret[key] = 1 if frappe.db.count(doctype) else 0
 			
 	frappe.destroy()
 	

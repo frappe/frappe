@@ -47,7 +47,7 @@ def render_page(path):
 	return build(path)
 	
 def build(path):
-	if not frappe.conn:
+	if not frappe.db:
 		frappe.connect()
 	
 	build_method = (build_json if is_ajax() else build_page)
@@ -111,7 +111,7 @@ def clear_cache(path=None):
 		delete_page_cache(path)
 		
 	else:
-		for p in frappe.conn.sql_list("""select name from `tabWebsite Route`"""):
+		for p in frappe.db.sql_list("""select name from `tabWebsite Route`"""):
 			if p is not None:
 				delete_page_cache(p)
 		

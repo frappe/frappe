@@ -21,7 +21,7 @@ import frappe, os, re, codecs, json
 def get_user_lang(user=None):
 	if not user:
 		user = frappe.session.user
-	user_lang = frappe.conn.get_value("Profile", user, "language")
+	user_lang = frappe.db.get_value("Profile", user, "language")
 	return get_lang_dict().get(user_lang!="Loading..." and user_lang or "english")
 
 def get_all_languages():
@@ -115,17 +115,17 @@ def get_messages_for_app(app):
 		for m in frappe.local.app_modules[app]])
 			
 	# doctypes
-	for name in frappe.conn.sql_list("""select name from tabDocType 
+	for name in frappe.db.sql_list("""select name from tabDocType 
 		where module in ({})""".format(modules)):
 		messages.extend(get_messages_from_doctype(name))
 
 	# pages
-	for name in frappe.conn.sql_list("""select name from tabPage 
+	for name in frappe.db.sql_list("""select name from tabPage 
 		where module in ({})""".format(modules)):
 		messages.extend(get_messages_from_page(name))
 	
 	# reports
-	for name in frappe.conn.sql_list("""select tabReport.name from tabDocType, tabReport 
+	for name in frappe.db.sql_list("""select tabReport.name from tabDocType, tabReport 
 		where tabReport.ref_doctype = tabDocType.name 
 			and tabDocType.module in ({})""".format(modules)):
 		messages.extend(get_messages_from_report(name))
@@ -166,7 +166,7 @@ def get_messages_from_page(name):
 def get_messages_from_report(name):
 	report = frappe.doc("Report", name)
 	messages = get_messages_from_page_or_report("Report", name, 
-		frappe.conn.get_value("DocType", report.ref_doctype, "module"))
+		frappe.db.get_value("DocType", report.ref_doctype, "module"))
 	if report.query:
 		messages.extend(re.findall('"([^:,^"]*):', report.query))
 		messages.append(report.report_name)
@@ -174,7 +174,7 @@ def get_messages_from_report(name):
 
 def get_messages_from_page_or_report(doctype, name, module=None):
 	if not module:
-		module = frappe.conn.get_value(doctype, name, "module")
+		module = frappe.db.get_value(doctype, name, "module")
 	file_path = frappe.get_module_path(module, doctype, name, name)
 	messages = get_messages_from_file(file_path + ".js")
 	

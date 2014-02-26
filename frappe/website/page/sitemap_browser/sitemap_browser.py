@@ -13,7 +13,7 @@ def get_children(parent=None):
 	if parent=="Sitemap":
 		parent = ""
 
-	return frappe.conn.sql("""select name as value, 1 as expandable, ref_doctype, docname 
+	return frappe.db.sql("""select name as value, 1 as expandable, ref_doctype, docname 
 		from `tabWebsite Route` where 
 		ifnull(parent_website_route, '')=%s 
 			order by ifnull(idx,0), name asc""", parent, as_dict=True)

@@ -28,7 +28,7 @@ def get_bootinfo():
 	bootinfo['control_panel'] = frappe._dict(cp.copy())
 	bootinfo['sysdefaults'] = frappe.defaults.get_defaults()
 	bootinfo['server_date'] = frappe.utils.nowdate()
-	bootinfo["send_print_in_body_and_attachment"] = frappe.conn.get_value("Email Settings", 
+	bootinfo["send_print_in_body_and_attachment"] = frappe.db.get_value("Email Settings", 
 		None, "send_print_in_body_and_attachment")
 
 	if frappe.session['user'] != 'Guest':
@@ -43,10 +43,10 @@ def get_bootinfo():
 		except ImportError, e:
 			pass
 
-	bootinfo.hidden_modules = frappe.conn.get_global("hidden_modules")
-	bootinfo.doctype_icons = dict(frappe.conn.sql("""select name, icon from 
+	bootinfo.hidden_modules = frappe.db.get_global("hidden_modules")
+	bootinfo.doctype_icons = dict(frappe.db.sql("""select name, icon from 
 		tabDocType where ifnull(icon,'')!=''"""))
-	bootinfo.doctype_icons.update(dict(frappe.conn.sql("""select name, icon from 
+	bootinfo.doctype_icons.update(dict(frappe.db.sql("""select name, icon from 
 		tabPage where ifnull(icon,'')!=''""")))
 	
 	add_home_page(bootinfo, doclist)
@@ -83,7 +83,7 @@ def load_conf_settings(bootinfo):
 		if key in conf: bootinfo[key] = conf.get(key)
 
 def add_allowed_pages(bootinfo):
-	bootinfo.page_info = dict(frappe.conn.sql("""select distinct parent, modified from `tabPage Role`
+	bootinfo.page_info = dict(frappe.db.sql("""select distinct parent, modified from `tabPage Role`
 		where role in ('%s')""" % "', '".join(frappe.get_roles())))
 
 def load_translations(bootinfo):
@@ -95,7 +95,7 @@ def load_translations(bootinfo):
 
 def get_fullnames():
 	"""map of user fullnames"""
-	ret = frappe.conn.sql("""select name, 
+	ret = frappe.db.sql("""select name, 
 		concat(ifnull(first_name, ''), 
 			if(ifnull(last_name, '')!='', ' ', ''), ifnull(last_name, '')), 
 			user_image, gender, email

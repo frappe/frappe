@@ -25,7 +25,7 @@ def logout():
 @frappe.whitelist(allow_guest=True)
 def web_logout():
 	frappe.local.login_manager.logout()
-	frappe.conn.commit()
+	frappe.db.commit()
 	frappe.repsond_as_web_page("Logged Out", """<p>You have been logged out.</p>
 		<p><a href='index'>Back to Home</a></p>""")
 
@@ -48,7 +48,7 @@ def uploadfile():
 			except frappe.DuplicateEntryError, e:
 				# ignore pass
 				ret = None
-				frappe.conn.rollback()
+				frappe.db.rollback()
 		else:
 			if frappe.form_dict.get('method'):
 				ret = frappe.get_attr(frappe.form_dict.method)()
@@ -77,13 +77,13 @@ def handle():
 		except Exception, e:
 			report_error(status_codes.get(e.__class__, 500))
 		else:
-			if frappe.local.request.method in ("POST", "PUT") and frappe.conn:
-				frappe.conn.commit()
+			if frappe.local.request.method in ("POST", "PUT") and frappe.db:
+				frappe.db.commit()
 				
 	build_response()
 
-	if frappe.conn:
-		frappe.conn.close()
+	if frappe.db:
+		frappe.db.close()
 	if frappe._memc:
 		frappe._memc.disconnect_all()
 

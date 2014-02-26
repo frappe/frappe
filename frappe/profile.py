@@ -41,14 +41,14 @@ class Profile:
 		"""build map of special doctype properties"""
 			
 		self.doctype_map = {}
-		for r in frappe.conn.sql("""select name, in_create, issingle, istable, 
+		for r in frappe.db.sql("""select name, in_create, issingle, istable, 
 			read_only, module from tabDocType""", as_dict=1):
 			self.doctype_map[r['name']] = r
 			
 	def build_perm_map(self):
 		"""build map of permissions at level 0"""
 		self.perm_map = {}
-		for r in frappe.conn.sql("""select parent, `read`, `write`, `create`, `delete`, `submit`, 
+		for r in frappe.db.sql("""select parent, `read`, `write`, `create`, `delete`, `submit`, 
 			`cancel`,`report`, `import`, `export`, `print`, `email`, `restrict`
 			from tabDocPerm where docstatus=0 
 			and ifnull(permlevel,0)=0
@@ -150,7 +150,7 @@ class Profile:
 		return self.can_read
 	
 	def load_profile(self):
-		d = frappe.conn.sql("""select email, first_name, last_name, 
+		d = frappe.db.sql("""select email, first_name, last_name, 
 			email_signature, background_image, user_type, language
 			from tabProfile where name = %s""", (self.name,), as_dict=1)[0]
 
@@ -173,13 +173,13 @@ class Profile:
 		return d
 		
 def get_user_fullname(user):
-	fullname = frappe.conn.sql("SELECT CONCAT_WS(' ', first_name, last_name) FROM `tabProfile` WHERE name=%s", (user,))
+	fullname = frappe.db.sql("SELECT CONCAT_WS(' ', first_name, last_name) FROM `tabProfile` WHERE name=%s", (user,))
 	return fullname and fullname[0][0] or ''
 
 def get_system_managers(only_name=False):
 	"""returns all system manager's profile details"""
 	import email.utils
-	system_managers = frappe.conn.sql("""select distinct name,
+	system_managers = frappe.db.sql("""select distinct name,
 		concat_ws(" ", if(first_name="", null, first_name), if(last_name="", null, last_name))
 		as fullname from tabProfile p 
 		where docstatus < 2 and enabled = 1
@@ -209,7 +209,7 @@ def add_system_manager(email, first_name=None, last_name=None):
 	profile.insert()
 	
 	# add roles
-	roles = frappe.conn.sql_list("""select name from `tabRole`
+	roles = frappe.db.sql_list("""select name from `tabRole`
 		where name not in ("Administrator", "Guest", "All")""")
 	profile.get_controller().add_roles(*roles)
 	
@@ -221,7 +221,7 @@ def get_roles(username=None, with_standard=True):
 	if username=='Guest':
 		return ['Guest']
 	
-	roles = [r[0] for r in frappe.conn.sql("""select role from tabUserRole 
+	roles = [r[0] for r in frappe.db.sql("""select role from tabUserRole 
 		where parent=%s and role!='All'""", (username,))] + ['All']
 		
 	# filter standard if required

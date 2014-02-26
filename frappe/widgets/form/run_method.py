@@ -48,7 +48,7 @@ def runserverobj():
 		frappe.response['docs'] += so.doclist
 
 def check_guest_access(doc):
-	if frappe.session['user']=='Guest' and not frappe.conn.sql("select name from tabDocPerm where role='Guest' and parent=%s and ifnull(`read`,0)=1", doc.doctype):
+	if frappe.session['user']=='Guest' and not frappe.db.sql("select name from tabDocPerm where role='Guest' and parent=%s and ifnull(`read`,0)=1", doc.doctype):
 		frappe.msgprint("Guest not allowed to call this object")
 		raise Exception
 

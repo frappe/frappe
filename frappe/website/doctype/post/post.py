@@ -18,7 +18,7 @@ class DocType:
 		if not self.doc.parent_post and not self.doc.title:
 			frappe.throw("Please enter title!")
 		
-		self.assigned_to = frappe.conn.get_value(self.doc.doctype, self.doc.name, "assigned_to")
+		self.assigned_to = frappe.db.get_value(self.doc.doctype, self.doc.name, "assigned_to")
 		if self.doc.is_task:
 			if not self.doc.status:
 				self.doc.status = "Open"
@@ -72,7 +72,7 @@ class DocType:
 				ref_doctype=self.doc.doctype, ref_docname=self.doc.name)
 		
 		# send email to members who part of the conversation
-		participants = frappe.conn.sql("""select owner, name from `tabPost`
+		participants = frappe.db.sql("""select owner, name from `tabPost`
 			where parent_post=%s and owner not in (%s, %s) order by creation asc""", 
 			(self.doc.parent_post, parent_post.owner, self.doc.owner), as_dict=True)
 		

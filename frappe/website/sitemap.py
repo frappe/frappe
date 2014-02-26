@@ -38,15 +38,15 @@ def build_sitemap_options(path):
 	
 	def set_sidebar_items(pathname):
 		if pathname==home_page or not pathname:
-			sitemap_options.children = frappe.conn.sql("""select url as name, label as page_title,
+			sitemap_options.children = frappe.db.sql("""select url as name, label as page_title,
 				1 as public_read from `tabTop Bar Item` where parentfield='sidebar_items' order by idx""", as_dict=True)
 		else:
-			sitemap_options.children = frappe.conn.sql("""select * from `tabWebsite Route`
+			sitemap_options.children = frappe.db.sql("""select * from `tabWebsite Route`
 				where ifnull(parent_website_route,'')=%s 
 				and public_read=1 order by -idx desc, page_title asc""", pathname, as_dict=True)
 			
 	# establish hierarchy
-	sitemap_options.parents = frappe.conn.sql("""select name, page_title from `tabWebsite Route`
+	sitemap_options.parents = frappe.db.sql("""select name, page_title from `tabWebsite Route`
 		where lft < %s and rgt > %s order by lft asc""", (sitemap_options.lft, sitemap_options.rgt), as_dict=True)
 
 	if not sitemap_options.no_sidebar:

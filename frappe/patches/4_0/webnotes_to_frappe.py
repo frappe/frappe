@@ -5,5 +5,5 @@ def execute():
 	if "webnotes" in installed:
 		installed.remove("webnotes")
 	installed = ["frappe"] + installed
-	frappe.conn.set_global("installed_apps", json.dumps(installed))
+	frappe.db.set_global("installed_apps", json.dumps(installed))
 	frappe.clear_cache()

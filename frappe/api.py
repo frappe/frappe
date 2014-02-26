@@ -54,7 +54,7 @@ def handle():
 					if not bean.has_permission("write"):
 						frappe.throw("No Permission", frappe.PermissionError)
 					bean.run_method(frappe.local.form_dict.run_method, **frappe.local.form_dict)
-					frappe.conn.commit()
+					frappe.db.commit()
 
 			else:
 				if name:
@@ -66,12 +66,12 @@ def handle():
 					if frappe.local.request.method=="POST":
 						frappe.local.response.update({
 							"doclist": frappe.client.insert(frappe.local.form_dict.doclist)})
-						frappe.conn.commit()
+						frappe.db.commit()
 					
 					if frappe.local.request.method=="PUT":
 						frappe.local.response.update({
 							"doclist":frappe.client.save(frappe.local.form_dict.doclist)})
-						frappe.conn.commit()
+						frappe.db.commit()
 					
 					if frappe.local.request.method=="DELETE":
 						frappe.client.delete(doctype, name)

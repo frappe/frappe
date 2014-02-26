@@ -23,7 +23,7 @@ data_keys = frappe._dict({
 @frappe.whitelist()
 def get_doctypes():
 	if "System Manager" in frappe.get_roles():
-	    return [r[0] for r in frappe.conn.sql("""select name from `tabDocType` 
+	    return [r[0] for r in frappe.db.sql("""select name from `tabDocType` 
 			where allow_import = 1""")]
 	else:
 		return frappe.user._get("can_import")
@@ -77,7 +77,7 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 		doctype_dl = frappe.model.doctype.get(dt)
 
 		tablecolumns = filter(None, 
-			[doctype_dl.get_field(f[0]) for f in frappe.conn.sql('desc `tab%s`' % dt)])
+			[doctype_dl.get_field(f[0]) for f in frappe.db.sql('desc `tab%s`' % dt)])
 
 		tablecolumns.sort(lambda a, b: a.idx - b.idx)
 
@@ -184,7 +184,7 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 				if all_doctypes:
 					# add child tables
 					for child_doctype in child_doctypes:
-						for ci, child in enumerate(frappe.conn.sql("""select * from `tab%s` 
+						for ci, child in enumerate(frappe.db.sql("""select * from `tab%s` 
 							where parent=%s order by idx""" % (child_doctype, "%s"), doc.name, as_dict=1)):
 							add_data_row(row_group, child_doctype, child, ci)
 					
@@ -351,7 +351,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 	column_idx_to_fieldname = {}
 	column_idx_to_fieldtype = {}
 	
-	if submit_after_import and not cint(frappe.conn.get_value("DocType", 
+	if submit_after_import and not cint(frappe.db.get_value("DocType", 
 			doctype, "is_submittable")):
 		submit_after_import = False
 
@@ -370,7 +370,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 	check_data_length()
 	make_column_map()
 	
-	frappe.conn.begin()
+	frappe.db.begin()
 	if not overwrite:
 		overwrite = params.get('overwrite')
 	doctype_dl = frappe.model.doctype.get(doctype)
@@ -398,7 +398,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 					# ignoring parent check as it will be automatically added
 					check_record(d, None, doctype_dl)
 				
-				if overwrite and frappe.conn.exists(doctype, doclist[0]["name"]):
+				if overwrite and frappe.db.exists(doctype, doclist[0]["name"]):
 					bean = frappe.bean(doctype, doclist[0]["name"])
 					bean.ignore_links = ignore_links
 					bean.doclist.update(doclist)
@@ -441,9 +441,9 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 	ret, error = validate_parent(parent_list, parenttype, ret, error)
 	
 	if error:
-		frappe.conn.rollback()		
+		frappe.db.rollback()		
 	else:
-		frappe.conn.commit()
+		frappe.db.commit()
 		
 	frappe.flags.mute_emails = False
 	
@@ -484,7 +484,7 @@ def get_parent_field(doctype, parenttype):
 def delete_child_rows(rows, doctype):
 	"""delete child rows for all parents"""
 	for p in list(set([r[1] for r in rows])):
-		frappe.conn.sql("""delete from `tab%s` where parent=%s""" % (doctype, '%s'), p)
+		frappe.db.sql("""delete from `tab%s` where parent=%s""" % (doctype, '%s'), p)
 		
 import csv
 def import_file_by_path(path, ignore_links=False, overwrite=False):
@@ -551,7 +551,7 @@ def import_doclist(path, overwrite=False, ignore_links=False, ignore_insert=Fals
 						_import_doclist(doc)
 				else:
 					_import_doclist(data)
-				frappe.conn.commit()
+				frappe.db.commit()
 		if f.endswith(".csv"):
 			import_file_by_path(f, ignore_links=True, overwrite=overwrite)
-			frappe.conn.commit()
+			frappe.db.commit()

@@ -10,8 +10,8 @@ from frappe.utils import cint
 class DocType(WebsiteGenerator):
 	def autoname(self):
 		self.doc.name = cleanup_page_name(self.doc.title)
-		if frappe.conn.exists("Web Page", self.doc.name):
-			last = frappe.conn.sql("""select name from `tabWeb Page`
+		if frappe.db.exists("Web Page", self.doc.name):
+			last = frappe.db.sql("""select name from `tabWeb Page`
 				where name like '{}%' order by name desc limit 1""".format(self.doc.name))
 			count = last[0][0].replace(self.doc.name, "")
 			if count and "-" in count:
@@ -41,7 +41,7 @@ class DocType(WebsiteGenerator):
 		# delete entry from Table of Contents of other pages
 		WebsiteGenerator.on_trash(self)
 		
-		frappe.conn.sql("""delete from `tabTable of Contents`
+		frappe.db.sql("""delete from `tabTable of Contents`
 			where web_page=%s""", self.doc.name)
 		
 		# clear all cache if it has toc

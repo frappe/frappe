@@ -3,7 +3,7 @@ import frappe
 from frappe.model import rename_field
 
 def execute():
-	tables = frappe.conn.sql_list("show tables")
+	tables = frappe.db.sql_list("show tables")
 	if "tabWebsite Route" not in tables:
 		frappe.rename_doc("DocType", "Website Sitemap", "Website Route", force=True)
 

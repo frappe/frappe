@@ -18,7 +18,7 @@ def read_csv_content_from_uploaded_file(ignore_encoding=False):
 	return read_csv_content(fcontent, ignore_encoding)
 
 def read_csv_content_from_attached_file(doc):
-	fileid = frappe.conn.get_value("File Data", {"attached_to_doctype": doc.doctype,
+	fileid = frappe.db.get_value("File Data", {"attached_to_doctype": doc.doctype,
 		"attached_to_name":doc.name}, "name")
 	if not fileid:
 		msgprint("File not attached!")
@@ -111,7 +111,7 @@ def check_record(d, parenttype=None, doctype_dl=None):
 			if docfield.fieldtype=='Select' and val and docfield.options:
 				if docfield.options.startswith('link:'):
 					link_doctype = docfield.options.split(':')[1]
-					if not frappe.conn.exists(link_doctype, val):
+					if not frappe.db.exists(link_doctype, val):
 						frappe.msgprint("%s: %s must be a valid %s" % (docfield.label, val, link_doctype), 
 							raise_exception=1)
 				elif docfield.options == "attach_files:":
@@ -130,7 +130,7 @@ def check_record(d, parenttype=None, doctype_dl=None):
 
 def import_doc(d, doctype, overwrite, row_idx, submit=False, ignore_links=False):
 	"""import main (non child) document"""
-	if d.get("name") and frappe.conn.exists(doctype, d['name']):
+	if d.get("name") and frappe.db.exists(doctype, d['name']):
 		if overwrite:
 			bean = frappe.bean(doctype, d['name'])
 			bean.ignore_links = ignore_links

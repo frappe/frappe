@@ -32,9 +32,9 @@ from frappe.core.page.user_properties.user_properties import add, remove, get_pr
 test_dependencies = ["Profile"]
 class TestBlogPost(unittest.TestCase):
 	def setUp(self):
-		frappe.conn.sql("""update tabDocPerm set `restricted`=0 where parent='Blog Post' 
+		frappe.db.sql("""update tabDocPerm set `restricted`=0 where parent='Blog Post' 
 			and ifnull(permlevel,0)=0""")
-		frappe.conn.sql("""update `tabBlog Post` set owner='test2@example.com'
+		frappe.db.sql("""update `tabBlog Post` set owner='test2@example.com'
 			where name='_test-blog-post'""")
 
 		frappe.clear_cache(doctype="Blog Post")
@@ -84,7 +84,7 @@ class TestBlogPost(unittest.TestCase):
 		self.assertEquals(doc.get("blog_category"), "_Test Blog Category 1")
 	
 	def add_restricted_on_blogger(self):
-		frappe.conn.sql("""update tabDocPerm set `restricted`=1 where parent='Blog Post' and role='Blogger' 
+		frappe.db.sql("""update tabDocPerm set `restricted`=1 where parent='Blog Post' and role='Blogger' 
 			and ifnull(permlevel,0)=0""")
 		frappe.clear_cache(doctype="Blog Post")
 	
@@ -100,7 +100,7 @@ class TestBlogPost(unittest.TestCase):
 		self.assertFalse(post1.has_read_perm())
 		
 	def test_owner_match_report(self):
-		frappe.conn.sql("""update tabDocPerm set `restricted`=1 where parent='Blog Post' 
+		frappe.db.sql("""update tabDocPerm set `restricted`=1 where parent='Blog Post' 
 			and ifnull(permlevel,0)=0""")
 		frappe.clear_cache(doctype="Blog Post")
 

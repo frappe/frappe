@@ -6,4 +6,4 @@ import frappe
 
 def execute():
 	frappe.reload_doc("core", "doctype", "docperm")
-	frappe.conn.sql("""update `tabDocPerm` set restricted=1 where `match`='owner'""")
+	frappe.db.sql("""update `tabDocPerm` set restricted=1 where `match`='owner'""")

@@ -26,7 +26,7 @@ def get_contact_list():
 	"""Returns contacts (from autosuggest)"""
 	cond = ['`%s` like "%s%%"' % (f, 
 		frappe.form_dict.get('txt')) for f in frappe.form_dict.get('where').split(',')]
-	cl = frappe.conn.sql("select `%s` from `tab%s` where %s" % (
+	cl = frappe.db.sql("select `%s` from `tab%s` where %s" % (
   			 frappe.form_dict.get('select')
 			,frappe.form_dict.get('from')
 			,' OR '.join(cond)
@@ -35,7 +35,7 @@ def get_contact_list():
 	frappe.response['cl'] = filter(None, [c[0] for c in cl])
 
 def get_system_managers():
-	return frappe.conn.sql_list("""select parent FROM tabUserRole 
+	return frappe.db.sql_list("""select parent FROM tabUserRole 
 				  WHERE role='System Manager' 
 				  AND parent!='Administrator' 
 				  AND parent IN 
