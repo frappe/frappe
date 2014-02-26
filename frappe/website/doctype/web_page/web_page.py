@@ -12,10 +12,11 @@ class DocType(WebsiteGenerator):
 		self.doc.name = cleanup_page_name(self.doc.title)
 		if frappe.db.exists("Web Page", self.doc.name):
 			last = frappe.db.sql("""select name from `tabWeb Page`
-				where name like '{}%' order by name desc limit 1""".format(self.doc.name))
-			count = last[0][0].replace(self.doc.name, "")
-			if count and "-" in count:
-				count = cint(count.split("-")[1])
+				where name regexp '{name}-[[:digit:]]*' 
+				order by name desc limit 1""".format(name=self.doc.name))
+			
+			if last:
+				count = str(cint(last[0][0].rsplit("-", 1)[1]) + 1)
 			else:
 				count = "1"
 				
