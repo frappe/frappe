@@ -107,24 +107,21 @@ class sync(object):
 			["name", "idx", "static_file_timestamp", "docname"], as_dict=True)
 		
 		if route_details:
-			self.update_web_page(route_details, fpath, priority)
+			self.update_web_page(route_details, fpath, priority, parent_website_route)
 		else:
 			# Route does not exist, new page
 			self.insert_web_page(route, fpath, page_name, priority, parent_website_route)
 
 	def insert_web_page(self, route, fpath, page_name, priority, parent_website_route):
-		title, content = get_static_content(fpath)
-		if not title:
-			title = page_name.replace("-", " ").replace("_", " ").title()
 		page = frappe.bean({
 			"doctype":"Web Page",
 			"idx": priority,
-			"title": title,
 			"page_name": page_name,
-			"main_section": content,
 			"published": 1,
 			"parent_website_route": parent_website_route
 		})
+		
+		page.doc.fields.update(get_static_content(fpath, page_name))
 
 		try:
 			page.insert()
@@ -149,17 +146,13 @@ class sync(object):
 		print route_bean.doc.name + " inserted"
 		self.synced.append(route)
 	
-	def update_web_page(self, route_details, fpath, priority):
+	def update_web_page(self, route_details, fpath, priority, parent_website_route):			
 		if str(cint(os.path.getmtime(fpath)))!= route_details.static_file_timestamp \
 			or (cint(route_details.idx) != cint(priority) and (priority is not None)):
 
 			page = frappe.bean("Web Page", route_details.docname)
-			title, content = get_static_content(fpath)
-			page.doc.main_section = content
+			page.doc.fields.update(get_static_content(fpath, route_details.docname))
 			page.doc.idx = priority
-			if not title:
-				title = route_details.docname.replace("-", " ").replace("_", " ").title()
-			page.doc.title = title
 			page.save()
 
 			route_bean = frappe.bean("Website Route", route_details.name)
@@ -185,9 +178,9 @@ class sync(object):
 				order by (rgt-lft) asc"""))
 
 
-def get_static_content(fpath):
+def get_static_content(fpath, docname):
+	d = frappe._dict({})
 	with open(fpath, "r") as contentfile:
-		title = None
 		content = unicode(contentfile.read(), 'utf-8')
 
 		if fpath.endswith(".md"):
@@ -196,11 +189,22 @@ def get_static_content(fpath):
 				first_line = lines[0].strip()
 
 				if first_line.startswith("# "):
-					title = first_line[2:]
+					d.title = first_line[2:]
 					content = "\n".join(lines[1:])
 
 				content = markdown(content)
 			
-		content = unicode(content.encode("utf-8"), 'utf-8')
-			
-		return title, content
+		d.main_section = unicode(content.encode("utf-8"), 'utf-8')
+		if not d.title:
+			d.title = docname.replace("-", " ").replace("_", " ").title()
+
+	for extn in ("js", "css"):
+		fpath = fpath.rsplit(".", 1)[0] + "." + extn
+		if os.path.exists(fpath):
+			with open(fpath, "r") as f:
+				d[extn] = f.read()
+				
+	d.insert_style = 1 if d.css else 0
+	d.insert_code = 1 if d.js else 0
+					
+	return d

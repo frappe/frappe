@@ -53,7 +53,7 @@ var blog = {
 						</div>\
 					</div>\
 					<div class="col-md-11">\
-						<h4><a href="/%(page_name)s">%(title)s</a></h4>\
+						<a href="/%(page_name)s"><h4>%(title)s</h4></a>\
 						<p>%(content)s</p>\
 						<p style="color: #aaa; font-size: 90%">\
 							<a href="/blog?by=%(blogger)s&by_name=%(full_name)s">\

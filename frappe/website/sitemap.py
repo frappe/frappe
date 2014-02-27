@@ -59,12 +59,13 @@ def set_sidebar_items(sitemap_options, pathname, home_page):
 	else:		
 		sitemap_options.children = frappe.db.sql("""select * from `tabWebsite Route`
 			where ifnull(parent_website_route,'')=%s 
-			and public_read=1 order by -idx desc, page_title asc""", pathname, as_dict=True)
+			and public_read=1 
+			order by idx, page_title asc""", pathname, as_dict=True)
 			
 		if sitemap_options.children:
 			# if children are from generator and sort order is specified, then get that condition
 			website_template = frappe.doc("Website Template", sitemap_options.children[0].website_template)
-			if website_template.sort_by:
+			if website_template.sort_by!="name":
 				sitemap_options.children = frappe.db.sql("""select t1.* from 
 					`tabWebsite Route` t1, `tab{ref_doctype}` t2
 					where ifnull(t1.parent_website_route,'')=%s 
@@ -72,4 +73,5 @@ def set_sidebar_items(sitemap_options, pathname, home_page):
 					and t1.docname = t2.name
 					order by t2.{sort_by} {sort_order}""".format(**website_template.fields), 
 						pathname, as_dict=True)
-				
+			
+		print sitemap_options.children
