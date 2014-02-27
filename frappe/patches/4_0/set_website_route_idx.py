@@ -13,7 +13,8 @@ def execute():
 			doctype = frappe.get_attr(get_template_controller(app, g["path"], g["fname"]) + ".doctype")
 			module = frappe.db.get_value("DocType", doctype, "module")
 			frappe.reload_doc(module, "doctype", doctype)
-		
+	
+	frappe.db.sql("""update `tabBlog Category` set `title`=`name` where ifnull(`title`, '')=''""")
 	frappe.db.sql("""update `tabWebsite Route` set idx=null""")
 	for doctype in ["Blog Category", "Blog Post", "Web Page", "Website Group"]:
 		frappe.db.sql("""update `tab{}` set idx=null""".format(doctype))
