@@ -580,6 +580,7 @@ _f.Frm.prototype.copy_doc = function(onload, from_amend) {
 	var dn = this.docname;
 	// copy parent
 	var newdoc = frappe.model.copy_doc(this.doctype, dn, from_amend);
+	newdoc.idx = null;
 	
 	// copy chidren
 	var dl = make_doclist(this.doctype, dn);

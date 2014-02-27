@@ -27,7 +27,7 @@ def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False):
 
 @frappe.whitelist()
 def set_value(doctype, name, fieldname, value):
-	if fieldname in frappe.model.default_fields:
+	if fieldname!="idx" and fieldname in frappe.model.default_fields:
 		frappe.throw(_("Cannot edit standard fields"))
 		
 	doc = frappe.db.get_value(doctype, name, ["parenttype", "parent"], as_dict=True)

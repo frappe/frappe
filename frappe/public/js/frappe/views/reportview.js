@@ -313,7 +313,8 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 	},
 	
 	edit_cell: function(row, docfield) {
-		if(frappe.model.std_fields_list.indexOf(docfield.fieldname)!==-1) {
+		if(docfield.fieldname !== "idx" && 
+			frappe.model.std_fields_list.indexOf(docfield.fieldname)!==-1) {
 			frappe.throw(frappe._("Cannot edit standard fields"));
 		} else if(frappe.boot.profile.can_write.indexOf(this.doctype)===-1) {
 			frappe.throw(frappe._("No permission to edit"));

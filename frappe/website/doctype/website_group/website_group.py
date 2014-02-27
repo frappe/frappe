@@ -10,9 +10,6 @@ from frappe.model.doc import make_autoname
 class DocType(WebsiteGenerator):
 	def __init__(self, d, dl):
 		self.doc, self.doclist = d, dl
-
-	def autoname(self):
-		self.doc.name = make_autoname("Website-Group-.######")
 		
 	def get_page_title(self):
 		return self.doc.group_title

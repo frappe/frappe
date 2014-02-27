@@ -55,11 +55,11 @@ class DocType(DocTypeNestedSet):
 
 	def set_idx(self):
 		if self.doc.parent_website_route:
-			if self.doc.idx == None:
+			if not self.doc.idx == None:
 				self.set_idx_as_last()
 			else:
 				self.validate_previous_idx_exists()
-
+				
 	def set_idx_as_last(self):
 		# new, append
 		self.doc.idx = int(frappe.db.sql("""select ifnull(max(ifnull(idx, -1)), -1) 

@@ -14,6 +14,7 @@ def call_website_generator(bean, method, *args, **kwargs):
 class WebsiteGenerator(DocListController):
 	def autoname(self):
 		self.doc.name = cleanup_page_name(self.get_page_title())
+		self.doc.append_number_if_name_exists()
 
 	def set_page_name(self):
 		"""set page name based on parent page_name and title"""

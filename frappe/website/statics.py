@@ -41,7 +41,7 @@ class sync(object):
 		self.get_index_txt(basepath, files)
 		self.sync_index_page(basepath, files)
 	
-		if not frappe.db.exists("Website Route", folder_route): 
+		if not frappe.db.exists("Website Route", folder_route) and basepath!=self.statics_path: 
 			# not synced either by generator or by index.html
 			return
 			
