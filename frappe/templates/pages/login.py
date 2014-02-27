@@ -137,8 +137,6 @@ def login_via_oauth2(provider, code, decoder=None):
 	api_endpoint = oauth2_providers[provider].get("api_endpoint")
 	info = session.get(api_endpoint).json()
 	
-	print info
-	
 	if "verified_email" in info and not info.get("verified_email"):
 		frappe.throw("{verify}: {provider}".format(
 			verify=_("Error. Please verify your email with"),
