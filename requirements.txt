@@ -19,4 +19,4 @@ semantic_version
 lxml
 inlinestyler
 rauth>=0.6.2
-requests>=2.0.0
+requests==1.2.3
