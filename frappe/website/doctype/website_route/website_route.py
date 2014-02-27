@@ -31,6 +31,7 @@ class DocType(DocTypeNestedSet):
 		self.make_private_if_parent_is_private()
 		if not self.doc.is_new():
 			self.renumber_if_moved()
+		self.set_idx()
 
 	def renumber_if_moved(self):
 		current_parent = frappe.db.get_value("Website Route", self.doc.name, "parent_website_route")
@@ -48,7 +49,6 @@ class DocType(DocTypeNestedSet):
 			self.doc.idx = None
 	
 	def on_update(self):
-		self.set_idx()
 		if not frappe.flags.in_rebuild_config:
 			DocTypeNestedSet.on_update(self)
 		self.clear_cache()
