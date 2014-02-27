@@ -13,19 +13,25 @@
 		</label> -->
 		<br>
 		<button class="btn btn-lg btn-primary btn-block btn-login" type="submit">{{ _("Sign in") }}</button>
-		{%- if fb_app_id is defined -%}
-		<div id="fb-root"></div>
-		<p class="text-center">
-			<p class="text-muted text-center" style="margin: 10px;">or</p>
-			<button type="button" class="btn btn-lg btn-primary btn-block btn-facebook">
-			{{ _("Login via Facebook") }}</button></p>
+		{%- if third_party_sign_in -%}
+			<p class="text-muted text-center" style="margin: 10px;">or login via</p>
+			<p class="text-muted text-center" style="margin: 10px;">
+				{%- if facebook_sign_in is defined %}
+				<a href="{{ facebook_sign_in }}" class="btn btn-lg btn-block btn-primary btn-facebook">
+				<i class="icon-facebook-sign"></i> {{ _("Facebook") }}</a>
+				{%- endif -%}
+				
+				{%- if google_sign_in is defined %}
+				<a href="{{ google_sign_in }}" class="btn btn-lg btn-block btn-primary btn-google">
+				<i class="icon-google-plus-sign"></i> {{ _("Google") }}</a>
+				{%- endif -%}
+				
+				{%- if github_sign_in is defined %}
+				<a href="{{ github_sign_in }}" class="btn btn-lg btn-block btn-primary btn-github">
+				<i class="icon-github-sign"></i> {{ _("GitHub") }}</a>
+				{%- endif -%}
+			</p>
 		{%- endif -%}
-		{%- if google_sign_in is defined %}
-		<p class="text-center">
-			<p class="text-muted text-center" style="margin: 10px;">or</p>
-			<a href="{{ google_sign_in }}" type="button" class="btn btn-lg btn-primary btn-block btn-google">
-			{{ _("Login via Google") }}</a></p>
-			{%- endif -%}
 		<p class="text-center">
 			<br><a href="#signup">{{ _("Not a user yet? Sign up") }}</a>
 		</p>

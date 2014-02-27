@@ -2,7 +2,7 @@
  {
   "creation": "2013-03-07 11:54:44", 
   "docstatus": 0, 
-  "modified": "2014-02-26 17:40:31", 
+  "modified": "2014-02-27 18:01:32", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -481,6 +481,22 @@
   "fieldname": "google_userid", 
   "fieldtype": "Data", 
   "label": "Google User ID", 
+  "permlevel": 0, 
+  "read_only": 1
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "github_userid", 
+  "fieldtype": "Data", 
+  "label": "Github User ID", 
+  "permlevel": 0, 
+  "read_only": 1
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "github_username", 
+  "fieldtype": "Data", 
+  "label": "Github Username", 
   "permlevel": 0, 
   "read_only": 1
  }, 

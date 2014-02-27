@@ -1,7 +1,6 @@
 chardet
 cssmin
 dropbox
-oauth2client
 gunicorn
 httplib2
 jinja2
@@ -20,3 +19,4 @@ werkzeug
 semantic_version
 lxml
 inlinestyler
+rauth

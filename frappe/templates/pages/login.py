@@ -6,114 +6,195 @@ import frappe, os
 import httplib2
 import json
 from werkzeug.utils import redirect
+import frappe.utils
 
 no_cache = True
 
 def get_context(context):
 	# get settings from site config
 	context["title"] = "Login"
-	if frappe.conf.get("fb_app_id"):
-		context.update({ "fb_app_id": frappe.conf.fb_app_id })
-		
-	if os.path.exists(frappe.get_site_path("google_config.json")):
-		context.update({ "google_sign_in": get_google_auth_url() })
-		
-	return context
-
-def get_google_auth_url():
-	flow = get_google_auth_flow()
-	return flow.step1_get_authorize_url()
-
-def get_google_auth_flow():
-	from oauth2client.client import flow_from_clientsecrets
-	google_config_path = frappe.get_site_path("google_config.json")
-	google_config = frappe.get_file_json(google_config_path)
 	
-	flow = flow_from_clientsecrets(google_config_path,
-		scope=['https://www.googleapis.com/auth/userinfo.profile', 'https://www.googleapis.com/auth/userinfo.email'],
-		redirect_uri=google_config.get("web").get("redirect_uris")[0])
+	for provider in ("google", "github", "facebook"):
+		if get_oauth_keys(provider):
+			context["{provider}_sign_in".format(provider=provider)] = get_oauth2_authorize_url(provider)
+			context["third_party_sign_in"] = True
+			
+	return context
+	
+oauth2_providers = {
+	"google": {
+		"flow_params": {
+			"name": "google",
+			"authorize_url": "https://accounts.google.com/o/oauth2/auth",
+			"access_token_url": "https://accounts.google.com/o/oauth2/token",
+			"base_url": "https://www.googleapis.com",
+		},
+		
+		"redirect_uri": "/api/method/frappe.templates.pages.login.login_via_google",
+		
+		"auth_url_data": {
+			"scope": "https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email",
+			"response_type": "code"
+		},
+		
+		# relative to base_url
+		"api_endpoint": "oauth2/v2/userinfo"
+	},
+	
+	"github": {
+		"flow_params": {
+			"name": "github",
+			"authorize_url": "https://github.com/login/oauth/authorize",
+			"access_token_url": "https://github.com/login/oauth/access_token",
+			"base_url": "https://api.github.com/"
+		},
+		
+		"redirect_uri": "/api/method/frappe.templates.pages.login.login_via_github",
+		
+		# relative to base_url
+		"api_endpoint": "user"
+	},
+	
+	"facebook": {
+		"flow_params": {
+			"name": "facebook",
+			"authorize_url": "https://www.facebook.com/dialog/oauth",
+			"access_token_url": "https://graph.facebook.com/oauth/access_token",
+			"base_url": "https://graph.facebook.com"
+		},
+		
+		"redirect_uri": "/api/method/frappe.templates.pages.login.login_via_facebook",
+		
+		"auth_url_data": {
+			"display": "page",
+			"response_type": "code",
+			"scope": "email,user_birthday"
+		},
+		
+		# relative to base_url
+		"api_endpoint": "me"
+	}
+}
 
-	return flow
+def get_oauth_keys(provider):
+	# get client_id and client_secret from conf
+	return frappe.conf.get("{provider}_sign_in".format(provider=provider))
+
+def get_oauth2_authorize_url(provider):
+	flow = get_oauth2_flow(provider)
+	
+	# relative to absolute url
+	data = { "redirect_uri": get_redirect_uri(provider) }
+
+	# additional data if any
+	data.update(oauth2_providers[provider].get("auth_url_data", {}))
+	
+	return flow.get_authorize_url(**data)
+	
+def get_oauth2_flow(provider):
+	from rauth import OAuth2Service
+	
+	# get client_id and client_secret
+	params = get_oauth_keys(provider)
+	
+	# additional params for getting the flow
+	params.update(oauth2_providers[provider]["flow_params"])
+	
+	# and we have setup the communication lines
+	return OAuth2Service(**params)
+	
+def get_redirect_uri(provider):
+	redirect_uri = oauth2_providers[provider]["redirect_uri"]
+	return frappe.utils.get_url(redirect_uri)
 	
 @frappe.whitelist(allow_guest=True)
 def login_via_google(code):
-	flow = get_google_auth_flow()
-	credentials = flow.step2_exchange(code)
-
-	http = httplib2.Http()
-	http = credentials.authorize(http)
-	
-	resp, content = http.request('https://www.googleapis.com/oauth2/v2/userinfo', 'GET')
-	info = json.loads(content)
-	
-	if not info.get("verified_email"):
-		frappe.throw("You need to verify your email with Google before you can proceed.")
-	
-	frappe.local._response = redirect("/")
-	
-	login_oauth_user(info, oauth_provider="google")
-	
-	# because of a GET request!
-	frappe.db.commit()
+	login_via_oauth2("google", code, decoder=json.loads)
 	
 @frappe.whitelist(allow_guest=True)
-def login_via_facebook(data):
-	data = json.loads(data)
-	
-	if not (data.get("id") and data.get("fb_access_token")):
-		raise frappe.ValidationError
+def login_via_github(code):
+	login_via_oauth2("github", code)
 
-	if not get_fb_userid(data.get("fb_access_token")):
-		# garbage
-		raise frappe.ValidationError
-		
-	login_oauth_user(data, oauth_provider="facebook")
+@frappe.whitelist(allow_guest=True)
+def login_via_facebook(code):
+	login_via_oauth2("facebook", code)
 	
-def login_oauth_user(data, oauth_provider=None):
+def login_via_oauth2(provider, code, decoder=None):
+	flow = get_oauth2_flow(provider)
+	
+	args = {
+		"data": {
+			"code": code,
+			"redirect_uri": get_redirect_uri(provider),
+			"grant_type": "authorization_code"
+		}
+	}
+	if decoder:
+		args["decoder"] = decoder
+	
+	session = flow.get_auth_session(**args)
+	
+	api_endpoint = oauth2_providers[provider].get("api_endpoint")
+	info = session.get(api_endpoint).json()
+	
+	print info
+	
+	if "verified_email" in info and not info.get("verified_email"):
+		frappe.throw("{verify}: {provider}".format(
+			verify=_("Error. Please verify your email with"),
+			provider=provider.title()))
+	
+	login_oauth_user(info, provider=provider)
+	
+def login_oauth_user(data, provider=None):
 	user = data["email"]
 	
 	if not frappe.db.exists("Profile", user):
-		create_oauth_user(data, oauth_provider)
+		create_oauth_user(data, provider)
+	
+	frappe.local._response = redirect("/")
 	
 	frappe.local.login_manager.user = user
 	frappe.local.login_manager.post_login()
 	
-def create_oauth_user(data, oauth_provider):
+	# because of a GET request!
+	frappe.db.commit()
+	
+def create_oauth_user(data, provider):
 	if data.get("birthday"):
-		b = data.get("birthday").split("/")
-		data["birthday"] = b[2] + "-" + b[0] + "-" + b[1]
+		from frappe.utils.dateutils import parse_date
+		data["birthday"] = parse_date(data["birthday"])
+		
+	if isinstance(data.get("location"), dict):
+		data["location"] = data.get("location").get("name")
 	
 	profile = frappe.bean({
 		"doctype":"Profile",
-		"first_name": data.get("first_name") or data.get("given_name"),
+		"first_name": data.get("first_name") or data.get("given_name") or data.get("name"),
 		"last_name": data.get("last_name") or data.get("family_name"),
 		"email": data["email"],
 		"gender": data.get("gender"),
 		"enabled": 1,
 		"new_password": frappe.generate_hash(data["email"]),
-		"location": data.get("location", {}).get("name"),
+		"location": data.get("location"),
 		"birth_date":  data.get("birthday"),
 		"user_type": "Website User",
-		"user_image": data.get("picture")
+		"user_image": data.get("picture") or data.get("avatar_url")
 	})
 	
-	if oauth_provider=="facebook":
+	if provider=="facebook":
 		profile.doc.fields.update({
 			"fb_username": data["username"],
-			"fb_userid": data["id"]
+			"fb_userid": data["id"],
+			"user_image": "https://graph.facebook.com/{username}/picture".format(username=data["username"])
 		})
-	elif oauth_provider=="google":
+	elif provider=="google":
 		profile.doc.google_userid = data["id"]
+	
+	elif provider=="github":
+		profile.doc.github_userid = data["id"]
+		profile.doc.github_username = data["login"]
 	
 	profile.ignore_permissions = True
 	profile.get_controller().no_welcome_mail = True
 	profile.insert()
-
-def get_fb_userid(fb_access_token):
-	import requests
-	response = requests.get("https://graph.facebook.com/me?access_token=" + fb_access_token)
-	if response.status_code==200:
-		print response.json()
-		return response.json().get("id")
-	else:
-		return frappe.AuthenticationError

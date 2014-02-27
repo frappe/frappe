@@ -110,11 +110,8 @@ class DocType:
 	def update_gravatar(self):
 		import md5
 		if not self.doc.user_image:
-			if self.doc.fb_username:
-				self.doc.user_image = "https://graph.facebook.com/" + self.doc.fb_username + "/picture"
-			else:
-				self.doc.user_image = "https://secure.gravatar.com/avatar/" + md5.md5(self.doc.name).hexdigest() \
-					+ "?d=retro"
+			self.doc.user_image = "https://secure.gravatar.com/avatar/" + md5.md5(self.doc.name).hexdigest() \
+				+ "?d=retro"
 	
 	def reset_password(self):
 		from frappe.utils import random_string, get_url

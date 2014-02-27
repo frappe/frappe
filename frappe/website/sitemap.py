@@ -73,5 +73,3 @@ def set_sidebar_items(sitemap_options, pathname, home_page):
 					and t1.docname = t2.name
 					order by t2.{sort_by} {sort_order}""".format(**website_template.fields), 
 						pathname, as_dict=True)
-			
-		print sitemap_options.children

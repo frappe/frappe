@@ -15,7 +15,7 @@ class DocType(WebsiteGenerator):
 		self.doc.name = self.doc.category_name
 	
 	def get_page_title(self):
-		return self.doc.title
+		return self.doc.title or self.doc.name
 		
 	def on_update(self):
 		WebsiteGenerator.on_update(self)

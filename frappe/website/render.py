@@ -76,7 +76,8 @@ def build_page(path):
 	return html	
 	
 def is_ajax():
-	return frappe.get_request_header("X-Requested-With")=="XMLHttpRequest"
+	return (frappe.get_request_header("X-Requested-With")=="XMLHttpRequest" 
+			if hasattr(frappe.local, "_response") else False)
 	
 def resolve_path(path):
 	if not path:
