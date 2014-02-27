@@ -252,7 +252,8 @@ fieldset {
 }
 
 .sidebar-item a.active {
-	border-bottom: 2px solid #999;
+	color: #000;
+	font-weight: bold;
 }
 
 html,
@@ -407,6 +408,10 @@ a.active {
 	background-color: transparent;
 	border-radius: 0px;
 	font-size: 85%;
+}
+
+.breadcrumb a {
+	color: inherit;
 }
 
 @media (min-width: 768px) {

@@ -314,6 +314,20 @@ $.extend(frappe, {
 		$.each((frappe.page_ready_events[frappe.get_pathname()] || []), function(i, fn) {
 			fn();
 		})
+	},
+	make_navbar_active: function() {
+		var pathname = window.location.pathname;
+		$(".navbar a.active").removeClass("active");
+		$(".navbar a").each(function() {
+			var href = $(this).attr("href");
+			if(pathname.indexOf(href)===0) {
+				var more = pathname.replace(href, "");
+				if(!more || more.substr(0, 1)==="/") {
+					$(this).addClass("active");
+					return false;
+				}
+			}
+		})
 	}
 });
 
@@ -474,4 +488,5 @@ $(document).on("page_change", function() {
 	$(document).trigger("apply_permissions");
 	frappe.datetime.refresh_when();
 	frappe.trigger_ready();
+	frappe.make_navbar_active();
 });

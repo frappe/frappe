@@ -10,19 +10,8 @@ from frappe.utils import cint
 class DocType(WebsiteGenerator):
 	def autoname(self):
 		self.doc.name = cleanup_page_name(self.doc.title)
-		if frappe.db.exists("Web Page", self.doc.name):
-			last = frappe.db.sql("""select name from `tabWeb Page`
-				where name regexp '{name}-[[:digit:]]*' 
-				order by name desc limit 1""".format(name=self.doc.name))
+		self.doc.append_number_if_name_exists()
 			
-			if last:
-				count = str(cint(last[0][0].rsplit("-", 1)[1]) + 1)
-			else:
-				count = "1"
-				
-			self.doc.name = "{0}-{1}".format(self.doc.name, count)
-			
-		
 	def validate(self):
 		for d in self.doclist.get({"parentfield": "toc"}):
 			if d.web_page == self.doc.name:

@@ -37,12 +37,12 @@ class sync(object):
 
 				
 	def sync_folder(self, basepath, folders, files):
-		self.has_index = False
+		folder_route = os.path.relpath(basepath, self.statics_path)
 		self.get_index_txt(basepath, files)
 		self.sync_index_page(basepath, files)
 	
-		if not self.has_index and basepath!=self.statics_path: 
-			# index.md or index.html is required, else skip
+		if not frappe.db.exists("Website Route", folder_route): 
+			# not synced either by generator or by index.html
 			return
 			
 		if self.index:
@@ -63,7 +63,6 @@ class sync(object):
 			fname = "index." + extn
 			if fname in files:
 				self.sync_file(fname, os.path.join(basepath, fname), None)
-				self.has_index = True
 				return
 		
 	def sync_using_given_index(self, basepath, folders, files):

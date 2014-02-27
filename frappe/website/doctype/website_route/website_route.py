@@ -31,7 +31,6 @@ class DocType(DocTypeNestedSet):
 		self.make_private_if_parent_is_private()
 		if not self.doc.is_new():
 			self.renumber_if_moved()
-		self.set_idx()
 
 	def renumber_if_moved(self):
 		current_parent = frappe.db.get_value("Website Route", self.doc.name, "parent_website_route")
@@ -48,30 +47,38 @@ class DocType(DocTypeNestedSet):
 					(current_parent, self.doc.idx))
 			self.doc.idx = None
 	
+	def on_update(self):
+		self.set_idx()
+		if not frappe.flags.in_rebuild_config:
+			DocTypeNestedSet.on_update(self)
+		self.clear_cache()
+
 	def set_idx(self):
 		if self.doc.parent_website_route:
 			if self.doc.idx == None:
-				self.doc.idx = int(frappe.db.sql("""select ifnull(max(ifnull(idx, -1)), -1) 
-					from `tabWebsite Route`
-					where ifnull(parent_website_route, '')=%s and name!=%s""", 
-						(self.doc.parent_website_route or '',
-						self.doc.name))[0][0]) + 1
-								
+				self.set_idx_as_last()
 			else:
-				self.doc.idx = cint(self.doc.idx)
-				previous_idx = frappe.db.sql("""select max(idx) 
-						from `tab{}` where ifnull(parent_website_route, '')=%s 
-						and ifnull(idx, -1) < %s""".format(self.doc.ref_doctype), 
-						(self.doc.parent_website_route, self.doc.idx))[0][0]
-				
-				if previous_idx and previous_idx != self.doc.idx - 1:
-					frappe.throw("{}: {}, {}".format(
-						_("Sitemap Ordering Error. Index missing"), self.doc.name, self.doc.idx-1))
+				self.validate_previous_idx_exists()
 
-	def on_update(self):
-		if not frappe.flags.in_rebuild_config:
-			DocTypeNestedSet.on_update(self)
-												
+	def set_idx_as_last(self):
+		# new, append
+		self.doc.idx = int(frappe.db.sql("""select ifnull(max(ifnull(idx, -1)), -1) 
+			from `tabWebsite Route`
+			where ifnull(parent_website_route, '')=%s and name!=%s""", 
+				(self.doc.parent_website_route or '',
+				self.doc.name))[0][0]) + 1
+				
+	def validate_previous_idx_exists(self):
+		self.doc.idx = cint(self.doc.idx)
+		previous_idx = frappe.db.sql("""select max(idx) 
+			from `tab{}` where ifnull(parent_website_route, '')=%s 
+			and ifnull(idx, -1) < %s""".format(self.doc.ref_doctype), 
+			(self.doc.parent_website_route, self.doc.idx))[0][0]
+	
+		if previous_idx and previous_idx != self.doc.idx - 1:
+			frappe.throw("{}: {}, {}".format(
+				_("Sitemap Ordering Error. Index missing"), self.doc.name, self.doc.idx-1))
+
 	def rename(self):
 		from frappe.website.render import clear_cache
 		self.old_name = self.doc.name
@@ -127,8 +134,12 @@ class DocType(DocTypeNestedSet):
 		to_remove = frappe.db.sql_list("""select name from `tabWebsite Route Permission` 
 			where website_route=%s""", (self.doc.name,))
 		frappe.delete_doc("Website Route Permission", to_remove, ignore_permissions=True)
+		self.clear_cache()
 		
+	def clear_cache(self):
 		clear_cache(self.doc.name)
+		if self.doc.parent_website_route:
+			clear_cache(self.doc.parent_website_route)
 		
 def add_to_sitemap(options):
 	bean = frappe.new_bean("Website Route")
