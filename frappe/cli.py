@@ -8,7 +8,7 @@ import sys, os
 
 import frappe
 
-site_arg_optional = ['serve']
+site_arg_optional = ['serve', 'build', 'watch']
 
 def get_site(parsed_args):
 	if not parsed_args.get("site") and os.path.exists(os.path.join(parsed_args["sites_path"], "currentsite.txt")):
@@ -41,6 +41,9 @@ def main():
 				exit(1)
 			elif site:
 				frappe.init(site, sites_path=sites_path)
+			else:
+				# site argument optional
+				frappe.init("", sites_path=sites_path)
 			run(fn, parsed_args)
 	else:
 		run(fn, parsed_args)
@@ -298,6 +301,7 @@ def latest(verbose=True, rebuild_website_config=True):
 	import frappe.model.sync
 	from frappe.website import rebuild_config
 	from frappe.utils.fixtures import sync_fixtures
+	import frappe.translate
 	
 	frappe.connect()
 	
@@ -316,6 +320,8 @@ def latest(verbose=True, rebuild_website_config=True):
 			rebuild_config()
 		
 		sync_fixtures()
+		
+		frappe.translate.clear_cache()
 		
 	except frappe.modules.patch_handler.PatchError, e:
 		print "\n".join(frappe.local.patch_log_list)

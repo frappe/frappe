@@ -145,7 +145,7 @@ login.via_facebook = function() {
 					url:"/",
 					type: "POST",
 					data: {
-						cmd:"frappe.core.doctype.profile.profile.facebook_login",
+						cmd:"frappe.templates.pages.login.login_via_facebook",
 						data: JSON.stringify(response)
 					},
 					statusCode: login.login_handlers
@@ -174,15 +174,3 @@ frappe.ready(function() {
 });
 
 {%- endif %}
-
-{% if google_sign_in is defined -%}
-
-frappe.ready(function() {
-	$(".btn-google").click(function() {
-		frappe.call({
-			method: "frappe.templates.pages.login.get_google_auth_url"
-		})
-	})
-})
-
-{%- endif -%}

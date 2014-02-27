@@ -1,6 +1,7 @@
 chardet
 cssmin
 dropbox
+rauth
 oauth2client
 gunicorn
 httplib2

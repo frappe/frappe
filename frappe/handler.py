@@ -79,7 +79,7 @@ def handle():
 		else:
 			if frappe.local.request.method in ("POST", "PUT") and frappe.db:
 				frappe.db.commit()
-				
+	
 	build_response()
 
 	if frappe.db:

@@ -357,53 +357,6 @@ def reset_password(user):
 		return "Password reset details sent to your email."
 	else:
 		return "No such user (%s)" % user
-
-@frappe.whitelist(allow_guest=True)
-def facebook_login(data):
-	data = json.loads(data)
-	
-	if not (data.get("id") and data.get("fb_access_token")):
-		raise frappe.ValidationError
-
-	user = data["email"]
-		
-	if not get_fb_userid(data.get("fb_access_token")):
-		# garbage
-		raise frappe.ValidationError
-	
-	if not frappe.db.exists("Profile", user):
-		if data.get("birthday"):
-			b = data.get("birthday").split("/")
-			data["birthday"] = b[2] + "-" + b[0] + "-" + b[1]
-		
-		profile = frappe.bean({
-			"doctype":"Profile",
-			"first_name": data["first_name"],
-			"last_name": data["last_name"],
-			"email": data["email"],
-			"enabled": 1,
-			"new_password": frappe.generate_hash(data["email"]),
-			"fb_username": data["username"],
-			"fb_userid": data["id"],
-			"location": data.get("location", {}).get("name"),
-			"birth_date":  data.get("birthday"),
-			"user_type": "Website User"
-		})
-		profile.ignore_permissions = True
-		profile.get_controller().no_welcome_mail = True
-		profile.insert()
-	
-	frappe.local.login_manager.user = user
-	frappe.local.login_manager.post_login()
-	
-def get_fb_userid(fb_access_token):
-	import requests
-	response = requests.get("https://graph.facebook.com/me?access_token=" + fb_access_token)
-	if response.status_code==200:
-		print response.json()
-		return response.json().get("id")
-	else:
-		return frappe.AuthenticationError
 		
 def profile_query(doctype, txt, searchfield, start, page_len, filters):
 	from frappe.widgets.reportview import get_match_cond
