@@ -80,14 +80,13 @@ class DocType(DocTypeNestedSet):
 				_("Sitemap Ordering Error. Index missing"), self.doc.name, self.doc.idx-1))
 
 	def rename(self):
-		from frappe.website.render import clear_cache
 		self.old_name = self.doc.name
 		self.doc.name = self.get_url()
 		frappe.db.sql("""update `tabWebsite Route` set name=%s where name=%s""", 
 			(self.doc.name, self.old_name))
 		self.rename_links()
 		self.rename_descendants()
-		clear_cache(self.old_name)
+		self.clear_cache(self.old_name)
 		
 	def rename_links(self):
 		for doctype in frappe.db.sql_list("""select parent from tabDocField where fieldtype='Link' and 
@@ -129,7 +128,6 @@ class DocType(DocTypeNestedSet):
 				self.doc.public_read = self.doc.public_write = 0
 			
 	def on_trash(self):		
-		from frappe.website.render import clear_cache
 		# remove website sitemap permissions
 		to_remove = frappe.db.sql_list("""select name from `tabWebsite Route Permission` 
 			where website_route=%s""", (self.doc.name,))
@@ -137,6 +135,7 @@ class DocType(DocTypeNestedSet):
 		self.clear_cache()
 		
 	def clear_cache(self):
+		from frappe.website.render import clear_cache
 		clear_cache(self.doc.name)
 		if self.doc.parent_website_route:
 			clear_cache(self.doc.parent_website_route)
