@@ -134,9 +134,9 @@ class DocType(DocTypeNestedSet):
 		frappe.delete_doc("Website Route Permission", to_remove, ignore_permissions=True)
 		self.clear_cache()
 		
-	def clear_cache(self):
+	def clear_cache(self, name=None):
 		from frappe.website.render import clear_cache
-		clear_cache(self.doc.name)
+		clear_cache(name or self.doc.name)
 		if self.doc.parent_website_route:
 			clear_cache(self.doc.parent_website_route)
 		
