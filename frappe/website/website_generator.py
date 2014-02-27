@@ -13,7 +13,7 @@ def call_website_generator(bean, method, *args, **kwargs):
 
 class WebsiteGenerator(DocListController):
 	def autoname(self):
-		self.doc.name = cleanup_page_name(self.get_page_title())
+		self.doc.name = self.get_page_name()
 		self.doc.append_number_if_name_exists()
 
 	def set_page_name(self):
@@ -21,9 +21,9 @@ class WebsiteGenerator(DocListController):
 		page_name = cleanup_page_name(self.get_page_title())
 
 		if self.doc.is_new():
-			self.doc.fields[self._website_config.page_name_field] = page_name
+			self.doc.fields[self.website_template.page_name_field] = page_name
 		else:
-			frappe.db.set(self.doc, self._website_config.page_name_field, page_name)
+			frappe.db.set(self.doc, self.website_template.page_name_field, page_name)
 			
 		return page_name
 
@@ -31,8 +31,9 @@ class WebsiteGenerator(DocListController):
 		return self.doc.parent_website_route
 
 	def setup_generator(self):
-		self._website_config = frappe.db.get_values("Website Template", 
-			{"ref_doctype": self.doc.doctype}, "*")[0]
+		if not hasattr(self, "website_template"):
+			self.website_template = frappe.db.get_values("Website Template", 
+				{"ref_doctype": self.doc.doctype}, "*")[0]
 
 	def on_update(self):
 		self.update_sitemap()
@@ -53,8 +54,8 @@ class WebsiteGenerator(DocListController):
 	def update_sitemap(self):
 		self.setup_generator()
 		
-		if self._website_config.condition_field and \
-			not self.doc.fields.get(self._website_config.condition_field):
+		if self.website_template.condition_field and \
+			not self.doc.fields.get(self.website_template.condition_field):
 			# condition field failed, remove and return!
 			remove_sitemap(ref_doctype=self.doc.doctype, docname=self.doc.name)
 			return
@@ -73,11 +74,11 @@ class WebsiteGenerator(DocListController):
 			"idx": self.doc.idx,
 			"docname": self.doc.name,
 			"page_name": page_name,
-			"link_name": self._website_config.name,
+			"link_name": self.website_template.name,
 			"lastmod": frappe.utils.get_datetime(self.doc.modified).strftime("%Y-%m-%d"),
 			"parent_website_route": self.get_parent_website_route(),
 			"page_title": self.get_page_title(),
-			"public_read": 1 if not self._website_config.no_sidebar else 0
+			"public_read": 1 if not self.website_template.no_sidebar else 0
 		})
 
 		self.update_permissions(opts)
@@ -105,8 +106,9 @@ class WebsiteGenerator(DocListController):
 		return self._get_page_name()
 		
 	def _get_page_name(self):
-		if self.meta.has_field(self._website_config.page_name_field):
-			return self.doc.fields.get(self._website_config.page_name_field)
+		self.setup_generator()
+		if self.meta.has_field(self.website_template.page_name_field):
+			return self.doc.fields.get(self.website_template.page_name_field)
 		else:
 			return cleanup_page_name(self.get_page_title())
 		

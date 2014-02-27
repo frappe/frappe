@@ -7,11 +7,7 @@ from frappe.website.website_generator import WebsiteGenerator
 from frappe.website.utils import cleanup_page_name
 from frappe.utils import cint
 
-class DocType(WebsiteGenerator):
-	def autoname(self):
-		self.doc.name = cleanup_page_name(self.doc.title)
-		self.doc.append_number_if_name_exists()
-			
+class DocType(WebsiteGenerator):			
 	def validate(self):
 		for d in self.doclist.get({"parentfield": "toc"}):
 			if d.web_page == self.doc.name:
