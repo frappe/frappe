@@ -29,7 +29,8 @@ scheduler_event = daily:frappe.core.doctype.notification_count.notification_coun
 scheduler_event = daily:frappe.core.doctype.event.event.send_event_digest
 scheduler_event = hourly:frappe.templates.generator.website_group.clear_event_cache
 
-on_session_creation = frappe.auth.notify_administrator_login
+# TODO
+# on_session_creation = frappe.auth.notify_administrator_login
 
 # permissions
 

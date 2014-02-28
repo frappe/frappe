@@ -159,8 +159,8 @@ class LoginManager:
 		raise frappe.AuthenticationError
 		
 	
-	def run_trigger(self, method='on_login'):
-		for method in frappe.get_hooks().get("method", []):
+	def run_trigger(self, event='on_login'):
+		for method in frappe.get_hooks().get(event, []):
 			frappe.get_attr(method)(self)
 	
 	def validate_ip_address(self):
