@@ -200,9 +200,9 @@ def get_static_content(fpath, docname):
 		fpath = fpath.rsplit(".", 1)[0] + "." + extn
 		if os.path.exists(fpath):
 			with open(fpath, "r") as f:
-				d[extn] = f.read()
+				d["css" if extn=="css" else "javascript"] = f.read()
 				
 	d.insert_style = 1 if d.css else 0
-	d.insert_code = 1 if d.js else 0
+	d.insert_code = 1 if d.javascript else 0
 					
 	return d
