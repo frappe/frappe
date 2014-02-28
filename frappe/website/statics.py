@@ -26,8 +26,6 @@ class sync(object):
 		
 		if self.updated:
 			print str(self.updated) + " files updated"
-		else:
-			print "no change"
 		
 	def sync_for_app(self, app):
 		self.statics_path = frappe.get_app_path(app, "templates", "statics")

@@ -219,6 +219,8 @@ def setup_utilities(parser):
 		help="""Export doclist as json to the given path, use '-' as name for Singles.""")
 	parser.add_argument("--export_csv", nargs=2, metavar=("DOCTYPE", "PATH"), 
 		help="""Dump DocType as csv""")
+	parser.add_argument("--export_fixtures", default=False, action="store_true", 
+		help="""Export fixtures""")
 	parser.add_argument("--import_doclist", nargs=1, metavar="PATH", 
 		help="""Import (insert/update) doclist. If the argument is a directory, all files ending with .json are imported""")	
 		
@@ -269,12 +271,6 @@ def restore(db_name, source_sql, verbose=True, force=False):
 	install(db_name, source_sql=source_sql, verbose=verbose, force=force)
 
 @cmd
-def install_fixtures():
-	from frappe.install_lib.install import install_fixtures
-	install_fixtures()
-	frappe.destroy()
-
-@cmd
 def add_system_manager(email, first_name=None, last_name=None):
 	frappe.connect()
 	frappe.profile.add_system_manager(email, first_name, last_name)
@@ -302,6 +298,7 @@ def latest(verbose=True, rebuild_website_config=True):
 	from frappe.website import rebuild_config
 	from frappe.utils.fixtures import sync_fixtures
 	import frappe.translate
+	from frappe.website import statics
 	
 	frappe.connect()
 	
@@ -319,6 +316,7 @@ def latest(verbose=True, rebuild_website_config=True):
 		if rebuild_website_config:
 			rebuild_config()
 		
+		statics.sync().start()
 		sync_fixtures()
 		
 		frappe.translate.clear_cache()
@@ -525,6 +523,13 @@ def export_csv(doctype, path):
 	from frappe.core.page.data_import_tool import data_import_tool
 	frappe.connect()
 	data_import_tool.export_csv(doctype, path)
+	frappe.destroy()
+
+@cmd
+def export_fixtures():
+	from frappe.utils.fixtures import export_fixtures
+	frappe.connect()
+	export_fixtures()
 	frappe.destroy()
 
 @cmd
