@@ -50,7 +50,6 @@ def rebuild_website_template():
 	frappe.flags.in_rebuild_config = True
 		
 	frappe.db.sql("""delete from `tabWebsite Template`""")
-	frappe.db.sql("""delete from `tabWebsite Route`""")
 	for app in frappe.get_installed_apps():
 		if app=="webnotes": app="frappe"
 		build_website_template(app)
