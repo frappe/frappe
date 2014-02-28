@@ -30,6 +30,8 @@ def main():
 			
 		if parsed_args.get("site")=="all":
 			for site in get_sites(parsed_args["sites_path"]):
+				print "\nRunning", fn, "for", site
+				print "-"*50
 				args = parsed_args.copy()
 				args["site"] = site
 				frappe.init(site, sites_path=sites_path)
