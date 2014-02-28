@@ -12,7 +12,7 @@ def execute():
 		for g in generators:
 			doctype = frappe.get_attr(get_template_controller(app, g["path"], g["fname"]) + ".doctype")
 			module = frappe.db.get_value("DocType", doctype, "module")
-			frappe.reload_doc(module, "doctype", doctype)
+			frappe.reload_doc(frappe.scrub(module), "doctype", frappe.scrub(doctype))
 	
 	frappe.db.sql("""update `tabBlog Category` set `title`=`name` where ifnull(`title`, '')=''""")
 	frappe.db.sql("""update `tabWebsite Route` set idx=null""")

@@ -15,6 +15,7 @@ def execute():
 			frappe.rename_doc("DocType", "Website Sitemap Permission", "Website Route Permission", force=True)
 		
 		for d in ("Blog Category", "Blog Post", "Web Page", "Website Route", "Website Group"):
+			frappe.reload_doc("website", "doctype", frappe.scrub(d))
 			rename_field(d, "parent_website_sitemap", "parent_website_route")
 		
 		rename_field("Website Route", "website_sitemap_config", "website_template")

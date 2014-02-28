@@ -14,12 +14,12 @@ def get_context(context):
 			
 	address = frappe.bean("Address", bean.doc.address).doc if bean.doc.address else None
 	
-	return {
-		"query_options": query_options,
-		"address": address,
-		"heading": bean.doc.heading,
-		"introduction": bean.doc.introduction
+	out = {
+		"query_options": query_options
 	}
+	out.update(bean.doc.fields)
+	
+	return out
 	
 max_communications_per_hour = 300
 

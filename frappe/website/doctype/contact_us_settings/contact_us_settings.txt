@@ -2,7 +2,7 @@
  {
   "creation": "2013-02-21 20:12:42", 
   "docstatus": 0, 
-  "modified": "2013-12-20 19:23:02", 
+  "modified": "2014-02-28 11:32:25", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -47,15 +47,20 @@
   "fieldname": "help", 
   "fieldtype": "HTML", 
   "label": "Help", 
-  "options": "<div class=\"alert\">Link for Contact Page is \"/contact\"</div>"
+  "options": "<div class=\"alert alert-info\">Link for Contact Page is \"/contact\"</div>"
  }, 
  {
-  "description": "Address to be displayed on the Contact Page", 
   "doctype": "DocField", 
-  "fieldname": "address", 
-  "fieldtype": "Link", 
-  "label": "Address", 
-  "options": "Address"
+  "fieldname": "introduction_section", 
+  "fieldtype": "Section Break", 
+  "label": "Introduction"
+ }, 
+ {
+  "description": "Send enquiries to this email address", 
+  "doctype": "DocField", 
+  "fieldname": "forward_to_email", 
+  "fieldtype": "Data", 
+  "label": "Forward To Email Address"
  }, 
  {
   "description": "Default: \"Contact Us\"", 
@@ -79,11 +84,52 @@
   "label": "Query Options"
  }, 
  {
-  "description": "Send enquiries to this email address", 
   "doctype": "DocField", 
-  "fieldname": "forward_to_email", 
+  "fieldname": "address", 
+  "fieldtype": "Section Break", 
+  "label": "Address"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "address_title", 
   "fieldtype": "Data", 
-  "label": "Forward To Email Address"
+  "label": "Address Title"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "address_line1", 
+  "fieldtype": "Data", 
+  "label": "Address Line 1"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "address_line2", 
+  "fieldtype": "Data", 
+  "label": "Address Line 2"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "city", 
+  "fieldtype": "Data", 
+  "label": "City"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "state", 
+  "fieldtype": "Data", 
+  "label": "State"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "pincode", 
+  "fieldtype": "Data", 
+  "label": "Pincode"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "country", 
+  "fieldtype": "Data", 
+  "label": "Country"
  }, 
  {
   "doctype": "DocPerm"
