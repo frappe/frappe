@@ -16,6 +16,7 @@ def execute():
 		from `tabWebsite Template` wsc where wsc.name=ws.website_template)
 		where ifnull(page_or_generator, '')!='Page'""")
 	
+	frappe.reload_doc("website", "doctype", "website_settings")
 	home_page = frappe.db.get_value("Website Settings", "Website Settings", "home_page")
 	home_page = frappe.db.get_value("Website Route", {"docname": home_page}) or home_page
 	frappe.db.set_value("Website Settings", "Website Settings", "home_page",

@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 
+from frappe.utils import strip_html
 from frappe.website.utils import scrub_relative_urls
 from jinja2.utils import concat
 from jinja2 import meta
@@ -44,5 +45,7 @@ def render_blocks(context):
 	if "sidebar" not in out:
 		out["sidebar"] = scrub_relative_urls(
 			frappe.get_template("templates/includes/sidebar.html").render(context))
+			
+	out["title"] = strip_html(out.get("title") or "")
 
 	return out

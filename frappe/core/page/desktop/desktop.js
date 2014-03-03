@@ -35,10 +35,16 @@ frappe.desktop.render = function() {
 	var add_icon = function(m) {
 		var module = frappe.modules[m];
 		
-		if(!module || (!module.link && !module.onclick) || module.is_app)
+		if(!module || (module.type!=="module" && !module.link && !module.onclick) || module.is_app)
 			return;
-		if(module.link)
+		
+		if(module.type==="module" && !module.link) {
+			module.link = "Module/" + m;
+		}
+			
+		if(module.link) {
 			module._link = module.link.toLowerCase().replace("/", "-");
+		}
 
 		module.app_icon = frappe.ui.app_icon.get_html(m);
 		

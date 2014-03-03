@@ -52,12 +52,14 @@ data = [
 			{
 				"type": "doctype",
 				"name": "Naming Series",
-				"description": _("Set numbering series for transactions.")
+				"description": _("Set numbering series for transactions."),
+				"hide_count": True
 			},
 			{
 				"type": "doctype",
 				"name": "Rename Tool",
-				"description": _("Rename many items by uploading a .csv file.")
+				"description": _("Rename many items by uploading a .csv file."),
+				"hide_count": True
 			},
 			{
 				"type": "doctype",

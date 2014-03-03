@@ -2,7 +2,7 @@
  {
   "creation": "2013-03-28 10:35:30", 
   "docstatus": 0, 
-  "modified": "2014-02-10 18:07:29", 
+  "modified": "2014-02-28 14:24:14", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -178,37 +178,6 @@
   "fieldtype": "Code", 
   "label": "CSS", 
   "options": "CSS"
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "table_of_contents", 
-  "fieldtype": "Section Break", 
-  "label": "Table of Contents"
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "show_title", 
-  "fieldtype": "Check", 
-  "label": "Show Title"
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "show_breadcrumbs", 
-  "fieldtype": "Check", 
-  "label": "Show Breadcrumbs"
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "show_toc", 
-  "fieldtype": "Check", 
-  "label": "Show Table of Contents"
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "toc", 
-  "fieldtype": "Table", 
-  "label": "Table of Contents", 
-  "options": "Table of Contents"
  }, 
  {
   "doctype": "DocPerm"

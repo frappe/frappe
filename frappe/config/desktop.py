@@ -26,7 +26,6 @@ data = {
 	"Website": {
 		"color": "#16a085", 
 		"icon": "icon-globe", 
-		"link": "website-home", 
 		"type": "module"
 	},
 	"Installer": {
@@ -39,7 +38,6 @@ data = {
 	"Setup": {
 		"color": "#bdc3c7", 
 		"icon": "icon-wrench", 
-		"link": "Setup", 
-		"type": "setup"
+		"type": "module"
 	}, 
 }

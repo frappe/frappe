@@ -2,13 +2,14 @@
  {
   "creation": "2014-01-29 15:57:42", 
   "docstatus": 0, 
-  "modified": "2014-02-27 12:51:53", 
+  "modified": "2014-03-03 14:52:19", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
  {
   "doctype": "DocType", 
   "document_type": "Master", 
+  "icon": "icon-group", 
   "module": "Website", 
   "name": "__common__"
  }, 
@@ -21,7 +22,6 @@
   "permlevel": 0
  }, 
  {
-  "cancel": 0, 
   "create": 1, 
   "delete": 1, 
   "doctype": "DocPerm", 

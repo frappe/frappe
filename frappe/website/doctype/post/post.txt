@@ -2,7 +2,7 @@
  {
   "creation": "2014-01-07 14:00:04", 
   "docstatus": 0, 
-  "modified": "2014-01-29 16:27:45", 
+  "modified": "2014-03-03 14:53:18", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -10,6 +10,7 @@
   "autoname": "P.#######", 
   "doctype": "DocType", 
   "document_type": "Transaction", 
+  "icon": "icon-comment", 
   "module": "Website", 
   "name": "__common__"
  }, 
