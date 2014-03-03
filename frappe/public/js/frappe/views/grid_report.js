@@ -589,6 +589,7 @@ frappe.views.GridReport = Class.extend({
 		var date_diff = dateutil.get_diff(this.to_date, this.from_date);
 			
 		me.column_map = {};
+		me.last_date = null;
 		
 		var add_column = function(date) {
 			me.columns.push({
