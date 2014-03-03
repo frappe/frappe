@@ -1,0 +1,31 @@
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# MIT License. See license.txt
+
+import frappe, unittest
+
+from frappe.model.db_query import DatabaseQuery
+
+class TestReportview(unittest.TestCase):
+	def test_basic(self):
+		self.assertTrue({"name":"DocType"} in DatabaseQuery("DocType").execute())
+		
+	def test_fields(self):
+		self.assertTrue({"name":"DocType", "issingle":0} \
+			in DatabaseQuery("DocType").execute(fields=["name", "issingle"]))
+
+	def test_filters_1(self):
+		self.assertFalse({"name":"DocType"} \
+			in DatabaseQuery("DocType").execute(filters=[["DocType", "name", "like", "J%"]]))
+		
+	def test_filters_2(self):
+		self.assertFalse({"name":"DocType"} \
+			in DatabaseQuery("DocType").execute(filters=[{"name": ["like", "J%"]}]))
+
+	def test_filters_3(self):
+		self.assertFalse({"name":"DocType"} \
+			in DatabaseQuery("DocType").execute(filters={"name": ["like", "J%"]}))
+
+	def test_filters_4(self):
+		self.assertTrue({"name":"DocField"} \
+			in DatabaseQuery("DocType").execute(filters={"name": "DocField"}))
+		
