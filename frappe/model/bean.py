@@ -129,7 +129,7 @@ class Bean:
 			else:
 				tmp = frappe.db.sql("""select modified, docstatus from `tab%s` 
 					where name=%s for update"""
-					% (self.doc.doctype, '%s'), self.doc.name), as_dict=True)
+					% (self.doc.doctype, '%s'), self.doc.name, as_dict=True)
 
 				if not tmp:
 					frappe.msgprint("""This record does not exist. Please refresh.""", raise_exception=1)
