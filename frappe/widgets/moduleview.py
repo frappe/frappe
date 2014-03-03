@@ -5,10 +5,14 @@ from __future__ import unicode_literals
 import frappe, json
 from frappe.widgets import reportview
 from frappe.utils import cint
+from frappe import _
 
 @frappe.whitelist()
 def get(module):
 	data = get_data(module)
+	if not data:
+		data = build_standard_config(module)
+	
 	doctypes = get_doctypes(data)
 	
 	return {
@@ -27,6 +31,43 @@ def get_data(module):
 		except ImportError, e:
 			pass
 			
+	return data
+	
+def build_standard_config(module):
+	if not frappe.db.get_value("Module Def", module):
+		frappe.throw(_("Module Not Found"))
+	
+	data = []
+	
+	doctypes = frappe.db.sql("""select "doctype" as type, name, description, 
+		ifnull(document_type, "") as document_type
+		from `tabDocType` where module=%s and ifnull(istable, 0)=0
+		order by document_type desc, name asc""", module, as_dict=True)
+	
+	documents = [d for d in doctypes if d.document_type in ("Transaction", "Master", "")]
+	if documents:
+		data.append({
+			"label": _("Documents"),
+			"icon": "icon-star",
+			"items": documents
+		})
+	
+	setup = [d for d in doctypes if d.document_type in ("System", "Other")]
+	if setup:
+		data.append({
+			"label": _("Setup"),
+			"icon": "icon-cog",
+			"items": setup
+		})
+		
+	reports = get_report_list(module, is_standard="Yes")
+	if reports:
+		data.append({
+			"label": _("Standard Reports"),
+			"icon": "icon-list",
+			"items": reports
+		})
+	
 	return data
 	
 def get_config(app, module):
@@ -63,7 +104,7 @@ def get_doctype_count_from_table(doctype):
 			raise
 	return cint(count)
 	
-def get_report_list(module):
+def get_report_list(module, is_standard="No"):
 	"""return list on new style reports for modules"""	
 	return frappe.db.sql("""
 		select distinct "report" as type, tabReport.name, tabReport.ref_doctype as doctype,
@@ -74,6 +115,6 @@ def get_report_list(module):
 		where tabDocType.module=%s
 			and tabDocType.name = tabReport.ref_doctype
 			and tabReport.docstatus in (0, NULL)
-			and ifnull(tabReport.is_standard, "No")="No"
+			and ifnull(tabReport.is_standard, "No")=%s
 			and ifnull(tabReport.disabled,0) != 1
-			order by tabReport.name""", module, as_dict=True)
+			order by tabReport.name""", (module, is_standard), as_dict=True)

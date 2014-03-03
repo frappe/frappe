@@ -101,7 +101,7 @@ frappe.views.moduleview.ModuleView = Class.extend({
 	},
 	
 	make_layout: function(wrapper) {
-		return $('<div class="row">\
+		return $('<div class="row module-view-layout">\
 				<div class="col-sm-3">\
 					<ul class="nav nav-pills nav-stacked"></ul>\
 				</div>\
@@ -118,8 +118,9 @@ frappe.views.moduleview.ModuleView = Class.extend({
 		// if not found, add section
 		if(!$nav.length) {
 			// create nav tab
-			$nav = $('<li><a><i class="'+d.icon+' icon-fixed-width"></i> '
-				+ frappe._(d.label)+'</a></li>')
+			$nav = $('<li title="'+__(d.label)+'">\
+				<a><i class="'+d.icon+' icon-fixed-width"></i><span class="hidden-xs"> '
+				+ frappe._(d.label)+'</span></a></li>')
 				.attr("data-label", d._label)
 				.appendTo($sections);
 			
@@ -210,7 +211,7 @@ frappe.views.moduleview.ModuleView = Class.extend({
 		
 		var reports_section = {
 			label: __("Custom Reports"),
-			icon: "icon-list",
+			icon: "icon-list-alt",
 			items: reports
 		}
 		this.add_section(reports_section, $layout);
