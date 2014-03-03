@@ -148,7 +148,7 @@ class DatabaseQuery(object):
 			
 	def add_docstatus_conditions(self):
 		if self.docstatus:
-			self.conditions.append(self.tables[0] + '.docstatus in (' + ','.join(docstatus) + ')')
+			self.conditions.append(self.tables[0] + '.docstatus in (' + ','.join(self.docstatus) + ')')
 		else:
 			self.conditions.append(self.tables[0] + '.docstatus < 2')
 			
@@ -234,10 +234,11 @@ class DatabaseQuery(object):
 	
 		# check in links
 		for df in fields_to_check:
-			self.match_conditions.append('`tab{doctype}`.{fieldname} in ({values})'.format(doctype=self.doctype,
-				fieldname=df.fieldname, 
-				values=", ".join([('"'+v.replace('"', '\"')+'"') \
-					for v in restrictions[df.options]])))
+			self.match_conditions.append("""(ifnull(`tab{doctype}`.`{fieldname}`, "")="" or \
+				`tab{doctype}`.`{fieldname}` in ({values}))""".format(doctype=self.doctype, 
+					fieldname=df.fieldname, 
+					values=", ".join([('"'+v.replace('"', '\"')+'"') \
+						for v in restrictions[df.options]])))
 			self.match_filters.setdefault(df.fieldname, [])
 			self.match_filters[df.fieldname]= restrictions[df.options]
 		

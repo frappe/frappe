@@ -80,10 +80,10 @@ def get_restrictable_doctypes():
 	values = []
 	if "System Manager" not in user_roles:
 		condition = """and exists(select `tabDocPerm`.name from `tabDocPerm` 
-			where `tabDocPerm`.parent=`tabDocType`.name and restrict=1
-			and `tabDocPerm`.name in ({roles}))""".format(roles=", ".join(["%s"]*len(user_roles)))
+			where `tabDocPerm`.parent=`tabDocType`.name and `tabDocPerm`.`restrict`=1
+			and `tabDocPerm`.role in ({roles}))""".format(roles=", ".join(["%s"]*len(user_roles)))
 		values = user_roles
 	
 	return frappe.db.sql_list("""select name from tabDocType 
 		where ifnull(issingle,0)=0 and ifnull(istable,0)=0 {condition}""".format(condition=condition),
-		values)
+		tuple(values))

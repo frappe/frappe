@@ -4,52 +4,11 @@ frappe.pages['permission-manager'].onload = function(wrapper) {
 		title: frappe._('Permission Manager'),
 		single_column: true
 	});
-	$(wrapper).find(".layout-main").html("<div class='perm-engine' style='min-height: 200px;'></div>\
-	<table class='table table-bordered' style='background-color: #f9f9f9;'>\
-	<tr><td>\
-	<h4><i class='icon-question-sign'></i> "+frappe._("Quick Help for Setting Permissions")+":</h4>\
-	<ol>\
-	<li>"+frappe._("Permissions are set on Roles and Document Types (called DocTypes) by setting read, edit, make new, delete, submit, cancel, amend, report, import, export, print, email and restrict rights.")+"</li>\
-	<li>"+frappe._("Permissions translate to Users based on what Role they are assigned")+".</li>\
-	<li>"+frappe._("To set user roles, just go to <a href='#List/Profile'>Setup > Users</a> and click on the user to assign roles.")+"</li>\
-	<li>"+frappe._("The system provides pre-defined roles, but you can <a href='#List/Role'>add new roles</a> to set finer permissions")+".</li>\
-	<li>"+frappe._("Permissions are automatically translated to Standard Reports and Searches")+".</li>\
-	<li>"+frappe._("As a best practice, do not assign the same set of permission rule to different Roles instead set multiple Roles to the User")+".</li>\
-	</ol>\
-	</tr></td>\
-	<tr><td>\
-	<h4><i class='icon-hand-right'></i> "+frappe._("Meaning of Submit, Cancel, Amend")+":</h4>\
-	<ol>\
-	<li>"+frappe._("Certain documents should not be changed once final, like an Invoice for example. The final state for such documents is called <b>Submitted</b>. You can restrict which roles can Submit.")+"</li>\
-	<li>"+frappe._("<b>Cancel</b> allows you change Submitted documents by cancelling them and amending them.")+
-		frappe._("Cancel permission also allows the user to delete a document (if it is not linked to any other document).")+"</li>\
-	<li>"+frappe._("When you <b>Amend</b> a document after cancel and save it, it will get a new number that is a version of the old number.")+
-		frappe._("For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.")+
-	"</li>\
-	</ol>\
-	</tr></td>\
-	<tr><td>\
-	<h4><i class='icon-signal'></i> "+frappe._("Permission Levels")+":</h4>\
-	<ol>\
-	<li>"+frappe._("Permissions at level 0 are 'Document Level' permissions, i.e. they are primary for access to the document.")+
-		frappe._("If a User does not have access at Level 0, then higher levels are meaningless")+".</li>\
-	<li>"+frappe._("Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful incase you want to hide or make certain field read-only.")+
-		frappe._("You can use <a href='#Form/Customize Form'>Customize Form</a> to set levels on fields.")+"</li>\
-	</ol>\
-	</tr></td>\
-	<tr><td>\
-	<h4><i class='icon-cog'></i> "+frappe._("Restricting Users")+":</h4>\
-	<ol>\
-	<li>"+frappe._("To explictly give permissions to users to specific records, check the 'Restricted' permssion. To set which user has access to which record, go to <a href='#user-properties'>User Restrictions</a>")+"</li>"+
-	"<li>"+frappe._("If 'Restricted' is not checked, you can still restrict permissions based on certain values, like Company or Territory in a document by setting <a href='#user-properties'>User Restrictions</a>. But unless any restriction is set, a user will have permissions based on the Role.")+"</li>"+
-	"<li>"+frappe._("If 'Restricted' is checked, the owner is always allowed based on Role.")+"</li>"+
-	"<li>"+frappe._("Once you have set this, the users will only be able access documents where the link (e.g Company) exists.")+"</li>"+
-	"<li>"+frappe._("Apart from System Manager, roles with Restrict permission can restrict other users for that Document Type")+"</li></ol><hr>\
-	<p>"+frappe._("If these instructions where not helpful, please add in your suggestions at <a href='https://github.com/frappe/frappe/issues'>GitHub Issues</a>")+"</p>\
-	</tr></td>\
-	</table>");
+	$(wrapper).find(".layout-main").html("<div class='perm-engine' style='min-height: 200px;'></div>"
+		+ permissions_help);
 	wrapper.permission_engine = new frappe.PermissionEngine(wrapper);
 }
+
 frappe.pages['permission-manager'].refresh = function(wrapper) { 
 	wrapper.permission_engine.set_from_route();
 }
@@ -470,3 +429,102 @@ frappe.PermissionEngine = Class.extend({
 			fieldtype:"Link", options:["not in", ["Profile", '[Select]']]});
 	}
 })
+
+var permissions_help = ['<table class="table table-bordered" style="background-color: #f9f9f9;">',
+	'<tr><td>',
+		'<h4><i class="icon-question-sign"></i> ',
+			__('Quick Help for Setting Permissions'),
+		':</h4>',
+		'<ol>',
+			'<li>',
+				__('Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Restricted, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Can Restrict.'),
+			'</li>',
+			'<li>',
+				__('Permissions get applied on Users based on what Roles they are assigned.'),
+			'</li>',
+			'<li>',
+				__('Roles can be set for users from their Profile page.') 
+				+ ' (<a href="#List/Profile">' + __("Setup > Profile") + '</a>)',
+			'</li>',
+			'<li>',
+				__('The system provides many pre-defined roles. You can add new roles to set finer permissions.')
+				+ ' (<a href="#List/Role">' + __("Add a New Role") + '</a>)',
+			'</li>',
+			'<li>',
+				__('Permissions are automatically translated to Standard Reports and Searches.'),
+			'</li>',
+			'<li>',
+				__('As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User.'),
+			'</li>',
+		'</ol>',
+	'</td></tr>',
+	'<tr><td>',
+		'<h4><i class="icon-hand-right"></i> ',
+			__('Meaning of Submit, Cancel, Amend'),
+		':</h4>',
+		'<ol>',
+			'<li>',
+				__('Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit.'),
+			'</li>',
+			'<li>',
+				__('You can change Submitted documents by cancelling them and then, amending them.'),
+			'</li>',
+			'<li>',
+				__('When you Amend a document after Cancel and save it, it will get a new number that is a version of the old number.'),
+			'</li>',
+			'<li>',
+				__("For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment."),
+			'</li>',
+		'</ol>',
+	'</td></tr>',
+	'<tr><td>',
+		'<h4><i class="icon-signal"></i> ',
+			__('Permission Levels'),
+		':</h4>',
+		'<ol>',
+			'<li>',
+				__("Permissions at level 0 are 'Document Level' permissions, i.e. they are primary for access to the document."),
+			'</li>',
+			'<li>',
+				__('If a Role does not have access at Level 0, then higher levels are meaningless.'),
+			'</li>',
+			'<li>',
+				__("Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only."),
+			'</li>',
+			'<li>',
+				__('You can use Customize Form to set levels on fields.')
+				+ ' (<a href="#Form/Customize Form">Setup > Customize Form</a>)',
+			'</li>',
+		'</ol>',
+	'</td></tr>',
+	'<tr><td>',
+		'<h4><i class="icon-shield"></i> ',
+			__('Restricting Users'),
+		':</h4>',
+		'<ol>',
+			'<li>',
+				__("To give acess to a role for only specific records, check the 'Restricted' perimssion. User Restriction Records are used to restrict users with such role to specific records.")
+				+ ' (<a href="#user-properties">' + __('Setup > User Restriction') + '</a>)',
+			'</li>',
+			'<li>',
+				__("If 'Restricted' is not checked, you can still restrict permissions based on certain values, like Company or Territory in a document by setting User Restrictions. But unless any restriction is set, a user will have permissions based on the Role."),
+			'</li>',
+			'<li>',
+				__("Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only."),
+			'</li>',
+			'<li>',
+				__("If 'Restricted' is checked, the owner is always allowed based on Role."),
+			'</li>',
+			'<li>',
+				__("Once you have set this, the users will only be able access documents where the link (e.g Company) exists."),
+			'</li>',
+			'<li>',
+				__("Apart from System Manager, roles with 'Can Restrict' permission can restrict other users for that Document Type."),
+			'</li>',
+		'</ol>',
+	'</td></tr>',
+'</table>',
+'<p>',
+	__("If these instructions where not helpful, please add in your suggestions on GitHub Issues.")
+	+ ' (<a href="https://github.com/frappe/frappe/issues" target="_blank">' + __("Submit an Issue") + '</a>)',
+'</p>'].join("\n");

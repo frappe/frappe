@@ -25,7 +25,7 @@ data = [
 			{
 				"type": "page",
 				"name": "user-properties",
-				"label": "User Properties",
+				"label": _("User Permission Restrictions"),
 				"icon": "icon-user",
 				"description": _("Set Defaults and Restrictions for Users")
 			}

@@ -127,7 +127,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 				match_text.push(frappe._("Or Created By") + " = " + user);
 			}
 			frappe.utils.set_footnote(this, this.$page.find(".layout-main-section"), 
-				"<p>" + frappe._("Showing only for") + ":</p><ul>" 
+				"<p>" + frappe._("Showing only for (if not empty)") + ":</p><ul>" 
 				+ $.map(match_text, function(txt) { return "<li>"+txt+"</li>" }).join("")) + "</ul>";
 			$(this.footnote_area).css({"margin-top":"0px", "margin-bottom":"20px"});
 		}
