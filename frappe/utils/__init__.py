@@ -814,8 +814,8 @@ def get_site_base_path(sites_dir=None, hostname=None):
 def get_site_path(*path):
 	return get_path(base=get_site_base_path(), *path)
 	
-def get_files_path():
-	return get_site_path("public", "files")
+def get_files_path(*path):
+	return get_site_path("public", "files", *path)
 
 def get_backups_path():
 	return get_site_path("public", "backup") 
@@ -930,3 +930,11 @@ def touch_file(path):
 def get_test_client():
 	from frappe.app import application
 	return Client(application)
+
+def get_hook_method(hook_name, fallback=None):
+	method = (frappe.get_hooks().get(hook_name))
+	if method:
+		method = frappe.get_attr(method[0])
+		return method
+	if fallback:
+		return fallback
