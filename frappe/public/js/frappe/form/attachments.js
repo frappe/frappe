@@ -63,6 +63,9 @@ frappe.ui.form.Attachments = Class.extend({
 		var file_name = attachment.file_name;
 		var file_url = attachment.file_url;
 		var fileid = attachment.name;
+		if (!file_name) {
+			file_name = file_url;
+		}
 		
 		var me = this;
 		var $attach = $(repl('<div class="alert alert-info" style="margin-bottom: 7px">\
