@@ -6,7 +6,7 @@ import frappe
 import os, base64, re
 import hashlib
 import mimetypes
-from frappe.utils import cstr, cint, get_site_path, get_hook_method
+from frappe.utils import cstr, cint, get_site_path, get_hook_method, get_files_path
 from frappe import _
 from frappe import conf
 from copy import copy
@@ -117,24 +117,23 @@ def save_file(fname, content, dt, dn, decode=False):
 		"file_hash": content_hash
 	})
 
-	f = webnotes.bean(file_data)
+	f = frappe.bean(file_data)
 	f.ignore_permissions = True
 	try:
 		f.insert();
-	except webnotes.DuplicateEntryError:
-		return webnotes.doc("File Data", f.doc.duplicate_entry)
+	except frappe.DuplicateEntryError:
+		return frappe.doc("File Data", f.doc.duplicate_entry)
 
 	return f.doc
 	
 def save_file_on_filesystem(fname, content, content_type=None):
 	import filecmp
-	from webnotes.model.code import load_doctype_module
-	public_path = os.path.join(webnotes.local.site_path, "public", "files")
-	temp_fname = write_file(content, public_path, fname)
+	public_path = os.path.join(frappe.local.site_path, "public")
+	fpath = write_file(content, get_files_path(), fname)
 	path =  os.path.relpath(fpath, public_path)
 	return {
 		'file_name': path,
-		'file_path': path
+		'file_url': '/' + path
 	}
 	
 def check_max_file_size(content):
@@ -150,11 +149,11 @@ def check_max_file_size(content):
 def write_file(content, file_path, fname):
 	"""write file to disk with a random name (to compare)"""
 	# create directory (if not exists)
-	frappe.create_folder(files_path)
+	frappe.create_folder(get_files_path())
 	# write the file
-	with open(fname, 'w+') as f:
+	with open(os.path.join(file_path, fname), 'w+') as f:
 		f.write(content)
-	return fname	
+	return get_files_path(fname)
 
 def remove_all(dt, dn):
 	"""remove all files in a transaction"""
@@ -176,9 +175,9 @@ def delete_file_data_content(doc):
 def delete_file_from_filesystem(doc):
 	path = doc.file_name
 	if path.startswith("files/"):
-		path = frappe.utils.get_site_path("public", self.doc.file_name)
+		path = frappe.utils.get_site_path("public", doc.file_name)
 	else:
-		path = frappe.utils.get_site_path("public", "files", self.doc.file_name)
+		path = frappe.utils.get_site_path("public", "files", doc.file_name)
 	if os.path.exists(path):
 		os.remove(path)
 		
@@ -203,7 +202,7 @@ def get_content_hash(content):
 	return hashlib.md5(content).hexdigest()
 
 def get_file_name(fname, optional_suffix):
-	n_records = webnotes.conn.sql("select name from `tabFile Data` where file_name='{}'".format(fname))
+	n_records = frappe.db.sql("select name from `tabFile Data` where file_name='{}'".format(fname))
 	if len(n_records) > 0:
 		partial, extn = fname.rsplit('.', 1)
 		return '{partial}{suffix}.{extn}'.format(partial=partial, extn=extn, suffix=optional_suffix)
