@@ -123,7 +123,7 @@ $.extend(frappe.model, {
 	},
 	
 	copy_doc: function(dt, dn, from_amend) {
-		var no_copy_list = ['name','amended_from','amendment_date','cancel_reason','idx'];
+		var no_copy_list = ['name','amended_from','amendment_date','cancel_reason'];
 		var newdoc = frappe.model.get_new_doc(dt);
 
 		for(var key in locals[dt][dn]) {

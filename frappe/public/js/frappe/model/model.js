@@ -363,20 +363,6 @@ $.extend(frappe.model, {
 		return no_copy_list;
 	},
 
-	copy_doc: function(dt, dn, from_amend) {
-		var no_copy_list = frappe.model.get_no_copy_list(dt);
-		var newdoc = frappe.model.get_new_doc(dt);
-
-		for(var key in locals[dt][dn]) {
-			// dont copy name and blank fields			
-			if(key.substr(0,2)!='__' 
-				&& !in_list(no_copy_list, key)) { 
-				newdoc[key] = locals[dt][dn][key];
-			}
-		}
-		return newdoc;
-	},
-	
 	// args: source (doclist), target (doctype), table_map, field_map, callback
 	map: function(args) {
 		frappe.model.with_doctype(args.target, function() {

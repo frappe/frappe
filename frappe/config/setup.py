@@ -95,7 +95,7 @@ data = [
 		"items": [
 			{
 				"type": "doctype",
-				"name": "Email Settings",
+				"name": "Outgoing Email Settings",
 				"description": _("Set outgoing mail server.")
 			},
 		]

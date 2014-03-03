@@ -159,10 +159,10 @@ class EMail:
 			return email
 		
 		if not self.sender:
-			self.sender = frappe.db.get_value('Email Settings', None,
+			self.sender = frappe.db.get_value('Outgoing Email Settings', None,
 				'auto_email_id') or frappe.conf.get('auto_email_id') or None
 			if not self.sender:
-				msgprint(_("Please specify 'Auto Email Id' in Setup > Email Settings"))
+				msgprint(_("Please specify 'Auto Email Id' in Setup > Outgoing Email Settings"))
 				if not "expires_on" in frappe.conf:
 					msgprint(_("Alternatively, you can also specify 'auto_email_id' in site_config.json"))
 				raise frappe.ValidationError

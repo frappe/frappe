@@ -54,7 +54,7 @@ def send(recipients=None, sender=None, doctype='Profile', email_field='email',
 	
 	if not recipients: recipients = []
 	if not sender or sender == "Administrator":
-		sender = frappe.db.get_value('Email Settings', None, 'auto_email_id')
+		sender = frappe.db.get_value('Outgoing Email Settings', None, 'auto_email_id')
 	check_bulk_limit(len(recipients))
 	
 	formatted = get_formatted_html(subject, message)
