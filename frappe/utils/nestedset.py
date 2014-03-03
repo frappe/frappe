@@ -70,19 +70,23 @@ def update_add_node(doc, parent, parent_field):
 			% (doctype, "%s"), parent)[0]
 		validate_loop(doc.doctype, doc.name, left, right)
 	else: # root
-		right = frappe.db.sql("select ifnull(max(rgt),0)+1 from `tab%s` where ifnull(`%s`,'') =''" % (doctype, parent_field))[0][0]
+		right = frappe.db.sql("select ifnull(max(rgt),0)+1 from `tab%s` \
+			where ifnull(`%s`,'') =''", (doctype, parent_field))[0][0]
 	right = right or 1
 		
 	# update all on the right
-	frappe.db.sql("update `tab%s` set rgt = rgt+2, modified='%s' where rgt >= %s" %(doctype,n,right))
-	frappe.db.sql("update `tab%s` set lft = lft+2, modified='%s' where lft >= %s" %(doctype,n,right))
+	frappe.db.sql("update `tab%s` set rgt = rgt+2, modified=%s where rgt >= %s" % 
+		(doctype, '%s', '%s'), (n, right))
+	frappe.db.sql("update `tab%s` set lft = lft+2, modified=%s where lft >= %s" % 
+		(doctype, '%s', '%s'), (n, right))
 	
 	# update index of new node
 	if frappe.db.sql("select * from `tab%s` where lft=%s or rgt=%s"% (doctype, right, right+1)):
 		frappe.msgprint("Nested set error. Please send mail to support")
 		raise Exception
 
-	frappe.db.sql("update `tab%s` set lft=%s, rgt=%s, modified='%s' where name='%s'" % (doctype,right,right+1,n,name))
+	frappe.db.sql("update `tab{0}` set lft=%s, rgt=%s, modified=%s where name=%s".format(doctype), 
+		(right,right+1,n,name))
 	return right
 
 
@@ -164,13 +168,15 @@ def rebuild_node(doctype, parent, left, parent_field):
 	right = left+1	
 
 	# get all children of this node
-	result = frappe.db.sql("SELECT name FROM `tab%s` WHERE `%s`='%s'" % (doctype, parent_field, parent))
+	result = frappe.db.sql("SELECT name FROM `tab%s` WHERE `%s`=%s" % 
+		(doctype, parent_field, '%s'), (parent))
 	for r in result:
 		right = rebuild_node(doctype, r[0], right, parent_field)
 
 	# we've got the left value, and now that we've processed
 	# the children of this node we also know the right value
-	frappe.db.sql("UPDATE `tab%s` SET lft=%s, rgt=%s, modified='%s' WHERE name='%s'" % (doctype,left,right,n,parent))
+	frappe.db.sql("""UPDATE `tab{0}` SET lft=%s, rgt=%s, modified=%s 
+		WHERE name=%s""".format(doctype), (left,right,n,parent))
 
 	#return the right value of this node + 1
 	return right+1

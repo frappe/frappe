@@ -748,7 +748,7 @@ def validate_name(doctype, name, case=None, merge=False):
 	if case=='UPPER CASE': name = name.upper()
 	
 	name = name.strip() # no leading and trailing blanks
-	
+
 	return name
 	
 def get_default_naming_series(doctype):

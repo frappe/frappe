@@ -70,9 +70,7 @@ def delete_fields(args_dict, delete=0):
 		# Delete the data / column only if delete is specified
 		if not delete: continue
 		
-		is_single = frappe.db.sql("select issingle from tabDocType where name = '%s'" % dt)
-		is_single = is_single and frappe.utils.cint(is_single[0][0]) or 0
-		if is_single:
+		if frappe.db.get_value("DocType", dt, "issingle"):
 			frappe.db.sql("""\
 				DELETE FROM `tabSingles`
 				WHERE doctype=%s AND field IN (%s)

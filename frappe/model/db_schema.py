@@ -95,7 +95,7 @@ class DbTable:
 		"""
 			get columns from docfields and custom fields
 		"""
-		fl = frappe.db.sql("SELECT * FROM tabDocField WHERE parent = '%s'" % self.doctype, as_dict = 1)
+		fl = frappe.db.sql("SELECT * FROM tabDocField WHERE parent = %s", self.doctype, as_dict = 1)
 		
 		try:
 			custom_fl = frappe.db.sql("""\
@@ -185,13 +185,15 @@ class DbTable:
 
 		for col in self.add_index:
 			# if index key not exists
-			if not frappe.db.sql("show index from `%s` where key_name = '%s'" % (self.name, col.fieldname)):
+			if not frappe.db.sql("show index from `%s` where key_name = %s" % 
+					(self.name, '%s'), col.fieldname):
 				frappe.db.sql("alter table `%s` add index `%s`(`%s`)" % (self.name, col.fieldname, col.fieldname))
 
 		for col in self.drop_index:
 			if col.fieldname != 'name': # primary key
 				# if index key exists
-				if frappe.db.sql("show index from `%s` where key_name = '%s'" % (self.name, col.fieldname)):
+				if frappe.db.sql("show index from `%s` where key_name = %s" % 
+						(self.name, '%s'), col.fieldname):
 					frappe.db.sql("alter table `%s` drop index `%s`" % (self.name, col.fieldname))
 
 		for col in self.set_default:
