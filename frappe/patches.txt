@@ -24,3 +24,4 @@ frappe.patches.4_0.remove_old_parent
 frappe.patches.4_0.rename_profile_to_user
 frappe.patches.4_0.update_datetime
 frappe.patches.4_0.deprecate_control_panel
+frappe.patches.4_0.file_manager_hooks
