@@ -12,12 +12,12 @@ class DocType:
 		
 	def validate(self):
 		self.doc.encode()
-		if self.doc.server:
+		if self.doc.mail_server:
 			from frappe.utils import cint
 			from frappe.utils.email_lib.smtp import SMTPServer
 			smtpserver = SMTPServer(login = self.doc.mail_login,
 				password = self.doc.mail_password,
-				server = self.doc.server,
+				server = self.doc.mail_server,
 				port = cint(self.doc.mail_port),
 				use_ssl = self.doc.use_ssl
 			)

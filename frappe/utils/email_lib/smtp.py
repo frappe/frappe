@@ -49,7 +49,7 @@ class SMTPServer:
 			self.use_ssl = cint(use_ssl)
 			self.login = login
 			self.password = password
-		elif es and es.outgoing_mail_server:
+		elif es and es.mail_server:
 			self.server = es.mail_server
 			self.port = es.mail_port
 			self.use_ssl = cint(es.use_ssl)
