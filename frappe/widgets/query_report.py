@@ -151,13 +151,6 @@ def get_user_match_filters(doctypes, ref_doctype):
 	tables = []
 
 	for dt in doctypes:
-		tables.append("`tab" + dt + "`")
-		doctypes_meta[dt] = frappe.model.doctype.get(dt)
-
-	frappe.local.reportview_tables = tables
-	frappe.local.reportview_doctypes = doctypes_meta
-
-	for dt in doctypes:
 		match_filters.update(frappe.widgets.reportview.build_match_conditions(dt, 
 			None, False))
 
