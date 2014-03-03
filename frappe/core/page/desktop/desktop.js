@@ -45,6 +45,12 @@ frappe.desktop.render = function() {
 		if(module.link) {
 			module._link = module.link.toLowerCase().replace("/", "-");
 		}
+		
+		if(!module.label) {
+			module.label = m;
+		}
+		module.name = m;
+		module._label = frappe._(module.label || module.name);
 
 		module.app_icon = frappe.ui.app_icon.get_html(m);
 		
@@ -74,12 +80,6 @@ frappe.desktop.render = function() {
 	$.each(modules_list, function(i, m) {
 		var module = frappe.modules[m];
 		if(module) {
-			if(!module.label) {
-				module.label = m;
-			}
-			module.name = m;
-			module._label = frappe._(module.label);
-		
 			if(m!="Setup" && user_list.indexOf(m)!==-1)
 				add_icon(m);
 		}

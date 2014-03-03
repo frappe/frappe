@@ -23,7 +23,8 @@ def build_response():
 		'csv': print_csv,
 		'download': print_raw,
 		'json': print_json,
-		'page': print_page
+		'page': print_page,
+		'redirect': redirect
 	}
 	
 	print_map.get(frappe.response.get('type'), print_json)()
@@ -38,7 +39,18 @@ def print_json():
 	cleanup_docs()
 	frappe._response.headers["Content-Type"] = "text/json; charset: utf-8"
 	print_zip(json.dumps(frappe.local.response, default=json_handler, separators=(',',':')))
-
+	
+def redirect():
+	frappe._response.data = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+		<title>Redirecting...</title>
+		<h1>Redirecting...</h1>
+		<p>You should be redirected automatically to target URL: <a href="{location}">/</a>.
+		If not click the link.'""".format(location=frappe.response.location)
+	
+	frappe._response.headers["Content-Type"] = "text/html; charset: utf-8"
+	frappe._response.status_code = frappe.response.status_code or 302
+	frappe._response.location = frappe.response.location
+	
 def cleanup_docs():
 	if frappe.response.get('docs') and type(frappe.response['docs'])!=dict:
 		frappe.response['docs'] = frappe.model.utils.compress(frappe.response['docs'])

@@ -150,11 +150,13 @@ def login_oauth_user(data, provider=None):
 	if not frappe.db.exists("Profile", user):
 		create_oauth_user(data, provider)
 	
-	frappe.local._response = redirect("/")
-	
 	frappe.local.login_manager.user = user
 	frappe.local.login_manager.post_login()
 	
+	# redirect!
+	frappe.local.response["type"] = "redirect"
+	frappe.local.response["location"] = "/app" if frappe.local.response.get('message') == 'Logged In' else "/"
+
 	# because of a GET request!
 	frappe.db.commit()
 	
