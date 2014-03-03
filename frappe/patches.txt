@@ -16,3 +16,4 @@ frappe.patches.4_0.webnotes_to_frappe
 execute:frappe.reset_perms("Module Def")
 frappe.patches.4_0.rename_sitemap_to_route
 frappe.patches.4_0.set_website_route_idx
+frappe.patches.4_0.file_manager_hooks
