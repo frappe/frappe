@@ -131,7 +131,8 @@ class Document:
 			self._loadsingle()
 		else:
 			try:
-				dataset = frappe.db.sql('select * from `tab%s` where name="%s"' % (self.doctype, self.name.replace('"', '\"')))
+				dataset = frappe.db.sql('select * from `tab%s` where name=%s' % 
+					(self.doctype, "%s"), self.name)
 			except frappe.SQLError, e:
 				if e.args[0]==1146:
 					dataset = None
@@ -249,7 +250,7 @@ class Document:
 	def _get_amended_name(self):
 		am_id = 1
 		am_prefix = self.amended_from
-		if frappe.db.sql('select amended_from from `tab%s` where name = "%s"' % (self.doctype, self.amended_from))[0][0] or '':
+		if frappe.db.get_value(self.doctype, self.amended_from, "amended_from"):
 			am_id = cint(self.amended_from.split('-')[-1]) + 1
 			am_prefix = '-'.join(self.amended_from.split('-')[:-1]) # except the last hyphen
 			
@@ -362,7 +363,7 @@ class Document:
 		self.modified = now()
 		update_str, values = [], []
 		
-		frappe.db.sql("delete from tabSingles where doctype='%s'" % self.doctype)
+		frappe.db.sql("delete from tabSingles where doctype=%s", self.doctype)
 		for f in self.fields.keys():
 			if not (f in ('modified', 'doctype', 'name', 'perm', 'localname', 'creation'))\
 				and (not f.startswith('__')): # fields not saved
@@ -747,12 +748,7 @@ def validate_name(doctype, name, case=None, merge=False):
 	if case=='UPPER CASE': name = name.upper()
 	
 	name = name.strip() # no leading and trailing blanks
-
-	forbidden = ['%', "'", '"', '#', '*', '?', '`']
-	for f in forbidden:
-		if f in name:
-			frappe.msgprint('%s not allowed in ID (name)' % f, raise_exception =1)
-			
+	
 	return name
 	
 def get_default_naming_series(doctype):
