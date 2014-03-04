@@ -58,6 +58,8 @@ def application(request):
 			frappe.handler.handle()
 		elif frappe.request.path.startswith("/api/"):
 			frappe.api.handle()
+		elif request.path.startswith('/backups'):
+			frappe.utils.download_backup(request.path)
 		elif frappe.local.request.method in ('GET', 'HEAD'):
 			frappe.website.render.render(frappe.request.path[1:])
 		else:

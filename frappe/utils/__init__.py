@@ -7,8 +7,11 @@ from __future__ import unicode_literals
 from werkzeug.test import Client
 import os
 import re
+import mimetypes
 import urllib
-
+from werkzeug.wsgi import wrap_file
+from werkzeug.wrappers import Response
+from werkzeug.exceptions import NotFound, Unauthorized
 import frappe
 
 no_value_fields = ['Section Break', 'Column Break', 'HTML', 'Table', 'FlexTable',
@@ -930,3 +933,28 @@ def touch_file(path):
 def get_test_client():
 	from frappe.app import application
 	return Client(application)
+
+def download_backup(path):
+	try:
+		frappe.only_for(("System Manager", "Administrator"))
+	except frappe.PermissionError:
+		raise Unauthorized
+	send_private_file(path)
+
+def send_private_file(path):
+	path = path[1:] if path.startswith('/') else path
+	path = os.path.join(frappe.local.conf.get('private_path', 'private'), path)
+
+	if frappe.local.request.headers.get('X-Use-X-Accel-Redirect'):
+		path = '/' + path
+		frappe.local._response.headers['X-Accel-Redirect'] = path
+	else:
+		filename = os.path.basename(path)
+		filepath = get_site_path(path)
+		try:
+			f = open(filepath, 'rb')
+		except IOError:
+			raise NotFound
+		frappe.local._response = Response(wrap_file(frappe.local.request.environ, f))
+		frappe.local._response.headers.add('Content-Disposition', 'attachment', filename=filename)
+		frappe.local._response.headers['Content-Type'] = mimetypes.guess_type(filename)[0] or 'application/octet-stream'
