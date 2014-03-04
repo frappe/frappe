@@ -13,21 +13,21 @@
 		</label> -->
 		<br>
 		<button class="btn btn-lg btn-primary btn-block btn-login" type="submit">{{ _("Sign in") }}</button>
-		{%- if third_party_sign_in -%}
+		{%- if social_login -%}
 			<p class="text-muted text-center" style="margin: 10px;">or login via</p>
 			<p class="text-muted text-center" style="margin: 10px;">
-				{%- if facebook_sign_in is defined %}
-				<a href="{{ facebook_sign_in }}" class="btn btn-lg btn-block btn-primary btn-facebook">
+				{%- if facebook_login is defined %}
+				<a href="{{ facebook_login }}" class="btn btn-lg btn-block btn-primary btn-facebook">
 				<i class="icon-facebook-sign"></i> {{ _("Facebook") }}</a>
 				{%- endif -%}
 				
-				{%- if google_sign_in is defined %}
-				<a href="{{ google_sign_in }}" class="btn btn-lg btn-block btn-primary btn-google">
+				{%- if google_login is defined %}
+				<a href="{{ google_login }}" class="btn btn-lg btn-block btn-primary btn-google">
 				<i class="icon-google-plus-sign"></i> {{ _("Google") }}</a>
 				{%- endif -%}
 				
-				{%- if github_sign_in is defined %}
-				<a href="{{ github_sign_in }}" class="btn btn-lg btn-block btn-primary btn-github">
+				{%- if github_login is defined %}
+				<a href="{{ github_login }}" class="btn btn-lg btn-block btn-primary btn-github">
 				<i class="icon-github-sign"></i> {{ _("GitHub") }}</a>
 				{%- endif -%}
 			</p>

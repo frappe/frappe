@@ -15,15 +15,15 @@
  "use_ssl": 0,
  "auto_email_id": "hello@example.com",
  
- "google_sign_in": {
+ "google_login": {
 	 "client_id": "google_client_id",
 	 "client_secret": "google_client_secret"
  },
- "github_sign_in": {
+ "github_login": {
 	 "client_id": "github_client_id",
 	 "client_secret": "github_client_secret"
  },
- "facebook_sign_in": {
+ "facebook_login": {
 	 "client_id": "facebook_client_id",
 	 "client_secret": "facebook_client_secret"
  }

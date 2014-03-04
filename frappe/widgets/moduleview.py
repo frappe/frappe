@@ -73,6 +73,24 @@ def build_standard_config(module):
 def get_config(app, module):
 	config = frappe.get_module("{app}.config.{module}".format(app=app, module=module))
 	return config.get_data() if hasattr(config, "get_data") else config.data
+
+def add_setup_section(config, app, module, label, icon):
+	try:
+		setup_section = get_setup_section(app, module, label, icon)
+		if setup_section:
+			config.append(setup_section)
+	except ImportError:
+		pass
+
+def get_setup_section(app, module, label, icon):
+	config = get_config(app, module)
+	for section in config:
+		if section.get("label")==_("Setup"):
+			return {
+				"label": label,
+				"icon": icon,
+				"items": section["items"]
+			}
 	
 def get_doctypes(data):
 	doctypes = []

@@ -16,8 +16,8 @@ def get_context(context):
 	
 	for provider in ("google", "github", "facebook"):
 		if get_oauth_keys(provider):
-			context["{provider}_sign_in".format(provider=provider)] = get_oauth2_authorize_url(provider)
-			context["third_party_sign_in"] = True
+			context["{provider}_login".format(provider=provider)] = get_oauth2_authorize_url(provider)
+			context["social_login"] = True
 			
 	return context
 	
@@ -77,8 +77,23 @@ oauth2_providers = {
 }
 
 def get_oauth_keys(provider):
-	# get client_id and client_secret from conf
-	return frappe.conf.get("{provider}_sign_in".format(provider=provider))
+	"""get client_id and client_secret from database or conf"""
+	
+	# try conf
+	keys = frappe.conf.get("{provider}_login".format(provider=provider))
+
+	if not keys:
+		# try database
+		social = frappe.doc("Social Login Keys", "Social Login Keys")
+		keys = {}
+		for fieldname in ("client_id", "client_secret"):
+			value = social.fields.get("{provider}_{fieldname}".format(provider=provider, fieldname=fieldname))
+			if not value:
+				keys = {}
+				break
+			keys[fieldname] = value
+
+	return keys
 
 def get_oauth2_authorize_url(provider):
 	flow = get_oauth2_flow(provider)

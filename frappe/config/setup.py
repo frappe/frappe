@@ -1,4 +1,5 @@
 from frappe import _
+from frappe.widgets.moduleview import add_setup_section
 
 data = [
 	{
@@ -28,7 +29,7 @@ data = [
 				"label": _("User Permission Restrictions"),
 				"icon": "icon-user",
 				"description": _("Set Defaults and Restrictions for Users")
-			}
+			},
 		]
 	},
 	{
@@ -134,6 +135,11 @@ data = [
 			},
 			{
 				"type": "doctype",
+				"name": "Social Login Keys",
+				"description": _("Enter keys to enable login via Facebook, Google, GitHub."),
+			},
+			{
+				"type": "doctype",
 				"name": "Backup Manager",
 				"description": _("Manage cloud backups on Dropbox")
 			},
@@ -145,3 +151,8 @@ data = [
 		]
 	}
 ]
+
+def get_data():
+	out = list(data)
+	add_setup_section(out, "frappe", "website", _("Website"), "icon-globe")
+	return out
