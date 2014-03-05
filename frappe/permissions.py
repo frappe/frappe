@@ -101,9 +101,14 @@ def has_unrestricted_access(meta, refdoc, verbose=True):
 	return False if has_restricted_data else True
 	
 def has_additional_permission(doc):
+	if doc.fields.get("__islocal"):
+		bean = frappe.bean(doc)
+	else:
+		bean = frappe.bean(doc.doctype, doc.name)
+	
 	condition_methods = frappe.get_hooks("has_permission:" + doc.doctype)
 	for method in frappe.get_hooks("has_permission:" + doc.doctype):
-		if not frappe.get_attr(method)(doc):
+		if not frappe.call(frappe.get_attr(method), doc=doc, bean=bean):
 			return False
 		
 	return True

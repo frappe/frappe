@@ -28,12 +28,13 @@ def get_permission_query_conditions():
 			"roles": "', '".join(frappe.get_roles(frappe.session.user))
 		}
 
-def has_permission(doc):
+def has_permission(doc, bean=None):
 	if doc.event_type=="Public" or doc.owner==frappe.session.user:
 		return True
 		
 	# need full doclist to check roles and users
-	bean = frappe.bean("Event", doc.name)
+	if not bean:
+		bean = frappe.bean("Event", doc.name)
 		
 	if len(bean.doclist)==1:
 		return False
