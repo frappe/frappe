@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 import frappe
 import os
 from frappe.utils import get_files_path
+from frappe.utils.filemanager import get_content_hash, get_file
 
 def execute():
 	for name, file_name, file_url in frappe.db.sql(
@@ -18,5 +19,7 @@ def execute():
 			b.doc.file_url = os.path.normpath('/' + old_file_name)
 		else:
 			b.doc.file_url = os.path.normpath('/files/' + old_file_name)
+		_file_name, content = get_file(file_name)
+		b.doc.content_hash = get_content_hash(content)
 		b.save()
 
