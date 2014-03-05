@@ -13,11 +13,15 @@ from frappe.utils import cstr, flt
 class DatabaseQuery(object):
 	def __init__(self, doctype):
 		self.doctype = doctype
+		self.tables = []
+		self.meta = []
+		self.fields = ["name"]
 		
 	def execute(self, query=None, filters=None, fields=None, docstatus=None, 
 		group_by=None, order_by=None, limit_start=0, limit_page_length=20, 
 		as_list=False, with_childnames=False, debug=False):
-		self.fields = fields or ["name"]
+		if fields:
+			self.fields = fields
 		self.filters = filters or []
 		self.docstatus = docstatus or []
 		self.group_by = group_by
@@ -27,8 +31,7 @@ class DatabaseQuery(object):
 		self.with_childnames = with_childnames
 		self.debug = debug
 		self.as_list = as_list
-		self.tables = []
-		self.meta = []
+
 		
 		if query:
 			return self.run_custom_query(query)
@@ -55,8 +58,8 @@ class DatabaseQuery(object):
 	
 		if self.with_childnames:
 			for t in self.tables:
-				if t != "`tab" + doctype + "`":
-					fields.append(t + ".name as '%s:name'" % t[4:-1])
+				if t != "`tab" + self.doctype + "`":
+					self.fields.append(t + ".name as '%s:name'" % t[4:-1])
 	
 		# query dict
 		args.tables = ', '.join(self.tables)
@@ -64,7 +67,7 @@ class DatabaseQuery(object):
 		args.fields = ', '.join(self.fields)
 	
 		args.order_by = self.order_by or self.tables[0] + '.modified desc'
-		args.group_by = self.group_by and (" group by " + group_by) or ""
+		args.group_by = self.group_by and (" group by " + self.group_by) or ""
 
 		self.check_sort_by_table(args.order_by)
 		
