@@ -22,13 +22,13 @@ def scheduler_task(site, event, handler):
 		frappe.init(site=site)
 		frappe.connect()
 		frappe.get_attr(handler)()
-		frappe.conn.commit()
+		frappe.db.commit()
 		delete_lock(handler)
 	except Exception:
 		traceback += log("Method: {event}, Handler: {handler}".format(event=event, handler=handler))
 		traceback += log(frappe.get_traceback())
 		logger.warn(traceback)
-		frappe.conn.rollback()
+		frappe.db.rollback()
 		frappe.destroy()
 		raise
 	frappe.destroy()
