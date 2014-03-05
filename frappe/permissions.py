@@ -102,7 +102,7 @@ def has_unrestricted_access(meta, refdoc, verbose=True):
 	
 def has_additional_permission(doc):
 	if doc.fields.get("__islocal"):
-		bean = frappe.bean(doc)
+		bean = frappe.bean([doc])
 	else:
 		bean = frappe.bean(doc.doctype, doc.name)
 	
