@@ -6,22 +6,33 @@ import frappe, json
 from frappe.widgets import reportview
 from frappe.utils import cint
 from frappe import _
+from copy import deepcopy
 
 @frappe.whitelist()
 def get(module):
 	data = get_data(module)
+
+	out = {
+		"data": data,
+		"item_count": {
+			data[0]["label"]: get_section_count(section=data[0])
+		},
+		"reports": get_report_list(module)
+	}
+
+	return out
+	
+def get_data(module):
+	data = build_config_from_file(module)
+			
 	if not data:
 		data = build_standard_config(module)
 	
-	doctypes = get_doctypes(data)
+	data = combine_common_sections(data)
+			
+	return data
 	
-	return {
-		"data": data,
-		"item_count": get_count(doctypes),
-		"reports": get_report_list(module)
-	}
-	
-def get_data(module):
+def build_config_from_file(module):
 	data = []
 	module = frappe.scrub(module)
 
@@ -70,9 +81,21 @@ def build_standard_config(module):
 	
 	return data
 	
+def combine_common_sections(data):
+	sections = []
+	sections_dict = {}
+	for each in data:
+		if each["label"] not in sections_dict:
+			sections_dict[each["label"]] = each
+			sections.append(each)
+		
+		sections_dict[each["label"]]["items"] += each["items"]
+		
+	return sections
+	
 def get_config(app, module):
 	config = frappe.get_module("{app}.config.{module}".format(app=app, module=module))
-	return config.get_data() if hasattr(config, "get_data") else config.data
+	return deepcopy(config.get_data() if hasattr(config, "get_data") else config.data)
 
 def add_setup_section(config, app, module, label, icon):
 	try:
@@ -91,16 +114,32 @@ def get_setup_section(app, module, label, icon):
 				"icon": icon,
 				"items": section["items"]
 			}
+
+@frappe.whitelist()
+def get_section_count(section=None, module=None, section_label=None):
+	doctypes = []
+	if module and section_label:
+		data = get_data(module)
+		for each in data:
+			if each["label"] == section_label:
+				section = each
+				break
 	
-def get_doctypes(data):
+	if section:
+		doctypes = get_doctypes(section)
+
+	count = get_count(doctypes)
+
+	return count
+	
+def get_doctypes(section):
 	doctypes = []
 	
-	for section in data:
-		for item in section.get("items", []):
-			if item.get("type")=="doctype":
-				doctypes.append(item["name"])
-			elif item.get("doctype"):
-				doctypes.append(item["doctype"])
+	for item in section.get("items", []):
+		if item.get("type")=="doctype":
+			doctypes.append(item["name"])
+		elif item.get("doctype"):
+			doctypes.append(item["doctype"])
 	
 	return list(set(doctypes))
 
