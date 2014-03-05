@@ -71,7 +71,7 @@ def update_add_node(doc, parent, parent_field):
 		validate_loop(doc.doctype, doc.name, left, right)
 	else: # root
 		right = frappe.db.sql("select ifnull(max(rgt),0)+1 from `tab%s` \
-			where ifnull(`%s`,'') =''", (doctype, parent_field))[0][0]
+			where ifnull(`%s`,'') =''" % (doctype, parent_field))[0][0]
 	right = right or 1
 		
 	# update all on the right
