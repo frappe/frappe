@@ -36,10 +36,11 @@ class DocType():
 		if self.doc.attached_to_name:
 			# check persmission
 			try:
-				if not frappe.has_permission(self.doc.attached_to_doctype, 
-					"write", self.doc.attached_to_name):
-					frappe.msgprint(frappe._("No permission to write / remove."), 
-					raise_exception=True)
+				if not self.bean.ignore_permissions and \
+					not frappe.has_permission(self.doc.attached_to_doctype, "write", self.doc.attached_to_name):
+					
+					frappe.msgprint(frappe._("No permission to write / remove."), raise_exception=True)
+					
 			except frappe.DoesNotExistError:
 				pass
 

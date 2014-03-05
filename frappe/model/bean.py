@@ -302,9 +302,11 @@ class Bean:
 			if not self.doc.owner:
 				self.doc.owner = frappe.session.user
 		
+		self.to_docstatus = 0
+		self.prepare_for_save("save")
+		
+		# check permissions after preparing for save, since name might be required
 		if self.ignore_permissions or frappe.has_permission(self.doc.doctype, perm_to_check, self.doc):
-			self.to_docstatus = 0
-			self.prepare_for_save("save")
 			if not self.ignore_validate:
 				self.run_method('validate')
 			self.validate_doclist()
