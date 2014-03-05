@@ -7,11 +7,11 @@ from frappe.model.db_query import DatabaseQuery
 
 class TestReportview(unittest.TestCase):
 	def test_basic(self):
-		self.assertTrue({"name":"DocType"} in DatabaseQuery("DocType").execute())
+		self.assertTrue({"name":"DocType"} in DatabaseQuery("DocType").execute(limit_page_length=None))
 		
 	def test_fields(self):
 		self.assertTrue({"name":"DocType", "issingle":0} \
-			in DatabaseQuery("DocType").execute(fields=["name", "issingle"]))
+			in DatabaseQuery("DocType").execute(fields=["name", "issingle"], limit_page_length=None))
 
 	def test_filters_1(self):
 		self.assertFalse({"name":"DocType"} \
