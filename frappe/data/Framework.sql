@@ -26,6 +26,7 @@ CREATE TABLE `tabDocField` (
   `options` text,
   `search_index` int(1) DEFAULT NULL,
   `hidden` int(1) DEFAULT NULL,
+  `set_only_once` int(1) DEFAULT NULL,
   `print_hide` int(1) DEFAULT NULL,
   `report_hide` int(1) DEFAULT NULL,
   `reqd` int(1) DEFAULT NULL,

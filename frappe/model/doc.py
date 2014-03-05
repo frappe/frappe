@@ -9,6 +9,7 @@ Contains the Document class representing an object / record
 _toc = ["frappe.model.doc.Document"]
 
 import frappe
+from frappe import _
 import frappe.model.meta
 from frappe.utils import *
 
@@ -229,7 +230,7 @@ class Document:
 			self.set_idx()
 
 		# if required, make new
-		if not self._meta.issingle:
+		if not self._meta[0].issingle:
 			if self.is_new():
 				r = self._insert(make_autoname=make_autoname, keep_timestamps = keep_timestamps)
 				if r: 
@@ -241,7 +242,7 @@ class Document:
 				
 				
 		# save the values
-		self._update_values(self._meta.issingle, 
+		self._update_values(self._meta[0].issingle, 
 			check_links and self.make_link_list() or {}, ignore_fields=ignore_fields,
 			keep_timestamps=keep_timestamps)
 		self._clear_temp_fields()
@@ -264,7 +265,7 @@ class Document:
 		self._new_name_set = True
 
 		self.get_meta()
-		autoname = self._meta.autoname
+		autoname = self._meta[0].autoname
 		
 		self.localname = self.name
 
@@ -305,7 +306,7 @@ class Document:
 			self.name = self.fields['__newname']
 
 		# default name for table
-		elif self._meta.istable: 
+		elif self._meta[0].istable: 
 			self.name = make_autoname('#########', self.doctype)
 			
 		# unable to determine a name, use global series
@@ -342,7 +343,7 @@ class Document:
 			self.set_new_name()
 		
 		# validate name
-		self.name = validate_name(self.doctype, self.name, self._meta.name_case)
+		self.name = validate_name(self.doctype, self.name, self._meta[0].name_case)
 				
 		# insert!
 		if not keep_timestamps:
@@ -422,6 +423,7 @@ class Document:
 		return tmp and tmp[0][0] or ''# match case
 	
 	def _update_values(self, issingle, link_list, ignore_fields=0, keep_timestamps=False):
+		self.validate_constants()
 		if issingle:
 			self._update_single(link_list)
 		else:
@@ -463,7 +465,7 @@ class Document:
 		valid_fields_map = frappe.local.valid_fields_map
 		
 		if not valid_fields_map.get(self.doctype):
-			if cint( self._meta.issingle):
+			if cint( self._meta[0].issingle):
 				doctypelist = frappe.model.doctype.get(self.doctype)
 				valid_fields_map[self.doctype] = doctypelist.get_fieldnames({
 					"fieldtype": ["not in", frappe.model.no_value_fields]})
@@ -473,10 +475,20 @@ class Document:
 			
 		return valid_fields_map.get(self.doctype)
 
+	def validate_constants(self):
+		self.get_meta()
+		constants = [d.fieldname for d in self._meta.get({"set_only_once": 1})]
+		if constants:
+			values = frappe.db.get_value(self.doctype, self.name, constants, as_dict=True)
+
+		for fieldname in constants:
+			if self.fields.get(fieldname) != values.get(fieldname):
+				frappe.throw("{0}: {1}".format(_("Value cannot be changed for"), 
+					_(self._meta.get_field(fieldname).label)), frappe.CannotChangeConstantError)
+
 	def get_meta(self):
 		if not self._meta:
-			self._meta = frappe.db.get_value("DocType", self.doctype, ["autoname", "issingle", 
-				"istable", "name_case"], as_dict=True) or frappe._dict()
+			self._meta = frappe.get_doctype(self.doctype)
 		return self._meta
 
 		
