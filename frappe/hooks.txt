@@ -48,3 +48,5 @@ doc_event:Website Route Permission:on_update = frappe.templates.generators.websi
 doc_event:*:on_update = frappe.core.doctype.notification_count.notification_count.clear_doctype_notifications
 doc_event:*:on_cancel = frappe.core.doctype.notification_count.notification_count.clear_doctype_notifications
 doc_event:*:on_trash = frappe.core.doctype.notification_count.notification_count.clear_doctype_notifications
+
+write_file_keys = file_url

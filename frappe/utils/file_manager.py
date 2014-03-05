@@ -107,14 +107,17 @@ def save_file(fname, content, dt, dn, decode=False):
 
 	method = get_hook_method('write_file', fallback=save_file_on_filesystem)
 
-	file_data = method(fname, content, content_type=content_type)
-	file_data = copy(file_data)
+	file_data = get_file_data_from_hash(content_hash)
+	if not file_data:
+		file_data = method(fname, content, content_type=content_type)
+		file_data = copy(file_data)
 	file_data.update({
 		"doctype": "File Data",
 		"attached_to_doctype": dt,
 		"attached_to_name": dn,
 		"file_size": file_size,
-		"file_hash": content_hash
+		"file_hash": content_hash,
+		"file_name": fname
 	})
 
 	f = frappe.bean(file_data)
@@ -125,6 +128,12 @@ def save_file(fname, content, dt, dn, decode=False):
 		return frappe.doc("File Data", f.doc.duplicate_entry)
 
 	return f.doc
+
+def get_file_data_from_hash(content_hash):
+	for name in frappe.db.sql_list("select name from `tabFile Data` where content_hash='{}'".format(content_hash)):
+		b = frappe.bean('File Data', name)
+		return {k:b.doc.fields[k] for k in frappe.get_hooks()['write_file_keys']}
+	return False
 	
 def save_file_on_filesystem(fname, content, content_type=None):
 	import filecmp
