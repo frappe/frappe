@@ -55,7 +55,7 @@ class DatabaseQuery(object):
 	
 		if self.with_childnames:
 			for t in self.tables:
-				if t != "`tab" + doctype + "`":
+				if t != "`tab" + self.doctype + "`":
 					fields.append(t + ".name as '%s:name'" % t[4:-1])
 	
 		# query dict
