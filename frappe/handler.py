@@ -21,6 +21,7 @@ def runserverobj(arg=None):
 @frappe.whitelist(allow_guest=True)
 def logout():
 	frappe.local.login_manager.logout()
+	frappe.db.commit()
 
 @frappe.whitelist(allow_guest=True)
 def web_logout():
@@ -79,6 +80,10 @@ def handle():
 		else:
 			if frappe.local.request.method in ("POST", "PUT") and frappe.db:
 				frappe.db.commit()
+	else:
+		# commit for login
+		if frappe.local.request.method in ("POST", "PUT") and frappe.db:
+			frappe.db.commit()
 	
 	build_response()
 

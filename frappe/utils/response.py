@@ -12,7 +12,7 @@ import frappe.model.utils
 from werkzeug.local import LocalProxy
 
 def report_error(status_code):
-	if status_code!=404:
+	if status_code!=404 or frappe.conf.logging:
 		frappe.errprint(frappe.utils.get_traceback())
 	frappe._response.status_code = status_code
 	if frappe.request_method == "POST":

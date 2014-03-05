@@ -307,7 +307,7 @@ class Document:
 	def append_number_if_name_exists(self):
 		if frappe.db.exists(self.doctype, self.name):
 			last = frappe.db.sql("""select name from `tab{}`
-				where name regexp '{}-[[:digit:]]*' 
+				where name regexp '{}-[[:digit:]]+' 
 				order by name desc limit 1""".format(self.doctype, self.name))
 			
 			if last:

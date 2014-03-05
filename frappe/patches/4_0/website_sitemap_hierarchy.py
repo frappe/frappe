@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 import frappe
 
 def execute():
+	frappe.reload_doc("website", "doctype", "website_template")
 	frappe.reload_doc("website", "doctype", "website_route")
 	frappe.reload_doc("website", "doctype", "website_route_permission")
 	frappe.reload_doc("website", "doctype", "website_group")

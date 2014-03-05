@@ -36,6 +36,7 @@ frappe.views.show_open_count_list = function(element) {
 
 frappe.views.moduleview.ModuleView = Class.extend({
 	init: function(wrapper, module) {
+		this.module = module;
 		this.prepare(wrapper, module);
 		this.make(wrapper, module);
 	},
@@ -92,8 +93,9 @@ frappe.views.moduleview.ModuleView = Class.extend({
 			me.add_items(d, $layout);
 		});
 		
+		me.item_count = message.item_count;
 		me.add_reports(message.reports, $layout);
-		me.show_counts(message.item_count, $layout);
+		me.show_counts($layout);
 		me.setup_navigation($layout);
 		
 		// for refresh
@@ -122,6 +124,7 @@ frappe.views.moduleview.ModuleView = Class.extend({
 				<a><i class="'+d.icon+' icon-fixed-width"></i><span class="hidden-xs"> '
 				+ frappe._(d.label)+'</span></a></li>')
 				.attr("data-label", d._label)
+				.attr("data-section-label", d.label)
 				.appendTo($sections);
 			
 			// create content pane for this nav
@@ -218,13 +221,17 @@ frappe.views.moduleview.ModuleView = Class.extend({
 		this.add_items(reports_section, $layout);
 	},
 	
-	show_counts: function(item_count, $layout) {
+	show_counts: function($layout) {
+		var me = this;
 		// total count
-		$.each(item_count, function(doctype, count) {
-			$layout.find("[data-doctype-count='"+doctype+"']")
-				.html(count)
-				.addClass("badge badge-count pull-right")
-				.css({cursor:"pointer"});
+		$.each(this.item_count, function(label, counts) {
+			if(!counts) return false;
+			$.each(counts, function(doctype, count) {
+				$layout.find("[data-doctype-count='"+doctype+"']")
+					.html(count)
+					.addClass("badge badge-count pull-right")
+					.css({cursor:"pointer"});
+			});
 		});
 		
 		// open count
@@ -244,6 +251,21 @@ frappe.views.moduleview.ModuleView = Class.extend({
 			$(this).parent().addClass("active");
 			$layout.find(".panel").toggle(false);
 			$layout.find('[data-content-label="'+ $(this).parent().attr("data-label") +'"]').toggle(true);
+			
+			var section_label = $(this).parent().attr("data-section-label");
+			if(!me.item_count || me.item_count[section_label]==null) {
+				frappe.call({
+					"method": "frappe.widgets.moduleview.get_section_count",
+					"args": {
+						"module": me.module,
+						"section_label": section_label,
+					},
+					"callback": function(r) {
+						me.item_count[section_label] = r.message || {};
+						me.show_counts($layout);
+					}
+				});
+			}
 		});
 		$sections.find('a:first').trigger("click");
 		
