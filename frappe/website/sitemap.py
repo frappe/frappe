@@ -26,7 +26,7 @@ def build_sitemap_options(path):
 		
 	sitemap_config = frappe.doc("Website Template", 
 		sitemap_options.get("website_template")).fields
-	
+			
 	# get sitemap config fields too
 	for fieldname in ("base_template_path", "template_path", "controller", 
 		"no_cache", "no_sitemap", "page_name_field", "condition_field"):

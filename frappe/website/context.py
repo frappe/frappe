@@ -54,9 +54,10 @@ def build_context(sitemap_options):
 	
 	if context.controller:
 		module = frappe.get_module(context.controller)
+
 		if module and hasattr(module, "get_context"):
 			context.update(module.get_context(context) or {})
-			
+	
 	if context.get("base_template_path") != context.get("template_path") and not context.get("rendered"):
 		context.data = render_blocks(context)
 	

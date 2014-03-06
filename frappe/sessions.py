@@ -75,6 +75,7 @@ def get():
 		bootinfo = frappe.cache().get_value('bootinfo:' + frappe.session.user)
 		if bootinfo:
 			bootinfo['from_cache'] = 1
+			bootinfo["profile"]["recent"] = json.dumps(frappe.cache().get_value("recent:" + frappe.session.user))
 			bootinfo["notification_info"].update(get_notifications())
 		
 	if not bootinfo:

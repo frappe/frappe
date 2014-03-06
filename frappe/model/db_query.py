@@ -15,6 +15,7 @@ class DatabaseQuery(object):
 		self.doctype = doctype
 		self.tables = []
 		self.meta = []
+		self.conditions = []
 		self.fields = ["name"]
 		
 	def execute(self, query=None, filters=None, fields=None, docstatus=None, 

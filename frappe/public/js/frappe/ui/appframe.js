@@ -125,7 +125,7 @@ frappe.ui.AppFrame = Class.extend({
 		if(module_info) {
 			views.push({
 				icon: module_info.icon,
-				route: module_info.link,
+				route: "Module/" + meta.module,
 				type: "module"
 			})
 		}
@@ -135,11 +135,13 @@ frappe.ui.AppFrame = Class.extend({
 			route: "",
 			type: "form",
 			set_route: function() {
+				console.log(me.doctype);
 				if(frappe.views.formview[me.doctype]) {
 					frappe.set_route("Form", me.doctype, frappe.views.formview[me.doctype].frm.docname);
 				} else {
-					new_doc(doctype);
+					new_doc(me.doctype);
 				}
+				return false;
 			}
 		});
 
@@ -182,7 +184,7 @@ frappe.ui.AppFrame = Class.extend({
 	set_views: function(views, active_view) {
 		var me = this;
 		$.each(views, function(i, e) {
-			var btn = me.add_icon_btn("3", e.icon, frappe._(toTitle(e.type)), function() {
+			var btn = me.add_icon_btn("3", e.icon, frappe._(toTitle(e.type)), e.set_route || function() {
 				window.location.hash = "#" + $(this).attr("data-route");
 			}).attr("data-route", e.route);
 				

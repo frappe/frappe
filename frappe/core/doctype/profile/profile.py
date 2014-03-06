@@ -372,7 +372,7 @@ def profile_query(doctype, txt, searchfield, start, page_len, filters):
 				then 0 else 1 end, 
 			name asc 
 		limit %(start)s, %(page_len)s""" % {'key': searchfield, 'txt': "%%%s%%" % txt,  
-		'mcond':get_match_cond(doctype, searchfield), 'start': start, 'page_len': page_len})
+		'mcond':get_match_cond(doctype), 'start': start, 'page_len': page_len})
 
 def get_total_users():
 	"""Returns total no. of system users"""

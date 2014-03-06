@@ -398,6 +398,7 @@ frappe.ui.form.GridRow = Class.extend({
 			.toggle(this.grid.is_editable());
 	},
 	render_form: function() {
+		var me = this;
 		this.make_form();
 		this.form_area.empty();
 		
@@ -408,11 +409,15 @@ frappe.ui.form.GridRow = Class.extend({
 			frm: this.frm,
 		});
 		this.layout.make();
-		this.layout.refresh(this.doc)
+		this.layout.refresh(this.doc);
 		
 		this.fields = this.layout.fields;
 		this.fields_dict = this.layout.fields_dict;
-		
+
+		// copy get_query to fields
+		$.each(this.grid.fieldinfo || {}, function(fieldname, fi) {
+			$.extend(me.fields_dict[fieldname], fi);
+		})
 		
 		// var me = this,
 		// 	make_row = function(label) {

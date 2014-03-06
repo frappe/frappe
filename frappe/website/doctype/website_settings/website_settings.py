@@ -79,7 +79,7 @@ def get_website_settings():
 			{"label": "Logout", "url": "?cmd=web_logout", "icon": "icon-signout"}
 		]
 	})
-		
+	
 	settings = frappe.doc("Website Settings", "Website Settings")
 	for k in ["banner_html", "brand_html", "copyright", "twitter_share_via",
 		"favicon", "facebook_share", "google_plus_one", "twitter_share", "linked_in_share",
@@ -99,10 +99,10 @@ def get_website_settings():
 	
 	context.url = quote(str(get_request_site_address(full_address=True)), safe="/:")
 	context.encoded_title = quote(encode(context.title or ""), str(""))
-	
+		
 	for update_website_context in hooks.update_website_context or []:
 		frappe.get_attr(update_website_context)(context)
-		
+
 	context.web_include_js = hooks.web_include_js or []
 	context.web_include_css = hooks.web_include_css or []
 	

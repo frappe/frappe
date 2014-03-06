@@ -53,7 +53,6 @@ def build(path):
 	build_method = (build_json if is_ajax() else build_page)
 	try:
 		return build_method(path)
-
 	except frappe.DoesNotExistError:
 		hooks = frappe.get_hooks()
 		if hooks.website_catch_all:
