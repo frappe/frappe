@@ -111,9 +111,10 @@ $.extend(frappe.model, {
 	},
 	
 	get_server_module_name: function(doctype) {
-		var dt = frappe.model.scrub(doctype)
-		return frappe.model.scrub(locals.DocType[doctype].module)
-			+ '.doctype.' + dt + '.' + dt;
+		var dt = frappe.model.scrub(doctype);
+		var module = frappe.model.scrub(locals.DocType[doctype].module);
+		var app = frappe.boot.module_app[module];
+		return app + "." + module + '.doctype.' + dt + '.' + dt;
 	},
 	
 	scrub: function(txt) {

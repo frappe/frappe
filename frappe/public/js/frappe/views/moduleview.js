@@ -189,7 +189,7 @@ frappe.views.moduleview.ModuleView = Class.extend({
 							frappe.set_route("List", item.name)
 						} 
 						else if(item.type==="page") {
-							frappe.set_route(item.route || item.name);
+							frappe.set_route(item.route || item.link || item.name);
 						}
 						else if(item.type==="report") {
 							if(item.is_query_report) {

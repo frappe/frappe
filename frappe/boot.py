@@ -43,6 +43,7 @@ def get_bootinfo():
 		except ImportError, e:
 			pass
 
+	bootinfo.module_app = frappe.local.module_app
 	bootinfo.hidden_modules = frappe.db.get_global("hidden_modules")
 	bootinfo.doctype_icons = dict(frappe.db.sql("""select name, icon from 
 		tabDocType where ifnull(icon,'')!=''"""))

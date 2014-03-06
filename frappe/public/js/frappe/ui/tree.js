@@ -123,8 +123,9 @@ frappe.ui.TreeNode = Class.extend({
 			if(item.condition) {
 				if(!item.condition(me)) return;
 			}
+			var label = item.get_label ? item.get_label() : item.label;
 			var link = $("<a class='tree-toolbar-item'>")
-				.html(item.get_label ? item.get_label() : item.label)
+				.html(label)
 				.appendTo(me.toolbar)
 				.click(function() { item.click(me, this); return false; });
 				
