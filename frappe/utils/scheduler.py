@@ -2,6 +2,8 @@
 # MIT License. See license.txt 
 
 from __future__ import unicode_literals
+import logging
+
 """
 Scheduler will call the following events from the module
 `startup.schedule_handler` and Control Panel (for server scripts)
@@ -17,14 +19,22 @@ on the need.
 
 import frappe
 import frappe.utils
+from frappe.utils.file_lock import create_lock, check_lock, delete_lock, LockTimeoutError
 
-def execute(site=None):
+def execute(site):
 	"""
 	execute jobs
 	this method triggers the other scheduler events
 	Database connection: Ideally it should be connected from outside, if there is
 	no connection, it will connect from defs.py
 	"""
+	logging.info('executing %', site)
+	frappe.init(site=site)
+	try:
+		create_lock('scheduler')
+	except LockTimeoutError:
+		frappe.destroy()
+		return
 	from datetime import datetime
 	
 	format = '%Y-%m-%d %H:%M:%S'
@@ -47,37 +57,30 @@ def execute(site=None):
 
 		if nowtime.day != last.day:
 			# if first task of the day execute daily tasks
-			out.append(nowtime.strftime("%Y-%m-%d %H:%M:%S") + ' - daily:' + trigger('daily'))
+			out.append(nowtime.strftime("%Y-%m-%d %H:%M:%S") + ' - daily:' + trigger(site, 'daily'))
 
 			if nowtime.month != last.month:
-				out.append(nowtime.strftime("%Y-%m-%d %H:%M:%S") + ' - monthly:' + trigger('monthly'))
+				out.append(nowtime.strftime("%Y-%m-%d %H:%M:%S") + ' - monthly:' + trigger(site, 'monthly'))
 					
 			if nowtime.weekday()==0:
-				out.append(nowtime.strftime("%Y-%m-%d %H:%M:%S") + ' - weekly:' + trigger('weekly'))
+				out.append(nowtime.strftime("%Y-%m-%d %H:%M:%S") + ' - weekly:' + trigger(site, 'weekly'))
 			
 		if nowtime.hour != last.hour:
-			out.append(nowtime.strftime("%Y-%m-%d %H:%M:%S") + ' - hourly:' + trigger('hourly'))
+			out.append(nowtime.strftime("%Y-%m-%d %H:%M:%S") + ' - hourly:' + trigger(site, 'hourly'))
 
-	out.append(nowtime.strftime("%Y-%m-%d %H:%M:%S") + ' - all:' + trigger('all'))
-	
+	out.append(nowtime.strftime("%Y-%m-%d %H:%M:%S") + ' - all:' + trigger(site, 'all'))
+	delete_lock('scheduler')
 	return '\n'.join(out)
 	
-def trigger(method):
+def trigger(site, event):
 	"""trigger method in startup.schedule_handler"""
-	traceback = ""
+	from frappe.tasks import scheduler_task
 	for scheduler_event in frappe.get_hooks().scheduler_event:
 		event_name, handler = scheduler_event.split(":")
-		
-		if method==event_name:
-			try:
-				frappe.get_attr(handler)()
-				frappe.db.commit()
-			except Exception:
-				traceback += log("Method: {method}, Handler: {handler}".format(method=method, handler=handler))
-				traceback += log(frappe.get_traceback())
-				frappe.db.rollback()
-				
-	return traceback or 'ok'
+		if event==event_name and not check_lock(handler):
+			scheduler_task.delay(site, event, handler)
+			create_lock(handler)
+	return 'enqueued'
 
 def log(method, message=None):
 	"""log error in patch_log"""
