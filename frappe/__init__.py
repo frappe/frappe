@@ -558,9 +558,9 @@ def repsond_as_web_page(title, html):
 	
 	return obj
 
-def build_match_conditions(doctype, fields=None, as_condition=True):
+def build_match_conditions(doctype, as_condition=True):
 	import frappe.widgets.reportview
-	return frappe.widgets.reportview.build_match_conditions(doctype, fields, as_condition)
+	return frappe.widgets.reportview.build_match_conditions(doctype, as_condition)
 
 def get_list(doctype, filters=None, fields=None, docstatus=None,
 			group_by=None, order_by=None, limit_start=0, limit_page_length=None,
