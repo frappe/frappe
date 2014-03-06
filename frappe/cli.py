@@ -242,8 +242,8 @@ def make_app():
 	make_boilerplate()
 
 @cmd
-def use():
-	with open("currentsite.txt", "w") as sitefile:
+def use(sites_path):
+	with open(os.path.join(sites_path,  "currentsite.txt"), "w") as sitefile:
 		sitefile.write(frappe.local.site)
 
 # install
