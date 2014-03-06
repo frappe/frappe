@@ -20,3 +20,5 @@ lxml
 inlinestyler
 rauth>=0.6.2
 requests==1.2.3
+celery
+redis

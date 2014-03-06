@@ -482,21 +482,21 @@ def execute(method):
 		print ret
 
 # scheduler
-@cmd
-def run_scheduler():
-	from frappe.utils.file_lock import create_lock, delete_lock
-	import frappe.utils.scheduler
-	if create_lock('scheduler'):
-		frappe.connect()
-		print frappe.utils.scheduler.execute()
-		delete_lock('scheduler')
-	frappe.destroy()
+# @cmd
+# def run_scheduler():
+# 	from frappe.utils.file_lock import create_lock, delete_lock
+# 	import frappe.utils.scheduler
+# 	if create_lock('scheduler'):
+# 		frappe.connect()
+# 		print frappe.utils.scheduler.execute()
+# 		delete_lock('scheduler')
+# 	frappe.destroy()
 
 @cmd
 def run_scheduler_event(event):
 	import frappe.utils.scheduler
 	frappe.connect()
-	print frappe.utils.scheduler.trigger(event)
+	result = frappe.utils.scheduler.trigger(site=frappe.conf.site, event=event, now=True)
 	frappe.destroy()
 	
 # replace

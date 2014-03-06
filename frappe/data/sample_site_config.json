@@ -26,5 +26,9 @@
  "facebook_login": {
 	 "client_id": "facebook_client_id",
 	 "client_secret": "facebook_client_secret"
- }
+ },
+ 
+ "celery_broker": "redis://localhost",
+ "celery_result_backend": null,
+ "scheduler_interval": 300
 }

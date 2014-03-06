@@ -1,43 +1,46 @@
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# MIT License. See license.txt
+
 from __future__ import unicode_literals
-from frappe.celery_app import app
 import frappe
+from frappe.utils.scheduler import enqueue_events
+from frappe.celery_app import get_celery, celery_task, task_logger
 from frappe.cli import get_sites
 from frappe.utils.file_lock import delete_lock
 
-from celery.utils.log import get_task_logger
-
-logger = get_task_logger(__name__)
-
-@app.task()
+@celery_task()
 def sync_queues():
+	"""notifies workers to monitor newly added sites"""
 	sites = get_sites()
+	app = get_celery()
 	for site in sites:
 		app.control.broadcast('add_consumer', arguments={'queue': site}, reply=True)
 
-@app.task()
-def scheduler_task(site, event, handler):
+@celery_task()
+def scheduler_task(site, event, handler, now=False):
 	from frappe.utils.scheduler import log
 	traceback = ""
 	try:
-		frappe.init(site=site)
-		frappe.connect()
+		if not now:
+			frappe.connect(site=site)
 		frappe.get_attr(handler)()
-		frappe.db.commit()
-		delete_lock(handler)
+	
 	except Exception:
-		traceback += log("Method: {event}, Handler: {handler}".format(event=event, handler=handler))
-		traceback += log(frappe.get_traceback())
-		logger.warn(traceback)
 		frappe.db.rollback()
-		frappe.destroy()
+		traceback = log(handler, "Method: {event}, Handler: {handler}".format(event=event, handler=handler))
+		task_logger.warn(traceback)
 		raise
-	frappe.destroy()
-	logger.info('ran {handler} for {site} for event: {event}'.format(handler=handler, site=site, event=event))
+		
+	else:
+		frappe.db.commit()
 
-@app.task()
+	finally:
+		delete_lock(handler)
+		frappe.destroy()
+
+	task_logger.info('ran {handler} for {site} for event: {event}'.format(handler=handler, site=site, event=event))
+
+@celery_task()
 def enqueue_scheduler_events():
-	import frappe
-	from frappe.utils.scheduler import execute
-	logger.info('ran {handler} for {site} for event: {event}')
 	for site in get_sites():
-		execute(site)
+		enqueue_events(site)

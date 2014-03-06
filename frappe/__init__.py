@@ -39,9 +39,6 @@ class _dict(dict):
 	def copy(self):
 		return _dict(dict(self).copy())
 
-def __getattr__(self, key):
-	return local.get("key", None)
-
 def _(msg):
 	"""translate object in current lang, if exists"""
 	if local.lang == "en":
@@ -85,7 +82,7 @@ debug_log = local("debug_log")
 message_log = local("message_log")
 
 lang = local("lang")
-	
+
 def init(site, sites_path=None):
 	if getattr(local, "initialised", None):
 		return
@@ -117,16 +114,24 @@ def init(site, sites_path=None):
 
 	setup_module_map()
 
-def get_site_config():
+def get_site_config(sites_path=None, site_path=None):
 	config = {}
-	common_site_config_filepath = os.path.join(local.sites_path, "common_site_config.json")
-	site_config_filepath = os.path.join(local.site_path, "site_config.json")
-	if os.path.exists(common_site_config_filepath):
-		config = get_file_json(common_site_config_filepath)
-	if os.path.exists(site_config_filepath):
-		config.update(get_file_json(site_config_filepath))
-	return _dict(config)
 	
+	sites_path = sites_path or getattr(local, "sites_path", None)
+	site_path = site_path or getattr(local, "site_path", None)
+	
+	if sites_path:
+		common_site_config = os.path.join(sites_path, "common_site_config.json")
+		if os.path.exists(common_site_config):
+			config.update(get_file_json(common_site_config))
+	
+	if site_path:
+		site_config = os.path.join(site_path, "site_config.json")
+		if os.path.exists(site_config):
+			config.update(get_file_json(site_config))
+			
+	return _dict(config)
+
 def destroy():
 	"""closes connection and releases werkzeug local"""
 	if db:
