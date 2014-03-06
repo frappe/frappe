@@ -13,7 +13,8 @@ from frappe.utils import today
 class DocType(WebsiteGenerator):
 	def __init__(self, d, dl):
 		self.doc, self.doclist = d, dl
-		
+		self.save_versions = True
+				
 	def get_page_title(self):
 		return self.doc.title
 		

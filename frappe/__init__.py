@@ -627,4 +627,4 @@ def add_version(doclist):
 		"ref_doctype": doclist[0].get("doctype"),
 		"docname": doclist[0].get("name"),
 		"doclist_json": json.dumps([d.fields for d in doclist])
-	}).insert()
+	}).insert(ignore_permissions=True)

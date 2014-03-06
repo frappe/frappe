@@ -7,5 +7,7 @@ from frappe.website.website_generator import WebsiteGenerator
 from frappe.website.utils import cleanup_page_name
 from frappe.utils import cint
 
-class DocType(WebsiteGenerator):			
-	pass
+class DocType(WebsiteGenerator):
+	def __init__(self, doc, doclist):
+		self.doc, self.doclist = doc, doclist
+		self.save_versions = True
