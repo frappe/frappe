@@ -24,8 +24,7 @@ _app = None
 def get_celery():
 	global _app
 	if not _app:
-		frappe.local.sites_path = SITES_PATH
-		conf = frappe.get_site_config()
+		conf = frappe.get_site_config(sites_path=SITES_PATH)
 	
 		_app = Celery('frappe', 
 			broker=conf.celery_broker or DEFAULT_CELERY_BROKER, 
@@ -36,7 +35,7 @@ def get_celery():
 	return _app
 	
 def setup_celery(app, conf):
-	app.autodiscover_tasks(frappe.get_all_apps(with_frappe=True, with_internal_apps=False))
+	app.autodiscover_tasks(frappe.get_all_apps(with_frappe=True, with_internal_apps=False, sites_path=SITES_PATH))
 	app.conf.CELERY_TASK_SERIALIZER = 'json'
 	app.conf.CELERY_ACCEPT_CONTENT = ['json']
 	app.conf.CELERY_ROUTES = (SiteRouter(),)

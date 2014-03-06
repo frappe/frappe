@@ -20,6 +20,7 @@ def sync_queues():
 def scheduler_task(site, event, handler, now=False):
 	from frappe.utils.scheduler import log
 	traceback = ""
+	task_logger.info('running {handler} for {site} for event: {event}'.format(handler=handler, site=site, event=event))
 	try:
 		if not now:
 			frappe.connect(site=site)

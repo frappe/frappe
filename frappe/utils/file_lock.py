@@ -35,6 +35,6 @@ def delete_lock(name):
 
 def get_lock_path(name):
 	name = name.lower()
-	locks_dir = frappe.local.conf.locks_dir or 'locks'
+	locks_dir = 'locks'
 	lock_path = get_site_path(locks_dir, name + '.lock')
 	return lock_path

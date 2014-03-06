@@ -19,6 +19,7 @@ DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 def enqueue_events(site):
 	# lock before queuing begins
+	frappe.init(site)
 	try:
 		create_lock('scheduler')
 	except LockTimeoutError:
@@ -26,7 +27,6 @@ def enqueue_events(site):
 		return
 	
 	if not frappe.db:
-		# also does init
 		frappe.connect(site=site)
 		
 	nowtime = frappe.utils.now_datetime()
@@ -34,11 +34,11 @@ def enqueue_events(site):
 	
 	# set scheduler last event
 	frappe.db.begin()
-	frappe.db.set_global('scheduler_last_event', nowtime.strftime(format))
+	frappe.db.set_global('scheduler_last_event', nowtime.strftime(DATETIME_FORMAT))
 	frappe.db.commit()
 	
 	if last:
-		datetime.strptime(last, format)
+		last = datetime.strptime(last, DATETIME_FORMAT)
 		out = enqueue_applicable_events(site, nowtime, last)
 	
 	delete_lock('scheduler')
@@ -72,6 +72,7 @@ def enqueue_applicable_events(site, nowtime, last):
 def trigger(site, event, now=False):
 	"""trigger method in startup.schedule_handler"""
 	from frappe.tasks import scheduler_task
+	sites_path = unicode(frappe.local.sites_path)
 	
 	for scheduler_event in frappe.get_hooks().scheduler_event:
 		event_name, handler = scheduler_event.split(":")
@@ -80,6 +81,8 @@ def trigger(site, event, now=False):
 				result = scheduler_task.delay(site, event, handler)
 				create_lock(handler)
 			else:
+				frappe.init(site, sites_path=sites_path)
+				create_lock(handler)
 				result = scheduler_task(site, event, handler)
 	
 	return result

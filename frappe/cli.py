@@ -496,7 +496,7 @@ def execute(method):
 def run_scheduler_event(event):
 	import frappe.utils.scheduler
 	frappe.connect()
-	result = frappe.utils.scheduler.trigger(site=frappe.conf.site, event=event, now=True)
+	result = frappe.utils.scheduler.trigger(frappe.local.site, event, now=True)
 	frappe.destroy()
 	
 # replace
