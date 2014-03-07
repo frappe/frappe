@@ -8,7 +8,7 @@ import sys, os
 
 import frappe
 
-site_arg_optional = ['serve', 'build', 'watch']
+site_arg_optional = ['serve', 'build', 'watch', 'celery']
 
 def get_site(parsed_args):
 	if not parsed_args.get("site") and os.path.exists(os.path.join(parsed_args["sites_path"], "currentsite.txt")):
@@ -206,6 +206,7 @@ def setup_utilities(parser):
 	# scheduler
 	parser.add_argument("--run_scheduler", default=False, action="store_true",
 		help="Trigger scheduler")
+	parser.add_argument("--celery", nargs="*", help="Run Celery Commands")
 	parser.add_argument("--run_scheduler_event", nargs=1, 
 		metavar="all | daily | weekly | monthly",
 		help="Run a scheduler event")
@@ -481,16 +482,13 @@ def execute(method):
 	if ret:
 		print ret
 
-# scheduler
-# @cmd
-# def run_scheduler():
-# 	from frappe.utils.file_lock import create_lock, delete_lock
-# 	import frappe.utils.scheduler
-# 	if create_lock('scheduler'):
-# 		frappe.connect()
-# 		print frappe.utils.scheduler.execute()
-# 		delete_lock('scheduler')
-# 	frappe.destroy()
+@cmd
+def celery(arg):
+	import frappe 
+	import commands, os
+	python = commands.getoutput('which python')
+	os.execv(python, [python, "-m", "frappe.celery_app"] + arg.split())
+	frappe.destroy()
 
 @cmd
 def run_scheduler_event(event):
