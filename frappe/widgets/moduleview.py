@@ -88,8 +88,8 @@ def combine_common_sections(data):
 		if each["label"] not in sections_dict:
 			sections_dict[each["label"]] = each
 			sections.append(each)
-		
-		sections_dict[each["label"]]["items"] += each["items"]
+		else:
+			sections_dict[each["label"]]["items"] += each["items"]
 		
 	return sections
 	
