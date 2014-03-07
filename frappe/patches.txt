@@ -19,3 +19,4 @@ frappe.patches.4_0.rename_sitemap_to_route
 frappe.patches.4_0.set_website_route_idx
 execute:import frappe.installer;frappe.installer.make_site_dirs() #2014-02-19
 frappe.patches.4_0.private_backups
+frappe.patches.4_0.set_module_in_report

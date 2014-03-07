@@ -244,7 +244,7 @@ class Document:
 			
 		self.name = am_prefix + '-' + str(am_id)
 
-	def set_new_name(self, controller=None):
+	def set_new_name(self, bean=None):
 		if self._new_name_set:
 			# already set by bean
 			return
@@ -264,12 +264,13 @@ class Document:
 		# by method
 		else:
 			# get my object
-			if not controller:
-				controller = frappe.get_obj([self])
-				
-			if hasattr(controller, 'autoname'):
-				return controller.autoname()
+			if not bean:
+				bean = frappe.bean([self])
 			
+			bean.run_method("autoname")
+			if self.name:
+				return
+
 		# based on a field
 		if autoname and autoname.startswith('field:'):
 			n = self.fields[autoname[6:]]

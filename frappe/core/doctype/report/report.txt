@@ -2,7 +2,7 @@
  {
   "creation": "2013-03-09 15:45:57", 
   "docstatus": 0, 
-  "modified": "2014-01-20 17:49:17", 
+  "modified": "2014-03-07 15:20:02", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -125,6 +125,13 @@
   "fieldtype": "Text", 
   "label": "JSON", 
   "read_only": 1
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "module", 
+  "fieldtype": "Link", 
+  "label": "Module", 
+  "options": "Module Def"
  }, 
  {
   "create": 1, 

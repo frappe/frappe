@@ -164,14 +164,13 @@ def get_doctype_count_from_table(doctype):
 def get_report_list(module, is_standard="No"):
 	"""return list on new style reports for modules"""	
 	return frappe.db.sql("""
-		select distinct "report" as type, tabReport.name, tabReport.ref_doctype as doctype,
-			if((tabReport.report_type='Query Report' or 
-				tabReport.report_type='Script Report'), 1, 0) as is_query_report,
+		select distinct "report" as type, name, ref_doctype as doctype,
+			if((report_type='Query Report' or 
+				report_type='Script Report'), 1, 0) as is_query_report,
 			report_type as description
-		from `tabReport`, `tabDocType`
-		where tabDocType.module=%s
-			and tabDocType.name = tabReport.ref_doctype
-			and tabReport.docstatus in (0, NULL)
-			and ifnull(tabReport.is_standard, "No")=%s
-			and ifnull(tabReport.disabled,0) != 1
-			order by tabReport.name""", (module, is_standard), as_dict=True)
+		from `tabReport`
+		where module=%s
+			and docstatus in (0, NULL)
+			and ifnull(is_standard, "No")=%s
+			and ifnull(disabled,0) != 1
+			order by name""", (module, is_standard), as_dict=True)

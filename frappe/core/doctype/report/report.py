@@ -11,6 +11,9 @@ class DocType:
 		
 	def validate(self):
 		"""only administrator can save standard report"""
+		if not self.doc.module:
+			self.doc.module = frappe.db.get_value("DocType", self.doc.ref_doctype, "module")
+		
 		if not self.doc.is_standard:
 			self.doc.is_standard = "No"
 			if frappe.session.user=="Administrator" and getattr(conf, 'developer_mode',0)==1:
@@ -24,7 +27,7 @@ class DocType:
 			and frappe.session.user!="Administrator":
 			frappe.msgprint(_("Only Administrator allowed to create Query / Script Reports"),
 				raise_exception=True)
-
+				
 	def on_update(self):
 		self.export_doc()
 	
@@ -32,4 +35,4 @@ class DocType:
 		from frappe.modules.export_file import export_to_files
 		if self.doc.is_standard == 'Yes' and (conf.get('developer_mode') or 0) == 1:
 			export_to_files(record_list=[['Report', self.doc.name]], 
-				record_module=frappe.db.get_value("DocType", self.doc.ref_doctype, "module"))
+				record_module=self.doc.module)

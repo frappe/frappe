@@ -190,7 +190,8 @@ class Bean:
 		
 		if self.doc.fields.get("__islocal"):
 			# set name before validate
-			self.doc.set_new_name(self.get_controller())
+			self.run_method('before_set_name')
+			self.doc.set_new_name(self)
 			self.run_method('before_insert')
 			
 		if method != "cancel":
@@ -229,21 +230,19 @@ class Bean:
 		
 		def add_to_response(out, new_response):
 			if isinstance(new_response, dict):
-				print self.doc.doctype, self.doc.name, method
-				print "add to response", new_response
 				out.update(new_response)
 						
 		if hasattr(self.controller, method):
 			add_to_response(frappe.local.response, 
 				frappe.call(getattr(self.controller, method), *args, **kwargs))
+				
+		self.set_doclist(self.controller.doclist)
 
 		args = [self, method] + list(args)
 		for handler in frappe.get_hooks("bean_event:" + self.doc.doctype + ":" + method) \
 			+ frappe.get_hooks("bean_event:*:" + method):
 			add_to_response(frappe.local.response, frappe.call(frappe.get_attr(handler), *args, **kwargs))
 
-		self.set_doclist(self.controller.doclist)
-				
 		return frappe.local.response
 		
 	def get_attr(self, method):
