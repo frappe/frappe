@@ -8,13 +8,14 @@ import gzip, cStringIO
 import mimetypes
 import os
 import frappe
+from frappe import _
 import frappe.utils
 import frappe.sessions
 import frappe.model.utils
 from werkzeug.local import LocalProxy
 from werkzeug.wsgi import wrap_file
 from werkzeug.wrappers import Response
-from werkzeug.exceptions import NotFound, Unauthorized
+from werkzeug.exceptions import NotFound, Forbidden
 
 def report_error(status_code):
 	if status_code!=404 or frappe.conf.logging:
@@ -123,7 +124,7 @@ def download_backup(path):
 	try:
 		frappe.only_for(("System Manager", "Administrator"))
 	except frappe.PermissionError:
-		raise Unauthorized
+		raise Forbidden(_("You need to be logged in and have System Manager Role to be able to access backups."))
 	send_private_file(path)
 
 def send_private_file(path):

@@ -101,8 +101,8 @@ def setup_parser():
 	# common
 	parser.add_argument("-f", "--force", default=False, action="store_true",
 		help="Force execution where applicable (look for [-f] in help)")
-	parser.add_argument("-v", "--verbose", default=False, action="store_true", dest="verbose",
-		help="Show verbose output where applicable")
+	parser.add_argument("--quiet", default=True, action="store_false", dest="verbose",
+		help="Do not show verbose output (where applicable)")
 		
 	return parser.parse_args()
 	

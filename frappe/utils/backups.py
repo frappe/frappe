@@ -1,15 +1,10 @@
 # Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt 
 
+"""This module handles the On Demand Backup utility"""
+
 from __future__ import unicode_literals
-"""
-	This module handles the On Demand Backup utility
-	
-	To setup in defs set: 
-		backup_path: path where backups will be taken (for eg /backups)
-		backup_link_path: download link for backups (eg /var/www/frappe/backups)
-		backup_url: base url of the backup folder (eg http://mysite.com/backups)
-"""
+
 #Imports
 import os, frappe
 from datetime import datetime
