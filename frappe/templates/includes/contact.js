@@ -26,7 +26,7 @@ $(document).ready(function() {
 			sender: email,
 			message: message,
 			callback: function(r) {
-				if(r.status==="okay") {
+				if(r.message==="okay") {
 					msgprint(r.message || "Thank you for your message.")
 				} else {
 					msgprint("There were errors");

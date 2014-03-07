@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe, json
+from frappe.website.render import clear_cache
 
 class DocType:
 	def __init__(self, d, dl):
@@ -53,6 +54,13 @@ class DocType:
 		# use sql, so that we do not mess with the timestamp
 		frappe.db.sql("""update `tab%s` set `_comments`=%s where name=%s""" % (self.doc.comment_doctype,
 			"%s", "%s"), (json.dumps(_comments), self.doc.comment_docname))
+			
+		# clear parent cache if route exists:
+		route = frappe.db.get_value("Website Route", {"ref_doctype": self.doc.comment_doctype, 
+			"docname": self.doc.comment_docname})
+			
+		if route:
+			clear_cache(route)
 	
 	def on_trash(self):
 		_comments = self.get_comments_from_parent()

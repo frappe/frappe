@@ -48,6 +48,7 @@ frappe.ui.toolbar.RecentDocs = Class.extend({
 	},
 	setup: function() {
 		// add menu items
+		if(!profile) return;
 		var rlist = JSON.parse(profile.recent||"[]");
 		
 		var m = rlist.length;
