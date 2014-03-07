@@ -8,7 +8,6 @@ from werkzeug.test import Client
 import os
 import re
 import urllib
-
 import frappe
 
 no_value_fields = ['Section Break', 'Column Break', 'HTML', 'Table', 'FlexTable',

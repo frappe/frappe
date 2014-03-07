@@ -167,9 +167,9 @@ def get_conf_params(db_name=None, db_password=None):
 
 def make_site_dirs():
 	site_public_path = os.path.join(frappe.local.site_path, 'public')
+	site_private_path = os.path.join(frappe.local.site_path, 'private')
 	for dir_path in (
-			os.path.join(site_public_path, 'backups'),
-			os.path.join(site_public_path, 'locks'),
+			os.path.join(site_private_path, 'backups'),
 			os.path.join(site_public_path, 'files')):
 		if not os.path.exists(dir_path):
 			os.makedirs(dir_path)
