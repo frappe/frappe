@@ -44,6 +44,13 @@ def build_sitemap_options(path):
 		set_sidebar_items(sitemap_options, sitemap_options.pathname, home_page)
 		if not sitemap_options.children:
 			set_sidebar_items(sitemap_options, sitemap_options.parent_website_route, home_page)
+			
+			if path != home_page:
+				sitemap_options.children = [frappe.doc("Website Route", 
+					sitemap_options.parent_website_route).fields] + sitemap_options.children
+		else:
+			if path != home_page:
+				sitemap_options.children = [sitemap_options] + sitemap_options.children
 
 	# determine templates to be used
 	if not sitemap_options.base_template_path:
@@ -55,7 +62,8 @@ def build_sitemap_options(path):
 def set_sidebar_items(sitemap_options, pathname, home_page):
 	if pathname==home_page or not pathname:
 		sitemap_options.children = frappe.db.sql("""select url as name, label as page_title,
-			1 as public_read from `tabTop Bar Item` where parentfield='sidebar_items' order by idx""", as_dict=True)
+			1 as public_read from `tabTop Bar Item` where parentfield='sidebar_items' order by idx""",
+			as_dict=True)
 	else:		
 		sitemap_options.children = frappe.db.sql("""select * from `tabWebsite Route`
 			where ifnull(parent_website_route,'')=%s 

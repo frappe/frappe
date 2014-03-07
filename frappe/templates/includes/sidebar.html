@@ -1,6 +1,9 @@
 {% if children -%}
 {%- for child in children -%}
 <div class="sidebar-item">
+	<i class="icon-fixed-width 
+	{% if child.rgt - child.lft != 1 and not loop.first %}icon-chevron-right{% endif %}" 
+	style="margin-left: -17px; color: #ddd;"></i>
 	<a href="{{ child.name }}" class="no-decoration {% if child.name == pathname %}active{% endif %}">
 		{{ child.page_title }}
 		{% if not child.public_read %}

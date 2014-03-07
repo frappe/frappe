@@ -241,7 +241,7 @@ fieldset {
 }
 
 .sidebar-item {
-	margin: 15px auto;
+	margin: 20px auto;
 	color: #999;
 	font-size: 85%;
 }
@@ -425,6 +425,10 @@ a.active {
 		padding-bottom: 15px;
 		margin-bottom: 15px;
 		border-bottom: 1px solid #eee;
+	}
+	
+	.page-sidebar .sidebar-item {
+		margin-left: 17px;
 	}
 }
 

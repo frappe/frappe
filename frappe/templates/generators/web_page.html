@@ -1,9 +1,9 @@
 {% block content %}
 <div class="webpage-content">
 	{% include "templates/includes/slideshow.html" %}
-	<div class="web-page-content" id="{{ name }}">
+	<article class="web-page-content" id="{{ name }}">
 	{{ main_section or "" }}
-	</div>
+	</article>
 	{% if enable_comments -%}
 	<hr>
 	<h3>Discuss</h3>
