@@ -44,13 +44,6 @@ def build_sitemap_options(path):
 		set_sidebar_items(sitemap_options, sitemap_options.pathname, home_page)
 		if not sitemap_options.children:
 			set_sidebar_items(sitemap_options, sitemap_options.parent_website_route, home_page)
-			
-			if path != home_page:
-				sitemap_options.children = [frappe.doc("Website Route", 
-					sitemap_options.parent_website_route).fields] + sitemap_options.children
-		else:
-			if path != home_page:
-				sitemap_options.children = [sitemap_options] + sitemap_options.children
 
 	# determine templates to be used
 	if not sitemap_options.base_template_path:
@@ -81,3 +74,6 @@ def set_sidebar_items(sitemap_options, pathname, home_page):
 					and t1.docname = t2.name
 					order by t2.{sort_by} {sort_order}""".format(**website_template.fields), 
 						pathname, as_dict=True)
+						
+			sitemap_options.children = [frappe.doc("Website Route", pathname).fields] + sitemap_options.children
+			
