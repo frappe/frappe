@@ -208,17 +208,17 @@ frappe.ui.form.Toolbar = Class.extend({
 		this.appframe.clear_primary_action();
 		
 		if(this.can_submit()) {
-			status = "Submit";
+			status = frappe._("Submit");
 		} else if(this.can_save()) {
 			if(!this.frm.save_disabled) {
-				status = "Save";
+				status = frappe._("Save");
 			}
 		} else if(this.can_update()) {
-			status = "Update";
+			status = frappe._("Update");
 		} else if(this.can_cancel()) {
-			status = "Cancel";
+			status = frappe._("Cancel");
 		} else if(this.can_amend()) {
-			status = "Amend";
+			status = frappe._("Amend");
 		}
 		
 		if(status) {
@@ -229,7 +229,7 @@ frappe.ui.form.Toolbar = Class.extend({
 					"Update": function() { me.frm.save('Update', null, this); },
 					"Cancel": function() { me.frm.savecancel(this); },
 					"Amend": function() { me.frm.amend_doc(); }
-				}[status], null, status==="Cancel" ? "btn-default" : "btn-primary");
+				}[status], null, status===frappe._("Cancel") ? "btn-default" : "btn-primary");
 			}
 		} else {
 			this.appframe.set_title_right();
