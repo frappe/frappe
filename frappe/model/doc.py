@@ -268,7 +268,7 @@ class Document:
 				bean = frappe.bean([self])
 			
 			bean.run_method("autoname")
-			if self.name:
+			if self.name and self.localname != self.name:
 				return
 
 		# based on a field
