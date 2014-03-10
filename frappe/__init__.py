@@ -410,8 +410,8 @@ def get_module_list(app_name):
 def get_all_apps(with_frappe=False, with_internal_apps=True, sites_path=None):
 	if not sites_path:
 		sites_path = local.sites_path
-
-	apps = get_file_items(os.path.join(sites_path, "apps.txt"))
+	
+	apps = get_file_items(os.path.join(sites_path, "apps.txt"), raise_not_found=True)
 	if with_internal_apps:
 		apps.extend(get_file_items(os.path.join(local.site_path, "apps.txt")))
 	if with_frappe:
@@ -465,8 +465,8 @@ def setup_module_map():
 			_cache.set_value("app_modules", local.app_modules)
 			_cache.set_value("module_app", local.module_app)
 		
-def get_file_items(path):
-	content = read_file(path)
+def get_file_items(path, raise_not_found=False):
+	content = read_file(path, raise_not_found=raise_not_found)
 	if content:
 		return [p.strip() for p in content.splitlines() if p.strip() and not p.startswith("#")]
 	else: 
@@ -476,10 +476,12 @@ def get_file_json(path):
 	with open(path, 'r') as f:
 		return json.load(f)
 
-def read_file(path):
+def read_file(path, raise_not_found=False):
 	if os.path.exists(path):
 		with open(path, "r") as f: 
 			return unicode(f.read(), encoding="utf-8")
+	elif raise_not_found:
+		raise IOError("{} Not Found".format(path))
 	else:
 		return None
 

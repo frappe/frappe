@@ -83,7 +83,7 @@ def make_connection(root_login, root_password):
 	return frappe.database.Database(user=root_login, password=root_password)
 
 @frappe.whitelist()
-def install_app(name, verbose=False):
+def install_app(name, verbose=False, set_as_patched=True):
 	frappe.flags.in_install_app = name
 	frappe.clear_cache()
 
@@ -104,11 +104,12 @@ def install_app(name, verbose=False):
 	sync_for(name, force=True, sync_everything=True, verbose=verbose)
 
 	add_to_installed_apps(name)
-	set_all_patches_as_completed(name)
+	
+	if set_as_patched:
+		set_all_patches_as_completed(name)
 
 	for after_install in app_hooks.after_install or []:
 		frappe.get_attr(after_install)()
-
 		
 	frappe.flags.in_install_app = False
 	

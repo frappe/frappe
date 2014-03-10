@@ -255,7 +255,7 @@ def install(db_name, root_login="root", root_password=None, source_sql=None,
 	install_db(root_login=root_login, root_password=root_password, db_name=db_name, source_sql=source_sql,
 		admin_password = admin_password, verbose=verbose, force=force, site_config=site_config, reinstall=reinstall)
 	make_site_dirs()
-	install_app("frappe", verbose=verbose)
+	install_app("frappe", verbose=verbose, set_as_patched=not source_sql)
 	frappe.destroy()
 
 @cmd
