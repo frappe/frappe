@@ -57,11 +57,15 @@ def scheduler_task(site, event, handler, now=False):
 
 	finally:
 		delete_lock(handler)
-		frappe.destroy()
+		
+		if not now:
+			frappe.destroy()
 
 	task_logger.info('ran {handler} for {site} for event: {event}'.format(handler=handler, site=site, event=event))
 
 @celery_task()
 def enqueue_scheduler_events():
 	for site in get_sites():
+		frappe.connect(site=site)
 		enqueue_events(site)
+		frappe.destroy()

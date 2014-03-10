@@ -644,9 +644,9 @@ def python(site):
 	frappe.destroy()
 
 @cmd
-def ipython():
+def ipython(site):
 	import frappe
-	frappe.connect()
+	frappe.connect(site=site)
 	import IPython
 	IPython.embed()
 

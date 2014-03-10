@@ -128,8 +128,7 @@ def download_backup(path):
 	send_private_file(path)
 
 def send_private_file(path):
-	path = path[1:] if path.startswith('/') else path
-	path = os.path.join(frappe.local.conf.get('private_path', 'private'), path)
+	path = os.path.join(frappe.local.conf.get('private_path', 'private'), path.strip("/"))
 
 	if frappe.local.request.headers.get('X-Use-X-Accel-Redirect'):
 		path = '/' + path

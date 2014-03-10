@@ -14,12 +14,12 @@ Get metadata (main doctype with fields and permissions with all table doctypes)
 from __future__ import unicode_literals
 
 # imports
-import json
+import json, os
 import frappe
 import frappe.model
 import frappe.model.doc
 import frappe.model.doclist
-from frappe.utils import cint
+from frappe.utils import cint, cstr
 
 doctype_cache = frappe.local('doctype_doctype_cache')
 docfield_types = frappe.local('doctype_docfield_types')
@@ -270,38 +270,43 @@ def add_code(doctype, doclist):
 	doc = doclist[0]
 	
 	path = os.path.join(get_module_path(doc.module), 'doctype', scrub(doc.name))
-
-	def _add_code(fname, fieldname):
-		fpath = os.path.join(path, fname)
-		if os.path.exists(fpath):
-			with open(fpath, 'r') as f:
-				doc.fields[fieldname] = f.read()
-		
-	_add_code(scrub(doc.name) + '.js', '__js')
-	_add_code(scrub(doc.name) + '.css', '__css')
-	_add_code('%s_list.js' % scrub(doc.name), '__list_js')
-	_add_code('%s_calendar.js' % scrub(doc.name), '__calendar_js')
-	_add_code('%s_map.js' % scrub(doc.name), '__map_js')
-	add_embedded_js(doc)
+	def _get_path(fname):
+		return os.path.join(path, scrub(fname))
 	
-def add_embedded_js(doc):
+	_add_code(doc, _get_path(doc.name + '.js'), '__js')
+	_add_code(doc, _get_path(doc.name + '.css'), "__css")
+	_add_code(doc, _get_path(doc.name + '_list.js'), '__list_js')
+	_add_code(doc, _get_path(doc.name + '_calendar.js'), '__calendar_js')
+	_add_code(doc, _get_path(doc.name + '_map.js'), '__map_js')
+	
+	add_custom_script(doc)
+	add_code_via_hook(doc, "doctype_js", "__js")
+	
+def _add_code(doc, path, fieldname):
+	js = frappe.read_file(path)
+	if js:
+		doc.fields[fieldname] = (doc.fields.get(fieldname) or "") + "\n\n" + render_jinja(js)
+		
+def add_code_via_hook(doc, hook, fieldname):
+	hook = "{}:{}".format(hook, doc.name)
+	for app_name in frappe.get_installed_apps():
+		for file in frappe.get_hooks(hook, app_name=app_name):
+			path = frappe.get_app_path(app_name, *file.strip("/").split("/"))
+			_add_code(doc, path, fieldname)
+	
+def add_custom_script(doc):
 	"""embed all require files"""
-
-	import re, os
-	from frappe import conf
-
-	js = doc.fields.get('__js') or ''
-
 	# custom script
 	custom = frappe.db.get_value("Custom Script", {"dt": doc.name, 
 		"script_type": "Client"}, "script") or ""
-	js = (js + '\n' + custom).encode("utf-8")
-
-	if "{% include" in js:
-		js = frappe.get_jenv().from_string(js).render()
 	
-	doc.fields["__js"] = js
-			
+	doc.fields["__js"] = (doc.fields.get('__js') or '') + "\n\n".join(custom)
+	
+def render_jinja(content):
+	if "{% include" in content:
+		content = frappe.get_jenv().from_string(content).render()
+	return content
+	
 def expand_selects(doclist):
 	for d in filter(lambda d: d.fieldtype=='Select' \
 		and (d.options or '').startswith('link:'), doclist):

@@ -477,9 +477,10 @@ def get_file_json(path):
 		return json.load(f)
 
 def read_file(path, raise_not_found=False):
+	from frappe.utils import cstr
 	if os.path.exists(path):
 		with open(path, "r") as f: 
-			return unicode(f.read(), encoding="utf-8")
+			return cstr(f.read())
 	elif raise_not_found:
 		raise IOError("{} Not Found".format(path))
 	else:
