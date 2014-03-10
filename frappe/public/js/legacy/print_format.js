@@ -365,7 +365,7 @@ $.extend(_p, {
 			
 			
 		// replace relative links by absolute links
-		var prefix = window.location.href.split("app.html")[0]
+		var prefix = window.location.href.split("desk")[0]
 		// find unique matches
 		var matches = $.unique(finished.match(/src=['"]([^'"]*)['"]/g) || []);
 		

@@ -88,7 +88,7 @@ login.call = function(args) {
 login.login_handlers = {
 	200: function(data) {
 		if(data.message=="Logged In") {
-			window.location.href = "app";
+			window.location.href = "desk";
 		} else if(data.message=="No App") {
 			if(localStorage) {
 				var last_visited = localStorage.getItem("last_visited") || "/index";

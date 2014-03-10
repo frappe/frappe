@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 
 no_sitemap = 1
-base_template_path = "templates/pages/app.html"
+base_template_path = "templates/pages/desk.html"
 
 import frappe, os
 

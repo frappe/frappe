@@ -839,7 +839,7 @@ def get_url_to_form(doctype, name, base_url=None, label=None):
 	
 	if not label: label = name
 	
-	return """<a href="%(base_url)s/app.html#!Form/%(doctype)s/%(name)s">%(label)s</a>""" % locals()
+	return """<a href="%(base_url)s/desk#!Form/%(doctype)s/%(name)s">%(label)s</a>""" % locals()
 	
 def encode_dict(d, encoding="utf-8"):
 	for key in d:

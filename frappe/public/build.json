@@ -34,7 +34,7 @@
 		"public/css/bootstrap.css",
 		"public/css/bootstrap-responsive.css",
 		"public/css/font-awesome.css",
-		"public/css/app.css",
+		"public/css/desk.css",
 		"public/css/appframe.css",
 		"public/css/app_icon.css",
 		"public/css/avatar.css",
@@ -62,7 +62,7 @@
 		"public/js/frappe/ui/listing.js",
 		"public/js/frappe/request.js",
 		"public/js/frappe/router.js",
-		"public/js/frappe/app.js",
+		"public/js/frappe/desk.js",
 		"public/js/frappe/defaults.js",
 
 		"public/js/legacy/globals.js",
