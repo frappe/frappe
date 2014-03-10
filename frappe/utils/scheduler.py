@@ -21,7 +21,8 @@ def enqueue_events(site):
 	# lock before queuing begins
 	frappe.init(site)
 	try:
-		create_lock('scheduler')
+		if not create_lock('scheduler'):
+			return
 	except LockTimeoutError:
 		frappe.destroy()
 		return
