@@ -170,7 +170,7 @@ frappe.ui.Listing = Class.extend({
 		// new
 		if(this.new_doctype) {
 			if(this.appframe) {
-				this.appframe.set_title_right("<i class='icon-plus'></i> " + frappe._('New') + ", function() { 
+				this.appframe.set_title_right("<i class='icon-plus'></i> " + frappe._('New'), function() { 
 					(me.custom_new_doc || me.make_new_doc).apply(me, [me.new_doctype]); });
 			}
 			this.add_button(frappe._('New'), function() { 
