@@ -817,7 +817,7 @@ def get_files_path():
 	return get_site_path("public", "files")
 
 def get_backups_path():
-	return get_site_path("public", "backup") 
+	return get_site_path("private", "backups") 
 	
 def get_url(uri=None):
 	url = get_request_site_address()

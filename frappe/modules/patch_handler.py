@@ -104,7 +104,7 @@ def executed(patchmodule):
 	else:
 		done = frappe.db.get_value("Patch Log", {"patch": patchmodule})
 	if done:
-		print "Patch %s executed in %s" % (patchmodule, frappe.db.cur_db_name)
+		print "Patch %s already executed in %s" % (patchmodule, frappe.db.cur_db_name)
 	return done
 	
 def block_user(block):

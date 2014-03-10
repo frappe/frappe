@@ -115,6 +115,8 @@ def setup_install(parser):
 		help="path to directory with sites")
 	parser.add_argument("--install_app", metavar="APP-NAME", nargs=1,
 		help="Install a new app")
+	parser.add_argument("--add_to_installed_apps", metavar="APP-NAME", nargs="*",
+		help="Add these app(s) to Installed Apps")
 	parser.add_argument("--root-password", nargs=1,
 		help="Root password for new app")
 	parser.add_argument("--reinstall", default=False, action="store_true", 
@@ -263,6 +265,16 @@ def install_app(app_name, verbose=False):
 	from frappe.installer import install_app
 	frappe.connect()
 	install_app(app_name, verbose=verbose)
+	frappe.destroy()
+
+@cmd
+def add_to_installed_apps(*apps):
+	from frappe.installer import add_to_installed_apps
+	frappe.connect()
+	all_apps = frappe.get_all_apps(with_frappe=True)
+	for each in apps:
+		if each in all_apps:
+			add_to_installed_apps(each)
 	frappe.destroy()
 
 @cmd
@@ -491,10 +503,10 @@ def celery(arg):
 	frappe.destroy()
 
 @cmd
-def run_scheduler_event(event):
+def run_scheduler_event(event, force=False):
 	import frappe.utils.scheduler
 	frappe.connect()
-	result = frappe.utils.scheduler.trigger(frappe.local.site, event, now=True)
+	frappe.utils.scheduler.trigger(frappe.local.site, event, now=force)
 	frappe.destroy()
 	
 # replace

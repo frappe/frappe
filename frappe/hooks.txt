@@ -23,11 +23,11 @@ website_clear_cache = frappe.templates.generators.website_group.clear_cache
 get_desktop_icons = frappe.manage.get_desktop_icons
 notification_config = frappe.core.notifications.get_notification_config
 
-scheduler_event = all:frappe.utils.email_lib.bulk.flush
-scheduler_event = daily:frappe.utils.email_lib.bulk.clear_outbox
-scheduler_event = daily:frappe.core.doctype.notification_count.notification_count.delete_event_notification_count
-scheduler_event = daily:frappe.core.doctype.event.event.send_event_digest
-scheduler_event = hourly:frappe.templates.generator.website_group.clear_event_cache
+scheduler_event:all = frappe.utils.email_lib.bulk.flush
+scheduler_event:daily = frappe.utils.email_lib.bulk.clear_outbox
+scheduler_event:daily = frappe.core.doctype.notification_count.notification_count.delete_event_notification_count
+scheduler_event:daily = frappe.core.doctype.event.event.send_event_digest
+scheduler_event:hourly = frappe.templates.generators.website_group.clear_event_cache
 
 # TODO
 # on_session_creation = frappe.auth.notify_administrator_login

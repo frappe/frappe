@@ -4,17 +4,37 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.utils.scheduler import enqueue_events
-from frappe.celery_app import get_celery, celery_task, task_logger
+from frappe.celery_app import get_celery, celery_task, task_logger, get_queue, LONGJOBS_PREFIX
 from frappe.cli import get_sites
 from frappe.utils.file_lock import delete_lock
 
 @celery_task()
 def sync_queues():
 	"""notifies workers to monitor newly added sites"""
-	sites = get_sites()
 	app = get_celery()
-	for site in sites:
-		app.control.broadcast('add_consumer', arguments={'queue': site}, reply=True)
+	shortjob_workers, longjob_workers = get_workers(app)
+
+	for site in get_sites():
+		if shortjob_workers:
+			app.control.broadcast('add_consumer', arguments=get_queue(site), 
+				reply=True, destination=shortjob_workers)
+		
+		if longjob_workers:
+			app.control.broadcast('add_consumer', arguments=get_queue(site, LONGJOBS_PREFIX),
+				reply=True, destination=longjob_workers)
+			
+def get_workers(app):
+	longjob_workers = []
+	shortjob_workers = []
+
+	active_queues = app.control.inspect().active_queues()
+	for worker in active_queues.keys():
+		if worker.startswith(LONGJOBS_PREFIX):
+			longjob_workers.append(worker)
+		else:
+			shortjob_workers.append(worker)
+	
+	return shortjob_workers, longjob_workers
 
 @celery_task()
 def scheduler_task(site, event, handler, now=False):

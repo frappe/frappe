@@ -55,13 +55,16 @@ def enqueue_applicable_events(site, nowtime, last):
 	
 	if nowtime.day != last.day:
 		# if first task of the day execute daily tasks
-		trigger(site, 'daily') and _log("daily")
+		trigger(site, "daily") and _log("daily")
+		trigger(site, "daily_long") and _log("daily_long")
 
 		if nowtime.month != last.month:
 			trigger(site, "monthly") and _log("monthly")
+			trigger(site, "monthly_long") and _log("monthly_long")
 				
 		if nowtime.weekday()==0:
 			trigger(site, "weekly") and _log("weekly")
+			trigger(site, "weekly_long") and _log("weekly_long")
 		
 	if nowtime.hour != last.hour:
 		trigger(site, "hourly") and _log("hourly")
@@ -75,19 +78,16 @@ def trigger(site, event, now=False):
 	from frappe.tasks import scheduler_task
 	sites_path = unicode(frappe.local.sites_path)
 	
-	for scheduler_event in frappe.get_hooks().scheduler_event:
-		event_name, handler = scheduler_event.split(":")
-		if event==event_name and not check_lock(handler):
+	for handler in frappe.get_hooks("scheduler_event:{}".format(event)):
+		if not check_lock(handler):
 			if not now:
-				result = scheduler_task.delay(site, event, handler)
+				scheduler_task.delay(site=site, event=event, handler=handler)
 				create_lock(handler)
 			else:
 				frappe.init(site, sites_path=sites_path)
 				create_lock(handler)
-				result = scheduler_task(site, event, handler)
+				scheduler_task(site=site, event=event, handler=handler)
 	
-	return result
-
 def log(method, message=None):
 	"""log error in patch_log"""
 	message = frappe.utils.cstr(message) + "\n" if message else ""
