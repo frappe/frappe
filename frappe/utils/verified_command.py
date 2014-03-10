@@ -8,10 +8,10 @@ import urllib
 import frappe
 from frappe.utils import cstr
 
-def get_url(params, nonce, secret=None):
+def get_url(cmd, params, nonce, secret=None):
 	signature = get_signature(params, nonce, secret)
 	params['signature'] = signature
-	return ''.join([frappe.local.request.url_root, '?', urllib.urlencode(params)])
+	return ''.join([frappe.local.request.url_root, 'api/method/', cmd, '?', urllib.urlencode(params)])
 	
 def get_signature(params, nonce, secret=None):
 	params = "".join((cstr(p) for p in params.values()))
@@ -26,11 +26,9 @@ def get_signature(params, nonce, secret=None):
 def verify_using_bean(bean, signature, cmd):
 	controller = bean.get_controller()
 	params = controller.get_signature_params()
-	params["cmd"] = cmd
 	return signature == get_signature(params, controller.get_nonce())
 	
 def get_url_using_bean(bean, cmd):
 	controller = bean.get_controller()
 	params = controller.get_signature_params()
-	params["cmd"] = cmd
-	return get_url(params, controller.get_nonce())
+	return get_url(cmd, params, controller.get_nonce())
