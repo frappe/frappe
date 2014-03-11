@@ -28,31 +28,42 @@ frappe.desktop.refresh = function() {
 	});
 }
 
+frappe.desktop.get_module = function(m) {
+	var module = frappe.modules[m];
+	module.name = m;
+	
+	if(module.type==="module" && !module.link) {
+		module.link = "Module/" + m;
+	}
+	
+	if(module.link) {
+		module._link = module.link.toLowerCase().replace("/", "-");
+	}
+	
+	if(!module.label) {
+		module.label = m;
+	}
+	
+	if(!module._label) {
+		module._label = frappe._(module.label || module.name);
+	}
+	
+	return module;
+}
+
 frappe.desktop.render = function() {
 	$("#icon-grid").empty();
 	
 	document.title = "Desktop";
 	var add_icon = function(m) {
-		var module = frappe.modules[m];
+		var module = frappe.desktop.get_module(m);
 		
 		if(!module || (module.type!=="module" && !module.link && !module.onclick) || module.is_app)
 			return;
-		
-		if(module.type==="module" && !module.link) {
-			module.link = "Module/" + m;
-		}
 			
-		if(module.link) {
-			module._link = module.link.toLowerCase().replace("/", "-");
+		if(!module.app_icon) {
+			module.app_icon = frappe.ui.app_icon.get_html(m);
 		}
-		
-		if(!module.label) {
-			module.label = m;
-		}
-		module.name = m;
-		module._label = frappe._(module.label || module.name);
-
-		module.app_icon = frappe.ui.app_icon.get_html(m);
 		
 		$module_icon = $(repl('<div id="module-icon-%(_link)s" class="case-wrapper" \
 			data-name="%(name)s" data-link="%(link)s">\
@@ -135,7 +146,7 @@ frappe.desktop.show_all_modules = function() {
 		
 		// list of applications (frappe.user.get_desktop_items())
 		$.each(keys(frappe.modules).sort(), function(i, m) {
-			var module = frappe.modules[m];
+			var module = frappe.desktop.get_module(m);
 			if(module.link && desktop_items.indexOf(m)!==-1) {
 				module.app_icon = frappe.ui.app_icon.get_html(m, true);
 				$(repl('<div class="list-group-item" data-label="%(name)s">\
