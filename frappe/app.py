@@ -6,9 +6,9 @@ import json
 
 from werkzeug.wrappers import Request, Response
 from werkzeug.local import LocalManager
-from werkzeug.wsgi import SharedDataMiddleware
 from werkzeug.exceptions import HTTPException, NotFound
 from werkzeug.contrib.profiler import ProfilerMiddleware
+from werkzeug.wsgi import SharedDataMiddleware
 
 import mimetypes
 import frappe
@@ -18,6 +18,7 @@ import frappe.api
 import frappe.utils.response
 import frappe.website.render
 from frappe.utils import get_site_name
+from frappe.middlewares import StaticDataMiddleware
 
 local_manager = LocalManager([frappe.local])
 
@@ -98,9 +99,8 @@ def serve(port=8000, profile=False, site=None, sites_path='.'):
 			'/assets': os.path.join(sites_path, 'assets'),
 		})
 	
-	if site:
-		application = SharedDataMiddleware(application, {
-			'/files': os.path.join(sites_path, site, 'public', 'files')
+		application = StaticDataMiddleware(application, {
+			'/files': os.path.abspath(sites_path)
 		})
 
 	run_simple('0.0.0.0', int(port), application, use_reloader=True, 

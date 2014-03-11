@@ -31,11 +31,8 @@ frappe.avatar = function(user, large, title) {
 }
 
 frappe.ui.set_user_background = function(src) {
-	if(!src) src = "assets/frappe/images/ui/background-4-1.jpg";
+	if(!src) src = "assets/frappe/images/ui/random-polygons.jpg";
 	frappe.dom.set_style(repl('#page-desktop { \
-		position: fixed;\
-		left: 0px; min-width: 100%; height: 100%; overflow: auto;\
-		padding-top: 14px; \
 		background: url("%(src)s") center center fixed; \
 	}', {src:src}))
 }

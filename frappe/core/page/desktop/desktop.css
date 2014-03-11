@@ -14,7 +14,7 @@
 	color: white;
 	padding-top: 5px;
 	text-align: center;
-	text-shadow: 0px 0px 10px rgba(0, 0, 0, 0.6);
+	text-shadow: 1px 1px 3px rgba(0, 0, 0, 1), 1px 1px 5px rgba(0, 0, 0, 0.3);
 }
 
 @media (max-width: 768px) {
@@ -66,4 +66,14 @@
 	color: white;
 	display: inline-block;
 	min-width: 15px;
+}
+
+#page-desktop {
+	position: absolute;
+	min-width: 100%;
+	min-height: 100%;
+	overflow: auto;
+	padding-top: 14px;
+	padding-bottom: 50px;
+	margin-bottom: -50px;
 }

@@ -1,4 +1,10 @@
-body {	
+html {
+	min-height: 100%;
+	position: relative;
+}
+
+body {
+	height: 100%;
 	margin: 0px;
 	padding-top: 36px;
 	padding-bottom: 50px;
