@@ -37,7 +37,7 @@ frappe.desktop.get_module = function(m) {
 	}
 	
 	if(module.link) {
-		module._link = module.link.toLowerCase().replace("/", "-");
+		module._id = module.link.toLowerCase().replace("/", "-");
 	}
 	
 	if(!module.label) {
@@ -58,16 +58,20 @@ frappe.desktop.render = function() {
 	var add_icon = function(m) {
 		var module = frappe.desktop.get_module(m);
 		
-		if(!module || (module.type!=="module" && !module.link && !module.onclick) || module.is_app)
+		if(!module || (module.type!=="module" && !module.link && !module.onclick) || module.is_app) {
 			return;
-			
-		if(!module.app_icon) {
-			module.app_icon = frappe.ui.app_icon.get_html(m);
 		}
 		
-		$module_icon = $(repl('<div id="module-icon-%(_link)s" class="case-wrapper" \
+		if(module._id && $("#module-icon-" + module._id).length) {
+			// icon already exists!
+			return;
+		}
+		
+		module.app_icon = frappe.ui.app_icon.get_html(m);
+		
+		$module_icon = $(repl('<div id="module-icon-%(_id)s" class="case-wrapper" \
 			data-name="%(name)s" data-link="%(link)s">\
-			<div id="module-count-%(_link)s" class="circle" style="display: None">\
+			<div id="module-count-%(_id)s" class="circle" style="display: None">\
 				<span class="circle-text"></span>\
 			</div>\
 			%(app_icon)s\
@@ -88,6 +92,7 @@ frappe.desktop.render = function() {
 	// modules
 	var modules_list = frappe.user.get_desktop_items();
 	var user_list = frappe.user.get_user_desktop_items();
+	
 	$.each(modules_list, function(i, m) {
 		var module = frappe.modules[m];
 		if(module) {
@@ -99,20 +104,21 @@ frappe.desktop.render = function() {
 	// setup
 	if(user_roles.indexOf('System Manager')!=-1)
 		add_icon('Setup')
-
+		
 	// all applications
 	frappe.modules["All Applications"] = {
 		icon: "icon-th",
 		label: "All Applications",
 		_label: frappe._("All Applications"),
+		_id: "all_applications",
 		color: "#4aa3df",
 		link: "",
 		onclick: function() {
 			frappe.desktop.show_all_modules();
 		}
 	}
-	add_icon("All Applications")
-
+	add_icon("All Applications");
+	
 	// notifications
 	frappe.desktop.show_pending_notifications();
 	
@@ -209,7 +215,7 @@ frappe.desktop.show_pending_notifications = function() {
 			sum = frappe.boot.notification_info.open_count_module[module];
 		}
 		if (frappe.modules[module]) {
-			var notifier = $("#module-count-" + frappe.modules[module]._link);
+			var notifier = $("#module-count-" + frappe.modules[module]._id);
 			if(notifier.length) {
 				notifier.toggle(sum ? true : false);
 				notifier.find(".circle-text").html(sum || "");
