@@ -76,9 +76,10 @@ def application(request):
 		frappe.local._response = handle_session_stopped()
 		
 	finally:
+		_response = frappe.local._response
 		frappe.destroy()
 	
-	return frappe.local._response
+	return _response
 
 application = local_manager.make_middleware(application)
 
