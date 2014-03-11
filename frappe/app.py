@@ -76,8 +76,7 @@ def application(request):
 		frappe.local._response = handle_session_stopped()
 		
 	finally:
-		if frappe.db:
-			frappe.db.close()
+		frappe.destroy()
 	
 	return frappe.local._response
 
