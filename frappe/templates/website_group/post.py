@@ -26,16 +26,16 @@ def get_post_context(context):
 	return frappe.cache().get_value(cache_key, lambda: _get_post_context())
 	
 def get_parent_post_html(post, context):
-	profile = frappe.bean("Profile", post.owner).doc
+	user = frappe.bean("User", post.owner).doc
 	for fieldname in ("first_name", "last_name", "user_image", "location"):
-		post.fields[fieldname] = profile.fields[fieldname]
+		post.fields[fieldname] = user.fields[fieldname]
 	
 	return frappe.get_template("templates/includes/inline_post.html")\
 		.render({"post": post.fields, "view": context.view})
 
 def get_child_posts_html(post, context):
 	posts = frappe.db.sql("""select p.*, pr.user_image, pr.first_name, pr.last_name
-		from tabPost p, tabProfile pr
+		from tabPost p, tabUser pr
 		where p.parent_post=%s and pr.name = p.owner
 		order by p.creation asc""", (post.name,), as_dict=True)
 			
@@ -139,17 +139,17 @@ def process_picture(post, picture_name, picture):
 @frappe.whitelist()
 def suggest_user(group, term):
 	"""suggest a user that has read permission in this group tree"""
-	profiles = frappe.db.sql("""select 
+	users = frappe.db.sql("""select 
 		pr.name, pr.first_name, pr.last_name, 
 		pr.user_image, pr.location
-		from `tabProfile` pr
+		from `tabUser` pr
 		where (pr.first_name like %(term)s or pr.last_name like %(term)s)
 		and pr.user_type = 'Website User' and pr.enabled=1""", 
 		{"term": "%{}%".format(term), "group": group}, as_dict=True)
 	
-	template = frappe.get_template("templates/includes/profile_display.html")
+	template = frappe.get_template("templates/includes/user_display.html")
 	return [{
 		"value": "{} {}".format(pr.first_name or "", pr.last_name or "").strip(), 
-		"profile_html": template.render({"profile": pr}),
-		"profile": pr.name
-	} for pr in profiles]
+		"user_html": template.render({"user": pr}),
+		"user": pr.name
+	} for pr in users]

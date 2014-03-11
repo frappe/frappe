@@ -5,7 +5,7 @@ frappe.provide('frappe.widgets.form');
 frappe.provide('frappe.widgets.report');
 frappe.provide('frappe.utils');
 frappe.provide('frappe.model');
-frappe.provide('frappe.profile');
+frappe.provide('frappe.user');
 frappe.provide('frappe.session');
 frappe.provide('_f');
 frappe.provide('_p');
@@ -21,7 +21,7 @@ frappe.settings.no_history = 1;
 var NEWLINE = '\n';
 
 // user
-var profile=null;
+var user=null;
 var user=null;
 var user_defaults=null;
 var user_roles=null;

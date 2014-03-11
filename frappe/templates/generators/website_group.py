@@ -73,12 +73,12 @@ def build_view_context(context):
 		context.post = frappe.doc("Post", frappe.form_dict.name).fields
 		
 		if context.post.assigned_to:
-			context.profile = frappe.doc("Profile", context.post.assigned_to)
+			context.user = frappe.doc("User", context.post.assigned_to)
 
 	elif context.view.name == "settings":
-		context.profiles = frappe.db.sql("""select p.*, wsp.`read`, wsp.`write`, wsp.`admin`
-			from `tabProfile` p, `tabWebsite Route Permission` wsp
-			where wsp.website_route=%s and wsp.profile=p.name""", context.pathname, as_dict=True)
+		context.users = frappe.db.sql("""select p.*, wsp.`read`, wsp.`write`, wsp.`admin`
+			from `tabUser` p, `tabWebsite Route Permission` wsp
+			where wsp.website_route=%s and wsp.user=p.name""", context.pathname, as_dict=True)
 		
 	elif context.view.name == "post":
 		context.update(get_post_context(context))

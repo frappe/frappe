@@ -31,20 +31,20 @@ def getCSVelement(v):
 		return '"'+v+'"'
 	else: return v or ''
 
-def get_fullname(profile):
-	"""get the full name (first name + last name) of the user from Profile"""
+def get_fullname(user):
+	"""get the full name (first name + last name) of the user from User"""
 	if not hasattr(frappe.local, "fullnames"):
 		frappe.local.fullnames = {}
 	
-	if not frappe.local.fullnames.get(profile):
-		p = frappe.db.get_value("Profile", profile, ["first_name", "last_name"], as_dict=True)
+	if not frappe.local.fullnames.get(user):
+		p = frappe.db.get_value("User", user, ["first_name", "last_name"], as_dict=True)
 		if p:
-			frappe.local.fullnames[profile] = " ".join(filter(None, 
-				[p.get('first_name'), p.get('last_name')])) or profile
+			frappe.local.fullnames[user] = " ".join(filter(None, 
+				[p.get('first_name'), p.get('last_name')])) or user
 		else:
-			frappe.local.fullnames[profile] = profile
+			frappe.local.fullnames[user] = user
 	
-	return frappe.local.fullnames.get(profile)
+	return frappe.local.fullnames.get(user)
 
 def get_formatted_email(user):
 	"""get email id of user formatted as: John Doe <johndoe@example.com>"""

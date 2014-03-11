@@ -162,6 +162,11 @@ def clear_cache(user=None):
 	if user:
 		to_clear = [user]
 	elif frappe.flags.in_install_app!="frappe":
-		to_clear = frappe.db.sql_list("select name from tabProfile")
+		try:
+			to_clear = frappe.db.sql_list("select name from tabUser")
+		except Exception, e:
+			if e.args[0]!=1146:
+				# special case, in rename patch
+				raise
 	for p in to_clear + common_keys:
 		frappe.cache().delete_value("__defaults:" + p)

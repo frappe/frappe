@@ -13,7 +13,7 @@ from frappe.utils import cint, get_url, nowdate
 
 class BulkLimitCrossedError(frappe.ValidationError): pass
 
-def send(recipients=None, sender=None, doctype='Profile', email_field='email',
+def send(recipients=None, sender=None, doctype='User', email_field='email',
 		subject='[No Subject]', message='[No Content]', ref_doctype=None, ref_docname=None,
 		add_unsubscribe_link=True):
 	def is_unsubscribed(rdata):

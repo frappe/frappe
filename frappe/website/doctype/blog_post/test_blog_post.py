@@ -29,7 +29,7 @@ import unittest
 from frappe.core.page.user_properties.user_properties import add, remove, get_properties, clear_restrictions
 
 
-test_dependencies = ["Profile"]
+test_dependencies = ["User"]
 class TestBlogPost(unittest.TestCase):
 	def setUp(self):
 		frappe.db.sql("""update tabDocPerm set `restricted`=0 where parent='Blog Post' 
@@ -39,11 +39,11 @@ class TestBlogPost(unittest.TestCase):
 
 		frappe.clear_cache(doctype="Blog Post")
 		
-		profile = frappe.bean("Profile", "test1@example.com")
-		profile.get_controller().add_roles("Website Manager")
+		user = frappe.bean("User", "test1@example.com")
+		user.get_controller().add_roles("Website Manager")
 		
-		profile = frappe.bean("Profile", "test2@example.com")
-		profile.get_controller().add_roles("Blogger")
+		user = frappe.bean("User", "test2@example.com")
+		user.get_controller().add_roles("Blogger")
 		
 		frappe.set_user("test1@example.com")
 		

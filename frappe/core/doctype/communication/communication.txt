@@ -2,7 +2,7 @@
  {
   "creation": "2013-01-29 10:47:14", 
   "docstatus": 0, 
-  "modified": "2014-01-24 13:01:24", 
+  "modified": "2014-01-24 13:01:25", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -165,7 +165,7 @@
   "fieldname": "user", 
   "fieldtype": "Link", 
   "label": "User", 
-  "options": "Profile", 
+  "options": "User", 
   "read_only": 1
  }, 
  {

@@ -83,7 +83,7 @@ $.extend(frappe.model, {
 	},
 	
 	get_default_from_boot_docs: function(df, doc, parent_doc) {
-		// set default from partial docs passed during boot like ":Profile"
+		// set default from partial docs passed during boot like ":User"
 		if(frappe.model.get(df["default"]).length > 0) {
 			var ref_fieldname = df["default"].slice(1).toLowerCase().replace(" ", "_");
 			var ref_value = parent_doc ? 

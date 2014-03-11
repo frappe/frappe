@@ -160,7 +160,7 @@ frappe.UserProperties = Class.extend({
 		$.each(this.prop_list, function(i, d) {
 			var row = $("<tr>").appendTo(me.table.find("tbody"));
 			
-			$("<td>").html('<a href="#Form/Profile/'+encodeURIComponent(d.parent)+'">'
+			$("<td>").html('<a href="#Form/User/'+encodeURIComponent(d.parent)+'">'
 				+d.parent+'</a>').appendTo(row);
 			$("<td>").html(d.defkey).appendTo(row);
 			$("<td>").html(d.defvalue).appendTo(row);

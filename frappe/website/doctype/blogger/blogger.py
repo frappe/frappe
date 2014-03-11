@@ -12,14 +12,14 @@ class DocType:
 		self.doc, self.doclist = d, dl
 		
 	def on_update(self):
-		"if profile is set, then update all older blogs"
+		"if user is set, then update all older blogs"
 		
 		from frappe.website.doctype.blog_post.blog_post import clear_blog_cache
 		clear_blog_cache()
 		
-		if self.doc.profile:
+		if self.doc.user:
 			for blog in frappe.db.sql_list("""select name from `tabBlog Post` where owner=%s 
-				and ifnull(blogger,'')=''""", self.doc.profile):
+				and ifnull(blogger,'')=''""", self.doc.user):
 				b = frappe.bean("Blog Post", blog)
 				b.doc.blogger = self.doc.name
 				b.save()

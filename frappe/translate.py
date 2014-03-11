@@ -21,7 +21,7 @@ import frappe, os, re, codecs, json
 def get_user_lang(user=None):
 	if not user:
 		user = frappe.session.user
-	user_lang = frappe.db.get_value("Profile", user, "language")
+	user_lang = frappe.db.get_value("User", user, "language")
 	return get_lang_dict().get(user_lang!="Loading..." and user_lang or "english")
 
 def get_all_languages():

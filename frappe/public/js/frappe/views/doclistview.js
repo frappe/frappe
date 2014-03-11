@@ -223,7 +223,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 	},
 	
 	make_no_result: function() {
-		var new_button = frappe.boot.profile.can_create.indexOf(this.doctype)!=-1
+		var new_button = frappe.boot.user.can_create.indexOf(this.doctype)!=-1
 			? ('<hr><p><button class="btn btn-primary" \
 				list_view_doc="%(doctype)s">'+
 				frappe._('Make a new') + ' %(doctype_label)s</button></p>')

@@ -18,8 +18,8 @@ def get_bootinfo():
 	hooks = frappe.get_hooks()
 	doclist = []
 
-	# profile
-	get_profile(bootinfo)
+	# user
+	get_user(bootinfo)
 	
 	# control panel
 	cp = frappe.model.doc.getsingle('Control Panel')
@@ -100,7 +100,7 @@ def get_fullnames():
 		concat(ifnull(first_name, ''), 
 			if(ifnull(last_name, '')!='', ' ', ''), ifnull(last_name, '')), 
 			user_image, gender, email
-		from tabProfile where ifnull(enabled, 0)=1""", as_list=1)
+		from tabUser where ifnull(enabled, 0)=1""", as_list=1)
 	d = {}
 	for r in ret:
 		if not r[2]:
@@ -118,9 +118,9 @@ def load_startup_js(bootinfo):
 	for method in frappe.get_hooks().startup_js or []:
 		bootinfo.startup_js += frappe.get_attr(method)()
 		
-def get_profile(bootinfo):
-	"""get profile info"""
-	bootinfo['profile'] = frappe.user.load_profile()
+def get_user(bootinfo):
+	"""get user info"""
+	bootinfo['user'] = frappe.user.load_user()
 	
 def add_home_page(bootinfo, doclist):
 	"""load home page"""

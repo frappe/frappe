@@ -39,4 +39,4 @@ def get_system_managers():
 				  WHERE role='System Manager' 
 				  AND parent!='Administrator' 
 				  AND parent IN 
-						 (SELECT email FROM tabProfile WHERE enabled=1)""")
+						 (SELECT email FROM tabUser WHERE enabled=1)""")

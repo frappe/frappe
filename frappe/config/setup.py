@@ -8,7 +8,7 @@ data = [
 		"items": [
 			{
 				"type": "doctype",
-				"name": "Profile",
+				"name": "User",
 				"description": _("System and Website Users")
 			},
 			{

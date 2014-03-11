@@ -238,7 +238,7 @@ frappe.PermissionEngine = Class.extend({
 					},
 					callback: function(r) {
 						r.message = $.map(r.message, function(p) {
-							return '<a href="#Form/Profile/'+p+'">'+p+'</a>';
+							return '<a href="#Form/User/'+p+'">'+p+'</a>';
 						})
 						msgprint("<h4>Users with role "+role+":</h4>" 
 							+ r.message.join("<br>"));
@@ -415,18 +415,18 @@ frappe.PermissionEngine = Class.extend({
 			}
 		});
 	},
-	get_profile_fields: function(doctype) {
-		var profile_fields = frappe.model.get("DocField", {parent:doctype, 
-			fieldtype:"Link", options:"Profile"});
+	get_user_fields: function(doctype) {
+		var user_fields = frappe.model.get("DocField", {parent:doctype, 
+			fieldtype:"Link", options:"User"});
 		
-		profile_fields = profile_fields.concat(frappe.model.get("DocField", {parent:doctype, 
-				fieldtype:"Select", link_doctype:"Profile"}))
+		user_fields = user_fields.concat(frappe.model.get("DocField", {parent:doctype, 
+				fieldtype:"Select", link_doctype:"User"}))
 		
-		return 	profile_fields	
+		return 	user_fields	
 	},
 	get_link_fields: function(doctype) {
 		return link_fields = frappe.model.get("DocField", {parent:doctype, 
-			fieldtype:"Link", options:["not in", ["Profile", '[Select]']]});
+			fieldtype:"Link", options:["not in", ["User", '[Select]']]});
 	}
 })
 
@@ -443,8 +443,8 @@ var permissions_help = ['<table class="table table-bordered" style="background-c
 				__('Permissions get applied on Users based on what Roles they are assigned.'),
 			'</li>',
 			'<li>',
-				__('Roles can be set for users from their Profile page.') 
-				+ ' (<a href="#List/Profile">' + __("Setup > Profile") + '</a>)',
+				__('Roles can be set for users from their User page.') 
+				+ ' (<a href="#List/User">' + __("Setup > User") + '</a>)',
 			'</li>',
 			'<li>',
 				__('The system provides many pre-defined roles. You can add new roles to set finer permissions.')

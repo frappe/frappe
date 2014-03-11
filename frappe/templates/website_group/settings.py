@@ -13,25 +13,25 @@ def suggest_user(term, group):
 	if not get_access(pathname).get("admin"):
 		raise frappe.PermissionError
 		
-	profiles = frappe.db.sql("""select pr.name, pr.first_name, pr.last_name, 
+	users = frappe.db.sql("""select pr.name, pr.first_name, pr.last_name, 
 		pr.user_image, pr.location
-		from `tabProfile` pr 
+		from `tabUser` pr 
 		where (pr.first_name like %(term)s or pr.last_name like %(term)s)
 		and pr.user_type = "Website User"
 		and pr.user_image is not null and pr.enabled=1
 		and not exists(select wsp.name from `tabWebsite Route Permission` wsp 
-			where wsp.website_route=%(group)s and wsp.profile=pr.name)""", 
+			where wsp.website_route=%(group)s and wsp.user=pr.name)""", 
 		{"term": "%{}%".format(term), "group": pathname}, as_dict=True)
 	
-	template = frappe.get_template("templates/includes/profile_display.html")
+	template = frappe.get_template("templates/includes/user_display.html")
 	return [{
 		"value": "{} {}".format(pr.first_name or "", pr.last_name or ""),
-		"profile_html": template.render({"profile": pr}),
-		"profile": pr.name
-	} for pr in profiles]
+		"user_html": template.render({"user": pr}),
+		"user": pr.name
+	} for pr in users]
 
 @frappe.whitelist()
-def add_sitemap_permission(group, profile):
+def add_sitemap_permission(group, user):
 	pathname = get_pathname(group)
 	if not get_access(pathname).get("admin"):
 		raise frappe.PermissionError
@@ -39,26 +39,26 @@ def add_sitemap_permission(group, profile):
 	permission = frappe.bean({
 		"doctype": "Website Route Permission",
 		"website_route": pathname,
-		"profile": profile,
+		"user": user,
 		"read": 1
 	})
 	permission.insert(ignore_permissions=True)
 	
-	profile = permission.doc.fields
-	profile.update(frappe.db.get_value("Profile", profile.profile, 
+	user = permission.doc.fields
+	user.update(frappe.db.get_value("User", user.user, 
 		["name", "first_name", "last_name", "user_image", "location"], as_dict=True))
 	
 	return frappe.get_template("templates/includes/sitemap_permission.html").render({
-		"profile": profile
+		"user": user
 	})
 
 @frappe.whitelist()
-def update_permission(group, profile, perm, value):
+def update_permission(group, user, perm, value):
 	pathname = get_pathname(group)
 	if not get_access(pathname).get("admin"):
 		raise frappe.PermissionError
 		
-	permission = frappe.bean("Website Route Permission", {"website_route": pathname, "profile": profile})
+	permission = frappe.bean("Website Route Permission", {"website_route": pathname, "user": user})
 	permission.doc.fields[perm] = int(value)
 	permission.save(ignore_permissions=True)
 	
@@ -68,7 +68,7 @@ def update_permission(group, profile, perm, value):
 		
 		subject = "You have been made Administrator of Group " + group_title
 		
-		send(recipients=[profile], 
+		send(recipients=[user], 
 			subject= subject, add_unsubscribe_link=False,
 			message="""<h3>Group Notification<h3>\
 			<p>%s</p>\

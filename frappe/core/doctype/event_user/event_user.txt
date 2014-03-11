@@ -2,7 +2,7 @@
  {
   "creation": "2013-02-22 01:27:33", 
   "docstatus": 0, 
-  "modified": "2013-12-20 19:23:13", 
+  "modified": "2013-12-20 19:23:14", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -22,7 +22,7 @@
   "name": "__common__", 
   "oldfieldname": "person", 
   "oldfieldtype": "Select", 
-  "options": "link:Profile", 
+  "options": "link:User", 
   "parent": "Event User", 
   "parentfield": "fields", 
   "parenttype": "DocType", 

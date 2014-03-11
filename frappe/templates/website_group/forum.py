@@ -54,7 +54,7 @@ def get_post_list_html(group, view, limit_start=0, limit_length=20):
 	
 	posts = frappe.db.sql("""select p.*, pr.user_image, pr.first_name, pr.last_name,
 		(select count(pc.name) from `tabPost` pc where pc.parent_post=p.name) as post_reply_count
-		from `tabPost` p, `tabProfile` pr
+		from `tabPost` p, `tabUser` pr
 		where p.website_group = %s and pr.name = p.owner and ifnull(p.parent_post, '')='' 
 		{conditions} order by {order_by} limit %s, %s""".format(conditions=conditions, order_by=order_by),
 		tuple(values), as_dict=True, debug=True)

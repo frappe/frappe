@@ -28,7 +28,7 @@ frappe.Application = Class.extend({
 				callback: function(r, rt) {
 					frappe.provide('frappe.boot');
 					frappe.boot = r;
-					if(frappe.boot.profile.name==='Guest' || frappe.boot.profile.user_type==="Website User") {
+					if(frappe.boot.user.name==='Guest' || frappe.boot.user.user_type==="Website User") {
 						window.location = 'index';
 						return;
 					}
@@ -73,7 +73,7 @@ frappe.Application = Class.extend({
 	},
 	
 	set_user_display_settings: function() {
-		frappe.ui.set_user_background(frappe.boot.profile.background_image);
+		frappe.ui.set_user_background(frappe.boot.user.background_image);
 	},
 	
 	load_bootinfo: function() {
@@ -128,12 +128,11 @@ frappe.Application = Class.extend({
 	
 	set_globals: function() {
 		// for backward compatibility
-		profile = frappe.boot.profile;
-		user = frappe.boot.profile.name;
+		user = frappe.boot.user.name;
 		user_fullname = frappe.user_info(user).fullname;
-		user_defaults = profile.defaults;
-		user_roles = profile.roles;
-		user_email = profile.email;
+		user_defaults = frappe.boot.user.defaults;
+		user_roles = frappe.boot.user.roles;
+		user_email = frappe.boot.user.email;
 		sys_defaults = frappe.boot.sysdefaults;		
 	},
 	sync_pages: function() {
@@ -154,7 +153,7 @@ frappe.Application = Class.extend({
 	},
 	set_as_guest: function() {
 		// for backward compatibility
-		profile = {name:'Guest'};
+		user = {name:'Guest'};
 		user = 'Guest';
 		user_fullname = 'Guest';
 		user_defaults = {};

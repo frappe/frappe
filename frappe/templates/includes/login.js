@@ -24,7 +24,7 @@ login.bind_events = function() {
 	$(".form-signup").on("submit", function() {
 		event.preventDefault();
 		var args = {};
-		args.cmd = "frappe.core.doctype.profile.profile.sign_up";
+		args.cmd = "frappe.core.doctype.user.user.sign_up";
 		args.email = ($("#signup_email").val() || "").trim();
 		args.full_name = ($("#signup_fullname").val() || "").trim();
 		if(!args.email || !valid_email(args.email) || !args.full_name) {
@@ -37,7 +37,7 @@ login.bind_events = function() {
 	$(".form-forgot").on("submit", function() {
 		event.preventDefault();
 		var args = {};
-		args.cmd = "frappe.core.doctype.profile.profile.reset_password";
+		args.cmd = "frappe.core.doctype.user.user.reset_password";
 		args.user = ($("#forgot_email").val() || "").trim();
 		if(!args.user) {
 			frappe.msgprint("Valid Login id required.");

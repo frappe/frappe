@@ -12,5 +12,5 @@ class DocType:
 		
 	def on_update(self):
 		remove_empty_permissions()
-		clear_permissions(self.doc.profile)
+		clear_permissions(self.doc.user)
 		

@@ -77,12 +77,12 @@ def clear_doctype_cache(doctype):
 @frappe.whitelist()
 def get_users_with_role(role):
 	frappe.only_for("System Manager")
-	return [p[0] for p in frappe.db.sql("""select distinct tabProfile.name 
-		from tabUserRole, tabProfile where 
+	return [p[0] for p in frappe.db.sql("""select distinct tabUser.name 
+		from tabUserRole, tabUser where 
 			tabUserRole.role=%s
-			and tabProfile.name != "Administrator"
-			and tabUserRole.parent = tabProfile.name
-			and ifnull(tabProfile.enabled,0)=1""", role)]
+			and tabUser.name != "Administrator"
+			and tabUserRole.parent = tabUser.name
+			and ifnull(tabUser.enabled,0)=1""", role)]
 
 @frappe.whitelist()
 def get_standard_permissions(doctype):

@@ -35,8 +35,8 @@ import unittest
 
 class TestEvent(unittest.TestCase):
 	# def setUp(self):
-	# 	profile = frappe.bean("Profile", "test1@example.com")
-	# 	profile.get_controller().add_roles("Website Manager")
+	# 	user = frappe.bean("User", "test1@example.com")
+	# 	user.get_controller().add_roles("Website Manager")
 
 	def tearDown(self):
 		frappe.set_user("Administrator")

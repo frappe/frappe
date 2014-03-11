@@ -132,7 +132,7 @@ Center,ศูนย์
 "Certain documents should not be changed once final, like an Invoice for example. The final state for such documents is called <b>Submitted</b>. You can restrict which roles can Submit.",เอกสารบางอย่างไม่ควรจะมีการเปลี่ยนแปลงครั้งสุดท้ายเช่นใบแจ้งหนี้สำหรับตัวอย่าง รัฐสุดท้ายสำหรับเอกสารดังกล่าวเรียกว่า <b>Submitted</b> คุณสามารถ จำกัด การซึ่งสามารถส่งบทบาท
 Chat,พูดคุย
 Check,ตรวจสอบ
-Check / Uncheck roles assigned to the Profile. Click on the Role to find out what permissions that Role has.,ตรวจสอบ / บทบาทที่กำหนดให้ยกเลิกการเลือกรายละเอียด คลิกที่บทบาทเพื่อหาสิ่งที่สิทธิ์บทบาทที่ได้
+Check / Uncheck roles assigned to the User. Click on the Role to find out what permissions that Role has.,ตรวจสอบ / บทบาทที่กำหนดให้ยกเลิกการเลือกรายละเอียด คลิกที่บทบาทเพื่อหาสิ่งที่สิทธิ์บทบาทที่ได้
 Check this to make this the default letter head in all prints,ตรวจสอบนี้จะทำให้เรื่องนี้หัวจดหมายเริ่มต้นในการพิมพ์ทั้งหมด
 Checked,ถูกตรวจสอบ
 Child Tables are shown as a Grid in other DocTypes.,ตารางเด็กจะปรากฏเป็นเส้นตารางใน doctypes อื่น ๆ
@@ -603,11 +603,11 @@ Print Width,ความกว้างพิมพ์
 Print...,พิมพ์ ...
 Priority,บุริมสิทธิ์
 Private,ส่วนตัว
-Profile,รายละเอียด
-Profile Defaults,ค่าดี​​ฟอลต์รายละเอียด
-Profile Represents a User in the system.,รายละเอียดหมายถึงผู้ใช้ในระบบ
-Profile of a Blogger,ดูรายละเอียดของ Blogger
-Profile of a blog writer.,ดูรายละเอียดของนักเขียนบล็อก
+User,รายละเอียด
+User Defaults,ค่าดี​​ฟอลต์รายละเอียด
+User Represents a User in the system.,รายละเอียดหมายถึงผู้ใช้ในระบบ
+User of a Blogger,ดูรายละเอียดของ Blogger
+User of a blog writer.,ดูรายละเอียดของนักเขียนบล็อก
 Properties,สรรพคุณ
 Property,คุณสมบัติ
 Property Setter,สถานที่ให้บริการ Setter
@@ -815,7 +815,7 @@ To,ไปยัง
 "To further restrict permissions based on certain values in a document, use the 'Condition' settings.",เพื่อ จำกัด สิทธิ์ตามค่าบางอย่างในเอกสารให้ใช้การตั้งค่า &#39;สภาพ&#39;
 To restrict a User of a particular Role to documents that are explicitly assigned to them,เพื่อ จำกัด ผู้ใช้โดยเฉพาะอย่างยิ่งบทบาทของเอกสารที่ได้รับมอบหมายอย่างชัดเจนเพื่อให้พวกเขา
 To restrict a User of a particular Role to documents that are only self-created.,เพื่อ จำกัด ผู้ใช้โดยเฉพาะอย่างยิ่งบทบาทของเอกสารที่มีเฉพาะที่สร้างขึ้นเอง
-"To set user roles, just go to <a href='#List/Profile'>Setup > Users</a> and click on the user to assign roles.",การตั้งบทบาทผู้ใช้เพียงแค่ไปที่ <a href='#List/Profile'>การตั้งค่า&gt; Users</a> และคลิกที่ผู้ใช้สามารถกำหนดบทบาท
+"To set user roles, just go to <a href='#List/User'>Setup > Users</a> and click on the user to assign roles.",การตั้งบทบาทผู้ใช้เพียงแค่ไปที่ <a href='#List/User'>การตั้งค่า&gt; Users</a> และคลิกที่ผู้ใช้สามารถกำหนดบทบาท
 ToDo,สิ่งที่ต้องทำ
 Tools,เครื่องมือ
 Top Bar,Bar สถานที่ยอด
@@ -944,7 +944,7 @@ circle-arrow-up,วงกลมลูกศรขึ้น
 cog,ฟันเฟือง
 comment,ความเห็น
 comments,ความเห็น
-create a Custom Field of type Link (Profile) and then use the 'Condition' settings to map that field to the Permission rule.,สร้างฟิลด์ที่กำหนดเองของ Link ชนิด (รายละเอียด) แล้วใช้การตั้งค่า &#39;สภาพ&#39; to map เขตข้อมูลนั้นไปกฎการอนุญาต
+create a Custom Field of type Link (User) and then use the 'Condition' settings to map that field to the Permission rule.,สร้างฟิลด์ที่กำหนดเองของ Link ชนิด (รายละเอียด) แล้วใช้การตั้งค่า &#39;สภาพ&#39; to map เขตข้อมูลนั้นไปกฎการอนุญาต
 dd-mm-yyyy,dd-mm-yyyy
 dd/mm/yyyy,วัน / เดือน / ปี
 does not exist,ไม่ได้อยู่

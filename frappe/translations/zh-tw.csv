@@ -132,7 +132,7 @@ Center,中心
 "Certain documents should not be changed once final, like an Invoice for example. The final state for such documents is called <b>Submitted</b>. You can restrict which roles can Submit.",某些文件不應該改變最後一次，像發票為例。對這些文件的最後狀態被稱為<b>提交</b> 。您可以限制哪些角色可以提交。
 Chat,聊天
 Check,查
-Check / Uncheck roles assigned to the Profile. Click on the Role to find out what permissions that Role has.,查看/取消選中分配給個人的角色。點擊角色，找出哪些權限的角色了。
+Check / Uncheck roles assigned to the User. Click on the Role to find out what permissions that Role has.,查看/取消選中分配給個人的角色。點擊角色，找出哪些權限的角色了。
 Check this to make this the default letter head in all prints,勾選這個來讓這個默認的信頭中的所有打印
 Checked,檢查
 Child Tables are shown as a Grid in other DocTypes.,子表中顯示為其他文檔類型的Grid。
@@ -603,11 +603,11 @@ Print Width,打印寬度
 Print...,打印...
 Priority,優先
 Private,私人
-Profile,輪廓
-Profile Defaults,簡介默認
-Profile Represents a User in the system.,資料表示系統中的一個用戶。
-Profile of a Blogger,是Blogger的個人資料
-Profile of a blog writer.,一個博客作家簡介。
+User,輪廓
+User Defaults,簡介默認
+User Represents a User in the system.,資料表示系統中的一個用戶。
+User of a Blogger,是Blogger的個人資料
+User of a blog writer.,一個博客作家簡介。
 Properties,屬性
 Property,屬性
 Property Setter,屬性setter
@@ -815,7 +815,7 @@ To,至
 "To further restrict permissions based on certain values in a document, use the 'Condition' settings.",為了進一步限制基於文檔中的某些價值觀的權限，使用&#39;條件&#39;的設置。
 To restrict a User of a particular Role to documents that are explicitly assigned to them,要限制某一特定角色的用戶來顯式分配給他們的文件
 To restrict a User of a particular Role to documents that are only self-created.,要限制某一特定角色的用戶到只有自己創建的文檔。
-"To set user roles, just go to <a href='#List/Profile'>Setup > Users</a> and click on the user to assign roles.",要設置用戶角色，只要進入<a href='#List/Profile'>設置&gt;用戶</a> ，然後單擊分配角色的用戶。
+"To set user roles, just go to <a href='#List/User'>Setup > Users</a> and click on the user to assign roles.",要設置用戶角色，只要進入<a href='#List/User'>設置&gt;用戶</a> ，然後單擊分配角色的用戶。
 ToDo,待辦事項
 Tools,工具
 Top Bar,頂欄
@@ -944,7 +944,7 @@ circle-arrow-up,圓圈箭頭行動
 cog,COG
 comment,評論
 comments,評論
-create a Custom Field of type Link (Profile) and then use the 'Condition' settings to map that field to the Permission rule.,創建類型鏈接（配置文件）的自定義字段，然後使用“條件”設置到該字段映射到權限規則。
+create a Custom Field of type Link (User) and then use the 'Condition' settings to map that field to the Permission rule.,創建類型鏈接（配置文件）的自定義字段，然後使用“條件”設置到該字段映射到權限規則。
 dd-mm-yyyy,日 - 月 - 年
 dd/mm/yyyy,日/月/年
 does not exist,不存在

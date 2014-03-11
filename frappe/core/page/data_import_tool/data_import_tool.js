@@ -6,7 +6,7 @@ frappe.pages['data-import-tool'].onload = function(wrapper) {
 	});
 	
 	// check permission for import
-	if(!((frappe.boot.profile.can_import && frappe.boot.profile.can_import.length) ||
+	if(!((frappe.boot.user.can_import && frappe.boot.user.can_import.length) ||
 		user_roles.indexOf("System Manager")!==-1)) {
 			frappe.show_not_permitted("data-import-tool");
 			return false;

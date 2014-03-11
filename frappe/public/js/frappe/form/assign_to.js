@@ -83,7 +83,7 @@ frappe.ui.form.AssignTo = Class.extend({
 				title: frappe._('Add to To Do'),
 				width: 350,
 				fields: [
-					{fieldtype:'Link', fieldname:'assign_to', options:'Profile', 
+					{fieldtype:'Link', fieldname:'assign_to', options:'User', 
 						label:frappe._("Assign To"), 
 						description:frappe._("Add to To Do List of"), reqd:true},
 					{fieldtype:'Data', fieldname:'description', label:frappe._("Comment")}, 
@@ -132,7 +132,7 @@ frappe.ui.form.AssignTo = Class.extend({
 					});
 				}
 			}
-			me.dialog.fields_dict.assign_to.get_query = "frappe.core.doctype.profile.profile.profile_query";
+			me.dialog.fields_dict.assign_to.get_query = "frappe.core.doctype.user.user.user_query";
 		}
 		me.dialog.clear();
 		

@@ -741,8 +741,8 @@ def search_replace_with_prompt(fpath, txt1, txt2, force=False):
 def get_site_status(verbose=False):
 	import frappe
 	import frappe.utils
-	from frappe.profile import get_system_managers
-	from frappe.core.doctype.profile.profile import get_total_users, get_active_users, \
+	from frappe.utils.user import get_system_managers
+	from frappe.core.doctype.user.user import get_total_users, get_active_users, \
 		get_website_users, get_active_website_users
 	
 	import json

@@ -9,7 +9,7 @@ import frappe.permissions
 @frappe.whitelist()
 def get_users_and_links():
 	return {
-		"users": frappe.db.sql_list("""select name from tabProfile where
+		"users": frappe.db.sql_list("""select name from tabUser where
 			ifnull(enabled,0)=1 and
 			name not in ("Administrator", "Guest")"""),
 		"link_fields": get_restrictable_doctypes()

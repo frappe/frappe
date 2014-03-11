@@ -11,6 +11,6 @@ frappe.ui.toolbar.NewDialog = frappe.ui.toolbar.SelectorDialog.extend({
 		});
 		
 		// get new types
-		this.set_values(profile.can_create.join(',').split(','));
+		this.set_values(frappe.boot.user.can_create.join(',').split(','));
 	}
 });

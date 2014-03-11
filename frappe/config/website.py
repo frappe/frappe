@@ -18,7 +18,7 @@ data = [
 			{
 				"type": "doctype",
 				"name": "Blogger",
-				"description": _("Profile of a blog writer."),
+				"description": _("User ID of a blog writer."),
 			},
 			{
 				"type": "doctype",

@@ -2,7 +2,7 @@
  {
   "creation": "2012-07-03 13:30:35", 
   "docstatus": 0, 
-  "modified": "2014-01-24 16:23:16", 
+  "modified": "2014-01-24 16:23:17", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -190,7 +190,7 @@
   "fieldname": "assigned_by", 
   "fieldtype": "Link", 
   "label": "Assigned By", 
-  "options": "Profile"
+  "options": "User"
  }, 
  {
   "cancel": 0, 

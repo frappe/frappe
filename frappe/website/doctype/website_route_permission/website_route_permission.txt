@@ -2,7 +2,7 @@
  {
   "creation": "2014-01-29 17:56:29", 
   "docstatus": 0, 
-  "modified": "2014-02-24 13:17:17", 
+  "modified": "2014-02-24 13:17:18", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -54,10 +54,10 @@
  }, 
  {
   "doctype": "DocField", 
-  "fieldname": "profile", 
+  "fieldname": "user", 
   "fieldtype": "Link", 
-  "label": "Profile", 
-  "options": "Profile", 
+  "label": "User", 
+  "options": "User", 
   "reqd": 1, 
   "search_index": 1
  }, 

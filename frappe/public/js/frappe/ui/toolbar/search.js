@@ -12,6 +12,6 @@ frappe.ui.toolbar.Search = frappe.ui.toolbar.SelectorDialog.extend({
 		});
 		
 		// get new types
-		this.set_values(frappe.boot.profile.can_search.join(',').split(','));
+		this.set_values(frappe.boot.user.can_search.join(',').split(','));
 	}
 });

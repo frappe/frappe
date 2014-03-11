@@ -57,7 +57,7 @@ def set_user_lang(user, user_language=None):
 	from frappe.translate import get_lang_dict
 	
 	if not user_language:
-		user_language = db.get_value("Profile", user, "language")
+		user_language = db.get_value("User", user, "language")
 	
 	if user_language:
 		lang_dict = get_lang_dict()
@@ -225,9 +225,9 @@ def connect(site=None, db_name=None):
 	set_user("Administrator")
 
 def set_user(username):
-	import frappe.profile
+	from frappe.utils.user import User
 	local.session["user"] = username
-	local.user = frappe.profile.Profile(username)
+	local.user = User(username)
 	local.restrictions = None
 	local.user_perms = {}
 
@@ -288,13 +288,13 @@ def clear_cache(user=None, doctype=None):
 		reset_metadata_version()
 
 def get_roles(username=None):
-	import frappe.profile
+	from frappe.utils.user import User
 	if not local.session:
 		return ["Guest"]
 	elif not username or username==local.session.user:
 		return local.user.get_roles()
 	else:
-		return frappe.profile.Profile(username).get_roles()
+		return User(username).get_roles()
 		
 def has_permission(doctype, ptype="read", refdoc=None):
 	import frappe.permissions

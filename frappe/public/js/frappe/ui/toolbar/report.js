@@ -11,7 +11,7 @@ frappe.ui.toolbar.Report = frappe.ui.toolbar.SelectorDialog.extend({
 		});
 		
 		// get new types
-		this.set_values(profile.can_get_report.join(',').split(','));
+		this.set_values(frappe.boot.user.can_get_report.join(',').split(','));
 	}
 });
 

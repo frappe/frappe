@@ -1,1 +1,0 @@
-Profile represents a user in the system. User privileges are based on the Roles assigned by the UserRoles DocType.

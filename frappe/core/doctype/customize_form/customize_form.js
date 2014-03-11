@@ -27,7 +27,7 @@ cur_frm.fields_dict.doc_type.get_query = function(doc, dt, dn) {
 		filters:[
 			['DocType', 'issingle', '=', 0],
 			['DocType', 'in_create', '=', 0],
-			['DocType', 'name', 'not in', 'DocType, DocField, DocPerm, Profile, Role, UserRole,\
+			['DocType', 'name', 'not in', 'DocType, DocField, DocPerm, User, Role, UserRole,\
 				 Page, Page Role, Module Def, Print Format, Report, Customize Form, Customize Form Field']
 		]
 	}
@@ -81,7 +81,7 @@ cur_frm.cscript.hide_allow_attach = function(doc) {
 		'Support Ticket', 'Supplier', 'Style Settings', 'Stock Reconciliation',
 		'Stock Entry', 'Serial No', 'Sales Order', 'Sales Invoice',
 		'Quotation', 'Question', 'Purchase Receipt', 'Purchase Order',
-		'Project', 'Profile', 'Production Order', 'Product', 'Print Format',
+		'Project', 'User', 'Production Order', 'Product', 'Print Format',
 		'Price List', 'Purchase Invoice', 'Page', 'Module Def',
 		'Maintenance Visit', 'Maintenance Schedule', 'Letter Head',
 		'Leave Application', 'Lead', 'Journal Voucher', 'Item', 'Material Request',

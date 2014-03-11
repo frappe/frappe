@@ -132,7 +132,7 @@ Center,Centro
 "Certain documents should not be changed once final, like an Invoice for example. The final state for such documents is called <b>Submitted</b>. You can restrict which roles can Submit.","Alguns documentos não deve ser alterado, uma vez final, como uma nota fiscal, por exemplo. O estado final de tais documentos é chamado <b>Enviado.</b> Você pode restringir as funções que podem Enviar."
 Chat,Conversar
 Check,Verificar
-Check / Uncheck roles assigned to the Profile. Click on the Role to find out what permissions that Role has.,Verifique / Desmarque papéis atribuídos ao perfil. Clique sobre o Papel para descobrir o que as permissões que papel tem.
+Check / Uncheck roles assigned to the User. Click on the Role to find out what permissions that Role has.,Verifique / Desmarque papéis atribuídos ao perfil. Clique sobre o Papel para descobrir o que as permissões que papel tem.
 Check this to make this the default letter head in all prints,Marque esta opção para tornar esta a cabeça carta padrão em todas as impressões
 Checked,Verificado
 Child Tables are shown as a Grid in other DocTypes.,Mesas para crianças são mostrados como uma grade no DOCTYPEs outros.
@@ -603,11 +603,11 @@ Print Width,Largura de impressão
 Print...,Imprimir ...
 Priority,Prioridade
 Private,Privado
-Profile,Perfil
-Profile Defaults,Padrões de Perfil
-Profile Represents a User in the system.,Perfil Representa um usuário no sistema.
-Profile of a Blogger,Perfil de um Blogger
-Profile of a blog writer.,Perfil de um escritor do blog.
+User,Perfil
+User Defaults,Padrões de Perfil
+User Represents a User in the system.,Perfil Representa um usuário no sistema.
+User of a Blogger,Perfil de um Blogger
+User of a blog writer.,Perfil de um escritor do blog.
 Properties,Propriedades
 Property,Propriedade
 Property Setter,Setter propriedade
@@ -815,7 +815,7 @@ To,Para
 "To further restrict permissions based on certain values in a document, use the 'Condition' settings.","Para restringir ainda mais permissões com base em determinados valores em um documento, use a &#39;condição&#39; definições."
 To restrict a User of a particular Role to documents that are explicitly assigned to them,Para restringir um usuário de um papel especial a documentos que são explicitamente atribuídos a eles
 To restrict a User of a particular Role to documents that are only self-created.,Para restringir um usuário de um papel especial a documentos que são apenas auto-criado.
-"To set user roles, just go to <a href='#List/Profile'>Setup > Users</a> and click on the user to assign roles.","Para definir funções de usuário, basta ir a <a href='#List/Profile'>Configuração&gt; Usuários</a> e clique sobre o usuário para atribuir funções."
+"To set user roles, just go to <a href='#List/User'>Setup > Users</a> and click on the user to assign roles.","Para definir funções de usuário, basta ir a <a href='#List/User'>Configuração&gt; Usuários</a> e clique sobre o usuário para atribuir funções."
 ToDo,ToDo
 Tools,Ferramentas
 Top Bar,Top Bar
@@ -944,7 +944,7 @@ circle-arrow-up,círculo de seta para cima
 cog,roda dentada
 comment,comentário
 comments,reacties
-create a Custom Field of type Link (Profile) and then use the 'Condition' settings to map that field to the Permission rule.,Criar um campo personalizado de ligação tipo (perfil) e depois usar as configurações de &#39;condição&#39; para mapear o campo para a regra de permissão.
+create a Custom Field of type Link (User) and then use the 'Condition' settings to map that field to the Permission rule.,Criar um campo personalizado de ligação tipo (perfil) e depois usar as configurações de &#39;condição&#39; para mapear o campo para a regra de permissão.
 dd-mm-yyyy,dd-mm-aaaa
 dd/mm/yyyy,dd / mm / aaaa
 does not exist,não existe

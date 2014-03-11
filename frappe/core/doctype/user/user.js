@@ -11,14 +11,14 @@ cur_frm.cscript.onload = function(doc, dt, dn, callback) {
 }
 
 cur_frm.cscript.before_load = function(doc, dt, dn, callback) {
-	var update_language_select = function(profile_language) {
+	var update_language_select = function(user_language) {
 		cur_frm.set_df_property("language", "options", frappe.languages || ["", "English"]);
 		callback && callback();
 	}
 
 	if(!frappe.languages) {
 		frappe.call({
-			method: "frappe.core.doctype.profile.profile.get_languages",
+			method: "frappe.core.doctype.user.user.get_languages",
 			callback: function(r) {
 				frappe.languages = r.message;
 				update_language_select();
@@ -34,7 +34,7 @@ cur_frm.cscript.user_image = function(doc) {
 }
 
 cur_frm.cscript.refresh = function(doc) {
-	if(!doc.__unsaved && frappe.languages && doc.language !== frappe.boot.profile.language) {
+	if(!doc.__unsaved && frappe.languages && doc.language !== frappe.boot.user.language) {
 		msgprint("Refreshing...");
 		window.location.reload();
 	}
@@ -94,7 +94,7 @@ frappe.RoleEditor = Class.extend({
 		this.wrapper = wrapper;
 		$(wrapper).html('<div class="help">Loading...</div>')
 		return frappe.call({
-			method: 'frappe.core.doctype.profile.profile.get_all_roles',
+			method: 'frappe.core.doctype.user.user.get_all_roles',
 			callback: function(r) {
 				me.roles = r.message;
 				me.show_roles();
@@ -209,7 +209,7 @@ frappe.RoleEditor = Class.extend({
 			this.make_perm_dialog()
 		$(this.perm_dialog.body).empty();
 		return frappe.call({
-			method: 'frappe.core.doctype.profile.profile.get_perm_info',
+			method: 'frappe.core.doctype.user.user.get_perm_info',
 			args: {role: role},
 			callback: function(r) {
 				var $body = $(me.perm_dialog.body);

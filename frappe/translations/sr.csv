@@ -132,7 +132,7 @@ Center,Центар
 "Certain documents should not be changed once final, like an Invoice for example. The final state for such documents is called <b>Submitted</b>. You can restrict which roles can Submit.","Одређене документи не треба мењати једном финалу, као фактура за пример. Коначно стање таквих докумената зове <b>Поднет.</b> Можете да ограничите које улоге могу да поднесу."
 Chat,Ћаскање
 Check,Проверити
-Check / Uncheck roles assigned to the Profile. Click on the Role to find out what permissions that Role has.,Проверите / поништите улоге додељене профил. Кликните на улогу да сазнате шта дозволе које улога.
+Check / Uncheck roles assigned to the User. Click on the Role to find out what permissions that Role has.,Проверите / поништите улоге додељене профил. Кликните на улогу да сазнате шта дозволе које улога.
 Check this to make this the default letter head in all prints,Проверите то да овај главу подразумевану писмо у свим отисцима
 Checked,Проверен
 Child Tables are shown as a Grid in other DocTypes.,Дете Столови су приказани као Грид у другим ДоцТипес.
@@ -603,11 +603,11 @@ Print Width,Ширина штампе
 Print...,Штампа ...
 Priority,Приоритет
 Private,Приватан
-Profile,Профил
-Profile Defaults,Профил Дефаултс
-Profile Represents a User in the system.,Профил Представља корисника у систему.
-Profile of a Blogger,Профил од Блоггер
-Profile of a blog writer.,Профил од блога писца.
+User,Профил
+User Defaults,Профил Дефаултс
+User Represents a User in the system.,Профил Представља корисника у систему.
+User of a Blogger,Профил од Блоггер
+User of a blog writer.,Профил од блога писца.
 Properties,Некретнине
 Property,Имовина
 Property Setter,Имовина сетер
@@ -815,7 +815,7 @@ To,До
 "To further restrict permissions based on certain values in a document, use the 'Condition' settings.","Да би се даље ограничавају дозволе на основу одређених вредности у документу, користите &quot;Стање&quot; подешавања."
 To restrict a User of a particular Role to documents that are explicitly assigned to them,Да бисте ограничили корисник посебну улогу у документима који су експлицитно додељене на њих
 To restrict a User of a particular Role to documents that are only self-created.,Да бисте ограничили корисник посебну улогу у документима које су само себи створио.
-"To set user roles, just go to <a href='#List/Profile'>Setup > Users</a> and click on the user to assign roles.","Да бисте поставили улоге корисника, само идите на <a href='#List/Profile'>Подешавање корисника&gt;</a> и кликните на корисника да доделите улоге."
+"To set user roles, just go to <a href='#List/User'>Setup > Users</a> and click on the user to assign roles.","Да бисте поставили улоге корисника, само идите на <a href='#List/User'>Подешавање корисника&gt;</a> и кликните на корисника да доделите улоге."
 ToDo,ТоДо
 Tools,Алат
 Top Bar,Топ Бар
@@ -944,7 +944,7 @@ circle-arrow-up,круг-уп арров
 cog,зубац
 comment,коментар
 comments,Коментари
-create a Custom Field of type Link (Profile) and then use the 'Condition' settings to map that field to the Permission rule.,"креирате Цустом поље типа Линк (профил), а затим користите &quot;Стање&quot; поставке да мапира то поље на Дозвола правила."
+create a Custom Field of type Link (User) and then use the 'Condition' settings to map that field to the Permission rule.,"креирате Цустом поље типа Линк (профил), а затим користите &quot;Стање&quot; поставке да мапира то поље на Дозвола правила."
 dd-mm-yyyy,дд-мм-гггг
 dd/mm/yyyy,дд / мм / гггг
 does not exist,не постоји

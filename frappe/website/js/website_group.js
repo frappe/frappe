@@ -166,7 +166,7 @@ $.extend(website, {
 				close.on("click", function() {
 					// clear assignment
 					$post_editor.find(".assigned-to").addClass("hide");
-					$post_editor.find(".assigned-profile").html("");
+					$post_editor.find(".assigned-user").html("");
 					$post_editor.find('[data-fieldname="assigned_to"]').val(null);
 					$control_assign.val(null);
 				});
@@ -178,7 +178,7 @@ $.extend(website, {
 				$control: $control_assign,
 				select: function(value, item) {
 					var $assigned_to = $post_editor.find(".assigned-to").removeClass("hide");
-					$assigned_to.find(".assigned-profile").html(item.profile_html);
+					$assigned_to.find(".assigned-user").html(item.user_html);
 					$post_editor.find('[data-fieldname="assigned_to"]').val(value);
 					bind_close();
 				},
@@ -358,12 +358,12 @@ $.extend(website, {
 	        },
 			select: function(event, ui) {
 				opts.$control.val("");
-				opts.select(ui.item.profile, ui.item);
+				opts.select(ui.item.user, ui.item);
 			}
 		});
 	
 		$user_suggest.data( "ui-autocomplete" )._renderItem = function(ul, item) {
-			return $("<li>").html("<a style='padding: 5px;'>" + item.profile_html + "</a>")
+			return $("<li>").html("<a style='padding: 5px;'>" + item.user_html + "</a>")
 				.css("padding", "5px")
 				.appendTo(ul);
 	    };
@@ -502,7 +502,7 @@ $.extend(website, {
 			type: "POST",
 			data: {
 				cmd: "frappe.templates.website_group.settings.update_permission",
-				profile: $tr.attr("data-profile"),
+				user: $tr.attr("data-user"),
 				perm: $chk.attr("data-perm"),
 				value: $chk.prop("checked") ? "1" : "0",
 				group: website.group
@@ -523,13 +523,13 @@ $.extend(website, {
 			},
 		});
 	},
-	add_sitemap_permission: function(profile) {
+	add_sitemap_permission: function(user) {
 		$.ajax({
 			url: "/",
 			type: "POST",
 			data: {
 				cmd: "frappe.templates.website_group.settings.add_sitemap_permission",
-				profile: profile,
+				user: user,
 				group: website.group
 			},
 			success: function(data) {

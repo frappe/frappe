@@ -5,10 +5,10 @@ from __future__ import unicode_literals
 
 import frappe, json
 
-class Profile:
+class User:
 	"""
-	A profile object is created at the beginning of every request with details of the use.
-	The global profile object is `frappe.user`
+	A user object is created at the beginning of every request with details of the use.
+	The global user object is `frappe.user`
 	"""
 	def __init__(self, name=''):
 		self.defaults = None
@@ -149,10 +149,10 @@ class Profile:
 			self.build_permissions()
 		return self.can_read
 	
-	def load_profile(self):
+	def load_user(self):
 		d = frappe.db.sql("""select email, first_name, last_name, 
 			email_signature, background_image, user_type, language
-			from tabProfile where name = %s""", (self.name,), as_dict=1)[0]
+			from tabUser where name = %s""", (self.name,), as_dict=1)[0]
 
 		if not self.can_read:
 			self.build_permissions()
@@ -173,15 +173,15 @@ class Profile:
 		return d
 		
 def get_user_fullname(user):
-	fullname = frappe.db.sql("SELECT CONCAT_WS(' ', first_name, last_name) FROM `tabProfile` WHERE name=%s", (user,))
+	fullname = frappe.db.sql("SELECT CONCAT_WS(' ', first_name, last_name) FROM `tabUser` WHERE name=%s", (user,))
 	return fullname and fullname[0][0] or ''
 
 def get_system_managers(only_name=False):
-	"""returns all system manager's profile details"""
+	"""returns all system manager's user details"""
 	import email.utils
 	system_managers = frappe.db.sql("""select distinct name,
 		concat_ws(" ", if(first_name="", null, first_name), if(last_name="", null, last_name))
-		as fullname from tabProfile p 
+		as fullname from tabUser p 
 		where docstatus < 2 and enabled = 1
 		and name not in ("Administrator", "Guest")
 		and exists (select * from tabUserRole ur
@@ -192,13 +192,13 @@ def get_system_managers(only_name=False):
 	else:
 		return [email.utils.formataddr((p.fullname, p.name)) for p in system_managers]
 	
-def add_role(profile, role):
-	profile_wrapper = frappe.bean("Profile", profile).get_controller().add_roles(role)
+def add_role(user, role):
+	user_wrapper = frappe.bean("User", user).get_controller().add_roles(role)
 
 def add_system_manager(email, first_name=None, last_name=None):
-	# add profile
-	profile = frappe.new_bean("Profile")
-	profile.doc.fields.update({
+	# add user
+	user = frappe.new_bean("User")
+	user.doc.fields.update({
 		"name": email,
 		"email": email,
 		"enabled": 1,
@@ -206,12 +206,12 @@ def add_system_manager(email, first_name=None, last_name=None):
 		"last_name": last_name,
 		"user_type": "System User"
 	})
-	profile.insert()
+	user.insert()
 	
 	# add roles
 	roles = frappe.db.sql_list("""select name from `tabRole`
 		where name not in ("Administrator", "Guest", "All")""")
-	profile.get_controller().add_roles(*roles)
+	user.get_controller().add_roles(*roles)
 	
 def get_roles(username=None, with_standard=True):
 	"""get roles of current user"""

@@ -122,29 +122,29 @@ $.extend(frappe.model, {
 	},
 
 	can_create: function(doctype) {
-		return frappe.boot.profile.can_create.indexOf(doctype)!==-1;
+		return frappe.boot.user.can_create.indexOf(doctype)!==-1;
 	},
 	
 	can_read: function(doctype) {
-		return frappe.boot.profile.can_read.indexOf(doctype)!==-1;
+		return frappe.boot.user.can_read.indexOf(doctype)!==-1;
 	},
 
 	can_write: function(doctype) {
-		return frappe.boot.profile.can_write.indexOf(doctype)!==-1;
+		return frappe.boot.user.can_write.indexOf(doctype)!==-1;
 	},
 
 	can_get_report: function(doctype) {
-		return frappe.boot.profile.can_get_report.indexOf(doctype)!==-1;
+		return frappe.boot.user.can_get_report.indexOf(doctype)!==-1;
 	},
 	
 	can_delete: function(doctype) {
 		if(!doctype) return false;
-		return frappe.boot.profile.can_delete.indexOf(doctype)!==-1;
+		return frappe.boot.user.can_delete.indexOf(doctype)!==-1;
 	},
 
 	can_cancel: function(doctype) {
 		if(!doctype) return false;
-		return frappe.boot.profile.can_cancel.indexOf(doctype)!==-1;
+		return frappe.boot.user.can_cancel.indexOf(doctype)!==-1;
 	},
 	
 	is_submittable: function(doctype) {
@@ -157,7 +157,7 @@ $.extend(frappe.model, {
 		if(user_roles.indexOf("System Manager")!==-1) return true;
 		
 		if(frm) return frm.perm[0].import===1;
-		return frappe.boot.profile.can_import.indexOf(doctype)!==-1;
+		return frappe.boot.user.can_import.indexOf(doctype)!==-1;
 	},
 	
 	can_export: function(doctype, frm) {
@@ -165,17 +165,17 @@ $.extend(frappe.model, {
 		if(user_roles.indexOf("System Manager")!==-1) return true;
 		
 		if(frm) return frm.perm[0].export===1;
-		return frappe.boot.profile.can_export.indexOf(doctype)!==-1;
+		return frappe.boot.user.can_export.indexOf(doctype)!==-1;
 	},
 	
 	can_print: function(doctype, frm) {
 		if(frm) return frm.perm[0].print===1;
-		return frappe.boot.profile.can_print.indexOf(doctype)!==-1;
+		return frappe.boot.user.can_print.indexOf(doctype)!==-1;
 	},
 	
 	can_email: function(doctype, frm) {
 		if(frm) return frm.perm[0].email===1;
-		return frappe.boot.profile.can_email.indexOf(doctype)!==-1;
+		return frappe.boot.user.can_email.indexOf(doctype)!==-1;
 	},
 	
 	can_restrict: function(doctype, frm) {
@@ -183,7 +183,7 @@ $.extend(frappe.model, {
 		if(user_roles.indexOf("System Manager")!==-1) return true;
 		
 		if(frm) return frm.perm[0].restrict===1;
-		return frappe.boot.profile.can_restrict.indexOf(doctype)!==-1;
+		return frappe.boot.user.can_restrict.indexOf(doctype)!==-1;
 	},
 	
 	has_value: function(dt, dn, fn) {

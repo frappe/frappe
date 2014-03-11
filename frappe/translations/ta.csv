@@ -132,7 +132,7 @@ Center,மையம்
 "Certain documents should not be changed once final, like an Invoice for example. The final state for such documents is called <b>Submitted</b>. You can restrict which roles can Submit.",சில ஆவணங்களை உதாரணமாக ஒரு விலைப்பட்டியல் போன்ற முறை இறுதி மாற்ற கூடாது. அத்தகைய ஆவணங்களை இறுதி மாநில <b>Submitted</b> அழைக்கப்படுகிறது. நீங்கள் நடிக்க சமர்ப்பி இது கட்டுப்படுத்த முடியும்.
 Chat,அரட்டை
 Check,சோதனை
-Check / Uncheck roles assigned to the Profile. Click on the Role to find out what permissions that Role has.,பதிவு செய்தது ஒதுக்கப்படும் / தேர்வுநீக்கு வேடங்களில் பாருங்கள். பங்கு உண்டு என்று என்ன அனுமதிகள் கண்டுபிடிக்க பங்கு கிளிக்.
+Check / Uncheck roles assigned to the User. Click on the Role to find out what permissions that Role has.,பதிவு செய்தது ஒதுக்கப்படும் / தேர்வுநீக்கு வேடங்களில் பாருங்கள். பங்கு உண்டு என்று என்ன அனுமதிகள் கண்டுபிடிக்க பங்கு கிளிக்.
 Check this to make this the default letter head in all prints,அனைத்து அச்சிட்டு இந்த முன்னிருப்பு கடிதம் தலை செய்ய இந்த சோதனை
 Checked,சதுர அமைப்பு கொண்டுள்ள
 Child Tables are shown as a Grid in other DocTypes.,குழந்தை அட்டவணைகள் மற்ற டாக்டைப்கள் ஒரு கட்டம் காட்டப்படும்.
@@ -603,11 +603,11 @@ Print Width,அச்சு அகலம்
 Print...,அச்சு ...
 Priority,முதன்மை
 Private,தனிப்பட்ட
-Profile,சுயவிவரத்தை
-Profile Defaults,சுயவிவரத்தை இயல்புநிலைகளுக்கு
-Profile Represents a User in the system.,சுயவிவரத்தை கணினியில் ஒரு பயனர் குறிக்கிறது.
-Profile of a Blogger,", ஒரு, பிளாகரின் சுயவிவரத்தை"
-Profile of a blog writer.,ஒரு வலைப்பதிவு எழுத்தாளர் பற்றிய சுயவிவரத்தை.
+User,சுயவிவரத்தை
+User Defaults,சுயவிவரத்தை இயல்புநிலைகளுக்கு
+User Represents a User in the system.,சுயவிவரத்தை கணினியில் ஒரு பயனர் குறிக்கிறது.
+User of a Blogger,", ஒரு, பிளாகரின் சுயவிவரத்தை"
+User of a blog writer.,ஒரு வலைப்பதிவு எழுத்தாளர் பற்றிய சுயவிவரத்தை.
 Properties,பண்புகள்
 Property,சொத்து
 Property Setter,சொத்து செட்டர்
@@ -815,7 +815,7 @@ To,வேண்டும்
 "To further restrict permissions based on certain values in a document, use the 'Condition' settings.","மேலும் ஒரு ஆவணத்தில் குறிப்பிட்ட மதிப்புகள் அடிப்படையில் அனுமதிகளை கட்டுப்படுத்த, &#39;கண்டிஷன்&#39; அமைப்புகளை பயன்படுத்த."
 To restrict a User of a particular Role to documents that are explicitly assigned to them,வெளிப்படையாக அவர்களுக்கு ஒதுக்கப்படும் என்று ஆவணங்களை ஒரு குறிப்பிட்ட கதாபாத்திரம் ஒரு பயனர் தடை
 To restrict a User of a particular Role to documents that are only self-created.,ஒரே சுய உருவாக்கப்பட்ட என்று ஆவணங்களை ஒரு குறிப்பிட்ட கதாபாத்திரம் ஒரு பயனர் கட்டுப்படுத்துகின்றது.
-"To set user roles, just go to <a href='#List/Profile'>Setup > Users</a> and click on the user to assign roles.","பயனர் பாத்திரங்களை அமைக்க, தான் சென்று <a href='#List/Profile'>&gt; பயனர்கள் அமைக்கவும்</a> மற்றும் பாத்திரங்கள் ஒதுக்க பயனர் கிளிக்."
+"To set user roles, just go to <a href='#List/User'>Setup > Users</a> and click on the user to assign roles.","பயனர் பாத்திரங்களை அமைக்க, தான் சென்று <a href='#List/User'>&gt; பயனர்கள் அமைக்கவும்</a> மற்றும் பாத்திரங்கள் ஒதுக்க பயனர் கிளிக்."
 ToDo,TODO
 Tools,கருவிகள்
 Top Bar,மேல் பட்டை
@@ -944,7 +944,7 @@ circle-arrow-up,வட்டத்தை-அம்பு அப்
 cog,இயந்திர சக்கரத்தின் பல்
 comment,கருத்து
 comments,கருத்துக்கள்
-create a Custom Field of type Link (Profile) and then use the 'Condition' settings to map that field to the Permission rule.,"வகை இணைப்பு (செய்தது) ஒரு தனிப்பயன் புலம் உருவாக்க, பின்னர் அனுமதி ஆட்சிக்கு என்று துறையில் கண்டறிவதில் &#39;கண்டிஷன்&#39; அமைப்புகளை பயன்படுத்த."
+create a Custom Field of type Link (User) and then use the 'Condition' settings to map that field to the Permission rule.,"வகை இணைப்பு (செய்தது) ஒரு தனிப்பயன் புலம் உருவாக்க, பின்னர் அனுமதி ஆட்சிக்கு என்று துறையில் கண்டறிவதில் &#39;கண்டிஷன்&#39; அமைப்புகளை பயன்படுத்த."
 dd-mm-yyyy,dd-mm-yyyy
 dd/mm/yyyy,dd / mm / yyyy
 does not exist,இல்லை

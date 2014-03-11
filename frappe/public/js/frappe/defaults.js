@@ -3,12 +3,12 @@
 
 frappe.defaults = {
 	get_user_default: function(key) {
-		var d = frappe.boot.profile.defaults[key];
+		var d = frappe.boot.user.defaults[key];
 		if($.isArray(d)) d = d[0];
 		return d;
 	},
 	get_user_defaults: function(key) {
-		var d = frappe.boot.profile.defaults[key];
+		var d = frappe.boot.user.defaults[key];
 		if(!$.isArray(d)) d = [d];
 		return d;
 	},
@@ -26,7 +26,7 @@ frappe.defaults = {
 		if(typeof value=="string")
 			value = JSON.stringify(value);
 			
-		frappe.boot.profile.defaults[key] = value;
+		frappe.boot.user.defaults[key] = value;
 		return frappe.call({
 			method: "frappe.client.set_default",
 			args: {
@@ -37,7 +37,7 @@ frappe.defaults = {
 		});
 	},
 	get_default: function(key) {
-		var value = frappe.boot.profile.defaults[key];
+		var value = frappe.boot.user.defaults[key];
 		if(value) {
 			try {
 				return JSON.parse(value)

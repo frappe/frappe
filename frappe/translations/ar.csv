@@ -132,7 +132,7 @@ Center,مركز
 "Certain documents should not be changed once final, like an Invoice for example. The final state for such documents is called <b>Submitted</b>. You can restrict which roles can Submit.",يجب أن لا يتم تغيير بعض الوثائق النهائية مرة واحدة، مثل الفاتورة على سبيل المثال. ويسمى <b>قدمت</b> الدولة النهائية لهذه الوثائق. يمكنك تقييد الأدوار التي يمكن أن تقدم.
 Chat,الدردشة
 Check,تحقق
-Check / Uncheck roles assigned to the Profile. Click on the Role to find out what permissions that Role has.,تحقق أدوار ازل / المسندة إلى الملف. انقر على دور لمعرفة ما الأذونات التي الدور الذي.
+Check / Uncheck roles assigned to the User. Click on the Role to find out what permissions that Role has.,تحقق أدوار ازل / المسندة إلى الملف. انقر على دور لمعرفة ما الأذونات التي الدور الذي.
 Check this to make this the default letter head in all prints,التحقق من ذلك لجعل هذه الرسالة الافتراضية الرأس في جميع الطبعات
 Checked,فحص
 Child Tables are shown as a Grid in other DocTypes.,وتظهر جداول الطفل بأنه في الشبكة DocTypes أخرى.
@@ -603,11 +603,11 @@ Print Width,طباعة العرض
 Print...,طباعة ...
 Priority,أفضلية
 Private,خاص
-Profile,الملف الشخصي
-Profile Defaults,الملف الشخصي الافتراضيات
-Profile Represents a User in the system.,الملف الشخصي يمثل مستخدم في النظام.
-Profile of a Blogger,الملف الشخصي من مدون
-Profile of a blog writer.,الملف الشخصي للكاتب بلوق.
+User,الملف الشخصي
+User Defaults,الملف الشخصي الافتراضيات
+User Represents a User in the system.,الملف الشخصي يمثل مستخدم في النظام.
+User of a Blogger,الملف الشخصي من مدون
+User of a blog writer.,الملف الشخصي للكاتب بلوق.
 Properties,خصائص
 Property,ممتلكات
 Property Setter,الملكية واضعة
@@ -815,7 +815,7 @@ To,إلى
 "To further restrict permissions based on certain values in a document, use the 'Condition' settings.",لفرض مزيد من القيود أذونات استنادا إلى قيم معينة في وثيقة، استخدم &#39;حالة&#39; الإعدادات.
 To restrict a User of a particular Role to documents that are explicitly assigned to them,لتقييد المستخدم من دور خاص للوثائق التي تم تعيينها بشكل صريح لهم
 To restrict a User of a particular Role to documents that are only self-created.,لتقييد المستخدم من دور خاص للوثائق التي ليست سوى الذاتي الإنشاء.
-"To set user roles, just go to <a href='#List/Profile'>Setup > Users</a> and click on the user to assign roles.",لتعيين أدوار المستخدمين، واذهبوا إلى <a href='#List/Profile'>إعداد المستخدمين&gt;</a> وانقر على المستخدم لتعيين الأدوار.
+"To set user roles, just go to <a href='#List/User'>Setup > Users</a> and click on the user to assign roles.",لتعيين أدوار المستخدمين، واذهبوا إلى <a href='#List/User'>إعداد المستخدمين&gt;</a> وانقر على المستخدم لتعيين الأدوار.
 ToDo,قائمة المهام
 Tools,أدوات
 Top Bar,مقهى الأعلى
@@ -944,7 +944,7 @@ circle-arrow-up,دائرة السهم إلى أعلى
 cog,تحكم في
 comment,تعليق
 comments,تعليقات
-create a Custom Field of type Link (Profile) and then use the 'Condition' settings to map that field to the Permission rule.,إنشاء حقل مخصص من نوع لينك (الملف الشخصي) ثم استخدام &#39;حالة&#39; إعدادات لتعيين هذا الحقل إلى الحكم إذن.
+create a Custom Field of type Link (User) and then use the 'Condition' settings to map that field to the Permission rule.,إنشاء حقل مخصص من نوع لينك (الملف الشخصي) ثم استخدام &#39;حالة&#39; إعدادات لتعيين هذا الحقل إلى الحكم إذن.
 dd-mm-yyyy,DD-MM-YYYY
 dd/mm/yyyy,اليوم / الشهر / السنة
 does not exist,غير موجود

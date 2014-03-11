@@ -7,11 +7,11 @@ import os, sys
 import unittest, frappe
 
 from frappe.test_runner import make_test_records
-make_test_records("Profile")
+make_test_records("User")
 
 class TestEmail(unittest.TestCase):
 	def setUp(self):
-		frappe.db.sql("""update tabProfile set unsubscribed=0""")
+		frappe.db.sql("""update tabUser set unsubscribed=0""")
 		frappe.db.sql("""delete from `tabBulk Email`""")
 		
 	def test_send(self):
@@ -22,7 +22,7 @@ class TestEmail(unittest.TestCase):
 		from frappe.utils.email_lib.bulk import send
 		send(recipients = ['test@example.com', 'test1@example.com'], 
 			sender="admin@example.com",
-			doctype='Profile', email_field='email',
+			doctype='User', email_field='email',
 			subject='Testing Bulk', message='This is a bulk mail!')
 		
 		bulk = frappe.db.sql("""select * from `tabBulk Email` where status='Not Sent'""", as_dict=1)
@@ -44,7 +44,7 @@ class TestEmail(unittest.TestCase):
 		from frappe.utils.email_lib.bulk import unsubscribe, send
 		frappe.local.form_dict = {
 			'email':'test@example.com',
-			'type':'Profile',
+			'type':'User',
 			'email_field':'email',
 			"from_test": True
 		}
@@ -52,7 +52,7 @@ class TestEmail(unittest.TestCase):
 
 		send(recipients = ['test@example.com', 'test1@example.com'], 
 			sender="admin@example.com",
-			doctype='Profile', email_field='email', 
+			doctype='User', email_field='email', 
 			subject='Testing Bulk', message='This is a bulk mail!')
 		
 		bulk = frappe.db.sql("""select * from `tabBulk Email` where status='Not Sent'""", 
@@ -67,7 +67,7 @@ class TestEmail(unittest.TestCase):
 		self.assertRaises(BulkLimitCrossedError, send,
 			recipients=['test@example.com']*1000,
 			sender="admin@example.com",
-			doctype='Profile', email_field='email',
+			doctype='User', email_field='email',
 			subject='Testing Bulk', message='This is a bulk mail!')
 		
 		

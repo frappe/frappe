@@ -120,7 +120,7 @@ def get_filtered_data(ref_doctype, columns, data):
 		for row in data:
 			match = True
 			
-			if not ("owner" in match_filters and matched_columns.get("profile", None)==match_filters["owner"]):
+			if not ("owner" in match_filters and matched_columns.get("user", None)==match_filters["owner"]):
 				for col, idx in matched_columns.items():
 					if row[idx] not in match_filters[col]:
 						match = False
@@ -157,7 +157,7 @@ def get_user_match_filters(doctypes, ref_doctype):
 
 def get_matched_columns(linked_doctypes, match_filters):
 	if "owner" in match_filters:
-		match_filters["profile"] = match_filters["owner"]
+		match_filters["user"] = match_filters["owner"]
 
 	col_idx_map = {}
 	for dt, idx in linked_doctypes.items():

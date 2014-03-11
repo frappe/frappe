@@ -128,7 +128,7 @@ Center,Zentrum
 "Certain documents should not be changed once final, like an Invoice for example. The final state for such documents is called <b>Submitted</b>. You can restrict which roles can Submit.","Bestimmte Dokumente sollten nicht geändert werden, nachdem endgültig angesehen werden, wie eine Rechnung zum Beispiel. Der Endzustand für solche Dokumente wird als <b> Eingereicht </ b>. Sie können einschränken, welche Rollen können Sie auf Absenden."
 Chat,Plaudern
 Check,Überprüfen
-Check / Uncheck roles assigned to the Profile. Click on the Role to find out what permissions that Role has.,"Aktivieren / Deaktivieren zugewiesenen Rollen der Profile. Klicken Sie auf die Rolle, um herauszufinden, welche Berechtigungen dieser Rolle hat."
+Check / Uncheck roles assigned to the User. Click on the Role to find out what permissions that Role has.,"Aktivieren / Deaktivieren zugewiesenen Rollen der User. Klicken Sie auf die Rolle, um herauszufinden, welche Berechtigungen dieser Rolle hat."
 Check this to make this the default letter head in all prints,"Aktivieren Sie diese Option, um es als Standard-Briefkopf in allen Ausdrucke"
 Checked,Geprüft
 Child Tables are shown as a Grid in other DocTypes.,Child-Tabellen werden als Grid in anderen DocTypes gezeigt.
@@ -593,11 +593,11 @@ Print Width,Druckbreite
 Print...,Drucken ...
 Priority,Priorität
 Private,Privat
-Profile,Profil
-Profile Defaults,Profil Defaults
-Profile Represents a User in the system.,Stellt ein Benutzerprofil im System.
-Profile of a Blogger,Profil eines Blogger
-Profile of a blog writer.,Profil eines Blog-Schreiber.
+User,Profil
+User Defaults,Profil Defaults
+User Represents a User in the system.,Stellt ein Benutzerprofil im System.
+User of a Blogger,Profil eines Blogger
+User of a blog writer.,Profil eines Blog-Schreiber.
 Properties,Eigenschaften
 Property,Eigentum
 Property Setter,Property Setter
@@ -791,7 +791,7 @@ Title Prefix,Title Prefix
 "To report an issue, go to ",
 To restrict a User of a particular Role to documents that are explicitly assigned to them,"Um einen Benutzer einer bestimmten Rolle zu Dokumenten, die ihnen ausdrücklich zugeordnet beschränken"
 To restrict a User of a particular Role to documents that are only self-created.,"Um einen Benutzer einer bestimmten Rolle zu Dokumenten, die nur selbst erstellte sind zu beschränken."
-"To set user roles, just go to <a href='#List/Profile'>Setup > Users</a> and click on the user to assign roles.","Benutzerrollen, nur um <a gehen href='#List/Profile'> Setup> Benutzer </ a> und klicken Sie auf den Benutzer Rollen zuweisen."
+"To set user roles, just go to <a href='#List/User'>Setup > Users</a> and click on the user to assign roles.","Benutzerrollen, nur um <a gehen href='#List/User'> Setup> Benutzer </ a> und klicken Sie auf den Benutzer Rollen zuweisen."
 ToDo,ToDo
 Tools,Werkzeuge
 Top Bar,Top Bar
@@ -918,7 +918,7 @@ circle-arrow-right,circle-arrow-right
 circle-arrow-up,circle-arrow-up
 cog,Zahn
 comment,Kommentar
-create a Custom Field of type Link (Profile) and then use the 'Condition' settings to map that field to the Permission rule.,"erstellen ein benutzerdefiniertes Feld vom Typ Link (Profile) und dann die 'Bedingung' Einstellungen, um das Feld der Erlaubnis der Regel abzubilden."
+create a Custom Field of type Link (User) and then use the 'Condition' settings to map that field to the Permission rule.,"erstellen ein benutzerdefiniertes Feld vom Typ Link (User) und dann die 'Bedingung' Einstellungen, um das Feld der Erlaubnis der Regel abzubilden."
 dd-mm-yyyy,dd-mm-yyyy
 dd/mm/yyyy,dd / mm / yyyy
 does not exist,nicht vorhanden

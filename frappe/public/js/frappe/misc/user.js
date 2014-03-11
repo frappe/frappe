@@ -40,7 +40,7 @@ frappe.ui.set_user_background = function(src) {
 frappe.provide('frappe.user');
 
 $.extend(frappe.user, {
-	name: (frappe.boot ? frappe.boot.profile.name : 'Guest'),
+	name: (frappe.boot ? frappe.boot.user.name : 'Guest'),
 	full_name: function(uid) {
 		return uid===user ?
 			"You" :
@@ -56,7 +56,7 @@ $.extend(frappe.user, {
 		if(typeof rl=='string') 
 			rl = [rl];
 		for(var i in rl) {
-			if((frappe.boot ? frappe.boot.profile.roles : ['Guest']).indexOf(rl[i])!=-1)
+			if((frappe.boot ? frappe.boot.user.roles : ['Guest']).indexOf(rl[i])!=-1)
 				return true;
 		}
 	},
@@ -94,7 +94,7 @@ $.extend(frappe.user, {
 			var ret = null;
 			switch(type) {
 				case "module":
-					if(frappe.boot.profile.allow_modules.indexOf(m)!=-1)
+					if(frappe.boot.user.allow_modules.indexOf(m)!=-1)
 						ret = m;
 					break;
 				case "page":

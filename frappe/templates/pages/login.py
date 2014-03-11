@@ -33,7 +33,7 @@ oauth2_providers = {
 		"redirect_uri": "/api/method/frappe.templates.pages.login.login_via_google",
 		
 		"auth_url_data": {
-			"scope": "https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email",
+			"scope": "https://www.googleapis.com/auth/userinfo.user https://www.googleapis.com/auth/userinfo.email",
 			"response_type": "code"
 		},
 		
@@ -162,7 +162,7 @@ def login_via_oauth2(provider, code, decoder=None):
 def login_oauth_user(data, provider=None):
 	user = data["email"]
 	
-	if not frappe.db.exists("Profile", user):
+	if not frappe.db.exists("User", user):
 		create_oauth_user(data, provider)
 	
 	frappe.local.login_manager.user = user
@@ -183,8 +183,8 @@ def create_oauth_user(data, provider):
 	if isinstance(data.get("location"), dict):
 		data["location"] = data.get("location").get("name")
 	
-	profile = frappe.bean({
-		"doctype":"Profile",
+	user = frappe.bean({
+		"doctype":"User",
 		"first_name": data.get("first_name") or data.get("given_name") or data.get("name"),
 		"last_name": data.get("last_name") or data.get("family_name"),
 		"email": data["email"],
@@ -198,18 +198,18 @@ def create_oauth_user(data, provider):
 	})
 	
 	if provider=="facebook":
-		profile.doc.fields.update({
+		user.doc.fields.update({
 			"fb_username": data["username"],
 			"fb_userid": data["id"],
 			"user_image": "https://graph.facebook.com/{username}/picture".format(username=data["username"])
 		})
 	elif provider=="google":
-		profile.doc.google_userid = data["id"]
+		user.doc.google_userid = data["id"]
 	
 	elif provider=="github":
-		profile.doc.github_userid = data["id"]
-		profile.doc.github_username = data["login"]
+		user.doc.github_userid = data["id"]
+		user.doc.github_username = data["login"]
 	
-	profile.ignore_permissions = True
-	profile.get_controller().no_welcome_mail = True
-	profile.insert()
+	user.ignore_permissions = True
+	user.get_controller().no_welcome_mail = True
+	user.insert()

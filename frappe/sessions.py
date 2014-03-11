@@ -75,7 +75,7 @@ def get():
 		bootinfo = frappe.cache().get_value('bootinfo:' + frappe.session.user)
 		if bootinfo:
 			bootinfo['from_cache'] = 1
-			bootinfo["profile"]["recent"] = json.dumps(frappe.cache().get_value("recent:" + frappe.session.user))
+			bootinfo["user"]["recent"] = json.dumps(frappe.cache().get_value("recent:" + frappe.session.user))
 			bootinfo["notification_info"].update(get_notifications())
 		
 	if not bootinfo:
@@ -129,8 +129,8 @@ class Session:
 			frappe.db.begin()
 			self.insert_session_record()
 
-			# update profile
-			frappe.db.sql("""UPDATE tabProfile SET last_login = '%s', last_ip = '%s' 
+			# update user
+			frappe.db.sql("""UPDATE tabUser SET last_login = '%s', last_ip = '%s' 
 				where name='%s'""" % (frappe.utils.now(), frappe.get_request_header('REMOTE_ADDR'), self.data['user']))
 			frappe.db.commit()		
 

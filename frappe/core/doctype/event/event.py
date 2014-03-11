@@ -51,7 +51,7 @@ def has_permission(doc, bean=None):
 def send_event_digest():
 	today = nowdate()
 	for user in frappe.db.sql("""select name, email, language 
-		from tabProfile where ifnull(enabled,0)=1 
+		from tabUser where ifnull(enabled,0)=1 
 		and user_type='System User' and name not in ('Guest', 'Administrator')""", as_dict=1):
 		events = get_events(today, today, user.name, for_reminder=True)
 		if events:

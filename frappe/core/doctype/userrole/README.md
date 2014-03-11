@@ -1,1 +1,1 @@
-Role belonging to parent Profile
+Role belonging to parent User

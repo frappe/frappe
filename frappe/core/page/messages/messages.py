@@ -46,9 +46,9 @@ def get_list(arg=None):
 @frappe.whitelist()
 def get_active_users(arg=None):
 	return frappe.db.sql("""select name,
-		(select count(*) from tabSessions where user=tabProfile.name
+		(select count(*) from tabSessions where user=tabUser.name
 			and timediff(now(), lastupdate) < time("01:00:00")) as has_session
-	 	from tabProfile 
+	 	from tabUser 
 		where ifnull(enabled,0)=1 and
 		docstatus < 2 and 
 		ifnull(user_type, '')!='Website User' and 
@@ -90,8 +90,8 @@ def notify(arg=None):
 	from frappe.utils import cstr, get_fullname, get_url
 	
 	frappe.sendmail(\
-		recipients=[frappe.db.get_value("Profile", arg["contact"], "email") or arg["contact"]],
-		sender= frappe.db.get_value("Profile", frappe.session.user, "email"),
+		recipients=[frappe.db.get_value("User", arg["contact"], "email") or arg["contact"]],
+		sender= frappe.db.get_value("User", frappe.session.user, "email"),
 		subject="New Message from " + get_fullname(frappe.user.name),
 		message=frappe.get_template("templates/emails/new_message.html").render({
 			"from": get_fullname(frappe.user.name),

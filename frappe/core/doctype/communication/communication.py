@@ -65,7 +65,7 @@ def _make(doctype=None, name=None, content=None, subject=None, sent_or_received 
 	d.subject = subject
 	d.content = content
 	d.sent_or_received = sent_or_received
-	d.sender = sender or frappe.db.get_value("Profile", frappe.session.user, "email")
+	d.sender = sender or frappe.db.get_value("User", frappe.session.user, "email")
 	d.recipients = recipients
 	
 	# add as child
@@ -126,7 +126,7 @@ def send_comm_email(d, name, sent_via=None, print_html=None, attachments='[]', s
 		msg=d.content, footer=footer, print_html=print_html if send_print_in_body else None)
 	
 	if send_me_a_copy:
-		mail.cc.append(frappe.db.get_value("Profile", frappe.session.user, "email"))
+		mail.cc.append(frappe.db.get_value("User", frappe.session.user, "email"))
 	
 	if print_html:
 		print_html = scrub_urls(print_html)

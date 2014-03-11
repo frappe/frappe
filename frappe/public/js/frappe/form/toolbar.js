@@ -138,7 +138,7 @@ frappe.ui.form.Toolbar = Class.extend({
 		}
 		
 		// copy
-		if(in_list(profile.can_create, me.frm.doctype) && !me.frm.meta.allow_copy) {
+		if(in_list(frappe.boot.user.can_create, me.frm.doctype) && !me.frm.meta.allow_copy) {
 			this.appframe.add_dropdown_button("File", frappe._("Copy"), function() { 
 				me.frm.copy_doc();}, 'icon-file');
 		}

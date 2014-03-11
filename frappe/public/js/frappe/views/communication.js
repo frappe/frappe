@@ -294,7 +294,7 @@ frappe.views.CommunicationComposer = Class.extend({
 		return frappe.call({
 			method:"frappe.core.doctype.communication.communication.make",
 			args: {
-				sender: [frappe.user_info(user).fullname, frappe.boot.profile.email],
+				sender: [frappe.user_info(user).fullname, frappe.boot.user.email],
 				recipients: form_values.recipients,
 				subject: form_values.subject,
 				content: form_values.content,
@@ -326,7 +326,7 @@ frappe.views.CommunicationComposer = Class.extend({
 		var comm_list = cur_frm.communication_view
 			? cur_frm.communication_view.list
 			: [];
-		var signature = frappe.boot.profile.email_signature || "";
+		var signature = frappe.boot.user.email_signature || "";
 		
 		if(!frappe.utils.is_html(signature)) {
 			signature = signature.replace(/\n/g, "<br>");

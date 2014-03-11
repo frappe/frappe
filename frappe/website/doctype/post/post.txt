@@ -2,7 +2,7 @@
  {
   "creation": "2014-01-07 14:00:04", 
   "docstatus": 0, 
-  "modified": "2014-03-03 14:53:18", 
+  "modified": "2014-03-03 14:53:19", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -96,7 +96,7 @@
   "fieldname": "assigned_to", 
   "fieldtype": "Link", 
   "label": "Assigned To", 
-  "options": "Profile"
+  "options": "User"
  }, 
  {
   "doctype": "DocField", 

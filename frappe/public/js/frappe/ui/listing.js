@@ -42,7 +42,7 @@ frappe.ui.Listing = Class.extend({
 	},
 	prepare_opts: function() {
 		if(this.opts.new_doctype) {
-			if(frappe.boot.profile.can_create.indexOf(this.opts.new_doctype)==-1) {
+			if(frappe.boot.user.can_create.indexOf(this.opts.new_doctype)==-1) {
 				this.opts.new_doctype = null;
 			} else {
 				this.opts.new_doctype = this.opts.new_doctype;

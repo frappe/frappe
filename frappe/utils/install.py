@@ -16,14 +16,14 @@ def after_install():
 	
 	# core users / roles
 	install_docs = [
-		{'doctype':'Profile', 'name':'Administrator', 'first_name':'Administrator', 
+		{'doctype':'User', 'name':'Administrator', 'first_name':'Administrator', 
 			'email':'admin@localhost', 'enabled':1},
-		{'doctype':'Profile', 'name':'Guest', 'first_name':'Guest',
+		{'doctype':'User', 'name':'Guest', 'first_name':'Guest',
 			'email':'guest@localhost', 'enabled':1},
 		{'doctype':'UserRole', 'parent': 'Administrator', 'role': 'Administrator', 
-			'parenttype':'Profile', 'parentfield':'user_roles'},
+			'parenttype':'User', 'parentfield':'user_roles'},
 		{'doctype':'UserRole', 'parent': 'Guest', 'role': 'Guest', 
-			'parenttype':'Profile', 'parentfield':'user_roles'},
+			'parenttype':'User', 'parentfield':'user_roles'},
 		{'doctype': "Role", "role_name": "Report Manager"}
 	]
 	
@@ -34,7 +34,7 @@ def after_install():
 			pass
 
 	# all roles to admin
-	frappe.bean("Profile", "Administrator").get_controller().add_roles(*frappe.db.sql_list("""
+	frappe.bean("User", "Administrator").get_controller().add_roles(*frappe.db.sql_list("""
 		select name from tabRole"""))
 
 	# update admin password

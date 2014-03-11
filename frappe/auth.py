@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import frappe
 import frappe.database
 import frappe.utils
-import frappe.profile
+import frappe.utils.user
 from frappe import conf
 from frappe.sessions import Session
 
@@ -39,8 +39,8 @@ class HTTPRequest:
 			frappe.msgprint(frappe.db.get_global("__session_status_message"))
 			raise frappe.SessionStopped('Session Stopped')
 
-		# load profile
-		self.setup_profile()
+		# load user
+		self.setup_user()
 
 		# run login triggers
 		if frappe.form_dict.get('cmd')=='login':
@@ -72,8 +72,8 @@ class HTTPRequest:
 					frappe.local.lang = code
 					return
 					
-	def setup_profile(self):
-		frappe.local.user = frappe.profile.Profile()
+	def setup_user(self):
+		frappe.local.user = frappe.utils.user.User()
 
 	def get_db_name(self):
 		"""get database name from conf"""
@@ -106,7 +106,7 @@ class LoginManager:
 		self.set_user_info()
 	
 	def set_user_info(self):
-		info = frappe.db.get_value("Profile", self.user, 
+		info = frappe.db.get_value("User", self.user, 
 			["user_type", "first_name", "last_name", "user_image"], as_dict=1)
 		if info.user_type=="Website User":
 			frappe.local._response.set_cookie("system_user", "no")
@@ -142,7 +142,7 @@ class LoginManager:
 		"""raise exception if user not enabled"""
 		from frappe.utils import cint
 		if user=='Administrator': return
-		if not cint(frappe.db.get_value('Profile', user, 'enabled')):
+		if not cint(frappe.db.get_value('User', user, 'enabled')):
 			self.fail('User disabled or missing')
 
 	def check_password(self, user, pwd):
@@ -165,8 +165,7 @@ class LoginManager:
 	
 	def validate_ip_address(self):
 		"""check if IP Address is valid"""
-		ip_list = frappe.db.get_value('Profile', self.user, 'restrict_ip', ignore=True)
-		
+		ip_list = frappe.db.get_value('User', self.user, 'restrict_ip', ignore=True)
 		if not ip_list:
 			return
 
@@ -182,8 +181,8 @@ class LoginManager:
 
 	def validate_hour(self):
 		"""check if user is logging in during restricted hours"""
-		login_before = int(frappe.db.get_value('Profile', self.user, 'login_before', ignore=True) or 0)
-		login_after = int(frappe.db.get_value('Profile', self.user, 'login_after', ignore=True) or 0)
+		login_before = int(frappe.db.get_value('User', self.user, 'login_before', ignore=True) or 0)
+		login_after = int(frappe.db.get_value('User', self.user, 'login_after', ignore=True) or 0)
 		
 		if not (login_before or login_after):
 			return
