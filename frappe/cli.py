@@ -287,8 +287,9 @@ def restore(db_name, source_sql, verbose=True, force=False):
 
 @cmd
 def add_system_manager(email, first_name=None, last_name=None):
+	import frappe.utils.user
 	frappe.connect()
-	frappe.profile.add_system_manager(email, first_name, last_name)
+	frappe.utils.user.add_system_manager(email, first_name, last_name)
 	frappe.db.commit()
 	frappe.destroy()
 	

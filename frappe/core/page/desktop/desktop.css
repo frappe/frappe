@@ -14,7 +14,7 @@
 	color: white;
 	padding-top: 5px;
 	text-align: center;
-	text-shadow: 1px 1px 3px rgba(0, 0, 0, 1), 1px 1px 5px rgba(0, 0, 0, 0.3);
+	text-shadow: 1px 1px 3px rgba(0, 0, 0, 1), 0px 3px 15px rgba(0, 0, 0, 0.5);
 }
 
 @media (max-width: 768px) {
