@@ -461,7 +461,7 @@ $(document).ready(function() {
 	// switch to app link
 	if(getCookie("system_user")==="yes") {
 		$("#website-post-login .dropdown-menu").append('<li class="divider"></li>\
-			<li><a href="/app" no-pjax><i class="icon-fixed-width icon-th-large"></i> Switch To App</a></li>');
+			<li><a href="/desk" no-pjax><i class="icon-fixed-width icon-th-large"></i> Switch To Desk</a></li>');
 	}
 	
 	frappe.render_user();

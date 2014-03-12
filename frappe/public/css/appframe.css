@@ -9,8 +9,8 @@
 }
 
 .titlebar-item {
-	padding-top: 10px;
-	padding-bottom: 10px;
+	padding-top: 15px;
+	padding-bottom: 15px;
 }
 
 .titlebar-item h2 {
@@ -85,7 +85,7 @@ h2.titlebar-left-item {
 }
 
 .appframe-iconbar, .appframe-form {
-	border-bottom: 1px solid #c7c7c7;
+	/*border-bottom: 1px solid #c7c7c7;*/
 }
 
 .appframe-form {
@@ -107,7 +107,7 @@ h2.titlebar-left-item {
 }
 
 .appframe-iconbar {
-	background-color: #f2f2f2;
+	background-color: #f7f7f7;
 }
 
 .iconbar {

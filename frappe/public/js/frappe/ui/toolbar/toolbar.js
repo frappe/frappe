@@ -166,6 +166,8 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		// logout
 		$('#toolbar-user').append('<li><a href="#" onclick="return frappe.app.logout();">\
 			<i class="icon-fixed-width icon-signout"></i> '+frappe._('Logout')+'</a></li>');
+		$('#toolbar-user').append('<li class="divider"></li><li><a href="/index">\
+			<i class="icon-fixed-width icon-globe"></i> '+frappe._('Switch to Portal')+'</a></li>');
 	}
 
 });

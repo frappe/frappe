@@ -2,7 +2,7 @@
  {
   "creation": "2013-01-01 11:00:01", 
   "docstatus": 0, 
-  "modified": "2013-07-11 14:43:42", 
+  "modified": "2013-07-11 14:43:43", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -11,7 +11,7 @@
   "icon": "icon-lock", 
   "module": "Core", 
   "name": "__common__", 
-  "page_name": "Permission Manager", 
+  "page_name": "permission-manager", 
   "standard": "Yes", 
   "title": "Permission Manager"
  }, 

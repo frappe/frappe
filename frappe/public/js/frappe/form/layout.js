@@ -117,6 +117,7 @@ frappe.ui.form.Layout = Class.extend({
 					+ '<span class="section-count-label">' + this.labelled_section_count + "</span>. " 
 					+ frappe._(df.label)
 					+ "</h4>")
+					.css({"margin":"15px 0px"})
 					.appendTo(this.section);
 					
 				if(df && df.idx===1) 
@@ -124,7 +125,7 @@ frappe.ui.form.Layout = Class.extend({
 				if(this.sections.length > 1)
 					this.section.css({
 						"margin-top": "15px", 
-						"border-top": "1px solid #c7c7c7"
+						"border-top": "1px solid #eee"
 					});
 			}
 			if(df.description) {

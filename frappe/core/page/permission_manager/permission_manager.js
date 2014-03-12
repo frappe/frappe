@@ -52,12 +52,24 @@ frappe.PermissionEngine = Class.extend({
 		this.set_from_route();
 	},
 	set_from_route: function() {
-		if(frappe.get_route()[1] && this.doctype_select) {
-			this.doctype_select.val(frappe.get_route()[1]);
-			this.refresh();
-		} else {
-			this.refresh();
+		var me = this;
+		if(!this.doctype_select) {
+			// selects not yet loaded, call again after a bit
+			setTimeout(function() { me.set_from_route(); }, 500);
+			return;
 		}
+		if(frappe.get_route()[1]) {
+			this.doctype_select.val(frappe.get_route()[1]);
+		} else if(frappe.route_options) {
+			if(frappe.route_options.doctype) {
+				this.doctype_select.val(frappe.route_options.doctype);
+			}
+			if(frappe.route_options.role) {
+				this.role_select.val(frappe.route_options.role);
+			}
+			frappe.route_options = null;
+		}
+		this.refresh();
 	},
 	get_standard_permissions: function(callback) {
 		var doctype = this.get_doctype();
