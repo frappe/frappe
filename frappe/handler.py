@@ -64,33 +64,7 @@ def handle():
 	cmd = frappe.local.form_dict.cmd
 	
 	if cmd!='login':		
-		status_codes = {
-			frappe.PermissionError: 403,
-			frappe.AuthenticationError: 401,
-			frappe.DoesNotExistError: 404,
-			frappe.DuplicateEntryError: 409,
-			frappe.SessionStopped: 503,
-			frappe.OutgoingEmailError: 501
-		}
-		
-		try:
-			execute_cmd(cmd)
-		except Exception, e:
-			report_error(status_codes.get(e.__class__, 500))
-		else:
-			if frappe.local.request.method in ("POST", "PUT") and frappe.db:
-				frappe.db.commit()
-	else:
-		# commit for login
-		if frappe.local.request.method in ("POST", "PUT") and frappe.db:
-			frappe.db.commit()
-	
-	build_response()
-
-	if frappe.db:
-		frappe.db.close()
-	if frappe._memc:
-		frappe._memc.disconnect_all()
+		execute_cmd(cmd)
 
 def execute_cmd(cmd):
 	"""execute a request as python module"""
@@ -102,7 +76,6 @@ def execute_cmd(cmd):
 			raise frappe.PermissionError('Not Allowed, %s' % str(method))
 	else:
 		if not method in frappe.whitelisted:
-			frappe._response.status_code = 403
 			frappe.msgprint('Not Allowed, %s' % str(method))
 			raise frappe.PermissionError('Not Allowed, %s' % str(method))
 		

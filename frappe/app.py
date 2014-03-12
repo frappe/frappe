@@ -25,65 +25,87 @@ local_manager = LocalManager([frappe.local])
 _site = None
 _sites_path = os.environ.get("SITES_PATH", ".")
 
-def handle_session_stopped():
-	res = Response("""<html>
-							<body style="background-color: #EEE;">
-									<h3 style="width: 900px; background-color: #FFF; border: 2px solid #AAA; padding: 20px; font-family: Arial; margin: 20px auto">
-											Updating.
-											We will be back in a few moments...
-									</h3>
-							</body>
-					</html>""")
-	res.status_code = 503
-	res.content_type = 'text/html'
-	return res
-
 @Request.application
 def application(request):
 	frappe.local.request = request
+	response = Response()
 	
 	try:
-		site = _site or get_site_name(request.host)
-		frappe.init(site=site, sites_path=_sites_path)
+		rollback = True
 		
-		if not frappe.local.conf:
-			# site does not exist
-			raise NotFound
+		init_site(request)
+		make_form_dict(request)
+		frappe.local.http_request = frappe.auth.HTTPRequest()
 		
-		frappe.local.form_dict = frappe._dict({ k:v[0] if isinstance(v, (list, tuple)) else v \
-			for k, v in (request.form or request.args).iteritems() })
-				
-		frappe.local._response = Response()
-		frappe.http_request = frappe.auth.HTTPRequest()
-
 		if frappe.local.form_dict.cmd:
 			frappe.handler.handle()
+		
 		elif frappe.request.path.startswith("/api/"):
 			frappe.api.handle()
+		
 		elif frappe.request.path.startswith('/backups'):
-			frappe.utils.response.download_backup(request.path)
+			frappe.utils.response.download_backup(request.path, response=response)
+		
 		elif frappe.local.request.method in ('GET', 'HEAD'):
-			frappe.website.render.render(frappe.request.path[1:])
+			frappe.website.render.render(request.path, response=response)
+		
 		else:
 			raise NotFound
 
 	except HTTPException, e:
 		return e
 		
-	except frappe.AuthenticationError, e:
-		frappe._response.status_code=401
-		
 	except frappe.SessionStopped, e:
-		frappe.local._response = handle_session_stopped()
+		response = frappe.utils.response.handle_session_stopped()
 		
-	finally:
-		_response = frappe.local._response
-		frappe.destroy()
+	except (frappe.AuthenticationError,
+		frappe.PermissionError,
+		frappe.DoesNotExistError,
+		frappe.DuplicateEntryError,
+		frappe.OutgoingEmailError,
+		frappe.ValidationError), e:
+		
+		frappe.utils.response.report_error(e.http_status_code, response=response)
+		
+		if e.__class__ == frappe.AuthenticationError:
+			frappe.local.login_manager.clear_cookies()
 	
-	return _response
-
+	else:
+		if frappe.local.request.method in ("POST", "PUT") and frappe.db:
+			frappe.db.commit()
+			rollback = False
+	
+	finally:
+		if frappe.local.request.method in ("POST", "PUT") and frappe.db and rollback:
+			frappe.db.rollback()
+			
+		if frappe.local.form_dict.cmd or frappe.request.path.startswith("/api/"):
+			if not frappe.local.response.get("type"):
+				frappe.local.response["type"] = "json"
+			
+			frappe.utils.response.build_response(response=response)
+		
+		# set cookies
+		frappe.local.cookie_manager.flush_cookies(response=response)
+		
+		frappe.destroy()
+		
+	return response
+	
+def init_site(request):
+	site = _site or get_site_name(request.host)
+	frappe.init(site=site, sites_path=_sites_path)
+	
+	if not frappe.local.conf:
+		# site does not exist
+		raise NotFound
+	
+def make_form_dict(request):
+	frappe.local.form_dict = frappe._dict({ k:v[0] if isinstance(v, (list, tuple)) else v \
+		for k, v in (request.form or request.args).iteritems() })
+	
 application = local_manager.make_middleware(application)
-
+	
 def serve(port=8000, profile=False, site=None, sites_path='.'):
 	global application, _site, _sites_path
 	_site = site
@@ -102,6 +124,6 @@ def serve(port=8000, profile=False, site=None, sites_path='.'):
 		application = StaticDataMiddleware(application, {
 			'/files': os.path.abspath(sites_path)
 		})
-
+		
 	run_simple('0.0.0.0', int(port), application, use_reloader=True, 
 		use_debugger=True, use_evalex=True)

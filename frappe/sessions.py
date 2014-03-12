@@ -59,7 +59,7 @@ def clear_sessions(user=None, keep_current=False):
 		user = frappe.session.user
 	for sid in frappe.db.sql("""select sid from tabSessions where user=%s""", (user,)):
 		if keep_current and frappe.session.sid==sid[0]:
-			pass
+			continue
 		else:
 			frappe.cache().delete_value("session:" + sid[0])
 			frappe.db.sql("""delete from tabSessions where sid=%s""", (sid[0],))
@@ -103,9 +103,6 @@ class Session:
 
 		# set local session
 		frappe.local.session = self.data
-
-		# write out latest cookies
-		frappe.local.cookie_manager.set_cookies()
 
 	def start(self):
 		"""start a new session"""		

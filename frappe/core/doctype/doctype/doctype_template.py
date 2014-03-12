@@ -1,5 +1,5 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
-# GNU General Public License. See license.txt
+# Copyright (c) 2013, {app_publisher}
+# For license information, please see license.txt
 
 from __future__ import unicode_literals
 import frappe

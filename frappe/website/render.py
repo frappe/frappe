@@ -12,9 +12,10 @@ from frappe.website.permissions import get_access, clear_permissions
 
 class PageNotFoundError(Exception): pass
 
-def render(path):
+def render(path, response):
 	"""render html page"""
-	path = resolve_path(path)
+	frappe.local.is_ajax = frappe.get_request_header("X-Requested-With")=="XMLHttpRequest"
+	path = resolve_path(path.lstrip("/"))
 	
 	try:
 		data = render_page(path)
@@ -22,9 +23,11 @@ def render(path):
 		path = "error"
 		data = render_page(path)
 	
-	data = set_content_type(data, path)
-	frappe._response.data = data
-	frappe._response.headers[b"X-Page-Name"] = path.encode("utf-8")
+	# handle response
+	data = set_content_type(response, data, path)
+	response.data = data
+	response.headers[b"X-Page-Name"] = path.encode("utf-8")
+	response.headers[b"X-From-Cache"] = frappe.local.response.from_cache or False
 	
 def render_page(path):
 	"""get page html"""
@@ -39,9 +42,7 @@ def render_page(path):
 			out = out.get("data")
 			
 	if out:
-		if hasattr(frappe, "_response"):
-			frappe._response.headers[b"X-From-Cache"] = True
-		
+		frappe.local.response.from_cache = True
 		return out
 	
 	return build(path)
@@ -75,8 +76,7 @@ def build_page(path):
 	return html	
 	
 def is_ajax():
-	return (frappe.get_request_header("X-Requested-With")=="XMLHttpRequest" 
-			if hasattr(frappe.local, "_response") else False)
+	return getattr(frappe.local, "is_ajax")
 	
 def resolve_path(path):
 	if not path:
@@ -90,17 +90,17 @@ def resolve_path(path):
 		
 	return path
 
-def set_content_type(data, path):
+def set_content_type(response, data, path):
 	if isinstance(data, dict):
-		frappe._response.headers[b"Content-Type"] = b"application/json; charset: utf-8"
+		response.headers[b"Content-Type"] = b"application/json; charset: utf-8"
 		data = json.dumps(data)
 		return data
 	
-	frappe._response.headers[b"Content-Type"] = b"text/html; charset: utf-8"
+	response.headers[b"Content-Type"] = b"text/html; charset: utf-8"
 	
 	if "." in path and not path.endswith(".html"):
 		content_type, encoding = mimetypes.guess_type(path)
-		frappe._response.headers[b"Content-Type"] = content_type.encode("utf-8")
+		response.headers[b"Content-Type"] = content_type.encode("utf-8")
 	
 	return data
 
