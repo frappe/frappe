@@ -2,7 +2,7 @@
  {
   "creation": "2012-07-03 13:30:35", 
   "docstatus": 0, 
-  "modified": "2014-01-24 16:23:17", 
+  "modified": "2014-03-12 17:06:46", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -73,7 +73,7 @@
   "print_hide": 0, 
   "print_width": "300px", 
   "report_hide": 0, 
-  "reqd": 0, 
+  "reqd": 1, 
   "search_index": 0, 
   "width": "300px"
  }, 
@@ -83,6 +83,7 @@
   "fieldtype": "Column Break"
  }, 
  {
+  "default": "Open", 
   "doctype": "DocField", 
   "fieldname": "status", 
   "fieldtype": "Select", 
@@ -92,6 +93,7 @@
  }, 
  {
   "allow_on_submit": 0, 
+  "default": "Medium", 
   "doctype": "DocField", 
   "fieldname": "priority", 
   "fieldtype": "Select", 
