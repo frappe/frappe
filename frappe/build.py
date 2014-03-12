@@ -11,10 +11,10 @@ Build the `public` folders and setup languages
 import os, sys, frappe, json, shutil
 from cssmin import cssmin
 
-def bundle(no_compress):
+def bundle(no_compress, make_copy=False):
 	"""concat / minify js files"""
 	# build js files
-	make_asset_dirs()
+	make_asset_dirs(make_copy=make_copy)
 	build(no_compress)
 	
 def watch(no_compress):
@@ -28,7 +28,7 @@ def watch(no_compress):
 		
 		time.sleep(3)
 
-def make_asset_dirs():
+def make_asset_dirs(make_copy=False):
 	assets_path = os.path.join(frappe.local.sites_path, "assets")
 	for dir_path in [
 			os.path.join(assets_path, 'js'), 
@@ -44,7 +44,10 @@ def make_asset_dirs():
 		target = os.path.join(assets_path, app_name)
 
 		if not os.path.exists(target) and os.path.exists(source):
-			os.symlink(os.path.abspath(source), target)
+			if make_copy:
+				shutil.copytree(os.path.abspath(source), target)
+			else:
+				os.symlink(os.path.abspath(source), target)
 
 def build(no_compress=False):
 	assets_path = os.path.join(frappe.local.sites_path, "assets")

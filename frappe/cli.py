@@ -156,6 +156,8 @@ def setup_utilities(parser):
 	# build
 	parser.add_argument("-b", "--build", default=False, action="store_true",
 		help="Minify + concatenate JS and CSS files, build translations")
+	parser.add_argument("--make_copy", default=False, action="store_true",
+		help="Make copy of assets instead of symlinks")
 	parser.add_argument("-w", "--watch", default=False, action="store_true",
 		help="Watch and concatenate JS and CSS files as and when they change")
 	
@@ -379,10 +381,10 @@ def reload_doc(module, doctype, docname, force=False):
 	frappe.destroy()
 
 @cmd
-def build():
+def build(make_copy=False):
 	import frappe.build
 	import frappe
-	frappe.build.bundle(False)
+	frappe.build.bundle(False, make_copy=make_copy)
 
 @cmd
 def watch():
