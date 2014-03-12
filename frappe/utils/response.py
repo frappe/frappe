@@ -24,25 +24,25 @@ def report_error(status_code, response):
 
 def build_response(response):
 	response_type_map = {
-		'csv': print_csv,
-		'download': print_raw,
-		'json': print_json,
-		'page': print_page,
+		'csv': as_csv,
+		'download': as_raw,
+		'json': as_json,
+		'page': as_page,
 		'redirect': redirect
 	}
 	
 	response_type_map[frappe.response.get('type')](response=response)
 
-def print_page():
+def as_page():
 	"""print web page"""
 	from frappe.website.render import render
 	render(frappe.response['page_name'])
 
-def print_json(response):
+def as_json(response):
 	make_logs()
 	cleanup_docs()
 	response.headers["Content-Type"] = "text/json; charset: utf-8"
-	print_zip(json.dumps(frappe.local.response, default=json_handler, separators=(',',':')), response=response)
+	gzip(json.dumps(frappe.local.response, default=json_handler, separators=(',',':')), response=response)
 	
 def redirect(response):
 	response.data = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
@@ -59,14 +59,14 @@ def cleanup_docs():
 	if frappe.response.get('docs') and type(frappe.response['docs'])!=dict:
 		frappe.response['docs'] = frappe.model.utils.compress(frappe.response['docs'])
 		
-def print_csv(response):
+def as_csv(response):
 	response.headers["Content-Type"] = \
 		"text/csv; charset: utf-8"
 	response.headers["Content-Disposition"] = \
 		"attachment; filename=%s.csv" % frappe.response['doctype'].replace(' ', '_')
 	response.data = frappe.response['result']
 
-def print_raw(response):
+def as_raw(response):
 	response.headers["Content-Type"] = \
 		mimetypes.guess_type(frappe.response['filename'])[0] or "application/unknown"
 	response.headers["Content-Disposition"] = \
@@ -85,7 +85,7 @@ def make_logs():
 	if frappe.debug_log and frappe.conf.get("logging") or False:
 		frappe.response['_debug_messages'] = json.dumps(frappe.local.debug_log)
 
-def print_zip(data, response):
+def gzip(data, response):
 	data = data.encode('utf-8')
 	orig_len = len(data)
 	if accept_gzip() and orig_len>512:

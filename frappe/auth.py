@@ -10,6 +10,7 @@ import frappe.utils
 import frappe.utils.user
 from frappe import conf
 from frappe.sessions import Session
+from frappe.modules.patch_handler import check_session_stopped
 
 class HTTPRequest:
 	def __init__(self):
@@ -39,9 +40,7 @@ class HTTPRequest:
 		frappe.local.cookie_manager.init_cookies()
 
 		# check status
-		if frappe.db.get_global("__session_status")=='stop':
-			frappe.msgprint(frappe.db.get_global("__session_status_message"))
-			raise frappe.SessionStopped('Session Stopped')
+		check_session_stopped()
 
 		# load user
 		self.setup_user()

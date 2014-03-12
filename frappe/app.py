@@ -79,7 +79,8 @@ def application(request):
 		if frappe.local.request.method in ("POST", "PUT") and frappe.db and rollback:
 			frappe.db.rollback()
 			
-		if frappe.local.form_dict.cmd or frappe.request.path.startswith("/api/"):
+		if (frappe.local.form_dict.cmd or frappe.request.path.startswith("/api/")) \
+			and not response.data:
 			if not frappe.local.response.get("type"):
 				frappe.local.response["type"] = "json"
 			

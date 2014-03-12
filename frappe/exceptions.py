@@ -1,3 +1,10 @@
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# MIT License. See license.txt 
+
+from __future__ import unicode_literals
+
+# BEWARE don't put anything in this file except exceptions
+
 class ValidationError(Exception):
 	http_status_code = 417
 
