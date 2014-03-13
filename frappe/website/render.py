@@ -93,15 +93,15 @@ def resolve_path(path):
 
 def set_content_type(response, data, path):
 	if isinstance(data, dict):
-		response.headers[b"Content-Type"] = b"application/json; charset: utf-8"
+		response.headers["Content-Type"] = "application/json; charset: utf-8"
 		data = json.dumps(data)
 		return data
 	
-	response.headers[b"Content-Type"] = b"text/html; charset: utf-8"
+	response.headers["Content-Type"] = "text/html; charset: utf-8"
 	
 	if "." in path and not path.endswith(".html"):
 		content_type, encoding = mimetypes.guess_type(path)
-		response.headers[b"Content-Type"] = content_type.encode("utf-8")
+		response.headers["Content-Type"] = content_type.encode("utf-8")
 	
 	return data
 

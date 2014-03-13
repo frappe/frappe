@@ -39,19 +39,15 @@ def build_response(response_type=None):
 	
 def as_csv():
 	response = Response()
-	response.headers["Content-Type"] = \
-		"text/csv; charset: utf-8"
-	response.headers["Content-Disposition"] = \
-		"attachment; filename=%s.csv" % frappe.response['doctype'].replace(' ', '_')
+	response.headers["Content-Type"] = "text/csv; charset: utf-8"
+	response.headers["Content-Disposition"] = "attachment; filename=%s.csv" % frappe.response['doctype'].replace(' ', '_')
 	response.data = frappe.response['result']
 	return response
 
 def as_raw():
 	response = Response()
-	response.headers["Content-Type"] = \
-		mimetypes.guess_type(frappe.response['filename'])[0] or "application/unknown"
-	response.headers["Content-Disposition"] = \
-		"filename=%s" % frappe.response['filename'].replace(' ', '_')
+	response.headers["Content-Type"] = mimetypes.guess_type(frappe.response['filename'])[0] or "application/unknown"
+	response.headers["Content-Disposition"] = "filename=%s" % frappe.response['filename'].replace(' ', '_')
 	response.data = frappe.response['filecontent']
 	return response
 
@@ -59,7 +55,7 @@ def as_json():
 	make_logs()
 	cleanup_docs()
 	response = Response()
-	response.headers["Content-Type"] = "text/json; charset: utf-8"
+	response.headers["Content-Type"] = "application/json; charset: utf-8"
 	response = gzip(json.dumps(frappe.local.response, default=json_handler, separators=(',',':')),
 		response=response)
 	return response
