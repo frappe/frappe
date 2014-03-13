@@ -18,6 +18,9 @@ from datetime import datetime
 DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 def enqueue_events(site):
+	if is_scheduler_disabled():
+		return
+	
 	# lock before queuing begins
 	try:
 		lock = create_lock('scheduler')
@@ -103,6 +106,15 @@ def log(method, message=None):
 	
 	return message
 	
+def is_scheduler_disabled():
+	return frappe.utils.cint(frappe.db.get_global("disable_scheduler"))
+
+def enable_scheduler():
+	frappe.db.set_global("disable_scheduler", 0)
+	
+def disable_scheduler():
+	frappe.db.set_global("disable_scheduler", 1)
+	
 def get_errors(from_date, to_date, limit):
 	errors = frappe.db.sql("""select modified, method, error from `tabScheduler Log`
 		where date(modified) between %s and %s
@@ -127,6 +139,6 @@ def get_error_report(from_date=None, to_date=None, limit=10):
 			limit=limit, url=get_url(), errors="<hr>".join(errors))
 	else:
 		return 0, "<p>Scheduler didn't encounter any problems.</p>"
-
+		
 if __name__=='__main__':
 	execute()

@@ -16,16 +16,28 @@ def render(path):
 	"""render html page"""
 	frappe.local.is_ajax = frappe.get_request_header("X-Requested-With")=="XMLHttpRequest"
 	path = resolve_path(path.lstrip("/"))
+	http_status_code = 200
 	
 	try:
 		data = render_page(path)
+	
+	except frappe.DoesNotExistError, e:
+		path = "404"
+		data = render_page(path)
+		http_status_code = e.http_status_code
+		
 	except Exception:
 		path = "error"
 		data = render_page(path)
+		http_status_code = 500
 	
+	return build_response(path, data, http_status_code)
+	
+def build_response(path, data, http_status_code):
 	# build response
 	response = Response()
 	response.data = set_content_type(response, data, path)
+	response.status_code = http_status_code
 	response.headers[b"X-Page-Name"] = path.encode("utf-8")
 	response.headers[b"X-From-Cache"] = frappe.local.response.from_cache or False
 	return response
@@ -53,14 +65,16 @@ def build(path):
 		frappe.connect()
 	
 	build_method = (build_json if is_ajax() else build_page)
+	
 	try:
 		return build_method(path)
 	except frappe.DoesNotExistError:
 		hooks = frappe.get_hooks()
 		if hooks.website_catch_all:
-			return build_method(hooks.website_catch_all[0])
+			path = hooks.website_catch_all[0]
+			return build_method(path)
 		else:
-			return build_method("404")
+			raise
 	
 def build_json(path):
 	return get_context(path).data

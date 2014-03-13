@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import frappe
 
 from frappe.utils import getdate, cint, add_months, date_diff, add_days, nowdate
+from frappe.core.doctype.user.user import STANDARD_USERS
 
 weekdays = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
 
@@ -52,7 +53,9 @@ def send_event_digest():
 	today = nowdate()
 	for user in frappe.db.sql("""select name, email, language 
 		from tabUser where ifnull(enabled,0)=1 
-		and user_type='System User' and name not in ('Guest', 'Administrator')""", as_dict=1):
+		and user_type='System User' and name not in ({})""".format(", ".join(["%s"]*len(STANDARD_USERS))), 
+		STANDARD_USERS, as_dict=1):
+		
 		events = get_events(today, today, user.name, for_reminder=True)
 		if events:
 			text = ""

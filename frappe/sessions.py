@@ -68,24 +68,26 @@ def get():
 	"""get session boot info"""
 	from frappe.core.doctype.notification_count.notification_count import \
 		get_notification_info_for_boot, get_notifications
+	from frappe.boot import get_bootinfo, get_startup_js
 	
 	bootinfo = None
-	if not getattr(frappe.conf,'disable_session_cache',None):
+	if not getattr(frappe.conf,'disable_session_cache', None):
 		# check if cache exists
 		bootinfo = frappe.cache().get_value('bootinfo:' + frappe.session.user)
 		if bootinfo:
 			bootinfo['from_cache'] = 1
 			bootinfo["user"]["recent"] = json.dumps(frappe.cache().get_value("recent:" + frappe.session.user))
 			bootinfo["notification_info"].update(get_notifications())
+			bootinfo["startup_js"] = get_startup_js()
 		
 	if not bootinfo:
 		if not frappe.cache().get_stats():
 			frappe.msgprint("memcached is not working / stopped. Please start memcached for best results.")
 	
 		# if not create it
-		from frappe.boot import get_bootinfo
 		bootinfo = get_bootinfo()
 		bootinfo["notification_info"] = get_notification_info_for_boot()
+		bootinfo["startup_js"] = get_startup_js()
 		frappe.cache().set_value('bootinfo:' + frappe.session.user, bootinfo)
 	
 	return bootinfo

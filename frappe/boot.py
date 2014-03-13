@@ -54,7 +54,6 @@ def get_bootinfo():
 	add_allowed_pages(bootinfo)
 	load_translations(bootinfo)
 	load_conf_settings(bootinfo)
-	load_startup_js(bootinfo)
 
 	# ipinfo
 	if frappe.session['data'].get('ipinfo'):
@@ -120,10 +119,11 @@ def get_fullnames():
 
 	return d
 
-def load_startup_js(bootinfo):
-	bootinfo.startup_js = ""
+def get_startup_js():
+	startup_js = []
 	for method in frappe.get_hooks().startup_js or []:
-		bootinfo.startup_js += frappe.get_attr(method)()
+		startup_js.append(frappe.get_attr(method)() or "")
+	return "\n".join(startup_js)
 		
 def get_user(bootinfo):
 	"""get user info"""

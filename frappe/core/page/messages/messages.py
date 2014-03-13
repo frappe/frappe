@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.core.doctype.notification_count.notification_count import delete_notification_count_for
-
+from frappe.core.doctype.user.user import STANDARD_USERS
 
 @frappe.whitelist()
 def get_list(arg=None):
@@ -51,8 +51,8 @@ def get_active_users():
 	 	from tabUser 
 		where ifnull(enabled,0)=1 and
 		ifnull(user_type, '')!='Website User' and 
-		name not in ('Administrator', 'Guest')
-		order by first_name""", as_dict=1)
+		name not in ({})
+		order by first_name""".format(", ".join(["%s"]*len(STANDARD_USERS))), STANDARD_USERS, as_dict=1)
 
 @frappe.whitelist()
 def post(arg=None):

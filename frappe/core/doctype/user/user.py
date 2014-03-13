@@ -7,6 +7,8 @@ from frappe.utils import cint, now, cstr
 from frappe import throw, msgprint, _
 from frappe.auth import _update_password
 
+STANDARD_USERS = ("Guest", "Administrator")
+
 class DocType:
 	def __init__(self, doc, doclist):
 		self.doc = doc
@@ -14,7 +16,7 @@ class DocType:
 		
 	def autoname(self):
 		"""set name as email id"""
-		if self.doc.name not in ('Guest','Administrator'):
+		if self.doc.name not in STANDARD_USERS:
 			self.doc.email = self.doc.email.strip()		
 			self.doc.name = self.doc.email
 			
@@ -23,31 +25,16 @@ class DocType:
 
 	def validate(self):
 		self.in_insert = self.doc.fields.get("__islocal")
-		if self.doc.name not in ('Guest','Administrator'):
+		if self.doc.name not in STANDARD_USERS:
 			self.validate_email_type(self.doc.email)
-		self.validate_max_users()
 		self.add_system_manager_role()
 		self.check_enable_disable()
-		if self.in_insert:
-			if self.doc.name not in ("Guest", "Administrator"):
-				if self.doc.new_password:
-					# new password given, no email required
-					_update_password(self.doc.name, self.doc.new_password)
-				if not getattr(self, "no_welcome_mail", False):
-					self.send_welcome_mail()
-					msgprint(_("Welcome Email Sent"))
-		else:
-			try:
-				self.email_new_password()
-			except frappe.OutgoingEmailError:
-				pass # email server not set, don't send email
-				
 		self.doc.new_password = ""
 		self.update_gravatar()
 
 	def check_enable_disable(self):
 		# do not allow disabling administrator/guest
-		if not cint(self.doc.enabled) and self.doc.name in ["Administrator", "Guest"]:
+		if not cint(self.doc.enabled) and self.doc.name in STANDARD_USERS:
 			throw("{msg}: {name}".format(**{
 				"msg": _("Hey! You cannot disable user"), 
 				"name": self.doc.name
@@ -60,26 +47,6 @@ class DocType:
 		if not cint(self.doc.enabled) and getattr(frappe, "login_manager", None):
 			frappe.local.login_manager.logout(user=self.doc.name)
 		
-	def validate_max_users(self):
-		"""don't allow more than max users if set in conf"""
-		from frappe import conf
-		# check only when enabling a user
-		if 'max_users' in conf and self.doc.enabled and \
-				self.doc.name not in ["Administrator", "Guest"] and \
-				cstr(self.doc.user_type).strip() in ("", "System User"):
-			active_users = frappe.db.sql("""select count(*) from tabUser
-				where ifnull(enabled, 0)=1 and docstatus<2
-				and ifnull(user_type, "System User") = "System User"
-				and name not in ('Administrator', 'Guest', %s)""", (self.doc.name,))[0][0]
-			if active_users >= conf.max_users and conf.max_users:
-				throw("""
-					You already have <b>%(active_users)s</b> active users, \
-					which is the maximum number that you are currently allowed to add. <br /><br /> \
-					So, to add more users, you can:<br /> \
-					1. <b>Upgrade to the unlimited users plan</b>, or<br /> \
-					2. <b>Disable one or more of your existing users and try again</b>""" \
-					% {'active_users': active_users})
-						
 	def add_system_manager_role(self):
 		# if adding system manager, do nothing
 		if not cint(self.doc.enabled) or ("System Manager" in [user_role.role for user_role in
@@ -106,6 +73,21 @@ class DocType:
 		# owner is always name
 		frappe.db.set(self.doc, 'owner', self.doc.name)
 		frappe.clear_cache(user=self.doc.name)
+		
+		try:
+			if self.in_insert:
+				if self.doc.name not in STANDARD_USERS:
+					if self.doc.new_password:
+						# new password given, no email required
+						_update_password(self.doc.name, self.doc.new_password)
+					if not getattr(self, "no_welcome_mail", False):
+						self.send_welcome_mail()
+						msgprint(_("Welcome Email Sent"))
+			else:
+				self.email_new_password()
+
+		except frappe.OutgoingEmailError:
+			pass # email server not set, don't send email
 		
 	def update_gravatar(self):
 		import md5
@@ -168,7 +150,7 @@ class DocType:
 		
 		args.update(add_args)
 		
-		sender = frappe.session.user not in ("Administrator", "Guest") and frappe.session.user or None
+		sender = frappe.session.user not in STANDARD_USERS and frappe.session.user or None
 		
 		frappe.sendmail(recipients=self.doc.email, sender=sender, subject=subject, 
 			message=frappe.get_template(template).render(args))
@@ -179,7 +161,7 @@ class DocType:
 		
 	def on_trash(self):
 		frappe.clear_cache(user=self.doc.name)
-		if self.doc.name in ["Administrator", "Guest"]:
+		if self.doc.name in STANDARD_USERS:
 			throw("{msg}: {name}".format(**{
 				"msg": _("Hey! You cannot delete user"), 
 				"name": self.doc.name
@@ -215,7 +197,7 @@ class DocType:
 	
 	def validate_rename(self, olddn, newdn):
 		# do not allow renaming administrator and guest
-		if olddn in ["Administrator", "Guest"]:
+		if olddn in STANDARD_USERS:
 			throw("{msg}: {name}".format(**{
 				"msg": _("Hey! You are restricted from renaming the user"), 
 				"name": olddn
@@ -357,35 +339,50 @@ def reset_password(user):
 		
 def user_query(doctype, txt, searchfield, start, page_len, filters):
 	from frappe.widgets.reportview import get_match_cond
+	txt = "%{}%".format(txt)
 	return frappe.db.sql("""select name, concat_ws(' ', first_name, middle_name, last_name) 
 		from `tabUser` 
 		where ifnull(enabled, 0)=1 
 			and docstatus < 2 
-			and name not in ('Administrator', 'Guest') 
+			and name not in ({standard_users}) 
 			and user_type != 'Website User'
-			and (%(key)s like "%(txt)s" 
-				or concat_ws(' ', first_name, middle_name, last_name) like "%(txt)s") 
-			%(mcond)s
+			and ({key} like %s
+				or concat_ws(' ', first_name, middle_name, last_name) like %s) 
+			{mcond}
 		order by 
-			case when name like "%(txt)s" then 0 else 1 end, 
-			case when concat_ws(' ', first_name, middle_name, last_name) like "%(txt)s" 
+			case when name like %s then 0 else 1 end, 
+			case when concat_ws(' ', first_name, middle_name, last_name) like %s 
 				then 0 else 1 end, 
 			name asc 
-		limit %(start)s, %(page_len)s""" % {'key': searchfield, 'txt': "%%%s%%" % txt,  
-		'mcond':get_match_cond(doctype), 'start': start, 'page_len': page_len})
+		limit %s, %s""".format(standard_users=", ".join(["%s"]*len(STANDARD_USERS)),
+			key=searchfield, mcond=get_match_cond(doctype)), 
+			tuple(list(STANDARD_USERS) + [txt, txt, txt, txt, start, page_len]))
 
-def get_total_users():
+def get_total_users(exclude_users=None):
 	"""Returns total no. of system users"""
-	return frappe.db.sql("""select count(*) from `tabUser`
-		where enabled = 1 and user_type != 'Website User'
-		and name not in ('Administrator', 'Guest')""")[0][0]
+	return len(get_system_users(exclude_users=exclude_users))
+	
+def get_system_users(exclude_users=None):
+	if not exclude_users:
+		exclude_users = []
+	elif not isinstance(exclude_users, (list, tuple)):
+		exclude_users = [exclude_users]
+	
+	exclude_users += list(STANDARD_USERS)
+	
+	system_users = frappe.db.sql_list("""select name from `tabUser` 
+		where enabled=1 and user_type != 'Website User' 
+		and name not in ({})""".format(", ".join(["%s"]*len(exclude_users))),
+		exclude_users)
+
+	return system_users
 
 def get_active_users():
 	"""Returns No. of system users who logged in, in the last 3 days"""
 	return frappe.db.sql("""select count(*) from `tabUser`
 		where enabled = 1 and user_type != 'Website User'
-		and name not in ('Administrator', 'Guest')
-		and hour(timediff(now(), last_login)) < 72""")[0][0]
+		and name not in ({})
+		and hour(timediff(now(), last_login)) < 72""".format(", ".join(["%s"]*len(STANDARD_USERS))), STANDARD_USERS)[0][0]
 
 def get_website_users():
 	"""Returns total no. of website users"""

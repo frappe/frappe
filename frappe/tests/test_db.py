@@ -5,12 +5,14 @@ from __future__ import unicode_literals
 import unittest
 import frappe
 from frappe.test_runner import make_test_records
+from frappe.core.doctype.user.user import STANDARD_USERS
 
 class TestDB(unittest.TestCase):
 	def test_get_value(self):
 		from frappe.utils import now_datetime
 		import time
-		frappe.db.sql("""delete from `tabUser` where name not in ('Administrator', 'Guest')""")
+		frappe.db.sql("""delete from `tabUser` where name not in ({})""".format(", ".join(["%s"]*len(STANDARD_USERS))), 
+			STANDARD_USERS)
 		
 		now = now_datetime()
 		

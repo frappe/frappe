@@ -161,7 +161,18 @@ class Document:
 	def _loadsingle(self):
 		self.name = self.doctype
 		self.fields.update(getsingle(self.doctype))
-
+		self.cast_floats_and_ints()
+		
+	def cast_floats_and_ints(self):
+		for df in frappe.get_doctype(self.doctype).get_docfields():
+			if df.fieldtype in ("Int", "Check"):
+				self.fields[df.fieldname] = cint(self.fields.get(df.fieldname))
+			elif df.fieldtype in ("Float", "Currency"):
+				self.fields[df.fieldname] = flt(self.fields.get(df.fieldname))
+		
+		if self.docstatus is not None:	
+			self.docstatus = cint(self.docstatus)
+		
 	def __setattr__(self, name, value):
 		# normal attribute
 		if not self.__dict__.has_key('_Document__initialized'): 

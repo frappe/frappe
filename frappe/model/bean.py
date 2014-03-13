@@ -68,9 +68,6 @@ class Bean:
 
 		self.set_doclist(doclist)
 		
-		if dt == dn:
-			self.convert_type(self.doc)
-
 	def __iter__(self):
 		return self.doclist.__iter__()
 
@@ -91,6 +88,10 @@ class Bean:
 		
 		self.doclist = frappe.doclist(doclist)
 		self.doc = self.doclist[0]
+		
+		if self.doc.get_meta().issingle:
+			self.doc.cast_floats_and_ints()
+		
 		if self.obj:
 			self.obj.doclist = self.doclist
 			self.obj.doc = self.doc
@@ -443,16 +444,6 @@ class Bean:
 				msgprint(msg)
 
 			raise frappe.MandatoryError, ", ".join([fieldname for msg, fieldname in missing])
-			
-	def convert_type(self, doc):
-		if doc.doctype==doc.name and doc.doctype!="DocType":
-			for df in self.meta.get({"doctype": "DocField", "parent": doc.doctype}):
-				if df.fieldtype in ("Int", "Check"):
-					doc.fields[df.fieldname] = cint(doc.fields.get(df.fieldname))
-				elif df.fieldtype in ("Float", "Currency"):
-					doc.fields[df.fieldname] = flt(doc.fields.get(df.fieldname))
-				
-			doc.docstatus = cint(doc.docstatus)
 			
 	def extract_images_from_text_editor(self):
 		from frappe.utils.file_manager import extract_images_from_html

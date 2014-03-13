@@ -380,10 +380,12 @@ class DocTypeDocList(frappe.model.doclist.DocList):
 		return fieldname in self.get_fieldnames()
 		
 	def get_fieldnames(self, filters=None):
+		return map(lambda df: df.fieldname, self.get_docfields(filters))
+		
+	def get_docfields(self, filters=None):
 		if not filters: filters = {}
 		filters.update({"doctype": "DocField", "parent": self[0].name})
-			
-		return map(lambda df: df.fieldname, self.get(filters))
+		return self.get(filters)
 	
 	def get_options(self, fieldname, parent=None, parentfield=None):
 		return self.get_field(fieldname, parent, parentfield).options

@@ -13,7 +13,7 @@ def send(email, as_bulk=False):
 	if frappe.flags.mute_emails or frappe.conf.get("mute_emails") or False:
 		frappe.msgprint("Emails are muted")
 		return
-	
+		
 	try:
 		smtpserver = SMTPServer()
 		if hasattr(smtpserver, "always_use_login_id_as_sender") and \

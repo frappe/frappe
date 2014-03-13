@@ -5,13 +5,12 @@ from __future__ import unicode_literals
 import frappe
 import frappe.defaults
 import frappe.permissions
+from frappe.core.doctype.user.user import get_system_users
 
 @frappe.whitelist()
 def get_users_and_links():
 	return {
-		"users": frappe.db.sql_list("""select name from tabUser where
-			ifnull(enabled,0)=1 and
-			name not in ("Administrator", "Guest")"""),
+		"users": get_system_users(),
 		"link_fields": get_restrictable_doctypes()
 	}
 
