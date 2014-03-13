@@ -8,7 +8,7 @@ import frappe.utils
 import frappe.sessions
 import frappe.utils.file_manager
 import frappe.widgets.form.run_method
-from frappe.utils.response import build_response, report_error
+from frappe.utils.response import build_response
 
 @frappe.whitelist(allow_guest=True)
 def startup():
@@ -65,6 +65,8 @@ def handle():
 	
 	if cmd!='login':		
 		execute_cmd(cmd)
+	
+	return build_response("json")
 
 def execute_cmd(cmd):
 	"""execute a request as python module"""

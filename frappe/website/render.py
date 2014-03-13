@@ -4,15 +4,15 @@
 from __future__ import unicode_literals
 import frappe
 import mimetypes, json
+from werkzeug.wrappers import Response
 
 from frappe.website.context import get_context
 from frappe.website.utils import scrub_relative_urls, get_home_page, can_cache
-
 from frappe.website.permissions import get_access, clear_permissions
 
 class PageNotFoundError(Exception): pass
 
-def render(path, response):
+def render(path):
 	"""render html page"""
 	frappe.local.is_ajax = frappe.get_request_header("X-Requested-With")=="XMLHttpRequest"
 	path = resolve_path(path.lstrip("/"))
@@ -23,11 +23,12 @@ def render(path, response):
 		path = "error"
 		data = render_page(path)
 	
-	# handle response
-	data = set_content_type(response, data, path)
-	response.data = data
+	# build response
+	response = Response()
+	response.data = set_content_type(response, data, path)
 	response.headers[b"X-Page-Name"] = path.encode("utf-8")
 	response.headers[b"X-From-Cache"] = frappe.local.response.from_cache or False
+	return response
 	
 def render_page(path):
 	"""get page html"""

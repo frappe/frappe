@@ -109,6 +109,9 @@ class LoginManager:
 		self.set_user_info()
 	
 	def set_user_info(self):
+		# set sid again
+		frappe.local.cookie_manager.init_cookies()
+		
 		info = frappe.db.get_value("User", self.user, 
 			["user_type", "first_name", "last_name", "user_image"], as_dict=1)
 		if info.user_type=="Website User":

@@ -547,8 +547,6 @@ def repsond_as_web_page(title, html):
 	local.response['type'] = 'page'
 	local.response['page_name'] = 'message.html'
 	
-	return obj
-
 def build_match_conditions(doctype, as_condition=True):
 	import frappe.widgets.reportview
 	return frappe.widgets.reportview.build_match_conditions(doctype, as_condition)

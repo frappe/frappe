@@ -28,7 +28,7 @@ _sites_path = os.environ.get("SITES_PATH", ".")
 @Request.application
 def application(request):
 	frappe.local.request = request
-	response = Response()
+	response = None
 	
 	try:
 		rollback = True
@@ -38,16 +38,16 @@ def application(request):
 		frappe.local.http_request = frappe.auth.HTTPRequest()
 		
 		if frappe.local.form_dict.cmd:
-			frappe.handler.handle()
+			response = frappe.handler.handle()
 		
 		elif frappe.request.path.startswith("/api/"):
-			frappe.api.handle()
+			response = frappe.api.handle()
 		
 		elif frappe.request.path.startswith('/backups'):
-			frappe.utils.response.download_backup(request.path, response=response)
+			response = frappe.utils.response.download_backup(request.path)
 		
 		elif frappe.local.request.method in ('GET', 'HEAD'):
-			frappe.website.render.render(request.path, response=response)
+			response = frappe.website.render.render(request.path)
 		
 		else:
 			raise NotFound
@@ -65,7 +65,7 @@ def application(request):
 		frappe.OutgoingEmailError,
 		frappe.ValidationError), e:
 		
-		frappe.utils.response.report_error(e.http_status_code, response=response)
+		response = frappe.utils.response.report_error(e.http_status_code)
 		
 		if e.__class__ == frappe.AuthenticationError:
 			frappe.local.login_manager.clear_cookies()
@@ -79,15 +79,9 @@ def application(request):
 		if frappe.local.request.method in ("POST", "PUT") and frappe.db and rollback:
 			frappe.db.rollback()
 			
-		if (frappe.local.form_dict.cmd or frappe.request.path.startswith("/api/")) \
-			and not response.data:
-			if not frappe.local.response.get("type"):
-				frappe.local.response["type"] = "json"
-			
-			frappe.utils.response.build_response(response=response)
-		
 		# set cookies
-		frappe.local.cookie_manager.flush_cookies(response=response)
+		if response:
+			frappe.local.cookie_manager.flush_cookies(response=response)
 		
 		frappe.destroy()
 		

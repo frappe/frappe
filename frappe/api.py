@@ -5,7 +5,7 @@ import frappe
 import frappe.handler
 import frappe.client
 import frappe.widgets.reportview
-from frappe.utils.response import build_response, report_error
+from frappe.utils.response import build_response
 
 def handle():
 	"""
@@ -37,8 +37,7 @@ def handle():
 	
 	if call=="method":
 		frappe.local.form_dict.cmd = doctype
-		frappe.handler.handle()
-		return
+		return frappe.handler.handle()
 	
 	elif call=="resource":
 		if "run_method" in frappe.local.form_dict:
@@ -87,3 +86,5 @@ def handle():
 	
 	else:
 		raise frappe.DoesNotExistError
+	
+	return build_response("json")
