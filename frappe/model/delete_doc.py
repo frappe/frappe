@@ -89,7 +89,7 @@ def check_if_doc_is_linked(dt, dn, method="Delete"):
 			item = frappe.db.get_value(link_dt, {link_field:dn}, 
 				["name", "parent", "parenttype", "docstatus"], as_dict=True)
 			
-			if item and item.parent != dn and (method=="Delete" or 
+			if item and item.parent != dn and ((method=="Delete" and item.docstatus<2) or 
 					(method=="Cancel" and item.docstatus==1)):
 				frappe.msgprint(method + " " + _("Error") + ":"+\
 					("%s (%s) " % (dn, dt)) + _("is linked in") + (" %s (%s)") % 
