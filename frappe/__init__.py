@@ -16,6 +16,7 @@ import json
 import semantic_version
 
 from frappe.core.doctype.print_format.print_format import get_html as get_print_html
+from .exceptions import *
 
 local = Local()
 
@@ -71,7 +72,6 @@ form = form_dict = local("form_dict")
 request = local("request")
 request_method = local("request_method")
 response = local("response")
-_response = local("_response")
 session = local("session")
 user = local("user")
 flags = local("flags")
@@ -149,21 +149,6 @@ def cache():
 		_memc = MClient(['localhost:11211'])
 	return _memc
 
-class DuplicateEntryError(Exception): pass
-class ValidationError(Exception): pass
-class AuthenticationError(Exception): pass
-class PermissionError(Exception): pass
-class DataError(Exception): pass
-class UnknownDomainError(Exception): pass
-class SessionStopped(Exception): pass
-class MappingMismatchError(ValidationError): pass
-class InvalidStatusError(ValidationError): pass
-class DoesNotExistError(ValidationError): pass
-class MandatoryError(ValidationError): pass
-class InvalidSignatureError(ValidationError): pass
-class RateLimitExceededError(ValidationError): pass
-class OutgoingEmailError(Exception): pass
-		
 def get_traceback():
 	import utils
 	return utils.get_traceback()
@@ -562,8 +547,6 @@ def repsond_as_web_page(title, html):
 	local.response['type'] = 'page'
 	local.response['page_name'] = 'message.html'
 	
-	return obj
-
 def build_match_conditions(doctype, as_condition=True):
 	import frappe.widgets.reportview
 	return frappe.widgets.reportview.build_match_conditions(doctype, as_condition)

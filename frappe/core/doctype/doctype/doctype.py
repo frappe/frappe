@@ -129,10 +129,16 @@ class DocType:
 			self.doc.doctype, self.doc.name), scrub(self.doc.name) + '.py')
 
 		if not os.path.exists(pypath):
+			# get app publisher for copyright
+			app = frappe.local.module_app[frappe.scrub(self.doc.module)]
+			if not app:
+				frappe.throw("App not found!")
+			app_publisher = frappe.get_hooks(hook="app_publisher", app_name=app)[0]
+			
 			with open(pypath, 'w') as pyfile:
 				with open(os.path.join(get_module_path("core"), "doctype", "doctype", 
 					"doctype_template.py"), 'r') as srcfile:
-					pyfile.write(srcfile.read())
+					pyfile.write(srcfile.read().format(app_publisher=app_publisher))
 	
 	def make_amendable(self):
 		"""

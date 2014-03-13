@@ -102,7 +102,11 @@ login.login_handlers = {
 		}			
 	},
 	401: function(xhr, data) {
-		frappe.msgprint("Invalid Login");
+		if(xhr.responseJSON) {
+			data = xhr.responseJSON;
+		}
+		var message = data._server_messages ? JSON.parse(data._server_messages).join("\n") : "Invalid Login";
+		frappe.msgprint(message);
 	}
 }
 

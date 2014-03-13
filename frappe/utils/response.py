@@ -12,6 +12,7 @@ from frappe import _
 import frappe.utils
 import frappe.sessions
 import frappe.model.utils
+import werkzeug.utils
 from werkzeug.local import LocalProxy
 from werkzeug.wsgi import wrap_file
 from werkzeug.wrappers import Response
@@ -20,61 +21,49 @@ from werkzeug.exceptions import NotFound, Forbidden
 def report_error(status_code):
 	if status_code!=404 or frappe.conf.logging:
 		frappe.errprint(frappe.utils.get_traceback())
-	frappe._response.status_code = status_code
-	if frappe.request_method == "POST":
-		frappe.db.rollback()
+		
+	response = build_response("json")
+	response.status_code = status_code
+	return response
 
-def build_response():
-	print_map = {
-		'csv': print_csv,
-		'download': print_raw,
-		'json': print_json,
-		'page': print_page,
+def build_response(response_type=None):
+	response_type_map = {
+		'csv': as_csv,
+		'download': as_raw,
+		'json': as_json,
+		'page': as_page,
 		'redirect': redirect
 	}
 	
-	print_map.get(frappe.response.get('type'), print_json)()
+	return response_type_map[frappe.response.get('type') or response_type]()
+	
+def as_csv():
+	response = Response()
+	response.headers["Content-Type"] = \
+		"text/csv; charset: utf-8"
+	response.headers["Content-Disposition"] = \
+		"attachment; filename=%s.csv" % frappe.response['doctype'].replace(' ', '_')
+	response.data = frappe.response['result']
+	return response
 
-def print_page():
-	"""print web page"""
-	from frappe.website.render import render
-	render(frappe.response['page_name'])
+def as_raw():
+	response = Response()
+	response.headers["Content-Type"] = \
+		mimetypes.guess_type(frappe.response['filename'])[0] or "application/unknown"
+	response.headers["Content-Disposition"] = \
+		"filename=%s" % frappe.response['filename'].replace(' ', '_')
+	response.data = frappe.response['filecontent']
+	return response
 
-def print_json():
+def as_json():
 	make_logs()
 	cleanup_docs()
-	frappe._response.headers["Content-Type"] = "text/json; charset: utf-8"
-	print_zip(json.dumps(frappe.local.response, default=json_handler, separators=(',',':')))
+	response = Response()
+	response.headers["Content-Type"] = "text/json; charset: utf-8"
+	response = gzip(json.dumps(frappe.local.response, default=json_handler, separators=(',',':')),
+		response=response)
+	return response
 	
-def redirect():
-	frappe._response.data = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
-		<title>Redirecting...</title>
-		<h1>Redirecting...</h1>
-		<p>You should be redirected automatically to target URL: <a href="{location}">/</a>.
-		If not click the link.'""".format(location=frappe.response.location)
-	
-	frappe._response.headers["Content-Type"] = "text/html; charset: utf-8"
-	frappe._response.status_code = frappe.response.status_code or 302
-	frappe._response.location = frappe.response.location
-	
-def cleanup_docs():
-	if frappe.response.get('docs') and type(frappe.response['docs'])!=dict:
-		frappe.response['docs'] = frappe.model.utils.compress(frappe.response['docs'])
-		
-def print_csv():
-	frappe._response.headers["Content-Type"] = \
-		"text/csv; charset: utf-8"
-	frappe._response.headers["Content-Disposition"] = \
-		"attachment; filename=%s.csv" % frappe.response['doctype'].replace(' ', '_')
-	frappe._response.data = frappe.response['result']
-
-def print_raw():
-	frappe._response.headers["Content-Type"] = \
-		mimetypes.guess_type(frappe.response['filename'])[0] or "application/unknown"
-	frappe._response.headers["Content-Disposition"] = \
-		"filename=%s" % frappe.response['filename'].replace(' ', '_')
-	frappe._response.data = frappe.response['filecontent']
-
 def make_logs():
 	"""make strings for msgprint and errprint"""
 	if frappe.error_log:
@@ -87,15 +76,31 @@ def make_logs():
 	if frappe.debug_log and frappe.conf.get("logging") or False:
 		frappe.response['_debug_messages'] = json.dumps(frappe.local.debug_log)
 
-def print_zip(response):
-	response = response.encode('utf-8')
-	orig_len = len(response)
+def cleanup_docs():
+	if frappe.response.get('docs') and type(frappe.response['docs'])!=dict:
+		frappe.response['docs'] = frappe.model.utils.compress(frappe.response['docs'])
+		
+def gzip(data, response):
+	data = data.encode('utf-8')
+	orig_len = len(data)
 	if accept_gzip() and orig_len>512:
-		response = compressBuf(response)
-		frappe._response.headers["Content-Encoding"] = "gzip"
+		data = compressBuf(data)
+		response.headers["Content-Encoding"] = "gzip"
 	
-	frappe._response.headers["Content-Length"] = str(len(response))
-	frappe._response.data = response
+	response.headers["Content-Length"] = str(len(data))
+	response.data = data
+	return response
+	
+def accept_gzip():
+	if "gzip" in frappe.get_request_header("HTTP_ACCEPT_ENCODING", ""):
+		return True
+
+def compressBuf(buf):
+	zbuf = cStringIO.StringIO()
+	zfile = gzip.GzipFile(mode = 'wb',  fileobj = zbuf, compresslevel = 5)
+	zfile.write(buf)
+	zfile.close()
+	return zbuf.getvalue()
 	
 def json_handler(obj):
 	"""serialize non-serializable data for json"""
@@ -108,31 +113,30 @@ def json_handler(obj):
 	else:
 		raise TypeError, """Object of type %s with value of %s is not JSON serializable""" % \
 			(type(obj), repr(obj))
-
-def accept_gzip():
-	if "gzip" in frappe.get_request_header("HTTP_ACCEPT_ENCODING", ""):
-		return True
-
-def compressBuf(buf):
-	zbuf = cStringIO.StringIO()
-	zfile = gzip.GzipFile(mode = 'wb',  fileobj = zbuf, compresslevel = 5)
-	zfile.write(buf)
-	zfile.close()
-	return zbuf.getvalue()
-
+	
+def as_page():
+	"""print web page"""
+	from frappe.website.render import render
+	return render(frappe.response['page_name'])
+		
+def redirect():
+	return werkzeug.utils.redirect(frappe.response.location)
+	
 def download_backup(path):
 	try:
 		frappe.only_for(("System Manager", "Administrator"))
 	except frappe.PermissionError:
 		raise Forbidden(_("You need to be logged in and have System Manager Role to be able to access backups."))
-	send_private_file(path)
+
+	return send_private_file(path)
 
 def send_private_file(path):
 	path = os.path.join(frappe.local.conf.get('private_path', 'private'), path.strip("/"))
 
 	if frappe.local.request.headers.get('X-Use-X-Accel-Redirect'):
 		path = '/' + path
-		frappe.local._response.headers['X-Accel-Redirect'] = path
+		response = Response()
+		response.headers['X-Accel-Redirect'] = path
 	else:
 		filename = os.path.basename(path)
 		filepath = frappe.utils.get_site_path(path)
@@ -140,6 +144,22 @@ def send_private_file(path):
 			f = open(filepath, 'rb')
 		except IOError:
 			raise NotFound
-		frappe.local._response = Response(wrap_file(frappe.local.request.environ, f))
-		frappe.local._response.headers.add('Content-Disposition', 'attachment', filename=filename)
-		frappe.local._response.headers['Content-Type'] = mimetypes.guess_type(filename)[0] or 'application/octet-stream'
+
+		response = Response(wrap_file(frappe.local.request.environ, f))
+		response.headers.add('Content-Disposition', 'attachment', filename=filename)
+		response.headers['Content-Type'] = mimetypes.guess_type(filename)[0] or 'application/octet-stream'
+		
+	return response
+
+def handle_session_stopped():
+	response = Response("""<html>
+							<body style="background-color: #EEE;">
+									<h3 style="width: 900px; background-color: #FFF; border: 2px solid #AAA; padding: 20px; font-family: Arial; margin: 20px auto">
+											Updating.
+											We will be back in a few moments...
+									</h3>
+							</body>
+					</html>""")
+	response.status_code = 503
+	response.content_type = 'text/html'
+	return res

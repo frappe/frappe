@@ -2,13 +2,15 @@
 # MIT License. See license.txt 
 
 from __future__ import unicode_literals
+import datetime
+
 import frappe
 import frappe.database
 import frappe.utils
 import frappe.utils.user
 from frappe import conf
 from frappe.sessions import Session
-
+from frappe.modules.patch_handler import check_session_stopped
 
 class HTTPRequest:
 	def __init__(self):
@@ -33,11 +35,12 @@ class HTTPRequest:
 
 		# login
 		frappe.local.login_manager = LoginManager()
+		
+		# write out latest cookies
+		frappe.local.cookie_manager.init_cookies()
 
 		# check status
-		if frappe.db.get_global("__session_status")=='stop':
-			frappe.msgprint(frappe.db.get_global("__session_status_message"))
-			raise frappe.SessionStopped('Session Stopped')
+		check_session_stopped()
 
 		# load user
 		self.setup_user()
@@ -106,20 +109,23 @@ class LoginManager:
 		self.set_user_info()
 	
 	def set_user_info(self):
+		# set sid again
+		frappe.local.cookie_manager.init_cookies()
+		
 		info = frappe.db.get_value("User", self.user, 
 			["user_type", "first_name", "last_name", "user_image"], as_dict=1)
 		if info.user_type=="Website User":
-			frappe.local._response.set_cookie("system_user", "no")
+			frappe.local.cookie_manager.set_cookie("system_user", "no")
 			frappe.local.response["message"] = "No App"
 		else:
-			frappe.local._response.set_cookie("system_user", "yes")
+			frappe.local.cookie_manager.set_cookie("system_user", "yes")
 			frappe.local.response['message'] = 'Logged In'
 
 		full_name = " ".join(filter(None, [info.first_name, info.last_name]))
 		frappe.response["full_name"] = full_name
-		frappe._response.set_cookie("full_name", full_name)
-		frappe._response.set_cookie("user_id", self.user)
-		frappe._response.set_cookie("user_image", info.user_image or "")
+		frappe.local.cookie_manager.set_cookie("full_name", full_name)
+		frappe.local.cookie_manager.set_cookie("user_id", self.user)
+		frappe.local.cookie_manager.set_cookie("user_image", info.user_image or "")
 		
 	def make_session(self, resume=False):
 		# start session
@@ -161,7 +167,7 @@ class LoginManager:
 	
 	def run_trigger(self, event='on_login'):
 		for method in frappe.get_hooks().get(event, []):
-			frappe.get_attr(method)(self)
+			frappe.call(frappe.get_attr(method), login_manager=self)
 	
 	def validate_ip_address(self):
 		"""check if IP Address is valid"""
@@ -212,44 +218,45 @@ class LoginManager:
 			clear_sessions(user)
 
 		if user == frappe.session.user:
-			frappe.session.sid = ""
-			frappe.local._response.delete_cookie("full_name")
-			frappe.local._response.delete_cookie("user_id")
-			frappe.local._response.delete_cookie("sid")
-			frappe.local._response.set_cookie("full_name", "")
-			frappe.local._response.set_cookie("user_id", "")
-			frappe.local._response.set_cookie("sid", "")
+			self.clear_cookies()
+			
+	def clear_cookies(self):
+		frappe.session.sid = ""
+		frappe.local.cookie_manager.delete_cookie(["full_name", "user_id", "sid", "user_image", "system_user"])
 
 class CookieManager:
 	def __init__(self):
-		pass
+		self.cookies = {}
+		self.to_delete = []
 		
-	def set_cookies(self):
+	def init_cookies(self):
 		if not frappe.local.session.get('sid'): return		
-		import datetime
 
 		# sid expires in 3 days
 		expires = datetime.datetime.now() + datetime.timedelta(days=3)
 		if frappe.session.sid:
-			frappe.local._response.set_cookie("sid", frappe.session.sid, expires = expires)
+			self.cookies["sid"] = {"value": frappe.session.sid, "expires": expires}
 		if frappe.session.session_country:
-			frappe.local._response.set_cookie('country', frappe.session.get("session_country"))
-		
-	def set_remember_me(self):
-		from frappe.utils import cint
-		
-		if not cint(frappe.form_dict.get('remember_me')): return
-		
-		remember_days = frappe.db.get_value('Control Panel', None,
-			'remember_for_days') or 7
+			self.cookies["country"] = {"value": frappe.session.get("session_country")}
 			
-		import datetime
-		expires = datetime.datetime.now() + \
-					datetime.timedelta(days=remember_days)
-
-		frappe.local._response.set_cookie["remember_me"] = 1
-
-
+	def set_cookie(self, key, value, expires=None):
+		self.cookies[key] = {"value": value, "expires": expires}
+			
+	def delete_cookie(self, to_delete):
+		if not isinstance(to_delete, (list, tuple)):
+			to_delete = [to_delete]
+		
+		self.to_delete.extend(to_delete)
+		
+	def flush_cookies(self, response):
+		for key, opts in self.cookies.items():
+			response.set_cookie(key, opts.get("value"), expires=opts.get("expires"))
+		
+		# expires yesterday!
+		expires = datetime.datetime.now() + datetime.timedelta(days=-1)
+		for key in set(self.to_delete):
+			response.set_cookie(key, "", expires=expires)
+		
 def _update_password(user, password):
 	frappe.db.sql("""insert into __Auth (user, `password`) 
 		values (%s, password(%s)) 

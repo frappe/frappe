@@ -30,10 +30,10 @@ frappe.avatar = function(user, large, title) {
 		});	
 }
 
-frappe.ui.set_user_background = function(src) {
-	if(!src) src = "assets/frappe/images/ui/random-polygons.jpg";
+frappe.ui.set_user_background = function(src, size) {
+	if(!src) src = "assets/frappe/images/ui/wallpaper.jpg";
 	frappe.dom.set_style(repl('#page-desktop { \
-		background: url("%(src)s") center center fixed; \
+		background: url("%(src)s") center center; \
 	}', {src:src}))
 }
 

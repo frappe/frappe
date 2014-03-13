@@ -33,7 +33,7 @@ oauth2_providers = {
 		"redirect_uri": "/api/method/frappe.templates.pages.login.login_via_google",
 		
 		"auth_url_data": {
-			"scope": "https://www.googleapis.com/auth/userinfo.user https://www.googleapis.com/auth/userinfo.email",
+			"scope": "https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email",
 			"response_type": "code"
 		},
 		

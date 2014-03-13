@@ -114,6 +114,11 @@ def block_user(block):
 	frappe.db.set_global('__session_status', block and 'stop' or None)
 	frappe.db.set_global('__session_status_message', block and msg or None)
 	frappe.db.commit()
+	
+def check_session_stopped():
+	if frappe.db.get_global("__session_status")=='stop':
+		frappe.msgprint(frappe.db.get_global("__session_status_message"))
+		raise frappe.SessionStopped('Session Stopped')
 
 def setup():
 	frappe.db.sql("""CREATE TABLE IF NOT EXISTS `__PatchLog` (
