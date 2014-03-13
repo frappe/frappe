@@ -48,19 +48,17 @@ def insert(doclist):
 	if isinstance(doclist, basestring):
 		doclist = json.loads(doclist)
 	
-	doclist[0]["__islocal"] = 1
-	return save(doclist)
+	bean = frappe.bean(doclist).insert()
+	return [d.fields for d in bean.doclist]
 
 @frappe.whitelist()
 def save(doclist):
 	if isinstance(doclist, basestring):
 		doclist = json.loads(doclist)
 
-	doclistobj = frappe.bean(doclist)
-	doclistobj.save()
+	bean = frappe.bean(doclist).save()
+	return [d.fields for d in bean.doclist]
 	
-	return [d.fields for d in doclist]
-
 @frappe.whitelist()
 def rename_doc(doctype, old_name, new_name, merge=False):
 	new_name = frappe.rename_doc(doctype, old_name, new_name, merge=merge)

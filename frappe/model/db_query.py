@@ -20,7 +20,7 @@ class DatabaseQuery(object):
 		
 	def execute(self, query=None, filters=None, fields=None, docstatus=None, 
 		group_by=None, order_by=None, limit_start=0, limit_page_length=20, 
-		as_list=False, with_childnames=False, debug=False):
+		as_list=False, with_childnames=False, debug=False, ignore_permissions=False):
 		if fields:
 			self.fields = fields
 		self.filters = filters or []
@@ -32,6 +32,7 @@ class DatabaseQuery(object):
 		self.with_childnames = with_childnames
 		self.debug = debug
 		self.as_list = as_list
+		self.ignore_permissions = ignore_permissions
 
 		
 		if query:
@@ -146,9 +147,10 @@ class DatabaseQuery(object):
 			self.conditions.append(tname + '.parent = ' + self.tables[0] + '.name')
 
 		# match conditions
-		match_conditions = self.build_match_conditions()
-		if match_conditions:
-			self.conditions.append(match_conditions)
+		if not self.ignore_permissions:
+			match_conditions = self.build_match_conditions()
+			if match_conditions:
+				self.conditions.append(match_conditions)
 			
 	def add_docstatus_conditions(self):
 		if self.docstatus:

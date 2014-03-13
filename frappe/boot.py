@@ -84,8 +84,15 @@ def load_conf_settings(bootinfo):
 		if key in conf: bootinfo[key] = conf.get(key)
 
 def add_allowed_pages(bootinfo):
-	bootinfo.page_info = dict(frappe.db.sql("""select distinct parent, modified from `tabPage Role`
+	bootinfo.page_info = dict(frappe.db.sql("""select distinct 
+		parent, modified from `tabPage Role`
 		where role in ('%s')""" % "', '".join(frappe.get_roles())))
+	
+	# pages where role is not set are also allowed
+	bootinfo.page_info.update(dict(frappe.db.sql("""select parent, modified
+		from `tabPage` where 
+			(select count(*) from `tabPage Role` 
+				where `tabPage Role`.parent=tabPage.name) = 0""")))
 
 def load_translations(bootinfo):
 	frappe.set_user_lang(frappe.session.user)

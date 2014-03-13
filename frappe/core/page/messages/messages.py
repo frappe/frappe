@@ -44,13 +44,12 @@ def get_list(arg=None):
 		
 
 @frappe.whitelist()
-def get_active_users(arg=None):
+def get_active_users():
 	return frappe.db.sql("""select name,
 		(select count(*) from tabSessions where user=tabUser.name
 			and timediff(now(), lastupdate) < time("01:00:00")) as has_session
 	 	from tabUser 
 		where ifnull(enabled,0)=1 and
-		docstatus < 2 and 
 		ifnull(user_type, '')!='Website User' and 
 		name not in ('Administrator', 'Guest')
 		order by first_name""", as_dict=1)

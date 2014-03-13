@@ -60,12 +60,7 @@ def handle():
 					frappe.local.response.update({
 						"doclist": frappe.client.get(doctype, 
 							name)})
-						
-				if frappe.local.request.method=="POST":
-					frappe.local.response.update({
-						"doclist": frappe.client.insert(frappe.local.form_dict.doclist)})
-					frappe.db.commit()
-				
+										
 				if frappe.local.request.method=="PUT":
 					frappe.local.response.update({
 						"doclist":frappe.client.save(frappe.local.form_dict.doclist)})
@@ -74,13 +69,18 @@ def handle():
 				if frappe.local.request.method=="DELETE":
 					frappe.client.delete(doctype, name)
 					frappe.local.response.message = "ok"
+
 					
 			elif doctype:
 				if frappe.local.request.method=="GET":
 					frappe.local.response.update({
 						"data":  frappe.call(frappe.widgets.reportview.execute, 
 							doctype, **frappe.local.form_dict)})
-			
+
+				if frappe.local.request.method=="POST":
+					frappe.local.response.update({
+						"doclist": frappe.client.insert(frappe.local.form_dict.doclist)})
+					frappe.db.commit()
 			else:
 				raise frappe.DoesNotExistError
 	

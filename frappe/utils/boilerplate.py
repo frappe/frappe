@@ -26,10 +26,22 @@ def make_boilerplate():
 		
 	frappe.create_folder(os.path.join(hooks.app_name, hooks.app_name, hooks.app_name))
 	frappe.create_folder(os.path.join(hooks.app_name, hooks.app_name, "templates"))
+	frappe.create_folder(os.path.join(hooks.app_name, hooks.app_name, "templates", 
+		"statics"))
+	frappe.create_folder(os.path.join(hooks.app_name, hooks.app_name, "templates", 
+		"pages"))
+	frappe.create_folder(os.path.join(hooks.app_name, hooks.app_name, "templates", 
+		"generators"))
 	frappe.create_folder(os.path.join(hooks.app_name, hooks.app_name, "config"))
+	
+	# init files
 	touch_file(os.path.join(hooks.app_name, hooks.app_name, "__init__.py"))
 	touch_file(os.path.join(hooks.app_name, hooks.app_name, hooks.app_name, "__init__.py"))
 	touch_file(os.path.join(hooks.app_name, hooks.app_name, "templates", "__init__.py"))
+	touch_file(os.path.join(hooks.app_name, hooks.app_name, "templates", 
+		"pages", "__init__.py"))
+	touch_file(os.path.join(hooks.app_name, hooks.app_name, "templates", 
+		"generators", "__init__.py"))
 	touch_file(os.path.join(hooks.app_name, hooks.app_name, "config", "__init__.py"))
 	
 	with open(os.path.join(hooks.app_name, "MANIFEST.in"), "w") as f:
