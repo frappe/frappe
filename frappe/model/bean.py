@@ -89,7 +89,7 @@ class Bean:
 		self.doclist = frappe.doclist(doclist)
 		self.doc = self.doclist[0]
 		
-		if self.doc.get_meta().issingle:
+		if self.doc.meta.issingle:
 			self.doc.cast_floats_and_ints()
 		
 		if self.obj:
