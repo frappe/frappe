@@ -246,8 +246,13 @@ fieldset {
 	font-size: 85%;
 }
 
+.sidebar-item a {
+	color: #999;	
+}
+
 .sidebar-item a:hover {
 	color: #333;
+	text-decoration: none;
 	border-bottom: 2px solid #999;
 }
 
