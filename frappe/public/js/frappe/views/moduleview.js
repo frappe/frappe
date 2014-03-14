@@ -185,6 +185,11 @@ frappe.views.moduleview.ModuleView = Class.extend({
 					.on("click", function() {
 						if(item.route) {
 							frappe.set_route(item.route);
+						} else if(item.onclick) {
+							var fn = eval(item.onclick);
+							if(typeof(fn)==="function") {
+								fn();
+							} 
 						} else if(item.type==="doctype") {
 							frappe.set_route("List", item.name)
 						} 
@@ -197,7 +202,10 @@ frappe.views.moduleview.ModuleView = Class.extend({
 							} else {
 								frappe.set_route("Report", item.doctype, item.name);
 							}
+						} else {
+							return;
 						}
+						return false;
 					});
 				
 				var show_count = (item.type==="doctype" || (item.type==="page" && item.doctype)) && !item.hide_count
