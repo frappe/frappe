@@ -29,7 +29,6 @@ class DocType:
 			self.validate_email_type(self.doc.email)
 		self.add_system_manager_role()
 		self.check_enable_disable()
-		self.doc.new_password = ""
 		self.update_gravatar()
 
 	def check_enable_disable(self):
@@ -88,6 +87,8 @@ class DocType:
 
 		except frappe.OutgoingEmailError:
 			pass # email server not set, don't send email
+
+		self.doc.set("new_password", "")
 		
 	def update_gravatar(self):
 		import md5

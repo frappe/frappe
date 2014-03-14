@@ -72,7 +72,7 @@ class DatabaseQuery(object):
 		args.group_by = self.group_by and (" group by " + self.group_by) or ""
 
 		self.check_sort_by_table(args.order_by)
-		
+				
 		return args
 		
 		
@@ -121,7 +121,7 @@ class DatabaseQuery(object):
 				doctype = t[4:-1]
 				if self.meta.get(doctype):
 					continue
-				if not frappe.has_permission(doctype):
+				if (not self.ignore_permissions) and (not frappe.has_permission(doctype)):
 					raise frappe.PermissionError, doctype
 				self.meta[doctype] = frappe.model.doctype.get(doctype)
 	

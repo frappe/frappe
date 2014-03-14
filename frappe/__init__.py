@@ -557,7 +557,7 @@ def get_list(doctype, filters=None, fields=None, docstatus=None,
 	import frappe.model.db_query
 	return frappe.model.db_query.DatabaseQuery(doctype).execute(filters=filters, fields=fields, docstatus=docstatus,
 				group_by=group_by, order_by=order_by, limit_start=limit_start, limit_page_length=limit_page_length,
-				as_list=as_list, debug=debug)
+				as_list=as_list, debug=debug, ignore_permissions=ignore_permissions)
 				
 run_query = get_list
 

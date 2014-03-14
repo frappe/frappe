@@ -68,7 +68,8 @@ def application(request):
 		response = frappe.utils.response.report_error(e.http_status_code)
 		
 		if e.__class__ == frappe.AuthenticationError:
-			frappe.local.login_manager.clear_cookies()
+			if hasattr(frappe.local, "login_manager"):
+				frappe.local.login_manager.clear_cookies()
 	
 	else:
 		if frappe.local.request.method in ("POST", "PUT") and frappe.db:

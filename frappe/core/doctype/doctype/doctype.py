@@ -202,12 +202,10 @@ def validate_fields(fields):
 			frappe.msgprint("""#%(idx)s %(label)s: Cannot be hidden and mandatory (reqd) without default""" % d.fields,
 				raise_exception=True)
 
-	def check_max_items_in_list(fields):
-		count = 0
-		for d in fields:
-			if d.in_list_view: count+=1
-		if count > 5:
-			frappe.msgprint("""Max 5 Fields can be set as 'In List View', please unselect a field before selecting a new one.""")
+	def check_min_items_in_list(fields):
+		if len(filter(lambda d: d.in_list_view, fields))==0:
+			for d in fields[:5]:
+				d.in_list_view = 1
 				
 	def check_width(d):
 		if d.fieldtype == "Currency" and cint(d.width) < 100:
@@ -227,6 +225,8 @@ def validate_fields(fields):
 		check_link_table_options(d)
 		check_hidden_and_mandatory(d)
 		check_in_list_view(d)
+
+	check_min_items_in_list(fields)
 
 def validate_permissions_for_doctype(doctype, for_remove=False):
 	from frappe.model.doctype import get
