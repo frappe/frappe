@@ -23,13 +23,14 @@ def execute(filters=None):
 
 	result = []
 	for todo in todo_list:
-		if todo.reference_type:
-			todo.reference = """<a href="#Form/%s/%s">%s: %s</a>""" % \
-				(todo.reference_type, todo.reference_name, todo.reference_type, todo.reference_name)
-		else:
-			todo.reference = None
-		result.append([todo.name, todo.priority, todo.date, todo.description,
-			todo.owner, todo.assigned_by, todo.reference])
+		if todo.owner==frappe.session.user or todo.assigned_by==frappe.session.user:
+			if todo.reference_type:
+				todo.reference = """<a href="#Form/%s/%s">%s: %s</a>""" % (todo.reference_type, 
+					todo.reference_name, todo.reference_type, todo.reference_name)
+			else:
+				todo.reference = None
+			result.append([todo.name, todo.priority, todo.date, todo.description,
+				todo.owner, todo.assigned_by, todo.reference])
 	
 	return columns, result
 	
