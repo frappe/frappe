@@ -269,10 +269,11 @@ $.extend(frappe, {
 			$('[data-html-block]').each(function(i, section) {
 				var $section = $(section);
 				var stype = $section.attr("data-html-block");
+				var block_data = data[stype] || "";
 				if(stype==="script") {
 					$section.remove();
 					$("<script data-html-block='script'></script>")
-						.html(data[stype] || "")
+						.html(block_data)
 						.appendTo("body");
 				} else if(stype==="script_lib") {
 					// render once
@@ -282,7 +283,7 @@ $.extend(frappe, {
 						.appendTo("body");
 					}
 				} else {
-					$section.html(data[stype] || "");
+					$section.html(block_data);
 				}
 			});
 			if(data.title) $("title").html(data.title);
@@ -328,6 +329,32 @@ $.extend(frappe, {
 				}
 			}
 		})
+	},
+	toggle_template_blocks: function() {
+		// this assumes frappe base template
+		$(".page-header").toggleClass("hidden", !!!$("[data-html-block='header']").text().trim());
+		$(".page-footer").toggleClass("hidden", !!!$(".page-footer").text().trim());
+
+		// hide breadcrumbs if no breadcrumb content or if it is same as the header
+		$("[data-html-block='breadcrumbs'] .breadcrumb").toggleClass("hidden",
+			!$("[data-html-block='breadcrumbs']").text().trim() ||
+			$("[data-html-block='breadcrumbs']").text().trim()==$("[data-html-block='header']").text().trim());
+		
+		// to show full content width, when no sidebar content
+		$(".page-sidebar").toggleClass("hidden", !!!$("[data-html-block='sidebar']").text().trim());
+		$(".page-sidebar").toggleClass("col-sm-push-9", !!$("[data-html-block='sidebar']").text().trim());
+		$(".page-content").toggleClass("col-sm-12", !!!$("[data-html-block='sidebar']").text().trim());
+		$(".page-content").toggleClass("col-sm-9 col-sm-pull-3", !!$("[data-html-block='sidebar']").text().trim());
+		
+		// collapse sidebar in mobile view on page change
+		if(!$(".page-sidebar").hasClass("hidden-xs")) {
+			$(".toggle-sidebar").trigger("click");
+		}
+
+		// TODO add private pages to sidebar
+		// if(website.private_pages && $(".page-sidebar").length) {
+		// 	$(website.private_pages).prependTo(".page-sidebar");
+		// }
 	}
 });
 
@@ -471,20 +498,7 @@ $(document).ready(function() {
 });
 
 $(document).on("page_change", function() {
-	$(".page-header").toggleClass("hidden", !!!$("[data-html-block='header']").text().trim());
-	$(".page-footer").toggleClass("hidden", !!!$(".page-footer").text().trim());
-	$("[data-html-block='breadcrumbs'] .breadcrumb").toggleClass("hidden",
-		$("[data-html-block='breadcrumbs']").text().trim()==$("[data-html-block='header']").text().trim());
-		
-	if(!$(".page-sidebar").hasClass("hidden-xs")) {
-		$(".toggle-sidebar").trigger("click");
-	}
-
-	// add prive pages to sidebar
-	if(website.private_pages && $(".page-sidebar").length) {
-		$(data.private_pages).prependTo(".page-sidebar");
-	}
-	
+	frappe.toggle_template_blocks();
 	$(document).trigger("apply_permissions");
 	frappe.datetime.refresh_when();
 	frappe.trigger_ready();

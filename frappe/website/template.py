@@ -47,5 +47,7 @@ def render_blocks(context):
 			frappe.get_template("templates/includes/sidebar.html").render(context))
 			
 	out["title"] = strip_html(out.get("title") or "")
+	out["style"] = strip_html(out.get("style") or "")
+	out["script"] = strip_html(out.get("script") or "")
 
 	return out
