@@ -78,7 +78,6 @@ def get():
 			bootinfo['from_cache'] = 1
 			bootinfo["user"]["recent"] = json.dumps(frappe.cache().get_value("recent:" + frappe.session.user))
 			bootinfo["notification_info"].update(get_notifications())
-			bootinfo["startup_js"] = get_startup_js()
 		
 	if not bootinfo:
 		if not frappe.cache().get_stats():
@@ -87,8 +86,11 @@ def get():
 		# if not create it
 		bootinfo = get_bootinfo()
 		bootinfo["notification_info"] = get_notification_info_for_boot()
-		bootinfo["startup_js"] = get_startup_js()
 		frappe.cache().set_value('bootinfo:' + frappe.session.user, bootinfo)
+	
+	bootinfo["startup_js"] = get_startup_js()
+	for hook in frappe.get_hooks("extend_bootinfo"):
+		frappe.get_attr(hook)(bootinfo=bootinfo)
 	
 	return bootinfo
 
