@@ -541,9 +541,10 @@ def compare(val1, condition, val2):
 	import frappe.utils
 	return frappe.utils.compare(val1, condition, val2)
 
-def repsond_as_web_page(title, html):
+def respond_as_web_page(title, html, success=None):
 	local.message_title = title
-	local.message = "<h3>" + title + "</h3>" + html
+	local.message = html
+	local.message_success = success
 	local.response['type'] = 'page'
 	local.response['page_name'] = 'message.html'
 	

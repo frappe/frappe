@@ -8,6 +8,7 @@ from frappe.utils import strip_html
 from frappe.website.utils import scrub_relative_urls
 from jinja2.utils import concat
 from jinja2 import meta
+import re
 
 def render_blocks(context):
 	"""returns a dict of block name and its rendered content"""
@@ -29,10 +30,13 @@ def render_blocks(context):
 	_render_blocks(context["template_path"])
 
 	# default blocks if not found
+	if "title" not in out and out.get("header"):
+		out["title"] = out["header"]
+	
 	if "title" not in out:
 		out["title"] = context.get("title")
 	
-	if "header" not in out:
+	if "header" not in out and out.get("title"):
 		out["header"] = out["title"]
 
 	if not out["header"].startswith("<h"):
@@ -47,7 +51,9 @@ def render_blocks(context):
 			frappe.get_template("templates/includes/sidebar.html").render(context))
 			
 	out["title"] = strip_html(out.get("title") or "")
-	out["style"] = strip_html(out.get("style") or "")
-	out["script"] = strip_html(out.get("script") or "")
+	
+	# remove style and script tags from blocks
+	out["style"] = re.sub("</?style[^<>]*>", "", out.get("style") or "")
+	out["script"] = re.sub("</?script[^<>]*>", "", out.get("script") or "")
 
 	return out

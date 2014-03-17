@@ -28,18 +28,6 @@
 			{%- if style is defined -%}{{ style }}{%- endif -%}
 			</style>
 		{%- endblock -%}
-
-		{%- block script %}
-			<script data-html-block="script">
-			{%- if script is defined -%}{{ script }}{%- endif -%}
-			</script>
-		{%- endblock %}
-
-		{%- block script_lib %}
-			<script data-html-block="script_lib" data-name="{{ name }}">
-			{%- if script_lib is defined -%}{{ script_lib }}{%- endif -%}
-			</script>
-		{%- endblock -%}
 	{%- endblock -%}
 </head>
 <body>
@@ -56,7 +44,7 @@
 			<div class="container" data-html-block="header">
 			{%- if header is defined -%}{{ header }}{%- endif -%}
 			</div>
-			<div class="container">
+			<div class="container page-sub-header">
 				<div class="row">
 					<div class="col-xs-10 page-breadcrumbs" data-html-block="breadcrumbs">
 					{%- if breadcrumbs is defined -%}{{ breadcrumbs }}{%- endif -%}
@@ -91,5 +79,17 @@
 	<div id="wrap-footer">
 		{%- block footer -%}{% include "templates/includes/footer.html" %}{%- endblock -%}
 	</div>
+	
+	{%- block script %}
+		<script data-html-block="script">
+		{%- if script is defined -%}{{ script }}{%- endif -%}
+		</script>
+	{%- endblock %}
+
+	{%- block script_lib %}
+		<script data-html-block="script_lib" data-path="{{ name }}">
+		{%- if script_lib is defined -%}{{ script_lib }}{%- endif -%}
+		</script>
+	{%- endblock -%}
 </body>
 </html>

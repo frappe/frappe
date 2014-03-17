@@ -163,7 +163,6 @@ class LoginManager:
 	def fail(self, message):
 		frappe.local.response['message'] = message
 		raise frappe.AuthenticationError
-		
 	
 	def run_trigger(self, event='on_login'):
 		for method in frappe.get_hooks().get(event, []):
@@ -221,9 +220,8 @@ class LoginManager:
 			self.clear_cookies()
 			
 	def clear_cookies(self):
-		frappe.session.sid = ""
-		frappe.local.cookie_manager.delete_cookie(["full_name", "user_id", "sid", "user_image", "system_user"])
-
+		clear_cookies()
+		
 class CookieManager:
 	def __init__(self):
 		self.cookies = {}
@@ -266,3 +264,7 @@ def _update_password(user, password):
 @frappe.whitelist()
 def get_logged_user():
 	return frappe.session.user
+
+def clear_cookies():
+	frappe.session.sid = ""
+	frappe.local.cookie_manager.delete_cookie(["full_name", "user_id", "sid", "user_image", "system_user"])

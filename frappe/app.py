@@ -28,6 +28,7 @@ _sites_path = os.environ.get("SITES_PATH", ".")
 @Request.application
 def application(request):
 	frappe.local.request = request
+	frappe.local.is_ajax = frappe.get_request_header("X-Requested-With")=="XMLHttpRequest"
 	response = None
 	
 	try:
@@ -65,7 +66,10 @@ def application(request):
 		frappe.OutgoingEmailError,
 		frappe.ValidationError), e:
 		
-		response = frappe.utils.response.report_error(e.http_status_code)
+		if frappe.local.is_ajax:
+			response = frappe.utils.response.report_error(e.http_status_code)
+		else:
+			response = frappe.website.render.render("error", e.http_status_code)
 		
 		if e.__class__ == frappe.AuthenticationError:
 			if hasattr(frappe.local, "login_manager"):

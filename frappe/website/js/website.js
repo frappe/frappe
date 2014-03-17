@@ -270,6 +270,8 @@ $.extend(frappe, {
 				var $section = $(section);
 				var stype = $section.attr("data-html-block");
 				var block_data = data[stype] || "";
+
+				// NOTE: use frappe.ready instead of $.ready for reliable execution
 				if(stype==="script") {
 					$section.remove();
 					$("<script data-html-block='script'></script>")
@@ -287,8 +289,12 @@ $.extend(frappe, {
 				}
 			});
 			if(data.title) $("title").html(data.title);
+			
+			// change id of current page
+			$(".page-container").attr("id", "page-" + data.path);
+			
 			window.ga && ga('send', 'pageview', location.pathname);
-			$(document).trigger("page_change");
+			$(document).trigger("page-change");
 		}
 	},
 	set_force_reload: function(reload) {
@@ -314,7 +320,7 @@ $.extend(frappe, {
 	trigger_ready: function() {
 		$.each((frappe.page_ready_events[frappe.get_pathname()] || []), function(i, fn) {
 			fn();
-		})
+		});
 	},
 	make_navbar_active: function() {
 		var pathname = window.location.pathname;
@@ -341,10 +347,16 @@ $.extend(frappe, {
 			$("[data-html-block='breadcrumbs']").text().trim()==$("[data-html-block='header']").text().trim());
 		
 		// to show full content width, when no sidebar content
-		$(".page-sidebar").toggleClass("hidden", !!!$("[data-html-block='sidebar']").text().trim());
-		$(".page-sidebar").toggleClass("col-sm-push-9", !!$("[data-html-block='sidebar']").text().trim());
-		$(".page-content").toggleClass("col-sm-12", !!!$("[data-html-block='sidebar']").text().trim());
-		$(".page-content").toggleClass("col-sm-9 col-sm-pull-3", !!$("[data-html-block='sidebar']").text().trim());
+		var sidebar_has_content = !!$("[data-html-block='sidebar']").text().trim();
+		$(".page-sidebar, .toggle-sidebar").toggleClass("hidden", !sidebar_has_content);
+		$(".page-sidebar").toggleClass("col-sm-push-9", sidebar_has_content);
+		$(".page-content").toggleClass("col-sm-12", !sidebar_has_content);
+		$(".page-content").toggleClass("col-sm-9 col-sm-pull-3", sidebar_has_content);
+		
+		// if everything in the sub-header is hidden, hide the sub-header
+		var hide_sub_header = $(".page-sub-header .row").children().length === $(".page-sub-header .row").find(".hidden").length;
+		$(".page-sub-header").toggleClass("hidden", hide_sub_header);
+		
 		
 		// collapse sidebar in mobile view on page change
 		if(!$(".page-sidebar").hasClass("hidden-xs")) {
@@ -494,10 +506,10 @@ $(document).ready(function() {
 	frappe.render_user();
 	frappe.setup_push_state()
 	
-	$(document).trigger("page_change");
+	$(document).trigger("page-change");
 });
 
-$(document).on("page_change", function() {
+$(document).on("page-change", function() {
 	frappe.toggle_template_blocks();
 	$(document).trigger("apply_permissions");
 	frappe.datetime.refresh_when();

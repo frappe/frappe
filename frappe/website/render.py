@@ -12,11 +12,9 @@ from frappe.website.permissions import get_access, clear_permissions
 
 class PageNotFoundError(Exception): pass
 
-def render(path):
+def render(path, http_status_code=200):
 	"""render html page"""
-	frappe.local.is_ajax = frappe.get_request_header("X-Requested-With")=="XMLHttpRequest"
 	path = resolve_path(path.lstrip("/"))
-	http_status_code = 200
 	
 	try:
 		data = render_page(path)

@@ -1,13 +1,10 @@
 {% block title %}{{ title }}{% endblock %}
 
-{% block header %}<span class="text-{{ 'success' if success else 'danger'}}">{{ title }}</span>{% endblock %}
+{% block header %}<span {% if success!=None %}class="text-{{ 'success' if success else 'danger'}}"{% endif %}>
+	{{ title }}</span>{% endblock %}
 
 {% block content %}
 <div class="message-content">
-	<div class="panel panel-default">
-		<div class="panel-body">
-			<p>{{ message }}</p>
-		</div>
-	</div>
+	<p>{{ message }}</p>
 </div>
 {% endblock %}
