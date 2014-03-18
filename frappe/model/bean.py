@@ -291,10 +291,16 @@ class Bean:
 		return self.has_permission("read")
 		
 	def has_permission(self, permtype):
-		return frappe.has_permission(self.doc.doctype, permtype, self.doc)
+		if self.ignore_permissions:
+			return True
+		if self.doc.parent and self.doc.parenttype:
+			return frappe.has_permission(self.doc.parenttype, permtype, 
+				frappe.doc(self.doc.parenttype, self.doc.parent))
+		else:
+			return frappe.has_permission(self.doc.doctype, permtype, self.doc)
 		
 	def save(self, check_links=1, ignore_permissions=None):
-		if ignore_permissions:
+		if ignore_permissions!=None:
 			self.ignore_permissions = ignore_permissions
 		perm_to_check = "write"
 		if self.doc.fields.get("__islocal"):
@@ -306,7 +312,7 @@ class Bean:
 		self.prepare_for_save("save")
 		
 		# check permissions after preparing for save, since name might be required
-		if self.ignore_permissions or frappe.has_permission(self.doc.doctype, perm_to_check, self.doc):
+		if self.has_permission(perm_to_check):
 			if not self.ignore_validate:
 				self.run_method('validate')
 			self.validate_doclist()
@@ -321,7 +327,7 @@ class Bean:
 		return self
 
 	def submit(self):
-		if self.ignore_permissions or frappe.has_permission(self.doc.doctype, "submit", self.doc):
+		if self.has_permission("submit"):
 			self.to_docstatus = 1
 			self.prepare_for_save("submit")
 			self.run_method('validate')
@@ -336,7 +342,7 @@ class Bean:
 		return self
 
 	def cancel(self):
-		if self.ignore_permissions or frappe.has_permission(self.doc.doctype, "cancel", self.doc):
+		if self.has_permission("cancel"):
 			self.to_docstatus = 2
 			self.prepare_for_save("cancel")
 			self.run_method('before_cancel')
@@ -352,7 +358,7 @@ class Bean:
 	def update_after_submit(self):
 		if self.doc.docstatus != 1:
 			frappe.msgprint("Only to called after submit", raise_exception=1)
-		if self.ignore_permissions or frappe.has_permission(self.doc.doctype, "write", self.doc):
+		if self.has_permission("write"):
 			self.to_docstatus = 1
 			self.prepare_for_save("update_after_submit")
 			self.run_method('validate')

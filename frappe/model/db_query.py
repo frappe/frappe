@@ -89,9 +89,9 @@ class DatabaseQuery(object):
 	
 	def make_filter_tuple(self, key, value):
 		if isinstance(value, (list, tuple)):
-			return (self.doctype, key, value[0], value[1])
+			return [self.doctype, key, value[0], value[1]]
 		else:
-			return (self.doctype, key, "=", value)
+			return [self.doctype, key, "=", value]
 	
 	def extract_tables(self):
 		"""extract tables from fields"""
@@ -176,7 +176,10 @@ class DatabaseQuery(object):
 		
 				# prepare in condition
 				if f[2] in ['in', 'not in']:
-					opts = ["'" + t.strip().replace("'", "\\'") + "'" for t in f[3].split(',')]
+					opts = f[3]
+					if not isinstance(opts, (list, tuple)):
+						opts = f[3].split(",")
+					opts = ["'" + t.strip().replace("'", "\\'") + "'" for t in opts]
 					f[3] = "(" + ', '.join(opts) + ")"
 					self.conditions.append('ifnull(' + tname + '.' + f[1] + ", '') " + f[2] + " " + f[3])
 				else:

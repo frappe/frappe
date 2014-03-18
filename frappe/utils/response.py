@@ -9,6 +9,7 @@ import mimetypes
 import os
 import frappe
 from frappe import _
+from frappe.model.doc import Document
 import frappe.utils
 import frappe.sessions
 import frappe.model.utils
@@ -106,6 +107,8 @@ def json_handler(obj):
 		return unicode(obj)
 	elif isinstance(obj, LocalProxy):
 		return unicode(obj)
+	elif isinstance(obj, Document):
+		return obj.fields
 	else:
 		raise TypeError, """Object of type %s with value of %s is not JSON serializable""" % \
 			(type(obj), repr(obj))

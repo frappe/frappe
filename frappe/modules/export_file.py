@@ -44,8 +44,8 @@ def filter_fields(doc):
 	from frappe.model.doctype import get
 	from frappe.model import default_fields
 
-	doctypelist = get(doc.doctype, False)
-	valid_fields = [d.fieldname for d in doctypelist.get({"parent":doc.doctype,
+	doctypelist = get(doc.get("doctype"), False)
+	valid_fields = [d.fieldname for d in doctypelist.get({"parent":doc.get("doctype"),
 		"doctype":"DocField"})]
 	to_remove = []
 	

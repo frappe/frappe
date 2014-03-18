@@ -3,6 +3,7 @@
 from __future__ import unicode_literals
 
 import memcache, frappe
+from frappe.model.doc import Document
 
 class MClient(memcache.Client):
 	"""memcache client that will automatically prefix conf.db_name"""

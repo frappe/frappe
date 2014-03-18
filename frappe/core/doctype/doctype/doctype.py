@@ -273,9 +273,6 @@ def validate_permissions(permissions, for_remove=False):
 					raise_exception=True)
 	
 	def check_permission_dependency(d):
-		if d.write and not d.read:
-			frappe.msgprint(get_txt(d) + " Cannot set Write permission if Read is not set.",
-				raise_exception=True)
 		if d.cancel and not d.submit:
 			frappe.msgprint(get_txt(d) + " Cannot set Cancel permission if Submit is not set.",
 				raise_exception=True)

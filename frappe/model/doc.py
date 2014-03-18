@@ -62,9 +62,9 @@ class Document:
 			name = frappe.db.get_value(doctype, name, "name") or None
 		
 		if fielddata: 
-			self.fields = frappe._dict(fielddata)
+			self.fields = fielddata
 		else: 
-			self.fields = frappe._dict()
+			self.fields = {}
 		
 		if not self.fields.has_key('name'):
 			self.fields['name']='' # required on save
@@ -85,8 +85,8 @@ class Document:
 			if not fielddata:
 				self.fields['__islocal'] = 1
 		
-		if not self.fields.docstatus:
-			self.fields.docstatus = 0
+		if not self.fields.get("docstatus"):
+			self.fields["docstatus"] = 0
 
 	def __nonzero__(self):
 		return True
@@ -600,6 +600,9 @@ def make_autoname(key, doctype=''):
          * DE/./.YY./.MM./.##### will create a series like
            DE/09/01/0001 where 09 is the year, 01 is the month and 0001 is the series
 	"""
+	if key=="hash":
+		return frappe.generate_hash(doctype)
+	
 	if not "#" in key:
 		key = key + ".#####"
 	

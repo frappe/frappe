@@ -47,9 +47,20 @@ def set_value(doctype, name, fieldname, value):
 def insert(doclist):
 	if isinstance(doclist, basestring):
 		doclist = json.loads(doclist)
-	
-	bean = frappe.bean(doclist).insert()
-	return [d.fields for d in bean.doclist]
+		
+	if isinstance(doclist, dict):
+		doclist = [doclist]
+		
+	if doclist[0].get("parent") and doclist[0].get("parenttype"):
+		# inserting a child record
+		d = doclist[0]
+		bean = frappe.bean(d["parenttype"], d["parent"])
+		bean.doclist.append(d)
+		bean.save()
+		return [d]
+	else:
+		bean = frappe.bean(doclist).insert()
+		return [d.fields for d in bean.doclist]
 
 @frappe.whitelist()
 def save(doclist):
