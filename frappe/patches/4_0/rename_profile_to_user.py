@@ -7,7 +7,8 @@ def execute():
 	if "tabUser" not in tables:
 		frappe.rename_doc("DocType", "Profile", "User", force=True)
 
-	frappe.reload_doc("website", "doctype", "website_route_permission")
+	if frappe.db.exists("DocType", "Website Route Permission"):
+		frappe.reload_doc("website", "doctype", "website_route_permission")
+		rename_field("Website Route Permission", "profile", "user")
 	frappe.reload_doc("website", "doctype", "blogger")
-	rename_field("Website Route Permission", "profile", "user")
 	rename_field("Blogger", "profile", "user")
