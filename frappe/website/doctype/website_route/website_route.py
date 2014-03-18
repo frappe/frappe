@@ -146,8 +146,8 @@ def add_to_sitemap(options):
 	for key in sitemap_fields:
 		bean.doc.fields[key] = options.get(key)
 	if not bean.doc.page_name:
-		bean.doc.page_name = options.link_name
-	bean.doc.website_template = options.link_name
+		bean.doc.page_name = options.get("link_name")
+	bean.doc.website_template = options.get("link_name")
 
 	bean.insert(ignore_permissions=True)
 	
