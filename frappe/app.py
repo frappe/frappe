@@ -93,7 +93,7 @@ def application(request):
 	return response
 	
 def init_site(request):
-	site = _site or get_site_name(request.host)
+	site = _site or request.headers.get('X-Frappe-Site-Name') or get_site_name(request.host)
 	frappe.init(site=site, sites_path=_sites_path)
 	
 	if not frappe.local.conf:
