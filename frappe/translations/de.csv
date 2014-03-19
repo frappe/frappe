@@ -112,7 +112,7 @@ COMM-,COMM-
 CSS,CSS
 Calendar,Kalender
 Can only be exported by users with role 'Report Manager',"Kann nur von Benutzern mit der Rolle ""Report Manager"" exportiert werden"
-Cancel,Annulierenn
+Cancel,Annulieren
 Cancel permission also allows the user to delete a document (if it is not linked to any other document).,"Abbrechen Erlaubnis ermöglicht dem Benutzer auch, um ein Dokument (wenn sie nicht auf irgendeine andere Dokument verknüpft) zu löschen."
 Cancelled,Annuliert
 Cannot Update: Incorrect / Expired Link.,Kann nicht aktualisieren : Falsche / Expired -Link.
