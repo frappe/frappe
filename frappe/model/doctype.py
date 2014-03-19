@@ -300,7 +300,7 @@ def add_custom_script(doc):
 	custom = frappe.db.get_value("Custom Script", {"dt": doc.name, 
 		"script_type": "Client"}, "script") or ""
 	
-	doc.fields["__js"] = (doc.fields.get('__js') or '') + "\n\n".join(custom)
+	doc.fields["__js"] = (doc.fields.get('__js') or '') + "\n\n" + custom
 	
 def render_jinja(content):
 	if "{% include" in content:
