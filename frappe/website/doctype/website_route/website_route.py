@@ -161,9 +161,9 @@ def update_sitemap(website_route, options):
 	
 	if not bean.doc.page_name:
 		# for pages
-		bean.doc.page_name = options.link_name
+		bean.doc.page_name = options.get("link_name")
 		
-	bean.doc.website_template = options.link_name	
+	bean.doc.website_template = options.get("link_name")
 	bean.save(ignore_permissions=True)
 
 	return bean.doc.idx

@@ -266,6 +266,6 @@ def get_logged_user():
 	return frappe.session.user
 
 def clear_cookies():
-	if frappe.session:
+	if hasattr(frappe.local, "session"):
 		frappe.session.sid = ""
 	frappe.local.cookie_manager.delete_cookie(["full_name", "user_id", "sid", "user_image", "system_user"])

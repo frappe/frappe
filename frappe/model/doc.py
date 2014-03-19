@@ -567,6 +567,9 @@ class Document:
 				ret[key] = self.fields[key]
 				
 		return ret
+		
+	def get_db_value(self, key):
+		return frappe.db.get_value(self.doctype, self.name, key)
 			
 def addchild(parent, fieldname, childtype = '', doclist=None):
 	"""

@@ -36,7 +36,8 @@ def get_celery():
 	return _app
 	
 def setup_celery(app, conf):
-	app.autodiscover_tasks(frappe.get_all_apps(with_frappe=True, with_internal_apps=False, sites_path=SITES_PATH))
+	app.autodiscover_tasks(frappe.get_all_apps(with_frappe=True, with_internal_apps=False,
+		sites_path=SITES_PATH))
 	app.conf.CELERY_TASK_SERIALIZER = 'json'
 	app.conf.CELERY_ACCEPT_CONTENT = ['json']
 	app.conf.CELERY_TIMEZONE = 'UTC'
