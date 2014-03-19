@@ -16,6 +16,7 @@ class DatabaseQuery(object):
 		self.tables = []
 		self.meta = []
 		self.conditions = []
+		self.ignore_permissions = False
 		self.fields = ["name"]
 		
 	def execute(self, query=None, filters=None, fields=None, docstatus=None, 

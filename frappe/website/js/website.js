@@ -347,7 +347,7 @@ $.extend(frappe, {
 			$("[data-html-block='breadcrumbs']").text().trim()==$("[data-html-block='header']").text().trim());
 		
 		// to show full content width, when no sidebar content
-		var sidebar_has_content = !!$("[data-html-block='sidebar']").text().trim();
+		var sidebar_has_content = !!$("[data-html-block='sidebar']").html().trim();
 		$(".page-sidebar, .toggle-sidebar").toggleClass("hidden", !sidebar_has_content);
 		$(".page-sidebar").toggleClass("col-sm-push-9", sidebar_has_content);
 		$(".page-content").toggleClass("col-sm-12", !sidebar_has_content);
@@ -510,9 +510,9 @@ $(document).ready(function() {
 });
 
 $(document).on("page-change", function() {
-	frappe.toggle_template_blocks();
 	$(document).trigger("apply_permissions");
 	frappe.datetime.refresh_when();
 	frappe.trigger_ready();
+	frappe.toggle_template_blocks();
 	frappe.make_navbar_active();
 });
