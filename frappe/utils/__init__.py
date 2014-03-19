@@ -67,24 +67,6 @@ def validate_email_add(email_str):
 	email = extract_email_id(email_str)
 	return re.match("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", email.lower())
 
-def get_request_site_address(full_address=False):
-	"""get app url from request"""
-	host_name = frappe.local.conf.host_name
-
-	if not host_name:
-		if frappe.request:
-			protocol = 'https' == frappe.get_request_header('X-Forwarded-Proto', "") and 'https://' or 'http://'
-			host_name = protocol + frappe.request.host
-		elif frappe.local.site:
-			return "http://" + frappe.local.site
-		else:
-			return "http://localhost"
-
-	if full_address:
-		return host_name + frappe.get_request_header("REQUEST_URI", "")
-	else:
-		return host_name
-
 def random_string(length):
 	"""generate a random string"""
 	import string
@@ -817,19 +799,34 @@ def get_files_path():
 	return get_site_path("public", "files")
 
 def get_backups_path():
-	return get_site_path("private", "backups") 
+	return get_site_path("private", "backups")
 	
-def get_url(uri=None):
-	url = get_request_site_address()
-	if not url or "localhost" in url:
-		subdomain = frappe.db.get_value("Website Settings", "Website Settings",
-			"subdomain")
-		if subdomain:
-			if "http" not in subdomain:
-				url = "http://" + subdomain
+def get_request_site_address(full_address=False):
+	return get_url(full_address=full_address)
+	
+def get_url(uri=None, full_address=False):
+	"""get app url from request"""
+	host_name = frappe.local.conf.host_name
+	
+	if not host_name:
+		if hasattr(frappe.local, "request") and frappe.local.request and frappe.local.request.host:
+			protocol = 'https' == frappe.get_request_header('X-Forwarded-Proto', "") and 'https://' or 'http://'
+			host_name = protocol + frappe.local.request.host
+		elif frappe.local.site:
+			host_name = "http://{}".format(frappe.local.site)
+		else:
+			host_name = frappe.db.get_value("Website Settings", "Website Settings",
+				"subdomain")
+			if host_name and "http" not in host_name:
+				host_name = "http://" + host_name
 				
-	if uri:
-		url = urllib.basejoin(url, uri)
+			if not host_name:
+				host_name = "http://localhost"
+	
+	if not uri and full_address:
+		uri = frappe.get_request_header("REQUEST_URI", "")
+	
+	url = urllib.basejoin(host_name, uri) if uri else host_name
 	
 	return url
 

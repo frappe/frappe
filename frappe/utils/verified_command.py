@@ -6,15 +6,15 @@ import hmac
 import urllib
 
 import frappe
-from frappe.utils import cstr
+import frappe.utils
 
 def get_url(cmd, params, nonce, secret=None):
 	signature = get_signature(params, nonce, secret)
 	params['signature'] = signature
-	return ''.join([frappe.local.request.url_root, 'api/method/', cmd, '?', urllib.urlencode(params)])
+	return frappe.utils.get_url("".join(['api/method/', cmd, '?', urllib.urlencode(params)]))
 	
 def get_signature(params, nonce, secret=None):
-	params = "".join((cstr(p) for p in params.values()))
+	params = "".join((frappe.utils.cstr(p) for p in params.values()))
 	if not secret:
 		secret = frappe.local.conf.get("secret") or "secret"
 		

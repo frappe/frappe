@@ -12,7 +12,7 @@ from frappe.website.permissions import get_access, clear_permissions
 
 class PageNotFoundError(Exception): pass
 
-def render(path, http_status_code=200):
+def render(path, http_status_code=None):
 	"""render html page"""
 	path = resolve_path(path.lstrip("/"))
 	
@@ -29,7 +29,7 @@ def render(path, http_status_code=200):
 		data = render_page(path)
 		http_status_code = 500
 	
-	return build_response(path, data, http_status_code)
+	return build_response(path, data, http_status_code or 200)
 	
 def build_response(path, data, http_status_code):
 	# build response

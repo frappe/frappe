@@ -116,7 +116,7 @@ def json_handler(obj):
 def as_page():
 	"""print web page"""
 	from frappe.website.render import render
-	return render(frappe.response['page_name'])
+	return render(frappe.response['page_name'], http_status_code=frappe.response.get("http_status_code"))
 		
 def redirect():
 	return werkzeug.utils.redirect(frappe.response.location)

@@ -548,12 +548,14 @@ def compare(val1, condition, val2):
 	import frappe.utils
 	return frappe.utils.compare(val1, condition, val2)
 
-def respond_as_web_page(title, html, success=None):
+def respond_as_web_page(title, html, success=None, http_status_code=None):
 	local.message_title = title
 	local.message = html
 	local.message_success = success
 	local.response['type'] = 'page'
 	local.response['page_name'] = 'message.html'
+	if http_status_code:
+		local.response['http_status_code'] = http_status_code
 	
 def build_match_conditions(doctype, as_condition=True):
 	import frappe.widgets.reportview

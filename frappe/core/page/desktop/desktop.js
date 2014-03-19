@@ -215,7 +215,7 @@ frappe.desktop.show_pending_notifications = function() {
 			sum = frappe.boot.notification_info.open_count_module[module];
 		}
 		if (frappe.modules[module]) {
-			var notifier = $("#module-count-" + frappe.modules[module]._id);
+			var notifier = $("#module-count-" + frappe.desktop.get_module(module)._id);
 			if(notifier.length) {
 				notifier.toggle(sum ? true : false);
 				notifier.find(".circle-text").html(sum || "");
