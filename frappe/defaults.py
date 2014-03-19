@@ -158,7 +158,7 @@ def _clear_cache(parent):
 	if parent in common_keys:
 		frappe.clear_cache()
 	else:
-		frappe.clear_cache(user=frappe.session.user)
+		frappe.clear_cache(user=parent)
 
 def clear_cache(user=None):	
 	to_clear = []
