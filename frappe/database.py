@@ -19,6 +19,7 @@ class Database:
 	def __init__(self, host=None, user=None, password=None, ac_name=None, use_default = 0):
 		self.host = host or frappe.conf.db_host or 'localhost'
 		self.user = user or frappe.conf.db_name
+		self._conn = None
 				
 		if ac_name:
 			self.user = self.get_db_login(ac_name) or frappe.conf.db_name
@@ -30,11 +31,7 @@ class Database:
 		self.auto_commit_on_many_writes = 0
 
 		self.password = password or frappe.conf.db_password
-				
-		self.connect()
-		if self.user != 'root':
-			self.use(self.user)
-			
+							
 	def get_db_login(self, ac_name):
 		return ac_name
 
@@ -47,6 +44,8 @@ class Database:
 			use_unicode=True, charset='utf8')
 		self._conn.converter[246]=float
 		self._cursor = self._conn.cursor()
+		if self.user != 'root':
+			self.use(self.user)
 		frappe.local.rollback_observers = []
 	
 	def use(self, db_name):
@@ -69,6 +68,9 @@ class Database:
 		      * returns as a dictionary if as_dict = 1
 		      * returns as a list of lists (with cleaned up dates) if as_list = 1
 		"""
+		if not self._conn:
+			self.connect()
+		
 		# in transaction validations
 		self.check_transaction_status(query)
 		

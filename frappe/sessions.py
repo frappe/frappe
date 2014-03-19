@@ -33,6 +33,8 @@ def clear_cache(user=None):
 	if user:
 		cache.delete_value("bootinfo:" + user)
 		cache.delete_value("lang:" + user)
+		cache.delete_value("roles:" + user)
+		cache.delete_value("restrictions:" + user)
 		
 		# clear notifications
 		if frappe.flags.in_install_app!="frappe":

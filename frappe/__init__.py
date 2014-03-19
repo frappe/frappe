@@ -284,7 +284,14 @@ def get_roles(username=None):
 def has_permission(doctype, ptype="read", refdoc=None):
 	import frappe.permissions
 	return frappe.permissions.has_permission(doctype, ptype, refdoc)
-	
+
+def is_table(doctype):
+	tables = cache().get_value("is_table")
+	if tables==None:
+		tables = db.sql_list("select name from tabDocType where ifnull(istable,0)=1")
+		cache().set_value("is_table", tables)
+	return doctype in tables
+
 def clear_perms(doctype):
 	db.sql("""delete from tabDocPerm where parent=%s""", doctype)
 

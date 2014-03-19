@@ -223,8 +223,11 @@ def get_roles(username=None, with_standard=True):
 	if username=='Guest':
 		return ['Guest']
 	
-	roles = [r[0] for r in frappe.db.sql("""select role from tabUserRole 
-		where parent=%s and role!='All'""", (username,))] + ['All']
+	roles = frappe.cache().get_value("roles:" + username)
+	if not roles:
+		roles = [r[0] for r in frappe.db.sql("""select role from tabUserRole 
+			where parent=%s and role!='All'""", (username,))] + ['All']
+		frappe.cache().set_value("roles:" + username, roles)
 		
 	# filter standard if required
 	if not with_standard:

@@ -32,11 +32,14 @@ def get_restrictions(user=None):
 		return build_restrictions(user)
 	
 def build_restrictions(user):
-	out = {}
-	for key, value in frappe.db.sql("""select defkey, defvalue 
-		from tabDefaultValue where parent=%s and parenttype='Restriction'""", (user,)):
-		out.setdefault(key, [])
-		out[key].append(value)
+	out = frappe.cache().get_value("restrictions:" + user)
+	if out==None:
+		out = {}
+		for key, value in frappe.db.sql("""select defkey, defvalue 
+			from tabDefaultValue where parent=%s and parenttype='Restriction'""", (user,)):
+			out.setdefault(key, [])
+			out[key].append(value)
+		frappe.cache().set_value("restrictions:" + user, out)
 	return out
 
 def get_defaults(user=None):
@@ -131,7 +134,7 @@ def clear_default(key=None, value=None, parent=None, name=None, parenttype=None)
 def get_defaults_for(parent="Control Panel"):
 	"""get all defaults"""
 	defaults = frappe.cache().get_value("__defaults:" + parent)
-	if not defaults:
+	if defaults==None:
 		res = frappe.db.sql("""select defkey, defvalue from `tabDefaultValue` 
 			where parent = %s order by creation""", (parent,), as_dict=1)
 

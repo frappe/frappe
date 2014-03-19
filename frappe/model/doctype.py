@@ -262,6 +262,8 @@ def clear_cache(doctype=None):
 		# clear all
 		for dt in frappe.db.sql("""select name from tabDocType"""):
 			clear_single(dt[0])
+			
+	frappe.cache().delete_value("is_table")
 
 def add_code(doctype, doclist):
 	import os

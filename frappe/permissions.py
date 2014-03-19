@@ -16,7 +16,7 @@ def check_admin_or_system_manager():
 		
 def has_permission(doctype, ptype="read", refdoc=None, verbose=True):
 	"""check if user has permission"""
-	if frappe.db.get_value("DocType", doctype, "istable")==1:
+	if frappe.is_table(doctype):
 		return True
 	
 	meta = frappe.get_doctype(doctype)
