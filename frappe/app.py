@@ -96,7 +96,7 @@ def init_site(request):
 	site = _site or request.headers.get('X-Frappe-Site-Name') or get_site_name(request.host)
 	frappe.init(site=site, sites_path=_sites_path)
 	
-	if not frappe.local.conf:
+	if not (frappe.local.conf and frappe.local.conf.db_name):
 		# site does not exist
 		raise NotFound
 	
