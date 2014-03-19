@@ -208,30 +208,30 @@ frappe.ui.form.Toolbar = Class.extend({
 		this.appframe.clear_primary_action();
 		
 		if(this.can_submit()) {
-			status = frappe._("Submit");
-		} else if(this.can_save()) {
-			if(!this.frm.save_disabled) {
-				status = frappe._("Save");
+                        status = "Submit";
+                } else if(this.can_save()) {
+                        if(!this.frm.save_disabled) {
+                                status = "Save";
+                        }
+                } else if(this.can_update()) {
+                        status = "Update";
+                } else if(this.can_cancel()) {
+                        status = "Cancel";
+                } else if(this.can_amend()) {
+                        status = "Amend";
+                }
+
+                if(status) {
+                        if(status!==current) {
+                                this.appframe.set_title_right(frappe._(status), {
+                                        "Save": function() { me.frm.save('Save', null, this); },
+                                        "Submit": function() { me.frm.savesubmit(this); },
+                                        "Update": function() { me.frm.save('Update', null, this); },
+                                        "Cancel": function() { me.frm.savecancel(this); },
+                                        "Amend": function() { me.frm.amend_doc(); }
+                                }[status], null, status==="Cancel" ? "btn-default" : "btn-primary");
 			}
-		} else if(this.can_update()) {
-			status = frappe._("Update");
-		} else if(this.can_cancel()) {
-			status = frappe._("Cancel");
-		} else if(this.can_amend()) {
-			status = frappe._("Amend");
-		}
-		
-		if(status) {
-			if(status!==current) {
-				this.appframe.set_title_right(status, {
-					"Save": function() { me.frm.save('Save', null, this); },
-					"Submit": function() { me.frm.savesubmit(this); },
-					"Update": function() { me.frm.save('Update', null, this); },
-					"Cancel": function() { me.frm.savecancel(this); },
-					"Amend": function() { me.frm.amend_doc(); }
-				}[status], null, status===frappe._("Cancel") ? "btn-default" : "btn-primary");
-			}
-		} else {
+                } else {
 			this.appframe.set_title_right();
 		}
 
