@@ -248,13 +248,13 @@ $.extend(frappe, {
 		window.previous_href = href;
 		history.pushState(null, null, href);
 		
-		NProgress.start();
+		//NProgress.start();
 		$.ajax({ url: href, cache: false }).done(function(data) {
 			history.replaceState(data, data.title, href);
 			$("html, body").animate({ scrollTop: 0 }, "slow");
 			frappe.render_json(data); 
 		}).always(function() {
-			NProgress.done();
+			//NProgress.done();
 		}).fail(function(xhr, status, error) {
 			if(!xhr.responseText && status==="error") {
 				// ajax failed without response. Try reloading the full page.

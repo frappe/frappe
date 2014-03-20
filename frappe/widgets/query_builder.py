@@ -76,29 +76,6 @@ def add_match_conditions(q, tl):
 	
 	return q
 
-def exec_report(code, res, colnames=[], colwidths=[], coltypes=[], coloptions=[], filter_values={}, query='', from_export=0):
-	col_idx, i, out, style, header_html, footer_html, page_template = {}, 0, None, [], '', '', ''
-	for c in colnames:
-		col_idx[c] = i
-		i+=1
-
-	# load globals (api)
-	from frappe import *
-	from frappe.utils import *
-	from frappe.model.doc import *
-
-	set = frappe.db.set
-	get_value = frappe.db.get_value
-	convert_to_lists = frappe.db.convert_to_lists
-	NEWLINE = '\n'
-
-	exec str(code)
-
-	if out!=None:
-		res = out
-
-	return res, style, header_html, footer_html, page_template
-
 def guess_type(m):
 	"""
 		Returns fieldtype depending on the MySQLdb Description
