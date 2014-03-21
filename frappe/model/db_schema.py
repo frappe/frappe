@@ -13,25 +13,25 @@ import frappe
 from frappe.utils import cstr
 
 type_map = {
-	'currency':		('decimal', '18,6')
-	,'int':			('int', '11')
-	,'float':		('decimal', '18,6')
-	,'percent':		('decimal', '18,6')
-	,'check':		('int', '1')
-	,'small text':	('text', '')
-	,'long text':	('longtext', '')
-	,'code':		('text', '')
-	,'text editor':	('text', '')
-	,'date':		('date', '')
-	,'datetime':	('datetime', '')
-	,'time':		('time', '')
-	,'text':		('text', '')
-	,'data':		('varchar', '255')
-	,'link':		('varchar', '255')
-	,'password':	('varchar', '255')
-	,'select':		('varchar', '255')
-	,'read only':	('varchar', '255')
-	,'attach':		('varchar', '255')
+	'Currency':		('decimal', '18,6')
+	,'Int':			('int', '11')
+	,'Float':		('decimal', '18,6')
+	,'Percent':		('decimal', '18,6')
+	,'Check':		('int', '1')
+	,'Small Text':	('text', '')
+	,'Long Text':	('longtext', '')
+	,'Code':		('text', '')
+	,'Text Editor':	('text', '')
+	,'Date':		('date', '')
+	,'Datetime':	('datetime', '')
+	,'Time':		('time', '')
+	,'Text':		('text', '')
+	,'Data':		('varchar', '255')
+	,'Link':		('varchar', '255')
+	,'Password':	('varchar', '255')
+	,'Select':		('varchar', '255')
+	,'Read Only':	('varchar', '255')
+	,'Attach':		('varchar', '255')
 }
 
 default_columns = ['name', 'creation', 'modified', 'modified_by', 'owner', 'docstatus', 'parent',\
@@ -130,7 +130,7 @@ class DbTable:
 	def get_index_definitions(self):
 		ret = []
 		for k in self.columns.keys():
-			if type_map.get(self.columns[k].fieldtype) and type_map.get(self.columns[k].fieldtype.lower())[0] not in ('text', 'blob'):
+			if type_map.get(self.columns[k].fieldtype) and type_map.get(self.columns[k].fieldtype)[0] not in ('text', 'blob'):
 				ret.append('index `' + k + '`(`' + k + '`)')
 		return ret
 
@@ -422,7 +422,7 @@ def remove_all_foreign_keys():
 			frappe.db.sql("alter table `tab%s` drop foreign key `%s`" % (t[0], f[1]))
 
 def get_definition(fieldtype):
-	d = type_map.get(fieldtype.lower())
+	d = type_map.get(fieldtype)
 
 	if not d:
 		return

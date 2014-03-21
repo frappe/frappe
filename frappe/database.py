@@ -325,10 +325,8 @@ class Database:
 
 	def get_values_from_single(self, fields, filters, doctype, as_dict=False, debug=False):
 		if fields=="*" or isinstance(filters, dict):
-			r = self.sql("""select field, value from tabSingles where doctype=%s""", doctype)
-			
 			# check if single doc matches with filters
-			values = frappe._dict(r)
+			values = self.get_singles_dict(doctype)
 			if isinstance(filters, dict):
 				for key, value in filters.items():
 					if values.get(key) != value:
@@ -350,6 +348,11 @@ class Database:
 				return r and [frappe._dict(r)] or []
 			else:
 				return r and [[i[1] for i in r]] or []
+	
+	def get_singles_dict(self, doctype):
+		return frappe._dict(self.sql("""select field, value from 
+			tabSingles where doctype=%s""", doctype))
+		
 	
 	def get_values_from_table(self, fields, filters, doctype, as_dict, debug):
 		fl = []

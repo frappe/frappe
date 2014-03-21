@@ -510,11 +510,10 @@ def make_property_setter(args):
 
 def get_application_home_page(user='Guest'):
 	"""get home page for user"""
-	roles = get_roles(user)
 	hpl = db.sql("""select home_page
 		from `tabDefault Home Page`
 		where parent='Control Panel'
-		and role in (%s) order by idx asc limit 1""" % ", ".join(['%s']*len(roles)), roles)
+		and role in ('%s') order by idx asc limit 1""" % "', '".join(get_roles(user)))
 	if hpl:
 		return hpl[0][0]
 	else:

@@ -6,8 +6,6 @@ from __future__ import unicode_literals
 Contains the Document class representing an object / record
 """
 
-_toc = ["frappe.model.doc.Document"]
-
 import frappe
 from frappe import _
 import frappe.model.meta
