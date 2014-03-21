@@ -15,8 +15,8 @@ def is_single(doctype):
 
 def get_parent_dt(dt):
 	parent_dt = frappe.db.sql("""select parent from tabDocField 
-		where fieldtype="Table" and options="%s" and (parent not like "old_parent:%%") 
-		limit 1""" % dt)
+		where fieldtype="Table" and options=%s and (parent not like "old_parent:%%") 
+		limit 1""", dt)
 	return parent_dt and parent_dt[0][0] or ''
 
 def set_fieldname(field_id, fieldname):
@@ -40,12 +40,12 @@ def get_link_fields(doctype):
 	]
 
 def get_table_fields(doctype):
-	child_tables = [[d[0], d[1]] for d in frappe.db.sql("select options, fieldname from tabDocField \
-		where parent='%s' and fieldtype='Table'" % doctype, as_list=1)]
+	child_tables = [[d[0], d[1]] for d in frappe.db.sql("""select options, fieldname 
+		from tabDocField where parent=%s and fieldtype='Table'""", doctype, as_list=1)]
 	
 	try:
-		custom_child_tables = [[d[0], d[1]] for d in frappe.db.sql("select options, fieldname from `tabCustom Field` \
-			where dt='%s' and fieldtype='Table'" % doctype, as_list=1)]
+		custom_child_tables = [[d[0], d[1]] for d in frappe.db.sql("""select options, fieldname 
+			from `tabCustom Field` where dt=%s and fieldtype='Table'""", doctype, as_list=1)]
 	except Exception, e:
 		if e.args[0]!=1146:
 			raise

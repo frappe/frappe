@@ -190,6 +190,11 @@ $.extend(frappe.perm, {
 		}
 		if(explain) console.log("By Read Only:" + status);
 		
+		if(status==="Write" && df.set_only_once && !doc.__islocal) {
+			status = "Read";
+		}
+		if(explain) console.log("By Set Only Once:" + status);
+		
 		return status;
 	},
 });

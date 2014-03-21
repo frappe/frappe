@@ -9,6 +9,7 @@ Contains the Document class representing an object / record
 _toc = ["frappe.model.doc.Document"]
 
 import frappe
+from frappe import _
 import frappe.model.meta
 from frappe.utils import *
 
@@ -131,7 +132,8 @@ class Document:
 			self._loadsingle()
 		else:
 			try:
-				dataset = frappe.db.sql('select * from `tab%s` where name="%s"' % (self.doctype, self.name.replace('"', '\"')))
+				dataset = frappe.db.sql('select * from `tab%s` where name=%s' % 
+					(self.doctype, "%s"), self.name)
 			except frappe.SQLError, e:
 				if e.args[0]==1146:
 					dataset = None
@@ -215,8 +217,6 @@ class Document:
 	def save(self, new=0, check_links=1, ignore_fields=0, make_autoname=1,
 			keep_timestamps=False):
 			
-		self.get_meta()
-
 		if new:
 			self.fields["__islocal"] = 1
 
@@ -228,7 +228,7 @@ class Document:
 			self.set_idx()
 
 		# if required, make new
-		if not self._meta.issingle:
+		if not self.meta.issingle:
 			if self.is_new():
 				r = self._insert(make_autoname=make_autoname, keep_timestamps = keep_timestamps)
 				if r: 
@@ -240,7 +240,7 @@ class Document:
 				
 				
 		# save the values
-		self._update_values(self._meta.issingle, 
+		self._update_values(self.meta.issingle, 
 			check_links and self.make_link_list() or {}, ignore_fields=ignore_fields,
 			keep_timestamps=keep_timestamps)
 		self._clear_temp_fields()
@@ -249,7 +249,7 @@ class Document:
 	def _get_amended_name(self):
 		am_id = 1
 		am_prefix = self.amended_from
-		if frappe.db.sql('select amended_from from `tab%s` where name = "%s"' % (self.doctype, self.amended_from))[0][0] or '':
+		if frappe.db.get_value(self.doctype, self.amended_from, "amended_from"):
 			am_id = cint(self.amended_from.split('-')[-1]) + 1
 			am_prefix = '-'.join(self.amended_from.split('-')[:-1]) # except the last hyphen
 			
@@ -262,8 +262,7 @@ class Document:
 
 		self._new_name_set = True
 
-		self.get_meta()
-		autoname = self._meta.autoname
+		autoname = self.meta.autoname
 		
 		self.localname = self.name
 
@@ -304,7 +303,7 @@ class Document:
 			self.name = self.fields['__newname']
 
 		# default name for table
-		elif self._meta.istable: 
+		elif self.meta.istable: 
 			self.name = make_autoname('#########', self.doctype)
 			
 		# unable to determine a name, use global series
@@ -341,7 +340,7 @@ class Document:
 			self.set_new_name()
 		
 		# validate name
-		self.name = validate_name(self.doctype, self.name, self._meta.name_case)
+		self.name = validate_name(self.doctype, self.name, self.meta.name_case)
 				
 		# insert!
 		if not keep_timestamps:
@@ -362,7 +361,7 @@ class Document:
 		self.modified = now()
 		update_str, values = [], []
 		
-		frappe.db.sql("delete from tabSingles where doctype='%s'" % self.doctype)
+		frappe.db.sql("delete from tabSingles where doctype=%s", self.doctype)
 		for f in self.fields.keys():
 			if not (f in ('modified', 'doctype', 'name', 'perm', 'localname', 'creation'))\
 				and (not f.startswith('__')): # fields not saved
@@ -421,6 +420,7 @@ class Document:
 		return tmp and tmp[0][0] or ''# match case
 	
 	def _update_values(self, issingle, link_list, ignore_fields=0, keep_timestamps=False):
+		self.validate_constants()
 		if issingle:
 			self._update_single(link_list)
 		else:
@@ -457,12 +457,10 @@ class Document:
 		if getattr(frappe.local, "valid_fields_map", None) is None:
 			frappe.local.valid_fields_map = {}
 		
-		self.get_meta()
-		
 		valid_fields_map = frappe.local.valid_fields_map
 		
 		if not valid_fields_map.get(self.doctype):
-			if cint( self._meta.issingle):
+			if cint(self.meta.issingle):
 				doctypelist = frappe.model.doctype.get(self.doctype)
 				valid_fields_map[self.doctype] = doctypelist.get_fieldnames({
 					"fieldtype": ["not in", frappe.model.no_value_fields]})
@@ -472,12 +470,27 @@ class Document:
 			
 		return valid_fields_map.get(self.doctype)
 
-	def get_meta(self):
-		if not self._meta:
-			self._meta = frappe.db.get_value("DocType", self.doctype, ["autoname", "issingle", 
-				"istable", "name_case"], as_dict=True) or frappe._dict()
-		return self._meta
+	def validate_constants(self):
+		if frappe.flags.in_import:
+			return
+		
+		meta = frappe.get_doctype(self.doctype)
+		constants = [d.fieldname for d in meta.get({"set_only_once": 1})]
+		if constants:
+			values = frappe.db.get_value(self.doctype, self.name, constants, as_dict=True)
 
+		for fieldname in constants:
+			if self.fields.get(fieldname) != values.get(fieldname):
+				frappe.throw("{0}: {1}".format(_("Value cannot be changed for"), 
+					_(meta.get_field(fieldname).label)), frappe.CannotChangeConstantError)
+	
+	@property
+	def meta(self):
+		if not self._meta:
+			self._meta = frappe.db.get_value("DocType", self.doctype, "*", as_dict=True) \
+				or frappe._dict()
+				
+		return self._meta
 		
 	def update_parentinfo(self):
 		"""update parent type and parent field, if not explicitly specified"""
@@ -748,11 +761,6 @@ def validate_name(doctype, name, case=None, merge=False):
 	
 	name = name.strip() # no leading and trailing blanks
 
-	forbidden = ['%', "'", '"', '#', '*', '?', '`']
-	for f in forbidden:
-		if f in name:
-			frappe.msgprint('%s not allowed in ID (name)' % f, raise_exception =1)
-			
 	return name
 	
 def get_default_naming_series(doctype):
