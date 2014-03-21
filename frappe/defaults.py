@@ -128,7 +128,8 @@ def clear_default(key=None, value=None, parent=None, name=None, parenttype=None)
 	if not conditions:
 		raise Exception, "[clear_default] No key specified."
 	
-	frappe.db.sql("""delete from tabDefaultValue where %s""" % " and ".join(conditions), values)
+	frappe.db.sql("""delete from tabDefaultValue where {0}""".format(" and ".join(conditions)), 
+		tuple(values))
 	_clear_cache(parent)
 	
 def get_defaults_for(parent="Control Panel"):

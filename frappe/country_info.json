@@ -1,5 +1,6 @@
 {
  "Afghanistan": {
+  "code": "af", 
   "currency_fraction": "Pul", 
   "currency_fraction_units": 100, 
   "currency_symbol": "\u060b", 
@@ -9,6 +10,7 @@
   ]
  }, 
  "Albania": {
+  "code": "al", 
   "currency": "ALL", 
   "currency_fraction": "Qindark\u00eb", 
   "currency_fraction_units": 100, 
@@ -20,6 +22,7 @@
   ]
  }, 
  "Algeria": {
+  "code": "dz", 
   "currency": "DZD", 
   "currency_fraction": "Santeem", 
   "currency_fraction_units": 100, 
@@ -31,9 +34,11 @@
   ]
  }, 
  "American Samoa": {
+  "code": "as", 
   "number_format": "#,###.##"
  }, 
  "Andorra": {
+  "code": "ad", 
   "currency": "EUR", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
@@ -44,6 +49,7 @@
   ]
  }, 
  "Angola": {
+  "code": "ao", 
   "currency_fraction": "C\u00eantimo", 
   "currency_fraction_units": 100, 
   "currency_symbol": "Kz", 
@@ -53,6 +59,7 @@
   ]
  }, 
  "Anguilla": {
+  "code": "ai", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
   "currency_symbol": "$", 
@@ -62,6 +69,7 @@
   ]
  }, 
  "Antarctica": {
+  "code": "aq", 
   "number_format": "#,###.##", 
   "timezones": [
    "Antarctica/Casey", 
@@ -78,6 +86,7 @@
   ]
  }, 
  "Antigua and Barbuda": {
+  "code": "ag", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
   "currency_symbol": "$", 
@@ -87,6 +96,7 @@
   ]
  }, 
  "Argentina": {
+  "code": "ar", 
   "currency": "ARS", 
   "currency_fraction": "Centavo", 
   "currency_fraction_units": 100, 
@@ -109,6 +119,7 @@
   ]
  }, 
  "Armenia": {
+  "code": "am", 
   "currency": "AMD", 
   "currency_fraction": "Luma", 
   "currency_fraction_units": 100, 
@@ -120,6 +131,7 @@
   ]
  }, 
  "Aruba": {
+  "code": "aw", 
   "currency": "AWG", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
@@ -131,6 +143,7 @@
   ]
  }, 
  "Australia": {
+  "code": "au", 
   "currency": "AUD", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
@@ -153,6 +166,7 @@
   ]
  }, 
  "Austria": {
+  "code": "at", 
   "currency": "EUR", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
@@ -163,6 +177,7 @@
   ]
  }, 
  "Azerbaijan": {
+  "code": "az", 
   "currency_fraction": "Q\u0259pik", 
   "currency_fraction_units": 100, 
   "currency_symbol": "", 
@@ -172,6 +187,7 @@
   ]
  }, 
  "Bahamas": {
+  "code": "bs", 
   "currency": "BSD", 
   "currency_name": "Bahamian Dollar", 
   "number_format": "#,###.##", 
@@ -180,6 +196,7 @@
   ]
  }, 
  "Bahrain": {
+  "code": "bh", 
   "currency": "BHD", 
   "currency_fraction": "Fils", 
   "currency_fraction_units": 1000, 
@@ -191,6 +208,7 @@
   ]
  }, 
  "Bangladesh": {
+  "code": "bd", 
   "currency": "BDT", 
   "currency_fraction": "Paisa", 
   "currency_fraction_units": 100, 
@@ -202,6 +220,7 @@
   ]
  }, 
  "Barbados": {
+  "code": "bb", 
   "currency": "BBD", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
@@ -213,6 +232,7 @@
   ]
  }, 
  "Belarus": {
+  "code": "by", 
   "currency_fraction": "Kapyeyka", 
   "currency_fraction_units": 100, 
   "currency_symbol": "Br", 
@@ -222,6 +242,7 @@
   ]
  }, 
  "Belgium": {
+  "code": "be", 
   "currency": "EUR", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
@@ -232,6 +253,7 @@
   ]
  }, 
  "Belize": {
+  "code": "bz", 
   "currency": "BZD", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
@@ -244,6 +266,7 @@
   ]
  }, 
  "Benin": {
+  "code": "bj", 
   "currency_fraction": "Centime", 
   "currency_fraction_units": 100, 
   "currency_symbol": "Fr", 
@@ -253,6 +276,7 @@
   ]
  }, 
  "Bermuda": {
+  "code": "bm", 
   "currency": "BMD", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
@@ -264,6 +288,7 @@
   ]
  }, 
  "Bhutan": {
+  "code": "bt", 
   "currency": "BTN", 
   "currency_fraction": "Chetrum", 
   "currency_fraction_units": 100, 
@@ -275,14 +300,17 @@
   ]
  }, 
  "Bolivia, Plurinational State of": {
+  "code": "bo", 
   "currency": "BOB", 
   "currency_name": "Boliviano", 
   "number_format": "#,###.##"
  }, 
  "Bonaire, Sint Eustatius and Saba": {
+  "code": "bq", 
   "number_format": "#,###.##"
  }, 
  "Bosnia and Herzegovina": {
+  "code": "ba", 
   "currency_fraction": "Fening", 
   "currency_fraction_units": 100, 
   "currency_symbol": "KM or \u041a\u041c", 
@@ -292,6 +320,7 @@
   ]
  }, 
  "Botswana": {
+  "code": "bw", 
   "currency": "BWP", 
   "currency_fraction": "Thebe", 
   "currency_fraction_units": 100, 
@@ -303,14 +332,16 @@
   ]
  }, 
  "Bouvet Island": {
+  "code": "bv", 
   "number_format": "#,###.##"
  }, 
  "Brazil": {
-  "currency": "BRL",
+  "code": "br", 
+  "currency": "BRL", 
   "currency_fraction": "Centavo", 
   "currency_fraction_units": 100, 
   "currency_symbol": "R$", 
-  "date_format": "dd/mm/yyyy",
+  "date_format": "dd/mm/yyyy", 
   "number_format": "#.###,##", 
   "timezones": [
    "America/Araguaina", 
@@ -332,6 +363,7 @@
   ]
  }, 
  "British Indian Ocean Territory": {
+  "code": "io", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
   "currency_symbol": "$", 
@@ -341,6 +373,7 @@
   ]
  }, 
  "Brunei Darussalam": {
+  "code": "bn", 
   "currency": "BND", 
   "currency_name": "Brunei Dollar", 
   "number_format": "#,###.##", 
@@ -349,6 +382,7 @@
   ]
  }, 
  "Bulgaria": {
+  "code": "bg", 
   "currency_fraction": "Stotinka", 
   "currency_fraction_units": 100, 
   "currency_symbol": "\u043b\u0432", 
@@ -358,6 +392,7 @@
   ]
  }, 
  "Burkina Faso": {
+  "code": "bf", 
   "currency_fraction": "Centime", 
   "currency_fraction_units": 100, 
   "currency_symbol": "Fr", 
@@ -367,6 +402,7 @@
   ]
  }, 
  "Burundi": {
+  "code": "bi", 
   "currency": "BIF", 
   "currency_fraction": "Centime", 
   "currency_fraction_units": 100, 
@@ -378,6 +414,7 @@
   ]
  }, 
  "Cambodia": {
+  "code": "kh", 
   "currency": "KHR", 
   "currency_fraction": "Sen", 
   "currency_fraction_units": 100, 
@@ -389,6 +426,7 @@
   ]
  }, 
  "Cameroon": {
+  "code": "cm", 
   "currency_fraction": "Centime", 
   "currency_fraction_units": 100, 
   "currency_symbol": "Fr", 
@@ -398,6 +436,7 @@
   ]
  }, 
  "Canada": {
+  "code": "ca", 
   "currency": "CAD", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
@@ -437,6 +476,7 @@
   ]
  }, 
  "Cape Verde": {
+  "code": "cv", 
   "currency": "CVE", 
   "currency_fraction": "Centavo", 
   "currency_fraction_units": 100, 
@@ -448,6 +488,7 @@
   ]
  }, 
  "Cayman Islands": {
+  "code": "ky", 
   "currency": "KYD", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
@@ -459,6 +500,7 @@
   ]
  }, 
  "Central African Republic": {
+  "code": "cf", 
   "currency_fraction": "Centime", 
   "currency_fraction_units": 100, 
   "currency_symbol": "Fr", 
@@ -468,6 +510,7 @@
   ]
  }, 
  "Chad": {
+  "code": "td", 
   "currency_fraction": "Centime", 
   "currency_fraction_units": 100, 
   "currency_symbol": "Fr", 
@@ -477,6 +520,7 @@
   ]
  }, 
  "Chile": {
+  "code": "cl", 
   "currency": "CLP", 
   "currency_fraction": "Centavo", 
   "currency_fraction_units": 100, 
@@ -489,6 +533,7 @@
   ]
  }, 
  "China": {
+  "code": "cn", 
   "currency": "CNY", 
   "currency_name": "Yuan Renminbi", 
   "date_format": "yyyy-mm-dd", 
@@ -502,12 +547,14 @@
   ]
  }, 
  "Christmas Island": {
+  "code": "cx", 
   "number_format": "#,###.##", 
   "timezones": [
    "Indian/Christmas"
   ]
  }, 
  "Cocos (Keeling) Islands": {
+  "code": "cc", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
   "currency_symbol": "$", 
@@ -517,6 +564,7 @@
   ]
  }, 
  "Colombia": {
+  "code": "co", 
   "currency": "COP", 
   "currency_fraction": "Centavo", 
   "currency_fraction_units": 100, 
@@ -528,6 +576,7 @@
   ]
  }, 
  "Comoros": {
+  "code": "km", 
   "currency": "KMF", 
   "currency_fraction": "Centime", 
   "currency_fraction_units": 100, 
@@ -539,12 +588,14 @@
   ]
  }, 
  "Congo": {
+  "code": "cg", 
   "number_format": "#,###.##"
  }, 
  "Congo, The Democratic Republic of the": {
   "number_format": "#,###.##"
  }, 
  "Cook Islands": {
+  "code": "ck", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
   "currency_symbol": "$", 
@@ -554,6 +605,7 @@
   ]
  }, 
  "Costa Rica": {
+  "code": "cr", 
   "currency": "CRC", 
   "currency_fraction": "C\u00e9ntimo", 
   "currency_fraction_units": 100, 
@@ -565,6 +617,7 @@
   ]
  }, 
  "Croatia": {
+  "code": "hr", 
   "currency": "HRK", 
   "currency_fraction": "Lipa", 
   "currency_fraction_units": 100, 
@@ -576,6 +629,7 @@
   ]
  }, 
  "Cuba": {
+  "code": "cu", 
   "currency": "CUP", 
   "currency_fraction": "Centavo", 
   "currency_fraction_units": 100, 
@@ -587,12 +641,14 @@
   ]
  }, 
  "Cura\u00e7ao": {
+  "code": "cw", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
   "currency_symbol": "\u0192", 
   "number_format": "#,###.##"
  }, 
  "Cyprus": {
+  "code": "cy", 
   "currency": "CYP", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
@@ -604,6 +660,7 @@
   ]
  }, 
  "Czech Republic": {
+  "code": "cz", 
   "currency": "CZK", 
   "currency_fraction": "Hal\u00e9\u0159", 
   "currency_fraction_units": 100, 
@@ -615,6 +672,7 @@
   ]
  }, 
  "Denmark": {
+  "code": "dk", 
   "currency": "DKK", 
   "currency_fraction": "\u00d8re", 
   "currency_fraction_units": 100, 
@@ -626,6 +684,7 @@
   ]
  }, 
  "Djibouti": {
+  "code": "dj", 
   "currency": "DJF", 
   "currency_fraction": "Centime", 
   "currency_fraction_units": 100, 
@@ -637,6 +696,7 @@
   ]
  }, 
  "Dominica": {
+  "code": "dm", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
   "currency_symbol": "$", 
@@ -646,6 +706,7 @@
   ]
  }, 
  "Dominican Republic": {
+  "code": "do", 
   "currency": "DOP", 
   "currency_fraction": "Centavo", 
   "currency_fraction_units": 100, 
@@ -657,6 +718,7 @@
   ]
  }, 
  "Ecuador": {
+  "code": "ec", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
   "currency_symbol": "$", 
@@ -667,6 +729,7 @@
   ]
  }, 
  "Egypt": {
+  "code": "eg", 
   "currency": "EGP", 
   "currency_fraction": "Piastre[F]", 
   "currency_fraction_units": 100, 
@@ -678,6 +741,7 @@
   ]
  }, 
  "El Salvador": {
+  "code": "sv", 
   "currency": "SVC", 
   "currency_fraction": "Centavo", 
   "currency_fraction_units": 100, 
@@ -689,6 +753,7 @@
   ]
  }, 
  "Equatorial Guinea": {
+  "code": "gq", 
   "currency_fraction": "Centime", 
   "currency_fraction_units": 100, 
   "currency_symbol": "Fr", 
@@ -698,6 +763,7 @@
   ]
  }, 
  "Eritrea": {
+  "code": "er", 
   "currency": "ERN", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
@@ -710,6 +776,7 @@
   ]
  }, 
  "Estonia": {
+  "code": "ee", 
   "currency": "EEK", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
@@ -721,6 +788,7 @@
   ]
  }, 
  "Ethiopia": {
+  "code": "et", 
   "currency_fraction": "Santim", 
   "currency_fraction_units": 100, 
   "currency_symbol": "Br", 
@@ -730,11 +798,13 @@
   ]
  }, 
  "Falkland Islands (Malvinas)": {
+  "code": "fk", 
   "currency": "FKP", 
   "currency_name": "Falkland Islands Pound", 
   "number_format": "#,###.##"
  }, 
  "Faroe Islands": {
+  "code": "fo", 
   "currency_fraction": "\u00d8re", 
   "currency_fraction_units": 100, 
   "currency_symbol": "kr", 
@@ -744,6 +814,7 @@
   ]
  }, 
  "Fiji": {
+  "code": "fj", 
   "currency": "FJD", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
@@ -755,6 +826,7 @@
   ]
  }, 
  "Finland": {
+  "code": "fi", 
   "currency": "EUR", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
@@ -765,6 +837,7 @@
   ]
  }, 
  "France": {
+  "code": "fr", 
   "currency": "EUR", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
@@ -775,12 +848,14 @@
   ]
  }, 
  "French Guiana": {
+  "code": "gf", 
   "number_format": "#,###.##", 
   "timezones": [
    "America/Cayenne"
   ]
  }, 
  "French Polynesia": {
+  "code": "pf", 
   "currency_fraction": "Centime", 
   "currency_fraction_units": 100, 
   "currency_symbol": "Fr", 
@@ -792,9 +867,11 @@
   ]
  }, 
  "French Southern Territories": {
+  "code": "tf", 
   "number_format": "#,###.##"
  }, 
  "Gabon": {
+  "code": "ga", 
   "currency_fraction": "Centime", 
   "currency_fraction_units": 100, 
   "currency_symbol": "Fr", 
@@ -804,6 +881,7 @@
   ]
  }, 
  "Gambia": {
+  "code": "gm", 
   "currency": "GMD", 
   "currency_name": "Dalasi", 
   "number_format": "#,###.##", 
@@ -812,6 +890,7 @@
   ]
  }, 
  "Georgia": {
+  "code": "ge", 
   "currency_fraction": "Tetri", 
   "currency_fraction_units": 100, 
   "currency_symbol": "\u10da", 
@@ -821,6 +900,7 @@
   ]
  }, 
  "Germany": {
+  "code": "de", 
   "currency": "EUR", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
@@ -831,6 +911,7 @@
   ]
  }, 
  "Ghana": {
+  "code": "gh", 
   "currency_fraction": "Pesewa", 
   "currency_fraction_units": 100, 
   "currency_symbol": "\u20b5", 
@@ -840,6 +921,7 @@
   ]
  }, 
  "Gibraltar": {
+  "code": "gi", 
   "currency": "GIP", 
   "currency_fraction": "Penny", 
   "currency_fraction_units": 100, 
@@ -851,6 +933,7 @@
   ]
  }, 
  "Greece": {
+  "code": "gr", 
   "currency": "EUR", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
@@ -861,6 +944,7 @@
   ]
  }, 
  "Greenland": {
+  "code": "gl", 
   "number_format": "#,###.##", 
   "timezones": [
    "America/Danmarkshavn", 
@@ -870,6 +954,7 @@
   ]
  }, 
  "Grenada": {
+  "code": "gd", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
   "currency_symbol": "$", 
@@ -879,18 +964,21 @@
   ]
  }, 
  "Guadeloupe": {
+  "code": "gp", 
   "number_format": "#,###.##", 
   "timezones": [
    "America/Guadeloupe"
   ]
  }, 
  "Guam": {
+  "code": "gu", 
   "number_format": "#,###.##", 
   "timezones": [
    "Pacific/Guam"
   ]
  }, 
  "Guatemala": {
+  "code": "gt", 
   "currency": "GTQ", 
   "currency_fraction": "Centavo", 
   "currency_fraction_units": 100, 
@@ -902,6 +990,7 @@
   ]
  }, 
  "Guernsey": {
+  "code": "gg", 
   "currency_fraction": "Penny", 
   "currency_fraction_units": 100, 
   "currency_symbol": "\u00a3", 
@@ -911,6 +1000,7 @@
   ]
  }, 
  "Guinea": {
+  "code": "gn", 
   "currency": "GNF", 
   "currency_fraction": "Centime", 
   "currency_fraction_units": 100, 
@@ -922,6 +1012,7 @@
   ]
  }, 
  "Guinea-Bissau": {
+  "code": "gw", 
   "currency_fraction": "Centime", 
   "currency_fraction_units": 100, 
   "currency_symbol": "Fr", 
@@ -931,6 +1022,7 @@
   ]
  }, 
  "Guyana": {
+  "code": "gy", 
   "currency": "GYD", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
@@ -942,6 +1034,7 @@
   ]
  }, 
  "Haiti": {
+  "code": "ht", 
   "currency": "HTG", 
   "currency_fraction": "Centime", 
   "currency_fraction_units": 100, 
@@ -954,12 +1047,15 @@
   ]
  }, 
  "Heard Island and McDonald Islands": {
+  "code": "hm", 
   "number_format": "#,###.##"
  }, 
  "Holy See (Vatican City State)": {
+  "code": "va", 
   "number_format": "#,###.##"
  }, 
  "Honduras": {
+  "code": "hn", 
   "currency": "HNL", 
   "currency_fraction": "Centavo", 
   "currency_fraction_units": 100, 
@@ -971,6 +1067,7 @@
   ]
  }, 
  "Hong Kong": {
+  "code": "hk", 
   "currency": "HKD", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
@@ -982,6 +1079,7 @@
   ]
  }, 
  "Hungary": {
+  "code": "hu", 
   "currency": "HUF", 
   "currency_fraction": "Fill\u00e9r", 
   "currency_fraction_units": 100, 
@@ -994,6 +1092,7 @@
   ]
  }, 
  "Iceland": {
+  "code": "is", 
   "currency": "ISK", 
   "currency_fraction": "Eyrir", 
   "currency_fraction_units": 100, 
@@ -1005,6 +1104,7 @@
   ]
  }, 
  "India": {
+  "code": "in", 
   "currency": "INR", 
   "currency_fraction": "Paisa", 
   "currency_fraction_units": 100, 
@@ -1017,6 +1117,7 @@
   ]
  }, 
  "Indonesia": {
+  "code": "id", 
   "currency": "IDR", 
   "currency_fraction": "Sen", 
   "currency_fraction_units": 100, 
@@ -1031,11 +1132,13 @@
   ]
  }, 
  "Iran, Islamic Republic of": {
+  "code": "ir", 
   "currency": "IRR", 
   "currency_name": "Iranian Rial", 
   "number_format": "#,###.##"
  }, 
  "Iraq": {
+  "code": "iq", 
   "currency": "IQD", 
   "currency_fraction": "Fils", 
   "currency_fraction_units": 1000, 
@@ -1047,6 +1150,7 @@
   ]
  }, 
  "Ireland": {
+  "code": "ie", 
   "currency": "EUR", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
@@ -1057,6 +1161,7 @@
   ]
  }, 
  "Isle of Man": {
+  "code": "im", 
   "currency_fraction": "Penny", 
   "currency_fraction_units": 100, 
   "currency_symbol": "\u00a3", 
@@ -1066,6 +1171,7 @@
   ]
  }, 
  "Israel": {
+  "code": "il", 
   "currency": "ILS", 
   "currency_fraction": "Agora", 
   "currency_fraction_units": 100, 
@@ -1077,6 +1183,7 @@
   ]
  }, 
  "Italy": {
+  "code": "it", 
   "currency": "EUR", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
@@ -1093,6 +1200,7 @@
   "number_format": "#,###.##"
  }, 
  "Jamaica": {
+  "code": "jm", 
   "currency": "JMD", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
@@ -1104,6 +1212,7 @@
   ]
  }, 
  "Japan": {
+  "code": "jp", 
   "currency": "JPY", 
   "currency_fraction": "Sen[G]", 
   "currency_fraction_units": 100, 
@@ -1115,6 +1224,7 @@
   ]
  }, 
  "Jersey": {
+  "code": "je", 
   "currency_fraction": "Penny", 
   "currency_fraction_units": 100, 
   "currency_symbol": "\u00a3", 
@@ -1124,6 +1234,7 @@
   ]
  }, 
  "Jordan": {
+  "code": "jo", 
   "currency": "JOD", 
   "currency_fraction": "Piastre[H]", 
   "currency_fraction_units": 100, 
@@ -1135,6 +1246,7 @@
   ]
  }, 
  "Kazakhstan": {
+  "code": "kz", 
   "currency": "KZT", 
   "currency_fraction": "T\u00ef\u0131n", 
   "currency_fraction_units": 100, 
@@ -1150,6 +1262,7 @@
   ]
  }, 
  "Kenya": {
+  "code": "ke", 
   "currency": "KES", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
@@ -1161,6 +1274,7 @@
   ]
  }, 
  "Kiribati": {
+  "code": "ki", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
   "currency_symbol": "$", 
@@ -1177,11 +1291,13 @@
   "number_format": "#,###.##"
  }, 
  "Korea, Republic of": {
+  "code": "kr", 
   "currency": "KRW", 
   "currency_name": "Won", 
   "number_format": "#,###"
  }, 
  "Kuwait": {
+  "code": "kw", 
   "currency": "KWD", 
   "currency_fraction": "Fils", 
   "currency_fraction_units": 1000, 
@@ -1193,6 +1309,7 @@
   ]
  }, 
  "Kyrgyzstan": {
+  "code": "kg", 
   "currency": "KGS", 
   "currency_fraction": "Tyiyn", 
   "currency_fraction_units": 100, 
@@ -1209,6 +1326,7 @@
   "number_format": "#,###.##"
  }, 
  "Latvia": {
+  "code": "lv", 
   "currency": "LVL", 
   "currency_fraction": "Sant\u012bms", 
   "currency_fraction_units": 100, 
@@ -1220,6 +1338,7 @@
   ]
  }, 
  "Lebanon": {
+  "code": "lb", 
   "currency": "LBP", 
   "currency_fraction": "Piastre", 
   "currency_fraction_units": 100, 
@@ -1231,6 +1350,7 @@
   ]
  }, 
  "Lesotho": {
+  "code": "ls", 
   "currency": "LSL", 
   "currency_fraction": "Sente", 
   "currency_fraction_units": 100, 
@@ -1242,6 +1362,7 @@
   ]
  }, 
  "Liberia": {
+  "code": "lr", 
   "currency": "LRD", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
@@ -1253,6 +1374,7 @@
   ]
  }, 
  "Libya": {
+  "code": "ly", 
   "currency": "LYD", 
   "currency_fraction": "Dirham", 
   "currency_fraction_units": 1000, 
@@ -1264,6 +1386,7 @@
   ]
  }, 
  "Liechtenstein": {
+  "code": "li", 
   "currency_fraction": "Rappen", 
   "currency_fraction_units": 100, 
   "currency_symbol": "Fr", 
@@ -1273,6 +1396,7 @@
   ]
  }, 
  "Lithuania": {
+  "code": "lt", 
   "currency": "LTL", 
   "currency_fraction": "Centas", 
   "currency_fraction_units": 100, 
@@ -1285,6 +1409,7 @@
   ]
  }, 
  "Luxembourg": {
+  "code": "lu", 
   "currency": "EUR", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
@@ -1295,6 +1420,7 @@
   ]
  }, 
  "Macao": {
+  "code": "mo", 
   "currency": "MOP", 
   "currency_name": "Pataca", 
   "number_format": "#,###.##"
@@ -1308,6 +1434,7 @@
   "number_format": "#,###.##"
  }, 
  "Madagascar": {
+  "code": "mg", 
   "currency_fraction": "Iraimbilanja", 
   "currency_fraction_units": 5, 
   "currency_symbol": "Ar", 
@@ -1317,6 +1444,7 @@
   ]
  }, 
  "Malawi": {
+  "code": "mw", 
   "currency": "MWK", 
   "currency_fraction": "Tambala", 
   "currency_fraction_units": 100, 
@@ -1328,6 +1456,7 @@
   ]
  }, 
  "Malaysia": {
+  "code": "my", 
   "currency": "MYR", 
   "currency_fraction": "Sen", 
   "currency_fraction_units": 100, 
@@ -1340,6 +1469,7 @@
   ]
  }, 
  "Maldives": {
+  "code": "mv", 
   "currency": "MVR", 
   "currency_fraction": "Laari", 
   "currency_fraction_units": 100, 
@@ -1351,6 +1481,7 @@
   ]
  }, 
  "Mali": {
+  "code": "ml", 
   "currency_fraction": "Centime", 
   "currency_fraction_units": 100, 
   "currency_symbol": "Fr", 
@@ -1360,6 +1491,7 @@
   ]
  }, 
  "Malta": {
+  "code": "mt", 
   "currency": "MTL", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
@@ -1371,6 +1503,7 @@
   ]
  }, 
  "Marshall Islands": {
+  "code": "mh", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
   "currency_symbol": "$", 
@@ -1381,12 +1514,14 @@
   ]
  }, 
  "Martinique": {
+  "code": "mq", 
   "number_format": "#,###.##", 
   "timezones": [
    "America/Martinique"
   ]
  }, 
  "Mauritania": {
+  "code": "mr", 
   "currency": "MRO", 
   "currency_fraction": "Khoums", 
   "currency_fraction_units": 5, 
@@ -1398,6 +1533,7 @@
   ]
  }, 
  "Mauritius": {
+  "code": "mu", 
   "currency": "MUR", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
@@ -1409,12 +1545,14 @@
   ]
  }, 
  "Mayotte": {
+  "code": "yt", 
   "number_format": "#,###.##", 
   "timezones": [
    "Indian/Mayotte"
   ]
  }, 
  "Mexico": {
+  "code": "mx", 
   "currency": "MXN", 
   "currency_fraction": "Centavo", 
   "currency_fraction_units": 100, 
@@ -1437,14 +1575,17 @@
   ]
  }, 
  "Micronesia, Federated States of": {
+  "code": "fm", 
   "number_format": "#,###.##"
  }, 
  "Moldova, Republic of": {
+  "code": "md", 
   "currency": "MDL", 
   "currency_name": "Moldovan Leu", 
   "number_format": "#,###.##"
  }, 
  "Monaco": {
+  "code": "mc", 
   "currency": "EUR", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
@@ -1455,6 +1596,7 @@
   ]
  }, 
  "Mongolia": {
+  "code": "mn", 
   "currency": "MNT", 
   "currency_fraction": "M\u00f6ng\u00f6", 
   "currency_fraction_units": 100, 
@@ -1469,6 +1611,7 @@
   ]
  }, 
  "Montenegro": {
+  "code": "me", 
   "currency": "EUR", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
@@ -1479,6 +1622,7 @@
   ]
  }, 
  "Montserrat": {
+  "code": "ms", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
   "currency_symbol": "$", 
@@ -1488,6 +1632,7 @@
   ]
  }, 
  "Morocco": {
+  "code": "ma", 
   "currency": "MAD", 
   "currency_fraction": "Centime", 
   "currency_fraction_units": 100, 
@@ -1499,6 +1644,7 @@
   ]
  }, 
  "Mozambique": {
+  "code": "mz", 
   "currency_fraction": "Centavo", 
   "currency_fraction_units": 100, 
   "currency_symbol": "MT", 
@@ -1508,6 +1654,7 @@
   ]
  }, 
  "Myanmar": {
+  "code": "mm", 
   "currency": "MMK", 
   "currency_name": "Kyat", 
   "number_format": "#,###.##", 
@@ -1516,6 +1663,7 @@
   ]
  }, 
  "Namibia": {
+  "code": "na", 
   "currency": "NAD", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
@@ -1527,6 +1675,7 @@
   ]
  }, 
  "Nauru": {
+  "code": "nr", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
   "currency_symbol": "$", 
@@ -1536,6 +1685,7 @@
   ]
  }, 
  "Nepal": {
+  "code": "np", 
   "currency": "NPR", 
   "currency_fraction": "Paisa", 
   "currency_fraction_units": 100, 
@@ -1548,6 +1698,7 @@
   ]
  }, 
  "Netherlands": {
+  "code": "nl", 
   "currency": "EUR", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
@@ -1558,6 +1709,7 @@
   ]
  }, 
  "New Caledonia": {
+  "code": "nc", 
   "currency_fraction": "Centime", 
   "currency_fraction_units": 100, 
   "currency_symbol": "Fr", 
@@ -1567,6 +1719,7 @@
   ]
  }, 
  "New Zealand": {
+  "code": "nz", 
   "currency": "NZD", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
@@ -1579,6 +1732,7 @@
   ]
  }, 
  "Nicaragua": {
+  "code": "ni", 
   "currency": "NIO", 
   "currency_fraction": "Centavo", 
   "currency_fraction_units": 100, 
@@ -1590,6 +1744,7 @@
   ]
  }, 
  "Niger": {
+  "code": "ne", 
   "currency_fraction": "Centime", 
   "currency_fraction_units": 100, 
   "currency_symbol": "Fr", 
@@ -1599,6 +1754,7 @@
   ]
  }, 
  "Nigeria": {
+  "code": "ng", 
   "currency": "NGN", 
   "currency_fraction": "Kobo", 
   "currency_fraction_units": 100, 
@@ -1610,6 +1766,7 @@
   ]
  }, 
  "Niue": {
+  "code": "nu", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
   "currency_symbol": "$", 
@@ -1619,18 +1776,21 @@
   ]
  }, 
  "Norfolk Island": {
+  "code": "nf", 
   "number_format": "#,###.##", 
   "timezones": [
    "Pacific/Norfolk"
   ]
  }, 
  "Northern Mariana Islands": {
+  "code": "mp", 
   "number_format": "#,###.##", 
   "timezones": [
    "Pacific/Saipan"
   ]
  }, 
  "Norway": {
+  "code": "no", 
   "currency": "NOK", 
   "currency_fraction": "\u00d8re", 
   "currency_fraction_units": 100, 
@@ -1642,6 +1802,7 @@
   ]
  }, 
  "Oman": {
+  "code": "om", 
   "currency": "OMR", 
   "currency_fraction": "Baisa", 
   "currency_fraction_units": 1000, 
@@ -1653,6 +1814,7 @@
   ]
  }, 
  "Pakistan": {
+  "code": "pk", 
   "currency": "PKR", 
   "currency_fraction": "Paisa", 
   "currency_fraction_units": 100, 
@@ -1664,6 +1826,7 @@
   ]
  }, 
  "Palau": {
+  "code": "pw", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
   "currency_symbol": "$", 
@@ -1677,6 +1840,7 @@
   "number_format": "#,###.##"
  }, 
  "Panama": {
+  "code": "pa", 
   "currency_fraction": "Cent\u00e9simo", 
   "currency_fraction_units": 100, 
   "currency_symbol": "B/.", 
@@ -1686,6 +1850,7 @@
   ]
  }, 
  "Papua New Guinea": {
+  "code": "pg", 
   "currency": "PGK", 
   "currency_fraction": "Toea", 
   "currency_fraction_units": 100, 
@@ -1697,6 +1862,7 @@
   ]
  }, 
  "Paraguay": {
+  "code": "py", 
   "currency": "PYG", 
   "currency_fraction": "C\u00e9ntimo", 
   "currency_fraction_units": 100, 
@@ -1708,6 +1874,7 @@
   ]
  }, 
  "Peru": {
+  "code": "pe", 
   "currency": "PEN", 
   "currency_fraction": "C\u00e9ntimo", 
   "currency_fraction_units": 100, 
@@ -1719,6 +1886,7 @@
   ]
  }, 
  "Philippines": {
+  "code": "ph", 
   "currency": "PHP", 
   "currency_fraction": "Centavo", 
   "currency_fraction_units": 100, 
@@ -1731,12 +1899,14 @@
   ]
  }, 
  "Pitcairn": {
+  "code": "pn", 
   "number_format": "#,###.##", 
   "timezones": [
    "Pacific/Pitcairn"
   ]
  }, 
  "Poland": {
+  "code": "pl", 
   "currency_fraction": "Grosz", 
   "currency_fraction_units": 100, 
   "currency_symbol": "z\u0142", 
@@ -1746,6 +1916,7 @@
   ]
  }, 
  "Portugal": {
+  "code": "pt", 
   "currency": "EUR", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
@@ -1758,12 +1929,14 @@
   ]
  }, 
  "Puerto Rico": {
+  "code": "pr", 
   "number_format": "#,###.##", 
   "timezones": [
    "America/Puerto_Rico"
   ]
  }, 
  "Qatar": {
+  "code": "qa", 
   "currency": "QAR", 
   "currency_fraction": "Dirham", 
   "currency_fraction_units": 100, 
@@ -1775,6 +1948,7 @@
   ]
  }, 
  "Romania": {
+  "code": "ro", 
   "currency_fraction": "Ban", 
   "currency_fraction_units": 100, 
   "currency_symbol": "L", 
@@ -1784,11 +1958,13 @@
   ]
  }, 
  "Russian Federation": {
+  "code": "ru", 
   "currency": "RUB", 
   "currency_name": "Russian Ruble", 
   "number_format": "#.###,##"
  }, 
  "Rwanda": {
+  "code": "rw", 
   "currency": "RWF", 
   "currency_fraction": "Centime", 
   "currency_fraction_units": 100, 
@@ -1800,17 +1976,21 @@
   ]
  }, 
  "R\u00e9union": {
+  "code": "re", 
   "number_format": "#,###.##"
  }, 
  "Saint Barth\u00e9lemy": {
+  "code": "bl", 
   "number_format": "#,###.##"
  }, 
  "Saint Helena, Ascension and Tristan da Cunha": {
+  "code": "sh", 
   "currency": "SHP", 
   "currency_name": "Saint Helena Pound", 
   "number_format": "#,###.##"
  }, 
  "Saint Kitts and Nevis": {
+  "code": "kn", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
   "currency_symbol": "$", 
@@ -1820,6 +2000,7 @@
   ]
  }, 
  "Saint Lucia": {
+  "code": "lc", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
   "currency_symbol": "$", 
@@ -1829,12 +2010,15 @@
   ]
  }, 
  "Saint Martin (French part)": {
+  "code": "mf", 
   "number_format": "#,###.##"
  }, 
  "Saint Pierre and Miquelon": {
+  "code": "pm", 
   "number_format": "#,###.##"
  }, 
  "Saint Vincent and the Grenadines": {
+  "code": "vc", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
   "currency_symbol": "$", 
@@ -1844,6 +2028,7 @@
   ]
  }, 
  "Samoa": {
+  "code": "ws", 
   "currency": "WST", 
   "currency_fraction": "Sene", 
   "currency_fraction_units": 100, 
@@ -1855,6 +2040,7 @@
   ]
  }, 
  "San Marino": {
+  "code": "sm", 
   "currency": "EUR", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
@@ -1865,11 +2051,13 @@
   ]
  }, 
  "Sao Tome and Principe": {
+  "code": "st", 
   "currency": "STD", 
   "currency_name": "Dobra", 
   "number_format": "#,###.##"
  }, 
  "Saudi Arabia": {
+  "code": "sa", 
   "currency": "SAR", 
   "currency_fraction": "Halala", 
   "currency_fraction_units": 100, 
@@ -1881,6 +2069,7 @@
   ]
  }, 
  "Senegal": {
+  "code": "sn", 
   "currency_fraction": "Centime", 
   "currency_fraction_units": 100, 
   "currency_symbol": "Fr", 
@@ -1890,6 +2079,7 @@
   ]
  }, 
  "Serbia": {
+  "code": "rs", 
   "currency_fraction": "Para", 
   "currency_fraction_units": 100, 
   "currency_symbol": "\u0434\u0438\u043d. or din.", 
@@ -1899,6 +2089,7 @@
   ]
  }, 
  "Seychelles": {
+  "code": "sc", 
   "currency": "SCR", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
@@ -1910,6 +2101,7 @@
   ]
  }, 
  "Sierra Leone": {
+  "code": "sl", 
   "currency": "SLL", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
@@ -1921,6 +2113,7 @@
   ]
  }, 
  "Singapore": {
+  "code": "sg", 
   "currency": "SGD", 
   "currency_fraction": "Sen", 
   "currency_fraction_units": 100, 
@@ -1932,9 +2125,11 @@
   ]
  }, 
  "Sint Maarten (Dutch part)": {
+  "code": "sx", 
   "number_format": "#,###.##"
  }, 
  "Slovakia": {
+  "code": "sk", 
   "currency": "EUR", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
@@ -1945,6 +2140,7 @@
   ]
  }, 
  "Slovenia": {
+  "code": "si", 
   "currency": "EUR", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
@@ -1955,6 +2151,7 @@
   ]
  }, 
  "Solomon Islands": {
+  "code": "sb", 
   "currency": "SBD", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
@@ -1966,6 +2163,7 @@
   ]
  }, 
  "Somalia": {
+  "code": "so", 
   "currency": "SOS", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
@@ -1977,6 +2175,7 @@
   ]
  }, 
  "South Africa": {
+  "code": "za", 
   "currency": "ZAR", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
@@ -1989,12 +2188,14 @@
   ]
  }, 
  "South Georgia and the South Sandwich Islands": {
+  "code": "gs", 
   "currency_fraction": "Penny", 
   "currency_fraction_units": 100, 
   "currency_symbol": "\u00a3", 
   "number_format": "#,###.##"
  }, 
  "South Sudan": {
+  "code": "ss", 
   "currency_fraction": "Piastre", 
   "currency_fraction_units": 100, 
   "currency_symbol": "\u00a3", 
@@ -2004,6 +2205,7 @@
   ]
  }, 
  "Spain": {
+  "code": "es", 
   "currency": "EUR", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
@@ -2016,6 +2218,7 @@
   ]
  }, 
  "Sri Lanka": {
+  "code": "lk", 
   "currency": "LKR", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
@@ -2027,6 +2230,7 @@
   ]
  }, 
  "Sudan": {
+  "code": "sd", 
   "currency_fraction": "Piastre", 
   "currency_fraction_units": 100, 
   "currency_symbol": "\u00a3", 
@@ -2036,6 +2240,7 @@
   ]
  }, 
  "Suriname": {
+  "code": "sr", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
   "currency_symbol": "$", 
@@ -2045,9 +2250,11 @@
   ]
  }, 
  "Svalbard and Jan Mayen": {
+  "code": "sj", 
   "number_format": "#,###.##"
  }, 
  "Swaziland": {
+  "code": "sz", 
   "currency": "SZL", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
@@ -2059,6 +2266,7 @@
   ]
  }, 
  "Sweden": {
+  "code": "se", 
   "currency": "SEK", 
   "currency_fraction": "\u00d6re", 
   "currency_fraction_units": 100, 
@@ -2070,6 +2278,7 @@
   ]
  }, 
  "Switzerland": {
+  "code": "ch", 
   "currency": "CHF", 
   "currency_fraction": "Rappen[K]", 
   "currency_fraction_units": 100, 
@@ -2081,15 +2290,18 @@
   ]
  }, 
  "Syrian Arab Republic": {
+  "code": "sy", 
   "currency": "SYP", 
   "currency_name": "Syrian Pound", 
   "number_format": "#,###.##"
  }, 
  "Taiwan, Province of China": {
+  "code": "tw", 
   "date_format": "yyyy-mm-dd", 
   "number_format": "#,###.##"
  }, 
  "Tajikistan": {
+  "code": "tj", 
   "currency_fraction": "Diram", 
   "currency_fraction_units": 100, 
   "currency_symbol": "\u0405\u041c", 
@@ -2099,11 +2311,13 @@
   ]
  }, 
  "Tanzania, United Republic of": {
+  "code": "tz", 
   "currency": "TZS", 
   "currency_name": "Tanzanian Shilling", 
   "number_format": "#,###.##"
  }, 
  "Thailand": {
+  "code": "th", 
   "currency": "THB", 
   "currency_fraction": "Satang", 
   "currency_fraction_units": 100, 
@@ -2115,9 +2329,11 @@
   ]
  }, 
  "Timor-Leste": {
+  "code": "tl", 
   "number_format": "#,###.##"
  }, 
  "Togo": {
+  "code": "tg", 
   "currency_fraction": "Centime", 
   "currency_fraction_units": 100, 
   "currency_symbol": "Fr", 
@@ -2127,12 +2343,14 @@
   ]
  }, 
  "Tokelau": {
+  "code": "tk", 
   "number_format": "#,###.##", 
   "timezones": [
    "Pacific/Fakaofo"
   ]
  }, 
  "Tonga": {
+  "code": "to", 
   "currency": "TOP", 
   "currency_fraction": "Seniti[L]", 
   "currency_fraction_units": 100, 
@@ -2144,6 +2362,7 @@
   ]
  }, 
  "Trinidad and Tobago": {
+  "code": "tt", 
   "currency": "TTD", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
@@ -2155,6 +2374,7 @@
   ]
  }, 
  "Tunisia": {
+  "code": "tn", 
   "currency": "TND", 
   "currency_fraction": "Millime", 
   "currency_fraction_units": 1000, 
@@ -2166,6 +2386,7 @@
   ]
  }, 
  "Turkey": {
+  "code": "tr", 
   "currency_fraction": "Kuru\u015f", 
   "currency_fraction_units": 100, 
   "currency_symbol": "", 
@@ -2175,6 +2396,7 @@
   ]
  }, 
  "Turkmenistan": {
+  "code": "tm", 
   "currency": "TMM", 
   "currency_fraction": "Tennesi", 
   "currency_fraction_units": 100, 
@@ -2186,12 +2408,14 @@
   ]
  }, 
  "Turks and Caicos Islands": {
+  "code": "tc", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
   "currency_symbol": "$", 
   "number_format": "#,###.##"
  }, 
  "Tuvalu": {
+  "code": "tv", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
   "currency_symbol": "$", 
@@ -2201,6 +2425,7 @@
   ]
  }, 
  "Uganda": {
+  "code": "ug", 
   "currency": "UGX", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
@@ -2212,6 +2437,7 @@
   ]
  }, 
  "Ukraine": {
+  "code": "ua", 
   "currency_fraction": "Kopiyka", 
   "currency_fraction_units": 100, 
   "currency_symbol": "\u20b4", 
@@ -2224,6 +2450,7 @@
   ]
  }, 
  "United Arab Emirates": {
+  "code": "ae", 
   "currency": "AED", 
   "currency_fraction": "Fils", 
   "currency_fraction_units": 100, 
@@ -2235,6 +2462,7 @@
   ]
  }, 
  "United Kingdom": {
+  "code": "gb", 
   "currency": "GBP", 
   "currency_fraction": "Penny", 
   "currency_fraction_units": 100, 
@@ -2246,6 +2474,7 @@
   ]
  }, 
  "United States": {
+  "code": "us", 
   "currency": "USD", 
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
@@ -2287,9 +2516,11 @@
   ]
  }, 
  "United States Minor Outlying Islands": {
+  "code": "um", 
   "number_format": "#,###.##"
  }, 
  "Uruguay": {
+  "code": "uy", 
   "currency": "UYU", 
   "currency_fraction": "Cent\u00e9simo", 
   "currency_fraction_units": 100, 
@@ -2301,6 +2532,7 @@
   ]
  }, 
  "Uzbekistan": {
+  "code": "uz", 
   "currency": "UZS", 
   "currency_fraction": "Tiyin", 
   "currency_fraction_units": 100, 
@@ -2313,6 +2545,7 @@
   ]
  }, 
  "Vanuatu": {
+  "code": "vu", 
   "currency": "VUV", 
   "currency_fraction": "None", 
   "currency_fraction_units": 0, 
@@ -2324,32 +2557,39 @@
   ]
  }, 
  "Venezuela, Bolivarian Republic of": {
+  "code": "ve", 
   "number_format": "#,###.##"
  }, 
  "Viet Nam": {
+  "code": "vn", 
   "currency": "VND", 
   "currency_name": "Dong", 
   "number_format": "#.###"
  }, 
  "Virgin Islands, British": {
+  "code": "vg", 
   "number_format": "#,###.##"
  }, 
  "Virgin Islands, U.S.": {
+  "code": "vi", 
   "number_format": "#,###.##"
  }, 
  "Wallis and Futuna": {
+  "code": "wf", 
   "currency_fraction": "Centime", 
   "currency_fraction_units": 100, 
   "currency_symbol": "Fr", 
   "number_format": "#,###.##"
  }, 
  "Western Sahara": {
+  "code": "eh", 
   "number_format": "#,###.##", 
   "timezones": [
    "Africa/El_Aaiun"
   ]
  }, 
  "Yemen": {
+  "code": "ye", 
   "currency_fraction": "Fils", 
   "currency_fraction_units": 100, 
   "currency_symbol": "\ufdfc", 
@@ -2359,6 +2599,7 @@
   ]
  }, 
  "Zambia": {
+  "code": "zm", 
   "currency": "ZMK", 
   "currency_fraction": "Ngwee", 
   "currency_fraction_units": 100, 
@@ -2370,6 +2611,7 @@
   ]
  }, 
  "Zimbabwe": {
+  "code": "zw", 
   "currency": "ZWD", 
   "currency_fraction": "Thebe", 
   "currency_fraction_units": 100, 
@@ -2381,6 +2623,7 @@
   ]
  }, 
  "\u00c5land Islands": {
+  "code": "ax", 
   "number_format": "#,###.##"
  }
 }

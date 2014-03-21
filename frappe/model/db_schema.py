@@ -26,12 +26,12 @@ type_map = {
 	,'datetime':	('datetime', '')
 	,'time':		('time', '')
 	,'text':		('text', '')
-	,'data':		('varchar', '180')
-	,'link':		('varchar', '180')
-	,'password':	('varchar', '180')
-	,'select':		('varchar', '180')
-	,'read only':	('varchar', '180')
-	,'attach':		('varchar', '180')
+	,'data':		('varchar', '255')
+	,'link':		('varchar', '255')
+	,'password':	('varchar', '255')
+	,'select':		('varchar', '255')
+	,'read only':	('varchar', '255')
+	,'attach':		('varchar', '255')
 }
 
 default_columns = ['name', 'creation', 'modified', 'modified_by', 'owner', 'docstatus', 'parent',\
@@ -77,15 +77,15 @@ class DbTable:
 		
 		# create table
 		frappe.db.sql("""create table `%s` (
-			name varchar(120) not null primary key, 
+			name varchar(255) not null primary key, 
 			creation datetime,
 			modified datetime,
 			modified_by varchar(40), 
-			owner varchar(40),
+			owner varchar(60),
 			docstatus int(1) default '0', 
-			parent varchar(120),
-			parentfield varchar(120), 
-			parenttype varchar(120), 
+			parent varchar(255),
+			parentfield varchar(255), 
+			parenttype varchar(255), 
 			idx int(8),
 			%sindex parent(parent)) 
 			ENGINE=InnoDB 
@@ -95,7 +95,7 @@ class DbTable:
 		"""
 			get columns from docfields and custom fields
 		"""
-		fl = frappe.db.sql("SELECT * FROM tabDocField WHERE parent = '%s'" % self.doctype, as_dict = 1)
+		fl = frappe.db.sql("SELECT * FROM tabDocField WHERE parent = %s", self.doctype, as_dict = 1)
 		
 		try:
 			custom_fl = frappe.db.sql("""\
@@ -185,13 +185,15 @@ class DbTable:
 
 		for col in self.add_index:
 			# if index key not exists
-			if not frappe.db.sql("show index from `%s` where key_name = '%s'" % (self.name, col.fieldname)):
+			if not frappe.db.sql("show index from `%s` where key_name = %s" % 
+					(self.name, '%s'), col.fieldname):
 				frappe.db.sql("alter table `%s` add index `%s`(`%s`)" % (self.name, col.fieldname, col.fieldname))
 
 		for col in self.drop_index:
 			if col.fieldname != 'name': # primary key
 				# if index key exists
-				if frappe.db.sql("show index from `%s` where key_name = '%s'" % (self.name, col.fieldname)):
+				if frappe.db.sql("show index from `%s` where key_name = %s" % 
+						(self.name, '%s'), col.fieldname):
 					frappe.db.sql("alter table `%s` drop index `%s`" % (self.name, col.fieldname))
 
 		for col in self.set_default:

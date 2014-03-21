@@ -20,7 +20,7 @@ def get_sql_tables(q):
 
 def get_parent_dt(dt):
 	pdt = ''
-	if frappe.db.sql('select name from `tabDocType` where istable=1 and name="%s"' % dt):
+	if frappe.db.sql('select name from `tabDocType` where istable=1 and name=%s', dt):
 		import frappe.model.meta
 		return frappe.model.meta.get_parent_dt(dt)
 	return pdt
@@ -44,7 +44,8 @@ def get_sql_meta(tl):
 			meta[dt]['parent'] = ('ID', 'Link', pdt, '200')
 
 		# get the field properties from DocField
-		res = frappe.db.sql("select fieldname, label, fieldtype, options, width from tabDocField where parent='%s'" % dt)
+		res = frappe.db.sql("select fieldname, label, fieldtype, options, width \
+			from tabDocField where parent=%s", dt)
 		for r in res:
 			if r[0]:
 				meta[dt][r[0]] = (r[1], r[2], r[3], r[4]);

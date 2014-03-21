@@ -33,10 +33,9 @@ class DocType:
 		if frappe.flags.in_import:
 			return
 		parent_list = frappe.db.sql("""SELECT parent 
-			from tabDocField where fieldtype="Table" and options="%s" """ % self.doc.name)
+			from tabDocField where fieldtype="Table" and options=%s""", self.doc.name)
 		for p in parent_list:
-			frappe.db.sql('''UPDATE tabDocType SET modified="%s" 
-				WHERE `name`="%s"''' % (now(), p[0]))
+			frappe.db.sql('UPDATE tabDocType SET modified=%s WHERE `name`=%s', (now(), p[0]))
 
 	def scrub_field_names(self):
 		restricted = ('name','parent','idx','owner','creation','modified','modified_by',

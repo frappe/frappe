@@ -18,18 +18,19 @@ def execute(filters=None):
 		todo.date and getdate(todo.date) or getdate("1900-01-01")), reverse=True)
 		
 	columns = [_("ID")+":Link/ToDo:90", _("Priority")+"::60", _("Date")+ ":Date", 
-		_("Description")+"::150", _("Assigned To/Owner") + ":Link/User:120", 
-		_("Assigned By")+":Link/User:120", _("Reference")+"::200"]
+		_("Description")+"::150", _("Assigned To/Owner") + ":Data:120", 
+		_("Assigned By")+":Data:120", _("Reference")+"::200"]
 
 	result = []
 	for todo in todo_list:
-		if todo.reference_type:
-			todo.reference = """<a href="#Form/%s/%s">%s: %s</a>""" % \
-				(todo.reference_type, todo.reference_name, todo.reference_type, todo.reference_name)
-		else:
-			todo.reference = None
-		result.append([todo.name, todo.priority, todo.date, todo.description,
-			todo.owner, todo.assigned_by, todo.reference])
+		if todo.owner==frappe.session.user or todo.assigned_by==frappe.session.user:
+			if todo.reference_type:
+				todo.reference = """<a href="#Form/%s/%s">%s: %s</a>""" % (todo.reference_type, 
+					todo.reference_name, todo.reference_type, todo.reference_name)
+			else:
+				todo.reference = None
+			result.append([todo.name, todo.priority, todo.date, todo.description,
+				todo.owner, todo.assigned_by, todo.reference])
 	
 	return columns, result
 	

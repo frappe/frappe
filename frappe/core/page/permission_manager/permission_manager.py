@@ -22,10 +22,10 @@ def get_roles_and_doctypes():
 def get_permissions(doctype=None, role=None):
 	frappe.only_for("System Manager")
 	return frappe.db.sql("""select * from tabDocPerm
-		where %s%s order by parent, permlevel, role""" % (\
-			doctype and (" parent='%s'" % doctype) or "",
-			role and ((doctype and " and " or "") + " role='%s'" % role) or "",
-			), as_dict=True)
+		where %s%s order by parent, permlevel, role""" % 
+		(doctype and (" parent='%s'" % doctype.replace("'", "\'")) or "",
+		role and ((doctype and " and " or "") + " role='%s'" % role.replace("'", "\'")) or ""), 
+		as_dict=True)
 			
 @frappe.whitelist()
 def remove(doctype, name):

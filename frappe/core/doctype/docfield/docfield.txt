@@ -2,7 +2,7 @@
  {
   "creation": "2013-02-22 01:27:33", 
   "docstatus": 0, 
-  "modified": "2014-01-02 10:50:02", 
+  "modified": "2014-03-05 14:58:43", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -177,6 +177,13 @@
   "label": "Read Only", 
   "print_width": "50px", 
   "width": "50px"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "set_only_once", 
+  "fieldtype": "Check",
+  "label": "Set Only Once", 
+  "description": "Do not allow user to change after set the first time"
  }, 
  {
   "doctype": "DocField", 
