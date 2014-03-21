@@ -27,6 +27,16 @@ docfield_types = frappe.local('doctype_docfield_types')
 # doctype_cache = {}
 # docfield_types = None
 
+def get_meta(doctype, processed=False, cached=True):
+	meta = []
+	for d in get(doctype=doctype, processed=processed, cached=cached):
+		if d.doctype=="DocType" and d.name==doctype:
+			meta.append(d)
+		elif d.parent and d.parent==doctype:
+			meta.append(d)	
+	
+	return DocTypeDocList(meta)
+
 def get(doctype, processed=False, cached=True):
 	"""return doclist"""
 	if cached:
@@ -333,12 +343,12 @@ def get_property(dt, prop, fieldname=None):
 		return doctypelist[0].fields.get(prop)
 		
 def get_link_fields(doctype):
-	"""get docfields of links and selects with "link:" """
+	"""get docfields of links and selects with "link:"
+	for main doctype and child doctypes"""
 	doctypelist = get(doctype)
-	
-	return doctypelist.get({"fieldtype":"Link"}).extend(doctypelist.get({"fieldtype":"Select", 
+	return doctypelist.get({"fieldtype":"Link"}).extend(doctypelist.get({"fieldtype":"Select",
 		"options": "^link:"}))
-		
+
 def add_validators(doctype, doclist):
 	for validator in frappe.db.sql("""select name from `tabDocType Validator` where
 		for_doctype=%s""", (doctype,), as_dict=1):
@@ -417,3 +427,7 @@ class DocTypeDocList(frappe.model.doclist.DocList):
 		user_roles = frappe.get_roles(user)
 		return [p for p in self.get({"doctype": "DocPerm"})
 				if cint(p.permlevel)==0 and (p.role=="All" or p.role in user_roles)]
+				
+	def get_link_fields(self):
+		return self.get({"fieldtype":"Link", "parent": self[0].name})\
+			.extend(self.get({"fieldtype":"Select", "options": "^link:", "parent": self[0].name}))

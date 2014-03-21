@@ -348,6 +348,10 @@ def get_doclist(doctype, name=None):
 def get_doctype(doctype, processed=False):
 	import frappe.model.doctype
 	return frappe.model.doctype.get(doctype, processed)
+	
+def get_meta(doctype, processed=False):
+	import frappe.model.doctype
+	return frappe.model.doctype.get_meta(doctype, processed)
 
 def delete_doc(doctype=None, name=None, doclist = None, force=0, ignore_doctypes=None,
 	for_reload=False, ignore_permissions=False):

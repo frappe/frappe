@@ -32,6 +32,9 @@ class TestDocument(unittest.TestCase):
 		self.assertTrue(d.name.startswith("EV"))
 		self.assertEquals(frappe.db.get_value("Event", d.name, "subject"), 
 			"_Test Event 1")
+			
+		# test if default values are added
+		self.assertEquals(d.send_reminder, 1)
 		
 	def test_insert_with_child(self):
 		d = Document({
@@ -49,6 +52,36 @@ class TestDocument(unittest.TestCase):
 		self.assertTrue(d.name.startswith("EV"))
 		self.assertEquals(frappe.db.get_value("Event", d.name, "subject"), 
 			"_Test Event 2")
-			
+		
 		d1 = Document("Event", d.name)
 		self.assertTrue(d1.event_individuals[0].person, "Administrator")
+
+	def test_mandatory(self):
+		d = Document({
+			"doctype": "User",
+			"email": "test_mandatory@example.com",
+		})
+		self.assertRaises(frappe.MandatoryError, d.insert)
+		
+		d.set("first_name", "Test Mandatory")
+		d.insert()
+		self.assertEquals(frappe.db.get_value("User", d.name), d.name)
+		
+	def test_link_validation(self):
+		d = Document({
+			"doctype": "User",
+			"email": "test_link_validation@example.com",
+			"first_name": "Link Validation",
+			"user_roles": [
+				{
+					"role": "ABC"
+				}
+			]
+		})
+		self.assertRaises(frappe.LinkValidationError, d.insert)
+		d.user_roles = []
+		d.set("user_roles", {
+			"role": "System Manager"
+		})
+		d.insert()
+		self.assertEquals(frappe.db.get_value("User", d.name), d.name)

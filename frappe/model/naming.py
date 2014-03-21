@@ -44,11 +44,11 @@ def set_new_name(doc):
 		doc.name = make_autoname(autoname, doc.doctype)
 			
 	# given
-	elif doc.fields.get('__newname',''): 
-		doc.name = doc.fields['__newname']
+	elif doc.get('__newname', None): 
+		doc.name = doc.get('__newname')
 
 	# default name for table
-	elif doc.meta.istable: 
+	elif doc.meta[0].istable: 
 		doc.name = make_autoname('#########', doc.doctype)
 		
 	# unable to determine a name, use global series

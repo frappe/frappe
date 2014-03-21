@@ -28,16 +28,8 @@ def get_link_fields(doctype):
 	"""
 	import frappe.model.doctype
 	doclist = frappe.model.doctype.get(doctype)
-	return [
-		(d.fields.get('fieldname'), d.fields.get('options'), d.fields.get('label'))
-		for d in doclist
-		if d.fields.get('doctype') == 'DocField' and d.fields.get('parent') == doctype
-		and d.fields.get('fieldname')!='owner'
-		and (d.fields.get('fieldtype') == 'Link' or
-			(	d.fields.get('fieldtype') == 'Select'
-				and (d.fields.get('options') or '').startswith('link:'))
-			)
-	]
+	return [(d.fields.get('fieldname'), d.fields.get('options'), d.fields.get('label')) 
+		for d in doclist.get_link_fields() if d.fields.get('fieldname')!='owner']
 
 def get_table_fields(doctype):
 	child_tables = [[d[0], d[1]] for d in frappe.db.sql("""select options, fieldname 
