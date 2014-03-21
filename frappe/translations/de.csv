@@ -112,9 +112,9 @@ COMM-,COMM-
 CSS,CSS
 Calendar,Kalender
 Can only be exported by users with role 'Report Manager',"Kann nur von Benutzern mit der Rolle ""Report Manager"" exportiert werden"
-Cancel,Kündigen
+Cancel,Annulieren
 Cancel permission also allows the user to delete a document (if it is not linked to any other document).,"Abbrechen Erlaubnis ermöglicht dem Benutzer auch, um ein Dokument (wenn sie nicht auf irgendeine andere Dokument verknüpft) zu löschen."
-Cancelled,Abgesagt
+Cancelled,Annuliert
 Cannot Update: Incorrect / Expired Link.,Kann nicht aktualisieren : Falsche / Expired -Link.
 Cannot Update: Incorrect Password,Kann nicht aktualisieren : Falsche Passwort
 Cannot change from,Kann nicht ändern
@@ -482,7 +482,7 @@ Name,Name
 Name Case,Name Gehäuse
 Name Exists,Namen existiert
 Naming Series mandatory,Benennen Series obligatorisch
-New,neu
+New,Neu(e)
 New Password,New Password
 New Record,Neuer Rekord
 New value to be set,Neuer Wert eingestellt werden
@@ -661,7 +661,7 @@ SMS,SMS
 Sales,Vertrieb
 Same file has already been attached to the record,Gleiche Datei bereits auf den Rekordwert angebracht
 Saturday,Samstag
-Save,Sparen
+Save,Speichern
 Scheduler Log,Scheduler Log
 Script,Skript
 Script Report,Script melden
@@ -738,8 +738,8 @@ Style Settings,Style Einstellungen
 Sub-domain provided by erpnext.com,Sub-Domain durch erpnext.com vorgesehen
 Subdomain,Subdomain
 Subject,Thema
-Submit,Einreichen
-Submitted,Eingereicht
+Submit,Abschliessen
+Submitted,Abgeschlossen
 Submitted Record cannot be deleted,Eingereicht Datensatz kann nicht gelöscht werden
 Success,Erfolg
 Suggestion,Vorschlag
