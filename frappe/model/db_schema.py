@@ -130,7 +130,7 @@ class DbTable:
 	def get_index_definitions(self):
 		ret = []
 		for k in self.columns.keys():
-			if type_map.get(self.columns[k].fieldtype) and type_map.get(self.columns[k].fieldtype)[0] not in ('text', 'blob'):
+			if type_map.get(self.columns[k].fieldtype) and type_map.get(self.columns[k].fieldtype)[0] not in ('text', 'longtext'):
 				ret.append('index `' + k + '`(`' + k + '`)')
 		return ret
 
@@ -213,7 +213,7 @@ class DbColumn:
 		ret = get_definition(self.fieldtype)
 
 		if with_default and self.default and (self.default not in default_shortcuts) \
-			and not self.default.startswith(":") and ret not in ['text', 'longblob']:
+			and not self.default.startswith(":") and ret not in ['text', 'longtext']:
 			ret += ' default "' + self.default.replace('"', '\"') + '"'
 			
 		return ret
@@ -240,11 +240,11 @@ class DbColumn:
 			if (current_def['index'] and not self.set_index):
 				self.table.drop_index.append(self)
 			
-			if (not current_def['index'] and self.set_index and not (column_def in ['text','blob'])):
+			if (not current_def['index'] and self.set_index and not (column_def in ['text', 'longtext'])):
 				self.table.add_index.append(self)
 		
 		# default
-		if (self.default_changed(current_def) and (self.default not in default_shortcuts) and not cstr(self.default).startswith(":") and not (column_def in ['text','blob'])):
+		if (self.default_changed(current_def) and (self.default not in default_shortcuts) and not cstr(self.default).startswith(":") and not (column_def in ['text','longtext'])):
 			self.table.set_default.append(self)
 
 
