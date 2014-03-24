@@ -6,7 +6,118 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.utils import cstr, cint
+from frappe.model import integer_docfield_properties
+from frappe.model.document import Document
+
+######
+
+def get_meta(doctype, cached=True):
+	if cached:
+		if doctype not in frappe.local.meta:
+			frappe.local.meta[doctype] = frappe.cache().get_value("meta:" + doctype, lambda: Meta(doctype))
+		return frappe.local.meta.get(doctype)
+	else:
+		return Meta(doctype)
+
+class Meta(Document):
+	_metaclass = True
+	def __init__(self, doctype):
+		super(Meta, self).__init__("DocType", doctype)
+		
+	def get_link_fields(self):
+		tmp = self.get("fields", {"fieldtype":"Link"})
+		tmp.extend(self.get("fields", {"fieldtype":"Select", "options": "^link:"}))
+		return tmp
 	
+	def get_table_fields(self):
+		return [
+			frappe._dict({"fieldname": "fields", "options": "DocField"}), 
+			frappe._dict({"fieldname": "permissions", "options": "DocPerm"})
+		]
+		
+	def get_valid_columns(self):
+		if not hasattr(self, "_valid_columns"):
+			doctype = self.__dict__.get("doctype")
+			self._valid_columns = frappe.db.get_table_columns(doctype)
+		
+		return self._valid_columns
+		
+	def get_table_field_doctype(self, fieldname):
+		return { "fields": "DocField", "permissions": "DocPerm"}.get(fieldname)
+		
+	def process(self):
+		self.add_custom_fields()
+		self.apply_property_setters()
+		self.sort_fields()
+		
+	def add_custom_fields(self):
+		try:
+			self.extend("fields", frappe.db.sql("""SELECT * FROM `tabCustom Field`
+				WHERE dt = %s AND docstatus < 2""", (doctype,), as_dict=1))
+		except Exception, e:
+			if e.args[0]==1146:
+				return
+			else:
+				raise
+	
+	def apply_property_setters(self):
+		for ps in frappe.db.sql("""select * from `tabProperty Setter` where
+			doc_type=%s""", (doctype,), as_dict=1):
+			if ps['doctype_or_field']=='DocType':
+				if ps.get('property_type', None) in ('Int', 'Check'):
+					ps['value'] = cint(ps['value'])
+
+				self.set(ps["property"], ps["value"])
+			else:
+				docfield = self.get("fields", {"fieldname":ps["fieldname"]}, limit=1)[0]
+
+				if not docfield: continue
+				if ps["property"] in integer_docfield_properties:
+					ps['value'] = cint(ps['value'])
+
+				docfield.set(ps["property"], ps["value"])
+				
+	def sort_fields(self):
+		"""sort on basis of previous_field"""
+		newlist = []
+		pending = self.get("fields")
+
+		if self.get("_idx"):
+			for fieldname in json.loads(self.get("_idx")):
+				d = self.get("fields", {"fieldname": fieldname}, limit=1)
+				if d:
+					newlist.append(d[0])
+					pending.remove(d[0])
+		else:
+			maxloops = 20
+			while (pending and maxloops>0):
+				maxloops -= 1
+				for d in pending[:]:
+					if d.previous_field:
+						# field already added
+						for n in newlist:
+							if n.fieldname==d.previous_field:
+								newlist.insert(newlist.index(n)+1, d)
+								pending.remove(d)
+								break
+					else:
+						newlist.append(d)
+						pending.remove(d)
+
+		# recurring at end	
+		if pending:
+			newlist += pending
+
+		# renum
+		idx = 1
+		for d in newlist:
+			d.idx = idx
+			idx += 1
+
+		self.set("fields", newlist)
+
+#######
+
 def is_single(doctype):
 	try:
 		return frappe.db.get_value("DocType", doctype, "issingle")

@@ -27,16 +27,6 @@ docfield_types = frappe.local('doctype_docfield_types')
 # doctype_cache = {}
 # docfield_types = None
 
-def get_meta(doctype, processed=False, cached=True):
-	meta = []
-	for d in get(doctype=doctype, processed=processed, cached=cached):
-		if d.doctype=="DocType" and d.name==doctype:
-			meta.append(d)
-		elif d.parent and d.parent==doctype:
-			meta.append(d)	
-	
-	return DocTypeDocList(meta)
-
 def get(doctype, processed=False, cached=True):
 	"""return doclist"""
 	if cached:

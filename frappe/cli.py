@@ -660,11 +660,27 @@ def smtp_debug_server():
 	os.execv(python, [python, '-m', "smtpd", "-n", "-c", "DebuggingServer", "localhost:25"])
 
 @cmd
-def run_tests(app=None, module=None, doctype=None, verbose=False):
+def run_tests(app=None, module=None, doctype=None, verbose=False, profile=False):
 	import frappe.test_runner
-	ret = frappe.test_runner.main(app and app[0], module and module[0], doctype and doctype[0], verbose)
-	if len(ret.failures) > 0 or len(ret.errors) > 0:
-		exit(1)
+
+	def _run():
+		ret = frappe.test_runner.main(app and app[0], module and module[0], doctype and doctype[0], verbose)
+		if len(ret.failures) > 0 or len(ret.errors) > 0:
+			exit(1)
+
+	if profile:
+		import cProfile, pstats, StringIO
+		pr = cProfile.Profile()
+		pr.enable()
+		_run()
+		pr.disable()
+		s = StringIO.StringIO()
+		sortby = 'cumulative'
+		ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
+		ps.print_stats()
+		print s.getvalue()
+	else:
+		_run()
 
 @cmd
 def serve(port=8000, profile=False, sites_path='.', site=None):

@@ -35,6 +35,7 @@ class TestDocument(unittest.TestCase):
 			
 		# test if default values are added
 		self.assertEquals(d.send_reminder, 1)
+		return d
 		
 	def test_insert_with_child(self):
 		d = Document({
@@ -55,7 +56,14 @@ class TestDocument(unittest.TestCase):
 		
 		d1 = Document("Event", d.name)
 		self.assertTrue(d1.event_individuals[0].person, "Administrator")
-
+		
+	def test_update(self):
+		d = self.test_insert()
+		d.subject = "subject changed"
+		d.save()
+		
+		self.assertEquals(frappe.db.get_value(d.doctype, d.name, "subject"), "subject changed")
+		
 	def test_mandatory(self):
 		d = Document({
 			"doctype": "User",

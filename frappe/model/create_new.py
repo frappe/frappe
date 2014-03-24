@@ -29,8 +29,10 @@ def get_new_doc(doctype, parent_doc = None, parentfield = None):
 	if parentfield:
 		doc.parentfield = parentfield
 	
+	defaults = frappe.defaults.get_defaults()
+	
 	for d in meta.get({"doctype":"DocField", "parent": doctype}):
-		default = frappe.defaults.get_user_default(d.fieldname)
+		default = defaults.get(d.fieldname)
 		
 		if (d.fieldtype=="Link") and d.ignore_restrictions != 1 and (d.options in restrictions)\
 			and len(restrictions[d.options])==1:

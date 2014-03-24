@@ -9,65 +9,81 @@ from frappe.model import default_fields
 from frappe.model.db_schema import type_map
 from frappe.model.naming import set_new_name
 
-# validation - links, mandatory
+# save / update
 # once_only validation
 # permissions
 # methods
 # timestamps and docstatus
-# defaults (insert)
 
 class BaseDocument(object):
-	def __init__(self, d):
-		self.update(d)
+	def __init__(self, d, valid_columns=None):
+		self.update(d, valid_columns=valid_columns)
 
 	def __getattr__(self, key):
 		if self.__dict__.has_key(key):
 			return self.__dict__[key]
 
-		if key in self.get_table_columns():
+		if key!= "_valid_columns" and key in self.get_valid_columns():
 			return None
 
 		raise AttributeError(key)
 
-	def update(self, d):
+	def update(self, d, valid_columns=None):
+		if valid_columns:
+			self.__dict__["_valid_columns"] = valid_columns
 		if "doctype" in d:
 			self.set("doctype", d.get("doctype"))
 		for key, value in d.iteritems():
 			self.set(key, value)
 		
-	def get(self, key=None, default=None):
+	def get(self, key=None, filters=None, limit=None, default=None):
 		if key:
-			return self.__dict__.get(key, default)
+			if filters:
+				return _filter(self.__dict__.get(key), filters, limit=limit)
+			else:
+				return self.__dict__.get(key, default)
 		else:
 			return self.__dict__
 				
-	def set(self, key, value):
+	def set(self, key, value, valid_columns=None):
+		if isinstance(value, list):
+			tmp = []
+			for v in value:
+				tmp.append(self._init_child(v, key, valid_columns))
+			value = tmp
+
+		self.__dict__[key] = value
+			
+	def append(self, key, value):
 		if isinstance(value, dict):
-			# appending
 			if not self.get(key):
 				self.__dict__[key] = []
 			self.get(key).append(self._init_child(value, key))
-		elif isinstance(value, list):
-			for v in value:
-				self.set(key, v)
 		else:
-			self.__dict__[key] = value
+			raise ValueError
+			
+	def extend(self, key, value):
+		if isinstance(value, list):
+			for v in value:
+				self.append(v)
+		else:
+			raise ValueError
 	
-	def _init_child(self, value, key):
+	def _init_child(self, value, key, valid_columns=None):
 		if not self.doctype:
 			return value
 		if not isinstance(value, BaseDocument):
 			if not value.get("doctype"):
-				value["doctype"] = self.meta.get({"fieldname":key})[0].options
+				value["doctype"] = self.get_table_field_doctype(key)
 			if not value.get("doctype"):
 				raise AttributeError, key
-			value = BaseDocument(value)
+			value = BaseDocument(value, valid_columns=valid_columns)
 			
 		value.parent = self.name
 		value.parenttype = self.doctype
 		value.parentfield = key
 		if not value.idx:
-			value.idx = len(self.get(key))
+			value.idx = len(self.get(key) or []) + 1
 				
 		return value
 
@@ -79,24 +95,31 @@ class BaseDocument(object):
 		
 	def get_valid_dict(self):
 		d = {}
-		for fieldname in self.table_columns:
+		for fieldname in self.valid_columns:
 			d[fieldname] = self.get(fieldname)
 		return d
+		
+	def get_for_save(self):
+		d = self.get_valid_dict()
+		
 			
 	@property
-	def table_columns(self):
-		return self.get_table_columns()
+	def valid_columns(self):
+		return self.get_valid_columns()
 
-	def get_table_columns(self):
-		if not hasattr(self, "_table_columns"):
+	def get_valid_columns(self):
+		if not hasattr(self, "_valid_columns"):
 			doctype = self.__dict__.get("doctype")
-			self._table_columns = default_fields[1:] + \
-				[df.fieldname for df in frappe.get_meta(doctype).get_docfields()
+			self._valid_columns = default_fields[1:] + \
+				[df.fieldname for df in frappe.get_meta(doctype).get("fields")
 					if df.fieldtype in type_map]
 		
-		return self._table_columns
+		return self._valid_columns
+		
+	def get_table_field_doctype(self, fieldname):
+		return self.meta.get("fields", {"fieldname":fieldname})[0].options
 	
-	def insert_row(self):
+	def db_insert(self):
 		set_new_name(self)
 		d = self.get_valid_dict()
 		columns = d.keys()
@@ -106,9 +129,19 @@ class BaseDocument(object):
 				columns = ", ".join(["`"+c+"`" for c in columns]),
 				values = ", ".join(["%s"] * len(columns))
 			), d.values())
+		self.set("__islocal", False)
+
+	def db_update(self):
+		d = self.get_valid_dict()
+		columns = d.keys()
+		frappe.db.sql("""update `tab{doctype}` 
+			set {values} where name=%s""".format(
+				doctype = self.doctype,
+				values = ", ".join(["`"+c+"`=%s" for c in columns])
+			), d.values() + [d.get("name")])
 			
 	def fix_numeric_types(self):
-		for df in self.meta.get_docfields():
+		for df in self.meta.get("fields"):
 			if df.fieldtype in ("Int", "Check"):
 				self.set(df.fieldname, cint(self.get(df.fieldname)))
 			elif df.fieldtype in ("Float", "Currency"):
@@ -137,7 +170,7 @@ class BaseDocument(object):
 				
 		missing = []
 		
-		for df in self.meta.get({"doctype": "DocField", "reqd": 1}):
+		for df in self.meta.get("fields", {"reqd": 1}):
 			if self.get(df.fieldname) in (None, []):
 				missing.append((df.fieldname, get_msg(df)))
 		
@@ -193,17 +226,25 @@ class Document(BaseDocument):
 			raise frappe.DataError("Document({0}, {1})".format(arg1, arg2))
 
 	def load_from_db(self):
-		if self.meta[0].issingle:
+		if not getattr(self, "_metaclass", False) and self.meta.issingle:
 			self.update(frappe.db.get_singles_dict(self.doctype))
 			self.fix_numeric_types()
 		
 		else:
 			d = frappe.db.get_value(self.doctype, self.name, "*", as_dict=1)
-			for df in self.meta.get({"doctype":"DocField", "fieldtype":"Table"}):
-				d[df.fieldname] = frappe.db.get_values(df.options, 
+			self.update(d, valid_columns = d.keys())
+
+			for df in self.get_table_fields():
+				children = frappe.db.get_values(df.options, 
 					{"parent": self.name, "parenttype": self.doctype, "parentfield": df.fieldname}, 
 					"*", as_dict=True)
-			self.update(d)
+				if children:
+					self.set(df.fieldname, children, children[0].keys())
+				else:
+					self.set(df.fieldname, [])
+			
+	def get_table_fields(self):
+		return self.meta.get('fields', {"fieldtype":"Table"})
 					
 	def insert(self):
 		# check links
@@ -215,16 +256,34 @@ class Document(BaseDocument):
 		# run validate, on update etc.
 		
 		# parent
-		if self.meta[0].issingle:
+		if self.meta.issingle:
 			self.update_single(self.get_valid_dict())
 		else:
-			self.insert_row()
+			self.db_insert()
 		
 		# children
 		for d in self.get_all_children():
 			d.parent = self.name
-			d.insert_row()
+			d.db_insert()
 
+	def save(self):
+		if self.get("__islocal") or not self.get("name"):
+			self.insert()
+			return
+
+		self._validate()
+
+		# parent
+		if self.meta.issingle:
+			self.update_single(self.get_valid_dict())
+		else:
+			self.db_update()
+
+		# children
+		for d in self.get_all_children():
+			d.parent = self.name
+			d.db_update()
+			
 	def update_single(self, d):
 		frappe.db.sql("""delete from tabSingles where doctype=%s""", d.get("doctype"))
 		for field, value in d.iteritems():
@@ -241,7 +300,7 @@ class Document(BaseDocument):
 		self.set_missing_values(new_doc)
 
 		# children
-		for df in self.meta.get({"fieldtype":"Table"}):
+		for df in self.meta.get("fields", {"fieldtype":"Table"}):
 			new_doc = frappe.new_doc(df.options).fields
 			value = self.get(df.fieldname)
 			if isinstance(value, list):
@@ -249,11 +308,59 @@ class Document(BaseDocument):
 					d.set_missing_values(new_doc)
 
 	def _validate(self):
-		self.trigger("validate")
+		#self.check_if_latest()
 		self.validate_mandatory()
 		self.validate_links()
 			
 		# check restrictions
+		
+	def check_if_latest(self, method="save"):
+		conflict = False
+		if not self.get('__islocal'):
+			if self.meta.issingle:
+				modified = frappe.db.get_value(self.doctype, self.name, "modified")
+				if cstr(modified) and cstr(modified) != cstr(self.modified):
+					conflict = True
+			else:
+				tmp = frappe.db.sql("""select modified, docstatus from `tab%s` 
+					where name=%s for update"""
+					% (self.doctype, '%s'), self.name, as_dict=True)
+
+				if not tmp:
+					frappe.msgprint("""This record does not exist. Please refresh.""", raise_exception=1)
+
+				modified = cstr(tmp[0].modified)
+				if modified and modified != cstr(self.modified):
+					conflict = True
+			
+				self.check_docstatus_transition(tmp[0].docstatus, method)
+				
+			if conflict:
+				frappe.msgprint(_("Error: Document has been modified after you have opened it") \
+				+ (" (%s, %s). " % (modified, self.modified)) \
+				+ _("Please refresh to get the latest document."), raise_exception=TimestampMismatchError)
+
+	def check_docstatus_transition(self, db_docstatus):
+		valid = {
+			"save": [0,0],
+			"submit": [0,1],
+			"cancel": [1,2],
+			"update_after_submit": [1,1]
+		}
+		
+		labels = {
+			0: _("Draft"),
+			1: _("Submitted"),
+			2: _("Cancelled")
+		}
+		
+		if not hasattr(self, "to_docstatus"):
+			self.to_docstatus = 0
+		
+		if [db_docstatus, self.to_docstatus] != valid[method]:
+			frappe.msgprint(_("Cannot change from") + ": " + labels[db_docstatus] + " > " + \
+				labels[self.to_docstatus], raise_exception=DocstatusTransitionError)
+
 		
 	def validate_mandatory(self):
 		if self.get("ignore_mandatory"):
@@ -288,7 +395,7 @@ class Document(BaseDocument):
 			
 	def get_all_children(self):
 		ret = []
-		for df in self.meta.get({"fieldtype": "Table"}):
+		for df in self.meta.get("fields", {"fieldtype": "Table"}):
 			value = self.get(df.fieldname)
 			if isinstance(value, list):
 				ret.extend(value)
@@ -296,3 +403,37 @@ class Document(BaseDocument):
 			
 	def trigger(self, func, *args, **kwargs):
 		return
+		
+def _filter(data, filters, limit=None):
+	"""pass filters as:
+		{"key": "val", "key": ["!=", "val"],
+		"key": ["in", "val"], "key": ["not in", "val"], "key": "^val",
+		"key" : True (exists), "key": False (does not exist) }"""
+
+	out = []
+	
+	for d in data:
+		add = True
+		for f in filters:
+			fval = filters[f]
+			
+			if fval is True:
+				fval = ["not None", fval]
+			elif fval is False:
+				fval = ["None", fval]
+			elif not isinstance(fval, (tuple, list)):
+				if isinstance(fval, basestring) and fval.startswith("^"):
+					fval = ["^", fval[1:]]
+				else:
+					fval = ["=", fval]
+			
+			if not frappe.compare(d.get(f), fval[0], fval[1]):
+				add = False
+				break
+
+		if add:
+			out.append(d)
+			if limit and (len(out)-1)==limit:
+				break
+	
+	return out
