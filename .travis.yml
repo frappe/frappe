@@ -13,7 +13,7 @@ install:
   - sudo add-apt-repository 'deb http://ftp.osuosl.org/pub/mariadb/repo/5.5/ubuntu precise main'
   - sudo apt-get update
   - sudo apt-get purge -y mysql-common
-  - sudo apt-get install mariadb-server mariadb-common libmysqlclient-dev
+  - sudo apt-get install mariadb-server mariadb-common libmariadbclient-dev
   
   - CFLAGS=-O0 pip install -r requirements.txt
   - pip install --editable .
