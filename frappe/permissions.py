@@ -14,7 +14,7 @@ def check_admin_or_system_manager():
 	 	(frappe.session.user!="Administrator"):
 		msgprint("Only Allowed for Role System Manager or Administrator", raise_exception=True)
 		
-def has_permission(doctype, ptype="read", refdoc=None, verbose=True):
+def has_permission(doctype, ptype="read", doc=None, verbose=True):
 	"""check if user has permission"""
 	if frappe.is_table(doctype):
 		return True
@@ -34,14 +34,14 @@ def has_permission(doctype, ptype="read", refdoc=None, verbose=True):
 	if not get_user_perms(meta).get(ptype):
 		return False
 		
-	if refdoc:
-		if isinstance(refdoc, basestring):
-			refdoc = frappe.doc(meta.name, refdoc)
+	if doc:
+		if isinstance(doc, basestring):
+			doc = frappe.doc(meta.name, doc)
 		
-		if not has_unrestricted_access(meta, refdoc, verbose=verbose):
+		if not has_unrestricted_access(doc, verbose=verbose):
 			return False
 		
-		if not has_controller_permissions(refdoc):
+		if not has_controller_permissions(doc):
 			return False
 
 	return True
@@ -66,12 +66,13 @@ def get_user_perms(meta, user=None):
 
 	return frappe.local.user_perms[cache_key]
 		
-def has_unrestricted_access(meta, refdoc, verbose=True):
+def has_unrestricted_access(doc, verbose=True):
 	from frappe.defaults import get_restrictions
 	restrictions = get_restrictions()
-		
+	meta = frappe.get_meta(doc.get("doctype"))
+
 	if get_user_perms(meta).restricted:
-		if refdoc.owner == frappe.session.user:
+		if doc.owner == frappe.session.user:
 			# owner is always allowed for restricted permissions
 			return True
 		elif not restrictions:
@@ -85,15 +86,15 @@ def has_unrestricted_access(meta, refdoc, verbose=True):
 	
 	has_restricted_data = False
 	for df in fields_to_check:
-		if refdoc.get(df.fieldname) and refdoc.get(df.fieldname) not in restrictions[df.options]:
+		if doc.get(df.fieldname) and doc.get(df.fieldname) not in restrictions[df.options]:
 			if verbose:
 				msg = "{not_allowed}: {doctype} {having} {label} = {value}".format(
 					not_allowed=_("Sorry, you are not allowed to access"), doctype=_(df.options),
-					having=_("having"), label=_(df.label), value=refdoc.get(df.fieldname))
+					having=_("having"), label=_(df.label), value=doc.get(df.fieldname))
 			
-				if refdoc.parentfield:
-					msg = "{doctype}, {row} #{idx}, ".format(doctype=_(refdoc.doctype),
-						row=_("Row"), idx=refdoc.idx) + msg
+				if doc.parentfield:
+					msg = "{doctype}, {row} #{idx}, ".format(doctype=_(doc.doctype),
+						row=_("Row"), idx=doc.idx) + msg
 			
 				msgprint(msg)
 			

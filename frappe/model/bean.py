@@ -482,7 +482,7 @@ class Bean:
 		
 		has_restricted_data = False
 		for d in self.doclist:
-			if not frappe.permissions.has_unrestricted_access(frappe.get_doctype(d.doctype), d):
+			if not frappe.permissions.has_unrestricted_access(d):
 				has_restricted_data = True
 				
 		if has_restricted_data:
