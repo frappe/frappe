@@ -175,7 +175,7 @@ def now():
 	"""return current datetime as yyyy-mm-dd hh:mm:ss"""
 	if getattr(frappe.local, "current_date", None):
 		return getdate(frappe.local.current_date).strftime("%Y-%m-%d") + " " + \
-			now_datetime().strftime('%H:%M:%S')
+			now_datetime().strftime('%H:%M:%S.%f')
 	else:
 		return now_datetime().strftime('%Y-%m-%d %H:%M:%S.%f')
 	
@@ -223,7 +223,7 @@ def get_datetime_str(datetime_obj):
 	if isinstance(datetime_obj, basestring):
 		datetime_obj = get_datetime(datetime_obj)
 	
-	return datetime_obj.strftime('%Y-%m-%d %H:%M:%S')
+	return datetime_obj.strftime('%Y-%m-%d %H:%M:%S.%f')
 
 def formatdate(string_date=None):
 	"""
@@ -704,8 +704,8 @@ def pretty_date(iso_datetime):
 	import math
 	
 	if isinstance(iso_datetime, basestring):
-		iso_datetime = datetime.strptime(iso_datetime, '%Y-%m-%d %H:%M:%S')
-	now_dt = datetime.strptime(now(), '%Y-%m-%d %H:%M:%S')
+		iso_datetime = datetime.strptime(iso_datetime, '%Y-%m-%d %H:%M:%S.%f')
+	now_dt = datetime.strptime(now(), '%Y-%m-%d %H:%M:%S.%f')
 	dt_diff = now_dt - iso_datetime
 	
 	# available only in python 2.7+

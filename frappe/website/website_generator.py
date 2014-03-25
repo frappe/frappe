@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe.model.controller import DocListController
 from frappe.website.utils import cleanup_page_name
+from frappe.utils import now
 
 from frappe.website.doctype.website_route.website_route import add_to_sitemap, update_sitemap, remove_sitemap
 
@@ -68,7 +69,12 @@ class WebsiteGenerator(DocListController):
 		
 		existing_site_map = frappe.db.get_value("Website Route", {"ref_doctype": self.doc.doctype,
 			"docname": self.doc.name})
-						
+		
+		if self.doc.modified:
+			lastmod = frappe.utils.get_datetime(self.doc.modified).strftime("%Y-%m-%d")
+		else:
+			lastmod = now()
+		
 		opts = frappe._dict({
 			"page_or_generator": "Generator",
 			"ref_doctype":self.doc.doctype, 
@@ -76,7 +82,7 @@ class WebsiteGenerator(DocListController):
 			"docname": self.doc.name,
 			"page_name": page_name,
 			"link_name": self.website_template.name,
-			"lastmod": frappe.utils.get_datetime(self.doc.modified).strftime("%Y-%m-%d"),
+			"lastmod": lastmod,
 			"parent_website_route": self.get_parent_website_route(),
 			"page_title": self.get_page_title(),
 			"public_read": 1 if not self.website_template.no_sidebar else 0

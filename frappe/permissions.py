@@ -120,10 +120,8 @@ def can_restrict_user(user, doctype, docname=None):
 	if not can_restrict(doctype, docname):
 		return False
 		
-	meta = frappe.get_doctype(doctype)
-	
 	# check if target user does not have restrict permission
-	if has_only_non_restrict_role(meta, user):
+	if has_only_non_restrict_role(doctype, user):
 		return True
 	
 	return False
@@ -132,7 +130,7 @@ def can_restrict(doctype, docname=None):
 	# System Manager can always restrict
 	if "System Manager" in frappe.get_roles():
 		return True
-	meta = frappe.get_doctype(doctype)
+	meta = frappe.get_meta(doctype)
 	
 	# check if current user has read permission for docname
 	if docname and not has_permission(doctype, "read", docname):
@@ -147,7 +145,8 @@ def can_restrict(doctype, docname=None):
 def has_restrict_permission(meta=None, user=None):
 	return get_user_perms(meta, user).restrict==1
 	
-def has_only_non_restrict_role(meta, user):
+def has_only_non_restrict_role(doctype, user):
+	meta = frappe.get_meta(doctype)
 	# check if target user does not have restrict permission
 	if has_restrict_permission(meta, user):
 		return False
