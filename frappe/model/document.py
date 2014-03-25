@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _, msgprint
-from frappe.utils import cint, flt
+from frappe.utils import cint, flt, cstr, now
 from frappe.model import default_fields
 from frappe.model.db_schema import type_map
 from frappe.model.naming import set_new_name
@@ -98,11 +98,7 @@ class BaseDocument(object):
 		for fieldname in self.valid_columns:
 			d[fieldname] = self.get(fieldname)
 		return d
-		
-	def get_for_save(self):
-		d = self.get_valid_dict()
-		
-			
+					
 	@property
 	def valid_columns(self):
 		return self.get_valid_columns()
@@ -250,7 +246,8 @@ class Document(BaseDocument):
 		# check links
 		# check permissions
 		
-		self.set_defaults()
+		self._set_defaults()
+		self._set_docstatus_user_and_timestamp()
 		self._validate()
 		
 		# run validate, on update etc.
@@ -271,6 +268,7 @@ class Document(BaseDocument):
 			self.insert()
 			return
 
+		self._set_docstatus_user_and_timestamp()
 		self._validate()
 
 		# parent
@@ -285,14 +283,33 @@ class Document(BaseDocument):
 			d.db_update()
 			
 	def update_single(self, d):
-		frappe.db.sql("""delete from tabSingles where doctype=%s""", d.get("doctype"))
+		frappe.db.sql("""delete from tabSingles where doctype=%s""", self.doctype)
 		for field, value in d.iteritems():
 			if field not in ("doctype"):
 				frappe.db.sql("""insert into tabSingles(doctype, field, value) 
-					values (%s, %s, %s)""", (d.get("doctype", field, value)))
-	
+					values (%s, %s, %s)""", (self.doctype, field, value))
+
+	def _set_docstatus_user_and_timestamp(self):
+		self._original_modified = self.modified
+		self.modified = now()
+		self.modified_by = frappe.session.user
+		if not self.creation:
+			self.creation = self.modified
+		if not self.owner:
+			self.owner = self.modified_by
+		if self.docstatus==None:
+			self.docstatus=0
+		
+		for d in self.get_all_children():
+			d.docstatus = self.docstatus
+			d.modified = self.modified
+			d.modified_by = self.modified_by
+			if not d.owner:
+				d.owner = self.owner
+			if not d.creation:
+				d.creation = self.creation
 			
-	def set_defaults(self):
+	def _set_defaults(self):
 		if frappe.flags.in_import:
 			return
 		
@@ -308,60 +325,66 @@ class Document(BaseDocument):
 					d.set_missing_values(new_doc)
 
 	def _validate(self):
-		#self.check_if_latest()
+		self.check_if_latest()
 		self.validate_mandatory()
 		self.validate_links()
 			
 		# check restrictions
 		
-	def check_if_latest(self, method="save"):
+	def check_if_latest(self):
 		conflict = False
 		if not self.get('__islocal'):
 			if self.meta.issingle:
 				modified = frappe.db.get_value(self.doctype, self.name, "modified")
-				if cstr(modified) and cstr(modified) != cstr(self.modified):
+				if cstr(modified) and cstr(modified) != cstr(self._original_modified):
 					conflict = True
 			else:
-				tmp = frappe.db.sql("""select modified, docstatus from `tab%s` 
-					where name=%s for update"""
-					% (self.doctype, '%s'), self.name, as_dict=True)
+				tmp = frappe.db.get_value(self.doctype, self.name, 
+					["modified", "docstatus"], as_dict=True)
 
 				if not tmp:
 					frappe.msgprint("""This record does not exist. Please refresh.""", raise_exception=1)
 
-				modified = cstr(tmp[0].modified)
-				if modified and modified != cstr(self.modified):
+				modified = cstr(tmp.modified)
+								
+				if modified and modified != cstr(self._original_modified):
 					conflict = True
 			
-				self.check_docstatus_transition(tmp[0].docstatus, method)
+				self.check_docstatus_transition(tmp.docstatus)
 				
 			if conflict:
 				frappe.msgprint(_("Error: Document has been modified after you have opened it") \
 				+ (" (%s, %s). " % (modified, self.modified)) \
-				+ _("Please refresh to get the latest document."), raise_exception=TimestampMismatchError)
+				+ _("Please refresh to get the latest document."), 
+					raise_exception=frappe.TimestampMismatchError)
 
-	def check_docstatus_transition(self, db_docstatus):
-		valid = {
-			"save": [0,0],
-			"submit": [0,1],
-			"cancel": [1,2],
-			"update_after_submit": [1,1]
-		}
+	def check_docstatus_transition(self, docstatus):
+		if not self.docstatus:
+			self.docstatus = 0
+		if docstatus==0:
+			if self.docstatus==0:
+				self._action = "save"
+			elif self.docstatus==1:
+				self._action = "submit"
+			else:
+				raise frappe.DocstatusTransitionError
 		
-		labels = {
-			0: _("Draft"),
-			1: _("Submitted"),
-			2: _("Cancelled")
-		}
-		
-		if not hasattr(self, "to_docstatus"):
-			self.to_docstatus = 0
-		
-		if [db_docstatus, self.to_docstatus] != valid[method]:
-			frappe.msgprint(_("Cannot change from") + ": " + labels[db_docstatus] + " > " + \
-				labels[self.to_docstatus], raise_exception=DocstatusTransitionError)
-
-		
+		elif docstatus==1:
+			if self.docstatus==1:
+				self._action = "update_after_submit"
+				self.validate_update_after_submit()
+			elif self.docstatus==2:
+				self._action = "cancel"
+			else:
+				raise frappe.DocstatusTransitionError
+				
+		elif docstatus==2:
+			raise frappe.ValidationError
+	
+	def validate_update_after_submit(self):
+		# check only allowed values are updated
+		pass
+	
 	def validate_mandatory(self):
 		if self.get("ignore_mandatory"):
 			return

@@ -1,7 +1,7 @@
 # Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-import frappe, unittest
+import frappe, unittest, time
 
 from frappe.model.document import Document
 
@@ -74,7 +74,21 @@ class TestDocument(unittest.TestCase):
 		d.set("first_name", "Test Mandatory")
 		d.insert()
 		self.assertEquals(frappe.db.get_value("User", d.name), d.name)
-		
+	
+	def test_confict_validation(self):
+		d1 = self.test_insert()
+		d2 = Document(d1.doctype, d1.name)
+		time.sleep(1)
+		d1.save()
+		self.assertRaises(frappe.TimestampMismatchError, d2.save)
+
+	def test_confict_validation_single(self):
+		d1 = Document("Website Settings", "Website Settings")
+		d2 = Document("Website Settings", "Website Settings")
+		time.sleep(1)
+		d1.save()
+		self.assertRaises(frappe.TimestampMismatchError, d2.save)
+	
 	def test_link_validation(self):
 		d = Document({
 			"doctype": "User",

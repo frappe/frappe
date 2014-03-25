@@ -35,3 +35,5 @@ class InvalidSignatureError(ValidationError): pass
 class RateLimitExceededError(ValidationError): pass
 class CannotChangeConstantError(ValidationError): pass
 class LinkValidationError(ValidationError): pass
+class DocstatusTransitionError(ValidationError): pass
+class TimestampMismatchError(ValidationError): pass
