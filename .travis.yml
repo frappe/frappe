@@ -12,6 +12,7 @@ install:
   - sudo apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xcbcb082a1bb943db
   - sudo add-apt-repository 'deb http://ftp.osuosl.org/pub/mariadb/repo/5.5/ubuntu precise main'
   - sudo apt-get update
+  - sudo apt-get purge -y mysql-common
   - sudo apt-get install mariadb-server
   
   - CFLAGS=-O0 pip install -r requirements.txt
