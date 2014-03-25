@@ -61,35 +61,39 @@ class DocType:
 				"role": "System Manager"
 			})
 	
-	def email_new_password(self):
-		if self.doc.new_password and not self.in_insert:
-			_update_password(self.doc.name, self.doc.new_password)
+	def email_new_password(self, new_password=None):
+		if new_password and not self.in_insert:
+			_update_password(self.doc.name, new_password)
 
-			self.password_update_mail(self.doc.new_password)
+			self.password_update_mail(new_password)
 			frappe.msgprint("New Password Emailed.")
 			
 	def on_update(self):
 		# owner is always name
 		frappe.db.set(self.doc, 'owner', self.doc.name)
+		
+		# clear new password
+		new_password = self.doc.new_password
+		self.doc.set("new_password", "")
+		
 		frappe.clear_cache(user=self.doc.name)
 		
 		try:
 			if self.in_insert:
 				if self.doc.name not in STANDARD_USERS:
-					if self.doc.new_password:
+					if new_password:
 						# new password given, no email required
-						_update_password(self.doc.name, self.doc.new_password)
+						_update_password(self.doc.name, new_password)
 					if not getattr(self, "no_welcome_mail", False):
 						self.send_welcome_mail()
 						msgprint(_("Welcome Email Sent"))
+						return
 			else:
-				self.email_new_password()
+				self.email_new_password(new_password)
 
 		except frappe.OutgoingEmailError:
 			pass # email server not set, don't send email
 
-		self.doc.set("new_password", "")
-		
 	def update_gravatar(self):
 		import md5
 		if not self.doc.user_image:

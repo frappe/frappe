@@ -220,7 +220,7 @@ def set_user(username):
 def get_request_header(key, default=None):
 	return request.headers.get(key, default)
 
-def sendmail(recipients=[], sender="", subject="No Subject", message="No Message", as_markdown=False):
+def sendmail(recipients=(), sender="", subject="No Subject", message="No Message", as_markdown=False):
 	import frappe.utils.email_lib
 	if as_markdown:
 		frappe.utils.email_lib.sendmail_md(recipients, sender=sender, subject=subject, msg=message)

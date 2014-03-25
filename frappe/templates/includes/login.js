@@ -21,7 +21,7 @@ login.bind_events = function() {
 		login.call(args);
 	});
 
-	$(".form-signup").on("submit", function() {
+	$(".form-signup").on("submit", function(event) {
 		event.preventDefault();
 		var args = {};
 		args.cmd = "frappe.core.doctype.user.user.sign_up";
@@ -34,7 +34,7 @@ login.bind_events = function() {
 		login.call(args);
 	});
 
-	$(".form-forgot").on("submit", function() {
+	$(".form-forgot").on("submit", function(event) {
 		event.preventDefault();
 		var args = {};
 		args.cmd = "frappe.core.doctype.user.user.reset_password";
