@@ -346,6 +346,10 @@ def set_value(doctype, docname, fieldname, value):
 def get_doclist(doctype, name=None):
 	return bean(doctype, name).doclist
 
+def get_doc(arg1, arg2=None):
+	import frappe.model.document
+	return frappe.model.document.get_doc(arg1, arg2)
+
 def get_doctype(doctype, processed=False):
 	import frappe.model.doctype
 	return frappe.model.doctype.get(doctype, processed)

@@ -44,3 +44,14 @@ def export_doc(doctype, name, module=None):
 
 def get_doctype_module(doctype):
 	return frappe.db.get_value('DocType', doctype, 'module') or "core"
+
+def load_doctype_module(doctype, module=None, prefix=""):
+	if not module:
+		module = get_doctype_module(doctype)
+	return frappe.get_module(get_module_name(doctype, module, prefix))
+	
+def get_module_name(doctype, module, prefix=""):
+	from frappe.modules import scrub
+	return '{app}.{module}.doctype.{doctype}.{prefix}{doctype}'.format(\
+		app = scrub(frappe.local.module_app[scrub(module)]), 
+		module = scrub(module), doctype = scrub(doctype), prefix=prefix)

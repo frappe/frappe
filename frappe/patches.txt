@@ -22,3 +22,4 @@ frappe.patches.4_0.private_backups
 frappe.patches.4_0.set_module_in_report
 frappe.patches.4_0.remove_old_parent
 frappe.patches.4_0.rename_profile_to_user
+frappe.patches.4_0.update_datetime

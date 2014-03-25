@@ -23,7 +23,7 @@ type_map = {
 	,'Code':		('text', '')
 	,'Text Editor':	('text', '')
 	,'Date':		('date', '')
-	,'Datetime':	('datetime', '')
+	,'Datetime':	('datetime', '6')
 	,'Time':		('time', '')
 	,'Text':		('text', '')
 	,'Data':		('varchar', '255')
@@ -78,8 +78,8 @@ class DbTable:
 		# create table
 		frappe.db.sql("""create table `%s` (
 			name varchar(255) not null primary key, 
-			creation datetime,
-			modified datetime,
+			creation datetime(6),
+			modified datetime(6),
 			modified_by varchar(40), 
 			owner varchar(60),
 			docstatus int(1) default '0', 

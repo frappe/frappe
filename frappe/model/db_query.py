@@ -14,7 +14,6 @@ class DatabaseQuery(object):
 	def __init__(self, doctype):
 		self.doctype = doctype
 		self.tables = []
-		self.meta = []
 		self.conditions = []
 		self.ignore_permissions = False
 		self.fields = ["name"]
@@ -53,7 +52,6 @@ class DatabaseQuery(object):
 	def prepare_args(self):
 		self.parse_args()	
 		self.extract_tables()
-		self.load_metadata()
 		self.remove_user_tags()
 		self.build_conditions()
 		
@@ -111,20 +109,13 @@ class DatabaseQuery(object):
 				if not table_name[0]=='`':
 					table_name = '`' + table_name + '`'
 				if not table_name in self.tables:
-					self.tables.append(table_name)	
+					self.append_table(table_name)
 	
-	def load_metadata(self):
-		"""load all doctypes and roles"""
-		self.meta = {}
-
-		for t in self.tables:
-			if t.startswith('`'):
-				doctype = t[4:-1]
-				if self.meta.get(doctype):
-					continue
-				if (not self.ignore_permissions) and (not frappe.has_permission(doctype)):
-					raise frappe.PermissionError, doctype
-				self.meta[doctype] = frappe.model.doctype.get(doctype)
+	def append_table(self, table_name):
+		self.tables.append(table_name)
+		doctype = table_name[4:-1]
+		if (not self.ignore_permissions) and (not frappe.has_permission(doctype)):
+			raise frappe.PermissionError, doctype
 	
 	def remove_user_tags(self):
 		"""remove column _user_tags if not in table"""
@@ -170,10 +161,7 @@ class DatabaseQuery(object):
 
 				tname = ('`tab' + f[0] + '`')
 				if not tname in self.tables:
-					self.tables.append(tname)
-
-				if not tname in self.meta:
-					self.load_metadata()
+					self.append_table(tname)
 		
 				# prepare in condition
 				if f[2] in ['in', 'not in']:
@@ -184,7 +172,7 @@ class DatabaseQuery(object):
 					f[3] = "(" + ', '.join(opts) + ")"
 					self.conditions.append('ifnull(' + tname + '.' + f[1] + ", '') " + f[2] + " " + f[3])
 				else:
-					df = self.meta[f[0]].get({"doctype": "DocField", "fieldname": f[1]})
+					df = frappe.get_meta(f[0]).get("fields", {"fieldname": f[1]})
 					
 					if f[2] == "like" or (isinstance(f[3], basestring) and 
 						(not df or df[0].fieldtype not in ["Float", "Int", "Currency", "Percent"])):
@@ -216,10 +204,9 @@ class DatabaseQuery(object):
 		self.or_conditions = []
 
 		if not self.tables: self.extract_tables()
-		if not self.meta: self.load_metadata()
 	
 		# explict permissions
-		restricted_by_user = frappe.permissions.get_user_perms(self.meta[self.doctype]).restricted
+		restricted_by_user = frappe.permissions.get_user_perms(frappe.get_meta(self.doctype)).restricted
 	
 		# get restrictions
 		restrictions = frappe.defaults.get_restrictions()
@@ -238,7 +225,7 @@ class DatabaseQuery(object):
 			return self.match_filters
 			
 	def add_restrictions(self, restrictions):
-		fields_to_check = self.meta[self.doctype].get_restricted_fields(restrictions.keys())
+		fields_to_check = frappe.get_meta(self.doctype).get_restricted_fields(restrictions.keys())
 		if self.doctype in restrictions:
 			fields_to_check.append(frappe._dict({"fieldname":"name", "options":self.doctype}))
 	

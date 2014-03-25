@@ -17,7 +17,7 @@ methods in following modules are imported for backward compatibility
 """
 
 import frappe
-from frappe.modules import get_doctype_module
+from frappe.modules import get_doctype_module, load_doctype_module, get_module_name
 import frappe.model.doc
 
 def get_obj(dt = None, dn = None, doc=None, doclist=None, with_children = 0):
@@ -43,18 +43,6 @@ def get_server_obj(doc, doclist = [], basedoctype = ''):
 	module = get_doctype_module(doc.doctype)
 	return load_doctype_module(doc.doctype, module).DocType(doc, doclist)
 
-def load_doctype_module(doctype, module=None, prefix=""):
-	if not module:
-		module = get_doctype_module(doctype)
-	return frappe.get_module(get_module_name(doctype, module, prefix))
-	
-def get_module_name(doctype, module, prefix=""):
-	from frappe.modules import scrub
-	return '{app}.{module}.doctype.{doctype}.{prefix}{doctype}'.format(\
-		app = scrub(frappe.local.module_app[scrub(module)]), 
-		module = scrub(module), doctype = scrub(doctype), prefix=prefix)
-
-		
 def run_server_obj(server_obj, method_name, arg=None):
 	"""
 	   Executes a method (`method_name`) from the given object (`server_obj`)

@@ -115,6 +115,20 @@ class Meta(Document):
 			idx += 1
 
 		self.set("fields", newlist)
+		
+	def get_restricted_fields(self, restricted_types):
+		restricted_fields = self.get("fields", {
+			"fieldtype":"Link", 
+			"parent": self.name, 
+			"ignore_restrictions":("!=", 1), 
+			"options":("in", restricted_types)
+		})
+		if self.name in restricted_types:
+			restricted_fields.append(frappe._dict({
+				"label":"Name", "fieldname":"name", "options": self.name
+			}))
+		return restricted_fields
+
 
 #######
 

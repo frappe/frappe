@@ -19,12 +19,12 @@ def has_permission(doctype, ptype="read", refdoc=None, verbose=True):
 	if frappe.is_table(doctype):
 		return True
 	
-	meta = frappe.get_doctype(doctype)
+	meta = frappe.get_meta(doctype)
 	
-	if ptype=="submit" and not cint(meta[0].is_submittable):
+	if ptype=="submit" and not cint(meta.is_submittable):
 		return False
 	
-	if ptype=="import" and not cint(meta[0].allow_import):
+	if ptype=="import" and not cint(meta.allow_import):
 		return False
 	
 	if frappe.session.user=="Administrator":
@@ -36,24 +36,26 @@ def has_permission(doctype, ptype="read", refdoc=None, verbose=True):
 		
 	if refdoc:
 		if isinstance(refdoc, basestring):
-			refdoc = frappe.doc(meta[0].name, refdoc)
+			refdoc = frappe.doc(meta.name, refdoc)
 		
 		if not has_unrestricted_access(meta, refdoc, verbose=verbose):
 			return False
 		
-		if not has_additional_permission(refdoc):
+		if not has_controller_permissions(refdoc):
 			return False
 
 	return True
 		
 def get_user_perms(meta, user=None):
-	cache_key = (meta[0].name, user)
+	if not user:
+		user = frappe.session.user
+	cache_key = (meta.name, user)
 	if not frappe.local.user_perms.get(cache_key):
 		perms = frappe._dict()
 		user_roles = frappe.get_roles(user)
 	
-		for p in meta.get({"doctype": "DocPerm"}):
-			if cint(p.permlevel)==0 and (p.role=="All" or p.role in user_roles):
+		for p in meta.permissions:
+			if cint(p.permlevel)==0 and (p.role in user_roles):
 				for ptype in rights:
 					if ptype == "restricted":
 						perms[ptype] = perms.get(ptype, 1) and cint(p.get(ptype))
@@ -100,8 +102,8 @@ def has_unrestricted_access(meta, refdoc, verbose=True):
 	# check all restrictions before returning
 	return False if has_restricted_data else True
 	
-def has_additional_permission(doc):
-	if doc.fields.get("__islocal"):
+def has_controller_permissions(doc):
+	if doc.get("__islocal"):
 		bean = frappe.bean([doc])
 	else:
 		bean = frappe.bean(doc.doctype, doc.name)

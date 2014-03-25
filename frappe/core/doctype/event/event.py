@@ -6,9 +6,15 @@ import frappe
 
 from frappe.utils import getdate, cint, add_months, date_diff, add_days, nowdate
 from frappe.core.doctype.user.user import STANDARD_USERS
+from frappe.model.document import Document
 
 weekdays = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
 
+class Event(Document):
+	def validate(self):
+		if self.starts_on and self.ends_on and self.starts_on > self.ends_on:
+			frappe.msgprint(frappe._("Event End must be after Start"), raise_exception=True)
+		
 class DocType:
 	def __init__(self, d, dl):
 		self.doc, self.doclist = d, dl
