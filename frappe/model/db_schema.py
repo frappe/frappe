@@ -68,12 +68,12 @@ class DbTable:
 		add_text = ''
 		
 		# columns
-		t = self.get_column_definitions()
-		if t: add_text += ',\n'.join(self.get_column_definitions()) + ',\n'
+		column_defs = self.get_column_definitions()
+		if column_defs: add_text += ',\n'.join(column_defs) + ',\n'
 		
 		# index
-		t = self.get_index_definitions()
-		if t: add_text += ',\n'.join(self.get_index_definitions()) + ',\n'
+		index_defs = self.get_index_definitions()
+		if index_defs: add_text += ',\n'.join(index_defs) + ',\n'
 		
 		# create table
 		frappe.db.sql("""create table `%s` (
@@ -129,9 +129,10 @@ class DbTable:
 	
 	def get_index_definitions(self):
 		ret = []
-		for k in self.columns.keys():
-			if type_map.get(self.columns[k].fieldtype) and type_map.get(self.columns[k].fieldtype)[0] not in ('text', 'longtext'):
-				ret.append('index `' + k + '`(`' + k + '`)')
+		for key, col in self.columns.items():
+			if col.set_index and col.fieldtype in type_map and \
+					type_map.get(col.fieldtype)[0] not in ('text', 'longtext'):
+				ret.append('index `' + key + '`(`' + key + '`)')
 		return ret
 
 
