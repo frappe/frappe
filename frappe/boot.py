@@ -65,9 +65,6 @@ def get_bootinfo():
 	for method in hooks.boot_session or []:
 		frappe.get_attr(method)(bootinfo)
 		
-	from frappe.model.utils import compress
-	bootinfo['docs'] = compress(bootinfo['docs'])
-
 	if bootinfo.lang:
 		bootinfo.lang = unicode(bootinfo.lang)
 	
@@ -138,10 +135,10 @@ def add_home_page(bootinfo, doclist):
 	home_page = frappe.get_application_home_page(frappe.session.user)
 
 	try:
-		page_doclist = frappe.widgets.page.get(home_page)
+		page = frappe.widgets.page.get(home_page)
 	except (frappe.DoesNotExistError, frappe.PermissionError), e:
-		page_doclist = frappe.widgets.page.get('desktop')
-		
-	bootinfo['home_page_html'] = page_doclist[0].content
-	bootinfo['home_page'] = page_doclist[0].name
-	doclist += page_doclist
+		frappe.message_log.pop()
+		page = frappe.widgets.page.get('desktop')
+
+	bootinfo['home_page'] = page.name
+	doclist.append(page)

@@ -110,6 +110,16 @@ class BaseDocument(object):
 		
 		return self._valid_columns
 		
+	def as_dict(self):
+		doc = self.get_valid_dict()
+		doc["doctype"] = self.doctype
+		for df in self.get_table_fields():
+			doc[df.fieldname] = [d.as_dict() for d in (self.get(df.fieldname) or [])]
+		return doc
+			
+	def get_table_fields(self):
+		return self.meta.get('fields', {"fieldtype":"Table"})
+		
 	def get_table_field_doctype(self, fieldname):
 		return self.meta.get("fields", {"fieldname":fieldname})[0].options
 	

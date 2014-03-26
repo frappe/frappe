@@ -23,31 +23,19 @@ frappe.workflow = {
 	},
 	get_default_state: function(doctype) {
 		frappe.workflow.setup(doctype);
-		return frappe.model.get("Workflow Document State", {
-			parent: frappe.workflow.workflows[doctype].name,
-			idx: 1
-		})[0].state;
+		return frappe.workflow.workflows[doctype].workflow_document_states[0].state;
 	},
 	get_transitions: function(doctype, state) {
 		frappe.workflow.setup(doctype);
-		return frappe.model.get("Workflow Transition", {
-			parent: frappe.workflow.workflows[doctype].name,
-			state: state
-		});
+		return frappe.model.get_children(frappe.workflow.workflows[doctype], "workflow_transitions", {state:state});
 	},
 	get_document_state: function(doctype, state) {
 		frappe.workflow.setup(doctype);
-		return frappe.model.get("Workflow Document State", {
-			parent: frappe.workflow.workflows[doctype].name,
-			state: state
-		})[0];
+		return frappe.model.get_children(frappe.workflow.workflows[doctype], "workflow_document_states", {state:state})[0];
 	},
 	get_next_state: function(doctype, state, action) {
-		return frappe.model.get("Workflow Transition", {
-			parent: frappe.workflow.workflows[doctype].name,
-			state: state,
-			action: action
-		})[0].next_state;
+		return frappe.model.get_children(frappe.workflow.workflows[doctype], "workflow_transitions", {
+			state:state, action:action})[0].next_state;
 	},
  	is_read_only: function(doctype, name) {
 		var state_fieldname = frappe.workflow.get_state_fieldname(doctype);
@@ -60,13 +48,7 @@ frappe.workflow = {
 			var state = locals[doctype][name][state_fieldname] || 
 				frappe.workflow.get_default_state(doctype);
 
-			var workflow_doc_state = frappe.model.get("Workflow Document State", 
-				{
-					parent: frappe.workflow.workflows[doctype].name, 
-					state: state
-				});
-			var allow_edit = workflow_doc_state.length ? 
-				workflow_doc_state[0].allow_edit : null;
+			var allow_edit = state ? frappe.workflow.get_document_state(doctype, state).allow_edit : null;
 
 			if(user_roles.indexOf(allow_edit)==-1) {
 				return true;
@@ -75,8 +57,8 @@ frappe.workflow = {
 		return false;
 	},
 	get_update_fields: function(doctype) {
-		var update_fields = $.unique($.map(frappe.model.get("Workflow Document State", 
-			{parent:frappe.workflow.workflows[doctype].name}), function(d) {
+		var update_fields = $.unique($.map(frappe.workflow.workflows[doctype].workflow_document_states || [], 
+			function(d) {
 				return d.update_field;
 			}));
 		return update_fields;

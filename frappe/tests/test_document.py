@@ -120,5 +120,6 @@ class TestDocument(unittest.TestCase):
 		d.starts_on = "2014-01-01"
 		d.ends_on = "2013-01-01"
 		self.assertRaises(frappe.ValidationError, d.validate)
+		self.assertRaises(frappe.ValidationError, d.run_method, "validate")
 		self.assertRaises(frappe.ValidationError, d.save)
 		

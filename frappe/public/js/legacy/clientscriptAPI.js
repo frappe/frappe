@@ -4,10 +4,7 @@
 get_server_fields = function(method, arg, table_field, doc, dt, dn, allow_edit, call_back) {
 	frappe.dom.freeze();
 	return $c('runserverobj', 
-		args={'method':method, 
-				'docs':frappe.model.compress(make_doclist(doc.doctype, doc.name)), 
-				'arg':arg
-			},
+		args={'method': method, 'docs': doc, 'arg': arg },
 	function(r, rt) {
 		frappe.dom.unfreeze();
 		if (r.message)  {
@@ -125,10 +122,6 @@ _f.Frm.prototype.get_doc = function() {
 	return locals[this.doctype][this.docname];
 }
 
-_f.Frm.prototype.get_doclist = function(filters) {
-	return frappe.model.get_doclist(this.doctype, this.docname, filters);
-}
-
 _f.Frm.prototype.field_map = function(fnames, fn) {
 	if(typeof fnames==='string') {
 		if(fnames == '*') {
@@ -170,7 +163,7 @@ _f.Frm.prototype.toggle_display = function(fnames, show) {
 }
 
 _f.Frm.prototype.call_server = function(method, args, callback) {
-	return $c_obj(cur_frm.get_doclist(), method, args, callback);
+	return $c_obj(cur_frm.doc, method, args, callback);
 }
 
 _f.Frm.prototype.get_files = function() {

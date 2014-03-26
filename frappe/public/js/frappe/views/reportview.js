@@ -337,13 +337,13 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 				callback: function(r) {
 					if(!r.exc) {
 						d.hide();
-						var doclist = r.message;
+						var doc = r.message;
 						$.each(me.dataView.getItems(), function(i, item) {
-							if (item.name === doclist[0].name) {
-								var new_item = $.extend({}, item, doclist[0]);
-								$.each(doclist, function(i, doc) {
-									if(item[doc.doctype + ":name"]===doc.name) {
-										$.each(doc, function(k, v) {
+							if (item.name === doc.name) {
+								var new_item = $.extend({}, item);
+								$.each(frappe.model.get_all_docs(doc), function(i, d) {
+									if(item[d.doctype + ":name"]===d.name) {
+										$.each(d, function(k, v) {
 											if(frappe.model.std_fields_list.indexOf(k)===-1) {
 												new_item[k] = v;
 											}

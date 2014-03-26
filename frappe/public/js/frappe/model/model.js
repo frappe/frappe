@@ -46,8 +46,8 @@ $.extend(frappe.model, {
 		} else {
 			var cached_timestamp = null;
 			if(localStorage["_doctype:" + doctype]) {
-				var cached_doclist = JSON.parse(localStorage["_doctype:" + doctype]);
-				cached_timestamp = cached_doclist[0].modified;
+				var cached_doc = JSON.parse(localStorage["_doctype:" + doctype]);
+				cached_timestamp = cached_doc.modified;
 			}
 			return frappe.call({
 				method:'frappe.widgets.form.load.getdoctype',
@@ -64,7 +64,7 @@ $.extend(frappe.model, {
 						return;
 					}
 					if(r.message=="use_cache") {
-						frappe.model.sync(cached_doclist);
+						frappe.model.sync(cached_doc);
 					} else {
 						localStorage["_doctype:" + doctype] = JSON.stringify(r.docs);
 					}
@@ -206,10 +206,10 @@ $.extend(frappe.model, {
 	},
 
 	get: function(doctype, filters) {
-		var src = locals[doctype] || locals[":" + doctype] || [];
-		if($.isEmptyObject(src)) 
+		var docsdict = locals[doctype] || locals[":" + doctype] || [];
+		if($.isEmptyObject(docsdict)) 
 			return [];
-		return frappe.utils.filter_dict(src, filters);
+		return frappe.utils.filter_dict(docsdict, filters);
 	},
 	
 	get_value: function(doctype, filters, fieldname) {
@@ -277,55 +277,16 @@ $.extend(frappe.model, {
 		return locals[doctype] ? locals[doctype][name] : null;
 	},
 	
-	get_doclist: function(doctype, name, filters) {
-		var doclist = [];
-		if(!locals[doctype]) 
-			return doclist;
-
-		doclist[0] = locals[doctype][name];
-
-		$.each(frappe.model.get("DocField", {parent:doctype, fieldtype:"Table"}), 
-			function(i, table_field) {
-				var child_doclist = frappe.model.get(table_field.options, {
-					parent:name, parenttype: doctype,
-					parentfield: table_field.fieldname});
-				
-				if($.isArray(child_doclist)) {
-					child_doclist.sort(function(a, b) { return a.idx - b.idx; });
-					doclist = doclist.concat(child_doclist);
-				}
-			}
-		);
-		
-		if(filters) {
-			doclist = frappe.utils.filter_dict(doclist, filters);
-		}
-		
-		return doclist;
-	},
-
-	get_children: function(doctype, parent, parentfield, parenttype) { 
-		if(parenttype) {
-			var l = frappe.model.get(doctype, {parent:parent, 
-				parentfield:parentfield, parenttype:parenttype});
+	get_children: function(doctype, parent, parentfield, filters) { 
+		if($.isPlainObject(parentfield)) {
+			var doc = doctype;
+			var filters = parentfield;
+			var parentfield = parent;
+			return frappe.utils.filter_dict((doc[parentfield] || []), filters);
 		} else {
-			var l = frappe.model.get(doctype, {parent:parent, 
-				parentfield:parentfield});
+			return frappe.utils.filter_dict((frappe.model.get_doc(doctype, parent)[parentfield] || []), filters);
 		}
-
-		if(l.length) {
-			l.sort(function(a,b) { return flt(a.idx) - flt(b.idx) }); 
-			
-			// renumber
-			$.each(l, function(i, v) { v.idx = i+1; }); // for chrome bugs ???
-		}
-		return l; 
-	},
-
-	clear_doclist: function(doctype, name) {
-		$.each(frappe.model.get_doclist(doctype, name), function(i, d) {
-			if(d) frappe.model.clear_doc(d.doctype, d.name);
-		});
+		
 	},
 	
 	clear_table: function(doctype, parenttype, parent, parentfield) {
@@ -337,7 +298,7 @@ $.extend(frappe.model, {
 	},
 
 	remove_from_locals: function(doctype, name) {
-		this.clear_doclist(doctype, name);
+		this.clear_doc(doctype, name);
 		if(frappe.views.formview[doctype]) {
 			delete frappe.views.formview[doctype].frm.opendocs[name];
 		}
@@ -358,13 +319,14 @@ $.extend(frappe.model, {
 	
 	get_no_copy_list: function(doctype) {
 		var no_copy_list = ['name','amended_from','amendment_date','cancel_reason'];
-		$.each(frappe.model.get("DocField", {parent:doctype}), function(i, df) {
+		
+		$.each(frappe.model.get_doc("DocType", doctype).fields || [], function(i, df) {
 			if(cint(df.no_copy)) no_copy_list.push(df.fieldname);
 		})
 		return no_copy_list;
 	},
 
-	// args: source (doclist), target (doctype), table_map, field_map, callback
+	// args: source (doc), target (doc), table_map, field_map, callback
 	map: function(args) {
 		frappe.model.with_doctype(args.target, function() {
 			var map_info = frappe.model.map_info[args.target]
@@ -436,7 +398,7 @@ $.extend(frappe.model, {
 				},
 				callback: function(r, rt) {
 					if(!r.exc) {
-						frappe.model.clear_doclist(doctype, docname);
+						frappe.model.clear_doc(doctype, docname);
 						if(frappe.ui.toolbar.recent) 
 							frappe.ui.toolbar.recent.remove(doctype, docname);
 						if(callback) callback(r,rt);
@@ -499,9 +461,20 @@ $.extend(frappe.model, {
 			frappe.throw(frappe._("Please specify") + ": " + 
 				frappe._(frappe.meta.get_label(doc.doctype, fieldname, doc.parent || doc.name)));
 		}
+	},
+	
+	get_all_docs: function(doc) {
+		var all = [doc];
+		for(key in doc) {
+			if($.isArray(doc[key])) {
+				$.each(doc[key], function(i, d) {
+					all.push(d);
+				});
+			}
+		}
+		return all;
 	}
 });
 
 // legacy
 getchildren = frappe.model.get_children
-make_doclist = frappe.model.get_doclist

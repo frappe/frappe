@@ -12,6 +12,8 @@ from frappe.model.document import Document
 ######
 
 def get_meta(doctype, cached=True):
+	# TODO: cache to be cleared
+
 	if cached:
 		if doctype not in frappe.local.meta:
 			frappe.local.meta[doctype] = frappe.cache().get_value("meta:" + doctype, lambda: Meta(doctype))

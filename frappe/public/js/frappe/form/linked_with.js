@@ -1,9 +1,7 @@
 // Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-// for license information please see license.txt
-
-frappe.provide("frappe.ui.form")
+frappe.provide("frappe.ui.form");
 
 frappe.ui.form.LinkedWith = Class.extend({
 	init: function(opts) {

@@ -13,7 +13,7 @@ function $c(command, args, callback, error, no_spinner, freeze_msg, btn) {
 }
 
 // For calling an object
-function $c_obj(doclist, method, arg, callback, no_spinner, freeze_msg, btn) {
+function $c_obj(doc, method, arg, callback, no_spinner, freeze_msg, btn) {
 	if(arg && typeof arg!='string') arg = JSON.stringify(arg);
 		
 	args = {
@@ -22,10 +22,11 @@ function $c_obj(doclist, method, arg, callback, no_spinner, freeze_msg, btn) {
 		method: method
 	};
 	
-	if(typeof doclist=='string') 
-		args.doctype = doclist; 
-	else 
-		args.docs = frappe.model.compress(doclist)
+	if(typeof doc=='string') {
+		args.doctype = doc; 
+	} else {
+		args.docs = doc
+	}
 	
 	return frappe.request.call({
 		args: args,
@@ -53,7 +54,7 @@ function $c_page(module, page, method, arg, callback, no_spinner, freeze_msg, bt
 }
 
 // For calling an for output as csv
-function $c_obj_csv(doclist, method, arg) {
+function $c_obj_csv(doc, method, arg) {
 	// single
 	
 	var args = {}
@@ -62,10 +63,10 @@ function $c_obj_csv(doclist, method, arg) {
 	args.method = method;
 	args.arg = arg;
 	
-	if(doclist.substr)
-		args.doctype = doclist;		
+	if(doc.substr)
+		args.doctype = doc;		
 	else
-		args.docs = frappe.model.compress(doclist);
+		args.docs = doc;
 
 	// open
 	open_url_post(frappe.request.url, args);

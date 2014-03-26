@@ -83,7 +83,6 @@
 		
 		"public/js/frappe/model/model.js",
 		"public/js/frappe/model/meta.js",
-		"public/js/frappe/model/doclist.js",
 		"public/js/frappe/model/sync.js",
 		"public/js/frappe/model/create_new.js",
 		"public/js/frappe/model/perm.js",
@@ -135,6 +134,7 @@
 		"public/js/frappe/form/toolbar.js",
 		"public/js/frappe/form/infobar.js",
 		"public/js/frappe/form/dashboard.js",
+		"public/js/frappe/form/save.js",
 		"public/js/frappe/form/script_manager.js",
 		"public/js/frappe/form/control.js",
 		"public/js/frappe/form/link_selector.js",

@@ -96,9 +96,9 @@ def init(site, sites_path=None):
 	local.site_path = os.path.join(sites_path, site)
 	local.message_log = []
 	local.debug_log = []
-	local.response = _dict({})
 	local.lang = "en"
 	local.request_method = request.method if request else None
+	local.response = _dict({"docs":[]})
 	local.conf = _dict(get_site_config())
 	local.initialised = True
 	local.flags = _dict({})
@@ -114,6 +114,15 @@ def init(site, sites_path=None):
 	local.meta = {}
 
 	setup_module_map()
+
+def connect(site=None, db_name=None):
+	from database import Database
+	if site:
+		init(site)
+	local.db = Database(user=db_name or local.conf.db_name)
+	local.form_dict = _dict()
+	local.session = _dict()
+	set_user("Administrator")
 
 def get_site_config(sites_path=None, site_path=None):
 	config = {}
@@ -200,16 +209,6 @@ def throw(msg, exc=ValidationError):
 def create_folder(path):
 	if not os.path.exists(path): os.makedirs(path)
 	
-def connect(site=None, db_name=None):
-	from database import Database
-	if site:
-		init(site)
-	local.db = Database(user=db_name or local.conf.db_name)
-	local.response = _dict()
-	local.form_dict = _dict()
-	local.session = _dict()
-	set_user("Administrator")
-
 def set_user(username):
 	from frappe.utils.user import User
 	local.session["user"] = username
