@@ -41,6 +41,7 @@ def get_obj(dt = None, dn = None, doc=None, doclist=None, with_children = 0):
 def get_server_obj(doc, doclist = [], basedoctype = ''):
 	# for test
 	module = get_doctype_module(doc.doctype)
+	classname = doc.doctype.replace(" ", "")
 	return load_doctype_module(doc.doctype, module).DocType(doc, doclist)
 
 def run_server_obj(server_obj, method_name, arg=None):

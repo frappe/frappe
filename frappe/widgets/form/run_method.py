@@ -20,8 +20,6 @@ def runserverobj():
 	dt = frappe.form_dict.get('doctype')
 	dn = frappe.form_dict.get('docname')
 	
-	frappe.response["docs"] = []
-	
 	if dt: # not called from a doctype (from a page)
 		if not dn: dn = dt # single
 		so = frappe.model.code.get_obj(dt, dn)

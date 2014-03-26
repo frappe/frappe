@@ -118,11 +118,7 @@ frappe.ui.form.Grid = Class.extend({
 		});
 	},
 	get_data: function() {
-		var data = frappe.model.get(this.df.options, {
-			"parenttype": this.frm.doctype, 
-			"parentfield": this.df.fieldname,
-			"parent": this.frm.docname
-		});
+		var data = this.frm.doc[this.df.fieldname] || [];
 		data.sort(function(a, b) { return a.idx - b.idx});
 		return data;
 	},

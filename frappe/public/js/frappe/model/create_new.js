@@ -122,20 +122,36 @@ $.extend(frappe.model, {
 		return d;
 	},
 	
-	copy_doc: function(dt, dn, from_amend) {
+	copy_doc: function(doc, from_amend) {
 		var no_copy_list = ['name','amended_from','amendment_date','cancel_reason'];
-		var newdoc = frappe.model.get_new_doc(dt);
+		var newdoc = frappe.model.get_new_doc(doc.doctype);
 
-		for(var key in locals[dt][dn]) {
+		for(var key in doc) {
 			// dont copy name and blank fields
-			var df = frappe.meta.get_docfield(dt, key);
+			var df = frappe.meta.get_docfield(doc.doctype, key);
 			
 			if(key.substr(0,2)!='__' 
 				&& !in_list(no_copy_list, key) 
 				&& !(df && (!from_amend && cint(df.no_copy)==1))) { 
-				newdoc[key] = locals[dt][dn][key];
+					value = doc[key];
+					if(df.fieldtype==="Table") {
+						newdoc[key] = [];
+						$.each(value || [], function(i, d) {
+							newdoc[key].push(frappe.model.copy_doc(d, from_amend))
+						})
+					} else {
+						newdoc[key] = doc[key];
+					}
 			}
 		}
+
+		newdoc.__islocal = 1;
+		newdoc.docstatus = 0;
+		newdoc.owner = user;
+		newdoc.creation = '';
+		newdoc.modified_by = user;
+		newdoc.modified = '';
+
 		return newdoc;
 	},
 	
@@ -167,7 +183,7 @@ $.extend(frappe.model, {
 				method: opts.method,
 				args: {
 					"source_name": opts.source_name,
-					"target_doclist": frappe.model.get_doclist(cur_frm.doc.doctype, cur_frm.doc.name)
+					"target_doclist": cur_frm.doc
 				},
 				callback: function(r) {
 					if(!r.exc) {

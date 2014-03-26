@@ -1,45 +1,38 @@
 // Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
-// MIT License. See license.txt 
+// MIT License. See license.txt
 
-frappe.provide("frappe.model");
-frappe.model.DocList = Class.extend({
-	init: function(doctype, name) {
-		this.doctype = doctype; this.name = name;
-		this.doclist = frappe.model.get_doclist(this.doctype, this.name);
-		this.doc = this.doclist[0];
-	},
-	
-	save: function(action, callback, btn) {
-		this.check_name();
-		if(this.check_mandatory()) {
-			var me = this;
-			this._call({
+frappe.provide("frappe.ui.form");
+
+frappe.ui.form.save = function(frm, action, callback, btn) {
+	var save = function() {
+		check_name();
+		if(check_mandatory()) {
+			_call({
 				method: "frappe.widgets.form.save.savedocs",
-				args: { docs: frappe.model.compress(this.doclist), action:action},
+				args: { docs: frm.doc, action:action},
 				callback: function(r) {
-					$(document).trigger("save", me.doc);
+					$(document).trigger("save", frm.doc);
 					callback(r);
 				},
 				btn: btn
 			});
 		}
-	},
+	};
 	
-	cancel: function(callback, btn) {
-		var me = this;
-		this._call({
+	var cancel = function() {
+		_call({
 			method: "frappe.widgets.form.save.cancel",
-			args: { doctype: this.doctype, name: this.name },
+			args: { doctype: frm.doc.doctype, name: frm.doc.name },
 			callback: function(r) {
-				$(document).trigger("save", frappe.model.get_doc(me.doctype, me.name));
+				$(document).trigger("save", frm.doc);
 				callback(r);
 			},
 			btn: btn
 		});
-	},
+	};
 	
-	check_name: function() {
-		var doc = this.doclist[0];
+	var check_name = function() {
+		var doc = frm.doc;
 		var meta = locals.DocType[doc.doctype];
 		if(doc.__islocal && (meta && meta.autoname 
 				&& meta.autoname.toLowerCase()=='prompt')) {
@@ -51,23 +44,22 @@ frappe.model.DocList = Class.extend({
 				throw "name required";
 			}
 		}
-	},
+	};
 	
-	check_mandatory: function() {
-		var me = this;
+	var check_mandatory = function() {
 		var has_errors = false;
-		this.scroll_set = false;
+		frm.scroll_set = false;
 		
-		if(this.doc.docstatus==2) return true; // don't check for cancel
+		if(frm.doc.docstatus==2) return true; // don't check for cancel
 		
-		$.each(this.doclist, function(i, doc) {
+		$.each(frm.model.get_all_docs(frm.doc), function(i, doc) {
 			
 			var error_fields = [];
 			
 			$.each(frappe.meta.docfield_list[doc.doctype] || [], function(i, docfield) {
 				if(docfield.fieldname) {
 					var df = frappe.meta.get_docfield(doc.doctype, 
-						docfield.fieldname, me.doclist[0].name);
+						docfield.fieldname, frm.doc.name);
 
 					if(df.reqd && !frappe.model.has_value(doc.doctype, doc.name, df.fieldname)) {
 						has_errors = true;
@@ -87,17 +79,17 @@ frappe.model.DocList = Class.extend({
 		});
 		
 		return !has_errors;
-	},
+	};
 	
-	scroll_to: function(fieldname) {
+	var scroll_to = function(fieldname) {
 		var f = cur_frm.fields_dict[fieldname];
 		if(f) {
 			$(document).scrollTop($(f.wrapper).offset().top - 100);
 		}
-		this.scroll_set = true;
-	},
+		frm.scroll_set = true;
+	};
 
-	_call: function(opts) {
+	var _call = function(opts) {
 		// opts = {
 		// 	method: "some server method",
 		// 	args: {args to be passed},
@@ -114,5 +106,11 @@ frappe.model.DocList = Class.extend({
 				opts.callback && opts.callback(r);
 			}
 		})
-	},
-});
+	};
+	
+	if(action==="cancel") {
+		cancel();
+	} else {
+		save();
+	}
+}

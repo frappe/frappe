@@ -151,8 +151,7 @@ frappe.RoleEditor = Class.extend({
 			.each(function(i, checkbox) { checkbox.checked = false; });
 		
 		// set user roles as checked
-		$.each(frappe.model.get("UserRole", {parent: cur_frm.doc.name, 
-			parentfield: "user_roles"}), function(i, user_role) {
+		$.each((cur_frm.doc.user_roles || []), function(i, user_role) {
 				var checkbox = $(me.wrapper)
 					.find('[data-user-role="'+user_role.role+'"] input[type="checkbox"]').get(0);
 				if(checkbox) checkbox.checked = true;
@@ -163,8 +162,7 @@ frappe.RoleEditor = Class.extend({
 		var existing_roles_map = {};
 		var existing_roles_list = [];
 		
-		$.each(frappe.model.get("UserRole", {parent: cur_frm.doc.name, 
-			parentfield: "user_roles"}), function(i, user_role) { 
+		$.each((cur_frm.doc.user_roles || []), function(i, user_role) { 
 				existing_roles_map[user_role.role] = user_role.name;
 				existing_roles_list.push(user_role.role);
 			});

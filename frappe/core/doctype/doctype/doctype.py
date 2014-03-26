@@ -9,23 +9,20 @@ import os
 
 from frappe.utils import now, cint
 from frappe.model import no_value_fields
+from frappe.model.document import Document
 
-class DocType:
-	def __init__(self, doc=None, doclist=[]):
-		self.doc = doc
-		self.doclist = doclist
-
+class DocType(Document):
 	def validate(self):
 		if not frappe.conf.get("developer_mode"):
 			frappe.throw("Not in Developer Mode! Set in site_config.json")
 		for c in [".", "/", "#", "&", "=", ":", "'", '"']:
-			if c in self.doc.name:
+			if c in self.name:
 				frappe.msgprint(c + " not allowed in name", raise_exception=1)
 		self.validate_series()
 		self.scrub_field_names()
 		self.validate_title_field()
-		validate_fields(self.doclist.get({"doctype":"DocField"}))
-		validate_permissions(self.doclist.get({"doctype":"DocPerm"}))
+		validate_fields(self.get("fields"))
+		validate_permissions(self.get("permissions"))
 		self.make_amendable()
 		self.check_link_replacement_error()
 
@@ -33,14 +30,14 @@ class DocType:
 		if frappe.flags.in_import:
 			return
 		parent_list = frappe.db.sql("""SELECT parent 
-			from tabDocField where fieldtype="Table" and options=%s""", self.doc.name)
+			from tabDocField where fieldtype="Table" and options=%s""", self.name)
 		for p in parent_list:
 			frappe.db.sql('UPDATE tabDocType SET modified=%s WHERE `name`=%s', (now(), p[0]))
 
 	def scrub_field_names(self):
 		restricted = ('name','parent','idx','owner','creation','modified','modified_by',
 			'parentfield','parenttype',"file_list")
-		for d in self.doclist:
+		for d in self.get("fields"):
 			if d.parent and d.fieldtype:
 				if (not d.fieldname):
 					if d.label:
@@ -52,16 +49,16 @@ class DocType:
 						
 	
 	def validate_title_field(self):
-		if self.doc.title_field and \
-			self.doc.title_field not in [d.fieldname for d in self.doclist.get({"doctype":"DocField"})]:
+		if self.title_field and \
+			self.title_field not in [d.fieldname for d in self.get("fields")]:
 			frappe.throw(_("Title field must be a valid fieldname"))
 			
 	def validate_series(self, autoname=None, name=None):
-		if not autoname: autoname = self.doc.autoname
-		if not name: name = self.doc.name
+		if not autoname: autoname = self.autoname
+		if not name: name = self.name
 		
-		if not autoname and self.doclist.get({"fieldname":"naming_series"}):
-			self.doc.autoname = "naming_series:"
+		if not autoname and self.get("fields", {"fieldname":"naming_series"}):
+			self.autoname = "naming_series:"
 		
 		if autoname and (not autoname.startswith('field:')) and (not autoname.startswith('eval:')) \
 			and (not autoname=='Prompt') and (not autoname.startswith('naming_series:')):
@@ -72,10 +69,10 @@ class DocType:
 
 	def on_update(self):
 		from frappe.model.db_schema import updatedb
-		updatedb(self.doc.name)
+		updatedb(self.name)
 
 		self.change_modified_of_parent()
-		make_module_and_roles(self.doclist)
+		make_module_and_roles(self)
 		
 		from frappe import conf
 		if (not frappe.flags.in_import) and conf.get('developer_mode') or 0:
@@ -83,53 +80,53 @@ class DocType:
 			self.make_controller_template()
 		
 		# update index
-		if not self.doc.custom:
+		if not self.custom:
 			from frappe.model.code import load_doctype_module
-			module = load_doctype_module( self.doc.name, self.doc.module)
+			module = load_doctype_module( self.name, self.module)
 			if hasattr(module, "on_doctype_update"):
 				module.on_doctype_update()
-		frappe.clear_cache(doctype=self.doc.name)
+		frappe.clear_cache(doctype=self.name)
 
 	def check_link_replacement_error(self):
-		for d in self.doclist.get({"doctype":"DocField", "fieldtype":"Select"}):
+		for d in self.get("fields", {"fieldtype":"Select"}):
 			if (frappe.db.get_value("DocField", d.name, "options") or "").startswith("link:") \
 				and not d.options.startswith("link:"):
 				frappe.msgprint("link: type Select fields are getting replaced. Please check for %s" % d.label,
 					raise_exception=True)
 
 	def on_trash(self):
-		frappe.db.sql("delete from `tabCustom Field` where dt = %s", self.doc.name)
-		frappe.db.sql("delete from `tabCustom Script` where dt = %s", self.doc.name)
-		frappe.db.sql("delete from `tabProperty Setter` where doc_type = %s", self.doc.name)
-		frappe.db.sql("delete from `tabReport` where ref_doctype=%s", self.doc.name)
+		frappe.db.sql("delete from `tabCustom Field` where dt = %s", self.name)
+		frappe.db.sql("delete from `tabCustom Script` where dt = %s", self.name)
+		frappe.db.sql("delete from `tabProperty Setter` where doc_type = %s", self.name)
+		frappe.db.sql("delete from `tabReport` where ref_doctype=%s", self.name)
 	
 	def before_rename(self, old, new, merge=False):
 		if merge:
 			frappe.throw(_("DocType can not be merged"))
 			
 	def after_rename(self, old, new, merge=False):
-		if self.doc.issingle:
+		if self.issingle:
 			frappe.db.sql("""update tabSingles set doctype=%s where doctype=%s""", (new, old))
 		else:
 			frappe.db.sql("rename table `tab%s` to `tab%s`" % (old, new))
 	
 	def export_doc(self):
 		from frappe.modules.export_file import export_to_files
-		export_to_files(record_list=[['DocType', self.doc.name]])
+		export_to_files(record_list=[['DocType', self.name]])
 		
 	def import_doc(self):
 		from frappe.modules.import_module import import_from_files
-		import_from_files(record_list=[[self.doc.module, 'doctype', self.doc.name]])		
+		import_from_files(record_list=[[self.module, 'doctype', self.name]])		
 
 	def make_controller_template(self):
 		from frappe.modules import get_doc_path, get_module_path, scrub
 		
-		pypath = os.path.join(get_doc_path(self.doc.module, 
-			self.doc.doctype, self.doc.name), scrub(self.doc.name) + '.py')
+		pypath = os.path.join(get_doc_path(self.module, 
+			self.doctype, self.name), scrub(self.name) + '.py')
 
 		if not os.path.exists(pypath):
 			# get app publisher for copyright
-			app = frappe.local.module_app[frappe.scrub(self.doc.module)]
+			app = frappe.local.module_app[frappe.scrub(self.module)]
 			if not app:
 				frappe.throw("App not found!")
 			app_publisher = frappe.get_hooks(hook="app_publisher", app_name=app)[0]
@@ -143,23 +140,22 @@ class DocType:
 		"""
 			if is_submittable is set, add amended_from docfields
 		"""
-		if self.doc.is_submittable:
+		if self.is_submittable:
 			if not frappe.db.sql("""select name from tabDocField 
-				where fieldname = 'amended_from' and parent = %s""", self.doc.name):
-					new = self.doc.addchild('fields', 'DocField', self.doclist)
-					new.label = 'Amended From'
-					new.fieldtype = 'Link'
-					new.fieldname = 'amended_from'
-					new.options = self.doc.name
-					new.permlevel = 0
-					new.read_only = 1
-					new.print_hide = 1
-					new.no_copy = 1
-					new.idx = self.get_max_idx() + 1
+				where fieldname = 'amended_from' and parent = %s""", self.name):
+					self.append("fields", {
+						"label": "Amended From",
+						"fieldtype": "Link",
+						"fieldname": "amended_from",
+						"options": self.name,
+						"read_only": 1,
+						"print_hide": 1,
+						"no_copy": 1
+					})
 				
 	def get_max_idx(self):
 		max_idx = frappe.db.sql("""select max(idx) from `tabDocField` where parent = %s""", 
-			self.doc.name)
+			self.name)
 		return max_idx and max_idx[0][0] or 0
 
 def validate_fields_for_doctype(doctype):
@@ -329,14 +325,14 @@ def validate_permissions(permissions, for_remove=False):
 		check_level_zero_is_set(d)
 		remove_rights_for_single(d)
 
-def make_module_and_roles(doclist, perm_doctype="DocPerm"):
+def make_module_and_roles(doc, perm_fieldname="permissions"):
 	try:
-		if not frappe.db.exists("Module Def", doclist[0].module):
-			m = frappe.bean({"doctype": "Module Def", "module_name": doclist[0].module})
+		if not frappe.db.exists("Module Def", doc.module):
+			m = frappe.bean({"doctype": "Module Def", "module_name": doc.module})
 			m.insert()
 		
 		default_roles = ["Administrator", "Guest", "All"]
-		roles = [p.role for p in doclist.get({"doctype": perm_doctype})] + default_roles
+		roles = [p.role for p in doc.get(permissions)] + default_roles
 		
 		for role in list(set(roles)):
 			if not frappe.db.exists("Role", role):

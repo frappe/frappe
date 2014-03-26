@@ -20,11 +20,9 @@ frappe.core.Workflow = frappe.ui.form.Controller.extend({
 		}
 	},
 	update_field_options: function() {
-		var fields = $.map(frappe.model.get("DocField", {
-				parent: this.frm.doc.document_type,
-				fieldtype: ["not in", frappe.model.no_value_type]
-			}),
-			function(d) { return d.fieldname; });
+		var fields = $.map(frappe.model.get_doc("DocType", this.frm.doc.document_type).fields, function(d) {
+			return frappe.model.no_value_type.indexOf(d.fieldtype)===-1 ? d.fieldname : null;
+		})
 		frappe.meta.get_docfield("Workflow Document State", "update_field", this.frm.doc.name).options
 			= [""].concat(fields);
 	}

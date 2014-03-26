@@ -16,15 +16,20 @@ def get_doc(arg1, arg2=None):
 		doctype = arg1
 	else:
 		doctype = arg1.get("doctype")
-		
+	
+	controller = get_controller(doctype)
+	if controller:
+		return controller(arg1, arg2)
+	
+	return Document(arg1, arg2)
+
+def get_controller(doctype):
 	module = load_doctype_module(doctype)
 	classname = doctype.replace(" ", "")
 	if hasattr(module, classname):
 		_class = getattr(module, classname)
 		if issubclass(_class, Document):
-			return getattr(module, classname)(arg1, arg2)
-	
-	return Document(arg1, arg2)
+			return getattr(module, classname)
 
 class Document(BaseDocument):
 	def __init__(self, arg1, arg2=None):
@@ -59,6 +64,9 @@ class Document(BaseDocument):
 		
 		else:
 			d = frappe.db.get_value(self.doctype, self.name, "*", as_dict=1)
+			if not d:
+				frappe.throw("{}: {}, {}".format(_("Not Found"), 
+					self.doctype, self.name), frappe.DoesNotExistError)
 			self.update(d, valid_columns = d.keys())
 
 			for df in self.get_table_fields():
@@ -70,9 +78,6 @@ class Document(BaseDocument):
 				else:
 					self.set(df.fieldname, [])
 			
-	def get_table_fields(self):
-		return self.meta.get('fields', {"fieldtype":"Table"})
-
 	def has_permission(self, permtype):
 		if getattr(self, "_ignore_permissions", False):
 			return True
@@ -293,23 +298,10 @@ class Document(BaseDocument):
 			
 	def run_method(self, method, *args, **kwargs):
 		"""run standard triggers, plus those in frappe"""
-		def add_to_response(out, new_response):
-			if isinstance(new_response, dict):
-				out.update(new_response)
-
 		if hasattr(self, method):
-			add_to_response(frappe.local.response, 
-				getattr(self, method)(*args, **kwargs))	
-
-		args = [self, method] + list(args or [])
-
-		for handler in frappe.get_hooks("bean_event:" + self.doctype + ":" + method) \
-			+ frappe.get_hooks("bean_event:*:" + method):
-			add_to_response(frappe.local.response, 
-				frappe.call(frappe.get_attr(handler), *args, **kwargs))
-		
-		return frappe.local.response
-
+			fn = lambda self, *args, **kwargs: getattr(self, method)(*args, **kwargs)
+			return Document.hook(fn)(self, *args, **kwargs)
+	
 	def run_before_save_methods(self):
 		if self._action=="save":
 			self.run_method("validate")
@@ -332,3 +324,31 @@ class Document(BaseDocument):
 			self.run_method("on_cancel")
 		elif self._action=="update_after_submit":
 			self.run_method("on_update_after_submit")
+			
+	@staticmethod
+	def hook(f):
+		def add_to_response(new_response):
+			if isinstance(new_response, dict):
+				frappe.local.response.update(new_response)
+
+		def compose(fn, *hooks):
+			def runner(self, method, *args, **kwargs):
+				add_to_response(fn(self, *args, **kwargs))
+				for f in hooks:
+					add_to_response(f(self, method, *args, **kwargs))
+				return frappe.local.response
+			
+			return runner
+		
+		def composer(self, *args, **kwargs):
+			hooks = []
+			method = f.__name__
+			for handler in frappe.get_hooks("bean_event:" + self.doctype + ":" + method) \
+				+ frappe.get_hooks("bean_event:*:" + method):
+				hooks.append(frappe.getattr(handler))
+
+			composed = compose(f, *hooks)
+			return composed(self, method, *args, **kwargs)
+
+		return composer
+

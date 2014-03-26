@@ -242,6 +242,8 @@ def clear_cache(doctype=None):
 	def clear_single(dt):
 		frappe.cache().delete_value(cache_name(dt, False))
 		frappe.cache().delete_value(cache_name(dt, True))
+		frappe.cache().delete_value("meta:" + dt)
+		frappe.cache().delete_value("form_meta:" + dt)
 
 		if doctype_cache and (dt in doctype_cache):
 			del doctype_cache[dt]

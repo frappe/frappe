@@ -548,13 +548,11 @@ _f.Frm.prototype.setnewdoc = function() {
 _f.Frm.prototype.runscript = function(scriptname, callingfield, onrefresh) {
 	var me = this;
 	if(this.docname) {
-		// make doc list
-		var doclist = frappe.model.compress(make_doclist(this.doctype, this.docname));
 		// send to run
 		if(callingfield)
 			$(callingfield.input).set_working();
 
-		return $c('runserverobj', {'docs':doclist, 'method':scriptname }, 
+		return $c('runserverobj', {'docs':this.doc, 'method':scriptname }, 
 			function(r, rtxt) { 
 				// run refresh
 				if(onrefresh)
@@ -577,45 +575,10 @@ _f.Frm.prototype.copy_doc = function(onload, from_amend) {
 		return;
 	}
 	
-	var dn = this.docname;
-	// copy parent
-	var newdoc = frappe.model.copy_doc(this.doctype, dn, from_amend);
+	var newdoc = frappe.model.copy_doc(this.doc, from_amend);
+
 	newdoc.idx = null;
-	
-	// copy chidren
-	var dl = make_doclist(this.doctype, dn);
-
-	// table fields dict - for no_copy check
-	var tf_dict = {};
-
-	for(var d in dl) {
-		d1 = dl[d];
-		
-		// get tabel field
-		if(d1.parentfield && !tf_dict[d1.parentfield]) {
-			tf_dict[d1.parentfield] = frappe.meta.get_docfield(d1.parenttype, d1.parentfield);
-		}
-		
-		if(d1.parent==dn && cint(tf_dict[d1.parentfield].no_copy)!=1) {
-			var ch = frappe.model.copy_doc(d1.doctype, d1.name, from_amend);
-			ch.parent = newdoc.name;
-			ch.docstatus = 0;
-			ch.owner = user;
-			ch.creation = '';
-			ch.modified_by = user;
-			ch.modified = '';
-		}
-	}
-
-	newdoc.__islocal = 1;
-	newdoc.docstatus = 0;
-	newdoc.owner = user;
-	newdoc.creation = '';
-	newdoc.modified_by = user;
-	newdoc.modified = '';
-
 	if(onload)onload(newdoc);
-
 	loaddoc(newdoc.doctype, newdoc.name);
 }
 
@@ -651,19 +614,15 @@ _f.Frm.prototype._save = function(save_action, callback, btn, on_error) {
 		scroll(0, 0);
 	
 	// validate
-	if(save_action!="Cancel") {
-		validated = true;
-		this.script_manager.trigger("validate");
-		if(!validated) {
-			if(on_error) 
-				on_error();
-			return;
-		}
+	validated = true;
+	this.script_manager.trigger("validate");
+	if(!validated) {
+		if(on_error) 
+			on_error();
+		return;
 	}
-
-	var doclist = new frappe.model.DocList(this.doctype, this.docname);
-
-	doclist.save(save_action || "Save", function(r) {
+	
+	var after_save = function(r) {
 		if(!r.exc) {
 			me.refresh();
 		} else {
@@ -680,7 +639,9 @@ _f.Frm.prototype._save = function(save_action, callback, btn, on_error) {
 			}
 			frappe._from_link = null;
 		}
-	}, btn);
+	}
+	
+	frappe.ui.form.save(this, save_action || "Save", after_save, btn);
 }
 
 
@@ -713,14 +674,16 @@ _f.Frm.prototype.savecancel = function(btn, on_error) {
 				on_error();
 			return;
 		}
-		
-		var doclist = new frappe.model.DocList(me.doctype, me.docname);
-		doclist.cancel(function(r) {
+
+		var after_cancel = function(r) {
 			if(!r.exc) {
 				me.refresh();
 				me.script_manager.trigger("after_cancel");
+			} else {
+				on_error();
 			}
-		}, btn, on_error);
+		}		
+		frappe.ui.form.save(this, "cancel", after_cancel, btn);
 	});
 }
 

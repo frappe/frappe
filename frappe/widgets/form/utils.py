@@ -112,8 +112,6 @@ def get_linked_docs(doctype, name, metadata_loaded=None):
 				results[dt] = ret
 				
 			if not dt in metadata_loaded:
-				if not "docs" in frappe.local.response:
-					frappe.local.response.docs = []
 				frappe.local.response.docs += linkmeta
 				
 	return results

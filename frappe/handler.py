@@ -65,7 +65,7 @@ def handle():
 	
 	if cmd!='login':		
 		execute_cmd(cmd)
-	
+
 	return build_response("json")
 
 def execute_cmd(cmd):

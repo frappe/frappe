@@ -9,7 +9,8 @@ import mimetypes
 import os
 import frappe
 from frappe import _
-from frappe.model.doc import Document
+import frappe.model.doc
+import frappe.model.document
 import frappe.utils
 import frappe.sessions
 import frappe.model.utils
@@ -28,6 +29,9 @@ def report_error(status_code):
 	return response
 
 def build_response(response_type=None):
+	if "docs" in frappe.local.response and not frappe.local.response.docs:
+		del frappe.local.response["docs"]
+	
 	response_type_map = {
 		'csv': as_csv,
 		'download': as_raw,
@@ -54,7 +58,6 @@ def as_raw():
 
 def as_json():
 	make_logs()
-	cleanup_docs()
 	response = Response()
 	response.headers["Content-Type"] = "application/json; charset: utf-8"
 	response = gzip(json.dumps(frappe.local.response, default=json_handler, separators=(',',':')),
@@ -68,14 +71,11 @@ def make_logs():
 		frappe.response['exc'] = json.dumps([frappe.utils.cstr(d) for d in frappe.local.error_log])
 
 	if frappe.local.message_log:
-		frappe.response['_server_messages'] = json.dumps([frappe.utils.cstr(d) for d in frappe.local.message_log])
+		frappe.response['_server_messages'] = json.dumps([frappe.utils.cstr(d) for
+			d in frappe.local.message_log])
 	
 	if frappe.debug_log and frappe.conf.get("logging") or False:
 		frappe.response['_debug_messages'] = json.dumps(frappe.local.debug_log)
-
-def cleanup_docs():
-	if frappe.response.get('docs') and type(frappe.response['docs'])!=dict:
-		frappe.response['docs'] = frappe.model.utils.compress(frappe.response['docs'])
 		
 def gzip(data, response):
 	data = data.encode('utf-8')
@@ -107,8 +107,10 @@ def json_handler(obj):
 		return unicode(obj)
 	elif isinstance(obj, LocalProxy):
 		return unicode(obj)
-	elif isinstance(obj, Document):
+	elif isinstance(obj, frappe.model.doc.Document):
 		return obj.fields
+	elif isinstance(obj, frappe.model.document.Document):
+		return obj.as_dict()
 	else:
 		raise TypeError, """Object of type %s with value of %s is not JSON serializable""" % \
 			(type(obj), repr(obj))

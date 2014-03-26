@@ -109,7 +109,7 @@ frappe.ui.form.ScriptManager = Class.extend({
 		}
 	},
 	copy_from_first_row: function(parentfield, current_row, fieldnames) {
-		var doclist = frappe.model.get_doclist(this.frm.doc.doctype, this.frm.doc.name, {parentfield: parentfield});
+		var doclist = this.frm.doc[parentfield];
 		if(doclist.length===1 || doclist[0]===current_row) return;
 		
 		$.each(fieldnames, function(i, fieldname) {
