@@ -9,8 +9,12 @@ def get_app_list():
 	out = {}
 	installed = frappe.get_installed_apps()
 	for app in frappe.get_all_apps(True):
-		out[app] = {}
 		app_hooks = frappe.get_hooks(app_name=app)
+
+		if app_hooks.get('hide_in_installer'):
+			continue
+
+		out[app] = {}
 		for key in ("app_name", "app_title", "app_description", "app_icon",
 			"app_publisher", "app_version", "app_url", "app_color"):
 			 val = app_hooks.get(key) or []
