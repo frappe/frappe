@@ -35,6 +35,10 @@ def application(request):
 		rollback = True
 		
 		init_site(request)
+
+		if frappe.local.conf.get('maintainance_mode'):
+			raise frappe.SessionStopped
+
 		make_form_dict(request)
 		frappe.local.http_request = frappe.auth.HTTPRequest()
 		
@@ -85,7 +89,7 @@ def application(request):
 			frappe.db.rollback()
 			
 		# set cookies
-		if response:
+		if response and hasattr(frappe.local, 'cookie_manager'):
 			frappe.local.cookie_manager.flush_cookies(response=response)
 		
 		frappe.destroy()

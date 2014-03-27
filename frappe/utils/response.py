@@ -161,4 +161,4 @@ def handle_session_stopped():
 					</html>""")
 	response.status_code = 503
 	response.content_type = 'text/html'
-	return res
+	return response
