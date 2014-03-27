@@ -14,6 +14,7 @@ from __future__ import unicode_literals
 
 import frappe
 from frappe import msgprint, _
+from frappe.model.document import Document
 
 class NestedSetRecursionError(frappe.ValidationError): pass
 class NestedSetMultipleRootsError(frappe.ValidationError): pass
@@ -188,7 +189,7 @@ def validate_loop(doctype, name, lft, rgt):
 		"%s", "%s"), (lft, rgt)):
 		frappe.throw("""Item cannot be added to its own descendents.""", NestedSetRecursionError)
 
-class DocTypeNestedSet(object):
+class DocTypeNestedSet(Document):
 	def on_update(self):
 		update_nsm(self)
 		self.validate_ledger()

@@ -6,9 +6,9 @@
 from __future__ import unicode_literals
 import frappe, json
 
-class DocType:
-	def __init__(self, d, dl):
-		self.doc, self.doclist = d, dl
+from frappe.model.document import Document
+
+class Version(Document):
 		
 @frappe.whitelist()
 def restore(version):

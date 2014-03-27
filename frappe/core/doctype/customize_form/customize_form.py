@@ -9,7 +9,9 @@ from __future__ import unicode_literals
 import frappe, json
 from frappe.utils import cstr
 
-class DocType:
+from frappe.model.document import Document
+
+class CustomizeForm(Document):
 	def __init__(self, doc, doclist=[]):
 		self.doc, self.doclist = doc, doclist
 		self.doctype_properties = [
@@ -57,12 +59,10 @@ class DocType:
 		self.clear()
 
 		if self.doc.doc_type:
-			from frappe.model.doc import addchild
-
+			
 			for d in self.get_ref_doclist():
 				if d.doctype=='DocField':
-					new = addchild(self.doc, 'fields', 'Customize Form Field', 
-						self.doclist)
+					new = self.doc.append('fields', {})
 					self.set(
 						{
 							'list': self.docfield_properties,
@@ -94,7 +94,7 @@ class DocType:
 			Clear fields in the doc
 		"""
 		# Clear table before adding new doctype's fields
-		self.doclist = self.doc.clear_table(self.doclist, 'fields')
+		self.set('fields', [])
 		self.set({ 'list': self.doctype_properties, 'value': None })
 	
 		

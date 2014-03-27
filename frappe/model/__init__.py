@@ -34,9 +34,9 @@ def copytables(srctype, src, srcfield, tartype, tar, tarfield, srcfields, tarfie
 	if not tarfields: 
 		tarfields = srcfields
 	l = []
-	data = frappe.model.doc.getchildren(src.name, srctype, srcfield)
+	data = src.get(srcfield)
 	for d in data:
-		newrow = frappe.model.doc.addchild(tar, tarfield, tartype)
+		newrow = tar.append(tarfield)
 		newrow.idx = d.idx
 	
 		for i in range(len(srcfields)):

@@ -5,9 +5,9 @@ from __future__ import unicode_literals
 import frappe
 from frappe.utils import cint
 
-class DocType:
-	def __init__(self, d, dl):
-		self.doc, self.doclist = d, dl
+from frappe.model.document import Document
+
+class Userrole(Document):
 		
 	def validate(self):
 		if cint(self.doc.fields.get("__islocal")) and frappe.db.exists("UserRole", {

@@ -10,9 +10,7 @@ from frappe.website.render import clear_cache
 from frappe import _
 from frappe.utils import today
 
-class DocType(WebsiteGenerator):
-	def __init__(self, d, dl):
-		self.doc, self.doclist = d, dl
+class BlogPost(WebsiteGenerator):
 		self.save_versions = True
 				
 	def get_page_title(self):

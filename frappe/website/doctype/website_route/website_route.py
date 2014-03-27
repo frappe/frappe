@@ -10,9 +10,7 @@ from frappe.utils.nestedset import DocTypeNestedSet
 sitemap_fields = ("page_name", "ref_doctype", "docname", "page_or_generator", "idx",
 	"lastmod", "parent_website_route", "public_read", "public_write", "page_title")
 
-class DocType(DocTypeNestedSet):
-	def __init__(self, d, dl):
-		self.doc, self.doclist = d, dl
+class WebsiteRoute(DocTypeNestedSet):
 		self.nsm_parent_field = "parent_website_route"
 		
 	def autoname(self):

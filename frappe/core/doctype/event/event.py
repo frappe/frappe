@@ -14,14 +14,6 @@ class Event(Document):
 	def validate(self):
 		if self.starts_on and self.ends_on and self.starts_on > self.ends_on:
 			frappe.msgprint(frappe._("Event End must be after Start"), raise_exception=True)
-		
-class DocType:
-	def __init__(self, d, dl):
-		self.doc, self.doclist = d, dl
-		
-	def validate(self):
-		if self.doc.starts_on and self.doc.ends_on and self.doc.starts_on > self.doc.ends_on:
-			frappe.msgprint(frappe._("Event End must be after Start"), raise_exception=True)
 			
 def get_permission_query_conditions():
 	return """(tabEvent.event_type='Public' or tabEvent.owner='%(user)s'

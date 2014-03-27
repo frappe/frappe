@@ -7,10 +7,9 @@ import frappe
 from frappe import form, msgprint
 import frappe.defaults
 
-class DocType:
-	def __init__(self, doc, doclist):
-		self.doc = doc
-		self.doclist = doclist
+from frappe.model.document import Document
+
+class ControlPanel(Document):
 
 	def on_update(self):
 		# clear cache on save

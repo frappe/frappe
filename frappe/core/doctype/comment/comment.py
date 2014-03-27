@@ -5,9 +5,9 @@ from __future__ import unicode_literals
 import frappe, json
 from frappe.website.render import clear_cache
 
-class DocType:
-	def __init__(self, d, dl):
-		self.doc, self.doclist = d, dl
+from frappe.model.document import Document
+
+class Comment(Document):
 		
 	def validate(self):
 		if frappe.db.sql("""select count(*) from tabComment where comment_doctype=%s

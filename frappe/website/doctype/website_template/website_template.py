@@ -11,9 +11,9 @@ from frappe import _
 from frappe.website.doctype.website_route.website_route import add_to_sitemap, update_sitemap, cleanup_sitemap
 from frappe.utils.nestedset import rebuild_tree
 
-class DocType:
-	def __init__(self, d, dl):
-		self.doc, self.doclist = d, dl
+from frappe.model.document import Document
+
+class WebsiteTemplate(Document):
 		
 	def after_insert(self):
 		if self.doc.page_or_generator == "Page":

@@ -10,11 +10,9 @@ naming for same name files: file.gif, file-1.gif, file-2.gif etc
 
 import frappe, frappe.utils, os
 from frappe import conf
+from frappe.model.document import Document
 
-class DocType():
-	def __init__(self, d, dl):
-		self.doc, self.doclist = d, dl
-		
+class FileData(Document):
 	def before_insert(self):
 		frappe.local.rollback_observers.append(self)
 	

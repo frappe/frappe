@@ -10,9 +10,9 @@ from frappe.utils import get_fullname
 from frappe.utils.email_lib.bulk import send
 from frappe.utils.email_lib import sendmail
 
-class DocType:
-	def __init__(self, d, dl):
-		self.doc, self.doclist = d, dl
+from frappe.model.document import Document
+
+class Post(Document):
 		
 	def validate(self):
 		if not self.doc.parent_post and not self.doc.title:

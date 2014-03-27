@@ -8,7 +8,9 @@ from frappe.modules import get_doc_path
 
 standard_format = "templates/print_formats/standard.html"
 
-class DocType:
+from frappe.model.document import Document
+
+class PrintFormat(Document):
 	def __init__(self, d, dl):
 		self.doc, self.doclist = d,dl
 

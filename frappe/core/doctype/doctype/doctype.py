@@ -134,7 +134,7 @@ class DocType(Document):
 			with open(pypath, 'w') as pyfile:
 				with open(os.path.join(get_module_path("core"), "doctype", "doctype", 
 					"doctype_template.py"), 'r') as srcfile:
-					pyfile.write(srcfile.read().format(app_publisher=app_publisher))
+					pyfile.write(srcfile.read().format(app_publisher=app_publisher, classname=self.name.replace(" ", "")))
 	
 	def make_amendable(self):
 		"""
