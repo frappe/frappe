@@ -1,33 +1,20 @@
-[
- {
-  "creation": "2013-01-01 18:50:55", 
-  "docstatus": 0, 
-  "modified": "2014-03-13 11:11:56", 
-  "modified_by": "Administrator", 
-  "owner": "Administrator"
- }, 
- {
-  "doctype": "Page", 
-  "icon": "icon-user", 
-  "module": "Core", 
-  "name": "__common__", 
-  "page_name": "user-properties", 
-  "standard": "Yes", 
-  "title": "User Properties"
- }, 
- {
-  "doctype": "Page Role", 
-  "name": "__common__", 
-  "parent": "user-properties", 
-  "parentfield": "roles", 
-  "parenttype": "Page", 
-  "role": "System Manager"
- }, 
- {
-  "doctype": "Page", 
-  "name": "user-properties"
- }, 
- {
-  "doctype": "Page Role"
- }
-]
+{
+ "creation": "2013-01-01 18:50:55", 
+ "docstatus": 0, 
+ "doctype": "Page", 
+ "icon": "icon-user", 
+ "idx": 1, 
+ "modified": "2014-03-13 11:11:56", 
+ "modified_by": "Administrator", 
+ "module": "Core", 
+ "name": "user-properties", 
+ "owner": "Administrator", 
+ "page_name": "user-properties", 
+ "roles": [
+  {
+   "role": "System Manager"
+  }
+ ], 
+ "standard": "Yes", 
+ "title": "User Properties"
+}

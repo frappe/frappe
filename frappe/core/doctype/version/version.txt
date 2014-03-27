@@ -1,63 +1,46 @@
-[
- {
-  "creation": "2014-02-20 17:22:37", 
-  "docstatus": 0, 
-  "modified": "2014-02-20 17:22:38", 
-  "modified_by": "Administrator", 
-  "owner": "Administrator"
- }, 
- {
-  "autoname": "_VER.######", 
-  "doctype": "DocType", 
-  "document_type": "Master", 
-  "module": "Core", 
-  "name": "__common__"
- }, 
- {
-  "doctype": "DocField", 
-  "name": "__common__", 
-  "parent": "Version", 
-  "parentfield": "fields", 
-  "parenttype": "DocType", 
-  "permlevel": 0, 
-  "reqd": 1
- }, 
- {
-  "doctype": "DocPerm", 
-  "export": 1, 
-  "name": "__common__", 
-  "parent": "Version", 
-  "parentfield": "permissions", 
-  "parenttype": "DocType", 
-  "permlevel": 0, 
-  "read": 1, 
-  "report": 1, 
-  "role": "System Manager"
- }, 
- {
-  "doctype": "DocType", 
-  "name": "Version"
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "ref_doctype", 
-  "fieldtype": "Link", 
-  "label": "Ref DocType", 
-  "options": "DocType"
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "docname", 
-  "fieldtype": "Data", 
-  "label": "Docname"
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "doclist_json", 
-  "fieldtype": "Code", 
-  "label": "Doclist JSON"
- }, 
- {
-  "doctype": "DocPerm"
- }
-]
+{
+ "autoname": "_VER.######", 
+ "creation": "2014-02-20 17:22:37", 
+ "docstatus": 0, 
+ "doctype": "DocType", 
+ "document_type": "Master", 
+ "fields": [
+  {
+   "fieldname": "ref_doctype", 
+   "fieldtype": "Link", 
+   "label": "Ref DocType", 
+   "options": "DocType", 
+   "permlevel": 0, 
+   "reqd": 1
+  }, 
+  {
+   "fieldname": "docname", 
+   "fieldtype": "Data", 
+   "label": "Docname", 
+   "permlevel": 0, 
+   "reqd": 1
+  }, 
+  {
+   "fieldname": "doclist_json", 
+   "fieldtype": "Code", 
+   "label": "Doclist JSON", 
+   "permlevel": 0, 
+   "reqd": 1
+  }
+ ], 
+ "idx": 1, 
+ "modified": "2014-02-20 17:22:38", 
+ "modified_by": "Administrator", 
+ "module": "Core", 
+ "name": "Version", 
+ "owner": "Administrator", 
+ "permissions": [
+  {
+   "export": 1, 
+   "permlevel": 0, 
+   "read": 1, 
+   "report": 1, 
+   "role": "System Manager"
+  }
+ ]
+}

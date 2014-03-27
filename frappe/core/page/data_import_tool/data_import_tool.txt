@@ -1,33 +1,20 @@
-[
- {
-  "creation": "2012-06-14 15:07:25", 
-  "docstatus": 0, 
-  "modified": "2014-02-13 16:09:27", 
-  "modified_by": "Administrator", 
-  "owner": "Administrator"
- }, 
- {
-  "doctype": "Page", 
-  "icon": "icon-upload", 
-  "module": "Core", 
-  "name": "__common__", 
-  "page_name": "data-import-tool", 
-  "standard": "Yes", 
-  "title": "Data Import Tool"
- }, 
- {
-  "doctype": "Page Role", 
-  "name": "__common__", 
-  "parent": "data-import-tool", 
-  "parentfield": "roles", 
-  "parenttype": "Page", 
-  "role": "System Manager"
- }, 
- {
-  "doctype": "Page", 
-  "name": "data-import-tool"
- }, 
- {
-  "doctype": "Page Role"
- }
-]
+{
+ "creation": "2012-06-14 15:07:25", 
+ "docstatus": 0, 
+ "doctype": "Page", 
+ "icon": "icon-upload", 
+ "idx": 1, 
+ "modified": "2014-02-13 16:09:27", 
+ "modified_by": "Administrator", 
+ "module": "Core", 
+ "name": "data-import-tool", 
+ "owner": "Administrator", 
+ "page_name": "data-import-tool", 
+ "roles": [
+  {
+   "role": "System Manager"
+  }
+ ], 
+ "standard": "Yes", 
+ "title": "Data Import Tool"
+}

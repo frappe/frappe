@@ -1,46 +1,33 @@
-[
- {
-  "creation": "2013-11-18 05:31:03", 
-  "docstatus": 0, 
-  "modified": "2013-12-20 19:24:14", 
-  "modified_by": "Administrator", 
-  "owner": "Administrator"
- }, 
- {
-  "doctype": "DocType", 
-  "document_type": "Other", 
-  "module": "Core", 
-  "name": "__common__"
- }, 
- {
-  "doctype": "DocField", 
-  "name": "__common__", 
-  "parent": "Notification Count", 
-  "parentfield": "fields", 
-  "parenttype": "DocType", 
-  "permlevel": 0
- }, 
- {
-  "doctype": "DocType", 
-  "name": "Notification Count"
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "for_doctype", 
-  "fieldtype": "Data", 
-  "label": "For DocType", 
-  "search_index": 1
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "count", 
-  "fieldtype": "Int", 
-  "label": "Count"
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "open_count", 
-  "fieldtype": "Int", 
-  "label": "Open Count"
- }
-]
+{
+ "creation": "2013-11-18 05:31:03", 
+ "docstatus": 0, 
+ "doctype": "DocType", 
+ "document_type": "Other", 
+ "fields": [
+  {
+   "fieldname": "for_doctype", 
+   "fieldtype": "Data", 
+   "label": "For DocType", 
+   "permlevel": 0, 
+   "search_index": 1
+  }, 
+  {
+   "fieldname": "count", 
+   "fieldtype": "Int", 
+   "label": "Count", 
+   "permlevel": 0
+  }, 
+  {
+   "fieldname": "open_count", 
+   "fieldtype": "Int", 
+   "label": "Open Count", 
+   "permlevel": 0
+  }
+ ], 
+ "idx": 1, 
+ "modified": "2013-12-20 19:24:14", 
+ "modified_by": "Administrator", 
+ "module": "Core", 
+ "name": "Notification Count", 
+ "owner": "Administrator"
+}
