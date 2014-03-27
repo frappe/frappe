@@ -20,8 +20,8 @@ def get_mapped_doclist(from_doctype, from_docname, table_maps, target_doclist=No
 	if not ignore_permissions and not frappe.has_permission(from_doctype, "read", source.doc):
 		frappe.msgprint("No Permission", raise_exception=frappe.PermissionError)
 
-	source_meta = frappe.get_doctype(from_doctype)
-	target_meta = frappe.get_doctype(table_maps[from_doctype]["doctype"])
+	source_meta = frappe.get_meta(from_doctype)
+	target_meta = frappe.get_meta(table_maps[from_doctype]["doctype"])
 	
 	# main
 	if target_doclist:

@@ -165,10 +165,10 @@ def make_test_objects(doctype, test_records, verbose=None):
 def print_mandatory_fields(doctype):
 	print "Please setup make_test_records for: " + doctype
 	print "-" * 60
-	doctype_obj = frappe.get_doctype(doctype)
-	print "Autoname: " + (doctype_obj[0].autoname or "")
+	meta = frappe.get_meta(doctype)
+	print "Autoname: " + (meta.autoname or "")
 	print "Mandatory Fields: "
-	for d in doctype_obj.get({"reqd":1}):
+	for d in meta.get({"reqd":1}):
 		print d.parent + ":" + d.fieldname + " | " + d.fieldtype + " | " + (d.options or "")
 	print		
 

@@ -12,7 +12,9 @@ from frappe.model.base_document import BaseDocument
 # methods
 
 def get_doc(arg1, arg2=None):
-	if isinstance(arg1, basestring):
+	if isinstance(arg1, BaseDocument):
+		return arg1
+	elif isinstance(arg1, basestring):
 		doctype = arg1
 	else:
 		doctype = arg1.get("doctype")
@@ -315,6 +317,14 @@ class Document(BaseDocument):
 		if hasattr(self, method):
 			fn = lambda self, *args, **kwargs: getattr(self, method)(*args, **kwargs)
 			return Document.hook(fn)(self, *args, **kwargs)
+			
+	def submit(self):
+		self.docstatus = 1
+		self.save()
+
+	def cancel(self):
+		self.docstatus = 2
+		self.save()
 	
 	def run_before_save_methods(self):
 		if self._action=="save":

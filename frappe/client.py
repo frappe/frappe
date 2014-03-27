@@ -55,7 +55,7 @@ def insert(doclist):
 		# inserting a child record
 		d = doclist[0]
 		bean = frappe.bean(d["parenttype"], d["parent"])
-		bean.doclist.append(d)
+		bean.append(d)
 		bean.save()
 		return [d]
 	else:

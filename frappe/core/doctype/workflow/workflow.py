@@ -18,10 +18,8 @@ class Workflow(Document):
 	
 	def create_custom_field_for_workflow_state(self):
 		frappe.clear_cache(doctype=self.doc.document_type)
-		doctypeobj = frappe.get_doctype(self.doc.document_type)
-		if not len(doctypeobj.get({"doctype":"DocField", 
-			"fieldname":self.doc.workflow_state_field})):
-			
+		meta = frappe.get_meta(self.doc.document_type)
+		if not meta.get_field(self.doc.workflow_state_field):
 			# create custom field
 			frappe.bean([{
 				"doctype":"Custom Field",
@@ -32,7 +30,6 @@ class Workflow(Document):
 				"hidden": 1,
 				"fieldtype": "Link",
 				"options": "Workflow State",
-				#"insert_after": doctypeobj.get({"doctype":"DocField"})[-1].fieldname
 			}]).save()
 			
 			frappe.msgprint("Created Custom Field '%s' in '%s'" % (self.doc.workflow_state_field,

@@ -69,7 +69,7 @@ class BaseDocument(object):
 	def extend(self, key, value):
 		if isinstance(value, list):
 			for v in value:
-				self.append(v)
+				self.append(key, v)
 		else:
 			raise ValueError
 	
@@ -146,6 +146,10 @@ class BaseDocument(object):
 		self.set("__islocal", False)
 
 	def db_update(self):
+		if self.get("__islocal") or not self.name:
+			self.db_insert()
+			return
+			
 		d = self.get_valid_dict()
 		columns = d.keys()
 		frappe.db.sql("""update `tab{doctype}` 

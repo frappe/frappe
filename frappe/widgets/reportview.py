@@ -52,8 +52,7 @@ def compress(data):
 @frappe.whitelist()
 def save_report():
 	"""save report"""
-	from frappe.model.doc import Document
-	
+		
 	data = frappe.local.form_dict
 	if frappe.db.exists('Report', data['name']):
 		d = Document('Report', data['name'])

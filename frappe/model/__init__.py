@@ -87,8 +87,8 @@ def delete_fields(args_dict, delete=0):
 def rename_field(doctype, old_fieldname, new_fieldname):
 	"""This functions assumes that doctype is already synced"""
 	
-	doctype_list = frappe.get_doctype(doctype)
-	new_field = doctype_list.get_field(new_fieldname)
+	meta = frappe.get_meta(doctype)
+	new_field = meta.get_field(new_fieldname)
 	if not new_field:
 		print "rename_field: " + (new_fieldname) + " not found in " + doctype
 		return
@@ -99,7 +99,7 @@ def rename_field(doctype, old_fieldname, new_fieldname):
 			where parentfield=%s""" % (new_field.options.split("\n")[0], "%s", "%s"),
 			(new_fieldname, old_fieldname))
 	elif new_field.fieldtype not in no_value_fields:
-		if doctype_list[0].issingle:
+		if meta.issingle:
 			frappe.db.sql("""update `tabSingles` set field=%s
 				where doctype=%s and field=%s""", 
 				(new_fieldname, doctype, old_fieldname))

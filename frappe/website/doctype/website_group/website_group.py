@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe.website.website_generator import WebsiteGenerator
 from frappe.templates.generators.website_group import clear_cache
-from frappe.model.doc import make_autoname
+from frappe.model.naming import make_autoname
 
 class WebsiteGroup(WebsiteGenerator):
 		

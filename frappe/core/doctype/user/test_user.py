@@ -46,16 +46,7 @@ class TestUser(unittest.TestCase):
 		frappe.db.set_value("Control Panel", "Control Panel", "_test", "_test_val")
 		self.assertEquals(frappe.db.get_value("Control Panel", None, "_test"), "_test_val")
 		self.assertEquals(frappe.db.get_value("Control Panel", "Control Panel", "_test"), "_test_val")
-		
-	def test_doclist(self):
-		p_meta = frappe.get_doctype("User")
-		
-		self.assertEquals(len(p_meta.get({"doctype": "DocField", "parent": "User", "fieldname": "first_name"})), 1)
-		self.assertEquals(len(p_meta.get({"doctype": "DocField", "parent": "User", "fieldname": "^first"})), 1)
-		self.assertEquals(len(p_meta.get({"fieldname": ["!=", "first_name"]})), len(p_meta) - 1)
-		self.assertEquals(len(p_meta.get({"fieldname": ["in", ["first_name", "last_name"]]})), 2)
-		self.assertEquals(len(p_meta.get({"fieldname": ["not in", ["first_name", "last_name"]]})), len(p_meta) - 2)
-		
+				
 		
 test_records = [
 	[
