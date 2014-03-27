@@ -68,8 +68,9 @@ def getdoctype(doctype, with_parent=False, cached_timestamp=None):
 
 def get_meta_bundle(doctype):
 	bundle = [frappe.widgets.form.meta.get_meta(doctype)]
-	for df in bundle[0].get_table_fields():
-		bundle.append(frappe.widgets.form.meta.get_meta(df.options))
+	for df in bundle[0].fields:
+		if df.fieldtype=="Table":
+			bundle.append(frappe.widgets.form.meta.get_meta(df.options))
 	return bundle
 
 def get_docinfo(doctype, name):

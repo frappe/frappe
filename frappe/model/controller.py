@@ -6,22 +6,11 @@ import frappe
 from frappe import msgprint, _
 from frappe.utils import flt, cint, cstr
 from frappe.model.meta import get_field_precision
+from frappe.model.document import Document
 
 class EmptyTableError(frappe.ValidationError): pass
 
-class DocListController(object):
-	def __init__(self, doc, doclist):
-		self.doc, self.doclist = doc, doclist
-		
-		if hasattr(self, "setup"):
-			self.setup()
-	
-	@property
-	def meta(self):
-		if not hasattr(self, "_meta"):
-			self._meta = frappe.get_doctype(self.doc.doctype)
-		return self._meta
-		
+class DocListController(Document):
 	def validate_value(self, fieldname, condition, val2, doc=None, raise_exception=None):
 		"""check that value of fieldname should be 'condition' val2
 			else throw exception"""
@@ -80,18 +69,9 @@ class DocListController(object):
 		for fieldname in fieldnames:
 			doc.fields[fieldname] = flt(doc.fields.get(fieldname), self.precision(fieldname, doc.parentfield))
 			
-	def _process(self, parentfield):
-		from frappe.model.doc import Document
-		if isinstance(parentfield, Document):
-			parentfield = parentfield.parentfield
-			
-		elif isinstance(parentfield, dict):
-			parentfield = parentfield.get("parentfield")
-			
-		return parentfield
-
 	def precision(self, fieldname, parentfield=None):
-		parentfield = self._process(parentfield)
+		if not isinstance(parentfield, basestring):
+			parentfield = parentfield.parentfield
 		
 		if not hasattr(self, "_precision"):
 			self._precision = frappe._dict({

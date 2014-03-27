@@ -7,7 +7,7 @@ $.extend(frappe.model, {
 	new_names: {},
 	new_name_count: {},
 
-	get_new_doc: function(doctype, parent_doc) {
+	get_new_doc: function(doctype, parent_doc, parentfield) {
 		frappe.provide("locals." + doctype);
 		var doc = {
 			docstatus: 0,
@@ -18,8 +18,19 @@ $.extend(frappe.model, {
 			owner: user
 		};
 		frappe.model.set_default_values(doc, parent_doc);
-		locals[doctype][doc.name] = doc;
-		frappe.provide("frappe.model.docinfo." + doctype + "." + doc.name);
+		
+		if(parent_doc) {
+			$.extend(doc, {
+				parent: parent_doc.name,
+				parentfield: parentfield,
+				parenttype: parent_doc.doctype,
+			});
+			parent_doc[parentfield].push(doc);
+		} else {
+			frappe.provide("frappe.model.docinfo." + doctype + "." + doc.name);
+		}
+
+		frappe.model.add_to_locals(doc);		
 		return doc;
 	},
 	
@@ -84,12 +95,12 @@ $.extend(frappe.model, {
 	
 	get_default_from_boot_docs: function(df, doc, parent_doc) {
 		// set default from partial docs passed during boot like ":User"
-		if(frappe.model.get(df["default"]).length > 0) {
+		if(frappe.get_list(df["default"]).length > 0) {
 			var ref_fieldname = df["default"].slice(1).toLowerCase().replace(" ", "_");
 			var ref_value = parent_doc ? 
 				parent_doc[ref_fieldname] :
 				frappe.defaults.get_user_default(ref_fieldname);
-			var ref_doc = ref_value ? frappe.model.get_doc(df["default"], ref_value) : null;
+			var ref_doc = ref_value ? frappe.get_doc(df["default"], ref_value) : null;
 			
 			if(ref_doc && ref_doc[df.fieldname]) {
 				return ref_doc[df.fieldname];
@@ -99,23 +110,18 @@ $.extend(frappe.model, {
 	
 	add_child: function(parent_doc, doctype, parentfield, idx) {
 		// create row doc
-		idx = idx ?
-			idx - 0.1 :
-			frappe.model.get_children(doctype, parent_doc.name, parentfield, 
-				parent_doc.doctype).length + 1;
+		idx = idx ? idx - 0.1 : (parent_doc[parentfield] || []).length + 1;
 
-		var d = frappe.model.get_new_doc(doctype, parent_doc);
-		$.extend(d, {
-			parent: parent_doc.name,
-			parentfield: parentfield,
-			parenttype: parent_doc.doctype,
-			idx: idx
-		});
-				
+		var d = frappe.model.get_new_doc(doctype, parent_doc, parentfield);
+		d.idx = idx;
+
 		// renum for fraction
-		idx !== cint(idx) && 
-			frappe.model.get_children(doctype, parent_doc.name, parentfield, 
-				parent_doc.doctype);
+		if(idx !== cint(idx)) {
+			var sorted = parent_doc[parentfield].sort(function(a, b) { return a.idx - b.idx; });
+			$.each(sorted, function(i, d) {
+				d.idx = i + 1;
+			});
+		}
 
 		cur_frm && cur_frm.dirty();
 				

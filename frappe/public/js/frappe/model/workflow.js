@@ -7,7 +7,7 @@ frappe.workflow = {
 	state_fields: {},
 	workflows: {},
 	setup: function(doctype) {
-		var wf = frappe.model.get("Workflow", {document_type: doctype});
+		var wf = frappe.get_list("Workflow", {document_type: doctype});
 		if(wf.length) {
 			frappe.workflow.workflows[doctype] = wf[0];
 			frappe.workflow.state_fields[doctype] = wf[0].workflow_state_field;
@@ -27,14 +27,14 @@ frappe.workflow = {
 	},
 	get_transitions: function(doctype, state) {
 		frappe.workflow.setup(doctype);
-		return frappe.model.get_children(frappe.workflow.workflows[doctype], "workflow_transitions", {state:state});
+		return frappe.get_children(frappe.workflow.workflows[doctype], "workflow_transitions", {state:state});
 	},
 	get_document_state: function(doctype, state) {
 		frappe.workflow.setup(doctype);
-		return frappe.model.get_children(frappe.workflow.workflows[doctype], "workflow_document_states", {state:state})[0];
+		return frappe.get_children(frappe.workflow.workflows[doctype], "workflow_document_states", {state:state})[0];
 	},
 	get_next_state: function(doctype, state, action) {
-		return frappe.model.get_children(frappe.workflow.workflows[doctype], "workflow_transitions", {
+		return frappe.get_children(frappe.workflow.workflows[doctype], "workflow_transitions", {
 			state:state, action:action})[0].next_state;
 	},
  	is_read_only: function(doctype, name) {

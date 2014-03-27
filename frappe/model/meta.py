@@ -29,7 +29,7 @@ class Meta(Document):
 	def get_link_fields(self):
 		tmp = self.get("fields", {"fieldtype":"Link"})
 		tmp.extend(self.get("fields", {"fieldtype":"Select", "options": "^link:"}))
-		return tmp
+		return tmp			
 	
 	def get_table_fields(self):
 		return [
@@ -46,7 +46,7 @@ class Meta(Document):
 		
 	def get_table_field_doctype(self, fieldname):
 		return { "fields": "DocField", "permissions": "DocPerm"}.get(fieldname)
-		
+
 	def process(self):
 		self.add_custom_fields()
 		self.apply_property_setters()

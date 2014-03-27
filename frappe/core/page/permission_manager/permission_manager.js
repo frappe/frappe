@@ -428,14 +428,14 @@ frappe.PermissionEngine = Class.extend({
 		});
 	},
 	get_user_fields: function(doctype) {
-		var user_fields = frappe.model.get_children("DocType", doctype, "fields", {fieldtype:"Link", options:"User"})
-		user_fields = user_fields.concat(frappe.model.get_children("DocType", doctype, "fields", 
+		var user_fields = frappe.get_children("DocType", doctype, "fields", {fieldtype:"Link", options:"User"})
+		user_fields = user_fields.concat(frappe.get_children("DocType", doctype, "fields", 
 			{fieldtype:"Select", link_doctype:"User"}))
 				
 		return 	user_fields	
 	},
 	get_link_fields: function(doctype) {
-		return frappe.model.get_children("DocType", doctype, "fields",
+		return frappe.get_children("DocType", doctype, "fields",
 			{fieldtype:"Link", options:["not in", ["User", '[Select]']]});
 	}
 })

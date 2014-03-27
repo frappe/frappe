@@ -43,7 +43,7 @@ frappe.views.ListView = Class.extend({
 			'modified_by'], function(i, fieldname) { add_field(fieldname); })
 
 		// add title field
-		var meta = frappe.model.get("DocType", this.doctype)[0];
+		var meta = frappe.get_doc("DocType", this.doctype);
 		if(meta.title_field) {
 			this.title_field = meta.title_field;
 			add_field(meta.title_field);
@@ -56,8 +56,8 @@ frappe.views.ListView = Class.extend({
 			this.stats.push(this.workflow_state_fieldname);
 		}
 				
-		$.each(frappe.model.get("DocField", {"parent":this.doctype, "in_list_view":1}), function(i,d) {
-			if(frappe.perm.has_perm(me.doctype, d.permlevel, "read")) {
+		$.each(meta.fields, function(i,d) {
+			if(d.in_list_view && frappe.perm.has_perm(me.doctype, d.permlevel, "read")) {
 				if(d.fieldtype=="Image" && d.options) {
 					add_field(d.options);
 				} else {
@@ -103,8 +103,8 @@ frappe.views.ListView = Class.extend({
 		var overridden = $.map(this.settings.add_columns || [], function(d) { 
 			return d.content;
 		});
-		var docfields_in_list_view = frappe.model.get("DocField", {"parent":this.doctype, 
-			"in_list_view":1}).sort(function(a, b) { return a.idx - b.idx })
+		var docfields_in_list_view = frappe.get_children("DocType", this.doctype, "fields", 
+			{"in_list_view":1}).sort(function(a, b) { return a.idx - b.idx })
 		
 		$.each(docfields_in_list_view, function(i,d) {
 			if(in_list(overridden, d.fieldname) || d.fieldname === me.title_field) {
