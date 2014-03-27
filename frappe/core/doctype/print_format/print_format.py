@@ -75,12 +75,12 @@ def get_html(doc, doclist, print_format=None):
 
 	template = Environment().from_string(get_print_format_name(doc.doctype, 
 		print_format or frappe.form_dict.format))
-	doctype = frappe.get_doctype(doc.doctype)
+	doctype = frappe.get_meta(doc.doctype)
 	
 	args = {
 		"doc": doc,
 		"doclist": doclist,
-		"doctype": doctype,
+		"meta": meta,
 		"frappe": frappe,
 		"utils": frappe.utils
 	}

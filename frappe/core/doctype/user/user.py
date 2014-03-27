@@ -54,9 +54,8 @@ class User(Document):
 		if self.doc.user_type == "System User" and not self.get_other_system_managers():
 			msgprint("""Adding System Manager Role as there must 
 				be atleast one 'System Manager'.""")
-			self.doclist.append({
+			self.append("user_roles", {
 				"doctype": "UserRole",
-				"parentfield": "user_roles",
 				"role": "System Manager"
 			})
 	
@@ -244,11 +243,10 @@ class User(Document):
 			
 	def add_roles(self, *roles):
 		for role in roles:
-			if role in [d.role for d in self.doclist.get({"doctype":"UserRole"})]:
+			if role in [d.role for d in self.get("user_roles")]:
 				continue
-			self.bean.doclist.append({
+			self.append("user_roles", {
 				"doctype": "UserRole",
-				"parentfield": "user_roles",
 				"role": role
 			})
 			

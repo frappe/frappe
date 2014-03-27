@@ -15,7 +15,6 @@ import os, sys, importlib, inspect
 import json
 import semantic_version
 
-from frappe.core.doctype.print_format.print_format import get_html as get_print_html
 from .exceptions import *
 
 local = Local()
@@ -315,8 +314,7 @@ def get_obj(dt = None, dn = None, doc=None, doclist=None, with_children = True):
 	return get_obj(dt, dn, doc, doclist, with_children)
 
 def doc(doctype=None, name=None, fielddata=None):
-	from frappe.model.doc import Document
-	return Document(doctype, name, fielddata)
+		return Document(doctype, name, fielddata)
 
 def new_doc(doctype, parent_doc=None, parentfield=None):
 	from frappe.model.create_new import get_new_doc
@@ -334,7 +332,7 @@ def bean(doctype=None, name=None, copy=None):
 	"""return an instance of the object, wrapped as a Bean (frappe.model.bean)"""
 	from frappe.model.bean import Bean
 	if copy:
-		return Bean(copy_doclist(copy))
+		return Bean(copy_doc(copy))
 	else:
 		return Bean(doctype, name)
 
@@ -348,10 +346,6 @@ def get_doclist(doctype, name=None):
 def get_doc(arg1, arg2=None):
 	import frappe.model.document
 	return frappe.model.document.get_doc(arg1, arg2)
-
-def get_doctype(doctype, processed=False):
-	import frappe.model.doctype
-	return frappe.model.doctype.get(doctype, processed)
 	
 def get_meta(doctype, cached=True):
 	import frappe.model.meta
@@ -531,26 +525,21 @@ def import_doclist(path, ignore_links=False, ignore_insert=False, insert=False):
 	from frappe.core.page.data_import_tool import data_import_tool
 	data_import_tool.import_doclist(path, ignore_links=ignore_links, ignore_insert=ignore_insert, insert=insert)
 
-def copy_doclist(in_doclist):
-	new_doclist = []
-	parent_doc = None
-	for i, d in enumerate(in_doclist):
-		is_dict = False
-		if isinstance(d, dict):
-			is_dict = True
-			values = _dict(d.copy())
-		else:
-			values = _dict(d.fields.copy())
-		
-		newd = new_doc(values.doctype, parent_doc=(None if i==0 else parent_doc), parentfield=values.parentfield)
-		newd.fields.update(values)
-		
-		if i==0:
-			parent_doc = newd
-		
-		new_doclist.append(newd.fields if is_dict else newd)
-	
-	return doclist(new_doclist)
+def copy_doc(doc):
+	import copy
+	d = doc.as_dict()
+	newdoc = get_doc(copy.deepcopy(d))
+	newdoc.name = None
+	newdoc.set("__islocal", 1)
+	newdoc.owner = None
+	newdoc.creation = None
+	for d in newdoc.get_all_children():
+		d.name = None
+		d.parent = None
+		d.set("__islocal", 1)
+		d.owner = None
+		d.creation = None
+	return newdoc
 
 def compare(val1, condition, val2):
 	import frappe.utils

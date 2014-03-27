@@ -126,7 +126,7 @@ def get_user(bootinfo):
 	"""get user info"""
 	bootinfo['user'] = frappe.user.load_user()
 	
-def add_home_page(bootinfo, doclist):
+def add_home_page(bootinfo, docs):
 	"""load home page"""
 
 	if frappe.session.user=="Guest":
@@ -141,4 +141,4 @@ def add_home_page(bootinfo, doclist):
 		page = frappe.widgets.page.get('desktop')
 
 	bootinfo['home_page'] = page.name
-	doclist.append(page)
+	docs.append(page)

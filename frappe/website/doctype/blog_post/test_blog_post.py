@@ -163,7 +163,7 @@ class TestBlogPost(unittest.TestCase):
 		self.assertTrue(bean.has_read_perm())
 		
 	def test_set_only_once(self):
-		blog_post = frappe.get_doctype("Blog Post")
+		blog_post = frappe.get_meta("Blog Post")
 		blog_post.get_field("title").set_only_once = 1
 		bean = frappe.bean("Blog Post", "_test-blog-post-1")
 		bean.doc.title = "New"

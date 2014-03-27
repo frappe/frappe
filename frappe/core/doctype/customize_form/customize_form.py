@@ -267,8 +267,7 @@ class CustomizeForm(Document):
 
 			# If the above conditions are fulfilled,
 			# create a property setter doc, but dont save it yet.
-			from frappe.model.doc import Document
-			d = Document('Property Setter')
+			d = frappe.get_doc('Property Setter')
 			d.doctype_or_field = ref_d.doctype=='DocField' and 'DocField' or 'DocType'
 			d.doc_type = self.doc.doc_type
 			d.field_name = ref_d.fieldname

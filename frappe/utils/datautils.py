@@ -92,17 +92,13 @@ class UnicodeWriter:
 	def getvalue(self):
 		return self.queue.getvalue()
 		
-def check_record(d, parenttype=None, doctype_dl=None):
+def check_record(d):
 	"""check for mandatory, select options, dates. these should ideally be in doclist"""
 	from frappe.utils.dateutils import parse_date
-	if parenttype and not d.get('parent'):
-		frappe.msgprint(_("Parent is required."), raise_exception=1)
-
-	if not doctype_dl:
-		doctype_dl = frappe.model.doctype.get(d.doctype)
+	d = frappe.get_doc(d)
 
 	for key in d:
-		docfield = doctype_dl.get_field(key)
+		docfield = d.meta.get_field(key)
 		val = d[key]
 		if docfield:
 			if docfield.reqd and (val=='' or val==None):

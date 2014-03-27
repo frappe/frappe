@@ -328,7 +328,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 							doclist.append(d)
 				else:
 					break
-				
+
 			return doclist
 		else:
 			d = frappe._dict(zip(columns, rows[start_idx][1:]))

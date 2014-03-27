@@ -18,7 +18,7 @@ def get_new_doc(doctype, parent_doc = None, parentfield = None):
 		"docstatus": 0
 	})
 	
-	meta = frappe.get_doctype(doctype)
+	meta = frappe.get_meta(doctype)
 	
 	restrictions = frappe.defaults.get_restrictions()
 	

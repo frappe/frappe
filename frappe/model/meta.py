@@ -46,7 +46,17 @@ class Meta(Document):
 		
 	def get_table_field_doctype(self, fieldname):
 		return { "fields": "DocField", "permissions": "DocPerm"}.get(fieldname)
+	
+	def get_field(self, fieldname):
+		fields = self.get("fields", {"fieldname":fieldname})
+		return fields[0] if fields else None
 
+	def get_label(self, fieldname):
+		return self.get_field(fieldname).label
+		
+	def get_options(self, fieldname):
+		return self.get_field(fieldname).options
+		
 	def process(self):
 		self.add_custom_fields()
 		self.apply_property_setters()
@@ -174,11 +184,7 @@ def get_table_fields(doctype):
 
 def has_field(doctype, fieldname, parent=None, parentfield=None):
 	return get_field(doctype, fieldname, parent=None, parentfield=None) and True or False
-		
-def get_field(doctype, fieldname, parent=None, parentfield=None):
-	doclist = frappe.get_doctype(doctype)
-	return doclist.get_field(fieldname, parent, parentfield)
-	
+			
 def get_field_currency(df, doc):
 	"""get currency based on DocField options and fieldvalue in doc"""
 	currency = None

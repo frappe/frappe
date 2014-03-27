@@ -66,8 +66,7 @@ def post(arg=None):
 		import json
 		arg = json.loads(arg)
 
-	from frappe.model.doc import Document
-	d = Document('Comment')
+		d = frappe.get_doc('Comment')
 	d.parenttype = arg.get("parenttype")
 	d.comment = arg['txt']
 	d.comment_docname = arg['contact']

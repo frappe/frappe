@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe, json
+import frappe.widgets.form.meta
 
 from frappe import _
 
@@ -87,13 +88,13 @@ def get_next(doctype, name, prev):
 @frappe.whitelist()
 def get_linked_docs(doctype, name, metadata_loaded=None):
 	if not metadata_loaded: metadata_loaded = []
-	meta = frappe.get_doctype(doctype, True)
-	linkinfo = meta[0].get("__linked_with")
+	meta = frappe.widgets.form.meta.get_meta(doctype)
+	linkinfo = meta.get("__linked_with")
 	results = {}
 	for dt, link in linkinfo.items():
 		link["doctype"] = dt
-		linkmeta = frappe.get_doctype(dt, True)
-		if not linkmeta[0].get("issingle"):
+		linkmeta = frappe.widgets.form.meta.get_meta(dt)
+		if not linkmeta.get("issingle"):
 			fields = [d.fieldname for d in linkmeta.get({"parent":dt, "in_list_view":1, 
 				"fieldtype": ["not in", ["Image", "HTML", "Button", "Table"]]})] \
 				+ ["name", "modified", "docstatus"]

@@ -22,7 +22,7 @@ def search_widget(doctype, txt, query=None, searchfield="name", start=0,
 		import json
 		filters = json.loads(filters)
 
-	meta = frappe.get_doctype(doctype)
+	meta = frappe.get_meta(doctype)
 
 	standard_queries = frappe.get_hooks().standard_queries or []
 	if standard_queries:
@@ -68,12 +68,12 @@ def search_widget(doctype, txt, query=None, searchfield="name", start=0,
 
 def get_std_fields_list(meta, key):
 	# get additional search fields
-	sflist = meta[0].search_fields and meta[0].search_fields.split(",") or []
+	sflist = meta.search_fields and meta.search_fields.split(",") or []
 	sflist = ['name'] + sflist
 	if not key in sflist:
 		sflist = sflist + [key]
 
-	return ['`tab%s`.`%s`' % (meta[0].name, f.strip()) for f in sflist]
+	return ['`tab%s`.`%s`' % (meta.name, f.strip()) for f in sflist]
 
 def build_for_autosuggest(res):
 	results = []
