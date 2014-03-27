@@ -420,7 +420,7 @@ $.extend(_p, {
 		// Get doctype, docname, layout for a doctype
 		var docname = cur_frm.docname;
 		var doctype = cur_frm.doctype;
-		var data = getchildren('DocField', doctype, 'fields', 'DocType');
+		var data = frappe.get_children("DocType", doctype, "fields");
 		var layout = _p.add_layout(doctype);
 		this.pf_list = [layout];
 		var me = this;

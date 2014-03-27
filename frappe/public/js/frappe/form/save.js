@@ -9,7 +9,7 @@ frappe.ui.form.save = function(frm, action, callback, btn) {
 		if(check_mandatory()) {
 			_call({
 				method: "frappe.widgets.form.save.savedocs",
-				args: { docs: frm.doc, action:action},
+				args: { doc: frm.doc, action:action},
 				callback: function(r) {
 					$(document).trigger("save", frm.doc);
 					callback(r);
@@ -52,7 +52,7 @@ frappe.ui.form.save = function(frm, action, callback, btn) {
 		
 		if(frm.doc.docstatus==2) return true; // don't check for cancel
 		
-		$.each(frm.model.get_all_docs(frm.doc), function(i, doc) {
+		$.each(frappe.model.get_all_docs(frm.doc), function(i, doc) {
 			
 			var error_fields = [];
 			

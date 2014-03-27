@@ -13,7 +13,7 @@ frappe.views.CommunicationList = Class.extend({
 		}
 				
 		if(!this.list)
-			this.list = frappe.model.get("Communication", {"parenttype": this.doc.doctype, "parent": this.doc.name});
+			this.list = frappe.get_list("Communication", {"parenttype": this.doc.doctype, "parent": this.doc.name});
 				
 		var sortfn = function (a, b) { return (b.creation > a.creation) ? 1 : -1; }
 		this.list = this.list.sort(sortfn);

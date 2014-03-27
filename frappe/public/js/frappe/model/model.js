@@ -205,8 +205,8 @@ $.extend(frappe.model, {
 		return ret ? true : false;
 	},
 
-	get: function(doctype, filters) {
-		var docsdict = locals[doctype] || locals[":" + doctype] || [];
+	get_list: function(doctype, filters) {
+		var docsdict = locals[doctype] || locals[":" + doctype] || {};
 		if($.isEmptyObject(docsdict)) 
 			return [];
 		return frappe.utils.filter_dict(docsdict, filters);
@@ -217,16 +217,15 @@ $.extend(frappe.model, {
 			return locals[doctype] && locals[doctype][filters] 
 				&& locals[doctype][filters][fieldname];
 		} else {
-			var l = frappe.model.get(doctype, filters);
+			var l = frappe.get_list(doctype, filters);
 			return (l.length && l[0]) ? l[0][fieldname] : null;
 		}
 	},
 	
-	set_value: function(doctype, name, fieldname, value, fieldtype) {
+	set_value: function(doctype, docname, fieldname, value, fieldtype) {
 		/* help: Set a value locally (if changed) and execute triggers */
-		if(!name) name = doctype;
-		var doc = locals[doctype] && locals[doctype][name] || null;
-		
+		var doc = locals[doctype] && locals[doctype][docname];
+				
 		if(doc && doc[fieldname] !== value) {
 			doc[fieldname] = value;
 			frappe.model.trigger(fieldname, value, doc); 
@@ -274,19 +273,28 @@ $.extend(frappe.model, {
 	},
 	
 	get_doc: function(doctype, name) {
+		if($.isPlainObject(name)) {
+			var doc = frappe.get_list(doctype, name);
+			return doc && doc.length ? doc[0] : null;
+		}
 		return locals[doctype] ? locals[doctype][name] : null;
 	},
 	
 	get_children: function(doctype, parent, parentfield, filters) { 
-		if($.isPlainObject(parentfield)) {
+		if($.isPlainObject(doctype)) {
 			var doc = doctype;
-			var filters = parentfield;
+			var filters = parentfield
 			var parentfield = parent;
-			return frappe.utils.filter_dict((doc[parentfield] || []), filters);
 		} else {
-			return frappe.utils.filter_dict((frappe.model.get_doc(doctype, parent)[parentfield] || []), filters);
+			var doc = frappe.get_doc(doctype, parent)[parentfield];
 		}
-		
+
+		var children = doc[parentfield] || [];
+		if(filters) {
+			return frappe.utils.filter_dict(children, filters);
+		} else {
+			return children;
+		}
 	},
 	
 	clear_table: function(doctype, parenttype, parent, parentfield) {
@@ -314,13 +322,13 @@ $.extend(frappe.model, {
 		}
 		delete locals[doctype][name];
 		if(parent)
-			frappe.model.get_children(doctype, parent, parentfield, parenttype);
+			frappe.get_children(doctype, parent, parentfield, parenttype);
 	},
 	
 	get_no_copy_list: function(doctype) {
 		var no_copy_list = ['name','amended_from','amendment_date','cancel_reason'];
 		
-		$.each(frappe.model.get_doc("DocType", doctype).fields || [], function(i, df) {
+		$.each(frappe.get_doc("DocType", doctype).fields || [], function(i, df) {
 			if(cint(df.no_copy)) no_copy_list.push(df.fieldname);
 		})
 		return no_copy_list;
@@ -477,4 +485,6 @@ $.extend(frappe.model, {
 });
 
 // legacy
-getchildren = frappe.model.get_children
+frappe.get_doc = frappe.model.get_doc;
+frappe.get_children = frappe.model.get_children;
+frappe.get_list = frappe.model.get_list;

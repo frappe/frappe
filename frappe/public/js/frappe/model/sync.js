@@ -22,10 +22,7 @@ $.extend(frappe.model, {
 					frappe.provide("frappe.model.docinfo." + d.doctype + "." + d.name);	
 				}
 
-				if(!locals[d.doctype])
-					locals[d.doctype] = {};
-
-				locals[d.doctype][d.name] = d;
+				frappe.model.add_to_locals(d);
 				d.__last_sync_on = new Date();
 				
 				if(d.doctype==="DocType") {
@@ -67,5 +64,18 @@ $.extend(frappe.model, {
 		
 		return r.docs;
 	},
+	add_to_locals: function(doc) {
+		if(!locals[doc.doctype]) locals[doc.doctype] = {};
+		locals[doc.doctype][doc.name] = doc;
+		if(!doc.parent) {
+			$.each(doc, function(key, value) {
+				if($.isArray(value)) {
+					$.each(value, function(i, d) {
+						frappe.model.add_to_locals(d);
+					});
+				}
+			});
+		}
+	}
 	
 });

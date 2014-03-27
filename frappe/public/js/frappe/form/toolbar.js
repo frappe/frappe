@@ -186,7 +186,7 @@ frappe.ui.form.Toolbar = Class.extend({
 	},
 	has_workflow: function() {
 		if(this._has_workflow === undefined)
-			this._has_workflow = frappe.model.get("Workflow", {document_type: this.frm.doctype}).length;
+			this._has_workflow = frappe.get_list("Workflow", {document_type: this.frm.doctype}).length;
 		return this._has_workflow;
 	},
 	get_docstatus: function() {

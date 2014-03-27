@@ -212,7 +212,7 @@ _f.Frm.prototype.watch_model_updates = function() {
 	})
 	
 	// on table fields
-	$.each(frappe.model.get("DocField", {fieldtype:"Table", parent: me.doctype}), function(i, df) {
+	$.each(frappe.get_children("DocType", me.doctype, "fields", {fieldtype:"Table"}), function(i, df) {
 		frappe.model.on(df.options, "*", function(fieldname, value, doc) {
 			if(doc.parent===me.docname && doc.parentfield===df.fieldname) {
 				me.dirty();
@@ -306,7 +306,7 @@ _f.Frm.prototype.rename_notify = function(dt, old, name) {
 // SETUP
 
 _f.Frm.prototype.setup_meta = function(doctype) {
-	this.meta = frappe.model.get_doc('DocType',this.doctype);
+	this.meta = frappe.get_doc('DocType',this.doctype);
 	this.perm = frappe.perm.get_perm(this.doctype); // for create
 	if(this.meta.istable) { this.meta.in_dialog = 1 }
 }
@@ -366,7 +366,7 @@ _f.Frm.prototype.refresh = function(docname) {
 		this.read_only = frappe.workflow.is_read_only(this.doctype, this.docname);
 
 		// set the doc
-		this.doc = frappe.model.get_doc(this.doctype, this.docname);	  
+		this.doc = frappe.get_doc(this.doctype, this.docname);	  
 		
 		// check if doctype is already open
 		if (!this.opendocs[this.docname]) {

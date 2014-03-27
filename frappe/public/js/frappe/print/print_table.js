@@ -28,8 +28,7 @@ frappe.print.Table = Class.extend({
 		}));
 	},
 	get_data: function() {
-		var children = frappe.model.get(this.tabletype, {
-			parent:this.docname, parenttype:this.doctype, parentfield: this.fieldname})
+		var children = frappe.get_doc(this.doctype, this.docname)[this.fieldname] || [];
 				
 		var data = []
 		for(var i=0; i<children.length; i++) {

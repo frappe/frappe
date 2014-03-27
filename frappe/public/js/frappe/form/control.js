@@ -980,9 +980,9 @@ frappe.ui.form.ControlTable = frappe.ui.form.Control.extend({
 		this._super();
 		
 		// add title if prev field is not column / section heading or html
-		var prev_fieldtype = frappe.model.get_children("DocType", this.frm.doctype, "fields", 
+		var prev_fieldtype = frappe.get_children("DocType", this.frm.doctype, "fields", 
 			{idx: this.df.idx-1});
-		prev_fieldtype = prev_fieldtype ? prev_fieldtype[0].fieldtype : "";
+		prev_fieldtype = prev_fieldtype.length ? prev_fieldtype[0].fieldtype : "";
 					
 		if(["Column Break", "Section Break", "HTML"].indexOf(prev_fieldtype)===-1) {
 			$("<label>" + this.df.label + "<label>").appendTo(this.wrapper);	
