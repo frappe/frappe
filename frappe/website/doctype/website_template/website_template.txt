@@ -1,149 +1,130 @@
-[
- {
-  "creation": "2013-11-18 15:35:00", 
-  "docstatus": 0, 
-  "modified": "2014-02-24 12:47:44", 
-  "modified_by": "Administrator", 
-  "owner": "Administrator"
- }, 
- {
-  "autoname": "field:link_name", 
-  "doctype": "DocType", 
-  "document_type": "System", 
-  "module": "Website", 
-  "name": "__common__"
- }, 
- {
-  "doctype": "DocField", 
-  "name": "__common__", 
-  "parent": "Website Template", 
-  "parentfield": "fields", 
-  "parenttype": "DocType", 
-  "permlevel": 0
- }, 
- {
-  "cancel": 0, 
-  "create": 0, 
-  "delete": 1, 
-  "doctype": "DocPerm", 
-  "export": 0, 
-  "name": "__common__", 
-  "parent": "Website Template", 
-  "parentfield": "permissions", 
-  "parenttype": "DocType", 
-  "permlevel": 0, 
-  "read": 1, 
-  "report": 1, 
-  "role": "System Manager", 
-  "write": 0
- }, 
- {
-  "doctype": "DocType", 
-  "name": "Website Template"
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "page_or_generator", 
-  "fieldtype": "Select", 
-  "label": "Page or Generator", 
-  "options": "Page\nGenerator", 
-  "read_only": 1
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "ref_doctype", 
-  "fieldtype": "Link", 
-  "label": "Ref DocType", 
-  "options": "DocType", 
-  "read_only": 1
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "link_name", 
-  "fieldtype": "Data", 
-  "label": "Link Name", 
-  "read_only": 1
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "page_title", 
-  "fieldtype": "Data", 
-  "label": "Page Title"
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "base_template_path", 
-  "fieldtype": "Data", 
-  "label": "Base Template Path", 
-  "read_only": 1
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "template_path", 
-  "fieldtype": "Data", 
-  "label": "Template Path", 
-  "read_only": 1
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "controller", 
-  "fieldtype": "Data", 
-  "label": "Controller", 
-  "read_only": 1
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "lastmod", 
-  "fieldtype": "Data", 
-  "label": "Lastmod"
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "no_cache", 
-  "fieldtype": "Check", 
-  "label": "No Cache", 
-  "read_only": 1
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "no_sitemap", 
-  "fieldtype": "Check", 
-  "label": "No Sitemap", 
-  "read_only": 1
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "no_sidebar", 
-  "fieldtype": "Check", 
-  "label": "No Sidebar"
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "page_name_field", 
-  "fieldtype": "Data", 
-  "label": "Page Name Field", 
-  "read_only": 1
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "condition_field", 
-  "fieldtype": "Data", 
-  "label": "Condition Field", 
-  "read_only": 1
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "sort_by", 
-  "fieldtype": "Data", 
-  "label": "Sort By"
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "sort_order", 
-  "fieldtype": "Data", 
-  "label": "Sort Order"
- }, 
- {
-  "doctype": "DocPerm"
- }
-]
+{
+ "autoname": "field:link_name", 
+ "creation": "2013-11-18 15:35:00", 
+ "docstatus": 0, 
+ "doctype": "DocType", 
+ "document_type": "System", 
+ "fields": [
+  {
+   "fieldname": "page_or_generator", 
+   "fieldtype": "Select", 
+   "label": "Page or Generator", 
+   "options": "Page\nGenerator", 
+   "permlevel": 0, 
+   "read_only": 1
+  }, 
+  {
+   "fieldname": "ref_doctype", 
+   "fieldtype": "Link", 
+   "label": "Ref DocType", 
+   "options": "DocType", 
+   "permlevel": 0, 
+   "read_only": 1
+  }, 
+  {
+   "fieldname": "link_name", 
+   "fieldtype": "Data", 
+   "label": "Link Name", 
+   "permlevel": 0, 
+   "read_only": 1
+  }, 
+  {
+   "fieldname": "page_title", 
+   "fieldtype": "Data", 
+   "label": "Page Title", 
+   "permlevel": 0
+  }, 
+  {
+   "fieldname": "base_template_path", 
+   "fieldtype": "Data", 
+   "label": "Base Template Path", 
+   "permlevel": 0, 
+   "read_only": 1
+  }, 
+  {
+   "fieldname": "template_path", 
+   "fieldtype": "Data", 
+   "label": "Template Path", 
+   "permlevel": 0, 
+   "read_only": 1
+  }, 
+  {
+   "fieldname": "controller", 
+   "fieldtype": "Data", 
+   "label": "Controller", 
+   "permlevel": 0, 
+   "read_only": 1
+  }, 
+  {
+   "fieldname": "lastmod", 
+   "fieldtype": "Data", 
+   "label": "Lastmod", 
+   "permlevel": 0
+  }, 
+  {
+   "fieldname": "no_cache", 
+   "fieldtype": "Check", 
+   "label": "No Cache", 
+   "permlevel": 0, 
+   "read_only": 1
+  }, 
+  {
+   "fieldname": "no_sitemap", 
+   "fieldtype": "Check", 
+   "label": "No Sitemap", 
+   "permlevel": 0, 
+   "read_only": 1
+  }, 
+  {
+   "fieldname": "no_sidebar", 
+   "fieldtype": "Check", 
+   "label": "No Sidebar", 
+   "permlevel": 0
+  }, 
+  {
+   "fieldname": "page_name_field", 
+   "fieldtype": "Data", 
+   "label": "Page Name Field", 
+   "permlevel": 0, 
+   "read_only": 1
+  }, 
+  {
+   "fieldname": "condition_field", 
+   "fieldtype": "Data", 
+   "label": "Condition Field", 
+   "permlevel": 0, 
+   "read_only": 1
+  }, 
+  {
+   "fieldname": "sort_by", 
+   "fieldtype": "Data", 
+   "label": "Sort By", 
+   "permlevel": 0
+  }, 
+  {
+   "fieldname": "sort_order", 
+   "fieldtype": "Data", 
+   "label": "Sort Order", 
+   "permlevel": 0
+  }
+ ], 
+ "idx": 1, 
+ "modified": "2014-02-24 12:47:44", 
+ "modified_by": "Administrator", 
+ "module": "Website", 
+ "name": "Website Template", 
+ "owner": "Administrator", 
+ "permissions": [
+  {
+   "cancel": 0, 
+   "create": 0, 
+   "delete": 1, 
+   "export": 0, 
+   "permlevel": 0, 
+   "read": 1, 
+   "report": 1, 
+   "role": "System Manager", 
+   "write": 0
+  }
+ ]
+}

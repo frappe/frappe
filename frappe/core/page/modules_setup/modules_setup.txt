@@ -1,33 +1,20 @@
-[
- {
-  "creation": "2012-10-04 18:45:29", 
-  "docstatus": 0, 
-  "modified": "2013-07-11 14:43:37", 
-  "modified_by": "Administrator", 
-  "owner": "Administrator"
- }, 
- {
-  "doctype": "Page", 
-  "icon": "icon-cog", 
-  "module": "Core", 
-  "name": "__common__", 
-  "page_name": "modules_setup", 
-  "standard": "Yes", 
-  "title": "Modules Setup"
- }, 
- {
-  "doctype": "Page Role", 
-  "name": "__common__", 
-  "parent": "modules_setup", 
-  "parentfield": "roles", 
-  "parenttype": "Page", 
-  "role": "System Manager"
- }, 
- {
-  "doctype": "Page", 
-  "name": "modules_setup"
- }, 
- {
-  "doctype": "Page Role"
- }
-]
+{
+ "creation": "2012-10-04 18:45:29", 
+ "docstatus": 0, 
+ "doctype": "Page", 
+ "icon": "icon-cog", 
+ "idx": 1, 
+ "modified": "2013-07-11 14:43:37", 
+ "modified_by": "Administrator", 
+ "module": "Core", 
+ "name": "modules_setup", 
+ "owner": "Administrator", 
+ "page_name": "modules_setup", 
+ "roles": [
+  {
+   "role": "System Manager"
+  }
+ ], 
+ "standard": "Yes", 
+ "title": "Modules Setup"
+}
