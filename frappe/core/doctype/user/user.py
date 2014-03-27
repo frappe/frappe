@@ -9,10 +9,9 @@ from frappe.auth import _update_password
 
 STANDARD_USERS = ("Guest", "Administrator")
 
-class DocType:
-	def __init__(self, doc, doclist):
-		self.doc = doc
-		self.doclist = doclist
+from frappe.model.document import Document
+
+class User(Document):
 		
 	def autoname(self):
 		"""set name as email id"""
@@ -49,7 +48,7 @@ class DocType:
 	def add_system_manager_role(self):
 		# if adding system manager, do nothing
 		if not cint(self.doc.enabled) or ("System Manager" in [user_role.role for user_role in
-				self.doclist.get({"parentfield": "user_roles"})]):
+				self.get("user_roles")]):
 			return
 		
 		if self.doc.user_type == "System User" and not self.get_other_system_managers():

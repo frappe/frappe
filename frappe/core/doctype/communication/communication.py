@@ -12,11 +12,9 @@ from frappe.utils.email_lib.email_body import get_email
 from frappe.utils.email_lib.smtp import send
 from frappe.utils import scrub_urls
 
-class DocType():
-	def __init__(self, doc, doclist=None):
-		self.doc = doc
-		self.doclist = doclist
-		
+from frappe.model.document import Document
+
+class Communication(Document):
 	def get_parent_bean(self):
 		return frappe.bean(self.doc.parenttype, self.doc.parent)
 		

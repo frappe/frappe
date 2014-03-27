@@ -6,9 +6,7 @@ import frappe
 from frappe.website.website_generator import WebsiteGenerator
 from frappe.website.render import clear_cache
 
-class DocType(WebsiteGenerator):
-	def __init__(self, d, dl):
-		self.doc, self.doclist = d, dl
+class BlogCategory(WebsiteGenerator):
 		
 	def autoname(self):
 		# to override autoname of WebsiteGenerator

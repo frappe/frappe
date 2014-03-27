@@ -7,9 +7,9 @@ import frappe
 from frappe.utils import cint, cstr
 from frappe import _
 
-class DocType:
-	def __init__(self, d, dl):
-		self.doc, self.doclist = d, dl
+from frappe.model.document import Document
+
+class StyleSettings(Document):
 		
 	def validate(self):
 		"""make custom css"""

@@ -7,9 +7,9 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 
-class DocType:
-	def __init__(self, d, dl):
-		self.doc, self.doclist = d, dl
+from frappe.model.document import Document
+
+class Blogger(Document):
 		
 	def on_update(self):
 		"if user is set, then update all older blogs"

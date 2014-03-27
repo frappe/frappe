@@ -6,9 +6,9 @@ import frappe
 from frappe.utils import cint, cstr
 from frappe import _
 
-class DocType:
-	def __init__(self, d, dl):
-		self.doc, self.doclist = d, dl
+from frappe.model.document import Document
+
+class CustomField(Document):
 		
 	def autoname(self):
 		self.set_fieldname()

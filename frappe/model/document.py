@@ -132,12 +132,26 @@ class Document(BaseDocument):
 			self.db_update()
 
 		# children
+		child_map = {}
 		ignore_children_type = self.get("_ignore_children_type", [])
+
 		for d in self.get_all_children():
-			if d.doctype not in _ignore_children_type:
-				d.parent = self.name
-				d.db_update()
-		
+			d.parent = self.name # rename if reqd
+			d.parenttype = self.doctype
+			d.db_update()
+			child_map.setdefault(d.doctype, []).append(d.name)
+						
+		for df in self.get_table_fields():
+			if df.options not in ignore_children_type:
+				cnames = child_map.get(df.options) or []
+				if cnames:
+					frappe.db.sql("""delete from `tab%s` where parent=%s and parenttype=%s and
+						name not in (%s)""" % (df.options, '%s', '%s', ','.join(['%s'] * len(cnames))), 
+							tuple([self.name, self.doctype] + cnames))
+				else:
+					frappe.db.sql("""delete from `tab%s` where parent=%s and parenttype=%s""" \
+						% (df.options, '%s', '%s'), (self.name, self.doctype))
+
 		self.run_post_save_methods()
 		
 	def update_single(self, d):

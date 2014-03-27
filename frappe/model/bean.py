@@ -51,7 +51,6 @@ class Bean:
 		"""
 			Load doclist from dt
 		"""
-		from frappe.model.doc import getchildren
 
 		if not dt: dt = self.doc.doctype
 		if not dn: dn = self.doc.name
@@ -63,8 +62,6 @@ class Bean:
 
 		# load chilren
 		doclist = frappe.doclist([doc,])
-		for t in tablefields:
-			doclist += getchildren(doc.name, t[0], t[1], dt)
 
 		self.set_doclist(doclist)
 		
@@ -432,7 +429,7 @@ class Bean:
 				if df.doctype=="DocField" and df.reqd and df.parent==doc.doctype and df.fieldname!="naming_series":
 					msg = ""
 					if df.fieldtype == "Table":
-						if not self.doclist.get({"parentfield": df.fieldname}):
+						if not self.get(df.fieldname):
 							msg = _("Error") + ": " + _("Data missing in table") + ": " + _(df.label)
 				
 					elif doc.fields.get(df.fieldname) is None:

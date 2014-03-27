@@ -56,7 +56,7 @@ class DocListController(Document):
 			msgprint(msg, raise_exception=raise_exception or True)
 			
 	def validate_table_has_rows(self, parentfield, raise_exception=None):
-		if not self.doclist.get({"parentfield": parentfield}):
+		if not self.get(parentfield):
 			label = self.meta.get_label(parentfield)
 			msgprint(_("Error") + ": " + _(label) + " " + _("cannot be empty"),
 				raise_exception=raise_exception or EmptyTableError)

@@ -8,7 +8,7 @@ from frappe.utils import get_request_site_address, encode
 from frappe.model.controller import DocListController
 from urllib import quote
 
-class DocType(DocListController):
+class WebsiteSettings(DocListController):
 	def validate(self):
 		self.validate_top_bar_items()
 		self.validate_footer_items()
@@ -21,7 +21,7 @@ class DocType(DocListController):
 	
 	def validate_top_bar_items(self):
 		"""validate url in top bar items"""
-		for top_bar_item in self.doclist.get({"parentfield": "top_bar_items"}):
+		for top_bar_item in self.get("top_bar_items"):
 			if top_bar_item.parent_label:
 				parent_label_item = self.doclist.get({"parentfield": "top_bar_items", 
 					"label": top_bar_item.parent_label})
@@ -38,7 +38,7 @@ class DocType(DocListController):
 	
 	def validate_footer_items(self):
 		"""clear parent label in footer"""
-		for footer_item in self.doclist.get({"parentfield": "footer_items"}):
+		for footer_item in self.get("footer_items"):
 			footer_item.parent_label = None
 
 	def on_update(self):

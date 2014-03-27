@@ -33,9 +33,15 @@ class BaseDocument(object):
 	def get(self, key=None, filters=None, limit=None, default=None):
 		if key:
 			if filters:
-				return _filter(self.__dict__.get(key), filters, limit=limit)
+				value = _filter(self.__dict__.get(key), filters, limit=limit)
 			else:
-				return self.__dict__.get(key, default)
+				value = self.__dict__.get(key, default)
+			
+			if value is None and key in self.get_table_fields():
+				self.set(key, [])
+				value = self.__dict__.get(key)
+				
+			return value
 		else:
 			return self.__dict__
 				
@@ -48,11 +54,15 @@ class BaseDocument(object):
 
 		self.__dict__[key] = value
 			
-	def append(self, key, value):
+	def append(self, key, value=None):
+		if value==None:
+			value={}
 		if isinstance(value, dict):
 			if not self.get(key):
 				self.__dict__[key] = []
-			self.get(key).append(self._init_child(value, key))
+			value = self._init_child(value, key)
+			self.get(key).append(value)
+			return value
 		else:
 			raise ValueError
 			

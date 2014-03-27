@@ -545,29 +545,6 @@ class Document:
 			self.fields['__unsaved'] = 1
 		
 		return frappe.doclist(doclist)
-
-	def addchild(self, fieldname, childtype = '', doclist=None):
-		"""
-	      Returns a child record of the give `childtype`.
-	      
-	      * if local is set, it does not save the record
-	      * if doclist is passed, it append the record to the doclist
-		"""
-		from frappe.model.doc import Document
-		d = Document()
-		d.parent = self.name
-		d.parenttype = self.doctype
-		d.parentfield = fieldname
-		d.doctype = childtype
-		d.docstatus = 0;
-		d.name = ''
-		d.owner = frappe.session['user']
-		d.fields['__islocal'] = 1 # for Client to identify unsaved doc
-		
-		if doclist != None:
-			doclist.append(d)	
-	
-		return d
 		
 	def get_values(self):
 		"""get non-null fields dict withouth standard fields"""
@@ -581,21 +558,7 @@ class Document:
 		
 	def get_db_value(self, key):
 		return frappe.db.get_value(self.doctype, self.name, key)
-			
-def addchild(parent, fieldname, childtype = '', doclist=None):
-	"""
-	
-   Create a child record to the parent doc.
-   
-   Example::
-   
-     c = Document('Contact','ABC')
-     d = addchild(c, 'contact_updates', 'Contact Update')
-     d.last_updated = 'Phone call'
-     d.save(1)
-	"""
-	return parent.addchild(fieldname, childtype, doclist)
-			
+						
 def make_autoname(key, doctype=''):
 	"""
    Creates an autoname from the given key:
