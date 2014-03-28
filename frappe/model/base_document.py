@@ -137,6 +137,10 @@ class BaseDocument(object):
 		
 	def get_table_field_doctype(self, fieldname):
 		return self.meta.get("fields", {"fieldname":fieldname})[0].options
+		
+	def get_parentfield_of_doctype(self, doctype):
+		fieldname = [df.fieldname for df in self.get_table_fields() if df.options==doctype]
+		return fieldname[0] if fieldname else None
 	
 	def db_insert(self):
 		set_new_name(self)

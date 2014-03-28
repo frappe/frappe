@@ -12,45 +12,43 @@ from frappe.utils import cstr
 from frappe.model.document import Document
 
 class CustomizeForm(Document):
-	def __init__(self, doc, doclist=[]):
-		self.doc, self.doclist = doc, doclist
-		self.doctype_properties = [
-			'search_fields',
-			'default_print_format',
-			'read_only_onload',
-			'allow_print',
-			'allow_email',
-			'allow_copy',
-			'allow_attach',
-			'max_attachments' 
-		]
-		self.docfield_properties = [
-			'idx',
-			'label',
-			'fieldtype',
-			'fieldname',
-			'options',
-			'permlevel',
-			'width',
-			'print_width',
-			'reqd',
-			'ignore_restrictions',
-			'in_filter',
-			'in_list_view',
-			'hidden',
-			'print_hide',
-			'report_hide',
-			'allow_on_submit',
-			'depends_on',
-			'description',
-			'default',
-			'name',
-		]
+	doctype_properties = [
+		'search_fields',
+		'default_print_format',
+		'read_only_onload',
+		'allow_print',
+		'allow_email',
+		'allow_copy',
+		'allow_attach',
+		'max_attachments' 
+	]
+	
+	docfield_properties = [
+		'idx',
+		'label',
+		'fieldtype',
+		'fieldname',
+		'options',
+		'permlevel',
+		'width',
+		'print_width',
+		'reqd',
+		'ignore_restrictions',
+		'in_filter',
+		'in_list_view',
+		'hidden',
+		'print_hide',
+		'report_hide',
+		'allow_on_submit',
+		'depends_on',
+		'description',
+		'default',
+		'name',
+	]
 
-		self.property_restrictions = {
-			'fieldtype': [['Currency', 'Float'], ['Small Text', 'Data'], ['Text', 'Text Editor', 'Code']],
-		}
-
+	property_restrictions = {
+		'fieldtype': [['Currency', 'Float'], ['Small Text', 'Data'], ['Text', 'Text Editor', 'Code']],
+	}
 
 	def get(self):
 		"""
@@ -105,12 +103,12 @@ class CustomizeForm(Document):
 			
 			args can contain:
 			* list --> list of attributes to set
-			* doc_to_set --> defaults to self.doc
+			* doc_to_set --> defaults to self
 			* value --> to set all attributes to one value eg. None
 			* doc --> copy attributes from doc to doc_to_set
 		"""
 		if not 'doc_to_set' in args:
-			args['doc_to_set'] = self.doc
+			args['doc_to_set'] = self
 
 		if 'list' in args:
 			if 'value' in args:
@@ -131,7 +129,7 @@ class CustomizeForm(Document):
 			from frappe.model import doc
 			from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype
 			
-			this_doclist = frappe.doclist([self.doc] + self.doclist)
+			this_doclist = frappe.doclist([self] + self.doclist)
 			ref_doclist = self.get_ref_doclist()
 			dt_doclist = doc.get('DocType', self.doc_type)
 			

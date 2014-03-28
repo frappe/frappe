@@ -11,9 +11,6 @@ standard_format = "templates/print_formats/standard.html"
 from frappe.model.document import Document
 
 class PrintFormat(Document):
-	def __init__(self, d, dl):
-		self.doc, self.doclist = d,dl
-
 	def validate(self):
 		if self.standard=="Yes" and frappe.session.user != "Administrator":
 			frappe.msgprint("Standard Print Format cannot be updated.", raise_exception=1)

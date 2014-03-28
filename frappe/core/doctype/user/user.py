@@ -68,7 +68,7 @@ class User(Document):
 			
 	def on_update(self):
 		# owner is always name
-		frappe.db.set(self.doc, 'owner', self.name)
+		frappe.db.set(self, 'owner', self.name)
 		
 		# clear new password
 		new_password = self.new_password

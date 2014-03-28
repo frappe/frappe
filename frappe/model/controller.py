@@ -27,7 +27,7 @@ class DocListController(Document):
 		}
 
 		if not doc:
-			doc = self.doc
+			doc = self
 		
 		df = self.meta.get_field(fieldname, parent=doc.doctype)
 		
@@ -83,7 +83,7 @@ class DocListController(Document):
 			df = self.meta.get_field(fieldname, parentfield=parentfield)
 			
 			if df.fieldtype == "Currency" and df.options and not self._precision.options.get(df.options):
-				self._precision.options[df.options] = get_field_precision(df, self.doc)
+				self._precision.options[df.options] = get_field_precision(df, self)
 			
 			if df.fieldtype == "Currency":
 				self._precision[parentfield or "main"][fieldname] = cint(self._precision.options.get(df.options)) or \

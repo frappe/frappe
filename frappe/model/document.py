@@ -195,12 +195,12 @@ class Document(BaseDocument):
 		if frappe.flags.in_import:
 			return
 		
-		new_doc = frappe.new_doc(self.doctype).fields
+		new_doc = frappe.new_doc(self.doctype)
 		self.set_missing_values(new_doc)
 
 		# children
 		for df in self.meta.get("fields", {"fieldtype":"Table"}):
-			new_doc = frappe.new_doc(df.options).fields
+			new_doc = frappe.new_doc(df.options)
 			value = self.get(df.fieldname)
 			if isinstance(value, list):
 				for d in value:

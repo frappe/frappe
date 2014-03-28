@@ -386,23 +386,30 @@ class Database:
 
 	def set_value(self, dt, dn, field, val, modified=None, modified_by=None):
 		from frappe.utils import now
+		if not modified:
+			modified = now()
+		if not modified_by:
+			modified_by = frappe.session.user
+		
 		if dn and dt!=dn:
 			self.sql("""update `tab%s` set `%s`=%s, modified=%s, modified_by=%s
 				where name=%s""" % (dt, field, "%s", "%s", "%s", "%s"),
-				(val, modified or now(), modified_by or frappe.session["user"], dn))
+				(val, modified, modified_by, dn))
 		else:
 			if self.sql("select value from tabSingles where field=%s and doctype=%s", (field, dt)):
 				self.sql("""update tabSingles set value=%s where field=%s and doctype=%s""", 
 					(val, field, dt))
 			else:
 				self.sql("""insert into tabSingles(doctype, field, value) 
-					values (%s, %s, %s)""", (dt, field, val, ))
+					values (%s, %s, %s)""", (dt, field, val))
 					
-			if field!="modified":
-				self.set_value(dt, dn, "modified", modified or now())
+			if field not in ("modified", "modified_by"):
+				self.set_value(dt, dn, "modified", modified)
+				self.set_value(dt, dn, "modified_by", modified_by)
 						
 	def set(self, doc, field, val):
 		doc.set(field, val)
+		frappe.db.set_value(doc.doctype, doc.name, field, val)
 		
 	def touch(self, doctype, docname):
 		from frappe.utils import now

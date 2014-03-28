@@ -8,9 +8,6 @@ from frappe import conf, _
 from frappe.model.document import Document
 
 class Report(Document):
-	def __init__(self, doc, doclist):
-		self.doc, self.doclist = doc, doclist
-		
 	def validate(self):
 		"""only administrator can save standard report"""
 		if not self.module:
