@@ -309,13 +309,6 @@ def reset_metadata_version():
 	cache().set_value("metadata_version", v)
 	return v
 
-def get_obj(dt = None, dn = None, doc=None, doclist=None, with_children = True):
-	from frappe.model.code import get_obj
-	return get_obj(dt, dn, doc, doclist, with_children)
-
-def doc(doctype=None, name=None, fielddata=None):
-		return Document(doctype, name, fielddata)
-
 def new_doc(doctype, parent_doc=None, parentfield=None):
 	from frappe.model.create_new import get_new_doc
 	return get_new_doc(doctype, parent_doc, parentfield)
@@ -328,20 +321,9 @@ def doclist(lst=None):
 	from frappe.model.doclist import DocList
 	return DocList(lst)
 
-def bean(doctype=None, name=None, copy=None):
-	"""return an instance of the object, wrapped as a Bean (frappe.model.bean)"""
-	from frappe.model.bean import Bean
-	if copy:
-		return Bean(copy_doc(copy))
-	else:
-		return Bean(doctype, name)
-
 def set_value(doctype, docname, fieldname, value):
 	import frappe.client
 	return frappe.client.set_value(doctype, docname, fieldname, value)
-
-def get_doclist(doctype, name=None):
-	return bean(doctype, name).doclist
 
 def get_doc(arg1, arg2=None):
 	import frappe.model.document

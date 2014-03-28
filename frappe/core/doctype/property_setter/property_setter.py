@@ -55,7 +55,7 @@ class PropertySetter(Document):
 		validate_fields_for_doctype(self.doc_type)
 		
 def make_property_setter(doctype, fieldname, property, value, property_type, for_doctype = False):
-		return frappe.bean({
+		return frappe.get_doc({
 			"doctype":"Property Setter",
 			"doctype_or_field": for_doctype and "DocType" or "DocField",
 			"doc_type": doctype,

@@ -84,7 +84,7 @@ def get_oauth_keys(provider):
 
 	if not keys:
 		# try database
-		social = frappe.doc("Social Login Keys", "Social Login Keys")
+		social = frappe.get_doc("Social Login Keys", "Social Login Keys")
 		keys = {}
 		for fieldname in ("client_id", "client_secret"):
 			value = social.get("{provider}_{fieldname}".format(provider=provider, fieldname=fieldname))
@@ -183,7 +183,7 @@ def create_oauth_user(data, provider):
 	if isinstance(data.get("location"), dict):
 		data["location"] = data.get("location").get("name")
 	
-	user = frappe.bean({
+	user = frappe.get_doc({
 		"doctype":"User",
 		"first_name": data.get("first_name") or data.get("given_name") or data.get("name"),
 		"last_name": data.get("last_name") or data.get("family_name"),
@@ -211,5 +211,5 @@ def create_oauth_user(data, provider):
 		user.github_username = data["login"]
 	
 	user.ignore_permissions = True
-	user.get_controller().no_welcome_mail = True
+	user.no_welcome_mail = True
 	user.insert()

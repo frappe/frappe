@@ -82,7 +82,7 @@ def set_default(key, value, parent, parenttype="Control Panel"):
 		add_default(key, value, parent)
 
 def add_default(key, value, parent, parenttype=None):
-	d = frappe.doc({
+	d = frappe.get_doc({
 		"doctype": "DefaultValue",
 		"parent": parent,
 		"parenttype": parenttype or "Control Panel",

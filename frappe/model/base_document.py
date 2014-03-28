@@ -42,7 +42,7 @@ class BaseDocument(object):
 			else:
 				value = self.__dict__.get(key, default)
 			
-			if value is None and key in self.get_table_fields():
+			if value is None and key!="_meta" and key in (d.fieldname for d in self.get_table_fields()):
 				self.set(key, [])
 				value = self.__dict__.get(key)
 				
@@ -111,6 +111,9 @@ class BaseDocument(object):
 		for fieldname in self.valid_columns:
 			d[fieldname] = self.get(fieldname)
 		return d
+		
+	def is_new(self):
+		return self.get("__islocal")
 					
 	@property
 	def valid_columns(self):
@@ -178,7 +181,7 @@ class BaseDocument(object):
 			self.docstatus = cint(self.docstatus)
 			
 	def set_missing_values(self, d):
-		for key, value in d.iteritems():
+		for key, value in d.get_valid_dict().iteritems():
 			if self.get(key) is None:
 				self.set(key, value)
 				

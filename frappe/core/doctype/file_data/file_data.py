@@ -34,7 +34,7 @@ class FileData(Document):
 		if self.attached_to_name:
 			# check persmission
 			try:
-				if not self.bean.ignore_permissions and \
+				if not self.ignore_permissions and \
 					not frappe.has_permission(self.attached_to_doctype, "write", self.attached_to_name):
 					
 					frappe.msgprint(frappe._("No permission to write / remove."), raise_exception=True)

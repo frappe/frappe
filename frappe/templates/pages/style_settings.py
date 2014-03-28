@@ -9,7 +9,7 @@ base_template_path = "templates/pages/style_settings.css"
 
 def get_context(context):
 	"""returns web style"""
-	doc = frappe.doc("Style Settings", "Style Settings")
+	doc = frappe.get_doc("Style Settings", "Style Settings")
 	prepare(doc)
 	
 	return { "doc": doc.fields }	

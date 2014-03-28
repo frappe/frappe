@@ -20,7 +20,7 @@ class Todo(Document):
 		if not self.reference_type and self.reference_name:
 			return
 			
-		comment = frappe.bean({
+		comment = frappe.get_doc({
 			"doctype":"Comment",
 			"comment_by": frappe.session.user,
 			"comment_doctype": self.reference_type,

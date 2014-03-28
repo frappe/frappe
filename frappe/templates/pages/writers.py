@@ -17,6 +17,6 @@ def get_context(context):
 		"categories": frappe.db.sql_list("select name from `tabBlog Category` order by name")
 	}
 	
-	writers_context.update(frappe.doc("Blog Settings", "Blog Settings").fields)
+	writers_context.update(frappe.get_doc("Blog Settings", "Blog Settings").fields)
 	
 	return writers_context

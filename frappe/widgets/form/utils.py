@@ -59,7 +59,7 @@ def add_comment(doclist):
 	doclist = json.loads(doclist)
 	
 	doclist[0]["__islocal"] = 1
-	doclistobj = frappe.bean(doclist)
+	doclistobj = frappe.get_doc(doclist)
 	doclistobj.ignore_permissions = True
 	doclistobj.save()
 	

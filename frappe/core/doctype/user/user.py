@@ -250,7 +250,7 @@ class User(Document):
 				"role": role
 			})
 			
-		self.bean.save()
+		self.save()
 
 @frappe.whitelist()
 def get_languages():
@@ -312,7 +312,7 @@ def sign_up(email, full_name):
 			TIMEDIFF(%s, modified) > '1:00:00' """, now())[0][0] > 200:
 			raise Exception, "Too Many New Users"
 		from frappe.utils import random_string
-		user = frappe.bean({
+		user = frappe.get_doc({
 			"doctype":"User",
 			"email": email,
 			"first_name": full_name,
@@ -333,8 +333,8 @@ def reset_password(user):
 	if frappe.db.sql("""select name from tabUser where name=%s""", (user,)):
 		# Hack!
 		frappe.session["user"] = "Administrator"
-		user = frappe.bean("User", user)
-		user.get_controller().reset_password()
+		user = frappe.get_doc("User", user)
+		user.reset_password()
 		return "Password reset details sent to your email."
 	else:
 		return "No such user (%s)" % user

@@ -38,7 +38,7 @@ class SMTPServer:
 	def __init__(self, login=None, password=None, server=None, port=None, use_ssl=None):
 		# get defaults from control panel
 		try:
-			es = frappe.doc('Outgoing Email Settings', 'Outgoing Email Settings')
+			es = frappe.get_doc('Outgoing Email Settings', 'Outgoing Email Settings')
 		except frappe.DoesNotExistError:
 			es = None
 		

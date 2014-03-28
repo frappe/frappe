@@ -51,7 +51,6 @@ def get_new_doc(doctype, parent_doc = None, parentfield = None):
 				else:
 					ref_docname = frappe.db.get_default(ref_fieldname)
 				doc.set(d.fieldname, frappe.db.get_value(ref_doctype, ref_docname, d.fieldname))
-
 			else:
 				doc.set(d.fieldname, d.default)
 			

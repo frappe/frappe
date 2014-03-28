@@ -13,7 +13,7 @@ from frappe.utils import flt, cint
 import frappe.widgets.reportview
 
 def get_report_doc(report_name):
-	bean = frappe.bean("Report", report_name)
+	bean = frappe.get_doc("Report", report_name)
 	if not bean.has_read_perm():
 		raise frappe.PermissionError("You don't have access to: {report}".format(report=report_name))
 		

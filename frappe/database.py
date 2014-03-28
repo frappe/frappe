@@ -475,7 +475,7 @@ class Database:
 
 	def exists(self, dt, dn=None):
 		if isinstance(dt, basestring):
-			if dt==dn:
+			if dt!="DocType" and dt==dn:
 				return True # single always exists (!)
 			try:
 				return self.sql('select name from `tab%s` where name=%s' % (dt, '%s'), (dn,))

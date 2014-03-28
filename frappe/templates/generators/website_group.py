@@ -70,10 +70,10 @@ def build_view_context(context):
 		context.post_list_html = get_post_list_html(context.group.name, context.view.name)
 	
 	elif context.view.name == "edit":
-		context.post = frappe.doc("Post", frappe.form_dict.name).fields
+		context.post = frappe.get_doc("Post", frappe.form_dict.name).fields
 		
 		if context.post.assigned_to:
-			context.user = frappe.doc("User", context.post.assigned_to)
+			context.user = frappe.get_doc("User", context.post.assigned_to)
 
 	elif context.view.name == "settings":
 		context.users = frappe.db.sql("""select p.*, wsp.`read`, wsp.`write`, wsp.`admin`

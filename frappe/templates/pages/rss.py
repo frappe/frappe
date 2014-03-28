@@ -29,7 +29,7 @@ def get_context(context):
 	else:
 		modified = now()
 
-	ws = frappe.doc('Website Settings', 'Website Settings')
+	ws = frappe.get_doc('Website Settings', 'Website Settings')
 
 	context = {
 		'title': ws.title_prefix,

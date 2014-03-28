@@ -7,6 +7,7 @@ import frappe
 from frappe.model.document import Document
 
 class Defaultvalue(Document):
+	pass
 		
 def on_doctype_update():
 	if not frappe.db.sql("""show index from `tabDefaultValue` 

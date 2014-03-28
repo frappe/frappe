@@ -42,7 +42,7 @@ def set_vote(ref_doctype, ref_name):
 		raise frappe.PermissionError
 	
 	try:
-		user_vote = frappe.bean({
+		user_vote = frappe.get_doc({
 			"doctype": "User Vote",
 			"ref_doctype": ref_doctype,
 			"ref_name": ref_name

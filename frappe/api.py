@@ -41,7 +41,7 @@ def handle():
 	
 	elif call=="resource":
 		if "run_method" in frappe.local.form_dict:
-			bean = frappe.bean(doctype, name)
+			bean = frappe.get_doc(doctype, name)
 
 			if frappe.local.request.method=="GET":
 				if not bean.has_permission("read"):

@@ -19,7 +19,9 @@ def set_new_name(doc):
 	if getattr(doc, "amended_from", None): 
 		return doc._get_amended_name()
 	else:
-		if hasattr(doc, "autoname"):
+		tmp = getattr(doc, "autoname", None)
+		if tmp and not isinstance(tmp, basestring):
+			# autoname in a function, not a property
 			doc.autoname()
 		if doc.name and doc.localname != doc.name:
 			return

@@ -19,7 +19,7 @@ def insert(doclist):
 		else:
 			d.set("__islocal", 1)
 		
-	wrapper = frappe.bean(doclist)
+	wrapper = frappe.get_doc(doclist)
 	wrapper.save()
 	
 	return wrapper

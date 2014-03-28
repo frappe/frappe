@@ -80,7 +80,7 @@ def get_website_settings():
 		]
 	})
 	
-	settings = frappe.doc("Website Settings", "Website Settings")
+	settings = frappe.get_doc("Website Settings", "Website Settings")
 	for k in ["banner_html", "brand_html", "copyright", "twitter_share_via",
 		"favicon", "facebook_share", "google_plus_one", "twitter_share", "linked_in_share",
 		"disable_signup"]:

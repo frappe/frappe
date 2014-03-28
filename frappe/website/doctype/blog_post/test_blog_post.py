@@ -39,11 +39,11 @@ class TestBlogPost(unittest.TestCase):
 
 		frappe.clear_cache(doctype="Blog Post")
 		
-		user = frappe.bean("User", "test1@example.com")
-		user.get_controller().add_roles("Website Manager")
+		user = frappe.get_doc("User", "test1@example.com")
+		user.add_roles("Website Manager")
 		
-		user = frappe.bean("User", "test2@example.com")
-		user.get_controller().add_roles("Blogger")
+		user = frappe.get_doc("User", "test2@example.com")
+		user.add_roles("Blogger")
 		
 		frappe.set_user("test1@example.com")
 		
@@ -53,17 +53,17 @@ class TestBlogPost(unittest.TestCase):
 		clear_restrictions("Blog Post")
 		
 	def test_basic_permission(self):
-		post = frappe.bean("Blog Post", "_test-blog-post")
+		post = frappe.get_doc("Blog Post", "_test-blog-post")
 		self.assertTrue(post.has_read_perm())
 		
 	def test_restriction_in_bean(self):
 		frappe.defaults.add_default("Blog Category", "_Test Blog Category 1", "test1@example.com", 
 			"Restriction")
 				
-		post = frappe.bean("Blog Post", "_test-blog-post")
+		post = frappe.get_doc("Blog Post", "_test-blog-post")
 		self.assertFalse(post.has_read_perm())
 
-		post1 = frappe.bean("Blog Post", "_test-blog-post-1")
+		post1 = frappe.get_doc("Blog Post", "_test-blog-post-1")
 		self.assertTrue(post1.has_read_perm())
 		
 	def test_restriction_in_report(self):
@@ -92,10 +92,10 @@ class TestBlogPost(unittest.TestCase):
 
 		frappe.set_user("test2@example.com")
 
-		post = frappe.bean("Blog Post", "_test-blog-post")
+		post = frappe.get_doc("Blog Post", "_test-blog-post")
 		self.assertTrue(post.has_read_perm())
 
-		post1 = frappe.bean("Blog Post", "_test-blog-post-1")
+		post1 = frappe.get_doc("Blog Post", "_test-blog-post-1")
 		self.assertFalse(post1.has_read_perm())
 		
 	def test_owner_match_report(self):
@@ -130,11 +130,11 @@ class TestBlogPost(unittest.TestCase):
 		frappe.set_user("test2@example.com")
 
 		# user can only access restricted blog post
-		bean = frappe.bean("Blog Post", "_test-blog-post")
+		bean = frappe.get_doc("Blog Post", "_test-blog-post")
 		self.assertTrue(bean.has_read_perm())
 
 		# and not this one
-		bean = frappe.bean("Blog Post", "_test-blog-post-1")
+		bean = frappe.get_doc("Blog Post", "_test-blog-post-1")
 		self.assertFalse(bean.has_read_perm())
 	
 	def test_not_allowed_to_remove_self(self):
@@ -151,21 +151,21 @@ class TestBlogPost(unittest.TestCase):
 		self.add_restricted_on_blogger()
 
 		frappe.set_user("test2@example.com")
-		bean = frappe.bean("Blog Post", "_test-blog-post-1")
+		bean = frappe.get_doc("Blog Post", "_test-blog-post-1")
 		self.assertFalse(bean.has_read_perm())
 
 		frappe.set_user("test1@example.com")
 		add("test2@example.com", "Blog Post", "_test-blog-post-1")
 
 		frappe.set_user("test2@example.com")
-		bean = frappe.bean("Blog Post", "_test-blog-post-1")
+		bean = frappe.get_doc("Blog Post", "_test-blog-post-1")
 
 		self.assertTrue(bean.has_read_perm())
 		
 	def test_set_only_once(self):
 		blog_post = frappe.get_meta("Blog Post")
 		blog_post.get_field("title").set_only_once = 1
-		bean = frappe.bean("Blog Post", "_test-blog-post-1")
+		bean = frappe.get_doc("Blog Post", "_test-blog-post-1")
 		bean.title = "New"
 		self.assertRaises(frappe.CannotChangeConstantError, bean.save)
 		blog_post.get_field("title").set_only_once = 0

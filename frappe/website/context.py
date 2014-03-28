@@ -50,7 +50,7 @@ def build_context(sitemap_options):
 	
 	# provide bean
 	if context.doctype and context.docname:
-		context.bean = frappe.bean(context.doctype, context.docname)
+		context.bean = frappe.get_doc(context.doctype, context.docname)
 	
 	if context.controller:
 		module = frappe.get_module(context.controller)

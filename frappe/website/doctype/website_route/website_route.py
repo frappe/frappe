@@ -11,7 +11,7 @@ sitemap_fields = ("page_name", "ref_doctype", "docname", "page_or_generator", "i
 	"lastmod", "parent_website_route", "public_read", "public_write", "page_title")
 
 class WebsiteRoute(DocTypeNestedSet):
-		self.nsm_parent_field = "parent_website_route"
+	nsm_parent_field = "parent_website_route"
 		
 	def autoname(self):
 		self.name = self.get_url()
@@ -97,7 +97,7 @@ class WebsiteRoute(DocTypeNestedSet):
 		# rename children
 		for name in frappe.db.sql_list("""select name from `tabWebsite Route`
 			where parent_website_route=%s""", self.name):
-			child = frappe.bean("Website Route", name)
+			child = frappe.get_doc("Website Route", name)
 			child.parent_website_route = self.name
 			child.save()
 		
@@ -139,32 +139,32 @@ class WebsiteRoute(DocTypeNestedSet):
 			clear_cache(self.parent_website_route)
 		
 def add_to_sitemap(options):
-	bean = frappe.new_bean("Website Route")
+	website_route = frappe.new_doc("Website Route")
 
 	for key in sitemap_fields:
-		bean.set(key, options.get(key))
-	if not bean.page_name:
-		bean.page_name = options.get("link_name")
-	bean.website_template = options.get("link_name")
+		website_route.set(key, options.get(key))
+	if not website_route.page_name:
+		website_route.page_name = options.get("link_name")
+	website_route.website_template = options.get("link_name")
 
-	bean.insert(ignore_permissions=True)
+	website_route.insert(ignore_permissions=True)
 	
-	return bean.idx
+	return website_route.idx
 	
 def update_sitemap(website_route, options):
-	bean = frappe.bean("Website Route", website_route)
+	website_route = frappe.get_doc("Website Route", website_route)
 	
 	for key in sitemap_fields:
-		bean.set(key, options.get(key))
+		website_route.set(key, options.get(key))
 	
-	if not bean.page_name:
+	if not website_route.page_name:
 		# for pages
-		bean.page_name = options.get("link_name")
+		website_route.page_name = options.get("link_name")
 		
-	bean.website_template = options.get("link_name")
-	bean.save(ignore_permissions=True)
+	website_route.website_template = options.get("link_name")
+	website_route.save(ignore_permissions=True)
 
-	return bean.idx
+	return website_route.idx
 	
 def remove_sitemap(page_name=None, ref_doctype=None, docname=None):
 	if page_name:

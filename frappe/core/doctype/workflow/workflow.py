@@ -21,7 +21,7 @@ class Workflow(Document):
 		meta = frappe.get_meta(self.document_type)
 		if not meta.get_field(self.workflow_state_field):
 			# create custom field
-			frappe.bean([{
+			frappe.get_doc([{
 				"doctype":"Custom Field",
 				"dt": self.document_type,
 				"__islocal": 1,

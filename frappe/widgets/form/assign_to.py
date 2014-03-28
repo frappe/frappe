@@ -34,7 +34,7 @@ def add(args=None):
 	else:
 		from frappe.utils import nowdate
 		
-		d = frappe.bean({
+		d = frappe.get_doc({
 			"doctype":"ToDo",
 			"owner": args['assign_to'],
 			"reference_type": args['doctype'],
@@ -79,7 +79,7 @@ def add(args=None):
 @frappe.whitelist()
 def remove(doctype, name, assign_to):
 	"""remove from todo"""
-	todo = frappe.bean("ToDo", {"reference_type":doctype, "reference_name":name, "owner":assign_to, "status":"Open"})
+	todo = frappe.get_doc("ToDo", {"reference_type":doctype, "reference_name":name, "owner":assign_to, "status":"Open"})
 	todo.status = "Closed"
 	todo.save(ignore_permissions=True)
 		

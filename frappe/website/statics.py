@@ -111,7 +111,7 @@ class sync(object):
 			self.insert_web_page(route, fpath, page_name, priority, parent_website_route)
 
 	def insert_web_page(self, route, fpath, page_name, priority, parent_website_route):
-		page = frappe.bean({
+		page = frappe.get_doc({
 			"doctype":"Web Page",
 			"idx": priority,
 			"page_name": page_name,
@@ -125,7 +125,7 @@ class sync(object):
 			page.insert()
 		except NameError:
 			# page exists, if deleted static, delete it and try again
-			old_route = frappe.doc("Website Route", {"ref_doctype":"Web Page", 
+			old_route = frappe.get_doc("Website Route", {"ref_doctype":"Web Page", 
 				"docname": page.name})
 			if old_route.static_file_timestamp and not os.path.exists(os.path.join(self.statics_path, 
 				old_route.name)):
@@ -135,7 +135,7 @@ class sync(object):
 			
 			
 		# update timestamp
-		route_bean = frappe.bean("Website Route", {"ref_doctype": "Web Page", 
+		route_bean = frappe.get_doc("Website Route", {"ref_doctype": "Web Page", 
 			"docname": page.name})
 		route_bean.static_file_timestamp = cint(os.path.getmtime(fpath))
 		route_bean.save()
@@ -148,12 +148,12 @@ class sync(object):
 		if str(cint(os.path.getmtime(fpath)))!= route_details.static_file_timestamp \
 			or (cint(route_details.idx) != cint(priority) and (priority is not None)):
 
-			page = frappe.bean("Web Page", route_details.docname)
+			page = frappe.get_doc("Web Page", route_details.docname)
 			page.update(get_static_content(fpath, route_details.docname))
 			page.idx = priority
 			page.save()
 
-			route_bean = frappe.bean("Website Route", route_details.name)
+			route_bean = frappe.get_doc("Website Route", route_details.name)
 			route_bean.static_file_timestamp = cint(os.path.getmtime(fpath))
 			route_bean.save()
 

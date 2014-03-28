@@ -16,7 +16,7 @@ from frappe.model.document import Document
 
 class Communication(Document):
 	def get_parent_bean(self):
-		return frappe.bean(self.parenttype, self.parent)
+		return frappe.get_doc(self.parenttype, self.parent)
 		
 	def update_parent(self):
 		"""update status of parent Lead or Contact based on who is replying"""

@@ -9,7 +9,7 @@ from frappe.utils.file_manager import save_file
 from frappe.templates.generators.website_group import get_pathname
 
 def get_post_context(context):
-	post = frappe.doc("Post", frappe.form_dict.name)
+	post = frappe.get_doc("Post", frappe.form_dict.name)
 	if post.parent_post:
 		raise frappe.PermissionError
 		
@@ -26,7 +26,7 @@ def get_post_context(context):
 	return frappe.cache().get_value(cache_key, lambda: _get_post_context())
 	
 def get_parent_post_html(post, context):
-	user = frappe.bean("User", post.owner).doc
+	user = frappe.get_doc("User", post.owner).doc
 	for fieldname in ("first_name", "last_name", "user_image", "location"):
 		post.set(fieldname, user.fields[fieldname])
 	
@@ -65,8 +65,8 @@ def add_post(group, content, picture, picture_name, title=None, parent_post=None
 		if frappe.db.get_value("Post", parent_post, "parent_post"):
 			frappe.throw("Cannot reply to a reply")
 		
-	group = frappe.doc("Website Group", group)	
-	post = frappe.bean({
+	group = frappe.get_doc("Website Group", group)	
+	post = frappe.get_doc({
 		"doctype":"Post",
 		"title": (title or "").title(),
 		"content": content,
@@ -98,7 +98,7 @@ def add_post(group, content, picture, picture_name, title=None, parent_post=None
 def save_post(post, content, picture=None, picture_name=None, title=None,
 	assigned_to=None, status=None, event_datetime=None):
 	
-	post = frappe.bean("Post", post)
+	post = frappe.get_doc("Post", post)
 	access = get_access(get_pathname(post.website_group))
 	
 	if not access.get("write"):

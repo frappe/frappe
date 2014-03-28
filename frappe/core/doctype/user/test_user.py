@@ -11,11 +11,11 @@ class TestUser(unittest.TestCase):
 		frappe.db.sql("""delete from tabUserRole where role='_Test Role 2'""")
 		delete_doc("Role","_Test Role 2")
 		
-		user = frappe.bean(copy=test_records[1])
+		user = frappe.get_doc(copy=test_records[1])
 		user.email = "_test@example.com"
 		user.insert()
 		
-		frappe.bean({"doctype": "ToDo", "description": "_Test"}).insert()
+		frappe.get_doc({"doctype": "ToDo", "description": "_Test"}).insert()
 		
 		delete_doc("User", "_test@example.com")
 		
@@ -23,7 +23,7 @@ class TestUser(unittest.TestCase):
 			("_test@example.com",)))
 		
 		from frappe.core.doctype.role.test_role import test_records as role_records
-		frappe.bean(copy=role_records[1]).insert()
+		frappe.get_doc(copy=role_records[1]).insert()
 		
 	def test_get_value(self):
 		self.assertEquals(frappe.db.get_value("User", "test@example.com"), "test@example.com")

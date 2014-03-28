@@ -9,13 +9,14 @@ import frappe, json
 from frappe.model.document import Document
 
 class Version(Document):
+	pass
 		
 @frappe.whitelist()
 def restore(version):
 	if not "System Manager" in frappe.get_roles():
 		raise frappe.PermissionError
 		
-	version = frappe.doc("Version", version)
+	version = frappe.get_doc("Version", version)
 	doclist = json.loads(version.doclist_json)
 
 	# check if renamed
@@ -27,4 +28,4 @@ def restore(version):
 	doclist[0]["modified"] = frappe.db.get_value(version.ref_doctype, version.docname, "modified")
 	
 	# overwrite
-	frappe.bean(doclist).save()
+	frappe.get_doc(doclist).save()

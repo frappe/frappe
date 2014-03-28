@@ -164,7 +164,7 @@ def get_messages_from_page(name):
 	return get_messages_from_page_or_report("Page", name)
 	
 def get_messages_from_report(name):
-	report = frappe.doc("Report", name)
+	report = frappe.get_doc("Report", name)
 	messages = get_messages_from_page_or_report("Report", name, 
 		frappe.db.get_value("DocType", report.ref_doctype, "module"))
 	if report.query:

@@ -72,7 +72,7 @@ class Document(BaseDocument):
 			self.update(d, valid_columns = d.keys())
 
 			for df in self.get_table_fields():
-				children = frappe.db.get_values(df.options, 
+				children = frappe.db.get_values(df.options,
 					{"parent": self.name, "parenttype": self.doctype, "parentfield": df.fieldname}, 
 					"*", as_dict=True)
 				if children:
@@ -81,13 +81,14 @@ class Document(BaseDocument):
 					self.set(df.fieldname, [])
 			
 	def has_permission(self, permtype):
-		if getattr(self, "_ignore_permissions", False):
+		if getattr(self, "ignore_permissions", False):
 			return True
 		return frappe.has_permission(self.doctype, permtype, self)
 					
-	def insert(self):
-		# check links
-		# check permissions
+	def insert(self, ignore_permissions=None):
+		if ignore_permissions!=None:
+			self.ignore_permissions = ignore_permissions
+
 		self.set("__islocal", True)
 		
 		if not self.has_permission("create"):
@@ -114,7 +115,10 @@ class Document(BaseDocument):
 		self.run_method("after_insert")
 		self.run_post_save_methods()
 
-	def save(self):
+	def save(self, ignore_permissions=None):
+		if ignore_permissions!=None:
+			self.ignore_permissions = ignore_permissions
+			
 		if self.get("__islocal") or not self.get("name"):
 			self.insert()
 			return
@@ -135,7 +139,7 @@ class Document(BaseDocument):
 
 		# children
 		child_map = {}
-		ignore_children_type = self.get("_ignore_children_type", [])
+		ignore_children_type = self.get("ignore_children_type") or []
 
 		for d in self.get_all_children():
 			d.parent = self.name # rename if reqd
@@ -199,13 +203,13 @@ class Document(BaseDocument):
 		self.set_missing_values(new_doc)
 
 		# children
-		for df in self.meta.get("fields", {"fieldtype":"Table"}):
+		for df in self.get_table_fields():
 			new_doc = frappe.new_doc(df.options)
 			value = self.get(df.fieldname)
 			if isinstance(value, list):
 				for d in value:
 					d.set_missing_values(new_doc)
-										
+
 	def _check_if_latest(self):
 		conflict = False
 		self._action = "save"
@@ -327,6 +331,9 @@ class Document(BaseDocument):
 		self.save()
 	
 	def run_before_save_methods(self):
+		if getattr(self, "ignore_validate", False):
+			return
+		
 		if self._action=="save":
 			self.run_method("validate")
 			self.run_method("before_save")

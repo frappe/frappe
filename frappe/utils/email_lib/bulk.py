@@ -78,7 +78,7 @@ def send(recipients=None, sender=None, doctype='User', email_field='email',
 def add(email, sender, subject, formatted, text_content=None, 
 	ref_doctype=None, ref_docname=None):
 	"""add to bulk mail queue"""	
-	e = frappe.doc('Bulk Email')
+	e = frappe.get_doc('Bulk Email')
 	e.sender = sender
 	e.recipient = email
 	try:

@@ -36,7 +36,7 @@ def remove(doctype, name):
 @frappe.whitelist()
 def add(parent, role, permlevel):
 	frappe.only_for("System Manager")
-	frappe.doc(fielddata={
+	frappe.get_doc({
 		"doctype":"DocPerm",
 		"__islocal": 1,
 		"parent": parent,

@@ -48,7 +48,7 @@ def get_args():
 				<pre>%s</pre>""" % repr(frappe.form_dict)
 		}
 		
-	bean = frappe.bean(frappe.form_dict.doctype, frappe.form_dict.name)
+	bean = frappe.get_doc(frappe.form_dict.doctype, frappe.form_dict.name)
 	for ptype in ("read", "print"):
 		if not frappe.has_permission(bean.doctype, ptype, bean.doc):
 			return {
@@ -66,7 +66,7 @@ def get_html(doc, doclist, print_format=None):
 	from jinja2 import Environment
 	
 	if isinstance(doc, basestring) and isinstance(doclist, basestring):
-		bean = frappe.bean(doc, doclist)
+		bean = frappe.get_doc(doc, doclist)
 		doc = bean.doc
 		doclist = bean.doclist
 

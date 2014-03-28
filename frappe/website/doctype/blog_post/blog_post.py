@@ -11,7 +11,7 @@ from frappe import _
 from frappe.utils import today
 
 class BlogPost(WebsiteGenerator):
-		self.save_versions = True
+	save_versions = True
 				
 	def get_page_title(self):
 		return self.title

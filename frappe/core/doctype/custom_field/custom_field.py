@@ -114,7 +114,7 @@ def create_custom_field_if_values_exist(doctype, df):
 		frappe.db.sql("""select count(*) from `tab{doctype}` 
 			where ifnull({fieldname},'')!=''""".format(doctype=doctype, fieldname=df.fieldname))[0][0] and \
 		not frappe.db.get_value("Custom Field", {"dt": doctype, "fieldname": df.fieldname}):
-			frappe.bean({
+			frappe.get_doc({
 				"doctype":"Custom Field",
 				"dt": doctype,
 				"permlevel": df.permlevel or 0,

@@ -399,13 +399,13 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 					check_record(d, None, doctype_dl)
 				
 				if overwrite and frappe.db.exists(doctype, doclist[0]["name"]):
-					bean = frappe.bean(doctype, doclist[0]["name"])
+					bean = frappe.get_doc(doctype, doclist[0]["name"])
 					bean.ignore_links = ignore_links
 					bean.doclist.update(doclist)
 					bean.save()
 					ret.append('Updated row (#%d) %s' % (row_idx + 1, getlink(bean.doctype, bean.name)))
 				else:
-					bean = frappe.bean(doclist)
+					bean = frappe.get_doc(doclist)
 					bean.ignore_links = ignore_links
 					bean.insert()
 					ret.append('Inserted row (#%d) %s' % (row_idx + 1, getlink(bean.doctype, bean.name)))
@@ -417,7 +417,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 
 				if parenttype:
 					# child doc
-					doc = frappe.doc(doctype)
+					doc = frappe.get_doc(doctype)
 					doc.fields.update(doclist[0])
 					if parenttype:
 						doc.parenttype = parenttype
@@ -454,7 +454,7 @@ def validate_parent(parent_list, parenttype, ret, error):
 		parent_list = list(set(parent_list))
 		for p in parent_list:
 			try:
-				obj = frappe.bean(parenttype, p)
+				obj = frappe.get_doc(parenttype, p)
 				obj.run_method("validate")
 				obj.run_method("on_update")
 			except Exception, e:
@@ -503,7 +503,7 @@ def export_json(doctype, name, path):
 	if not name or name=="-":
 		name = doctype
 	with open(path, "w") as outfile:
-		doclist = [d.fields for d in frappe.bean(doctype, name).doclist]
+		doclist = [d.fields for d in frappe.get_doc(doctype, name).doclist]
 		for d in doclist:
 			if d.get("parent"):
 				del d["parent"]
@@ -529,7 +529,7 @@ def import_doclist(path, overwrite=False, ignore_links=False, ignore_insert=Fals
 		files = [path]
 	
 	def _import_doclist(d):
-		b = frappe.bean(d)
+		b = frappe.get_doc(d)
 		b.ignore_links = ignore_links
 		if insert:
 			b.set("__islocal", True)

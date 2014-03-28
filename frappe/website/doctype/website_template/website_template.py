@@ -20,9 +20,9 @@ class WebsiteTemplate(Document):
 			website_route = frappe.db.get_value("Website Route", 
 				{"website_template": self.name, "page_or_generator": "Page"})
 			
-			opts = self.copy()
+			opts = self.as_dict()
 			opts.update({"public_read": 1})
-						
+
 			if website_route:
 				update_sitemap(website_route, opts)
 			else:
@@ -37,13 +37,13 @@ class WebsiteTemplate(Document):
 				{condition} order by idx asc, {sort_field} {sort_order}""".format(
 					doctype = self.ref_doctype,
 					condition = condition,
-					sort_field = self.sort_field or "name",
-					sort_order = self.sort_order or "asc"
+					sort_field = getattr(self, "sort_field", "name"),
+					sort_order = getattr(self, "sort_order", "asc")
 				)):
-				bean = frappe.bean(self.ref_doctype, name)
+				doc = frappe.get_doc(self.ref_doctype, name)
 				
 				# regenerate route
-				bean.run_method("on_update")
+				doc.run_method("on_update")
 		
 def rebuild_website_template():
 	# TODO
@@ -127,7 +127,7 @@ def add_website_template(page_or_generator, app, path, fname, app_path):
 		# found by earlier app, override
 		frappe.db.sql("""delete from `tabWebsite Template` where name=%s""", (wsc.link_name,))
 	
-	frappe.bean(wsc).insert()
+	frappe.get_doc(wsc).insert()
 	
 	return name
 	

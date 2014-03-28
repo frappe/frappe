@@ -30,7 +30,7 @@ def add_comment(args=None):
 	if "cmd" in args:
 		del args["cmd"]
 
-	comment = frappe.bean(args)
+	comment = frappe.get_doc(args)
 	comment.ignore_permissions = True
 	comment.insert()
 	

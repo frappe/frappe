@@ -71,22 +71,24 @@ def import_doc(docdict):
 	docdict["__islocal"] = 1
 	doc = frappe.get_doc(docdict)
 
-	old_doc = None
-	if doctype in ignore_values:
-		if frappe.db.exists(doc.doctype, doc.name):
-			old_doc = frappe.get_doc(doc.doctype, doc.name)
-		
-		# update ignore values
-		for key in ignore_values.get(doctype) or []:
-			doc.set(key, old_doc.get(key))
-			
-	# update ignored docs into new doc
-	for df in doc.get_table_fields():
-		if df.options in ignore_doctypes:
-			doc.set(df.fieldname, [])
+	ignore = []
+
+	if frappe.db.exists(doc.doctype, doc.name):
+		old_doc = frappe.get_doc(doc.doctype, doc.name)
 	
-	# delete old
-	frappe.delete_doc(doctype, name, force=1, ignore_doctypes=ignore, for_reload=True)
+		if doc.doctype in ignore_values:
+			# update ignore values
+			for key in ignore_values.get(doc.doctype) or []:
+				doc.set(key, old_doc.get(key))
+
+		# update ignored docs into new doc
+		for df in doc.get_table_fields():
+			if df.options in ignore_doctypes:
+				doc.set(df.fieldname, [])
+				ignore.append(df.options)
+	
+		# delete old
+		frappe.delete_doc(doc.doctype, doc.name, force=1, ignore_doctypes=ignore, for_reload=True)
 	
 	doc.ignore_children_type = ignore
 	doc.ignore_links = True

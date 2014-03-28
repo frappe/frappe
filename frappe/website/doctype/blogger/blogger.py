@@ -20,6 +20,6 @@ class Blogger(Document):
 		if self.user:
 			for blog in frappe.db.sql_list("""select name from `tabBlog Post` where owner=%s 
 				and ifnull(blogger,'')=''""", self.user):
-				b = frappe.bean("Blog Post", blog)
+				b = frappe.get_doc("Blog Post", blog)
 				b.blogger = self.name
 				b.save()

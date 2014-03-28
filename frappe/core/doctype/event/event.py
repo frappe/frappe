@@ -33,7 +33,7 @@ def has_permission(doc, bean=None):
 		
 	# need full doclist to check roles and users
 	if not bean:
-		bean = frappe.bean("Event", doc.name)
+		bean = frappe.get_doc("Event", doc.name)
 		
 	if len(bean.doclist)==1:
 		return False

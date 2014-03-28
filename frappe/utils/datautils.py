@@ -128,7 +128,7 @@ def import_doc(d, doctype, overwrite, row_idx, submit=False, ignore_links=False)
 	"""import main (non child) document"""
 	if d.get("name") and frappe.db.exists(doctype, d['name']):
 		if overwrite:
-			bean = frappe.bean(doctype, d['name'])
+			bean = frappe.get_doc(doctype, d['name'])
 			bean.ignore_links = ignore_links
 			bean.update(d)
 			if d.get("docstatus") == 1:
@@ -140,7 +140,7 @@ def import_doc(d, doctype, overwrite, row_idx, submit=False, ignore_links=False)
 			return 'Ignored row (#%d) %s (exists)' % (row_idx + 1, 
 				getlink(doctype, d['name']))
 	else:
-		bean = frappe.bean([d])
+		bean = frappe.get_doc([d])
 		bean.ignore_links = ignore_links
 		bean.insert()
 		

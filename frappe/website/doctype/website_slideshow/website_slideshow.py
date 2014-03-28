@@ -16,7 +16,7 @@ class WebsiteSlideshow(Document):
 		clear_cache()
 		
 def get_slideshow(bean):
-	slideshow = frappe.bean("Website Slideshow", bean.slideshow)
+	slideshow = frappe.get_doc("Website Slideshow", bean.slideshow)
 	
 	return {
 		"slides": slideshow.doclist.get({"doctype":"Website Slideshow Item"}),

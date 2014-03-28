@@ -21,10 +21,10 @@ def get_sitemap_options(path):
 	return frappe._dict(sitemap_options)
 	
 def build_sitemap_options(path):
-	sitemap_options = frappe._dict(frappe.doc("Website Route", path).fields)
+	sitemap_options = frappe._dict(frappe.get_doc("Website Route", path).fields)
 	home_page = get_home_page()
 		
-	sitemap_config = frappe.doc("Website Template", 
+	sitemap_config = frappe.get_doc("Website Template", 
 		sitemap_options.get("website_template")).fields
 			
 	# get sitemap config fields too
@@ -65,7 +65,7 @@ def set_sidebar_items(sitemap_options, pathname, home_page):
 			
 		if sitemap_options.children:
 			# if children are from generator and sort order is specified, then get that condition
-			website_template = frappe.doc("Website Template", sitemap_options.children[0].website_template)
+			website_template = frappe.get_doc("Website Template", sitemap_options.children[0].website_template)
 			if website_template.sort_by!="name":
 				sitemap_options.children = frappe.db.sql("""select t1.* from 
 					`tabWebsite Route` t1, `tab{ref_doctype}` t2
@@ -75,5 +75,5 @@ def set_sidebar_items(sitemap_options, pathname, home_page):
 					order by t2.{sort_by} {sort_order}""".format(**website_template.fields), 
 						pathname, as_dict=True)
 						
-			sitemap_options.children = [frappe.doc("Website Route", pathname).fields] + sitemap_options.children
+			sitemap_options.children = [frappe.get_doc("Website Route", pathname).fields] + sitemap_options.children
 			

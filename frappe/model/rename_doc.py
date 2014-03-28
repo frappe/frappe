@@ -23,7 +23,7 @@ def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=F
 	doclist = frappe.model.doctype.get(doctype)
 	
 	# call before_rename
-	out = frappe.bean(doctype, old).run_method("before_rename", old, new, merge) or {}
+	out = frappe.get_doc(doctype, old).run_method("before_rename", old, new, merge) or {}
 	new = out.get("new") or new
 	new = validate_rename(doctype, new, doclist, merge, force, ignore_permissions)
 		
@@ -43,7 +43,7 @@ def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=F
 		frappe.delete_doc(doctype, old)
 		
 	# call after_rename
-	frappe.bean(doctype, new).run_method("after_rename", old, new, merge)
+	frappe.get_doc(doctype, new).run_method("after_rename", old, new, merge)
 	
 	rename_versions(doctype, old, new)
 	

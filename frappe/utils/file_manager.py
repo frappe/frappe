@@ -45,7 +45,7 @@ def save_url(file_url, dt, dn):
 	# 	frappe.msgprint("URL must start with 'http://' or 'https://'")
 	# 	return None, None
 		
-	f = frappe.bean({
+	f = frappe.get_doc({
 		"doctype": "File Data",
 		"file_url": file_url,
 		"attached_to_doctype": dt,
@@ -55,7 +55,7 @@ def save_url(file_url, dt, dn):
 	try:
 		f.insert();
 	except frappe.DuplicateEntryError:
-		return frappe.doc("File Data", f.duplicate_entry)		
+		return frappe.get_doc("File Data", f.duplicate_entry)		
 	return f.doc
 
 def get_uploaded_content():	
@@ -140,7 +140,7 @@ def save_file(fname, content, dt, dn, decode=False):
 		
 		os.rename(temp_fname, fpath.encode("utf-8"))
 
-	f = frappe.bean({
+	f = frappe.get_doc({
 		"doctype": "File Data",
 		"file_name": os.path.relpath(os.path.join(files_path, fname), get_site_path("public")),
 		"attached_to_doctype": dt,
@@ -151,7 +151,7 @@ def save_file(fname, content, dt, dn, decode=False):
 	try:
 		f.insert();
 	except frappe.DuplicateEntryError:
-		return frappe.doc("File Data", f.duplicate_entry)
+		return frappe.get_doc("File Data", f.duplicate_entry)
 
 	return f.doc
 

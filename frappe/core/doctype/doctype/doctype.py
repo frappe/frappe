@@ -328,16 +328,18 @@ def validate_permissions(permissions, for_remove=False):
 def make_module_and_roles(doc, perm_fieldname="permissions"):
 	try:
 		if not frappe.db.exists("Module Def", doc.module):
-			m = frappe.bean({"doctype": "Module Def", "module_name": doc.module})
+			m = frappe.get_doc({"doctype": "Module Def", "module_name": doc.module})
+			m.ignore_mandatory = m.ignore_permissions = True
 			m.insert()
 		
 		default_roles = ["Administrator", "Guest", "All"]
-		roles = [p.role for p in doc.get(permissions)] + default_roles
+		roles = [p.role for p in doc.get("permissions") or []] + default_roles
 		
 		for role in list(set(roles)):
 			if not frappe.db.exists("Role", role):
-				r = frappe.bean({"doctype": "Role", "role_name": role})
+				r = frappe.get_doc({"doctype": "Role", "role_name": role})
 				r.role_name = role
+				r.ignore_mandatory = r.ignore_permissions = True
 				r.insert()
 	except frappe.DoesNotExistError, e:
 		pass

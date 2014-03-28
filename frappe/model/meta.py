@@ -4,17 +4,17 @@
 # metadata
 
 from __future__ import unicode_literals
-import frappe
+import frappe, json
 from frappe.utils import cstr, cint
 from frappe.model import integer_docfield_properties
 from frappe.model.document import Document
+from frappe.model.base_document import BaseDocument
 
 ######
 
 def get_meta(doctype, cached=True):
 	# TODO: cache to be cleared
-
-	if cached:
+	if cached and not frappe.flags.in_install_app:
 		if doctype not in frappe.local.meta:
 			frappe.local.meta[doctype] = frappe.cache().get_value("meta:" + doctype, lambda: Meta(doctype))
 		return frappe.local.meta.get(doctype)
@@ -25,7 +25,23 @@ class Meta(Document):
 	_metaclass = True
 	def __init__(self, doctype):
 		super(Meta, self).__init__("DocType", doctype)
-		
+	
+	def load_from_db(self):
+		try:
+			super(Meta, self).load_from_db()
+		except frappe.DoesNotExistError:
+			if self.doctype=="DocType" and self.name in ("DocField", "DocPerm", "Role", "DocType", "Module Def"):
+				fname = frappe.scrub(self.name)
+				with open(frappe.get_app_path("frappe", "core", "doctype", fname, fname + ".txt"), "r") as f:
+					txt = f.read()
+
+				self.__dict__.update(json.loads(txt))
+				self.fields = [BaseDocument(d) for d in self.fields]
+				if hasattr(self, "permissions"):
+					self.permissions = [BaseDocument(d) for d in self.permissions]
+			else:
+				raise
+	
 	def get_link_fields(self):
 		tmp = self.get("fields", {"fieldtype":"Link"})
 		tmp.extend(self.get("fields", {"fieldtype":"Select", "options": "^link:"}))

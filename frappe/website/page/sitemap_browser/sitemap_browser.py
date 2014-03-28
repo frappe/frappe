@@ -24,10 +24,10 @@ def move(name, up_or_down):
 	if not frappe.has_permission("Website Route"):
 		raise frappe.PermissionError
 
-	sitemap = frappe.doc("Website Route", name)
+	sitemap = frappe.get_doc("Website Route", name)
 	if up_or_down=="up":
 		if sitemap.idx > 0:
-			prev = frappe.doc("Website Route", {
+			prev = frappe.get_doc("Website Route", {
 				"parent_website_route": sitemap.parent_website_route,
 				"idx": sitemap.idx - 1
 			})
@@ -40,7 +40,7 @@ def move(name, up_or_down):
 				ret = "ok"
 
 	else:
-		nexts = frappe.doc("Website Route", {
+		nexts = frappe.get_doc("Website Route", {
 			"parent_website_route": sitemap.parent_website_route,
 			"idx": sitemap.idx + 1
 		})
@@ -60,10 +60,10 @@ def update_parent(name, new_parent):
 	if not frappe.has_permission("Website Route"):
 		raise frappe.PermissionError
 	
-	sitemap = frappe.doc("Website Route", name)
+	sitemap = frappe.get_doc("Website Route", name)
 	
 	if sitemap.ref_doctype:
-		generator = frappe.bean(sitemap.ref_doctype, sitemap.docname)
+		generator = frappe.get_doc(sitemap.ref_doctype, sitemap.docname)
 		if not generator.meta.has_field("parent_website_route"):
 			frappe.throw("Does not allow moving.")
 		generator.parent_website_route = new_parent

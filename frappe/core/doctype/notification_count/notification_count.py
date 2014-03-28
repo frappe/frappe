@@ -9,9 +9,12 @@ import frappe
 from frappe.model.document import Document
 
 class NotificationCount(Document):
+	pass
 
 @frappe.whitelist()
 def get_notifications():
+	if frappe.in_install_app:
+		return
 	config = get_notification_config()
 	can_read = frappe.user.get_can_read()
 	open_count_doctype = {}
@@ -31,7 +34,7 @@ def get_notifications():
 				result = frappe.get_list(d, fields=["count(*)"], 
 					filters=[[d, key, "=", condition[key]]], as_list=True, limit_page_length=1)[0][0]
 
-				frappe.doc({"doctype":"Notification Count", "for_doctype":d, 
+				frappe.get_doc({"doctype":"Notification Count", "for_doctype":d, 
 					"open_count":result}).insert()
 					
 				open_count_doctype[d] = result
@@ -41,7 +44,7 @@ def get_notifications():
 			open_count_module[m] = notification_count[m]
 		else:
 			open_count_module[m] = frappe.get_attr(config.for_module[m])()
-			frappe.doc({"doctype":"Notification Count", "for_doctype":m, 
+			frappe.get_doc({"doctype":"Notification Count", "for_doctype":m, 
 				"open_count":open_count_module[m]}).insert()
 
 	return {

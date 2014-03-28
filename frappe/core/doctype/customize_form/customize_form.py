@@ -291,7 +291,7 @@ class CustomizeForm(Document):
 			if d.doctype=="Customize Form Field":
 				fields.append(d.fieldname)
 		
-		d = frappe.doc('Property Setter')
+		d = frappe.get_doc('Property Setter')
 		d.doctype_or_field = 'DocType'
 		d.doc_type = self.doc_type
 		d.property = "_idx"

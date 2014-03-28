@@ -4,6 +4,10 @@
 import frappe, unittest, time
 
 class TestDocument(unittest.TestCase):
+	def test_get_return_empty_list_for_table_field_if_none(self):
+		d = frappe.get_doc({"doctype":"User"})
+		self.assertEquals(d.get("user_roles"), [])
+		
 	def test_load(self):
 		d = frappe.get_doc("DocType", "User")
 		self.assertEquals(d.doctype, "DocType")
