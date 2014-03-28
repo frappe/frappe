@@ -3,8 +3,8 @@
 
 from __future__ import unicode_literals
 
-import frappe, os
-import frappe.model.doc
+import frappe, os, json
+import frappe.model
 from frappe.modules import scrub, get_module_path, lower_case_files_for, scrub_dt_dn
 
 def export_doc(doc):
@@ -17,58 +17,41 @@ def export_to_files(record_list=None, record_module=None, verbose=0, create_init
 	if frappe.flags.in_import:
 		return
 
-	module_doclist =[]
 	if record_list:
 		for record in record_list:
-			write_document_file(frappe.model.doc.get(record[0], record[1]), 
-				record_module, create_init=create_init)
+			write_document_file(frappe.get_doc(record[0], record[1]), record_module, create_init=create_init)
 	
-def write_document_file(doclist, record_module=None, create_init=None):
-	from frappe.modules.utils import pprint_doclist
+def write_document_file(doc, record_module=None, create_init=None):
+	newdoc = doc.as_dict()
 
-	doclist = [filter_fields(d.fields) for d in doclist]
-
-	module = record_module or get_module_name(doclist)
+	# strip out default fields from children
+	for df in doc.get_table_fields():
+		for d in newdoc.get(df.fieldname):
+			for fieldname in frappe.model.default_fields:
+				if fieldname in d:
+					del d[fieldname]
+	
+	module = record_module or get_module_name(doc)
 	if create_init is None:
-		create_init = doclist[0]['doctype'] in lower_case_files_for
+		create_init = doc.doctype in lower_case_files_for
 	
 	# create folder
-	folder = create_folder(module, doclist[0]['doctype'], doclist[0]['name'], create_init)
+	folder = create_folder(module, doc.doctype, doc.name, create_init)
 	
 	# write the data file	
-	fname = (doclist[0]['doctype'] in lower_case_files_for and scrub(doclist[0]['name'])) or doclist[0]['name']
+	fname = (doc.doctype in lower_case_files_for and scrub(doc.name)) or doc.name
 	with open(os.path.join(folder, fname +'.txt'),'w+') as txtfile:
-		txtfile.write(pprint_doclist(doclist))
+		txtfile.write(json.dumps(newdoc, indent=1, sort_keys=True))
 
-def filter_fields(doc):
-	from frappe.model.doctype import get
-	from frappe.model import default_fields
-
-	doctypelist = get(doc.get("doctype"), False)
-	valid_fields = [d.fieldname for d in doctypelist.get({"parent":doc.get("doctype"),
-		"doctype":"DocField"})]
-	to_remove = []
-	
-	for key in doc:
-		if (not key in default_fields) and (not key in valid_fields):
-			to_remove.append(key)
-		elif doc[key]==None:
-			to_remove.append(key)
-			
-	for key in to_remove:
-		del doc[key]
-	
-	return doc
-
-def get_module_name(doclist):
-	if doclist[0]['doctype'] == 'Module Def':
-		module = doclist[0]['name']
-	elif doclist[0]['doctype']=='Control Panel':
+def get_module_name(doc):
+	if doc.doctype  == 'Module Def':
+		module = doc.name
+	elif doc.doctype=='Control Panel':
 		module = 'Core'
-	elif doclist[0]['doctype']=="Workflow":
-		module = frappe.db.get_value("DocType", doclist[0]["document_type"], "module")
+	elif doc.doctype=="Workflow":
+		module = frappe.db.get_value("DocType", doc.document_type, "module")
 	else:
-		module = doclist[0]['module']
+		module = doc.module
 
 	return module
 		
