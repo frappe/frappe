@@ -1,6 +1,6 @@
 {
  "autoname": "CustomScript.####", 
- "creation": "2013-01-10 16:34:01", 
+ "creation": "2013-01-10 16:34:01.000000", 
  "description": "Adds a custom script (client or server) to a DocType", 
  "docstatus": 0, 
  "doctype": "DocType", 
@@ -38,7 +38,7 @@
  ], 
  "icon": "icon-glass", 
  "idx": 1, 
- "modified": "2014-01-20 17:48:31", 
+ "modified": "2014-01-20 17:48:31.000000", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Custom Script", 

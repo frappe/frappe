@@ -1,7 +1,7 @@
 {
  "allow_rename": 1, 
  "autoname": "field:module_name", 
- "creation": "2013-01-10 16:34:03", 
+ "creation": "2013-01-10 16:34:03.000000", 
  "docstatus": 0, 
  "doctype": "DocType", 
  "fields": [
@@ -16,7 +16,7 @@
  ], 
  "icon": "icon-sitemap", 
  "idx": 1, 
- "modified": "2014-02-18 15:32:49", 
+ "modified": "2014-02-18 15:32:49.000000", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Module Def", 

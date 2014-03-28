@@ -1,7 +1,7 @@
 {
  "allow_attach": 1, 
  "allow_import": 1, 
- "creation": "2013-03-28 10:35:30", 
+ "creation": "2013-03-28 10:35:30.000000", 
  "docstatus": 0, 
  "doctype": "DocType", 
  "fields": [
@@ -95,7 +95,7 @@
  "icon": "icon-quote-left", 
  "idx": 1, 
  "max_attachments": 5, 
- "modified": "2014-02-20 12:55:07", 
+ "modified": "2014-02-20 12:55:07.000000", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Blog Post", 

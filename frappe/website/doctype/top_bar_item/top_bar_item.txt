@@ -1,5 +1,5 @@
 {
- "creation": "2013-02-22 01:28:08", 
+ "creation": "2013-02-22 01:28:08.000000", 
  "docstatus": 0, 
  "doctype": "DocType", 
  "fields": [
@@ -42,7 +42,7 @@
  ], 
  "idx": 1, 
  "istable": 1, 
- "modified": "2013-12-20 19:21:53", 
+ "modified": "2013-12-20 19:21:53.000000", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Top Bar Item", 

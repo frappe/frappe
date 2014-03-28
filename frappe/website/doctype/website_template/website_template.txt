@@ -1,6 +1,6 @@
 {
  "autoname": "field:link_name", 
- "creation": "2013-11-18 15:35:00", 
+ "creation": "2013-11-18 15:35:00.000000", 
  "docstatus": 0, 
  "doctype": "DocType", 
  "document_type": "System", 
@@ -109,7 +109,7 @@
   }
  ], 
  "idx": 1, 
- "modified": "2014-02-24 12:47:44", 
+ "modified": "2014-02-24 12:47:44.000000", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Website Template", 

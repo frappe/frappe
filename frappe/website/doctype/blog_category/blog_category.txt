@@ -1,7 +1,7 @@
 {
  "allow_import": 1, 
  "autoname": "field:category_name", 
- "creation": "2013-03-08 09:41:11", 
+ "creation": "2013-03-08 09:41:11.000000", 
  "docstatus": 0, 
  "doctype": "DocType", 
  "document_type": "Master", 
@@ -44,7 +44,7 @@
  ], 
  "icon": "icon-tag", 
  "idx": 1, 
- "modified": "2014-02-18 15:25:05", 
+ "modified": "2014-02-18 15:25:05.000000", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Blog Category", 

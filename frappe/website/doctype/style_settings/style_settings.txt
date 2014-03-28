@@ -1,6 +1,6 @@
 {
  "allow_attach": 1, 
- "creation": "2013-03-25 16:01:33", 
+ "creation": "2013-03-25 16:01:33.000000", 
  "description": "Set your background color, font and image (tiled)", 
  "docstatus": 0, 
  "doctype": "DocType", 
@@ -156,7 +156,7 @@
  "idx": 1, 
  "issingle": 1, 
  "max_attachments": 1, 
- "modified": "2013-12-20 19:22:48", 
+ "modified": "2013-12-20 19:22:48.000000", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Style Settings", 

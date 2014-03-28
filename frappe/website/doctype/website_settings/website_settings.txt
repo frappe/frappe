@@ -1,6 +1,6 @@
 {
  "allow_attach": 1, 
- "creation": "2013-04-30 12:58:46", 
+ "creation": "2013-04-30 12:58:46.000000", 
  "docstatus": 0, 
  "doctype": "DocType", 
  "document_type": "Other", 
@@ -217,7 +217,7 @@
  "idx": 1, 
  "issingle": 1, 
  "max_attachments": 10, 
- "modified": "2014-02-26 11:39:10", 
+ "modified": "2014-02-26 11:39:10.000000", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Website Settings", 

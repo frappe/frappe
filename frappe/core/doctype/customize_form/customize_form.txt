@@ -1,6 +1,6 @@
 {
  "autoname": "DL.####", 
- "creation": "2013-01-29 17:54:08", 
+ "creation": "2013-01-29 17:54:08.000000", 
  "docstatus": 0, 
  "doctype": "DocType", 
  "fields": [
@@ -112,7 +112,7 @@
  "icon": "icon-glass", 
  "idx": 1, 
  "issingle": 1, 
- "modified": "2014-01-15 16:16:23", 
+ "modified": "2014-01-15 16:16:23.000000", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Customize Form", 

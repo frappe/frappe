@@ -1,5 +1,5 @@
 {
- "creation": "2013-02-22 01:27:36", 
+ "creation": "2013-02-22 01:27:36.000000", 
  "description": "Defines actions on states and the next step and allowed roles.", 
  "docstatus": 0, 
  "doctype": "DocType", 
@@ -51,7 +51,7 @@
  ], 
  "idx": 1, 
  "istable": 1, 
- "modified": "2013-12-20 19:21:55", 
+ "modified": "2013-12-20 19:21:55.000000", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Workflow Transition", 

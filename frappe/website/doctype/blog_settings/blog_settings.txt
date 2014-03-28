@@ -1,5 +1,5 @@
 {
- "creation": "2013-03-11 17:48:16", 
+ "creation": "2013-03-11 17:48:16.000000", 
  "description": "Blog Settings", 
  "docstatus": 0, 
  "doctype": "DocType", 
@@ -26,7 +26,7 @@
  "icon": "icon-cog", 
  "idx": 1, 
  "issingle": 1, 
- "modified": "2013-12-20 19:22:56", 
+ "modified": "2013-12-20 19:22:56.000000", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Blog Settings", 

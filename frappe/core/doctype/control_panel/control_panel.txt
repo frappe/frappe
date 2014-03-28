@@ -1,6 +1,6 @@
 {
  "allow_copy": 0, 
- "creation": "2013-01-10 16:34:01", 
+ "creation": "2013-01-10 16:34:01.000000", 
  "docstatus": 0, 
  "doctype": "DocType", 
  "fields": [
@@ -182,7 +182,7 @@
  "in_create": 1, 
  "issingle": 1, 
  "istable": 0, 
- "modified": "2013-12-20 19:23:02", 
+ "modified": "2013-12-20 19:23:02.000000", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Control Panel", 

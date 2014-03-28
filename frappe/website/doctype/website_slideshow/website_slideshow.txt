@@ -1,7 +1,7 @@
 {
  "allow_attach": 1, 
  "autoname": "field:slideshow_name", 
- "creation": "2013-03-07 15:53:15", 
+ "creation": "2013-03-07 15:53:15.000000", 
  "description": "Slideshow like display for the website", 
  "docstatus": 0, 
  "doctype": "DocType", 
@@ -43,7 +43,7 @@
  "icon": "icon-play", 
  "idx": 1, 
  "max_attachments": 10, 
- "modified": "2014-01-20 17:49:35", 
+ "modified": "2014-01-20 17:49:35.000000", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Website Slideshow", 

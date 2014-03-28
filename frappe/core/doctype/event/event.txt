@@ -1,6 +1,6 @@
 {
  "autoname": "EV.#####", 
- "creation": "2013-06-10 13:17:47", 
+ "creation": "2013-06-10 13:17:47.000000", 
  "docstatus": 0, 
  "doctype": "DocType", 
  "fields": [
@@ -244,7 +244,7 @@
  "icon": "icon-calendar", 
  "idx": 1, 
  "in_create": 1, 
- "modified": "2014-01-24 13:00:01", 
+ "modified": "2014-01-24 13:00:01.000000", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Event", 

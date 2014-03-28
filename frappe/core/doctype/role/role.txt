@@ -2,7 +2,7 @@
  "allow_copy": 0, 
  "allow_rename": 1, 
  "autoname": "field:role_name", 
- "creation": "2013-01-08 15:50:01", 
+ "creation": "2013-01-08 15:50:01.000000", 
  "docstatus": 0, 
  "doctype": "DocType", 
  "fields": [
@@ -22,7 +22,7 @@
  "idx": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2013-12-20 19:24:27", 
+ "modified": "2013-12-20 19:24:27.000000", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Role", 

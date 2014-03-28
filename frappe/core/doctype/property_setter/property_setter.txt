@@ -1,5 +1,5 @@
 {
- "creation": "2013-01-10 16:34:04", 
+ "creation": "2013-01-10 16:34:04.000000", 
  "description": "Property Setter overrides a standard DocType or Field property", 
  "docstatus": 0, 
  "doctype": "DocType", 
@@ -83,7 +83,7 @@
  ], 
  "icon": "icon-glass", 
  "idx": 1, 
- "modified": "2014-01-20 17:49:03", 
+ "modified": "2014-01-20 17:49:03.000000", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Property Setter", 

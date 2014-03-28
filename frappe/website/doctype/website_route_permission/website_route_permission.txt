@@ -1,6 +1,6 @@
 {
  "autoname": "WSP.######", 
- "creation": "2014-01-29 17:56:29", 
+ "creation": "2014-01-29 17:56:29.000000", 
  "docstatus": 0, 
  "doctype": "DocType", 
  "fields": [
@@ -48,7 +48,7 @@
  ], 
  "icon": "icon-shield", 
  "idx": 1, 
- "modified": "2014-02-24 13:17:18", 
+ "modified": "2014-02-24 13:17:18.000000", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Website Route Permission", 

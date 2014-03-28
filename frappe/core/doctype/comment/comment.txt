@@ -1,6 +1,6 @@
 {
  "autoname": "CWR/.#####", 
- "creation": "2012-08-08 10:40:11", 
+ "creation": "2012-08-08 10:40:11.000000", 
  "docstatus": 0, 
  "doctype": "DocType", 
  "fields": [
@@ -94,7 +94,7 @@
  "icon": "icon-comments", 
  "idx": 1, 
  "issingle": 0, 
- "modified": "2014-01-24 13:00:20", 
+ "modified": "2014-01-24 13:00:20.000000", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Comment", 

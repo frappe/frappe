@@ -1,6 +1,6 @@
 {
  "autoname": "SCHLOG.#####", 
- "creation": "2013-01-16 13:09:40", 
+ "creation": "2013-01-16 13:09:40.000000", 
  "description": "Log of Scheduler Errors", 
  "docstatus": 0, 
  "doctype": "DocType", 
@@ -22,7 +22,7 @@
  ], 
  "icon": "icon-warning-sign", 
  "idx": 1, 
- "modified": "2014-01-20 17:49:26", 
+ "modified": "2014-01-20 17:49:26.000000", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Scheduler Log", 

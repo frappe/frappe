@@ -2,7 +2,7 @@
  "allow_copy": 0, 
  "allow_rename": 1, 
  "autoname": "field:page_name", 
- "creation": "2012-12-20 17:16:49", 
+ "creation": "2012-12-20 17:16:49.000000", 
  "docstatus": 0, 
  "doctype": "DocType", 
  "fields": [
@@ -84,7 +84,7 @@
  "idx": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2013-12-30 13:48:02", 
+ "modified": "2013-12-30 13:48:02.000000", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Page", 
