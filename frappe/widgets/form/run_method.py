@@ -39,7 +39,7 @@ def runserverobj():
 		if r:
 			#build output as csv
 			if cint(frappe.form_dict.get('as_csv')):
-				make_csv_output(r, so.doc.doctype)
+				make_csv_output(r, so.doctype)
 			else:
 				frappe.response['message'] = r
 		

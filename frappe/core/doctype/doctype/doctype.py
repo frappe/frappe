@@ -277,10 +277,10 @@ def validate_permissions(permissions, for_remove=False):
 		if d.amend and not d.write:
 			frappe.msgprint(get_txt(d) + " Cannot set Amend if Cancel is not set.",
 				raise_exception=True)
-		if (d.fields.get("import") or d.export) and not d.report:
+		if (d.get("import") or d.export) and not d.report:
 			frappe.msgprint(get_txt(d) + " Cannot set Import or Export permission if Report is not set.",
 				raise_exception=True)
-		if d.fields.get("import") and not d.create:
+		if d.get("import") and not d.create:
 			frappe.msgprint(get_txt(d) + " Cannot set Import if Create is not set.",
 				raise_exception=True)
 	
@@ -292,8 +292,8 @@ def validate_permissions(permissions, for_remove=False):
 			frappe.msgprint("{doctype} {meaningless}".format(doctype=doctype,
 				meaningless=_("is a single DocType, permission of type Report is meaningless.")))
 			d.report = 0
-			d.fields["import"] = 0
-			d.fields["export"] = 0
+			d.set("import", 0)
+			d.set("export", 0)
 			
 		if d.restrict:
 			frappe.msgprint("{doctype} {meaningless}".format(doctype=doctype,
@@ -309,7 +309,7 @@ def validate_permissions(permissions, for_remove=False):
 				raise_exception=True)
 	
 	def check_if_importable(d):
-		if d.fields.get("import") and not isimportable:
+		if d.get("import") and not isimportable:
 			frappe.throw("{doctype}: {not_importable}".format(doctype=doctype,
 				not_importable=_("is not allowed to be imported, cannot assign import rights.")))
 	
@@ -337,7 +337,7 @@ def make_module_and_roles(doc, perm_fieldname="permissions"):
 		for role in list(set(roles)):
 			if not frappe.db.exists("Role", role):
 				r = frappe.bean({"doctype": "Role", "role_name": role})
-				r.doc.role_name = role
+				r.role_name = role
 				r.insert()
 	except frappe.DoesNotExistError, e:
 		pass

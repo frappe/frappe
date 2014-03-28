@@ -15,31 +15,31 @@ class PrintFormat(Document):
 		self.doc, self.doclist = d,dl
 
 	def validate(self):
-		if self.doc.standard=="Yes" and frappe.session.user != "Administrator":
+		if self.standard=="Yes" and frappe.session.user != "Administrator":
 			frappe.msgprint("Standard Print Format cannot be updated.", raise_exception=1)
 		
 		# old_doc_type is required for clearing item cache
 		self.old_doc_type = frappe.db.get_value('Print Format',
-				self.doc.name, 'doc_type')
+				self.name, 'doc_type')
 
 	def on_update(self):
 		if hasattr(self, 'old_doc_type') and self.old_doc_type:
 			frappe.clear_cache(doctype=self.old_doc_type)		
-		if self.doc.doc_type:
-			frappe.clear_cache(doctype=self.doc.doc_type)
+		if self.doc_type:
+			frappe.clear_cache(doctype=self.doc_type)
 
 		self.export_doc()
 	
 	def export_doc(self):
 		# export
-		if self.doc.standard == 'Yes' and (frappe.conf.get('developer_mode') or 0) == 1:
+		if self.standard == 'Yes' and (frappe.conf.get('developer_mode') or 0) == 1:
 			from frappe.modules.export_file import export_to_files
-			export_to_files(record_list=[['Print Format', self.doc.name]], 
-				record_module=self.doc.module)	
+			export_to_files(record_list=[['Print Format', self.name]], 
+				record_module=self.module)	
 	
 	def on_trash(self):
-		if self.doc.doc_type:
-			frappe.clear_cache(doctype=self.doc.doc_type)
+		if self.doc_type:
+			frappe.clear_cache(doctype=self.doc_type)
 
 def get_args():
 	if not frappe.form_dict.format:
@@ -53,7 +53,7 @@ def get_args():
 		
 	bean = frappe.bean(frappe.form_dict.doctype, frappe.form_dict.name)
 	for ptype in ("read", "print"):
-		if not frappe.has_permission(bean.doc.doctype, ptype, bean.doc):
+		if not frappe.has_permission(bean.doctype, ptype, bean.doc):
 			return {
 				"body": """<h1>Error</h1>
 					<p>No {ptype} permission</p>""".format(ptype=ptype)

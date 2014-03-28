@@ -66,7 +66,7 @@ def update_parent(name, new_parent):
 		generator = frappe.bean(sitemap.ref_doctype, sitemap.docname)
 		if not generator.meta.has_field("parent_website_route"):
 			frappe.throw("Does not allow moving.")
-		generator.doc.parent_website_route = new_parent
+		generator.parent_website_route = new_parent
 		generator.save()
 	else:
 		frappe.msgprint("Template Pages cannot be moved.")

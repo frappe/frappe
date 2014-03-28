@@ -28,8 +28,8 @@ def prepare(doc):
 	}
 	
 	for d in default_colours:
-		if not doc.fields.get(d):
-			doc.fields[d] = default_colours[d]
+		if not doc.get(d):
+			doc.set(d, default_colours[d])
 	
 	if not doc.font_size:
 		doc.font_size = "14px"

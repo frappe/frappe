@@ -12,5 +12,5 @@ class WebsiteRoutePermission(Document):
 		
 	def on_update(self):
 		remove_empty_permissions()
-		clear_permissions(self.doc.user)
+		clear_permissions(self.user)
 		

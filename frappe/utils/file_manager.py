@@ -55,7 +55,7 @@ def save_url(file_url, dt, dn):
 	try:
 		f.insert();
 	except frappe.DuplicateEntryError:
-		return frappe.doc("File Data", f.doc.duplicate_entry)		
+		return frappe.doc("File Data", f.duplicate_entry)		
 	return f.doc
 
 def get_uploaded_content():	
@@ -85,7 +85,7 @@ def extract_images_from_html(doc, fieldname):
 	if content:
 		content = re.sub('<img\s*src=\s*["\'](data:[^"\']*)["\']', _save_file, content)
 		if frappe.flags.has_dataurl:
-			doc.fields[fieldname] = content
+			doc.set(fieldname, content)
 			
 def save_file(fname, content, dt, dn, decode=False):
 	if decode:
@@ -151,7 +151,7 @@ def save_file(fname, content, dt, dn, decode=False):
 	try:
 		f.insert();
 	except frappe.DuplicateEntryError:
-		return frappe.doc("File Data", f.doc.duplicate_entry)
+		return frappe.doc("File Data", f.duplicate_entry)
 
 	return f.doc
 

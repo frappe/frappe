@@ -22,7 +22,7 @@ def get_bootinfo():
 	get_user(bootinfo)
 	
 	# control panel
-	cp = frappe.model.doc.getsingle('Control Panel')
+	cp = frappe.model.getsingle('Control Panel')
 		
 	# system info
 	bootinfo['control_panel'] = frappe._dict(cp.copy())

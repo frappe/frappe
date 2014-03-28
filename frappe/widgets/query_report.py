@@ -17,9 +17,9 @@ def get_report_doc(report_name):
 	if not bean.has_read_perm():
 		raise frappe.PermissionError("You don't have access to: {report}".format(report=report_name))
 		
-	if not frappe.has_permission(bean.doc.ref_doctype, "report"):
+	if not frappe.has_permission(bean.ref_doctype, "report"):
 		raise frappe.PermissionError("You don't have access to get a report on: {doctype}".format(
-			doctype=bean.doc.ref_doctype))
+			doctype=bean.ref_doctype))
 		
 	return bean.doc
 

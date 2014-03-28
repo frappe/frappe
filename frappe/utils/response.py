@@ -107,7 +107,7 @@ def json_handler(obj):
 		return unicode(obj)
 	elif isinstance(obj, LocalProxy):
 		return unicode(obj)
-	elif isinstance(obj, frappe.model.doc.Document):
+	elif isinstance(obj, frappe.model.Document):
 		return obj.fields
 	elif isinstance(obj, frappe.model.document.Document):
 		return obj.as_dict()

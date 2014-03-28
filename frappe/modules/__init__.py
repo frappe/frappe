@@ -40,7 +40,7 @@ def export_doc(doctype, name, module=None):
 	import frappe.model.doc
 
 	if not module: module = frappe.db.get_value(doctype, name, 'module')
-	write_document_file(frappe.model.doc.get(doctype, name), module)
+	write_document_file(frappe.model.get(doctype, name), module)
 
 def get_doctype_module(doctype):
 	return frappe.db.get_value('DocType', doctype, 'module') or "core"

@@ -17,7 +17,7 @@ def insert(doclist):
 		if isinstance(d, dict):
 			d["__islocal"] = 1
 		else:
-			d.fields["__islocal"] = 1
+			d.set("__islocal", 1)
 		
 	wrapper = frappe.bean(doclist)
 	wrapper.save()
@@ -40,7 +40,7 @@ def copytables(srctype, src, srcfield, tartype, tar, tarfield, srcfields, tarfie
 		newrow.idx = d.idx
 	
 		for i in range(len(srcfields)):
-			newrow.fields[tarfields[i]] = d.fields[srcfields[i]]
+			newrow.set(tarfields[i], d.fields[srcfields[i]])
 			
 		l.append(newrow)
 	return l

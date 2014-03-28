@@ -15,8 +15,8 @@ class WebsiteSettings(DocListController):
 		self.validate_home_page()
 	
 	def validate_home_page(self):
-		if self.doc.home_page and \
-			not frappe.db.get_value("Website Route", {"name": self.doc.home_page}):
+		if self.home_page and \
+			not frappe.db.get_value("Website Route", {"name": self.home_page}):
 			frappe.throw(_("Invalid Home Page") + " (Standard pages - index, login, products, blog, about, contact)")
 	
 	def validate_top_bar_items(self):
@@ -85,7 +85,7 @@ def get_website_settings():
 		"favicon", "facebook_share", "google_plus_one", "twitter_share", "linked_in_share",
 		"disable_signup"]:
 		if k in settings.fields:
-			context[k] = settings.fields.get(k)
+			context[k] = settings.get(k)
 			
 	if not context.get("favicon"):
 		context["favicon"] = "/assets/frappe/images/favicon.ico"

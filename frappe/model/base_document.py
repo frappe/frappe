@@ -33,7 +33,12 @@ class BaseDocument(object):
 	def get(self, key=None, filters=None, limit=None, default=None):
 		if key:
 			if filters:
-				value = _filter(self.__dict__.get(key), filters, limit=limit)
+				if isinstance(filters, dict):
+					value = _filter(self.__dict__.get(key), filters, limit=limit)
+				else:
+					default = filters
+					filters = None
+					value = self.__dict__.get(key, default)
 			else:
 				value = self.__dict__.get(key, default)
 			

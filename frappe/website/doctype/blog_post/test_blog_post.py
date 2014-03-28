@@ -166,7 +166,7 @@ class TestBlogPost(unittest.TestCase):
 		blog_post = frappe.get_meta("Blog Post")
 		blog_post.get_field("title").set_only_once = 1
 		bean = frappe.bean("Blog Post", "_test-blog-post-1")
-		bean.doc.title = "New"
+		bean.title = "New"
 		self.assertRaises(frappe.CannotChangeConstantError, bean.save)
 		blog_post.get_field("title").set_only_once = 0
 		

@@ -58,11 +58,11 @@ class CustomizeForm(Document):
 		"""
 		self.clear()
 
-		if self.doc.doc_type:
+		if self.doc_type:
 			
 			for d in self.get_ref_doclist():
 				if d.doctype=='DocField':
-					new = self.doc.append('fields', {})
+					new = self.append('fields', {})
 					self.set(
 						{
 							'list': self.docfield_properties,
@@ -76,15 +76,15 @@ class CustomizeForm(Document):
 
 	def get_ref_doclist(self):
 		"""
-			* Gets doclist of type self.doc.doc_type
+			* Gets doclist of type self.doc_type
 			* Applies property setter properties on the doclist
 			* returns the modified doclist
 		"""
 		from frappe.model.doctype import get
 		
-		ref_doclist = get(self.doc.doc_type)
+		ref_doclist = get(self.doc_type)
 		ref_doclist = frappe.doclist([ref_doclist[0]] 
-			+ ref_doclist.get({"parent": self.doc.doc_type}))
+			+ ref_doclist.get({"parent": self.doc_type}))
 
 		return ref_doclist
 
@@ -115,10 +115,10 @@ class CustomizeForm(Document):
 		if 'list' in args:
 			if 'value' in args:
 				for f in args['list']:
-					args['doc_to_set'].fields[f] = None
+					args['doc_to_set'].set(f, None)
 			elif 'doc' in args:
 				for f in args['list']:
-					args['doc_to_set'].fields[f] = args['doc'].fields.get(f)
+					args['doc_to_set'].set(f, args['doc'].get(f))
 		else:
 			frappe.msgprint("Please specify args['list'] to set", raise_exception=1)
 
@@ -127,13 +127,13 @@ class CustomizeForm(Document):
 		"""
 			Save diff between Customize Form Bean and DocType Bean as property setter entries
 		"""
-		if self.doc.doc_type:
+		if self.doc_type:
 			from frappe.model import doc
 			from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype
 			
 			this_doclist = frappe.doclist([self.doc] + self.doclist)
 			ref_doclist = self.get_ref_doclist()
-			dt_doclist = doc.get('DocType', self.doc.doc_type)
+			dt_doclist = doc.get('DocType', self.doc_type)
 			
 			# get a list of property setter docs
 			self.idx_dirty = False
@@ -144,9 +144,9 @@ class CustomizeForm(Document):
 			
 			self.set_properties(diff_list)
 
-			validate_fields_for_doctype(self.doc.doc_type)
+			validate_fields_for_doctype(self.doc_type)
 
-			frappe.clear_cache(doctype=self.doc.doc_type)
+			frappe.clear_cache(doctype=self.doc_type)
 			frappe.msgprint("Updated")
 
 
@@ -207,15 +207,15 @@ class CustomizeForm(Document):
 
 
 	def has_property_changed(self, ref_d, new_d, prop):
-		return new_d.fields.get(prop) != ref_d.fields.get(prop) \
+		return new_d.get(prop) != ref_d.get(prop) \
 		and not \
 		( \
-			new_d.fields.get(prop) in [None, 0] \
-			and ref_d.fields.get(prop) in [None, 0] \
+			new_d.get(prop) in [None, 0] \
+			and ref_d.get(prop) in [None, 0] \
 		) and not \
 		( \
-			new_d.fields.get(prop) in [None, ''] \
-			and ref_d.fields.get(prop) in [None, ''] \
+			new_d.get(prop) in [None, ''] \
+			and ref_d.get(prop) in [None, ''] \
 		)
 		
 	def prepare_to_set(self, prop, new_d, ref_d, dt_doclist, delete=0):
@@ -230,26 +230,26 @@ class CustomizeForm(Document):
 			# If yes, we need to delete the property setter entry
 			for dt_d in dt_doclist:
 				if dt_d.name == ref_d.name \
-				and (new_d.fields.get(prop) == dt_d.fields.get(prop) \
+				and (new_d.get(prop) == dt_d.get(prop) \
 				or \
 				( \
-					new_d.fields.get(prop) in [None, 0] \
-					and dt_d.fields.get(prop) in [None, 0] \
+					new_d.get(prop) in [None, 0] \
+					and dt_d.get(prop) in [None, 0] \
 				) or \
 				( \
-					new_d.fields.get(prop) in [None, ''] \
-					and dt_d.fields.get(prop) in [None, ''] \
+					new_d.get(prop) in [None, ''] \
+					and dt_d.get(prop) in [None, ''] \
 				)):
 					delete = 1
 					break
 		
-			value = new_d.fields.get(prop)
+			value = new_d.get(prop)
 			
 			if prop in self.property_restrictions:
 				allow_change = False
 				for restrict_list in self.property_restrictions.get(prop):
 					if value in restrict_list and \
-							ref_d.fields.get(prop) in restrict_list:
+							ref_d.get(prop) in restrict_list:
 						allow_change = True
 						break
 				if not allow_change:
@@ -258,8 +258,8 @@ class CustomizeForm(Document):
 						%s can only be changed among %s.
 						<i>Ignoring this change and saving.</i>""" % \
 						(self.defaults.get(prop, {}).get("label") or prop,
-						new_d.fields.get("label") or new_d.fields.get("idx"),
-						ref_d.fields.get(prop), value,
+						new_d.get("label") or new_d.get("idx"),
+						ref_d.get(prop), value,
 						self.defaults.get(prop, {}).get("label") or prop,
 						" -or- ".join([", ".join(r) for r in \
 							self.property_restrictions.get(prop)])), raise_exception=True)
@@ -269,7 +269,7 @@ class CustomizeForm(Document):
 			# create a property setter doc, but dont save it yet.
 			d = frappe.get_doc('Property Setter')
 			d.doctype_or_field = ref_d.doctype=='DocField' and 'DocField' or 'DocType'
-			d.doc_type = self.doc.doc_type
+			d.doc_type = self.doc_type
 			d.field_name = ref_d.fieldname
 			d.property = prop
 			d.value = value
@@ -295,7 +295,7 @@ class CustomizeForm(Document):
 		
 		d = frappe.doc('Property Setter')
 		d.doctype_or_field = 'DocType'
-		d.doc_type = self.doc.doc_type
+		d.doc_type = self.doc_type
 		d.property = "_idx"
 		d.value = json.dumps(fields)
 		d.property_type = "Text"
@@ -310,7 +310,7 @@ class CustomizeForm(Document):
 		"""
 		for d in ps_doclist:
 			# Delete existing property setter entry
-			if not d.fields.get("field_name"):
+			if not d.get("field_name"):
 				frappe.db.sql("""
 					DELETE FROM `tabProperty Setter`
 					WHERE doc_type = %(doc_type)s
@@ -332,12 +332,12 @@ class CustomizeForm(Document):
 			Deletes all property setter entries for the selected doctype
 			and resets it to standard
 		"""
-		if self.doc.doc_type:
+		if self.doc_type:
 			frappe.db.sql("""
 				DELETE FROM `tabProperty Setter`
-				WHERE doc_type = %s""", self.doc.doc_type)
+				WHERE doc_type = %s""", self.doc_type)
 		
-			frappe.clear_cache(doctype=self.doc.doc_type)
+			frappe.clear_cache(doctype=self.doc_type)
 
 		self.get()
 

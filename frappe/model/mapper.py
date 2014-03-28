@@ -32,7 +32,7 @@ def get_mapped_doclist(from_doctype, from_docname, table_maps, target_doclist=No
 	else:
 		target_doc = frappe.new_doc(table_maps[from_doctype]["doctype"])
 	
-	map_doc(source.doc, target_doc, table_maps[source.doc.doctype], source_meta, target_meta)
+	map_doc(source.doc, target_doc, table_maps[source.doctype], source_meta, target_meta)
 	if target_doclist:
 		target_doclist[0] = target_doc
 	else:
@@ -91,7 +91,7 @@ def map_doc(source_doc, target_doc, table_map, source_meta, target_meta, source_
 	if table_map.get("validation"):
 		for key, condition in table_map["validation"].items():
 			if condition[0]=="=":
-				if source_doc.fields.get(key) != condition[1]:
+				if source_doc.get(key) != condition[1]:
 					frappe.msgprint(_("Cannot map because following condition fails: ")
 						+ key + "=" + cstr(condition[1]), raise_exception=frappe.ValidationError)
 
@@ -99,9 +99,9 @@ def map_doc(source_doc, target_doc, table_map, source_meta, target_meta, source_
 	target_fields = target_meta.get({"doctype": "DocField", "parent": target_doc.doctype})
 	for key in [d.fieldname for d in target_fields]:
 		if key not in no_copy_fields:
-			val = source_doc.fields.get(key)
+			val = source_doc.get(key)
 			if val not in (None, ""):
-				target_doc.fields[key] = val
+				target_doc.set(key, val)
 				
 
 	# map other fields
@@ -110,14 +110,14 @@ def map_doc(source_doc, target_doc, table_map, source_meta, target_meta, source_
 	if field_map:
 		if isinstance(field_map, dict):
 			for source_key, target_key in field_map.items():
-				val = source_doc.fields.get(source_key)
+				val = source_doc.get(source_key)
 				if val not in (None, ""):
-					target_doc.fields[target_key] = val
+					target_doc.set(target_key, val)
 		else:
 			for fmap in field_map:
-				val = source_doc.fields.get(fmap[0])
+				val = source_doc.get(fmap[0])
 				if val not in (None, ""):
-					target_doc.fields[fmap[1]] = val
+					target_doc.set(fmap[1], val)
 
 	# map idx
 	if source_doc.idx:

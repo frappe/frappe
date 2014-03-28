@@ -11,22 +11,22 @@ condition_field = "published"
 def get_context(context):
 	web_page = context.bean
 	
-	if web_page.doc.slideshow:
-		web_page.doc.fields.update(get_slideshow(web_page))
+	if web_page.slideshow:
+		web_page.update(get_slideshow(web_page))
 		
-	web_page.doc.meta_description = web_page.doc.description
+	web_page.meta_description = web_page.description
 	
-	if web_page.doc.enable_comments:
-		web_page.doc.comment_list = frappe.db.sql("""select 
+	if web_page.enable_comments:
+		web_page.comment_list = frappe.db.sql("""select 
 			comment, comment_by_fullname, creation
 			from `tabComment` where comment_doctype="Web Page"
-			and comment_docname=%s order by creation""", web_page.doc.name, as_dict=1) or []
+			and comment_docname=%s order by creation""", web_page.name, as_dict=1) or []
 			
-	web_page.doc.fields.update({
-		"style": web_page.doc.css or "",
-		"script": web_page.doc.javascript or ""
+	web_page.update({
+		"style": web_page.css or "",
+		"script": web_page.javascript or ""
 	})
 	
-	web_page.doc.fields.update(context)
+	web_page.update(context)
 	
-	return web_page.doc.fields
+	return web_page.fields

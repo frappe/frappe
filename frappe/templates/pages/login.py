@@ -87,7 +87,7 @@ def get_oauth_keys(provider):
 		social = frappe.doc("Social Login Keys", "Social Login Keys")
 		keys = {}
 		for fieldname in ("client_id", "client_secret"):
-			value = social.fields.get("{provider}_{fieldname}".format(provider=provider, fieldname=fieldname))
+			value = social.get("{provider}_{fieldname}".format(provider=provider, fieldname=fieldname))
 			if not value:
 				keys = {}
 				break
@@ -198,17 +198,17 @@ def create_oauth_user(data, provider):
 	})
 	
 	if provider=="facebook":
-		user.doc.fields.update({
+		user.update({
 			"fb_username": data["username"],
 			"fb_userid": data["id"],
 			"user_image": "https://graph.facebook.com/{username}/picture".format(username=data["username"])
 		})
 	elif provider=="google":
-		user.doc.google_userid = data["id"]
+		user.google_userid = data["id"]
 	
 	elif provider=="github":
-		user.doc.github_userid = data["id"]
-		user.doc.github_username = data["login"]
+		user.github_userid = data["id"]
+		user.github_username = data["login"]
 	
 	user.ignore_permissions = True
 	user.get_controller().no_welcome_mail = True

@@ -22,20 +22,20 @@ class FileData(Document):
 			where file_name=%s 
 			and name!=%s
 			and attached_to_doctype=%s 
-			and attached_to_name=%s""", (self.doc.file_name, self.doc.name, self.doc.attached_to_doctype,
-				self.doc.attached_to_name))
+			and attached_to_name=%s""", (self.file_name, self.name, self.attached_to_doctype,
+				self.attached_to_name))
 		if len(n_records) > 0:
-			self.doc.duplicate_entry = n_records[0][0]
+			self.duplicate_entry = n_records[0][0]
 			frappe.msgprint(frappe._("Same file has already been attached to the record"))
 			frappe.db.rollback()
 			raise frappe.DuplicateEntryError
 
 	def on_trash(self):
-		if self.doc.attached_to_name:
+		if self.attached_to_name:
 			# check persmission
 			try:
 				if not self.bean.ignore_permissions and \
-					not frappe.has_permission(self.doc.attached_to_doctype, "write", self.doc.attached_to_name):
+					not frappe.has_permission(self.attached_to_doctype, "write", self.attached_to_name):
 					
 					frappe.msgprint(frappe._("No permission to write / remove."), raise_exception=True)
 					
@@ -43,12 +43,12 @@ class FileData(Document):
 				pass
 
 		# if file not attached to any other record, delete it
-		if self.doc.file_name and not frappe.db.count("File Data", 
-			{"file_name": self.doc.file_name, "name": ["!=", self.doc.name]}):
-				if self.doc.file_name.startswith("files/"):
-					path = frappe.utils.get_site_path("public", self.doc.file_name)
+		if self.file_name and not frappe.db.count("File Data", 
+			{"file_name": self.file_name, "name": ["!=", self.name]}):
+				if self.file_name.startswith("files/"):
+					path = frappe.utils.get_site_path("public", self.file_name)
 				else:
-					path = frappe.utils.get_site_path("public", "files", self.doc.file_name)
+					path = frappe.utils.get_site_path("public", "files", self.file_name)
 				if os.path.exists(path):
 					os.remove(path)
 

@@ -80,7 +80,7 @@ def add(args=None):
 def remove(doctype, name, assign_to):
 	"""remove from todo"""
 	todo = frappe.bean("ToDo", {"reference_type":doctype, "reference_name":name, "owner":assign_to, "status":"Open"})
-	todo.doc.status = "Closed"
+	todo.status = "Closed"
 	todo.save(ignore_permissions=True)
 		
 	# clear assigned_to if field exists
@@ -88,7 +88,7 @@ def remove(doctype, name, assign_to):
 	if has_field(doctype, "assigned_to"):
 		frappe.db.set_value(doctype, name, "assigned_to", None)
 
-	notify_assignment(todo.doc.assigned_by, todo.doc.owner, todo.doc.reference_type, todo.doc.reference_name)
+	notify_assignment(todo.assigned_by, todo.owner, todo.reference_type, todo.reference_name)
 
 	return get({"doctype": doctype, "name": name})
 	

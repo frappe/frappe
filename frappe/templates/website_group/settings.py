@@ -44,7 +44,7 @@ def add_sitemap_permission(group, user):
 	})
 	permission.insert(ignore_permissions=True)
 	
-	user = permission.doc.fields
+	user = permission.fields
 	user.update(frappe.db.get_value("User", user.user, 
 		["name", "first_name", "last_name", "user_image", "location"], as_dict=True))
 	
@@ -59,7 +59,7 @@ def update_permission(group, user, perm, value):
 		raise frappe.PermissionError
 		
 	permission = frappe.bean("Website Route Permission", {"website_route": pathname, "user": user})
-	permission.doc.fields[perm] = int(value)
+	permission.set(perm, int(value))
 	permission.save(ignore_permissions=True)
 	
 	# send email
@@ -80,7 +80,7 @@ def update_description(group, description):
 		raise frappe.PermissionError
 
 	group = frappe.bean("Website Group", group)
-	group.doc.group_description = description
+	group.group_description = description
 	group.save(ignore_permissions=True)
 	
 @frappe.whitelist()

@@ -200,7 +200,7 @@ def add_role(user, role):
 def add_system_manager(email, first_name=None, last_name=None):
 	# add user
 	user = frappe.new_bean("User")
-	user.doc.fields.update({
+	user.update({
 		"name": email,
 		"email": email,
 		"enabled": 1,

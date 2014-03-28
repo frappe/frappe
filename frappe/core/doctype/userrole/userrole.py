@@ -10,7 +10,7 @@ from frappe.model.document import Document
 class Userrole(Document):
 		
 	def validate(self):
-		if cint(self.doc.fields.get("__islocal")) and frappe.db.exists("UserRole", {
-				"parent": self.doc.parent, "role": self.doc.role}):
+		if cint(self.get("__islocal")) and frappe.db.exists("UserRole", {
+				"parent": self.parent, "role": self.role}):
 			frappe.msgprint("Role Already Exists", raise_exception=True)
 			

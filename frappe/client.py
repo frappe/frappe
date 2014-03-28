@@ -34,10 +34,10 @@ def set_value(doctype, name, fieldname, value):
 	if doc and doc.parent:
 		bean = frappe.bean(doc.parenttype, doc.parent)
 		child = bean.doclist.getone({"doctype": doctype, "name": name})
-		child.fields[fieldname] = value
+		child.set(fieldname, value)
 	else:
 		bean = frappe.bean(doctype, name)
-		bean.doc.fields[fieldname] = value
+		bean.set(fieldname, value)
 		
 	bean.save()
 	
@@ -120,7 +120,7 @@ def bulk_update(docs):
 			doctype = doc['doctype']
 			docname = doc['docname']
 			bean = frappe.bean(doctype, docname)
-			bean.doc.update(ddoc)
+			bean.update(ddoc)
 			bean.save()
 		except:
 			failed_docs.append({

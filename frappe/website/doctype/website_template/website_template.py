@@ -16,11 +16,11 @@ from frappe.model.document import Document
 class WebsiteTemplate(Document):
 		
 	def after_insert(self):
-		if self.doc.page_or_generator == "Page":
+		if self.page_or_generator == "Page":
 			website_route = frappe.db.get_value("Website Route", 
-				{"website_template": self.doc.name, "page_or_generator": "Page"})
+				{"website_template": self.name, "page_or_generator": "Page"})
 			
-			opts = self.doc.fields.copy()
+			opts = self.copy()
 			opts.update({"public_read": 1})
 						
 			if website_route:
@@ -30,17 +30,17 @@ class WebsiteTemplate(Document):
 	
 		else:
 			condition = ""
-			if self.doc.condition_field:
-				condition = " where ifnull(%s, 0)=1" % self.doc.condition_field
+			if self.condition_field:
+				condition = " where ifnull(%s, 0)=1" % self.condition_field
 						
 			for name in frappe.db.sql_list("""select name from `tab{doctype}` 
 				{condition} order by idx asc, {sort_field} {sort_order}""".format(
-					doctype = self.doc.ref_doctype,
+					doctype = self.ref_doctype,
 					condition = condition,
-					sort_field = self.doc.sort_field or "name",
-					sort_order = self.doc.sort_order or "asc"
+					sort_field = self.sort_field or "name",
+					sort_order = self.sort_order or "asc"
 				)):
-				bean = frappe.bean(self.doc.ref_doctype, name)
+				bean = frappe.bean(self.ref_doctype, name)
 				
 				# regenerate route
 				bean.run_method("on_update")

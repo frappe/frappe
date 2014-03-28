@@ -165,8 +165,8 @@ def get_link_fields(doctype):
 	"""
 	import frappe.model.doctype
 	doclist = frappe.model.doctype.get(doctype)
-	return [(d.fields.get('fieldname'), d.fields.get('options'), d.fields.get('label')) 
-		for d in doclist.get_link_fields() if d.fields.get('fieldname')!='owner']
+	return [(d.get('fieldname'), d.get('options'), d.get('label')) 
+		for d in doclist.get_link_fields() if d.get('fieldname')!='owner']
 
 def get_table_fields(doctype):
 	child_tables = [[d[0], d[1]] for d in frappe.db.sql("""select options, fieldname 
@@ -192,10 +192,10 @@ def get_field_currency(df, doc):
 	if ":" in cstr(df.options):
 		split_opts = df.options.split(":")
 		if len(split_opts)==3:
-			currency = frappe.db.get_value(split_opts[0], doc.fields.get(split_opts[1]), 
+			currency = frappe.db.get_value(split_opts[0], doc.get(split_opts[1]), 
 				split_opts[2])
 	else:
-		currency = doc.fields.get(df.options)
+		currency = doc.get(df.options)
 
 	return currency
 	

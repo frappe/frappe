@@ -12,7 +12,7 @@ class TestUser(unittest.TestCase):
 		delete_doc("Role","_Test Role 2")
 		
 		user = frappe.bean(copy=test_records[1])
-		user.doc.email = "_test@example.com"
+		user.email = "_test@example.com"
 		user.insert()
 		
 		frappe.bean({"doctype": "ToDo", "description": "_Test"}).insert()

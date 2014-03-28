@@ -16,7 +16,7 @@ from frappe.model.document import Document
 
 class Communication(Document):
 	def get_parent_bean(self):
-		return frappe.bean(self.doc.parenttype, self.doc.parent)
+		return frappe.bean(self.parenttype, self.parent)
 		
 	def update_parent(self):
 		"""update status of parent Lead or Contact based on who is replying"""
@@ -147,10 +147,10 @@ def set_portal_link(sent_via, comm):
 	if is_signup_enabled() and hasattr(sent_via, "get_portal_page"):
 		portal_page = sent_via.get_portal_page()
 		if portal_page:
-			is_valid_recipient = cstr(sent_via.doc.email or sent_via.doc.email_id or
-				sent_via.doc.contact_email) in comm.recipients
+			is_valid_recipient = cstr(sent_via.email or sent_via.email_id or
+				sent_via.contact_email) in comm.recipients
 			if is_valid_recipient:
-				url = "%s/%s?name=%s" % (get_url(), portal_page, urllib.quote(sent_via.doc.name))
+				url = "%s/%s?name=%s" % (get_url(), portal_page, urllib.quote(sent_via.name))
 				footer = """<!-- Portal Link --><hr>
 						<a href="%s" target="_blank">View this on our website</a>""" % url
 	

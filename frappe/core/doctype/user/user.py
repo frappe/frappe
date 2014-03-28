@@ -15,43 +15,43 @@ class User(Document):
 		
 	def autoname(self):
 		"""set name as email id"""
-		if self.doc.name not in STANDARD_USERS:
-			self.doc.email = self.doc.email.strip()		
-			self.doc.name = self.doc.email
+		if self.name not in STANDARD_USERS:
+			self.email = self.email.strip()		
+			self.name = self.email
 			
-			if frappe.db.exists("User", self.doc.name):
+			if frappe.db.exists("User", self.name):
 				throw(_("Name Exists"))
 
 	def validate(self):
-		self.in_insert = self.doc.fields.get("__islocal")
-		if self.doc.name not in STANDARD_USERS:
-			self.validate_email_type(self.doc.email)
+		self.in_insert = self.get("__islocal")
+		if self.name not in STANDARD_USERS:
+			self.validate_email_type(self.email)
 		self.add_system_manager_role()
 		self.check_enable_disable()
 		self.update_gravatar()
 
 	def check_enable_disable(self):
 		# do not allow disabling administrator/guest
-		if not cint(self.doc.enabled) and self.doc.name in STANDARD_USERS:
+		if not cint(self.enabled) and self.name in STANDARD_USERS:
 			throw("{msg}: {name}".format(**{
 				"msg": _("Hey! You cannot disable user"), 
-				"name": self.doc.name
+				"name": self.name
 			}))
 
-		if not cint(self.doc.enabled):
+		if not cint(self.enabled):
 			self.a_system_manager_should_exist()
 		
 		# clear sessions if disabled
-		if not cint(self.doc.enabled) and getattr(frappe, "login_manager", None):
-			frappe.local.login_manager.logout(user=self.doc.name)
+		if not cint(self.enabled) and getattr(frappe, "login_manager", None):
+			frappe.local.login_manager.logout(user=self.name)
 		
 	def add_system_manager_role(self):
 		# if adding system manager, do nothing
-		if not cint(self.doc.enabled) or ("System Manager" in [user_role.role for user_role in
+		if not cint(self.enabled) or ("System Manager" in [user_role.role for user_role in
 				self.get("user_roles")]):
 			return
 		
-		if self.doc.user_type == "System User" and not self.get_other_system_managers():
+		if self.user_type == "System User" and not self.get_other_system_managers():
 			msgprint("""Adding System Manager Role as there must 
 				be atleast one 'System Manager'.""")
 			self.append("user_roles", {
@@ -61,27 +61,27 @@ class User(Document):
 	
 	def email_new_password(self, new_password=None):
 		if new_password and not self.in_insert:
-			_update_password(self.doc.name, new_password)
+			_update_password(self.name, new_password)
 
 			self.password_update_mail(new_password)
 			frappe.msgprint("New Password Emailed.")
 			
 	def on_update(self):
 		# owner is always name
-		frappe.db.set(self.doc, 'owner', self.doc.name)
+		frappe.db.set(self.doc, 'owner', self.name)
 		
 		# clear new password
-		new_password = self.doc.new_password
-		self.doc.set("new_password", "")
+		new_password = self.new_password
+		self.set("new_password", "")
 		
-		frappe.clear_cache(user=self.doc.name)
+		frappe.clear_cache(user=self.name)
 		
 		try:
 			if self.in_insert:
-				if self.doc.name not in STANDARD_USERS:
+				if self.name not in STANDARD_USERS:
 					if new_password:
 						# new password given, no email required
-						_update_password(self.doc.name, new_password)
+						_update_password(self.name, new_password)
 					if not getattr(self, "no_welcome_mail", False):
 						self.send_welcome_mail()
 						msgprint(_("Welcome Email Sent"))
@@ -94,15 +94,15 @@ class User(Document):
 
 	def update_gravatar(self):
 		import md5
-		if not self.doc.user_image:
-			self.doc.user_image = "https://secure.gravatar.com/avatar/" + md5.md5(self.doc.name).hexdigest() \
+		if not self.user_image:
+			self.user_image = "https://secure.gravatar.com/avatar/" + md5.md5(self.name).hexdigest() \
 				+ "?d=retro"
 	
 	def reset_password(self):
 		from frappe.utils import random_string, get_url
 
 		key = random_string(32)
-		frappe.db.set_value("User", self.doc.name, "reset_password_key", key)
+		frappe.db.set_value("User", self.name, "reset_password_key", key)
 		self.password_reset_mail(get_url("/update-password?key=" + key))
 	
 	def get_other_system_managers(self):
@@ -110,12 +110,12 @@ class User(Document):
 			where role='System Manager' and docstatus<2
 			and parent not in ('Administrator', %s) and exists 
 				(select * from `tabUser` user 
-				where user.name=user_role.parent and enabled=1)""", (self.doc.name,))
+				where user.name=user_role.parent and enabled=1)""", (self.name,))
 
 	def get_fullname(self):
 		"""get first_name space last_name"""
-		return (self.doc.first_name or '') + \
-			(self.doc.first_name and " " or '') + (self.doc.last_name or '')
+		return (self.first_name or '') + \
+			(self.first_name and " " or '') + (self.last_name or '')
 
 	def password_reset_mail(self, link):
 		self.send_login_mail("Password Reset", "templates/emails/password_reset.html", {"link": link})
@@ -126,8 +126,8 @@ class User(Document):
 	def send_welcome_mail(self):
 		from frappe.utils import random_string, get_url
 
-		self.doc.reset_password_key = random_string(32)
-		link = get_url("/update-password?key=" + self.doc.reset_password_key)
+		self.reset_password_key = random_string(32)
+		link = get_url("/update-password?key=" + self.reset_password_key)
 
 		self.send_login_mail("Verify Your Account", "templates/emails/new_user.html", {"link": link})
 		
@@ -144,8 +144,8 @@ class User(Document):
 			full_name = "Administrator"
 	
 		args = {
-			'first_name': self.doc.first_name or self.doc.last_name or "user",
-			'user': self.doc.name,
+			'first_name': self.first_name or self.last_name or "user",
+			'user': self.name,
 			'title': title,
 			'login_url': get_url(),
 			'user_fullname': full_name
@@ -155,7 +155,7 @@ class User(Document):
 		
 		sender = frappe.session.user not in STANDARD_USERS and frappe.session.user or None
 		
-		frappe.sendmail(recipients=self.doc.email, sender=sender, subject=subject, 
+		frappe.sendmail(recipients=self.email, sender=sender, subject=subject, 
 			message=frappe.get_template(template).render(args))
 		
 	def a_system_manager_should_exist(self):
@@ -163,36 +163,36 @@ class User(Document):
 			throw(_("Hey! There should remain at least one System Manager"))
 		
 	def on_trash(self):
-		frappe.clear_cache(user=self.doc.name)
-		if self.doc.name in STANDARD_USERS:
+		frappe.clear_cache(user=self.name)
+		if self.name in STANDARD_USERS:
 			throw("{msg}: {name}".format(**{
 				"msg": _("Hey! You cannot delete user"), 
-				"name": self.doc.name
+				"name": self.name
 			}))
 		
 		self.a_system_manager_should_exist()
 				
 		# disable the user and log him/her out
-		self.doc.enabled = 0
+		self.enabled = 0
 		if getattr(frappe.local, "login_manager", None):
-			frappe.local.login_manager.logout(user=self.doc.name)
+			frappe.local.login_manager.logout(user=self.name)
 		
 		# delete their password
-		frappe.db.sql("""delete from __Auth where user=%s""", (self.doc.name,))
+		frappe.db.sql("""delete from __Auth where user=%s""", (self.name,))
 		
 		# delete todos
-		frappe.db.sql("""delete from `tabToDo` where owner=%s""", (self.doc.name,))
+		frappe.db.sql("""delete from `tabToDo` where owner=%s""", (self.name,))
 		frappe.db.sql("""update tabToDo set assigned_by=null where assigned_by=%s""",
-			(self.doc.name,))
+			(self.name,))
 		
 		# delete events
 		frappe.db.sql("""delete from `tabEvent` where owner=%s
-			and event_type='Private'""", (self.doc.name,))
-		frappe.db.sql("""delete from `tabEvent User` where person=%s""", (self.doc.name,))
+			and event_type='Private'""", (self.name,))
+		frappe.db.sql("""delete from `tabEvent User` where person=%s""", (self.name,))
 			
 		# delete messages
 		frappe.db.sql("""delete from `tabComment` where comment_doctype='Message'
-			and (comment_docname=%s or owner=%s)""", (self.doc.name, self.doc.name))
+			and (comment_docname=%s or owner=%s)""", (self.name, self.name))
 			
 	def before_rename(self, olddn, newdn, merge=False):
 		frappe.clear_cache(user=olddn)

@@ -403,15 +403,15 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 					bean.ignore_links = ignore_links
 					bean.doclist.update(doclist)
 					bean.save()
-					ret.append('Updated row (#%d) %s' % (row_idx + 1, getlink(bean.doc.doctype, bean.doc.name)))
+					ret.append('Updated row (#%d) %s' % (row_idx + 1, getlink(bean.doctype, bean.name)))
 				else:
 					bean = frappe.bean(doclist)
 					bean.ignore_links = ignore_links
 					bean.insert()
-					ret.append('Inserted row (#%d) %s' % (row_idx + 1, getlink(bean.doc.doctype, bean.doc.name)))
+					ret.append('Inserted row (#%d) %s' % (row_idx + 1, getlink(bean.doctype, bean.name)))
 				if submit_after_import:
 					bean.submit()
-					ret.append('Submitted row (#%d) %s' % (row_idx + 1, getlink(bean.doc.doctype, bean.doc.name)))
+					ret.append('Submitted row (#%d) %s' % (row_idx + 1, getlink(bean.doctype, bean.name)))
 			else:
 				check_record(doclist[0], parenttype, doctype_dl)
 
@@ -532,7 +532,7 @@ def import_doclist(path, overwrite=False, ignore_links=False, ignore_insert=Fals
 		b = frappe.bean(d)
 		b.ignore_links = ignore_links
 		if insert:
-			b.doc.fields["__islocal"] = True
+			b.set("__islocal", True)
 		try:
 			b.insert_or_update()
 		except NameError:
@@ -540,7 +540,7 @@ def import_doclist(path, overwrite=False, ignore_links=False, ignore_insert=Fals
 				pass
 			else:
 				raise
-		print "Imported: " + b.doc.doctype + " / " + b.doc.name
+		print "Imported: " + b.doctype + " / " + b.name
 	
 	for f in files:
 		if f.endswith(".json"):

@@ -143,23 +143,23 @@ def make_test_objects(doctype, test_records, verbose=None):
 			doclist[0]["doctype"] = doctype
 		d = frappe.bean(copy=doclist)
 		
-		if frappe.local.test_objects.get(d.doc.doctype):
+		if frappe.local.test_objects.get(d.doctype):
 			# do not create test records, if already exists
 			return []
-		if has_field(d.doc.doctype, "naming_series"):
-			if not d.doc.naming_series:
-				d.doc.naming_series = "_T-" + d.doc.doctype + "-"
+		if has_field(d.doctype, "naming_series"):
+			if not d.naming_series:
+				d.naming_series = "_T-" + d.doctype + "-"
 
 		# submit if docstatus is set to 1 for test record
-		docstatus = d.doc.docstatus
+		docstatus = d.docstatus
 		
-		d.doc.docstatus = 0
+		d.docstatus = 0
 		d.insert()
 
 		if docstatus == 1:
 			d.submit()
 		
-		records.append(d.doc.name)
+		records.append(d.name)
 	return records
 
 def print_mandatory_fields(doctype):

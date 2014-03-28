@@ -61,7 +61,7 @@ def clear_doctype_notifications(bean, method=None):
 		return
 		
 	config = get_notification_config()
-	doctype = bean.doc.doctype
+	doctype = bean.doctype
 
 	if doctype in config.for_doctype:
 		delete_notification_count_for(doctype)

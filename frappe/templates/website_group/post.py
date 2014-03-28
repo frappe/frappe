@@ -28,7 +28,7 @@ def get_post_context(context):
 def get_parent_post_html(post, context):
 	user = frappe.bean("User", post.owner).doc
 	for fieldname in ("first_name", "last_name", "user_image", "location"):
-		post.fields[fieldname] = user.fields[fieldname]
+		post.set(fieldname, user.fields[fieldname])
 	
 	return frappe.get_template("templates/includes/inline_post.html")\
 		.render({"post": post.fields, "view": context.view})
@@ -76,11 +76,11 @@ def add_post(group, content, picture, picture_name, title=None, parent_post=None
 	
 	if not parent_post:
 		if group.group_type == "Tasks":
-			post.doc.is_task = 1
-			post.doc.assigned_to = assigned_to
+			post.is_task = 1
+			post.assigned_to = assigned_to
 		elif group.group_type == "Events":
-			post.doc.is_event = 1
-			post.doc.event_datetime = event_datetime
+			post.is_event = 1
+			post.event_datetime = event_datetime
 	
 	post.ignore_permissions = True
 	post.insert()
@@ -92,28 +92,28 @@ def add_post(group, content, picture, picture_name, title=None, parent_post=None
 	if parent_post:
 		post.run_method("send_email_on_reply")
 		
-	return post.doc.parent_post or post.doc.name
+	return post.parent_post or post.name
 		
 @frappe.whitelist(allow_guest=True)
 def save_post(post, content, picture=None, picture_name=None, title=None,
 	assigned_to=None, status=None, event_datetime=None):
 	
 	post = frappe.bean("Post", post)
-	access = get_access(get_pathname(post.doc.website_group))
+	access = get_access(get_pathname(post.website_group))
 	
 	if not access.get("write"):
 		raise frappe.PermissionError
 	
 	# TODO improve error message
-	if frappe.session.user != post.doc.owner:
+	if frappe.session.user != post.owner:
 		for fieldname in ("title", "content"):
-			if post.doc.fields.get(fieldname) != locals().get(fieldname):
+			if post.get(fieldname) != locals().get(fieldname):
 				frappe.throw("You cannot change: {}".format(fieldname.title()))
 				
 		if picture and picture_name:
 			frappe.throw("You cannot change: Picture")
 			
-	post.doc.fields.update({
+	post.update({
 		"title": (title or "").title(),
 		"content": content,
 		"assigned_to": assigned_to,
@@ -126,15 +126,15 @@ def save_post(post, content, picture=None, picture_name=None, title=None,
 	if picture_name and picture:
 		process_picture(post, picture_name, picture)
 		
-	return post.doc.parent_post or post.doc.name
+	return post.parent_post or post.name
 		
 def process_picture(post, picture_name, picture):
 	from frappe.templates.generators.website_group import clear_cache
 	
-	file_data = save_file(picture_name, picture, "Post", post.doc.name, decode=True)
-	post.doc.picture_url = file_data.file_name or file_data.file_url
-	frappe.db.set_value("Post", post.doc.name, "picture_url", post.doc.picture_url)
-	clear_cache(website_group=post.doc.website_group)
+	file_data = save_file(picture_name, picture, "Post", post.name, decode=True)
+	post.picture_url = file_data.file_name or file_data.file_url
+	frappe.db.set_value("Post", post.name, "picture_url", post.picture_url)
+	clear_cache(website_group=post.website_group)
 	
 @frappe.whitelist()
 def suggest_user(group, term):

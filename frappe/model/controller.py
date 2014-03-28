@@ -31,7 +31,7 @@ class DocListController(Document):
 		
 		df = self.meta.get_field(fieldname, parent=doc.doctype)
 		
-		val1 = doc.fields.get(fieldname)
+		val1 = doc.get(fieldname)
 		
 		if df.fieldtype in ("Currency", "Float"):
 			val1 = flt(val1, self.precision(df.fieldname, doc.parentfield or None))
@@ -67,7 +67,7 @@ class DocListController(Document):
 				"fieldtype": ["in", ["Currency", "Float"]]})]
 		
 		for fieldname in fieldnames:
-			doc.fields[fieldname] = flt(doc.fields.get(fieldname), self.precision(fieldname, doc.parentfield))
+			doc.set(fieldname, flt(doc.get(fieldname), self.precision(fieldname, doc.parentfield)))
 			
 	def precision(self, fieldname, parentfield=None):
 		if not isinstance(parentfield, basestring):

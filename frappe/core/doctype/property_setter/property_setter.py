@@ -9,21 +9,21 @@ from frappe.model.document import Document
 class PropertySetter(Document):
 
 	def autoname(self):
-		self.doc.name = self.doc.doc_type + "-" \
-			+ (self.doc.field_name and (self.doc.field_name + "-")  or "") \
-			+ self.doc.property
+		self.name = self.doc_type + "-" \
+			+ (self.field_name and (self.field_name + "-")  or "") \
+			+ self.property
 
 	def validate(self):
 		"""delete other property setters on this, if this is new"""
-		if self.doc.fields['__islocal']:
+		if self.fields['__islocal']:
 			frappe.db.sql("""delete from `tabProperty Setter` where
 				doctype_or_field = %(doctype_or_field)s
 				and doc_type = %(doc_type)s
 				and ifnull(field_name,'') = ifnull(%(field_name)s, '')
-				and property = %(property)s""", self.doc.fields)
+				and property = %(property)s""", self.fields)
 				
 		# clear cache
-		frappe.clear_cache(doctype = self.doc.doc_type)
+		frappe.clear_cache(doctype = self.doc_type)
 	
 	def get_property_list(self, dt):
 		return frappe.db.sql("""select fieldname, label, fieldtype 
@@ -41,18 +41,18 @@ class PropertySetter(Document):
 		}
 		
 	def get_field_ids(self):
-		return frappe.db.sql("select name, fieldtype, label, fieldname from tabDocField where parent=%s", self.doc.doc_type, as_dict = 1)
+		return frappe.db.sql("select name, fieldtype, label, fieldname from tabDocField where parent=%s", self.doc_type, as_dict = 1)
 	
 	def get_defaults(self):
-		if not self.doc.field_name:
-			return frappe.db.sql("select * from `tabDocType` where name=%s", self.doc.doc_type, as_dict = 1)[0]
+		if not self.field_name:
+			return frappe.db.sql("select * from `tabDocType` where name=%s", self.doc_type, as_dict = 1)[0]
 		else:
 			return frappe.db.sql("select * from `tabDocField` where fieldname=%s and parent=%s", 
-				(self.doc.field_name, self.doc.doc_type), as_dict = 1)[0]
+				(self.field_name, self.doc_type), as_dict = 1)[0]
 				
 	def on_update(self):
 		from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype
-		validate_fields_for_doctype(self.doc.doc_type)
+		validate_fields_for_doctype(self.doc_type)
 		
 def make_property_setter(doctype, fieldname, property, value, property_type, for_doctype = False):
 		return frappe.bean({

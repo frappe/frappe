@@ -14,4 +14,4 @@ def set_default(doc, key):
 	
 	frappe.db.sql("""update `tab%s` set `is_default`=0
 		where `%s`=%s and name!=%s""" % (doc.doctype, key, "%s", "%s"), 
-		(doc.fields.get(key), doc.name))
+		(doc.get(key), doc.name))

@@ -14,26 +14,26 @@ class Workflow(Document):
 		self.update_default_workflow_status()
 		
 	def on_update(self):
-		frappe.clear_cache(doctype=self.doc.document_type)
+		frappe.clear_cache(doctype=self.document_type)
 	
 	def create_custom_field_for_workflow_state(self):
-		frappe.clear_cache(doctype=self.doc.document_type)
-		meta = frappe.get_meta(self.doc.document_type)
-		if not meta.get_field(self.doc.workflow_state_field):
+		frappe.clear_cache(doctype=self.document_type)
+		meta = frappe.get_meta(self.document_type)
+		if not meta.get_field(self.workflow_state_field):
 			# create custom field
 			frappe.bean([{
 				"doctype":"Custom Field",
-				"dt": self.doc.document_type,
+				"dt": self.document_type,
 				"__islocal": 1,
-				"fieldname": self.doc.workflow_state_field,
-				"label": self.doc.workflow_state_field.replace("_", " ").title(),
+				"fieldname": self.workflow_state_field,
+				"label": self.workflow_state_field.replace("_", " ").title(),
 				"hidden": 1,
 				"fieldtype": "Link",
 				"options": "Workflow State",
 			}]).save()
 			
-			frappe.msgprint("Created Custom Field '%s' in '%s'" % (self.doc.workflow_state_field,
-				self.doc.document_type))
+			frappe.msgprint("Created Custom Field '%s' in '%s'" % (self.workflow_state_field,
+				self.document_type))
 
 	def update_default_workflow_status(self):
 		docstatus_map = {}
@@ -42,13 +42,13 @@ class Workflow(Document):
 		for d in self.doclist.get({"doctype": "Workflow Document State"}):
 			if not d.doc_status in docstatus_map:
 				frappe.db.sql("""update `tab%s` set `%s` = %s where \
-					ifnull(`%s`, '')='' and docstatus=%s""" % (self.doc.document_type, self.doc.workflow_state_field,
-						'%s', self.doc.workflow_state_field, "%s"), (d.state, d.doc_status))
+					ifnull(`%s`, '')='' and docstatus=%s""" % (self.document_type, self.workflow_state_field,
+						'%s', self.workflow_state_field, "%s"), (d.state, d.doc_status))
 				docstatus_map[d.doc_status] = d.state
 		
 	def set_active(self):
-		if int(self.doc.is_active or 0):
+		if int(self.is_active or 0):
 			# clear all other
 			frappe.db.sql("""update tabWorkflow set is_active=0 
 				where document_type=%s""",
-				self.doc.document_type)
+				self.document_type)

@@ -119,29 +119,29 @@ class sync(object):
 			"parent_website_route": parent_website_route
 		})
 		
-		page.doc.fields.update(get_static_content(fpath, page_name))
+		page.update(get_static_content(fpath, page_name))
 
 		try:
 			page.insert()
 		except NameError:
 			# page exists, if deleted static, delete it and try again
 			old_route = frappe.doc("Website Route", {"ref_doctype":"Web Page", 
-				"docname": page.doc.name})
+				"docname": page.name})
 			if old_route.static_file_timestamp and not os.path.exists(os.path.join(self.statics_path, 
 				old_route.name)):
 				
-				frappe.delete_doc("Web Page", page.doc.name)
+				frappe.delete_doc("Web Page", page.name)
 				page.insert() # retry
 			
 			
 		# update timestamp
 		route_bean = frappe.bean("Website Route", {"ref_doctype": "Web Page", 
-			"docname": page.doc.name})
-		route_bean.doc.static_file_timestamp = cint(os.path.getmtime(fpath))
+			"docname": page.name})
+		route_bean.static_file_timestamp = cint(os.path.getmtime(fpath))
 		route_bean.save()
 
 		self.updated += 1
-		print route_bean.doc.name + " inserted"
+		print route_bean.name + " inserted"
 		self.synced.append(route)
 	
 	def update_web_page(self, route_details, fpath, priority, parent_website_route):			
@@ -149,15 +149,15 @@ class sync(object):
 			or (cint(route_details.idx) != cint(priority) and (priority is not None)):
 
 			page = frappe.bean("Web Page", route_details.docname)
-			page.doc.fields.update(get_static_content(fpath, route_details.docname))
-			page.doc.idx = priority
+			page.update(get_static_content(fpath, route_details.docname))
+			page.idx = priority
 			page.save()
 
 			route_bean = frappe.bean("Website Route", route_details.name)
-			route_bean.doc.static_file_timestamp = cint(os.path.getmtime(fpath))
+			route_bean.static_file_timestamp = cint(os.path.getmtime(fpath))
 			route_bean.save()
 
-			print route_bean.doc.name + " updated"
+			print route_bean.name + " updated"
 			self.updated += 1
 			
 		self.synced.append(route_details.name)

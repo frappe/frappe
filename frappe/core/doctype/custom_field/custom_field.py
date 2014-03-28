@@ -12,39 +12,39 @@ class CustomField(Document):
 		
 	def autoname(self):
 		self.set_fieldname()
-		self.doc.name = self.doc.dt + "-" + self.doc.fieldname
+		self.name = self.dt + "-" + self.fieldname
 
 	def set_fieldname(self):
-		if not self.doc.fieldname:
-			if not self.doc.label:
+		if not self.fieldname:
+			if not self.label:
 				frappe.throw(_("Label is mandatory"))
 			# remove special characters from fieldname
-			self.doc.fieldname = filter(lambda x: x.isdigit() or x.isalpha() or '_', 
-				cstr(self.doc.label).lower().replace(' ','_'))
+			self.fieldname = filter(lambda x: x.isdigit() or x.isalpha() or '_', 
+				cstr(self.label).lower().replace(' ','_'))
 
 	def validate(self):
 		from frappe.model.doctype import get
-		temp_doclist = get(self.doc.dt).get_parent_doclist()
+		temp_doclist = get(self.dt).get_parent_doclist()
 				
 		# set idx
-		if not self.doc.idx:
+		if not self.idx:
 			max_idx = max(d.idx for d in temp_doclist if d.doctype=='DocField')
-			self.doc.idx = cint(max_idx) + 1
+			self.idx = cint(max_idx) + 1
 		
 	def on_update(self):
 		# validate field
 		from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype
 
-		validate_fields_for_doctype(self.doc.dt)
+		validate_fields_for_doctype(self.dt)
 
-		frappe.clear_cache(doctype=self.doc.dt)
+		frappe.clear_cache(doctype=self.dt)
 				
 		# create property setter to emulate insert after
 		self.create_property_setter()
 
 		# update the schema
 		from frappe.model.db_schema import updatedb
-		updatedb(self.doc.dt)
+		updatedb(self.dt)
 
 	def on_trash(self):
 		# delete property setter entries
@@ -52,14 +52,14 @@ class CustomField(Document):
 			DELETE FROM `tabProperty Setter`
 			WHERE doc_type = %s
 			AND field_name = %s""",
-				(self.doc.dt, self.doc.fieldname))
+				(self.dt, self.fieldname))
 
-		frappe.clear_cache(doctype=self.doc.dt)
+		frappe.clear_cache(doctype=self.dt)
 
 	def create_property_setter(self):
-		if not self.doc.insert_after: return
-		idx_label_list, field_list = get_fields_label(self.doc.dt, 0)
-		label_index = idx_label_list.index(self.doc.insert_after)
+		if not self.insert_after: return
+		idx_label_list, field_list = get_fields_label(self.dt, 0)
+		label_index = idx_label_list.index(self.insert_after)
 		if label_index==-1: return
 
 		prev_field = field_list[label_index]
@@ -67,11 +67,11 @@ class CustomField(Document):
 			DELETE FROM `tabProperty Setter`
 			WHERE doc_type = %s
 			AND field_name = %s
-			AND property = 'previous_field'""", (self.doc.dt, self.doc.fieldname))
+			AND property = 'previous_field'""", (self.dt, self.fieldname))
 		
 		frappe.make_property_setter({
-			"doctype":self.doc.dt, 
-			"fieldname": self.doc.fieldname, 
+			"doctype":self.dt, 
+			"fieldname": self.fieldname, 
 			"property": "previous_field",
 			"value": prev_field
 		})

@@ -16,13 +16,13 @@ class StyleSettings(Document):
 		self.validate_colors()
 		
 	def validate_colors(self):
-		if (self.doc.page_background or self.doc.page_text) and \
-			self.doc.page_background==self.doc.page_text:
+		if (self.page_background or self.page_text) and \
+			self.page_background==self.page_text:
 				frappe.msgprint(_("Page text and background is same color. Please change."),
 					raise_exception=1)
 
-		if (self.doc.top_bar_background or self.doc.top_bar_foreground) and \
-			self.doc.top_bar_background==self.doc.top_bar_foreground:
+		if (self.top_bar_background or self.top_bar_foreground) and \
+			self.top_bar_background==self.top_bar_foreground:
 				frappe.msgprint(_("Top Bar text and background is same color. Please change."),
 					raise_exception=1)
 	

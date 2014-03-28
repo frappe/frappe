@@ -17,9 +17,9 @@ class Blogger(Document):
 		from frappe.website.doctype.blog_post.blog_post import clear_blog_cache
 		clear_blog_cache()
 		
-		if self.doc.user:
+		if self.user:
 			for blog in frappe.db.sql_list("""select name from `tabBlog Post` where owner=%s 
-				and ifnull(blogger,'')=''""", self.doc.user):
+				and ifnull(blogger,'')=''""", self.user):
 				b = frappe.bean("Blog Post", blog)
-				b.doc.blogger = self.doc.name
+				b.blogger = self.name
 				b.save()

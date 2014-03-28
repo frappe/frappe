@@ -12,7 +12,7 @@ methods in following modules are imported for backward compatibility
 
 	* frappe.*
 	* frappe.utils.*
-	* frappe.model.doc.*
+	* frappe.model.*
 	* frappe.model.bean.*
 """
 
@@ -26,14 +26,14 @@ def get_obj(dt = None, dn = None, doc=None, doclist=None, with_children = 0):
 	if dt:
 		if isinstance(dt, list):
 			return get_server_obj(dt[0], dt)
-		if isinstance(dt, frappe.model.doc.Document):
+		if isinstance(dt, frappe.model.Document):
 			return get_server_obj(dt, [dt])
 		if not dn:
 			dn = dt
 		if with_children:
-			doclist = frappe.model.doc.get(dt, dn, from_controller=1)
+			doclist = frappe.model.get(dt, dn, from_controller=1)
 		else:
-			doclist = frappe.model.doc.get(dt, dn, with_children = 0, from_controller=1)
+			doclist = frappe.model.get(dt, dn, with_children = 0, from_controller=1)
 		return get_server_obj(doclist[0], doclist)
 	else:
 		return get_server_obj(doc, doclist)

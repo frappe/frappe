@@ -9,11 +9,11 @@ from frappe.model.document import Document
 class CustomScript(Document):
 		
 	def autoname(self):
-		self.doc.name = self.doc.dt + "-" + self.doc.script_type
+		self.name = self.dt + "-" + self.script_type
 
 	def on_update(self):
-		frappe.clear_cache(doctype=self.doc.dt)
+		frappe.clear_cache(doctype=self.dt)
 	
 	def on_trash(self):
-		frappe.clear_cache(doctype=self.doc.dt)
+		frappe.clear_cache(doctype=self.dt)
 
