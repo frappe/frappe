@@ -4,9 +4,8 @@
 from __future__ import unicode_literals
 
 import frappe
-import unittest, sys
+import unittest, sys, json
 
-from frappe.model.meta import has_field
 from frappe.model.code import load_doctype_module, get_module_name
 from frappe.model.doctype import get_link_fields
 from frappe.utils import cstr
@@ -59,7 +58,6 @@ def run_all_tests(app=None, verbose=False):
 
 def _run_test(path, filename, verbose, test_suite=None, run=True):
 	import os, imp
-	from frappe.modules.utils import peval_doclist
 	
 	if not test_suite:
 		test_suite = unittest.TestSuite()
@@ -67,8 +65,8 @@ def _run_test(path, filename, verbose, test_suite=None, run=True):
 	if os.path.basename(os.path.dirname(path))=="doctype":
 		txt_file = os.path.join(path, filename[5:].replace(".py", ".txt"))
 		with open(txt_file, 'r') as f:
-			doctype_doclist = peval_doclist(f.read())
-		doctype = doctype_doclist[0]["name"]
+			doc = json.loads(f.read())
+		doctype = doc["name"]
 		make_test_records(doctype, verbose)
 	
 	module = imp.load_source(filename[:-3], os.path.join(path, filename))
@@ -138,15 +136,16 @@ def make_test_records_for_doctype(doctype, verbose=0):
 def make_test_objects(doctype, test_records, verbose=None):
 	records = []
 		
-	for doclist in test_records:
-		if "doctype" not in doclist[0]:
-			doclist[0]["doctype"] = doctype
-		d = frappe.bean(copy=doclist)
+	for doc in test_records:
+		if not hasattr(doc, "doctype"):
+			doc.doctype = doctype
+			
+		d = frappe.copy_doc(doc)
 		
 		if frappe.local.test_objects.get(d.doctype):
 			# do not create test records, if already exists
 			return []
-		if has_field(d.doctype, "naming_series"):
+		if d.meta.get_field("naming_series"):
 			if not d.naming_series:
 				d.naming_series = "_T-" + d.doctype + "-"
 
@@ -168,7 +167,7 @@ def print_mandatory_fields(doctype):
 	meta = frappe.get_meta(doctype)
 	print "Autoname: " + (meta.autoname or "")
 	print "Mandatory Fields: "
-	for d in meta.get({"reqd":1}):
+	for d in meta.get("fields", {"reqd":1}):
 		print d.parent + ":" + d.fieldname + " | " + d.fieldtype + " | " + (d.options or "")
 	print		
 
