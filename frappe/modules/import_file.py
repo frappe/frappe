@@ -25,7 +25,7 @@ def get_file_path(module, dt, dn):
 	dt, dn = scrub_dt_dn(dt, dn)
 	
 	path = os.path.join(get_module_path(module), 
-		os.path.join(dt, dn, dn + '.txt'))
+		os.path.join(dt, dn, dn + ".json"))
 		
 	return path
 	
@@ -82,7 +82,7 @@ def import_doc(docdict):
 				doc.set(key, old_doc.get(key))
 
 		# update ignored docs into new doc
-		for df in doc.get_table_fields():
+		for df in doc.meta.get_table_fields():
 			if df.options in ignore_doctypes:
 				doc.set(df.fieldname, [])
 				ignore.append(df.options)

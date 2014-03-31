@@ -57,35 +57,11 @@ class CustomizeForm(Document):
 		self.clear()
 
 		if self.doc_type:
-			
-			for d in self.get_ref_doclist():
-				if d.doctype=='DocField':
-					new = self.append('fields', {})
-					self.set(
-						{
-							'list': self.docfield_properties,
-							'doc' : d,
-							'doc_to_set': new
-						}
-					)
-				elif d.doctype=='DocType':
-					self.set({ 'list': self.doctype_properties, 'doc': d })
-
-
-	def get_ref_doclist(self):
-		"""
-			* Gets doclist of type self.doc_type
-			* Applies property setter properties on the doclist
-			* returns the modified doclist
-		"""
-		from frappe.model.doctype import get
-		
-		ref_doclist = get(self.doc_type)
-		ref_doclist = frappe.doclist([ref_doclist[0]] 
-			+ ref_doclist.get({"parent": self.doc_type}))
-
-		return ref_doclist
-
+			meta = frappe.get_meta(self.doc_type)
+			for d in meta.get("fields"):
+				new = self.append('fields', {})
+				self.set({ 'list': self.docfield_properties, 'doc' : d, 'doc_to_set': new })
+			self.set({ 'list': self.doctype_properties, 'doc': d })
 
 	def clear(self):
 		"""
@@ -129,9 +105,9 @@ class CustomizeForm(Document):
 			from frappe.model import doc
 			from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype
 			
-			this_doclist = frappe.doclist([self] + self.doclist)
-			ref_doclist = self.get_ref_doclist()
-			dt_doclist = doc.get('DocType', self.doc_type)
+			this_doclist = self
+			ref_doclist = frappe.get_meta(self.doc_type)
+			dt_doclist = frappe.get_doc('DocType', self.doc_type)
 			
 			# get a list of property setter docs
 			self.idx_dirty = False

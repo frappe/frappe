@@ -9,7 +9,6 @@ import mimetypes
 import os
 import frappe
 from frappe import _
-import frappe.model.doc
 import frappe.model.document
 import frappe.utils
 import frappe.sessions
@@ -107,8 +106,6 @@ def json_handler(obj):
 		return unicode(obj)
 	elif isinstance(obj, LocalProxy):
 		return unicode(obj)
-	elif isinstance(obj, frappe.model.Document):
-		return obj.fields
 	elif isinstance(obj, frappe.model.document.Document):
 		return obj.as_dict()
 	else:

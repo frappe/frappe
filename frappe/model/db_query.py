@@ -7,7 +7,6 @@ from __future__ import unicode_literals
 import frappe, json
 import frappe.defaults
 import frappe.permissions
-import frappe.model.doctype
 from frappe.utils import cstr, flt
 
 class DatabaseQuery(object):

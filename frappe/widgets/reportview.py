@@ -118,14 +118,13 @@ def get_labels(columns):
 def delete_items():
 	"""delete selected items"""
 	import json
-	from frappe.model.code import get_obj
-
+	
 	il = json.loads(frappe.form_dict.get('items'))
 	doctype = frappe.form_dict.get('doctype')
 	
 	for d in il:
 		try:
-			dt_obj = get_obj(doctype, d)
+			dt_obj = frappe.get_doc(doctype, d)
 			if hasattr(dt_obj, 'on_trash'):
 				dt_obj.on_trash()
 			frappe.delete_doc(doctype, d)

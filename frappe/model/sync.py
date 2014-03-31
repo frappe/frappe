@@ -40,8 +40,8 @@ def walk_and_sync(start_path, force=0, sync_everything = False, verbose=False):
 		if sync_everything or (os.path.basename(os.path.dirname(path)) in document_type):
 			for f in files:
 				f = cstr(f)
-				if f.endswith(".txt"):
-					doc_name = f.split(".txt")[0]
+				if f.endswith(".json"):
+					doc_name = f.split(".json")[0]
 					if doc_name == os.path.basename(path):
 
 						module_name = path.split(os.sep)[-3]

@@ -14,7 +14,7 @@ import frappe.widgets.reportview
 
 def get_report_doc(report_name):
 	bean = frappe.get_doc("Report", report_name)
-	if not bean.has_read_perm():
+	if not bean.has_permission("read"):
 		raise frappe.PermissionError("You don't have access to: {report}".format(report=report_name))
 		
 	if not frappe.has_permission(bean.ref_doctype, "report"):

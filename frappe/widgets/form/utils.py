@@ -95,7 +95,7 @@ def get_linked_docs(doctype, name, metadata_loaded=None):
 		link["doctype"] = dt
 		linkmeta = frappe.widgets.form.meta.get_meta(dt)
 		if not linkmeta.get("issingle"):
-			fields = [d.fieldname for d in linkmeta.get({"parent":dt, "in_list_view":1, 
+			fields = [d.fieldname for d in linkmeta.get("fields", {"in_list_view":1, 
 				"fieldtype": ["not in", ["Image", "HTML", "Button", "Table"]]})] \
 				+ ["name", "modified", "docstatus"]
 
@@ -113,6 +113,6 @@ def get_linked_docs(doctype, name, metadata_loaded=None):
 				results[dt] = ret
 				
 			if not dt in metadata_loaded:
-				frappe.local.response.docs += linkmeta
+				frappe.local.response.docs.append(linkmeta)
 				
 	return results

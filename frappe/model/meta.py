@@ -6,23 +6,22 @@
 from __future__ import unicode_literals
 import frappe, json
 from frappe.utils import cstr, cint
-from frappe.model import integer_docfield_properties
+from frappe.model import integer_docfield_properties, default_fields
 from frappe.model.document import Document
 from frappe.model.base_document import BaseDocument
+from frappe.model.db_schema import type_map
 
 ######
 
 def get_meta(doctype, cached=True):
-	# TODO: cache to be cleared
-	if cached and not frappe.flags.in_install_app:
-		if doctype not in frappe.local.meta:
-			frappe.local.meta[doctype] = frappe.cache().get_value("meta:" + doctype, lambda: Meta(doctype))
-		return frappe.local.meta.get(doctype)
+	if cached:
+		return frappe.cache().get_value("meta:" + doctype, lambda: Meta(doctype))
 	else:
 		return Meta(doctype)
 
 class Meta(Document):
 	_metaclass = True
+	_fields = {}
 	def __init__(self, doctype):
 		super(Meta, self).__init__("DocType", doctype)
 	
@@ -32,7 +31,7 @@ class Meta(Document):
 		except frappe.DoesNotExistError:
 			if self.doctype=="DocType" and self.name in ("DocField", "DocPerm", "Role", "DocType", "Module Def"):
 				fname = frappe.scrub(self.name)
-				with open(frappe.get_app_path("frappe", "core", "doctype", fname, fname + ".txt"), "r") as f:
+				with open(frappe.get_app_path("frappe", "core", "doctype", fname, fname + ".json"), "r") as f:
 					txt = f.read()
 
 				self.__dict__.update(json.loads(txt))
@@ -44,28 +43,38 @@ class Meta(Document):
 	
 	def get_link_fields(self):
 		tmp = self.get("fields", {"fieldtype":"Link"})
-		tmp.extend(self.get("fields", {"fieldtype":"Select", "options": "^link:"}))
-		return tmp			
+		for df in self.get("fields", {"fieldtype":"Select", "options": "^link:"}):
+			tmp.append(frappe._dict({"fieldname":df.fieldname, "label":df.label, 
+				"fieldtype":"Link", "options": df.options[5:]}))
+		return tmp
 	
 	def get_table_fields(self):
-		return [
-			frappe._dict({"fieldname": "fields", "options": "DocField"}), 
-			frappe._dict({"fieldname": "permissions", "options": "DocPerm"})
-		]
-		
+		if not hasattr(self, "_table_fields"):
+			if self.name!="DocType":
+				self._table_fields = self.get('fields', {"fieldtype":"Table"})
+			else:
+				self._table_fields = doctype_table_fields
+				
+		return self._table_fields
+
 	def get_valid_columns(self):
 		if not hasattr(self, "_valid_columns"):
-			doctype = self.__dict__.get("doctype")
-			self._valid_columns = frappe.db.get_table_columns(doctype)
+			if self.name in ("DocType", "DocField", "DocPerm"):
+				self._valid_columns = frappe.db.get_table_columns(self.name)
+			else:
+				self._valid_columns = default_fields[1:] + \
+					[df.fieldname for df in self.get("fields") if df.fieldtype in type_map]
 		
 		return self._valid_columns
-		
+				
 	def get_table_field_doctype(self, fieldname):
 		return { "fields": "DocField", "permissions": "DocPerm"}.get(fieldname)
 	
 	def get_field(self, fieldname):
-		fields = self.get("fields", {"fieldname":fieldname})
-		return fields[0] if fields else None
+		if not fieldname in self._fields:
+			fields = self.get("fields", {"fieldname":fieldname})
+			self._fields[fieldname] = fields[0] if fields else frappe._dict()
+		return self._fields[fieldname]
 
 	def get_label(self, fieldname):
 		return self.get_field(fieldname).label
@@ -158,6 +167,11 @@ class Meta(Document):
 		return restricted_fields
 
 
+doctype_table_fields = [
+	frappe._dict({"fieldname": "fields", "options": "DocField"}), 
+	frappe._dict({"fieldname": "permissions", "options": "DocPerm"})
+]
+
 #######
 
 def is_single(doctype):
@@ -175,15 +189,6 @@ def get_parent_dt(dt):
 def set_fieldname(field_id, fieldname):
 	frappe.db.set_value('DocField', field_id, 'fieldname', fieldname)
 
-def get_link_fields(doctype):
-	"""
-		Returns list of link fields for a doctype in tuple (fieldname, options, label)
-	"""
-	import frappe.model.doctype
-	doclist = frappe.model.doctype.get(doctype)
-	return [(d.get('fieldname'), d.get('options'), d.get('label')) 
-		for d in doclist.get_link_fields() if d.get('fieldname')!='owner']
-
 def get_table_fields(doctype):
 	child_tables = [[d[0], d[1]] for d in frappe.db.sql("""select options, fieldname 
 		from tabDocField where parent=%s and fieldtype='Table'""", doctype, as_list=1)]
@@ -197,9 +202,6 @@ def get_table_fields(doctype):
 		custom_child_tables = []
 
 	return child_tables + custom_child_tables
-
-def has_field(doctype, fieldname, parent=None, parentfield=None):
-	return get_field(doctype, fieldname, parent=None, parentfield=None) and True or False
 			
 def get_field_currency(df, doc):
 	"""get currency based on DocField options and fieldvalue in doc"""
@@ -234,3 +236,27 @@ def get_field_precision(df, doc):
 		precision = cint(frappe.db.get_default("float_precision")) or 3
 
 	return precision
+	
+def clear_cache(doctype=None):
+	def clear_single(dt):
+		frappe.cache().delete_value("meta:" + dt)
+		frappe.cache().delete_value("form_meta:" + dt)
+
+	if doctype:
+		clear_single(doctype)
+
+		# clear all parent doctypes
+		for dt in frappe.db.sql("""select parent from tabDocField 
+			where fieldtype="Table" and options=%s""", (doctype,)):
+			clear_single(dt[0])
+
+		# clear all notifications
+		from frappe.core.doctype.notification_count.notification_count import delete_notification_count_for
+		delete_notification_count_for(doctype)
+
+	else:
+		# clear all
+		for dt in frappe.db.sql("""select name from tabDocType"""):
+			clear_single(dt[0])
+
+	frappe.cache().delete_value("is_table")

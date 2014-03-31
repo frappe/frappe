@@ -8,7 +8,6 @@ bootstrap client session
 
 import frappe
 import frappe.defaults
-import frappe.model.doc
 import frappe.widgets.page
 import json
 

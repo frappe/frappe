@@ -25,7 +25,7 @@ def write_document_file(doc, record_module=None, create_init=None):
 	newdoc = doc.as_dict()
 
 	# strip out default fields from children
-	for df in doc.get_table_fields():
+	for df in doc.meta.get_table_fields():
 		for d in newdoc.get(df.fieldname):
 			for fieldname in frappe.model.default_fields:
 				if fieldname in d:
@@ -40,7 +40,7 @@ def write_document_file(doc, record_module=None, create_init=None):
 	
 	# write the data file	
 	fname = (doc.doctype in lower_case_files_for and scrub(doc.name)) or doc.name
-	with open(os.path.join(folder, fname +'.txt'),'w+') as txtfile:
+	with open(os.path.join(folder, fname +".json"),'w+') as txtfile:
 		txtfile.write(json.dumps(newdoc, indent=1, sort_keys=True))
 
 def get_module_name(doc):

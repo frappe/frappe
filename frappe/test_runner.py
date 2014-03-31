@@ -6,8 +6,7 @@ from __future__ import unicode_literals
 import frappe
 import unittest, sys, json
 
-from frappe.model.code import load_doctype_module, get_module_name
-from frappe.model.doctype import get_link_fields
+from frappe.modules import load_doctype_module, get_module_name
 from frappe.utils import cstr
 
 
@@ -63,7 +62,7 @@ def _run_test(path, filename, verbose, test_suite=None, run=True):
 		test_suite = unittest.TestSuite()
 	
 	if os.path.basename(os.path.dirname(path))=="doctype":
-		txt_file = os.path.join(path, filename[5:].replace(".py", ".txt"))
+		txt_file = os.path.join(path, filename[5:].replace(".py", ".json"))
 		with open(txt_file, 'r') as f:
 			doc = json.loads(f.read())
 		doctype = doc["name"]
@@ -105,9 +104,14 @@ def get_modules(doctype):
 
 def get_dependencies(doctype):
 	module, test_module = get_modules(doctype)
+	meta = frappe.get_meta(doctype)
+	link_fields = meta.get_link_fields()
 	
-	options_list = list(set([df.options for df in get_link_fields(doctype)] + [doctype]))
+	for df in meta.get_table_fields():
+		link_fields.extend(frappe.get_meta(df.options).get_link_fields())
 	
+	options_list = list(set([df.options for df in link_fields] + [doctype]))
+		
 	if hasattr(test_module, "test_dependencies"):
 		options_list += test_module.test_dependencies
 	
@@ -115,7 +119,7 @@ def get_dependencies(doctype):
 		for doctype_name in test_module.test_ignore:
 			if doctype_name in options_list:
 				options_list.remove(doctype_name)
-				
+		
 	return options_list
 
 def make_test_records_for_doctype(doctype, verbose=0):
@@ -138,7 +142,7 @@ def make_test_objects(doctype, test_records, verbose=None):
 		
 	for doc in test_records:
 		if not hasattr(doc, "doctype"):
-			doc.doctype = doctype
+			doc["doctype"] = doctype
 			
 		d = frappe.copy_doc(doc)
 		

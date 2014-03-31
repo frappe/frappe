@@ -7,8 +7,7 @@ from frappe.utils import cint
 
 from frappe.model.document import Document
 
-class Userrole(Document):
-		
+class UserRole(Document):
 	def validate(self):
 		if cint(self.get("__islocal")) and frappe.db.exists("UserRole", {
 				"parent": self.parent, "role": self.role}):

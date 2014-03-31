@@ -4,8 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.utils import cint
-import frappe.model.doctype
-from frappe.model.doc import validate_name
+from frappe.model.naming import validate_name
 
 @frappe.whitelist()
 def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=False):
@@ -19,16 +18,15 @@ def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=F
 	force = cint(force)
 	merge = cint(merge)
 	
-	# get doclist of given doctype
-	doclist = frappe.model.doctype.get(doctype)
+	meta = frappe.get_meta(doctype)
 	
 	# call before_rename
 	out = frappe.get_doc(doctype, old).run_method("before_rename", old, new, merge) or {}
 	new = out.get("new") or new
-	new = validate_rename(doctype, new, doclist, merge, force, ignore_permissions)
+	new = validate_rename(doctype, new, meta, merge, force, ignore_permissions)
 		
 	if not merge:
-		rename_parent_and_child(doctype, old, new, doclist)
+		rename_parent_and_child(doctype, old, new, meta)
 			
 	# update link fields' values
 	link_fields = get_link_fields(doctype)
@@ -66,14 +64,14 @@ def rename_versions(doctype, old, new):
 	frappe.db.sql("""update tabVersion set docname=%s where ref_doctype=%s and docname=%s""", 
 		(new, doctype, old))
 
-def rename_parent_and_child(doctype, old, new, doclist):
+def rename_parent_and_child(doctype, old, new, meta):
 	# rename the doc
 	frappe.db.sql("update `tab%s` set name=%s where name=%s" \
 		% (doctype, '%s', '%s'), (new, old))
 
-	update_child_docs(old, new, doclist)
+	update_child_docs(old, new, meta)
 
-def validate_rename(doctype, new, doclist, merge, force, ignore_permissions):
+def validate_rename(doctype, new, meta, merge, force, ignore_permissions):
 	exists = frappe.db.exists(doctype, new)
 
 	if merge and not exists:
@@ -85,7 +83,7 @@ def validate_rename(doctype, new, doclist, merge, force, ignore_permissions):
 	if not (ignore_permissions or frappe.has_permission(doctype, "write")):
 		frappe.msgprint("You need write permission to rename", raise_exception=1)
 
-	if not force and not doclist[0].allow_rename:
+	if not force and not meta.allow_rename:
 		frappe.msgprint("%s cannot be renamed" % doctype, raise_exception=1)
 	
 	# validate naming like it's done in doc.py
@@ -109,12 +107,9 @@ def rename_doctype(doctype, old, new, force=False):
 	frappe.db.sql("""update tabComment set comment_doctype=%s where comment_doctype=%s""",
 		(new, old))
 
-def update_child_docs(old, new, doclist):
+def update_child_docs(old, new, meta):
 	# update "parent"
-	child_doctypes = (d.options for d in doclist 
-		if d.doctype=='DocField' and d.fieldtype=='Table')
-	
-	for child in child_doctypes:
+	for child in meta.get_table_fields():
 		frappe.db.sql("update `tab%s` set parent=%s where parent=%s" \
 			% (child, '%s', '%s'), (new, old))
 

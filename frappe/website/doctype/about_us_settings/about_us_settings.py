@@ -15,7 +15,7 @@ class AboutUsSettings(Document):
 		clear_cache("about")
 		
 def get_args():
-	obj = frappe.get_obj("About Us Settings")
+	obj = frappe.get_doc("About Us Settings")
 	return {
 		"obj": obj
 	}

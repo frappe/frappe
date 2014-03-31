@@ -22,38 +22,29 @@ class NestedSetChildExistsError(frappe.ValidationError): pass
 class NestedSetInvalidMergeError(frappe.ValidationError): pass
 
 # called in the on_update method
-def update_nsm(doc_obj):
+def update_nsm(doc):
 	# get fields, data from the DocType
 	opf = 'old_parent'
+	pf = "parent_" + frappe.scrub(doc.doctype)
 
-	if str(doc_obj.__class__)=='frappe.model.Document':
-		# passed as a Document object
-		d = doc_obj
-		pf = "parent_" + frappe.scrub(d.doctype)
-	else:
-		# passed as a DocType object
-		d = doc_obj.doc
-		pf = "parent_" + frappe.scrub(d.doctype)
-	
-		if hasattr(doc_obj,'nsm_parent_field'):
-			pf = doc_obj.nsm_parent_field
-		if hasattr(doc_obj,'nsm_oldparent_field'):
-			opf = doc_obj.nsm_oldparent_field
+	if hasattr(doc,'nsm_parent_field'):
+		pf = doc.nsm_parent_field
+	if hasattr(doc,'nsm_oldparent_field'):
+		opf = doc.nsm_oldparent_field
 
-	p, op = d.get(pf) or None, d.get(opf) or None
+	p, op = doc.get(pf) or None, doc.get(opf) or None
 	
 	# has parent changed (?) or parent is None (root)
-	if not d.lft and not d.rgt:
-		update_add_node(d, p or '', pf)
+	if not doc.lft and not doc.rgt:
+		update_add_node(doc, p or '', pf)
 	elif op != p:
-		update_move_node(d, pf)
+		update_move_node(doc, pf)
 
 	# set old parent
-	d.set(opf, p)
-	frappe.db.set_value(d.doctype, d.name, opf, p or '')
-
-	# reload
-	d._loadfromdb()
+	doc.set(opf, p)
+	frappe.db.set_value(doc.doctype, doc.name, opf, p or '')
+	
+	doc.load_from_db()
 
 def update_add_node(doc, parent, parent_field):
 	"""

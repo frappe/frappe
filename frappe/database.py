@@ -9,6 +9,7 @@ import MySQLdb
 import warnings
 import frappe
 import datetime
+from frappe.utils import now
 
 class Database:
 	"""
@@ -385,7 +386,6 @@ class Database:
 			return {}
 
 	def set_value(self, dt, dn, field, val, modified=None, modified_by=None):
-		from frappe.utils import now
 		if not modified:
 			modified = now()
 		if not modified_by:
@@ -409,7 +409,9 @@ class Database:
 						
 	def set(self, doc, field, val):
 		doc.set(field, val)
-		frappe.db.set_value(doc.doctype, doc.name, field, val)
+		doc.set("modified", now())
+		doc.set("modified_by", frappe.session.user)
+		frappe.db.set_value(doc.doctype, doc.name, field, val, doc.modified, doc.modified_by)
 		
 	def touch(self, doctype, docname):
 		from frappe.utils import now

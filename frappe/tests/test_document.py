@@ -113,7 +113,7 @@ class TestDocument(unittest.TestCase):
 		})
 		self.assertRaises(frappe.LinkValidationError, d.insert)
 		d.user_roles = []
-		d.set("user_roles", {
+		d.append("user_roles", {
 			"role": "System Manager"
 		})
 		d.insert()

@@ -66,11 +66,24 @@ def cmd(fn):
 	
 
 def run(fn, args):
+	if args.get("profile") and fn!="serve":
+		import cProfile, pstats, StringIO
+		pr = cProfile.Profile()
+		pr.enable()
+		
 	if isinstance(args.get(fn), (list, tuple)):
 		out = globals().get(fn)(*args.get(fn), **args)
 	else:
 		out = globals().get(fn)(**args)
-	
+
+	if args.get("profile") and fn!="serve":
+		pr.disable()
+		s = StringIO.StringIO()
+		sortby = 'cumulative'
+		ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
+		ps.print_stats()
+		print s.getvalue()
+
 	return out
 		
 def get_function(args):
@@ -660,27 +673,12 @@ def smtp_debug_server():
 	os.execv(python, [python, '-m', "smtpd", "-n", "-c", "DebuggingServer", "localhost:25"])
 
 @cmd
-def run_tests(app=None, module=None, doctype=None, verbose=False, profile=False):
+def run_tests(app=None, module=None, doctype=None, verbose=False):
 	import frappe.test_runner
 
-	def _run():
-		ret = frappe.test_runner.main(app and app[0], module and module[0], doctype and doctype[0], verbose)
-		if len(ret.failures) > 0 or len(ret.errors) > 0:
-			exit(1)
-
-	if profile:
-		import cProfile, pstats, StringIO
-		pr = cProfile.Profile()
-		pr.enable()
-		_run()
-		pr.disable()
-		s = StringIO.StringIO()
-		sortby = 'cumulative'
-		ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
-		ps.print_stats()
-		print s.getvalue()
-	else:
-		_run()
+	ret = frappe.test_runner.main(app and app[0], module and module[0], doctype and doctype[0], verbose)
+	if len(ret.failures) > 0 or len(ret.errors) > 0:
+		exit(1)
 
 @cmd
 def serve(port=8000, profile=False, sites_path='.', site=None):

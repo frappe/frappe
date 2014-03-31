@@ -64,7 +64,7 @@ def update_parent(name, new_parent):
 	
 	if sitemap.ref_doctype:
 		generator = frappe.get_doc(sitemap.ref_doctype, sitemap.docname)
-		if not generator.meta.has_field("parent_website_route"):
+		if not generator.meta.get_field("parent_website_route"):
 			frappe.throw("Does not allow moving.")
 		generator.parent_website_route = new_parent
 		generator.save()

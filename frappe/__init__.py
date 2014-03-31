@@ -110,7 +110,7 @@ def init(site, sites_path=None):
 	local.test_objects = {}
 	local.jenv = None
 	local.jloader =None
-	local.meta = {}
+	local.cache = {}
 
 	setup_module_map()
 
@@ -260,8 +260,8 @@ def clear_cache(user=None, doctype=None):
 	"""clear cache"""
 	import frappe.sessions
 	if doctype:
-		import frappe.model.doctype
-		frappe.model.doctype.clear_cache(doctype)
+		import frappe.model.meta
+		frappe.model.meta.clear_cache(doctype)
 		reset_metadata_version()
 	elif user:
 		frappe.sessions.clear_cache(user)
@@ -312,10 +312,6 @@ def reset_metadata_version():
 def new_doc(doctype, parent_doc=None, parentfield=None):
 	from frappe.model.create_new import get_new_doc
 	return get_new_doc(doctype, parent_doc, parentfield)
-
-def new_bean(doctype):
-	from frappe.model.create_new import get_new_doc
-	return bean([get_new_doc(doctype)])
 
 def doclist(lst=None):
 	from frappe.model.doclist import DocList
@@ -478,7 +474,7 @@ def call(fn, *args, **kwargs):
 
 def make_property_setter(args):
 	args = _dict(args)
-	bean([{
+	get_doc({
 		'doctype': "Property Setter",
 		'doctype_or_field': args.doctype_or_field or "DocField",
 		'doc_type': args.doctype,
@@ -487,7 +483,7 @@ def make_property_setter(args):
 		'value': args.value,
 		'property_type': args.property_type or "Data",
 		'__islocal': 1
-	}]).save()
+	}).save()
 
 def get_application_home_page(user='Guest'):
 	"""get home page for user"""
@@ -506,7 +502,11 @@ def import_doclist(path, ignore_links=False, ignore_insert=False, insert=False):
 
 def copy_doc(doc):
 	import copy
-	d = doc.as_dict()
+	if not isinstance(doc, dict):
+		d = doc.as_dict()
+	else:
+		d = doc
+		
 	newdoc = get_doc(copy.deepcopy(d))
 	newdoc.name = None
 	newdoc.set("__islocal", 1)
@@ -601,10 +601,19 @@ def get_template(path):
 def get_website_route(doctype, name):
 	return db.get_value("Website Route", {"ref_doctype": doctype, "docname": name})
 
-def add_version(doclist):
-	bean({
+def add_version(doc):
+	get_doc({
 		"doctype": "Version",
-		"ref_doctype": doclist[0].get("doctype"),
-		"docname": doclist[0].get("name"),
-		"doclist_json": json.dumps([d.fields for d in doclist])
+		"ref_doctype": doc.doctype,
+		"docname": doc.name,
+		"doclist_json": json.dumps(doc.as_dict(), indent=1, sort_keys=True)
 	}).insert(ignore_permissions=True)
+
+def get_test_records(doctype):
+	from frappe.modules import get_doctype_module, get_module_path
+	path = os.path.join(get_module_path(get_doctype_module(doctype)), "doctype", scrub(doctype), "test_records.json")
+	if os.path.exists(path):
+		with open(path, "r") as f:
+			return json.loads(f.read())
+	else:
+		return []

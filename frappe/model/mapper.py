@@ -26,7 +26,7 @@ def get_mapped_doc(from_doctype, from_docname, table_maps, target_doc=None,
 	row_exists_for_parentfield = {}
 	
 	# children
-	for df in source_doc.get_table_fields():
+	for df in source_doc.meta.get_table_fields():
 		source_child_doctype = df.options
 		table_map = table_maps.get(source_child_doctype)
 		if table_map:

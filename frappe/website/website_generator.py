@@ -4,18 +4,19 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.model.controller import DocListController
+from frappe.model.naming import append_number_if_name_exists
 from frappe.website.utils import cleanup_page_name
 from frappe.utils import now
 
 from frappe.website.doctype.website_route.website_route import add_to_sitemap, update_sitemap, remove_sitemap
 
-def call_website_generator(bean, method, *args, **kwargs):
-	getattr(WebsiteGenerator(bean.doc, bean.doclist), method)(*args, **kwargs)
+def call_website_generator(doc, method, *args, **kwargs):
+	getattr(WebsiteGenerator(doc), method)(*args, **kwargs)
 
 class WebsiteGenerator(DocListController):
 	def autoname(self):
 		self.name = self.get_page_name()
-		self.append_number_if_name_exists()
+		append_number_if_name_exists(self)
 
 	def set_page_name(self):
 		"""set page name based on parent page_name and title"""
@@ -39,7 +40,7 @@ class WebsiteGenerator(DocListController):
 	def on_update(self):
 		self.update_sitemap()
 		if getattr(self, "save_versions", False):
-			frappe.add_version(self.doclist)
+			frappe.add_version(self)
 		
 	def after_rename(self, olddn, newdn, merge):
 		frappe.db.sql("""update `tabWebsite Route`
@@ -114,7 +115,7 @@ class WebsiteGenerator(DocListController):
 		
 	def _get_page_name(self):
 		self.setup_generator()
-		if self.meta.has_field(self.website_template.page_name_field):
+		if self.meta.get_field(self.website_template.page_name_field):
 			return self.get(self.website_template.page_name_field)
 		else:
 			return cleanup_page_name(self.get_page_title())

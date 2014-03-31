@@ -6,7 +6,7 @@ import frappe
 
 from frappe.model.document import Document
 
-class Defaultvalue(Document):
+class DefaultValue(Document):
 	pass
 		
 def on_doctype_update():

@@ -23,13 +23,8 @@ class CustomField(Document):
 				cstr(self.label).lower().replace(' ','_'))
 
 	def validate(self):
-		from frappe.model.doctype import get
-		temp_doclist = get(self.dt).get_parent_doclist()
-				
-		# set idx
 		if not self.idx:
-			max_idx = max(d.idx for d in temp_doclist if d.doctype=='DocField')
-			self.idx = cint(max_idx) + 1
+			self.idx = len(frappe.get_meta(self.dt).get("fields")) + 1
 		
 	def on_update(self):
 		# validate field
@@ -84,16 +79,13 @@ def get_fields_label(dt=None, form=1):
 	"""
 	import frappe
 	from frappe.utils import cstr
-	import frappe.model.doctype
 	fieldname = None
 	if not dt:
 		dt = frappe.form_dict.get('doctype')
 		fieldname = frappe.form_dict.get('fieldname')
 	if not dt: return ""
 	
-	doclist = frappe.model.doctype.get(dt)
-	docfields = sorted(doclist.get({"parent": dt, "doctype": "DocField"}),
-		key=lambda d: d.idx)
+	docfields = frappe.get_meta(dt).get("fields")
 	
 	if fieldname:
 		idx_label_list = [cstr(d.label) or cstr(d.fieldname) or cstr(d.fieldtype)

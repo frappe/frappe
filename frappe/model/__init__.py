@@ -29,8 +29,6 @@ def rename(doctype, old, new, debug=False):
 	frappe.model.rename_doc.rename_doc(doctype, old, new, debug)
 
 def copytables(srctype, src, srcfield, tartype, tar, tarfield, srcfields, tarfields=[]):
-	import frappe.model.doc
-
 	if not tarfields: 
 		tarfields = srcfields
 	l = []

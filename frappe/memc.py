@@ -10,13 +10,16 @@ class MClient(memcache.Client):
 		return (frappe.conf.db_name + ":" + key.replace(" ", "_")).encode('utf-8')
 	
 	def set_value(self, key, val):
+		frappe.local.cache[key] = val
 		self.set(self.n(key), val)
 		
 	def get_value(self, key, builder=None):
-		val = self.get(self.n(key))
-		if not val and builder:
-			val = builder()
-			self.set_value(key, val)
+		val = frappe.local.cache.get(key)
+		if not val:
+			val = self.get(self.n(key))
+			if not val and builder:
+				val = builder()
+				self.set_value(key, val)
 		return val
 
 	def delete_value(self, keys):
@@ -24,3 +27,5 @@ class MClient(memcache.Client):
 			keys = (keys,)
 		for key in keys:
 			self.delete(self.n(key))
+			if key in frappe.local.cache:
+				del frappe.local.cache[key]

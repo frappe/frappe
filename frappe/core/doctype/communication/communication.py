@@ -67,7 +67,7 @@ def _make(doctype=None, name=None, content=None, subject=None, sent_or_received 
 	d.recipients = recipients
 	
 	# add as child
-	sent_via = frappe.get_obj(doctype, name)
+	sent_via = frappe.get_doc(doctype, name)
 	d.parent = name
 	d.parenttype = doctype
 	d.parentfield = "communications"

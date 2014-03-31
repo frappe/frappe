@@ -7,6 +7,7 @@ from frappe import _, msgprint
 from frappe.utils import cint, flt, cstr, now
 from frappe.modules import load_doctype_module
 from frappe.model.base_document import BaseDocument
+from frappe.model.naming import set_new_name
 
 # once_only validation
 # methods
@@ -23,15 +24,25 @@ def get_doc(arg1, arg2=None):
 	if controller:
 		return controller(arg1, arg2)
 	
-	return Document(arg1, arg2)
+	raise ImportError, arg1
+
+_classes = {}
 
 def get_controller(doctype):
-	module = load_doctype_module(doctype)
-	classname = doctype.replace(" ", "")
-	if hasattr(module, classname):
-		_class = getattr(module, classname)
-		if issubclass(_class, Document):
-			return getattr(module, classname)
+	if not doctype in _classes:
+		module = load_doctype_module(doctype)
+		classname = doctype.replace(" ", "")
+		if hasattr(module, classname):
+			_class = getattr(module, classname)
+			if issubclass(_class, Document):
+				_class = getattr(module, classname)
+			else:
+				raise ImportError, doctype
+		else:
+			raise ImportError, doctype
+		_classes[doctype] = _class
+	
+	return _classes[doctype]
 
 class Document(BaseDocument):
 	def __init__(self, arg1, arg2=None):
@@ -69,14 +80,20 @@ class Document(BaseDocument):
 			if not d:
 				frappe.throw("{}: {}, {}".format(_("Not Found"), 
 					self.doctype, self.name), frappe.DoesNotExistError)
-			self.update(d, valid_columns = d.keys())
+			self.update(d)
+			
+			if self.name=="DocType" and self.doctype=="DocType":
+				from frappe.model.meta import doctype_table_fields
+				table_fields = doctype_table_fields
+			else:
+				table_fields = self.meta.get_table_fields()
 
-			for df in self.get_table_fields():
+			for df in table_fields:
 				children = frappe.db.get_values(df.options,
 					{"parent": self.name, "parenttype": self.doctype, "parentfield": df.fieldname}, 
 					"*", as_dict=True)
 				if children:
-					self.set(df.fieldname, children, children[0].keys())
+					self.set(df.fieldname, children)
 				else:
 					self.set(df.fieldname, [])
 			
@@ -95,7 +112,8 @@ class Document(BaseDocument):
 			raise frappe.PermissionError
 		self._set_defaults()
 		self._set_docstatus_user_and_timestamp()
-		self._check_if_latest()
+		self.check_if_latest()
+		set_new_name(self)
 		self.run_method("before_insert")
 		self.run_before_save_methods()
 		self._validate()
@@ -127,7 +145,7 @@ class Document(BaseDocument):
 			raise frappe.PermissionError
 
 		self._set_docstatus_user_and_timestamp()
-		self._check_if_latest()
+		self.check_if_latest()
 		self.run_before_save_methods()
 		self._validate()
 
@@ -147,7 +165,7 @@ class Document(BaseDocument):
 			d.db_update()
 			child_map.setdefault(d.doctype, []).append(d.name)
 						
-		for df in self.get_table_fields():
+		for df in self.meta.get_table_fields():
 			if df.options not in ignore_children_type:
 				cnames = child_map.get(df.options) or []
 				if cnames:
@@ -203,14 +221,14 @@ class Document(BaseDocument):
 		self.set_missing_values(new_doc)
 
 		# children
-		for df in self.get_table_fields():
+		for df in self.meta.get_table_fields():
 			new_doc = frappe.new_doc(df.options)
 			value = self.get(df.fieldname)
 			if isinstance(value, list):
 				for d in value:
 					d.set_missing_values(new_doc)
 
-	def _check_if_latest(self):
+	def check_if_latest(self):
 		conflict = False
 		self._action = "save"
 		if not self.get('__islocal'):

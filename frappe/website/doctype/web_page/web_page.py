@@ -7,5 +7,5 @@ from frappe.website.website_generator import WebsiteGenerator
 from frappe.website.utils import cleanup_page_name
 from frappe.utils import cint
 
-class WebsitePage(WebsiteGenerator):
+class WebPage(WebsiteGenerator):
 	save_versions = True

@@ -17,15 +17,13 @@ def restore(version):
 		raise frappe.PermissionError
 		
 	version = frappe.get_doc("Version", version)
-	doclist = json.loads(version.doclist_json)
+	docdict = json.loads(version.doclist_json)
 
 	# check if renamed
-	if doclist[0].get("name") != version.docname:
-		doclist[0]["name"] = version.docname
-		for d in doclist[1:]:
-			d["parent"] = version.docname
+	if docdict.get("name") != version.docname:
+		docdict["name"] = version.docname
 	
-	doclist[0]["modified"] = frappe.db.get_value(version.ref_doctype, version.docname, "modified")
+	docdict["modified"] = frappe.db.get_value(version.ref_doctype, version.docname, "modified")
 	
 	# overwrite
-	frappe.get_doc(doclist).save()
+	frappe.get_doc(docdict).save()

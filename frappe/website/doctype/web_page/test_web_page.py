@@ -2,41 +2,7 @@ from __future__ import unicode_literals
 import unittest
 import frappe
 
-test_records = [
-	[{
-		"doctype": "Web Page",
-		"title": "Test Web Page 1",
-		"main_section": "Test Content 1",
-		"published": 1
-	}],
-	[{
-		"doctype": "Web Page",
-		"title": "Test Web Page 2",
-		"main_section": "Test Content 2",
-		"published": 1,
-		"parent_website_route": "test-web-page-1"
-	}],
-	[{
-		"doctype": "Web Page",
-		"title": "Test Web Page 3",
-		"main_section": "Test Content 3",
-		"published": 1,
-		"parent_website_route": "test-web-page-1"
-	}],
-	[{
-		"doctype": "Web Page",
-		"title": "Test Web Page 4",
-		"main_section": "Test Content 4",
-		"published": 1,
-	}],
-	[{
-		"doctype": "Web Page",
-		"title": "Test Web Page 5",
-		"main_section": "Test Content 5",
-		"published": 1,
-		"parent_website_route": "test-web-page-1"
-	}],
-]
+test_records = frappe.get_test_records('Web Page')
 
 class TestWebPage(unittest.TestCase):
 	def test_check_sitemap(self):
@@ -92,6 +58,3 @@ class TestWebPage(unittest.TestCase):
 		web_page = frappe.get_doc("Web Page", "test-web-page-3")
 		web_page.parent_website_route = "test-web-page-1"
 		web_page.save()
-		
-		
-		

@@ -10,8 +10,6 @@ def runserverobj():
 	"""
 		Run server objects
 	"""
-	import frappe.model.code
-	from frappe.model.bean import Bean
 	from frappe.utils import cint
 
 	wrapper = None
@@ -22,33 +20,25 @@ def runserverobj():
 	
 	if dt: # not called from a doctype (from a page)
 		if not dn: dn = dt # single
-		so = frappe.model.code.get_obj(dt, dn)
+		doc = frappe.get_doc(dt, dn)
 
 	else:
-		bean = Bean()
-		bean.from_compressed(frappe.form_dict.get('docs'), dn)
-		if not bean.has_read_perm():
-			frappe.msgprint(_("No Permission"), raise_exception = True)
-		so = bean.make_controller()
-		bean.check_if_latest(method="runserverobj")
+		doc = frappe.get_doc(json.loads(frappe.form_dict.get('docs')))
+		doc.check_if_latest()
 
-	check_guest_access(so.doc)
+	if not doc.has_permission("read"):
+		frappe.msgprint(_("No Permission"), raise_exception = True)
 	
-	if so:
-		r = frappe.model.code.run_server_obj(so, method, arg)
+	if doc:
+		r = doc.run_method(method, arg)
 		if r:
 			#build output as csv
 			if cint(frappe.form_dict.get('as_csv')):
-				make_csv_output(r, so.doctype)
+				make_csv_output(r, doc.doctype)
 			else:
 				frappe.response['message'] = r
 		
-		frappe.response['docs'] += so.doclist
-
-def check_guest_access(doc):
-	if frappe.session['user']=='Guest' and not frappe.db.sql("select name from tabDocPerm where role='Guest' and parent=%s and ifnull(`read`,0)=1", doc.doctype):
-		frappe.msgprint("Guest not allowed to call this object")
-		raise Exception
+		frappe.response.docs.append(doc)
 
 def make_csv_output(res, dt):
 	"""send method response as downloadable CSV file"""

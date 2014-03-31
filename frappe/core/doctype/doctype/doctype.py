@@ -81,8 +81,8 @@ class DocType(Document):
 		
 		# update index
 		if not self.custom:
-			from frappe.model.code import load_doctype_module
-			module = load_doctype_module( self.name, self.module)
+			from frappe.modules import load_doctype_module
+			module = load_doctype_module(self.name, self.module)
 			if hasattr(module, "on_doctype_update"):
 				module.on_doctype_update()
 		frappe.clear_cache(doctype=self.name)
@@ -159,9 +159,7 @@ class DocType(Document):
 		return max_idx and max_idx[0][0] or 0
 
 def validate_fields_for_doctype(doctype):
-	from frappe.model.doctype import get
-	validate_fields(get(doctype, cached=False).get({"parent":doctype, 
-		"doctype":"DocField"}))
+	validate_fields(frappe.get_meta(doctype).get("fields"))
 		
 def validate_fields(fields):
 	def check_illegal_characters(fieldname):
@@ -224,10 +222,8 @@ def validate_fields(fields):
 	check_min_items_in_list(fields)
 
 def validate_permissions_for_doctype(doctype, for_remove=False):
-	from frappe.model.doctype import get
-	validate_permissions(get(doctype, cached=False).get({"parent":doctype, 
-		"doctype":"DocPerm"}), for_remove)
-
+	validate_permissions(frappe.get_meta(doctype, cached=False).get("permissions"), for_remove)
+	
 def validate_permissions(permissions, for_remove=False):
 	doctype = permissions and permissions[0].parent
 	issingle = issubmittable = isimportable = False

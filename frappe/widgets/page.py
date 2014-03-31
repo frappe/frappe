@@ -3,8 +3,6 @@
 
 from __future__ import unicode_literals
 import frappe
-import frappe.model.doc
-import frappe.model.code
 
 @frappe.whitelist()
 def get(name):

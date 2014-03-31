@@ -47,8 +47,7 @@ def add(args=None):
 		}).insert(ignore_permissions=True).doc
 		
 		# set assigned_to if field exists
-		from frappe.model.meta import has_field
-		if has_field(args['doctype'], "assigned_to"):
+		if frappe.get_meta(args['doctype']).get_field("assigned_to"):
 			frappe.db.set_value(args['doctype'], args['name'], "assigned_to", args['assign_to'])
 			
 	try:
@@ -84,8 +83,7 @@ def remove(doctype, name, assign_to):
 	todo.save(ignore_permissions=True)
 		
 	# clear assigned_to if field exists
-	from frappe.model.meta import has_field
-	if has_field(doctype, "assigned_to"):
+	if frappe.get_meta(doctype).get_field("assigned_to"):
 		frappe.db.set_value(doctype, name, "assigned_to", None)
 
 	notify_assignment(todo.assigned_by, todo.owner, todo.reference_type, todo.reference_name)

@@ -12,7 +12,7 @@ import frappe, os, json
 import frappe
 import frappe.utils
 from frappe.utils import cint
-import frappe.model.doctype
+import frappe.model.meta
 import frappe.defaults
 import frappe.translate
 
@@ -27,7 +27,7 @@ def clear(user=None):
 def clear_cache(user=None):
 	cache = frappe.cache()
 
-	frappe.model.doctype.clear_cache()
+	frappe.model.meta.clear_cache()
 	cache.delete_value(["app_hooks", "installed_apps", "app_modules", "module_apps", "home_page"])
 	
 	if user:

@@ -42,7 +42,7 @@
    "options": "DocType", 
    "permlevel": 0, 
    "read_only": 1, 
-   "reqd": 1
+   "reqd": 0
   }, 
   {
    "fieldname": "ref_docname", 
@@ -50,7 +50,7 @@
    "label": "Reference DocName", 
    "permlevel": 0, 
    "read_only": 1, 
-   "reqd": 1
+   "reqd": 0
   }
  ], 
  "icon": "icon-envelope", 

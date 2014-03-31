@@ -5,26 +5,29 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _, msgprint
 from frappe.utils import cint, flt, cstr, now
-from frappe.model import default_fields
-from frappe.model.db_schema import type_map
 from frappe.model.naming import set_new_name
 
 class BaseDocument(object):
-	def __init__(self, d, valid_columns=None):
-		self.update(d, valid_columns=valid_columns)
+	def __init__(self, d):
+		self.update(d)
 
 	def __getattr__(self, key):
-		if self.__dict__.has_key(key):
-			return self.__dict__[key]
+		try:
+			return super(BaseDocument, self).__getattr__(key)
+		except AttributeError:
+			if not key.startswith("__") and key not in ("doctype", "_meta", "meta") and key in self.meta.get_valid_columns():
+				return None
+			else:
+				raise
 
-		if key!= "_valid_columns" and key in self.get_valid_columns():
-			return None
+	@property
+	def meta(self):
+		if not hasattr(self, "_meta"):
+			self._meta = frappe.get_meta(self.doctype)
+		
+		return self._meta
 
-		raise AttributeError(key)
-
-	def update(self, d, valid_columns=None):
-		if valid_columns:
-			self.__dict__["_valid_columns"] = valid_columns
+	def update(self, d):
 		if "doctype" in d:
 			self.set("doctype", d.get("doctype"))
 		for key, value in d.iteritems():
@@ -42,7 +45,7 @@ class BaseDocument(object):
 			else:
 				value = self.__dict__.get(key, default)
 			
-			if value is None and key!="_meta" and key in (d.fieldname for d in self.get_table_fields()):
+			if value is None and key!="_meta" and key in (d.fieldname for d in self.meta.get_table_fields()):
 				self.set(key, [])
 				value = self.__dict__.get(key)
 				
@@ -50,11 +53,11 @@ class BaseDocument(object):
 		else:
 			return self.__dict__
 				
-	def set(self, key, value, valid_columns=None):
+	def set(self, key, value):
 		if isinstance(value, list):
 			tmp = []
 			for v in value:
-				tmp.append(self._init_child(v, key, valid_columns))
+				tmp.append(self._init_child(v, key))
 			value = tmp
 
 		self.__dict__[key] = value
@@ -78,71 +81,45 @@ class BaseDocument(object):
 		else:
 			raise ValueError
 	
-	def _init_child(self, value, key, valid_columns=None):
+	def _init_child(self, value, key):
 		if not self.doctype:
 			return value
 		if not isinstance(value, BaseDocument):
-			if not value.get("doctype"):
+			if not "doctype" in value:
 				value["doctype"] = self.get_table_field_doctype(key)
-			if not value.get("doctype"):
-				raise AttributeError, key
-			value = BaseDocument(value, valid_columns=valid_columns)
+				if not value["doctype"]:
+					raise AttributeError, key
+			value = BaseDocument(value)
 			
 		value.parent = self.name
 		value.parenttype = self.doctype
 		value.parentfield = key
 		if not value.idx:
 			value.idx = len(self.get(key) or []) + 1
-				
+
 		return value
 
-	@property
-	def doc(self):
-		return self
-
-	@property
-	def meta(self):
-		if not self.get("_meta"):
-			self._meta = frappe.get_meta(self.doctype)
-		return self._meta
-		
 	def get_valid_dict(self):
 		d = {}
-		for fieldname in self.valid_columns:
+		for fieldname in self.meta.get_valid_columns():
 			d[fieldname] = self.get(fieldname)
 		return d
 		
 	def is_new(self):
 		return self.get("__islocal")
-					
-	@property
-	def valid_columns(self):
-		return self.get_valid_columns()
-
-	def get_valid_columns(self):
-		if not hasattr(self, "_valid_columns"):
-			doctype = self.__dict__.get("doctype")
-			self._valid_columns = default_fields[1:] + \
-				[df.fieldname for df in frappe.get_meta(doctype).get("fields")
-					if df.fieldtype in type_map]
-		
-		return self._valid_columns
-		
+									
 	def as_dict(self):
 		doc = self.get_valid_dict()
 		doc["doctype"] = self.doctype
-		for df in self.get_table_fields():
+		for df in self.meta.get_table_fields():
 			doc[df.fieldname] = [d.as_dict() for d in (self.get(df.fieldname) or [])]
 		return doc
-			
-	def get_table_fields(self):
-		return self.meta.get('fields', {"fieldtype":"Table"})
-		
+					
 	def get_table_field_doctype(self, fieldname):
-		return self.meta.get("fields", {"fieldname":fieldname})[0].options
+		return self.meta.get_field(fieldname).options
 		
 	def get_parentfield_of_doctype(self, doctype):
-		fieldname = [df.fieldname for df in self.get_table_fields() if df.options==doctype]
+		fieldname = [df.fieldname for df in self.meta.get_table_fields() if df.options==doctype]
 		return fieldname[0] if fieldname else None
 	
 	def db_insert(self):
@@ -240,7 +217,7 @@ class BaseDocument(object):
 		for fieldname in constants:
 			if self.get(fieldname) != values.get(fieldname):
 				frappe.throw("{0}: {1}".format(_("Value cannot be changed for"), 
-					_(meta.get("fields", {"fieldname":fieldname})[0].label)), 
+					_(self.meta.get_label(fieldname))), 
 					frappe.CannotChangeConstantError)
 
 def _filter(data, filters, limit=None):
@@ -257,14 +234,14 @@ def _filter(data, filters, limit=None):
 			fval = filters[f]
 			
 			if fval is True:
-				fval = ["not None", fval]
+				fval = ("not None", fval)
 			elif fval is False:
-				fval = ["None", fval]
+				fval = ("None", fval)
 			elif not isinstance(fval, (tuple, list)):
 				if isinstance(fval, basestring) and fval.startswith("^"):
-					fval = ["^", fval[1:]]
+					fval = ("^", fval[1:])
 				else:
-					fval = ["=", fval]
+					fval = ("=", fval)
 			
 			if not frappe.compare(d.get(f), fval[0], fval[1]):
 				add = False

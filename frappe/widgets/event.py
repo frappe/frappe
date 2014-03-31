@@ -7,9 +7,7 @@ from __future__ import unicode_literals
 import frappe
 
 @frappe.whitelist()
-def get_cal_events(m_st, m_end):
-	import frappe.model.doc
-	
+def get_cal_events(m_st, m_end):	
 	# load owned events
 	res1 = frappe.db.sql("""select name from `tabEvent` 
 		WHERE ifnull(event_date,'2000-01-01') between %s and %s and owner = %s 

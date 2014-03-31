@@ -24,14 +24,14 @@ def get_test_doclist(doctype, name=None):
 		conf.test_data_path, doctype)
 	
 	if name:
-		with open(os.path.join(doctype_path, scrub(name) + '.txt'), 'r') as txtfile:
+		with open(os.path.join(doctype_path, scrub(name) + ".json"), 'r') as txtfile:
 			doclist = peval_doclist(txtfile.read())
 
 		return doclist
 		
 	else:
 		all_doclists = []
-		for fname in filter(lambda n: n.endswith('.txt'), os.listdir(doctype_path)):
+		for fname in filter(lambda n: n.endswith(".json"), os.listdir(doctype_path)):
 			with open(os.path.join(doctype_path, scrub(fname)), 'r') as txtfile:
 				all_doclists.append(peval_doclist(txtfile.read()))
 		

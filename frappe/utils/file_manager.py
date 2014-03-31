@@ -94,7 +94,7 @@ def save_file(fname, content, dt, dn, decode=False):
 		content = base64.b64decode(content)
 	
 	import filecmp
-	from frappe.model.code import load_doctype_module
+	from frappe.modules import load_doctype_module
 	files_path = os.path.join(frappe.local.site_path, "public", "files")
 	module = load_doctype_module(dt, frappe.db.get_value("DocType", dt, "module"))
 	

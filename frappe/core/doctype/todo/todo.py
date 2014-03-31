@@ -6,7 +6,7 @@ import frappe
 
 from frappe.model.document import Document
 
-class Todo(Document):
+class ToDo(Document):
 	
 	def validate(self):
 		if self.is_new():

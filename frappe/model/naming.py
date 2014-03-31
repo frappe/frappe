@@ -123,8 +123,7 @@ def getseries(key, digits, doctype=''):
 
 def get_default_naming_series(doctype):
 	"""get default value for `naming_series` property"""
-	from frappe.model.doctype import get_property
-	naming_series = get_property(doctype, "options", "naming_series")
+	naming_series = frappe.get_meta(doctype).get_field("naming_series").options or ""
 	if naming_series:
 		naming_series = naming_series.split("\n")
 		return naming_series[0] or naming_series[1]	
@@ -149,4 +148,17 @@ def _get_amended_name(doc):
 		
 	doc.name = am_prefix + '-' + str(am_id)
 	return doc.name
+
+def append_number_if_name_exists(doc):
+	if frappe.db.exists(doc.doctype, doc.name):
+		last = frappe.db.sql("""select name from `tab{}`
+			where name regexp '{}-[[:digit:]]+' 
+			order by name desc limit 1""".format(doc.doctype, doc.name))
+
+		if last:
+			count = str(cint(last[0][0].rsplit("-", 1)[1]) + 1)
+		else:
+			count = "1"
+
+		doc.name = "{0}-{1}".format(doc.name, count)
 

@@ -5,8 +5,6 @@ from __future__ import unicode_literals
 
 import frappe, json, os
 import frappe.permissions
-import frappe.model.doctype
-from frappe.model.meta import get_table_fields
 from frappe.utils import cstr
 from frappe.utils.datautils import UnicodeWriter, check_record, import_doc, getlink, cint, flt
 from frappe import _
@@ -31,9 +29,7 @@ def get_doctypes():
 @frappe.whitelist()
 def get_doctype_options():
 	doctype = frappe.form_dict['doctype']
-	return [doctype] + filter(None, map(lambda d: \
-		d.doctype=='DocField' and d.fieldtype=='Table' and d.options or None, 
-		frappe.model.doctype.get(doctype)))
+	return [doctype] + [d.options for d in frappe.get_meta(doctype).get_table_fields()]
 
 @frappe.whitelist()
 def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data="No"):
@@ -47,7 +43,7 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 	if all_doctypes:
 		doctype_parentfield = {}
 		child_doctypes = []
-		for d in get_table_fields(doctype):
+		for d in frappe.get_meta(doctype).get_table_fields():
 			child_doctypes.append(d[0])
 			doctype_parentfield[d[0]] = d[1]
 		
@@ -74,10 +70,10 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 			w.writerow(['If you are updating, please select "Overwrite" else existing rows will not be deleted.'])
 
 	def build_field_columns(dt):
-		doctype_dl = frappe.model.doctype.get(dt)
+		meta = frappe.get_meta(dt)
 
 		tablecolumns = filter(None, 
-			[doctype_dl.get_field(f[0]) for f in frappe.db.sql('desc `tab%s`' % dt)])
+			[meta.get_field(f[0]) for f in frappe.db.sql('desc `tab%s`' % dt)])
 
 		tablecolumns.sort(lambda a, b: a.idx - b.idx)
 
@@ -373,7 +369,6 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 	frappe.db.begin()
 	if not overwrite:
 		overwrite = params.get('overwrite')
-	doctype_dl = frappe.model.doctype.get(doctype)
 	
 	# delete child rows (if parenttype)
 	if parenttype and overwrite:
@@ -396,7 +391,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 			if len(doclist) > 1:
 				for d in doclist:
 					# ignoring parent check as it will be automatically added
-					check_record(d, None, doctype_dl)
+					check_record(d)
 				
 				if overwrite and frappe.db.exists(doctype, doclist[0]["name"]):
 					bean = frappe.get_doc(doctype, doclist[0]["name"])
@@ -413,7 +408,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 					bean.submit()
 					ret.append('Submitted row (#%d) %s' % (row_idx + 1, getlink(bean.doctype, bean.name)))
 			else:
-				check_record(doclist[0], parenttype, doctype_dl)
+				check_record(doclist[0])
 
 				if parenttype:
 					# child doc
@@ -469,8 +464,8 @@ def get_parent_field(doctype, parenttype):
 			
 	# get parentfield
 	if parenttype:
-		for d in frappe.model.doctype.get(parenttype):
-			if d.fieldtype=='Table' and d.options==doctype:
+		for d in frappe.get_meta(parenttype).get_table_fields():
+			if d.options==doctype:
 				parentfield = d.fieldname
 				break
 	

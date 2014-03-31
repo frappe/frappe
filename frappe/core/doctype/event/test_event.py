@@ -3,35 +3,11 @@
 
 """Use blog post test to test permission restriction logic"""
 
-test_records = [
-	[{
-		"doctype": "Event",
-		"subject":"_Test Event 1",
-		"starts_on": "2014-01-01",
-		"event_type": "Public",
-	}],
-	[{
-		"doctype": "Event",
-		"starts_on": "2014-01-01",
-		"subject":"_Test Event 2",
-		"event_type": "Private",
-	}],
-	[{
-		"doctype": "Event",
-		"starts_on": "2014-01-01",
-		"subject":"_Test Event 3",
-		"event_type": "Private",
-	}, {
-		"doctype": "Event User",
-		"parentfield": "event_individuals",
-		"person": "test1@example.com"
-	}],
-	
-]
-
 import frappe
 import frappe.defaults
 import unittest
+
+test_records = frappe.get_test_records('Event')
 
 class TestEvent(unittest.TestCase):
 	# def setUp(self):
@@ -64,4 +40,3 @@ class TestEvent(unittest.TestCase):
 		self.assertTrue("_Test Event 1" in subjects)
 		self.assertTrue("_Test Event 3" in subjects)
 		self.assertFalse("_Test Event 2" in subjects)
-	
