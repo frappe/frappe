@@ -189,7 +189,7 @@ class DocTypeNestedSet(Document):
 		if not self.nsm_parent_field:
 			self.nsm_parent_field = frappe.scrub(self.doctype) + "_parent"
 		
-		parent = self.fields[self.nsm_parent_field]
+		parent = self.get(self.nsm_parent_field)
 		if not parent:
 			msgprint(_("Root ") + self.doctype + _(" cannot be deleted."), raise_exception=1)
 		
@@ -208,7 +208,7 @@ class DocTypeNestedSet(Document):
 	def before_rename(self, olddn, newdn, merge=False, group_fname="is_group"):
 		if merge:
 			is_group = frappe.db.get_value(self.doctype, newdn, group_fname)
-			if self.fields[group_fname] != is_group:
+			if self.get(group_fname) != is_group:
 				frappe.throw(_("""Merging is only possible between Group-to-Group or 
 					Ledger-to-Ledger"""), NestedSetInvalidMergeError)
 					
@@ -218,7 +218,7 @@ class DocTypeNestedSet(Document):
 			rebuild_tree(self.doctype, parent_field)
 		
 	def validate_one_root(self):
-		if not self.fields[self.nsm_parent_field]:
+		if not self.get(self.nsm_parent_field):
 			if frappe.db.sql("""select count(*) from `tab%s` where
 				ifnull(%s, '')=''""" % (self.doctype, self.nsm_parent_field))[0][0] > 1:
 				frappe.throw(_("""Multiple root nodes not allowed."""), NestedSetMultipleRootsError)

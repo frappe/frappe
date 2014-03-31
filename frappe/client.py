@@ -14,7 +14,7 @@ def get(doctype, name=None, filters=None):
 		name = frappe.db.get_value(doctype, json.loads(filters))
 		if not name:
 			raise Exception, "No document found for given filters"
-	return [d.fields for d in frappe.get_doc(doctype, name).doclist]
+	return frappe.get_doc(doctype, name).as_dict()
 
 @frappe.whitelist()
 def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False):
@@ -41,7 +41,7 @@ def set_value(doctype, name, fieldname, value):
 		
 	bean.save()
 	
-	return [d.fields for d in bean.doclist]
+	return bean.as_dict()
 
 @frappe.whitelist()
 def insert(doclist):
@@ -60,7 +60,7 @@ def insert(doclist):
 		return [d]
 	else:
 		bean = frappe.get_doc(doclist).insert()
-		return [d.fields for d in bean.doclist]
+		return bean.as_dict()
 
 @frappe.whitelist()
 def save(doclist):
@@ -68,7 +68,7 @@ def save(doclist):
 		doclist = json.loads(doclist)
 
 	bean = frappe.get_doc(doclist).save()
-	return [d.fields for d in bean.doclist]
+	return bean.as_dict()
 	
 @frappe.whitelist()
 def rename_doc(doctype, old_name, new_name, merge=False):
@@ -83,14 +83,14 @@ def submit(doclist):
 	doclistobj = frappe.get_doc(doclist)
 	doclistobj.submit()
 
-	return [d.fields for d in doclist]
+	return doclist.as_dict()
 
 @frappe.whitelist()
 def cancel(doctype, name):
 	wrapper = frappe.get_doc(doctype, name)
 	wrapper.cancel()
 	
-	return [d.fields for d in wrapper.doclist]
+	return wrapper.as_dict()
 
 @frappe.whitelist()
 def delete(doctype, name):

@@ -21,10 +21,10 @@ def get_bootinfo():
 	get_user(bootinfo)
 	
 	# control panel
-	cp = frappe.model.getsingle('Control Panel')
+	cp = frappe.get_doc('Control Panel')
 		
 	# system info
-	bootinfo['control_panel'] = frappe._dict(cp.copy())
+	bootinfo['control_panel'] = frappe._dict(cp.as_dict())
 	bootinfo['sysdefaults'] = frappe.defaults.get_defaults()
 	bootinfo['server_date'] = frappe.utils.nowdate()
 	bootinfo["send_print_in_body_and_attachment"] = frappe.db.get_value("Outgoing Email Settings", 

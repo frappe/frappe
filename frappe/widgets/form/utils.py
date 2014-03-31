@@ -63,7 +63,7 @@ def add_comment(doclist):
 	doclistobj.ignore_permissions = True
 	doclistobj.save()
 	
-	return [d.fields for d in doclist]
+	return doclist.as_dict()
 
 	return save(doclist)
 

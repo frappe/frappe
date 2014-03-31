@@ -3,7 +3,6 @@ include requirements.txt
 include *.json
 include *.md
 include *.py
-include *.txt
 recursive-include frappe *.css
 recursive-include frappe *.dat
 recursive-include frappe *.eot
@@ -22,5 +21,4 @@ recursive-include frappe *.swf
 recursive-include frappe *.ttf
 recursive-include frappe *.woff
 recursive-include frappe *.xml
-recursive-include frappe *.txt
 recursive-exclude * *.pyc

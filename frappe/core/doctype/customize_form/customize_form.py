@@ -199,7 +199,7 @@ class CustomizeForm(Document):
 		"""
 		# Check if property has changed compared to when it was loaded 
 		if self.has_property_changed(ref_d, new_d, prop):
-			#frappe.msgprint("new: " + str(new_d.fields[prop]) + " | old: " + str(ref_d.fields[prop]))
+			#frappe.msgprint("new: " + str(new_d.get(prop)) + " | old: " + str(ref_d.get(prop)))
 			# Check if the new property is same as that in original doctype
 			# If yes, we need to delete the property setter entry
 			for dt_d in dt_doclist:

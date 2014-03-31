@@ -413,7 +413,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 				if parenttype:
 					# child doc
 					doc = frappe.get_doc(doctype)
-					doc.fields.update(doclist[0])
+					doc.update(doclist[0])
 					if parenttype:
 						doc.parenttype = parenttype
 						doc.parentfield = parentfield
@@ -498,7 +498,7 @@ def export_json(doctype, name, path):
 	if not name or name=="-":
 		name = doctype
 	with open(path, "w") as outfile:
-		doclist = [d.fields for d in frappe.get_doc(doctype, name).doclist]
+		doclist = frappe.get_doc(doctype, name).as_dict()
 		for d in doclist:
 			if d.get("parent"):
 				del d["parent"]

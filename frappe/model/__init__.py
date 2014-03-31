@@ -38,7 +38,7 @@ def copytables(srctype, src, srcfield, tartype, tar, tarfield, srcfields, tarfie
 		newrow.idx = d.idx
 	
 		for i in range(len(srcfields)):
-			newrow.set(tarfields[i], d.fields[srcfields[i]])
+			newrow.set(tarfields[i], d.get(srcfields[i]))
 			
 		l.append(newrow)
 	return l

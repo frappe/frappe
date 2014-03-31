@@ -15,7 +15,7 @@ class PropertySetter(Document):
 
 	def validate(self):
 		"""delete other property setters on this, if this is new"""
-		if self.fields['__islocal']:
+		if self.get('__islocal'):
 			frappe.db.sql("""delete from `tabProperty Setter` where
 				doctype_or_field = %(doctype_or_field)s
 				and doc_type = %(doc_type)s

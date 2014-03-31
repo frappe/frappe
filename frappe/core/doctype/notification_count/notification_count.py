@@ -13,7 +13,7 @@ class NotificationCount(Document):
 
 @frappe.whitelist()
 def get_notifications():
-	if frappe.in_install_app:
+	if frappe.flags.in_install_app:
 		return
 	config = get_notification_config()
 	can_read = frappe.user.get_can_read()

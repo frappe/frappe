@@ -24,7 +24,7 @@ def get_context(context):
 	blog_post.updated = global_date_format(blog_post.published_on)
 	
 	if blog_post.blogger:
-		blog_post.blogger_info = frappe.get_doc("Blogger", blog_post.blogger).fields
+		blog_post.blogger_info = frappe.get_doc("Blogger", blog_post.blogger).as_dict()
 	
 	blog_post.description = blog_post.blog_intro or blog_post.content[:140]
 	blog_post.meta_description = blog_post.description

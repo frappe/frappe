@@ -21,11 +21,11 @@ def get_sitemap_options(path):
 	return frappe._dict(sitemap_options)
 	
 def build_sitemap_options(path):
-	sitemap_options = frappe._dict(frappe.get_doc("Website Route", path).fields)
+	sitemap_options = frappe._dict(frappe.get_doc("Website Route", path).as_dict())
 	home_page = get_home_page()
 		
 	sitemap_config = frappe.get_doc("Website Template", 
-		sitemap_options.get("website_template")).fields
+		sitemap_options.get("website_template"))
 			
 	# get sitemap config fields too
 	for fieldname in ("base_template_path", "template_path", "controller", 
@@ -72,8 +72,8 @@ def set_sidebar_items(sitemap_options, pathname, home_page):
 					where ifnull(t1.parent_website_route,'')=%s 
 					and t1.public_read=1 
 					and t1.docname = t2.name
-					order by t2.{sort_by} {sort_order}""".format(**website_template.fields), 
+					order by t2.{sort_by} {sort_order}""".format(**website_template.as_dict()), 
 						pathname, as_dict=True)
 						
-			sitemap_options.children = [frappe.get_doc("Website Route", pathname).fields] + sitemap_options.children
+			sitemap_options.children = [frappe.get_doc("Website Route", pathname)] + sitemap_options.children
 			

@@ -148,7 +148,7 @@ def import_doc(d, doctype, overwrite, row_idx, submit=False, ignore_links=False)
 			bean.submit()
 		
 		return 'Inserted row (#%d) %s' % (row_idx + 1, getlink(doctype,
-			bean.fields['name']))
+			bean.get('name')))
 			
 def getlink(doctype, name):
 	return '<a href="#Form/%(doctype)s/%(name)s">%(name)s</a>' % locals()

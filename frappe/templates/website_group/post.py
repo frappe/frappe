@@ -28,7 +28,7 @@ def get_post_context(context):
 def get_parent_post_html(post, context):
 	user = frappe.get_doc("User", post.owner).doc
 	for fieldname in ("first_name", "last_name", "user_image", "location"):
-		post.set(fieldname, user.fields[fieldname])
+		post.set(fieldname, user.get(fieldname))
 	
 	return frappe.get_template("templates/includes/inline_post.html")\
 		.render({"post": post.fields, "view": context.view})
