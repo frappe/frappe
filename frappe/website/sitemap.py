@@ -21,11 +21,11 @@ def get_sitemap_options(path):
 	return frappe._dict(sitemap_options)
 	
 def build_sitemap_options(path):
-	sitemap_options = frappe._dict(frappe.get_doc("Website Route", path).as_dict())
+	sitemap_options = frappe.get_doc("Website Route", path).as_dict()
 	home_page = get_home_page()
 		
 	sitemap_config = frappe.get_doc("Website Template", 
-		sitemap_options.get("website_template"))
+		sitemap_options.get("website_template")).as_dict()
 			
 	# get sitemap config fields too
 	for fieldname in ("base_template_path", "template_path", "controller", 

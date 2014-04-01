@@ -22,6 +22,7 @@ def get_meta(doctype, cached=True):
 class Meta(Document):
 	_metaclass = True
 	_fields = {}
+	default_fields = default_fields[1:]
 	def __init__(self, doctype):
 		super(Meta, self).__init__("DocType", doctype)
 	
@@ -62,7 +63,7 @@ class Meta(Document):
 			if self.name in ("DocType", "DocField", "DocPerm"):
 				self._valid_columns = frappe.db.get_table_columns(self.name)
 			else:
-				self._valid_columns = default_fields[1:] + \
+				self._valid_columns = self.default_fields + \
 					[df.fieldname for df in self.get("fields") if df.fieldtype in type_map]
 		
 		return self._valid_columns

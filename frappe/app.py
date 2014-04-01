@@ -118,7 +118,7 @@ def serve(port=8000, profile=False, site=None, sites_path='.'):
 	from werkzeug.serving import run_simple
 
 	if profile:
-		application = ProfilerMiddleware(application)
+		application = ProfilerMiddleware(application, sort_by=('tottime', 'calls'))
 
 	if not os.environ.get('NO_STATICS'):
 		application = SharedDataMiddleware(application, {

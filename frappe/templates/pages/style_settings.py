@@ -12,7 +12,7 @@ def get_context(context):
 	doc = frappe.get_doc("Style Settings", "Style Settings")
 	prepare(doc)
 	
-	return { "doc": doc.fields }	
+	return { "doc": doc.as_dict() }	
 
 def prepare(doc):
 	from frappe.utils import cint, cstr

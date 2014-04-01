@@ -15,11 +15,13 @@ class MClient(memcache.Client):
 		
 	def get_value(self, key, builder=None):
 		val = frappe.local.cache.get(key)
-		if not val:
+		if val is None:
 			val = self.get(self.n(key))
-			if not val and builder:
+			if val is None and builder:
 				val = builder()
 				self.set_value(key, val)
+			else:
+				frappe.local.cache[key] = val
 		return val
 
 	def delete_value(self, keys):

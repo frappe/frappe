@@ -12,13 +12,11 @@ class BaseDocument(object):
 		self.update(d)
 
 	def __getattr__(self, key):
-		try:
-			return super(BaseDocument, self).__getattr__(key)
-		except AttributeError:
-			if not key.startswith("__") and key not in ("doctype", "_meta", "meta") and key in self.meta.get_valid_columns():
-				return None
-			else:
-				raise
+		# this is called only when something is not found in dir or __dict__
+		if not key.startswith("__") and key not in ("doctype", "_meta", "meta") and key in self.meta.get_valid_columns():
+			return None
+		else:
+			raise AttributeError, key
 
 	@property
 	def meta(self):
@@ -100,7 +98,7 @@ class BaseDocument(object):
 		return value
 
 	def get_valid_dict(self):
-		d = {}
+		d = frappe._dict()
 		for fieldname in self.meta.get_valid_columns():
 			d[fieldname] = self.get(fieldname)
 		return d

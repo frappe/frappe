@@ -84,7 +84,7 @@ def get_website_settings():
 	for k in ["banner_html", "brand_html", "copyright", "twitter_share_via",
 		"favicon", "facebook_share", "google_plus_one", "twitter_share", "linked_in_share",
 		"disable_signup"]:
-		if getattr(settings, k, None):
+		if hasattr(settings, k):
 			context[k] = settings.get(k)
 			
 	if not context.get("favicon"):
