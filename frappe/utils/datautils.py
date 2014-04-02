@@ -35,7 +35,7 @@ def read_csv_content_from_attached_file(doc):
 def read_csv_content(fcontent, ignore_encoding=False):
 	rows = []
 
-	if isinstance(fcontent, basestring):
+	if not isinstance(fcontent, unicode):
 		decoded = False
 		for encoding in ["utf-8", "windows-1250", "windows-1252"]:
 			try:
@@ -49,7 +49,7 @@ def read_csv_content(fcontent, ignore_encoding=False):
 			frappe.msgprint(frappe._("Unknown file encoding. Tried utf-8, windows-1250, windows-1252."), 
 				raise_exception=True)
 				
-		fcontent = fcontent.encode("utf-8").splitlines(True)
+	fcontent = fcontent.encode("utf-8").splitlines(True)
 				
 	try:
 		reader = csv.reader(fcontent)

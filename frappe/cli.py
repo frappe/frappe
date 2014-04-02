@@ -241,7 +241,7 @@ def setup_utilities(parser):
 		help="""Dump DocType as csv""")
 	parser.add_argument("--export_fixtures", default=False, action="store_true", 
 		help="""Export fixtures""")
-	parser.add_argument("--import_doclist", nargs=1, metavar="PATH", 
+	parser.add_argument("--import_doc", nargs=1, metavar="PATH", 
 		help="""Import (insert/update) doclist. If the argument is a directory, all files ending with .json are imported""")	
 		
 def setup_translation(parser):
@@ -561,10 +561,10 @@ def export_fixtures():
 	frappe.destroy()
 
 @cmd
-def import_doclist(path, force=False):
+def import_doc(path, force=False):
 	from frappe.core.page.data_import_tool import data_import_tool
 	frappe.connect()
-	data_import_tool.import_doclist(path, overwrite=force)
+	data_import_tool.import_doc(path, overwrite=force)
 	frappe.destroy()
 	
 # translation

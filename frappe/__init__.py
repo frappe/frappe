@@ -496,9 +496,9 @@ def get_application_home_page(user='Guest'):
 	else:
 		return db.get_value("Control Panel", None, "home_page")
 
-def import_doclist(path, ignore_links=False, ignore_insert=False, insert=False):
+def import_doc(path, ignore_links=False, ignore_insert=False, insert=False):
 	from frappe.core.page.data_import_tool import data_import_tool
-	data_import_tool.import_doclist(path, ignore_links=ignore_links, ignore_insert=ignore_insert, insert=insert)
+	data_import_tool.import_doc(path, ignore_links=ignore_links, ignore_insert=ignore_insert, insert=insert)
 
 def copy_doc(doc):
 	import copy
