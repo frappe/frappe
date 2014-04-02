@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 
 import frappe, os, json
 from frappe.modules import scrub, get_module_path, scrub_dt_dn
+from frappe.utils import get_datetime_str
 
 def import_files(module, dt=None, dn=None, force=False):
 	if type(module) is list:
@@ -36,7 +37,7 @@ def import_file_by_path(path, force=False):
 	if doc:
 		if not force:
 			# check if timestamps match
-			if doc['modified']==str(frappe.db.get_value(doc['doctype'], doc['name'], 'modified')):
+			if doc['modified']==get_datetime_str(frappe.db.get_value(doc['doctype'], doc['name'], 'modified')):
 				return False
 		
 		original_modified = doc["modified"]

@@ -79,8 +79,7 @@ def run(fn, args):
 	if args.get("profile") and fn!="serve":
 		pr.disable()
 		s = StringIO.StringIO()
-		sortby = 'cumulative'
-		ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
+		ps = pstats.Stats(pr, stream=s).sort_stats('tottime', 'ncalls')
 		ps.print_stats()
 		print s.getvalue()
 
@@ -341,7 +340,7 @@ def latest(verbose=True, rebuild_website_config=True):
 			print "\n".join(frappe.local.patch_log_list)
 	
 		# sync
-		frappe.model.sync.sync_all()
+		frappe.model.sync.sync_all(verbose=verbose)
 				
 		# build website config if any changes in templates etc.
 		if rebuild_website_config:
@@ -359,10 +358,10 @@ def latest(verbose=True, rebuild_website_config=True):
 		frappe.destroy()
 
 @cmd
-def sync_all(force=False):
+def sync_all(force=False, verbose=True):
 	import frappe.model.sync
 	frappe.connect()
-	frappe.model.sync.sync_all(force=force)
+	frappe.model.sync.sync_all(force=force, verbose=verbose)
 	frappe.destroy()
 
 @cmd
