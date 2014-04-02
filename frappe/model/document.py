@@ -132,6 +132,8 @@ class Document(BaseDocument):
 			d.db_insert()
 		self.run_method("after_insert")
 		self.run_post_save_methods()
+		
+		return self
 
 	def save(self, ignore_permissions=None):
 		if ignore_permissions!=None:
@@ -177,6 +179,8 @@ class Document(BaseDocument):
 						% (df.options, '%s', '%s'), (self.name, self.doctype))
 
 		self.run_post_save_methods()
+		
+		return self
 		
 	def update_single(self, d):
 		frappe.db.sql("""delete from tabSingles where doctype=%s""", self.doctype)
