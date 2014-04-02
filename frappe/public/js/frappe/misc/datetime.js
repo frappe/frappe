@@ -40,11 +40,11 @@ $.extend(frappe.datetime, {
 	},
 	now_time: function() {
 		var d = new Date();
-		return [double_digit(d.getHours()), double_digit(d.getMinutes()), double_digit(d.getSeconds())].join(":")
+		return [double_digit(d.getHours()), double_digit(d.getMinutes()), double_digit(d.getSeconds())].join(":") + "." + d.getMilliseconds();
 	},
 	get_datetime_as_string: function(d) {
 		if(!d) return null;
 		return [d.getFullYear(), double_digit(d.getMonth()+1), double_digit(d.getDate())].join("-") + " " 
-			+ [double_digit(d.getHours()), double_digit(d.getMinutes()), double_digit(d.getSeconds())].join(":");
+			+ [double_digit(d.getHours()), double_digit(d.getMinutes()), double_digit(d.getSeconds())].join(":") + "." + d.getMilliseconds();
 	}
 });

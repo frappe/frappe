@@ -9,7 +9,7 @@ import MySQLdb
 import warnings
 import frappe
 import datetime
-from frappe.utils import now
+from frappe.utils import now, get_datetime, get_datetime_str
 
 class Database:
 	"""
@@ -44,6 +44,8 @@ class Database:
 		self._conn = MySQLdb.connect(user=self.user, host=self.host, passwd=self.password, 
 			use_unicode=True, charset='utf8')
 		self._conn.converter[246]=float
+		self._conn.converter[12]=get_datetime
+		
 		self._cursor = self._conn.cursor()
 		if self.user != 'root':
 			self.use(self.user)

@@ -50,7 +50,7 @@ class CustomizeForm(Document):
 		'fieldtype': [['Currency', 'Float'], ['Small Text', 'Data'], ['Text', 'Text Editor', 'Code']],
 	}
 
-	def get(self):
+	def _get(self):
 		"""
 			Gets DocFields applied with Property Setter customizations via Customize Form Field
 		"""
@@ -60,8 +60,8 @@ class CustomizeForm(Document):
 			meta = frappe.get_meta(self.doc_type)
 			for d in meta.get("fields"):
 				new = self.append('fields', {})
-				self.set({ 'list': self.docfield_properties, 'doc' : d, 'doc_to_set': new })
-			self.set({ 'list': self.doctype_properties, 'doc': d })
+				self._set({ 'list': self.docfield_properties, 'doc' : d, 'doc_to_set': new })
+			self._set({ 'list': self.doctype_properties, 'doc': d })
 
 	def clear(self):
 		"""
@@ -69,10 +69,10 @@ class CustomizeForm(Document):
 		"""
 		# Clear table before adding new doctype's fields
 		self.set('fields', [])
-		self.set({ 'list': self.doctype_properties, 'value': None })
+		self._set({ 'list': self.doctype_properties, 'value': None })
 	
 		
-	def set(self, args):
+	def _set(self, args):
 		"""
 			Set a list of attributes of a doc to a value
 			or to attribute values of a doc passed
@@ -313,7 +313,7 @@ class CustomizeForm(Document):
 		
 			frappe.clear_cache(doctype=self.doc_type)
 
-		self.get()
+		self._get()
 
 	def remove_forbidden(self, string):
 		"""

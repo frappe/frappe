@@ -188,7 +188,7 @@ def today():
 	
 def nowtime():
 	"""return current time in hh:mm"""
-	return now_datetime().strftime('%H:%M')
+	return now_datetime().strftime('%H:%M:%S.%f')
 
 def get_first_day(dt, d_years=0, d_months=0):
 	"""
@@ -215,7 +215,7 @@ def get_last_day(dt):
 def get_datetime(datetime_str):
 	from datetime import datetime
 	if isinstance(datetime_str, datetime):
-		return datetime_str.replace(microsecond=0, tzinfo=None)
+		return datetime_str.replace(tzinfo=None)
 	
 	return datetime.strptime(datetime_str, '%Y-%m-%d %H:%M:%S.%f')
 	

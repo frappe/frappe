@@ -174,6 +174,7 @@ frappe.datetime = {
 			var val = d[2]+'-'+d[0]+'-'+d[1];
 		}
 		
+		if(time_str.index(".")===-1) time_str += ".0";
 		if(no_time_str)time_str = '';
 		
 		return val + time_str;

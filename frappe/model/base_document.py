@@ -109,7 +109,8 @@ class BaseDocument(object):
 		doc = self.get_valid_dict()
 		doc["doctype"] = self.doctype
 		for df in self.meta.get_table_fields():
-			doc[df.fieldname] = [d.as_dict() for d in (self.get(df.fieldname) or [])]
+			children = self.get(df.fieldname) or []
+			doc[df.fieldname] = [d.as_dict() for d in children]
 		return doc
 					
 	def get_table_field_doctype(self, fieldname):

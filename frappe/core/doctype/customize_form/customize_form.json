@@ -1,6 +1,6 @@
 {
  "autoname": "DL.####", 
- "creation": "2013-01-29 17:54:08.000000", 
+ "creation": "2013-01-29 17:55:08.000000", 
  "docstatus": 0, 
  "doctype": "DocType", 
  "fields": [
@@ -98,7 +98,6 @@
    "permlevel": 0
   }, 
   {
-   "default": "no add rows", 
    "fieldname": "fields", 
    "fieldtype": "Table", 
    "label": "Fields", 
