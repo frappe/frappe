@@ -298,7 +298,7 @@ class Database:
 		
 		return ((len(ret[0]) > 1 or as_dict) and ret[0] or ret[0][0]) if ret else None
 	
-	def get_values(self, doctype, filters=None, fieldname="name", ignore=None, as_dict=False, debug=False):
+	def get_values(self, doctype, filters=None, fieldname="name", ignore=None, as_dict=False, debug=False, order_by=None):
 		if isinstance(filters, list):
 			return self.get_value_for_many_names(doctype, filters, fieldname, debug=debug)
 			
@@ -311,7 +311,7 @@ class Database:
 
 		if (filters is not None) and (filters!=doctype or doctype=="DocType"):
 			try:
-				return self.get_values_from_table(fields, filters, doctype, as_dict, debug)
+				return self.get_values_from_table(fields, filters, doctype, as_dict, debug, order_by)
 			except Exception, e:
 				if ignore and e.args[0] in (1146, 1054):
 					# table or column not found, return None
@@ -355,7 +355,7 @@ class Database:
 			tabSingles where doctype=%s""", doctype))
 		
 	
-	def get_values_from_table(self, fields, filters, doctype, as_dict, debug):
+	def get_values_from_table(self, fields, filters, doctype, as_dict, debug, order_by=None):
 		fl = []
 		if isinstance(fields, (list, tuple)):
 			for f in fields:
@@ -370,9 +370,11 @@ class Database:
 				as_dict = True
 
 		conditions, filters = self.build_conditions(filters)
+		
+		order_by = ("order by " + order_by) if order_by else ""
 	
-		r = self.sql("select %s from `tab%s` where %s" % (fl, doctype,
-			conditions), filters, as_dict=as_dict, debug=debug)
+		r = self.sql("select %s from `tab%s` where %s %s" % (fl, doctype,
+			conditions, order_by), filters, as_dict=as_dict, debug=debug)
 
 		return r
 

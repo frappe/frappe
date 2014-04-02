@@ -44,7 +44,7 @@ def send_updated_docs(doc):
 	from load import get_docinfo
 	get_docinfo(doc.doctype, doc.name)
 	
-	frappe.response['main_doc_name'] = doc.name
-	frappe.response['doctype'] = doc.doctype
-	frappe.response['docname'] = doc.name
-	frappe.response.docs.append(doc)
+	d = doc.as_dict()
+	d["localname"] = doc.localname
+	
+	frappe.response.docs.append(d)

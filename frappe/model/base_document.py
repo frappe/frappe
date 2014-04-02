@@ -13,7 +13,8 @@ class BaseDocument(object):
 
 	def __getattr__(self, key):
 		# this is called only when something is not found in dir or __dict__
-		if not key.startswith("__") and key not in ("doctype", "_meta", "meta") and key in self.meta.get_valid_columns():
+		if not key.startswith("__") and key not in ("doctype", "_meta", "meta", "_table_fields", "_valid_columns") \
+			and key in self.meta.get_valid_columns():
 			return None
 		else:
 			raise AttributeError, key
@@ -53,12 +54,10 @@ class BaseDocument(object):
 				
 	def set(self, key, value):
 		if isinstance(value, list):
-			tmp = []
-			for v in value:
-				tmp.append(self._init_child(v, key))
-			value = tmp
-
-		self.__dict__[key] = value
+			self.__dict__[key] = []
+			self.extend(key, value)
+		else:
+			self.__dict__[key] = value
 			
 	def append(self, key, value=None):
 		if value==None:

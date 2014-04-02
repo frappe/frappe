@@ -7,7 +7,6 @@ import frappe
 from frappe.model.document import Document
 
 class ToDo(Document):
-	
 	def validate(self):
 		if self.is_new():
 			self.add_comment(frappe._("Assignment Added"))

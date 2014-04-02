@@ -44,7 +44,7 @@ def add(args=None):
 			"status": "Open",
 			"date": args.get('date', nowdate()),
 			"assigned_by": args.get('assigned_by', frappe.user.name),
-		}).insert(ignore_permissions=True).doc
+		}).insert(ignore_permissions=True)
 		
 		# set assigned_to if field exists
 		if frappe.get_meta(args['doctype']).get_field("assigned_to"):
