@@ -79,8 +79,7 @@ def run(fn, args):
 	if args.get("profile") and fn!="serve":
 		pr.disable()
 		s = StringIO.StringIO()
-		sortby = 'cumulative'
-		ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
+		ps = pstats.Stats(pr, stream=s).sort_stats('tottime', 'ncalls')
 		ps.print_stats()
 		print s.getvalue()
 
