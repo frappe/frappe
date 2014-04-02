@@ -8,9 +8,11 @@ from frappe.widgets.form.load import getdoctype, getdoc
 class TestFormLoad(unittest.TestCase):
 	def test_load(self):
 		getdoctype("DocType")
-		self.assertEquals(frappe.response.docs[0].name, "DocType")
-		self.assertTrue(frappe.response.docs[0].get("__js"))
+		meta = filter(lambda d: d.name=="DocType", frappe.response.docs)[0]
+		self.assertEquals(meta.name, "DocType")
+		self.assertTrue(meta.get("__js"))
 
 		frappe.response.docs = []
 		d = getdoctype("Event")
-		self.assertTrue(frappe.response.docs[0].get("__calendar_js"))
+		meta = filter(lambda d: d.name=="Event", frappe.response.docs)[0]
+		self.assertTrue(meta.get("__calendar_js"))

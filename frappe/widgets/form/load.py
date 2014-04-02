@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 import frappe, json
 import frappe.utils
+import frappe.defaults
 import frappe.widgets.form.meta
 
 @frappe.whitelist()
