@@ -138,7 +138,7 @@ def clear_event_cache():
 	for group in frappe.db.sql_list("""select name from `tabWebsite Group` where group_type='Event'"""):
 		clear_unit_views(website_group=group)
 		
-def clear_cache_on_bean_event(bean, method, *args, **kwargs):
+def clear_cache_on_doc_event(bean, method, *args, **kwargs):
 	clear_cache(path=bean.website_route, website_group=bean.website_group)
 	
 def get_pathname(group):

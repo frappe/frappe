@@ -396,8 +396,8 @@ class Document(BaseDocument):
 		def composer(self, *args, **kwargs):
 			hooks = []
 			method = f.__name__
-			for handler in frappe.get_hooks("bean_event:" + self.doctype + ":" + method) \
-				+ frappe.get_hooks("bean_event:*:" + method):
+			for handler in frappe.get_hooks("doc_event:" + self.doctype + ":" + method) \
+				+ frappe.get_hooks("doc_event:*:" + method):
 				hooks.append(frappe.getattr(handler))
 
 			composed = compose(f, *hooks)

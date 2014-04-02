@@ -63,16 +63,7 @@ def add(args=None):
 	# notify
 	if not args.get("no_notification"):
 		notify_assignment(d.assigned_by, d.owner, d.reference_type, d.reference_name, action='ASSIGN', description=args.get("description"), notify=args.get('notify'))
-		
-	# update feeed
-	try:
-		from erpnext.home import make_feed
-		from frappe.utils import get_fullname
-		make_feed('Assignment', d.reference_type, d.reference_name, frappe.session['user'],
-			'[%s] Assigned to %s' % (d.priority, get_fullname(d.owner)), '#C78F58')
-	except ImportError, e:
-		pass
-		
+				
 	return get(args)
 
 @frappe.whitelist()
