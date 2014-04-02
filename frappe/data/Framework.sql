@@ -9,8 +9,8 @@
 DROP TABLE IF EXISTS `tabDocField`;
 CREATE TABLE `tabDocField` (
   `name` varchar(120) NOT NULL,
-  `creation` datetime DEFAULT NULL,
-  `modified` datetime DEFAULT NULL,
+  `creation` datetime(6) DEFAULT NULL,
+  `modified` datetime(6) DEFAULT NULL,
   `modified_by` varchar(40) DEFAULT NULL,
   `owner` varchar(40) DEFAULT NULL,
   `docstatus` int(1) DEFAULT '0',
@@ -61,8 +61,8 @@ DROP TABLE IF EXISTS `tabDocPerm`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `tabDocPerm` (
   `name` varchar(120) NOT NULL,
-  `creation` datetime DEFAULT NULL,
-  `modified` datetime DEFAULT NULL,
+  `creation` datetime(6) DEFAULT NULL,
+  `modified` datetime(6) DEFAULT NULL,
   `modified_by` varchar(40) DEFAULT NULL,
   `owner` varchar(40) DEFAULT NULL,
   `docstatus` int(1) DEFAULT '0',
@@ -100,8 +100,8 @@ DROP TABLE IF EXISTS `tabDocType`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `tabDocType` (
   `name` varchar(180) NOT NULL DEFAULT '',
-  `creation` datetime DEFAULT NULL,
-  `modified` datetime DEFAULT NULL,
+  `creation` datetime(6) DEFAULT NULL,
+  `modified` datetime(6) DEFAULT NULL,
   `modified_by` varchar(40) DEFAULT NULL,
   `owner` varchar(180) DEFAULT NULL,
   `docstatus` int(1) DEFAULT '0',
@@ -191,7 +191,7 @@ CREATE TABLE `tabSessions` (
   `sid` varchar(120) DEFAULT NULL,
   `sessiondata` longtext,
   `ipaddress` varchar(16) DEFAULT NULL,
-  `lastupdate` datetime DEFAULT NULL,
+  `lastupdate` datetime(6) DEFAULT NULL,
   `status` varchar(20) DEFAULT NULL,
   KEY `sid` (`sid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -232,8 +232,8 @@ CREATE TABLE `__Auth` (
 DROP TABLE IF EXISTS `tabFile Data`;
 CREATE TABLE `tabFile Data` (
   `name` varchar(120) NOT NULL,
-  `creation` datetime DEFAULT NULL,
-  `modified` datetime DEFAULT NULL,
+  `creation` datetime(6) DEFAULT NULL,
+  `modified` datetime(6) DEFAULT NULL,
   `modified_by` varchar(40) DEFAULT NULL,
   `owner` varchar(40) DEFAULT NULL,
   `docstatus` int(1) DEFAULT '0',
@@ -260,8 +260,8 @@ CREATE TABLE `tabFile Data` (
 DROP TABLE IF EXISTS `tabDefaultValue`;
 CREATE TABLE `tabDefaultValue` (
   `name` varchar(120) NOT NULL,
-  `creation` datetime DEFAULT NULL,
-  `modified` datetime DEFAULT NULL,
+  `creation` datetime(6) DEFAULT NULL,
+  `modified` datetime(6) DEFAULT NULL,
   `modified_by` varchar(40) DEFAULT NULL,
   `owner` varchar(40) DEFAULT NULL,
   `docstatus` int(1) DEFAULT '0',

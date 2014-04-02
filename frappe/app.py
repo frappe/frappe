@@ -68,7 +68,8 @@ def application(request):
 		frappe.DoesNotExistError,
 		frappe.DuplicateEntryError,
 		frappe.OutgoingEmailError,
-		frappe.ValidationError), e:
+		frappe.ValidationError,
+		frappe.UnsupportedMediaType), e:
 		
 		if frappe.local.is_ajax:
 			response = frappe.utils.response.report_error(e.http_status_code)

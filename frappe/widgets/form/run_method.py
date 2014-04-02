@@ -2,6 +2,7 @@
 # MIT License. See license.txt 
 
 from __future__ import unicode_literals
+import json
 import frappe
 from frappe import _
 
@@ -14,7 +15,6 @@ def runserverobj():
 
 	wrapper = None
 	method = frappe.form_dict.get('method')
-	arg = frappe.form_dict.get('args', frappe.form_dict.get("arg"))
 	dt = frappe.form_dict.get('doctype')
 	dn = frappe.form_dict.get('docname')
 	
@@ -30,7 +30,14 @@ def runserverobj():
 		frappe.msgprint(_("No Permission"), raise_exception = True)
 	
 	if doc:
-		r = doc.run_method(method, arg)
+		try:
+			args = frappe.form_dict.get('args', frappe.form_dict.get("arg"))
+			args = json.loads(args)
+		except ValueError:
+			r = doc.run_method(method, args)
+		else:
+			r = doc.run_method(method, **args)
+		
 		if r:
 			#build output as csv
 			if cint(frappe.form_dict.get('as_csv')):

@@ -111,8 +111,10 @@ def set_content_type(response, data, path):
 	
 	response.headers["Content-Type"] = "text/html; charset: utf-8"
 	
-	if "." in path and not path.endswith(".html"):
+	if "." in path:
 		content_type, encoding = mimetypes.guess_type(path)
+		if not content_type:
+			raise frappe.UnsupportedMediaType("Cannot determine content type of {}".format(path))
 		response.headers["Content-Type"] = content_type.encode("utf-8")
 	
 	return data

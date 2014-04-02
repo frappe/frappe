@@ -49,6 +49,16 @@ class CustomizeForm(Document):
 	property_restrictions = {
 		'fieldtype': [['Currency', 'Float'], ['Small Text', 'Data'], ['Text', 'Text Editor', 'Code']],
 	}
+	
+	def on_update(self):
+		frappe.db.sql("delete from tabSingles where doctype='Customize Form'")
+		frappe.db.sql("delete from `tabCustomize Form Field`")
+		
+	def fetch_to_customize(self):
+		pass
+		
+	def save_customization(self):
+		pass
 
 	def _get(self):
 		"""

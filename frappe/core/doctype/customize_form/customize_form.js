@@ -1,102 +1,84 @@
 // Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt 
 
-$(cur_frm.wrapper).on("grid-row-render", function(e, grid_row) {
-	if(grid_row.doc && grid_row.doc.fieldtype=="Section Break") {
-		$(grid_row.row).css({"font-weight": "bold"});
-	}
-})
+frappe.provide("frappe.customize_form");
 
-cur_frm.cscript.doc_type = function() {
-	return cur_frm.call({
-		method: "get",
-		doc: cur_frm.doc,
-		callback: function(r) {
-			cur_frm.refresh();
+frappe.ui.form.on("Customize Form", "onload", function(frm) {
+	frm.fields_dict.fields.grid.cannot_add_rows = true;
+	frappe.customize_form.add_fields_help(frm);
+	
+	frm.set_query("doc_type", function() {
+		return {
+			filters: [
+				['DocType', 'issingle', '=', 0],
+				['DocType', 'in_create', '=', 0],
+				['DocType', 'name', 'not in', 'DocType, DocField, DocPerm, User, Role, UserRole, \
+					 Page, Page Role, Module Def, Print Format, Report, Customize Form, \
+					 Customize Form Field']
+			]
+		};
+	});
+
+	$(frm.wrapper).on("grid-row-render", function(e, grid_row) {
+		if(grid_row.doc && grid_row.doc.fieldtype=="Section Break") {
+			$(grid_row.row).css({"font-weight": "bold"});
 		}
 	});
-}
+});
 
-cur_frm.cscript.onload = function(doc, dt, dn) {
-	cur_frm.fields_dict.fields.grid.cannot_add_rows = true;
-	cur_frm.add_fields_help();
-}
-
-cur_frm.fields_dict.doc_type.get_query = function(doc, dt, dn) {
-	return{
-		filters:[
-			['DocType', 'issingle', '=', 0],
-			['DocType', 'in_create', '=', 0],
-			['DocType', 'name', 'not in', 'DocType, DocField, DocPerm, User, Role, UserRole,\
-				 Page, Page Role, Module Def, Print Format, Report, Customize Form, Customize Form Field']
-		]
+frappe.ui.form.on("Customize Form", "doc_type", function(frm) {
+	if(frm.doc.doc_type) {
+		return frm.call({
+			method: "fetch_to_customize",
+			doc: frm.doc,
+			callback: function(r) {
+				frm.refresh();
+			}
+		});
 	}
-}
+});
 
-cur_frm.cscript.refresh = function() {
-	cur_frm.disable_save();
-	cur_frm.frm_head.appframe.iconbar.clear("1");
-
-	cur_frm.appframe.set_title_right("Update", function() {
-		if(cur_frm.doc.doc_type) {
-			return cur_frm.call({
-				doc: cur_frm.doc,
-				method: "post",
+frappe.ui.form.on("Customize Form", "refresh", function(frm) {
+	frm.disable_save();
+	frm.frm_head.appframe.iconbar.clear("1");
+	frm.appframe.set_title_right("Update", function() {
+		if(frm.doc.doc_type) {
+			return frm.call({
+				doc: frm.doc,
+				method: "save_customization",
 				callback: function(r) {
 					if(!r.exc && r.server_messages) {
-						cur_frm.script_manager.trigger("doc_type");
-						cur_frm.frm_head.set_label(['Updated', 'label-success']);
+						frm.script_manager.trigger("doc_type");
+						frm.frm_head.set_label(['Updated', 'label-success']);
 					}
 				}
 			});
 		}
 	});
 	
-	cur_frm.add_custom_button('Refresh Form', function() {
-		cur_frm.script_manager.trigger("doc_type");
+	frm.add_custom_button('Refresh Form', function() {
+		frm.script_manager.trigger("doc_type");
 	}, "icon-refresh");
 	
-	cur_frm.add_custom_button('Reset to defaults', function() {
-		cur_frm.confirm('This will <b>remove the customizations</b> defined for this form.<br /><br />' 
-		+ 'Are you sure you want to <i>reset to defaults</i>?', cur_frm.doc, cur_frm.doctype, cur_frm.docname);
+	frm.add_custom_button('Reset to defaults', function() {
+		frappe.customize_form.confirm('This will <b>remove the customizations</b> defined for this form.<br /><br />' 
+		+ 'Are you sure you want to <i>reset to defaults</i>?', frm);
 	}, "icon-eraser");
 
-	if(!cur_frm.doc.doc_type) {
-		var frm_head = cur_frm.frm_head.appframe;
+	if(!frm.doc.doc_type) {
+		var frm_head = frm.frm_head.appframe;
 		$(frm_head.buttons['Update']).prop('disabled', true);
 		$(frm_head.buttons['Refresh Form']).prop('disabled', true);
 		$(frm_head.buttons['Reset to defaults']).prop('disabled', true);
 	}
 
-	cur_frm.cscript.hide_allow_attach(cur_frm.doc);
-	
 	if(frappe.route_options) {
 		frappe.model.set_value("Customize Form", null, "doc_type", frappe.route_options.doctype)
 		frappe.route_options = null;
 	}
-}
+});
 
-cur_frm.cscript.hide_allow_attach = function(doc) {
-	var allow_attach_list = ['Website Settings', 'Web Page', 'Timesheet', 'Ticket',
-		'Support Ticket', 'Supplier', 'Style Settings', 'Stock Reconciliation',
-		'Stock Entry', 'Serial No', 'Sales Order', 'Sales Invoice',
-		'Quotation', 'Question', 'Purchase Receipt', 'Purchase Order',
-		'Project', 'User', 'Production Order', 'Product', 'Print Format',
-		'Price List', 'Purchase Invoice', 'Page', 'Module Def',
-		'Maintenance Visit', 'Maintenance Schedule', 'Letter Head',
-		'Leave Application', 'Lead', 'Journal Voucher', 'Item', 'Material Request',
-		'Expense Claim', 'Opportunity', 'Employee', 'Delivery Note',
-		'Customer Issue', 'Customer', 'Contact Us Settings', 'Company',
-		'Blog Post', 'BOM', 'About Us Settings', 'Batch'];
-	
-	if(inList(allow_attach_list, doc.doc_type)) {
-		unhide_field('allow_attach');
-	} else {
-		hide_field('allow_attach');
-	}
-}
-
-cur_frm.confirm = function(msg, doc, dt, dn) {
+frappe.customize_form.confirm = function(msg, frm) {
 	var d = new frappe.ui.Dialog({
 		title: 'Reset To Defaults',
 		width: 500
@@ -110,16 +92,16 @@ cur_frm.confirm = function(msg, doc, dt, dn) {
 	$y(button_wrapper, {paddingTop: '15px'});
 	
 	var proceed_btn = $btn(button_wrapper, 'Proceed', function() {
-		return cur_frm.call({
-			doc: cur_frm.doc,
+		return frm.call({
+			doc: frm.doc,
 			method: "delete",
 			callback: function(r) {
 				if(r.exc) {
 					msgprint(r.exc);
 				} else {
-					cur_frm.confirm.dialog.hide();
-					cur_frm.refresh();
-					cur_frm.frm_head.set_label(['Saved', 'label-success']);
+					frm.confirm.dialog.hide();
+					frm.refresh();
+					frm.frm_head.set_label(['Saved', 'label-success']);
 				}
 			}
 		});
@@ -128,19 +110,19 @@ cur_frm.confirm = function(msg, doc, dt, dn) {
 	$y(proceed_btn, {marginRight: '20px', fontWeight: 'bold'});
 
 	var cancel_btn = $btn(button_wrapper, 'Cancel', function() {
-		cur_frm.confirm.dialog.hide();
+		frm.confirm.dialog.hide();
 	});
 
 	$(cancel_btn).addClass('btn-small btn-info');
 	$y(cancel_btn, {fontWeight: 'bold'});
 
-	cur_frm.confirm.dialog = d;
+	frm.confirm.dialog = d;
 	d.show();
 }
 
 
-cur_frm.add_fields_help = function() {
-	$(cur_frm.grids[0].parent).before(
+frappe.customize_form.add_fields_help = function(frm) {
+	$(frm.grids[0].parent).before(
 		'<div style="padding: 10px">\
 			<a id="fields_help" class="link_type">Help</a>\
 		</div>');
@@ -223,7 +205,7 @@ cur_frm.add_fields_help = function() {
 				<tr>\
 					<td></td>\
 					<td><a class='link_type' \
-							onclick='cur_frm.fields_help_dialog.hide()'\
+							onclick='frm.fields_help_dialog.hide()'\
 							style='color:grey'>Press Esc to close</a>\
 					</td>\
 				</tr>\
@@ -235,7 +217,7 @@ cur_frm.add_fields_help = function() {
 
 		d.show();
 
-		cur_frm.fields_help_dialog = d;
+		frm.fields_help_dialog = d;
 
 	});
 }

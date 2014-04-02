@@ -37,7 +37,8 @@ def import_file_by_path(path, force=False):
 	if doc:
 		if not force:
 			# check if timestamps match
-			if doc['modified']==get_datetime_str(frappe.db.get_value(doc['doctype'], doc['name'], 'modified')):
+			db_modified = frappe.db.get_value(doc['doctype'], doc['name'], 'modified')
+			if db_modified and doc['modified']==get_datetime_str(db_modified):
 				return False
 		
 		original_modified = doc["modified"]

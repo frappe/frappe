@@ -57,9 +57,9 @@ def search_widget(doctype, txt, query=None, searchfield="name", start=0,
 			# build from doctype
 			if txt:
 				filters.append([doctype, searchfield or "name", "like", txt + "%"])
-			if meta.get({"parent":doctype, "fieldname":"enabled", "fieldtype":"Check"}):
+			if meta.get("fields", {"fieldname":"enabled", "fieldtype":"Check"}):
 				filters.append([doctype, "enabled", "=", 1])
-			if meta.get({"parent":doctype, "fieldname":"disabled", "fieldtype":"Check"}):
+			if meta.get("fields", {"fieldname":"disabled", "fieldtype":"Check"}):
 				filters.append([doctype, "disabled", "!=", 1])
 
 			frappe.response["values"] = frappe.widgets.reportview.execute(doctype,
