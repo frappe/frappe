@@ -52,7 +52,7 @@ def export_json(doctype, name, path):
 		for d in doc.get_all_children():
 			d.set("parent", None)
 			d.set("name", None)
-			d.set("__islocal") = 1
+			d.set("__islocal", 1)
 		outfile.write(json.dumps([d], default=json_handler, indent=1, sort_keys=True))
 
 @frappe.whitelist()
