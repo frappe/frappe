@@ -217,7 +217,10 @@ def get_datetime(datetime_str):
 	if isinstance(datetime_str, datetime):
 		return datetime_str.replace(tzinfo=None)
 	
-	return datetime.strptime(datetime_str, '%Y-%m-%d %H:%M:%S.%f')
+	try:
+		return datetime.strptime(datetime_str, '%Y-%m-%d %H:%M:%S.%f')
+	except ValueError:
+		return datetime.strptime(datetime_str, '%Y-%m-%d %H:%M:%S')
 	
 def get_datetime_str(datetime_obj):
 	if isinstance(datetime_obj, basestring):

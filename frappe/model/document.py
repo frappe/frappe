@@ -324,9 +324,12 @@ class Document(BaseDocument):
 		frappe.throw("{}: {}".format(_("Could not find the following documents"), msg),
 			frappe.LinkValidationError)
 			
-	def get_all_children(self):
+	def get_all_children(self, parenttype=None):
 		ret = []
 		for df in self.meta.get("fields", {"fieldtype": "Table"}):
+			if parenttype:
+				if df.options==parenttype:
+					return self.get(df.fieldname)
 			value = self.get(df.fieldname)
 			if isinstance(value, list):
 				ret.extend(value)

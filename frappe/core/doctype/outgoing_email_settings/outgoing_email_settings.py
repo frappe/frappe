@@ -11,7 +11,6 @@ from frappe.model.document import Document
 class OutgoingEmailSettings(Document):
 		
 	def validate(self):
-		self.encode()
 		if self.mail_server:
 			from frappe.utils import cint
 			from frappe.utils.email_lib.smtp import SMTPServer

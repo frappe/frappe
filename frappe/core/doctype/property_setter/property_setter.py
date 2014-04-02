@@ -20,7 +20,7 @@ class PropertySetter(Document):
 				doctype_or_field = %(doctype_or_field)s
 				and doc_type = %(doc_type)s
 				and ifnull(field_name,'') = ifnull(%(field_name)s, '')
-				and property = %(property)s""", self.fields)
+				and property = %(property)s""", self.get_valid_dict())
 				
 		# clear cache
 		frappe.clear_cache(doctype = self.doc_type)
