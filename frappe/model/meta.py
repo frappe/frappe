@@ -45,7 +45,7 @@ class Meta(Document):
 				raise
 	
 	def get_link_fields(self):
-		tmp = self.get("fields", {"fieldtype":"Link"})
+		tmp = self.get("fields", {"fieldtype":"Link", "options":["!=", "[Select]"]})
 		for df in self.get("fields", {"fieldtype":"Select", "options": "^link:"}):
 			tmp.append(frappe._dict({"fieldname":df.fieldname, "label":df.label, 
 				"fieldtype":"Link", "options": df.options[5:]}))
