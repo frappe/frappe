@@ -34,7 +34,7 @@ class DocListController(Document):
 		if not doc:
 			doc = self
 		
-		df = self.meta.get_field(fieldname, parent=doc.doctype)
+		df = doc.meta.get_field(fieldname)
 		
 		val1 = doc.get(fieldname)
 		
@@ -54,7 +54,7 @@ class DocListController(Document):
 			if doc.parentfield:
 				msg += _("Row") + (" # %d: " % doc.idx)
 			
-			msg += _(self.meta.get_label(fieldname, parent=doc.doctype)) \
+			msg += _(doc.meta.get_label(fieldname)) \
 				+ " " + error_condition_map.get(condition, "") + " " + cstr(val2)
 			
 			# raise passed exception or True
@@ -68,14 +68,14 @@ class DocListController(Document):
 			
 	def round_floats_in(self, doc, fieldnames=None):
 		if not fieldnames:
-			fieldnames = [df.fieldname for df in self.meta.get({"doctype": "DocField", "parent": doc.doctype, 
-				"fieldtype": ["in", ["Currency", "Float"]]})]
+			fieldnames = [df.fieldname for df in doc.meta.get("fields", 
+				{"fieldtype": ["in", ["Currency", "Float"]]})]
 		
 		for fieldname in fieldnames:
 			doc.set(fieldname, flt(doc.get(fieldname), self.precision(fieldname, doc.parentfield)))
 			
 	def precision(self, fieldname, parentfield=None):
-		if not isinstance(parentfield, basestring):
+		if parentfield and not isinstance(parentfield, basestring):
 			parentfield = parentfield.parentfield
 		
 		if not hasattr(self, "_precision"):
@@ -83,9 +83,10 @@ class DocListController(Document):
 				"default": cint(frappe.db.get_default("float_precision")) or 3,
 				"options": {}
 			})
-		
+
 		if self._precision.setdefault(parentfield or "main", {}).get(fieldname) is None:
-			df = self.meta.get_field(fieldname, parentfield=parentfield)
+			meta = frappe.get_meta(self.meta.get_field(parentfield).options if parentfield else self.doctype)
+			df = meta.get_field(fieldname)
 			
 			if df.fieldtype == "Currency" and df.options and not self._precision.options.get(df.options):
 				self._precision.options[df.options] = get_field_precision(df, self)
