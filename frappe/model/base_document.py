@@ -44,6 +44,9 @@ class BaseDocument(object):
 			if self.get(key) is None:
 				self.set(key, value)
 	
+	def get_db_value(self, key):
+		return frappe.db.get_value(self.doctype, self.name, key)
+
 	def get(self, key=None, filters=None, limit=None, default=None):
 		if key:
 			if isinstance(key, dict):
