@@ -149,6 +149,7 @@ def make_test_objects(doctype, test_records, verbose=None):
 		if frappe.local.test_objects.get(d.doctype):
 			# do not create test records, if already exists
 			return []
+					
 		if d.meta.get_field("naming_series"):
 			if not d.naming_series:
 				d.naming_series = "_T-" + d.doctype + "-"

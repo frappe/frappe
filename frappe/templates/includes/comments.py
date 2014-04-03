@@ -57,5 +57,5 @@ def add_comment(args=None):
 	
 	template = frappe.get_template("templates/includes/comment.html")
 	
-	return template.render({"comment": comment.fields})
+	return template.render({"comment": comment.as_dict()})
 	

@@ -13,7 +13,7 @@ sort_by = "published_on"
 sort_order = "desc"
 
 def get_context(context):
-	blog_post = context.bean.doc
+	blog_post = context.doc
 	
 	# this is for double precaution. usually it wont reach this code if not published
 	if not cint(blog_post.published):
@@ -37,7 +37,7 @@ def get_context(context):
 		and comment_docname=%s order by creation""", (blog_post.name,), as_dict=1) or []
 	
 	
-	return blog_post.fields
+	return blog_post.as_dict()
 	
 @frappe.whitelist(allow_guest=True)
 def get_blog_list(start=0, by=None, category=None):

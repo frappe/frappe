@@ -37,7 +37,7 @@ class TestBlogPost(unittest.TestCase):
 		post = frappe.get_doc("Blog Post", "_test-blog-post")
 		self.assertTrue(post.has_permission("read"))
 		
-	def test_restriction_in_bean(self):
+	def test_restriction_in_doc(self):
 		frappe.defaults.add_default("Blog Category", "_Test Blog Category 1", "test1@example.com", 
 			"Restriction")
 				
@@ -68,7 +68,7 @@ class TestBlogPost(unittest.TestCase):
 			and ifnull(permlevel,0)=0""")
 		frappe.clear_cache(doctype="Blog Post")
 	
-	def test_owner_match_bean(self):
+	def test_owner_match_doc(self):
 		self.add_restricted_on_blogger()
 
 		frappe.set_user("test2@example.com")
@@ -111,12 +111,12 @@ class TestBlogPost(unittest.TestCase):
 		frappe.set_user("test2@example.com")
 
 		# user can only access restricted blog post
-		bean = frappe.get_doc("Blog Post", "_test-blog-post")
-		self.assertTrue(bean.has_permission("read"))
+		doc = frappe.get_doc("Blog Post", "_test-blog-post")
+		self.assertTrue(doc.has_permission("read"))
 
 		# and not this one
-		bean = frappe.get_doc("Blog Post", "_test-blog-post-1")
-		self.assertFalse(bean.has_permission("read"))
+		doc = frappe.get_doc("Blog Post", "_test-blog-post-1")
+		self.assertFalse(doc.has_permission("read"))
 	
 	def test_not_allowed_to_remove_self(self):
 		self.add_restriction_to_user2()
@@ -132,21 +132,21 @@ class TestBlogPost(unittest.TestCase):
 		self.add_restricted_on_blogger()
 
 		frappe.set_user("test2@example.com")
-		bean = frappe.get_doc("Blog Post", "_test-blog-post-1")
-		self.assertFalse(bean.has_permission("read"))
+		doc = frappe.get_doc("Blog Post", "_test-blog-post-1")
+		self.assertFalse(doc.has_permission("read"))
 
 		frappe.set_user("test1@example.com")
 		add("test2@example.com", "Blog Post", "_test-blog-post-1")
 
 		frappe.set_user("test2@example.com")
-		bean = frappe.get_doc("Blog Post", "_test-blog-post-1")
+		doc = frappe.get_doc("Blog Post", "_test-blog-post-1")
 
-		self.assertTrue(bean.has_permission("read"))
+		self.assertTrue(doc.has_permission("read"))
 		
 	def test_set_only_once(self):
 		blog_post = frappe.get_meta("Blog Post")
 		blog_post.get_field("title").set_only_once = 1
-		bean = frappe.get_doc("Blog Post", "_test-blog-post-1")
-		bean.title = "New"
-		self.assertRaises(frappe.CannotChangeConstantError, bean.save)
+		doc = frappe.get_doc("Blog Post", "_test-blog-post-1")
+		doc.title = "New"
+		self.assertRaises(frappe.CannotChangeConstantError, doc.save)
 		blog_post.get_field("title").set_only_once = 0

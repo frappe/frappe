@@ -13,9 +13,9 @@ class TestDocument(unittest.TestCase):
 		self.assertEquals(d.doctype, "DocType")
 		self.assertEquals(d.name, "User")
 		self.assertEquals(d.allow_rename, 1)
-		self.assertTrue(isinstance(d.fields, list))
+		self.assertTrue(isinstance(d.as_dict(), list))
 		self.assertTrue(isinstance(d.permissions, list))
-		self.assertTrue(filter(lambda d: d.fieldname=="email", d.fields))
+		self.assertTrue(filter(lambda d: d.fieldname=="email", d.as_dict()))
 		
 	def test_load_single(self):
 		d = frappe.get_doc("Website Settings", "Website Settings")

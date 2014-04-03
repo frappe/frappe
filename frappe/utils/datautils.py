@@ -128,27 +128,27 @@ def import_doc(d, doctype, overwrite, row_idx, submit=False, ignore_links=False)
 	"""import main (non child) document"""
 	if d.get("name") and frappe.db.exists(doctype, d['name']):
 		if overwrite:
-			bean = frappe.get_doc(doctype, d['name'])
-			bean.ignore_links = ignore_links
-			bean.update(d)
+			doc = frappe.get_doc(doctype, d['name'])
+			doc.ignore_links = ignore_links
+			doc.update(d)
 			if d.get("docstatus") == 1:
-				bean.update_after_submit()
+				doc.update_after_submit()
 			else:
-				bean.save()
+				doc.save()
 			return 'Updated row (#%d) %s' % (row_idx + 1, getlink(doctype, d['name']))
 		else:
 			return 'Ignored row (#%d) %s (exists)' % (row_idx + 1, 
 				getlink(doctype, d['name']))
 	else:
-		bean = frappe.get_doc([d])
-		bean.ignore_links = ignore_links
-		bean.insert()
+		doc = frappe.get_doc([d])
+		doc.ignore_links = ignore_links
+		doc.insert()
 		
 		if submit:
-			bean.submit()
+			doc.submit()
 		
 		return 'Inserted row (#%d) %s' % (row_idx + 1, getlink(doctype,
-			bean.get('name')))
+			doc.get('name')))
 			
 def getlink(doctype, name):
 	return '<a href="#Form/%(doctype)s/%(name)s">%(name)s</a>' % locals()

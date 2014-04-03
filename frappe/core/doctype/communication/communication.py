@@ -15,12 +15,12 @@ from frappe.utils import scrub_urls
 from frappe.model.document import Document
 
 class Communication(Document):
-	def get_parent_bean(self):
+	def get_parent_doc(self):
 		return frappe.get_doc(self.parenttype, self.parent)
 		
 	def update_parent(self):
 		"""update status of parent Lead or Contact based on who is replying"""
-		observer = self.get_parent_bean().get_attr("on_communication")
+		observer = self.get_parent_doc().get_attr("on_communication")
 		if observer:
 			observer()
 	
@@ -58,8 +58,8 @@ def _make(doctype=None, name=None, content=None, subject=None, sent_or_received 
 	if isinstance(sender, (tuple, list)) and len(sender)==2:
 		sender = formataddr(sender)
 	
-	comm = frappe.new_bean('Communication')
-	d = comm.doc
+	comm = frappe.new_doc('Communication')
+	d = comm
 	d.subject = subject
 	d.content = content
 	d.sent_or_received = sent_or_received
@@ -81,7 +81,7 @@ def _make(doctype=None, name=None, content=None, subject=None, sent_or_received 
 	comm.insert()
 	
 	if send_email:
-		d = comm.doc
+		d = comm
 		send_comm_email(d, name, sent_via, print_html, attachments, send_me_a_copy)
 
 @frappe.whitelist()

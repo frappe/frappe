@@ -9,7 +9,7 @@ doctype = "Web Page"
 condition_field = "published"
 
 def get_context(context):
-	web_page = context.bean
+	web_page = context.doc
 	
 	if web_page.slideshow:
 		web_page.update(get_slideshow(web_page))
@@ -29,4 +29,4 @@ def get_context(context):
 	
 	web_page.update(context)
 	
-	return web_page.fields
+	return web_page.as_dict()

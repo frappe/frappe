@@ -32,16 +32,16 @@ def set_value(doctype, name, fieldname, value):
 		
 	doc = frappe.db.get_value(doctype, name, ["parenttype", "parent"], as_dict=True)
 	if doc and doc.parent:
-		bean = frappe.get_doc(doc.parenttype, doc.parent)
-		child = bean.getone({"doctype": doctype, "name": name})
+		doc = frappe.get_doc(doc.parenttype, doc.parent)
+		child = doc.getone({"doctype": doctype, "name": name})
 		child.set(fieldname, value)
 	else:
-		bean = frappe.get_doc(doctype, name)
-		bean.set(fieldname, value)
+		doc = frappe.get_doc(doctype, name)
+		doc.set(fieldname, value)
 		
-	bean.save()
+	doc.save()
 	
-	return bean.as_dict()
+	return doc.as_dict()
 
 @frappe.whitelist()
 def insert(doclist):
@@ -54,21 +54,21 @@ def insert(doclist):
 	if doclist[0].get("parent") and doclist[0].get("parenttype"):
 		# inserting a child record
 		d = doclist[0]
-		bean = frappe.get_doc(d["parenttype"], d["parent"])
-		bean.append(d)
-		bean.save()
+		doc = frappe.get_doc(d["parenttype"], d["parent"])
+		doc.append(d)
+		doc.save()
 		return [d]
 	else:
-		bean = frappe.get_doc(doclist).insert()
-		return bean.as_dict()
+		doc = frappe.get_doc(doclist).insert()
+		return doc.as_dict()
 
 @frappe.whitelist()
 def save(doclist):
 	if isinstance(doclist, basestring):
 		doclist = json.loads(doclist)
 
-	bean = frappe.get_doc(doclist).save()
-	return bean.as_dict()
+	doc = frappe.get_doc(doclist).save()
+	return doc.as_dict()
 	
 @frappe.whitelist()
 def rename_doc(doctype, old_name, new_name, merge=False):
@@ -104,7 +104,7 @@ def set_default(key, value, parent=None):
 
 @frappe.whitelist()
 def make_width_property_setter():
-	doc = json.loads(frappe.form_dict.doc)
+	doc = json.loads(frappe.form_dict)
 	if doc["doctype"]=="Property Setter" and doc["property"]=="width":
 		frappe.get_doc(doc).insert(ignore_permissions = True)
 
@@ -117,9 +117,9 @@ def bulk_update(docs):
 			ddoc = {key: val for key, val in doc.iteritems() if key not in ['doctype', 'docname']}
 			doctype = doc['doctype']
 			docname = doc['docname']
-			bean = frappe.get_doc(doctype, docname)
-			bean.update(ddoc)
-			bean.save()
+			doc = frappe.get_doc(doctype, docname)
+			doc.update(ddoc)
+			doc.save()
 		except:
 			failed_docs.append({
 				'doc': doc,

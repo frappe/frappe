@@ -34,7 +34,7 @@ def get_context(context):
 def get_group_context(group, view, context):
 	cache_key = "website_group_context:{}:{}".format(group, view)
 
-	views = get_views(context.bean.group_type)
+	views = get_views(context.doc.group_type)
 	view = frappe._dict(views.get(view))
 	
 	if can_cache(view.no_cache):
@@ -50,10 +50,10 @@ def get_group_context(group, view, context):
 	return group_context
 	
 def build_group_context(group, view, views, context):
-	title = "{} - {}".format(context.bean.group_title, view.get("label"))
+	title = "{} - {}".format(context.doc.group_title, view.get("label"))
 	
 	group_context = frappe._dict({
-		"group": context.bean.fields,
+		"group": context.doc.as_dict(),
 		"view": view,
 		"views": [v[1] for v in sorted(views.iteritems(), key=lambda (k, v): v.get("idx"))],
 		"title": title,
@@ -87,7 +87,7 @@ def build_view_context(context):
 	
 def guess_group_view(context):
 	group = context.docname
-	view = frappe.form_dict.view or get_default_view(context.bean.group_type)
+	view = frappe.form_dict.view or get_default_view(context.doc.group_type)
 	return group, view
 	
 def get_default_view(group_type):
@@ -138,8 +138,8 @@ def clear_event_cache():
 	for group in frappe.db.sql_list("""select name from `tabWebsite Group` where group_type='Event'"""):
 		clear_unit_views(website_group=group)
 		
-def clear_cache_on_doc_event(bean, method, *args, **kwargs):
-	clear_cache(path=bean.website_route, website_group=bean.website_group)
+def clear_cache_on_doc_event(doc, method, *args, **kwargs):
+	clear_cache(path=doc.website_route, website_group=doc.website_group)
 	
 def get_pathname(group):
 	return frappe.db.get_value("Website Route", {"ref_doctype": "Website Group",

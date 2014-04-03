@@ -8,7 +8,7 @@ from frappe.utils import now_datetime, cint
 
 def set_new_name(doc):
 	if getattr(doc, "_new_name_set", False):
-		# already set by bean
+		# already set by doc
 		return
 
 	doc._new_name_set = True

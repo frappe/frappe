@@ -21,10 +21,10 @@ def get_meta(doctype, cached=True):
 
 class Meta(Document):
 	_metaclass = True
-	_fields = {}
 	default_fields = default_fields[1:]
 	special_doctypes = ("DocField", "DocPerm", "Role", "DocType", "Module Def")
 	def __init__(self, doctype):
+		self._fields = {}
 		super(Meta, self).__init__("DocType", doctype)
 		self.process()
 	
@@ -108,19 +108,19 @@ class Meta(Document):
 	def apply_property_setters(self):
 		for ps in frappe.db.sql("""select * from `tabProperty Setter` where
 			doc_type=%s""", (self.name,), as_dict=1):
-			if ps['doctype_or_field']=='DocType':
-				if ps.get('property_type', None) in ('Int', 'Check'):
-					ps['value'] = cint(ps['value'])
+			if ps.doctype_or_field=='DocType':
+				if ps.property_type in ('Int', 'Check'):
+					ps.value = cint(ps.value)
 
-				self.set(ps["property"], ps["value"])
+				self.set(ps.property, ps.value)
 			else:
-				docfield = self.get("fields", {"fieldname":ps["fieldname"]}, limit=1)[0]
+				docfield = self.get("fields", {"fieldname":ps.field_name}, limit=1)[0]
 
 				if not docfield: continue
-				if ps["property"] in integer_docfield_properties:
-					ps['value'] = cint(ps['value'])
+				if ps.property in integer_docfield_properties:
+					ps.value = cint(ps.value)
 
-				docfield.set(ps["property"], ps["value"])
+				docfield.set(ps.property, ps.value)
 				
 	def sort_fields(self):
 		"""sort on basis of previous_field"""

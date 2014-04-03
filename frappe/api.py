@@ -41,17 +41,17 @@ def handle():
 	
 	elif call=="resource":
 		if "run_method" in frappe.local.form_dict:
-			bean = frappe.get_doc(doctype, name)
+			doc = frappe.get_doc(doctype, name)
 
 			if frappe.local.request.method=="GET":
-				if not bean.has_permission("read"):
+				if not doc.has_permission("read"):
 					frappe.throw("No Permission", frappe.PermissionError)
-				bean.run_method(frappe.local.form_dict.run_method, **frappe.local.form_dict)
+				doc.run_method(frappe.local.form_dict.run_method, **frappe.local.form_dict)
 				
 			if frappe.local.request.method=="POST":
-				if not bean.has_permission("write"):
+				if not doc.has_permission("write"):
 					frappe.throw("No Permission", frappe.PermissionError)
-				bean.run_method(frappe.local.form_dict.run_method, **frappe.local.form_dict)
+				doc.run_method(frappe.local.form_dict.run_method, **frappe.local.form_dict)
 				frappe.db.commit()
 
 		else:

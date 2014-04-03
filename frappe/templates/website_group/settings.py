@@ -44,7 +44,7 @@ def add_sitemap_permission(group, user):
 	})
 	permission.insert(ignore_permissions=True)
 	
-	user = permission.fields
+	user = permission.as_dict()
 	user.update(frappe.db.get_value("User", user.user, 
 		["name", "first_name", "last_name", "user_image", "location"], as_dict=True))
 	

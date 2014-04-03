@@ -37,7 +37,7 @@ def get_cal_events(m_st, m_end):
 	doclist, rl = [], []
 	for r in res1 + res2 + res3 + res4:
 		if not r in rl:
-			doclist += frappe.model.get('Event', r[0])
+			doclist += frappe.get_doc('Event', r[0])
 			rl.append(r)
 	
 	return doclist

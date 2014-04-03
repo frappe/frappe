@@ -48,16 +48,16 @@ def get_args():
 				<pre>%s</pre>""" % repr(frappe.form_dict)
 		}
 		
-	bean = frappe.get_doc(frappe.form_dict.doctype, frappe.form_dict.name)
+	doc = frappe.get_doc(frappe.form_dict.doctype, frappe.form_dict.name)
 	for ptype in ("read", "print"):
-		if not frappe.has_permission(bean.doctype, ptype, bean):
+		if not frappe.has_permission(doc.doctype, ptype, doc):
 			return {
 				"body": """<h1>Error</h1>
 					<p>No {ptype} permission</p>""".format(ptype=ptype)
 			}
 		
 	return {
-		"body": get_html(bean),
+		"body": get_html(doc),
 		"css": get_print_style(frappe.form_dict.style),
 		"comment": frappe.session.user
 	}

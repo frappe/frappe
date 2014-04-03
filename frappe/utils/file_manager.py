@@ -56,7 +56,7 @@ def save_url(file_url, dt, dn):
 		f.insert();
 	except frappe.DuplicateEntryError:
 		return frappe.get_doc("File Data", f.duplicate_entry)		
-	return f.doc
+	return f
 
 def get_uploaded_content():	
 	# should not be unicode when reading a file, hence using frappe.form
@@ -153,7 +153,7 @@ def save_file(fname, content, dt, dn, decode=False):
 	except frappe.DuplicateEntryError:
 		return frappe.get_doc("File Data", f.duplicate_entry)
 
-	return f.doc
+	return f
 
 def get_file_versions(files_path, main, extn):
 	out = []

@@ -23,12 +23,10 @@ def get_signature(params, nonce, secret=None):
 	signature.update(params)
 	return signature.hexdigest()
 
-def verify_using_bean(bean, signature, cmd):
-	controller = bean.get_controller()
-	params = controller.get_signature_params()
-	return signature == get_signature(params, controller.get_nonce())
+def verify_using_doc(doc, signature, cmd):
+	params = doc.get_signature_params()
+	return signature == get_signature(params, doc.get_nonce())
 	
-def get_url_using_bean(bean, cmd):
-	controller = bean.get_controller()
-	params = controller.get_signature_params()
-	return get_url(cmd, params, controller.get_nonce())
+def get_url_using_doc(doc, cmd):
+	params = doc.get_signature_params()
+	return get_url(cmd, params, doc.get_nonce())

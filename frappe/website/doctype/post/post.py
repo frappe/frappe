@@ -54,7 +54,7 @@ class Post(Document):
 	def send_email_on_reply(self):
 		owner_fullname = get_fullname(self.owner)
 		
-		parent_post = frappe.get_doc("Post", self.parent_post).doc
+		parent_post = frappe.get_doc("Post", self.parent_post)
 		
 		message = self.get_reply_email_message(self.name, owner_fullname)
 		

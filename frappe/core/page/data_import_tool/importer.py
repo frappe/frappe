@@ -181,7 +181,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 			continue
 		
 		row_idx = i + start_row
-		bean = None
+		doc = None
 		
 		doc = get_doc(row_idx)
 		try:
@@ -209,8 +209,8 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 					ret.append('Submitted row (#%d) %s' % (row_idx + 1, getlink(doc.doctype, doc.name)))
 		except Exception, e:
 			error = True
-			if bean:
-				frappe.errprint(bean.as_dict())
+			if doc:
+				frappe.errprint(doc.as_dict())
 			err_msg = frappe.local.message_log and "<br>".join(frappe.local.message_log) or cstr(e)
 			ret.append('Error for row (#%d) %s : %s' % (row_idx + 1, 
 				len(row)>1 and row[1] or "", err_msg))

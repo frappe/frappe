@@ -105,13 +105,13 @@ def has_unrestricted_access(doc, verbose=True):
 	
 def has_controller_permissions(doc):
 	if doc.get("__islocal"):
-		bean = frappe.get_doc([doc])
+		doc = frappe.get_doc([doc])
 	else:
-		bean = frappe.get_doc(doc.doctype, doc.name)
+		doc = frappe.get_doc(doc.doctype, doc.name)
 	
 	condition_methods = frappe.get_hooks("has_permission:" + doc.doctype)
 	for method in frappe.get_hooks("has_permission:" + doc.doctype):
-		if not frappe.call(frappe.get_attr(method), doc=doc, bean=bean):
+		if not frappe.call(frappe.get_attr(method), doc=doc, doc=doc):
 			return False
 		
 	return True

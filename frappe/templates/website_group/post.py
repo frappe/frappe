@@ -26,12 +26,12 @@ def get_post_context(context):
 	return frappe.cache().get_value(cache_key, lambda: _get_post_context())
 	
 def get_parent_post_html(post, context):
-	user = frappe.get_doc("User", post.owner).doc
+	user = frappe.get_doc("User", post.owner)
 	for fieldname in ("first_name", "last_name", "user_image", "location"):
 		post.set(fieldname, user.get(fieldname))
 	
 	return frappe.get_template("templates/includes/inline_post.html")\
-		.render({"post": post.fields, "view": context.view})
+		.render({"post": post.as_dict(), "view": context.view})
 
 def get_child_posts_html(post, context):
 	posts = frappe.db.sql("""select p.*, pr.user_image, pr.first_name, pr.last_name

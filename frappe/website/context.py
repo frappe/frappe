@@ -44,13 +44,13 @@ def get_context(path):
 	return context
 		
 def build_context(sitemap_options):
-	"""get_context method of bean or module is supposed to render content templates and push it into context"""
+	"""get_context method of doc or module is supposed to render content templates and push it into context"""
 	context = frappe._dict(sitemap_options)
 	context.update(get_website_settings())
 	
-	# provide bean
+	# provide doc
 	if context.doctype and context.docname:
-		context.bean = frappe.get_doc(context.doctype, context.docname)
+		context.doc = frappe.get_doc(context.doctype, context.docname)
 	
 	if context.controller:
 		module = frappe.get_module(context.controller)
@@ -61,8 +61,8 @@ def build_context(sitemap_options):
 	if context.get("base_template_path") != context.get("template_path") and not context.get("rendered"):
 		context.data = render_blocks(context)
 	
-	# remove bean, as it is not pickle friendly and its purpose is over
-	if context.bean:
-		del context["bean"]
+	# remove doc, as it is not pickle friendly and its purpose is over
+	if context.doc:
+		del context["doc"]
 			
 	return context

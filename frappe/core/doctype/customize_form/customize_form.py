@@ -152,7 +152,7 @@ class CustomizeForm(Document):
 						if ref_d.get("__custom_field"):
 							# update custom field
 							if self.has_property_changed(ref_d, new_d, prop):
-								# using set_value not bean because validations are called
+								# using set_value not doc because validations are called
 								# in the end anyways
 								frappe.db.set_value("Custom Field", ref_d.name, prop, new_d.get(prop))
 						else:
@@ -294,13 +294,13 @@ class CustomizeForm(Document):
 				frappe.db.sql("""
 					DELETE FROM `tabProperty Setter`
 					WHERE doc_type = %(doc_type)s
-					AND property = %(property)s""", d.fields)
+					AND property = %(property)s""", d.as_dict())
 			else:
 				frappe.db.sql("""
 					DELETE FROM `tabProperty Setter`
 					WHERE doc_type = %(doc_type)s
 					AND field_name = %(field_name)s
-					AND property = %(property)s""", d.fields)
+					AND property = %(property)s""", d.as_dict())
 			
 			# Save the property setter doc if not marked for deletion i.e. delete=0
 			if not d.delete:

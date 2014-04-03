@@ -135,13 +135,13 @@ class sync(object):
 			
 			
 		# update timestamp
-		route_bean = frappe.get_doc("Website Route", {"ref_doctype": "Web Page", 
+		route_doc = frappe.get_doc("Website Route", {"ref_doctype": "Web Page", 
 			"docname": page.name})
-		route_bean.static_file_timestamp = cint(os.path.getmtime(fpath))
-		route_bean.save()
+		route_doc.static_file_timestamp = cint(os.path.getmtime(fpath))
+		route_doc.save()
 
 		self.updated += 1
-		print route_bean.name + " inserted"
+		print route_doc.name + " inserted"
 		self.synced.append(route)
 	
 	def update_web_page(self, route_details, fpath, priority, parent_website_route):			
@@ -153,11 +153,11 @@ class sync(object):
 			page.idx = priority
 			page.save()
 
-			route_bean = frappe.get_doc("Website Route", route_details.name)
-			route_bean.static_file_timestamp = cint(os.path.getmtime(fpath))
-			route_bean.save()
+			route_doc = frappe.get_doc("Website Route", route_details.name)
+			route_doc.static_file_timestamp = cint(os.path.getmtime(fpath))
+			route_doc.save()
 
-			print route_bean.name + " updated"
+			print route_doc.name + " updated"
 			self.updated += 1
 			
 		self.synced.append(route_details.name)

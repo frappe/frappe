@@ -176,23 +176,24 @@ def validate_fields(fields):
 	
 	def check_illegal_mandatory(d):
 		if d.fieldtype in ('HTML', 'Button', 'Section Break', 'Column Break') and d.reqd:
-			frappe.msgprint('%(label)s [%(fieldtype)s] cannot be mandatory' % d.fields, 
+			print d.fieldname, d.reqd
+			frappe.msgprint('%(parent)s, %(label)s [%(fieldtype)s] cannot be mandatory' % d.as_dict(), 
 				raise_exception=1)
 	
 	def check_link_table_options(d):
 		if d.fieldtype in ("Link", "Table"):
 			if not d.options:
-				frappe.msgprint("""#%(idx)s %(label)s: Options must be specified for Link and Table type fields""" % d.fields, 
+				frappe.msgprint("""#%(idx)s %(label)s: Options must be specified for Link and Table type fields""" % d.as_dict(), 
 					raise_exception=1)
 			if d.options=="[Select]":
 				return
 			if d.options != d.parent and not frappe.db.exists("DocType", d.options):
-				frappe.msgprint("""#%(idx)s %(label)s: Options %(options)s must be a valid "DocType" for Link and Table type fields""" % d.fields, 
+				frappe.msgprint("""#%(idx)s %(label)s: Options %(options)s must be a valid "DocType" for Link and Table type fields""" % d.as_dict(), 
 					raise_exception=1)
 
 	def check_hidden_and_mandatory(d):
 		if d.hidden and d.reqd and not d.default:
-			frappe.msgprint("""#%(idx)s %(label)s: Cannot be hidden and mandatory (reqd) without default""" % d.fields,
+			frappe.msgprint("""#%(idx)s %(label)s: Cannot be hidden and mandatory (reqd) without default""" % d.as_dict(),
 				raise_exception=True)
 
 	def check_min_items_in_list(fields):
