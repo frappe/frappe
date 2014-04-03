@@ -102,6 +102,17 @@ data = [
 		]
 	},
 	{
+		"label": _("Printing and Branding"),
+		"icon": "icon-print",
+		"items": [
+			{
+				"type": "doctype",
+				"name": "Print Format",
+				"description": _("Customized HTML Templates for printing transctions.")
+			},
+		]
+	},
+	{
 		"label": _("Customize"),
 		"icon": "icon-glass",
 		"items": [

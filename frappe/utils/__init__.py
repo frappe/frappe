@@ -216,12 +216,15 @@ def get_datetime(datetime_str):
 	from datetime import datetime
 	if isinstance(datetime_str, datetime):
 		return datetime_str.replace(tzinfo=None)
-	
-	try:
+		
+	if datetime_str=='0000-00-00 00:00:00.000000':
+		return None
+		
+	if len(datetime_str)==26:
 		return datetime.strptime(datetime_str, '%Y-%m-%d %H:%M:%S.%f')
-	except ValueError:
+	else:
 		return datetime.strptime(datetime_str, '%Y-%m-%d %H:%M:%S')
-	
+
 def get_datetime_str(datetime_obj):
 	if isinstance(datetime_obj, basestring):
 		datetime_obj = get_datetime(datetime_obj)
