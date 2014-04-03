@@ -23,8 +23,7 @@ class WebsiteSettings(DocListController):
 		"""validate url in top bar items"""
 		for top_bar_item in self.get("top_bar_items"):
 			if top_bar_item.parent_label:
-				parent_label_item = self.doclist.get({"parentfield": "top_bar_items", 
-					"label": top_bar_item.parent_label})
+				parent_label_item = self.get("top_bar_items", {"label": top_bar_item.parent_label})
 				
 				if not parent_label_item:
 					# invalid item

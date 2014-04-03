@@ -37,9 +37,8 @@ class Workflow(Document):
 
 	def update_default_workflow_status(self):
 		docstatus_map = {}
-		states = self.doclist.get({"doctype": "Workflow Document State"})
-		states.sort(lambda x, y: x.idx - y.idx)
-		for d in self.doclist.get({"doctype": "Workflow Document State"}):
+		states = self.get("workflow_document_states")
+		for d in states:
 			if not d.doc_status in docstatus_map:
 				frappe.db.sql("""update `tab%s` set `%s` = %s where \
 					ifnull(`%s`, '')='' and docstatus=%s""" % (self.document_type, self.workflow_state_field,

@@ -80,6 +80,9 @@ class BaseDocument(object):
 				self.append(key, v)
 		else:
 			raise ValueError
+			
+	def remove(self, doc):
+		self.get(doc.parentfield).remove(d)
 	
 	def _init_child(self, value, key):
 		if not self.doctype:
