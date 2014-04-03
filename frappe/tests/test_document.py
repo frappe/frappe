@@ -26,14 +26,14 @@ class TestDocument(unittest.TestCase):
 	def test_insert(self):
 		d = frappe.get_doc({
 			"doctype":"Event",
-			"subject":"_Test Event 1",
+			"subject":"test-doc-test-event 1",
 			"starts_on": "2014-01-01",
 			"event_type": "Public"
 		})
 		d.insert()
 		self.assertTrue(d.name.startswith("EV"))
 		self.assertEquals(frappe.db.get_value("Event", d.name, "subject"), 
-			"_Test Event 1")
+			"test-doc-test-event 1")
 			
 		# test if default values are added
 		self.assertEquals(d.send_reminder, 1)
@@ -42,7 +42,7 @@ class TestDocument(unittest.TestCase):
 	def test_insert_with_child(self):
 		d = frappe.get_doc({
 			"doctype":"Event",
-			"subject":"_Test Event 2",
+			"subject":"test-doc-test-event 2",
 			"starts_on": "2014-01-01",
 			"event_type": "Public",
 			"event_individuals": [
@@ -54,7 +54,7 @@ class TestDocument(unittest.TestCase):
 		d.insert()
 		self.assertTrue(d.name.startswith("EV"))
 		self.assertEquals(frappe.db.get_value("Event", d.name, "subject"), 
-			"_Test Event 2")
+			"test-doc-test-event 2")
 		
 		d1 = frappe.get_doc("Event", d.name)
 		self.assertTrue(d1.event_individuals[0].person, "Administrator")
