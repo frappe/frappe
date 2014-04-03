@@ -36,6 +36,8 @@ class BaseDocument(object):
 		
 	def get(self, key=None, filters=None, limit=None, default=None):
 		if key:
+			if isinstance(key, dict):
+				return _filter(self.get_all_children(), key, limit=limit)
 			if filters:
 				if isinstance(filters, dict):
 					value = _filter(self.__dict__.get(key), filters, limit=limit)
@@ -54,7 +56,9 @@ class BaseDocument(object):
 			return value
 		else:
 			return self.__dict__
-				
+	def getone(self, key, filters=None):
+		return self.get(key, filters=filters, limit=1)[0]
+		
 	def set(self, key, value):
 		if isinstance(value, list):
 			self.__dict__[key] = []
@@ -247,7 +251,7 @@ def _filter(data, filters, limit=None):
 				else:
 					fval = ("=", fval)
 			
-			if not frappe.compare(d.get(f), fval[0], fval[1]):
+			if not frappe.compare(getattr(d, f, None), fval[0], fval[1]):
 				add = False
 				break
 

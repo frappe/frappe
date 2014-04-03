@@ -46,6 +46,9 @@ def get_mapped_doc(from_doctype, from_docname, table_maps, target_doc=None,
 				if table_map.get("add_if_empty") and row_exists_for_parentfield.get(target_parentfield):
 					continue
 					
+				if table_map.get("filter") and not table_map.get("fitler")(source_doc):
+					continue
+					
 				target_d = frappe.new_doc(target_child_doctype, target_doc, target_parentfield)
 				map_doc(source_d, target_d, table_map, source_doc)
 				target_d.idx = None

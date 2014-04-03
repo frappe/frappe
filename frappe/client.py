@@ -33,7 +33,7 @@ def set_value(doctype, name, fieldname, value):
 	doc = frappe.db.get_value(doctype, name, ["parenttype", "parent"], as_dict=True)
 	if doc and doc.parent:
 		bean = frappe.get_doc(doc.parenttype, doc.parent)
-		child = bean.doclist.getone({"doctype": doctype, "name": name})
+		child = bean.getone({"doctype": doctype, "name": name})
 		child.set(fieldname, value)
 	else:
 		bean = frappe.get_doc(doctype, name)
@@ -104,11 +104,9 @@ def set_default(key, value, parent=None):
 
 @frappe.whitelist()
 def make_width_property_setter():
-	doclist = json.loads(frappe.form_dict.doclist)
-	if doclist[0]["doctype"]=="Property Setter" and doclist[0]["property"]=="width":
-		bean = frappe.get_doc(doclist)
-		bean.ignore_permissions = True
-		bean.insert()
+	doc = json.loads(frappe.form_dict.doc)
+	if doc["doctype"]=="Property Setter" and doc["property"]=="width":
+		frappe.get_doc(doc).insert(ignore_permissions = True)
 
 @frappe.whitelist()
 def bulk_update(docs):

@@ -50,25 +50,23 @@ def get_args():
 		
 	bean = frappe.get_doc(frappe.form_dict.doctype, frappe.form_dict.name)
 	for ptype in ("read", "print"):
-		if not frappe.has_permission(bean.doctype, ptype, bean.doc):
+		if not frappe.has_permission(bean.doctype, ptype, bean):
 			return {
 				"body": """<h1>Error</h1>
 					<p>No {ptype} permission</p>""".format(ptype=ptype)
 			}
 		
 	return {
-		"body": get_html(bean.doc, bean.doclist),
+		"body": get_html(bean),
 		"css": get_print_style(frappe.form_dict.style),
 		"comment": frappe.session.user
 	}
 
-def get_html(doc, doclist, print_format=None):
+def get_html(doc, name=None, print_format=None):
 	from jinja2 import Environment
 	
-	if isinstance(doc, basestring) and isinstance(doclist, basestring):
-		bean = frappe.get_doc(doc, doclist)
-		doc = bean.doc
-		doclist = bean.doclist
+	if isinstance(doc, basestring) and isinstance(name, basestring):
+		doc = frappe.get_doc(doc, name)
 
 	template = Environment().from_string(get_print_format_name(doc.doctype, 
 		print_format or frappe.form_dict.format))
@@ -76,7 +74,6 @@ def get_html(doc, doclist, print_format=None):
 	
 	args = {
 		"doc": doc,
-		"doclist": doclist,
 		"meta": meta,
 		"frappe": frappe,
 		"utils": frappe.utils

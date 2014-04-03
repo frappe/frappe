@@ -315,10 +315,6 @@ def new_doc(doctype, parent_doc=None, parentfield=None):
 	from frappe.model.create_new import get_new_doc
 	return get_new_doc(doctype, parent_doc, parentfield)
 
-def doclist(lst=None):
-	from frappe.model.doclist import DocList
-	return DocList(lst)
-
 def set_value(doctype, docname, fieldname, value):
 	import frappe.client
 	return frappe.client.set_value(doctype, docname, fieldname, value)

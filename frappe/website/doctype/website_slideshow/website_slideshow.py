@@ -19,6 +19,6 @@ def get_slideshow(bean):
 	slideshow = frappe.get_doc("Website Slideshow", bean.slideshow)
 	
 	return {
-		"slides": slideshow.doclist.get({"doctype":"Website Slideshow Item"}),
+		"slides": slideshow.get({"doctype":"Website Slideshow Item"}),
 		"slideshow_header": slideshow.header or ""
 	}
