@@ -111,7 +111,7 @@ def has_controller_permissions(doc):
 	
 	condition_methods = frappe.get_hooks("has_permission:" + doc.doctype)
 	for method in frappe.get_hooks("has_permission:" + doc.doctype):
-		if not frappe.call(frappe.get_attr(method), doc=doc, doc=doc):
+		if not frappe.call(frappe.get_attr(method), doc=doc):
 			return False
 		
 	return True
