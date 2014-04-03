@@ -11,6 +11,11 @@ from frappe.model.document import Document
 class EmptyTableError(frappe.ValidationError): pass
 
 class DocListController(Document):
+	def __init__(self, arg1, arg2=None):
+		super(DocListController, self).__init__(arg1, arg2)
+		if hasattr(self, "setup"):
+			self.setup()
+			
 	def validate_value(self, fieldname, condition, val2, doc=None, raise_exception=None):
 		"""check that value of fieldname should be 'condition' val2
 			else throw exception"""

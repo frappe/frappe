@@ -105,7 +105,7 @@ def has_unrestricted_access(doc, verbose=True):
 	
 def has_controller_permissions(doc):
 	if doc.get("__islocal"):
-		doc = frappe.get_doc([doc])
+		doc = frappe.get_doc(doc)
 	else:
 		doc = frappe.get_doc(doc.doctype, doc.name)
 	

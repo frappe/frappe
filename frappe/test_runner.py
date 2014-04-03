@@ -141,7 +141,7 @@ def make_test_objects(doctype, test_records, verbose=None):
 	records = []
 		
 	for doc in test_records:
-		if not hasattr(doc, "doctype"):
+		if not doc.get("doctype"):
 			doc["doctype"] = doctype
 			
 		d = frappe.copy_doc(doc)

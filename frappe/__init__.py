@@ -212,6 +212,7 @@ def set_user(username):
 	from frappe.utils.user import User
 	local.session.user = username
 	local.session.sid = username
+	local.cache = {}
 	local.session.data = {}
 	local.user = User(username)
 	local.restrictions = None

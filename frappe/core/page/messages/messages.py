@@ -66,12 +66,12 @@ def post(arg=None):
 		import json
 		arg = json.loads(arg)
 
-		d = frappe.new_doc('Comment')
+	d = frappe.new_doc('Comment')
 	d.parenttype = arg.get("parenttype")
 	d.comment = arg['txt']
 	d.comment_docname = arg['contact']
 	d.comment_doctype = 'Message'
-	d.save()
+	d.insert(ignore_permissions=True)
 	
 	delete_notification_count_for("Messages")
 
