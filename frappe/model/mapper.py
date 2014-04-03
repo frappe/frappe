@@ -14,7 +14,7 @@ def get_mapped_doc(from_doctype, from_docname, table_maps, target_doc=None,
 	
 	source_doc = frappe.get_doc(from_doctype, from_docname)
 
-	if not ignore_permissions and not doc.has_permission("read"):
+	if not ignore_permissions and not source_doc.has_permission("read"):
 		frappe.msgprint("No Permission", raise_exception=frappe.PermissionError)
 
 	# main

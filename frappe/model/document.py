@@ -222,7 +222,7 @@ class Document(BaseDocument):
 			return
 		
 		new_doc = frappe.new_doc(self.doctype)
-		self.set_missing_values(new_doc)
+		self.update_if_missing(new_doc)
 
 		# children
 		for df in self.meta.get_table_fields():
@@ -230,7 +230,7 @@ class Document(BaseDocument):
 			value = self.get(df.fieldname)
 			if isinstance(value, list):
 				for d in value:
-					d.set_missing_values(new_doc)
+					d.update_if_missing(new_doc)
 
 	def check_if_latest(self):
 		conflict = False

@@ -33,7 +33,17 @@ class BaseDocument(object):
 			self.set("doctype", d.get("doctype"))
 		for key, value in d.iteritems():
 			self.set(key, value)
-		
+			
+	def update_if_missing(self, d):
+		if isinstance(d, BaseDocument):
+			d = d.get_valid_dict()
+			
+		if "doctype" in d:
+			self.set("doctype", d.get("doctype"))
+		for key, value in d.iteritems():
+			if self.get(key) is None:
+				self.set(key, value)
+	
 	def get(self, key=None, filters=None, limit=None, default=None):
 		if key:
 			if isinstance(key, dict):
@@ -86,7 +96,7 @@ class BaseDocument(object):
 			raise ValueError
 			
 	def remove(self, doc):
-		self.get(doc.parentfield).remove(d)
+		self.get(doc.parentfield).remove(doc)
 	
 	def _init_child(self, value, key):
 		if not self.doctype:
@@ -164,11 +174,6 @@ class BaseDocument(object):
 		
 		if self.docstatus is not None:	
 			self.docstatus = cint(self.docstatus)
-			
-	def set_missing_values(self, d):
-		for key, value in d.get_valid_dict().iteritems():
-			if self.get(key) is None:
-				self.set(key, value)
 				
 	def _get_missing_mandatory_fields(self):
 		"""Get mandatory fields that do not have any values"""
