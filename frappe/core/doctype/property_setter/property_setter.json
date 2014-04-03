@@ -45,7 +45,7 @@
    "label": "DocType", 
    "options": "DocType", 
    "permlevel": 0, 
-   "reqd": 0, 
+   "reqd": 1, 
    "search_index": 1
   }, 
   {

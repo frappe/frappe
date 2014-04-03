@@ -26,6 +26,9 @@ class CustomField(Document):
 		if not self.idx:
 			self.idx = len(frappe.get_meta(self.dt).get("fields")) + 1
 		
+		if not self.fieldname:
+			frappe.throw(_("Fieldname not set for Custom Field"))
+		
 	def on_update(self):
 		# validate field
 		from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype
@@ -38,9 +41,10 @@ class CustomField(Document):
 		self.create_property_setter()
 
 		# update the schema
-		from frappe.model.db_schema import updatedb
-		updatedb(self.dt)
-
+		if not frappe.flags.in_test:
+			from frappe.model.db_schema import updatedb
+			updatedb(self.dt)
+			
 	def on_trash(self):
 		# delete property setter entries
 		frappe.db.sql("""\

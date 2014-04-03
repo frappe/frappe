@@ -23,6 +23,7 @@ class Meta(Document):
 	_metaclass = True
 	default_fields = default_fields[1:]
 	special_doctypes = ("DocField", "DocPerm", "Role", "DocType", "Module Def")
+	
 	def __init__(self, doctype):
 		self._fields = {}
 		super(Meta, self).__init__("DocType", doctype)
@@ -98,7 +99,8 @@ class Meta(Document):
 	def add_custom_fields(self):
 		try:
 			self.extend("fields", frappe.db.sql("""SELECT * FROM `tabCustom Field`
-				WHERE dt = %s AND docstatus < 2""", (self.name,), as_dict=1))
+				WHERE dt = %s AND docstatus < 2""", (self.name,), as_dict=1, 
+				update={"is_custom_field": True}))
 		except Exception, e:
 			if e.args[0]==1146:
 				return

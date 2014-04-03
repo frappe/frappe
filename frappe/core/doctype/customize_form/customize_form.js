@@ -4,7 +4,6 @@
 frappe.provide("frappe.customize_form");
 
 frappe.ui.form.on("Customize Form", "onload", function(frm) {
-	frm.fields_dict.fields.grid.cannot_add_rows = true;
 	frappe.customize_form.add_fields_help(frm);
 	
 	frm.set_query("doc_type", function() {
@@ -215,7 +214,7 @@ frappe.customize_form.add_fields_help = function(frm) {
 				<tr>\
 					<td></td>\
 					<td><a class='link_type' \
-							onclick='frm.fields_help_dialog.hide()'\
+							onclick='frappe.customize_form.fields_help_dialog.hide()'\
 							style='color:grey'>Press Esc to close</a>\
 					</td>\
 				</tr>\
@@ -227,7 +226,7 @@ frappe.customize_form.add_fields_help = function(frm) {
 
 		d.show();
 
-		frm.fields_help_dialog = d;
+		frappe.customize_form.fields_help_dialog = d;
 
 	});
 }
