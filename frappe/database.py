@@ -159,7 +159,8 @@ class Database:
 		self.sql(query)
 
 	def check_transaction_status(self, query):
-		if self.transaction_writes and query and query.strip().split()[0].lower() in ['start', 'alter', 'drop', 'create', "begin"]:
+		if not frappe.flags.in_test and self.transaction_writes and \
+			query and query.strip().split()[0].lower() in ['start', 'alter', 'drop', 'create', "begin"]:
 			raise Exception, 'This statement can cause implicit commit'
 
 		if query and query.strip().lower() in ('commit', 'rollback'):
