@@ -12,7 +12,7 @@ from frappe.utils import cstr
 from frappe.model.document import Document
 
 class CustomizeForm(Document):
-	doctype_properties = [
+	doctype_properties = (
 		'search_fields',
 		'default_print_format',
 		'read_only_onload',
@@ -21,9 +21,9 @@ class CustomizeForm(Document):
 		'allow_copy',
 		'allow_attach',
 		'max_attachments' 
-	]
+	)
 	
-	docfield_properties = [
+	docfield_properties = (
 		'idx',
 		'label',
 		'fieldtype',
@@ -44,69 +44,65 @@ class CustomizeForm(Document):
 		'description',
 		'default',
 		'name',
-	]
+	)
+	
+	allowed_fieldtype_change = (('Currency', 'Float'), ('Small Text', 'Data'), 
+		('Text', 'Text Editor', 'Code'))
 
-	property_restrictions = {
-		'fieldtype': [['Currency', 'Float'], ['Small Text', 'Data'], ['Text', 'Text Editor', 'Code']],
-	}
+	# property_restrictions = {
+	# 	'fieldtype': (('Currency', 'Float'), ('Small Text', 'Data'), ('Text', 'Text Editor', 'Code')),
+	# }
 	
 	def on_update(self):
 		frappe.db.sql("delete from tabSingles where doctype='Customize Form'")
 		frappe.db.sql("delete from `tabCustomize Form Field`")
 		
 	def fetch_to_customize(self):
-		pass
+		self.clear_existing_doc()
+		if not self.doc_type:
+			return
+			
+		meta = frappe.get_meta(self.doc_type)
+		
+		# doctype properties
+		for fieldname in self.doctype_properties:
+			self.set(fieldname, meta.get(fieldname))
+		
+		for d in meta.get("fields"):
+			new_d = {}
+			for fieldname in self.docfield_properties:
+				new_d[fieldname] = d.get(fieldname)
+			self.append("fields", new_d)
+				
+		# NOTE doc is sent to clientside by run_method
+				
+	def clear_existing_doc(self):
+		doc_type = self.doc_type
+		
+		for fieldname in self.meta.get_valid_columns():
+			self.set(fieldname, None)
+			
+		for df in self.meta.get_table_fields():
+			self.set(df.fieldname, [])
+			
+		self.doc_type = doc_type
+		self.name = "Customize Form"
 		
 	def save_customization(self):
-		pass
-
-	def _get(self):
-		"""
-			Gets DocFields applied with Property Setter customizations via Customize Form Field
-		"""
-		self.clear()
-
-		if self.doc_type:
-			meta = frappe.get_meta(self.doc_type)
-			for d in meta.get("fields"):
-				new = self.append('fields', {})
-				self._set({ 'list': self.docfield_properties, 'doc' : d, 'doc_to_set': new })
-			self._set({ 'list': self.doctype_properties, 'doc': d })
-
-	def clear(self):
-		"""
-			Clear fields in the doc
-		"""
-		# Clear table before adding new doctype's fields
-		self.set('fields', [])
-		self._set({ 'list': self.doctype_properties, 'value': None })
-	
-		
-	def _set(self, args):
-		"""
-			Set a list of attributes of a doc to a value
-			or to attribute values of a doc passed
+		if not self.doc_type:
+			return
 			
-			args can contain:
-			* list --> list of attributes to set
-			* doc_to_set --> defaults to self
-			* value --> to set all attributes to one value eg. None
-			* doc --> copy attributes from doc to doc_to_set
-		"""
-		if not 'doc_to_set' in args:
-			args['doc_to_set'] = self
-
-		if 'list' in args:
-			if 'value' in args:
-				for f in args['list']:
-					args['doc_to_set'].set(f, None)
-			elif 'doc' in args:
-				for f in args['list']:
-					args['doc_to_set'].set(f, args['doc'].get(f))
-		else:
-			frappe.msgprint("Please specify args['list'] to set", raise_exception=1)
-
-
+		frappe.clear_cache(doctype=self.doc_type)
+		self.fetch_to_customize()
+		
+	def reset_to_defaults(self):
+		if not self.doc_type:
+			return
+		
+		frappe.db.sql("""delete from `tabProperty Setter` where doc_type=%s""", self.doc_type)
+		frappe.clear_cache(doctype=self.doc_type)
+		self.fetch_to_customize()
+		
 	def post(self):
 		"""
 			Save diff between Customize Form Bean and DocType Bean as property setter entries
@@ -311,24 +307,3 @@ class CustomizeForm(Document):
 				d.insert()
 
 	
-	def delete(self):
-		"""
-			Deletes all property setter entries for the selected doctype
-			and resets it to standard
-		"""
-		if self.doc_type:
-			frappe.db.sql("""
-				DELETE FROM `tabProperty Setter`
-				WHERE doc_type = %s""", self.doc_type)
-		
-			frappe.clear_cache(doctype=self.doc_type)
-
-		self._get()
-
-	def remove_forbidden(self, string):
-		"""
-			Replace forbidden characters with a space
-		"""
-		forbidden = ['%', "'", '"', '#', '*', '?', '`']
-		for f in forbidden:
-			string.replace(f, ' ')

@@ -48,7 +48,7 @@ def export_json(doctype, name, path):
 	if not name or name=="-":
 		name = doctype
 	with open(path, "w") as outfile:
-		doc = frappe.get_doc(doctype, name).as_dict()
+		doc = frappe.get_doc(doctype, name)
 		for d in doc.get_all_children():
 			d.set("parent", None)
 			d.set("name", None)

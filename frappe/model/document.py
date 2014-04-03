@@ -383,16 +383,21 @@ class Document(BaseDocument):
 			
 	@staticmethod
 	def hook(f):
-		def add_to_response(new_response):
-			if isinstance(new_response, dict):
-				frappe.local.response.update(new_response)
+		def add_to_return_value(self, new_return_value):
+			if isinstance(new_return_value, dict):
+				if not self.get("_return_value"):
+					self._return_value = {}
+				self._return_value.update(new_return_value)
+			else:
+				self._return_value = new_return_value or self.get("_return_value")
 
 		def compose(fn, *hooks):
 			def runner(self, method, *args, **kwargs):
-				add_to_response(fn(self, *args, **kwargs))
+				add_to_return_value(self, fn(self, *args, **kwargs))
 				for f in hooks:
-					add_to_response(f(self, method, *args, **kwargs))
-				return frappe.local.response
+					add_to_return_value(self, f(self, method, *args, **kwargs))
+				
+				return self._return_value
 			
 			return runner
 		

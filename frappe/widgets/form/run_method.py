@@ -35,6 +35,8 @@ def runserverobj():
 			args = json.loads(args)
 		except ValueError:
 			r = doc.run_method(method, args)
+		except TypeError:
+			r = doc.run_method(method)
 		else:
 			r = doc.run_method(method, **args)
 		

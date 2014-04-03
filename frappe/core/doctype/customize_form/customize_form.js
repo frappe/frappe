@@ -41,36 +41,38 @@ frappe.ui.form.on("Customize Form", "doc_type", function(frm) {
 frappe.ui.form.on("Customize Form", "refresh", function(frm) {
 	frm.disable_save();
 	frm.frm_head.appframe.iconbar.clear("1");
-	frm.appframe.set_title_right("Update", function() {
-		if(frm.doc.doc_type) {
-			return frm.call({
-				doc: frm.doc,
-				method: "save_customization",
-				callback: function(r) {
-					if(!r.exc && r.server_messages) {
-						frm.script_manager.trigger("doc_type");
-						frm.frm_head.set_label(['Updated', 'label-success']);
+	
+	if(frm.doc.doc_type) {
+		frm.appframe.set_title_right("Update", function() {
+			if(frm.doc.doc_type) {
+				return frm.call({
+					doc: frm.doc,
+					method: "save_customization",
+					callback: function(r) {
+						if(!r.exc) {
+							frappe.customize_form.clear_locals_and_refresh(frm);
+						}
 					}
-				}
-			});
-		}
-	});
+				});
+			}
+		});
 	
-	frm.add_custom_button('Refresh Form', function() {
-		frm.script_manager.trigger("doc_type");
-	}, "icon-refresh");
+		frm.add_custom_button('Refresh Form', function() {
+			frm.script_manager.trigger("doc_type");
+		}, "icon-refresh");
 	
-	frm.add_custom_button('Reset to defaults', function() {
-		frappe.customize_form.confirm('This will <b>remove the customizations</b> defined for this form.<br /><br />' 
-		+ 'Are you sure you want to <i>reset to defaults</i>?', frm);
-	}, "icon-eraser");
-
-	if(!frm.doc.doc_type) {
-		var frm_head = frm.frm_head.appframe;
-		$(frm_head.buttons['Update']).prop('disabled', true);
-		$(frm_head.buttons['Refresh Form']).prop('disabled', true);
-		$(frm_head.buttons['Reset to defaults']).prop('disabled', true);
+		frm.add_custom_button('Reset to defaults', function() {
+			frappe.customize_form.confirm('This will <b>remove the customizations</b> defined for this form.<br /><br />' 
+			+ 'Are you sure you want to <i>reset to defaults</i>?', frm);
+		}, "icon-eraser");
 	}
+
+	// if(!frm.doc.doc_type) {
+	// 	var frm_head = frm.frm_head.appframe;
+	// 	$(frm_head.buttons['Update']).prop('disabled', true);
+	// 	$(frm_head.buttons['Refresh Form']).prop('disabled', true);
+	// 	$(frm_head.buttons['Reset to defaults']).prop('disabled', true);
+	// }
 
 	if(frappe.route_options) {
 		frappe.model.set_value("Customize Form", null, "doc_type", frappe.route_options.doctype)
@@ -79,6 +81,8 @@ frappe.ui.form.on("Customize Form", "refresh", function(frm) {
 });
 
 frappe.customize_form.confirm = function(msg, frm) {
+	if(!frm.doc.doc_type) return;
+	
 	var d = new frappe.ui.Dialog({
 		title: 'Reset To Defaults',
 		width: 500
@@ -94,14 +98,13 @@ frappe.customize_form.confirm = function(msg, frm) {
 	var proceed_btn = $btn(button_wrapper, 'Proceed', function() {
 		return frm.call({
 			doc: frm.doc,
-			method: "delete",
+			method: "reset_to_defaults",
 			callback: function(r) {
 				if(r.exc) {
 					msgprint(r.exc);
 				} else {
-					frm.confirm.dialog.hide();
-					frm.refresh();
-					frm.frm_head.set_label(['Saved', 'label-success']);
+					frappe.customize_form.confirm.dialog.hide();
+					frappe.customize_form.clear_locals_and_refresh(frm);
 				}
 			}
 		});
@@ -110,16 +113,23 @@ frappe.customize_form.confirm = function(msg, frm) {
 	$y(proceed_btn, {marginRight: '20px', fontWeight: 'bold'});
 
 	var cancel_btn = $btn(button_wrapper, 'Cancel', function() {
-		frm.confirm.dialog.hide();
+		frappe.customize_form.confirm.dialog.hide();
 	});
 
 	$(cancel_btn).addClass('btn-small btn-info');
 	$y(cancel_btn, {fontWeight: 'bold'});
 
-	frm.confirm.dialog = d;
+	frappe.customize_form.confirm.dialog = d;
 	d.show();
 }
 
+frappe.customize_form.clear_locals_and_refresh = function(frm) {
+	// clear doctype from locals
+	frappe.model.clear_doc("DocType", frm.doc.doc_type);
+	delete frappe.meta.docfield_copy[frm.doc.doc_type];
+	
+	frm.refresh();
+}
 
 frappe.customize_form.add_fields_help = function(frm) {
 	$(frm.grids[0].parent).before(

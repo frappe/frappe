@@ -100,7 +100,6 @@ def compressBuf(buf):
 	
 def json_handler(obj):
 	"""serialize non-serializable data for json"""
-	
 	# serialize date
 	if isinstance(obj, (datetime.date, datetime.timedelta, datetime.datetime)):
 		return unicode(obj)

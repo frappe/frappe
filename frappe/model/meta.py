@@ -23,14 +23,16 @@ class Meta(Document):
 	_metaclass = True
 	_fields = {}
 	default_fields = default_fields[1:]
+	special_doctypes = ("DocField", "DocPerm", "Role", "DocType", "Module Def")
 	def __init__(self, doctype):
 		super(Meta, self).__init__("DocType", doctype)
+		self.process()
 	
 	def load_from_db(self):
 		try:
 			super(Meta, self).load_from_db()
 		except frappe.DoesNotExistError:
-			if self.doctype=="DocType" and self.name in ("DocField", "DocPerm", "Role", "DocType", "Module Def"):
+			if self.doctype=="DocType" and self.name in self.special_doctypes:
 				fname = frappe.scrub(self.name)
 				with open(frappe.get_app_path("frappe", "core", "doctype", fname, fname + ".json"), "r") as f:
 					txt = f.read()
@@ -60,7 +62,7 @@ class Meta(Document):
 
 	def get_valid_columns(self):
 		if not hasattr(self, "_valid_columns"):
-			if self.name in ("DocType", "DocField", "DocPerm"):
+			if self.name in ("DocType", "DocField", "DocPerm", "Property Setter"):
 				self._valid_columns = frappe.db.get_table_columns(self.name)
 			else:
 				self._valid_columns = self.default_fields + \
@@ -84,6 +86,11 @@ class Meta(Document):
 		return self.get_field(fieldname).options
 		
 	def process(self):
+		# don't process for special doctypes
+		# prevent's circular dependency
+		if self.name in self.special_doctypes:
+			return
+		
 		self.add_custom_fields()
 		self.apply_property_setters()
 		self.sort_fields()
@@ -91,7 +98,7 @@ class Meta(Document):
 	def add_custom_fields(self):
 		try:
 			self.extend("fields", frappe.db.sql("""SELECT * FROM `tabCustom Field`
-				WHERE dt = %s AND docstatus < 2""", (doctype,), as_dict=1))
+				WHERE dt = %s AND docstatus < 2""", (self.name,), as_dict=1))
 		except Exception, e:
 			if e.args[0]==1146:
 				return
@@ -100,7 +107,7 @@ class Meta(Document):
 	
 	def apply_property_setters(self):
 		for ps in frappe.db.sql("""select * from `tabProperty Setter` where
-			doc_type=%s""", (doctype,), as_dict=1):
+			doc_type=%s""", (self.name,), as_dict=1):
 			if ps['doctype_or_field']=='DocType':
 				if ps.get('property_type', None) in ('Int', 'Check'):
 					ps['value'] = cint(ps['value'])
@@ -131,7 +138,7 @@ class Meta(Document):
 			while (pending and maxloops>0):
 				maxloops -= 1
 				for d in pending[:]:
-					if d.previous_field:
+					if d.get("previous_field"):
 						# field already added
 						for n in newlist:
 							if n.fieldname==d.previous_field:
@@ -190,20 +197,6 @@ def get_parent_dt(dt):
 def set_fieldname(field_id, fieldname):
 	frappe.db.set_value('DocField', field_id, 'fieldname', fieldname)
 
-def get_table_fields(doctype):
-	child_tables = [[d[0], d[1]] for d in frappe.db.sql("""select options, fieldname 
-		from tabDocField where parent=%s and fieldtype='Table'""", doctype, as_list=1)]
-	
-	try:
-		custom_child_tables = [[d[0], d[1]] for d in frappe.db.sql("""select options, fieldname 
-			from `tabCustom Field` where dt=%s and fieldtype='Table'""", doctype, as_list=1)]
-	except Exception, e:
-		if e.args[0]!=1146:
-			raise
-		custom_child_tables = []
-
-	return child_tables + custom_child_tables
-			
 def get_field_currency(df, doc):
 	"""get currency based on DocField options and fieldvalue in doc"""
 	currency = None

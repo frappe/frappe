@@ -8,12 +8,14 @@ from frappe.utils import cint, flt, cstr, now
 from frappe.model.naming import set_new_name
 
 class BaseDocument(object):
+	ignore_in_getter = ("doctype", "_meta", "meta", "_table_fields", "_valid_columns")
+	
 	def __init__(self, d):
 		self.update(d)
 
 	def __getattr__(self, key):
 		# this is called only when something is not found in dir or __dict__
-		if not key.startswith("__") and key not in ("doctype", "_meta", "meta", "_table_fields", "_valid_columns") \
+		if not key.startswith("__") and key not in self.ignore_in_getter \
 			and key in self.meta.get_valid_columns():
 			return None
 		else:
@@ -44,7 +46,8 @@ class BaseDocument(object):
 			else:
 				value = self.__dict__.get(key, default)
 			
-			if value is None and key!="_meta" and key in (d.fieldname for d in self.meta.get_table_fields()):
+			if value is None and key not in self.ignore_in_getter \
+				and key in (d.fieldname for d in self.meta.get_table_fields()):
 				self.set(key, [])
 				value = self.__dict__.get(key)
 				
@@ -62,7 +65,7 @@ class BaseDocument(object):
 	def append(self, key, value=None):
 		if value==None:
 			value={}
-		if isinstance(value, dict):
+		if isinstance(value, (dict, BaseDocument)):
 			if not self.get(key):
 				self.__dict__[key] = []
 			value = self._init_child(value, key)
@@ -97,7 +100,7 @@ class BaseDocument(object):
 		return value
 
 	def get_valid_dict(self):
-		d = frappe._dict()
+		d = {}
 		for fieldname in self.meta.get_valid_columns():
 			d[fieldname] = self.get(fieldname)
 		return d
