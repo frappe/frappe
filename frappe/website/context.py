@@ -28,41 +28,37 @@ def get_context(path):
 
 		context = build_context(context)
 
-		if can_cache(context.no_cache):				
+		if can_cache(context.no_cache):
 			frappe.cache().set_value(cache_key, context)
 
 	else:
 		context["access"] = get_access(context.pathname)
-	
+
 	if not context.data:
 		context.data = {}
 	context.data["path"] = path
 	context.update(context.data or {})
-		
+
 	# TODO private pages
-	
+
 	return context
-		
+
 def build_context(sitemap_options):
 	"""get_context method of doc or module is supposed to render content templates and push it into context"""
 	context = frappe._dict(sitemap_options)
 	context.update(get_website_settings())
-	
+
 	# provide doc
 	if context.doctype and context.docname:
 		context.doc = frappe.get_doc(context.doctype, context.docname)
-	
+
 	if context.controller:
 		module = frappe.get_module(context.controller)
 
 		if module and hasattr(module, "get_context"):
 			context.update(module.get_context(context) or {})
-	
+
 	if context.get("base_template_path") != context.get("template_path") and not context.get("rendered"):
 		context.data = render_blocks(context)
-	
-	# remove doc, as it is not pickle friendly and its purpose is over
-	if context.doc:
-		del context["doc"]
-			
+
 	return context

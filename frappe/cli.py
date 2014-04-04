@@ -299,9 +299,14 @@ def add_to_installed_apps(*apps):
 @cmd
 def reinstall(verbose=True, quiet=False):
 	verbose = verbose or not quiet
-	frappe.connect()
-	frappe.clear_cache()
-	frappe.db.close()
+	try:
+		frappe.connect()
+		frappe.clear_cache()
+	except:
+		pass
+	finally:
+		frappe.db.close()
+
 	install(db_name=frappe.conf.db_name, verbose=verbose, force=True, reinstall=True)
 
 @cmd
