@@ -36,9 +36,15 @@ class Meta(Document):
 			if self.doctype=="DocType" and self.name in self.special_doctypes:
 				fname = frappe.scrub(self.name)
 				with open(frappe.get_app_path("frappe", "core", "doctype", fname, fname + ".json"), "r") as f:
-					txt = f.read()
-
-				self.__dict__.update(json.loads(txt))
+					txt = json.loads(f.read())
+					
+				for d in txt.get("fields", []):
+					d["doctype"] = "DocField"
+				
+				for d in txt.get("permissions", []):
+					d["doctype"] = "DocPerm"
+					
+				self.__dict__.update(txt)
 				self.fields = [BaseDocument(d) for d in self.fields]
 				if hasattr(self, "permissions"):
 					self.permissions = [BaseDocument(d) for d in self.permissions]

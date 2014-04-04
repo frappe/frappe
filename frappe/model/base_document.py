@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _, msgprint
 from frappe.utils import cint, flt, cstr, now
+from frappe.model import default_fields
 from frappe.model.naming import set_new_name
 
 class BaseDocument(object):
@@ -12,14 +13,6 @@ class BaseDocument(object):
 	
 	def __init__(self, d):
 		self.update(d)
-
-	def __getattr__(self, key):
-		# this is called only when something is not found in dir or __dict__
-		if not key.startswith("__") and key not in self.ignore_in_getter \
-			and key in self.meta.get_valid_columns():
-			return None
-		else:
-			raise AttributeError, key
 
 	@property
 	def meta(self):
@@ -69,6 +62,7 @@ class BaseDocument(object):
 			return value
 		else:
 			return self.__dict__
+
 	def getone(self, key, filters=None):
 		return self.get(key, filters=filters, limit=1)[0]
 		
@@ -83,10 +77,10 @@ class BaseDocument(object):
 		if value==None:
 			value={}
 		if isinstance(value, (dict, BaseDocument)):
-			if not self.get(key):
+			if not self.__dict__.get(key):
 				self.__dict__[key] = []
 			value = self._init_child(value, key)
-			self.get(key).append(value)
+			self.__dict__[key].append(value)
 			return value
 		else:
 			raise ValueError
@@ -105,16 +99,17 @@ class BaseDocument(object):
 		if not self.doctype:
 			return value
 		if not isinstance(value, BaseDocument):
-			if not "doctype" in value:
+			if "doctype" not in value:
 				value["doctype"] = self.get_table_field_doctype(key)
 				if not value["doctype"]:
 					raise AttributeError, key
 			value = BaseDocument(value)
+			value.init_valid_columns()
 			
 		value.parent = self.name
 		value.parenttype = self.doctype
 		value.parentfield = key
-		if not value.idx:
+		if not getattr(value, "idx", None):
 			value.idx = len(self.get(key) or []) + 1
 
 		return value
@@ -124,6 +119,18 @@ class BaseDocument(object):
 		for fieldname in self.meta.get_valid_columns():
 			d[fieldname] = self.get(fieldname)
 		return d
+		
+	def init_valid_columns(self):
+		for key in default_fields:
+			if key not in self.__dict__:
+				self.__dict__[key] = None
+		
+		if getattr(self, "_metaclass", False) or self.doctype in ("DocType", "DocField", "DocPerm"):
+			return
+		
+		for key in self.meta.get_valid_columns():
+			if key not in self.__dict__:
+				self.__dict__[key] = None
 		
 	def is_new(self):
 		return self.get("__islocal")

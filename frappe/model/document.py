@@ -65,6 +65,7 @@ class Document(BaseDocument):
 
 		elif isinstance(arg1, dict):
 			super(Document, self).__init__(arg1)
+			self.init_valid_columns()
 		
 		else:
 			# incorrect arguments. let's not proceed.
@@ -73,6 +74,7 @@ class Document(BaseDocument):
 	def load_from_db(self):
 		if not getattr(self, "_metaclass", False) and self.meta.issingle:
 			self.update(frappe.db.get_singles_dict(self.doctype))
+			self.init_valid_columns()
 			self._fix_numeric_types()
 		
 		else:
@@ -82,20 +84,20 @@ class Document(BaseDocument):
 					self.doctype, self.name), frappe.DoesNotExistError)
 			self.update(d)
 			
-			if self.name=="DocType" and self.doctype=="DocType":
-				from frappe.model.meta import doctype_table_fields
-				table_fields = doctype_table_fields
-			else:
-				table_fields = self.meta.get_table_fields()
+		if self.name=="DocType" and self.doctype=="DocType":
+			from frappe.model.meta import doctype_table_fields
+			table_fields = doctype_table_fields
+		else:
+			table_fields = self.meta.get_table_fields()
 
-			for df in table_fields:
-				children = frappe.db.get_values(df.options,
-					{"parent": self.name, "parenttype": self.doctype, "parentfield": df.fieldname}, 
-					"*", as_dict=True, order_by="idx asc")
-				if children:
-					self.set(df.fieldname, children)
-				else:
-					self.set(df.fieldname, [])
+		for df in table_fields:
+			children = frappe.db.get_values(df.options,
+				{"parent": self.name, "parenttype": self.doctype, "parentfield": df.fieldname}, 
+				"*", as_dict=True, order_by="idx asc")
+			if children:
+				self.set(df.fieldname, children)
+			else:
+				self.set(df.fieldname, [])
 			
 	def has_permission(self, permtype):
 		if getattr(self, "ignore_permissions", False):
@@ -121,7 +123,7 @@ class Document(BaseDocument):
 		# run validate, on update etc.
 		
 		# parent
-		if self.meta.issingle:
+		if getattr(self.meta, "issingle", 0):
 			self.update_single(self.get_valid_dict())
 		else:
 			self.db_insert()

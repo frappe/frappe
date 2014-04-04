@@ -36,6 +36,9 @@ class Comment(Document):
 				self.update_comments_in_parent(_comments)
 			except Exception, e:
 				if e.args[0]==1054:
+					if frappe.flags.in_test:
+						return
+					
 					from frappe.model.db_schema import add_column
 					add_column(self.comment_doctype, "_comments", "Text")
 					self.update_comment_in_doc()

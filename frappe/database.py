@@ -301,7 +301,7 @@ class Database:
 		
 		return ((len(ret[0]) > 1 or as_dict) and ret[0] or ret[0][0]) if ret else None
 	
-	def get_values(self, doctype, filters=None, fieldname="name", ignore=None, as_dict=False, debug=False, order_by=None):
+	def get_values(self, doctype, filters=None, fieldname="name", ignore=None, as_dict=False, debug=False, order_by=None, update=None):
 		if isinstance(filters, list):
 			return self.get_value_for_many_names(doctype, filters, fieldname, debug=debug)
 			
@@ -314,7 +314,7 @@ class Database:
 
 		if (filters is not None) and (filters!=doctype or doctype=="DocType"):
 			try:
-				return self.get_values_from_table(fields, filters, doctype, as_dict, debug, order_by)
+				return self.get_values_from_table(fields, filters, doctype, as_dict, debug, order_by, update)
 			except Exception, e:
 				if ignore and e.args[0] in (1146, 1054):
 					# table or column not found, return None
@@ -325,9 +325,9 @@ class Database:
 				else:
 					raise
 
-		return self.get_values_from_single(fields, filters, doctype, as_dict, debug)
+		return self.get_values_from_single(fields, filters, doctype, as_dict, debug, update)
 
-	def get_values_from_single(self, fields, filters, doctype, as_dict=False, debug=False):
+	def get_values_from_single(self, fields, filters, doctype, as_dict=False, debug=False, update=None):
 		if fields=="*" or isinstance(filters, dict):
 			# check if single doc matches with filters
 			values = self.get_singles_dict(doctype)
@@ -349,7 +349,13 @@ class Database:
 					tuple(fields) + (doctype,), as_dict=False, debug=debug)
 
 			if as_dict:
-				return r and [frappe._dict(r)] or []
+				if r:
+					r = frappe._dict(r)
+					if update:
+						r.update(update)
+					return [r]
+				else:
+					return []
 			else:
 				return r and [[i[1] for i in r]] or []
 	
@@ -358,7 +364,7 @@ class Database:
 			tabSingles where doctype=%s""", doctype))
 		
 	
-	def get_values_from_table(self, fields, filters, doctype, as_dict, debug, order_by=None):
+	def get_values_from_table(self, fields, filters, doctype, as_dict, debug, order_by=None, update=None):
 		fl = []
 		if isinstance(fields, (list, tuple)):
 			for f in fields:
@@ -377,7 +383,7 @@ class Database:
 		order_by = ("order by " + order_by) if order_by else ""
 	
 		r = self.sql("select %s from `tab%s` where %s %s" % (fl, doctype,
-			conditions, order_by), filters, as_dict=as_dict, debug=debug)
+			conditions, order_by), filters, as_dict=as_dict, debug=debug, update=update)
 
 		return r
 

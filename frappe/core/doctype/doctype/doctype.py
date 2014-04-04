@@ -80,7 +80,7 @@ class DocType(Document):
 			self.make_controller_template()
 		
 		# update index
-		if not self.custom:
+		if not getattr(self, "custom", False):
 			from frappe.modules import load_doctype_module
 			module = load_doctype_module(self.name, self.module)
 			if hasattr(module, "on_doctype_update"):
