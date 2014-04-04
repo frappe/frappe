@@ -21,7 +21,7 @@ class Workflow(Document):
 		meta = frappe.get_meta(self.document_type)
 		if not meta.get_field(self.workflow_state_field):
 			# create custom field
-			frappe.get_doc([{
+			frappe.get_doc({
 				"doctype":"Custom Field",
 				"dt": self.document_type,
 				"__islocal": 1,
@@ -30,7 +30,7 @@ class Workflow(Document):
 				"hidden": 1,
 				"fieldtype": "Link",
 				"options": "Workflow State",
-			}]).save()
+			}).save()
 			
 			frappe.msgprint("Created Custom Field '%s' in '%s'" % (self.workflow_state_field,
 				self.document_type))

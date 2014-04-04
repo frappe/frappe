@@ -140,7 +140,7 @@ def import_doc(d, doctype, overwrite, row_idx, submit=False, ignore_links=False)
 			return 'Ignored row (#%d) %s (exists)' % (row_idx + 1, 
 				getlink(doctype, d['name']))
 	else:
-		doc = frappe.get_doc([d])
+		doc = frappe.get_doc(d)
 		doc.ignore_links = ignore_links
 		doc.insert()
 		

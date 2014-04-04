@@ -63,7 +63,7 @@ def save_report():
 	
 	d.report_type = "Report Builder"
 	d.json = data['json']
-	frappe.get_doc([d]).save()
+	frappe.get_doc(d).save()
 	frappe.msgprint("%s saved." % d.name)
 	return d.name
 
