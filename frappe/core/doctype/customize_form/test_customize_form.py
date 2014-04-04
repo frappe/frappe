@@ -7,10 +7,27 @@ from frappe.test_runner import make_test_records_for_doctype
 
 test_dependencies = ["Custom Field", "Property Setter"]
 class TestCustomizeForm(unittest.TestCase):
+	def insert_custom_field(self):
+		frappe.get_doc({
+			"doctype": "Custom Field",
+			"dt": "User",
+			"label": "Test Custom Field",
+			"description": "A Custom Field for Testing",
+			"fieldtype": "Select",
+			"in_list_view": 1,
+			"options": "\nCustom 1\nCustom 2\nCustom 3",
+			"default": "Custom 3"
+		}).insert()
+		
+	def delete_custom_field(self):
+		frappe.delete_doc("Custom Field", "User-test_custom_field")
+	
 	def setUp(self):
+		self.insert_custom_field()
 		frappe.clear_cache(doctype="User")
 		
 	def tearDown(self):
+		self.delete_custom_field()
 		frappe.clear_cache(doctype="User")
 		
 	def get_customize_form(self, doctype=None):
