@@ -157,8 +157,7 @@ def get_user_time_zone():
 		frappe.local.user_time_zone = frappe.cache().get_value("time_zone")
 		
 	if not frappe.local.user_time_zone:
-		frappe.local.user_time_zone = frappe.db.get_value('Control Panel', None, 'time_zone') \
-			or 'Asia/Calcutta'
+		frappe.local.user_time_zone = frappe.db.get_default('time_zone') or 'Asia/Calcutta'
 		frappe.cache().set_value("time_zone", frappe.local.user_time_zone)
 
 	return frappe.local.user_time_zone
@@ -234,7 +233,7 @@ def get_datetime_str(datetime_obj):
 def formatdate(string_date=None):
 	"""
 	 	Convers the given string date to :data:`user_format`
-		User format specified in :term:`Control Panel`
+		User format specified in defaults
 
 		 Examples:
 
@@ -515,13 +514,13 @@ def in_words(integer, in_million=True):
 
 def get_defaults(key=None):
 	"""
-	Get dictionary of default values from the :term:`Control Panel`, or a value if key is passed
+	Get dictionary of default values from the defaults, or a value if key is passed
 	"""
 	return frappe.db.get_defaults(key)
 
 def set_default(key, val):
 	"""
-	Set / add a default value to :term:`Control Panel`
+	Set / add a default value to defaults`
 	"""
 	return frappe.db.set_default(key, val)
 

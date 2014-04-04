@@ -46,8 +46,6 @@ def write_document_file(doc, record_module=None, create_init=None):
 def get_module_name(doc):
 	if doc.doctype  == 'Module Def':
 		module = doc.name
-	elif doc.doctype=='Control Panel':
-		module = 'Core'
 	elif doc.doctype=="Workflow":
 		module = frappe.db.get_value("DocType", doc.document_type, "module")
 	else:

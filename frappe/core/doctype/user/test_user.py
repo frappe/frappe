@@ -45,7 +45,7 @@ class TestUser(unittest.TestCase):
 
 		self.assertEquals(frappe.db.get_value("User", "xxxtest@example.com"), None)
 		
-		frappe.db.set_value("Control Panel", "Control Panel", "_test", "_test_val")
-		self.assertEquals(frappe.db.get_value("Control Panel", None, "_test"), "_test_val")
-		self.assertEquals(frappe.db.get_value("Control Panel", "Control Panel", "_test"), "_test_val")
+		frappe.db.set_value("Website Settings", "Website Settings", "_test", "_test_val")
+		self.assertEquals(frappe.db.get_value("Website Settings", None, "_test"), "_test_val")
+		self.assertEquals(frappe.db.get_value("Website Settings", "Website Settings", "_test"), "_test_val")
 				

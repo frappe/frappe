@@ -1,1 +1,0 @@
-(deprecated) Single DocType where global variables used to be stored.

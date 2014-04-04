@@ -431,27 +431,26 @@ class Database:
 	def get_global(self, key, user='__global'):
 		return self.get_default(key, user)
 	
-	def set_default(self, key, val, parent="Control Panel", parenttype=None):
-		"""set control panel default (tabDefaultVal)"""
+	def set_default(self, key, val, parent="__default", parenttype=None):
 		import frappe.defaults
 		frappe.defaults.set_default(key, val, parent, parenttype)
 			
-	def add_default(self, key, val, parent="Control Panel", parenttype=None):
+	def add_default(self, key, val, parent="__default", parenttype=None):
 		import frappe.defaults
 		frappe.defaults.add_default(key, val, parent, parenttype)
 	
-	def get_default(self, key, parent="Control Panel"):
+	def get_default(self, key, parent="__default"):
 		"""get default value"""
 		import frappe.defaults
 		d = frappe.defaults.get_defaults(parent).get(key)
 		return isinstance(d, list) and d[0] or d
 		
-	def get_defaults_as_list(self, key, parent="Control Panel"):
+	def get_defaults_as_list(self, key, parent="__default"):
 		import frappe.defaults
 		d = frappe.defaults.get_default(key, parent)
 		return isinstance(d, basestring) and [d] or d
 	
-	def get_defaults(self, key=None, parent="Control Panel"):
+	def get_defaults(self, key=None, parent="__default"):
 		"""get all defaults"""
 		import frappe.defaults
 		if key:

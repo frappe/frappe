@@ -484,17 +484,6 @@ def make_property_setter(args):
 		'__islocal': 1
 	}).save()
 
-def get_application_home_page(user='Guest'):
-	"""get home page for user"""
-	hpl = db.sql("""select home_page
-		from `tabDefault Home Page`
-		where parent='Control Panel'
-		and role in ('%s') order by idx asc limit 1""" % "', '".join(get_roles(user)))
-	if hpl:
-		return hpl[0][0]
-	else:
-		return db.get_value("Control Panel", None, "home_page")
-
 def import_doc(path, ignore_links=False, ignore_insert=False, insert=False):
 	from frappe.core.page.data_import_tool import data_import_tool
 	data_import_tool.import_doc(path, ignore_links=ignore_links, ignore_insert=ignore_insert, insert=insert)

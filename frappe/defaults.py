@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 
-common_keys = ["Control Panel", "__global"]
+common_keys = ["__default", "__global"]
 
 def set_user_default(key, value, user=None, parenttype=None):
 	set_default(key, value, user or frappe.session.user, parenttype)
@@ -60,10 +60,10 @@ def clear_user_default(key, user=None):
 # Global
 
 def set_global_default(key, value):
-	set_default(key, value, "Control Panel")
+	set_default(key, value, "__default")
 
 def add_global_default(key, value):
-	add_default(key, value, "Control Panel")
+	add_default(key, value, "__default")
 
 def get_global_default(key):
 	d = get_defaults().get(key, None)
@@ -71,7 +71,7 @@ def get_global_default(key):
 	
 # Common
 
-def set_default(key, value, parent, parenttype="Control Panel"):
+def set_default(key, value, parent, parenttype="__default"):
 	if frappe.db.sql("""select defkey from `tabDefaultValue` where 
 		defkey=%s and parent=%s """, (key, parent)):
 		# update
@@ -85,12 +85,12 @@ def add_default(key, value, parent, parenttype=None):
 	d = frappe.get_doc({
 		"doctype": "DefaultValue",
 		"parent": parent,
-		"parenttype": parenttype or "Control Panel",
+		"parenttype": parenttype or "__default",
 		"parentfield": "system_defaults",
 		"defkey": key,
 		"defvalue": value
 	})
-	d.insert()
+	d.db_insert()
 	if parenttype=="Restriction":
 		frappe.local.restrictions = None
 	_clear_cache(parent)
@@ -116,7 +116,7 @@ def clear_default(key=None, value=None, parent=None, name=None, parenttype=None)
 		clear_cache(parent)
 		values.append(parent)
 	else:
-		clear_cache("Control Panel")
+		clear_cache("__default")
 		clear_cache("__global")
 		
 	if parenttype:
@@ -132,7 +132,7 @@ def clear_default(key=None, value=None, parent=None, name=None, parenttype=None)
 		tuple(values))
 	_clear_cache(parent)
 	
-def get_defaults_for(parent="Control Panel"):
+def get_defaults_for(parent="__default"):
 	"""get all defaults"""
 	defaults = frappe.cache().get_value("__defaults:" + parent)
 	if defaults==None:

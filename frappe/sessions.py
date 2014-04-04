@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 Boot session from cache or build
 
 Session bootstraps info needed by common client side activities including
-permission, homepage, control panel variables, system defaults etc
+permission, homepage, default variables, system defaults etc
 """
 import frappe, os, json
 import frappe

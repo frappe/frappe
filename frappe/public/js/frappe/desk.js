@@ -78,7 +78,6 @@ frappe.Application = Class.extend({
 	
 	load_bootinfo: function() {
 		if(frappe.boot) {
-			frappe.control_panel = frappe.boot.control_panel;
 			frappe.modules = frappe.boot.modules;
 			this.check_metadata_cache_status();
 			this.set_globals();

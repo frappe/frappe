@@ -776,10 +776,8 @@ def get_site_status(verbose=False):
 	}
 	
 	# country, timezone, industry
-	control_panel_details = frappe.db.get_value("Control Panel", "Control Panel", 
-		["country", "time_zone", "industry"], as_dict=True)
-	if control_panel_details:
-		ret.update(control_panel_details)
+	for key in ["country", "time_zone", "industry"]:
+		ret[key] = frappe.db.get_default(key)
 	
 	# basic usage/progress analytics
 	for doctype in ("Company", "Customer", "Item", "Quotation", "Sales Invoice",

@@ -12,7 +12,7 @@ def get_roles_and_doctypes():
 	return {
 		"doctypes": [d[0] for d in frappe.db.sql("""select name from `tabDocType` dt where
 			ifnull(istable,0)=0 and
-			name not in ('DocType', 'Control Panel') and
+			name not in ('DocType') and
 			exists(select * from `tabDocField` where parent=dt.name)""")],
 		"roles": [d[0] for d in frappe.db.sql("""select name from tabRole where name not in
 			('Guest', 'Administrator')""")]

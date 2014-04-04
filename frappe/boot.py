@@ -21,7 +21,6 @@ def get_bootinfo():
 	get_user(bootinfo)
 	
 	# system info
-	bootinfo['control_panel'] = frappe._dict(frappe.get_doc('Control Panel').as_dict())
 	bootinfo['sysdefaults'] = frappe.defaults.get_defaults()
 	bootinfo['server_date'] = frappe.utils.nowdate()
 	bootinfo["send_print_in_body_and_attachment"] = frappe.db.get_value("Outgoing Email Settings", 
@@ -128,7 +127,7 @@ def add_home_page(bootinfo, docs):
 	if frappe.session.user=="Guest":
 		return
 		
-	home_page = frappe.get_application_home_page(frappe.session.user)
+	home_page = frappe.db.get_default("desktop:home_page")
 
 	try:
 		page = frappe.widgets.page.get(home_page)

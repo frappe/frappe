@@ -23,7 +23,7 @@ def get_properties(parent=None, defkey=None, defvalue=None):
 	
 	properties = frappe.db.sql("""select name, parent, defkey, defvalue 
 		from tabDefaultValue
-		where parent not in ('Control Panel', '__global')
+		where parent not in ('__default', '__global')
 		and substr(defkey,1,1)!='_'
 		and parenttype='Restriction'
 		{conditions}
