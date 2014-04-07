@@ -125,7 +125,7 @@ class BaseDocument(object):
 			if key not in self.__dict__:
 				self.__dict__[key] = None
 
-		if getattr(self, "_metaclass", False) or self.doctype in ("DocType", "DocField", "DocPerm"):
+		if self.doctype in ("DocField", "DocPerm") and self.parent in ("DocType", "DocField", "DocPerm"):
 			from frappe.model.meta import get_table_columns
 			valid = get_table_columns(self.doctype)
 		else:
