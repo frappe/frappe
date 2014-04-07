@@ -15,7 +15,7 @@ frappe.views.ModuleFactory = frappe.views.Factory.extend({
 
 frappe.views.moduleview.make = function(wrapper, module, method) {
 	if(!method) method = "frappe.widgets.moduleview.get";
-	
+
 	wrapper.module_view = new frappe.views.moduleview.ModuleView(wrapper, module, method);
 
 }
@@ -53,7 +53,7 @@ frappe.views.moduleview.ModuleView = Class.extend({
 		wrapper.appframe.set_title_right(frappe._("Refresh"), function() {
 			me.make(wrapper, module);
 		});
-		
+
 		// full refresh
 		wrapper.refresh = function() {
 			// remake on refresh
@@ -61,7 +61,7 @@ frappe.views.moduleview.ModuleView = Class.extend({
 				me.make(wrapper, module);
 			}
 		};
-		
+
 		// counts
 		$(document).on("notification-update", function() {
 			if(wrapper.$layout) {
@@ -74,7 +74,7 @@ frappe.views.moduleview.ModuleView = Class.extend({
 		return frappe.call({
 			method: "frappe.widgets.moduleview.get",
 			args: {
-				module: module 
+				module: module
 			},
 			callback: function(r) {
 				me.render(wrapper, r.message);
@@ -92,16 +92,16 @@ frappe.views.moduleview.ModuleView = Class.extend({
 			me.add_section(d, $layout);
 			me.add_items(d, $layout);
 		});
-		
+
 		me.item_count = message.item_count;
 		me.add_reports(message.reports, $layout);
 		me.show_counts($layout);
 		me.setup_navigation($layout);
-		
+
 		// for refresh
 		this.created_on = new Date();
 	},
-	
+
 	make_layout: function(wrapper) {
 		return $('<div class="row module-view-layout">\
 				<div class="col-sm-3">\
@@ -111,12 +111,12 @@ frappe.views.moduleview.ModuleView = Class.extend({
 				</div>\
 			</div>').appendTo($(wrapper).find(".layout-main").empty());
 	},
-	
+
 	add_section: function(d, $layout) {
 		if(!d._label) d._label = d.label.toLowerCase().replace(/ /g, "_");
 		var $sections = $layout.find(".nav-pills");
 		var $nav = $sections.find('[data-label="'+d._label+'"]');
-		
+
 		// if not found, add section
 		if(!$nav.length) {
 			// create nav tab
@@ -126,33 +126,33 @@ frappe.views.moduleview.ModuleView = Class.extend({
 				.attr("data-label", d._label)
 				.attr("data-section-label", d.label)
 				.appendTo($sections);
-			
+
 			// create content pane for this nav
 			var $content = $('<div class="panel panel-default"></div>')
 				.toggle(false)
 				.attr("data-content-label", d._label)
 				.appendTo($layout.find(".contents"));
-			
-			$('<div class="panel-heading">').appendTo($content).html('<i class="'+d.icon+'"></i> ' 
+
+			$('<div class="panel-heading">').appendTo($content).html('<i class="'+d.icon+'"></i> '
 				+ d.label);
-			
+
 			var $list = $('<ul class="list-group">').appendTo($content);
 		}
 	},
-	
+
 	add_items: function(d, $layout) {
 		var me = this;
 		var $content = $layout.find('[data-content-label="' + d._label + '"]');
 		var $list = $content.find(".list-group");
-		
+
 		// add items in each pane
 		$.each(d.items, function(i, item) {
-			if(item.country && frappe.boot.control_panel.country!==item.country) return;
-			
-			if((item.type==="doctype" && frappe.model.can_read(item.name)) 
+			if(item.country && frappe.boot.sysdefaults.country!==item.country) return;
+
+			if((item.type==="doctype" && frappe.model.can_read(item.name))
 				|| (item.type==="page" && frappe.boot.page_info[item.name])
 				|| (item.type==="report" && frappe.model.can_get_report(item.doctype))) {
-					
+
 				if(!item.label) {
 					item.label = __(item.name);
 				}
@@ -164,9 +164,9 @@ frappe.views.moduleview.ModuleView = Class.extend({
 				} else if(item.type==="report" && item.doctype) {
 					item.icon = item.icon || frappe.boot.doctype_icons[item.doctype];
 				}
-				
+
 				item.description = cstr(item.description);
-				
+
 				$list_item = $($r('<li class="list-group-item">\
 					<div class="row">\
 						<div class="col-sm-6 list-item-name">\
@@ -174,13 +174,13 @@ frappe.views.moduleview.ModuleView = Class.extend({
 						<div class="col-sm-6 text-muted list-item-description">%(description)s</div>\
 					</div>\
 					</li>', item)).appendTo($list);
-				
+
 				// expand col if no description
 				if(!item.description) {
 					$list_item.find(".list-item-description").remove();
 					$list_item.find(".list-item-name").removeClass("col-sm-6").addClass("col-sm-12");
 				}
-				
+
 				$list_item.find("a")
 					.on("click", function() {
 						if(item.route) {
@@ -189,10 +189,10 @@ frappe.views.moduleview.ModuleView = Class.extend({
 							var fn = eval(item.onclick);
 							if(typeof(fn)==="function") {
 								fn();
-							} 
+							}
 						} else if(item.type==="doctype") {
 							frappe.set_route("List", item.name)
-						} 
+						}
 						else if(item.type==="page") {
 							frappe.set_route(item.route || item.link || item.name);
 						}
@@ -207,7 +207,7 @@ frappe.views.moduleview.ModuleView = Class.extend({
 						}
 						return false;
 					});
-				
+
 				var show_count = (item.type==="doctype" || (item.type==="page" && item.doctype)) && !item.hide_count
 				if(show_count) {
 					$(repl('<span data-doctype-count="%(doctype)s" style="margin-left: 2px;"></span>',
@@ -216,10 +216,10 @@ frappe.views.moduleview.ModuleView = Class.extend({
 			}
 		});
 	},
-	
+
 	add_reports: function(reports, $layout) {
 		if(!(reports && reports.length)) return;
-		
+
 		var reports_section = {
 			label: __("Custom Reports"),
 			icon: "icon-list-alt",
@@ -228,7 +228,7 @@ frappe.views.moduleview.ModuleView = Class.extend({
 		this.add_section(reports_section, $layout);
 		this.add_items(reports_section, $layout);
 	},
-	
+
 	show_counts: function($layout) {
 		var me = this;
 		// total count
@@ -241,11 +241,11 @@ frappe.views.moduleview.ModuleView = Class.extend({
 					.css({cursor:"pointer"});
 			});
 		});
-		
+
 		// open count
 		this.update_open_count($layout);
 	},
-	
+
 	setup_navigation: function($layout) {
 		var me = this;
 		// section selection (can't use tab api - routing)
@@ -259,7 +259,7 @@ frappe.views.moduleview.ModuleView = Class.extend({
 			$(this).parent().addClass("active");
 			$layout.find(".panel").toggle(false);
 			$layout.find('[data-content-label="'+ $(this).parent().attr("data-label") +'"]').toggle(true);
-			
+
 			var section_label = $(this).parent().attr("data-section-label");
 			if(!me.item_count || me.item_count[section_label]==null) {
 				frappe.call({
@@ -276,7 +276,7 @@ frappe.views.moduleview.ModuleView = Class.extend({
 			}
 		});
 		$sections.find('a:first').trigger("click");
-		
+
 		$layout.on("click", ".badge-important", function() {
 			frappe.views.show_open_count_list(this);
 		});
@@ -284,9 +284,9 @@ frappe.views.moduleview.ModuleView = Class.extend({
 		$layout.on("click", ".badge-count", function() {
 			var doctype = $(this).attr("data-doctype-count");
 			frappe.set_route("List", doctype);
-		});		
+		});
 	},
-	
+
 	update_open_count: function($layout) {
 		var me = this;
 		$layout.find(".badge-important").remove();

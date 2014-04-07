@@ -5,12 +5,12 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.utils import cint
-from frappe.utils.nestedset import DocTypeNestedSet
+from frappe.utils.nestedset import NestedSet
 
 sitemap_fields = ("page_name", "ref_doctype", "docname", "page_or_generator", "idx",
 	"lastmod", "parent_website_route", "public_read", "public_write", "page_title")
 
-class WebsiteRoute(DocTypeNestedSet):
+class WebsiteRoute(NestedSet):
 	nsm_parent_field = "parent_website_route"
 		
 	def autoname(self):
@@ -48,7 +48,7 @@ class WebsiteRoute(DocTypeNestedSet):
 	
 	def on_update(self):
 		if not frappe.flags.in_rebuild_config:
-			DocTypeNestedSet.on_update(self)
+			NestedSet.on_update(self)
 		self.clear_cache()
 
 	def set_idx(self):

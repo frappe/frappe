@@ -52,7 +52,7 @@
 		"public/js/lib/bootstrap.min.js",
 		"public/js/lib/nprogress.js",
 		"public/js/lib/beautify-html.js",
-		
+
 		"public/js/frappe/provide.js",
 		"public/js/frappe/class.js",
 		"public/js/frappe/translate.js",
@@ -80,7 +80,7 @@
 		"public/js/frappe/ui/dialog.js",
 		"public/js/frappe/ui/button.js",
 		"public/js/frappe/ui/app_icon.js",
-		
+
 		"public/js/frappe/model/model.js",
 		"public/js/frappe/model/meta.js",
 		"public/js/frappe/model/sync.js",
@@ -117,7 +117,7 @@
 		"public/js/frappe/form/formatters.js",
 
 		"public/js/legacy/layout.js",
-		
+
 		"public/js/frappe/ui/toolbar/selector_dialog.js",
 		"public/js/frappe/ui/toolbar/new.js",
 		"public/js/frappe/ui/toolbar/search.js",
@@ -126,7 +126,7 @@
 		"public/js/frappe/ui/toolbar/bookmarks.js",
 		"public/js/frappe/ui/toolbar/toolbar.js",
 		"public/js/frappe/ui/editor.js",
-		
+
 		"public/js/legacy/form.js",
 		"public/js/legacy/print_format.js",
 		"public/js/legacy/clientscriptAPI.js",

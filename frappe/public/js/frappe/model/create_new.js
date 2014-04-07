@@ -137,7 +137,7 @@ $.extend(frappe.model, {
 			// dont copy name and blank fields
 			var df = frappe.meta.get_docfield(doc.doctype, key);
 
-			if(key.substr(0,2)!='__'
+			if(df && key.substr(0,2)!='__'
 				&& !in_list(no_copy_list, key)
 				&& !(df && (!from_amend && cint(df.no_copy)==1))) {
 					value = doc[key];
@@ -145,6 +145,7 @@ $.extend(frappe.model, {
 						newdoc[key] = [];
 						$.each(value || [], function(i, d) {
 							newdoc[key].push(frappe.model.copy_doc(d, from_amend))
+							newdoc[key][newdoc[key].length-1].idx = newdoc[key].length;
 						})
 					} else {
 						newdoc[key] = doc[key];
