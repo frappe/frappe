@@ -149,6 +149,8 @@ def setup_test(parser):
 		help="Run command for specified doctype")
 	parser.add_argument("-m", "--module", metavar="MODULE", nargs=1,
 		help="Run command for specified module")
+	parser.add_argument("--tests", metavar="TEST FUNCTION", nargs="*",
+		help="Run one or more specific test functions")
 
 def setup_utilities(parser):
 	# update
@@ -692,11 +694,12 @@ def smtp_debug_server():
 	os.execv(python, [python, '-m', "smtpd", "-n", "-c", "DebuggingServer", "localhost:25"])
 
 @cmd
-def run_tests(app=None, module=None, doctype=None, verbose=False, quiet=True):
+def run_tests(app=None, module=None, doctype=None, verbose=False, quiet=True, tests=()):
 	import frappe.test_runner
 	verbose = verbose or not quiet
 
-	ret = frappe.test_runner.main(app and app[0], module and module[0], doctype and doctype[0], verbose)
+	ret = frappe.test_runner.main(app and app[0], module and module[0], doctype and doctype[0], verbose,
+		tests=tests)
 	if len(ret.failures) > 0 or len(ret.errors) > 0:
 		exit(1)
 
@@ -801,7 +804,7 @@ def get_site_status(verbose=False, quiet=True):
 	# country, timezone, industry
 	for key in ["country", "time_zone", "industry"]:
 		ret[key] = frappe.db.get_default(key)
-	
+
 	# basic usage/progress analytics
 	for doctype in ("Company", "Customer", "Item", "Quotation", "Sales Invoice",
 		"Journal Voucher", "Stock Ledger Entry"):
