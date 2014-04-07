@@ -126,7 +126,8 @@ class BaseDocument(object):
 				self.__dict__[key] = None
 
 		if getattr(self, "_metaclass", False) or self.doctype in ("DocType", "DocField", "DocPerm"):
-			valid = frappe.db.get_table_columns(self.doctype)
+			from frappe.model.meta import get_table_columns
+			valid = get_table_columns(self.doctype)
 		else:
 			valid = self.meta.get_valid_columns()
 

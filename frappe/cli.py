@@ -35,20 +35,20 @@ def main():
 				args = parsed_args.copy()
 				args["site"] = site
 				frappe.init(site, sites_path=sites_path)
-				run(fn, args)
+				return run(fn, args)
 		else:
 			site = get_site(parsed_args)
 			if fn not in site_arg_optional and not site:
 				print 'site argument required'
-				exit(1)
+				return 1
 			elif site:
 				frappe.init(site, sites_path=sites_path)
 			else:
 				# site argument optional
 				frappe.init("", sites_path=sites_path)
-			run(fn, parsed_args)
+			return run(fn, parsed_args)
 	else:
-		run(fn, parsed_args)
+		return run(fn, parsed_args)
 
 def cmd(fn):
 	def new_fn(*args, **kwargs):
@@ -66,8 +66,10 @@ def cmd(fn):
 
 
 def run(fn, args):
-	if args.get("profile") and fn!="serve":
-		import cProfile, pstats, StringIO
+	import cProfile, pstats, StringIO
+
+	use_profiler = args.get("profile") and fn!="serve"
+	if use_profiler:
 		pr = cProfile.Profile()
 		pr.enable()
 
@@ -76,7 +78,7 @@ def run(fn, args):
 	else:
 		out = globals().get(fn)(**args)
 
-	if args.get("profile") and fn!="serve":
+	if use_profiler:
 		pr.disable()
 		s = StringIO.StringIO()
 		ps = pstats.Stats(pr, stream=s).sort_stats('tottime', 'ncalls')
@@ -700,8 +702,9 @@ def run_tests(app=None, module=None, doctype=None, verbose=False, quiet=True, te
 
 	ret = frappe.test_runner.main(app and app[0], module and module[0], doctype and doctype[0], verbose,
 		tests=tests)
+
 	if len(ret.failures) > 0 or len(ret.errors) > 0:
-		exit(1)
+		return 1
 
 @cmd
 def serve(port=8000, profile=False, sites_path='.', site=None):
@@ -900,4 +903,6 @@ def bump(repo, bump_type):
 
 
 if __name__=="__main__":
-	main()
+	out = main()
+	if out and out==1:
+		exit(1)

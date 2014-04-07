@@ -19,6 +19,26 @@ def get_meta(doctype, cached=True):
 	else:
 		return Meta(doctype)
 
+def get_table_columns(doctype):
+	return frappe.cache().get_value("table_columns:" + doctype, lambda: frappe.db.get_table_columns(doctype))
+
+def load_doctype_from_file(doctype):
+	fname = frappe.scrub(doctype)
+	with open(frappe.get_app_path("frappe", "core", "doctype", fname, fname + ".json"), "r") as f:
+		txt = json.loads(f.read())
+
+	for d in txt.get("fields", []):
+		d["doctype"] = "DocField"
+
+	for d in txt.get("permissions", []):
+		d["doctype"] = "DocPerm"
+
+	txt["fields"] = [BaseDocument(d) for d in txt["fields"]]
+	if "permissions" in txt:
+		txt["permissions"] = [BaseDocument(d) for d in txt["permissions"]]
+
+	return txt
+
 class Meta(Document):
 	_metaclass = True
 	default_fields = default_fields[1:]
@@ -34,20 +54,7 @@ class Meta(Document):
 			super(Meta, self).load_from_db()
 		except frappe.DoesNotExistError:
 			if self.doctype=="DocType" and self.name in self.special_doctypes:
-				fname = frappe.scrub(self.name)
-				with open(frappe.get_app_path("frappe", "core", "doctype", fname, fname + ".json"), "r") as f:
-					txt = json.loads(f.read())
-
-				for d in txt.get("fields", []):
-					d["doctype"] = "DocField"
-
-				for d in txt.get("permissions", []):
-					d["doctype"] = "DocPerm"
-
-				self.__dict__.update(txt)
-				self.fields = [BaseDocument(d) for d in self.fields]
-				if hasattr(self, "permissions"):
-					self.permissions = [BaseDocument(d) for d in self.permissions]
+				self.__dict__.update(load_doctype_from_file(self.name))
 			else:
 				raise
 
@@ -70,7 +77,7 @@ class Meta(Document):
 	def get_valid_columns(self):
 		if not hasattr(self, "_valid_columns"):
 			if self.name in ("DocType", "DocField", "DocPerm", "Property Setter"):
-				self._valid_columns = frappe.db.get_table_columns(self.name)
+				self._valid_columns = get_table_columns(self.name)
 			else:
 				self._valid_columns = self.default_fields + \
 					[df.fieldname for df in self.get("fields") if df.fieldtype in type_map]
@@ -243,6 +250,7 @@ def clear_cache(doctype=None):
 	def clear_single(dt):
 		frappe.cache().delete_value("meta:" + dt)
 		frappe.cache().delete_value("form_meta:" + dt)
+		frappe.cache().delete_value("table_columns:" + dt)
 
 	if doctype:
 		clear_single(doctype)
