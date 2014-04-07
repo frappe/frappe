@@ -1,5 +1,5 @@
 // Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
-// MIT License. See license.txt 
+// MIT License. See license.txt
 
 
 frappe.ui.toolbar.Toolbar = Class.extend({
@@ -12,11 +12,11 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		this.make_help();
 		this.make_user_menu();
 		this.make_notification();
-		
+
 		$('.dropdown-toggle').dropdown();
-		
+
 		$(document).trigger('toolbar_setup');
-		
+
 		// clear all custom menus on page change
 		$(document).on("page-change", function() {
 			$("header .navbar .custom-menu").remove();
@@ -49,12 +49,12 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 					</ul>\
 				</div>\
 			</div>\
-			</div>');		
+			</div>');
 	},
 	make_home: function() {
 		$('.navbar-brand').attr('href', "#");
 	},
-	
+
 	make_notification: function() {
 		$('.navbar .navbar-right').append('<li class="dropdown">\
 			<a class="dropdown-toggl" href="#"  data-toggle="dropdown"\
@@ -87,11 +87,11 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 			</ul>\
 		</li>');
 	},
-	
+
 	make_history: function() {
 		frappe.ui.toolbar.recent = new frappe.ui.toolbar.RecentDocs();
 	},
-	
+
 	make_bookmarks: function() {
 		frappe.ui.toolbar.bookmarks = new frappe.ui.toolbar.Bookmarks();
 	},
@@ -124,7 +124,7 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 
 	make_user_menu: function() {
 		this.set_user_name();
-		
+
 		$(repl('<li><a href="#%(user_form)s">\
 				<i class="icon-fixed-width icon-user"></i>%(my_settings)s</a></li>\
 			<li><a href="/index"> \
@@ -162,7 +162,7 @@ $.extend(frappe.ui.toolbar, {
 	add_menu_divider: function(menu) {
 		menu = typeof menu == "string" ?
 			frappe.ui.toolbar.get_menu(menu) : menu;
-			
+
 		$('<li class="divider custom-menu"></li>').prependTo(menu);
 	},
 })
@@ -171,7 +171,7 @@ frappe.ui.toolbar.update_notifications = function() {
 	var total = 0;
 	var doctypes = keys(frappe.boot.notification_info.open_count_doctype).sort();
 	var modules = keys(frappe.boot.notification_info.open_count_module).sort();
-	
+
 	$("#navbar-notification").empty();
 
 	$.each(modules, function(i, module) {
@@ -195,11 +195,11 @@ frappe.ui.toolbar.update_notifications = function() {
 			total += count;
 		}
 	});
-	
+
 	if(total) {
 		$('<li class="divider"></li>').appendTo("#navbar-notification");
 	}
-	
+
 	$.each(doctypes, function(i, doctype) {
 		var count = frappe.boot.notification_info.open_count_doctype[doctype];
 		if(count) {
@@ -221,16 +221,16 @@ frappe.ui.toolbar.update_notifications = function() {
 			total += count;
 		}
 	});
-	
+
 	$(".navbar-new-comments")
 		.html(total)
 		.toggleClass("navbar-new-comments-true", total ? true : false);
-	
+
 }
 
 frappe.ui.toolbar.clear_cache = function() {
 	localStorage && localStorage.clear();
-	$c('frappe.sessions.clear',{},function(r,rt){ 
+	$c('frappe.sessions.clear',{},function(r,rt){
 		if(!r.exc) {
 			show_alert(r.message);
 			location.reload();
@@ -247,7 +247,7 @@ frappe.ui.toolbar.download_backup = function() {
 
 frappe.ui.toolbar.show_about = function() {
 	try {
-		frappe.ui.misc.about();		
+		frappe.ui.misc.about();
 	} catch(e) {
 		console.log(e);
 	}
