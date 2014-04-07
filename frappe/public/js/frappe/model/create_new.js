@@ -18,39 +18,40 @@ $.extend(frappe.model, {
 			owner: user
 		};
 		frappe.model.set_default_values(doc, parent_doc);
-		
+
 		if(parent_doc) {
 			$.extend(doc, {
 				parent: parent_doc.name,
 				parentfield: parentfield,
 				parenttype: parent_doc.doctype,
 			});
+			if(!parent_doc[parentfield]) parent_doc[parentfield] = [];
 			parent_doc[parentfield].push(doc);
 		} else {
 			frappe.provide("frappe.model.docinfo." + doctype + "." + doc.name);
 		}
 
-		frappe.model.add_to_locals(doc);		
+		frappe.model.add_to_locals(doc);
 		return doc;
 	},
-	
+
 	make_new_doc_and_get_name: function(doctype) {
 		return frappe.model.get_new_doc(doctype).name;
 	},
-	
+
 	get_new_name: function(doctype) {
 		var cnt = frappe.model.new_name_count
-		if(!cnt[doctype]) 
+		if(!cnt[doctype])
 			cnt[doctype] = 0;
 		cnt[doctype]++;
 		return frappe._('New') + ' '+ frappe._(doctype) + ' ' + cnt[doctype];
 	},
-	
+
 	set_default_values: function(doc, parent_doc) {
 		var doctype = doc.doctype;
 		var docfields = frappe.meta.docfield_list[doctype] || [];
 		var updated = [];
-		
+
 		for(var fid=0;fid<docfields.length;fid++) {
 			var f = docfields[fid];
 			if(!in_list(frappe.model.no_value_type, f.fieldtype) && doc[f.fieldname]==null) {
@@ -60,7 +61,7 @@ $.extend(frappe.model, {
 						v = cint(v);
 					else if(in_list(["Currency", "Float"], f.fieldtype))
 						v = flt(v);
-					
+
 					doc[f.fieldname] = v;
 					updated.push(f.fieldname);
 				}
@@ -68,17 +69,17 @@ $.extend(frappe.model, {
 		}
 		return updated;
 	},
-	
+
 	get_default_value: function(df, doc, parent_doc) {
 		var def_vals = {
 			"__user": user,
 			"Today": dateutil.get_today(),
 		}
-		
+
 		var restrictions = frappe.defaults.get_restrictions();
 		if(df.fieldtype==="Link" && restrictions
 			&& df.ignore_restrictions != 1
-			&& restrictions[df.options] 
+			&& restrictions[df.options]
 			&& (restrictions[df.options].length===1))
 			return restrictions[df.options][0];
 		else if(frappe.defaults.get_user_default(df.fieldname))
@@ -92,22 +93,22 @@ $.extend(frappe.model, {
 		else if(df["default"] && df["default"][0]!==":")
 			return df["default"];
 	},
-	
+
 	get_default_from_boot_docs: function(df, doc, parent_doc) {
 		// set default from partial docs passed during boot like ":User"
 		if(frappe.get_list(df["default"]).length > 0) {
 			var ref_fieldname = df["default"].slice(1).toLowerCase().replace(" ", "_");
-			var ref_value = parent_doc ? 
+			var ref_value = parent_doc ?
 				parent_doc[ref_fieldname] :
 				frappe.defaults.get_user_default(ref_fieldname);
 			var ref_doc = ref_value ? frappe.get_doc(df["default"], ref_value) : null;
-			
+
 			if(ref_doc && ref_doc[df.fieldname]) {
 				return ref_doc[df.fieldname];
 			}
 		}
 	},
-	
+
 	add_child: function(parent_doc, doctype, parentfield, idx) {
 		// create row doc
 		idx = idx ? idx - 0.1 : (parent_doc[parentfield] || []).length + 1;
@@ -124,10 +125,10 @@ $.extend(frappe.model, {
 		}
 
 		cur_frm && cur_frm.dirty();
-				
+
 		return d;
 	},
-	
+
 	copy_doc: function(doc, from_amend) {
 		var no_copy_list = ['name','amended_from','amendment_date','cancel_reason'];
 		var newdoc = frappe.model.get_new_doc(doc.doctype);
@@ -135,10 +136,10 @@ $.extend(frappe.model, {
 		for(var key in doc) {
 			// dont copy name and blank fields
 			var df = frappe.meta.get_docfield(doc.doctype, key);
-			
-			if(key.substr(0,2)!='__' 
-				&& !in_list(no_copy_list, key) 
-				&& !(df && (!from_amend && cint(df.no_copy)==1))) { 
+
+			if(key.substr(0,2)!='__'
+				&& !in_list(no_copy_list, key)
+				&& !(df && (!from_amend && cint(df.no_copy)==1))) {
 					value = doc[key];
 					if(df.fieldtype==="Table") {
 						newdoc[key] = [];
@@ -160,7 +161,7 @@ $.extend(frappe.model, {
 
 		return newdoc;
 	},
-	
+
 	open_mapped_doc: function(opts) {
 		return frappe.call({
 			type: "GET",
@@ -204,10 +205,10 @@ $.extend(frappe.model, {
 				title: frappe._("Get From ") + frappe._(opts.source_doctype),
 				fields: [
 					{
-						"fieldtype": "Link", 
+						"fieldtype": "Link",
 						"label": frappe._(opts.source_doctype),
-						"fieldname": opts.source_doctype, 
-						"options": opts.source_doctype, 
+						"fieldname": opts.source_doctype,
+						"options": opts.source_doctype,
 						"get_query": opts.get_query,
 						reqd:1},
 					{
@@ -215,7 +216,7 @@ $.extend(frappe.model, {
 						"label": frappe._("Get"),
 						click: function() {
 							var values = d.get_values();
-							if(!values) 
+							if(!values)
 								return;
 							opts.source_name = values[opts.source_doctype];
 							d.hide();
