@@ -50,3 +50,4 @@ doc_event:*:on_cancel = frappe.core.doctype.notification_count.notification_coun
 doc_event:*:on_trash = frappe.core.doctype.notification_count.notification_count.clear_doctype_notifications
 
 write_file_keys = file_url
+write_file_keys = file_name

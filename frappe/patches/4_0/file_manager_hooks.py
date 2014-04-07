@@ -12,14 +12,14 @@ def execute():
 	for name, file_name, file_url in frappe.db.sql(
 			"""select name, file_name, file_url from `tabFile Data`
 			where file_name is not null"""):
-		b = frappe.bean('File Data', name)
-		old_file_name = b.doc.file_name
-		b.doc.file_name = os.path.basename(old_file_name)
+		b = frappe.get_doc('File Data', name)
+		old_file_name = b.file_name
+		b.file_name = os.path.basename(old_file_name)
 		if old_file_name.startswith('files/') or old_file_name.startswith('/files/'):
-			b.doc.file_url = os.path.normpath('/' + old_file_name)
+			b.file_url = os.path.normpath('/' + old_file_name)
 		else:
-			b.doc.file_url = os.path.normpath('/files/' + old_file_name)
+			b.file_url = os.path.normpath('/files/' + old_file_name)
 		_file_name, content = get_file(file_name)
-		b.doc.content_hash = get_content_hash(content)
+		b.content_hash = get_content_hash(content)
 		b.save()
 

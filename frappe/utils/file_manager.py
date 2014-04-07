@@ -83,6 +83,7 @@ def extract_images_from_html(doc, fieldname):
 		data = match.group(1)
 		headers, content = data.split(",")
 		filename = headers.split("filename=")[-1]
+		# TODO fix this
 		file_url = save_file(filename, content, doc.doctype, doc.name, decode=True).get("file_url")
 		if not frappe.flags.has_dataurl:
 			frappe.flags.has_dataurl = True
@@ -116,23 +117,21 @@ def save_file(fname, content, dt, dn, decode=False):
 		"attached_to_doctype": dt,
 		"attached_to_name": dn,
 		"file_size": file_size,
-		"file_hash": content_hash,
-		"file_name": fname
+		"content_hash": content_hash,
 	})
 
-	f = frappe.bean(file_data)
+	f = frappe.get_doc(file_data)
 	f.ignore_permissions = True
 	try:
 		f.insert();
 	except frappe.DuplicateEntryError:
-		return frappe.doc("File Data", f.doc.duplicate_entry)
-
-	return f.doc
+		return frappe.get_doc("File Data", f.duplicate_entry)
+	return f
 
 def get_file_data_from_hash(content_hash):
 	for name in frappe.db.sql_list("select name from `tabFile Data` where content_hash='{}'".format(content_hash)):
-		b = frappe.bean('File Data', name)
-		return {k:b.doc.fields[k] for k in frappe.get_hooks()['write_file_keys']}
+		b = frappe.get_doc('File Data', name)
+		return {k:b.get(k) for k in frappe.get_hooks()['write_file_keys']}
 	return False
 	
 def save_file_on_filesystem(fname, content, content_type=None):
@@ -141,7 +140,7 @@ def save_file_on_filesystem(fname, content, content_type=None):
 	fpath = write_file(content, get_files_path(), fname)
 	path =  os.path.relpath(fpath, public_path)
 	return {
-		'file_name': path,
+		'file_name': os.path.basename(path),
 		'file_url': '/' + path
 	}
 	

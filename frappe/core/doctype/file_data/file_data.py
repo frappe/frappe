@@ -35,7 +35,7 @@ class FileData(Document):
 		if self.attached_to_name:
 			# check persmission
 			try:
-				if not self.ignore_permissions and \
+				if not getattr(self, 'ignore_permissions', False) and \
 					not frappe.has_permission(self.attached_to_doctype, "write", self.attached_to_name):
 					
 					frappe.msgprint(frappe._("No permission to write / remove."), raise_exception=True)
@@ -44,7 +44,7 @@ class FileData(Document):
 				pass
 
 		# if file not attached to any other record, delete it
-		if self.doc.file_name and not frappe.db.count("File Data", 
+		if self.file_name and not frappe.db.count("File Data", 
 			{"content_hash": self.content_hash, "name": ["!=", self.name]}):
 				delete_file_data_content(self)
 
