@@ -63,7 +63,7 @@ def handle():
 										
 				if frappe.local.request.method=="PUT":
 					frappe.local.response.update({
-						"doclist":frappe.client.save(frappe.local.form_dict.doclist)})
+						"doclist":frappe.client.save(frappe.local.form_dict)})
 					frappe.db.commit()
 				
 				if frappe.local.request.method=="DELETE":
@@ -79,7 +79,7 @@ def handle():
 
 				if frappe.local.request.method=="POST":
 					frappe.local.response.update({
-						"doclist": frappe.client.insert(frappe.local.form_dict.doclist)})
+						"doclist": frappe.client.insert(frappe.local.form_dict)})
 					frappe.db.commit()
 			else:
 				raise frappe.DoesNotExistError
