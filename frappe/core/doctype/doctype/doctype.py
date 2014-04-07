@@ -334,6 +334,7 @@ def make_module_and_roles(doc, perm_fieldname="permissions"):
 	try:
 		if not frappe.db.exists("Module Def", doc.module):
 			m = frappe.get_doc({"doctype": "Module Def", "module_name": doc.module})
+			m.app_name = frappe.local.module_app[frappe.scrub(doc.module)]
 			m.ignore_mandatory = m.ignore_permissions = True
 			m.insert()
 
