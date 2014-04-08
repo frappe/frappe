@@ -286,7 +286,7 @@ $.extend(frappe.model, {
 			var filters = parentfield
 			var parentfield = parent;
 		} else {
-			var doc = frappe.get_doc(doctype, parent)[parentfield];
+			var doc = frappe.get_doc(doctype, parent);
 		}
 
 		var children = doc[parentfield] || [];
