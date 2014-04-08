@@ -19,7 +19,7 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 	if not doctype:
 		doctype = frappe.form_dict.get('dt')
 		name = frappe.form_dict.get('dn')
-	
+
 	if not doctype:
 		frappe.msgprint('Nothing to delete!', raise_exception =1)
 
@@ -28,16 +28,20 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 		return
 
 	doc = frappe.get_doc(doctype, name)
-	
+
 	if not for_reload:
 		check_permission_and_not_submitted(doc, ignore_permissions)
 		doc.run_method("on_trash")
 		# check if links exist
 		if not force:
 			check_if_doc_is_linked(doc)
-		
+
 	try:
-		frappe.db.sql("delete from `tab%s` where name=%s" % (doctype, "%s"), (name,))
+		if doctype==name:
+			frappe.db.sql("delete from `tabSingles` where doctype=%s", name)
+		else:
+			frappe.db.sql("delete from `tab%s` where name=%s" % (doctype, "%s"), (name,))
+
 		for t in doc.meta.get_table_fields():
 			if t.options not in ignore_doctypes:
 				frappe.db.sql("delete from `tab%s` where parent = %s" % (t.options, '%s'), (name,))
@@ -45,15 +49,15 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 	except Exception, e:
 		if e.args[0]==1451:
 			frappe.msgprint("Cannot delete %s '%s' as it is referenced in another record. You must delete the referred record first" % (doctype, name))
-		
+
 		raise
-		
+
 	# delete attachments
 	remove_all(doctype, name)
-	
+
 	# delete restrictions
 	frappe.defaults.clear_default(parenttype="Restriction", key=doctype, value=name)
-		
+
 	return 'okay'
 
 def check_permission_and_not_submitted(doc, ignore_permissions=False):
@@ -78,12 +82,12 @@ def check_if_doc_is_linked(doc, method="Delete"):
 
 	for link_dt, link_field, issingle in link_fields:
 		if not issingle:
-			item = frappe.db.get_value(link_dt, {link_field:doc.name}, 
+			item = frappe.db.get_value(link_dt, {link_field:doc.name},
 				["name", "parent", "parenttype", "docstatus"], as_dict=True)
-			
-			if item and item.parent != doc.name and ((method=="Delete" and item.docstatus<2) or 
+
+			if item and item.parent != doc.name and ((method=="Delete" and item.docstatus<2) or
 					(method=="Cancel" and item.docstatus==1)):
 				frappe.msgprint(method + " " + _("Error") + ":"+\
-					("%s (%s) " % (doc.name, doc.doctype)) + _("is linked in") + (" %s (%s)") % 
+					("%s (%s) " % (doc.name, doc.doctype)) + _("is linked in") + (" %s (%s)") %
 					(item.parent or item.name, item.parent and item.parenttype or link_dt),
 					raise_exception=LinkExistsError)
