@@ -18,7 +18,7 @@ frappe.ui.form.save = function(frm, action, callback, btn) {
 			});
 		}
 	};
-	
+
 	var cancel = function() {
 		_call({
 			method: "frappe.widgets.form.save.cancel",
@@ -30,14 +30,14 @@ frappe.ui.form.save = function(frm, action, callback, btn) {
 			btn: btn
 		});
 	};
-	
+
 	var check_name = function() {
 		var doc = frm.doc;
 		var meta = locals.DocType[doc.doctype];
-		if(doc.__islocal && (meta && meta.autoname 
+		if(doc.__islocal && (meta && meta.autoname
 				&& meta.autoname.toLowerCase()=='prompt')) {
 			var newname = prompt('Enter the name of the new '+ doc.doctype, '');
-			if(newname) { 
+			if(newname) {
 				doc.__newname = strip(newname);
 			} else {
 				msgprint("Name is required.");
@@ -45,42 +45,43 @@ frappe.ui.form.save = function(frm, action, callback, btn) {
 			}
 		}
 	};
-	
+
 	var check_mandatory = function() {
+		var me = this;
 		var has_errors = false;
 		frm.scroll_set = false;
-		
+
 		if(frm.doc.docstatus==2) return true; // don't check for cancel
-		
+
 		$.each(frappe.model.get_all_docs(frm.doc), function(i, doc) {
-			
+
 			var error_fields = [];
-			
+
 			$.each(frappe.meta.docfield_list[doc.doctype] || [], function(i, docfield) {
 				if(docfield.fieldname) {
-					var df = frappe.meta.get_docfield(doc.doctype, 
+					var df = frappe.meta.get_docfield(doc.doctype,
 						docfield.fieldname, frm.doc.name);
 
 					if(df.reqd && !frappe.model.has_value(doc.doctype, doc.name, df.fieldname)) {
 						has_errors = true;
 						error_fields[error_fields.length] = df.label;
-						
+
 						// scroll to field
-						if(!me.scroll_set) 
+						if(!me.scroll_set)
 							me.scroll_to(doc.parentfield || df.fieldname);
 					}
-					
+
 				}
 			});
 			if(error_fields.length)
-				msgprint('<b>Mandatory fields required in '+ (doc.parenttype 
-					? (frappe.meta.docfield_map[doc.parenttype][doc.parentfield].label + ' (Table)') 
-					: doc.doctype) + ':</b>\n' + error_fields.join('\n'));	
+				msgprint('<b>Mandatory fields required in '+ (doc.parenttype
+					? (frappe.meta.docfield_map[doc.parenttype][doc.parentfield].label + ' (Table)')
+					: doc.doctype) + ':</b>\n' + error_fields.join('\n'));
 		});
-		
+
 		return !has_errors;
 	};
-	
+
 	var scroll_to = function(fieldname) {
 		var f = cur_frm.fields_dict[fieldname];
 		if(f) {
@@ -107,7 +108,7 @@ frappe.ui.form.save = function(frm, action, callback, btn) {
 			}
 		})
 	};
-	
+
 	if(action==="cancel") {
 		cancel();
 	} else {
