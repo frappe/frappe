@@ -1,5 +1,5 @@
 # Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt 
+# MIT License. See license.txt
 
 from __future__ import unicode_literals
 import frappe, os
@@ -14,26 +14,26 @@ class PrintFormat(Document):
 	def validate(self):
 		if self.standard=="Yes" and frappe.session.user != "Administrator":
 			frappe.msgprint("Standard Print Format cannot be updated.", raise_exception=1)
-		
+
 		# old_doc_type is required for clearing item cache
 		self.old_doc_type = frappe.db.get_value('Print Format',
 				self.name, 'doc_type')
 
 	def on_update(self):
 		if hasattr(self, 'old_doc_type') and self.old_doc_type:
-			frappe.clear_cache(doctype=self.old_doc_type)		
+			frappe.clear_cache(doctype=self.old_doc_type)
 		if self.doc_type:
 			frappe.clear_cache(doctype=self.doc_type)
 
 		self.export_doc()
-	
+
 	def export_doc(self):
 		# export
 		if self.standard == 'Yes' and (frappe.conf.get('developer_mode') or 0) == 1:
 			from frappe.modules.export_file import export_to_files
-			export_to_files(record_list=[['Print Format', self.name]], 
-				record_module=self.module)	
-	
+			export_to_files(record_list=[['Print Format', self.name]],
+				record_module=self.module)
+
 	def on_trash(self):
 		if self.doc_type:
 			frappe.clear_cache(doctype=self.doc_type)
@@ -47,7 +47,7 @@ def get_args():
 				<p>Parameters doctype, name and format required</p>
 				<pre>%s</pre>""" % repr(frappe.form_dict)
 		}
-		
+
 	doc = frappe.get_doc(frappe.form_dict.doctype, frappe.form_dict.name)
 	for ptype in ("read", "print"):
 		if not frappe.has_permission(doc.doctype, ptype, doc):
@@ -55,7 +55,7 @@ def get_args():
 				"body": """<h1>Error</h1>
 					<p>No {ptype} permission</p>""".format(ptype=ptype)
 			}
-		
+
 	return {
 		"body": get_html(doc),
 		"css": get_print_style(frappe.form_dict.style),
@@ -64,14 +64,14 @@ def get_args():
 
 def get_html(doc, name=None, print_format=None):
 	from jinja2 import Environment
-	
+
 	if isinstance(doc, basestring) and isinstance(name, basestring):
 		doc = frappe.get_doc(doc, name)
 
-	template = Environment().from_string(get_print_format_name(doc.doctype, 
+	template = Environment().from_string(get_print_format_name(doc.doctype,
 		print_format or frappe.form_dict.format))
-	doctype = frappe.get_meta(doc.doctype)
-	
+	meta = frappe.get_meta(doc.doctype)
+
 	args = {
 		"doc": doc,
 		"meta": meta,
@@ -84,9 +84,9 @@ def get_html(doc, name=None, print_format=None):
 def get_print_format_name(doctype, format_name):
 	if format_name==standard_format:
 		return format_name
-		
+
 	# server, find template
-	path = os.path.join(get_doc_path(frappe.db.get_value("DocType", doctype, "module"), 
+	path = os.path.join(get_doc_path(frappe.db.get_value("DocType", doctype, "module"),
 		"Print Format", format_name), format_name + ".html")
 	if os.path.exists(path):
 		with open(path, "r") as pffile:
@@ -101,7 +101,7 @@ def get_print_format_name(doctype, format_name):
 def get_print_style(style=None):
 	if not style:
 		style = frappe.db.get_default("print_style") or "Standard"
-	path = os.path.join(get_doc_path("Core", "DocType", "Print Format"), "styles", 
+	path = os.path.join(get_doc_path("Core", "DocType", "Print Format"), "styles",
 		style.lower() + ".css")
 	if not os.path.exists(path):
 		if style!="Standard":
@@ -111,4 +111,3 @@ def get_print_style(style=None):
 	else:
 		with open(path, 'r') as sfile:
 			return sfile.read()
-	

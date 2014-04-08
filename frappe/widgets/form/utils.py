@@ -1,5 +1,5 @@
 # Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt 
+# MIT License. See license.txt
 
 from __future__ import unicode_literals
 import frappe, json
@@ -35,46 +35,44 @@ def validate_link():
 	"""validate link when updated by user"""
 	import frappe
 	import frappe.utils
-	
+
 	value, options, fetch = frappe.form_dict.get('value'), frappe.form_dict.get('options'), frappe.form_dict.get('fetch')
 
 	# no options, don't validate
 	if not options or options=='null' or options=='undefined':
 		frappe.response['message'] = 'Ok'
 		return
-		
+
 	if frappe.db.sql("select name from `tab%s` where name=%s" % (options, '%s'), (value,)):
-	
+
 		# get fetch values
 		if fetch:
 			frappe.response['fetch_values'] = [frappe.utils.parse_val(c) \
 				for c in frappe.db.sql("select %s from `tab%s` where name=%s" \
 					% (fetch, options, '%s'), (value,))[0]]
-	
+
 		frappe.response['message'] = 'Ok'
 
 @frappe.whitelist()
 def add_comment(doclist):
 	"""allow any logged user to post a comment"""
 	doclist = json.loads(doclist)
-	
+
 	doclist[0]["__islocal"] = 1
 	doclistobj = frappe.get_doc(doclist)
 	doclistobj.ignore_permissions = True
 	doclistobj.save()
-	
-	return doclist.as_dict()
 
-	return save(doclist)
+	return doclistobj.as_dict()
 
 @frappe.whitelist()
 def get_next(doctype, name, prev):
 	import frappe.widgets.reportview
-	
+
 	prev = int(prev)
 	field = "`tab%s`.name" % doctype
 	res = frappe.widgets.reportview.execute(doctype,
-		fields = [field], 
+		fields = [field],
 		filters = [[doctype, "name", "<" if prev else ">", name]],
 		order_by = field + " " + ("desc" if prev else "asc"),
 		limit_start=0, limit_page_length=1, as_list=True)
@@ -95,24 +93,24 @@ def get_linked_docs(doctype, name, metadata_loaded=None):
 		link["doctype"] = dt
 		linkmeta = frappe.widgets.form.meta.get_meta(dt)
 		if not linkmeta.get("issingle"):
-			fields = [d.fieldname for d in linkmeta.get("fields", {"in_list_view":1, 
+			fields = [d.fieldname for d in linkmeta.get("fields", {"in_list_view":1,
 				"fieldtype": ["not in", ["Image", "HTML", "Button", "Table"]]})] \
 				+ ["name", "modified", "docstatus"]
 
 			fields = ["`tab{dt}`.`{fn}`".format(dt=dt, fn=sf.strip()) for sf in fields if sf]
 
 			if link.get("child_doctype"):
-				ret = frappe.get_list(doctype=dt, fields=fields, 
+				ret = frappe.get_list(doctype=dt, fields=fields,
 					filters=[[link.get('child_doctype'), link.get("fieldname"), '=', name]])
-				
+
 			else:
-				ret = frappe.get_list(doctype=dt, fields=fields, 
+				ret = frappe.get_list(doctype=dt, fields=fields,
 					filters=[[dt, link.get("fieldname"), '=', name]])
-			
-			if ret: 
+
+			if ret:
 				results[dt] = ret
-				
+
 			if not dt in metadata_loaded:
 				frappe.local.response.docs.append(linkmeta)
-				
+
 	return results

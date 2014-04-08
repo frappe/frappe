@@ -133,10 +133,12 @@ def get_dependencies(doctype):
 	for df in meta.get_table_fields():
 		link_fields.extend(frappe.get_meta(df.options).get_link_fields())
 
-	options_list = list(set([df.options for df in link_fields] + [doctype]))
+	options_list = [df.options for df in link_fields] + [doctype]
 
 	if hasattr(test_module, "test_dependencies"):
 		options_list += test_module.test_dependencies
+
+	options_list = list(set(options_list))
 
 	if hasattr(test_module, "test_ignore"):
 		for doctype_name in test_module.test_ignore:
@@ -164,7 +166,6 @@ def make_test_records_for_doctype(doctype, verbose=0):
 
 		elif verbose:
 			print_mandatory_fields(doctype)
-
 
 def make_test_objects(doctype, test_records, verbose=None):
 	records = []
