@@ -72,7 +72,7 @@ def has_unrestricted_access(doc, verbose=True):
 
 	meta = frappe.get_meta(doc.get("doctype"))
 	if get_user_perms(meta).restricted:
-		if d.owner == frappe.session.user:
+		if doc.owner == frappe.session.user:
 			# owner is always allowed for restricted permissions
 			return True
 		elif not restrictions:

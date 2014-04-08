@@ -163,6 +163,7 @@ class BaseDocument(object):
 				columns = ", ".join(["`"+c+"`" for c in columns]),
 				values = ", ".join(["%s"] * len(columns))
 			), d.values())
+
 		self.set("__islocal", False)
 
 	def db_update(self):

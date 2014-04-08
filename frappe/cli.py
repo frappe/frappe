@@ -362,13 +362,13 @@ def latest(verbose=True, rebuild_website_config=True, quiet=False):
 
 		# sync
 		frappe.model.sync.sync_all(verbose=verbose)
+		sync_fixtures()
 
+		statics.sync().start()
 		# build website config if any changes in templates etc.
 		if rebuild_website_config:
 			rebuild_config()
 
-		statics.sync().start()
-		sync_fixtures()
 
 		frappe.translate.clear_cache()
 

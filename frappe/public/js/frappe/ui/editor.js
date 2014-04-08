@@ -1,9 +1,9 @@
 // Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
-// MIT License. See license.txt 
+// MIT License. See license.txt
 
 /* Inspired from: http://github.com/mindmup/bootstrap-wysiwyg */
 
-// todo 
+// todo
 // make it inline friendly
 
 bsEditor = Class.extend({
@@ -37,9 +37,9 @@ bsEditor = Class.extend({
 		}).data("object", this);
 
 		this.bind_hotkeys();
-		this.init_file_drops();		
+		this.init_file_drops();
 	},
-	
+
 	set_editing: function() {
 		this.editor.attr('contenteditable', true);
 		this.toolbar.show();
@@ -47,7 +47,7 @@ bsEditor = Class.extend({
 			this.toolbar.editor = this.editor.focus();
 		this.editing = true;
 	},
-	
+
 	setup_fixed_toolbar: function() {
 		if(!window.bs_editor_toolbar) {
 			window.bs_editor_toolbar = new bsEditorToolbar(this.options)
@@ -89,11 +89,11 @@ bsEditor = Class.extend({
 			"border": "1px solid rgb(204, 204, 204)",
 			"padding": "4px",
 			"box-sizing": "content-box",
-			"-webkit-box-shadow": "rgba(0, 0, 0, 0.0745098) 0px 1px 1px 0px inset", 
+			"-webkit-box-shadow": "rgba(0, 0, 0, 0.0745098) 0px 1px 1px 0px inset",
 			"box-shadow": "rgba(0, 0, 0, 0.0745098) 0px 1px 1px 0px inset",
 			"border-radius": "3px",
 			"overflow": "scroll",
-			"outline": "none"	
+			"outline": "none"
 		},
 		toolbar_selector: '[data-role=editor-toolbar]',
 		command_role: 'edit',
@@ -103,7 +103,7 @@ bsEditor = Class.extend({
 		remove_typography: true,
 		max_file_size: 1,
 	},
-	
+
 	bind_hotkeys: function () {
 		var me = this;
 		$.each(this.options.hotKeys, function (hotkey, command) {
@@ -123,7 +123,7 @@ bsEditor = Class.extend({
 	},
 
 	clean_html: function() {
-		
+
 		var html = this.editor.html() || "";
 		if(!$.trim(this.editor.text()) && !(this.editor.find("img"))) html = "";
 		// html = html.replace(/(<br>|\s|<div><br><\/div>|&nbsp;)*$/, '');
@@ -135,8 +135,8 @@ bsEditor = Class.extend({
 			html = html.replace(/\s*style\s*=\s*["']\s*["']/g, '');
 			return html;
 		}
-	},	
-	
+	},
+
 	init_file_drops: function () {
 		var me = this;
 		this.editor.on('dragenter dragover', false)
@@ -149,7 +149,7 @@ bsEditor = Class.extend({
 				}
 			});
 	},
-	
+
 	insert_files: function (files) {
 		var me = this;
 		this.editor.focus();
@@ -182,17 +182,17 @@ bsEditor = Class.extend({
 		}
 		freader.readAsDataURL(fileobj);
 	},
-	
+
 	get_value: function() {
 		return this.clean_html()
 	},
-	
+
 	set_input: function(value) {
 		if(this.options.field && this.options.field.inside_change_event)
 			return;
 		this.editor.html(value==null ? "" : value);
 	}
-	
+
 })
 
 bsEditorToolbar = Class.extend({
@@ -221,7 +221,7 @@ bsEditorToolbar = Class.extend({
 		padding: "5px",
 	},
 	make: function(parent) {
-		if(!parent) 
+		if(!parent)
 			parent = $("body");
 		if(!parent.find(".frappe-list-toolbar").length) {
 			this.toolbar = $('<div class="frappe-list-toolbar frappe-ignore-click">\
@@ -272,7 +272,7 @@ bsEditorToolbar = Class.extend({
 				</div>\
 				<input type="file" data-edit="insertImage" />\
 			</div>').prependTo(parent);
-			
+
 			if(this.inline) {
 				this.toolbar.find("[data-action]").remove();
 			} else {
@@ -280,7 +280,7 @@ bsEditorToolbar = Class.extend({
 			}
 		}
 	},
-	
+
 	setup_image_button: function() {
 		// magic-overlay
 		var me = this;
@@ -296,7 +296,7 @@ bsEditorToolbar = Class.extend({
 			me.file_input.trigger("click");
 		})
 	},
-	
+
 	show: function() {
 		var me = this;
 		this.toolbar.toggle(true);
@@ -317,14 +317,14 @@ bsEditorToolbar = Class.extend({
 				me.toolbar.toggle(false);
 			}});
 		}
-		
+
 		this.editor && this.editor.attr('contenteditable', false).data("object").onhide();
 		this.editor = null;
 	},
-	
+
 	bind_events: function () {
 		var me = this;
-				
+
 		// standard button events
 		this.toolbar.find('a[data-' + me.options.command_role + ']').click(function () {
 			me.restore_selection();
@@ -340,12 +340,19 @@ bsEditorToolbar = Class.extend({
 
 		// link
 		this.toolbar.find(".btn-add-link").on("click", function() {
-			if(!window.bs_link_editor) {
-				window.bs_link_editor = new bsLinkEditor(me);
+			if(!me.toolbar.bs_link_editor) {
+				if(me.inline) {
+					me.toolbar.bs_link_editor = new bsLinkEditor(me);
+				} else {
+					if(!window.bs_link_editor) {
+						window.bs_link_editor = new bsLinkEditor(me);
+					}
+					me.toolbar.bs_link_editor = window.bs_link_editor;
+				}
 			}
-			window.bs_link_editor.show();
-		})
-		
+			me.toolbar.bs_link_editor.show();
+		});
+
 		// file event
 		this.toolbar.find('input[type=file][data-' + me.options.command_role + ']').change(function () {
 			me.restore_selection();
@@ -356,7 +363,7 @@ bsEditorToolbar = Class.extend({
 			this.value = '';
 			return false;
 		});
-		
+
 		// save
 		this.toolbar.find("[data-action='Save']").on("click", function() { me.hide(); });
 
@@ -364,7 +371,7 @@ bsEditorToolbar = Class.extend({
 		this.toolbar.find(".btn-html").on("click", function() {
 			if(!window.bs_html_editor)
 				window.bs_html_editor = new bsHTMLEditor();
-			
+
 			window.bs_html_editor.show(me.editor);
 		})
 	},
@@ -382,7 +389,7 @@ bsEditorToolbar = Class.extend({
 			});
 		}
 	},
-	
+
 	execCommand: function (commandWithArgs, valueArg) {
 		var commandArr = commandWithArgs.split(' '),
 			command = commandArr.shift(),
@@ -390,18 +397,18 @@ bsEditorToolbar = Class.extend({
 		document.execCommand(command, 0, args);
 		this.update();
 	},
-	
+
 	get_current_range: function () {
 		var sel = window.getSelection();
 		if (sel.getRangeAt && sel.rangeCount) {
 			return sel.getRangeAt(0);
 		}
 	},
-	
+
 	save_selection: function () {
 		this.selected_range = this.get_current_range();
 	},
-		
+
 	restore_selection: function () {
 		var selection = window.getSelection();
 		if (this.selected_range) {
@@ -409,14 +416,14 @@ bsEditorToolbar = Class.extend({
 			selection.addRange(this.selected_range);
 		}
 	},
-	
+
 	mark_selection: function (input, color) {
 		this.restore_selection();
 		document.execCommand('hiliteColor', 0, color || 'transparent');
 		this.save_selection();
 		input.data(this.options.selection_marker, color);
 	},
-	
+
 	// bind_touch: function() {
 	// 	var me = this;
 	// 	$(window).bind('touchend', function (e) {
@@ -479,7 +486,7 @@ bsLinkEditor = Class.extend({
 				</label>\
 			</div>\
 			<button class="btn btn-primary" style="margin-top: 7px;">Insert</button>');
-		
+
 		this.modal.addClass("frappe-ignore-click");
 		this.modal.find(".btn-primary").on("click", function() {
 			me.toolbar.restore_selection();

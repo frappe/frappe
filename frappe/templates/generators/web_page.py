@@ -28,4 +28,7 @@ def get_context(context):
 	})
 	web_page.update(context)
 
+	if "<!-- no-sidebar -->" in web_page.main_section:
+		web_page.no_sidebar = True
+
 	return web_page

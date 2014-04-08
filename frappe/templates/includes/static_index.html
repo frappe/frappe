@@ -1,0 +1,13 @@
+<!-- no-sidebar -->
+<div class="row">
+	<div class="col-md-8">
+		<ul class="list-group">
+			{% for item in items[1:] %}
+			<li class="list-group-item">
+				<b>{{ loop.index }}.</b>
+				<a href="{{ item.name }}">{{ item.page_title }}</a>
+			</li>
+			{% endfor %}
+		</ul>
+	</div>
+</div>

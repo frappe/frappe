@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 
 import frappe, json, os
+import frappe.modules.import_file
 from frappe.utils import cstr, cint, flt
 from frappe.utils.datautils import check_record, import_doc
 
@@ -18,11 +19,11 @@ data_keys = frappe._dict({
 @frappe.whitelist()
 def get_doctypes():
 	if "System Manager" in frappe.get_roles():
-	    return [r[0] for r in frappe.db.sql("""select name from `tabDocType` 
+	    return [r[0] for r in frappe.db.sql("""select name from `tabDocType`
 			where allow_import = 1""")]
 	else:
 		return frappe.user._get("can_import")
-		
+
 @frappe.whitelist()
 def get_doctype_options():
 	doctype = frappe.form_dict['doctype']
@@ -35,7 +36,7 @@ def import_file_by_path(path, ignore_links=False, overwrite=False, submit=False)
 	from frappe.core.page.data_import_tool.importer import upload
 	print "Importing " + path
 	with open(path, "r") as infile:
-		upload(rows = read_csv_content(infile), ignore_links=ignore_links, overwrite=overwrite, submit_after_import=submit)
+		upload(rows = read_csv_content(infile.read()), ignore_links=ignore_links, overwrite=overwrite, submit_after_import=submit)
 
 def export_csv(doctype, path):
 	from frappe.core.page.data_import_tool.exporter import get_template
@@ -59,43 +60,23 @@ def export_json(doctype, name, path):
 def export_fixture(doctype, name, app):
 	if frappe.session.user != "Administrator":
 		raise frappe.PermissionError
-		
+
 	if not os.path.exists(frappe.get_app_path(app, "fixtures")):
 		os.mkdir(frappe.get_app_path(app, "fixtures"))
-		
+
 	export_json(doctype, name, frappe.get_app_path(app, "fixtures", frappe.scrub(name) + ".json"))
-	
+
 
 def import_doc(path, overwrite=False, ignore_links=False, ignore_insert=False, insert=False, submit=False):
 	if os.path.isdir(path):
 		files = [os.path.join(path, f) for f in os.listdir(path)]
 	else:
 		files = [path]
-	
-	def _import_doc(d):
-		doc = frappe.get_doc(d)
-		doc.ignore_links = ignore_links
-		if insert:
-			doc.set("__islocal", True)
-		try:
-			doc.save()
-		except NameError:
-			if ignore_insert:
-				pass
-			else:
-				raise
-		print "Imported: " + doc.doctype + " / " + doc.name
-	
+
+
 	for f in files:
 		if f.endswith(".json"):
-			with open(f, "r") as infile:
-				data = json.loads(infile.read())
-				if isinstance(data, list):
-					for doc in data:
-						_import_doc(doc)
-				else:
-					_import_doc(data)
-				frappe.db.commit()
-		if f.endswith(".csv"):
-			import_file_by_path(f, ignore_links=True, overwrite=overwrite, submit=submit)
+			frappe.modules.import_file.import_file_by_path(f)
+		elif f.endswith(".csv"):
+			import_file_by_path(f, ignore_links=ignore_links, overwrite=overwrite, submit=submit)
 			frappe.db.commit()
