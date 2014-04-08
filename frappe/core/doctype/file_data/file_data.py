@@ -20,10 +20,10 @@ class FileData(Document):
 	def on_update(self):
 		# check duplicate assignement
 		n_records = frappe.db.sql("""select name from `tabFile Data`
-			where file_name=%s 
+			where content_hash=%s 
 			and name!=%s
 			and attached_to_doctype=%s 
-			and attached_to_name=%s""", (self.file_name, self.name, self.attached_to_doctype,
+			and attached_to_name=%s""", (self.content_hash, self.name, self.attached_to_doctype,
 				self.attached_to_name))
 		if len(n_records) > 0:
 			self.duplicate_entry = n_records[0][0]
