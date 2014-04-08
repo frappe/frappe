@@ -6,9 +6,11 @@ from __future__ import unicode_literals
 import frappe
 import os
 from frappe.utils import get_files_path
-from frappe.utils.filemanager import get_content_hash, get_file
+from frappe.utils.file_manager import get_content_hash, get_file
+
 
 def execute():
+	frappe.reload_doc('core', 'doctype', 'file_data')
 	for name, file_name, file_url in frappe.db.sql(
 			"""select name, file_name, file_url from `tabFile Data`
 			where file_name is not null"""):
@@ -19,7 +21,7 @@ def execute():
 			b.file_url = os.path.normpath('/' + old_file_name)
 		else:
 			b.file_url = os.path.normpath('/files/' + old_file_name)
-		_file_name, content = get_file(file_name)
+		_file_name, content = get_file(name)
 		b.content_hash = get_content_hash(content)
 		b.save()
 
