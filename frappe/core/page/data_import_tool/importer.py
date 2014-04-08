@@ -197,6 +197,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 				if overwrite and frappe.db.exists(doctype, doc["name"]):
 					original = frappe.get_doc(doctype, doc["name"])
 					original.update(doc)
+					original.ignore_links = ignore_links
 					original.save()
 					ret.append('Updated row (#%d) %s' % (row_idx + 1, getlink(original.doctype, original.name)))
 				else:

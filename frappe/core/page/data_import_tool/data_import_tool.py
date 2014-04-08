@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 
 import frappe, json, os
+import frappe.modules.import_file
 from frappe.utils import cstr, cint, flt
 from frappe.utils.datautils import check_record, import_doc
 
@@ -72,35 +73,10 @@ def import_doc(path, overwrite=False, ignore_links=False, ignore_insert=False, i
 	else:
 		files = [path]
 
-	def _import_doc(d):
-		doc = frappe.get_doc(d)
-		doc.ignore_links = ignore_links
-		if insert:
-			doc.set("__islocal", True)
-		try:
-			if doc.name and overwrite:
-				if frappe.db.exists(doc.doctype, doc.name):
-					frappe.delete_doc(doc.doctype, doc.name, force=True)
-					doc.set("__islocal", True)
-			doc.ignore_links = ignore_links
-			doc.save()
-		except NameError:
-			if ignore_insert:
-				pass
-			else:
-				raise
-		print "Imported: " + doc.doctype + " / " + doc.name
 
 	for f in files:
 		if f.endswith(".json"):
-			with open(f, "r") as infile:
-				data = json.loads(infile.read())
-				if isinstance(data, list):
-					for doc in data:
-						_import_doc(doc)
-				else:
-					_import_doc(data)
-				frappe.db.commit()
-		if f.endswith(".csv"):
+			frappe.modules.import_file.import_file_by_path(f)
+		elif f.endswith(".csv"):
 			import_file_by_path(f, ignore_links=ignore_links, overwrite=overwrite, submit=submit)
 			frappe.db.commit()

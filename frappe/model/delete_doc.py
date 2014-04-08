@@ -37,7 +37,7 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 			check_if_doc_is_linked(doc)
 
 	try:
-		if doctype==name:
+		if doctype!="DocType" and doctype==name:
 			frappe.db.sql("delete from `tabSingles` where doctype=%s", name)
 		else:
 			frappe.db.sql("delete from `tab%s` where name=%s" % (doctype, "%s"), (name,))
