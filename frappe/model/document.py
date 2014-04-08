@@ -261,6 +261,8 @@ class Document(BaseDocument):
 				+ (" (%s, %s). " % (modified, self.modified)) \
 				+ _("Please refresh to get the latest document."),
 					raise_exception=frappe.TimestampMismatchError)
+		else:
+			self.check_docstatus_transition(0)
 
 	def check_docstatus_transition(self, docstatus):
 		if not self.docstatus:
@@ -292,8 +294,10 @@ class Document(BaseDocument):
 			raise frappe.ValidationError
 
 	def validate_update_after_submit(self):
-		# check only allowed values are updated
-		pass
+		if getattr(self, "ignore_validate_update_after_submit", False):
+			return
+
+		# TODO check only allowed values are updated
 
 	def _validate_mandatory(self):
 		if self.get("ignore_mandatory"):

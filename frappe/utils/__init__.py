@@ -9,6 +9,8 @@ import os
 import re
 import urllib
 import frappe
+import datetime
+import math
 
 no_value_fields = ['Section Break', 'Column Break', 'HTML', 'Table', 'FlexTable',
 	'Button', 'Image', 'Graph']
@@ -99,8 +101,6 @@ def getdate(string_date):
 	"""
 		 Coverts string date (yyyy-mm-dd) to datetime.date object
 	"""
-	import datetime
-
 	if isinstance(string_date, datetime.date):
 		return string_date
 	elif isinstance(string_date, datetime.datetime):
@@ -149,8 +149,7 @@ def time_diff_in_hours(string_ed_date, string_st_date):
 	return round(float(time_diff(string_ed_date, string_st_date).seconds) / 3600, 6)
 
 def now_datetime():
-	from datetime import datetime
-	return convert_utc_to_user_timezone(datetime.utcnow())
+	return convert_utc_to_user_timezone(datetime.datetime.utcnow())
 
 def get_user_time_zone():
 	if getattr(frappe.local, "user_time_zone", None) is None:
@@ -194,7 +193,6 @@ def get_first_day(dt, d_years=0, d_months=0):
 	 Returns the first day of the month for the date specified by date object
 	 Also adds `d_years` and `d_months` if specified
 	"""
-	import datetime
 	dt = getdate(dt)
 
 	# d_years, d_months are "deltas" to apply to dt
@@ -208,21 +206,23 @@ def get_last_day(dt):
 	 Returns last day of the month using:
 	 `get_first_day(dt, 0, 1) + datetime.timedelta(-1)`
 	"""
-	import datetime
 	return get_first_day(dt, 0, 1) + datetime.timedelta(-1)
 
 def get_datetime(datetime_str):
-	from datetime import datetime
-	if isinstance(datetime_str, datetime):
-		return datetime_str.replace(tzinfo=None)
+	try:
+		return datetime.datetime.strptime(datetime_str, '%Y-%m-%d %H:%M:%S.%f')
 
-	if datetime_str=='0000-00-00 00:00:00.000000':
-		return None
+	except TypeError:
+		if isinstance(datetime_str, datetime.datetime):
+			return datetime_str.replace(tzinfo=None)
+		else:
+			raise
 
-	if len(datetime_str)==26:
-		return datetime.strptime(datetime_str, '%Y-%m-%d %H:%M:%S.%f')
-	else:
-		return datetime.strptime(datetime_str, '%Y-%m-%d %H:%M:%S')
+	except ValueError:
+		if datetime_str=='0000-00-00 00:00:00.000000':
+			return None
+
+		return datetime.datetime.strptime(datetime_str, '%Y-%m-%d %H:%M:%S')
 
 def get_datetime_str(datetime_obj):
 	if isinstance(datetime_obj, basestring):
@@ -309,7 +309,6 @@ def _round(num, precision=0):
 	# avoid rounding errors
 	num = round(num * multiplier if precision else num, 8)
 
-	import math
 	floor = math.floor(num)
 	decimal_part = num - floor
 
@@ -336,8 +335,6 @@ def encode(obj, encoding="utf-8"):
 
 def parse_val(v):
 	"""Converts to simple datatypes from SQL query results"""
-	import datetime
-
 	if isinstance(v, (datetime.date, datetime.datetime)):
 		v = unicode(v)
 	elif isinstance(v, datetime.timedelta):
@@ -691,12 +688,11 @@ def pretty_date(iso_datetime):
 		Ported from PrettyDate by John Resig
 	"""
 	if not iso_datetime: return ''
-	from datetime import datetime
 	import math
 
 	if isinstance(iso_datetime, basestring):
-		iso_datetime = datetime.strptime(iso_datetime, '%Y-%m-%d %H:%M:%S.%f')
-	now_dt = datetime.strptime(now(), '%Y-%m-%d %H:%M:%S.%f')
+		iso_datetime = datetime.datetime.strptime(iso_datetime, '%Y-%m-%d %H:%M:%S.%f')
+	now_dt = datetime.datetime.strptime(now(), '%Y-%m-%d %H:%M:%S.%f')
 	dt_diff = now_dt - iso_datetime
 
 	# available only in python 2.7+

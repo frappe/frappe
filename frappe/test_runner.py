@@ -17,12 +17,19 @@ def main(app=None, module=None, doctype=None, verbose=False, tests=()):
 	if not frappe.db:
 		frappe.connect()
 
+	# workaround! since there is no separate test db
+	frappe.clear_cache()
+
 	if doctype:
 		ret = run_tests_for_doctype(doctype, verbose=verbose, tests=tests)
 	elif module:
 		ret = run_tests_for_module(module, verbose=verbose, tests=tests)
 	else:
 		ret = run_all_tests(app, verbose)
+
+	# workaround! since there is no separate test db
+	frappe.clear_cache()
+
 	return ret
 
 def run_all_tests(app=None, verbose=False):
