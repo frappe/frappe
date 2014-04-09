@@ -275,7 +275,7 @@ class Document(BaseDocument):
 				if not self.has_permission("submit"):
 					raise frappe.PermissionError
 			else:
-				raise frappe.DocstatusTransitionError
+				raise frappe.DocstatusTransitionError("Cannot change docstatus from 0 to 2")
 
 		elif docstatus==1:
 			if self.docstatus==1:
@@ -288,7 +288,7 @@ class Document(BaseDocument):
 				if not self.has_permission("cancel"):
 					raise frappe.PermissionError
 			else:
-				raise frappe.DocstatusTransitionError
+				raise frappe.DocstatusTransitionError("Cannot change docstatus from 1 to 0")
 
 		elif docstatus==2:
 			raise frappe.ValidationError
@@ -351,6 +351,7 @@ class Document(BaseDocument):
 		"""run standard triggers, plus those in frappe"""
 		if hasattr(self, method):
 			fn = lambda self, *args, **kwargs: getattr(self, method)(*args, **kwargs)
+			fn.__name__ = method.encode("utf-8")
 			return Document.hook(fn)(self, *args, **kwargs)
 
 	def submit(self):
@@ -412,7 +413,7 @@ class Document(BaseDocument):
 			method = f.__name__
 			for handler in frappe.get_hooks("doc_event:" + self.doctype + ":" + method) \
 				+ frappe.get_hooks("doc_event:*:" + method):
-				hooks.append(frappe.getattr(handler))
+				hooks.append(frappe.get_attr(handler))
 
 			composed = compose(f, *hooks)
 			return composed(self, method, *args, **kwargs)

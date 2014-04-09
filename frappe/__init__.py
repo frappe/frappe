@@ -305,7 +305,7 @@ def reset_perms(doctype):
 def generate_hash(txt=None):
 	"""Generates random hash for session id"""
 	import hashlib, time
-	return hashlib.sha224((txt or "") + str(time.time())).hexdigest()
+	return hashlib.sha224((txt or "") + repr(time.time())).hexdigest()
 
 def reset_metadata_version():
 	v = generate_hash()
