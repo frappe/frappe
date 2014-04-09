@@ -12,6 +12,9 @@ from frappe.website.doctype.website_route.website_route import add_to_sitemap, u
 
 class WebsiteGenerator(DocListController):
 	def autoname(self):
+		self.setup_generator()
+		if not self.website_template: return
+
 		self.name = self.get_page_name()
 		append_number_if_name_exists(self)
 
@@ -31,8 +34,12 @@ class WebsiteGenerator(DocListController):
 
 	def setup_generator(self):
 		if not hasattr(self, "website_template"):
-			self.website_template = frappe.db.get_values("Website Template",
-				{"ref_doctype": self.doctype}, "*")[0]
+			website_template = frappe.db.get_values("Website Template",
+				{"ref_doctype": self.doctype}, "*")
+			if website_template:
+				self.website_template = website_template
+			else:
+				self.website_template = None
 
 	def on_update(self):
 		self.update_sitemap()
@@ -40,19 +47,24 @@ class WebsiteGenerator(DocListController):
 			frappe.add_version(self)
 
 	def after_rename(self, olddn, newdn, merge):
+		self.setup_generator()
+		if not self.website_template: return
+
 		frappe.db.sql("""update `tabWebsite Route`
 			set docname=%s where ref_doctype=%s and docname=%s""", (newdn, self.doctype, olddn))
 
 		if merge:
-			self.setup_generator()
 			remove_sitemap(ref_doctype=self.doctype, docname=olddn)
 
 	def on_trash(self):
 		self.setup_generator()
+		if not self.website_template: return
+
 		remove_sitemap(ref_doctype=self.doctype, docname=self.name)
 
 	def update_sitemap(self):
 		self.setup_generator()
+		if not self.website_template: return
 
 		if self.website_template.condition_field and \
 			not self.get(self.website_template.condition_field):
@@ -111,7 +123,6 @@ class WebsiteGenerator(DocListController):
 		return self._get_page_name()
 
 	def _get_page_name(self):
-		self.setup_generator()
 		if self.meta.get_field(self.website_template.page_name_field):
 			return self.get(self.website_template.page_name_field)
 		else:
