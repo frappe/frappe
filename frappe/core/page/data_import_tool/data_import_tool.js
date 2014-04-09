@@ -1,17 +1,17 @@
-frappe.pages['data-import-tool'].onload = function(wrapper) { 
+frappe.pages['data-import-tool'].onload = function(wrapper) {
 	wrapper.app_page = frappe.ui.make_app_page({
 		parent: wrapper,
 		title: __("Data Import / Export Tool"),
 		icon: "data-import-tool"
 	});
-	
+
 	// check permission for import
 	if(!((frappe.boot.user.can_import && frappe.boot.user.can_import.length) ||
 		user_roles.indexOf("System Manager")!==-1)) {
 			frappe.show_not_permitted("data-import-tool");
 			return false;
 		}
-	
+
 	$(wrapper).find('.layout-main-section').append('<h3>1. Download Template</h3>\
 		<div style="min-height: 150px">\
 			<p class="help">Download a template for importing a table.</p>\
@@ -36,10 +36,8 @@ frappe.pages['data-import-tool'].onload = function(wrapper) {
 		<div class="dit-progress-area" style="display: None"></div>\
 		<p id="dit-output"></p>\
 		<div class="well">\
-		<h4>Help</h4>\
-				<p><b>Importing non-English data:</b></p>\
+		<h4>Help: Importing non-English data in Microsoft Excel</h4>\
 				<p>While uploading non English files ensure that the encoding is UTF-8.</p>\
-				<p>Microsoft Excel Users:\
 				<ol>\
 					<li>In Excel, save the file in CSV (Comma Delimited) format</li>\
 					<li>Open this saved file in Notepad</li>\
@@ -52,12 +50,12 @@ frappe.pages['data-import-tool'].onload = function(wrapper) {
 				</ol>\
 				</p>\
 			</div>');
-			
+
 	$select = $(wrapper).find('[name="dit-doctype"]');
-	
-	frappe.messages.waiting($(wrapper).find(".dit-progress-area").toggle(false), 
+
+	frappe.messages.waiting($(wrapper).find(".dit-progress-area").toggle(false),
 		"Performing hardcore import process....", 100);
-	
+
 	// load doctypes
 	frappe.call({
 		method: 'frappe.core.page.data_import_tool.data_import_tool.get_doctypes',
@@ -67,7 +65,7 @@ frappe.pages['data-import-tool'].onload = function(wrapper) {
 			wrapper.set_route_options();
 		}
 	});
-	
+
 	wrapper.set_route_options = function() {
 		if(frappe.route_options
 			&& frappe.route_options.doctype
@@ -76,7 +74,7 @@ frappe.pages['data-import-tool'].onload = function(wrapper) {
 				frappe.route_options = null;
 		}
 	}
-	
+
 	// check if template with_data is allowed
 	var validate_download_with_data = function(doctype, verbose) {
 		// if no export permission, uncheck with data
@@ -84,7 +82,7 @@ frappe.pages['data-import-tool'].onload = function(wrapper) {
 		if(with_data && !frappe.model.can_export(doctype)) {
 			$('[name="dit-with-data"]').prop("checked", false);
 			with_data = false;
-			
+
 			if(verbose) {
 				msgprint(frappe._("You are not allowed to export the data of") + ": " + frappe._(doctype)
 					+ ". " + frappe._("Downloading empty template") + ".");
@@ -92,7 +90,7 @@ frappe.pages['data-import-tool'].onload = function(wrapper) {
 		}
 		return with_data;
 	};
-	
+
 	wrapper.add_template_download_link = function(doctype) {
 		return $('<a style="cursor: pointer">')
 			.html(doctype)
@@ -102,12 +100,12 @@ frappe.pages['data-import-tool'].onload = function(wrapper) {
 				var doctype = $(this).data('doctype');
 				var parent_doctype = $('[name="dit-doctype"]').val();
 				var with_data = validate_download_with_data(parent_doctype || doctype, true);
-				window.location.href = repl(frappe.request.url 
+				window.location.href = repl(frappe.request.url
 					+ '?cmd=%(cmd)s&doctype=%(doctype)s'
 					+ '&parent_doctype=%(parent_doctype)s'
 					+ '&with_data=%(with_data)s'
 					+ '&all_doctypes=%(all_doctypes)s',
-					{ 
+					{
 						cmd: 'frappe.core.page.data_import_tool.exporter.get_template',
 						doctype: doctype,
 						parent_doctype: parent_doctype,
@@ -117,16 +115,16 @@ frappe.pages['data-import-tool'].onload = function(wrapper) {
 			})
 			.appendTo('#dit-download');
 	}
-	
+
 	// load options
 	$select.change(function() {
 		var val = $(this).val()
 		if(val!='Select...') {
 			$('#dit-download').empty().removeClass("hide");
-			
+
 			frappe.model.with_doctype(val, function() {
 				validate_download_with_data(val);
-			
+
 				// get options
 				return frappe.call({
 					method: 'frappe.core.page.data_import_tool.data_import_tool.get_doctype_options',
@@ -140,11 +138,11 @@ frappe.pages['data-import-tool'].onload = function(wrapper) {
 								$('<span>Main Table:</span><br>').appendTo('#dit-download');
 							if(i==1)
 								$('<br><span>Child Tables:</span><br>').appendTo('#dit-download');
-							
+
 							wrapper.add_template_download_link(v);
 							$('#dit-download').append('<br>');
 						});
-					
+
 						if(r.message.length > 1) {
 							$('<br><span>All Tables (Main + Child Tables):</span><br>').appendTo('#dit-download');
 							var link = wrapper
@@ -156,7 +154,7 @@ frappe.pages['data-import-tool'].onload = function(wrapper) {
 			});
 		}
 	});
-	
+
 	var write_messages = function(r) {
 		$(wrapper).find(".dit-progress-area").toggle(false);
 		$("#dit-output").empty();
@@ -174,7 +172,7 @@ frappe.pages['data-import-tool'].onload = function(wrapper) {
 			}
 		});
 	}
-	
+
 	var onerror = function(r) {
 		r.messages = $.map(r.message.messages, function(v) {
 			var msg = v.replace("Inserted", "Valid")
@@ -186,13 +184,13 @@ frappe.pages['data-import-tool'].onload = function(wrapper) {
 			}
 			return v;
 		});
-		
+
 		r.messages = ["<h4 style='color:red'>Import Failed!</h4>"]
 			.concat(r.messages);
-			
+
 		write_messages(r);
 	};
-	
+
 	// upload
 	frappe.upload.make({
 		parent: $('#dit-upload-area'),
@@ -207,20 +205,20 @@ frappe.pages['data-import-tool'].onload = function(wrapper) {
 				// replace links if error has occured
 				r.messages = ["<h4 style='color:green'>Import Successful!</h4>"].
 					concat(r.message.messages)
-			
+
 				write_messages(r);
 			}
 		}
 	});
-		
+
 	// add overwrite option
 	var $submit_btn = $('#dit-upload-area button.btn-upload')
 		.html('<i class="icon-upload"></i> ' + frappe._("Upload and Import"));
-		
+
 	$('<label><input type="checkbox" name="overwrite"> <span>Overwrite</span></label>\
 		<p class="text-muted">If you are uploading a child table (for example Item Price), the all the entries of that table will be deleted (for that parent record) and new entries will be made.</p><br>')
 		.insertBefore($submit_btn);
-	
+
 	// add submit option
 	$('<label><input type="checkbox" name="_submit"> <span>Submit</span></label>\
 		<p class="text-muted">If you are inserting new records (overwrite not checked) \
@@ -230,7 +228,7 @@ frappe.pages['data-import-tool'].onload = function(wrapper) {
 	// add ignore option
 	$('<label><input type="checkbox" name="ignore_encoding_errors"> <span>Ignore Encoding Errors</span></label><br></br>')
 		.insertBefore($submit_btn);
-	
+
 	// rename button
 	$('#dit-upload-area button.btn-upload')
 		.click(function() {
@@ -239,6 +237,6 @@ frappe.pages['data-import-tool'].onload = function(wrapper) {
 		});
 }
 
-frappe.pages['data-import-tool'].onshow = function(wrapper) { 
+frappe.pages['data-import-tool'].onshow = function(wrapper) {
 	wrapper.set_route_options && wrapper.set_route_options();
 }
