@@ -114,21 +114,14 @@ def update_child_docs(old, new, meta):
 			% (df.options, '%s', '%s'), (new, old))
 
 def update_link_field_values(link_fields, old, new, doctype):
-	update_list = []
-
-	# update values
 	for field in link_fields:
-		# if already updated, do not do it again
-		if [field['parent'], field['fieldname']] in update_list:
-			continue
-		update_list.append([field['parent'], field['fieldname']])
 		if field['issingle']:
 			frappe.db.sql("""\
 				update `tabSingles` set value=%s
 				where doctype=%s and field=%s and value=%s""",
 				(new, field['parent'], field['fieldname'], old))
 		else:
-			if doctype!='DocType' and field['parent']!=new:
+			if field['parent']!=new:
 				frappe.db.sql("""\
 					update `tab%s` set `%s`=%s
 					where `%s`=%s""" \

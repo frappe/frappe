@@ -11,6 +11,7 @@ naming for same name files: file.gif, file-1.gif, file-2.gif etc
 import frappe, frappe.utils, os
 from frappe import conf
 from frappe.model.document import Document
+from frappe.utils.file_manager import delete_file_data_content
 
 class FileData(Document):
 	def before_insert(self):
@@ -19,10 +20,10 @@ class FileData(Document):
 	def on_update(self):
 		# check duplicate assignement
 		n_records = frappe.db.sql("""select name from `tabFile Data`
-			where file_name=%s 
+			where content_hash=%s 
 			and name!=%s
 			and attached_to_doctype=%s 
-			and attached_to_name=%s""", (self.file_name, self.name, self.attached_to_doctype,
+			and attached_to_name=%s""", (self.content_hash, self.name, self.attached_to_doctype,
 				self.attached_to_name))
 		if len(n_records) > 0:
 			self.duplicate_entry = n_records[0][0]
@@ -34,7 +35,7 @@ class FileData(Document):
 		if self.attached_to_name:
 			# check persmission
 			try:
-				if not self.ignore_permissions and \
+				if not getattr(self, 'ignore_permissions', False) and \
 					not frappe.has_permission(self.attached_to_doctype, "write", self.attached_to_name):
 					
 					frappe.msgprint(frappe._("No permission to write / remove."), raise_exception=True)
@@ -44,13 +45,8 @@ class FileData(Document):
 
 		# if file not attached to any other record, delete it
 		if self.file_name and not frappe.db.count("File Data", 
-			{"file_name": self.file_name, "name": ["!=", self.name]}):
-				if self.file_name.startswith("files/"):
-					path = frappe.utils.get_site_path("public", self.file_name)
-				else:
-					path = frappe.utils.get_site_path("public", "files", self.file_name)
-				if os.path.exists(path):
-					os.remove(path)
+			{"content_hash": self.content_hash, "name": ["!=", self.name]}):
+				delete_file_data_content(self)
 
 	def on_rollback(self):
 		self.on_trash()
