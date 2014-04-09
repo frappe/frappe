@@ -129,9 +129,12 @@ class Meta(Document):
 
 				self.set(ps.property, ps.value)
 			else:
-				docfield = self.get("fields", {"fieldname":ps.field_name}, limit=1)[0]
+				docfield = self.get("fields", {"fieldname":ps.field_name}, limit=1)
+				if docfield:
+					docfield = docfield[0]
+				else:
+					continue
 
-				if not docfield: continue
 				if ps.property in integer_docfield_properties:
 					ps.value = cint(ps.value)
 
