@@ -54,16 +54,12 @@ def validate_link():
 		frappe.response['message'] = 'Ok'
 
 @frappe.whitelist()
-def add_comment(doclist):
+def add_comment(doc):
 	"""allow any logged user to post a comment"""
-	doclist = json.loads(doclist)
+	doc = frappe.get_doc(json.loads(doc))
+	doc.insert(ignore_permissions = True)
 
-	doclist[0]["__islocal"] = 1
-	doclistobj = frappe.get_doc(doclist)
-	doclistobj.ignore_permissions = True
-	doclistobj.save()
-
-	return doclistobj.as_dict()
+	return doc.as_dict()
 
 @frappe.whitelist()
 def get_next(doctype, name, prev):

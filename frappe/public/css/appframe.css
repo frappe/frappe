@@ -29,6 +29,7 @@
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
+	padding: 7px 0px;
 	margin: 0px;
 }
 

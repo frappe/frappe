@@ -47,7 +47,7 @@ frappe.ui.form.Comments = Class.extend({
 			c.image = frappe.user_info(c.comment_by).image;
 			c.comment_on = dateutil.comment_when(c.creation);
 			c.fullname = frappe.user_info(c.comment_by).fullname;
-			
+
 			$(repl('<div class="comment alert alert-warning col-md-10" data-name="%(name)s">\
 				<div class="row">\
 					<div class="col-xs-1">\
@@ -65,13 +65,13 @@ frappe.ui.form.Comments = Class.extend({
 					me.delete_comment(name);
 					return false;
 				})
-				
+
 		});
 	},
 	add_comment: function(btn) {
 		var me = this,
 			txt = me.input.val();
-			
+
 		if(txt) {
 			var comment = {
 				doctype: "Comment",
@@ -80,17 +80,17 @@ frappe.ui.form.Comments = Class.extend({
 				comment: txt,
 				comment_by: user
 			};
-			
+
 			return frappe.call({
 				method: "frappe.widgets.form.utils.add_comment",
 				args: {
-					doclist:[comment]
+					doc:comment
 				},
 				btn: btn,
 				callback: function(r) {
 					if(!r.exc) {
-						me.frm.get_docinfo().comments = 
-							r.message.concat(me.get_comments());
+						me.frm.get_docinfo().comments =
+							[r.message].concat(me.get_comments());
 						me.frm.toolbar.show_infobar();
 						me.input.val("");
 						me.refresh();
@@ -109,17 +109,17 @@ frappe.ui.form.Comments = Class.extend({
 			},
 			callback: function(r) {
 				if(!r.exc) {
-					me.frm.get_docinfo().comments = 
-						$.map(me.frm.get_docinfo().comments, 
-							function(v) { 
-								if(v.name==name) return null; 
-								else return v; 
+					me.frm.get_docinfo().comments =
+						$.map(me.frm.get_docinfo().comments,
+							function(v) {
+								if(v.name==name) return null;
+								else return v;
 							}
 						);
 					me.refresh();
 					me.frm.toolbar.show_infobar();
 				}
 			}
-		});		
+		});
 	}
 })
