@@ -37,7 +37,7 @@ class WebsiteGenerator(DocListController):
 			website_template = frappe.db.get_values("Website Template",
 				{"ref_doctype": self.doctype}, "*")
 			if website_template:
-				self.website_template = website_template
+				self.website_template = website_template[0]
 			else:
 				self.website_template = None
 
