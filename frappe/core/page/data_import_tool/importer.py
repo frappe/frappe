@@ -6,7 +6,9 @@ from __future__ import unicode_literals
 import frappe, json, os
 import frappe.permissions
 
-from frappe.utils.datautils import check_record, import_doc, getlink
+from frappe.utils.datautils import getlink
+from frappe.utils.dateutils import parse_date
+
 from frappe.utils import cint, cstr, flt
 from frappe.core.page.data_import_tool.data_import_tool import data_keys
 
@@ -103,6 +105,8 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 									d[fieldname] = cint(d[fieldname])
 								elif fieldtype in ("Float", "Currency"):
 									d[fieldname] = flt(d[fieldname])
+								elif d[fieldname] and fieldtype == "Date":
+									d[fieldname] = parse_date(d[fieldname])
 							except IndexError, e:
 								pass
 
@@ -184,6 +188,9 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 		doc = None
 
 		doc = get_doc(row_idx)
+		if doc.get("name"):
+			doc["_new_name_set"] = True
+
 		try:
 			frappe.local.message_log = []
 			if doc.get("parentfield"):

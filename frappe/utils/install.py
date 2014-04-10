@@ -1,5 +1,5 @@
 # Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt 
+# MIT License. See license.txt
 
 from __future__ import unicode_literals
 
@@ -13,20 +13,20 @@ def before_install():
 def after_install():
 	# reset installed apps for re-install
 	frappe.db.set_global("installed_apps", '["frappe"]')
-	
+
 	# core users / roles
 	install_docs = [
-		{'doctype':'User', 'name':'Administrator', 'first_name':'Administrator', 
+		{'doctype':'User', 'name':'Administrator', 'first_name':'Administrator',
 			'email':'admin@localhost', 'enabled':1},
 		{'doctype':'User', 'name':'Guest', 'first_name':'Guest',
 			'email':'guest@localhost', 'enabled':1},
-		{'doctype':'UserRole', 'parent': 'Administrator', 'role': 'Administrator', 
+		{'doctype':'UserRole', 'parent': 'Administrator', 'role': 'Administrator',
 			'parenttype':'User', 'parentfield':'user_roles'},
-		{'doctype':'UserRole', 'parent': 'Guest', 'role': 'Guest', 
+		{'doctype':'UserRole', 'parent': 'Guest', 'role': 'Guest',
 			'parenttype':'User', 'parentfield':'user_roles'},
 		{'doctype': "Role", "role_name": "Report Manager"}
 	]
-	
+
 	for d in install_docs:
 		try:
 			frappe.get_doc(d).insert()

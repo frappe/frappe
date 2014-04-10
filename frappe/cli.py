@@ -117,7 +117,7 @@ def setup_parser():
 		help="Force execution where applicable (look for [-f] in help)")
 	parser.add_argument("--verbose", default=False, action="store_true",
 		help="Show verbose output (where applicable)")
-	parser.add_argument("--quiet", default=True, action="store_false",
+	parser.add_argument("--quiet", default=False, action="store_true",
 		help="Do not show verbose output (where applicable)")
 
 	return parser.parse_args()
@@ -272,9 +272,9 @@ def use(sites_path):
 # install
 @cmd
 def install(db_name, root_login="root", root_password=None, source_sql=None,
-		admin_password = 'admin', verbose=True, force=False, site_config=None, reinstall=False, quiet=False):
+		admin_password = 'admin', force=False, site_config=None, reinstall=False, quiet=False):
 	from frappe.installer import install_db, install_app, make_site_dirs
-	verbose = verbose or not quiet
+	verbose = not quiet
 
 	install_db(root_login=root_login, root_password=root_password, db_name=db_name, source_sql=source_sql,
 		admin_password = admin_password, verbose=verbose, force=force, site_config=site_config, reinstall=reinstall)
@@ -283,8 +283,8 @@ def install(db_name, root_login="root", root_password=None, source_sql=None,
 	frappe.destroy()
 
 @cmd
-def install_app(app_name, verbose=True, quiet=False):
-	verbose = verbose or not quiet
+def install_app(app_name, quiet=False):
+	verbose = not quiet
 	from frappe.installer import install_app
 	frappe.connect()
 	install_app(app_name, verbose=verbose)
@@ -301,8 +301,8 @@ def add_to_installed_apps(*apps):
 	frappe.destroy()
 
 @cmd
-def reinstall(verbose=True, quiet=False):
-	verbose = verbose or not quiet
+def reinstall(quiet=False):
+	verbose = not quiet
 	try:
 		frappe.connect()
 		frappe.clear_cache()
@@ -314,8 +314,8 @@ def reinstall(verbose=True, quiet=False):
 	install(db_name=frappe.conf.db_name, verbose=verbose, force=True, reinstall=True)
 
 @cmd
-def restore(db_name, source_sql, verbose=True, force=False, quiet=False):
-	verbose = verbose or not quiet
+def restore(db_name, source_sql, force=False, quiet=False):
+	verbose = not quiet
 	install(db_name, source_sql=source_sql, verbose=verbose, force=force)
 
 @cmd
@@ -341,7 +341,7 @@ def update(remote=None, branch=None, reload_gunicorn=False):
 		subprocess.check_output("killall -HUP gunicorn".split())
 
 @cmd
-def latest(verbose=True, rebuild_website_config=True, quiet=False):
+def latest(rebuild_website_config=True, quiet=False):
 	import frappe.modules.patch_handler
 	import frappe.model.sync
 	from frappe.website import rebuild_config
@@ -349,7 +349,7 @@ def latest(verbose=True, rebuild_website_config=True, quiet=False):
 	import frappe.translate
 	from frappe.website import statics
 
-	verbose = verbose or not quiet
+	verbose = not quiet
 
 	frappe.connect()
 
@@ -379,9 +379,9 @@ def latest(verbose=True, rebuild_website_config=True, quiet=False):
 		frappe.destroy()
 
 @cmd
-def sync_all(force=False, verbose=True, quiet=False):
+def sync_all(force=False, quiet=False):
 	import frappe.model.sync
-	verbose = verbose or not quiet
+	verbose = not quiet
 	frappe.connect()
 	frappe.model.sync.sync_all(force=force, verbose=verbose)
 	frappe.destroy()
@@ -396,8 +396,8 @@ def patch(patch_module, force=False):
 	frappe.destroy()
 
 @cmd
-def update_all_sites(remote=None, branch=None, verbose=True, quiet=False):
-	verbose = verbose or not quiet
+def update_all_sites(remote=None, branch=None, quiet=False):
+	verbose = not quiet
 	pull(remote, branch)
 
 	# maybe there are new framework changes, any consequences?
@@ -427,9 +427,9 @@ def watch():
 	frappe.build.watch(True)
 
 @cmd
-def backup(with_files=False, verbose=True, backup_path_db=None, backup_path_files=None, quiet=False):
+def backup(with_files=False, backup_path_db=None, backup_path_files=None, quiet=False):
 	from frappe.utils.backups import scheduled_backup
-	verbose = verbose or not quiet
+	verbose = not quiet
 	frappe.connect()
 	odb = scheduled_backup(ignore_files=not with_files, backup_path_db=backup_path_db, backup_path_files=backup_path_files)
 	if verbose:
@@ -696,10 +696,8 @@ def smtp_debug_server():
 	os.execv(python, [python, '-m', "smtpd", "-n", "-c", "DebuggingServer", "localhost:25"])
 
 @cmd
-def run_tests(app=None, module=None, doctype=None, verbose=False, quiet=True, tests=()):
+def run_tests(app=None, module=None, doctype=None, verbose=False, tests=()):
 	import frappe.test_runner
-	verbose = verbose or not quiet
-
 	ret = frappe.test_runner.main(app and app[0], module and module[0], doctype and doctype[0], verbose,
 		tests=tests)
 
@@ -781,14 +779,12 @@ def search_replace_with_prompt(fpath, txt1, txt2, force=False):
 	print colored('Updated', 'green')
 
 @cmd
-def get_site_status(verbose=False, quiet=True):
+def get_site_status(verbose=False):
 	import frappe
 	import frappe.utils
 	from frappe.utils.user import get_system_managers
 	from frappe.core.doctype.user.user import get_total_users, get_active_users, \
 		get_website_users, get_active_website_users
-
-	verbose = verbose or not quiet
 
 	import json
 	frappe.connect()
@@ -822,9 +818,8 @@ def get_site_status(verbose=False, quiet=True):
 	return ret
 
 @cmd
-def update_site_config(site_config, verbose=False, quiet=True):
+def update_site_config(site_config, verbose=False):
 	import json
-	verbose = verbose or not quiet
 
 	if isinstance(site_config, basestring):
 		site_config = json.loads(site_config)

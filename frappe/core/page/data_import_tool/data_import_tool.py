@@ -6,7 +6,6 @@ from __future__ import unicode_literals
 import frappe, json, os
 import frappe.modules.import_file
 from frappe.utils import cstr, cint, flt
-from frappe.utils.datautils import check_record, import_doc
 
 data_keys = frappe._dict({
 	"data_separator": 'Start entering data below this line',
@@ -30,7 +29,6 @@ def get_doctype_options():
 	return [doctype] + [d.options for d in frappe.get_meta(doctype).get_table_fields()]
 
 
-import csv
 def import_file_by_path(path, ignore_links=False, overwrite=False, submit=False):
 	from frappe.utils.datautils import read_csv_content
 	from frappe.core.page.data_import_tool.importer import upload

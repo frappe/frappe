@@ -46,7 +46,7 @@ class BaseDocument(object):
 				return _filter(self.get_all_children(), key, limit=limit)
 			if filters:
 				if isinstance(filters, dict):
-					value = _filter(self.__dict__.get(key), filters, limit=limit)
+					value = _filter(self.__dict__.get(key, []), filters, limit=limit)
 				else:
 					default = filters
 					filters = None

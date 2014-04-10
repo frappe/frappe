@@ -1,5 +1,5 @@
 # Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt 
+# MIT License. See license.txt
 
 from __future__ import unicode_literals
 
@@ -19,16 +19,16 @@ class DoesNotExistError(ValidationError):
 
 class DuplicateEntryError(Exception):
 	http_status_code = 409
-	
+
 class OutgoingEmailError(Exception):
 	http_status_code = 501
-	
+
 class SessionStopped(Exception):
 	http_status_code = 503
-	
+
 class UnsupportedMediaType(Exception):
 	http_status_code = 415
-	
+
 class DataError(ValidationError): pass
 class UnknownDomainError(Exception): pass
 class MappingMismatchError(ValidationError): pass
@@ -40,3 +40,4 @@ class CannotChangeConstantError(ValidationError): pass
 class LinkValidationError(ValidationError): pass
 class DocstatusTransitionError(ValidationError): pass
 class TimestampMismatchError(ValidationError): pass
+class EmptyTableError(ValidationError): pass
