@@ -921,3 +921,22 @@ def get_hook_method(hook_name, fallback=None):
 		return method
 	if fallback:
 		return fallback
+
+def filter_composed_values(obj, test_fn=None):
+	"""
+		remove filter list, dict or mix by testing values. By default tests for falsy
+	"""
+	if not test_fn:
+		test_fn = lambda x: not not x
+	if isinstance(obj, list):
+		ret = [filter_composed_values(v) for v in obj if test_fn(v)]
+		return ret
+	elif isinstance(obj, dict):
+		ret = {}
+		for key, value in obj.iteritems():
+			if test_fn(value):
+				ret[key] = filter_composed_values(value)
+		return ret
+	else:
+		if test_fn(obj):
+			return obj
