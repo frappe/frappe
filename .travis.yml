@@ -14,15 +14,15 @@ install:
   - sudo apt-get update
   - sudo apt-get purge -y mysql-common
   - sudo apt-get install mariadb-server mariadb-common libmariadbclient-dev
-  
+
   - CFLAGS=-O0 pip install -r requirements.txt
   - pip install --editable .
 
-script: 
+script:
     cd ./test_sites/ &&
     frappe --reinstall test_site &&
     frappe -b test_site &&
-    frappe --run_tests test_site
+    frappe --verbose --run_tests test_site
 
 before_script:
   - mysql -e 'create database travis' &&
