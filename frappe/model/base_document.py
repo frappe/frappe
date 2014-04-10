@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _, msgprint
-from frappe.utils import cint, flt, cstr, now
+from frappe.utils import cint, flt, cstr, now, filter_composed_values
 from frappe.model import default_fields
 from frappe.model.naming import set_new_name
 
@@ -146,9 +146,7 @@ class BaseDocument(object):
 			doc[df.fieldname] = [d.as_dict(no_nulls=no_nulls) for d in children]
 
 		if no_nulls:
-			for k in doc.keys():
-				if doc[k] is None:
-					del doc[k]
+			return filter_composed_values(doc, test_fn=lambda x: x != None)
 
 		return doc
 
