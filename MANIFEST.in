@@ -21,4 +21,8 @@ recursive-include frappe *.swf
 recursive-include frappe *.ttf
 recursive-include frappe *.woff
 recursive-include frappe *.xml
+recursive-include frappe *.csv
+recursive-include frappe *.ico
+recursive-include frappe *.less
+recursive-include frappe *.txt
 recursive-exclude * *.pyc
