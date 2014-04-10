@@ -1,5 +1,5 @@
 # Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt 
+# MIT License. See license.txt
 
 from __future__ import unicode_literals
 import json
@@ -22,7 +22,7 @@ from werkzeug.exceptions import NotFound, Forbidden
 def report_error(status_code):
 	if status_code!=404 or frappe.conf.logging:
 		frappe.errprint(frappe.utils.get_traceback())
-		
+
 	response = build_response("json")
 	response.status_code = status_code
 	return response
@@ -30,7 +30,7 @@ def report_error(status_code):
 def build_response(response_type=None):
 	if "docs" in frappe.local.response and not frappe.local.response.docs:
 		del frappe.local.response["docs"]
-	
+
 	response_type_map = {
 		'csv': as_csv,
 		'download': as_raw,
@@ -38,9 +38,9 @@ def build_response(response_type=None):
 		'page': as_page,
 		'redirect': redirect
 	}
-	
+
 	return response_type_map[frappe.response.get('type') or response_type]()
-	
+
 def as_csv():
 	response = Response()
 	response.headers["Content-Type"] = "text/csv; charset: utf-8"
@@ -62,7 +62,7 @@ def as_json():
 	response = gzip(json.dumps(frappe.local.response, default=json_handler, separators=(',',':')),
 		response=response)
 	return response
-	
+
 def make_logs():
 	"""make strings for msgprint and errprint"""
 	if frappe.error_log:
@@ -72,21 +72,21 @@ def make_logs():
 	if frappe.local.message_log:
 		frappe.response['_server_messages'] = json.dumps([frappe.utils.cstr(d) for
 			d in frappe.local.message_log])
-	
+
 	if frappe.debug_log and frappe.conf.get("logging") or False:
 		frappe.response['_debug_messages'] = json.dumps(frappe.local.debug_log)
-		
+
 def gzip(data, response):
 	data = data.encode('utf-8')
 	orig_len = len(data)
 	if accept_gzip() and orig_len>512:
 		data = compressBuf(data)
 		response.headers["Content-Encoding"] = "gzip"
-	
+
 	response.headers["Content-Length"] = str(len(data))
 	response.data = data
 	return response
-	
+
 def accept_gzip():
 	if "gzip" in frappe.get_request_header("HTTP_ACCEPT_ENCODING", ""):
 		return True
@@ -97,7 +97,7 @@ def compressBuf(buf):
 	zfile.write(buf)
 	zfile.close()
 	return zbuf.getvalue()
-	
+
 def json_handler(obj):
 	"""serialize non-serializable data for json"""
 	# serialize date
@@ -105,20 +105,22 @@ def json_handler(obj):
 		return unicode(obj)
 	elif isinstance(obj, LocalProxy):
 		return unicode(obj)
-	elif isinstance(obj, frappe.model.document.Document):
-		return obj.as_dict()
+	elif isinstance(obj, frappe.model.document.BaseDocument):
+		doc = obj.as_dict(no_nulls=True)
+
+		return doc
 	else:
 		raise TypeError, """Object of type %s with value of %s is not JSON serializable""" % \
 			(type(obj), repr(obj))
-	
+
 def as_page():
 	"""print web page"""
 	from frappe.website.render import render
 	return render(frappe.response['page_name'], http_status_code=frappe.response.get("http_status_code"))
-		
+
 def redirect():
 	return werkzeug.utils.redirect(frappe.response.location)
-	
+
 def download_backup(path):
 	try:
 		frappe.only_for(("System Manager", "Administrator"))
@@ -145,7 +147,7 @@ def send_private_file(path):
 		response = Response(wrap_file(frappe.local.request.environ, f))
 		response.headers.add('Content-Disposition', 'attachment', filename=filename)
 		response.headers['Content-Type'] = mimetypes.guess_type(filename)[0] or 'application/octet-stream'
-		
+
 	return response
 
 def handle_session_stopped():

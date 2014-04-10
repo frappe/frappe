@@ -9,8 +9,8 @@ $.extend(frappe, {
 		if(frappe._assets_loaded.indexOf(url)!==-1) return;
 		$.ajax({
 			url: url,
-			async: false, 
-			dataType: "text", 
+			async: false,
+			dataType: "text",
 			success: function(data) {
 				if(url.split(".").splice(-1) == "js") {
 					var el = document.createElement('script');
@@ -58,13 +58,13 @@ $.extend(frappe, {
 		if(opts.btn) {
 			$(opts.btn).prop("disabled", true);
 		}
-	
+
 		if(opts.msg) {
 			$(opts.msg).toggle(false);
 		}
-	
+
 		if(!opts.args) opts.args = {};
-	
+
 		// get or post?
 		if(!opts.args._type) {
 			opts.args._type = opts.type || "GET";
@@ -82,17 +82,17 @@ $.extend(frappe, {
 			}
 		});
 
-		if(!opts.no_spinner) { 
+		if(!opts.no_spinner) {
 			NProgress.start();
 		}
 	},
 	process_response: function(opts, data) {
 		if(!opts.no_spinner) NProgress.done();
-		
+
 		if(opts.btn) {
 			$(opts.btn).prop("disabled", false);
 		}
-		
+
 		if(data.exc) {
 			if(opts.btn) {
 				$(opts.btn).addClass("btn-danger");
@@ -145,7 +145,7 @@ $.extend(frappe, {
 				</div>\
 			</div>\
 			</div>').appendTo(document.body);
-			
+
 		return modal;
 	},
 	msgprint: function(html, title) {
@@ -189,19 +189,19 @@ $.extend(frappe, {
 		if(frappe.supports_pjax()) {
 			// hack for chrome's onload popstate call
 			window.initial_href = window.location.href
-			
+
 			$(document).on("click", "#wrap a", frappe.handle_click);
-			
+
 			$(window).on("popstate", function(event) {
 				// hack for chrome's onload popstate call
 				if(window.initial_href==location.href && window.previous_href==undefined) {
 					frappe.set_force_reload(true);
 					return;
 				}
-				
+
 				window.previous_href = location.href;
 				var state = event.originalEvent.state;
-				
+
 				if(state) {
 					frappe.render_json(state);
 				} else {
@@ -213,7 +213,7 @@ $.extend(frappe, {
 	handle_click: function(event) {
 		// taken from jquery pjax
 		var link = event.currentTarget
-		
+
 		if (link.tagName.toUpperCase() !== 'A')
 			throw "using pjax requires an anchor element"
 
@@ -221,7 +221,7 @@ $.extend(frappe, {
 		// links in a new tab as normal.
 		if ( event.which > 1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey )
 			return
-			
+
 		// Ignore cross origin links
 		if ( location.protocol !== link.protocol || location.hostname !== link.hostname )
 			return
@@ -230,15 +230,15 @@ $.extend(frappe, {
 		if (link.hash && link.href.replace(link.hash, '') ===
 			 location.href.replace(location.hash, ''))
 			 return
-			 
+
 		// Ignore empty anchor "foo.html#"
 		if (link.href === location.href + '#')
 			return
-		
+
 		// our custom logic
 		if (link.href.indexOf("cmd=")!==-1 || link.hasAttribute("no-pjax"))
 			return
-			
+
 		event.preventDefault()
 		frappe.load_via_ajax(link.href);
 
@@ -247,12 +247,12 @@ $.extend(frappe, {
 		// console.log("calling ajax");
 		window.previous_href = href;
 		history.pushState(null, null, href);
-		
+
 		//NProgress.start();
 		$.ajax({ url: href, cache: false }).done(function(data) {
 			history.replaceState(data, data.title, href);
 			$("html, body").animate({ scrollTop: 0 }, "slow");
-			frappe.render_json(data); 
+			frappe.render_json(data);
 		}).always(function() {
 			//NProgress.done();
 		}).fail(function(xhr, status, error) {
@@ -289,17 +289,17 @@ $.extend(frappe, {
 				}
 			});
 			if(data.title) $("title").html(data.title);
-			
+
 			// change id of current page
 			$(".page-container").attr("id", "page-" + data.path);
-			
+
 			window.ga && ga('send', 'pageview', location.pathname);
 			$(document).trigger("page-change");
 		}
 	},
 	set_force_reload: function(reload) {
 		// learned this from twitter's implementation
-		window.history.replaceState({"reload": reload}, 
+		window.history.replaceState({"reload": reload},
 			window.document.title, location.href);
 	},
 	supports_pjax: function() {
@@ -345,19 +345,19 @@ $.extend(frappe, {
 		$("[data-html-block='breadcrumbs'] .breadcrumb").toggleClass("hidden",
 			!$("[data-html-block='breadcrumbs']").text().trim() ||
 			$("[data-html-block='breadcrumbs']").text().trim()==$("[data-html-block='header']").text().trim());
-		
+
 		// to show full content width, when no sidebar content
-		var sidebar_has_content = !!$("[data-html-block='sidebar']").html().trim();
-		$(".page-sidebar, .toggle-sidebar").toggleClass("hidden", !sidebar_has_content);
-		$(".page-sidebar").toggleClass("col-sm-push-9", sidebar_has_content);
-		$(".page-content").toggleClass("col-sm-12", !sidebar_has_content);
-		$(".page-content").toggleClass("col-sm-9 col-sm-pull-3", sidebar_has_content);
-		
+		// var sidebar_has_content = !!$("[data-html-block='sidebar']").html().trim();
+		// $(".page-sidebar, .toggle-sidebar").toggleClass("hidden", !sidebar_has_content);
+		// $(".page-sidebar").toggleClass("col-sm-push-9", sidebar_has_content);
+		// $(".page-content").toggleClass("col-sm-12", !sidebar_has_content);
+		// $(".page-content").toggleClass("col-sm-9 col-sm-pull-3", sidebar_has_content);
+
 		// if everything in the sub-header is hidden, hide the sub-header
 		var hide_sub_header = $(".page-sub-header .row").children().length === $(".page-sub-header .row").find(".hidden").length;
 		$(".page-sub-header").toggleClass("hidden", hide_sub_header);
-		
-		
+
+
 		// collapse sidebar in mobile view on page change
 		if(!$(".page-sidebar").hasClass("hidden-xs")) {
 			$(".toggle-sidebar").trigger("click");
@@ -388,7 +388,7 @@ function get_url_arg(name) {
 	if(results == null)
 		return "";
 	else
-		return decodeURIComponent(results[1]);		
+		return decodeURIComponent(results[1]);
 }
 
 function make_query_string(obj) {
@@ -468,7 +468,7 @@ function remove_script_and_style(txt) {
 }
 
 function is_html(txt) {
-	if(txt.indexOf("<br>")==-1 && txt.indexOf("<p")==-1 
+	if(txt.indexOf("<br>")==-1 && txt.indexOf("<p")==-1
 		&& txt.indexOf("<img")==-1 && txt.indexOf("<div")==-1) {
 		return false;
 	}
@@ -491,21 +491,21 @@ $(document).ready(function() {
 	window.logged_in = getCookie("sid") && getCookie("sid")!=="Guest";
 	$("#website-login").toggleClass("hide", logged_in ? true : false);
 	$("#website-post-login").toggleClass("hide", logged_in ? false : true);
-	
+
 	$(".toggle-sidebar").on("click", function() {
 		$(".page-sidebar").toggleClass("hidden-xs");
 		$(".toggle-sidebar i").toggleClass("icon-rotate-180");
 	});
-	
+
 	// switch to app link
 	if(getCookie("system_user")==="yes") {
 		$("#website-post-login .dropdown-menu").append('<li class="divider"></li>\
 			<li><a href="/desk" no-pjax><i class="icon-fixed-width icon-th-large"></i> Switch To Desk</a></li>');
 	}
-	
+
 	frappe.render_user();
 	frappe.setup_push_state()
-	
+
 	$(document).trigger("page-change");
 });
 

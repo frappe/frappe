@@ -54,7 +54,7 @@ def export_json(doctype, name, path):
 			d.set("parent", None)
 			d.set("name", None)
 			d.set("__islocal", 1)
-		outfile.write(json.dumps([d], default=json_handler, indent=1, sort_keys=True))
+		outfile.write(json.dumps(doc, default=json_handler, indent=1, sort_keys=True))
 
 @frappe.whitelist()
 def export_fixture(doctype, name, app):

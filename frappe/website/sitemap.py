@@ -42,7 +42,9 @@ def build_sitemap_options(path):
 
 	if not sitemap_options.no_sidebar:
 		sitemap_options.children = get_route_children(sitemap_options.pathname, home_page)
-		if not sitemap_options.children:
+
+		if not sitemap_options.children and sitemap_options.parent_website_route \
+			and sitemap_options.parent_website_route!=home_page:
 			sitemap_options.children = get_route_children(sitemap_options.parent_website_route, home_page)
 
 	# determine templates to be used
@@ -80,4 +82,4 @@ def get_route_children(pathname, home_page=None):
 
 			children = [frappe.get_doc("Website Route", pathname)] + children
 
-		return children
+	return children

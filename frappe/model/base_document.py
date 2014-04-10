@@ -138,12 +138,18 @@ class BaseDocument(object):
 	def is_new(self):
 		return self.get("__islocal")
 
-	def as_dict(self):
+	def as_dict(self, no_nulls=False):
 		doc = self.get_valid_dict()
 		doc["doctype"] = self.doctype
 		for df in self.meta.get_table_fields():
 			children = self.get(df.fieldname) or []
-			doc[df.fieldname] = [d.as_dict() for d in children]
+			doc[df.fieldname] = [d.as_dict(no_nulls=no_nulls) for d in children]
+
+		if no_nulls:
+			for k in doc.keys():
+				if doc[k] is None:
+					del doc[k]
+
 		return doc
 
 	def get_table_field_doctype(self, fieldname):
