@@ -1,0 +1,118 @@
+{
+ "creation": "2013-02-21 20:12:42.000000", 
+ "description": "Settings for Contact Us Page", 
+ "docstatus": 0, 
+ "doctype": "DocType", 
+ "fields": [
+  {
+   "fieldname": "help", 
+   "fieldtype": "HTML", 
+   "label": "Help", 
+   "options": "<div class=\"alert alert-info\">Link for Contact Page is \"/contact\"</div>", 
+   "permlevel": 0
+  }, 
+  {
+   "fieldname": "introduction_section", 
+   "fieldtype": "Section Break", 
+   "label": "Introduction", 
+   "permlevel": 0
+  }, 
+  {
+   "description": "Send enquiries to this email address", 
+   "fieldname": "forward_to_email", 
+   "fieldtype": "Data", 
+   "label": "Forward To Email Address", 
+   "permlevel": 0
+  }, 
+  {
+   "description": "Default: \"Contact Us\"", 
+   "fieldname": "heading", 
+   "fieldtype": "Data", 
+   "label": "Heading", 
+   "permlevel": 0
+  }, 
+  {
+   "description": "Introductory information for the Contact Us Page", 
+   "fieldname": "introduction", 
+   "fieldtype": "Text Editor", 
+   "label": "Introduction", 
+   "permlevel": 0
+  }, 
+  {
+   "description": "Contact options, like \"Sales Query, Support Query\" etc each on a new line or separated by commas.", 
+   "fieldname": "query_options", 
+   "fieldtype": "Small Text", 
+   "label": "Query Options", 
+   "permlevel": 0
+  }, 
+  {
+   "fieldname": "address", 
+   "fieldtype": "Section Break", 
+   "label": "Address", 
+   "permlevel": 0
+  }, 
+  {
+   "fieldname": "address_title", 
+   "fieldtype": "Data", 
+   "label": "Address Title", 
+   "permlevel": 0
+  }, 
+  {
+   "fieldname": "address_line1", 
+   "fieldtype": "Data", 
+   "label": "Address Line 1", 
+   "permlevel": 0
+  }, 
+  {
+   "fieldname": "address_line2", 
+   "fieldtype": "Data", 
+   "label": "Address Line 2", 
+   "permlevel": 0
+  }, 
+  {
+   "fieldname": "city", 
+   "fieldtype": "Data", 
+   "label": "City", 
+   "permlevel": 0
+  }, 
+  {
+   "fieldname": "state", 
+   "fieldtype": "Data", 
+   "label": "State", 
+   "permlevel": 0
+  }, 
+  {
+   "fieldname": "pincode", 
+   "fieldtype": "Data", 
+   "label": "Pincode", 
+   "permlevel": 0
+  }, 
+  {
+   "fieldname": "country", 
+   "fieldtype": "Data", 
+   "label": "Country", 
+   "permlevel": 0
+  }
+ ], 
+ "icon": "icon-cog", 
+ "idx": 1, 
+ "issingle": 1, 
+ "modified": "2014-02-28 11:32:25.000000", 
+ "modified_by": "Administrator", 
+ "module": "Website", 
+ "name": "Contact Us Settings", 
+ "owner": "Administrator", 
+ "permissions": [
+  {
+   "create": 1, 
+   "email": 1, 
+   "permlevel": 0, 
+   "print": 1, 
+   "read": 1, 
+   "report": 0, 
+   "role": "Website Manager", 
+   "submit": 0, 
+   "write": 1
+  }
+ ]
+}

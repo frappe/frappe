@@ -42,9 +42,12 @@ has_permission:ToDo = frappe.core.doctype.todo.todo.has_permission
 
 # bean
 
-bean_event:User Vote:after_insert = frappe.templates.generators.website_group.clear_cache_on_bean_event
-bean_event:Website Route Permission:on_update = frappe.templates.generators.website_group.clear_cache_on_bean_event
+doc_event:User Vote:after_insert = frappe.templates.generators.website_group.clear_cache_on_doc_event
+doc_event:Website Route Permission:on_update = frappe.templates.generators.website_group.clear_cache_on_doc_event
 
-bean_event:*:on_update = frappe.core.doctype.notification_count.notification_count.clear_doctype_notifications
-bean_event:*:on_cancel = frappe.core.doctype.notification_count.notification_count.clear_doctype_notifications
-bean_event:*:on_trash = frappe.core.doctype.notification_count.notification_count.clear_doctype_notifications
+doc_event:*:on_update = frappe.core.doctype.notification_count.notification_count.clear_doctype_notifications
+doc_event:*:on_cancel = frappe.core.doctype.notification_count.notification_count.clear_doctype_notifications
+doc_event:*:on_trash = frappe.core.doctype.notification_count.notification_count.clear_doctype_notifications
+
+write_file_keys = file_url
+write_file_keys = file_name

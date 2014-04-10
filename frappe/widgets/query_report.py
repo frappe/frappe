@@ -13,15 +13,15 @@ from frappe.utils import flt, cint
 import frappe.widgets.reportview
 
 def get_report_doc(report_name):
-	bean = frappe.bean("Report", report_name)
-	if not bean.has_read_perm():
+	doc = frappe.get_doc("Report", report_name)
+	if not doc.has_permission("read"):
 		raise frappe.PermissionError("You don't have access to: {report}".format(report=report_name))
 		
-	if not frappe.has_permission(bean.doc.ref_doctype, "report"):
+	if not frappe.has_permission(doc.ref_doctype, "report"):
 		raise frappe.PermissionError("You don't have access to get a report on: {doctype}".format(
-			doctype=bean.doc.ref_doctype))
+			doctype=doc.ref_doctype))
 		
-	return bean.doc
+	return doc
 
 @frappe.whitelist()
 def get_script(report_name):

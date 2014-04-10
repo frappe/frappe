@@ -7,17 +7,17 @@ import frappe
 from frappe.utils import now
 
 def get_context(context):
-	bean = frappe.bean("Contact Us Settings", "Contact Us Settings")
+	doc = frappe.get_doc("Contact Us Settings", "Contact Us Settings")
 	
-	query_options = filter(None, bean.doc.query_options.replace(",", "\n").split()) if \
-			bean.doc.query_options else ["Sales", "Support", "General"]
+	query_options = filter(None, doc.query_options.replace(",", "\n").split()) if \
+			doc.query_options else ["Sales", "Support", "General"]
 			
-	address = frappe.bean("Address", bean.doc.address).doc if bean.doc.address else None
+	address = frappe.get_doc("Address", doc.address) if doc.address else None
 	
 	out = {
 		"query_options": query_options
 	}
-	out.update(bean.doc.fields)
+	out.update(doc.as_dict())
 	
 	return out
 	

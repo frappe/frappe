@@ -211,7 +211,7 @@ def get_footer(footer=None):
 	footer = footer or ""
 	
 	# control panel
-	footer += frappe.db.get_value('Control Panel', None, 'mail_footer') or ''
+	footer += frappe.db.get_default('mail_footer') or ''
 	
 	# hooks
 	for f in frappe.get_hooks("mail_footer"):

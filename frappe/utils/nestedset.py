@@ -14,6 +14,7 @@ from __future__ import unicode_literals
 
 import frappe
 from frappe import msgprint, _
+from frappe.model.document import Document
 
 class NestedSetRecursionError(frappe.ValidationError): pass
 class NestedSetMultipleRootsError(frappe.ValidationError): pass
@@ -21,38 +22,29 @@ class NestedSetChildExistsError(frappe.ValidationError): pass
 class NestedSetInvalidMergeError(frappe.ValidationError): pass
 
 # called in the on_update method
-def update_nsm(doc_obj):
+def update_nsm(doc):
 	# get fields, data from the DocType
 	opf = 'old_parent'
+	pf = "parent_" + frappe.scrub(doc.doctype)
 
-	if str(doc_obj.__class__)=='frappe.model.doc.Document':
-		# passed as a Document object
-		d = doc_obj
-		pf = "parent_" + frappe.scrub(d.doctype)
-	else:
-		# passed as a DocType object
-		d = doc_obj.doc
-		pf = "parent_" + frappe.scrub(d.doctype)
-	
-		if hasattr(doc_obj,'nsm_parent_field'):
-			pf = doc_obj.nsm_parent_field
-		if hasattr(doc_obj,'nsm_oldparent_field'):
-			opf = doc_obj.nsm_oldparent_field
+	if hasattr(doc,'nsm_parent_field'):
+		pf = doc.nsm_parent_field
+	if hasattr(doc,'nsm_oldparent_field'):
+		opf = doc.nsm_oldparent_field
 
-	p, op = d.fields.get(pf) or None, d.fields.get(opf) or None
+	p, op = doc.get(pf) or None, doc.get(opf) or None
 	
 	# has parent changed (?) or parent is None (root)
-	if not d.lft and not d.rgt:
-		update_add_node(d, p or '', pf)
+	if not doc.lft and not doc.rgt:
+		update_add_node(doc, p or '', pf)
 	elif op != p:
-		update_move_node(d, pf)
+		update_move_node(doc, pf)
 
 	# set old parent
-	d.fields[opf] = p
-	frappe.db.set_value(d.doctype, d.name, opf, p or '')
-
-	# reload
-	d._loadfromdb()
+	doc.set(opf, p)
+	frappe.db.set_value(doc.doctype, doc.name, opf, p or '')
+	
+	doc.load_from_db()
 
 def update_add_node(doc, parent, parent_field):
 	"""
@@ -91,7 +83,7 @@ def update_add_node(doc, parent, parent_field):
 
 
 def update_move_node(doc, parent_field):
-	parent = doc.fields.get(parent_field)
+	parent = doc.get(parent_field)
 	
 	if parent:
 		new_parent = frappe.db.sql("""select lft, rgt from `tab%s` 
@@ -188,54 +180,54 @@ def validate_loop(doctype, name, lft, rgt):
 		"%s", "%s"), (lft, rgt)):
 		frappe.throw("""Item cannot be added to its own descendents.""", NestedSetRecursionError)
 
-class DocTypeNestedSet(object):
+class NestedSet(Document):
 	def on_update(self):
 		update_nsm(self)
 		self.validate_ledger()
 		
 	def on_trash(self):
 		if not self.nsm_parent_field:
-			self.nsm_parent_field = frappe.scrub(self.doc.doctype) + "_parent"
+			self.nsm_parent_field = frappe.scrub(self.doctype) + "_parent"
 		
-		parent = self.doc.fields[self.nsm_parent_field]
+		parent = self.get(self.nsm_parent_field)
 		if not parent:
-			msgprint(_("Root ") + self.doc.doctype + _(" cannot be deleted."), raise_exception=1)
+			msgprint(_("Root ") + self.doctype + _(" cannot be deleted."), raise_exception=1)
 		
 		# cannot delete non-empty group
 		has_children = frappe.db.sql("""select count(name) from `tab{doctype}`
-			where `{nsm_parent_field}`=%s""".format(doctype=self.doc.doctype, nsm_parent_field=self.nsm_parent_field),
-			(self.doc.name,))[0][0]
+			where `{nsm_parent_field}`=%s""".format(doctype=self.doctype, nsm_parent_field=self.nsm_parent_field),
+			(self.name,))[0][0]
 		if has_children:
 			frappe.throw("{cannot_delete}. {children_exist}: {name}.".format(
-				children_exist=_("Children exist for"), name=self.doc.name,
+				children_exist=_("Children exist for"), name=self.name,
 				cannot_delete=_("Cannot delete")), NestedSetChildExistsError)
 
-		self.doc.fields[self.nsm_parent_field] = ""
+		self.set(self.nsm_parent_field, "")
 		update_nsm(self)
 		
 	def before_rename(self, olddn, newdn, merge=False, group_fname="is_group"):
 		if merge:
-			is_group = frappe.db.get_value(self.doc.doctype, newdn, group_fname)
-			if self.doc.fields[group_fname] != is_group:
+			is_group = frappe.db.get_value(self.doctype, newdn, group_fname)
+			if self.get(group_fname) != is_group:
 				frappe.throw(_("""Merging is only possible between Group-to-Group or 
 					Ledger-to-Ledger"""), NestedSetInvalidMergeError)
 					
 	def after_rename(self, olddn, newdn, merge=False):
 		if merge:
-			parent_field = "parent_" + self.doc.doctype.replace(" ", "_").lower()
-			rebuild_tree(self.doc.doctype, parent_field)
+			parent_field = "parent_" + self.doctype.replace(" ", "_").lower()
+			rebuild_tree(self.doctype, parent_field)
 		
 	def validate_one_root(self):
-		if not self.doc.fields[self.nsm_parent_field]:
+		if not self.get(self.nsm_parent_field):
 			if frappe.db.sql("""select count(*) from `tab%s` where
-				ifnull(%s, '')=''""" % (self.doc.doctype, self.nsm_parent_field))[0][0] > 1:
+				ifnull(%s, '')=''""" % (self.doctype, self.nsm_parent_field))[0][0] > 1:
 				frappe.throw(_("""Multiple root nodes not allowed."""), NestedSetMultipleRootsError)
 
 	def validate_ledger(self, group_identifier="is_group"):
-		if self.doc.fields.get(group_identifier) == "No":
+		if self.get(group_identifier) == "No":
 			if frappe.db.sql("""select name from `tab%s` where %s=%s and docstatus!=2""" % 
-				(self.doc.doctype, self.nsm_parent_field, '%s'), (self.doc.name)):
-					frappe.throw(self.doc.doctype + ": " + self.doc.name + 
+				(self.doctype, self.nsm_parent_field, '%s'), (self.name)):
+					frappe.throw(self.doctype + ": " + self.name + 
 						_(" can not be marked as a ledger as it has existing child"))
 
 def get_root_of(doctype):

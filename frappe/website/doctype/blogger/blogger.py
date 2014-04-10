@@ -7,9 +7,9 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 
-class DocType:
-	def __init__(self, d, dl):
-		self.doc, self.doclist = d, dl
+from frappe.model.document import Document
+
+class Blogger(Document):
 		
 	def on_update(self):
 		"if user is set, then update all older blogs"
@@ -17,9 +17,9 @@ class DocType:
 		from frappe.website.doctype.blog_post.blog_post import clear_blog_cache
 		clear_blog_cache()
 		
-		if self.doc.user:
+		if self.user:
 			for blog in frappe.db.sql_list("""select name from `tabBlog Post` where owner=%s 
-				and ifnull(blogger,'')=''""", self.doc.user):
-				b = frappe.bean("Blog Post", blog)
-				b.doc.blogger = self.doc.name
+				and ifnull(blogger,'')=''""", self.user):
+				b = frappe.get_doc("Blog Post", blog)
+				b.blogger = self.name
 				b.save()

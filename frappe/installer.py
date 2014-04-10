@@ -130,7 +130,7 @@ def set_all_patches_as_completed(app):
 	patch_path = os.path.join(frappe.get_pymodule_path(app), "patches.txt")
 	if os.path.exists(patch_path):
 		for patch in frappe.get_file_items(patch_path):
-			frappe.doc({
+			frappe.get_doc({
 				"doctype": "Patch Log",
 				"patch": patch
 			}).insert()

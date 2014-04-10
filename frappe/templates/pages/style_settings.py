@@ -9,10 +9,10 @@ base_template_path = "templates/pages/style_settings.css"
 
 def get_context(context):
 	"""returns web style"""
-	doc = frappe.doc("Style Settings", "Style Settings")
+	doc = frappe.get_doc("Style Settings", "Style Settings")
 	prepare(doc)
 	
-	return { "doc": doc.fields }	
+	return { "doc": doc.as_dict() }	
 
 def prepare(doc):
 	from frappe.utils import cint, cstr
@@ -28,8 +28,8 @@ def prepare(doc):
 	}
 	
 	for d in default_colours:
-		if not doc.fields.get(d):
-			doc.fields[d] = default_colours[d]
+		if not doc.get(d):
+			doc.set(d, default_colours[d])
 	
 	if not doc.font_size:
 		doc.font_size = "14px"

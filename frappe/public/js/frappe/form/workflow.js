@@ -79,7 +79,7 @@ frappe.ui.form.States = Class.extend({
 			// show current state on the button
 			this.workflow_button.find(".state-text").text(state);
 			
-			var state_doc = frappe.model.get("Workflow State", {name:state})[0];
+			var state_doc = frappe.get_doc("Workflow State", state);
 
 			if (state_doc) {
 				// set the icon
@@ -109,7 +109,7 @@ frappe.ui.form.States = Class.extend({
 
 		$.each(frappe.workflow.get_transitions(this.frm.doctype, state), function(i, d) {
 			if(in_list(user_roles, d.allowed)) {
-				d.icon = frappe.model.get("Workflow State", {name:d.next_state})[0].icon;
+				d.icon = frappe.get_list("Workflow State", d.next_state).icon;
 				
 				$(repl('<li><a href="#" data-action="%(action)s">\
 					<i class="icon icon-%(icon)s"></i> %(action)s</a></li>', d))
@@ -160,7 +160,7 @@ frappe.ui.form.States = Class.extend({
 			// revert state on error
 			var on_error = function() {
 				// reset in locals
-				locals[me.frm.doctype][me.frm.docname] = doc_before_action;
+				frappe.model.add_to_locals(doc_before_action);
 				me.frm.refresh();
 			}
 

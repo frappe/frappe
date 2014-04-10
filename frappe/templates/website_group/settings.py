@@ -36,7 +36,7 @@ def add_sitemap_permission(group, user):
 	if not get_access(pathname).get("admin"):
 		raise frappe.PermissionError
 		
-	permission = frappe.bean({
+	permission = frappe.get_doc({
 		"doctype": "Website Route Permission",
 		"website_route": pathname,
 		"user": user,
@@ -44,7 +44,7 @@ def add_sitemap_permission(group, user):
 	})
 	permission.insert(ignore_permissions=True)
 	
-	user = permission.doc.fields
+	user = permission.as_dict()
 	user.update(frappe.db.get_value("User", user.user, 
 		["name", "first_name", "last_name", "user_image", "location"], as_dict=True))
 	
@@ -58,8 +58,8 @@ def update_permission(group, user, perm, value):
 	if not get_access(pathname).get("admin"):
 		raise frappe.PermissionError
 		
-	permission = frappe.bean("Website Route Permission", {"website_route": pathname, "user": user})
-	permission.doc.fields[perm] = int(value)
+	permission = frappe.get_doc("Website Route Permission", {"website_route": pathname, "user": user})
+	permission.set(perm, int(value))
 	permission.save(ignore_permissions=True)
 	
 	# send email
@@ -79,8 +79,8 @@ def update_description(group, description):
 	if not get_access(get_pathname(group)).get("admin"):
 		raise frappe.PermissionError
 
-	group = frappe.bean("Website Group", group)
-	group.doc.group_description = description
+	group = frappe.get_doc("Website Group", group)
+	group.group_description = description
 	group.save(ignore_permissions=True)
 	
 @frappe.whitelist()
@@ -91,7 +91,7 @@ def add_website_group(group, new_group, public_read, public_write, group_type="F
 	parent_website_route = frappe.db.get_value("Website Route", 
 		{"ref_doctype": "Website Group", "docname": group})
 	
-	frappe.bean({
+	frappe.get_doc({
 		"doctype": "Website Group",
 		"group_name": group + "-" + new_group,
 		"group_title": new_group,

@@ -10,32 +10,30 @@ from frappe.website.render import clear_cache
 from frappe import _
 from frappe.utils import today
 
-class DocType(WebsiteGenerator):
-	def __init__(self, d, dl):
-		self.doc, self.doclist = d, dl
-		self.save_versions = True
+class BlogPost(WebsiteGenerator):
+	save_versions = True
 				
 	def get_page_title(self):
-		return self.doc.title
+		return self.title
 		
 	def validate(self):
-		if not self.doc.blog_intro:
-			self.doc.blog_intro = self.doc.content[:140]
-			re.sub("\<[^>]*\>", "", self.doc.blog_intro)
+		if not self.blog_intro:
+			self.blog_intro = self.content[:140]
+			re.sub("\<[^>]*\>", "", self.blog_intro)
 		
-		if self.doc.blog_intro:
-			self.doc.blog_intro = self.doc.blog_intro[:140]
+		if self.blog_intro:
+			self.blog_intro = self.blog_intro[:140]
 			
-		if self.doc.published and not self.doc.published_on:
-			self.doc.published_on = today()
+		if self.published and not self.published_on:
+			self.published_on = today()
 
-		self.doc.parent_website_route = frappe.db.get_value("Website Route",
-			{"ref_doctype": "Blog Category", "docname": self.doc.blog_category})
+		self.parent_website_route = frappe.db.get_value("Website Route",
+			{"ref_doctype": "Blog Category", "docname": self.blog_category})
 
 		# update posts
 		frappe.db.sql("""update tabBlogger set posts=(select count(*) from `tabBlog Post` 
 			where ifnull(blogger,'')=tabBlogger.name)
-			where name=%s""", (self.doc.blogger,))
+			where name=%s""", (self.blogger,))
 			
 
 	def on_update(self):

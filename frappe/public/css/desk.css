@@ -7,7 +7,6 @@ body {
 	height: 100%;
 	margin: 0px;
 	padding-top: 36px;
-	padding-bottom: 50px;
 }
 
 a {
@@ -85,7 +84,7 @@ div#freeze {
 }
 
 .alert-badge a, .alert-badge a:hover {
-	
+
 }
 
 .alert-badge .badge {
@@ -93,14 +92,14 @@ div#freeze {
 }
 
 .icon-in-circle {
-	color: #b7b7b7; 
+	color: #b7b7b7;
 	background-color: white;
-	border-radius:50%; 
-	text-align: center; 
-	width: 20px; 
-	height: 20px; 
-	font-size: 20px; 
-	display: inline-block;	
+	border-radius:50%;
+	text-align: center;
+	width: 20px;
+	height: 20px;
+	font-size: 20px;
+	display: inline-block;
 }
 
 .form-layout {
@@ -135,7 +134,7 @@ div#freeze {
 
 .doclist-row {
 	position: relative;
-	padding-top: 5px; 
+	padding-top: 5px;
 	padding-bottom: 3px;
 	border-bottom: "1px solid #eee";
 }
@@ -178,8 +177,8 @@ div#freeze {
 }
 
 .comm-header {
-	font-weight: bold; 
-	height: 20px; 
+	font-weight: bold;
+	height: 20px;
 	overflow: hidden;
 }
 
@@ -193,8 +192,8 @@ div#freeze {
 
 
 #alert-container {
-	position: fixed; 
-	bottom: 8px; 
+	position: fixed;
+	bottom: 8px;
 	right: 8px;
 	z-index: 10;
 }
@@ -279,7 +278,7 @@ ul.linked-with-list li {
 	background-color: #f8f8f8;
 	padding: 6px;
 	margin-bottom: 7px;
-	border-radius: 3px;	
+	border-radius: 3px;
 	min-height: 30px;
 }
 
@@ -341,8 +340,8 @@ ul.linked-with-list li {
 
 /* hack */
 .ui-datepicker { z-index: 9999999 !important; }
-.ui-autocomplete { 
-	z-index: 9999999 !important; 
+.ui-autocomplete {
+	z-index: 9999999 !important;
 }
 
 .bold,
@@ -362,7 +361,7 @@ ul.linked-with-list li {
 		float: left;
 		margin-bottom: 5px;
 	}
-	
+
 	.nav-stacked > li + li {
 	  margin-top: 0px;
 	  margin-left: 2px;

@@ -14,14 +14,6 @@ class Event(Document):
 	def validate(self):
 		if self.starts_on and self.ends_on and self.starts_on > self.ends_on:
 			frappe.msgprint(frappe._("Event End must be after Start"), raise_exception=True)
-		
-class DocType:
-	def __init__(self, d, dl):
-		self.doc, self.doclist = d, dl
-		
-	def validate(self):
-		if self.doc.starts_on and self.doc.ends_on and self.doc.starts_on > self.doc.ends_on:
-			frappe.msgprint(frappe._("Event End must be after Start"), raise_exception=True)
 			
 def get_permission_query_conditions():
 	return """(tabEvent.event_type='Public' or tabEvent.owner='%(user)s'
@@ -35,21 +27,14 @@ def get_permission_query_conditions():
 			"roles": "', '".join(frappe.get_roles(frappe.session.user))
 		}
 
-def has_permission(doc, bean=None):
+def has_permission(doc):
 	if doc.event_type=="Public" or doc.owner==frappe.session.user:
 		return True
-		
-	# need full doclist to check roles and users
-	if not bean:
-		bean = frappe.bean("Event", doc.name)
-		
-	if len(bean.doclist)==1:
-		return False
-	
-	if bean.doclist.get({"doctype":"Event User", "person":frappe.session.user}):
+			
+	if doc.get("event_individuals", {"person":frappe.session.user}):
 		return True
 		
-	if bean.doclist.get({"doctype":"Event Role", "role":("in", frappe.get_roles())}):
+	if doc.get("event_roles", {"role":("in", frappe.get_roles())}):
 		return True
 		
 	return False

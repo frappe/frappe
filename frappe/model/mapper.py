@@ -7,117 +7,92 @@ from frappe import _
 from frappe.utils import cstr
 from frappe.model import default_fields
 
-def get_mapped_doclist(from_doctype, from_docname, table_maps, target_doclist=None, 
+def get_mapped_doc(from_doctype, from_docname, table_maps, target_doc=None, 
 		postprocess=None, ignore_permissions=False):
-	if target_doclist is None:
-		target_doclist = []
-		
-	if isinstance(target_doclist, basestring):
-		target_doclist = json.loads(target_doclist)
+	if isinstance(target_doc, basestring):
+		target_doc = json.loads(target_doc)
 	
-	source = frappe.bean(from_doctype, from_docname)
+	source_doc = frappe.get_doc(from_doctype, from_docname)
 
-	if not ignore_permissions and not frappe.has_permission(from_doctype, "read", source.doc):
+	if not ignore_permissions and not source_doc.has_permission("read"):
 		frappe.msgprint("No Permission", raise_exception=frappe.PermissionError)
 
-	source_meta = frappe.get_doctype(from_doctype)
-	target_meta = frappe.get_doctype(table_maps[from_doctype]["doctype"])
-	
 	# main
-	if target_doclist:
-		if isinstance(target_doclist[0], dict):
-			target_doc = frappe.doc(fielddata=target_doclist[0])
-		else:
-			target_doc = target_doclist[0]
-	else:
+	if not target_doc:
 		target_doc = frappe.new_doc(table_maps[from_doctype]["doctype"])
 	
-	map_doc(source.doc, target_doc, table_maps[source.doc.doctype], source_meta, target_meta)
-	if target_doclist:
-		target_doclist[0] = target_doc
-	else:
-		target_doclist = [target_doc]
-	
-	target_doclist = frappe.doclist(target_doclist)
-	
+	map_doc(source_doc, target_doc, table_maps[source_doc.doctype])
+
 	row_exists_for_parentfield = {}
 	
 	# children
-	for source_d in source.doclist[1:]:
-		table_map = table_maps.get(source_d.doctype)
+	for df in source_doc.meta.get_table_fields():
+		source_child_doctype = df.options
+		table_map = table_maps.get(source_child_doctype)
 		if table_map:
-			if "condition" in table_map:
-				if not table_map["condition"](source_d):
-					continue
-			target_doctype = table_map["doctype"]
-			parentfield = target_meta.get({
-					"parent": target_doc.doctype, 
-					"doctype": "DocField",
-					"fieldtype": "Table", 
-					"options": target_doctype
-				})[0].fieldname
-			
-			# does row exist for a parentfield?
-			if parentfield not in row_exists_for_parentfield:
-				row_exists_for_parentfield[parentfield] = True if \
-					frappe.doclist(target_doclist).get({"parentfield": parentfield}) else False
-			
-			if table_map.get("add_if_empty") and row_exists_for_parentfield.get(parentfield):
-				continue
-		
-			target_d = frappe.new_doc(target_doctype, target_doc, parentfield)
-			map_doc(source_d, target_d, table_map, source_meta, target_meta, source.doclist[0])
-			target_d.idx = None
-			target_doclist.append(target_d)
+			for source_d in source_doc.get(df.fieldname):
+				if "condition" in table_map:
+					if not table_map["condition"](source_d):
+						continue
+				
+				target_child_doctype = table_map["doctype"]
+				target_parentfield = target_doc.get_parentfield_of_doctype(target_child_doctype)
 
-	target_doclist = frappe.doclist(target_doclist)
+				# does row exist for a parentfield?
+				if df.fieldname not in row_exists_for_parentfield:
+					row_exists_for_parentfield[target_parentfield] = (True
+						if target_doc.get(target_parentfield) else False)
+				
+				if table_map.get("add_if_empty") and row_exists_for_parentfield.get(target_parentfield):
+					continue
+					
+				if table_map.get("filter") and table_map.get("filter")(source_d):
+					continue
+					
+				target_d = frappe.new_doc(target_child_doctype, target_doc, target_parentfield)
+				map_doc(source_d, target_d, table_map, source_doc)
+				target_d.idx = None
+				target_doc.append(target_parentfield, target_d)
 	
 	if postprocess:
-		new_target_doclist = postprocess(source, target_doclist)
-		if new_target_doclist:
-			target_doclist = new_target_doclist
+		postprocess(source_doc, target_doc)
 	
-	return target_doclist
+	return target_doc
 
-def map_doc(source_doc, target_doc, table_map, source_meta, target_meta, source_parent=None):
-	no_copy_fields = set(\
-		  [d.fieldname for d in source_meta.get({"no_copy": 1, 
-			"parent": source_doc.doctype})] \
-		+ [d.fieldname for d in target_meta.get({"no_copy": 1, 
-			"parent": target_doc.doctype})] \
+def map_doc(source_doc, target_doc, table_map, source_parent=None):
+	no_copy_fields = set([d.fieldname for d in source_doc.meta.get("fields", {"no_copy": 1})]
+		+ [d.fieldname for d in target_doc.meta.get("fields", {"no_copy": 1})]
 		+ default_fields
 		+ table_map.get("field_no_map", []))
 
 	if table_map.get("validation"):
 		for key, condition in table_map["validation"].items():
 			if condition[0]=="=":
-				if source_doc.fields.get(key) != condition[1]:
-					frappe.msgprint(_("Cannot map because following condition fails: ")
-						+ key + "=" + cstr(condition[1]), raise_exception=frappe.ValidationError)
+				if source_doc.get(key) != condition[1]:
+					frappe.throw(_("Cannot map because following condition fails: ")
+						+ key + "=" + cstr(condition[1]))
 
 	# map same fields
-	target_fields = target_meta.get({"doctype": "DocField", "parent": target_doc.doctype})
-	for key in [d.fieldname for d in target_fields]:
-		if key not in no_copy_fields:
-			val = source_doc.fields.get(key)
+	for df in target_doc.meta.get("fields"):
+		if df.fieldname not in no_copy_fields:
+			val = source_doc.get(df.fieldname)
 			if val not in (None, ""):
-				target_doc.fields[key] = val
-				
-
+				target_doc.set(df.fieldname, val)
+	
 	# map other fields
 	field_map = table_map.get("field_map")
 	
 	if field_map:
 		if isinstance(field_map, dict):
 			for source_key, target_key in field_map.items():
-				val = source_doc.fields.get(source_key)
+				val = source_doc.get(source_key)
 				if val not in (None, ""):
-					target_doc.fields[target_key] = val
+					target_doc.set(target_key, val)
 		else:
 			for fmap in field_map:
-				val = source_doc.fields.get(fmap[0])
+				val = source_doc.get(fmap[0])
 				if val not in (None, ""):
-					target_doc.fields[fmap[1]] = val
+					target_doc.set(fmap[1], val)
 
 	# map idx
 	if source_doc.idx:

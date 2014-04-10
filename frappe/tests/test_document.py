@@ -4,6 +4,10 @@
 import frappe, unittest, time
 
 class TestDocument(unittest.TestCase):
+	def test_get_return_empty_list_for_table_field_if_none(self):
+		d = frappe.get_doc({"doctype":"User"})
+		self.assertEquals(d.get("user_roles"), [])
+		
 	def test_load(self):
 		d = frappe.get_doc("DocType", "User")
 		self.assertEquals(d.doctype, "DocType")
@@ -22,14 +26,14 @@ class TestDocument(unittest.TestCase):
 	def test_insert(self):
 		d = frappe.get_doc({
 			"doctype":"Event",
-			"subject":"_Test Event 1",
+			"subject":"test-doc-test-event 1",
 			"starts_on": "2014-01-01",
 			"event_type": "Public"
 		})
 		d.insert()
 		self.assertTrue(d.name.startswith("EV"))
 		self.assertEquals(frappe.db.get_value("Event", d.name, "subject"), 
-			"_Test Event 1")
+			"test-doc-test-event 1")
 			
 		# test if default values are added
 		self.assertEquals(d.send_reminder, 1)
@@ -38,7 +42,7 @@ class TestDocument(unittest.TestCase):
 	def test_insert_with_child(self):
 		d = frappe.get_doc({
 			"doctype":"Event",
-			"subject":"_Test Event 2",
+			"subject":"test-doc-test-event 2",
 			"starts_on": "2014-01-01",
 			"event_type": "Public",
 			"event_individuals": [
@@ -50,7 +54,7 @@ class TestDocument(unittest.TestCase):
 		d.insert()
 		self.assertTrue(d.name.startswith("EV"))
 		self.assertEquals(frappe.db.get_value("Event", d.name, "subject"), 
-			"_Test Event 2")
+			"test-doc-test-event 2")
 		
 		d1 = frappe.get_doc("Event", d.name)
 		self.assertTrue(d1.event_individuals[0].person, "Administrator")
@@ -109,7 +113,7 @@ class TestDocument(unittest.TestCase):
 		})
 		self.assertRaises(frappe.LinkValidationError, d.insert)
 		d.user_roles = []
-		d.set("user_roles", {
+		d.append("user_roles", {
 			"role": "System Manager"
 		})
 		d.insert()
@@ -120,5 +124,6 @@ class TestDocument(unittest.TestCase):
 		d.starts_on = "2014-01-01"
 		d.ends_on = "2013-01-01"
 		self.assertRaises(frappe.ValidationError, d.validate)
+		self.assertRaises(frappe.ValidationError, d.run_method, "validate")
 		self.assertRaises(frappe.ValidationError, d.save)
 		

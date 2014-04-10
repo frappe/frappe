@@ -11,14 +11,12 @@ from frappe.utils import nowdate, nowtime, cint, flt
 import frappe.defaults
 
 def get_new_doc(doctype, parent_doc = None, parentfield = None):
-	doc = frappe.doc({
+	doc = frappe.get_doc({
 		"doctype": doctype,
 		"__islocal": 1,
 		"owner": frappe.session.user,
 		"docstatus": 0
 	})
-	
-	meta = frappe.get_doctype(doctype)
 	
 	restrictions = frappe.defaults.get_restrictions()
 	
@@ -31,39 +29,38 @@ def get_new_doc(doctype, parent_doc = None, parentfield = None):
 	
 	defaults = frappe.defaults.get_defaults()
 	
-	for d in meta.get({"doctype":"DocField", "parent": doctype}):
+	for d in doc.meta.get("fields"):
 		default = defaults.get(d.fieldname)
 		
 		if (d.fieldtype=="Link") and d.ignore_restrictions != 1 and (d.options in restrictions)\
 			and len(restrictions[d.options])==1:
-			doc.fields[d.fieldname] = restrictions[d.options][0]
+			doc.set(d.fieldname, restrictions[d.options][0])
 		elif default:
-			doc.fields[d.fieldname] = default
-		elif d.fields.get("default"):
+			doc.set(d.fieldname, default)
+		elif d.get("default"):
 			if d.default == "__user":
-				doc.fields[d.fieldname] = frappe.session.user
+				doc.set(d.fieldname, frappe.session.user)
 			elif d.default == "Today":
-				doc.fields[d.fieldname] = nowdate()
+				doc.set(d.fieldname, nowdate())
 
 			elif d.default.startswith(":"):
-				ref_fieldname = d.default[1:].lower().replace(" ", "_")
+				ref_doctype =  d.default[1:]
+				ref_fieldname = ref_doctype.lower().replace(" ", "_")
 				if parent_doc:
-					ref_docname = parent_doc.fields[ref_fieldname]
+					ref_docname = parent_doc.get(ref_fieldname)
 				else:
 					ref_docname = frappe.db.get_default(ref_fieldname)
-				doc.fields[d.fieldname] = frappe.db.get_value(d.default[1:], 
-					ref_docname, d.fieldname)
-
+				doc.set(d.fieldname, frappe.db.get_value(ref_doctype, ref_docname, d.fieldname))
 			else:
-				doc.fields[d.fieldname] = d.default
+				doc.set(d.fieldname, d.default)
 			
 			# convert type of default
 			if d.fieldtype in ("Int", "Check"):
-				doc.fields[d.fieldname] = cint(doc.fields[d.fieldname])
+				doc.set(d.fieldname, cint(doc.get(d.fieldname)))
 			elif d.fieldtype in ("Float", "Currency"):
-				doc.fields[d.fieldname] = flt(doc.fields[d.fieldname])
+				doc.set(d.fieldname, flt(doc.get(d.fieldname)))
 				
 		elif d.fieldtype == "Time":
-			doc.fields[d.fieldname] = nowtime()
+			doc.set(d.fieldname, nowtime())
 			
 	return doc

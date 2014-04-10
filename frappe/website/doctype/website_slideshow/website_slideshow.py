@@ -6,19 +6,22 @@
 from __future__ import unicode_literals
 import frappe
 
-class DocType:
-	def __init__(self, d, dl):
-		self.doc, self.doclist = d, dl
-		
+from frappe.model.document import Document
+
+class WebsiteSlideshow(Document):
+
 	def on_update(self):
 		# a slide show can be in use and any change in it should get reflected
 		from frappe.website.render import clear_cache
 		clear_cache()
-		
-def get_slideshow(bean):
-	slideshow = frappe.bean("Website Slideshow", bean.doc.slideshow)
-	
+
+def get_slideshow(doc):
+	if not doc.slideshow:
+		return {}
+
+	slideshow = frappe.get_doc("Website Slideshow", doc.slideshow)
+
 	return {
-		"slides": slideshow.doclist.get({"doctype":"Website Slideshow Item"}),
-		"slideshow_header": slideshow.doc.header or ""
+		"slides": slideshow.get({"doctype":"Website Slideshow Item"}),
+		"slideshow_header": slideshow.header or ""
 	}

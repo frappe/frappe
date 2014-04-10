@@ -16,8 +16,7 @@ frappe.call = function(opts) {
 	} else if(opts.doc) {
 		$.extend(args, {
 			cmd: "runserverobj",
-			docs: frappe.model.compress(frappe.model.get_doclist(opts.doc.doctype,
-				opts.doc.name)),
+			docs: frappe.get_doc(opts.doc.doctype, opts.doc.name),
 			method: opts.method,
 			args: opts.args,
 		});	

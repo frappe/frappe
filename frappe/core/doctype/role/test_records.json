@@ -1,0 +1,10 @@
+[
+ {
+  "doctype": "Role", 
+  "role_name": "_Test Role"
+ }, 
+ {
+  "doctype": "Role", 
+  "role_name": "_Test Role 2"
+ }
+]

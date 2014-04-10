@@ -4,32 +4,31 @@
 from __future__ import unicode_literals
 import frappe
 
-class DocType:
-	def __init__(self, d, dl):
-		self.doc, self.doclist = d, dl
-	
+from frappe.model.document import Document
+
+class ToDo(Document):
 	def validate(self):
-		if self.doc.is_new():
+		if self.is_new():
 			self.add_comment(frappe._("Assignment Added"))
 		else:
-			cur_status = frappe.db.get_value("ToDo", self.doc.name, "status")
-			if cur_status != self.doc.status:
+			cur_status = frappe.db.get_value("ToDo", self.name, "status")
+			if cur_status != self.status:
 				self.add_comment(frappe._("Assignment Status Changed"))
 	
 	def add_comment(self, text):
-		if not self.doc.reference_type and self.doc.reference_name:
+		if not self.reference_type and self.reference_name:
 			return
 			
-		comment = frappe.bean({
+		comment = frappe.get_doc({
 			"doctype":"Comment",
 			"comment_by": frappe.session.user,
-			"comment_doctype": self.doc.reference_type,
-			"comment_docname": self.doc.reference_name,
+			"comment_doctype": self.reference_type,
+			"comment_docname": self.reference_name,
 			"comment": """<div>{text}: 
 				<a href='#Form/ToDo/{name}'>{status}: {description}</a></div>""".format(text=text,
-					status = frappe._(self.doc.status),
-					name = self.doc.name,
-					description = self.doc.description)
+					status = frappe._(self.status),
+					name = self.name,
+					description = self.description)
 		}).insert(ignore_permissions=True)
 		
 		

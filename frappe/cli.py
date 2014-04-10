@@ -25,9 +25,9 @@ def main():
 	else:
 		parsed_args["sites_path"] = os.environ.get("SITES_PATH", ".")
 	sites_path = parsed_args.get("sites_path")
-	
+
 	if not parsed_args.get("make_app"):
-			
+
 		if parsed_args.get("site")=="all":
 			for site in get_sites(parsed_args["sites_path"]):
 				print "\nRunning", fn, "for", site
@@ -35,20 +35,20 @@ def main():
 				args = parsed_args.copy()
 				args["site"] = site
 				frappe.init(site, sites_path=sites_path)
-				run(fn, args)
+				return run(fn, args)
 		else:
 			site = get_site(parsed_args)
 			if fn not in site_arg_optional and not site:
 				print 'site argument required'
-				exit(1)
+				return 1
 			elif site:
 				frappe.init(site, sites_path=sites_path)
 			else:
 				# site argument optional
 				frappe.init("", sites_path=sites_path)
-			run(fn, parsed_args)
+			return run(fn, parsed_args)
 	else:
-		run(fn, parsed_args)
+		return run(fn, parsed_args)
 
 def cmd(fn):
 	def new_fn(*args, **kwargs):
@@ -59,25 +59,39 @@ def cmd(fn):
 			# should not pass an argument more than once
 			if i >= len(args) and a in kwargs:
 				new_kwargs[a] = kwargs.get(a)
-		
+
 		return fn(*args, **new_kwargs)
-	
+
 	return new_fn
-	
+
 
 def run(fn, args):
+	import cProfile, pstats, StringIO
+
+	use_profiler = args.get("profile") and fn!="serve"
+	if use_profiler:
+		pr = cProfile.Profile()
+		pr.enable()
+
 	if isinstance(args.get(fn), (list, tuple)):
 		out = globals().get(fn)(*args.get(fn), **args)
 	else:
 		out = globals().get(fn)(**args)
-	
+
+	if use_profiler:
+		pr.disable()
+		s = StringIO.StringIO()
+		ps = pstats.Stats(pr, stream=s).sort_stats('tottime', 'ncalls')
+		ps.print_stats()
+		print s.getvalue()
+
 	return out
-		
+
 def get_function(args):
 	for fn, val in args.items():
 		if (val or isinstance(val, list)) and globals().get(fn):
 			return fn
-	
+
 def get_sites(sites_path=None):
 	import os
 	if not sites_path:
@@ -86,26 +100,28 @@ def get_sites(sites_path=None):
 			if not os.path.islink(os.path.join(sites_path, site))
 				and os.path.isdir(os.path.join(sites_path, site))
 				and not site in ('assets',)]
-	
+
 def setup_parser():
 	import argparse
 	parser = argparse.ArgumentParser(description="Run frappe utility functions")
-	
+
 	setup_install(parser)
 	setup_utilities(parser)
 	setup_translation(parser)
 	setup_test(parser)
-	
+
 	parser.add_argument("site", nargs="?")
-	
+
 	# common
 	parser.add_argument("-f", "--force", default=False, action="store_true",
 		help="Force execution where applicable (look for [-f] in help)")
-	parser.add_argument("--quiet", default=True, action="store_false", dest="verbose",
+	parser.add_argument("--verbose", default=False, action="store_true",
+		help="Show verbose output (where applicable)")
+	parser.add_argument("--quiet", default=True, action="store_false",
 		help="Do not show verbose output (where applicable)")
-		
+
 	return parser.parse_args()
-	
+
 def setup_install(parser):
 	parser.add_argument("--make_app", default=False, action="store_true",
 		help="Make a new application with boilerplate")
@@ -119,11 +135,11 @@ def setup_install(parser):
 		help="Add these app(s) to Installed Apps")
 	parser.add_argument("--root-password", nargs=1,
 		help="Root password for new app")
-	parser.add_argument("--reinstall", default=False, action="store_true", 
+	parser.add_argument("--reinstall", default=False, action="store_true",
 		help="Install a fresh app in db_name specified in conf.py")
 	parser.add_argument("--restore", metavar=("DB-NAME", "SQL-FILE"), nargs=2,
 		help="Restore from an sql file")
-	parser.add_argument("--add_system_manager", nargs="+", 
+	parser.add_argument("--add_system_manager", nargs="+",
 		metavar=("EMAIL", "[FIRST-NAME] [LAST-NAME]"), help="Add a user with all roles")
 
 def setup_test(parser):
@@ -135,6 +151,8 @@ def setup_test(parser):
 		help="Run command for specified doctype")
 	parser.add_argument("-m", "--module", metavar="MODULE", nargs=1,
 		help="Run command for specified module")
+	parser.add_argument("--tests", metavar="TEST FUNCTION", nargs="*",
+		help="Run one or more specific test functions")
 
 def setup_utilities(parser):
 	# update
@@ -149,10 +167,10 @@ def setup_utilities(parser):
 		help="Reload all doctypes, pages, etc. using txt files [-f]")
 	parser.add_argument("--update_all_sites", nargs="*", metavar=("REMOTE", "BRANCH"),
 		help="Perform git pull, run patches, sync schema and rebuild files/translations")
-	
-	parser.add_argument("--reload_doc", nargs=3, 
+
+	parser.add_argument("--reload_doc", nargs=3,
 		metavar=('"MODULE"', '"DOCTYPE"', '"DOCNAME"'))
-	
+
 	# build
 	parser.add_argument("-b", "--build", default=False, action="store_true",
 		help="Minify + concatenate JS and CSS files, build translations")
@@ -160,7 +178,7 @@ def setup_utilities(parser):
 		help="Make copy of assets instead of symlinks")
 	parser.add_argument("-w", "--watch", default=False, action="store_true",
 		help="Watch and concatenate JS and CSS files as and when they change")
-	
+
 	# misc
 	parser.add_argument("--backup", default=False, action="store_true",
 		help="Take backup of database in backup folder [--with_files]")
@@ -189,12 +207,12 @@ def setup_utilities(parser):
 	parser.add_argument("--ipython", action="store_true", help="get ipython shell for a site")
 	parser.add_argument("--execute", help="execute a function", nargs=1, metavar="FUNCTION")
 	parser.add_argument("--get_site_status", action="store_true", help="Get site details")
-	parser.add_argument("--update_site_config", nargs=1, 
-		metavar="site-CONFIG-JSON", 
+	parser.add_argument("--update_site_config", nargs=1,
+		metavar="site-CONFIG-JSON",
 		help="Update site_config.json for a given site")
 	parser.add_argument("--port", default=8000, type=int, help="port for development server")
 	parser.add_argument("--use", action="store_true", help="Set current site for development.")
-	
+
 	# clear
 	parser.add_argument("--clear_web", default=False, action="store_true",
 		help="Clear website cache")
@@ -206,37 +224,37 @@ def setup_utilities(parser):
 		help="Clear cache, doctype cache and defaults")
 	parser.add_argument("--reset_perms", default=False, action="store_true",
 		help="Reset permissions for all doctypes")
-	
+
 	# scheduler
 	parser.add_argument("--run_scheduler", default=False, action="store_true",
 		help="Trigger scheduler")
 	parser.add_argument("--celery", nargs="*", help="Run Celery Commands")
-	parser.add_argument("--run_scheduler_event", nargs=1, 
+	parser.add_argument("--run_scheduler_event", nargs=1,
 		metavar="all | daily | weekly | monthly",
 		help="Run a scheduler event")
-		
+
 	# replace
-	parser.add_argument("--replace", nargs=3, 
+	parser.add_argument("--replace", nargs=3,
 		metavar=("SEARCH-REGEX", "REPLACE-BY", "FILE-EXTN"),
 		help="Multi-file search-replace [-f]")
-		
+
 	# import/export
 	parser.add_argument("--export_doc", nargs=2, metavar=('"DOCTYPE"', '"DOCNAME"'))
-	parser.add_argument("--export_doclist", nargs=3, metavar=("DOCTYPE", "NAME", "PATH"), 
+	parser.add_argument("--export_doclist", nargs=3, metavar=("DOCTYPE", "NAME", "PATH"),
 		help="""Export doclist as json to the given path, use '-' as name for Singles.""")
-	parser.add_argument("--export_csv", nargs=2, metavar=("DOCTYPE", "PATH"), 
+	parser.add_argument("--export_csv", nargs=2, metavar=("DOCTYPE", "PATH"),
 		help="""Dump DocType as csv""")
-	parser.add_argument("--export_fixtures", default=False, action="store_true", 
+	parser.add_argument("--export_fixtures", default=False, action="store_true",
 		help="""Export fixtures""")
-	parser.add_argument("--import_doclist", nargs=1, metavar="PATH", 
-		help="""Import (insert/update) doclist. If the argument is a directory, all files ending with .json are imported""")	
-		
+	parser.add_argument("--import_doc", nargs=1, metavar="PATH",
+		help="""Import (insert/update) doclist. If the argument is a directory, all files ending with .json are imported""")
+
 def setup_translation(parser):
 	parser.add_argument("--build_message_files", default=False, action="store_true",
 		help="Build message files for translation.")
 	parser.add_argument("--get_untranslated", nargs=2, metavar=("LANG-CODE", "TARGET-FILE-PATH"),
 		help="""Get untranslated strings for lang.""")
-	parser.add_argument("--update_translations", nargs=3, 
+	parser.add_argument("--update_translations", nargs=3,
 		metavar=("LANG-CODE", "UNTRANSLATED-FILE-PATH", "TRANSLATED-FILE-PATH"),
 		help="""Update translated strings.""")
 
@@ -254,8 +272,10 @@ def use(sites_path):
 # install
 @cmd
 def install(db_name, root_login="root", root_password=None, source_sql=None,
-		admin_password = 'admin', verbose=True, force=False, site_config=None, reinstall=False):
+		admin_password = 'admin', verbose=True, force=False, site_config=None, reinstall=False, quiet=False):
 	from frappe.installer import install_db, install_app, make_site_dirs
+	verbose = verbose or not quiet
+
 	install_db(root_login=root_login, root_password=root_password, db_name=db_name, source_sql=source_sql,
 		admin_password = admin_password, verbose=verbose, force=force, site_config=site_config, reinstall=reinstall)
 	make_site_dirs()
@@ -263,7 +283,8 @@ def install(db_name, root_login="root", root_password=None, source_sql=None,
 	frappe.destroy()
 
 @cmd
-def install_app(app_name, verbose=False):
+def install_app(app_name, verbose=True, quiet=False):
+	verbose = verbose or not quiet
 	from frappe.installer import install_app
 	frappe.connect()
 	install_app(app_name, verbose=verbose)
@@ -280,11 +301,21 @@ def add_to_installed_apps(*apps):
 	frappe.destroy()
 
 @cmd
-def reinstall(verbose=True):
+def reinstall(verbose=True, quiet=False):
+	verbose = verbose or not quiet
+	try:
+		frappe.connect()
+		frappe.clear_cache()
+	except:
+		pass
+	finally:
+		frappe.db.close()
+
 	install(db_name=frappe.conf.db_name, verbose=verbose, force=True, reinstall=True)
 
 @cmd
-def restore(db_name, source_sql, verbose=True, force=False):
+def restore(db_name, source_sql, verbose=True, force=False, quiet=False):
+	verbose = verbose or not quiet
 	install(db_name, source_sql=source_sql, verbose=verbose, force=force)
 
 @cmd
@@ -294,7 +325,7 @@ def add_system_manager(email, first_name=None, last_name=None):
 	frappe.utils.user.add_system_manager(email, first_name, last_name)
 	frappe.db.commit()
 	frappe.destroy()
-	
+
 # utilities
 
 @cmd
@@ -310,35 +341,37 @@ def update(remote=None, branch=None, reload_gunicorn=False):
 		subprocess.check_output("killall -HUP gunicorn".split())
 
 @cmd
-def latest(verbose=True, rebuild_website_config=True):
+def latest(verbose=True, rebuild_website_config=True, quiet=False):
 	import frappe.modules.patch_handler
 	import frappe.model.sync
 	from frappe.website import rebuild_config
 	from frappe.utils.fixtures import sync_fixtures
 	import frappe.translate
 	from frappe.website import statics
-	
+
+	verbose = verbose or not quiet
+
 	frappe.connect()
-	
+
 	try:
 		# run patches
 		frappe.local.patch_log_list = []
 		frappe.modules.patch_handler.run_all()
 		if verbose:
 			print "\n".join(frappe.local.patch_log_list)
-	
+
 		# sync
-		frappe.model.sync.sync_all()
-				
+		frappe.model.sync.sync_all(verbose=verbose)
+		sync_fixtures()
+
+		statics.sync().start()
 		# build website config if any changes in templates etc.
 		if rebuild_website_config:
 			rebuild_config()
-		
-		statics.sync().start()
-		sync_fixtures()
-		
+
+
 		frappe.translate.clear_cache()
-		
+
 	except frappe.modules.patch_handler.PatchError, e:
 		print "\n".join(frappe.local.patch_log_list)
 		raise
@@ -346,10 +379,11 @@ def latest(verbose=True, rebuild_website_config=True):
 		frappe.destroy()
 
 @cmd
-def sync_all(force=False):
+def sync_all(force=False, verbose=True, quiet=False):
 	import frappe.model.sync
+	verbose = verbose or not quiet
 	frappe.connect()
-	frappe.model.sync.sync_all(force=force)
+	frappe.model.sync.sync_all(force=force, verbose=verbose)
 	frappe.destroy()
 
 @cmd
@@ -360,14 +394,15 @@ def patch(patch_module, force=False):
 	frappe.modules.patch_handler.run_single(patch_module, force=force)
 	print "\n".join(frappe.local.patch_log_list)
 	frappe.destroy()
-	
+
 @cmd
-def update_all_sites(remote=None, branch=None, verbose=True):
+def update_all_sites(remote=None, branch=None, verbose=True, quiet=False):
+	verbose = verbose or not quiet
 	pull(remote, branch)
-	
+
 	# maybe there are new framework changes, any consequences?
 	reload(frappe)
-	
+
 	build()
 	for site in get_sites():
 		frappe.init(site)
@@ -392,8 +427,9 @@ def watch():
 	frappe.build.watch(True)
 
 @cmd
-def backup(with_files=False, verbose=True, backup_path_db=None, backup_path_files=None):
+def backup(with_files=False, verbose=True, backup_path_db=None, backup_path_files=None, quiet=False):
 	from frappe.utils.backups import scheduled_backup
+	verbose = verbose or not quiet
 	frappe.connect()
 	odb = scheduled_backup(ignore_files=not with_files, backup_path_db=backup_path_db, backup_path_files=backup_path_files)
 	if verbose:
@@ -441,7 +477,7 @@ def domain(host_url=None):
 def make_conf(db_name=None, db_password=None, site_config=None):
 	from frappe.install_lib.install import make_conf
 	make_conf(db_name=db_name, db_password=db_password, site_config=site_config)
-	
+
 @cmd
 def make_custom_server_script(doctype):
 	from frappe.core.doctype.custom_script.custom_script import make_custom_server_script_file
@@ -470,7 +506,7 @@ def build_sitemap():
 	frappe.connect()
 	rebuild_config()
 	frappe.destroy()
-	
+
 @cmd
 def sync_statics():
 	from frappe.website import statics
@@ -478,7 +514,7 @@ def sync_statics():
 	statics.sync_statics()
 	frappe.db.commit()
 	frappe.destroy()
-	
+
 @cmd
 def reset_perms():
 	frappe.connect()
@@ -499,7 +535,7 @@ def execute(method):
 
 @cmd
 def celery(arg):
-	import frappe 
+	import frappe
 	import commands, os
 	python = commands.getoutput('which python')
 	os.execv(python, [python, "-m", "frappe.celery_app"] + arg.split())
@@ -511,14 +547,14 @@ def run_scheduler_event(event, force=False):
 	frappe.connect()
 	frappe.utils.scheduler.trigger(frappe.local.site, event, now=force)
 	frappe.destroy()
-	
+
 # replace
 @cmd
 def replace(search_regex, replacement, extn, force=False):
 	print search_regex, replacement, extn
 	replace_code('.', search_regex, replacement, extn, force=force)
-	
-# import/export	
+
+# import/export
 @cmd
 def export_doc(doctype, docname):
 	import frappe.modules
@@ -532,7 +568,7 @@ def export_doclist(doctype, name, path):
 	frappe.connect()
 	data_import_tool.export_json(doctype, name, path)
 	frappe.destroy()
-	
+
 @cmd
 def export_csv(doctype, path):
 	from frappe.core.page.data_import_tool import data_import_tool
@@ -548,12 +584,12 @@ def export_fixtures():
 	frappe.destroy()
 
 @cmd
-def import_doclist(path, force=False):
+def import_doc(path, force=False):
 	from frappe.core.page.data_import_tool import data_import_tool
 	frappe.connect()
-	data_import_tool.import_doclist(path, overwrite=force)
+	data_import_tool.import_doc(path, overwrite=force)
 	frappe.destroy()
-	
+
 # translation
 @cmd
 def build_message_files():
@@ -589,11 +625,11 @@ def get_remote_and_branch(remote=None, branch=None):
 	if not (remote and branch):
 		if not frappe.conf.branch:
 			raise Exception("Please specify remote and branch")
-			
+
 		remote = remote or "origin"
 		branch = branch or frappe.conf.branch
 		frappe.destroy()
-		
+
 	return remote, branch
 
 @cmd
@@ -629,7 +665,7 @@ def set_admin_password(admin_password):
 
 @cmd
 def mysql():
-	import frappe 
+	import frappe
 	import commands, os
 	msq = commands.getoutput('which mysql')
 	os.execv(msq, [msq, '-u', frappe.conf.db_name, '-p'+frappe.conf.db_password, frappe.conf.db_name, '-h', frappe.conf.db_host or "localhost", "-A"])
@@ -637,7 +673,7 @@ def mysql():
 
 @cmd
 def python(site):
-	import frappe 
+	import frappe
 	import commands, os
 	python = commands.getoutput('which python')
 	if site:
@@ -660,33 +696,21 @@ def smtp_debug_server():
 	os.execv(python, [python, '-m', "smtpd", "-n", "-c", "DebuggingServer", "localhost:25"])
 
 @cmd
-def run_tests(app=None, module=None, doctype=None, verbose=False, profile=False):
+def run_tests(app=None, module=None, doctype=None, verbose=False, quiet=True, tests=()):
 	import frappe.test_runner
+	verbose = verbose or not quiet
 
-	def _run():
-		ret = frappe.test_runner.main(app and app[0], module and module[0], doctype and doctype[0], verbose)
-		if len(ret.failures) > 0 or len(ret.errors) > 0:
-			exit(1)
+	ret = frappe.test_runner.main(app and app[0], module and module[0], doctype and doctype[0], verbose,
+		tests=tests)
 
-	if profile:
-		import cProfile, pstats, StringIO
-		pr = cProfile.Profile()
-		pr.enable()
-		_run()
-		pr.disable()
-		s = StringIO.StringIO()
-		sortby = 'cumulative'
-		ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
-		ps.print_stats()
-		print s.getvalue()
-	else:
-		_run()
+	if len(ret.failures) > 0 or len(ret.errors) > 0:
+		return 1
 
 @cmd
 def serve(port=8000, profile=False, sites_path='.', site=None):
 	import frappe.app
 	frappe.app.serve(port=port, profile=profile, site=frappe.local.site, sites_path=sites_path)
-	
+
 @cmd
 def request(args):
 	import frappe.handler
@@ -696,12 +720,12 @@ def request(args):
 		frappe.local.form_dict = frappe._dict([a.split("=") for a in args.split("?")[-1].split("&")])
 	else:
 		frappe.local.form_dict = frappe._dict()
-		
+
 	if args.startswith("/api/method"):
 		frappe.local.form_dict.cmd = args.split("?")[0].split("/")[-1]
-	
+
 	frappe.handler.execute_cmd(frappe.form_dict.cmd)
-		
+
 	print frappe.response
 	frappe.destroy()
 
@@ -722,7 +746,7 @@ def replace_code(start, txt1, txt2, extn, search=None, force=False):
 				fpath = os.path.join(wt[0], fn)
 				with open(fpath, 'r') as f:
 					content = f.read()
-			
+
 				if re.search(search, content):
 					res = search_replace_with_prompt(fpath, txt1, txt2, force)
 					if res == 'skip':
@@ -757,13 +781,15 @@ def search_replace_with_prompt(fpath, txt1, txt2, force=False):
 	print colored('Updated', 'green')
 
 @cmd
-def get_site_status(verbose=False):
+def get_site_status(verbose=False, quiet=True):
 	import frappe
 	import frappe.utils
 	from frappe.utils.user import get_system_managers
 	from frappe.core.doctype.user.user import get_total_users, get_active_users, \
 		get_website_users, get_active_website_users
-	
+
+	verbose = verbose or not quiet
+
 	import json
 	frappe.connect()
 	ret = {
@@ -777,40 +803,39 @@ def get_site_status(verbose=False):
 		'disk_usage': frappe.utils.get_disk_usage(),
 		'working_directory': frappe.local.site_path
 	}
-	
+
 	# country, timezone, industry
-	control_panel_details = frappe.db.get_value("Control Panel", "Control Panel", 
-		["country", "time_zone", "industry"], as_dict=True)
-	if control_panel_details:
-		ret.update(control_panel_details)
-	
+	for key in ["country", "time_zone", "industry"]:
+		ret[key] = frappe.db.get_default(key)
+
 	# basic usage/progress analytics
 	for doctype in ("Company", "Customer", "Item", "Quotation", "Sales Invoice",
 		"Journal Voucher", "Stock Ledger Entry"):
 			key = doctype.lower().replace(" ", "_") + "_exists"
 			ret[key] = 1 if frappe.db.count(doctype) else 0
-			
+
 	frappe.destroy()
-	
+
 	if verbose:
 		print json.dumps(ret, indent=1, sort_keys=True)
-	
+
 	return ret
 
 @cmd
-def update_site_config(site_config, verbose=False):
+def update_site_config(site_config, verbose=False, quiet=True):
 	import json
-	
+	verbose = verbose or not quiet
+
 	if isinstance(site_config, basestring):
 		site_config = json.loads(site_config)
-	
+
 	config = frappe.get_site_config()
 	config.update(site_config)
 	site_config_path = os.path.join(frappe.local.site_path, "site_config.json")
-	
+
 	with open(site_config_path, "w") as f:
 		json.dump(config, f, indent=1, sort_keys=True)
-		
+
 	frappe.destroy()
 
 @cmd
@@ -836,14 +861,14 @@ def bump(repo, bump_type):
 		elif version_type == 'patch':
 			v.patch += 1
 		return unicode(v)
-	
+
 	def add_tag(repo_path, version):
 		import git
 		repo = git.Repo(repo_path)
 		repo.index.add(['config.json'])
 		repo.index.commit('bumped to version {}'.format(version))
 		repo.create_tag('v' + version, repo.head)
-	
+
 	def update_framework_requirement(version):
 		with open('app/config.json') as f:
 			config = json.load(f)
@@ -875,7 +900,9 @@ def bump(repo, bump_type):
 		update_framework_requirement(new_version)
 
 		bump('app', bump_type)
-		
+
 
 if __name__=="__main__":
-	main()
+	out = main()
+	if out and out==1:
+		exit(1)

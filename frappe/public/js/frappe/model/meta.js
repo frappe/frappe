@@ -8,6 +8,13 @@ frappe.provide('frappe.meta.doctypes');
 frappe.provide("frappe.meta.precision_map");
 
 $.extend(frappe.meta, {
+	sync: function(doc) {
+		$.each(doc.fields, function(i, df) {
+			frappe.meta.add_field(df);
+		})
+		frappe.meta.sync_messages(doc);
+	},
+	
 	// build docfield_map and docfield_list
 	add_field: function(df) {
 		frappe.provide('frappe.meta.docfield_map.' + df.parent);
@@ -84,8 +91,8 @@ $.extend(frappe.meta, {
 	},
 
 	get_parentfield: function(parent_dt, child_dt) {
-		var df = frappe.model.get("DocField", {parent:parent_dt, fieldtype:"Table", 
-			options:child_dt})
+		var df = (frappe.get_doc("DocType", parent_dt).fields || []).filter(function(d) 
+			{ return d.fieldtype==="Table" && options===child_dt })
 		if(!df.length) 
 			throw "parentfield not found for " + parent_dt + ", " + child_dt;
 		return df[0].fieldname;
@@ -103,7 +110,7 @@ $.extend(frappe.meta, {
 		var print_format_list = ["Standard"];
 		var default_print_format = locals.DocType[doctype].default_print_format;
 		
-		var print_formats = frappe.model.get("Print Format", {doc_type: doctype})
+		var print_formats = frappe.get_list("Print Format", {doc_type: doctype})
 			.sort(function(a, b) { return (a > b) ? 1 : -1; });
 		$.each(print_formats, function(i, d) {
 			if(!in_list(print_format_list, d.name))

@@ -33,10 +33,9 @@ def web_logout():
 @frappe.whitelist(allow_guest=True)
 def run_custom_method(doctype, name, custom_method):
 	"""cmd=run_custom_method&doctype={doctype}&name={name}&custom_method={custom_method}"""
-	bean = frappe.bean(doctype, name)
-	controller = bean.get_controller()
-	if getattr(controller, custom_method, frappe._dict()).is_whitelisted:
-		frappe.call(getattr(controller, custom_method), **frappe.local.form_dict)
+	doc = frappe.get_doc(doctype, name)
+	if getattr(doc, custom_method, frappe._dict()).is_whitelisted:
+		frappe.call(getattr(doc, custom_method), **frappe.local.form_dict)
 	else:
 		frappe.throw("Not Allowed")
 
@@ -65,7 +64,7 @@ def handle():
 	
 	if cmd!='login':		
 		execute_cmd(cmd)
-	
+
 	return build_response("json")
 
 def execute_cmd(cmd):

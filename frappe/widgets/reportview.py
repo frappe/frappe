@@ -52,8 +52,7 @@ def compress(data):
 @frappe.whitelist()
 def save_report():
 	"""save report"""
-	from frappe.model.doc import Document
-	
+		
 	data = frappe.local.form_dict
 	if frappe.db.exists('Report', data['name']):
 		d = Document('Report', data['name'])
@@ -64,7 +63,7 @@ def save_report():
 	
 	d.report_type = "Report Builder"
 	d.json = data['json']
-	frappe.bean([d]).save()
+	frappe.get_doc(d).save()
 	frappe.msgprint("%s saved." % d.name)
 	return d.name
 
@@ -119,14 +118,13 @@ def get_labels(columns):
 def delete_items():
 	"""delete selected items"""
 	import json
-	from frappe.model.code import get_obj
-
+	
 	il = json.loads(frappe.form_dict.get('items'))
 	doctype = frappe.form_dict.get('doctype')
 	
 	for d in il:
 		try:
-			dt_obj = get_obj(doctype, d)
+			dt_obj = frappe.get_doc(doctype, d)
 			if hasattr(dt_obj, 'on_trash'):
 				dt_obj.on_trash()
 			frappe.delete_doc(doctype, d)

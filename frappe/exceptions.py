@@ -26,7 +26,10 @@ class OutgoingEmailError(Exception):
 class SessionStopped(Exception):
 	http_status_code = 503
 	
-class DataError(Exception): pass
+class UnsupportedMediaType(Exception):
+	http_status_code = 415
+	
+class DataError(ValidationError): pass
 class UnknownDomainError(Exception): pass
 class MappingMismatchError(ValidationError): pass
 class InvalidStatusError(ValidationError): pass

@@ -37,18 +37,10 @@ $.extend(frappe.perm, {
 	get_perm: function(doctype, docname) {
 		var perm = [{read: 0}];
 		
-		var meta = frappe.model.get_doc("DocType", doctype);
+		var meta = frappe.get_doc("DocType", doctype);
+		
 		if(!meta) {
 			return perm;
-		} else if(meta.istable) {
-			// if a child table, use permissions of parent form
-			var parent_df = frappe.model.get("DocField", {fieldtype: "Table", options: doctype});
-			if(parent_df.length) {
-				if(docname) {
-					docname = frappe.model.get_doc(doctype, docname).parent;
-				}
-				doctype = parent_df[0].parent;
-			}
 		}
 		
 		if(user==="Administrator" || user_roles.indexOf("Administrator")!==-1) {
@@ -60,7 +52,7 @@ $.extend(frappe.perm, {
 			return perm;
 		}
 		
-		var docperms = frappe.model.get("DocPerm", {parent: doctype});
+		var docperms = frappe.get_doc("DocType", doctype).permissions || [];
 		$.each(docperms, function(i, p) {
 			// if user has this role
 			if(user_roles.indexOf(p.role)!==-1) {
@@ -83,7 +75,7 @@ $.extend(frappe.perm, {
 	
 	has_unrestricted_access: function(doctype, docname, restricted) {
 		var restrictions = frappe.defaults.get_restrictions();
-		var doc = frappe.model.get_doc(doctype, docname);
+		var doc = frappe.get_doc(doctype, docname);
 
 		if(restricted) {
 			if(doc.owner==user) return true;
@@ -101,7 +93,7 @@ $.extend(frappe.perm, {
 		
 		// loop and find if has restricted data
 		var has_restricted_data = false;
-		var doc = frappe.model.get_doc(doctype, docname);
+		var doc = frappe.get_doc(doctype, docname);
 		$.each(fields_to_check, function(i, df) {
 			if(doc[df.fieldname] && restrictions[df.options].indexOf(doc[df.fieldname])===-1) {
 				has_restricted_data = true;

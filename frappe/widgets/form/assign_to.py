@@ -34,7 +34,7 @@ def add(args=None):
 	else:
 		from frappe.utils import nowdate
 		
-		d = frappe.bean({
+		d = frappe.get_doc({
 			"doctype":"ToDo",
 			"owner": args['assign_to'],
 			"reference_type": args['doctype'],
@@ -44,11 +44,10 @@ def add(args=None):
 			"status": "Open",
 			"date": args.get('date', nowdate()),
 			"assigned_by": args.get('assigned_by', frappe.user.name),
-		}).insert(ignore_permissions=True).doc
+		}).insert(ignore_permissions=True)
 		
 		# set assigned_to if field exists
-		from frappe.model.meta import has_field
-		if has_field(args['doctype'], "assigned_to"):
+		if frappe.get_meta(args['doctype']).get_field("assigned_to"):
 			frappe.db.set_value(args['doctype'], args['name'], "assigned_to", args['assign_to'])
 			
 	try:
@@ -64,31 +63,21 @@ def add(args=None):
 	# notify
 	if not args.get("no_notification"):
 		notify_assignment(d.assigned_by, d.owner, d.reference_type, d.reference_name, action='ASSIGN', description=args.get("description"), notify=args.get('notify'))
-		
-	# update feeed
-	try:
-		from erpnext.home import make_feed
-		from frappe.utils import get_fullname
-		make_feed('Assignment', d.reference_type, d.reference_name, frappe.session['user'],
-			'[%s] Assigned to %s' % (d.priority, get_fullname(d.owner)), '#C78F58')
-	except ImportError, e:
-		pass
-		
+				
 	return get(args)
 
 @frappe.whitelist()
 def remove(doctype, name, assign_to):
 	"""remove from todo"""
-	todo = frappe.bean("ToDo", {"reference_type":doctype, "reference_name":name, "owner":assign_to, "status":"Open"})
-	todo.doc.status = "Closed"
+	todo = frappe.get_doc("ToDo", {"reference_type":doctype, "reference_name":name, "owner":assign_to, "status":"Open"})
+	todo.status = "Closed"
 	todo.save(ignore_permissions=True)
 		
 	# clear assigned_to if field exists
-	from frappe.model.meta import has_field
-	if has_field(doctype, "assigned_to"):
+	if frappe.get_meta(doctype).get_field("assigned_to"):
 		frappe.db.set_value(doctype, name, "assigned_to", None)
 
-	notify_assignment(todo.doc.assigned_by, todo.doc.owner, todo.doc.reference_type, todo.doc.reference_name)
+	notify_assignment(todo.assigned_by, todo.owner, todo.reference_type, todo.reference_name)
 
 	return get({"doctype": doctype, "name": name})
 	

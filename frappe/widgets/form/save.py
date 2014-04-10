@@ -2,27 +2,25 @@
 # MIT License. See license.txt 
 
 from __future__ import unicode_literals
-import frappe
+import frappe, json
 
 @frappe.whitelist()
 def savedocs():
 	"""save / submit / update doclist"""
 	try:
-		wrapper = frappe.bean()
-		wrapper.from_compressed(frappe.form_dict.docs, frappe.form_dict.docname)
+		doc = frappe.get_doc(json.loads(frappe.form_dict.doc))
 
 		# action
-		action = frappe.form_dict.action
-		if action=='Update': action='update_after_submit'
+		doc.docstatus = {"Save":0, "Submit": 1, "Update": 1, "Cancel": 2}[frappe.form_dict.action]
 		try:
-			getattr(wrapper, action.lower())()
+			doc.save()
 		except NameError, e:
 			frappe.msgprint(frappe._("Name Exists"))
 			raise
 
 		# update recent documents
-		frappe.user.update_recent(wrapper.doc.doctype, wrapper.doc.name)
-		send_updated_docs(wrapper)
+		frappe.user.update_recent(doc.doctype, doc.name)
+		send_updated_docs(doc)
 
 	except Exception, e:
 		frappe.msgprint(frappe._('Did not save'))
@@ -33,20 +31,21 @@ def savedocs():
 def cancel(doctype=None, name=None):
 	"""cancel a doclist"""
 	try:
-		wrapper = frappe.bean(doctype, name)
-		wrapper.cancel()
-		send_updated_docs(wrapper)
+		doc = frappe.get_doc(doctype, name)
+		doc.cancel()
+		send_updated_docs(doc)
 		
 	except Exception, e:
 		frappe.errprint(frappe.utils.get_traceback())
 		frappe.msgprint(frappe._("Did not cancel"))
 		raise
 		
-def send_updated_docs(wrapper):
+def send_updated_docs(doc):
 	from load import get_docinfo
-	get_docinfo(wrapper.doc.doctype, wrapper.doc.name)
+	get_docinfo(doc.doctype, doc.name)
 	
-	frappe.response['main_doc_name'] = wrapper.doc.name
-	frappe.response['doctype'] = wrapper.doc.doctype
-	frappe.response['docname'] = wrapper.doc.name
-	frappe.response['docs'] = wrapper.doclist
+	d = doc.as_dict()
+	if hasattr(doc, 'localname'):
+		d["localname"] = doc.localname
+	
+	frappe.response.docs.append(d)

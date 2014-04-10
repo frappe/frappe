@@ -11,9 +11,9 @@ import os, sys
 from frappe.modules.import_file import import_file_by_path
 from frappe.utils import get_path, cstr
 
-def sync_all(force=0):
+def sync_all(force=0, verbose=False):
 	for app in frappe.get_installed_apps():
-		sync_for(app, force)
+		sync_for(app, force, verbose=verbose)
 	frappe.clear_cache()
 
 def sync_for(app_name, force=0, sync_everything = False, verbose=False):
@@ -40,8 +40,8 @@ def walk_and_sync(start_path, force=0, sync_everything = False, verbose=False):
 		if sync_everything or (os.path.basename(os.path.dirname(path)) in document_type):
 			for f in files:
 				f = cstr(f)
-				if f.endswith(".txt"):
-					doc_name = f.split(".txt")[0]
+				if f.endswith(".json"):
+					doc_name = f.split(".json")[0]
 					if doc_name == os.path.basename(path):
 
 						module_name = path.split(os.sep)[-3]

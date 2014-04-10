@@ -51,9 +51,9 @@ class SiteRouter(object):
 	def route_for_task(self, task, args=None, kwargs=None):
 		if hasattr(frappe.local, 'site'):
 			if kwargs and kwargs.get("event", "").endswith("_long"):
-				get_queue(frappe.local.site, LONGJOBS_PREFIX)
+				return get_queue(frappe.local.site, LONGJOBS_PREFIX)
 			else:
-				get_queue(frappe.local.site)
+				return get_queue(frappe.local.site)
 		
 		return None
 		

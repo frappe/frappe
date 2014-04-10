@@ -17,9 +17,9 @@ def insert(doclist):
 		if isinstance(d, dict):
 			d["__islocal"] = 1
 		else:
-			d.fields["__islocal"] = 1
+			d.set("__islocal", 1)
 		
-	wrapper = frappe.bean(doclist)
+	wrapper = frappe.get_doc(doclist)
 	wrapper.save()
 	
 	return wrapper
@@ -29,18 +29,16 @@ def rename(doctype, old, new, debug=False):
 	frappe.model.rename_doc.rename_doc(doctype, old, new, debug)
 
 def copytables(srctype, src, srcfield, tartype, tar, tarfield, srcfields, tarfields=[]):
-	import frappe.model.doc
-
 	if not tarfields: 
 		tarfields = srcfields
 	l = []
-	data = frappe.model.doc.getchildren(src.name, srctype, srcfield)
+	data = src.get(srcfield)
 	for d in data:
-		newrow = frappe.model.doc.addchild(tar, tarfield, tartype)
+		newrow = tar.append(tarfield)
 		newrow.idx = d.idx
 	
 		for i in range(len(srcfields)):
-			newrow.fields[tarfields[i]] = d.fields[srcfields[i]]
+			newrow.set(tarfields[i], d.get(srcfields[i]))
 			
 		l.append(newrow)
 	return l
@@ -87,8 +85,8 @@ def delete_fields(args_dict, delete=0):
 def rename_field(doctype, old_fieldname, new_fieldname):
 	"""This functions assumes that doctype is already synced"""
 	
-	doctype_list = frappe.get_doctype(doctype)
-	new_field = doctype_list.get_field(new_fieldname)
+	meta = frappe.get_meta(doctype)
+	new_field = meta.get_field(new_fieldname)
 	if not new_field:
 		print "rename_field: " + (new_fieldname) + " not found in " + doctype
 		return
@@ -99,7 +97,7 @@ def rename_field(doctype, old_fieldname, new_fieldname):
 			where parentfield=%s""" % (new_field.options.split("\n")[0], "%s", "%s"),
 			(new_fieldname, old_fieldname))
 	elif new_field.fieldtype not in no_value_fields:
-		if doctype_list[0].issingle:
+		if meta.issingle:
 			frappe.db.sql("""update `tabSingles` set field=%s
 				where doctype=%s and field=%s""", 
 				(new_fieldname, doctype, old_fieldname))

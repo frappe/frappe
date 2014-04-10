@@ -98,7 +98,7 @@ frappe.form.formatters = {
 		return "<pre>" + (value==null ? "" : $("<div>").text(value).html()) + "</pre>"
 	},
 	WorkflowState: function(value) {
-		workflow_state = frappe.model.get("Workflow State", value)[0];
+		workflow_state = frappe.get_doc("Workflow State", value);
 		if(workflow_state) {
 			return repl("<span class='label label-%(style)s' \
 				data-workflow-state='%(value)s'\

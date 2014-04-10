@@ -35,7 +35,7 @@ def read_csv_content_from_attached_file(doc):
 def read_csv_content(fcontent, ignore_encoding=False):
 	rows = []
 
-	if isinstance(fcontent, basestring):
+	if not isinstance(fcontent, unicode):
 		decoded = False
 		for encoding in ["utf-8", "windows-1250", "windows-1252"]:
 			try:
@@ -49,7 +49,7 @@ def read_csv_content(fcontent, ignore_encoding=False):
 			frappe.msgprint(frappe._("Unknown file encoding. Tried utf-8, windows-1250, windows-1252."), 
 				raise_exception=True)
 				
-		fcontent = fcontent.encode("utf-8").splitlines(True)
+	fcontent = fcontent.encode("utf-8").splitlines(True)
 				
 	try:
 		reader = csv.reader(fcontent)
@@ -92,17 +92,13 @@ class UnicodeWriter:
 	def getvalue(self):
 		return self.queue.getvalue()
 		
-def check_record(d, parenttype=None, doctype_dl=None):
+def check_record(d):
 	"""check for mandatory, select options, dates. these should ideally be in doclist"""
 	from frappe.utils.dateutils import parse_date
-	if parenttype and not d.get('parent'):
-		frappe.msgprint(_("Parent is required."), raise_exception=1)
-
-	if not doctype_dl:
-		doctype_dl = frappe.model.doctype.get(d.doctype)
+	d = frappe.get_doc(d)
 
 	for key in d:
-		docfield = doctype_dl.get_field(key)
+		docfield = d.meta.get_field(key)
 		val = d[key]
 		if docfield:
 			if docfield.reqd and (val=='' or val==None):
@@ -132,27 +128,27 @@ def import_doc(d, doctype, overwrite, row_idx, submit=False, ignore_links=False)
 	"""import main (non child) document"""
 	if d.get("name") and frappe.db.exists(doctype, d['name']):
 		if overwrite:
-			bean = frappe.bean(doctype, d['name'])
-			bean.ignore_links = ignore_links
-			bean.doc.fields.update(d)
+			doc = frappe.get_doc(doctype, d['name'])
+			doc.ignore_links = ignore_links
+			doc.update(d)
 			if d.get("docstatus") == 1:
-				bean.update_after_submit()
+				doc.update_after_submit()
 			else:
-				bean.save()
+				doc.save()
 			return 'Updated row (#%d) %s' % (row_idx + 1, getlink(doctype, d['name']))
 		else:
 			return 'Ignored row (#%d) %s (exists)' % (row_idx + 1, 
 				getlink(doctype, d['name']))
 	else:
-		bean = frappe.bean([d])
-		bean.ignore_links = ignore_links
-		bean.insert()
+		doc = frappe.get_doc(d)
+		doc.ignore_links = ignore_links
+		doc.insert()
 		
 		if submit:
-			bean.submit()
+			doc.submit()
 		
 		return 'Inserted row (#%d) %s' % (row_idx + 1, getlink(doctype,
-			bean.doc.fields['name']))
+			doc.get('name')))
 			
 def getlink(doctype, name):
 	return '<a href="#Form/%(doctype)s/%(name)s">%(name)s</a>' % locals()

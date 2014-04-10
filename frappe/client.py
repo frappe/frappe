@@ -14,7 +14,7 @@ def get(doctype, name=None, filters=None):
 		name = frappe.db.get_value(doctype, json.loads(filters))
 		if not name:
 			raise Exception, "No document found for given filters"
-	return [d.fields for d in frappe.bean(doctype, name).doclist]
+	return frappe.get_doc(doctype, name).as_dict()
 
 @frappe.whitelist()
 def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False):
@@ -32,16 +32,16 @@ def set_value(doctype, name, fieldname, value):
 		
 	doc = frappe.db.get_value(doctype, name, ["parenttype", "parent"], as_dict=True)
 	if doc and doc.parent:
-		bean = frappe.bean(doc.parenttype, doc.parent)
-		child = bean.doclist.getone({"doctype": doctype, "name": name})
-		child.fields[fieldname] = value
+		doc = frappe.get_doc(doc.parenttype, doc.parent)
+		child = doc.getone({"doctype": doctype, "name": name})
+		child.set(fieldname, value)
 	else:
-		bean = frappe.bean(doctype, name)
-		bean.doc.fields[fieldname] = value
+		doc = frappe.get_doc(doctype, name)
+		doc.set(fieldname, value)
 		
-	bean.save()
+	doc.save()
 	
-	return [d.fields for d in bean.doclist]
+	return doc.as_dict()
 
 @frappe.whitelist()
 def insert(doclist):
@@ -54,21 +54,21 @@ def insert(doclist):
 	if doclist[0].get("parent") and doclist[0].get("parenttype"):
 		# inserting a child record
 		d = doclist[0]
-		bean = frappe.bean(d["parenttype"], d["parent"])
-		bean.doclist.append(d)
-		bean.save()
+		doc = frappe.get_doc(d["parenttype"], d["parent"])
+		doc.append(d)
+		doc.save()
 		return [d]
 	else:
-		bean = frappe.bean(doclist).insert()
-		return [d.fields for d in bean.doclist]
+		doc = frappe.get_doc(doclist).insert()
+		return doc.as_dict()
 
 @frappe.whitelist()
 def save(doclist):
 	if isinstance(doclist, basestring):
 		doclist = json.loads(doclist)
 
-	bean = frappe.bean(doclist).save()
-	return [d.fields for d in bean.doclist]
+	doc = frappe.get_doc(doclist).save()
+	return doc.as_dict()
 	
 @frappe.whitelist()
 def rename_doc(doctype, old_name, new_name, merge=False):
@@ -80,17 +80,17 @@ def submit(doclist):
 	if isinstance(doclist, basestring):
 		doclist = json.loads(doclist)
 
-	doclistobj = frappe.bean(doclist)
+	doclistobj = frappe.get_doc(doclist)
 	doclistobj.submit()
 
-	return [d.fields for d in doclist]
+	return doclist.as_dict()
 
 @frappe.whitelist()
 def cancel(doctype, name):
-	wrapper = frappe.bean(doctype, name)
+	wrapper = frappe.get_doc(doctype, name)
 	wrapper.cancel()
 	
-	return [d.fields for d in wrapper.doclist]
+	return wrapper.as_dict()
 
 @frappe.whitelist()
 def delete(doctype, name):
@@ -104,11 +104,9 @@ def set_default(key, value, parent=None):
 
 @frappe.whitelist()
 def make_width_property_setter():
-	doclist = json.loads(frappe.form_dict.doclist)
-	if doclist[0]["doctype"]=="Property Setter" and doclist[0]["property"]=="width":
-		bean = frappe.bean(doclist)
-		bean.ignore_permissions = True
-		bean.insert()
+	doc = json.loads(frappe.form_dict)
+	if doc["doctype"]=="Property Setter" and doc["property"]=="width":
+		frappe.get_doc(doc).insert(ignore_permissions = True)
 
 @frappe.whitelist()
 def bulk_update(docs):
@@ -119,9 +117,9 @@ def bulk_update(docs):
 			ddoc = {key: val for key, val in doc.iteritems() if key not in ['doctype', 'docname']}
 			doctype = doc['doctype']
 			docname = doc['docname']
-			bean = frappe.bean(doctype, docname)
-			bean.doc.update(ddoc)
-			bean.save()
+			doc = frappe.get_doc(doctype, docname)
+			doc.update(ddoc)
+			doc.save()
 		except:
 			failed_docs.append({
 				'doc': doc,

@@ -11,18 +11,18 @@ from frappe import _
 from frappe.website.doctype.website_route.website_route import add_to_sitemap, update_sitemap, cleanup_sitemap
 from frappe.utils.nestedset import rebuild_tree
 
-class DocType:
-	def __init__(self, d, dl):
-		self.doc, self.doclist = d, dl
+from frappe.model.document import Document
+
+class WebsiteTemplate(Document):
 		
 	def after_insert(self):
-		if self.doc.page_or_generator == "Page":
+		if self.page_or_generator == "Page":
 			website_route = frappe.db.get_value("Website Route", 
-				{"website_template": self.doc.name, "page_or_generator": "Page"})
+				{"website_template": self.name, "page_or_generator": "Page"})
 			
-			opts = self.doc.fields.copy()
+			opts = self.as_dict()
 			opts.update({"public_read": 1})
-						
+
 			if website_route:
 				update_sitemap(website_route, opts)
 			else:
@@ -30,20 +30,20 @@ class DocType:
 	
 		else:
 			condition = ""
-			if self.doc.condition_field:
-				condition = " where ifnull(%s, 0)=1" % self.doc.condition_field
+			if self.condition_field:
+				condition = " where ifnull(%s, 0)=1" % self.condition_field
 						
 			for name in frappe.db.sql_list("""select name from `tab{doctype}` 
 				{condition} order by idx asc, {sort_field} {sort_order}""".format(
-					doctype = self.doc.ref_doctype,
+					doctype = self.ref_doctype,
 					condition = condition,
-					sort_field = self.doc.sort_field or "name",
-					sort_order = self.doc.sort_order or "asc"
+					sort_field = getattr(self, "sort_field", "name"),
+					sort_order = getattr(self, "sort_order", "asc")
 				)):
-				bean = frappe.bean(self.doc.ref_doctype, name)
+				doc = frappe.get_doc(self.ref_doctype, name)
 				
 				# regenerate route
-				bean.run_method("on_update")
+				doc.run_method("on_update")
 		
 def rebuild_website_template():
 	# TODO
@@ -127,7 +127,7 @@ def add_website_template(page_or_generator, app, path, fname, app_path):
 		# found by earlier app, override
 		frappe.db.sql("""delete from `tabWebsite Template` where name=%s""", (wsc.link_name,))
 	
-	frappe.bean(wsc).insert()
+	frappe.get_doc(wsc).insert()
 	
 	return name
 	

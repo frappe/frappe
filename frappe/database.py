@@ -9,6 +9,7 @@ import MySQLdb
 import warnings
 import frappe
 import datetime
+from frappe.utils import now, get_datetime, get_datetime_str
 
 class Database:
 	"""
@@ -43,6 +44,8 @@ class Database:
 		self._conn = MySQLdb.connect(user=self.user, host=self.host, passwd=self.password, 
 			use_unicode=True, charset='utf8')
 		self._conn.converter[246]=float
+		self._conn.converter[12]=get_datetime
+		
 		self._cursor = self._conn.cursor()
 		if self.user != 'root':
 			self.use(self.user)
@@ -156,7 +159,8 @@ class Database:
 		self.sql(query)
 
 	def check_transaction_status(self, query):
-		if self.transaction_writes and query and query.strip().split()[0].lower() in ['start', 'alter', 'drop', 'create', "begin"]:
+		if not frappe.flags.in_test and self.transaction_writes and \
+			query and query.strip().split()[0].lower() in ['start', 'alter', 'drop', 'create', "begin"]:
 			raise Exception, 'This statement can cause implicit commit'
 
 		if query and query.strip().lower() in ('commit', 'rollback'):
@@ -297,7 +301,7 @@ class Database:
 		
 		return ((len(ret[0]) > 1 or as_dict) and ret[0] or ret[0][0]) if ret else None
 	
-	def get_values(self, doctype, filters=None, fieldname="name", ignore=None, as_dict=False, debug=False):
+	def get_values(self, doctype, filters=None, fieldname="name", ignore=None, as_dict=False, debug=False, order_by=None, update=None):
 		if isinstance(filters, list):
 			return self.get_value_for_many_names(doctype, filters, fieldname, debug=debug)
 			
@@ -310,7 +314,7 @@ class Database:
 
 		if (filters is not None) and (filters!=doctype or doctype=="DocType"):
 			try:
-				return self.get_values_from_table(fields, filters, doctype, as_dict, debug)
+				return self.get_values_from_table(fields, filters, doctype, as_dict, debug, order_by, update)
 			except Exception, e:
 				if ignore and e.args[0] in (1146, 1054):
 					# table or column not found, return None
@@ -321,9 +325,9 @@ class Database:
 				else:
 					raise
 
-		return self.get_values_from_single(fields, filters, doctype, as_dict, debug)
+		return self.get_values_from_single(fields, filters, doctype, as_dict, debug, update)
 
-	def get_values_from_single(self, fields, filters, doctype, as_dict=False, debug=False):
+	def get_values_from_single(self, fields, filters, doctype, as_dict=False, debug=False, update=None):
 		if fields=="*" or isinstance(filters, dict):
 			# check if single doc matches with filters
 			values = self.get_singles_dict(doctype)
@@ -345,7 +349,13 @@ class Database:
 					tuple(fields) + (doctype,), as_dict=False, debug=debug)
 
 			if as_dict:
-				return r and [frappe._dict(r)] or []
+				if r:
+					r = frappe._dict(r)
+					if update:
+						r.update(update)
+					return [r]
+				else:
+					return []
 			else:
 				return r and [[i[1] for i in r]] or []
 	
@@ -354,7 +364,7 @@ class Database:
 			tabSingles where doctype=%s""", doctype))
 		
 	
-	def get_values_from_table(self, fields, filters, doctype, as_dict, debug):
+	def get_values_from_table(self, fields, filters, doctype, as_dict, debug, order_by=None, update=None):
 		fl = []
 		if isinstance(fields, (list, tuple)):
 			for f in fields:
@@ -369,9 +379,11 @@ class Database:
 				as_dict = True
 
 		conditions, filters = self.build_conditions(filters)
+		
+		order_by = ("order by " + order_by) if order_by else ""
 	
-		r = self.sql("select %s from `tab%s` where %s" % (fl, doctype,
-			conditions), filters, as_dict=as_dict, debug=debug)
+		r = self.sql("select %s from `tab%s` where %s %s" % (fl, doctype,
+			conditions, order_by), filters, as_dict=as_dict, debug=debug, update=update)
 
 		return r
 
@@ -385,24 +397,32 @@ class Database:
 			return {}
 
 	def set_value(self, dt, dn, field, val, modified=None, modified_by=None):
-		from frappe.utils import now
+		if not modified:
+			modified = now()
+		if not modified_by:
+			modified_by = frappe.session.user
+		
 		if dn and dt!=dn:
 			self.sql("""update `tab%s` set `%s`=%s, modified=%s, modified_by=%s
 				where name=%s""" % (dt, field, "%s", "%s", "%s", "%s"),
-				(val, modified or now(), modified_by or frappe.session["user"], dn))
+				(val, modified, modified_by, dn))
 		else:
 			if self.sql("select value from tabSingles where field=%s and doctype=%s", (field, dt)):
 				self.sql("""update tabSingles set value=%s where field=%s and doctype=%s""", 
 					(val, field, dt))
 			else:
 				self.sql("""insert into tabSingles(doctype, field, value) 
-					values (%s, %s, %s)""", (dt, field, val, ))
+					values (%s, %s, %s)""", (dt, field, val))
 					
-			if field!="modified":
-				self.set_value(dt, dn, "modified", modified or now())
+			if field not in ("modified", "modified_by"):
+				self.set_value(dt, dn, "modified", modified)
+				self.set_value(dt, dn, "modified_by", modified_by)
 						
 	def set(self, doc, field, val):
 		doc.set(field, val)
+		doc.set("modified", now())
+		doc.set("modified_by", frappe.session.user)
+		frappe.db.set_value(doc.doctype, doc.name, field, val, doc.modified, doc.modified_by)
 		
 	def touch(self, doctype, docname):
 		from frappe.utils import now
@@ -417,27 +437,26 @@ class Database:
 	def get_global(self, key, user='__global'):
 		return self.get_default(key, user)
 	
-	def set_default(self, key, val, parent="Control Panel", parenttype=None):
-		"""set control panel default (tabDefaultVal)"""
+	def set_default(self, key, val, parent="__default", parenttype=None):
 		import frappe.defaults
 		frappe.defaults.set_default(key, val, parent, parenttype)
 			
-	def add_default(self, key, val, parent="Control Panel", parenttype=None):
+	def add_default(self, key, val, parent="__default", parenttype=None):
 		import frappe.defaults
 		frappe.defaults.add_default(key, val, parent, parenttype)
 	
-	def get_default(self, key, parent="Control Panel"):
+	def get_default(self, key, parent="__default"):
 		"""get default value"""
 		import frappe.defaults
 		d = frappe.defaults.get_defaults(parent).get(key)
 		return isinstance(d, list) and d[0] or d
 		
-	def get_defaults_as_list(self, key, parent="Control Panel"):
+	def get_defaults_as_list(self, key, parent="__default"):
 		import frappe.defaults
 		d = frappe.defaults.get_default(key, parent)
 		return isinstance(d, basestring) and [d] or d
 	
-	def get_defaults(self, key=None, parent="Control Panel"):
+	def get_defaults(self, key=None, parent="__default"):
 		"""get all defaults"""
 		import frappe.defaults
 		if key:
@@ -468,7 +487,7 @@ class Database:
 
 	def exists(self, dt, dn=None):
 		if isinstance(dt, basestring):
-			if dt==dn:
+			if dt!="DocType" and dt==dn:
 				return True # single always exists (!)
 			try:
 				return self.sql('select name from `tab%s` where name=%s' % (dt, '%s'), (dn,))

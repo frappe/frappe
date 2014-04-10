@@ -1,6 +1,7 @@
 import frappe
 
 from frappe.model import rename_field
+from frappe.model.meta import get_table_columns
 
 def execute():
 	tables = frappe.db.sql_list("show tables")
@@ -9,6 +10,7 @@ def execute():
 
 	if frappe.db.exists("DocType", "Website Route Permission"):
 		frappe.reload_doc("website", "doctype", "website_route_permission")
-		rename_field("Website Route Permission", "profile", "user")
+		if "profile" in get_table_columns("Website Route Permission"):
+			rename_field("Website Route Permission", "profile", "user")
 	frappe.reload_doc("website", "doctype", "blogger")
 	rename_field("Blogger", "profile", "user")

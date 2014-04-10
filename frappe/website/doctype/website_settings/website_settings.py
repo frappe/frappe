@@ -8,23 +8,22 @@ from frappe.utils import get_request_site_address, encode
 from frappe.model.controller import DocListController
 from urllib import quote
 
-class DocType(DocListController):
+class WebsiteSettings(DocListController):
 	def validate(self):
 		self.validate_top_bar_items()
 		self.validate_footer_items()
 		self.validate_home_page()
 	
 	def validate_home_page(self):
-		if self.doc.home_page and \
-			not frappe.db.get_value("Website Route", {"name": self.doc.home_page}):
+		if self.home_page and \
+			not frappe.db.get_value("Website Route", {"name": self.home_page}):
 			frappe.throw(_("Invalid Home Page") + " (Standard pages - index, login, products, blog, about, contact)")
 	
 	def validate_top_bar_items(self):
 		"""validate url in top bar items"""
-		for top_bar_item in self.doclist.get({"parentfield": "top_bar_items"}):
+		for top_bar_item in self.get("top_bar_items"):
 			if top_bar_item.parent_label:
-				parent_label_item = self.doclist.get({"parentfield": "top_bar_items", 
-					"label": top_bar_item.parent_label})
+				parent_label_item = self.get("top_bar_items", {"label": top_bar_item.parent_label})
 				
 				if not parent_label_item:
 					# invalid item
@@ -38,7 +37,7 @@ class DocType(DocListController):
 	
 	def validate_footer_items(self):
 		"""clear parent label in footer"""
-		for footer_item in self.doclist.get({"parentfield": "footer_items"}):
+		for footer_item in self.get("footer_items"):
 			footer_item.parent_label = None
 
 	def on_update(self):
@@ -80,12 +79,12 @@ def get_website_settings():
 		]
 	})
 	
-	settings = frappe.doc("Website Settings", "Website Settings")
+	settings = frappe.get_doc("Website Settings", "Website Settings")
 	for k in ["banner_html", "brand_html", "copyright", "twitter_share_via",
 		"favicon", "facebook_share", "google_plus_one", "twitter_share", "linked_in_share",
 		"disable_signup"]:
-		if k in settings.fields:
-			context[k] = settings.fields.get(k)
+		if hasattr(settings, k):
+			context[k] = settings.get(k)
 			
 	if not context.get("favicon"):
 		context["favicon"] = "/assets/frappe/images/favicon.ico"

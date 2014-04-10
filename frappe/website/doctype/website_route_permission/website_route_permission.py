@@ -6,11 +6,11 @@ import frappe
 
 from frappe.website.permissions import remove_empty_permissions, clear_permissions
 
-class DocType:
-	def __init__(self, d, dl):
-		self.doc, self.doclist = d, dl
+from frappe.model.document import Document
+
+class WebsiteRoutePermission(Document):
 		
 	def on_update(self):
 		remove_empty_permissions()
-		clear_permissions(self.doc.user)
+		clear_permissions(self.user)
 		

@@ -1,10 +1,11 @@
 # Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt 
+# MIT License. See license.txt
 
 from __future__ import unicode_literals
 
-import frappe, os
+import frappe, os, json
 from frappe.modules import scrub, get_module_path, scrub_dt_dn
+from frappe.utils import get_datetime_str
 
 def import_files(module, dt=None, dn=None, force=False):
 	if type(module) is list:
@@ -14,113 +15,92 @@ def import_files(module, dt=None, dn=None, force=False):
 		return out
 	else:
 		return import_file(module, dt, dn, force=force)
-		
+
 def import_file(module, dt, dn, force=False):
 	"""Sync a file from txt if modifed, return false if not updated"""
 	path = get_file_path(module, dt, dn)
 	ret = import_file_by_path(path, force)
 	return ret
-	
+
 def get_file_path(module, dt, dn):
 	dt, dn = scrub_dt_dn(dt, dn)
-	
-	path = os.path.join(get_module_path(module), 
-		os.path.join(dt, dn, dn + '.txt'))
-		
+
+	path = os.path.join(get_module_path(module),
+		os.path.join(dt, dn, dn + ".json"))
+
 	return path
-	
+
 def import_file_by_path(path, force=False):
 	frappe.flags.in_import = True
-	doclist = read_doclist_from_file(path)
-	
-	if doclist:
-		doc = doclist[0]
-		
-		if not force:
-			# check if timestamps match
-			if doc['modified']==str(frappe.db.get_value(doc['doctype'], doc['name'], 'modified')):
-				return False
-		
-		original_modified = doc["modified"]
-		
-		import_doclist(doclist)
+	docs = read_doc_from_file(path)
 
-		# since there is a new timestamp on the file, update timestamp in
-		frappe.db.sql("update `tab%s` set modified=%s where name=%s" % \
-			(doc['doctype'], '%s', '%s'), 
-			(original_modified, doc['name']))
-	
+	if docs:
+		if not isinstance(docs, list):
+			docs = [docs]
+
+		for doc in docs:
+			if not force:
+				# check if timestamps match
+				db_modified = frappe.db.get_value(doc['doctype'], doc['name'], 'modified')
+				if db_modified and doc.get('modified')==get_datetime_str(db_modified):
+					return False
+
+			original_modified = doc.get("modified")
+
+			import_doc(doc)
+
+			if original_modified:
+				# since there is a new timestamp on the file, update timestamp in
+				frappe.db.sql("update `tab%s` set modified=%s where name=%s" % \
+					(doc['doctype'], '%s', '%s'),
+					(original_modified, doc['name']))
+
 	frappe.flags.in_import = False
 	return True
-	
-def read_doclist_from_file(path):
-	doclist = None
+
+def read_doc_from_file(path):
+	doc = None
 	if os.path.exists(path):
-		from frappe.modules.utils import peval_doclist
-		
 		with open(path, 'r') as f:
-			doclist = peval_doclist(f.read())
+			doc = json.loads(f.read())
 	else:
 		raise Exception, '%s missing' % path
-			
-	return doclist
 
-ignore_values = { 
-	"Report": ["disabled"], 
+	return doc
+
+ignore_values = {
+	"Report": ["disabled"],
 }
 
 ignore_doctypes = ["Page Role", "DocPerm"]
 
-def import_doclist(doclist):
-	doctype = doclist[0]["doctype"]
-	name = doclist[0]["name"]
-	old_doc = None
-	
-	doctypes = set([d["doctype"] for d in doclist])
-	ignore = list(doctypes.intersection(set(ignore_doctypes)))
-	
-	if doctype in ignore_values:
-		if frappe.db.exists(doctype, name):
-			old_doc = frappe.doc(doctype, name)
+def import_doc(docdict):
+	docdict["__islocal"] = 1
+	doc = frappe.get_doc(docdict)
 
-	# delete old
-	frappe.delete_doc(doctype, name, force=1, ignore_doctypes=ignore, for_reload=True)
-	
-	# don't overwrite ignored docs
-	doclist1 = remove_ignored_docs_if_they_already_exist(doclist, ignore, name)
+	ignore = []
 
-	# update old values (if not to be overwritten)
-	if doctype in ignore_values and old_doc:
-		update_original_values(doclist1, doctype, old_doc)
-	
-	# reload_new
-	new_bean = frappe.bean(doclist1)
-	new_bean.ignore_children_type = ignore
-	new_bean.ignore_links = True
-	new_bean.ignore_validate = True
-	new_bean.ignore_permissions = True
-	new_bean.ignore_mandatory = True
-	new_bean.ignore_restrictions = True
-	
-	if doctype=="DocType" and name in ["DocField", "DocType"]:
-		new_bean.ignore_fields = True
-	
-	new_bean.insert()
+	if frappe.db.exists(doc.doctype, doc.name):
+		old_doc = frappe.get_doc(doc.doctype, doc.name)
 
-def remove_ignored_docs_if_they_already_exist(doclist, ignore, name):
-	doclist1 = doclist
-	if ignore:
-		has_records = []
-		for d in ignore:
-			if frappe.db.get_value(d, {"parent":name}):
-				has_records.append(d)
-		
-		if has_records:
-			doclist1 = filter(lambda d: d["doctype"] not in has_records, doclist)
-			
-	return doclist1
+		if doc.doctype in ignore_values:
+			# update ignore values
+			for key in ignore_values.get(doc.doctype) or []:
+				doc.set(key, old_doc.get(key))
 
-def update_original_values(doclist, doctype, old_doc):
-	for key in ignore_values[doctype]:
-		doclist[0][key] = old_doc.fields[key]
-	
+		# update ignored docs into new doc
+		for df in doc.meta.get_table_fields():
+			if df.options in ignore_doctypes:
+				doc.set(df.fieldname, [])
+				ignore.append(df.options)
+
+		# delete old
+		frappe.delete_doc(doc.doctype, doc.name, force=1, ignore_doctypes=ignore, for_reload=True)
+
+	doc.ignore_children_type = ignore
+	doc.ignore_links = True
+	doc.ignore_validate = True
+	doc.ignore_permissions = True
+	doc.ignore_mandatory = True
+	doc.ignore_restrictions = True
+	doc.insert()

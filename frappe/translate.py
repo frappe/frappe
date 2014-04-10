@@ -141,11 +141,11 @@ def get_messages_for_app(app):
 
 def get_messages_from_doctype(name):
 	messages = []
-	meta = frappe.get_doctype(name)
+	meta = frappe.get_meta(name)
 	
-	messages = [meta[0].name, meta[0].description, meta[0].module]
+	messages = [meta.name, meta.description, meta.module]
 	
-	for d in meta.get({"doctype":"DocField"}):
+	for d in meta.get("fields"):
 		messages.extend([d.label, d.description])
 		
 		if d.fieldtype=='Select' and d.options \
@@ -156,7 +156,7 @@ def get_messages_from_doctype(name):
 				messages.extend(options)
 				
 	# extract from js, py files
-	doctype_file_path = frappe.get_module_path(meta[0].module, "doctype", meta[0].name, meta[0].name)
+	doctype_file_path = frappe.get_module_path(meta.module, "doctype", meta.name, meta.name)
 	messages.extend(get_messages_from_file(doctype_file_path + ".js"))
 	return clean(messages)
 	
@@ -164,7 +164,7 @@ def get_messages_from_page(name):
 	return get_messages_from_page_or_report("Page", name)
 	
 def get_messages_from_report(name):
-	report = frappe.doc("Report", name)
+	report = frappe.get_doc("Report", name)
 	messages = get_messages_from_page_or_report("Report", name, 
 		frappe.db.get_value("DocType", report.ref_doctype, "module"))
 	if report.query:

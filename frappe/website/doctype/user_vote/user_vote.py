@@ -5,15 +5,15 @@ from __future__ import unicode_literals
 import frappe
 from frappe.website.permissions import get_access
 
-class DocType:
-	def __init__(self, d, dl):
-		self.doc, self.doclist = d, dl
+from frappe.model.document import Document
+
+class UserVote(Document):
 	
 	def validate(self):
 		# if new
-		if self.doc.fields.get("__islocal"):
-			if frappe.db.get_value("User Vote", {"ref_doctype": self.doc.ref_doctype, 
-				"ref_name": self.doc.ref_name, "owner": frappe.session.user}):
+		if self.get("__islocal"):
+			if frappe.db.get_value("User Vote", {"ref_doctype": self.ref_doctype, 
+				"ref_name": self.ref_name, "owner": frappe.session.user}):
 				
 				raise frappe.DuplicateEntryError
 			
@@ -25,8 +25,8 @@ class DocType:
 
 	def update_ref_count(self, cnt=0):
 		count = frappe.db.sql("""select count(*) from `tabUser Vote` where ref_doctype=%s and ref_name=%s""",
-			(self.doc.ref_doctype, self.doc.ref_name))[0][0]
-		frappe.db.set_value(self.doc.ref_doctype, self.doc.ref_name, "upvotes", count + cnt)
+			(self.ref_doctype, self.ref_name))[0][0]
+		frappe.db.set_value(self.ref_doctype, self.ref_name, "upvotes", count + cnt)
 		
 def on_doctype_update():
 	frappe.db.add_index("User Vote", ["ref_doctype", "ref_name"])
@@ -42,7 +42,7 @@ def set_vote(ref_doctype, ref_name):
 		raise frappe.PermissionError
 	
 	try:
-		user_vote = frappe.bean({
+		user_vote = frappe.get_doc({
 			"doctype": "User Vote",
 			"ref_doctype": ref_doctype,
 			"ref_name": ref_name

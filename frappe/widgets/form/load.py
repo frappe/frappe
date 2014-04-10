@@ -3,8 +3,10 @@
 
 from __future__ import unicode_literals
 import frappe, json
-import frappe.model.doc
 import frappe.utils
+import frappe.defaults
+import frappe.widgets.form.meta
+from frappe.utils.file_manager import get_file_url
 
 @frappe.whitelist()
 def getdoc(doctype, name, user=None):
@@ -13,8 +15,6 @@ def getdoc(doctype, name, user=None):
 	Requries "doctype", "name" as form variables.
 	Will also call the "onload" method on the document.
 	"""
-
-	import frappe
 	
 	if not (doctype and name):
 		raise Exception, 'doctype and name required!'
@@ -26,13 +26,11 @@ def getdoc(doctype, name, user=None):
 		return []
 
 	try:
-		bean = frappe.bean(doctype, name)
-		bean.run_method("onload")
+		doc = frappe.get_doc(doctype, name)
+		doc.run_method("onload")
 		
-		if not bean.has_read_perm():
+		if not doc.has_permission("read"):
 			raise frappe.PermissionError
-
-		doclist = bean.doclist
 
 		# add file list
 		get_docinfo(doctype, name)
@@ -42,35 +40,39 @@ def getdoc(doctype, name, user=None):
 		frappe.msgprint('Did not load.')
 		raise
 
-	if bean and not name.startswith('_'):
+	if doc and not name.startswith('_'):
 		frappe.user.update_recent(doctype, name)
 	
-	frappe.response['docs'] = doclist
+	frappe.response.docs.append(doc)
 
 @frappe.whitelist()
 def getdoctype(doctype, with_parent=False, cached_timestamp=None):
 	"""load doctype"""
-	import frappe.model.doctype
-	import frappe.model.meta
 	
-	doclist = []
-	
+	docs = []
 	# with parent (called from report builder)
 	if with_parent:
 		parent_dt = frappe.model.meta.get_parent_dt(doctype)
 		if parent_dt:
-			doclist = frappe.model.doctype.get(parent_dt, processed=True)
+			docs = get_meta_bundle(parent_dt)
 			frappe.response['parent_dt'] = parent_dt
 	
-	if not doclist:
-		doclist = frappe.model.doctype.get(doctype, processed=True)
+	if not docs:
+		docs = get_meta_bundle(doctype)
 	
-	frappe.response['restrictions'] = get_restrictions(doclist)
+	frappe.response['restrictions'] = get_restrictions(docs[0])
 	
-	if cached_timestamp and doclist[0].modified==cached_timestamp:
+	if cached_timestamp and docs[0].modified==cached_timestamp:
 		return "use_cache"
 	
-	frappe.response['docs'] = doclist
+	frappe.response.docs.extend(docs)
+
+def get_meta_bundle(doctype):
+	bundle = [frappe.widgets.form.meta.get_meta(doctype)]
+	for df in bundle[0].fields:
+		if df.fieldtype=="Table":
+			bundle.append(frappe.widgets.form.meta.get_meta(df.options))
+	return bundle
 
 def get_docinfo(doctype, name):
 	frappe.response["docinfo"] = {
@@ -87,11 +89,15 @@ def get_restrictions(meta):
 	return out
 
 def add_attachments(dt, dn):
-	attachments = {}
+	attachments = []
 	for f in frappe.db.sql("""select name, file_name, file_url from
 		`tabFile Data` where attached_to_name=%s and attached_to_doctype=%s""", 
 			(dn, dt), as_dict=True):
-		attachments[f.file_url or f.file_name] = f.name
+		attachments.append({
+			'name': f.name,
+			'file_url': f.file_url,
+			'file_name': f.file_name
+		})
 
 	return attachments
 		

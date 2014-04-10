@@ -6,16 +6,16 @@
 from __future__ import unicode_literals
 import frappe
 
-class DocType:
-	def __init__(self, d, dl):
-		self.doc, self.doclist = d, dl
+from frappe.model.document import Document
+
+class AboutUsSettings(Document):
 			
 	def on_update(self):
 		from frappe.website.render import clear_cache
 		clear_cache("about")
 		
 def get_args():
-	obj = frappe.get_obj("About Us Settings")
+	obj = frappe.get_doc("About Us Settings")
 	return {
 		"obj": obj
 	}

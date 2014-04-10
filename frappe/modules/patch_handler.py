@@ -95,7 +95,7 @@ def update_patch_log(patchmodule):
 		frappe.db.sql("""INSERT INTO `__PatchLog` VALUES (%s, now())""", \
 			patchmodule)
 	else:
-		frappe.doc({"doctype": "Patch Log", "patch": patchmodule}).insert()
+		frappe.get_doc({"doctype": "Patch Log", "patch": patchmodule}).insert()
 
 def executed(patchmodule):
 	"""return True if is executed"""

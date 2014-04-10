@@ -3,57 +3,33 @@
 
 """Use blog post test to test permission restriction logic"""
 
-test_records = [
-	[{
-		"doctype": "Event",
-		"subject":"_Test Event 1",
-		"starts_on": "2014-01-01",
-		"event_type": "Public",
-	}],
-	[{
-		"doctype": "Event",
-		"starts_on": "2014-01-01",
-		"subject":"_Test Event 2",
-		"event_type": "Private",
-	}],
-	[{
-		"doctype": "Event",
-		"starts_on": "2014-01-01",
-		"subject":"_Test Event 3",
-		"event_type": "Private",
-	}, {
-		"doctype": "Event User",
-		"parentfield": "event_individuals",
-		"person": "test1@example.com"
-	}],
-	
-]
-
 import frappe
 import frappe.defaults
 import unittest
 
+test_records = frappe.get_test_records('Event')
+
 class TestEvent(unittest.TestCase):
 	# def setUp(self):
-	# 	user = frappe.bean("User", "test1@example.com")
-	# 	user.get_controller().add_roles("Website Manager")
+	# 	user = frappe.get_doc("User", "test1@example.com")
+	# 	user.add_roles("Website Manager")
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
 
 	def test_allowed_public(self):
 		frappe.set_user("test1@example.com")
-		doc = frappe.doc("Event", frappe.db.get_value("Event", {"subject":"_Test Event 1"}))
+		doc = frappe.get_doc("Event", frappe.db.get_value("Event", {"subject":"_Test Event 1"}))
 		self.assertTrue(frappe.has_permission("Event", refdoc=doc))
 				
 	def test_not_allowed_private(self):
 		frappe.set_user("test1@example.com")
-		doc = frappe.doc("Event", frappe.db.get_value("Event", {"subject":"_Test Event 2"}))
+		doc = frappe.get_doc("Event", frappe.db.get_value("Event", {"subject":"_Test Event 2"}))
 		self.assertFalse(frappe.has_permission("Event", refdoc=doc))
 
 	def test_allowed_private_if_in_event_user(self):
 		frappe.set_user("test1@example.com")
-		doc = frappe.doc("Event", frappe.db.get_value("Event", {"subject":"_Test Event 3"}))
+		doc = frappe.get_doc("Event", frappe.db.get_value("Event", {"subject":"_Test Event 3"}))
 		self.assertTrue(frappe.has_permission("Event", refdoc=doc))
 		
 	def test_event_list(self):
@@ -64,4 +40,3 @@ class TestEvent(unittest.TestCase):
 		self.assertTrue("_Test Event 1" in subjects)
 		self.assertTrue("_Test Event 3" in subjects)
 		self.assertFalse("_Test Event 2" in subjects)
-	

@@ -30,7 +30,7 @@ def add_comment(args=None):
 	if "cmd" in args:
 		del args["cmd"]
 
-	comment = frappe.bean(args)
+	comment = frappe.get_doc(args)
 	comment.ignore_permissions = True
 	comment.insert()
 	
@@ -40,9 +40,9 @@ def add_comment(args=None):
 	# notify commentors 
 	commentors = [d[0] for d in frappe.db.sql("""select comment_by from tabComment where
 		comment_doctype=%s and comment_docname=%s and
-		ifnull(unsubscribed, 0)=0""", (comment.doc.comment_doctype, comment.doc.comment_docname))]
+		ifnull(unsubscribed, 0)=0""", (comment.comment_doctype, comment.comment_docname))]
 	
-	owner = frappe.db.get_value(comment.doc.comment_doctype, comment.doc.comment_docname, "owner")
+	owner = frappe.db.get_value(comment.comment_doctype, comment.comment_docname, "owner")
 	recipients = commentors if owner=="Administrator" else list(set(commentors + [owner]))
 	
 	
@@ -50,12 +50,12 @@ def add_comment(args=None):
 	send(recipients=recipients, 
 		doctype='Comment', 
 		email_field='comment_by', 
-		subject='New Comment on %s: %s' % (comment.doc.comment_doctype, 
-			comment.doc.title or comment.doc.comment_docname), 
+		subject='New Comment on %s: %s' % (comment.comment_doctype, 
+			comment.title or comment.comment_docname), 
 		message='%(comment)s<p>By %(comment_by_fullname)s</p>' % args,
-		ref_doctype=comment.doc.comment_doctype, ref_docname=comment.doc.comment_docname)
+		ref_doctype=comment.comment_doctype, ref_docname=comment.comment_docname)
 	
 	template = frappe.get_template("templates/includes/comment.html")
 	
-	return template.render({"comment": comment.doc.fields})
+	return template.render({"comment": comment.as_dict()})
 	

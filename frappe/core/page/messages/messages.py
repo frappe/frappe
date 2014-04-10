@@ -66,13 +66,12 @@ def post(arg=None):
 		import json
 		arg = json.loads(arg)
 
-	from frappe.model.doc import Document
-	d = Document('Comment')
+	d = frappe.new_doc('Comment')
 	d.parenttype = arg.get("parenttype")
 	d.comment = arg['txt']
 	d.comment_docname = arg['contact']
 	d.comment_doctype = 'Message'
-	d.save()
+	d.insert(ignore_permissions=True)
 	
 	delete_notification_count_for("Messages")
 
@@ -88,13 +87,16 @@ def delete(arg=None):
 def notify(arg=None):
 	from frappe.utils import cstr, get_fullname, get_url
 	
-	frappe.sendmail(\
-		recipients=[frappe.db.get_value("User", arg["contact"], "email") or arg["contact"]],
-		sender= frappe.db.get_value("User", frappe.session.user, "email"),
-		subject="New Message from " + get_fullname(frappe.user.name),
-		message=frappe.get_template("templates/emails/new_message.html").render({
-			"from": get_fullname(frappe.user.name),
-			"message": arg['txt'],
-			"link": get_url()
-		})
-	)	
+	try:
+		frappe.sendmail(\
+			recipients=[frappe.db.get_value("User", arg["contact"], "email") or arg["contact"]],
+			sender= frappe.db.get_value("User", frappe.session.user, "email"),
+			subject="New Message from " + get_fullname(frappe.user.name),
+			message=frappe.get_template("templates/emails/new_message.html").render({
+				"from": get_fullname(frappe.user.name),
+				"message": arg['txt'],
+				"link": get_url()
+			})
+		)
+	except frappe.OutgoingEmailError, e:
+		pass

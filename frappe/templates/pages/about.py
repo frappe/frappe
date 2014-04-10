@@ -5,4 +5,4 @@ from __future__ import unicode_literals
 import frappe
 
 def get_context(context):
-	return { "obj": frappe.bean("About Us Settings", "About Us Settings").get_controller() }
+	return { "obj": frappe.get_doc("About Us Settings", "About Us Settings") }

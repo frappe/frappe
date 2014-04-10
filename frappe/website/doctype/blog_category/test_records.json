@@ -1,0 +1,14 @@
+[
+ {
+  "category_name": "_Test Blog Category", 
+  "doctype": "Blog Category", 
+  "parent_website_route": "blog", 
+  "title": "_Test Blog Category"
+ }, 
+ {
+  "category_name": "_Test Blog Category 1", 
+  "doctype": "Blog Category", 
+  "parent_website_route": "blog", 
+  "title": "_Test Blog Category 1"
+ }
+]

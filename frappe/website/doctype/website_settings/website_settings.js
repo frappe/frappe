@@ -31,7 +31,7 @@ $.extend(cur_frm.cscript, {
 	},
 	
 	label: function(doc, cdt, cdn) {
-		var item = frappe.model.get_doc(cdt, cdn);
+		var item = frappe.get_doc(cdt, cdn);
 		if(item.parentfield === "top_bar_items") {
 			this.set_parent_label_options();
 		}
@@ -56,7 +56,7 @@ $.extend(cur_frm.cscript, {
 	
 	// get labels of parent items
 	get_parent_options: function(table_field) {
-		var items = getchildren('Top Bar Item', cur_frm.doc.name, table_field);
+		var items = cur_frm.doc[table_field] || [];
 		var main_items = [''];
 		for(var i in items) {
 			var d = items[i];

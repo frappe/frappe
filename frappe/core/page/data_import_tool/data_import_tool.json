@@ -1,0 +1,20 @@
+{
+ "creation": "2012-06-14 15:07:25.000000", 
+ "docstatus": 0, 
+ "doctype": "Page", 
+ "icon": "icon-upload", 
+ "idx": 1, 
+ "modified": "2014-02-13 16:09:27.000000", 
+ "modified_by": "Administrator", 
+ "module": "Core", 
+ "name": "data-import-tool", 
+ "owner": "Administrator", 
+ "page_name": "data-import-tool", 
+ "roles": [
+  {
+   "role": "System Manager"
+  }
+ ], 
+ "standard": "Yes", 
+ "title": "Data Import Tool"
+}

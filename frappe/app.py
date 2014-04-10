@@ -68,7 +68,8 @@ def application(request):
 		frappe.DoesNotExistError,
 		frappe.DuplicateEntryError,
 		frappe.OutgoingEmailError,
-		frappe.ValidationError), e:
+		frappe.ValidationError,
+		frappe.UnsupportedMediaType), e:
 		
 		if frappe.local.is_ajax:
 			response = frappe.utils.response.report_error(e.http_status_code)
@@ -118,7 +119,7 @@ def serve(port=8000, profile=False, site=None, sites_path='.'):
 	from werkzeug.serving import run_simple
 
 	if profile:
-		application = ProfilerMiddleware(application)
+		application = ProfilerMiddleware(application, sort_by=('tottime', 'calls'))
 
 	if not os.environ.get('NO_STATICS'):
 		application = SharedDataMiddleware(application, {

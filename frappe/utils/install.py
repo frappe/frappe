@@ -29,12 +29,12 @@ def after_install():
 	
 	for d in install_docs:
 		try:
-			frappe.bean(d).insert()
+			frappe.get_doc(d).insert()
 		except NameError:
 			pass
 
 	# all roles to admin
-	frappe.bean("User", "Administrator").get_controller().add_roles(*frappe.db.sql_list("""
+	frappe.get_doc("User", "Administrator").add_roles(*frappe.db.sql_list("""
 		select name from tabRole"""))
 
 	# update admin password
