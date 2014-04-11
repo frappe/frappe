@@ -1,5 +1,5 @@
 # Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt 
+# MIT License. See license.txt
 
 # Search
 from __future__ import unicode_literals
@@ -16,7 +16,7 @@ def search_link(doctype, txt, query=None, filters=None, page_len=20, searchfield
 
 # this is called by the search box
 @frappe.whitelist()
-def search_widget(doctype, txt, query=None, searchfield="name", start=0, 
+def search_widget(doctype, txt, query=None, searchfield="name", start=0,
 	page_len=50, filters=None):
 	if isinstance(filters, basestring):
 		import json
@@ -27,19 +27,19 @@ def search_widget(doctype, txt, query=None, searchfield="name", start=0,
 	standard_queries = frappe.get_hooks().standard_queries or []
 	if standard_queries:
 		standard_queries = dict([v.split(":") for v in standard_queries])
-		
+
 	if query and query.split()[0].lower()!="select":
 		# by method
-		frappe.response["values"] = frappe.get_attr(query)(doctype, txt, 
+		frappe.response["values"] = frappe.get_attr(query)(doctype, txt,
 			searchfield, start, page_len, filters)
 	elif not query and doctype in standard_queries:
 		# from standard queries
-		search_widget(doctype, txt, standard_queries[doctype], 
+		search_widget(doctype, txt, standard_queries[doctype],
 			searchfield, start, page_len, filters)
 	else:
 		if query:
 			# custom query
-			frappe.response["values"] = frappe.db.sql(scrub_custom_query(query, 
+			frappe.response["values"] = frappe.db.sql(scrub_custom_query(query,
 				searchfield, txt))
 		else:
 			if isinstance(filters, dict):
@@ -53,7 +53,7 @@ def search_widget(doctype, txt, query=None, searchfield="name", start=0,
 
 			if filters==None:
 				filters = []
-			
+
 			# build from doctype
 			if txt:
 				filters.append([doctype, searchfield or "name", "like", txt + "%"])
@@ -63,7 +63,7 @@ def search_widget(doctype, txt, query=None, searchfield="name", start=0,
 				filters.append([doctype, "disabled", "!=", 1])
 
 			frappe.response["values"] = frappe.widgets.reportview.execute(doctype,
-				filters=filters, fields = get_std_fields_list(meta, searchfield or "name"), 
+				filters=filters, fields = get_std_fields_list(meta, searchfield or "name"),
 				limit_start = start, limit_page_length=page_len, as_list=True)
 
 def get_std_fields_list(meta, key):

@@ -283,9 +283,9 @@ def get_roles(username=None):
 	else:
 		return User(username).get_roles()
 
-def has_permission(doctype, ptype="read", refdoc=None):
+def has_permission(doctype, ptype="read", doc=None):
 	import frappe.permissions
-	return frappe.permissions.has_permission(doctype, ptype, refdoc)
+	return frappe.permissions.has_permission(doctype, ptype, doc)
 
 def is_table(doctype):
 	tables = cache().get_value("is_table")

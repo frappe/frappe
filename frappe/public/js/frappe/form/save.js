@@ -68,7 +68,7 @@ frappe.ui.form.save = function(frm, action, callback, btn) {
 
 						// scroll to field
 						if(!me.scroll_set)
-							me.scroll_to(doc.parentfield || df.fieldname);
+							scroll_to(doc.parentfield || df.fieldname);
 					}
 
 				}

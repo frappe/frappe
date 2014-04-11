@@ -105,8 +105,8 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 									d[fieldname] = cint(d[fieldname])
 								elif fieldtype in ("Float", "Currency"):
 									d[fieldname] = flt(d[fieldname])
-								elif d[fieldname] and fieldtype == "Date":
-									d[fieldname] = parse_date(d[fieldname])
+								elif fieldtype == "Date":
+									d[fieldname] = parse_date(d[fieldname]) if d[fieldname] else None
 							except IndexError, e:
 								pass
 
