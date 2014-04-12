@@ -38,7 +38,7 @@ cur_frm.cscript.refresh = function(doc) {
 		msgprint("Refreshing...");
 		window.location.reload();
 	}
-	
+
 	cur_frm.toggle_display('change_password', !doc.__islocal);
 
 	cur_frm.toggle_display(['sb1', 'sb3'], false);
@@ -55,9 +55,9 @@ cur_frm.cscript.refresh = function(doc) {
 			cur_frm.toggle_display(['sb1', 'sb3'], true);
 		}
 		cur_frm.cscript.enabled(doc);
-		
+
 		cur_frm.roles_editor && cur_frm.roles_editor.show();
-		
+
 		if(user==doc.name) {
 			// update display settings
 			if(doc.background_image) {
@@ -72,11 +72,11 @@ cur_frm.cscript.refresh = function(doc) {
 
 cur_frm.cscript.enabled = function(doc) {
 	if(!doc.__islocal && has_common(user_roles, ["Administrator", "System Manager"])) {
-		cur_frm.toggle_display(['sb1', 'sb3'], doc.enabled);	
+		cur_frm.toggle_display(['sb1', 'sb3'], doc.enabled);
 		cur_frm.toggle_enable('*', doc.enabled);
 		cur_frm.set_df_property('enabled', 'read_only', 0);
 	}
-	
+
 	if(user!="Administrator") {
 		cur_frm.toggle_enable('email', doc.__islocal);
 	}
@@ -98,8 +98,8 @@ frappe.RoleEditor = Class.extend({
 			callback: function(r) {
 				me.roles = r.message;
 				me.show_roles();
-				
-				// refresh call could've already happened 
+
+				// refresh call could've already happened
 				// when all role checkboxes weren't created
 				if(cur_frm.doc) {
 					cur_frm.roles_editor.show();
@@ -127,14 +127,14 @@ frappe.RoleEditor = Class.extend({
 				}
 			});
 		});
-		
-		for(var i in this.roles) {
+
+		$.each(this.roles, function(i, role) {
 			$(this.wrapper).append(repl('<div class="user-role" \
 				data-user-role="%(role)s">\
 				<input type="checkbox" style="margin-top:0px;"> \
 				<a href="#">%(role)s</a>\
-			</div>', {role: this.roles[i]}));
-		}
+			</div>', {role: role}));
+		})
 		$(this.wrapper).find('input[type="checkbox"]').change(function() {
 			cur_frm.dirty();
 		});
@@ -145,11 +145,11 @@ frappe.RoleEditor = Class.extend({
 	},
 	show: function() {
 		var me = this;
-		
+
 		// uncheck all roles
 		$(this.wrapper).find('input[type="checkbox"]')
 			.each(function(i, checkbox) { checkbox.checked = false; });
-		
+
 		// set user roles as checked
 		$.each((cur_frm.doc.user_roles || []), function(i, user_role) {
 				var checkbox = $(me.wrapper)
@@ -161,19 +161,19 @@ frappe.RoleEditor = Class.extend({
 		var opts = this.get_roles();
 		var existing_roles_map = {};
 		var existing_roles_list = [];
-		
-		$.each((cur_frm.doc.user_roles || []), function(i, user_role) { 
+
+		$.each((cur_frm.doc.user_roles || []), function(i, user_role) {
 				existing_roles_map[user_role.role] = user_role.name;
 				existing_roles_list.push(user_role.role);
 			});
-		
+
 		// remove unchecked roles
 		$.each(opts.unchecked_roles, function(i, role) {
 			if(existing_roles_list.indexOf(role)!=-1) {
 				frappe.model.clear_doc("UserRole", existing_roles_map[role]);
 			}
 		});
-		
+
 		// add new roles that are checked
 		$.each(opts.checked_roles, function(i, role) {
 			if(existing_roles_list.indexOf(role)==-1) {
@@ -181,7 +181,7 @@ frappe.RoleEditor = Class.extend({
 				user_role.role = role;
 			}
 		});
-		
+
 		refresh_field("user_roles");
 	},
 	get_roles: function() {
@@ -194,7 +194,7 @@ frappe.RoleEditor = Class.extend({
 				unchecked_roles.push($(this).attr('data-user-role'));
 			}
 		});
-		
+
 		return {
 			checked_roles: checked_roles,
 			unchecked_roles: unchecked_roles
@@ -221,7 +221,7 @@ frappe.RoleEditor = Class.extend({
 					<th>Amend</th></tr></tbody></table>');
 				for(var i in r.message) {
 					var perm = r.message[i];
-					
+
 					// if permission -> icon
 					for(key in perm) {
 						if(key!='parent' && key!='permlevel') {
@@ -229,10 +229,10 @@ frappe.RoleEditor = Class.extend({
 								perm[key] = '<i class="icon-ok"></i>';
 							} else {
 								perm[key] = '';
-							}							
+							}
 						}
 					}
-					
+
 					$body.find('tbody').append(repl('<tr>\
 						<td style="text-align: left">%(parent)s</td>\
 						<td>%(permlevel)s</td>\
@@ -243,11 +243,11 @@ frappe.RoleEditor = Class.extend({
 						<td>%(amend)s</td>\
 						</tr>', perm))
 				}
-				
+
 				me.perm_dialog.show();
 			}
 		});
-		
+
 	},
 	make_perm_dialog: function() {
 		this.perm_dialog = new frappe.ui.Dialog({

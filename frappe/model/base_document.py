@@ -150,6 +150,9 @@ class BaseDocument(object):
 				if doc[k] is None:
 					del doc[k]
 
+		if self.get("__islocal"):
+			doc["__islocal"] = 1
+
 		return doc
 
 	def get_table_field_doctype(self, fieldname):

@@ -18,7 +18,7 @@ frappe.standard_pages["query-report"] = function() {
 	frappe.query_report = new frappe.views.QueryReport({
 		parent: wrapper,
 	});
-	
+
 	$(wrapper).bind("show", function() {
 		frappe.query_report.load();
 	});
@@ -31,15 +31,14 @@ frappe.views.QueryReport = Class.extend({
 		this.appframe = this.parent.appframe;
 		this.parent.query_report = this;
 		this.make();
-		this.load();
 	},
 	slickgrid_options: {
 		enableColumnReorder: false,
 	    showHeaderRow: true,
 	    headerRowHeight: 30,
 	    explicitInitialization: true,
-	    multiColumnSort: true		
-	},	
+	    multiColumnSort: true
+	},
 	make: function() {
 		this.wrapper = $("<div>").appendTo($(this.parent).find(".layout-main"));
 		$('<div class="waiting-area" style="display: none;"></div>\
@@ -59,7 +58,7 @@ frappe.views.QueryReport = Class.extend({
 	make_toolbar: function() {
 		var me = this;
 		this.appframe.set_title_right(frappe._('Refresh'), function() { me.refresh(); });
-		
+
 		// Edit
 		var edit_btn = this.appframe.add_primary_action(frappe._('Edit'), function() {
 			if(!frappe.user.is_report_manager()) {
@@ -68,10 +67,10 @@ frappe.views.QueryReport = Class.extend({
 			}
 			frappe.set_route("Form", "Report", me.report_name);
 		}, "icon-edit");
-		
+
 		this.appframe.add_primary_action(frappe._('Export'), function() { me.export_report(); },
 			"icon-download");
-		
+
 		if(frappe.model.can_restrict("Report")) {
 			this.appframe.add_primary_action(frappe._("User Restrictions"), function() {
 				frappe.route_options = {
@@ -91,7 +90,7 @@ frappe.views.QueryReport = Class.extend({
 				me.report_name = route[1];
 				this.wrapper.find(".no-report-area").toggle(false);
 				me.appframe.set_title(frappe._("Query Report")+": " + frappe._(me.report_name));
-				
+
 				frappe.model.with_doc("Report", me.report_name, function() {
 					me.report_doc = frappe.get_doc("Report", me.report_name);
 					frappe.model.with_doctype(me.report_doc.ref_doctype, function() {
@@ -117,7 +116,7 @@ frappe.views.QueryReport = Class.extend({
 			}
 		} else {
 			var msg = frappe._("No Report Loaded. Please use query-report/[Report Name] to run a report.")
-			this.wrapper.find(".no-report-area").html(msg).toggle(true);	
+			this.wrapper.find(".no-report-area").html(msg).toggle(true);
 		}
 	},
 	setup_filters: function() {
@@ -133,7 +132,10 @@ frappe.views.QueryReport = Class.extend({
 				if(df["default"]) {
 					f.set_input(df["default"]);
 				}
-			
+				if(df.fieldtype=="Check") {
+					$(f.wrapper).find("input[type='checkbox']").css({"float":"None"});
+				}
+
 				if(df.get_query) f.get_query = df.get_query;
 			}
 		});
@@ -148,15 +150,16 @@ frappe.views.QueryReport = Class.extend({
 		var me = this;
 		if(frappe.route_options) {
 			$.each(this.filters || [], function(i, f) {
-				if(frappe.route_options[f.df.fieldname]!=null)
+				if(frappe.route_options[f.df.fieldname]!=null) {
 					f.set_input(frappe.route_options[f.df.fieldname]);
+				}
 			});
 		}
 		frappe.route_options = null;
 	},
 	set_filters_by_name: function() {
 		this.filters_by_name = {};
-		
+
 		for(var i in this.filters) {
 			this.filters_by_name[this.filters[i].df.fieldname] = this.filters[i];
 		}
@@ -164,7 +167,7 @@ frappe.views.QueryReport = Class.extend({
 	refresh: function() {
 		// Run
 		var me =this;
-		this.waiting = frappe.messages.waiting(this.wrapper.find(".waiting-area").empty().toggle(true), 
+		this.waiting = frappe.messages.waiting(this.wrapper.find(".waiting-area").empty().toggle(true),
 			"Loading Report...");
 		this.wrapper.find(".results").toggle(false);
 		var filters = {};
@@ -183,7 +186,7 @@ frappe.views.QueryReport = Class.extend({
 				me.make_results(r.message.result, r.message.columns);
 			}
 		});
-		
+
 		return this.report_ajax;
 	},
 	get_values: function() {
@@ -211,8 +214,8 @@ frappe.views.QueryReport = Class.extend({
 		this.columnFilters = {};
 		this.make_dataview();
 		this.id = frappe.dom.set_unique_id(this.wrapper.find(".result-area").get(0));
-		
-		this.grid = new Slick.Grid("#"+this.id, this.dataView, this.columns, 
+
+		this.grid = new Slick.Grid("#"+this.id, this.dataView, this.columns,
 			this.slickgrid_options);
 
 		this.grid.setSelectionModel(new Slick.CellSelectionModel());
@@ -228,8 +231,8 @@ frappe.views.QueryReport = Class.extend({
 	},
 	make_columns: function(columns) {
 		this.columns = [{id: "_id", field: "_id", name: "Sr No", width: 60}]
-			.concat($.map(columns, function(c) { 
-				var col = {name:c, id: c, field: c, sortable: true, width: 80}					
+			.concat($.map(columns, function(c) {
+				var col = {name:c, id: c, field: c, sortable: true, width: 80}
 
 				if(c.indexOf(":")!=-1) {
 					var opts = c.split(":");
@@ -238,8 +241,8 @@ frappe.views.QueryReport = Class.extend({
 						fieldtype: opts.length<=2 ? opts[1] : opts[opts.length - 2],
 						width: opts.length<=2 ? opts[2] : opts[opts.length - 1]
 					}
-					
-					if(!df.fieldtype) 
+
+					if(!df.fieldtype)
 						df.fieldtype="Data";
 
 					if(df.fieldtype.indexOf("/")!=-1) {
@@ -247,12 +250,12 @@ frappe.views.QueryReport = Class.extend({
 						df.fieldtype = tmp[0];
 						df.options = tmp[1];
 					}
-					
+
 					col.df = df;
 					col.formatter = function(row, cell, value, columnDef, dataContext) {
 						return frappe.format(value, columnDef.df, null, dataContext);
 					}
-					
+
 					// column parameters
 					col.name = col.id = col.field = df.label;
 					col.name = frappe._(df.label);
@@ -261,7 +264,7 @@ frappe.views.QueryReport = Class.extend({
 					// width
 					if(df.width) {
 						col.width=parseInt(df.width);
-					}		
+					}
 				} else {
 					col.df = {
 						label: c,
@@ -293,7 +296,7 @@ frappe.views.QueryReport = Class.extend({
 		this.dataView.setItems(this.data);
 		this.dataView.setFilter(this.inline_filter);
 		this.dataView.endUpdate();
-		
+
 		var me = this;
 		this.dataView.onRowCountChanged.subscribe(function (e, args) {
 			me.grid.updateRowCount();
@@ -310,7 +313,7 @@ frappe.views.QueryReport = Class.extend({
 		for (var columnId in me.columnFilters) {
 			if (columnId !== undefined && me.columnFilters[columnId] !== "") {
 				var c = me.grid.getColumns()[me.grid.getColumnIndex(columnId)];
-				if (!me.compare_values(item[c.field], me.columnFilters[columnId], 
+				if (!me.compare_values(item[c.field], me.columnFilters[columnId],
 						me.columns[me.grid.getColumnIndex(columnId)])) {
 					return false;
 				}
@@ -320,16 +323,16 @@ frappe.views.QueryReport = Class.extend({
 	},
 	compare_values: function(value, filter, columnDef) {
 		var invert = false;
-		
+
 		// check if invert
 		if(filter[0]=="!") {
 			invert = true;
 			filter = filter.substr(1);
 		}
-		
+
 		var out = false;
 		var cond = "=="
-		
+
 		// parse condition
 		if(filter[0]==">") {
 			filter = filter.substr(1);
@@ -338,7 +341,7 @@ frappe.views.QueryReport = Class.extend({
 			filter = filter.substr(1);
 			cond = "<"
 		}
-		
+
 		if(in_list(['Float', 'Currency', 'Int', 'Date'], columnDef.df.fieldtype)) {
 			// non strings
 			if(filter.indexOf(":")==-1) {
@@ -350,7 +353,7 @@ frappe.views.QueryReport = Class.extend({
 					value = flt(value);
 					filter = flt(filter);
 				}
-				
+
 				out = eval("value" + cond + "filter");
 			} else {
 				// range
@@ -365,7 +368,7 @@ frappe.views.QueryReport = Class.extend({
 					filter[0] = flt(filter[0]);
 					filter[1] = flt(filter[1]);
 				}
-				
+
 				out = value >= filter[0] && value <= filter[1];
 			}
 		} else {
@@ -375,15 +378,15 @@ frappe.views.QueryReport = Class.extend({
 			filter = filter.toLowerCase();
 			out = value.indexOf(filter) != -1;
 		}
-		
-		if(invert) 
+
+		if(invert)
 			return !out;
-		else 
+		else
 			return out;
 	},
 	setup_header_row: function() {
 		var me = this;
-		
+
 		$(this.grid.getHeaderRow()).delegate(":input", "change keyup", function (e) {
 			var columnId = $(this).data("columnId");
 			if (columnId != null) {
@@ -428,7 +431,7 @@ frappe.views.QueryReport = Class.extend({
 			msgprint(frappe._("You are not allowed to export this report."));
 			return false;
 		}
-		
+
 		var result = $.map(frappe.slickgrid_tools.get_view_data(this.columns, this.dataView),
 		 	function(row) {
 				return [row.splice(1)];

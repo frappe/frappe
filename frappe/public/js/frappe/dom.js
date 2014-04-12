@@ -1,5 +1,5 @@
 // Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
-// MIT License. See license.txt 
+// MIT License. See license.txt
 
 // add a new dom element
 frappe.provide('frappe.dom');
@@ -33,7 +33,7 @@ frappe.dom = {
 		} else {
 			se.appendChild(document.createTextNode(txt));
 		}
-		document.getElementsByTagName('head')[0].appendChild(se);	
+		document.getElementsByTagName('head')[0].appendChild(se);
 	},
 	add: function(parent, newtag, className, cs, innerHTML, onclick) {
 		if(parent && parent.substr)parent = frappe.dom.by_id(parent);
@@ -46,17 +46,17 @@ frappe.dom = {
 			if(newtag.toLowerCase()=='img')
 				c.src = className
 			else
-				c.className = className;		
+				c.className = className;
 		}
 		if(cs) frappe.dom.css(c,cs);
 		if(innerHTML) c.innerHTML = innerHTML;
 		if(onclick) c.onclick = onclick;
 		return c;
 	},
-	css: function(ele, s) { 
-		if(ele && s) { 
-			for(var i in s) ele.style[i]=s[i]; 
-		}; 
+	css: function(ele, s) {
+		if(ele && s) {
+			$.extend(ele.style, s);
+		};
 		return ele;
 	},
 	freeze: function() {
@@ -72,7 +72,7 @@ frappe.dom = {
 		frappe.dom.freeze_count--;
 		if(!frappe.dom.freeze_count) {
 			$('#freeze').toggle(false);
-		}		
+		}
 	},
 	save_selection: function() {
 		// via http://stackoverflow.com/questions/5605401/insert-link-in-contenteditable-element
@@ -102,7 +102,7 @@ frappe.dom = {
 				savedSel.select();
 			}
 		}
-	}	
+	}
 }
 
 frappe.get_modal = function(title, body_html) {
@@ -119,7 +119,7 @@ frappe.get_modal = function(title, body_html) {
 			</div>\
 		</div>\
 		</div>').appendTo(document.body);
-		
+
 	return modal;
 };
 
@@ -163,7 +163,7 @@ frappe.get_shade = function(color, factor) {
 	}
 
 	var get_int = function(hex) {
-		return parseInt(hex,16); 
+		return parseInt(hex,16);
 	}
 	return get_hex(get_int(color.substr(0,2)) + factor)
 		+ get_hex(get_int(color.substr(2,2)) + factor)
@@ -189,7 +189,7 @@ $.fn.gradientify = function(col) {
 	if(!col) col = this.css("background-color");
 	var col1 = frappe.get_shade(col, 1.05);
 	var col2 = frappe.get_shade(col, 0.95);
-	
+
 	this.css({
 		"background": "-moz-linear-gradient(top,  #"+col1+" 0%, #"+col2+" 99%)"
 	});
@@ -230,7 +230,7 @@ frappe.dom.set_box_shadow = function(ele, spread) {
 	$(ele).css('-moz-box-shadow', '0px 0px '+ spread +'px rgba(0,0,0,0.3);')
 	$(ele).css('-webkit-box-shadow', '0px 0px '+ spread +'px rgba(0,0,0,0.3);')
 	$(ele).css('-box-shadow', '0px 0px '+ spread +'px rgba(0,0,0,0.3);')
-	
+
 };
 
 // add <option> list to <select>
@@ -250,7 +250,7 @@ frappe.dom.set_box_shadow = function(ele, spread) {
 	$.fn.set_working = function() {
 		var ele = this.get(0);
 		$(ele).prop('disabled', true);
-		if(ele.loading_img) { 
+		if(ele.loading_img) {
 			$(ele.loading_img).toggle(true);
 		} else {
 			ele.loading_img = $('<img src="assets/frappe/images/ui/button-load.gif" \
@@ -261,8 +261,8 @@ frappe.dom.set_box_shadow = function(ele, spread) {
 	$.fn.done_working = function() {
 		var ele = this.get(0);
 		$(ele).prop('disabled', false);
-		if(ele.loading_img) { 
-			$(ele.loading_img).toggle(false); 
+		if(ele.loading_img) {
+			$(ele.loading_img).toggle(false);
 		};
 	}
 })(jQuery);

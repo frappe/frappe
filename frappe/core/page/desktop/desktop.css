@@ -1,5 +1,5 @@
 #icon-grid {
-	padding-bottom: 30px;	
+	padding-bottom: 30px;
 }
 
 .case-wrapper {
@@ -12,7 +12,8 @@
 
 .case-label {
 	color: white;
-	padding-top: 5px;
+	font-size: 90%;
+	line-height: 1.1;
 	text-align: center;
 	text-shadow: 1px 1px 3px rgba(0, 0, 0, 1), 0px 3px 15px rgba(0, 0, 0, 0.5);
 }

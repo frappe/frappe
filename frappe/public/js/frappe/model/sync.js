@@ -11,20 +11,22 @@ $.extend(frappe.model, {
 
 		if(!r.docs && !r.docinfo) r = {docs:r};
 
+		if($.isPlainObject(r.docs)) r.docs = [r.docs];
+
 		if(r.docs) {
 			var last_parent_name = null;
 			var dirty = [];
 
 			$.each(r.docs, function(i, d) {
 				if(!d.name && d.__islocal) { // get name (local if required)
-					frappe.model.clear_doc(d)
+					frappe.model.clear_doc(d);
 					d.name = frappe.model.get_new_name(d.doctype);
-					frappe.provide("frappe.model.docinfo." + d.doctype + "." + d.name);	
+					frappe.provide("frappe.model.docinfo." + d.doctype + "." + d.name);
 				}
 
 				frappe.model.add_to_locals(d);
 				d.__last_sync_on = new Date();
-				
+
 				if(d.doctype==="DocType") {
 					frappe.meta.sync(d);
 				}
@@ -37,7 +39,7 @@ $.extend(frappe.model, {
 					frappe.model.new_names[d.localname] = d.name;
 					$(document).trigger('rename', [d.doctype, d.localname, d.name]);
 					delete locals[d.doctype][d.localname];
-				
+
 					// update docinfo to new dict keys
 					if(i===0) {
 						frappe.model.docinfo[d.doctype][d.name] = frappe.model.docinfo[d.doctype][d.localname];
@@ -45,11 +47,11 @@ $.extend(frappe.model, {
 					}
 				}
 			});
-			
+
 			if(cur_frm && dirty.indexOf(cur_frm.doctype)!==-1) cur_frm.dirty();
 
 		}
-		
+
 		// set docinfo (comments, assign, attachments)
 		if(r.docinfo) {
 			if(r.docs) {
@@ -61,7 +63,7 @@ $.extend(frappe.model, {
 				frappe.model.docinfo[doc.doctype] = {};
 			frappe.model.docinfo[doc.doctype][doc.name] = r.docinfo;
 		}
-		
+
 		return r.docs;
 	},
 	add_to_locals: function(doc) {
@@ -77,5 +79,5 @@ $.extend(frappe.model, {
 			});
 		}
 	}
-	
+
 });
