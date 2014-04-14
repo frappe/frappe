@@ -74,10 +74,7 @@ frappe.ui.form.save = function(frm, action, callback, btn) {
 				}
 			});
 			if(error_fields.length)
-				msgprint('<b>Mandatory fields required in '+ (doc.parenttype
-					? (frappe.meta.docfield_map[doc.parenttype][doc.parentfield].label + ' (Table)')
-					: doc.doctype) + ':</b>\n' + error_fields.join('\n'));
-				msgprint(__('<b>Mandatory fields required in {0}</b>', [(doc.parenttype
+				msgprint(__('Mandatory fields required in {0}', [(doc.parenttype
 					? (frappe.meta.docfield_map[doc.parenttype][doc.parentfield].label + ' (Table)')
 					: doc.doctype)]) + '\n' + error_fields.join('\n'));
 		});
