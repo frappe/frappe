@@ -59,7 +59,7 @@ $.extend(frappe.model, {
 				},
 				callback: function(r) {
 					if(r.exc) {
-						msgprint(__("Unable to load: {0}", [__(doctype)]);
+						msgprint(__("Unable to load: {0}", [__(doctype)]));
 						throw "No doctype";
 						return;
 					}
