@@ -7,7 +7,7 @@ frappe.ui.form.on("Version", "refresh", function(frm) {
 			},
 			callback: function(r) {
 				if(!r.exc) {
-					msgprint("Version Restored.");
+					msgprint(__("Version restored"));
 				}
 			}
 		})

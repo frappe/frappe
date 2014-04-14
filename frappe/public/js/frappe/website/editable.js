@@ -47,7 +47,7 @@ frappe.make_editable = function(editor, doctype, name, fieldname) {
 					value: bseditor.get_value()
 				},
 				callback: function(r) {
-					frappe.msgprint(r.exc ? "Error" : "Saved");
+					frappe.msgprint(r.exc ? __("Error") : __("Saved"));
 					if(!r.exc)
 						editor.html(r.message[0][fieldname]);
 				}

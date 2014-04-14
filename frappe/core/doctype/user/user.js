@@ -35,7 +35,7 @@ cur_frm.cscript.user_image = function(doc) {
 
 cur_frm.cscript.refresh = function(doc) {
 	if(!doc.__unsaved && frappe.languages && doc.language !== frappe.boot.user.language) {
-		msgprint("Refreshing...");
+		msgprint(__("Refreshing..."));
 		window.location.reload();
 	}
 

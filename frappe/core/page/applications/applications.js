@@ -67,8 +67,8 @@ frappe.pages['applications'].onload = function(wrapper) {
 							args: {name: $(this).attr("data-app")},
 							callback: function(r) {
 								if(!r.exc) {
-									msgprint("<i class='icon-ok'></i> Installed");
-									msgprint("Refreshing...");
+									msgprint("<i class='icon-ok'></i>" + __("Installed"));
+									msgprint(__("Refreshing..."));
 									setTimeout(function() { window.location.reload() }, 2000)
 								}
 							}

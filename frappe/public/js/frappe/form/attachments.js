@@ -111,7 +111,7 @@ frappe.ui.form.Attachments = Class.extend({
 			callback: function(r,rt) {
 				if(r.exc) {
 					if(!r._server_messages)
-						msgprint("There were errors.");
+						msgprint(__("There were errors"));
 					return;
 				}
 				me.remove_fileid(fileid);

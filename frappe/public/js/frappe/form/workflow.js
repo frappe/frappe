@@ -176,6 +176,7 @@ frappe.ui.form.States = Class.extend({
 				msgprint(frappe._("Document Status transition from ") + me.frm.doc.docstatus + " " 
 					+ frappe._("to") + 
 					new_docstatus + " " + frappe._("is not allowed."));
+				msgprint(__("Document Status transition from {0} to {1} is not allowed", [me.frm.doc.docstatus, new_docstatus]));
 				return false;
 			}
 			

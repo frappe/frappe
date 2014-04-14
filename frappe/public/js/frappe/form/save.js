@@ -40,7 +40,7 @@ frappe.ui.form.save = function(frm, action, callback, btn) {
 			if(newname) {
 				doc.__newname = strip(newname);
 			} else {
-				msgprint("Name is required.");
+				msgprint(__("Name is required"));
 				throw "name required";
 			}
 		}
@@ -77,6 +77,9 @@ frappe.ui.form.save = function(frm, action, callback, btn) {
 				msgprint('<b>Mandatory fields required in '+ (doc.parenttype
 					? (frappe.meta.docfield_map[doc.parenttype][doc.parentfield].label + ' (Table)')
 					: doc.doctype) + ':</b>\n' + error_fields.join('\n'));
+				msgprint(__('<b>Mandatory fields required in {0}</b>', [(doc.parenttype
+					? (frappe.meta.docfield_map[doc.parenttype][doc.parentfield].label + ' (Table)')
+					: doc.doctype)]) + '\n' + error_fields.join('\n'));
 		});
 
 		return !has_errors;

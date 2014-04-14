@@ -240,7 +240,7 @@ frappe.ui.toolbar.clear_cache = function() {
 }
 
 frappe.ui.toolbar.download_backup = function() {
-	msgprint(frappe._("Your download is being built, this may take a few moments..."));
+	msgprint(__("Your download is being built, this may take a few moments..."));
 	return $c('frappe.utils.backups.get_backup',{},function(r,rt) {});
 	return false;
 }

@@ -34,7 +34,7 @@ _p.go = function(html) {
 _p.preview = function(html) {
 	var w = window.open();
 	if(!w) {
-		msgprint(_("Please enable pop-ups"));
+		msgprint(__("Please enable pop-ups"));
 		return;
 	}
 	w.document.write(html);
@@ -116,12 +116,12 @@ $.extend(_p, {
 		};
 
 		if(!cur_frm) {
-			msgprint(frappe._("No document selected."));
+			msgprint(__("No document selected"));
 			return;
 		}
 
 		if(!frappe.model.can_print(cur_frm.doctype, cur_frm)) {
-			msgprint(frappe._("You are not allowed to print this document."));
+			msgprint(__("You are not allowed to print this document"));
 			return;
 		}
 
@@ -140,7 +140,7 @@ $.extend(_p, {
 		} else {
 			var print_format_doc = locals["Print Format"][args.fmtname];
 			if(!print_format_doc) {
-				msgprint("Unknown Print Format: " + args.fmtname);
+				msgprint(__("Unknown Print Format: {0}", [args.fmtname]));
 				return;
 			}
 			args.onload(_p.render({

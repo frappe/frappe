@@ -190,7 +190,7 @@ frappe.UserProperties = Class.extend({
 					},
 					callback: function(r) {
 						if(r.exc) {
-							msgprint("Did not remove.");
+							msgprint(__("Did not remove"));
 						} else {
 							me.refresh();
 						}
@@ -247,7 +247,7 @@ frappe.UserProperties = Class.extend({
 						args: args,
 						callback: function(r) {
 							if(r.exc) {
-								msgprint("Did not add.");
+								msgprint("Did not add");
 							} else {
 								me.refresh();
 							}

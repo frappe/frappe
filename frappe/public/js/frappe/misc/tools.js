@@ -5,8 +5,7 @@ frappe.provide("frappe.tools");
 
 frappe.tools.downloadify = function(data, roles, me) {
 	if(roles && roles.length && !has_common(roles, user_roles)) {
-		msgprint("Export not allowed. You need " + frappe.utils.comma_or(roles)
-			+ " Role to export.");
+		msgprint(__("Export not allowed. You need {0} role to export.", [frappe.utils.comma_or(roles)]));
 		return;
 	}
 	
@@ -28,7 +27,8 @@ frappe.tools.downloadify = function(data, roles, me) {
 		frappe.require("assets/frappe/js/lib/downloadify/swfobject.js");
 
 		var id = frappe.dom.set_unique_id();
-		var msgobj = msgprint('<p id="'+ id +'"></p><hr><a id="alternative-download">Alternative download link</a>');
+		var msgobj = msgprint($.format('<p id="{0}"></p><hr><a id="alternative-download">{1}</a>',[
+					id, __('Alternative download link')]));
 		msgobj.$wrapper.find("#alternative-download").on("click", function() { download_from_server(); });
 
 		Downloadify.create(id ,{

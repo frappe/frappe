@@ -283,7 +283,7 @@ frappe.views.CommunicationComposer = Class.extend({
 
 		if(form_values.send_email) {
 			if(cur_frm && !frappe.model.can_email(me.doc.doctype, cur_frm)) {
-				msgprint(frappe._("You are not allowed to send emails related to this document."));
+				msgprint(__("You are not allowed to send emails related to this document"));
 				return;
 			}
 			
@@ -311,11 +311,11 @@ frappe.views.CommunicationComposer = Class.extend({
 			callback: function(r) {
 				if(!r.exc) {
 					if(form_values.send_email)
-						msgprint("Email sent to " + form_values.recipients);
+						msgprint(__("Email sent to {0}", [form_values.recipients]));
 					me.dialog.hide();
 					cur_frm.reload_doc();
 				} else {
-					msgprint("There were errors while sending email. Please try again.")
+					msgprint(__("There were errors while sending email. Please try again."));
 				}
 			}
 		});

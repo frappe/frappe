@@ -49,7 +49,7 @@ frappe.modules_setup = {
 				ml: ml
 			},
 			callback: function(r) {
-				if(r.exc) msgprint("There were errors.")
+				if(r.exc) msgprint(__("There were errors"))
 			},
 			btn: btn
 		});

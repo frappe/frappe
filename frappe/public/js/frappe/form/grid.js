@@ -525,9 +525,9 @@ frappe.ui.form.GridRow = Class.extend({
 				return false;
 			});
 		this.form_panel.find(".shortcuts").on("click", function() {
-			msgprint('Move Up: Ctrl+<i class="icon-arrow-up"></i>');
-			msgprint('Move Down: Ctrl+<i class="icon-arrow-down"></i>');
-			msgprint('Close: Esc');
+			msgprint(__('Move Up: {0}', ['Ctrl+<i class="icon-arrow-up"></i>']));
+			msgprint(__('Move Down: {0}', ['Ctrl+<i class="icon-arrow-down"></i>']));
+			msgprint(__('Close: {0}', ['Esc']));
 			return false;
 		})
 	},

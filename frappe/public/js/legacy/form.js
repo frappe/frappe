@@ -58,15 +58,15 @@ _f.Frm = function(doctype, parent, in_form) {
 _f.Frm.prototype.check_doctype_conflict = function(docname) {
 	var me = this;
 	if(this.doctype=='DocType' && docname=='DocType') {
-		msgprint('Allowing DocType, DocType. Be careful!')
+		msgprint(__('Allowing DocType, DocType. Be careful!'))
 	} else if(this.doctype=='DocType') {
 		if (frappe.views.formview[docname] || frappe.pages['List/'+docname]) {
-			msgprint("Cannot open DocType when its instance is open")
+			msgprint(__("Cannot open {0} when its instance is open"), ['DocType'])
 			throw 'doctype open conflict'
 		}
 	} else {
 		if (frappe.views.formview.DocType && frappe.views.formview.DocType.frm.opendocs[this.doctype]) {
-			msgprint("Cannot open instance when its DocType is open")
+			msgprint(__("Cannot open instance when its {0} is open"), ['DocType'])
 			throw 'doctype open conflict'
 		}		
 	}
@@ -171,12 +171,12 @@ _f.Frm.prototype.print_doc = function() {
 		return;
 	}
 	if(!frappe.model.can_print(this.doc.doctype, cur_frm)) {
-		msgprint(frappe._("You are not allowed to Print this document."));
+		msgprint(__("You are not allowed to print this document"));
 		return;
 	}
 	
 	if(this.doc.docstatus==2)  {
-		msgprint(frappe._("Cannot Print Cancelled Documents."));
+		msgprint(__("Cannot print cancelled documents"));
 		return;
 	}
 	this.print_wrapper.toggle(true);
@@ -571,7 +571,7 @@ _f.Frm.prototype.runscript = function(scriptname, callingfield, onrefresh) {
 
 _f.Frm.prototype.copy_doc = function(onload, from_amend) {
 	if(!this.perm[0].create) {
-		msgprint('You are not allowed to create '+this.meta.name);
+		msgprint(__('You are not allowed to create {0}', [this.meta.name]));
 		return;
 	}
 	

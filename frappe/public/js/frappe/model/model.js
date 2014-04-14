@@ -35,7 +35,7 @@ $.extend(frappe.model, {
 				if(d.fieldname==fieldname) return d;
 			});
 		if(!docfield.length) {
-			msgprint("Unknown Column: " + fieldname);
+			msgprint(__("Unknown Column: {0}", [fieldname]));
 		}
 		return docfield[0];
 	},
@@ -59,7 +59,7 @@ $.extend(frappe.model, {
 				},
 				callback: function(r) {
 					if(r.exc) {
-						msgprint(frappe._("Unable to load") + ": " + frappe._(doctype));
+						msgprint(__("Unable to load: {0}", [__(doctype)]);
 						throw "No doctype";
 						return;
 					}

@@ -56,7 +56,10 @@ frappe.ui.FieldGroup = frappe.ui.form.Layout.extend({
 			}
 		}
 		if(errors.length) {
-			msgprint('<i class="icon-warning-sign"></i> <b>' + frappe._('Missing Values Required') + '</b>:<br><br>' + errors.join('\n'));
+			msgprint($.format('<i class="icon-warning-sign"></i>\
+						<b>{0}</b>:\
+						<br/><br/>\
+						{1}', [__('Missing Values Required'), errors.join('\n')]));
 			return null;
 		}
 		return ret;

@@ -62,7 +62,7 @@ frappe.views.QueryReport = Class.extend({
 		// Edit
 		var edit_btn = this.appframe.add_primary_action(frappe._('Edit'), function() {
 			if(!frappe.user.is_report_manager()) {
-				msgprint(frappe._("You are not allowed to create / edit reports"));
+				msgprint(__("You are not allowed to create / edit reports"));
 				return false;
 			}
 			frappe.set_route("Form", "Report", me.report_name);
@@ -428,7 +428,7 @@ frappe.views.QueryReport = Class.extend({
 	},
 	export_report: function() {
 		if(!frappe.model.can_export(this.report_doc.ref_doctype)) {
-			msgprint(frappe._("You are not allowed to export this report."));
+			msgprint(_("You are not allowed to export this report"));
 			return false;
 		}
 

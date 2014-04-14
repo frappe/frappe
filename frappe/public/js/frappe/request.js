@@ -58,10 +58,10 @@ frappe.request.call = function(opts) {
 		dataType: opts.dataType || 'json',
 		statusCode: {
 			404: function(xhr) {
-				msgprint("Not Found");
+				msgprint(__("Not found"));
 			},
 			403: function(xhr) {
-				msgprint("Not Permitted");
+				msgprint(__("Not permitted"));
 			},
 			200: function(data, xhr) {
 				opts.success && opts.success(data, xhr.responseText);
@@ -139,7 +139,7 @@ frappe.request.cleanup = function(opts, r) {
 	// session expired? - Guest has no business here!
 	if(r.session_expired || frappe.get_cookie("sid")==="Guest") { 
 		if(!frappe.app.logged_out) {
-			msgprint(frappe._('Session Expired. Logging you out'));
+			msgprint(__('Session Expired. Logging you out'));
 			frappe.app.logout();
 		}
 		return;

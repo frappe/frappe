@@ -319,7 +319,7 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 		} else if(this.df.options == 'Email') {
 			if(v+''=='')return '';
 			if(!validate_email(v)) {
-				msgprint(frappe._("Invalid Email") + ": " +  v);
+				msgprint(__("Invalid Email: {0}", [v]));
 					callback("");
 			} else
 				callback(v);
@@ -413,7 +413,7 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 	validate: function(value, callback) {
 		var value = frappe.datetime.validate(value);
 		if(!value) {
-			msgprint (frappe._("Date must be in format") + ": " + (sys_defaults.date_format || "yyyy-mm-dd"));
+			msgprint (__("Date must be in format: {0}", [sys_defaults.date_format || "yyyy-mm-dd"]));
 			callback("");
 		}
 		return callback(value);

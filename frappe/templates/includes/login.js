@@ -15,7 +15,7 @@ login.bind_events = function() {
 		args.usr = ($("#login_email").val() || "").trim();
 		args.pwd = $("#login_password").val();
 		if(!args.usr || !args.pwd) {
-			frappe.msgprint("Both login and password required.");
+			frappe.msgprint(__("Both login and password required"));
 			return false;
 		}	
 		login.call(args);
@@ -28,7 +28,7 @@ login.bind_events = function() {
 		args.email = ($("#signup_email").val() || "").trim();
 		args.full_name = ($("#signup_fullname").val() || "").trim();
 		if(!args.email || !valid_email(args.email) || !args.full_name) {
-			frappe.msgprint("Valid email and name required.");
+			frappe.msgprint(__("Valid email and name required"));
 			return false;
 		}
 		login.call(args);
@@ -40,7 +40,7 @@ login.bind_events = function() {
 		args.cmd = "frappe.core.doctype.user.user.reset_password";
 		args.user = ($("#forgot_email").val() || "").trim();
 		if(!args.user) {
-			frappe.msgprint("Valid Login id required.");
+			frappe.msgprint(__("Valid Login id required."));
 			return false;
 		}
 		login.call(args);
@@ -105,7 +105,7 @@ login.login_handlers = {
 		if(xhr.responseJSON) {
 			data = xhr.responseJSON;
 		}
-		var message = data._server_messages ? JSON.parse(data._server_messages).join("\n") : "Invalid Login";
+		var message = data._server_messages ? JSON.parse(data._server_messages).join("\n") : __("Invalid Login");
 		frappe.msgprint(message);
 	}
 }

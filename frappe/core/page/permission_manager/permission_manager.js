@@ -250,9 +250,9 @@ frappe.PermissionEngine = Class.extend({
 					},
 					callback: function(r) {
 						r.message = $.map(r.message, function(p) {
-							return '<a href="#Form/User/'+p+'">'+p+'</a>';
+							return $.format('<a href="#Form/User/{0}">{1}</a>', [p, p]);
 						})
-						msgprint("<h4>Users with role "+role+":</h4>" 
+						msgprint(__("Users with role {0}:", [role])
 							+ r.message.join("<br>"));
 					}
 				})
@@ -291,7 +291,7 @@ frappe.PermissionEngine = Class.extend({
 					},
 					callback: function(r) {
 						if(r.exc) {
-							msgprint("Did not remove.");
+							msgprint(__("Did not remove"));
 						} else {
 							me.refresh();
 						}
@@ -364,7 +364,7 @@ frappe.PermissionEngine = Class.extend({
 						args: args,
 						callback: function(r) {
 							if(r.exc) {
-								msgprint(frappe._("Did not add."));
+								msgprint(__("Did not add"));
 							} else {
 								me.refresh();
 							}

@@ -84,8 +84,7 @@ frappe.pages['data-import-tool'].onload = function(wrapper) {
 			with_data = false;
 
 			if(verbose) {
-				msgprint(frappe._("You are not allowed to export the data of") + ": " + frappe._(doctype)
-					+ ". " + frappe._("Downloading empty template") + ".");
+				msgprint(__("You are not allowed to export the data of: {0}. Downloading empty template.", [doctype]));
 			}
 		}
 		return with_data;

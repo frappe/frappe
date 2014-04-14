@@ -196,7 +196,7 @@ frappe.views.GridReport = Class.extend({
 				filters.val(value);
 			}
 		} else {
-			msgprint("Invalid Filter: " + key)
+			msgprint(__("Invalid Filter: {0}", [key]))
 		}
 	},
 	set_autocomplete: function($filter, list) {
@@ -300,7 +300,7 @@ frappe.views.GridReport = Class.extend({
 		});
 		
 		if(this.filter_inputs.from_date && this.filter_inputs.to_date && (this.to_date < this.from_date)) {
-			msgprint(frappe._("From Date must be before To Date"));
+			msgprint(__("From Date must be before To Date"));
 			return;
 		}
 		
@@ -857,8 +857,7 @@ frappe.views.TreeGridReport = frappe.views.GridReportWithPlot.extend({
 			if(group_ids.indexOf(item.name)==-1) {
 				item_group_map[parent].push(item);				
 			} else {
-				msgprint("Ignoring Item "+ item.name.bold() + 
-					", because a group exists with the same name!");
+				msgprint(__("Ignoring Item {0}, because a group exists with the same name!", [item.name.bold()]));
 			}
 		});
 		
@@ -887,10 +886,15 @@ frappe.views.TreeGridReport = frappe.views.GridReportWithPlot.extend({
 	},
 	
 	export: function() {
-		var msgbox = msgprint('<p>Select To Download:</p>\
-			<p><input type="checkbox" name="with_groups" checked="checked"> With Groups</p>\
-			<p><input type="checkbox" name="with_ledgers" checked="checked"> With Ledgers</p>\
-			<p><button class="btn btn-info">Download</button>');
+		var msgbox = msgprint($.format('<p>{0}</p>\
+			<p><input type="checkbox" name="with_groups" checked="checked"> {1}</p>\
+			<p><input type="checkbox" name="with_ledgers" checked="checked"> {2}</p>\
+			<p><button class="btn btn-info"> {3}</button>', [
+				__('Select To Download:'),
+				__('With Groups'),
+				__('With Ledgers'),
+				__('Download')
+			]));
 
 		var me = this;
 

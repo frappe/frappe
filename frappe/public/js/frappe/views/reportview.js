@@ -505,7 +505,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 					},
 					callback: function(r) {
 						if(r.exc) {
-							msgprint(frappe._("Report was not saved (there were errors)"));
+							msgprint(__("Report was not saved (there were errors)"));
 							return;
 						}
 						if(r.message != me.docname)

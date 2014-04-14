@@ -70,7 +70,7 @@ frappe.upload = {
 	},
 	upload_file: function(fileobj, args, opts) {
 		if(!fileobj && !args.file_url) {
-			msgprint(frappe._("Please attach a file or set a URL"));
+			msgprint(__("Please attach a file or set a URL"));
 			return;
 		}
 		
@@ -79,7 +79,7 @@ frappe.upload = {
 			if(opts.on_attach) {
 				opts.on_attach(args, dataurl)
 			} else {
-				var msgbox = msgprint(frappe._("Uploading..."));
+				var msgbox = msgprint(__("Uploading..."));
 				return frappe.call({
 					"method": "uploadfile",
 					args: args,
