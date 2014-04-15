@@ -49,12 +49,12 @@ frappe.ui.Listing = Class.extend({
 			}
 		}
 		if(!this.opts.no_result_message) {
-			this.opts.no_result_message = frappe._('Nothing to show');
+			this.opts.no_result_message = __('Nothing to show');
 		}
 		if(!this.opts.page_length) {
 			this.opts.page_length = 20;
 		}
-		this.opts._more = frappe._("More");
+		this.opts._more = __("More");
 	},
 	make: function(opts) {
 		if(opts) {
@@ -170,17 +170,17 @@ frappe.ui.Listing = Class.extend({
 		// new
 		if(this.new_doctype) {
 			if(this.appframe) {
-				this.appframe.set_title_right("<i class='icon-plus'></i> " + frappe._('New'), function() { 
+				this.appframe.set_title_right("<i class='icon-plus'></i> " + __('New'), function() { 
 					(me.custom_new_doc || me.make_new_doc).apply(me, [me.new_doctype]); });
 			}
-			this.add_button(frappe._('New'), function() { 
+			this.add_button(__('New'), function() { 
 				(me.custom_new_doc || me.make_new_doc).apply(me, [me.new_doctype]);
 			}, 'icon-plus');
 		} 
 		
 		// hide-filter
 		if(me.show_filters) {
-			this.add_button(frappe._('Filter'), function() {
+			this.add_button(__('Filter'), function() {
 				me.filter_list.show_filters();
 			}, 'icon-search').addClass('btn-filter');
 		}
@@ -293,7 +293,7 @@ frappe.ui.Listing = Class.extend({
 					? this.get_no_result_message()
 					: (this.no_result_message 
 						? this.no_result_message
-						: frappe._("Nothing to show"));
+						: __("Nothing to show"));
 						
 				this.$w.find('.no-result')
 					.html(msg)

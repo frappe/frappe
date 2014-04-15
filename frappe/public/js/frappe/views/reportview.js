@@ -51,7 +51,7 @@ frappe.views.ReportViewPage = Class.extend({
 	},
 	make_report_view: function() {
 		var module = locals.DocType[this.doctype].module;
-		this.page.appframe.set_title(frappe._(this.doctype));
+		this.page.appframe.set_title(__(this.doctype));
 		this.page.appframe.add_module_icon(module, this.doctype)
 		this.page.appframe.set_views_for(this.doctype, "report");
 
@@ -67,7 +67,7 @@ frappe.views.ReportViewPage = Class.extend({
 frappe.views.ReportView = frappe.ui.Listing.extend({
 	init: function(opts) {
 		var me = this;
-		$(this.page).find('.layout-main').html(frappe._('Loading Report')+'...');
+		$(this.page).find('.layout-main').html(__('Loading Report')+'...');
 		$(this.page).find('.layout-main').empty();
 		$.extend(this, opts);
 		this.can_delete = frappe.model.can_delete(me.doctype);
@@ -88,7 +88,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 
 	setup: function() {
 		var me = this;
-		this.page_title = frappe._('Report')+ ': ' + frappe._(this.docname ? (this.doctype + ' - ' + this.docname) : this.doctype);
+		this.page_title = __('Report')+ ': ' + __(this.docname ? (this.doctype + ' - ' + this.docname) : this.doctype);
 		this.page.appframe.set_title(this.page_title)
 		this.make({
 			appframe: this.page.appframe,
@@ -216,7 +216,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 				id: c[0],
 				field: c[0],
 				docfield: docfield,
-				name: frappe._(docfield ? docfield.label : toTitle(c[0])),
+				name: __(docfield ? docfield.label : toTitle(c[0])),
 				width: (docfield ? cint(docfield.width) : 120) || 120,
 				formatter: function(row, cell, value, columnDef, dataContext) {
 					var docfield = columnDef.docfield;
@@ -315,13 +315,13 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 	edit_cell: function(row, docfield) {
 		if(docfield.fieldname !== "idx" && 
 			frappe.model.std_fields_list.indexOf(docfield.fieldname)!==-1) {
-			frappe.throw(frappe._("Cannot edit standard fields"));
+			frappe.throw(__("Cannot edit standard fields"));
 		} else if(frappe.boot.user.can_write.indexOf(this.doctype)===-1) {
-			frappe.throw(frappe._("No permission to edit"));
+			frappe.throw(__("No permission to edit"));
 		}
 		var me = this;
 		var d = new frappe.ui.Dialog({
-			title: frappe._("Edit") + " " + frappe._(docfield.label),
+			title: __("Edit") + " " + __(docfield.label),
 			fields: [docfield, {"fieldtype": "Button", "label": "Update"}],
 		});
 		d.get_input(docfield.fieldname).val(row[docfield.fieldname]);
@@ -387,7 +387,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 	make_column_picker: function() {
 		var me = this;
 		this.column_picker = new frappe.ui.ColumnPicker(this);
-		this.page.appframe.add_button(frappe._('Pick Columns'), function() {
+		this.page.appframe.add_button(__('Pick Columns'), function() {
 			me.column_picker.show(me.columns);
 		}, 'icon-th-list');
 	},
@@ -414,16 +414,16 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		$(this.sort_dialog.body).html('<p class="help">Sort By</p>\
 			<div class="sort-column"></div>\
 			<div><select class="sort-order form-control" style="margin-top: 10px; width: 60%;">\
-				<option value="asc">'+frappe._('Ascending')+'</option>\
-				<option value="desc">'+frappe._('Descending')+'</option>\
+				<option value="asc">'+__('Ascending')+'</option>\
+				<option value="desc">'+__('Descending')+'</option>\
 			</select></div>\
-			<hr><p class="help">'+frappe._('Then By (optional)')+'</p>\
+			<hr><p class="help">'+__('Then By (optional)')+'</p>\
 			<div class="sort-column-1"></div>\
 			<div><select class="sort-order-1 form-control" style="margin-top: 10px; width: 60%;">\
-				<option value="asc">'+frappe._('Ascending')+'</option>\
-				<option value="desc">'+frappe._('Descending')+'</option>\
+				<option value="asc">'+__('Ascending')+'</option>\
+				<option value="desc">'+__('Descending')+'</option>\
 			</select></div><hr>\
-			<div><button class="btn btn-info">'+frappe._('Update')+'</div>');
+			<div><button class="btn btn-info">'+__('Update')+'</div>');
 		
 		// first
 		this.sort_by_select = new frappe.ui.FieldSelect({
@@ -450,7 +450,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		this.sort_order_next_select.val('desc');
 		
 		// button actions
-		this.page.appframe.add_button(frappe._('Sort By'), function() {
+		this.page.appframe.add_button(__('Sort By'), function() {
 			me.sort_dialog.show();
 		}, 'icon-sort-by-alphabet');
 		
@@ -466,7 +466,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		if(!frappe.model.can_export(this.doctype)) {
 			return;
 		}
-		var export_btn = this.page.appframe.add_button(frappe._('Export'), function() {
+		var export_btn = this.page.appframe.add_button(__('Export'), function() {
 			var args = me.get_args();
 			args.cmd = 'frappe.widgets.reportview.export_query'
 			open_url_post(frappe.request.url, args);
@@ -477,12 +477,12 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 	make_save: function() {
 		var me = this;
 		if(frappe.user.is_report_manager()) {
-			this.page.appframe.add_button(frappe._('Save'), function() {
+			this.page.appframe.add_button(__('Save'), function() {
 				// name
 				if(me.docname) {
 					var name = me.docname
 				} else {
-					var name = prompt(frappe._('Select Report Name'));
+					var name = prompt(__('Select Report Name'));
 					if(!name) {
 						return;
 					}
@@ -524,7 +524,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 					= this.checked ? true : false;
 			});
 			
-			this.page.appframe.add_button(frappe._("Delete"), function() {
+			this.page.appframe.add_button(__("Delete"), function() {
 				var delete_list = []
 				$.each(me.data, function(i, d) {
 					if(d._checked) {
@@ -535,7 +535,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 				
 				if(!delete_list.length) 
 					return;
-				if(frappe.confirm(frappe._("This is PERMANENT action and you cannot undo. Continue?"),
+				if(frappe.confirm(__("This is PERMANENT action and you cannot undo. Continue?"),
 					function() {
 						return frappe.call({
 							method: 'frappe.widgets.reportview.delete_items',
@@ -556,7 +556,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 	make_user_restrictions: function() {
 		var me = this;
 		if(this.docname && frappe.model.can_restrict("Report")) {
-			this.page.appframe.add_button(frappe._("User Permission Restrictions"), function() {
+			this.page.appframe.add_button(__("User Permission Restrictions"), function() {
 				frappe.route_options = {
 					property: "Report",
 					restriction: me.docname
@@ -574,19 +574,19 @@ frappe.ui.ColumnPicker = Class.extend({
 	},
 	clear: function() {
 		this.columns = [];
-		$(this.dialog.body).html('<div class="help">'+frappe._("Drag to sort columns")+'</div>\
+		$(this.dialog.body).html('<div class="help">'+__("Drag to sort columns")+'</div>\
 			<div class="column-list"></div>\
 			<div><button class="btn btn-default btn-add"><i class="icon-plus"></i>\
-				'+frappe._("Add Column")+'</button></div>\
+				'+__("Add Column")+'</button></div>\
 			<hr>\
-			<div><button class="btn btn-info">'+frappe._("Update")+'</div>');
+			<div><button class="btn btn-info">'+__("Update")+'</div>');
 		
 	},
 	show: function(columns) {
 		var me = this;
 		if(!this.dialog) {
 			this.dialog = new frappe.ui.Dialog({
-				title: frappe._("Pick Columns"),
+				title: __("Pick Columns"),
 				width: '400'
 			});
 		}

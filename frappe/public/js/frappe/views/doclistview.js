@@ -31,11 +31,11 @@ $(document).on("save", function(event, doc) {
 frappe.views.DocListView = frappe.ui.Listing.extend({
 	init: function(opts) {
 		$.extend(this, opts)
-		this.label = frappe._(this.doctype);
+		this.label = __(this.doctype);
 		this.dirty = true;
 		this.tags_shown = false;
 		this.label = (this.label.toLowerCase().substr(-4) == 'list') ?
-		 	frappe._(this.label) : (frappe._(this.label) + ' ' + frappe._('List'));
+		 	__(this.label) : (__(this.label) + ' ' + __('List'));
 		this.make_page();
 		this.setup();
 		
@@ -54,18 +54,18 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		this.$page = $(this.page).css({"min-height": "400px"});
 				
 		$('<div class="frappe-list-area" style="margin-bottom: 25px;">\
-			<div class="help">'+frappe._('Loading')+'...</div></div>')
+			<div class="help">'+__('Loading')+'...</div></div>')
 			.appendTo(this.$page.find(".layout-main-section"));
 			
 		$('<div class="show-docstatus hide side-panel">\
 			<h5 class="text-muted">Show</h5>\
 			<div class="side-panel-body">\
 			<div class="text-muted small"><input data-docstatus="0" type="checkbox" \
-				checked="checked" /> '+frappe._('Drafts')+'</div>\
+				checked="checked" /> '+__('Drafts')+'</div>\
 			<div class="text-muted small"><input data-docstatus="1" type="checkbox" \
-				checked="checked" /> '+frappe._('Submitted')+'</div>\
+				checked="checked" /> '+__('Submitted')+'</div>\
 			<div class="text-muted small"><input data-docstatus="2" type="checkbox" \
-				/> '+frappe._('Cancelled')+'</div></div>\
+				/> '+__('Cancelled')+'</div></div>\
 		</div>')
 			.appendTo(this.$page.find(".layout-side-section"));
 		
@@ -75,7 +75,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		this.appframe = this.page.appframe;
 		var module = locals.DocType[this.doctype].module;
 		
-		this.appframe.set_title(frappe._(this.doctype) + " " + frappe._("List"));
+		this.appframe.set_title(__(this.doctype) + " " + __("List"));
 		this.appframe.add_module_icon(module, this.doctype, null, true);
 		this.appframe.set_views_for(this.doctype, "list");
 	},
@@ -117,17 +117,17 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 			var match_text = []
 			$.each(match_rules, function(key, values) {
 				if(values.length==0) {
-					match_text.push(frappe._(key) + frappe._(" is not set"));
+					match_text.push(__(key) + __(" is not set"));
 				} else if(values.length) {
-					match_text.push(frappe._(key) + " = " + frappe.utils.comma_or(values));
+					match_text.push(__(key) + " = " + frappe.utils.comma_or(values));
 				}
 			});
 			
 			if(perm[0].restricted) {
-				match_text.push(frappe._("Or Created By") + " = " + user);
+				match_text.push(__("Or Created By") + " = " + user);
 			}
 			frappe.utils.set_footnote(this, this.$page.find(".layout-main-section"), 
-				"<p>" + frappe._("Showing only for (if not empty)") + ":</p><ul>" 
+				"<p>" + __("Showing only for (if not empty)") + ":</p><ul>" 
 				+ $.map(match_text, function(txt) { return "<li>"+txt+"</li>" }).join("")) + "</ul>";
 			$(this.footnote_area).css({"margin-top":"0px", "margin-bottom":"20px"});
 		}
@@ -226,11 +226,11 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		var new_button = frappe.boot.user.can_create.indexOf(this.doctype)!=-1
 			? ('<hr><p><button class="btn btn-primary" \
 				list_view_doc="%(doctype)s">'+
-				frappe._('Make a new') + ' %(doctype_label)s</button></p>')
+				__('Make a new') + ' %(doctype_label)s</button></p>')
 			: '';
 		var no_result_message = repl('<div class="well" style="margin-top: 20px;">\
-		<p>' + frappe._("No") + ' %(doctype_label)s ' + frappe._("found") + '</p>' + new_button + '</div>', {
-			doctype_label: frappe._(this.doctype),
+		<p>' + __("No") + ' %(doctype_label)s ' + __("found") + '</p>' + new_button + '</div>', {
+			doctype_label: __(this.doctype),
 			doctype: this.doctype,
 		});
 		
@@ -264,17 +264,17 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 	},
 	init_minbar: function() {
 		var me = this;
-		this.appframe.add_icon_btn("2", 'icon-tag', frappe._('Show Tags'), function() { me.toggle_tags(); });
+		this.appframe.add_icon_btn("2", 'icon-tag', __('Show Tags'), function() { me.toggle_tags(); });
 		this.wrapper.on("click", ".list-tag-preview", function() { me.toggle_tags(); });
 		if(this.can_delete || this.listview.settings.selectable) {
-			this.appframe.add_icon_btn("2", 'icon-remove', frappe._('Delete'), function() { me.delete_items(); });
-			this.appframe.add_icon_btn("2", 'icon-ok', frappe._('Select All'), function() { 
+			this.appframe.add_icon_btn("2", 'icon-remove', __('Delete'), function() { me.delete_items(); });
+			this.appframe.add_icon_btn("2", 'icon-ok', __('Select All'), function() { 
 				me.$page.find('.list-delete').prop("checked", 
 					me.$page.find('.list-delete:checked').length ? false : true);
 			});
 		}
 		if(frappe.model.can_import(this.doctype)) {
-			this.appframe.add_icon_btn("2", "icon-upload", frappe._("Import"), function() {
+			this.appframe.add_icon_btn("2", "icon-upload", __("Import"), function() {
 				frappe.set_route("data-import-tool", {
 					doctype: me.doctype
 				})
@@ -282,7 +282,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		}
 		if(frappe.model.can_restrict(this.doctype)) {
 			this.appframe.add_icon_btn("2", "icon-shield", 
-				frappe._("User Permission Restrictions"), function() {
+				__("User Permission Restrictions"), function() {
 					frappe.route_options = {
 						property: me.doctype
 					};
@@ -290,7 +290,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 				});
 		}
 		if(in_list(user_roles, "System Manager")) {
-			this.appframe.add_icon_btn("2", "icon-glass", frappe._("Customize"), function() {
+			this.appframe.add_icon_btn("2", "icon-glass", __("Customize"), function() {
 				frappe.set_route("Form", "Customize Form", {
 					doctype: me.doctype
 				})
@@ -319,7 +319,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		if(!dl.length) 
 			return;
 			
-		frappe.confirm(frappe._('This is permanent action and you cannot undo. Continue?'),
+		frappe.confirm(__('This is permanent action and you cannot undo. Continue?'),
 			function() {
 				me.set_working(true);
 				return frappe.call({

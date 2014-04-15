@@ -40,7 +40,7 @@ frappe.views.Gantt = Class.extend({
 			me = this;
 			
 		this.appframe = this.page.appframe;
-		this.appframe.set_title(frappe._("Gantt Chart") + " - " + frappe._(this.doctype));
+		this.appframe.set_title(__("Gantt Chart") + " - " + __(this.doctype));
 		this.appframe.add_module_icon(module)
 		this.appframe.set_views_for(this.doctype, "gantt");
 
@@ -80,7 +80,7 @@ frappe.views.Gantt = Class.extend({
 			callback: function(r) {
 				$(parent).empty();
 				if(!r.message || !r.message.length) {
-					$(parent).html('<div class="alert alert-info">' + frappe._('Nothing to show for this selection') + '</div>');
+					$(parent).html('<div class="alert alert-info">' + __('Nothing to show for this selection') + '</div>');
 				} else {
 					var gantt_area = $('<div class="gantt">').appendTo(parent);
 					gantt_area.gantt({

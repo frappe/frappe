@@ -60,10 +60,10 @@ frappe.utils = {
 		return ret;
 	},
 	comma_or: function(list) {
-		return frappe.utils.comma_sep(list, " " + frappe._("or") + " ");
+		return frappe.utils.comma_sep(list, " " + __("or") + " ");
 	},
 	comma_and: function(list) {
-		return frappe.utils.comma_sep(list, " " + frappe._("and") + " ");
+		return frappe.utils.comma_sep(list, " " + __("and") + " ");
 	},
 	comma_sep: function(list, sep) {
 		if(list instanceof Array) {

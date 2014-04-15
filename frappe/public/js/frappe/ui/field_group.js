@@ -50,7 +50,7 @@ frappe.ui.FieldGroup = frappe.ui.form.Layout.extend({
 				var v = f.get_parsed_value();
 
 				if(f.df.reqd && !v) 
-					errors.push('- ' + frappe._(f.df.label) + "<br>");
+					errors.push('- ' + __(f.df.label) + "<br>");
 
 				if(v) ret[f.df.fieldname] = v;
 			}

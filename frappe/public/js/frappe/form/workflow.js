@@ -46,17 +46,17 @@ frappe.ui.form.States = Class.extend({
 			})
 			var next_html = $.map(frappe.workflow.get_transitions(me.frm.doctype, state), 
 				function(d) { 
-					return d.action.bold() + frappe._(" by Role ") + d.allowed;
-				}).join(", ") || frappe._("None: End of Workflow").bold();
+					return d.action.bold() + __(" by Role ") + d.allowed;
+				}).join(", ") || __("None: End of Workflow").bold();
 			
-			$(d.body).html("<p>"+frappe._("Current status")+": " + state.bold() + "</p>"
-				+ "<p>"+frappe._("Document is only editable by users of role")+": " 
+			$(d.body).html("<p>"+__("Current status")+": " + state.bold() + "</p>"
+				+ "<p>"+__("Document is only editable by users of role")+": " 
 					+ frappe.workflow.get_document_state(me.frm.doctype,
 						state).allow_edit.bold() + "</p>"
-				+ "<p>"+frappe._("Next actions")+": "+ next_html +"</p>"
+				+ "<p>"+__("Next actions")+": "+ next_html +"</p>"
 				+ (me.frm.doc.__islocal ? ("<div class='alert alert-info'>"
-					+frappe._("Workflow will start after saving.")+"</div>") : "")
-				+ "<p class='help'>"+frappe._("Note: Other permission rules may also apply")+"</p>"
+					+__("Workflow will start after saving.")+"</div>") : "")
+				+ "<p class='help'>"+__("Note: Other permission rules may also apply")+"</p>"
 				).css({padding: '15px'});
 			d.show();
 		});
@@ -173,9 +173,9 @@ frappe.ui.form.States = Class.extend({
 			} else if(new_docstatus==2 && me.frm.doc.docstatus==1) {
 				me.frm.savecancel(null, on_error);
 			} else {
-				msgprint(frappe._("Document Status transition from ") + me.frm.doc.docstatus + " " 
-					+ frappe._("to") + 
-					new_docstatus + " " + frappe._("is not allowed."));
+				msgprint(__("Document Status transition from ") + me.frm.doc.docstatus + " " 
+					+ __("to") + 
+					new_docstatus + " " + __("is not allowed."));
 				msgprint(__("Document Status transition from {0} to {1} is not allowed", [me.frm.doc.docstatus, new_docstatus]));
 				return false;
 			}

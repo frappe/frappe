@@ -281,7 +281,7 @@ frappe.views.GridReport = Class.extend({
 		});
 	},
 	make_waiting: function() {
-		this.waiting = frappe.messages.waiting(this.wrapper, frappe._("Loading Report")+"...", '10');			
+		this.waiting = frappe.messages.waiting(this.wrapper, __("Loading Report")+"...", '10');			
 	},
 	load_filter_values: function() {
 		var me = this;
@@ -388,7 +388,7 @@ frappe.views.GridReport = Class.extend({
 
 		// zero-value check
 		$('<div style="margin: 10px 0px; display: none" class="show-zero">\
-				<input type="checkbox"> '+frappe._('Show rows with zero values')
+				<input type="checkbox"> '+__('Show rows with zero values')
 			+'</div>').appendTo(this.wrapper);
 
 		this.bind_show();

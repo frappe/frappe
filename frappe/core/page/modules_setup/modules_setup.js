@@ -11,7 +11,7 @@ frappe.pages['modules_setup'].onload = function(wrapper) {
 	})
 	
 	$('<div class="alert alert-info">'
-		+frappe._("Select modules to be shown (based on permission). If hidden, they will be hidden for all users.")+'</div>').appendTo($(wrapper).find(".layout-main"));
+		+__("Select modules to be shown (based on permission). If hidden, they will be hidden for all users.")+'</div>').appendTo($(wrapper).find(".layout-main"));
 	$('<div id="modules-list">').appendTo($(wrapper).find(".layout-main"));
 	
 	frappe.modules_setup.refresh_page();

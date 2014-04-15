@@ -46,11 +46,11 @@ frappe.views.moduleview.ModuleView = Class.extend({
 		frappe.ui.make_app_page({
 			parent: wrapper,
 			single_column: true,
-			title: frappe._(frappe.modules[module] && frappe.modules[module].label || module)
+			title: __(frappe.modules[module] && frappe.modules[module].label || module)
 		});
 		wrapper.appframe.add_module_icon(module);
 		wrapper.appframe.set_title_left('<i class="icon-angle-left"></i> Home', function() { frappe.set_route(""); });
-		wrapper.appframe.set_title_right(frappe._("Refresh"), function() {
+		wrapper.appframe.set_title_right(__("Refresh"), function() {
 			me.make(wrapper, module);
 		});
 
@@ -122,7 +122,7 @@ frappe.views.moduleview.ModuleView = Class.extend({
 			// create nav tab
 			$nav = $('<li title="'+__(d.label)+'">\
 				<a><i class="'+d.icon+' icon-fixed-width"></i><span class="hidden-xs"> '
-				+ frappe._(d.label)+'</span></a></li>')
+				+ __(d.label)+'</span></a></li>')
 				.attr("data-label", d._label)
 				.attr("data-section-label", d.label)
 				.appendTo($sections);

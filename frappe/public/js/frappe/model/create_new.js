@@ -44,7 +44,7 @@ $.extend(frappe.model, {
 		if(!cnt[doctype])
 			cnt[doctype] = 0;
 		cnt[doctype]++;
-		return frappe._('New') + ' '+ frappe._(doctype) + ' ' + cnt[doctype];
+		return __('New') + ' '+ __(doctype) + ' ' + cnt[doctype];
 	},
 
 	set_default_values: function(doc, parent_doc) {
@@ -203,18 +203,18 @@ $.extend(frappe.model, {
 		}
 		if(opts.source_doctype) {
 			var d = new frappe.ui.Dialog({
-				title: frappe._("Get From ") + frappe._(opts.source_doctype),
+				title: __("Get From ") + __(opts.source_doctype),
 				fields: [
 					{
 						"fieldtype": "Link",
-						"label": frappe._(opts.source_doctype),
+						"label": __(opts.source_doctype),
 						"fieldname": opts.source_doctype,
 						"options": opts.source_doctype,
 						"get_query": opts.get_query,
 						reqd:1},
 					{
 						"fieldtype": "Button",
-						"label": frappe._("Get"),
+						"label": __("Get"),
 						click: function() {
 							var values = d.get_values();
 							if(!values)

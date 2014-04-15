@@ -32,7 +32,7 @@ frappe.views.SidebarStats = Class.extend({
 				
 				// reload button at the end
 				if(me.stats.length) {
-					$('<a class="small"><i class="refresh"></i> '+frappe._('Refresh')+'</a>')
+					$('<a class="small"><i class="refresh"></i> '+__('Refresh')+'</a>')
 						.css({"margin-top":"15px", "display":"inline-block"})
 						.click(function() {
 							me.reload_stats();
@@ -50,9 +50,9 @@ frappe.views.SidebarStats = Class.extend({
 		if(!stat || !stat.length) {
 			if(field==='_user_tags') {
 				$('<div class="side-panel">\
-					<h5 class="text-muted"><i class="icon-tag"></i> '+frappe._('Tags')+'</h5>\
+					<h5 class="text-muted"><i class="icon-tag"></i> '+__('Tags')+'</h5>\
 					<div class="side-panel-body">\
-						<div class="text-muted small"><i>'+frappe._('No records tagged.')+'</i><br>'
+						<div class="text-muted small"><i>'+__('No records tagged.')+'</i><br>'
 						+'</div>\
 					</div></div>').appendTo(this.wrapper);
 			}
@@ -65,7 +65,7 @@ frappe.views.SidebarStats = Class.extend({
 
 		// grid
 		var $w = $('<div class="side-panel">\
-			<h5 class="text-muted"><i class="icon-tag"></i> '+ frappe._(label) +'</h5>\
+			<h5 class="text-muted"><i class="icon-tag"></i> '+ __(label) +'</h5>\
 			<div class="side-panel-body">\
 			</div>\
 		</div>');
@@ -86,7 +86,7 @@ frappe.views.SidebarStats = Class.extend({
 		var me = this;
 		var args = {}
 		args.label = v[0];
-		args._label = frappe._(v[0]);
+		args._label = __(v[0]);
 		args.width = flt(v[1]) / max * 100;
 		args.count = v[1];
 		args.field = field;

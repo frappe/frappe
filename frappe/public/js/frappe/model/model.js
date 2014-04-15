@@ -478,8 +478,8 @@ $.extend(frappe.model, {
 
 	validate_missing: function(doc, fieldname) {
 		if(!doc[fieldname]) {
-			frappe.throw(frappe._("Please specify") + ": " +
-				frappe._(frappe.meta.get_label(doc.doctype, fieldname, doc.parent || doc.name)));
+			frappe.throw(__("Please specify") + ": " +
+				__(frappe.meta.get_label(doc.doctype, fieldname, doc.parent || doc.name)));
 		}
 	},
 

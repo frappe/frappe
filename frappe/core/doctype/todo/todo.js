@@ -1,7 +1,7 @@
 // bind events
 
 frappe.ui.form.on("ToDo", "refresh", function(frm) {
-	frm.add_custom_button((frm.doc.status=="Open" ? frappe._("Close") : frappe._("Re-open")), function() {
+	frm.add_custom_button((frm.doc.status=="Open" ? __("Close") : __("Re-open")), function() {
 		frm.set_value("status", frm.doc.status=="Open" ? "Closed" : "Open");
 		frm.save();
 	});

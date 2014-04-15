@@ -33,7 +33,7 @@ frappe.views.Calendar = Class.extend({
 	},
 	make_page: function() {
 		var module = locals.DocType[this.doctype].module;
-		this.page.appframe.set_title(frappe._("Calendar") + " - " + frappe._(this.doctype));
+		this.page.appframe.set_title(__("Calendar") + " - " + __(this.doctype));
 		this.page.appframe.add_module_icon(module==="Core" ? "Calendar" : module)
 		this.page.appframe.set_views_for(this.doctype, "calendar");
 		this.page.appframe.add_button("New", function() {
@@ -50,10 +50,10 @@ frappe.views.Calendar = Class.extend({
 		var me = this;
 		this.$wrapper = $(this.page).find(".layout-main");
 		this.$cal = $("<div>").appendTo(this.$wrapper);
-		frappe.utils.set_footnote(this, this.$wrapper, frappe._("Select or drag across time slots to create a new event."));
+		frappe.utils.set_footnote(this, this.$wrapper, __("Select or drag across time slots to create a new event."));
 		// 
 		// $('<div class="help"></div>')
-		// 	.html(frappe._("Select dates to create a new ") + frappe._(me.doctype))
+		// 	.html(__("Select dates to create a new ") + __(me.doctype))
 		// 	.appendTo(this.$wrapper);
 
 		this.$cal.fullCalendar(this.cal_options);

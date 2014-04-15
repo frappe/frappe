@@ -448,7 +448,7 @@ $.extend(_p, {
 						}
 					}
 					// if not, just have doctype has heading
-					h1.innerHTML = val ? val : frappe._(doctype);
+					h1.innerHTML = val ? val : __(doctype);
 				}
 
 				var h2_style = {
@@ -524,7 +524,7 @@ $.extend(_p, {
 								var div = $a(me.layout.cur_cell, 'div');
 								var val = _f.get_value(doctype, docname,
 									field.fieldname);
-								div.innerHTML = '<div>' + frappe._(field.label) +
+								div.innerHTML = '<div>' + __(field.label) +
 									': </div><pre style="font-family: Courier, Fixed;">' + (val ? val : '') +
 									'</pre>';
 								break;
@@ -645,7 +645,7 @@ $.extend(_p, {
 				row = _p.field_tab(layout.cur_cell);
 
 				// Add label
-				row.cells[0].innerHTML = frappe._(f.label ? f.label : f.fieldname);
+				row.cells[0].innerHTML = __(f.label ? f.label : f.fieldname);
 				row.cells[1].innerHTML = frappe.format(val, f, {for_print: true});
 
 				// left align currency in normal display

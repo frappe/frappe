@@ -1,7 +1,7 @@
 // Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-// frappe._("Form")
+// __("Form")
 
 frappe.ui.AppFrame = Class.extend({
 	init: function(parent, title, module) {
@@ -90,7 +90,7 @@ frappe.ui.AppFrame = Class.extend({
 				var $right = this.parent.find(".titlebar-item.text-right");
 				this.btn_group = $('<div class="btn-group"></div>').prependTo($right);
 				this.primary_action = $("<a class='btn btn-default'>")
-					.html(frappe._("Actions") + " <i class='icon-caret-down'></i>")
+					.html(__("Actions") + " <i class='icon-caret-down'></i>")
 					.css({"margin-right":"15px", "display":"inline-block"})
 					.prependTo(this.btn_group);
 			}
@@ -184,7 +184,7 @@ frappe.ui.AppFrame = Class.extend({
 	set_views: function(views, active_view) {
 		var me = this;
 		$.each(views, function(i, e) {
-			var btn = me.add_icon_btn("3", e.icon, frappe._(toTitle(e.type)), e.set_route || function() {
+			var btn = me.add_icon_btn("3", e.icon, __(toTitle(e.type)), e.set_route || function() {
 				window.location.hash = "#" + $(this).attr("data-route");
 			}).attr("data-route", e.route);
 				
@@ -231,7 +231,7 @@ frappe.ui.AppFrame = Class.extend({
 	},
 	
 	add_help_button: function(txt) {
-		this.add_icon_btn("2", "icon-question-sign", frappe._("Help"), 
+		this.add_icon_btn("2", "icon-question-sign", __("Help"), 
 			function() { msgprint($(this).data('help-text'), 'Help'); })
 			.data("help-text", txt);
 	},
@@ -241,7 +241,7 @@ frappe.ui.AppFrame = Class.extend({
 	},
 
 	add_button: function(label, click, icon, is_title) {
-		return this.iconbar.add_btn("1", icon, frappe._(label), click);
+		return this.iconbar.add_btn("1", icon, __(label), click);
 	},
 	
 	add_dropdown_button: function(parent, label, click, icon) {
@@ -291,8 +291,8 @@ frappe.ui.AppFrame = Class.extend({
 				"padding-right": "0px",
 				"margin-right": "5px",
 			})
-			.attr("title", frappe._(df.label)).tooltip();
-		f.$input.attr("placeholder", frappe._(df.label));
+			.attr("title", __(df.label)).tooltip();
+		f.$input.attr("placeholder", __(df.label));
 		
 		if(df.fieldtype==="Check") {
 			$(f.wrapper).find(":first-child")

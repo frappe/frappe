@@ -4,7 +4,7 @@
 frappe.ui.toolbar.Report = frappe.ui.toolbar.SelectorDialog.extend({
 	init: function() {
 		this._super({
-			title: frappe._("Start Report For"),
+			title: __("Start Report For"),
 			execute: function(val) {
 				frappe.set_route('Report', val);
 			},

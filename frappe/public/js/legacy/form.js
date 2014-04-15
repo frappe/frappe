@@ -261,7 +261,7 @@ _f.Frm.prototype.setup_std_layout = function() {
 _f.Frm.prototype.email_doc = function(message) {
 	new frappe.views.CommunicationComposer({
 		doc: this.doc,
-		subject: frappe._(this.meta.name) + ': ' + this.docname,
+		subject: __(this.meta.name) + ': ' + this.docname,
 		recipients: this.doc.email || this.doc.email_id || this.doc.contact_email,
 		attach_document_print: true,
 		message: message,

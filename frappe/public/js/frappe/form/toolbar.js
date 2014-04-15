@@ -38,18 +38,18 @@ frappe.ui.form.Toolbar = Class.extend({
 	},
 	set_title: function() {
 		if(this.frm.meta.title_field) {
-			var title = this.frm.doc[this.frm.meta.title_field] || frappe._(this.frm.docname);
+			var title = this.frm.doc[this.frm.meta.title_field] || __(this.frm.docname);
 		} else {
-			var title = frappe._(this.frm.docname);
+			var title = __(this.frm.docname);
 		}
 		var me = this;
 		this.appframe.set_title(title);
 		
 		if(this.frm.meta.issingle) {
-			this.appframe.set_title_left('<i class="icon-angle-left"></i> ' + frappe._(this.frm.meta.module), 
+			this.appframe.set_title_left('<i class="icon-angle-left"></i> ' + __(this.frm.meta.module), 
 				function() { frappe.set_route(frappe.modules[me.frm.meta.module].link); });
 		} else {
-			this.appframe.set_title_left('<i class="icon-angle-left"></i> ' + frappe._(this.frm.doctype), 
+			this.appframe.set_title_left('<i class="icon-angle-left"></i> ' + __(this.frm.doctype), 
 				function() { frappe.set_route("List", me.frm.doctype); });
 		}
 	},
@@ -89,70 +89,70 @@ frappe.ui.form.Toolbar = Class.extend({
 
 		// New
 		if(p[CREATE]) {
-			this.appframe.add_dropdown_button("File", frappe._("New") + " " 
-				+ frappe._(me.frm.doctype), function() { 
+			this.appframe.add_dropdown_button("File", __("New") + " " 
+				+ __(me.frm.doctype), function() { 
 				new_doc(me.frm.doctype);}, 'icon-plus');
 		}
 
 		// Save
 		if(docstatus==0 && p[WRITE] && !this.read_only) {
-			this.appframe.add_dropdown_button("File", frappe._("Save"), function() { 
+			this.appframe.add_dropdown_button("File", __("Save"), function() { 
 				me.frm.save('Save', null, this);}, 'icon-save');
 		}
 		
 		// Submit
 		if(docstatus==0 && !this.frm.doc.__unsaved && p[SUBMIT] && !this.read_only) {
-			this.appframe.add_dropdown_button("File", frappe._("Submit"), function() { 
+			this.appframe.add_dropdown_button("File", __("Submit"), function() { 
 				me.frm.savesubmit(this);}, 'icon-lock');
 		}
 		
 		// Cancel
 		if(this.can_cancel()) {
-			this.appframe.add_dropdown_button("File", frappe._("Cancel"), function() { 
+			this.appframe.add_dropdown_button("File", __("Cancel"), function() { 
 				me.frm.savecancel(this);}, 'icon-remove');
 		}
 		
 		// Amend
 		if(this.can_amend()) {
-			this.appframe.add_dropdown_button("File", frappe._("Amend"), function() { 
+			this.appframe.add_dropdown_button("File", __("Amend"), function() { 
 				me.frm.amend_doc();}, 'icon-pencil');
 		}
 		
 		// Print
 		if(!(me.frm.doc.__islocal || me.frm.meta.allow_print)) {
-			this.appframe.add_dropdown_button("File", frappe._("Print..."), function() { 
+			this.appframe.add_dropdown_button("File", __("Print..."), function() { 
 				me.frm.print_doc();}, 'icon-print');
 		}
 
 		// email
 		if(!(me.frm.doc.__islocal || me.frm.meta.allow_email)) {
-			this.appframe.add_dropdown_button("File", frappe._("Email..."), function() { 
+			this.appframe.add_dropdown_button("File", __("Email..."), function() { 
 				me.frm.email_doc();}, 'icon-envelope');
 		}
 
 		// Linked With
 		if(!me.frm.doc.__islocal && !me.frm.meta.issingle) {
-			this.appframe.add_dropdown_button("File", frappe._('Linked With'), function() { 
+			this.appframe.add_dropdown_button("File", __('Linked With'), function() { 
 				me.show_linked_with();
 			}, "icon-link")
 		}
 		
 		// copy
 		if(in_list(frappe.boot.user.can_create, me.frm.doctype) && !me.frm.meta.allow_copy) {
-			this.appframe.add_dropdown_button("File", frappe._("Copy"), function() { 
+			this.appframe.add_dropdown_button("File", __("Copy"), function() { 
 				me.frm.copy_doc();}, 'icon-file');
 		}
 		
 		// rename
 		if(me.frm.meta.allow_rename && me.frm.perm[0].write) {
-			this.appframe.add_dropdown_button("File", frappe._("Rename..."), function() { 
+			this.appframe.add_dropdown_button("File", __("Rename..."), function() { 
 				me.frm.rename_doc();}, 'icon-retweet');
 		}
 		
 		// delete
 		if((cint(me.frm.doc.docstatus) != 1) && !me.frm.doc.__islocal 
 			&& frappe.model.can_delete(me.frm.doctype)) {
-			this.appframe.add_dropdown_button("File", frappe._("Delete"), function() { 
+			this.appframe.add_dropdown_button("File", __("Delete"), function() { 
 				me.frm.savetrash();}, 'icon-remove-sign');
 		}
 		
@@ -223,7 +223,7 @@ frappe.ui.form.Toolbar = Class.extend({
 
                 if(status) {
                         if(status!==current) {
-                                this.appframe.set_title_right(frappe._(status), {
+                                this.appframe.set_title_right(__(status), {
                                         "Save": function() { me.frm.save('Save', null, this); },
                                         "Submit": function() { me.frm.savesubmit(this); },
                                         "Update": function() { me.frm.save('Update', null, this); },

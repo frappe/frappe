@@ -89,14 +89,14 @@ frappe.ui.Filter = Class.extend({
 		<div class="fieldname_select_area col-sm-4 form-group"></div>\
 		<div class="col-sm-3 form-group">\
 			<select class="condition form-control">\
-				<option value="=">' + frappe._("Equals") + '</option>\
-				<option value="like">' + frappe._("Like") + '</option>\
-				<option value=">=">' + frappe._("Greater or equals") + '</option>\
-				<option value="<=">' + frappe._("Less or equals") + '</option>\
-				<option value=">">' + frappe._("Greater than") + '</option>\
-				<option value="<">' + frappe._("Less than") + '</option>\
-				<option value="in">' + frappe._("In") + '</option>\
-				<option value="!=">' + frappe._("Not equals") + '</option>\
+				<option value="=">' + __("Equals") + '</option>\
+				<option value="like">' + __("Like") + '</option>\
+				<option value=">=">' + __("Greater or equals") + '</option>\
+				<option value="<=">' + __("Less or equals") + '</option>\
+				<option value=">">' + __("Greater than") + '</option>\
+				<option value="<">' + __("Less than") + '</option>\
+				<option value="in">' + __("In") + '</option>\
+				<option value="!=">' + __("Not equals") + '</option>\
 			</select>\
 		</div>\
 		<div class="filter_field col-sm-4 col-xs-11"></div>\
@@ -417,7 +417,7 @@ frappe.ui.FieldSelect = Class.extend({
 		if(frappe.model.no_value_type.indexOf(df.fieldtype)==-1 && 
 			!(me.fields_by_name[df.parent] && me.fields_by_name[df.parent][df.fieldname])) {
 				this.options.push({
-					label: frappe._(label),
+					label: __(label),
 					value: table + "." + df.fieldname,
 					fieldname: df.fieldname,
 					doctype: df.parent

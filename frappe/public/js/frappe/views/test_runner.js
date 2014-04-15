@@ -7,7 +7,7 @@ frappe.standard_pages["test-runner"] = function() {
 	frappe.ui.make_app_page({
 		parent: wrapper,
 		single_column: true,
-		title: frappe._("Test Runner")
+		title: __("Test Runner")
 	});
 	
 	$("<div id='qunit'></div>").appendTo($(wrapper).find(".layout-main"));

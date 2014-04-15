@@ -16,8 +16,8 @@ frappe.ui.form.Grid = Class.extend({
 			<div class="panel-body">\
 				<div class="rows"></div>\
 				<div class="small">\
-					<a href="#" class="grid-add-row pull-right">+ '+frappe._("Add new row")+'.</a>\
-					<span class="text-muted pull-right" style="margin-right: 5px;">' + frappe._("Click on row to view / edit.") + '</span>\
+					<a href="#" class="grid-add-row pull-right">+ '+__("Add new row")+'.</a>\
+					<span class="text-muted pull-right" style="margin-right: 5px;">' + __("Click on row to view / edit.") + '</span>\
 					<div class="clearfix"></div>\
 				</div>\
 			</div>\
@@ -245,9 +245,9 @@ frappe.ui.form.GridRow = Class.extend({
 			var colsize = this.static_display_template[ci][1];
 			var txt = this.doc ?
 				frappe.format(this.doc[df.fieldname], df, null, this.doc) :
-				frappe._(df.label);
+				__(df.label);
 			if(this.doc && df.fieldtype === "Select") {
-				txt = frappe._(txt);
+				txt = __(txt);
 			}
 			var add_class = (["Text", "Small Text"].indexOf(df.fieldtype)===-1) ?
 				" grid-overflow-ellipsis" : " grid-overflow-no-ellipsis";
@@ -477,15 +477,15 @@ frappe.ui.form.GridRow = Class.extend({
 				<div class="toolbar">\
 					<span class="panel-title">Editing Row #<span class="row-index"></span></span>\
 					<span class="text-success pull-right grid-toggle-row" \
-						title="'+frappe._("Close")+'"\
+						title="'+__("Close")+'"\
 						style="margin-left: 7px;">\
 						<i class="icon-chevron-up"></i></span>\
 					<span class="pull-right grid-insert-row" \
-						title="'+frappe._("Insert Row")+'"\
+						title="'+__("Insert Row")+'"\
 						style="margin-left: 7px;">\
 						<i class="icon-plus grid-insert-row"></i></span>\
 					<span class="pull-right grid-delete-row"\
-						title="'+frappe._("Delete Row")+'"\
+						title="'+__("Delete Row")+'"\
 						><i class="icon-trash grid-delete-row"></i></span>\
 				</div>\
 			</div>\
@@ -494,11 +494,11 @@ frappe.ui.form.GridRow = Class.extend({
 				<div class="toolbar footer-toolbar" style="margin-top: 15px">\
 					<span class="text-muted"><a href="#" class="shortcuts"><i class="icon-keyboard"></i> Shortcuts</a></span>\
 					<span class="text-success pull-right grid-toggle-row" \
-						title="'+frappe._("Close")+'"\
+						title="'+__("Close")+'"\
 						style="margin-left: 7px; cursor: pointer;">\
 						<i class="icon-chevron-up"></i></span>\
 					<span class="pull-right grid-append-row" \
-						title="'+frappe._("Insert Below")+'"\
+						title="'+__("Insert Below")+'"\
 						style="margin-left: 7px; cursor: pointer;">\
 						<i class="icon-plus"></i></span>\
 				</div>\

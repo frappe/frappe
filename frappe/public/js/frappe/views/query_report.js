@@ -11,7 +11,7 @@ frappe.standard_pages["query-report"] = function() {
 
 	frappe.ui.make_app_page({
 		parent: wrapper,
-		title: frappe._('Query Report'),
+		title: __('Query Report'),
 		single_column: true
 	});
 
@@ -48,8 +48,8 @@ frappe.views.QueryReport = Class.extend({
 			<div class="result-area" style="height:400px; \
 				border: 1px solid #aaa;"></div>\
 			<p class="text-muted"><br>\
-				'+frappe._('For comparative filters, start with')+' ">" or "<", e.g. >5 or >01-02-2012\
-				<br>'+frappe._('For ranges')+' ('+frappe._('values and dates')+') use ":", \
+				'+__('For comparative filters, start with')+' ">" or "<", e.g. >5 or >01-02-2012\
+				<br>'+__('For ranges')+' ('+__('values and dates')+') use ":", \
 					e.g. "5:10" (to filter values between 5 & 10)</p>\
 		</div>').appendTo(this.wrapper);
 
@@ -57,10 +57,10 @@ frappe.views.QueryReport = Class.extend({
 	},
 	make_toolbar: function() {
 		var me = this;
-		this.appframe.set_title_right(frappe._('Refresh'), function() { me.refresh(); });
+		this.appframe.set_title_right(__('Refresh'), function() { me.refresh(); });
 
 		// Edit
-		var edit_btn = this.appframe.add_primary_action(frappe._('Edit'), function() {
+		var edit_btn = this.appframe.add_primary_action(__('Edit'), function() {
 			if(!frappe.user.is_report_manager()) {
 				msgprint(__("You are not allowed to create / edit reports"));
 				return false;
@@ -68,11 +68,11 @@ frappe.views.QueryReport = Class.extend({
 			frappe.set_route("Form", "Report", me.report_name);
 		}, "icon-edit");
 
-		this.appframe.add_primary_action(frappe._('Export'), function() { me.export_report(); },
+		this.appframe.add_primary_action(__('Export'), function() { me.export_report(); },
 			"icon-download");
 
 		if(frappe.model.can_restrict("Report")) {
-			this.appframe.add_primary_action(frappe._("User Restrictions"), function() {
+			this.appframe.add_primary_action(__("User Restrictions"), function() {
 				frappe.route_options = {
 					property: "Report",
 					restriction: me.report_name
@@ -89,7 +89,7 @@ frappe.views.QueryReport = Class.extend({
 			if((me.report_name!=route[1]) || frappe.route_options) {
 				me.report_name = route[1];
 				this.wrapper.find(".no-report-area").toggle(false);
-				me.appframe.set_title(frappe._("Query Report")+": " + frappe._(me.report_name));
+				me.appframe.set_title(__("Query Report")+": " + __(me.report_name));
 
 				frappe.model.with_doc("Report", me.report_name, function() {
 					me.report_doc = frappe.get_doc("Report", me.report_name);
@@ -101,7 +101,7 @@ frappe.views.QueryReport = Class.extend({
 									report_name: me.report_name
 								},
 								callback: function(r) {
-									me.appframe.set_title(frappe._("Query Report")+": " + frappe._(me.report_name));
+									me.appframe.set_title(__("Query Report")+": " + __(me.report_name));
 									frappe.dom.eval(r.message || "");
 									me.setup_filters();
 									me.refresh();
@@ -115,7 +115,7 @@ frappe.views.QueryReport = Class.extend({
 				});
 			}
 		} else {
-			var msg = frappe._("No Report Loaded. Please use query-report/[Report Name] to run a report.")
+			var msg = __("No Report Loaded. Please use query-report/[Report Name] to run a report.")
 			this.wrapper.find(".no-report-area").html(msg).toggle(true);
 		}
 	},
@@ -199,7 +199,7 @@ frappe.views.QueryReport = Class.extend({
 			if(v) filters[f.df.fieldname] = v;
 		})
 		if(mandatory_fields.length) {
-			frappe.throw(frappe._("Mandatory filters required:\n") + frappe._(mandatory_fields.join("\n")));
+			frappe.throw(__("Mandatory filters required:\n") + __(mandatory_fields.join("\n")));
 		}
 		return filters
 	},
@@ -258,7 +258,7 @@ frappe.views.QueryReport = Class.extend({
 
 					// column parameters
 					col.name = col.id = col.field = df.label;
-					col.name = frappe._(df.label);
+					col.name = __(df.label);
 					col.fieldtype = opts[1];
 
 					// width
@@ -271,7 +271,7 @@ frappe.views.QueryReport = Class.extend({
 						fieldtype: "Data"
 					}
 				}
-				col.name = frappe._(toTitle(col.name.replace(/_/g, " ")))
+				col.name = __(toTitle(col.name.replace(/_/g, " ")))
 				return col
 		}));
 	},

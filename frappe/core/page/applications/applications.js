@@ -1,7 +1,7 @@
 frappe.pages['applications'].onload = function(wrapper) { 
 	frappe.ui.make_app_page({
 		parent: wrapper,
-		title: frappe._('Application Installer'),
+		title: __('Application Installer'),
 		icon: "icon-download",
 		single_column: true
 	});

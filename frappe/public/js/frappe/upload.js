@@ -7,8 +7,8 @@ frappe.upload = {
 		if(!opts.args) opts.args = {};
 		var $upload = $('<div class="file-upload">\
 			<p class="small"><a class="action-attach disabled" href="#"><i class="icon-upload"></i> ' 
-				+ frappe._('Upload a file') + '</a> | <a class="action-link" href="#"><i class="icon-link"></i> '
-				 + frappe._('Attach as web link') + '</a></p>\
+				+ __('Upload a file') + '</a> | <a class="action-link" href="#"><i class="icon-link"></i> '
+				 + __('Attach as web link') + '</a></p>\
 			<div class="action-attach-input">\
 				<input class="alert alert-info" style="padding: 7px; margin: 7px 0px;" type="file" name="filedata" />\
 			</div>\
@@ -18,7 +18,7 @@ frappe.upload = {
 					+ (opts.sample_url || 'e.g. http://example.com/somefile.png') + 
 				'</p>\
 			</div>\
-			<button class="btn btn-info btn-upload"><i class="icon-upload"></i> ' +frappe._('Upload')
+			<button class="btn btn-info btn-upload"><i class="icon-upload"></i> ' +__('Upload')
 				+'</button></div>').appendTo(opts.parent);
 	
 
@@ -27,7 +27,7 @@ frappe.upload = {
 			$upload.find(".action-link").addClass("disabled");
 			$upload.find(".action-attach-input").toggle(false);
 			$upload.find(".action-link-input").toggle(true);
-			$upload.find(".btn-upload").html('<i class="icon-link"></i> ' +frappe._('Set Link'))
+			$upload.find(".btn-upload").html('<i class="icon-link"></i> ' +__('Set Link'))
 			return false;
 		})
 
@@ -36,7 +36,7 @@ frappe.upload = {
 			$upload.find(".action-attach").addClass("disabled");
 			$upload.find(".action-link-input").toggle(false);
 			$upload.find(".action-attach-input").toggle(true);
-			$upload.find(".btn-upload").html('<i class="icon-upload"></i> ' +frappe._('Upload'))
+			$upload.find(".btn-upload").html('<i class="icon-upload"></i> ' +__('Upload'))
 			return false;
 		})
 
