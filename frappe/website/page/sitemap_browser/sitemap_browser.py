@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe
+from frappe import _
 from frappe.website.render import clear_cache
 
 @frappe.whitelist()
@@ -65,7 +66,7 @@ def update_parent(name, new_parent):
 	if sitemap.ref_doctype:
 		generator = frappe.get_doc(sitemap.ref_doctype, sitemap.docname)
 		if not generator.meta.get_field("parent_website_route"):
-			frappe.throw("Does not allow moving.")
+			frappe.throw(_("Not allowed to move"))
 		generator.parent_website_route = new_parent
 		generator.save()
 	else:

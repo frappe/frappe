@@ -226,9 +226,7 @@ class CustomizeForm(Document):
 				or (old_value not in allowed_changes and new_value not in allowed_changes)):
 				continue
 			else:
-				frappe.throw("{row} # {num}, {label}: {msg} {allowed_changes}".format(
-					row=_("Row"), num=df.idx, label=_(df.label), msg=_("Field Type can be one of"),
-					allowed_changes=", ".join([_(fieldtype) for fieldtype in allowed_changes])))
+				frappe.throw(_("Fieldtype must be one of {0} in row {1}").format(", ".join([_(fieldtype) for fieldtype in allowed_changes]), df.idx))
 
 	def reset_to_defaults(self):
 		if not self.doc_type:

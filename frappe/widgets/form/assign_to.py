@@ -56,9 +56,8 @@ def add(args=None):
 			user_properties.add(args['assign_to'], args['doctype'], args['name'])
 			frappe.msgprint(_("Restriction added"))
 	except frappe.PermissionError:
-		frappe.throw("{cannot}: {user}, {_for}: {doctype} {_and}: {name}".format(cannot=_("You cannot restrict User"),
-			user=args['assign_to'], _for=_("for DocType"), doctype=_(args['doctype']), _and=_("and Name"),
-			name=args['name']))
+		frappe.throw(_("Not permitted to restrict User {0} for {1} {2}").format(args["assign_to"],
+			args["doctype"], args["name"]))
 
 	# notify
 	if not args.get("no_notification"):

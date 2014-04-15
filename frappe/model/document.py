@@ -80,8 +80,7 @@ class Document(BaseDocument):
 		else:
 			d = frappe.db.get_value(self.doctype, self.name, "*", as_dict=1)
 			if not d:
-				frappe.throw("{}: {}, {}".format(_("Not Found"),
-					self.doctype, self.name), frappe.DoesNotExistError)
+				frappe.throw(("{0} {1} not found").format(_(self.doctype), self.name), frappe.DoesNotExistError)
 			self.update(d)
 
 		if self.name=="DocType" and self.doctype=="DocType":
@@ -332,7 +331,7 @@ class Document(BaseDocument):
 			return
 
 		msg = ", ".join((each[2] for each in invalid_links))
-		frappe.throw("{}: {}".format(_("Could not find the following documents"), msg),
+		frappe.throw(_("Could not find {0}").format(msg),
 			frappe.LinkValidationError)
 
 	def get_all_children(self, parenttype=None):

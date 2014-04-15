@@ -33,10 +33,7 @@ class User(Document):
 	def check_enable_disable(self):
 		# do not allow disabling administrator/guest
 		if not cint(self.enabled) and self.name in STANDARD_USERS:
-			throw("{msg}: {name}".format(**{
-				"msg": _("Hey! You cannot disable user"),
-				"name": self.name
-			}))
+			frappe.throw(_("User {0} cannot be disabled").format(self.name))
 
 		if not cint(self.enabled):
 			self.a_system_manager_should_exist()
@@ -164,10 +161,7 @@ class User(Document):
 	def on_trash(self):
 		frappe.clear_cache(user=self.name)
 		if self.name in STANDARD_USERS:
-			throw("{msg}: {name}".format(**{
-				"msg": _("Hey! You cannot delete user"),
-				"name": self.name
-			}))
+			throw(_("User {0} cannot be deleted").format(self.name))
 
 		self.a_system_manager_should_exist()
 
@@ -200,10 +194,7 @@ class User(Document):
 	def validate_rename(self, olddn, newdn):
 		# do not allow renaming administrator and guest
 		if olddn in STANDARD_USERS:
-			throw("{msg}: {name}".format(**{
-				"msg": _("Hey! You are restricted from renaming the user"),
-				"name": olddn
-			}))
+			throw(_("User {0} cannot be renamed").format(self.name))
 
 		self.validate_email_type(newdn)
 
@@ -212,10 +203,7 @@ class User(Document):
 
 		email = email.strip()
 		if not validate_email_add(email):
-			throw("{email} {msg}".format(**{
-				"email": email,
-				"msg": _("is not a valid email id")
-			}))
+			throw(_("{0} is not a valid email id").format(email))
 
 	def after_rename(self, olddn, newdn, merge=False):
 		tables = frappe.db.sql("show tables")

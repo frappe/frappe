@@ -13,7 +13,7 @@
 from __future__ import unicode_literals
 
 import frappe
-from frappe import msgprint, _
+from frappe import _
 from frappe.model.document import Document
 
 class NestedSetRecursionError(frappe.ValidationError): pass
@@ -178,7 +178,7 @@ def validate_loop(doctype, name, lft, rgt):
 	"""check if item not an ancestor (loop)"""
 	if name in frappe.db.sql_list("""select name from `tab%s` where lft <= %s and rgt >= %s""" % (doctype,
 		"%s", "%s"), (lft, rgt)):
-		frappe.throw("""Item cannot be added to its own descendents.""", NestedSetRecursionError)
+		frappe.throw(_("Item cannot be added to its own descendents"), NestedSetRecursionError)
 
 class NestedSet(Document):
 	def on_update(self):
@@ -198,9 +198,7 @@ class NestedSet(Document):
 			where `{nsm_parent_field}`=%s""".format(doctype=self.doctype, nsm_parent_field=self.nsm_parent_field),
 			(self.name,))[0][0]
 		if has_children:
-			frappe.throw("{cannot_delete}. {children_exist}: {name}.".format(
-				children_exist=_("Children exist for"), name=self.name,
-				cannot_delete=_("Cannot delete")), NestedSetChildExistsError)
+			frappe.throw(_("Cannot delete {0} as it has child nodes").format(self.name), NestedSetChildExistsError)
 
 		self.set(self.nsm_parent_field, "")
 		update_nsm(self)
@@ -209,8 +207,7 @@ class NestedSet(Document):
 		if merge:
 			is_group = frappe.db.get_value(self.doctype, newdn, group_fname)
 			if self.get(group_fname) != is_group:
-				frappe.throw(_("""Merging is only possible between Group-to-Group or
-					Ledger-to-Ledger"""), NestedSetInvalidMergeError)
+				frappe.throw(_("Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node"), NestedSetInvalidMergeError)
 
 	def after_rename(self, olddn, newdn, merge=False):
 		if merge:
@@ -227,8 +224,7 @@ class NestedSet(Document):
 		if self.get(group_identifier) == "No":
 			if frappe.db.sql("""select name from `tab%s` where %s=%s and docstatus!=2""" %
 				(self.doctype, self.nsm_parent_field, '%s'), (self.name)):
-					frappe.throw(self.doctype + ": " + self.name +
-						_(" can not be marked as a ledger as it has existing child"))
+				frappe.throw(_("{0} {1} cannot be a leaf node as it has children").format(_(self.doctype), self.name))
 
 def get_root_of(doctype):
 	"""Get root element of a DocType with a tree structure"""

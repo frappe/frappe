@@ -14,7 +14,7 @@ from frappe.model.document import Document
 class DocType(Document):
 	def validate(self):
 		if not frappe.conf.get("developer_mode"):
-			frappe.throw("Not in Developer Mode! Set in site_config.json")
+			frappe.throw(_("Not in Developer Mode! Set in site_config.json"))
 		for c in [".", "/", "#", "&", "=", ":", "'", '"']:
 			if c in self.name:
 				frappe.throw(_("{0} not allowed in name").format(c))
@@ -129,7 +129,7 @@ class DocType(Document):
 			# get app publisher for copyright
 			app = frappe.local.module_app[frappe.scrub(self.module)]
 			if not app:
-				frappe.throw("App not found!")
+				frappe.throw(_("App not found"))
 			app_publisher = frappe.get_hooks(hook="app_publisher", app_name=app)[0]
 
 			with open(pypath, 'w') as pyfile:

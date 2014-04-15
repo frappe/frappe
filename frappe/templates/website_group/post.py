@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe
+from frappe import _
 from frappe.utils import get_fullname
 from frappe.website.permissions import get_access
 from frappe.utils.file_manager import save_file
@@ -63,7 +64,7 @@ def add_post(group, content, picture, picture_name, title=None, parent_post=None
 
 	if parent_post:
 		if frappe.db.get_value("Post", parent_post, "parent_post"):
-			frappe.throw("Cannot reply to a reply")
+			frappe.throw(_("Cannot reply to a reply"))
 
 	group = frappe.get_doc("Website Group", group)
 	post = frappe.get_doc({
@@ -108,10 +109,10 @@ def save_post(post, content, picture=None, picture_name=None, title=None,
 	if frappe.session.user != post.owner:
 		for fieldname in ("title", "content"):
 			if post.get(fieldname) != locals().get(fieldname):
-				frappe.throw("You cannot change: {}".format(fieldname.title()))
+				frappe.throw(_("Cannot change {0}").format(fieldname))
 
 		if picture and picture_name:
-			frappe.throw("You cannot change: Picture")
+			frappe.throw(_("Cannot change picture"))
 
 	post.update({
 		"title": (title or "").title(),

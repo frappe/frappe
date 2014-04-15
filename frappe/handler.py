@@ -37,7 +37,7 @@ def run_custom_method(doctype, name, custom_method):
 	if getattr(doc, custom_method, frappe._dict()).is_whitelisted:
 		frappe.call(getattr(doc, custom_method), **frappe.local.form_dict)
 	else:
-		frappe.throw("Not Allowed")
+		frappe.throw(_("Not permitted"), frappe.PermissionError)
 
 @frappe.whitelist()
 def uploadfile():

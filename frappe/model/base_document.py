@@ -237,7 +237,7 @@ class BaseDocument(object):
 			doctype = df.options
 
 			if not doctype:
-				frappe.throw("Options not set for link field: {}".format(df.fieldname))
+				frappe.throw(_("Options not set for link field {0}").format(df.fieldname))
 
 			elif doctype.lower().startswith("link:"):
 				doctype = doctype[5:]
