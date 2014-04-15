@@ -1,7 +1,8 @@
-frappe.pages['permission-manager'].onload = function(wrapper) { 
+frappe.pages['permission-manager'].onload = function(wrapper) {
 	frappe.ui.make_app_page({
 		parent: wrapper,
 		title: __('Permission Manager'),
+		icon: "icon-lock",
 		single_column: true
 	});
 	$(wrapper).find(".layout-main").html("<div class='perm-engine' style='min-height: 200px;'></div>"
@@ -9,7 +10,7 @@ frappe.pages['permission-manager'].onload = function(wrapper) {
 	wrapper.permission_engine = new frappe.PermissionEngine(wrapper);
 }
 
-frappe.pages['permission-manager'].refresh = function(wrapper) { 
+frappe.pages['permission-manager'].refresh = function(wrapper) {
 	wrapper.permission_engine.set_from_route();
 }
 
@@ -23,7 +24,7 @@ frappe.PermissionEngine = Class.extend({
 	},
 	make: function() {
 		var me = this;
-		
+
 		me.make_reset_button();
 		return frappe.call({
 			module:"frappe.core",
@@ -37,14 +38,14 @@ frappe.PermissionEngine = Class.extend({
 	},
 	setup_appframe: function() {
 		var me = this;
-		this.doctype_select 
-			= this.wrapper.appframe.add_select("doctypes", 
+		this.doctype_select
+			= this.wrapper.appframe.add_select("doctypes",
 				[{value: "", label: __("Select Document Type")+"..."}].concat(this.options.doctypes))
 				.change(function() {
 					frappe.set_route("permission-manager", $(this).val());
 				});
-		this.role_select 
-			= this.wrapper.appframe.add_select("roles", 
+		this.role_select
+			= this.wrapper.appframe.add_select("roles",
 				[__("Select Role")+"..."].concat(this.options.roles))
 				.change(function() {
 					me.refresh();
@@ -99,7 +100,7 @@ frappe.PermissionEngine = Class.extend({
 						callback: function() { me.refresh(); }
 					});
 				});
-				
+
 				// show standard permissions
 				var $d = $(d.wrapper).find(".msgprint").append("<hr><h4>Standard Permissions</h4>");
 				var $wrapper = $("<p></p>").appendTo($d);
@@ -107,13 +108,18 @@ frappe.PermissionEngine = Class.extend({
 					d.rights = [];
 					$.each(me.rights, function(i, r) {
 						if(d[r]===1) {
-							d.rights.push(r==="restrict" ? "Can Restrict" : toTitle(r));
+							if(r==="restrict") {
+								d.rights.push(__("Can Restrict"));
+							} else if(r==="restricted") {
+								d.rights.push(__("Only Restricted Documents"));
+							} else {
+								d.rights.push(__(toTitle(r)));
+							}
 						}
 					});
 					d.rights = d.rights.join(", ");
-					d.match = d.match && "["+d.match+"]" || "";
 					$wrapper.append(repl('<div class="row">\
-						<div class="col-xs-4"><b>%(role)s</b>, Level %(permlevel)s %(match)s</div>\
+						<div class="col-xs-4"><b>%(role)s</b>, Level %(permlevel)s</div>\
 						<div class="col-xs-8">%(rights)s</div>\
 					</div><br>', d));
 				});
@@ -172,9 +178,9 @@ frappe.PermissionEngine = Class.extend({
 				<tbody></tbody>\
 			</table>\
 		</div>").appendTo(this.body);
-		
-		$.each([["Document Type", 150], ["Role", 150], ["Level", 40], 
-			["Permissions", 270], ["Condition", 100], ["", 40]], function(i, col) {
+
+		$.each([["Document Type", 150], ["Role", 150], ["Level", 40],
+			["Permissions", 370], ["", 40]], function(i, col) {
 			$("<th>").html(col[0]).css("width", col[1]+"px")
 				.appendTo(me.table.find("thead tr"));
 		});
@@ -184,57 +190,58 @@ frappe.PermissionEngine = Class.extend({
 				.attr("data-fieldname", fieldname)
 				.html(d[fieldname]);
 		};
-		
+
 		var add_check = function(cell, d, fieldname, label) {
 			if(!label) label = fieldname;
 			if(d.permlevel > 0 && ["read", "write"].indexOf(fieldname)==-1) {
 				return;
 			}
-			
+
 			var checkbox = $("<div class='col-md-4'><div class='checkbox'>\
-					<label><input type='checkbox'>"+label+"</input></label>\
+					<label><input type='checkbox'>"+__(label)+"</input></label>\
 				</div></div>").appendTo(cell)
 				.attr("data-fieldname", fieldname)
 				.css("text-transform", "capitalize");
-			
+
 			checkbox.find("input")
 				.prop("checked", d[fieldname] ? true: false)
 				.attr("data-ptype", fieldname)
 				.attr("data-name", d.name)
 				.attr("data-doctype", d.parent)
 		};
-				
+
 		$.each(perm_list, function(i, d) {
 			if(!d.permlevel) d.permlevel = 0;
 			var row = $("<tr>").appendTo(me.table.find("tbody"));
 			add_cell(row, d, "parent");
 			me.set_show_users(add_cell(row, d, "role"), d.role);
-			
+
 			var cell = add_cell(row, d, "permlevel");
 			if(d.permlevel==0) {
 				cell.css("font-weight", "bold");
 				row.addClass("warning");
 			}
-			
+
 			var perm_cell = add_cell(row, d, "permissions").css("padding-top", 0);
 			var perm_container = $("<div class='row'></div>").appendTo(perm_cell);
-			
+
 			$.each(me.rights, function(i, r) {
 				if(r==="restrict") {
 					add_check(perm_container, d, "restrict", "Can Restrict");
+				} else if(r==="restricted") {
+					add_check(perm_container, d, "restricted", "Only Restricted Documents");
 				} else {
 					add_check(perm_container, d, r);
 				}
 			})
-			
+
 			// buttons
-			me.add_match_button(row, d);
 			me.add_delete_button(row, d);
 		});
 	},
 	rights: ["read", "restricted", "write", "create", "delete", "submit", "cancel", "amend",
 		"report", "import", "export", "print", "email", "restrict"],
-	
+
 	set_show_users: function(cell, role) {
 		cell.html("<a href='#'>"+role+"</a>")
 			.find("a")
@@ -258,21 +265,6 @@ frappe.PermissionEngine = Class.extend({
 				})
 				return false;
 			})
-	},
-	add_match_button: function(row, d) {
-		var me = this;
-		if(d.permlevel > 0) {
-			$("<td>-</td>").appendTo(row);
-			return;
-		}
-		var btn = $("<button class='btn btn-default btn-small'></button>")
-			.html(d.match ? d.match : __("For All Users"))
-			.appendTo($("<td>").appendTo(row))
-			.attr("data-name", d.name)
-			.click(function() {
-				me.show_match_manager($(this).attr("data-name"));
-			});
-		if(d.match) btn.addClass("btn-info");
 	},
 	add_delete_button: function(row, d) {
 		var me = this;
@@ -319,7 +311,7 @@ frappe.PermissionEngine = Class.extend({
 						// exception: reverse
 						chk.prop("checked", !chk.prop("checked"));
 					} else {
-						me.get_perm(args.name)[args.ptype]=args.value; 
+						me.get_perm(args.name)[args.ptype]=args.value;
 					}
 				}
 			})
@@ -376,63 +368,14 @@ frappe.PermissionEngine = Class.extend({
 			});
 	},
 	get_perm: function(name) {
-		return $.map(this.perm_list, function(d) { if(d.name==name) return d; })[0];		
-	},
-	show_match_manager:function(name) {
-		var perm = this.get_perm(name);
-		var me = this;
-		
-		frappe.model.with_doctype(perm.parent, function() {
-			var dialog = new frappe.ui.Dialog({
-				title: "Applies for Users",
-			});
-			$(dialog.body).html("<h4>Rule Applies to Following Users:</h4>\
-			<label class='radio'>\
-			<input name='perm-rule' type='radio' value=''> All users with role <b>"+perm.role+"</b>.\
-			</label>\
-			<label class='radio'>\
-			<input name='perm-rule' type='radio' value='owner'> The user is the creator of the document.\
-			</label>").css("padding", "15px");
-
-			// button
-			$("<button class='btn btn-default btn-info'>Update</button>")
-				.appendTo($("<p>").appendTo(dialog.body))
-				.attr("data-name", perm.name)
-				.click(function() {
-					var match_value = $(dialog.wrapper).find(":radio:checked").val();
-					var perm = me.get_perm($(this).attr('data-name'))
-					return frappe.call({
-						module: "frappe.core",
-						page: "permission_manager",
-						method: "update",
-						args: {
-							name: perm.name,
-							doctype: perm.parent,
-							ptype: "match",
-							value: match_value
-						},
-						callback: function() {
-							dialog.hide();
-							me.refresh();
-						}
-					})
-				});
-			dialog.show();
-			
-			// select
-			if(perm.match) {
-				$(dialog.wrapper).find("[value='"+perm.match+"']").prop("checked", true).focus();
-			} else {
-				$(dialog.wrapper).find('[value=""]').prop("checked", true).focus();
-			}
-		});
+		return $.map(this.perm_list, function(d) { if(d.name==name) return d; })[0];
 	},
 	get_user_fields: function(doctype) {
 		var user_fields = frappe.get_children("DocType", doctype, "fields", {fieldtype:"Link", options:"User"})
-		user_fields = user_fields.concat(frappe.get_children("DocType", doctype, "fields", 
+		user_fields = user_fields.concat(frappe.get_children("DocType", doctype, "fields",
 			{fieldtype:"Select", link_doctype:"User"}))
-				
-		return 	user_fields	
+
+		return 	user_fields
 	},
 	get_link_fields: function(doctype) {
 		return frappe.get_children("DocType", doctype, "fields",
@@ -453,7 +396,7 @@ var permissions_help = ['<table class="table table-bordered" style="background-c
 				__('Permissions get applied on Users based on what Roles they are assigned.'),
 			'</li>',
 			'<li>',
-				__('Roles can be set for users from their User page.') 
+				__('Roles can be set for users from their User page.')
 				+ ' (<a href="#List/User">' + __("Setup > User") + '</a>)',
 			'</li>',
 			'<li>',

@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 import frappe.defaults
-from frappe.modules.import_file import get_file_path, read_doclist_from_file
+from frappe.modules.import_file import get_file_path, read_doc_from_file
 
 @frappe.whitelist()
 def get_roles_and_doctypes():
@@ -22,17 +22,17 @@ def get_roles_and_doctypes():
 def get_permissions(doctype=None, role=None):
 	frappe.only_for("System Manager")
 	return frappe.db.sql("""select * from tabDocPerm
-		where %s%s order by parent, permlevel, role""" % 
+		where %s%s order by parent, permlevel, role""" %
 		(doctype and (" parent='%s'" % doctype.replace("'", "\'")) or "",
-		role and ((doctype and " and " or "") + " role='%s'" % role.replace("'", "\'")) or ""), 
+		role and ((doctype and " and " or "") + " role='%s'" % role.replace("'", "\'")) or ""),
 		as_dict=True)
-			
+
 @frappe.whitelist()
 def remove(doctype, name):
-	frappe.only_for("System Manager")	
+	frappe.only_for("System Manager")
 	frappe.db.sql("""delete from tabDocPerm where name=%s""", name)
 	validate_and_reset(doctype, for_remove=True)
-	
+
 @frappe.whitelist()
 def add(parent, role, permlevel):
 	frappe.only_for("System Manager")
@@ -46,7 +46,7 @@ def add(parent, role, permlevel):
 		"permlevel": permlevel,
 		"read": 1
 	}).save()
-	
+
 	validate_and_reset(parent)
 
 @frappe.whitelist()
@@ -55,12 +55,12 @@ def update(name, doctype, ptype, value=0):
 	frappe.db.sql("""update tabDocPerm set `%s`=%s where name=%s"""\
 	 	% (ptype, '%s', '%s'), (value, name))
 	validate_and_reset(doctype)
-		
+
 def validate_and_reset(doctype, for_remove=False):
 	from frappe.core.doctype.doctype.doctype import validate_permissions_for_doctype
 	validate_permissions_for_doctype(doctype, for_remove)
 	clear_doctype_cache(doctype)
-	
+
 @frappe.whitelist()
 def reset(doctype):
 	frappe.only_for("System Manager")
@@ -69,7 +69,7 @@ def reset(doctype):
 
 def clear_doctype_cache(doctype):
 	frappe.clear_cache(doctype=doctype)
-	for user in frappe.db.sql_list("""select distinct tabUserRole.parent from tabUserRole, tabDocPerm 
+	for user in frappe.db.sql_list("""select distinct tabUserRole.parent from tabUserRole, tabDocPerm
 		where tabDocPerm.parent = %s
 		and tabDocPerm.role = tabUserRole.role""", doctype):
 		frappe.clear_cache(user=user)
@@ -77,8 +77,8 @@ def clear_doctype_cache(doctype):
 @frappe.whitelist()
 def get_users_with_role(role):
 	frappe.only_for("System Manager")
-	return [p[0] for p in frappe.db.sql("""select distinct tabUser.name 
-		from tabUserRole, tabUser where 
+	return [p[0] for p in frappe.db.sql("""select distinct tabUser.name
+		from tabUserRole, tabUser where
 			tabUserRole.role=%s
 			and tabUser.name != "Administrator"
 			and tabUserRole.parent = tabUser.name
@@ -88,4 +88,4 @@ def get_users_with_role(role):
 def get_standard_permissions(doctype):
 	module = frappe.db.get_value("DocType", doctype, "module")
 	path = get_file_path(module, "DocType", doctype)
-	return [d for d in read_doclist_from_file(path) if d.get("doctype")=="DocPerm"]
+	return read_doc_from_file(path)["permissions"]
