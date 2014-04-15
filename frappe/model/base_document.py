@@ -258,9 +258,16 @@ class BaseDocument(object):
 
 		for fieldname in constants:
 			if self.get(fieldname) != values.get(fieldname):
-				frappe.throw("{0}: {1}".format(_("Value cannot be changed for"),
-					_(self.meta.get_label(fieldname))),
+				frappe.throw(_("Value cannot be changed for {0}").format(self.meta.get_label(fieldname)),
 					frappe.CannotChangeConstantError)
+
+	def _validate_update_after_submit(self):
+		current = frappe.db.get_value(self.doctype, self.name, "*", as_dict=True)
+		for key, value in current.iteritems():
+			df = self.meta.get_field(key)
+			if df and not df.allow_on_submit and self.get(key) != value:
+				frappe.throw(_("Not allowed to change {0} after submission").format(df.label),
+					frappe.UpdateAfterSubmitError)
 
 def _filter(data, filters, limit=None):
 	"""pass filters as:

@@ -108,8 +108,7 @@ class BackupGenerator:
 		<p>2. <a href="%(files_backup_url)s">Click here to download\
 		the files backup</a></p>
 		<p>This link will be valid for 24 hours. A new backup will be available
-		for download only after 24 hours.</p>
-		<p>Have a nice day!<br>ERPNext</p>""" % {
+		for download only after 24 hours.</p>""" % {
 			"db_backup_url": db_backup_url,
 			"files_backup_url": files_backup_url
 		}

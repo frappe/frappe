@@ -217,6 +217,7 @@ class Document(BaseDocument):
 		self._validate_constants()
 		for d in self.get_all_children():
 			d._validate_constants()
+
 		self._extract_images_from_text_editor()
 
 	def _set_defaults(self):
@@ -296,6 +297,10 @@ class Document(BaseDocument):
 	def validate_update_after_submit(self):
 		if getattr(self, "ignore_validate_update_after_submit", False):
 			return
+
+		self._validate_update_after_submit()
+		for d in self.get_all_children():
+			d._validate_update_after_submit()
 
 		# TODO check only allowed values are updated
 
