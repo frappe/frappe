@@ -43,22 +43,22 @@ def build_response(response_type=None):
 
 def as_csv():
 	response = Response()
-	response.headers["Content-Type"] = "text/csv; charset: utf-8"
-	response.headers["Content-Disposition"] = "attachment; filename=%s.csv" % frappe.response['doctype'].replace(' ', '_')
+	response.headers[b"Content-Type"] = b"text/csv; charset: utf-8"
+	response.headers[b"Content-Disposition"] = ("attachment; filename=%s.csv" % frappe.response['doctype'].replace(' ', '_')).encode("utf-8")
 	response.data = frappe.response['result']
 	return response
 
 def as_raw():
 	response = Response()
-	response.headers["Content-Type"] = mimetypes.guess_type(frappe.response['filename'])[0] or "application/unknown"
-	response.headers["Content-Disposition"] = "filename=%s" % frappe.response['filename'].replace(' ', '_')
+	response.headers[b"Content-Type"] = mimetypes.guess_type(frappe.response['filename'])[0] or b"application/unknown"
+	response.headers[b"Content-Disposition"] = ("filename=%s" % frappe.response['filename'].replace(' ', '_')).encode("utf-8")
 	response.data = frappe.response['filecontent']
 	return response
 
 def as_json():
 	make_logs()
 	response = Response()
-	response.headers["Content-Type"] = "application/json; charset: utf-8"
+	response.headers[b"Content-Type"] = b"application/json; charset: utf-8"
 	response = gzip(json.dumps(frappe.local.response, default=json_handler, separators=(',',':')),
 		response=response)
 	return response
@@ -81,9 +81,9 @@ def gzip(data, response):
 	orig_len = len(data)
 	if accept_gzip() and orig_len>512:
 		data = compressBuf(data)
-		response.headers["Content-Encoding"] = "gzip"
+		response.headers[b"Content-Encoding"] = b"gzip"
 
-	response.headers["Content-Length"] = str(len(data))
+	response.headers[b"Content-Length"] = str(len(data))
 	response.data = data
 	return response
 
@@ -135,7 +135,7 @@ def send_private_file(path):
 	if frappe.local.request.headers.get('X-Use-X-Accel-Redirect'):
 		path = '/' + path
 		response = Response()
-		response.headers['X-Accel-Redirect'] = path
+		response.headers[b'X-Accel-Redirect'] = path
 	else:
 		filename = os.path.basename(path)
 		filepath = frappe.utils.get_site_path(path)
@@ -145,8 +145,8 @@ def send_private_file(path):
 			raise NotFound
 
 		response = Response(wrap_file(frappe.local.request.environ, f))
-		response.headers.add('Content-Disposition', 'attachment', filename=filename)
-		response.headers['Content-Type'] = mimetypes.guess_type(filename)[0] or 'application/octet-stream'
+		response.headers.add(b'Content-Disposition', 'attachment', filename=filename.encode("utf-8"))
+		response.headers[b'Content-Type'] = mimetypes.guess_type(filename)[0] or b'application/octet-stream'
 
 	return response
 
