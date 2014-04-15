@@ -4,7 +4,7 @@
 frappe.ui.toolbar.NewDialog = frappe.ui.toolbar.SelectorDialog.extend({
 	init: function() {
 		this._super({
-			title: frappe._("New Record"),
+			title: __("New Record"),
 			execute: function(val) {
 				new_doc(val);
 			},

@@ -29,11 +29,15 @@ cur_frm.cscript.refresh = function(doc, cdt, cdn) {
 		cur_frm.set_read_only();
 		
 		// make help heading
-		msgprint('<b>Cannot Edit DocType directly</b>: \
-			To edit DocType properties, \
-			create / update <a href="#!List/Custom%20Field">Custom Field</a>, \
-			<a href="#!List/Custom%20Script">Custom Script</a> \
-			and <a href="#!List/Property%20Setter">Property Setter</a>')
+		msgprint($.format())
+		msgprint(__('<b>Cannot Edit {0} directly</b>: \
+			To edit {0} properties, \
+			create / update {1}, {2} and {3}', [
+				'DocType', 
+				'<a href="#!List/Custom%20Field">'+ __('Custom Field')+'</a>',
+				'<a href="#!List/Custom%20Script">'+ __('Custom Script')+'</a>',
+				'<a href="#!List/Property%20Setter">'+ __('Property Setter')+'</a>',
+			]));
 	}
 }
 

@@ -58,7 +58,7 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 	make_notification: function() {
 		$('.navbar .navbar-right').append('<li class="dropdown">\
 			<a class="dropdown-toggl" href="#"  data-toggle="dropdown"\
-				title="'+frappe._("Unread Messages")+'"\
+				title="'+__("Unread Messages")+'"\
 				onclick="return false;"><span class="navbar-new-comments">0</span></a>\
 			<ul class="dropdown-menu" id="navbar-notification">\
 			</ul>\
@@ -77,13 +77,13 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 			<a onclick="return frappe.ui.toolbar.search.show();"><i class="icon-search"></i><li>');
 		$('.navbar .nav:first').append('<li class="dropdown">\
 			<a class="dropdown-toggle" href="#"  data-toggle="dropdown"\
-				title="'+frappe._("File")+'"\
-				onclick="return false;">'+frappe._("File")+'</a>\
+				title="'+__("File")+'"\
+				onclick="return false;">'+__("File")+'</a>\
 			<ul class="dropdown-menu" id="navbar-file">\
 				<li><a href="#" onclick="return frappe.ui.toolbar.new_dialog.show();">\
-					<i class="icon-fixed-width icon-plus"></i> '+frappe._('New')+'...</a></li>\
+					<i class="icon-fixed-width icon-plus"></i> '+__('New')+'...</a></li>\
 				<li><a href="#" onclick="return frappe.ui.toolbar.report.show();">\
-					<i class="icon-fixed-width icon-list"></i> '+frappe._('Report')+'...</a></li>\
+					<i class="icon-fixed-width icon-list"></i> '+__('Report')+'...</a></li>\
 			</ul>\
 		</li>');
 	},
@@ -99,20 +99,20 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 	make_help: function() {
 		$('.navbar .nav:first').append('<li class="dropdown">\
 			<a class="dropdown-toggle" data-toggle="dropdown" href="#" \
-				title="'+frappe._("Help")+'"\
-				onclick="return false;">'+frappe._("Help")+'</a>\
+				title="'+__("Help")+'"\
+				onclick="return false;">'+__("Help")+'</a>\
 			<ul class="dropdown-menu" id="toolbar-help"> \
 				<li><a href="#" onclick="return frappe.ui.toolbar.show_about();">\
 					<i class="icon-fixed-width icon-info-sign"></i> '
-					+frappe._('About')+'</a></li>\
+					+__('About')+'</a></li>\
 				<li><a href="http://frappe.io/apps" target="_blank">\
-					<i class="icon-fixed-width icon-file"></i> '+frappe._('Documentation')+'</a></li> \
+					<i class="icon-fixed-width icon-file"></i> '+__('Documentation')+'</a></li> \
 				<li><a href="http://groups.google.com/group/erpnext-user-forum" target="_blank"> \
-					<i class="icon-fixed-width icon-quote-left"></i> '+frappe._('Forum')+'</a></li> \
+					<i class="icon-fixed-width icon-quote-left"></i> '+__('Forum')+'</a></li> \
 				<li class="divider"></li> \
 				<li><a href="#" onclick="return frappe.ui.toolbar.clear_cache();">\
 					<i class="icon-fixed-width icon-refresh"></i> '
-					+frappe._('Clear Cache')+'</a></li>\
+					+__('Clear Cache')+'</a></li>\
 			</ul>\
 		</li>');
 	},
@@ -132,10 +132,10 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 			<li class="divider"></li>\
 			<li><a href="#" onclick="return frappe.app.logout();"> \
 				<i class="icon-fixed-width icon-signout"></i>%(logout)s</a></li>', {
-				"logout": frappe._('Logout'),
-				"website": frappe._('Switch to Website'),
+				"logout": __('Logout'),
+				"website": __('Switch to Website'),
 				"user_form": encodeURIComponent("Form/User/"+user),
-				"my_settings": frappe._("My Settings")
+				"my_settings": __("My Settings")
 			})
 		).appendTo("#toolbar-user");
 	}
@@ -240,7 +240,7 @@ frappe.ui.toolbar.clear_cache = function() {
 }
 
 frappe.ui.toolbar.download_backup = function() {
-	msgprint(frappe._("Your download is being built, this may take a few moments..."));
+	msgprint(__("Your download is being built, this may take a few moments..."));
 	return $c('frappe.utils.backups.get_backup',{},function(r,rt) {});
 	return false;
 }

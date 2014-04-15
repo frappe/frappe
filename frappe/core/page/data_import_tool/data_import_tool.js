@@ -84,8 +84,7 @@ frappe.pages['data-import-tool'].onload = function(wrapper) {
 			with_data = false;
 
 			if(verbose) {
-				msgprint(frappe._("You are not allowed to export the data of") + ": " + frappe._(doctype)
-					+ ". " + frappe._("Downloading empty template") + ".");
+				msgprint(__("You are not allowed to export the data of: {0}. Downloading empty template.", [doctype]));
 			}
 		}
 		return with_data;
@@ -213,7 +212,7 @@ frappe.pages['data-import-tool'].onload = function(wrapper) {
 
 	// add overwrite option
 	var $submit_btn = $('#dit-upload-area button.btn-upload')
-		.html('<i class="icon-upload"></i> ' + frappe._("Upload and Import"));
+		.html('<i class="icon-upload"></i> ' + __("Upload and Import"));
 
 	$('<label><input type="checkbox" name="overwrite"> <span>Overwrite</span></label>\
 		<p class="text-muted">If you are uploading a child table (for example Item Price), the all the entries of that table will be deleted (for that parent record) and new entries will be made.</p><br>')

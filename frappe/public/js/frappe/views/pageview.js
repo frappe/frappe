@@ -96,13 +96,13 @@ frappe.views.Page = Class.extend({
 })
 
 frappe.show_not_found = function(page_name) {
-	frappe.show_message_page(page_name, '<i class="icon-exclamation-sign"></i> ' + frappe._("Not Found"), 
-		frappe._("Sorry we were unable to find what you were looking for."));
+	frappe.show_message_page(page_name, '<i class="icon-exclamation-sign"></i> ' + __("Not Found"), 
+		__("Sorry we were unable to find what you were looking for."));
 }
 
 frappe.show_not_permitted = function(page_name) {
-	frappe.show_message_page(page_name, '<i class="icon-exclamation-sign"></i> ' +frappe._("Not Permitted"), 
-		frappe._("Sorry you are not permitted to view this page."));
+	frappe.show_message_page(page_name, '<i class="icon-exclamation-sign"></i> ' +__("Not Permitted"), 
+		__("Sorry you are not permitted to view this page."));
 }
 
 frappe.show_message_page = function(page_name, title, message) {

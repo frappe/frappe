@@ -29,7 +29,7 @@ frappe.ui.form.Control = Class.extend({
 		// if developer_mode=1, show fieldname as tooltip
 		if(frappe.boot.user && frappe.boot.user.name==="Administrator" &&
 			frappe.boot.developer_mode===1 && this.$wrapper) {
-				this.$wrapper.attr("title", frappe._(this.df.fieldname));
+				this.$wrapper.attr("title", __(this.df.fieldname));
 		}
 	},
 	make: function() {
@@ -240,14 +240,14 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 		// }
 		var icon = "";
 		this.label_span.innerHTML = (icon ? '<i class="'+icon+'"></i> ' : "") +
-			frappe._(this.df.label)  || "&nbsp;";
+			__(this.df.label)  || "&nbsp;";
 		this._label = this.df.label;
 	},
 	set_description: function() {
 		if(this.only_input || this.df.description===this._description)
 			return;
 		if(this.df.description) {
-			this.$wrapper.find(".help-box").html(frappe._(this.df.description));
+			this.$wrapper.find(".help-box").html(__(this.df.description));
 		} else {
 			this.set_empty_description();
 		}
@@ -319,7 +319,7 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 		} else if(this.df.options == 'Email') {
 			if(v+''=='')return '';
 			if(!validate_email(v)) {
-				msgprint(frappe._("Invalid Email") + ": " +  v);
+				msgprint(__("Invalid Email: {0}", [v]));
 					callback("");
 			} else
 				callback(v);
@@ -413,7 +413,7 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 	validate: function(value, callback) {
 		var value = frappe.datetime.validate(value);
 		if(!value) {
-			msgprint (frappe._("Date must be in format") + ": " + (sys_defaults.date_format || "yyyy-mm-dd"));
+			msgprint (__("Date must be in format: {0}", [sys_defaults.date_format || "yyyy-mm-dd"]));
 			callback("");
 		}
 		return callback(value);
@@ -538,7 +538,7 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 	make_input: function() {
 		var me = this;
 		this.$input = $('<button class="btn btn-default">')
-			.html(frappe._("Upload"))
+			.html(__("Upload"))
 			.prependTo(me.input_area)
 			.on("click", function() {
 				me.onclick();
@@ -569,7 +569,7 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 	onclick: function() {
 		if(!this.dialog) {
 			this.dialog = new frappe.ui.Dialog({
-				title: frappe._(this.df.label || frappe._("Upload")),
+				title: __(this.df.label || __("Upload")),
 			});
 		}
 
@@ -704,7 +704,7 @@ frappe.ui.form.ControlSelect = frappe.ui.form.ControlData.extend({
 	setup_attachment: function() {
 		var me = this;
 		$(this.input).css({"width": "85%", "display": "inline-block"});
-		this.$attach = $("<button class='btn btn-default' title='"+ frappe._("Add attachment") + "'\
+		this.$attach = $("<button class='btn btn-default' title='"+ __("Add attachment") + "'\
 			style='padding-left: 6px; padding-right: 6px; margin-right: 6px;'>\
 			<i class='icon-plus'></i></button>")
 			.click(function() {
@@ -753,7 +753,7 @@ frappe.ui.form.ControlSelect = frappe.ui.form.ControlData.extend({
 			}
 			return options;
 		} else {
-			this.set_description(frappe._("Please attach a file first."))
+			this.set_description(__("Please attach a file first."))
 			return [""];
 		}
 	}
@@ -1000,7 +1000,7 @@ frappe.ui.form.ControlTable = frappe.ui.form.Control.extend({
 
 		// description
 		if(this.df.description) {
-			$('<p class="text-muted small">' + frappe._(this.df.description) + '</p>')
+			$('<p class="text-muted small">' + __(this.df.description) + '</p>')
 				.appendTo(this.wrapper);
 		}
 

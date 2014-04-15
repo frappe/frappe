@@ -8,14 +8,14 @@ $(document).ready(function() {
 		var message = $('[name="message"]').val();
 
 		if(!(email && message)) {
-			msgprint("Please enter both your email and message so that we \
-				can get back to you. Thanks!");
+			msgprint(__("Please enter both your email and message so that we \
+				can get back to you. Thanks!"));
 			return false;
 		}
 
 		if(!valid_email(email)) {
-				msgprint("You seem to have written your name instead of your email. \
-					Please enter a valid email address so that we can get back.");
+				msgprint(__("You seem to have written your name instead of your email. \
+					Please enter a valid email address so that we can get back."));
 				$('[name="email"]').focus();
 				return false;
 		}
@@ -27,9 +27,9 @@ $(document).ready(function() {
 			message: message,
 			callback: function(r) {
 				if(r.message==="okay") {
-					msgprint(r.message || "Thank you for your message.")
+					msgprint(r.message || __("Thank you for your message"))
 				} else {
-					msgprint("There were errors");
+					msgprint(__("There were errors"));
 					console.log(r.exc);
 				}
 				$(':input').val('');

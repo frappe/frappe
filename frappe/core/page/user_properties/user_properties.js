@@ -7,13 +7,13 @@ frappe.pages['user-properties'].onload = function(wrapper) {
 	$(wrapper).find(".layout-main").html("<div class='user-settings' style='min-height: 200px;'></div>\
 	<table class='table table-bordered' style='background-color: #f9f9f9;'>\
 	<tr><td>\
-	<h4><i class='icon-question-sign'></i> "+frappe._("Quick Help for Permission Restrictions")+":</h4>\
+	<h4><i class='icon-question-sign'></i> "+__("Quick Help for Permission Restrictions")+":</h4>\
 	<ol>\
-	<li>"+frappe._("Apart from the existing Permission Rules, you can apply addition restriction based on Type.")+"</li>\
-	<li>"+frappe._("These restrictions will apply for all transactions linked to the restricted record.")
-		 +frappe._("For example, if user X is restricted to company C, user X will not be able to see any transaction that has company C as a linked value.")+"</li>\
-	<li>"+frappe._("These will also be set as default values for those links.")+"</li>\
-	<li>"+frappe._("A user can be restricted to multiple records of the same type.")+"</li>\
+	<li>"+__("Apart from the existing Permission Rules, you can apply addition restriction based on Type.")+"</li>\
+	<li>"+__("These restrictions will apply for all transactions linked to the restricted record.")
+		 +__("For example, if user X is restricted to company C, user X will not be able to see any transaction that has company C as a linked value.")+"</li>\
+	<li>"+__("These will also be set as default values for those links.")+"</li>\
+	<li>"+__("A user can be restricted to multiple records of the same type.")+"</li>\
 	</ol>\
 	</tr></td>\
 	</table>");
@@ -43,21 +43,21 @@ frappe.UserProperties = Class.extend({
 				
 				me.filters.user = me.wrapper.appframe.add_field({
 					fieldname: "user",
-					label: frappe._("User"),
+					label: __("User"),
 					fieldtype: "Select",
 					options: (["Select User..."].concat(r.message.users)).join("\n")
 				});
 				
 				me.filters.property = me.wrapper.appframe.add_field({
 					fieldname: "property",
-					label: frappe._("Property"),
+					label: __("Property"),
 					fieldtype: "Select",
 					options: (["Select Property..."].concat(me.get_link_names())).join("\n")
 				});
 				
 				me.filters.restriction = me.wrapper.appframe.add_field({
 					fieldname: "restriction",
-					label: frappe._("Restriction"),
+					label: __("Restriction"),
 					fieldtype: "Link",
 					options: "[Select]"
 				});
@@ -112,7 +112,7 @@ frappe.UserProperties = Class.extend({
 		this.body.empty();
 		this.prop_list = prop_list;
 		if(!prop_list || !prop_list.length) {
-			this.body.html("<div class='alert alert-info'>"+frappe._("No User Restrictions found.")+"</div>");
+			this.body.html("<div class='alert alert-info'>"+__("No User Restrictions found.")+"</div>");
 		} else {
 			this.show_property_table();
 		}
@@ -121,11 +121,11 @@ frappe.UserProperties = Class.extend({
 	refresh: function() {
 		var me = this;
 		if(!me.filters.user) {
-			this.body.html("<div class='alert alert-info'>"+frappe._("Loading")+"...</div>");
+			this.body.html("<div class='alert alert-info'>"+__("Loading")+"...</div>");
 			return;
 		}
 		if(!me.get_user() && !me.get_property()) {
-			this.body.html("<div class='alert alert-warning'>"+frappe._("Select User or Property to start.")+"</div>");
+			this.body.html("<div class='alert alert-warning'>"+__("Select User or Property to start.")+"</div>");
 			return;
 		}
 		// get permissions
@@ -150,7 +150,7 @@ frappe.UserProperties = Class.extend({
 			<tbody></tbody>\
 		</table>").appendTo(this.body);
 		
-		$.each([[frappe._("User"), 150], [frappe._("Type"), 150], [frappe._("Restricted To"),150], ["", 50]], 
+		$.each([[__("User"), 150], [__("Type"), 150], [__("Restricted To"),150], ["", 50]], 
 			function(i, col) {
 			$("<th>").html(col[0]).css("width", col[1]+"px")
 				.appendTo(me.table.find("thead tr"));
@@ -190,7 +190,7 @@ frappe.UserProperties = Class.extend({
 					},
 					callback: function(r) {
 						if(r.exc) {
-							msgprint("Did not remove.");
+							msgprint(__("Did not remove"));
 						} else {
 							me.refresh();
 						}
@@ -201,19 +201,19 @@ frappe.UserProperties = Class.extend({
 	
 	show_add_property: function() {
 		var me = this;
-		$("<button class='btn btn-info'>"+frappe._("Add A Restriction")+"</button>")
+		$("<button class='btn btn-info'>"+__("Add A Restriction")+"</button>")
 			.appendTo($("<p>").appendTo(this.body))
 			.click(function() {
 				var d = new frappe.ui.Dialog({
 					title: "Add New Property",
 					fields: [
-						{fieldtype:"Select", label:frappe._("User"),
+						{fieldtype:"Select", label:__("User"),
 							options:me.options.users, reqd:1, fieldname:"user"},
-						{fieldtype:"Select", label: frappe._("Property"), fieldname:"defkey",
+						{fieldtype:"Select", label: __("Property"), fieldname:"defkey",
 							options:me.get_link_names(), reqd:1},
-						{fieldtype:"Link", label:frappe._("Value"), fieldname:"defvalue",
+						{fieldtype:"Link", label:__("Value"), fieldname:"defvalue",
 							options:'[Select]', reqd:1},
-						{fieldtype:"Button", label: frappe._("Add"), fieldname:"add"},
+						{fieldtype:"Button", label: __("Add"), fieldname:"add"},
 					]
 				});
 				if(me.get_user()) {
@@ -247,7 +247,7 @@ frappe.UserProperties = Class.extend({
 						args: args,
 						callback: function(r) {
 							if(r.exc) {
-								msgprint("Did not add.");
+								msgprint("Did not add");
 							} else {
 								me.refresh();
 							}

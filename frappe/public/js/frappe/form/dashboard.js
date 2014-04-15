@@ -31,7 +31,7 @@ frappe.ui.form.Dashboard = Class.extend({
 	},
 	add_doctype_badge: function(doctype, fieldname) {
 		if(frappe.model.can_read(doctype)) {
-			this.add_badge(frappe._(doctype), doctype, function() {
+			this.add_badge(__(doctype), doctype, function() {
 				frappe.route_options = {};
 				frappe.route_options[fieldname] = cur_frm.doc.name;
 				frappe.set_route("List", doctype);

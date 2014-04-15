@@ -4,11 +4,11 @@
 frappe.ui.toolbar.Search = frappe.ui.toolbar.SelectorDialog.extend({
 	init: function() {
 		this._super({
-			title: frappe._("Search"),
+			title: __("Search"),
 			execute: function(val) {
 				frappe.set_route("List", val, {"name": "%"});
 			},
-			help: frappe._("Shortcut") + ": Ctrl+G"
+			help: __("Shortcut") + ": Ctrl+G"
 		});
 		
 		// get new types

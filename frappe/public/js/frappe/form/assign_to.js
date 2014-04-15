@@ -73,29 +73,29 @@ frappe.ui.form.AssignTo = Class.extend({
 				return false;
 			});
 		} else {
-			$('<p class="text-muted">' + frappe._("No one") + '</p>').appendTo(this.$list);
+			$('<p class="text-muted">' + __("No one") + '</p>').appendTo(this.$list);
 		}
 	},
 	add: function() {
 		var me = this;
 		if(!me.dialog) {
 			me.dialog = new frappe.ui.Dialog({
-				title: frappe._('Add to To Do'),
+				title: __('Add to To Do'),
 				width: 350,
 				fields: [
 					{fieldtype:'Link', fieldname:'assign_to', options:'User', 
-						label:frappe._("Assign To"), 
-						description:frappe._("Add to To Do List of"), reqd:true},
-					{fieldtype:'Data', fieldname:'description', label:frappe._("Comment")}, 
-					{fieldtype:'Date', fieldname:'date', label: frappe._("Complete By")}, 
-					{fieldtype:'Select', fieldname:'priority', label: frappe._("Priority"),
+						label:__("Assign To"), 
+						description:__("Add to To Do List of"), reqd:true},
+					{fieldtype:'Data', fieldname:'description', label:__("Comment")}, 
+					{fieldtype:'Date', fieldname:'date', label: __("Complete By")}, 
+					{fieldtype:'Select', fieldname:'priority', label: __("Priority"),
 						options:'Low\nMedium\nHigh', 'default':'Medium'},
 					{fieldtype:'Check', fieldname:'notify', 
-						label:frappe._("Notify By Email"), "default":1},
+						label:__("Notify By Email"), "default":1},
 					{fieldtype:'Check', fieldname:'restrict',
-						label:frappe._("Add This To User's Restrictions")
+						label:__("Add This To User's Restrictions")
 							+ ' <a class="assign-user-properties"><i class="icon-share"></i></a>'},
-					{fieldtype:'Button', label:frappe._("Add"), fieldname:'add_btn'}
+					{fieldtype:'Button', label:__("Add"), fieldname:'add_btn'}
 				]
 			});
 						

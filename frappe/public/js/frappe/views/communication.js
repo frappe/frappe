@@ -37,7 +37,7 @@ frappe.views.CommunicationList = Class.extend({
 	},
 	clear_list: function() {
 		this.body.remove();
-		$("<p class='text-muted'>" + frappe._("No Communication tagged with this ") 
+		$("<p class='text-muted'>" + __("No Communication tagged with this ") 
 			+ this.doc.doctype +" yet.</p>").appendTo(this.wrapper);	
 	},
 	make_body: function() {
@@ -48,7 +48,7 @@ frappe.views.CommunicationList = Class.extend({
 			<div style='margin-bottom: 8px;'>\
 				<button class='btn btn-default' \
 					onclick='cur_frm.communication_view.add_reply()'>\
-				<i class='icon-plus'></i> "+frappe._("Add Message")+"</button></div>\
+				<i class='icon-plus'></i> "+__("Add Message")+"</button></div>\
 			</div>")
 			.appendTo(this.parent);
 			
@@ -84,8 +84,8 @@ frappe.views.CommunicationList = Class.extend({
 
 		if(!doc.sender) doc.sender = "[unknown sender]";
 		doc._sender = doc.sender.replace(/</, "&lt;").replace(/>/, "&gt;");
-		doc.content = doc.content.split("-----"+frappe._("In response to")+"-----")[0];
-		doc.content = doc.content.split("-----"+frappe._("Original Message")+"-----")[0];
+		doc.content = doc.content.split("-----"+__("In response to")+"-----")[0];
+		doc.content = doc.content.split("-----"+__("Original Message")+"-----")[0];
 	},
 	
 	make_line: function(doc) {
@@ -97,7 +97,7 @@ frappe.views.CommunicationList = Class.extend({
 			"SMS": "icon-mobile-phone",
 		}[doc.communication_medium] || "icon-envelope";
 		var comm = $(repl('<div class="list-group-item">\
-				<div class="comm-header row" title="'+frappe._('Click to Expand / Collapse')+'">\
+				<div class="comm-header row" title="'+__('Click to Expand / Collapse')+'">\
 					<div class="col-sm-3"><i class="%(icon)s"></i> %(_sender)s</div>\
 					<div class="col-sm-6">%(subject)s</div>\
 					<div class="col-sm-3 text-right">%(when)s</div>\
@@ -106,7 +106,7 @@ frappe.views.CommunicationList = Class.extend({
 					<div class="inner" style="border-top: 1px solid #f3f3f3; margin-top: 10px; padding-top: 10px;">\
 					</div>\
 					<div class="show-details pull-right" style="margin-right: 10px;">\
-						<a href="#Form/Communication/%(name)s">'+frappe._('Show Details')+'</a>\
+						<a href="#Form/Communication/%(name)s">'+__('Show Details')+'</a>\
 					</div>\
 				</div>\
 			</td></tr>', doc))
@@ -136,32 +136,32 @@ frappe.views.CommunicationComposer = Class.extend({
 	make: function() {
 		var me = this;
 		this.dialog = new frappe.ui.Dialog({
-			title: frappe._("Add Reply") + ": " + (this.subject || ""),
+			title: __("Add Reply") + ": " + (this.subject || ""),
 			no_submit_on_enter: true,
 			fields: [
-				{label:frappe._("To"), fieldtype:"Data", reqd: 1, fieldname:"recipients", 
-					description:frappe._("Email addresses, separted by commas")},
-				{label:frappe._("Subject"), fieldtype:"Data", reqd: 1, 
+				{label:__("To"), fieldtype:"Data", reqd: 1, fieldname:"recipients", 
+					description:__("Email addresses, separted by commas")},
+				{label:__("Subject"), fieldtype:"Data", reqd: 1, 
 					fieldname:"subject"},
-				{label:frappe._("Message"), fieldtype:"Text Editor", reqd: 1, 
+				{label:__("Message"), fieldtype:"Text Editor", reqd: 1, 
 					fieldname:"content"},
-				{label:frappe._("Send As Email"), fieldtype:"Check",
+				{label:__("Send As Email"), fieldtype:"Check",
 					fieldname:"send_email"},
-				{label:frappe._("Communication Medium"), fieldtype:"Select", 
+				{label:__("Communication Medium"), fieldtype:"Select", 
 					options: ["Phone", "Chat", "Email", "SMS", "Visit", "Other"],
 					fieldname:"communication_medium"},
-				{label:frappe._("Sent or Received"), fieldtype:"Select", 
+				{label:__("Sent or Received"), fieldtype:"Select", 
 					options: ["Received", "Sent"],
 					fieldname:"sent_or_received"},
-				{label:frappe._("Send"), fieldtype:"Button", 
+				{label:__("Send"), fieldtype:"Button", 
 					fieldname:"send"},
-				{label:frappe._("Send Me A Copy"), fieldtype:"Check",
+				{label:__("Send Me A Copy"), fieldtype:"Check",
 					fieldname:"send_me_a_copy"},
-				{label:frappe._("Attach Document Print"), fieldtype:"Check",
+				{label:__("Attach Document Print"), fieldtype:"Check",
 					fieldname:"attach_document_print"},
-				{label:frappe._("Select Print Format"), fieldtype:"Select",
+				{label:__("Select Print Format"), fieldtype:"Select",
 					fieldname:"select_print_format"},
-				{label:frappe._("Select Attachments"), fieldtype:"HTML",
+				{label:__("Select Attachments"), fieldtype:"HTML",
 					fieldname:"select_attachments"}
 			]
 		});
@@ -223,7 +223,7 @@ frappe.views.CommunicationComposer = Class.extend({
 		
 		var files = cur_frm.get_files();
 		if(files.length) {
-			$("<p><b>"+frappe._("Add Attachments")+":</b></p>").appendTo(attach.empty());
+			$("<p><b>"+__("Add Attachments")+":</b></p>").appendTo(attach.empty());
 			$.each(files, function(i, f) {
 				$(repl("<p><input type='checkbox' \
 					data-file-name='%(file)s'> %(file)s</p>", {file:f})).appendTo(attach)
@@ -283,7 +283,7 @@ frappe.views.CommunicationComposer = Class.extend({
 
 		if(form_values.send_email) {
 			if(cur_frm && !frappe.model.can_email(me.doc.doctype, cur_frm)) {
-				msgprint(frappe._("You are not allowed to send emails related to this document."));
+				msgprint(__("You are not allowed to send emails related to this document"));
 				return;
 			}
 			
@@ -311,11 +311,11 @@ frappe.views.CommunicationComposer = Class.extend({
 			callback: function(r) {
 				if(!r.exc) {
 					if(form_values.send_email)
-						msgprint("Email sent to " + form_values.recipients);
+						msgprint(__("Email sent to {0}", [form_values.recipients]));
 					me.dialog.hide();
 					cur_frm.reload_doc();
 				} else {
-					msgprint("There were errors while sending email. Please try again.")
+					msgprint(__("There were errors while sending email. Please try again."));
 				}
 			}
 		});
@@ -333,7 +333,7 @@ frappe.views.CommunicationComposer = Class.extend({
 		}
 		
 		if(this.real_name) {
-			this.message = '<p>'+frappe._('Dear') +' ' + this.real_name + ",</p>" + (this.message || "");
+			this.message = '<p>'+__('Dear') +' ' + this.real_name + ",</p>" + (this.message || "");
 		}
 		
 		var reply = (this.message || "") 
@@ -342,7 +342,7 @@ frappe.views.CommunicationComposer = Class.extend({
 		if(comm_list.length > 0) {
 			fields.content.set_input(reply
 				+ "<p></p>"
-				+"-----"+frappe._("In response to")+"-----<p></p>" 
+				+"-----"+__("In response to")+"-----<p></p>" 
 				+ comm_list[0].content);
 		} else {
 			fields.content.set_input(reply);

@@ -27,26 +27,26 @@ frappe.ui.form.Footer = Class.extend({
 			<div class="after-save row">\
 				<div class="col-md-8">\
 					<div class="form-comments">\
-						<h5><i class="icon-comments"></i> '+frappe._("Comments")+'</h5>\
+						<h5><i class="icon-comments"></i> '+__("Comments")+'</h5>\
 					</div>\
 				</div>\
 				<div class="col-md-4">\
 					<div class="form-tags">\
-						<h5 style="display: inline-block"><i class="icon-tag"></i> '+frappe._("Tags")+'</h5>\
+						<h5 style="display: inline-block"><i class="icon-tag"></i> '+__("Tags")+'</h5>\
 						<span class="tag-area"></span><br>\
 					</div><hr>\
 					<div class="form-assignments" style="margin-bottom: 7px;">\
 						<h5>\
-							<i class="icon-flag"></i> '+frappe._("Assigned To")+': \
+							<i class="icon-flag"></i> '+__("Assigned To")+': \
 							<button class="btn small btn-default pull-right"\
-								style="margin-top:-7px;">'+frappe._("Add")+'</button>\
+								style="margin-top:-7px;">'+__("Add")+'</button>\
 						</h5>\
 					</div><hr>\
 					<div class="form-attachments">\
 						<h5>\
-							<i class="icon-paper-clip"></i> '+frappe._("Attachments")+':\
+							<i class="icon-paper-clip"></i> '+__("Attachments")+':\
 							<button class="btn small btn-default pull-right"\
-								style="margin-top:-7px;">'+frappe._("Add")+'</button>\
+								style="margin-top:-7px;">'+__("Add")+'</button>\
 						</h5>\
 					</div>\
 				</div>\

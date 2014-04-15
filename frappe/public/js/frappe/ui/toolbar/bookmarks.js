@@ -6,14 +6,14 @@ frappe.ui.toolbar.Bookmarks = Class.extend({
 	init:function() {
 		$('.navbar .nav:first').append('<li class="dropdown">\
 			<a class="dropdown-toggle" data-toggle="dropdown" href="#" \
-				title="'+frappe._("Bookmarks")+'"\
-				onclick="return false;">'+frappe._("Bookmarks")+'</a>\
+				title="'+__("Bookmarks")+'"\
+				onclick="return false;">'+__("Bookmarks")+'</a>\
 			<ul class="dropdown-menu" id="toolbar-bookmarks">\
 				<li class="divider"></li>\
 				<li><a href="#" id="add-bookmark-link"><i class="icon-plus"></i> '
-					+frappe._('Add Bookmark')+'</a></li>\
+					+__('Add Bookmark')+'</a></li>\
 				<li style="display: none" id="remove-bookmark-link"><a href="#"><i class="icon-minus"></i> '
-					+frappe._('Remove Bookmark')+'</a></li>\
+					+__('Remove Bookmark')+'</a></li>\
 			</ul>\
 		</li>');
 		

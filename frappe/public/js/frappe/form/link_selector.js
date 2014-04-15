@@ -100,10 +100,10 @@ frappe.ui.form.LinkSelector = Class.extend({
 						})
 					})
 				} else {
-					$('<div class="alert alert-info">' + frappe._("No Results")  
+					$('<div class="alert alert-info">' + __("No Results")  
 						+ (frappe.model.can_read(me.doctype) ? 
 							('. <a class="new-doc">'
-							+ frappe._("Make a new") + " " + frappe._(me.doctype) + "</a>") : '') 
+							+ __("Make a new") + " " + __(me.doctype) + "</a>") : '') 
 						+ '</div>').appendTo(parent).find(".new-doc").click(function() {
 							cur_frm.new_doc(me.doctype, me.target);
 						});

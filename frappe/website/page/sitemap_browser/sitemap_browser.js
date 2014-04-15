@@ -15,8 +15,8 @@ frappe.pages['sitemap-browser'].onload = function(wrapper) {
 	$(wrapper)
 		.find(".layout-side-section")
 		.html('<div class="text-muted">'+ 
-			frappe._('Click on a link to get options to expand get options ') + 
-			frappe._('Add') + ' / ' + frappe._('Edit') + ' / '+ frappe._('Remove') + '.</div>')
+			__('Click on a link to get options to expand get options ') + 
+			__('Add') + ' / ' + __('Edit') + ' / '+ __('Remove') + '.</div>')
 
 	frappe.website.sitemap = new frappe.website.SitemapBrowser( 
 		$(wrapper)
@@ -42,25 +42,25 @@ frappe.website.SitemapBrowser = Class.extend({
 					toggle_btn: true,
 				},
 				{
-					label: frappe._("Update Parent"),
+					label: __("Update Parent"),
 					click: function(node, btn) {
 						me.update_parent();
 					}
 				},
 				{
-					label: frappe._("Up"),
+					label: __("Up"),
 					click: function(node, btn) {
 						me.up_or_down("up");
 					}
 				},
 				{
-					label: frappe._("Down"),
+					label: __("Down"),
 					click: function(node, btn) {
 						me.up_or_down("down");
 					}
 				},
 				{
-					label: frappe._("Open"),
+					label: __("Open"),
 					click: function(node, btn) {
 						frappe.set_route("Form", node.data.ref_doctype, node.data.docname);
 					}
@@ -108,7 +108,7 @@ frappe.website.SitemapBrowser = Class.extend({
 		var me = this;
 		if(!this.move_dialog) {
 			this.move_dialog = new frappe.ui.Dialog({
-				title: frappe._("Move"),
+				title: __("Move"),
 				fields: [
 					{ 
 						fieldtype: "Link", 

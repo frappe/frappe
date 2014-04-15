@@ -70,7 +70,7 @@ $.extend(cur_frm.cscript, {
 
 cur_frm.cscript.set_banner_from_image = function(doc) {
 	if(!doc.banner_image) {
-		msgprint(frappe._("Select a Banner Image first."));
+		msgprint(__("Select a Banner Image first."));
 	}
 	var src = doc.banner_image;
 	cur_frm.set_value("banner_html", "<a href='/'><img src='"+ src

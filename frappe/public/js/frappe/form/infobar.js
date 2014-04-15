@@ -11,33 +11,33 @@ frappe.ui.form.InfoBar = Class.extend({
 		var me = this;
 
 		this.appframe.iconbar.clear(2);
-		this.$reload = this.appframe.add_icon_btn("2", "icon-refresh", frappe._("Reload Page"), 
+		this.$reload = this.appframe.add_icon_btn("2", "icon-refresh", __("Reload Page"), 
 			function() { me.frm.reload_doc(); })
 
 
-		this.$timestamp = this.appframe.add_icon_btn("2", "icon-user", frappe._("Creation / Modified By"), 
+		this.$timestamp = this.appframe.add_icon_btn("2", "icon-user", __("Creation / Modified By"), 
 			function() { })
 
-		this.$comments = this.appframe.add_icon_btn("2", "icon-comments", frappe._("Comments"), function() {
+		this.$comments = this.appframe.add_icon_btn("2", "icon-comments", __("Comments"), function() {
 				me.scroll_to(".form-comments");
 			});
 			
-		this.$attachments = this.appframe.add_icon_btn("2", "icon-paper-clip", frappe._("Attachments"),  function() {
+		this.$attachments = this.appframe.add_icon_btn("2", "icon-paper-clip", __("Attachments"),  function() {
 				me.scroll_to(".form-attachments");
 			});
 
-		this.$assignments = this.appframe.add_icon_btn("2", "icon-flag", frappe._("Assignments"),  function() {
+		this.$assignments = this.appframe.add_icon_btn("2", "icon-flag", __("Assignments"),  function() {
 				me.scroll_to(".form-attachments");
 			});		
 
 
-		this.$links = this.appframe.add_icon_btn("2", "icon-link", frappe._("Linked With"), 
+		this.$links = this.appframe.add_icon_btn("2", "icon-link", __("Linked With"), 
 				function() { me.frm.toolbar.show_linked_with(); });
 		
 		// link to user restrictions
 		if(frappe.model.can_restrict(me.frm.doctype, me.frm)) {
 			this.$user_properties = this.appframe.add_icon_btn("2", "icon-shield", 
-				frappe._("User Permission Restrictions"), function() {
+				__("User Permission Restrictions"), function() {
 					frappe.route_options = {
 						property: me.frm.doctype,
 						restriction: me.frm.docname
@@ -47,20 +47,20 @@ frappe.ui.form.InfoBar = Class.extend({
 		}
 
 		if(frappe.model.can_print(me.frm.doctype, me.frm)) {
-			this.$print = this.appframe.add_icon_btn("2", "icon-print", frappe._("Print"), 
+			this.$print = this.appframe.add_icon_btn("2", "icon-print", __("Print"), 
 				function() { me.frm.print_doc(); });
 		}
 
 		if(frappe.model.can_email(me.frm.doctype, me.frm)) {
-			this.$print = this.appframe.add_icon_btn("2", "icon-envelope", frappe._("Email"), 
+			this.$print = this.appframe.add_icon_btn("2", "icon-envelope", __("Email"), 
 				function() { me.frm.email_doc(); });
 		}
 		
 		if(!this.frm.meta.issingle) {
-			this.$prev = this.appframe.add_icon_btn("2", "icon-arrow-left", frappe._("Previous Record"), 
+			this.$prev = this.appframe.add_icon_btn("2", "icon-arrow-left", __("Previous Record"), 
 				function() { me.go_prev_next(true); });
 		
-			this.$next = this.appframe.add_icon_btn("2", "icon-arrow-right", frappe._("Next Record"), 
+			this.$next = this.appframe.add_icon_btn("2", "icon-arrow-right", __("Next Record"), 
 				function() { me.go_prev_next(false); });
 		}
 		

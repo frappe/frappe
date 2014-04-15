@@ -1,1 +1,1 @@
-frappe._("Test") // for test case
+__("Test") // for test case

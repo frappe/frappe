@@ -1,7 +1,7 @@
 frappe.pages['permission-manager'].onload = function(wrapper) { 
 	frappe.ui.make_app_page({
 		parent: wrapper,
-		title: frappe._('Permission Manager'),
+		title: __('Permission Manager'),
 		single_column: true
 	});
 	$(wrapper).find(".layout-main").html("<div class='perm-engine' style='min-height: 200px;'></div>"
@@ -39,13 +39,13 @@ frappe.PermissionEngine = Class.extend({
 		var me = this;
 		this.doctype_select 
 			= this.wrapper.appframe.add_select("doctypes", 
-				[{value: "", label: frappe._("Select Document Type")+"..."}].concat(this.options.doctypes))
+				[{value: "", label: __("Select Document Type")+"..."}].concat(this.options.doctypes))
 				.change(function() {
 					frappe.set_route("permission-manager", $(this).val());
 				});
 		this.role_select 
 			= this.wrapper.appframe.add_select("roles", 
-				[frappe._("Select Role")+"..."].concat(this.options.roles))
+				[__("Select Role")+"..."].concat(this.options.roles))
 				.change(function() {
 					me.refresh();
 				});
@@ -135,7 +135,7 @@ frappe.PermissionEngine = Class.extend({
 			return;
 		}
 		if(!me.get_doctype() && !me.get_role()) {
-			this.body.html("<div class='alert alert-info'>"+frappe._("Select Document Type or Role to start.")+"</div>");
+			this.body.html("<div class='alert alert-info'>"+__("Select Document Type or Role to start.")+"</div>");
 			return;
 		}
 		// get permissions
@@ -158,7 +158,7 @@ frappe.PermissionEngine = Class.extend({
 		this.perm_list = perm_list || [];
 		if(!this.perm_list.length) {
 			this.body.html("<div class='alert alert-warning'>"
-				+frappe._("No Permissions set for this criteria.")+"</div>");
+				+__("No Permissions set for this criteria.")+"</div>");
 		} else {
 			this.show_permission_table(this.perm_list);
 		}
@@ -250,9 +250,9 @@ frappe.PermissionEngine = Class.extend({
 					},
 					callback: function(r) {
 						r.message = $.map(r.message, function(p) {
-							return '<a href="#Form/User/'+p+'">'+p+'</a>';
+							return $.format('<a href="#Form/User/{0}">{1}</a>', [p, p]);
 						})
-						msgprint("<h4>Users with role "+role+":</h4>" 
+						msgprint(__("Users with role {0}:", [role])
 							+ r.message.join("<br>"));
 					}
 				})
@@ -266,7 +266,7 @@ frappe.PermissionEngine = Class.extend({
 			return;
 		}
 		var btn = $("<button class='btn btn-default btn-small'></button>")
-			.html(d.match ? d.match : frappe._("For All Users"))
+			.html(d.match ? d.match : __("For All Users"))
 			.appendTo($("<td>").appendTo(row))
 			.attr("data-name", d.name)
 			.click(function() {
@@ -291,7 +291,7 @@ frappe.PermissionEngine = Class.extend({
 					},
 					callback: function(r) {
 						if(r.exc) {
-							msgprint("Did not remove.");
+							msgprint(__("Did not remove"));
 						} else {
 							me.refresh();
 						}
@@ -327,11 +327,11 @@ frappe.PermissionEngine = Class.extend({
 	},
 	show_add_rule: function() {
 		var me = this;
-		$("<button class='btn btn-default btn-info'>"+frappe._("Add A New Rule")+"</button>")
+		$("<button class='btn btn-default btn-info'>"+__("Add A New Rule")+"</button>")
 			.appendTo($("<p>").appendTo(this.body))
 			.click(function() {
 				var d = new frappe.ui.Dialog({
-					title: frappe._("Add New Permission Rule"),
+					title: __("Add New Permission Rule"),
 					fields: [
 						{fieldtype:"Select", label:"Document Type",
 							options:me.options.doctypes, reqd:1, fieldname:"parent"},
@@ -339,7 +339,7 @@ frappe.PermissionEngine = Class.extend({
 							options:me.options.roles, reqd:1},
 						{fieldtype:"Select", label:"Permission Level",
 							options:[0,1,2,3,4,5,6,7,8,9], reqd:1, fieldname: "permlevel",
-							description: frappe._("Level 0 is for document level permissions, higher levels for field level permissions.")},
+							description: __("Level 0 is for document level permissions, higher levels for field level permissions.")},
 						{fieldtype:"Button", label:"Add"},
 					]
 				});
@@ -364,7 +364,7 @@ frappe.PermissionEngine = Class.extend({
 						args: args,
 						callback: function(r) {
 							if(r.exc) {
-								msgprint(frappe._("Did not add."));
+								msgprint(__("Did not add"));
 							} else {
 								me.refresh();
 							}

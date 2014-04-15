@@ -22,7 +22,7 @@ frappe.ui.toolbar.SelectorDialog = Class.extend({
 			title: this.opts.title,
 			width: 300,
 			fields: [
-				{fieldtype:'Select', fieldname:'doctype', options:'Select...', label:frappe._('Select Type')},
+				{fieldtype:'Select', fieldname:'doctype', options:'Select...', label:__('Select Type')},
 				{fieldtype:'Button', label:'Go', fieldname:'go'}
 			]
 		});
@@ -59,7 +59,7 @@ frappe.ui.toolbar.SelectorDialog = Class.extend({
 	set_values: function(lst) {
 		// convert to labels
 		for(var i=0;i<lst.length;i++) 
-			lst[i]={label:frappe._(lst[i]), value:lst[i]};
+			lst[i]={label:__(lst[i]), value:lst[i]};
 		
 		// set values
 		var sel = this.dialog.fields_dict.doctype.input;

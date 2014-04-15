@@ -56,7 +56,7 @@ $.extend(website, {
 	},
 	add_post: function() {
 		if(website.post) {
-			frappe.msgprint("Post already exists. Cannot add again!");
+			frappe.msgprint(__("Post already exists. Cannot add again!"));
 			return;
 		}
 		
@@ -69,7 +69,7 @@ $.extend(website, {
 	},
 	save_post: function() {
 		if(!website.post) {
-			frappe.msgprint("Post does not exist. Please add post!");
+			frappe.msgprint(__("Post does not exist. Please add post!"));
 			return;
 		}
 	
@@ -110,13 +110,13 @@ $.extend(website, {
 	
 		// validations
 		if(!values.parent_post && !values.title) {
-			frappe.msgprint("Please enter title!");
+			frappe.msgprint(__("Please enter title!"));
 			return;
 		} else if(!values.content) {
-			frappe.msgprint("Please enter some text!");
+			frappe.msgprint(__("Please enter some text!"));
 			return;
 		} else if($('.post-editor [data-fieldname="event_datetime"]').length && !values.event_datetime) {
-			frappe.msgprint("Please enter Event's Date and Time!");
+			frappe.msgprint(__("Please enter Event's Date and Time!"));
 			return;
 		}
 	
@@ -295,7 +295,7 @@ $.extend(website, {
 			
 			var sid = frappe.get_cookie("sid");
 			if(!sid || sid==="Guest") {
-				frappe.msgprint("Please login to Upvote!");
+				frappe.msgprint(__("Please login to Upvote!"));
 				return;
 			}
 			var $post = $(this).parents(".post");
@@ -474,14 +474,14 @@ $.extend(website, {
 				},
 				statusCode: {
 					403: function() {
-						frappe.msgprint("Name Not Permitted");
+						frappe.msgprint(__("Name not permitted"));
 					},
 					200: function(data) {
 						if(data.exc) {
 							console.log(data.exc);
 							if(data._server_messages) frappe.msgprint(data._server_messages);
 						} else {
-							frappe.msgprint("Group Added, refreshing...");
+							frappe.msgprint(__("Group Added, refreshing..."));
 							setTimeout(function() { window.location.reload(); }, 1000)
 						}
 					}
@@ -509,7 +509,7 @@ $.extend(website, {
 			},
 			statusCode: {
 				403: function() {
-					frappe.msgprint("Not Allowed");
+					frappe.msgprint(__("Not allowed"));
 				},
 				200: function(data) {
 					$chk.prop("disabled", false);

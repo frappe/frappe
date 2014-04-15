@@ -6,8 +6,8 @@ frappe.ui.toolbar.RecentDocs = Class.extend({
 	init:function() {
 		$('.navbar .nav:first').append('<li class="dropdown">\
 			<a class="dropdown-toggle" data-toggle="dropdown" href="#" \
-				title="'+frappe._("History")+'"\
-				onclick="return false;">'+frappe._("History")+'</i></a>\
+				title="'+__("History")+'"\
+				onclick="return false;">'+__("History")+'</i></a>\
 			<ul class="dropdown-menu" id="toolbar-recent"></ul>\
 		</li>');
 		this.setup();

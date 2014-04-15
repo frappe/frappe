@@ -50,7 +50,7 @@ frappe.ui.form.Attachments = Class.extend({
 				that.add_attachment(attachment)
 			});
 		} else {
-			$('<p class="text-muted">' + frappe._("None") + '</p>').appendTo(this.$list);
+			$('<p class="text-muted">' + __("None") + '</p>').appendTo(this.$list);
 		}
 		
 		// refresh select fields with options attach_files:
@@ -84,7 +84,7 @@ frappe.ui.form.Attachments = Class.extend({
 			.data("fileid", fileid)
 			.click(function() {
 				var remove_btn = this;
-				frappe.confirm(frappe._("Are you sure you want to delete the attachment?"),
+				frappe.confirm(__("Are you sure you want to delete the attachment?"),
 					function() {
 						me.remove_attachment($(remove_btn).data("fileid"))
 					}
@@ -111,7 +111,7 @@ frappe.ui.form.Attachments = Class.extend({
 			callback: function(r,rt) {
 				if(r.exc) {
 					if(!r._server_messages)
-						msgprint("There were errors.");
+						msgprint(__("There were errors"));
 					return;
 				}
 				me.remove_fileid(fileid);
@@ -124,7 +124,7 @@ frappe.ui.form.Attachments = Class.extend({
 		var me = this;
 		if(!this.dialog) {
 			this.dialog = new frappe.ui.Dialog({
-				title: frappe._('Upload Attachment'),
+				title: __('Upload Attachment'),
 			});
 		}
 		this.dialog.show();

@@ -34,7 +34,7 @@ _p.go = function(html) {
 _p.preview = function(html) {
 	var w = window.open();
 	if(!w) {
-		msgprint(_("Please enable pop-ups"));
+		msgprint(__("Please enable pop-ups"));
 		return;
 	}
 	w.document.write(html);
@@ -116,12 +116,12 @@ $.extend(_p, {
 		};
 
 		if(!cur_frm) {
-			msgprint(frappe._("No document selected."));
+			msgprint(__("No document selected"));
 			return;
 		}
 
 		if(!frappe.model.can_print(cur_frm.doctype, cur_frm)) {
-			msgprint(frappe._("You are not allowed to print this document."));
+			msgprint(__("You are not allowed to print this document"));
 			return;
 		}
 
@@ -140,7 +140,7 @@ $.extend(_p, {
 		} else {
 			var print_format_doc = locals["Print Format"][args.fmtname];
 			if(!print_format_doc) {
-				msgprint("Unknown Print Format: " + args.fmtname);
+				msgprint(__("Unknown Print Format: {0}", [args.fmtname]));
 				return;
 			}
 			args.onload(_p.render({
@@ -448,7 +448,7 @@ $.extend(_p, {
 						}
 					}
 					// if not, just have doctype has heading
-					h1.innerHTML = val ? val : frappe._(doctype);
+					h1.innerHTML = val ? val : __(doctype);
 				}
 
 				var h2_style = {
@@ -524,7 +524,7 @@ $.extend(_p, {
 								var div = $a(me.layout.cur_cell, 'div');
 								var val = _f.get_value(doctype, docname,
 									field.fieldname);
-								div.innerHTML = '<div>' + frappe._(field.label) +
+								div.innerHTML = '<div>' + __(field.label) +
 									': </div><pre style="font-family: Courier, Fixed;">' + (val ? val : '') +
 									'</pre>';
 								break;
@@ -645,7 +645,7 @@ $.extend(_p, {
 				row = _p.field_tab(layout.cur_cell);
 
 				// Add label
-				row.cells[0].innerHTML = frappe._(f.label ? f.label : f.fieldname);
+				row.cells[0].innerHTML = __(f.label ? f.label : f.fieldname);
 				row.cells[1].innerHTML = frappe.format(val, f, {for_print: true});
 
 				// left align currency in normal display

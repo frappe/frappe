@@ -4,8 +4,8 @@
 cur_frm.cscript.refresh = function(doc) {	
 	cur_frm.set_intro("");
 	if(doc.__islocal) {
-		cur_frm.set_intro(frappe._("Step 1: Set the name and save."));
+		cur_frm.set_intro(__("Step 1: Set the name and save."));
 	} else if(!cur_frm.doc.content) {
-		cur_frm.set_intro(frappe._("Step 2: Set Letterhead content."));
+		cur_frm.set_intro(__("Step 2: Set Letterhead content."));
 	}
 }

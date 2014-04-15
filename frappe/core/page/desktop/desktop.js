@@ -8,7 +8,7 @@ frappe.pages['desktop'].onload = function(wrapper) {
 }
 
 frappe.pages['desktop'].refresh = function(wrapper) {
-	frappe.ui.toolbar.add_dropdown_button("File", frappe._("All Applications"), function() { 
+	frappe.ui.toolbar.add_dropdown_button("File", __("All Applications"), function() { 
 		frappe.desktop.show_all_modules();
 	}, 'icon-th');
 	
@@ -45,7 +45,7 @@ frappe.desktop.get_module = function(m) {
 	}
 	
 	if(!module._label) {
-		module._label = frappe._(module.label || module.name);
+		module._label = __(module.label || module.name);
 	}
 	
 	return module;
@@ -109,7 +109,7 @@ frappe.desktop.render = function() {
 	frappe.modules["All Applications"] = {
 		icon: "icon-th",
 		label: "All Applications",
-		_label: frappe._("All Applications"),
+		_label: __("All Applications"),
 		_id: "all_applications",
 		color: "#4aa3df",
 		link: "",
@@ -146,7 +146,7 @@ frappe.desktop.show_all_modules = function() {
 					$(this).toggle($(this).attr("data-label").toLowerCase().indexOf(val)!==-1);
 				})
 			});
-		$('<hr><p class="text-right text-muted text-small">'+frappe._("Checked items shown on desktop")+'</p>')
+		$('<hr><p class="text-right text-muted text-small">'+__("Checked items shown on desktop")+'</p>')
 			.appendTo(d.body);
 		$wrapper = $('<div class="list-group">').appendTo(d.body);
 		

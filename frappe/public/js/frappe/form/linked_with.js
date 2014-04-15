@@ -21,7 +21,7 @@ frappe.ui.form.LinkedWith = Class.extend({
 		var links = [];
 		$.each(this.linked_with, function(doctype, tmp) {
 			if(frappe.model.can_get_report(doctype)) {
-				links.push({label: frappe._(doctype), value: doctype});
+				links.push({label: __(doctype), value: doctype});
 			}
 		});
 		
@@ -30,7 +30,7 @@ frappe.ui.form.LinkedWith = Class.extend({
 		this.dialog = new frappe.ui.Dialog({
 			width: 700,
 			hide_on_page_refresh: true,
-			title: frappe._("Linked With"),
+			title: __("Linked With"),
 			fields: [
 				{ fieldtype: "HTML", label: "list" }
 			]
@@ -39,7 +39,7 @@ frappe.ui.form.LinkedWith = Class.extend({
 		if(!links) {
 			this.dialog.fields_dict.list.$wrapper.html("<div class='alert alert-warning'>"
 			+ this.frm.doctype + ": "
-			+ (this.linked_with ? frappe._("Not Linked to any record.") : frappe._("Not enough permission to see links."))
+			+ (this.linked_with ? __("Not Linked to any record.") : __("Not enough permission to see links."))
 			+ "</div>")
 			return;
 		}
@@ -65,7 +65,7 @@ frappe.ui.form.LinkedWith = Class.extend({
 							listview.no_delete = true;
 							
 							var wrapper = $('<div class="panel panel-default"><div>').appendTo(parent);
-							$('<div class="panel-heading">').html(frappe._(doctype).bold()).appendTo(wrapper);
+							$('<div class="panel-heading">').html(__(doctype).bold()).appendTo(wrapper);
 							var body = $('<div class="panel-body">').appendTo(wrapper)
 								.css({"padding-top": "0px", "padding-bottom": "0px"});
 							
@@ -76,7 +76,7 @@ frappe.ui.form.LinkedWith = Class.extend({
 							})
 						})
 					} else {
-						parent.html(frappe._("Not Linked to any record."));
+						parent.html(__("Not Linked to any record."));
 					}
 				}
 			})

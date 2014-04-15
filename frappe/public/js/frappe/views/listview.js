@@ -123,7 +123,7 @@ frappe.views.ListView = Class.extend({
 			}
 			me.total_colspans += parseInt(colspan);
 			me.columns.push({colspan: colspan, content: d.fieldname, 
-				type:d.fieldtype, df:d, title:frappe._(d.label) });
+				type:d.fieldtype, df:d, title:__(d.label) });
 		});
 
 		// additional columns
@@ -199,7 +199,7 @@ frappe.views.ListView = Class.extend({
 							comments[comments.length-1].comment
 							+'"><i class="icon-comments"></i> ' 
 							+ comments.length + " " + (
-								comments.length===1 ? frappe._("comment") : frappe._("comments")) + '</a>')
+								comments.length===1 ? __("comment") : __("comments")) + '</a>')
 						: "")
 					+ comment_when(data.modified));
 		
@@ -215,7 +215,7 @@ frappe.views.ListView = Class.extend({
 		</div>').appendTo(row);
 		
 		// modified
-		body.find(".list-last-modified").html(frappe._("Last updated by") + ": " + frappe.user_info(data.modified_by).fullname);		
+		body.find(".list-last-modified").html(__("Last updated by") + ": " + frappe.user_info(data.modified_by).fullname);		
 		
 		if(!me.doclistview.tags_shown) {
 			row2.addClass("hide");
@@ -256,7 +256,7 @@ frappe.views.ListView = Class.extend({
 				.appendTo(parent)
 		}
 		
-		var $avatar = $(frappe.avatar(data.modified_by, false, frappe._("Modified by")+": " 
+		var $avatar = $(frappe.avatar(data.modified_by, false, __("Modified by")+": " 
 			+ frappe.user_info(data.modified_by).fullname))
 				.appendTo(parent)
 				.css({"max-width": "100%"})
@@ -390,13 +390,13 @@ frappe.views.ListView = Class.extend({
 		// docstatus
 		if(data.docstatus==0 || data.docstatus==null) {
 			data.docstatus_icon = 'icon-check-empty';
-			data.docstatus_title = frappe._('Editable');
+			data.docstatus_title = __('Editable');
 		} else if(data.docstatus==1) {
 			data.docstatus_icon = 'icon-lock';			
-			data.docstatus_title = frappe._('Submitted');
+			data.docstatus_title = __('Submitted');
 		} else if(data.docstatus==2) {
 			data.docstatus_icon = 'icon-remove';			
-			data.docstatus_title = frappe._('Cancelled');
+			data.docstatus_title = __('Cancelled');
 		}
 		
 		// nulls as strings
@@ -420,10 +420,10 @@ frappe.views.ListView = Class.extend({
 			data.when = dateutil.comment_when(date_str);
 		}
 		if(diff == 1) {
-			data.when = frappe._('Yesterday')
+			data.when = __('Yesterday')
 		}
 		if(diff == 2) {
-			data.when = frappe._('2 days ago')
+			data.when = __('2 days ago')
 		}
 	},
 	

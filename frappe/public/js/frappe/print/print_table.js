@@ -98,7 +98,7 @@ frappe.print.Table = Class.extend({
 			} else {
 				var label = df ? df.label : fieldname;
 			}
-			var td = $("<td>").html(frappe._(label))
+			var td = $("<td>").html(__(label))
 				.css(me.head_cell_style)
 				.css({"width": me.widths[ci]})
 				.appendTo(headrow)

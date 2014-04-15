@@ -73,7 +73,7 @@ frappe.core.pages.messages = Class.extend({
 
 		$("#show-everyone").toggle(contact!==user);
 		
-		$("#post-message button").text(contact==user ? frappe._("Post Publicly") : frappe._("Post to user"))
+		$("#post-message button").text(contact==user ? __("Post Publicly") : __("Post to user"))
 		
 		this.contact = contact;
 		this.list.opts.args.contact = contact;
