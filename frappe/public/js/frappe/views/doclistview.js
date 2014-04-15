@@ -12,7 +12,7 @@ frappe.views.ListFactory = frappe.views.Factory.extend({
 				frappe.set_re_route("Form", route[1]);
 			} else {
 				new frappe.views.DocListView({
-					doctype: route[1], 
+					doctype: route[1],
 					page: me.make_page(true)
 				});
 			}
@@ -38,25 +38,25 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		 	__(this.label) : (__(this.label) + ' ' + __('List'));
 		this.make_page();
 		this.setup();
-		
+
 		var me = this;
 		$(this.page).on("show", function() {
 			me.refresh();
 		});
-		
+
 		// refresh on init
 		me.refresh();
 	},
-	
+
 	make_page: function() {
 		var me = this;
 		this.page.doclistview = this;
 		this.$page = $(this.page).css({"min-height": "400px"});
-				
+
 		$('<div class="frappe-list-area" style="margin-bottom: 25px;">\
 			<div class="help">'+__('Loading')+'...</div></div>')
 			.appendTo(this.$page.find(".layout-main-section"));
-			
+
 		$('<div class="show-docstatus hide side-panel">\
 			<h5 class="text-muted">Show</h5>\
 			<div class="side-panel-body">\
@@ -68,18 +68,18 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 				/> '+__('Cancelled')+'</div></div>\
 		</div>')
 			.appendTo(this.$page.find(".layout-side-section"));
-		
+
 		this.$page.find(".layout-main-section")
-			.css({"border-right":"1px solid #d7d7d7"})
+			.addClass("listview-main-section")
 			.parent().css({"margin-top":"-15px"});
 		this.appframe = this.page.appframe;
 		var module = locals.DocType[this.doctype].module;
-		
+
 		this.appframe.set_title(__(this.doctype) + " " + __("List"));
 		this.appframe.add_module_icon(module, this.doctype, null, true);
 		this.appframe.set_views_for(this.doctype, "list");
 	},
-	
+
 	setup: function() {
 		this.can_delete = frappe.model.can_delete(this.doctype);
 		this.meta = locals.DocType[this.doctype];
@@ -107,7 +107,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		if(h_side > h_main)
 			this.$page.find(".layout-main-section").css({"min-height": h_side});
 	},
-	
+
 	show_match_help: function() {
 		var me = this;
 		var match_rules = frappe.perm.get_match_rules(this.doctype);
@@ -122,12 +122,12 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 					match_text.push(__(key) + " = " + frappe.utils.comma_or(values));
 				}
 			});
-			
+
 			if(perm[0].restricted) {
 				match_text.push(__("Or Created By") + " = " + user);
 			}
-			frappe.utils.set_footnote(this, this.$page.find(".layout-main-section"), 
-				"<p>" + __("Showing only for (if not empty)") + ":</p><ul>" 
+			frappe.utils.set_footnote(this, this.$page.find(".layout-main-section"),
+				"<p>" + __("Showing only for (if not empty)") + ":</p><ul>"
 				+ $.map(match_text, function(txt) { return "<li>"+txt+"</li>" }).join("")) + "</ul>";
 			$(this.footnote_area).css({"margin-top":"0px", "margin-bottom":"20px"});
 		}
@@ -140,9 +140,9 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 	},
 	setup_docstatus_filter: function() {
 		var me = this;
-		this.can_submit = $.map(locals.DocPerm || [], function(d) { 
+		this.can_submit = $.map(locals.DocPerm || [], function(d) {
 			if(d.parent==me.meta.name && d.submit) return 1
-			else return null; 
+			else return null;
 		}).length;
 		if(this.can_submit) {
 			this.$page.find('.show-docstatus').removeClass('hide');
@@ -174,17 +174,17 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 			no_result_message: this.make_no_result(),
 			custom_new_doc: me.listview.make_new_doc || undefined,
 		});
-		
+
 		// make_new_doc can be overridden so that default values can be prefilled
 		// for example - communication list in customer
 		$(this.wrapper).on("click", 'button[list_view_doc="'+me.doctype+'"]', function(){
 			(me.listview.make_new_doc || me.make_new_doc).apply(me, [me.doctype]);
 		});
-		
-		if((auto_run !== false) && (auto_run !== 0)) 
+
+		if((auto_run !== false) && (auto_run !== 0))
 			this.refresh();
 	},
-	
+
 	refresh: function() {
 		var me = this;
 		if(frappe.route_options) {
@@ -198,7 +198,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 			}
 		}
 	},
-	
+
 	set_route_options: function() {
 		var me = this;
 		me.filter_list.clear_filters();
@@ -208,7 +208,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		frappe.route_options = null;
 		me.run();
 	},
-	
+
 	run: function(more) {
 		// set filter from route
 		var route = frappe.get_route();
@@ -221,7 +221,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		this.last_updated_on = new Date();
 		this._super(more);
 	},
-	
+
 	make_no_result: function() {
 		var new_button = frappe.boot.user.can_create.indexOf(this.doctype)!=-1
 			? ('<hr><p><button class="btn btn-primary" \
@@ -233,7 +233,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 			doctype_label: __(this.doctype),
 			doctype: this.doctype,
 		});
-		
+
 		return no_result_message;
 	},
 	render_row: function(row, data) {
@@ -241,11 +241,11 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		this.listview.render(row, data, this);
 	},
 	get_args: function() {
-		var docstatus_list = this.can_submit ? $.map(this.$page.find('.show-docstatus :checked'), 
-			function(inp) { 
-				return $(inp).attr('data-docstatus'); 
+		var docstatus_list = this.can_submit ? $.map(this.$page.find('.show-docstatus :checked'),
+			function(inp) {
+				return $(inp).attr('data-docstatus');
 			}) : []
-				
+
 		var args = {
 			doctype: this.doctype,
 			fields: this.listview.fields,
@@ -254,12 +254,12 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 			order_by: this.listview.order_by || undefined,
 			group_by: this.listview.group_by || undefined,
 		}
-		
+
 		// apply default filters, if specified for a listing
 		$.each((this.listview.default_filters || []), function(i, f) {
 		      args.filters.push(f);
 		});
-		
+
 		return args;
 	},
 	init_minbar: function() {
@@ -268,8 +268,8 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		this.wrapper.on("click", ".list-tag-preview", function() { me.toggle_tags(); });
 		if(this.can_delete || this.listview.settings.selectable) {
 			this.appframe.add_icon_btn("2", 'icon-remove', __('Delete'), function() { me.delete_items(); });
-			this.appframe.add_icon_btn("2", 'icon-ok', __('Select All'), function() { 
-				me.$page.find('.list-delete').prop("checked", 
+			this.appframe.add_icon_btn("2", 'icon-ok', __('Select All'), function() {
+				me.$page.find('.list-delete').prop("checked",
 					me.$page.find('.list-delete:checked').length ? false : true);
 			});
 		}
@@ -281,7 +281,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 			});
 		}
 		if(frappe.model.can_restrict(this.doctype)) {
-			this.appframe.add_icon_btn("2", "icon-shield", 
+			this.appframe.add_icon_btn("2", "icon-shield",
 				__("User Permission Restrictions"), function() {
 					frappe.route_options = {
 						property: me.doctype
@@ -297,7 +297,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 			});
 		}
 	},
-	
+
 	toggle_tags: function() {
 		if(this.tags_shown) {
 			$(".tag-row").addClass("hide");
@@ -307,18 +307,18 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 			this.tags_shown=true;
 		}
 	},
-	
+
 	get_checked_items: function() {
 		return $.map(this.$page.find('.list-delete:checked'), function(e) {
 			return $(e).data('data');
 		});
 	},
 	delete_items: function() {
-		var me = this;				
+		var me = this;
 		var dl = this.get_checked_items();
-		if(!dl.length) 
+		if(!dl.length)
 			return;
-			
+
 		frappe.confirm(__('This is permanent action and you cannot undo. Continue?'),
 			function() {
 				me.set_working(true);
@@ -333,7 +333,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 						me.dirty = true;
 						me.refresh();
 					}
-				})				
+				})
 			}
 		);
 	},
@@ -370,9 +370,9 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 			// no filter for this item,
 			// setup one
 			if(fieldname=='_user_tags') {
-				this.filter_list.add_filter(this.doctype, fieldname, 'like', '%' + label);					
+				this.filter_list.add_filter(this.doctype, fieldname, 'like', '%' + label);
 			} else {
-				this.filter_list.add_filter(this.doctype, fieldname, '=', label);					
+				this.filter_list.add_filter(this.doctype, fieldname, '=', label);
 			}
 		}
 		if(!no_run)

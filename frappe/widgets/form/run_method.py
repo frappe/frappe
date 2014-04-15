@@ -2,7 +2,7 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-import json
+import json, inspect
 import frappe
 from frappe import _
 
@@ -23,6 +23,7 @@ def runserverobj():
 
 	else:
 		doc = frappe.get_doc(json.loads(frappe.form_dict.get('docs')))
+		doc._original_modified = doc.modified
 		doc.check_if_latest()
 
 	if not doc.has_permission("read"):
@@ -37,7 +38,11 @@ def runserverobj():
 		except TypeError:
 			r = doc.run_method(method)
 		else:
-			r = doc.run_method(method, **args)
+			fnargs, varargs, varkw, defaults = inspect.getargspec(getattr(doc, method))
+			if "args" in fnargs:
+				r = doc.run_method(method, args)
+			else:
+				r = doc.run_method(method, **args)
 
 		if r:
 			#build output as csv

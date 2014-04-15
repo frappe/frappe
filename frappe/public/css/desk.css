@@ -306,6 +306,10 @@ ul.linked-with-list li {
 	.hidden-xs-inline-block {
 		display: inline-block;
 	}
+
+	.listview-main-section {
+		border-right: 1px solid #d7d7d7;
+	}
 }
 
 .modal-backdrop {
