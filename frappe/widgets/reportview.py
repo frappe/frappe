@@ -73,22 +73,18 @@ def export_query():
 	"""export from report builder"""
 	form_params = get_form_params()
 	form_params["limit_page_length"] = None
+	form_params["as_list"] = True
+	doctype = form_params.doctype
+	del form_params["doctype"]
 
-	frappe.permissions.can_export(form_params.doctype, raise_exception=True)
+	frappe.permissions.can_export(doctype, raise_exception=True)
 
-	ret = execute(**form_params)
+	db_query = DatabaseQuery(doctype)
+	ret = db_query.execute(**form_params)
 
-	columns = [x[0] for x in frappe.db.get_description()]
-	data = [['Sr'] + get_labels(columns),]
-
-	# flatten dict
-	cnt = 1
-	for row in ret:
-		flat = [cnt,]
-		for c in columns:
-			flat.append(row.get(c))
-		data.append(flat)
-		cnt += 1
+	data = [['Sr'] + get_labels(db_query.fields)]
+	for i, row in enumerate(ret):
+		data.append([i+1] + list(row))
 
 	# convert to csv
 	from cStringIO import StringIO
@@ -103,17 +99,20 @@ def export_query():
 	f.seek(0)
 	frappe.response['result'] = unicode(f.read(), 'utf-8')
 	frappe.response['type'] = 'csv'
-	frappe.response['doctype'] = [t[4:-1] for t in self.tables][0]
+	frappe.response['doctype'] = doctype
 
-def get_labels(columns):
+def get_labels(fields):
 	"""get column labels based on column names"""
-	label_dict = {}
-	for doctype in frappe.get_meta(doctype):
-		for d in frappe.get_meta(doctype):
-			if d.doctype=='DocField' and d.fieldname:
-				label_dict[d.fieldname] = d.label
+	labels = []
+	for key in fields:
+		key = key.split(" as ")[0]
+		doctype, fieldname = key.split(".")[0][4:-1], key.split(".")[1]
+		label = frappe.get_meta(doctype).get_label(fieldname) or fieldname.title()
+		if label in labels:
+			label = doctype + ": " + label
+		labels.append(label)
 
-	return map(lambda x: label_dict.get(x, x.title()), columns)
+	return labels
 
 @frappe.whitelist()
 def delete_items():
