@@ -9,15 +9,15 @@ from frappe.website.render import clear_cache
 def get_children(parent=None):
 	if not frappe.has_permission("Website Route"):
 		raise frappe.PermissionError
-		
+
 	if parent=="Sitemap":
 		parent = ""
 
-	return frappe.db.sql("""select name as value, 1 as expandable, ref_doctype, docname 
-		from `tabWebsite Route` where 
-		ifnull(parent_website_route, '')=%s 
+	return frappe.db.sql("""select name as value, 1 as expandable, ref_doctype, docname
+		from `tabWebsite Route` where
+		ifnull(parent_website_route, '')=%s
 			order by ifnull(idx,0), name asc""", parent, as_dict=True)
-		
+
 @frappe.whitelist()
 def move(name, up_or_down):
 	ret = None
@@ -34,7 +34,7 @@ def move(name, up_or_down):
 			if prev.name:
 				prev.idx = prev.idx + 1
 				prev.save()
-				
+
 				sitemap.idx = sitemap.idx - 1
 				sitemap.save()
 				ret = "ok"
@@ -47,21 +47,21 @@ def move(name, up_or_down):
 		if nexts.name:
 			nexts.idx = nexts.idx - 1
 			nexts.save()
-			
+
 			sitemap.idx = sitemap.idx + 1
 			sitemap.save()
 			ret = "ok"
 
 	clear_cache()
 	return ret
-	
+
 @frappe.whitelist()
 def update_parent(name, new_parent):
 	if not frappe.has_permission("Website Route"):
 		raise frappe.PermissionError
-	
+
 	sitemap = frappe.get_doc("Website Route", name)
-	
+
 	if sitemap.ref_doctype:
 		generator = frappe.get_doc(sitemap.ref_doctype, sitemap.docname)
 		if not generator.meta.get_field("parent_website_route"):
@@ -69,7 +69,6 @@ def update_parent(name, new_parent):
 		generator.parent_website_route = new_parent
 		generator.save()
 	else:
-		frappe.msgprint("Template Pages cannot be moved.")
-		
+		frappe.msgprint(_("Template Pages cannot be moved"))
+
 	clear_cache()
-		

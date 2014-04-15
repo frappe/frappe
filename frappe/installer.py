@@ -1,19 +1,18 @@
 # Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt 
+# MIT License. See license.txt
 
 # called from wnf.py
 # lib/wnf.py --install [rootpassword] [dbname] [source]
 
 from __future__ import unicode_literals
 
-import os, sys, json
+import os, json
 import frappe
 import frappe.database
 import getpass
-
+from frappe import _
 from frappe.model.db_schema import DbManager
 from frappe.model.sync import sync_for
-from frappe.utils import cstr
 
 def install_db(root_login="root", root_password=None, db_name=None, source_sql=None,
 	admin_password = 'admin', verbose=True, force=0, site_config=None, reinstall=False):
@@ -33,7 +32,7 @@ def install_db(root_login="root", root_password=None, db_name=None, source_sql=N
 
 	frappe.connect(db_name=db_name)
 	import_db_from_sql(source_sql, verbose)
-	
+
 	create_auth_table()
 	frappe.flags.in_install_db = False
 
@@ -51,11 +50,11 @@ def create_database_and_user(force, verbose):
 
 	dbman.create_database(db_name)
 	if verbose: print "Created database %s" % db_name
-	
+
 	dbman.grant_all_privileges(db_name, db_name)
 	dbman.flush_privileges()
 	if verbose: print "Granted privileges to user %s and database %s" % (db_name, db_name)
-	
+
 	# close root connection
 	frappe.db.close()
 
@@ -77,7 +76,7 @@ def make_connection(root_login, root_password):
 	if root_login:
 		if not root_password:
 			root_password = frappe.conf.get("root_password") or None
-		
+
 		if not root_password:
 			root_password = getpass.getpass("MySQL root password: ")
 	return frappe.database.Database(user=root_login, password=root_password)
@@ -92,27 +91,27 @@ def install_app(name, verbose=False, set_as_patched=True):
 
 	if name in installed_apps:
 		print "App Already Installed"
-		frappe.msgprint("App Already Installed.")
+		frappe.msgprint(_("App Already Installed"))
 		return
-		
+
 	if name != "frappe":
 		frappe.only_for("System Manager")
 
 	for before_install in app_hooks.before_install or []:
 		frappe.get_attr(before_install)()
-	
+
 	sync_for(name, force=True, sync_everything=True, verbose=verbose)
 
 	add_to_installed_apps(name)
-	
+
 	if set_as_patched:
 		set_all_patches_as_completed(name)
 
 	for after_install in app_hooks.after_install or []:
 		frappe.get_attr(after_install)()
-		
+
 	frappe.flags.in_install_app = False
-	
+
 def add_to_installed_apps(app_name, rebuild_sitemap=True):
 	installed_apps = frappe.get_installed_apps()
 	if not app_name in installed_apps:
@@ -135,7 +134,7 @@ def set_all_patches_as_completed(app):
 				"patch": patch
 			}).insert()
 		frappe.db.commit()
-		
+
 def make_conf(db_name=None, db_password=None, site_config=None):
 	site = frappe.local.site
 	make_site_config(db_name, db_password, site_config)
@@ -143,27 +142,27 @@ def make_conf(db_name=None, db_password=None, site_config=None):
 	frappe.destroy()
 	frappe.init(site, sites_path=sites_path)
 
-def make_site_config(db_name=None, db_password=None, site_config=None):		
+def make_site_config(db_name=None, db_password=None, site_config=None):
 	frappe.create_folder(os.path.join(frappe.local.site_path))
 	site_file = os.path.join(frappe.local.site_path, "site_config.json")
-	
+
 	if not os.path.exists(site_file):
 		if not (site_config and isinstance(site_config, dict)):
 			site_config = get_conf_params(db_name, db_password)
-		
+
 		with open(site_file, "w") as f:
 			f.write(json.dumps(site_config, indent=1, sort_keys=True))
-			
+
 def get_conf_params(db_name=None, db_password=None):
 	if not db_name:
 		db_name = raw_input("Database Name: ")
 		if not db_name:
 			raise Exception("Database Name Required")
-	
+
 	if not db_password:
 		from frappe.utils import random_string
 		db_password = random_string(16)
-	
+
 	return {"db_name": db_name, "db_password": db_password}
 
 def make_site_dirs():

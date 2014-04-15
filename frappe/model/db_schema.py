@@ -10,6 +10,7 @@ Syncs a database table to the `DocType` (metadata)
 """
 import os
 import frappe
+from frappe import _
 from frappe.utils import cstr
 
 type_map = {
@@ -38,10 +39,6 @@ default_columns = ['name', 'creation', 'modified', 'modified_by', 'owner', 'docs
 	 'parentfield', 'parenttype', 'idx']
 
 default_shortcuts = ['_Login', '__user', '_Full Name', 'Today', '__today']
-
-
-
-import _mysql_exceptions
 
 # -------------------------------------------------
 # Class database table
@@ -144,7 +141,7 @@ class DbTable:
 			if line.strip().startswith('CONSTRAINT') and line.find('FOREIGN')!=-1:
 				try:
 					fk_list.append((line.split('`')[3], line.split('`')[1]))
-				except IndexError, e:
+				except IndexError:
 					pass
 
 		return fk_list
@@ -253,7 +250,7 @@ class DbColumn:
 		if "decimal" in current_def['type']:
 			try:
 				return float(current_def['default'])!=float(self.default)
-			except TypeError, e:
+			except TypeError:
 				return True
 		else:
 			return current_def['default'] != self.default
@@ -303,7 +300,7 @@ class DbManager:
 				self.db.sql("CREATE USER '%s'@'localhost' IDENTIFIED BY '%s';" % (user[:16], password))
 			else:
 				self.db.sql("CREATE USER '%s'@'localhost';"%user[:16])
-		except Exception, e:
+		except Exception:
 			raise
 
 	def delete_user(self,target):
@@ -323,32 +320,19 @@ class DbManager:
 		self.db.sql("CREATE DATABASE IF NOT EXISTS `%s` ;" % target)
 
 	def drop_database(self,target):
-		try:
-			self.db.sql("DROP DATABASE IF EXISTS `%s`;"%target)
-		except Exception,e:
-			raise
+		self.db.sql("DROP DATABASE IF EXISTS `%s`;"%target)
 
 	def grant_all_privileges(self,target,user):
-		try:
-			self.db.sql("GRANT ALL PRIVILEGES ON `%s`.* TO '%s'@'localhost';" % (target, user))
-		except Exception,e:
-			raise
+		self.db.sql("GRANT ALL PRIVILEGES ON `%s`.* TO '%s'@'localhost';" % (target, user))
 
 	def grant_select_privilges(self,db,table,user):
-		try:
-			if table:
-				self.db.sql("GRANT SELECT ON %s.%s to '%s'@'localhost';" % (db,table,user))
-			else:
-				self.db.sql("GRANT SELECT ON %s.* to '%s'@'localhost';" % (db,user))
-		except Exception,e:
-			raise
+		if table:
+			self.db.sql("GRANT SELECT ON %s.%s to '%s'@'localhost';" % (db,table,user))
+		else:
+			self.db.sql("GRANT SELECT ON %s.* to '%s'@'localhost';" % (db,user))
 
 	def flush_privileges(self):
-		try:
-			self.db.sql("FLUSH PRIVILEGES")
-		except Exception,e:
-			raise
-
+		self.db.sql("FLUSH PRIVILEGES")
 
 	def get_database_list(self):
 		"""get list of databases"""
@@ -357,35 +341,21 @@ class DbManager:
 	def restore_database(self,target,source,user,password):
 		from frappe.utils import make_esc
 		esc = make_esc('$ ')
-
-		try:
-			ret = os.system("mysql -u %s -p%s %s < %s" % \
-				(esc(user), esc(password), esc(target), source))
-		except Exception,e:
-			raise
+		os.system("mysql -u %s -p%s %s < %s" % \
+			(esc(user), esc(password), esc(target), source))
 
 	def drop_table(self,table_name):
 		"""drop table if exists"""
 		if not table_name in self.get_tables_list():
 			return
-		try:
-			self.db.sql("DROP TABLE IF EXISTS %s "%(table_name))
-		except Exception,e:
-			raise
 
-	def set_transaction_isolation_level(self,scope='SESSION',level='READ COMMITTED'):
-		#Sets the transaction isolation level. scope = global/session
-		try:
-			self.db.sql("SET %s TRANSACTION ISOLATION LEVEL %s"%(scope,level))
-		except Exception,e:
-			raise
+		self.db.sql("DROP TABLE IF EXISTS %s "%(table_name))
 
 def validate_column_name(n):
 	n = n.replace(' ','_').strip().lower()
 	import re
 	if re.search("[\W]", n):
-		frappe.msgprint('err:%s is not a valid fieldname.<br>A valid name must contain letters / numbers / spaces.<br><b>Tip: </b>You can change the Label after the fieldname has been set' % n)
-		raise Exception
+		frappe.throw(_("Fieldname {0} cannot contain letters, numbers or spaces").format(n))
 	return n
 
 

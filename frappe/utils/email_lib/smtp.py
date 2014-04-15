@@ -1,19 +1,20 @@
 # Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt 
+# MIT License. See license.txt
 
 from __future__ import unicode_literals
 
-import frappe	
+import frappe
 import smtplib
 import _socket
 from frappe.utils import cint
+from frappe import _
 
 def send(email, as_bulk=False):
 	"""send the message or add it to Outbox Email"""
 	if frappe.flags.mute_emails or frappe.conf.get("mute_emails") or False:
-		frappe.msgprint("Emails are muted")
+		frappe.msgprint(_("Emails are muted"))
 		return
-		
+
 	try:
 		smtpserver = SMTPServer()
 		if hasattr(smtpserver, "always_use_login_id_as_sender") and \
@@ -21,17 +22,15 @@ def send(email, as_bulk=False):
 			if not email.reply_to:
 				email.reply_to = email.sender
 			email.sender = smtpserver.login
-			
+
 		smtpserver.sess.sendmail(email.sender, email.recipients + (email.cc or []),
 			email.as_string())
-			
+
 	except smtplib.SMTPSenderRefused:
-		frappe.msgprint("""Invalid Outgoing Mail Server's Login Id or Password. \
-			Please rectify and try again.""")
+		frappe.msgprint(_("Invalid login or password"))
 		raise
 	except smtplib.SMTPRecipientsRefused:
-		frappe.msgprint("""Invalid Recipient (To) Email Address. \
-			Please rectify and try again.""")
+		frappe.msgprint(_("Invalid recipient address"))
 		raise
 
 class SMTPServer:
@@ -41,7 +40,7 @@ class SMTPServer:
 			es = frappe.get_doc('Outgoing Email Settings', 'Outgoing Email Settings')
 		except frappe.DoesNotExistError:
 			es = None
-		
+
 		self._sess = None
 		if server:
 			self.server = server
@@ -62,38 +61,38 @@ class SMTPServer:
 			self.use_ssl = cint(frappe.conf.get("use_ssl") or 0)
 			self.login = frappe.conf.get("mail_login") or ""
 			self.password = frappe.conf.get("mail_password") or ""
-			
+
 	@property
 	def sess(self):
 		"""get session"""
 		if self._sess:
 			return self._sess
-		
+
 		# check if email server specified
 		if not self.server:
-			err_msg = 'Outgoing Mail Server not specified'
+			err_msg = _('Outgoing Mail Server not specified')
 			frappe.msgprint(err_msg)
 			raise frappe.OutgoingEmailError, err_msg
-		
+
 		try:
 			if self.use_ssl and not self.port:
 				self.port = 587
-			
-			self._sess = smtplib.SMTP((self.server or "").encode('utf-8'), 
+
+			self._sess = smtplib.SMTP((self.server or "").encode('utf-8'),
 				cint(self.port) or None)
-			
+
 			if not self._sess:
-				err_msg = 'Could not connect to outgoing email server'
+				err_msg = _('Could not connect to outgoing email server')
 				frappe.msgprint(err_msg)
 				raise frappe.OutgoingEmailError, err_msg
-		
-			if self.use_ssl: 
+
+			if self.use_ssl:
 				self._sess.ehlo()
 				self._sess.starttls()
 				self._sess.ehlo()
 
 			if self.login:
-				ret = self._sess.login((self.login or "").encode('utf-8'), 
+				ret = self._sess.login((self.login or "").encode('utf-8'),
 					(self.password or "").encode('utf-8'))
 
 				# check if logged correctly
@@ -102,17 +101,15 @@ class SMTPServer:
 					raise frappe.OutgoingEmailError, ret[1]
 
 			return self._sess
-			
+
 		except _socket.error:
 			# Invalid mail server -- due to refusing connection
-			frappe.msgprint('Invalid Outgoing Mail Server or Port. Please rectify and try again.')
+			frappe.msgprint(_('Invalid Outgoing Mail Server or Port'))
 			raise
 		except smtplib.SMTPAuthenticationError:
-			frappe.msgprint("Invalid Outgoing Mail Server's Login Id or Password. \
-				Please rectify and try again.")
+			frappe.msgprint(_("Invalid login or password"))
 			raise
 		except smtplib.SMTPException:
-			frappe.msgprint('There is something wrong with your Outgoing Mail Settings. \
-				Please contact us at support@erpnext.com')
+			frappe.msgprint(_('Unable to send emails at this time'))
 			raise
-	
+

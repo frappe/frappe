@@ -48,12 +48,12 @@ class DocListController(Document):
 				val2 = cstr(val2)
 
 		if not frappe.compare(val1, condition, val2):
-			msg = _("Error") + ": "
+			label = doc.meta.get_label(fieldname)
+			condition_str = error_condition_map.get(condition, "")
 			if doc.parentfield:
-				msg += _("Row") + (" # %d: " % doc.idx)
-
-			msg += _(doc.meta.get_label(fieldname)) \
-				+ " " + error_condition_map.get(condition, "") + " " + cstr(val2)
+				msg = _("Incorrect value in row {0}: {1} must be {2} {3}".format(doc.idx, label, condition_str, val2))
+			else:
+				msg = _("Incorrect value: {1} must be {2} {3}".format(label, condition_str, val2))
 
 			# raise passed exception or True
 			msgprint(msg, raise_exception=raise_exception or True)
@@ -61,8 +61,7 @@ class DocListController(Document):
 	def validate_table_has_rows(self, parentfield, raise_exception=None):
 		if not (isinstance(self.get(parentfield), list) and len(self.get(parentfield)) > 0):
 			label = self.meta.get_label(parentfield)
-			msgprint(_("Error") + ": " + _(label) + " " + _("cannot be empty"),
-				raise_exception=raise_exception or frappe.EmptyTableError)
+			frappe.throw(_("Table {0} cannot be empty").format(label), raise_exception or frappe.EmptyTableError)
 
 	def round_floats_in(self, doc, fieldnames=None):
 		if not fieldnames:

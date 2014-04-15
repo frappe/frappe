@@ -1,5 +1,5 @@
 # Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt 
+# MIT License. See license.txt
 
 from __future__ import unicode_literals
 import frappe, json
@@ -7,24 +7,24 @@ from frappe import _
 from frappe.utils import cstr
 from frappe.model import default_fields
 
-def get_mapped_doc(from_doctype, from_docname, table_maps, target_doc=None, 
+def get_mapped_doc(from_doctype, from_docname, table_maps, target_doc=None,
 		postprocess=None, ignore_permissions=False):
 	if isinstance(target_doc, basestring):
 		target_doc = json.loads(target_doc)
-	
+
 	source_doc = frappe.get_doc(from_doctype, from_docname)
 
 	if not ignore_permissions and not source_doc.has_permission("read"):
-		frappe.msgprint("No Permission", raise_exception=frappe.PermissionError)
+		frappe.msgprint(_("Not permitted"), raise_exception=frappe.PermissionError)
 
 	# main
 	if not target_doc:
 		target_doc = frappe.new_doc(table_maps[from_doctype]["doctype"])
-	
+
 	map_doc(source_doc, target_doc, table_maps[source_doc.doctype])
 
 	row_exists_for_parentfield = {}
-	
+
 	# children
 	for df in source_doc.meta.get_table_fields():
 		source_child_doctype = df.options
@@ -34,7 +34,7 @@ def get_mapped_doc(from_doctype, from_docname, table_maps, target_doc=None,
 				if "condition" in table_map:
 					if not table_map["condition"](source_d):
 						continue
-				
+
 				target_child_doctype = table_map["doctype"]
 				target_parentfield = target_doc.get_parentfield_of_doctype(target_child_doctype)
 
@@ -42,21 +42,21 @@ def get_mapped_doc(from_doctype, from_docname, table_maps, target_doc=None,
 				if df.fieldname not in row_exists_for_parentfield:
 					row_exists_for_parentfield[target_parentfield] = (True
 						if target_doc.get(target_parentfield) else False)
-				
+
 				if table_map.get("add_if_empty") and row_exists_for_parentfield.get(target_parentfield):
 					continue
-					
+
 				if table_map.get("filter") and table_map.get("filter")(source_d):
 					continue
-					
+
 				target_d = frappe.new_doc(target_child_doctype, target_doc, target_parentfield)
 				map_doc(source_d, target_d, table_map, source_doc)
 				target_d.idx = None
 				target_doc.append(target_parentfield, target_d)
-	
+
 	if postprocess:
 		postprocess(source_doc, target_doc)
-	
+
 	return target_doc
 
 def map_doc(source_doc, target_doc, table_map, source_parent=None):
@@ -78,10 +78,10 @@ def map_doc(source_doc, target_doc, table_map, source_parent=None):
 			val = source_doc.get(df.fieldname)
 			if val not in (None, ""):
 				target_doc.set(df.fieldname, val)
-	
+
 	# map other fields
 	field_map = table_map.get("field_map")
-	
+
 	if field_map:
 		if isinstance(field_map, dict):
 			for source_key, target_key in field_map.items():
@@ -97,6 +97,6 @@ def map_doc(source_doc, target_doc, table_map, source_parent=None):
 	# map idx
 	if source_doc.idx:
 		target_doc.idx = source_doc.idx
-		
+
 	if "postprocess" in table_map:
 		table_map["postprocess"](source_doc, target_doc, source_parent)

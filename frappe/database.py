@@ -9,7 +9,8 @@ import MySQLdb
 import warnings
 import frappe
 import datetime
-from frappe.utils import now, get_datetime, get_datetime_str
+from frappe.utils import now, get_datetime
+from frappe import _
 
 class Database:
 	"""
@@ -61,8 +62,7 @@ class Database:
 	def validate_query(self, q):
 		cmd = q.strip().lower().split()[0]
 		if cmd in ['alter', 'drop', 'truncate'] and frappe.user.name != 'Administrator':
-			frappe.msgprint('Not allowed to execute query')
-			raise Exception
+			frappe.throw(_("Not permitted"), frappe.PermissionError)
 
 	def sql(self, query, values=(), as_dict = 0, as_list = 0, formatted = 0,
 		debug=0, ignore_ddl=0, as_utf8=0, auto_commit=0, update=None):
@@ -172,8 +172,7 @@ class Database:
 				if self.auto_commit_on_many_writes:
 					frappe.db.commit()
 				else:
-					frappe.msgprint('A very long query was encountered. If you are trying to import data, please do so using smaller files')
-					raise Exception, 'Bad Query!!! Too many writes'
+					frappe.throw(_("Too many writes in one request. Please send smaller requests"), frappe.ValidationError)
 
 	def fetch_as_dict(self, formatted=0, as_utf8=0):
 		result = self._cursor.fetchall()

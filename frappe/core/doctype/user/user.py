@@ -2,8 +2,8 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-import frappe, json, os
-from frappe.utils import cint, now, cstr
+import frappe
+from frappe.utils import cint, now
 from frappe import throw, msgprint, _
 from frappe.auth import _update_password
 
@@ -52,8 +52,7 @@ class User(Document):
 			return
 
 		if self.user_type == "System User" and not self.get_other_system_managers():
-			msgprint("""Adding System Manager Role as there must
-				be atleast one 'System Manager'.""")
+			msgprint(_("Adding System Manager to this User as there must be atleast one System Manager"))
 			self.append("user_roles", {
 				"doctype": "UserRole",
 				"role": "System Manager"
@@ -64,7 +63,7 @@ class User(Document):
 			_update_password(self.name, new_password)
 
 			self.password_update_mail(new_password)
-			frappe.msgprint("New Password Emailed.")
+			frappe.msgprint(_("New password emailed"))
 
 	def on_update(self):
 		# owner is always name
@@ -84,7 +83,7 @@ class User(Document):
 						_update_password(self.name, new_password)
 					if not getattr(self, "no_welcome_mail", False):
 						self.send_welcome_mail()
-						msgprint(_("Welcome Email Sent"))
+						msgprint(_("Welcome email sent"))
 						return
 			else:
 				self.email_new_password(new_password)

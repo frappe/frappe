@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 
 import frappe
-from frappe import msgprint, _
+from frappe import _
 import os
 
 from frappe.utils import now, cint
@@ -17,7 +17,7 @@ class DocType(Document):
 			frappe.throw("Not in Developer Mode! Set in site_config.json")
 		for c in [".", "/", "#", "&", "=", ":", "'", '"']:
 			if c in self.name:
-				frappe.msgprint(c + " not allowed in name", raise_exception=1)
+				frappe.throw(_("{0} not allowed in name").format(c))
 		for d in self.get("fields"):
 			d.parent = self.name
 		self.validate_series()
@@ -67,7 +67,7 @@ class DocType(Document):
 			prefix = autoname.split('.')[0]
 			used_in = frappe.db.sql('select name from tabDocType where substring_index(autoname, ".", 1) = %s and name!=%s', (prefix, name))
 			if used_in:
-				msgprint('<b>Series already in use:</b> The series "%s" is already used in "%s"' % (prefix, used_in[0][0]), raise_exception=1)
+				frappe.throw(_("Series {0} already used in {1}").format(prefix, used_in[0][0]))
 
 	def on_update(self):
 		from frappe.model.db_schema import updatedb
@@ -93,8 +93,7 @@ class DocType(Document):
 		for d in self.get("fields", {"fieldtype":"Select"}):
 			if (frappe.db.get_value("DocField", d.name, "options") or "").startswith("link:") \
 				and not d.options.startswith("link:"):
-				frappe.msgprint("link: type Select fields are getting replaced. Please check for %s" % d.label,
-					raise_exception=True)
+				frappe.throw(_("'link:' type Select {0} getting replaced").format(d.label))
 
 	def on_trash(self):
 		frappe.db.sql("delete from `tabCustom Field` where dt = %s", self.name)
@@ -168,35 +167,29 @@ def validate_fields(fields):
 		for c in ['.', ',', ' ', '-', '&', '%', '=', '"', "'", '*', '$',
 			'(', ')', '[', ']', '/']:
 			if c in fieldname:
-				frappe.msgprint("'%s' not allowed in fieldname (%s)" % (c, fieldname))
+				frappe.throw(_("{0} not allowed in fieldname {1}").format(c, fieldname))
 
 	def check_unique_fieldname(fieldname):
 		duplicates = filter(None, map(lambda df: df.fieldname==fieldname and str(df.idx) or None, fields))
 		if len(duplicates) > 1:
-			frappe.msgprint('Fieldname <b>%s</b> appears more than once in rows (%s). Please rectify' \
-			 	% (fieldname, ', '.join(duplicates)), raise_exception=1)
+			frappe.throw(_("Fieldname {0} appears multiple times in rows {1}").format(", ".join(duplicates)))
 
 	def check_illegal_mandatory(d):
 		if d.fieldtype in ('HTML', 'Button', 'Section Break', 'Column Break') and d.reqd:
-			print d.fieldname, d.reqd
-			frappe.msgprint('%(parent)s, %(label)s [%(fieldtype)s] cannot be mandatory' % d.as_dict(),
-				raise_exception=1)
+			frappe.throw(_("Field {0} of type {1} cannot be mandatory").format(d.label, d.fieldtype))
 
 	def check_link_table_options(d):
 		if d.fieldtype in ("Link", "Table"):
 			if not d.options:
-				frappe.msgprint("""#%(idx)s %(label)s: Options must be specified for Link and Table type fields""" % d.as_dict(),
-					raise_exception=1)
+				frappe.throw(_("Options requried for Link or Table type field {0} in row {1}").format(d.label, d.idx))
 			if d.options=="[Select]" or d.options==d.parent:
 				return
 			if d.options != d.parent and not frappe.db.exists("DocType", d.options):
-				frappe.msgprint("""#%(idx)s %(label)s: Options %(options)s must be a valid "DocType" for Link and Table type fields""" % d.as_dict(),
-					raise_exception=1)
+				frappe.throw(_("Options must be a valid DocType for field {0} in row {1}").format(d.label, d.idx))
 
 	def check_hidden_and_mandatory(d):
 		if d.hidden and d.reqd and not d.default:
-			frappe.msgprint("""#%(idx)s %(label)s: Cannot be hidden and mandatory (reqd) without default""" % d.as_dict(),
-				raise_exception=True)
+			frappe.throw(_("Field {0} in row {1} cannot be hidden and mandatory without default").format(d.label, d.idx))
 
 	def check_min_items_in_list(fields):
 		if len(filter(lambda d: d.in_list_view, fields))==0:
@@ -205,16 +198,16 @@ def validate_fields(fields):
 
 	def check_width(d):
 		if d.fieldtype == "Currency" and cint(d.width) < 100:
-			frappe.msgprint("Minimum width for FieldType 'Currency' is 100px", raise_exception=1)
+			frappe.throw(_("Max width for type Currency is 100px in row {0}").format(d.idx))
 
 	def check_in_list_view(d):
 		if d.in_list_view and d.fieldtype!="Image" and (d.fieldtype in no_value_fields):
-			frappe.msgprint("'In List View' not allowed for field of type '%s'" % d.fieldtype, raise_exception=1)
+			frappe.throw(_("'In List View' not allowed for type {0} in row {1}").format(d.fieldtype, d.idx))
 
 	for d in fields:
 		if not d.permlevel: d.permlevel = 0
 		if not d.fieldname:
-			frappe.msgprint("Fieldname is mandatory in row %s" % d.idx, raise_exception=1)
+			frappe.throw(_("Fieldname is required in row {0}").format(d.idx))
 		check_illegal_characters(d.fieldname)
 		check_unique_fieldname(d.fieldname)
 		check_illegal_mandatory(d)
@@ -238,12 +231,11 @@ def validate_permissions(permissions, for_remove=False):
 		isimportable = cint(values.allow_import)
 
 	def get_txt(d):
-		return "For %s (level %s) in %s, row #%s:" % (d.role, d.permlevel, d.parent, d.idx)
+		return _("For {0} at level {1} in {2} in row {3}").format(d.role, d.permlevel, d.parent, d.idx)
 
 	def check_atleast_one_set(d):
 		if not d.read and not d.write and not d.submit and not d.cancel and not d.create:
-			frappe.msgprint(get_txt(d) + " Atleast one of Read, Write, Create, Submit, Cancel must be set.",
-			 	raise_exception=True)
+			frappe.throw(_("{0}: No basic permissions set").format(get_txt(d)))
 
 	def check_double(d):
 		has_similar = False
@@ -253,8 +245,7 @@ def validate_permissions(permissions, for_remove=False):
 				break
 
 		if has_similar:
-			frappe.msgprint(get_txt(d) + " Only one rule allowed for a particular Role and Level.",
-				raise_exception=True)
+			frappe.throw(_("{0}: Only one rule allowed at a Role and Level").format(get_txt(d)))
 
 	def check_level_zero_is_set(d):
 		if cint(d.permlevel) > 0 and d.role != 'All':
@@ -265,58 +256,45 @@ def validate_permissions(permissions, for_remove=False):
 					break
 
 			if not has_zero_perm:
-				frappe.msgprint(get_txt(d) + " Higher level permissions are meaningless if level 0 permission is not set.",
-					raise_exception=True)
+				frappe.throw(_("{0}: Permission at level 0 must be set before higher levels are set").format(get_txt(d)))
 
 			if d.create or d.submit or d.cancel or d.amend or d.match:
-				frappe.msgprint("Create, Submit, Cancel, Amend, Match has no meaning at level " + d.permlevel,
-					raise_exception=True)
+				frappe.throw(_("{0}: Create, Submit, Cancel and Amend only valid at level 0").format(get_txt(d)))
 
 	def check_permission_dependency(d):
 		if d.cancel and not d.submit:
-			frappe.msgprint(get_txt(d) + " Cannot set Cancel permission if Submit is not set.",
-				raise_exception=True)
+			frappe.throw(_("{0}: Cannot set Cancel without Submit").format(get_txt(d)))
+
 		if (d.submit or d.cancel or d.amend) and not d.write:
-			frappe.msgprint(get_txt(d) + " Cannot set Submit, Cancel, Amend permission if Write is not set.",
-				raise_exception=True)
+			frappe.throw(_("{0}: Cannot set Submit, Cancel, Amend without Write").format(get_txt(d)))
 		if d.amend and not d.write:
-			frappe.msgprint(get_txt(d) + " Cannot set Amend if Cancel is not set.",
-				raise_exception=True)
-		if (d.get("import") or d.export) and not d.report:
-			frappe.msgprint(get_txt(d) + " Cannot set Import or Export permission if Report is not set.",
-				raise_exception=True)
+			frappe.throw(_("{0}: Cannot set Amend without Cancel").format(get_txt(d)))
 		if d.get("import") and not d.create:
-			frappe.msgprint(get_txt(d) + " Cannot set Import if Create is not set.",
-				raise_exception=True)
+			frappe.throw(_("{0}: Cannot set Import without Create").format(get_txt(d)))
 
 	def remove_rights_for_single(d):
 		if not issingle:
 			return
 
 		if d.report:
-			frappe.msgprint("{doctype} {meaningless}".format(doctype=doctype,
-				meaningless=_("is a single DocType, permission of type Report is meaningless.")))
+			frappe.msgprint(_("Report cannot be set for Single types"))
 			d.report = 0
 			d.set("import", 0)
 			d.set("export", 0)
 
 		if d.restrict:
-			frappe.msgprint("{doctype} {meaningless}".format(doctype=doctype,
-				meaningless=_("is a single DocType, permission of type Restrict is meaningless.")))
+			frappe.msgprint(_("Restrict cannot be set for Single types"))
 			d.restrict = 0
 
 	def check_if_submittable(d):
 		if d.submit and not issubmittable:
-			frappe.msgprint(doctype + " is not Submittable, cannot assign submit rights.",
-				raise_exception=True)
+			frappe.throw(_("{0}: Cannot set Assign Submit if not Submittable").format(get_txt(d)))
 		elif d.amend and not issubmittable:
-			frappe.msgprint(doctype + " is not Submittable, cannot assign amend rights.",
-				raise_exception=True)
+			frappe.throw(_("{0}: Cannot set Assign Amend if not Submittable").format(get_txt(d)))
 
 	def check_if_importable(d):
 		if d.get("import") and not isimportable:
-			frappe.throw("{doctype}: {not_importable}".format(doctype=doctype,
-				not_importable=_("is not allowed to be imported, cannot assign import rights.")))
+			frappe.throw(_("{0}: Cannot set import as {1} is not importable").format(get_txt(d), doctype))
 
 	for d in permissions:
 		if not d.permlevel:

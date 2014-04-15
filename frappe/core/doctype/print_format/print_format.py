@@ -13,7 +13,7 @@ from frappe.model.document import Document
 class PrintFormat(Document):
 	def validate(self):
 		if self.standard=="Yes" and frappe.session.user != "Administrator":
-			frappe.msgprint("Standard Print Format cannot be updated.", raise_exception=1)
+			frappe.throw(frappe._("Standard Print Format cannot be updated"))
 
 		# old_doc_type is required for clearing item cache
 		self.old_doc_type = frappe.db.get_value('Print Format',

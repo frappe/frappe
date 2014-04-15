@@ -19,8 +19,8 @@ def get(doctype, name=None, filters=None):
 @frappe.whitelist()
 def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False):
 	if not frappe.has_permission(doctype):
-		frappe.msgprint("No Permission", raise_exception=True)
-		
+		frappe.throw(_("Not permitted"), frappe.PermissionError)
+
 	if fieldname and fieldname.startswith("["):
 		fieldname = json.loads(fieldname)
 	return frappe.db.get_value(doctype, json.loads(filters), fieldname, as_dict=as_dict, debug=debug)
@@ -29,7 +29,7 @@ def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False):
 def set_value(doctype, name, fieldname, value):
 	if fieldname!="idx" and fieldname in frappe.model.default_fields:
 		frappe.throw(_("Cannot edit standard fields"))
-		
+
 	doc = frappe.db.get_value(doctype, name, ["parenttype", "parent"], as_dict=True)
 	if doc and doc.parent:
 		doc = frappe.get_doc(doc.parenttype, doc.parent)
@@ -38,19 +38,19 @@ def set_value(doctype, name, fieldname, value):
 	else:
 		doc = frappe.get_doc(doctype, name)
 		doc.set(fieldname, value)
-		
+
 	doc.save()
-	
+
 	return doc.as_dict()
 
 @frappe.whitelist()
 def insert(doclist):
 	if isinstance(doclist, basestring):
 		doclist = json.loads(doclist)
-		
+
 	if isinstance(doclist, dict):
 		doclist = [doclist]
-		
+
 	if doclist[0].get("parent") and doclist[0].get("parenttype"):
 		# inserting a child record
 		d = doclist[0]
@@ -69,7 +69,7 @@ def save(doclist):
 
 	doc = frappe.get_doc(doclist).save()
 	return doc.as_dict()
-	
+
 @frappe.whitelist()
 def rename_doc(doctype, old_name, new_name, merge=False):
 	new_name = frappe.rename_doc(doctype, old_name, new_name, merge=merge)
@@ -89,7 +89,7 @@ def submit(doclist):
 def cancel(doctype, name):
 	wrapper = frappe.get_doc(doctype, name)
 	wrapper.cancel()
-	
+
 	return wrapper.as_dict()
 
 @frappe.whitelist()
@@ -131,15 +131,14 @@ def bulk_update(docs):
 def has_permission(doctype, docname, perm_type="read"):
 	# perm_type can be one of read, write, create, submit, cancel, report
 	return {"has_permission": frappe.has_permission(doctype, perm_type.lower(), docname)}
-	
+
 @frappe.whitelist()
 def get_js(src):
 	contentpath = os.path.join(frappe.local.sites_path, src)
 	with open(contentpath, "r") as srcfile:
 		code = srcfile.read()
-	
+
 	if frappe.local.lang != "en":
 		code += "\n\n$.extend(frappe._messages, {})".format(json.dumps(\
 			frappe.get_lang_dict("jsfile", contentpath)))
 	return code
-	

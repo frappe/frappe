@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe import _, msgprint, _dict
+from frappe import _, msgprint
 from frappe.utils import cint
 
 rights = ["read", "write", "create", "submit", "cancel", "amend",
@@ -12,7 +12,7 @@ rights = ["read", "write", "create", "submit", "cancel", "amend",
 def check_admin_or_system_manager():
 	if ("System Manager" not in frappe.get_roles()) and \
 	 	(frappe.session.user!="Administrator"):
-		msgprint("Only Allowed for Role System Manager or Administrator", raise_exception=True)
+		frappe.throw(_("Not permitted"), frappe.PermissionError)
 
 def has_permission(doctype, ptype="read", doc=None, verbose=True):
 	"""check if user has permission"""
@@ -91,9 +91,7 @@ def has_unrestricted_access(doc, verbose=True):
 		for df in fields_to_check:
 			if d.get(df.fieldname) and d.get(df.fieldname) not in restrictions[df.options]:
 				if verbose:
-					msg = "{not_allowed}: {doctype} {having} {label} = {value}".format(
-						not_allowed=_("Sorry, you are not allowed to access"), doctype=_(df.options),
-						having=_("having"), label=_(df.label), value=d.get(df.fieldname))
+					msg = _("Not allowed to access {0} with {1} = {2}").format(df.options, _(df.label), d.get(df.fieldname))
 
 					if d.parentfield:
 						msg = "{doctype}, {row} #{idx}, ".format(doctype=_(d.doctype),
@@ -118,7 +116,6 @@ def has_controller_permissions(doc):
 	else:
 		doc = frappe.get_doc(doc.doctype, doc.name)
 
-	condition_methods = frappe.get_hooks("has_permission:" + doc.doctype)
 	for method in frappe.get_hooks("has_permission:" + doc.doctype):
 		if not frappe.call(frappe.get_attr(method), doc=doc):
 			return False

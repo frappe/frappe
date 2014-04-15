@@ -21,7 +21,7 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 		name = frappe.form_dict.get('dn')
 
 	if not doctype:
-		frappe.msgprint('Nothing to delete!', raise_exception =1)
+		frappe.msgprint(_('Nothing to delete'), raise_exception =1)
 
 	# already deleted..?
 	if not frappe.db.exists(doctype, name):
@@ -48,7 +48,7 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 
 	except Exception, e:
 		if e.args[0]==1451:
-			frappe.msgprint("Cannot delete %s '%s' as it is referenced in another record. You must delete the referred record first" % (doctype, name))
+			frappe.throw(_("Cannot delete {0} {1} is it is referenced in another record").format(doctype, name))
 
 		raise
 
@@ -87,7 +87,6 @@ def check_if_doc_is_linked(doc, method="Delete"):
 
 			if item and item.parent != doc.name and ((method=="Delete" and item.docstatus<2) or
 					(method=="Cancel" and item.docstatus==1)):
-				frappe.msgprint(method + " " + _("Error") + ":"+\
-					("%s (%s) " % (doc.name, doc.doctype)) + _("is linked in") + (" %s (%s)") %
-					(item.parent or item.name, item.parent and item.parenttype or link_dt),
-					raise_exception=LinkExistsError)
+				frappe.throw(_("Cannot delete or cancel because {0} {1} is linked with {2} {3}").format(doc.doctype,
+					doc.name, item.parent or item.name, item.parenttype if item.parent else link_dt),
+					LinkExistsError)

@@ -1,12 +1,12 @@
 # Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt 
+# MIT License. See license.txt
 
 from __future__ import unicode_literals
 import frappe, json
 import frappe.utils
 import frappe.defaults
 import frappe.widgets.form.meta
-from frappe.utils.file_manager import get_file_url
+from frappe import _
 
 @frappe.whitelist()
 def getdoc(doctype, name, user=None):
@@ -15,11 +15,11 @@ def getdoc(doctype, name, user=None):
 	Requries "doctype", "name" as form variables.
 	Will also call the "onload" method on the document.
 	"""
-	
+
 	if not (doctype and name):
 		raise Exception, 'doctype and name required!'
-	
-	if not name: 
+
+	if not name:
 		name = doctype
 
 	if not frappe.db.exists(doctype, name):
@@ -28,27 +28,27 @@ def getdoc(doctype, name, user=None):
 	try:
 		doc = frappe.get_doc(doctype, name)
 		doc.run_method("onload")
-		
+
 		if not doc.has_permission("read"):
 			raise frappe.PermissionError
 
 		# add file list
 		get_docinfo(doctype, name)
-		
-	except Exception, e:
+
+	except Exception:
 		frappe.errprint(frappe.utils.get_traceback())
-		frappe.msgprint('Did not load.')
+		frappe.msgprint(_('Did not load'))
 		raise
 
 	if doc and not name.startswith('_'):
 		frappe.user.update_recent(doctype, name)
-	
+
 	frappe.response.docs.append(doc)
 
 @frappe.whitelist()
 def getdoctype(doctype, with_parent=False, cached_timestamp=None):
 	"""load doctype"""
-	
+
 	docs = []
 	# with parent (called from report builder)
 	if with_parent:
@@ -56,15 +56,15 @@ def getdoctype(doctype, with_parent=False, cached_timestamp=None):
 		if parent_dt:
 			docs = get_meta_bundle(parent_dt)
 			frappe.response['parent_dt'] = parent_dt
-	
+
 	if not docs:
 		docs = get_meta_bundle(doctype)
-	
+
 	frappe.response['restrictions'] = get_restrictions(docs[0])
-	
+
 	if cached_timestamp and docs[0].modified==cached_timestamp:
 		return "use_cache"
-	
+
 	frappe.response.docs.extend(docs)
 
 def get_meta_bundle(doctype):
@@ -80,7 +80,7 @@ def get_docinfo(doctype, name):
 		"comments": add_comments(doctype, name),
 		"assignments": add_assignments(doctype, name)
 	}
-	
+
 def get_restrictions(meta):
 	out = {}
 	all_restrictions = frappe.defaults.get_restrictions()
@@ -91,7 +91,7 @@ def get_restrictions(meta):
 def add_attachments(dt, dn):
 	attachments = []
 	for f in frappe.db.sql("""select name, file_name, file_url from
-		`tabFile Data` where attached_to_name=%s and attached_to_doctype=%s""", 
+		`tabFile Data` where attached_to_name=%s and attached_to_doctype=%s""",
 			(dn, dt), as_dict=True):
 		attachments.append({
 			'name': f.name,
@@ -100,14 +100,14 @@ def add_attachments(dt, dn):
 		})
 
 	return attachments
-		
+
 def add_comments(dt, dn, limit=20):
-	cl = frappe.db.sql("""select name, comment, comment_by, creation from `tabComment` 
-		where comment_doctype=%s and comment_docname=%s 
+	cl = frappe.db.sql("""select name, comment, comment_by, creation from `tabComment`
+		where comment_doctype=%s and comment_docname=%s
 		order by creation desc limit %s""" % ('%s','%s', limit), (dt, dn), as_dict=1)
-		
+
 	return cl
-	
+
 def add_assignments(dt, dn):
 	cl = frappe.db.sql_list("""select owner from `tabToDo`
 		where reference_type=%(doctype)s and reference_name=%(name)s and status="Open"
@@ -115,7 +115,7 @@ def add_assignments(dt, dn):
 			"doctype": dt,
 			"name": dn
 		})
-		
+
 	return cl
 
 @frappe.whitelist()

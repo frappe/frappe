@@ -7,13 +7,14 @@ from __future__ import unicode_literals
 import frappe, json
 import frappe.permissions
 from frappe.model.db_query import DatabaseQuery
+from frappe import _
 
 @frappe.whitelist()
 def get():
 	return compress(execute(**get_form_params()))
 
-def execute(doctype, query=None, filters=None, fields=None, docstatus=None, 
-		group_by=None, order_by=None, limit_start=0, limit_page_length=20, 
+def execute(doctype, query=None, filters=None, fields=None, docstatus=None,
+		group_by=None, order_by=None, limit_start=0, limit_page_length=20,
 		as_list=False, with_childnames=False, debug=False):
 	return DatabaseQuery(doctype).execute(query, filters, fields, docstatus, group_by,
 		order_by, limit_start, limit_page_length, as_list, with_childnames, debug)
@@ -29,9 +30,9 @@ def get_form_params():
 		data["fields"] = json.loads(data["fields"])
 	if isinstance(data.get("docstatus"), basestring):
 		data["docstatus"] = json.loads(data["docstatus"])
-		
+
 	return data
-		
+
 def compress(data):
 	"""separate keys and values"""
 	if not data: return data
@@ -42,29 +43,29 @@ def compress(data):
 		for key in keys:
 			new_row.append(row[key])
 		values.append(new_row)
-		
+
 	return {
 		"keys": keys,
 		"values": values
 	}
-		
-		
+
+
 @frappe.whitelist()
 def save_report():
 	"""save report"""
-		
+
 	data = frappe.local.form_dict
 	if frappe.db.exists('Report', data['name']):
-		d = Document('Report', data['name'])
+		d = frappe.get_doc('Report', data['name'])
 	else:
-		d = Document('Report')
+		d = frappe.new_doc('Report')
 		d.report_name = data['name']
 		d.ref_doctype = data['doctype']
-	
+
 	d.report_type = "Report Builder"
 	d.json = data['json']
 	frappe.get_doc(d).save()
-	frappe.msgprint("%s saved." % d.name)
+	frappe.msgprint(_("{0} is saved").format(d.name))
 	return d.name
 
 @frappe.whitelist()
@@ -72,9 +73,9 @@ def export_query():
 	"""export from report builder"""
 	form_params = get_form_params()
 	form_params["limit_page_length"] = None
-	
+
 	frappe.permissions.can_export(form_params.doctype, raise_exception=True)
-	
+
 	ret = execute(**form_params)
 
 	columns = [x[0] for x in frappe.db.get_description()]
@@ -107,21 +108,21 @@ def export_query():
 def get_labels(columns):
 	"""get column labels based on column names"""
 	label_dict = {}
-	for doctype in self.meta:
-		for d in self.meta[doctype]:
+	for doctype in frappe.get_meta(doctype):
+		for d in frappe.get_meta(doctype):
 			if d.doctype=='DocField' and d.fieldname:
 				label_dict[d.fieldname] = d.label
-	
+
 	return map(lambda x: label_dict.get(x, x.title()), columns)
 
 @frappe.whitelist()
 def delete_items():
 	"""delete selected items"""
 	import json
-	
+
 	il = json.loads(frappe.form_dict.get('items'))
 	doctype = frappe.form_dict.get('doctype')
-	
+
 	for d in il:
 		try:
 			dt_obj = frappe.get_doc(doctype, d)
@@ -131,25 +132,25 @@ def delete_items():
 		except Exception, e:
 			frappe.errprint(frappe.get_traceback())
 			pass
-		
+
 @frappe.whitelist()
 def get_stats(stats, doctype):
 	"""get tag info"""
 	import json
 	tags = json.loads(stats)
 	stats = {}
-	
+
 	columns = frappe.db.get_table_columns(doctype)
 	for tag in tags:
 		if not tag in columns: continue
-		tagcount = execute(doctype, fields=[tag, "count(*)"], 
+		tagcount = execute(doctype, fields=[tag, "count(*)"],
 			filters=["ifnull(%s,'')!=''" % tag], group_by=tag, as_list=True)
-			
+
 		if tag=='_user_tags':
 			stats[tag] = scrub_user_tags(tagcount)
 		else:
 			stats[tag] = tagcount
-			
+
 	return stats
 
 def scrub_user_tags(tagcount):
@@ -162,19 +163,19 @@ def scrub_user_tags(tagcount):
 			if tag:
 				if not tag in rdict:
 					rdict[tag] = 0
-			
+
 				rdict[tag] += tagdict[t]
-	
+
 	rlist = []
 	for tag in rdict:
 		rlist.append([tag, rdict[tag]])
-	
+
 	return rlist
 
 # used in building query in queries.py
 def get_match_cond(doctype):
 	cond = DatabaseQuery(doctype).build_match_conditions()
 	return (' and ' + cond) if cond else ""
-	
+
 def build_match_conditions(doctype, as_condition=True):
 	return DatabaseQuery(doctype).build_match_conditions(as_condition=as_condition)

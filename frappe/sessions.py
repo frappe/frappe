@@ -8,8 +8,8 @@ Boot session from cache or build
 Session bootstraps info needed by common client side activities including
 permission, homepage, default variables, system defaults etc
 """
-import frappe, os, json
-import frappe
+import frappe, json
+from frappe import _
 import frappe.utils
 from frappe.utils import cint
 import frappe.model.meta
@@ -83,7 +83,7 @@ def get():
 
 	if not bootinfo:
 		if not frappe.cache().get_stats():
-			frappe.msgprint("memcached is not working / stopped. Please start memcached for best results.")
+			frappe.msgprint(_("memcached is not working / stopped. Please start memcached for best results."))
 
 		# if not create it
 		bootinfo = get_bootinfo()
@@ -219,7 +219,7 @@ class Session:
 
 	def delete_session(self):
 		frappe.cache().delete_value("session:" + self.sid)
-		r = frappe.db.sql("""delete from tabSessions where sid=%s""", (self.sid,))
+		frappe.db.sql("""delete from tabSessions where sid=%s""", (self.sid,))
 
 	def start_as_guest(self):
 		"""all guests share the same 'Guest' session"""
@@ -276,6 +276,6 @@ def get_geo_ip_country(ip_addr):
 		geo_ip_file = os.path.join(os.path.dirname(frappe.__file__), "data", "GeoIP.dat")
 		geo_ip = pygeoip.GeoIP(geo_ip_file, pygeoip.MEMORY_CACHE)
 		return geo_ip.country_name_by_addr(ip_addr)
-	except Exception, e:
+	except Exception:
 		return
 

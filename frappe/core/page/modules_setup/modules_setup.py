@@ -8,5 +8,5 @@ import frappe
 def update(ml):
 	"""update modules"""
 	frappe.db.set_global('hidden_modules', ml)
-	frappe.msgprint('Updated')
+	frappe.msgprint(frappe._('Updated'))
 	frappe.clear_cache()

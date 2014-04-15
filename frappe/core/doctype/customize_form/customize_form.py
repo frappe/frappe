@@ -1,5 +1,5 @@
 # Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt 
+# MIT License. See license.txt
 
 from __future__ import unicode_literals
 """
@@ -8,8 +8,6 @@ from __future__ import unicode_literals
 """
 import frappe, json
 from frappe import _
-from frappe.utils import cstr
-
 from frappe.model.document import Document
 from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype
 
@@ -22,9 +20,9 @@ class CustomizeForm(Document):
 		'allow_email': 'Check',
 		'allow_copy': 'Check',
 		'allow_attach': 'Check',
-		'max_attachments': 'Int' 
+		'max_attachments': 'Int'
 	}
-	
+
 	docfield_properties = {
 		'idx': 'Int',
 		'label': 'Data',
@@ -45,58 +43,58 @@ class CustomizeForm(Document):
 		'description': 'Text',
 		'default': 'Text'
 	}
-	
-	allowed_fieldtype_change = (('Currency', 'Float'), ('Small Text', 'Data'), 
+
+	allowed_fieldtype_change = (('Currency', 'Float'), ('Small Text', 'Data'),
 		('Text', 'Text Editor', 'Code'))
 
 	def on_update(self):
 		frappe.db.sql("delete from tabSingles where doctype='Customize Form'")
 		frappe.db.sql("delete from `tabCustomize Form Field`")
-	
+
 	def fetch_to_customize(self):
 		self.clear_existing_doc()
 		if not self.doc_type:
 			return
-			
+
 		meta = frappe.get_meta(self.doc_type)
-		
+
 		# doctype properties
 		for property in self.doctype_properties:
 			self.set(property, meta.get(property))
-		
+
 		for d in meta.get("fields"):
 			new_d = {"fieldname": d.fieldname, "is_custom_field": d.get("is_custom_field"), "name": d.name}
 			for property in self.docfield_properties:
 				new_d[property] = d.get(property)
 			self.append("customize_form_fields", new_d)
-				
+
 		# NOTE doc is sent to clientside by run_method
-				
+
 	def clear_existing_doc(self):
 		doc_type = self.doc_type
-		
+
 		for fieldname in self.meta.get_valid_columns():
 			self.set(fieldname, None)
-			
+
 		for df in self.meta.get_table_fields():
 			self.set(df.fieldname, [])
-			
+
 		self.doc_type = doc_type
 		self.name = "Customize Form"
-		
+
 	def save_customization(self):
 		if not self.doc_type:
 			return
-		
+
 		self.set_property_setters()
 		self.update_custom_fields()
 		self.set_idx_property_setter()
 		validate_fields_for_doctype(self.doc_type)
 
-		frappe.msgprint("{}: {} {}.".format(_("DocType"), _(self.doc_type), _("updated")))
+		frappe.msgprint(_("{0} updated").format(_(self.doc_type)))
 		frappe.clear_cache(doctype=self.doc_type)
 		self.fetch_to_customize()
-	
+
 	def set_property_setters(self):
 		meta = frappe.get_meta(self.doc_type)
 		# doctype property setters
@@ -104,33 +102,33 @@ class CustomizeForm(Document):
 			if self.get(property) != meta.get(property):
 				self.make_property_setter(property=property, value=self.get(property),
 					property_type=self.doctype_properties[property])
-		
+
 		for df in self.get("customize_form_fields"):
 			if df.get("__islocal"):
 				continue
-			
+
 			meta_df = meta.get("fields", {"fieldname": df.fieldname})
-			
+
 			if not meta_df or meta_df[0].get("is_custom_field"):
 				continue
-			
+
 			for property in self.docfield_properties:
 				if df.get(property) != meta_df[0].get(property):
 					if property == "fieldtype":
 						self.validate_fieldtype_change(df, meta_df[0].get(property), df.get(property))
-					
+
 					self.make_property_setter(property=property, value=df.get(property),
 						property_type=self.docfield_properties[property], fieldname=df.fieldname)
-		
+
 	def update_custom_fields(self):
 		for df in self.get("customize_form_fields"):
 			if df.get("__islocal"):
 				self.add_custom_field(df)
 			else:
 				self.update_in_custom_field(df)
-				
+
 		self.delete_custom_fields()
-		
+
 	def add_custom_field(self, df):
 		d = frappe.new_doc("Custom Field")
 		d.dt = self.doc_type
@@ -138,56 +136,56 @@ class CustomizeForm(Document):
 			d.set(property, df.get(property))
 		d.insert()
 		df.fieldname = d.fieldname
-		
+
 	def update_in_custom_field(self, df):
 		meta = frappe.get_meta(self.doc_type)
 		meta_df = meta.get("fields", {"fieldname": df.fieldname})
 		if not (meta_df and meta_df[0].get("is_custom_field")):
 			return
-		
+
 		custom_field = frappe.get_doc("Custom Field", meta_df[0].name)
 		changed = False
 		for property in self.docfield_properties:
 			if df.get(property) != custom_field.get(property):
 				if property == "fieldtype":
 					self.validate_fieldtype_change(df, meta_df[0].get(property), df.get(property))
-				
+
 				custom_field.set(property, df.get(property))
 				changed = True
-				
+
 		if changed:
 			custom_field.save()
-	
+
 	def delete_custom_fields(self):
 		meta = frappe.get_meta(self.doc_type)
-		fields_to_remove = (set([df.fieldname for df in meta.get("fields")]) 
+		fields_to_remove = (set([df.fieldname for df in meta.get("fields")])
 			- set(df.fieldname for df in self.get("customize_form_fields")))
 
 		for fieldname in fields_to_remove:
 			df = meta.get("fields", {"fieldname": fieldname})[0]
 			if df.get("is_custom_field"):
 				frappe.delete_doc("Custom Field", df.name)
-				
+
 	def set_idx_property_setter(self):
 		meta = frappe.get_meta(self.doc_type)
 		field_order_has_changed = [df.fieldname for df in meta.get("fields")] != \
 			[d.fieldname for d in self.get("customize_form_fields")]
-			
+
 		if field_order_has_changed:
 			_idx = []
 			for df in sorted(self.get("customize_form_fields"), key=lambda x: x.idx):
 				_idx.append(df.fieldname)
 
 			self.make_property_setter(property="_idx", value=json.dumps(_idx), property_type="Text")
-			
+
 	def make_property_setter(self, property, value, property_type, fieldname=None):
 		self.delete_existing_property_setter(property, fieldname)
 
 		property_value = self.get_existing_property_value(property, fieldname)
-		
+
 		if property_value==value:
 			return
-			
+
 		# create a new property setter
 		frappe.make_property_setter({
 			"doctype": self.doc_type,
@@ -197,15 +195,15 @@ class CustomizeForm(Document):
 			"value": value,
 			"property_type": property_type
 		})
-		
+
 	def delete_existing_property_setter(self, property, fieldname=None):
 		# first delete existing property setter
 		existing_property_setter = frappe.db.get_value("Property Setter", {"doc_type": self.doc_type,
 			"property": property, "field_name['']": fieldname or ''})
-		
+
 		if existing_property_setter:
 			frappe.delete_doc("Property Setter", existing_property_setter)
-		
+
 	def get_existing_property_value(self, property, fieldname=None):
 		# check if there is any need to make property setter!
 		if fieldname:
@@ -219,9 +217,9 @@ class CustomizeForm(Document):
 					property_value = None
 				else:
 					raise
-		
+
 		return property_value
-		
+
 	def validate_fieldtype_change(self, df, old_value, new_value):
 		for allowed_changes in self.allowed_fieldtype_change:
 			if ((old_value in allowed_changes and new_value in allowed_changes)
@@ -231,13 +229,12 @@ class CustomizeForm(Document):
 				frappe.throw("{row} # {num}, {label}: {msg} {allowed_changes}".format(
 					row=_("Row"), num=df.idx, label=_(df.label), msg=_("Field Type can be one of"),
 					allowed_changes=", ".join([_(fieldtype) for fieldtype in allowed_changes])))
-		
+
 	def reset_to_defaults(self):
 		if not self.doc_type:
 			return
-		
+
 		frappe.db.sql("""delete from `tabProperty Setter` where doc_type=%s""", self.doc_type)
 		frappe.clear_cache(doctype=self.doc_type)
 		self.fetch_to_customize()
 
-	

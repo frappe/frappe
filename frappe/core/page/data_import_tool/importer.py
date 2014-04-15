@@ -3,8 +3,10 @@
 
 from __future__ import unicode_literals
 
-import frappe, json, os
+import frappe, json
 import frappe.permissions
+
+from frappe import _
 
 from frappe.utils.datautils import getlink
 from frappe.utils.dateutils import parse_date
@@ -28,16 +30,14 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 	from frappe.utils.datautils import read_csv_content_from_uploaded_file
 
 	def bad_template():
-		frappe.msgprint("Please do not change the rows above '%s'" % data_keys.data_separator,
-			raise_exception=1)
+		frappe.throw(_("Please do not change the rows above {0}").format(data_keys.data_separator))
 
 	def check_data_length():
 		max_rows = 5000
 		if not data:
-			frappe.msgprint("No data found", raise_exception=True)
+			frappe.throw(_("No data found"))
 		elif len(data) > max_rows:
-			frappe.msgprint("Please upload only upto %d %ss at a time" % \
-				(max_rows, doctype), raise_exception=True)
+			frappe.throw(_("Only allowed {0} rows in one import").format(max_rows))
 
 	def get_start_row():
 		for i, row in enumerate(rows):
@@ -107,7 +107,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 									d[fieldname] = flt(d[fieldname])
 								elif fieldtype == "Date":
 									d[fieldname] = parse_date(d[fieldname]) if d[fieldname] else None
-							except IndexError, e:
+							except IndexError:
 								pass
 
 						# scrub quotes from name and modified
@@ -157,7 +157,6 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 
 	if len(parenttype) > 1:
 		parenttype = parenttype[1]
-		parentfield = get_parent_field(doctype, parenttype)
 
 	# check permissions
 	if not frappe.permissions.can_import(parenttype or doctype):
@@ -178,7 +177,6 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 
 	ret = []
 	error = False
-	parent_list = []
 	for i, row in enumerate(data):
 		# bypass empty rows
 		if main_doc_empty(row):
@@ -244,8 +242,7 @@ def get_parent_field(doctype, parenttype):
 				break
 
 		if not parentfield:
-			frappe.msgprint("Did not find parentfield for %s (%s)" % \
-				(parenttype, doctype))
+			frappe.msgprint(_("Did not find {0} for {0} ({1})").format("parentfield", parenttype, doctype))
 			raise Exception
 
 	return parentfield

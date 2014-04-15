@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe
+from frappe import _
 from frappe.utils import cint
 from frappe.model.naming import validate_name
 
@@ -75,16 +76,16 @@ def validate_rename(doctype, new, meta, merge, force, ignore_permissions):
 	exists = frappe.db.exists(doctype, new)
 
 	if merge and not exists:
-		frappe.msgprint("%s: %s does not exist, select a new target to merge." % (doctype, new), raise_exception=1)
+		frappe.msgprint(_("{0} {1} does not exist, select a new target to merge").format(doctype, new), raise_exception=1)
 
 	if (not merge) and exists:
-		frappe.msgprint("%s: %s exists, select a new, new name." % (doctype, new), raise_exception=1)
+		frappe.msgprint(_("Another {0} with name {1} exists, select another name").format(doctype, new), raise_exception=1)
 
 	if not (ignore_permissions or frappe.has_permission(doctype, "write")):
-		frappe.msgprint("You need write permission to rename", raise_exception=1)
+		frappe.msgprint(_("You need write permission to rename"), raise_exception=1)
 
 	if not force and not meta.allow_rename:
-		frappe.msgprint("%s cannot be renamed" % doctype, raise_exception=1)
+		frappe.msgprint(_("{0} not allowed to be renamed").format(_(doctype)), raise_exception=1)
 
 	# validate naming like it's done in doc.py
 	new = validate_name(doctype, new, merge=merge)

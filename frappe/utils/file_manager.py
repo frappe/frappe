@@ -1,12 +1,12 @@
 # Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt 
+# MIT License. See license.txt
 
 from __future__ import unicode_literals
 import frappe
 import os, base64, re
 import hashlib
 import mimetypes
-from frappe.utils import cstr, cint, get_site_path, get_hook_method, get_files_path
+from frappe.utils import get_site_path, get_hook_method, get_files_path
 from frappe import _
 from frappe import conf
 from copy import copy
@@ -23,7 +23,7 @@ def upload():
 	dn = frappe.form_dict.docname
 	file_url = frappe.form_dict.file_url
 	filename = frappe.form_dict.filename
-	
+
 	if not filename and not file_url:
 		frappe.msgprint(_("Please select a file or url"),
 			raise_exception=True)
@@ -33,25 +33,25 @@ def upload():
 		filedata = save_uploaded(dt, dn)
 	elif file_url:
 		filedata = save_url(file_url, dt, dn)
-		
+
 	return {
-		"name": filedata.name, 
+		"name": filedata.name,
 		"file_name": filedata.file_name,
-		"file_url": filedata.file_url 
+		"file_url": filedata.file_url
 	}
 
 def save_uploaded(dt, dn):
 	fname, content = get_uploaded_content()
 	if content:
 		return save_file(fname, content, dt, dn);
-	else: 
+	else:
 		raise Exception
 
 def save_url(file_url, dt, dn):
 	# if not (file_url.startswith("http://") or file_url.startswith("https://")):
 	# 	frappe.msgprint("URL must start with 'http://' or 'https://'")
 	# 	return None, None
-		
+
 	f = frappe.get_doc({
 		"doctype": "File Data",
 		"file_url": file_url,
@@ -62,23 +62,23 @@ def save_url(file_url, dt, dn):
 	try:
 		f.insert();
 	except frappe.DuplicateEntryError:
-		return frappe.get_doc("File Data", f.duplicate_entry)		
+		return frappe.get_doc("File Data", f.duplicate_entry)
 	return f
 
-def get_uploaded_content():	
+def get_uploaded_content():
 	# should not be unicode when reading a file, hence using frappe.form
 	if 'filedata' in frappe.form_dict:
 		frappe.uploaded_content = base64.b64decode(frappe.form_dict.filedata)
 		frappe.uploaded_filename = frappe.form_dict.filename
 		return frappe.uploaded_filename, frappe.uploaded_content
 	else:
-		frappe.msgprint('No File')
+		frappe.msgprint(_('No file attached'))
 		return None, None
 
 def extract_images_from_html(doc, fieldname):
 	content = doc.get(fieldname)
 	frappe.flags.has_dataurl = False
-	
+
 	def _save_file(match):
 		data = match.group(1)
 		headers, content = data.split(",")
@@ -87,14 +87,14 @@ def extract_images_from_html(doc, fieldname):
 		file_url = save_file(filename, content, doc.doctype, doc.name, decode=True).get("file_url")
 		if not frappe.flags.has_dataurl:
 			frappe.flags.has_dataurl = True
-		
+
 		return '<img src="{file_url}"'.format(file_url=file_url)
-	
+
 	if content:
 		content = re.sub('<img\s*src=\s*["\'](data:[^"\']*)["\']', _save_file, content)
 		if frappe.flags.has_dataurl:
 			doc.set(fieldname, content)
-			
+
 def save_file(fname, content, dt, dn, decode=False):
 	if decode:
 		if isinstance(content, unicode):
@@ -133,9 +133,8 @@ def get_file_data_from_hash(content_hash):
 		b = frappe.get_doc('File Data', name)
 		return {k:b.get(k) for k in frappe.get_hooks()['write_file_keys']}
 	return False
-	
+
 def save_file_on_filesystem(fname, content, content_type=None):
-	import filecmp
 	public_path = os.path.join(frappe.local.site_path, "public")
 	fpath = write_file(content, get_files_path(), fname)
 	path =  os.path.relpath(fpath, public_path)
@@ -143,7 +142,7 @@ def save_file_on_filesystem(fname, content, content_type=None):
 		'file_name': os.path.basename(path),
 		'file_url': '/' + path
 	}
-	
+
 def check_max_file_size(content):
 	max_file_size = conf.get('max_file_size') or 1000000
 	file_size = len(content)
@@ -151,7 +150,7 @@ def check_max_file_size(content):
 	if file_size > max_file_size:
 		frappe.msgprint(_("File size exceeded the maximum allowed size"),
 			raise_exception=MaxFileSizeReachedError)
-			
+
 	return file_size
 
 def write_file(content, file_path, fname):
@@ -188,19 +187,19 @@ def delete_file_from_filesystem(doc):
 		path = frappe.utils.get_site_path("public", "files", doc.file_name)
 	if os.path.exists(path):
 		os.remove(path)
-		
+
 def get_file(fname):
-	f = frappe.db.sql("""select file_name from `tabFile Data` 
+	f = frappe.db.sql("""select file_name from `tabFile Data`
 		where name=%s or file_name=%s""", (fname, fname))
 	if f:
 		file_name = f[0][0]
 	else:
 		file_name = fname
-		
+
 	if not "/" in file_name:
 		file_name = "files/" + file_name
-	
-	# read the file	
+
+	# read the file
 	with open(get_site_path("public", file_name), 'r') as f:
 		content = f.read()
 

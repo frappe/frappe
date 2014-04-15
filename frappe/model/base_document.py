@@ -3,8 +3,8 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe import _, msgprint
-from frappe.utils import cint, flt, cstr, now
+from frappe import _
+from frappe.utils import cint, flt
 from frappe.model import default_fields
 from frappe.model.naming import set_new_name
 

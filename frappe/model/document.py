@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _, msgprint
-from frappe.utils import cint, flt, cstr, now
+from frappe.utils import cstr, now
 from frappe.modules import load_doctype_module
 from frappe.model.base_document import BaseDocument
 from frappe.model.naming import set_new_name
@@ -247,7 +247,7 @@ class Document(BaseDocument):
 					["modified", "docstatus"], as_dict=True)
 
 				if not tmp:
-					frappe.msgprint("""This record does not exist. Please refresh.""", raise_exception=1)
+					frappe.throw(_("Record does not exist"))
 
 				modified = cstr(tmp.modified)
 

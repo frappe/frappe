@@ -1,9 +1,9 @@
 # Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt 
+# MIT License. See license.txt
 
 from __future__ import unicode_literals
-import json
 import frappe
+from frappe import _
 import frappe.utils
 import frappe.sessions
 import frappe.utils.file_manager
@@ -45,14 +45,14 @@ def uploadfile():
 		if frappe.form_dict.get('from_form'):
 			try:
 				ret = frappe.utils.file_manager.upload()
-			except frappe.DuplicateEntryError, e:
+			except frappe.DuplicateEntryError:
 				# ignore pass
 				ret = None
 				frappe.db.rollback()
 		else:
 			if frappe.form_dict.get('method'):
 				ret = frappe.get_attr(frappe.form_dict.method)()
-	except Exception, e:
+	except Exception:
 		frappe.errprint(frappe.utils.get_traceback())
 		ret = None
 
@@ -61,8 +61,8 @@ def uploadfile():
 def handle():
 	"""handle request"""
 	cmd = frappe.local.form_dict.cmd
-	
-	if cmd!='login':		
+
+	if cmd!='login':
 		execute_cmd(cmd)
 
 	return build_response("json")
@@ -74,12 +74,13 @@ def execute_cmd(cmd):
 	# check if whitelisted
 	if frappe.session['user'] == 'Guest':
 		if (method not in frappe.guest_methods):
+			frappe.msgprint(_("Not permitted"))
 			raise frappe.PermissionError('Not Allowed, %s' % str(method))
 	else:
 		if not method in frappe.whitelisted:
-			frappe.msgprint('Not Allowed, %s' % str(method))
+			frappe.msgprint(_("Not permitted"))
 			raise frappe.PermissionError('Not Allowed, %s' % str(method))
-		
+
 	ret = frappe.call(method, **frappe.form_dict)
 
 	# returns with a message

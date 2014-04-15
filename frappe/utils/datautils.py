@@ -6,7 +6,7 @@ import frappe
 from frappe import msgprint, _
 import json
 import csv, cStringIO
-from frappe.utils import encode, cstr, cint, flt
+from frappe.utils import encode, cstr, cint, flt, comma_or
 
 def read_csv_content_from_uploaded_file(ignore_encoding=False):
 	if getattr(frappe, "uploaded_file", None):
@@ -21,15 +21,15 @@ def read_csv_content_from_attached_file(doc):
 	fileid = frappe.db.get_value("File Data", {"attached_to_doctype": doc.doctype,
 		"attached_to_name":doc.name}, "name")
 	if not fileid:
-		msgprint("File not attached!")
+		msgprint(_("File not attached"))
 		raise Exception
 
 	try:
 		from frappe.utils.file_manager import get_file
 		fname, fcontent = get_file(fileid)
 		return read_csv_content(fcontent, frappe.form_dict.get('ignore_encoding_errors'))
-	except Exception, e:
-		frappe.msgprint("""Unable to open attached file. Please try again.""")
+	except Exception:
+		frappe.msgprint(_("Unable to open attached file. Please try again."))
 		raise Exception
 
 def read_csv_content(fcontent, ignore_encoding=False):
@@ -42,56 +42,56 @@ def read_csv_content(fcontent, ignore_encoding=False):
 				fcontent = unicode(fcontent, encoding)
 				decoded = True
 				break
-			except UnicodeDecodeError, e:
+			except UnicodeDecodeError:
 				continue
 
 		if not decoded:
-			frappe.msgprint(frappe._("Unknown file encoding. Tried utf-8, windows-1250, windows-1252."), 
+			frappe.msgprint(_("Unknown file encoding. Tried utf-8, windows-1250, windows-1252."),
 				raise_exception=True)
-				
+
 	fcontent = fcontent.encode("utf-8").splitlines(True)
-				
+
 	try:
 		reader = csv.reader(fcontent)
 		# decode everything
 		rows = [[unicode(val, "utf-8").strip() for val in row] for row in reader]
 		return rows
-	except Exception, e:
-		frappe.msgprint("Not a valid Comma Separated Value (CSV File)")
+	except Exception:
+		frappe.msgprint(_("Not a valid Comma Separated Value (CSV File)"))
 		raise
 
 @frappe.whitelist()
 def send_csv_to_client(args):
 	if isinstance(args, basestring):
 		args = json.loads(args)
-	
+
 	args = frappe._dict(args)
-	
+
 	frappe.response["result"] = cstr(to_csv(args.data))
 	frappe.response["doctype"] = args.filename
 	frappe.response["type"] = "csv"
-	
+
 def to_csv(data):
 	writer = UnicodeWriter()
 	for row in data:
 		writer.writerow(row)
-	
+
 	return writer.getvalue()
 
-	
+
 class UnicodeWriter:
 	def __init__(self, encoding="utf-8"):
 		self.encoding = encoding
 		self.queue = cStringIO.StringIO()
 		self.writer = csv.writer(self.queue, quoting=csv.QUOTE_NONNUMERIC)
-	
+
 	def writerow(self, row):
 		row = encode(row, self.encoding)
 		self.writer.writerow(row)
-	
+
 	def getvalue(self):
 		return self.queue.getvalue()
-		
+
 def check_record(d):
 	"""check for mandatory, select options, dates. these should ideally be in doclist"""
 	from frappe.utils.dateutils import parse_date
@@ -102,21 +102,19 @@ def check_record(d):
 		val = d[key]
 		if docfield:
 			if docfield.reqd and (val=='' or val==None):
-				frappe.msgprint("%s is mandatory." % docfield.label, raise_exception=1)
+				frappe.msgprint(_("{0} is required").format(docfield.label), raise_exception=1)
 
 			if docfield.fieldtype=='Select' and val and docfield.options:
 				if docfield.options.startswith('link:'):
 					link_doctype = docfield.options.split(':')[1]
 					if not frappe.db.exists(link_doctype, val):
-						frappe.msgprint("%s: %s must be a valid %s" % (docfield.label, val, link_doctype), 
-							raise_exception=1)
+						frappe.throw(_("{0} {1} must be a valid {2}").format(_(docfield.lable), val, _(link_doctype)))
 				elif docfield.options == "attach_files:":
 					pass
-					
+
 				elif val not in docfield.options.split('\n'):
-					frappe.msgprint("%s must be one of: %s" % (docfield.label, 
-						", ".join(filter(None, docfield.options.split("\n")))), raise_exception=1)
-					
+					frappe.throw(_("{0} must be one of {1}").format(_(docfield.label), comma_or(docfield.options.split("\n"))))
+
 			if val and docfield.fieldtype=='Date':
 				d[key] = parse_date(val)
 			elif val and docfield.fieldtype in ["Int", "Check"]:
@@ -137,18 +135,18 @@ def import_doc(d, doctype, overwrite, row_idx, submit=False, ignore_links=False)
 				doc.save()
 			return 'Updated row (#%d) %s' % (row_idx + 1, getlink(doctype, d['name']))
 		else:
-			return 'Ignored row (#%d) %s (exists)' % (row_idx + 1, 
+			return 'Ignored row (#%d) %s (exists)' % (row_idx + 1,
 				getlink(doctype, d['name']))
 	else:
 		doc = frappe.get_doc(d)
 		doc.ignore_links = ignore_links
 		doc.insert()
-		
+
 		if submit:
 			doc.submit()
-		
+
 		return 'Inserted row (#%d) %s' % (row_idx + 1, getlink(doctype,
 			doc.get('name')))
-			
+
 def getlink(doctype, name):
 	return '<a href="#Form/%(doctype)s/%(name)s">%(name)s</a>' % locals()
