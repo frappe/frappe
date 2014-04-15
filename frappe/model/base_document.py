@@ -188,6 +188,12 @@ class BaseDocument(object):
 				values = ", ".join(["`"+c+"`=%s" for c in columns])
 			), d.values() + [d.get("name")])
 
+	def db_set(self, fieldname, value):
+		self.set(fieldname, value)
+		self.set("modified", now())
+		self.set("modified_by", frappe.session.user)
+		frappe.db.set_value(self.doctype, self.name, fieldname, value, self.modified, self.modified_by)
+
 	def _fix_numeric_types(self):
 		for df in self.meta.get("fields"):
 			if df.fieldtype in ("Int", "Check"):

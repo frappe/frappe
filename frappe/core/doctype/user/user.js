@@ -1,4 +1,4 @@
-cur_frm.cscript.onload = function(doc, dt, dn, callback) {
+cur_frm.cscript.onload = function(doc, dt, dn) {
 	if(has_common(user_roles, ["Administrator", "System Manager"])) {
 		if(!cur_frm.roles_editor) {
 			var role_area = $('<div style="min-height: 300px">')
@@ -34,7 +34,8 @@ cur_frm.cscript.user_image = function(doc) {
 }
 
 cur_frm.cscript.refresh = function(doc) {
-	if(!doc.__unsaved && frappe.languages && doc.language !== frappe.boot.user.language) {
+	if(!doc.__unsaved && frappe.languages && (doc.language || frappe.boot.user.language)
+		&& doc.language !== frappe.boot.user.language) {
 		msgprint(__("Refreshing..."));
 		window.location.reload();
 	}
@@ -110,9 +111,12 @@ frappe.RoleEditor = Class.extend({
 	show_roles: function() {
 		var me = this;
 		$(this.wrapper).empty();
-		var add_all_roles = $('<p><button class="btn btn-default btn-add">Add all roles</button>\
-			<button class="btn btn-default btn-remove">Clear all roles</button></p>').appendTo($(this.wrapper));
-		add_all_roles.find(".btn-add").on("click", function() {
+		var role_toolbar = $('<p><button class="btn btn-default btn-add"></button>\
+			<button class="btn btn-default btn-remove"></button></p>').appendTo($(this.wrapper));
+
+		role_toolbar.find(".btn-add")
+			.html(__('Add all roles'))
+			.on("click", function() {
 			$(me.wrapper).find('input[type="checkbox"]').each(function(i, check) {
 				if(!$(check).is(":checked")) {
 					check.checked = true;
@@ -120,7 +124,9 @@ frappe.RoleEditor = Class.extend({
 			});
 		});
 
-		add_all_roles.find(".btn-remove").on("click", function() {
+		role_toolbar.find(".btn-remove")
+			.html(__('Clear all roles'))
+			.on("click", function() {
 			$(me.wrapper).find('input[type="checkbox"]').each(function(i, check) {
 				if($(check).is(":checked")) {
 					check.checked = false;
@@ -129,12 +135,13 @@ frappe.RoleEditor = Class.extend({
 		});
 
 		$.each(this.roles, function(i, role) {
-			$(this.wrapper).append(repl('<div class="user-role" \
+			$(me.wrapper).append(repl('<div class="user-role" \
 				data-user-role="%(role)s">\
 				<input type="checkbox" style="margin-top:0px;"> \
 				<a href="#">%(role)s</a>\
 			</div>', {role: role}));
-		})
+		});
+
 		$(this.wrapper).find('input[type="checkbox"]').change(function() {
 			cur_frm.dirty();
 		});
