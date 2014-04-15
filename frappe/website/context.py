@@ -6,8 +6,8 @@ import frappe
 
 # frequently used imports (used by other modules)
 from frappe.website.permissions import get_access
-	
-from frappe.website.doctype.website_settings.website_settings import get_website_settings	
+
+from frappe.website.doctype.website_settings.website_settings import get_website_settings
 from frappe.website.template import render_blocks
 from frappe.website.sitemap import get_sitemap_options
 from frappe.website.utils import can_cache
@@ -15,7 +15,7 @@ from frappe.website.utils import can_cache
 def get_context(path):
 	context = None
 	cache_key = "page_context:{}".format(path)
-	
+
 	# try from memcache
 	if can_cache():
 		context = frappe.cache().get_value(cache_key)
@@ -38,8 +38,6 @@ def get_context(path):
 		context.data = {}
 	context.data["path"] = path
 	context.update(context.data or {})
-
-	# TODO private pages
 
 	return context
 

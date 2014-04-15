@@ -11,13 +11,13 @@
 </div>
 
 <div><button class="btn btn-default add-comment">Add Comment</button></div>
-<div style="display: none; margin-top: 10px; max-width: 400px;" 
+<div style="display: none; margin-top: 10px; max-width: 400px;"
 	id="comment-form">
 	<div class="alert" style="display:none;"></div>
 	<form>
 		<fieldset>
 			<input class="form-control" name="comment_by_fullname" placeholder="Your Name" type="text"/><br>
-			<input class="form-control" name="comment_by" 
+			<input class="form-control" name="comment_by"
 				placeholder="Your Email Id" type="text"/><br>
 			<textarea class="form-control" name="comment" rows=10
 				placeholder="Comment"/>
@@ -31,7 +31,7 @@
 <script>
 $(document).ready(function() {
 	var n_comments = $(".comment-row").length;
-	
+
 	if(n_comments) {
 		$(".no_comment").toggle(false);
 	}
@@ -54,14 +54,14 @@ $(document).ready(function() {
 			comment: $("[name='comment']").val(),
 			comment_doctype: "{{ doctype }}",
 			comment_docname: "{{ name }}",
-			page_name: "{{ page_name }}",
+			page_name: "{{ path }}",
 		}
-				
+
 		if(!args.comment_by_fullname || !args.comment_by || !args.comment) {
 			frappe.msgprint("All fields are necessary to submit the comment.")
 			return false;
 		}
-		
+
 		frappe.call({
 			btn: this,
 			type: "POST",

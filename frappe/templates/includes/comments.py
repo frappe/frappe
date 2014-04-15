@@ -1,5 +1,5 @@
 # Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt 
+# MIT License. See license.txt
 
 import frappe
 import frappe.utils, markdown2
@@ -19,8 +19,8 @@ def add_comment(args=None):
 			'page_name': '',
 		}
 	"""
-	
-	if not args: 
+
+	if not args:
 		args = frappe.local.form_dict
 	args['doctype'] = "Comment"
 
@@ -33,29 +33,27 @@ def add_comment(args=None):
 	comment = frappe.get_doc(args)
 	comment.ignore_permissions = True
 	comment.insert()
-	
+
 	# since comments are embedded in the page, clear the web cache
 	clear_cache(page_name)
 
-	# notify commentors 
+	# notify commentors
 	commentors = [d[0] for d in frappe.db.sql("""select comment_by from tabComment where
 		comment_doctype=%s and comment_docname=%s and
 		ifnull(unsubscribed, 0)=0""", (comment.comment_doctype, comment.comment_docname))]
-	
+
 	owner = frappe.db.get_value(comment.comment_doctype, comment.comment_docname, "owner")
 	recipients = commentors if owner=="Administrator" else list(set(commentors + [owner]))
-	
-	
+
+
 	from frappe.utils.email_lib.bulk import send
-	send(recipients=recipients, 
-		doctype='Comment', 
-		email_field='comment_by', 
-		subject='New Comment on %s: %s' % (comment.comment_doctype, 
-			comment.title or comment.comment_docname), 
-		message='%(comment)s<p>By %(comment_by_fullname)s</p>' % args,
+	send(recipients=recipients,
+		doctype='Comment',
+		email_field='comment_by',
+		subject = _("New comment on {0} {1}").format(comment.comment_doctype, comment.comment_docname),
+		message = _("{0} by {1}").format(markdown2.markdown(args.get("comment")), comment.comment_by_fullname),
 		ref_doctype=comment.comment_doctype, ref_docname=comment.comment_docname)
-	
+
 	template = frappe.get_template("templates/includes/comment.html")
-	
+
 	return template.render({"comment": comment.as_dict()})
-	
