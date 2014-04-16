@@ -2,7 +2,7 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-import frappe
+import frappe, json
 from frappe import _
 from frappe.utils import cint, flt, now
 from frappe.model import default_fields
@@ -154,6 +154,9 @@ class BaseDocument(object):
 			doc["__islocal"] = 1
 
 		return doc
+
+	def as_json(self):
+		return json.dumps(self.as_dict(), indent=1, sort_keys=True)
 
 	def get_table_field_doctype(self, fieldname):
 		return self.meta.get_field(fieldname).options
