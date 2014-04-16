@@ -114,7 +114,7 @@ frappe.ui.form.Layout = Class.extend({
 				this.labelled_section_count++;
 				var head = $('<h4 class="col-md-12">'
 					+ (df.options ? (' <i class="icon-in-circle '+df.options+'"></i> ') : "")
-					+ '<span class="section-count-label">' + this.labelled_section_count + "</span>. "
+					+ '<span class="section-count-label">' + __(this.labelled_section_count) + "</span>. "
 					+ __(df.label)
 					+ "</h4>")
 					.css({"margin":"15px 0px"})

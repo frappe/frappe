@@ -9,7 +9,7 @@ frappe.request.url = '/';
 // generic server call (call page, object)
 frappe.call = function(opts) {
 	var args = $.extend({}, opts.args);
-	
+
 	// cmd
 	if(opts.module && opts.page) {
 		args.cmd = opts.module+'.page.'+opts.page+'.'+opts.page+'.'+opts.method;
@@ -19,11 +19,11 @@ frappe.call = function(opts) {
 			docs: frappe.get_doc(opts.doc.doctype, opts.doc.name),
 			method: opts.method,
 			args: opts.args,
-		});	
+		});
 	} else if(opts.method) {
 		args.cmd = opts.method;
 	}
-		
+
 	// stringify args if required
 	for(key in args) {
 		if(args[key] && typeof args[key] != 'string') {
@@ -47,10 +47,10 @@ frappe.call = function(opts) {
 
 frappe.request.call = function(opts) {
 	frappe.request.prepare(opts);
-	
+
 	// all requests will be post, set _type as POST for commit
 	opts.args._type = opts.type;
-	
+
 	var ajax_args = {
 		url: opts.url || frappe.request.url,
 		data: opts.args,
@@ -69,9 +69,9 @@ frappe.request.call = function(opts) {
 		},
 		async: opts.async
 	};
-	
+
 	frappe.last_request = ajax_args.data;
-	
+
 	if(opts.progress_bar) {
 		var interval = null;
 		$.extend(ajax_args, {
@@ -79,7 +79,7 @@ frappe.request.call = function(opts) {
 				var xhr = jQuery.ajaxSettings.xhr();
 				interval = setInterval(function() {
 					if(xhr.readyState > 2) {
-				    	var total = parseInt(xhr.getResponseHeader('Original-Length') || 0) || 
+				    	var total = parseInt(xhr.getResponseHeader('Original-Length') || 0) ||
 							parseInt(xhr.getResponseHeader('Content-Length'));
 				    	var completed = parseInt(xhr.responseText.length);
 						var percent = (100.0 / total * completed).toFixed(2);
@@ -95,7 +95,7 @@ frappe.request.call = function(opts) {
 			}
 		})
 	}
-	
+
 	return $.ajax(ajax_args)
 	.fail(function(xhr, textStatus) {
 		opts.error && opts.error(xhr)
@@ -112,13 +112,13 @@ frappe.request.call = function(opts) {
 frappe.request.prepare = function(opts) {
 	// btn indicator
 	if(opts.btn) $(opts.btn).set_working();
-	
+
 	// navbar indicator
 	if(opts.show_spinner) frappe.set_loading();
-	
+
 	// freeze page
 	if(opts.freeze) frappe.dom.freeze();
-	
+
 	// no cmd?
 	if(!opts.args.cmd) {
 		console.log(opts)
@@ -129,7 +129,7 @@ frappe.request.prepare = function(opts) {
 frappe.request.cleanup = function(opts, r) {
 	// stop button indicator
 	if(opts.btn) $(opts.btn).done_working();
-	
+
 	// hide button indicator
 	if(opts.show_spinner) frappe.done_loading();
 
@@ -137,22 +137,22 @@ frappe.request.cleanup = function(opts, r) {
 	if(opts.freeze) frappe.dom.unfreeze();
 
 	// session expired? - Guest has no business here!
-	if(r.session_expired || frappe.get_cookie("sid")==="Guest") { 
+	if(r.session_expired || frappe.get_cookie("sid")==="Guest") {
 		if(!frappe.app.logged_out) {
 			msgprint(__('Session Expired. Logging you out'));
 			frappe.app.logout();
 		}
 		return;
 	}
-	
+
 	// show messages
 	if(r._server_messages) {
 		r._server_messages = JSON.parse(r._server_messages)
 		msgprint(r._server_messages);
 	}
-	
+
 	// show errors
-	if(r.exc) { 
+	if(r.exc) {
 		r.exc = JSON.parse(r.exc);
 		if(r.exc instanceof Array) {
 			$.each(r.exc, function(i, v) {
@@ -162,7 +162,7 @@ frappe.request.cleanup = function(opts, r) {
 			console.log(r.exc);
 		}
 	};
-	
+
 	// debug messages
 	if(r._debug_messages) {
 		console.log("-")
@@ -182,13 +182,13 @@ frappe.request.cleanup = function(opts, r) {
 		console.log("-")
 		console.log("-")
 	}
-	
+
 	if(r.docs || r.docinfo) {
 		r.docs = frappe.model.sync(r);
 	}
 	if(r.__messages) {
 		$.extend(frappe._messages, r.__messages);
 	}
-	
+
 	frappe.last_response = r;
 }

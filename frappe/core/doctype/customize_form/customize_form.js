@@ -1,11 +1,11 @@
 // Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
-// MIT License. See license.txt 
+// MIT License. See license.txt
 
 frappe.provide("frappe.customize_form");
 
 frappe.ui.form.on("Customize Form", "onload", function(frm) {
 	frappe.customize_form.add_fields_help(frm);
-	
+
 	frm.set_query("doc_type", function() {
 		return {
 			filters: [
@@ -40,7 +40,7 @@ frappe.ui.form.on("Customize Form", "doc_type", function(frm) {
 frappe.ui.form.on("Customize Form", "refresh", function(frm) {
 	frm.disable_save();
 	frm.frm_head.appframe.iconbar.clear("1");
-	
+
 	if(frm.doc.doc_type) {
 		frm.appframe.set_title_right("Update", function() {
 			if(frm.doc.doc_type) {
@@ -55,14 +55,13 @@ frappe.ui.form.on("Customize Form", "refresh", function(frm) {
 				});
 			}
 		});
-	
+
 		frm.add_custom_button('Refresh Form', function() {
 			frm.script_manager.trigger("doc_type");
 		}, "icon-refresh");
-	
+
 		frm.add_custom_button('Reset to defaults', function() {
-			frappe.customize_form.confirm('This will <b>remove the customizations</b> defined for this form.<br /><br />' 
-			+ 'Are you sure you want to <i>reset to defaults</i>?', frm);
+			frappe.customize_form.confirm(__('Remove all customizations?'), frm);
 		}, "icon-eraser");
 	}
 
@@ -81,7 +80,7 @@ frappe.ui.form.on("Customize Form", "refresh", function(frm) {
 
 frappe.customize_form.confirm = function(msg, frm) {
 	if(!frm.doc.doc_type) return;
-	
+
 	var d = new frappe.ui.Dialog({
 		title: 'Reset To Defaults',
 		width: 500
@@ -93,7 +92,7 @@ frappe.customize_form.confirm = function(msg, frm) {
 
 	var button_wrapper = $a(d.body, 'div');
 	$y(button_wrapper, {paddingTop: '15px'});
-	
+
 	var proceed_btn = $btn(button_wrapper, 'Proceed', function() {
 		return frm.call({
 			doc: frm.doc,
@@ -126,7 +125,7 @@ frappe.customize_form.clear_locals_and_refresh = function(frm) {
 	// clear doctype from locals
 	frappe.model.clear_doc("DocType", frm.doc.doc_type);
 	delete frappe.meta.docfield_copy[frm.doc.doc_type];
-	
+
 	frm.refresh();
 }
 
@@ -219,7 +218,7 @@ frappe.customize_form.add_fields_help = function(frm) {
 					</td>\
 				</tr>\
 			</table>"
-		
+
 		$y(d.body, {padding: '32px', textAlign: 'center', lineHeight: '200%'});
 
 		$a(d.body, 'div', '', {textAlign: 'left'}, help);

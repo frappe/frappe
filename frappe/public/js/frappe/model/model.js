@@ -409,7 +409,7 @@ $.extend(frappe.model, {
 	},
 
 	delete_doc: function(doctype, docname, callback) {
-		frappe.confirm("Permanently delete "+ docname + "?", function() {
+		frappe.confirm(__("Permanently delete {0}?", [docname]), function() {
 			return frappe.call({
 				method: 'frappe.client.delete',
 				args: {

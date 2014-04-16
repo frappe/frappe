@@ -136,9 +136,10 @@ def has_permission(doctype, docname, perm_type="read"):
 def get_js(src):
 	contentpath = os.path.join(frappe.local.sites_path, src)
 	with open(contentpath, "r") as srcfile:
-		code = srcfile.read()
+		code = frappe.utils.cstr(srcfile.read())
 
 	if frappe.local.lang != "en":
-		code += "\n\n$.extend(frappe._messages, {})".format(json.dumps(\
-			frappe.get_lang_dict("jsfile", contentpath)))
+		messages = frappe.get_lang_dict("jsfile", contentpath)
+		messages = json.dumps(messages)
+		code += "\n\n$.extend(frappe._messages, {})".format(messages)
 	return code

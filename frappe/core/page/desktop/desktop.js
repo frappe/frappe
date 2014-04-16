@@ -2,16 +2,16 @@ frappe.provide('frappe.desktop');
 
 frappe.pages['desktop'].onload = function(wrapper) {
 	// setup dialog
-	
+
 	// load desktop
 	frappe.desktop.refresh();
 }
 
 frappe.pages['desktop'].refresh = function(wrapper) {
-	frappe.ui.toolbar.add_dropdown_button("File", __("All Applications"), function() { 
+	frappe.ui.toolbar.add_dropdown_button("File", __("All Applications"), function() {
 		frappe.desktop.show_all_modules();
 	}, 'icon-th');
-	
+
 }
 
 frappe.desktop.refresh = function() {
@@ -28,47 +28,24 @@ frappe.desktop.refresh = function() {
 	});
 }
 
-frappe.desktop.get_module = function(m) {
-	var module = frappe.modules[m];
-	module.name = m;
-	
-	if(module.type==="module" && !module.link) {
-		module.link = "Module/" + m;
-	}
-	
-	if(module.link) {
-		module._id = module.link.toLowerCase().replace("/", "-");
-	}
-	
-	if(!module.label) {
-		module.label = m;
-	}
-	
-	if(!module._label) {
-		module._label = __(module.label || module.name);
-	}
-	
-	return module;
-}
-
 frappe.desktop.render = function() {
 	$("#icon-grid").empty();
-	
+
 	document.title = "Desktop";
 	var add_icon = function(m) {
-		var module = frappe.desktop.get_module(m);
-		
+		var module = frappe.get_module(m);
+
 		if(!module || (module.type!=="module" && !module.link && !module.onclick) || module.is_app) {
 			return;
 		}
-		
+
 		if(module._id && $("#module-icon-" + module._id).length) {
 			// icon already exists!
 			return;
 		}
-		
+
 		module.app_icon = frappe.ui.app_icon.get_html(m);
-		
+
 		$module_icon = $(repl('<div id="module-icon-%(_id)s" class="case-wrapper" \
 			data-name="%(name)s" data-link="%(link)s">\
 			<div id="module-count-%(_id)s" class="circle" style="display: None">\
@@ -88,11 +65,11 @@ frappe.desktop.render = function() {
 				cursor:"pointer"
 			}).appendTo("#icon-grid");
 	}
-	
+
 	// modules
 	var modules_list = frappe.user.get_desktop_items();
 	var user_list = frappe.user.get_user_desktop_items();
-	
+
 	$.each(modules_list, function(i, m) {
 		var module = frappe.modules[m];
 		if(module) {
@@ -104,7 +81,7 @@ frappe.desktop.render = function() {
 	// setup
 	if(user_roles.indexOf('System Manager')!=-1)
 		add_icon('Setup')
-		
+
 	// all applications
 	frappe.modules["All Applications"] = {
 		icon: "icon-th",
@@ -118,10 +95,10 @@ frappe.desktop.render = function() {
 		}
 	}
 	add_icon("All Applications");
-	
+
 	// notifications
 	frappe.desktop.show_pending_notifications();
-	
+
 	$(document).on("notification-update", function() {
 		frappe.desktop.show_pending_notifications();
 	})
@@ -133,10 +110,10 @@ frappe.desktop.show_all_modules = function() {
 		var d = new frappe.ui.Dialog({
 			title: '<i class="icon-th text-muted"></i> All Applications'
 		});
-		
+
 		var desktop_items = frappe.user.get_desktop_items();
 		var user_desktop_items = frappe.user.get_user_desktop_items();
-		
+
 		$('<input class="form-control desktop-app-search" \
 			type="text" placeholder="Search Filter">')
 			.appendTo(d.body)
@@ -149,10 +126,10 @@ frappe.desktop.show_all_modules = function() {
 		$('<hr><p class="text-right text-muted text-small">'+__("Checked items shown on desktop")+'</p>')
 			.appendTo(d.body);
 		$wrapper = $('<div class="list-group">').appendTo(d.body);
-		
+
 		// list of applications (frappe.user.get_desktop_items())
 		$.each(keys(frappe.modules).sort(), function(i, m) {
-			var module = frappe.desktop.get_module(m);
+			var module = frappe.get_module(m);
 			if(module.link && desktop_items.indexOf(m)!==-1) {
 				module.app_icon = frappe.ui.app_icon.get_html(m, true);
 				$(repl('<div class="list-group-item" data-label="%(name)s">\
@@ -166,7 +143,7 @@ frappe.desktop.show_all_modules = function() {
 				</div>', module)).appendTo($wrapper);
 			}
 		});
-		
+
 		// check shown items
 		$wrapper.find('[type="checkbox"]')
 			.on("click", function() {
@@ -210,12 +187,12 @@ frappe.desktop.show_pending_notifications = function() {
 					sum += (frappe.boot.notification_info.open_count_doctype[doctype] || 0);
 				});
 			}
-		} else if(frappe.boot.notification_info.open_count_module 
+		} else if(frappe.boot.notification_info.open_count_module
 			&& frappe.boot.notification_info.open_count_module[module]!=null) {
 			sum = frappe.boot.notification_info.open_count_module[module];
 		}
 		if (frappe.modules[module]) {
-			var notifier = $("#module-count-" + frappe.desktop.get_module(module)._id);
+			var notifier = $("#module-count-" + frappe.get_module(module)._id);
 			if(notifier.length) {
 				notifier.toggle(sum ? true : false);
 				notifier.find(".circle-text").html(sum || "");

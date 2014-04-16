@@ -77,6 +77,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 
 		this.appframe.set_title(__(this.doctype) + " " + __("List"));
 		this.appframe.add_module_icon(module, this.doctype, null, true);
+		this.appframe.set_title_left(function() { frappe.set_route(frappe.get_module(module).link); });
 		this.appframe.set_views_for(this.doctype, "list");
 	},
 

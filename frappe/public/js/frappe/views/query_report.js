@@ -91,8 +91,13 @@ frappe.views.QueryReport = Class.extend({
 				this.wrapper.find(".no-report-area").toggle(false);
 				me.appframe.set_title(__("Query Report")+": " + __(me.report_name));
 
+				me.appframe.set_title_left(function() {
+					frappe.set_route(frappe.get_module(me.report_doc.module).link); });
+
+
 				frappe.model.with_doc("Report", me.report_name, function() {
 					me.report_doc = frappe.get_doc("Report", me.report_name);
+
 					frappe.model.with_doctype(me.report_doc.ref_doctype, function() {
 						if(!frappe.query_reports[me.report_name]) {
 							return frappe.call({

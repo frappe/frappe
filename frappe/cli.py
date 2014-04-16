@@ -4,7 +4,7 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-import sys, os
+import os
 
 import frappe
 
@@ -115,6 +115,8 @@ def setup_parser():
 	# common
 	parser.add_argument("-f", "--force", default=False, action="store_true",
 		help="Force execution where applicable (look for [-f] in help)")
+	parser.add_argument("--all", default=False, action="store_true",
+		help="Get all (where applicable)")
 	parser.add_argument("--verbose", default=False, action="store_true",
 		help="Show verbose output (where applicable)")
 	parser.add_argument("--quiet", default=False, action="store_true",
@@ -372,7 +374,7 @@ def latest(rebuild_website_config=True, quiet=False):
 
 		frappe.translate.clear_cache()
 
-	except frappe.modules.patch_handler.PatchError, e:
+	except frappe.modules.patch_handler.PatchError:
 		print "\n".join(frappe.local.patch_log_list)
 		raise
 	finally:
@@ -441,7 +443,7 @@ def backup(with_files=False, backup_path_db=None, backup_path_files=None, quiet=
 	return odb
 
 @cmd
-def move(dest_dir=None):
+def move(dest_dir=None, site=None):
 	import os
 	if not dest_dir:
 		raise Exception, "--dest_dir is required for --move"
@@ -599,10 +601,10 @@ def build_message_files():
 	frappe.destroy()
 
 @cmd
-def get_untranslated(lang, untranslated_file):
+def get_untranslated(lang, untranslated_file, all=None):
 	import frappe.translate
 	frappe.connect()
-	frappe.translate.get_untranslated(lang, untranslated_file)
+	frappe.translate.get_untranslated(lang, untranslated_file, get_all=all)
 	frappe.destroy()
 
 @cmd

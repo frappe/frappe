@@ -9,7 +9,6 @@ bootstrap client session
 import frappe
 import frappe.defaults
 import frappe.widgets.page
-import json
 
 def get_bootinfo():
 	"""build and return boot info"""
@@ -35,7 +34,7 @@ def get_bootinfo():
 	for app in frappe.get_installed_apps():
 		try:
 			bootinfo.modules.update(frappe.get_attr(app + ".config.desktop.data") or {})
-		except ImportError, e:
+		except ImportError:
 			pass
 
 	bootinfo.module_app = frappe.local.module_app
@@ -85,7 +84,7 @@ def load_translations(bootinfo):
 	frappe.set_user_lang(frappe.session.user)
 
 	if frappe.lang != 'en':
-		bootinfo["__messages"] = frappe.get_lang_dict("include")
+		bootinfo["__messages"] = frappe.get_lang_dict("boot")
 		bootinfo["lang"] = frappe.lang
 
 def get_fullnames():
@@ -127,7 +126,7 @@ def add_home_page(bootinfo, docs):
 
 	try:
 		page = frappe.widgets.page.get(home_page)
-	except (frappe.DoesNotExistError, frappe.PermissionError), e:
+	except (frappe.DoesNotExistError, frappe.PermissionError):
 		frappe.message_log.pop()
 		page = frappe.widgets.page.get('desktop')
 

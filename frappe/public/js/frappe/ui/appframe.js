@@ -16,17 +16,17 @@ frappe.ui.AppFrame = Class.extend({
 			</span>').appendTo(parent.find(".titlebar-center-item"));
 
 		this.setup_iconbar();
-		
-		if(title) 
+
+		if(title)
 			this.set_title(title);
-			
+
 	},
-	
+
 	setup_iconbar: function() {
 		var me = this;
 		this.iconbar = new frappe.ui.IconBar(this.parent.find(".appframe-iconbar .container"), 3);
 		this.iconbar.$wrapper.find(".iconbar-3").addClass("pull-right");
-		
+
 		this.iconbar.$wrapper.on("shown", function() {
 			me.parent.find(".appframe-iconbar").removeClass("hide")
 		})
@@ -34,7 +34,7 @@ frappe.ui.AppFrame = Class.extend({
 			me.parent.find(".appframe-iconbar").addClass("hide")
 		})
 	},
-	
+
 	// appframe::title
 	get_title_area: function() {
 		return this.$title_area;
@@ -46,15 +46,15 @@ frappe.ui.AppFrame = Class.extend({
 		document.title = txt.replace(/<[^>]*>/g, "");
 		this.$title_area.find(".title-text").html(txt);
 	},
-	
-	set_title_left: function(txt, click) {
+
+	set_title_left: function(click) {
 		return $("<a>")
 			.html('<i class="icon-angle-left text-muted" style="margin-right: 10px; \
 				font-weight: bold; text-decoration: none;"></i>')
 			.on("click", function() { click.apply(this); })
 			.appendTo(this.parent.find(".titlebar-left-item").empty());
 	},
-	
+
 	set_title_right: function(txt, click, icon, btn_class) {
 		if(!btn_class) btn_class="btn-primary"
 		var $right = this.parent.find(".titlebar-item.text-right")
@@ -72,18 +72,18 @@ frappe.ui.AppFrame = Class.extend({
 			this.primary_action = null;
 		}
 	},
-	
+
 	get_title_right_text: function() {
 		return this.parent.find(".titlebar-item.text-right").attr("data-text");
 	},
-	
+
 	clear_primary_action: function() {
 		if(this.primary_dropdown) {
 			this.primary_dropdown.remove();
 			this.primary_dropdown = null;
 		}
 	},
-	
+
 	add_primary_action: function(label, click, icon) {
 		if(!this.primary_dropdown) {
 			if(!this.primary_action) {
@@ -94,7 +94,7 @@ frappe.ui.AppFrame = Class.extend({
 					.css({"margin-right":"15px", "display":"inline-block"})
 					.prependTo(this.btn_group);
 			}
-			
+
 			var id = "dropdown-" + frappe.dom.set_unique_id();
 			this.primary_action
 				.attr("id", id)
@@ -106,22 +106,22 @@ frappe.ui.AppFrame = Class.extend({
 				aria-labelledby="'+ id +'"></ul>')
 				.insertAfter(this.primary_action).dropdown();
 		}
-		
+
 		var $li = $('<li role="presentation"><a role="menuitem" class="text-left">'
 			+ (icon ? '<i class="'+icon+' icon-fixed-width"></i> ' : "") + label+'</a></li>')
 			.appendTo(this.primary_dropdown)
 			.on("click", function() { click && click.apply(this); });
-			
+
 		return $li;
 	},
-		
+
 	set_views_for: function(doctype, active_view) {
 		this.doctype = doctype;
 		var me = this,
 			meta = locals.DocType[doctype],
 			views = [],
 			module_info = frappe.modules[meta.module];
-			
+
 		if(module_info) {
 			views.push({
 				icon: module_info.icon,
@@ -145,7 +145,7 @@ frappe.ui.AppFrame = Class.extend({
 			}
 		});
 
-		
+
 		if(!meta.issingle) {
 			views.push({
 				icon: "icon-list",
@@ -153,7 +153,7 @@ frappe.ui.AppFrame = Class.extend({
 				type: "list"
 			});
 		}
-		
+
 		if(frappe.views.calendar[doctype]) {
 			views.push({
 				icon: "icon-calendar",
@@ -177,7 +177,7 @@ frappe.ui.AppFrame = Class.extend({
 				type: "report"
 			});
 		}
-		
+
 		this.set_views(views, active_view);
 	},
 
@@ -187,7 +187,7 @@ frappe.ui.AppFrame = Class.extend({
 			var btn = me.add_icon_btn("3", e.icon, __(toTitle(e.type)), e.set_route || function() {
 				window.location.hash = "#" + $(this).attr("data-route");
 			}).attr("data-route", e.route);
-				
+
 			if(e.type===active_view) {
 				btn.find("i").css({"color": "#428bca"});
 			}
@@ -203,7 +203,7 @@ frappe.ui.AppFrame = Class.extend({
 			}
 		}
 		var icon = frappe.boot.doctype_icons[doctype] || module_info.icon;
-		
+
 		this.get_main_icon(icon)
 			.attr("doctype-name", doctype)
 			.attr("module-link", module_info.link)
@@ -219,19 +219,14 @@ frappe.ui.AppFrame = Class.extend({
 				}
 				return false;
 			});
-				
-		if(sub_title) {
-			this.set_title_left('<i class="icon-angle-left"></i> ' + module, 
-				function() { frappe.set_route($(this).attr("module-link")); }).attr("module-link", module_info.link)
-		}
 	},
-		
+
 	get_main_icon: function(icon) {
 		return this.$title_area.find(".title-icon").html('<i class="'+icon+'"></i> ').toggle(true);
 	},
-	
+
 	add_help_button: function(txt) {
-		this.add_icon_btn("2", "icon-question-sign", __("Help"), 
+		this.add_icon_btn("2", "icon-question-sign", __("Help"),
 			function() { msgprint($(this).data('help-text'), 'Help'); })
 			.data("help-text", txt);
 	},
@@ -243,11 +238,11 @@ frappe.ui.AppFrame = Class.extend({
 	add_button: function(label, click, icon, is_title) {
 		return this.iconbar.add_btn("1", icon, __(label), click);
 	},
-	
+
 	add_dropdown_button: function(parent, label, click, icon) {
 		frappe.ui.toolbar.add_dropdown_button(parent, label, click, icon);
 	},
-	
+
 	// appframe::form
 	add_label: function(label) {
 		this.show_form();
@@ -261,10 +256,10 @@ frappe.ui.AppFrame = Class.extend({
 	add_data: function(label) {
 		var field = this.add_field({label: label, fieldtype: "Data"});
 		return field.$wrapper.find("input").attr("placeholder", label);
-	}, 
+	},
 	add_date: function(label, date) {
 		var field = this.add_field({label: label, fieldtype: "Date", "default": date});
-		return field.$wrapper.find("input").attr("placeholder", label);		
+		return field.$wrapper.find("input").attr("placeholder", label);
 	},
 	add_check: function(label) {
 		return $("<div class='checkbox' style='margin-right: 10px; margin-top: 7px; float: left;'><label><input type='checkbox'>" + label + "</label></div>")
@@ -287,18 +282,18 @@ frappe.ui.AppFrame = Class.extend({
 		$(f.wrapper)
 			.addClass('col-md-2')
 			.css({
-				"padding-left": "0px", 
+				"padding-left": "0px",
 				"padding-right": "0px",
 				"margin-right": "5px",
 			})
 			.attr("title", __(df.label)).tooltip();
 		f.$input.attr("placeholder", __(df.label));
-		
+
 		if(df.fieldtype==="Check") {
 			$(f.wrapper).find(":first-child")
 				.removeClass("col-md-offset-4 col-md-8");
 		}
-		
+
 		if(df["default"])
 			f.set_input(df["default"])
 		this.fields_dict[df.fieldname || df.label] = f;
@@ -318,7 +313,7 @@ frappe.ui.make_app_page = function(opts) {
 			"parent: [HTMLElement] parent element",
 			"single_column: [Boolean] false/true",
 			"title: [optional] set this title"
-		] 
+		]
 	*/
 	$wrapper = $(opts.parent)
 	$('<div class="appframe-titlebar">\

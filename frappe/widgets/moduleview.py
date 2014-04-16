@@ -2,7 +2,7 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-import frappe, json
+import frappe
 from frappe.widgets import reportview
 from frappe.utils import cint
 from frappe import _
@@ -21,17 +21,17 @@ def get(module):
 	}
 
 	return out
-	
+
 def get_data(module):
 	data = build_config_from_file(module)
-			
+
 	if not data:
 		data = build_standard_config(module)
-	
+
 	data = combine_common_sections(data)
-			
+
 	return data
-	
+
 def build_config_from_file(module):
 	data = []
 	module = frappe.scrub(module)
@@ -39,22 +39,22 @@ def build_config_from_file(module):
 	for app in frappe.get_installed_apps():
 		try:
 			data += get_config(app, module)
-		except ImportError, e:
+		except ImportError:
 			pass
-			
+
 	return data
-	
+
 def build_standard_config(module):
 	if not frappe.db.get_value("Module Def", module):
 		frappe.throw(_("Module Not Found"))
-	
+
 	data = []
-	
-	doctypes = frappe.db.sql("""select "doctype" as type, name, description, 
+
+	doctypes = frappe.db.sql("""select "doctype" as type, name, description,
 		ifnull(document_type, "") as document_type
 		from `tabDocType` where module=%s and ifnull(istable, 0)=0
 		order by document_type desc, name asc""", module, as_dict=True)
-	
+
 	documents = [d for d in doctypes if d.document_type in ("Transaction", "Master", "")]
 	if documents:
 		data.append({
@@ -62,7 +62,7 @@ def build_standard_config(module):
 			"icon": "icon-star",
 			"items": documents
 		})
-	
+
 	setup = [d for d in doctypes if d.document_type in ("System", "Other")]
 	if setup:
 		data.append({
@@ -70,7 +70,7 @@ def build_standard_config(module):
 			"icon": "icon-cog",
 			"items": setup
 		})
-		
+
 	reports = get_report_list(module, is_standard="Yes")
 	if reports:
 		data.append({
@@ -78,9 +78,9 @@ def build_standard_config(module):
 			"icon": "icon-list",
 			"items": reports
 		})
-	
+
 	return data
-	
+
 def combine_common_sections(data):
 	sections = []
 	sections_dict = {}
@@ -90,12 +90,18 @@ def combine_common_sections(data):
 			sections.append(each)
 		else:
 			sections_dict[each["label"]]["items"] += each["items"]
-		
+
 	return sections
-	
+
 def get_config(app, module):
 	config = frappe.get_module("{app}.config.{module}".format(app=app, module=module))
-	return deepcopy(config.get_data() if hasattr(config, "get_data") else config.data)
+	config = deepcopy(config.get_data() if hasattr(config, "get_data") else config.data)
+
+	for section in config:
+		for item in section["items"]:
+			if not "label" in item:
+				item["label"] = _(item["name"])
+	return config
 
 def add_setup_section(config, app, module, label, icon):
 	try:
@@ -124,23 +130,23 @@ def get_section_count(section=None, module=None, section_label=None):
 			if each["label"] == section_label:
 				section = each
 				break
-	
+
 	if section:
 		doctypes = get_doctypes(section)
 
 	count = get_count(doctypes)
 
 	return count
-	
+
 def get_doctypes(section):
 	doctypes = []
-	
+
 	for item in section.get("items", []):
 		if item.get("type")=="doctype":
 			doctypes.append(item["name"])
 		elif item.get("doctype"):
 			doctypes.append(item["doctype"])
-	
+
 	return list(set(doctypes))
 
 def get_count(doctypes):
@@ -155,22 +161,25 @@ def get_doctype_count_from_table(doctype):
 	try:
 		count = reportview.execute(doctype, fields=["count(*)"], as_list=True)[0][0]
 	except Exception, e:
-		if e.args[0]==1146: 
+		if e.args[0]==1146:
 			count = None
-		else: 
+		else:
 			raise
 	return cint(count)
-	
+
 def get_report_list(module, is_standard="No"):
-	"""return list on new style reports for modules"""	
-	return frappe.db.sql("""
-		select distinct "report" as type, name, ref_doctype as doctype,
-			if((report_type='Query Report' or 
-				report_type='Script Report'), 1, 0) as is_query_report,
-			report_type as description
-		from `tabReport`
-		where module=%s
-			and docstatus in (0, NULL)
-			and ifnull(is_standard, "No")=%s
-			and ifnull(disabled,0) != 1
-			order by name""", (module, is_standard), as_dict=True)
+	"""return list on new style reports for modules"""
+	reports =  frappe.get_list("Report", fields=["name", "ref_doctype", "report_type"], filters=
+		{"is_standard": is_standard, "disabled": ("in", ("0", "NULL")), "module": module}, order_by="name")
+
+	out = []
+	for r in reports:
+		out.append({
+			"type": "report",
+			"doctype": r.ref_doctype,
+			"is_query_report": 1 if r.report_type in ("Query Report", "Script Report") else 0,
+			"description": r.report_type,
+			"label": _(r.name)
+		})
+
+	return out

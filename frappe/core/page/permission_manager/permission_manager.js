@@ -89,7 +89,7 @@ frappe.PermissionEngine = Class.extend({
 		var me = this;
 		me.reset_button = me.wrapper.appframe.set_title_right("Reset Permissions", function() {
 			me.get_standard_permissions(function(data) {
-				var d = frappe.confirm("Reset Permissions for " + me.get_doctype() + "?", function() {
+				var d = frappe.confirm(__("Reset Permissions for {0}?", [me.get_doctype()]), function() {
 					return frappe.call({
 						module:"frappe.core",
 						page:"permission_manager",

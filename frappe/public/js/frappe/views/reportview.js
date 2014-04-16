@@ -15,12 +15,12 @@ frappe.views.ReportViewPage = Class.extend({
 		};
 
 		frappe.require("assets/js/slickgrid.min.js");
-		
+
 		this.doctype = doctype;
 		this.docname = docname;
 		this.page_name = frappe.get_route_str();
 		this.make_page();
-		
+
 		var me = this;
 		frappe.model.with_doctype(this.doctype, function() {
 			me.make_report_view();
@@ -40,10 +40,10 @@ frappe.views.ReportViewPage = Class.extend({
 	make_page: function() {
 		var me = this;
 		this.page = frappe.container.add_page(this.page_name);
-		frappe.ui.make_app_page({parent:this.page, 
+		frappe.ui.make_app_page({parent:this.page,
 			single_column:true});
 		frappe.container.change_to(this.page_name);
-		
+
 		$(this.page).on('show', function(){
 			if(me.page.reportview.set_route_filters())
 				me.page.reportview.run();
@@ -53,11 +53,12 @@ frappe.views.ReportViewPage = Class.extend({
 		var module = locals.DocType[this.doctype].module;
 		this.page.appframe.set_title(__(this.doctype));
 		this.page.appframe.add_module_icon(module, this.doctype)
+		this.page.appframe.set_title_left(function() { frappe.set_route(frappe.get_module(module).link); });
 		this.page.appframe.set_views_for(this.doctype, "report");
 
 		this.page.reportview = new frappe.views.ReportView({
-			doctype: this.doctype, 
-			docname: this.docname, 
+			doctype: this.doctype,
+			docname: this.docname,
 			page: this.page,
 			wrapper: $(this.page).find(".layout-main")
 		});
@@ -122,10 +123,10 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 				}
 			});
 		}
-		
+
 		this.columns = columns;
 	},
-	
+
 	// preset columns and filters from saved info
 	set_columns_and_filters: function(opts) {
 		var me = this;
@@ -144,7 +145,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		// first sort
 		if(opts.sort_by) this.sort_by_select.val(opts.sort_by);
 		if(opts.sort_order) this.sort_order_select.val(opts.sort_order);
-		
+
 		// second sort
 		if(opts.sort_by_next) this.sort_by_next_select.val(opts.sort_by_next);
 		if(opts.sort_order_next) this.sort_order_next_select.val(opts.sort_order_next);
@@ -161,7 +162,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 			return true;
 		}
 	},
-	
+
 	// build args for query
 	get_args: function() {
 		var me = this;
@@ -174,26 +175,26 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 			with_childnames: 1
 		}
 	},
-	
+
 	get_order_by: function() {
-		// first 
-		var order_by = this.get_selected_table_and_column(this.sort_by_select) 
+		// first
+		var order_by = this.get_selected_table_and_column(this.sort_by_select)
 			+ ' ' + this.sort_order_select.val();
-			
+
 		// second
 		if(this.sort_by_next_select.val()) {
-			order_by += ', ' + this.get_selected_table_and_column(this.sort_by_next_select) 
+			order_by += ', ' + this.get_selected_table_and_column(this.sort_by_next_select)
 				+ ' ' + this.sort_order_next_select.val();
 		}
-		
+
 		return order_by;
 	},
-	
+
 	get_selected_table_and_column: function(select) {
-		return select.selected_doctype ? 
+		return select.selected_doctype ?
 			this.get_full_column_name([select.selected_fieldname, select.selected_doctype]) : "";
 	},
-	
+
 	// get table_name.column_name
 	get_full_column_name: function(v) {
 		if(!v) return;
@@ -208,7 +209,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 			if(!docfield) {
 				var docfield = frappe.model.get_std_field(c[0]);
 				docfield.parent = me.doctype;
-				if(c[0]=="name") { 
+				if(c[0]=="name") {
 					docfield.options = me.doctype;
 				}
 			}
@@ -223,8 +224,8 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 					if(docfield.fieldname==="_user_tags") docfield.fieldtype = "Tag";
 					if(docfield.fieldname==="_comments") docfield.fieldtype = "Comment";
 					if(docfield.fieldtype==="Link" && docfield.fieldname!=="name") {
-						docfield.link_onclick = 
-							repl('frappe.container.page.reportview.set_filter("%(fieldname)s", "%(value)s").page.reportview.run()', 
+						docfield.link_onclick =
+							repl('frappe.container.page.reportview.set_filter("%(fieldname)s", "%(value)s").page.reportview.run()',
 								{fieldname:docfield.fieldname, value:value});
 					}
 					return frappe.format(value, docfield, null, dataContext);
@@ -233,7 +234,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 			return coldef;
 		});
 	},
-	
+
 	// render data
 	render_list: function() {
 		var me = this;
@@ -262,15 +263,15 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		var grid_wrapper = this.$w.find('.result-list');
 
 		// set height if not auto
-		if(!options.autoHeight) 
+		if(!options.autoHeight)
 			grid_wrapper.css('height', '500px');
-		
+
 		this.grid = new Slick.Grid(grid_wrapper
 			.css('border', '1px solid #ccc')
 			.css('border-top', '0px')
-			.get(0), this.dataView, 
+			.get(0), this.dataView,
 			columns, options);
-		
+
 		this.grid.setSelectionModel(new Slick.CellSelectionModel());
 		this.grid.registerPlugin(new Slick.CellExternalCopyManager({
 			dataItemColumnValueExtractor: function(item, columnDef, value) {
@@ -281,13 +282,13 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		if(this.start!=0 && !options.autoHeight) {
 			this.grid.scrollRowIntoView(this.data.length-1);
 		}
-		
+
 		this.grid.onDblClick.subscribe(function(e, args) {
 			var row = me.dataView.getItem(args.row);
 			var cell = me.grid.getColumns()[args.cell];
 			me.edit_cell(row, cell.docfield);
 		});
-		
+
 		this.dataView.onRowsChanged.subscribe(function (e, args) {
 			me.grid.invalidateRows(args.rows);
 			me.grid.render();
@@ -296,11 +297,11 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		this.grid.onHeaderClick.subscribe(function(e, args) {
 			if(e.target.className === "slick-resizable-handle")
 				return;
-			
-			
+
+
 			var df = args.column.docfield,
 				sort_by = df.parent + "." + df.fieldname;
-							
+
 			if(sort_by===me.sort_by_select.val()) {
 				me.sort_order_select.val(me.sort_order_select.val()==="asc" ? "desc" : "asc");
 			} else {
@@ -311,9 +312,9 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 			me.run();
 		});
 	},
-	
+
 	edit_cell: function(row, docfield) {
-		if(docfield.fieldname !== "idx" && 
+		if(docfield.fieldname !== "idx" &&
 			frappe.model.std_fields_list.indexOf(docfield.fieldname)!==-1) {
 			frappe.throw(__("Cannot edit standard fields"));
 		} else if(frappe.boot.user.can_write.indexOf(this.doctype)===-1) {
@@ -359,18 +360,18 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		});
 		d.show();
 	},
-	
+
 	set_data: function() {
 		this.dataView.beginUpdate();
 		this.dataView.setItems(this.data);
 		this.dataView.endUpdate();
 	},
-	
+
 	get_columns: function() {
 		var std_columns = [{id:'_idx', field:'_idx', name: 'Sr.', width: 40, maxWidth: 40}];
 		if(this.can_delete) {
 			std_columns = std_columns.concat([{
-				id:'_check', field:'_check', name: "", width: 30, maxWidth: 30, 
+				id:'_check', field:'_check', name: "", width: 30, maxWidth: 30,
 					formatter: function(row, cell, value, columnDef, dataContext) {
 						return repl("<input type='checkbox' \
 							data-row='%(row)s' %(checked)s>", {
@@ -380,9 +381,9 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 					}
 			}]);
 		}
-		return std_columns.concat(this.build_columns());		
+		return std_columns.concat(this.build_columns());
 	},
-	
+
 	// setup column picker
 	make_column_picker: function() {
 		var me = this;
@@ -401,12 +402,12 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		});
 		this.$w.find('.result-list').on("click", "[data-workflow-state]", function() {
 			if($(this).attr("data-workflow-state")) {
-				me.set_filter(me.state_fieldname, 
+				me.set_filter(me.state_fieldname,
 					$(this).attr("data-workflow-state"));
 			}
 		});
 	},
-		
+
 	// setup sorter
 	make_sorter: function() {
 		var me = this;
@@ -424,7 +425,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 				<option value="desc">'+__('Descending')+'</option>\
 			</select></div><hr>\
 			<div><button class="btn btn-info">'+__('Update')+'</div>');
-		
+
 		// first
 		this.sort_by_select = new frappe.ui.FieldSelect({
 			parent: $(this.sort_dialog.body).find('.sort-column'),
@@ -432,7 +433,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		});
 		this.sort_by_select.$select.css('width', '60%');
 		this.sort_order_select = $(this.sort_dialog.body).find('.sort-order');
-		
+
 		// second
 		this.sort_by_next_select = new frappe.ui.FieldSelect({
 			parent: $(this.sort_dialog.body).find('.sort-column-1'),
@@ -441,25 +442,25 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		});
 		this.sort_by_next_select.$select.css('width', '60%');
 		this.sort_order_next_select = $(this.sort_dialog.body).find('.sort-order-1');
-		
+
 		// initial values
 		this.sort_by_select.set_value(this.doctype, 'modified');
 		this.sort_order_select.val('desc');
-		
+
 		this.sort_by_next_select.clear();
 		this.sort_order_next_select.val('desc');
-		
+
 		// button actions
 		this.page.appframe.add_button(__('Sort By'), function() {
 			me.sort_dialog.show();
 		}, 'icon-sort-by-alphabet');
-		
-		$(this.sort_dialog.body).find('.btn-info').click(function() { 
+
+		$(this.sort_dialog.body).find('.btn-info').click(function() {
 			me.sort_dialog.hide();
 			me.run();
 		});
 	},
-	
+
 	// setup export
 	make_export: function() {
 		var me = this;
@@ -487,7 +488,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 						return;
 					}
 				}
-				
+
 				// callback
 				return frappe.call({
 					method: 'frappe.widgets.reportview.save_report',
@@ -520,10 +521,10 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		var me = this;
 		if(this.can_delete) {
 			$(this.page).on("click", "input[type='checkbox'][data-row]", function() {
-				me.data[$(this).attr("data-row")]._checked 
+				me.data[$(this).attr("data-row")]._checked
 					= this.checked ? true : false;
 			});
-			
+
 			this.page.appframe.add_button(__("Delete"), function() {
 				var delete_list = []
 				$.each(me.data, function(i, d) {
@@ -532,8 +533,8 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 							delete_list.push(d.name);
 					}
 				});
-				
-				if(!delete_list.length) 
+
+				if(!delete_list.length)
 					return;
 				if(frappe.confirm(__("This is PERMANENT action and you cannot undo. Continue?"),
 					function() {
@@ -548,11 +549,11 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 							}
 						});
 					}));
-				
+
 			}, 'icon-remove');
 		}
 	},
-	
+
 	make_user_restrictions: function() {
 		var me = this;
 		if(this.docname && frappe.model.can_restrict("Report")) {
@@ -580,7 +581,7 @@ frappe.ui.ColumnPicker = Class.extend({
 				'+__("Add Column")+'</button></div>\
 			<hr>\
 			<div><button class="btn btn-info">'+__("Update")+'</div>');
-		
+
 	},
 	show: function(columns) {
 		var me = this;
@@ -597,14 +598,14 @@ frappe.ui.ColumnPicker = Class.extend({
 		$.each(columns, function(i, c) {
 			me.add_column(c);
 		});
-		
+
 		$(this.dialog.body).find('.column-list').sortable();
-		
+
 		// add column
 		$(this.dialog.body).find('.btn-add').click(function() {
 			me.add_column(['name']);
 		});
-		
+
 		// update
 		$(this.dialog.body).find('.btn-info').click(function() {
 			me.dialog.hide();
@@ -612,12 +613,12 @@ frappe.ui.ColumnPicker = Class.extend({
 			var columns = $.map(me.columns, function(v) {
 				return v ? [[v.selected_fieldname, v.selected_doctype]] : null;
 			});
-			
+
 			frappe.defaults.set_default("_list_settings:" + me.doctype, columns);
 			me.list.columns = columns;
 			me.list.run();
 		});
-		
+
 		this.dialog.show();
 	},
 	add_column: function(c) {
@@ -628,21 +629,21 @@ frappe.ui.ColumnPicker = Class.extend({
 			<a class="close" style="margin-top: 5px;">&times</a>\
 			</div>')
 			.appendTo($(this.dialog.body).find('.column-list'));
-		
-		var fieldselect = new frappe.ui.FieldSelect({parent:w, doctype:this.doctype}), 
+
+		var fieldselect = new frappe.ui.FieldSelect({parent:w, doctype:this.doctype}),
 			me = this;
-		
+
 		fieldselect.$select.css({"display": "inline"});
-		
+
 		fieldselect.$select.css({width: '70%', 'margin-top':'5px'})
 		fieldselect.val((c[1] || this.doctype) + "." + c[0]);
-		
+
 		w.find('.close').data("fieldselect", fieldselect).click(function() {
 			console.log(me.columns.indexOf($(this).data('fieldselect')));
 			delete me.columns[me.columns.indexOf($(this).data('fieldselect'))];
 			$(this).parent().remove();
 		});
-		
+
 		this.columns.push(fieldselect);
 	}
 });

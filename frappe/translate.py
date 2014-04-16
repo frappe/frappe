@@ -22,7 +22,10 @@ def get_user_lang(user=None):
 	if not user:
 		user = frappe.session.user
 	user_lang = frappe.db.get_value("User", user, "language")
-	return get_lang_dict().get(user_lang!="Loading..." and user_lang or "english")
+	if user_lang:
+		return get_lang_dict().get(user_lang!="Loading..." and user_lang or "english")
+	else:
+		return frappe.local.lang
 
 def get_all_languages():
 	return [a.split()[0] for a in get_lang_info()]
@@ -33,17 +36,6 @@ def get_lang_dict():
 def get_lang_info():
 	return frappe.cache().get_value("langinfo",
 		lambda:frappe.get_file_items(os.path.join(frappe.local.sites_path, "languages.txt")))
-
-def rebuild_all_translation_files():
-	for lang in get_all_languages():
-		for app in frappe.get_all_apps():
-			write_translations_file(app, lang)
-
-def write_translations_file(app, lang, full_dict=None):
-	tpath = frappe.get_pymodule_path(app, "translations")
-	frappe.create_folder(tpath)
-	write_csv_file(os.path.join(tpath, lang + ".csv"),
-		get_messages_for_app(app), full_dict or get_full_dict(lang))
 
 def get_dict(fortype, name=None):
 	fortype = fortype.lower()
@@ -63,6 +55,10 @@ def get_dict(fortype, name=None):
 			messages = get_messages_from_include_files()
 		elif fortype=="jsfile":
 			messages = get_messages_from_file(name)
+		elif fortype=="boot":
+			messages = get_messages_from_include_files()
+			messages += frappe.db.sql_list("select name from tabDocType")
+			messages += frappe.db.sql_list("select name from `tabModule Def`")
 
 		translation_assets[asset_key] = make_dict_from_messages(messages)
 		cache.set_value(cache_key, translation_assets)
@@ -120,14 +116,16 @@ def get_messages_for_app(app):
 		messages.extend(get_messages_from_doctype(name))
 
 	# pages
-	for name in frappe.db.sql_list("""select name from tabPage
+	for name, title in frappe.db.sql("""select name, title from tabPage
 		where module in ({})""".format(modules)):
+		messages.append(title or name)
 		messages.extend(get_messages_from_page(name))
 
 	# reports
 	for name in frappe.db.sql_list("""select tabReport.name from tabDocType, tabReport
 		where tabReport.ref_doctype = tabDocType.name
 			and tabDocType.module in ({})""".format(modules)):
+		messages.append(name)
 		messages.extend(get_messages_from_report(name))
 
 	# app_include_files
@@ -197,7 +195,7 @@ def get_messages_from_include_files(app_name=None):
 	for file in (frappe.get_hooks("app_include_js") or []) + (frappe.get_hooks("web_include_js") or []):
 		messages.extend(get_messages_from_file(os.path.join(frappe.local.sites_path, file)))
 
-	return messages
+	return clean(messages)
 
 def get_messages_from_file(path):
 	"""get list of messages from a code file"""
@@ -213,10 +211,16 @@ def extract_messages_from_code(code, is_py=False):
 	messages += re.findall("_\('([^']*)'", code)
 	if is_py:
 		messages += re.findall('_\("{3}([^"]*)"{3}.*\)', code, re.S)
-	return messages
+	return clean(messages)
 
 def clean(messages):
-	return filter(lambda t: t if t else None, list(set(messages)))
+	l = []
+	messages = list(set(messages))
+	for m in messages:
+		if m:
+			if re.search("[a-z]", m) and not m.startswith("icon-") and not m.endswith("px") and not m.startswith("eval:"):
+				l.append(m)
+	return l
 
 def read_csv_file(path):
 	from csv import reader
@@ -232,9 +236,12 @@ def write_csv_file(path, app_messages, lang_dict):
 	with open(path, 'w') as msgfile:
 		w = writer(msgfile)
 		for m in app_messages:
-			w.writerow([m.encode('utf-8'), lang_dict.get(m, '').encode('utf-8')])
+			t = lang_dict.get(m, '')
+			# strip whitespaces
+			t = re.sub('{\s?([0-9]+)\s?}', "{\g<1>}", t)
+			w.writerow([m.encode('utf-8'), t.encode('utf-8')])
 
-def get_untranslated(lang, untranslated_file):
+def get_untranslated(lang, untranslated_file, get_all=False):
 	"""translate objects using Google API. Add you own API key for translation"""
 	clear_cache()
 	apps = frappe.get_all_apps(True)
@@ -244,18 +251,25 @@ def get_untranslated(lang, untranslated_file):
 	for app in apps:
 		messages.extend(get_messages_for_app(app))
 
-	full_dict = get_full_dict(lang)
-
-	for m in messages:
-		if not full_dict.get(m):
-			untranslated.append(m)
-
-	if untranslated:
-		print str(len(untranslated)) + " missing translations of " + str(len(messages))
+	if get_all:
+		print str(len(messages)) + " messages"
 		with open(untranslated_file, "w") as f:
-			f.write("\n".join(untranslated))
+			for m in messages:
+				f.write((m + "\n").encode("utf-8"))
 	else:
-		print "all translated!"
+		full_dict = get_full_dict(lang)
+
+		for m in messages:
+			if not full_dict.get(m):
+				untranslated.append(m)
+
+		if untranslated:
+			print str(len(untranslated)) + " missing translations of " + str(len(messages))
+			with open(untranslated_file, "w") as f:
+				for m in untranslated:
+					f.write((m + "\n").encode("utf-8"))
+		else:
+			print "all translated!"
 
 def update_translations(lang, untranslated_file, translated_file):
 	clear_cache()
@@ -266,3 +280,14 @@ def update_translations(lang, untranslated_file, translated_file):
 
 	for app in frappe.get_all_apps(True):
 		write_translations_file(app, lang, full_dict)
+
+def rebuild_all_translation_files():
+	for lang in get_all_languages():
+		for app in frappe.get_all_apps():
+			write_translations_file(app, lang)
+
+def write_translations_file(app, lang, full_dict=None):
+	tpath = frappe.get_pymodule_path(app, "translations")
+	frappe.create_folder(tpath)
+	write_csv_file(os.path.join(tpath, lang + ".csv"),
+		get_messages_for_app(app), full_dict or get_full_dict(lang))

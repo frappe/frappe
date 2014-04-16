@@ -1,10 +1,11 @@
 // Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
-// MIT License. See license.txt 
+// MIT License. See license.txt
 
 get_server_fields = function(method, arg, table_field, doc, dt, dn, allow_edit, call_back) {
 	frappe.dom.freeze();
-	return $c('runserverobj', 
-		args={'method': method, 'docs': doc, 'arg': arg },
+	if($.isPlainObject(arg)) arg = JSON.stringify(arg);
+	return $c('runserverobj',
+		args={'method': method, 'docs': JSON.stringify(doc), 'arg': arg },
 	function(r, rt) {
 		frappe.dom.unfreeze();
 		if (r.message)  {
@@ -12,9 +13,9 @@ get_server_fields = function(method, arg, table_field, doc, dt, dn, allow_edit, 
 			var field_dict = r.message;
 			for(var key in field_dict) {
 				d[key] = field_dict[key];
-				if (table_field) 
+				if (table_field)
 					refresh_field(key, d.name, table_field);
-				else 
+				else
 					refresh_field(key);
 			}
 		}
@@ -61,9 +62,9 @@ set_field_tip = function(n,txt) {
 
 refresh_field = function(n, docname, table_field) {
 	// multiple
-	if(typeof n==typeof []) 
+	if(typeof n==typeof [])
 		refresh_many(n, docname, table_field);
-	
+
 	if(table_field && cur_frm.fields_dict[table_field].grid.grid_rows_by_docname) { // for table
 		cur_frm.fields_dict[table_field].grid.grid_rows_by_docname[docname].refresh_field(n);
 	} else if(cur_frm) {
@@ -112,9 +113,9 @@ get_field_obj = function(fn) {
 set_missing_values = function(doc, dict) {
 	// dict contains fieldname as key and "default value" as value
 	var fields_to_set = {};
-	
+
 	$.each(dict, function(i, v) { if (!doc[i]) { fields_to_set[i] = v; } });
-	
+
 	if (fields_to_set) { set_multiple(doc.doctype, doc.name, fields_to_set); }
 }
 
@@ -127,7 +128,7 @@ _f.Frm.prototype.field_map = function(fnames, fn) {
 		if(fnames == '*') {
 			fnames = keys(this.fields_dict);
 		} else {
-			fnames = [fnames];			
+			fnames = [fnames];
 		}
 	}
 	$.each(fnames, function(i,fieldname) {
@@ -138,7 +139,7 @@ _f.Frm.prototype.field_map = function(fnames, fn) {
 			cur_frm.refresh_field(fieldname);
 		};
 	})
-	
+
 }
 
 _f.Frm.prototype.set_df_property = function(fieldname, property, value) {
@@ -150,7 +151,7 @@ _f.Frm.prototype.set_df_property = function(fieldname, property, value) {
 }
 
 _f.Frm.prototype.toggle_enable = function(fnames, enable) {
-	cur_frm.field_map(fnames, function(field) { 
+	cur_frm.field_map(fnames, function(field) {
 		field.read_only = enable ? 0 : 1; });
 }
 
@@ -167,7 +168,7 @@ _f.Frm.prototype.call_server = function(method, args, callback) {
 }
 
 _f.Frm.prototype.get_files = function() {
-	return cur_frm.attachments 
+	return cur_frm.attachments
 		? keys(cur_frm.attachments.get_attachments()).sort()
 		: [] ;
 }
@@ -193,24 +194,24 @@ _f.Frm.prototype.set_value = function(field, value, if_missing) {
 			if(!if_missing || !frappe.model.has_value(me.doctype, me.doc.name, f)) {
 				if(fieldobj.df.fieldtype==="Table" && $.isArray(v)) {
 
-					frappe.model.clear_table(fieldobj.df.options, me.doctype, 
+					frappe.model.clear_table(fieldobj.df.options, me.doctype,
 						me.doc.name, fieldobj.df.fieldname);
 
 					$.each(v, function(i, d) {
-						var child = frappe.model.add_child(me.doc, fieldobj.df.options, 
+						var child = frappe.model.add_child(me.doc, fieldobj.df.options,
 							fieldobj.df.fieldname, i+1);
 						$.extend(child, d);
 					});
-				
+
 					me.refresh_field(f);
-				
+
 				} else {
 					frappe.model.set_value(me.doctype, me.doc.name, f, v);
 				}
 			}
 		}
 	}
-	
+
 	if(typeof field=="string") {
 		_set(field, value)
 	} else if($.isPlainObject(field)) {
@@ -224,7 +225,7 @@ _f.Frm.prototype.call = function(opts) {
 	var me = this;
 	if(!opts.doc) {
 		if(opts.method.indexOf(".")===-1)
-			opts.method = frappe.model.get_server_module_name(me.doctype) + "." + opts.method; 
+			opts.method = frappe.model.get_server_module_name(me.doctype) + "." + opts.method;
 		opts.original_callback = opts.callback;
 		opts.callback = function(r) {
 			if($.isPlainObject(r.message)) {
@@ -244,10 +245,10 @@ _f.Frm.prototype.call = function(opts) {
 		opts.original_callback = opts.callback;
 		opts.callback = function(r) {
 			if(!r.exc) me.refresh_fields();
-			
+
 			opts.original_callback && opts.original_callback(r);
 		}
-		
+
 	}
 	return frappe.call(opts);
 }
