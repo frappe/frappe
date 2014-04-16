@@ -21,7 +21,7 @@ class Communication(Document):
 
 	def update_parent(self):
 		"""update status of parent Lead or Contact based on who is replying"""
-		observer = self.get_parent_doc().get_attr("on_communication")
+		observer = getattr(self.get_parent_doc(), "on_communication", None)
 		if observer:
 			observer()
 
