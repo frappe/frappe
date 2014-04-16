@@ -109,8 +109,12 @@ class BaseDocument(object):
 		value.parent = self.name
 		value.parenttype = self.doctype
 		value.parentfield = key
+
 		if not getattr(value, "idx", None):
 			value.idx = len(self.get(key) or []) + 1
+
+		if not getattr(value, "name", None):
+			value.__dict__['__islocal'] = 1
 
 		return value
 

@@ -18,12 +18,6 @@ $.extend(frappe.model, {
 			var dirty = [];
 
 			$.each(r.docs, function(i, d) {
-				if(!d.name && d.__islocal) { // get name (local if required)
-					frappe.model.clear_doc(d);
-					d.name = frappe.model.get_new_name(d.doctype);
-					frappe.provide("frappe.model.docinfo." + d.doctype + "." + d.name);
-				}
-
 				frappe.model.add_to_locals(d);
 				d.__last_sync_on = new Date();
 
@@ -68,8 +62,16 @@ $.extend(frappe.model, {
 	},
 	add_to_locals: function(doc) {
 		if(!locals[doc.doctype]) locals[doc.doctype] = {};
+		if(!doc.name && doc.__islocal) { // get name (local if required)
+			if(!doc.parentfield) frappe.model.clear_doc(doc);
+
+			doc.name = frappe.model.get_new_name(doc.doctype);
+
+			if(!doc.parentfield) frappe.provide("frappe.model.docinfo." + doc.doctype + "." + doc.name);
+		}
 		locals[doc.doctype][doc.name] = doc;
-		if(!doc.parent) {
+
+		if(!doc.parentfield) {
 			$.each(doc, function(key, value) {
 				if($.isArray(value)) {
 					$.each(value, function(i, d) {

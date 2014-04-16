@@ -18,15 +18,9 @@ class DocListController(Document):
 		"""check that value of fieldname should be 'condition' val2
 			else throw exception"""
 		error_condition_map = {
-			"=": "!=",
-			"!=": "=",
-			"<": ">=",
-			">": "<=",
-			">=": "<",
-			"<=": ">",
-			"in": _("not in"),
-			"not in": _("in"),
-			"^": _("cannot start with"),
+			"in": _("one of"),
+			"not in": _("none of"),
+			"^": _("beginning with"),
 		}
 
 		if not doc:
@@ -49,7 +43,7 @@ class DocListController(Document):
 
 		if not frappe.compare(val1, condition, val2):
 			label = doc.meta.get_label(fieldname)
-			condition_str = error_condition_map.get(condition, "")
+			condition_str = error_condition_map.get(condition, condition)
 			if doc.parentfield:
 				msg = _("Incorrect value in row {0}: {1} must be {2} {3}".format(doc.idx, label, condition_str, val2))
 			else:
