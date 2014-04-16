@@ -51,9 +51,13 @@ def import_file_by_path(path, force=False):
 
 			if original_modified:
 				# since there is a new timestamp on the file, update timestamp in
-				frappe.db.sql("update `tab%s` set modified=%s where name=%s" % \
-					(doc['doctype'], '%s', '%s'),
-					(original_modified, doc['name']))
+				if doc["doctype"] == doc["name"]:
+					frappe.db.sql("""update tabSingles set value=%s where field="modified" and doctype=%s""",
+						(original_modified, doc["name"]))
+				else:
+					frappe.db.sql("update `tab%s` set modified=%s where name=%s" % \
+						(doc['doctype'], '%s', '%s'),
+						(original_modified, doc['name']))
 
 	frappe.flags.in_import = False
 	return True
