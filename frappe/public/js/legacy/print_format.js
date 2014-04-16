@@ -462,7 +462,7 @@ $.extend(_p, {
 				var h2 = $a(me.layout.cur_row.header, 'div', '', h2_style);
 				h2.innerHTML = docname;
 
-				if(cur_frm.state_fieldname && !cur_frm.fields_dict[cur_frm.state_fieldname].print_hide) {
+				if(cur_frm.state_fieldname && !cur_frm.fields_dict[cur_frm.state_fieldname].df.print_hide) {
 					$a(h2, 'br');
 					var span = $a(h2, 'span', '',
 						{padding: "3px", color: "#fff", backgroundColor: "#777",
