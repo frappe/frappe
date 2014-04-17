@@ -13,7 +13,6 @@ from MySQLdb import ProgrammingError as SQLError
 
 import os, sys, importlib, inspect
 import json
-import semantic_version
 
 from .exceptions import *
 
@@ -54,15 +53,8 @@ def get_lang_dict(fortype, name=None):
 	return get_dict(fortype, name)
 
 def set_user_lang(user, user_language=None):
-	from frappe.translate import get_lang_dict
-
-	if not user_language:
-		user_language = db.get_value("User", user, "language")
-
-	if user_language:
-		lang_dict = get_lang_dict()
-		if user_language in lang_dict:
-			local.lang = lang_dict[user_language]
+	from frappe.translate import get_user_lang
+	local.lang = get_user_lang(user)
 
 # local-globals
 db = local("db")

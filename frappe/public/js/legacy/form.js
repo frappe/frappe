@@ -61,7 +61,7 @@ _f.Frm.prototype.check_doctype_conflict = function(docname) {
 		msgprint(__('Allowing DocType, DocType. Be careful!'))
 	} else if(this.doctype=='DocType') {
 		if (frappe.views.formview[docname] || frappe.pages['List/'+docname]) {
-			msgprint(__("Cannot open {0} when its instance is open"), ['DocType'])
+			msgprint(__("Cannot open {0} when its instance is open", ['DocType']))
 			throw 'doctype open conflict'
 		}
 	} else {

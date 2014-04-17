@@ -33,15 +33,15 @@ data = [
 		]
 	},
 	{
-		"label": _("Tools"),
+		"label": _("Settings"),
 		"icon": "icon-wrench",
 		"items": [
 			{
-				"type": "page",
-				"name": "data-import-tool",
-				"label": _("Import / Export Data"),
-				"icon": "icon-upload",
-				"description": _("Import / Export Data from .csv files.")
+				"type": "doctype",
+				"name": "System Settings",
+				"label": _("System Settings"),
+				"description": _("Language, Date and Time settings"),
+				"hide_count": True
 			},
 			{
 				"type": "page",
@@ -55,6 +55,19 @@ data = [
 				"name": "Naming Series",
 				"description": _("Set numbering series for transactions."),
 				"hide_count": True
+			},
+		]
+	},
+	{
+		"label": _("Data"),
+		"icon": "icon-th",
+		"items": [
+			{
+				"type": "page",
+				"name": "data-import-tool",
+				"label": _("Import / Export Data"),
+				"icon": "icon-upload",
+				"description": _("Import / Export Data from .csv files.")
 			},
 			{
 				"type": "doctype",

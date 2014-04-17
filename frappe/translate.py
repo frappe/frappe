@@ -18,14 +18,62 @@ Contributing:
 
 import frappe, os, re, codecs, json
 
+def guess_language_from_http_header(lang):
+	"""set frappe.local.lang from HTTP headers at beginning of request"""
+	if not lang:
+		return frappe.local.lang
+
+	guess = None
+	lang_list = get_all_languages() or []
+
+	if ";" in lang: # not considering weightage
+		lang = lang.split(";")[0]
+	if "," in lang:
+		lang = lang.split(",")
+	else:
+		lang = [lang]
+
+	for l in lang:
+		code = l.strip()
+		if code in lang_list:
+			guess = code
+			break
+
+		# check if parent language (pt) is setup, if variant (pt-BR)
+		if "-" in code:
+			code = code.split("-")[0]
+			if code in lang_list:
+				guess = code
+				break
+
+	return guess or frappe.local.lang
+
 def get_user_lang(user=None):
+	"""set frappe.local.lang from user preferences on session beginning or resumption"""
 	if not user:
 		user = frappe.session.user
-	user_lang = frappe.db.get_value("User", user, "language")
-	if user_lang:
-		return get_lang_dict().get(user_lang!="Loading..." and user_lang or "english")
-	else:
-		return frappe.local.lang
+
+	# via cache
+	lang = frappe.cache().get_value("lang:" + user)
+
+	if not lang:
+
+		# if defined in user profile
+		user_lang = frappe.db.get_value("User", user, "language")
+		if user_lang and user_lang!="Loading...":
+			lang = get_lang_dict().get(user_lang)
+		else:
+			default_lang = frappe.db.get_default("lang")
+			lang = default_lang or frappe.local.lang
+
+		frappe.cache().set_value("lang:" + user, lang)
+
+	return lang
+
+def set_default_language(language):
+	lang = get_lang_dict()[language]
+	frappe.db.set_default("lang", lang)
+	frappe.local.lang = lang
 
 def get_all_languages():
 	return [a.split()[0] for a in get_lang_info()]

@@ -24,17 +24,19 @@ frappe.views.pageview = {
 		} else {
 			// get fresh
 			return frappe.call({
-				method: 'frappe.widgets.page.getpage', 
+				method: 'frappe.widgets.page.getpage',
 				args: {'name':name },
 				callback: function(r) {
 					localStorage["_page:" + name] = JSON.stringify(r.docs);
 					callback();
 				}
 			});
-		}		
+		}
 	},
 	show: function(name) {
-		if(!name) name = (frappe.boot ? frappe.boot.home_page : window.page_name);
+		if(!name) {
+			name = (frappe.boot ? frappe.boot.home_page : window.page_name);
+		}
 		frappe.model.with_doctype("Page", function() {
 			frappe.views.pageview.with_page(name, function(r) {
 				if(r && r.exc) {
@@ -68,7 +70,7 @@ frappe.views.Page = Class.extend({
 			this.wrapper = frappe.container.add_page(this.name);
 			this.wrapper.label = this.pagedoc.title || this.pagedoc.name;
 			this.wrapper.page_name = this.pagedoc.name;
-		
+
 			// set content, script and style
 			if(this.pagedoc.content)
 				this.wrapper.innerHTML = this.pagedoc.content;
@@ -77,7 +79,7 @@ frappe.views.Page = Class.extend({
 		}
 
 		this.trigger('onload');
-		
+
 		// set events
 		$(this.wrapper).bind('show', function() {
 			cur_frm = null;
@@ -88,7 +90,7 @@ frappe.views.Page = Class.extend({
 	trigger: function(eventname) {
 		var me = this;
 		if(pscript[eventname+'_'+this.name]) {
-			pscript[eventname+'_'+this.name](me.wrapper);				
+			pscript[eventname+'_'+this.name](me.wrapper);
 		} else if(me.wrapper[eventname]) {
 			me.wrapper[eventname](me.wrapper);
 		}
@@ -96,12 +98,12 @@ frappe.views.Page = Class.extend({
 })
 
 frappe.show_not_found = function(page_name) {
-	frappe.show_message_page(page_name, '<i class="icon-exclamation-sign"></i> ' + __("Not Found"), 
+	frappe.show_message_page(page_name, '<i class="icon-exclamation-sign"></i> ' + __("Not Found"),
 		__("Sorry we were unable to find what you were looking for."));
 }
 
 frappe.show_not_permitted = function(page_name) {
-	frappe.show_message_page(page_name, '<i class="icon-exclamation-sign"></i> ' +__("Not Permitted"), 
+	frappe.show_message_page(page_name, '<i class="icon-exclamation-sign"></i> ' +__("Not Permitted"),
 		__("Sorry you are not permitted to view this page."));
 }
 

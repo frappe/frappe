@@ -5,7 +5,7 @@
 
 frappe.user_info = function(uid) {
 	var def = {
-		'fullname':uid, 
+		'fullname':uid,
 		'image': 'assets/frappe/images/ui/avatar.png'
 	}
 	if(!frappe.boot.user_info) return def
@@ -27,14 +27,15 @@ frappe.avatar = function(user, large, title) {
 			image: image,
 			title: title,
 			small_or_large: large ? "avatar-large" : "avatar-small"
-		});	
+		});
 }
 
-frappe.ui.set_user_background = function(src) {
+frappe.ui.set_user_background = function(src, selector) {
+	if(!selector) selector = "#page-desktop";
 	if(!src) src = "assets/frappe/images/ui/random-polygons.jpg";
-	frappe.dom.set_style(repl('#page-desktop { \
+	frappe.dom.set_style(repl('%(selector)s { \
 		background: url("%(src)s") center center; \
-	}', {src:src}))
+	}', {src:src, selector:selector}))
 }
 
 frappe.provide('frappe.user');
@@ -53,7 +54,7 @@ $.extend(frappe.user, {
 		return frappe.avatar(uid, large);
 	},
 	has_role: function(rl) {
-		if(typeof rl=='string') 
+		if(typeof rl=='string')
 			rl = [rl];
 		for(var i in rl) {
 			if((frappe.boot ? frappe.boot.user.roles : ['Guest']).indexOf(rl[i])!=-1)
@@ -74,12 +75,12 @@ $.extend(frappe.user, {
 				}
 			});
 		}
-		
+
 		if(!modules_list || !modules_list.length) {
 			// all modules
 			modules_list = keys(frappe.modules).sort();
 		}
-		
+
 		// filter hidden modules
 		if(frappe.boot.hidden_modules && modules_list) {
 			var hidden_list = JSON.parse(frappe.boot.hidden_modules);
@@ -137,7 +138,7 @@ $(document).bind('mousemove', function() {
 		$(document).trigger("session_alive");
 	}
 	frappe.session_alive = true;
-	if(frappe.session_alive_timeout) 
+	if(frappe.session_alive_timeout)
 		clearTimeout(frappe.session_alive_timeout);
 	frappe.session_alive_timeout = setTimeout('frappe.session_alive=false;', 30000);
 })

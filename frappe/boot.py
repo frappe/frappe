@@ -83,7 +83,7 @@ def add_allowed_pages(bootinfo):
 def load_translations(bootinfo):
 	frappe.set_user_lang(frappe.session.user)
 
-	if frappe.lang != 'en':
+	if frappe.local.lang != 'en':
 		bootinfo["__messages"] = frappe.get_lang_dict("boot")
 		bootinfo["lang"] = frappe.lang
 

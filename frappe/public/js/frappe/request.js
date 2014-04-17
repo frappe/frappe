@@ -24,13 +24,6 @@ frappe.call = function(opts) {
 		args.cmd = opts.method;
 	}
 
-	// stringify args if required
-	for(key in args) {
-		if(args[key] && typeof args[key] != 'string') {
-			args[key] = JSON.stringify(args[key]);
-		}
-	}
-
 	return frappe.request.call({
 		type: opts.type || "POST",
 		args: args,
@@ -64,7 +57,12 @@ frappe.request.call = function(opts) {
 				msgprint(__("Not permitted"));
 			},
 			200: function(data, xhr) {
+				if(typeof data === "string") data = JSON.parse(data);
 				opts.success && opts.success(data, xhr.responseText);
+			},
+			501: function(data, xhr) {
+				if(typeof data === "string") data = JSON.parse(data);
+				opts.error && opts.error(data, xhr.responseText)
 			}
 		},
 		async: opts.async
@@ -101,6 +99,9 @@ frappe.request.call = function(opts) {
 		opts.error && opts.error(xhr)
 	})
 	.always(function(data) {
+		if(typeof data==="string") {
+			data = JSON.parse(data);
+		}
 		if(data.responseText) {
 			data = JSON.parse(data.responseText);
 		}
@@ -118,6 +119,13 @@ frappe.request.prepare = function(opts) {
 
 	// freeze page
 	if(opts.freeze) frappe.dom.freeze();
+
+	// stringify args if required
+	for(key in opts.args) {
+		if(opts.args[key] && ($.isPlainObject(opts.args[key]) || $.isArray(opts.args[key]))) {
+			opts.args[key] = JSON.stringify(opts.args[key]);
+		}
+	}
 
 	// no cmd?
 	if(!opts.args.cmd) {

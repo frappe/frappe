@@ -28,17 +28,23 @@ def clear_cache(user=None):
 	cache = frappe.cache()
 
 	frappe.model.meta.clear_cache()
-	cache.delete_value(["app_hooks", "installed_apps", "app_modules", "module_apps", "home_page"])
+	cache.delete_value(["app_hooks", "installed_apps", "app_modules", "module_apps", "home_page",
+		"time_zone"])
+
+	def delete_user_cache(user):
+		for key in ("bootinfo", "lang", "roles", "restrictions"):
+			cache.delete_value(key + ":" + user)
+
+	def clear_notifications(user=None):
+		if frappe.flags.in_install_app!="frappe":
+			if user:
+				frappe.db.sql("""delete from `tabNotification Count` where owner=%s""", (user,))
+			else:
+				frappe.db.sql("""delete from `tabNotification Count`""")
 
 	if user:
-		cache.delete_value("bootinfo:" + user)
-		cache.delete_value("lang:" + user)
-		cache.delete_value("roles:" + user)
-		cache.delete_value("restrictions:" + user)
-
-		# clear notifications
-		if frappe.flags.in_install_app!="frappe":
-			frappe.db.sql("""delete from `tabNotification Count` where owner=%s""", (user,))
+		delete_user_cache(user)
+		clear_notifications(user)
 
 		if frappe.session:
 			if user==frappe.session.user and frappe.session.sid:
@@ -51,9 +57,10 @@ def clear_cache(user=None):
 		frappe.defaults.clear_cache(user)
 	else:
 		for sess in frappe.db.sql("""select user, sid from tabSessions""", as_dict=1):
-			cache.delete_value("lang:" + sess.user)
+			delete_user_cache(sess.user)
 			cache.delete_value("session:" + sess.sid)
-			cache.delete_value("bootinfo:" + sess.user)
+
+		clear_notifications()
 		frappe.defaults.clear_cache()
 
 def clear_sessions(user=None, keep_current=False):
@@ -160,8 +167,7 @@ class Session:
 		else:
 			self.start_as_guest()
 
-		frappe.local.lang = frappe.cache().get_value("lang:" + self.data.user,
-			lambda: frappe.translate.get_user_lang(self.data.user))
+		frappe.local.lang = frappe.translate.get_user_lang(self.data.user)
 
 	def get_session_record(self):
 		"""get session record, or return the standard Guest Record"""

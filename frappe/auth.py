@@ -51,33 +51,8 @@ class HTTPRequest:
 			frappe.local.login_manager.run_trigger('on_session_creation')
 
 	def set_lang(self, lang):
-		if not lang:
-			return
-
-		import translate
-		lang_list = translate.get_all_languages() or []
-
-		if ";" in lang: # not considering weightage
-			lang = lang.split(";")[0]
-		if "," in lang:
-			lang = lang.split(",")
-		else:
-			lang = [lang]
-
-		for l in lang:
-			code = l.strip()
-			if code in lang_list:
-				frappe.local.lang = code
-				break
-
-			# check if parent language (pt) is setup, if variant (pt-BR)
-			if "-" in code:
-				code = code.split("-")[0]
-				if code in lang_list:
-					frappe.local.lang = code
-					break
-
-		print frappe.local.lang
+		from frappe.translate import guess_language_from_http_header
+		frappe.local.lang = guess_language_from_http_header(lang)
 
 	def setup_user(self):
 		frappe.local.user = frappe.utils.user.User()

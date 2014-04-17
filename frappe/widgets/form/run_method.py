@@ -34,15 +34,16 @@ def runserverobj():
 			args = frappe.form_dict.get('args', frappe.form_dict.get("arg"))
 			args = json.loads(args)
 		except ValueError:
-			r = doc.run_method(method, args)
-		except TypeError:
-			r = doc.run_method(method)
-		else:
-			fnargs, varargs, varkw, defaults = inspect.getargspec(getattr(doc, method))
-			if "args" in fnargs:
+			try:
 				r = doc.run_method(method, args)
+			except TypeError:
+				r = doc.run_method(method)
 			else:
-				r = doc.run_method(method, **args)
+				fnargs, varargs, varkw, defaults = inspect.getargspec(getattr(doc, method))
+				if "args" in fnargs:
+					r = doc.run_method(method, args)
+				else:
+					r = doc.run_method(method, **args)
 
 		if r:
 			#build output as csv
