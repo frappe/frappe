@@ -122,8 +122,9 @@ class User(Document):
 	def send_welcome_mail(self):
 		from frappe.utils import random_string, get_url
 
-		self.reset_password_key = random_string(32)
-		link = get_url("/update-password?key=" + self.reset_password_key)
+		key = random_string(32)
+		self.db_set("reset_password_key", key)
+		link = get_url("/update-password?key=" + key)
 
 		self.send_login_mail("Verify Your Account", "templates/emails/new_user.html", {"link": link})
 
