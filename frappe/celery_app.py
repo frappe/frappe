@@ -46,6 +46,14 @@ def setup_celery(app, conf):
 		app.conf.CELERY_ROUTES = (SiteRouter(),)
 	
 	app.conf.CELERYBEAT_SCHEDULE = get_beat_schedule(conf)
+
+	if conf.celery_error_emails:
+		app.conf.CELERY_SEND_TASK_ERROR_EMAILS = True
+		app.conf.ADMINS = conf.celery_error_email_recepients
+		if conf.mail_port:
+			app.conf.EMAIL_PORT = conf.mail_port
+		if conf.mail_server:
+			app.conf.EMAIL_HOST = conf.mail_server
 	
 class SiteRouter(object):
 	def route_for_task(self, task, args=None, kwargs=None):
