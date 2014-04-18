@@ -1,3 +1,7 @@
+{% block header %}
+{% if "<" in header %}{{ header }}{% else %}<h2>{{ header }}</h2>{% endif %}
+{% endblock %}
+
 {% block content %}
 <div class="webpage-content">
 	{% include "templates/includes/slideshow.html" %}

@@ -23,8 +23,8 @@ frappe.throw = function(msg) {
 frappe.confirm = function(message, ifyes, ifno) {
 	var d = msgprint("<p>" + message + "</p>\
 		<p style='text-align: right'>\
-			<button class='btn btn-info btn-yes'>Yes</button>\
-			<button class='btn btn-default btn-no'>No</button>\
+			<button class='btn btn-info btn-yes'>"+__("Yes")+"</button>\
+			<button class='btn btn-default btn-no'>"+__("No")+"</button>\
 		</p>");
 	$(d.wrapper).find(".btn-yes").click(function() {
 		d.hide();
@@ -32,9 +32,9 @@ frappe.confirm = function(message, ifyes, ifno) {
 	});
 	$(d.wrapper).find(".btn-no").click(function() {
 		d.hide();
-		ifno && ifno();	
+		ifno && ifno();
 	});
-	
+
 	return d;
 }
 
@@ -58,7 +58,7 @@ frappe.get_value = function(field, callback) {
 var msg_dialog=null;
 function msgprint(msg, title) {
 	if(!msg) return;
-	
+
 	if(msg instanceof Array) {
 		$.each(msg, function(i,v) {
 			if(v) {
@@ -67,7 +67,7 @@ function msgprint(msg, title) {
 		})
 		return;
 	}
-	
+
 	if(typeof(msg)!='string')
 		msg = JSON.stringify(msg);
 
@@ -78,7 +78,7 @@ function msgprint(msg, title) {
 
 	if(!msg_dialog) {
 		msg_dialog = new frappe.ui.Dialog({
-			title:"Message",
+			title: __("Message"),
 			onhide: function() {
 				if(msg_dialog.custom_onhide) {
 					msg_dialog.custom_onhide();
@@ -93,21 +93,21 @@ function msgprint(msg, title) {
 	if(msg.search(/<br>|<p>|<li>/)==-1)
 		msg = replace_newlines(msg);
 
-	msg_dialog.set_title(title || 'Message')
+	msg_dialog.set_title(title || __('Message'))
 
 	// append a <hr> if another msg already exists
 	if(msg_dialog.msg_area.html()) msg_dialog.msg_area.append("<hr>");
 
 	msg_dialog.msg_area.append(msg);
 	msg_dialog.show();
-	
+
 	return msg_dialog;
 }
 
 // Floating Message
 function show_alert(txt, add_class) {
 	if(!$('#dialog-container').length) {
-		$('<div id="dialog-container">').appendTo('body');		
+		$('<div id="dialog-container">').appendTo('body');
 	}
 	if(!$('#alert-container').length) {
 		$('<div id="alert-container"></div>').appendTo('#dialog-container');

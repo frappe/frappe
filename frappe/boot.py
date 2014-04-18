@@ -12,6 +12,7 @@ import frappe.widgets.page
 
 def get_bootinfo():
 	"""build and return boot info"""
+	frappe.set_user_lang(frappe.session.user)
 	bootinfo = frappe._dict()
 	hooks = frappe.get_hooks()
 	doclist = []
@@ -81,8 +82,6 @@ def add_allowed_pages(bootinfo):
 				where `tabPage Role`.parent=tabPage.name) = 0""")))
 
 def load_translations(bootinfo):
-	frappe.set_user_lang(frappe.session.user)
-
 	if frappe.local.lang != 'en':
 		bootinfo["__messages"] = frappe.get_lang_dict("boot")
 		bootinfo["lang"] = frappe.lang

@@ -173,12 +173,18 @@ class BaseDocument(object):
 		set_new_name(self)
 		d = self.get_valid_dict()
 		columns = d.keys()
-		frappe.db.sql("""insert into `tab{doctype}`
-			({columns}) values ({values})""".format(
-				doctype = self.doctype,
-				columns = ", ".join(["`"+c+"`" for c in columns]),
-				values = ", ".join(["%s"] * len(columns))
-			), d.values())
+		try:
+			frappe.db.sql("""insert into `tab{doctype}`
+				({columns}) values ({values})""".format(
+					doctype = self.doctype,
+					columns = ", ".join(["`"+c+"`" for c in columns]),
+					values = ", ".join(["%s"] * len(columns))
+				), d.values())
+		except Exception, e:
+			if e.args[0]==1062:
+				raise NameError
+			else:
+				raise
 
 		self.set("__islocal", False)
 
