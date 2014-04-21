@@ -43,19 +43,23 @@ https://frappe.io/apps/frappe
 		{%- endblock -%}
 
 		{%- block navbar -%}{% include "templates/includes/navbar.html" %}{%- endblock -%}
-
 		<header class="page-header">
-			<div class="container" data-html-block="header">
-			{%- if header is defined -%}{{ header }}{%- endif -%}
-			</div>
-			<div class="container page-sub-header">
+			<div class="container">
 				<div class="row">
-					<div class="col-xs-10 page-breadcrumbs" data-html-block="breadcrumbs">
-					{%- if breadcrumbs is defined -%}{{ breadcrumbs }}{%- endif -%}
+					<div class="col-sm-9">
+						<div data-html-block="header">
+							{%- if header is defined -%}{{ header }}{%- endif -%}
+						</div>
+						<div class="page-breadcrumbs" data-html-block="breadcrumbs">
+							{%- if breadcrumbs is defined -%}{{ breadcrumbs }}{%- endif -%}
+						</div>
+						<!-- <a class="visible-xs toggle-sidebar no-decoration pull-right">
+							<i class="icon-chevron-down"></i>
+						</a> -->
 					</div>
-					<div class="col-xs-2 text-right"><a class="visible-xs toggle-sidebar no-decoration">
-						<i class="icon-chevron-down"></i>
-					</a></div>
+					<div class="col-sm-3 text-right">
+						<div class="page-header-right"></div>
+					</div>
 				</div>
 			</div>
 		</header>

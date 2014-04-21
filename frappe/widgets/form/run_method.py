@@ -7,22 +7,16 @@ import frappe
 from frappe import _
 
 @frappe.whitelist()
-def runserverobj():
-	"""
-		Run server objects
-	"""
+def runserverobj(method, docs=None, dt=None, dn=None, arg=None, args=None):
+	"""run controller method - old style"""
 	from frappe.utils import cint
-
-	method = frappe.form_dict.get('method')
-	dt = frappe.form_dict.get('doctype')
-	dn = frappe.form_dict.get('docname')
 
 	if dt: # not called from a doctype (from a page)
 		if not dn: dn = dt # single
 		doc = frappe.get_doc(dt, dn)
 
 	else:
-		doc = frappe.get_doc(json.loads(frappe.form_dict.get('docs')))
+		doc = frappe.get_doc(json.loads(docs))
 		doc._original_modified = doc.modified
 		doc.check_if_latest()
 
@@ -31,7 +25,8 @@ def runserverobj():
 
 	if doc:
 		try:
-			args = frappe.form_dict.get('args', frappe.form_dict.get("arg"))
+			if not args:
+				args = arg or ""
 			args = json.loads(args)
 		except ValueError:
 			try:

@@ -83,11 +83,11 @@ $.extend(frappe, {
 		});
 
 		if(!opts.no_spinner) {
-			NProgress.start();
+			//NProgress.start();
 		}
 	},
 	process_response: function(opts, data) {
-		if(!opts.no_spinner) NProgress.done();
+		//if(!opts.no_spinner) NProgress.done();
 
 		if(opts.btn) {
 			$(opts.btn).prop("disabled", false);
@@ -340,6 +340,7 @@ $.extend(frappe, {
 		// this assumes frappe base template
 		$(".page-header").toggleClass("hidden", !!!$("[data-html-block='header']").text().trim());
 		$(".page-footer").toggleClass("hidden", !!!$(".page-footer").text().trim());
+		$(".page-header-right").empty();
 
 		// hide breadcrumbs if no breadcrumb content or if it is same as the header
 		$("[data-html-block='breadcrumbs'] .breadcrumb").toggleClass("hidden",
@@ -354,8 +355,8 @@ $.extend(frappe, {
 		$(".page-content").toggleClass("col-sm-9 col-sm-pull-3", sidebar_has_content);
 
 		// if everything in the sub-header is hidden, hide the sub-header
-		var hide_sub_header = $(".page-sub-header .row").children().length === $(".page-sub-header .row").find(".hidden").length;
-		$(".page-sub-header").toggleClass("hidden", hide_sub_header);
+		// var hide_sub_header = $(".page-sub-header .row").children().length === $(".page-sub-header .row").find(".hidden").length;
+		// $(".page-sub-header").toggleClass("hidden", hide_sub_header);
 
 
 		// collapse sidebar in mobile view on page change
@@ -512,7 +513,7 @@ $(document).ready(function() {
 $(document).on("page-change", function() {
 	$(document).trigger("apply_permissions");
 	frappe.datetime.refresh_when();
-	frappe.trigger_ready();
 	frappe.toggle_template_blocks();
+	frappe.trigger_ready();
 	frappe.make_navbar_active();
 });

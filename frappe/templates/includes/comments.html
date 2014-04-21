@@ -37,7 +37,7 @@ $(document).ready(function() {
 	}
 	if(n_comments > 50) {
 		$(".add-comment").toggle(false)
-			.parent().append("<div class='alert alert-warning'>Comments are closed.</div>")
+			.parent().append("<div class='text-muted'>Comments are closed.</div>")
 	}
 	$(".add-comment").click(function() {
 		$(this).toggle(false);

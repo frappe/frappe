@@ -15,8 +15,8 @@ def startup():
 	frappe.response.update(frappe.sessions.get())
 
 @frappe.whitelist()
-def runserverobj(arg=None):
-	frappe.widgets.form.run_method.runserverobj()
+def runserverobj(method, docs=None, dt=None, dn=None, arg=None, args=None):
+	frappe.widgets.form.run_method.runserverobj(method, docs=docs, dt=dt, dn=dn, arg=arg, args=args)
 
 @frappe.whitelist(allow_guest=True)
 def logout():

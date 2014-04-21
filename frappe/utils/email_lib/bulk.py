@@ -88,7 +88,7 @@ def add(email, sender, subject, formatted, text_content=None,
 	e.status = 'Not Sent'
 	e.ref_doctype = ref_doctype
 	e.ref_docname = ref_docname
-	e.save()
+	e.save(ignore_pemissions=True)
 
 @frappe.whitelist(allow_guest=True)
 def unsubscribe():
