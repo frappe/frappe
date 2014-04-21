@@ -1,5 +1,5 @@
 // Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
-// MIT License. See license.txt 
+// MIT License. See license.txt
 
 // new re-factored Listing object
 // removed rarely used functionality
@@ -62,7 +62,7 @@ frappe.ui.Listing = Class.extend({
 		}
 		this.prepare_opts();
 		$.extend(this, this.opts);
-		
+
 		$(this.parent).html(repl('\
 			<div class="frappe-list">\
 				<h3 class="title hide">%(title)s</h3>\
@@ -112,13 +112,13 @@ frappe.ui.Listing = Class.extend({
 		', this.opts));
 		this.$w = $(this.parent).find('.frappe-list');
 		this.set_events();
-		
+
 		if(this.appframe) {
 			this.$w.find('.list-toolbar-wrapper').toggle(false);
-		} 
-		
+		}
+
 		if(this.show_filters) {
-			this.make_filters();			
+			this.make_filters();
 		}
 	},
 	add_button: function(label, click, icon) {
@@ -143,53 +143,53 @@ frappe.ui.Listing = Class.extend({
 	},
 	set_events: function() {
 		var me = this;
-	
+
 		// next page
 		this.$w.find('.btn-more').click(function() {
 			me.run({append: true });
 		});
-		
+
 		this.$w.find(".btn-group-paging .btn").click(function() {
 			me.page_length = cint($(this).attr("data-value"));
 			me.run({append: true});
 		})
-		
+
 		// title
 		if(this.title) {
 			this.$w.find('h3').html(this.title).toggle(true);
 		}
-	
+
 		// hide-refresh
 		if(!(this.hide_refresh || this.no_refresh)) {
 			this.add_button('Refresh', function() {
 				me.run();
 			}, 'icon-refresh');
-			
+
 		}
-				
+
 		// new
 		if(this.new_doctype) {
 			if(this.appframe) {
-				this.appframe.set_title_right("<i class='icon-plus'></i> " + __('New'), function() { 
+				this.appframe.set_title_right("<i class='icon-plus'></i> " + __('New'), function() {
 					(me.custom_new_doc || me.make_new_doc).apply(me, [me.new_doctype]); });
 			}
-			this.add_button(__('New'), function() { 
+			this.add_button(__('New'), function() {
 				(me.custom_new_doc || me.make_new_doc).apply(me, [me.new_doctype]);
 			}, 'icon-plus');
-		} 
-		
+		}
+
 		// hide-filter
 		if(me.show_filters) {
 			this.add_button(__('Filter'), function() {
 				me.filter_list.show_filters();
 			}, 'icon-search').addClass('btn-filter');
 		}
-		
+
 		if(me.no_toolbar || me.hide_toolbar) {
 			me.$w.find('.list-toolbar-wrapper').toggle(false);
 		}
 	},
-	
+
 	make_new_doc: function(doctype) {
 		var me = this;
 		frappe.model.with_doctype(doctype, function() {
@@ -206,7 +206,7 @@ frappe.ui.Listing = Class.extend({
 
 	make_filters: function() {
 		this.filter_list = new frappe.ui.FilterList({
-			listobj: this, 
+			listobj: this,
 			$parent: this.$w.find('.list-filters').toggle(true),
 			doctype: this.doctype,
 			filter_fields: this.filter_fields
@@ -226,15 +226,15 @@ frappe.ui.Listing = Class.extend({
 			this.start = 0;
 			if(this.onreset) this.onreset();
 		}
-			
+
 		if(!me.opts.no_loading)
 			me.set_working(true);
-					
+
 		return frappe.call({
 			method: this.opts.method || 'frappe.widgets.query_builder.runquery',
 			type: "GET",
 			args: this.get_call_args(),
-			callback: function(r) { 
+			callback: function(r) {
 				if(!me.opts.no_loading)
 					me.set_working(false);
 				me.dirty = false;
@@ -251,7 +251,7 @@ frappe.ui.Listing = Class.extend({
 		if(!this.method) {
 			var query = this.get_query ? this.get_query() : this.query;
 			query = this.add_limits(query);
-			var args={ 
+			var args={
 				query_max: this.query_max,
 				as_dict: 1
 			}
@@ -262,19 +262,19 @@ frappe.ui.Listing = Class.extend({
 				limit_page_length: this.page_length
 			}
 		}
-		
+
 		// append user-defined arguments
 		if(this.args)
 			$.extend(args, this.args)
-			
+
 		if(this.get_args) {
 			$.extend(args, this.get_args());
 		}
-		return args;		
+		return args;
 	},
 	render_results: function(r) {
 		if(this.start===0) this.clear();
-		
+
 		this.$w.find('.paging-button').toggle(false);
 
 		if(r.message) {
@@ -291,16 +291,16 @@ frappe.ui.Listing = Class.extend({
 
 				var msg = this.get_no_result_message
 					? this.get_no_result_message()
-					: (this.no_result_message 
+					: (this.no_result_message
 						? this.no_result_message
 						: __("Nothing to show"));
-						
+
 				this.$w.find('.no-result')
 					.html(msg)
 					.toggle(true);
 			}
 		}
-		
+
 		// callbacks
 		if(this.onrun) this.onrun();
 		if(this.callback) this.callback(r);
@@ -309,19 +309,19 @@ frappe.ui.Listing = Class.extend({
 
 	get_values_from_response: function(data) {
 		// make dictionaries from keys and values
-		if(data.keys) {
+		if(data.keys && $.isArray(data.keys)) {
 			return frappe.utils.dict(data.keys, data.values);
 		} else {
 			return data;
 		}
 	},
 
-	render_list: function(values) {		
+	render_list: function(values) {
 		var m = Math.min(values.length, this.page_length);
 		this.data = values;
 		if(this.filter_list)
 			this.filter_values = this.filter_list.get_filters();
-		
+
 		// render the rows
 		for(var i=0; i < m; i++) {
 			this.render_row(this.add_row(), values[i], this, i);
@@ -329,15 +329,15 @@ frappe.ui.Listing = Class.extend({
 	},
 	update_paging: function(values) {
 		if(values.length >= this.page_length) {
-			this.$w.find('.paging-button').toggle(true);			
+			this.$w.find('.paging-button').toggle(true);
 			this.start += this.page_length;
 		}
 	},
 	add_row: function() {
 		return $('<div class="list-row">').appendTo(this.$w.find('.result-list')).get(0);
 	},
-	refresh: function() { 
-		this.run(); 
+	refresh: function() {
+		this.run();
 	},
 	add_limits: function(query) {
 		query += ' LIMIT ' + this.start + ',' + (this.page_length+1);
@@ -355,7 +355,7 @@ frappe.ui.Listing = Class.extend({
 				// second filter set for this field
 				if(fieldname=='_user_tags') {
 					// and for tags
-					this.filter_list.add_filter(doctype, fieldname, 
+					this.filter_list.add_filter(doctype, fieldname,
 						'like', '%' + label);
 				} else {
 					// or for rest using "in"
@@ -366,12 +366,12 @@ frappe.ui.Listing = Class.extend({
 			// no filter for this item,
 			// setup one
 			if(['_user_tags', '_comments'].indexOf(fieldname)!==-1) {
-				this.filter_list.add_filter(doctype, fieldname, 
+				this.filter_list.add_filter(doctype, fieldname,
 					'like', '%' + label);
 			} else {
 				this.filter_list.add_filter(doctype, fieldname, '=', label);
 			}
 		}
 		return this;
-	}	
+	}
 });
