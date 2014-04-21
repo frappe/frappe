@@ -3,14 +3,14 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe.model.controller import DocListController
+from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
 from frappe.website.utils import cleanup_page_name
 from frappe.utils import now
 
 from frappe.website.doctype.website_route.website_route import add_to_sitemap, update_sitemap, remove_sitemap
 
-class WebsiteGenerator(DocListController):
+class WebsiteGenerator(Document):
 	def autoname(self):
 		self.setup_generator()
 		if not self.website_template: return

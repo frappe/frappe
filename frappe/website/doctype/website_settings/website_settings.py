@@ -5,10 +5,10 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.utils import get_request_site_address, encode
-from frappe.model.controller import DocListController
+from frappe.model.document import Document
 from urllib import quote
 
-class WebsiteSettings(DocListController):
+class WebsiteSettings(Document):
 	def validate(self):
 		self.validate_top_bar_items()
 		self.validate_footer_items()
