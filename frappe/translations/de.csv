@@ -233,6 +233,8 @@ Data Import / Export Tool,Daten Import / Export Tool
 Data Import Tool,Daten Import Tool
 Data missing in table,Die Daten in der Tabelle fehlt
 Date,Datum
+Date Format,Datumsformat
+Date and Number Format,Datum und Nummer Format
 Date must be in format: {0},Datum muss im Format : {0}
 Datetime,Datetime
 Dear,Liebe
@@ -373,6 +375,7 @@ File size exceeded the maximum allowed size,Dateigröße überschritten die maxi
 Filter,Filtern
 First Name,Vorname
 Float,Schweben
+Float Precision,Gleitkommatgenauigkeit
 Font (Heading),Font (Überschrift)
 Font (Text),Font (Text)
 Font Size (Text),Schriftgröße (Text)
@@ -424,6 +427,7 @@ Group Name,Gruppenname
 Group Title,Gruppe Titel
 Group Type,Gruppentyp
 Groups,Gruppen
+HTML for header section. Optional,HTML für Header-Bereich . fakultativ
 Have an account? Login,Bist Du bereits angemeldet ? Anmelden
 Header,Kopfzeile
 Heading,Überschrift
@@ -515,6 +519,7 @@ Label is mandatory,Etikett ist obligatorisch
 Landing Page,Landing Page
 Language,Sprache
 Language preference for user interface (only if available).,Bevorzugte Sprache für die Benutzeroberfläche (nur falls vorhanden).
+"Language, Date and Time settings","Sprache , Datum und Uhrzeit -Einstellungen"
 Last IP,Letzte IP-
 Last Login,Letzter Login
 Last Name,Nachname
@@ -543,6 +548,7 @@ List of Web Site Forum's Posts.,Liste der Web-Site Forum Beiträge .
 Loading,Laden
 Loading Report,Loading
 Loading...,Wird geladen ...
+Localization,Lokalisierung
 Location,Lage
 Log of error on automated events (scheduler).,Melden Sie sich an automatisierten Fehlerereignisse ( Scheduler ) .
 Login,Anmelden
@@ -660,6 +666,7 @@ Nothing to show,"Nichts zu zeigen,"
 Nothing to show for this selection,Nichts für diese Auswahl zeigen
 Notification Count,Benachrichtigung Graf
 Notify By Email,Per E-Mail benachrichtigen
+Number Format,Number Format
 Old Parent,Old Eltern
 On,Auf
 "Once you have set this, the users will only be able access documents where the link (e.g Company) exists.","Sobald Sie dies eingestellt haben, werden die Benutzer nur Zugriff auf Dokumente , wo der Link (z. B. Unternehmen ) existiert."
@@ -861,6 +868,7 @@ Script Type,Script Type
 Search,Suchen
 Search Fields,Search Fields
 Section Break,Section Break
+Security,Sicherheit
 Security Settings,Security Settings
 Select,Wählen
 Select All,Alle auswählen
@@ -898,6 +906,9 @@ Series,Serie
 Series {0} already used in {1},Serie {0} bereits verwendet {1}
 Server,Server
 Session Expired. Logging you out,Session abgelaufen. Sie werden abgemeldet
+Session Expiry,Session Verfall
+Session Expiry in Hours e.g. 06:00,Session Verfall z. B. in Stunden 06.00
+Session Expiry must be in format {0},Gültig Session müssen im Format {0}
 Set Banner from Image,Set Banner von Image
 Set Defaults and Restrictions for Users,Set Defaults und Einschränkungen für Benutzer
 Set Link,Link- Set
@@ -908,6 +919,7 @@ Set Permissions on Document Types and Roles,Festlegen von Berechtigungen für Do
 Set Value,Wert festlegen
 Set numbering series for transactions.,Stellen Sie die Nummerierung Serie für Transaktionen.
 Set outgoing mail server.,Stellen ausgehende Mail-Server.
+Settings,Einstellungen
 Settings for About Us Page.,Einstellungen für Über uns Seite.
 Settings for Contact Us Page.,Einstellungen für Kontakt-Seite.
 Setup,Setup
@@ -974,6 +986,7 @@ Sunday,Sonntag
 Switch to Website,Wechseln Sie zur Website
 Sync Inbox,Sync Posteingang
 System,System
+System Settings,Systemeinstellungen
 System User,System User
 System and Website Users,System-und Website-Nutzer
 System generated mails will be sent from this email id.,System generierten E-Mails werden von dieser E-Mail-ID gesendet werden.
@@ -1013,6 +1026,7 @@ This is permanent action and you cannot undo. Continue?,Dies ist ständige Aktio
 This role can restrict users for accessing the record.,Diese Rolle kann der Benutzer für den Zugriff auf den Datensatz zu beschränken.
 Thursday,Donnerstag
 Time,Zeit
+Time Zone,Zeitzone
 Title,Titel
 Title / headline of your page,Titel / Überschrift Ihrer Seite
 Title Case,Titel Case
@@ -1028,7 +1042,6 @@ To Do,To Do
 "To run a test add the module name in the route after '{0}'. For example, {1}",So führen Sie eine Test hinzufügen den Namen des Moduls in der Route nach '{0}' . Beispiel: {1}
 ToDo,ToDo
 Too many writes in one request. Please send smaller requests,Zu viele schreibt in einer Anfrage. Bitte senden Sie Anfragen kleiner
-Tools,Werkzeuge
 Top Bar,Top Bar
 Top Bar Background,Top Bar Hintergrund
 Top Bar Item,Top Bar Artikel
@@ -1163,6 +1176,7 @@ asterisk,Sternchen
 backward,rückwärts
 ban-circle,ban-Kreis
 barcode,Strichcode
+beginning with,beginnend mit
 bell,Glocke
 bold,fett
 book,Buch
@@ -1171,7 +1185,6 @@ briefcase,Aktentasche
 bullhorn,Megafon
 calendar,Kalender
 camera,Kamera
-cannot start with,kann nicht mit starten
 certificate,Zertifikat
 check,überprüfen
 chevron-down,Chevron-down
@@ -1185,6 +1198,8 @@ circle-arrow-up,circle-arrow-up
 cog,Zahn
 comment,Kommentar
 comments,Kommentare
+dd-mm-yyyy,dd-mm-yyyy
+dd/mm/yyyy,dd / mm / yyyy
 download,Download
 download-alt,Download-alt
 edit,bearbeiten
@@ -1219,7 +1234,6 @@ headphones,Kopfhörer
 heart,Herz
 home,Zuhause
 icon,icon
-in,in
 inbox,Posteingang
 indent-left,Gedankenstrich links
 indent-right,indent-Recht
@@ -1237,13 +1251,16 @@ map-marker,map-Marker
 memcached is not working / stopped. Please start memcached for best results.,Memcached nicht funktioniert / gestoppt. Bitte starten Sie Memcached für beste Ergebnisse.
 minus,minus
 minus-sign,Minus-Zeichen
+mm-dd-yyyy,mm-dd-yyyy
+mm/dd/yyyy,mm / dd / yyyy
 move,bewegen
 music,Musik
-not in,nicht in
+none of,keiner
 off,ab
 ok,Ok
 ok-circle,ok-Kreis
 ok-sign,ok-Zeichen
+one of,einer der
 or,oder
 pause,Pause
 pencil,Bleistift
@@ -1304,6 +1321,7 @@ volume-off,Volumen-off
 volume-up,Volumen-up
 warning-sign,Warn-Schild
 wrench,Schraubenschlüssel
+yyyy-mm-dd,yyyy-mm-dd
 zoom-in,zoom-in
 zoom-out,zoom-out
 {0} by {1},{0} von {1}
