@@ -182,7 +182,7 @@ class BaseDocument(object):
 				), d.values())
 		except Exception, e:
 			if e.args[0]==1062:
-				raise NameError
+				raise NameError, e
 			else:
 				raise
 
