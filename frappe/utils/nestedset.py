@@ -228,10 +228,9 @@ class NestedSet(Document):
 
 def get_root_of(doctype):
 	"""Get root element of a DocType with a tree structure"""
-	result = frappe.db.sql_list("""select name from `tab%s`
-		where lft=1 and rgt=(select max(rgt) from `tab%s` where docstatus < 2)""" %
-		(doctype, doctype))
-	return result[0] if result else None
+	return frappe.db.sql("""select t1.name from `tab{0}` t1 where
+		(select count(*) from `tab{1}` t2 where
+			t2.lft < t1.lft and t2.rgt > t1.rgt) = 0""".format(doctype, doctype))[0][0]
 
 def get_ancestors_of(doctype, name):
 	"""Get ancestor elements of a DocType with a tree structure"""
