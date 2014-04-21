@@ -70,8 +70,6 @@ def check_permission_and_not_submitted(doc, ignore_permissions=False):
 		frappe.msgprint(_("Submitted Record cannot be deleted")+": "+doc.name+"("+doc.doctype+")",
 			raise_exception=True)
 
-class LinkExistsError(frappe.ValidationError): pass
-
 def check_if_doc_is_linked(doc, method="Delete"):
 	"""
 		Raises excption if the given doc(dt, dn) is linked in another record.
@@ -89,4 +87,4 @@ def check_if_doc_is_linked(doc, method="Delete"):
 					(method=="Cancel" and item.docstatus==1)):
 				frappe.throw(_("Cannot delete or cancel because {0} {1} is linked with {2} {3}").format(doc.doctype,
 					doc.name, item.parent or item.name, item.parenttype if item.parent else link_dt),
-					LinkExistsError)
+					frappe.LinkExistsError)
