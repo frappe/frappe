@@ -94,11 +94,15 @@ class User(Document):
 			self.user_image = "https://secure.gravatar.com/avatar/" + md5.md5(self.name).hexdigest() \
 				+ "?d=retro"
 
+	@Document.hook
+	def validate_reset_password(self):
+		pass
+
 	def reset_password(self):
 		from frappe.utils import random_string, get_url
 
 		key = random_string(32)
-		frappe.db.set_value("User", self.name, "reset_password_key", key)
+		self.db_set("reset_password_key", key)
 		self.password_reset_mail(get_url("/update-password?key=" + key))
 
 	def get_other_system_managers(self):
@@ -314,18 +318,18 @@ def sign_up(email, full_name):
 
 @frappe.whitelist(allow_guest=True)
 def reset_password(user):
-	user = frappe.form_dict.get('user', '')
-	if user in ["demo@erpnext.com", "Administrator"]:
-		return "Not allowed"
+	if user=="Administrator":
+		return _("Not allowed to reset the password of {0}").format(user)
 
-	if frappe.db.sql("""select name from tabUser where name=%s""", (user,)):
-		# Hack!
-		frappe.session["user"] = "Administrator"
+	try:
 		user = frappe.get_doc("User", user)
+		user.validate_reset_password()
 		user.reset_password()
-		return "Password reset details sent to your email."
-	else:
-		return "No such user (%s)" % user
+
+		return _("Password reset instructions have been sent to your email")
+
+	except frappe.DoesNotExistError:
+		return _("User {0} does not exist").format(user)
 
 def user_query(doctype, txt, searchfield, start, page_len, filters):
 	from frappe.widgets.reportview import get_match_cond

@@ -73,6 +73,10 @@ def clear_sessions(user=None, keep_current=False):
 			frappe.cache().delete_value("session:" + sid[0])
 			frappe.db.sql("""delete from tabSessions where sid=%s""", (sid[0],))
 
+def delete_session(sid=None):
+	frappe.cache().delete_value("session:" + sid)
+	frappe.db.sql("""delete from tabSessions where sid=%s""", sid)
+
 def get():
 	"""get session boot info"""
 	from frappe.core.doctype.notification_count.notification_count import \
@@ -224,8 +228,7 @@ class Session:
 		return (cint(parts[0]) * 3600) + (cint(parts[1]) * 60) + cint(parts[2])
 
 	def delete_session(self):
-		frappe.cache().delete_value("session:" + self.sid)
-		frappe.db.sql("""delete from tabSessions where sid=%s""", (self.sid,))
+		delete_session(self.sid)
 
 	def start_as_guest(self):
 		"""all guests share the same 'Guest' session"""

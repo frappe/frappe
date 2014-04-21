@@ -10,7 +10,7 @@ import frappe.database
 import frappe.utils
 import frappe.utils.user
 from frappe import conf
-from frappe.sessions import Session
+from frappe.sessions import Session, clear_sessions, delete_session
 from frappe.modules.patch_handler import check_session_stopped
 
 class HTTPRequest:
@@ -187,15 +187,12 @@ class LoginManager:
 	def logout(self, arg='', user=None):
 		if not user: user = frappe.session.user
 		self.run_trigger('on_logout')
-		if user in ['demo@erpnext.com', 'Administrator']:
-			frappe.db.sql('delete from tabSessions where sid=%s', frappe.session.get('sid'))
-			frappe.cache().delete_value("session:" + frappe.session.get("sid"))
-		else:
-			from frappe.sessions import clear_sessions
-			clear_sessions(user)
 
 		if user == frappe.session.user:
+			delete_session(frappe.session.sid)
 			self.clear_cookies()
+		else:
+			clear_sessions(user)
 
 	def clear_cookies(self):
 		clear_cookies()

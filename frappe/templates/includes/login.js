@@ -17,7 +17,7 @@ login.bind_events = function() {
 		if(!args.usr || !args.pwd) {
 			frappe.msgprint(__("Both login and password required"));
 			return false;
-		}	
+		}
 		login.call(args);
 	});
 
@@ -85,30 +85,40 @@ login.call = function(args) {
 	})
 }
 
-login.login_handlers = {
-	200: function(data) {
-		if(data.message=="Logged In") {
-			window.location.href = "desk";
-		} else if(data.message=="No App") {
-			if(localStorage) {
-				var last_visited = localStorage.getItem("last_visited") || "/index";
-				localStorage.removeItem("last_visited");
-				window.location.href = last_visited;
-			} else {
-				window.location.href = "/index";
+login.login_handlers = (function() {
+	var get_error_handler = function(default_message) {
+		return function(xhr, data) {
+			if(xhr.responseJSON) {
+				data = xhr.responseJSON;
 			}
-		} else if(["#signup", "#forgot"].indexOf(window.location.hash)!==-1) {
-			frappe.msgprint(data.message);
-		}			
-	},
-	401: function(xhr, data) {
-		if(xhr.responseJSON) {
-			data = xhr.responseJSON;
-		}
-		var message = data._server_messages ? JSON.parse(data._server_messages).join("\n") : __("Invalid Login");
-		frappe.msgprint(message);
+			var message = data._server_messages
+				? JSON.parse(data._server_messages).join("\n") : default_message;
+			frappe.msgprint(message);
+		};
 	}
-}
+
+	var login_handlers = {
+		200: function(data) {
+			if(data.message=="Logged In") {
+				window.location.href = "desk";
+			} else if(data.message=="No App") {
+				if(localStorage) {
+					var last_visited = localStorage.getItem("last_visited") || "/index";
+					localStorage.removeItem("last_visited");
+					window.location.href = last_visited;
+				} else {
+					window.location.href = "/index";
+				}
+			} else if(["#signup", "#forgot"].indexOf(window.location.hash)!==-1) {
+				frappe.msgprint(data.message);
+			}
+		},
+		401: get_error_handler(__("Invalid Login")),
+		417: get_error_handler(__("Oops! Something went wrong"))
+	};
+
+	return login_handlers;
+})();
 
 frappe.ready(function() {
 	window.location.hash = "#login";

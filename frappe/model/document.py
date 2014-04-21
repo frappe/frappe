@@ -57,7 +57,7 @@ class Document(BaseDocument):
 					# filter
 					self.name = frappe.db.get_value(arg1, arg2, "name")
 					if self.name is None:
-						raise frappe.DoesNotExistError
+						raise frappe.DoesNotExistError, (arg1, arg2)
 				else:
 					self.name = arg2
 
