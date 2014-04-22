@@ -132,8 +132,7 @@ def save_post(post, content, picture=None, picture_name=None, title=None,
 def process_picture(post, picture_name, picture):
 	from frappe.templates.generators.website_group import clear_cache
 
-	file_data = save_file(picture_name, picture, "Post", post.name, decode=True)
-	post.picture_url = file_data.file_name or file_data.file_url
+	post.picture_url = save_file(picture_name, picture, "Post", post.name, decode=True).file_url
 	frappe.db.set_value("Post", post.name, "picture_url", post.picture_url)
 	clear_cache(website_group=post.website_group)
 
