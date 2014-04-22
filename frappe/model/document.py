@@ -186,7 +186,7 @@ class Document(BaseDocument):
 	def update_single(self, d):
 		frappe.db.sql("""delete from tabSingles where doctype=%s""", self.doctype)
 		for field, value in d.iteritems():
-			if field not in ("doctype"):
+			if field != "doctype":
 				frappe.db.sql("""insert into tabSingles(doctype, field, value)
 					values (%s, %s, %s)""", (self.doctype, field, value))
 

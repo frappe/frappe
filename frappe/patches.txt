@@ -25,3 +25,4 @@ frappe.patches.4_0.remove_old_parent
 frappe.patches.4_0.update_datetime
 frappe.patches.4_0.deprecate_control_panel
 frappe.patches.4_0.file_manager_hooks
+execute:frappe.get_doc("User", "Guest").save()

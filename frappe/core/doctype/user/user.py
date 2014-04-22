@@ -29,6 +29,7 @@ class User(Document):
 		self.add_system_manager_role()
 		self.check_enable_disable()
 		self.update_gravatar()
+		self.remove_all_roles_for_guest()
 
 	def check_enable_disable(self):
 		# do not allow disabling administrator/guest
@@ -48,7 +49,7 @@ class User(Document):
 				self.get("user_roles")]):
 			return
 
-		if self.user_type == "System User" and not self.get_other_system_managers():
+		if self.name not in STANDARD_USERS and self.user_type == "System User" and not self.get_other_system_managers():
 			msgprint(_("Adding System Manager to this User as there must be atleast one System Manager"))
 			self.append("user_roles", {
 				"doctype": "UserRole",
@@ -243,6 +244,10 @@ class User(Document):
 			})
 
 		self.save()
+
+	def remove_all_roles_for_guest(self):
+		if self.name == "Guest":
+			self.set("user_roles", list(set(d for d in self.get("user_roles") if d.role == "Guest")))
 
 @frappe.whitelist()
 def get_languages():
