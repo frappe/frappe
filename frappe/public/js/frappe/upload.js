@@ -6,7 +6,7 @@ frappe.upload = {
 	make: function(opts) {
 		if(!opts.args) opts.args = {};
 		var $upload = $('<div class="file-upload">\
-			<p class="small"><a class="action-attach disabled" href="#"><i class="icon-upload"></i> ' 
+			<p class="small"><a class="action-attach disabled" href="#"><i class="icon-upload"></i> '
 				+ __('Upload a file') + '</a> | <a class="action-link" href="#"><i class="icon-link"></i> '
 				 + __('Attach as web link') + '</a></p>\
 			<div class="action-attach-input">\
@@ -14,13 +14,13 @@ frappe.upload = {
 			</div>\
 			<div class="action-link-input" style="display: none; margin-top: 7px;">\
 				<input class="form-control" style="max-width: 300px;" type="text" name="file_url" />\
-				<p class="text-muted">' 
-					+ (opts.sample_url || 'e.g. http://example.com/somefile.png') + 
+				<p class="text-muted">'
+					+ (opts.sample_url || 'e.g. http://example.com/somefile.png') +
 				'</p>\
 			</div>\
 			<button class="btn btn-info btn-upload"><i class="icon-upload"></i> ' +__('Upload')
 				+'</button></div>').appendTo(opts.parent);
-	
+
 
 		$upload.find(".action-link").click(function() {
 			$upload.find(".action-attach").removeClass("disabled");
@@ -47,7 +47,7 @@ frappe.upload = {
 				if(typeof val==="function")
 					opt.args[key] = opts.args[key]();
 			}
-			
+
 			// add other inputs in the div as arguments
 			opts.args.params = {};
 			$upload.find("input[name]").each(function() {
@@ -57,11 +57,11 @@ frappe.upload = {
 					if(type === "checkbox") {
 						opts.args.params[key] = $(this).is(":checked");
 					} else {
-						opts.args.params[key] = $(this).val();	
+						opts.args.params[key] = $(this).val();
 					}
 				}
 			})
-			
+
 			opts.args.file_url = $upload.find('[name="file_url"]').val();
 
 			var fileobj = $upload.find(":file").get(0).files[0];
@@ -73,7 +73,7 @@ frappe.upload = {
 			msgprint(__("Please attach a file or set a URL"));
 			return;
 		}
-		
+
 		var dataurl = null;
 		var _upload_file = function() {
 			if(opts.on_attach) {
@@ -91,14 +91,14 @@ frappe.upload = {
 							opts.onerror ? opts.onerror(r) : opts.callback(null, null, r);
 							return;
 						}
-						opts.callback(r.message.name , r.message.file_name, r.message.file_url, r);
-						$(document).trigger("upload_complete", 
-							[r.message.name , r.message.file_name]);
+						var attachment = r.message;
+						opts.callback(attachment, r);
+						$(document).trigger("upload_complete", attachment);
 					}
 				});
 			}
 		}
-		
+
 		if(args.file_url) {
 			_upload_file();
 		} else {
@@ -119,7 +119,7 @@ frappe.upload = {
 					_upload_file();
 				}
 			};
-			
+
 			freader.readAsDataURL(fileobj);
 		}
 	}

@@ -197,7 +197,7 @@ frappe.pages['data-import-tool'].onload = function(wrapper) {
 			method: 'frappe.core.page.data_import_tool.importer.upload'
 		},
 		onerror: onerror,
-		callback: function(fid, filename, r) {
+		callback: function(attachment, r) {
 			if(r.message.error) {
 				onerror(r);
 			} else {

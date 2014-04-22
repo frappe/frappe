@@ -167,13 +167,22 @@ def remove_all(dt, dn):
 	try:
 		for fid in frappe.db.sql_list("""select name from `tabFile Data` where
 			attached_to_doctype=%s and attached_to_name=%s""", (dt, dn)):
-			remove_file(fid)
+			remove_file(fid, dt, dn)
 	except Exception, e:
 		if e.args[0]!=1054: raise # (temp till for patched)
 
-def remove_file(fid):
+def remove_file(fid, attached_to_doctype=None, attached_to_name=None):
 	"""Remove file and File Data entry"""
-	frappe.delete_doc("File Data", fid)
+	if not (attached_to_doctype and attached_to_name):
+		attached = frappe.db.get_value("File Data", fid, ["attached_to_doctype", "attached_to_name"])
+		if attached:
+			attached_to_doctype, attached_to_name = attached
+
+	ignore_permissions = False
+	if attached_to_doctype and attached_to_name:
+		ignore_permissions = frappe.get_doc(attached_to_doctype, attached_to_name).has_permission("write") or False
+
+	frappe.delete_doc("File Data", fid, ignore_permissions=ignore_permissions)
 
 def delete_file_data_content(doc):
 	method = get_hook_method('delete_file_data_content', fallback=delete_file_from_filesystem)

@@ -587,9 +587,9 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 			args: {},
 			max_width: this.df.max_width,
 			max_height: this.df.max_height,
-			callback: function(fileid, filename, r) {
+			callback: function(attachment, r) {
 				me.dialog.hide();
-				me.on_upload_complete(fileid, filename, r);
+				me.on_upload_complete(attachment);
 			},
 			onerror: function() {
 				me.dialog.hide();
@@ -639,11 +639,11 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 		}
 	},
 
-	on_upload_complete: function(fileid, filename, r) {
+	on_upload_complete: function(attachment) {
 		if(this.frm) {
-			this.parse_validate_and_set_in_model(filename);
+			this.parse_validate_and_set_in_model(attachment.file_url);
 			this.refresh();
-			this.frm.attachments.update_attachment(fileid, filename, this.df.fieldname, r);
+			this.frm.attachments.update_attachment(attachment);
 		} else {
 			this.set_input(this.fileobj.filename, this.dataurl);
 			this.refresh();
@@ -712,7 +712,7 @@ frappe.ui.form.ControlSelect = frappe.ui.form.ControlData.extend({
 			})
 			.prependTo(this.input_area);
 
-		$(document).on("upload_complete", function(event, filename, file_url) {
+		$(document).on("upload_complete", function(event, attachment) {
 			if(cur_frm === me.frm) {
 				me.set_options();
 			}

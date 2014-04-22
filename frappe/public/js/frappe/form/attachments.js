@@ -1,5 +1,5 @@
 // Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
-// MIT License. See license.txt 
+// MIT License. See license.txt
 
 frappe.provide("frappe.ui.form");
 
@@ -22,7 +22,7 @@ frappe.ui.form.Attachments = Class.extend({
 	max_reached: function() {
 		// no of attachments
 		var n = keys(this.get_attachments()).length;
-		
+
 		// button if the number of attachments is less than max
 		if(n < this.frm.meta.max_attachments || !this.frm.meta.max_attachments) {
 			return false;
@@ -37,13 +37,13 @@ frappe.ui.form.Attachments = Class.extend({
 		}
 		this.parent.toggle(true);
 		this.parent.find(".btn").toggle(!this.max_reached());
-		
+
 		this.$list.empty();
 
 		var attachments = this.get_attachments();
 		var that = this;
 
-		
+
 		// add attachment objects
 		if(attachments.length) {
 			attachments.forEach(function(attachment) {
@@ -52,7 +52,7 @@ frappe.ui.form.Attachments = Class.extend({
 		} else {
 			$('<p class="text-muted">' + __("None") + '</p>').appendTo(this.$list);
 		}
-		
+
 		// refresh select fields with options attach_files:
 		this.refresh_attachment_select_fields();
 	},
@@ -66,7 +66,7 @@ frappe.ui.form.Attachments = Class.extend({
 		if (!file_name) {
 			file_name = file_url;
 		}
-		
+
 		var me = this;
 		var $attach = $(repl('<div class="alert alert-info" style="margin-bottom: 7px">\
 			<span style="display: inline-block; width: 90%; \
@@ -78,7 +78,7 @@ frappe.ui.form.Attachments = Class.extend({
 				file_url: file_url
 			}))
 			.appendTo(this.$list)
-			
+
 		var $close =
 			$attach.find(".close")
 			.data("fileid", fileid)
@@ -91,7 +91,7 @@ frappe.ui.form.Attachments = Class.extend({
 				);
 				return false
 			});
-			
+
 		if(!frappe.model.can_write(this.frm.doctype, this.frm.name)) {
 			$close.remove();
 		}
@@ -104,9 +104,9 @@ frappe.ui.form.Attachments = Class.extend({
 		return frappe.call({
 			method: 'frappe.widgets.form.utils.remove_attach',
 			args: {
-				fid: fileid, 
-				dt: me.frm.doctype, 
-				dn: me.frm.docname 
+				fid: fileid,
+				dt: me.frm.doctype,
+				dn: me.frm.docname
 			},
 			callback: function(r,rt) {
 				if(r.exc) {
@@ -128,7 +128,7 @@ frappe.ui.form.Attachments = Class.extend({
 			});
 		}
 		this.dialog.show();
-		
+
 		$(this.dialog.body).empty();
 		frappe.upload.make({
 			parent: this.dialog.body,
@@ -137,9 +137,10 @@ frappe.ui.form.Attachments = Class.extend({
 				doctype: this.frm.doctype,
 				docname: this.frm.docname,
 			},
-			callback: function(fileid, filename, file_url, r) {
+			callback: function(attachment, r) {
 				me.dialog.hide();
-				me.update_attachment(fileid, filename, file_url, fieldname, r.message);
+				me.update_attachment(attachment);
+				if(fieldname) this.frm.set_value(fieldname, attachment.file_url);
 			},
 			onerror: function() {
 				me.dialog.hide();
@@ -148,19 +149,20 @@ frappe.ui.form.Attachments = Class.extend({
 			max_height: this.frm.cscript ? this.frm.cscript.attachment_max_height : null,
 		});
 	},
-	update_attachment: function(fileid, filename, fieldname, file_url, attachment) {
-		if(fileid) {
+	update_attachment: function(attachment, fieldname) {
+		if(attachment.name) {
 			this.add_to_attachments(attachment);
 			this.refresh();
-			if(fieldname) {
-				this.frm.set_value(fieldname, file_url);
-				this.frm.cscript[fieldname] && this.frm.cscript[fieldname](this.frm.doc);
-				this.frm.toolbar.show_infobar();
-			}
+			this.frm.toolbar.show_infobar();
 		}
 	},
 	add_to_attachments: function (attachment) {
-		this.get_attachments().push(attachment);
+		var form_attachments = this.get_attachments();
+		for(var i in form_attachments) {
+			// prevent duplicate
+			if(form_attachments[i]["name"] === attachment.name) return;
+		}
+		form_attachments.push(attachment);
 	},
 	remove_fileid: function(fileid) {
 		var attachments = this.get_attachments();
@@ -178,12 +180,12 @@ frappe.ui.form.Attachments = Class.extend({
 			if(this.frm.fields[i].df.options=="attach_files:" && this.frm.fields[i].$input) {
 				var fieldname = this.frm.fields[i].df.fieldname;
 				var selected_option = this.frm.fields[i].$input.find("option:selected").val();
-				
+
 				if(this.frm.doc[fieldname]!=null && selected_option!==this.frm.doc[fieldname]) {
 					this.frm.script_manager.trigger(fieldname);
 					this.frm.set_value(fieldname, "");
 				}
-				
+
 				this.frm.fields[i].refresh();
 			}
 		}
