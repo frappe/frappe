@@ -52,7 +52,7 @@ img {
 }
 
 .avatar {
-	display: inline-block; 
+	display: inline-block;
 	vertical-align: middle;
 	overflow: hidden;
 	background-color: #ddd;
@@ -71,7 +71,7 @@ img {
 	-webkit-border-radius: 30px;
 }
 .avatar-small img {
-	width: 30px; 
+	width: 30px;
 }
 
 .avatar-medium {
@@ -83,7 +83,7 @@ img {
 	-webkit-border-radius: 48px;
 }
 .avatar-medium img {
-	width: 48px; 
+	width: 48px;
 }
 
 .avatar-large {
@@ -95,7 +95,7 @@ img {
 	-webkit-border-radius: 72px;
 }
 .avatar-large img {
-	width: 72px; 
+	width: 72px;
 }
 
 .avatar-x-large {
@@ -107,7 +107,7 @@ img {
 	-webkit-border-radius: 100px;
 }
 .avatar-x-large img {
-	width: 100px; 
+	width: 100px;
 }
 
 .carousel-control .icon {
@@ -180,7 +180,7 @@ img {
 	margin-top: 35px;
 }
 
-.panel-heading, 
+.panel-heading,
 .panel-body {
 	padding-left: 15px;
 }
@@ -247,7 +247,7 @@ fieldset {
 }
 
 .sidebar-item a {
-	color: #999;	
+	color: #999;
 }
 
 .sidebar-item a:hover {
@@ -280,7 +280,7 @@ body {
 
 /* Set the fixed height of the footer here */
 #wrap-footer {
-  height: 140px;
+  min-height: 140px;
   background-color: #f5f5f5;
 }
 
@@ -422,7 +422,7 @@ a.active {
 @media (min-width: 768px) {
 	.page-sidebar {
 		padding-left: 3em;
-	}	
+	}
 }
 
 @media (max-width: 767px) {
@@ -431,7 +431,7 @@ a.active {
 		margin-bottom: 15px;
 		border-bottom: 1px solid #eee;
 	}
-	
+
 	.page-sidebar .sidebar-item {
 		margin-left: 17px;
 	}

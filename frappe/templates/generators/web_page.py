@@ -31,7 +31,4 @@ def get_context(context):
 	if not web_page.header:
 		web_page.header = web_page.title
 
-	if "<!-- no-sidebar -->" in web_page.main_section:
-		web_page.no_sidebar = True
-
 	return web_page

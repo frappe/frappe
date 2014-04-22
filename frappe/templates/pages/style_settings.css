@@ -10,7 +10,7 @@ body {
 	background-image: none;
 {% else %}
 	background-color: #ffffff;
-{% endif %}	
+{% endif %}
 {% if doc.font or doc.google_web_font_for_text %}
 	font-family: '{{ doc.google_web_font_for_text or doc.font }}', 'Helvetica Neue', Arial, Sans !important;
 {% endif %}
@@ -54,7 +54,6 @@ div.outer {
 {% else %}
 {% if doc.background_color.lower() == doc.page_background.lower() %}
 .web-footer {
-	border-top: 1px solid #{{ doc.page_background | get_hex_shade(15) }};
 	padding-top: 10px;
 }
 {% endif %}
@@ -120,7 +119,7 @@ div.outer {
   -webkit-box-shadow: none;
      -moz-box-shadow: none;
           box-shadow: none;
-        
+
 }
 .navbar .nav > .active > a,
 .navbar .nav > .active > a:hover,
@@ -133,7 +132,7 @@ div.outer {
           box-shadow: none;
 }
 
-.navbar .nav li.dropdown > .dropdown-toggle .caret, 
+.navbar .nav li.dropdown > .dropdown-toggle .caret,
 .navbar .nav li.dropdown > .dropdown-toggle:hover .caret {
 	border-top-color: #{{ doc.top_bar_foreground}};
 	border-bottom-color: #{{ doc.top_bar_foreground}};
@@ -156,7 +155,7 @@ div.outer {
     background-color: #{{ doc.top_bar_background}};
     color: #{{ doc.top_bar_foreground}};
   }
-  .navbar .nav-collapse .nav > li > a:hover, 
+  .navbar .nav-collapse .nav > li > a:hover,
   .navbar .nav-collapse .dropdown-menu a:hover {
     background-color: #{{ doc.top_bar_foreground}};
     color: #{{ doc.top_bar_background}};
@@ -164,7 +163,7 @@ div.outer {
 
   .navbar .nav li.dropdown > .dropdown-toggle .caret {
     border-top-color: #{{ doc.top_bar_foreground }};
-    border-bottom-color: #{{ doc.top_bar_foreground }};	
+    border-bottom-color: #{{ doc.top_bar_foreground }};
   }
 
   .navbar .nav li.dropdown > .dropdown-toggle:hover .caret {
@@ -175,7 +174,7 @@ div.outer {
   .navbar .nav li.dropdown.open > .dropdown-toggle .caret,
   .navbar .nav li.dropdown.open > .dropdown-toggle:hover .caret {
     border-top-color: #{{ doc.top_bar_background }};
-    border-bottom-color: #{{ doc.top_bar_background }};	
+    border-bottom-color: #{{ doc.top_bar_background }};
   }
 
 }
@@ -229,7 +228,7 @@ pre, code {
 
 hr {
 	border-top: 1px solid #{{ doc.page_background | get_hex_shade(15) }};
-	border-bottom: 1px solid #{{ doc.page_background | get_hex_shade(5) }};	
+	border-bottom: 1px solid #{{ doc.page_background | get_hex_shade(5) }};
 }
 
 {% if doc.add_css -%}

@@ -1,5 +1,5 @@
 {
- "creation": "2013-02-22 01:28:08.000000", 
+ "creation": "2013-02-22 01:28:08", 
  "docstatus": 0, 
  "doctype": "DocType", 
  "fields": [
@@ -38,13 +38,21 @@
    "label": "Target", 
    "options": "\ntarget = \"_blank\"", 
    "permlevel": 0
+  }, 
+  {
+   "description": "For top bar", 
+   "fieldname": "right", 
+   "fieldtype": "Check", 
+   "label": "Right", 
+   "permlevel": 0
   }
  ], 
  "idx": 1, 
  "istable": 1, 
- "modified": "2013-12-20 19:21:53.000000", 
+ "modified": "2014-04-22 15:06:11.072391", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Top Bar Item", 
- "owner": "Administrator"
+ "owner": "Administrator", 
+ "permissions": []
 }

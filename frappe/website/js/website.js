@@ -249,17 +249,25 @@ $.extend(frappe, {
 		history.pushState(null, null, href);
 
 		//NProgress.start();
-		$.ajax({ url: href, cache: false }).done(function(data) {
-			history.replaceState(data, data.title, href);
-			$("html, body").animate({ scrollTop: 0 }, "slow");
-			frappe.render_json(data);
+		$.ajax({
+			url: href,
+			cache: false,
+			statusCode: {
+				200: function(data) {
+					history.replaceState(data, data.title, href);
+					scroll(0,0);
+					frappe.render_json(data);
+				},
+				404: function() {
+					load_via_ajax("404");
+				}
+			}
+		}).done(function(data) {
+			// ?
 		}).always(function() {
 			//NProgress.done();
 		}).fail(function(xhr, status, error) {
-			if(!xhr.responseText && status==="error") {
-				// ajax failed without response. Try reloading the full page.
-				window.location.reload();
-			}
+			window.location.reload();
 		});
 	},
 	render_json: function(data) {
