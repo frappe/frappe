@@ -124,7 +124,7 @@ def setup_parser():
 	return parser.parse_args()
 
 def setup_install(parser):
-	parser.add_argument("--make_app", default=False, action="store_true",
+	parser.add_argument("--make_app", metavar="DEST", nargs=1,
 		help="Make a new application with boilerplate")
 	parser.add_argument("--install", metavar="DB-NAME", nargs=1,
 		help="Install a new db")
@@ -261,9 +261,9 @@ def setup_translation(parser):
 
 # methods
 @cmd
-def make_app():
+def make_app(destination):
 	from frappe.utils.boilerplate import make_boilerplate
-	make_boilerplate()
+	make_boilerplate(destination)
 
 @cmd
 def use(sites_path):

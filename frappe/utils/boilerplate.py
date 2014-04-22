@@ -6,9 +6,9 @@ from __future__ import unicode_literals
 import frappe, os
 from frappe.utils import touch_file
 
-def make_boilerplate():
-	if not os.path.exists("sites"):
-		print "Run from bench! (sites folder must exist)"
+def make_boilerplate(dest):
+	if not os.path.exists(dest):
+		print "Destination directory does not exist"
 		return
 	
 	hooks = frappe._dict()
@@ -24,52 +24,52 @@ def make_boilerplate():
 		
 		hooks[hook_key] = hook_val
 		
-	frappe.create_folder(os.path.join(hooks.app_name, hooks.app_name, hooks.app_name))
-	frappe.create_folder(os.path.join(hooks.app_name, hooks.app_name, "templates"))
-	frappe.create_folder(os.path.join(hooks.app_name, hooks.app_name, "templates", 
+	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, hooks.app_name))
+	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "templates"))
+	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "templates", 
 		"statics"))
-	frappe.create_folder(os.path.join(hooks.app_name, hooks.app_name, "templates", 
+	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "templates", 
 		"pages"))
-	frappe.create_folder(os.path.join(hooks.app_name, hooks.app_name, "templates", 
+	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "templates", 
 		"generators"))
-	frappe.create_folder(os.path.join(hooks.app_name, hooks.app_name, "config"))
+	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "config"))
 	
 	# init files
-	touch_file(os.path.join(hooks.app_name, hooks.app_name, "__init__.py"))
-	touch_file(os.path.join(hooks.app_name, hooks.app_name, hooks.app_name, "__init__.py"))
-	touch_file(os.path.join(hooks.app_name, hooks.app_name, "templates", "__init__.py"))
-	touch_file(os.path.join(hooks.app_name, hooks.app_name, "templates", 
+	touch_file(os.path.join(dest, hooks.app_name, hooks.app_name, "__init__.py"))
+	touch_file(os.path.join(dest, hooks.app_name, hooks.app_name, hooks.app_name, "__init__.py"))
+	touch_file(os.path.join(dest, hooks.app_name, hooks.app_name, "templates", "__init__.py"))
+	touch_file(os.path.join(dest, hooks.app_name, hooks.app_name, "templates", 
 		"pages", "__init__.py"))
-	touch_file(os.path.join(hooks.app_name, hooks.app_name, "templates", 
+	touch_file(os.path.join(dest, hooks.app_name, hooks.app_name, "templates", 
 		"generators", "__init__.py"))
-	touch_file(os.path.join(hooks.app_name, hooks.app_name, "config", "__init__.py"))
+	touch_file(os.path.join(dest, hooks.app_name, hooks.app_name, "config", "__init__.py"))
 	
-	with open(os.path.join(hooks.app_name, "MANIFEST.in"), "w") as f:
+	with open(os.path.join(dest, hooks.app_name, "MANIFEST.in"), "w") as f:
 		f.write(manifest_template.format(**hooks))
 
-	with open(os.path.join(hooks.app_name, ".gitignore"), "w") as f:
+	with open(os.path.join(dest, hooks.app_name, ".gitignore"), "w") as f:
 		f.write(gitignore_template)
 
-	with open(os.path.join(hooks.app_name, "setup.py"), "w") as f:
+	with open(os.path.join(dest, hooks.app_name, "setup.py"), "w") as f:
 		f.write(setup_template.format(**hooks))
 
-	with open(os.path.join(hooks.app_name, "requirements.txt"), "w") as f:
+	with open(os.path.join(dest, hooks.app_name, "requirements.txt"), "w") as f:
 		f.write("frappe")
 
-	touch_file(os.path.join(hooks.app_name, "README.md"))
+	touch_file(os.path.join(dest, hooks.app_name, "README.md"))
 
-	with open(os.path.join(hooks.app_name, "license.txt"), "w") as f:
+	with open(os.path.join(dest, hooks.app_name, "license.txt"), "w") as f:
 		f.write("License: " + hooks.app_license)
 
-	with open(os.path.join(hooks.app_name, hooks.app_name, "modules.txt"), "w") as f:
+	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "modules.txt"), "w") as f:
 		f.write(hooks.app_name)
 
-	with open(os.path.join(hooks.app_name, hooks.app_name, "hooks.txt"), "w") as f:
+	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "hooks.txt"), "w") as f:
 		f.write(hooks_template.format(**hooks))
 
-	touch_file(os.path.join(hooks.app_name, hooks.app_name, "patches.txt"))
+	touch_file(os.path.join(dest, hooks.app_name, hooks.app_name, "patches.txt"))
 
-	with open(os.path.join(hooks.app_name, hooks.app_name, "config", "desktop.py"), "w") as f:
+	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "config", "desktop.py"), "w") as f:
 		f.write(desktop_template.format(**hooks))
 		
 	
