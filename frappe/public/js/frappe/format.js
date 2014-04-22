@@ -1,4 +1,6 @@
 function format (str, args) {
+	if(str==undefined) return str;
+
 	this.unkeyed_index = 0;
 	return str.replace(/\{(\w*)\}/g, function(match, key) {
 
