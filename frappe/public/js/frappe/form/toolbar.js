@@ -48,7 +48,11 @@ frappe.ui.form.Toolbar = Class.extend({
 		if(this.frm.meta.issingle) {
 			this.appframe.set_title_left(function() { frappe.set_route(frappe.get_module(me.frm.meta.module).link); });
 		} else {
-			this.appframe.set_title_left(function() { frappe.set_route("List", me.frm.doctype); });
+			this.appframe.set_title_left(function() {
+				me.frm.list_route
+					? frappe.set_route(me.frm.list_route)
+					: frappe.set_route("List", me.frm.doctype);
+			});
 		}
 	},
 	show_infobar: function() {

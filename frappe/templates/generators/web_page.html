@@ -1,3 +1,5 @@
+{% block title %}{{ title }}{% endblock %}
+
 {% block header %}
 {% if "<" in header %}{{ header }}{% else %}<h2>{{ header }}</h2>{% endif %}
 {% endblock %}

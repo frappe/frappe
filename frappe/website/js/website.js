@@ -248,24 +248,19 @@ $.extend(frappe, {
 		window.previous_href = href;
 		history.pushState(null, null, href);
 
-		//NProgress.start();
+		var _render = function(data) {
+			history.replaceState(data, data.title, href);
+			scroll(0,0);
+			frappe.render_json(data);
+		};
+
 		$.ajax({
 			url: href,
 			cache: false,
 			statusCode: {
-				200: function(data) {
-					history.replaceState(data, data.title, href);
-					scroll(0,0);
-					frappe.render_json(data);
-				},
-				404: function() {
-					load_via_ajax("404");
-				}
+				200: _render,
+				404: function(xhr) { _render(xhr.responseJSON); }
 			}
-		}).done(function(data) {
-			// ?
-		}).always(function() {
-			//NProgress.done();
 		}).fail(function(xhr, status, error) {
 			window.location.reload();
 		});
