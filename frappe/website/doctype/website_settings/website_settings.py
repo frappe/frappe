@@ -104,4 +104,6 @@ def get_website_settings():
 	context.web_include_js = hooks.web_include_js or []
 	context.web_include_css = hooks.web_include_css or []
 
+	print context.disable_signup
+
 	return context

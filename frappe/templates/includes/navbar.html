@@ -23,7 +23,7 @@
 					{%- endfor %}
 				</ul>
 				{%- endif %}
-				<ul class="logged-in nav navbar-nav navbar-right" style="display: none;">
+				<ul class="nav navbar-nav navbar-right">
 					{%- for page in top_bar_items -%}
 					{% if not page.parent_label and page.right -%}
 					{% include "templates/includes/navbar_link.html" %}
@@ -31,9 +31,11 @@
 					{%- endfor %}
 					<!-- post login tools -->
 					{% if not disable_signup %}
-					<li class="dropdown" id="website-post-login" data-label="website-post-login">
+					<li class="dropdown logged-in" id="website-post-login"
+						data-label="website-post-login" style="display: none">
 						<a href="#" class="dropdown-toggle" data-toggle="dropdown">
-							<img class="user-picture" style="min-width: 20px; max-height: 20px; border-radius: 4px"/>
+							<img class="user-picture"
+								style="min-width: 20px; max-height: 20px; border-radius: 4px"/>
 								<b class="full-name"></b><b class="caret"></b>
 						</a>
 				        <ul class="dropdown-menu">

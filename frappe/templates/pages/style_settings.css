@@ -61,7 +61,7 @@ div.outer {
 
 .web-footer, .web-footer a {
 	font-size: 90%;
-	color: #{{ doc.background_color | get_hex_shade(70) }};
+	color: #{{ doc.background_color | get_hex_shade(100) }};
 }
 
 /* Bootstrap Navbar */
