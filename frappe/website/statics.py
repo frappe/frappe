@@ -48,7 +48,7 @@ class sync(object):
 			self.sync_using_given_index(basepath, folders, files)
 
 		else:
-			self.sync_alphabetically(basepath, folders, files)
+			self.sync_alphabetically(basepath, folders, [filename for filename in files if filename.endswith('html') or filename.endswith('md')])
 
 
 	def get_index_txt(self, basepath, files):
