@@ -218,12 +218,12 @@ fieldset {
 
 .page-header {
 	margin: 0px;
+	margin-bottom: 20px;
 	padding: 15px 0px;
 }
 
 .page-container {
-	margin-top: 15px;
-	padding-bottom: 30px;
+
 }
 
 .page-header h1,
@@ -237,7 +237,7 @@ fieldset {
 }
 
 .page-content {
-	padding-top: 7px;
+
 }
 
 .sidebar-item {
@@ -280,6 +280,7 @@ body {
 
 /* Set the fixed height of the footer here */
 #wrap-footer {
+  margin-top: 30px;
   min-height: 140px;
   background-color: #f5f5f5;
 }

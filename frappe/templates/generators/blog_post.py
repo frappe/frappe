@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 
 import frappe
 from frappe.utils import global_date_format, get_fullname, cint
+from frappe.website.utils import find_first_image
 
 doctype = "Blog Post"
 condition_field = "published"
@@ -26,7 +27,15 @@ def get_context(context):
 		blog_post.blogger_info = frappe.get_doc("Blogger", blog_post.blogger).as_dict()
 
 	blog_post.description = blog_post.blog_intro or blog_post.content[:140]
-	blog_post.meta_description = blog_post.description
+
+	blog_post.metatags = {
+		"name": blog_post.title,
+		"description": blog_post.description,
+	}
+
+	image = find_first_image(blog_post.main_section)
+	if image:
+		blog_post.metatags["image"] = image
 
 	blog_post.categories = frappe.db.sql_list("select name from `tabBlog Category` order by name")
 

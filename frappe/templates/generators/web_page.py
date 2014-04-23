@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.website.doctype.website_slideshow.website_slideshow import get_slideshow
+from frappe.website.utils import find_first_image
 
 doctype = "Web Page"
 condition_field = "published"
@@ -13,8 +14,6 @@ def get_context(context):
 
 	if web_page.slideshow:
 		web_page.update(get_slideshow(web_page))
-
-	web_page.meta_description = web_page.description
 
 	if web_page.enable_comments:
 		web_page.comment_list = frappe.db.sql("""select
@@ -27,6 +26,16 @@ def get_context(context):
 		"script": web_page.javascript or ""
 	})
 	web_page.update(context)
+
+	web_page.metatags = {
+		"name": web_page.title,
+		"description": web_page.description or web_page.main_section[:150]
+	}
+
+	image = find_first_image(web_page.main_section)
+	if image:
+		web_page.metatags["image"] = image
+
 
 	if not web_page.header:
 		web_page.header = web_page.title

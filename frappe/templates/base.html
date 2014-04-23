@@ -15,10 +15,11 @@ https://frappe.io/apps/frappe
 	<link rel="icon" href="{{ favicon or "" }}" type="image/x-icon">
 	{%- block head_include %}{% endblock -%}
 	{%- block head -%}
-		{%- if meta_description is defined %}
-		<meta name="description" content="{{ meta_description|striptags }}">
+		{%- if metatags -%}
+		{%- for name in metatags %}
+		<meta name="{{ name }}" content="{{ metatags[name]|striptags }}">
+		{%- endfor -%}
 		{%- endif -%}
-
 		{%- for link in web_include_js %}
 		<script type="text/javascript" src="{{ link }}"></script>
 		{%- endfor -%}
@@ -63,6 +64,9 @@ https://frappe.io/apps/frappe
 				</div>
 			</div>
 		</header>
+		<div class="content-body" data-html-block="content_body">
+			{{ content_body or "" }}
+		</div>
 		<div class="container page-container" id="page-{{ name or page_name }}">
 			<div class="row">
 				<div class="col-sm-3 col-sm-push-9 page-sidebar hidden-xs" data-html-block="sidebar">
@@ -74,7 +78,7 @@ https://frappe.io/apps/frappe
 					{%- endblock -%}
 				</div>
 				<div class="col-sm-9 col-sm-pull-3 page-content" data-html-block="content">
-					{%- block content -%}{{ content }}{%- endblock -%}
+					{%- block content -%}{{ content or "" }}{%- endblock -%}
 				</div>
 			</div>
 		</div>

@@ -56,7 +56,25 @@ def build_context(sitemap_options):
 		if module and hasattr(module, "get_context"):
 			context.update(module.get_context(context) or {})
 
+	add_metatags(context)
+
 	if context.get("base_template_path") != context.get("template_path") and not context.get("rendered"):
 		context.data = render_blocks(context)
 
 	return context
+
+def add_metatags(context):
+	tags = context.get("metatags")
+	if tags:
+		if not "twitter:card" in tags:
+			tags["twitter:card"] = "summary"
+		if not "og:type" in tags:
+			tags["og:type"] = "article"
+		if tags.get("name"):
+			tags["og:title"] = tags["twitter:title"] = tags["name"]
+		if tags.get("description"):
+			tags["og:description"] = tags["twitter:description"] = tags["description"]
+		if tags.get("image"):
+			tags["og:image"] = tags["twitter:image:src"] = tags["image"]
+
+
