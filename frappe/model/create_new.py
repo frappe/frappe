@@ -65,6 +65,6 @@ def get_new_doc(doctype, parent_doc = None, parentfield = None):
 
 		elif (d.fieldtype == "Select" and d.options and not d.options.startswith("link:")
 			and d.options != "[Select]"):
-			d.set(d.fieldname, d.options.split("\n")[0])
+			doc.set(d.fieldname, d.options.split("\n")[0])
 
 	return doc

@@ -24,6 +24,12 @@ class BaseDocument(object):
 	def update(self, d):
 		if "doctype" in d:
 			self.set("doctype", d.get("doctype"))
+
+		# first set default field values of base document
+		for key in default_fields:
+			if key in d:
+				self.set(key, d.get(key))
+
 		for key, value in d.iteritems():
 			self.set(key, value)
 
@@ -182,7 +188,7 @@ class BaseDocument(object):
 				), d.values())
 		except Exception, e:
 			if e.args[0]==1062:
-				raise frappe.NameError((d.get("doctype"), d.get("name"), e))
+				raise frappe.NameError(self.doctype, self.name, e)
 			else:
 				raise
 

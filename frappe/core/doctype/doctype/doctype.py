@@ -18,8 +18,6 @@ class DocType(Document):
 		for c in [".", "/", "#", "&", "=", ":", "'", '"']:
 			if c in self.name:
 				frappe.throw(_("{0} not allowed in name").format(c))
-		for d in self.get("fields"):
-			d.parent = self.name
 		self.validate_series()
 		self.scrub_field_names()
 		self.validate_title_field()

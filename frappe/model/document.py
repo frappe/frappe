@@ -116,6 +116,7 @@ class Document(BaseDocument):
 		self.check_if_latest()
 		set_new_name(self)
 		self.run_method("before_insert")
+		self.set_parent_in_children()
 		self.run_before_save_methods()
 		self._validate()
 
@@ -129,8 +130,8 @@ class Document(BaseDocument):
 
 		# children
 		for d in self.get_all_children():
-			d.parent = self.name
 			d.db_insert()
+
 		self.run_method("after_insert")
 		self.run_post_save_methods()
 
@@ -149,6 +150,7 @@ class Document(BaseDocument):
 
 		self._set_docstatus_user_and_timestamp()
 		self.check_if_latest()
+		self.set_parent_in_children()
 		self.run_before_save_methods()
 		self._validate()
 
@@ -163,8 +165,6 @@ class Document(BaseDocument):
 		ignore_children_type = self.get("ignore_children_type") or []
 
 		for d in self.get_all_children():
-			d.parent = self.name # rename if reqd
-			d.parenttype = self.doctype
 			d.db_update()
 			child_map.setdefault(d.doctype, []).append(d.name)
 
@@ -292,6 +292,11 @@ class Document(BaseDocument):
 
 		elif docstatus==2:
 			raise frappe.ValidationError
+
+	def set_parent_in_children(self):
+		for d in self.get_all_children():
+			d.parent = self.name
+			d.parenttype = self.doctype
 
 	def validate_update_after_submit(self):
 		if getattr(self, "ignore_validate_update_after_submit", False):

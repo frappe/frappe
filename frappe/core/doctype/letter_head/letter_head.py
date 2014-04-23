@@ -1,5 +1,5 @@
 # Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt 
+# MIT License. See license.txt
 
 from __future__ import unicode_literals
 import frappe
@@ -8,13 +8,13 @@ import frappe
 from frappe.model.document import Document
 
 class LetterHead(Document):
-	
+
 	def validate(self):
 		self.set_as_default()
-		
+
 		# clear the cache so that the new letter head is uploaded
 		frappe.clear_cache()
-		
+
 	def set_as_default(self):
 		from frappe.utils import set_default
 		if not self.is_default:
@@ -26,4 +26,4 @@ class LetterHead(Document):
 			set_default('letter_head', self.name)
 
 			# update control panel - so it loads new letter directly
-			frappe.db.set_default("letter_head", self.content)
+			frappe.db.set_default("default_letter_head_content", self.content)

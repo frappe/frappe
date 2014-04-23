@@ -35,7 +35,7 @@ def runserverobj(method, docs=None, dt=None, dn=None, arg=None, args=None):
 				r = doc.run_method(method)
 			else:
 				fnargs, varargs, varkw, defaults = inspect.getargspec(getattr(doc, method))
-				if "args" in fnargs:
+				if fnargs and ("args" in fnargs or not isinstance(args, dict)):
 					r = doc.run_method(method, args)
 				else:
 					r = doc.run_method(method, **args)

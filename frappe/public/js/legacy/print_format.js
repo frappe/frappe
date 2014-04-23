@@ -372,8 +372,10 @@ $.extend(_p, {
 		$.each(matches, function(i, v) {
 			if(v.substr(0,4)=="src=") {
 				var v = v.substr(5, v.length-6);
-				if(v.substr(0,4)!="http")
-					finished = finished.split(v).join(prefix + v);
+				if(v.substr(0,4)!="http") {
+					finished = finished.split(v).join(prefix + lstrip(v, "/"));
+				}
+
 			}
 		});
 
@@ -386,8 +388,8 @@ $.extend(_p, {
 		var lh = '';
 		if(cur_frm.doc.letter_head) {
 			lh = cstr(frappe.boot.letter_heads[cur_frm.doc.letter_head]);
-		} else if (frappe.boot.sysdefaults.letter_head) {
-			lh = frappe.boot.sysdefaults.letter_head;
+		} else if (frappe.boot.sysdefaults.default_letter_head_content) {
+			lh = frappe.boot.sysdefaults.default_letter_head_content;
 		}
 		return lh;
 	},
