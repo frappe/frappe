@@ -30,7 +30,7 @@ def after_install():
 	for d in install_docs:
 		try:
 			frappe.get_doc(d).insert()
-		except NameError:
+		except frappe.NameError:
 			pass
 
 	# all roles to admin

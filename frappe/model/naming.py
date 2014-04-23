@@ -133,7 +133,7 @@ def get_default_naming_series(doctype):
 def validate_name(doctype, name, case=None, merge=False):
 	if not name: return 'No Name Specified for %s' % doctype
 	if name.startswith('New '+doctype):
-		raise NameError, 'There were some errors setting the name, please contact the administrator'
+		raise frappe.NameError, 'There were some errors setting the name, please contact the administrator'
 	if case=='Title Case': name = name.title()
 	if case=='UPPER CASE': name = name.upper()
 	name = name.strip()

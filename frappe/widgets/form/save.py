@@ -14,8 +14,9 @@ def savedocs():
 		doc.docstatus = {"Save":0, "Submit": 1, "Update": 1, "Cancel": 2}[frappe.form_dict.action]
 		try:
 			doc.save()
-		except NameError:
-			frappe.msgprint(frappe._("Name exists"))
+		except frappe.NameError, e:
+			doctype, name, original_exception = e if isinstance(e, tuple) else (doc.doctype or "", doc.name or "", None)
+			frappe.msgprint(frappe._("{0} {1} already exists").format(doctype, name))
 			raise
 
 		# update recent documents

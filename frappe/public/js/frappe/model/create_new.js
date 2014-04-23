@@ -26,6 +26,7 @@ $.extend(frappe.model, {
 				parenttype: parent_doc.doctype,
 			});
 			if(!parent_doc[parentfield]) parent_doc[parentfield] = [];
+			doc.idx = parent_doc[parentfield].length + 1;
 			parent_doc[parentfield].push(doc);
 		} else {
 			frappe.provide("frappe.model.docinfo." + doctype + "." + doc.name);
@@ -132,9 +133,9 @@ $.extend(frappe.model, {
 		return d;
 	},
 
-	copy_doc: function(doc, from_amend) {
+	copy_doc: function(doc, from_amend, parent_doc, parentfield) {
 		var no_copy_list = ['name','amended_from','amendment_date','cancel_reason'];
-		var newdoc = frappe.model.get_new_doc(doc.doctype);
+		var newdoc = frappe.model.get_new_doc(doc.doctype, parent_doc, parentfield);
 
 		for(var key in doc) {
 			// dont copy name and blank fields
@@ -145,11 +146,9 @@ $.extend(frappe.model, {
 				&& !(df && (!from_amend && cint(df.no_copy)==1))) {
 					value = doc[key];
 					if(df.fieldtype==="Table") {
-						newdoc[key] = [];
 						$.each(value || [], function(i, d) {
-							newdoc[key].push(frappe.model.copy_doc(d, from_amend))
-							newdoc[key][newdoc[key].length-1].idx = newdoc[key].length;
-						})
+							frappe.model.copy_doc(d, from_amend, newdoc, df.fieldname);
+						});
 					} else {
 						newdoc[key] = doc[key];
 					}

@@ -179,13 +179,13 @@ frappe.ui.form.Layout = Class.extend({
 		var me = this,
 			grid_row = null;
 			prev = null,
-			fields = me.fields,
+			fields = me.fields_list,
 			in_grid = false;
 
 		// in grid
 		if(doctype != me.doctype) {
 			grid_row =me.get_open_grid_row()
-			fields = grid_row.fields;
+			fields = grid_row.layout.fields_list;
 		}
 
 		for(var i=0, len=fields.length; i < len; i++) {

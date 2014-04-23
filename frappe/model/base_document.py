@@ -182,7 +182,7 @@ class BaseDocument(object):
 				), d.values())
 		except Exception, e:
 			if e.args[0]==1062:
-				raise NameError, e
+				raise frappe.NameError((d.get("doctype"), d.get("name"), e))
 			else:
 				raise
 

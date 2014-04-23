@@ -17,7 +17,7 @@ class PermissionError(Exception):
 class DoesNotExistError(ValidationError):
 	http_status_code = 404
 
-class DuplicateEntryError(Exception):
+class NameError(Exception):
 	http_status_code = 409
 
 class OutgoingEmailError(Exception):
@@ -29,6 +29,7 @@ class SessionStopped(Exception):
 class UnsupportedMediaType(Exception):
 	http_status_code = 415
 
+class DuplicateEntryError(NameError):pass
 class DataError(ValidationError): pass
 class UnknownDomainError(Exception): pass
 class MappingMismatchError(ValidationError): pass

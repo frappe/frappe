@@ -124,7 +124,7 @@ class sync(object):
 
 		try:
 			page.insert()
-		except NameError:
+		except frappe.NameError:
 			# page exists, if deleted static, delete it and try again
 			old_route = frappe.get_doc("Website Route", {"ref_doctype":"Web Page",
 				"docname": page.name})
