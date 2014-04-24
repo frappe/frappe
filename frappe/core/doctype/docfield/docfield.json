@@ -1,7 +1,7 @@
 {
  "allow_copy": 0, 
  "autoname": "FL.#####", 
- "creation": "2013-02-22 01:27:33.000000", 
+ "creation": "2013-02-22 01:27:33", 
  "docstatus": 0, 
  "doctype": "DocType", 
  "fields": [
@@ -26,6 +26,7 @@
    "width": "163"
   }, 
   {
+   "default": "Data", 
    "fieldname": "fieldtype", 
    "fieldtype": "Select", 
    "hidden": 0, 
@@ -303,10 +304,11 @@
  "in_dialog": 1, 
  "issingle": 0, 
  "istable": 1, 
- "modified": "2014-03-05 14:58:43.000000", 
+ "modified": "2014-04-24 15:56:23.561687", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "DocField", 
  "owner": "Administrator", 
+ "permissions": [], 
  "read_only": 0
 }

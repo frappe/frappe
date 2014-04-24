@@ -22,7 +22,8 @@ class DocType(Document):
 		self.scrub_field_names()
 		self.validate_title_field()
 		validate_fields(self.get("fields"))
-		validate_permissions(self.get("permissions"))
+		if not self.istable:
+			validate_permissions(self)
 		self.make_amendable()
 		self.check_link_replacement_error()
 
@@ -216,17 +217,17 @@ def validate_fields(fields):
 	check_min_items_in_list(fields)
 
 def validate_permissions_for_doctype(doctype, for_remove=False):
-	validate_permissions(frappe.get_meta(doctype, cached=False).get("permissions"), for_remove)
+	validate_permissions(frappe.get_doc(doctype), for_remove)
 
-def validate_permissions(permissions, for_remove=False):
-	doctype = permissions and permissions[0].parent
+def validate_permissions(doctype, for_remove=False):
+	permissions = doctype.get("permissions")
+	if not permissions:
+		frappe.throw(_('Enter at least one permission row'), frappe.MandatoryError)
 	issingle = issubmittable = isimportable = False
-	values = frappe.db.get_value("DocType", doctype,
-		["issingle", "is_submittable", "allow_import"], as_dict=True)
-	if values:
-		issingle = cint(values.issingle)
-		issubmittable = cint(values.is_submittable)
-		isimportable = cint(values.allow_import)
+	if doctype:
+		issingle = cint(doctype.issingle)
+		issubmittable = cint(doctype.is_submittable)
+		isimportable = cint(doctype.allow_import)
 
 	def get_txt(d):
 		return _("For {0} at level {1} in {2} in row {3}").format(d.role, d.permlevel, d.parent, d.idx)
