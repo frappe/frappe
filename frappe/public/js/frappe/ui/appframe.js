@@ -80,7 +80,8 @@ frappe.ui.AppFrame = Class.extend({
 	clear_primary_action: function() {
 		if(this.primary_dropdown) {
 			this.primary_dropdown.remove();
-			this.primary_dropdown = null;
+			this.primary_action.remove();
+			this.primary_dropdown = this.primary_action = null;
 		}
 	},
 
@@ -101,7 +102,7 @@ frappe.ui.AppFrame = Class.extend({
 				.attr("data-toggle", "dropdown")
 				.addClass("dropdown-toggle")
 				.parent()
-					.addClass("dropdown")
+					.addClass("dropdown");
 			this.primary_dropdown = $('<ul class="dropdown-menu pull-right" role="menu" \
 				aria-labelledby="'+ id +'"></ul>')
 				.insertAfter(this.primary_action).dropdown();
