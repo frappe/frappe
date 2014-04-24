@@ -103,6 +103,8 @@ def install_app(name, verbose=False, set_as_patched=True):
 	for before_install in app_hooks.before_install or []:
 		frappe.get_attr(before_install)()
 
+	if name != "frappe":
+		add_module_defs(name)
 	sync_for(name, force=True, sync_everything=True, verbose=verbose)
 
 	add_to_installed_apps(name)
@@ -179,3 +181,11 @@ def make_site_dirs():
 	locks_dir = frappe.get_site_path('locks')
 	if not os.path.exists(locks_dir):
 			os.makedirs(locks_dir)
+
+def add_module_defs(app):
+	modules = frappe.get_module_list(app)
+	for module in modules:
+		d = frappe.new_doc("Module Def")
+		d.app_name = app
+		d.module_name = frappe.unscrub(module)
+		d.save()

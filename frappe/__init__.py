@@ -350,6 +350,9 @@ def get_module(modulename):
 def scrub(txt):
 	return txt.replace(' ','_').replace('-', '_').replace('/', '_').lower()
 
+def unscrub(txt):
+	return txt.replace('_',' ').replace('-', ' ').title()
+
 def get_module_path(module, *joins):
 	module = scrub(module)
 	return get_pymodule_path(local.module_app[module] + "." + module, *joins)
