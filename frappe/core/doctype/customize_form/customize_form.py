@@ -16,9 +16,6 @@ class CustomizeForm(Document):
 		'search_fields': 'Data',
 		'default_print_format': 'Data',
 		'read_only_onload': 'Check',
-		'allow_print': 'Check',
-		'allow_email': 'Check',
-		'allow_copy': 'Check',
 		'allow_attach': 'Check',
 		'max_attachments': 'Int'
 	}

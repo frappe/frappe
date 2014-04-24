@@ -2,8 +2,10 @@ frappe.pages['data-import-tool'].onload = function(wrapper) {
 	wrapper.app_page = frappe.ui.make_app_page({
 		parent: wrapper,
 		title: __("Data Import / Export Tool"),
-		icon: "data-import-tool"
+		icon: "icon-upload"
 	});
+
+	wrapper.appframe.set_title_left(function() { frappe.set_route(frappe.get_module("Setup").link); });
 
 	// check permission for import
 	if(!((frappe.boot.user.can_import && frappe.boot.user.can_import.length) ||

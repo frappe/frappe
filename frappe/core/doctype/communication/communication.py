@@ -147,8 +147,8 @@ def set_portal_link(sent_via, comm):
 	if is_signup_enabled() and hasattr(sent_via, "get_portal_page"):
 		portal_page = sent_via.get_portal_page()
 		if portal_page:
-			is_valid_recipient = cstr(sent_via.email or sent_via.email_id or
-				sent_via.contact_email) in comm.recipients
+			is_valid_recipient = cstr(sent_via.get("email") or sent_via.get("email_id") or
+				sent_via.get("contact_email")) in comm.recipients
 			if is_valid_recipient:
 				url = "%s/%s?name=%s" % (get_url(), portal_page, urllib.quote(sent_via.name))
 				footer = """<!-- Portal Link --><hr>
