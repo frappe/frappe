@@ -89,6 +89,9 @@ def install_app(name, verbose=False, set_as_patched=True):
 	app_hooks = frappe.get_hooks(app_name=name)
 	installed_apps = frappe.get_installed_apps()
 
+	if name not in frappe.get_all_apps(with_frappe=True):
+		raise Exception("App not in apps.txt")
+
 	if name in installed_apps:
 		print "App Already Installed"
 		frappe.msgprint(_("App Already Installed"))
