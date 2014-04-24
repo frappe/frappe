@@ -75,6 +75,7 @@ $.extend(frappe.model, {
 			$.each(doc, function(key, value) {
 				if($.isArray(value)) {
 					$.each(value, function(i, d) {
+						if(!d.parent) d.parent = doc.name;
 						frappe.model.add_to_locals(d);
 					});
 				}
