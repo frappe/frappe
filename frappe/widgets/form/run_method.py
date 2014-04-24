@@ -5,11 +5,12 @@ from __future__ import unicode_literals
 import json, inspect
 import frappe
 from frappe import _
+from frappe.utils import cint
 
 @frappe.whitelist()
 def runserverobj(method, docs=None, dt=None, dn=None, arg=None, args=None):
 	"""run controller method - old style"""
-	from frappe.utils import cint
+	if not args: args = arg or ""
 
 	if dt: # not called from a doctype (from a page)
 		if not dn: dn = dt # single
@@ -25,20 +26,19 @@ def runserverobj(method, docs=None, dt=None, dn=None, arg=None, args=None):
 
 	if doc:
 		try:
-			if not args:
-				args = arg or ""
 			args = json.loads(args)
 		except ValueError:
-			try:
-				r = doc.run_method(method, args)
-			except TypeError:
-				r = doc.run_method(method)
-			else:
-				fnargs, varargs, varkw, defaults = inspect.getargspec(getattr(doc, method))
-				if fnargs and ("args" in fnargs or not isinstance(args, dict)):
-					r = doc.run_method(method, args)
-				else:
-					r = doc.run_method(method, **args)
+			args = args
+
+		fnargs, varargs, varkw, defaults = inspect.getargspec(getattr(doc, method))
+		if not fnargs or (len(fnargs)==1 and fnargs[0]=="self"):
+			r = doc.run_method(method)
+
+		elif "args" in fnargs or not isinstance(args, dict):
+			r = doc.run_method(method, args)
+
+		else:
+			r = doc.run_method(method, **args)
 
 		if r:
 			#build output as csv
