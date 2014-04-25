@@ -2,7 +2,6 @@
 // MIT License. See license.txt
 
 frappe.provide('frappe.model');
-frappe.provide("frappe.model.map_info");
 
 $.extend(frappe.model, {
 	no_value_type: ['Section Break', 'Column Break', 'HTML', 'Table',
@@ -344,68 +343,6 @@ $.extend(frappe.model, {
 			if(cint(df.no_copy)) no_copy_list.push(df.fieldname);
 		})
 		return no_copy_list;
-	},
-
-	// args: source (doc), target (doc), table_map, field_map, callback
-	map: function(args) {
-		frappe.model.with_doctype(args.target, function() {
-			var map_info = frappe.model.map_info[args.target]
-			if(map_info)
-				map_info = map_info[args.source[0].doctype];
-			if(!map_info) {
-				map_info = {
-					table_map: args.table_map || {},
-					field_map: args.field_map || {}
-				}
-			}
-
-			// main
-			var target = frappe.model.map_doc(args.source[0], args.target, map_info.field_map[args.target]);
-
-			// children
-			$.each(map_info.table_map, function(child_target, child_source) {
-				$.each($.map(args.source, function(d)
-					{ if(d.doctype==child_source) return d; else return null; }), function(i, d) {
-						var child = frappe.model.map_doc(d, child_target, map_info.field_map[child_target]);
-						$.extend(child, {
-							parent: target.name,
-							parenttype: target.doctype,
-							parentfield: frappe.meta.get_parentfield(target.doctype, child.doctype),
-							idx: i+1
-						});
-				});
-			});
-
-			if(args.callback) {
-				args.callback(target);
-			} else {
-				frappe.set_route("Form", target.doctype, target.name);
-			}
-		});
-	},
-
-	// map a single doc to a new doc of given DocType and field_map
-	map_doc: function(source, doctype, field_map) {
-		var new_doc = frappe.model.get_new_doc(doctype);
-		var no_copy_list = frappe.model.get_no_copy_list(doctype);
-		if(!field_map) field_map = {};
-		delete no_copy_list[no_copy_list.indexOf("name")];
-
-		for(fieldname in frappe.meta.docfield_map[doctype]) {
-			var df = frappe.meta.docfield_map[doctype][fieldname];
-			if(!df.no_copy) {
-				var source_key = field_map[df.fieldname] || df.fieldname;
-				if(source_key.substr(0,1)=="=") {
-					var value = source_key.substr(1);
-				} else {
-					var value = source[source_key];
-				}
-				if(value!==undefined) {
-					new_doc[df.fieldname] = value;
-				}
-			}
-		}
-		return new_doc;
 	},
 
 	delete_doc: function(doctype, docname, callback) {
