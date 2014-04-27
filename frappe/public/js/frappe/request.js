@@ -50,15 +50,19 @@ frappe.request.call = function(opts) {
 		type: 'POST',
 		dataType: opts.dataType || 'json',
 		statusCode: {
+			200: function(data, xhr) {
+				if(typeof data === "string") data = JSON.parse(data);
+				opts.success && opts.success(data, xhr.responseText);
+			},
 			404: function(xhr) {
 				msgprint(__("Not found"));
 			},
 			403: function(xhr) {
 				msgprint(__("Not permitted"));
 			},
-			200: function(data, xhr) {
+			417: function(data, xhr) {
 				if(typeof data === "string") data = JSON.parse(data);
-				opts.success && opts.success(data, xhr.responseText);
+				opts.error && opts.error(data, xhr.responseText)
 			},
 			501: function(data, xhr) {
 				if(typeof data === "string") data = JSON.parse(data);
