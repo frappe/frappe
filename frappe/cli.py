@@ -8,7 +8,7 @@ import os
 
 import frappe
 
-site_arg_optional = ['serve', 'build', 'watch', 'celery']
+site_arg_optional = ['serve', 'build', 'watch', 'celery', 'resize_images']
 
 def get_site(parsed_args):
 	if not parsed_args.get("site") and os.path.exists(os.path.join(parsed_args["sites_path"], "currentsite.txt")):
@@ -156,6 +156,10 @@ def setup_test(parser):
 		help="Run one or more specific test functions")
 
 def setup_utilities(parser):
+	# serving
+	parser.add_argument("--port", default=8000, type=int, help="port for development server")
+	parser.add_argument("--use", action="store_true", help="Set current site for development.")
+
 	# update
 	parser.add_argument("-u", "--update", nargs="*", metavar=("REMOTE", "BRANCH"),
 		help="Perform git pull, run patches, sync schema and rebuild files/translations")
@@ -211,8 +215,8 @@ def setup_utilities(parser):
 	parser.add_argument("--update_site_config", nargs=1,
 		metavar="site-CONFIG-JSON",
 		help="Update site_config.json for a given site")
-	parser.add_argument("--port", default=8000, type=int, help="port for development server")
-	parser.add_argument("--use", action="store_true", help="Set current site for development.")
+	parser.add_argument("--resize_images", nargs=1, metavar="PATH", help="resize images to a max width of 500px")
+
 
 	# clear
 	parser.add_argument("--clear_web", default=False, action="store_true",
@@ -727,6 +731,11 @@ def request(args):
 
 	print frappe.response
 	frappe.destroy()
+
+@cmd
+def resize_images(path):
+	import frappe.utils.image
+	frappe.utils.image.resize_images(path)
 
 @cmd
 def flush_memcache():
