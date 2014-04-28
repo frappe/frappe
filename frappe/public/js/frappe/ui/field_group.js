@@ -33,9 +33,10 @@ frappe.ui.FieldGroup = frappe.ui.form.Layout.extend({
 		var me = this;
 		$(this.body).find('input[type="text"], input[type="password"]').keypress(function(e) {
 			if(e.which==13) {
+				e.preventDefault();
 				$(me.body).find('.btn-primary:first').click();
 			}
-		})
+		});
 	},
 	get_input: function(fieldname) {
 		var field = this.fields_dict[fieldname];
@@ -49,7 +50,7 @@ frappe.ui.FieldGroup = frappe.ui.form.Layout.extend({
 			if(f.get_parsed_value) {
 				var v = f.get_parsed_value();
 
-				if(f.df.reqd && !v) 
+				if(f.df.reqd && !v)
 					errors.push('- ' + __(f.df.label) + "<br>");
 
 				if(v) ret[f.df.fieldname] = v;
@@ -74,7 +75,7 @@ frappe.ui.FieldGroup = frappe.ui.form.Layout.extend({
 			f.set_input(val);
 		}
 	},
-	set_values: function(dict) {	
+	set_values: function(dict) {
 		for(var key in dict) {
 			if(this.fields_dict[key]) {
 				this.set_value(key, dict[key]);
@@ -85,7 +86,7 @@ frappe.ui.FieldGroup = frappe.ui.form.Layout.extend({
 		for(key in this.fields_dict) {
 			var f = this.fields_dict[key];
 			if(f) {
-				f.set_input(f.df['default'] || '');				
+				f.set_input(f.df['default'] || '');
 			}
 		}
 	},

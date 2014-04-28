@@ -62,7 +62,7 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 
 def check_permission_and_not_submitted(doc, ignore_permissions=False):
 	# permission
-	if not ignore_permissions and frappe.session.user!="Administrator" and not doc.has_permission("cancel"):
+	if not ignore_permissions and frappe.session.user!="Administrator" and not doc.has_permission("delete"):
 		frappe.msgprint(_("User not allowed to delete."), raise_exception=True)
 
 	# check if submitted
