@@ -60,8 +60,8 @@ def get_mapped_doc(from_doctype, from_docname, table_maps, target_doc=None,
 	return target_doc
 
 def map_doc(source_doc, target_doc, table_map, source_parent=None):
-	no_copy_fields = set([d.fieldname for d in source_doc.meta.get("fields", {"no_copy": 1})]
-		+ [d.fieldname for d in target_doc.meta.get("fields", {"no_copy": 1})]
+	no_copy_fields = set([d.fieldname for d in source_doc.meta.get("fields") if (d.no_copy==1 or d.fieldtype=="Table")]
+		+ [d.fieldname for d in target_doc.meta.get("fields") if (d.no_copy==1 or d.fieldtype=="Table")]
 		+ default_fields
 		+ table_map.get("field_no_map", []))
 
