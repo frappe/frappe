@@ -9,8 +9,10 @@ from frappe.utils import now
 def get_context(context):
 	doc = frappe.get_doc("Contact Us Settings", "Contact Us Settings")
 
-	query_options = filter(None, doc.query_options.replace(",", "\n").split()) if \
-			doc.query_options else ["Sales", "Support", "General"]
+	if doc.query_options:
+		query_options = [opt.strip() for opt in doc.query_options.replace(",", "\n").split("\n") if opt]
+	else:
+		query_options = ["Sales", "Support", "General"]
 
 	address = None
 	if doc.get("address"):
