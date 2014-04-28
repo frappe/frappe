@@ -17,9 +17,9 @@ def after_install():
 	# core users / roles
 	install_docs = [
 		{'doctype':'User', 'name':'Administrator', 'first_name':'Administrator',
-			'email':'admin@localhost', 'enabled':1},
+			'email':'admin@example.com', 'enabled':1},
 		{'doctype':'User', 'name':'Guest', 'first_name':'Guest',
-			'email':'guest@localhost', 'enabled':1},
+			'email':'guest@example.com', 'enabled':1},
 		{'doctype':'UserRole', 'parent': 'Administrator', 'role': 'Administrator',
 			'parenttype':'User', 'parentfield':'user_roles'},
 		{'doctype':'UserRole', 'parent': 'Guest', 'role': 'Guest',
