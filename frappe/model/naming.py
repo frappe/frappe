@@ -13,8 +13,6 @@ def set_new_name(doc):
 
 	doc._new_name_set = True
 	autoname = frappe.get_meta(doc.doctype).autoname
-	doc.localname = doc.name # for passing back to client
-	doc.name = None
 
 	# amendments
 	if getattr(doc, "amended_from", None):
@@ -24,7 +22,7 @@ def set_new_name(doc):
 		if tmp and not isinstance(tmp, basestring):
 			# autoname in a function, not a property
 			doc.autoname()
-		if doc.name and doc.localname != doc.name:
+		if doc.name:
 			return
 
 	# based on a field

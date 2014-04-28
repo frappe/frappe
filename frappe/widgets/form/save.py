@@ -9,6 +9,7 @@ def savedocs():
 	"""save / submit / update doclist"""
 	try:
 		doc = frappe.get_doc(json.loads(frappe.form_dict.doc))
+		set_local_name(doc)
 
 		# action
 		doc.docstatus = {"Save":0, "Submit": 1, "Update": 1, "Cancel": 2}[frappe.form_dict.action]
@@ -50,3 +51,15 @@ def send_updated_docs(doc):
 		d["localname"] = doc.localname
 
 	frappe.response.docs.append(d)
+
+def set_local_name(doc):
+	def _set_local_name(d):
+		if d.get('__islocal'):
+			d.localname = d.name
+			d.name = None
+
+	_set_local_name(doc)
+	if doc.get('__islocal'):
+		for child in doc.get_all_children():
+			_set_local_name(child)
+
