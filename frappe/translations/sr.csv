@@ -1,37 +1,29 @@
  by Role ,по улози
- can not be marked as a ledger as it has existing child,не може да буде означена као књигу јер има постојећи дете
- cannot be deleted.,не може да се избрише.
  is not set,није одређена
+""" does not exists",""" Не постоји"
 """Company History""",&quot;Историја компаније&quot;
 """Team Members"" or ""Management""",&quot;Чланови тима&quot; или &quot;Манагемент&quot;
-0,0
+'In List View' not allowed for type {0} in row {1},""" В Список"" не допускается для типа {0} в строке {1}"
+'link:' type Select {0} getting replaced,""" ссылка: « Выберите тип {0} получение заменены"
 "000 is black, fff is white","000 је црно, бело је ффф"
-1,1
-12px,12пк
-13px,13пк
-14px,14пк
-15px,15пк
-16px,16пк
-2,2
 2 days ago,Пре 2 дана
+"<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank"">[?]</a>","<а хреф=""хттпс://ен.википедиа.орг/вики/Транспорт_Лаиер_Сецурити"" таргет=""_бланк""> [ ? ] < / а>"
 "<a onclick=""msgprint('<ol>\
 <li><b>field:[fieldname]</b> - By Field\
 <li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\
 <li><b>Prompt</b> - Prompt user for a name\
 <li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\
 </ol>')"">Naming Options</a>",
-<b>Cancel</b> allows you change Submitted documents by cancelling them and amending them.,<b>Откази</b> вам променити поднетих докумената их укидање и измену их.
-A new popup will open that will ask you to select further conditions.,Нови попуп ће отворити који ће вас питати да изаберете додатне услове.
-A user can have multiple values for a property.,Корисник може да има више вредности за имовину.
+A user can be restricted to multiple records of the same type.,Пользователь может быть ограничен до нескольких записей того же типа .
 About,Око
 About Us Settings,О нама Подешавања
 About Us Team Member,О нама члан тима
-Account Id,Рачун Ид
 Action,Акција
 Actions,Акције
+"Actions for workflow (e.g. Approve, Cancel).","Действия для рабочего процесса (например Утвердить , Отменить ) ."
 Add,Додати
 Add A New Rule,Додај ново правило
-Add A Property,Додај некретнину
+Add A Restriction,Добавить ограничение
 Add Attachments,Додај Прилози
 Add Bookmark,Адд Боокмарк
 Add CSS,Додајте ЦСС
@@ -40,22 +32,30 @@ Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytic
 Add Message,Додај поруку
 Add New Permission Rule,Додај нови правило Дозвола
 Add Reply,Адд Репли
+Add Serial No,Додај сериал но
+Add This To User's Restrictions,Добавить этот ограничений для покупателя
 Add Total Row,Додај реду Укупно
+Add a New Role,Добавить новую роль
 Add a banner to the site. (small banners are usually good),Додајте банер на сајт. (Мали банери су обично добри)
+Add all roles,Добавить все роли
 Add attachment,Додај прилог
 Add code as &lt;script&gt;,Додајте код као &lt;сцрипт&gt;
+Add custom javascript to forms.,Добавить пользовательские JavaScript в формах.
+Add fields to forms.,Добавление полей в формах.
 Add new row,Додавање новог реда
 "Add the name of <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> e.g. ""Open Sans""","Додајте име <a href=""http://google.com/webfonts"" target=""_blank"">Гоогле Веб Фонт</a> Санс нпр. &quot;Отвори&quot;"
 Add to To Do,Адд то То До
 Add to To Do List of,Адд то То До листу
+Adding System Manager to this User as there must be atleast one System Manager,"Добавление System Manager для этого пользователя , как должно быть по крайней мере один System Manager"
 Additional Info,Додатни подаци
+Additional Permissions,Дополнительные разрешения
 Address,Адреса
+Address Line 1,Аддресс Лине 1
+Address Line 2,Аддресс Лине 2
+Address Title,Адреса Наслов
 Address and other legal information you may want to put in the footer.,Адреса и друге правне информације можда желите да ставите у подножје.
-Address to be displayed on the Contact Page,Адреса се приказује на контакт страници
-Adds a custom field to a DocType,Додаје прилагођеног поља у ДОЦТИПЕ
-Adds a custom script (client or server) to a DocType,Додаје прилагођени сценарио (клијент или сервер) на ДОЦТИПЕ
-Advanced Scripting,Напредна Сцриптинг
-Advanced Settings,Напредна подешавања
+Admin,Админ
+All Applications,Все приложения
 All Day,Целодневни
 "All possible Workflow States and roles of the workflow. <br>Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""","Сви могући Воркфлов Државе и улоге током посла. <br> Доцстатус Опције: 0 је &quot;Савед&quot;, ​​1 је &quot;Послао&quot; и 2 је &quot;отказан&quot;"
 Allow Attach,Дозволи Аттацх
@@ -66,33 +66,54 @@ Allow on Submit,Дозволи на Субмит
 Allow user to login only after this hour (0-24),Дозволи кориснику да тек пријавите након овог часа (0-24)
 Allow user to login only before this hour (0-24),Дозволи кориснику да само пријави пре него што овај час (0-24)
 Allowed,Дозвољен
+"Allowing DocType, DocType. Be careful!","Разрешение DocType , DocType . Будьте осторожны !"
 Already Registered,Већ регистрације
+Already in todo,Уже в TODO
+Alternative download link,Альтернативная ссылка для скачивания
+"Alternatively, you can also specify 'auto_email_id' in site_config.json","Кроме того, вы также можете указать ' auto_email_id ' в site_config.json"
+Always use above Login Id as sender,Увек користите изнад Логин ИД као пошиљалац
 Amend,Изменити
 "An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [<a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a>]","Икона датотеке са екстензијом. Ицо. Требало би да буде 16 к 16 пк. Генерисано помоћу иконе омиљеног генератор. [ <a href=""http://favicon-generator.org/"" target=""_blank"">фавицон-генератор.орг</a> ]"
+"Another {0} with name {1} exists, select another name","Еще {0} с именем {1} существует, выберите другое имя"
+Anyone Can Read,"Всем, кто может прочитаны"
+Anyone Can Write,"Всем, кто может написать"
+"Apart from System Manager, roles with 'Can Restrict' permission can restrict other users for that Document Type.","Помимо System Manager , роли с "" может ограничить ' разрешение может ограничивать других пользователей для данного типа документа ."
+"Apart from the existing Permission Rules, you can apply addition restriction based on Type.","Помимо существующих разрешений Правил , можно применить сложения ограничение в зависимости от типа ."
+App Already Installed,App уже установлен
+App Name,Имя приложения
+App not found,Приложение не найдено
+Application Installer,Применение установки
+Applications,применения
 Are you sure you want to delete the attachment?,Да ли сте сигурни да желите да избришете прилог?
 Arial,Ариал
-"As a best practice, do not assign the same set of permission rule to different Roles instead set multiple Roles to the User","Као пример добре праксе, не доделите исти скуп дозвола владавине различитих улога, уместо постављеним вишеструке улоге Кориснику"
+"As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User.","В качестве лучшего решения , не может присвоить этот набор правило доступа для различных ролей . Вместо этого, установить несколько ролей и тому же пользователю ."
 Ascending,Растући
 Assign To,Додели
 Assigned By,Доделио
 Assigned To,Додељено
+Assigned To Fullname,Назначено FULLNAME
 Assigned To/Owner,Додељено / Власник
+Assignment Added,Назначение Добавлено
+Assignment Status Changed,Назначение Статус Changed
+Assignments,Задания
 Attach,Лепити
 Attach Document Print,Приложите Принт документа
 Attach as web link,Причврстите као веб линк
 Attached To DocType,Везан ДОЦТИПЕ
 Attached To Name,Везан Име
 Attachments,Прилози
-Attributions,Атрибуције
+Auto Email Id,Ауто-маил Ид
 Auto Name,Ауто Име
 Auto generated,Аутоматски генерисано
 Avatar,Аватар
+Back to Login,Вернуться к Войти
 Background Color,Боја позадине
 Background Image,Позадина Слика
 Banner,Барјак
 Banner HTML,Банер ХТМЛ
 Banner Image,Слика банера
 Banner is above the Top Menu Bar.,Банер је изнад горњој траци менија.
+Base Template Path,База шаблона Путь
 Begin this page with a slideshow of images,Почните ову страницу са слајдова слика
 Belongs to,Припада
 Bio,Био
@@ -106,43 +127,55 @@ Blog Title,Наслов блога
 Blogger,Блоггер
 Bookmarks,Боокмаркс
 Brand HTML,Бренд ХТМЛ
-"Brand is what appears on the top-right of the toolbar. If it is an image, make sure it
-has a transparent background and use the &lt;img /&gt; tag. Keep size as 200px x 30px",
+Built on,Построенный на
 Bulk Email,Булк маил
-Bulk Email records.,Булк Емаил рекорда.
+Bulk email limit {0} crossed,Предел объемной электронной почты {0} пересек
 Button,Дугме
 By,По
-COMM-,ЦОММ-
-CSS,ЦСС
 Calendar,Календар
-Can only be exported by users with role 'Report Manager',Може се извозити корисници са &quot;Пријави Манагер&quot; улогом
+Can Restrict,может ограничить
 Cancel,Отказати
-Cancel permission also allows the user to delete a document (if it is not linked to any other document).,Цанцел дозвола такође омогућава кориснику да обришете документ (ако није везан за било који други документ).
 Cancelled,Отказан
+"Cannot Edit {0} directly: To edit {0} properties, create / update {1}, {2} and {3}","Нельзя редактировать {0} непосредственно : Для редактирования {0} свойства , создать / обновление {1} , {2} и {3}"
 Cannot Update: Incorrect / Expired Link.,Не могу Упдате : Погрешна / Линк Истекло .
 Cannot Update: Incorrect Password,Не могу Упдате : Погрешна лозинка
-Cannot change from,Не може се мењати из
+Cannot add more than 50 comments,Не можете добавить более 50 комментариев
+Cannot change picture,Невозможно изменить картину
+Cannot change {0},Невозможно изменить {0}
+Cannot delete or cancel because {0} {1} is linked with {2} {3},"Не удается удалить или отменить, потому что {0} {1} связан с {2} {3}"
+Cannot delete {0} as it has child nodes,"Не удается удалить {0} , поскольку он имеет дочерние узлы"
+Cannot delete {0} {1} is it is referenced in another record,Не удается удалить {0} {1} на него ссылается в другой записи
 Cannot edit standard fields,Не можете да измените стандардне поља
 Cannot map because following condition fails: ,Не могу мапирати јер следећи услов не успе:
-"Cannot update a non-exiting record, try inserting.","Не могу да ажурирате не излазе рекорд , покушајте да убаците ."
+Cannot open instance when its {0} is open,"Не могу открыть экземпляр , когда его {0} открыто"
+Cannot open {0} when its instance is open,"Не могу открыть {0} , когда его экземпляр открыт"
+Cannot print cancelled documents,Невозможно печатать отмененные документы
+Cannot reply to a reply,Не можете ответить на ответ
 Categorize blog posts.,Категоризација постова на блогу.
 Category,Категорија
 Category Name,Име категорије
 Center,Центар
-"Certain documents should not be changed once final, like an Invoice for example. The final state for such documents is called <b>Submitted</b>. You can restrict which roles can Submit.","Одређене документи не треба мењати једном финалу, као фактура за пример. Коначно стање таквих докумената зове <b>Поднет.</b> Можете да ограничите које улоге могу да поднесу."
+"Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit.","Некоторые документы , как счета-фактуры , должны быть установлены только финал. Конечное состояние для таких документов называется Представленные . Вы можете ограничить , какие роли могут Представьте ."
+"Change field properties (hide, readonly, permission etc.)","Изменение свойств поля (скрыть , только для чтения , разрешение и т.д.)"
 Chat,Ћаскање
 Check,Проверити
 Check / Uncheck roles assigned to the User. Click on the Role to find out what permissions that Role has.,Проверите / поништите улоге додељене профил. Кликните на улогу да сазнате шта дозволе које улога.
+Check this if you want to send emails as this id only (in case of restriction by your email provider).,"Проверите ово ако желите да пошаљете е-пошту, јер то само за идентификацију (у случају ограничења услуге е-поште)."
 Check this to make this the default letter head in all prints,Проверите то да овај главу подразумевану писмо у свим отисцима
-Checked,Проверен
+Checked items shown on desktop,"Отмеченные элементы , показанные на рабочем столе"
 Child Tables are shown as a Grid in other DocTypes.,Дете Столови су приказани као Грид у другим ДоцТипес.
-Clear Cache & Refresh,Слободан кеш &amp; Освежи
-Click on button in the 'Condition' column and select the option 'User is the creator of the document',Кликните на дугме у &#39;услови&#39; колоне и изаберите опцију &quot;Корисник је творац документ&quot;
-Click on row to edit.,Кликните на ред за уређивање .
+City,Град
+Clear Cache,Очистить кэш
+Clear all roles,Очистите все роли
+Click on a link to get options to expand get options ,
+Click on row to view / edit.,"Нажмите на строке , чтобы просмотреть / редактировать ."
 Click to Expand / Collapse,Кликните на Прошири / скупи
 Client,Клијент
 Close,Затворити
+Close: {0},Закрыть : {0}
+Closed,Затворено
 Code,Код
+Collapse,коллапс
 Color,Боја
 Column Break,Колона Пауза
 Comment,Коментар
@@ -157,189 +190,246 @@ Communication,Комуникација
 Communication Medium,Комуникација средња
 Company History,Историја компаније
 Company Introduction,Компанија Увод
-Company Name,Име компаније
 Complaint,Жалба
 Complete By,Комплетан Би
 Condition Field,Стање Поље
 Contact Us Settings,Контакт Сеттингс
 "Contact options, like ""Sales Query, Support Query"" etc each on a new line or separated by commas.","Контакт опције, као што су &quot;Куери продаје, Подршка упиту&quot; итд сваки на новој линији или раздвојене зарезима."
 Content,Садржина
+Content Hash,Содержимое Hash
 Content in markdown format that appears on the main side of your page,Садржај у маркдовн формату који се појављује на главној страни странице
 Content web page.,Садржај веб страница.
-Control Panel,Контролна табла
 Controller,контролор
 Copy,Копирајте
 Copyright,Ауторско право
 Core,Језгро
+Could not connect to outgoing email server,Не удалось подключиться к сервера исходящей почты
+Could not find {0},Не удалось найти {0}
 Count,рачунати
 Country,Земља
 Create,Створити
+Created Custom Field {0} in {1},Дата создания настраиваемого поля {0} в {1}
 Created Customer Issue,Написано Кориснички издање
 Created Opportunity,Написано Оппортунити
 Created Support Ticket,Написано Подршка улазница
+Creation / Modified By,Создание / Изменено
 Currency,Валута
-Currency Format,Валута Формат
 Current status,Тренутни статус
 Custom CSS,Прилагођени ЦСС
 Custom Field,Прилагођена поља
+Custom Javascript,Пользовательские Javascript
 Custom Reports,Прилагођени извештаји
 Custom Script,Цустом Сцрипт
-Custom Startup Code,Прилагођена Покретање код
 Custom?,Цустом?
 Customize,Прилагодите
 Customize Form,Прилагодите формулар
 Customize Form Field,Прилагодите поље Форм
 "Customize Label, Print Hide, Default etc.","Прилагођавање налепница, штампање сакрити, итд Уобичајено"
+Customized HTML Templates for printing transctions.,Индивидуальные шаблоны HTML для печатных transctions .
 Daily Event Digest is sent for Calendar Events where reminders are set.,Дневни Догађај Преради се шаље на Календар догађаја где су подесите подсетнике.
 Danger,Опасност
 Data,Подаци
+Data Import / Export Tool,Импорт / Экспорт данных инструментов
+Data Import Tool,Данные Инструмент импорта
 Data missing in table,Недостају подаци у табели
 Date,Датум
 Date Format,Формат датума
-Date must be in format,Датум мора бити у облику
+Date and Number Format,Дата и номер Формат
+Date must be in format: {0},Дата должна быть в формате : {0}
 Datetime,Датетиме
 Dear,Драг
 Default,Уобичајено
-Default Home Page,Уобичајено Хоме Паге
-Default Home Pages,Уобичајено странице
 Default Print Format,Уобичајено Принт Формат
 Default Value,Подразумевана вредност
 "Default: ""Contact Us""",Уобичајено: &quot;Контакт&quot;
 DefaultValue,ДефаултВалуе
 Defaults,Примарни
-Defines actions on states and the next step and allowed roles.,Дефинише радње државе и следећи корак и дозволио улоге.
-Defines workflow states and rules for a document.,Дефинише тока државе и правила за документа.
+"Define read, write, admin permissions for a Website Page.","Определить читать, писать , разрешения администратора для веб-сайта Page ."
+Define workflows for forms.,Определите рабочие процессы для форм .
 Delete,Избрисати
 Delete Row,Делете Ров
 Depends On,Зависи
 Descending,Спуштање
 Description,Опис
+Description and Status,Описание и статус
 "Description for listing page, in plain text, only a couple of lines. (max 140 characters)","Опис за листинг страну, у чисти текст, само пар редова. (Максимално 140 знакова)"
 Description for page header.,Опис за заглављу странице.
 Desktop,Десктоп
 Details,Детаљи
-Did not add.,Није додате.
+Did not add,Не добавить
 Did not cancel,Није отказали
+Did not find {0} for {0} ({1}),Не нашли {0} {0} ( {1} )
+Did not load,Не сработал
+Did not remove,Не удалить
 Did not save,Није штедело
 "Different ""States"" this document can exist in. Like ""Open"", ""Pending Approval"" etc.","Различите &quot;Државе&quot;, овај документ може да постоји унутра Као &quot;Отвори&quot;, &quot;Чека Одобрење&quot; итд"
 Disable Customer Signup link in Login page,Онемогући Регистрација корисника линк на страницу за пријављивање
 Disable Signup,Онемогући Регистрација
 Disabled,Онеспособљен
+Display,дисплей
 Display Settings,Дисплаи Сеттингс
+Display in the sidebar of this Website Route node,Показать в боковой панели этого веб-сайта Маршрут узла
+Do not allow user to change after set the first time,Не позволяйте пользователю изменять после установить в первый раз
 Doc Status,Док статус
 DocField,ДоцФиелд
 DocPerm,ДоцПерм
 DocType,ДОЦТИПЕ
 DocType Details,ДОЦТИПЕ Детаљи
 DocType can not be merged,ДОЦТИПЕ не могу да се споје
-DocType is a Table / Form in the application.,ДОЦТИПЕ је Табела / Форма у апликацији.
 DocType on which this Workflow is applicable.,ДОЦТИПЕ на којима ова Воркфлов је применљиво.
 DocType or Field,ДОЦТИПЕ или поље
+Doclist JSON,DocList JSON
 Docname,Доцнаме
 Document,Документ
 Document Status transition from ,Документ статус прелазак са
+Document Status transition from {0} to {1} is not allowed,Статус документа переход от {0} до {1} не допускается
 Document Type,Доцумент Типе
-Document Types,Врсте докумената
 Document is only editable by users of role,Документ је само мењати од стране корисника о улози
+Documentation,Документација
 Documents,Документи
+Down,вниз
+Download,скачать
 Download Backup,Преузмите Бацкуп
-Draft,Нацрт
+Download link for your backup will be emailed on the following email address:,Ссылка на загрузку для резервного копирования будет выслан на электронный адрес :
 Drafts,Нацрти
 Drag to sort columns,Превуците за сортирање колоне
+Due Date,Дуе Дате
 Edit,Едит
+Edit Permissions,Изменить Разрешения
 Editable,Едитабле
 Email,Е-маил
 Email Host,Е-маил Хост
-Email Id where users will send support request e.g. support@example.com,Е-маил Ид где корисници ће послати захтев за подршку напр суппорт@екампле.цом
+Email Id,Емаил ИД
 Email Login,Емаил Пријава
 Email Password,Е-маил Лозинка
 Email Sent,Емаил Сент
 Email Settings,Емаил подешавања
 Email Signature,Е-маил Потпис
 Email Use SSL,Емаил Користи ССЛ
+Email address,адрес электронной почты
 "Email addresses, separted by commas","Емаил адресе, сепартед зарезима"
+Email not verified with {1},Электронная почта не проверяется с {1}
+Email sent to {0},E-mail отправлено на адрес {0}
 Email...,Е-маил ...
+Emails are muted,Письма приглушены
 Embed image slideshows in website pages.,Постави слајдова слике у веб страницама.
 Enable Comments,Омогући Коментари
 Enabled,Омогућено
 Ends on,Завршава се
 Enter Form Type,Унесите Тип Форм
+Enter Value,Введите значение
 "Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set ""match"" permission rules. To see list of fields, go to <a href=""#Form/Customize Form/Customize Form"">Customize Form</a>.","Унесите поља подразумеване вредности (тастери) и вредности. Ако додате више вредности за поље, прва ће бити одабран. Ове подразумеване се такође користи за подешавање &quot;утакмица&quot; правила дозвола. Да бисте видели листу поља, иди на <a href=""#Form/Customize Form/Customize Form"">Цустомизе образац</a> ."
+"Enter keys to enable login via Facebook, Google, GitHub.","Введите ключи для того, чтобы вход с помощью Facebook, Google , GitHub."
 Equals,Једнак
 Error,Грешка
 Error: Document has been modified after you have opened it,Грешка: Документ је измењен након што сте је отворили
 Event,Догађај
-Event End must be after Start,Догађај Крај мора да буде у СТАРТ
+Event Datetime,событие Datetime
 Event Individuals,Догађај Појединци
 Event Role,Догађај Улога
 Event Roles,Догађај Улоге
 Event Type,Тип догађаја
 Event User,Догађај Корисник
+Event end must be after start,Конец событие должно быть после старта
+Events,События
 Events In Today's Calendar,Догађаји у календару данашњем
 Every Day,Сваки дан
 Every Month,Сваки месец
 Every Week,Свака недеља
 Every Year,Сваке године
 Example:,Пример:
+Expand,расширять
 Export,Извоз
+Export not allowed. You need {0} role to export.,Экспорт не допускается. Вам нужно {0} роль для экспорта .
+Exported,экспортируемый
+Facebook,facebook
+Facebook Client ID,Facebook ID клиента
+Facebook Client Secret,Facebook Клиент Secret
 Facebook Share,Фацебоок Схаре
+Facebook User ID,Facebook ID пользователя
+Facebook Username,facebook Имя пользователя
 FavIcon,Фавицон
 Female,Женски
 Field Description,Поље Опис
 Field Name,Име поља
 Field Type,Тип поља
 "Field that represents the Workflow State of the transaction (if field is not present, a new hidden Custom Field will be created)","Област која представља државу тока трансакције (ако поље није присутно, нова скривена Прилагођена поља ће бити креиран)"
+Field {0} in row {1} cannot be hidden and mandatory without default,Поле {0} в строке {1} не может быть скрыт и обязательно без умолчанию
+Field {0} is not selectable.,Поле {0} не выбирается .
+Field {0} of type {1} cannot be mandatory,Поле {0} типа {1} не может быть обязательным
 Fieldname,Имепоља
+Fieldname is required in row {0},Fieldname требуется в строке {0}
+Fieldname not set for Custom Field,Fieldname не установлен настраиваемого поля
+Fieldname {0} appears multiple times in rows {1},Fieldname {0} несколько раз появляется в строках {1}
+"Fieldname {0} cannot contain letters, numbers or spaces","Fieldname {0} не может содержать буквы, цифры и пробелы"
 Fields,Поља
 "Fields separated by comma (,) will be included in the<br /><b>Search By</b> list of Search dialog box","Поља раздвојене зарезима (,) ће бити укључени у <br /> <b>Претрага по</b> списку дијалогу за претрагу"
+Fieldtype must be one of {0} in row {1},FieldType должен быть одним из {0} в строке {1}
 File,Фајл
 File Data,Филе података
 File Name,Филе Наме
 File Size,Величина
 File URL,Филе УРЛ
+File not attached,Файл не прилагается
 File size exceeded the maximum allowed size,Величина фајла премашила максималну дозвољену величину
 Filter,Филтер
-Finder,налазач
 First Name,Име
 Float,Пловак
+Float Precision,Флоат Прецисион
 Font (Heading),Фонт (наслов)
 Font (Text),Фонт (текст)
 Font Size (Text),Величина слова (текст)
 Fonts,Фонтови
 Footer,Подножје
 Footer Items,Фоотер Артикли
-For All Users,За све кориснике
 For DocType,За ДОЦТИПЕ
 "For Links, enter the DocType as range
 For Select, enter list of Options separated by comma",
 "For comparative filters, start with","За компаративних филтера, почети са"
 For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,"На пример, ако сте отказали и изменити &#39;ИНВ004 &quot;ће постати нови документ&quot; ИНВ004-1&#39;. То ће вам помоћи да пратите сваког амандмана."
-For example: You want to restrict users to transactions marked with a certain property called 'Territory',На пример: Ви желите да ограничите кориснике на трансакције означене са одређеном имовином под називом &quot;Територија&quot;
+"For example, if user X is restricted to company C, user X will not be able to see any transaction that has company C as a linked value.","Например, если пользователь X ограничивается компании C , пользователь X не будет в состоянии видеть любую сделку , которая имеет компании C в виде связанного значения."
 For ranges,За опсеге
+For top bar,Для верхней панели
+For {0} at level {1} in {2} in row {3},Для {0} на уровне {1} в {2} в строке {3}
+Forgot Password,Забыли пароль
+Forgot Password?,Забыли пароль?
 Form,Образац
-"Format: hh:mm example for one hour expiry set as 01:00. 
-Max expiry will be 72 hours. Default is 24 hours",
+Forum,Форум
+Forums,Форумы
 Forward To Email Address,Нападач на е-адресу
 Friday,Петак
 From Date must be before To Date,Од датума мора да буде пре датума
 Full Name,Пуно име
 Gantt Chart,Гантт Цхарт
 Gender,Пол
-General,Општи
 Generator,генератор
 Georgia,Грузија
 Get,Добити
 Get From ,Од Гет
-"Go to Setup > <a href='#user-properties'>User Properties</a> to set \
-			'territory' for diffent Users.",
+GitHub,GitHub
+GitHub Client ID,GitHub ID клиента
+GitHub Client Secret,GitHub Клиент Secret
+Github User ID,Github ID пользователя
+Github Username,Github Имя пользователя
+Google,Google
 Google Analytics ID,Гоогле Аналитицс ИД
+Google Client ID,Google ID клиента
+Google Client Secret,Google Клиент Secret
 Google Plus One,Гоогле Плус Један
+Google User ID,Google ID пользователя
 Google Web Font (Heading),Гоогле Веб Фонт (наслов)
 Google Web Font (Text),Гоогле Веб Фонт (текст)
 Greater or equals,Већа или једнаки
 Greater than,Веће од
+"Grid ""","Мрежа """
+"Group Added, refreshing...","Группа Добавлено , освежающий ..."
+Group Description,Группа Описание
+Group Name,Название группы
+Group Title,Группа Название
+Group Type,Тип группы
 Groups,Групе
-HTML,ХТМЛ
+HTML for header section. Optional,HTML для раздела заголовка . необязательный
+Have an account? Login,Уже зарегистрированы? Войти
 Header,Заглавље
 Heading,Наслов
 Heading Text As,Наслов текст као
@@ -353,68 +443,84 @@ Hide Email,Сакриј Емаил
 Hide Heading,Сакриј Хеадинг
 Hide Print,Сакриј Принт
 Hide Toolbar,Сакриј Тоолбар
+High,Висок
 Highlight,Истаћи
 History,Историја
 Home Page,Почетна страна
 Home Page is Products,Почетна страница је Производи
-Home Pages,Почетна страница
-ID,ИД
 ID (name) of the entity whose property is to be set,ИД (име) ентитета чија имовина се подесити
 Icon,Икона
 Icon will appear on the button,Икона ће се појавити на дугмету
-"If a User does not have access at Level 0, then higher levels are meaningless","Уколико Корисник нема приступ на нивоу 0, онда виши нивои су бесмислени"
+"If 'Restricted' is checked, the owner is always allowed based on Role.","Если "" Restricted "" проверяется , владелец будет всегда разрешен на основе роли ."
+"If 'Restricted' is not checked, you can still restrict permissions based on certain values, like Company or Territory in a document by setting User Restrictions. But unless any restriction is set, a user will have permissions based on the Role.","Если "" Restricted "" не установлен, вы все равно можете ограничить разрешения на основе определенных ценностей , как компания или территории в документе , устанавливая ограничения пользователей. Но если любое ограничение не установлено , пользователь будет иметь права на основе роли ."
+"If a Role does not have access at Level 0, then higher levels are meaningless.","ЕслиРоль не имеет доступа на уровне 0, то более высокие уровни не имеют смысла ."
 "If checked, all other workflows become inactive.","Ако је проверен, сви остали токови постају неактивни."
+"If checked, an email with an attached HTML format will be added to part of the EMail body as well as attachment. To only send as attachment, uncheck this.","Уколико је означено, е-маил са припојеним ХТМЛ формату ће бити додат део у тело е, као и везаност. Да бисте послали само као прилог, искључите ово."
 "If checked, the Home page will be the default Item Group for the website.","Ако је проверен, Почетна страница ће бити стандардна тачка Група за сајт."
 "If image is selected, color will be ignored (attach first)","Ако је слика изабрана, боја ће бити игнорисани (приложити први)"
-"If not, create a","Ако не, направите"
-"If the 'territory' Link Field exists, it will give you an option to select it","Ако Линк пољу &quot;територије&quot; постоји, она ће вам дати могућност да изаберете"
-"If these instructions where not helpful, please add in your suggestions at <a href='https://github.com/frappe/frappe/issues'>GitHub Issues</a>","Ако ове инструкције где не помажу , молимо вас да додате у ваше сугестије на <а хреф='хттпс://гитхуб.цом/вебнотес/внфрамеворк/иссуес'> Гитхуб питања < / а>"
+If non standard port (e.g. 587),Ако не стандардни порт (нпр. 587)
+"If these instructions where not helpful, please add in your suggestions on GitHub Issues.","Если эти инструкции , где не помогает, пожалуйста, добавьте в ваши предложения по вопросам GitHub ."
 "If you set this, this Item will come in a drop-down under the selected parent.","Ако сте поставили ово , ова ставка ће доћи у падајући под изабраном родитеља ."
+Ignore Restrictions,Игнорировать ограничения
+"Ignoring Item {0}, because a group exists with the same name!","Игнорирование Пункт {0} , потому что группа существует с тем же именем !"
 Image,Слика
 Image Link,Слика Линк
 Import,Увоз
+Import / Export Data,Импорт / Экспорт данных
+Import / Export Data from .csv files.,Импорт / Экспорт данных из . CSV-файлов .
 In,у
 In Dialog,У дијалогу
 In Filter,У филтеру
 In List View,У приказу листе
 In Report Filter,У извештају филтер
 In response to,У одговору на
-"In the Permission Manager, click on the button in the 'Condition' column for the Role you want to restrict.","У дозвола Манагер, кликните на дугме у &#39;услови&#39; колумну за улогу коју желите да ограничите."
+Incorrect value in row {0}: {1} must be {2} {3},Неверное значение в строке {0} : {1} должно быть {2} {3}
+Incorrect value: {1} must be {2} {3},Неверное значение : {1} должно быть {2} {3}
 Index,Индекс
 Individuals,Појединци
-Industry,Индустрија
 Info,Инфо
 Insert After,Убаците После
 Insert Below,Убаците Испод
 Insert Code,Инсерт Цоде
 Insert Row,Уметни ред
 Insert Style,Убаците Стиле
+Install Applications.,Установка приложений .
+Installed,Установленная
+Installer,монтажник
 Int,Међ
 Integrations,Интеграције
 Introduce your company to the website visitor.,Представите своју фирму на сајту посетиоца.
 Introduction,Увод
 Introductory information for the Contact Us Page,Уводна информације за нас контактирати странице
-Invalid Email,Погрешан Емаил
+Invalid Email: {0},Неверный e-mail: {0}
+Invalid Filter: {0},Неверный Фильтр: {0}
+Invalid Home Page,Неверный Главная страница
+Invalid Outgoing Mail Server or Port,Неверный Сервер исходящей почты или порт
+Invalid login or password,Неверный Войти или пароль
+Invalid recipient address,Неверный адрес получателя
 Inverse,Инверзан
 Is Active,Је активан
 Is Child Table,Табела је дете
 Is Default,Да ли Уобичајено
+Is Event,Является событие
 Is Mandatory Field,Да ли је обавезно поље
 Is Single,Је Сингле
 Is Standard,Је стандард
 Is Submittable,Да ли Субмиттабле
-JSON,ЈСОН
+Is Task,Является Целевая
+Item cannot be added to its own descendents,Продукт не может быть добавлен в своих собственных потомков
 JavaScript Format: frappe.query_reports['REPORTNAME'] = {},Јава формат : вн.куери_репортс [ ' РЕПОРТНАМЕ ' ] = { }
 Javascript,Јавасцрипт
 Javascript to append to the head section of the page.,Јавасцрипт да додате на главе делу странице.
-Keep a track of all communications,Водите евиденцију о свим комуникацијама
 Key,Кључ
 Label,Налепница
 Label Help,Етикета Помоћ
-Lacs,Лацс
+Label and Type,Этикетка и Тип
+Label is mandatory,Этикетка является обязательным
 Landing Page,Ландинг Паге
 Language,Језик
 Language preference for user interface (only if available).,Језик предност корисничког интерфејса (само ако је на располагању).
+"Language, Date and Time settings","Язык , даты и времени установки"
 Last IP,Последњи ИП
 Last Login,Последњи Улазак
 Last Name,Презиме
@@ -426,7 +532,6 @@ Left,Лево
 Less or equals,Мање или једнако
 Less than,Мање од
 Letter Head,Писмо Глава
-Letter Head Image,Писмо Глава Имаге
 Letter Head Name,Писмо Глава Име
 Letter Head in HTML,Писмо Глава у ХТМЛ
 Level,Ниво
@@ -434,41 +539,48 @@ Level,Ниво
 Like,као
 Link,Линк
 Link Name,Линк Име
+"Link that is the website home page. Standard Links (index, login, products, blog, about, contact)","Связь, которая главной страницы сайта . Стандартные ссылки (индекс , Логин, продукты , блог, о , контакт)"
 Link to other pages in the side bar and next section,Линк ка другим страницама у бочној траци и наредне секција
 Link to the page you want to open,Линк на страницу коју желите да отворите
 Linked In Share,Линкед Ин Схаре
 Linked With,Повезан са
 List,Списак
-List of patches executed,Списак закрпа извршених
+List of Web Site Forum's Posts.,Список сообщений веб-форуме сайта.
 Loading,Утовар
 Loading Report,Учитавање извештај
 Loading...,Учитавање ...
-Log of Scheduler Errors,Дневник планер грешака
+Localization,локализация
+Location,расположение
+Log of error on automated events (scheduler).,Войти ошибки на автоматизированных событий ( ​​планировщик) .
 Login,Пријава
 Login After,Пријава После
 Login Before,Пријава Пре
+Login Id,Пријава Ид
+Login not allowed at this time,Войти не допускается в это время
 Logout,Одјава
 Long Text,Дуго Текст
+Low,Низак
 Lucida Grande,Луцида Гранде
-Mail Footer,Пошта подножје
-Mail Server,Маил Сервер
+Mail Password,Маил Пассворд
 Main Section,Главни Секција
 Make a new,Направите нови
-Make sure that the transactions you want to restrict have a Link field 'territory' that maps to a 'Territory' master.,Уверите се да су трансакције желите да ограничите имају &#39;територију&#39; линком поља која мапира на &quot;Територија&quot; господара.
 Male,Мушки
+Manage cloud backups on Dropbox,Управление облачных резервные копии на Dropbox
+Manage uploaded files.,Управление загруженные файлы.
 Mandatory,Обавезан
+Mandatory fields required in {0},"Обязательные поля , необходимые в {0}"
 Mandatory filters required:\n,Обавезни филтери потребни : \ н
 Master,Мајстор
-Match,Меч
 Max Attachments,Мак Прилози
+Max width for type Currency is 100px in row {0},Максимальная ширина для типа валюта 100px в строке {0}
 "Meaning of Submit, Cancel, Amend","Значење Субмит, Цанцел, Допунити"
+Medium,Средњи
 "Menu items in the Top Bar. For setting the color of the Top Bar, go to <a href=""#Form/Style Settings"">Style Settings</a>","Ставке менија у врху. За подешавање боје на горњој траци, идите на <a href=""#Form/Style Settings"">подешавања стила</a>"
-"Merging is only possible between Group-to-Group or 
-					Ledger-to-Ledger",
+Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node,Слияние возможно только между Группа - в - группе или Leaf узел- листовой узел
 Message,Порука
+Messages,Поруке
 Method,Метод
 Middle Name (Optional),Средње име (опционо)
-Millions,Милиони
 Misc,Остало
 Miscellaneous,Разноличан
 Missing Values Required,Вредности које недостају Обавезна
@@ -476,21 +588,35 @@ Modified by,Изменио
 Module,Модул
 Module Def,Модул Деф
 Module Name,Модуле Наме
-Modules,Модули
+Module Not Found,Модуль не найден
+Modules Setup,Модули установки
 Monday,Понедељак
 More,Више
 More content for the bottom of the page.,Више садржаја за дну странице.
+Move,движение
+Move Down: {0},Вниз : {0}
+Move Up: {0},Вверх : {0}
+Multiple root nodes not allowed.,Несколько корневые узлы не допускается.
 Must have report permission to access this report.,Мора да има дозволу извештај да приступите овом извештају.
 Must specify a Query to run,Морате навести упит за покретање
+My Settings,Моја подешавања
 Name,Име
 Name Case,Име Цасе
 Name Exists,именом
+Name and Description,Име и опис
+Name is required,Име је обавезно
+Name not permitted,Имя не допускается
+Naming,Именование
 Naming Series mandatory,Именовање Сериес обавезно
-New,нови
+Nested set error. Please contact the Administrator.,"Вложенные набор ошибок . Пожалуйста, обратитесь к администратору ."
+New,новый
 New Password,Нова лозинка
 New Record,Нови Рекорд
+New comment on {0} {1},Новый комментарий к {0} {1}
+New password emailed,Новый пароль по электронной почте
 New value to be set,Нова вредност коју треба подесити
 Next Communcation On,Следећа Цоммунцатион На
+Next Record,Следующая запись
 Next State,Следећа држава
 Next actions,Следеће акције
 No,Не
@@ -498,12 +624,15 @@ No Action,Нема Акција
 No Cache,Нема кеш
 No Communication tagged with this ,Не Комуникација означена са овим
 No Copy,Нема копирања
-No Permission,Без дозвола
-No Permission to ,Немате дозволу за
 No Permissions set for this criteria.,Нема Дозволе сет за овим критеријумима.
 No Report Loaded. Please use query-report/[Report Name] to run a report.,Не Извештај Лоадед. Молимо Вас да користите упит-извештај / [извештај Име] да покренете извештај.
+No Results,Нет результатов
+No Sidebar,Нет Боковая панель
 No Sitemap,Не Мапа сајта
-No User Properties found.,Нема корисника Некретнине пронађен.
+No User Restrictions found.,Не найдено ни Пользовательские ограничения .
+No data found,Данные не найдены
+No document selected,Не выбрано ни одного документа
+No file attached,Нет файла прилагается
 No further records,Нема даљих евиденција
 No one,Нико
 No permission to edit,Немате дозволу да измените
@@ -514,30 +643,57 @@ None: End of Workflow,Ништа: Крај Воркфлов
 Not Found,Није пронађено
 Not Linked to any record.,Није повезано са било запис.
 Not Permitted,Није дозвољено
-Not allowed for: ,Није дозвољено:
+Not Submitted,Не Представленные
+Not a user yet? Sign up,Еще не регистрировались ? Зарегистрироваться
+Not a valid Comma Separated Value (CSV File),"Не является допустимым значения, разделенные запятыми ( CSV-файл )"
+Not allowed,Не допускается
+Not allowed from this IP Address,Не допускается из этого IP-адреса
+Not allowed to Import,Не разрешается импортировать
+Not allowed to access {0} with {1} = {2},Не разрешается доступ {0} с {1} = {2}
+Not allowed to change {0} after submission,Не разрешается менять {0} после подачи
+Not allowed to move,Не разрешается двигаться
+Not allowed to reset the password of {0},Не разрешается сбросить пароль {0}
 Not enough permission to see links.,Није довољно дозволу да виде линкове.
 Not equals,Нису једнаки
+Not found,Не найдено
+Not in Developer Mode! Set in site_config.json,Не в режиме разработчика ! Расположенный в site_config.json
+Not permitted,Не допускается
+Not permitted to restrict User {0} for {1} {2},Не разрешено ограничивать пользователя {0} для {1} {2}
 "Note: For best results, images must be of the same size and width must be greater than height.","Напомена: За најбоље резултате, слике морају бити исте величине и ширине мора бити већа од висине."
 Note: Other permission rules may also apply,Напомена: Остале дозвола правила могу да се примењују
 Note: maximum attachment size = 1mb,Напомена: максимална величина прилога = 1мб
+Nothing to delete,Ничего удалить
 Nothing to show,Ништа да покаже
 Nothing to show for this selection,Ништа се покаже за овај избор
 Notification Count,Обавештење Тачка
 Notify By Email,Обавестити путем емаила
+Number Format,Број Формат
+Old Parent,Стари Родитељ
 On,На
-"Once you have set this, the users will only be able access documents with that property.","Када сте поставили ово, корисници ће бити у могућности приступа документима са том имовином."
+"Once you have set this, the users will only be able access documents where the link (e.g Company) exists.","После установки этого , пользователи смогут только доступ к документам , где ссылка (например, компании ) существует ."
 Only Administrator allowed to create Query / Script Reports,Само администратор дозвољено да створе Упит / Сцрипт Репортс
 Only Administrator can save a standard report. Please rename and save.,Само администратор може да спаси стандардног извештаја. Молимо преименовати и сачувати.
 Only Allow Edit For,Само Дозволи Едит За
-Only System Manager can create / edit reports,Само Систем Манагер можете да креирате / едит извештаје
+Only Restricted Documents,Только Ограниченные Документы
+Only allowed {0} rows in one import,Только разрешенные {0} строк в одном импорта
+Only restricted users can access,Только пользователи с ограниченными правами доступа
+Open,Отворено
 Open Count,Отворена Тачка
 Open Sans,Отворене Санс
+Open source ERP built for the web,Открытый исходный код ERP построен для веб
 Options,Опције
 Options Help,Опције Помоћ
+Options must be a valid DocType for field {0} in row {1},Опции должно быть допустимым DocType для поля {0} в строке {1}
+Options not set for link field {0},Опции не установлен поля связи {0}
+Options requried for Link or Table type field {0} in row {1},Опции Requried для Link или типа Таблица поля {0} в строке {1}
+Or Created By,Или Создано
 Org History,Орг Историја
 Org History Heading,Орг Историја Хеадинг
 Original Message,Оригинал Мессаге
 Other,Други
+Outgoing Email Settings,Одлазни Емаил Сеттингс
+Outgoing Mail Server,Оутгоинг маил сервер
+Outgoing Mail Server not specified,Сервер исходящей почты не указано
 POP3 Mail Server (e.g. pop.gmail.com),ПОП3 Маил Сервер (нпр. поп.гмаил.цом)
 Page,Страна
 Page Background,Страница Позадина
@@ -549,69 +705,86 @@ Page Name,Страница Име
 Page Name Field,Име Поље
 Page Role,Страна Улога
 Page Text,Текст странице
-Page already exists,Страница већ постоји
+Page Title,Название страницы
 Page content,Садржај странице
 Page not found,Страница није пронађена
 Page or Generator,Страна или генератор
 Page text and background is same color. Please change.,Страна текста и позадине је иста боја. Молимо Вас да промените.
-"Page to show on the website
-",
-"Page url name (auto-generated) (add "".html"")",Паге урл име (ауто-генерисани) (адд &quot;хтмл&quot;).
+Page url name (auto-generated),Название URL страницы ( автоматически сгенерированный )
+Page with name {0} already exists,Страница с именем {0} уже существует
 Parent Label,Родитељ Лабел
-Parent is required.,Родитељ је потребно.
+Parent Post,родитель Сообщение
+Parent Website Page,Родитель Сайт Страница
+Parent Website Route,Родитель Сайт Маршрут
+Parent Website Sitemap,Родитель Сайт Карта сайта
 Participants,Учесници
 Password,Шифра
-Password Expires in (days),Лозинка Истиче у (дана)
 Password Updated,Лозинка ажурирано
+Password reset instructions have been sent to your email,Инструкции Восстановление пароля были отправлены на электронную почту
 Patch,Закрпа
 Patch Log,Патцх Пријава
 Percent,Проценат
 Perm Level,Перм ниво
+Permanently Cancel {0}?,Постоянно Отменить {0} ?
+Permanently Submit {0}?,Постоянно Представьте {0} ?
+Permanently delete {0}?,Навсегда удалить {0} ?
 Permission Level,Дозвола Ниво
 Permission Levels,Нивои дозвола
 Permission Manager,Дозвола Менаџер
 Permission Rules,Правила дозвола
 Permissions,Дозволе
 Permissions Settings,Дозволе Подешавања
-Permissions are automatically translated to Standard Reports and Searches,Дозволе су аутоматски преведени на стандардних извештаја и претрагама
-"Permissions are set on Roles and Document Types (called DocTypes) by restricting read, edit, make new, submit, cancel, amend and report rights.","Дозволе су постављени на улога и врсте докумената (зове ДоцТипес) ограничавањем читање, уређивање, направити нови, поднесе, отказивање, мења и извештај права."
-Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful incase you want to hide or make certain field read-only.,Дозволе на вишим нивоима су &#39;на терену&#39; дозволе. Сва поља су поставили &#39;ниво дозволе &quot;против њих и правилима дефинисаним у то дозволе важе на терен. Ово је корисно обложити желите да сакријете или направити одређену област само за читање.
+Permissions are automatically translated to Standard Reports and Searches.,Разрешения автоматически переведен на стандартные отчеты и альбом .
+"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Restricted, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Can Restrict.","Разрешения устанавливаются на ролей и типов документов (так называемые DOCTYPEs ) , установив права как прочитанные , Restricted, запись, создание , удаление, Представьте , Отменить , Изменить , отчетов, экспорт, импорт, печать, электронная почта и можно ограничиться ."
+Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only.,"Разрешения на более высоких уровнях это разрешения "" ровное поле ' . Все поля имеют "" уровень разрешений "" набор против них и правилами, определенными в том, что разрешения применяются к полю . Это полезно в случае, если вы хотите , чтобы скрыть или сделать определенные поле только для чтения."
 "Permissions at level 0 are 'Document Level' permissions, i.e. they are primary for access to the document.","Дозволе на нивоу 0 су &quot;нивоу документа&quot; дозволе, односно они су примарни за приступ документу."
-Permissions translate to Users based on what Role they are assigned,Дозволе превести Корисницима на основу онога што су додељени Улога
+Permissions get applied on Users based on what Roles they are assigned.,"Разрешения быть применена на пользователей на основе того, что Роли они назначены."
 Person,Особа
+Personal Info,Личная информация
 Phone,Телефон
 Phone No.,Број телефона
 Pick Columns,Пицк колоне
+Picture URL,Ссылка на изображение
+Pincode,Пинцоде
 Please attach a file first.,Молимо приложите прво датотеку.
 Please attach a file or set a URL,Молимо вас да приложите датотеку или поставите УРЛ
-Please change the value,Молимо промените вредност
+Please do not change the rows above {0},"Пожалуйста, не изменяйте строки выше {0}"
 Please enable pop-ups,Молимо омогућите искачуће прозоре
+Please enter Event's Date and Time!,"Пожалуйста, введите мероприятия Дата и время !"
+Please enter some text!,"Пожалуйста, введите текст !"
+Please enter title!,"Пожалуйста, введите название !"
+Please login to Upvote!,"Пожалуйста, войдите , чтобы Upvote !"
 Please make sure that there are no empty columns in the file.,Молимо Вас проверите да нема празних колона у датотеци.
 Please refresh to get the latest document.,Освежите да би добили најновије документ.
 Please select a file or url,Изаберите фајл или УРЛ
+Please select atleast 1 column from {0} to sort,"Пожалуйста, выберите по крайней мере столбец 1 от {0} для сортировки"
 Please specify,Наведите
+Please specify 'Auto Email Id' in Setup > Outgoing Email Settings,"Пожалуйста, сформулируйте ' Авто электронный идентификатор "" в Setup > Параметры исходящей электронной почты"
+Please specify Event date and time,"Пожалуйста, сформулируйте дату и время события"
+Please specify a,Наведите
 Plugin,Плугин
+Port,порт
+Post,пост
 Post Publicly,Пост Јавно
 Post Topic,Пост Тема
+Post already exists. Cannot add again!,Сообщение уже существует. Не можете добавить снова!
+Post does not exist. Please add post!,"Сообщение не существует. Пожалуйста, добавьте пост !"
 Post to user,Пост кориснику
 Posts,Поруке
+Previous Record,Предыдущая запись
 Primary,Основни
+Print,штампа
 Print Format,Принт Формат
 Print Format Type,Принт откуцајте формат
 Print Hide,Принт Сакриј
 Print Width,Ширина штампе
 Print...,Штампа ...
+Printing and Branding,Печать и брендинг
 Priority,Приоритет
 Private,Приватан
-User,Профил
-User Defaults,Профил Дефаултс
-User Represents a User in the system.,Профил Представља корисника у систему.
-User of a Blogger,Профил од Блоггер
-User of a blog writer.,Профил од блога писца.
 Properties,Некретнине
 Property,Имовина
 Property Setter,Имовина сетер
-Property Setter overrides a standard DocType or Field property,Имовина сетер замењује стандардну ДОЦТИПЕ или поље имовину
 Property Type,Тип некретнине
 Public,Јавност
 Published,Објављен
@@ -621,13 +794,15 @@ Query,Питање
 Query Options,Упит Опције
 Query Report,Извештај упита
 Query must be a SELECT,Упит мора бити ИЗАБЕРИ
+Quick Help for Permission Restrictions,Быстрая помощь для получения разрешения Ограничения
 Quick Help for Setting Permissions,Брза помоћ за постављање дозвола
-Quick Help for User Properties,Брзо Помоћ за кориснике Пропертиес
+Re-open,Снова откройте
 Read,Читати
 Read Only,Прочитајте само
 Received,примљен
 Recipient,Прималац
 Recipients,Примаоци
+Record does not exist,Запись не существует
 Ref DocType,Реф ДОЦТИПЕ
 Ref Name,Реф Име
 Ref Type,Реф Тип
@@ -637,38 +812,53 @@ Reference DocType,Референтни ДоцТипе
 Reference Name,Референтни Име
 Reference Type,Референтни Тип
 Refresh,Освежити
+Refreshing...,Обновление ...
 Registered but disabled.,Регистровани али онемогућен.
 Registration Details Emailed.,Регистрација Детаљи Послато.
+Reload Page,Перезагрузка страницу
+Remove,удалять
 Remove Bookmark,Уклоните Боокмарк
+Remove all customizations?,Удалите все настройки ?
+Rename many items by uploading a .csv file.,"Переименовать много пунктов , загрузив . Файл CSV ."
 Rename...,Преименуј ...
 Repeat On,Поновите На
 Repeat Till,Поновите До
 Repeat this Event,Поновите овај догађај
+Replies,Ответов
 Report,Извештај
 Report Builder,Репорт Буилдер
 Report Builder reports are managed directly by the report builder. Nothing to do.,Репорт Буилдер извештаје директно управља Репорт Буилдер. Нема то везе.
 Report Hide,Извештај Сакриј
 Report Name,Име извештаја
 Report Type,Врста извештаја
+Report cannot be set for Single types,Сообщить не могут быть установлены для отдельных видов
 Report was not saved (there were errors),Извештај није сачуван (било грешака)
-Represents the states allowed in one document and role assigned to change the state.,Представља државама дозвољене у једном документу и улоге додељене промените државу.
 Reqd,Рекд
 Reset Password Key,Ресет Пассворд Кеи
+Reset Permissions for {0}?,Сброс разрешений для {0} ?
 Restrict IP,Забранити ИП
+Restrict cannot be set for Single types,Ограничить не могут быть установлены для отдельных видов
 Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111),"Ограничите корисника из само ове ИП адресе. Вишеструки ИП адресе може се додати одвајањем са зарезима. Такође прихвата делимичне ИП адресе, као што су (111.111.111)"
-Restricting By User,Ограничавање Корисника
+Restricted,ограниченный
+Restricted To,ограничивается
+Restricting Users,Ограничение пользователей
+Restriction,ограничение
+Restriction added,Ограничение добавил
 Right,Право
 Role,Улога
 Role Name,Улога Име
+Role and Level,Роль и уровень
+Role exists,Роль существует
 Roles,Улоге
 Roles Assigned,Улоге додељују
 Roles Assigned To User,Улоге добио Корисника
 Roles HTML,Улоге ХТМЛ
-Root ,Корен
+Roles can be set for users from their User page.,Роли могут быть установлены для пользователей из их странице пользователя.
+Root {0} cannot be deleted,Корневая {0} не может быть удален
 Row,Ред
 Rules defining transition of state in the workflow.,Правила дефинишу транзицију државе у току посла.
 "Rules for how states are transitions, like next state and which role is allowed to change state etc.","Правила за колико су државе транзиције, као и наредно стање и који улога може да промени стање итд"
-SMS,СМС
+SMTP Server (e.g. smtp.gmail.com),СМТП сервер (нпр. смтп.гмаил.цом)
 Sales,Продајни
 Same file has already been attached to the record,Исти фајл је већ у прилогу записника
 Saturday,Субота
@@ -677,82 +867,108 @@ Scheduler Log,Планер Пријава
 Script,Скрипта
 Script Report,Скрипта извештај
 Script Type,Скрипта Врста
-Script to attach to all web pages.,Скрипта да приложите све веб странице.
 Search,Претрага
 Search Fields,Сеарцх Поља
 Section Break,Члан Пауза
+Security,безопасность
 Security Settings,Безбедносне поставке
 Select,Одабрати
 Select All,Изабери све
 Select Attachments,Изаберите прилоге
 Select Document Type,Изаберите Врста документа
 Select Document Type or Role to start.,Изаберите тип документа или улогу за почетак.
-Select Module,Изаберите Модул
 Select Print Format,Изаберите формат штампања
 Select Report Name,Изаберите име Репорт
 Select Role,Избор улоге
+Select To Download:,Выберите на скачивание :
 Select Type,Изаберите Врста
 Select User or Property to start.,Изаберите корисника или имовина за почетак.
 Select a Banner Image first.,Изаберите прво слику Баннер.
 Select an image of approx width 150px with a transparent background for best results.,Изаберите слику ширине 150пк ца са транспарентном позадином за најбоље резултате.
 Select dates to create a new ,Изаберите датум да створи нову
+"Select modules to be shown (based on permission). If hidden, they will be hidden for all users.","Выбор модулей в данном периоде (на основе разрешения ) . Если скрытые, они будут скрыты для всех пользователей."
 Select or drag across time slots to create a new event.,Изаберите или превуците преко терминима да креирате нови догађај.
 "Select target = ""_blank"" to open in a new page.","Одаберите таргет = ""_бланк "" отвара нову страницу у ."
 Select the label after which you want to insert new field.,Изаберите ознаку након чега желите да убаците ново поље.
 Send,Послати
 Send As Email,Пошаљи као емаил
 Send Me A Copy,Пошаљи ми копију
+Send Password,Отправить пароль
+Send Print in Body and Attachment,Пошаљи Принт у телу и прилога
 Send an email reminder in the morning,Пошаљи е-маил подсетник ујутру
+Send download link of a recent backup to System Managers,"Отправить ссылку на скачивание из последней резервной копии , чтобы системных администраторов"
 Send enquiries to this email address,Пошаљите питања на ову емаил адресу
 Sender,Пошиљалац
 Sent,Сент
 Sent Mail,Послате
 Sent Quotation,Сент Понуда
 Sent or Received,Послате или примљене
+Serial No,Серијски број
 Series,серија
+Series {0} already used in {1},Серия {0} уже используется в {1}
 Server,Сервер
 Session Expired. Logging you out,Сесија је истекла. Логгинг те из
-Session Expires in (time),Сесија истиче у (време)
+Session Expiry,Седница Истек
+Session Expiry in Hours e.g. 06:00,Седница Рок Хоурс нпр 06:00
+Session Expiry must be in format {0},Заседание Срок должен быть в формате {0}
 Set Banner from Image,Поставите банер са слике
+Set Defaults and Restrictions for Users,Установить по умолчанию и ограничения для пользователей
 Set Link,Сет линк
+Set Login and Password if authentication is required.,Сет логин и лозинку ако је потребна потврда идентитета.
+Set Only Once,Установлен только один раз
 Set Password,Сет Лозинка
+Set Permissions on Document Types and Roles,Установить разрешения на типов документов и роли
 Set Value,Сет Валуе
-"Set your background color, font and image (tiled)","Поставите позадином, фонт и слике (поплочан)"
+Set numbering series for transactions.,Установите нумерации серии для сделок .
+Set outgoing mail server.,Установить сервер исходящей почты.
+Settings,Подешавања
 Settings for About Us Page.,Подешавања за О нама страна.
-Settings for Contact Us Page,Подешавања за Контакт страницу
 Settings for Contact Us Page.,Подешавања за Контакт страницу.
-Settings for the About Us Page,Подешавања за О нама Паге
+Setup,Намештаљка
+Setup > User,Настройка> Пользователь
+Setup > User Restriction,Настройка> Ограничение Пользователь
 Setup of fonts and background.,Подешавање фонтова и позадине.
 "Setup of top navigation bar, footer and logo.","Подешавање топ навигатион бар, подножје и логотипом."
 Short Bio,Кратка Биографија
 Short Name,Кратко Име
 Shortcut,Пречица
-Show Breadcrumbs,Схов Бреадцрумбс
+Show / Hide Modules,Покажи / сакриј Модули
 Show Details,Прикажи детаље
 Show Print First,Прикажи Штампање Прво
-Show Table of Contents,Покажи Садржај
 Show Tags,Схов Ознаке
-Show Title,Покажи Наслов
+Show or hide modules globally.,Показать или скрыть модули во всем мире.
 Show rows with zero values,Покажи редове са нула вредностима
-Showing only for,Приказ само за
+Show this field as title,Показать это поле как название
+Showing only for (if not empty),Показаны только (если не пусто)
+Sidebar,Боковая панель
+Sidebar Items,Sidebar товары
+Sidebar Links for Home Page only,Sidebar Ссылки для домашней странице только
+Sign Up,Зарегистрироваться
+Sign in,Войдите
+Sign up,Зарегистрироваться
 Single Post (article).,Појединачне поруке (члан).
 Single Types have only one record no tables associated. Values are stored in tabSingles,Појединачне Врсте имају само један рекорд нема табеле повезане . Вредности се чувају у табСинглес
+Sitemap Browser,Карта сайта Обозреватель
+Sitemap Ordering Error. Index {0} missing for {0},Карта сайта для заказа Ошибка . Индекс {0} отсутствует для {0}
 Slideshow,Слидесхов
 Slideshow Items,Слидесхов Артикли
 Slideshow Name,Приказ Име
-Slideshow like display for the website,Приказ екрана као за сајт
 Small Text,Мала Текст
+Social Login Keys,Социальная Вход Ключи
 Solid background color (default light gray),Чврста позадина (дефаулт светло сива)
 Sorry we were unable to find what you were looking for.,Жао ми је што нису могли да пронађу оно што сте тражили.
 Sorry you are not permitted to view this page.,Жао ми је што није дозвољено да видите ову страницу.
 Sort By,Сортирање
-Special Page Settings,Посебна страница Подешавања
+Sort Order,сортировку
 Standard,Стандард
+Standard Print Format cannot be updated,Стандартный Формат печати не может быть обновлен
+Standard Reports,Стандартные отчеты
 Start Report For,Почетак ИЗВЕШТАЈ ЗА
 Starts on,Почиње на
-Startup,Покретање
 State,Држава
 States,Државе
+"States for workflow (e.g. Draft, Approved, Cancelled).","Штаты для рабочего процесса (например, проекты , одобрен , Отменено ) ."
+Static File Timestamp,Статический Отметка времени файла
 Status,Статус
 Step 1: Set the name and save.,Корак 1 : Подесите име и сачувати .
 Step 2: Set Letterhead content.,Корак 2 : Поставите меморандуму садржај .
@@ -763,39 +979,45 @@ Sub-domain provided by erpnext.com,Под-домена пружају ерпне
 Subdomain,Поддомен
 Subject,Предмет
 Submit,Поднети
+Submit an Issue,Представьте о проблеме
 Submitted,Поднет
 Submitted Record cannot be deleted,Послао Снимање не може да се избрише
 Success,Успех
 Suggestion,Сугестија
 Sunday,Недеља
-Support Email Id,Подршка Ид Емаил
+Switch to Website,Перейти на сайт
 Sync Inbox,Синц инбок
 System,Систем
-System Defaults,Системски Дефаултс
+System Settings,Систем Сеттингс
 System User,Систем Корисник
+System and Website Users,Системные и сайта Пользователи
+System generated mails will be sent from this email id.,Систем генерише маилове ће бити послата из овог Емаил ИД.
 Table,Табела
-Table of Contents,Преглед садржаја
+Table {0} cannot be empty,Таблица {0} не может быть пустым
 Tag,Надимак
 Tag Name,Ознака Назив
 Tags,Тагс:
 Tahoma,Тахома
 Target,Мета
+Tasks,Задаци
 Team Members,Чланови тима
 Team Members Heading,Чланови тима Хеадинг
+Template Pages cannot be moved,Шаблон Страницы не могут быть перемещены
 Template Path,Шаблон Путања
 Test,Тест
 Test Runner,Тест Руннер
 Text,Текст
 Text Align,Текст Поравнај
 Text Editor,Текст Уредник
-"The ""Web Page"" that is the website home page",&quot;Веб страница&quot; који је сајт хоме паге
 The name of your company / website as you want to appear on browser title bar. All pages will have this as the prefix to the title.,"Име ваше компаније / сајту, као да желите да се појави на траци прегледача насловној. Све странице ће имати ово као префикс за титулу."
-"The system provides pre-defined roles, but you can <a href='#List/Role'>add new roles</a> to set finer permissions","Систем обезбеђује унапред дефинисане улоге, али можете <a href='#List/Role'>додати нове улоге</a> да поставите дозволе финијим"
+The system provides many pre-defined roles. You can add new roles to set finer permissions.,"Система предоставляет множество заранее определенных ролей. Вы можете добавить новые роли , чтобы установить более тонкие разрешения ."
 Then By (optional),Затим (опционо)
-These properties are Link Type fields from all Documents.,Ове особине су Линк Тип поља из свих докумената.
-"These properties can also be used to 'assign' a particular document, whose property matches with the User's property to a User. These can be set using the <a href='#permission-manager'>Permission Manager</a>","Ове особине могу се користити за &quot;доделили&quot; посебан документ, чија имовина поклапа са имовином Корисника кориснику. Ово се може подесити помоћу <a href='#permission-manager'>Дозвола Манагер</a>"
-These properties will appear as values in forms that contain them.,Ове особине ће се појавити као вредности у облицима који их садрже.
+There were errors,Были ошибки
+There were errors while sending email. Please try again.,"Были ошибки при отправке электронной почты . Пожалуйста, попробуйте еще раз ."
+These restrictions will apply for all transactions linked to the restricted record.,"Эти ограничения будут применяться для всех сделок , связанных с ограниченной записи."
 These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,Ове вредности ће бити аутоматски ажурирају у трансакцијама и такође ће бити корисно да ограничите дозволе за овог корисника о трансакцијама садрже ове вредности.
+These will also be set as default values for those links.,Они также будут установлены по умолчанию для этих связей .
+Third Party Authentication,В-третьих Аутентификация партия
 "This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>
 myfield
 eval:doc.myfield=='My Value'<br>
@@ -803,85 +1025,116 @@ eval:doc.age>18",
 This goes above the slideshow.,Ово иде изнад слајдова.
 This is PERMANENT action and you cannot undo. Continue?,То је стална акција и не можете да опозовете. Наставити?
 This is permanent action and you cannot undo. Continue?,То је стална акција и не можете да опозовете. Наставити?
+This role can restrict users for accessing the record.,Эта роль может ограничить пользователей для доступа к записи.
 Thursday,Четвртак
 Time,Време
 Time Zone,Временска зона
 Title,Наслов
 Title / headline of your page,Наслов / наслов странице
 Title Case,Наслов Случај
+Title Field,Название поля
 Title Prefix,Наслов Префикс
+Title field must be a valid fieldname,Название поля должно быть допустимым имя_поля
+Title is required,Название требуется
 To,До
+To Do,делать
 "To format columns, give column labels in the query.","Да бисте обликовали колоне, дај ознаке колона у упиту."
-"To further restrict permissions based on certain values in a document, use the 'Condition' settings.","Да би се даље ограничавају дозволе на основу одређених вредности у документу, користите &quot;Стање&quot; подешавања."
-To restrict a User of a particular Role to documents that are explicitly assigned to them,Да бисте ограничили корисник посебну улогу у документима који су експлицитно додељене на њих
-To restrict a User of a particular Role to documents that are only self-created.,Да бисте ограничили корисник посебну улогу у документима које су само себи створио.
-"To set user roles, just go to <a href='#List/User'>Setup > Users</a> and click on the user to assign roles.","Да бисте поставили улоге корисника, само идите на <a href='#List/User'>Подешавање корисника&gt;</a> и кликните на корисника да доделите улоге."
+"To give acess to a role for only specific records, check the 'Restricted' perimssion. User Restriction Records are used to restrict users with such role to specific records.","Чтобы дать широкий доступ к роли только определенных записей , проверить "" Restricted "" perimssion . Ограничение Пользователь Записи используются для ограничения пользователей с такой роли конкретных записей ."
+"To report an issue, go to ",
+"To run a test add the module name in the route after '{0}'. For example, {1}","Чтобы запустить тест добавить имя модуля в маршруте после ' {0}' . Например, {1}"
 ToDo,ТоДо
-Tools,Алат
+Too many writes in one request. Please send smaller requests,"Слишком много пишет в одном запросе . Пожалуйста, пришлите меньшие запросы"
 Top Bar,Топ Бар
 Top Bar Background,Топ Бар Позадина
 Top Bar Item,Топ Бар шифра
 Top Bar Items,Топ Бар Артикли
 Top Bar Text,Топ Бар Текст
 Top Bar text and background is same color. Please change.,Топ Бар текста и позадине је иста боја. Молимо Вас да промените.
-Total SMS Sent,Укупно СМС Сент
 Transaction,Трансакција
 Transition Rules,Транзициони Правила
-Trash Reason,Смеће Разлог
 Tuesday,Уторак
 Tweet will be shared via your user account (if specified),Твеет ће се делити преко вашег корисничког налога (ако је наведено)
 Twitter Share,Твиттер Подели
 Twitter Share via,Твиттер Подели путем
 Type,Тип
-UPPER CASE,Велика слова
-UPPERCASE,Велика слова
-URL,УРЛ адреса
-Unable to complete request: ,Није могуће довршити захтев:
-Unable to load,Није могуће учитати
+Unable to find attachment {0},Не удалось найти привязанность {0}
+Unable to load: {0},Невозможно нагрузки : {0}
+Unable to open attached file. Please try again.,"Невозможно открыть вложенный файл . Пожалуйста, попробуйте еще раз ."
+Unable to send emails at this time,Невозможно отправить электронную почту в это время
+Unknown Column: {0},Неизвестный Колонка: {0}
+Unknown Print Format: {0},Неизвестно Формат печати : {0}
 "Unknown file encoding. Tried utf-8, windows-1250, windows-1252.","Непознат фајл кодирање . Покушао УТФ - 8 , прозори - 1250 , прозори - 1252 ."
 Unread Messages,Непрочитаних порука
+Unsubscribe,Отказаться от подписки
 Unsubscribed,Отказали
+Up,вверх
 Upcoming Events for Today,Предстојећи догађаји за данас
 Update,Ажурирање
 Update Field,Упдате Фиелд
+Update Parent,обновление родитель
 Update Value,Ажурирање вредности
+Updated,Ажурирано
 Upload,Уплоад
 Upload Attachment,Уплоад прилог
 Upload a file,Уплоад фајл
 Upload and Import,Уплоад и увоз
 Uploading...,Отпремање ...
+Upvotes,Upvotes
+Use TLS,Користите тлс
 User,Корисник
 User Cannot Create,Корисник не може створити
 User Cannot Search,Корисник не можете претраживати
+User Defaults,Профил Дефаултс
+User ID of a blog writer.,ID пользователя писателя в блоге .
 User Image,Корисник Слика
+User Permission Restrictions,Пользователь Введено Ограничения
+User Properties,Усер Некретнине
+User Restrictions,Ограничения пользователей
+User Roles,Роли пользователей
 User Tags,Корисник Тагс:
 User Type,Тип корисника
+"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ",
+User Vote,Голос пользователя
 User not allowed to delete.,Корисник не сме избрисати.
+User restrictions should not apply for this Link,Ограничения пользователей не должны применяться для данного канала
+User {0} cannot be deleted,Пользователь {0} не может быть удален
+User {0} cannot be disabled,Пользователь {0} не может быть отключена
+User {0} cannot be renamed,Пользователь {0} не может быть переименован
+User {0} does not exist,Пользователь {0} не существует
 UserRole,УсерРоле
+Users and Permissions,Корисници и дозволе
+Users with role {0}:,Пользователи с ролью {0} :
 Value,Вредност
+Value cannot be changed for {0},Значение не может быть изменено для {0}
+Value for a check field can be either 0 or 1,"Значение для поля проверки может быть либо 0, либо 1"
 Value missing for,Вредност недостаје за
 Verdana,Вердана
+Version,версия
+Version restored,Версия восстановлено
+View or manage Website Route tree.,Просмотр или управляющим Сайт Маршрут дерево.
 Visit,Посетити
 Warning,Упозорење
-Web Content,Веб садржај
 Web Page,Веб страна
+Web Site Forum Page.,Форум веб-сайт Страница .
 Website,Вебсајт
-Website Overall Settings,Сајт Овералл Подешавања
+Website Group,Сайт группы
+Website Route,Сајт Мапа
+Website Route Permission,Сайт Маршрут Введено
 Website Script,Сајт скрипте
 Website Settings,Сајт Подешавања
-Website Route,Сајт Мапа
-Website Template,Сајт Мапа Цонфиг
 Website Slideshow,Сајт Слидесхов
 Website Slideshow Item,Сајт Слидесхов шифра
+Website Template,Сајт Мапа Цонфиг
 Website User,Сајт корисника
 Wednesday,Среда
-Welcome Email Sent,Добродошли маил Сент
-"When you <b>Amend</b> a document after cancel and save it, it will get a new number that is a version of the old number.","Када <b>допуну</b> исправу после отказали и сачували га, он ће добити нови број који је верзија старог броја."
+Welcome email sent,"Добро пожаловать Письмо, отправленное"
+"When you Amend a document after Cancel and save it, it will get a new number that is a version of the old number.","При Изменить документ после Отменить и сохранить его , он будет получать новый номер, который является версией старой числа ."
 Width,Ширина
 Will be used in url (usually first name).,Да ли ће се користити у урл (најчешће име).
+With Groups,С группы
+With Ledgers,С Ledgers
 Workflow,Воркфлов
 Workflow Action,Воркфлов Акција
-Workflow Action Master,Воркфлов Акција Мастер
 Workflow Action Name,Воркфлов Акција Име
 Workflow Document State,Воркфлов Документ држава
 Workflow Document States,Воркфлов Документ Државе
@@ -890,7 +1143,6 @@ Workflow State,Воркфлов држава
 Workflow State Field,Воркфлов Држава Поље
 Workflow Transition,Воркфлов Транзиција
 Workflow Transitions,Воркфлов Прелази
-Workflow state represents the current state of a document.,Воркфлов држава представља тренутно стање документа.
 Workflow will start after saving.,Воркфлов ће почети након штедње.
 Write,Написати
 Write a Python file in the same folder where this is saved and return column and result.,Напишите питхон фајл у истом фолдер у којем се то и повратка колоне и резултата.
@@ -900,8 +1152,16 @@ Writers Introduction,Писци Увод
 Year,Година
 Yes,Да
 Yesterday,Јуче
-You can set various 'properties' to Users to set default values and apply permission rules based on the value of these properties in various forms.,Можете да поставите различите &quot;својства&quot; Корисницима да подесите подразумеване вредности и примене правила дозвола на основу вредности ових особина у различитим облицима.
-You can use <a href='#Form/Customize Form'>Customize Form</a> to set levels on fields.,Можете да користите <a href='#Form/Customize Form'>Подесите Образац</a> за подешавање нивоа на пољима.
+You are not allowed to create / edit reports,Вы не можете создавать / редактировать отчеты
+You are not allowed to create {0},Вы не можете создать {0}
+You are not allowed to export the data of: {0}. Downloading empty template.,Вам не разрешено экспортировать данные : {0} . Скачивая пустой шаблон .
+You are not allowed to export this report,Вам не разрешено экспортировать этот отчет
+You are not allowed to print this document,Вы не можете распечатать этот документ
+You are not allowed to send emails related to this document,"Вы не можете отправлять письма , связанные с этим документом"
+"You can change Submitted documents by cancelling them and then, amending them.","Вы можете изменить представленных документов , отменив их, а затем , их изменения."
+You can use Customize Form to set levels on fields.,Вы можете использовать Настроить форму для установки уровней на полях .
+You need to be logged in and have System Manager Role to be able to access backups.,"Вы должны войти в систему, и есть роль System Manager , чтобы иметь возможность доступа к резервные копии."
+You need write permission to rename,"Вам нужно разрешение , чтобы переименовать написать"
 "Your download is being built, this may take a few moments...","Преузимање се гради, ово може да потраје неколико тренутака ..."
 [Label]:[Field Type]/[Options]:[Width],[Лабел]: [Поље Тип] / [Опције]: [ширина]
 add your own CSS (careful!),додајте своје ЦСС (царефул!)
@@ -919,6 +1179,7 @@ asterisk,звездица
 backward,уназад
 ban-circle,бан-круг
 barcode,баркод
+beginning with,начиная с
 bell,звоно
 bold,смео
 book,књига
@@ -927,10 +1188,6 @@ briefcase,актенташна
 bullhorn,мегафона
 calendar,календар
 camera,камера
-cannot be empty,не може да буде празно
-cannot be in its own,не може бити у своје
-"cannot have a URL, because it has child item(s)","не може имати УРЛ, јер има деце ставке ()"
-cannot start with,не може да почне са
 certificate,потврда
 check,проверити
 chevron-down,Цхеврон-доле
@@ -944,10 +1201,8 @@ circle-arrow-up,круг-уп арров
 cog,зубац
 comment,коментар
 comments,Коментари
-create a Custom Field of type Link (User) and then use the 'Condition' settings to map that field to the Permission rule.,"креирате Цустом поље типа Линк (профил), а затим користите &quot;Стање&quot; поставке да мапира то поље на Дозвола правила."
 dd-mm-yyyy,дд-мм-гггг
 dd/mm/yyyy,дд / мм / гггг
-does not exist,не постоји
 download,преузети
 download-alt,довнлоад-алт
 edit,едит
@@ -982,33 +1237,33 @@ headphones,слушалице
 heart,срце
 home,кући
 icon,икона
-in,у
 inbox,инбок
 indent-left,индент-лево
 indent-right,индент-десно
 info-sign,инфо-знак
-is linked in,је повезан на
 is not allowed.,није дозвољено.
 italic,курзиван
 leaf,лист
+lft,ЛФТ
 list,списак
 list-alt,лист-алт
 lock,закључати
 lowercase,мала слова
 magnet,магнет
 map-marker,мапа-маркера
+memcached is not working / stopped. Please start memcached for best results.,"Memcached не работает / остановлен. Пожалуйста, начните Memcached для достижения наилучших результатов ."
 minus,минус
 minus-sign,минус-знак
 mm-dd-yyyy,мм-дд-гггг
 mm/dd/yyyy,мм / дд / ииии
 move,преместити
 music,музика
-not in,не у
-of type Link,типа Линк
+none of,ни один из
 off,искључен
 ok,у реду
 ok-circle,ок-круг
 ok-sign,ок-знак
+one of,один из
 or,или
 pause,пауза
 pencil,оловка
@@ -1032,6 +1287,7 @@ resize-horizontal,ресизе-хоризонтална
 resize-small,ресизе-смалл
 resize-vertical,ресизе-вертикална
 retweet,ретвеет
+rgt,пука
 road,пут
 screenshot,сцреенсхот
 search,претраживати
@@ -1071,3 +1327,30 @@ wrench,кључ
 yyyy-mm-dd,гггг-мм-дд
 zoom-in,зум-у
 zoom-out,зоом-оут
+{0} by {1},{0} {1}
+{0} does not exist in row {1},{0} не существует в строке {1}
+{0} in row {1} cannot have both URL and child items,{0} в строке {1} не может иметь как URL и дочерние элементы
+{0} is not a valid email id,{0} не является допустимым ID E-mail
+{0} is required,{0} требуется
+{0} is saved,{0} сохраняется
+{0} must be one of {1},{0} должен быть одним из {1}
+{0} not allowed in fieldname {1},{0} не допускаются в имени поля {1}
+{0} not allowed in name,{0} не допускаются в имени
+{0} not allowed to be renamed,{0} не могут быть переименованы
+{0} updated,{0} обновляется
+{0} {1} already exists,{0} {1} уже существует
+{0} {1} cannot be a leaf node as it has children,"{0} {1} не может быть листовой узел , как это имеет детей"
+"{0} {1} does not exist, select a new target to merge","{0} {1} не существует , выберите новую цель объединить"
+{0} {1} must be a valid {2},{0} {1} должен быть действительным {2}
+{0}: Cannot set Amend without Cancel,{0} : Не удается установить Изменить без Отменить
+{0}: Cannot set Assign Amend if not Submittable,{0} : Не удается установить Назначить Изменить если не Submittable
+{0}: Cannot set Assign Submit if not Submittable,"{0} : Не удается установить Назначить Представьте , если не Submittable"
+{0}: Cannot set Cancel without Submit,{0} : Не удается установить Отмена без Отправить
+{0}: Cannot set Import without Create,{0} : Не удается установить Импорт без Создать
+"{0}: Cannot set Submit, Cancel, Amend without Write","{0} : Не удается установить Представьте , Отменить , Изменить без Write"
+{0}: Cannot set import as {1} is not importable,{0} : Не удается установить импорт как {1} не является ввозу
+"{0}: Create, Submit, Cancel and Amend only valid at level 0","{0} : Создание , Представьте , Отмена и Изменить действительны только на уровне 0"
+{0}: No basic permissions set,{ Не 0}: Нет базовый набор разрешений
+{0}: Only one rule allowed at a Role and Level,{0} : Только одно правило разрешено на роли и уровня
+{0}: Permission at level 0 must be set before higher levels are set,{0} : введенное на уровне 0 должны быть установлены до более высоких уровней устанавливаются
+{app_title},{ app_title }

@@ -159,22 +159,23 @@ def get_messages_for_app(app):
 		for m in frappe.local.app_modules[app]])
 
 	# doctypes
-	for name in frappe.db.sql_list("""select name from tabDocType
-		where module in ({})""".format(modules)):
-		messages.extend(get_messages_from_doctype(name))
+	if modules:
+		for name in frappe.db.sql_list("""select name from tabDocType
+			where module in ({})""".format(modules)):
+			messages.extend(get_messages_from_doctype(name))
 
-	# pages
-	for name, title in frappe.db.sql("""select name, title from tabPage
-		where module in ({})""".format(modules)):
-		messages.append(title or name)
-		messages.extend(get_messages_from_page(name))
+		# pages
+		for name, title in frappe.db.sql("""select name, title from tabPage
+			where module in ({})""".format(modules)):
+			messages.append(title or name)
+			messages.extend(get_messages_from_page(name))
 
-	# reports
-	for name in frappe.db.sql_list("""select tabReport.name from tabDocType, tabReport
-		where tabReport.ref_doctype = tabDocType.name
-			and tabDocType.module in ({})""".format(modules)):
-		messages.append(name)
-		messages.extend(get_messages_from_report(name))
+		# reports
+		for name in frappe.db.sql_list("""select tabReport.name from tabDocType, tabReport
+			where tabReport.ref_doctype = tabDocType.name
+				and tabDocType.module in ({})""".format(modules)):
+			messages.append(name)
+			messages.extend(get_messages_from_report(name))
 
 	# app_include_files
 	messages.extend(get_messages_from_include_files(app))

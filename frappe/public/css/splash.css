@@ -33,7 +33,7 @@
 	height: 160px;
 	text-align: center;
 	color: #888;
-	
+
 	animation-duration: 1s;
 	animation-name: pulse;
 	animation-iteration-count: infinite;
@@ -46,7 +46,7 @@
 }
 
 .splash:after {
-	content: "frappe.io";
+	content: "frappe";
 	font-size: 30px;
 	font-weight: 300;
 	font-family: Helvetica, Arial, sans-serif;
