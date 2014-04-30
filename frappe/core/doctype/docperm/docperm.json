@@ -1,7 +1,7 @@
 {
  "allow_copy": 0, 
  "autoname": "PERM.#####", 
- "creation": "2013-02-22 01:27:33.000000", 
+ "creation": "2013-02-22 01:27:33", 
  "docstatus": 0, 
  "doctype": "DocType", 
  "fields": [
@@ -70,7 +70,7 @@
    "description": "Only restricted users can access", 
    "fieldname": "restricted", 
    "fieldtype": "Check", 
-   "label": "Restricted", 
+   "label": "Only Restricted Documents", 
    "permlevel": 0
   }, 
   {
@@ -207,10 +207,11 @@
  "idx": 1, 
  "issingle": 0, 
  "istable": 1, 
- "modified": "2014-01-22 14:32:34.000000", 
+ "modified": "2014-04-30 00:31:21.598463", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "DocPerm", 
  "owner": "Administrator", 
+ "permissions": [], 
  "read_only": 0
 }

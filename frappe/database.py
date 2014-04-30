@@ -7,8 +7,9 @@
 from __future__ import unicode_literals
 import MySQLdb
 import warnings
-import frappe
 import datetime
+import frappe
+import frappe.model.meta
 from frappe.utils import now, get_datetime
 from frappe import _
 
@@ -327,6 +328,9 @@ class Database:
 		return self.get_values_from_single(fields, filters, doctype, as_dict, debug, update)
 
 	def get_values_from_single(self, fields, filters, doctype, as_dict=False, debug=False, update=None):
+		if not frappe.model.meta.is_single(doctype):
+			raise frappe.DoesNotExistError("DocType", doctype)
+
 		if fields=="*" or isinstance(filters, dict):
 			# check if single doc matches with filters
 			values = self.get_singles_dict(doctype)

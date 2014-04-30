@@ -99,6 +99,9 @@ function msgprint(msg, title) {
 	if(msg_dialog.msg_area.html()) msg_dialog.msg_area.append("<hr>");
 
 	msg_dialog.msg_area.append(msg);
+
+	// make msgprint always appear on top
+	msg_dialog.$wrapper.css("z-index", 2000);
 	msg_dialog.show();
 
 	return msg_dialog;

@@ -570,11 +570,7 @@ _f.Frm.prototype.runscript = function(scriptname, callingfield, onrefresh) {
 }
 
 _f.Frm.prototype.copy_doc = function(onload, from_amend) {
-	if(!this.perm[0].create) {
-		msgprint(__('You are not allowed to create {0}', [this.meta.name]));
-		return;
-	}
-
+	this.validate_form_action("Create");
 	var newdoc = frappe.model.copy_doc(this.doc, from_amend);
 
 	newdoc.idx = null;
@@ -609,6 +605,8 @@ _f.Frm.prototype.save = function(save_action, callback, btn, on_error) {
 
 _f.Frm.prototype._save = function(save_action, callback, btn, on_error) {
 	var me = this;
+	if(!save_action) save_action = "Save";
+	this.validate_form_action(save_action);
 
 	if((!this.meta.in_dialog || this.in_form) && !this.meta.istable)
 		scroll(0, 0);
@@ -641,12 +639,13 @@ _f.Frm.prototype._save = function(save_action, callback, btn, on_error) {
 		}
 	}
 
-	frappe.ui.form.save(me, save_action || "Save", after_save, btn);
+	frappe.ui.form.save(me, save_action, after_save, btn);
 }
 
 
 _f.Frm.prototype.savesubmit = function(btn, on_error) {
 	var me = this;
+	this.validate_form_action("Submit");
 	frappe.confirm(__("Permanently Submit {0}?", [this.docname]), function() {
 		validated = true;
 		me.script_manager.trigger("before_submit");
@@ -662,10 +661,11 @@ _f.Frm.prototype.savesubmit = function(btn, on_error) {
 			}
 		}, btn, on_error);
 	});
-}
+};
 
 _f.Frm.prototype.savecancel = function(btn, on_error) {
 	var me = this;
+	this.validate_form_action('Cancel');
 	frappe.confirm(__("Permanently Cancel {0}?", [this.docname]), function() {
 		validated = true;
 		me.script_manager.trigger("before_cancel");
@@ -689,6 +689,7 @@ _f.Frm.prototype.savecancel = function(btn, on_error) {
 
 // delete the record
 _f.Frm.prototype.savetrash = function() {
+	this.validate_form_action("Delete");
 	frappe.model.delete_doc(this.doctype, this.docname, function(r) {
 		window.history.back();
 	})
@@ -699,6 +700,7 @@ _f.Frm.prototype.amend_doc = function() {
 		alert('"amended_from" field must be present to do an amendment.');
 		return;
 	}
+	this.validate_form_action("Amend");
 	var me = this;
     var fn = function(newdoc) {
       newdoc.amended_from = me.docname;
@@ -770,3 +772,21 @@ _f.Frm.prototype.add_fetch = function(link_field, src_field, tar_field) {
 _f.Frm.prototype.set_print_heading = function(txt) {
 	this.pformat[cur_frm.docname] = txt;
 }
+
+_f.Frm.prototype.action_perm_type_map = {
+	"Create": "create",
+	"Save": "write",
+	"Submit": "submit",
+	"Update": "submit",
+	"Cancel": "cancel",
+	"Amend": "amend",
+	"Delete": "delete"
+};
+
+_f.Frm.prototype.validate_form_action = function(action) {
+	var perm_to_check = this.action_perm_type_map[action];
+
+	if (!this.perm[0][perm_to_check]) {
+		frappe.throw (__("No permission to '{0}' {1}", [__(action), __(this.doc.doctype)]));
+	}
+};

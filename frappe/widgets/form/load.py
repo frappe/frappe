@@ -30,7 +30,7 @@ def getdoc(doctype, name, user=None):
 		doc.run_method("onload")
 
 		if not doc.has_permission("read"):
-			raise frappe.PermissionError
+			raise frappe.PermissionError, "read"
 
 		# add file list
 		get_docinfo(doctype, name)

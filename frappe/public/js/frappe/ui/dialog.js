@@ -1,5 +1,5 @@
 // Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
-// MIT License. See license.txt 
+// MIT License. See license.txt
 
 frappe.provide('frappe.ui');
 
@@ -30,13 +30,15 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 	},
 	make: function() {
 		this.$wrapper = frappe.get_modal("", "");
-		this.wrapper = this.$wrapper.find('.modal-dialog').get(0);
+		this.wrapper = this.$wrapper.find('.modal-dialog')
+			.css("width", this.width)
+			.get(0);
 		this.make_head();
 		this.body = this.$wrapper.find(".modal-body").get(0);
-		
+
 		// make fields (if any)
 		this._super();
-		
+
 		var me = this;
 		this.$wrapper
 			.on("hide.bs.modal", function() {
@@ -65,8 +67,8 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 				}
 				me.onshow && me.onshow();
 			})
-		
-		
+
+
 	},
 	make_head: function() {
 		var me = this;

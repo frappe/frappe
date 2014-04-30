@@ -209,34 +209,48 @@ frappe.ui.form.Toolbar = Class.extend({
 
 		this.appframe.clear_primary_action();
 
-		if(this.can_submit()) {
-                        status = "Submit";
-                } else if(this.can_save()) {
-                        if(!this.frm.save_disabled) {
-                                status = "Save";
-                        }
-                } else if(this.can_update()) {
-                        status = "Update";
-                } else if(this.can_cancel()) {
-                        status = "Cancel";
-                } else if(this.can_amend()) {
-                        status = "Amend";
-                }
-
-                if(status) {
-                        if(status!==current) {
-                                this.appframe.set_title_right(__(status), {
-                                        "Save": function() { me.frm.save('Save', null, this); },
-                                        "Submit": function() { me.frm.savesubmit(this); },
-                                        "Update": function() { me.frm.save('Update', null, this); },
-                                        "Cancel": function() { me.frm.savecancel(this); },
-                                        "Amend": function() { me.frm.amend_doc(); }
-                                }[status], null, status==="Cancel" ? "btn-default" : "btn-primary");
+		if (this.can_submit()) {
+			status = "Submit";
+		} else if (this.can_save()) {
+			if (!this.frm.save_disabled) {
+				status = "Save";
 			}
-                } else {
-			this.appframe.set_title_right();
+		} else if (this.can_update()) {
+			status = "Update";
+		} else if (this.can_cancel()) {
+			status = "Cancel";
+		} else if (this.can_amend()) {
+			status = "Amend";
 		}
 
+		if (status) {
+			if (status !== current) {
+				var perm_to_check = this.frm.action_perm_type_map[status];
+				if(!this.frm.perm[0][perm_to_check]) {
+					return;
+				}
+
+				this.appframe.set_title_right(__(status), {
+					"Save": function() {
+						me.frm.save('Save', null, this);
+					},
+					"Submit": function() {
+						me.frm.savesubmit(this);
+					},
+					"Update": function() {
+						me.frm.save('Update', null, this);
+					},
+					"Cancel": function() {
+						me.frm.savecancel(this);
+					},
+					"Amend": function() {
+						me.frm.amend_doc();
+					}
+				}[status], null, status === "Cancel" ? "btn-default" : "btn-primary");
+			}
+		} else {
+			this.appframe.set_title_right();
+		}
 	},
 	make_cancel_amend_button: function() {
 		var me = this;

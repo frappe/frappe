@@ -218,15 +218,28 @@ frappe.RoleEditor = Class.extend({
 			args: {role: role},
 			callback: function(r) {
 				var $body = $(me.perm_dialog.body);
-				$body.append('<table class="user-perm"><tbody><tr>\
-					<th style="text-align: left">Document Type</th>\
-					<th>Level</th>\
-					<th>Read</th>\
-					<th>Write</th>\
-					<th>Submit</th>\
-					<th>Cancel</th>\
-					<th>Amend</th></tr></tbody></table>');
-				for(var i in r.message) {
+				// TODO fix the overflow issue and also display perms like report, import, etc.
+
+				$body.append('<table class="user-perm"><thead><tr>'
+					+ '<th style="text-align: left">' + __('Document Type') + '</th>'
+					+ '<th>' + __('Level') + '</th>'
+					+ '<th>' + __('Read') + '</th>'
+					+ '<th>' + __('Only Restricted Documents') + '</th>'
+					+ '<th>' + __('Write') + '</th>'
+					+ '<th>' + __('Create') + '</th>'
+					+ '<th>' + __('Delete') + '</th>'
+					+ '<th>' + __('Submit') + '</th>'
+					+ '<th>' + __('Cancel') + '</th>'
+					+ '<th>' + __('Amend') + '</th>'
+					// + '<th>' + __('Report') + '</th>'
+					// + '<th>' + __('Import') + '</th>'
+					// + '<th>' + __('Export') + '</th>'
+					// + '<th>' + __('Print') + '</th>'
+					// + '<th>' + __('Email') + '</th>'
+					+ '<th>' + __('Can Restrict') + '</th>'
+					+ '</tr></thead><tbody></tbody></table>');
+
+				for(var i=0, l=r.message.length; i<l; i++) {
 					var perm = r.message[i];
 
 					// if permission -> icon
@@ -244,10 +257,19 @@ frappe.RoleEditor = Class.extend({
 						<td style="text-align: left">%(parent)s</td>\
 						<td>%(permlevel)s</td>\
 						<td>%(read)s</td>\
+						<td>%(restricted)s</td>\
 						<td>%(write)s</td>\
+						<td>%(create)s</td>\
+						<td>%(delete)s</td>\
 						<td>%(submit)s</td>\
 						<td>%(cancel)s</td>\
-						<td>%(amend)s</td>\
+						<td>%(amend)s</td>'
+						// + '<td>%(report)s</td>\
+						// <td>%(import)s</td>\
+						// <td>%(export)s</td>\
+						// <td>%(print)s</td>\
+						// <td>%(email)s</td>'
+						+ '<td>%(restrict)s</td>\
 						</tr>', perm))
 				}
 
@@ -259,7 +281,7 @@ frappe.RoleEditor = Class.extend({
 	make_perm_dialog: function() {
 		this.perm_dialog = new frappe.ui.Dialog({
 			title:'Role Permissions',
-			width: 500
+			width: "800px"
 		});
 	}
 });

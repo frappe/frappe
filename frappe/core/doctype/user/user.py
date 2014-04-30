@@ -6,6 +6,7 @@ import frappe
 from frappe.utils import cint, now
 from frappe import throw, msgprint, _
 from frappe.auth import _update_password
+import frappe.permissions
 
 STANDARD_USERS = ("Guest", "Administrator")
 
@@ -270,9 +271,8 @@ def get_user_roles(arg=None):
 @frappe.whitelist()
 def get_perm_info(arg=None):
 	"""get permission info"""
-	return frappe.db.sql("""select parent, permlevel, `read`, `write`, submit,
-		cancel, amend from tabDocPerm where role=%s
-		and docstatus<2 order by parent, permlevel""",
+	return frappe.db.sql("""select parent, permlevel, `{}` from tabDocPerm where role=%s
+		and docstatus<2 order by parent, permlevel""".format("`, `".join(frappe.permissions.rights)),
 			(frappe.form_dict['role'],), as_dict=1)
 
 @frappe.whitelist(allow_guest=True)
