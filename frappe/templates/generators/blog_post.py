@@ -33,7 +33,7 @@ def get_context(context):
 		"description": blog_post.description,
 	}
 
-	image = find_first_image(blog_post.main_section)
+	image = find_first_image(blog_post.content)
 	if image:
 		blog_post.metatags["image"] = image
 
