@@ -332,6 +332,10 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 	else:
 		frappe.model.delete_doc.delete_doc(doctype, name, force, ignore_doctypes, for_reload, ignore_permissions)
 
+def delete_doc_if_exists(doctype, name):
+	if db.exists(doctype, name):
+		delete_doc(doctype, name)
+
 def reload_doc(module, dt=None, dn=None, force=False):
 	import frappe.modules
 	return frappe.modules.reload_doc(module, dt, dn, force=force)

@@ -67,6 +67,8 @@ class TestDocument(unittest.TestCase):
 		self.assertEquals(frappe.db.get_value(d.doctype, d.name, "subject"), "subject changed")
 
 	def test_mandatory(self):
+		frappe.delete_doc_if_exists("User", "test_mandatory@example.com")
+
 		d = frappe.get_doc({
 			"doctype": "User",
 			"email": "test_mandatory@example.com",
@@ -101,6 +103,8 @@ class TestDocument(unittest.TestCase):
 		frappe.set_user("Administrator")
 
 	def test_link_validation(self):
+		frappe.delete_doc_if_exists("User", "test_link_validation@example.com")
+
 		d = frappe.get_doc({
 			"doctype": "User",
 			"email": "test_link_validation@example.com",
@@ -112,11 +116,13 @@ class TestDocument(unittest.TestCase):
 			]
 		})
 		self.assertRaises(frappe.LinkValidationError, d.insert)
+
 		d.user_roles = []
 		d.append("user_roles", {
 			"role": "System Manager"
 		})
 		d.insert()
+
 		self.assertEquals(frappe.db.get_value("User", d.name), d.name)
 
 	def test_validate(self):

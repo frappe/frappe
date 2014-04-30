@@ -2,7 +2,7 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-import frappe, json
+import frappe, json, sys
 from frappe import _
 from frappe.utils import cint, flt, now
 from frappe.model import default_fields
@@ -188,7 +188,8 @@ class BaseDocument(object):
 				), d.values())
 		except Exception, e:
 			if e.args[0]==1062:
-				raise frappe.NameError(self.doctype, self.name, e)
+				type, value, traceback = sys.exc_info()
+				raise frappe.NameError, (self.doctype, self.name, e), traceback
 			else:
 				raise
 
