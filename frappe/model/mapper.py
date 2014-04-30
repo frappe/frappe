@@ -14,12 +14,16 @@ def get_mapped_doc(from_doctype, from_docname, table_maps, target_doc=None,
 
 	source_doc = frappe.get_doc(from_doctype, from_docname)
 
-	if not ignore_permissions and not source_doc.has_permission("read"):
-		frappe.msgprint(_("Not permitted"), raise_exception=frappe.PermissionError)
+	if not ignore_permissions:
+		if not source_doc.has_permission("read"):
+			source_doc.raise_no_permission_to("read")
 
 	# main
 	if not target_doc:
 		target_doc = frappe.new_doc(table_maps[from_doctype]["doctype"])
+
+	if not target_doc.has_permission("create"):
+		target_doc.raise_no_permission_to("create")
 
 	map_doc(source_doc, target_doc, table_maps[source_doc.doctype])
 

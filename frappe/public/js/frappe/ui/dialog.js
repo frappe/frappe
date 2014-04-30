@@ -22,7 +22,7 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 	init: function(opts) {
 		this.display = false;
 		this.is_dialog = true;
-		if(!opts.width) opts.width = 480;
+		if(!opts.width) opts.width = 600;
 
 		$.extend(this, opts);
 		this._super();

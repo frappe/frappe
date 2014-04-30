@@ -103,6 +103,9 @@ class Document(BaseDocument):
 			return True
 		return frappe.has_permission(self.doctype, permtype, self)
 
+	def raise_no_permission_to(self, perm_type):
+		raise frappe.PermissionError("No permission to {} {} {}".format(perm_type, self.doctype, self.name or ""))
+
 	def insert(self, ignore_permissions=None):
 		if ignore_permissions!=None:
 			self.ignore_permissions = ignore_permissions
@@ -110,7 +113,7 @@ class Document(BaseDocument):
 		self.set("__islocal", True)
 
 		if not self.has_permission("create"):
-			raise frappe.PermissionError("No permission to create {} {}".format(self.doctype, self.name))
+			self.raise_no_permission_to("create")
 		self._set_defaults()
 		self._set_docstatus_user_and_timestamp()
 		self.check_if_latest()
@@ -146,7 +149,7 @@ class Document(BaseDocument):
 			return
 
 		if not self.has_permission("write"):
-			raise frappe.PermissionError("No permission to save {} {}".format(self.doctype, self.name))
+			self.raise_no_permission_to("save")
 
 		self._set_docstatus_user_and_timestamp()
 		self.check_if_latest()
@@ -273,7 +276,7 @@ class Document(BaseDocument):
 			elif self.docstatus==1:
 				self._action = "submit"
 				if not self.has_permission("submit"):
-					raise frappe.PermissionError("No permission to submit {} {}".format(self.doctype, self.name))
+					self.raise_no_permission_to("submit")
 			else:
 				raise frappe.DocstatusTransitionError("Cannot change docstatus from 0 to 2")
 
@@ -282,11 +285,11 @@ class Document(BaseDocument):
 				self._action = "update_after_submit"
 				self.validate_update_after_submit()
 				if not self.has_permission("submit"):
-					raise frappe.PermissionError("No permission to submit {} {}".format(self.doctype, self.name))
+					self.raise_no_permission_to("submit")
 			elif self.docstatus==2:
 				self._action = "cancel"
 				if not self.has_permission("cancel"):
-					raise frappe.PermissionError("No permission to cancel {} {}".format(self.doctype, self.name))
+					self.raise_no_permission_to("cancel")
 			else:
 				raise frappe.DocstatusTransitionError("Cannot change docstatus from 1 to 0")
 

@@ -7,7 +7,7 @@ frappe.views.FormFactory = frappe.views.Factory.extend({
 	make: function(route) {
 		var me = this,
 			dt = route[1];
-			
+
 		if(!frappe.views.formview[dt]) {
 			me.page = frappe.container.add_page("Form/" + dt);
 			frappe.views.formview[dt] = me.page;
@@ -32,7 +32,7 @@ frappe.views.FormFactory = frappe.views.Factory.extend({
 
 		frappe.model.with_doc(dt, dn, function(dn, r) {
 			if(r && r['403']) return; // not permitted
-			
+
 			if(!(locals[dt] && locals[dt][dn])) {
 				// doc not found, but starts with New,
 				// make a new doc and set it
@@ -51,7 +51,7 @@ frappe.views.FormFactory = frappe.views.Factory.extend({
 			}
 			me.load(dt, dn);
 		});
-		
+
 	},
 	load: function(dt, dn) {
 		frappe.container.change_to("Form/" + dt);

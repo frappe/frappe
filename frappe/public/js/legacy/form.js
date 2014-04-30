@@ -360,7 +360,10 @@ _f.Frm.prototype.refresh = function(docname) {
 	if(this.docname) { // document to show
 
 		// check permissions
-		if(!this.check_doc_perm()) return;
+		if(!this.check_doc_perm()) {
+			frappe.show_not_permitted(__(this.doctype) + " " + __(this.docname));
+			return;
+		}
 
 		// read only (workflow)
 		this.read_only = frappe.workflow.is_read_only(this.doctype, this.docname);

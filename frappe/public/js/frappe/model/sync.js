@@ -19,6 +19,7 @@ $.extend(frappe.model, {
 
 			$.each(r.docs, function(i, d) {
 				frappe.model.add_to_locals(d);
+
 				d.__last_sync_on = new Date();
 
 				if(d.doctype==="DocType") {
