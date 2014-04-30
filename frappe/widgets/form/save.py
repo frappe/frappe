@@ -54,12 +54,10 @@ def send_updated_docs(doc):
 
 def set_local_name(doc):
 	def _set_local_name(d):
-		if d.get('__islocal'):
+		if doc.get('__islocal') or d.get('__islocal'):
 			d.localname = d.name
 			d.name = None
 
 	_set_local_name(doc)
-	if doc.get('__islocal'):
-		for child in doc.get_all_children():
-			_set_local_name(child)
-
+	for child in doc.get_all_children():
+		_set_local_name(child)
