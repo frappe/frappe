@@ -320,11 +320,11 @@ frappe.ui.make_app_page = function(opts) {
 	$('<div class="appframe-titlebar">\
 			<div class="container">\
 				<div class="row">\
-					<div class="titlebar-item col-xs-8">\
+					<div class="titlebar-item col-sm-8">\
 						<h2 class="titlebar-left-item"></h2>\
 						<h2 class="titlebar-center-item"></h2>\
 					</div>\
-					<div class="titlebar-item text-right col-xs-4"></div>\
+					<div class="titlebar-item text-right col-sm-4"></div>\
 				</div>\
 			</div>\
 		</div>\

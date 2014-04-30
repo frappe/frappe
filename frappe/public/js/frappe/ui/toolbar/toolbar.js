@@ -109,6 +109,8 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 					<i class="icon-fixed-width icon-file"></i> '+__('Documentation')+'</a></li> \
 				<li><a href="http://frappe.io/getting-help" target="_blank">\
 					<i class="icon-fixed-width icon-file"></i> '+__('Forums')+'</a></li> \
+					<li><a href="http://github.com/frappe/erpnext/issues" target="_blank">\
+						<i class="icon-fixed-width icon-file"></i> '+__('Report an Issue')+'</a></li> \
 				<li class="divider"></li> \
 				<li><a href="#" onclick="return frappe.ui.toolbar.clear_cache();">\
 					<i class="icon-fixed-width icon-refresh"></i> '
