@@ -113,7 +113,7 @@ class WebsiteRoute(NestedSet):
 				(self.name, self.ref_doctype, self.docname))
 
 		if exists:
-			frappe.throw(_("Page with name {0} already exists").format(self.name))
+			frappe.throw(_("Page with name {0} already exists").format(self.name), frappe.NameError)
 
 	def make_private_if_parent_is_private(self):
 		if self.parent_website_route:

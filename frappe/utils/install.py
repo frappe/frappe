@@ -42,3 +42,9 @@ def after_install():
 	_update_password("Administrator", frappe.conf.get("admin_password"))
 
 	frappe.db.commit()
+
+def before_tests():
+	frappe.db.sql("delete from `tabCustom Field`")
+	frappe.db.sql("delete from `tabEvent`")
+	frappe.db.commit()
+	frappe.clear_cache()

@@ -160,7 +160,7 @@ class Database:
 		self.sql(query)
 
 	def check_transaction_status(self, query):
-		if not frappe.flags.in_test and self.transaction_writes and \
+		if self.transaction_writes and \
 			query and query.strip().split()[0].lower() in ['start', 'alter', 'drop', 'create', "begin"]:
 			raise Exception, 'This statement can cause implicit commit'
 
@@ -169,7 +169,7 @@ class Database:
 
 		if query[:6].lower() in ['update', 'insert']:
 			self.transaction_writes += 1
-			if not frappe.flags.in_test and self.transaction_writes > 10000:
+			if self.transaction_writes > 10000:
 				if self.auto_commit_on_many_writes:
 					frappe.db.commit()
 				else:
@@ -469,8 +469,7 @@ class Database:
 		return # not required
 
 	def commit(self):
-		if not frappe.flags.in_test:
-			self.sql("commit")
+		self.sql("commit")
 		frappe.local.rollback_observers = []
 
 	def rollback(self):

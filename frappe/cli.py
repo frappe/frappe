@@ -5,7 +5,8 @@
 
 from __future__ import unicode_literals
 import os
-
+import time
+import subprocess
 import frappe
 
 site_arg_optional = ['serve', 'build', 'watch', 'celery', 'resize_images']
@@ -342,7 +343,6 @@ def update(remote=None, branch=None, reload_gunicorn=False):
 	build()
 	latest()
 	if reload_gunicorn:
-		import subprocess
 		subprocess.check_output("killall -HUP gunicorn".split())
 
 @cmd
@@ -703,11 +703,23 @@ def smtp_debug_server():
 @cmd
 def run_tests(app=None, module=None, doctype=None, verbose=False, tests=()):
 	import frappe.test_runner
-	ret = frappe.test_runner.main(app and app[0], module and module[0], doctype and doctype[0], verbose,
-		tests=tests)
+	frappe.local.localhost = "http://localhost:8888"
+	pipe = subprocess.Popen(["frappe", "--serve", "--port", "8888"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	while not pipe.stderr.readline():
+		time.sleep(1)
+	if verbose:
+		print "Test server started"
 
-	if len(ret.failures) > 0 or len(ret.errors) > 0:
-		return 1
+	ret = 1
+	try:
+		ret = frappe.test_runner.main(app and app[0], module and module[0], doctype and doctype[0], verbose,
+			tests=tests)
+		if len(ret.failures) == 0 and len(ret.errors) == 0:
+			ret = 0
+	finally:
+		pipe.terminate()
+
+	return ret
 
 @cmd
 def serve(port=8000, profile=False, sites_path='.', site=None):

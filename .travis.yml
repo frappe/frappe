@@ -20,11 +20,12 @@ install:
 
 script:
     cd ./test_sites/ &&
-    frappe --reinstall test_site &&
-    frappe -b test_site &&
-    frappe --verbose --run_tests test_site
+	frappe --use test_site &&
+    frappe --reinstall &&
+    frappe -b &&
+    frappe --verbose --run_tests
 
 before_script:
-  - mysql -e 'create database travis' &&
-  - echo "USE mysql;\nUPDATE user SET password=PASSWORD('travis') WHERE user='travis';\nFLUSH PRIVILEGES;\n" | mysql -u root
+  - mysql -e 'create database test_site' &&
+  - echo "USE mysql;\nUPDATE user SET password=PASSWORD('test_site') WHERE user='test_site';\nFLUSH PRIVILEGES;\n" | mysql -u root
 

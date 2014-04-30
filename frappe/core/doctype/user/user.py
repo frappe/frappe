@@ -20,9 +20,6 @@ class User(Document):
 			self.email = self.email.strip()
 			self.name = self.email
 
-			if frappe.db.exists("User", self.name):
-				throw(_("Name Exists"))
-
 	def validate(self):
 		self.in_insert = self.get("__islocal")
 		if self.name not in STANDARD_USERS:

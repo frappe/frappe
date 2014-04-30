@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import os
 
-def resize_images(path, maxdim=500):
+def resize_images(path, maxdim=700):
 	import Image
 	size = (maxdim, maxdim)
 	for basepath, folders, files in os.walk(path):

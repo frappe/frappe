@@ -1,4 +1,4 @@
 {
- "db_name": "travis", 
- "db_password": "travis"
+ "db_name": "test_frappe",
+ "db_password": "test_frappe"
 }

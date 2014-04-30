@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 
 import frappe
-import unittest, sys, json
+import unittest, json
 import importlib
 from frappe.modules import load_doctype_module, get_module_name
 from frappe.utils import cstr
@@ -17,8 +17,16 @@ def main(app=None, module=None, doctype=None, verbose=False, tests=()):
 	if not frappe.db:
 		frappe.connect()
 
+	if not frappe.conf.get("db_name").startswith("test_"):
+		raise Exception, 'db_name must start with "test_"'
+
 	# workaround! since there is no separate test db
 	frappe.clear_cache()
+
+	if verbose:
+		print 'Running "before_tests" hooks'
+	for fn in frappe.get_hooks("before_tests", app):
+		frappe.get_attr(fn)()
 
 	if doctype:
 		ret = run_tests_for_doctype(doctype, verbose=verbose, tests=tests)
@@ -120,7 +128,7 @@ def get_modules(doctype):
 		test_module = load_doctype_module(doctype, module, "test_")
 		if test_module:
 			reload(test_module)
-	except ImportError, e:
+	except ImportError:
 		test_module = None
 
 	return module, test_module
@@ -167,8 +175,18 @@ def make_test_records_for_doctype(doctype, verbose=0):
 		elif verbose:
 			print_mandatory_fields(doctype)
 
+
 def make_test_objects(doctype, test_records, verbose=None):
 	records = []
+
+	if not frappe.get_meta(doctype).issingle:
+		existing = frappe.get_list(doctype, filters={"name":("like", "_T-" + doctype + "-%")})
+		if existing:
+			return [d.name for d in existing]
+
+		existing = frappe.get_list(doctype, filters={"name":("like", "_Test " + doctype + "%")})
+		if existing:
+			return [d.name for d in existing]
 
 	for doc in test_records:
 		if not doc.get("doctype"):
@@ -188,12 +206,18 @@ def make_test_objects(doctype, test_records, verbose=None):
 		docstatus = d.docstatus
 
 		d.docstatus = 0
-		d.insert()
+		try:
+			d.insert()
 
-		if docstatus == 1:
-			d.submit()
+			if docstatus == 1:
+				d.submit()
+		except frappe.NameError:
+			pass
 
 		records.append(d.name)
+
+	frappe.db.commit()
+
 	return records
 
 def print_mandatory_fields(doctype):

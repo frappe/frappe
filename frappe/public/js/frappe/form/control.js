@@ -743,14 +743,11 @@ frappe.ui.form.ControlSelect = frappe.ui.form.ControlData.extend({
 		if(!this.frm) return;
 		var fl = frappe.model.docinfo[this.frm.doctype][this.frm.docname];
 		if(fl && fl.attachments) {
-			fl = fl.attachments;
 			this.set_description("");
 			var options = [""];
-			for(var fname in fl) {
-				if(fname.indexOf("/")===-1)
-					fname = "files/" + fname;
-				options.push(fname);
-			}
+			$.each(fl.attachments, function(i, f) {
+				options.push(f.file_url)
+			});
 			return options;
 		} else {
 			this.set_description(__("Please attach a file first."))
