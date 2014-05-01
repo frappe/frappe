@@ -109,7 +109,7 @@ frappe.PermissionEngine = Class.extend({
 					$.each(me.rights, function(i, r) {
 						if(d[r]===1) {
 							if(r==="restrict") {
-								d.rights.push(__("Can Restrict"));
+								d.rights.push(__("Can Restrict Others"));
 							} else if(r==="restricted") {
 								d.rights.push(__("Only Restricted Documents"));
 							} else {
@@ -227,7 +227,7 @@ frappe.PermissionEngine = Class.extend({
 
 			$.each(me.rights, function(i, r) {
 				if(r==="restrict") {
-					add_check(perm_container, d, "restrict", "Can Restrict");
+					add_check(perm_container, d, "restrict", "Can Restrict Others");
 				} else if(r==="restricted") {
 					add_check(perm_container, d, "restricted", "Only Restricted Documents");
 				} else {
@@ -239,8 +239,8 @@ frappe.PermissionEngine = Class.extend({
 			me.add_delete_button(row, d);
 		});
 	},
-	rights: ["read", "restricted", "write", "create", "delete", "submit", "cancel", "amend",
-		"report", "import", "export", "print", "email", "restrict"],
+	rights: ["read", "write", "create", "delete", "submit", "cancel", "amend",
+		"report", "import", "export", "print", "email", "restricted", "restrict"],
 
 	set_show_users: function(cell, role) {
 		cell.html("<a href='#'>"+role+"</a>")
@@ -390,7 +390,7 @@ var permissions_help = ['<table class="table table-bordered" style="background-c
 		':</h4>',
 		'<ol>',
 			'<li>',
-				__('Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Restricted, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Can Restrict.'),
+				__('Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email, Only Restricted Documents and Can Restrict Others.'),
 			'</li>',
 			'<li>',
 				__('Permissions get applied on Users based on what Roles they are assigned.'),
@@ -472,7 +472,7 @@ var permissions_help = ['<table class="table table-bordered" style="background-c
 				__("Once you have set this, the users will only be able access documents where the link (e.g Company) exists."),
 			'</li>',
 			'<li>',
-				__("Apart from System Manager, roles with 'Can Restrict' permission can restrict other users for that Document Type."),
+				__("Apart from System Manager, roles with 'Can Restrict Others' permission can restrict other users for that Document Type."),
 			'</li>',
 		'</ol>',
 	'</td></tr>',

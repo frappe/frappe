@@ -22,8 +22,13 @@ class DocType(Document):
 		self.scrub_field_names()
 		self.validate_title_field()
 		validate_fields(self.get("fields"))
-		if not self.istable:
+
+		if self.istable:
+			# no permission records for child table
+			self.permissions = []
+		else:
 			validate_permissions(self)
+
 		self.make_amendable()
 		self.check_link_replacement_error()
 
@@ -217,7 +222,7 @@ def validate_fields(fields):
 	check_min_items_in_list(fields)
 
 def validate_permissions_for_doctype(doctype, for_remove=False):
-	validate_permissions(frappe.get_doc(doctype), for_remove)
+	validate_permissions(frappe.get_doc("DocType", doctype), for_remove)
 
 def validate_permissions(doctype, for_remove=False):
 	permissions = doctype.get("permissions")

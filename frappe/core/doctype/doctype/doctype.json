@@ -162,12 +162,25 @@
    "search_index": 0
   }, 
   {
+   "fieldname": "description", 
+   "fieldtype": "Small Text", 
+   "hidden": 0, 
+   "label": "Description", 
+   "oldfieldname": "description", 
+   "oldfieldtype": "Text", 
+   "permlevel": 0, 
+   "reqd": 0, 
+   "search_index": 0
+  }, 
+  {
+   "depends_on": "eval:!doc.istable", 
    "fieldname": "sb2", 
    "fieldtype": "Section Break", 
    "label": "Permission Rules", 
    "permlevel": 0
   }, 
   {
+   "depends_on": "", 
    "fieldname": "permissions", 
    "fieldtype": "Table", 
    "hidden": 0, 
@@ -180,6 +193,7 @@
    "search_index": 0
   }, 
   {
+   "depends_on": "eval:!doc.istable", 
    "fieldname": "sb3", 
    "fieldtype": "Section Break", 
    "permlevel": 0
@@ -307,17 +321,6 @@
    "fieldtype": "Data", 
    "label": "Default Print Format", 
    "permlevel": 0
-  }, 
-  {
-   "fieldname": "description", 
-   "fieldtype": "Small Text", 
-   "hidden": 0, 
-   "label": "Description", 
-   "oldfieldname": "description", 
-   "oldfieldtype": "Text", 
-   "permlevel": 0, 
-   "reqd": 0, 
-   "search_index": 0
   }
  ], 
  "hide_heading": 0, 
@@ -326,7 +329,7 @@
  "idx": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2014-04-24 15:55:05.094304", 
+ "modified": "2014-05-01 05:27:22.582492", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "DocType", 
