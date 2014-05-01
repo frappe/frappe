@@ -143,10 +143,10 @@ def time_diff(string_ed_date, string_st_date):
 	return get_datetime(string_ed_date) - get_datetime(string_st_date)
 
 def time_diff_in_seconds(string_ed_date, string_st_date):
-	return time_diff(string_ed_date, string_st_date).seconds
+	return time_diff(string_ed_date, string_st_date).total_seconds()
 
 def time_diff_in_hours(string_ed_date, string_st_date):
-	return round(float(time_diff(string_ed_date, string_st_date).seconds) / 3600, 6)
+	return round(float(time_diff(string_ed_date, string_st_date).total_seconds()) / 3600, 6)
 
 def now_datetime():
 	return convert_utc_to_user_timezone(datetime.datetime.utcnow())
