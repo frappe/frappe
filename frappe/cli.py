@@ -703,12 +703,16 @@ def smtp_debug_server():
 @cmd
 def run_tests(app=None, module=None, doctype=None, verbose=False, tests=()):
 	import frappe.test_runner
+	from frappe.utils import sel
+
 	frappe.local.localhost = "http://localhost:8888"
 	pipe = subprocess.Popen(["frappe", "--serve", "--port", "8888"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 	while not pipe.stderr.readline():
-		time.sleep(1)
+		time.sleep(0.5)
 	if verbose:
 		print "Test server started"
+
+	sel.start(verbose)
 
 	ret = 1
 	try:
@@ -718,6 +722,7 @@ def run_tests(app=None, module=None, doctype=None, verbose=False, tests=()):
 			ret = 0
 	finally:
 		pipe.terminate()
+		sel.close()
 
 	return ret
 

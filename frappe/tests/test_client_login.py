@@ -6,17 +6,15 @@ from frappe.utils import sel
 
 class TestLogin(unittest.TestCase):
 	def setUp(self):
-		sel.start()
+		sel.login(frappe.local.localhost)
 
 	def test_login(self):
-		sel.driver.get(frappe.local.localhost + "/login")
-		sel.wait("#login_email")
-		elem = sel.find("#login_email")[0]
-		elem.send_keys("Administrator")
-		elem = sel.find("#login_password")[0]
-		elem.send_keys("admin", sel.Keys.RETURN)
-		sel.wait("#body_div")
 		self.assertEquals(sel.driver.current_url, frappe.local.localhost + "/desk")
 
-	def tearDown(self):
-		sel.driver.close()
+	def test_to_do(self):
+		sel.module("ToDo")
+		sel.find('.appframe-iconbar .icon-plus')[0].click()
+		sel.wait_for_page("Form/ToDo")
+		sel.set_field_input("description", "test description")
+		sel.primary_action()
+		sel.wait_for_state("clean")

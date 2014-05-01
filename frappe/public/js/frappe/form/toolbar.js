@@ -280,7 +280,11 @@ frappe.ui.form.Toolbar = Class.extend({
 
 		this.appframe.get_title_area()
 			.toggleClass("text-warning", this.frm.doc.__unsaved ? true : false)
+
 		this.set_title();
 		this.set_title_right();
+
+		// set state in wrapper
+		$(this.frm.wrapper).attr("data-state", this.frm.doc.__unsaved ? "dirty" : "clean");
 	}
 })
