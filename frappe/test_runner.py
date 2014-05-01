@@ -35,6 +35,8 @@ def main(app=None, module=None, doctype=None, verbose=False, tests=()):
 	else:
 		ret = run_all_tests(app, verbose)
 
+	frappe.db.commit()
+
 	# workaround! since there is no separate test db
 	frappe.clear_cache()
 
