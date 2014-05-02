@@ -25,7 +25,7 @@ def main(app=None, module=None, doctype=None, verbose=False, tests=()):
 
 	if verbose:
 		print 'Running "before_tests" hooks'
-	for fn in frappe.get_hooks("before_tests", app):
+	for fn in frappe.get_hooks("before_tests", app_name=app):
 		frappe.get_attr(fn)()
 
 	if doctype:
@@ -34,6 +34,8 @@ def main(app=None, module=None, doctype=None, verbose=False, tests=()):
 		ret = run_tests_for_module(module, verbose=verbose, tests=tests)
 	else:
 		ret = run_all_tests(app, verbose)
+
+	frappe.db.commit()
 
 	# workaround! since there is no separate test db
 	frappe.clear_cache()

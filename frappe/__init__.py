@@ -391,24 +391,38 @@ def get_installed_apps():
 	installed = json.loads(db.get_global("installed_apps") or "[]")
 	return installed
 
-def get_hooks(hook=None, app_name=None):
+def get_hooks(hook=None, default=None, app_name=None):
 	def load_app_hooks(app_name=None):
 		hooks = {}
 		for app in [app_name] if app_name else get_installed_apps():
-			if app=="webnotes": app="frappe"
-			for item in get_file_items(get_pymodule_path(app, "hooks.txt")):
-				key, value = item.split("=", 1)
-				key, value = key.strip(), value.strip()
-				hooks.setdefault(key, [])
-				hooks[key].append(value)
+			app = "frappe" if app=="webnotes" else app
+			app_hooks = get_module(app + ".hooks")
+			for key in dir(app_hooks):
+				if not key.startswith("_"):
+					append_hook(hooks, key, getattr(app_hooks, key))
 		return hooks
+
+	def append_hook(target, key, value):
+		if isinstance(value, dict):
+			target.setdefault(key, {})
+			for inkey in value:
+				append_hook(target[key], inkey, value[inkey])
+		else:
+			append_to_list(target, key, value)
+
+	def append_to_list(target, key, value):
+		target.setdefault(key, [])
+		if not isinstance(value, list):
+			value = [value]
+		target[key].extend(value)
+
 	if app_name:
 		hooks = _dict(load_app_hooks(app_name))
 	else:
 		hooks = _dict(cache().get_value("app_hooks", load_app_hooks))
 
 	if hook:
-		return hooks.get(hook) or []
+		return hooks.get(hook) or (default if default is not None else [])
 	else:
 		return hooks
 

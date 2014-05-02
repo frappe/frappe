@@ -67,13 +67,6 @@
    "width": "32px"
   }, 
   {
-   "description": "Only restricted users can access", 
-   "fieldname": "restricted", 
-   "fieldtype": "Check", 
-   "label": "Only Restricted Documents", 
-   "permlevel": 0
-  }, 
-  {
    "fieldname": "write", 
    "fieldtype": "Check", 
    "hidden": 0, 
@@ -178,11 +171,6 @@
    "permlevel": 0
   }, 
   {
-   "fieldname": "column_break_19", 
-   "fieldtype": "Column Break", 
-   "permlevel": 0
-  }, 
-  {
    "fieldname": "print", 
    "fieldtype": "Check", 
    "label": "Print", 
@@ -195,10 +183,22 @@
    "permlevel": 0
   }, 
   {
+   "fieldname": "column_break_19", 
+   "fieldtype": "Column Break", 
+   "permlevel": 0
+  }, 
+  {
+   "description": "Only restricted users can access", 
+   "fieldname": "restricted", 
+   "fieldtype": "Check", 
+   "label": "Only Restricted Documents", 
+   "permlevel": 0
+  }, 
+  {
    "description": "This role can restrict users for accessing the record.", 
    "fieldname": "restrict", 
    "fieldtype": "Check", 
-   "label": "Can Restrict", 
+   "label": "Can Restrict Others", 
    "permlevel": 0
   }
  ], 
@@ -207,7 +207,7 @@
  "idx": 1, 
  "issingle": 0, 
  "istable": 1, 
- "modified": "2014-04-30 00:31:21.598463", 
+ "modified": "2014-05-01 05:20:48.162224", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "DocPerm", 

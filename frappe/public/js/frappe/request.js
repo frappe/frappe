@@ -136,9 +136,11 @@ frappe.request.prepare = function(opts) {
 		console.log(opts)
 		throw "Incomplete Request";
 	}
+
 }
 
 frappe.request.cleanup = function(opts, r) {
+
 	// stop button indicator
 	if(opts.btn) $(opts.btn).done_working();
 

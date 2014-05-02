@@ -5,7 +5,6 @@
 
 from __future__ import unicode_literals
 import os
-import time
 import subprocess
 import frappe
 
@@ -155,6 +154,8 @@ def setup_test(parser):
 		help="Run command for specified module")
 	parser.add_argument("--tests", metavar="TEST FUNCTION", nargs="*",
 		help="Run one or more specific test functions")
+	parser.add_argument("--without_serve", default=False, action="store_true",
+		help="Run tests assuming serve is executed manually on port 8888")
 
 def setup_utilities(parser):
 	# serving
@@ -286,6 +287,9 @@ def install(db_name, root_login="root", root_password=None, source_sql=None,
 		admin_password = admin_password, verbose=verbose, force=force, site_config=site_config, reinstall=reinstall)
 	make_site_dirs()
 	install_app("frappe", verbose=verbose, set_as_patched=not source_sql)
+	if frappe.conf.get("install_apps"):
+		for app in frappe.conf.install_apps:
+			install_app(app, verbose=verbose, set_as_patched=not source_sql)
 	frappe.destroy()
 
 @cmd
@@ -701,18 +705,12 @@ def smtp_debug_server():
 	os.execv(python, [python, '-m', "smtpd", "-n", "-c", "DebuggingServer", "localhost:25"])
 
 @cmd
-def run_tests(app=None, module=None, doctype=None, verbose=False, tests=()):
+def run_tests(app=None, module=None, doctype=None, verbose=False, tests=(), without_serve=False):
 	import frappe.test_runner
 	from frappe.utils import sel
 
-	frappe.local.localhost = "http://localhost:8888"
-	pipe = subprocess.Popen(["frappe", "--serve", "--port", "8888"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-	while not pipe.stderr.readline():
-		time.sleep(0.5)
-	if verbose:
-		print "Test server started"
-
-	sel.start(verbose)
+	if not without_serve:
+		sel.start(verbose)
 
 	ret = 1
 	try:
@@ -721,8 +719,8 @@ def run_tests(app=None, module=None, doctype=None, verbose=False, tests=()):
 		if len(ret.failures) == 0 and len(ret.errors) == 0:
 			ret = 0
 	finally:
-		pipe.terminate()
-		sel.close()
+		if not without_serve:
+			sel.close()
 
 	return ret
 
