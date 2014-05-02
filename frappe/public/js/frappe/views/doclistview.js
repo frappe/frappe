@@ -94,6 +94,9 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		if(this.listview.settings.onload) {
 			this.listview.settings.onload(this);
 		}
+		if(this.listview.settings.set_title_left) {
+			this.appframe.set_title_left(this.listview.settings.set_title_left);
+		}
 		this.make_help();
 		this.$page.find(".show_filters").css({"padding":"15px", "margin":"0px -15px"});
 		var me = this;

@@ -11,5 +11,8 @@ frappe.listview_settings['ToDo'] = {
 				"owner": user
 			}
 		}
+	},
+	set_title_left: function() {
+		frappe.set_route();
 	}
 }

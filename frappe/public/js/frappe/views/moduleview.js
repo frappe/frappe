@@ -119,6 +119,7 @@ frappe.views.moduleview.ModuleView = Class.extend({
 
 		me.item_count = message.item_count;
 		me.add_reports(message.reports, $layout);
+		me.remove_empty_sections($layout);
 		me.show_counts($layout);
 		me.setup_navigation($layout);
 
@@ -251,6 +252,14 @@ frappe.views.moduleview.ModuleView = Class.extend({
 		}
 		this.add_section(reports_section, $layout);
 		this.add_items(reports_section, $layout);
+	},
+
+	remove_empty_sections: function($layout) {
+		$layout.find(".contents [data-content-label]").each(function(i, panel) {
+			if (!$(panel).find(".list-group").html()) {
+				$layout.find('.nav-pills [data-label="' + $(panel).attr("data-content-label") + '"]').remove();
+			}
+		});
 	},
 
 	show_counts: function($layout) {
