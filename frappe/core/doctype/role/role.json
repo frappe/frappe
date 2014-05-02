@@ -2,13 +2,14 @@
  "allow_copy": 0, 
  "allow_rename": 1, 
  "autoname": "field:role_name", 
- "creation": "2013-01-08 15:50:01.000000", 
+ "creation": "2013-01-08 15:50:01", 
  "docstatus": 0, 
  "doctype": "DocType", 
  "fields": [
   {
    "fieldname": "role_name", 
    "fieldtype": "Data", 
+   "in_list_view": 1, 
    "label": "Role Name", 
    "oldfieldname": "role_name", 
    "oldfieldtype": "Data", 
@@ -22,7 +23,7 @@
  "idx": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2013-12-20 19:24:27.000000", 
+ "modified": "2014-05-02 06:35:09.528809", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Role", 
@@ -52,6 +53,11 @@
    "role": "Administrator", 
    "submit": 0, 
    "write": 1
+  }, 
+  {
+   "permlevel": 0, 
+   "read": 1, 
+   "role": "All"
   }
  ], 
  "read_only": 0

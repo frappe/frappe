@@ -13,7 +13,7 @@ frappe.views.CalendarFactory = frappe.views.Factory.extend({
 				page: me.make_page()
 			};
 			$.extend(options, frappe.views.calendar[route[1]] || {});
-			
+
 			frappe.views.calendars[route[1]] = new frappe.views.Calendar(options);
 		});
 	}
@@ -40,7 +40,7 @@ frappe.views.Calendar = Class.extend({
 			var doc = frappe.model.get_new_doc(me.doctype);
 			frappe.set_route("Form", me.doctype, doc.name);
 		}, "icon-plus");
-		
+
 		var me = this;
 		$(this.page).on("show", function() {
 			me.$cal.fullCalendar("refetchEvents");
@@ -51,7 +51,7 @@ frappe.views.Calendar = Class.extend({
 		this.$wrapper = $(this.page).find(".layout-main");
 		this.$cal = $("<div>").appendTo(this.$wrapper);
 		frappe.utils.set_footnote(this, this.$wrapper, __("Select or drag across time slots to create a new event."));
-		// 
+		//
 		// $('<div class="help"></div>')
 		// 	.html(__("Select dates to create a new ") + __(me.doctype))
 		// 	.appendTo(this.$wrapper);
@@ -124,9 +124,9 @@ frappe.views.Calendar = Class.extend({
 				if(jsEvent.day_clicked && view.name=="month")
 					return;
 				var event = frappe.model.get_new_doc(me.doctype);
-				
+
 				event[me.field_map.start] = frappe.datetime.get_datetime_as_string(startDate);
-				
+
 				if(me.field_map.end)
 					event[me.field_map.end] = frappe.datetime.get_datetime_as_string(endDate);
 
@@ -140,7 +140,7 @@ frappe.views.Calendar = Class.extend({
 				return false;
 			}
 		};
-		
+
 		if(this.options) {
 			$.extend(this.cal_options, this.options);
 		}
@@ -154,22 +154,22 @@ frappe.views.Calendar = Class.extend({
 	},
 	prepare_events: function(events) {
 		var me = this;
-		$.each(events, function(i, d) {
+		$.each(events || [], function(i, d) {
 			d.id = d.name;
 			d.editable = frappe.model.can_write(d.doctype || me.doctype);
-			
+
 			// do not allow submitted/cancelled events to be moved / extended
 			if(d.docstatus && d.docstatus > 0) {
 				d.editable = false;
 			}
-				
+
 			$.each(me.field_map, function(target, source) {
 				d[target] = d[source];
 			});
-			
-			if(!me.field_map.allDay) 
+
+			if(!me.field_map.allDay)
 				d.allDay = 1;
-				
+
 			if(d.status) {
 				if(me.style_map) {
 					$.extend(d, me.styles[me.style_map[d.status]] || {});
@@ -193,23 +193,23 @@ frappe.views.Calendar = Class.extend({
 					revertFunc();
 				}
 			}
-		});		
+		});
 	},
 	get_update_args: function(event) {
 		var args = {
 			name: event[this.field_map.id]
 		};
-		args[this.field_map.start] 
+		args[this.field_map.start]
 			= frappe.datetime.get_datetime_as_string(event.start);
-			
-		if(this.field_map.end) 
+
+		if(this.field_map.end)
 			args[this.field_map.end] = frappe.datetime.get_datetime_as_string(event.end);
 
 		if(this.field_map.allDay)
 			args[this.field_map.allDay] = event.allDay ? 1 : 0;
-		
+
 		args.doctype = event.doctype || this.doctype;
-		
+
 		return { args: args, field_map: this.field_map };
 	}
 })

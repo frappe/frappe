@@ -339,6 +339,7 @@ frappe.ui.make_app_page = function(opts) {
 		<div class="appframe container">\
 			<div class="appframe-timestamp hide"></div>\
 			<div class="workflow-button-area btn-group pull-right hide"></div>\
+			<div class="clearfix"></div>\
 		</div>\
 		<div class="appframe-footer hide"></div>').appendTo($wrapper);
 

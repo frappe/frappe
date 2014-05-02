@@ -111,11 +111,6 @@ def has_unrestricted_access(doc, verbose=True):
 	return False if has_restricted_data else True
 
 def has_controller_permissions(doc):
-	if doc.get("__islocal"):
-		doc = frappe.get_doc(doc)
-	else:
-		doc = frappe.get_doc(doc.doctype, doc.name)
-
 	for method in frappe.get_hooks("has_permission").get(doc.doctype, []):
 		if not frappe.call(frappe.get_attr(method), doc=doc):
 			return False
