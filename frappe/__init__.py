@@ -422,7 +422,7 @@ def get_hooks(hook=None, default=None, app_name=None):
 		hooks = _dict(cache().get_value("app_hooks", load_app_hooks))
 
 	if hook:
-		return hooks.get(hook) or default or []
+		return hooks.get(hook) or (default if default is not None else [])
 	else:
 		return hooks
 

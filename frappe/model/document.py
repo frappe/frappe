@@ -423,7 +423,7 @@ class Document(BaseDocument):
 		def composer(self, *args, **kwargs):
 			hooks = []
 			method = f.__name__
-			doc_events = frappe.get_hooks("doc_events")
+			doc_events = frappe.get_hooks("doc_events", {})
 			for handler in doc_events.get(self.doctype, {}).get(method, []) \
 				+ doc_events.get("*", {}).get(method, []):
 				hooks.append(frappe.get_attr(handler))
