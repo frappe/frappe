@@ -21,6 +21,9 @@ class DatabaseQuery(object):
 	def execute(self, query=None, filters=None, fields=None, docstatus=None,
 		group_by=None, order_by=None, limit_start=0, limit_page_length=20,
 		as_list=False, with_childnames=False, debug=False, ignore_permissions=False):
+		if not frappe.has_permission(self.doctype, "read"):
+			raise frappe.PermissionError
+
 		if fields:
 			self.fields = fields
 		self.filters = filters or []
@@ -254,7 +257,7 @@ class DatabaseQuery(object):
 		return conditions
 
 	def get_permission_query_conditions(self):
-		condition_methods = frappe.get_hooks("permission_query_conditions:" + self.doctype)
+		condition_methods = frappe.get_hooks("permission_query_conditions", {}).get(self.doctype, [])
 		if condition_methods:
 			conditions = []
 			for method in condition_methods:

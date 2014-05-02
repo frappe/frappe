@@ -9,7 +9,11 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
+from urllib import unquote
+import time, frappe, subprocess
 
+host = "http://localhost:8888"
+pipe = None
 driver = None
 verbose = None
 host = None
@@ -18,26 +22,35 @@ cur_route = False
 
 def start(_verbose=None):
 	global driver, verbose
-	driver = webdriver.PhantomJS()
 	verbose = _verbose
+
+	start_test_server(verbose)
+	driver = webdriver.PhantomJS()
+
+def start_test_server(verbose):
+	global pipe
+	pipe = subprocess.Popen(["frappe", "--serve", "--port", "8888"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	while not pipe.stderr.readline():
+		time.sleep(0.5)
+	if verbose:
+		print "Test server started"
 
 def get(url):
 	driver.get(url)
 
-def login(_host):
-	global host, logged_in
+def login(wait_for_id="#page-desktop"):
+	global logged_in
 	if logged_in:
 		return
-	host = _host
 	get(host + "/login")
 	wait("#login_email")
 	set_input("#login_email", "Administrator")
 	set_input("#login_password", "admin" + Keys.RETURN)
-	wait("#page-desktop")
+	wait(wait_for_id)
 	logged_in = True
 
 
-def module(module_name):
+def go_to_module(module_name, item=None):
 	global cur_route
 
 	# desktop
@@ -56,26 +69,49 @@ def module(module_name):
 	m[0].click()
 	wait_for_page(page)
 
+	if item:
+		elem = find('[data-label="{0}"]'.format(item))[0]
+		elem.click()
+		page = unquote(elem.get_attribute("href").split("#", 1)[1])
+		wait_for_page(page)
+
+def new_doc(module, doctype):
+	go_to_module(module, doctype)
+	find('.appframe-iconbar .icon-plus')[0].click()
+	wait_for_page("Form/" + doctype)
+
+def add_child(fieldname):
+	find('[data-fieldname="{0}"] .grid-add-row'.format(fieldname))[0].click()
+	wait('[data-fieldname="{0}"] .form-grid'.format(fieldname))
+
 def find(selector, everywhere=False):
 	if cur_route and not everywhere:
 		selector = cur_route + " " + selector
 	return driver.find_elements_by_css_selector(selector)
 
-def set_field_input(fieldname, value):
-	set_input('[data-fieldname="{0}"]'.format(fieldname), value)
+def set_field(fieldname, value):
+	set_input('input[data-fieldname="{0}"]'.format(fieldname), value + Keys.TAB)
+	wait_for_ajax()
+	time.sleep(0.5)
 
 def primary_action():
 	find(".appframe-titlebar .btn-primary")[0].click()
+	wait_for_ajax()
+
+def wait_for_ajax():
+	wait('body[data-ajax-state="complete"]', True)
 
 def wait_for_page(name):
 	global cur_route
 	cur_route = None
 	route = '[data-page-route="{0}"]'.format(name)
-	wait(route)
+	elem = wait(route)
+	wait_for_ajax()
 	cur_route = route
+	return elem
 
 def wait_for_state(state):
-	wait(cur_route + '[data-state="{0}"]'.format(state), True)
+	return wait(cur_route + '[data-state="{0}"]'.format(state), True)
 
 def wait(selector, everywhere=False):
 	if cur_route and not everywhere:
@@ -92,9 +128,11 @@ def wait(selector, everywhere=False):
 
 def set_input(selector, text):
 	elem = find(selector)[0]
+	elem.clear()
 	elem.send_keys(text)
 
 def close():
-	global driver
+	global driver, pipe
 	driver.quit()
-	driver = None
+	pipe.kill()
+	driver = pipe = None

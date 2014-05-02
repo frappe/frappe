@@ -194,7 +194,7 @@ frappe.views.moduleview.ModuleView = Class.extend({
 				$list_item = $($r('<li class="list-group-item">\
 					<div class="row">\
 						<div class="col-sm-6 list-item-name">\
-							<a><i class="%(icon)s icon-fixed-width"></i> %(label)s</a></div>\
+							<a data-label="%(label)s"><i class="%(icon)s icon-fixed-width"></i> %(label)s</a></div>\
 						<div class="col-sm-6 text-muted list-item-description">%(description)s</div>\
 					</div>\
 					</li>', item)).appendTo($list);
@@ -205,32 +205,32 @@ frappe.views.moduleview.ModuleView = Class.extend({
 					$list_item.find(".list-item-name").removeClass("col-sm-6").addClass("col-sm-12");
 				}
 
-				$list_item.find("a")
-					.on("click", function() {
-						if(item.route) {
-							frappe.set_route(item.route);
-						} else if(item.onclick) {
+				if(item.onclick) {
+					$list_item.find("a")
+						.on("click", function() {
 							var fn = eval(item.onclick);
 							if(typeof(fn)==="function") {
 								fn();
 							}
-						} else if(item.type==="doctype") {
-							frappe.set_route("List", item.name)
-						}
-						else if(item.type==="page") {
-							frappe.set_route(item.route || item.link || item.name);
-						}
-						else if(item.type==="report") {
-							if(item.is_query_report) {
-								frappe.set_route("query-report", item.name);
-							} else {
-								frappe.set_route("Report", item.doctype, item.name);
-							}
+						});
+				} else {
+					var route = item.route;
+					if(item.type==="doctype") {
+						route = "List/" + encodeURIComponent(item.name);
+					} else if(item.type==="page") {
+						route = item.route || item.link || item.name;
+					} else if(item.type==="report") {
+						if(item.is_query_report) {
+							route = "query-report/" + encodeURIComponent(item.name);
 						} else {
-							return;
+							route = "Report/" + encodeURIComponent(item.doctype) + "/" + encodeURIComponent(item.name);
 						}
-						return false;
-					});
+					}
+
+					$list_item.find("a")
+						.attr("href", "#" + route)
+				}
+
 
 				var show_count = (item.type==="doctype" || (item.type==="page" && item.doctype)) && !item.hide_count
 				if(show_count) {

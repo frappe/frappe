@@ -25,7 +25,7 @@ def main(app=None, module=None, doctype=None, verbose=False, tests=()):
 
 	if verbose:
 		print 'Running "before_tests" hooks'
-	for fn in frappe.get_hooks("before_tests", app):
+	for fn in frappe.get_hooks("before_tests", app_name=app):
 		frappe.get_attr(fn)()
 
 	if doctype:

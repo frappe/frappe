@@ -5,7 +5,6 @@
 
 from __future__ import unicode_literals
 import os
-import time
 import subprocess
 import frappe
 
@@ -288,6 +287,9 @@ def install(db_name, root_login="root", root_password=None, source_sql=None,
 		admin_password = admin_password, verbose=verbose, force=force, site_config=site_config, reinstall=reinstall)
 	make_site_dirs()
 	install_app("frappe", verbose=verbose, set_as_patched=not source_sql)
+	if frappe.conf.get("install_apps"):
+		for app in frappe.conf.install_apps:
+			install_app(app, verbose=verbose, set_as_patched=not source_sql)
 	frappe.destroy()
 
 @cmd
@@ -707,16 +709,8 @@ def run_tests(app=None, module=None, doctype=None, verbose=False, tests=(), with
 	import frappe.test_runner
 	from frappe.utils import sel
 
-	frappe.local.localhost = "http://localhost:8888"
 	if not without_serve:
-		pipe = subprocess.Popen(["frappe", frappe.local.site, "--serve", "--port", "8888"],
-			stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-		while not pipe.stderr.readline():
-			time.sleep(0.5)
-		if verbose:
-			print "Test server started"
-
-	sel.start(verbose)
+		sel.start(verbose)
 
 	ret = 1
 	try:
@@ -726,9 +720,7 @@ def run_tests(app=None, module=None, doctype=None, verbose=False, tests=(), with
 			ret = 0
 	finally:
 		if not without_serve:
-			pipe.terminate()
-
-		sel.close()
+			sel.close()
 
 	return ret
 

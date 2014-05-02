@@ -11,7 +11,7 @@ frappe.ui.form.Grid = Class.extend({
 		var me = this;
 
 		this.wrapper = $('<div>\
-		<div class="" style="border: 2px solid #c7c7c7; margin-bottom: 15px; border-radius: 3px;">\
+		<div class="form-grid">\
 			<div class="grid-heading-row" style="font-size: 15px; background-color: #f9f9f9;"></div>\
 			<div class="panel-body">\
 				<div class="rows"></div>\
@@ -22,7 +22,9 @@ frappe.ui.form.Grid = Class.extend({
 				</div>\
 			</div>\
 		</div>\
-		</div>').appendTo(this.parent);
+		</div>')
+			.appendTo(this.parent)
+			.attr("data-fieldname", this.df.fieldname);
 
 		$(this.wrapper).find(".grid-add-row").click(function() {
 			me.add_new_row(null, null, true);
