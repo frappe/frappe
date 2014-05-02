@@ -1,7 +1,7 @@
 // Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-$(document).ready(function() { 
+$(document).ready(function() {
 
 	$('.btn-send').click(function() {
 		var email = $('[name="email"]').val();
@@ -27,7 +27,7 @@ $(document).ready(function() {
 			message: message,
 			callback: function(r) {
 				if(r.message==="okay") {
-					msgprint(r.message || __("Thank you for your message"))
+					msgprint(__("Thank you for your message"));
 				} else {
 					msgprint(__("There were errors"));
 					console.log(r.exc);
