@@ -194,8 +194,7 @@ _f.Frm.prototype.set_value = function(field, value, if_missing) {
 			if(!if_missing || !frappe.model.has_value(me.doctype, me.doc.name, f)) {
 				if(fieldobj.df.fieldtype==="Table" && $.isArray(v)) {
 
-					frappe.model.clear_table(fieldobj.df.options, me.doctype,
-						me.doc.name, fieldobj.df.fieldname);
+					frappe.model.clear_table(me.doc, fieldobj.df.fieldname);
 
 					$.each(v, function(i, d) {
 						var child = frappe.model.add_child(me.doc, fieldobj.df.options,
@@ -204,7 +203,6 @@ _f.Frm.prototype.set_value = function(field, value, if_missing) {
 					});
 
 					me.refresh_field(f);
-
 				} else {
 					frappe.model.set_value(me.doctype, me.doc.name, f, v);
 				}

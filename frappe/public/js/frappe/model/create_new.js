@@ -128,7 +128,7 @@ $.extend(frappe.model, {
 			});
 		}
 
-		cur_frm && cur_frm.dirty();
+		if (cur_frm && cur_frm.doc == parent_doc) cur_frm.dirty();
 
 		return d;
 	},

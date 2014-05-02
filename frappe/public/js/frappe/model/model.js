@@ -296,12 +296,12 @@ $.extend(frappe.model, {
 		}
 	},
 
-	clear_table: function(doctype, parenttype, parent, parentfield) {
-		$.each(locals[doctype] || {}, function(i, d) {
-			if(d.parent===parent && d.parenttype===parenttype && d.parentfield===parentfield) {
-				delete locals[doctype][d.name];
-			}
-		})
+	clear_table: function(doc, parentfield) {
+		for (var i=0, l=(doc[parentfield] || []).length; i<l; i++) {
+			var d = doc[parentfield][i];
+			delete locals[d.doctype][d.name];
+		}
+		doc[parentfield] = [];
 	},
 
 	remove_from_locals: function(doctype, name) {
