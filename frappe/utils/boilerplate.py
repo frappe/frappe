@@ -108,12 +108,12 @@ app_version = "0.0.1"
 # ------------------
 
 # include js, css files in header of desk.html
-# app_include_css = "/assets/{app_name}/{app_name}.css"
-# app_include_js = "/assets/{app_name}/{app_name}.js"
+# app_include_css = "/assets/{app_name}/css/{app_name}.css"
+# app_include_js = "/assets/{app_name}/js/{app_name}.js"
 
 # include js, css files in header of web template
-# web_include_css = "/assets/{app_name}/{app_name}.css"
-# web_include_js = "/assets/{app_name}/{app_name}.js"
+# web_include_css = "/assets/{app_name}/css/{app_name}.css"
+# web_include_js = "/assets/{app_name}/js/{app_name}.js"
 
 # Installation
 # ------------
@@ -131,30 +131,30 @@ app_version = "0.0.1"
 # -----------
 # Permissions evaluated in scripted ways
 
-# permission_query_conditions = {
+# permission_query_conditions = {{
 # 	"Event": "frappe.core.doctype.event.event.get_permission_query_conditions",
-# }
+# }}
 #
-# has_permission = {
+# has_permission = {{
 # 	"Event": "frappe.core.doctype.event.event.has_permission",
-# }
+# }}
 
 # Document Events
 # ---------------
 # Hook on document methods and events
 
-# doc_events = {
-# 	"*": {
+# doc_events = {{
+# 	"*": {{
 # 		"on_update": "method",
 # 		"on_cancel": "method",
 # 		"on_trash": "method"
-#	}
-# }
+#	}}
+# }}
 
 # Scheduled Tasks
 # ---------------
 
-# scheduler_events = {
+# scheduler_events = {{
 # 	"all": [
 # 		"{app_name}.tasks.all"
 # 	],
@@ -170,7 +170,7 @@ app_version = "0.0.1"
 # 	"monthly": [
 # 		"{app_name}.tasks.monthly"
 # 	]
-# }
+# }}
 
 # Testing
 # -------

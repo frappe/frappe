@@ -1,3 +1,4 @@
+{% if doc.apply_style %}
 {% if doc.at_import %}
 {{ doc.at_import }}
 {% endif %}
@@ -235,3 +236,4 @@ hr {
 /* User CSS */
 {{ doc.add_css }}
 {%- endif %}
+{% endif %}

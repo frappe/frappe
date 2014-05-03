@@ -1,13 +1,29 @@
 {
  "allow_attach": 1, 
- "creation": "2013-03-25 16:01:33.000000", 
+ "creation": "2013-03-25 16:01:33", 
  "description": "Set your background color, font and image (tiled)", 
  "docstatus": 0, 
  "doctype": "DocType", 
  "fields": [
   {
+   "fieldname": "enable", 
+   "fieldtype": "Section Break", 
+   "in_list_view": 1, 
+   "label": "Enable", 
+   "permlevel": 0
+  }, 
+  {
+   "description": "This must be checked if Style Settings are applicable", 
+   "fieldname": "apply_style", 
+   "fieldtype": "Check", 
+   "in_list_view": 1, 
+   "label": "Apply Style", 
+   "permlevel": 0
+  }, 
+  {
    "fieldname": "color", 
    "fieldtype": "Section Break", 
+   "in_list_view": 1, 
    "label": "Color", 
    "permlevel": 0
   }, 
@@ -15,6 +31,7 @@
    "description": "If image is selected, color will be ignored (attach first)", 
    "fieldname": "background_image", 
    "fieldtype": "Select", 
+   "in_list_view": 1, 
    "label": "Background Image", 
    "options": "attach_files:", 
    "permlevel": 0
@@ -23,6 +40,7 @@
    "description": "Solid background color (default light gray)", 
    "fieldname": "background_color", 
    "fieldtype": "Data", 
+   "in_list_view": 1, 
    "label": "Background Color", 
    "permlevel": 0
   }, 
@@ -156,7 +174,7 @@
  "idx": 1, 
  "issingle": 1, 
  "max_attachments": 1, 
- "modified": "2013-12-20 19:22:48.000000", 
+ "modified": "2014-05-03 14:57:55.879426", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Style Settings", 
