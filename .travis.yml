@@ -19,11 +19,11 @@ install:
   - pip install --editable .
 
 script:
-    cd ./test_sites/ &&
-	frappe --use test_site &&
-    frappe --reinstall &&
-    frappe -b &&
-    frappe --verbose --run_tests
+  cd ./test_sites/ &&
+  frappe --use test_site &&
+  frappe --reinstall &&
+  frappe -b &&
+  frappe --verbose --run_tests
 
 before_script:
   - mysql -e 'create database test_site' &&
