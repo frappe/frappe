@@ -23,6 +23,7 @@ script:
   frappe --use test_site &&
   frappe --reinstall &&
   frappe -b &&
+  frappe --serve --port 8888 & &&
   frappe --verbose --run_tests
 
 before_script:
