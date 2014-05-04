@@ -193,11 +193,11 @@ $.extend(frappe.model, {
 				method: opts.method,
 				args: {
 					"source_name": opts.source_name,
-					"target_doclist": cur_frm.doc
+					"target_doc": cur_frm.doc
 				},
 				callback: function(r) {
 					if(!r.exc) {
-						var doclist = frappe.model.sync(r.message);
+						var doc = frappe.model.sync(r.message);
 						cur_frm.refresh();
 					}
 				}
