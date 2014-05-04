@@ -187,7 +187,7 @@ DROP TABLE IF EXISTS `tabSessions`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `tabSessions` (
-  `user` varchar(40) DEFAULT NULL,
+  `user` varchar(255) DEFAULT NULL,
   `sid` varchar(120) DEFAULT NULL,
   `sessiondata` longtext,
   `ipaddress` varchar(16) DEFAULT NULL,
