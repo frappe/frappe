@@ -26,6 +26,6 @@ script:
   frappe --verbose --run_tests
 
 before_script:
-  - mysql -e 'create database test_frappe' &&
-  - echo "USE mysql;\nUPDATE user SET password=PASSWORD('test_frappe') WHERE user='test_frappe';\nFLUSH PRIVILEGES;\n" | mysql -u root
+  - mysql -e 'create database test_frappe'
+  - echo "USE mysql;\nCREATE USER 'test_frappe'@'localhost' IDENTIFIED BY 'test_frappe';\nFLUSH PRIVILEGES;\n" | mysql -u root
 
