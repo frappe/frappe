@@ -25,7 +25,7 @@ cur_route = False
 input_wait = 0
 
 def get_localhost():
-	return "{host}:{port}".format(host, port)
+	return "{host}:{port}".format(host=host, port=port)
 
 def start(verbose=None, driver="PhantomJS"):
 	global _driver, _verbose
