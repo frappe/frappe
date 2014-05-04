@@ -66,7 +66,7 @@ _f.Frm.prototype.check_doctype_conflict = function(docname) {
 		}
 	} else {
 		if (frappe.views.formview.DocType && frappe.views.formview.DocType.frm.opendocs[this.doctype]) {
-			msgprint(__("Cannot open instance when its {0} is open"), ['DocType'])
+			msgprint(__("Cannot open instance when its {0} is open", ['DocType']))
 			throw 'doctype open conflict'
 		}
 	}
