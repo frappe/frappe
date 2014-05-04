@@ -19,12 +19,12 @@ install:
   - pip install --editable .
 
 script:
-  cd ./test_sites/ &&
-  frappe --use test_site &&
-  frappe --reinstall &&
-  frappe -b &&
-  frappe --serve --port 8888 & &&
-  frappe --verbose --run_tests
+  - cd ./test_sites/
+  - frappe --use test_site
+  - frappe --reinstall
+  - frappe -b
+  - frappe --serve_test &
+  - frappe --verbose --run_tests
 
 before_script:
   - mysql -e 'create database test_frappe'

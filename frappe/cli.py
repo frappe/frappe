@@ -154,10 +154,12 @@ def setup_test(parser):
 		help="Run command for specified module")
 	parser.add_argument("--tests", metavar="TEST FUNCTION", nargs="*",
 		help="Run one or more specific test functions")
+	parser.add_argument("--serve_test", action="store_true", help="Run development server for testing")
+
 
 def setup_utilities(parser):
 	# serving
-	parser.add_argument("--port", default=8000, type=int, help="port for development server")
+	parser.add_argument("--port", type=int, help="port for development server")
 	parser.add_argument("--use", action="store_true", help="Set current site for development.")
 
 	# update
@@ -721,9 +723,17 @@ def run_tests(app=None, module=None, doctype=None, verbose=False, tests=()):
 	return ret
 
 @cmd
-def serve(port=8000, profile=False, sites_path='.', site=None):
+def serve(port=None, profile=False, sites_path='.', site=None):
+	if not port: port = 8000
+
 	import frappe.app
 	frappe.app.serve(port=port, profile=profile, site=frappe.local.site, sites_path=sites_path)
+
+@cmd
+def serve_test(port=None, profile=False, sites_path='.', site=None):
+	from frappe.utils import sel
+	if not port: port = sel.port
+	serve(port)
 
 @cmd
 def request(args):

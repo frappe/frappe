@@ -6,10 +6,10 @@ from frappe.utils import sel
 
 class TestLogin(unittest.TestCase):
 	def setUp(self):
-		sel.login(frappe.local.localhost)
+		sel.login(sel.get_localhost())
 
 	def test_login(self):
-		self.assertEquals(sel.driver.current_url, frappe.local.localhost + "/desk")
+		self.assertEquals(sel.driver.current_url, sel.get_localhost() + "/desk")
 
 	def test_to_do(self):
 		sel.module("ToDo")

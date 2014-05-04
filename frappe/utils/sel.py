@@ -24,6 +24,9 @@ logged_in = False
 cur_route = False
 input_wait = 0
 
+def get_localhost():
+	return "{host}:{port}".format(host, port)
+
 def start(verbose=None, driver="PhantomJS"):
 	global _driver, _verbose
 	_verbose = verbose
