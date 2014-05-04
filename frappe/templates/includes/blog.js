@@ -35,24 +35,28 @@ var blog = {
 			} else {
 				b.comment_text = b.comments + ' comments.'
 			}
-			
-			b.page_name = $.map(b.page_name.split("/"), function(p) 
+
+			b.page_name = $.map(b.page_name.split("/"), function(p)
 				{ return encodeURIComponent(p); }).join("/");
-							
+
 			b.avatar = b.avatar || "";
-			
+
 			// convert relative url to absolute
 			if(b.avatar.match(/^(?!http|ftp|\/|#).*$/)) {
 				b.avatar = "/" + b.avatar;
 			}
-			
+
 			$(repl('<div class="row">\
+					<div class="col-md-2 text-center" style="color: #ccc">\
+						<h1 class="blog-day" style="margin: 0px;">%(day)s</h1>\
+						<div class="small">%(month)s %(year)s</div>\
+					</div>\
 					<div class="col-md-1">\
 						<div class="avatar avatar-medium" style="margin-top: 6px;">\
 							<img src="%(avatar)s" />\
 						</div>\
 					</div>\
-					<div class="col-md-11">\
+					<div class="col-md-9">\
 						<a href="/%(page_name)s"><h4>%(title)s</h4></a>\
 						<p>%(content)s</p>\
 						<p style="color: #aaa; font-size: 90%">\
@@ -65,10 +69,10 @@ var blog = {
 		if(!data.length || data.length < 20) {
 			if(blog.start) {
 				$("#next-page").toggle(false)
-					.parent().append("<div class='text-muted'>Nothing more to show.</div>");	
+					.parent().append("<div class='text-muted'>Nothing more to show.</div>");
 			} else {
 				$("#next-page").toggle(false)
-					.parent().append("<div class='alert alert-warning'>No blogs written yet.</div>");	
+					.parent().append("<div class='alert alert-warning'>No blogs written yet.</div>");
 			}
 		} else {
 			$("#next-page").toggle(true);
@@ -79,11 +83,11 @@ var blog = {
 $(document).ready(function() {
 	// make list of blogs
 	setTimeout(blog.get_list, 100);
-	
+
 	$("#next-page").click(function() {
 		blog.get_list();
 	})
-	
+
 	if(get_url_arg("by_name")) {
 		$("#blot-subtitle").html("Posts by " + get_url_arg("by_name")).toggle(true);
 	}

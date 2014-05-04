@@ -16,7 +16,7 @@ def sync_fixtures():
 
 def export_fixtures():
 	for app in frappe.get_installed_apps():
-		for fixture in frappe.get_hooks("fixture", app_name=app):
+		for fixture in frappe.get_hooks("fixtures", app_name=app):
 			print "Exporting " + fixture
 			if frappe.db.get_value("DocType", fixture, "issingle"):
 				export_fixture(fixture, fixture, app)

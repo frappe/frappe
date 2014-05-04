@@ -56,6 +56,8 @@ def get_blog_list(start=0, by=None, category=None):
 	query = """\
 		select
 			t1.title, t1.name, t3.name as page_name, t1.published_on as creation,
+				day(t1.published_on) as day, monthname(t1.published_on) as month,
+				year(t1.published_on) as year,
 				ifnull(t1.blog_intro, t1.content) as content,
 				t2.full_name, t2.avatar, t1.blogger,
 				(select count(name) from `tabComment` where
