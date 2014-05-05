@@ -58,6 +58,10 @@ def as_raw():
 def as_json():
 	make_logs()
 	response = Response()
+	if frappe.local.response.http_status_code:
+		response.status_code = frappe.local.response['http_status_code']
+		del frappe.local.response['http_status_code']
+
 	response.headers[b"Content-Type"] = b"application/json; charset: utf-8"
 	response = gzip(json.dumps(frappe.local.response, default=json_handler, separators=(',',':')),
 		response=response)
