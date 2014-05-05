@@ -105,7 +105,7 @@ class TestBlogPost(unittest.TestCase):
 		self.assertRaises(frappe.PermissionError, add,
 			"test2@example.com", "Blog Post", "_test-blog-post")
 
-	def test_not_allowed_to_restrict(self):
+	def test_not_allowed_on_restrict(self):
 		self.add_restriction_to_user2()
 
 		frappe.set_user("test2@example.com")
