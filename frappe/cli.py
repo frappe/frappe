@@ -155,6 +155,7 @@ def setup_test(parser):
 	parser.add_argument("--tests", metavar="TEST FUNCTION", nargs="*",
 		help="Run one or more specific test functions")
 	parser.add_argument("--serve_test", action="store_true", help="Run development server for testing")
+	parser.add_argument("--driver", nargs="?", help="Run selenium using given driver")
 
 
 def setup_utilities(parser):
@@ -705,11 +706,11 @@ def smtp_debug_server():
 	os.execv(python, [python, '-m', "smtpd", "-n", "-c", "DebuggingServer", "localhost:25"])
 
 @cmd
-def run_tests(app=None, module=None, doctype=None, verbose=False, tests=()):
+def run_tests(app=None, module=None, doctype=None, verbose=False, tests=(), driver=None):
 	import frappe.test_runner
 	from frappe.utils import sel
 
-	sel.start(verbose)
+	sel.start(verbose, driver)
 
 	ret = 1
 	try:
