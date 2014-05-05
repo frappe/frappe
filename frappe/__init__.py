@@ -16,6 +16,8 @@ import json
 
 from .exceptions import *
 
+__version__ = "4.0.0"
+
 local = Local()
 
 class _dict(dict):
