@@ -16,6 +16,12 @@ def get_context(path):
 	context = None
 	cache_key = "page_context:{}".format(path)
 
+	def add_data_path(context):
+		if not context.data:
+			context.data = {}
+
+		context.data["path"] = path
+
 	# try from memcache
 	if can_cache():
 		context = frappe.cache().get_value(cache_key)
@@ -27,16 +33,15 @@ def get_context(path):
 		context["access"] = get_access(context.pathname)
 
 		context = build_context(context)
+		add_data_path(context)
 
 		if can_cache(context.no_cache):
 			frappe.cache().set_value(cache_key, context)
 
 	else:
 		context["access"] = get_access(context.pathname)
+		add_data_path(context)
 
-	if not context.data:
-		context.data = {}
-	context.data["path"] = path
 	context.update(context.data or {})
 
 	return context
