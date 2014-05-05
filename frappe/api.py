@@ -1,6 +1,7 @@
 # Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
+import json
 import frappe
 import frappe.handler
 import frappe.client
@@ -58,29 +59,46 @@ def handle():
 		else:
 			if name:
 				if frappe.local.request.method=="GET":
-					frappe.local.response.update({
-						"doclist": frappe.client.get(doctype,
-							name)})
+					doc = frappe.get_doc(doctype, name)
+					if not doc.has_permission("read"):
+						raise frappe.PermissionError
+					frappe.local.response.update({"data": doc})
 
 				if frappe.local.request.method=="PUT":
-					frappe.local.response.update({
-						"doclist":frappe.client.save(frappe.local.form_dict)})
+					data = json.loads(frappe.local.form_dict.data)
+					doc = frappe.get_doc(doctype, name)
+					# Not checking permissions here because it's checked in doc.save
+					doc.update(data)
+					frappe.local.response.update({ 
+							"data": doc.save().as_dict()
+					})
 					frappe.db.commit()
 
 				if frappe.local.request.method=="DELETE":
-					frappe.client.delete(doctype, name)
+					doc.update(data)
+					# Not checking permissions here because it's checked in delete_doc
+					frappe.delete_doc(doctype, name)
+					frappe.local.response.http_status_code = 202
 					frappe.local.response.message = "ok"
+					frappe.db.commit()
 
 
 			elif doctype:
 				if frappe.local.request.method=="GET":
+					if frappe.local.form_dict.get('fields'):
+						frappe.local.form_dict['fields'] = json.loads(frappe.local.form_dict['fields'])
 					frappe.local.response.update({
 						"data":  frappe.call(frappe.widgets.reportview.execute,
 							doctype, **frappe.local.form_dict)})
 
 				if frappe.local.request.method=="POST":
+					data = json.loads(frappe.local.form_dict.data)
+					data.update({
+						"doctype": doctype
+					})
 					frappe.local.response.update({
-						"doclist": frappe.client.insert(frappe.local.form_dict)})
+						"data": frappe.get_doc(data).insert().as_dict()
+					})
 					frappe.db.commit()
 			else:
 				raise frappe.DoesNotExistError
