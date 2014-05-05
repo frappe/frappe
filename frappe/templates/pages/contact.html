@@ -1,15 +1,17 @@
 {% block title %}{{ heading or "Contact Us"}}{% endblock %}
 
 {% block content %}
+<!-- no-sidebar -->
 <div class="contact-content">
 	<div class="row">
 		<div class="col-md-8">
-			<p id="contact-alert" class="alert alert-warning" 
+			{{ introduction or "" }}<br>
+			<p id="contact-alert" class="alert alert-warning"
 				style="display: none;">&nbsp;</p>
 			<div class="form-group">
 				<select name="subject" class="form-control">
 				{% if query_options -%}
-					{% for option in query_options -%}
+					{% for option in query_options.split("\n") -%}
 					<option value="{{ option }}">{{ option }}</option>
 					{%- endfor %}
 				{% else %}
@@ -18,7 +20,7 @@
 				</select>
 			</div>
 			<div class="form-group">
-				<input class="form-control" name="email" type="text" 
+				<input class="form-control" name="email" type="text"
 				placeholder="Your Email Address" />
 			</div>
 			<div class="form-group">
@@ -53,7 +55,6 @@
 		</div>
 		{% endif %}
 	</div>
-	{{ introduction or ""}}
 </div>
 <script>
 	{% include "templates/includes/contact.js" %}
