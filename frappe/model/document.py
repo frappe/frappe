@@ -8,6 +8,7 @@ from frappe.utils import flt, cint, cstr, now
 from frappe.modules import load_doctype_module
 from frappe.model.base_document import BaseDocument
 from frappe.model.naming import set_new_name
+from werkzeug.exceptions import NotFound, Forbidden
 
 # once_only validation
 # methods
@@ -401,6 +402,11 @@ class Document(BaseDocument):
 			self.run_method("on_update_after_submit")
 
 	@staticmethod
+	def whitelist(f):
+		f.whitelisted = True
+		return f
+
+	@staticmethod
 	def hook(f):
 		def add_to_return_value(self, new_return_value):
 			if isinstance(new_return_value, dict):
@@ -432,6 +438,13 @@ class Document(BaseDocument):
 			return composed(self, method, *args, **kwargs)
 
 		return composer
+
+	def is_whitelisted(self, method):
+		fn = getattr(self, method, None)
+		if not fn:
+			raise NotFound("Method {0} not found".format(method))
+		elif not getattr(fn, "whitelisted", False):
+			raise Forbidden("Method {0} not whitelisted".format(method))
 
 	def validate_value(self, fieldname, condition, val2, doc=None, raise_exception=None):
 		"""check that value of fieldname should be 'condition' val2

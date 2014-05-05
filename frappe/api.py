@@ -44,11 +44,12 @@ def handle():
 	elif call=="resource":
 		if "run_method" in frappe.local.form_dict:
 			doc = frappe.get_doc(doctype, name)
+			doc.is_whitelisted(frappe.local.form_dict.run_method)
 
 			if frappe.local.request.method=="GET":
 				if not doc.has_permission("read"):
 					frappe.throw(_("Not permitted"), frappe.PermissionError)
-				doc.run_method(frappe.local.form_dict.run_method, **frappe.local.form_dict)
+					doc.run_method(frappe.local.form_dict.run_method, **frappe.local.form_dict)
 
 			if frappe.local.request.method=="POST":
 				if not doc.has_permission("write"):
@@ -69,7 +70,7 @@ def handle():
 					doc = frappe.get_doc(doctype, name)
 					# Not checking permissions here because it's checked in doc.save
 					doc.update(data)
-					frappe.local.response.update({ 
+					frappe.local.response.update({
 							"data": doc.save().as_dict()
 					})
 					frappe.db.commit()
