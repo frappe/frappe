@@ -7,6 +7,7 @@ fr		français
 hi		हिंदी
 hr		hrvatski
 it		italiano
+kn		ಕನ್ನಡ
 nl		nederlands
 pt-BR	português brasileiro
 pt		português
