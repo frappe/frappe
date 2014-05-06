@@ -216,15 +216,17 @@ frappe.views.moduleview.ModuleView = Class.extend({
 						});
 				} else {
 					var route = item.route;
-					if(item.type==="doctype") {
-						route = "List/" + encodeURIComponent(item.name);
-					} else if(item.type==="page") {
-						route = item.route || item.link || item.name;
-					} else if(item.type==="report") {
-						if(item.is_query_report) {
-							route = "query-report/" + encodeURIComponent(item.name);
-						} else {
-							route = "Report/" + encodeURIComponent(item.doctype) + "/" + encodeURIComponent(item.name);
+					if(!route) {
+						if(item.type==="doctype") {
+							route = "List/" + encodeURIComponent(item.name);
+						} else if(item.type==="page") {
+							route = item.route || item.link || item.name;
+						} else if(item.type==="report") {
+							if(item.is_query_report) {
+								route = "query-report/" + encodeURIComponent(item.name);
+							} else {
+								route = "Report/" + encodeURIComponent(item.doctype) + "/" + encodeURIComponent(item.name);
+							}
 						}
 					}
 
