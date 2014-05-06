@@ -1,5 +1,5 @@
 # Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt 
+# MIT License. See license.txt
 
 from __future__ import unicode_literals
 
@@ -16,7 +16,7 @@ class StaticDataMiddleware(SharedDataMiddleware):
 
 	def get_directory_loader(self, directory):
 		def loader(path):
-			site = get_site_name(self.environ.get('HTTP_HOST'))
+			site = get_site_name(frappe.app._site or self.environ.get('HTTP_HOST'))
 			path = os.path.join(directory, site, 'public', 'files', cstr(path))
 			if os.path.isfile(path):
 				return os.path.basename(path), self._opener(path)

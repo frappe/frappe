@@ -103,14 +103,15 @@ frappe.ui.form.ControlImage = frappe.ui.form.Control.extend({
 	make: function() {
 		this._super();
 		var me = this;
-		this.$wrapper = $("<div></div>").appendTo(this.parent);
-		this.$body = $("<div>").appendTo(this.$wrapper)
-			.css({"margin-bottom": "10px", "margin-right": "15px", "float": "right",
-				"text-align": "right", "max-width": "100%"})
+		this.$wrapper = $("<div class='row'><div class='col-xs-4'></div></div>")
+			.appendTo(this.parent)
+			.css({"max-width": "600px", "margin": "0px"});
+		this.$body = $("<div class='col-xs-8'>").appendTo(this.$wrapper)
+			.css({"margin-bottom": "10px", "max-width": "100%"})
 		this.$wrapper.on("refresh", function() {
 				me.$body.empty();
 				if(me.df.options && me.frm.doc[me.df.options]) {
-					me.$img = $("<img src='"+me.frm.doc[me.df.options]+"' style='max-width: 70%;'>")
+					me.$img = $("<img src='"+me.frm.doc[me.df.options]+"' style='max-width: 100%;'>")
 						.appendTo(me.$body);
 				} else {
 					me.$buffer = $("<div class='missing-image'><i class='icon-camera'></i></div>")

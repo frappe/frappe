@@ -10,6 +10,7 @@ import os
 from frappe.utils import now, cint
 from frappe.model import no_value_fields
 from frappe.model.document import Document
+from frappe.model.db_schema import type_map
 
 class DocType(Document):
 	def validate(self):
@@ -198,7 +199,8 @@ def validate_fields(fields):
 	def check_min_items_in_list(fields):
 		if len(filter(lambda d: d.in_list_view, fields))==0:
 			for d in fields[:5]:
-				d.in_list_view = 1
+				if d.fieldtype in type_map:
+					d.in_list_view = 1
 
 	def check_width(d):
 		if d.fieldtype == "Currency" and cint(d.width) < 100:
