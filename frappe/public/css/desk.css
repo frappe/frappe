@@ -106,6 +106,10 @@ div#freeze {
 	/*margin-top: -15px;*/
 }
 
+.form-control {
+	padding: 6px 8px;
+}
+
 .form-headline {
 	margin-bottom: 10px;
 	font-size: 120%;
