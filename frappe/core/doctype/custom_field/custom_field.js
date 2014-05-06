@@ -64,9 +64,10 @@ cur_frm.cscript.dt = function(doc, dt, dn) {
 		args: { doctype: doc.dt, fieldname: doc.fieldname },
 		callback: function(r, rt) {
 			set_field_options('insert_after', r.message);
+			var fieldnames = $.map(r.message, function(v) { return v.value; });
 
-			if(insert_after==null || !in_list(r.message.split("\n"), insert_after)) {
-				insert_after = r.message.split("\n")[0];
+			if(insert_after==null || !in_list(fieldnames, insert_after)) {
+				insert_after = fieldnames[0];
 			}
 
 			cur_frm.set_value('insert_after', insert_after);

@@ -176,7 +176,7 @@ def validate_fields(fields):
 	def check_unique_fieldname(fieldname):
 		duplicates = filter(None, map(lambda df: df.fieldname==fieldname and str(df.idx) or None, fields))
 		if len(duplicates) > 1:
-			frappe.throw(_("Fieldname {0} appears multiple times in rows {1}").format(", ".join(duplicates)))
+			frappe.throw(_("Fieldname {0} appears multiple times in rows {1}").format(fieldname, ", ".join(duplicates)))
 
 	def check_illegal_mandatory(d):
 		if d.fieldtype in ('HTML', 'Button', 'Section Break', 'Column Break') and d.reqd:
