@@ -189,7 +189,6 @@ $.extend(frappe, {
 		if(frappe.supports_pjax()) {
 			// hack for chrome's onload popstate call
 			window.initial_href = window.location.href
-
 			$(document).on("click", "#wrap a", frappe.handle_click);
 
 			$(window).on("popstate", function(event) {
@@ -201,12 +200,12 @@ $.extend(frappe, {
 
 				window.previous_href = location.href;
 				var state = event.originalEvent.state;
-
-				if(state) {
-					frappe.render_json(state);
-				} else {
+				if(!state) {
 					console.log("state not found!");
+					frappe.set_force_reload(true);
+					state = window.history.state;
 				}
+				frappe.render_json(state);
 			});
 		}
 	},
