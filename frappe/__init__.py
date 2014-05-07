@@ -540,13 +540,15 @@ def build_match_conditions(doctype, as_condition=True):
 	import frappe.widgets.reportview
 	return frappe.widgets.reportview.build_match_conditions(doctype, as_condition)
 
-def get_list(doctype, filters=None, fields=None, docstatus=None,
+def get_list(doctype, filters=None, fields=None, or_filters=None, docstatus=None,
 			group_by=None, order_by=None, limit_start=0, limit_page_length=None,
 			as_list=False, debug=False, ignore_permissions=False):
 	import frappe.model.db_query
-	return frappe.model.db_query.DatabaseQuery(doctype).execute(filters=filters, fields=fields, docstatus=docstatus,
-				group_by=group_by, order_by=order_by, limit_start=limit_start, limit_page_length=limit_page_length,
-				as_list=as_list, debug=debug, ignore_permissions=ignore_permissions)
+	return frappe.model.db_query.DatabaseQuery(doctype).execute(filters=filters,
+				fields=fields, docstatus=docstatus, or_filters=or_filters,
+				group_by=group_by, order_by=order_by, limit_start=limit_start,
+				limit_page_length=limit_page_length, as_list=as_list, debug=debug,
+				ignore_permissions=ignore_permissions)
 
 run_query = get_list
 
