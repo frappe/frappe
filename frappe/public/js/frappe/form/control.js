@@ -695,7 +695,7 @@ frappe.ui.form.ControlSelect = frappe.ui.form.ControlData.extend({
 			// set the default option (displayed)
 			var input_value = this.$input.val();
 			var model_value = frappe.model.get_value(this.doctype, this.docname, this.df.fieldname);
-			if(model_value == null && input_value != (model_value || "")) {
+			if(model_value == null && (input_value || "") != (model_value || "")) {
 				this.set_model_value(input_value);
 			} else {
 				this.last_value = value;
