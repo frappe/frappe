@@ -10,6 +10,7 @@ import os
 from frappe.utils import now, cint
 from frappe.model import no_value_fields
 from frappe.model.document import Document
+from frappe.model.db_schema import type_map
 
 class DocType(Document):
 	def validate(self):
@@ -176,7 +177,7 @@ def validate_fields(fields):
 	def check_unique_fieldname(fieldname):
 		duplicates = filter(None, map(lambda df: df.fieldname==fieldname and str(df.idx) or None, fields))
 		if len(duplicates) > 1:
-			frappe.throw(_("Fieldname {0} appears multiple times in rows {1}").format(", ".join(duplicates)))
+			frappe.throw(_("Fieldname {0} appears multiple times in rows {1}").format(fieldname, ", ".join(duplicates)))
 
 	def check_illegal_mandatory(d):
 		if d.fieldtype in ('HTML', 'Button', 'Section Break', 'Column Break') and d.reqd:
@@ -198,7 +199,8 @@ def validate_fields(fields):
 	def check_min_items_in_list(fields):
 		if len(filter(lambda d: d.in_list_view, fields))==0:
 			for d in fields[:5]:
-				d.in_list_view = 1
+				if d.fieldtype in type_map:
+					d.in_list_view = 1
 
 	def check_width(d):
 		if d.fieldtype == "Currency" and cint(d.width) < 100:

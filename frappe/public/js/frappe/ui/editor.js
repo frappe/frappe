@@ -126,15 +126,16 @@ bsEditor = Class.extend({
 
 		var html = this.editor.html() || "";
 		if(!$.trim(this.editor.text()) && !(this.editor.find("img"))) html = "";
-		// html = html.replace(/(<br>|\s|<div><br><\/div>|&nbsp;)*$/, '');
 
 		// remove custom typography (use CSS!)
 		if(this.options.remove_typography) {
-			html = html.replace(/(font-family|font-size|line-height):[^;]*;/g, '');
-			html = html.replace(/<[^>]*(font=['"][^'"]*['"])>/g, function(a,b) { return a.replace(b, ''); });
-			html = html.replace(/\s*style\s*=\s*["']\s*["']/g, '');
-			return html;
+			var tmp = $("<div></div>").html(html);
+			// remove style attributes
+			tmp.find("*").removeAttr("style");
+			html = tmp.html();
 		}
+
+		return html;
 	},
 
 	init_file_drops: function () {

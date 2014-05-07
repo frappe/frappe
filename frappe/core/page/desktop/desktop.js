@@ -73,7 +73,7 @@ frappe.desktop.render = function() {
 	$.each(modules_list, function(i, m) {
 		var module = frappe.modules[m];
 		if(module) {
-			if(m!="Setup" && user_list.indexOf(m)!==-1)
+			if(!in_list(["Setup", "Core"], m) && user_list.indexOf(m)!==-1)
 				add_icon(m);
 		}
 	})
@@ -81,6 +81,9 @@ frappe.desktop.render = function() {
 	// setup
 	if(user_roles.indexOf('System Manager')!=-1)
 		add_icon('Setup')
+
+	if(user_roles.indexOf('Administrator')!=-1)
+		add_icon('Core')
 
 	// all applications
 	frappe.modules["All Applications"] = {

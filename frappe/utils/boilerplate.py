@@ -185,6 +185,7 @@ data = {{
 	"{app_title}": {{
 		"color": "{app_color}",
 		"icon": "{app_icon}",
+		"type": "module",
 		"label": _("{app_title}")
 	}}
 }}

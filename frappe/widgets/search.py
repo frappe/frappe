@@ -9,20 +9,23 @@ from frappe.utils import cstr
 
 # this is called by the Link Field
 @frappe.whitelist()
-def search_link(doctype, txt, query=None, filters=None, page_len=20, searchfield="name"):
+def search_link(doctype, txt, query=None, filters=None, page_len=20, searchfield=None):
 	search_widget(doctype, txt, query, searchfield=searchfield, page_len=page_len, filters=filters)
 	frappe.response['results'] = build_for_autosuggest(frappe.response["values"])
 	del frappe.response["values"]
 
 # this is called by the search box
 @frappe.whitelist()
-def search_widget(doctype, txt, query=None, searchfield="name", start=0,
+def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 	page_len=50, filters=None):
 	if isinstance(filters, basestring):
 		import json
 		filters = json.loads(filters)
 
 	meta = frappe.get_meta(doctype)
+
+	if not searchfield:
+		searchfield = "name"
 
 	standard_queries = frappe.get_hooks().standard_queries or []
 	if standard_queries:
