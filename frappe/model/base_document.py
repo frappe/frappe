@@ -285,7 +285,7 @@ class BaseDocument(object):
 		current = frappe.db.get_value(self.doctype, self.name, "*", as_dict=True)
 		for key, value in current.iteritems():
 			df = self.meta.get_field(key)
-			if df and not df.allow_on_submit and self.get(key) != value:
+			if df and not df.allow_on_submit and (self.get(key) or value) and self.get(key) != value:
 				frappe.throw(_("Not allowed to change {0} after submission").format(df.label),
 					frappe.UpdateAfterSubmitError)
 
