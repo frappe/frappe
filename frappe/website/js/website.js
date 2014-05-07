@@ -214,29 +214,34 @@ $.extend(frappe, {
 		var link = event.currentTarget
 
 		if (link.tagName.toUpperCase() !== 'A')
-			throw "using pjax requires an anchor element"
+			throw "using pjax requires an anchor element";
 
 		// Middle click, cmd click, and ctrl click should open
 		// links in a new tab as normal.
 		if ( event.which > 1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey )
-			return
+			return;
 
 		// Ignore cross origin links
 		if ( location.protocol !== link.protocol || location.hostname !== link.hostname )
-			return
+			return;
 
 		// Ignore anchors on the same page
 		if (link.hash && link.href.replace(link.hash, '') ===
 			 location.href.replace(location.hash, ''))
-			 return
+			 return;
 
 		// Ignore empty anchor "foo.html#"
 		if (link.href === location.href + '#')
-			return
+			return;
 
 		// our custom logic
 		if (link.href.indexOf("cmd=")!==-1 || link.hasAttribute("no-pjax"))
-			return
+			return;
+
+		// has an extension, but is not htm/html
+		var last_part = (link.href.split("/").slice(-1)[0] || "");
+		if (last_part.indexOf(".")!==-1 && (last_part.indexOf(".htm")===-1))
+			return;
 
 		event.preventDefault()
 		frappe.load_via_ajax(link.href);
