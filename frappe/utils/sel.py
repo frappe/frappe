@@ -152,7 +152,6 @@ def set_input(selector, text):
 
 def close():
 	global _driver, pipe
-	print "closing selenium"
 	if _driver:
 		_driver.quit()
 	if pipe:
