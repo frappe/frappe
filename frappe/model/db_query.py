@@ -18,15 +18,17 @@ class DatabaseQuery(object):
 		self.ignore_permissions = False
 		self.fields = ["name"]
 
-	def execute(self, query=None, filters=None, fields=None, docstatus=None,
-		group_by=None, order_by=None, limit_start=0, limit_page_length=20,
-		as_list=False, with_childnames=False, debug=False, ignore_permissions=False):
+	def execute(self, query=None, filters=None, fields=None, or_filters=None,
+		docstatus=None, group_by=None, order_by=None, limit_start=0,
+		limit_page_length=20, as_list=False, with_childnames=False, debug=False,
+		ignore_permissions=False):
 		if not frappe.has_permission(self.doctype, "read"):
 			raise frappe.PermissionError
 
 		if fields:
 			self.fields = fields
 		self.filters = filters or []
+		self.or_filters = or_filters or []
 		self.docstatus = docstatus or []
 		self.group_by = group_by
 		self.order_by = order_by
@@ -67,6 +69,8 @@ class DatabaseQuery(object):
 
 		# query dict
 		args.tables = ', '.join(self.tables)
+		if self.or_conditions:
+			self.conditions.append("({0})".format(" or ".join(self.or_conditions)))
 		args.conditions = ' and '.join(self.conditions)
 		args.fields = ', '.join(self.fields)
 
@@ -76,7 +80,6 @@ class DatabaseQuery(object):
 		self.check_sort_by_table(args.order_by)
 
 		return args
-
 
 	def parse_args(self):
 		if isinstance(self.filters, basestring):
@@ -134,8 +137,10 @@ class DatabaseQuery(object):
 
 	def build_conditions(self):
 		self.conditions = []
+		self.or_conditions = []
 		self.add_docstatus_conditions()
-		self.build_filter_conditions()
+		self.build_filter_conditions(self.filters, self.conditions)
+		self.build_filter_conditions(self.or_filters, self.or_conditions)
 
 		# join parent, child tables
 		for tname in self.tables[1:]:
@@ -153,11 +158,13 @@ class DatabaseQuery(object):
 		else:
 			self.conditions.append(self.tables[0] + '.docstatus < 2')
 
-	def build_filter_conditions(self):
+	def build_filter_conditions(self, filters, conditions):
 		"""build conditions from user filters"""
-		for f in self.filters:
+		if isinstance(filters, dict):
+			filters = [filters]
+		for f in filters:
 			if isinstance(f, basestring):
-				self.conditions.append(f)
+				conditions.append(f)
 			else:
 				f = self.get_filter_tuple(f)
 
@@ -172,7 +179,7 @@ class DatabaseQuery(object):
 						opts = f[3].split(",")
 					opts = ["'" + t.strip().replace("'", "\\'") + "'" for t in opts]
 					f[3] = "(" + ', '.join(opts) + ")"
-					self.conditions.append('ifnull(' + tname + '.' + f[1] + ", '') " + f[2] + " " + f[3])
+					conditions.append('ifnull(' + tname + '.' + f[1] + ", '') " + f[2] + " " + f[3])
 				else:
 					df = frappe.get_meta(f[0]).get("fields", {"fieldname": f[1]})
 
@@ -182,7 +189,7 @@ class DatabaseQuery(object):
 					else:
 						value, default_val = flt(f[3]), 0
 
-					self.conditions.append('ifnull({tname}.{fname}, {default_val}) {operator} {value}'.format(
+					conditions.append('ifnull({tname}.{fname}, {default_val}) {operator} {value}'.format(
 						tname=tname, fname=f[1], default_val=default_val, operator=f[2],
 						value=value))
 
@@ -203,7 +210,7 @@ class DatabaseQuery(object):
 		"""add match conditions if applicable"""
 		self.match_filters = {}
 		self.match_conditions = []
-		self.or_conditions = []
+		self.match_or_conditions = []
 
 		if not self.tables: self.extract_tables()
 
@@ -214,7 +221,7 @@ class DatabaseQuery(object):
 		restrictions = frappe.defaults.get_restrictions()
 
 		if restricted_by_user:
-			self.or_conditions.append('`tab{doctype}`.`owner`="{user}"'.format(doctype=self.doctype,
+			self.match_or_conditions.append('`tab{doctype}`.`owner`="{user}"'.format(doctype=self.doctype,
 				user=frappe.local.session.user))
 			self.match_filters["owner"] = frappe.session.user
 
@@ -247,12 +254,12 @@ class DatabaseQuery(object):
 		if doctype_conditions:
 			conditions += ' and ' + doctype_conditions if conditions else doctype_conditions
 
-		if self.or_conditions:
+		if self.match_or_conditions:
 			if conditions:
 				conditions = '({conditions}) or {or_conditions}'.format(conditions=conditions,
-					or_conditions = ' or '.join(self.or_conditions))
+					or_conditions = ' or '.join(self.match_or_conditions))
 			else:
-				conditions = " or ".join(self.or_conditions)
+				conditions = " or ".join(self.match_or_conditions)
 
 		return conditions
 
