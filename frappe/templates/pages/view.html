@@ -1,0 +1,40 @@
+{% block title %}{{ doc.doctype }} / {{ doc.name }}{% endblock %}
+
+{% block header %}
+<h2>{{ doc.name }}</h2>
+<p>{{ doc.doctype }}
+{% endblock %}
+
+{% block content %}
+{% if custom_view %}
+{{ custom_view }}
+{% else %}
+{% for df in meta.fields %}
+	{% if not df.hidden and not df.permlevel and not df.print_hide %}
+		{% if df.fieldtype=="Section Break" %}
+		<h2>{{ df.label or "" }}</h2>
+		{% elif df.fieldtype=="Column Break" %}
+		{% elif df.fieldtype=="Table" %}
+
+		{% else %}
+		<div class="row">
+			<div class="col-sm-4 text-right">
+				{% if df.fieldtype not in ("Image",) %}
+				<label>{{ df.label }}</label>
+				{% endif %}
+			</div>
+			<div class="col-sm-8">
+				{% if df.fieldtype=="Check" %}
+					<i class="{{ 'icon-check' if doc[df.fieldname] else 						'icon-check-empty' }}"></i>
+				{% elif df.fieldtype=="Image" %}
+					<img src="{{ doc[meta.get_field(df.fieldname).options] }}" 						class="img-responsive">
+				{% else %}
+					{{ doc[df.fieldname] }}
+				{% endif %}
+			</div>
+		</div>
+		{% endif %}
+	{% endif %}
+{% endfor %}
+{% endif %}
+{% endblock %}

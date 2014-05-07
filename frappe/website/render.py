@@ -8,7 +8,7 @@ from werkzeug.wrappers import Response
 
 from frappe.website.context import get_context
 from frappe.website.utils import scrub_relative_urls, get_home_page, can_cache
-from frappe.website.permissions import get_access, clear_permissions
+from frappe.website.permissions import clear_permissions
 
 class PageNotFoundError(Exception): pass
 
@@ -18,9 +18,25 @@ def render(path, http_status_code=None):
 
 	try:
 		data = render_page(path)
-
 	except frappe.DoesNotExistError, e:
-		path = "404"
+		doctype, name = get_doctype_from_path(path)
+		if doctype and name:
+			path = "view"
+			frappe.local.form_dict.doctype = doctype
+			frappe.local.form_dict.name = name
+		elif doctype:
+			path = "list"
+			frappe.local.form_dict.type = doctype
+		else:
+			path = "404"
+			http_status_code = e.http_status_code
+
+		data = render_page(path)
+
+	except frappe.PermissionError, e:
+		path = "message"
+		frappe.local.message = "Did you log out?"
+		frappe.local.message_title = "Not Permitted"
 		data = render_page(path)
 		http_status_code = e.http_status_code
 
@@ -30,6 +46,24 @@ def render(path, http_status_code=None):
 		http_status_code = 500
 
 	return build_response(path, data, http_status_code or 200)
+
+def get_doctype_from_path(path):
+	doctypes = [d[0] for d in frappe.get_list("DocType", as_list=True)]
+
+	parts = path.split("/")
+
+	doctype = parts[0]
+	name = parts[1] if len(parts) > 1 else None
+
+	if doctype in doctypes:
+		return doctype, name
+
+	# try scrubbed
+	doctype = doctype.replace("_", " ").title()
+	if doctype in doctypes:
+		return doctype, name
+
+	return None, None
 
 def build_response(path, data, http_status_code):
 	# build response

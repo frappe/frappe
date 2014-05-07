@@ -221,6 +221,9 @@ $.extend(frappe, {
 		if ( event.which > 1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey )
 			return;
 
+		if (link.getAttribute("target"))
+			return;
+
 		// Ignore cross origin links
 		if ( location.protocol !== link.protocol || location.hostname !== link.hostname )
 			return;

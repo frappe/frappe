@@ -61,7 +61,7 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 			# build from doctype
 			if txt:
 				if meta.search_fields:
-					for f in meta.search_fields.split(","):
+					for f in meta.get_search_fields():
 						or_filters.append([doctype, f.strip(), "like", "%" + txt + "%"])
 				else:
 					filters.append([doctype, searchfield or "name", "like",
