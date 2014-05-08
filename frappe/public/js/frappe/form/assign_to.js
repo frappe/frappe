@@ -1,5 +1,5 @@
 // Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
-// MIT License. See license.txt 
+// MIT License. See license.txt
 
 // assign to is lined to todo
 // refresh - load todos
@@ -15,9 +15,9 @@ frappe.ui.form.AssignTo = Class.extend({
 		this.wrapper = $('<div>\
 			<div class="alert-list" style="margin-bottom: 7px;"></div>\
 		</div>').appendTo(this.parent);
-		
+
 		this.$list = this.wrapper.find(".alert-list");
-		
+
 		this.parent.find(".btn").click(function() {
 			me.add();
 		});
@@ -36,11 +36,11 @@ frappe.ui.form.AssignTo = Class.extend({
 		this.frm.get_docinfo().assignments = d;
 		this.$list.empty();
 		if(this.dialog) {
-			this.dialog.hide();			
+			this.dialog.hide();
 		}
 
 		if(d && d.length) {
-			for(var i=0; i<d.length; i++) {	
+			for(var i=0; i<d.length; i++) {
 				var info = frappe.user_info(d[i]);
 				info.owner = d[i];
 				info.avatar = frappe.avatar(d[i]);
@@ -58,12 +58,12 @@ frappe.ui.form.AssignTo = Class.extend({
 			// set remove
 			this.$list.find('a.close').click(function() {
 				frappe.call({
-					method:'frappe.widgets.form.assign_to.remove', 
+					method:'frappe.widgets.form.assign_to.remove',
 					args: {
 						doctype: me.frm.doctype,
 						name: me.frm.docname,
-						assign_to: $(this).attr('data-owner')	
-					}, 
+						assign_to: $(this).attr('data-owner')
+					},
 					callback:function(r,rt) {
 						me.render(r.message);
 						me.frm.toolbar.show_infobar();
@@ -81,16 +81,15 @@ frappe.ui.form.AssignTo = Class.extend({
 		if(!me.dialog) {
 			me.dialog = new frappe.ui.Dialog({
 				title: __('Add to To Do'),
-				width: 350,
 				fields: [
-					{fieldtype:'Link', fieldname:'assign_to', options:'User', 
-						label:__("Assign To"), 
+					{fieldtype:'Link', fieldname:'assign_to', options:'User',
+						label:__("Assign To"),
 						description:__("Add to To Do List of"), reqd:true},
-					{fieldtype:'Data', fieldname:'description', label:__("Comment")}, 
-					{fieldtype:'Date', fieldname:'date', label: __("Complete By")}, 
+					{fieldtype:'Data', fieldname:'description', label:__("Comment"), reqd:true},
+					{fieldtype:'Date', fieldname:'date', label: __("Complete By")},
 					{fieldtype:'Select', fieldname:'priority', label: __("Priority"),
 						options:'Low\nMedium\nHigh', 'default':'Medium'},
-					{fieldtype:'Check', fieldname:'notify', 
+					{fieldtype:'Check', fieldname:'notify',
 						label:__("Notify By Email"), "default":1},
 					{fieldtype:'Check', fieldname:'restrict',
 						label:__("Add This To User's Restrictions")
@@ -98,7 +97,7 @@ frappe.ui.form.AssignTo = Class.extend({
 					{fieldtype:'Button', label:__("Add"), fieldname:'add_btn'}
 				]
 			});
-						
+
 			me.dialog.fields_dict.restrict.$wrapper
 				.find(".assign-user-properties")
 				.on("click", function() {
@@ -108,14 +107,14 @@ frappe.ui.form.AssignTo = Class.extend({
 					};
 					frappe.set_route("user-properties");
 				});
-			
+
 			me.dialog.fields_dict.add_btn.input.onclick = function() {
-				
+
 				var assign_to = me.dialog.fields_dict.assign_to.get_value();
 				var args = me.dialog.get_values();
 				if(assign_to) {
 					return frappe.call({
-						method:'frappe.widgets.form.assign_to.add', 
+						method:'frappe.widgets.form.assign_to.add',
 						args: $.extend(args, {
 							doctype: me.frm.doctype,
 							name: me.frm.docname,
@@ -135,19 +134,19 @@ frappe.ui.form.AssignTo = Class.extend({
 			me.dialog.fields_dict.assign_to.get_query = "frappe.core.doctype.user.user.user_query";
 		}
 		me.dialog.clear();
-		
+
 		(function toggle_restrict() {
 			var can_restrict = frappe.model.can_restrict(me.frm.doctype, me.frm);
 			me.dialog.fields_dict.restrict.$wrapper.toggle(can_restrict);
 			me.dialog.get_input("restrict").prop("checked", can_restrict);
 		})();
-		
+
 		if(me.frm.meta.title_field) {
 			me.dialog.set_value("description", me.frm.doc[me.frm.meta.title_field])
 		}
-		
+
 		me.dialog.show();
-		
+
 		if(!frappe.perm.get_perm(me.frm.doctype)[0].restricted) {
 			me.dialog.fields_dict.restrict.set_input(0);
 			me.dialog.fields_dict.restrict.$wrapper.toggle(false);

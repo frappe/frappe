@@ -6,7 +6,6 @@ import frappe
 from frappe.widgets import reportview
 from frappe.utils import cint
 from frappe import _
-from copy import deepcopy
 
 @frappe.whitelist()
 def get(module):
@@ -95,7 +94,7 @@ def combine_common_sections(data):
 
 def get_config(app, module):
 	config = frappe.get_module("{app}.config.{module}".format(app=app, module=module))
-	config = deepcopy(config.get_data() if hasattr(config, "get_data") else config.data)
+	config = config.get_data()
 
 	for section in config:
 		for item in section["items"]:
