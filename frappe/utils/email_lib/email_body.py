@@ -6,7 +6,7 @@ import frappe
 from frappe import msgprint, throw, _
 from frappe.utils import scrub_urls
 import email.utils
-from inlinestyler.utils import inline_css
+import inlinestyler.utils
 
 def get_email(recipients, sender='', msg='', subject='[No Subject]',
 	text_content = None, footer=None, print_html=None, formatted=None):
@@ -201,7 +201,7 @@ def get_formatted_html(subject, message, footer=None, print_html=None):
 	if frappe.local.flags.in_test:
 		return rendered_email
 
-	return inline_css(rendered_email)
+	return inlinestyler.utils.inline_css(rendered_email)
 
 def get_footer(footer=None):
 	"""append a footer (signature)"""
