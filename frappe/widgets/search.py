@@ -61,7 +61,7 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 			# build from doctype
 			if txt:
 				if meta.search_fields:
-					for f in meta.search_fields.split(","):
+					for f in meta.get_search_fields():
 						or_filters.append([doctype, f.strip(), "like", "%" + txt + "%"])
 				else:
 					filters.append([doctype, searchfield or "name", "like",
@@ -74,7 +74,7 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 			frappe.response["values"] = frappe.widgets.reportview.execute(doctype,
 				filters=filters, fields = get_std_fields_list(meta, searchfield or "name"),
 				or_filters = or_filters, limit_start = start,
-				limit_page_length=page_len, as_list=True, debug=1)
+				limit_page_length=page_len, as_list=True)
 
 def get_std_fields_list(meta, key):
 	# get additional search fields
