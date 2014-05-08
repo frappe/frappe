@@ -29,20 +29,21 @@ def get_items(type, txt, limit_start=0):
 			filters.append([type, "name", "like", "%" + txt + "%"])
 
 
-	out.raw_items = frappe.get_list(type, fields = meta.get_list_fields(),
+	out.raw_items = frappe.get_list(type, fields = ["*"],
 		filters=filters, or_filters = or_filters, limit_start=limit_start,
 		limit_page_length = 20)
 	template_path = os.path.join(get_doc_path(meta.module, "DocType", meta.name), "list_item.html")
 
 	if os.path.exists(template_path):
-		env = Environment(loader = FileSystemLoader("."))
+		env = Environment(loader = FileSystemLoader("/"))
+		#template_path = os.path.relpath(template_path)
 		template = env.get_template(template_path)
 	else:
-		template = Template("""<div><a href="/{{ doctype }}/{{ item.name }}">
-			{{ item[title_field] }}</a></div>""")
+		template = Template("""<div><a href="/{{ doctype }}/{{ doc.name }}">
+			{{ doc[title_field] }}</a></div>""")
 
-		out.items = [template.render(item=i, doctype=type,
-			title_field = meta.title_field or "name") for i in out.raw_items]
+	out.items = [template.render(doc=i, doctype=type,
+		title_field = meta.title_field or "name") for i in out.raw_items]
 
 	out.meta = meta
 

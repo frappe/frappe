@@ -8,7 +8,9 @@ no_cache = 1
 no_sitemap = 1
 
 def get_context(context):
+	doc = frappe.get_doc(frappe.local.form_dict.doctype, frappe.local.form_dict.name)
+	doc.run_method("make_view")
 	return {
-		"doc": frappe.get_doc(frappe.local.form_dict.doctype, frappe.local.form_dict.name),
-		"meta": frappe.get_meta(frappe.local.form_dict.doctype)
+		"doc": doc,
+		"meta": doc.meta
 	}

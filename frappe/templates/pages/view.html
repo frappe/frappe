@@ -2,7 +2,7 @@
 
 {% block header %}
 <h2>{{ doc[meta.title_field or "name"] }}</h2>
-<p><a href="/{{ doc.doctype }}">{{ doc.doctype }}</a></p>
+<p><a href="/{{ doc.doctype }}">{{ doc.doctype }} {{ _("List") }}</a></p>
 {% endblock %}
 
 {% block content %}
