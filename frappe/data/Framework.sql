@@ -8,21 +8,21 @@
 
 DROP TABLE IF EXISTS `tabDocField`;
 CREATE TABLE `tabDocField` (
-  `name` varchar(120) NOT NULL,
+  `name` varchar(255) NOT NULL,
   `creation` datetime(6) DEFAULT NULL,
   `modified` datetime(6) DEFAULT NULL,
-  `modified_by` varchar(40) DEFAULT NULL,
-  `owner` varchar(40) DEFAULT NULL,
+  `modified_by` varchar(255) DEFAULT NULL,
+  `owner` varchar(255) DEFAULT NULL,
   `docstatus` int(1) DEFAULT '0',
-  `parent` varchar(120) DEFAULT NULL,
-  `parentfield` varchar(120) DEFAULT NULL,
-  `parenttype` varchar(120) DEFAULT NULL,
+  `parent` varchar(255) DEFAULT NULL,
+  `parentfield` varchar(255) DEFAULT NULL,
+  `parenttype` varchar(255) DEFAULT NULL,
   `idx` int(8) DEFAULT NULL,
-  `fieldname` varchar(180) DEFAULT NULL,
-  `label` varchar(180) DEFAULT NULL,
-  `oldfieldname` varchar(180) DEFAULT NULL,
-  `fieldtype` varchar(180) DEFAULT NULL,
-  `oldfieldtype` varchar(180) DEFAULT NULL,
+  `fieldname` varchar(255) DEFAULT NULL,
+  `label` varchar(255) DEFAULT NULL,
+  `oldfieldname` varchar(255) DEFAULT NULL,
+  `fieldtype` varchar(255) DEFAULT NULL,
+  `oldfieldtype` varchar(255) DEFAULT NULL,
   `options` text,
   `search_index` int(1) DEFAULT NULL,
   `hidden` int(1) DEFAULT NULL,
@@ -32,12 +32,12 @@ CREATE TABLE `tabDocField` (
   `reqd` int(1) DEFAULT NULL,
   `no_copy` int(1) DEFAULT NULL,
   `allow_on_submit` int(1) DEFAULT NULL,
-  `trigger` varchar(180) DEFAULT NULL,
-  `depends_on` varchar(180) DEFAULT NULL,
+  `trigger` varchar(255) DEFAULT NULL,
+  `depends_on` varchar(255) DEFAULT NULL,
   `permlevel` int(11) DEFAULT '0',
   `ignore_restrictions` int(1) DEFAULT NULL,
-  `width` varchar(180) DEFAULT NULL,
-  `print_width` varchar(180) DEFAULT NULL,
+  `width` varchar(255) DEFAULT NULL,
+  `print_width` varchar(255) DEFAULT NULL,
   `default` text,
   `description` text,
   `in_filter` int(1) DEFAULT NULL,
@@ -57,22 +57,22 @@ CREATE TABLE `tabDocField` (
 --
 
 DROP TABLE IF EXISTS `tabDocPerm`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!255101 SET @saved_cs_client     = @@character_set_client */;
+/*!255101 SET character_set_client = utf8 */;
 CREATE TABLE `tabDocPerm` (
-  `name` varchar(120) NOT NULL,
+  `name` varchar(255) NOT NULL,
   `creation` datetime(6) DEFAULT NULL,
   `modified` datetime(6) DEFAULT NULL,
-  `modified_by` varchar(40) DEFAULT NULL,
-  `owner` varchar(40) DEFAULT NULL,
+  `modified_by` varchar(255) DEFAULT NULL,
+  `owner` varchar(255) DEFAULT NULL,
   `docstatus` int(1) DEFAULT '0',
-  `parent` varchar(120) DEFAULT NULL,
-  `parentfield` varchar(120) DEFAULT NULL,
-  `parenttype` varchar(120) DEFAULT NULL,
+  `parent` varchar(255) DEFAULT NULL,
+  `parentfield` varchar(255) DEFAULT NULL,
+  `parenttype` varchar(255) DEFAULT NULL,
   `idx` int(8) DEFAULT NULL,
   `permlevel` int(11) DEFAULT '0',
-  `role` varchar(180) DEFAULT NULL,
-  `match` varchar(180) DEFAULT NULL,
+  `role` varchar(255) DEFAULT NULL,
+  `match` varchar(255) DEFAULT NULL,
   `read` int(1) DEFAULT NULL,
   `write` int(1) DEFAULT NULL,
   `create` int(1) DEFAULT NULL,
@@ -89,43 +89,45 @@ CREATE TABLE `tabDocPerm` (
   PRIMARY KEY (`name`),
   KEY `parent` (`parent`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-/*!40101 SET character_set_client = @saved_cs_client */;
+/*!255101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Table structure for table `tabDocType`
 --
 
 DROP TABLE IF EXISTS `tabDocType`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!255101 SET @saved_cs_client     = @@character_set_client */;
+/*!255101 SET character_set_client = utf8 */;
 CREATE TABLE `tabDocType` (
-  `name` varchar(180) NOT NULL DEFAULT '',
+  `name` varchar(255) NOT NULL DEFAULT '',
   `creation` datetime(6) DEFAULT NULL,
   `modified` datetime(6) DEFAULT NULL,
-  `modified_by` varchar(40) DEFAULT NULL,
-  `owner` varchar(180) DEFAULT NULL,
+  `modified_by` varchar(255) DEFAULT NULL,
+  `owner` varchar(255) DEFAULT NULL,
   `docstatus` int(1) DEFAULT '0',
-  `parent` varchar(120) DEFAULT NULL,
-  `parentfield` varchar(120) DEFAULT NULL,
-  `parenttype` varchar(120) DEFAULT NULL,
+  `parent` varchar(255) DEFAULT NULL,
+  `parentfield` varchar(255) DEFAULT NULL,
+  `parenttype` varchar(255) DEFAULT NULL,
   `idx` int(8) DEFAULT NULL,
-  `search_fields` varchar(180) DEFAULT NULL,
+  `search_fields` varchar(255) DEFAULT NULL,
   `issingle` int(1) DEFAULT NULL,
   `istable` int(1) DEFAULT NULL,
   `version` int(11) DEFAULT NULL,
-  `module` varchar(180) DEFAULT NULL,
-  `plugin` varchar(180) DEFAULT NULL,
-  `autoname` varchar(180) DEFAULT NULL,
-  `name_case` varchar(180) DEFAULT NULL,
-  `title_field` varchar(180) DEFAULT NULL,
+  `module` varchar(255) DEFAULT NULL,
+  `plugin` varchar(255) DEFAULT NULL,
+  `autoname` varchar(255) DEFAULT NULL,
+  `name_case` varchar(255) DEFAULT NULL,
+  `title_field` varchar(255) DEFAULT NULL,
+  `sort_field` varchar(255) DEFAULT NULL,
+  `sort_order` varchar(255) DEFAULT NULL,
   `description` text,
-  `colour` varchar(180) DEFAULT NULL,
+  `colour` varchar(255) DEFAULT NULL,
   `read_only` int(1) DEFAULT NULL,
   `in_create` int(1) DEFAULT NULL,
   `show_in_menu` int(1) DEFAULT NULL,
   `menu_index` int(11) DEFAULT NULL,
-  `parent_node` varchar(180) DEFAULT NULL,
-  `smallicon` varchar(180) DEFAULT NULL,
+  `parent_node` varchar(255) DEFAULT NULL,
+  `smallicon` varchar(255) DEFAULT NULL,
   `allow_print` int(1) DEFAULT NULL,
   `allow_email` int(1) DEFAULT NULL,
   `allow_copy` int(1) DEFAULT NULL,
@@ -136,47 +138,37 @@ CREATE TABLE `tabDocType` (
   `allow_attach` int(1) DEFAULT NULL,
   `use_template` int(1) DEFAULT NULL,
   `max_attachments` int(11) DEFAULT NULL,
-  `section_style` varchar(180) DEFAULT NULL,
-  `client_script` mediumtext,
-  `client_script_core` mediumtext,
-  `server_code` mediumtext,
-  `server_code_core` mediumtext,
-  `server_code_compiled` mediumtext,
-  `client_string` mediumtext,
-  `server_code_error` varchar(180) DEFAULT NULL,
-  `print_outline` varchar(180) DEFAULT NULL,
-  `dt_template` mediumtext,
+  `print_outline` varchar(255) DEFAULT NULL,
   `is_transaction_doc` int(1) DEFAULT NULL,
-  `change_log` mediumtext,
   `read_only_onload` int(1) DEFAULT NULL,
   `allow_trash` int(1) DEFAULT NULL,
   `in_dialog` int(1) DEFAULT NULL,
-  `document_type` varchar(180) DEFAULT NULL,
-  `icon` varchar(180) DEFAULT NULL,
-  `tag_fields` varchar(180) DEFAULT NULL,
-  `subject` varchar(180) DEFAULT NULL,
+  `document_type` varchar(255) DEFAULT NULL,
+  `icon` varchar(255) DEFAULT NULL,
+  `tag_fields` varchar(255) DEFAULT NULL,
+  `subject` varchar(255) DEFAULT NULL,
   `_last_update` varchar(32) DEFAULT NULL,
-  `default_print_format` varchar(180) DEFAULT NULL,
+  `default_print_format` varchar(255) DEFAULT NULL,
   `is_submittable` int(1) DEFAULT NULL,
-  `_user_tags` varchar(180) DEFAULT NULL,
+  `_user_tags` varchar(255) DEFAULT NULL,
   `custom` int(1) DEFAULT NULL,
   PRIMARY KEY (`name`),
   KEY `parent` (`parent`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-/*!40101 SET character_set_client = @saved_cs_client */;
+/*!255101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Table structure for table `tabSeries`
 --
 
 DROP TABLE IF EXISTS `tabSeries`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!255101 SET @saved_cs_client     = @@character_set_client */;
+/*!255101 SET character_set_client = utf8 */;
 CREATE TABLE `tabSeries` (
   `name` varchar(100) DEFAULT NULL,
   `current` int(10) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-/*!40101 SET character_set_client = @saved_cs_client */;
+/*!255101 SET character_set_client = @saved_cs_client */;
 
 
 --
@@ -184,18 +176,18 @@ CREATE TABLE `tabSeries` (
 --
 
 DROP TABLE IF EXISTS `tabSessions`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!255101 SET @saved_cs_client     = @@character_set_client */;
+/*!255101 SET character_set_client = utf8 */;
 CREATE TABLE `tabSessions` (
   `user` varchar(255) DEFAULT NULL,
-  `sid` varchar(120) DEFAULT NULL,
+  `sid` varchar(255) DEFAULT NULL,
   `sessiondata` longtext,
   `ipaddress` varchar(16) DEFAULT NULL,
   `lastupdate` datetime(6) DEFAULT NULL,
   `status` varchar(20) DEFAULT NULL,
   KEY `sid` (`sid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-/*!40101 SET character_set_client = @saved_cs_client */;
+/*!255101 SET character_set_client = @saved_cs_client */;
 
 
 --
@@ -203,11 +195,11 @@ CREATE TABLE `tabSessions` (
 --
 
 DROP TABLE IF EXISTS `tabSingles`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!255101 SET @saved_cs_client     = @@character_set_client */;
+/*!255101 SET character_set_client = utf8 */;
 CREATE TABLE `tabSingles` (
-  `doctype` varchar(40) DEFAULT NULL,
-  `field` varchar(40) DEFAULT NULL,
+  `doctype` varchar(255) DEFAULT NULL,
+  `field` varchar(255) DEFAULT NULL,
   `value` text,
   KEY `singles_doctype_field_index` (`doctype`, `field`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -217,11 +209,11 @@ CREATE TABLE `tabSingles` (
 --
 
 DROP TABLE IF EXISTS `__Auth`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+/*!255101 SET @saved_cs_client     = @@character_set_client */;
+/*!255101 SET character_set_client = utf8 */;
 CREATE TABLE `__Auth` (
-  `user` VARCHAR(180) NOT NULL PRIMARY KEY,
-  `password` VARCHAR(180) NOT NULL,
+  `user` VARCHAR(255) NOT NULL PRIMARY KEY,
+  `password` VARCHAR(255) NOT NULL,
   KEY `user` (`user`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -231,22 +223,22 @@ CREATE TABLE `__Auth` (
 
 DROP TABLE IF EXISTS `tabFile Data`;
 CREATE TABLE `tabFile Data` (
-  `name` varchar(120) NOT NULL,
+  `name` varchar(255) NOT NULL,
   `creation` datetime(6) DEFAULT NULL,
   `modified` datetime(6) DEFAULT NULL,
-  `modified_by` varchar(40) DEFAULT NULL,
-  `owner` varchar(40) DEFAULT NULL,
+  `modified_by` varchar(255) DEFAULT NULL,
+  `owner` varchar(255) DEFAULT NULL,
   `docstatus` int(1) DEFAULT '0',
-  `parent` varchar(120) DEFAULT NULL,
-  `parentfield` varchar(120) DEFAULT NULL,
-  `parenttype` varchar(120) DEFAULT NULL,
+  `parent` varchar(255) DEFAULT NULL,
+  `parentfield` varchar(255) DEFAULT NULL,
+  `parenttype` varchar(255) DEFAULT NULL,
   `idx` int(8) DEFAULT NULL,
-  `file_name` varchar(180) DEFAULT NULL,
-  `file_url` varchar(180) DEFAULT NULL,
-  `module` varchar(180) DEFAULT NULL,
-  `attached_to_name` varchar(180) DEFAULT NULL,
+  `file_name` varchar(255) DEFAULT NULL,
+  `file_url` varchar(255) DEFAULT NULL,
+  `module` varchar(255) DEFAULT NULL,
+  `attached_to_name` varchar(255) DEFAULT NULL,
   `file_size` int(11) DEFAULT NULL,
-  `attached_to_doctype` varchar(180) DEFAULT NULL,
+  `attached_to_doctype` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`name`),
   KEY `parent` (`parent`),
   KEY `attached_to_name` (`attached_to_name`),
@@ -259,18 +251,18 @@ CREATE TABLE `tabFile Data` (
 
 DROP TABLE IF EXISTS `tabDefaultValue`;
 CREATE TABLE `tabDefaultValue` (
-  `name` varchar(120) NOT NULL,
+  `name` varchar(255) NOT NULL,
   `creation` datetime(6) DEFAULT NULL,
   `modified` datetime(6) DEFAULT NULL,
-  `modified_by` varchar(40) DEFAULT NULL,
-  `owner` varchar(40) DEFAULT NULL,
+  `modified_by` varchar(255) DEFAULT NULL,
+  `owner` varchar(255) DEFAULT NULL,
   `docstatus` int(1) DEFAULT '0',
-  `parent` varchar(120) DEFAULT NULL,
-  `parentfield` varchar(120) DEFAULT NULL,
-  `parenttype` varchar(120) DEFAULT NULL,
+  `parent` varchar(255) DEFAULT NULL,
+  `parentfield` varchar(255) DEFAULT NULL,
+  `parenttype` varchar(255) DEFAULT NULL,
   `idx` int(8) DEFAULT NULL,
   `defvalue` text,
-  `defkey` varchar(180) DEFAULT NULL,
+  `defkey` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`name`),
   KEY `parent` (`parent`),
   KEY `defaultvalue_parent_defkey_index` (`parent`,`defkey`)

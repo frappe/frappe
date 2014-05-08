@@ -39,8 +39,11 @@ def get_items(type, txt, limit_start=0):
 		template = env.get_template(template_path)
 	else:
 		template = Template("""<div><a href="/{{ doctype }}/{{ item.name }}">
-			{{ item.name }}</a></div>""")
+			{{ item[title_field] }}</a></div>""")
 
-		out.items = [template.render(item=i, doctype=type) for i in out.raw_items]
+		out.items = [template.render(item=i, doctype=type,
+			title_field = meta.title_field or "name") for i in out.raw_items]
+
+	out.meta = meta
 
 	return out

@@ -108,8 +108,11 @@ class Meta(Document):
 		return search_fields
 
 	def get_list_fields(self):
-		return ["name"] + [d.fieldname \
+		list_fields = ["name"] + [d.fieldname \
 			for d in self.fields if (d.in_list_view and d.fieldtype in type_map)]
+		if self.title_field and self.title_field not in list_fields:
+			list_fields.append(self.title_field)
+		return list_fields
 
 	def process(self):
 		# don't process for special doctypes
