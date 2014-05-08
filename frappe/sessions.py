@@ -32,7 +32,7 @@ def clear_cache(user=None):
 		"time_zone"])
 
 	def delete_user_cache(user):
-		for key in ("bootinfo", "lang", "roles", "restrictions"):
+		for key in ("bootinfo", "lang", "roles", "restrictions", "home_page"):
 			cache.delete_value(key + ":" + user)
 
 	def clear_notifications(user=None):

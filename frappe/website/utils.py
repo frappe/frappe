@@ -21,12 +21,26 @@ def can_cache(no_cache=False):
 	return not (frappe.conf.disable_website_cache or no_cache)
 
 def get_home_page():
-	home_page = frappe.cache().get_value("home_page", \
-		lambda:  (frappe.get_hooks("home_page") \
-			or [frappe.db.get_value("Website Settings", None, "home_page") \
-			or "login"])[0])
+	def _get_home_page():
+		role_home_page = frappe.get_hooks("role_home_page")
+		home_page = None
 
-	return home_page
+		for role in frappe.get_roles():
+			if role in role_home_page:
+				home_page = role_home_page[role][0]
+				break
+
+		if not home_page:
+			home_page = frappe.get_hooks("home_page")
+			if home_page:
+				home_page = home_page[0]
+
+		if not home_page:
+			home_page = frappe.db.get_value("Website Settings", None, "home_page") or "login"
+
+		return home_page
+
+	return frappe.cache().get_value("home_page:" + frappe.session.user, _get_home_page)
 
 def is_signup_enabled():
 	if getattr(frappe.local, "is_signup_enabled", None) is None:
