@@ -20,10 +20,6 @@ https://frappe.io/apps/frappe
 		<meta name="{{ name }}" content="{{ metatags[name]|striptags }}">
 		{%- endfor -%}
 		{%- endif -%}
-		{%- for link in web_include_js %}
-		<script type="text/javascript" src="{{ link }}"></script>
-		{%- endfor -%}
-
 		{%- for link in web_include_css %}
 		<link type="text/css" rel="stylesheet" href="{{ link }}">
 		{%- endfor -%}
@@ -38,6 +34,7 @@ https://frappe.io/apps/frappe
 <body>
 	<div id="wrap">
 		{%- block banner -%}
+		{% include "templates/includes/banner_extension.html" %}
 			{% if banner_html -%}
 			<header class="container">{{ banner_html or "" }}</header>
 			{%- endif %}
@@ -91,6 +88,10 @@ https://frappe.io/apps/frappe
 	<div id="wrap-footer">
 		{%- block footer -%}{% include "templates/includes/footer.html" %}{%- endblock -%}
 	</div>
+
+	{%- for link in web_include_js %}
+	<script type="text/javascript" src="{{ link }}"></script>
+	{%- endfor -%}
 
 	{%- block script %}
 		<script data-html-block="script">
