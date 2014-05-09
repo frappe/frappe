@@ -114,8 +114,6 @@ def make_test_records(doctype, verbose=0):
 		frappe.connect()
 
 	for options in get_dependencies(doctype):
-		if options.startswith("link:"):
-			options = options[5:]
 		if options == "[Select]":
 			continue
 

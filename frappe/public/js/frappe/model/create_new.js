@@ -66,7 +66,7 @@ $.extend(frappe.model, {
 					doc[f.fieldname] = v;
 					updated.push(f.fieldname);
 				} else if(f.fieldtype == "Select" && f.options
-					&& f.options.substr(0, 5)!="link:" && f.options!="[Select]") {
+					&& f.options!="[Select]") {
 						doc[f.fieldname] = f.options.split("\n")[0];
 				}
 			}

@@ -31,7 +31,6 @@ class DocType(Document):
 			validate_permissions(self)
 
 		self.make_amendable()
-		self.check_link_replacement_error()
 
 	def change_modified_of_parent(self):
 		if frappe.flags.in_import:
@@ -93,12 +92,6 @@ class DocType(Document):
 			if hasattr(module, "on_doctype_update"):
 				module.on_doctype_update()
 		frappe.clear_cache(doctype=self.name)
-
-	def check_link_replacement_error(self):
-		for d in self.get("fields", {"fieldtype":"Select"}):
-			if (frappe.db.get_value("DocField", d.name, "options") or "").startswith("link:") \
-				and not d.options.startswith("link:"):
-				frappe.throw(_("'link:' type Select {0} getting replaced").format(d.label))
 
 	def on_trash(self):
 		frappe.db.sql("delete from `tabCustom Field` where dt = %s", self.name)

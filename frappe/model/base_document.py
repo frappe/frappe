@@ -259,9 +259,6 @@ class BaseDocument(object):
 			if not doctype:
 				frappe.throw(_("Options not set for link field {0}").format(df.fieldname))
 
-			elif doctype.lower().startswith("link:"):
-				doctype = doctype[5:]
-
 			docname = self.get(df.fieldname)
 			if docname and not frappe.db.get_value(doctype, docname):
 				invalid_links.append((df.fieldname, docname, get_msg(df, docname)))
