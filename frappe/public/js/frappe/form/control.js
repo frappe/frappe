@@ -785,16 +785,14 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		this.$input.on("focus", function() {
 			setTimeout(function() {
 				if(!me.$input.val()) {
-					me.$input.val("%").trigger("keydown");
+					me.$input.autocomplete("search", "");
 				}
-			}, 1000)
-		})
+			}, 500);
+		});
 		this.input = this.$input.get(0);
 		this.has_input = true;
-		//this.bind_change_event();
 		var me = this;
 		this.setup_buttons();
-		//this.setup_typeahead();
 		this.setup_autocomplete();
 	},
 	setup_buttons: function() {
@@ -842,10 +840,19 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 				if(value!==me.last_value) {
 					me.parse_validate_and_set_in_model(value);
 				}
-			}});
+			}
+		});
 
+		var cache = {};
 		this.$input.autocomplete({
+			minLength: 0,
 			source: function(request, response) {
+				if (cache[request.term]!=null) {
+					// from cache
+					response(cache[request.term]);
+					return;
+				}
+
 				var args = {
 					'txt': request.term,
 					'doctype': me.df.options,
@@ -859,6 +866,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 					no_spinner: true,
 					args: args,
 					callback: function(r) {
+						cache[request.term] = r.results;
 						response(r.results);
 					},
 				});
