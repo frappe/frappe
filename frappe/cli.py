@@ -308,7 +308,7 @@ def add_to_installed_apps(*apps):
 	all_apps = frappe.get_all_apps(with_frappe=True)
 	for each in apps:
 		if each in all_apps:
-			add_to_installed_apps(each)
+			add_to_installed_apps(each, rebuild_sitemap=False)
 	frappe.destroy()
 
 @cmd
