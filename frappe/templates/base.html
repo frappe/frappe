@@ -34,7 +34,7 @@ https://frappe.io/apps/frappe
 <body>
 	<div id="wrap">
 		{%- block banner -%}
-		{% include "templates/includes/banner_extension.html" %}
+		{% include "templates/includes/banner_extension.html" ignore missing %}
 			{% if banner_html -%}
 			<header class="container">{{ banner_html or "" }}</header>
 			{%- endif %}
