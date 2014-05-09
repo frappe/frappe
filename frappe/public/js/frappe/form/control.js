@@ -888,17 +888,13 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 				}
 			}
 		}).data('ui-autocomplete')._renderItem = function(ul, d) {
-			var html = "";
-			if(keys(d).length > 1) {
-				d.info = $.map(d, function(val, key) { return ["value", "label"].indexOf(key)!==-1 ? null : val }).join(", ") || "";
-				html = repl("<a>%(value)s<br><span class='text-muted'>%(info)s</span></a>", d);
-			} else {
-				html = "<a>" + d.value + "</a>";
+			var html = "<strong>" + d.value + "</strong>";
+			if(d.value!==d.description) {
+				html += '<br><span class="small">' + d.description + '</span>';
 			}
-
 			return $('<li></li>')
 				.data('item.autocomplete', d)
-				.append(html)
+				.html('<a><p>' + html + '</p></a>')
 				.appendTo(ul);
 		};
 		// remove accessibility span (for now)

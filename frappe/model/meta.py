@@ -59,11 +59,7 @@ class Meta(Document):
 				raise
 
 	def get_link_fields(self):
-		tmp = self.get("fields", {"fieldtype":"Link", "options":["!=", "[Select]"]})
-		for df in self.get("fields", {"fieldtype":"Select", "options": "^link:"}):
-			tmp.append(frappe._dict({"fieldname":df.fieldname, "label":df.label,
-				"fieldtype":"Link", "options": df.options[5:]}))
-		return tmp
+		return self.get("fields", {"fieldtype": "Link", "options":["!=", "[Select]"]})
 
 	def get_table_fields(self):
 		if not hasattr(self, "_table_fields"):
