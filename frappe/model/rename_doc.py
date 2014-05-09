@@ -138,8 +138,7 @@ def get_link_fields(doctype):
 			where dt.name = df.parent) as issingle
 		from tabDocField df
 		where
-			df.options=%s and df.fieldtype='Link'""" \
-		% ('%s', doctype), (doctype,), as_dict=1)
+			df.options=%s and df.fieldtype='Link'""", (doctype,), as_dict=1)
 
 	# get link fields from tabCustom Field
 	custom_link_fields = frappe.db.sql("""\
@@ -148,8 +147,7 @@ def get_link_fields(doctype):
 			where dt.name = df.dt) as issingle
 		from `tabCustom Field` df
 		where
-			df.options=%s and df.fieldtype='Link'""" \
-		% ('%s', doctype), (doctype,), as_dict=1)
+			df.options=%s and df.fieldtype='Link'""", (doctype,), as_dict=1)
 
 	# add custom link fields list to link fields list
 	link_fields += custom_link_fields
@@ -163,8 +161,7 @@ def get_link_fields(doctype):
 		where
 			ps.property_type='options' and
 			ps.field_name is not null and
-			ps.value=%s""" \
-		% ('%s', doctype), (doctype,), as_dict=1)
+			ps.value=%s""", (doctype,), as_dict=1)
 
 	link_fields += property_setter_link_fields
 
