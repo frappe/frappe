@@ -221,7 +221,7 @@ def sendmail(recipients=(), sender="", subject="No Subject", message="No Message
 	if bulk:
 		import frappe.utils.email_lib.bulk
 		frappe.utils.email_lib.bulk.send(recipients=recipients, sender=sender,
-			subject=subject, message=msg, add_unsubscribe_link=False)
+			subject=subject, message=message, add_unsubscribe_link=False)
 
 	else:
 		import frappe.utils.email_lib
