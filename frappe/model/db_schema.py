@@ -175,27 +175,32 @@ class DbTable:
 		for col in self.columns.values():
 			col.check(self.current_columns.get(col.fieldname, None))
 
+		query = []
+
 		for col in self.add_column:
-			frappe.db.sql("alter table `%s` add column `%s` %s" % (self.name, col.fieldname, col.get_definition()))
+			query.append("add column `{}` {}".format(col.fieldname, col.get_definition()))
 
 		for col in self.change_type:
-			frappe.db.sql("alter table `%s` change `%s` `%s` %s" % (self.name, col.fieldname, col.fieldname, col.get_definition()))
+			query.append("change `{}` `{}` {}".format(col.fieldname, col.fieldname, col.get_definition()))
 
 		for col in self.add_index:
 			# if index key not exists
 			if not frappe.db.sql("show index from `%s` where key_name = %s" %
 					(self.name, '%s'), col.fieldname):
-				frappe.db.sql("alter table `%s` add index `%s`(`%s`)" % (self.name, col.fieldname, col.fieldname))
+				query.append("add index `{}`(`{}`)".format(col.fieldname, col.fieldname))
 
 		for col in self.drop_index:
 			if col.fieldname != 'name': # primary key
 				# if index key exists
 				if frappe.db.sql("show index from `%s` where key_name = %s" %
 						(self.name, '%s'), col.fieldname):
-					frappe.db.sql("alter table `%s` drop index `%s`" % (self.name, col.fieldname))
+					query.append("drop index `{}`".format(col.fieldname))
 
 		for col in self.set_default:
-			frappe.db.sql("alter table `%s` alter column `%s` set default %s" % (self.name, col.fieldname, '%s'), (col.default,))
+			query.append('alter column `{}` set default "{}"'.format(col.fieldname, col.default.replace('"', '\\"')))
+
+		if query:
+			frappe.db.sql("alter table `{}` {}".format(self.name, ", ".join(query)))
 
 class DbColumn:
 	def __init__(self, table, fieldname, fieldtype, length, default, set_index, options):
