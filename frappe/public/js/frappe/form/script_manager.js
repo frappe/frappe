@@ -26,7 +26,7 @@ frappe.ui.form.ScriptManager = Class.extend({
 		name = name || this.frm.docname;
 		handlers = this.get_handlers(event_name, doctype, name, callback);
 		if(callback) handlers.push(callback);
-		
+
 		$.each(handlers, function(i, fn) {
 			fn();
 		})
@@ -38,7 +38,7 @@ frappe.ui.form.ScriptManager = Class.extend({
 			$.each(frappe.ui.form.handlers[doctype][event_name], function(i, fn) {
 				handlers.push(function() { fn(me.frm, doctype, name) });
 			});
-		} 
+		}
 		if(this.frm.cscript[event_name]) {
 			handlers.push(function() { me.frm.cscript[event_name](me.frm.doc, doctype, name); });
 		}
@@ -49,12 +49,22 @@ frappe.ui.form.ScriptManager = Class.extend({
 	},
 	setup: function() {
 		var doctype = this.frm.meta;
+		var me = this;
 
 		// js
 		var cs = doctype.__js;
 		if(cs) {
 			var tmp = eval(cs);
 		}
+
+		// setup add fetch
+		$.each(this.frm.fields, function(i, field) {
+			var df = field.df;
+			if(df.fieldtype==="Read Only" && df.options && df.options.indexOf(".")!=-1) {
+				var parts = df.options.split(".");
+				me.frm.add_fetch(parts[0], parts[1], df.fieldname);
+			}
+		});
 
 		// css
 		doctype.__css && frappe.dom.set_style(doctype.__css);
@@ -72,25 +82,25 @@ frappe.ui.form.ScriptManager = Class.extend({
 	},
 	validate_link_and_fetch: function(df, docname, value, callback) {
 		var me = this;
-		
+
 		if(value) {
 			var fetch = '';
-		
+
 			if(this.frm && this.frm.fetch_dict[df.fieldname])
 				fetch = this.frm.fetch_dict[df.fieldname].columns.join(', ');
-			
+
 			return frappe.call({
 				method:'frappe.widgets.form.utils.validate_link',
 				type: "GET",
 				args: {
-					'value': value, 
-					'options': df.options, 
+					'value': value,
+					'options': df.options,
 					'fetch': fetch
-				}, 
+				},
 				no_spinner: true,
 				callback: function(r) {
 					if(r.message=='Ok') {
-						if(r.fetch_values) 
+						if(r.fetch_values)
 							me.set_fetch_values(df, docname, r.fetch_values);
 						if(callback) callback(value);
 					} else {
@@ -111,7 +121,7 @@ frappe.ui.form.ScriptManager = Class.extend({
 	copy_from_first_row: function(parentfield, current_row, fieldnames) {
 		var doclist = this.frm.doc[parentfield];
 		if(doclist.length===1 || doclist[0]===current_row) return;
-		
+
 		$.each(fieldnames, function(i, fieldname) {
 			current_row[fieldname] = doclist[0][fieldname];
 		});
