@@ -719,6 +719,11 @@ _f.Frm.prototype.disable_save = function() {
 	this.appframe.set_title_right("", null);
 }
 
+_f.Frm.prototype.enable_save = function() {
+	this.save_disabled = false;
+	this.toolbar.set_title_right();
+}
+
 _f.Frm.prototype.save_or_update = function() {
 	if(this.save_disabled) return;
 
