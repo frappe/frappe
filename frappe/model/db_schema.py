@@ -196,8 +196,13 @@ class DbTable:
 						(self.name, '%s'), col.fieldname):
 					query.append("drop index `{}`".format(col.fieldname))
 
-		for col in self.set_default:
-			query.append('alter column `{}` set default "{}"'.format(col.fieldname, col.default.replace('"', '\\"')))
+		for col in list(set(self.set_default).difference(set(self.change_type))):
+			if not col.default:
+				col_default = "null"
+			else:
+				col_default = '"{}"'.format(col.default.replace('"', '\\"'))
+
+			query.append('alter column `{}` set default {}'.format(col.fieldname, col_default))
 
 		if query:
 			frappe.db.sql("alter table `{}` {}".format(self.name, ", ".join(query)))
