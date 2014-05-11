@@ -57,8 +57,6 @@ CREATE TABLE `tabDocField` (
 --
 
 DROP TABLE IF EXISTS `tabDocPerm`;
-/*!255101 SET @saved_cs_client     = @@character_set_client */;
-/*!255101 SET character_set_client = utf8 */;
 CREATE TABLE `tabDocPerm` (
   `name` varchar(255) NOT NULL,
   `creation` datetime(6) DEFAULT NULL,
@@ -89,15 +87,12 @@ CREATE TABLE `tabDocPerm` (
   PRIMARY KEY (`name`),
   KEY `parent` (`parent`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-/*!255101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Table structure for table `tabDocType`
 --
 
 DROP TABLE IF EXISTS `tabDocType`;
-/*!255101 SET @saved_cs_client     = @@character_set_client */;
-/*!255101 SET character_set_client = utf8 */;
 CREATE TABLE `tabDocType` (
   `name` varchar(255) NOT NULL DEFAULT '',
   `creation` datetime(6) DEFAULT NULL,
@@ -155,20 +150,16 @@ CREATE TABLE `tabDocType` (
   PRIMARY KEY (`name`),
   KEY `parent` (`parent`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-/*!255101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Table structure for table `tabSeries`
 --
 
 DROP TABLE IF EXISTS `tabSeries`;
-/*!255101 SET @saved_cs_client     = @@character_set_client */;
-/*!255101 SET character_set_client = utf8 */;
 CREATE TABLE `tabSeries` (
   `name` varchar(100) DEFAULT NULL,
   `current` int(10) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-/*!255101 SET character_set_client = @saved_cs_client */;
 
 
 --
@@ -176,8 +167,6 @@ CREATE TABLE `tabSeries` (
 --
 
 DROP TABLE IF EXISTS `tabSessions`;
-/*!255101 SET @saved_cs_client     = @@character_set_client */;
-/*!255101 SET character_set_client = utf8 */;
 CREATE TABLE `tabSessions` (
   `user` varchar(255) DEFAULT NULL,
   `sid` varchar(255) DEFAULT NULL,
@@ -187,7 +176,6 @@ CREATE TABLE `tabSessions` (
   `status` varchar(20) DEFAULT NULL,
   KEY `sid` (`sid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-/*!255101 SET character_set_client = @saved_cs_client */;
 
 
 --
@@ -195,8 +183,6 @@ CREATE TABLE `tabSessions` (
 --
 
 DROP TABLE IF EXISTS `tabSingles`;
-/*!255101 SET @saved_cs_client     = @@character_set_client */;
-/*!255101 SET character_set_client = utf8 */;
 CREATE TABLE `tabSingles` (
   `doctype` varchar(255) DEFAULT NULL,
   `field` varchar(255) DEFAULT NULL,
@@ -209,8 +195,6 @@ CREATE TABLE `tabSingles` (
 --
 
 DROP TABLE IF EXISTS `__Auth`;
-/*!255101 SET @saved_cs_client     = @@character_set_client */;
-/*!255101 SET character_set_client = utf8 */;
 CREATE TABLE `__Auth` (
   `user` VARCHAR(255) NOT NULL PRIMARY KEY,
   `password` VARCHAR(255) NOT NULL,

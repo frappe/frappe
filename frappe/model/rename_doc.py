@@ -11,7 +11,7 @@ from frappe.model.naming import validate_name
 def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=False):
 	"""
 		Renames a doc(dt, old) to doc(dt, new) and
-		updates all linked fields of type "Link" or "Select" with "link:"
+		updates all linked fields of type "Link"
 	"""
 	if not frappe.db.exists(doctype, old):
 		return
@@ -138,10 +138,7 @@ def get_link_fields(doctype):
 			where dt.name = df.parent) as issingle
 		from tabDocField df
 		where
-			df.parent not like "old%%%%" and df.parent != '0' and
-			((df.options=%s and df.fieldtype='Link') or
-			(df.options='link:%s' and df.fieldtype='Select'))""" \
-		% ('%s', doctype), (doctype,), as_dict=1)
+			df.options=%s and df.fieldtype='Link'""", (doctype,), as_dict=1)
 
 	# get link fields from tabCustom Field
 	custom_link_fields = frappe.db.sql("""\
@@ -150,10 +147,7 @@ def get_link_fields(doctype):
 			where dt.name = df.dt) as issingle
 		from `tabCustom Field` df
 		where
-			df.dt not like "old%%%%" and df.dt != '0' and
-			((df.options=%s and df.fieldtype='Link') or
-			(df.options='link:%s' and df.fieldtype='Select'))""" \
-		% ('%s', doctype), (doctype,), as_dict=1)
+			df.options=%s and df.fieldtype='Link'""", (doctype,), as_dict=1)
 
 	# add custom link fields list to link fields list
 	link_fields += custom_link_fields
@@ -167,8 +161,7 @@ def get_link_fields(doctype):
 		where
 			ps.property_type='options' and
 			ps.field_name is not null and
-			(ps.value=%s or ps.value='link:%s')""" \
-		% ('%s', doctype), (doctype,), as_dict=1)
+			ps.value=%s""", (doctype,), as_dict=1)
 
 	link_fields += property_setter_link_fields
 
@@ -199,10 +192,8 @@ def get_select_fields(old, new):
 			where dt.name = df.parent) as issingle
 		from tabDocField df
 		where
-			df.parent not like "old%%%%" and df.parent != '0' and
 			df.parent != %s and df.fieldtype = 'Select' and
-			df.options not like "link:%%%%" and
-			(df.options like "%%%%%s%%%%")""" \
+			df.options like "%%%%%s%%%%" """ \
 		% ('%s', old), (new,), as_dict=1)
 
 	# get link fields from tabCustom Field
@@ -212,10 +203,8 @@ def get_select_fields(old, new):
 			where dt.name = df.dt) as issingle
 		from `tabCustom Field` df
 		where
-			df.dt not like "old%%%%" and df.dt != '0' and
 			df.dt != %s and df.fieldtype = 'Select' and
-			df.options not like "link:%%%%" and
-			(df.options like "%%%%%s%%%%")""" \
+			df.options like "%%%%%s%%%%" """ \
 		% ('%s', old), (new,), as_dict=1)
 
 	# add custom link fields list to link fields list
@@ -231,8 +220,7 @@ def get_select_fields(old, new):
 			ps.doc_type != %s and
 			ps.property_type='options' and
 			ps.field_name is not null and
-			ps.value not like "link:%%%%" and
-			(ps.value like "%%%%%s%%%%")""" \
+			ps.value like "%%%%%s%%%%" """ \
 		% ('%s', old), (new,), as_dict=1)
 
 	select_fields += property_setter_select_fields
@@ -243,16 +231,14 @@ def update_select_field_values(old, new):
 	frappe.db.sql("""\
 		update `tabDocField` set options=replace(options, %s, %s)
 		where
-			parent != %s and parent not like "old%%%%" and
-			fieldtype = 'Select' and options not like "link:%%%%" and
+			parent != %s and fieldtype = 'Select' and
 			(options like "%%%%\\n%s%%%%" or options like "%%%%%s\\n%%%%")""" % \
 		('%s', '%s', '%s', old, old), (old, new, new))
 
 	frappe.db.sql("""\
 		update `tabCustom Field` set options=replace(options, %s, %s)
 		where
-			dt != %s and dt not like "old%%%%" and
-			fieldtype = 'Select' and options not like "link:%%%%" and
+			dt != %s and fieldtype = 'Select' and
 			(options like "%%%%\\n%s%%%%" or options like "%%%%%s\\n%%%%")""" % \
 		('%s', '%s', '%s', old, old), (old, new, new))
 
@@ -260,7 +246,7 @@ def update_select_field_values(old, new):
 		update `tabProperty Setter` set value=replace(value, %s, %s)
 		where
 			doc_type != %s and field_name is not null and
-			property='options' and value not like "link%%%%" and
+			property='options' and
 			(value like "%%%%\\n%s%%%%" or value like "%%%%%s\\n%%%%")""" % \
 		('%s', '%s', '%s', old, old), (old, new, new))
 

@@ -44,8 +44,8 @@ class FileData(Document):
 				pass
 
 		# if file not attached to any other record, delete it
-		if self.file_name and not frappe.db.count("File Data", 
-			{"content_hash": self.content_hash, "name": ["!=", self.name]}):
+		if self.file_name and self.content_hash and (not frappe.db.count("File Data",
+			{"content_hash": self.content_hash, "name": ["!=", self.name]})):
 				delete_file_data_content(self)
 
 	def on_rollback(self):

@@ -14,7 +14,7 @@ class PageNotFoundError(Exception): pass
 
 def render(path, http_status_code=None):
 	"""render html page"""
-	path = resolve_path(path.lstrip("/"))
+	path = resolve_path(path.strip("/"))
 
 	try:
 		data = render_page(path)
@@ -48,7 +48,7 @@ def render(path, http_status_code=None):
 	return build_response(path, data, http_status_code or 200)
 
 def get_doctype_from_path(path):
-	doctypes = [d[0] for d in frappe.get_list("DocType", as_list=True)]
+	doctypes = [d[0] for d in frappe.db.sql_list("select name from tabDocType")]
 
 	parts = path.split("/")
 

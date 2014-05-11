@@ -215,12 +215,20 @@ def set_user(username):
 def get_request_header(key, default=None):
 	return request.headers.get(key, default)
 
-def sendmail(recipients=(), sender="", subject="No Subject", message="No Message", as_markdown=False):
-	import frappe.utils.email_lib
-	if as_markdown:
-		frappe.utils.email_lib.sendmail_md(recipients, sender=sender, subject=subject, msg=message)
+def sendmail(recipients=(), sender="", subject="No Subject", message="No Message",
+		as_markdown=False, bulk=False):
+
+	if bulk:
+		import frappe.utils.email_lib.bulk
+		frappe.utils.email_lib.bulk.send(recipients=recipients, sender=sender,
+			subject=subject, message=message, add_unsubscribe_link=False)
+
 	else:
-		frappe.utils.email_lib.sendmail(recipients, sender=sender, subject=subject, msg=message)
+		import frappe.utils.email_lib
+		if as_markdown:
+			frappe.utils.email_lib.sendmail_md(recipients, sender=sender, subject=subject, msg=message)
+		else:
+			frappe.utils.email_lib.sendmail(recipients, sender=sender, subject=subject, msg=message)
 
 logger = None
 whitelisted = []

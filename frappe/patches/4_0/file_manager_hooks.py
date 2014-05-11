@@ -21,7 +21,16 @@ def execute():
 			b.file_url = os.path.normpath('/' + old_file_name)
 		else:
 			b.file_url = os.path.normpath('/files/' + old_file_name)
-		_file_name, content = get_file(name)
-		b.content_hash = get_content_hash(content)
-		b.save()
+		try:
+			_file_name, content = get_file(name)
+			b.content_hash = get_content_hash(content)
+		except IOError:
+			print 'Warning: Error processing ', name
+			_file_name = old_file_name
+			b.content_hash = None
+
+		try:
+			b.save()
+		except frappe.DuplicateEntryError:
+			frappe.delete_doc(b.doctype, b.name)
 

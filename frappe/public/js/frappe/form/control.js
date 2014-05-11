@@ -785,16 +785,14 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		this.$input.on("focus", function() {
 			setTimeout(function() {
 				if(!me.$input.val()) {
-					me.$input.val("%").trigger("keydown");
+					me.$input.autocomplete("search", "");
 				}
-			}, 1000)
-		})
+			}, 500);
+		});
 		this.input = this.$input.get(0);
 		this.has_input = true;
-		//this.bind_change_event();
 		var me = this;
 		this.setup_buttons();
-		//this.setup_typeahead();
 		this.setup_autocomplete();
 	},
 	setup_buttons: function() {
@@ -842,10 +840,19 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 				if(value!==me.last_value) {
 					me.parse_validate_and_set_in_model(value);
 				}
-			}});
+			}
+		});
 
+		var cache = {};
 		this.$input.autocomplete({
+			minLength: 0,
 			source: function(request, response) {
+				if (cache[request.term]!=null) {
+					// from cache
+					response(cache[request.term]);
+					return;
+				}
+
 				var args = {
 					'txt': request.term,
 					'doctype': me.df.options,
@@ -859,6 +866,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 					no_spinner: true,
 					args: args,
 					callback: function(r) {
+						cache[request.term] = r.results;
 						response(r.results);
 					},
 				});
@@ -880,17 +888,13 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 				}
 			}
 		}).data('ui-autocomplete')._renderItem = function(ul, d) {
-			var html = "";
-			if(keys(d).length > 1) {
-				d.info = $.map(d, function(val, key) { return ["value", "label"].indexOf(key)!==-1 ? null : val }).join(", ") || "";
-				html = repl("<a>%(value)s<br><span class='text-muted'>%(info)s</span></a>", d);
-			} else {
-				html = "<a>" + d.value + "</a>";
+			var html = "<strong>" + d.value + "</strong>";
+			if(d.value!==d.description) {
+				html += '<br><span class="small">' + d.description + '</span>';
 			}
-
 			return $('<li></li>')
 				.data('item.autocomplete', d)
-				.append(html)
+				.html('<a><p>' + html + '</p></a>')
 				.appendTo(ul);
 		};
 		// remove accessibility span (for now)

@@ -62,7 +62,7 @@ def send(recipients=None, sender=None, doctype='User', email_field='email',
 
 		doc = rdata and rdata[0] or {}
 
-		if not is_unsubscribed(doc):
+		if (not add_unsubscribe_link) or (not is_unsubscribed(doc)):
 			# add to queue
 			updated = update_message(formatted, doc, add_unsubscribe_link)
 			try:
