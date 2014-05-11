@@ -165,6 +165,7 @@ def clear_cache(path=None):
 				delete_page_cache(p)
 
 		cache.delete_value("home_page")
+		cache.delete_value("home_page:Guest")
 		clear_permissions()
 
 	for method in frappe.get_hooks("website_clear_cache"):
