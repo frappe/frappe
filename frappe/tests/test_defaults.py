@@ -7,6 +7,7 @@ from frappe.defaults import *
 
 class TestDefaults(unittest.TestCase):
 	def test_global(self):
+		clear_user_default("key1")
 		set_global_default("key1", "value1")
 		self.assertEquals(get_global_default("key1"), "value1")
 
@@ -28,7 +29,7 @@ class TestDefaults(unittest.TestCase):
 		add_user_default("key1", "3value3")
 		self.assertEquals(get_user_default("key1"), "2value2")
 		self.assertEquals(get_user_default_as_list("key1"), ["2value2", "3value3"])
-		
+
 	def test_global_if_not_user(self):
 		set_global_default("key4", "value4")
 		self.assertEquals(get_user_default("key4"), "value4")
@@ -38,7 +39,7 @@ class TestDefaults(unittest.TestCase):
 		self.assertEquals(get_user_default("key5"), "value5")
 		clear_user_default("key5")
 		self.assertEquals(get_user_default("key5"), None)
-		
+
 	def test_clear_global(self):
 		set_global_default("key6", "value6")
 		self.assertEquals(get_user_default("key6"), "value6")
