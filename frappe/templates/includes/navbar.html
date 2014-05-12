@@ -30,7 +30,6 @@
 					{%- endif -%}
 					{%- endfor %}
 					<!-- post login tools -->
-					{% if not disable_signup %}
 					<li class="dropdown logged-in" id="website-post-login"
 						data-label="website-post-login" style="display: none">
 						<a href="#" class="dropdown-toggle" data-toggle="dropdown">
@@ -56,6 +55,7 @@
 							{%- endfor -%}
 						</ul>
 					</li>
+					{% if not disable_signup %}
 					<li class="btn-login-area"><a href="/login">Sign Up / Login</a></li>
 					{% endif %}
 				</ul>
@@ -63,4 +63,4 @@
 		</div>
 	</nav>
 </header>
-<script>$('.dropdown-toggle').dropdown()</script>
+<script>$(function() { $('.dropdown-toggle').dropdown(); });</script>
