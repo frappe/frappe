@@ -7,12 +7,8 @@ import frappe
 from frappe.utils import now_datetime, cint
 
 def set_new_name(doc):
-	if getattr(doc, "_new_name_set", False):
-		# already set by doc
+	if doc.name:
 		return
-
-	doc._new_name_set = True
-	autoname = frappe.get_meta(doc.doctype).autoname
 
 	# amendments
 	if getattr(doc, "amended_from", None):
@@ -22,27 +18,30 @@ def set_new_name(doc):
 		if tmp and not isinstance(tmp, basestring):
 			# autoname in a function, not a property
 			doc.autoname()
-		if doc.name:
-			return
+			if doc.name:
+				return
+
+	autoname = frappe.get_meta(doc.doctype).autoname
 
 	# based on a field
-	if autoname and autoname.startswith('field:'):
-		n = doc.get(autoname[6:])
-		if not n:
-			raise Exception, 'Name is required'
-		doc.name = n.strip()
+	if autoname:
+		if autoname.startswith('field:'):
+			n = doc.get(autoname[6:])
+			if not n:
+				raise Exception, 'Name is required'
+			doc.name = n.strip()
 
-	elif autoname and autoname.startswith("naming_series:"):
-		if not doc.naming_series:
-			doc.naming_series = get_default_naming_series(doc.doctype)
+		elif autoname.startswith("naming_series:"):
+			if not doc.naming_series:
+				doc.naming_series = get_default_naming_series(doc.doctype)
 
-		if not doc.naming_series:
-			frappe.msgprint(frappe._("Naming Series mandatory"), raise_exception=True)
-		doc.name = make_autoname(doc.naming_series+'.#####')
+			if not doc.naming_series:
+				frappe.msgprint(frappe._("Naming Series mandatory"), raise_exception=True)
+			doc.name = make_autoname(doc.naming_series+'.#####')
 
-	# call the method!
-	elif autoname and autoname!='Prompt':
-		doc.name = make_autoname(autoname, doc.doctype)
+		# call the method!
+		elif autoname!='Prompt':
+			doc.name = make_autoname(autoname, doc.doctype)
 
 	# given
 	elif doc.get('__newname', None):

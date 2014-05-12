@@ -186,9 +186,6 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 		doc = None
 
 		doc = get_doc(row_idx)
-		if doc.get("name"):
-			doc["_new_name_set"] = True
-
 		try:
 			frappe.local.message_log = []
 			if doc.get("parentfield"):
