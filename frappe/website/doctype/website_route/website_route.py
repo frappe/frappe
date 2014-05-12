@@ -148,7 +148,7 @@ def update_sitemap(website_route, options):
 		website_route.page_name = options.get("link_name")
 
 	website_route.website_template = options.get("link_name")
-	website_route.save(ignore_permissions=True)
+	website_route.save(ignore_permissions=True, ignore_links=True)
 
 	return website_route.idx
 
