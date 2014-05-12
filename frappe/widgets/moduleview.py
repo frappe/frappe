@@ -169,7 +169,8 @@ def get_doctype_count_from_table(doctype):
 def get_report_list(module, is_standard="No"):
 	"""return list on new style reports for modules"""
 	reports =  frappe.get_list("Report", fields=["name", "ref_doctype", "report_type"], filters=
-		{"is_standard": is_standard, "disabled": ("in", ("0", "NULL")), "module": module}, order_by="name")
+		{"is_standard": is_standard, "disabled": ("in", ("0", "NULL", "")), "module": module},
+		order_by="name")
 
 	out = []
 	for r in reports:
