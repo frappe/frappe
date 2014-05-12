@@ -60,6 +60,7 @@ def clear_cache(user=None):
 			delete_user_cache(sess.user)
 			cache.delete_value("session:" + sess.sid)
 
+		delete_user_cache("Guest")
 		clear_notifications()
 		frappe.defaults.clear_cache()
 
