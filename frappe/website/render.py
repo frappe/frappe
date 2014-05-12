@@ -31,14 +31,13 @@ def render(path, http_status_code=None):
 			path = "404"
 			http_status_code = e.http_status_code
 
-		data = render_page(path)
+		try:
+			data = render_page(path)
+		except frappe.PermissionError, e:
+			data, http_status_code = render_403(e)
 
 	except frappe.PermissionError, e:
-		path = "message"
-		frappe.local.message = "Did you log out?"
-		frappe.local.message_title = "Not Permitted"
-		data = render_page(path)
-		http_status_code = e.http_status_code
+		data, http_status_code = render_403(e)
 
 	except Exception:
 		path = "error"
@@ -47,8 +46,15 @@ def render(path, http_status_code=None):
 
 	return build_response(path, data, http_status_code or 200)
 
+
+def render_403(e):
+	path = "message"
+	frappe.local.message = "Did you log out?"
+	frappe.local.message_title = "Not Permitted"
+	return render_page(path), e.http_status_code
+
 def get_doctype_from_path(path):
-	doctypes = [d[0] for d in frappe.db.sql_list("select name from tabDocType")]
+	doctypes = frappe.db.sql_list("select name from tabDocType")
 
 	parts = path.split("/")
 

@@ -154,10 +154,10 @@ def update_sitemap(website_route, options):
 
 def remove_sitemap(page_name=None, ref_doctype=None, docname=None):
 	if page_name:
-		frappe.delete_doc("Website Route", page_name, ignore_permissions=True)
+		frappe.delete_doc("Website Route", page_name, ignore_permissions=True, force=True)
 	elif ref_doctype and docname:
 		frappe.delete_doc("Website Route", frappe.db.sql_list("""select name from `tabWebsite Route`
-			where ref_doctype=%s and docname=%s""", (ref_doctype, docname)), ignore_permissions=True)
+			where ref_doctype=%s and docname=%s""", (ref_doctype, docname)), ignore_permissions=True, force=True)
 
 def cleanup_sitemap():
 	"""remove sitemap records where its config do not exist anymore"""
