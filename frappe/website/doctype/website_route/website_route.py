@@ -4,7 +4,6 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
-from frappe.utils import cint
 from frappe.utils.nestedset import NestedSet
 
 sitemap_fields = ("page_name", "ref_doctype", "docname", "page_or_generator", "idx",
@@ -148,7 +147,8 @@ def update_sitemap(website_route, options):
 		website_route.page_name = options.get("link_name")
 
 	website_route.website_template = options.get("link_name")
-	website_route.save(ignore_permissions=True, ignore_links=True)
+	website_route.ignore_links = True
+	website_route.save(ignore_permissions=True)
 
 	return website_route.idx
 
