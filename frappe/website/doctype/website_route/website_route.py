@@ -55,8 +55,6 @@ class WebsiteRoute(NestedSet):
 		if self.parent_website_route:
 			if self.idx == None:
 				self.set_idx_as_last()
-			else:
-				self.validate_previous_idx_exists()
 
 	def set_idx_as_last(self):
 		# new, append
@@ -65,16 +63,6 @@ class WebsiteRoute(NestedSet):
 			where ifnull(parent_website_route, '')=%s and name!=%s""",
 				(self.parent_website_route or '',
 				self.name))[0][0]) + 1
-
-	def validate_previous_idx_exists(self):
-		self.idx = cint(self.idx)
-		previous_idx = frappe.db.sql("""select max(idx)
-			from `tab{}` where ifnull(parent_website_route, '')=%s
-			and ifnull(idx, -1) < %s""".format(self.ref_doctype),
-			(self.parent_website_route, self.idx))[0][0]
-
-		if previous_idx and previous_idx != self.idx - 1:
-			frappe.throw(_("Sitemap Ordering Error. Index {0} missing for {0}").format(self.idx-1, self.name))
 
 	def rename(self):
 		self.old_name = self.name
