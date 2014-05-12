@@ -71,19 +71,19 @@ class Page(Document):
 		fpath = os.path.join(path, scrub(self.name) + '.js')
 		if os.path.exists(fpath):
 			with open(fpath, 'r') as f:
-				self.script = f.read()
+				self.script = unicode(f.read(), "utf-8")
 
 		# css
 		fpath = os.path.join(path, scrub(self.name) + '.css')
 		if os.path.exists(fpath):
 			with open(fpath, 'r') as f:
-				self.style = f.read()
+				self.style = unicode(f.read(), "utf-8")
 
 		# html
 		fpath = os.path.join(path, scrub(self.name) + '.html')
 		if os.path.exists(fpath):
 			with open(fpath, 'r') as f:
-				self.content = f.read()
+				self.content = unicode(f.read(), "utf-8")
 
 		if frappe.lang != 'en':
 			from frappe.translate import get_lang_js
