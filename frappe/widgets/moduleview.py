@@ -179,7 +179,8 @@ def get_report_list(module, is_standard="No"):
 			"doctype": r.ref_doctype,
 			"is_query_report": 1 if r.report_type in ("Query Report", "Script Report") else 0,
 			"description": r.report_type,
-			"label": _(r.name)
+			"label": _(r.name),
+			"name": r.name
 		})
 
 	return out
