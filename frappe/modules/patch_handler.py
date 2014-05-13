@@ -57,7 +57,8 @@ def execute_patch(patchmodule, method=None, methodargs=None):
 	block_user(True)
 	frappe.db.begin()
 	try:
-		log('Executing %s in %s' % (patchmodule or str(methodargs), frappe.db.cur_db_name))
+		log('Executing {patch} in {site} ({db})'.format(patch=patchmodule or str(methodargs),
+			site=frappe.local.site, db=frappe.db.cur_db_name))
 		if patchmodule:
 			if patchmodule.startswith("execute:"):
 				exec patchmodule.split("execute:")[1] in globals()
@@ -104,7 +105,4 @@ def check_session_stopped():
 		raise frappe.SessionStopped('Session Stopped')
 
 def log(msg):
-	if getattr(frappe.local, "patch_log_list", None) is None:
-		frappe.local.patch_log_list = []
-
-	frappe.local.patch_log_list.append(msg)
+	print msg

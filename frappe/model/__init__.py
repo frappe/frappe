@@ -116,57 +116,58 @@ def rename_field(doctype, old_fieldname, new_fieldname):
 	update_users_report_view_settings(doctype, old_fieldname)
 
 def update_reports(doctype, old_fieldname, new_fieldname):
-	def _get_new_sort_by(old_sort_by, updated):
-		new_sort_by = ""
-		if old_sort_by:
-			sort_by_doctype, sort_by_field = old_sort_by.split(".")
-			if sort_by_field == old_fieldname and sort_by_doctype == doctype:
-				new_sort_by = doctype + "." + new_fieldname
-				updated = True
-			else:
-				new_sort_by = old_sort_by
+	def _get_new_sort_by(report_dict, report):
+		sort_by = report_dict("sort_by") or ""
+		if sort_by:
+			sort_by = (report_dict("sort_by") or "").split(".")
+			if len(sort_by) > 1:
+				if sort_by[0]==doctype and sort_by[1]==old_fieldname:
+					sort_by = doctype + "." + new_fieldname
+					report_dict["updated"] = True
+			elif report.ref_doctype == doctype and sort_by[0]==old_fieldname:
+				sort_by = doctype + "." + new_fieldname
+				report_dict["updated"] = True
 
-		return new_sort_by, updated
+		return sort_by
 
-	reports = frappe.db.sql("""select name, json from tabReport
+	reports = frappe.db.sql("""select name, ref_doctype, json from tabReport
 		where report_type = 'Report Builder' and ifnull(is_standard, 'No') = 'No'
 		and json like %s and json like %s""",
 		('%%%s%%' % old_fieldname , '%%%s%%' % doctype), as_dict=True)
 
 	for r in reports:
-		updated = False
-		val = json.loads(r.json)
+		report_dict = json.loads(r.json)
 
 		# update filters
 		new_filters = []
-		for f in val.get("filters"):
+		for f in report_dict.get("filters"):
 			if f[0] == doctype and f[1] == old_fieldname:
 				new_filters.append([doctype, new_fieldname, f[2], f[3]])
-				updated = True
+				report_dict["updated"] = True
 			else:
 				new_filters.append(f)
 
 		# update columns
 		new_columns = []
-		for c in val.get("columns"):
+		for c in report_dict.get("columns"):
 			if c[0] == old_fieldname and c[1] == doctype:
 				new_columns.append([new_fieldname, doctype])
-				updated = True
+				report_dict["updated"] = True
 			else:
 				new_columns.append(c)
 
 		# update sort by
-		new_sort_by, updated = _get_new_sort_by(val.get("sort_by"), updated)
-		new_sort_by_next, updated = _get_new_sort_by(val.get("sort_by_next"), updated)
+		new_sort_by = _get_new_sort_by(report_dict, r)
+		new_sort_by_next = _get_new_sort_by(report_dict, r)
 
-		if updated:
+		if report_dict.get("updated"):
 			new_val = json.dumps({
 				"filters": new_filters,
 				"columns": new_columns,
 				"sort_by": new_sort_by,
-				"sort_order": val.get("sort_order"),
+				"sort_order": report_dict.get("sort_order"),
 				"sort_by_next": new_sort_by_next,
-				"sort_order_next": val.get("sort_order_next")
+				"sort_order_next": report_dict.get("sort_order_next")
 			})
 
 			frappe.db.sql("""update `tabReport` set `json`=%s where name=%s""", (new_val, r.name))

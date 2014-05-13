@@ -365,11 +365,7 @@ def latest(rebuild_website_config=True, quiet=False):
 
 	try:
 		# run patches
-		frappe.local.patch_log_list = []
 		frappe.modules.patch_handler.run_all()
-		if verbose:
-			print "\n".join(frappe.local.patch_log_list)
-
 		# sync
 		frappe.model.sync.sync_all(verbose=verbose)
 		sync_fixtures()
@@ -382,9 +378,6 @@ def latest(rebuild_website_config=True, quiet=False):
 
 		frappe.translate.clear_cache()
 
-	except frappe.modules.patch_handler.PatchError:
-		print "\n".join(frappe.local.patch_log_list)
-		raise
 	finally:
 		frappe.destroy()
 
@@ -400,9 +393,7 @@ def sync_all(force=False, quiet=False):
 def patch(patch_module, force=False):
 	import frappe.modules.patch_handler
 	frappe.connect()
-	frappe.local.patch_log_list = []
 	frappe.modules.patch_handler.run_single(patch_module, force=force)
-	print "\n".join(frappe.local.patch_log_list)
 	frappe.destroy()
 
 @cmd
