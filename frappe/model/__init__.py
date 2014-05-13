@@ -129,7 +129,7 @@ def update_reports(doctype, old_fieldname, new_fieldname):
 		return new_sort_by, updated
 
 	reports = frappe.db.sql("""select name, json from tabReport
-		where report_type = 'Report Builder' and ifnull(is_standard, 'No') = 'Yes'
+		where report_type = 'Report Builder' and ifnull(is_standard, 'No') = 'No'
 		and json like %s and json like %s""",
 		('%%%s%%' % old_fieldname , '%%%s%%' % doctype), as_dict=True)
 
