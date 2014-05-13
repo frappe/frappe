@@ -66,7 +66,7 @@ def get_user_lang(user=None):
 			default_lang = frappe.db.get_default("lang")
 			lang = default_lang or frappe.local.lang
 
-		frappe.cache().set_value("lang:" + user, lang)
+		frappe.cache().set_value("lang:" + user, lang or "en")
 
 	return lang
 
@@ -133,7 +133,7 @@ def get_lang_js(fortype, name):
 	return "\n\n$.extend(frappe._messages, %s)" % json.dumps(get_dict(fortype, name))
 
 def get_full_dict(lang):
-	if not lang or lang == "en":
+	if lang == "en":
 		return {}
 	return frappe.cache().get_value("lang:" + lang, lambda:load_lang(lang))
 
