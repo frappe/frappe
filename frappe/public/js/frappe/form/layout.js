@@ -122,12 +122,20 @@ frappe.ui.form.Layout = Class.extend({
 
 				if(df && df.idx===1)
 					head.css({"margin-top": "0px"})
-				if(this.sections.length > 1)
-					this.section.css({
-						"margin-top": "15px",
-						"border-top": "1px solid #eee"
-					});
 			}
+
+			if(df.label || df.show_section_border) {
+				if(this.sections.length > 1) {
+					this.section.css("border-top", "1px solid #eee");
+
+					if (df.label) {
+						this.section.css("margin-top", "15px");
+					} else {
+						this.section.css("padding-top", "15px");
+					}
+				}
+			}
+
 			if(df.description) {
 				$('<div class="col-md-12 small text-muted">' + df.description + '</div>')
 					.css("padding-left", "40px")
