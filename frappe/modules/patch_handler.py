@@ -73,29 +73,15 @@ def execute_patch(patchmodule, method=None, methodargs=None):
 		frappe.db.rollback()
 		tb = frappe.get_traceback()
 		log(tb)
-		import os
-		if frappe.request:
-			add_to_patch_log(tb)
 
 	block_user(False)
 	if success:
 		log('Success')
 	return success
 
-def add_to_patch_log(tb):
-	"""add error log to patches/patch.log"""
-	import conf, os
-	# TODO use get_site_base_path
-	with open(os.path.join(os.path.dirname(conf.__file__), 'app', 'patches','patch.log'),'a') as patchlog:
-		patchlog.write('\n\n' + tb)
-
 def update_patch_log(patchmodule):
 	"""update patch_file in patch log"""
-	if frappe.db.table_exists("__PatchLog"):
-		frappe.db.sql("""INSERT INTO `__PatchLog` VALUES (%s, now())""", \
-			patchmodule)
-	else:
-		frappe.get_doc({"doctype": "Patch Log", "patch": patchmodule}).insert()
+	frappe.get_doc({"doctype": "Patch Log", "patch": patchmodule}).insert()
 
 def executed(patchmodule):
 	"""return True if is executed"""
@@ -116,10 +102,6 @@ def check_session_stopped():
 	if frappe.db.get_global("__session_status")=='stop':
 		frappe.msgprint(frappe.db.get_global("__session_status_message"))
 		raise frappe.SessionStopped('Session Stopped')
-
-def setup():
-	frappe.db.sql("""CREATE TABLE IF NOT EXISTS `__PatchLog` (
-			patch TEXT, applied_on DATETIME) engine=InnoDB""")
 
 def log(msg):
 	if getattr(frappe.local, "patch_log_list", None) is None:
