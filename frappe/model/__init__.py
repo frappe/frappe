@@ -116,10 +116,10 @@ def rename_field(doctype, old_fieldname, new_fieldname):
 	update_users_report_view_settings(doctype, old_fieldname)
 
 def update_reports(doctype, old_fieldname, new_fieldname):
-	def _get_new_sort_by(report_dict, report):
-		sort_by = report_dict("sort_by") or ""
+	def _get_new_sort_by(report_dict, report, key):
+		sort_by = report_dict.get(key) or ""
 		if sort_by:
-			sort_by = (report_dict("sort_by") or "").split(".")
+			sort_by = sort_by.split(".")
 			if len(sort_by) > 1:
 				if sort_by[0]==doctype and sort_by[1]==old_fieldname:
 					sort_by = doctype + "." + new_fieldname
@@ -127,6 +127,8 @@ def update_reports(doctype, old_fieldname, new_fieldname):
 			elif report.ref_doctype == doctype and sort_by[0]==old_fieldname:
 				sort_by = doctype + "." + new_fieldname
 				report_dict["updated"] = True
+			else:
+				sort_by = '.'.join(sort_by)
 
 		return sort_by
 
@@ -157,8 +159,8 @@ def update_reports(doctype, old_fieldname, new_fieldname):
 				new_columns.append(c)
 
 		# update sort by
-		new_sort_by = _get_new_sort_by(report_dict, r)
-		new_sort_by_next = _get_new_sort_by(report_dict, r)
+		new_sort_by = _get_new_sort_by(report_dict, r, "sort_by")
+		new_sort_by_next = _get_new_sort_by(report_dict, r, "sort_by_next")
 
 		if report_dict.get("updated"):
 			new_val = json.dumps({
