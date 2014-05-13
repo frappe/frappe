@@ -1,7 +1,6 @@
 execute:import inlinestyler # new requirement
 
 execute:frappe.db.sql("""update `tabPatch Log` set patch=replace(patch, '.4_0.', '.v4_0.')""") #2014-05-12
-execute:frappe.db.sql("""delete from tabSessions""") #2014-05-13
 execute:frappe.reload_doc('core', 'doctype', 'doctype', force=True) #2014-01-24
 execute:frappe.reload_doc('core', 'doctype', 'docfield', force=True) #2014-03-01
 execute:frappe.reload_doc('core', 'doctype', 'docperm') #2013-13-26
