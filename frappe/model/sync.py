@@ -25,14 +25,14 @@ def walk_and_sync(start_path, force=0, sync_everything = False, verbose=False):
 	"""walk and sync all doctypes and pages"""
 
 	modules = []
-	
-	document_type = ['doctype', 'page', 'report']
+
+	document_type = ['doctype', 'page', 'report', 'print_format']
 
 	for path, folders, files in os.walk(start_path):
 		# sort folders so that doctypes are synced before pages or reports
 
 		for dontwalk in (".git", "locale", "public"):
-			if dontwalk in folders: 
+			if dontwalk in folders:
 				folders.remove(dontwalk)
 
 		folders.sort()
@@ -47,10 +47,10 @@ def walk_and_sync(start_path, force=0, sync_everything = False, verbose=False):
 						module_name = path.split(os.sep)[-3]
 						doctype = path.split(os.sep)[-2]
 						name = path.split(os.sep)[-1]
-						
+
 						if import_file_by_path(os.path.join(path, f), force=force) and verbose:
 							print module_name + ' | ' + doctype + ' | ' + name
 
 						frappe.db.commit()
-					
+
 	return modules
