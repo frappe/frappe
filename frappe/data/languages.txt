@@ -14,5 +14,5 @@ pt		português
 sr		српски
 ta		தமிழ்
 th		ไทย
-zh-cn	中国（简体
-zh-tw	中國（繁體
+zh-cn	中国（简体）
+zh-tw	中國（繁體）
