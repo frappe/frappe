@@ -71,12 +71,17 @@ def clear_sessions(user=None, keep_current=False):
 		if keep_current and frappe.session.sid==sid[0]:
 			continue
 		else:
-			frappe.cache().delete_value("session:" + sid[0])
-			frappe.db.sql("""delete from tabSessions where sid=%s""", (sid[0],))
+			delete_session(sid[0])
 
 def delete_session(sid=None):
 	frappe.cache().delete_value("session:" + sid)
 	frappe.db.sql("""delete from tabSessions where sid=%s""", sid)
+
+def clear_all_sessions():
+	"""This effectively logs out all users"""
+	frappe.only_for("Administrator")
+	for sid in frappe.db.sql_list("select sid from `tabSessions`"):
+		delete_session(sid)
 
 def get():
 	"""get session boot info"""
