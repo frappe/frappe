@@ -67,7 +67,7 @@ cur_frm.cscript.dt = function(doc, dt, dn) {
 			var fieldnames = $.map(r.message, function(v) { return v.value; });
 
 			if(insert_after==null || !in_list(fieldnames, insert_after)) {
-				insert_after = fieldnames[0];
+				insert_after = fieldnames[-1];
 			}
 
 			cur_frm.set_value('insert_after', insert_after);

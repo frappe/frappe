@@ -127,7 +127,8 @@ def update_reports(doctype, old_fieldname, new_fieldname):
 			elif report.ref_doctype == doctype and sort_by[0]==old_fieldname:
 				sort_by = doctype + "." + new_fieldname
 				report_dict["updated"] = True
-			else:
+
+			if isinstance(sort_by, list):
 				sort_by = '.'.join(sort_by)
 
 		return sort_by
