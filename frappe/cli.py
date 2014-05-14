@@ -439,7 +439,6 @@ def backup(with_files=False, backup_path_db=None, backup_path_files=None, quiet=
 		if with_files:
 			print "files backup taken -", odb.backup_path_files, "- on", now()
 	frappe.destroy()
-	return odb
 
 @cmd
 def move(dest_dir=None, site=None):
