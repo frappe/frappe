@@ -28,3 +28,5 @@ frappe.patches.v4_0.deprecate_control_panel
 frappe.patches.v4_0.file_manager_hooks
 execute:frappe.get_doc("User", "Guest").save()
 frappe.patches.v4_0.deprecate_link_selects
+frappe.patches.v4_0.set_language_in_system_settings
+frappe.patches.v4_0.set_user_gravatar
