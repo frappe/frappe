@@ -166,6 +166,14 @@ $.extend(frappe.model, {
 	},
 
 	open_mapped_doc: function(opts) {
+		if (opts.frm && opts.frm.doc.__unsaved) {
+			frappe.throw(__("You have unsaved changes in this form. Please save before you continue."));
+
+		} else if (!opts.source_name && opts.frm) {
+			opts.source_name = opts.frm.doc.name;
+
+		}
+
 		return frappe.call({
 			type: "GET",
 			method: opts.method,

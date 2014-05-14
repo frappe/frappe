@@ -20,4 +20,5 @@ def execute():
 	# set language in System Settings
 	system_settings = frappe.get_doc("System Settings")
 	system_settings.language = lang
+	system_settings.ignore_mandatory = True
 	system_settings.save()
