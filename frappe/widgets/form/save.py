@@ -61,3 +61,6 @@ def set_local_name(doc):
 	_set_local_name(doc)
 	for child in doc.get_all_children():
 		_set_local_name(child)
+
+	if doc.get("__newname"):
+		doc.name = doc.get("__newname")
