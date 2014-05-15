@@ -54,6 +54,10 @@ def setup_celery(app, conf):
 			app.conf.EMAIL_PORT = conf.mail_port
 		if conf.mail_server:
 			app.conf.EMAIL_HOST = conf.mail_server
+		if conf.mail_user:
+			app.conf.EMAIL_HOST_USER = conf.mail_user
+		if conf.mail_password:
+			app.conf.EMAIL_HOST_PASSWORD = conf.mail_password
 	
 class SiteRouter(object):
 	def route_for_task(self, task, args=None, kwargs=None):
