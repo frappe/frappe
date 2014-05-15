@@ -40,12 +40,13 @@ def set_new_name(doc):
 			doc.name = make_autoname(doc.naming_series+'.#####')
 
 		# call the method!
-		elif autoname!='Prompt':
-			doc.name = make_autoname(autoname, doc.doctype)
+		elif autoname=='Prompt':
+			# set from __newname in save.py
+			if not doc.name:
+				frappe.throw(frappe._("Name not set via Prompt"))
 
-	# given
-	elif doc.get('__newname', None):
-		doc.name = doc.get('__newname')
+		else:
+			doc.name = make_autoname(autoname, doc.doctype)
 
 	# default name for table
 	elif doc.meta.istable:
