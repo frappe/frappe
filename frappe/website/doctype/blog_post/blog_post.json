@@ -110,7 +110,7 @@
    "print": 1, 
    "read": 1, 
    "report": 1, 
-   "restrict": 1, 
+   "can_restrict": 1, 
    "role": "Website Manager", 
    "submit": 0, 
    "write": 1

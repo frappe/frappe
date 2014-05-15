@@ -34,7 +34,7 @@ class TestEvent(unittest.TestCase):
 
 	def test_event_list(self):
 		frappe.set_user("test1@example.com")
-		res = frappe.get_list("Event", filters=[["Event", "subject", "like", "_Test Event%"]], fields=["name", "subject"])
+		res = frappe.get_list("Event", filters=[["Event", "subject", "like", "_Test Event%"]], fields=["name", "subject", "event_type"])
 		self.assertEquals(len(res), 2)
 		subjects = [r.subject for r in res]
 		self.assertTrue("_Test Event 1" in subjects)

@@ -108,10 +108,12 @@ frappe.PermissionEngine = Class.extend({
 					d.rights = [];
 					$.each(me.rights, function(i, r) {
 						if(d[r]===1) {
-							if(r==="restrict") {
+							if(r==="can_restrict") {
 								d.rights.push(__("Can Restrict Others"));
 							} else if(r==="restricted") {
-								d.rights.push(__("Only Restricted Documents"));
+								d.rights.push(__("Only Restricted Documents / Is Creator"));
+							} else if(r==="dont_restrict") {
+								d.rights.push(__("Don't Apply Restrictions"));
 							} else {
 								d.rights.push(__(toTitle(r)));
 							}
@@ -226,10 +228,12 @@ frappe.PermissionEngine = Class.extend({
 			var perm_container = $("<div class='row'></div>").appendTo(perm_cell);
 
 			$.each(me.rights, function(i, r) {
-				if(r==="restrict") {
-					add_check(perm_container, d, "restrict", "Can Restrict Others");
+				if(r==="can_restrict") {
+					add_check(perm_container, d, "can_restrict", "Can Restrict Others");
 				} else if(r==="restricted") {
-					add_check(perm_container, d, "restricted", "Only Restricted Documents");
+					add_check(perm_container, d, "restricted", "Only Restricted Documents / Is Creator");
+				} else if(r==="dont_restrict") {
+					add_check(perm_container, d, "dont_restrict", "Don't Apply Restrictions");
 				} else {
 					add_check(perm_container, d, r);
 				}
@@ -239,8 +243,8 @@ frappe.PermissionEngine = Class.extend({
 			me.add_delete_button(row, d);
 		});
 	},
-	rights: ["read", "write", "create", "delete", "submit", "cancel", "amend",
-		"report", "import", "export", "print", "email", "restricted", "restrict"],
+	rights: ["read", "write", "create", "delete", "submit", "cancel", "amend", "print", "email",
+		"report", "import", "export", "dont_restrict", "restricted", "can_restrict"],
 
 	set_show_users: function(cell, role) {
 		cell.html("<a href='#'>"+role+"</a>")
@@ -390,7 +394,7 @@ var permissions_help = ['<table class="table table-bordered" style="background-c
 		':</h4>',
 		'<ol>',
 			'<li>',
-				__('Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email, Only Restricted Documents and Can Restrict Others.'),
+				__('Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email, Only Restricted Documents / Is Creator and Can Restrict Others.'),
 			'</li>',
 			'<li>',
 				__('Permissions get applied on Users based on what Roles they are assigned.'),

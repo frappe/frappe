@@ -188,15 +188,21 @@
    "permlevel": 0
   }, 
   {
-   "description": "Only restricted users can access", 
+   "fieldname": "dont_restrict", 
+   "fieldtype": "Check", 
+   "label": "Don't Apply Restrictions", 
+   "permlevel": 0
+  }, 
+  {
+   "description": "", 
    "fieldname": "restricted", 
    "fieldtype": "Check", 
-   "label": "Only Restricted Documents", 
+   "label": "Only Restricted Documents / Is Creator", 
    "permlevel": 0
   }, 
   {
    "description": "This role can restrict users for accessing the record.", 
-   "fieldname": "restrict", 
+   "fieldname": "can_restrict", 
    "fieldtype": "Check", 
    "label": "Can Restrict Others", 
    "permlevel": 0
@@ -207,7 +213,7 @@
  "idx": 1, 
  "issingle": 0, 
  "istable": 1, 
- "modified": "2014-05-01 05:20:48.162224", 
+ "modified": "2014-05-15 11:10:34.498950", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "DocPerm", 

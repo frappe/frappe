@@ -209,22 +209,29 @@ class DatabaseQuery(object):
 
 	def build_match_conditions(self, as_condition=True):
 		"""add match conditions if applicable"""
-		self.match_filters = {}
-		self.match_conditions = []
-		self.match_or_conditions = []
+
+		user_perms = frappe.permissions.get_user_perms(frappe.get_meta(self.doctype))
+		if user_perms.get("dont_restrict"):
+			return "" if as_condition else {}
 
 		if not self.tables: self.extract_tables()
 
-		# explict permissions
-		restricted_by_user = frappe.permissions.get_user_perms(frappe.get_meta(self.doctype)).restricted
+		self.match_filters = { "owner": frappe.session.user }
+		self.match_conditions = []
+		self.match_or_conditions = []
 
 		# get restrictions
 		restrictions = frappe.defaults.get_restrictions()
 
-		if restricted_by_user:
+		# explict permissions
+		if user_perms.restricted and not (restrictions and restrictions.get(self.doctype)):
+			# only show docs created by user using AND condition
+			self.match_conditions.append('`tab{doctype}`.`owner`="{user}"'.format(doctype=self.doctype,
+				user=frappe.local.session.user))
+		else:
+			# show docs created by user or restricted ones i.e. docs created by user are always visible
 			self.match_or_conditions.append('`tab{doctype}`.`owner`="{user}"'.format(doctype=self.doctype,
 				user=frappe.local.session.user))
-			self.match_filters["owner"] = frappe.session.user
 
 		if restrictions:
 			self.add_restrictions(restrictions)
@@ -236,8 +243,6 @@ class DatabaseQuery(object):
 
 	def add_restrictions(self, restrictions):
 		fields_to_check = frappe.get_meta(self.doctype).get_restricted_fields(restrictions.keys())
-		if self.doctype in restrictions:
-			fields_to_check.append(frappe._dict({"fieldname":"name", "options":self.doctype}))
 
 		# check in links
 		for df in fields_to_check:
@@ -247,7 +252,7 @@ class DatabaseQuery(object):
 					values=", ".join([('"'+v.replace('"', '\"')+'"') \
 						for v in restrictions[df.options]])))
 			self.match_filters.setdefault(df.fieldname, [])
-			self.match_filters[df.fieldname]= restrictions[df.options]
+			self.match_filters[df.fieldname] = restrictions[df.options]
 
 	def build_match_condition_string(self):
 		conditions = " and ".join(self.match_conditions)
@@ -257,7 +262,7 @@ class DatabaseQuery(object):
 
 		if self.match_or_conditions:
 			if conditions:
-				conditions = '({conditions}) or {or_conditions}'.format(conditions=conditions,
+				conditions = '{or_conditions} or ({conditions})'.format(conditions=conditions,
 					or_conditions = ' or '.join(self.match_or_conditions))
 			else:
 				conditions = " or ".join(self.match_or_conditions)
