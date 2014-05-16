@@ -22,11 +22,8 @@ def enqueue_events(site):
 		return
 
 	# lock before queuing begins
-	try:
-		lock = create_lock('scheduler')
-		if not lock:
-			return
-	except LockTimeoutError:
+	lock = create_lock('scheduler')
+	if not lock:
 		return
 
 	nowtime = frappe.utils.now_datetime()
