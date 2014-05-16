@@ -11,6 +11,8 @@ $.extend(frappe.perm, {
 	rights: ["read", "write", "create", "delete", "submit", "cancel", "amend", "print", "email",
 	"restricted", "dont_restrict", "can_restrict", "report", "import", "export"],
 
+	restrictable_rights: ["read", "write", "create", "delete", "submit", "cancel", "amend"],
+
 	doctype_perm: {},
 
 	has_perm: function(doctype, permlevel, ptype) {
@@ -48,7 +50,17 @@ $.extend(frappe.perm, {
 	},
 
 	build_user_perm: function(perm, meta) {
-		$.each(meta.permissions || [], function(i, p) {
+		var permissions = meta.permissions || [];
+		permissions.sort(function(a, b) {
+			var permlevel_diff = flt(a.permlevel) - flt(b.permlevel);
+			if (permlevel_diff) {
+				return permlevel_diff;
+			} else {
+				// restricted=1 should be before restricted=0
+				return flt(b.restricted) - flt(a.restricted)
+			}
+		});
+		$.each(permissions, function(i, p) {
 			// if user has this role
 			if(user_roles.indexOf(p.role)!==-1) {
 				var permlevel = cint(p.permlevel);
@@ -56,15 +68,26 @@ $.extend(frappe.perm, {
 					perm[permlevel] = {};
 				}
 				$.each(frappe.perm.rights, function(i, key) {
-					if((p[key] || 0) && ["restricted", "dont_restrict"].indexOf(key)!==-1) {
+					if(["restricted", "dont_restrict"].indexOf(key)!==-1) {
 						if (!perm[permlevel][key]) {
 							perm[permlevel][key] = [];
 						}
-						$.each(frappe.perms.rights, function(j, r) {
-							if ((p[r] || 0) && perm[permlevel][key].indexOf(r)===-1) {
-								perm[permlevel][key].push(r);
-							}
-						});
+						if (p[key] || 0) {
+							$.each(frappe.perm.restrictable_rights, function(j, r) {
+								if ((p[r] || 0) && perm[permlevel][key].indexOf(r)===-1) {
+									perm[permlevel][key].push(r);
+								}
+							});
+						} else if (key==="restricted") {
+							$.each(frappe.perm.restrictable_rights, function(j, r) {
+								if (p[r] || 0) {
+									var index = perm[permlevel][key].indexOf(r);
+									if (index!==-1) {
+										perm[permlevel][key].splice(index, 1);
+									}
+								}
+							});
+						}
 					} else {
 						perm[permlevel][key] = perm[permlevel][key] || (p[key] || 0);
 					}
@@ -93,13 +116,13 @@ $.extend(frappe.perm, {
 		}
 
 		var restricted = perm[0].restricted || [];
+		var restrictions = frappe.defaults.get_restrictions();
 		if (restricted.length && restricted.indexOf(ptype)!==-1) {
-			return { "Name": restrictions[doctype] };
+			return { "Name": restrictions[doctype] || [] };
 		}
 
 		// Rule for restrictions
 		var match_rules = {};
-		var restrictions = frappe.defaults.get_restrictions();
 		if(restrictions && !$.isEmptyObject(restrictions)) {
 			$.each(frappe.perm.get_restricted_fields(doctype, null, restrictions), function(i, df) {
 				match_rules[df.label] = restrictions[df.options];

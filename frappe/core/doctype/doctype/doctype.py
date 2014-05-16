@@ -81,7 +81,7 @@ class DocType(Document):
 		make_module_and_roles(self)
 
 		from frappe import conf
-		if (not frappe.flags.in_import) and conf.get('developer_mode') or 0:
+		if not (frappe.flags.in_import or frappe.flags.in_test) and conf.get('developer_mode') or 0:
 			self.export_doc()
 			self.make_controller_template()
 
@@ -219,7 +219,7 @@ def validate_fields(fields):
 def validate_permissions_for_doctype(doctype, for_remove=False):
 	doctype = frappe.get_doc("DocType", doctype)
 
-	if frappe.conf.developer_mode:
+	if frappe.conf.developer_mode and not frappe.flags.in_test:
 		# save doctype
 		doctype.save()
 

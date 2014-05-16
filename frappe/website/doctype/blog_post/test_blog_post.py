@@ -145,9 +145,8 @@ class TestBlogPost(unittest.TestCase):
 		self.assertTrue(doc.has_permission("read"))
 
 	def test_dont_restrict(self):
+		# restrict to _test-blog-post-1
 		add("test2@example.com", "Blog Post", "_test-blog-post-1")
-		frappe.defaults.get_restrictions("test2@example.com")
-
 		original_permission = frappe.db.sql("""select dont_restrict from  tabDocPerm
 			where parent='Blog Post' and role='Blogger' and ifnull(permlevel,0)=0""")
 
@@ -171,9 +170,40 @@ class TestBlogPost(unittest.TestCase):
 		doc = frappe.get_doc("Blog Post", "_test-blog-post-2")
 		self.assertTrue(doc.has_permission("read"))
 
-		# teardown
+		# cleanup
 		frappe.db.sql("""update tabDocPerm set `dont_restrict`=%s where parent='Blog Post' and role='Blogger'
 			and ifnull(permlevel,0)=0""", original_permission[0][0] if original_permission else 0)
+
+	def test_all_read_but_restricted_write(self):
+		frappe.set_user("Administrator")
+
+		# add _Test Role with dont_restrict for read
+		frappe.get_doc("User", "test2@example.com").add_roles("_Test Role")
+		doctype = frappe.get_doc("DocType", "Blog Post")
+		doctype.append("permissions", {
+			"permlevel": 0,
+			"role": "_Test Role",
+			"read": 1,
+			"dont_restrict": 1
+		})
+		doctype.save()
+
+		# restrict to _test-blog-post-1
+		add("test2@example.com", "Blog Post", "_test-blog-post-1")
+
+		frappe.set_user("test2@example.com")
+		doc = frappe.get_doc("Blog Post", "_test-blog-post-2")
+		self.assertTrue(doc.has_permission("read"))
+		self.assertFalse(doc.has_permission("write"))
+
+		doc = frappe.get_doc("Blog Post", "_test-blog-post-1")
+		self.assertTrue(doc.has_permission("read"))
+		self.assertTrue(doc.has_permission("write"))
+
+		# cleanup
+		frappe.set_user("Administrator")
+		doctype.get("permissions").remove(doctype.get("permissions", {"role": '_Test Role'})[0])
+		doctype.save()
 
 	def test_set_only_once(self):
 		blog_post = frappe.get_meta("Blog Post")

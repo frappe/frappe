@@ -10,6 +10,8 @@ from frappe.defaults import get_restrictions
 rights = ("read", "write", "create", "delete", "submit", "cancel", "amend", "print", "email",
 	"restricted", "dont_restrict", "can_restrict", "report", "import", "export")
 
+restrictable_rights = ("read", "write", "create", "delete", "submit", "cancel", "amend")
+
 def check_admin_or_system_manager():
 	if ("System Manager" not in frappe.get_roles()) and \
 	 	(frappe.session.user!="Administrator"):
@@ -59,18 +61,28 @@ def get_user_perms(meta, user=None):
 		perms = frappe._dict()
 		user_roles = frappe.get_roles(user)
 
-		for p in meta.permissions:
+		for p in sorted(meta.permissions, key=lambda p: (p.permlevel, -(p.restricted or 0))):
 			if cint(p.permlevel)==0 and (p.role in user_roles):
 				for ptype in rights:
-					if cint(p.get(ptype)) and ptype in ("restricted", "dont_restrict"):
+					if ptype in ("restricted", "dont_restrict"):
 						# list of rights that can be in restricted / don't restrict
+						# allows for selectively setting only_restricted on certain rights like submit
 						if not perms.get(ptype):
 							perms[ptype] = []
 
-						perms[ptype] += [r for r in rights if p.get(r)]
+						if cint(p.get(ptype)):
+							# restricted
+							perms[ptype] += [r for r in restrictable_rights if p.get(r)]
+
+						elif ptype == "restricted":
+							# not restricted, so remove those rights
+							for r in restrictable_rights:
+								if p.get(r) and r in perms[ptype]:
+									perms[ptype].remove(r)
 
 						# example: perms["restricted"] = ["read", "write", "submit"]
 						perms[ptype] = list(set(perms[ptype]))
+
 					else:
 						perms[ptype] = perms.get(ptype, 0) or cint(p.get(ptype))
 

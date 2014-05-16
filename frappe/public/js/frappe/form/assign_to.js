@@ -147,7 +147,7 @@ frappe.ui.form.AssignTo = Class.extend({
 
 		me.dialog.show();
 
-		if(!frappe.perm.get_perm(me.frm.doctype)[0].restricted) {
+		if(!(frappe.perm.get_perm(me.frm.doctype)[0].restricted || []).length) {
 			me.dialog.fields_dict.can_restrict.set_input(0);
 			me.dialog.fields_dict.can_restrict.$wrapper.toggle(false);
 		}
