@@ -34,7 +34,7 @@ def get_bootinfo():
 	bootinfo.modules = {}
 	for app in frappe.get_installed_apps():
 		try:
-			bootinfo.modules.update(frappe.get_attr(app + ".config.desktop.data") or {})
+			bootinfo.modules.update(frappe.get_attr(app + ".config.desktop.get_data")() or {})
 		except ImportError:
 			pass
 
