@@ -232,6 +232,8 @@ def setup_utilities(parser):
 		help="Clear cache, doctype cache and defaults")
 	parser.add_argument("--reset_perms", default=False, action="store_true",
 		help="Reset permissions for all doctypes")
+	parser.add_argument("--clear_all_sessions", default=False, action="store_true",
+		help="Clear sessions of all users (logs them out)")
 
 	# scheduler
 	parser.add_argument("--run_scheduler", default=False, action="store_true",
@@ -498,6 +500,14 @@ def clear_web():
 	import frappe.website.render
 	frappe.connect()
 	frappe.website.render.clear_cache()
+	frappe.destroy()
+
+@cmd
+def clear_all_sessions():
+	import frappe.sessions
+	frappe.connect()
+	frappe.sessions.clear_all_sessions()
+	frappe.db.commit()
 	frappe.destroy()
 
 @cmd

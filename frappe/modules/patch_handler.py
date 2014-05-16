@@ -93,6 +93,7 @@ def executed(patchmodule):
 
 def block_user(block):
 	"""stop/start execution till patch is run"""
+	frappe.local.flags.in_patch = block
 	frappe.db.begin()
 	msg = "Patches are being executed in the system. Please try again in a few moments."
 	frappe.db.set_global('__session_status', block and 'stop' or None)
