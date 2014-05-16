@@ -193,6 +193,8 @@ def make_test_objects(doctype, test_records, verbose=None):
 			doc["doctype"] = doctype
 
 		d = frappe.copy_doc(doc)
+		if doc.get('name'):
+			d.name = doc.get('name')
 
 		if frappe.local.test_objects.get(d.doctype):
 			# do not create test records, if already exists
