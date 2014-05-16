@@ -24,12 +24,7 @@ def get_restrictions(user=None):
 	if not user:
 		user = frappe.session.user
 
-	if user == frappe.session.user:
-		if frappe.local.restrictions is None:
-			frappe.local.restrictions = build_restrictions(user)
-		return frappe.local.restrictions
-	else:
-		return build_restrictions(user)
+	return build_restrictions(user)
 
 def build_restrictions(user):
 	out = frappe.cache().get_value("restrictions:" + user)
@@ -91,8 +86,6 @@ def add_default(key, value, parent, parenttype=None):
 		"defvalue": value
 	})
 	d.db_insert()
-	if parenttype=="Restriction":
-		frappe.local.restrictions = None
 	_clear_cache(parent)
 
 def clear_default(key=None, value=None, parent=None, name=None, parenttype=None):
@@ -122,8 +115,6 @@ def clear_default(key=None, value=None, parent=None, name=None, parenttype=None)
 	if parenttype:
 		conditions.append("parenttype=%s")
 		values.append(parenttype)
-		if parenttype=="Restriction":
-			frappe.local.restrictions = None
 
 	if not conditions:
 		raise Exception, "[clear_default] No key specified."

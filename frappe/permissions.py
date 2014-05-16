@@ -41,6 +41,7 @@ def has_permission(doctype, ptype="read", doc=None, verbose=True):
 			doc = frappe.get_doc(meta.name, doc)
 
 		can_access = apply_restrictions(ptype, doc, verbose=verbose)
+
 		if not can_access:
 			return False
 
@@ -87,7 +88,6 @@ def apply_restrictions(ptype, doc, verbose=True):
 
 	# handle Only Restricted Documents / Is Creator
 	if ptype in (get_user_perms(meta).restricted or ()):
-
 		if not (restrictions and restrictions.get(doc.get("doctype"))):
 			# no restrictions specified for this doctype
 			return False

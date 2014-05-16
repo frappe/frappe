@@ -32,6 +32,7 @@ class TestBlogPost(unittest.TestCase):
 		frappe.set_user("Administrator")
 		clear_restrictions("Blog Category")
 		clear_restrictions("Blog Post")
+		frappe.local.user_perms = {}
 
 	def test_basic_permission(self):
 		post = frappe.get_doc("Blog Post", "_test-blog-post")
@@ -143,6 +144,37 @@ class TestBlogPost(unittest.TestCase):
 
 		self.assertTrue(doc.has_permission("read"))
 
+	def test_dont_restrict(self):
+		add("test2@example.com", "Blog Post", "_test-blog-post-1")
+		frappe.defaults.get_restrictions("test2@example.com")
+
+		original_permission = frappe.db.sql("""select dont_restrict from  tabDocPerm
+			where parent='Blog Post' and role='Blogger' and ifnull(permlevel,0)=0""")
+
+		# dont_restrict = 0
+		frappe.db.sql("""update tabDocPerm set `dont_restrict`=0 where parent='Blog Post' and role='Blogger'
+			and ifnull(permlevel,0)=0""")
+		frappe.clear_cache(doctype="Blog Post")
+
+		# can't read
+		frappe.set_user("test2@example.com")
+		doc = frappe.get_doc("Blog Post", "_test-blog-post-2")
+		self.assertFalse(doc.has_permission("read"))
+
+		# dont_restrict = 1
+		frappe.db.sql("""update tabDocPerm set `dont_restrict`=1 where parent='Blog Post' and role='Blogger'
+			and ifnull(permlevel,0)=0""")
+		frappe.clear_cache(doctype="Blog Post")
+		frappe.local.user_perms = {}
+
+		# can read
+		doc = frappe.get_doc("Blog Post", "_test-blog-post-2")
+		self.assertTrue(doc.has_permission("read"))
+
+		# teardown
+		frappe.db.sql("""update tabDocPerm set `dont_restrict`=%s where parent='Blog Post' and role='Blogger'
+			and ifnull(permlevel,0)=0""", original_permission[0][0] if original_permission else 0)
+
 	def test_set_only_once(self):
 		blog_post = frappe.get_meta("Blog Post")
 		blog_post.get_field("title").set_only_once = 1
@@ -150,3 +182,4 @@ class TestBlogPost(unittest.TestCase):
 		doc.title = "New"
 		self.assertRaises(frappe.CannotChangeConstantError, doc.save)
 		blog_post.get_field("title").set_only_once = 0
+

@@ -217,7 +217,18 @@ def validate_fields(fields):
 	check_min_items_in_list(fields)
 
 def validate_permissions_for_doctype(doctype, for_remove=False):
-	validate_permissions(frappe.get_doc("DocType", doctype), for_remove)
+	doctype = frappe.get_doc("DocType", doctype)
+
+	if frappe.conf.developer_mode:
+		# save doctype
+		doctype.save()
+
+	else:
+		validate_permissions(doctype, for_remove)
+
+		# save permissions
+		for perm in doctype.get("permissions"):
+			perm.db_update()
 
 def validate_permissions(doctype, for_remove=False):
 	permissions = doctype.get("permissions")
@@ -281,9 +292,11 @@ def validate_permissions(doctype, for_remove=False):
 			d.set("import", 0)
 			d.set("export", 0)
 
-		if d.can_restrict:
-			frappe.msgprint(_("Can Restrict Others cannot be set for Single types"))
-			d.can_restrict = 0
+		for ptype, label in (("can_restrict", _("Can Restrict Others")), ("restricted", _("Only Restricted Documents / Is Creator")),
+			 ("dont_restrict", _("Don't Apply Restrictions"))):
+			if d.get(ptype):
+				d.set(ptype, 0)
+				frappe.msgprint(_("{0} cannot be set for Single types").format(label))
 
 	def check_if_submittable(d):
 		if d.submit and not issubmittable:
