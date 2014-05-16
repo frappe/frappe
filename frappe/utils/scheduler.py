@@ -94,10 +94,10 @@ def log(method, message=None):
 	frappe.db.rollback()
 	frappe.db.begin()
 
-	d = frappe.get_doc("Scheduler Log")
+	d = frappe.new_doc("Scheduler Log")
 	d.method = method
 	d.error = message
-	d.save()
+	d.insert()
 
 	frappe.db.commit()
 
