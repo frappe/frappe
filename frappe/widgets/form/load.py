@@ -27,6 +27,7 @@ def getdoc(doctype, name, user=None):
 
 	try:
 		doc = frappe.get_doc(doctype, name)
+		doc.set("__onload", frappe._dict())
 		doc.run_method("onload")
 
 		if not doc.has_permission("read"):
