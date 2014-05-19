@@ -8,7 +8,7 @@ from frappe.utils import cint
 from frappe.defaults import get_restrictions
 
 rights = ("read", "write", "create", "delete", "submit", "cancel", "amend", "print", "email",
-	"restricted", "dont_restrict", "can_restrict", "report", "import", "export")
+	"restricted", "ignore_restrictions", "can_restrict", "report", "import", "export")
 
 restrictable_rights = ("read", "write", "create", "delete", "submit", "cancel", "amend")
 
@@ -37,8 +37,8 @@ def has_permission(doctype, ptype="read", doc=None, verbose=True):
 	if not get_user_perms(meta).get(ptype):
 		return False
 
-	dont_restrict = (get_user_perms(meta).get("dont_restrict") or ())
-	if doc and ptype not in dont_restrict:
+	ignore_restrictions = (get_user_perms(meta).get("ignore_restrictions") or ())
+	if doc and ptype not in ignore_restrictions:
 		if isinstance(doc, basestring):
 			doc = frappe.get_doc(meta.name, doc)
 
@@ -64,7 +64,7 @@ def get_user_perms(meta, user=None):
 		for p in sorted(meta.permissions, key=lambda p: (p.permlevel, -(p.restricted or 0))):
 			if cint(p.permlevel)==0 and (p.role in user_roles):
 				for ptype in rights:
-					if ptype in ("restricted", "dont_restrict"):
+					if ptype in ("restricted", "ignore_restrictions"):
 						# list of rights that can be in restricted / don't restrict
 						# allows for selectively setting only_restricted on certain rights like submit
 						if not perms.get(ptype):

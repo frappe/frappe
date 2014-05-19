@@ -211,7 +211,7 @@ class DatabaseQuery(object):
 		"""add match conditions if applicable"""
 
 		user_perms = frappe.permissions.get_user_perms(frappe.get_meta(self.doctype))
-		if user_perms.get("dont_restrict"):
+		if user_perms.get("ignore_restrictions"):
 			return "" if as_condition else {}
 
 		if not self.tables: self.extract_tables()

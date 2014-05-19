@@ -30,7 +30,7 @@ class User:
 		self.can_email = []
 		self.can_restrict = []
 		self.restricted = []
-		self.dont_restrict = []
+		self.ignore_restrictions = []
 		self.allow_modules = []
 		self.in_create = []
 
@@ -104,7 +104,7 @@ class User:
 					if p.get(key):
 						getattr(self, "can_" + key).append(dt)
 
-				for key in ("can_restrict", "restricted", "dont_restrict"):
+				for key in ("can_restrict", "restricted", "ignore_restrictions"):
 					if p.get(key):
 						getattr(self, key).append(dt)
 
@@ -170,7 +170,7 @@ class User:
 		for key in ("can_create", "can_write", "can_read", "can_cancel", "can_delete",
 			"can_get_report", "allow_modules", "all_read", "can_search",
 			"in_create", "can_export", "can_import", "can_print", "can_email",
-			"can_restrict", "restricted", "dont_restrict"):
+			"can_restrict", "restricted", "ignore_restrictions"):
 
 			d[key] = list(set(getattr(self, key)))
 

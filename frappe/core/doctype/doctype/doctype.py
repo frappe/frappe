@@ -293,7 +293,7 @@ def validate_permissions(doctype, for_remove=False):
 			d.set("export", 0)
 
 		for ptype, label in (("can_restrict", _("Can Restrict Others")), ("restricted", _("Only Restricted Documents / Is Creator")),
-			 ("dont_restrict", _("Don't Apply Restrictions"))):
+			 ("ignore_restrictions", _("Ignore Restrictions"))):
 			if d.get(ptype):
 				d.set(ptype, 0)
 				frappe.msgprint(_("{0} cannot be set for Single types").format(label))
@@ -308,9 +308,9 @@ def validate_permissions(doctype, for_remove=False):
 		if d.get("import") and not isimportable:
 			frappe.throw(_("{0}: Cannot set import as {1} is not importable").format(get_txt(d), doctype))
 
-	def check_if_restricted_and_dont_restrict(d):
-		if d.get("restricted") and d.get("dont_restrict"):
-			frappe.throw(_("{0}: Cannot set Only Restricted Documents and Don't Apply Restrictions for the same role")
+	def check_if_restricted_and_ignore_restrictions(d):
+		if d.get("restricted") and d.get("ignore_restrictions"):
+			frappe.throw(_("{0}: Cannot set Only Restricted Documents and Ignore Restrictions for the same role")
 				.format(d))
 
 	for d in permissions:
@@ -322,7 +322,7 @@ def validate_permissions(doctype, for_remove=False):
 			check_permission_dependency(d)
 			check_if_submittable(d)
 			check_if_importable(d)
-			check_if_restricted_and_dont_restrict(d)
+			check_if_restricted_and_ignore_restrictions(d)
 		check_level_zero_is_set(d)
 		remove_rights_for_single(d)
 

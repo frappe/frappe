@@ -236,6 +236,7 @@ frappe.RoleEditor = Class.extend({
 					// + '<th>' + __('Print') + '</th>'
 					// + '<th>' + __('Email') + '</th>'
 					+ '<th>' + __('Only Restricted Documents / Is Creator') + '</th>'
+					+ '<th>' + __('Ignore Restrictions') + '</th>'
 					+ '<th>' + __('Can Restrict Others') + '</th>'
 					+ '</tr></thead><tbody></tbody></table>');
 
@@ -269,6 +270,7 @@ frappe.RoleEditor = Class.extend({
 						// <td>%(print)s</td>\
 						// <td>%(email)s</td>'
 						+ '<td>%(restricted)s</td>\
+						<td>%(ignore_restrictions)s</td>\
 						<td>%(can_restrict)s</td>\
 						</tr>', perm))
 				}

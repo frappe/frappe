@@ -112,8 +112,8 @@ frappe.PermissionEngine = Class.extend({
 								d.rights.push(__("Can Restrict Others"));
 							} else if(r==="restricted") {
 								d.rights.push(__("Only Restricted Documents / Is Creator"));
-							} else if(r==="dont_restrict") {
-								d.rights.push(__("Don't Apply Restrictions"));
+							} else if(r==="ignore_restrictions") {
+								d.rights.push(__("Ignore Restrictions"));
 							} else {
 								d.rights.push(__(toTitle(r)));
 							}
@@ -232,8 +232,8 @@ frappe.PermissionEngine = Class.extend({
 					add_check(perm_container, d, "can_restrict", "Can Restrict Others");
 				} else if(r==="restricted") {
 					add_check(perm_container, d, "restricted", "Only Restricted Documents / Is Creator");
-				} else if(r==="dont_restrict") {
-					add_check(perm_container, d, "dont_restrict", "Don't Apply Restrictions");
+				} else if(r==="ignore_restrictions") {
+					add_check(perm_container, d, "ignore_restrictions", "Ignore Restrictions");
 				} else {
 					add_check(perm_container, d, r);
 				}
@@ -244,7 +244,7 @@ frappe.PermissionEngine = Class.extend({
 		});
 	},
 	rights: ["read", "write", "create", "delete", "submit", "cancel", "amend", "print", "email",
-		"report", "import", "export", "dont_restrict", "restricted", "can_restrict"],
+		"report", "import", "export", "restricted", "ignore_restrictions", "can_restrict"],
 
 	set_show_users: function(cell, role) {
 		cell.html("<a href='#'>"+role+"</a>")

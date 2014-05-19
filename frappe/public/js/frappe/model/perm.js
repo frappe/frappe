@@ -9,7 +9,7 @@ var SUBMIT = "submit", CANCEL = "cancel", AMEND = "amend";
 
 $.extend(frappe.perm, {
 	rights: ["read", "write", "create", "delete", "submit", "cancel", "amend", "print", "email",
-	"restricted", "dont_restrict", "can_restrict", "report", "import", "export"],
+	"restricted", "ignore_restrictions", "can_restrict", "report", "import", "export"],
 
 	restrictable_rights: ["read", "write", "create", "delete", "submit", "cancel", "amend"],
 
@@ -68,7 +68,7 @@ $.extend(frappe.perm, {
 					perm[permlevel] = {};
 				}
 				$.each(frappe.perm.rights, function(i, key) {
-					if(["restricted", "dont_restrict"].indexOf(key)!==-1) {
+					if(["restricted", "ignore_restrictions"].indexOf(key)!==-1) {
 						if (!perm[permlevel][key]) {
 							perm[permlevel][key] = [];
 						}
@@ -110,8 +110,8 @@ $.extend(frappe.perm, {
 		if (!ptype) ptype = "read";
 		var perm = frappe.perm.get_perm(doctype);
 
-		var dont_restrict = perm[0].dont_restrict || [];
-		if (dont_restrict.length && dont_restrict.indexOf(ptype)!==-1) {
+		var ignore_restrictions = perm[0].ignore_restrictions || [];
+		if (ignore_restrictions.length && ignore_restrictions.indexOf(ptype)!==-1) {
 			return {};
 		}
 
