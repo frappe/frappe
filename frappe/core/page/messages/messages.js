@@ -1,5 +1,5 @@
 // Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
-// MIT License. See license.txt 
+// MIT License. See license.txt
 
 frappe.provide('frappe.core.pages.messages');
 
@@ -8,9 +8,9 @@ frappe.pages.messages.onload = function(wrapper) {
 		parent: wrapper,
 		title: "Messages"
 	});
-	
+
 	$('<div><div class="avatar avatar-large">\
-		<img id="avatar-image" src="assets/frappe/images/ui/avatar.png"></div>\
+		<img id="avatar-image"></div>\
 		<h3 style="display: inline-block" id="message-title">Everyone</h3>\
 	</div><hr>\
 	<div id="post-message">\
@@ -20,14 +20,14 @@ frappe.pages.messages.onload = function(wrapper) {
 	<div class="all-messages"></div><br>').appendTo($(wrapper).find('.layout-main-section'));
 
 	wrapper.appframe.add_module_icon("Messages");
-	
+
 	frappe.core.pages.messages = new frappe.core.pages.messages(wrapper);
 }
 
 $(frappe.pages.messages).bind('show', function() {
 	// remove alerts
 	$('#alert-container .alert').remove();
-	
+
 	frappe.core.pages.messages.show();
 	setTimeout("frappe.core.pages.messages.refresh()", 5000);
 })
@@ -38,11 +38,11 @@ frappe.core.pages.messages = Class.extend({
 		this.show_active_users();
 		this.make_post_message();
 		this.make_list();
-		//this.update_messages('reset'); //Resets notification icons		
+		//this.update_messages('reset'); //Resets notification icons
 	},
 	make_post_message: function() {
 		var me = this;
-		
+
 		$('#post-message .btn').click(function() {
 			var txt = $('#post-message textarea').val();
 			if(txt) {
@@ -60,7 +60,7 @@ frappe.core.pages.messages = Class.extend({
 					},
 					btn: this
 				});
-			}			
+			}
 		});
 	},
 	show: function() {
@@ -72,20 +72,20 @@ frappe.core.pages.messages = Class.extend({
 		$('#avatar-image').attr("src", frappe.utils.get_file_link(frappe.user_info(contact).image));
 
 		$("#show-everyone").toggle(contact!==user);
-		
+
 		$("#post-message button").text(contact==user ? __("Post Publicly") : __("Post to user"))
-		
+
 		this.contact = contact;
 		this.list.opts.args.contact = contact;
 		this.list.run();
-		
+
 	},
 	// check for updates every 5 seconds if page is active
 	refresh: function() {
 		setTimeout("frappe.core.pages.messages.refresh()", 5000);
-		if(frappe.container.page.label != 'Messages') 
+		if(frappe.container.page.label != 'Messages')
 			return;
-		if(!frappe.session_alive) 
+		if(!frappe.session_alive)
 			return;
 		this.show();
 	},
@@ -110,7 +110,7 @@ frappe.core.pages.messages = Class.extend({
 			no_loading: true,
 			render_row: function(wrapper, data) {
 				$(wrapper).removeClass('list-row');
-				
+
 				data.creation = dateutil.comment_when(data.creation);
 				data.comment_by_fullname = frappe.user_info(data.owner).fullname;
 				data.image = frappe.utils.get_file_link(frappe.user_info(data.owner).image);
@@ -119,7 +119,7 @@ frappe.core.pages.messages = Class.extend({
 				data.reply_html = '';
 				if(data.owner==user) {
 					data.cls = 'message-self';
-					data.comment_by_fullname = 'You';	
+					data.comment_by_fullname = 'You';
 				} else {
 					data.cls = 'message-other';
 				}
@@ -131,7 +131,7 @@ frappe.core.pages.messages = Class.extend({
 						onclick="frappe.core.pages.messages.delete(this)"\
 						data-name="%(name)s">&times;</a>', data);
 				}
-				
+
 				if(data.owner==data.comment_docname && data.parenttype!="Assignment") {
 					data.mark_html = "<div class='message-mark' title='Public'\
 						style='background-color: green'></div>"
@@ -171,7 +171,7 @@ frappe.core.pages.messages = Class.extend({
 				').appendTo($body);
 
 				$("#show-everyone").toggle(me.contact!==user);
-				
+
 				r.message.sort(function(a, b) { return b.has_session - a.has_session; });
 				for(var i in r.message) {
 					var p = r.message[i];
@@ -186,7 +186,7 @@ frappe.core.pages.messages = Class.extend({
 								title="%(status)s"><img src="%(image)s" /></span>\
 							<a href="#!messages/%(name)s">%(fullname)s</a>\
 							</p>', p))
-							.appendTo($body);						
+							.appendTo($body);
 					}
 				}
 			}

@@ -5,8 +5,7 @@
 
 frappe.user_info = function(uid) {
 	var def = {
-		'fullname':uid,
-		'image': 'assets/frappe/images/ui/avatar.png'
+		'fullname':uid
 	}
 	if(!frappe.boot.user_info) return def
 	if(!frappe.boot.user_info[uid]) return def

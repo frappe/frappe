@@ -90,20 +90,14 @@ def get_fullnames():
 	"""map of user fullnames"""
 	ret = frappe.db.sql("""select name,
 		concat(ifnull(first_name, ''),
-			if(ifnull(last_name, '')!='', ' ', ''), ifnull(last_name, '')),
-			user_image, gender, email
-		from tabUser where ifnull(enabled, 0)=1""", as_list=1)
-	d = {}
+			if(ifnull(last_name, '')!='', ' ', ''), ifnull(last_name, '')) as fullname,
+			user_image as image, gender, email
+		from tabUser where ifnull(enabled, 0)=1""", as_dict=True)
 	for r in ret:
-		if not r[2]:
-			r[2] = '/assets/frappe/images/ui/avatar.png'
-		else:
-			r[2] = r[2]
+		if not r.email:
+			r.email = r.name
 
-		d[r[0]]= {'fullname': r[1], 'image': r[2], 'gender': r[3],
-			'email': r[4] or r[0]}
-
-	return d
+	return dict((r.name, r) for r in ret)
 
 def get_startup_js():
 	startup_js = []
