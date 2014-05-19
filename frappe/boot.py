@@ -106,6 +106,7 @@ def get_fullnames():
 			if(ifnull(last_name, '')!='', ' ', ''), ifnull(last_name, '')) as fullname,
 			user_image as image, gender, email
 		from tabUser where ifnull(enabled, 0)=1""", as_dict=1)
+
 	d = {}
 	for r in ret:
 		if not r.image:
