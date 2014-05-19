@@ -4,17 +4,8 @@
 frappe.provide('frappe.utils');
 
 frappe.utils = {
-	get_file_link: function(filename) {
-		if(frappe.utils.is_url(filename)) {
-			return filename;
-		} else if(filename.indexOf("/")===-1) {
-			return "files/" + filename;
-		} else {
-			return filename;
-		}
-	},
 	is_html: function(txt) {
-		if(txt.indexOf("<br>")==-1 && txt.indexOf("<p")==-1 
+		if(txt.indexOf("<br>")==-1 && txt.indexOf("<p")==-1
 			&& txt.indexOf("<img")==-1 && txt.indexOf("<div")==-1) {
 			return false;
 		}
@@ -27,6 +18,9 @@ frappe.utils = {
 	remove_script_and_style: function(txt) {
 		return (!txt || (txt.indexOf("<script>")===-1 && txt.indexOf("<style>")===-1)) ? txt :
 			$("<div></div>").html(txt).find("script,noscript,style,title,meta").remove().end().html();
+	},
+	strip_html: function(txt) {
+		return $("<div></div>").html(txt).text();
 	},
 	filter_dict: function(dict, filters) {
 		var ret = [];
@@ -95,7 +89,7 @@ frappe.utils = {
 			me.footnote_area = $('<div class="alert alert-info form-intro-area" style="margin-top: 20px;">')
 				.appendTo(wrapper);
 		}
-		
+
 		if(txt) {
 			if(txt.search(/<p>/)==-1) txt = '<p>' + txt + '</p>';
 			me.footnote_area.html(txt);
@@ -113,11 +107,11 @@ frappe.utils = {
 		return args;
 	},
 	get_url_from_dict: function(args) {
-		return $.map(args, function(val, key) { 
-			if(val!==null) 
-				return encodeURIComponent(key)+"="+encodeURIComponent(val); 
-			else 
-				return null; 
+		return $.map(args, function(val, key) {
+			if(val!==null)
+				return encodeURIComponent(key)+"="+encodeURIComponent(val);
+			else
+				return null;
 		}).join("&") || "";
 	},
 	validate_type: function ( val, type ) {
@@ -153,11 +147,11 @@ frappe.utils = {
 	},
 	guess_style: function(text, default_style) {
 		var style = default_style;
-		if(!text) 
+		if(!text)
 			return style;
 		if(has_words(["Open", "Pending"], text)) {
 			style = "danger";
-		} else if(has_words(["Closed", "Finished", "Converted", "Completed", "Confirmed", 
+		} else if(has_words(["Closed", "Finished", "Converted", "Completed", "Confirmed",
 			"Approved", "Yes", "Active"], text)) {
 			style = "success";
 		} else if(has_words(["Submitted"], text)) {
@@ -165,7 +159,7 @@ frappe.utils = {
 		}
 		return style;
 	},
-	
+
 	sort: function(list, key, compare_type, reverse) {
 		if(list.length < 2)
 			return list;
@@ -178,14 +172,14 @@ frappe.utils = {
 				return flt(a[key]) - flt(b[key]);
 			}
 		};
-				
+
 		if(!compare_type)
 		 	compare_type = typeof list[0][key]==="string" ? "string" : "number";
-		
+
 		list.sort(sort_fn[compare_type]);
-		
+
 		if(reverse) { list.reverse(); }
-		
+
 		return list;
 	},
 	unique: function(list) {
@@ -199,7 +193,7 @@ frappe.utils = {
 		}
 		return arr;
 	},
-	
+
 	dict: function(keys,values) {
 		// make dictionaries from keys and values
 		var out = [];
@@ -212,17 +206,17 @@ frappe.utils = {
 		});
 		return out;
 	},
-	
+
 	sum: function(list) {
 		return list.reduce(function(previous_value, current_value) { return flt(previous_value) + flt(current_value); }, 0.0);
 	},
-	
+
 	resize_image: function(reader, callback, max_width, max_height) {
 		var tempImg = new Image();
 		if(!max_width) max_width = 600;
 		if(!max_height) max_height = 400;
 		tempImg.src = reader.result;
-		
+
 		tempImg.onload = function() {
 			var tempW = tempImg.width;
 			var tempH = tempImg.height;

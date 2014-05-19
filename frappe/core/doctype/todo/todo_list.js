@@ -1,4 +1,11 @@
 frappe.listview_settings['ToDo'] = {
+	add_fields: ["`tabToDo`.`reference_type`", "`tabToDo`.reference_name"],
+	add_columns: [{content:"Reference", label: __("Reference")}],
+	prepare_data: function(data) {
+		if (data.reference_type && data.reference_name) {
+			data["Reference"] = repl('<a href="#Form/%(reference_type)s/%(reference_name)s">%(reference_type)s - %(reference_name)s</a>', data);
+		}
+	},
 	onload: function(me) {
 		$(frappe.container.page)
 			.find(".layout-main-section")
@@ -15,4 +22,4 @@ frappe.listview_settings['ToDo'] = {
 	set_title_left: function() {
 		frappe.set_route();
 	}
-}
+};

@@ -69,7 +69,7 @@ frappe.core.pages.messages = Class.extend({
 		$('#message-title').html(contact===user ? "Everyone" :
 			frappe.user_info(contact).fullname)
 
-		$('#avatar-image').attr("src", frappe.utils.get_file_link(frappe.user_info(contact).image));
+		$('#avatar-image').attr("src", frappe.user_info(contact).image);
 
 		$("#show-everyone").toggle(contact!==user);
 
@@ -113,7 +113,7 @@ frappe.core.pages.messages = Class.extend({
 
 				data.creation = dateutil.comment_when(data.creation);
 				data.comment_by_fullname = frappe.user_info(data.owner).fullname;
-				data.image = frappe.utils.get_file_link(frappe.user_info(data.owner).image);
+				data.image = frappe.user_info(data.owner).image;
 				data.mark_html = "";
 
 				data.reply_html = '';
@@ -177,7 +177,7 @@ frappe.core.pages.messages = Class.extend({
 					var p = r.message[i];
 					if(p.name != user) {
 						p.fullname = frappe.user_info(p.name).fullname;
-						p.image = frappe.utils.get_file_link(frappe.user_info(p.name).image);
+						p.image = frappe.user_info(p.name).image;
 						p.name = p.name.replace('@', '__at__');
 						p.status_color = p.has_session ? "green" : "#ddd";
 						p.status = p.has_session ? "Online" : "Offline";

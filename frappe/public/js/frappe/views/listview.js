@@ -1,7 +1,7 @@
 // Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-frappe.views.get_listview = function(doctype, parent) {	
+frappe.views.get_listview = function(doctype, parent) {
 	if(frappe.doclistviews[doctype]) {
 		var listview = new frappe.doclistviews[doctype](parent);
 	} else {
@@ -15,13 +15,13 @@ frappe.views.ListView = Class.extend({
 	init: function(doclistview, doctype) {
 		this.doclistview = doclistview;
 		this.doctype = doctype;
-		this.settings = frappe.listview_settings[this.doctype] || {};		
+		this.settings = frappe.listview_settings[this.doctype] || {};
 		this.set_fields();
 		this.set_columns();
 		this.id_list = [];
-		if(this.settings.group_by) 
+		if(this.settings.group_by)
 			this.group_by = this.settings.group_by;
-			
+
 		var me = this;
 		this.doclistview.onreset = function() {
 			me.id_list = [];
@@ -38,8 +38,8 @@ frappe.views.ListView = Class.extend({
 			if(me.fields.indexOf(field)=== -1)
 				me.fields.push(field);
 		}
-		
-		$.each(['name', 'owner', 'docstatus', '_user_tags', '_comments', 'modified', 
+
+		$.each(['name', 'owner', 'docstatus', '_user_tags', '_comments', 'modified',
 			'modified_by'], function(i, fieldname) { add_field(fieldname); })
 
 		// add title field
@@ -48,14 +48,14 @@ frappe.views.ListView = Class.extend({
 			this.title_field = meta.title_field;
 			add_field(meta.title_field);
 		}
-		
+
 		// add workflow field (as priority)
 		this.workflow_state_fieldname = frappe.workflow.get_state_fieldname(this.doctype);
 		if(this.workflow_state_fieldname) {
 			add_field(this.workflow_state_fieldname);
 			this.stats.push(this.workflow_state_fieldname);
 		}
-				
+
 		$.each(meta.fields, function(i,d) {
 			if(d.in_list_view && frappe.perm.has_perm(me.doctype, d.permlevel, "read")) {
 				if(d.fieldtype=="Image" && d.options) {
@@ -63,7 +63,7 @@ frappe.views.ListView = Class.extend({
 				} else {
 					add_field(d.fieldname);
 				}
-				
+
 				if(d.fieldtype=="Select") {
 					if(me.stats.indexOf(d.fieldname)===-1) me.stats.push(d.fieldname);
 				}
@@ -93,19 +93,19 @@ frappe.views.ListView = Class.extend({
 		var me = this;
 		if(this.workflow_state_fieldname) {
 			this.columns.push({
-				colspan: 3, 
-				content: this.workflow_state_fieldname, 
+				colspan: 3,
+				content: this.workflow_state_fieldname,
 				type:"select"
 			});
 		}
 
 		// overridden
-		var overridden = $.map(this.settings.add_columns || [], function(d) { 
+		var overridden = $.map(this.settings.add_columns || [], function(d) {
 			return d.content;
 		});
-		var docfields_in_list_view = frappe.get_children("DocType", this.doctype, "fields", 
+		var docfields_in_list_view = frappe.get_children("DocType", this.doctype, "fields",
 			{"in_list_view":1}).sort(function(a, b) { return a.idx - b.idx })
-		
+
 		$.each(docfields_in_list_view, function(i,d) {
 			if(in_list(overridden, d.fieldname) || d.fieldname === me.title_field) {
 				return;
@@ -122,7 +122,7 @@ frappe.views.ListView = Class.extend({
 				colspan = "4";
 			}
 			me.total_colspans += parseInt(colspan);
-			me.columns.push({colspan: colspan, content: d.fieldname, 
+			me.columns.push({colspan: colspan, content: d.fieldname,
 				type:d.fieldtype, df:d, title:__(d.label) });
 		});
 
@@ -149,8 +149,8 @@ frappe.views.ListView = Class.extend({
 	render: function(row, data) {
 		this.prepare_data(data);
 		//$(row).removeClass("list-row");
-		
-		
+
+
 		// maintain id_list to avoid duplication incase
 		// of filtering by child table
 		if(in_list(this.id_list, data.name)) {
@@ -158,8 +158,8 @@ frappe.views.ListView = Class.extend({
 		} else {
 			this.id_list.push(data.name);
 		}
-		
-		
+
+
 		var left_cols = 4 + this.shift_right, right_cols = 8 - this.shift_right;
 		var body = $('<div class="doclist-row row">\
 			<div class="list-row-id-area col-sm-'+left_cols+'" style="white-space: nowrap;\
@@ -168,41 +168,41 @@ frappe.views.ListView = Class.extend({
 		</div>').appendTo($(row).css({"position":"relative"})),
 			colspans = 0,
 			me = this;
-		
+
 		me.render_avatar_and_id(data, body.find(".list-row-id-area"))
-		
+
 		// make table
 		$.each(this.columns, function(i, v) {
 			var colspan = v.colspan || 3;
 			colspans = colspans + flt(colspan)
-						
+
 			if(colspans <= 12) {
 				var col = me.make_column(body.find(".list-row-content-area"), colspan);
 				me.render_column(data, col, v);
 			}
 		});
-		
+
 		var comments = data._comments ? JSON.parse(data._comments) : [];
 		var tags = $.map((data._user_tags || "").split(","), function(v) { return v ? v : null; });
-		
-		var timestamp_and_comment = 
+
+		var timestamp_and_comment =
 			$('<div class="list-timestamp">')
 				.appendTo(row)
 				.html(""
 					+ (tags.length ? (
 							'<span style="margin-right: 10px;" class="list-tag-preview">' + tags.join(", ") + '</span>'
 						): "")
-					+ (comments.length ? 
+					+ (comments.length ?
 						('<a style="margin-right: 10px;" href="#Form/'+
-							this.doctype + '/' + data.name 
+							this.doctype + '/' + data.name
 							+'" title="'+
 							comments[comments.length-1].comment
-							+'"><i class="icon-comments"></i> ' 
+							+'"><i class="icon-comments"></i> '
 							+ comments.length + " " + (
 								comments.length===1 ? __("comment") : __("comments")) + '</a>')
 						: "")
 					+ comment_when(data.modified));
-		
+
 		// row #2
 		var row2 = $('<div class="row tag-row" style="margin-bottom: 5px;">\
 			<div class="col-xs-12">\
@@ -213,14 +213,14 @@ frappe.views.ListView = Class.extend({
 				</div>\
 			</div>\
 		</div>').appendTo(row);
-		
+
 		// modified
-		body.find(".list-last-modified").html(__("Last updated by") + ": " + frappe.user_info(data.modified_by).fullname);		
-		
+		body.find(".list-last-modified").html(__("Last updated by") + ": " + frappe.user_info(data.modified_by).fullname);
+
 		if(!me.doclistview.tags_shown) {
 			row2.addClass("hide");
 		}
-		
+
 		// add tags
 		var tag_editor = new frappe.ui.TagEditor({
 			parent: row2.find(".list-tag"),
@@ -231,7 +231,7 @@ frappe.views.ListView = Class.extend({
 			user_tags: data._user_tags
 		});
 		tag_editor.$w.on("click", ".tagit-label", function() {
-			me.doclistview.set_filter("_user_tags", 
+			me.doclistview.set_filter("_user_tags",
 				$(this).text());
 		});
 	},
@@ -255,8 +255,8 @@ frappe.views.ListView = Class.extend({
 				.css({"margin-right": "5px"})
 				.appendTo(parent)
 		}
-		
-		var $avatar = $(frappe.avatar(data.modified_by, false, __("Modified by")+": " 
+
+		var $avatar = $(frappe.avatar(data.modified_by, false, __("Modified by")+": "
 			+ frappe.user_info(data.modified_by).fullname))
 				.appendTo(parent)
 				.css({"max-width": "100%"})
@@ -265,27 +265,27 @@ frappe.views.ListView = Class.extend({
 		if(frappe.model.is_submittable(this.doctype)) {
 			$(parent).append(repl('<span class="docstatus" style="margin-right: 3px;"> \
 				<i class="%(docstatus_icon)s" \
-				title="%(docstatus_title)s"></i></span>', data));			
+				title="%(docstatus_title)s"></i></span>', data));
 		}
 
-		var title = data[this.title_field || "name"];
+		var title = (data[this.title_field || "name"] || "").trim() || data["name"];
 		$("<a>")
 			.attr("href", "#Form/" + data.doctype + "/" + encodeURIComponent(data.name))
 			.html(title)
 			.appendTo(parent.css({"overflow":"hidden"}));
-			
+
 		parent.attr("title", title).tooltip();
-		
+
 	},
 	render_column: function(data, parent, opts) {
 		var me = this;
 		if(opts.type) opts.type= opts.type.toLowerCase();
-		
+
 		// style
 		if(opts.css) {
 			$.each(opts.css, function(k, v) { $(parent).css(k, v)});
 		}
-		
+
 		// multiple content
 		if(opts.content.indexOf && opts.content.indexOf('+')!=-1) {
 			$.map(opts.content.split('+'), function(v) {
@@ -293,7 +293,7 @@ frappe.views.ListView = Class.extend({
 			});
 			return;
 		}
-		
+
 		// content
 		if(typeof opts.content=='function') {
 			opts.content(parent, data, me);
@@ -305,7 +305,7 @@ frappe.views.ListView = Class.extend({
 		}
 		else if(opts.template) {
 			$(parent).append(repl(opts.template, data));
-		} 
+		}
 		else if(opts.type=="date" && data[opts.content]) {
 			$("<span>")
 				.html(frappe.datetime.str_to_user(data[opts.content]))
@@ -316,7 +316,7 @@ frappe.views.ListView = Class.extend({
 			data[opts.content] = data[opts.df.options];
 			if(data[opts.content])
 				$("<img>")
-					.attr("src", frappe.utils.get_file_link(data[opts.content]))
+					.attr("src", data[opts.content])
 					.css({
 						"max-width": "100%",
 						"max-height": "30px"
@@ -324,20 +324,20 @@ frappe.views.ListView = Class.extend({
 					.appendTo(parent);
 		}
 		else if(opts.type=="select" && data[opts.content]) {
-			
+
 			var label_class = "label-default";
 
 			var style = frappe.utils.guess_style(data[opts.content]);
 			if(style) label_class = "label-" + style;
-			
-			$("<span>" 
+
+			$("<span>"
 				+ data[opts.content] + "</span>")
 				.css({"cursor":"pointer"})
 				.addClass("label")
 				.addClass(label_class)
 				.attr("data-fieldname", opts.content)
 				.click(function() {
-					me.doclistview.set_filter($(this).attr("data-fieldname"), 
+					me.doclistview.set_filter($(this).attr("data-fieldname"),
 						$(this).text());
 				})
 				.appendTo(parent.css({"overflow":"hidden"}));
@@ -347,35 +347,35 @@ frappe.views.ListView = Class.extend({
 				.html(frappe.format(data[opts.content], opts.df, null, data))
 				.appendTo(parent.css({"overflow":"hidden"}))
 				.click(function() {
-					me.doclistview.set_filter($(this).attr("data-fieldname"), 
+					me.doclistview.set_filter($(this).attr("data-fieldname"),
 						$(this).attr("data-value"));
 					return false;
 				})
 				.attr("data-fieldname", opts.content)
 				.attr("data-value", data[opts.content])
 				.find("a").attr("href", "#");
-			
+
 		}
 		else if(data[opts.content]) {
 			$("<span>")
 				.html(frappe.format(data[opts.content], opts.df, null, data))
 				.appendTo(parent.css({"overflow":"hidden"}))
 		}
-		
+
 		// finally
 		if(!$(parent).html()) {
 			$("<span>-</span>").css({color:"#ccc"}).appendTo(parent);
 		}
-		
+
 		// title
 		if(!in_list(["avatar", "_user_tags", "check"], opts.content)) {
 			if($(parent).attr("title")==undefined) {
-				$(parent).attr("title", (opts.title || opts.content) + ": " 
-					+ (data[opts.content] || "Not Set"))
+				$(parent).attr("title", (opts.title || opts.content) + ": "
+					+ (frappe.utils.strip_html(data[opts.content] || "") || "Not Set"))
 			}
 			$(parent).tooltip();
 		}
-		
+
 	},
 	show_hide_check_column: function() {
 		if(!this.doclistview.can_delete) {
@@ -383,22 +383,22 @@ frappe.views.ListView = Class.extend({
 		}
 	},
 	prepare_data: function(data) {
-		
+
 		if(data.modified)
 			this.prepare_when(data, data.modified);
-		
+
 		// docstatus
 		if(data.docstatus==0 || data.docstatus==null) {
 			data.docstatus_icon = 'icon-check-empty';
 			data.docstatus_title = __('Editable');
 		} else if(data.docstatus==1) {
-			data.docstatus_icon = 'icon-lock';			
+			data.docstatus_icon = 'icon-lock';
 			data.docstatus_title = __('Submitted');
 		} else if(data.docstatus==2) {
-			data.docstatus_icon = 'icon-remove';			
+			data.docstatus_icon = 'icon-remove';
 			data.docstatus_title = __('Cancelled');
 		}
-		
+
 		// nulls as strings
 		for(key in data) {
 			if(data[key]==null) {
@@ -410,7 +410,7 @@ frappe.views.ListView = Class.extend({
 		if(this.settings.prepare_data)
 			this.settings.prepare_data(data);
 	},
-	
+
 	prepare_when: function(data, date_str) {
 		if (!date_str) date_str = data.modified;
 		// when
@@ -426,7 +426,7 @@ frappe.views.ListView = Class.extend({
 			data.when = __('2 days ago')
 		}
 	},
-	
+
 	render_bar_graph: function(parent, data, field, label) {
 		var args = {
 			percent: data[field],

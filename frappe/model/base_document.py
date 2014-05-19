@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import frappe, json, sys
 from frappe import _
-from frappe.utils import cint, flt, now
+from frappe.utils import cint, flt, now, cstr
 from frappe.model import default_fields
 from frappe.model.naming import set_new_name
 
@@ -241,7 +241,7 @@ class BaseDocument(object):
 		missing = []
 
 		for df in self.meta.get("fields", {"reqd": 1}):
-			if self.get(df.fieldname) in (None, []):
+			if self.get(df.fieldname) in (None, []) or not cstr(self.get(df.fieldname)).strip():
 				missing.append((df.fieldname, get_msg(df)))
 
 		return missing

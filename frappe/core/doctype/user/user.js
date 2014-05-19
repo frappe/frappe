@@ -65,7 +65,7 @@ cur_frm.cscript.refresh = function(doc) {
 				frappe.ui.set_user_background(doc.background_image);
 			}
 			if(doc.user_image) {
-				frappe.boot.user_info[user].image = frappe.utils.get_file_link(doc.user_image);
+				frappe.boot.user_info[user].image = doc.user_image;
 			}
 		}
 	}
