@@ -10,7 +10,7 @@ from frappe.website.utils import is_signup_enabled
 from frappe.utils import get_url, cstr
 from frappe.utils.email_lib.email_body import get_email
 from frappe.utils.email_lib.smtp import send
-from frappe.utils import scrub_urls
+from frappe.utils import scrub_urls, cint
 from frappe import _
 
 from frappe.model.document import Document
@@ -77,6 +77,9 @@ def _make(doctype=None, name=None, content=None, subject=None, sent_or_received 
 		d.communication_date = date
 
 	d.communication_medium = communication_medium
+
+	d.idx = cint(frappe.db.sql("""select max(idx) from `tabCommunication`
+		where parenttype=%s and parent=%s""", (doctype, name))[0][0]) + 1
 
 	comm.ignore_permissions = True
 	comm.insert()
