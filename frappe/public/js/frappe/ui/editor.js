@@ -8,7 +8,7 @@
 
 bsEditor = Class.extend({
 	init: function(options) {
-		this.options = $.extend(options || {}, this.default_options);
+		this.options = $.extend({}, this.default_options, options || {});
 		this.edit_mode = true;
 		if(this.options.editor) {
 			this.setup_editor(this.options.editor);
@@ -100,7 +100,7 @@ bsEditor = Class.extend({
 		active_toolbar_class: 'btn-info',
 		selection_marker: 'edit-focus-marker',
 		selection_color: 'darkgrey',
-		remove_typography: true,
+		remove_typography: false,
 		max_file_size: 1,
 	},
 
@@ -131,7 +131,9 @@ bsEditor = Class.extend({
 		if(this.options.remove_typography) {
 			var tmp = $("<div></div>").html(html);
 			// remove style attributes
-			tmp.find("*").removeAttr("style");
+			tmp.find("*")
+				.removeAttr("style")
+				.removeAttr("font");
 			html = tmp.html();
 		}
 
