@@ -163,6 +163,9 @@ class BaseDocument(object):
 		if self.get("__islocal"):
 			doc["__islocal"] = 1
 
+		elif self.get("__onload"):
+			doc["__onload"] = self.get("__onload")
+
 		return doc
 
 	def as_json(self):
