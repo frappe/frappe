@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import msgprint, throw, _
-from frappe.utils import scrub_urls
+from frappe.utils import scrub_urls, cstr
 import email.utils
 import inlinestyler.utils
 
@@ -58,7 +58,7 @@ class EMail:
 			if text_content:
 				self.set_text(text_content)
 			else:
-				self.set_html_as_text(message)
+				self.set_html_as_text(formatted)
 
 		self.set_part_html(formatted)
 		self.html_set = True
@@ -194,14 +194,15 @@ def get_formatted_html(subject, message, footer=None, print_html=None):
 		"content": message,
 		"footer": get_footer(footer),
 		"title": subject,
-		"print_html": print_html
+		"print_html": print_html,
+		"subject": subject
 	})
 
 	# if in a test case, do not inline css
 	if frappe.local.flags.in_test:
 		return rendered_email
 
-	return inlinestyler.utils.inline_css(rendered_email)
+	return cstr(inlinestyler.utils.inline_css(rendered_email))
 
 def get_footer(footer=None):
 	"""append a footer (signature)"""

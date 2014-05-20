@@ -169,7 +169,7 @@ _f.Frm.prototype.call_server = function(method, args, callback) {
 
 _f.Frm.prototype.get_files = function() {
 	return cur_frm.attachments
-		? keys(cur_frm.attachments.get_attachments()).sort()
+		? frappe.utils.sort(cur_frm.attachments.get_attachments(), "file_name", "string")
 		: [] ;
 }
 
