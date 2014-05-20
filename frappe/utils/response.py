@@ -4,7 +4,6 @@
 from __future__ import unicode_literals
 import json
 import datetime
-import gzip, cStringIO
 import mimetypes
 import os
 import frappe
@@ -63,8 +62,7 @@ def as_json():
 		del frappe.local.response['http_status_code']
 
 	response.headers[b"Content-Type"] = b"application/json; charset: utf-8"
-	response = gzip(json.dumps(frappe.local.response, default=json_handler, separators=(',',':')),
-		response=response)
+	response.data = json.dumps(frappe.local.response, default=json_handler, separators=(',',':'))
 	return response
 
 def make_logs():
@@ -79,28 +77,6 @@ def make_logs():
 
 	if frappe.debug_log and frappe.conf.get("logging") or False:
 		frappe.response['_debug_messages'] = json.dumps(frappe.local.debug_log)
-
-def gzip(data, response):
-	data = data.encode('utf-8')
-	orig_len = len(data)
-	if accept_gzip() and orig_len>512:
-		data = compressBuf(data)
-		response.headers[b"Content-Encoding"] = b"gzip"
-
-	response.headers[b"Content-Length"] = str(len(data))
-	response.data = data
-	return response
-
-def accept_gzip():
-	if "gzip" in frappe.get_request_header("HTTP_ACCEPT_ENCODING", ""):
-		return True
-
-def compressBuf(buf):
-	zbuf = cStringIO.StringIO()
-	zfile = gzip.GzipFile(mode = 'wb',  fileobj = zbuf, compresslevel = 5)
-	zfile.write(buf)
-	zfile.close()
-	return zbuf.getvalue()
 
 def json_handler(obj):
 	"""serialize non-serializable data for json"""
