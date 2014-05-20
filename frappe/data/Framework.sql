@@ -83,7 +83,7 @@ CREATE TABLE `tabDocPerm` (
   `import` int(1) DEFAULT NULL,
   `print` int(1) DEFAULT NULL,
   `email` int(1) DEFAULT NULL,
-  `restrict` int(1) DEFAULT NULL,
+  `can_restrict` int(1) DEFAULT NULL,
   PRIMARY KEY (`name`),
   KEY `parent` (`parent`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

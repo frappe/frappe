@@ -51,7 +51,7 @@ def add(args=None):
 			frappe.db.set_value(args['doctype'], args['name'], "assigned_to", args['assign_to'])
 
 	try:
-		if cint(args.get("restrict")):
+		if cint(args.get("can_restrict")):
 			from frappe.core.page.user_properties import user_properties
 			user_properties.add(args['assign_to'], args['doctype'], args['name'])
 			frappe.msgprint(_("Restriction added"))

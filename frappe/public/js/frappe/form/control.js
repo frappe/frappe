@@ -259,7 +259,7 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 	},
 	set_mandatory: function(value) {
 		this.$wrapper.toggleClass("has-error", (this.df.reqd
-			&& (value==null || value==="")) ? true : false);
+			&& is_null(value)) ? true : false);
 	},
 });
 

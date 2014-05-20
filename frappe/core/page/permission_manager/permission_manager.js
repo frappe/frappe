@@ -108,10 +108,12 @@ frappe.PermissionEngine = Class.extend({
 					d.rights = [];
 					$.each(me.rights, function(i, r) {
 						if(d[r]===1) {
-							if(r==="restrict") {
+							if(r==="can_restrict") {
 								d.rights.push(__("Can Restrict Others"));
 							} else if(r==="restricted") {
-								d.rights.push(__("Only Restricted Documents"));
+								d.rights.push(__("Only Restricted Documents / Is Creator"));
+							} else if(r==="ignore_restrictions") {
+								d.rights.push(__("Ignore Restrictions"));
 							} else {
 								d.rights.push(__(toTitle(r)));
 							}
@@ -226,10 +228,12 @@ frappe.PermissionEngine = Class.extend({
 			var perm_container = $("<div class='row'></div>").appendTo(perm_cell);
 
 			$.each(me.rights, function(i, r) {
-				if(r==="restrict") {
-					add_check(perm_container, d, "restrict", "Can Restrict Others");
+				if(r==="can_restrict") {
+					add_check(perm_container, d, "can_restrict", "Can Restrict Others");
 				} else if(r==="restricted") {
-					add_check(perm_container, d, "restricted", "Only Restricted Documents");
+					add_check(perm_container, d, "restricted", "Only Restricted Documents / Is Creator");
+				} else if(r==="ignore_restrictions") {
+					add_check(perm_container, d, "ignore_restrictions", "Ignore Restrictions");
 				} else {
 					add_check(perm_container, d, r);
 				}
@@ -239,8 +243,8 @@ frappe.PermissionEngine = Class.extend({
 			me.add_delete_button(row, d);
 		});
 	},
-	rights: ["read", "write", "create", "delete", "submit", "cancel", "amend",
-		"report", "import", "export", "print", "email", "restricted", "restrict"],
+	rights: ["read", "write", "create", "delete", "submit", "cancel", "amend", "print", "email",
+		"report", "import", "export", "restricted", "ignore_restrictions", "can_restrict"],
 
 	set_show_users: function(cell, role) {
 		cell.html("<a href='#'>"+role+"</a>")
@@ -390,7 +394,7 @@ var permissions_help = ['<table class="table table-bordered" style="background-c
 		':</h4>',
 		'<ol>',
 			'<li>',
-				__('Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email, Only Restricted Documents and Can Restrict Others.'),
+				__('Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Print, Email, Report, Import, Export, Don\'t Apply Restrictions, Only Restricted Documents / Is Creator and Can Restrict Others.'),
 			'</li>',
 			'<li>',
 				__('Permissions get applied on Users based on what Roles they are assigned.'),
@@ -456,23 +460,26 @@ var permissions_help = ['<table class="table table-bordered" style="background-c
 		':</h4>',
 		'<ol>',
 			'<li>',
-				__("To give acess to a role for only specific records, check the 'Restricted' perimssion. User Restriction Records are used to restrict users with such role to specific records.")
+				__("To give acess to a role for only specific records, check the 'Only Restricted Documents / Is Creator' perimssion. User Restriction Records are used to restrict users with such role to specific records.")
 				+ ' (<a href="#user-properties">' + __('Setup > User Restriction') + '</a>)',
 			'</li>',
 			'<li>',
 				__("If 'Restricted' is not checked, you can still restrict permissions based on certain values, like Company or Territory in a document by setting User Restrictions. But unless any restriction is set, a user will have permissions based on the Role."),
 			'</li>',
 			'<li>',
+				__("Once you have set this, the users will only be able to access documents where the link (e.g Company) exists."),
+			'</li>',
+			'<li>',
 				__("Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only."),
 			'</li>',
 			'<li>',
-				__("If 'Restricted' is checked, the owner is always allowed based on Role."),
-			'</li>',
-			'<li>',
-				__("Once you have set this, the users will only be able access documents where the link (e.g Company) exists."),
+				__("The Creator / Owner of a Document is always allowed based on the permissions and roles they have."),
 			'</li>',
 			'<li>',
 				__("Apart from System Manager, roles with 'Can Restrict Others' permission can restrict other users for that Document Type."),
+			'</li>',
+			'<li>',
+				__("If 'Don\'t Apply Restrictions' is checked, a user with that role would be able to access all available records based on the permissions defined for that row."),
 			'</li>',
 		'</ol>',
 	'</td></tr>',

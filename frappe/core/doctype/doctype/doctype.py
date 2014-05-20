@@ -81,7 +81,7 @@ class DocType(Document):
 		make_module_and_roles(self)
 
 		from frappe import conf
-		if (not frappe.flags.in_import) and conf.get('developer_mode') or 0:
+		if not (frappe.flags.in_import or frappe.flags.in_test) and conf.get('developer_mode') or 0:
 			self.export_doc()
 			self.make_controller_template()
 
@@ -217,7 +217,18 @@ def validate_fields(fields):
 	check_min_items_in_list(fields)
 
 def validate_permissions_for_doctype(doctype, for_remove=False):
-	validate_permissions(frappe.get_doc("DocType", doctype), for_remove)
+	doctype = frappe.get_doc("DocType", doctype)
+
+	if frappe.conf.developer_mode and not frappe.flags.in_test:
+		# save doctype
+		doctype.save()
+
+	else:
+		validate_permissions(doctype, for_remove)
+
+		# save permissions
+		for perm in doctype.get("permissions"):
+			perm.db_update()
 
 def validate_permissions(doctype, for_remove=False):
 	permissions = doctype.get("permissions")
@@ -281,9 +292,11 @@ def validate_permissions(doctype, for_remove=False):
 			d.set("import", 0)
 			d.set("export", 0)
 
-		if d.restrict:
-			frappe.msgprint(_("Restrict cannot be set for Single types"))
-			d.restrict = 0
+		for ptype, label in (("can_restrict", _("Can Restrict Others")), ("restricted", _("Only Restricted Documents / Is Creator")),
+			 ("ignore_restrictions", _("Ignore Restrictions"))):
+			if d.get(ptype):
+				d.set(ptype, 0)
+				frappe.msgprint(_("{0} cannot be set for Single types").format(label))
 
 	def check_if_submittable(d):
 		if d.submit and not issubmittable:
@@ -295,6 +308,11 @@ def validate_permissions(doctype, for_remove=False):
 		if d.get("import") and not isimportable:
 			frappe.throw(_("{0}: Cannot set import as {1} is not importable").format(get_txt(d), doctype))
 
+	def check_if_restricted_and_ignore_restrictions(d):
+		if d.get("restricted") and d.get("ignore_restrictions"):
+			frappe.throw(_("{0}: Cannot set Only Restricted Documents and Ignore Restrictions for the same role")
+				.format(d))
+
 	for d in permissions:
 		if not d.permlevel:
 			d.permlevel=0
@@ -304,6 +322,7 @@ def validate_permissions(doctype, for_remove=False):
 			check_permission_dependency(d)
 			check_if_submittable(d)
 			check_if_importable(d)
+			check_if_restricted_and_ignore_restrictions(d)
 		check_level_zero_is_set(d)
 		remove_rights_for_single(d)
 

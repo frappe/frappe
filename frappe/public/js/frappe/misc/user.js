@@ -6,7 +6,7 @@
 frappe.user_info = function(uid) {
 	var def = {
 		'fullname':uid,
-		'image': 'assets/frappe/images/ui/avatar.png'
+		'image': ''
 	}
 	if(!frappe.boot.user_info) return def
 	if(!frappe.boot.user_info[uid]) return def
@@ -18,7 +18,7 @@ frappe.user_info = function(uid) {
 }
 
 frappe.avatar = function(user, large, title) {
-	var image = frappe.utils.get_file_link(frappe.user_info(user).image);
+	var image = frappe.user_info(user).image;
 	var to_size = large ? 72 : 30;
 	if(!title) title = frappe.user_info(user).fullname;
 

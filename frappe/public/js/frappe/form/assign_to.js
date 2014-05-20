@@ -91,14 +91,14 @@ frappe.ui.form.AssignTo = Class.extend({
 						options:'Low\nMedium\nHigh', 'default':'Medium'},
 					{fieldtype:'Check', fieldname:'notify',
 						label:__("Notify By Email"), "default":1},
-					{fieldtype:'Check', fieldname:'restrict',
+					{fieldtype:'Check', fieldname:'can_restrict',
 						label:__("Add This To User's Restrictions")
 							+ ' <a class="assign-user-properties"><i class="icon-share"></i></a>'},
 					{fieldtype:'Button', label:__("Add"), fieldname:'add_btn'}
 				]
 			});
 
-			me.dialog.fields_dict.restrict.$wrapper
+			me.dialog.fields_dict.can_restrict.$wrapper
 				.find(".assign-user-properties")
 				.on("click", function() {
 					frappe.route_options = {
@@ -137,8 +137,8 @@ frappe.ui.form.AssignTo = Class.extend({
 
 		(function toggle_restrict() {
 			var can_restrict = frappe.model.can_restrict(me.frm.doctype, me.frm);
-			me.dialog.fields_dict.restrict.$wrapper.toggle(can_restrict);
-			me.dialog.get_input("restrict").prop("checked", can_restrict);
+			me.dialog.fields_dict.can_restrict.$wrapper.toggle(can_restrict);
+			me.dialog.get_input("can_restrict").prop("checked", can_restrict);
 		})();
 
 		if(me.frm.meta.title_field) {
@@ -147,9 +147,9 @@ frappe.ui.form.AssignTo = Class.extend({
 
 		me.dialog.show();
 
-		if(!frappe.perm.get_perm(me.frm.doctype)[0].restricted) {
-			me.dialog.fields_dict.restrict.set_input(0);
-			me.dialog.fields_dict.restrict.$wrapper.toggle(false);
+		if(!(frappe.perm.get_perm(me.frm.doctype)[0].restricted || []).length) {
+			me.dialog.fields_dict.can_restrict.set_input(0);
+			me.dialog.fields_dict.can_restrict.$wrapper.toggle(false);
 		}
 	}
 });

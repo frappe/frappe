@@ -52,7 +52,7 @@ class TestDataImport(unittest.TestCase):
 		content.append([""] * len(content[-2]))
 		content[-1][2] = "__Test Event"
 		content[-1][3] = "Private"
-		content[-1][3] = "2014-01-01 10:00:00.000000"
+		content[-1][4] = "2014-01-01 10:00:00.000000"
 		content[-1][content[15].index("person")] = "Administrator"
 		importer.upload(content)
 

@@ -65,7 +65,7 @@ cur_frm.cscript.refresh = function(doc) {
 				frappe.ui.set_user_background(doc.background_image);
 			}
 			if(doc.user_image) {
-				frappe.boot.user_info[user].image = frappe.utils.get_file_link(doc.user_image);
+				frappe.boot.user_info[user].image = doc.user_image;
 			}
 		}
 	}
@@ -235,7 +235,8 @@ frappe.RoleEditor = Class.extend({
 					// + '<th>' + __('Export') + '</th>'
 					// + '<th>' + __('Print') + '</th>'
 					// + '<th>' + __('Email') + '</th>'
-					+ '<th>' + __('Only Restricted Documents') + '</th>'
+					+ '<th>' + __('Only Restricted Documents / Is Creator') + '</th>'
+					+ '<th>' + __('Ignore Restrictions') + '</th>'
 					+ '<th>' + __('Can Restrict Others') + '</th>'
 					+ '</tr></thead><tbody></tbody></table>');
 
@@ -269,7 +270,8 @@ frappe.RoleEditor = Class.extend({
 						// <td>%(print)s</td>\
 						// <td>%(email)s</td>'
 						+ '<td>%(restricted)s</td>\
-						<td>%(restrict)s</td>\
+						<td>%(ignore_restrictions)s</td>\
+						<td>%(can_restrict)s</td>\
 						</tr>', perm))
 				}
 

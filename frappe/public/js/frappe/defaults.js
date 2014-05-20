@@ -25,7 +25,7 @@ frappe.defaults = {
 	set_default: function(key, value, callback) {
 		if(typeof value=="string")
 			value = JSON.stringify(value);
-			
+
 		frappe.boot.user.defaults[key] = value;
 		return frappe.call({
 			method: "frappe.client.set_default",
@@ -43,7 +43,7 @@ frappe.defaults = {
 				return JSON.parse(value)
 			} catch(e) {
 				return value;
-			}			
+			}
 		}
 	},
 	get_restrictions: function() {

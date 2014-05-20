@@ -151,7 +151,7 @@ class DatabaseQuery(object):
 		if not self.ignore_permissions:
 			match_conditions = self.build_match_conditions()
 			if match_conditions:
-				self.conditions.append(match_conditions)
+				self.conditions.append("(" + match_conditions + ")")
 
 	def add_docstatus_conditions(self):
 		if self.docstatus:
@@ -209,35 +209,48 @@ class DatabaseQuery(object):
 
 	def build_match_conditions(self, as_condition=True):
 		"""add match conditions if applicable"""
+
+		user_perms = frappe.permissions.get_user_perms(frappe.get_meta(self.doctype))
+		if user_perms.get("ignore_restrictions"):
+			return "" if as_condition else {}
+
+		if not self.tables: self.extract_tables()
+
 		self.match_filters = {}
 		self.match_conditions = []
 		self.match_or_conditions = []
 
-		if not self.tables: self.extract_tables()
-
-		# explict permissions
-		restricted_by_user = frappe.permissions.get_user_perms(frappe.get_meta(self.doctype)).restricted
-
 		# get restrictions
 		restrictions = frappe.defaults.get_restrictions()
-
-		if restricted_by_user:
-			self.match_or_conditions.append('`tab{doctype}`.`owner`="{user}"'.format(doctype=self.doctype,
-				user=frappe.local.session.user))
-			self.match_filters["owner"] = frappe.session.user
-
-		if restrictions:
-			self.add_restrictions(restrictions)
+		self.add_restrictions(restrictions, user_perms)
 
 		if as_condition:
 			return self.build_match_condition_string()
 		else:
 			return self.match_filters
 
-	def add_restrictions(self, restrictions):
-		fields_to_check = frappe.get_meta(self.doctype).get_restricted_fields(restrictions.keys())
-		if self.doctype in restrictions:
-			fields_to_check.append(frappe._dict({"fieldname":"name", "options":self.doctype}))
+	def add_restrictions(self, restrictions, user_perms):
+		# show docs created by user or restricted ones i.e. docs created by user are always visible
+		owner_match_condition = '`tab{doctype}`.`owner`="{user}"'.format(doctype=self.doctype,
+			user=frappe.local.session.user)
+
+		# explict permissions
+		if user_perms.restricted and not (restrictions and restrictions.get(self.doctype)):
+			# only show docs created by user using AND condition
+			self.match_conditions.append(owner_match_condition)
+			self.match_filters["owner"] = frappe.session.user
+			return
+
+		elif not user_perms.restricted and not restrictions:
+			return
+
+		self.match_or_conditions.append(owner_match_condition)
+		self.match_filters["owner"] = frappe.session.user
+
+		if user_perms.restricted:
+			fields_to_check = [frappe._dict({ "label":"Name", "fieldname":"name", "options": self.doctype })]
+		else:
+			fields_to_check = frappe.get_meta(self.doctype).get_restricted_fields(restrictions.keys())
 
 		# check in links
 		for df in fields_to_check:
@@ -247,17 +260,17 @@ class DatabaseQuery(object):
 					values=", ".join([('"'+v.replace('"', '\"')+'"') \
 						for v in restrictions[df.options]])))
 			self.match_filters.setdefault(df.fieldname, [])
-			self.match_filters[df.fieldname]= restrictions[df.options]
+			self.match_filters[df.fieldname] = restrictions[df.options]
 
 	def build_match_condition_string(self):
 		conditions = " and ".join(self.match_conditions)
 		doctype_conditions = self.get_permission_query_conditions()
 		if doctype_conditions:
-			conditions += ' and ' + doctype_conditions if conditions else doctype_conditions
+			conditions += (' and ' + doctype_conditions) if conditions else doctype_conditions
 
 		if self.match_or_conditions:
 			if conditions:
-				conditions = '({conditions}) or {or_conditions}'.format(conditions=conditions,
+				conditions = '{or_conditions} or ({conditions})'.format(conditions=conditions,
 					or_conditions = ' or '.join(self.match_or_conditions))
 			else:
 				conditions = " or ".join(self.match_or_conditions)

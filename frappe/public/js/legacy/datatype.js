@@ -1,8 +1,8 @@
 // Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
-// MIT License. See license.txt 
+// MIT License. See license.txt
 
-frappe.utils.full_name = function(fn, ln) { 
-	return fn + (ln ? ' ' : '') + (ln ? ln : '') 
+frappe.utils.full_name = function(fn, ln) {
+	return fn + (ln ? ' ' : '') + (ln ? ln : '')
 }
 
 function fmt_money(v, format){
@@ -14,19 +14,19 @@ function fmt_money(v, format){
 function toTitle(str){
 	var word_in = str.split(" ");
 	var word_out = [];
-	
+
 	for(w in word_in){
 		word_out[w] = word_in[w].charAt(0).toUpperCase() + word_in[w].slice(1);
 	}
-	
+
 	return word_out.join(" ");
 }
 
 function is_null(v) {
-	if(v===null || v===undefined || v==="") return true;
+	if(v===null || v===undefined || (v || "").trim()==="") return true;
 }
 
-function set_value_in(ele, v, ftype, fopt, doc) { 
+function set_value_in(ele, v, ftype, fopt, doc) {
 	$(ele).html(frappe.format(v, {fieldtype:ftype, options:fopt}, null, doc));
 	return;
 }
@@ -42,12 +42,12 @@ function replace_newlines(t) {
 	return t?t.replace(/\n/g, '<br>'):'';
 }
 
-function validate_email(txt) { 
+function validate_email(txt) {
 	return frappe.utils.validate_type(txt, "email");
 }
-function validate_spl_chars(txt) { 
+function validate_spl_chars(txt) {
 	return frappe.utils.validate_type(txt, "alphanum")
-}	
+}
 function cstr(s) {
 	if(s==null)return '';
 	return s+'';
@@ -61,15 +61,15 @@ function nth(number) {
 	return number+s;
 }
 
-function esc_quotes(s) { 
-	if(s==null)s=''; 
+function esc_quotes(s) {
+	if(s==null)s='';
 	return s.replace(/'/, "\'");
 }
 
 var crop = function(s, len) {
 	if(s.length>len)
 		return s.substr(0, len-3) + '...';
-	else 
+	else
 		return s;
 }
 
@@ -105,12 +105,12 @@ function replace_all(s, t1, t2) {
 	return s.split(t1).join(t2);
 }
 
-function keys(obj) { 
+function keys(obj) {
 	var mykeys=[];
 	for (var key in obj) mykeys[mykeys.length]=key;
 	return mykeys;
 }
-function values(obj) { 
+function values(obj) {
 	var myvalues=[];
 	for (var key in obj) myvalues[myvalues.length]=obj[key];
 	return myvalues;

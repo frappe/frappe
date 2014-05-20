@@ -120,16 +120,14 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		if(keys(match_rules).length) {
 			var match_text = []
 			$.each(match_rules, function(key, values) {
-				if(values.length==0) {
+				if(values.length==0 && key!="Name") {
 					match_text.push(__(key) + __(" is not set"));
 				} else if(values.length) {
 					match_text.push(__(key) + " = " + frappe.utils.comma_or(values));
 				}
 			});
 
-			if(perm[0].restricted) {
-				match_text.push(__("Or Created By") + " = " + user);
-			}
+			match_text.push(__("Or Created By") + " = " + user);
 			frappe.utils.set_footnote(this, this.$page.find(".layout-main-section"),
 				"<p>" + __("Showing only for (if not empty)") + ":</p><ul>"
 				+ $.map(match_text, function(txt) { return "<li>"+txt+"</li>" }).join("")) + "</ul>";

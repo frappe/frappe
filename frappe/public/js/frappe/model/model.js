@@ -181,7 +181,7 @@ $.extend(frappe.model, {
 		// system manager can always restrict
 		if(user_roles.indexOf("System Manager")!==-1) return true;
 
-		if(frm) return frm.perm[0].restrict===1;
+		if(frm) return frm.perm[0].can_restrict===1;
 		return frappe.boot.user.can_restrict.indexOf(doctype)!==-1;
 	},
 
