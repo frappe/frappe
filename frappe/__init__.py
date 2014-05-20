@@ -16,7 +16,7 @@ import json
 
 from .exceptions import *
 
-__version__ = "4.0.0"
+__version__ = "4.0.1"
 
 local = Local()
 
@@ -215,12 +215,20 @@ def set_user(username):
 def get_request_header(key, default=None):
 	return request.headers.get(key, default)
 
-def sendmail(recipients=(), sender="", subject="No Subject", message="No Message", as_markdown=False):
-	import frappe.utils.email_lib
-	if as_markdown:
-		frappe.utils.email_lib.sendmail_md(recipients, sender=sender, subject=subject, msg=message)
+def sendmail(recipients=(), sender="", subject="No Subject", message="No Message",
+		as_markdown=False, bulk=False):
+
+	if bulk:
+		import frappe.utils.email_lib.bulk
+		frappe.utils.email_lib.bulk.send(recipients=recipients, sender=sender,
+			subject=subject, message=message, add_unsubscribe_link=False)
+
 	else:
-		frappe.utils.email_lib.sendmail(recipients, sender=sender, subject=subject, msg=message)
+		import frappe.utils.email_lib
+		if as_markdown:
+			frappe.utils.email_lib.sendmail_md(recipients, sender=sender, subject=subject, msg=message)
+		else:
+			frappe.utils.email_lib.sendmail(recipients, sender=sender, subject=subject, msg=message)
 
 logger = None
 whitelisted = []
@@ -540,13 +548,15 @@ def build_match_conditions(doctype, as_condition=True):
 	import frappe.widgets.reportview
 	return frappe.widgets.reportview.build_match_conditions(doctype, as_condition)
 
-def get_list(doctype, filters=None, fields=None, docstatus=None,
+def get_list(doctype, filters=None, fields=None, or_filters=None, docstatus=None,
 			group_by=None, order_by=None, limit_start=0, limit_page_length=None,
 			as_list=False, debug=False, ignore_permissions=False):
 	import frappe.model.db_query
-	return frappe.model.db_query.DatabaseQuery(doctype).execute(filters=filters, fields=fields, docstatus=docstatus,
-				group_by=group_by, order_by=order_by, limit_start=limit_start, limit_page_length=limit_page_length,
-				as_list=as_list, debug=debug, ignore_permissions=ignore_permissions)
+	return frappe.model.db_query.DatabaseQuery(doctype).execute(filters=filters,
+				fields=fields, docstatus=docstatus, or_filters=or_filters,
+				group_by=group_by, order_by=order_by, limit_start=limit_start,
+				limit_page_length=limit_page_length, as_list=as_list, debug=debug,
+				ignore_permissions=ignore_permissions)
 
 run_query = get_list
 

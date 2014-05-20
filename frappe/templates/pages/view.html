@@ -1,0 +1,78 @@
+{% block title %}{{ doc.doctype }} / {{ doc[meta.title_field or "name"] }}{% endblock %}
+
+{% block header %}
+<h2>{{ doc[meta.title_field or "name"] }}</h2>
+<p><a href="/{{ doc.doctype }}">{{ doc.doctype }} {{ _("List") }}</a></p>
+{% endblock %}
+
+{% block content %}
+{% if custom_view %}
+{{ custom_view }}
+{% else %}
+
+{% macro print_value(df, d, meta) -%}
+	{% if df.fieldtype=="Check" %}
+		<i class="{{ 'icon-check' if d[df.fieldname] else 						'icon-check-empty' }}"></i>
+	{% elif df.fieldtype=="Image" %}
+		<img src="{{ doc[meta.get_field(df.fieldname).options] }}" 						class="img-responsive">
+	{% else %}
+		{{ d[df.fieldname] or "" }}
+	{% endif %}
+{%- endmacro %}
+
+{% macro get_width(fieldtype) -%}
+	{%- if fieldtype in ("Int", "Check") -%}{{ 60 }}
+	{%- else -%}{{ 150 }}{% endif -%}
+{%- endmacro %}
+
+{% for df in meta.fields %}
+	{% if not df.hidden and not df.permlevel and not df.print_hide %}
+		{% if df.fieldtype=="Section Break" %}
+		<h4>{{ df.label or "" }}</h4>
+		{% elif df.fieldtype=="Column Break" %}
+		{% elif df.fieldtype=="Table" %}
+			{% set table_meta = frappe.get_meta(df.options) %}
+			<div style="overflow-x: auto;">
+				<table class="table table-bordered" style="table-layout: fixed">
+					<thead>
+						<tr>
+							<th style="width: 40px">Sr</th>
+							{% for tdf in table_meta.fields %}
+							{% if tdf.fieldtype not in ("Column Break", "Section Break")
+								and tdf.label %}
+								<th style="width: {{ get_width(tdf.fieldtype) }}px">
+									{{ tdf.label }}</th>
+							{% endif %}
+							{% endfor %}
+						</tr>
+					</thead>
+					<tbody>
+						{% for d in doc[df.fieldname] %}
+						<tr>
+							<td>{{ d.idx }}</td>
+							{% for tdf in table_meta.fields %}
+							{% if tdf.fieldtype not in ("Column Break", "Section Break") %}
+								<td>{{ print_value(tdf, d, table_meta) }}</td>
+							{% endif %}
+							{% endfor %}
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+		{% else %}
+		<div class="row">
+			<div class="col-sm-4 text-right">
+				{% if df.fieldtype not in ("Image","HTML") %}
+				<label>{{ df.label }}</label>
+				{% endif %}
+			</div>
+			<div class="col-sm-8">
+				{{ print_value(df, doc, meta) }}
+			</div>
+		</div>
+		{% endif %}
+	{% endif %}
+{% endfor %}
+{% endif %}
+{% endblock %}

@@ -109,13 +109,14 @@ frappe.ui.form.Grid = Class.extend({
 		var me =this;
 		$rows.sortable({
 			handle: ".data-row, .panel-heading",
+			helper: 'clone',
 			update: function(event, ui) {
-				me.frm.doc[me.df.parentfield] = [];
+				me.frm.doc[me.df.fieldname] = [];
 				$rows.find(".grid-row").each(function(i, item) {
 					var doc = $(item).data("doc");
 					doc.idx = i + 1;
 					$(this).find(".row-index").html(i + 1);
-					me.frm.doc[me.df.parentfield].push(doc);
+					me.frm.doc[me.df.fieldname].push(doc);
 				});
 				me.frm.dirty();
 			}

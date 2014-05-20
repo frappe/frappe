@@ -8,7 +8,7 @@
 
 bsEditor = Class.extend({
 	init: function(options) {
-		this.options = $.extend(options || {}, this.default_options);
+		this.options = $.extend({}, this.default_options, options || {});
 		this.edit_mode = true;
 		if(this.options.editor) {
 			this.setup_editor(this.options.editor);
@@ -100,7 +100,7 @@ bsEditor = Class.extend({
 		active_toolbar_class: 'btn-info',
 		selection_marker: 'edit-focus-marker',
 		selection_color: 'darkgrey',
-		remove_typography: true,
+		remove_typography: false,
 		max_file_size: 1,
 	},
 
@@ -126,15 +126,18 @@ bsEditor = Class.extend({
 
 		var html = this.editor.html() || "";
 		if(!$.trim(this.editor.text()) && !(this.editor.find("img"))) html = "";
-		// html = html.replace(/(<br>|\s|<div><br><\/div>|&nbsp;)*$/, '');
 
 		// remove custom typography (use CSS!)
 		if(this.options.remove_typography) {
-			html = html.replace(/(font-family|font-size|line-height):[^;]*;/g, '');
-			html = html.replace(/<[^>]*(font=['"][^'"]*['"])>/g, function(a,b) { return a.replace(b, ''); });
-			html = html.replace(/\s*style\s*=\s*["']\s*["']/g, '');
-			return html;
+			var tmp = $("<div></div>").html(html);
+			// remove style attributes
+			tmp.find("*")
+				.removeAttr("style")
+				.removeAttr("font");
+			html = tmp.html();
 		}
+
+		return html;
 	},
 
 	init_file_drops: function () {

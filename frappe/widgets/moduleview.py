@@ -6,7 +6,6 @@ import frappe
 from frappe.widgets import reportview
 from frappe.utils import cint
 from frappe import _
-from copy import deepcopy
 
 @frappe.whitelist()
 def get(module):
@@ -95,7 +94,7 @@ def combine_common_sections(data):
 
 def get_config(app, module):
 	config = frappe.get_module("{app}.config.{module}".format(app=app, module=module))
-	config = deepcopy(config.get_data() if hasattr(config, "get_data") else config.data)
+	config = config.get_data()
 
 	for section in config:
 		for item in section["items"]:
@@ -170,7 +169,8 @@ def get_doctype_count_from_table(doctype):
 def get_report_list(module, is_standard="No"):
 	"""return list on new style reports for modules"""
 	reports =  frappe.get_list("Report", fields=["name", "ref_doctype", "report_type"], filters=
-		{"is_standard": is_standard, "disabled": ("in", ("0", "NULL")), "module": module}, order_by="name")
+		{"is_standard": is_standard, "disabled": ("in", ("0", "NULL", "")), "module": module},
+		order_by="name")
 
 	out = []
 	for r in reports:
@@ -179,7 +179,8 @@ def get_report_list(module, is_standard="No"):
 			"doctype": r.ref_doctype,
 			"is_query_report": 1 if r.report_type in ("Query Report", "Script Report") else 0,
 			"description": r.report_type,
-			"label": _(r.name)
+			"label": _(r.name),
+			"name": r.name
 		})
 
 	return out

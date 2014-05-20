@@ -115,6 +115,17 @@ app_version = "0.0.1"
 # web_include_css = "/assets/{app_name}/css/{app_name}.css"
 # web_include_js = "/assets/{app_name}/js/{app_name}.js"
 
+# Home Pages
+# ----------
+
+# application home page (will override Website Settings)
+# home_page = "login"
+
+# website user home page (by Role)
+# role_home_page = {{
+#	"Role": "home_page"
+# }}
+
 # Installation
 # ------------
 
@@ -185,6 +196,7 @@ data = {{
 	"{app_title}": {{
 		"color": "{app_color}",
 		"icon": "{app_icon}",
+		"type": "module",
 		"label": _("{app_title}")
 	}}
 }}

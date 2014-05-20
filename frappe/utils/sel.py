@@ -27,11 +27,11 @@ input_wait = 0
 def get_localhost():
 	return "{host}:{port}".format(host=host, port=port)
 
-def start(verbose=None, driver="PhantomJS"):
+def start(verbose=None, driver=None):
 	global _driver, _verbose
 	_verbose = verbose
 
-	_driver = getattr(webdriver, driver)()
+	_driver = getattr(webdriver, driver or "PhantomJS")()
 
 	signal.signal(signal.SIGINT, signal_handler)
 
@@ -55,7 +55,7 @@ def login(wait_for_id="#page-desktop"):
 	global logged_in
 	if logged_in:
 		return
-	get(host + ":" + port + "/login")
+	get(get_localhost() + "/login")
 	wait("#login_email")
 	set_input("#login_email", "Administrator")
 	set_input("#login_password", "admin" + Keys.RETURN)
@@ -102,8 +102,8 @@ def find(selector, everywhere=False):
 		selector = cur_route + " " + selector
 	return _driver.find_elements_by_css_selector(selector)
 
-def set_field(fieldname, value):
-	set_input('input[data-fieldname="{0}"]'.format(fieldname), value + Keys.TAB)
+def set_field(fieldname, value, fieldtype="input"):
+	set_input('{0}[data-fieldname="{1}"]'.format(fieldtype, fieldname), value + Keys.TAB)
 	wait_for_ajax()
 
 def set_select(fieldname, value):
@@ -152,7 +152,6 @@ def set_input(selector, text):
 
 def close():
 	global _driver, pipe
-	print "closing selenium"
 	if _driver:
 		_driver.quit()
 	if pipe:

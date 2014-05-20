@@ -108,8 +108,6 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 		if docfield.fieldtype == 'Select':
 			if not docfield.options:
 				return ''
-			elif docfield.options.startswith('link:'):
-				return 'Valid %s' % docfield.options[5:]
 			else:
 				return 'One of: %s' % ', '.join(filter(None, docfield.options.split('\n')))
 		elif docfield.fieldtype == 'Link':

@@ -163,6 +163,9 @@ class BaseDocument(object):
 		if self.get("__islocal"):
 			doc["__islocal"] = 1
 
+		elif self.get("__onload"):
+			doc["__onload"] = self.get("__onload")
+
 		return doc
 
 	def as_json(self):
@@ -189,6 +192,7 @@ class BaseDocument(object):
 		except Exception, e:
 			if e.args[0]==1062:
 				type, value, traceback = sys.exc_info()
+				frappe.msgprint(_("Duplicate name {0} {1}".format(self.doctype, self.name)))
 				raise frappe.NameError, (self.doctype, self.name, e), traceback
 			else:
 				raise
@@ -259,9 +263,6 @@ class BaseDocument(object):
 			if not doctype:
 				frappe.throw(_("Options not set for link field {0}").format(df.fieldname))
 
-			elif doctype.lower().startswith("link:"):
-				doctype = doctype[5:]
-
 			docname = self.get(df.fieldname)
 			if docname and not frappe.db.get_value(doctype, docname):
 				invalid_links.append((df.fieldname, docname, get_msg(df, docname)))
@@ -285,7 +286,7 @@ class BaseDocument(object):
 		current = frappe.db.get_value(self.doctype, self.name, "*", as_dict=True)
 		for key, value in current.iteritems():
 			df = self.meta.get_field(key)
-			if df and not df.allow_on_submit and self.get(key) != value:
+			if df and not df.allow_on_submit and (self.get(key) or value) and self.get(key) != value:
 				frappe.throw(_("Not allowed to change {0} after submission").format(df.label),
 					frappe.UpdateAfterSubmitError)
 

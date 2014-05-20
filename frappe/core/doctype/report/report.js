@@ -2,7 +2,7 @@ cur_frm.cscript.refresh = function(doc) {
 	cur_frm.add_custom_button("Show Report", function() {
 		switch(doc.report_type) {
 			case "Report Builder":
-				frappe.set_route("Report", doc.name);
+				frappe.set_route("Report", doc.ref_doctype, doc.name);
 				break;
 			case "Query Report":
 				frappe.set_route("query-report", doc.name);
@@ -12,7 +12,7 @@ cur_frm.cscript.refresh = function(doc) {
 				break;
 		}
 	}, "icon-table")
-	
+
 	cur_frm.set_intro("");
 	switch(doc.report_type) {
 		case "Report Builder":

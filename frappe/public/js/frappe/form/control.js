@@ -103,14 +103,15 @@ frappe.ui.form.ControlImage = frappe.ui.form.Control.extend({
 	make: function() {
 		this._super();
 		var me = this;
-		this.$wrapper = $("<div></div>").appendTo(this.parent);
-		this.$body = $("<div>").appendTo(this.$wrapper)
-			.css({"margin-bottom": "10px", "margin-right": "15px", "float": "right",
-				"text-align": "right", "max-width": "100%"})
+		this.$wrapper = $("<div class='row'><div class='col-xs-4'></div></div>")
+			.appendTo(this.parent)
+			.css({"max-width": "600px", "margin": "0px"});
+		this.$body = $("<div class='col-xs-8'>").appendTo(this.$wrapper)
+			.css({"margin-bottom": "10px", "max-width": "100%"})
 		this.$wrapper.on("refresh", function() {
 				me.$body.empty();
 				if(me.df.options && me.frm.doc[me.df.options]) {
-					me.$img = $("<img src='"+me.frm.doc[me.df.options]+"' style='max-width: 70%;'>")
+					me.$img = $("<img src='"+me.frm.doc[me.df.options]+"' style='max-width: 100%;'>")
 						.appendTo(me.$body);
 				} else {
 					me.$buffer = $("<div class='missing-image'><i class='icon-camera'></i></div>")
@@ -694,7 +695,7 @@ frappe.ui.form.ControlSelect = frappe.ui.form.ControlData.extend({
 			// set the default option (displayed)
 			var input_value = this.$input.val();
 			var model_value = frappe.model.get_value(this.doctype, this.docname, this.df.fieldname);
-			if(model_value == null && input_value != (model_value || "")) {
+			if(model_value == null && (input_value || "") != (model_value || "")) {
 				this.set_model_value(input_value);
 			} else {
 				this.last_value = value;
@@ -784,16 +785,14 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		this.$input.on("focus", function() {
 			setTimeout(function() {
 				if(!me.$input.val()) {
-					me.$input.val("%").trigger("keydown");
+					me.$input.autocomplete("search", "");
 				}
-			}, 1000)
-		})
+			}, 500);
+		});
 		this.input = this.$input.get(0);
 		this.has_input = true;
-		//this.bind_change_event();
 		var me = this;
 		this.setup_buttons();
-		//this.setup_typeahead();
 		this.setup_autocomplete();
 	},
 	setup_buttons: function() {
@@ -841,10 +840,19 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 				if(value!==me.last_value) {
 					me.parse_validate_and_set_in_model(value);
 				}
-			}});
+			}
+		});
 
+		var cache = {};
 		this.$input.autocomplete({
+			minLength: 0,
 			source: function(request, response) {
+				if (cache[request.term]!=null) {
+					// from cache
+					response(cache[request.term]);
+					return;
+				}
+
 				var args = {
 					'txt': request.term,
 					'doctype': me.df.options,
@@ -858,6 +866,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 					no_spinner: true,
 					args: args,
 					callback: function(r) {
+						cache[request.term] = r.results;
 						response(r.results);
 					},
 				});
@@ -879,17 +888,13 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 				}
 			}
 		}).data('ui-autocomplete')._renderItem = function(ul, d) {
-			var html = "";
-			if(keys(d).length > 1) {
-				d.info = $.map(d, function(val, key) { return ["value", "label"].indexOf(key)!==-1 ? null : val }).join(", ") || "";
-				html = repl("<a>%(value)s<br><span class='text-muted'>%(info)s</span></a>", d);
-			} else {
-				html = "<a>" + d.value + "</a>";
+			var html = "<strong>" + d.value + "</strong>";
+			if(d.value!==d.description) {
+				html += '<br><span class="small">' + d.description + '</span>';
 			}
-
 			return $('<li></li>')
 				.data('item.autocomplete', d)
-				.append(html)
+				.html('<a><p>' + html + '</p></a>')
 				.appendTo(ul);
 		};
 		// remove accessibility span (for now)

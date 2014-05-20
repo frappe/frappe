@@ -1,4 +1,4 @@
-frappe.pages['applications'].onload = function(wrapper) { 
+frappe.pages['applications'].onload = function(wrapper) {
 	frappe.ui.make_app_page({
 		parent: wrapper,
 		title: __('Application Installer'),
@@ -10,7 +10,7 @@ frappe.pages['applications'].onload = function(wrapper) {
 		method:"frappe.core.page.applications.applications.get_app_list",
 		callback: function(r) {
 			var $main = $(wrapper).find(".layout-main");
-			
+
 			if(!keys(r.message).length) {
 				$main.html('<div class="alert alert-info">No Apps Installed</div>');
 				return;
@@ -54,7 +54,7 @@ frappe.pages['applications'].onload = function(wrapper) {
 						</div>\
 					</div>', app))
 				$app.appendTo($main)
-				
+
 				if(app.installed) {
 					$btn = $('<button class="btn btn-success" disabled=disabled>\
 						<i class="icon-ok"></i> Installed</button>');
@@ -63,7 +63,7 @@ frappe.pages['applications'].onload = function(wrapper) {
 						.attr("data-app", app.app_name)
 						.on("click", function() {
 						frappe.call({
-							method:"frappe.installer.install_app",
+							method:"frappe.core.page.applications.applications.install_app",
 							args: {name: $(this).attr("data-app")},
 							callback: function(r) {
 								if(!r.exc) {

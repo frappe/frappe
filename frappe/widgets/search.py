@@ -9,20 +9,23 @@ from frappe.utils import cstr
 
 # this is called by the Link Field
 @frappe.whitelist()
-def search_link(doctype, txt, query=None, filters=None, page_len=20, searchfield="name"):
+def search_link(doctype, txt, query=None, filters=None, page_len=20, searchfield=None):
 	search_widget(doctype, txt, query, searchfield=searchfield, page_len=page_len, filters=filters)
 	frappe.response['results'] = build_for_autosuggest(frappe.response["values"])
 	del frappe.response["values"]
 
 # this is called by the search box
 @frappe.whitelist()
-def search_widget(doctype, txt, query=None, searchfield="name", start=0,
+def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 	page_len=50, filters=None):
 	if isinstance(filters, basestring):
 		import json
 		filters = json.loads(filters)
 
 	meta = frappe.get_meta(doctype)
+
+	if not searchfield:
+		searchfield = "name"
 
 	standard_queries = frappe.get_hooks().standard_queries or []
 	if standard_queries:
@@ -53,10 +56,16 @@ def search_widget(doctype, txt, query=None, searchfield="name", start=0,
 
 			if filters==None:
 				filters = []
+			or_filters = []
 
 			# build from doctype
 			if txt:
-				filters.append([doctype, searchfield or "name", "like", txt + "%"])
+				if meta.search_fields:
+					for f in meta.get_search_fields():
+						or_filters.append([doctype, f.strip(), "like", "%" + txt + "%"])
+				else:
+					filters.append([doctype, searchfield or "name", "like",
+						"%" + txt + "%"])
 			if meta.get("fields", {"fieldname":"enabled", "fieldtype":"Check"}):
 				filters.append([doctype, "enabled", "=", 1])
 			if meta.get("fields", {"fieldname":"disabled", "fieldtype":"Check"}):
@@ -64,7 +73,8 @@ def search_widget(doctype, txt, query=None, searchfield="name", start=0,
 
 			frappe.response["values"] = frappe.widgets.reportview.execute(doctype,
 				filters=filters, fields = get_std_fields_list(meta, searchfield or "name"),
-				limit_start = start, limit_page_length=page_len, as_list=True)
+				or_filters = or_filters, limit_start = start,
+				limit_page_length=page_len, as_list=True)
 
 def get_std_fields_list(meta, key):
 	# get additional search fields
@@ -78,7 +88,7 @@ def get_std_fields_list(meta, key):
 def build_for_autosuggest(res):
 	results = []
 	for r in res:
-		out = {"value": r[0], "description": ", ".join([cstr(d) for d in r[1:]])}
+		out = {"value": r[0], "description": ", ".join(list(set(cstr(d) for d in r[1:])))}
 		results.append(out)
 	return results
 

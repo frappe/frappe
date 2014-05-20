@@ -48,7 +48,7 @@ cur_frm.fields_dict['dt'].get_query = function(doc, dt, dn) {
 
 cur_frm.cscript.fieldtype = function(doc, dt, dn) {
 	if(doc.fieldtype == 'Link') cur_frm.fields_dict['options_help'].disp_area.innerHTML = 'Please enter name of the document you want this field to be linked to in <b>Options</b>.<br> Eg.: Customer';
-	else if(doc.fieldtype == 'Select') cur_frm.fields_dict['options_help'].disp_area.innerHTML = 'Please enter values in <b>Options</b> separated by enter. <br>Eg.: <b>Field:</b> Country <br><b>Options:</b><br>China<br>India<br>United States<br><br><b> OR </b><br>You can also link it to existing Documents.<br>Eg.: <b>link:</b>Customer';
+	else if(doc.fieldtype == 'Select') cur_frm.fields_dict['options_help'].disp_area.innerHTML = 'Please enter values in <b>Options</b>, with each option on a new line. <br>Eg.: <b>Field:</b> Country <br><b>Options:</b><br>China<br>India<br>United States<br><br><b>';
 	else cur_frm.fields_dict['options_help'].disp_area.innerHTML = '';
 }
 
@@ -64,9 +64,10 @@ cur_frm.cscript.dt = function(doc, dt, dn) {
 		args: { doctype: doc.dt, fieldname: doc.fieldname },
 		callback: function(r, rt) {
 			set_field_options('insert_after', r.message);
+			var fieldnames = $.map(r.message, function(v) { return v.value; });
 
-			if(insert_after==null || !in_list(r.message.split("\n"), insert_after)) {
-				insert_after = r.message.split("\n")[0];
+			if(insert_after==null || !in_list(fieldnames, insert_after)) {
+				insert_after = fieldnames[-1];
 			}
 
 			cur_frm.set_value('insert_after', insert_after);

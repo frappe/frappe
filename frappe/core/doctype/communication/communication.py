@@ -10,7 +10,7 @@ from frappe.website.utils import is_signup_enabled
 from frappe.utils import get_url, cstr
 from frappe.utils.email_lib.email_body import get_email
 from frappe.utils.email_lib.smtp import send
-from frappe.utils import scrub_urls
+from frappe.utils import scrub_urls, cint
 from frappe import _
 
 from frappe.model.document import Document
@@ -78,6 +78,9 @@ def _make(doctype=None, name=None, content=None, subject=None, sent_or_received 
 
 	d.communication_medium = communication_medium
 
+	d.idx = cint(frappe.db.sql("""select max(idx) from `tabCommunication`
+		where parenttype=%s and parent=%s""", (doctype, name))[0][0]) + 1
+
 	comm.ignore_permissions = True
 	comm.insert()
 
@@ -118,7 +121,7 @@ def send_comm_email(d, name, sent_via=None, print_html=None, attachments='[]', s
 		footer = set_portal_link(sent_via, d)
 
 	send_print_in_body = frappe.db.get_value("Outgoing Email Settings", None, "send_print_in_body_and_attachment")
-	if not send_print_in_body:
+	if print_html and not send_print_in_body:
 		d.content += "<p>Please see attachment for document details.</p>"
 
 	mail = get_email(d.recipients, sender=d.sender, subject=d.subject,

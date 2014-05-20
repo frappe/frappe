@@ -63,8 +63,7 @@ def get_new_doc(doctype, parent_doc = None, parentfield = None):
 		elif d.fieldtype == "Time":
 			doc.set(d.fieldname, nowtime())
 
-		elif (d.fieldtype == "Select" and d.options and not d.options.startswith("link:")
-			and d.options != "[Select]"):
+		elif (d.fieldtype == "Select" and d.options and d.options != "[Select]"):
 			doc.set(d.fieldname, d.options.split("\n")[0])
 
 	return doc

@@ -207,7 +207,10 @@ frappe.ui.form.Toolbar = Class.extend({
 			current = this.appframe.get_title_right_text(),
 			status = null;
 
-		this.appframe.clear_primary_action();
+		if (!this.frm.doc.__unsaved) {
+			// don't clear actions menu if dirty
+			this.appframe.clear_primary_action();
+		}
 
 		if (this.can_submit()) {
 			status = "Submit";

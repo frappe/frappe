@@ -59,11 +59,7 @@ class Meta(Document):
 				raise
 
 	def get_link_fields(self):
-		tmp = self.get("fields", {"fieldtype":"Link", "options":["!=", "[Select]"]})
-		for df in self.get("fields", {"fieldtype":"Select", "options": "^link:"}):
-			tmp.append(frappe._dict({"fieldname":df.fieldname, "label":df.label,
-				"fieldtype":"Link", "options": df.options[5:]}))
-		return tmp
+		return self.get("fields", {"fieldtype": "Link", "options":["!=", "[Select]"]})
 
 	def get_table_fields(self):
 		if not hasattr(self, "_table_fields"):
@@ -98,6 +94,21 @@ class Meta(Document):
 
 	def get_options(self, fieldname):
 		return self.get_field(fieldname).options
+
+	def get_search_fields(self):
+		search_fields = self.search_fields or "name"
+		search_fields = [d.strip() for d in search_fields.split(",")]
+		if "name" not in search_fields:
+			search_fields.append("name")
+
+		return search_fields
+
+	def get_list_fields(self):
+		list_fields = ["name"] + [d.fieldname \
+			for d in self.fields if (d.in_list_view and d.fieldtype in type_map)]
+		if self.title_field and self.title_field not in list_fields:
+			list_fields.append(self.title_field)
+		return list_fields
 
 	def process(self):
 		# don't process for special doctypes
@@ -203,7 +214,7 @@ doctype_table_fields = [
 def is_single(doctype):
 	try:
 		return frappe.db.get_value("DocType", doctype, "issingle")
-	except IndexError, e:
+	except IndexError:
 		raise Exception, 'Cannot determine whether %s is single' % doctype
 
 def get_parent_dt(dt):

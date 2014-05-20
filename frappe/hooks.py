@@ -66,6 +66,7 @@ scheduler_events = {
 		"frappe.utils.email_lib.bulk.clear_outbox",
 		"frappe.core.doctype.notification_count.notification_count.delete_event_notification_count",
 		"frappe.core.doctype.event.event.send_event_digest",
+		"frappe.sessions.clear_expired_sessions",
 	],
 	"hourly": [
 		"frappe.templates.generators.website_group.clear_event_cache"

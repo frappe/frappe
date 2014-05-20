@@ -8,6 +8,7 @@ from frappe.utils import flt, cint, cstr, now
 from frappe.modules import load_doctype_module
 from frappe.model.base_document import BaseDocument
 from frappe.model.naming import set_new_name
+from werkzeug.exceptions import NotFound, Forbidden
 
 # once_only validation
 # methods
@@ -156,6 +157,8 @@ class Document(BaseDocument):
 		self.set_parent_in_children()
 		self.run_before_save_methods()
 		self._validate()
+		if self._action == "update_after_submit":
+			self.validate_update_after_submit()
 
 		# parent
 		if self.meta.issingle:
@@ -283,7 +286,6 @@ class Document(BaseDocument):
 		elif docstatus==1:
 			if self.docstatus==1:
 				self._action = "update_after_submit"
-				self.validate_update_after_submit()
 				if not self.has_permission("submit"):
 					self.raise_no_permission_to("submit")
 			elif self.docstatus==2:
@@ -387,6 +389,7 @@ class Document(BaseDocument):
 		elif self._action=="cancel":
 			self.run_method("before_cancel")
 		elif self._action=="update_after_submit":
+			self.run_method("validate")
 			self.run_method("before_update_after_submit")
 
 	def run_post_save_methods(self):
@@ -399,6 +402,11 @@ class Document(BaseDocument):
 			self.run_method("on_cancel")
 		elif self._action=="update_after_submit":
 			self.run_method("on_update_after_submit")
+
+	@staticmethod
+	def whitelist(f):
+		f.whitelisted = True
+		return f
 
 	@staticmethod
 	def hook(f):
@@ -432,6 +440,13 @@ class Document(BaseDocument):
 			return composed(self, method, *args, **kwargs)
 
 		return composer
+
+	def is_whitelisted(self, method):
+		fn = getattr(self, method, None)
+		if not fn:
+			raise NotFound("Method {0} not found".format(method))
+		elif not getattr(fn, "whitelisted", False):
+			raise Forbidden("Method {0} not whitelisted".format(method))
 
 	def validate_value(self, fieldname, condition, val2, doc=None, raise_exception=None):
 		"""check that value of fieldname should be 'condition' val2

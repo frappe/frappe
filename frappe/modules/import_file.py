@@ -47,11 +47,11 @@ def import_file_by_path(path, force=False):
 
 			original_modified = doc.get("modified")
 
-			import_doc(doc)
+			import_doc(doc, force=force)
 
 			if original_modified:
 				# since there is a new timestamp on the file, update timestamp in
-				if doc["doctype"] == doc["name"]:
+				if doc["doctype"] == doc["name"] and doc["name"]!="DocType":
 					frappe.db.sql("""update tabSingles set value=%s where field="modified" and doctype=%s""",
 						(original_modified, doc["name"]))
 				else:
@@ -78,7 +78,7 @@ ignore_values = {
 
 ignore_doctypes = ["Page Role", "DocPerm"]
 
-def import_doc(docdict):
+def import_doc(docdict, force=False):
 	docdict["__islocal"] = 1
 	doc = frappe.get_doc(docdict)
 
@@ -87,14 +87,14 @@ def import_doc(docdict):
 	if frappe.db.exists(doc.doctype, doc.name):
 		old_doc = frappe.get_doc(doc.doctype, doc.name)
 
-		if doc.doctype in ignore_values:
+		if doc.doctype in ignore_values and not force:
 			# update ignore values
 			for key in ignore_values.get(doc.doctype) or []:
 				doc.set(key, old_doc.get(key))
 
 		# update ignored docs into new doc
 		for df in doc.meta.get_table_fields():
-			if df.options in ignore_doctypes:
+			if df.options in ignore_doctypes and not force:
 				doc.set(df.fieldname, [])
 				ignore.append(df.options)
 

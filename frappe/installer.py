@@ -13,6 +13,7 @@ import getpass
 from frappe import _
 from frappe.model.db_schema import DbManager
 from frappe.model.sync import sync_for
+from frappe.utils.fixtures import sync_fixtures
 
 def install_db(root_login="root", root_password=None, db_name=None, source_sql=None,
 	admin_password = 'admin', verbose=True, force=0, site_config=None, reinstall=False):
@@ -81,7 +82,6 @@ def make_connection(root_login, root_password):
 			root_password = getpass.getpass("MySQL root password: ")
 	return frappe.database.Database(user=root_login, password=root_password)
 
-@frappe.whitelist()
 def install_app(name, verbose=False, set_as_patched=True):
 	frappe.flags.in_install_app = name
 	frappe.clear_cache()
@@ -105,6 +105,7 @@ def install_app(name, verbose=False, set_as_patched=True):
 
 	if name != "frappe":
 		add_module_defs(name)
+
 	sync_for(name, force=True, sync_everything=True, verbose=verbose)
 
 	add_to_installed_apps(name)
@@ -114,6 +115,8 @@ def install_app(name, verbose=False, set_as_patched=True):
 
 	for after_install in app_hooks.after_install or []:
 		frappe.get_attr(after_install)()
+
+	sync_fixtures()
 
 	frappe.flags.in_install_app = False
 

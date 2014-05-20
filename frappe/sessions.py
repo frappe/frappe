@@ -32,7 +32,7 @@ def clear_cache(user=None):
 		"time_zone"])
 
 	def delete_user_cache(user):
-		for key in ("bootinfo", "lang", "roles", "restrictions"):
+		for key in ("bootinfo", "lang", "roles", "restrictions", "home_page"):
 			cache.delete_value(key + ":" + user)
 
 	def clear_notifications(user=None):
@@ -60,6 +60,7 @@ def clear_cache(user=None):
 			delete_user_cache(sess.user)
 			cache.delete_value("session:" + sess.sid)
 
+		delete_user_cache("Guest")
 		clear_notifications()
 		frappe.defaults.clear_cache()
 
@@ -70,12 +71,23 @@ def clear_sessions(user=None, keep_current=False):
 		if keep_current and frappe.session.sid==sid[0]:
 			continue
 		else:
-			frappe.cache().delete_value("session:" + sid[0])
-			frappe.db.sql("""delete from tabSessions where sid=%s""", (sid[0],))
+			delete_session(sid[0])
 
 def delete_session(sid=None):
 	frappe.cache().delete_value("session:" + sid)
 	frappe.db.sql("""delete from tabSessions where sid=%s""", sid)
+
+def clear_all_sessions():
+	"""This effectively logs out all users"""
+	frappe.only_for("Administrator")
+	for sid in frappe.db.sql_list("select sid from `tabSessions`"):
+		delete_session(sid)
+
+def clear_expired_sessions():
+	"""This function is meant to be called from scheduler"""
+	for sid in frappe.db.sql_list("""select sid
+		from tabSessions where TIMEDIFF(NOW(), lastupdate) > TIME(%s)""", get_expiry_period()):
+		delete_session(sid)
 
 def get():
 	"""get session boot info"""
@@ -139,7 +151,7 @@ class Session:
 		self.data['data']['session_ip'] = frappe.get_request_header('REMOTE_ADDR')
 		if self.user != "Guest":
 			self.data['data']['last_updated'] = frappe.utils.now()
-			self.data['data']['session_expiry'] = self.get_expiry_period()
+			self.data['data']['session_expiry'] = get_expiry_period()
 		self.data['data']['session_country'] = get_geo_ip_country(frappe.get_request_header('REMOTE_ADDR'))
 
 		# insert session
@@ -212,7 +224,7 @@ class Session:
 		rec = frappe.db.sql("""select user, sessiondata
 			from tabSessions where sid=%s and
 			TIMEDIFF(NOW(), lastupdate) < TIME(%s)""", (self.sid,
-				self.get_expiry_period()))
+				get_expiry_period()))
 		if rec:
 			data = frappe._dict(eval(rec and rec[0][1] or '{}'))
 			data.user = rec[0][0]
@@ -261,17 +273,14 @@ class Session:
 				frappe.utils.now())
 			frappe.cache().set_value("session:" + self.sid, self.data)
 
-	def get_expiry_period(self):
-		exp_sec = frappe.defaults.get_global_default("session_expiry") or "06:00:00"
+def get_expiry_period():
+	exp_sec = frappe.defaults.get_global_default("session_expiry") or "06:00:00"
 
-		# incase seconds is missing
-		if exp_sec:
-			if len(exp_sec.split(':')) == 2:
-				exp_sec = exp_sec + ':00'
-		else:
-			exp_sec = "2:00:00"
+	# incase seconds is missing
+	if len(exp_sec.split(':')) == 2:
+		exp_sec = exp_sec + ':00'
 
-		return exp_sec
+	return exp_sec
 
 def get_geo_ip_country(ip_addr):
 	try:

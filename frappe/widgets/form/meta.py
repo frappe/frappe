@@ -29,7 +29,6 @@ class FormMeta(Meta):
 		self.load_assets()
 
 	def load_assets(self):
-		self.expand_selects()
 		self.add_search_fields()
 
 		if not self.istable:
@@ -87,13 +86,6 @@ class FormMeta(Meta):
 		if "{% include" in content:
 			content = frappe.get_jenv().from_string(content).render()
 		return content
-
-	def expand_selects(self):
-		for df in self.get("fields", {"fieldtype": "Select"}):
-			if df.options and df.options.startswith("link:"):
-				df.link_doctype = df.options.split("\n")[0][5:]
-				df.options = '\n'.join([''] + [o.name for o in frappe.db.sql("""select
-					name from `tab%s` where docstatus<2 order by name asc""" % df.link_doctype, as_dict=1)])
 
 	def add_search_fields(self):
 		"""add search fields found in the doctypes indicated by link fields' options"""

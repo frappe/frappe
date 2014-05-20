@@ -155,6 +155,7 @@ def setup_test(parser):
 	parser.add_argument("--tests", metavar="TEST FUNCTION", nargs="*",
 		help="Run one or more specific test functions")
 	parser.add_argument("--serve_test", action="store_true", help="Run development server for testing")
+	parser.add_argument("--driver", nargs="?", help="Run selenium using given driver")
 
 
 def setup_utilities(parser):
@@ -231,6 +232,8 @@ def setup_utilities(parser):
 		help="Clear cache, doctype cache and defaults")
 	parser.add_argument("--reset_perms", default=False, action="store_true",
 		help="Reset permissions for all doctypes")
+	parser.add_argument("--clear_all_sessions", default=False, action="store_true",
+		help="Clear sessions of all users (logs them out)")
 
 	# scheduler
 	parser.add_argument("--run_scheduler", default=False, action="store_true",
@@ -307,7 +310,7 @@ def add_to_installed_apps(*apps):
 	all_apps = frappe.get_all_apps(with_frappe=True)
 	for each in apps:
 		if each in all_apps:
-			add_to_installed_apps(each)
+			add_to_installed_apps(each, rebuild_sitemap=False)
 	frappe.destroy()
 
 @cmd
@@ -364,11 +367,7 @@ def latest(rebuild_website_config=True, quiet=False):
 
 	try:
 		# run patches
-		frappe.local.patch_log_list = []
 		frappe.modules.patch_handler.run_all()
-		if verbose:
-			print "\n".join(frappe.local.patch_log_list)
-
 		# sync
 		frappe.model.sync.sync_all(verbose=verbose)
 		sync_fixtures()
@@ -381,9 +380,6 @@ def latest(rebuild_website_config=True, quiet=False):
 
 		frappe.translate.clear_cache()
 
-	except frappe.modules.patch_handler.PatchError:
-		print "\n".join(frappe.local.patch_log_list)
-		raise
 	finally:
 		frappe.destroy()
 
@@ -399,9 +395,7 @@ def sync_all(force=False, quiet=False):
 def patch(patch_module, force=False):
 	import frappe.modules.patch_handler
 	frappe.connect()
-	frappe.local.patch_log_list = []
 	frappe.modules.patch_handler.run_single(patch_module, force=force)
-	print "\n".join(frappe.local.patch_log_list)
 	frappe.destroy()
 
 @cmd
@@ -447,7 +441,6 @@ def backup(with_files=False, backup_path_db=None, backup_path_files=None, quiet=
 		if with_files:
 			print "files backup taken -", odb.backup_path_files, "- on", now()
 	frappe.destroy()
-	return odb
 
 @cmd
 def move(dest_dir=None, site=None):
@@ -507,6 +500,14 @@ def clear_web():
 	import frappe.website.render
 	frappe.connect()
 	frappe.website.render.clear_cache()
+	frappe.destroy()
+
+@cmd
+def clear_all_sessions():
+	import frappe.sessions
+	frappe.connect()
+	frappe.sessions.clear_all_sessions()
+	frappe.db.commit()
 	frappe.destroy()
 
 @cmd
@@ -705,11 +706,11 @@ def smtp_debug_server():
 	os.execv(python, [python, '-m', "smtpd", "-n", "-c", "DebuggingServer", "localhost:25"])
 
 @cmd
-def run_tests(app=None, module=None, doctype=None, verbose=False, tests=()):
+def run_tests(app=None, module=None, doctype=None, verbose=False, tests=(), driver=None):
 	import frappe.test_runner
 	from frappe.utils import sel
 
-	sel.start(verbose)
+	sel.start(verbose, driver)
 
 	ret = 1
 	try:

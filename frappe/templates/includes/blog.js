@@ -46,6 +46,8 @@ var blog = {
 				b.avatar = "/" + b.avatar;
 			}
 
+			b.month = b.month.toUpperCase().substr(0,3);
+
 			$(repl('<div class="row">\
 					<div class="col-md-2 text-center" style="color: #ccc">\
 						<h1 class="blog-day" style="margin: 0px;">%(day)s</h1>\
@@ -61,7 +63,7 @@ var blog = {
 						<p>%(content)s</p>\
 						<p style="color: #aaa; font-size: 90%">\
 							<a href="/blog?by=%(blogger)s&by_name=%(full_name)s">\
-								%(full_name)s</a> wrote this on %(published)s / %(comment_text)s</p>\
+								%(full_name)s</a> / %(comment_text)s</p>\
 					</div>\
 				</div><hr>', b)).appendTo($wrap);
 		});

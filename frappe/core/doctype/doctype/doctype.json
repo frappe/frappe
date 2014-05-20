@@ -139,6 +139,17 @@
    "permlevel": 0
   }, 
   {
+   "fieldname": "description", 
+   "fieldtype": "Small Text", 
+   "hidden": 0, 
+   "label": "Description", 
+   "oldfieldname": "description", 
+   "oldfieldtype": "Text", 
+   "permlevel": 0, 
+   "reqd": 0, 
+   "search_index": 0
+  }, 
+  {
    "fieldname": "column_break_15", 
    "fieldtype": "Column Break", 
    "permlevel": 0
@@ -162,15 +173,20 @@
    "search_index": 0
   }, 
   {
-   "fieldname": "description", 
-   "fieldtype": "Small Text", 
-   "hidden": 0, 
-   "label": "Description", 
-   "oldfieldname": "description", 
-   "oldfieldtype": "Text", 
-   "permlevel": 0, 
-   "reqd": 0, 
-   "search_index": 0
+   "default": "modified", 
+   "description": "", 
+   "fieldname": "sort_field", 
+   "fieldtype": "Data", 
+   "label": "Sort Field", 
+   "permlevel": 0
+  }, 
+  {
+   "default": "DESC", 
+   "fieldname": "sort_order", 
+   "fieldtype": "Select", 
+   "label": "Sort Order", 
+   "options": "ASC\nDESC", 
+   "permlevel": 0
   }, 
   {
    "depends_on": "eval:!doc.istable", 
@@ -329,7 +345,7 @@
  "idx": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2014-05-01 05:27:22.582492", 
+ "modified": "2014-05-08 09:23:56.952829", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "DocType", 
@@ -361,5 +377,7 @@
   }
  ], 
  "read_only": 0, 
- "search_fields": "module"
+ "search_fields": "module", 
+ "sort_field": "name", 
+ "sort_order": "ASC"
 }

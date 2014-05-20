@@ -189,7 +189,6 @@ $.extend(frappe, {
 		if(frappe.supports_pjax()) {
 			// hack for chrome's onload popstate call
 			window.initial_href = window.location.href
-
 			$(document).on("click", "#wrap a", frappe.handle_click);
 
 			$(window).on("popstate", function(event) {
@@ -201,12 +200,12 @@ $.extend(frappe, {
 
 				window.previous_href = location.href;
 				var state = event.originalEvent.state;
-
-				if(state) {
-					frappe.render_json(state);
-				} else {
+				if(!state) {
 					console.log("state not found!");
+					frappe.set_force_reload(true);
+					state = window.history.state;
 				}
+				frappe.render_json(state);
 			});
 		}
 	},
@@ -215,29 +214,37 @@ $.extend(frappe, {
 		var link = event.currentTarget
 
 		if (link.tagName.toUpperCase() !== 'A')
-			throw "using pjax requires an anchor element"
+			throw "using pjax requires an anchor element";
 
 		// Middle click, cmd click, and ctrl click should open
 		// links in a new tab as normal.
 		if ( event.which > 1 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey )
-			return
+			return;
+
+		if (link.getAttribute("target"))
+			return;
 
 		// Ignore cross origin links
 		if ( location.protocol !== link.protocol || location.hostname !== link.hostname )
-			return
+			return;
 
 		// Ignore anchors on the same page
 		if (link.hash && link.href.replace(link.hash, '') ===
 			 location.href.replace(location.hash, ''))
-			 return
+			 return;
 
 		// Ignore empty anchor "foo.html#"
 		if (link.href === location.href + '#')
-			return
+			return;
 
 		// our custom logic
 		if (link.href.indexOf("cmd=")!==-1 || link.hasAttribute("no-pjax"))
-			return
+			return;
+
+		// has an extension, but is not htm/html
+		var last_part = (link.href.split("/").slice(-1)[0] || "");
+		if (last_part.indexOf(".")!==-1 && (last_part.indexOf(".htm")===-1))
+			return;
 
 		event.preventDefault()
 		frappe.load_via_ajax(link.href);

@@ -105,11 +105,7 @@ def check_record(d):
 				frappe.msgprint(_("{0} is required").format(docfield.label), raise_exception=1)
 
 			if docfield.fieldtype=='Select' and val and docfield.options:
-				if docfield.options.startswith('link:'):
-					link_doctype = docfield.options.split(':')[1]
-					if not frappe.db.exists(link_doctype, val):
-						frappe.throw(_("{0} {1} must be a valid {2}").format(_(docfield.lable), val, _(link_doctype)))
-				elif docfield.options == "attach_files:":
+				if docfield.options == "attach_files:":
 					pass
 
 				elif val not in docfield.options.split('\n'):
