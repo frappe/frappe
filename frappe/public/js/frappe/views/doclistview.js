@@ -60,12 +60,19 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		$('<div class="show-docstatus hide side-panel">\
 			<h5 class="text-muted">Show</h5>\
 			<div class="side-panel-body">\
-			<div class="text-muted small"><input data-docstatus="0" type="checkbox" \
-				checked="checked" /> '+__('Drafts')+'</div>\
-			<div class="text-muted small"><input data-docstatus="1" type="checkbox" \
-				checked="checked" /> '+__('Submitted')+'</div>\
-			<div class="text-muted small"><input data-docstatus="2" type="checkbox" \
-				/> '+__('Cancelled')+'</div></div>\
+			    <div class="checkbox"><label>\
+					<input type="checkbox" data-docstatus="0" checked="checked">\
+						<span class="text-muted">'+__('Drafts')+'</span>\
+			    </label></div>\
+			    <div class="checkbox"><label>\
+					<input type="checkbox" data-docstatus="1" checked="checked">\
+						<span class="text-muted">'+__('Submitted')+'</span>\
+			    </label></div>\
+			    <div class="checkbox"><label>\
+					<input type="checkbox" data-docstatus="2">\
+						<span class="text-muted">'+__('Cancelled')+'</span>\
+			    </label></div>\
+			</div>\
 		</div>')
 			.appendTo(this.$page.find(".layout-side-section"));
 

@@ -51,6 +51,13 @@ h2.titlebar-left-item {
 	width: 90%;
 }
 
+.title-sub {
+	font-size: 50%;
+	color: #888;
+	margin-left: 42px;
+	margin-top: 4px;
+}
+
 @media (max-width: 768px) {
 	.titlebar-center-item  {
 		width: 80%;

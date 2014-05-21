@@ -12,7 +12,7 @@ frappe.form.formatters = {
 	Float: function(value, docfield) {
 		var decimals = cint(docfield.options, null) || cint(frappe.boot.sysdefaults.float_precision, null);
 
-		return "<div style='text-align: right'>" + 
+		return "<div style='text-align: right'>" +
 			((value==null || value==="") ? "" :
 				format_number(value, null, decimals)) + "</div>";
 	},
@@ -30,15 +30,15 @@ frappe.form.formatters = {
 		return value ? "<i class='icon-check'></i>" : "<i class='icon-check-empty'></i>";
 	},
 	Link: function(value, docfield, options) {
-		if(options && options.for_print) 
+		if(options && options.for_print)
 			return value;
-		if(!value) 
+		if(!value)
 			return "";
 		if(docfield && docfield.link_onclick) {
-			return repl('<a onclick="%(onclick)s">%(value)s</a>', 
+			return repl('<a class="form-link" onclick="%(onclick)s">%(value)s</a>',
 				{onclick: docfield.link_onclick.replace(/"/g, '&quot;'), value:value});
 		} else if(docfield && docfield.options) {
-			return repl('%(icon)s<a href="#Form/%(doctype)s/%(name)s">%(label)s</a>', {
+			return repl('%(icon)s<a class="form-link" href="#Form/%(doctype)s/%(name)s">%(label)s</a>', {
 				doctype: encodeURIComponent(docfield.options),
 				name: encodeURIComponent(value),
 				label: value,
