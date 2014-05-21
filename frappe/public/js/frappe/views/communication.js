@@ -225,8 +225,11 @@ frappe.views.CommunicationComposer = Class.extend({
 		if(files.length) {
 			$("<p><b>"+__("Add Attachments")+":</b></p>").appendTo(attach.empty());
 			$.each(files, function(i, f) {
-				$(repl("<p><input type='checkbox' \
-					data-file-name='%(file)s'> %(file)s</p>", {file:f})).appendTo(attach)
+				if (!f.file_name) return;
+
+				$(repl("<p class='checkbox'><label style='margin-right: 3px;'><input type='checkbox' \
+					data-file-name='%(name)s'> %(file_name)s</label> <a href='%(file_url)s' target='_blank' class='text-muted'> <i class='icon-share'></i></p>", f))
+					.appendTo(attach)
 			});
 		}
 	},
