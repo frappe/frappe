@@ -94,7 +94,8 @@ def validate_rename(doctype, new, meta, merge, force, ignore_permissions):
 
 def rename_doctype(doctype, old, new, force=False):
 	# change options for fieldtype Table
-	update_parent_of_fieldtype_table(old, new)
+	update_options_for_fieldtype("Table", old, new)
+	update_options_for_fieldtype("Link", old, new)
 
 	# change options where select options are hardcoded i.e. listed
 	select_fields = get_select_fields(old, new)
@@ -167,17 +168,14 @@ def get_link_fields(doctype):
 
 	return link_fields
 
-def update_parent_of_fieldtype_table(old, new):
-	frappe.db.sql("""\
-		update `tabDocField` set options=%s
-		where fieldtype='Table' and options=%s""", (new, old))
+def update_options_for_fieldtype(fieldtype, old, new):
+	frappe.db.sql("""update `tabDocField` set options=%s
+		where fieldtype=%s and options=%s""", (new, fieldtype, old))
 
-	frappe.db.sql("""\
-		update `tabCustom Field` set options=%s
-		where fieldtype='Table' and options=%s""", (new, old))
+	frappe.db.sql("""update `tabCustom Field` set options=%s
+		where fieldtype=%s and options=%s""", (new, fieldtype, old))
 
-	frappe.db.sql("""\
-		update `tabProperty Setter` set value=%s
+	frappe.db.sql("""update `tabProperty Setter` set value=%s
 		where property='options' and value=%s""", (new, old))
 
 def get_select_fields(old, new):
