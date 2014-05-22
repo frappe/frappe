@@ -19,7 +19,7 @@ frappe.Application = Class.extend({
 	init: function() {
 		this.load_startup();
 	},
-	
+
 	load_startup: function() {
 		var me = this;
 		if(window.app) {
@@ -37,7 +37,7 @@ frappe.Application = Class.extend({
 			});
 		} else {
 			this.startup();
-		}		
+		}
 	},
 	startup: function() {
 		// load boot info
@@ -45,37 +45,37 @@ frappe.Application = Class.extend({
 
 		// page container
 		this.make_page_container();
-		
+
 		// navbar
 		this.make_nav_bar();
-			
+
 		// favicon
 		this.set_favicon();
-		
+
 		if(user!="Guest") this.set_user_display_settings();
-		
+
 		this.setup_keyboard_shortcuts();
-		
+
 		// control panel startup code
 		this.run_startup_js();
 
 		if(frappe.boot) {
 			// route to home page
-			frappe.route();	
+			frappe.route();
 		}
-		
+
 		// trigger app startup
 		$(document).trigger('startup');
 
 		this.start_notification_updates();
-		
+
 		$(document).trigger('app_ready');
 	},
-	
+
 	set_user_display_settings: function() {
 		frappe.ui.set_user_background(frappe.boot.user.background_image);
 	},
-	
+
 	load_bootinfo: function() {
 		if(frappe.boot) {
 			frappe.modules = frappe.boot.modules;
@@ -86,7 +86,7 @@ frappe.Application = Class.extend({
 			this.set_as_guest();
 		}
 	},
-	
+
 	check_metadata_cache_status: function() {
 		if(frappe.boot.metadata_version != localStorage.metadata_version) {
 			localStorage.clear();
@@ -94,22 +94,22 @@ frappe.Application = Class.extend({
 			frappe.assets.init_local_storage();
 		}
 	},
-	
+
 	start_notification_updates: function() {
 		var me = this;
 		setInterval(function() {
 			me.refresh_notifications();
 		}, 30000);
-		
+
 		// first time loaded in boot
 		$(document).trigger("notification-update");
-		
+
 		// refresh notifications if user is back after sometime
 		$(document).on("session_alive", function() {
 			me.refresh_notifications();
 		})
 	},
-	
+
 	refresh_notifications: function() {
 		if(frappe.session_alive) {
 			return frappe.call({
@@ -124,7 +124,7 @@ frappe.Application = Class.extend({
 			});
 		}
 	},
-	
+
 	set_globals: function() {
 		// for backward compatibility
 		user = frappe.boot.user.name;
@@ -132,7 +132,7 @@ frappe.Application = Class.extend({
 		user_defaults = frappe.boot.user.defaults;
 		user_roles = frappe.boot.user.roles;
 		user_email = frappe.boot.user.email;
-		sys_defaults = frappe.boot.sysdefaults;		
+		sys_defaults = frappe.boot.sysdefaults;
 	},
 	sync_pages: function() {
 		// clear cached pages if timestamp is not found
@@ -189,14 +189,14 @@ frappe.Application = Class.extend({
 		})
 	},
 	redirect_to_login: function() {
-		window.location.href = 'index.html';
+		window.location.href = '/';
 	},
 	set_favicon: function() {
 		var link = $('link[type="image/x-icon"]').remove().attr("href");
 		$('<link rel="shortcut icon" href="' + link + '" type="image/x-icon">').appendTo("head");
 		$('<link rel="icon" href="' + link + '" type="image/x-icon">').appendTo("head");
 	},
-	
+
 	setup_keyboard_shortcuts: function() {
 		$(document)
 			.keydown("meta+g ctrl+g", function(e) {
@@ -246,7 +246,7 @@ frappe.Application = Class.extend({
 			})
 
 	},
-	
+
 	run_startup_js: function() {
 		if(frappe.boot.startup_js)
 			eval(frappe.boot.startup_js);
