@@ -21,6 +21,7 @@ a.disabled, a.disabled:hover {
 
 a.form-link {
 	font-weight: bold;
+	font-size: 102%;
 }
 
 .layout-main {
@@ -163,6 +164,9 @@ div#freeze {
 .list-doc-name {
 	position: absolute;
 	bottom: 2px;
+}
+
+.list-doc-name a {
 	font-size: 70%;
 	color: #888;
 }

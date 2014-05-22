@@ -189,7 +189,7 @@ frappe.views.ListView = Class.extend({
 			$('<div class="list-doc-name">')
 				.appendTo(row)
 				.css({"left": me.title_offset_left})
-				.html('<span style="margin-right: 10px;">#' + data.name + "</span>");
+				.html('<a href="#Form/'+ data.doctype+'/'+data.name +'">#' + data.name + "</a>");
 		}
 
 		var timestamp_and_comment =
