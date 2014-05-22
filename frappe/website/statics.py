@@ -146,6 +146,9 @@ class sync(object):
 		self.synced.append(route)
 
 	def update_web_page(self, route_details, fpath, priority, parent_website_route):
+		if not route_details.docname:
+			print "Ignoring {0} because page found".format(route_details.name)
+			return
 		if str(cint(os.path.getmtime(fpath)))!= route_details.static_file_timestamp \
 			or (cint(route_details.idx) != cint(priority) and (priority is not None)):
 
