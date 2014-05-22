@@ -49,6 +49,9 @@ def render_blocks(context):
 	if "<!-- no-sidebar -->" in out.get("content", ""):
 		out["no_sidebar"] = 1
 
+	if "<!-- title:" in out.get("content", ""):
+		out["title"] = re.findall('<!-- title:([^>]*) -->', out.get("content"))[0].strip()
+
 	if "sidebar" not in out and not out.get("no_sidebar"):
 		out["sidebar"] = scrub_relative_urls(
 			frappe.get_template("templates/includes/sidebar.html").render(context))

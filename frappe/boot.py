@@ -37,6 +37,8 @@ def get_bootinfo():
 			bootinfo.modules.update(frappe.get_attr(app + ".config.desktop.get_data")() or {})
 		except ImportError:
 			pass
+		except AttributeError:
+			pass
 
 	bootinfo.module_app = frappe.local.module_app
 	bootinfo.hidden_modules = frappe.db.get_global("hidden_modules")

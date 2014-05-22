@@ -337,12 +337,9 @@ $.extend(frappe, {
 		$(".navbar a.active").removeClass("active");
 		$(".navbar a").each(function() {
 			var href = $(this).attr("href");
-			if(pathname.indexOf(href)===0) {
-				var more = pathname.replace(href, "");
-				if(!more || more.substr(0, 1)==="/") {
-					$(this).addClass("active");
-					return false;
-				}
+			if(href===pathname) {
+				$(this).addClass("active");
+				return false;
 			}
 		})
 	},
