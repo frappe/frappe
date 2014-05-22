@@ -28,6 +28,8 @@ class User(Document):
 		self.check_enable_disable()
 		self.update_gravatar()
 		self.remove_all_roles_for_guest()
+		if self.language == "Loading...":
+			self.language = None
 
 	def check_enable_disable(self):
 		# do not allow disabling administrator/guest
