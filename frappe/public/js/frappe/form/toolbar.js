@@ -39,6 +39,11 @@ frappe.ui.form.Toolbar = Class.extend({
 	set_title: function() {
 		if(this.frm.meta.title_field) {
 			var title = this.frm.doc[this.frm.meta.title_field] || __(this.frm.docname);
+			if(this.frm.doc.__islocal) {
+				this.appframe.set_title_sub("");
+			} else {
+				this.appframe.set_title_sub("#" + this.frm.docname);
+			}
 		} else {
 			var title = __(this.frm.docname);
 		}

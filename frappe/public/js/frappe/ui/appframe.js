@@ -10,10 +10,14 @@ frappe.ui.AppFrame = Class.extend({
 		this.fields_dict = {};
 		this.parent = parent;
 
+		var $center = parent.find(".titlebar-center-item");
 		this.$title_area = $('<span class="title-area">\
 				<span class="title-icon text-muted" style="display: none"></span>\
 				<span class="title-text"></span>\
-			</span>').appendTo(parent.find(".titlebar-center-item"));
+			</span>').appendTo($center);
+
+		this.$sub_title_area = $('<div class="title-sub"></div>')
+			.appendTo($center);
 
 		this.setup_iconbar();
 
@@ -45,6 +49,11 @@ frappe.ui.AppFrame = Class.extend({
 		this.title = txt;
 		document.title = txt.replace(/<[^>]*>/g, "");
 		this.$title_area.find(".title-text").html(txt);
+	},
+
+	set_title_sub: function(txt) {
+		// strip icon
+		this.$sub_title_area.html(txt);
 	},
 
 	set_title_left: function(click) {
@@ -223,7 +232,7 @@ frappe.ui.AppFrame = Class.extend({
 	},
 
 	get_main_icon: function(icon) {
-		return this.$title_area.find(".title-icon").html('<i class="'+icon+'"></i> ').toggle(true);
+		return this.$title_area.find(".title-icon").html('<i class="'+icon+' icon-fixed-width"></i> ').toggle(true);
 	},
 
 	add_help_button: function(txt) {

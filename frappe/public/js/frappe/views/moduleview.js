@@ -195,7 +195,7 @@ frappe.views.moduleview.ModuleView = Class.extend({
 				$list_item = $($r('<li class="list-group-item">\
 					<div class="row">\
 						<div class="col-sm-6 list-item-name">\
-							<a data-label="%(label)s"><i class="%(icon)s icon-fixed-width"></i> %(label)s</a></div>\
+							<a class="form-link" data-label="%(label)s"><i class="%(icon)s icon-fixed-width"></i> %(label)s</a></div>\
 						<div class="col-sm-6 text-muted list-item-description">%(description)s</div>\
 					</div>\
 					</li>', item)).appendTo($list);
