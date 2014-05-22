@@ -136,7 +136,7 @@ def clear_cache(path=None, website_group=None):
 
 def clear_event_cache():
 	for group in frappe.db.sql_list("""select name from `tabWebsite Group` where group_type='Event'"""):
-		clear_unit_views(website_group=group)
+		clear_cache(website_group=group)
 
 def clear_cache_on_doc_event(doc, method, *args, **kwargs):
 	clear_cache(path=doc.website_route, website_group=doc.website_group)

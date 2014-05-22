@@ -197,6 +197,9 @@ class DbTable:
 					query.append("drop index `{}`".format(col.fieldname))
 
 		for col in list(set(self.set_default).difference(set(self.change_type))):
+			if col.fieldname=="name":
+				continue
+
 			if not col.default:
 				col_default = "null"
 			else:
