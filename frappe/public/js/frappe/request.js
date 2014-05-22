@@ -62,11 +62,15 @@ frappe.request.call = function(opts) {
 			},
 			417: function(data, xhr) {
 				if(typeof data === "string") data = JSON.parse(data);
-				opts.error && opts.error(data, xhr.responseText)
+				opts.error && opts.error(data, xhr.responseText);
 			},
 			501: function(data, xhr) {
 				if(typeof data === "string") data = JSON.parse(data);
-				opts.error && opts.error(data, xhr.responseText)
+				opts.error && opts.error(data, xhr.responseText);
+			},
+			500: function() {
+				msgprint(__("Server Error: Please check your server logs or contact tech support."))
+				opts.error && opts.error();
 			}
 		},
 		async: opts.async

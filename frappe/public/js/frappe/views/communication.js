@@ -127,11 +127,12 @@ frappe.views.CommunicationList = Class.extend({
 	}
 });
 
+frappe.last_edited_communication = {};
+
 frappe.views.CommunicationComposer = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts)
 		this.make();
-		this.dialog.show();
 	},
 	make: function() {
 		var me = this;
@@ -190,15 +191,40 @@ frappe.views.CommunicationComposer = Class.extend({
 			}
 		})
 		this.prepare();
+		this.dialog.show();
+
 	},
 	prepare: function() {
 		this.setup_print();
 		this.setup_attach();
 		this.setup_email();
 		this.setup_autosuggest();
+		this.setup_last_edited_communication();
 		$(this.dialog.fields_dict.recipients.input).val(this.recipients || "").change();
 		$(this.dialog.fields_dict.subject.input).val(this.subject || "").change();
 		this.setup_earlier_reply();
+	},
+	setup_last_edited_communication: function() {
+		var me = this;
+		this.dialog.onhide = function() {
+			if(cur_frm) {
+				frappe.last_edited_communication[cur_frm.doctype] = {
+					recipients: me.dialog.get_value("recipients"),
+					subject: me.dialog.get_value("subject"),
+					content: me.dialog.get_value("content"),
+				}
+			}
+		}
+
+		this.dialog.onshow = function() {
+			if(frappe.last_edited_communication[cur_frm.doctype]) {
+				c = frappe.last_edited_communication[cur_frm.doctype];
+				me.dialog.set_value("subject", c.subject || "");
+				me.dialog.set_value("recipients", c.recipients || "");
+				me.dialog.set_value("content", c.content || "");
+			}
+		}
+
 	},
 	setup_print: function() {
 		// print formats
@@ -316,6 +342,7 @@ frappe.views.CommunicationComposer = Class.extend({
 					if(form_values.send_email)
 						msgprint(__("Email sent to {0}", [form_values.recipients]));
 					me.dialog.hide();
+					frappe.last_edited_communication[cur_frm.doctype] = null;
 					cur_frm.reload_doc();
 				} else {
 					msgprint(__("There were errors while sending email. Please try again."));
