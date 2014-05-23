@@ -1,6 +1,5 @@
  by Role ,par rôle
  is not set,n&#39;est pas réglé
-""" does not exists",""" N'existe pas"
 """Company History""",&quot;Histoire de la société&quot;
 """Team Members"" or ""Management""",&quot;Membres de l&#39;équipe&quot; ou &quot;gestion&quot;
 'In List View' not allowed for type {0} in row {1},« Dans la Fenêtre » n'est pas permis pour le type {0} à la ligne {1}
@@ -31,7 +30,6 @@ Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytic
 Add Message,Ajouter un message
 Add New Permission Rule,Ajouter une règle d&#39;autorisation New
 Add Reply,Ajouter une réponse
-Add Serial No,Ajouter N ° de série
 Add This To User's Restrictions,télécharger
 Add Total Row,Ajouter une ligne totale
 Add a New Role,Ajouter un nouveau rôle
@@ -127,7 +125,6 @@ Blog Title,Titre du blog
 Blogger,Blogger
 Bookmarks,Favoris
 Brand HTML,Marque HTML
-Built on,Vous ne pouvez pas imprimer des documents annulés
 Bulk Email,Bulk Email
 Bulk email limit {0} crossed,Email en vrac limite {0} franchi
 Button,Bouton
@@ -396,7 +393,6 @@ For top bar,Pour la barre supérieure
 For {0} at level {1} in {2} in row {3},Pour {0} au niveau {1} {2} dans la ligne {3}
 Forgot Password,Mot de passe oublié
 Forgot Password?,Mot de passe oublié ?
-Form,Forme
 Forum,Forum
 Forums,Fermer : {0}
 Forward To Email Address,Transférer à l'adresse e-mail
@@ -424,7 +420,6 @@ Google Web Font (Heading),Google Web Font (cap)
 Google Web Font (Text),Google Web Font (texte)
 Greater or equals,Plus ou égaux
 Greater than,supérieur à
-"Grid ""","grille """
 "Group Added, refreshing...",non Soumis
 Group Description,description du groupe
 Group Name,Nom du groupe
@@ -685,7 +680,6 @@ Only restricted users can access,Seuls les utilisateurs restreints peuvent accé
 Open,Ouvert
 Open Count,Ouvrir comte
 Open Sans,Sans ouverts
-Open source ERP built for the web,recharger la page
 Options,Options de
 Options Help,Options Aide
 Options must be a valid DocType for field {0} in row {1},Les options doivent être un DOCTYPE valide pour le champ {0} à la ligne {1}
@@ -766,7 +760,6 @@ Please select atleast 1 column from {0} to sort,S'il vous plaît sélectionner a
 Please specify,S&#39;il vous plaît spécifier
 Please specify 'Auto Email Id' in Setup > Outgoing Email Settings,"S'il vous plaît spécifier ""Auto Email Id » dans Configuration> Paramètres de messagerie sortants"
 Please specify Event date and time,S'il vous plaît préciser la date et l'heure de l'événement
-Please specify a,S&#39;il vous plaît spécifier une
 Plugin,plugin
 Port,port
 Post,Poster
@@ -890,7 +883,6 @@ Select Type,Sélectionnez le type de
 Select User or Property to start.,Sélectionnez l&#39;utilisateur ou d&#39;un bien pour commencer.
 Select a Banner Image first.,Choisissez une bannière image première.
 Select an image of approx width 150px with a transparent background for best results.,Sélectionnez une image d&#39;une largeur d&#39;environ 150px avec un fond transparent pour de meilleurs résultats.
-Select dates to create a new ,Choisissez la date pour créer une nouvelle
 "Select modules to be shown (based on permission). If hidden, they will be hidden for all users.","Sélectionnez les modules à être affichées ( sur la base de l'autorisation ) . Si caché , ils seront cachés pour tous les utilisateurs ."
 Select or drag across time slots to create a new event.,Sélectionnez ou glisser sur des intervalles de temps pour créer un nouvel événement.
 "Select target = ""_blank"" to open in a new page.","Sélectionnez target = "" _blank "" pour ouvrir dans une nouvelle page ."
@@ -908,10 +900,10 @@ Sent,expédié
 Sent Mail,Messages envoyés
 Sent Quotation,Devis envoyé
 Sent or Received,Envoyés ou reçus
-Serial No,N ° de série
 Series,série
 Series {0} already used in {1},La date à laquelle la prochaine facture sera générée . Il est généré lors de la soumission .
 Server,Serveur
+Server Error: Please check your server logs or contact tech support.,Erreur de serveur : S'il vous plaît vérifier vos logs du serveur ou contactez le support technique .
 Session Expired. Logging you out,Session a expiré. Vous déconnecter
 Session Expiry,Session d&#39;expiration
 Session Expiry in Hours e.g. 06:00,"Expiration session en heures, par exemple 06:00"
@@ -1046,7 +1038,6 @@ To,À
 To Do,pour faire
 "To format columns, give column labels in the query.","Pour formater colonnes, donner des étiquettes de colonne dans la requête."
 "To give acess to a role for only specific records, check the 'Restricted' perimssion. User Restriction Records are used to restrict users with such role to specific records.","Pour donner acess à un rôle pour que les enregistrements spécifiques , consultez la perimssion «Réservé ». Restriction de l'utilisateur enregistrements sont utilisés pour restreindre les utilisateurs avec ce rôle aux dossiers spécifiques ."
-"To report an issue, go to ",
 "To run a test add the module name in the route after '{0}'. For example, {1}",Filtre invalide : {0}
 ToDo,ToDo
 Too many writes in one request. Please send smaller requests,Trop écrit en une seule requête . S'il vous plaît envoyer des demandes plus petites

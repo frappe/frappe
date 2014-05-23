@@ -1,6 +1,5 @@
  by Role ,بالتخصص
  is not set,لم يتم تعيين
-""" does not exists",""" لا يوجد"
 """Company History""",&quot;نبذة عن تاريخ الشركة&quot;
 """Team Members"" or ""Management""",&quot;أعضاء الفريق&quot; أو &quot;إدارة&quot;
 'In List View' not allowed for type {0} in row {1},'في قائمة عرض ' لا يسمح لنوع {0} في {1} الصف
@@ -31,7 +30,6 @@ Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytic
 Add Message,إضافة رسالة
 Add New Permission Rule,إضافة قاعدة جديدة إذن
 Add Reply,إضافة رد
-Add Serial No,إضافة رقم المسلسل
 Add This To User's Restrictions,هذا إضافة إلى تقييد المستخدم
 Add Total Row,إضافة صف الإجمالي
 Add a New Role,إضافة دور جديد
@@ -127,7 +125,6 @@ Blog Title,بلوق العنوان
 Blogger,مدون
 Bookmarks,الإشارات المرجعية
 Brand HTML,العلامة التجارية HTML
-Built on,مبنية على
 Bulk Email,الجزء الأكبر البريد الإلكتروني
 Bulk email limit {0} crossed,الحد معظم البريد الإلكتروني {0} عبروا
 Button,زر
@@ -396,7 +393,6 @@ For top bar,الشريط العلوي لل
 For {0} at level {1} in {2} in row {3},ل {0} في {1} مستوى في {2} في {3} الصف
 Forgot Password,نسيت كلمة المرور
 Forgot Password?,نسيت كلمة المرور ؟
-Form,شكل
 Forum,منتدى
 Forums,المنتديات
 Forward To Email Address,انتقل إلى عنوان البريد الإلكتروني
@@ -424,7 +420,6 @@ Google Web Font (Heading),Google ويب الخط (العنوان)
 Google Web Font (Text),Google ويب الخط (نص)
 Greater or equals,أكبر أو يساوي
 Greater than,أكبر من
-"Grid ""","الشبكة """
 "Group Added, refreshing...",مجموعة المضافة، منعش ...
 Group Description,مجموعة الوصف
 Group Name,اسم المجموعة
@@ -685,7 +680,6 @@ Only restricted users can access,يمكن للمستخدمين يقتصر الو
 Open,فتح
 Open Count,فتح عدد
 Open Sans,مفتوحة بلا
-Open source ERP built for the web,ERP مفتوحة المصدر بنيت لشبكة الإنترنت
 Options,خيارات
 Options Help,خيارات مساعدة
 Options must be a valid DocType for field {0} in row {1},يجب أن تكون الخيارات ل DOCTYPE صالحة لحقل {0} في {1} الصف
@@ -766,7 +760,6 @@ Please select atleast 1 column from {0} to sort,يرجى اختيار العمو
 Please specify,يرجى تحديد
 Please specify 'Auto Email Id' in Setup > Outgoing Email Settings,"يرجى تحديد "" هوية السيارات البريد الإلكتروني"" في إعداد > إعدادات البريد الإلكتروني المنتهية ولايته"
 Please specify Event date and time,يرجى تحديد تاريخ ووقت الحدث
-Please specify a,الرجاء تحديد
 Plugin,المساعد
 Port,ميناء
 Post,بعد
@@ -890,7 +883,6 @@ Select Type,حدد نوع
 Select User or Property to start.,حدد المستخدم أو عقار للبدء.
 Select a Banner Image first.,تحديد صورة بانر الأول.
 Select an image of approx width 150px with a transparent background for best results.,اختر صورة من تقريبا عرض 150px مع خلفية شفافة للحصول على أفضل النتائج.
-Select dates to create a new ,قم بتحديد مواعيد لخلق جديد
 "Select modules to be shown (based on permission). If hidden, they will be hidden for all users.",حدد وحدات ليتم عرضها (على أساس إذن ) . إذا مخفي ، وسوف تكون مخفية لجميع المستخدمين.
 Select or drag across time slots to create a new event.,حدد أو اسحب عبر فتحات الوقت لإنشاء حدث جديد.
 "Select target = ""_blank"" to open in a new page.","حدد الهدف = "" _blank "" لفتح صفحة جديدة في ."
@@ -908,10 +900,10 @@ Sent,أرسلت
 Sent Mail,إرسال بريد
 Sent Quotation,أرسلت اقتباس
 Sent or Received,المرسلة أو المتلقاة
-Serial No,المسلسل لا
 Series,سلسلة
 Series {0} already used in {1},سلسلة {0} تستخدم بالفعل في {1}
 Server,خادم
+Server Error: Please check your server logs or contact tech support.,خطأ الخادم : يرجى مراجعة سجلات الخادم الخاص بك أو الاتصال بالدعم التكنولوجيا .
 Session Expired. Logging you out,انتهى الدورة. تسجيل خروجك
 Session Expiry,الدورة انتهاء الاشتراك
 Session Expiry in Hours e.g. 06:00,انتهاء الاشتراك في الدورة ساعات مثلا 06:00
@@ -1046,7 +1038,6 @@ To,إلى
 To Do,هل ل
 "To format columns, give column labels in the query.",لتنسيق الأعمدة، وإعطاء تسميات الأعمدة في الاستعلام.
 "To give acess to a role for only specific records, check the 'Restricted' perimssion. User Restriction Records are used to restrict users with such role to specific records.",لإعطاء رصا إلى دور للسجلات معينة فقط ، والتحقق من perimssion ' المحظورة ' . وتستخدم السجلات تقييد المستخدم لتقييد المستخدمين مع هذا الدور لسجلات محددة.
-"To report an issue, go to ",
 "To run a test add the module name in the route after '{0}'. For example, {1}",لتشغيل اختبار إضافة اسم وحدة في الطريق بعد '{0}'. على سبيل المثال، {1}
 ToDo,قائمة المهام
 Too many writes in one request. Please send smaller requests,الكثير من يكتب في طلب واحد . يرجى إرسال طلبات أصغر

@@ -1,6 +1,5 @@
  by Role ,von Rolle
  is not set,nicht gesetzt
-""" does not exists",""" Existiert nicht"
 """Company History""",Firmengeschichte
 """Team Members"" or ""Management""","Teammitglieder oder ""Management"""
 'In List View' not allowed for type {0} in row {1},""" In der Listenansicht "" nicht erlaubt für Typ {0} in Zeile {1}"
@@ -31,7 +30,6 @@ Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytic
 Add Message,Nachricht hinzufügen
 Add New Permission Rule,Add New Permission Rule
 Add Reply,Fügen Sie Antworten
-Add Serial No,In Seriennummer
 Add This To User's Restrictions,Fügen Sie diese auf Benutzer- Einschränkungen
 Add Total Row,In insgesamt Row
 Add a New Role,Fügen Sie eine neue Rolle
@@ -127,7 +125,6 @@ Blog Title,Blog Titel
 Blogger,Blogger
 Bookmarks,Bookmarks
 Brand HTML,Marke HTML
-Built on,Erbaut auf
 Bulk Email,Bulk Email
 Bulk email limit {0} crossed,Bulk E-Mail Grenze {0} gekreuzt
 Button,Taste
@@ -396,7 +393,6 @@ For top bar,Für Top- Bar
 For {0} at level {1} in {2} in row {3},Für {0} auf der Ebene {1} in {2} in Zeile {3}
 Forgot Password,Passwort vergessen
 Forgot Password?,Passwort vergessen?
-Form,Form
 Forum,Forum
 Forums,Foren
 Forward To Email Address,Weiterleiten an E-Mail -Adresse
@@ -424,7 +420,6 @@ Google Web Font (Heading),Google Web Font (Überschrift)
 Google Web Font (Text),Google Web Font (Text)
 Greater or equals,Größer oder equals
 Greater than,größer als
-"Grid ""","Grid """
 "Group Added, refreshing...","Gruppe hinzugefügt , erfrischend ..."
 Group Description,Gruppenbeschreibung
 Group Name,Gruppenname
@@ -685,7 +680,6 @@ Only restricted users can access,Nur eingeschränkte Benutzer zugreifen können
 Open,Öffnen
 Open Count,Offene Graf
 Open Sans,Offene Sans
-Open source ERP built for the web,Open-Source- ERP für die Bahn gebaut
 Options,Optionen
 Options Help,Optionen Hilfe
 Options must be a valid DocType for field {0} in row {1},Optionen muss eine gültige DocType für Feld {0} in Zeile {1} sein
@@ -766,7 +760,6 @@ Please select atleast 1 column from {0} to sort,Bitte wählen Sie atleast 1 Spal
 Please specify,Bitte geben Sie
 Please specify 'Auto Email Id' in Setup > Outgoing Email Settings,Bitte geben 'Auto Email Id' in Setup> Ausgehende E-Mail -Einstellungen
 Please specify Event date and time,Bitte geben Sie Event- Datum und Zeit
-Please specify a,Bitte geben Sie eine
 Plugin,Plugin
 Port,Port
 Post,Beitrag
@@ -890,7 +883,6 @@ Select Type,Typ wählen
 Select User or Property to start.,Wählen Sie Benutzer-oder Property zu starten.
 Select a Banner Image first.,Wählen Sie ein Banner Bild zuerst.
 Select an image of approx width 150px with a transparent background for best results.,Wählen Sie ein Bild von ca. 150px Breite mit einem transparenten Hintergrund für beste Ergebnisse.
-Select dates to create a new ,
 "Select modules to be shown (based on permission). If hidden, they will be hidden for all users.","Wählen Sie Module gezeigt werden (basierend auf Genehmigung) . Wenn ausgeblendet , werden sie für alle Benutzer ausgeblendet werden."
 Select or drag across time slots to create a new event.,Wählen oder ziehen in Zeitfenstern um ein neues Ereignis zu erstellen.
 "Select target = ""_blank"" to open in a new page.","Select target = "" _blank"" in einer neuen Seite zu öffnen."
@@ -908,10 +900,10 @@ Sent,Sent
 Sent Mail,Gesendete E-Mails
 Sent Quotation,Gesendete Quotation
 Sent or Received,Gesendet oder empfangen
-Serial No,Serial In
 Series,Serie
 Series {0} already used in {1},Serie {0} bereits verwendet {1}
 Server,Server
+Server Error: Please check your server logs or contact tech support.,Server-Fehler: Bitte überprüfen Sie Ihre Server-Logs oder Kontakt -Tech-Unterstützung .
 Session Expired. Logging you out,Session abgelaufen. Sie werden abgemeldet
 Session Expiry,Session Verfall
 Session Expiry in Hours e.g. 06:00,Session Verfall z. B. in Stunden 06.00
@@ -1046,7 +1038,6 @@ To,Auf
 To Do,To Do
 "To format columns, give column labels in the query.","Um Spalten zu formatieren, geben Spaltenbeschriftungen in der Abfrage."
 "To give acess to a role for only specific records, check the 'Restricted' perimssion. User Restriction Records are used to restrict users with such role to specific records.","Um Acess zu einer Rolle für nur bestimmte Datensätze zu geben , überprüfen Sie die ""Restricted"" perimssion . BenutzereinschränkungDatensätze werden verwendet, um Benutzer mit einer solchen Rolle auf bestimmte Datensätze beschränken."
-"To report an issue, go to ",
 "To run a test add the module name in the route after '{0}'. For example, {1}",So führen Sie eine Test hinzufügen den Namen des Moduls in der Route nach '{0}' . Beispiel: {1}
 ToDo,ToDo
 Too many writes in one request. Please send smaller requests,Zu viele schreibt in einer Anfrage. Bitte senden Sie Anfragen kleiner

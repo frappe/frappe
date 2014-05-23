@@ -1,6 +1,5 @@
  by Role ,按角色
  is not set,没有设置
-""" does not exists",“不存在
 """Company History""",“公司历史”
 """Team Members"" or ""Management""",“团队成员”或“管理”
 'In List View' not allowed for type {0} in row {1},“在列表视图中”不允许类型{0}行{1}
@@ -31,7 +30,6 @@ Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytic
 Add Message,发表留言
 Add New Permission Rule,添加新的权限规则
 Add Reply,添加回复
-Add Serial No,添加序列号
 Add This To User's Restrictions,将它添加到用户的限制
 Add Total Row,添加总计行
 Add a New Role,添加新角色
@@ -127,7 +125,6 @@ Blog Title,博客标题
 Blogger,博客
 Bookmarks,书签
 Brand HTML,品牌的HTML
-Built on,建
 Bulk Email,大量电子邮件
 Bulk email limit {0} crossed,群发电子邮件的限制{0}划线
 Button,钮
@@ -396,7 +393,6 @@ For top bar,对于顶级酒吧
 For {0} at level {1} in {2} in row {3},{0}在水平{1}的{2}行{3}
 Forgot Password,忘记密码
 Forgot Password?,忘记密码？
-Form,表格
 Forum,论坛
 Forums,论坛
 Forward To Email Address,转发到邮件地址
@@ -424,7 +420,6 @@ Google Web Font (Heading),谷歌网页字体（标题）
 Google Web Font (Text),谷歌网页字体（文字）
 Greater or equals,大于或等于
 Greater than,大于
-"Grid """,电网“
 "Group Added, refreshing...",集团已添加，清爽...
 Group Description,集团简介
 Group Name,集团名称
@@ -685,7 +680,6 @@ Only restricted users can access,只限制用户可以访问
 Open,开
 Open Count,打开计数
 Open Sans,开放三世
-Open source ERP built for the web,内置的网络开源ERP
 Options,选项
 Options Help,选项​​帮助
 Options must be a valid DocType for field {0} in row {1},选项​​必须是字段的有效的DocType {0}行{1}
@@ -766,7 +760,6 @@ Please select atleast 1 column from {0} to sort,请从{0}进行排序至少选�
 Please specify,请注明
 Please specify 'Auto Email Id' in Setup > Outgoing Email Settings,请注明“自动电子邮件Id '在设置>传出电子邮件设置
 Please specify Event date and time,请注明事件的日期和时间
-Please specify a,请指定一个
 Plugin,插件
 Port,端口
 Post,职位
@@ -890,7 +883,6 @@ Select Type,选择类型
 Select User or Property to start.,选择用户或物业开始。
 Select a Banner Image first.,首先选择一个横幅图像。
 Select an image of approx width 150px with a transparent background for best results.,选择约宽150像素的透明背景以获得最佳效果的图像。
-Select dates to create a new ,选择日期以创建一个新的
 "Select modules to be shown (based on permission). If hidden, they will be hidden for all users.",要显示的选择的模块（基于权限）。如果隐藏的，他们会被隐藏于所有用户。
 Select or drag across time slots to create a new event.,选择或拖动整个时隙，以创建一个新的事件。
 "Select target = ""_blank"" to open in a new page.",选择目标=“_blank”在新页面中打开。
@@ -908,10 +900,10 @@ Sent,发送
 Sent Mail,发送邮件
 Sent Quotation,发送报价
 Sent or Received,发送或接收
-Serial No,序列号
 Series,系列
 Series {0} already used in {1},系列{0}已经被应用在{1}
 Server,服务器
+Server Error: Please check your server logs or contact tech support.,服务器错误：请检查您的服务器日志或联系技术支持。
 Session Expired. Logging you out,会话过期。您的退出
 Session Expiry,会话过期
 Session Expiry in Hours e.g. 06:00,会话过期的时间，例如06:00
@@ -1046,7 +1038,6 @@ To,至
 To Do,要不要
 "To format columns, give column labels in the query.",要格式化列，给列标签在查询中。
 "To give acess to a role for only specific records, check the 'Restricted' perimssion. User Restriction Records are used to restrict users with such role to specific records.",为了让接取仅针对特定记录的作用，检查'限制' perimssion 。用户限制记录是用来限制用户与这些角色的特定记录。
-"To report an issue, go to ",要报告问题，请至
 "To run a test add the module name in the route after '{0}'. For example, {1}",运行测试后， “{0}”添加模块名称的路线。例如， {1}
 ToDo,待办事项
 Too many writes in one request. Please send smaller requests,太多的写在一个请求。请将较小的请求

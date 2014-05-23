@@ -1,6 +1,5 @@
  by Role ,από το ρόλο
  is not set,Δεν έχει οριστεί
-""" does not exists",""" Δεν υπάρχει"
 """Company History""",&quot;Η Εταιρεία Ιστορία&quot;
 """Team Members"" or ""Management""",&quot;Μέλη της ομάδας&quot; ή &quot;Management&quot;
 'In List View' not allowed for type {0} in row {1},«Στην Προβολή λίστας » δεν επιτρέπεται για τον τύπο {0} στη γραμμή {1}
@@ -31,7 +30,6 @@ Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytic
 Add Message,Προσθήκη μηνύματος
 Add New Permission Rule,Προσθέστε νέο κανόνα άδεια
 Add Reply,Προσθέστε Απάντηση
-Add Serial No,Προσθήκη Αύξων αριθμός
 Add This To User's Restrictions,Προσθέστε το σε Περιορισμοί χρήστη
 Add Total Row,Προσθήκη Σύνολο Row
 Add a New Role,Προσθέστε ένα νέο ρόλο
@@ -127,7 +125,6 @@ Blog Title,Τίτλος Blog
 Blogger,Blogger
 Bookmarks,Σελιδοδείκτες
 Brand HTML,Μάρκα HTML
-Built on,Χτισμένο σε
 Bulk Email,Bulk Email
 Bulk email limit {0} crossed,Μαζική email όριο {0} διέσχισε
 Button,Κουμπί
@@ -396,7 +393,6 @@ For top bar,Για την κορυφή μπαρ
 For {0} at level {1} in {2} in row {3},Για {0} σε επίπεδο {1} στο {2} στη γραμμή {3}
 Forgot Password,Ξεχάσατε τον κωδικό σας
 Forgot Password?,Ξεχάσατε τον κωδικό σας ;
-Form,Μορφή
 Forum,Φόρουμ
 Forums,φόρουμ
 Forward To Email Address,Μπροστά στη διεύθυνση ηλεκτρονικού ταχυδρομείου
@@ -424,7 +420,6 @@ Google Web Font (Heading),Google Web Font (Τομέας)
 Google Web Font (Text),Google Web Font (Κείμενο)
 Greater or equals,Μεγαλύτερο ή ίσον
 Greater than,"μεγαλύτερη από ό, τι"
-"Grid ""","Πλέγμα """
 "Group Added, refreshing...","Ομάδα Προστέθηκε , αναζωογονητικό ..."
 Group Description,Περιγραφή Ομάδας
 Group Name,Όνομα ομάδας
@@ -685,7 +680,6 @@ Only restricted users can access,Περιορίζεται μόνο οι χρήσ
 Open,Ανοιχτό
 Open Count,Open Count
 Open Sans,Open Sans
-Open source ERP built for the web,Open source ERP χτίστηκε για το διαδίκτυο
 Options,Επιλογές
 Options Help,Επιλογές Βοήθεια
 Options must be a valid DocType for field {0} in row {1},Επιλογές θα πρέπει να είναι μια έγκυρη DocType για το πεδίο {0} στη γραμμή {1}
@@ -766,7 +760,6 @@ Please select atleast 1 column from {0} to sort,Παρακαλώ επιλέξτ�
 Please specify,Διευκρινίστε
 Please specify 'Auto Email Id' in Setup > Outgoing Email Settings,Παρακαλείσθε να διευκρινίσετε «ταυτότητα Auto Email ' στην ενότητα Ρύθμιση> Outgoing Ρυθμίσεις Email
 Please specify Event date and time,Παρακαλείστε να προσδιορίσετε την ημερομηνία και την ώρα Event
-Please specify a,Παρακαλείστε να προσδιορίσετε μια
 Plugin,plugin
 Port,λιμάνι
 Post,θέση
@@ -890,7 +883,6 @@ Select Type,Επιλέξτε Τύπο
 Select User or Property to start.,Επιλέξτε το χρήστη ή ακίνητα για να ξεκινήσει.
 Select a Banner Image first.,Επιλέξτε μια εικόνα banner πρώτα.
 Select an image of approx width 150px with a transparent background for best results.,Επιλέξτε μια εικόνα 150px πλάτους περ. με ένα διαφανές φόντο για καλύτερα αποτελέσματα.
-Select dates to create a new ,Επιλέξτε ημερομηνίες για να δημιουργήσετε ένα νέο
 "Select modules to be shown (based on permission). If hidden, they will be hidden for all users.","Επιλέξτε ενότητες που πρέπει να δείξει ( με βάση την άδεια ) . Αν κρύβεται , θα είναι κρυμμένα για όλους τους χρήστες ."
 Select or drag across time slots to create a new event.,Επιλέξτε ή σύρετε χρονοθυρίδες για να δημιουργήσετε ένα νέο συμβάν.
 "Select target = ""_blank"" to open in a new page.","Επιλέξτε target = "" _blank "" για να ανοίξει σε μια νέα σελίδα ."
@@ -908,10 +900,10 @@ Sent,Sent
 Sent Mail,Sent Mail
 Sent Quotation,Εστάλη Προσφοράς
 Sent or Received,Αποστέλλονται ή λαμβάνονται
-Serial No,Αύξων αριθμός
 Series,σειρά
 Series {0} already used in {1},Σειρά {0} έχει ήδη χρησιμοποιηθεί σε {1}
 Server,Διακομιστή
+Server Error: Please check your server logs or contact tech support.,Σφάλμα διακομιστή : Παρακαλούμε ελέγξτε τα αρχεία καταγραφής του διακομιστή σας ή επικοινωνήστε με την τεχνική υποστήριξη .
 Session Expired. Logging you out,Συνεδρία Έληξε. Έξοδος από
 Session Expiry,Λήξη συνεδρίας
 Session Expiry in Hours e.g. 06:00,"Λήξη συνεδρίας σε ώρες, π.χ. 6:00"
@@ -1046,7 +1038,6 @@ To,Να
 To Do,Για να κάνετε
 "To format columns, give column labels in the query.","Για να διαμορφώσετε τις στήλες, δίνουν ετικέτες στηλών στο ερώτημα."
 "To give acess to a role for only specific records, check the 'Restricted' perimssion. User Restriction Records are used to restrict users with such role to specific records.","Για να δώσουμε acess σε ένα ρόλο μόνο για συγκεκριμένες εγγραφές , ελέγξτε την « περιορισμένη» perimssion . Εγγραφές Περιορισμός χρήστη χρησιμοποιούνται για να περιορίσουν τους χρήστες με τέτοιο ρόλο σε συγκεκριμένες εγγραφές ."
-"To report an issue, go to ",
 "To run a test add the module name in the route after '{0}'. For example, {1}","Για να εκτελέσετε μια δοκιμή προσθέστε το όνομα της ενότητας στη γραμμή μετά από '{0}' . Για παράδειγμα, το {1}"
 ToDo,Εκκρεμότητες
 Too many writes in one request. Please send smaller requests,Πάρα πολλοί γράφει σε ένα αίτημα . Παρακαλούμε να στείλετε τα μικρότερα αιτήσεις

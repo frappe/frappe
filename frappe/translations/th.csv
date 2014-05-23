@@ -1,6 +1,5 @@
  by Role ,โดยบทบาท
  is not set,ไม่ได้ตั้งค่า
-""" does not exists","""ไม่ได้ มีอยู่"
 """Company History""",&quot;ประวัติ บริษัท &quot;
 """Team Members"" or ""Management""",&quot;สมาชิกทีม&quot; หรือ &quot;จัดการ&quot;
 'In List View' not allowed for type {0} in row {1},' ใน ลิสต์วิว ' ไม่ได้รับอนุญาต สำหรับประเภท {0} ในแถว {1}
@@ -31,7 +30,6 @@ Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytic
 Add Message,เพิ่มข้อความ
 Add New Permission Rule,เพิ่มกฎการอนุญาตใหม่
 Add Reply,เพิ่มตอบ
-Add Serial No,เพิ่ม หมายเลขเครื่อง
 Add This To User's Restrictions,เพิ่ม นี้กับ ข้อ จำกัด ใน การใช้งาน
 Add Total Row,เพิ่มแถวผลรวม
 Add a New Role,เพิ่มบทบาท ใหม่
@@ -127,7 +125,6 @@ Blog Title,หัวข้อบล็อก
 Blogger,Blogger
 Bookmarks,ที่คั่นหน้า
 Brand HTML,HTML ยี่ห้อ
-Built on,สร้างขึ้นบน
 Bulk Email,อีเมล์ขยะ
 Bulk email limit {0} crossed,จำกัด อีเมลขยะ {0} ข้าม
 Button,ปุ่ม
@@ -396,7 +393,6 @@ For top bar,สำหรับ แถบด้านบน
 For {0} at level {1} in {2} in row {3},สำหรับ {0} ในระดับ {1} ใน {2} ในแถว {3}
 Forgot Password,ลืมรหัสผ่าน
 Forgot Password?,ลืมรหัสผ่าน
-Form,ฟอร์ม
 Forum,ฟอรั่ม
 Forums,ฟอรั่ม
 Forward To Email Address,ไปข้างหน้า เพื่อ ที่อยู่อีเมล์
@@ -424,7 +420,6 @@ Google Web Font (Heading),Google เว็บแบบอักษร (หนั
 Google Web Font (Text),Google เว็บแบบอักษร (ข้อความ)
 Greater or equals,ที่มากกว่าหรือ เท่ากับ
 Greater than,ที่ยิ่งใหญ่กว่า
-"Grid ""","ตาราง """
 "Group Added, refreshing...",กลุ่ม เพิ่ม สดชื่น ...
 Group Description,group คำอธิบาย
 Group Name,ชื่อ กลุ่ม
@@ -685,7 +680,6 @@ Only restricted users can access,จำกัด เฉพาะ ผู้ใช
 Open,เปิด
 Open Count,เปิด จำนวน
 Open Sans,Sans เปิด
-Open source ERP built for the web,ERP มาเปิด ตัว สำหรับเว็บ
 Options,ตัวเลือก
 Options Help,ตัวเลือกความช่วยเหลือ
 Options must be a valid DocType for field {0} in row {1},ตัวเลือก จะต้องเป็น DocType ที่ถูกต้องสำหรับ เขตข้อมูล {0} ในแถว {1}
@@ -766,7 +760,6 @@ Please select atleast 1 column from {0} to sort,กรุณาเลือก a
 Please specify,โปรดระบุ
 Please specify 'Auto Email Id' in Setup > Outgoing Email Settings,โปรดระบุ ' รหัส อีเมล์อัตโนมัติ ใน การตั้งค่า > การตั้งค่า อีเมล์ ขาออก
 Please specify Event date and time,กรุณา ระบุวันที่ และเวลาที่ เหตุการณ์
-Please specify a,โปรดระบุ
 Plugin,ปลั๊กอิน
 Port,พอร์ต
 Post,เสา
@@ -890,7 +883,6 @@ Select Type,เลือกประเภท
 Select User or Property to start.,เลือกผู้ใช้หรือทรัพย์สินที่จะเริ่มต้น
 Select a Banner Image first.,เลือกภาพแบนเนอร์แรก
 Select an image of approx width 150px with a transparent background for best results.,เลือกภาพจาก 150px ความกว้างประมาณกับพื้นหลังโปร่งใสเพื่อให้ได้ผลลัพธ์ที่ดีที่สุด
-Select dates to create a new ,เลือกวันที่จะสร้างใหม่
 "Select modules to be shown (based on permission). If hidden, they will be hidden for all users.",เลือก โมดูล ที่จะแสดง (ขึ้นอยู่กับ สิทธิ์) ถ้า ซ่อน พวกเขา จะถูกซ่อนไว้ สำหรับผู้ใช้ทั้งหมด
 Select or drag across time slots to create a new event.,เลือกหรือลากผ่านช่วงเวลาที่จะสร้างเหตุการณ์ใหม่
 "Select target = ""_blank"" to open in a new page.","เลือก target = ""_blank"" จะเปิดใน หน้าใหม่"
@@ -908,10 +900,10 @@ Sent,ส่ง
 Sent Mail,จดหมายที่ส่ง
 Sent Quotation,ใบเสนอราคาส่ง
 Sent or Received,ส่งหรือ ได้รับ
-Serial No,อนุกรมไม่มี
 Series,ชุด
 Series {0} already used in {1},ชุด {0} ใช้แล้ว ใน {1}
 Server,เซิร์ฟเวอร์
+Server Error: Please check your server logs or contact tech support.,ข้อผิดพลาด ของเซิร์ฟเวอร์: กรุณาตรวจสอบ เซิร์ฟเวอร์ล็อก หรือติดต่อฝ่ายสนับสนุน ด้านเทคนิค ของคุณ
 Session Expired. Logging you out,เซสชันหมดอายุ คุณออกจากระบบ
 Session Expiry,หมดอายุเซสชั่น
 Session Expiry in Hours e.g. 06:00,หมดอายุในเซสชั่นชั่วโมงเช่น 06:00
@@ -1046,7 +1038,6 @@ To,ไปยัง
 To Do,สิ่งที่ต้องทำ
 "To format columns, give column labels in the query.",การจัดรูปแบบคอลัมน์ให้ป้ายชื่อคอลัมน์ในแบบสอบถาม
 "To give acess to a role for only specific records, check the 'Restricted' perimssion. User Restriction Records are used to restrict users with such role to specific records.",เพื่อให้ Acess บทบาท สำหรับบันทึก เฉพาะ ให้ตรวจสอบ' จำกัด ' perimssion บันทึก ข้อ จำกัด ผู้ใช้จะถูก ใช้เพื่อ จำกัด ผู้ใช้ที่มี บทบาท ดังกล่าว จะ บันทึก เฉพาะ
-"To report an issue, go to ",
 "To run a test add the module name in the route after '{0}'. For example, {1}",เรียกใช้การทดสอบโมดูล เพิ่มชื่อใน เส้นทางหลังจาก ' {0} ' ตัวอย่างเช่น {1}
 ToDo,สิ่งที่ต้องทำ
 Too many writes in one request. Please send smaller requests,เขียน มากเกินไปใน หนึ่งขอ กรุณา ส่งคำขอ มีขนาดเล็ก

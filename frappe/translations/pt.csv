@@ -1,6 +1,5 @@
  by Role ,por função
  is not set,não está definido
-""" does not exists",""" Bestaat niet"
 """Company History""",&quot;História da Companhia&quot;
 """Team Members"" or ""Management""",&quot;Membros da Equipe&quot; ou &quot;gerenciamento&quot;
 'In List View' not allowed for type {0} in row {1},«Tendo em conta List ' não é permitido para o tipo {0} na linha {1}
@@ -31,7 +30,6 @@ Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytic
 Add Message,Adicionar mensagem
 Add New Permission Rule,Adicionar regra nova permissão
 Add Reply,Adicione Responder
-Add Serial No,Voeg Serienummer
 Add This To User's Restrictions,Adicione isto a Restrições do Usuário
 Add Total Row,Adicionar Linha de Total
 Add a New Role,Adicionar uma nova função
@@ -127,7 +125,6 @@ Blog Title,Blog Title
 Blogger,Blogger
 Bookmarks,Marcadores
 Brand HTML,Marca HTML
-Built on,construído sobre
 Bulk Email,E-mail em massa
 Bulk email limit {0} crossed,Limite em massa de e-mail {0} atravessou
 Button,Botão
@@ -396,7 +393,6 @@ For top bar,Para barra superior
 For {0} at level {1} in {2} in row {3},Por {0} a nível {1} em {2} na linha {3}
 Forgot Password,Esqueceu a senha
 Forgot Password?,Esqueceu a senha?
-Form,Forma
 Forum,Fórum
 Forums,Fóruns
 Forward To Email Address,Forward naar emailadres
@@ -424,7 +420,6 @@ Google Web Font (Heading),Google Web Font (rubrica)
 Google Web Font (Text),Google Web Font (Texto)
 Greater or equals,Groter of gelijk
 Greater than,groter dan
-"Grid ""","Grid """
 "Group Added, refreshing...","Grupo Adicionado, refrescante ..."
 Group Description,Descrição do grupo
 Group Name,Nome do grupo
@@ -685,7 +680,6 @@ Only restricted users can access,Somente usuários restritos podem acessar
 Open,Abrir
 Open Count,Open Graaf
 Open Sans,Sans abertas
-Open source ERP built for the web,ERP de código aberto construído para a web
 Options,Opções
 Options Help,Opções Ajuda
 Options must be a valid DocType for field {0} in row {1},As opções devem ser um DOCTYPE válido para o campo {0} na linha {1}
@@ -766,7 +760,6 @@ Please select atleast 1 column from {0} to sort,Por favor seleccione pelo menos 
 Please specify,"Por favor, especifique"
 Please specify 'Auto Email Id' in Setup > Outgoing Email Settings,"Por favor, especifique 'Id Auto -mail ' em Configurações> Configurações de e-mails enviados"
 Please specify Event date and time,"Por favor, especificar a data e hora do evento"
-Please specify a,"Por favor, especifique um"
 Plugin,plugin
 Port,porto
 Post,cargo
@@ -890,7 +883,6 @@ Select Type,Selecione o Tipo
 Select User or Property to start.,Selecione Usuário ou propriedade para começar.
 Select a Banner Image first.,Selecione um Banner Image primeiro.
 Select an image of approx width 150px with a transparent background for best results.,Selecione uma imagem de aproximadamente 150px de largura com um fundo transparente para melhores resultados.
-Select dates to create a new ,Selecione as datas para criar uma nova
 "Select modules to be shown (based on permission). If hidden, they will be hidden for all users.","Selecione os módulos a ser mostrado (com base em permissão) . Se escondido , eles serão escondidos por todos os usuários."
 Select or drag across time slots to create a new event.,Selecione ou arraste intervalos de tempo para criar um novo evento.
 "Select target = ""_blank"" to open in a new page.","Selecteer target = "" _blank "" te openen in een nieuwe pagina ."
@@ -908,10 +900,10 @@ Sent,verzonden
 Sent Mail,E-mails enviados
 Sent Quotation,Cotação enviada
 Sent or Received,Verzonden of ontvangen
-Serial No,N º de Série
 Series,serie
 Series {0} already used in {1},Série {0} já usado em {1}
 Server,Servidor
+Server Error: Please check your server logs or contact tech support.,"Erro de servidor: Por favor, verifique os logs do servidor ou contate o suporte técnico."
 Session Expired. Logging you out,Sessão expirada. Deslogar você
 Session Expiry,Caducidade sessão
 Session Expiry in Hours e.g. 06:00,"Caducidade sessão em Horas, por exemplo 06:00"
@@ -1046,7 +1038,6 @@ To,Para
 To Do,para Fazer
 "To format columns, give column labels in the query.","Para formatar colunas, dar rótulos de coluna na consulta."
 "To give acess to a role for only specific records, check the 'Restricted' perimssion. User Restriction Records are used to restrict users with such role to specific records.","Para dar acesso a um papel apenas para registros específicos , verificar a perimssion ""Reservado"" . Restrição de Usuário Registros são usados ​​para restringir os usuários com esse papel de registros específicos ."
-"To report an issue, go to ",
 "To run a test add the module name in the route after '{0}'. For example, {1}","Para executar um teste de adicionar o nome do módulo na rota depois de '{0}'. Por exemplo , {1}"
 ToDo,ToDo
 Too many writes in one request. Please send smaller requests,"Muitos escreve em um pedido. Por favor, enviar pedidos de menores"

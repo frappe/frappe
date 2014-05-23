@@ -1,6 +1,5 @@
  by Role ,prema ulozi
  is not set,nije postavljen
-""" does not exists",""" Ne postoji"
 """Company History""",&quot;Povijest tvrtke&quot;
 """Team Members"" or ""Management""",&quot;Članovi tima&quot; ili &quot;upravljanje&quot;
 'In List View' not allowed for type {0} in row {1},"' U prikazu popisa "" nisu dopušteni za vrstu {0} je u redu {1}"
@@ -31,7 +30,6 @@ Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytic
 Add Message,Dodaj poruku
 Add New Permission Rule,Dodati novo pravilo dozvolu
 Add Reply,Dodaj Odgovor
-Add Serial No,Dodaj rednim brojem
 Add This To User's Restrictions,Dodaj Ovaj na korisnikov Ograničenja
 Add Total Row,Dodaj Ukupno Row
 Add a New Role,Dodaj novu ulogu
@@ -127,7 +125,6 @@ Blog Title,Blog Naslov
 Blogger,Blogger
 Bookmarks,Favoriti
 Brand HTML,Marka HTML
-Built on,izgrađen na
 Bulk Email,Bulk Email
 Bulk email limit {0} crossed,Bulk e-mail granica {0} prešao
 Button,Dugme
@@ -396,7 +393,6 @@ For top bar,Na gornjoj traci
 For {0} at level {1} in {2} in row {3},Za {0} na razini {1} u {2} u redu {3}
 Forgot Password,Zaboravljena lozinka
 Forgot Password?,Zaboravili ste lozinku ?
-Form,Oblik
 Forum,Forum
 Forums,Forum
 Forward To Email Address,Napadač na e-mail adresu
@@ -424,7 +420,6 @@ Google Web Font (Heading),Google Web Font (Heading)
 Google Web Font (Text),Google Web Font (Tekst)
 Greater or equals,Veće ili jednaki
 Greater than,veći od
-"Grid ""","Grid """
 "Group Added, refreshing...","Grupa Dodano , osvježavajuće ..."
 Group Description,Grupa Opis
 Group Name,Ime grupe
@@ -685,7 +680,6 @@ Only restricted users can access,Samo ograničeni korisnici mogu pristupiti
 Open,Otvoreno
 Open Count,Otvorena Točka
 Open Sans,Otvoreni Sans
-Open source ERP built for the web,Open source ERP izgrađena za web
 Options,Mogućnosti
 Options Help,Opcije Pomoć
 Options must be a valid DocType for field {0} in row {1},Opcije mora bitivaljana DOCTYPE za polje {0} je u redu {1}
@@ -766,7 +760,6 @@ Please select atleast 1 column from {0} to sort,Odaberite atleast jedan stupac s
 Please specify,Navedite
 Please specify 'Auto Email Id' in Setup > Outgoing Email Settings,Navedite ' Id Auto e ' u Setup > odlazne e-pošte Postavke
 Please specify Event date and time,Navedite datum i vrijeme događaja
-Please specify a,Navedite
 Plugin,plugin
 Port,luka
 Post,poslije
@@ -890,7 +883,6 @@ Select Type,Odaberite Vid
 Select User or Property to start.,Odaberite korisnika ili imovina za početak.
 Select a Banner Image first.,Odaberite Slika Banner prvi.
 Select an image of approx width 150px with a transparent background for best results.,Odaberite sliku od cca 150px širine s transparentnom pozadinom za najbolje rezultate.
-Select dates to create a new ,Odaberite datume za stvaranje nove
 "Select modules to be shown (based on permission). If hidden, they will be hidden for all users.","Odaberite modula koji će biti prikazan ( na temelju odobrenja ) . Ako skriveno , oni će biti skriven za sve korisnike ."
 Select or drag across time slots to create a new event.,Odaberite ili povucite preko minutaže stvoriti novi događaj.
 "Select target = ""_blank"" to open in a new page.","Select target = "" _blank "" otvara se u novu stranicu ."
@@ -908,10 +900,10 @@ Sent,Poslano
 Sent Mail,Poslana pošta
 Sent Quotation,Sent Ponuda
 Sent or Received,Poslana ili primljena
-Serial No,Serijski br
 Series,serija
 Series {0} already used in {1},Serija {0} već koristi u {1}
 Server,Server
+Server Error: Please check your server logs or contact tech support.,Pogreška poslužitelja : Provjerite svoje logove poslužitelja ili kontaktirajte tehničku podršku.
 Session Expired. Logging you out,Sjednica je istekao. Odjavljivanje
 Session Expiry,Sjednica isteka
 Session Expiry in Hours e.g. 06:00,Sjednica Rok u Hours npr. 06:00
@@ -1046,7 +1038,6 @@ To,Na
 To Do,Da li
 "To format columns, give column labels in the query.","Za formatiranje stupaca, daju natpise stupaca u upitu."
 "To give acess to a role for only specific records, check the 'Restricted' perimssion. User Restriction Records are used to restrict users with such role to specific records.","Dati acess na ulogu samo u određenim zapisima , provjeriti 'ograničena ' perimssion . Korisničko ograničavanje Records se koristiti za ograničavanje korisnika s takvom ulogom na određene zapise ."
-"To report an issue, go to ",
 "To run a test add the module name in the route after '{0}'. For example, {1}","Za pokretanjetesta dodati ime modula u pravac nakon ' {0} ' . Na primjer , {1}"
 ToDo,ToDo
 Too many writes in one request. Please send smaller requests,Previše piše u jednom zahtjevu . Molimo poslali manje zahtjeve

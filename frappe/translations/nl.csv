@@ -1,6 +1,5 @@
  by Role ,per rol
  is not set,is niet ingesteld
-""" does not exists",""" Bestaat niet"
 """Company History""",&quot;Geschiedenis&quot;
 """Team Members"" or ""Management""",&quot;Team Members&quot; of &quot;Management&quot;
 'In List View' not allowed for type {0} in row {1},' In List View' niet toegestaan ​​voor type {0} in rij {1}
@@ -31,7 +30,6 @@ Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytic
 Add Message,Bericht toevoegen
 Add New Permission Rule,Toevoegen nieuwe Toestemming regel
 Add Reply,Voeg antwoord
-Add Serial No,Voeg Serienummer
 Add This To User's Restrictions,Voeg dit toe aan Beperkingen gebruikershandleiding
 Add Total Row,Voeg Totaal Row
 Add a New Role,Voeg een nieuwe rol
@@ -127,7 +125,6 @@ Blog Title,Blog Titel
 Blogger,Blogger
 Bookmarks,Bladwijzers
 Brand HTML,Brand HTML
-Built on,gebouwd op
 Bulk Email,Bulk Email
 Bulk email limit {0} crossed,Bulk e-mail limiet {0} gekruist
 Button,Knop
@@ -396,7 +393,6 @@ For top bar,Voor bovenste balk
 For {0} at level {1} in {2} in row {3},Voor {0} op niveau {1} in {2} in rij {3}
 Forgot Password,Wachtwoord vergeten
 Forgot Password?,Wachtwoord vergeten ?
-Form,Vorm
 Forum,Forum
 Forums,Forums
 Forward To Email Address,Forward naar emailadres
@@ -424,7 +420,6 @@ Google Web Font (Heading),Google Web Font (rubriek)
 Google Web Font (Text),Google Web Font (Tekst)
 Greater or equals,Groter of gelijk
 Greater than,groter dan
-"Grid ""","Grid """
 "Group Added, refreshing...","Group Toegevoegd , verfrissend ..."
 Group Description,groep Beschrijving
 Group Name,groep Naam
@@ -685,7 +680,6 @@ Only restricted users can access,Alleen gebruikers met beperkte toegang
 Open,Open
 Open Count,Open Graaf
 Open Sans,Open Sans
-Open source ERP built for the web,Open source ERP gebouwd voor het web
 Options,Opties
 Options Help,Opties Help
 Options must be a valid DocType for field {0} in row {1},Opties zijn een geldig DocType voor in het veld {0} in rij {1} zijn
@@ -766,7 +760,6 @@ Please select atleast 1 column from {0} to sort,Selecteer minstens 1 kolom {0} t
 Please specify,Gelieve te specificeren
 Please specify 'Auto Email Id' in Setup > Outgoing Email Settings,Vul Setup opgeven 'Auto Email Id ' > Uitgaande e-mailinstellingen
 Please specify Event date and time,Specificeer de datum en tijd Event
-Please specify a,Geef een
 Plugin,plugin
 Port,haven
 Post,post
@@ -890,7 +883,6 @@ Select Type,Selecteer Type
 Select User or Property to start.,Selecteer Gebruiker of eigendom te beginnen.
 Select a Banner Image first.,Kies eerst een banner afbeelding.
 Select an image of approx width 150px with a transparent background for best results.,Selecteer een afbeelding van ca. breedte 150px met een transparante achtergrond voor het beste resultaat.
-Select dates to create a new ,Kies een datum om een ​​nieuwe te maken
 "Select modules to be shown (based on permission). If hidden, they will be hidden for all users.","Selecteer modules te worden vermeld ( gebaseerd op toestemming) . Als verborgen , zullen ze worden verborgen voor alle gebruikers ."
 Select or drag across time slots to create a new event.,Selecteer of sleep over tijdsloten om een ​​nieuwe gebeurtenis te maken.
 "Select target = ""_blank"" to open in a new page.","Selecteer target = "" _blank "" te openen in een nieuwe pagina ."
@@ -908,10 +900,10 @@ Sent,verzonden
 Sent Mail,Verzonden berichten
 Sent Quotation,Verzonden Offerte
 Sent or Received,Verzonden of ontvangen
-Serial No,Serienummer
 Series,serie
 Series {0} already used in {1},Serie {0} al gebruikt in {1}
 Server,Server
+Server Error: Please check your server logs or contact tech support.,Server Error : Controleer uw server logs of neem contact op technische ondersteuning .
 Session Expired. Logging you out,Sessie verlopen. U wordt afgemeld
 Session Expiry,Sessie Vervaldatum
 Session Expiry in Hours e.g. 06:00,"Sessie Vervaldatum in uren, bijvoorbeeld 06:00"
@@ -1046,7 +1038,6 @@ To,Naar
 To Do,te doen
 "To format columns, give column labels in the query.","Om kolommen opmaken, geef kolom labels in de query."
 "To give acess to a role for only specific records, check the 'Restricted' perimssion. User Restriction Records are used to restrict users with such role to specific records.","Om acess geven aan een rol voor alleen specifieke records , check de ' Restricted ' perimssion . Gebruiker Beperking Records worden gebruikt om gebruikers te beperken met zo'n rol te specifieke records ."
-"To report an issue, go to ",
 "To run a test add the module name in the route after '{0}'. For example, {1}","Om een test voeg de module naam in de route na ' {0} ' . Bijvoorbeeld , {1}"
 ToDo,ToDo
 Too many writes in one request. Please send smaller requests,Te veel schrijft in een verzoek. Stuur kleinere aanvragen

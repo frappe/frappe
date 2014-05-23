@@ -1,6 +1,5 @@
  by Role ,按角色
  is not set,沒有設置
-""" does not exists",“不存在
 """Company History""",“公司歷史”
 """Team Members"" or ""Management""",“團隊成員”或“管理”
 'In List View' not allowed for type {0} in row {1},“在列表視圖中”不允許類型{0}行{1}
@@ -31,7 +30,6 @@ Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytic
 Add Message,發表留言
 Add New Permission Rule,添加新的權限規則
 Add Reply,添加回复
-Add Serial No,添加序列號
 Add This To User's Restrictions,將它添加到用戶的限制
 Add Total Row,添加總計行
 Add a New Role,添加新角色
@@ -127,7 +125,6 @@ Blog Title,博客標題
 Blogger,博客
 Bookmarks,書籤
 Brand HTML,品牌的HTML
-Built on,建
 Bulk Email,大量電子郵件
 Bulk email limit {0} crossed,群發電子郵件的限制{0}劃線
 Button,鈕
@@ -396,7 +393,6 @@ For top bar,對於頂級酒吧
 For {0} at level {1} in {2} in row {3},{0}在水平{1}的{2}行{3}
 Forgot Password,忘記密碼
 Forgot Password?,忘記密碼？
-Form,表格
 Forum,論壇
 Forums,論壇
 Forward To Email Address,轉發到郵件地址
@@ -424,7 +420,6 @@ Google Web Font (Heading),谷歌網頁字體（標題）
 Google Web Font (Text),谷歌網頁字體（文字）
 Greater or equals,大於或等於
 Greater than,大於
-"Grid """,電網“
 "Group Added, refreshing...",集團已添加，清爽...
 Group Description,集團簡介
 Group Name,集團名稱
@@ -685,7 +680,6 @@ Only restricted users can access,只限制用戶可以訪問
 Open,開
 Open Count,打開計數
 Open Sans,開放三世
-Open source ERP built for the web,內置的網絡開源ERP
 Options,選項
 Options Help,選項幫助
 Options must be a valid DocType for field {0} in row {1},選項必須是字段的有效的DocType {0}行{1}
@@ -766,7 +760,6 @@ Please select atleast 1 column from {0} to sort,請從{0}進行排序至少選�
 Please specify,請註明
 Please specify 'Auto Email Id' in Setup > Outgoing Email Settings,請註明“自動電子郵件Id '在設置>傳出電子郵件設置
 Please specify Event date and time,請註明事件的日期和時間
-Please specify a,請指定一個
 Plugin,插件
 Port,端口
 Post,職位
@@ -890,7 +883,6 @@ Select Type,選擇類型
 Select User or Property to start.,選擇用戶或物業開始。
 Select a Banner Image first.,首先選擇一個橫幅圖像。
 Select an image of approx width 150px with a transparent background for best results.,選擇約寬150像素的透明背景以獲得最佳效果的圖像。
-Select dates to create a new ,選擇日期以創建一個新的
 "Select modules to be shown (based on permission). If hidden, they will be hidden for all users.",要顯示的選擇的模塊（基於權限）。如果隱藏的，他們會被隱藏於所有用戶。
 Select or drag across time slots to create a new event.,選擇或拖動整個時隙，以創建一個新的事件。
 "Select target = ""_blank"" to open in a new page.",選擇目標=“_blank”在新頁面中打開。
@@ -908,10 +900,10 @@ Sent,發送
 Sent Mail,發送郵件
 Sent Quotation,發送報價
 Sent or Received,發送或接收
-Serial No,序列號
 Series,系列
 Series {0} already used in {1},系列{0}已經被應用在{1}
 Server,服務器
+Server Error: Please check your server logs or contact tech support.,服務器錯誤：請檢查您的服務器日誌或聯繫技術支持。
 Session Expired. Logging you out,會話過期。您的退出
 Session Expiry,會話過期
 Session Expiry in Hours e.g. 06:00,會話過期的時間，例如06:00
@@ -1046,7 +1038,6 @@ To,至
 To Do,要不要
 "To format columns, give column labels in the query.",要格式化列，給列標籤在查詢中。
 "To give acess to a role for only specific records, check the 'Restricted' perimssion. User Restriction Records are used to restrict users with such role to specific records.",為了讓接取僅針對特定記錄的作用，檢查'限制' perimssion 。用戶限制記錄是用來限制用戶與這些角色的特定記錄。
-"To report an issue, go to ",要報告問題，請至
 "To run a test add the module name in the route after '{0}'. For example, {1}",運行測試後， “{0}”添加模塊名稱的路線。例如， {1}
 ToDo,待辦事項
 Too many writes in one request. Please send smaller requests,太多的寫在一個請求。請將較小的請求
