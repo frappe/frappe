@@ -4,7 +4,6 @@
 """Company History""",&quot;نبذة عن تاريخ الشركة&quot;
 """Team Members"" or ""Management""",&quot;أعضاء الفريق&quot; أو &quot;إدارة&quot;
 'In List View' not allowed for type {0} in row {1},'في قائمة عرض ' لا يسمح لنوع {0} في {1} الصف
-'link:' type Select {0} getting replaced,' الرابط : ' نوع اختيار {0} الحصول على استبدال
 "000 is black, fff is white",000 سوداء، بيضاء FFF
 2 days ago,2 منذ أيام
 "<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank"">[?]</a>","<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank""> [ ؟ ] < / A>"
@@ -13,7 +12,7 @@
 <li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\
 <li><b>Prompt</b> - Prompt user for a name\
 <li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\
-</ol>')"">Naming Options</a>",
+</ol>')"">Naming Options</a>","< و عند _ النقر = "" msgprint (' <ol> \ \ ن <li> قم <B> المجال : [ fieldname ] < / B> - حسب المجال \ \ ن <li> قم <B> naming_series : < / B> - بواسطة تسمية"
 A user can be restricted to multiple records of the same type.,يمكن تقييد للمستخدم ل سجلات متعددة من نفس النوع .
 About,حول
 About Us Settings,حول بنا إعدادات
@@ -77,13 +76,14 @@ Amend,تعديل
 "Another {0} with name {1} exists, select another name",آخر {0} مع اسم {1} موجودا، حدد اسم آخر
 Anyone Can Read,أي شخص يمكن قراءة
 Anyone Can Write,أي شخص يمكن الكتابة
-"Apart from System Manager, roles with 'Can Restrict' permission can restrict other users for that Document Type.",وبصرف النظر عن إدارة النظام ، والأدوار مع ' يمكن تقييد ' إذن يمكن تقييد المستخدمين الآخرين لهذا نوع الوثيقة .
+"Apart from System Manager, roles with 'Can Restrict Others' permission can restrict other users for that Document Type.","وبصرف النظر عن إدارة النظام ، والأدوار مع ' يمكن تقييد أخرى "" إذن يمكن تقييد المستخدمين الآخرين لهذا نوع الوثيقة ."
 "Apart from the existing Permission Rules, you can apply addition restriction based on Type.",وبصرف النظر عن القواعد إذن القائمة ، يمكنك تطبيق قيود بالإضافة إلى ذلك على أساس النوع .
 App Already Installed,التطبيق المثبتة مسبقا
 App Name,اسم التطبيق
 App not found,لم يتم العثور على التطبيق
 Application Installer,مثبت التطبيق
 Applications,تطبيقات
+Apply Style,تطبيق نمط
 Are you sure you want to delete the attachment?,هل أنت متأكد أنك تريد حذف المرفق؟
 Arial,ارييل
 "As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User.",باعتبارها أفضل الممارسات ، عدم تعيين نفس مجموعة من الحكم إذن ل أدوار مختلفة. بدلا من ذلك ، تعيين أدوار متعددة ل نفس العضو .
@@ -133,7 +133,7 @@ Bulk email limit {0} crossed,الحد معظم البريد الإلكتروني
 Button,زر
 By,بواسطة
 Calendar,تقويم
-Can Restrict,يمكن تقييد
+Can Restrict Others,يمكن تقييد أخرى
 Cancel,إلغاء
 Cancelled,إلغاء
 "Cannot Edit {0} directly: To edit {0} properties, create / update {1}, {2} and {3}",لا يمكن تحرير {0} مباشرة : لتعديل خصائص {0} ، وإنشاء / تحديث {1} ، {2} {3} و
@@ -294,6 +294,7 @@ Download link for your backup will be emailed on the following email address:,و
 Drafts,الداما
 Drag to sort columns,اسحب لفرز الأعمدة
 Due Date,بسبب تاريخ
+Duplicate name {0} {1},تكرار اسم {0} {1}
 Edit,تحرير
 Edit Permissions,تحرير ضوابط
 Editable,للتحرير
@@ -313,11 +314,13 @@ Email sent to {0},أرسل بريد إلكتروني إلى {0}
 Email...,البريد الإلكتروني ...
 Emails are muted,رسائل البريد الإلكتروني هي صامتة
 Embed image slideshows in website pages.,تضمين عرض الشرائح صورة في صفحات الموقع.
+Enable,تمكين
 Enable Comments,تمكين تعليقات
 Enabled,تمكين
 Ends on,ينتهي في
 Enter Form Type,أدخل نوع النموذج
 Enter Value,أدخل القيمة
+Enter at least one permission row,يدخل الصف إذن واحد على الأقل
 "Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set ""match"" permission rules. To see list of fields, go to <a href=""#Form/Customize Form/Customize Form"">Customize Form</a>.","الدخول في مجالات القيمة الافتراضية (مفاتيح) والقيم. إذا قمت بإضافة قيم متعددة لحقل، سيتم اختار أول واحد. كما تستخدم هذه الافتراضات لوضع القواعد &quot;مباراة&quot; إذن. لمعرفة قائمة الحقول، انتقل إلى <a href=""#Form/Customize Form/Customize Form"">تخصيص الشكل</a> ."
 "Enter keys to enable login via Facebook, Google, GitHub.",أدخل مفاتيح لتمكين تسجيل الدخول عبر الفيسبوك ، وجوجل، جيثب .
 Equals,التساوي
@@ -371,7 +374,7 @@ File Name,اسم الملف
 File Size,حجم الملف
 File URL,ملف URL
 File not attached,ملف لا تعلق
-File size exceeded the maximum allowed size,حجم الملف تجاوز الحجم الأقصى المسموح به
+File size exceeded the maximum allowed size of {0} MB,تجاوز حجم الملف الحد الأقصى المسموح به حجم {0} MB
 Filter,تحديد
 First Name,الاسم الأول
 Float,الطفو
@@ -384,7 +387,7 @@ Footer,تذييل
 Footer Items,تذييل العناصر
 For DocType,ل DOCTYPE
 "For Links, enter the DocType as range
-For Select, enter list of Options separated by comma",
+For Select, enter list of Options separated by comma",ل سريعة ، أدخل DOCTYPE عن مجموعة \ n لل تحديد، قائمة خيارات مفصولة بفواصل دخول
 "For comparative filters, start with",للمرشحات النسبية، وتبدأ مع
 For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,على سبيل المثال إذا قمت بإلغاء وتعديل &#39;INV004&#39; سوف تصبح الوثيقة الجديدة &quot;INV004-1&quot;. هذا يساعدك على تتبع كل تعديل.
 "For example, if user X is restricted to company C, user X will not be able to see any transaction that has company C as a linked value.",على سبيل المثال ، إذا كان يتم تقييد المستخدم X ل شركة C، X المستخدم لن يكون قادرا على رؤية أي المعاملة التي لديها شركة C كقيمة مرتبطة.
@@ -480,6 +483,7 @@ Index,مؤشر
 Individuals,الأفراد
 Info,معلومات
 Insert After,إدراج بعد
+"Insert After field '{0}' mentioned in Custom Field '{1}', does not exist",إدراج بعد الحقل '{0}' المذكورة في حقل مخصص '{1}' غير موجود
 Insert Below,إدراج بالأسفل
 Insert Code,إدراج رمز
 Insert Row,إدراج صف
@@ -602,10 +606,10 @@ Must specify a Query to run,يجب تحديد استعلام لتشغيل
 My Settings,الإعدادات
 Name,اسم
 Name Case,اسم القضية
-Name Exists,اسم موجود
 Name and Description,الاسم والوصف
 Name is required,مطلوب اسم
 Name not permitted,تسمية غير مسموح
+Name not set via Prompt,الأسم: لم تحدد عن طريق موجه
 Naming,تسمية
 Naming Series mandatory,تسمية السلسلة إلزامية
 Nested set error. Please contact the Administrator.,خطأ مجموعة متداخلة . يرجى الاتصال مدير البرنامج.
@@ -635,6 +639,7 @@ No document selected,أي وثيقة مختارة
 No file attached,أي ملف مرفق
 No further records,لا توجد سجلات أخرى
 No one,لا احد
+No permission to '{0}' {1},لا توجد صلاحية ل '{0} ' {1}
 No permission to edit,لا توجد صلاحية ل تعديل
 No permission to write / remove.,لا توجد صلاحية لكتابة / إزالة.
 No records tagged.,لا توجد سجلات المعلمة.
@@ -735,7 +740,7 @@ Permission Rules,إذن قوانين
 Permissions,أذونات
 Permissions Settings,أذونات إعدادات
 Permissions are automatically translated to Standard Reports and Searches.,يتم تحويل أذونات تلقائيا إلى التقارير الموحدة و البحث .
-"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Restricted, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Can Restrict.",يتم تعيين الأذونات على الأدوار و أنواع المستندات (وتسمى DocTypes ) من خلال وضع حقوق مثل القراءة، المحظورة ، كتابة ، إنشاء، حذف، إرسال ، الغاء ، تعديل ، تقرير ، استيراد ، تصدير ، طباعة ، البريد الإلكتروني و يمكن تقييد.
+"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email, Only Restricted Documents and Can Restrict Others.",يتم تعيين الأذونات على الأدوار و أنواع المستندات (وتسمى DocTypes ) من خلال وضع حقوق مثل القراءة والكتابة ، إنشاء، حذف، إرسال ، الغاء ، تعديل ، تقرير ، استيراد ، تصدير ، طباعة ، البريد الإلكتروني ، والوثائق المقيدة فقط و يمكن تقييد أخرى .
 Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only.,"الأذونات على مستويات أعلى من الأذونات "" على المستوى الميداني . جميع الحقول تحتوي على ' مستوى الأذونات ' مجموعة ضدهم و قواعد محددة في تلك الأذونات تطبيق في الميدان. هذا مفيد في حال كنت ترغب في إخفاء أو جعل مجال معين للقراءة فقط."
 "Permissions at level 0 are 'Document Level' permissions, i.e. they are primary for access to the document.",الأذونات في 0 مستوى الأذونات هي &quot;مستوى الوثيقة، أي أنها الأساسي للوصول إلى المستند.
 Permissions get applied on Users based on what Roles they are assigned.,الحصول على تطبيق الأذونات على المستخدمين على أساس ما الأدوار التي تم تعيينها .
@@ -831,6 +836,7 @@ Report Builder reports are managed directly by the report builder. Nothing to do
 Report Hide,تقرير إخفاء
 Report Name,تقرير الاسم
 Report Type,نوع التقرير
+Report an Issue,أبلغ عن مشكلة
 Report cannot be set for Single types,لا يمكن تعيين التقرير لأنواع واحدة
 Report was not saved (there were errors),لم يتم حفظ التقرير (كانت هناك أخطاء)
 Reqd,Reqd
@@ -839,7 +845,6 @@ Reset Permissions for {0}?,إعادة تعيين أذونات ل {0} ؟
 Restrict IP,تقييد IP
 Restrict cannot be set for Single types,تقيد لا يمكن تعيين لأنواع واحدة
 Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111),تقييد المستخدم من هذا العنوان IP فقط. يمكن إضافة عناوين IP متعددة عن طريق فصل بفواصل. يقبل أيضا عناوين IP جزئية مثل (111.111.111)
-Restricted,مقيد
 Restricted To,المقيدة لل
 Restricting Users,تقييد المستخدمين
 Restriction,تقييد
@@ -949,7 +954,6 @@ Sign up,الاشتراك
 Single Post (article).,مشاركة واحدة (المادة).
 Single Types have only one record no tables associated. Values are stored in tabSingles,أنواع واحد يكون سجل واحد فقط لا الجداول المرتبطة . يتم تخزين القيم في tabSingles
 Sitemap Browser,متصفح خريطة الموقع
-Sitemap Ordering Error. Index {0} missing for {0},خطأ الترتيب خريطة الموقع. مؤشر {0} في عداد المفقودين ل {0}
 Slideshow,عرض الشرائح
 Slideshow Items,عرض الشرائح عناصر
 Slideshow Name,العرض اسم
@@ -959,6 +963,7 @@ Solid background color (default light gray),لون الخلفية الصلبة (
 Sorry we were unable to find what you were looking for.,وآسف نتمكن من العثور على ما كنت تبحث عنه.
 Sorry you are not permitted to view this page.,عذرا غير مسموح لك بعرض هذه الصفحة.
 Sort By,فرز حسب
+Sort Field,نوع الحقل
 Sort Order,ترتيب
 Standard,معيار
 Standard Print Format cannot be updated,لا يمكن تحديث تنسيق الطباعة القياسية
@@ -1021,10 +1026,11 @@ Third Party Authentication,مصادقة طرف ثالث
 "This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>
 myfield
 eval:doc.myfield=='My Value'<br>
-eval:doc.age>18",
+eval:doc.age>18",سيظهر هذا المجال إلا إذا كان تعريف fieldname هنا له قيمة أو قواعد صحيحة (أمثلة) : <BR> \ nmyfield \ neval : doc.myfield == 'بلدي القيمة ' <BR> \ neval : doc.age > 18
 This goes above the slideshow.,هذا يذهب فوق عرض الشرائح.
 This is PERMANENT action and you cannot undo. Continue?,هذا هو العمل الدائم ويمكنك التراجع لا. المتابعة؟
 This is permanent action and you cannot undo. Continue?,هذا هو العمل الدائم ويمكنك التراجع لا. المتابعة؟
+This must be checked if Style Settings are applicable,هذا يجب أن يتم التحقق إذا إعدادات نمط قابلة للتطبيق
 This role can restrict users for accessing the record.,هذا الدور يمكن تقييد المستخدمين للوصول إلى السجل.
 Thursday,الخميس
 Time,مرة
@@ -1153,13 +1159,14 @@ Year,عام
 Yes,نعم
 Yesterday,أمس
 You are not allowed to create / edit reports,لا يسمح لك لإنشاء تقارير / تحرير
-You are not allowed to create {0},لا يسمح لك لخلق {0}
 You are not allowed to export the data of: {0}. Downloading empty template.,لا يسمح لك ل تصدير البيانات من : {0} . تحميل قالب فارغ.
 You are not allowed to export this report,لا يسمح لك لتصدير هذا التقرير
 You are not allowed to print this document,لا يسمح لك طباعة هذه الوثيقة
 You are not allowed to send emails related to this document,لا يسمح لك بإرسال رسائل البريد الإلكتروني ذات الصلة لهذه الوثيقة
 "You can change Submitted documents by cancelling them and then, amending them.",يمكنك تغيير الوثائق المقدمة من إلغائها ، ثم تعديلها .
 You can use Customize Form to set levels on fields.,يمكنك استخدام نموذج تخصيص ل تحديد مستويات على الحقول .
+You cannot install this app,لا يمكنك تثبيت هذا التطبيق
+You have unsaved changes in this form. Please save before you continue.,لديك تغييرات لم يتم حفظها في هذا النموذج.
 You need to be logged in and have System Manager Role to be able to access backups.,تحتاج إلى أن تقوم بتسجيل الدخول ولها دور مدير النظام أن يكون قادرا على الوصول إلى النسخ الاحتياطي.
 You need write permission to rename,كنت بحاجة إلى كتابة إذن لإعادة تسمية
 "Your download is being built, this may take a few moments...",ويجري بناء التنزيل، وهذا قد يستغرق بضع لحظات ...
@@ -1341,7 +1348,6 @@ zoom-out,تكبير المغادرة
 {0} {1} already exists,{0} {1} موجود بالفعل
 {0} {1} cannot be a leaf node as it has children,{0} {1} لا يمكن أن يكون عقدة ورقة كما فعلت الأطفال
 "{0} {1} does not exist, select a new target to merge",{0} {1} غير موجود ، حدد هدفا جديدا لدمج
-{0} {1} must be a valid {2},{0} {1} يجب أن تكون صالحة {2}
 {0}: Cannot set Amend without Cancel,{0} : لا يمكن تعيين تعدل دون الغاء
 {0}: Cannot set Assign Amend if not Submittable,{0} : لا يمكن تعيين تعيين يعدل إن لم يكن Submittable
 {0}: Cannot set Assign Submit if not Submittable,{0} : لا يمكن تعيين تعيين إرسال إذا لم Submittable

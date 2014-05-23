@@ -4,7 +4,6 @@
 """Company History""",&quot;Povijest tvrtke&quot;
 """Team Members"" or ""Management""",&quot;Članovi tima&quot; ili &quot;upravljanje&quot;
 'In List View' not allowed for type {0} in row {1},"' U prikazu popisa "" nisu dopušteni za vrstu {0} je u redu {1}"
-'link:' type Select {0} getting replaced,' link: ' tipa Select {0} dobivanje zamijenjen
 "000 is black, fff is white","000 je crno, FFF je bijela"
 2 days ago,Prije 2 dana
 "<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank"">[?]</a>","<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target""_blank""> [ ? ] < / a>"
@@ -13,7 +12,7 @@
 <li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\
 <li><b>Prompt</b> - Prompt user for a name\
 <li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\
-</ol>')"">Naming Options</a>",
+</ol>')"">Naming Options</a>","<onclick = "" msgprint ( ' <ol> \ \ n <li> <b> polje : [ podataka, Naziv Polja ] < / b > - Do Field \ \ n <li> <b> naming_series : < / b > - imenovanjem"
 A user can be restricted to multiple records of the same type.,Korisnik može biti ograničeno na više zapisa iste vrste .
 About,Oko
 About Us Settings,O nama Postavke
@@ -77,13 +76,14 @@ Amend,Ispraviti
 "Another {0} with name {1} exists, select another name","Druga {0} s imenom {1} postoji , odaberite drugi naziv"
 Anyone Can Read,Svatko može pročitati
 Anyone Can Write,Svatko može pisati
-"Apart from System Manager, roles with 'Can Restrict' permission can restrict other users for that Document Type.","Osim System Manager , uloge s ' Može Zabraniti ' permission može ograničiti drugim korisnicima za tu vrstu dokumenta ."
+"Apart from System Manager, roles with 'Can Restrict Others' permission can restrict other users for that Document Type.","Osim System Manager , uloge s ' može ograničiti tuđih dopuštenja može ograničiti drugim korisnicima za tu vrstu dokumenta ."
 "Apart from the existing Permission Rules, you can apply addition restriction based on Type.","Osim postojećih pravila dozvolu , možete se prijaviti zbrajanje ograničenje na temelju vrste ."
 App Already Installed,App Već instaliran
 App Name,App Naziv
 App not found,App nije pronađena
 Application Installer,Application Installer
 Applications,Prijave
+Apply Style,Primijeni stil
 Are you sure you want to delete the attachment?,Jeste li sigurni da želite izbrisati privitak?
 Arial,Arial
 "As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User.","Kao najbolje prakse , ne dodijeliti isti set pravila dopuštenje za različite uloge . Umjesto toga , postavite više uloga istom korisniku ."
@@ -133,7 +133,7 @@ Bulk email limit {0} crossed,Bulk e-mail granica {0} prešao
 Button,Dugme
 By,Po
 Calendar,Kalendar
-Can Restrict,može ograničiti
+Can Restrict Others,Može ograničiti Ostalo
 Cancel,Otkazati
 Cancelled,Otkazan
 "Cannot Edit {0} directly: To edit {0} properties, create / update {1}, {2} and {3}","Ne možete uređivati ​​{0} izravno : Za uređivanje {0} svojstva , stvaranje / ažuriranje {1} , {2} i {3}"
@@ -294,6 +294,7 @@ Download link for your backup will be emailed on the following email address:,Li
 Drafts,Nacrti
 Drag to sort columns,Povuci za sortiranje stupaca
 Due Date,Datum dospijeća
+Duplicate name {0} {1},Dvostruki naziv {0} {1}
 Edit,Uredi
 Edit Permissions,Uredi dozvole
 Editable,Uređivati
@@ -313,11 +314,13 @@ Email sent to {0},E-mail poslan na {0}
 Email...,E-mail ...
 Emails are muted,E-mailovi su prigušeni
 Embed image slideshows in website pages.,Postavi slikovne prezentacije u web stranicama.
+Enable,omogućiti
 Enable Comments,Omogućite Komentari
 Enabled,Omogućeno
 Ends on,Završava
 Enter Form Type,Unesite Obrazac Vid
 Enter Value,Unesite vrijednost
+Enter at least one permission row,Unesite barem jedan redak dopuštenje
 "Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set ""match"" permission rules. To see list of fields, go to <a href=""#Form/Customize Form/Customize Form"">Customize Form</a>.","Unesite polja zadane vrijednosti (ključevi) i vrijednosti. Ako ste dodali više vrijednosti za polje, prvi će se podići. Ove postavke su također koristi za postavljanje &quot;match&quot; dozvola pravila. Da biste vidjeli popis polja, idite na <a href=""#Form/Customize Form/Customize Form"">Prilagodi obrazac</a> ."
 "Enter keys to enable login via Facebook, Google, GitHub.","Unesite tipke omogućiti prijavu putem Facebook , Google, GitHub ."
 Equals,jednakima
@@ -371,7 +374,7 @@ File Name,File Name
 File Size,Veličina
 File URL,URL datoteke
 File not attached,File nije priključen
-File size exceeded the maximum allowed size,Veličina premašila maksimalnu dopuštenu veličinu
+File size exceeded the maximum allowed size of {0} MB,Veličina datoteke prelazi najveću dopuštenu veličinu od {0} MB
 Filter,Filter
 First Name,Ime
 Float,Plutati
@@ -384,7 +387,7 @@ Footer,Footer
 Footer Items,Footer Proizvodi
 For DocType,za DOCTYPEhtml
 "For Links, enter the DocType as range
-For Select, enter list of Options separated by comma",
+For Select, enter list of Options separated by comma","Za Linkovi , unesite DOCTYPEhtml kao rasponu \ nFor Select unesite popis Opcije razdvojene zarezom"
 "For comparative filters, start with","Za komparativne filtera, početi s"
 For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,"Na primjer, ako ste odustali i dopune &#39;INV004&#39; postat će novi dokument &#39;INV004-1&#39;. To vam pomaže pratiti svaku izmjenu i dopunu."
 "For example, if user X is restricted to company C, user X will not be able to see any transaction that has company C as a linked value.","Na primjer , ako korisnik X je ograničeno na tvrtke C , X korisnik neće biti u mogućnosti vidjeti bilo kakve transakcije koje ima tvrtka C kao povezane vrijednosti ."
@@ -480,6 +483,7 @@ Index,Indeks
 Individuals,Pojedinci
 Info,Info
 Insert After,Umetni Nakon
+"Insert After field '{0}' mentioned in Custom Field '{1}', does not exist","Umetnite Nakon polju ' {0} ' spominje u Custom Field ' {1} ' , ne postoji"
 Insert Below,Umetnite Ispod
 Insert Code,Umetnite kod
 Insert Row,Umetnite Row
@@ -602,10 +606,10 @@ Must specify a Query to run,Mora se odrediti upita za pokretanje
 My Settings,Moje postavke
 Name,Ime
 Name Case,Ime slučaja
-Name Exists,ime Exists
 Name and Description,Naziv i opis
 Name is required,Ime je potrebno
 Name not permitted,Ime nije dopušteno
+Name not set via Prompt,Ime ne postavite putem retka
 Naming,imenovanje
 Naming Series mandatory,Imenovanje serije obaveznu
 Nested set error. Please contact the Administrator.,Ugniježđeni set pogreška . Molimo vas da kontaktirate administratora .
@@ -635,6 +639,7 @@ No document selected,Nema odabranih dokumenata
 No file attached,No file u prilogu
 No further records,Nema daljnjih zapisi
 No one,Niko
+No permission to '{0}' {1},Nema dozvole za ' {0} ' {1}
 No permission to edit,Nema dozvole za uređivanje
 No permission to write / remove.,Nema dozvole za pisanje / uklanjanje.
 No records tagged.,Nema zapisa tagged.
@@ -735,7 +740,7 @@ Permission Rules,Dopuštenje Pravila
 Permissions,Dopuštenja
 Permissions Settings,Dozvole Postavke
 Permissions are automatically translated to Standard Reports and Searches.,Dozvole automatski se prevode na standardnih izvješća i pretraživanja .
-"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Restricted, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Can Restrict.","Dozvole su postavljene na uloge i vrsta dokumenata (zove DocTypes ) postavljanjem prava kao što su čitanje , ograničeni , napisati , izraditi, obrisati , Slanje , Odustani , Izmijeniti , izvješće , uvoz, izvoz, print , e-mail , a može ograničiti ."
+"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email, Only Restricted Documents and Can Restrict Others.","Dozvole su postavljene na uloge i vrsta dokumenata (zove DocTypes ) postavljanjem prava kao što su čitanje , pisanje, stvaranje, brisanje, Slanje , Odustani , Izmijeniti , izvješće , uvoz , izvoz , ispis , e-mail , samo Ograničeni dokumenti i ograničavanje preuzimanja."
 Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only.,Prava na višim razinama dozvole ' jednakih ' . Svi Polja imaju dozvolu Level ' set protiv njih i pravilima definiranim u to dozvole primjenjuju se na terenu . To je korisno u slučaju da želite sakriti ili napraviti određene polje samo za čitanje .
 "Permissions at level 0 are 'Document Level' permissions, i.e. they are primary for access to the document.","Dozvole na razini 0 su &#39;dokument razini&#39; dozvole, odnosno oni su primarni za pristup dokumentu."
 Permissions get applied on Users based on what Roles they are assigned.,Prava se primjenjuju na korisnike na temelju onoga što Uloge su dodijeljeni .
@@ -831,6 +836,7 @@ Report Builder reports are managed directly by the report builder. Nothing to do
 Report Hide,Prijavi Sakrij
 Report Name,Naziv izvješća
 Report Type,Prijavi Vid
+Report an Issue,Prijavi problem
 Report cannot be set for Single types,Izvješće ne može se postaviti za samohrane vrste
 Report was not saved (there were errors),Izvješće nije spašen (bilo pogrešaka)
 Reqd,Reqd
@@ -839,7 +845,6 @@ Reset Permissions for {0}?,Reset dopuštenja za {0} ?
 Restrict IP,Zabraniti IP
 Restrict cannot be set for Single types,Ograničiti se ne može postaviti za samohrane vrste
 Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111),Zabraniti korisnika iz ove IP adrese samo. Višestruki IP adrese može biti dodan odvajajući zarezima. Također prihvaća djelomične IP adrese kao što su (111.111.111)
-Restricted,ograničen
 Restricted To,ograničena na
 Restricting Users,ograničavanje korisnika
 Restriction,ograničenje
@@ -949,7 +954,6 @@ Sign up,Prijavite se
 Single Post (article).,Single Post (članak).
 Single Types have only one record no tables associated. Values are stored in tabSingles,Pojedinačne vrste imaju samo jedan zapis nema tablice povezane . Vrijednosti su pohranjeni u tabSingles
 Sitemap Browser,Mapa preglednik
-Sitemap Ordering Error. Index {0} missing for {0},Mapa Redoslijed pogrešci . Indeks {0} nestalo za {0}
 Slideshow,Slideshow
 Slideshow Items,Slideshow Proizvodi
 Slideshow Name,SLIKA Naziv
@@ -959,6 +963,7 @@ Solid background color (default light gray),Čvrsta boja pozadine (zadano svijet
 Sorry we were unable to find what you were looking for.,Nažalost nismo uspjeli pronaći ono što su tražili.
 Sorry you are not permitted to view this page.,Žao nam je što nije dozvoljeno da vidite ovu stranicu.
 Sort By,Sortiraj po
+Sort Field,Sortiranje polja
 Sort Order,sortiranje
 Standard,Standard
 Standard Print Format cannot be updated,Standardni format ispisa ne može biti obnovljeno
@@ -1021,10 +1026,11 @@ Third Party Authentication,Autentičnosti treće strane
 "This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>
 myfield
 eval:doc.myfield=='My Value'<br>
-eval:doc.age>18",
+eval:doc.age>18","Ovo polje će se pojaviti samo akopodataka, Naziv Polja ovdje definirana ima vrijednost ili pravila su pravi ( primjeri ) : <br> \ nmyfield \ neval : doc.myfield == ' Moj Vrijednost ' Screenshot \ neval : doc.age > 18"
 This goes above the slideshow.,To ide iznad slideshow.
 This is PERMANENT action and you cannot undo. Continue?,"To je stalna akcija, a ne možete poništiti. Nastaviti?"
 This is permanent action and you cannot undo. Continue?,"To je stalna akcija, a ne možete poništiti. Nastaviti?"
+This must be checked if Style Settings are applicable,To mora biti označeno ako Style Postavke se primjenjuju
 This role can restrict users for accessing the record.,Ova uloga može onemogućiti korisnike za pristup rekord .
 Thursday,Četvrtak
 Time,Vrijeme
@@ -1153,13 +1159,14 @@ Year,Godina
 Yes,Da
 Yesterday,Jučer
 You are not allowed to create / edit reports,Ne smiju stvoriti / uređivati ​​izvješća
-You are not allowed to create {0},Ne smiju se stvarati {0}
 You are not allowed to export the data of: {0}. Downloading empty template.,Ne smiju se izvoziti podatke : {0} . Preuzimanje prazan predložak .
 You are not allowed to export this report,Ne smiju se izvoziti ovom izvješću
 You are not allowed to print this document,Ne smiju se ispisati taj dokument
 You are not allowed to send emails related to this document,Ne smiju slati e-mailove u vezi s ovim dokumentom
 "You can change Submitted documents by cancelling them and then, amending them.","Možete promijeniti Poslao dokumente tako da ih otkazuje , a zatim , njihovih izmjena i dopuna ."
 You can use Customize Form to set levels on fields.,Možete koristiti Prilagodi obrazac za postavljanje razine na poljima .
+You cannot install this app,Vi ne možete instalirati ovu aplikaciju
+You have unsaved changes in this form. Please save before you continue.,Vi niste spremili promjene u ovom obliku .
 You need to be logged in and have System Manager Role to be able to access backups.,Morate biti prijavljeni i imati sustav Manager ulogu da bi mogli pristupiti sigurnosne kopije .
 You need write permission to rename,Trebate pismeno dopuštenje za preimenovanje
 "Your download is being built, this may take a few moments...","Vaš preuzimanje se gradi, to može potrajati nekoliko trenutaka ..."
@@ -1341,7 +1348,6 @@ zoom-out,zoom-out
 {0} {1} already exists,{0} {1} već postoji
 {0} {1} cannot be a leaf node as it has children,"{0} {1} Ne može bitičvor nultog stupnja , kao da ima djecu"
 "{0} {1} does not exist, select a new target to merge","{0} {1} ne postoji , odaberite novu metu za spajanje"
-{0} {1} must be a valid {2},{0} {1} mora bitivaljana {2}
 {0}: Cannot set Amend without Cancel,{0} : Ne mogu postaviti Izmijeniti bez Odustani
 {0}: Cannot set Assign Amend if not Submittable,{0} : Ne mogu postaviti Zauzimanje Izmijeniti ako ne Submittable
 {0}: Cannot set Assign Submit if not Submittable,{0} : Ne mogu postaviti Zauzimanje Podnijeti ako ne Submittable

@@ -4,7 +4,6 @@
 """Company History""",&quot;Geschiedenis&quot;
 """Team Members"" or ""Management""",&quot;Team Members&quot; of &quot;Management&quot;
 'In List View' not allowed for type {0} in row {1},' In List View' niet toegestaan ​​voor type {0} in rij {1}
-'link:' type Select {0} getting replaced,' link: ' Selecteer type {0} steeds vervangen
 "000 is black, fff is white","000 is zwart, fff is wit"
 2 days ago,2 dagen geleden
 "<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank"">[?]</a>","<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank""> [ ? ] < / a>"
@@ -13,7 +12,7 @@
 <li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\
 <li><b>Prompt</b> - Prompt user for a name\
 <li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\
-</ol>')"">Naming Options</a>",
+</ol>')"">Naming Options</a>","<a onclick = "" msgprint ( ' <ol> \ \ n <li> <b> veld : [ veldnaam ] < / b > - Door Field \ \ n <li> <b> naming_series : < / b > - Door een naam geven"
 A user can be restricted to multiple records of the same type.,Een gebruiker kan worden beperkt tot meerdere records van hetzelfde type .
 About,Over
 About Us Settings,Over Ons Instellingen
@@ -77,13 +76,14 @@ Amend,Amenderen
 "Another {0} with name {1} exists, select another name","Een ander {0} met de naam {1} bestaat, selecteert u een andere naam"
 Anyone Can Read,Iedereen kan lezen
 Anyone Can Write,Iedereen kan schrijven
-"Apart from System Manager, roles with 'Can Restrict' permission can restrict other users for that Document Type.","Afgezien van de System Manager , rollen met ' Kan beperken ' toestemming kan andere gebruikers te beperken voor die Soort document ."
+"Apart from System Manager, roles with 'Can Restrict Others' permission can restrict other users for that Document Type.","Afgezien van de System Manager , rollen met 'Can beperken Anderen ' toestemming kan andere gebruikers te beperken voor die Soort document ."
 "Apart from the existing Permission Rules, you can apply addition restriction based on Type.","Afgezien van de bestaande toelating regels , kunt u naast beperking toe te passen op basis van Type ."
 App Already Installed,App Al geïnstalleerd
 App Name,App Naam
 App not found,App niet gevonden
 Application Installer,Application Installer
 Applications,toepassingen
+Apply Style,toepassen Stijl
 Are you sure you want to delete the attachment?,Weet u zeker dat u de bijlage wilt verwijderen?
 Arial,Arial
 "As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User.","Als een best practice , niet dezelfde set van toestemming regel op verschillende rollen toekennen. In plaats daarvan , stelt meerdere rollen aan dezelfde gebruiker ."
@@ -133,7 +133,7 @@ Bulk email limit {0} crossed,Bulk e-mail limiet {0} gekruist
 Button,Knop
 By,Door
 Calendar,Kalender
-Can Restrict,kunnen beperken
+Can Restrict Others,Kunnen beperken Anderen
 Cancel,Annuleren
 Cancelled,Geannuleerd
 "Cannot Edit {0} directly: To edit {0} properties, create / update {1}, {2} and {3}","Kan niet bewerken {0} direct : Om {0} eigenschappen te bewerken , aanmaken / bijwerken {1} , {2} en {3}"
@@ -294,6 +294,7 @@ Download link for your backup will be emailed on the following email address:,Do
 Drafts,Concepten
 Drag to sort columns,Sleep om te sorteren kolommen
 Due Date,Vervaldag
+Duplicate name {0} {1},Dupliceren naam {0} {1}
 Edit,Redigeren
 Edit Permissions,Machtigingen bewerken
 Editable,Bewerkbare
@@ -313,11 +314,13 @@ Email sent to {0},E-mail verzonden naar {0}
 Email...,Email ...
 Emails are muted,E-mails zijn gedempt
 Embed image slideshows in website pages.,Afbeelding insluiten diavoorstellingen in website pagina&#39;s.
+Enable,in staat stellen
 Enable Comments,Enable Reacties
 Enabled,Ingeschakeld
 Ends on,Eindigt op
 Enter Form Type,Voer Form Type
 Enter Value,Waarde invoeren
+Enter at least one permission row,Voer ten minste een toestemming rij
 "Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set ""match"" permission rules. To see list of fields, go to <a href=""#Form/Customize Form/Customize Form"">Customize Form</a>.","Voer standaardwaarde velden (sleutels) en waarden. Als u meerdere waarden voor een veld, zal de eerste worden opgepakt. Deze standaardwaarden worden ook gebruikt om &quot;match&quot; toestemming regels. Om de lijst van de velden te zien, ga naar <a href=""#Form/Customize Form/Customize Form"">Formulier aanpassen</a> ."
 "Enter keys to enable login via Facebook, Google, GitHub.","Enter toetsen om toegang in te schakelen via Facebook , Google , GitHub ."
 Equals,equals
@@ -371,7 +374,7 @@ File Name,Bestandsnaam
 File Size,Bestand Grootte
 File URL,File-URL
 File not attached,Bestand niet verbonden
-File size exceeded the maximum allowed size,Bestandsgrootte overschreden de maximaal toegestane grootte
+File size exceeded the maximum allowed size of {0} MB,Bestandsgrootte overschreden de maximaal toegestane grootte van {0} MB
 Filter,Filteren
 First Name,Voornaam
 Float,Zweven
@@ -384,7 +387,7 @@ Footer,Footer
 Footer Items,Footer Items
 For DocType,voor DocType
 "For Links, enter the DocType as range
-For Select, enter list of Options separated by comma",
+For Select, enter list of Options separated by comma","Voor Links , voer de DocType als bereik \ Nfor Kiezen, voer lijst van opties , gescheiden door een komma"
 "For comparative filters, start with","Voor vergelijkingsdoeleinden filters, te beginnen met"
 For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,Bijvoorbeeld als u wilt annuleren en wijzigen &#39;INV004&#39; het zal worden een nieuw document &#39;INV004-1&#39;. Dit helpt u bij te houden van elke wijziging.
 "For example, if user X is restricted to company C, user X will not be able to see any transaction that has company C as a linked value.","Bijvoorbeeld , als de gebruiker X is beperkt tot bedrijf C , gebruiker X zal niet in staat zijn om elke transactie die vennootschap C heeft als een gekoppelde waarde zien ."
@@ -480,6 +483,7 @@ Index,Index
 Individuals,Personen
 Info,Info
 Insert After,Invoegen na
+"Insert After field '{0}' mentioned in Custom Field '{1}', does not exist","Invoegen na veld ' {0} ' in gebruikersveld genoemde ' {1} ' , bestaat niet"
 Insert Below,Hieronder invoegen
 Insert Code,Plaats Code
 Insert Row,Rij invoegen
@@ -602,10 +606,10 @@ Must specify a Query to run,Moet een query opgeven om te draaien
 My Settings,Mijn instellingen
 Name,Naam
 Name Case,Naam Case
-Name Exists,naam bestaat
 Name and Description,Naam en beschrijving
 Name is required,Naam is vereist
 Name not permitted,Naam niet toegestaan
+Name not set via Prompt,Naam niet ingesteld via Prompt
 Naming,Naming
 Naming Series mandatory,Naamgeving Series verplicht
 Nested set error. Please contact the Administrator.,Geneste set fout. Neem contact op met de beheerder .
@@ -635,6 +639,7 @@ No document selected,Geen document geselecteerd
 No file attached,Geen bestand bijgevoegd
 No further records,Geen verdere gegevens
 No one,Niemand
+No permission to '{0}' {1},Geen toestemming om ' {0} ' {1}
 No permission to edit,Geen toestemming te bewerken
 No permission to write / remove.,Geen toestemming om te schrijven / te verwijderen.
 No records tagged.,Geen records gelabeld.
@@ -735,7 +740,7 @@ Permission Rules,Toestemming Regels
 Permissions,Rechten
 Permissions Settings,Rechten Instellingen
 Permissions are automatically translated to Standard Reports and Searches.,Machtigingen worden automatisch vertaald naar Standard Verslagen en zoekopdrachten .
-"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Restricted, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Can Restrict.","Machtigingen zijn ingesteld op Rollen en documenttypen (de zogenaamde DocTypes ) door het instellen van rechten zoals Lezen , Beperkte , schrijven , maken, verwijderen , Submit , annuleren , wijzigen , Rapport , Import , Export, afdrukken , e-mail en kan beperken ."
+"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email, Only Restricted Documents and Can Restrict Others.","Machtigingen zijn ingesteld op Rollen en documenttypen (de zogenaamde DocTypes ) door het instellen van rechten zoals Lezen , schrijven , maken, verwijderen , Submit , annuleren , wijzigen , Rapport , kunt importeren , exporteren , afdrukken , e-mail , slechts een beperkte Documents and Beperken anderen ."
 Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only.,Machtigingen op hogere niveaus zijn permissies 'Veld Level ' . Alle velden hebben een ' Permission Level ' tegen hen en de prioriteiten die op dat machtigingen om het veld regels . Dit is handig voor het geval u wilt verbergen of bepaald gebied alleen-lezen .
 "Permissions at level 0 are 'Document Level' permissions, i.e. they are primary for access to the document.","Rechten op niveau 0 zijn &#39;Document Level&#39; permissies, dat wil zeggen zij zijn primair voor toegang tot het document."
 Permissions get applied on Users based on what Roles they are assigned.,Permissies krijgen toegepast op gebruikers op basis van wat Rollen ze zijn toegewezen.
@@ -831,6 +836,7 @@ Report Builder reports are managed directly by the report builder. Nothing to do
 Report Hide,Meld Hide
 Report Name,Rapportnaam
 Report Type,Meld Type
+Report an Issue,Een probleem rapporteren?
 Report cannot be set for Single types,Rapport kan niet worden ingesteld voor Single types
 Report was not saved (there were errors),Rapport werd niet opgeslagen (er waren fouten)
 Reqd,Reqd
@@ -839,7 +845,6 @@ Reset Permissions for {0}?,Reset Machtigingen voor {0} ?
 Restrict IP,Beperken IP
 Restrict cannot be set for Single types,Restrict kan niet worden ingesteld voor Single types
 Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111),"Beperk de gebruiker van dit IP-adres alleen. Meerdere IP-adressen kunnen worden toegevoegd door het scheiden van met komma&#39;s. Ook aanvaardt gedeeltelijke IP-adres, zoals (111.111.111)"
-Restricted,beperkt
 Restricted To,beperkt tot
 Restricting Users,gebruikers beperken
 Restriction,beperking
@@ -949,7 +954,6 @@ Sign up,Registreren
 Single Post (article).,Los bericht (artikel).
 Single Types have only one record no tables associated. Values are stored in tabSingles,Enkele soorten hebben slechts een record geen tafels verbonden . Waarden worden opgeslagen in tabSingles
 Sitemap Browser,Sitemap Browser
-Sitemap Ordering Error. Index {0} missing for {0},Sitemap Bestellen Error. Index {0} ontbreekt voor {0}
 Slideshow,Diashow
 Slideshow Items,Diashow Items
 Slideshow Name,Diashow Naam
@@ -959,6 +963,7 @@ Solid background color (default light gray),Effen achtergrondkleur (standaard li
 Sorry we were unable to find what you were looking for.,Sorry we waren niet in staat om te vinden wat u zocht.
 Sorry you are not permitted to view this page.,Sorry dat je niet toegestaan ​​om deze pagina te bekijken.
 Sort By,Sorteer op
+Sort Field,Sorteren Field
 Sort Order,Sort Order
 Standard,Standaard
 Standard Print Format cannot be updated,Standard Print Format kan niet worden bijgewerkt
@@ -1021,10 +1026,11 @@ Third Party Authentication,Third Party Authentication
 "This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>
 myfield
 eval:doc.myfield=='My Value'<br>
-eval:doc.age>18",
+eval:doc.age>18",Dit veld verschijnt alleen als de veldnaam hier gedefinieerd heeft waarde of de regels waar zijn ( voorbeelden) : <br> \ nmyfield \ Neval : doc.myfield == ' Mijn Value' Heb \ Neval : doc.age > 18
 This goes above the slideshow.,Dit gaat boven de diavoorstelling.
 This is PERMANENT action and you cannot undo. Continue?,Dit is PERMANENTE actie en u ongedaan kunt maken niet. Doorgaan?
 This is permanent action and you cannot undo. Continue?,Dit is een permanente actie en u ongedaan kunt maken niet. Doorgaan?
+This must be checked if Style Settings are applicable,Dit moet worden gecontroleerd of Style -instellingen zijn van toepassing
 This role can restrict users for accessing the record.,Deze rol kan gebruikers te beperken voor de toegang tot het record.
 Thursday,Donderdag
 Time,Tijd
@@ -1153,13 +1159,14 @@ Year,Jaar
 Yes,Ja
 Yesterday,Gisteren
 You are not allowed to create / edit reports,U bent niet toegestaan ​​om / bewerken van rapporten
-You are not allowed to create {0},U bent niet toegestaan ​​om {0}
 You are not allowed to export the data of: {0}. Downloading empty template.,Het is niet toegestaan ​​om de gegevens van de te exporteren : {0} . Het downloaden van lege sjabloon .
 You are not allowed to export this report,U bent niet bevoegd om dit rapport te exporteren
 You are not allowed to print this document,U bent niet gemachtigd om dit document af te drukken
 You are not allowed to send emails related to this document,Het is niet toegestaan ​​om e-mails met betrekking tot dit document te versturen
 "You can change Submitted documents by cancelling them and then, amending them.","U kunt Ingezonden documenten wijzigen door deze te annuleren en vervolgens , tot wijziging van hen."
 You can use Customize Form to set levels on fields.,U kunt aanpassen formulier gebruiken om in te stellen op de velden .
+You cannot install this app,U kunt deze app niet installeren
+You have unsaved changes in this form. Please save before you continue.,Je hebt opgeslagen wijzigingen in deze vorm .
 You need to be logged in and have System Manager Role to be able to access backups.,Je moet ingelogd zijn en hebben System Manager Rol om toegang tot back-ups.
 You need write permission to rename,Je hebt toestemming nodig om te hernoemen schrijven
 "Your download is being built, this may take a few moments...","Uw download wordt gebouwd, kan dit enige tijd duren ..."
@@ -1341,7 +1348,6 @@ zoom-out,zoom-out
 {0} {1} already exists,{0} {1} bestaat al
 {0} {1} cannot be a leaf node as it has children,{0} {1} kan een leaf node niet omdat het kinderen
 "{0} {1} does not exist, select a new target to merge","{0} {1} bestaat niet , kies een nieuw doel om te fuseren"
-{0} {1} must be a valid {2},{0} {1} is geen geldige {2} zijn
 {0}: Cannot set Amend without Cancel,{0} : Kan geen wijzigen zonder Annuleren
 {0}: Cannot set Assign Amend if not Submittable,{0} : Kan geen toewijzen wijzigen indien niet Submittable
 {0}: Cannot set Assign Submit if not Submittable,{0} : Kan geen toewijzen indienen indien niet Submittable

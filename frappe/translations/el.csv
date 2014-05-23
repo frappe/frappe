@@ -4,7 +4,6 @@
 """Company History""",&quot;Η Εταιρεία Ιστορία&quot;
 """Team Members"" or ""Management""",&quot;Μέλη της ομάδας&quot; ή &quot;Management&quot;
 'In List View' not allowed for type {0} in row {1},«Στην Προβολή λίστας » δεν επιτρέπεται για τον τύπο {0} στη γραμμή {1}
-'link:' type Select {0} getting replaced,« σύνδεσμο : « Επιλογή τύπου {0} πάρει αντικατασταθεί
 "000 is black, fff is white","000 είναι μαύρο, fff είναι λευκό"
 2 days ago,2 μέρες πριν
 "<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank"">[?]</a>","<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank""> [ ?] < / a>"
@@ -13,7 +12,7 @@
 <li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\
 <li><b>Prompt</b> - Prompt user for a name\
 <li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\
-</ol>')"">Naming Options</a>",
+</ol>')"">Naming Options</a>","<a onclick = "" msgprint ( « <ol> \ \ n <li> <b> πεδίο : [ fieldname ] < / b> - Με πεδίο \ \ n <li> <b> naming_series : < / b> - Με Ονομασία"
 A user can be restricted to multiple records of the same type.,Ένας χρήστης μπορεί να περιορίζεται σε πολλαπλές εγγραφές του ίδιου τύπου .
 About,Περίπου
 About Us Settings,Σχετικά με εμάς Ρυθμίσεις
@@ -77,13 +76,14 @@ Amend,Τροποποιούνται
 "Another {0} with name {1} exists, select another name","Ένας άλλος {0} με το όνομα {1} υπάρχει, επιλέξτε ένα άλλο όνομα"
 Anyone Can Read,Ο καθένας μπορεί να διαβάσει
 Anyone Can Write,Οποιοσδήποτε μπορεί να γράψει
-"Apart from System Manager, roles with 'Can Restrict' permission can restrict other users for that Document Type.","Εκτός από το Διαχειριστή του Συστήματος , με τους ρόλους «Μπορεί Περιορισμός ' άδεια μπορεί να περιορίσει τους άλλους χρήστες για αυτόν τον τύπο εγγράφου ."
+"Apart from System Manager, roles with 'Can Restrict Others' permission can restrict other users for that Document Type.","Εκτός από το Διαχειριστή του Συστήματος , με τους ρόλους «Μπορεί Περιορισμός κ.λπ. « άδεια μπορεί να περιορίσει τους άλλους χρήστες για αυτόν τον τύπο εγγράφου ."
 "Apart from the existing Permission Rules, you can apply addition restriction based on Type.","Εκτός από τις υπάρχουσες Κανόνες άδεια , μπορείτε να εφαρμόσετε τον περιορισμό Επιπλέον βάσει Κατηγορίας ."
 App Already Installed,App ήδη εγκατεστημένο
 App Name,Όνομα App
 App not found,App δεν βρέθηκε
 Application Installer,εγκατάστασης εφαρμογών
 Applications,εφαρμογές
+Apply Style,Εφαρμογή στυλ
 Are you sure you want to delete the attachment?,Είστε σίγουροι ότι θέλετε να διαγράψετε το συνημμένο;
 Arial,Arial
 "As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User.","Ως βέλτιστη πρακτική , δεν αποδίδουν το ίδιο σύνολο κανόνα άδεια για διαφορετικούς ρόλους . Αντ 'αυτού , που πολλούς ρόλους στο ίδιο το χρήστη ."
@@ -133,7 +133,7 @@ Bulk email limit {0} crossed,Μαζική email όριο {0} διέσχισε
 Button,Κουμπί
 By,Με
 Calendar,Ημερολόγιο
-Can Restrict,μπορεί Περιορισμός
+Can Restrict Others,Μπορεί Περιορισμός Άλλα
 Cancel,Ακύρωση
 Cancelled,Ακυρώθηκε
 "Cannot Edit {0} directly: To edit {0} properties, create / update {1}, {2} and {3}","Δεν είναι δυνατή η Επεξεργαστείτε {0} άμεσα : Για να επεξεργαστείτε {0} ιδιότητες , τη δημιουργία / ενημέρωση {1} , {2} και {3}"
@@ -294,6 +294,7 @@ Download link for your backup will be emailed on the following email address:,Do
 Drafts,Συντάκτης
 Drag to sort columns,Σύρετε για να ταξινομήσετε στήλες
 Due Date,Ημερομηνία λήξης
+Duplicate name {0} {1},Διπλότυπο όνομα {0} {1}
 Edit,Επεξεργασία
 Edit Permissions,Επεξεργασία Δικαιώματα
 Editable,Επεξεργάσιμη
@@ -313,11 +314,13 @@ Email sent to {0},Μηνύματος που αποστέλλεται σε {0}
 Email...,Στείλτε e-mail ...
 Emails are muted,Emails είναι σε σίγαση
 Embed image slideshows in website pages.,Ενσωμάτωση slideshows εικόνας σε ιστοσελίδες.
+Enable,Ενεργοποίηση
 Enable Comments,Ενεργοποίηση Σχόλια
 Enabled,Ενεργοποιημένο
 Ends on,Λήγει στις
 Enter Form Type,Εισάγετε Τύπος Φόρμα
 Enter Value,Εισαγωγή τιμής
+Enter at least one permission row,Εισάγετε τουλάχιστον μία σειρά άδεια
 "Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set ""match"" permission rules. To see list of fields, go to <a href=""#Form/Customize Form/Customize Form"">Customize Form</a>.","Εισάγετε πεδία προκαθορισμένη τιμή (πλήκτρα) και αξίες. Αν προσθέσετε πολλαπλές τιμές για ένα πεδίο, η πρώτη θα ενταχθεί. Αυτές οι προκαθορισμένες τιμές, επίσης, χρησιμοποιείται για να ρυθμίσετε το &quot;παιχνίδι&quot; κανόνες άδεια. Για να δείτε τη λίστα των πεδίων, πηγαίνετε στο <a href=""#Form/Customize Form/Customize Form"">Προσαρμογή έντυπο</a> ."
 "Enter keys to enable login via Facebook, Google, GitHub.","Εισάγετε τα πλήκτρα για να ενεργοποιήσετε την είσοδο μέσω του Facebook , Google , GitHub ."
 Equals,Ίσο
@@ -371,7 +374,7 @@ File Name,Όνομα αρχείου
 File Size,Μέγεθος Αρχείου
 File URL,URL αρχείου
 File not attached,Το αρχείο δεν συνδέεται
-File size exceeded the maximum allowed size,Μέγεθος αρχείου υπερβαίνει το μέγιστο επιτρεπόμενο μέγεθος
+File size exceeded the maximum allowed size of {0} MB,Μέγεθος αρχείου υπερβεί το μέγιστο επιτρεπόμενο μέγεθος του {0} MB
 Filter,Φιλτράρισμα
 First Name,Όνομα
 Float,Επιπλέω
@@ -384,7 +387,7 @@ Footer,Υποσέλιδο
 Footer Items,Τελικοί Είδη
 For DocType,για DocType
 "For Links, enter the DocType as range
-For Select, enter list of Options separated by comma",
+For Select, enter list of Options separated by comma","Για Links , εισάγετε το DocType ως εύρος \ nΓια την Select , τον κατάλογο των επιλογών που χωρίζονται με κόμμα αρχίζει"
 "For comparative filters, start with","Για τις συγκριτικές φίλτρα, ξεκινήστε με"
 For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,"Για παράδειγμα, αν έχετε ακυρώσει και να τροποποιήσει «INV004» θα γίνει ένα νέο έγγραφο «INV004-1». Αυτό σας βοηθά να παρακολουθείτε κάθε τροπολογία."
 "For example, if user X is restricted to company C, user X will not be able to see any transaction that has company C as a linked value.","Για παράδειγμα , αν ο χρήστης X περιορίζεται στην εταιρεία C , ο χρήστης Χ δεν θα είναι σε θέση να δουν οποιαδήποτε συναλλαγή που έχει εταιρεία C ως συνδεδεμένη αξία ."
@@ -480,6 +483,7 @@ Index,Δείκτης
 Individuals,Ιδιώτες
 Info,Πληροφορίες
 Insert After,Εισαγωγή Μετά την
+"Insert After field '{0}' mentioned in Custom Field '{1}', does not exist","Εισαγωγή Μετά πεδίο ' {0}' που αναφέρονται στο προσαρμοσμένο πεδίο '{1}' , δεν υπάρχει"
 Insert Below,Εισαγωγή κάτω
 Insert Code,Εισαγωγή κώδικα
 Insert Row,Εισαγωγή γραμμής
@@ -602,10 +606,10 @@ Must specify a Query to run,Πρέπει να ορίσετε ένα ερώτημ
 My Settings,Οι ρυθμίσεις μου
 Name,Όνομα
 Name Case,Περίπτωση που το όνομα
-Name Exists,Όνομα Υπάρχει
 Name and Description,Όνομα και περιγραφή
 Name is required,Όνομα απαιτείται
 Name not permitted,Όνομα δεν επιτρέπεται
+Name not set via Prompt,Το όνομα δεν έχει οριστεί μέσω εντολών
 Naming,ονομάζοντας
 Naming Series mandatory,Ονομασία σειράς υποχρεωτική
 Nested set error. Please contact the Administrator.,Εγκλωβισμένος σφάλμα σύνολο . Παρακαλώ επικοινωνήστε με το Διαχειριστή .
@@ -635,6 +639,7 @@ No document selected,Δεν επιλεγμένο έγγραφο
 No file attached,Δεν συνημμένο αρχείο
 No further records,Δεν υπάρχουν επιπλέον εγγραφές
 No one,Κανένας
+No permission to '{0}' {1},Δεν έχετε άδεια για '{0} ' {1}
 No permission to edit,Δεν έχετε άδεια για να επεξεργαστείτε
 No permission to write / remove.,Δεν έχετε άδεια για να γράψει / αφαίρεση.
 No records tagged.,Δεν υπάρχουν αρχεία ετικέτα.
@@ -735,7 +740,7 @@ Permission Rules,Κανόνες άδεια
 Permissions,Δικαιώματα
 Permissions Settings,Δικαιώματα Ρυθμίσεις
 Permissions are automatically translated to Standard Reports and Searches.,Τα δικαιώματα μετατρέπονται αυτόματα σε πρότυπο Εκθέσεις και αναζητήσεις .
-"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Restricted, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Can Restrict.","Τα δικαιώματα που έχουν οριστεί για Ρόλοι και τύποι εγγράφων (που ονομάζεται doctypes ) με τον καθορισμό των δικαιωμάτων , όπως διαβάζω , περιορισμένο , Γράψτε , Δημιουργία, Διαγραφή , Υποβολή , Ακύρωση , τροποποιούνται , έκθεση , εισαγωγή, εξαγωγή , εκτύπωση , e-mail και μπορούν να περιορίσουν ."
+"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email, Only Restricted Documents and Can Restrict Others.","Τα δικαιώματα που έχουν οριστεί για Ρόλοι και τύποι εγγράφων (που ονομάζεται doctypes ) με τον καθορισμό των δικαιωμάτων , όπως διαβάζω , γράφω, Δημιουργία, Διαγραφή , Υποβολή , Ακύρωση , τροποποιούνται , έκθεση , εισαγωγή, εξαγωγή , εκτύπωση , ηλεκτρονικό ταχυδρομείο , μόνο Κλειστή έγγραφα και μπορούν να περιορίσουν κ.λπ. ."
 Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only.,Δικαιώματα σε υψηλότερα επίπεδα είναι τα δικαιώματα «Επίπεδο Πεδίο » . Όλα τα πεδία έχουν μια « Επίπεδο δικαιωμάτων » που εναντίον τους και τους κανόνες που καθορίζονται στο ότι τα δικαιώματα ισχύουν για το πεδίο . Αυτό είναι χρήσιμο στην περίπτωση που θέλετε να αποκρύψετε ή να κάνετε συγκεκριμένο τομέα μόνο για ανάγνωση .
 "Permissions at level 0 are 'Document Level' permissions, i.e. they are primary for access to the document.","Δικαιώματα σε 0 είναι τα δικαιώματα «Επίπεδο Document», δηλαδή είναι πρωταρχική για την πρόσβαση στο έγγραφο."
 Permissions get applied on Users based on what Roles they are assigned.,Δικαιώματα πάρει εφαρμόζονται σε χρήστες με βάση τους ρόλους που τους έχουν ανατεθεί .
@@ -831,6 +836,7 @@ Report Builder reports are managed directly by the report builder. Nothing to do
 Report Hide,Έκθεση Απόκρυψη
 Report Name,Όνομα Έκθεση
 Report Type,Αναφορά Ειδών
+Report an Issue,Αναφορά προβλήματος
 Report cannot be set for Single types,Έκθεση δεν μπορεί να ρυθμιστεί για Ενιαίου τύπους
 Report was not saved (there were errors),Έκθεση δεν αποθηκεύτηκε (υπήρχαν σφάλματα)
 Reqd,Reqd
@@ -839,7 +845,6 @@ Reset Permissions for {0}?,Επαναφορά Δικαιώματα για {0} ;
 Restrict IP,Περιορισμός IP
 Restrict cannot be set for Single types,"Περιορίζουν , δεν μπορεί να ρυθμιστεί για Ενιαίου τύπους"
 Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111),"Περιορίστε χρήστη από την διεύθυνση αυτή και μόνο. Πολλαπλές διευθύνσεις IP μπορούν να προστεθούν διαχωρίζοντας με κόμμα. Επίσης δέχεται μερική IP διευθύνσεις, όπως (111.111.111)"
-Restricted,περιορισμένος
 Restricted To,Κλειστή να
 Restricting Users,Ο περιορισμός χρήστες
 Restriction,περιορισμός
@@ -949,7 +954,6 @@ Sign up,Εγγραφή
 Single Post (article).,Single Post (άρθρο).
 Single Types have only one record no tables associated. Values are stored in tabSingles,Ενιαία τύποι έχουν μόνο μία εγγραφή δεν πινάκων που συσχετίζονται . Οι τιμές που αποθηκεύονται σε tabSingles
 Sitemap Browser,Sitemap Browser
-Sitemap Ordering Error. Index {0} missing for {0},Sitemap Σφάλμα παραγγελίας . Δείκτης {0} λείπει για {0}
 Slideshow,Παρουσίαση
 Slideshow Items,Παρουσίαση Προϊόντα
 Slideshow Name,Παρουσίαση Name
@@ -959,6 +963,7 @@ Solid background color (default light gray),Στερεά χρώμα του φό�
 Sorry we were unable to find what you were looking for.,Δυστυχώς δεν μπορέσαμε να βρείτε αυτό που ψάχνατε.
 Sorry you are not permitted to view this page.,Δυστυχώς δεν σας επιτρέπεται να δείτε αυτή τη σελίδα.
 Sort By,Ταξινόμηση
+Sort Field,Ταξινόμηση πεδίο
 Sort Order,ταξινόμησης
 Standard,Πρότυπο
 Standard Print Format cannot be updated,Τυπική Μορφή εκτύπωσης δεν μπορούν να ενημερωθούν
@@ -1021,10 +1026,11 @@ Third Party Authentication,Τρίτο Κόμμα ταυτότητας
 "This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>
 myfield
 eval:doc.myfield=='My Value'<br>
-eval:doc.age>18",
+eval:doc.age>18",Το πεδίο αυτό θα εμφανιστεί μόνο αν η fieldname ορίζεται εδώ έχει αξία ή οι κανόνες είναι αλήθεια ( παραδείγματα) : <br> \ nmyfield \ Neval : doc.myfield == « Value μου » <br> \ Neval : doc.age > 18
 This goes above the slideshow.,Αυτό πηγαίνει πάνω από το slideshow.
 This is PERMANENT action and you cannot undo. Continue?,Αυτό είναι μόνιμη δράση και δεν μπορείτε να αναιρέσετε. Συνέχεια;
 This is permanent action and you cannot undo. Continue?,Αυτό είναι μόνιμη δράση και δεν μπορείτε να αναιρέσετε. Συνέχεια;
+This must be checked if Style Settings are applicable,Αυτό πρέπει να ελεγχθεί εάν Ρυθμίσεις Style ισχύουν
 This role can restrict users for accessing the record.,Ο ρόλος αυτός μπορεί να περιορίσω τους χρήστες για την πρόσβαση στο αρχείο .
 Thursday,Πέμπτη
 Time,Χρόνος
@@ -1153,13 +1159,14 @@ Year,Έτος
 Yes,Ναί
 Yesterday,Χτες
 You are not allowed to create / edit reports,Δεν επιτρέπεται να δημιουργήσετε / επεξεργαστείτε εκθέσεις
-You are not allowed to create {0},Δεν επιτρέπεται να δημιουργήσετε {0}
 You are not allowed to export the data of: {0}. Downloading empty template.,Δεν επιτρέπεται να εξάγουν τα δεδομένα του : {0} . Λήψη άδειο πρότυπο .
 You are not allowed to export this report,Δεν επιτρέπεται να εξάγουν αυτή την έκθεση
 You are not allowed to print this document,Δεν επιτρέπεται να εκτυπώσετε το έγγραφο
 You are not allowed to send emails related to this document,Δεν επιτρέπεται να στείλετε μηνύματα ηλεκτρονικού ταχυδρομείου που σχετίζονται με αυτό το έγγραφο
 "You can change Submitted documents by cancelling them and then, amending them.","Μπορείτε να αλλάξετε Υποβλήθηκε έγγραφα ακυρώνοντας τους και στη συνέχεια , για την τροποποίηση τους ."
 You can use Customize Form to set levels on fields.,Μπορείτε να χρησιμοποιήσετε το Προσαρμογή φόρμας για να ρυθμίσετε τα επίπεδα στα χωράφια .
+You cannot install this app,Δεν μπορείτε να εγκαταστήσετε αυτό το app
+You have unsaved changes in this form. Please save before you continue.,Έχετε μη αποθηκευμένες αλλαγές σε αυτή τη μορφή .
 You need to be logged in and have System Manager Role to be able to access backups.,Θα πρέπει να είστε συνδεδεμένοι στο σύστημα και έχουν Ρόλος Manager για να είναι σε θέση να έχουν πρόσβαση σε αντίγραφα ασφαλείας .
 You need write permission to rename,Χρειάζεται να γράψετε την άδεια να μετονομάσετε
 "Your download is being built, this may take a few moments...","Η λήψη σας χτίζεται, αυτό μπορεί να διαρκέσει λίγα λεπτά ..."
@@ -1341,7 +1348,6 @@ zoom-out,zoom-out
 {0} {1} already exists,{0} {1} υπάρχει ήδη
 {0} {1} cannot be a leaf node as it has children,"{0} {1} δεν μπορεί να είναι ένας κόμβος φύλλο , δεδομένου ότι έχει παιδιά"
 "{0} {1} does not exist, select a new target to merge","{0} {1} δεν υπάρχει , επιλέξτε ένα νέο στόχο για τη συγχώνευση"
-{0} {1} must be a valid {2},{0} {1} πρέπει να είναι ένα έγκυρο {2}
 {0}: Cannot set Amend without Cancel,{0} : Δεν είναι δυνατή η ρύθμιση τροποποιούνται χωρίς Ακύρωση
 {0}: Cannot set Assign Amend if not Submittable,"{0} : Δεν είναι δυνατή η ρύθμιση Εκχώρηση τροποποιηθεί , αν όχι Submittable"
 {0}: Cannot set Assign Submit if not Submittable,{0} : Δεν είναι δυνατή η ρύθμιση Εκχώρηση Υποβολή αν δεν Submittable
