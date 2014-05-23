@@ -92,5 +92,7 @@ def scheduler_task(site, event, handler, now=False):
 def enqueue_scheduler_events():
 	for site in get_sites():
 		frappe.connect(site=site)
-		enqueue_events(site)
-		frappe.destroy()
+		try:
+			enqueue_events(site)
+		finally:
+			frappe.destroy()
