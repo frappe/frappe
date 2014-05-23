@@ -241,7 +241,7 @@ def get_server_messages(app):
 
 def get_messages_from_include_files(app_name=None):
 	messages = []
-	for file in (frappe.get_hooks("app_include_js") or []) + (frappe.get_hooks("web_include_js") or []):
+	for file in (frappe.get_hooks("app_include_js", app_name=app_name) or []) + (frappe.get_hooks("web_include_js", app_name=app_name) or []):
 		messages.extend(get_messages_from_file(os.path.join(frappe.local.sites_path, file)))
 
 	return clean(messages)
