@@ -79,7 +79,7 @@ def get_all_languages():
 	return [a.split()[0] for a in get_lang_info()]
 
 def get_lang_dict():
-	return dict([[a[1], a[0]] for a in [a.split() for a in get_lang_info()]])
+	return dict([[a[1], a[0]] for a in [a.split(None, 1) for a in get_lang_info()]])
 
 def get_lang_info():
 	return frappe.cache().get_value("langinfo",
