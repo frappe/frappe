@@ -207,8 +207,11 @@ frappe.views.CommunicationComposer = Class.extend({
 	setup_last_edited_communication: function() {
 		var me = this;
 		this.dialog.onhide = function() {
-			if(cur_frm) {
-				frappe.last_edited_communication[cur_frm.doctype] = {
+			if(cur_frm && cur_frm.docname) {
+				if (!frappe.last_edited_communication[cur_frm.doctype]) {
+					frappe.last_edited_communication[cur_frm.doctype] = {};
+				}
+				frappe.last_edited_communication[cur_frm.doctype][cur_frm.docname] = {
 					recipients: me.dialog.get_value("recipients"),
 					subject: me.dialog.get_value("subject"),
 					content: me.dialog.get_value("content"),
@@ -217,8 +220,10 @@ frappe.views.CommunicationComposer = Class.extend({
 		}
 
 		this.dialog.onshow = function() {
-			if(frappe.last_edited_communication[cur_frm.doctype]) {
-				c = frappe.last_edited_communication[cur_frm.doctype];
+			if (cur_frm && cur_frm.docname &&
+				(frappe.last_edited_communication[cur_frm.doctype] || {})[cur_frm.docname]) {
+
+				c = frappe.last_edited_communication[cur_frm.doctype][cur_frm.docname];
 				me.dialog.set_value("subject", c.subject || "");
 				me.dialog.set_value("recipients", c.recipients || "");
 				me.dialog.set_value("content", c.content || "");
@@ -342,7 +347,10 @@ frappe.views.CommunicationComposer = Class.extend({
 					if(form_values.send_email)
 						msgprint(__("Email sent to {0}", [form_values.recipients]));
 					me.dialog.hide();
-					frappe.last_edited_communication[cur_frm.doctype] = null;
+
+					if (cur_frm.docname && (frappe.last_edited_communication[cur_frm.doctype] || {})[cur_frm.docname]) {
+						delete frappe.last_edited_communication[cur_frm.doctype][cur_frm.docname];
+					}
 					cur_frm.reload_doc();
 				} else {
 					msgprint(__("There were errors while sending email. Please try again."));
