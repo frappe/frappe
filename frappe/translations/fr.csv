@@ -1,10 +1,8 @@
  by Role ,par rôle
  is not set,n&#39;est pas réglé
-""" does not exists",""" N'existe pas"
 """Company History""",&quot;Histoire de la société&quot;
 """Team Members"" or ""Management""",&quot;Membres de l&#39;équipe&quot; ou &quot;gestion&quot;
 'In List View' not allowed for type {0} in row {1},« Dans la Fenêtre » n'est pas permis pour le type {0} à la ligne {1}
-'link:' type Select {0} getting replaced,"« lien : "" Sélectionner le type {0} se remplacée"
 "000 is black, fff is white","000 est noir, fff est blanc"
 2 days ago,Il ya 2 jours
 "<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank"">[?]</a>","<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank""> [ ? ] </ a >"
@@ -13,7 +11,7 @@
 <li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\
 <li><b>Prompt</b> - Prompt user for a name\
 <li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\
-</ol>')"">Naming Options</a>",
+</ol>')"">Naming Options</a>","< a onclick = "" msgprint ( ' <ol> \ \ n <li> <b> domaine : [ nom du champ ] < / b > - Par domaine \ \ n <li> <b> naming_series : < / b > - En nommant"
 A user can be restricted to multiple records of the same type.,Un utilisateur peut se limiter à plusieurs enregistrements d'un même type .
 About,Sur
 About Us Settings,À propos de nous Réglages
@@ -32,7 +30,6 @@ Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytic
 Add Message,Ajouter un message
 Add New Permission Rule,Ajouter une règle d&#39;autorisation New
 Add Reply,Ajouter une réponse
-Add Serial No,Ajouter N ° de série
 Add This To User's Restrictions,télécharger
 Add Total Row,Ajouter une ligne totale
 Add a New Role,Ajouter un nouveau rôle
@@ -77,13 +74,14 @@ Amend,Modifier
 "Another {0} with name {1} exists, select another name","Un autre {0} avec le nom {1} existe, choisir un autre nom"
 Anyone Can Read,N'importe qui peut lire
 Anyone Can Write,N'importe qui peut écrire
-"Apart from System Manager, roles with 'Can Restrict' permission can restrict other users for that Document Type.","En dehors de System Manager , les rôles avec « peut restreindre ' autorisation peut empêcher d'autres utilisateurs pour ce type de document ."
+"Apart from System Manager, roles with 'Can Restrict Others' permission can restrict other users for that Document Type.","En dehors de System Manager , les rôles avec « peut restreindre autres de l'autorisation peut empêcher d'autres utilisateurs pour ce type de document ."
 "Apart from the existing Permission Rules, you can apply addition restriction based on Type.","Outre les règles d'autorisations existantes , vous pouvez appliquer de restriction de plus en fonction du type ."
 App Already Installed,App déjà installé
 App Name,Nom App
 App not found,App introuvable
 Application Installer,Installer des applications
 Applications,applications
+Apply Style,appliquer le style
 Are you sure you want to delete the attachment?,Êtes-vous sûr de vouloir supprimer la pièce jointe?
 Arial,Arial
 "As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User.","Comme une meilleure pratique , ne pas attribuer le même ensemble de règle d'autorisation pour différents rôles . Au lieu de cela , définir plusieurs rôles à un même utilisateur ."
@@ -127,13 +125,12 @@ Blog Title,Titre du blog
 Blogger,Blogger
 Bookmarks,Favoris
 Brand HTML,Marque HTML
-Built on,Vous ne pouvez pas imprimer des documents annulés
 Bulk Email,Bulk Email
 Bulk email limit {0} crossed,Email en vrac limite {0} franchi
 Button,Bouton
 By,Par
 Calendar,Calendrier
-Can Restrict,peut restreindre
+Can Restrict Others,Peut restreindre autres
 Cancel,Annuler
 Cancelled,Annulé
 "Cannot Edit {0} directly: To edit {0} properties, create / update {1}, {2} and {3}","Impossible de modifier {0} directement : Pour modifier les propriétés {0} , créer / mettre à jour {1} , {2} et {3}"
@@ -294,6 +291,7 @@ Download link for your backup will be emailed on the following email address:,Le
 Drafts,Brouillons
 Drag to sort columns,Faites glisser pour trier les colonnes
 Due Date,Due Date
+Duplicate name {0} {1},Dupliquer nom {0} {1}
 Edit,Éditer
 Edit Permissions,Modifier les autorisations
 Editable,Editable
@@ -313,11 +311,13 @@ Email sent to {0},entrer une valeur
 Email...,Adresse e-mail ...
 Emails are muted,Les e-mails sont mis en sourdine
 Embed image slideshows in website pages.,Intégrer des diaporamas d&#39;images dans les pages du site.
+Enable,permettre
 Enable Comments,Activer Commentaires
 Enabled,Activé
 Ends on,Se termine le
 Enter Form Type,Entrez le type de formulaire
 Enter Value,Aucun résultat
+Enter at least one permission row,Entrez au moins une rangée d'autorisation
 "Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set ""match"" permission rules. To see list of fields, go to <a href=""#Form/Customize Form/Customize Form"">Customize Form</a>.","Remplir les champs de valeur par défaut (touches) et les valeurs. Si vous ajoutez plusieurs valeurs pour un champ, le premier sera choisi. Ces valeurs par défaut sont également utilisés pour définir des règles d&#39;autorisation &quot;match&quot;. Pour voir la liste des champs, allez à <a href=""#Form/Customize Form/Customize Form"">Personnaliser le formulaire</a> ."
 "Enter keys to enable login via Facebook, Google, GitHub.","La touche Entrée pour activer la connexion via Facebook , Google , GitHub ."
 Equals,Equals
@@ -371,7 +371,7 @@ File Name,Nom du fichier
 File Size,Taille du fichier
 File URL,URL du fichier
 File not attached,Le fichier n'a pas fixé
-File size exceeded the maximum allowed size,La taille du fichier dépasse la taille maximale autorisée
+File size exceeded the maximum allowed size of {0} MB,La taille du fichier a dépassé la taille maximale autorisée de {0} Mo
 Filter,Filtrez
 First Name,Prénom
 Float,Flotter
@@ -384,7 +384,7 @@ Footer,Pied de page
 Footer Items,Articles de bas de page
 For DocType,pour DocType
 "For Links, enter the DocType as range
-For Select, enter list of Options separated by comma",
+For Select, enter list of Options separated by comma","Pour Liens , entrez le Doctype que la gamme \ nPour Choisir, entrez liste d'options séparées par des virgules"
 "For comparative filters, start with","Pour les filtres de comparaison, commencez par"
 For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,"Par exemple, si vous annulez et modifier »INV004 &#39;il deviendra un nouveau document» INV004-1&#39;. Cela vous aide à garder la trace de chaque modification."
 "For example, if user X is restricted to company C, user X will not be able to see any transaction that has company C as a linked value.","Par exemple , si l'utilisateur X est limitée à la société C , l'utilisateur X ne sera pas en mesure de voir toute transaction qui a de la compagnie C comme une valeur liée ."
@@ -393,7 +393,6 @@ For top bar,Pour la barre supérieure
 For {0} at level {1} in {2} in row {3},Pour {0} au niveau {1} {2} dans la ligne {3}
 Forgot Password,Mot de passe oublié
 Forgot Password?,Mot de passe oublié ?
-Form,Forme
 Forum,Forum
 Forums,Fermer : {0}
 Forward To Email Address,Transférer à l'adresse e-mail
@@ -421,7 +420,6 @@ Google Web Font (Heading),Google Web Font (cap)
 Google Web Font (Text),Google Web Font (texte)
 Greater or equals,Plus ou égaux
 Greater than,supérieur à
-"Grid ""","grille """
 "Group Added, refreshing...",non Soumis
 Group Description,description du groupe
 Group Name,Nom du groupe
@@ -480,6 +478,7 @@ Index,Index
 Individuals,Les personnes
 Info,Infos
 Insert After,Insérer après
+"Insert After field '{0}' mentioned in Custom Field '{1}', does not exist","Insérer après le champ '{0}' mentionné dans un champ personnalisé '{1}' , n'existe pas"
 Insert Below,Insérer en dessous
 Insert Code,Insérez le code
 Insert Row,Insérer une ligne
@@ -602,10 +601,10 @@ Must specify a Query to run,Vous devez spécifier une requête pour exécuter
 My Settings,Mes réglages
 Name,Nom
 Name Case,Case Name
-Name Exists,nom existe
 Name and Description,Nom et description
 Name is required,Le nom est obligatoire
 Name not permitted,Restrictions de l'utilisateur
+Name not set via Prompt,Nom pas réglé par Prompt
 Naming,appellation
 Naming Series mandatory,Nommer obligatoire Series
 Nested set error. Please contact the Administrator.,Niché erreur de réglage . S'il vous plaît contacter l'administrateur .
@@ -635,6 +634,7 @@ No document selected,"Statut du document de transition {0} {1}, n'est pas autori
 No file attached,Pas de fichier joint
 No further records,Pas d&#39;autres dossiers
 No one,Personne
+No permission to '{0}' {1},Pas de permission pour '{0} ' {1}
 No permission to edit,Pas de permission pour modifier
 No permission to write / remove.,Pas de permission pour écrire / supprimer.
 No records tagged.,Aucun dossier étiqueté.
@@ -680,7 +680,6 @@ Only restricted users can access,Seuls les utilisateurs restreints peuvent accé
 Open,Ouvert
 Open Count,Ouvrir comte
 Open Sans,Sans ouverts
-Open source ERP built for the web,recharger la page
 Options,Options de
 Options Help,Options Aide
 Options must be a valid DocType for field {0} in row {1},Les options doivent être un DOCTYPE valide pour le champ {0} à la ligne {1}
@@ -735,7 +734,7 @@ Permission Rules,Règles d&#39;autorisation
 Permissions,Autorisations
 Permissions Settings,Réglages autorisations
 Permissions are automatically translated to Standard Reports and Searches.,Les autorisations sont automatiquement convertis en rapports standard et Recherches .
-"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Restricted, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Can Restrict.","Les autorisations sont définies sur les rôles et les types de documents (appelés DocTypes ) en définissant des droits , telles que Lire , restreint , écrire, créer, supprimer , Envoyer , Annuler , Modifier , Rapport , importation, exportation , impression , e-mail et peut restreindre ."
+"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email, Only Restricted Documents and Can Restrict Others.","Les autorisations sont définies sur les rôles et les types de documents (appelés DocTypes ) en définissant des droits , telles que Lire , Écrire , Créer, Supprimer , Envoyer , Annuler , Modifier , Rapport , importation, exportation , impression , e-mail , documents Seulement limités et peuvent restreindre les autres ."
 Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only.,Autorisations à des niveaux supérieurs sont des permissions ' Niveau terrain » . Tous les champs ont un « niveau de permission 'set contre eux et les règles définies à ce autorisations s'appliquent au domaine . Ceci est utile dans le cas où vous souhaitez masquer ou faire certain domaine en lecture seule .
 "Permissions at level 0 are 'Document Level' permissions, i.e. they are primary for access to the document.","Autorisations au niveau 0 sont des permissions &quot;Niveau du document», c&#39;est à dire qu&#39;ils sont primaires pour l&#39;accès au document."
 Permissions get applied on Users based on what Roles they are assigned.,Autorisations se appliqués sur les utilisateurs en fonction de ce Rôles ils sont affectés.
@@ -761,7 +760,6 @@ Please select atleast 1 column from {0} to sort,S'il vous plaît sélectionner a
 Please specify,S&#39;il vous plaît spécifier
 Please specify 'Auto Email Id' in Setup > Outgoing Email Settings,"S'il vous plaît spécifier ""Auto Email Id » dans Configuration> Paramètres de messagerie sortants"
 Please specify Event date and time,S'il vous plaît préciser la date et l'heure de l'événement
-Please specify a,S&#39;il vous plaît spécifier une
 Plugin,plugin
 Port,port
 Post,Poster
@@ -831,6 +829,7 @@ Report Builder reports are managed directly by the report builder. Nothing to do
 Report Hide,Signaler Cacher
 Report Name,Nom du rapport
 Report Type,Rapport Genre
+Report an Issue,Signaler un problème
 Report cannot be set for Single types,Rapport ne peut pas être réglé pour les types simples
 Report was not saved (there were errors),Rapport n&#39;a pas été sauvé (il y avait des erreurs)
 Reqd,Reqd
@@ -839,7 +838,6 @@ Reset Permissions for {0}?,Réinitialiser des autorisations pour {0} ?
 Restrict IP,Restreindre IP
 Restrict cannot be set for Single types,Restreindre ne peut être réglé pour les types simples
 Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111),Restreindre l&#39;utilisateur à partir de cette adresse IP. Plusieurs adresses IP peuvent être ajoutés par séparant par des virgules. Accepte également les adresses IP partielles comme (111.111.111)
-Restricted,limité
 Restricted To,Pour restreinte
 Restricting Users,Restriction des utilisateurs
 Restriction,restriction
@@ -885,7 +883,6 @@ Select Type,Sélectionnez le type de
 Select User or Property to start.,Sélectionnez l&#39;utilisateur ou d&#39;un bien pour commencer.
 Select a Banner Image first.,Choisissez une bannière image première.
 Select an image of approx width 150px with a transparent background for best results.,Sélectionnez une image d&#39;une largeur d&#39;environ 150px avec un fond transparent pour de meilleurs résultats.
-Select dates to create a new ,Choisissez la date pour créer une nouvelle
 "Select modules to be shown (based on permission). If hidden, they will be hidden for all users.","Sélectionnez les modules à être affichées ( sur la base de l'autorisation ) . Si caché , ils seront cachés pour tous les utilisateurs ."
 Select or drag across time slots to create a new event.,Sélectionnez ou glisser sur des intervalles de temps pour créer un nouvel événement.
 "Select target = ""_blank"" to open in a new page.","Sélectionnez target = "" _blank "" pour ouvrir dans une nouvelle page ."
@@ -903,10 +900,10 @@ Sent,expédié
 Sent Mail,Messages envoyés
 Sent Quotation,Devis envoyé
 Sent or Received,Envoyés ou reçus
-Serial No,N ° de série
 Series,série
 Series {0} already used in {1},La date à laquelle la prochaine facture sera générée . Il est généré lors de la soumission .
 Server,Serveur
+Server Error: Please check your server logs or contact tech support.,Erreur de serveur : S'il vous plaît vérifier vos logs du serveur ou contactez le support technique .
 Session Expired. Logging you out,Session a expiré. Vous déconnecter
 Session Expiry,Session d&#39;expiration
 Session Expiry in Hours e.g. 06:00,"Expiration session en heures, par exemple 06:00"
@@ -949,7 +946,6 @@ Sign up,signer
 Single Post (article).,Simple Post (article).
 Single Types have only one record no tables associated. Values are stored in tabSingles,Types simples ont un seul enregistrement aucun tables associées . Les valeurs sont stockées dans tabSingles
 Sitemap Browser,Plan du site navigateur
-Sitemap Ordering Error. Index {0} missing for {0},Plan du site Erreur de commande . Indice de {0} manquant pour {0}
 Slideshow,Diaporama
 Slideshow Items,Articles Diaporama
 Slideshow Name,Nom Diaporama
@@ -959,6 +955,7 @@ Solid background color (default light gray),Couleur de fond solide (gris clair p
 Sorry we were unable to find what you were looking for.,"Désolé, nous n&#39;avons pas pu trouver ce que vous recherchez."
 Sorry you are not permitted to view this page.,"Désolé, vous n&#39;êtes pas autorisé à afficher cette page."
 Sort By,Trier par
+Sort Field,Le champ de tri
 Sort Order,Ordre
 Standard,Standard
 Standard Print Format cannot be updated,Impression standard Format ne peut pas être mis à jour
@@ -1021,10 +1018,11 @@ Third Party Authentication,Third Party Authentication
 "This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>
 myfield
 eval:doc.myfield=='My Value'<br>
-eval:doc.age>18",
+eval:doc.age>18",Ce champ ne s'affiche que si le nom du champ défini ici a une valeur ou les règles sont de véritables exemples ( ) : Photos \ nmyfield \ neval : doc.myfield == ' Mon Value' <br> \ neval : doc.age > 18
 This goes above the slideshow.,Cela va au-dessus du diaporama.
 This is PERMANENT action and you cannot undo. Continue?,Il s&#39;agit d&#39;une action permanente et vous ne pouvez pas annuler. Continuer?
 This is permanent action and you cannot undo. Continue?,Il s&#39;agit d&#39;une action permanente et vous ne pouvez pas annuler. Continuer?
+This must be checked if Style Settings are applicable,Ceci doit être vérifié si les paramètres de style sont applicables
 This role can restrict users for accessing the record.,Ce rôle peut empêcher les utilisateurs d'accéder au dossier .
 Thursday,Jeudi
 Time,Temps
@@ -1040,7 +1038,6 @@ To,À
 To Do,pour faire
 "To format columns, give column labels in the query.","Pour formater colonnes, donner des étiquettes de colonne dans la requête."
 "To give acess to a role for only specific records, check the 'Restricted' perimssion. User Restriction Records are used to restrict users with such role to specific records.","Pour donner acess à un rôle pour que les enregistrements spécifiques , consultez la perimssion «Réservé ». Restriction de l'utilisateur enregistrements sont utilisés pour restreindre les utilisateurs avec ce rôle aux dossiers spécifiques ."
-"To report an issue, go to ",
 "To run a test add the module name in the route after '{0}'. For example, {1}",Filtre invalide : {0}
 ToDo,ToDo
 Too many writes in one request. Please send smaller requests,Trop écrit en une seule requête . S'il vous plaît envoyer des demandes plus petites
@@ -1153,13 +1150,14 @@ Year,Année
 Yes,Oui
 Yesterday,Hier
 You are not allowed to create / edit reports,enregistrement précédent
-You are not allowed to create {0},Aucun document sélectionné
 You are not allowed to export the data of: {0}. Downloading empty template.,Vous n'êtes pas autorisé à exporter les données de : {0} . Téléchargement modèle vide .
 You are not allowed to export this report,S'il vous plaît entrez la date et l'heure de l'événement !
 You are not allowed to print this document,"Pour signaler un problème, passez à"
 You are not allowed to send emails related to this document,Mettez sur le site Web
 "You can change Submitted documents by cancelling them and then, amending them.","Vous pouvez modifier des documents soumis par les annuler et ensuite , de les modifier ."
 You can use Customize Form to set levels on fields.,Vous pouvez utiliser le formulaire pour définir les niveaux de champs .
+You cannot install this app,Vous ne pouvez pas installer cette application
+You have unsaved changes in this form. Please save before you continue.,Vous avez des modifications non enregistrées dans ce formulaire .
 You need to be logged in and have System Manager Role to be able to access backups.,Vous devez être connecté et avoir System Manager Rôle de pouvoir accéder à des sauvegardes .
 You need write permission to rename,Vous devez écrire la permission de renommer
 "Your download is being built, this may take a few moments...","Votre téléchargement est en cours de construction, ce qui peut prendre quelques instants ..."
@@ -1341,7 +1339,6 @@ zoom-out,zoom-out
 {0} {1} already exists,{0} {1} existe déjà
 {0} {1} cannot be a leaf node as it has children,{0} {1} ne peut pas être un nœud feuille car elle a des enfants
 "{0} {1} does not exist, select a new target to merge","{0} {1} n'existe pas , sélectionnez un nouvel objectif de fusionner"
-{0} {1} must be a valid {2},{0} {1} doit être valide {2}
 {0}: Cannot set Amend without Cancel,{0} : Impossible de définir Modifier sans Annuler
 {0}: Cannot set Assign Amend if not Submittable,{0} : Vous ne pouvez pas régler Assign modifiant si pas remis sous
 {0}: Cannot set Assign Submit if not Submittable,{0} : Vous ne pouvez pas régler Assign Envoyer sinon remis sous

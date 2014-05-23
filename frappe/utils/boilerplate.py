@@ -192,14 +192,15 @@ app_version = "0.0.1"
 
 desktop_template = """from frappe import _
 
-data = {{
-	"{app_title}": {{
-		"color": "{app_color}",
-		"icon": "{app_icon}",
-		"type": "module",
-		"label": _("{app_title}")
+def get_data():
+	return {{
+		"{app_title}": {{
+			"color": "{app_color}",
+			"icon": "{app_icon}",
+			"type": "module",
+			"label": _("{app_title}")
+		}}
 	}}
-}}
 """
 
 setup_template = """from setuptools import setup, find_packages

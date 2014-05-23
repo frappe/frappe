@@ -241,7 +241,7 @@ def get_server_messages(app):
 
 def get_messages_from_include_files(app_name=None):
 	messages = []
-	for file in (frappe.get_hooks("app_include_js") or []) + (frappe.get_hooks("web_include_js") or []):
+	for file in (frappe.get_hooks("app_include_js", app_name=app_name) or []) + (frappe.get_hooks("web_include_js", app_name=app_name) or []):
 		messages.extend(get_messages_from_file(os.path.join(frappe.local.sites_path, file)))
 
 	return clean(messages)
@@ -304,7 +304,8 @@ def get_untranslated(lang, untranslated_file, get_all=False):
 		print str(len(messages)) + " messages"
 		with open(untranslated_file, "w") as f:
 			for m in messages:
-				f.write((m + "\n").encode("utf-8"))
+				# replace \n with \\n so that internal linebreaks don't get split
+				f.write((m.replace("\n", "\\n") + os.linesep).encode("utf-8"))
 	else:
 		full_dict = get_full_dict(lang)
 
@@ -316,7 +317,8 @@ def get_untranslated(lang, untranslated_file, get_all=False):
 			print str(len(untranslated)) + " missing translations of " + str(len(messages))
 			with open(untranslated_file, "w") as f:
 				for m in untranslated:
-					f.write((m + "\n").encode("utf-8"))
+					# replace \n with \\n so that internal linebreaks don't get split
+					f.write((m.replace("\n", "\\n") + os.linesep).encode("utf-8"))
 		else:
 			print "all translated!"
 
@@ -324,8 +326,13 @@ def update_translations(lang, untranslated_file, translated_file):
 	clear_cache()
 	full_dict = get_full_dict(lang)
 
-	full_dict.update(dict(zip(frappe.get_file_items(untranslated_file),
-		frappe.get_file_items(translated_file))))
+	translation_dict = {}
+	for key, value in zip(frappe.get_file_items(untranslated_file),
+		frappe.get_file_items(translated_file)):
+		# undo hack in get_untranslated
+		translation_dict[key.replace("\\n", "\n")] = value.replace("\\n", "\n")
+
+	full_dict.update(translation_dict)
 
 	for app in frappe.get_all_apps(True):
 		write_translations_file(app, lang, full_dict)

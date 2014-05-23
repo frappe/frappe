@@ -6,7 +6,6 @@ import frappe
 from frappe import msgprint, throw, _
 from frappe.utils import scrub_urls, cstr
 import email.utils
-import inlinestyler.utils
 
 def get_email(recipients, sender='', msg='', subject='[No Subject]',
 	text_content = None, footer=None, print_html=None, formatted=None):
@@ -189,6 +188,9 @@ class EMail:
 		return self.msg_root.as_string()
 
 def get_formatted_html(subject, message, footer=None, print_html=None):
+	# imported here to avoid cyclic import
+	import inlinestyler.utils
+
 	message = scrub_urls(message)
 	rendered_email = frappe.get_template("templates/emails/standard.html").render({
 		"content": message,

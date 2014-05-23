@@ -1,10 +1,8 @@
  by Role ,按角色
  is not set,沒有設置
-""" does not exists",“不存在
 """Company History""",“公司歷史”
 """Team Members"" or ""Management""",“團隊成員”或“管理”
 'In List View' not allowed for type {0} in row {1},“在列表視圖中”不允許類型{0}行{1}
-'link:' type Select {0} getting replaced,“鏈接： ”類型選擇{0}越來越取代
 "000 is black, fff is white",000是黑色的，FFF是白色的
 2 days ago,3天前
 "<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank"">[?]</a>","<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank"">[？]</a>"
@@ -13,7 +11,7 @@
 <li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\
 <li><b>Prompt</b> - Prompt user for a name\
 <li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\
-</ol>')"">Naming Options</a>",
+</ol>')"">Naming Options</a>",<一的onclick = “ msgprint （' <OL> \ \ ñ <LI> <B>場： [字段名] < / B> - 按字段\ \ ñ <LI> <B> naming_series ： < / B> - 通過命名
 A user can be restricted to multiple records of the same type.,用戶可以被限制為同一類型的多個記錄。
 About,關於
 About Us Settings,關於我們設置
@@ -32,7 +30,6 @@ Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytic
 Add Message,發表留言
 Add New Permission Rule,添加新的權限規則
 Add Reply,添加回复
-Add Serial No,添加序列號
 Add This To User's Restrictions,將它添加到用戶的限制
 Add Total Row,添加總計行
 Add a New Role,添加新角色
@@ -77,13 +74,14 @@ Amend,修改
 "Another {0} with name {1} exists, select another name",另一{0}名{1}存在，選擇另一個名字
 Anyone Can Read,任何人都可以閱讀
 Anyone Can Write,任何人都可以寫
-"Apart from System Manager, roles with 'Can Restrict' permission can restrict other users for that Document Type.",除了系統管理器，與角色“可以限制”權限可以限制其他用戶的文件類型。
+"Apart from System Manager, roles with 'Can Restrict Others' permission can restrict other users for that Document Type.",除了系統管理器，用角色'可以限制他人許可，可以限制其他用戶的文件類型。
 "Apart from the existing Permission Rules, you can apply addition restriction based on Type.",除了現有的權限規則，您可以根據應用類型除了限制。
 App Already Installed,應用程序已安裝
 App Name,應用程序名稱
 App not found,應用程序未找到
 Application Installer,應用程序安裝器
 Applications,應用
+Apply Style,應用樣式
 Are you sure you want to delete the attachment?,您確定要刪除的附件？
 Arial,宋體
 "As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User.",作為最佳實踐，不分配相同的一組權限的規則不同角色。相反，設置多個角色，以相同的用戶。
@@ -127,13 +125,12 @@ Blog Title,博客標題
 Blogger,博客
 Bookmarks,書籤
 Brand HTML,品牌的HTML
-Built on,建
 Bulk Email,大量電子郵件
 Bulk email limit {0} crossed,群發電子郵件的限制{0}劃線
 Button,鈕
 By,通過
 Calendar,日曆
-Can Restrict,可以限制
+Can Restrict Others,可以限制其他
 Cancel,取消
 Cancelled,註銷
 "Cannot Edit {0} directly: To edit {0} properties, create / update {1}, {2} and {3}",不能編輯{0}直接：編輯{0}屬性，創建/更新{1} ， {2}和{3}
@@ -294,6 +291,7 @@ Download link for your backup will be emailed on the following email address:,�
 Drafts,草稿箱
 Drag to sort columns,拖動進行排序的列
 Due Date,到期日
+Duplicate name {0} {1},重複的名稱{0} {1}
 Edit,編輯
 Edit Permissions,編輯權限
 Editable,編輯
@@ -313,11 +311,13 @@ Email sent to {0},電子郵件發送到{0}
 Email...,電子郵件...
 Emails are muted,電子郵件是靜音
 Embed image slideshows in website pages.,嵌入圖像的幻燈片中的網頁。
+Enable,啟用
 Enable Comments,啟用評論
 Enabled,啟用
 Ends on,結束於
 Enter Form Type,輸入表單類型
 Enter Value,輸入值
+Enter at least one permission row,輸入至少一個排的權限
 "Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set ""match"" permission rules. To see list of fields, go to <a href=""#Form/Customize Form/Customize Form"">Customize Form</a>.","輸入默認值字段（鍵）和值。如果你對一個字段中添加多個值，則第一個將有所回升。這些默認值也可用來設置“匹配”的權限規則。要查看字段的列表，請訪問<a href=""#Form/Customize Form/Customize Form"">自定義表單</a> 。"
 "Enter keys to enable login via Facebook, Google, GitHub.",回車鍵通過Facebook，谷歌， GitHub上啟用登錄。
 Equals,等號
@@ -371,7 +371,7 @@ File Name,文件名
 File Size,文件大小
 File URL,文件的URL
 File not attached,文件未附
-File size exceeded the maximum allowed size,文件大小超過了允許的最大尺寸
+File size exceeded the maximum allowed size of {0} MB,文件大小超過{0} MB的最大允許大小
 Filter,過濾器
 First Name,名字
 Float,浮動
@@ -384,7 +384,7 @@ Footer,頁腳
 Footer Items,頁腳項目
 For DocType,為的DocType
 "For Links, enter the DocType as range
-For Select, enter list of Options separated by comma",
+For Select, enter list of Options separated by comma",對於鏈接，進入文檔類型為範圍\ n對於選擇，進入選項列表以逗號分隔
 "For comparative filters, start with",對於比較器，開始
 For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,例如，如果你取消及修訂“INV004”它將成為一個新的文檔&#39;INV004-1&#39;。這可以幫助您跟踪每一項修正案。
 "For example, if user X is restricted to company C, user X will not be able to see any transaction that has company C as a linked value.",例如，如果用戶X僅限於C公司，用戶X將不能看到有C公司作為鏈接的價值的任何交易。
@@ -393,7 +393,6 @@ For top bar,對於頂級酒吧
 For {0} at level {1} in {2} in row {3},{0}在水平{1}的{2}行{3}
 Forgot Password,忘記密碼
 Forgot Password?,忘記密碼？
-Form,表格
 Forum,論壇
 Forums,論壇
 Forward To Email Address,轉發到郵件地址
@@ -421,7 +420,6 @@ Google Web Font (Heading),谷歌網頁字體（標題）
 Google Web Font (Text),谷歌網頁字體（文字）
 Greater or equals,大於或等於
 Greater than,大於
-"Grid """,電網“
 "Group Added, refreshing...",集團已添加，清爽...
 Group Description,集團簡介
 Group Name,集團名稱
@@ -480,6 +478,7 @@ Index,指數
 Individuals,個人
 Info,信息
 Insert After,插入後
+"Insert After field '{0}' mentioned in Custom Field '{1}', does not exist",插入域後“{0}”在自定義字段中提到“{1}” ，不存在
 Insert Below,下面插入
 Insert Code,插入代碼
 Insert Row,插入行
@@ -602,10 +601,10 @@ Must specify a Query to run,必須指定一個查詢運行
 My Settings,我的設置
 Name,名稱
 Name Case,案例名稱
-Name Exists,名稱存在
 Name and Description,名稱和說明
 Name is required,名稱是必需的
 Name not permitted,名稱不允許
+Name not set via Prompt,名稱未通過設置提示
 Naming,命名
 Naming Series mandatory,命名系列強制性
 Nested set error. Please contact the Administrator.,嵌套組的錯誤。請聯繫管理員。
@@ -635,6 +634,7 @@ No document selected,沒有選擇文件
 No file attached,沒有附加的文件
 No further records,沒有進一步的記錄
 No one,沒有人
+No permission to '{0}' {1},沒有權限“{0}” {1}
 No permission to edit,無權限進行編輯
 No permission to write / remove.,沒有權限寫入/刪除。
 No records tagged.,沒有記錄標記。
@@ -680,7 +680,6 @@ Only restricted users can access,只限制用戶可以訪問
 Open,開
 Open Count,打開計數
 Open Sans,開放三世
-Open source ERP built for the web,內置的網絡開源ERP
 Options,選項
 Options Help,選項幫助
 Options must be a valid DocType for field {0} in row {1},選項必須是字段的有效的DocType {0}行{1}
@@ -735,7 +734,7 @@ Permission Rules,權限規則
 Permissions,權限
 Permissions Settings,權限設置
 Permissions are automatically translated to Standard Reports and Searches.,權限會自動轉換為標準報表和搜索。
-"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Restricted, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Can Restrict.",權限設置喜歡閱讀，有限制的權利，寫入，創建，刪除，提交，取消，修改，報表，導入，導出，打印，電子郵件的角色和文件類型（稱為文檔類型）設置，並且可以限制。
+"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email, Only Restricted Documents and Can Restrict Others.",權限設置喜歡讀權限，寫，創建，刪除，提交，取消，修改，報告對角色和文件類型（稱為文檔類型）設置，導入，導出，打印，電子郵件，只限於文件並限制其他。
 Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only.,在更高級別的權限是“現場級”的權限。所有欄位有一個“權限級別”設置對他們和那個權限應用到該字段中定義的規則。如果你想要隱藏或使某些領域只讀這是有用的。
 "Permissions at level 0 are 'Document Level' permissions, i.e. they are primary for access to the document.",在0級權限是“文件級”的權限，也就是說，它們是主要用於訪問文件。
 Permissions get applied on Users based on what Roles they are assigned.,權限基於什麼角色，他們被分配在用戶得到應用。
@@ -761,7 +760,6 @@ Please select atleast 1 column from {0} to sort,請從{0}進行排序至少選�
 Please specify,請註明
 Please specify 'Auto Email Id' in Setup > Outgoing Email Settings,請註明“自動電子郵件Id '在設置>傳出電子郵件設置
 Please specify Event date and time,請註明事件的日期和時間
-Please specify a,請指定一個
 Plugin,插件
 Port,端口
 Post,職位
@@ -831,6 +829,7 @@ Report Builder reports are managed directly by the report builder. Nothing to do
 Report Hide,報告隱藏
 Report Name,報告名稱
 Report Type,報告類型
+Report an Issue,報告問題
 Report cannot be set for Single types,報告不能單類型設置
 Report was not saved (there were errors),報告沒有被保存（有錯誤）
 Reqd,REQD
@@ -839,7 +838,6 @@ Reset Permissions for {0}?,重置權限{0} ？
 Restrict IP,限制IP
 Restrict cannot be set for Single types,限制不能單類型設置
 Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111),僅此IP地址限制用戶。多個IP地址，可以通過用逗號分隔的補充。也接受像（111.111.111）部分的IP地址
-Restricted,限制
 Restricted To,僅限於
 Restricting Users,限制用戶
 Restriction,限制
@@ -885,7 +883,6 @@ Select Type,選擇類型
 Select User or Property to start.,選擇用戶或物業開始。
 Select a Banner Image first.,首先選擇一個橫幅圖像。
 Select an image of approx width 150px with a transparent background for best results.,選擇約寬150像素的透明背景以獲得最佳效果的圖像。
-Select dates to create a new ,選擇日期以創建一個新的
 "Select modules to be shown (based on permission). If hidden, they will be hidden for all users.",要顯示的選擇的模塊（基於權限）。如果隱藏的，他們會被隱藏於所有用戶。
 Select or drag across time slots to create a new event.,選擇或拖動整個時隙，以創建一個新的事件。
 "Select target = ""_blank"" to open in a new page.",選擇目標=“_blank”在新頁面中打開。
@@ -903,10 +900,10 @@ Sent,發送
 Sent Mail,發送郵件
 Sent Quotation,發送報價
 Sent or Received,發送或接收
-Serial No,序列號
 Series,系列
 Series {0} already used in {1},系列{0}已經被應用在{1}
 Server,服務器
+Server Error: Please check your server logs or contact tech support.,服務器錯誤：請檢查您的服務器日誌或聯繫技術支持。
 Session Expired. Logging you out,會話過期。您的退出
 Session Expiry,會話過期
 Session Expiry in Hours e.g. 06:00,會話過期的時間，例如06:00
@@ -949,7 +946,6 @@ Sign up,報名
 Single Post (article).,單個帖子（文章）。
 Single Types have only one record no tables associated. Values are stored in tabSingles,單一類型只有一個記錄關聯的表。值被存儲在tabSingles
 Sitemap Browser,網站地圖瀏覽器
-Sitemap Ordering Error. Index {0} missing for {0},網站地圖排序錯誤。索引{0}缺少{0}
 Slideshow,連續播放
 Slideshow Items,幻燈片項目
 Slideshow Name,幻燈片放映名稱
@@ -959,6 +955,7 @@ Solid background color (default light gray),純色背景色（默認淺灰色）
 Sorry we were unable to find what you were looking for.,對不起，我們無法找到您所期待的。
 Sorry you are not permitted to view this page.,對不起，您沒有權限瀏覽這個頁面。
 Sort By,排序
+Sort Field,排序字段
 Sort Order,排序
 Standard,標準
 Standard Print Format cannot be updated,標準打印格式不能被更新
@@ -1021,10 +1018,11 @@ Third Party Authentication,第三方認證
 "This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>
 myfield
 eval:doc.myfield=='My Value'<br>
-eval:doc.age>18",
+eval:doc.age>18",此字段將顯示只有這裡定義的字段名有值或規則是真實的（例子）：查看\ nmyfield \ neval ： doc.myfield =='我的價值“太平洋\ neval ： doc.age > 18
 This goes above the slideshow.,這正好幻燈片上面。
 This is PERMANENT action and you cannot undo. Continue?,這是永久性的行動，你不能撤消。要繼續嗎？
 This is permanent action and you cannot undo. Continue?,這是永久的行動，你不能撤消。要繼續嗎？
+This must be checked if Style Settings are applicable,這必須進行檢查，如果樣式設置適用
 This role can restrict users for accessing the record.,這個角色可以限制用戶的訪問記錄。
 Thursday,星期四
 Time,時間
@@ -1040,7 +1038,6 @@ To,至
 To Do,要不要
 "To format columns, give column labels in the query.",要格式化列，給列標籤在查詢中。
 "To give acess to a role for only specific records, check the 'Restricted' perimssion. User Restriction Records are used to restrict users with such role to specific records.",為了讓接取僅針對特定記錄的作用，檢查'限制' perimssion 。用戶限制記錄是用來限制用戶與這些角色的特定記錄。
-"To report an issue, go to ",要報告問題，請至
 "To run a test add the module name in the route after '{0}'. For example, {1}",運行測試後， “{0}”添加模塊名稱的路線。例如， {1}
 ToDo,待辦事項
 Too many writes in one request. Please send smaller requests,太多的寫在一個請求。請將較小的請求
@@ -1153,13 +1150,14 @@ Year,年
 Yes,是的
 Yesterday,昨天
 You are not allowed to create / edit reports,你不允許創建/編輯報導
-You are not allowed to create {0},你不允許創建{0}
 You are not allowed to export the data of: {0}. Downloading empty template.,你是不允許出口的數據： {0} 。下載空白模板。
 You are not allowed to export this report,你不准出口本報告
 You are not allowed to print this document,你不允許打印此文檔
 You are not allowed to send emails related to this document,你是不是允許發送與此相關的文檔的電子郵件
 "You can change Submitted documents by cancelling them and then, amending them.",您可以通過取消他們，然後，對其進行修正更改已提交的文件。
 You can use Customize Form to set levels on fields.,您可以使用自定義表格中的字段設置的水平。
+You cannot install this app,您無法安裝這個程序
+You have unsaved changes in this form. Please save before you continue.,你在本表格未保存的更改。
 You need to be logged in and have System Manager Role to be able to access backups.,您需要先登錄，並具有系統管理員角色才能夠訪問備份。
 You need write permission to rename,你需要寫權限來重新命名
 "Your download is being built, this may take a few moments...",您的下載正在修建，這可能需要一些時間......
@@ -1341,7 +1339,6 @@ zoom-out,拉遠
 {0} {1} already exists,{0} {1}已經存在
 {0} {1} cannot be a leaf node as it has children,{0} {1}不能是一個葉節點，因為它有孩子
 "{0} {1} does not exist, select a new target to merge",{0} {1}不存在，選擇一個新的目標合併
-{0} {1} must be a valid {2},{0} {1}必須是有效的{2}
 {0}: Cannot set Amend without Cancel,{0} ：無法設置沒有修改取消
 {0}: Cannot set Assign Amend if not Submittable,{0} ：無法設置指定修改，如果不Submittable
 {0}: Cannot set Assign Submit if not Submittable,{0} ：無法設置指定提交如果不是Submittable
