@@ -17,7 +17,6 @@ frappe.ui.form.Footer = Class.extend({
 	},
 	make: function() {
 		var me = this;
-		$("<div>").css({"border-top":"1px solid #c7c7c7"}).appendTo(this.parent)
 		this.wrapper = $('<div class="form-footer container">\
 			<!--i class="icon-cut" style="margin-top: -23px; margin-bottom: 23px; \
 				display: block; margin-left: 15px; color: #888;"></i-->\
@@ -56,7 +55,7 @@ frappe.ui.form.Footer = Class.extend({
 		this.wrapper.find(".btn-save").click(function() {
 			me.frm.save('Save', null, this);
 		})
-		
+
 		this.help_area = this.wrapper.find(".help-area").get(0);
 	},
 	make_tags: function() {
@@ -67,7 +66,7 @@ frappe.ui.form.Footer = Class.extend({
 	},
 	make_attachments: function() {
 		this.frm.attachments = new frappe.ui.form.Attachments({
-			parent: this.wrapper.find(".form-attachments"), 
+			parent: this.wrapper.find(".form-attachments"),
 			frm: this.frm
 		});
 	},
