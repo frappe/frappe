@@ -131,4 +131,4 @@ def serve(port=8000, profile=False, site=None, sites_path='.'):
 		})
 
 	run_simple('0.0.0.0', int(port), application, use_reloader=True,
-		use_debugger=True, use_evalex=True)
+		use_debugger=True, use_evalex=True, threaded=True)
