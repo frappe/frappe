@@ -239,8 +239,8 @@ frappe.dom.set_box_shadow = function(ele, spread) {
 		// create options
 		for(var i=0; i<options_list.length; i++) {
 			var v = options_list[i];
-			value = v==null ? (v.value==undefined ? v : v.value) : null;
-			label = v==null ? (__(v.label || v)) : null;
+			value = v!=null ? (v.value==undefined ? v : v.value) : null;
+			label = v!=null ? (__(v.label || v)) : null;
 			$('<option>').html(label || "").attr('value', value).appendTo(this);
 		}
 		// select the first option
