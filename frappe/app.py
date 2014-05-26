@@ -63,18 +63,11 @@ def application(request):
 	except frappe.SessionStopped, e:
 		response = frappe.utils.response.handle_session_stopped()
 
-	except (frappe.AuthenticationError,
-		frappe.PermissionError,
-		frappe.DoesNotExistError,
-		frappe.NameError,
-		frappe.OutgoingEmailError,
-		frappe.ValidationError,
-		frappe.UnsupportedMediaType), e:
-
+	except Exception, e:
 		if frappe.local.is_ajax:
-			response = frappe.utils.response.report_error(e.http_status_code)
+			response = frappe.utils.response.report_error(getattr(e, "http_status_code", 500))
 		else:
-			response = frappe.website.render.render("error", e.http_status_code)
+			response = frappe.website.render.render(getattr(e, "http_status_code", 500))
 
 		if e.__class__ == frappe.AuthenticationError:
 			if hasattr(frappe.local, "login_manager"):
