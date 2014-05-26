@@ -43,17 +43,19 @@ def get_mapped_doc(from_doctype, from_docname, table_maps, target_doc=None,
 				target_parentfield = target_doc.get_parentfield_of_doctype(target_child_doctype)
 
 				# does row exist for a parentfield?
-				if df.fieldname not in row_exists_for_parentfield:
+				if target_parentfield not in row_exists_for_parentfield:
 					row_exists_for_parentfield[target_parentfield] = (True
 						if target_doc.get(target_parentfield) else False)
 
-				if table_map.get("add_if_empty") and row_exists_for_parentfield.get(target_parentfield):
+				if table_map.get("add_if_empty") and \
+					row_exists_for_parentfield.get(target_parentfield):
 					continue
 
 				if table_map.get("filter") and table_map.get("filter")(source_d):
 					continue
 
-				target_d = frappe.new_doc(target_child_doctype, target_doc, target_parentfield)
+				target_d = frappe.new_doc(target_child_doctype, target_doc,
+					target_parentfield)
 				map_doc(source_d, target_d, table_map, source_doc)
 				target_d.idx = None
 				target_doc.append(target_parentfield, target_d)
