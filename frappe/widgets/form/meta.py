@@ -39,7 +39,8 @@ class FormMeta(Meta):
 
 	def as_dict(self, no_nulls=False):
 		d = super(FormMeta, self).as_dict(no_nulls=no_nulls)
-		for k in ("__js", "__css", "__list_js", "__calendar_js", "__map_js", "__linked_with", "__messages"):
+		for k in ("__js", "__css", "__list_js", "__calendar_js", "__map_js",
+			"__linked_with", "__messages", "__print_formats", "__workflow_docs"):
 			d[k] = self.get(k)
 
 		for i, df in enumerate(d.get("fields")):
@@ -126,19 +127,24 @@ class FormMeta(Meta):
 		self.set("__linked_with", ret)
 
 	def load_print_formats(self):
-		frappe.response.docs.extend(frappe.db.sql("""select * FROM `tabPrint Format`
-			WHERE doc_type=%s AND docstatus<2""", (self.name,), as_dict=1, update={"doctype":"Print Format"}))
+		print_formats = frappe.db.sql("""select * FROM `tabPrint Format`
+			WHERE doc_type=%s AND docstatus<2""", (self.name,), as_dict=1,
+			update={"doctype":"Print Format"})
+		self.set("__print_formats", print_formats)
 
 	def load_workflows(self):
 		# get active workflow
 		workflow_name = get_workflow_name(self.name)
+		workflow_docs = []
 
 		if workflow_name and frappe.db.exists("Workflow", workflow_name):
 			workflow = frappe.get_doc("Workflow", workflow_name)
-			frappe.response.docs.append(workflow)
+			workflow_docs.append(workflow)
 
 			for d in workflow.get("workflow_document_states"):
-				frappe.response.docs.append(frappe.get_doc("Workflow State", d.state))
+				workflow_docs.append(frappe.get_doc("Workflow State", d.state))
+
+		self.set("__workflow_docs", workflow_docs)
 
 
 def render_jinja(content):
