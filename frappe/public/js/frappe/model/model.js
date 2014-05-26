@@ -437,3 +437,13 @@ $.extend(frappe.model, {
 frappe.get_doc = frappe.model.get_doc;
 frappe.get_children = frappe.model.get_children;
 frappe.get_list = frappe.model.get_list;
+
+var getchildren = function(doctype, parent, parentfield) {
+	var children = [];
+	$.each(locals[doctype] || {}, function(i, d) {
+		if(d.parent === parent && d.parentfield === parentfield) {
+			children.push(d);
+		}
+	});
+	return children;
+}
