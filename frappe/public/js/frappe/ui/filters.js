@@ -21,8 +21,10 @@ frappe.ui.FilterList = Class.extend({
 
 	show_filters: function() {
 		this.$w.find('.show_filters').toggle();
-		if(!this.filters.length)
+		if(!this.filters.length) {
 			this.add_filter();
+			this.filters[0].$w.find(".filter_field input").focus();
+		}
 	},
 
 	clear_filters: function() {
@@ -116,7 +118,9 @@ frappe.ui.Filter = Class.extend({
 				me.set_field(doctype, fieldname);
 			}
 		});
-		this.fieldselect.set_value(this.doctype, this.fieldname);
+		if(this.fieldname) {
+			this.fieldselect.set_value(this.doctype, this.fieldname);
+		}
 	},
 	set_events: function() {
 		var me = this;
@@ -300,7 +304,7 @@ frappe.ui.FieldSelect = Class.extend({
 			source: me.options,
 			minLength: 0,
 			focus: function(event, ui) {
-				me.$select.val(ui.item.label);
+				ui.item && me.$select.val(ui.item.label);
 				return false;
 			},
 			select: function(event, ui) {
