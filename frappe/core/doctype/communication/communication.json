@@ -2,7 +2,7 @@
  "allow_attach": 1, 
  "allow_import": 1, 
  "autoname": "naming_series:", 
- "creation": "2013-01-29 10:47:14.000000", 
+ "creation": "2013-01-29 10:47:14", 
  "description": "Keep a track of all communications", 
  "docstatus": 0, 
  "doctype": "DocType", 
@@ -154,7 +154,7 @@
  "idx": 1, 
  "in_dialog": 0, 
  "issingle": 0, 
- "modified": "2014-01-24 13:01:25.000000", 
+ "modified": "2014-05-27 03:49:08.475911", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Communication", 
@@ -162,7 +162,7 @@
  "permissions": [
   {
    "amend": 0, 
-   "cancel": 0, 
+   "apply_user_permissions": 1, 
    "create": 1, 
    "delete": 1, 
    "email": 1, 
@@ -176,7 +176,6 @@
   }, 
   {
    "amend": 0, 
-   "cancel": 0, 
    "create": 1, 
    "delete": 1, 
    "email": 1, 
@@ -190,7 +189,7 @@
   }, 
   {
    "amend": 0, 
-   "cancel": 0, 
+   "apply_user_permissions": 1, 
    "create": 1, 
    "delete": 1, 
    "email": 1, 
@@ -203,7 +202,6 @@
    "write": 1
   }, 
   {
-   "cancel": 0, 
    "create": 1, 
    "delete": 1, 
    "email": 1, 
@@ -216,7 +214,6 @@
    "write": 1
   }, 
   {
-   "cancel": 0, 
    "create": 1, 
    "delete": 1, 
    "email": 1, 

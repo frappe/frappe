@@ -42,7 +42,7 @@ frappe.ui.form.InfoBar = Class.extend({
 		// link to user permissions
 		if(!me.frm.meta.issingle && frappe.model.can_set_user_permissions(me.frm.doctype, me.frm)) {
 			this.$user_properties = this.appframe.add_icon_btn("2", "icon-shield",
-				__("User Permission Restrictions"), function() {
+				__("User Permissions Manager"), function() {
 					frappe.route_options = {
 						property: me.frm.doctype,
 						restriction: me.frm.docname

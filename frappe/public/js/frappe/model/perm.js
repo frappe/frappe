@@ -14,30 +14,30 @@ $.extend(frappe.perm, {
 	doctype_perm: {},
 
 	has_perm: function(doctype, permlevel, ptype) {
-		if(!permlevel) permlevel = 0;
-		if(!frappe.perm.doctype_perm[doctype]) {
+		if (!permlevel) permlevel = 0;
+		if (!frappe.perm.doctype_perm[doctype]) {
 			frappe.perm.doctype_perm[doctype] = frappe.perm.get_perm(doctype);
 		}
 
 		var perms = frappe.perm.doctype_perm[doctype];
-		if(!perms)
+		if (!perms)
 			return false;
 
-		if(!perms[permlevel])
+		if (!perms[permlevel])
 			return false;
 
 		return !!perms[permlevel][ptype];
 	},
 
 	get_perm: function(doctype) {
-		var perm = [{read: 0}];
+		var perm = [{ read: 0, apply_user_permissions: {} }];
 
 		var meta = frappe.get_doc("DocType", doctype);
-		if(!meta) {
+		if (!meta) {
 			return perm;
 		}
 
-		if(user==="Administrator" || user_roles.indexOf("Administrator")!==-1) {
+		if (user==="Administrator" || user_roles.indexOf("Administrator")!==-1) {
 			perm[0].read = 1;
 		}
 
@@ -47,8 +47,7 @@ $.extend(frappe.perm, {
 	},
 
 	build_role_permissions: function(perm, meta) {
-		var permissions = meta.permissions || [];
-		$.each(permissions, function(i, p) {
+		$.each(meta.permissions || [], function(i, p) {
 			// if user has this role
 			if(user_roles.indexOf(p.role)!==-1) {
 				var permlevel = cint(p.permlevel);
@@ -56,64 +55,39 @@ $.extend(frappe.perm, {
 					perm[permlevel] = {};
 				}
 				$.each(frappe.perm.rights, function(i, key) {
-					if(key=="restricted") {
-						perm[permlevel][key] = (perm[permlevel][key] || 1) && (p[key] || 0);
-					} else {
-						perm[permlevel][key] = perm[permlevel][key] || (p[key] || 0);
+					perm[permlevel][key] = perm[permlevel][key] || (p[key] || 0);
+
+					if (permlevel===0) {
+						var apply_user_permissions = perm[permlevel].apply_user_permissions;
+						var previous_value = Object.keys(apply_user_permissions).indexOf(key)===-1 ? 1 : apply_user_permissions[key];
+						apply_user_permissions[key] = previous_value && p.apply_user_permissions;
 					}
 				});
 			}
 		});
-	},
 
-	has_unrestricted_access: function(doctype, docname, restricted) {
-		var user_permissions = frappe.defaults.get_user_permissions();
-		var doc = frappe.get_doc(doctype, docname);
-
-		if(restricted) {
-			if(doc.owner==user) return true;
-			if(!user_permissions || $.isEmptyObject(user_permissions)) {
-				return false;
-			}
-		} else {
-			if(!user_permissions || $.isEmptyObject(user_permissions)) {
-				return true;
-			}
-		}
-
-		// prepare restricted fields
-		var fields_to_check = frappe.perm.get_fields_to_check_permissions(doctype, docname, user_permissions);
-
-		// loop and find if has restricted data
-		var has_restricted_data = false;
-		var doc = frappe.get_doc(doctype, docname);
-		$.each(fields_to_check, function(i, df) {
-			if(doc[df.fieldname] && user_permissions[df.options].indexOf(doc[df.fieldname])===-1) {
-				has_restricted_data = true;
-				return false;
+		// remove values with 0
+		$.each(perm[0], function(key, val) {
+			if (!val) {
+				delete perm[0][key];
 			}
 		});
-
-		return !has_restricted_data;
 	},
 
-	get_fields_to_check_permissions: function(doctype, docname, user_permissions) {
-		var fields_to_check = frappe.meta.get_fields_to_check_permissions(doctype, docname,
-			Object.keys(user_permissions));
-		if(Object.keys(user_permissions).indexOf(doctype)!==-1) {
-			fields_to_check = fields_to_check.concat(
-				{label: "Name", fieldname: name, options: doctype});
+	get_match_rules: function(doctype, ptype) {
+		if (!ptype) ptype = "read";
+
+		var perm = frappe.perm.get_perm(doctype);
+		var apply_user_permissions = perm[0].apply_user_permissions;
+		if (!apply_user_permissions[ptype]) {
+			return {};
 		}
-		return fields_to_check;
-	},
 
-	get_match_rules: function(doctype) {
 		var match_rules = {};
-
-		// Rule for user_permissions
 		var user_permissions = frappe.defaults.get_user_permissions();
 		if(user_permissions && !$.isEmptyObject(user_permissions)) {
-			$.each(frappe.perm.get_fields_to_check_permissions(doctype, null, user_permissions), function(i, df) {
+			var fields_to_check = frappe.meta.get_fields_to_check_permissions(doctype, null, user_permissions);
+			$.each(fields_to_check, function(i, df) {
 				match_rules[df.label] = user_permissions[df.options];
 			});
 		}
@@ -124,7 +98,7 @@ $.extend(frappe.perm, {
 	get_field_display_status: function(df, doc, perm, explain) {
 		if(!doc) return "Write";
 
-		perm = perm || frappe.perm.get_perm(doc.doctype, doc.name);
+		perm = perm || frappe.perm.get_perm(doc.doctype);
 		if(!df.permlevel) df.permlevel = 0;
 		var p = perm[df.permlevel];
 		var status = "None";

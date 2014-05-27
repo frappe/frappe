@@ -55,23 +55,15 @@ def remove(user, name, defkey, defvalue):
 		raise frappe.PermissionError("Cannot Remove Permission for User: {user} on DocType: {doctype} and Name: {name}".format(
 			user=user, doctype=defkey, name=defvalue))
 
-	frappe.defaults.clear_default(key=defkey, value=defvalue, parent=user, name=name)
-
-def clear_user_permissions(doctype):
-	frappe.defaults.clear_default(parenttype="User Permission", key=doctype)
+	frappe.permissions.remove_user_permission(defkey, defvalue, user, name)
 
 @frappe.whitelist()
 def add(user, defkey, defvalue):
 	if not frappe.permissions.can_set_user_permissions_for_user(user, defkey, defvalue):
-		raise frappe.PermissionError("Cannot Restrict User: {user} for DocType: {doctype} and Name: {name}".format(
+		raise frappe.PermissionError("Cannot Set Permission for User: {user} on DocType: {doctype} and Name: {name}".format(
 			user=user, doctype=defkey, name=defvalue))
 
-	# check if already exists
-	d = frappe.db.sql("""select name from tabDefaultValue
-		where parent=%s and parenttype='User Permission' and defkey=%s and defvalue=%s""", (user, defkey, defvalue))
-
-	if not d:
-		frappe.defaults.add_default(defkey, defvalue, user, "User Permission")
+	frappe.permissions.add_user_permission(defkey, defvalue, user)
 
 def get_doctypes_for_user_permissions():
 	user_roles = frappe.get_roles()

@@ -113,14 +113,14 @@ def can_set_user_permissions_for_user(user, doctype, docname=None):
 	if not can_set_user_permissions(doctype, docname):
 		return False
 
-	# check if target user does not have restrict permission
+	# check if target user does not have permission to set user permissions
 	if get_role_permissions(frappe.get_meta(doctype), user).set_user_permissions==1:
 		return False
 
 	return True
 
 def can_set_user_permissions(doctype, docname=None):
-	# System Manager can always restrict
+	# System Manager can always set user permissions
 	if "System Manager" in frappe.get_roles():
 		return True
 
@@ -135,6 +135,21 @@ def can_set_user_permissions(doctype, docname=None):
 		return False
 
 	return True
+
+def set_user_permission_if_allowed(doctype, name, user):
+	if get_role_permissions(frappe.get_meta(doctype), user).set_user_permissions!=1:
+		add_user_permission(doctype, name, user)
+
+def add_user_permission(doctype, name, user):
+	if name not in frappe.defaults.get_user_permissions(user).get(doctype, []):
+		frappe.defaults.add_default(doctype, name, user, "User Permission")
+
+def remove_user_permission(doctype, name, user, default_value_name=None):
+	frappe.defaults.clear_default(key=doctype, value=name, parent=user, parenttype="User Permission",
+		name=default_value_name)
+
+def clear_user_permissions_for_doctype(doctype):
+	frappe.defaults.clear_default(parenttype="User Permission", key=doctype)
 
 def can_import(doctype, raise_exception=False):
 	if not ("System Manager" in frappe.get_roles() or has_permission(doctype, "import")):

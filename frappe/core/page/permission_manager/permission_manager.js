@@ -108,13 +108,7 @@ frappe.PermissionEngine = Class.extend({
 					d.rights = [];
 					$.each(me.rights, function(i, r) {
 						if(d[r]===1) {
-							if(r==="restrict") {
-								d.rights.push(__("Can Restrict Others"));
-							} else if(r==="restricted") {
-								d.rights.push(__("Only Restricted Documents"));
-							} else {
-								d.rights.push(__(toTitle(r)));
-							}
+							d.rights.push(__(toTitle(r.replace("_", " "))));
 						}
 					});
 					d.rights = d.rights.join(", ");
@@ -185,14 +179,14 @@ frappe.PermissionEngine = Class.extend({
 				.appendTo(me.table.find("thead tr"));
 		});
 
-		var add_cell = function(row, d, fieldname, is_check) {
+		var add_cell = function(row, d, fieldname) {
 			return $("<td>").appendTo(row)
 				.attr("data-fieldname", fieldname)
 				.html(d[fieldname]);
 		};
 
-		var add_check = function(cell, d, fieldname, label) {
-			if(!label) label = fieldname;
+		var add_check = function(cell, d, fieldname, label, without_grid) {
+			if(!label) label = fieldname.replace(/_/g, " ");
 			if(d.permlevel > 0 && ["read", "write"].indexOf(fieldname)==-1) {
 				return;
 			}
@@ -208,13 +202,20 @@ frappe.PermissionEngine = Class.extend({
 				.attr("data-ptype", fieldname)
 				.attr("data-name", d.name)
 				.attr("data-doctype", d.parent)
+
+			return checkbox;
 		};
 
 		$.each(perm_list, function(i, d) {
 			if(!d.permlevel) d.permlevel = 0;
 			var row = $("<tr>").appendTo(me.table.find("tbody"));
 			add_cell(row, d, "parent");
-			me.set_show_users(add_cell(row, d, "role"), d.role);
+			var role_cell = add_cell(row, d, "role");
+			me.set_show_users(role_cell, d.role);
+
+			if (d.permlevel===0) {
+				add_check(role_cell, d, "apply_user_permissions").removeClass("col-md-4");
+			}
 
 			var cell = add_cell(row, d, "permlevel");
 			if(d.permlevel==0) {
@@ -226,14 +227,8 @@ frappe.PermissionEngine = Class.extend({
 			var perm_container = $("<div class='row'></div>").appendTo(perm_cell);
 
 			$.each(me.rights, function(i, r) {
-				if(r==="restrict") {
-					add_check(perm_container, d, "restrict", "Can Restrict Others");
-				} else if(r==="restricted") {
-					add_check(perm_container, d, "restricted", "Only Restricted Documents");
-				} else {
-					add_check(perm_container, d, r);
-				}
-			})
+				add_check(perm_container, d, r);
+			});
 
 			// buttons
 			me.add_delete_button(row, d);
@@ -260,7 +255,7 @@ frappe.PermissionEngine = Class.extend({
 							return $.format('<a href="#Form/User/{0}">{1}</a>', [p, p]);
 						})
 						msgprint(__("Users with role {0}:", [role])
-							+ r.message.join("<br>"));
+							+ "<br>" + r.message.join("<br>"));
 					}
 				})
 				return false;

@@ -26,10 +26,10 @@ def get_data():
 				},
 				{
 					"type": "page",
-					"name": "user-properties",
-					"label": _("User Permission Restrictions"),
+					"name": "user-permissions",
+					"label": _("User Permissions"),
 					"icon": "icon-user",
-					"description": _("Set Defaults and Restrictions for Users")
+					"description": _("Set Permissions per User")
 				},
 			]
 		},

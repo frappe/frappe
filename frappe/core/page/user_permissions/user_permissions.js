@@ -1,7 +1,7 @@
 frappe.pages['user-permissions'].onload = function(wrapper) {
 	frappe.ui.make_app_page({
 		parent: wrapper,
-		title: 'User Permissions',
+		title: "User Permissions Manager",
 		single_column: true
 	});
 	$(wrapper).find(".layout-main").html("<div class='user-settings' style='min-height: 200px;'></div>\

@@ -556,7 +556,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 	make_user_permissions: function() {
 		var me = this;
 		if(this.docname && frappe.model.can_set_user_permissions("Report")) {
-			this.page.appframe.add_button(__("User Permission Restrictions"), function() {
+			this.page.appframe.add_button(__("User Permissions Manager"), function() {
 				frappe.route_options = {
 					property: "Report",
 					restriction: me.docname

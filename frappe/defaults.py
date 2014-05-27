@@ -91,35 +91,39 @@ def clear_default(key=None, value=None, parent=None, name=None, parenttype=None)
 	conditions = []
 	values = []
 
-	if key:
-		conditions.append("defkey=%s")
-		values.append(key)
-
-	if value:
-		conditions.append("defvalue=%s")
-		values.append(value)
-
 	if name:
 		conditions.append("name=%s")
 		values.append(name)
 
+	else:
+		if key:
+			conditions.append("defkey=%s")
+			values.append(key)
+
+		if value:
+			conditions.append("defvalue=%s")
+			values.append(value)
+
+		if parent:
+			conditions.append("parent=%s")
+			values.append(parent)
+
+		if parenttype:
+			conditions.append("parenttype=%s")
+			values.append(parenttype)
+
 	if parent:
-		conditions.append("parent=%s")
 		clear_cache(parent)
-		values.append(parent)
 	else:
 		clear_cache("__default")
 		clear_cache("__global")
-
-	if parenttype:
-		conditions.append("parenttype=%s")
-		values.append(parenttype)
 
 	if not conditions:
 		raise Exception, "[clear_default] No key specified."
 
 	frappe.db.sql("""delete from tabDefaultValue where {0}""".format(" and ".join(conditions)),
 		tuple(values))
+
 	_clear_cache(parent)
 
 def get_defaults_for(parent="__default"):

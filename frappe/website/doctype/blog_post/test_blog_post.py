@@ -6,7 +6,8 @@
 import frappe
 import frappe.defaults
 import unittest
-from frappe.core.page.user_permissions.user_permissions import add, remove, get_properties, clear_user_permissions
+from frappe.core.page.user_permissions.user_permissions import add, remove, get_permissions
+from frappe.permissions import clear_user_permissions_for_doctype
 
 test_records = frappe.get_test_records('Blog Post')
 
@@ -30,8 +31,8 @@ class TestBlogPost(unittest.TestCase):
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
-		clear_user_permissions("Blog Category")
-		clear_user_permissions("Blog Post")
+		clear_user_permissions_for_doctype("Blog Category")
+		clear_user_permissions_for_doctype("Blog Post")
 
 	def test_basic_permission(self):
 		post = frappe.get_doc("Blog Post", "_test-blog-post")
@@ -120,7 +121,7 @@ class TestBlogPost(unittest.TestCase):
 
 	def test_not_allowed_to_remove_self(self):
 		self.add_restriction_to_user2()
-		defname = get_properties("test2@example.com", "Blog Post", "_test-blog-post")[0].name
+		defname = get_permissions("test2@example.com", "Blog Post", "_test-blog-post")[0].name
 
 		frappe.set_user("test2@example.com")
 

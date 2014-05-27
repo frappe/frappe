@@ -23,7 +23,7 @@
  "idx": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2014-05-23 01:29:48.468901", 
+ "modified": "2014-05-27 03:49:17.110223", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Role", 
@@ -31,7 +31,6 @@
  "permissions": [
   {
    "amend": 0, 
-   "cancel": 0, 
    "create": 1, 
    "email": 1, 
    "permlevel": 0, 
@@ -43,7 +42,6 @@
    "write": 1
   }, 
   {
-   "cancel": 0, 
    "create": 1, 
    "delete": 1, 
    "email": 1, 
@@ -56,6 +54,7 @@
    "write": 1
   }, 
   {
+   "apply_user_permissions": 1, 
    "permlevel": 0, 
    "read": 1, 
    "role": "All"

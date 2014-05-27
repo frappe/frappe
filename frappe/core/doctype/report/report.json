@@ -101,14 +101,13 @@
  ], 
  "icon": "icon-table", 
  "idx": 1, 
- "modified": "2014-05-12 17:08:04.185601", 
+ "modified": "2014-05-27 03:49:17.001234", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Report", 
  "owner": "Administrator", 
  "permissions": [
   {
-   "cancel": 0, 
    "create": 1, 
    "delete": 1, 
    "email": 1, 
@@ -121,7 +120,6 @@
    "write": 1
   }, 
   {
-   "cancel": 0, 
    "create": 1, 
    "delete": 1, 
    "email": 1, 
@@ -134,7 +132,6 @@
    "write": 1
   }, 
   {
-   "cancel": 0, 
    "create": 1, 
    "delete": 1, 
    "email": 1, 
@@ -147,7 +144,7 @@
    "write": 1
   }, 
   {
-   "cancel": 0, 
+   "apply_user_permissions": 1, 
    "delete": 0, 
    "email": 1, 
    "permlevel": 0, 
