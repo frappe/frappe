@@ -3,13 +3,13 @@ function prettyDate(time){
 	var date = time;
 	if(typeof(time)=="string")
 		date = new Date((time || "").replace(/-/g,"/").replace(/[TZ]/g," ").replace(/\.[0-9]*/, ""));
-	
+
 	var diff = (((new Date()).getTime() - date.getTime()) / 1000),
 	day_diff = Math.floor(diff / 86400);
-	
+
 	if ( isNaN(day_diff) || day_diff < 0 )
 		return '';
-			
+
 	return when = day_diff == 0 && (
 			diff < 60 && "just now" ||
 			diff < 120 && "1 minute ago" ||
@@ -21,12 +21,14 @@ function prettyDate(time){
 		day_diff < 31 && Math.ceil( day_diff / 7 ) + " weeks ago" ||
 		day_diff < 365 && Math.ceil( day_diff / 30) + " months ago" ||
 		"> " + Math.floor( day_diff / 365 ) + " year(s) ago";
-		
+
 }
 
 
 var comment_when = function(datetime) {
-	return '<span class="frappe-timestamp" data-timestamp="'+datetime+'">' + prettyDate(datetime) + '</span>';
+	return '<span class="frappe-timestamp" data-timestamp="'+datetime
+		+'" title="'+datetime+'">'
+		+ prettyDate(datetime) + '</span>';
 };
 
 frappe.provide("frappe.datetime");

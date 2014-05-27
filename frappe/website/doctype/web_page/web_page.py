@@ -20,6 +20,8 @@ def check_broken_links():
 					res = requests.get(link)
 				except requests.exceptions.SSLError:
 					res = frappe._dict({"status_code": "SSL Error"})
+				except requests.exceptions.ConnectionError:
+					res = frappe._dict({"status_code": "Connection Error"})
 
 				if res.status_code!=200:
 					print "[{0}] {1}: {2}".format(res.status_code, p.name, link)
