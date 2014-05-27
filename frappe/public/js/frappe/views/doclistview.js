@@ -256,7 +256,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 				})
 			});
 		}
-		if(frappe.model.can_restrict(this.doctype)) {
+		if(frappe.model.can_set_user_permissions(this.doctype)) {
 			this.appframe.add_icon_btn("2", "icon-shield",
 				__("User Permission Restrictions"), function() {
 					frappe.route_options = {

@@ -151,7 +151,7 @@ class DatabaseQuery(object):
 		if not self.ignore_permissions:
 			match_conditions = self.build_match_conditions()
 			if match_conditions:
-				self.conditions.append(match_conditions)
+				self.conditions.append("(" + match_conditions + ")")
 
 	def add_docstatus_conditions(self):
 		if self.docstatus:
@@ -215,49 +215,43 @@ class DatabaseQuery(object):
 
 		if not self.tables: self.extract_tables()
 
-		# explict permissions
-		restricted_by_user = frappe.permissions.get_user_perms(frappe.get_meta(self.doctype)).restricted
+		# apply user permissions?
+		role_permissions = frappe.permissions.get_role_permissions(frappe.get_meta(self.doctype))
+		if role_permissions.get("apply_user_permissions", {}).get("read"):
+			# get user permissions
+			user_permissions = frappe.defaults.get_user_permissions()
 
-		# get restrictions
-		restrictions = frappe.defaults.get_restrictions()
-
-		if restricted_by_user:
-			self.match_or_conditions.append('`tab{doctype}`.`owner`="{user}"'.format(doctype=self.doctype,
-				user=frappe.local.session.user))
-			self.match_filters["owner"] = frappe.session.user
-
-		if restrictions:
-			self.add_restrictions(restrictions)
+			if user_permissions:
+				self.add_user_permissions(user_permissions)
 
 		if as_condition:
 			return self.build_match_condition_string()
 		else:
 			return self.match_filters
 
-	def add_restrictions(self, restrictions):
-		fields_to_check = frappe.get_meta(self.doctype).get_restricted_fields(restrictions.keys())
-		if self.doctype in restrictions:
-			fields_to_check.append(frappe._dict({"fieldname":"name", "options":self.doctype}))
+	def add_user_permissions(self, user_permissions):
+		fields_to_check = frappe.get_meta(self.doctype).get_fields_to_check_permissions(user_permissions.keys())
 
 		# check in links
 		for df in fields_to_check:
-			self.match_conditions.append("""(ifnull(`tab{doctype}`.`{fieldname}`, "")="" or \
-				`tab{doctype}`.`{fieldname}` in ({values}))""".format(doctype=self.doctype,
-					fieldname=df.fieldname,
-					values=", ".join([('"'+v.replace('"', '\"')+'"') \
-						for v in restrictions[df.options]])))
+			self.match_conditions.append("""`tab{doctype}`.`{fieldname}` in ({values})""".format(
+				doctype=self.doctype,
+				fieldname=df.fieldname,
+				values=", ".join([('"'+v.replace('"', '\"')+'"') for v in user_permissions[df.options]])
+			))
+
 			self.match_filters.setdefault(df.fieldname, [])
-			self.match_filters[df.fieldname]= restrictions[df.options]
+			self.match_filters[df.fieldname]= user_permissions[df.options]
 
 	def build_match_condition_string(self):
 		conditions = " and ".join(self.match_conditions)
 		doctype_conditions = self.get_permission_query_conditions()
 		if doctype_conditions:
-			conditions += ' and ' + doctype_conditions if conditions else doctype_conditions
+			conditions += (' and ' + doctype_conditions) if conditions else doctype_conditions
 
 		if self.match_or_conditions:
 			if conditions:
-				conditions = '({conditions}) or {or_conditions}'.format(conditions=conditions,
+				conditions = '{or_conditions} or ({conditions})'.format(conditions=conditions,
 					or_conditions = ' or '.join(self.match_or_conditions))
 			else:
 				conditions = " or ".join(self.match_or_conditions)

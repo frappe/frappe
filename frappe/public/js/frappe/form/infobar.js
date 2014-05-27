@@ -39,8 +39,8 @@ frappe.ui.form.InfoBar = Class.extend({
 		this.$links = this.appframe.add_icon_btn("2", "icon-link", __("Linked With"),
 				function() { me.frm.toolbar.show_linked_with(); });
 
-		// link to user restrictions
-		if(!me.frm.meta.issingle && frappe.model.can_restrict(me.frm.doctype, me.frm)) {
+		// link to user permissions
+		if(!me.frm.meta.issingle && frappe.model.can_set_user_permissions(me.frm.doctype, me.frm)) {
 			this.$user_properties = this.appframe.add_icon_btn("2", "icon-shield",
 				__("User Permission Restrictions"), function() {
 					frappe.route_options = {

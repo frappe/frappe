@@ -1,0 +1,16 @@
+{
+ "creation": "2013-01-01 18:50:55.000000",
+ "docstatus": 0,
+ "doctype": "Page",
+ "icon": "icon-user",
+ "idx": 1,
+ "modified": "2014-05-26 11:11:56.000000",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "user-permissions",
+ "owner": "Administrator",
+ "page_name": "user-permissions",
+ "roles": [],
+ "standard": "Yes",
+ "title": "User Permissions"
+}

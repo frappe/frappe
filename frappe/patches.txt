@@ -30,3 +30,4 @@ execute:frappe.get_doc("User", "Guest").save()
 frappe.patches.v4_0.deprecate_link_selects
 frappe.patches.v4_0.set_user_gravatar
 frappe.patches.v4_0.update_custom_field_insert_after
+frappe.patches.v4_0.set_user_permissions

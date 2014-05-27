@@ -106,5 +106,5 @@ def import_doc(docdict, force=False):
 	doc.ignore_validate = True
 	doc.ignore_permissions = True
 	doc.ignore_mandatory = True
-	doc.ignore_restrictions = True
+	doc.ignore_user_permissions = True
 	doc.insert()

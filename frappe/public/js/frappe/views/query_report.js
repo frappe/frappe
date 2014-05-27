@@ -71,7 +71,7 @@ frappe.views.QueryReport = Class.extend({
 		this.appframe.add_primary_action(__('Export'), function() { me.export_report(); },
 			"icon-download");
 
-		if(frappe.model.can_restrict("Report")) {
+		if(frappe.model.can_set_user_permissions("Report")) {
 			this.appframe.add_primary_action(__("User Restrictions"), function() {
 				frappe.route_options = {
 					property: "Report",

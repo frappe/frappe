@@ -35,7 +35,7 @@ CREATE TABLE `tabDocField` (
   `trigger` varchar(255) DEFAULT NULL,
   `depends_on` varchar(255) DEFAULT NULL,
   `permlevel` int(11) DEFAULT '0',
-  `ignore_restrictions` int(1) DEFAULT NULL,
+  `ignore_user_permissions` int(1) DEFAULT NULL,
   `width` varchar(255) DEFAULT NULL,
   `print_width` varchar(255) DEFAULT NULL,
   `default` text,

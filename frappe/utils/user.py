@@ -27,7 +27,7 @@ class User:
 		self.can_export = []
 		self.can_print = []
 		self.can_email = []
-		self.can_restrict = []
+		self.can_set_user_permissions = []
 		self.allow_modules = []
 		self.in_create = []
 
@@ -48,19 +48,16 @@ class User:
 	def build_perm_map(self):
 		"""build map of permissions at level 0"""
 		self.perm_map = {}
-		for r in frappe.db.sql("""select parent, `read`, `write`, `create`, `delete`, `submit`,
-			`cancel`,`report`, `import`, `export`, `print`, `email`, `restrict`
-			from tabDocPerm where docstatus=0
+		roles = self.get_roles()
+		for r in frappe.db.sql("""select * from tabDocPerm where docstatus=0
 			and ifnull(permlevel,0)=0
-			and parent not like "old_parent:%%"
-			and role in ('%s')""" % "','".join(self.get_roles()), as_dict=1):
+			and role in ({roles})""".format(roles=", ".join(["%s"]*len(roles))), tuple(roles), as_dict=1):
 			dt = r['parent']
 
 			if not dt in  self.perm_map:
 				self.perm_map[dt] = {}
 
-			for k in ('read', 'write', 'create', 'submit', 'cancel', 'amend', 'delete',
-				'report', 'import', 'export', 'print', 'email', 'restrict'):
+			for k in frappe.permissions.rights:
 				if not self.perm_map[dt].get(k):
 					self.perm_map[dt][k] = r.get(k)
 
@@ -100,7 +97,7 @@ class User:
 			if (p.get('read') or p.get('write') or p.get('create')):
 				if p.get('report'):
 					self.can_get_report.append(dt)
-				for key in ("import", "export", "print", "email", "restrict"):
+				for key in ("import", "export", "print", "email", "set_user_permissions"):
 					if p.get(key):
 						getattr(self, "can_" + key).append(dt)
 
@@ -166,7 +163,7 @@ class User:
 		for key in ("can_create", "can_write", "can_read", "can_cancel", "can_delete",
 			"can_get_report", "allow_modules", "all_read", "can_search",
 			"in_create", "can_export", "can_import", "can_print", "can_email",
-			"can_restrict"):
+			"can_set_user_permissions"):
 
 			d[key] = list(set(getattr(self, key)))
 

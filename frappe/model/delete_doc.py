@@ -55,8 +55,8 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 	# delete attachments
 	remove_all(doctype, name)
 
-	# delete restrictions
-	frappe.defaults.clear_default(parenttype="Restriction", key=doctype, value=name)
+	# delete user_permissions
+	frappe.defaults.clear_default(parenttype="User Permission", key=doctype, value=name)
 
 	return 'okay'
 

@@ -1,7 +1,7 @@
 frappe.pages['permission-manager'].onload = function(wrapper) {
 	frappe.ui.make_app_page({
 		parent: wrapper,
-		title: __('Permission Manager'),
+		title: __('Role Permissions Manager'),
 		icon: "icon-lock",
 		single_column: true
 	});
@@ -240,7 +240,7 @@ frappe.PermissionEngine = Class.extend({
 		});
 	},
 	rights: ["read", "write", "create", "delete", "submit", "cancel", "amend",
-		"report", "import", "export", "print", "email", "restricted", "restrict"],
+		"print", "email", "report", "import", "export", "set_user_permissions"],
 
 	set_show_users: function(cell, role) {
 		cell.html("<a href='#'>"+role+"</a>")

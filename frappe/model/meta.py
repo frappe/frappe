@@ -190,18 +190,22 @@ class Meta(Document):
 
 		self.set("fields", newlist)
 
-	def get_restricted_fields(self, restricted_types):
-		restricted_fields = self.get("fields", {
+	def get_fields_to_check_permissions(self, user_permissions_doctypes):
+		fields = self.get("fields", {
 			"fieldtype":"Link",
 			"parent": self.name,
-			"ignore_restrictions":("!=", 1),
-			"options":("in", restricted_types)
+			"ignore_user_permissions":("!=", 1),
+			"options":("in", user_permissions_doctypes)
 		})
-		if self.name in restricted_types:
-			restricted_fields.append(frappe._dict({
-				"label":"Name", "fieldname":"name", "options": self.name
+
+		if self.name in user_permissions_doctypes:
+			fields.append(frappe._dict({
+				"label":"Name",
+				"fieldname":"name",
+				"options": self.name
 			}))
-		return restricted_fields
+
+		return fields
 
 
 doctype_table_fields = [

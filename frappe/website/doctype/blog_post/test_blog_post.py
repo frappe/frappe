@@ -6,7 +6,7 @@
 import frappe
 import frappe.defaults
 import unittest
-from frappe.core.page.user_properties.user_properties import add, remove, get_properties, clear_restrictions
+from frappe.core.page.user_permissions.user_permissions import add, remove, get_properties, clear_user_permissions
 
 test_records = frappe.get_test_records('Blog Post')
 
@@ -30,8 +30,8 @@ class TestBlogPost(unittest.TestCase):
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
-		clear_restrictions("Blog Category")
-		clear_restrictions("Blog Post")
+		clear_user_permissions("Blog Category")
+		clear_user_permissions("Blog Post")
 
 	def test_basic_permission(self):
 		post = frappe.get_doc("Blog Post", "_test-blog-post")

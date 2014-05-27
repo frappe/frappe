@@ -225,6 +225,7 @@ frappe.RoleEditor = Class.extend({
 				$body.append('<table class="user-perm"><thead><tr>'
 					+ '<th style="text-align: left">' + __('Document Type') + '</th>'
 					+ '<th>' + __('Level') + '</th>'
+					+ '<th>' + __('Apply User Permissions') + '</th>'
 					+ '<th>' + __('Read') + '</th>'
 					+ '<th>' + __('Write') + '</th>'
 					+ '<th>' + __('Create') + '</th>'
@@ -237,8 +238,7 @@ frappe.RoleEditor = Class.extend({
 					// + '<th>' + __('Export') + '</th>'
 					// + '<th>' + __('Print') + '</th>'
 					// + '<th>' + __('Email') + '</th>'
-					+ '<th>' + __('Only Restricted Documents') + '</th>'
-					+ '<th>' + __('Can Restrict Others') + '</th>'
+					+ '<th>' + __('Set User Permissions') + '</th>'
 					+ '</tr></thead><tbody></tbody></table>');
 
 				for(var i=0, l=r.message.length; i<l; i++) {
@@ -258,6 +258,7 @@ frappe.RoleEditor = Class.extend({
 					$body.find('tbody').append(repl('<tr>\
 						<td style="text-align: left">%(parent)s</td>\
 						<td>%(permlevel)s</td>\
+						<td>%(apply_user_permissions)s</td>\
 						<td>%(read)s</td>\
 						<td>%(write)s</td>\
 						<td>%(create)s</td>\
@@ -270,8 +271,7 @@ frappe.RoleEditor = Class.extend({
 						// <td>%(export)s</td>\
 						// <td>%(print)s</td>\
 						// <td>%(email)s</td>'
-						+ '<td>%(restricted)s</td>\
-						<td>%(restrict)s</td>\
+						+ '<td>%(set_user_permissions)s</td>\
 						</tr>', perm))
 				}
 

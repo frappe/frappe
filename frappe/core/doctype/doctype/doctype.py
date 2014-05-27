@@ -83,7 +83,7 @@ class DocType(Document):
 		make_module_and_roles(self)
 
 		from frappe import conf
-		if (not frappe.flags.in_import) and conf.get('developer_mode') or 0:
+		if not (frappe.flags.in_import or frappe.flags.in_test) and conf.get('developer_mode') or 0:
 			self.export_doc()
 			self.make_controller_template()
 
@@ -219,7 +219,18 @@ def validate_fields(fields):
 	check_min_items_in_list(fields)
 
 def validate_permissions_for_doctype(doctype, for_remove=False):
-	validate_permissions(frappe.get_doc("DocType", doctype), for_remove)
+	doctype = frappe.get_doc("DocType", doctype)
+
+	if frappe.conf.developer_mode and not frappe.flags.in_test:
+		# save doctype
+		doctype.save()
+
+	else:
+		validate_permissions(doctype, for_remove)
+
+		# save permissions
+		for perm in doctype.get("permissions"):
+			perm.db_update()
 
 def validate_permissions(doctype, for_remove=False):
 	permissions = doctype.get("permissions")
@@ -283,9 +294,12 @@ def validate_permissions(doctype, for_remove=False):
 			d.set("import", 0)
 			d.set("export", 0)
 
-		if d.restrict:
-			frappe.msgprint(_("Restrict cannot be set for Single types"))
-			d.restrict = 0
+		for ptype, label in (
+			("set_user_permissions", _("Set User Permissions")),
+			("apply_user_permissions", _("Apply User Permissions"))):
+			if d.get(ptype):
+				d.set(ptype, 0)
+				frappe.msgprint(_("{0} cannot be set for Single types").format(label))
 
 	def check_if_submittable(d):
 		if d.submit and not issubmittable:

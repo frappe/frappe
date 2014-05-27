@@ -20,26 +20,20 @@ def get_user_default_as_list(key, user=None):
 	d = get_defaults(user or frappe.session.user).get(key, None)
 	return (not isinstance(d, list)) and [d] or d
 
-def get_restrictions(user=None):
+def get_user_permissions(user=None):
 	if not user:
 		user = frappe.session.user
 
-	if user == frappe.session.user:
-		if frappe.local.restrictions is None:
-			frappe.local.restrictions = build_restrictions(user)
-		return frappe.local.restrictions
-	else:
-		return build_restrictions(user)
+	return build_user_permissions(user)
 
-def build_restrictions(user):
-	out = frappe.cache().get_value("restrictions:" + user)
+def build_user_permissions(user):
+	out = frappe.cache().get_value("user_permissions:" + user)
 	if out==None:
 		out = {}
-		for key, value in frappe.db.sql("""select defkey, defvalue
-			from tabDefaultValue where parent=%s and parenttype='Restriction'""", (user,)):
-			out.setdefault(key, [])
-			out[key].append(value)
-		frappe.cache().set_value("restrictions:" + user, out)
+		for key, value in frappe.db.sql("""select defkey, ifnull(defvalue, '') as defvalue
+			from tabDefaultValue where parent=%s and parenttype='User Permission'""", (user,)):
+			out.setdefault(key, []).append(value)
+		frappe.cache().set_value("user_permissions:" + user, out)
 	return out
 
 def get_defaults(user=None):
@@ -91,8 +85,6 @@ def add_default(key, value, parent, parenttype=None):
 		"defvalue": value
 	})
 	d.db_insert()
-	if parenttype=="Restriction":
-		frappe.local.restrictions = None
 	_clear_cache(parent)
 
 def clear_default(key=None, value=None, parent=None, name=None, parenttype=None):
@@ -122,8 +114,6 @@ def clear_default(key=None, value=None, parent=None, name=None, parenttype=None)
 	if parenttype:
 		conditions.append("parenttype=%s")
 		values.append(parenttype)
-		if parenttype=="Restriction":
-			frappe.local.restrictions = None
 
 	if not conditions:
 		raise Exception, "[clear_default] No key specified."

@@ -62,9 +62,9 @@ $.extend(frappe.meta, {
 		return docfields;
 	},
 
-	get_restricted_fields: function(doctype, name, restricted_types) {
+	get_fields_to_check_permissions: function(doctype, name, restricted_types) {
 		return $.map(frappe.meta.get_docfields(doctype, name), function(df) {
-			return (df.fieldtype==="Link" && df.ignore_restrictions!==1 &&
+			return (df.fieldtype==="Link" && df.ignore_user_permissions!==1 &&
 				restricted_types.indexOf(df.options)!==-1) ? df : null;
 		});
 	},

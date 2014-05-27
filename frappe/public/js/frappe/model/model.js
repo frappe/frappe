@@ -68,7 +68,7 @@ $.extend(frappe.model, {
 						localStorage["_doctype:" + doctype] = JSON.stringify(r.docs);
 					}
 					frappe.model.init_doctype(doctype);
-					frappe.defaults.set_restrictions(r.restrictions);
+					frappe.defaults.set_user_permissions(r.user_permissions);
 					callback(r);
 				}
 			});
@@ -177,12 +177,12 @@ $.extend(frappe.model, {
 		return frappe.boot.user.can_email.indexOf(doctype)!==-1;
 	},
 
-	can_restrict: function(doctype, frm) {
-		// system manager can always restrict
+	can_set_user_permissions: function(doctype, frm) {
+		// system manager can always set user permissions
 		if(user_roles.indexOf("System Manager")!==-1) return true;
 
-		if(frm) return frm.perm[0].restrict===1;
-		return frappe.boot.user.can_restrict.indexOf(doctype)!==-1;
+		if(frm) return frm.perm[0].set_user_permissions===1;
+		return frappe.boot.user.can_set_user_permissions.indexOf(doctype)!==-1;
 	},
 
 	has_value: function(dt, dn, fn) {

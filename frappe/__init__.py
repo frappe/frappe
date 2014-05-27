@@ -68,7 +68,6 @@ response = local("response")
 session = local("session")
 user = local("user")
 flags = local("flags")
-restrictions = local("restrictions")
 
 error_log = local("error_log")
 debug_log = local("debug_log")
@@ -84,29 +83,35 @@ def init(site, sites_path=None):
 		sites_path = '.'
 
 	local.error_log = []
+	local.message_log = []
+	local.debug_log = []
+	local.flags = _dict({})
+	local.rollback_observers = []
+	local.test_objects = {}
+
 	local.site = site
 	local.sites_path = sites_path
 	local.site_path = os.path.join(sites_path, site)
-	local.message_log = []
-	local.debug_log = []
+
 	local.request_method = request.method if request else None
 	local.response = _dict({"docs":[]})
+
 	local.conf = _dict(get_site_config())
 	local.lang = local.conf.lang or "en"
-	local.initialised = True
-	local.flags = _dict({})
-	local.rollback_observers = []
+
 	local.module_app = None
 	local.app_modules = None
+
 	local.user = None
-	local.restrictions = None
-	local.user_perms = {}
-	local.test_objects = {}
+	local.role_permissions = {}
+
 	local.jenv = None
 	local.jloader =None
 	local.cache = {}
 
 	setup_module_map()
+
+	local.initialised = True
 
 def connect(site=None, db_name=None):
 	from database import Database
@@ -209,8 +214,7 @@ def set_user(username):
 	local.cache = {}
 	local.session.data = {}
 	local.user = User(username)
-	local.restrictions = None
-	local.user_perms = {}
+	local.role_permissions = {}
 
 def get_request_header(key, default=None):
 	return request.headers.get(key, default)
@@ -275,6 +279,8 @@ def clear_cache(user=None, doctype=None):
 		frappe.sessions.clear_cache()
 		translate.clear_cache()
 		reset_metadata_version()
+
+	frappe.local.role_permissions = {}
 
 def get_roles(username=None):
 	from frappe.utils.user import User

@@ -107,7 +107,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		this.make_export();
 		this.set_init_columns();
 		this.make_save();
-		this.make_user_restrictions();
+		this.make_user_permissions();
 		this.set_tag_and_status_filter();
 	},
 
@@ -553,9 +553,9 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		}
 	},
 
-	make_user_restrictions: function() {
+	make_user_permissions: function() {
 		var me = this;
-		if(this.docname && frappe.model.can_restrict("Report")) {
+		if(this.docname && frappe.model.can_set_user_permissions("Report")) {
 			this.page.appframe.add_button(__("User Permission Restrictions"), function() {
 				frappe.route_options = {
 					property: "Report",

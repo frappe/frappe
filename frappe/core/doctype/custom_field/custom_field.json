@@ -1,5 +1,5 @@
 {
- "creation": "2013-01-10 16:34:01.000000", 
+ "creation": "2013-01-10 16:34:01", 
  "description": "Adds a custom field to a DocType", 
  "docstatus": 0, 
  "doctype": "DocType", 
@@ -143,9 +143,9 @@
   }, 
   {
    "depends_on": "eval:doc.fieldtype===\"Link\"", 
-   "fieldname": "ignore_restrictions", 
+   "fieldname": "ignore_user_permissions", 
    "fieldtype": "Check", 
-   "label": "Ignore Restrictions", 
+   "label": "Ignore User Permissions", 
    "permlevel": 0
   }, 
   {
@@ -257,7 +257,7 @@
  ], 
  "icon": "icon-glass", 
  "idx": 1, 
- "modified": "2014-01-20 17:48:31.000000", 
+ "modified": "2014-05-26 03:21:02.832530", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Custom Field", 
