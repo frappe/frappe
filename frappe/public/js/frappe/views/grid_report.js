@@ -374,11 +374,9 @@ frappe.views.GridReport = Class.extend({
 		$('<div style="text-align: right;"> \
 			<div class="processing" style="background-color: #fec; display: none; \
 				float: left; margin: 2px">Updated! </div> \
-			<a href="#" class="grid-report-export"> \
-				<i class="icon icon-download-alt"></i> Export</a> \
 		</div>').appendTo(this.wrapper);
 
-		this.wrapper.find(".grid-report-export").click(function() { return me.export(); });
+		this.appframe.add_primary_action(__("Export"), function() { return me.export(); }, "icon-download");
 
 		// grid wrapper
 		this.grid_wrapper = $("<div style='height: 500px; border: 1px solid #aaa; \
