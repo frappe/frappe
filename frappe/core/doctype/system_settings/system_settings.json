@@ -37,7 +37,7 @@
    "fieldname": "date_format", 
    "fieldtype": "Select", 
    "label": "Date Format", 
-   "options": "yyyy-mm-dd\ndd-mm-yyyy\ndd/mm/yyyy\nmm/dd/yyyy\nmm-dd-yyyy", 
+   "options": "yyyy-mm-dd\ndd-mm-yyyy\ndd/mm/yyyy\ndd.mm.yyyy\nmm/dd/yyyy\nmm-dd-yyyy", 
    "permlevel": 0, 
    "reqd": 1
   }, 
@@ -74,7 +74,7 @@
  ], 
  "icon": "icon-cog", 
  "issingle": 1, 
- "modified": "2014-05-27 06:29:28.922976", 
+ "modified": "2014-05-27 07:58:24.700595", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "System Settings", 

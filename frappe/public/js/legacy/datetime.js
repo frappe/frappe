@@ -128,6 +128,8 @@ frappe.datetime = {
 				val =  d[2]+'-'+d[1]+'-'+d[0] + time_str;
 			else if(user_fmt=='dd/mm/yyyy')
 				val =  d[2]+'/'+d[1]+'/'+d[0] + time_str;
+			else if(user_fmt=='dd.mm.yyyy')
+				val =  d[2]+'.'+d[1]+'.'+d[0] + time_str;
 			else if(user_fmt=='yyyy-mm-dd')
 				val =  d[0]+'-'+d[1]+'-'+d[2] + time_str;
 			else if(user_fmt=='mm/dd/yyyy')
@@ -160,6 +162,10 @@ frappe.datetime = {
 		}
 		else if(user_fmt=='dd/mm/yyyy') {
 			var d = d.split('/');
+			var val = d[2]+'-'+d[1]+'-'+d[0];
+		}
+		else if(user_fmt=='dd.mm.yyyy') {
+			var d = d.split('.');
 			var val = d[2]+'-'+d[1]+'-'+d[0];
 		}
 		else if(user_fmt=='yyyy-mm-dd') {
