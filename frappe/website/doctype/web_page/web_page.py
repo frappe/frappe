@@ -2,10 +2,34 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-import frappe, os, time
+import frappe, os, time, re
+import requests, requests.exceptions
 from frappe.website.website_generator import WebsiteGenerator
 from frappe.website.utils import cleanup_page_name
 from frappe.utils import cint
 
 class WebPage(WebsiteGenerator):
 	save_versions = True
+
+def check_broken_links():
+	cnt = 0
+	for p in frappe.db.sql("select name, main_section from `tabWeb Page`", as_dict=True):
+		for link in re.findall('href=["\']([^"\']*)["\']', p.main_section):
+			if link.startswith("http"):
+				try:
+					res = requests.get(link)
+				except requests.exceptions.SSLError:
+					res = frappe._dict({"status_code": "SSL Error"})
+
+				if res.status_code!=200:
+					print "[{0}] {1}: {2}".format(res.status_code, p.name, link)
+					cnt += 1
+			else:
+				link = link[1:] # remove leading /
+				link = link.split("#")[0]
+
+				if not frappe.db.exists("Website Route", link):
+					print p.name + ":" + link
+					cnt += 1
+
+	print "{0} links broken".format(cnt)
