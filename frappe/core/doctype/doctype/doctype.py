@@ -253,12 +253,13 @@ def validate_permissions(doctype, for_remove=False):
 	def check_double(d):
 		has_similar = False
 		for p in permissions:
-			if p.role==d.role and p.permlevel==d.permlevel and p.match==d.match and p!=d:
+			if (p.role==d.role and p.permlevel==d.permlevel
+				and p.apply_user_permissions==d.apply_user_permissions and p!=d):
 				has_similar = True
 				break
 
 		if has_similar:
-			frappe.throw(_("{0}: Only one rule allowed at a Role and Level").format(get_txt(d)))
+			frappe.throw(_("{0}: Only one rule allowed with the same Role, Level and Apply User Permissions").format(get_txt(d)))
 
 	def check_level_zero_is_set(d):
 		if cint(d.permlevel) > 0 and d.role != 'All':

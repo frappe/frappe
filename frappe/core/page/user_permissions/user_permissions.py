@@ -25,7 +25,7 @@ def get_permissions(parent=None, defkey=None, defvalue=None):
 		from tabDefaultValue
 		where parent not in ('__default', '__global')
 		and substr(defkey,1,1)!='_'
-		and parenttype='User Permissions'
+		and parenttype='User Permission'
 		{conditions}
 		order by parent, defkey""".format(conditions=conditions), values, as_dict=True)
 

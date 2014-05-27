@@ -243,6 +243,14 @@ class User(Document):
 
 		self.save()
 
+	def remove_roles(self, *roles):
+		existing_roles = dict((d.role, d) for d in self.get("user_roles"))
+		for role in roles:
+			if role in existing_roles:
+				self.get("user_roles").remove(existing_roles[role])
+
+		self.save()
+
 	def remove_all_roles_for_guest(self):
 		if self.name == "Guest":
 			self.set("user_roles", list(set(d for d in self.get("user_roles") if d.role == "Guest")))

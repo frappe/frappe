@@ -220,9 +220,7 @@ class DatabaseQuery(object):
 		if role_permissions.get("apply_user_permissions", {}).get("read"):
 			# get user permissions
 			user_permissions = frappe.defaults.get_user_permissions()
-
-			if user_permissions:
-				self.add_user_permissions(user_permissions)
+			self.add_user_permissions(user_permissions)
 
 		if as_condition:
 			return self.build_match_condition_string()
@@ -234,7 +232,8 @@ class DatabaseQuery(object):
 
 		# check in links
 		for df in fields_to_check:
-			self.match_conditions.append("""`tab{doctype}`.`{fieldname}` in ({values})""".format(
+			self.match_conditions.append("""(ifnull(`tab{doctype}`.`{fieldname}`, "")=""
+				or `tab{doctype}`.`{fieldname}` in ({values}))""".format(
 				doctype=self.doctype,
 				fieldname=df.fieldname,
 				values=", ".join([('"'+v.replace('"', '\"')+'"') for v in user_permissions[df.options]])

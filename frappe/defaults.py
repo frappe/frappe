@@ -33,6 +33,11 @@ def build_user_permissions(user):
 		for key, value in frappe.db.sql("""select defkey, ifnull(defvalue, '') as defvalue
 			from tabDefaultValue where parent=%s and parenttype='User Permission'""", (user,)):
 			out.setdefault(key, []).append(value)
+
+		# add profile match
+		if user not in out.get("User", []):
+			out.setdefault("User", []).append(user)
+
 		frappe.cache().set_value("user_permissions:" + user, out)
 	return out
 

@@ -73,17 +73,14 @@ def get_role_permissions(meta, user=None):
 
 def user_has_permission(doc, verbose=True):
 	from frappe.defaults import get_user_permissions
-
 	user_permissions = get_user_permissions()
-	if not user_permissions:
-		return True
-
 	user_permissions_keys = user_permissions.keys()
+
 	def check_user_permission(d):
 		result = True
 		meta = frappe.get_meta(d.get("doctype"))
 		for df in meta.get_fields_to_check_permissions(user_permissions_keys):
-			if (d.get(df.fieldname) or "") not in user_permissions[df.options]:
+			if d.get(df.fieldname) and d.get(df.fieldname) not in user_permissions[df.options]:
 				result = False
 
 				if verbose:
@@ -98,7 +95,7 @@ def user_has_permission(doc, verbose=True):
 
 	_user_has_permission = check_user_permission(doc)
 	for d in doc.get_all_children():
-		_user_has_permission = check_user_permission(d) or _user_has_permission
+		_user_has_permission = check_user_permission(d) and _user_has_permission
 
 	return _user_has_permission
 
