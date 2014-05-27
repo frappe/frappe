@@ -53,7 +53,7 @@ class Workflow(Document):
 				if s.state==state:
 					return s
 
-			frappe.throw(frappe._("{0} in not a valid States").format(state))
+			frappe.throw(frappe._("{0} not a valid State").format(state))
 
 		for t in self.workflow_transitions:
 			state = get_state(t.state)
