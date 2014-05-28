@@ -12,7 +12,7 @@
 <li><b>Prompt</b> - Prompt user for a name\
 <li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\
 </ol>')"">Naming Options</a>","< و عند _ النقر = "" msgprint (' <ol> \ \ ن <li> قم <B> المجال : [ fieldname ] < / B> - حسب المجال \ \ ن <li> قم <B> naming_series : < / B> - بواسطة تسمية"
-A user can be restricted to multiple records of the same type.,يمكن تقييد للمستخدم ل سجلات متعددة من نفس النوع .
+A user can be permitted to multiple records of the same DocType.,يمكن أن يسمح للمستخدم ل سجلات متعددة من نفس DOCTYPE .
 About,حول
 About Us Settings,حول بنا إعدادات
 About Us Team Member,حول عضو فريق بنا
@@ -21,7 +21,7 @@ Actions,الإجراءات
 "Actions for workflow (e.g. Approve, Cancel).",الإجراءات ل سير العمل ( الموافقة على مثل إلغاء) .
 Add,إضافة
 Add A New Rule,إضافة قاعدة جديدة
-Add A Restriction,إضافة تقييد
+Add A User Permission,إضافة مستخدم إذن
 Add Attachments,إضافة مرفقات
 Add Bookmark,إضافة علامة
 Add CSS,إضافة CSS
@@ -30,7 +30,6 @@ Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytic
 Add Message,إضافة رسالة
 Add New Permission Rule,إضافة قاعدة جديدة إذن
 Add Reply,إضافة رد
-Add This To User's Restrictions,هذا إضافة إلى تقييد المستخدم
 Add Total Row,إضافة صف الإجمالي
 Add a New Role,إضافة دور جديد
 Add a banner to the site. (small banners are usually good),إضافة لافتة إلى الموقع. (لافتات صغيرة عادة ما تكون جيدة)
@@ -42,7 +41,7 @@ Add fields to forms.,إضافة حقول إلى النماذج.
 Add new row,إضافة صف جديد
 "Add the name of <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> e.g. ""Open Sans""","إضافة اسم <a href=""http://google.com/webfonts"" target=""_blank"">جوجل خط ويب</a> على سبيل المثال &quot;بلا فتح&quot;"
 Add to To Do,إضافة إلى المهام
-Add to To Do List of,إضافة إلى قائمة المهام من
+Add to To Do List Of,إضافة إلى قائمة المهام من
 Adding System Manager to this User as there must be atleast one System Manager,مضيفا إدارة نظام ل هذا العضو كما يجب أن يكون هناك أتلست إدارة نظام واحد
 Additional Info,معلومات إضافية
 Additional Permissions,ضوابط إضافية
@@ -65,7 +64,7 @@ Allow user to login only before this hour (0-24),تسمح للمستخدم لت�
 Allowed,سمح
 "Allowing DocType, DocType. Be careful!",السماح DOCTYPE ، DOCTYPE . كن حذرا!
 Already Registered,مسجل بالفعل
-Already in todo,بالفعل في تودو
+Already in user's To Do list,بالفعل في المستخدم والقيام قائمة
 Alternative download link,رابط تحميل بديل
 "Alternatively, you can also specify 'auto_email_id' in site_config.json","بدلا من ذلك، يمكنك أيضا تحديد "" auto_email_id ' في site_config.json"
 Always use above Login Id as sender,استخدام دائما فوق معرف تسجيل الدخول باسم المرسل
@@ -74,14 +73,15 @@ Amend,تعديل
 "Another {0} with name {1} exists, select another name",آخر {0} مع اسم {1} موجودا، حدد اسم آخر
 Anyone Can Read,أي شخص يمكن قراءة
 Anyone Can Write,أي شخص يمكن الكتابة
-"Apart from System Manager, roles with 'Can Restrict Others' permission can restrict other users for that Document Type.","وبصرف النظر عن إدارة النظام ، والأدوار مع ' يمكن تقييد أخرى "" إذن يمكن تقييد المستخدمين الآخرين لهذا نوع الوثيقة ."
-"Apart from the existing Permission Rules, you can apply addition restriction based on Type.",وبصرف النظر عن القواعد إذن القائمة ، يمكنك تطبيق قيود بالإضافة إلى ذلك على أساس النوع .
+"Apart from Role based Permission Rules, you can apply User Permissions based on DocTypes.",وبصرف النظر عن دور أساس القواعد إذن ، يمكنك تطبيق أذونات المستخدم استنادا DocTypes .
+"Apart from System Manager, roles with 'Set User Permissions' right can set permissions for other users for that Document Type.","وبصرف النظر عن إدارة النظام ، يمكن أن الأدوار مع حق "" تعيين أذونات المستخدم تعيين أذونات للمستخدمين الآخرين لذلك نوع الوثيقة ."
 App Already Installed,التطبيق المثبتة مسبقا
 App Name,اسم التطبيق
 App not found,لم يتم العثور على التطبيق
 Application Installer,مثبت التطبيق
 Applications,تطبيقات
 Apply Style,تطبيق نمط
+Apply User Permissions,تطبيق ضوابط العضو
 Are you sure you want to delete the attachment?,هل أنت متأكد أنك تريد حذف المرفق؟
 Arial,ارييل
 "As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User.",باعتبارها أفضل الممارسات ، عدم تعيين نفس مجموعة من الحكم إذن ل أدوار مختلفة. بدلا من ذلك ، تعيين أدوار متعددة ل نفس العضو .
@@ -130,14 +130,15 @@ Bulk email limit {0} crossed,الحد معظم البريد الإلكتروني
 Button,زر
 By,بواسطة
 Calendar,تقويم
-Can Restrict Others,يمكن تقييد أخرى
 Cancel,إلغاء
 Cancelled,إلغاء
 "Cannot Edit {0} directly: To edit {0} properties, create / update {1}, {2} and {3}",لا يمكن تحرير {0} مباشرة : لتعديل خصائص {0} ، وإنشاء / تحديث {1} ، {2} {3} و
 Cannot Update: Incorrect / Expired Link.,لا يمكن تحديث : رابط غير الصحيحة / منتهية الصلاحية .
 Cannot Update: Incorrect Password,لا يمكن تحديث : كلمة المرور غير صحيحة
 Cannot add more than 50 comments,لا يمكن إضافة أكثر من 50 تعليقا
+Cannot cancel before submitting. See Transition {0},لا يمكن إلغاء قبل تقديم .
 Cannot change picture,لا يمكن تغيير الصورة
+Cannot change state of Cancelled Document. Transition row {0},لا يمكن تغيير حالة الوثيقة ملغاة .
 Cannot change {0},لا يمكن تغيير {0}
 Cannot delete or cancel because {0} {1} is linked with {2} {3},لا يمكن حذف أو إلغاء ل {0} {1} يرتبط مع {2} {3}
 Cannot delete {0} as it has child nodes,لا يمكن حذف {0} كما أن لديها العقد التابعة
@@ -147,7 +148,9 @@ Cannot map because following condition fails: ,لا يمكن تعيين بسبب
 Cannot open instance when its {0} is open,لا يمكن فتح المثال عندما ه {0} مفتوح
 Cannot open {0} when its instance is open,لا يمكن فتح {0} عندما مثيل لها مفتوح
 Cannot print cancelled documents,لا يمكن طباعة المستندات إلغاء
+Cannot remove permission for DocType: {0} and Name: {1},لا يمكن إزالة إذن ل DOCTYPE : {0} و اسم : {1}
 Cannot reply to a reply,لا يمكنك الرد على الرد
+Cannot set permission for DocType: {0} and Name: {1},لا يمكن تعيين إذن ل DOCTYPE : {0} و اسم : {1}
 Categorize blog posts.,تصنيف بلوق وظيفة.
 Category,فئة
 Category Name,اسم التصنيف
@@ -373,6 +376,7 @@ File URL,ملف URL
 File not attached,ملف لا تعلق
 File size exceeded the maximum allowed size of {0} MB,تجاوز حجم الملف الحد الأقصى المسموح به حجم {0} MB
 Filter,تحديد
+Filter records based on User Permissions defined for a user,تصفية السجلات استنادا إلى ضوابط يحددها المستخدم لمستخدم
 First Name,الاسم الأول
 Float,الطفو
 Float Precision,تعويم الدقة
@@ -387,12 +391,12 @@ For DocType,ل DOCTYPE
 For Select, enter list of Options separated by comma",ل سريعة ، أدخل DOCTYPE عن مجموعة \ n لل تحديد، قائمة خيارات مفصولة بفواصل دخول
 "For comparative filters, start with",للمرشحات النسبية، وتبدأ مع
 For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,على سبيل المثال إذا قمت بإلغاء وتعديل &#39;INV004&#39; سوف تصبح الوثيقة الجديدة &quot;INV004-1&quot;. هذا يساعدك على تتبع كل تعديل.
-"For example, if user X is restricted to company C, user X will not be able to see any transaction that has company C as a linked value.",على سبيل المثال ، إذا كان يتم تقييد المستخدم X ل شركة C، X المستخدم لن يكون قادرا على رؤية أي المعاملة التي لديها شركة C كقيمة مرتبطة.
 For ranges,للنطاقات
 For top bar,الشريط العلوي لل
 For {0} at level {1} in {2} in row {3},ل {0} في {1} مستوى في {2} في {3} الصف
 Forgot Password,نسيت كلمة المرور
 Forgot Password?,نسيت كلمة المرور ؟
+Form,شكل
 Forum,منتدى
 Forums,المنتديات
 Forward To Email Address,انتقل إلى عنوان البريد الإلكتروني
@@ -449,8 +453,6 @@ Home Page is Products,الصفحة الرئيسية المنتجات غير
 ID (name) of the entity whose property is to be set,ID (اسم) للكيان الذي هو الملكية التي سيتم تحديدها
 Icon,رمز
 Icon will appear on the button,سوف تظهر أيقونة على زر
-"If 'Restricted' is checked, the owner is always allowed based on Role.",إذا ' المحظورة ' محددا ، ولا يسمح لل مالك دائما على أساس الدور .
-"If 'Restricted' is not checked, you can still restrict permissions based on certain values, like Company or Territory in a document by setting User Restrictions. But unless any restriction is set, a user will have permissions based on the Role.",إذا ' المحظورة ' لم يتم تحديد ، لا يزال بإمكانك تقييد الأذونات على أساس قيم معينة ، مثل شركة أو الإقليم في وثيقة من خلال وضع قيود العضو . ولكن ما لم يتم تعيين أي قيود ، وسوف يكون لديك أذونات مستخدم على أساس الدور .
 "If a Role does not have access at Level 0, then higher levels are meaningless.",إذا لم يكن لديك الوصول دور في المستوى 0، ثم مستويات أعلى لا معنى لها.
 "If checked, all other workflows become inactive.",إذا تم، جميع مهام سير العمل الأخرى تصبح خاملة.
 "If checked, an email with an attached HTML format will be added to part of the EMail body as well as attachment. To only send as attachment, uncheck this.",إذا تم، ستضاف رسالة بالبريد الالكتروني مع تنسيق HTML المرفقة لجزء من الجسم البريد الإلكتروني، فضلا المرفق. لإرسال كمرفق فقط، قم بإلغاء تحديد هذا.
@@ -459,7 +461,7 @@ Icon will appear on the button,سوف تظهر أيقونة على زر
 If non standard port (e.g. 587),إذا غير المنفذ القياسي (على سبيل المثال 587)
 "If these instructions where not helpful, please add in your suggestions on GitHub Issues.",إذا هذه التعليمات حيث لم تكن مفيدة ، يرجى إضافة في اقتراحاتكم بشأن قضايا جيثب .
 "If you set this, this Item will come in a drop-down under the selected parent.",إذا قمت بتعيين هذا ، فإن هذا البند تأتي في قائمة منسدلة تحت الأصل المحدد .
-Ignore Restrictions,تجاهل القيود
+Ignore User Permissions,تجاهل أذونات المستخدم
 "Ignoring Item {0}, because a group exists with the same name!",تجاهل البند {0} ، لأن مجموعة موجودة بنفس الاسم !
 Image,صورة
 Image Link,رابط الصورة
@@ -628,7 +630,7 @@ No Report Loaded. Please use query-report/[Report Name] to run a report.,أي ت
 No Results,لا نتائج
 No Sidebar,لا الشريط الجانبي
 No Sitemap,لا خريطة الموقع
-No User Restrictions found.,لا توجد قيود العضو .
+No User Permissions found.,لم يتم العثور على أذونات المستخدم .
 No data found,لا توجد بيانات
 No document selected,أي وثيقة مختارة
 No file attached,أي ملف مرفق
@@ -658,7 +660,6 @@ Not equals,لا يساوي
 Not found,لم يتم العثور على
 Not in Developer Mode! Set in site_config.json,ليس في الوضع المطور ! تعيين في site_config.json
 Not permitted,لا يسمح
-Not permitted to restrict User {0} for {1} {2},لا يسمح لتقييد المستخدم {0} ل {1} {2}
 "Note: For best results, images must be of the same size and width must be greater than height.",ملاحظة: للحصول على أفضل النتائج، يجب أن تكون الصور من نفس الحجم والعرض يجب أن تكون أكبر من الارتفاع.
 Note: Other permission rules may also apply,ملاحظة: قد قواعد أخرى إذن تنطبق أيضا
 Note: maximum attachment size = 1mb,ملاحظة: الحد الأقصى لحجم المرفقات 1MB =
@@ -666,17 +667,15 @@ Nothing to delete,شيئا ل حذف
 Nothing to show,لا شيء لإظهار
 Nothing to show for this selection,شيء لاظهار هذا الاختيار
 Notification Count,عدد إعلام
-Notify By Email,إبلاغ عن طريق البريد الإلكتروني
+Notify by Email,إعلام عبر البريد الإلكتروني
 Number Format,عدد تنسيق
 Old Parent,العمر الرئيسي
 On,في
-"Once you have set this, the users will only be able access documents where the link (e.g Company) exists.",وبمجرد الانتهاء من تعيين هذه ، سوف يكون المستخدمون قادرين فقط الوصول إلى المستندات حيث الارتباط ( مثل الشركة) موجودا.
+"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).",وبمجرد الانتهاء من تعيين هذه ، سوف يكون المستخدمون قادرين فقط الوصول إلى المستندات (على سبيل المثال مدونة بوست) حيث يوجد رابط (مثل مدون ) .
 Only Administrator allowed to create Query / Script Reports,المسؤول الوحيد المسموح به لإنشاء تقارير الاستعلام / سكربت
 Only Administrator can save a standard report. Please rename and save.,مسؤول فقط يمكن حفظ تقرير القياسية. الرجاء إعادة تسمية وحفظ.
 Only Allow Edit For,السماح فقط للتحرير
-Only Restricted Documents,المستندات المقيدة فقط
 Only allowed {0} rows in one import,فقط يسمح {0} الصفوف في استيراد واحد
-Only restricted users can access,يمكن للمستخدمين يقتصر الوصول
 Open,فتح
 Open Count,فتح عدد
 Open Sans,مفتوحة بلا
@@ -685,7 +684,6 @@ Options Help,خيارات مساعدة
 Options must be a valid DocType for field {0} in row {1},يجب أن تكون الخيارات ل DOCTYPE صالحة لحقل {0} في {1} الصف
 Options not set for link field {0},خيارات لم يتم تعيين لحقل الرابط {0}
 Options requried for Link or Table type field {0} in row {1},خيارات ريكارد ل ينك أو نوع الجدول الحقل {0} في {1} الصف
-Or Created By,أو إنشاء بواسطة
 Org History,غزاله التاريخ
 Org History Heading,غزاله التاريخ مداخل
 Original Message,رسالة الأصلي
@@ -708,7 +706,6 @@ Page Title,صفحة العنوان
 Page content,صفحة المحتوى
 Page not found,لم يتم العثور على الصفحة
 Page or Generator,الصفحة أو مولد
-Page text and background is same color. Please change.,نص الصفحة والخلفية هي نفس اللون. الرجاء تغيير.
 Page url name (auto-generated),اسم الصفحة رابط ( تم إنشاؤه تلقائيا )
 Page with name {0} already exists,صفحة مع اسم {0} موجود بالفعل
 Parent Label,الأصل تسمية
@@ -729,13 +726,12 @@ Permanently Submit {0}?,إرسال دائم {0} ؟
 Permanently delete {0}?,حذف بشكل دائم {0} ؟
 Permission Level,إذن المستوى
 Permission Levels,إذن مستويات
-Permission Manager,إذن إدارة
 Permission Rules,إذن قوانين
 Permissions,أذونات
 Permissions Settings,أذونات إعدادات
 Permissions are automatically translated to Standard Reports and Searches.,يتم تحويل أذونات تلقائيا إلى التقارير الموحدة و البحث .
-"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email, Only Restricted Documents and Can Restrict Others.",يتم تعيين الأذونات على الأدوار و أنواع المستندات (وتسمى DocTypes ) من خلال وضع حقوق مثل القراءة والكتابة ، إنشاء، حذف، إرسال ، الغاء ، تعديل ، تقرير ، استيراد ، تصدير ، طباعة ، البريد الإلكتروني ، والوثائق المقيدة فقط و يمكن تقييد أخرى .
-Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only.,"الأذونات على مستويات أعلى من الأذونات "" على المستوى الميداني . جميع الحقول تحتوي على ' مستوى الأذونات ' مجموعة ضدهم و قواعد محددة في تلك الأذونات تطبيق في الميدان. هذا مفيد في حال كنت ترغب في إخفاء أو جعل مجال معين للقراءة فقط."
+"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions.",يتم تعيين الأذونات على الأدوار و أنواع المستندات (وتسمى DocTypes ) من خلال وضع حقوق مثل القراءة والكتابة ، إنشاء، حذف، إرسال ، الغاء ، تعديل ، تقرير ، استيراد ، تصدير ، طباعة ، البريد الإلكتروني و تعيين أذونات العضو .
+Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles.,"الأذونات على مستويات أعلى من الأذونات "" على المستوى الميداني ."
 "Permissions at level 0 are 'Document Level' permissions, i.e. they are primary for access to the document.",الأذونات في 0 مستوى الأذونات هي &quot;مستوى الوثيقة، أي أنها الأساسي للوصول إلى المستند.
 Permissions get applied on Users based on what Roles they are assigned.,الحصول على تطبيق الأذونات على المستخدمين على أساس ما الأدوار التي تم تعيينها .
 Person,شخص
@@ -792,8 +788,8 @@ Query,سؤال
 Query Options,خيارات الاستعلام
 Query Report,الاستعلام عن
 Query must be a SELECT,يجب أن يكون الاستعلام SELECT
-Quick Help for Permission Restrictions,مساعدة سريعة ل تقييد إذن
 Quick Help for Setting Permissions,مساعدة سريعة لوضع ضوابط
+Quick Help for User Permissions,مساعدة سريعة ل ضوابط العضو
 Re-open,إعادة فتح
 Read,قرأ
 Read Only,للقراءة فقط
@@ -836,15 +832,11 @@ Reqd,Reqd
 Reset Password Key,إعادة تعيين كلمة المرور الرئيسية
 Reset Permissions for {0}?,إعادة تعيين أذونات ل {0} ؟
 Restrict IP,تقييد IP
-Restrict cannot be set for Single types,تقيد لا يمكن تعيين لأنواع واحدة
 Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111),تقييد المستخدم من هذا العنوان IP فقط. يمكن إضافة عناوين IP متعددة عن طريق فصل بفواصل. يقبل أيضا عناوين IP جزئية مثل (111.111.111)
-Restricted To,المقيدة لل
-Restricting Users,تقييد المستخدمين
-Restriction,تقييد
-Restriction added,وأضاف قيود
 Right,حق
 Role,دور
 Role Name,دور الاسم
+Role Permissions Manager,مدير ضوابط دور
 Role and Level,دور و المستوى
 Role exists,وجود دور
 Roles,الأدوار
@@ -880,9 +872,10 @@ Select Report Name,حدد اسم التقرير
 Select Role,حدد دور
 Select To Download:,اختار ل تحميل :
 Select Type,حدد نوع
-Select User or Property to start.,حدد المستخدم أو عقار للبدء.
+Select User or DocType to start.,حدد العضو أو DOCTYPE للبدء.
 Select a Banner Image first.,تحديد صورة بانر الأول.
 Select an image of approx width 150px with a transparent background for best results.,اختر صورة من تقريبا عرض 150px مع خلفية شفافة للحصول على أفضل النتائج.
+Select dates to create a new ,
 "Select modules to be shown (based on permission). If hidden, they will be hidden for all users.",حدد وحدات ليتم عرضها (على أساس إذن ) . إذا مخفي ، وسوف تكون مخفية لجميع المستخدمين.
 Select or drag across time slots to create a new event.,حدد أو اسحب عبر فتحات الوقت لإنشاء حدث جديد.
 "Select target = ""_blank"" to open in a new page.","حدد الهدف = "" _blank "" لفتح صفحة جديدة في ."
@@ -909,12 +902,13 @@ Session Expiry,الدورة انتهاء الاشتراك
 Session Expiry in Hours e.g. 06:00,انتهاء الاشتراك في الدورة ساعات مثلا 06:00
 Session Expiry must be in format {0},يجب أن تكون الدورة انتهاء الصلاحية في شكل {0}
 Set Banner from Image,تعيين راية من الصورة
-Set Defaults and Restrictions for Users,تعيين افتراضيات و قيود للمستخدمين
 Set Link,تعيين لينك
 Set Login and Password if authentication is required.,تعيين كلمة المرور وتسجيل الدخول إذا كان مطلوبا المصادقة.
 Set Only Once,تعيين مرة واحدة فقط
 Set Password,تعيين كلمة المرور
 Set Permissions on Document Types and Roles,مجموعة ضوابط على أنواع المستندات والأدوار
+Set Permissions per User,مجموعة ضوابط لكل مستخدم
+Set User Permissions,تعيين أذونات المستخدم
 Set Value,تعيين القيمة
 Set numbering series for transactions.,تعيين ترقيم سلسلة للمعاملات .
 Set outgoing mail server.,تعيين ملقم البريد الصادر .
@@ -923,7 +917,7 @@ Settings for About Us Page.,من نحن إعدادات الصفحة.
 Settings for Contact Us Page.,إعدادات الاتصال بنا الصفحة.
 Setup,الإعداد
 Setup > User,الإعداد > العضو
-Setup > User Restriction,الإعداد > تقييد العضو
+Setup > User Permissions Manager,الإعداد > ضوابط العضو مدير
 Setup of fonts and background.,إعداد الخطوط والخلفية.
 "Setup of top navigation bar, footer and logo.",الإعداد من أعلى الملاحة تذييل وبار والشعار.
 Short Bio,بيو قصيرة
@@ -978,6 +972,7 @@ Subject,موضوع
 Submit,عرض
 Submit an Issue,يقدم العدد
 Submitted,المقدمة
+Submitted Document cannot be converted back to draft. Transition row {0},الوثيقة المقدمة لا يمكن تحويلها إلى مشروع .
 Submitted Record cannot be deleted,لا يمكن حذف سجل المقدمة
 Success,نجاح
 Suggestion,اقتراح
@@ -1011,9 +1006,9 @@ The system provides many pre-defined roles. You can add new roles to set finer p
 Then By (optional),ثم (اختياري)
 There were errors,كانت هناك أخطاء
 There were errors while sending email. Please try again.,كانت هناك أخطاء أثناء إرسال البريد الإلكتروني. يرجى المحاولة مرة أخرى.
-These restrictions will apply for all transactions linked to the restricted record.,سيتم تطبيق هذه القيود لجميع المعاملات المرتبطة إلى السجل المقيدة.
+"These permissions will apply for all transactions where the permitted record is linked. For example, if Company C is added to User Permissions of user X, user X will only be able to see transactions that has company C as a linked value.",سيتم تطبيق هذه الأذونات لجميع المعاملات حيث يتم ربط السجل المسموح بها.
 These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,وسيتم تحديث هذه القيم تلقائيا في المعاملات وأيضا سوف تكون مفيدة لتقييد الأذونات لهذا المستخدم على المعاملات التي تحتوي على هذه القيم.
-These will also be set as default values for those links.,كما سيتم تعيين هذه كقيم الافتراضي ل هذه الروابط .
+"These will also be set as default values for those links, if only one such permission record is defined.",كما سيتم تعيين هذه كقيم الافتراضي ل هذه الروابط ، إذا تم تعريف سجل إذن واحد فقط من هذا القبيل.
 Third Party Authentication,مصادقة طرف ثالث
 "This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>
 myfield
@@ -1023,7 +1018,7 @@ This goes above the slideshow.,هذا يذهب فوق عرض الشرائح.
 This is PERMANENT action and you cannot undo. Continue?,هذا هو العمل الدائم ويمكنك التراجع لا. المتابعة؟
 This is permanent action and you cannot undo. Continue?,هذا هو العمل الدائم ويمكنك التراجع لا. المتابعة؟
 This must be checked if Style Settings are applicable,هذا يجب أن يتم التحقق إذا إعدادات نمط قابلة للتطبيق
-This role can restrict users for accessing the record.,هذا الدور يمكن تقييد المستخدمين للوصول إلى السجل.
+This role update User Permissions for a user,هذا الدور ضوابط التحديث العضو لمستخدم
 Thursday,الخميس
 Time,مرة
 Time Zone,منطقة زمنية
@@ -1037,7 +1032,7 @@ Title is required,مطلوب عنوان
 To,إلى
 To Do,هل ل
 "To format columns, give column labels in the query.",لتنسيق الأعمدة، وإعطاء تسميات الأعمدة في الاستعلام.
-"To give acess to a role for only specific records, check the 'Restricted' perimssion. User Restriction Records are used to restrict users with such role to specific records.",لإعطاء رصا إلى دور للسجلات معينة فقط ، والتحقق من perimssion ' المحظورة ' . وتستخدم السجلات تقييد المستخدم لتقييد المستخدمين مع هذا الدور لسجلات محددة.
+"To give acess to a role for only specific records, check the 'Apply User Permissions'. User Permissions are used to limit users with such role to specific records.","لإعطاء رصا إلى دور للسجلات معينة فقط ، والتحقق من ""تطبيق أذونات المستخدم ' ."
 "To run a test add the module name in the route after '{0}'. For example, {1}",لتشغيل اختبار إضافة اسم وحدة في الطريق بعد '{0}'. على سبيل المثال، {1}
 ToDo,قائمة المهام
 Too many writes in one request. Please send smaller requests,الكثير من يكتب في طلب واحد . يرجى إرسال طلبات أصغر
@@ -1084,16 +1079,16 @@ User Cannot Search,لا يمكن للمستخدم البحث
 User Defaults,الملف الشخصي الافتراضيات
 User ID of a blog writer.,هوية المستخدم من بلوق كاتبا.
 User Image,صورة العضو
-User Permission Restrictions,تقييد إذن المستخدم
-User Properties,خصائص المستخدم
-User Restrictions,تقييد المستخدم
+User Permission,إذن المستخدم
+User Permissions,ضوابط المستخدم
+User Permissions Manager,مدير ضوابط المستخدم
 User Roles,أدوار المستخدم
 User Tags,الكلمات المستخدم
 User Type,نوع المستخدم
 "User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ",
 User Vote,تصويت المستخدم
 User not allowed to delete.,المستخدم لا يسمح لحذفه.
-User restrictions should not apply for this Link,يجب أن لا يتم فرض قيود المستخدم لهذا الرابط
+User permissions should not apply for this Link,لا ينبغي تطبيق أذونات المستخدم لهذا الرابط
 User {0} cannot be deleted,المستخدم {0} لا يمكن حذف
 User {0} cannot be disabled,المستخدم {0} لا يمكن تعطيل
 User {0} cannot be renamed,المستخدم {0} لا يمكن إعادة تسمية
@@ -1326,12 +1321,14 @@ yyyy-mm-dd,YYYY-MM-DD
 zoom-in,التكبير في
 zoom-out,تكبير المغادرة
 {0} by {1},{0} بواسطة {1}
+{0} cannot be set for Single types,{0} لا يمكن تعيين لأنواع واحدة
 {0} does not exist in row {1},{0} غير موجود في الصف {1}
 {0} in row {1} cannot have both URL and child items,{0} في {1} الصف لا يمكن أن يكون كل عنوان URL و البنود الأطفال
 {0} is not a valid email id,{0} ليس معرف بريد إلكتروني صحيح
 {0} is required,{0} مطلوب
 {0} is saved,{0} تم حفظها
 {0} must be one of {1},{0} يجب أن يكون واحدا من {1}
+{0} not a valid State,{0} يست دولة صالحة
 {0} not allowed in fieldname {1},{0} غير مسموح به في fieldname {1}
 {0} not allowed in name,{0} غير مسموح به في الاسم
 {0} not allowed to be renamed,{0} غير مسموح به ويجب إعادة تسميته
@@ -1348,6 +1345,6 @@ zoom-out,تكبير المغادرة
 {0}: Cannot set import as {1} is not importable,{0} : لا يمكن تعيين استيراد ك {1} ليس ارداتها
 "{0}: Create, Submit, Cancel and Amend only valid at level 0",{0} : إنشاء ، إرسال ، تعديل و الغاء صالحة فقط على مستوى 0
 {0}: No basic permissions set,{0} : لا تعيين أذونات الأساسية
-{0}: Only one rule allowed at a Role and Level,{0} : واحد فقط حكم يسمح في دور و المستوى
+"{0}: Only one rule allowed with the same Role, Level and Apply User Permissions",{0} : واحد فقط حكم يسمح بنفس الدور ، و مستوى تطبيق ضوابط العضو
 {0}: Permission at level 0 must be set before higher levels are set,{0} : إذن على مستوى 0 يجب تعيين قبل أن يتم تحديد مستويات أعلى
 {app_title},{ app_title }
