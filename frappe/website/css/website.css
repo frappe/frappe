@@ -49,6 +49,7 @@ img {
 
 .web-footer {
 	padding: 20px 0px;
+	min-height: 140px;
 }
 
 .avatar {

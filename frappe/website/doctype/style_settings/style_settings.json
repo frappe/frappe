@@ -8,7 +8,7 @@
   {
    "fieldname": "enable", 
    "fieldtype": "Section Break", 
-   "in_list_view": 1, 
+   "in_list_view": 0, 
    "label": "Enable", 
    "permlevel": 0
   }, 
@@ -23,8 +23,8 @@
   {
    "fieldname": "color", 
    "fieldtype": "Section Break", 
-   "in_list_view": 1, 
-   "label": "Color", 
+   "in_list_view": 0, 
+   "label": "Page Background", 
    "permlevel": 0
   }, 
   {
@@ -45,24 +45,6 @@
    "permlevel": 0
   }, 
   {
-   "fieldname": "page_background", 
-   "fieldtype": "Data", 
-   "label": "Page Background", 
-   "permlevel": 0
-  }, 
-  {
-   "fieldname": "page_border", 
-   "fieldtype": "Check", 
-   "label": "Page Border", 
-   "permlevel": 0
-  }, 
-  {
-   "fieldname": "page_headings", 
-   "fieldtype": "Data", 
-   "label": "Page Headings", 
-   "permlevel": 0
-  }, 
-  {
    "fieldname": "page_text", 
    "fieldtype": "Data", 
    "label": "Page Text", 
@@ -75,8 +57,19 @@
    "permlevel": 0
   }, 
   {
-   "fieldname": "cb0", 
+   "fieldname": "column_break_8", 
    "fieldtype": "Column Break", 
+   "permlevel": 0
+  }, 
+  {
+   "fieldname": "html_9", 
+   "fieldtype": "HTML", 
+   "options": "<img class=\"img-responsive\" src=\"/assets/frappe/images/help/style-settings-help.png\">", 
+   "permlevel": 0
+  }, 
+  {
+   "fieldname": "cb0", 
+   "fieldtype": "Section Break", 
    "label": "Top Bar", 
    "permlevel": 0, 
    "print_width": "50%", 
@@ -89,10 +82,61 @@
    "permlevel": 0
   }, 
   {
+   "fieldname": "column_break_12", 
+   "fieldtype": "Column Break", 
+   "permlevel": 0
+  }, 
+  {
    "description": "000 is black, fff is white", 
    "fieldname": "top_bar_foreground", 
    "fieldtype": "Data", 
    "label": "Top Bar Text", 
+   "permlevel": 0
+  }, 
+  {
+   "fieldname": "page_header", 
+   "fieldtype": "Section Break", 
+   "label": "Page Header", 
+   "permlevel": 0
+  }, 
+  {
+   "fieldname": "page_header_background", 
+   "fieldtype": "Data", 
+   "label": "Page Header Background", 
+   "permlevel": 0
+  }, 
+  {
+   "fieldname": "column_break_16", 
+   "fieldtype": "Column Break", 
+   "permlevel": 0
+  }, 
+  {
+   "fieldname": "page_header_color", 
+   "fieldtype": "Data", 
+   "label": "Page Header Text", 
+   "permlevel": 0
+  }, 
+  {
+   "fieldname": "footer", 
+   "fieldtype": "Section Break", 
+   "label": "Footer", 
+   "permlevel": 0
+  }, 
+  {
+   "fieldname": "footer_background", 
+   "fieldtype": "Data", 
+   "label": "Footer Background", 
+   "permlevel": 0
+  }, 
+  {
+   "fieldname": "column_break_20", 
+   "fieldtype": "Column Break", 
+   "permlevel": 0
+  }, 
+  {
+   "fieldname": "footer_color", 
+   "fieldtype": "Data", 
+   "label": "Footer Text", 
    "permlevel": 0
   }, 
   {
@@ -174,7 +218,7 @@
  "idx": 1, 
  "issingle": 1, 
  "max_attachments": 1, 
- "modified": "2014-05-03 14:57:55.879426", 
+ "modified": "2014-05-28 01:58:45.392210", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Style Settings", 
