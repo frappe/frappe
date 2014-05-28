@@ -116,6 +116,10 @@ frappe.get_modal = function(title, body_html) {
 				</div>\
 				<div class="modal-body ui-front">'+body_html+'\
 				</div>\
+				<div class="modal-footer hide">\
+					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>\
+					<button type="button" class="btn btn-primary">Confirm</button>\
+				</div>\
 			</div>\
 		</div>\
 		</div>').appendTo(document.body);

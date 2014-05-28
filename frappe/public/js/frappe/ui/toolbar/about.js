@@ -10,7 +10,7 @@ frappe.ui.misc.about = function() {
 	 	<p><i class='icon-github icon-fixed-width'></i>\
 			Source: <a href='https://github.com/frappe' target='_blank'>https://github.com/frappe</a></p>\
 		<hr>\
-		<h4>Versions</h4>\
+		<h4>Installed Apps</h4>\
 		<div id='about-app-versions'>Loading versions...</div>\
 		<hr>\
 		<p class='text-muted'>&copy; 2014 Web Notes Technologies Pvt. Ltd and contributers </p> \
@@ -32,7 +32,9 @@ frappe.ui.misc.about = function() {
 		var show_versions = function(versions) {
 			var $wrap = $("#about-app-versions").empty();
 			$.each(keys(versions).sort(), function(i, key) {
-				$('<p><b>'+ key +':</b> ' + versions[key] + '</p>').appendTo($wrap)
+				var v = versions[key];
+				$($.format('<p><b>{0}:</b> v{1}<br><span class="text-muted">{2}</span></p>',
+					[v.title[0], v.version, v.description[0]])).appendTo($wrap);
 			});
 
 			frappe.versions = versions;

@@ -21,20 +21,17 @@ frappe.throw = function(msg) {
 }
 
 frappe.confirm = function(message, ifyes, ifno) {
-	var d = msgprint("<p>" + message + "</p>\
-		<p style='text-align: right'>\
-			<button class='btn btn-info btn-yes'>"+__("Yes")+"</button>\
-			<button class='btn btn-default btn-no'>"+__("No")+"</button>\
-		</p>");
-	$(d.wrapper).find(".btn-yes").click(function() {
-		d.hide();
-		ifyes && ifyes();
+	var d = new frappe.ui.Dialog({
+		title: "Confirm",
+		fields: [
+			{fieldtype:"HTML", options:"<p>" + message + "</p>"}
+		],
+		primary_action: ifyes
 	});
-	$(d.wrapper).find(".btn-no").click(function() {
-		d.hide();
-		ifno && ifno();
-	});
-
+	d.show();
+	if(ifno) {
+		d.$wrapper.find(".modal-footer .btn-default").click(ifno);
+	}
 	return d;
 }
 

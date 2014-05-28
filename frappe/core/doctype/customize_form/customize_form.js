@@ -85,39 +85,24 @@ frappe.customize_form.confirm = function(msg, frm) {
 
 	var d = new frappe.ui.Dialog({
 		title: 'Reset To Defaults',
-		width: 500
-	});
-
-	$y(d.body, {padding: '32px', textAlign: 'center'});
-
-	$a(d.body, 'div', '', '', msg);
-
-	var button_wrapper = $a(d.body, 'div');
-	$y(button_wrapper, {paddingTop: '15px'});
-
-	var proceed_btn = $btn(button_wrapper, 'Proceed', function() {
-		return frm.call({
-			doc: frm.doc,
-			method: "reset_to_defaults",
-			callback: function(r) {
-				if(r.exc) {
-					msgprint(r.exc);
-				} else {
-					frappe.customize_form.confirm.dialog.hide();
-					frappe.customize_form.clear_locals_and_refresh(frm);
+		fields: [
+			{fieldtype:"HTML", options:__("All customizations will be removed. Please confirm.")},
+		],
+		primary_action: function() {
+			return frm.call({
+				doc: frm.doc,
+				method: "reset_to_defaults",
+				callback: function(r) {
+					if(r.exc) {
+						msgprint(r.exc);
+					} else {
+						d.hide();
+						frappe.customize_form.clear_locals_and_refresh(frm);
+					}
 				}
-			}
-		});
+			});
+		}
 	});
-
-	$y(proceed_btn, {marginRight: '20px', fontWeight: 'bold'});
-
-	var cancel_btn = $btn(button_wrapper, 'Cancel', function() {
-		frappe.customize_form.confirm.dialog.hide();
-	});
-
-	$(cancel_btn).addClass('btn-small btn-info');
-	$y(cancel_btn, {fontWeight: 'bold'});
 
 	frappe.customize_form.confirm.dialog = d;
 	d.show();

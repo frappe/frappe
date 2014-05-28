@@ -7,18 +7,6 @@ var cur_dialog;
 
 frappe.ui.open_dialogs = [];
 frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
-	_intro:'	usage:\n\
-		\n\
-		var dialog = new frappe.ui.Dialog({\n\
-			title: "Dialog Title",\n\
-			fields: [\n\
-				{fieldname:"field1", fieldtype:"Data", reqd:1, label: "Test 1"},\n\
-				{fieldname:"field2", fieldtype:"Link", reqd:1, label: "Test 1", options:"Some DocType"},\n\
-				{fieldname:"mybutton", fieldtype:"Button", reqd:1, label: "Submit"},\n\
-			]\n\
-		})\n\
-		dialog.get_input("mybutton").click(function() { /* do something; */ dialog.hide(); });\n\
-		dialog.show()',
 	init: function(opts) {
 		this.display = false;
 		this.is_dialog = true;
@@ -38,6 +26,15 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 
 		// make fields (if any)
 		this._super();
+
+		// show footer
+		if(this.primary_action) {
+			this.$wrapper.find(".modal-footer").removeClass("hide");
+			this.$wrapper.find(".modal-footer .btn-primary").click(this.primary_action);
+			if(this.primary_action_label) {
+				this.$wrapper.find(".modal-footer .btn-primary").html(this.primary_action_label);
+			}
+		}
 
 		var me = this;
 		this.$wrapper

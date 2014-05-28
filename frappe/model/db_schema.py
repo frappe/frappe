@@ -393,7 +393,7 @@ def remove_all_foreign_keys():
 	frappe.db.sql("set foreign_key_checks = 0")
 	frappe.db.commit()
 	for t in frappe.db.sql("select name from tabDocType where ifnull(issingle,0)=0"):
-		dbtab = frappe.model.db_schema.DbTable(t[0])
+		dbtab = DbTable(t[0])
 		try:
 			fklist = dbtab.get_foreign_keys()
 		except Exception, e:

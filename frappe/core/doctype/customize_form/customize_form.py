@@ -187,6 +187,7 @@ class CustomizeForm(Document):
 			return
 
 		# create a new property setter
+		# ignore validation becuase it will be done at end
 		frappe.make_property_setter({
 			"doctype": self.doc_type,
 			"doctype_or_field": "DocField" if fieldname else "DocType",
@@ -194,7 +195,7 @@ class CustomizeForm(Document):
 			"property": property,
 			"value": value,
 			"property_type": property_type
-		})
+		}, ignore_validate=True)
 
 	def delete_existing_property_setter(self, property, fieldname=None):
 		# first delete existing property setter
@@ -221,12 +222,12 @@ class CustomizeForm(Document):
 		return property_value
 
 	def validate_fieldtype_change(self, df, old_value, new_value):
+		allowed = False
 		for allowed_changes in self.allowed_fieldtype_change:
-			if ((old_value in allowed_changes and new_value in allowed_changes)
-				or (old_value not in allowed_changes and new_value not in allowed_changes)):
-				continue
-			else:
-				frappe.throw(_("Fieldtype must be one of {0} in row {1}").format(", ".join([_(fieldtype) for fieldtype in allowed_changes]), df.idx))
+			if (old_value in allowed_changes and new_value in allowed_changes):
+				allowed = True
+		if not allowed:
+			frappe.throw(_("Fieldtype cannot be changed from {0} to {1} in row {2}").format(old_value, new_value, df.idx))
 
 	def reset_to_defaults(self):
 		if not self.doc_type:

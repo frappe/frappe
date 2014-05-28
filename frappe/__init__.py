@@ -405,10 +405,14 @@ def get_installed_apps():
 def get_versions():
 	versions = {}
 	for app in get_installed_apps():
+		versions[app] = {
+			"title": get_hooks("app_title", app_name=app),
+			"description": get_hooks("app_description", app_name=app)
+		}
 		try:
-			versions[app] = get_attr(app + ".__version__")
+			versions[app]["version"] = get_attr(app + ".__version__")
 		except AttributeError:
-			versions[app] = 'Not Versioned'
+			versions[app]["version"] = '0.0.1'
 
 	return versions
 
@@ -505,9 +509,9 @@ def call(fn, *args, **kwargs):
 			newargs[a] = kwargs.get(a)
 	return fn(*args, **newargs)
 
-def make_property_setter(args):
+def make_property_setter(args, ignore_validate=False):
 	args = _dict(args)
-	get_doc({
+	ps = get_doc({
 		'doctype': "Property Setter",
 		'doctype_or_field': args.doctype_or_field or "DocField",
 		'doc_type': args.doctype,
@@ -516,7 +520,9 @@ def make_property_setter(args):
 		'value': args.value,
 		'property_type': args.property_type or "Data",
 		'__islocal': 1
-	}).save()
+	})
+	ps.ignore_validate = ignore_validate
+	ps.insert()
 
 def import_doc(path, ignore_links=False, ignore_insert=False, insert=False):
 	from frappe.core.page.data_import_tool import data_import_tool
