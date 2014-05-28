@@ -2,6 +2,7 @@ frappe.pages['user-permissions'].onload = function(wrapper) {
 	frappe.ui.make_app_page({
 		parent: wrapper,
 		title: "User Permissions Manager",
+		icon: "icon-user",
 		single_column: true
 	});
 	$(wrapper).find(".layout-main").html("<div class='user-settings' style='min-height: 200px;'></div>\
@@ -14,10 +15,7 @@ frappe.pages['user-permissions'].onload = function(wrapper) {
 			+ "</li>"
 
 			+ "<li>"
-			+ __("These permissions will apply for all transactions where the permitted record is linked.")
-
-		 	+ __("For example, if Company C is added to User Permissions of user X, \
-				user X will only be able to see transactions that has company C as a linked value.")
+			+ __("These permissions will apply for all transactions where the permitted record is linked. For example, if Company C is added to User Permissions of user X, user X will only be able to see transactions that has company C as a linked value.")
 			+ "</li>"
 
 			+ "<li>"
@@ -61,16 +59,16 @@ frappe.UserPermissions = Class.extend({
 					options: (["Select User..."].concat(r.message.users)).join("\n")
 				});
 
-				me.filters.property = me.wrapper.appframe.add_field({
-					fieldname: "property",
-					label: __("Property"),
+				me.filters.doctype = me.wrapper.appframe.add_field({
+					fieldname: "doctype",
+					label: __("DocType"),
 					fieldtype: "Select",
-					options: (["Select Property..."].concat(me.get_link_names())).join("\n")
+					options: (["Select DocType..."].concat(me.get_link_names())).join("\n")
 				});
 
 				me.filters.user_permission = me.wrapper.appframe.add_field({
 					fieldname: "user_permission",
-					label: __("User Permission"),
+					label: __("Name"),
 					fieldtype: "Link",
 					options: "[Select]"
 				});
@@ -83,8 +81,8 @@ frappe.UserPermissions = Class.extend({
 				});
 
 				// change options in user_permission link
-				me.filters.property.$input.on("change", function() {
-					me.filters.user_permission.df.options = $(this).val();
+				me.filters.doctype.$input.on("change", function() {
+					me.filters.user_permission.df.options = me.get_doctype();
 				});
 
 				me.set_from_route();
@@ -112,9 +110,9 @@ frappe.UserPermissions = Class.extend({
 		var user = this.filters.user.$input.val();
 		return user=="Select User..." ? null : user;
 	},
-	get_property: function() {
-		var property = this.filters.property.$input.val();
-		return property=="Select Property..." ? null : property;
+	get_doctype: function() {
+		var doctype = this.filters.doctype.$input.val();
+		return doctype=="Select DocType..." ? null : doctype;
 	},
 	get_user_permission: function() {
 		// autosuggest hack!
@@ -127,9 +125,9 @@ frappe.UserPermissions = Class.extend({
 		if(!prop_list || !prop_list.length) {
 			this.body.html("<div class='alert alert-info'>"+__("No User Permissions found.")+"</div>");
 		} else {
-			this.show_property_table();
+			this.show_user_permissions_table();
 		}
-		this.show_add_property();
+		this.show_add_user_permission();
 	},
 	refresh: function() {
 		var me = this;
@@ -137,8 +135,8 @@ frappe.UserPermissions = Class.extend({
 			this.body.html("<div class='alert alert-info'>"+__("Loading")+"...</div>");
 			return;
 		}
-		if(!me.get_user() && !me.get_property()) {
-			this.body.html("<div class='alert alert-warning'>"+__("Select User or Property to start.")+"</div>");
+		if(!me.get_user() && !me.get_doctype()) {
+			this.body.html("<div class='alert alert-warning'>"+__("Select User or DocType to start.")+"</div>");
 			return;
 		}
 		// get permissions
@@ -148,7 +146,7 @@ frappe.UserPermissions = Class.extend({
 			method: "get_permissions",
 			args: {
 				parent: me.get_user(),
-				defkey: me.get_property(),
+				defkey: me.get_doctype(),
 				defvalue: me.get_user_permission()
 			},
 			callback: function(r) {
@@ -156,14 +154,14 @@ frappe.UserPermissions = Class.extend({
 			}
 		});
 	},
-	show_property_table: function() {
+	show_user_permissions_table: function() {
 		var me = this;
 		this.table = $("<table class='table table-bordered'>\
 			<thead><tr></tr></thead>\
 			<tbody></tbody>\
 		</table>").appendTo(this.body);
 
-		$.each([[__("User"), 150], [__("Type"), 150], [__("Restricted To"),150], ["", 50]],
+		$.each([[__("User"), 150], [__("DocType"), 150], [__("User Permission"),150], ["", 50]],
 			function(i, col) {
 			$("<th>").html(col[0]).css("width", col[1]+"px")
 				.appendTo(me.table.find("thead tr"));
@@ -212,17 +210,17 @@ frappe.UserPermissions = Class.extend({
 			});
 	},
 
-	show_add_property: function() {
+	show_add_user_permission: function() {
 		var me = this;
 		$("<button class='btn btn-info'>"+__("Add A User Permission")+"</button>")
 			.appendTo($("<p>").appendTo(this.body))
 			.click(function() {
 				var d = new frappe.ui.Dialog({
-					title: "Add New Property",
+					title: "Add New User Permission",
 					fields: [
 						{fieldtype:"Select", label:__("User"),
 							options:me.options.users, reqd:1, fieldname:"user"},
-						{fieldtype:"Select", label: __("Property"), fieldname:"defkey",
+						{fieldtype:"Select", label: __("DocType"), fieldname:"defkey",
 							options:me.get_link_names(), reqd:1},
 						{fieldtype:"Link", label:__("Value"), fieldname:"defvalue",
 							options:'[Select]', reqd:1},
@@ -233,8 +231,8 @@ frappe.UserPermissions = Class.extend({
 					d.set_value("user", me.get_user());
 					d.get_input("user").prop("disabled", true);
 				}
-				if(me.get_property()) {
-					d.set_value("defkey", me.get_property());
+				if(me.get_doctype()) {
+					d.set_value("defkey", me.get_doctype());
 					d.get_input("defkey").prop("disabled", true);
 				}
 				if(me.get_user_permission()) {

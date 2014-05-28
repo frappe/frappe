@@ -92,7 +92,7 @@ class TestBlogPost(unittest.TestCase):
 	def test_not_allowed_to_set_user_permissions(self):
 		frappe.set_user("test2@example.com")
 
-		# this user can't add restriction
+		# this user can't add user permissions
 		self.assertRaises(frappe.PermissionError, add,
 			"test2@example.com", "Blog Post", "_test-blog-post")
 
@@ -101,7 +101,7 @@ class TestBlogPost(unittest.TestCase):
 
 		frappe.set_user("test2@example.com")
 
-		# user can only access restricted blog post
+		# user can only access permitted blog post
 		doc = frappe.get_doc("Blog Post", "_test-blog-post")
 		self.assertTrue(doc.has_permission("read"))
 
@@ -115,7 +115,7 @@ class TestBlogPost(unittest.TestCase):
 
 		frappe.set_user("test2@example.com")
 
-		# user cannot remove their own restriction
+		# user cannot remove their own user permissions
 		self.assertRaises(frappe.PermissionError, remove,
 			"test2@example.com", defname, "Blog Post", "_test-blog-post")
 

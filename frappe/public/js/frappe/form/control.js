@@ -843,13 +843,17 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			}
 		});
 
-		var cache = {};
+		this.$input.cache = {};
 		this.$input.autocomplete({
 			minLength: 0,
 			source: function(request, response) {
-				if (cache[request.term]!=null) {
+				if (!me.$input.cache[me.df.options]) {
+					me.$input.cache[me.df.options] = {};
+				}
+
+				if (me.$input.cache[me.df.options][request.term]!=null) {
 					// from cache
-					response(cache[request.term]);
+					response(me.$input.cache[me.df.options][request.term]);
 					return;
 				}
 
@@ -872,7 +876,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 								make_new: true
 							});
 						};
-						cache[request.term] = r.results;
+						me.$input.cache[me.df.options][request.term] = r.results;
 						response(r.results);
 					},
 				});

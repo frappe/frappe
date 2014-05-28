@@ -27,7 +27,7 @@ def get_data():
 				{
 					"type": "page",
 					"name": "user-permissions",
-					"label": _("User Permissions"),
+					"label": _("User Permissions Manager"),
 					"icon": "icon-user",
 					"description": _("Set Permissions per User")
 				},

@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe
+from frappe import _
 import frappe.defaults
 import frappe.permissions
 from frappe.core.doctype.user.user import get_system_users
@@ -51,17 +52,17 @@ def _build_conditions(filters):
 
 @frappe.whitelist()
 def remove(user, name, defkey, defvalue):
-	if not frappe.permissions.can_set_user_permissions_for_user(user, defkey, defvalue):
-		raise frappe.PermissionError("Cannot Remove Permission for User: {user} on DocType: {doctype} and Name: {name}".format(
-			user=user, doctype=defkey, name=defvalue))
+	if not frappe.permissions.can_set_user_permissions(defkey, defvalue):
+		frappe.throw(_("Cannot remove permission for DocType: {0} and Name: {1}").format(
+			defkey, defvalue), frappe.PermissionError)
 
 	frappe.permissions.remove_user_permission(defkey, defvalue, user, name)
 
 @frappe.whitelist()
 def add(user, defkey, defvalue):
-	if not frappe.permissions.can_set_user_permissions_for_user(user, defkey, defvalue):
-		raise frappe.PermissionError("Cannot Set Permission for User: {user} on DocType: {doctype} and Name: {name}".format(
-			user=user, doctype=defkey, name=defvalue))
+	if not frappe.permissions.can_set_user_permissions(defkey, defvalue):
+		frappe.throw(_("Cannot set permission for DocType: {0} and Name: {1}").format(
+			defkey, defvalue), frappe.PermissionError)
 
 	frappe.permissions.add_user_permission(defkey, defvalue, user)
 

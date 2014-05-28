@@ -173,8 +173,8 @@ frappe.PermissionEngine = Class.extend({
 			</table>\
 		</div>").appendTo(this.body);
 
-		$.each([["Document Type", 150], ["Role", 150], ["Level", 40],
-			["Permissions", 370], ["", 40]], function(i, col) {
+		$.each([["Document Type", 150], ["Role", 170], ["Level", 40],
+			["Permissions", 350], ["", 40]], function(i, col) {
 			$("<th>").html(col[0]).css("width", col[1]+"px")
 				.appendTo(me.table.find("thead tr"));
 		});
@@ -214,7 +214,9 @@ frappe.PermissionEngine = Class.extend({
 			me.set_show_users(role_cell, d.role);
 
 			if (d.permlevel===0) {
-				add_check(role_cell, d, "apply_user_permissions").removeClass("col-md-4");
+				add_check(role_cell, d, "apply_user_permissions")
+					.removeClass("col-md-4")
+					.css({"margin-top": "15px"});
 			}
 
 			var cell = add_cell(row, d, "permlevel");
@@ -385,7 +387,7 @@ var permissions_help = ['<table class="table table-bordered" style="background-c
 		':</h4>',
 		'<ol>',
 			'<li>',
-				__('Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email, Only Restricted Documents and Can Restrict Others.'),
+				__('Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions.'),
 			'</li>',
 			'<li>',
 				__('Permissions get applied on Users based on what Roles they are assigned.'),
@@ -437,7 +439,7 @@ var permissions_help = ['<table class="table table-bordered" style="background-c
 				__('If a Role does not have access at Level 0, then higher levels are meaningless.'),
 			'</li>',
 			'<li>',
-				__("Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only."),
+				__("Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles."),
 			'</li>',
 			'<li>',
 				__('You can use Customize Form to set levels on fields.')
@@ -447,27 +449,18 @@ var permissions_help = ['<table class="table table-bordered" style="background-c
 	'</td></tr>',
 	'<tr><td>',
 		'<h4><i class="icon-shield"></i> ',
-			__('Restricting Users'),
+			__('User Permissions'),
 		':</h4>',
 		'<ol>',
 			'<li>',
-				__("To give acess to a role for only specific records, check the 'Restricted' perimssion. User Restriction Records are used to restrict users with such role to specific records.")
-				+ ' (<a href="#user-properties">' + __('Setup > User Restriction') + '</a>)',
+				__("To give acess to a role for only specific records, check the 'Apply User Permissions'. User Permissions are used to limit users with such role to specific records.")
+				+ ' (<a href="#user-permissions">' + __('Setup > User Permissions Manager') + '</a>)',
 			'</li>',
 			'<li>',
-				__("If 'Restricted' is not checked, you can still restrict permissions based on certain values, like Company or Territory in a document by setting User Restrictions. But unless any restriction is set, a user will have permissions based on the Role."),
+				__("Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger)."),
 			'</li>',
 			'<li>',
-				__("Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only."),
-			'</li>',
-			'<li>',
-				__("If 'Restricted' is checked, the owner is always allowed based on Role."),
-			'</li>',
-			'<li>',
-				__("Once you have set this, the users will only be able access documents where the link (e.g Company) exists."),
-			'</li>',
-			'<li>',
-				__("Apart from System Manager, roles with 'Can Restrict Others' permission can restrict other users for that Document Type."),
+				__("Apart from System Manager, roles with 'Set User Permissions' right can set permissions for other users for that Document Type."),
 			'</li>',
 		'</ol>',
 	'</td></tr>',

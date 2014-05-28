@@ -88,35 +88,22 @@ frappe.ui.form.AssignTo = Class.extend({
 				fields: [
 					{fieldtype:'Link', fieldname:'assign_to', options:'User',
 						label:__("Assign To"),
-						description:__("Add to To Do List of"), reqd:true},
+						description:__("Add to To Do List Of"), reqd:true},
 					{fieldtype:'Data', fieldname:'description', label:__("Comment"), reqd:true},
 					{fieldtype:'Date', fieldname:'date', label: __("Complete By")},
 					{fieldtype:'Select', fieldname:'priority', label: __("Priority"),
 						options:'Low\nMedium\nHigh', 'default':'Medium'},
 					{fieldtype:'Check', fieldname:'notify',
-						label:__("Notify By Email"), "default":1},
-					{fieldtype:'Check', fieldname:'set_user_permissions',
-						label:__("Add This To User Permission")
-							+ ' <a class="assign-user-properties"><i class="icon-share"></i></a>'},
+						label:__("Notify by Email"), "default":1},
 					{fieldtype:'Button', label:__("Add"), fieldname:'add_btn'}
 				]
 			});
-
-			me.dialog.fields_dict.set_user_permissions.$wrapper
-				.find(".assign-user-properties")
-				.on("click", function() {
-					frappe.route_options = {
-						property: me.frm.doctype,
-						user: me.dialog.get_value("assign_to")
-					};
-					frappe.set_route("user-properties");
-				});
 
 			me.dialog.fields_dict.add_btn.input.onclick = function() {
 
 				var assign_to = me.dialog.fields_dict.assign_to.get_value();
 				var args = me.dialog.get_values();
-				if(assign_to) {
+				if(args && assign_to) {
 					return frappe.call({
 						method:'frappe.widgets.form.assign_to.add',
 						args: $.extend(args, {
@@ -139,22 +126,11 @@ frappe.ui.form.AssignTo = Class.extend({
 		}
 		me.dialog.clear();
 
-		(function toggle_set_user_permissions() {
-			var can_set_user_permissions = frappe.model.can_set_user_permissions(me.frm.doctype, me.frm);
-			me.dialog.fields_dict.set_user_permissions.$wrapper.toggle(can_set_user_permissions);
-			me.dialog.get_input("set_user_permissions").prop("checked", can_set_user_permissions);
-		})();
-
 		if(me.frm.meta.title_field) {
 			me.dialog.set_value("description", me.frm.doc[me.frm.meta.title_field])
 		}
 
 		me.dialog.show();
-
-		if(!frappe.perm.get_perm(me.frm.doctype)[0].set_user_permissions) {
-			me.dialog.fields_dict.set_user_permissions.set_input(0);
-			me.dialog.fields_dict.set_user_permissions.$wrapper.toggle(false);
-		}
 	}
 });
 

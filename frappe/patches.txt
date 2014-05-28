@@ -12,7 +12,6 @@ execute:frappe.db.sql("alter table `tabSessions` modify `user` varchar(255), eng
 frappe.patches.v4_0.remove_old_parent
 frappe.patches.v4_0.remove_index_sitemap
 frappe.patches.v4_0.add_delete_permission
-frappe.patches.v4_0.move_match_to_restricted
 frappe.patches.v4_0.set_todo_checked_as_closed
 frappe.patches.v4_0.website_sitemap_hierarchy
 frappe.patches.v4_0.webnotes_to_frappe
@@ -31,3 +30,4 @@ frappe.patches.v4_0.deprecate_link_selects
 frappe.patches.v4_0.set_user_gravatar
 frappe.patches.v4_0.update_custom_field_insert_after
 frappe.patches.v4_0.set_user_permissions
+frappe.patches.v4_0.create_custom_field_for_owner_match

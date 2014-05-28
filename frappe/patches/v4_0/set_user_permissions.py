@@ -3,16 +3,22 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe.core.page.user_permissions.user_permissions import add
+import frappe.permissions
 
 def execute():
-	if "match" in frappe.db.get_table_columns("DocPerm"):
-		add_user_permissions_for_owner_match()
+	frappe.reload_doc("core", "doctype", "docperm")
+	table_columns = frappe.db.get_table_columns("DocPerm")
 
+	if "restricted" in table_columns:
+		frappe.db.sql("""update `tabDocPerm` set apply_user_permissions=1 where ifnull(apply_user_permissions, 0)=0
+			and restricted=1""")
 
-def add_user_permissions_for_owner_match():
-	for dt, role in frappe.db.sql("""select distinct parent, role from `tabDocPerm` where `match`='owner'"""):
-		for user in frappe.db.sql("""select distinct parent from `tabUserRole` where role=%s""", role):
-			for name in frappe.db.sql_list("""select name from `tab{doctype}` where owner=%s""".format(dt), user):
-				# add to user permissions
-				add(user, dt, name)
+	if "match" in table_columns:
+		frappe.db.sql("""update `tabDocPerm` set apply_user_permissions=1
+			where ifnull(apply_user_permissions, 0)=0 and ifnull(`match`, '')!=''""")
+
+	# change Restriction to User Permission in tabDefaultValue
+	frappe.db.sql("""update `tabDefaultValue` set parenttype='User Permission' where parenttype='Restriction'""")
+
+	frappe.clear_cache()
+

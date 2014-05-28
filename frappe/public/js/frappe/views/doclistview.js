@@ -259,7 +259,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 					frappe.route_options = {
 						property: me.doctype
 					};
-					frappe.set_route("user-properties");
+					frappe.set_route("user-permissions");
 				});
 		}
 		if(in_list(user_roles, "System Manager")) {

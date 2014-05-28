@@ -51,7 +51,7 @@ cur_frm.cscript.refresh = function(doc) {
 			frappe.route_options = {
 				"user": doc.name
 			};
-			frappe.set_route("user-properties");
+			frappe.set_route("user-permissions");
 		})
 
 		if(has_common(user_roles, ["Administrator", "System Manager"])) {

@@ -106,16 +106,6 @@ def has_controller_permissions(doc):
 
 	return True
 
-def can_set_user_permissions_for_user(user, doctype, docname=None):
-	if not can_set_user_permissions(doctype, docname):
-		return False
-
-	# check if target user does not have permission to set user permissions
-	if get_role_permissions(frappe.get_meta(doctype), user).set_user_permissions==1:
-		return False
-
-	return True
-
 def can_set_user_permissions(doctype, docname=None):
 	# System Manager can always set user permissions
 	if "System Manager" in frappe.get_roles():

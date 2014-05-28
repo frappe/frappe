@@ -44,10 +44,10 @@ frappe.ui.form.InfoBar = Class.extend({
 			this.$user_properties = this.appframe.add_icon_btn("2", "icon-shield",
 				__("User Permissions Manager"), function() {
 					frappe.route_options = {
-						property: me.frm.doctype,
-						restriction: me.frm.docname
+						doctype: me.frm.doctype,
+						name: me.frm.docname
 					};
-					frappe.set_route("user-properties");
+					frappe.set_route("user-permissions");
 				});
 		}
 

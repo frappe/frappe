@@ -29,7 +29,7 @@ def add(args=None):
 	if frappe.db.sql("""select owner from `tabToDo`
 		where reference_type=%(doctype)s and reference_name=%(name)s and status="Open"
 		and owner=%(assign_to)s""", args):
-		frappe.msgprint(_("Already in todo"), raise_exception=True)
+		frappe.msgprint(_("Already in user's To Do list"), raise_exception=True)
 		return
 	else:
 		from frappe.utils import nowdate
@@ -49,15 +49,6 @@ def add(args=None):
 		# set assigned_to if field exists
 		if frappe.get_meta(args['doctype']).get_field("assigned_to"):
 			frappe.db.set_value(args['doctype'], args['name'], "assigned_to", args['assign_to'])
-
-	try:
-		if cint(args.get("set_user_permissions")):
-			from frappe.core.page.user_permissions import user_permissions
-			user_permissions.add(args['assign_to'], args['doctype'], args['name'])
-			frappe.msgprint(_("User Permission added"))
-	except frappe.PermissionError:
-		frappe.throw(_("Not permitted to set user permissions of User {0} for {1} {2}").format(args["assign_to"],
-			args["doctype"], args["name"]))
 
 	# notify
 	if not args.get("no_notification"):

@@ -558,10 +558,10 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		if(this.docname && frappe.model.can_set_user_permissions("Report")) {
 			this.page.appframe.add_button(__("User Permissions Manager"), function() {
 				frappe.route_options = {
-					property: "Report",
-					restriction: me.docname
+					doctype: "Report",
+					name: me.docname
 				};
-				frappe.set_route("user-properties");
+				frappe.set_route("user-permissions");
 			}, "icon-shield");
 		}
 	},

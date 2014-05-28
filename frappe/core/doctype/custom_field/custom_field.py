@@ -84,16 +84,20 @@ def create_custom_field_if_values_exist(doctype, df):
 	df = frappe._dict(df)
 	if df.fieldname in frappe.db.get_table_columns(doctype) and \
 		frappe.db.sql("""select count(*) from `tab{doctype}`
-			where ifnull({fieldname},'')!=''""".format(doctype=doctype, fieldname=df.fieldname))[0][0] and \
-		not frappe.db.get_value("Custom Field", {"dt": doctype, "fieldname": df.fieldname}):
-			frappe.get_doc({
-				"doctype":"Custom Field",
-				"dt": doctype,
-				"permlevel": df.permlevel or 0,
-				"label": df.label,
-				"fieldname": df.fieldname,
-				"fieldtype": df.fieldtype,
-				"options": df.options,
-				"insert_after": df.insert_after
-			}).insert()
+			where ifnull({fieldname},'')!=''""".format(doctype=doctype, fieldname=df.fieldname))[0][0]:
 
+		create_custom_field(doctype, df)
+
+
+def create_custom_field(doctype, df):
+	if not frappe.db.get_value("Custom Field", {"dt": doctype, "fieldname": df.fieldname}):
+		frappe.get_doc({
+			"doctype":"Custom Field",
+			"dt": doctype,
+			"permlevel": df.permlevel or 0,
+			"label": df.label,
+			"fieldname": df.fieldname,
+			"fieldtype": df.fieldtype,
+			"options": df.options,
+			"insert_after": df.insert_after
+		}).insert()
