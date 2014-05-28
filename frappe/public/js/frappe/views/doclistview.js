@@ -57,25 +57,6 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 			<div class="help">'+__('Loading')+'...</div></div>')
 			.appendTo(this.$page.find(".layout-main-section"));
 
-		$('<div class="show-docstatus hide side-panel">\
-			<h5 class="text-muted">Show</h5>\
-			<div class="side-panel-body">\
-			    <div class="checkbox"><label>\
-					<input type="checkbox" data-docstatus="0" checked="checked">\
-						<span class="text-muted">'+__('Drafts')+'</span>\
-			    </label></div>\
-			    <div class="checkbox"><label>\
-					<input type="checkbox" data-docstatus="1" checked="checked">\
-						<span class="text-muted">'+__('Submitted')+'</span>\
-			    </label></div>\
-			    <div class="checkbox"><label>\
-					<input type="checkbox" data-docstatus="2">\
-						<span class="text-muted">'+__('Cancelled')+'</span>\
-			    </label></div>\
-			</div>\
-		</div>')
-			.appendTo(this.$page.find(".layout-side-section"));
-
 		this.$page.find(".layout-main-section")
 			.addClass("listview-main-section")
 			.parent().css({"margin-top":"-15px"});
@@ -93,7 +74,6 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		this.meta = locals.DocType[this.doctype];
 		this.$page.find('.frappe-list-area').empty(),
 		this.setup_listview();
-		this.setup_docstatus_filter();
 		this.init_list(false);
 		this.init_stats();
 		this.init_minbar();
@@ -147,19 +127,6 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		// Help
 		if(this.meta.description) {
 			this.appframe.add_help_button(this.meta.description);
-		}
-	},
-	setup_docstatus_filter: function() {
-		var me = this;
-		this.can_submit = $.map(locals.DocPerm || [], function(d) {
-			if(d.parent==me.meta.name && d.submit) return 1
-			else return null;
-		}).length;
-		if(this.can_submit) {
-			this.$page.find('.show-docstatus').removeClass('hide');
-			this.$page.find('.show-docstatus input').click(function() {
-				me.run();
-			})
 		}
 	},
 	setup_listview: function() {
@@ -252,16 +219,10 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		this.listview.render(row, data, this);
 	},
 	get_args: function() {
-		var docstatus_list = this.can_submit ? $.map(this.$page.find('.show-docstatus :checked'),
-			function(inp) {
-				return $(inp).attr('data-docstatus');
-			}) : []
-
 		var args = {
 			doctype: this.doctype,
 			fields: this.listview.fields,
 			filters: this.filter_list.get_filters(),
-			docstatus: docstatus_list,
 			order_by: this.listview.order_by || undefined,
 			group_by: this.listview.group_by || undefined,
 		}

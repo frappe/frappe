@@ -73,8 +73,10 @@ frappe.ui.form.on("Customize Form", "refresh", function(frm) {
 	// }
 
 	if(frappe.route_options) {
-		frappe.model.set_value("Customize Form", null, "doc_type", frappe.route_options.doctype)
-		frappe.route_options = null;
+		setTimeout(function() {
+			frm.set_value("doc_type", frappe.route_options.doctype);
+			frappe.route_options = null;
+		}, 1000);
 	}
 });
 

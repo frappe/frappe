@@ -16,7 +16,7 @@ frappe.ui.AppFrame = Class.extend({
 				<span class="title-text"></span>\
 			</span>').appendTo($center);
 
-		this.$sub_title_area = $('<div class="title-sub"></div>')
+		this.$sub_title_area = $('<div class="title-sub hide"></div>')
 			.appendTo($center);
 
 		this.setup_iconbar();
@@ -53,7 +53,7 @@ frappe.ui.AppFrame = Class.extend({
 
 	set_title_sub: function(txt) {
 		// strip icon
-		this.$sub_title_area.html(txt);
+		this.$sub_title_area.html(txt).toggleClass("hide", !!!txt);
 	},
 
 	set_title_left: function(click) {

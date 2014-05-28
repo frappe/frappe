@@ -64,6 +64,20 @@ frappe.ui.Listing = Class.extend({
 		$.extend(this, this.opts);
 
 		$(this.parent).html(repl('\
+			<div class="show-docstatus hide" style="min-height: 40px;">\
+			    <div class="pull-right" style="margin-left: 15px;"><div class="checkbox"><label>\
+					<input type="checkbox" data-docstatus="2">\
+						<span class="text-muted small">'+__('Cancelled')+'</span>\
+			    </label></div></div>\
+			    <div class="pull-right" style="margin-left: 15px;"><div class="checkbox"><label>\
+					<input type="checkbox" data-docstatus="1" checked="checked">\
+						<span class="text-muted small">'+__('Submitted')+'</span>\
+			    </label></div></div>\
+			    <div class="pull-right" style="margin-left: 15px;"><div class="checkbox"><label>\
+					<input type="checkbox" data-docstatus="0" checked="checked">\
+						<span class="text-muted small">'+__('Drafts')+'</span>\
+			    </label></div></div>\
+			</div>\
 			<div class="frappe-list">\
 				<h3 class="title hide">%(title)s</h3>\
 				\
@@ -120,6 +134,7 @@ frappe.ui.Listing = Class.extend({
 		if(this.show_filters) {
 			this.make_filters();
 		}
+		this.setup_docstatus_filter();
 	},
 	add_button: function(label, click, icon) {
 		if(this.appframe) {
@@ -213,6 +228,17 @@ frappe.ui.Listing = Class.extend({
 		});
 	},
 
+	setup_docstatus_filter: function() {
+		var me = this;
+		this.can_submit = frappe.model.is_submittable(me.doctype);
+		if(this.can_submit) {
+			$(this.parent).find('.show-docstatus').removeClass('hide');
+			$(this.parent).find('.show-docstatus input').click(function() {
+				me.run();
+			})
+		}
+	},
+
 	clear: function() {
 		this.data = [];
 		this.$w.find('.result-list').empty();
@@ -262,6 +288,11 @@ frappe.ui.Listing = Class.extend({
 				limit_page_length: this.page_length
 			}
 		}
+
+		args.docstatus = this.can_submit ? $.map($(this.parent).find('.show-docstatus :checked'),
+			function(inp) {
+				return $(inp).attr('data-docstatus');
+			}) : []
 
 		// append user-defined arguments
 		if(this.args)

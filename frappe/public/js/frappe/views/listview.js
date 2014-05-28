@@ -246,6 +246,7 @@ frappe.views.ListView = Class.extend({
 		var col = $("<div class='col'>")
 			.appendTo(body)
 			.addClass("col-sm-" + cint(colspan))
+			.addClass("col-xs-" + (cint(colspan) + 2))
 			.css({
 				"white-space": "nowrap",
 				"text-overflow": "ellipsis",

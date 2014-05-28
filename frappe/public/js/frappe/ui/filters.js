@@ -21,8 +21,10 @@ frappe.ui.FilterList = Class.extend({
 
 	show_filters: function() {
 		this.$w.find('.show_filters').toggle();
-		if(!this.filters.length)
+		if(!this.filters.length) {
 			this.add_filter();
+			this.filters[0].$w.find(".filter_field input").focus();
+		}
 	},
 
 	clear_filters: function() {
@@ -116,7 +118,9 @@ frappe.ui.Filter = Class.extend({
 				me.set_field(doctype, fieldname);
 			}
 		});
-		this.fieldselect.set_value(this.doctype, this.fieldname);
+		if(this.fieldname) {
+			this.fieldselect.set_value(this.doctype, this.fieldname);
+		}
 	},
 	set_events: function() {
 		var me = this;
@@ -141,14 +145,19 @@ frappe.ui.Filter = Class.extend({
 
 		// add help for "in" codition
 		me.$w.find('.condition').change(function() {
-			if($(this).val()=='in') {
-				me.set_field(me.field.df.parent, me.field.df.fieldname, 'Data');
-				if(!me.field.desc_area)
-					me.field.desc_area = $a(me.field.wrapper, 'span', 'help', null,
-						'values separated by comma');
+			var condition = $(this).val();
+			if(in_list(["in", "like"], condition)) {
+				me.set_field(me.field.df.parent, me.field.df.fieldname, 'Data', condition);
+				if(!me.field.desc_area) {
+					me.field.desc_area = $('<div class="text-muted small">').appendTo(me.field.wrapper);
+				}
+				// set description
+				me.field.desc_area.html((condition==="in"
+					? __("values separated by commas")
+					: __("use % as wildcard"))+'</div>');
 			} else {
 				me.set_field(me.field.df.parent, me.field.df.fieldname, null,
-					me.$w.find('.condition').val());
+					 condition);
 			}
 		});
 
@@ -300,7 +309,7 @@ frappe.ui.FieldSelect = Class.extend({
 			source: me.options,
 			minLength: 0,
 			focus: function(event, ui) {
-				me.$select.val(ui.item.label);
+				ui.item && me.$select.val(ui.item.label);
 				return false;
 			},
 			select: function(event, ui) {

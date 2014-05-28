@@ -171,7 +171,6 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 			fields: $.map(this.columns, function(v) { return me.get_full_column_name(v) }),
 			order_by: this.get_order_by(),
 			filters: this.filter_list.get_filters(),
-			docstatus: ['0','1','2'],
 			with_childnames: 1
 		}
 	},
