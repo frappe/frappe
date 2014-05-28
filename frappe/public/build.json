@@ -125,6 +125,7 @@
 		"public/js/frappe/ui/toolbar/report.js",
 		"public/js/frappe/ui/toolbar/recent.js",
 		"public/js/frappe/ui/toolbar/bookmarks.js",
+		"public/js/frappe/ui/toolbar/about.js",
 		"public/js/frappe/ui/toolbar/toolbar.js",
 		"public/js/frappe/ui/editor.js",
 

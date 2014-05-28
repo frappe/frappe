@@ -396,10 +396,21 @@ def get_all_apps(with_frappe=False, with_internal_apps=True, sites_path=None):
 	return apps
 
 def get_installed_apps():
-	if flags.in_install_db:
+	if getattr(flags, "in_install_db", True):
 		return []
 	installed = json.loads(db.get_global("installed_apps") or "[]")
 	return installed
+
+@whitelist()
+def get_versions():
+	versions = {}
+	for app in get_installed_apps():
+		try:
+			versions[app] = get_attr(app + ".__version__")
+		except AttributeError:
+			versions[app] = 'Not Versioned'
+
+	return versions
 
 def get_hooks(hook=None, default=None, app_name=None):
 	def load_app_hooks(app_name=None):
