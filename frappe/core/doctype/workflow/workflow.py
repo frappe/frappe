@@ -68,7 +68,6 @@ class Workflow(Document):
 			if state.doc_status=="0" and next_state.doc_status=="2":
 				frappe.throw(frappe._("Cannot cancel before submitting. See Transition {0}").format(t.idx))
 
-
 	def set_active(self):
 		if int(self.is_active or 0):
 			# clear all other

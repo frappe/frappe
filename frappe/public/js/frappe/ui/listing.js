@@ -64,7 +64,7 @@ frappe.ui.Listing = Class.extend({
 		$.extend(this, this.opts);
 
 		$(this.parent).html(repl('\
-			<div class="show-docstatus hide">\
+			<div class="show-docstatus hide" style="min-height: 40px;">\
 			    <div class="pull-right" style="margin-left: 15px;"><div class="checkbox"><label>\
 					<input type="checkbox" data-docstatus="2">\
 						<span class="text-muted small">'+__('Cancelled')+'</span>\
