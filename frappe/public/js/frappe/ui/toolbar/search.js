@@ -45,6 +45,8 @@ frappe.search = {
 								__("<i>text</i> <b>in</b> <i>document type</i>")+'</td></tr>\
 							<tr><td>'+__("Open a module or tool")+'</td><td>'+
 								__("<i>module name...</i>")+'</td></tr>\
+							<tr><td>'+__("Calculate")+'</td><td>'+
+								__("<i>e.g. <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>")+'</td></tr>\
 						</table>'
 						msgprint(txt, "Search Help");
 					}
@@ -165,5 +167,26 @@ frappe.search.verbs = [
 				}
 			});
 		}
+	},
+
+	// pages
+	function(txt) {
+		var first = txt.substr(0,1);
+		if(first==parseInt(first) || first==="(" || first==="=") {
+			if(first==="=") {
+				txt = txt.substr(1);
+			}
+			frappe.search.options.push({
+				value: __('Calculate "{0}"', [txt]),
+				match: txt,
+				onclick: function(match) {
+					try {
+						msgprint(eval(match), __('Calculate "{0}"', [match]));
+					} catch(e) {
+						msgprint(e.message);
+					}
+				}
+			});
+		};
 	},
 ];
