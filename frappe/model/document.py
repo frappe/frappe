@@ -400,8 +400,14 @@ class Document(BaseDocument):
 			self.run_method("on_submit")
 		elif self._action=="cancel":
 			self.run_method("on_cancel")
+			self.check_no_back_links_exist()
 		elif self._action=="update_after_submit":
 			self.run_method("on_update_after_submit")
+
+	def check_no_back_links_exist(self):
+		from frappe.model.delete_doc import check_if_doc_is_linked
+		if not self.get("ignore_links"):
+			check_if_doc_is_linked(self, method="Cancel")
 
 	@staticmethod
 	def whitelist(f):
