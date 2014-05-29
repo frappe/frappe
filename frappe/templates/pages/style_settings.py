@@ -14,7 +14,7 @@ def get_context(context):
 
 	print doc.page_header_color
 
-	return { "doc": doc.as_dict() }
+	return { "doc": doc }
 
 def prepare(doc):
 	from frappe.utils import cint, cstr
