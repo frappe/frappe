@@ -196,7 +196,8 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 					me.disp_area && $(me.disp_area)
 						.toggle(true)
 						.html(
-							frappe.format(me.value, me.df, {no_icon:true}, locals[me.doctype][me.name])
+							frappe.format(me.value, me.df,
+								{no_icon:true}, me.name ? locals[me.doctype][me.name] : null)
 						);
 				}
 
@@ -288,7 +289,8 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 			this.$input.css(this.df.input_css);
 	},
 	set_input: function(val) {
-		this.$input.val(this.format_for_input(val));
+		this.$input && this.$input.val(this.format_for_input(val));
+		this.disp_area && $(this.disp_area).html(this.format_for_input(val));
 		this.last_value = val;
 		this.set_mandatory && this.set_mandatory(val);
 	},
@@ -336,7 +338,7 @@ frappe.ui.form.ControlReadOnly = frappe.ui.form.ControlData.extend({
 		if(status==="Write")
 			status = "Read";
 		return;
-	}
+	},
 });
 
 

@@ -112,6 +112,9 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 					<li><a href="http://github.com/frappe/erpnext/issues" target="_blank">\
 						<i class="icon-fixed-width icon-warning-sign"></i> '+__('Report an Issue')+'</a></li> \
 				<li class="divider"></li> \
+				<li><a href="#" onclick="return frappe.ui.toolbar.show_calculator()">\
+					<i class="icon-fixed-width icon-plus"></i> '+__('Calculator')+'</a></li> \
+				<li class="divider"></li> \
 				<li><a href="#" onclick="return frappe.ui.toolbar.clear_cache();">\
 					<i class="icon-fixed-width icon-refresh"></i> '
 					+__('Clear Cache')+'</a></li>\
@@ -256,9 +259,48 @@ frappe.ui.toolbar.show_about = function() {
 	return false;
 }
 
+
 frappe.ui.toolbar.show_banner = function(msg) {
 	$banner = $('<div class="toolbar-banner">'+msg+'<a class="close">&times;</a></div>')
 		.appendTo($('header'));
 	$banner.find(".close").click(function() { $(".toolbar-banner").toggle(false); });
 	return $banner;
 }
+
+frappe.ui.toolbar.show_calculator = function() {
+	if(!frappe.ui.calculator) {
+		frappe.ui.calculator = new frappe.ui.Dialog({
+			title:"Calculator",
+			fields: [
+				{
+					fieldtype:"Data",
+					label:"Expression",
+					fieldname:"expression",
+					description: "e.g. <b>(455 + 3353) * 20</b> or <b>Math.sin(Math.PI / 3)</b>"
+				},
+				{
+					fieldtype: "Read Only",
+					label: "Result",
+					fieldname: "result"
+				},
+			],
+			primary_action_label: "Calculate",
+			primary_action: function() {
+				try {
+					frappe.ui.calculator.set_value("result",
+						eval(frappe.ui.calculator.get_value("expression")));
+				} catch(e) {
+					frappe.ui.calculator.set_value("result", "Error: " + e.message);
+				}
+			}
+		});
+		frappe.ui.calculator.get_input("expression").on("keypress", function(e) {
+			if(e.which===13) {
+				frappe.ui.calculator.primary_action();
+			}
+		});
+	}
+	frappe.ui.calculator.show();
+	return false;
+}
+

@@ -24,7 +24,9 @@ def prepare(doc):
 		"background_color": "FFFFFF",
 		"top_bar_background": "FFFFFF",
 		"top_bar_foreground": "444444",
-		"page_text": "000000"
+		"page_text": "000000",
+		"page_header_background": "263248",
+		"page_header_text": "ffffff"
 	}
 
 	for d in default_colours:
