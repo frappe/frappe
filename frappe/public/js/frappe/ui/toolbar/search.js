@@ -169,22 +169,25 @@ frappe.search.verbs = [
 		}
 	},
 
-	// pages
+	// calculator
 	function(txt) {
 		var first = txt.substr(0,1);
 		if(first==parseInt(first) || first==="(" || first==="=") {
 			if(first==="=") {
 				txt = txt.substr(1);
 			}
+
+			try {
+				var val = eval(txt);
+			} catch(e) {
+				var val = e.message;
+			}
+
 			frappe.search.options.push({
-				value: __('Calculate "{0}"', [txt]),
-				match: txt,
+				value: $.format('"{0}" = {1}', [txt, val]),
+				match: val,
 				onclick: function(match) {
-					try {
-						msgprint(eval(match), __('Calculate "{0}"', [match]));
-					} catch(e) {
-						msgprint(e.message);
-					}
+					msgprint(match, "Result");
 				}
 			});
 		};
