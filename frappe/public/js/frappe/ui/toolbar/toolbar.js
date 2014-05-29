@@ -20,7 +20,9 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		// clear all custom menus on page change
 		$(document).on("page-change", function() {
 			$("header .navbar .custom-menu").remove();
-		})
+		});
+
+		frappe.search.setup();
 	},
 	make: function() {
 		$('header').append('<div class="navbar navbar-inverse navbar-fixed-top" role="navigation">\
@@ -37,6 +39,16 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 				<div class="collapse navbar-collapse navbar-responsive-collapse">\
 					<ul class="nav navbar-nav navbar-left">\
 					</ul>\
+			        <form class="navbar-form navbar-left" role="search" onsubmit="return false;">\
+			          <div class="form-group">\
+			            <input id="navbar-search" type="text" class="form-control small"\
+							placeholder="' + __("Search or type a command") + '" \
+							style="padding: 2px 6px; height: 24px; margin-top: 5px; \
+								margin-left: 10px; background-color: #ddd; \
+								min-width: 200px; \
+								border-radius: 10px;">\
+			          </div>\
+			        </form>\
 					<img src="assets/frappe/images/ui/spinner.gif" id="spinner"/>\
 					<ul class="nav navbar-nav navbar-right">\
 						<li class="dropdown">\
@@ -73,8 +85,8 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		frappe.ui.toolbar.new_dialog = new frappe.ui.toolbar.NewDialog();
 		frappe.ui.toolbar.search = new frappe.ui.toolbar.Search();
 		frappe.ui.toolbar.report = new frappe.ui.toolbar.Report();
-		$('.navbar .nav:first').append('<li class="dropdown">\
-			<a onclick="return frappe.ui.toolbar.search.show();"><i class="icon-search"></i><li>');
+		// $('.navbar .nav:first').append('<li class="dropdown">\
+		// 	<a onclick="return frappe.ui.toolbar.search.show();"><i class="icon-search"></i><li>');
 		$('.navbar .nav:first').append('<li class="dropdown">\
 			<a class="dropdown-toggle" href="#"  data-toggle="dropdown"\
 				title="'+__("File")+'"\

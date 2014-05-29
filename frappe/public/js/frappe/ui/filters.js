@@ -163,12 +163,11 @@ frappe.ui.Filter = Class.extend({
 
 		// set the field
 		if(me.fieldname) {
-			// presents given (could be via tags!)
+			// pre-sets given (could be via tags!)
 			this.set_values(me.tablename, me.fieldname, me.condition, me.value);
 		} else {
 			me.set_field(me.doctype, 'name');
 		}
-
 	},
 
 	set_values: function(tablename, fieldname, condition, value) {

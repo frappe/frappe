@@ -868,6 +868,12 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 					no_spinner: true,
 					args: args,
 					callback: function(r) {
+						if(frappe.model.can_read(me.df.options)) {
+							r.results.push({
+								value: "<i class='icon-plus'></i> <em>" + __("Create a new {0}", [me.df.options]) + "</em>",
+								make_new: true
+							});
+						};
 						cache[request.term] = r.results;
 						response(r.results);
 					},
@@ -879,8 +885,18 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			close: function(event, ui) {
 				me.autocomplete_open = false;
 			},
+			focus: function( event, ui ) {
+				if(ui.item.make_new) {
+					return false;
+				}
+			},
 			select: function(event, ui) {
 				me.autocomplete_open = false;
+				if(ui.item.make_new) {
+					me.frm.new_doc(me.df.options, me);
+					return false;
+				}
+
 				if(me.frm && me.frm.doc) {
 					me.selected = true;
 					me.parse_validate_and_set_in_model(ui.item.value);
@@ -891,7 +907,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			}
 		}).data('ui-autocomplete')._renderItem = function(ul, d) {
 			var html = "<strong>" + d.value + "</strong>";
-			if(d.value!==d.description) {
+			if(d.description && d.value!==d.description) {
 				html += '<br><span class="small">' + d.description + '</span>';
 			}
 			return $('<li></li>')
