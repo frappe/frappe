@@ -21,15 +21,11 @@ def clear(user=None):
 	frappe.local.session_obj.update(force=True)
 	frappe.local.db.commit()
 	clear_cache(frappe.session.user)
+	clear_global_cache()
 	frappe.response['message'] = "Cache Cleared"
-
 
 def clear_cache(user=None):
 	cache = frappe.cache()
-
-	frappe.model.meta.clear_cache()
-	cache.delete_value(["app_hooks", "installed_apps", "app_modules", "module_apps", "home_page",
-		"time_zone"])
 
 	def delete_user_cache(user):
 		for key in ("bootinfo", "lang", "roles", "user_permissions", "home_page"):
@@ -62,7 +58,13 @@ def clear_cache(user=None):
 
 		delete_user_cache("Guest")
 		clear_notifications()
+		clear_global_cache()
 		frappe.defaults.clear_cache()
+
+def clear_global_cache():
+	frappe.model.meta.clear_cache()
+	frappe.cache().delete_value(["app_hooks", "installed_apps", "app_modules", "module_apps", "home_page",
+		"time_zone"])
 
 def clear_sessions(user=None, keep_current=False):
 	if not user:
