@@ -27,30 +27,26 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 	if not frappe.db.exists(doctype, name):
 		return
 
-	doc = frappe.get_doc(doctype, name)
+	if doctype=="DocType":
+		if not for_reload:
+			frappe.db.sql("delete from `tabCustom Field` where dt = %s", name)
+			frappe.db.sql("delete from `tabCustom Script` where dt = %s", name)
+			frappe.db.sql("delete from `tabProperty Setter` where doc_type = %s", name)
+			frappe.db.sql("delete from `tabReport` where ref_doctype=%s", name)
 
-	if not for_reload:
-		check_permission_and_not_submitted(doc, ignore_permissions)
-		doc.run_method("on_trash")
-		# check if links exist
-		if not force:
-			check_if_doc_is_linked(doc)
+		delete_from_table(doctype, name, ignore_doctypes, None)
 
-	try:
-		if doctype!="DocType" and doctype==name:
-			frappe.db.sql("delete from `tabSingles` where doctype=%s", name)
-		else:
-			frappe.db.sql("delete from `tab%s` where name=%s" % (doctype, "%s"), (name,))
+	else:
+		doc = frappe.get_doc(doctype, name)
 
-		for t in doc.meta.get_table_fields():
-			if t.options not in ignore_doctypes:
-				frappe.db.sql("delete from `tab%s` where parent = %s" % (t.options, '%s'), (name,))
+		if not for_reload:
+			check_permission_and_not_submitted(doc, ignore_permissions)
+			doc.run_method("on_trash")
+			# check if links exist
+			if not force:
+				check_if_doc_is_linked(doc)
 
-	except Exception, e:
-		if e.args[0]==1451:
-			frappe.throw(_("Cannot delete {0} {1} is it is referenced in another record").format(doctype, name))
-
-		raise
+		delete_from_table(doctype, name, ignore_doctypes, doc)
 
 	# delete attachments
 	remove_all(doctype, name)
@@ -59,6 +55,28 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 	frappe.defaults.clear_default(parenttype="User Permission", key=doctype, value=name)
 
 	return 'okay'
+
+def delete_from_table(doctype, name, ignore_doctypes, doc):
+	if doctype!="DocType" and doctype==name:
+		frappe.db.sql("delete from `tabSingles` where doctype=%s", name)
+	else:
+		frappe.db.sql("delete from `tab%s` where name=%s" % (doctype, "%s"), (name,))
+
+	# get child tables
+	if doc:
+		tables = [d.options for d in doc.meta.get_table_fields()]
+
+	else:
+		def get_table_fields(field_doctype):
+			return frappe.db.sql_list("""select options from `tab{}` where fieldtype='Table'
+				and parent=%s""".format(field_doctype), doctype)
+
+		tables = get_table_fields("DocField") + get_table_fields("Custom Field")
+
+	# delete from child tables
+	for t in tables:
+		if t not in ignore_doctypes:
+			frappe.db.sql("delete from `tab%s` where parent = %s" % (t, '%s'), (name,))
 
 def check_permission_and_not_submitted(doc, ignore_permissions=False):
 	# permission

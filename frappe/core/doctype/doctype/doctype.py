@@ -96,12 +96,6 @@ class DocType(Document):
 				module.on_doctype_update()
 		frappe.clear_cache(doctype=self.name)
 
-	def on_trash(self):
-		frappe.db.sql("delete from `tabCustom Field` where dt = %s", self.name)
-		frappe.db.sql("delete from `tabCustom Script` where dt = %s", self.name)
-		frappe.db.sql("delete from `tabProperty Setter` where doc_type = %s", self.name)
-		frappe.db.sql("delete from `tabReport` where ref_doctype=%s", self.name)
-
 	def before_rename(self, old, new, merge=False):
 		if merge:
 			frappe.throw(_("DocType can not be merged"))
