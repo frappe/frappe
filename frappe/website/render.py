@@ -170,7 +170,7 @@ def clear_cache(path=None):
 			if p is not None:
 				delete_page_cache(p)
 
-		cache.delete_value("home_page")
+		frappe.clear_cache("Guest")
 		clear_permissions()
 
 	for method in frappe.get_hooks("website_clear_cache"):
