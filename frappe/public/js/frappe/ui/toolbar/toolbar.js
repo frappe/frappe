@@ -20,7 +20,9 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		// clear all custom menus on page change
 		$(document).on("page-change", function() {
 			$("header .navbar .custom-menu").remove();
-		})
+		});
+
+		frappe.search.setup();
 	},
 	make: function() {
 		$('header').append('<div class="navbar navbar-inverse navbar-fixed-top" role="navigation">\
@@ -37,6 +39,16 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 				<div class="collapse navbar-collapse navbar-responsive-collapse">\
 					<ul class="nav navbar-nav navbar-left">\
 					</ul>\
+			        <form class="navbar-form navbar-left" role="search" onsubmit="return false;">\
+			          <div class="form-group">\
+			            <input id="navbar-search" type="text" class="form-control small"\
+							placeholder="' + __("Search or type a command") + '" \
+							style="padding: 2px 6px; height: 24px; margin-top: 5px; \
+								margin-left: 10px; background-color: #ddd; \
+								min-width: 250px; \
+								border-radius: 10px;">\
+			          </div>\
+			        </form>\
 					<img src="assets/frappe/images/ui/spinner.gif" id="spinner"/>\
 					<ul class="nav navbar-nav navbar-right">\
 						<li class="dropdown">\
@@ -73,8 +85,8 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		frappe.ui.toolbar.new_dialog = new frappe.ui.toolbar.NewDialog();
 		frappe.ui.toolbar.search = new frappe.ui.toolbar.Search();
 		frappe.ui.toolbar.report = new frappe.ui.toolbar.Report();
-		$('.navbar .nav:first').append('<li class="dropdown">\
-			<a onclick="return frappe.ui.toolbar.search.show();"><i class="icon-search"></i><li>');
+		// $('.navbar .nav:first').append('<li class="dropdown">\
+		// 	<a onclick="return frappe.ui.toolbar.search.show();"><i class="icon-search"></i><li>');
 		$('.navbar .nav:first').append('<li class="dropdown">\
 			<a class="dropdown-toggle" href="#"  data-toggle="dropdown"\
 				title="'+__("File")+'"\
@@ -112,9 +124,6 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 					<li><a href="http://github.com/frappe/erpnext/issues" target="_blank">\
 						<i class="icon-fixed-width icon-warning-sign"></i> '+__('Report an Issue')+'</a></li> \
 				<li class="divider"></li> \
-				<li><a href="#" onclick="return frappe.ui.toolbar.show_calculator()">\
-					<i class="icon-fixed-width icon-plus"></i> '+__('Calculator')+'</a></li> \
-				<li class="divider"></li> \
 				<li><a href="#" onclick="return frappe.ui.toolbar.clear_cache();">\
 					<i class="icon-fixed-width icon-refresh"></i> '
 					+__('Clear Cache')+'</a></li>\
@@ -122,9 +131,8 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		</li>');
 	},
 	set_user_name: function() {
-		var fn = user_fullname;
-		if(fn.length > 15) fn = fn.substr(0,12) + '...';
-		$('#toolbar-user-name').html(fn);
+		$('#toolbar-user-name').html('<img src="'
+			+frappe.user_info().image+'" style="max-width: 24px; max-height: 24px">');
 	},
 
 	make_user_menu: function() {
@@ -266,41 +274,3 @@ frappe.ui.toolbar.show_banner = function(msg) {
 	$banner.find(".close").click(function() { $(".toolbar-banner").toggle(false); });
 	return $banner;
 }
-
-frappe.ui.toolbar.show_calculator = function() {
-	if(!frappe.ui.calculator) {
-		frappe.ui.calculator = new frappe.ui.Dialog({
-			title:"Calculator",
-			fields: [
-				{
-					fieldtype:"Data",
-					label:"Expression",
-					fieldname:"expression",
-					description: "e.g. <b>(455 + 3353) * 20</b> or <b>Math.sin(Math.PI / 3)</b>"
-				},
-				{
-					fieldtype: "Read Only",
-					label: "Result",
-					fieldname: "result"
-				},
-			],
-			primary_action_label: "Calculate",
-			primary_action: function() {
-				try {
-					frappe.ui.calculator.set_value("result",
-						eval(frappe.ui.calculator.get_value("expression")));
-				} catch(e) {
-					frappe.ui.calculator.set_value("result", "Error: " + e.message);
-				}
-			}
-		});
-		frappe.ui.calculator.get_input("expression").on("keypress", function(e) {
-			if(e.which===13) {
-				frappe.ui.calculator.primary_action();
-			}
-		});
-	}
-	frappe.ui.calculator.show();
-	return false;
-}
-

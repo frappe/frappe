@@ -67,7 +67,10 @@ def application(request):
 		if frappe.local.is_ajax:
 			response = frappe.utils.response.report_error(getattr(e, "http_status_code", 500))
 		else:
-			response = frappe.website.render.render(getattr(e, "http_status_code", 500))
+			frappe.respond_as_web_page("Server Error",
+				"<pre>"+frappe.get_traceback()+"</pre>",
+				http_status_code=getattr(e, "http_status_code", 500))
+			response = frappe.website.render.render("message")
 
 		if e.__class__ == frappe.AuthenticationError:
 			if hasattr(frappe.local, "login_manager"):

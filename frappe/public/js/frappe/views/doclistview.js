@@ -181,7 +181,11 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		var me = this;
 		me.filter_list.clear_filters();
 		$.each(frappe.route_options, function(key, value) {
-			me.filter_list.add_filter(me.doctype, key, "=", value);
+			if($.isArray(value)) {
+				me.filter_list.add_filter(me.doctype, key, value[0], value[1]);
+			} else {
+				me.filter_list.add_filter(me.doctype, key, "=", value);
+			}
 		});
 		frappe.route_options = null;
 		me.run();
