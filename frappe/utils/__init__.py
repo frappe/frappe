@@ -77,7 +77,7 @@ def random_string(length):
 
 def get_gravatar(email):
 	import md5
-	return "https://secure.gravatar.com/avatar/" + md5.md5(email).hexdigest()
+	return "https://secure.gravatar.com/avatar/{hash}?d=retro".format(hash=md5.md5(email).hexdigest())
 
 def get_traceback():
 	"""
