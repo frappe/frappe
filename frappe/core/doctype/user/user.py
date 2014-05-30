@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe.utils import cint, now
+from frappe.utils import cint, now, get_gravatar
 from frappe import throw, msgprint, _
 from frappe.auth import _update_password
 import frappe.permissions
@@ -90,10 +90,8 @@ class User(Document):
 			pass # email server not set, don't send email
 
 	def update_gravatar(self):
-		import md5
 		if not self.user_image:
-			self.user_image = "https://secure.gravatar.com/avatar/" + md5.md5(self.name).hexdigest() \
-				+ "?d=retro"
+			self.user_image = get_gravatar(self.name)
 
 	@Document.hook
 	def validate_reset_password(self):

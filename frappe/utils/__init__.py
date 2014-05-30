@@ -75,6 +75,10 @@ def random_string(length):
 	from random import choice
 	return ''.join([choice(string.letters + string.digits) for i in range(length)])
 
+def get_gravatar(email):
+	import md5
+	return "https://secure.gravatar.com/avatar/" + md5.md5(email).hexdigest()
+
 def get_traceback():
 	"""
 		 Returns the traceback of the Exception

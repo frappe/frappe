@@ -4,17 +4,11 @@
 // misc user functions
 
 frappe.user_info = function(uid) {
-	var def = {
-		'fullname':uid,
-		'image': 'assets/frappe/images/ui/avatar.png'
-	}
-	if(!frappe.boot.user_info) return def
-	if(!frappe.boot.user_info[uid]) return def
-	if(!frappe.boot.user_info[uid].fullname)
-		frappe.boot.user_info[uid].fullname = uid;
-	if(!frappe.boot.user_info[uid].image)
-		frappe.boot.user_info[uid].image = def.image;
-	return frappe.boot.user_info[uid];
+	if(!uid)
+		uid = user;
+	if(!frappe.boot.user_info)
+		return {fullname:"Unknown"};
+	return frappe.boot.user_info[uid] || {};
 }
 
 frappe.avatar = function(user, large, title) {

@@ -131,9 +131,8 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		</li>');
 	},
 	set_user_name: function() {
-		var fn = user_fullname;
-		if(fn.length > 15) fn = fn.substr(0,12) + '...';
-		$('#toolbar-user-name').html(fn);
+		$('#toolbar-user-name').html('<img src="'
+			+frappe.user_info().image+'" style="max-width: 24px; max-height: 24px">');
 	},
 
 	make_user_menu: function() {

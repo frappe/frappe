@@ -9,6 +9,7 @@ bootstrap client session
 import frappe
 import frappe.defaults
 import frappe.widgets.page
+from frappe.utils import get_gravatar
 
 def get_bootinfo():
 	"""build and return boot info"""
@@ -92,18 +93,14 @@ def get_fullnames():
 	"""map of user fullnames"""
 	ret = frappe.db.sql("""select name,
 		concat(ifnull(first_name, ''),
-			if(ifnull(last_name, '')!='', ' ', ''), ifnull(last_name, '')),
-			user_image, gender, email
-		from tabUser where ifnull(enabled, 0)=1""", as_list=1)
+			if(ifnull(last_name, '')!='', ' ', ''), ifnull(last_name, '')) as fullname,
+			user_image as image, gender, email
+		from tabUser where ifnull(enabled, 0)=1""", as_dict=1)
 	d = {}
 	for r in ret:
-		if not r[2]:
-			r[2] = '/assets/frappe/images/ui/avatar.png'
-		else:
-			r[2] = r[2]
-
-		d[r[0]]= {'fullname': r[1], 'image': r[2], 'gender': r[3],
-			'email': r[4] or r[0]}
+		if not r.image:
+			r.image = get_gravatar()
+		d[r.name] = r
 
 	return d
 
