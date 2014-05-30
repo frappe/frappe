@@ -95,10 +95,10 @@ class UnicodeWriter:
 def check_record(d):
 	"""check for mandatory, select options, dates. these should ideally be in doclist"""
 	from frappe.utils.dateutils import parse_date
-	d = frappe.get_doc(d)
+	doc = frappe.get_doc(d)
 
 	for key in d:
-		docfield = d.meta.get_field(key)
+		docfield = doc.meta.get_field(key)
 		val = d[key]
 		if docfield:
 			if docfield.reqd and (val=='' or val==None):
