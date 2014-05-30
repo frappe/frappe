@@ -62,7 +62,8 @@ $.extend(frappe.meta, {
 		return docfields;
 	},
 
-	get_fields_to_check_permissions: function(doctype, name, user_permissions_doctypes) {
+	get_fields_to_check_permissions: function(doctype, name, user_permissions) {
+		var user_permissions_doctypes = Object.keys(user_permissions);
 		var fields = $.map(frappe.meta.get_docfields(doctype, name), function(df) {
 			return (df.fieldtype==="Link" && df.ignore_user_permissions!==1 &&
 				user_permissions_doctypes.indexOf(df.options)!==-1) ? df : null;

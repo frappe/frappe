@@ -870,7 +870,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 					no_spinner: true,
 					args: args,
 					callback: function(r) {
-						if(frappe.model.can_read(me.df.options)) {
+						if(frappe.model.can_create(me.df.options)) {
 							r.results.push({
 								value: "<i class='icon-plus'></i> <em>" + __("Create a new {0}", [me.df.options]) + "</em>",
 								make_new: true
