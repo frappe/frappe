@@ -74,7 +74,7 @@ def remove(doctype, name, assign_to):
 		todo.save(ignore_permissions=True)
 
 		notify_assignment(todo.assigned_by, todo.owner, todo.reference_type, todo.reference_name)
-	except:
+	except frappe.DoesNotExistError:
 		pass
 
 	# clear assigned_to if field exists
