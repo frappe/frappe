@@ -23,7 +23,7 @@ def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=F
 
 	# call before_rename
 	out = frappe.get_doc(doctype, old).run_method("before_rename", old, new, merge) or {}
-	new = (out.get("new") or new) if isinstance(out, dict) else new
+	new = (out.get("new") or new) if isinstance(out, dict) else (out or new)
 	new = validate_rename(doctype, new, meta, merge, force, ignore_permissions)
 
 	if not merge:

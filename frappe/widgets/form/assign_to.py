@@ -68,15 +68,18 @@ def add(args=None):
 @frappe.whitelist()
 def remove(doctype, name, assign_to):
 	"""remove from todo"""
-	todo = frappe.get_doc("ToDo", {"reference_type":doctype, "reference_name":name, "owner":assign_to, "status":"Open"})
-	todo.status = "Closed"
-	todo.save(ignore_permissions=True)
+	try:
+		todo = frappe.get_doc("ToDo", {"reference_type":doctype, "reference_name":name, "owner":assign_to, "status":"Open"})
+		todo.status = "Closed"
+		todo.save(ignore_permissions=True)
+
+		notify_assignment(todo.assigned_by, todo.owner, todo.reference_type, todo.reference_name)
+	except frappe.DoesNotExistError:
+		pass
 
 	# clear assigned_to if field exists
 	if frappe.get_meta(doctype).get_field("assigned_to"):
 		frappe.db.set_value(doctype, name, "assigned_to", None)
-
-	notify_assignment(todo.assigned_by, todo.owner, todo.reference_type, todo.reference_name)
 
 	return get({"doctype": doctype, "name": name})
 

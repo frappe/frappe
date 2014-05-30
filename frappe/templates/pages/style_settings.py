@@ -12,8 +12,6 @@ def get_context(context):
 	doc = frappe.get_doc("Style Settings", "Style Settings")
 	prepare(doc)
 
-	print doc.page_header_color
-
 	return { "doc": doc }
 
 def prepare(doc):
