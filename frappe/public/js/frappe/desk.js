@@ -139,8 +139,8 @@ frappe.Application = Class.extend({
 		if(localStorage["page_info"]) {
 			frappe.boot.allowed_pages = [];
 			page_info = JSON.parse(localStorage["page_info"]);
-			$.each(frappe.boot.page_info, function(name, modified) {
-				if(page_info[name]!=modified) {
+			$.each(frappe.boot.page_info, function(name, p) {
+				if(page_info[name].modified != p.modified) {
 					delete localStorage["_page:" + name];
 				}
 				frappe.boot.allowed_pages.push(name);

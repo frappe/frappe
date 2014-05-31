@@ -104,6 +104,7 @@ frappe.views.GridReport = Class.extend({
 		$.extend(this, opts);
 
 		this.wrapper = $('<div>').appendTo(this.parent);
+		this.appframe.parent.find(".appframe").css({"padding-top": "0px"});
 
 		if(this.filters) {
 			this.make_filters();
@@ -353,8 +354,7 @@ frappe.views.GridReport = Class.extend({
 		this.round_off_data();
 		this.prepare_data_view();
 		// plot might need prepared data
-		this.wrapper.find(".processing").toggle(true);
-		this.wrapper.find(".processing").delay(2000).fadeOut(300);
+		show_alert("Updated", 2);
 		this.render();
 		this.render_plot && this.render_plot();
 	},
@@ -369,12 +369,6 @@ frappe.views.GridReport = Class.extend({
 		// plot wrapper
 		this.plot_area = $('<div class="plot" style="margin-bottom: 15px; display: none; \
 			height: 300px; width: 100%;"></div>').appendTo(this.wrapper);
-
-		// print / export
-		$('<div style="text-align: right;"> \
-			<div class="processing" style="background-color: #fec; display: none; \
-				float: left; margin: 2px">Updated! </div> \
-		</div>').appendTo(this.wrapper);
 
 		this.appframe.add_primary_action(__("Export"), function() { return me.export(); }, "icon-download");
 

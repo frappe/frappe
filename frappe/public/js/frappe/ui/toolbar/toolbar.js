@@ -45,7 +45,7 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 							placeholder="' + __("Search or type a command") + '" \
 							style="padding: 2px 6px; height: 24px; margin-top: 5px; \
 								margin-left: 10px; background-color: #ddd; \
-								min-width: 250px; \
+								min-width: 230px; \
 								border-radius: 10px;">\
 			          </div>\
 			        </form>\
@@ -132,7 +132,7 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 	},
 	set_user_name: function() {
 		$('#toolbar-user-name').html('<img src="'
-			+frappe.user_info().image+'" style="max-width: 24px; max-height: 24px">');
+			+frappe.user_info().image+'" style="max-width: 24px; max-height: 24px; margin: -2px 0px;">');
 	},
 
 	make_user_menu: function() {
