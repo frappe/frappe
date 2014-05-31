@@ -288,7 +288,7 @@ def install(db_name, root_login="root", root_password=None, source_sql=None,
 
 	try:
 		installed = frappe.get_installed_apps()
-	except Exception e:
+	except Exception, e:
 		if e.args[0]!= 1146:
 			raise
 
