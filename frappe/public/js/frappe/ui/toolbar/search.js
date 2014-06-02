@@ -33,24 +33,7 @@ frappe.search = {
 				frappe.search.options.sort(function(a, b) {
 					return a.match.length - b.match.length; });
 
-				frappe.search.options.push({
-					value: __("Help on Search"),
-					onclick: function() {
-						var txt = '<table class="table table-bordered">\
-							<tr><td style="width: 50%">'+__("Make a new record")+'</td><td>'+
-								__("<b>new</b> <i>type of document</i>")+'</td></tr>\
-							<tr><td>'+__("List a document type")+'</td><td>'+
-								__("<i>document type...</i>, e.g. <b>customer</b>")+'</td></tr>\
-							<tr><td>'+__("Search in a document type")+'</td><td>'+
-								__("<i>text</i> <b>in</b> <i>document type</i>")+'</td></tr>\
-							<tr><td>'+__("Open a module or tool")+'</td><td>'+
-								__("<i>module name...</i>")+'</td></tr>\
-							<tr><td>'+__("Calculate")+'</td><td>'+
-								__("<i>e.g. <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>")+'</td></tr>\
-						</table>'
-						msgprint(txt, "Search Help");
-					}
-				});
+				frappe.search.add_help();
 
 				response(frappe.search.options);
 			},
@@ -78,7 +61,36 @@ frappe.search = {
 				.data('item.autocomplete', d)
 				.html('<a><p>' + html + '</p></a>')
 				.appendTo(ul);
-		};;
+		};
+
+		frappe.search.make_page_title_map();
+	},
+	add_help: function() {
+		frappe.search.options.push({
+			value: __("Help on Search"),
+			onclick: function() {
+				var txt = '<table class="table table-bordered">\
+					<tr><td style="width: 50%">'+__("Make a new record")+'</td><td>'+
+						__("<b>new</b> <i>type of document</i>")+'</td></tr>\
+					<tr><td>'+__("List a document type")+'</td><td>'+
+						__("<i>document type...</i>, e.g. <b>customer</b>")+'</td></tr>\
+					<tr><td>'+__("Search in a document type")+'</td><td>'+
+						__("<i>text</i> <b>in</b> <i>document type</i>")+'</td></tr>\
+					<tr><td>'+__("Open a module or tool")+'</td><td>'+
+						__("<i>module name...</i>")+'</td></tr>\
+					<tr><td>'+__("Calculate")+'</td><td>'+
+						__("<i>e.g. <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>")+'</td></tr>\
+				</table>'
+				msgprint(txt, "Search Help");
+			}
+		});
+	},
+	make_page_title_map: function() {
+		frappe.search.pages = {};
+		$.each(frappe.boot.page_info, function(name, p) {
+			frappe.search.pages[p.title] = p;
+			p.name = name;
+		});
 	},
 	find: function(list, txt, process) {
 		var ret = null;
@@ -98,7 +110,7 @@ frappe.search.verbs = [
 	// search in list if current
 	function(txt) {
 		var route = frappe.get_route();
-		if(route[0]==="List") {
+		if(route[0]==="List" && txt.indexOf(" in") === -1) {
 			frappe.search.options.push({
 				value: __('Find {0} in {1}', ["<b>"+txt+"</b>", "<b>" + route[1] + "</b>"]),
 				route_options: {"name": ["like", "%" + txt + "%"]},
@@ -135,10 +147,10 @@ frappe.search.verbs = [
 
 	// pages
 	function(txt) {
-		frappe.search.find(keys(frappe.boot.page_info), txt, function(match) {
+		frappe.search.find(keys(frappe.search.pages), txt, function(match) {
 			return {
 				value: __("Open {0}", ["<b>"+match+"</b>"]),
-				route: [match]
+				route: [frappe.search.pages[match].route || frappe.search.pages[match].name]
 			}
 		});
 	},

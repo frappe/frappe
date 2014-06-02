@@ -286,13 +286,26 @@ def install(db_name, root_login="root", root_password=None, source_sql=None,
 	from frappe.installer import install_db, install_app, make_site_dirs
 	verbose = not quiet
 
+	try:
+		installed = frappe.get_installed_apps()
+	except Exception, e:
+		if e.args[0]!= 1146:
+			raise
+		installed = []
+
 	install_db(root_login=root_login, root_password=root_password, db_name=db_name, source_sql=source_sql,
 		admin_password = admin_password, verbose=verbose, force=force, site_config=site_config, reinstall=reinstall)
 	make_site_dirs()
 	install_app("frappe", verbose=verbose, set_as_patched=not source_sql)
+
 	if frappe.conf.get("install_apps"):
 		for app in frappe.conf.install_apps:
 			install_app(app, verbose=verbose, set_as_patched=not source_sql)
+
+	if installed:
+		for app in installed:
+			install_app(app, verbose=verbose, set_as_patched=not source_sql)
+
 	frappe.destroy()
 
 @cmd

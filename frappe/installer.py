@@ -94,7 +94,7 @@ def install_app(name, verbose=False, set_as_patched=True):
 
 	if name in installed_apps:
 		print "App Already Installed"
-		frappe.msgprint(_("App Already Installed"))
+		frappe.msgprint("App {0} already installed".format(name))
 		return
 
 	if name != "frappe":
