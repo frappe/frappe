@@ -205,14 +205,14 @@ class CustomizeForm(Document):
 		if existing_property_setter:
 			frappe.delete_doc("Property Setter", existing_property_setter)
 
-	def get_existing_property_value(self, property, fieldname=None):
+	def get_existing_property_value(self, property_name, fieldname=None):
 		# check if there is any need to make property setter!
 		if fieldname:
 			property_value = frappe.db.get_value("DocField", {"parent": self.doc_type,
-				"fieldname": fieldname}, property)
+				"fieldname": fieldname}, property_name)
 		else:
 			try:
-				property_value = frappe.db.get_value("DocType", self.doc_type, property)
+				property_value = frappe.db.get_value("DocType", self.doc_type, property_name)
 			except Exception, e:
 				if e.args[0]==1054:
 					property_value = None
