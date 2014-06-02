@@ -140,6 +140,8 @@ def setup_install(parser):
 		help="Install a fresh app in db_name specified in conf.py")
 	parser.add_argument("--restore", metavar=("DB-NAME", "SQL-FILE"), nargs=2,
 		help="Restore from an sql file")
+	parser.add_argument("--with_scheduler_enabled", default=False, action="store_true",
+		help="Enable scheduler on restore")
 	parser.add_argument("--add_system_manager", nargs="+",
 		metavar=("EMAIL", "[FIRST-NAME] [LAST-NAME]"), help="Add a user with all roles")
 
@@ -242,6 +244,11 @@ def setup_utilities(parser):
 	parser.add_argument("--run_scheduler_event", nargs=1,
 		metavar="all | daily | weekly | monthly",
 		help="Run a scheduler event")
+	parser.add_argument("--enable_scheduler", default=False, action="store_true",
+		help="Enable scheduler")
+	parser.add_argument("--disable_scheduler", default=False, action="store_true",
+		help="Disable scheduler")
+
 
 	# replace
 	parser.add_argument("--replace", nargs=3,
@@ -284,7 +291,12 @@ def use(sites_path):
 def install(db_name, root_login="root", root_password=None, source_sql=None,
 		admin_password = 'admin', force=False, site_config=None, reinstall=False, quiet=False, install_apps=None):
 	from frappe.installer import install_db, install_app, make_site_dirs
+	import frappe.utils.scheduler
+
 	verbose = not quiet
+
+	# enable scheduler post install?
+	enable_scheduler = _is_scheduler_enabled()
 
 	install_db(root_login=root_login, root_password=root_password, db_name=db_name, source_sql=source_sql,
 		admin_password = admin_password, verbose=verbose, force=force, site_config=site_config, reinstall=reinstall)
@@ -299,7 +311,22 @@ def install(db_name, root_login="root", root_password=None, source_sql=None,
 		for app in install_apps:
 			install_app(app, verbose=verbose, set_as_patched=not source_sql)
 
+	frappe.utils.scheduler.toggle_scheduler(enable_scheduler)
+
+	scheduler_status = "disabled" if frappe.utils.scheduler.is_scheduler_disabled() else "enabled"
+	print "*** Scheduler is", scheduler_status, "***"
+
 	frappe.destroy()
+
+def _is_scheduler_enabled():
+	enable_scheduler = False
+	try:
+		frappe.connect()
+		enable_scheduler = frappe.db.get_default("enable_scheduler")
+	finally:
+		frappe.db.close()
+
+	return enable_scheduler
 
 @cmd
 def install_app(app_name, quiet=False):
@@ -334,9 +361,12 @@ def reinstall(quiet=False):
 	install(db_name=frappe.conf.db_name, verbose=verbose, force=True, reinstall=True, install_apps=installed)
 
 @cmd
-def restore(db_name, source_sql, force=False, quiet=False):
+def restore(db_name, source_sql, force=False, quiet=False, with_scheduler_enabled=False):
+	import frappe.utils.scheduler
 	verbose = not quiet
 	install(db_name, source_sql=source_sql, verbose=verbose, force=force)
+
+	frappe.utils.scheduler.toggle_scheduler(with_scheduler_enabled)
 
 @cmd
 def add_system_manager(email, first_name=None, last_name=None):
@@ -563,6 +593,24 @@ def run_scheduler_event(event, force=False):
 	import frappe.utils.scheduler
 	frappe.connect()
 	frappe.utils.scheduler.trigger(frappe.local.site, event, now=force)
+	frappe.destroy()
+
+@cmd
+def enable_scheduler():
+	import frappe.utils.scheduler
+	frappe.connect()
+	frappe.utils.scheduler.enable_scheduler()
+	frappe.db.commit()
+	print "Enabled"
+	frappe.destroy()
+
+@cmd
+def disable_scheduler():
+	import frappe.utils.scheduler
+	frappe.connect()
+	frappe.utils.scheduler.disable_scheduler()
+	frappe.db.commit()
+	print "Disabled"
 	frappe.destroy()
 
 # replace

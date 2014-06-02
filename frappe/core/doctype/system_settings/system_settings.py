@@ -17,11 +17,11 @@ class SystemSettings(Document):
 
 	def on_update(self):
 		for df in self.meta.get("fields"):
-			if df.fieldtype in ("Select", "Data"):
+			if df.fieldtype in ("Select", "Data", "Check"):
 				frappe.db.set_default(df.fieldname, self.get(df.fieldname))
 
-		set_default_language(self.language)
-
+		if self.language:
+			set_default_language(self.language)
 
 @frappe.whitelist()
 def load():

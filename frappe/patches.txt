@@ -32,3 +32,4 @@ frappe.patches.v4_0.set_user_gravatar
 frappe.patches.v4_0.update_custom_field_insert_after
 frappe.patches.v4_0.set_user_permissions
 frappe.patches.v4_0.create_custom_field_for_owner_match
+frappe.patches.v4_0.enable_scheduler_in_system_settings
