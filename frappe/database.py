@@ -376,7 +376,7 @@ class Database:
 					fl.append(f)
 				else:
 					fl.append("`" + f + "`")
-			fl = ", ".join(fields)
+			fl = ", ".join(fl)
 		else:
 			fl = fields
 			if fields=="*":
