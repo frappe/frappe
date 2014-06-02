@@ -50,6 +50,7 @@ frappe.search = {
 				} else {
 					frappe.set_route(ui.item.route);
 				}
+				$(this).val('');
 				return false;
 			}
 		}).data('ui-autocomplete')._renderItem = function(ul, d) {
