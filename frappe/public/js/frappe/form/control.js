@@ -852,9 +852,8 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 				}
 
 				if (me.$input.cache[me.df.options][request.term]!=null) {
-					// from cache
+					// immediately show from cache
 					response(me.$input.cache[me.df.options][request.term]);
-					return;
 				}
 
 				var args = {
