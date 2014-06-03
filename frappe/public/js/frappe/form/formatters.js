@@ -9,6 +9,9 @@ frappe.form.formatters = {
 	Data: function(value) {
 		return value==null ? "" : value
 	},
+	Select: function(value) {
+		return __(frappe.form.formatters["Data"](value));
+	},
 	Float: function(value, docfield) {
 		var decimals = cint(docfield.options, null) || cint(frappe.boot.sysdefaults.float_precision, null);
 
