@@ -16,7 +16,7 @@ import json
 
 from .exceptions import *
 
-__version__ = "4.0.1"
+from frappe.__version__ import __version__
 
 local = Local()
 
