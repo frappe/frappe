@@ -88,6 +88,13 @@
    "permlevel": 0
   }, 
   {
+   "description": "Default is system timezone", 
+   "fieldname": "time_zone", 
+   "fieldtype": "Select", 
+   "label": "Timezone", 
+   "permlevel": 0
+  }, 
+  {
    "fieldname": "change_password", 
    "fieldtype": "Section Break", 
    "label": "Set Password", 
@@ -421,7 +428,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 5, 
- "modified": "2014-05-30 02:05:20.655024", 
+ "modified": "2014-06-03 05:10:31.705621", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "User", 

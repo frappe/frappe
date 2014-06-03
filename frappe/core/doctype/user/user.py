@@ -250,9 +250,13 @@ class User(Document):
 @frappe.whitelist()
 def get_languages():
 	from frappe.translate import get_lang_dict
+	import pytz
 	languages = get_lang_dict().keys()
 	languages.sort()
-	return [""] + languages
+	return {
+		"languages": [""] + languages,
+		"timezones": pytz.all_timezones
+	}
 
 @frappe.whitelist()
 def get_all_roles(arg=None):

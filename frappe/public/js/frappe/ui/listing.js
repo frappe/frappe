@@ -95,7 +95,7 @@ frappe.ui.Listing = Class.extend({
 					</div>\
 				</div>\
 				\
-				<div style="margin-bottom:9px" class="list-toolbar-wrapper">\
+				<div style="margin-bottom:9px" class="list-toolbar-wrapper hide">\
 					<div class="list-toolbar btn-group" style="display:inline-block; margin-right: 10px;">\
 					</div>\
 					<div style="display: none; width: 24px; margin-left: 4px">\
@@ -141,7 +141,7 @@ frappe.ui.Listing = Class.extend({
 			return this.appframe.add_button(label, click, icon)
 		} else {
 			$button = $('<button class="btn btn-default"></button>')
-				.appendTo(this.$w.find('.list-toolbar'))
+				.appendTo(this.$w.find('.list-toolbar').removeClass("hide"))
 				.html((icon ? ("<i class='"+icon+"'></i> ") : "") + label)
 				.click(click);
 			return $button

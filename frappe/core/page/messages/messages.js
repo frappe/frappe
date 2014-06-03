@@ -117,7 +117,7 @@ frappe.core.pages.messages = Class.extend({
 			render_row: function(wrapper, data) {
 				$(wrapper).removeClass('list-row');
 
-				data.creation = dateutil.comment_when(data.creation);
+				data.creation = comment_when(data.creation);
 				data.comment_by_fullname = frappe.user_info(data.owner).fullname;
 				data.image = frappe.utils.get_file_link(frappe.user_info(data.owner).image);
 				data.info = "";

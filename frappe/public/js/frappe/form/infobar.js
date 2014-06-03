@@ -16,7 +16,12 @@ frappe.ui.form.InfoBar = Class.extend({
 
 
 		this.$timestamp = this.appframe.add_icon_btn("2", "icon-user", __("Creation / Modified By"),
-			function() { })
+			function() {
+				msgprint("Created By: " + frappe.user.full_name(me.frm.doc.owner) + "<br>" +
+					"Created On: " + comment_when(me.frm.doc.creation) + "<br>" +
+					"Last Modified By: " + frappe.user.full_name(me.frm.doc.modified_by) + "<br>" +
+					"Last Modifed On: " + comment_when(me.frm.doc.modified))
+			});
 
 		this.$comments = this.appframe.add_icon_btn("2", "icon-comments", __("Comments"), function() {
 				me.scroll_to(".form-comments");
@@ -76,19 +81,6 @@ frappe.ui.form.InfoBar = Class.extend({
 
 	highlight_items: function() {
 		var me = this;
-
-		this.$timestamp
-			.popover("destroy")
-			.popover({
-				title: "Created and Modified By",
-				content: "Created By: " + frappe.user.full_name(me.frm.doc.owner) + "<br>" +
-					"Created On: " + dateutil.str_to_user(me.frm.doc.creation) + "<br>" +
-					"Last Modified By: " + frappe.user.full_name(me.frm.doc.modified_by) + "<br>" +
-					"Last Modifed On: " + dateutil.str_to_user(me.frm.doc.modified),
-				trigger:"hover",
-				html: true,
-				placement: "bottom"
-			})
 
 		this.$comments
 			.popover("destroy")
