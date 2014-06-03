@@ -5,7 +5,7 @@ execute:frappe.reload_doc('core', 'doctype', 'doctype', force=True) #2014-01-24
 execute:frappe.reload_doc('core', 'doctype', 'docfield', force=True) #2014-03-01
 execute:frappe.reload_doc('core', 'doctype', 'docperm') #2013-13-26
 execute:frappe.reload_doc('core', 'doctype', 'page') #2013-13-26
-execute:frappe.reload_doc('core', 'doctype', 'report') #2013-13-26
+execute:frappe.reload_doc('core', 'doctype', 'report') #2014-06-03
 execute:frappe.reload_doc('core', 'doctype', 'version') #2014-02-21
 execute:frappe.db.sql("alter table `tabSessions` modify `user` varchar(255), engine=InnoDB")
 execute:frappe.db.sql("delete from `tabDocField` where parent='0'")
@@ -33,3 +33,4 @@ frappe.patches.v4_0.update_custom_field_insert_after
 frappe.patches.v4_0.set_user_permissions
 frappe.patches.v4_0.create_custom_field_for_owner_match
 frappe.patches.v4_0.enable_scheduler_in_system_settings
+execute:frappe.db.sql("update tabReport set apply_user_permissions=1") #2014-06-03

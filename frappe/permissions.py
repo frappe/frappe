@@ -9,13 +9,16 @@ from frappe.utils import cint
 rights = ("read", "write", "create", "delete", "submit", "cancel", "amend",
 	"print", "email", "report", "import", "export", "set_user_permissions")
 
-def check_admin_or_system_manager():
-	if ("System Manager" not in frappe.get_roles()) and \
-	 	(frappe.session.user!="Administrator"):
+def check_admin_or_system_manager(user=None):
+	if not user: user = frappe.session.user
+
+	if ("System Manager" not in frappe.get_roles(user)) and (user!="Administrator"):
 		frappe.throw(_("Not permitted"), frappe.PermissionError)
 
-def has_permission(doctype, ptype="read", doc=None, verbose=True):
+def has_permission(doctype, ptype="read", doc=None, verbose=True, user=None):
 	"""check if user has permission"""
+	if not user: user = frappe.session.user
+
 	if frappe.is_table(doctype):
 		return True
 
@@ -27,10 +30,10 @@ def has_permission(doctype, ptype="read", doc=None, verbose=True):
 	if ptype=="import" and not cint(meta.allow_import):
 		return False
 
-	if frappe.session.user=="Administrator":
+	if user=="Administrator":
 		return True
 
-	role_permissions = get_role_permissions(meta)
+	role_permissions = get_role_permissions(meta, user=user)
 	if not role_permissions.get(ptype):
 		return False
 
@@ -38,17 +41,16 @@ def has_permission(doctype, ptype="read", doc=None, verbose=True):
 		if isinstance(doc, basestring):
 			doc = frappe.get_doc(meta.name, doc)
 
-		if not user_has_permission(doc, verbose=verbose):
+		if not user_has_permission(doc, verbose=verbose, user=user):
 			return False
 
-		if not has_controller_permissions(doc):
+		if not has_controller_permissions(doc, user=user):
 			return False
 
 	return True
 
 def get_role_permissions(meta, user=None):
-	if not user:
-		user = frappe.session.user
+	if not user: user = frappe.session.user
 	cache_key = (meta.name, user)
 
 	if not frappe.local.role_permissions.get(cache_key):
@@ -71,9 +73,9 @@ def get_role_permissions(meta, user=None):
 
 	return frappe.local.role_permissions[cache_key]
 
-def user_has_permission(doc, verbose=True):
+def user_has_permission(doc, verbose=True, user=None):
 	from frappe.defaults import get_user_permissions
-	user_permissions = get_user_permissions()
+	user_permissions = get_user_permissions(user)
 	user_permissions_keys = user_permissions.keys()
 
 	def check_user_permission(d):
@@ -99,9 +101,11 @@ def user_has_permission(doc, verbose=True):
 
 	return _user_has_permission
 
-def has_controller_permissions(doc):
+def has_controller_permissions(doc, user=None):
+	if not user: user = frappe.session.user
+
 	for method in frappe.get_hooks("has_permission").get(doc.doctype, []):
-		if not frappe.call(frappe.get_attr(method), doc=doc):
+		if not frappe.call(frappe.get_attr(method), doc=doc, user=user):
 			return False
 
 	return True

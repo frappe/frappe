@@ -17,12 +17,13 @@ class DatabaseQuery(object):
 		self.conditions = []
 		self.ignore_permissions = False
 		self.fields = ["name"]
+		self.user = None
 
 	def execute(self, query=None, filters=None, fields=None, or_filters=None,
 		docstatus=None, group_by=None, order_by=None, limit_start=0,
 		limit_page_length=20, as_list=False, with_childnames=False, debug=False,
-		ignore_permissions=False):
-		if not frappe.has_permission(self.doctype, "read"):
+		ignore_permissions=False, user=None):
+		if not frappe.has_permission(self.doctype, "read", user=user):
 			raise frappe.PermissionError
 
 		if fields:
@@ -38,7 +39,7 @@ class DatabaseQuery(object):
 		self.debug = debug
 		self.as_list = as_list
 		self.ignore_permissions = ignore_permissions
-
+		self.user = user or frappe.session.user
 
 		if query:
 			return self.run_custom_query(query)
@@ -216,10 +217,10 @@ class DatabaseQuery(object):
 		if not self.tables: self.extract_tables()
 
 		# apply user permissions?
-		role_permissions = frappe.permissions.get_role_permissions(frappe.get_meta(self.doctype))
+		role_permissions = frappe.permissions.get_role_permissions(frappe.get_meta(self.doctype), user=self.user)
 		if role_permissions.get("apply_user_permissions", {}).get("read"):
 			# get user permissions
-			user_permissions = frappe.defaults.get_user_permissions()
+			user_permissions = frappe.defaults.get_user_permissions(self.user)
 			self.add_user_permissions(user_permissions)
 
 		if as_condition:

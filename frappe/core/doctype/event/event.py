@@ -27,14 +27,14 @@ def get_permission_query_conditions():
 			"roles": "', '".join(frappe.get_roles(frappe.session.user))
 		}
 
-def has_permission(doc):
-	if doc.event_type=="Public" or doc.owner==frappe.session.user:
+def has_permission(doc, user):
+	if doc.event_type=="Public" or doc.owner==user:
 		return True
 
-	if doc.get("event_individuals", {"person":frappe.session.user}):
+	if doc.get("event_individuals", {"person": user}):
 		return True
 
-	if doc.get("event_roles", {"role":("in", frappe.get_roles())}):
+	if doc.get("event_roles", {"role":("in", frappe.get_roles(user))}):
 		return True
 
 	return False

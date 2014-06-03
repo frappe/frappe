@@ -894,7 +894,11 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			select: function(event, ui) {
 				me.autocomplete_open = false;
 				if(ui.item.make_new) {
-					me.frm.new_doc(me.df.options, me);
+					if (me.frm) {
+						me.frm.new_doc(me.df.options, me);
+					} else {
+						new_doc(me.df.options);
+					}
 					return false;
 				}
 
