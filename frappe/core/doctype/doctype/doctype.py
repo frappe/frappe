@@ -66,8 +66,10 @@ class DocType(Document):
 		if not autoname and self.get("fields", {"fieldname":"naming_series"}):
 			self.autoname = "naming_series:"
 
-		if autoname and (not autoname.startswith('field:')) and (not autoname.startswith('eval:')) \
-			and (not autoname=='Prompt') and (not autoname.startswith('naming_series:')):
+		if autoname and (not autoname.startswith('field:')) \
+			and (not autoname.startswith('eval:')) \
+			and (not autoname in ('Prompt', 'hash')) \
+			and (not autoname.startswith('naming_series:')):
 			prefix = autoname.split('.')[0]
 			used_in = frappe.db.sql('select name from tabDocType where substring_index(autoname, ".", 1) = %s and name!=%s', (prefix, name))
 			if used_in:

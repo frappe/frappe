@@ -136,4 +136,4 @@ def notify_assignment(assigned_by, owner, doc_type, doc_name, action='CLOSE',
 	arg["parenttype"] = "Assignment"
 	from frappe.core.page.messages import messages
 	import json
-	messages.post(json.dumps(arg))
+	messages.post(**arg)

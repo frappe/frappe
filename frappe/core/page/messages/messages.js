@@ -9,12 +9,18 @@ frappe.pages.messages.onload = function(wrapper) {
 		title: "Messages"
 	});
 
-	$('<div><h3><i class="icon-group"></i></h3></div>\
-		<h3 style="display: inline-block" id="message-title">Everyone</h3>\
-	</div><hr>\
+	$('<div style="margin-bottom: 15px;">\
+		<span class="avatar" style="margin-top: -10px;"><img id="avatar-image" src=""></span>\
+		<h3 style="display: inline-block" id="message-title">' + __("Everyone") + '</h3>\
+	</div>\
 	<div id="post-message">\
-	<textarea class="form-control" rows=3 style="margin-bottom: 15px;"></textarea>\
-	<div><button class="btn btn-default">Post</button></div><hr>\
+	<textarea class="form-control" style="height: 80px; margin-bottom: 15px;"></textarea>\
+	<div class="checkbox">\
+		<label>\
+			<input type="checkbox" id="messages-email" checked="checked">\
+				<span class="text-muted small">'+__('Send Email')+'</span>\
+		</label></div>\
+	<div><button class="btn btn-default">'+__('Post')+'</button></div><hr>\
 	</div>\
 	<div class="all-messages"></div><br>').appendTo($(wrapper).find('.layout-main-section'));
 
@@ -51,7 +57,8 @@ frappe.core.pages.messages = Class.extend({
 					method:'post',
 					args: {
 						txt: txt,
-						contact: me.contact
+						contact: me.contact,
+						notify: $('#messages-email').prop("checked") ? 1 : 0
 					},
 					callback:function(r,rt) {
 						$('#post-message textarea').val('')
@@ -113,14 +120,11 @@ frappe.core.pages.messages = Class.extend({
 				data.creation = dateutil.comment_when(data.creation);
 				data.comment_by_fullname = frappe.user_info(data.owner).fullname;
 				data.image = frappe.utils.get_file_link(frappe.user_info(data.owner).image);
-				data.mark_html = "";
+				data.info = "";
 
 				data.reply_html = '';
 				if(data.owner==user) {
-					data.cls = 'message-self';
 					data.comment_by_fullname = 'You';
-				} else {
-					data.cls = 'message-other';
 				}
 
 				// delete
@@ -132,16 +136,21 @@ frappe.core.pages.messages = Class.extend({
 				}
 
 				if(data.owner==data.comment_docname && data.parenttype!="Assignment") {
-					data.mark_html = "<div class='message-mark' title='Public'\
-						style='background-color: green'></div>"
+					data.info = '<span class="text-success">(public)</span>'
 				}
 
-				wrapper.innerHTML = repl('<div class="message %(cls)s">%(mark_html)s\
-						<span class="avatar avatar-small"><img src="%(image)s"></span><b>%(comment)s</b>\
-						%(delete_html)s\
-						<div class="help">by %(comment_by_fullname)s, %(creation)s</div>\
-					</div>\
-					<div style="clear: both;"></div>', data);
+				$(wrapper)
+					.addClass("media").addClass(data.cls);
+				wrapper.innerHTML = repl('<span class="pull-left avatar avatar-small">\
+							<img class="media-object" src="%(image)s">\
+						</span>\
+						<div class="media-body">\
+							%(comment)s\
+							%(delete_html)s\
+							<div class="text-muted small" style="margin-right: 60px;">\
+								by <strong>%(comment_by_fullname)s</strong>, \
+								%(creation)s %(info)s</div>\
+						</div>', data);
 			}
 		});
 	},
