@@ -16,8 +16,8 @@ def create_custom_field_for_owner_match():
 		where `match`='owner' and permlevel=0"""):
 
 		# a link field pointing to User already exists
-		if frappe.db.get_value("DocField", {"parent": dt, "fieldtype": "Link", "options": "User",
-			"default": "__user"}):
+		if (frappe.db.get_value("DocField", {"parent": dt, "fieldtype": "Link", "options": "User", "default": "__user"})
+			or frappe.db.get_value("Custom Field", {"dt": dt, "fieldtype": "Link", "options": "User", "default": "__user"})):
 			print "User link field already exists for", dt
 			continue
 
@@ -28,7 +28,8 @@ def create_custom_field_for_owner_match():
 			"label": "{} Owner".format(dt),
 			"fieldname": fieldname,
 			"fieldtype": "Link",
-			"options": "User"
+			"options": "User",
+			"default": "__user"
 		}))
 
 		frappe.db.sql("""update `tab{doctype}` set `{fieldname}`=owner""".format(doctype=dt,

@@ -7,6 +7,7 @@ from __future__ import unicode_literals
 import os
 import subprocess
 import frappe
+from frappe.utils import cint
 
 site_arg_optional = ['serve', 'build', 'watch', 'celery', 'resize_images']
 
@@ -287,9 +288,9 @@ def use(sites_path):
 		sitefile.write(frappe.local.site)
 
 # install
-@cmd
-def install(db_name, root_login="root", root_password=None, source_sql=None,
+def _install(db_name, root_login="root", root_password=None, source_sql=None,
 		admin_password = 'admin', force=False, site_config=None, reinstall=False, quiet=False, install_apps=None):
+
 	from frappe.installer import install_db, install_app, make_site_dirs
 	import frappe.utils.scheduler
 
@@ -312,17 +313,22 @@ def install(db_name, root_login="root", root_password=None, source_sql=None,
 			install_app(app, verbose=verbose, set_as_patched=not source_sql)
 
 	frappe.utils.scheduler.toggle_scheduler(enable_scheduler)
-
 	scheduler_status = "disabled" if frappe.utils.scheduler.is_scheduler_disabled() else "enabled"
 	print "*** Scheduler is", scheduler_status, "***"
 
+@cmd
+def install(db_name, root_login="root", root_password=None, source_sql=None,
+		admin_password = 'admin', force=False, site_config=None, reinstall=False, quiet=False, install_apps=None):
+	_install(db_name, root_login, root_password, source_sql, admin_password, force, site_config, reinstall, quiet, install_apps)
 	frappe.destroy()
 
 def _is_scheduler_enabled():
 	enable_scheduler = False
 	try:
 		frappe.connect()
-		enable_scheduler = frappe.db.get_default("enable_scheduler")
+		enable_scheduler = cint(frappe.db.get_default("enable_scheduler"))
+	except:
+		pass
 	finally:
 		frappe.db.close()
 
@@ -363,10 +369,13 @@ def reinstall(quiet=False):
 @cmd
 def restore(db_name, source_sql, force=False, quiet=False, with_scheduler_enabled=False):
 	import frappe.utils.scheduler
-	verbose = not quiet
-	install(db_name, source_sql=source_sql, verbose=verbose, force=force)
+	_install(db_name, source_sql=source_sql, quiet=quiet, force=force)
 
-	frappe.utils.scheduler.toggle_scheduler(with_scheduler_enabled)
+	try:
+		frappe.connect()
+		frappe.utils.scheduler.toggle_scheduler(with_scheduler_enabled)
+	finally:
+		frappe.destroy()
 
 @cmd
 def add_system_manager(email, first_name=None, last_name=None):
