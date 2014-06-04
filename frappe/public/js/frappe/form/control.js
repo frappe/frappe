@@ -193,12 +193,10 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 				} else {
 					$(me.input_area).toggle(false);
 					$(me.input_area).find("input").prop("disabled", true);
-					me.disp_area && $(me.disp_area)
-						.toggle(true)
-						.html(
-							frappe.format(me.value, me.df,
-								{no_icon:true}, me.name ? locals[me.doctype][me.name] : null)
-						);
+					if (me.disp_area) {
+						me.set_disp_area();
+						$(me.disp_area).toggle(true);
+					}
 				}
 
 				me.set_description();
@@ -208,6 +206,15 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 			return false;
 		});
 	},
+
+	set_disp_area: function() {
+		this.disp_area && $(this.disp_area)
+			.html(
+				frappe.format(this.value, this.df,
+					{no_icon:true}, this.name ? locals[this.doctype][this.name] : null)
+			);
+	},
+
 	bind_change_event: function() {
 		var me = this;
 		this.$input && this.$input.on("change", this.change || function(e) {
@@ -289,7 +296,7 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 	},
 	set_input: function(val) {
 		this.$input && this.$input.val(this.format_for_input(val));
-		this.disp_area && $(this.disp_area).html(this.format_for_input(val));
+		this.set_disp_area();
 		this.last_value = val;
 		this.set_mandatory && this.set_mandatory(val);
 	},
