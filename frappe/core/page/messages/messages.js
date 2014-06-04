@@ -136,7 +136,7 @@ frappe.core.pages.messages = Class.extend({
 				}
 
 				if(data.owner==data.comment_docname && data.parenttype!="Assignment") {
-					data.info = '<span class="text-success">(public)</span>'
+					data.info = '<span class="label label-success">Public</span>'
 				}
 
 				$(wrapper)
@@ -147,9 +147,9 @@ frappe.core.pages.messages = Class.extend({
 						<div class="media-body">\
 							%(comment)s\
 							%(delete_html)s\
-							<div class="text-muted small" style="margin-right: 60px;">\
-								by <strong>%(comment_by_fullname)s</strong>, \
-								%(creation)s %(info)s</div>\
+							<div class="text-muted" style="margin-right: 60px;">\
+								<span class="small">by <strong>%(comment_by_fullname)s</strong>, \
+								%(creation)s</span> %(info)s</div>\
 						</div>', data);
 			}
 		});

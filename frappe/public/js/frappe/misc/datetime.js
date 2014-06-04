@@ -40,11 +40,11 @@ $.extend(frappe.datetime, {
 	},
 
 	month_start: function() {
-		return moment().startOf("month");
+		return moment().startOf("month").format();
 	},
 
-	month_end: function(d, month) {
-		return moment().endOf("month");
+	month_end: function() {
+		return moment().endOf("month").format();
 	},
 
 	get_user_fmt: function() {
@@ -52,8 +52,9 @@ $.extend(frappe.datetime, {
 	},
 
 	str_to_user: function(val, no_time_str) {
+		if(!val) return "";
 		var user_fmt = dateutil.get_user_fmt().toUpperCase();
-		if(val.indexOf(" ")===-1) {
+		if(typeof val !== "string" || val.indexOf(" ")===-1) {
 			return moment(val).format(user_fmt);
 		} else {
 			return moment(val, "YYYY-MM-DD HH:mm:ss").format(user_fmt + " HH:mm:ss");
@@ -68,12 +69,12 @@ $.extend(frappe.datetime, {
 		return moment(d).format("YYYY-MM-DD HH:mm:ss");
 	},
 
-	user_to_str: function(d, no_time_str) {
+	user_to_str: function(val, no_time_str) {
 		var user_fmt = dateutil.get_user_fmt().toUpperCase();
 		if(val.indexOf(" ")===-1) {
-			return moment(d).format(user_fmt);
+			return moment(val, user_fmt).format();
 		} else {
-			return moment(d, user_fmt + " HH:mm:ss").format("YYYY-MM-DD HH:mm:ss");
+			return moment(val, user_fmt + " HH:mm:ss").format("YYYY-MM-DD HH:mm:ss");
 		}
 	},
 

@@ -414,8 +414,7 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 		return value ? dateutil.str_to_user(value) : "";
 	},
 	validate: function(value, callback) {
-		var value = frappe.datetime.validate(value);
-		if(!value) {
+		if(!dateutil.validate(value)) {
 			msgprint (__("Date must be in format: {0}", [sys_defaults.date_format || "yyyy-mm-dd"]));
 			callback("");
 		}

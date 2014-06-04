@@ -30,9 +30,10 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 		// show footer
 		if(this.primary_action) {
 			this.$wrapper.find(".modal-footer").removeClass("hide");
-			this.$wrapper.find(".modal-footer .btn-primary").click(this.primary_action);
+			var $btn = this.get_primary_btn();
+			$btn.click(this.primary_action);
 			if(this.primary_action_label) {
-				this.$wrapper.find(".modal-footer .btn-primary").html(this.primary_action_label);
+				$btn.html(this.primary_action_label);
 			}
 		}
 
@@ -66,6 +67,9 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 			})
 
 
+	},
+	get_primary_btn: function() {
+		return this.$wrapper.find(".modal-footer .btn-primary");
 	},
 	make_head: function() {
 		var me = this;

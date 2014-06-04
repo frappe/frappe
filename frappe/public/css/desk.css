@@ -214,7 +214,7 @@ div#freeze {
 	position: fixed;
 	bottom: 8px;
 	right: 8px;
-	z-index: 10;
+	z-index: 1050;
 }
 
 #alert-container .alert {
