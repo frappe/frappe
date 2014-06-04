@@ -13,9 +13,9 @@
 }
 
 .toggle.expand {
-	background: url("../lib/images/icons/expand.gif") no-repeat center center;
+	background: url("../frappe/js/lib/slickgrid/images/expand.gif") no-repeat center center;
 }
 
 .toggle.collapse {
-	background: url("../lib/images/icons/collapse.gif") no-repeat center center;
+	background: url("../frappe/js/lib/slickgrid/images/collapse.gif") no-repeat center center;
 }
