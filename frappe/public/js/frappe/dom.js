@@ -243,9 +243,14 @@ frappe.dom.set_box_shadow = function(ele, spread) {
 		// create options
 		for(var i=0; i<options_list.length; i++) {
 			var v = options_list[i];
-			value = v!=null ? (v.value==undefined ? v : v.value) : null;
-			label = v!=null ? (__(v.label || v)) : null;
-			$('<option>').html(label || "").attr('value', value).appendTo(this);
+			if (is_null(v)) {
+				var value = null;
+				var label = null;
+			} else {
+				var value = is_null(v.value) ? v : v.value;
+				var label = is_null(v.label) ? __(v) : __(v.label);
+			}
+			$('<option>').html(cstr(label)).attr('value', value).appendTo(this);
 		}
 		// select the first option
 		this.selectedIndex = 0;

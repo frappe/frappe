@@ -61,7 +61,7 @@ def getdoctype(doctype, with_parent=False, cached_timestamp=None):
 	if not docs:
 		docs = get_meta_bundle(doctype)
 
-	frappe.response['restrictions'] = get_restrictions(docs[0])
+	frappe.response['user_permissions'] = get_user_permissions(docs[0])
 
 	if cached_timestamp and docs[0].modified==cached_timestamp:
 		return "use_cache"
@@ -82,11 +82,11 @@ def get_docinfo(doctype, name):
 		"assignments": add_assignments(doctype, name)
 	}
 
-def get_restrictions(meta):
+def get_user_permissions(meta):
 	out = {}
-	all_restrictions = frappe.defaults.get_restrictions()
-	for df in meta.get_restricted_fields(all_restrictions):
-		out[df.options] = all_restrictions[df.options]
+	all_user_permissions = frappe.defaults.get_user_permissions()
+	for df in meta.get_fields_to_check_permissions(all_user_permissions):
+		out[df.options] = all_user_permissions[df.options]
 	return out
 
 def add_attachments(dt, dn):

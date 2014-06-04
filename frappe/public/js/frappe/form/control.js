@@ -259,8 +259,7 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 		this.$wrapper.find(".help-box").html("");
 	},
 	set_mandatory: function(value) {
-		this.$wrapper.toggleClass("has-error", (this.df.reqd
-			&& (value==null || value==="")) ? true : false);
+		this.$wrapper.toggleClass("has-error", (this.df.reqd && is_null(value)) ? true : false);
 	},
 });
 
@@ -844,14 +843,17 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			}
 		});
 
-		var cache = {};
+		this.$input.cache = {};
 		this.$input.autocomplete({
 			minLength: 0,
 			source: function(request, response) {
-				if (cache[request.term]!=null) {
-					// from cache
-					response(cache[request.term]);
-					return;
+				if (!me.$input.cache[me.df.options]) {
+					me.$input.cache[me.df.options] = {};
+				}
+
+				if (me.$input.cache[me.df.options][request.term]!=null) {
+					// immediately show from cache
+					response(me.$input.cache[me.df.options][request.term]);
 				}
 
 				var args = {
@@ -867,13 +869,13 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 					no_spinner: true,
 					args: args,
 					callback: function(r) {
-						if(frappe.model.can_read(me.df.options)) {
+						if(frappe.model.can_create(me.df.options)) {
 							r.results.push({
 								value: "<i class='icon-plus'></i> <em>" + __("Create a new {0}", [me.df.options]) + "</em>",
 								make_new: true
 							});
 						};
-						cache[request.term] = r.results;
+						me.$input.cache[me.df.options][request.term] = r.results;
 						response(r.results);
 					},
 				});
@@ -892,7 +894,11 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			select: function(event, ui) {
 				me.autocomplete_open = false;
 				if(ui.item.make_new) {
-					me.frm.new_doc(me.df.options, me);
+					if (me.frm) {
+						me.frm.new_doc(me.df.options, me);
+					} else {
+						new_doc(me.df.options);
+					}
 					return false;
 				}
 

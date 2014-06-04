@@ -146,7 +146,7 @@ frappe.customize_form.add_fields_help = function(frm) {
 					<td><b>Perm Level</b></td>\
 					<td>\
 						Assign a permission level to the field.<br />\
-						(Permissions can be managed via Setup &gt; Permission Manager)\
+						(Permissions can be managed via Setup &gt; Role Permissions Manager)\
 					</td>\
 				</tr>\
 				<tr>\

@@ -18,7 +18,7 @@ def get_new_doc(doctype, parent_doc = None, parentfield = None):
 		"docstatus": 0
 	})
 
-	restrictions = frappe.defaults.get_restrictions()
+	user_permissions = frappe.defaults.get_user_permissions()
 
 	if parent_doc:
 		doc.parent = parent_doc.name
@@ -32,9 +32,9 @@ def get_new_doc(doctype, parent_doc = None, parentfield = None):
 	for d in doc.meta.get("fields"):
 		default = defaults.get(d.fieldname)
 
-		if (d.fieldtype=="Link") and d.ignore_restrictions != 1 and (d.options in restrictions)\
-			and len(restrictions[d.options])==1:
-			doc.set(d.fieldname, restrictions[d.options][0])
+		if (d.fieldtype=="Link") and d.ignore_user_permissions != 1 and (d.options in user_permissions)\
+			and len(user_permissions[d.options])==1:
+			doc.set(d.fieldname, user_permissions[d.options][0])
 		elif default:
 			doc.set(d.fieldname, default)
 		elif d.get("default"):

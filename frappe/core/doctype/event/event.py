@@ -15,7 +15,8 @@ class Event(Document):
 		if self.starts_on and self.ends_on and self.starts_on > self.ends_on:
 			frappe.msgprint(frappe._("Event end must be after start"), raise_exception=True)
 
-def get_permission_query_conditions():
+def get_permission_query_conditions(user):
+	if not user: user = frappe.session.user
 	return """(tabEvent.event_type='Public' or tabEvent.owner='%(user)s'
 		or exists(select * from `tabEvent User` where
 			`tabEvent User`.parent=tabEvent.name and `tabEvent User`.person='%(user)s')
@@ -23,18 +24,18 @@ def get_permission_query_conditions():
 			`tabEvent Role`.parent=tabEvent.name
 			and `tabEvent Role`.role in ('%(roles)s')))
 		""" % {
-			"user": frappe.session.user,
-			"roles": "', '".join(frappe.get_roles(frappe.session.user))
+			"user": user,
+			"roles": "', '".join(frappe.get_roles(user))
 		}
 
-def has_permission(doc):
-	if doc.event_type=="Public" or doc.owner==frappe.session.user:
+def has_permission(doc, user):
+	if doc.event_type=="Public" or doc.owner==user:
 		return True
 
-	if doc.get("event_individuals", {"person":frappe.session.user}):
+	if doc.get("event_individuals", {"person": user}):
 		return True
 
-	if doc.get("event_roles", {"role":("in", frappe.get_roles())}):
+	if doc.get("event_roles", {"role":("in", frappe.get_roles(user))}):
 		return True
 
 	return False

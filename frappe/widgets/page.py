@@ -45,7 +45,7 @@ def has_permission(page):
 			return False
 		
 	if not frappe.has_permission("Page", ptype="read", doc=page):
-		# check if there are any restrictions
+		# check if there are any user_permissions
 		return False
 	else:
 		# hack for home pages! if no page roles, allow everyone to see!

@@ -107,7 +107,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		this.make_export();
 		this.set_init_columns();
 		this.make_save();
-		this.make_user_restrictions();
+		this.make_user_permissions();
 		this.set_tag_and_status_filter();
 	},
 
@@ -553,15 +553,15 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		}
 	},
 
-	make_user_restrictions: function() {
+	make_user_permissions: function() {
 		var me = this;
-		if(this.docname && frappe.model.can_restrict("Report")) {
-			this.page.appframe.add_button(__("User Permission Restrictions"), function() {
+		if(this.docname && frappe.model.can_set_user_permissions("Report")) {
+			this.page.appframe.add_button(__("User Permissions Manager"), function() {
 				frappe.route_options = {
-					property: "Report",
-					restriction: me.docname
+					doctype: "Report",
+					name: me.docname
 				};
-				frappe.set_route("user-properties");
+				frappe.set_route("user-permissions");
 			}, "icon-shield");
 		}
 	},

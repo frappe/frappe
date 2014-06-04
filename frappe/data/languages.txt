@@ -8,9 +8,11 @@ hi		हिंदी
 hr		hrvatski
 it		italiano
 kn		ಕನ್ನಡ
+ko		한국의
 nl		nederlands
 pt-BR	português brasileiro
 pt		português
+ro		român
 sr		српски
 ta		தமிழ்
 th		ไทย

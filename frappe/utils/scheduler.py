@@ -104,13 +104,19 @@ def log(method, message=None):
 	return message
 
 def is_scheduler_disabled():
-	return frappe.utils.cint(frappe.db.get_global("disable_scheduler"))
+	return not frappe.utils.cint(frappe.db.get_default("enable_scheduler"))
+
+def toggle_scheduler(enable):
+	ss = frappe.get_doc("System Settings")
+	ss.enable_scheduler = 1 if enable else 0
+	ss.ignore_mandatory = True
+	ss.save()
 
 def enable_scheduler():
-	frappe.db.set_global("disable_scheduler", 0)
+	toggle_scheduler(True)
 
 def disable_scheduler():
-	frappe.db.set_global("disable_scheduler", 1)
+	toggle_scheduler(False)
 
 def get_errors(from_date, to_date, limit):
 	errors = frappe.db.sql("""select modified, method, error from `tabScheduler Log`

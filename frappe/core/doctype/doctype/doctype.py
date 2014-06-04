@@ -70,6 +70,7 @@ class DocType(Document):
 			and (not autoname.startswith('eval:')) \
 			and (not autoname in ('Prompt', 'hash')) \
 			and (not autoname.startswith('naming_series:')):
+
 			prefix = autoname.split('.')[0]
 			used_in = frappe.db.sql('select name from tabDocType where substring_index(autoname, ".", 1) = %s and name!=%s', (prefix, name))
 			if used_in:
@@ -83,7 +84,7 @@ class DocType(Document):
 		make_module_and_roles(self)
 
 		from frappe import conf
-		if (not frappe.flags.in_import) and conf.get('developer_mode') or 0:
+		if not (frappe.flags.in_import or frappe.flags.in_test) and conf.get('developer_mode') or 0:
 			self.export_doc()
 			self.make_controller_template()
 
@@ -94,12 +95,6 @@ class DocType(Document):
 			if hasattr(module, "on_doctype_update"):
 				module.on_doctype_update()
 		frappe.clear_cache(doctype=self.name)
-
-	def on_trash(self):
-		frappe.db.sql("delete from `tabCustom Field` where dt = %s", self.name)
-		frappe.db.sql("delete from `tabCustom Script` where dt = %s", self.name)
-		frappe.db.sql("delete from `tabProperty Setter` where doc_type = %s", self.name)
-		frappe.db.sql("delete from `tabReport` where ref_doctype=%s", self.name)
 
 	def before_rename(self, old, new, merge=False):
 		if merge:
@@ -219,7 +214,18 @@ def validate_fields(fields):
 	check_min_items_in_list(fields)
 
 def validate_permissions_for_doctype(doctype, for_remove=False):
-	validate_permissions(frappe.get_doc("DocType", doctype), for_remove)
+	doctype = frappe.get_doc("DocType", doctype)
+
+	if frappe.conf.developer_mode and not frappe.flags.in_test:
+		# save doctype
+		doctype.save()
+
+	else:
+		validate_permissions(doctype, for_remove)
+
+		# save permissions
+		for perm in doctype.get("permissions"):
+			perm.db_update()
 
 def validate_permissions(doctype, for_remove=False):
 	permissions = doctype.get("permissions")
@@ -241,12 +247,13 @@ def validate_permissions(doctype, for_remove=False):
 	def check_double(d):
 		has_similar = False
 		for p in permissions:
-			if p.role==d.role and p.permlevel==d.permlevel and p.match==d.match and p!=d:
+			if (p.role==d.role and p.permlevel==d.permlevel
+				and p.apply_user_permissions==d.apply_user_permissions and p!=d):
 				has_similar = True
 				break
 
 		if has_similar:
-			frappe.throw(_("{0}: Only one rule allowed at a Role and Level").format(get_txt(d)))
+			frappe.throw(_("{0}: Only one rule allowed with the same Role, Level and Apply User Permissions").format(get_txt(d)))
 
 	def check_level_zero_is_set(d):
 		if cint(d.permlevel) > 0 and d.role != 'All':
@@ -283,9 +290,12 @@ def validate_permissions(doctype, for_remove=False):
 			d.set("import", 0)
 			d.set("export", 0)
 
-		if d.restrict:
-			frappe.msgprint(_("Restrict cannot be set for Single types"))
-			d.restrict = 0
+		for ptype, label in (
+			("set_user_permissions", _("Set User Permissions")),
+			("apply_user_permissions", _("Apply User Permissions"))):
+			if d.get(ptype):
+				d.set(ptype, 0)
+				frappe.msgprint(_("{0} cannot be set for Single types").format(label))
 
 	def check_if_submittable(d):
 		if d.submit and not issubmittable:

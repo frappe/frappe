@@ -12,7 +12,7 @@
 <li><b>Prompt</b> - Prompt user for a name\
 <li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\
 </ol>')"">Naming Options</a>","<a onclick = "" msgprint ( « <ol> \ \ n <li> <b> πεδίο : [ fieldname ] < / b> - Με πεδίο \ \ n <li> <b> naming_series : < / b> - Με Ονομασία"
-A user can be restricted to multiple records of the same type.,Ένας χρήστης μπορεί να περιορίζεται σε πολλαπλές εγγραφές του ίδιου τύπου .
+A user can be permitted to multiple records of the same DocType.,Ένας χρήστης μπορεί να επιτραπεί σε πολλαπλές εγγραφές του ίδιου DocType .
 About,Περίπου
 About Us Settings,Σχετικά με εμάς Ρυθμίσεις
 About Us Team Member,Σχετικά με εμάς Μέλος της Ομάδας
@@ -21,7 +21,7 @@ Actions,δράσεις
 "Actions for workflow (e.g. Approve, Cancel).","Ενέργειες για τη ροή εργασίας ( π.χ. Έγκριση , Ακύρωση ) ."
 Add,Προσθήκη
 Add A New Rule,Προσθέσετε ένα νέο κανόνα
-Add A Restriction,Προσθέστε ένα Περιορισμός
+Add A User Permission,Προσθέστε μια άδεια χρήστη
 Add Attachments,Προσθήκη Συνημμένα
 Add Bookmark,Προσθήκη σελιδοδείκτη
 Add CSS,Προσθήκη CSS
@@ -30,7 +30,6 @@ Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytic
 Add Message,Προσθήκη μηνύματος
 Add New Permission Rule,Προσθέστε νέο κανόνα άδεια
 Add Reply,Προσθέστε Απάντηση
-Add This To User's Restrictions,Προσθέστε το σε Περιορισμοί χρήστη
 Add Total Row,Προσθήκη Σύνολο Row
 Add a New Role,Προσθέστε ένα νέο ρόλο
 Add a banner to the site. (small banners are usually good),Προσθέστε ένα banner στο site. (Μικρά πανό είναι συνήθως καλό)
@@ -42,7 +41,7 @@ Add fields to forms.,Προσθήκη πεδίων σε φόρμες .
 Add new row,Προσθήκη νέας γραμμής
 "Add the name of <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> e.g. ""Open Sans""","Προσθέστε το όνομα της <a href=""http://google.com/webfonts"" target=""_blank"">Google Font Web</a> π.χ. &quot;Open Sans&quot;"
 Add to To Do,Προσθήκη στο να κάνει
-Add to To Do List of,Προσθήκη στο να κάνει τον κατάλογο των
+Add to To Do List Of,Προσθήκη στο To Do List του
 Adding System Manager to this User as there must be atleast one System Manager,"Προσθέτοντας Διαχειριστή του Συστήματος για τον χρήστη , όπως πρέπει να υπάρχει atleast Διαχειριστής ενός συστήματος"
 Additional Info,Πρόσθετες Πληροφορίες
 Additional Permissions,Πρόσθετα Δικαιώματα
@@ -65,7 +64,7 @@ Allow user to login only before this hour (0-24),Επιτρέπει στο χρ�
 Allowed,Επιτρέπονται τα κατοικίδια
 "Allowing DocType, DocType. Be careful!","Επιτρέποντας DocType , DocType . Να είστε προσεκτικοί !"
 Already Registered,Ήδη Εγγεγραμμένοι
-Already in todo,Ήδη στην todo
+Already in user's To Do list,Ήδη από το χρήστη να κάνει λίστα
 Alternative download link,Εναλλακτική σύνδεση λήψης
 "Alternatively, you can also specify 'auto_email_id' in site_config.json","Εναλλακτικά , μπορείτε επίσης να καθορίσετε « auto_email_id » στην site_config.json"
 Always use above Login Id as sender,Πάντα να χρησιμοποιείτε παραπάνω Είσοδος Id ως αποστολέα
@@ -74,14 +73,15 @@ Amend,Τροποποιούνται
 "Another {0} with name {1} exists, select another name","Ένας άλλος {0} με το όνομα {1} υπάρχει, επιλέξτε ένα άλλο όνομα"
 Anyone Can Read,Ο καθένας μπορεί να διαβάσει
 Anyone Can Write,Οποιοσδήποτε μπορεί να γράψει
-"Apart from System Manager, roles with 'Can Restrict Others' permission can restrict other users for that Document Type.","Εκτός από το Διαχειριστή του Συστήματος , με τους ρόλους «Μπορεί Περιορισμός κ.λπ. « άδεια μπορεί να περιορίσει τους άλλους χρήστες για αυτόν τον τύπο εγγράφου ."
-"Apart from the existing Permission Rules, you can apply addition restriction based on Type.","Εκτός από τις υπάρχουσες Κανόνες άδεια , μπορείτε να εφαρμόσετε τον περιορισμό Επιπλέον βάσει Κατηγορίας ."
+"Apart from Role based Permission Rules, you can apply User Permissions based on DocTypes.","Εκτός από το ρόλο που βασίζονται Κανόνες άδεια , μπορείτε να εφαρμόσετε τα δικαιώματα χρήσης με βάση doctypes ."
+"Apart from System Manager, roles with 'Set User Permissions' right can set permissions for other users for that Document Type.","Εκτός από το Διαχειριστή του Συστήματος , οι ρόλοι με το δικαίωμα 'Ρύθμιση δικαιωμάτων χρήστη » να ορίσετε δικαιώματα για άλλους χρήστες για αυτόν τον τύπο εγγράφου ."
 App Already Installed,App ήδη εγκατεστημένο
 App Name,Όνομα App
 App not found,App δεν βρέθηκε
 Application Installer,εγκατάστασης εφαρμογών
 Applications,εφαρμογές
 Apply Style,Εφαρμογή στυλ
+Apply User Permissions,Εφαρμόστε τα δικαιώματα χρήσης
 Are you sure you want to delete the attachment?,Είστε σίγουροι ότι θέλετε να διαγράψετε το συνημμένο;
 Arial,Arial
 "As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User.","Ως βέλτιστη πρακτική , δεν αποδίδουν το ίδιο σύνολο κανόνα άδεια για διαφορετικούς ρόλους . Αντ 'αυτού , που πολλούς ρόλους στο ίδιο το χρήστη ."
@@ -130,14 +130,15 @@ Bulk email limit {0} crossed,Μαζική email όριο {0} διέσχισε
 Button,Κουμπί
 By,Με
 Calendar,Ημερολόγιο
-Can Restrict Others,Μπορεί Περιορισμός Άλλα
 Cancel,Ακύρωση
 Cancelled,Ακυρώθηκε
 "Cannot Edit {0} directly: To edit {0} properties, create / update {1}, {2} and {3}","Δεν είναι δυνατή η Επεξεργαστείτε {0} άμεσα : Για να επεξεργαστείτε {0} ιδιότητες , τη δημιουργία / ενημέρωση {1} , {2} και {3}"
 Cannot Update: Incorrect / Expired Link.,Δεν είναι δυνατή η ενημέρωση : Εσφαλμένη / Έληξε σύνδεσης .
 Cannot Update: Incorrect Password,Δεν είναι δυνατή η ενημέρωση : Λάθος Κωδικός
 Cannot add more than 50 comments,Δεν μπορείτε να προσθέσετε περισσότερες από 50 σχόλια
+Cannot cancel before submitting. See Transition {0},Δεν μπορείτε να ακυρώσετε πριν από την υποβολή .
 Cannot change picture,Δεν μπορεί να αλλάξει την εικόνα
+Cannot change state of Cancelled Document. Transition row {0},Δεν μπορεί να αλλάξει κατάσταση Ακυρώθηκε εγγράφου .
 Cannot change {0},Δεν μπορεί να αλλάξει {0}
 Cannot delete or cancel because {0} {1} is linked with {2} {3},Δεν είναι δυνατή η διαγραφή ή ακύρωση επειδή {0} {1} συνδέεται με {2} {3}
 Cannot delete {0} as it has child nodes,"Δεν είναι δυνατή η διαγραφή {0} , όπως έχει κόμβους του παιδιού"
@@ -147,7 +148,9 @@ Cannot map because following condition fails: ,Δεν είναι δυνατή η
 Cannot open instance when its {0} is open,"Δεν μπορείτε να ανοίξετε παράδειγμα, όταν του {0} είναι ανοικτή"
 Cannot open {0} when its instance is open,Δεν είναι δυνατό το άνοιγμα {0} όταν παράδειγμα είναι ανοιχτό
 Cannot print cancelled documents,Δεν είναι δυνατή η εκτύπωση ακυρώνεται έγγραφα
+Cannot remove permission for DocType: {0} and Name: {1},Δεν μπορεί να αφαιρέσει την άδεια για DocType : {0} και Όνομα : {1}
 Cannot reply to a reply,Δεν μπορείτε να απαντήσετε σε μια απάντηση
+Cannot set permission for DocType: {0} and Name: {1},Δεν είναι δυνατός ο ορισμός άδεια για DocType : {0} και Όνομα : {1}
 Categorize blog posts.,Κατηγοριοποίηση blog θέσεις.
 Category,Κατηγορία
 Category Name,Όνομα Κατηγορία
@@ -373,6 +376,7 @@ File URL,URL αρχείου
 File not attached,Το αρχείο δεν συνδέεται
 File size exceeded the maximum allowed size of {0} MB,Μέγεθος αρχείου υπερβεί το μέγιστο επιτρεπόμενο μέγεθος του {0} MB
 Filter,Φιλτράρισμα
+Filter records based on User Permissions defined for a user,Φιλτράρισμα εγγραφών με βάση τα δικαιώματα χρήσης που ορίζεται για ένα χρήστη
 First Name,Όνομα
 Float,Επιπλέω
 Float Precision,Float ακριβείας
@@ -387,12 +391,12 @@ For DocType,για DocType
 For Select, enter list of Options separated by comma","Για Links , εισάγετε το DocType ως εύρος \ nΓια την Select , τον κατάλογο των επιλογών που χωρίζονται με κόμμα αρχίζει"
 "For comparative filters, start with","Για τις συγκριτικές φίλτρα, ξεκινήστε με"
 For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,"Για παράδειγμα, αν έχετε ακυρώσει και να τροποποιήσει «INV004» θα γίνει ένα νέο έγγραφο «INV004-1». Αυτό σας βοηθά να παρακολουθείτε κάθε τροπολογία."
-"For example, if user X is restricted to company C, user X will not be able to see any transaction that has company C as a linked value.","Για παράδειγμα , αν ο χρήστης X περιορίζεται στην εταιρεία C , ο χρήστης Χ δεν θα είναι σε θέση να δουν οποιαδήποτε συναλλαγή που έχει εταιρεία C ως συνδεδεμένη αξία ."
 For ranges,Για σειρές
 For top bar,Για την κορυφή μπαρ
 For {0} at level {1} in {2} in row {3},Για {0} σε επίπεδο {1} στο {2} στη γραμμή {3}
 Forgot Password,Ξεχάσατε τον κωδικό σας
 Forgot Password?,Ξεχάσατε τον κωδικό σας ;
+Form,μορφή
 Forum,Φόρουμ
 Forums,φόρουμ
 Forward To Email Address,Μπροστά στη διεύθυνση ηλεκτρονικού ταχυδρομείου
@@ -449,8 +453,6 @@ Home Page is Products,Αρχική Σελίδα είναι προϊόντα
 ID (name) of the entity whose property is to be set,ID (όνομα) της οντότητας της οποίας ιδιοκτησία είναι να καθοριστούν
 Icon,Icon
 Icon will appear on the button,Θα εμφανιστεί το εικονίδιο στο κουμπί
-"If 'Restricted' is checked, the owner is always allowed based on Role.","Αν « Κλειστή » είναι επιλεγμένο , ο ιδιοκτήτης είναι πάντα επιτρέπονται με βάση ρόλο ."
-"If 'Restricted' is not checked, you can still restrict permissions based on certain values, like Company or Territory in a document by setting User Restrictions. But unless any restriction is set, a user will have permissions based on the Role.","Αν « Κλειστή » δεν είναι επιλεγμένο , μπορείτε να περιορίσετε τα δικαιώματα βασίζεται σε ορισμένες αξίες , όπως η Εταιρεία ή έδαφος σε ένα έγγραφο με τον καθορισμό Περιορισμοί χρήστη . Αλλά αν δεν έχει οριστεί οποιοσδήποτε περιορισμός , ο χρήστης θα έχει δικαιώματα με βάση το ρόλο ."
 "If a Role does not have access at Level 0, then higher levels are meaningless.","Εάν ένας ρόλος δεν έχει πρόσβαση στο επίπεδο 0 , στη συνέχεια υψηλότερα επίπεδα είναι χωρίς νόημα ."
 "If checked, all other workflows become inactive.","Εάν είναι επιλεγμένο, όλες οι άλλες ροές εργασίας καταστεί ανενεργή."
 "If checked, an email with an attached HTML format will be added to part of the EMail body as well as attachment. To only send as attachment, uncheck this.","Αν επιλεγεί, ένα email με ένα συνημμένο HTML μορφή θα προστεθεί στο μέρος του σώματος ηλεκτρονικού ταχυδρομείου, καθώς ως συνημμένο. Για να στείλετε μόνο ως συνημμένο, καταργήστε την επιλογή αυτή."
@@ -459,7 +461,7 @@ Icon will appear on the button,Θα εμφανιστεί το εικονίδιο
 If non standard port (e.g. 587),Αν μη τυπική θύρα (π.χ. 587)
 "If these instructions where not helpful, please add in your suggestions on GitHub Issues.","Εάν αυτές οι οδηγίες , όπου δεν είναι χρήσιμο , παρακαλούμε να προσθέσετε δικές σας προτάσεις σχετικά GitHub θέματα ."
 "If you set this, this Item will come in a drop-down under the selected parent.","Αν ορίσετε αυτό, αυτό το στοιχείο θα έρθει σε ένα drop-down κάτω από τον επιλεγμένο γονέα."
-Ignore Restrictions,Αγνοήστε Περιορισμοί
+Ignore User Permissions,Αγνοήστε τα δικαιώματα χρήσης
 "Ignoring Item {0}, because a group exists with the same name!","Αγνοώντας Θέση {0} , διότι υπάρχει μια ομάδα με το ίδιο όνομα !"
 Image,Εικόνα
 Image Link,Σύνδεσμος εικόνας
@@ -628,7 +630,7 @@ No Report Loaded. Please use query-report/[Report Name] to run a report.,Δεν 
 No Results,Δεν υπάρχουν αποτελέσματα
 No Sidebar,Δεν Sidebar
 No Sitemap,Δεν Sitemap
-No User Restrictions found.,Δεν βρέθηκαν Περιορισμοί χρήστη .
+No User Permissions found.,Δεν βρέθηκε δικαιώματα χρήσης .
 No data found,Δεν βρέθηκαν δεδομένα
 No document selected,Δεν επιλεγμένο έγγραφο
 No file attached,Δεν συνημμένο αρχείο
@@ -658,7 +660,6 @@ Not equals,δεν ισούται
 Not found,δεν βρέθηκε
 Not in Developer Mode! Set in site_config.json,Όχι στη λειτουργία Developer ! Μέσα σε site_config.json
 Not permitted,δεν επιτρέπεται
-Not permitted to restrict User {0} for {1} {2},Δεν επιτρέπεται να περιορίζουν το χρήστη {0} για {1} {2}
 "Note: For best results, images must be of the same size and width must be greater than height.","Σημείωση: Για βέλτιστα αποτελέσματα, οι εικόνες θα πρέπει να είναι του ίδιου μεγέθους και πλάτους πρέπει να είναι μεγαλύτερη από το ύψος."
 Note: Other permission rules may also apply,Σημείωση: Άλλοι κανόνες άδεια μπορεί επίσης να εφαρμοστεί
 Note: maximum attachment size = 1mb,Σημείωση: Το μέγεθος του συνημμένου μέγιστο = 1MB
@@ -666,17 +667,15 @@ Nothing to delete,Τίποτα για να διαγράψετε
 Nothing to show,Δεν έχει τίποτα να δείξει
 Nothing to show for this selection,Δεν έχει τίποτα να δείξει για αυτή την επιλογή
 Notification Count,γνωστοποίηση Count
-Notify By Email,Ειδοποιήσουμε με email
+Notify by Email,Ειδοποίηση με e-mail
 Number Format,Μορφή αριθμών
 Old Parent,Παλιά Μητρική
 On,Επί
-"Once you have set this, the users will only be able access documents where the link (e.g Company) exists.","Αφού έχετε ρυθμίσει αυτό, οι χρήστες θα είναι σε θέση πρόσβαση σε έγγραφα όπου υπάρχει ο σύνδεσμος ( π.χ. Εταιρεία ) ."
+"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).","Αφού έχετε ρυθμίσει αυτό, οι χρήστες θα είναι σε θέση πρόσβαση σε έγγραφα ( π.χ. Blog Post) , όπου υπάρχει ο σύνδεσμος ( π.χ. Blogger ) ."
 Only Administrator allowed to create Query / Script Reports,Μόνο διαχειριστή τη δυνατότητα να δημιουργήσουν Query / Script Εκθέσεις
 Only Administrator can save a standard report. Please rename and save.,Μόνο διαχειριστή να αποθηκεύσετε ένα πρότυπο για την έκθεση. Παρακαλούμε να μετονομάσετε και να αποθηκεύσετε.
 Only Allow Edit For,Μόνο Αφήστε Επεξεργασία για
-Only Restricted Documents,Μόνο Κλειστές Έγγραφα
 Only allowed {0} rows in one import,Επιτρέπεται μόνο {0} σειρές σε μία εισαγωγή
-Only restricted users can access,Περιορίζεται μόνο οι χρήστες μπορούν να έχουν πρόσβαση
 Open,Ανοιχτό
 Open Count,Open Count
 Open Sans,Open Sans
@@ -685,7 +684,6 @@ Options Help,Επιλογές Βοήθεια
 Options must be a valid DocType for field {0} in row {1},Επιλογές θα πρέπει να είναι μια έγκυρη DocType για το πεδίο {0} στη γραμμή {1}
 Options not set for link field {0},Επιλογές δεν έχει οριστεί για το πεδίο link {0}
 Options requried for Link or Table type field {0} in row {1},"Επιλογές που απαιτούνται, για Link ή πεδίο τύπου πίνακα {0} στη γραμμή {1}"
-Or Created By,Ή δημιουργία
 Org History,org Ιστορία
 Org History Heading,Org Ιστορία Τομέας
 Original Message,Αρχικό μήνυμα
@@ -708,7 +706,6 @@ Page Title,Τίτλος σελίδας
 Page content,Περιεχόμενο της σελίδας
 Page not found,Η σελίδα δεν βρέθηκε
 Page or Generator,Σελίδα ή Γεννήτρια
-Page text and background is same color. Please change.,Κείμενο σελίδας και το φόντο είναι ίδιο χρώμα. Παρακαλούμε αλλάξει.
 Page url name (auto-generated),Όνομα σελίδας url ( δημιουργείται αυτόματα )
 Page with name {0} already exists,Σελίδα με το όνομα {0} υπάρχει ήδη
 Parent Label,Ετικέτα γονέων
@@ -729,13 +726,12 @@ Permanently Submit {0}?,Μόνιμα Υποβολή {0} ;
 Permanently delete {0}?,Να διαγράψετε οριστικά {0} ;
 Permission Level,Επίπεδο δικαιωμάτων
 Permission Levels,Επίπεδα δικαιωμάτων
-Permission Manager,Manager άδεια
 Permission Rules,Κανόνες άδεια
 Permissions,Δικαιώματα
 Permissions Settings,Δικαιώματα Ρυθμίσεις
 Permissions are automatically translated to Standard Reports and Searches.,Τα δικαιώματα μετατρέπονται αυτόματα σε πρότυπο Εκθέσεις και αναζητήσεις .
-"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email, Only Restricted Documents and Can Restrict Others.","Τα δικαιώματα που έχουν οριστεί για Ρόλοι και τύποι εγγράφων (που ονομάζεται doctypes ) με τον καθορισμό των δικαιωμάτων , όπως διαβάζω , γράφω, Δημιουργία, Διαγραφή , Υποβολή , Ακύρωση , τροποποιούνται , έκθεση , εισαγωγή, εξαγωγή , εκτύπωση , ηλεκτρονικό ταχυδρομείο , μόνο Κλειστή έγγραφα και μπορούν να περιορίσουν κ.λπ. ."
-Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only.,Δικαιώματα σε υψηλότερα επίπεδα είναι τα δικαιώματα «Επίπεδο Πεδίο » . Όλα τα πεδία έχουν μια « Επίπεδο δικαιωμάτων » που εναντίον τους και τους κανόνες που καθορίζονται στο ότι τα δικαιώματα ισχύουν για το πεδίο . Αυτό είναι χρήσιμο στην περίπτωση που θέλετε να αποκρύψετε ή να κάνετε συγκεκριμένο τομέα μόνο για ανάγνωση .
+"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions.","Τα δικαιώματα που έχουν οριστεί για Ρόλοι και τύποι εγγράφων (που ονομάζεται doctypes ) με τον καθορισμό των δικαιωμάτων , όπως διαβάζω , γράφω, Δημιουργία, Διαγραφή , Υποβολή , Ακύρωση , τροποποιούνται , έκθεση , εισαγωγή, εξαγωγή , εκτύπωση , e-mail και τα δικαιώματα των χρηστών ."
+Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles.,Δικαιώματα σε υψηλότερα επίπεδα είναι τα δικαιώματα «Επίπεδο Πεδίο » .
 "Permissions at level 0 are 'Document Level' permissions, i.e. they are primary for access to the document.","Δικαιώματα σε 0 είναι τα δικαιώματα «Επίπεδο Document», δηλαδή είναι πρωταρχική για την πρόσβαση στο έγγραφο."
 Permissions get applied on Users based on what Roles they are assigned.,Δικαιώματα πάρει εφαρμόζονται σε χρήστες με βάση τους ρόλους που τους έχουν ανατεθεί .
 Person,Πρόσωπο
@@ -792,8 +788,8 @@ Query,Απορία
 Query Options,Επιλογές Αιτημάτων
 Query Report,Έκθεση ερωτήματος
 Query must be a SELECT,Ερώτημα πρέπει να είναι μια SELECT
-Quick Help for Permission Restrictions,Γρήγορη Βοήθεια για Περιορισμοί άδεια
 Quick Help for Setting Permissions,Γρήγορη βοήθεια για τον καθορισμό των δικαιωμάτων
+Quick Help for User Permissions,Γρήγορη Βοήθεια για τα δικαιώματα χρήσης
 Re-open,Re - ανοικτή
 Read,Ανάγνωση
 Read Only,Μόνο για ανάγνωση
@@ -836,15 +832,11 @@ Reqd,Reqd
 Reset Password Key,Επαναφορά Password κλειδί
 Reset Permissions for {0}?,Επαναφορά Δικαιώματα για {0} ;
 Restrict IP,Περιορισμός IP
-Restrict cannot be set for Single types,"Περιορίζουν , δεν μπορεί να ρυθμιστεί για Ενιαίου τύπους"
 Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111),"Περιορίστε χρήστη από την διεύθυνση αυτή και μόνο. Πολλαπλές διευθύνσεις IP μπορούν να προστεθούν διαχωρίζοντας με κόμμα. Επίσης δέχεται μερική IP διευθύνσεις, όπως (111.111.111)"
-Restricted To,Κλειστή να
-Restricting Users,Ο περιορισμός χρήστες
-Restriction,περιορισμός
-Restriction added,περιορισμός προστέθηκε
 Right,Δεξιά
 Role,Ρόλος
 Role Name,Όνομα Ρόλος
+Role Permissions Manager,Δικαιώματα ρόλο Διευθυντής
 Role and Level,Ρόλος και Επίπεδο
 Role exists,υπάρχει ο ρόλος
 Roles,Ρόλοι
@@ -880,9 +872,10 @@ Select Report Name,Επιλογή Όνομα Έκθεση
 Select Role,Επιλέξτε Ρόλος
 Select To Download:,Επιλέξτε για να κατεβάσετε :
 Select Type,Επιλέξτε Τύπο
-Select User or Property to start.,Επιλέξτε το χρήστη ή ακίνητα για να ξεκινήσει.
+Select User or DocType to start.,Επιλέξτε το χρήστη ή DocType για να ξεκινήσει .
 Select a Banner Image first.,Επιλέξτε μια εικόνα banner πρώτα.
 Select an image of approx width 150px with a transparent background for best results.,Επιλέξτε μια εικόνα 150px πλάτους περ. με ένα διαφανές φόντο για καλύτερα αποτελέσματα.
+Select dates to create a new ,
 "Select modules to be shown (based on permission). If hidden, they will be hidden for all users.","Επιλέξτε ενότητες που πρέπει να δείξει ( με βάση την άδεια ) . Αν κρύβεται , θα είναι κρυμμένα για όλους τους χρήστες ."
 Select or drag across time slots to create a new event.,Επιλέξτε ή σύρετε χρονοθυρίδες για να δημιουργήσετε ένα νέο συμβάν.
 "Select target = ""_blank"" to open in a new page.","Επιλέξτε target = "" _blank "" για να ανοίξει σε μια νέα σελίδα ."
@@ -909,12 +902,13 @@ Session Expiry,Λήξη συνεδρίας
 Session Expiry in Hours e.g. 06:00,"Λήξη συνεδρίας σε ώρες, π.χ. 6:00"
 Session Expiry must be in format {0},Συνεδρία λήξης θα πρέπει να είναι σε μορφή {0}
 Set Banner from Image,Ορισμός Banner από την εικόνα
-Set Defaults and Restrictions for Users,Ορισμός προεπιλογών και περιορισμοί για τους χρήστες
 Set Link,Ρύθμιση σύνδεσης
 Set Login and Password if authentication is required.,"Ορισμός Login και Password, εάν απαιτείται έλεγχος ταυτότητας."
 Set Only Once,Οριστεί μόνο μία φορά
 Set Password,Ορισμός κωδικού πρόσβασης
 Set Permissions on Document Types and Roles,Ορισμός δικαιωμάτων σε τύποι εγγράφων και Ρόλοι
+Set Permissions per User,Ορισμός δικαιωμάτων ανά χρήστη
+Set User Permissions,Ορίστε τα δικαιώματα χρήσης
 Set Value,Ορισμός Value
 Set numbering series for transactions.,Ορίστε σειρά αρίθμησης για τις συναλλαγές .
 Set outgoing mail server.,Ορισμός διακομιστή εξερχόμενης αλληλογραφίας .
@@ -923,7 +917,7 @@ Settings for About Us Page.,Ρυθμίσεις για την εταιρεία μ
 Settings for Contact Us Page.,Ρυθμίσεις για την Επικοινωνία Σελίδα.
 Setup,Εγκατάσταση
 Setup > User,Ρύθμιση> User
-Setup > User Restriction,Ρύθμιση> Περιορισμός χρήστη
+Setup > User Permissions Manager,Ρύθμιση> Τα δικαιώματα χρήστη διαχειριστή
 Setup of fonts and background.,Ρύθμιση των γραμματοσειρών και του φόντου.
 "Setup of top navigation bar, footer and logo.","Ρύθμιση της επάνω γραμμή πλοήγησης, footer και το λογότυπο."
 Short Bio,Σύντομο Βιογραφικό
@@ -978,6 +972,7 @@ Subject,Θέμα
 Submit,Υποβολή
 Submit an Issue,Υποβολή προβλήματος
 Submitted,Υποβλήθηκε
+Submitted Document cannot be converted back to draft. Transition row {0},Υποβλήθηκε έγγραφο δεν μπορεί να μετατραπεί ξανά να συντάξει .
 Submitted Record cannot be deleted,Υποβλήθηκε εγγραφής δεν μπορεί να διαγραφεί
 Success,Επιτυχία
 Suggestion,Πρόταση
@@ -1011,9 +1006,9 @@ The system provides many pre-defined roles. You can add new roles to set finer p
 Then By (optional),"Στη συνέχεια, με (προαιρετικό)"
 There were errors,Υπήρξαν σφάλματα
 There were errors while sending email. Please try again.,Υπήρξαν σφάλματα κατά την αποστολή ηλεκτρονικού ταχυδρομείου . Παρακαλώ δοκιμάστε ξανά .
-These restrictions will apply for all transactions linked to the restricted record.,Οι περιορισμοί αυτοί θα ισχύουν για όλες τις συναλλαγές που συνδέονται με την περιορισμένη εγγραφή .
+"These permissions will apply for all transactions where the permitted record is linked. For example, if Company C is added to User Permissions of user X, user X will only be able to see transactions that has company C as a linked value.",Αυτά τα δικαιώματα θα ισχύουν για όλες τις συναλλαγές όπου το επιτρεπόμενο αρχείο είναι συνδεδεμένο .
 These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,"Οι τιμές αυτές θα πρέπει να ενημερώνονται αυτόματα σε συναλλαγές και, επίσης, θα ήταν χρήσιμο να περιορίσετε τα δικαιώματα για το χρήστη για τις συναλλαγές που περιέχουν αυτές τις αξίες."
-These will also be set as default values for those links.,Αυτά θα πρέπει επίσης να οριστεί ως προεπιλεγμένες τιμές για αυτούς τους δεσμούς .
+"These will also be set as default values for those links, if only one such permission record is defined.","Αυτά θα πρέπει επίσης να οριστεί ως προεπιλεγμένες τιμές για αυτούς τους δεσμούς , αν μόνο μια τέτοια εγγραφή άδεια ορίζεται ."
 Third Party Authentication,Τρίτο Κόμμα ταυτότητας
 "This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>
 myfield
@@ -1023,7 +1018,7 @@ This goes above the slideshow.,Αυτό πηγαίνει πάνω από το sl
 This is PERMANENT action and you cannot undo. Continue?,Αυτό είναι μόνιμη δράση και δεν μπορείτε να αναιρέσετε. Συνέχεια;
 This is permanent action and you cannot undo. Continue?,Αυτό είναι μόνιμη δράση και δεν μπορείτε να αναιρέσετε. Συνέχεια;
 This must be checked if Style Settings are applicable,Αυτό πρέπει να ελεγχθεί εάν Ρυθμίσεις Style ισχύουν
-This role can restrict users for accessing the record.,Ο ρόλος αυτός μπορεί να περιορίσω τους χρήστες για την πρόσβαση στο αρχείο .
+This role update User Permissions for a user,Ο ρόλος Δικαιώματα ενημέρωση του χρήστη για ένα χρήστη
 Thursday,Πέμπτη
 Time,Χρόνος
 Time Zone,Ζώνη ώρας
@@ -1037,7 +1032,7 @@ Title is required,Τίτλος απαιτείται
 To,Να
 To Do,Για να κάνετε
 "To format columns, give column labels in the query.","Για να διαμορφώσετε τις στήλες, δίνουν ετικέτες στηλών στο ερώτημα."
-"To give acess to a role for only specific records, check the 'Restricted' perimssion. User Restriction Records are used to restrict users with such role to specific records.","Για να δώσουμε acess σε ένα ρόλο μόνο για συγκεκριμένες εγγραφές , ελέγξτε την « περιορισμένη» perimssion . Εγγραφές Περιορισμός χρήστη χρησιμοποιούνται για να περιορίσουν τους χρήστες με τέτοιο ρόλο σε συγκεκριμένες εγγραφές ."
+"To give acess to a role for only specific records, check the 'Apply User Permissions'. User Permissions are used to limit users with such role to specific records.","Για να δώσουμε acess σε ένα ρόλο μόνο για συγκεκριμένες εγγραφές , ελέγξτε την επιλογή « Εφαρμογή δικαιώματα χρήσης » ."
 "To run a test add the module name in the route after '{0}'. For example, {1}","Για να εκτελέσετε μια δοκιμή προσθέστε το όνομα της ενότητας στη γραμμή μετά από '{0}' . Για παράδειγμα, το {1}"
 ToDo,Εκκρεμότητες
 Too many writes in one request. Please send smaller requests,Πάρα πολλοί γράφει σε ένα αίτημα . Παρακαλούμε να στείλετε τα μικρότερα αιτήσεις
@@ -1084,16 +1079,16 @@ User Cannot Search,Ο χρήστης δεν μπορεί Αναζήτηση
 User Defaults,Προεπιλογές Προφίλ
 User ID of a blog writer.,ID χρήστη του blog συγγραφέας.
 User Image,Εικόνα Εικόνα
-User Permission Restrictions,Περιορισμοί άδεια χρήστη
-User Properties,Ιδιότητες χρήστη
-User Restrictions,Περιορισμοί χρήστη
+User Permission,άδεια χρήστη
+User Permissions,Δικαιώματα χρήστη
+User Permissions Manager,Δικαιώματα χρήστης του Διαχειριστή
 User Roles,Ρόλοι Χρηστών
 User Tags,Ετικέτες
 User Type,Τύπος χρήστη
 "User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ",
 User Vote,Ψηφοφορία χρήστη
 User not allowed to delete.,Ο χρήστης δεν επιτρέπεται να διαγράψετε.
-User restrictions should not apply for this Link,Περιορισμοί Ο χρήστης δεν θα πρέπει να εφαρμόζεται για αυτή την σύνδεση
+User permissions should not apply for this Link,Δικαιώματα χρήστη δεν πρέπει να εφαρμόζονται για αυτή την σύνδεση
 User {0} cannot be deleted,Χρήστης {0} δεν μπορεί να διαγραφεί
 User {0} cannot be disabled,Χρήστης {0} δεν μπορεί να απενεργοποιηθεί
 User {0} cannot be renamed,Χρήστης {0} δεν μπορεί να μετονομαστεί
@@ -1326,12 +1321,14 @@ yyyy-mm-dd,εεεε-μμ-ηη
 zoom-in,zoom-in
 zoom-out,zoom-out
 {0} by {1},{0} από {1}
+{0} cannot be set for Single types,{0} δεν μπορεί να ρυθμιστεί για Ενιαία τύπους
 {0} does not exist in row {1},{0} δεν υπάρχει στη γραμμή {1}
 {0} in row {1} cannot have both URL and child items,{0} στη γραμμή {1} δεν μπορεί να έχει τόσο URL και είδη παιδικής
 {0} is not a valid email id,{0} δεν είναι έγκυρη ταυτότητα ηλεκτρονικού ταχυδρομείου
 {0} is required,{0} απαιτείται
 {0} is saved,{0} έχει αποθηκευτεί
 {0} must be one of {1},{0} πρέπει να είναι μία από {1}
+{0} not a valid State,{0} δεν είναι έγκυρο κράτος
 {0} not allowed in fieldname {1},{0} δεν επιτρέπεται σε fieldname {1}
 {0} not allowed in name,{0} δεν επιτρέπονται στο όνομα
 {0} not allowed to be renamed,{0} δεν επιτρέπεται να μετονομαστεί
@@ -1348,6 +1345,6 @@ zoom-out,zoom-out
 {0}: Cannot set import as {1} is not importable,"{0} : Δεν είναι δυνατή η ρύθμιση των εισαγωγών, όπως {1} δεν είναι δυνατόν να εισάγονται"
 "{0}: Create, Submit, Cancel and Amend only valid at level 0","{0} : Δημιουργία , Υποβολή , Άκυρο και τροποποιούνται μόνο στο επίπεδο 0"
 {0}: No basic permissions set,{0} : Δεν βασικά δικαιώματα σετ
-{0}: Only one rule allowed at a Role and Level,{0} : Μόνο ένα κανόνα επιτρέπονται σε Ρόλος και η Level
+"{0}: Only one rule allowed with the same Role, Level and Apply User Permissions","{0} : Μόνο ένα κανόνα επιτρέπονται με τον ίδιο ρόλο , Επίπεδο και Εφαρμογή δικαιώματα χρήσης"
 {0}: Permission at level 0 must be set before higher levels are set,"{0} : Η άδεια στο επίπεδο 0 , πρέπει να οριστεί πριν θέσει υψηλότερα επίπεδα"
 {app_title},{ app_title }

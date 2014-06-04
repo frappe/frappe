@@ -46,8 +46,8 @@ def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=F
 
 	rename_versions(doctype, old, new)
 
-	# update restrictions
-	frappe.db.sql("""update tabDefaultValue set defvalue=%s where parenttype='Restriction'
+	# update user_permissions
+	frappe.db.sql("""update tabDefaultValue set defvalue=%s where parenttype='User Permission'
 		and defkey=%s and defvalue=%s""", (new, doctype, old))
 	frappe.clear_cache()
 

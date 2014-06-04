@@ -71,13 +71,13 @@ frappe.views.QueryReport = Class.extend({
 		this.appframe.add_primary_action(__('Export'), function() { me.export_report(); },
 			"icon-download");
 
-		if(frappe.model.can_restrict("Report")) {
-			this.appframe.add_primary_action(__("User Restrictions"), function() {
+		if(frappe.model.can_set_user_permissions("Report")) {
+			this.appframe.add_primary_action(__("User Permissions"), function() {
 				frappe.route_options = {
-					property: "Report",
-					restriction: me.report_name
+					doctype: "Report",
+					name: me.report_name
 				};
-				frappe.set_route("user-properties");
+				frappe.set_route("user-permissions");
 			}, "icon-shield");
 		}
 	},

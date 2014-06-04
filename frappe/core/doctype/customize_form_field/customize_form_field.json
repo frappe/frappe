@@ -1,7 +1,7 @@
 {
  "allow_copy": 0, 
  "autoname": "DLF.#####", 
- "creation": "2013-02-22 01:27:32.000000", 
+ "creation": "2013-02-22 01:27:32", 
  "docstatus": 0, 
  "doctype": "DocType", 
  "fields": [
@@ -112,9 +112,9 @@
    "width": "50px"
   }, 
   {
-   "fieldname": "ignore_restrictions", 
+   "fieldname": "ignore_user_permissions", 
    "fieldtype": "Check", 
-   "label": "Ignore Restrictions", 
+   "label": "Ignore User Permissions", 
    "permlevel": 0
   }, 
   {
@@ -227,10 +227,11 @@
  "idx": 1, 
  "issingle": 0, 
  "istable": 1, 
- "modified": "2013-12-23 16:12:45.000000", 
+ "modified": "2014-05-26 03:22:36.704849", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Customize Form Field", 
  "owner": "Administrator", 
+ "permissions": [], 
  "read_only": 0
 }

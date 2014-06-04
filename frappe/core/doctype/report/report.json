@@ -62,6 +62,15 @@
    "read_only": 0
   }, 
   {
+   "default": "1", 
+   "depends_on": "eval:[\"Query Report\", \"Script Report\"].indexOf(doc.report_type)!==-1", 
+   "fieldname": "apply_user_permissions", 
+   "fieldtype": "Check", 
+   "in_list_view": 0, 
+   "label": "Apply User Permissions", 
+   "permlevel": 0
+  }, 
+  {
    "fieldname": "section_break_6", 
    "fieldtype": "Section Break", 
    "permlevel": 0, 
@@ -101,14 +110,13 @@
  ], 
  "icon": "icon-table", 
  "idx": 1, 
- "modified": "2014-05-12 17:08:04.185601", 
+ "modified": "2014-06-03 07:25:41.509885", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Report", 
  "owner": "Administrator", 
  "permissions": [
   {
-   "cancel": 0, 
    "create": 1, 
    "delete": 1, 
    "email": 1, 
@@ -121,7 +129,6 @@
    "write": 1
   }, 
   {
-   "cancel": 0, 
    "create": 1, 
    "delete": 1, 
    "email": 1, 
@@ -134,7 +141,6 @@
    "write": 1
   }, 
   {
-   "cancel": 0, 
    "create": 1, 
    "delete": 1, 
    "email": 1, 
@@ -147,7 +153,7 @@
    "write": 1
   }, 
   {
-   "cancel": 0, 
+   "apply_user_permissions": 1, 
    "delete": 0, 
    "email": 1, 
    "permlevel": 0, 

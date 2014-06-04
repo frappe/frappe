@@ -68,7 +68,6 @@ response = local("response")
 session = local("session")
 user = local("user")
 flags = local("flags")
-restrictions = local("restrictions")
 
 error_log = local("error_log")
 debug_log = local("debug_log")
@@ -84,29 +83,35 @@ def init(site, sites_path=None):
 		sites_path = '.'
 
 	local.error_log = []
+	local.message_log = []
+	local.debug_log = []
+	local.flags = _dict({})
+	local.rollback_observers = []
+	local.test_objects = {}
+
 	local.site = site
 	local.sites_path = sites_path
 	local.site_path = os.path.join(sites_path, site)
-	local.message_log = []
-	local.debug_log = []
+
 	local.request_method = request.method if request else None
 	local.response = _dict({"docs":[]})
+
 	local.conf = _dict(get_site_config())
 	local.lang = local.conf.lang or "en"
-	local.initialised = True
-	local.flags = _dict({})
-	local.rollback_observers = []
+
 	local.module_app = None
 	local.app_modules = None
+
 	local.user = None
-	local.restrictions = None
-	local.user_perms = {}
-	local.test_objects = {}
+	local.role_permissions = {}
+
 	local.jenv = None
 	local.jloader =None
 	local.cache = {}
 
 	setup_module_map()
+
+	local.initialised = True
 
 def connect(site=None, db_name=None):
 	from database import Database
@@ -209,8 +214,7 @@ def set_user(username):
 	local.cache = {}
 	local.session.data = {}
 	local.user = User(username)
-	local.restrictions = None
-	local.user_perms = {}
+	local.role_permissions = {}
 
 def get_request_header(key, default=None):
 	return request.headers.get(key, default)
@@ -276,18 +280,24 @@ def clear_cache(user=None, doctype=None):
 		translate.clear_cache()
 		reset_metadata_version()
 
+	frappe.local.role_permissions = {}
+
 def get_roles(username=None):
-	from frappe.utils.user import User
 	if not local.session:
 		return ["Guest"]
-	elif not username or username==local.session.user:
-		return local.user.get_roles()
-	else:
-		return User(username).get_roles()
 
-def has_permission(doctype, ptype="read", doc=None):
+	return get_user(username).get_roles()
+
+def get_user(username):
+	from frappe.utils.user import User
+	if not username or username == local.session.user:
+		return local.user
+	else:
+		return User(username)
+
+def has_permission(doctype, ptype="read", doc=None, user=None):
 	import frappe.permissions
-	return frappe.permissions.has_permission(doctype, ptype, doc)
+	return frappe.permissions.has_permission(doctype, ptype, doc, user=user)
 
 def is_table(doctype):
 	tables = cache().get_value("is_table")
@@ -567,13 +577,13 @@ def build_match_conditions(doctype, as_condition=True):
 
 def get_list(doctype, filters=None, fields=None, or_filters=None, docstatus=None,
 			group_by=None, order_by=None, limit_start=0, limit_page_length=None,
-			as_list=False, debug=False, ignore_permissions=False):
+			as_list=False, debug=False, ignore_permissions=False, user=None):
 	import frappe.model.db_query
 	return frappe.model.db_query.DatabaseQuery(doctype).execute(filters=filters,
 				fields=fields, docstatus=docstatus, or_filters=or_filters,
 				group_by=group_by, order_by=order_by, limit_start=limit_start,
 				limit_page_length=limit_page_length, as_list=as_list, debug=debug,
-				ignore_permissions=ignore_permissions)
+				ignore_permissions=ignore_permissions, user=user)
 
 run_query = get_list
 

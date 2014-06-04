@@ -1,7 +1,7 @@
 frappe.pages['permission-manager'].onload = function(wrapper) {
 	frappe.ui.make_app_page({
 		parent: wrapper,
-		title: __('Permission Manager'),
+		title: __('Role Permissions Manager'),
 		icon: "icon-lock",
 		single_column: true
 	});
@@ -108,13 +108,7 @@ frappe.PermissionEngine = Class.extend({
 					d.rights = [];
 					$.each(me.rights, function(i, r) {
 						if(d[r]===1) {
-							if(r==="restrict") {
-								d.rights.push(__("Can Restrict Others"));
-							} else if(r==="restricted") {
-								d.rights.push(__("Only Restricted Documents"));
-							} else {
-								d.rights.push(__(toTitle(r)));
-							}
+							d.rights.push(__(toTitle(r.replace("_", " "))));
 						}
 					});
 					d.rights = d.rights.join(", ");
@@ -179,20 +173,20 @@ frappe.PermissionEngine = Class.extend({
 			</table>\
 		</div>").appendTo(this.body);
 
-		$.each([["Document Type", 150], ["Role", 150], ["Level", 40],
-			["Permissions", 370], ["", 40]], function(i, col) {
+		$.each([["Document Type", 150], ["Role", 170], ["Level", 40],
+			["Permissions", 350], ["", 40]], function(i, col) {
 			$("<th>").html(col[0]).css("width", col[1]+"px")
 				.appendTo(me.table.find("thead tr"));
 		});
 
-		var add_cell = function(row, d, fieldname, is_check) {
+		var add_cell = function(row, d, fieldname) {
 			return $("<td>").appendTo(row)
 				.attr("data-fieldname", fieldname)
 				.html(d[fieldname]);
 		};
 
-		var add_check = function(cell, d, fieldname, label) {
-			if(!label) label = fieldname;
+		var add_check = function(cell, d, fieldname, label, without_grid) {
+			if(!label) label = fieldname.replace(/_/g, " ");
 			if(d.permlevel > 0 && ["read", "write"].indexOf(fieldname)==-1) {
 				return;
 			}
@@ -208,13 +202,22 @@ frappe.PermissionEngine = Class.extend({
 				.attr("data-ptype", fieldname)
 				.attr("data-name", d.name)
 				.attr("data-doctype", d.parent)
+
+			return checkbox;
 		};
 
 		$.each(perm_list, function(i, d) {
 			if(!d.permlevel) d.permlevel = 0;
 			var row = $("<tr>").appendTo(me.table.find("tbody"));
 			add_cell(row, d, "parent");
-			me.set_show_users(add_cell(row, d, "role"), d.role);
+			var role_cell = add_cell(row, d, "role");
+			me.set_show_users(role_cell, d.role);
+
+			if (d.permlevel===0) {
+				add_check(role_cell, d, "apply_user_permissions")
+					.removeClass("col-md-4")
+					.css({"margin-top": "15px"});
+			}
 
 			var cell = add_cell(row, d, "permlevel");
 			if(d.permlevel==0) {
@@ -226,21 +229,15 @@ frappe.PermissionEngine = Class.extend({
 			var perm_container = $("<div class='row'></div>").appendTo(perm_cell);
 
 			$.each(me.rights, function(i, r) {
-				if(r==="restrict") {
-					add_check(perm_container, d, "restrict", "Can Restrict Others");
-				} else if(r==="restricted") {
-					add_check(perm_container, d, "restricted", "Only Restricted Documents");
-				} else {
-					add_check(perm_container, d, r);
-				}
-			})
+				add_check(perm_container, d, r);
+			});
 
 			// buttons
 			me.add_delete_button(row, d);
 		});
 	},
 	rights: ["read", "write", "create", "delete", "submit", "cancel", "amend",
-		"report", "import", "export", "print", "email", "restricted", "restrict"],
+		"print", "email", "report", "import", "export", "set_user_permissions"],
 
 	set_show_users: function(cell, role) {
 		cell.html("<a href='#'>"+role+"</a>")
@@ -260,7 +257,7 @@ frappe.PermissionEngine = Class.extend({
 							return $.format('<a href="#Form/User/{0}">{1}</a>', [p, p]);
 						})
 						msgprint(__("Users with role {0}:", [role])
-							+ r.message.join("<br>"));
+							+ "<br>" + r.message.join("<br>"));
 					}
 				})
 				return false;
@@ -390,7 +387,7 @@ var permissions_help = ['<table class="table table-bordered" style="background-c
 		':</h4>',
 		'<ol>',
 			'<li>',
-				__('Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email, Only Restricted Documents and Can Restrict Others.'),
+				__('Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions.'),
 			'</li>',
 			'<li>',
 				__('Permissions get applied on Users based on what Roles they are assigned.'),
@@ -442,7 +439,7 @@ var permissions_help = ['<table class="table table-bordered" style="background-c
 				__('If a Role does not have access at Level 0, then higher levels are meaningless.'),
 			'</li>',
 			'<li>',
-				__("Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only."),
+				__("Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles."),
 			'</li>',
 			'<li>',
 				__('You can use Customize Form to set levels on fields.')
@@ -452,27 +449,18 @@ var permissions_help = ['<table class="table table-bordered" style="background-c
 	'</td></tr>',
 	'<tr><td>',
 		'<h4><i class="icon-shield"></i> ',
-			__('Restricting Users'),
+			__('User Permissions'),
 		':</h4>',
 		'<ol>',
 			'<li>',
-				__("To give acess to a role for only specific records, check the 'Restricted' perimssion. User Restriction Records are used to restrict users with such role to specific records.")
-				+ ' (<a href="#user-properties">' + __('Setup > User Restriction') + '</a>)',
+				__("To give acess to a role for only specific records, check the 'Apply User Permissions'. User Permissions are used to limit users with such role to specific records.")
+				+ ' (<a href="#user-permissions">' + __('Setup > User Permissions Manager') + '</a>)',
 			'</li>',
 			'<li>',
-				__("If 'Restricted' is not checked, you can still restrict permissions based on certain values, like Company or Territory in a document by setting User Restrictions. But unless any restriction is set, a user will have permissions based on the Role."),
+				__("Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger)."),
 			'</li>',
 			'<li>',
-				__("Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only."),
-			'</li>',
-			'<li>',
-				__("If 'Restricted' is checked, the owner is always allowed based on Role."),
-			'</li>',
-			'<li>',
-				__("Once you have set this, the users will only be able access documents where the link (e.g Company) exists."),
-			'</li>',
-			'<li>',
-				__("Apart from System Manager, roles with 'Can Restrict Others' permission can restrict other users for that Document Type."),
+				__("Apart from System Manager, roles with 'Set User Permissions' right can set permissions for other users for that Document Type."),
 			'</li>',
 		'</ol>',
 	'</td></tr>',

@@ -3,7 +3,10 @@
 
 from __future__ import unicode_literals
 import frappe
+from frappe.utils.scheduler import disable_scheduler, enable_scheduler
 
 def execute():
-	frappe.reload_doc("core", "doctype", "docperm")
-	frappe.db.sql("""update `tabDocPerm` set restricted=1 where `match`='owner'""")
+	if frappe.db.get_global("disable_scheduler"):
+		disable_scheduler()
+	else:
+		enable_scheduler()

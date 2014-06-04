@@ -62,11 +62,18 @@ $.extend(frappe.meta, {
 		return docfields;
 	},
 
-	get_restricted_fields: function(doctype, name, restricted_types) {
-		return $.map(frappe.meta.get_docfields(doctype, name), function(df) {
-			return (df.fieldtype==="Link" && df.ignore_restrictions!==1 &&
-				restricted_types.indexOf(df.options)!==-1) ? df : null;
+	get_fields_to_check_permissions: function(doctype, name, user_permissions) {
+		var user_permissions_doctypes = Object.keys(user_permissions);
+		var fields = $.map(frappe.meta.get_docfields(doctype, name), function(df) {
+			return (df.fieldtype==="Link" && df.ignore_user_permissions!==1 &&
+				user_permissions_doctypes.indexOf(df.options)!==-1) ? df : null;
 		});
+
+		if (user_permissions_doctypes.indexOf(doctype)!==-1) {
+			fields = fields.concat({label: "Name", fieldname: name, options: doctype});
+		}
+
+		return fields;
 	},
 
 	sort_docfields: function(docs) {

@@ -120,6 +120,7 @@ class WebsiteRoute(NestedSet):
 	def clear_cache(self, name=None):
 		from frappe.website.render import clear_cache
 		clear_cache(name or self.name)
+
 		if self.parent_website_route:
 			clear_cache(self.parent_website_route)
 

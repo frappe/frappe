@@ -12,7 +12,7 @@
 <li><b>Prompt</b> - Prompt user for a name\
 <li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\
 </ol>')"">Naming Options</a>",<一的onclick = “ msgprint （' <OL> \ \ ñ <LI> <B>场： [字段名] < / B> - 按字段\ \ ñ <LI> <B> naming_series ： < / B> - 通过命名
-A user can be restricted to multiple records of the same type.,用户可以被限制为同一类型的多个记录。
+A user can be permitted to multiple records of the same DocType.,用户可以被允许同一的DocType的多个记录。
 About,关于
 About Us Settings,关于我们设置
 About Us Team Member,关于我们团队成员
@@ -21,7 +21,7 @@ Actions,操作
 "Actions for workflow (e.g. Approve, Cancel).",对工作流操作（例如审批，取消） 。
 Add,加
 Add A New Rule,添加新的规则
-Add A Restriction,添加限制
+Add A User Permission,添加一个用户权限
 Add Attachments,添加附件
 Add Bookmark,添加书签
 Add CSS,添加CSS
@@ -30,7 +30,6 @@ Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytic
 Add Message,发表留言
 Add New Permission Rule,添加新的权限规则
 Add Reply,添加回复
-Add This To User's Restrictions,将它添加到用户的限制
 Add Total Row,添加总计行
 Add a New Role,添加新角色
 Add a banner to the site. (small banners are usually good),添加一个横幅挂在了网站上。 （小横幅通常是很好的）
@@ -42,7 +41,7 @@ Add fields to forms.,将字段添加到窗体。
 Add new row,添加新行
 "Add the name of <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> e.g. ""Open Sans""","新增的名称<a href=""http://google.com/webfonts"" target=""_blank"">谷歌网页字体</a> ，例如“开放三世”"
 Add to To Do,添加到待办事项
-Add to To Do List of,添加到待办事项列表
+Add to To Do List Of,添加到待办事项列表
 Adding System Manager to this User as there must be atleast one System Manager,添加系统管理员给此用户的，必须有ATLEAST 1系统管理
 Additional Info,附加信息
 Additional Permissions,额外的权限
@@ -65,7 +64,7 @@ Allow user to login only before this hour (0-24),允许用户仅在此之前登�
 Allowed,宠物
 "Allowing DocType, DocType. Be careful!",允许的DOCTYPE，的DocType 。要小心！
 Already Registered,已注册
-Already in todo,早在待办事项
+Already in user's To Do list,已经在用户的To Do列表
 Alternative download link,另类下载链接
 "Alternatively, you can also specify 'auto_email_id' in site_config.json",另外，您还可以在site_config.json指定' auto_email_id “
 Always use above Login Id as sender,请务必使用上述登录ID作为发件人
@@ -74,14 +73,15 @@ Amend,修改
 "Another {0} with name {1} exists, select another name",另一{0}名{1}存在，选择另一个名字
 Anyone Can Read,任何人都可以阅读
 Anyone Can Write,任何人都可以写
-"Apart from System Manager, roles with 'Can Restrict Others' permission can restrict other users for that Document Type.",除了系统管理器，用角色'可以限制他人许可，可以限制其他用户的文件类型。
-"Apart from the existing Permission Rules, you can apply addition restriction based on Type.",除了现有的权限规则，您可以根据应用类型除了限制。
+"Apart from Role based Permission Rules, you can apply User Permissions based on DocTypes.",除了基于角色的权限规则，您可以根据文档类型应用的用户权限。
+"Apart from System Manager, roles with 'Set User Permissions' right can set permissions for other users for that Document Type.",除了系统管理器，用'设置用户权限“正确的角色可以设置权限的其他用户的文件类型。
 App Already Installed,应用程序已安装
 App Name,应用程序名称
 App not found,应用程序未找到
 Application Installer,应用程序安装器
 Applications,应用
 Apply Style,应用样式
+Apply User Permissions,申请用户权限
 Are you sure you want to delete the attachment?,您确定要删除的附件？
 Arial,宋体
 "As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User.",作为最佳实践，不分配相同的一组权限的规则不同角色。相反，设置多个角色，以相同的用户。
@@ -130,14 +130,15 @@ Bulk email limit {0} crossed,群发电子邮件的限制{0}划线
 Button,钮
 By,通过
 Calendar,日历
-Can Restrict Others,可以限制其他
 Cancel,取消
 Cancelled,注销
 "Cannot Edit {0} directly: To edit {0} properties, create / update {1}, {2} and {3}",不能编辑{0}直接：编辑{0}属性，创建/更新{1} ， {2}和{3}
 Cannot Update: Incorrect / Expired Link.,无法更新：不正确的/过期的链接。
 Cannot Update: Incorrect Password,无法更新：不正确的密码
 Cannot add more than 50 comments,无法添加超过50评论
+Cannot cancel before submitting. See Transition {0},可以在提交之前不会取消。
 Cannot change picture,不能改变图片
+Cannot change state of Cancelled Document. Transition row {0},不能改变注销文件的状态。
 Cannot change {0},不能改变{0}
 Cannot delete or cancel because {0} {1} is linked with {2} {3},不能删除或取消，因为{0} {1}与联{2} {3}
 Cannot delete {0} as it has child nodes,无法删除{0} ，因为它有子节点
@@ -147,7 +148,9 @@ Cannot map because following condition fails: ,无法对应，因为以下条件
 Cannot open instance when its {0} is open,无法打开实例时，它的{0}是开放的
 Cannot open {0} when its instance is open,无法打开{0} ，当它的实例是开放的
 Cannot print cancelled documents,无法打印的文档取消
+Cannot remove permission for DocType: {0} and Name: {1},无法删除权限的DocType ： {0}和名称： {1}
 Cannot reply to a reply,无法回复回复
+Cannot set permission for DocType: {0} and Name: {1},无法设置权限的DocType ： {0}和名称： {1}
 Categorize blog posts.,分类博客文章。
 Category,类别
 Category Name,分类名称
@@ -373,6 +376,7 @@ File URL,文件的URL
 File not attached,文件未附
 File size exceeded the maximum allowed size of {0} MB,文件大小超过{0} MB的最大允许大小
 Filter,过滤器
+Filter records based on User Permissions defined for a user,基于对用户定义的用户权限筛选记录
 First Name,名字
 Float,浮动
 Float Precision,float精度
@@ -387,12 +391,12 @@ For DocType,为的DocType
 For Select, enter list of Options separated by comma",对于链接，进入文档类型为范围\ n对于选择，进入选项列表以逗号分隔
 "For comparative filters, start with",对于比较器，开始
 For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,例如，如果你取消及修订“INV004”它将成为一个新的文档&#39;INV004-1&#39;。这可以帮助您跟踪每一项修正案。
-"For example, if user X is restricted to company C, user X will not be able to see any transaction that has company C as a linked value.",例如，如果用户X仅限于C公司，用户X将不能看到有C公司作为链接的价值的任何交易。
 For ranges,对于范围
 For top bar,对于顶级酒吧
 For {0} at level {1} in {2} in row {3},{0}在水平{1}的{2}行{3}
 Forgot Password,忘记密码
 Forgot Password?,忘记密码？
+Form,表格
 Forum,论坛
 Forums,论坛
 Forward To Email Address,转发到邮件地址
@@ -449,8 +453,6 @@ Home Page is Products,首页产品是
 ID (name) of the entity whose property is to be set,其属性是要设置的实体的ID（名称）
 Icon,图标
 Icon will appear on the button,图标将显示在按钮上
-"If 'Restricted' is checked, the owner is always allowed based on Role.",如果“限制”被选中，主人总是允许基于角色。
-"If 'Restricted' is not checked, you can still restrict permissions based on certain values, like Company or Territory in a document by setting User Restrictions. But unless any restriction is set, a user will have permissions based on the Role.",如果“限制”没有被选中，你仍然可以基于某些值由用户设定的限制限制权限，就像在一个公司文件或领地。但是，除非任何限制设置，用户将基于角色的权限。
 "If a Role does not have access at Level 0, then higher levels are meaningless.",如果角色没有访问权限级别为0级，那么更高的水平是没有意义的。
 "If checked, all other workflows become inactive.",如果选中，所有其他的工作流程变得无效。
 "If checked, an email with an attached HTML format will be added to part of the EMail body as well as attachment. To only send as attachment, uncheck this.",如果选中，则带有附加的HTML格式的电子邮件会被添加到电子邮件正文的一部分，以及作为附件。如果只作为附件发送，请取消勾选此。
@@ -459,7 +461,7 @@ Icon will appear on the button,图标将显示在按钮上
 If non standard port (e.g. 587),如果非标准端口（如587）
 "If these instructions where not helpful, please add in your suggestions on GitHub Issues.",如果这些指令，其中没有帮助，请加在GitHub上的问题你的建议。
 "If you set this, this Item will come in a drop-down under the selected parent.",如果你设置这个，这个项目会在一个下拉菜单中选定父下。
-Ignore Restrictions,无视限制
+Ignore User Permissions,忽略用户权限
 "Ignoring Item {0}, because a group exists with the same name!",忽略项目{0} ，因为一组存在具有相同名字！
 Image,图像
 Image Link,图片链接
@@ -628,7 +630,7 @@ No Report Loaded. Please use query-report/[Report Name] to run a report.,无报�
 No Results,没有结果
 No Sidebar,没有侧边栏
 No Sitemap,没有网站地图
-No User Restrictions found.,无用户限制发现。
+No User Permissions found.,没有用户权限找到。
 No data found,没有找到数据
 No document selected,没有选择文件
 No file attached,没有附加的文件
@@ -658,7 +660,6 @@ Not equals,不等于
 Not found,未找到
 Not in Developer Mode! Set in site_config.json,不开发模式！设置在site_config.json
 Not permitted,不允许
-Not permitted to restrict User {0} for {1} {2},不允许{0}限制用户对{1} {2}
 "Note: For best results, images must be of the same size and width must be greater than height.",注意：为达到最佳效果，图象必须具有相同的尺寸和宽度必须大于高度。
 Note: Other permission rules may also apply,注：其它权限规则也可申请
 Note: maximum attachment size = 1mb,注：附件大小上限= 1MB
@@ -666,17 +667,15 @@ Nothing to delete,没什么可删除
 Nothing to show,没有显示
 Nothing to show for this selection,没什么可显示该选择
 Notification Count,通知计数
-Notify By Email,通知通过电子邮件
+Notify by Email,通过电子邮件通知
 Number Format,数字格式
 Old Parent,老家长
 On,上
-"Once you have set this, the users will only be able access documents where the link (e.g Company) exists.",一旦你设置这个，用户将只能访问其中的文件的链接（如公司）的存在。
+"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).",一旦你设置这个，用户将只能访问文档（如博客文章） ，其中链路存在（如Blogger的） 。
 Only Administrator allowed to create Query / Script Reports,只有管​​理员可以创建查询/报告的脚本
 Only Administrator can save a standard report. Please rename and save.,只有管​​理员可以保存一个标准的报告。请重新命名并保存。
 Only Allow Edit For,只允许编辑
-Only Restricted Documents,只限于文件
 Only allowed {0} rows in one import,只允许{0}在一个导入行
-Only restricted users can access,只限制用户可以访问
 Open,开
 Open Count,打开计数
 Open Sans,开放三世
@@ -685,7 +684,6 @@ Options Help,选项​​帮助
 Options must be a valid DocType for field {0} in row {1},选项​​必须是字段的有效的DocType {0}行{1}
 Options not set for link field {0},对于链接字段没有设置选项{0}
 Options requried for Link or Table type field {0} in row {1},requried的链接或表类型字段选项{0}行{1}
-Or Created By,或者创建人
 Org History,组织历史
 Org History Heading,组织历史航向
 Original Message,原始消息
@@ -708,7 +706,6 @@ Page Title,页面标题
 Page content,页面内容
 Page not found,找不到网页
 Page or Generator,页或生成
-Page text and background is same color. Please change.,网页文字及背景相同的颜色。请更改。
 Page url name (auto-generated),页面的URL名称（自动生成）
 Page with name {0} already exists,页面名称为{0}已存在
 Parent Label,父标签
@@ -729,13 +726,12 @@ Permanently Submit {0}?,永久提交{0} ？
 Permanently delete {0}?,永久删除{0} ？
 Permission Level,权限级别
 Permission Levels,权限级别
-Permission Manager,权限管理
 Permission Rules,权限规则
 Permissions,权限
 Permissions Settings,权限设置
 Permissions are automatically translated to Standard Reports and Searches.,权限会自动转换为标准报表和搜索。
-"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email, Only Restricted Documents and Can Restrict Others.",权限设置喜欢读权限，写，创建，删除，提交，取消，修改，报告对角色和文件类型（称为文档类型）设置，导入，导出，打印，电子邮件，只限于文件并限制其他。
-Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only.,在更高级别的权限是“现场级”的权限。所有栏位有一个“权限级别”设置对他们和那个权限应用到该字段中定义的规则。如果你想要隐藏或使某些领域只读这是有用的。
+"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions.",权限设置喜欢读权限，写，创建，删除，提交，取消，修改，报表，导入，导出，打印，电子邮件和设置用户权限的角色和文件类型（称为文档类型）设置。
+Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles.,在更高级别的权限是“现场级”的权限。
 "Permissions at level 0 are 'Document Level' permissions, i.e. they are primary for access to the document.",在0级权限是“文件级”的权限，也就是说，它们是主要用于访问文件。
 Permissions get applied on Users based on what Roles they are assigned.,权限基于什么角色，他们被分配在用户得到应用。
 Person,人
@@ -792,8 +788,8 @@ Query,询问
 Query Options,查询选项
 Query Report,查询报表
 Query must be a SELECT,查询必须是一个SELECT
-Quick Help for Permission Restrictions,快速帮助的权限限制
 Quick Help for Setting Permissions,快速帮助设置权限
+Quick Help for User Permissions,快速帮助用户权限
 Re-open,重新打开
 Read,阅读
 Read Only,只读
@@ -836,15 +832,11 @@ Reqd,REQD
 Reset Password Key,重设密码钥匙
 Reset Permissions for {0}?,重置权限{0} ？
 Restrict IP,限制IP
-Restrict cannot be set for Single types,限制不能单类型设置
 Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111),仅此IP地址限制用户。多个IP地址，可以通过用逗号分隔的补充。也接受像（111.111.111）部分的IP地址
-Restricted To,仅限于
-Restricting Users,限制用户
-Restriction,限制
-Restriction added,加限制
 Right,右边
 Role,角色
 Role Name,角色名称
+Role Permissions Manager,角色权限管理
 Role and Level,角色和级别
 Role exists,角色存在
 Roles,角色
@@ -880,9 +872,10 @@ Select Report Name,选择报告名称
 Select Role,选择角色
 Select To Download:,选择要下载：
 Select Type,选择类型
-Select User or Property to start.,选择用户或物业开始。
+Select User or DocType to start.,选择用户或的DocType启动。
 Select a Banner Image first.,首先选择一个横幅图像。
 Select an image of approx width 150px with a transparent background for best results.,选择约宽150像素的透明背景以获得最佳效果的图像。
+Select dates to create a new ,
 "Select modules to be shown (based on permission). If hidden, they will be hidden for all users.",要显示的选择的模块（基于权限）。如果隐藏的，他们会被隐藏于所有用户。
 Select or drag across time slots to create a new event.,选择或拖动整个时隙，以创建一个新的事件。
 "Select target = ""_blank"" to open in a new page.",选择目标=“_blank”在新页面中打开。
@@ -909,12 +902,13 @@ Session Expiry,会话过期
 Session Expiry in Hours e.g. 06:00,会话过期的时间，例如06:00
 Session Expiry must be in format {0},会话到期格式必须是{0}
 Set Banner from Image,从图像设置横幅
-Set Defaults and Restrictions for Users,设置默认值和限制用户
 Set Link,设置链接
 Set Login and Password if authentication is required.,如果需要身份验证设置登录名和密码。
 Set Only Once,设置一次
 Set Password,设置密码
 Set Permissions on Document Types and Roles,在文件类型和角色设置权限
+Set Permissions per User,每个用户设置权限
+Set User Permissions,设置用户权限
 Set Value,设定值
 Set numbering series for transactions.,设置编号系列交易。
 Set outgoing mail server.,设置发送邮件服务器。
@@ -923,7 +917,7 @@ Settings for About Us Page.,设置关于我们页面。
 Settings for Contact Us Page.,设置联系我们页面。
 Setup,设置
 Setup > User,设置>用户
-Setup > User Restriction,设置>用户限制
+Setup > User Permissions Manager,设置>用户权限管理
 Setup of fonts and background.,设置字体和背景。
 "Setup of top navigation bar, footer and logo.",安装程序的顶部导航栏，页脚和徽标。
 Short Bio,个人简介
@@ -978,6 +972,7 @@ Subject,主题
 Submit,提交
 Submit an Issue,提交问题
 Submitted,提交
+Submitted Document cannot be converted back to draft. Transition row {0},提交的文件不能被转换回起草。
 Submitted Record cannot be deleted,提交记录无法删除
 Success,成功
 Suggestion,建议
@@ -1011,9 +1006,9 @@ The system provides many pre-defined roles. You can add new roles to set finer p
 Then By (optional),再由（可选）
 There were errors,有错误
 There were errors while sending email. Please try again.,还有在发送电子邮件是错误的。请再试一次。
-These restrictions will apply for all transactions linked to the restricted record.,这些限制将适用于链接到禁区记录所有交易。
+"These permissions will apply for all transactions where the permitted record is linked. For example, if Company C is added to User Permissions of user X, user X will only be able to see transactions that has company C as a linked value.",这些权限将申请在那里允许记录被链接的所有交易。
 These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,这些值将在交易中自动更新，也将是有益的权限限制在含有这些值交易这个用户。
-These will also be set as default values for those links.,这些也将被设定为用于这些链接的默认值。
+"These will also be set as default values for those links, if only one such permission record is defined.",这些也将被设置为这些链接的默认值，如果只有一个这样的许可记录被定义。
 Third Party Authentication,第三方认证
 "This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>
 myfield
@@ -1023,7 +1018,7 @@ This goes above the slideshow.,这正好幻灯片上面。
 This is PERMANENT action and you cannot undo. Continue?,这是永久性的行动，你不能撤消。要继续吗？
 This is permanent action and you cannot undo. Continue?,这是永久的行动，你不能撤消。要继续吗？
 This must be checked if Style Settings are applicable,这必须进行检查，如果样式设置适用
-This role can restrict users for accessing the record.,这个角色可以限制用户的访问记录。
+This role update User Permissions for a user,这个角色更新用户权限的用户
 Thursday,星期四
 Time,时间
 Time Zone,时区
@@ -1037,7 +1032,7 @@ Title is required,标题是必需的
 To,至
 To Do,要不要
 "To format columns, give column labels in the query.",要格式化列，给列标签在查询中。
-"To give acess to a role for only specific records, check the 'Restricted' perimssion. User Restriction Records are used to restrict users with such role to specific records.",为了让接取仅针对特定记录的作用，检查'限制' perimssion 。用户限制记录是用来限制用户与这些角色的特定记录。
+"To give acess to a role for only specific records, check the 'Apply User Permissions'. User Permissions are used to limit users with such role to specific records.",为了让接取仅针对特定记录的角色，选中“应用用户权限” 。
 "To run a test add the module name in the route after '{0}'. For example, {1}",运行测试后， “{0}”添加模块名称的路线。例如， {1}
 ToDo,待办事项
 Too many writes in one request. Please send smaller requests,太多的写在一个请求。请将较小的请求
@@ -1084,16 +1079,16 @@ User Cannot Search,用户不能搜索
 User Defaults,简介默认
 User ID of a blog writer.,一个博客写手用户ID。
 User Image,用户图片
-User Permission Restrictions,用户权限限制
-User Properties,用户属性
-User Restrictions,用户限制
+User Permission,用户权限
+User Permissions,用户权限
+User Permissions Manager,用户权限管理
 User Roles,用户角色
 User Tags,用户标签
 User Type,用户类型
 "User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ",
 User Vote,用户投票
 User not allowed to delete.,用户不允许删除。
-User restrictions should not apply for this Link,用户限制不应适用此链接
+User permissions should not apply for this Link,用户权限不应该申请这个链接
 User {0} cannot be deleted,用户{0}无法删除
 User {0} cannot be disabled,用户{0}不能被禁用
 User {0} cannot be renamed,用户{0}无法重命名
@@ -1326,12 +1321,14 @@ yyyy-mm-dd,年 - 月 - 日
 zoom-in,放大式
 zoom-out,拉远
 {0} by {1},{0} {1}
+{0} cannot be set for Single types,{0}不能单类型设置
 {0} does not exist in row {1},{0}中不存在的行{1}
 {0} in row {1} cannot have both URL and child items,{0}行{1}不可兼得的URL和子项
 {0} is not a valid email id,{0}不是一个有效的电子邮件ID
 {0} is required,{0}是必需的
 {0} is saved,{0}被保存
 {0} must be one of {1},{0}必须是{1} 1
+{0} not a valid State,{0}不是有效的国家
 {0} not allowed in fieldname {1},{0}的字段名不允许{1}
 {0} not allowed in name,{0}名不允许
 {0} not allowed to be renamed,{0}不允许改名
@@ -1348,6 +1345,6 @@ zoom-out,拉远
 {0}: Cannot set import as {1} is not importable,{0} ：无法设置导入为{1}不是可导入
 "{0}: Create, Submit, Cancel and Amend only valid at level 0",{0} ：创建，提交，取消和修改只适用于0级
 {0}: No basic permissions set,{0} ：无基本权限设置
-{0}: Only one rule allowed at a Role and Level,{0} ：只有一个规则，在角色和级别允许
+"{0}: Only one rule allowed with the same Role, Level and Apply User Permissions",{0} ：只有一个规则允许用相同的角色，级别和应用用户权限
 {0}: Permission at level 0 must be set before higher levels are set,{0} ：权限在0水平必须更高级别都设置前设置
 {app_title},{ app_title }

@@ -70,11 +70,19 @@
    "label": "Session Expiry", 
    "options": "", 
    "permlevel": 0
+  }, 
+  {
+   "description": "Run scheduled jobs only if checked", 
+   "fieldname": "enable_scheduler", 
+   "fieldtype": "Check", 
+   "in_list_view": 0, 
+   "label": "Enable Scheduled Jobs", 
+   "permlevel": 0
   }
  ], 
  "icon": "icon-cog", 
  "issingle": 1, 
- "modified": "2014-05-27 07:58:24.700595", 
+ "modified": "2014-06-02 02:09:03.623094", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "System Settings", 

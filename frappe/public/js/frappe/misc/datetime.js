@@ -8,7 +8,7 @@ frappe.provide("frappe.datetime");
 
 $.extend(frappe.datetime, {
 	str_to_obj: function(d) {
-		return moment(d);
+		return moment(d)._d;
 	},
 
 	obj_to_str: function(d) {
@@ -16,7 +16,7 @@ $.extend(frappe.datetime, {
 	},
 
 	obj_to_user: function(d) {
-		return m.format(dateutil.get_user_fmt().toUpperCase());
+		return moment(d).format(dateutil.get_user_fmt().toUpperCase());
 	},
 
 	get_diff: function(d1, d2) {

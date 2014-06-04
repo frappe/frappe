@@ -6,16 +6,19 @@ import frappe
 from frappe import _, msgprint
 from frappe.utils import cint
 
-rights = ("read", "write", "create", "submit", "cancel", "amend",
-	"report", "import", "export", "print", "email", "restrict", "delete", "restricted")
+rights = ("read", "write", "create", "delete", "submit", "cancel", "amend",
+	"print", "email", "report", "import", "export", "set_user_permissions")
 
-def check_admin_or_system_manager():
-	if ("System Manager" not in frappe.get_roles()) and \
-	 	(frappe.session.user!="Administrator"):
+def check_admin_or_system_manager(user=None):
+	if not user: user = frappe.session.user
+
+	if ("System Manager" not in frappe.get_roles(user)) and (user!="Administrator"):
 		frappe.throw(_("Not permitted"), frappe.PermissionError)
 
-def has_permission(doctype, ptype="read", doc=None, verbose=True):
+def has_permission(doctype, ptype="read", doc=None, verbose=True, user=None):
 	"""check if user has permission"""
+	if not user: user = frappe.session.user
+
 	if frappe.is_table(doctype):
 		return True
 
@@ -27,134 +30,117 @@ def has_permission(doctype, ptype="read", doc=None, verbose=True):
 	if ptype=="import" and not cint(meta.allow_import):
 		return False
 
-	if frappe.session.user=="Administrator":
+	if user=="Administrator":
 		return True
 
-	# get user permissions
-	if not get_user_perms(meta).get(ptype):
+	role_permissions = get_role_permissions(meta, user=user)
+	if not role_permissions.get(ptype):
 		return False
 
-	if doc:
+	if doc and role_permissions["apply_user_permissions"].get(ptype):
 		if isinstance(doc, basestring):
 			doc = frappe.get_doc(meta.name, doc)
 
-		if not has_unrestricted_access(doc, verbose=verbose):
+		if not user_has_permission(doc, verbose=verbose, user=user):
 			return False
 
-		if not has_controller_permissions(doc):
+		if not has_controller_permissions(doc, ptype, user=user):
 			return False
 
 	return True
 
-def get_user_perms(meta, user=None):
-	if not user:
-		user = frappe.session.user
+def get_role_permissions(meta, user=None):
+	if not user: user = frappe.session.user
 	cache_key = (meta.name, user)
-	if not frappe.local.user_perms.get(cache_key):
-		perms = frappe._dict()
+
+	if not frappe.local.role_permissions.get(cache_key):
+		perms = frappe._dict({ "apply_user_permissions": {} })
 		user_roles = frappe.get_roles(user)
 
 		for p in meta.permissions:
 			if cint(p.permlevel)==0 and (p.role in user_roles):
 				for ptype in rights:
-					if ptype == "restricted":
-						perms[ptype] = perms.get(ptype, 1) and cint(p.get(ptype))
-					else:
-						perms[ptype] = perms.get(ptype, 0) or cint(p.get(ptype))
+					perms[ptype] = perms.get(ptype, 0) or cint(p.get(ptype))
 
-		frappe.local.user_perms[cache_key] = perms
+					if ptype != "set_user_permissions" and p.get(ptype):
+						perms["apply_user_permissions"][ptype] = perms["apply_user_permissions"].get(ptype, 1) and p.get("apply_user_permissions")
 
-	return frappe.local.user_perms[cache_key]
+		for key, value in perms.get("apply_user_permissions").items():
+			if not value:
+				del perms["apply_user_permissions"][key]
 
-def has_unrestricted_access(doc, verbose=True):
-	from frappe.defaults import get_restrictions
-	restrictions = get_restrictions()
+		frappe.local.role_permissions[cache_key] = perms
 
-	meta = frappe.get_meta(doc.get("doctype"))
-	user_perms = get_user_perms(meta)
-	if get_user_perms(meta).restricted:
-		if doc.owner == frappe.session.user:
-			# owner is always allowed for restricted permissions
-			return True
-		elif not (restrictions and restrictions.get(doc.get("doctype"))):
-			return False
-	else:
-		if not restrictions:
-			return True
+	return frappe.local.role_permissions[cache_key]
 
-	def _has_unrestricted_access(d):
+def user_has_permission(doc, verbose=True, user=None):
+	from frappe.defaults import get_user_permissions
+	user_permissions = get_user_permissions(user)
+	user_permissions_keys = user_permissions.keys()
+
+	def check_user_permission(d):
+		result = True
 		meta = frappe.get_meta(d.get("doctype"))
+		for df in meta.get_fields_to_check_permissions(user_permissions_keys):
+			if d.get(df.fieldname) and d.get(df.fieldname) not in user_permissions[df.options]:
+				result = False
 
-		# evaluate specific restrictions
-		fields_to_check = meta.get_restricted_fields(restrictions.keys())
-
-		_has_restricted_data = False
-		for df in fields_to_check:
-			if d.get(df.fieldname) and d.get(df.fieldname) not in restrictions[df.options]:
 				if verbose:
 					msg = _("Not allowed to access {0} with {1} = {2}").format(df.options, _(df.label), d.get(df.fieldname))
-
 					if d.parentfield:
 						msg = "{doctype}, {row} #{idx}, ".format(doctype=_(d.doctype),
 							row=_("Row"), idx=d.idx) + msg
 
 					msgprint(msg)
 
-				_has_restricted_data = True
+		return result
 
-		return _has_restricted_data
-
-	has_restricted_data = _has_unrestricted_access(doc)
+	_user_has_permission = check_user_permission(doc)
 	for d in doc.get_all_children():
-		has_restricted_data = _has_unrestricted_access(d) or has_restricted_data
+		_user_has_permission = check_user_permission(d) and _user_has_permission
 
-	# check all restrictions before returning
-	return False if has_restricted_data else True
+	return _user_has_permission
 
-def has_controller_permissions(doc):
+def has_controller_permissions(doc, ptype, user=None):
+	if not user: user = frappe.session.user
+
 	for method in frappe.get_hooks("has_permission").get(doc.doctype, []):
-		if not frappe.call(frappe.get_attr(method), doc=doc):
+		if not frappe.call(frappe.get_attr(method), doc=doc, ptype=ptype, user=user):
 			return False
 
 	return True
 
-def can_restrict_user(user, doctype, docname=None):
-	if not can_restrict(doctype, docname):
-		return False
-
-	# check if target user does not have restrict permission
-	if has_only_non_restrict_role(doctype, user):
-		return True
-
-	return False
-
-def can_restrict(doctype, docname=None):
-	# System Manager can always restrict
+def can_set_user_permissions(doctype, docname=None):
+	# System Manager can always set user permissions
 	if "System Manager" in frappe.get_roles():
 		return True
+
 	meta = frappe.get_meta(doctype)
 
 	# check if current user has read permission for docname
 	if docname and not has_permission(doctype, "read", docname):
 		return False
 
-	# check if current user has a role with restrict permission
-	if not has_restrict_permission(meta):
+	# check if current user has a role that can set permission
+	if get_role_permissions(meta).set_user_permissions!=1:
 		return False
 
 	return True
 
-def has_restrict_permission(meta=None, user=None):
-	return get_user_perms(meta, user).restrict==1
+def set_user_permission_if_allowed(doctype, name, user):
+	if get_role_permissions(frappe.get_meta(doctype), user).set_user_permissions!=1:
+		add_user_permission(doctype, name, user)
 
-def has_only_non_restrict_role(doctype, user):
-	meta = frappe.get_meta(doctype)
-	# check if target user does not have restrict permission
-	if has_restrict_permission(meta, user):
-		return False
+def add_user_permission(doctype, name, user):
+	if name not in frappe.defaults.get_user_permissions(user).get(doctype, []):
+		frappe.defaults.add_default(doctype, name, user, "User Permission")
 
-	# and has non-restrict role
-	return get_user_perms(meta, user).restrict==0
+def remove_user_permission(doctype, name, user, default_value_name=None):
+	frappe.defaults.clear_default(key=doctype, value=name, parent=user, parenttype="User Permission",
+		name=default_value_name)
+
+def clear_user_permissions_for_doctype(doctype):
+	frappe.defaults.clear_default(parenttype="User Permission", key=doctype)
 
 def can_import(doctype, raise_exception=False):
 	if not ("System Manager" in frappe.get_roles() or has_permission(doctype, "import")):

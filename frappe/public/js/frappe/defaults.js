@@ -46,11 +46,11 @@ frappe.defaults = {
 			}			
 		}
 	},
-	get_restrictions: function() {
-		return frappe.defaults.restrictions;
+	get_user_permissions: function() {
+		return frappe.defaults.user_permissions;
 	},
-	set_restrictions: function(restrictions) {
-		if(!restrictions) return;
-		frappe.defaults.restrictions = $.extend(frappe.defaults.restrictions || {}, restrictions);
+	set_user_permissions: function(user_permissions) {
+		if(!user_permissions) return;
+		frappe.defaults.user_permissions = $.extend(frappe.defaults.user_permissions || {}, user_permissions);
 	}
 }

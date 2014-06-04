@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe
+from frappe import _
 import frappe.defaults
 import frappe.permissions
 from frappe.core.doctype.user.user import get_system_users
@@ -11,33 +12,33 @@ from frappe.core.doctype.user.user import get_system_users
 def get_users_and_links():
 	return {
 		"users": get_system_users(),
-		"link_fields": get_restrictable_doctypes()
+		"link_fields": get_doctypes_for_user_permissions()
 	}
 
 @frappe.whitelist()
-def get_properties(parent=None, defkey=None, defvalue=None):
-	if defkey and not frappe.permissions.can_restrict(defkey, defvalue):
+def get_permissions(parent=None, defkey=None, defvalue=None):
+	if defkey and not frappe.permissions.can_set_user_permissions(defkey, defvalue):
 		raise frappe.PermissionError
 
 	conditions, values = _build_conditions(locals())
 
-	properties = frappe.db.sql("""select name, parent, defkey, defvalue
+	permissions = frappe.db.sql("""select name, parent, defkey, defvalue
 		from tabDefaultValue
 		where parent not in ('__default', '__global')
 		and substr(defkey,1,1)!='_'
-		and parenttype='Restriction'
+		and parenttype='User Permission'
 		{conditions}
 		order by parent, defkey""".format(conditions=conditions), values, as_dict=True)
 
 	if not defkey:
 		out = []
-		doctypes = get_restrictable_doctypes()
-		for p in properties:
+		doctypes = get_doctypes_for_user_permissions()
+		for p in permissions:
 			if p.defkey in doctypes:
 				out.append(p)
-		properties = out
+		permissions = out
 
-	return properties
+	return permissions
 
 def _build_conditions(filters):
 	conditions = []
@@ -51,35 +52,27 @@ def _build_conditions(filters):
 
 @frappe.whitelist()
 def remove(user, name, defkey, defvalue):
-	if not frappe.permissions.can_restrict_user(user, defkey, defvalue):
-		raise frappe.PermissionError("Cannot Remove Restriction for User: {user} on DocType: {doctype} and Name: {name}".format(
-			user=user, doctype=defkey, name=defvalue))
+	if not frappe.permissions.can_set_user_permissions(defkey, defvalue):
+		frappe.throw(_("Cannot remove permission for DocType: {0} and Name: {1}").format(
+			defkey, defvalue), frappe.PermissionError)
 
-	frappe.defaults.clear_default(key=defkey, value=defvalue, parent=user, name=name)
-
-def clear_restrictions(doctype):
-	frappe.defaults.clear_default(parenttype="Restriction", key=doctype)
+	frappe.permissions.remove_user_permission(defkey, defvalue, user, name)
 
 @frappe.whitelist()
 def add(user, defkey, defvalue):
-	if not frappe.permissions.can_restrict_user(user, defkey, defvalue):
-		raise frappe.PermissionError("Cannot Restrict User: {user} for DocType: {doctype} and Name: {name}".format(
-			user=user, doctype=defkey, name=defvalue))
+	if not frappe.permissions.can_set_user_permissions(defkey, defvalue):
+		frappe.throw(_("Cannot set permission for DocType: {0} and Name: {1}").format(
+			defkey, defvalue), frappe.PermissionError)
 
-	# check if already exists
-	d = frappe.db.sql("""select name from tabDefaultValue
-		where parent=%s and parenttype='Restriction' and defkey=%s and defvalue=%s""", (user, defkey, defvalue))
+	frappe.permissions.add_user_permission(defkey, defvalue, user)
 
-	if not d:
-		frappe.defaults.add_default(defkey, defvalue, user, "Restriction")
-
-def get_restrictable_doctypes():
+def get_doctypes_for_user_permissions():
 	user_roles = frappe.get_roles()
 	condition = ""
 	values = []
 	if "System Manager" not in user_roles:
 		condition = """and exists(select `tabDocPerm`.name from `tabDocPerm`
-			where `tabDocPerm`.parent=`tabDocType`.name and `tabDocPerm`.`restrict`=1
+			where `tabDocPerm`.parent=`tabDocType`.name and `tabDocPerm`.`set_user_permissions`=1
 			and `tabDocPerm`.role in ({roles}))""".format(roles=", ".join(["%s"]*len(user_roles)))
 		values = user_roles
 

@@ -335,8 +335,7 @@ _f.Frm.prototype.refresh_header = function() {
 _f.Frm.prototype.check_doc_perm = function() {
 	// get perm
 	var dt = this.parent_doctype?this.parent_doctype : this.doctype;
-	var dn = this.parent_docname?this.parent_docname : this.docname;
-	this.perm = frappe.perm.get_perm(dt, dn);
+	this.perm = frappe.perm.get_perm(dt);
 
 	if(!this.perm[0].read) {
 		return 0;

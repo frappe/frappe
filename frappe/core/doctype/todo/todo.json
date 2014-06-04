@@ -3,7 +3,7 @@
  "allow_copy": 0, 
  "allow_rename": 0, 
  "autoname": "TDI.########", 
- "creation": "2012-07-03 13:30:35.000000", 
+ "creation": "2012-07-03 13:30:35", 
  "docstatus": 0, 
  "doctype": "DocType", 
  "fields": [
@@ -158,14 +158,14 @@
  "in_dialog": 0, 
  "issingle": 0, 
  "max_attachments": 0, 
- "modified": "2014-03-12 17:06:46.000000", 
+ "modified": "2014-05-27 03:49:21.667888", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "ToDo", 
  "owner": "Administrator", 
  "permissions": [
   {
-   "cancel": 0, 
+   "apply_user_permissions": 1, 
    "create": 1, 
    "delete": 0, 
    "email": 1, 
@@ -174,7 +174,6 @@
    "print": 1, 
    "read": 1, 
    "report": 1, 
-   "restricted": 1, 
    "role": "All", 
    "submit": 0, 
    "write": 1

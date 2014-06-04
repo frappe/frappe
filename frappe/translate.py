@@ -343,7 +343,11 @@ def rebuild_all_translation_files():
 			write_translations_file(app, lang)
 
 def write_translations_file(app, lang, full_dict=None):
+	app_messages = get_messages_for_app(app)
+	if not app_messages:
+		return
+
 	tpath = frappe.get_pymodule_path(app, "translations")
 	frappe.create_folder(tpath)
 	write_csv_file(os.path.join(tpath, lang + ".csv"),
-		get_messages_for_app(app), full_dict or get_full_dict(lang))
+		app_messages, full_dict or get_full_dict(lang))

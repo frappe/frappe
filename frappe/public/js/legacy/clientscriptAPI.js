@@ -263,7 +263,7 @@ _f.Frm.prototype.new_doc = function(doctype, field) {
 
 _f.Frm.prototype.set_read_only = function() {
 	var perm = [];
-	$.each(frappe.perm.get_perm(cur_frm.doc.doctype, cur_frm.doc.name), function(i, permlevel) {
+	$.each(frappe.perm.get_perm(cur_frm.doc.doctype), function(i, permlevel) {
 		if(permlevel!=null) perm[permlevel] = {read:1};
 	});
 	cur_frm.perm = perm;

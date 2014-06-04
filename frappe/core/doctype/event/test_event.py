@@ -1,7 +1,7 @@
 # Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-"""Use blog post test to test permission restriction logic"""
+"""Use blog post test to test user permissions logic"""
 
 import frappe
 import frappe.defaults

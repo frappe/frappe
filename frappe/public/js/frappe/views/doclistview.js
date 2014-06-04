@@ -114,9 +114,6 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 				}
 			});
 
-			if(perm[0].restricted) {
-				match_text.push(__("Or Created By") + " = " + user);
-			}
 			frappe.utils.set_footnote(this, this.$page.find(".layout-main-section"),
 				"<p>" + __("Showing only for (if not empty)") + ":</p><ul>"
 				+ $.map(match_text, function(txt) { return "<li>"+txt+"</li>" }).join("")) + "</ul>";
@@ -256,13 +253,13 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 				})
 			});
 		}
-		if(frappe.model.can_restrict(this.doctype)) {
+		if(frappe.model.can_set_user_permissions(this.doctype)) {
 			this.appframe.add_icon_btn("2", "icon-shield",
-				__("User Permission Restrictions"), function() {
+				__("User Permissions Manager"), function() {
 					frappe.route_options = {
 						property: me.doctype
 					};
-					frappe.set_route("user-properties");
+					frappe.set_route("user-permissions");
 				});
 		}
 		if(in_list(user_roles, "System Manager")) {

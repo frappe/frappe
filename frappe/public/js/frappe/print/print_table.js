@@ -21,7 +21,7 @@ frappe.print.Table = Class.extend({
 		this.make();
 	},
 	get_columns: function() {
-		var perms = frappe.perm.get_perm(this.doctype, this.docname);
+		var perms = frappe.perm.get_perm(this.doctype);
 		return ['Sr'].concat($.map(frappe.meta.docfield_list[this.tabletype], function(df) {
 			return (cint(df.print_hide) || !(perms[df.permlevel] &&
 				perms[df.permlevel].read)) ? null : df.fieldname;

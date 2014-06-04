@@ -46,6 +46,9 @@ class WebsiteSettings(Document):
 		from frappe.website.render import clear_cache
 		clear_cache()
 
+		# clears role based home pages
+		frappe.clear_cache()
+
 def get_website_settings():
 	hooks = frappe.get_hooks()
 

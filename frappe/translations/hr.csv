@@ -12,7 +12,7 @@
 <li><b>Prompt</b> - Prompt user for a name\
 <li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\
 </ol>')"">Naming Options</a>","<onclick = "" msgprint ( ' <ol> \ \ n <li> <b> polje : [ podataka, Naziv Polja ] < / b > - Do Field \ \ n <li> <b> naming_series : < / b > - imenovanjem"
-A user can be restricted to multiple records of the same type.,Korisnik može biti ograničeno na više zapisa iste vrste .
+A user can be permitted to multiple records of the same DocType.,Korisnik može biti dopušteno da se više zapisa iste vrste dokumenata .
 About,Oko
 About Us Settings,O nama Postavke
 About Us Team Member,O nama reprezentativka
@@ -21,7 +21,7 @@ Actions,akcije
 "Actions for workflow (e.g. Approve, Cancel).","Akcije za tijek rada ( npr. Odobri , Odustani ) ."
 Add,Dodati
 Add A New Rule,Dodaj novo pravilo
-Add A Restriction,Dodaj neograničenoj
+Add A User Permission,Dodaj korisnik Dopuštenje
 Add Attachments,Dodaj privitke
 Add Bookmark,Dodaj Bookmark
 Add CSS,Dodaj CSS
@@ -30,7 +30,6 @@ Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytic
 Add Message,Dodaj poruku
 Add New Permission Rule,Dodati novo pravilo dozvolu
 Add Reply,Dodaj Odgovor
-Add This To User's Restrictions,Dodaj Ovaj na korisnikov Ograničenja
 Add Total Row,Dodaj Ukupno Row
 Add a New Role,Dodaj novu ulogu
 Add a banner to the site. (small banners are usually good),Dodaj banner na licu mjesta. (Mali banneri su obično dobar)
@@ -42,7 +41,7 @@ Add fields to forms.,Dodaj polja obrazaca .
 Add new row,Dodaj novi redak
 "Add the name of <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> e.g. ""Open Sans""","Dodaj ime <a href=""http://google.com/webfonts"" target=""_blank"">Google Web slova</a> npr. &quot;Otvoreni Sans&quot;"
 Add to To Do,Dodaj u Raditi
-Add to To Do List of,Dodaj u napraviti popis od
+Add to To Do List Of,Dodaj napraviti popis
 Adding System Manager to this User as there must be atleast one System Manager,Dodavanje sustava Manager za ovog korisnika kao mora postojati najmanje jedan sustav Manager
 Additional Info,Dodatne informacije
 Additional Permissions,Dodatni Dozvole
@@ -65,7 +64,7 @@ Allow user to login only before this hour (0-24),Dopustite korisniku se prijavit
 Allowed,Dozvoljen
 "Allowing DocType, DocType. Be careful!","Dopuštanje DOCTYPE , vrstu dokumenata . Budite oprezni !"
 Already Registered,Već registracije
-Already in todo,Već u todo
+Already in user's To Do list,Već u user -a Da li popis
 Alternative download link,Alternativni link za download
 "Alternatively, you can also specify 'auto_email_id' in site_config.json","Alternativno , možete odrediti ' auto_email_id ' u site_config.json"
 Always use above Login Id as sender,Uvijek koristite iznad Id Prijava kao pošiljatelja
@@ -74,14 +73,15 @@ Amend,Ispraviti
 "Another {0} with name {1} exists, select another name","Druga {0} s imenom {1} postoji , odaberite drugi naziv"
 Anyone Can Read,Svatko može pročitati
 Anyone Can Write,Svatko može pisati
-"Apart from System Manager, roles with 'Can Restrict Others' permission can restrict other users for that Document Type.","Osim System Manager , uloge s ' može ograničiti tuđih dopuštenja može ograničiti drugim korisnicima za tu vrstu dokumenta ."
-"Apart from the existing Permission Rules, you can apply addition restriction based on Type.","Osim postojećih pravila dozvolu , možete se prijaviti zbrajanje ograničenje na temelju vrste ."
+"Apart from Role based Permission Rules, you can apply User Permissions based on DocTypes.","Osim Uloga temelji dopuštenje pravilima , možete se prijaviti korisničkim dozvolama na temelju DocTypes ."
+"Apart from System Manager, roles with 'Set User Permissions' right can set permissions for other users for that Document Type.","Osim System Manager , uloge s desne strane 'skup korisničkim dozvolama ' možete postaviti dozvole za druge korisnike za tu vrstu dokumenta ."
 App Already Installed,App Već instaliran
 App Name,App Naziv
 App not found,App nije pronađena
 Application Installer,Application Installer
 Applications,Prijave
 Apply Style,Primijeni stil
+Apply User Permissions,Nanesite korisnička dopuštenja
 Are you sure you want to delete the attachment?,Jeste li sigurni da želite izbrisati privitak?
 Arial,Arial
 "As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User.","Kao najbolje prakse , ne dodijeliti isti set pravila dopuštenje za različite uloge . Umjesto toga , postavite više uloga istom korisniku ."
@@ -130,14 +130,15 @@ Bulk email limit {0} crossed,Bulk e-mail granica {0} prešao
 Button,Dugme
 By,Po
 Calendar,Kalendar
-Can Restrict Others,Može ograničiti Ostalo
 Cancel,Otkazati
 Cancelled,Otkazan
 "Cannot Edit {0} directly: To edit {0} properties, create / update {1}, {2} and {3}","Ne možete uređivati ​​{0} izravno : Za uređivanje {0} svojstva , stvaranje / ažuriranje {1} , {2} i {3}"
 Cannot Update: Incorrect / Expired Link.,Ne možete ažurirati : Nepravilan / istekla .
 Cannot Update: Incorrect Password,Ne možete ažurirati : Pogrešna zaporka
 Cannot add more than 50 comments,Ne možete dodati više od 50 komentara
+Cannot cancel before submitting. See Transition {0},Ne može otkazati prije slanja.
 Cannot change picture,Ne mogu promijeniti sliku
+Cannot change state of Cancelled Document. Transition row {0},Ne mogu promijeniti stanje Otkazan dokumentu .
 Cannot change {0},Ne mogu promijeniti {0}
 Cannot delete or cancel because {0} {1} is linked with {2} {3},"Ne možete brisati ili ukinuti , jer {0} {1} je povezan s {2} {3}"
 Cannot delete {0} as it has child nodes,Ne možete brisati {0} kao da ima djece čvorova
@@ -147,7 +148,9 @@ Cannot map because following condition fails: ,Ne mogu mapirati jer sljedeći uv
 Cannot open instance when its {0} is open,Ne možete otvoriti primjer kada je {0} je otvoren
 Cannot open {0} when its instance is open,Ne možete otvoriti {0} kada je instanca je otvoren
 Cannot print cancelled documents,Ne možete ispisivati ​​dokumente otkazan
+Cannot remove permission for DocType: {0} and Name: {1},Ne mogu izvaditi dozvolu za DOCTYPE : {0} i ime : {1}
 Cannot reply to a reply,Ne možete odgovoriti na odgovoru
+Cannot set permission for DocType: {0} and Name: {1},Ne mogu postaviti dopuštenje za DOCTYPE : {0} i ime : {1}
 Categorize blog posts.,Kategorizacija blogu.
 Category,Kategorija
 Category Name,Naziv kategorije
@@ -373,6 +376,7 @@ File URL,URL datoteke
 File not attached,File nije priključen
 File size exceeded the maximum allowed size of {0} MB,Veličina datoteke prelazi najveću dopuštenu veličinu od {0} MB
 Filter,Filter
+Filter records based on User Permissions defined for a user,Filtriranje zapisa na temelju dozvole korisnicima definiranim za korisnika
 First Name,Ime
 Float,Plutati
 Float Precision,Float Precision
@@ -387,12 +391,12 @@ For DocType,za DOCTYPEhtml
 For Select, enter list of Options separated by comma","Za Linkovi , unesite DOCTYPEhtml kao rasponu \ nFor Select unesite popis Opcije razdvojene zarezom"
 "For comparative filters, start with","Za komparativne filtera, početi s"
 For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,"Na primjer, ako ste odustali i dopune &#39;INV004&#39; postat će novi dokument &#39;INV004-1&#39;. To vam pomaže pratiti svaku izmjenu i dopunu."
-"For example, if user X is restricted to company C, user X will not be able to see any transaction that has company C as a linked value.","Na primjer , ako korisnik X je ograničeno na tvrtke C , X korisnik neće biti u mogućnosti vidjeti bilo kakve transakcije koje ima tvrtka C kao povezane vrijednosti ."
 For ranges,Za raspone
 For top bar,Na gornjoj traci
 For {0} at level {1} in {2} in row {3},Za {0} na razini {1} u {2} u redu {3}
 Forgot Password,Zaboravljena lozinka
 Forgot Password?,Zaboravili ste lozinku ?
+Form,oblik
 Forum,Forum
 Forums,Forum
 Forward To Email Address,Napadač na e-mail adresu
@@ -449,8 +453,6 @@ Home Page is Products,Početna stranica je proizvodi
 ID (name) of the entity whose property is to be set,ID (ime) subjekta čiji je objekt se postaviti
 Icon,Ikona
 Icon will appear on the button,Ikona će se pojaviti na gumb
-"If 'Restricted' is checked, the owner is always allowed based on Role.","Ako ' Ograničeni ' provjerava ,vlasnik je uvijek dopušteno temelji na ulozi ."
-"If 'Restricted' is not checked, you can still restrict permissions based on certain values, like Company or Territory in a document by setting User Restrictions. But unless any restriction is set, a user will have permissions based on the Role.","Ako ' Ograničeni ' se ne provjerava , još uvijek možete ograničiti dopuštenje na temelju određenih vrijednosti , kao što su tvrtke ili teritorija u dokumentu postavljanjem Korisničke ograničenja . No , osim ograničenje postavljeno ,korisnik će imati ovlasti temelji na ulozi ."
 "If a Role does not have access at Level 0, then higher levels are meaningless.","AkoUloga nema pristup na razini 0 , onda je viša razina su besmislene ."
 "If checked, all other workflows become inactive.","Ako je označeno, svi ostali tijekovi postaju neaktivne."
 "If checked, an email with an attached HTML format will be added to part of the EMail body as well as attachment. To only send as attachment, uncheck this.","Ako je označeno, e-mail s priloženom HTML formatu će biti dodan u dijelu u tijelo, kao i privrženosti. Za samo poslati kao privitak, isključite ovu."
@@ -459,7 +461,7 @@ Icon will appear on the button,Ikona će se pojaviti na gumb
 If non standard port (e.g. 587),Ako ne standardni ulaz (npr. 587)
 "If these instructions where not helpful, please add in your suggestions on GitHub Issues.","Ako ove upute gdje nije korisno , dodajte u svojim prijedlozima o GitHub pitanja ."
 "If you set this, this Item will come in a drop-down under the selected parent.","Ako postavite ovo , ova stavka će doći u padajućem okviru odabranog roditelja ."
-Ignore Restrictions,ignorirajte Ograničenja
+Ignore User Permissions,Ignorirajte korisnička dopuštenja
 "Ignoring Item {0}, because a group exists with the same name!","Ignoriranje Stavka {0} , jer jegrupa postoji s istim imenom !"
 Image,Slika
 Image Link,Slika Link
@@ -628,7 +630,7 @@ No Report Loaded. Please use query-report/[Report Name] to run a report.,Ne Izvj
 No Results,nema Rezultati
 No Sidebar,Ne Bočna
 No Sitemap,nema Mapa
-No User Restrictions found.,Nema korisnika Ograničenja pronađena .
+No User Permissions found.,Nema korisnika Dozvole pronađena .
 No data found,Nema pronađenih podataka
 No document selected,Nema odabranih dokumenata
 No file attached,No file u prilogu
@@ -658,7 +660,6 @@ Not equals,nisu jednaki
 Not found,nije pronađen
 Not in Developer Mode! Set in site_config.json,Ne u načinu rada za razvojne ! Postavite u site_config.json
 Not permitted,nije dopušteno
-Not permitted to restrict User {0} for {1} {2},Nije dopušteno ograničiti Korisnik {0} za {1} {2}
 "Note: For best results, images must be of the same size and width must be greater than height.","Napomena: Za najbolje rezultate, slike moraju biti iste veličine i širine mora biti veća od visine."
 Note: Other permission rules may also apply,Napomena: Ostala pravila dozvole također može primijeniti
 Note: maximum attachment size = 1mb,Napomena: maksimalna veličina privitka = 1MB
@@ -666,17 +667,15 @@ Nothing to delete,Ništa izbrisati
 Nothing to show,Ništa pokazati
 Nothing to show for this selection,Ništa za pokazati ovom izboru
 Notification Count,Obavijest Točka
-Notify By Email,Obavijesti e-poštom
+Notify by Email,Obavijesti putem e-pošte
 Number Format,Broj Format
 Old Parent,Stari Roditelj
 On,Na
-"Once you have set this, the users will only be able access documents where the link (e.g Company) exists.","Nakon što ste postavili to, korisnici će biti samo u mogućnosti pristupne dokumente u kojimaveza ( npr. tvrtke ) postoji ."
+"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).","Nakon što ste postavili to, korisnici će biti samo u mogućnosti pristupa dokumentima ( npr. blog post ) gdje jeveza postoji ( npr. Blogger ) ."
 Only Administrator allowed to create Query / Script Reports,Samo administrator dopustio stvaranje upita / Skripta Izvješća
 Only Administrator can save a standard report. Please rename and save.,Samo administrator može uštedjeti standardne izvješće. Molimo preimenovati i spasiti.
 Only Allow Edit For,Samo Dopusti Uredi za
-Only Restricted Documents,Samo Ograničeni Dokumenti
 Only allowed {0} rows in one import,Samo dopušteni {0} redaka u jednoj uvoza
-Only restricted users can access,Samo ograničeni korisnici mogu pristupiti
 Open,Otvoreno
 Open Count,Otvorena Točka
 Open Sans,Otvoreni Sans
@@ -685,7 +684,6 @@ Options Help,Opcije Pomoć
 Options must be a valid DocType for field {0} in row {1},Opcije mora bitivaljana DOCTYPE za polje {0} je u redu {1}
 Options not set for link field {0},Opcije nije postavljen za link polju {0}
 Options requried for Link or Table type field {0} in row {1},Opcije requried za Link ili tipa Tablica polju {0} je u redu {1}
-Or Created By,Ili stvorili
 Org History,org Povijest
 Org History Heading,Org Povijest Heading
 Original Message,Izvorni Poruka
@@ -708,7 +706,6 @@ Page Title,stranica Naslov
 Page content,Sadržaj stranice
 Page not found,Stranica nije pronađena
 Page or Generator,Stranica ili Generator
-Page text and background is same color. Please change.,Stranica tekst i pozadina iste boje. Molimo promijeniti.
 Page url name (auto-generated),Naziv stranice url ( auto- generira )
 Page with name {0} already exists,Stranica s imenom {0} već postoji
 Parent Label,Roditelj Label
@@ -729,13 +726,12 @@ Permanently Submit {0}?,Trajno Podnijeti {0} ?
 Permanently delete {0}?,Trajno brisanje {0} ?
 Permission Level,Dopuštenje Razina
 Permission Levels,Razine dozvola
-Permission Manager,Dopuštenje Manager
 Permission Rules,Dopuštenje Pravila
 Permissions,Dopuštenja
 Permissions Settings,Dozvole Postavke
 Permissions are automatically translated to Standard Reports and Searches.,Dozvole automatski se prevode na standardnih izvješća i pretraživanja .
-"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email, Only Restricted Documents and Can Restrict Others.","Dozvole su postavljene na uloge i vrsta dokumenata (zove DocTypes ) postavljanjem prava kao što su čitanje , pisanje, stvaranje, brisanje, Slanje , Odustani , Izmijeniti , izvješće , uvoz , izvoz , ispis , e-mail , samo Ograničeni dokumenti i ograničavanje preuzimanja."
-Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only.,Prava na višim razinama dozvole ' jednakih ' . Svi Polja imaju dozvolu Level ' set protiv njih i pravilima definiranim u to dozvole primjenjuju se na terenu . To je korisno u slučaju da želite sakriti ili napraviti određene polje samo za čitanje .
+"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions.","Dozvole su postavljene na uloge i vrsta dokumenata (zove DocTypes ) postavljanjem prava kao što su čitanje , pisanje, stvaranje, brisanje, Slanje , Odustani , Izmijeniti , izvješće , uvoz , izvoz , ispis , e-mail i postaviti dozvole korisnicima ."
+Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles.,Prava na višim razinama dozvole ' jednakih ' .
 "Permissions at level 0 are 'Document Level' permissions, i.e. they are primary for access to the document.","Dozvole na razini 0 su &#39;dokument razini&#39; dozvole, odnosno oni su primarni za pristup dokumentu."
 Permissions get applied on Users based on what Roles they are assigned.,Prava se primjenjuju na korisnike na temelju onoga što Uloge su dodijeljeni .
 Person,Osoba
@@ -792,8 +788,8 @@ Query,Pitanje
 Query Options,Upita Mogućnosti
 Query Report,Izvješće upita
 Query must be a SELECT,Upit mora biti SELECT
-Quick Help for Permission Restrictions,Brza pomoć za dopuštenje Ograničenja
 Quick Help for Setting Permissions,Brza pomoć za postavljanje dopuštenja
+Quick Help for User Permissions,Brza pomoć za korisnička dopuštenja
 Re-open,Ponovno otvorena
 Read,Čitati
 Read Only,Read Only
@@ -836,15 +832,11 @@ Reqd,Reqd
 Reset Password Key,Reset Password ključ
 Reset Permissions for {0}?,Reset dopuštenja za {0} ?
 Restrict IP,Zabraniti IP
-Restrict cannot be set for Single types,Ograničiti se ne može postaviti za samohrane vrste
 Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111),Zabraniti korisnika iz ove IP adrese samo. Višestruki IP adrese može biti dodan odvajajući zarezima. Također prihvaća djelomične IP adrese kao što su (111.111.111)
-Restricted To,ograničena na
-Restricting Users,ograničavanje korisnika
-Restriction,ograničenje
-Restriction added,ograničenje dodao
 Right,Desno
 Role,Uloga
 Role Name,Uloga Ime
+Role Permissions Manager,Uloga Dozvole Manager
 Role and Level,Uloga i Level
 Role exists,Uloga postoji
 Roles,Uloge
@@ -880,9 +872,10 @@ Select Report Name,Odaberite Naziv izvješća
 Select Role,Odaberite Uloga
 Select To Download:,Odaberete preuzimanje :
 Select Type,Odaberite Vid
-Select User or Property to start.,Odaberite korisnika ili imovina za početak.
+Select User or DocType to start.,Odaberite korisnik ili vrstu dokumenata za početak .
 Select a Banner Image first.,Odaberite Slika Banner prvi.
 Select an image of approx width 150px with a transparent background for best results.,Odaberite sliku od cca 150px širine s transparentnom pozadinom za najbolje rezultate.
+Select dates to create a new ,
 "Select modules to be shown (based on permission). If hidden, they will be hidden for all users.","Odaberite modula koji će biti prikazan ( na temelju odobrenja ) . Ako skriveno , oni će biti skriven za sve korisnike ."
 Select or drag across time slots to create a new event.,Odaberite ili povucite preko minutaže stvoriti novi događaj.
 "Select target = ""_blank"" to open in a new page.","Select target = "" _blank "" otvara se u novu stranicu ."
@@ -909,12 +902,13 @@ Session Expiry,Sjednica isteka
 Session Expiry in Hours e.g. 06:00,Sjednica Rok u Hours npr. 06:00
 Session Expiry must be in format {0},Sjednica isteka mora biti u obliku {0}
 Set Banner from Image,Postavite banner sa slike
-Set Defaults and Restrictions for Users,Zadanih i ograničenja za korisnike
 Set Link,Postavite link
 Set Login and Password if authentication is required.,"Postavite prijavu i lozinku, ako je autorizacija potrebna."
 Set Only Once,Postaviti samo jednom
 Set Password,Postavi lozinku
 Set Permissions on Document Types and Roles,Postaviti dozvole vrsta dokumenata i uloge
+Set Permissions per User,Određivanje dopuštenja po korisniku
+Set User Permissions,Postavi korisnička dopuštenja
 Set Value,Postavite vrijednost
 Set numbering series for transactions.,Postavite broje niz za transakcije .
 Set outgoing mail server.,Postavite poslužitelj odlazne pošte .
@@ -923,7 +917,7 @@ Settings for About Us Page.,Postavke za O nama Page.
 Settings for Contact Us Page.,Postavke za Kontaktirajte nas stranicu.
 Setup,Postavljanje
 Setup > User,Postavljanje> User
-Setup > User Restriction,Postavljanje> Korisnički Ograničenje
+Setup > User Permissions Manager,Postavljanje> korisničkim dozvolama Manager
 Setup of fonts and background.,Postavljanje fontova i pozadine.
 "Setup of top navigation bar, footer and logo.","Postavljanje gornjoj navigacijskoj traci, podnožje i logo."
 Short Bio,Kratka Biografija
@@ -978,6 +972,7 @@ Subject,Predmet
 Submit,Podnijeti
 Submit an Issue,Slanje problem
 Submitted,Prijavljen
+Submitted Document cannot be converted back to draft. Transition row {0},Postavio Dokument se ne može pretvoriti natrag u nacrtu .
 Submitted Record cannot be deleted,Postavio Zapis se ne može izbrisati
 Success,Uspjeh
 Suggestion,Prijedlog
@@ -1011,9 +1006,9 @@ The system provides many pre-defined roles. You can add new roles to set finer p
 Then By (optional),Zatim Do (opcionalno)
 There were errors,Bilo je grešaka
 There were errors while sending email. Please try again.,Bilo je grešaka tijekom slanja e-pošte. Molimo pokušajte ponovno .
-These restrictions will apply for all transactions linked to the restricted record.,Ta ograničenja će se primjenjivati ​​za sve transakcije povezane s ograničenom rekord .
+"These permissions will apply for all transactions where the permitted record is linked. For example, if Company C is added to User Permissions of user X, user X will only be able to see transactions that has company C as a linked value.",Te dozvole će se primjenjivati ​​za sve transakcije u kojimaje dopušteno snimanje je povezan .
 These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,"Ove vrijednosti će se automatski ažuriraju u prometu, te će također biti korisno ograničiti dozvole za ovog korisnika o transakcijama koje sadrže te vrijednosti."
-These will also be set as default values for those links.,To će također biti postavljen kao zadane vrijednosti za one linkove .
+"These will also be set as default values for those links, if only one such permission record is defined.","To će također biti postavljen kao zadane vrijednosti za one linkove , ako samo jedan je takvo dopuštenje rekord definiran ."
 Third Party Authentication,Autentičnosti treće strane
 "This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>
 myfield
@@ -1023,7 +1018,7 @@ This goes above the slideshow.,To ide iznad slideshow.
 This is PERMANENT action and you cannot undo. Continue?,"To je stalna akcija, a ne možete poništiti. Nastaviti?"
 This is permanent action and you cannot undo. Continue?,"To je stalna akcija, a ne možete poništiti. Nastaviti?"
 This must be checked if Style Settings are applicable,To mora biti označeno ako Style Postavke se primjenjuju
-This role can restrict users for accessing the record.,Ova uloga može onemogućiti korisnike za pristup rekord .
+This role update User Permissions for a user,Ova uloga ažuriranje korisnik dozvole za korisnika
 Thursday,Četvrtak
 Time,Vrijeme
 Time Zone,Time Zone
@@ -1037,7 +1032,7 @@ Title is required,Naslov je potrebno
 To,Na
 To Do,Da li
 "To format columns, give column labels in the query.","Za formatiranje stupaca, daju natpise stupaca u upitu."
-"To give acess to a role for only specific records, check the 'Restricted' perimssion. User Restriction Records are used to restrict users with such role to specific records.","Dati acess na ulogu samo u određenim zapisima , provjeriti 'ograničena ' perimssion . Korisničko ograničavanje Records se koristiti za ograničavanje korisnika s takvom ulogom na određene zapise ."
+"To give acess to a role for only specific records, check the 'Apply User Permissions'. User Permissions are used to limit users with such role to specific records.","Dati acess na ulogu samo u određenim zapisima , provjerite' Primijeni korisničkim dozvolama ' ."
 "To run a test add the module name in the route after '{0}'. For example, {1}","Za pokretanjetesta dodati ime modula u pravac nakon ' {0} ' . Na primjer , {1}"
 ToDo,ToDo
 Too many writes in one request. Please send smaller requests,Previše piše u jednom zahtjevu . Molimo poslali manje zahtjeve
@@ -1084,16 +1079,16 @@ User Cannot Search,Korisnik ne može tražiti
 User Defaults,Profil Zadano
 User ID of a blog writer.,Korisnički ID bloga pisac .
 User Image,Upute slike
-User Permission Restrictions,Dozvole korisnika Ograničenja
-User Properties,Svojstva korisnika
-User Restrictions,Korisničke Ograničenja
+User Permission,Korisnik Dopuštenje
+User Permissions,korisnik dozvole
+User Permissions Manager,Korisnik Dozvole Manager
 User Roles,Korisničke Uloge
 User Tags,Upute Tags
 User Type,Vrsta korisnika
 "User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ",
 User Vote,Korisnik Glasaj
 User not allowed to delete.,Korisnik ne smije izbrisati.
-User restrictions should not apply for this Link,Korisničke ograničenja ne bi trebala podnijeti zahtjev za ovaj link
+User permissions should not apply for this Link,Ovlaštenja korisnika ne bi trebao podnijeti zahtjev za ovaj link
 User {0} cannot be deleted,Korisnik {0} se ne može izbrisati
 User {0} cannot be disabled,Korisnik {0} se ne može isključiti
 User {0} cannot be renamed,Korisnik {0} se ne može preimenovati
@@ -1326,12 +1321,14 @@ yyyy-mm-dd,gggg-mm-dd
 zoom-in,zoom-u
 zoom-out,zoom-out
 {0} by {1},{0} {1}
+{0} cannot be set for Single types,{0} se ne može postaviti za samohrane vrste
 {0} does not exist in row {1},{0} ne postoji u nizu {1}
 {0} in row {1} cannot have both URL and child items,{0} je u redu {1} Ne možete imati i URL i dijete stavke
 {0} is not a valid email id,{0} nije ispravan id e-mail
 {0} is required,{0} je potrebno
 {0} is saved,{0} se sprema
 {0} must be one of {1},{0} mora biti jedan od {1}
+{0} not a valid State,{0} nijevaljana država
 {0} not allowed in fieldname {1},"{0} nije dopušteno podataka, Naziv Polja {1}"
 {0} not allowed in name,{0} nije dozvoljeno u ime
 {0} not allowed to be renamed,{0} ne smije biti preimenovan
@@ -1348,6 +1345,6 @@ zoom-out,zoom-out
 {0}: Cannot set import as {1} is not importable,{0} : Ne može se uvesti kao {1} nije za uvoz
 "{0}: Create, Submit, Cancel and Amend only valid at level 0","{0} : Stvaranje , Slanje , Odustani i doraditi vrijedi samo na razini 0"
 {0}: No basic permissions set,{0} : Ne Osnovni dozvole set
-{0}: Only one rule allowed at a Role and Level,{0} : Samo jedno pravilo dozvoljeno na ulogu i razinu
+"{0}: Only one rule allowed with the same Role, Level and Apply User Permissions","{0} : Samo jedno pravilo dopušteno uz istu ulogu , razine i nanesite korisnička dopuštenja"
 {0}: Permission at level 0 must be set before higher levels are set,{0} : Dopuštenje na razini 0 mora biti postavljen prije više razine postavili
 {app_title},{ app_title }

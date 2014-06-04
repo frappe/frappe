@@ -1,0 +1,15 @@
+{
+ "apply_user_permissions": 1, 
+ "creation": "2014-06-03 05:20:35.218263", 
+ "docstatus": 0, 
+ "doctype": "Report", 
+ "is_standard": "Yes", 
+ "modified": "2014-06-03 07:18:17.218526", 
+ "modified_by": "Administrator", 
+ "module": "Core", 
+ "name": "Permitted Documents For User", 
+ "owner": "Administrator", 
+ "ref_doctype": "User", 
+ "report_name": "Permitted Documents For User", 
+ "report_type": "Script Report"
+}

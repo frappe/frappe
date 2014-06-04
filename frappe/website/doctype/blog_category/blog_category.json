@@ -1,7 +1,7 @@
 {
  "allow_import": 1, 
  "autoname": "field:category_name", 
- "creation": "2013-03-08 09:41:11.000000", 
+ "creation": "2013-03-08 09:41:11", 
  "docstatus": 0, 
  "doctype": "DocType", 
  "document_type": "Master", 
@@ -9,6 +9,7 @@
   {
    "fieldname": "category_name", 
    "fieldtype": "Data", 
+   "in_list_view": 1, 
    "label": "Category Name", 
    "permlevel": 0, 
    "reqd": 1
@@ -16,6 +17,7 @@
   {
    "fieldname": "title", 
    "fieldtype": "Data", 
+   "in_list_view": 1, 
    "label": "Title", 
    "permlevel": 0, 
    "reqd": 1
@@ -23,6 +25,7 @@
   {
    "fieldname": "published", 
    "fieldtype": "Check", 
+   "in_list_view": 1, 
    "label": "Published", 
    "permlevel": 0
   }, 
@@ -30,6 +33,7 @@
    "default": "blog", 
    "fieldname": "parent_website_route", 
    "fieldtype": "Link", 
+   "in_list_view": 1, 
    "label": "Parent Website Route", 
    "options": "Website Route", 
    "permlevel": 0, 
@@ -38,20 +42,20 @@
   {
    "fieldname": "page_name", 
    "fieldtype": "Data", 
+   "in_list_view": 1, 
    "label": "Page Name", 
    "permlevel": 0
   }
  ], 
  "icon": "icon-tag", 
  "idx": 1, 
- "modified": "2014-02-18 15:25:05.000000", 
+ "modified": "2014-05-27 06:33:22.629900", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Blog Category", 
  "owner": "Administrator", 
  "permissions": [
   {
-   "cancel": 0, 
    "create": 1, 
    "delete": 1, 
    "email": 1, 
@@ -60,10 +64,11 @@
    "read": 1, 
    "report": 1, 
    "role": "Website Manager", 
+   "set_user_permissions": 1, 
    "write": 1
   }, 
   {
-   "cancel": 0, 
+   "apply_user_permissions": 1, 
    "delete": 0, 
    "email": 1, 
    "permlevel": 0, 
