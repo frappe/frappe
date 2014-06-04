@@ -41,9 +41,9 @@ frappe.ui.form.AssignTo = Class.extend({
 
 		if(d && d.length) {
 			for(var i=0; i<d.length; i++) {
-				var info = frappe.user_info(d[i].name);
+				var info = frappe.user_info(d[i].owner);
 				info.owner = d[i];
-				info.image = frappe.user_info(d[i].name).image;
+				info.image = frappe.user_info(d[i].owner).image;
 				info.description = d[i].description || "";
 
 				$(repl('<div class="media">\

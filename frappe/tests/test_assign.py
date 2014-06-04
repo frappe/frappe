@@ -16,7 +16,8 @@ class TestAssign(unittest.TestCase):
 			"name": todo.name,
 			"description": todo.description,
 		})
-		self.assertTrue("test@example.com" in [d.name for d in added])
+
+		self.assertTrue("test@example.com" in [d.owner for d in added])
 
 		removed = frappe.widgets.form.assign_to.remove(todo.doctype, todo.name, "test@example.com")
-		self.assertTrue("test@example.com" not in [d.name for d in removed])
+		self.assertTrue("test@example.com" not in [d.owner for d in removed])
