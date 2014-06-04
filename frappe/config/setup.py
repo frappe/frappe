@@ -28,9 +28,17 @@ def get_data():
 					"type": "page",
 					"name": "user-permissions",
 					"label": _("User Permissions Manager"),
-					"icon": "icon-user",
+					"icon": "icon-shield",
 					"description": _("Set Permissions per User")
 				},
+				{
+					"type": "report",
+					"is_query_report": True,
+					"doctype": "User",
+					"icon": "icon-eye-open",
+					"name": "Permitted Documents For User",
+					"description": _("Check which Documents are readable by a User")
+				}
 			]
 		},
 		{

@@ -283,13 +283,17 @@ def clear_cache(user=None, doctype=None):
 	frappe.local.role_permissions = {}
 
 def get_roles(username=None):
-	from frappe.utils.user import User
 	if not local.session:
 		return ["Guest"]
-	elif not username or username==local.session.user:
-		return local.user.get_roles()
+
+	return get_user(username).get_roles()
+
+def get_user(username):
+	from frappe.utils.user import User
+	if not username or username == local.session.user:
+		return local.user
 	else:
-		return User(username).get_roles()
+		return User(username)
 
 def has_permission(doctype, ptype="read", doc=None, user=None):
 	import frappe.permissions

@@ -34,11 +34,13 @@ class ToDo(Document):
 
 # todo is viewable if either owner or assigned_to or System Manager in roles
 
-def get_permission_query_conditions():
-	if "System Manager" in frappe.get_roles():
+def get_permission_query_conditions(user):
+	if not user: user = frappe.session.user
+
+	if "System Manager" in frappe.get_roles(user):
 		return None
 	else:
-		return """(tabToDo.owner = '{user}' or tabToDo.assigned_by = '{user}')""".format(user=frappe.session.user)
+		return """(tabToDo.owner = '{user}' or tabToDo.assigned_by = '{user}')""".format(user=user)
 
 def has_permission(doc, user):
 	if "System Manager" in frappe.get_roles(user):

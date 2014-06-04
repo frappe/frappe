@@ -263,7 +263,7 @@ class DatabaseQuery(object):
 		if condition_methods:
 			conditions = []
 			for method in condition_methods:
-				c = frappe.get_attr(method)()
+				c = frappe.call(frappe.get_attr(method), self.user)
 				if c:
 					conditions.append(c)
 

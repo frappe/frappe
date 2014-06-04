@@ -56,7 +56,7 @@ def get_active_users():
 		order by first_name""".format(", ".join(["%s"]*len(STANDARD_USERS))), STANDARD_USERS, as_dict=1)
 
 @frappe.whitelist()
-def post(txt, contact, parenttype=None, notify=False):
+def post(txt, contact, parenttype=None, notify=False, subject=None):
 	import frappe
 	"""post message"""
 
@@ -73,16 +73,16 @@ def post(txt, contact, parenttype=None, notify=False):
 		if contact==frappe.session.user:
 			_notify([user.name for user in frappe.get_list("User",
 				{"user_type":"System User"}) \
-					if user.name not in ("Guest", "Administrator")], txt)
+					if user.name not in ("Guest", "Administrator")], txt, subject)
 		else:
-			_notify(contact, txt)
+			_notify(contact, txt, subject)
 
 @frappe.whitelist()
 def delete(arg=None):
 	frappe.db.sql("""delete from `tabComment` where name=%s""",
 		frappe.form_dict['name']);
 
-def _notify(contact, txt):
+def _notify(contact, txt, subject=None):
 	from frappe.utils import cstr, get_fullname, get_url
 
 	try:
@@ -91,7 +91,7 @@ def _notify(contact, txt):
 		frappe.sendmail(\
 			recipients=contact,
 			sender= frappe.db.get_value("User", frappe.session.user, "email"),
-			subject="New Message from " + get_fullname(frappe.user.name),
+			subject=subject or "New Message from " + get_fullname(frappe.user.name),
 			message=frappe.get_template("templates/emails/new_message.html").render({
 				"from": get_fullname(frappe.user.name),
 				"message": txt,

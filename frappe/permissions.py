@@ -44,7 +44,7 @@ def has_permission(doctype, ptype="read", doc=None, verbose=True, user=None):
 		if not user_has_permission(doc, verbose=verbose, user=user):
 			return False
 
-		if not has_controller_permissions(doc, user=user):
+		if not has_controller_permissions(doc, ptype, user=user):
 			return False
 
 	return True
@@ -101,11 +101,11 @@ def user_has_permission(doc, verbose=True, user=None):
 
 	return _user_has_permission
 
-def has_controller_permissions(doc, user=None):
+def has_controller_permissions(doc, ptype, user=None):
 	if not user: user = frappe.session.user
 
 	for method in frappe.get_hooks("has_permission").get(doc.doctype, []):
-		if not frappe.call(frappe.get_attr(method), doc=doc, user=user):
+		if not frappe.call(frappe.get_attr(method), doc=doc, ptype=ptype, user=user):
 			return False
 
 	return True
