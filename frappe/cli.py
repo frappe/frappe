@@ -282,16 +282,9 @@ def use(sites_path):
 # install
 @cmd
 def install(db_name, root_login="root", root_password=None, source_sql=None,
-		admin_password = 'admin', force=False, site_config=None, reinstall=False, quiet=False):
+		admin_password = 'admin', force=False, site_config=None, reinstall=False, quiet=False, install_apps=None):
 	from frappe.installer import install_db, install_app, make_site_dirs
 	verbose = not quiet
-
-	try:
-		installed = frappe.get_installed_apps()
-	except Exception, e:
-		if e.args[0]!= 1146:
-			raise
-		installed = []
 
 	install_db(root_login=root_login, root_password=root_password, db_name=db_name, source_sql=source_sql,
 		admin_password = admin_password, verbose=verbose, force=force, site_config=site_config, reinstall=reinstall)
@@ -302,8 +295,8 @@ def install(db_name, root_login="root", root_password=None, source_sql=None,
 		for app in frappe.conf.install_apps:
 			install_app(app, verbose=verbose, set_as_patched=not source_sql)
 
-	if installed:
-		for app in installed:
+	if install_apps:
+		for app in install_apps:
 			install_app(app, verbose=verbose, set_as_patched=not source_sql)
 
 	frappe.destroy()
@@ -331,13 +324,14 @@ def reinstall(quiet=False):
 	verbose = not quiet
 	try:
 		frappe.connect()
+		installed = frappe.get_installed_apps()
 		frappe.clear_cache()
 	except:
-		pass
+		installed = []
 	finally:
 		frappe.db.close()
 
-	install(db_name=frappe.conf.db_name, verbose=verbose, force=True, reinstall=True)
+	install(db_name=frappe.conf.db_name, verbose=verbose, force=True, reinstall=True, install_apps=installed)
 
 @cmd
 def restore(db_name, source_sql, force=False, quiet=False):
