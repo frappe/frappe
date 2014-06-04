@@ -110,12 +110,12 @@ def add_comments(dt, dn, limit=20):
 	return cl
 
 def add_assignments(dt, dn):
-	cl = frappe.db.sql_list("""select owner from `tabToDo`
+	cl = frappe.db.sql("""select owner, description from `tabToDo`
 		where reference_type=%(doctype)s and reference_name=%(name)s and status="Open"
 		order by modified desc limit 5""", {
 			"doctype": dt,
 			"name": dn
-		})
+		}, as_dict=True)
 
 	return cl
 

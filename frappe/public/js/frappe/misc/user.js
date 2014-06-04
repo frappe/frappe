@@ -25,10 +25,12 @@ frappe.avatar = function(user, large, title) {
 }
 
 frappe.ui.set_user_background = function(src, selector) {
-	if(!selector) selector = "#page-desktop";
+	if(!selector) selector = "body";
 	if(!src) src = "assets/frappe/images/ui/random-polygons.jpg";
 	frappe.dom.set_style(repl('%(selector)s { \
-		background: url("%(src)s") center center; \
+		background: url("%(src)s") center center;\
+		background-attachment: fixed; \
+		background-size: 100%; \
 	}', {src:src, selector:selector}))
 }
 

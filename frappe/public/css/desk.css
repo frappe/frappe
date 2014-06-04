@@ -293,11 +293,15 @@ ul.linked-with-list li {
 /* form footer */
 
 .form-footer {
-	padding-top: 15px;
-	padding-bottom: 15px;
-	color: #888;
+	padding-bottom: 30px;
 	/*box-shadow: 0px -1px 6px rgba(0,0,0,0.3);*/
 }
+
+.form-footer h5 {
+	margin: 15px 0px;
+	font-weight: bold;
+}
+
 
 .like-disabled-input {
 	background-color: #f8f8f8;

@@ -10,7 +10,6 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 	init: function(opts) {
 		this.display = false;
 		this.is_dialog = true;
-		if(!opts.width) opts.width = "600px";
 
 		$.extend(this, opts);
 		this._super();
@@ -19,7 +18,6 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 	make: function() {
 		this.$wrapper = frappe.get_modal("", "");
 		this.wrapper = this.$wrapper.find('.modal-dialog')
-			.css("width", this.width)
 			.get(0);
 		this.make_head();
 		this.body = this.$wrapper.find(".modal-body").get(0);

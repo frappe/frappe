@@ -11,7 +11,7 @@ frappe.ui.form.Comments = Class.extend({
 		this.wrapper =this.parent;
 		this.row = $("<div class='row'>").appendTo(this.parent);
 		this.input = $('<div class="col-md-10" style="margin-top: 5px;">\
-			<textarea rows="3" class="form-control"></textarea></div>')
+			<textarea style="height: 80px" class="form-control"></textarea></div>')
 			.appendTo(this.row)
 			.find("textarea");
 		this.button = $('<div class="col-md-1">\
@@ -47,17 +47,16 @@ frappe.ui.form.Comments = Class.extend({
 			c.image = frappe.user_info(c.comment_by).image;
 			c.comment_on = dateutil.comment_when(c.creation);
 			c.fullname = frappe.user_info(c.comment_by).fullname;
+			c.comment = frappe.markdown(c.comment);
 
-			$(repl('<div class="comment alert alert-warning col-md-10" data-name="%(name)s">\
-				<div class="row">\
-					<div class="col-xs-1">\
-						<span class="avatar avatar-small"><img src="%(image)s"></span>\
-					</div>\
-					<div class="col-xs-11">%(delete)s\
+			$(repl('<div class="media col-md-10" data-name="%(name)s">\
+					<span class="pull-left avatar avatar-small">\
+						<img class="media-object" src="%(image)s">\
+					</span>\
+					<div class="media-body">%(delete)s\
 						<div>%(comment)s</div>\
 						<span class="small text-muted">%(fullname)s / %(comment_on)s</span>\
 					</div>\
-				</div>\
 				</div>', c))
 				.appendTo(me.list)
 				.on("click", ".close", function() {

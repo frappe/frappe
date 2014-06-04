@@ -434,14 +434,14 @@ frappe.ui.form.ControlTime = frappe.ui.form.ControlData.extend({
 		import_timepicker();
 		this._super();
 		this.$input.timepicker({
-			timeFormat: 'hh:mm:ss',
+			timeFormat: 'HH:mm:ss',
 		});
 	}
 });
 
 frappe.ui.form.ControlDatetime = frappe.ui.form.ControlDate.extend({
 	set_datepicker: function() {
-		this.datepicker_options.timeFormat = "hh:mm:ss";
+		this.datepicker_options.timeFormat = "HH:mm:ss";
 		this.datepicker_options.dateFormat =
 			(frappe.boot.sysdefaults.date_format || 'yy-mm-dd').replace('yyyy','yy');
 

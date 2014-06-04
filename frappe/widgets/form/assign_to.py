@@ -16,9 +16,9 @@ def get(args=None):
 
 	get_docinfo(args.get("doctype"), args.get("name"))
 
-	return frappe.db.sql_list("""select owner from `tabToDo`
+	return frappe.db.sql("""select owner, description from `tabToDo`
 		where reference_type=%(doctype)s and reference_name=%(name)s and status="Open"
-		order by modified desc limit 5""", args)
+		order by modified desc limit 5""", args, as_dict=True)
 
 @frappe.whitelist()
 def add(args=None):
@@ -135,5 +135,4 @@ def notify_assignment(assigned_by, owner, doc_type, doc_name, action='CLOSE',
 
 	arg["parenttype"] = "Assignment"
 	from frappe.core.page.messages import messages
-	import json
 	messages.post(**arg)
