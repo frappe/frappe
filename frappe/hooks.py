@@ -1,9 +1,11 @@
+from frappe.__version__ import __version__
+
 app_name = "frappe"
 app_title = "Frappe Framework"
 app_publisher = "Web Notes Technologies Pvt. Ltd. and Contributors"
 app_description = "Full Stack Web Application Framwork in Python"
 app_icon = "assets/frappe/images/frappe.svg"
-app_version = "4.0.0-wip"
+app_version = __version__
 app_color = "#3498db"
 
 before_install = "frappe.utils.install.before_install"
@@ -45,6 +47,7 @@ has_permission = {
 	}
 
 # bean
+
 
 doc_events = {
 		"*": {

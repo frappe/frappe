@@ -1,14 +1,14 @@
 from setuptools import setup, find_packages
+from frappe.__version__ import __version__
 import os
 
-version = '4.0.1'
 
 with open("requirements.txt", "r") as f:
 	install_requires = f.readlines()
 
 setup(
     name='frappe',
-    version=version,
+    version=__version__,
     description='Metadata driven, full-stack web framework',
     author='Web Notes Technologies',
     author_email='info@frappe.io',
