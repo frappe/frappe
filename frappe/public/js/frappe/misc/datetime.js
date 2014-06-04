@@ -3,48 +3,103 @@
 
 frappe.provide('frappe.datetime');
 
-var double_digit = function(d) {
-	if(cint(d)<10) {
-		return "0" + cint(d);
-	} else {
-		return d + "";
-	}
-}
-
+moment.defaultFormat = "YYYY-MM-DD";
+frappe.provide("frappe.datetime");
 
 $.extend(frappe.datetime, {
-	validate: function(v) {
-		if(!v) return;
-	
-		var time_part = "";
-		if(v.indexOf(" ")!=-1) {
-			var tmp = v.split(" ");
-			v = tmp[0];
-			time_part = " " + tmp[1];
-		}
+	str_to_obj: function(d) {
+		return moment(d);
+	},
 
-		var parts = $.map(v.split('-'), function(part) { return cint(part) ? part : null; });
-		if(parts.length!=3) {
-			return null;
+	obj_to_str: function(d) {
+		return moment(d).format();
+	},
+
+	obj_to_user: function(d) {
+		return m.format(dateutil.get_user_fmt().toUpperCase());
+	},
+
+	get_diff: function(d1, d2) {
+		return moment(d1).diff(d2, "days");
+	},
+
+	get_hour_diff: function(d1, d2) {
+		return moment(d1).diff(d2, "hours");
+	},
+
+	get_day_diff: function(d1, d2) {
+		return moment(d1).diff(d2, "days");
+	},
+
+	add_days: function(d, days) {
+		return moment(d).add(days, "days").format();
+	},
+
+	add_months: function(d, months) {
+		return moment(d).add(months, "months").format();
+	},
+
+	month_start: function() {
+		return moment().startOf("month").format();
+	},
+
+	month_end: function() {
+		return moment().endOf("month").format();
+	},
+
+	get_user_fmt: function() {
+		return sys_defaults.date_format || "yyyy-mm-dd";
+	},
+
+	str_to_user: function(val, no_time_str) {
+		if(!val) return "";
+		var user_fmt = dateutil.get_user_fmt().toUpperCase();
+		if(typeof val !== "string" || val.indexOf(" ")===-1) {
+			return moment(val).format(user_fmt);
+		} else {
+			return moment(val, "YYYY-MM-DD HH:mm:ss").format(user_fmt + " HH:mm:ss");
 		}
-		var test_date = new Date(parts[0], parts[1]-1, parts[2]);
-		if(test_date.getFullYear() !=parts[0] 
-			|| (test_date.getMonth() + 1) != parts[1] 
-			|| test_date.getDate() != parts[2])
-			return null;
-	
-		return v + time_part;
 	},
+
 	now_datetime: function() {
-		return frappe.datetime.get_datetime_as_string(new Date());
+		return moment().format("YYYY-MM-DD HH:mm:ss");
 	},
-	now_time: function() {
-		var d = new Date();
-		return [double_digit(d.getHours()), double_digit(d.getMinutes()), double_digit(d.getSeconds())].join(":") + "." + d.getMilliseconds();
-	},
+
 	get_datetime_as_string: function(d) {
-		if(!d) return null;
-		return [d.getFullYear(), double_digit(d.getMonth()+1), double_digit(d.getDate())].join("-") + " " 
-			+ [double_digit(d.getHours()), double_digit(d.getMinutes()), double_digit(d.getSeconds())].join(":") + "." + d.getMilliseconds();
-	}
+		return moment(d).format("YYYY-MM-DD HH:mm:ss");
+	},
+
+	user_to_str: function(val, no_time_str) {
+		var user_fmt = dateutil.get_user_fmt().toUpperCase();
+		if(val.indexOf(" ")===-1) {
+			return moment(val, user_fmt).format();
+		} else {
+			return moment(val, user_fmt + " HH:mm:ss").format("YYYY-MM-DD HH:mm:ss");
+		}
+	},
+
+	user_to_obj: function(d) {
+		return dateutil.str_to_obj(dateutil.user_to_str(d));
+	},
+
+	global_date_format: function(d) {
+		return moment(d).format('Do MMMM YYYY');
+	},
+
+	get_today: function() {
+		return moment().format();
+	},
+
+	now_time: function() {
+		return moment().format("HH:mm:ss");
+	},
+
+	validate: function(d) {
+		return moment(d).isValid();
+	},
+
 });
+
+// globals (deprecate)
+var date = dateutil = frappe.datetime;
+var get_today = frappe.datetime.get_today;

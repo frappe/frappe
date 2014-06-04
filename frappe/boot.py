@@ -51,6 +51,7 @@ def get_bootinfo():
 	add_home_page(bootinfo, doclist)
 	add_allowed_pages(bootinfo)
 	load_translations(bootinfo)
+	add_timezone_info(bootinfo)
 	load_conf_settings(bootinfo)
 
 	# ipinfo
@@ -121,16 +122,13 @@ def get_startup_js():
 
 def get_user(bootinfo):
 	"""get user info"""
-	bootinfo['user'] = frappe.user.load_user()
+	bootinfo.user = frappe.user.load_user()
 
 def add_home_page(bootinfo, docs):
 	"""load home page"""
-
 	if frappe.session.user=="Guest":
 		return
-
 	home_page = frappe.db.get_default("desktop:home_page")
-
 	try:
 		page = frappe.widgets.page.get(home_page)
 	except (frappe.DoesNotExistError, frappe.PermissionError):
@@ -139,3 +137,15 @@ def add_home_page(bootinfo, docs):
 
 	bootinfo['home_page'] = page.name
 	docs.append(page)
+
+def add_timezone_info(bootinfo):
+	user = bootinfo.user.get("time_zone")
+	system = bootinfo.sysdefaults.get("time_zone")
+	if user and user != system:
+		import frappe.utils.momentjs
+		bootinfo.timezone_info = {"zones":{}, "rules":{}, "links":{}}
+
+		bootinfo.timezone_info[user] = frappe.utils.momentjs.update(user,
+			bootinfo.timezone_info)
+		bootinfo.timezone_info[system] = frappe.utils.momentjs.update(system,
+			bootinfo.timezone_info)

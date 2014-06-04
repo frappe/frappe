@@ -41,18 +41,22 @@ frappe.ui.form.AssignTo = Class.extend({
 
 		if(d && d.length) {
 			for(var i=0; i<d.length; i++) {
-				var info = frappe.user_info(d[i]);
+				var info = frappe.user_info(d[i].owner);
 				info.owner = d[i];
-				info.avatar = frappe.avatar(d[i]);
+				info.image = frappe.user_info(d[i].owner).image;
+				info.description = d[i].description || "";
 
-				$(repl('<div class="alert alert-success" style="margin-bottom: 7px;">\
-					%(avatar)s %(fullname)s \
-					<a class="close" href="#" style="top: 1px;"\
-						data-owner="%(owner)s">&times;</a></div>', info))
+				$(repl('<div class="media">\
+					<span class="pull-left avatar avatar-small">\
+						<img src="%(image)s" class="media-object"></span>\
+					<div class="media-body">\
+						%(fullname)s \
+						<a class="close" href="#" style="top: 1px;"\
+							data-owner="%(owner)s">&times;</a>\
+						<div class="text-muted small">%(description)s</div>\
+					</div>\
+					</div>', info))
 					.appendTo(this.$list);
-
-				this.$list.find(".avatar").css("margin-top", "-7px")
-				this.$list.find('.avatar img').centerImage();
 			}
 
 			// set remove

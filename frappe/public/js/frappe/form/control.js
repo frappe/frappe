@@ -414,8 +414,7 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 		return value ? dateutil.str_to_user(value) : "";
 	},
 	validate: function(value, callback) {
-		var value = frappe.datetime.validate(value);
-		if(!value) {
+		if(!dateutil.validate(value)) {
 			msgprint (__("Date must be in format: {0}", [sys_defaults.date_format || "yyyy-mm-dd"]));
 			callback("");
 		}
@@ -435,14 +434,14 @@ frappe.ui.form.ControlTime = frappe.ui.form.ControlData.extend({
 		import_timepicker();
 		this._super();
 		this.$input.timepicker({
-			timeFormat: 'hh:mm:ss',
+			timeFormat: 'HH:mm:ss',
 		});
 	}
 });
 
 frappe.ui.form.ControlDatetime = frappe.ui.form.ControlDate.extend({
 	set_datepicker: function() {
-		this.datepicker_options.timeFormat = "hh:mm:ss";
+		this.datepicker_options.timeFormat = "HH:mm:ss";
 		this.datepicker_options.dateFormat =
 			(frappe.boot.sysdefaults.date_format || 'yy-mm-dd').replace('yyyy','yy');
 

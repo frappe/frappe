@@ -6,6 +6,7 @@ frappe.ui.form.Grid = Class.extend({
 		$.extend(this, opts);
 		this.fieldinfo = {};
 		this.doctype = this.df.options;
+		this.is_grid = true;
 	},
 	make: function() {
 		var me = this;
@@ -15,9 +16,13 @@ frappe.ui.form.Grid = Class.extend({
 			<div class="grid-heading-row" style="font-size: 15px; background-color: #f9f9f9;"></div>\
 			<div class="panel-body">\
 				<div class="rows"></div>\
-				<div class="small">\
-					<a href="#" class="grid-add-row pull-right">+ '+__("Add new row")+'.</a>\
-					<span class="text-muted pull-right" style="margin-right: 5px;">' + __("Click on row to view / edit.") + '</span>\
+				<div class="small grid-footer">\
+					<a href="#" class="grid-add-row pull-right" style="margin-left: 10px;">+ '
+						+__("Add new row")+'.</a>\
+					<a href="#" class="grid-add-multiple-rows pull-right hide" style="margin-left: 10px;">+ '
+						+__("Add multiple rows")+'.</a>\
+					<span class="text-muted pull-right" style="margin-right: 5px;">'
+						+ __("Click on row to view / edit.") + '</span>\
 					<div class="clearfix"></div>\
 				</div>\
 			</div>\
@@ -80,7 +85,7 @@ frappe.ui.form.Grid = Class.extend({
 				this.grid_rows_by_docname[d.name] = grid_row;
 			}
 
-			this.wrapper.find(".grid-add-row").toggle(this.can_add_rows());
+			this.wrapper.find(".grid-add-row, .grid-add-multiple-rows").toggle(this.can_add_rows());
 			if(this.is_editable()) {
 				this.make_sortable($rows);
 			}
@@ -168,6 +173,8 @@ frappe.ui.form.Grid = Class.extend({
 					this.wrapper.find(".grid-row:last").data("grid_row").toggle_view(true, callback);
 				}
 			}
+
+			return d;
 		}
 	},
 	is_editable: function() {
@@ -175,6 +182,21 @@ frappe.ui.form.Grid = Class.extend({
 	},
 	can_add_rows: function() {
 		return this.is_editable() && !this.cannot_add_rows
+	},
+	set_multiple_add: function(link) {
+		var me = this;
+		var link_field = frappe.meta.get_docfield(this.df.options, link);
+		$(this.wrapper).find(".grid-add-multiple-rows")
+			.removeClass("hide")
+			.on("click", function() {
+				new frappe.ui.form.LinkSelector({
+					doctype: link_field.options,
+					fieldname: link,
+					target: me,
+					txt: ""
+				});
+				return false;
+			});
 	}
 });
 

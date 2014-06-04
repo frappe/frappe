@@ -13,6 +13,7 @@ cur_frm.cscript.onload = function(doc, dt, dn) {
 cur_frm.cscript.before_load = function(doc, dt, dn, callback) {
 	var update_language_select = function(user_language) {
 		cur_frm.set_df_property("language", "options", frappe.languages || ["", "English"]);
+		cur_frm.set_df_property("time_zone", "options", [""].concat(frappe.all_timezones));
 		callback && callback();
 	}
 
@@ -20,7 +21,8 @@ cur_frm.cscript.before_load = function(doc, dt, dn, callback) {
 		frappe.call({
 			method: "frappe.core.doctype.user.user.get_languages",
 			callback: function(r) {
-				frappe.languages = r.message;
+				frappe.languages = r.message.languages;
+				frappe.all_timezones = r.message.timezones;
 				update_language_select();
 			}
 		});

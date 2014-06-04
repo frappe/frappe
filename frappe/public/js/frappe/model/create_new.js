@@ -86,14 +86,22 @@ $.extend(frappe.model, {
 			&& restrictions[df.options]
 			&& (restrictions[df.options].length===1))
 			return restrictions[df.options][0];
+
 		else if(frappe.defaults.get_user_default(df.fieldname))
 			return frappe.defaults.get_user_default(df.fieldname);
+
 		else if(df["default"] && df["default"][0]===":")
 			return frappe.model.get_default_from_boot_docs(df, doc, parent_doc);
+
 		else if(def_vals[df["default"]])
 			return def_vals[df["default"]];
+
 		else if(df.fieldtype=="Time" && (!df["default"]))
-			return dateutil.get_cur_time()
+			return dateutil.now_time()
+
+		else if(df.fieldtype=="Datetime" && (!df["default"]))
+			return dateutil.now_datetime()
+
 		else if(df["default"] && df["default"][0]!==":")
 			return df["default"];
 	},

@@ -52,6 +52,8 @@
 		"public/js/lib/bootstrap.min.js",
 		"public/js/lib/nprogress.js",
 		"public/js/lib/beautify-html.js",
+		"public/js/lib/moment/moment.min.js",
+		"public/js/lib/moment/moment-timezone.min.js",
 		"public/js/frappe/format.js",
 
 		"public/js/frappe/provide.js",
@@ -68,7 +70,6 @@
 
 		"public/js/legacy/globals.js",
 		"public/js/legacy/datatype.js",
-		"public/js/legacy/datetime.js",
 		"public/js/legacy/dom.js",
 		"public/js/legacy/handler.js",
 		"public/js/legacy/printElement.js",
