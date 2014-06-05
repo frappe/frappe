@@ -118,7 +118,7 @@ class Document(BaseDocument):
 		self._set_defaults()
 		self._set_docstatus_user_and_timestamp()
 		self.check_if_latest()
-		set_new_name(self)
+		self.set_new_name()
 		self.run_method("before_insert")
 		self.set_parent_in_children()
 		self.run_before_save_methods()
@@ -188,6 +188,12 @@ class Document(BaseDocument):
 		self.run_post_save_methods()
 
 		return self
+
+	def set_new_name(self):
+		set_new_name(self)
+		# set name for children
+		for d in self.get_all_children():
+			set_new_name(d)
 
 	def update_single(self, d):
 		frappe.db.sql("""delete from tabSingles where doctype=%s""", self.doctype)
