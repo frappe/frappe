@@ -33,6 +33,8 @@ class BaseDocument(object):
 		for key, value in d.iteritems():
 			self.set(key, value)
 
+		return self
+
 	def update_if_missing(self, d):
 		if isinstance(d, BaseDocument):
 			d = d.get_valid_dict()
