@@ -371,8 +371,11 @@ class Document(BaseDocument):
 		"""run standard triggers, plus those in frappe"""
 		if hasattr(self, method):
 			fn = lambda self, *args, **kwargs: getattr(self, method)(*args, **kwargs)
-			fn.__name__ = method.encode("utf-8")
-			return Document.hook(fn)(self, *args, **kwargs)
+		else:
+			fn = lambda self, *args, **kwargs: None
+
+		fn.__name__ = method.encode("utf-8")
+		return Document.hook(fn)(self, *args, **kwargs)
 
 	def submit(self):
 		self.docstatus = 1

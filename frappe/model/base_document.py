@@ -267,6 +267,7 @@ class BaseDocument(object):
 
 			docname = self.get(df.fieldname)
 			if docname:
+				# MySQL is case insensitive. Preserve case of the original docname in the Link Field.
 				value = frappe.db.get_value(doctype, docname)
 				setattr(self, df.fieldname, value)
 			if docname and not value:
