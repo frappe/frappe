@@ -17,14 +17,11 @@
 
 .appframe-footer {
 	border-top: 1px solid #ddd;
-	background-color: rgba(255,255,255,0.9);
+	background-color: rgba(255, 255, 255, 0.9);
 }
 
-.appframe-titlebar, .appframe-iconbar {
-	background-color: rgba(255,255,255,0.7);
-	/*background: url(/assets/frappe/images/ui/sos.png) repeat;*/
-	/*-webkit-box-shadow: inset 0 0 7px rgba(0, 0, 0, .07);
-	        box-shadow: inset 0 0 7px rgba(0, 0, 0, .07);*/
+.appframe-titlebar, .appframe-iconbar, .appframe-form {
+	background-color: rgba(255, 255, 255, 0.7);
 }
 
 .appframe-iconbar {
