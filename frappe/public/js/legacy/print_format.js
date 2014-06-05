@@ -297,11 +297,12 @@ $.extend(_p, {
 	},
 
 	add_span: function(html) {
-		var tags = ["<span[^>]>", "<p[^>]>", "<div[^>]>", "<br[^>]>", "<table[^>]>"];
+		var tags = ["<span", "<p", "<div", "<br", "<table"];
 		var match = false;
 		for(var i=0; i<tags.length; i++) {
 			if(html.match(tags[i])) {
 				match = true;
+				break;
 			}
 		}
 
