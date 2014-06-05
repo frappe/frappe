@@ -45,7 +45,7 @@ class CustomizeForm(Document):
 	}
 
 	allowed_fieldtype_change = (('Currency', 'Float'), ('Small Text', 'Data'),
-		('Text', 'Text Editor', 'Code'))
+		('Text', 'Text Editor', 'Code'), ('Data', 'Select'))
 
 	def on_update(self):
 		frappe.db.sql("delete from tabSingles where doctype='Customize Form'")
