@@ -72,8 +72,8 @@ def post(txt, contact, parenttype=None, notify=False, subject=None):
 	if notify and cint(notify):
 		if contact==frappe.session.user:
 			_notify([user.name for user in frappe.get_list("User",
-				{"user_type":"System User"}) \
-					if user.name not in ("Guest", "Administrator")], txt, subject)
+				{"user_type":"System User", "enabled": 1}) \
+					if user.name not in ("Guest", "Administrator")], txt)
 		else:
 			_notify(contact, txt, subject)
 
@@ -83,7 +83,7 @@ def delete(arg=None):
 		frappe.form_dict['name']);
 
 def _notify(contact, txt, subject=None):
-	from frappe.utils import cstr, get_fullname, get_url
+	from frappe.utils import get_fullname, get_url
 
 	try:
 		if not isinstance(contact, list):
@@ -98,5 +98,5 @@ def _notify(contact, txt, subject=None):
 				"link": get_url()
 			}),
 			bulk=True)
-	except frappe.OutgoingEmailError, e:
+	except frappe.OutgoingEmailError:
 		pass

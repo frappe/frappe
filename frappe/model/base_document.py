@@ -33,6 +33,8 @@ class BaseDocument(object):
 		for key, value in d.iteritems():
 			self.set(key, value)
 
+		return self
+
 	def update_if_missing(self, d):
 		if isinstance(d, BaseDocument):
 			d = d.get_valid_dict()
@@ -264,7 +266,10 @@ class BaseDocument(object):
 				frappe.throw(_("Options not set for link field {0}").format(df.fieldname))
 
 			docname = self.get(df.fieldname)
-			if docname and not frappe.db.get_value(doctype, docname):
+			if docname:
+				value = frappe.db.get_value(doctype, docname)
+				setattr(self, df.fieldname, value)
+			if docname and not value:
 				invalid_links.append((df.fieldname, docname, get_msg(df, docname)))
 
 		return invalid_links

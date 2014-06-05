@@ -638,6 +638,11 @@ def set_filters(jenv):
 def get_template(path):
 	return get_jenv().get_template(path)
 
+def render_template(template, context):
+	from jinja2 import Template
+	template = Template(template)
+	return template.render(**context)
+
 def get_website_route(doctype, name):
 	return db.get_value("Website Route", {"ref_doctype": doctype, "docname": name})
 
