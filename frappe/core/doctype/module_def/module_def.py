@@ -8,6 +8,9 @@ from frappe.model.document import Document
 
 class ModuleDef(Document):
 	def validate(self):
+		if not frappe.conf.get("developer_mode"):
+			return
+
 		modules = None
 		if not frappe.local.module_app.get(frappe.scrub(self.name)):
 			with open(frappe.get_app_path(self.app_name, "modules.txt"), "r") as f:
