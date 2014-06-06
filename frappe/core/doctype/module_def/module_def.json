@@ -44,14 +44,6 @@
    "role": "Administrator",
    "submit": 0,
    "write": 1
-  },
-  {
-   "create": 1,
-   "delete": 1,
-   "permlevel": 0,
-   "read": 1,
-   "role": "System Manager",
-   "write": 1
   }
  ]
 }
