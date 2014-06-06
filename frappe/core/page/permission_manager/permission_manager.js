@@ -87,7 +87,7 @@ frappe.PermissionEngine = Class.extend({
 	},
 	make_reset_button: function() {
 		var me = this;
-		me.reset_button = me.wrapper.appframe.set_title_right("Reset Permissions", function() {
+		me.reset_button = me.wrapper.appframe.add_primary_action("Reset Permissions", function() {
 			me.get_standard_permissions(function(data) {
 				var d = frappe.confirm(__("Reset Permissions for {0}?", [me.get_doctype()]), function() {
 					return frappe.call({
@@ -118,7 +118,7 @@ frappe.PermissionEngine = Class.extend({
 					</div><br>', d));
 				});
 			});
-		}).toggle(false);
+		}).prop("disabled", true);
 	},
 	get_doctype: function() {
 		var doctype = this.doctype_select.val();
@@ -151,7 +151,7 @@ frappe.PermissionEngine = Class.extend({
 				me.render(r.message);
 			}
 		});
-		me.reset_button.toggle(me.get_doctype() ? true : false);
+		me.reset_button.prop("disabled", me.get_doctype() ? false : true);
 	},
 	render: function(perm_list) {
 		this.body.empty();
