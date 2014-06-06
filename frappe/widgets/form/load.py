@@ -27,8 +27,7 @@ def getdoc(doctype, name, user=None):
 
 	try:
 		doc = frappe.get_doc(doctype, name)
-		doc.set("__onload", frappe._dict())
-		doc.run_method("onload")
+		run_onload(doc)
 
 		if not doc.has_permission("read"):
 			raise frappe.PermissionError, "read"
@@ -129,3 +128,7 @@ def get_badge_info(doctypes, filters):
 		out[doctype] = frappe.db.get_value(doctype, filters, "count(*)")
 
 	return out
+
+def run_onload(doc):
+	doc.set("__onload", frappe._dict())
+	doc.run_method("onload")
