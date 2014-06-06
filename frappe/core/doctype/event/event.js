@@ -5,6 +5,8 @@ frappe.ui.form.on("Event", "refresh", function(frm) {
 	if(frm.doc.ref_type && frm.doc.ref_name) {
 		frm.set_intro('Reference: <a href="#Form/'+frm.doc.ref_type+'/'+frm.doc.ref_name+'">'
 			+ frm.doc.ref_name + '</a>');
+	} else {
+		frm.set_intro();
 	}
 });
 

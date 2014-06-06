@@ -45,16 +45,14 @@ frappe.views.CommunicationList = Class.extend({
 			.empty()
 
 		this.wrapper = $("<div>\
-			<div style='margin-bottom: 8px;'>\
+			<div style='margin-bottom: 15px; margin-left: 40px;'>\
 				<button class='btn btn-default' \
 					onclick='cur_frm.communication_view.add_reply()'>\
 				<i class='icon-plus'></i> "+__("Add Message")+"</button></div>\
 			</div>")
 			.appendTo(this.parent);
 
-		this.body = $('<div class="list-group">')
-		.css({"border":"1px solid #dddddd", "border-radius":"4px"})
-			.appendTo(this.wrapper);
+		this.body = $('<div>').appendTo(this.wrapper);
 	},
 
 	add_reply: function() {
@@ -75,7 +73,7 @@ frappe.views.CommunicationList = Class.extend({
 
 	prepare: function(doc) {
 		//doc.when = comment_when(this.doc.modified);
-		doc.when = doc.creation;
+		doc.when = comment_when(doc.creation);
 		if(!doc.content) doc.content = "[no content]";
 		if(!frappe.utils.is_html(doc.content)) {
 			doc.content = doc.content.replace(/\n/g, "<br>");
@@ -84,6 +82,8 @@ frappe.views.CommunicationList = Class.extend({
 
 		if(!doc.sender) doc.sender = "[unknown sender]";
 		doc._sender = doc.sender.replace(/</, "&lt;").replace(/>/, "&gt;");
+		doc._sender_id = doc.sender.indexOf("<")!== -1 ?
+			strip(doc.sender.split("<")[0]) : doc.sender;
 		doc.content = doc.content.split("-----"+__("In response to")+"-----")[0];
 		doc.content = doc.content.split("-----"+__("Original Message")+"-----")[0];
 	},
@@ -96,34 +96,19 @@ frappe.views.CommunicationList = Class.extend({
 			"Phone": "icon-phone",
 			"SMS": "icon-mobile-phone",
 		}[doc.communication_medium] || "icon-envelope";
-		var comm = $(repl('<div class="list-group-item">\
-				<div class="comm-header row" title="'+__('Click to Expand / Collapse')+'">\
-					<div class="col-sm-3"><i class="%(icon)s"></i> %(_sender)s</div>\
-					<div class="col-sm-6">%(subject)s</div>\
-					<div class="col-sm-3 text-right">%(when)s</div>\
+		doc.avatar = frappe.get_gravatar(doc._sender_id);
+		var comm = $(repl('<div class="media">\
+			<span class="pull-left avatar avatar-small"><img class="media-object" src="%(avatar)s"></span>\
+			<div class="media-body">\
+				<div class="media=heading"><i class="%(icon)s icon-fixed-width"></i> <strong>%(subject)s</strong></div>\
+				<div class="text-muted small">\
+					%(_sender)s | %(when)s\ | <a href="#Form/Communication/%(name)s">'+__('Details')+'</a>\
 				</div>\
-				<div class="comm-content" style="overflow-x: auto; display: none;">\
-					<div class="inner" style="border-top: 1px solid #f3f3f3; margin-top: 10px; padding-top: 10px;">\
-					</div>\
-					<div class="show-details pull-right" style="margin-right: 10px;">\
-						<a href="#Form/Communication/%(name)s">'+__('Show Details')+'</a>\
-					</div>\
-				</div>\
-			</td></tr>', doc))
+				<div class="comm-content">%(content)s</div>\
+			</div>', doc))
 			.appendTo(this.body);
 
-		if(!doc.name) {
-			comm.find(".show-details").toggle(false);
-		}
-
-		comm.find(".comm-header")
-			.css({"cursor":"pointer"})
-			.click(function() {
-				$(this).parent().find(".comm-content").toggle();
-			});
-
 		this.comm_list.push(comm);
-		comm.find(".comm-content .inner").html(doc.content);
 	}
 });
 
