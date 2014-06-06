@@ -10,10 +10,16 @@ import frappe
 import os, sys
 from frappe.modules.import_file import import_file_by_path
 from frappe.utils import get_path, cstr
+from frappe.modules.patch_handler import block_user
 
 def sync_all(force=0, verbose=False):
+	block_user(True)
+
 	for app in frappe.get_installed_apps():
 		sync_for(app, force, verbose=verbose)
+
+	block_user(False)
+
 	frappe.clear_cache()
 
 def sync_for(app_name, force=0, sync_everything = False, verbose=False):
