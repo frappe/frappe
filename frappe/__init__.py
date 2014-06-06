@@ -474,6 +474,7 @@ def setup_module_map():
 			if app=="webnotes": app="frappe"
 			local.app_modules.setdefault(app, [])
 			for module in get_module_list(app):
+				module = scrub(module)
 				local.module_app[module] = app
 				local.app_modules[app].append(module)
 

@@ -190,5 +190,5 @@ def add_module_defs(app):
 	for module in modules:
 		d = frappe.new_doc("Module Def")
 		d.app_name = app
-		d.module_name = frappe.unscrub(module)
+		d.module_name = module
 		d.save()
