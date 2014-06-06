@@ -32,7 +32,7 @@ def get_new_doc(doctype, parent_doc = None, parentfield = None):
 	for d in doc.meta.get("fields"):
 		default = defaults.get(d.fieldname)
 
-		if (d.fieldtype=="Link") and d.ignore_user_permissions != 1 and (d.options in user_permissions)\
+		if (d.fieldtype=="Link") and not getattr(d, "ignore_user_permissions", False) and (d.options in user_permissions)\
 			and len(user_permissions[d.options])==1:
 			doc.set(d.fieldname, user_permissions[d.options][0])
 		elif default:
