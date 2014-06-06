@@ -5260,7 +5260,6 @@ data = {
 		"Australia/LHI": "Australia/Lord_Howe",
 		"PRC": "Asia/Shanghai",
 		"Asia/Thimbu": "Asia/Thimphu",
-		"America/Shiprock": "America/Denver",
 		"Brazil/DeNoronha": "America/Noronha",
 		"GB": "Europe/London",
 		"Chile/EasterIsland": "Pacific/Easter",
@@ -5358,7 +5357,6 @@ data = {
 		"Egypt": "Africa/Cairo",
 		"Singapore": "Asia/Singapore",
 		"Brazil/East": "America/Sao_Paulo",
-		"Brazil/Acre": "America/Rio_Branco",
-		"Antarctica/South_Pole": "Pacific/Auckland"
+		"Brazil/Acre": "America/Rio_Branco"
 	}
 }
