@@ -1,6 +1,10 @@
 function prettyDate(time){
 	if(moment) {
-		if(frappe.boot.user.time_zone && frappe.boot.user.time_zone != sys_defaults.time_zone) {
+		var user_timezone = frappe.boot.user.time_zone;
+		var system_timezone = sys_defaults.time_zone;
+		var zones = frappe.boot.timezone_info.zones;
+		if (user_timezone && (user_timezone != system_timezone)
+			&& zones[user_timezone] && zones[system_timezone]) {
 			return moment.tz(time, sys_defaults.time_zone).tz(frappe.boot.user.time_zone).fromNow();
 		} else {
 			return moment(time).fromNow();

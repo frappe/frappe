@@ -146,7 +146,6 @@ def add_timezone_info(bootinfo):
 		import frappe.utils.momentjs
 		bootinfo.timezone_info = {"zones":{}, "rules":{}, "links":{}}
 
-		bootinfo.timezone_info[user] = frappe.utils.momentjs.update(user,
-			bootinfo.timezone_info)
-		bootinfo.timezone_info[system] = frappe.utils.momentjs.update(system,
-			bootinfo.timezone_info)
+		frappe.utils.momentjs.update(user, bootinfo.timezone_info)
+		frappe.utils.momentjs.update(system, bootinfo.timezone_info)
+
