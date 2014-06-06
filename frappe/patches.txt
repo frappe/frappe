@@ -34,3 +34,4 @@ frappe.patches.v4_0.set_user_permissions
 frappe.patches.v4_0.create_custom_field_for_owner_match
 frappe.patches.v4_0.enable_scheduler_in_system_settings
 execute:frappe.db.sql("update tabReport set apply_user_permissions=1") #2014-06-03
+frappe.patches.v4_0.replace_deprecated_timezones

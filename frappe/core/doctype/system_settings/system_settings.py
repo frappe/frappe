@@ -2,11 +2,12 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
-import frappe, pytz
+import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.translate import get_lang_dict, set_default_language
 from frappe.utils import cint
+from frappe.utils.momentjs import get_all_timezones
 
 class SystemSettings(Document):
 	def validate(self):
@@ -39,7 +40,7 @@ def load():
 	languages.sort()
 
 	return {
-		"timezones": pytz.all_timezones,
+		"timezones": get_all_timezones(),
 		"languages": [""] + languages,
 		"defaults": defaults
 	}
