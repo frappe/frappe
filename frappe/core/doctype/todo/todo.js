@@ -5,9 +5,11 @@ frappe.ui.form.on("ToDo", "refresh", function(frm) {
 		frm.set_value("status", frm.doc.status=="Open" ? "Closed" : "Open");
 		frm.save();
 	});
-	
+
 	if(frm.doc.reference_type && frm.doc.reference_name) {
-		frm.set_intro('Reference: <a href="#Form/'+frm.doc.reference_type+'/'+frm.doc.reference_name+'">' 
+		frm.set_intro('Reference: <a href="#Form/'+frm.doc.reference_type+'/'+frm.doc.reference_name+'">'
 			+ frm.doc.reference_name + '</a>');
+	} else {
+		frm.set_intro();
 	}
 });

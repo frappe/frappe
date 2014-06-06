@@ -24,6 +24,15 @@ frappe.avatar = function(user, large, title) {
 		});
 }
 
+frappe.gravatars = {};
+frappe.get_gravatar = function(email_id) {
+	frappe.require("/assets/frappe/js/lib/md5.min.js");
+	if(!frappe.gravatars[email_id]) {
+		frappe.gravatars[email_id] = "https://secure.gravatar.com/avatar/" + md5(email_id)
+	}
+	return frappe.gravatars[email_id];
+}
+
 frappe.ui.set_user_background = function(src, selector) {
 	if(!selector) selector = "body";
 	if(!src) src = "assets/frappe/images/ui/random-polygons.jpg";

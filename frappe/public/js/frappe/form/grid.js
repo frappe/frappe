@@ -183,7 +183,7 @@ frappe.ui.form.Grid = Class.extend({
 	can_add_rows: function() {
 		return this.is_editable() && !this.cannot_add_rows
 	},
-	set_multiple_add: function(link) {
+	set_multiple_add: function(link, qty) {
 		var me = this;
 		var link_field = frappe.meta.get_docfield(this.df.options, link);
 		$(this.wrapper).find(".grid-add-multiple-rows")
@@ -192,6 +192,7 @@ frappe.ui.form.Grid = Class.extend({
 				new frappe.ui.form.LinkSelector({
 					doctype: link_field.options,
 					fieldname: link,
+					qty_fieldname: qty,
 					target: me,
 					txt: ""
 				});

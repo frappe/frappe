@@ -566,6 +566,12 @@ _f.Frm.prototype.runscript = function(scriptname, callingfield, onrefresh) {
 				// enable button
 				if(callingfield)
 					$(callingfield.input).done_working();
+			},
+			// error
+			function() {
+				// enable button
+				if(callingfield)
+					$(callingfield.input).done_working();
 			}
 		);
 	}

@@ -140,8 +140,9 @@ frappe.ui.Listing = Class.extend({
 		if(this.appframe) {
 			return this.appframe.add_button(label, click, icon)
 		} else {
+			this.$w.find('.list-toolbar-wrapper').removeClass("hide");
 			$button = $('<button class="btn btn-default"></button>')
-				.appendTo(this.$w.find('.list-toolbar').removeClass("hide"))
+				.appendTo(this.$w.find('.list-toolbar'))
 				.html((icon ? ("<i class='"+icon+"'></i> ") : "") + label)
 				.click(click);
 			return $button

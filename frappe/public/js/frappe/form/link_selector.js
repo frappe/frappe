@@ -83,9 +83,8 @@ frappe.ui.form.LinkSelector = Class.extend({
 							var value = $(this).attr("data-value");
 							var $link = this;
 							if(me.target.is_grid) {
-								var d = me.target.add_new_row();
-								frappe.model.set_value(d.doctype, d.name, me.fieldname, value);
-								show_alert(__("{0} added", [value]));
+								// set in grid
+								me.set_in_grid(value);
 							} else {
 								if(me.target.doctype)
 									me.target.parse_validate_and_set_in_model(value);
@@ -110,5 +109,23 @@ frappe.ui.form.LinkSelector = Class.extend({
 			},
 			btn: this.dialog.get_primary_btn()
 		});
+	},
+	set_in_grid: function(value) {
+		var me = this, updated = false;
+		if(this.qty_fieldname) {
+			$.each(this.target.frm.doc[this.target.df.fieldname] || [], function(i, d) {
+				if(d[me.fieldname]===value) {
+					frappe.model.set_value(d.doctype, d.name, me.qty_fieldname, d[me.qty_fieldname] + 1);
+					show_alert(__("Added {0} ({1})", [value, d[me.qty_fieldname]]));
+					updated = true;
+					return false;
+				}
+			});
+		}
+		if(!updated) {
+			var d = this.target.add_new_row();
+			frappe.model.set_value(d.doctype, d.name, me.fieldname, value);
+			show_alert(__("{0} added", [value]));
+		}
 	}
 })
