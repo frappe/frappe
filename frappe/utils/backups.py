@@ -128,7 +128,7 @@ def get_backup():
 	"""
 	#if verbose: print frappe.db.cur_db_name + " " + conf.db_password
 	delete_temp_backups()
-	odb = BackupGenerator(frappe.db.cur_db_name, frappe.db.cur_db_name,\
+	odb = BackupGenerator(frappe.conf.db_name, frappe.conf.db_name,\
 						  frappe.conf.db_password, db_host = frappe.db.host)
 	odb.get_backup()
 	recipient_list = odb.send_email()
