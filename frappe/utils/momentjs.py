@@ -3,6 +3,9 @@
 def update(tz, out):
 	ltz = data["links"].get(tz, tz)
 	zone = data["zones"].get(ltz)
+	if not zone:
+		return
+
 	out["zones"][ltz] = zone
 	out["links"][tz] = ltz
 	for z in zone:
