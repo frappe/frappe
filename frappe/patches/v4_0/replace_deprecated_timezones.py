@@ -6,6 +6,8 @@ import frappe
 from frappe.utils.momentjs import data as momentjs_data
 
 def execute():
+	frappe.reload_doc("core", "doctype", "user")
+
 	ss = frappe.get_doc("System Settings", "System Settings")
 	if ss.time_zone in momentjs_data.get("links"):
 		ss.time_zone = momentjs_data["links"][ss.time_zone]
