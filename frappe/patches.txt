@@ -14,6 +14,7 @@ frappe.patches.v4_0.webnotes_to_frappe
 execute:frappe.reset_perms("Module Def")
 execute:import frappe.installer;frappe.installer.make_site_dirs() #2014-02-19
 frappe.patches.v4_0.rename_profile_to_user
+frappe.patches.v4_0.deprecate_control_panel
 frappe.patches.v4_0.remove_old_parent
 frappe.patches.v4_0.rename_sitemap_to_route
 frappe.patches.v4_0.website_sitemap_hierarchy
@@ -24,7 +25,6 @@ frappe.patches.v4_0.set_todo_checked_as_closed
 frappe.patches.v4_0.private_backups
 frappe.patches.v4_0.set_module_in_report
 frappe.patches.v4_0.update_datetime
-frappe.patches.v4_0.deprecate_control_panel
 frappe.patches.v4_0.file_manager_hooks
 execute:frappe.get_doc("User", "Guest").save()
 frappe.patches.v4_0.deprecate_link_selects
