@@ -18,6 +18,9 @@ class WebsiteGenerator(Document):
 		self.name = self.get_page_name()
 		append_number_if_name_exists(self)
 
+	def onload(self):
+		self.get("__onload").website_route = frappe.db.get_value("Website Route", {"ref_doctype": self.doctype, "docname": self.name})
+
 	def set_page_name(self):
 		"""set page name based on parent page_name and title"""
 		page_name = cleanup_page_name(self.get_page_title())

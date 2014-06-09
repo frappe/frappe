@@ -630,7 +630,7 @@ def set_filters(jenv):
 	jenv.filters["json"] = dumps
 	jenv.filters["get_hex_shade"] = get_hex_shade
 
-	# load jenv_filters from hooks.txt
+	# load jenv_filters from hooks.py
 	for app in get_all_apps(True):
 		for jenv_filter in (get_hooks(app_name=app).jenv_filter or []):
 			filter_name, filter_function = jenv_filter.split(":")

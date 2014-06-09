@@ -11,7 +11,7 @@ $.extend(cur_frm.cscript, {
 			}
 			if(doc.insert_style) {
 				if(!doc.css) {
-					cur_frm.set_value("css", '#page-'+doc.name+' { }');	
+					cur_frm.set_value("css", '#page-'+doc.name+' { }');
 				}
 			}
 		}
@@ -20,14 +20,14 @@ $.extend(cur_frm.cscript, {
 		cur_frm.cscript.layout(doc);
 		if(!doc.__islocal && doc.published) {
 			cur_frm.appframe.add_button("View In Website", function() {
-				window.open(doc.page_name);
+				window.open(doc.__onload.website_route);
 			}, "icon-globe");
 		}
 	},
 	insert_style: function(doc) {
-		cur_frm.cscript.layout(doc);		
+		cur_frm.cscript.layout(doc);
 	},
 	insert_code: function(doc) {
-		cur_frm.cscript.layout(doc);		
+		cur_frm.cscript.layout(doc);
 	}
 });

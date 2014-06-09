@@ -194,16 +194,15 @@ $.extend(frappe, {
 			$(window).on("popstate", function(event) {
 				// hack for chrome's onload popstate call
 				if(window.initial_href==location.href && window.previous_href==undefined) {
-					frappe.set_force_reload(true);
+					window.location.reload();
 					return;
 				}
 
 				window.previous_href = location.href;
 				var state = event.originalEvent.state;
 				if(!state) {
-					console.log("state not found!");
-					frappe.set_force_reload(true);
-					state = window.history.state;
+					window.location.reload();
+					return;
 				}
 				frappe.render_json(state);
 			});
@@ -273,44 +272,35 @@ $.extend(frappe, {
 		});
 	},
 	render_json: function(data) {
-		if(data.reload) {
-			window.location = location.href;
-		} else {
-			$('[data-html-block]').each(function(i, section) {
-				var $section = $(section);
-				var stype = $section.attr("data-html-block");
-				var block_data = data[stype] || "";
+		$('[data-html-block]').each(function(i, section) {
+			var $section = $(section);
+			var stype = $section.attr("data-html-block");
+			var block_data = data[stype] || "";
 
-				// NOTE: use frappe.ready instead of $.ready for reliable execution
-				if(stype==="script") {
-					$section.remove();
-					$("<script data-html-block='script'></script>")
-						.html(block_data)
-						.appendTo("body");
-				} else if(stype==="script_lib") {
-					// render once
-					if(!$("[data-block-html='script_lib'][data-path='"+data.path+"']").length) {
-						$("<script data-block-html='script_lib' data-path='"+data.path+"'></script>")
-						.html(data.script_lib)
-						.appendTo("body");
-					}
-				} else {
-					$section.html(block_data);
+			// NOTE: use frappe.ready instead of $.ready for reliable execution
+			if(stype==="script") {
+				$section.remove();
+				$("<script data-html-block='script'></script>")
+					.html(block_data)
+					.appendTo("body");
+			} else if(stype==="script_lib") {
+				// render once
+				if(!$("[data-block-html='script_lib'][data-path='"+data.path+"']").length) {
+					$("<script data-block-html='script_lib' data-path='"+data.path+"'></script>")
+					.html(data.script_lib)
+					.appendTo("body");
 				}
-			});
-			if(data.title) $("title").html(data.title);
+			} else {
+				$section.html(block_data);
+			}
+		});
+		if(data.title) $("title").html(data.title);
 
-			// change id of current page
-			$(".page-container").attr("id", "page-" + data.path);
+		// change id of current page
+		$(".page-container").attr("id", "page-" + data.path);
 
-			window.ga && ga('send', 'pageview', location.pathname);
-			$(document).trigger("page-change");
-		}
-	},
-	set_force_reload: function(reload) {
-		// learned this from twitter's implementation
-		window.history.replaceState({"reload": reload},
-			window.document.title, location.href);
+		window.ga && ga('send', 'pageview', location.pathname);
+		$(document).trigger("page-change");
 	},
 	supports_pjax: function() {
 		return (window.history && window.history.pushState && window.history.replaceState &&
