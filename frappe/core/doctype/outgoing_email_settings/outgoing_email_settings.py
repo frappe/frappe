@@ -9,7 +9,7 @@ import frappe
 from frappe.model.document import Document
 
 class OutgoingEmailSettings(Document):
-		
+
 	def validate(self):
 		if self.mail_server:
 			from frappe.utils import cint
@@ -18,8 +18,8 @@ class OutgoingEmailSettings(Document):
 				password = self.mail_password,
 				server = self.mail_server,
 				port = cint(self.mail_port),
-				use_ssl = self.use_ssl
+				use_ssl = cint(self.use_ssl)
 			)
-						
+
 			# exceptions are handled in session connect
 			sess = smtpserver.sess
