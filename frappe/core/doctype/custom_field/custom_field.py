@@ -94,10 +94,11 @@ def create_custom_field(doctype, df):
 		frappe.get_doc({
 			"doctype":"Custom Field",
 			"dt": doctype,
-			"permlevel": df.permlevel or 0,
-			"label": df.label,
-			"fieldname": df.fieldname,
-			"fieldtype": df.fieldtype,
-			"options": df.options,
-			"insert_after": df.insert_after
+			"permlevel": df.get("permlevel") or 0,
+			"label": df.get("label"),
+			"fieldname": df.get("fieldname"),
+			"fieldtype": df.get("fieldtype"),
+			"options": df.get("options"),
+			"insert_after": df.get("insert_after"),
+			"print_hide": df.get("print_hide")
 		}).insert()
