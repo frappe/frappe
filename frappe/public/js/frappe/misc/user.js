@@ -6,9 +6,10 @@
 frappe.user_info = function(uid) {
 	if(!uid)
 		uid = user;
-	if(!frappe.boot.user_info)
-		return {fullname:"Unknown"};
-	return frappe.boot.user_info[uid] || {};
+	if(!(frappe.boot.user_info && frappe.boot.user_info[uid])) {
+		return {fullname: toTitle(uid.split("@")[0]) || "Unknown"};
+	}
+	return frappe.boot.user_info[uid];
 }
 
 frappe.avatar = function(user, large, title) {
@@ -28,7 +29,7 @@ frappe.gravatars = {};
 frappe.get_gravatar = function(email_id) {
 	frappe.require("/assets/frappe/js/lib/md5.min.js");
 	if(!frappe.gravatars[email_id]) {
-		frappe.gravatars[email_id] = "https://secure.gravatar.com/avatar/" + md5(email_id)
+		frappe.gravatars[email_id] = "https://secure.gravatar.com/avatar/" + md5(email_id) + "?d=retro";
 	}
 	return frappe.gravatars[email_id];
 }
