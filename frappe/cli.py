@@ -205,7 +205,7 @@ def setup_utilities(parser):
 		help="Create new conf.py file")
 	parser.add_argument("--make_custom_server_script", nargs=1, metavar="DOCTYPE",
 		help="Create new conf.py file")
-	parser.add_argument("--set_admin_password", metavar='ADMIN-PASSWORD', nargs=1,
+	parser.add_argument("--set_admin_password", metavar='ADMIN-PASSWORD', nargs="*",
 		help="Set administrator password")
 	parser.add_argument("--request", metavar='URL-ARGS', nargs=1, help="Run request as admin")
 	parser.add_argument("--mysql", action="store_true", help="get mysql shell for a site")
@@ -729,8 +729,13 @@ def checkout(branch):
 	git(("checkout", branch))
 
 @cmd
-def set_admin_password(admin_password):
+def set_admin_password(admin_password=None):
 	import frappe
+	import getpass
+
+	while not admin_password:
+		admin_password = getpass.getpass("Administrator's password: ")
+
 	frappe.connect()
 	frappe.db.sql("""update __Auth set `password`=password(%s)
 		where user='Administrator'""", (admin_password,))
