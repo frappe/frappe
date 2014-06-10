@@ -194,7 +194,8 @@ $.extend(frappe, {
 			$(window).on("popstate", function(event) {
 				// hack for chrome's onload popstate call
 				if(window.initial_href==location.href && window.previous_href==undefined) {
-					window.location.reload();
+					window.history.replaceState({"reload": true},
+						window.document.title, location.href);
 					return;
 				}
 
@@ -272,6 +273,11 @@ $.extend(frappe, {
 		});
 	},
 	render_json: function(data) {
+		if (data.reload) {
+			window.location.reload();
+			return;
+		}
+
 		$('[data-html-block]').each(function(i, section) {
 			var $section = $(section);
 			var stype = $section.attr("data-html-block");
