@@ -27,6 +27,9 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 	if not frappe.db.exists(doctype, name):
 		return
 
+	# delete attachments
+	remove_all(doctype, name)
+
 	if doctype=="DocType":
 		if not for_reload:
 			frappe.db.sql("delete from `tabCustom Field` where dt = %s", name)
@@ -47,9 +50,6 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 				check_if_doc_is_linked(doc)
 
 		delete_from_table(doctype, name, ignore_doctypes, doc)
-
-	# delete attachments
-	remove_all(doctype, name)
 
 	# delete user_permissions
 	frappe.defaults.clear_default(parenttype="User Permission", key=doctype, value=name)
