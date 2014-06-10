@@ -71,6 +71,12 @@
    "permlevel": 0
   }, 
   {
+   "fieldname": "disabled", 
+   "fieldtype": "Check", 
+   "label": "Disabled", 
+   "permlevel": 0
+  }, 
+  {
    "fieldname": "section_break_6", 
    "fieldtype": "Section Break", 
    "permlevel": 0
@@ -103,7 +109,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2014-05-09 02:12:39.540952", 
+ "modified": "2014-06-10 04:44:45.823803", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Print Format", 
