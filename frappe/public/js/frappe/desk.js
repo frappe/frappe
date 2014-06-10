@@ -73,7 +73,8 @@ frappe.Application = Class.extend({
 	},
 
 	set_user_display_settings: function() {
-		frappe.ui.set_user_background(frappe.boot.user.background_image);
+		frappe.ui.set_user_background(frappe.boot.user.background_image, null,
+			frappe.boot.user.background_style);
 	},
 
 	load_bootinfo: function() {
