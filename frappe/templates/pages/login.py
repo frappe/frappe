@@ -12,6 +12,7 @@ no_cache = True
 def get_context(context):
 	# get settings from site config
 	context["title"] = "Login"
+	context["disable_signup"] = frappe.utils.cint(frappe.db.get_value("Website Settings", "Website Settings", "disable_signup"))
 
 	for provider in ("google", "github", "facebook"):
 		if get_oauth_keys(provider):
