@@ -11,7 +11,7 @@ from frappe.model.document import Document
 class OutgoingEmailSettings(Document):
 
 	def validate(self):
-		if self.mail_server:
+		if self.mail_server and not frappe.local.flags.in_patch:
 			from frappe.utils import cint
 			from frappe.utils.email_lib.smtp import SMTPServer
 			smtpserver = SMTPServer(login = self.mail_login,

@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe, os
+from frappe import _
 import frappe.utils
 from frappe.modules import get_doc_path
 
@@ -85,9 +86,16 @@ def get_print_format_name(doctype, format_name):
 	if format_name==standard_format:
 		return format_name
 
+	opts = frappe.db.get_value("Print Format", format_name, "disabled", as_dict=True)
+	if not opts:
+		frappe.throw(_("Print Format {0} does not exist").format(format_name), frappe.DoesNotExistError)
+	elif opts.disabled:
+		frappe.throw(_("Print Format {0} is disabled").format(format_name), frappe.DoesNotExistError)
+
 	# server, find template
 	path = os.path.join(get_doc_path(frappe.db.get_value("DocType", doctype, "module"),
 		"Print Format", format_name), format_name + ".html")
+
 	if os.path.exists(path):
 		with open(path, "r") as pffile:
 			return pffile.read()

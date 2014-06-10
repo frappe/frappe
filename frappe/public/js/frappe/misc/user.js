@@ -6,9 +6,10 @@
 frappe.user_info = function(uid) {
 	if(!uid)
 		uid = user;
-	if(!frappe.boot.user_info)
-		return {fullname:"Unknown"};
-	return frappe.boot.user_info[uid] || {};
+	if(!(frappe.boot.user_info && frappe.boot.user_info[uid])) {
+		return {fullname: toTitle(uid.split("@")[0]) || "Unknown"};
+	}
+	return frappe.boot.user_info[uid];
 }
 
 frappe.avatar = function(user, large, title) {
@@ -28,19 +29,21 @@ frappe.gravatars = {};
 frappe.get_gravatar = function(email_id) {
 	frappe.require("/assets/frappe/js/lib/md5.min.js");
 	if(!frappe.gravatars[email_id]) {
-		frappe.gravatars[email_id] = "https://secure.gravatar.com/avatar/" + md5(email_id)
+		frappe.gravatars[email_id] = "https://secure.gravatar.com/avatar/" + md5(email_id) + "?d=retro";
 	}
 	return frappe.gravatars[email_id];
 }
 
-frappe.ui.set_user_background = function(src, selector) {
+frappe.ui.set_user_background = function(src, selector, style) {
 	if(!selector) selector = "body";
+	if(!style) style = "Fill Screen";
 	if(!src) src = "assets/frappe/images/ui/random-polygons.jpg";
 	frappe.dom.set_style(repl('%(selector)s { \
 		background: url("%(src)s") center center;\
 		background-attachment: fixed; \
 		background-size: 100%; \
-	}', {src:src, selector:selector}))
+		%(style)s \
+	}', {src:src, selector:selector, style: style==="Fill Screen" ? "background-size: cover;" : ""}));
 }
 
 frappe.provide('frappe.user');

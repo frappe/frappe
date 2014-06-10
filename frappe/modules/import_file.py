@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 
 import frappe, os, json
-from frappe.modules import scrub, get_module_path, scrub_dt_dn
+from frappe.modules import get_module_path, scrub_dt_dn
 from frappe.utils import get_datetime_str
 
 def import_files(module, dt=None, dn=None, force=False):
@@ -74,6 +74,7 @@ def read_doc_from_file(path):
 
 ignore_values = {
 	"Report": ["disabled"],
+	"Print Format": ["disabled"]
 }
 
 ignore_doctypes = ["Page Role", "DocPerm"]

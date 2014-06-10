@@ -44,7 +44,7 @@ frappe.ui.form.Comments = Class.extend({
 			} else {
 				c["delete"] = "";
 			}
-			c.image = frappe.user_info(c.comment_by).image;
+			c.image = frappe.user_info(c.comment_by).image || frappe.get_gravatar(c.comment_by);
 			c.comment_on = dateutil.comment_when(c.creation);
 			c.fullname = frappe.user_info(c.comment_by).fullname;
 			c.comment = frappe.markdown(c.comment);
