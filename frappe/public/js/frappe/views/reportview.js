@@ -598,7 +598,15 @@ frappe.ui.ColumnPicker = Class.extend({
 			me.add_column(c);
 		});
 
-		$(this.dialog.body).find('.column-list').sortable();
+		$(this.dialog.body).find('.column-list').sortable({
+			update: function(event, ui) {
+				me.columns = [];
+				$.each($(me.dialog.body).find('.column-list .column-list-item'),
+					function(i, ele) {
+						me.columns.push($(ele).data("fieldselect"))
+					});
+			}
+		});
 
 		// add column
 		$(this.dialog.body).find('.btn-add').click(function() {
@@ -623,7 +631,7 @@ frappe.ui.ColumnPicker = Class.extend({
 	add_column: function(c) {
 		if(!c) return;
 		var w = $('<div style="padding: 5px; background-color: #eee; \
-			width: 90%; margin-bottom: 10px; border-radius: 3px; cursor: move;">\
+			width: 90%; margin-bottom: 10px; border-radius: 3px; cursor: move;" class="column-list-item">\
 			<img src="assets/frappe/images/ui/drag-handle.png" style="margin-right: 10px;">\
 			<a class="close" style="margin-top: 5px;">&times</a>\
 			</div>')
@@ -636,6 +644,8 @@ frappe.ui.ColumnPicker = Class.extend({
 
 		fieldselect.$select.css({width: '70%', 'margin-top':'5px'})
 		fieldselect.val((c[1] || this.doctype) + "." + c[0]);
+
+		w.data("fieldselect", fieldselect);
 
 		w.find('.close').data("fieldselect", fieldselect).click(function() {
 			console.log(me.columns.indexOf($(this).data('fieldselect')));
