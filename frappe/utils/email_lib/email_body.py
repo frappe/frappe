@@ -6,13 +6,14 @@ import frappe
 from frappe import msgprint, throw, _
 from frappe.utils import scrub_urls, cstr
 import email.utils
+from markdown2 import markdown
+
 
 def get_email(recipients, sender='', msg='', subject='[No Subject]',
 	text_content = None, footer=None, print_html=None, formatted=None):
 	"""send an html email as multipart with attachments and all"""
 	emailobj = EMail(sender, recipients, subject)
-	if (not '<br>' in msg) and (not '<p>' in msg) and (not '<div' in msg):
-		msg = msg.replace('\n', '<br>')
+	msg = markdown(msg)
 	emailobj.set_html(msg, text_content, footer=footer, print_html=print_html, formatted=formatted)
 
 	return emailobj
@@ -189,7 +190,6 @@ class EMail:
 
 def get_formatted_html(subject, message, footer=None, print_html=None):
 	# imported here to avoid cyclic import
-	import inlinestyler.utils
 
 	message = scrub_urls(message)
 	rendered_email = frappe.get_template("templates/emails/standard.html").render({
@@ -204,7 +204,7 @@ def get_formatted_html(subject, message, footer=None, print_html=None):
 	if frappe.local.flags.in_test:
 		return rendered_email
 
-	return cstr(inlinestyler.utils.inline_css(rendered_email))
+	return rendered_email
 
 def get_footer(footer=None):
 	"""append a footer (signature)"""
