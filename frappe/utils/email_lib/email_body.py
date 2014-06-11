@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import msgprint, throw, _
-from frappe.utils import scrub_urls, cstr
+from frappe.utils import scrub_urls
 import email.utils
 from markdown2 import markdown
 
@@ -199,10 +199,6 @@ def get_formatted_html(subject, message, footer=None, print_html=None):
 		"print_html": print_html,
 		"subject": subject
 	})
-
-	# if in a test case, do not inline css
-	if frappe.local.flags.in_test:
-		return rendered_email
 
 	return rendered_email
 
