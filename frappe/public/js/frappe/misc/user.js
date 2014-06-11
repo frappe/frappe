@@ -41,7 +41,6 @@ frappe.ui.set_user_background = function(src, selector, style) {
 	frappe.dom.set_style(repl('%(selector)s { \
 		background: url("%(src)s") center center;\
 		background-attachment: fixed; \
-		background-size: 100%; \
 		%(style)s \
 	}', {src:src, selector:selector, style: style==="Fill Screen" ? "background-size: cover;" : ""}));
 }
