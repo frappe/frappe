@@ -36,7 +36,10 @@ def main():
 				args = parsed_args.copy()
 				args["site"] = site
 				frappe.init(site, sites_path=sites_path)
-				return run(fn, args)
+				ret = run(fn, args)
+				if ret:
+					# if there's a return value, it's an error, so quit
+					return ret
 		else:
 			site = get_site(parsed_args)
 			if fn not in site_arg_optional and not site:
