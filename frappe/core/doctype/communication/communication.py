@@ -110,6 +110,7 @@ def get_customer_supplier(args=None):
 def send_comm_email(d, name, sent_via=None, print_html=None, attachments='[]', send_me_a_copy=False):
 	footer = None
 
+
 	if sent_via:
 		if hasattr(sent_via, "get_sender"):
 			d.sender = sent_via.get_sender(d) or d.sender
