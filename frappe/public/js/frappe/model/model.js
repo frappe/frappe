@@ -212,9 +212,8 @@ $.extend(frappe.model, {
 	},
 
 	get_value: function(doctype, filters, fieldname) {
-		if(typeof filters==="string") {
-			return locals[doctype] && locals[doctype][filters]
-				&& locals[doctype][filters][fieldname];
+		if(typeof filters==="string" && locals[doctype] && locals[doctype][filters]) {
+			return locals[doctype][filters][fieldname];
 		} else {
 			var l = frappe.get_list(doctype, filters);
 			return (l.length && l[0]) ? l[0][fieldname] : null;
