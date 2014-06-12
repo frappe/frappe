@@ -153,7 +153,7 @@ function get_number_format(currency) {
 	}
 
 	var number_format;
-	if(currency && frappe.boo t) {
+	if(currency && frappe.boot) {
 		number_format = frappe.model.get_value(":Currency", currency,
 			"number_format");
 	}
