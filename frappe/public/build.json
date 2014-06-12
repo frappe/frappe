@@ -32,7 +32,6 @@
 
 		"public/css/tag-it.css",
 		"public/css/bootstrap.css",
-		"public/css/bootstrap-responsive.css",
 		"public/css/font-awesome.css",
 		"public/css/desk.css",
 		"public/css/appframe.css",
@@ -51,6 +50,7 @@
 		"public/js/lib/center_image.js",
 		"public/js/lib/bootstrap.min.js",
 		"public/js/lib/nprogress.js",
+		"public/js/lib/microtemplate.js",
 		"public/js/lib/beautify-html.js",
 		"public/js/lib/moment/moment.min.js",
 		"public/js/lib/moment/moment-timezone.min.js",
