@@ -247,8 +247,16 @@ frappe.dom.set_box_shadow = function(ele, spread) {
 				var value = null;
 				var label = null;
 			} else {
-				var value = is_null(v.value) ? v : v.value;
-				var label = is_null(v.label) ? __(v) : __(v.label);
+				var is_value_null = is_null(v.value);
+				var is_label_null = is_null(v.label);
+
+				if (is_value_null && is_label_null) {
+					var value = v;
+					var label = __(v);
+				} else {
+					var value = is_value_null ? "" : v.value;
+					var label = is_label_null ? __(value) : __(v.label);
+				}
 			}
 			$('<option>').html(cstr(label)).attr('value', value).appendTo(this);
 		}
