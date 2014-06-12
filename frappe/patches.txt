@@ -9,6 +9,7 @@ execute:frappe.reload_doc('core', 'doctype', 'report') #2014-06-03
 execute:frappe.reload_doc('core', 'doctype', 'version') #2014-02-21
 execute:frappe.db.sql("alter table `tabSessions` modify `user` varchar(255), engine=InnoDB")
 execute:frappe.db.sql("delete from `tabDocField` where parent='0'")
+frappe.patches.v4_0.change_varchar_length
 
 frappe.patches.v4_0.webnotes_to_frappe
 execute:frappe.reset_perms("Module Def")
