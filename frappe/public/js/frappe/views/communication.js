@@ -365,7 +365,8 @@ frappe.views.CommunicationComposer = Class.extend({
 		if(comm_list.length > 0) {
 			fields.content.set_input(reply
 				+ "<p></p>"
-				+"-----"+__("In response to")+"-----<p></p>"
+				+"-----"+__("In response to")+"-----"
+				+"<p style='font-size: 11px; color: #888'>"+__("Please reply above this line or remove it if you are replying below it")+"</p><br><br>"
 				+ comm_list[0].content);
 		} else {
 			fields.content.set_input(reply);
