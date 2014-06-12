@@ -10,7 +10,7 @@ def execute():
 		alter_table = []
 
 		if desc["name"]["Type"] != "varchar(255)":
-			alter_table.append("change `name` `name` varchar(255) not null primary key")
+			alter_table.append("change `name` `name` varchar(255) not null")
 
 		for fieldname in ("modified_by", "owner", "parent", "parentfield", "parenttype"):
 			if desc[fieldname]["Type"] != "varchar(255)":
