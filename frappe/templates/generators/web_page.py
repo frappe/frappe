@@ -11,6 +11,7 @@ condition_field = "published"
 
 def get_context(context):
 	web_page = frappe._dict(context.doc.as_dict())
+	web_page.main_section = web_page.main_section or ""
 
 	if web_page.slideshow:
 		web_page.update(get_slideshow(web_page))
