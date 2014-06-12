@@ -148,13 +148,13 @@ var global_number_format = null;
 function get_number_format(currency) {
 	if(!global_number_format) {
 		global_number_format = frappe.boot.sysdefaults.number_format
-			|| frappe.model.get_value("Currency", frappe.boot.sysdefaults.currency, "number_format")
+			|| frappe.model.get_value(":Currency", frappe.boot.sysdefaults.currency, "number_format")
 			|| "#,###.##";
 	}
 
 	var number_format;
-	if(currency && frappe.boot) {
-		number_format = frappe.model.get_value("Currency", currency,
+	if(currency && frappe.boo t) {
+		number_format = frappe.model.get_value(":Currency", currency,
 			"number_format");
 	}
 
