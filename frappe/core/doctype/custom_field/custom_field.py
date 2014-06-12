@@ -78,7 +78,7 @@ class CustomField(Document):
 
 @frappe.whitelist()
 def get_fields_label(doctype=None):
-	return [{"value": df.fieldname, "label": _(df.label)} for df in frappe.get_meta(doctype).get("fields")]
+	return [{"value": df.fieldname or "", "label": _(df.label or "")} for df in frappe.get_meta(doctype).get("fields")]
 
 def create_custom_field_if_values_exist(doctype, df):
 	df = frappe._dict(df)

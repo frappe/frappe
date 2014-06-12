@@ -369,9 +369,10 @@ class Document(BaseDocument):
 
 	def run_method(self, method, *args, **kwargs):
 		"""run standard triggers, plus those in frappe"""
-		if hasattr(self, method):
+		if hasattr(self, method) and hasattr(getattr(self, method), "__call__"):
 			fn = lambda self, *args, **kwargs: getattr(self, method)(*args, **kwargs)
 		else:
+			# hack! to run hooks even if method does not exist
 			fn = lambda self, *args, **kwargs: None
 
 		fn.__name__ = method.encode("utf-8")

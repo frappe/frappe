@@ -13,13 +13,11 @@ def set_new_name(doc):
 	# amendments
 	if getattr(doc, "amended_from", None):
 		return _get_amended_name(doc)
-	else:
-		tmp = getattr(doc, "autoname", None)
-		if tmp and not isinstance(tmp, basestring):
-			# autoname in a function, not a property
-			doc.autoname()
-			if doc.name:
-				return
+
+	elif hasattr(doc, "run_method"):
+		doc.run_method("autoname")
+		if doc.name:
+			return
 
 	autoname = frappe.get_meta(doc.doctype).autoname
 

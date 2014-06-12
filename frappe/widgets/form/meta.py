@@ -5,7 +5,6 @@
 
 from __future__ import unicode_literals
 import frappe, os
-from frappe.utils import cstr, cint
 from frappe.model.meta import Meta
 from frappe.modules import scrub, get_module_path
 from frappe.model.workflow import get_workflow_name
@@ -60,8 +59,8 @@ class FormMeta(Meta):
 		self._add_code(_get_path(self.name + '_calendar.js'), '__calendar_js')
 		self._add_code(_get_path(self.name + '_map.js'), '__map_js')
 
-		self.add_custom_script()
 		self.add_code_via_hook("doctype_js", "__js")
+		self.add_custom_script()
 
 	def _add_code(self, path, fieldname):
 		js = frappe.read_file(path)
@@ -69,9 +68,16 @@ class FormMeta(Meta):
 			self.set(fieldname, (self.get(fieldname) or "") + "\n\n" + render_jinja(js))
 
 	def add_code_via_hook(self, hook, fieldname):
-		hook = "{}:{}".format(hook, self.name)
 		for app_name in frappe.get_installed_apps():
-			for file in frappe.get_hooks(hook, app_name=app_name):
+			code_hook = frappe.get_hooks(hook, default={}, app_name=app_name)
+			if not code_hook:
+				continue
+
+			files = code_hook.get(self.name, [])
+			if not isinstance(files, list):
+				files = [files]
+
+			for file in files:
 				path = frappe.get_app_path(app_name, *file.strip("/").split("/"))
 				self._add_code(path, fieldname)
 
