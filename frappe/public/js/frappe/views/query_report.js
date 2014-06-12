@@ -138,7 +138,7 @@ frappe.views.QueryReport = Class.extend({
 					f.set_input(df["default"]);
 				}
 				if(df.fieldtype=="Check") {
-					$(f.wrapper).find("input[type='checkbox']").css({"float":"None"});
+					$(f.wrapper).find("input[type='checkbox']").css({"float":"None", "margin-left": "0px"});
 				}
 
 				if(df.get_query) f.get_query = df.get_query;
