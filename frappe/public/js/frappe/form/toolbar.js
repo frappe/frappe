@@ -207,12 +207,12 @@ frappe.ui.form.Toolbar = Class.extend({
 		}
 		this.frm.linked_with.show();
 	},
-	set_title_right: function() {
+	set_title_right: function(dirty) {
 		var me = this,
 			current = this.appframe.get_title_right_text(),
 			status = null;
 
-		if (!this.frm.doc.__unsaved) {
+		if (!dirty) {
 			// don't clear actions menu if dirty
 			this.appframe.clear_primary_action();
 		}
@@ -290,7 +290,7 @@ frappe.ui.form.Toolbar = Class.extend({
 			.toggleClass("text-warning", this.frm.doc.__unsaved ? true : false)
 
 		this.set_title();
-		this.set_title_right();
+		this.set_title_right(true);
 
 		// set state in wrapper
 		$(this.frm.wrapper).attr("data-state", this.frm.doc.__unsaved ? "dirty" : "clean");
