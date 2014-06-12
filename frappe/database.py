@@ -372,7 +372,7 @@ class Database:
 		fl = []
 		if isinstance(fields, (list, tuple)):
 			for f in fields:
-				if "(" in f: # function
+				if "(" in f or " as " in f: # function
 					fl.append(f)
 				else:
 					fl.append("`" + f + "`")
