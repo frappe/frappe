@@ -55,12 +55,16 @@ class PropertySetter(Document):
 			validate_fields_for_doctype(self.doc_type)
 
 def make_property_setter(doctype, fieldname, property, value, property_type, for_doctype = False):
-		return frappe.get_doc({
-			"doctype":"Property Setter",
-			"doctype_or_field": for_doctype and "DocType" or "DocField",
-			"doc_type": doctype,
-			"field_name": fieldname,
-			"property": property,
-			"value": value,
-			"property_type": property_type
-		}).insert()
+	# WARNING: Ignores Permissions
+	property_setter = frappe.get_doc({
+		"doctype":"Property Setter",
+		"doctype_or_field": for_doctype and "DocType" or "DocField",
+		"doc_type": doctype,
+		"field_name": fieldname,
+		"property": property,
+		"value": value,
+		"property_type": property_type
+	})
+	property_setter.ignore_permissions = True
+	property_setter.insert()
+	return property_setter

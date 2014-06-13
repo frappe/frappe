@@ -123,14 +123,7 @@ def delete_items():
 	doctype = frappe.form_dict.get('doctype')
 
 	for d in il:
-		try:
-			dt_obj = frappe.get_doc(doctype, d)
-			if hasattr(dt_obj, 'on_trash'):
-				dt_obj.on_trash()
-			frappe.delete_doc(doctype, d)
-		except Exception, e:
-			frappe.errprint(frappe.get_traceback())
-			pass
+		frappe.delete_doc(doctype, d)
 
 @frappe.whitelist()
 def get_stats(stats, doctype):
