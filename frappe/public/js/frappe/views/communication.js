@@ -83,7 +83,7 @@ frappe.views.CommunicationList = Class.extend({
 		if(!doc.sender) doc.sender = "[unknown sender]";
 		doc._sender = doc.sender.replace(/</, "&lt;").replace(/>/, "&gt;");
 		doc._sender_id = doc.sender.indexOf("<")!== -1 ?
-			strip(doc.sender.split("<")[0]) : doc.sender;
+			strip(doc.sender.split("<")[1].split(">")[0]) : doc.sender;
 		doc.content = doc.content.split("-----"+__("In response to")+"-----")[0];
 		doc.content = doc.content.split("-----"+__("Original Message")+"-----")[0];
 	},
