@@ -1,12 +1,13 @@
 // Simple JavaScript Templating
 // Adapted from John Resig - http://ejohn.org/ - MIT Licensed
-tmpl = {compiled: {}, debug:{}};
-tmpl.compile = function(str) {
+
+frappe.template = {compiled: {}, debug:{}};
+frappe.template.compile = function(str) {
 	if(str.indexOf("'")!==-1) {
 		console.log("Warning: Single quotes (') may not work in templates");
 	}
-	if(!tmpl.compiled[str]) {
-		fn_str = "var p=[],print=function(){try{p.push.apply(p,arguments)}catch(e){console.log([p, e]);};};" +
+	if(!frappe.template.compiled[str]) {
+		fn_str = "var p=[],print=function(){p.push.apply(p,arguments)};" +
 
 	        // Introduce the data as local variables using with(){}
 	        "with(obj){p.push('" +
@@ -22,12 +23,12 @@ tmpl.compile = function(str) {
 	          .split("\r").join("\\'")
 	      + "');}return p.join('');";
 
-  		tmpl.debug[str] = fn_str;
-		tmpl.compiled[str] = new Function("obj", fn_str);
+  		frappe.template.debug[str] = fn_str;
+		frappe.template.compiled[str] = new Function("obj", fn_str);
     }
 
-	return tmpl.compiled[str];
+	return frappe.template.compiled[str];
 };
-tmpl.render = function(str, data, debug) {
-	return tmpl.compile(str)(data);
+frappe.render = function(str, data, debug) {
+	return frappe.template.compile(str)(data);
 };

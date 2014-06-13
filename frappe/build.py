@@ -1,5 +1,5 @@
 # Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt 
+# MIT License. See license.txt
 
 from __future__ import unicode_literals
 from frappe.utils.minify import JavascriptMinify
@@ -16,7 +16,7 @@ def bundle(no_compress, make_copy=False):
 	# build js files
 	make_asset_dirs(make_copy=make_copy)
 	build(no_compress)
-	
+
 def watch(no_compress):
 	"""watch and rebuild if necessary"""
 	import time
@@ -25,18 +25,18 @@ def watch(no_compress):
 	while True:
 		if files_dirty():
 			build(no_compress=True)
-		
+
 		time.sleep(3)
 
 def make_asset_dirs(make_copy=False):
 	assets_path = os.path.join(frappe.local.sites_path, "assets")
 	for dir_path in [
-			os.path.join(assets_path, 'js'), 
+			os.path.join(assets_path, 'js'),
 			os.path.join(assets_path, 'css')]:
-		
+
 		if not os.path.exists(dir_path):
 			os.makedirs(dir_path)
-	
+
 	# symlink app/public > assets/app
 	for app_name in frappe.get_all_apps(True):
 		pymodule = frappe.get_module(app_name)
@@ -53,7 +53,7 @@ def build(no_compress=False):
 	assets_path = os.path.join(frappe.local.sites_path, "assets")
 
 	for target, sources in get_build_maps().iteritems():
-		pack(os.path.join(assets_path, target), sources, no_compress)	
+		pack(os.path.join(assets_path, target), sources, no_compress)
 
 	shutil.copy(os.path.join(os.path.dirname(os.path.abspath(frappe.__file__)), 'data', 'languages.txt'), frappe.local.sites_path)
 	# reset_app_html()
@@ -79,39 +79,46 @@ def get_build_maps():
 							else:
 								s = os.path.join(app_path, source)
 							source_paths.append(s)
-								
+
 						build_maps[target] = source_paths
 				except Exception, e:
 					print path
 					raise
-		
+
 	return build_maps
 
 timestamps = {}
 
 def pack(target, sources, no_compress):
 	from cStringIO import StringIO
-	
+
 	outtype, outtxt = target.split(".")[-1], ''
 	jsm = JavascriptMinify()
-		
+
 	for f in sources:
 		suffix = None
 		if ':' in f: f, suffix = f.split(':')
 		if not os.path.exists(f) or os.path.isdir(f): continue
 		timestamps[f] = os.path.getmtime(f)
 		try:
-			with open(f, 'r') as sourcefile:			
+			with open(f, 'r') as sourcefile:
 				data = unicode(sourcefile.read(), 'utf-8', errors='ignore')
-			
-			if outtype=="js" and (not no_compress) and suffix!="concat" and (".min." not in f):
+
+			extn = f.rsplit(".", 1)[1]
+
+			if outtype=="js" and extn=="js" and (not no_compress) and suffix!="concat" and (".min." not in f):
 				tmpin, tmpout = StringIO(data.encode('utf-8')), StringIO()
 				jsm.minify(tmpin, tmpout)
 				outtxt += unicode(tmpout.getvalue() or '', 'utf-8').strip('\n') + ';'
+			elif outtype=="js" and extn=="html":
+				# add to frappe.templates
+				content = data.replace("\n", " ").replace("'", "\'")
+				outtxt += """frappe.templates["{key}"] = '{content}';\n""".format(\
+					key=f.rsplit("/", 1)[1][:-5], content=content)
 			else:
 				outtxt += ('\n/*\n *\t%s\n */' % f)
 				outtxt += '\n' + data + '\n'
-				
+
 		except Exception, e:
 			print "--Error in:" + f + "--"
 			print frappe.get_traceback()
@@ -119,10 +126,10 @@ def pack(target, sources, no_compress):
 	if not no_compress and outtype == 'css':
 		pass
 		#outtxt = cssmin(outtxt)
-					
+
 	with open(target, 'w') as f:
 		f.write(outtxt.encode("utf-8"))
-	
+
 	print "Wrote %s - %sk" % (target, str(int(os.path.getsize(target)/1024)))
 
 def files_dirty():
@@ -135,4 +142,4 @@ def files_dirty():
 				return True
 	else:
 		return False
-	
+
