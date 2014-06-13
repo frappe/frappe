@@ -114,7 +114,7 @@ frappe.desktop.show_all_modules = function() {
 			title: '<i class="icon-th text-muted"></i> All Applications'
 		});
 
-		var desktop_items = frappe.user.get_desktop_items();
+		var desktop_items = frappe.user.get_desktop_items(true);
 		var user_desktop_items = frappe.user.get_user_desktop_items();
 
 		$('<input class="form-control desktop-app-search" \
@@ -131,7 +131,8 @@ frappe.desktop.show_all_modules = function() {
 		$wrapper = $('<div class="list-group">').appendTo(d.body);
 
 		// list of applications (frappe.user.get_desktop_items())
-		$.each(keys(frappe.modules).sort(), function(i, m) {
+		var items = keys(frappe.modules).sort();
+		$.each(items, function(i, m) {
 			var module = frappe.get_module(m);
 			if(module.link && desktop_items.indexOf(m)!==-1) {
 				module.app_icon = frappe.ui.app_icon.get_html(m, true);
@@ -150,16 +151,10 @@ frappe.desktop.show_all_modules = function() {
 		// check shown items
 		$wrapper.find('[type="checkbox"]')
 			.on("click", function() {
-				// update user_desktop_items (when checked or un-checked)
-				var user_desktop_items = frappe.user.get_user_desktop_items();
-				var module = $(this).attr("data-name");
-				if($(this).prop("checked")) {
-					user_desktop_items.push(module);
-				} else {
-					if(user_desktop_items.indexOf(module)!==-1) {
-						user_desktop_items.splice(user_desktop_items.indexOf(module), 1);
-					}
-				}
+				var user_desktop_items = [];
+				$wrapper.find('[type="checkbox"]:checked').each(function(i,ele) {
+					user_desktop_items.push($(ele).attr("data-name"));
+				})
 				frappe.defaults.set_default("_user_desktop_items", user_desktop_items);
 				frappe.desktop.refresh();
 			})
