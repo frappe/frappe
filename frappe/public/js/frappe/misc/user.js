@@ -69,19 +69,23 @@ $.extend(frappe.user, {
 				return true;
 		}
 	},
-	get_desktop_items: function() {
+	get_desktop_items: function(global) {
 		// get user sequence preference
-		var user_list = frappe.defaults.get_default("_desktop_items");
-		if(user_list && user_list.length)
-			var modules_list = user_list;
+		var modules_list = null;
+		if(!global) {
+			var user_list = frappe.defaults.get_default("_desktop_items");
+			if(user_list && user_list.length)
+				var modules_list = user_list;
 
-		if(modules_list) {
-			// add missing modules - they will be hidden anyways by the view
-			$.each(frappe.modules, function(m, module) {
-				if(module.link && modules_list.indexOf(m)==-1) {
-					modules_list.push(m);
-				}
-			});
+			if(modules_list) {
+				// add missing modules - they will be hidden anyways by the view
+				$.each(frappe.modules, function(m, module) {
+					var module = frappe.get_module(m);
+					if(module.link && modules_list.indexOf(m)==-1) {
+						modules_list.push(m);
+					}
+				});
+			}
 		}
 
 		if(!modules_list || !modules_list.length) {
