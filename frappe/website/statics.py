@@ -9,17 +9,19 @@ from frappe.utils import cint
 from markdown2 import markdown
 from frappe.website.sitemap import get_route_children, get_next
 
-def sync_statics():
+def sync_statics(rebuild=False):
 	s = sync()
 	while True:
-		s.start()
+		s.start(rebuild)
 		frappe.db.commit()
 		time.sleep(2)
+		rebuild = False
 
 class sync(object):
-	def start(self):
+	def start(self, rebuild=False):
 		self.synced = []
 		self.updated = 0
+		self.rebuild = rebuild
 		for app in frappe.get_installed_apps():
 			self.sync_for_app(app)
 
@@ -150,7 +152,8 @@ class sync(object):
 			print "Ignoring {0} because page found".format(route_details.name)
 			return
 		if str(cint(os.path.getmtime(fpath)))!= route_details.static_file_timestamp \
-			or (cint(route_details.idx) != cint(priority) and (priority is not None)):
+			or (cint(route_details.idx) != cint(priority) and (priority is not None) \
+			or self.rebuild):
 
 			page = frappe.get_doc("Web Page", route_details.docname)
 			page.update(get_static_content(fpath, route_details.docname, route_details.name))
