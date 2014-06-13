@@ -83,3 +83,11 @@ def get_route_children(pathname, home_page=None):
 			children = [frappe.get_doc("Website Route", pathname)] + children
 
 	return children
+
+def get_next(route):
+	siblings = get_route_children(frappe.db.get_value("Website Route",
+		route, "parent_website_route"))
+	for i, r in enumerate(siblings):
+		if i < len(siblings) - 1:
+			if route==r.name:
+				return siblings[i+1]
