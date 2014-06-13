@@ -114,7 +114,7 @@ frappe.desktop.show_all_modules = function() {
 			title: '<i class="icon-th text-muted"></i> All Applications'
 		});
 
-		var desktop_items = frappe.user.get_desktop_items();
+		var desktop_items = frappe.user.get_desktop_items(true);
 		var user_desktop_items = frappe.user.get_user_desktop_items();
 
 		$('<input class="form-control desktop-app-search" \
