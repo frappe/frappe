@@ -132,14 +132,14 @@ def setup_install(parser):
 		help="Make a new application with boilerplate")
 	parser.add_argument("--install", metavar="DB-NAME", nargs=1,
 		help="Install a new db")
+	parser.add_argument("--root_password", metavar="ROOT-PASSWD",
+		help="MariaDB root password")
 	parser.add_argument("--sites_path", metavar="SITES_PATH", nargs=1,
 		help="path to directory with sites")
 	parser.add_argument("--install_app", metavar="APP-NAME", nargs=1,
 		help="Install a new app")
 	parser.add_argument("--add_to_installed_apps", metavar="APP-NAME", nargs="*",
 		help="Add these app(s) to Installed Apps")
-	parser.add_argument("--root-password", nargs=1,
-		help="Root password for new app")
 	parser.add_argument("--reinstall", default=False, action="store_true",
 		help="Install a fresh app in db_name specified in conf.py")
 	parser.add_argument("--restore", metavar=("DB-NAME", "SQL-FILE"), nargs=2,
