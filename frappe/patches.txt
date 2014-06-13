@@ -37,3 +37,5 @@ frappe.patches.v4_0.enable_scheduler_in_system_settings
 execute:frappe.db.sql("update tabReport set apply_user_permissions=1") #2014-06-03
 frappe.patches.v4_0.replace_deprecated_timezones
 execute:import frappe.website.render; frappe.website.render.clear_cache("login"); #2014-06-10
+frappe.patches.v4_0.fix_attach_field_file_url
+execute:frappe.reset_perms("User") #2014-06-13

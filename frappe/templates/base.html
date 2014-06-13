@@ -14,11 +14,13 @@ Built on Frappe.io. Free and Open Source Framework for the Web. https://frappe.i
 	<link rel="icon" href="{{ favicon or "" }}" type="image/x-icon">
 	{%- block head_include %}{% endblock -%}
 	{%- block head -%}
+
 		{%- if metatags -%}
 		{%- for name in metatags %}
 		<meta name="{{ name }}" content="{{ metatags[name]|striptags }}">
 		{%- endfor -%}
 		{%- endif -%}
+
 		{%- for link in web_include_css %}
 		<link type="text/css" rel="stylesheet" href="{{ link }}">
 		{%- endfor -%}
@@ -28,6 +30,10 @@ Built on Frappe.io. Free and Open Source Framework for the Web. https://frappe.i
 			{%- if style is defined -%}{{ style }}{%- endif -%}
 			</style>
 		{%- endblock -%}
+
+		{%- for link in web_include_js %}
+		<script type="text/javascript" src="{{ link }}"></script>
+		{%- endfor -%}
 	{%- endblock -%}
 </head>
 <body>
@@ -87,10 +93,6 @@ Built on Frappe.io. Free and Open Source Framework for the Web. https://frappe.i
 	<div id="wrap-footer">
 		{%- block footer -%}{% include "templates/includes/footer.html" %}{%- endblock -%}
 	</div>
-
-	{%- for link in web_include_js %}
-	<script type="text/javascript" src="{{ link }}"></script>
-	{%- endfor -%}
 
 	{%- block script %}
 		<script data-html-block="script">
