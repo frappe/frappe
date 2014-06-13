@@ -421,11 +421,12 @@ def latest(rebuild_website_config=True, quiet=False):
 		frappe.model.sync.sync_all(verbose=verbose)
 		sync_fixtures()
 
-		statics.sync().start()
+		sync = statics.sync()
+		sync.start()
+		sync.start(rebuild=True)
 		# build website config if any changes in templates etc.
 		if rebuild_website_config:
 			rebuild_config()
-
 
 		frappe.translate.clear_cache()
 
@@ -567,10 +568,10 @@ def build_sitemap():
 	frappe.destroy()
 
 @cmd
-def sync_statics():
+def sync_statics(force=False):
 	from frappe.website import statics
 	frappe.connect()
-	statics.sync_statics()
+	statics.sync_statics(rebuild = force)
 	frappe.db.commit()
 	frappe.destroy()
 
