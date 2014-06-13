@@ -7,7 +7,7 @@ import frappe, os, time
 from frappe import _
 from frappe.utils import cint
 from markdown2 import markdown
-from frappe.website.sitemap import get_route_children
+from frappe.website.sitemap import get_route_children, get_next
 
 def sync_statics():
 	s = sync()
@@ -199,6 +199,16 @@ def get_static_content(fpath, docname, route):
 					html = frappe.get_template("templates/includes/static_index.html").render({
 							"items":children})
 					content = content.replace("{index}", html)
+
+				if "{next}" in content:
+					next_item = get_next(route)
+					html = ""
+					if next_item:
+						html = '''<p>
+							<br><a href="{name}" class="btn btn-primary">
+								{page_title} <i class="icon-chevron-right"></i></a>
+						</p>'''.format(**next_item)
+					content = content.replace("{next}", html)
 
 				content = markdown(content)
 
