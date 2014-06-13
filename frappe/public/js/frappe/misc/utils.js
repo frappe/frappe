@@ -248,13 +248,4 @@ frappe.utils = {
 			setTimeout(function() { callback(dataURL); }, 10 );
 		}
 	},
-
-	with_print_template: function(fn) {
-		if(!frappe.print_template) {
-			$.get("/assets/frappe/html/print_template.html?q=4",
-				function(html) { frappe.print_template = html; fn(); });
-		} else {
-			fn();
-		}
-	}
 };

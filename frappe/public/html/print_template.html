@@ -6,12 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="">
     <meta name="author" content="">
-    <title>{0}</title>
-    <link href="/assets/frappe/css/bootstrap.css" rel="stylesheet">
+    <title>{%= title %}</title>
+    <link href="{%= frappe.urllib.get_base_url() %}/assets/frappe/css/bootstrap.css" rel="stylesheet">
   </head>
   <body>
 	  <div class="container">
-        {1}
+        {%= content %}
 	  </div>
   </body>
 </html>

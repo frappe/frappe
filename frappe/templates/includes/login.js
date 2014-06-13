@@ -124,5 +124,6 @@ frappe.ready(function() {
 	window.location.hash = "#login";
 	login.bind_events();
 	login.login();
+	$(".form-signup, .form-forgot").removeClass("hide");
 	$(document).trigger('login_rendered');
 });

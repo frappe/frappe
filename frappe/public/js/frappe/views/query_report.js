@@ -133,21 +133,25 @@ frappe.views.QueryReport = Class.extend({
 					msgprint(__("Run the report first"));
 					return;
 				}
-				frappe.utils.with_print_template(function() {
-					var data = [];
-					$.each(me.data, function(i, d) {
-						var newd = {}; data.push(newd);
-						$.each(d, function(k, v) {
-							newd[k.replace(/ /g, "_").toLowerCase()] = v; });
-					});
-					var content = tmpl.render(html_format, {data: data, filters:me.get_values(), report:me});
 
-					var html = $.format(frappe.print_template, [
-						__(me.report_name), content]);
-					var w = window.open();
-					w.document.write(html);
-					w.document.close();
-				})
+				var data = [];
+				$.each(me.data, function(i, d) {
+					var newd = {}; data.push(newd);
+					$.each(d, function(k, v) {
+						newd[k.replace(/ /g, "_").toLowerCase()] = v; });
+				});
+
+				var content = frappe.render(html_format,
+					{data: data, filters:me.get_values(), report:me});
+
+				var html = frappe.render(frappe.templates.print_template, {
+					title: __(me.report_name), content: content
+				});
+
+				var w = window.open();
+				w.document.write(html);
+				w.document.close();
+
 			}, "icon-print");
 
 		}
