@@ -34,6 +34,8 @@ notification_config = "frappe.core.notifications.get_notification_config"
 
 before_tests = "frappe.utils.install.before_tests"
 
+website_generators = ["Web Page", "Blog Post", "Website Group", "Blog Category"]
+
 # permissions
 
 permission_query_conditions = {
@@ -45,9 +47,6 @@ has_permission = {
 		"Event": "frappe.core.doctype.event.event.has_permission",
 		"ToDo": "frappe.core.doctype.todo.todo.has_permission"
 	}
-
-# bean
-
 
 doc_events = {
 		"*": {

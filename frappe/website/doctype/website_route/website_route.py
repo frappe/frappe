@@ -14,6 +14,7 @@ class WebsiteRoute(NestedSet):
 
 	def autoname(self):
 		self.name = self.get_url()
+		print self.name
 
 	def get_url(self):
 		url = self.page_name
@@ -26,42 +27,11 @@ class WebsiteRoute(NestedSet):
 			self.rename()
 		self.check_if_page_name_is_unique()
 		self.make_private_if_parent_is_private()
-		if not self.is_new():
-			self.renumber_if_moved()
-		self.set_idx()
-
-	def renumber_if_moved(self):
-		current_parent = frappe.db.get_value("Website Route", self.name, "parent_website_route")
-		if current_parent and current_parent != self.parent_website_route:
-			# move-up
-
-			# sitemap
-			frappe.db.sql("""update `tabWebsite Route` set idx=idx-1
-				where parent_website_route=%s and idx>%s""", (current_parent, self.idx))
-
-			# source table
-			frappe.db.sql("""update `tab{0}` set idx=idx-1
-				where parent_website_route=%s and idx>%s""".format(self.ref_doctype),
-					(current_parent, self.idx))
-			self.idx = None
 
 	def on_update(self):
 		if not frappe.flags.in_rebuild_config:
 			NestedSet.on_update(self)
 		self.clear_cache()
-
-	def set_idx(self):
-		if self.parent_website_route:
-			if self.idx == None:
-				self.set_idx_as_last()
-
-	def set_idx_as_last(self):
-		# new, append
-		self.idx = int(frappe.db.sql("""select ifnull(max(ifnull(idx, -1)), -1)
-			from `tabWebsite Route`
-			where ifnull(parent_website_route, '')=%s and name!=%s""",
-				(self.parent_website_route or '',
-				self.name))[0][0]) + 1
 
 	def rename(self):
 		self.old_name = self.name
@@ -92,7 +62,7 @@ class WebsiteRoute(NestedSet):
 		if self.page_or_generator == "Page":
 			# for a page, name and website sitemap config form a unique key
 			exists = frappe.db.sql("""select name from `tabWebsite Route`
-				where name=%s and website_template!=%s""", (self.name, self.website_template))
+				where name=%s""", self.name)
 		else:
 			# for a generator, name, ref_doctype and docname make a unique key
 			exists = frappe.db.sql("""select name from `tabWebsite Route`
@@ -124,46 +94,9 @@ class WebsiteRoute(NestedSet):
 		if self.parent_website_route:
 			clear_cache(self.parent_website_route)
 
-def add_to_sitemap(options):
-	website_route = frappe.new_doc("Website Route")
-
-	for key in sitemap_fields:
-		website_route.set(key, options.get(key))
-	if not website_route.page_name:
-		website_route.page_name = options.get("link_name")
-	website_route.website_template = options.get("link_name")
-
-	website_route.insert(ignore_permissions=True)
-
-	return website_route.idx
-
-def update_sitemap(website_route, options):
-	website_route = frappe.get_doc("Website Route", website_route)
-
-	for key in sitemap_fields:
-		website_route.set(key, options.get(key))
-
-	if not website_route.page_name:
-		# for pages
-		website_route.page_name = options.get("link_name")
-
-	website_route.website_template = options.get("link_name")
-	website_route.ignore_links = True
-	website_route.save(ignore_permissions=True)
-
-	return website_route.idx
-
 def remove_sitemap(page_name=None, ref_doctype=None, docname=None):
 	if page_name:
 		frappe.delete_doc("Website Route", page_name, ignore_permissions=True, force=True)
 	elif ref_doctype and docname:
 		frappe.delete_doc("Website Route", frappe.db.sql_list("""select name from `tabWebsite Route`
 			where ref_doctype=%s and docname=%s""", (ref_doctype, docname)), ignore_permissions=True, force=True)
-
-def cleanup_sitemap():
-	"""remove sitemap records where its config do not exist anymore"""
-	to_delete = frappe.db.sql_list("""select name from `tabWebsite Route` ws
-			where not exists(select name from `tabWebsite Template` wsc
-				where wsc.name=ws.website_template)""")
-
-	frappe.delete_doc("Website Route", to_delete, ignore_permissions=True)

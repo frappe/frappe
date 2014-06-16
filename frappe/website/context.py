@@ -53,9 +53,13 @@ def build_context(sitemap_options):
 
 	# provide doc
 	if context.doctype and context.docname:
-		context.doc = frappe.get_doc(context.doctype, context.docname)
+		doc = frappe.get_doc(context.doctype, context.docname)
+		context.doc = doc
+		context.update(doc.as_dict())
+		if hasattr(context.doc, "get_context"):
+			context.update(context.doc.get_context(context) or {})
 
-	if context.controller:
+	elif context.controller:
 		module = frappe.get_module(context.controller)
 
 		if module and hasattr(module, "get_context"):

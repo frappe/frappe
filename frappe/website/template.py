@@ -27,7 +27,7 @@ def render_blocks(context):
 		for block, render in template.blocks.items():
 			out[block] = scrub_relative_urls(concat(render(template.new_context(context))))
 
-	_render_blocks(context["template_path"])
+	_render_blocks(context["template"])
 
 	# default blocks if not found
 	if "title" not in out and out.get("header"):

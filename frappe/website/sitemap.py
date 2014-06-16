@@ -24,21 +24,24 @@ def build_sitemap_options(path):
 	sitemap_options = frappe._dict(frappe.get_doc("Website Route", path).as_dict())
 	home_page = get_home_page()
 
-	sitemap_config = frappe.get_doc("Website Template",
-		sitemap_options.get("website_template")).as_dict()
+	if sitemap_options.controller:
+		module = frappe.get_module(sitemap_options.controller)
 
-	# get sitemap config fields too
-	for fieldname in ("base_template_path", "template_path", "controller",
-		"no_cache", "no_sitemap", "page_name_field", "condition_field"):
-		sitemap_options[fieldname] = sitemap_config.get(fieldname)
+		# get sitemap config fields too
+		for prop in ("base_template_path", "template", "no_cache", "no_sitemap",
+			"condition_field"):
+			if hasattr(module, prop):
+				sitemap_options[prop] = getattr(module, prop)
 
 	sitemap_options.doctype = sitemap_options.ref_doctype
 	sitemap_options.title = sitemap_options.page_title
 	sitemap_options.pathname = sitemap_options.name
 
 	# establish hierarchy
-	sitemap_options.parents = frappe.db.sql("""select name, page_title from `tabWebsite Route`
-		where lft < %s and rgt > %s order by lft asc""", (sitemap_options.lft, sitemap_options.rgt), as_dict=True)
+	sitemap_options.parents = frappe.db.sql("""select name, page_title from
+		`tabWebsite Route`
+		where lft < %s and rgt > %s
+		order by lft asc""", (sitemap_options.lft, sitemap_options.rgt), as_dict=True)
 
 	if not sitemap_options.no_sidebar:
 		sitemap_options.children = get_route_children(sitemap_options.pathname, home_page)
@@ -70,14 +73,17 @@ def get_route_children(pathname, home_page=None):
 
 		if children:
 			# if children are from generator and sort order is specified, then get that condition
-			website_template = frappe.get_doc("Website Template", children[0].website_template)
-			if website_template.sort_by!="name":
+			module = frappe.get_module(children[0].controller)
+			if hasattr(module, "sort_by") and module.sort_by!="name":
 				children = frappe.db.sql("""select t1.* from
 					`tabWebsite Route` t1, `tab{ref_doctype}` t2
 					where ifnull(t1.parent_website_route,'')=%s
 					and t1.public_read=1
 					and t1.docname = t2.name
-					order by t2.{sort_by} {sort_order}""".format(**website_template.as_dict()),
+					order by t2.{sort_by} {sort_order}""".format(
+						ref_doctype = children[0].ref_doctype,
+						sort_by = module.sort_by,
+						sort_order = module.sort_order),
 						pathname, as_dict=True)
 
 			children = [frappe.get_doc("Website Route", pathname)] + children
