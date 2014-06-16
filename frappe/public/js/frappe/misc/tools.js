@@ -124,7 +124,7 @@ frappe.slickgrid_tools = {
 					frappe.call({
 						method:"frappe.client.make_width_property_setter",
 						args: {
-							doclist: [{
+							doc: {
 								doctype:'Property Setter',
 								doctype_or_field: 'DocField',
 								doc_type: col.docfield.parent,
@@ -132,7 +132,7 @@ frappe.slickgrid_tools = {
 								property: 'width',
 								value: col.width,
 								"__islocal": 1
-							}]
+							}
 						}
 					});
 					col.previousWidth = col.width;
