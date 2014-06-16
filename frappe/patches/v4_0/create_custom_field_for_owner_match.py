@@ -13,7 +13,7 @@ def create_custom_field_for_owner_match():
 	frappe.db.sql("""update `tabDocPerm` set apply_user_permissions=1 where `match`='owner'""")
 
 	for dt in frappe.db.sql_list("""select distinct parent from `tabDocPerm`
-		where `match`='owner' and permlevel=0"""):
+		where `match`='owner' and permlevel=0 and parent != 'User'"""):
 
 		# a link field pointing to User already exists
 		if (frappe.db.get_value("DocField", {"parent": dt, "fieldtype": "Link", "options": "User", "default": "__user"})
