@@ -108,8 +108,9 @@ def set_default(key, value, parent=None):
 	frappe.clear_cache(user=frappe.session.user)
 
 @frappe.whitelist()
-def make_width_property_setter():
-	doc = json.loads(frappe.form_dict)
+def make_width_property_setter(doc):
+	if isinstance(doc, basestring):
+		doc = json.loads(doc)
 	if doc["doctype"]=="Property Setter" and doc["property"]=="width":
 		frappe.get_doc(doc).insert(ignore_permissions = True)
 
