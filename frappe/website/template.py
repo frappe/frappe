@@ -36,10 +36,10 @@ def render_blocks(context):
 	if "title" not in out:
 		out["title"] = context.get("title")
 
-	if "header" not in out and out.get("title"):
+	if not out.get("header") and out.get("title"):
 		out["header"] = out["title"]
 
-	if not out["header"].startswith("<h"):
+	if out.get("header") and not out["header"].startswith("<h"):
 		out["header"] = "<h2>" + out["header"] + "</h2>"
 
 	if "breadcrumbs" not in out:
