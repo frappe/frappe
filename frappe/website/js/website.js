@@ -192,6 +192,11 @@ $.extend(frappe, {
 			$(document).on("click", "#wrap a", frappe.handle_click);
 
 			$(window).on("popstate", function(event) {
+				// don't run this on hash change
+				if (location.hash && (!window.previous_href || window.previous_href.replace(location.hash, '') ===
+					 location.href.replace(location.hash, '')))
+					 return;
+
 				// hack for chrome's onload popstate call
 				if(window.initial_href==location.href && window.previous_href==undefined) {
 					window.history.replaceState({"reload": true},
