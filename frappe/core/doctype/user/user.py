@@ -27,6 +27,7 @@ class User(Document):
 		self.add_system_manager_role()
 		self.check_enable_disable()
 		self.update_gravatar()
+		self.ensure_unique_roles()
 		self.remove_all_roles_for_guest()
 		if self.language == "Loading...":
 			self.language = None
@@ -254,6 +255,14 @@ class User(Document):
 	def remove_all_roles_for_guest(self):
 		if self.name == "Guest":
 			self.set("user_roles", list(set(d for d in self.get("user_roles") if d.role == "Guest")))
+
+	def ensure_unique_roles(self):
+		exists = []
+		for i, d in enumerate(self.get("user_roles")):
+			if (not d.role) or (d.role in exists):
+				self.get("user_roles").remove(d)
+			else:
+				exists.append(d.role)
 
 @frappe.whitelist()
 def get_languages():

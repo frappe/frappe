@@ -172,8 +172,12 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 		overwrite = params.get('overwrite')
 
 	# delete child rows (if parenttype)
-	if parenttype and overwrite:
-		delete_child_rows(data, doctype)
+	parentfield = None
+	if parenttype:
+		parentfield = get_parent_field(doctype, parenttype)
+
+		if overwrite:
+			delete_child_rows(data, doctype)
 
 	ret = []
 	error = False
@@ -188,13 +192,12 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 		doc = get_doc(row_idx)
 		try:
 			frappe.local.message_log = []
-			if doc.get("parentfield"):
-				parent = frappe.get_doc(doc["parenttype"], doc["parentfield"])
-				parent.append(doc)
+			if parentfield:
+				parent = frappe.get_doc(parenttype, doc["parent"])
+				doc = parent.append(parentfield, doc)
 				parent.save()
 				ret.append('Inserted row for %s at #%s' % (getlink(parenttype,
 					doc.parent), unicode(doc.idx)))
-
 			else:
 				if overwrite and frappe.db.exists(doctype, doc["name"]):
 					original = frappe.get_doc(doctype, doc["name"])

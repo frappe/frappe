@@ -46,6 +46,32 @@ class TestDataImport(unittest.TestCase):
 		importer.upload(content, overwrite=True)
 		self.assertTrue(frappe.db.get_value("Blog Category", "test-category", "title"), "New Title")
 
+	def test_import_only_children(self):
+		user_email = "test_import_userrole@example.com"
+		if frappe.db.exists("User", user_email):
+			frappe.delete_doc("User", user_email)
+
+		frappe.get_doc({"doctype": "User", "email": user_email, "first_name": "Test Import UserRole"}).insert()
+
+		exporter.get_template("UserRole", "User", all_doctypes="No", with_data="No")
+		content = read_csv_content(frappe.response.result)
+		content.append(["", "test_import_userrole@example.com", "Blogger"])
+		importer.upload(content)
+
+		user = frappe.get_doc("User", user_email)
+		self.assertEquals(len(user.get("user_roles")), 1)
+		self.assertTrue(user.get("user_roles")[0].role, "Blogger")
+
+		# overwrite
+		exporter.get_template("UserRole", "User", all_doctypes="No", with_data="No")
+		content = read_csv_content(frappe.response.result)
+		content.append(["", "test_import_userrole@example.com", "Website Manager"])
+		importer.upload(content, overwrite=True)
+
+		user = frappe.get_doc("User", user_email)
+		self.assertEquals(len(user.get("user_roles")), 1)
+		self.assertTrue(user.get("user_roles")[0].role, "Website Manager")
+
 	def test_import_with_children(self):
 		exporter.get_template("Event", all_doctypes="Yes", with_data="No")
 		content = read_csv_content(frappe.response.result)
