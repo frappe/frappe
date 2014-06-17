@@ -4,18 +4,36 @@
 from __future__ import unicode_literals
 import frappe, os
 from frappe.modules import load_doctype_module
+import statics, render
 
 def sync(app=None):
 	if app:
 		apps = [app]
 	else:
 		apps = frappe.get_installed_apps()
-		# delete all routes (resetting)
-		frappe.db.sql("delete from `tabWebsite Route`")
+
+	print "Resetting..."
+	render.clear_cache()
+
+	# delete all static web pages
+	statics.delete_static_web_pages()
+
+	# delete all routes (resetting)
+	frappe.db.sql("delete from `tabWebsite Route`")
 
 	for app in apps:
+		print "Importing pages from " + app
 		sync_pages(app)
+		print "Importing generators from " + app
 		sync_generators(app)
+
+	# sync statics
+	print "Importing statics"
+	statics_sync = statics.sync()
+	statics_sync.start()
+
+	# rebuild for new inserts
+	statics_sync.start(rebuild=True)
 
 def sync_pages(app):
 	app_path = frappe.get_app_path(app)
@@ -50,4 +68,6 @@ def sync_generators(app):
 			order_by = "{0} {1}".format(module.sort_by, module.sort_order)
 		for name in frappe.db.sql_list("select name from `tab{0}` {1} order by {2}".format(doctype,
 			condition, order_by)):
-			frappe.get_doc(doctype, name).save(ignore_permissions=True)
+			doc = frappe.get_doc(doctype, name)
+			print doctype, name
+			doc.save(ignore_permissions=True)

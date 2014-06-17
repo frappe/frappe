@@ -42,4 +42,4 @@ execute:frappe.reset_perms("User") #2014-06-13
 execute:frappe.db.sql("""delete from `tabUserRole` where ifnull(parentfield, '')=''""") #2014-06-17
 frappe.patches.v4_0.remove_user_owner_custom_field
 execute:frappe.delete_doc("DocType", "Website Template")
-execute:frappe.get_attr("frappe.website.sync.sync")() #2014-06-17
+execute:frappe.reload_doc('website', 'doctype', 'website_route') #2014-06-17

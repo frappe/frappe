@@ -407,7 +407,6 @@ def latest(rebuild_website=True, quiet=False):
 	import frappe.model.sync
 	from frappe.utils.fixtures import sync_fixtures
 	import frappe.translate
-	from frappe.website import statics
 
 	verbose = not quiet
 
@@ -420,11 +419,6 @@ def latest(rebuild_website=True, quiet=False):
 		frappe.model.sync.sync_all(verbose=verbose)
 		frappe.translate.clear_cache()
 		sync_fixtures()
-
-		sync = statics.sync()
-		sync.start()
-		sync.start(rebuild=True)
-		# build website config if any changes in templates etc.
 
 		if rebuild_website:
 			build_website()

@@ -182,6 +182,10 @@ class sync(object):
 				where ifnull(static_file_timestamp,'')!=''
 				order by (rgt-lft) asc"""))
 
+def delete_static_web_pages():
+	for name in frappe.db.sql_list("""select docname from `tabWebsite Route`
+		where ifnull(static_file_timestamp,'')!=''"""):
+		frappe.db.sql("delete from `tabWeb Page` where name=%s", name)
 
 def get_static_content(fpath, docname, route):
 	d = frappe._dict({})
