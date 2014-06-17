@@ -399,7 +399,6 @@ class Document(BaseDocument):
 		elif self._action=="cancel":
 			self.run_method("before_cancel")
 		elif self._action=="update_after_submit":
-			self.run_method("validate")
 			self.run_method("before_update_after_submit")
 
 	def run_post_save_methods(self):

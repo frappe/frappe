@@ -619,13 +619,16 @@ _f.Frm.prototype._save = function(save_action, callback, btn, on_error) {
 	if((!this.meta.in_dialog || this.in_form) && !this.meta.istable)
 		scroll(0, 0);
 
-	// validate
-	validated = true;
-	this.script_manager.trigger("validate");
-	if(!validated) {
-		if(on_error)
-			on_error();
-		return;
+	if(save_action != "Update") {
+		// validate
+		validated = true;
+		this.script_manager.trigger("validate");
+
+		if(!validated) {
+			if(on_error)
+				on_error();
+			return;
+		}
 	}
 
 	var after_save = function(r) {
