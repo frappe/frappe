@@ -14,7 +14,6 @@ class WebsiteRoute(NestedSet):
 
 	def autoname(self):
 		self.name = self.get_url()
-		print self.name
 
 	def get_url(self):
 		url = self.page_name
