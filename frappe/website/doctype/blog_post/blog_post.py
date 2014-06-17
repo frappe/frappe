@@ -10,8 +10,7 @@ from frappe.website.render import clear_cache
 from frappe.utils import today, cint, global_date_format, get_fullname
 from frappe.website.utils import find_first_image, get_comment_list
 
-sort_by = "published_on"
-sort_order = "desc"
+order_by = "`tabBlog Post`.published_on desc"
 condition_field = "published"
 template = "templates/generators/blog_post.html"
 

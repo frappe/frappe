@@ -71,6 +71,7 @@ frappe.request.call = function(opts) {
 			500: function() {
 				msgprint(__("Server Error: Please check your server logs or contact tech support."))
 				opts.error && opts.error();
+
 			}
 		},
 		async: opts.async
@@ -144,7 +145,6 @@ frappe.request.prepare = function(opts) {
 }
 
 frappe.request.cleanup = function(opts, r) {
-
 	// stop button indicator
 	if(opts.btn) $(opts.btn).done_working();
 

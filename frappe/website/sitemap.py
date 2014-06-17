@@ -74,16 +74,15 @@ def get_route_children(pathname, home_page=None):
 		if children:
 			# if children are from generator and sort order is specified, then get that condition
 			module = frappe.get_module(children[0].controller)
-			if hasattr(module, "sort_by") and module.sort_by!="name":
+			if hasattr(module, "sort_by"):
 				children = frappe.db.sql("""select t1.* from
 					`tabWebsite Route` t1, `tab{ref_doctype}` t2
 					where ifnull(t1.parent_website_route,'')=%s
 					and t1.public_read=1
 					and t1.docname = t2.name
-					order by t2.{sort_by} {sort_order}""".format(
+					order by {sort_by}""".format(
 						ref_doctype = children[0].ref_doctype,
-						sort_by = module.sort_by,
-						sort_order = module.sort_order),
+						sort_by = module.sort_by),
 						pathname, as_dict=True)
 
 			children = [frappe.get_doc("Website Route", pathname)] + children

@@ -20,20 +20,8 @@ class WebsiteGenerator(Document):
 		self.get("__onload").website_route = frappe.db.get_value("Website Route",
 			{"ref_doctype": self.doctype, "docname": self.name})
 
-	def set_page_name(self):
-		"""set page name based on parent page_name and title"""
-		page_name = cleanup_page_name(self.get_page_title())
-		page_name_field = getattr(self, "page_name_field", "page_name")
-
-		if self.is_new():
-			self.set(page_name_field, page_name)
-		else:
-			frappe.db.set(page_name_field, page_name)
-
-		return page_name
-
 	def get_parent_website_route(self):
-		return self.parent_website_route
+		return self.get("parent_website_route", "")
 
 	def on_update(self):
 		self.update_sitemap()
@@ -98,18 +86,19 @@ class WebsiteGenerator(Document):
 			route.public_read = 1
 
 	def get_page_name(self):
-		page_name = self._get_page_name()
+		return self.get_or_make_page_name()
+
+	def get_page_name_field(self):
+		return self.page_name_field if hasattr(self, "page_name_field") else "page_name"
+
+	def get_or_make_page_name(self):
+		page_name = self.get(self.get_page_name_field())
 		if not page_name:
-			page_name = self.set_page_name()
+			page_name = cleanup_page_name(self.get_page_title())
+			if self.is_new():
+				self.set(self.get_page_name_field(), page_name)
 
-		return self._get_page_name()
-
-	def _get_page_name(self):
-		if hasattr(self, "page_name_field") and self.meta.get_field(self.page_name_field):
-			parent = self.get_parent_website_route()
-			return ((parent + "/") if parent else "") + self.get(self.page_name_field)
-		else:
-			return cleanup_page_name(self.get_page_title())
+		return page_name
 
 	def get_page_title(self):
 		return self.get("title") or (self.name.replace("-", " ").replace("_", " ").title())

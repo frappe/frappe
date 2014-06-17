@@ -88,10 +88,12 @@ class WebsiteRoute(NestedSet):
 
 	def clear_cache(self, name=None):
 		from frappe.website.render import clear_cache
-		clear_cache(name or self.name)
-
-		if self.parent_website_route:
+		if name:
+			clear_cache(name)
+		elif self.parent_website_route:
 			clear_cache(self.parent_website_route)
+		else:
+			clear_cache(self.name)
 
 def remove_sitemap(page_name=None, ref_doctype=None, docname=None):
 	if page_name:
