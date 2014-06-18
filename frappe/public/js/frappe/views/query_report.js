@@ -142,8 +142,18 @@ frappe.views.QueryReport = Class.extend({
 				}
 
 				if(df.get_query) f.get_query = df.get_query;
+
+				// run report on change
+				f.$input.on("change", function() {
+					me.trigger_refresh();
+				});
 			}
 		});
+
+		// hide appframe form if no filters
+		var $filters = this.appframe.parent.find('.appframe-form .filters');
+		this.appframe.parent.find('.appframe-form').toggle($filters.length ? true : false);
+
 		this.set_route_filters()
 		this.set_filters_by_name();
 	},
@@ -175,10 +185,7 @@ frappe.views.QueryReport = Class.extend({
 		this.waiting = frappe.messages.waiting(this.wrapper.find(".waiting-area").empty().toggle(true),
 			"Loading Report...");
 		this.wrapper.find(".results").toggle(false);
-		var filters = {};
-		$.each(this.filters || [], function(i, f) {
-			filters[f.df.fieldname] = f.get_parsed_value();
-		})
+		var filters = this.get_values(true);
 		return frappe.call({
 			method: "frappe.widgets.query_report.run",
 			type: "GET",
@@ -194,7 +201,23 @@ frappe.views.QueryReport = Class.extend({
 
 		return this.report_ajax;
 	},
-	get_values: function() {
+	trigger_refresh: function() {
+		var me = this;
+		var filters = me.get_values();
+
+		// check if required filters are not missing
+		var missing = false;
+		$.each(me.filters, function(k, _f) {
+			if (_f.df.reqd && !filters[_f.df.fieldname]) {
+				missing = true;
+				return;
+			}
+		});
+		if (!missing) {
+			me.refresh();
+		}
+	},
+	get_values: function(raise) {
 		var filters = {};
 		var mandatory_fields = [];
 		$.each(this.filters || [], function(i, f) {
@@ -203,7 +226,7 @@ frappe.views.QueryReport = Class.extend({
 			if(f.df.reqd && !v) mandatory_fields.push(f.df.label);
 			if(v) filters[f.df.fieldname] = v;
 		})
-		if(mandatory_fields.length) {
+		if(raise && mandatory_fields.length) {
 			frappe.throw(__("Mandatory filters required:\n") + __(mandatory_fields.join("\n")));
 		}
 		return filters
