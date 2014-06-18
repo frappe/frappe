@@ -113,7 +113,7 @@ def rename_field(doctype, old_fieldname, new_fieldname):
 		where doc_type=%s and field_name=%s""", (new_fieldname, doctype, old_fieldname))
 
 	update_reports(doctype, old_fieldname, new_fieldname)
-	update_users_report_view_settings(doctype, old_fieldname)
+	update_users_report_view_settings(doctype, old_fieldname, new_fieldname)
 
 def update_reports(doctype, old_fieldname, new_fieldname):
 	def _get_new_sort_by(report_dict, report, key):
@@ -175,7 +175,7 @@ def update_reports(doctype, old_fieldname, new_fieldname):
 
 			frappe.db.sql("""update `tabReport` set `json`=%s where name=%s""", (new_val, r.name))
 
-def update_users_report_view_settings(doctype, ref_fieldname):
+def update_users_report_view_settings(doctype, ref_fieldname, new_fieldname):
 	user_report_cols = frappe.db.sql("""select defkey, defvalue from `tabDefaultValue` where
 		defkey like '_list_settings:%'""")
 	for key, value in user_report_cols:
@@ -183,8 +183,11 @@ def update_users_report_view_settings(doctype, ref_fieldname):
 		columns_modified = False
 		for field, field_doctype in json.loads(value):
 			if field == ref_fieldname and field_doctype == doctype:
-				new_columns.append([field, field_doctype])
+				new_columns.append([new_fieldname, field_doctype])
 				columns_modified=True
+			else:
+				new_columns.append([field, field_doctype])
+
 		if columns_modified:
 			frappe.db.sql("""update `tabDefaultValue` set defvalue=%s
 				where defkey=%s""" % ('%s', '%s'), (json.dumps(new_columns), key))
