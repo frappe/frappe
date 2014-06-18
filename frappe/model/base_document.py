@@ -277,6 +277,32 @@ class BaseDocument(object):
 
 		return invalid_links
 
+	def _validate_selects(self):
+		if frappe.flags.in_import:
+			return
+
+		for df in self.meta.get_select_fields():
+			if not (self.get(df.fieldname) and df.options):
+				continue
+
+			options = (df.options or "").split("\n")
+
+			# if only empty options
+			if not filter(None, options):
+				continue
+
+			# strip and set
+			self.set(df.fieldname, self.get(df.fieldname).strip())
+
+			if self.get(df.fieldname) not in options:
+				# show an elaborate message
+				prefix = _("Row #{0}:").format(self.idx) if self.get("parentfield") else ""
+				label = _(self.meta.get_label(df.fieldname))
+				comma_options = '", "'.join(_(each) for each in options)
+
+				frappe.throw(_('{0} {1} cannot be "{2}". It should be one of "{3}"').format(prefix, label,
+					self.get(df.fieldname), comma_options))
+
 	def _validate_constants(self):
 		if frappe.flags.in_import:
 			return
