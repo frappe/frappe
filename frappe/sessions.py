@@ -250,28 +250,27 @@ class Session:
 
 	def update(self, force=False):
 		"""extend session expiry"""
-		self.data['data']['last_updated'] = frappe.utils.now()
-		self.data['data']['lang'] = unicode(frappe.lang)
+		now = frappe.utils.now()
 
+		self.data['data']['last_updated'] = now
+		self.data['data']['lang'] = unicode(frappe.lang)
 
 		# update session in db
 		time_diff = None
 		last_updated = frappe.cache().get_value("last_db_session_update:" + self.sid)
 
 		if last_updated:
-			time_diff = frappe.utils.time_diff_in_seconds(frappe.utils.now(),
-				last_updated)
+			time_diff = frappe.utils.time_diff_in_seconds(now, last_updated)
 
 		if force or (frappe.session['user'] != 'Guest' and \
-			((time_diff==None) or (time_diff > 1800))):
+			((time_diff==None) or (time_diff > 600))):
 			# database persistence is secondary, don't update it too often
 			frappe.db.sql("""update tabSessions set sessiondata=%s,
 				lastupdate=NOW() where sid=%s""" , (str(self.data['data']),
 				self.data['sid']))
 
 		if frappe.form_dict.cmd not in ("frappe.sessions.clear", "logout"):
-			frappe.cache().set_value("last_db_session_update:" + self.sid,
-				frappe.utils.now())
+			frappe.cache().set_value("last_db_session_update:" + self.sid, now)
 			frappe.cache().set_value("session:" + self.sid, self.data)
 
 def get_expiry_period():
