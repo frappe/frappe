@@ -13,6 +13,7 @@ class BaseDocument(object):
 
 	def __init__(self, d):
 		self.update(d)
+		self.dont_update_if_missing = []
 
 	@property
 	def meta(self):
@@ -42,7 +43,8 @@ class BaseDocument(object):
 		if "doctype" in d:
 			self.set("doctype", d.get("doctype"))
 		for key, value in d.iteritems():
-			if self.get(key) is None:
+			# dont_update_if_missing is a list of fieldnames, for which, you don't want to set default value
+			if (self.get(key) is None) and (value is not None) and (key not in self.dont_update_if_missing):
 				self.set(key, value)
 
 	def get_db_value(self, key):
