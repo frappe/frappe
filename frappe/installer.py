@@ -10,8 +10,8 @@ import os, json
 import frappe
 import frappe.database
 import getpass
-from frappe import _
 from frappe.model.db_schema import DbManager
+import frappe.website.sync
 from frappe.model.sync import sync_for
 from frappe.utils.fixtures import sync_fixtures
 
@@ -116,7 +116,8 @@ def install_app(name, verbose=False, set_as_patched=True):
 	for after_install in app_hooks.after_install or []:
 		frappe.get_attr(after_install)()
 
-	sync_fixtures()
+	print "Installing Fixtures..."
+	sync_fixtures(name)
 
 	frappe.flags.in_install_app = False
 
@@ -128,8 +129,9 @@ def add_to_installed_apps(app_name, rebuild_website=True):
 		frappe.db.commit()
 
 		if rebuild_website:
-			import frappe.website.sync
 			frappe.website.sync.sync()
+
+		frappe.db.commit()
 
 		frappe.clear_cache()
 

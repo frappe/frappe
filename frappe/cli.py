@@ -557,6 +557,7 @@ def build_website():
 	import frappe.website.sync
 	frappe.connect()
 	frappe.website.sync.sync()
+	frappe.db.commit()
 	frappe.destroy()
 
 @cmd
