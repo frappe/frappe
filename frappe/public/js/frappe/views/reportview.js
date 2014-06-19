@@ -397,12 +397,14 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		this.$w.find('.result-list').on("click", ".label-info", function() {
 			if($(this).attr("data-label")) {
 				me.set_filter("_user_tags", $(this).attr("data-label"));
+				me.refresh();
 			}
 		});
 		this.$w.find('.result-list').on("click", "[data-workflow-state]", function() {
 			if($(this).attr("data-workflow-state")) {
 				me.set_filter(me.state_fieldname,
 					$(this).attr("data-workflow-state"));
+				me.refresh();
 			}
 		});
 	},
