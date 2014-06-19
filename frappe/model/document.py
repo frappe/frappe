@@ -228,8 +228,10 @@ class Document(BaseDocument):
 	def _validate(self):
 		self._validate_mandatory()
 		self._validate_links()
+		self._validate_selects()
 		self._validate_constants()
 		for d in self.get_all_children():
+			d._validate_selects()
 			d._validate_constants()
 
 		self._extract_images_from_text_editor()

@@ -217,7 +217,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 			error = True
 			if doc:
 				frappe.errprint(doc if isinstance(doc, dict) else doc.as_dict())
-			err_msg = frappe.local.message_log and "<br>".join(frappe.local.message_log) or cstr(e)
+			err_msg = frappe.local.message_log and "\n\n".join(frappe.local.message_log) or cstr(e)
 			ret.append('Error for row (#%d) %s : %s' % (row_idx + 1,
 				len(row)>1 and row[1] or "", err_msg))
 			frappe.errprint(frappe.get_traceback())

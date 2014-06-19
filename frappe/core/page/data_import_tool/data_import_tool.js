@@ -161,7 +161,8 @@ frappe.pages['data-import-tool'].onload = function(wrapper) {
 		$("#dit-output").empty();
 
 		$.each(r.messages, function(i, v) {
-			var $p = $('<p>').html(v).appendTo('#dit-output');
+			var $p = $('<p></p>').html(frappe.markdown(v)).appendTo('#dit-output');
+			$("<hr>").appendTo('#dit-output');
 			if(v.substr(0,5)=='Error') {
 				$p.css('color', 'red');
 			} else if(v.substr(0,8)=='Inserted') {

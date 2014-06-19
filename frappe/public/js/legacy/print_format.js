@@ -285,8 +285,9 @@ $.extend(_p, {
 
 	// This is used to calculate and substitude values in the HTML
 	run_embedded_js: function(container, doc) {
-		script_list = $(container).find("script");
-		for(var i=0; i<script_list.length; i++) {
+		var script_list = $(container).find("script");
+
+		for(var i=0, j=script_list.length; i<j; i++) {
 			var element = script_list[i];
 			var code = element.innerHTML;
 			var new_html = code ? (eval(code) || "") : "";
@@ -294,6 +295,9 @@ $.extend(_p, {
 				$(element).replaceWith(this.add_span(new_html + ""));
 			}
 		}
+
+		// remove scripts once executed
+		$(container).find("script").remove();
 	},
 
 	add_span: function(html) {
