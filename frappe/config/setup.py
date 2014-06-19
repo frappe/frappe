@@ -121,6 +121,11 @@ def get_data():
 					"name": "Outgoing Email Settings",
 					"description": _("Set outgoing mail server.")
 				},
+				{
+					"type": "doctype",
+					"name": "Standard Reply",
+					"description": _("Standard replies to common queries.")
+				},
 			]
 		},
 		{

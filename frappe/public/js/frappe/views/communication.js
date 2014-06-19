@@ -113,6 +113,7 @@ frappe.views.CommunicationList = Class.extend({
 });
 
 frappe.last_edited_communication = {};
+frappe.standard_replies = {};
 
 frappe.views.CommunicationComposer = Class.extend({
 	init: function(opts) {
@@ -129,6 +130,8 @@ frappe.views.CommunicationComposer = Class.extend({
 					description:__("Email addresses, separted by commas")},
 				{label:__("Subject"), fieldtype:"Data", reqd: 1,
 					fieldname:"subject"},
+				{label:__("Standard Reply"), fieldtype:"Link", options:"Standard Reply",
+					fieldname:"standard_reply"},
 				{label:__("Message"), fieldtype:"Text Editor", reqd: 1,
 					fieldname:"content"},
 				{label:__("Send As Email"), fieldtype:"Check",
@@ -154,6 +157,7 @@ frappe.views.CommunicationComposer = Class.extend({
 
 		this.dialog.$wrapper.find("[data-edit='outdent']").remove();
 		this.dialog.get_input("send").addClass("btn-primary");
+
 
 		$(document).on("upload_complete", function(event, attachment) {
 			if(me.dialog.display) {
@@ -185,10 +189,39 @@ frappe.views.CommunicationComposer = Class.extend({
 		this.setup_email();
 		this.setup_autosuggest();
 		this.setup_last_edited_communication();
+		this.setup_standard_reply();
 		$(this.dialog.fields_dict.recipients.input).val(this.recipients || "").change();
 		$(this.dialog.fields_dict.subject.input).val(this.subject || "").change();
 		this.setup_earlier_reply();
 	},
+
+	setup_standard_reply: function() {
+		var me = this;
+		this.dialog.get_input("standard_reply").on("change", function() {
+			var standard_reply = $(this).val();
+			var prepend_reply = function() {
+				var content_field = me.dialog.fields_dict.content;
+				var content = content_field.get_value() || "";
+				content_field.set_input(
+					frappe.standard_replies[standard_reply]
+						+ "<br><br>" + content);
+			}
+			if(frappe.standard_replies[standard_reply]) {
+				prepend_reply();
+			} else {
+				$.ajax({
+					url:"/api/resource/Standard Reply/" + standard_reply,
+					statusCode: {
+						200: function(data) {
+							frappe.standard_replies[standard_reply] = data.data.response;
+							prepend_reply();
+						}
+					}
+				});
+			}
+		});
+	},
+
 	setup_last_edited_communication: function() {
 		var me = this;
 		this.dialog.onhide = function() {
