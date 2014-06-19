@@ -238,7 +238,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 	init_minbar: function() {
 		var me = this;
 		this.appframe.add_icon_btn("2", 'icon-tag', __('Show Tags'), function() { me.toggle_tags(); });
-		this.wrapper.on("click", ".list-tag-preview", function() { me.toggle_tags(); });
+		this.$page.on("click", ".list-tag-preview", function() { me.toggle_tags(); });
 		if(this.can_delete || this.listview.settings.selectable) {
 			this.appframe.add_icon_btn("2", 'icon-remove', __('Delete'), function() { me.delete_items(); });
 			this.appframe.add_icon_btn("2", 'icon-ok', __('Select All'), function() {
