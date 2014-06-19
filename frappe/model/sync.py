@@ -49,7 +49,11 @@ def get_doc_files(start_path, force=0, sync_everything = False, verbose=False):
 	for doctype in document_type:
 		doctype_path = os.path.join(start_path, doctype)
 		if os.path.exists(doctype_path):
-			for docname in os.listdir(doctype_path):
+
+			# Note: sorted is a hack because custom* and doc* need
+			# be synced first
+
+			for docname in sorted(os.listdir(doctype_path)):
 				if os.path.isdir(os.path.join(doctype_path, docname)):
 					doc_path = os.path.join(doctype_path, docname, docname) + ".json"
 					if os.path.exists(doc_path):
