@@ -41,7 +41,7 @@ class DocType(Document):
 			frappe.db.sql('UPDATE tabDocType SET modified=%s WHERE `name`=%s', (now(), p[0]))
 
 	def scrub_field_names(self):
-		restricted = ('name','parent','idx','owner','creation','modified','modified_by',
+		restricted = ('name','parent','creation','modified','modified_by',
 			'parentfield','parenttype',"file_list")
 		for d in self.get("fields"):
 			if d.fieldtype:
