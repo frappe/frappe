@@ -292,16 +292,17 @@ class BaseDocument(object):
 				continue
 
 			# strip and set
-			self.set(df.fieldname, self.get(df.fieldname).strip())
+			self.set(df.fieldname, cstr(self.get(df.fieldname)).strip())
+			value = self.get(df.fieldname)
 
-			if self.get(df.fieldname) not in options:
+			if value not in options and not (frappe.flags.in_test and value.startswith("_T-")):
 				# show an elaborate message
 				prefix = _("Row #{0}:").format(self.idx) if self.get("parentfield") else ""
 				label = _(self.meta.get_label(df.fieldname))
 				comma_options = '", "'.join(_(each) for each in options)
 
 				frappe.throw(_('{0} {1} cannot be "{2}". It should be one of "{3}"').format(prefix, label,
-					self.get(df.fieldname), comma_options))
+					value, comma_options))
 
 	def _validate_constants(self):
 		if frappe.flags.in_import:

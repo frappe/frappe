@@ -62,7 +62,8 @@ class Meta(Document):
 		return self.get("fields", {"fieldtype": "Link", "options":["!=", "[Select]"]})
 
 	def get_select_fields(self):
-		return self.get("fields", {"fieldtype": "Select", "options":["not in", ["[Select]", "Loading..."]]})
+		return self.get("fields", {"fieldtype": "Select", "options":["not in",
+			["[Select]", "Loading...", "attach_files:"]]})
 
 	def get_table_fields(self):
 		if not hasattr(self, "_table_fields"):
