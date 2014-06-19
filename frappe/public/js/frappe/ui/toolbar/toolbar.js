@@ -45,7 +45,7 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 							placeholder="' + __("Search or type a command") + '" \
 							style="padding: 2px 6px; height: 24px; margin-top: 5px; \
 								margin-left: 10px; background-color: #ddd; \
-								min-width: 230px; \
+								min-width: 230px; font-size: 85%;\
 								border-radius: 10px;">\
 			          </div>\
 			        </form>\

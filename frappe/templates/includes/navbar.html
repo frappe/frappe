@@ -55,9 +55,8 @@
 							{%- endfor -%}
 						</ul>
 					</li>
-					{% if not disable_signup %}
-					<li class="btn-login-area"><a href="/login">Sign Up / Login</a></li>
-					{% endif %}
+					<li class="btn-login-area"><a href="/login">
+						{%- if not disable_signup %}Sign Up / {% endif -%} Login</a></li>
 				</ul>
 			</div>
 		</div>

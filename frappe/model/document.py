@@ -48,6 +48,7 @@ def get_controller(doctype):
 class Document(BaseDocument):
 	def __init__(self, arg1, arg2=None):
 		self.doctype = self.name = None
+
 		if arg1 and isinstance(arg1, basestring):
 			if not arg2:
 				# single
@@ -71,6 +72,8 @@ class Document(BaseDocument):
 		else:
 			# incorrect arguments. let's not proceed.
 			raise frappe.DataError("Document({0}, {1})".format(arg1, arg2))
+
+		self.dont_update_if_missing = []
 
 	def load_from_db(self):
 		if not getattr(self, "_metaclass", False) and self.meta.issingle:
@@ -225,8 +228,10 @@ class Document(BaseDocument):
 	def _validate(self):
 		self._validate_mandatory()
 		self._validate_links()
+		self._validate_selects()
 		self._validate_constants()
 		for d in self.get_all_children():
+			d._validate_selects()
 			d._validate_constants()
 
 		self._extract_images_from_text_editor()

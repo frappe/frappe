@@ -60,8 +60,10 @@ frappe.number_format_info = {
 	"#.###,##": {decimal_str:",", group_sep:".", precision:2},
 	"# ###.##": {decimal_str:".", group_sep:" ", precision:2},
 	"# ###,##": {decimal_str:",", group_sep:" ", precision:2},
-	"#,###.###": {decimal_str:".", group_sep:",", precision:3},
+	"#'###.##": {decimal_str:".", group_sep:"'", precision:2},
+	"#, ###.##": {decimal_str:".", group_sep:", ", precision:2},
 	"#,##,###.##": {decimal_str:".", group_sep:",", precision:2},
+	"#,###.###": {decimal_str:".", group_sep:",", precision:3},
 	"#.###": {decimal_str:"", group_sep:".", precision:0},
 	"#,###": {decimal_str:"", group_sep:",", precision:0},
 }

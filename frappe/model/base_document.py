@@ -13,6 +13,7 @@ class BaseDocument(object):
 
 	def __init__(self, d):
 		self.update(d)
+		self.dont_update_if_missing = []
 
 	@property
 	def meta(self):
@@ -42,7 +43,8 @@ class BaseDocument(object):
 		if "doctype" in d:
 			self.set("doctype", d.get("doctype"))
 		for key, value in d.iteritems():
-			if self.get(key) is None:
+			# dont_update_if_missing is a list of fieldnames, for which, you don't want to set default value
+			if (self.get(key) is None) and (value is not None) and (key not in self.dont_update_if_missing):
 				self.set(key, value)
 
 	def get_db_value(self, key):
@@ -162,6 +164,9 @@ class BaseDocument(object):
 				if doc[k] is None:
 					del doc[k]
 
+		if self.get("_user_tags"):
+			doc["_user_tags"] = self.get("_user_tags")
+
 		if self.get("__islocal"):
 			doc["__islocal"] = 1
 
@@ -274,6 +279,33 @@ class BaseDocument(object):
 				invalid_links.append((df.fieldname, docname, get_msg(df, docname)))
 
 		return invalid_links
+
+	def _validate_selects(self):
+		if frappe.flags.in_import:
+			return
+
+		for df in self.meta.get_select_fields():
+			if not (self.get(df.fieldname) and df.options):
+				continue
+
+			options = (df.options or "").split("\n")
+
+			# if only empty options
+			if not filter(None, options):
+				continue
+
+			# strip and set
+			self.set(df.fieldname, cstr(self.get(df.fieldname)).strip())
+			value = self.get(df.fieldname)
+
+			if value not in options and not (frappe.flags.in_test and value.startswith("_T-")):
+				# show an elaborate message
+				prefix = _("Row #{0}:").format(self.idx) if self.get("parentfield") else ""
+				label = _(self.meta.get_label(df.fieldname))
+				comma_options = '", "'.join(_(each) for each in options)
+
+				frappe.throw(_('{0} {1} cannot be "{2}". It should be one of "{3}"').format(prefix, label,
+					value, comma_options))
 
 	def _validate_constants(self):
 		if frappe.flags.in_import:

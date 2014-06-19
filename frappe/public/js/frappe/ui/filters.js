@@ -255,7 +255,7 @@ frappe.ui.Filter = Class.extend({
 		if(df.fieldtype=='Check') {
 			df.fieldtype='Select';
 			df.options='No\nYes';
-		} else if(['Text','Small Text','Text Editor','Code','Tags','Comments'].indexOf(df.fieldtype)!=-1) {
+		} else if(['Text','Small Text','Text Editor','Code','Tag','Comments'].indexOf(df.fieldtype)!=-1) {
 			df.fieldtype = 'Data';
 		} else if(df.fieldtype=='Link' && this.$w.find('.condition').val()!="=") {
 			df.fieldtype = 'Data';
