@@ -87,11 +87,6 @@ def execute_cmd(cmd):
 	if ret:
 		frappe.response['message'] = ret
 
-	# update session
-	if "session_obj" in frappe.local:
-		frappe.local.session_obj.update()
-
-
 def get_attr(cmd):
 	"""get method object from cmd"""
 	if '.' in cmd:

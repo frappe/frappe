@@ -81,6 +81,12 @@ def application(request):
 			frappe.db.commit()
 			rollback = False
 
+		# update session
+		if getattr(frappe.local, "session_obj", None):
+			updated_in_db = frappe.local.session_obj.update()
+			if updated_in_db:
+				frappe.db.commit()
+
 	finally:
 		if frappe.local.request.method in ("POST", "PUT") and frappe.db and rollback:
 			frappe.db.rollback()
