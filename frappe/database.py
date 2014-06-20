@@ -485,6 +485,9 @@ class Database:
 	def table_exists(self, tablename):
 		return tablename in [d[0] for d in self.sql("show tables")]
 
+	def a_row_exists(self, doctype):
+		return self.sql("select name from `tab{doctype}` limit 1".format(doctype=doctype))
+
 	def exists(self, dt, dn=None):
 		if isinstance(dt, basestring):
 			if dt!="DocType" and dt==dn:

@@ -11,6 +11,7 @@ from frappe.utils import now, cint
 from frappe.model import no_value_fields
 from frappe.model.document import Document
 from frappe.model.db_schema import type_map
+from frappe.core.doctype.property_setter.property_setter import make_property_setter
 
 form_grid_templates = {
 	"fields": "templates/form_grid/fields.html"
@@ -109,6 +110,29 @@ class DocType(Document):
 			frappe.db.sql("""update tabSingles set doctype=%s where doctype=%s""", (new, old))
 		else:
 			frappe.db.sql("rename table `tab%s` to `tab%s`" % (old, new))
+
+	def before_reload(self):
+		if not (self.issingle and self.istable):
+			self.preserve_naming_series_options_in_property_setter()
+
+	def preserve_naming_series_options_in_property_setter(self):
+		"""preserve naming_series as property setter if it does not exist"""
+		naming_series = self.get("fields", {"fieldname": "naming_series"})
+
+		if not naming_series:
+			return
+
+		# check if atleast 1 record exists
+		if not (frappe.db.table_exists("tab" + self.name) and frappe.db.sql("select name from `tab{}` limit 1".format(self.name))):
+			return
+
+		existing_property_setter = frappe.db.get_value("Property Setter", {"doc_type": self.name,
+			"property": "options", "field_name": "naming_series"})
+
+		if not existing_property_setter:
+			make_property_setter(self.name, "naming_series", "options", naming_series[0].options, "Text")
+			if naming_series[0].default:
+				make_property_setter(self.name, "naming_series", "default", naming_series[0].default, "Text")
 
 	def export_doc(self):
 		from frappe.modules.export_file import export_to_files
