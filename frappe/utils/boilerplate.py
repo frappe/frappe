@@ -194,7 +194,7 @@ desktop_template = """from frappe import _
 
 def get_data():
 	return {{
-		"{app_title}": {{
+		"{app_name}": {{
 			"color": "{app_color}",
 			"icon": "{app_icon}",
 			"type": "module",
