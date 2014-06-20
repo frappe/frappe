@@ -292,7 +292,7 @@ def rename_dynamic_links(doctype, old, new):
 				if refdoc.get(df.options)==doctype and refdoc.get(df.fieldname)==old:
 
 					frappe.db.sql("""update tabSingles set value=%s where
-						field=%s and value=%s""", (new, df.fieldname, old))
+						field=%s and value=%s and doctype=%s""", (new, df.fieldname, old, df.parent))
 			else:
 				# replace for each value where renamed
 				for to_change in frappe.db.sql_list("""select name from `tab{parent}` where
