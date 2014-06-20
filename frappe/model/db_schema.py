@@ -29,6 +29,7 @@ type_map = {
 	,'Text':		('text', '')
 	,'Data':		('varchar', '255')
 	,'Link':		('varchar', '255')
+	,'Dynamic Link':('varchar', '255')
 	,'Password':	('varchar', '255')
 	,'Select':		('varchar', '255')
 	,'Read Only':	('varchar', '255')

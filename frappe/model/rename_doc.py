@@ -33,6 +33,8 @@ def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=F
 	link_fields = get_link_fields(doctype)
 	update_link_field_values(link_fields, old, new, doctype)
 
+	rename_dynamic_links(doctype, old, new)
+
 	if doctype=='DocType':
 		rename_doctype(doctype, old, new, force)
 
@@ -274,3 +276,27 @@ def update_parenttype_values(old, new):
 			update `tab%s` set parenttype=%s
 			where parenttype=%s""" % (doctype, '%s', '%s'),
 		(new, old))
+
+dynamic_link_queries =  [
+	"""select parent, fieldname, options from tabDocField where fieldtype='Dynamic Link'""",
+	"""select dt as parent, fieldname, options from `tabCustom Field` where fieldtype='Dynamic Link'""",
+]
+
+def rename_dynamic_links(doctype, old, new):
+	for query in dynamic_link_queries:
+		for df in frappe.db.sql(query, as_dict=True):
+
+			# dynamic link in single, just one value to check
+			if frappe.get_meta(df.parent).issingle:
+				refdoc = frappe.get_singles_dict(df.parent)
+				if refdoc.get(df.options)==doctype and refdoc.get(df.fieldname)==old:
+
+					frappe.db.sql("""update tabSingles set value=%s where
+						field=%s and value=%s""", (new, df.fieldname, old))
+			else:
+				# replace for each value where renamed
+				for to_change in frappe.db.sql_list("""select name from `tab{parent}` where
+					{options}=%s and {fieldname}=%s""".format(**df), (doctype, old)):
+
+					frappe.db.sql("""update `tab{parent}` set {fieldname}=%s
+						where name=%s""".format(**df), (new, to_change))
