@@ -267,17 +267,18 @@ class BaseDocument(object):
 		for df in self.meta.get_link_fields() + self.meta.get("fields",
 			{"fieldtype":"Dynamic Link"}):
 
-			if df.fieldtype=="Link":
-				doctype = df.options
-				if not doctype:
-					frappe.throw(_("Options not set for link field {0}").format(df.fieldname))
-			else:
-				doctype = self.get(df.options)
-				if not doctype:
-					frappe.throw(_("{0} must be set first").format(self.meta.get_label(df.options)))
 
 			docname = self.get(df.fieldname)
 			if docname:
+				if df.fieldtype=="Link":
+					doctype = df.options
+					if not doctype:
+						frappe.throw(_("Options not set for link field {0}").format(df.fieldname))
+				else:
+					doctype = self.get(df.options)
+					if not doctype:
+						frappe.throw(_("{0} must be set first").format(self.meta.get_label(df.options)))
+
 				# MySQL is case insensitive. Preserve case of the original docname in the Link Field.
 				value = frappe.db.get_value(doctype, docname)
 				setattr(self, df.fieldname, value)
