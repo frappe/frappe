@@ -161,6 +161,7 @@ class DocType(Document):
 def validate_fields_for_doctype(doctype):
 	validate_fields(frappe.get_meta(doctype).get("fields"))
 
+# this is separate because it is also called via custom field
 def validate_fields(fields):
 	def check_illegal_characters(fieldname):
 		for c in ['.', ',', ' ', '-', '&', '%', '=', '"', "'", '*', '$',
@@ -204,6 +205,13 @@ def validate_fields(fields):
 		if d.in_list_view and d.fieldtype!="Image" and (d.fieldtype in no_value_fields):
 			frappe.throw(_("'In List View' not allowed for type {0} in row {1}").format(d.fieldtype, d.idx))
 
+	def check_dynamic_link_options(d):
+		if d.fieldtype=="Dynamic Link":
+			doctype_pointer = filter(lambda df: df.fieldname==d.options, fields)
+			if not doctype_pointer or (doctype_pointer[0].fieldtype!="Link") \
+				or (doctype_pointer[0].options!="DocType"):
+				frappe.throw(_("Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType'"))
+
 	for d in fields:
 		if not d.permlevel: d.permlevel = 0
 		if not d.fieldname:
@@ -212,6 +220,7 @@ def validate_fields(fields):
 		check_unique_fieldname(d.fieldname)
 		check_illegal_mandatory(d)
 		check_link_table_options(d)
+		check_dynamic_link_options(d)
 		check_hidden_and_mandatory(d)
 		check_in_list_view(d)
 

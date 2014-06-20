@@ -33,6 +33,7 @@ frappe.form.formatters = {
 		return value ? "<i class='icon-check'></i>" : "<i class='icon-check-empty'></i>";
 	},
 	Link: function(value, docfield, options) {
+		var doctype = docfield._options || docfield.options;
 		if(options && options.for_print)
 			return value;
 		if(!value)
@@ -40,13 +41,13 @@ frappe.form.formatters = {
 		if(docfield && docfield.link_onclick) {
 			return repl('<a onclick="%(onclick)s">%(value)s</a>',
 				{onclick: docfield.link_onclick.replace(/"/g, '&quot;'), value:value});
-		} else if(docfield && docfield.options) {
+		} else if(docfield && doctype) {
 			return repl('%(icon)s<a href="#Form/%(doctype)s/%(name)s">%(label)s</a>', {
-				doctype: encodeURIComponent(docfield.options),
+				doctype: encodeURIComponent(doctype),
 				name: encodeURIComponent(value),
 				label: value,
 				icon: (options && options.no_icon) ? "" :
-					('<i class="icon-fixed-width '+frappe.boot.doctype_icons[docfield.options]+'"></i> ')
+					('<i class="icon-fixed-width '+frappe.boot.doctype_icons[doctype]+'"></i> ')
 			});
 		} else {
 			return value;
@@ -119,11 +120,20 @@ frappe.form.formatters = {
 }
 
 frappe.form.get_formatter = function(fieldtype) {
-	if(!fieldtype) fieldtype = "Data";
+	if(!fieldtype)
+		fieldtype = "Data";
 	return frappe.form.formatters[fieldtype.replace(/ /g, "")] || frappe.form.formatters.Data;
 }
 
 frappe.format = function(value, df, options, doc) {
 	if(!df) df = {"fieldtype":"Data"};
-	return frappe.form.get_formatter(df.fieldtype)(value, df, options, doc);
+	var fieldtype = df.fieldtype || "Data";
+
+	// format Dynamic Link as a Link
+	if(fieldtype==="Dynamic Link") {
+		fieldtype = "Link";
+		df._options = doc ? doc[df.options] : null;
+	}
+
+	return frappe.form.get_formatter(fieldtype)(value, df, options, doc);
 }
