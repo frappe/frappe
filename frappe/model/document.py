@@ -159,7 +159,10 @@ class Document(BaseDocument):
 		self.check_if_latest()
 		self.set_parent_in_children()
 		self.run_before_save_methods()
-		self._validate()
+
+		if self._action != "cancel":
+			self._validate()
+
 		if self._action == "update_after_submit":
 			self.validate_update_after_submit()
 
