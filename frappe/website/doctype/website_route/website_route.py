@@ -22,28 +22,41 @@ class WebsiteRoute(NestedSet):
 		return url
 
 	def validate(self):
-		if self.get_url() != self.name:
-			self.rename()
 		self.check_if_page_name_is_unique()
 		self.make_private_if_parent_is_private()
 
 	def on_update(self):
+		if self.get_url() != self.name:
+			self.rename()
 		if not frappe.flags.in_rebuild_config:
 			NestedSet.on_update(self)
 		self.clear_cache()
 
-	def rename(self):
+	def rename(self, new_page_name=None, new_parent_website_route=None):
 		self.old_name = self.name
+
+		# get new route
+		if new_page_name != None:
+			self.page_name = new_page_name
+		if new_parent_website_route != None:
+			self.parent_website_route = new_parent_website_route
 		self.name = self.get_url()
-		frappe.db.sql("""update `tabWebsite Route` set name=%s where name=%s""",
-			(self.name, self.old_name))
+
+		# update values (don't run triggers)
+		frappe.db.sql("""update `tabWebsite Route` set
+			name=%s, page_name=%s, parent_website_route=%s where name=%s""",
+				(self.name, self.page_name, self.parent_website_route, self.old_name))
+
 		self.rename_links()
 		self.rename_descendants()
 		self.clear_cache(self.old_name)
 
 	def rename_links(self):
-		for doctype in frappe.db.sql_list("""select parent from tabDocField where fieldtype='Link' and
-			fieldname='parent_website_route' and options='Website Route'"""):
+		for doctype in frappe.db.sql_list("""select parent from tabDocField
+			where fieldtype='Link'
+				and fieldname='parent_website_route'
+				and options='Website Route'
+				and parent!='Website Route'"""):
 			for name in frappe.db.sql_list("""select name from `tab{}`
 				where parent_website_route=%s""".format(doctype), self.old_name):
 				frappe.db.set_value(doctype, name, "parent_website_route", self.name)
@@ -51,7 +64,7 @@ class WebsiteRoute(NestedSet):
 	def rename_descendants(self):
 		# rename children
 		for name in frappe.db.sql_list("""select name from `tabWebsite Route`
-			where parent_website_route=%s""", self.name):
+			where parent_website_route=%s""", self.old_name):
 			child = frappe.get_doc("Website Route", name)
 			child.parent_website_route = self.name
 			child.save()

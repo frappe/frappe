@@ -17,8 +17,7 @@ class WebsiteGenerator(Document):
 		append_number_if_name_exists(self)
 
 	def onload(self):
-		self.get("__onload").website_route = frappe.db.get_value("Website Route",
-			{"ref_doctype": self.doctype, "docname": self.name})
+		self.get("__onload").website_route = self.get_route()
 
 	def get_parent_website_route(self):
 		return self.get("parent_website_route", "")
@@ -28,30 +27,39 @@ class WebsiteGenerator(Document):
 		if getattr(self, "save_versions", False):
 			frappe.add_version(self)
 
-	def after_rename(self, olddn, newdn, merge):
-		frappe.db.sql("""update `tabWebsite Route`
-			set docname=%s where ref_doctype=%s and docname=%s""",
-			(newdn, self.doctype, olddn))
+	def get_route(self):
+		parent = self.get_parent_website_route()
+		return ((parent + "/") if parent else "") + self.get_page_name()
 
-		if merge:
-			remove_sitemap(ref_doctype=self.doctype, docname=olddn)
+	def get_route_docname(self, name=None):
+		return frappe.db.get_value("Website Route",
+			{"ref_doctype":self.doctype, "docname": name or self.name})
+
+
+	def after_rename(self, olddn, newdn, merge):
+		route = self.get_route_docname(olddn)
+		if route:
+			frappe.get_doc("Website Route", route).rename()
 
 	def on_trash(self):
 		remove_sitemap(ref_doctype=self.doctype, docname=self.name)
 
 	def update_sitemap(self):
-		remove_sitemap(ref_doctype=self.doctype, docname=self.name)
+		# update route of all descendants
+		route_docname = self.get_route_docname()
+		if route_docname:
+			if self.get_route() != route_docname:
+				frappe.get_doc("Website Route", route_docname)\
+					.rename(self.get_page_name(), self.get_parent_website_route())
+		else:
+			self.add_or_update_sitemap()
 
+	def add_or_update_sitemap(self):
 		# check if "condtion_field" property is okay
 		self.controller_module = load_doctype_module(self.doctype)
 		if hasattr(self.controller_module, "condition_field"):
 			if not self.get(self.controller_module.condition_field):
 				return
-
-		self.add_or_update_sitemap()
-
-	def add_or_update_sitemap(self):
-		page_name = self.get_page_name()
 
 		if self.modified:
 			# for sitemap.xml
@@ -65,7 +73,7 @@ class WebsiteGenerator(Document):
 			"ref_doctype":self.doctype,
 			"idx": self.idx,
 			"docname": self.name,
-			"page_name": page_name,
+			"page_name": self.get_page_name(),
 			"controller": get_module_name(self.doctype, self.meta.module),
 			"template": self.controller_module.template,
 			"lastmod": lastmod,
