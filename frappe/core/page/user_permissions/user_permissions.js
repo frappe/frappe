@@ -73,19 +73,21 @@ frappe.UserPermissions = Class.extend({
 					options: "[Select]"
 				});
 
-				me.download = me.wrapper.appframe.add_field({
-					fieldname: "download",
-					label: __("Download"),
-					fieldtype: "Button",
-					icon: "icon-download"
-				});
+				if(user_roles.indexOf("System Manager")!==-1) {
+					me.download = me.wrapper.appframe.add_field({
+						fieldname: "download",
+						label: __("Download"),
+						fieldtype: "Button",
+						icon: "icon-download"
+					});
 
-				me.upload = me.wrapper.appframe.add_field({
-					fieldname: "upload",
-					label: __("Upload"),
-					fieldtype: "Button",
-					icon: "icon-upload"
-				});
+					me.upload = me.wrapper.appframe.add_field({
+						fieldname: "upload",
+						label: __("Upload"),
+						fieldtype: "Button",
+						icon: "icon-upload"
+					});
+				}
 
 				// bind change event
 				$.each(me.filters, function(k, f) {
