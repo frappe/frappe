@@ -35,7 +35,6 @@ def read_csv_content_from_attached_file(doc):
 def read_csv_content(fcontent, ignore_encoding=False):
 	rows = []
 
-	print fcontent
 	if not isinstance(fcontent, unicode):
 		decoded = False
 		for encoding in ["utf-8", "windows-1250", "windows-1252"]:
