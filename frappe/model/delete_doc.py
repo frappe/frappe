@@ -31,7 +31,16 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 	remove_all(doctype, name)
 
 	if doctype=="DocType":
-		if not for_reload:
+		if for_reload:
+
+			try:
+				doc = frappe.get_doc(doctype, name)
+			except frappe.DoesNotExistError:
+				pass
+			else:
+				doc.run_method("before_reload")
+
+		else:
 			frappe.db.sql("delete from `tabCustom Field` where dt = %s", name)
 			frappe.db.sql("delete from `tabCustom Script` where dt = %s", name)
 			frappe.db.sql("delete from `tabProperty Setter` where doc_type = %s", name)
