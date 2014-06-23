@@ -63,15 +63,31 @@ def add_comment(doc):
 	return doc.as_dict()
 
 @frappe.whitelist()
-def get_next(doctype, name, prev):
+def get_next(doctype, value, prev, filters=None, order_by="modified desc"):
 	import frappe.widgets.reportview
 
 	prev = int(prev)
-	field = "`tab%s`.name" % doctype
+	sort_field, sort_order = order_by.split(" ")
+
+	if not filters: filters = []
+	if isinstance(filters, basestring):
+		filters = json.loads(filters)
+
+	# condition based on sort order
+	condition = ">" if sort_order.lower()=="desc" else "<"
+
+	# switch the condition
+	if prev:
+		condition = "<" if condition==">" else "<"
+
+	# add condition for next or prev item
+	if not order_by[0] in [f[1] for f in filters]:
+		filters.append([doctype, sort_field, condition, value])
+
 	res = frappe.widgets.reportview.execute(doctype,
-		fields = [field],
-		filters = [[doctype, "name", "<" if prev else ">", name]],
-		order_by = field + " " + ("desc" if prev else "asc"),
+		fields = ["name"],
+		filters = filters,
+		order_by = sort_field + " " + sort_order,
 		limit_start=0, limit_page_length=1, as_list=True)
 
 	if not res:

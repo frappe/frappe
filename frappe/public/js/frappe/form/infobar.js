@@ -116,13 +116,27 @@ frappe.ui.form.InfoBar = Class.extend({
 	},
 
 	go_prev_next: function(prev) {
-		var me = this;
+		var me = this,
+			filters = null,
+			order_by = "modified desc",
+			doclistview = frappe.pages["List/" + me.frm.doctype];
+
+		// filters / order defined in listview
+		if(doclistview) {
+			filters = doclistview.doclistview.filter_list.get_filters();
+			if(doclistview.doclistview.listview.order_by) {
+				order_by = doclistview.doclistview.listview.order_by;
+			}
+		}
+
 		return frappe.call({
 			method: "frappe.widgets.form.utils.get_next",
 			args: {
 				doctype: me.frm.doctype,
-				name: me.frm.docname,
-				prev: prev ? 1 : 0
+				value: me.frm.doc[order_by.split(" ")[0]],
+				prev: prev ? 1 : 0,
+				filters: filters,
+				order_by: order_by
 			},
 			callback: function(r) {
 				if(r.message)
