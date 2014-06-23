@@ -538,7 +538,8 @@ frappe.ui.form.ControlButton = frappe.ui.form.ControlData.extend({
 	},
 	set_label: function() {
 		$(this.label_span).html("&nbsp;");
-		this.$input && this.$input.html(this.df.label);
+		this.$input && this.$input.html((this.df.icon ?
+			('<i class="'+this.df.icon+' icon-fixed-width"></i> ') : "") + this.df.label);
 	}
 });
 
@@ -551,7 +552,8 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 			.on("click", function() {
 				me.onclick();
 			});
-		this.$value = $('<div class="alert alert-info">\
+		this.$value = $('<div style="margin-top: 5px;">\
+			<i class="icon-paper-clip" style="overflow: hidden; display: inline-block"></i> \
 			<a class="attached-file text-ellipsis" style="width: 80%" target="_blank"></a>\
 			<a class="close">&times;</a></div>')
 			.prependTo(me.input_area)

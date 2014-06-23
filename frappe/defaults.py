@@ -4,7 +4,10 @@
 from __future__ import unicode_literals
 import frappe
 
-common_keys = ["__default", "__global"]
+# Note: DefaultValue records are identified by parenttype
+# __default, __global or 'User Permission'
+
+common_keys = ["__default", "__global", "User Permission"]
 
 def set_user_default(key, value, user=None, parenttype=None):
 	set_default(key, value, user or frappe.session.user, parenttype)
