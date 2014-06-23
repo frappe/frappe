@@ -73,6 +73,22 @@ frappe.UserPermissions = Class.extend({
 					options: "[Select]"
 				});
 
+				if(user_roles.indexOf("System Manager")!==-1) {
+					me.download = me.wrapper.appframe.add_field({
+						fieldname: "download",
+						label: __("Download"),
+						fieldtype: "Button",
+						icon: "icon-download"
+					});
+
+					me.upload = me.wrapper.appframe.add_field({
+						fieldname: "upload",
+						label: __("Upload"),
+						fieldtype: "Button",
+						icon: "icon-upload"
+					});
+				}
+
 				// bind change event
 				$.each(me.filters, function(k, f) {
 					f.$input.on("change", function() {
@@ -86,8 +102,50 @@ frappe.UserPermissions = Class.extend({
 				});
 
 				me.set_from_route();
+				me.setup_download_upload();
 			}
 		});
+	},
+	setup_download_upload: function() {
+		var me = this;
+		me.download.$input.on("click", function() {
+			window.location.href = frappe.urllib.get_base_url()
+				+ "/api/method/frappe.core.page.user_permissions.user_permissions.get_user_permissions_csv";
+		});
+
+		me.upload.$input.on("click", function() {
+			var d = new frappe.ui.Dialog({
+				title: "Upload User Permissions",
+				fields: [
+					{
+						fieldtype:"HTML",
+						options: '<div class="alert alert-warning"><ol>'+
+							"<li>"+__("Upload CSV file containing all user permissions in the same format as Download.")+"</li>"+
+							"<li><strong>"+__("Any existing permission will be deleted / overwritten.")+"</strong></li>"+
+						'</div>'
+					},
+					{
+						fieldtype:"Attach", fieldname:"attach",
+					}
+				],
+				primary_action_label: __("Upload and Sync"),
+				primary_action: function() {
+					frappe.call({
+						method:"frappe.core.page.user_permissions.user_permissions.import_user_permissions",
+						args: {
+							filedata: d.fields_dict.attach.get_value()
+						},
+						callback: function(r) {
+							if(!r.exc) {
+								msgprint("Permissions Updated");
+								d.hide();
+							}
+						}
+					});
+				}
+			});
+			d.show();
+		})
 	},
 	get_link_names: function() {
 		return this.options.link_fields;

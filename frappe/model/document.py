@@ -494,7 +494,7 @@ class Document(BaseDocument):
 			val1 = cint(val1)
 			val2 = cint(val2)
 		elif df.fieldtype in ("Data", "Text", "Small Text", "Long Text",
-			"Text Editor", "Select", "Link"):
+			"Text Editor", "Select", "Link", "Dynamic Link"):
 				val1 = cstr(val1)
 				val2 = cstr(val2)
 

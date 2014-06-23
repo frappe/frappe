@@ -87,9 +87,11 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		this.make_help();
 		this.$page.find(".show_filters").css({"padding":"15px", "margin":"0px -15px"});
 		var me = this;
-		// this.$w.on("render-complete", function() {
-		// 	me.set_sidebar_height();
-		// });
+		this.$w.on("render-complete", function() {
+			if(me.data.length===1) {
+				frappe.set_route("Form", me.doctype, me.data[0].name);
+			}
+		});
 	},
 
 	set_sidebar_height: function() {
