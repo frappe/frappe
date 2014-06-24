@@ -61,7 +61,7 @@ frappe.ui.form.Attachments = Class.extend({
 	},
 	add_attachment: function(attachment) {
 		var file_name = attachment.file_name;
-		var file_url = attachment.file_url;
+		var file_url = this.get_file_url(attachment);
 		var fileid = attachment.name;
 		if (!file_name) {
 			file_name = file_url;
@@ -95,6 +95,13 @@ frappe.ui.form.Attachments = Class.extend({
 		if(!frappe.model.can_write(this.frm.doctype, this.frm.name)) {
 			$close.remove();
 		}
+	},
+	get_file_url: function(attachment) {
+		var file_url = attachment.file_url;
+		if (!file_url) {
+			file_url = '/files/' + attachment.file_name;
+		}
+		return encodeURI(file_url);
 	},
 	remove_attachment_by_filename: function(filename, callback) {
 		this.remove_attachment(this.get_attachments()[filename], callback);
