@@ -5,7 +5,6 @@ from __future__ import unicode_literals
 
 import frappe
 import os, json
-import types
 
 from frappe import _
 from frappe.modules import scrub, get_module_path
@@ -31,11 +30,16 @@ def get_script(report_name):
 	module_path = get_module_path(module)
 	report_folder = os.path.join(module_path, "report", scrub(report.name))
 	script_path = os.path.join(report_folder, scrub(report.name) + ".js")
+	print_path = os.path.join(report_folder, scrub(report.name) + ".html")
 
-	script = None
+	script, html_format = None, None
 	if os.path.exists(script_path):
-		with open(script_path, "r") as script:
-			script = script.read()
+		with open(script_path, "r") as f:
+			script = f.read()
+
+	if os.path.exists(print_path):
+		with open(print_path, "r") as f:
+			html_format = f.read()
 
 	if not script and report.javascript:
 		script = report.javascript
@@ -47,7 +51,10 @@ def get_script(report_name):
 	if frappe.lang != "en":
 		frappe.response["__messages"] = frappe.get_lang_dict("report", report_name)
 
-	return script
+	return {
+		"script": script,
+		"html_format": html_format
+	}
 
 @frappe.whitelist()
 def run(report_name, filters=()):
@@ -148,8 +155,6 @@ def get_linked_doctypes(columns):
 
 def get_user_match_filters(doctypes, ref_doctype):
 	match_filters = {}
-	doctypes_meta = {}
-	tables = []
 
 	for dt in doctypes:
 		match_filters.update(frappe.widgets.reportview.build_match_conditions(dt, False))

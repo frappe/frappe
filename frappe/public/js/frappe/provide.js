@@ -1,8 +1,8 @@
 // Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
-// MIT License. See license.txt 
+// MIT License. See license.txt
 
 // provide a namespace
-if(!window.frappe) 
+if(!window.frappe)
 	window.frappe = {};
 frappe.provide = function(namespace) {
 	// docs: create a namespace //
@@ -23,3 +23,4 @@ frappe.provide("frappe.settings");
 frappe.provide("frappe.utils");
 frappe.provide("frappe.ui");
 frappe.provide("frappe.modules");
+frappe.provide("frappe.templates");

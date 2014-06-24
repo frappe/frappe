@@ -150,6 +150,8 @@ def scrub_user_tags(tagcount):
 	rdict = {}
 	tagdict = dict(tagcount)
 	for t in tagdict:
+		if not t:
+			continue
 		alltags = t.split(',')
 		for tag in alltags:
 			if tag:

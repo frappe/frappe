@@ -35,6 +35,7 @@ frappe.PermissionEngine = Class.extend({
 				me.setup_appframe();
 			}
 		});
+
 	},
 	setup_appframe: function() {
 		var me = this;
@@ -192,8 +193,8 @@ frappe.PermissionEngine = Class.extend({
 			}
 
 			var checkbox = $("<div class='col-md-4'><div class='checkbox'>\
-					<label><input type='checkbox'>"+__(label)+"</input></label>\
-				</div></div>").appendTo(cell)
+					<label><input type='checkbox'>"+__(label)+"</input></label>"
+					+ (d.help || "") + "</div></div>").appendTo(cell)
 				.attr("data-fieldname", fieldname)
 				.css("text-transform", "capitalize");
 
@@ -214,9 +215,12 @@ frappe.PermissionEngine = Class.extend({
 			me.set_show_users(role_cell, d.role);
 
 			if (d.permlevel===0) {
+				d.help = '<div style="margin-left: 20px;">\
+					<a class="show-user-permissions small">Show User Pemissions</a></div>';
 				add_check(role_cell, d, "apply_user_permissions")
 					.removeClass("col-md-4")
 					.css({"margin-top": "15px"});
+				d.help = "";
 			}
 
 			var cell = add_cell(row, d, "permlevel");
@@ -290,6 +294,12 @@ frappe.PermissionEngine = Class.extend({
 	},
 	add_check_events: function() {
 		var me = this;
+
+		this.body.on("click", ".show-user-permissions", function() {
+			frappe.route_options = { doctype: me.get_doctype() || "" };
+			frappe.set_route("user-permissions");
+		});
+
 		this.body.on("click", "input[type='checkbox']", function() {
 			var chk = $(this);
 			var args = {

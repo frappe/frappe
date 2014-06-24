@@ -20,6 +20,12 @@ def find_first_image(html):
 def can_cache(no_cache=False):
 	return not (frappe.conf.disable_website_cache or no_cache)
 
+def get_comment_list(doctype, name):
+	return frappe.db.sql("""select
+		comment, comment_by_fullname, creation
+		from `tabComment` where comment_doctype=%s
+		and comment_docname=%s order by creation""", (doctype, name), as_dict=1) or []
+
 def get_home_page():
 	def _get_home_page():
 		role_home_page = frappe.get_hooks("role_home_page")

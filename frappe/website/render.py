@@ -164,7 +164,9 @@ def clear_cache(path=None):
 
 	if path:
 		delete_page_cache(path)
-
+		for p in frappe.db.sql_list('''select name from
+			`tabWebsite Route` where name like "{0}/%"'''.format(path.replace('"', '\"'))):
+			delete_page_cache(p)
 	else:
 		for p in frappe.db.sql_list("""select name from `tabWebsite Route`"""):
 			if p is not None:

@@ -247,5 +247,5 @@ frappe.utils = {
 			var dataURL = canvas.toDataURL("image/jpeg");
 			setTimeout(function() { callback(dataURL); }, 10 );
 		}
-	}
+	},
 };

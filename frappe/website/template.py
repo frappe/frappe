@@ -10,6 +10,8 @@ from jinja2.utils import concat
 from jinja2 import meta
 import re
 
+from sitemap import get_next
+
 def render_blocks(context):
 	"""returns a dict of block name and its rendered content"""
 
@@ -27,7 +29,7 @@ def render_blocks(context):
 		for block, render in template.blocks.items():
 			out[block] = scrub_relative_urls(concat(render(template.new_context(context))))
 
-	_render_blocks(context["template_path"])
+	_render_blocks(context["template"])
 
 	# default blocks if not found
 	if "title" not in out and out.get("header"):
@@ -39,7 +41,7 @@ def render_blocks(context):
 	if "header" not in out and out.get("title"):
 		out["header"] = out["title"]
 
-	if not out["header"].startswith("<h"):
+	if out.get("header") and not out["header"].startswith("<h"):
 		out["header"] = "<h2>" + out["header"] + "</h2>"
 
 	if "breadcrumbs" not in out:
@@ -51,6 +53,20 @@ def render_blocks(context):
 
 	if "<!-- title:" in out.get("content", ""):
 		out["title"] = re.findall('<!-- title:([^>]*) -->', out.get("content"))[0].strip()
+
+	if "{index}" in out.get("content", "") and context.get("children"):
+		html = frappe.get_template("templates/includes/static_index.html").render({
+				"items": context["children"]})
+		out["content"] = out["content"].replace("{index}", html)
+
+	if "{next}" in out.get("content", ""):
+		next_item = get_next(context["pathname"])
+		if next_item:
+			if next_item.name[0]!="/": next_item.name = "/" + next_item.name
+			html = '''<p><br><a href="{name}" class="btn btn-primary">
+				{page_title} <i class="icon-chevron-right"></i></a>
+			</p>'''.format(**next_item)
+			out["content"] = out["content"].replace("{next}", html)
 
 	if "sidebar" not in out and not out.get("no_sidebar"):
 		out["sidebar"] = scrub_relative_urls(

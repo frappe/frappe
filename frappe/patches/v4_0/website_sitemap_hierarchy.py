@@ -6,9 +6,9 @@ from __future__ import unicode_literals
 import frappe
 
 def execute():
-	frappe.db.sql("""update `tabWebsite Route` ws set ref_doctype=(select wsc.ref_doctype
-		from `tabWebsite Template` wsc where wsc.name=ws.website_template)
-		where ifnull(page_or_generator, '')!='Page'""")
+	# frappe.db.sql("""update `tabWebsite Route` ws set ref_doctype=(select wsc.ref_doctype
+	# 	from `tabWebsite Template` wsc where wsc.name=ws.website_template)
+	# 	where ifnull(page_or_generator, '')!='Page'""")
 
 	frappe.reload_doc("website", "doctype", "website_settings")
 

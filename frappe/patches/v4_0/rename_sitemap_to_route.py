@@ -17,11 +17,11 @@ def execute():
 		frappe.reload_doc("website", "doctype", frappe.scrub(d))
 		rename_field_if_exists(d, "parent_website_sitemap", "parent_website_route")
 
-	frappe.reload_doc("website", "doctype", "website_template")
+	#frappe.reload_doc("website", "doctype", "website_template")
 	frappe.reload_doc("website", "doctype", "website_route")
 	frappe.reload_doc("website", "doctype", "website_route_permission")
 
-	rename_field_if_exists("Website Route", "website_sitemap_config", "website_template")
+	#rename_field_if_exists("Website Route", "website_sitemap_config", "website_template")
 	rename_field_if_exists("Website Route Permission", "website_sitemap", "website_route")
 
 	for d in ("blog_category", "blog_post", "web_page", "website_route", "website_group", "post", "user_vote"):

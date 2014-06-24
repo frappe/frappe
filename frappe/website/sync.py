@@ -1,0 +1,95 @@
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# MIT License. See license.txt
+
+from __future__ import unicode_literals
+import frappe, os, sys
+from frappe.modules import load_doctype_module
+import statics, render
+
+def sync(app=None):
+	if app:
+		apps = [app]
+	else:
+		apps = frappe.get_installed_apps()
+
+	print "Resetting..."
+	render.clear_cache()
+
+	# delete all static web pages
+	statics.delete_static_web_pages()
+
+	# delete all routes (resetting)
+	frappe.db.sql("delete from `tabWebsite Route`")
+
+	print "Finding routes..."
+	routes, generators = [], []
+	for app in apps:
+		routes += get_sync_pages(app)
+		generators += get_sync_generators(app)
+
+	sync_pages(routes)
+	sync_generators(generators)
+
+	# sync statics
+	statics_sync = statics.sync()
+	statics_sync.start()
+
+def sync_pages(routes):
+	l = len(routes)
+	if l:
+		for i, r in enumerate(routes):
+			r.insert(ignore_permissions=True)
+			sys.stdout.write("\rUpdating pages {0}/{1}".format(i+1, l))
+			sys.stdout.flush()
+		print ""
+
+def sync_generators(generators):
+	l = len(generators)
+	if l:
+		for i, g in enumerate(generators):
+			doc = frappe.get_doc(g[0], g[1])
+			doc.save(ignore_permissions=True)
+			sys.stdout.write("\rUpdating generators {0}/{1}".format(i+1, l))
+			sys.stdout.flush()
+		print ""
+
+def get_sync_pages(app):
+	app_path = frappe.get_app_path(app)
+	pages = []
+
+	path = os.path.join(app_path, "templates", "pages")
+	if os.path.exists(path):
+		for fname in os.listdir(path):
+			fname = frappe.utils.cstr(fname)
+			page_name, extn = fname.rsplit(".", 1)
+			if extn in ("html", "xml", "js", "css"):
+				# add website route
+				route = frappe.new_doc("Website Route")
+				route.page_or_generator = "Page"
+				route.template = os.path.relpath(os.path.join(path, fname), app_path)
+				route.page_name = page_name
+				controller_path = os.path.join(path, page_name + ".py")
+
+				if os.path.exists(controller_path):
+					controller = app + "." + os.path.relpath(controller_path,
+						app_path).replace(os.path.sep, ".")[:-3]
+					route.controller = controller
+
+				pages.append(route)
+
+	return pages
+
+def get_sync_generators(app):
+	generators = []
+	for doctype in frappe.get_hooks("website_generators", app_name = app):
+		condition, order_by = "", "name asc"
+		module = load_doctype_module(doctype)
+		if hasattr(module, "condition_field"):
+			condition = " where ifnull({0}, 0)=1 ".format(module.condition_field)
+		if hasattr(module, "sort_by"):
+			order_by = "{0} {1}".format(module.sort_by, module.sort_order)
+		for name in frappe.db.sql_list("select name from `tab{0}` {1} order by {2}".format(doctype,
+			condition, order_by)):
+			generators.append((doctype, name))
+
+	return generators

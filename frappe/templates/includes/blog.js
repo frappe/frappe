@@ -8,9 +8,8 @@ var blog = {
 	get_list: function() {
 		$.ajax({
 			method: "GET",
-			url: "/",
+			url: "/api/method/frappe.website.doctype.blog_post.blog_post.get_blog_list",
 			data: {
-				cmd: "frappe.templates.generators.blog_post.get_blog_list",
 				start: blog.start,
 				by: get_url_arg("by"),
 				category: window.category || get_url_arg("category")

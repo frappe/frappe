@@ -26,7 +26,7 @@ web_include_css = [
 		"style_settings.css"
 	]
 
-website_clear_cache = "frappe.templates.generators.website_group.clear_cache"
+website_clear_cache = "frappe.website.doctype.website_group.website_group.clear_cache"
 
 write_file_keys = ["file_url", "file_name"]
 
@@ -34,34 +34,33 @@ notification_config = "frappe.core.notifications.get_notification_config"
 
 before_tests = "frappe.utils.install.before_tests"
 
+website_generators = ["Web Page", "Blog Post", "Website Group", "Blog Category"]
+
 # permissions
 
 permission_query_conditions = {
-		"Event": "frappe.core.doctype.event.event.get_permission_query_conditions",
-		"ToDo": "frappe.core.doctype.todo.todo.get_permission_query_conditions"
-	}
+	"Event": "frappe.core.doctype.event.event.get_permission_query_conditions",
+	"ToDo": "frappe.core.doctype.todo.todo.get_permission_query_conditions"
+}
 
 has_permission = {
-		"Event": "frappe.core.doctype.event.event.has_permission",
-		"ToDo": "frappe.core.doctype.todo.todo.has_permission"
-	}
-
-# bean
-
+	"Event": "frappe.core.doctype.event.event.has_permission",
+	"ToDo": "frappe.core.doctype.todo.todo.has_permission"
+}
 
 doc_events = {
-		"*": {
-			"on_update": "frappe.core.doctype.notification_count.notification_count.clear_doctype_notifications",
-			"on_cancel": "frappe.core.doctype.notification_count.notification_count.clear_doctype_notifications",
-			"on_trash": "frappe.core.doctype.notification_count.notification_count.clear_doctype_notifications"
-		},
-		"User Vote": {
-			"after_insert": "frappe.templates.generators.website_group.clear_cache_on_doc_event"
-		},
-		"Website Route Permission": {
-			"on_update": "frappe.templates.generators.website_group.clear_cache_on_doc_event"
-		}
+	"*": {
+		"on_update": "frappe.core.doctype.notification_count.notification_count.clear_doctype_notifications",
+		"on_cancel": "frappe.core.doctype.notification_count.notification_count.clear_doctype_notifications",
+		"on_trash": "frappe.core.doctype.notification_count.notification_count.clear_doctype_notifications"
+	},
+	"User Vote": {
+		"after_insert": "frappe.website.doctype.website_group.website_group.clear_cache_on_doc_event"
+	},
+	"Website Route Permission": {
+		"on_update": "frappe.website.doctype.website_group.website_group.clear_cache_on_doc_event"
 	}
+}
 
 scheduler_events = {
 	"all": ["frappe.utils.email_lib.bulk.flush"],
@@ -72,6 +71,6 @@ scheduler_events = {
 		"frappe.sessions.clear_expired_sessions",
 	],
 	"hourly": [
-		"frappe.templates.generators.website_group.clear_event_cache"
+		"frappe.website.doctype.website_group.website_group.clear_event_cache"
 	]
 }
