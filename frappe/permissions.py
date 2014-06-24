@@ -37,12 +37,13 @@ def has_permission(doctype, ptype="read", doc=None, verbose=True, user=None):
 	if not role_permissions.get(ptype):
 		return False
 
-	if doc and role_permissions["apply_user_permissions"].get(ptype):
+	if doc:
 		if isinstance(doc, basestring):
 			doc = frappe.get_doc(meta.name, doc)
 
-		if not user_has_permission(doc, verbose=verbose, user=user):
-			return False
+		if role_permissions["apply_user_permissions"].get(ptype):
+			if not user_has_permission(doc, verbose=verbose, user=user):
+				return False
 
 		if not has_controller_permissions(doc, ptype, user=user):
 			return False
