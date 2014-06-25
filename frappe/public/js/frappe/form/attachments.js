@@ -99,7 +99,12 @@ frappe.ui.form.Attachments = Class.extend({
 	get_file_url: function(attachment) {
 		var file_url = attachment.file_url;
 		if (!file_url) {
-			file_url = '/files/' + attachment.file_name;
+			if (attachment.file_name.indexOf('files/') === 0) {
+				file_url = '/' + attachment.file_name;
+			}
+			else {
+				file_url = '/files/' + attachment.file_name;
+			}
 		}
 		return encodeURI(file_url);
 	},
