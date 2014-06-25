@@ -29,6 +29,6 @@ frappe.template.compile = function(str) {
 
 	return frappe.template.compiled[str];
 };
-frappe.render = function(str, data, debug) {
+frappe.render = function(str, data) {
 	return frappe.template.compile(str)(data);
 };
