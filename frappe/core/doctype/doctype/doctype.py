@@ -12,6 +12,10 @@ from frappe.model import no_value_fields
 from frappe.model.document import Document
 from frappe.model.db_schema import type_map
 
+form_grid_templates = {
+	"fields": "templates/form_grid/fields.html"
+}
+
 class DocType(Document):
 	def validate(self):
 		if not frappe.conf.get("developer_mode"):
