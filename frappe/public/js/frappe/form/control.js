@@ -1,7 +1,7 @@
 // Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-frappe.ui.form.make_control = function(opts) {
+frappe.ui.form.make_control = function (opts) {
 	var control_class_name = "Control" + opts.df.fieldtype.replace(/ /g, "");
 	if(frappe.ui.form[control_class_name]) {
 		return new frappe.ui.form[control_class_name](opts);
@@ -538,7 +538,8 @@ frappe.ui.form.ControlButton = frappe.ui.form.ControlData.extend({
 	},
 	set_label: function() {
 		$(this.label_span).html("&nbsp;");
-		this.$input && this.$input.html(this.df.label);
+		this.$input && this.$input.html((this.df.icon ?
+			('<i class="'+this.df.icon+' icon-fixed-width"></i> ') : "") + this.df.label);
 	}
 });
 
@@ -551,7 +552,8 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 			.on("click", function() {
 				me.onclick();
 			});
-		this.$value = $('<div class="alert alert-info">\
+		this.$value = $('<div style="margin-top: 5px;">\
+			<i class="icon-paper-clip" style="overflow: hidden; display: inline-block"></i> \
 			<a class="attached-file text-ellipsis" style="width: 80%" target="_blank"></a>\
 			<a class="close">&times;</a></div>')
 			.prependTo(me.input_area)
@@ -802,32 +804,36 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		this.setup_buttons();
 		this.setup_autocomplete();
 	},
+	get_options: function() {
+		return this.df.options;
+	},
 	setup_buttons: function() {
 		var me = this;
 
 		// magnifier - search
 		this.$input_area.find(".btn-search").on("click", function() {
+			var doctype = me.get_options();
+			if(!doctype) return;
 			new frappe.ui.form.LinkSelector({
-				doctype: me.df.options,
+				doctype: doctype,
 				target: me,
 				txt: me.get_value()
 			});
 		});
 
 		// open
-		if(frappe.model.can_read(me.df.options)) {
-			this.$input_area.find(".btn-open").on("click", function() {
-				var value = me.get_value();
-				if(value && me.df.options) frappe.set_route("Form", me.df.options, value);
-			});
-		} else {
-			this.$input_area.find(".btn-open").remove();
-		}
+		this.$input_area.find(".btn-open").on("click", function() {
+			var value = me.get_value();
+			if(value && me.get_options())
+				frappe.set_route("Form", me.get_options(), value);
+		});
 
 		// new
-		if(frappe.model.can_create(me.df.options)) {
+		if(this.df.fieldtype==="Dynamic Link" || frappe.model.can_create(me.df.options)) {
 			this.$input_area.find(".btn-new").on("click", function() {
-				me.frm.new_doc(me.df.options, me);
+				var doctype = me.get_options();
+				if(!doctype) return;
+				me.frm.new_doc(doctype, me);
 			});
 		} else {
 			this.$input_area.find(".btn-new").remove();
@@ -854,18 +860,20 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		this.$input.autocomplete({
 			minLength: 0,
 			source: function(request, response) {
-				if (!me.$input.cache[me.df.options]) {
-					me.$input.cache[me.df.options] = {};
+				var doctype = me.get_options();
+				if(!doctype) return;
+				if (!me.$input.cache[doctype]) {
+					me.$input.cache[doctype] = {};
 				}
 
-				if (me.$input.cache[me.df.options][request.term]!=null) {
+				if (me.$input.cache[doctype][request.term]!=null) {
 					// immediately show from cache
-					response(me.$input.cache[me.df.options][request.term]);
+					response(me.$input.cache[doctype][request.term]);
 				}
 
 				var args = {
 					'txt': request.term,
-					'doctype': me.df.options,
+					'doctype': doctype,
 				};
 
 				me.set_custom_query(args);
@@ -876,13 +884,13 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 					no_spinner: true,
 					args: args,
 					callback: function(r) {
-						if(frappe.model.can_create(me.df.options)) {
+						if(frappe.model.can_create(doctype)) {
 							r.results.push({
 								value: "<i class='icon-plus'></i> <em>" + __("Create a new {0}", [me.df.options]) + "</em>",
 								make_new: true
 							});
 						};
-						me.$input.cache[me.df.options][request.term] = r.results;
+						me.$input.cache[doctype][request.term] = r.results;
 						response(r.results);
 					},
 				});
@@ -901,10 +909,13 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			select: function(event, ui) {
 				me.autocomplete_open = false;
 				if(ui.item.make_new) {
+					var doctype = me.get_options();
+					if(!doctype) return;
+
 					if (me.frm) {
-						me.frm.new_doc(me.df.options, me);
+						me.frm.new_doc(doctype, me);
 					} else {
-						new_doc(me.df.options);
+						new_doc(doctype);
 					}
 					return false;
 				}
@@ -968,10 +979,21 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			return;
 		}
 
-		this.frm.script_manager.validate_link_and_fetch(this.df, this.docname, value, callback);
+		this.frm.script_manager.validate_link_and_fetch(this.df, this.get_options(),
+			this.docname, value, callback);
 	},
 });
 
+frappe.ui.form.ControlDynamicLink = frappe.ui.form.ControlLink.extend({
+	get_options: function() {
+		var options = frappe.model.get_value(this.df.parent, this.docname, this.df.options);
+		if(!options) {
+			msgprint(__("Please set {0} first",
+				[frappe.meta.get_docfield(this.df.parent, this.df.options, this.docname).label]));
+		}
+		return options;
+	},
+});
 
 frappe.ui.form.ControlCode = frappe.ui.form.ControlText.extend({
 	make_input: function() {

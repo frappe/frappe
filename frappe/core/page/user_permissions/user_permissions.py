@@ -7,6 +7,8 @@ from frappe import _
 import frappe.defaults
 import frappe.permissions
 from frappe.core.doctype.user.user import get_system_users
+from frappe.utils.datautils import UnicodeWriter, read_csv_content_from_uploaded_file
+from frappe.defaults import clear_default
 
 @frappe.whitelist()
 def get_users_and_links():
@@ -79,3 +81,28 @@ def get_doctypes_for_user_permissions():
 	return frappe.db.sql_list("""select name from tabDocType
 		where ifnull(issingle,0)=0 and ifnull(istable,0)=0 {condition}""".format(condition=condition),
 		tuple(values))
+
+@frappe.whitelist()
+def get_user_permissions_csv():
+	out = [["User Permissions"], ["User", "Document Type", "Value"]]
+	out += [[a.parent, a.defkey, a.defvalue] for a in get_permissions()]
+
+	csv = UnicodeWriter()
+	for row in out:
+		csv.writerow(row)
+
+	frappe.response['result'] = str(csv.getvalue())
+	frappe.response['type'] = 'csv'
+	frappe.response['doctype'] = "User Permissions"
+
+@frappe.whitelist()
+def import_user_permissions():
+	frappe.only_for("System Manager")
+	rows = read_csv_content_from_uploaded_file(ignore_encoding=True)
+	clear_default(parenttype="User Permission")
+
+	if rows[0][0]!="User Permissions" and rows[1][0] != "User":
+		frappe.throw(frappe._("Please upload using the same template as download."))
+
+	for row in rows[2:]:
+		frappe.permissions.add_user_permission(row[1], row[2], row[0])

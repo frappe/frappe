@@ -8,6 +8,7 @@ import frappe.model.meta
 import frappe.defaults
 from frappe.utils.file_manager import remove_all
 from frappe import _
+from rename_doc import dynamic_link_queries
 
 def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reload=False, ignore_permissions=False):
 	"""
@@ -31,7 +32,16 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 	remove_all(doctype, name)
 
 	if doctype=="DocType":
-		if not for_reload:
+		if for_reload:
+
+			try:
+				doc = frappe.get_doc(doctype, name)
+			except frappe.DoesNotExistError:
+				pass
+			else:
+				doc.run_method("before_reload")
+
+		else:
 			frappe.db.sql("delete from `tabCustom Field` where dt = %s", name)
 			frappe.db.sql("delete from `tabCustom Script` where dt = %s", name)
 			frappe.db.sql("delete from `tabProperty Setter` where doc_type = %s", name)
@@ -48,6 +58,7 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 			# check if links exist
 			if not force:
 				check_if_doc_is_linked(doc)
+				check_if_doc_is_dynamically_linked(doc)
 
 		delete_from_table(doctype, name, ignore_doctypes, doc)
 
@@ -106,3 +117,21 @@ def check_if_doc_is_linked(doc, method="Delete"):
 				frappe.throw(_("Cannot delete or cancel because {0} {1} is linked with {2} {3}").format(doc.doctype,
 					doc.name, item.parent or item.name, item.parenttype if item.parent else link_dt),
 					frappe.LinkExistsError)
+
+def check_if_doc_is_dynamically_linked(doc):
+	for query in dynamic_link_queries:
+		for df in frappe.db.sql(query, as_dict=True):
+			if frappe.get_meta(df.parent).issingle:
+
+				# dynamic link in single doc
+				refdoc = frappe.get_singles_dict(df.parent)
+				if refdoc.get(df.options)==doc.doctype and refdoc.get(df.fieldname)==doc.name:
+					frappe.throw(_("Cannot delete or cancel because {0} {1} is linked with {2} {3}").format(doc.doctype,
+						doc.name, df.parent, ""), frappe.LinkExistsError)
+			else:
+
+				# dynamic link in table
+				for name in frappe.db.sql_list("""select name from `tab{parent}` where
+					{options}=%s and {fieldname}=%s""".format(**df), (doc.doctype, doc.name)):
+					frappe.throw(_("Cannot delete or cancel because {0} {1} is linked with {2} {3}").format(doc.doctype,
+						doc.name, df.parent, name), frappe.LinkExistsError)

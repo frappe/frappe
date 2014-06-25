@@ -49,7 +49,7 @@ frappe.ui.form.Comments = Class.extend({
 			c.fullname = frappe.user_info(c.comment_by).fullname;
 			c.comment = frappe.markdown(c.comment);
 
-			$(repl('<div class="media col-md-10" data-name="%(name)s">\
+			$(repl('<div class="media col-md-10 comment" data-name="%(name)s">\
 					<span class="pull-left avatar avatar-small">\
 						<img class="media-object" src="%(image)s">\
 					</span>\

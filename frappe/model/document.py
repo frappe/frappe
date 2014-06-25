@@ -159,7 +159,10 @@ class Document(BaseDocument):
 		self.check_if_latest()
 		self.set_parent_in_children()
 		self.run_before_save_methods()
-		self._validate()
+
+		if self._action != "cancel":
+			self._validate()
+
 		if self._action == "update_after_submit":
 			self.validate_update_after_submit()
 
@@ -491,7 +494,7 @@ class Document(BaseDocument):
 			val1 = cint(val1)
 			val2 = cint(val2)
 		elif df.fieldtype in ("Data", "Text", "Small Text", "Long Text",
-			"Text Editor", "Select", "Link"):
+			"Text Editor", "Select", "Link", "Dynamic Link"):
 				val1 = cstr(val1)
 				val2 = cstr(val2)
 

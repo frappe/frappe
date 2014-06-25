@@ -68,6 +68,8 @@ def save_url(file_url, dt, dn):
 def get_uploaded_content():
 	# should not be unicode when reading a file, hence using frappe.form
 	if 'filedata' in frappe.form_dict:
+		if "," in frappe.form_dict.filedata:
+			frappe.form_dict.filedata = frappe.form_dict.filedata.rsplit(",", 1)[1]
 		frappe.uploaded_content = base64.b64decode(frappe.form_dict.filedata)
 		frappe.uploaded_filename = frappe.form_dict.filename
 		return frappe.uploaded_filename, frappe.uploaded_content
@@ -144,12 +146,12 @@ def save_file_on_filesystem(fname, content, content_type=None):
 	}
 
 def check_max_file_size(content):
-	max_file_size = conf.get('max_file_size') or 1000000
+	max_file_size = conf.get('max_file_size') or 3145728
 	file_size = len(content)
 
 	if file_size > max_file_size:
 		frappe.msgprint(_("File size exceeded the maximum allowed size of {0} MB").format(
-			max_file_size / 1000000.0),
+			max_file_size / 1048576),
 			raise_exception=MaxFileSizeReachedError)
 
 	return file_size

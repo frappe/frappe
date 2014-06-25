@@ -11,6 +11,7 @@ from frappe.utils import now, cint
 from frappe.model import no_value_fields
 from frappe.model.document import Document
 from frappe.model.db_schema import type_map
+from frappe.core.doctype.property_setter.property_setter import make_property_setter
 
 class DocType(Document):
 	def validate(self):
@@ -106,6 +107,29 @@ class DocType(Document):
 		else:
 			frappe.db.sql("rename table `tab%s` to `tab%s`" % (old, new))
 
+	def before_reload(self):
+		if not (self.issingle and self.istable):
+			self.preserve_naming_series_options_in_property_setter()
+
+	def preserve_naming_series_options_in_property_setter(self):
+		"""preserve naming_series as property setter if it does not exist"""
+		naming_series = self.get("fields", {"fieldname": "naming_series"})
+
+		if not naming_series:
+			return
+
+		# check if atleast 1 record exists
+		if not (frappe.db.table_exists("tab" + self.name) and frappe.db.sql("select name from `tab{}` limit 1".format(self.name))):
+			return
+
+		existing_property_setter = frappe.db.get_value("Property Setter", {"doc_type": self.name,
+			"property": "options", "field_name": "naming_series"})
+
+		if not existing_property_setter:
+			make_property_setter(self.name, "naming_series", "options", naming_series[0].options, "Text")
+			if naming_series[0].default:
+				make_property_setter(self.name, "naming_series", "default", naming_series[0].default, "Text")
+
 	def export_doc(self):
 		from frappe.modules.export_file import export_to_files
 		export_to_files(record_list=[['DocType', self.name]])
@@ -157,6 +181,7 @@ class DocType(Document):
 def validate_fields_for_doctype(doctype):
 	validate_fields(frappe.get_meta(doctype).get("fields"))
 
+# this is separate because it is also called via custom field
 def validate_fields(fields):
 	def check_illegal_characters(fieldname):
 		for c in ['.', ',', ' ', '-', '&', '%', '=', '"', "'", '*', '$',
@@ -200,6 +225,13 @@ def validate_fields(fields):
 		if d.in_list_view and d.fieldtype!="Image" and (d.fieldtype in no_value_fields):
 			frappe.throw(_("'In List View' not allowed for type {0} in row {1}").format(d.fieldtype, d.idx))
 
+	def check_dynamic_link_options(d):
+		if d.fieldtype=="Dynamic Link":
+			doctype_pointer = filter(lambda df: df.fieldname==d.options, fields)
+			if not doctype_pointer or (doctype_pointer[0].fieldtype!="Link") \
+				or (doctype_pointer[0].options!="DocType"):
+				frappe.throw(_("Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType'"))
+
 	for d in fields:
 		if not d.permlevel: d.permlevel = 0
 		if not d.fieldname:
@@ -208,6 +240,7 @@ def validate_fields(fields):
 		check_unique_fieldname(d.fieldname)
 		check_illegal_mandatory(d)
 		check_link_table_options(d)
+		check_dynamic_link_options(d)
 		check_hidden_and_mandatory(d)
 		check_in_list_view(d)
 
