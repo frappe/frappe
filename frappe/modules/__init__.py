@@ -46,11 +46,14 @@ def get_doctype_module(doctype):
 
 doctype_modules = {}
 def load_doctype_module(doctype, module=None, prefix=""):
-	if not doctype in doctype_modules:
+	key = (prefix or "") + doctype
+
+	if not key in doctype_modules:
 		if not module:
 			module = get_doctype_module(doctype)
-		doctype_modules[doctype] = frappe.get_module(get_module_name(doctype, module, prefix))
-	return doctype_modules[doctype]
+		doctype_modules[key] = frappe.get_module(get_module_name(doctype, module, prefix))
+
+	return doctype_modules[key]
 
 def get_module_name(doctype, module, prefix=""):
 	from frappe.modules import scrub
