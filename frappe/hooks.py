@@ -74,3 +74,5 @@ scheduler_events = {
 		"frappe.website.doctype.website_group.website_group.clear_event_cache"
 	]
 }
+
+mail_footer = "frappe.core.doctype.outgoing_email_settings.outgoing_email_settings.get_mail_footer"

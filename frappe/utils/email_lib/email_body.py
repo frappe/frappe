@@ -206,12 +206,11 @@ def get_footer(footer=None):
 	"""append a footer (signature)"""
 	footer = footer or ""
 
-	# control panel
-	footer += frappe.db.get_default('mail_footer') or ''
-
 	# hooks
 	for f in frappe.get_hooks("mail_footer"):
-		footer += frappe.get_attr(f)
+		# mail_footer could be a function that returns a value
+		mail_footer = frappe.get_attr(f)
+		footer += (mail_footer if isinstance(mail_footer, basestring) else mail_footer())
 
 	footer += "<!--unsubscribe link here-->"
 
