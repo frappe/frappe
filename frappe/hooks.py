@@ -75,4 +75,4 @@ scheduler_events = {
 	]
 }
 
-mail_footer = "frappe.core.doctype.outgoing_email_settings.outgoing_email_settings.get_system_signature"
+mail_footer = "frappe.core.doctype.outgoing_email_settings.outgoing_email_settings.get_mail_footer"
