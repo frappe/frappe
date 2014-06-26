@@ -545,6 +545,7 @@ def import_doc(path, ignore_links=False, ignore_insert=False, insert=False):
 	data_import_tool.import_doc(path, ignore_links=ignore_links, ignore_insert=ignore_insert, insert=insert)
 
 def copy_doc(doc):
+	""" No_copy fields also get copied."""
 	import copy
 	if not isinstance(doc, dict):
 		d = doc.as_dict()
@@ -556,6 +557,8 @@ def copy_doc(doc):
 	newdoc.set("__islocal", 1)
 	newdoc.owner = None
 	newdoc.creation = None
+	newdoc.amended_from = None
+	newdoc.amendment_date = None
 	for d in newdoc.get_all_children():
 		d.name = None
 		d.parent = None
