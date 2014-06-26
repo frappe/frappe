@@ -545,6 +545,7 @@ def import_doc(path, ignore_links=False, ignore_insert=False, insert=False):
 	data_import_tool.import_doc(path, ignore_links=ignore_links, ignore_insert=ignore_insert, insert=insert)
 
 def copy_doc(doc):
+	""" No_copy fields also get copied."""
 	import copy
 	if not isinstance(doc, dict):
 		d = doc.as_dict()
