@@ -556,6 +556,8 @@ def copy_doc(doc):
 	newdoc.set("__islocal", 1)
 	newdoc.owner = None
 	newdoc.creation = None
+	newdoc.amended_from = None
+	newdoc.amendment_date = None
 	for d in newdoc.get_all_children():
 		d.name = None
 		d.parent = None
