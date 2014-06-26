@@ -204,8 +204,13 @@ def msgprint(msg, small=0, raise_exception=0, as_table=False):
 def throw(msg, exc=ValidationError):
 	msgprint(msg, raise_exception=exc)
 
-def create_folder(path):
-	if not os.path.exists(path): os.makedirs(path)
+def create_folder(path, with_init=False):
+	from frappe.utils import touch_file
+	if not os.path.exists(path):
+		os.makedirs(path)
+
+		if with_init:
+			touch_file(os.path.join(path, "__init__.py"))
 
 def set_user(username):
 	from frappe.utils.user import User

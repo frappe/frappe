@@ -268,8 +268,9 @@ frappe.views.ListView = Class.extend({
 			this.title_offset_left += 13 + 5;
 		}
 
-		var $avatar = $(frappe.avatar(data.modified_by, false, __("Modified by")+": "
-			+ frappe.user_info(data.modified_by).fullname))
+		var user_for_avatar = data.user_for_avatar || data.modified_by;
+		var $avatar = $(frappe.avatar(user_for_avatar, false, __("Modified by")+": "
+			+ frappe.user_info(user_for_avatar).fullname))
 				.appendTo(parent)
 				.css({"max-width": "100%"})
 
@@ -296,6 +297,7 @@ frappe.views.ListView = Class.extend({
 
 
 	},
+
 	render_column: function(data, parent, opts) {
 		var me = this;
 		if(opts.type) opts.type= opts.type.toLowerCase();

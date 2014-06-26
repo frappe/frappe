@@ -24,25 +24,18 @@ def make_boilerplate(dest):
 
 		hooks[hook_key] = hook_val
 
-	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, hooks.app_name))
-	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "templates"))
+	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, frappe.scrub(hooks.app_title)),
+		with_init=True)
+	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "templates"), with_init=True)
 	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "templates",
 		"statics"))
 	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "templates",
-		"pages"))
+		"pages"), with_init=True)
 	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "templates",
-		"generators"))
-	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "config"))
+		"generators"), with_init=True)
+	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "config"), with_init=True)
 
-	# init files
 	touch_file(os.path.join(dest, hooks.app_name, hooks.app_name, "__init__.py"))
-	touch_file(os.path.join(dest, hooks.app_name, hooks.app_name, hooks.app_name, "__init__.py"))
-	touch_file(os.path.join(dest, hooks.app_name, hooks.app_name, "templates", "__init__.py"))
-	touch_file(os.path.join(dest, hooks.app_name, hooks.app_name, "templates",
-		"pages", "__init__.py"))
-	touch_file(os.path.join(dest, hooks.app_name, hooks.app_name, "templates",
-		"generators", "__init__.py"))
-	touch_file(os.path.join(dest, hooks.app_name, hooks.app_name, "config", "__init__.py"))
 
 	with open(os.path.join(dest, hooks.app_name, "MANIFEST.in"), "w") as f:
 		f.write(manifest_template.format(**hooks))
@@ -62,7 +55,7 @@ def make_boilerplate(dest):
 		f.write("License: " + hooks.app_license)
 
 	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "modules.txt"), "w") as f:
-		f.write(hooks.app_name)
+		f.write(hooks.app_title)
 
 	with open(os.path.join(dest, hooks.app_name, hooks.app_name, "hooks.py"), "w") as f:
 		f.write(hooks_template.format(**hooks))

@@ -119,7 +119,7 @@ frappe.ui.Filter = Class.extend({
 			}
 		});
 		if(this.fieldname) {
-			this.fieldselect.set_value(this.doctype, this.fieldname);
+			this.fieldselect.set_value(this.tablename, this.fieldname);
 		}
 	},
 	set_events: function() {
