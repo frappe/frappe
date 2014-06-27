@@ -32,7 +32,7 @@ _classes = {}
 def get_controller(doctype):
 	if not doctype in _classes:
 		module = load_doctype_module(doctype)
-		classname = doctype.replace(" ", "")
+		classname = doctype.replace(" ", "").replace("-", "")
 		if hasattr(module, classname):
 			_class = getattr(module, classname)
 			if issubclass(_class, Document):
