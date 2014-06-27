@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 import frappe, os, sys
 from frappe.modules import load_doctype_module
+from frappe.utils.nestedset import rebuild_tree
 import statics, render
 
 def sync(app=None):
@@ -46,11 +47,24 @@ def sync_pages(routes):
 def sync_generators(generators):
 	l = len(generators)
 	if l:
+		frappe.flags.in_sync_website = True
 		for i, g in enumerate(generators):
 			doc = frappe.get_doc(g[0], g[1])
+			doc.ignore_links = True
 			doc.save(ignore_permissions=True)
 			sys.stdout.write("\rUpdating generators {0}/{1}".format(i+1, l))
 			sys.stdout.flush()
+
+		frappe.flags.in_sync_website = False
+		rebuild_tree("Website Route", "parent_website_route")
+
+		# HACK! update public_read, public_write
+		for name in frappe.db.sql_list("""select name from `tabWebsite Route` where ifnull(parent_website_route, '')!=''
+			order by lft"""):
+			route = frappe.get_doc("Website Route", name)
+			route.make_private_if_parent_is_private()
+			route.db_update()
+
 		print ""
 
 def get_sync_pages(app):
@@ -63,17 +77,24 @@ def get_sync_pages(app):
 			fname = frappe.utils.cstr(fname)
 			page_name, extn = fname.rsplit(".", 1)
 			if extn in ("html", "xml", "js", "css"):
+				route_page_name = page_name if extn=="html" else fname
+
 				# add website route
 				route = frappe.new_doc("Website Route")
 				route.page_or_generator = "Page"
 				route.template = os.path.relpath(os.path.join(path, fname), app_path)
-				route.page_name = page_name
+				route.page_name = route_page_name
+				route.public_read = 1
 				controller_path = os.path.join(path, page_name + ".py")
 
 				if os.path.exists(controller_path):
 					controller = app + "." + os.path.relpath(controller_path,
 						app_path).replace(os.path.sep, ".")[:-3]
 					route.controller = controller
+					try:
+						route.page_title = frappe.get_attr(controller + "." + "page_title")
+					except AttributeError:
+						pass
 
 				pages.append(route)
 

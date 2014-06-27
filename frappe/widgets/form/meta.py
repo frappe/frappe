@@ -157,7 +157,6 @@ class FormMeta(Meta):
 	def load_form_grid_templates(self):
 		module = load_doctype_module(self.name)
 		app = module.__name__.split(".")[0]
-		print module, app
 		templates = {}
 		if hasattr(module, "form_grid_templates"):
 			for key, path in module.form_grid_templates.iteritems():

@@ -38,8 +38,9 @@
   }, 
   {
    "fieldname": "docname", 
-   "fieldtype": "Data", 
+   "fieldtype": "Dynamic Link", 
    "label": "Docname", 
+   "options": "ref_doctype", 
    "permlevel": 0, 
    "read_only": 1
   }, 
@@ -118,7 +119,7 @@
   }
  ], 
  "idx": 1, 
- "modified": "2014-06-16 05:54:16.240406", 
+ "modified": "2014-06-27 05:04:57.721756", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Website Route", 

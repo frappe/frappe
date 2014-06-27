@@ -48,6 +48,10 @@ def render_blocks(context):
 		out["breadcrumbs"] = scrub_relative_urls(
 			frappe.get_template("templates/includes/breadcrumbs.html").render(context))
 
+	if "meta_block" not in out:
+		out["meta_block"] = frappe.get_template("templates/includes/meta_block.html").render(context)
+
+
 	if "<!-- no-sidebar -->" in out.get("content", ""):
 		out["no_sidebar"] = 1
 

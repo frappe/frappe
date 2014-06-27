@@ -27,10 +27,10 @@ class WebPage(WebsiteGenerator):
 
 		context.metatags = {
 			"name": self.title,
-			"description": self.description or self.main_section[:150]
+			"description": self.description or (self.main_section or "")[:150]
 		}
 
-		image = find_first_image(self.main_section)
+		image = find_first_image(self.main_section or "")
 		if image:
 			context.metatags["image"] = image
 

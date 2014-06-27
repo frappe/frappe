@@ -22,7 +22,7 @@ class BlogPost(WebsiteGenerator):
 	def validate(self):
 		if not self.blog_intro:
 			self.blog_intro = self.content[:140]
-			re.sub("\<[^>]*\>", "", self.blog_intro)
+			self.blog_intro = re.sub("\<[^>]*\>", "", self.blog_intro)
 
 		if self.blog_intro:
 			self.blog_intro = self.blog_intro[:140]

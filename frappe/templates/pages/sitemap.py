@@ -18,7 +18,7 @@ def get_context(context):
 	for l in frappe.db.sql("""select page_name, lastmod, controller
 		from `tabWebsite Route`""",
 		as_dict=True):
-		module = frappe.get_module(l.controller)
+		module = frappe.get_module(l.controller) if l.controller else None
 		if not getattr(module, "no_sitemap", False):
 			links.append({
 				"loc": urllib.basejoin(host, urllib.quote(l.page_name.encode("utf-8"))),
