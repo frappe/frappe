@@ -82,7 +82,7 @@ def add(email, sender, subject, formatted, text_content=None,
 	try:
 		e.message = get_email(email, sender=e.sender, formatted=formatted, subject=subject,
 			text_content=text_content).as_string()
-	except frappe.ValidationError:
+	except frappe.InvalidEmailAddressError:
 		# bad email id - don't add to queue
 		return
 

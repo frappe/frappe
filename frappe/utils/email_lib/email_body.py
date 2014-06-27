@@ -152,17 +152,18 @@ class EMail:
 		def _validate(email):
 			"""validate an email field"""
 			if email and not validate_email_add(email):
-				throw(_("{0} is not a valid email id").format(email))
+				throw(_("{0} is not a valid email id").format(email), frappe.InvalidEmailAddressError)
 			return email
 
 		if not self.sender:
 			self.sender = frappe.db.get_value('Outgoing Email Settings', None,
 				'auto_email_id') or frappe.conf.get('auto_email_id') or None
 			if not self.sender:
-				msgprint(_("Please specify 'Auto Email Id' in Setup > Outgoing Email Settings"))
+				msg = _("Please specify 'Auto Email Id' in Setup > Outgoing Email Settings")
+				msgprint(msg)
 				if not "expires_on" in frappe.conf:
 					msgprint(_("Alternatively, you can also specify 'auto_email_id' in site_config.json"))
-				raise frappe.ValidationError
+				raise frappe.ValidationError, msg
 
 		self.sender = _validate(self.sender)
 		self.reply_to = _validate(self.reply_to)
