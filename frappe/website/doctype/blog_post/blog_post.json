@@ -44,7 +44,8 @@
    "in_list_view": 1, 
    "label": "Blog Category", 
    "options": "Blog Category", 
-   "permlevel": 0
+   "permlevel": 0, 
+   "reqd": 1
   }, 
   {
    "fieldname": "parent_website_route", 
@@ -95,7 +96,7 @@
  "icon": "icon-quote-left", 
  "idx": 1, 
  "max_attachments": 5, 
- "modified": "2014-05-27 03:49:07.888408", 
+ "modified": "2014-06-27 05:08:37.936947", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Blog Post", 

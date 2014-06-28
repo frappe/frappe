@@ -35,11 +35,8 @@ class WebsiteGenerator(Document):
 		return frappe.db.get_value("Website Route",
 			{"ref_doctype":self.doctype, "docname": name or self.name})
 
-
 	def after_rename(self, olddn, newdn, merge):
-		route = self.get_route_docname(olddn)
-		if route:
-			frappe.get_doc("Website Route", route).rename()
+		self.update_route(self.get_route_docname())
 
 	def on_trash(self):
 		remove_sitemap(ref_doctype=self.doctype, docname=self.name)
@@ -47,20 +44,30 @@ class WebsiteGenerator(Document):
 	def update_sitemap(self):
 		# update route of all descendants
 		route_docname = self.get_route_docname()
-		if route_docname:
-			if self.get_route() != route_docname:
-				frappe.get_doc("Website Route", route_docname)\
-					.rename(self.get_page_name(), self.get_parent_website_route())
-		else:
-			self.add_or_update_sitemap()
 
-	def add_or_update_sitemap(self):
 		# check if "condtion_field" property is okay
 		self.controller_module = load_doctype_module(self.doctype)
 		if hasattr(self.controller_module, "condition_field"):
 			if not self.get(self.controller_module.condition_field):
+				frappe.delete_doc("Website Route", route_docname, ignore_permissions=True)
 				return
 
+		if route_docname:
+			self.update_route(route_docname)
+		else:
+			self.insert_route()
+
+	def update_route(self, route_docname):
+		route = frappe.get_doc("Website Route", route_docname)
+		if self.get_route() != route_docname:
+			route.rename(self.get_page_name(), self.get_parent_website_route())
+
+		route.idx = self.idx
+		route.page_title = self.get_page_title()
+		self.update_permissions(route)
+		route.save()
+
+	def insert_route(self):
 		if self.modified:
 			# for sitemap.xml
 			lastmod = frappe.utils.get_datetime(self.modified).strftime("%Y-%m-%d")
@@ -78,8 +85,7 @@ class WebsiteGenerator(Document):
 			"template": self.controller_module.template,
 			"lastmod": lastmod,
 			"parent_website_route": self.get_parent_website_route(),
-			"page_title": self.get_page_title(),
-			"public_read": 1 if not getattr(self, "no_sidebar", None) else 0
+			"page_title": self.get_page_title()
 		})
 
 		self.update_permissions(route)

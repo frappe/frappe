@@ -39,7 +39,7 @@
 						</a>
 				        <ul class="dropdown-menu">
 							{%- for child in post_login -%}
-							<li data-label="{{ child.label }}"
+							<li {% if child.label %}data-label="{{ child.label }}" {% endif %}
 								{% if child.class %} class="{{ child.class }}" {% endif %}>
 
 								{%- if child.url -%}
@@ -47,7 +47,6 @@
 										{%- if child.icon -%}
 										<i class="icon-fixed-width {{ child.icon }}"></i>
 										{%- endif -%}
-
 										{{ child.label }}
 									</a>
 								{%- endif -%}

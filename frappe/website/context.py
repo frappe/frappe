@@ -67,7 +67,7 @@ def build_context(sitemap_options):
 
 	add_metatags(context)
 
-	if context.get("base_template_path") != context.get("template_path") and not context.get("rendered"):
+	if context.get("base_template_path") != context.get("template") and not context.get("rendered"):
 		context.data = render_blocks(context)
 
 	return context

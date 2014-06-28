@@ -20,3 +20,7 @@ class BlogCategory(WebsiteGenerator):
 	def on_update(self):
 		WebsiteGenerator.on_update(self)
 		clear_cache()
+
+	def get_parent_website_route(self):
+		parent_website_sitemap = super(BlogCategory, self).get_parent_website_route()
+		return parent_website_sitemap or "blog"

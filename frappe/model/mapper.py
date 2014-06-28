@@ -22,7 +22,7 @@ def get_mapped_doc(from_doctype, from_docname, table_maps, target_doc=None,
 	elif isinstance(target_doc, basestring):
 		target_doc = frappe.get_doc(json.loads(target_doc))
 
-	if not target_doc.has_permission("create"):
+	if not ignore_permissions and not target_doc.has_permission("create"):
 		target_doc.raise_no_permission_to("create")
 
 	map_doc(source_doc, target_doc, table_maps[source_doc.doctype])

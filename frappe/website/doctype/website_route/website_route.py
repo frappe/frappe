@@ -23,17 +23,19 @@ class WebsiteRoute(NestedSet):
 
 	def validate(self):
 		self.check_if_page_name_is_unique()
-		self.make_private_if_parent_is_private()
+		if not frappe.flags.in_sync_website:
+			self.make_private_if_parent_is_private()
 
 	def on_update(self):
 		if self.get_url() != self.name:
 			self.rename()
-		if not frappe.flags.in_rebuild_config:
+		if not frappe.flags.in_sync_website:
 			NestedSet.on_update(self)
 		self.clear_cache()
 
 	def rename(self, new_page_name=None, new_parent_website_route=None):
 		self.old_name = self.name
+		self.old_parent_website_route = self.parent_website_route
 
 		# get new route
 		if new_page_name != None:
@@ -50,6 +52,8 @@ class WebsiteRoute(NestedSet):
 		self.rename_links()
 		self.rename_descendants()
 		self.clear_cache(self.old_name)
+		self.clear_cache(self.old_parent_website_route)
+		self.clear_cache(self.parent_website_route)
 
 	def rename_links(self):
 		for doctype in frappe.db.sql_list("""select parent from tabDocField
@@ -103,9 +107,10 @@ class WebsiteRoute(NestedSet):
 		from frappe.website.render import clear_cache
 		if name:
 			clear_cache(name)
-		elif self.parent_website_route:
-			clear_cache(self.parent_website_route)
 		else:
+			if self.parent_website_route:
+				clear_cache(self.parent_website_route)
+
 			clear_cache(self.name)
 
 def remove_sitemap(page_name=None, ref_doctype=None, docname=None):

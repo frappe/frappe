@@ -16,6 +16,7 @@ class BulkLimitCrossedError(frappe.ValidationError): pass
 def send(recipients=None, sender=None, doctype='User', email_field='email',
 		subject='[No Subject]', message='[No Content]', ref_doctype=None, ref_docname=None,
 		add_unsubscribe_link=True):
+
 	def is_unsubscribed(rdata):
 		if not rdata:
 			return 1
@@ -81,7 +82,7 @@ def add(email, sender, subject, formatted, text_content=None,
 	try:
 		e.message = get_email(email, sender=e.sender, formatted=formatted, subject=subject,
 			text_content=text_content).as_string()
-	except frappe.ValidationError:
+	except frappe.InvalidEmailAddressError:
 		# bad email id - don't add to queue
 		return
 
