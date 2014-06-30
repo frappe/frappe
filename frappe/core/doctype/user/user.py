@@ -41,7 +41,7 @@ class User(Document):
 			self.a_system_manager_should_exist()
 
 		# clear sessions if disabled
-		if not cint(self.enabled) and getattr(frappe, "login_manager", None):
+		if not cint(self.enabled) and getattr(frappe.local, "login_manager", None):
 			frappe.local.login_manager.logout(user=self.name)
 
 	def add_system_manager_role(self):
