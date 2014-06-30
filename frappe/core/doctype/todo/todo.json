@@ -83,6 +83,16 @@
    "search_index": 0
   }, 
   {
+   "fieldname": "owner", 
+   "fieldtype": "Link", 
+   "ignore_user_permissions": 1, 
+   "in_list_view": 0, 
+   "label": "Assigned To", 
+   "options": "User", 
+   "permlevel": 0, 
+   "reqd": 1
+  }, 
+  {
    "fieldname": "section_break_6", 
    "fieldtype": "Section Break", 
    "label": "Reference", 
@@ -147,6 +157,7 @@
   {
    "fieldname": "assigned_by", 
    "fieldtype": "Link", 
+   "ignore_user_permissions": 1, 
    "label": "Assigned By", 
    "options": "User", 
    "permlevel": 0
@@ -160,7 +171,7 @@
  "in_dialog": 0, 
  "issingle": 0, 
  "max_attachments": 0, 
- "modified": "2014-06-20 06:20:11.947183", 
+ "modified": "2014-06-30 05:40:15.471434", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "ToDo", 
@@ -195,5 +206,6 @@
  ], 
  "read_only": 0, 
  "read_only_onload": 0, 
+ "search_fields": "description, reference_type, reference_name", 
  "title_field": "description"
 }
