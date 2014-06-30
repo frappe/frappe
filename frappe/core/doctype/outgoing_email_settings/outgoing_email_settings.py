@@ -23,3 +23,6 @@ class OutgoingEmailSettings(Document):
 
 			# exceptions are handled in session connect
 			sess = smtpserver.sess
+
+def get_mail_footer():
+	return frappe.db.get_value("Outgoing Email Settings", "Outgoing Email Settings", "footer") or ""

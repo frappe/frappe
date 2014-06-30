@@ -230,7 +230,7 @@ def setup_utilities(parser):
 	# clear
 	parser.add_argument("--clear_web", default=False, action="store_true",
 		help="Clear website cache")
-	parser.add_argument("--build_sitemap", default=False, action="store_true",
+	parser.add_argument("--build_website", default=False, action="store_true",
 		help="Build Website Route")
 	parser.add_argument("--sync_statics", default=False, action="store_true",
 		help="Sync files from templates/statics to Web Pages")
@@ -352,7 +352,7 @@ def add_to_installed_apps(*apps):
 	all_apps = frappe.get_all_apps(with_frappe=True)
 	for each in apps:
 		if each in all_apps:
-			add_to_installed_apps(each, rebuild_sitemap=False)
+			add_to_installed_apps(each, rebuild_website=False)
 	frappe.destroy()
 
 @cmd
@@ -402,13 +402,11 @@ def update(remote=None, branch=None, reload_gunicorn=False):
 		subprocess.check_output("killall -HUP gunicorn".split())
 
 @cmd
-def latest(rebuild_website_config=True, quiet=False):
+def latest(rebuild_website=True, quiet=False):
 	import frappe.modules.patch_handler
 	import frappe.model.sync
-	from frappe.website import rebuild_config
 	from frappe.utils.fixtures import sync_fixtures
 	import frappe.translate
-	from frappe.website import statics
 
 	verbose = not quiet
 
@@ -419,17 +417,11 @@ def latest(rebuild_website_config=True, quiet=False):
 		frappe.modules.patch_handler.run_all()
 		# sync
 		frappe.model.sync.sync_all(verbose=verbose)
+		frappe.translate.clear_cache()
 		sync_fixtures()
 
-		sync = statics.sync()
-		sync.start()
-		sync.start(rebuild=True)
-		# build website config if any changes in templates etc.
-		if rebuild_website_config:
-			rebuild_config()
-
-		frappe.translate.clear_cache()
-
+		if rebuild_website:
+			build_website()
 	finally:
 		frappe.destroy()
 
@@ -561,10 +553,11 @@ def clear_all_sessions():
 	frappe.destroy()
 
 @cmd
-def build_sitemap():
-	from frappe.website import rebuild_config
+def build_website():
+	import frappe.website.sync
 	frappe.connect()
-	rebuild_config()
+	frappe.website.sync.sync()
+	frappe.db.commit()
 	frappe.destroy()
 
 @cmd

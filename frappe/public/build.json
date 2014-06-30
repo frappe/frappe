@@ -32,7 +32,6 @@
 
 		"public/css/tag-it.css",
 		"public/css/bootstrap.css",
-		"public/css/bootstrap-responsive.css",
 		"public/css/font-awesome.css",
 		"public/css/desk.css",
 		"public/css/appframe.css",
@@ -67,6 +66,9 @@
 		"public/js/frappe/router.js",
 		"public/js/frappe/desk.js",
 		"public/js/frappe/defaults.js",
+		"public/js/lib/microtemplate.js",
+
+		"public/html/print_template.html",
 
 		"public/js/legacy/globals.js",
 		"public/js/legacy/datatype.js",

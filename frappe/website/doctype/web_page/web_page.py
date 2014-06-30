@@ -2,14 +2,43 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-import frappe, os, time, re
+import frappe, re
 import requests, requests.exceptions
 from frappe.website.website_generator import WebsiteGenerator
-from frappe.website.utils import cleanup_page_name
-from frappe.utils import cint
+from frappe.website.doctype.website_slideshow.website_slideshow import get_slideshow
+from frappe.website.utils import find_first_image, get_comment_list
+
+template = "templates/generators/web_page.html"
+condition_field = "published"
 
 class WebPage(WebsiteGenerator):
 	save_versions = True
+	def get_context(self, context):
+		if context.slideshow:
+			context.update(get_slideshow(self))
+
+		if self.enable_comments:
+			context.comment_list = get_comment_list(self.doctype, self.name)
+
+		context.update({
+			"style": self.css or "",
+			"script": self.javascript or ""
+		})
+
+		context.metatags = {
+			"name": self.title,
+			"description": self.description or (self.main_section or "")[:150]
+		}
+
+		image = find_first_image(self.main_section or "")
+		if image:
+			context.metatags["image"] = image
+
+		if not context.header:
+			context.header = self.title
+
+		return context
+
 
 def check_broken_links():
 	cnt = 0

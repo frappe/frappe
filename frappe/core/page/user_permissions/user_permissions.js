@@ -2,7 +2,7 @@ frappe.pages['user-permissions'].onload = function(wrapper) {
 	frappe.ui.make_app_page({
 		parent: wrapper,
 		title: "User Permissions Manager",
-		icon: "icon-user",
+		icon: "icon-shield",
 		single_column: true
 	});
 	$(wrapper).find(".layout-main").html("<div class='user-settings' style='min-height: 200px;'></div>\
@@ -45,6 +45,10 @@ frappe.UserPermissions = Class.extend({
 	},
 	make: function() {
 		var me = this;
+		this.wrapper.appframe.add_primary_action("Role Permissions", function() {
+			frappe.route_options = { doctype: me.get_doctype() || "" };
+			frappe.set_route("permission-manager");
+		}, "icon-lock");
 		return frappe.call({
 			module:"frappe.core",
 			page:"user_permissions",

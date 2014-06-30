@@ -4,15 +4,16 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import msgprint, throw, _
-from frappe.utils import scrub_urls, cstr
+from frappe.utils import scrub_urls
 import email.utils
+from markdown2 import markdown
+
 
 def get_email(recipients, sender='', msg='', subject='[No Subject]',
 	text_content = None, footer=None, print_html=None, formatted=None):
 	"""send an html email as multipart with attachments and all"""
 	emailobj = EMail(sender, recipients, subject)
-	if (not '<br>' in msg) and (not '<p>' in msg) and (not '<div' in msg):
-		msg = msg.replace('\n', '<br>')
+	msg = markdown(msg)
 	emailobj.set_html(msg, text_content, footer=footer, print_html=print_html, formatted=formatted)
 
 	return emailobj
@@ -151,17 +152,18 @@ class EMail:
 		def _validate(email):
 			"""validate an email field"""
 			if email and not validate_email_add(email):
-				throw(_("{0} is not a valid email id").format(email))
+				throw(_("{0} is not a valid email id").format(email), frappe.InvalidEmailAddressError)
 			return email
 
 		if not self.sender:
 			self.sender = frappe.db.get_value('Outgoing Email Settings', None,
 				'auto_email_id') or frappe.conf.get('auto_email_id') or None
 			if not self.sender:
-				msgprint(_("Please specify 'Auto Email Id' in Setup > Outgoing Email Settings"))
+				msg = _("Please specify 'Auto Email Id' in Setup > Outgoing Email Settings")
+				msgprint(msg)
 				if not "expires_on" in frappe.conf:
 					msgprint(_("Alternatively, you can also specify 'auto_email_id' in site_config.json"))
-				raise frappe.ValidationError
+				raise frappe.ValidationError, msg
 
 		self.sender = _validate(self.sender)
 		self.reply_to = _validate(self.reply_to)
@@ -189,7 +191,6 @@ class EMail:
 
 def get_formatted_html(subject, message, footer=None, print_html=None):
 	# imported here to avoid cyclic import
-	import inlinestyler.utils
 
 	message = scrub_urls(message)
 	rendered_email = frappe.get_template("templates/emails/standard.html").render({
@@ -200,22 +201,17 @@ def get_formatted_html(subject, message, footer=None, print_html=None):
 		"subject": subject
 	})
 
-	# if in a test case, do not inline css
-	if frappe.local.flags.in_test:
-		return rendered_email
-
-	return cstr(inlinestyler.utils.inline_css(rendered_email))
+	return rendered_email
 
 def get_footer(footer=None):
 	"""append a footer (signature)"""
 	footer = footer or ""
 
-	# control panel
-	footer += frappe.db.get_default('mail_footer') or ''
-
 	# hooks
 	for f in frappe.get_hooks("mail_footer"):
-		footer += frappe.get_attr(f)
+		# mail_footer could be a function that returns a value
+		mail_footer = frappe.get_attr(f)
+		footer += (mail_footer if isinstance(mail_footer, basestring) else mail_footer())
 
 	footer += "<!--unsubscribe link here-->"
 

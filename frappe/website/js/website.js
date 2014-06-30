@@ -107,6 +107,10 @@ $.extend(frappe, {
 			} catch(e) {
 				console.log(data.exc);
 			}
+			if (opts.error_msg && data._server_messages) {
+				var server_messages = (JSON.parse(data._server_messages || '[]')).join("<br>");
+				$(opts.error_msg).html(server_messages).toggle(true);
+			}
 		} else{
 			if(opts.btn) {
 				$(opts.btn).addClass("btn-success");
@@ -286,6 +290,10 @@ $.extend(frappe, {
 		$('[data-html-block]').each(function(i, section) {
 			var $section = $(section);
 			var stype = $section.attr("data-html-block");
+
+			// handle meta separately
+			if (stype==="meta_block") return;
+
 			var block_data = data[stype] || "";
 
 			// NOTE: use frappe.ready instead of $.ready for reliable execution
@@ -306,6 +314,12 @@ $.extend(frappe, {
 			}
 		});
 		if(data.title) $("title").html(data.title);
+
+		// change meta tags
+		$('[data-html-block="meta_block"]').remove();
+		if(data.meta_block) {
+			$("head").append(data.meta_block);
+		}
 
 		// change id of current page
 		$(".page-container").attr("id", "page-" + data.path);

@@ -259,12 +259,19 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 			this.appframe.add_icon_btn("2", "icon-shield",
 				__("User Permissions Manager"), function() {
 					frappe.route_options = {
-						property: me.doctype
+						doctype: me.doctype
 					};
 					frappe.set_route("user-permissions");
 				});
 		}
 		if(in_list(user_roles, "System Manager")) {
+			this.appframe.add_icon_btn("2", "icon-lock",
+				__("Role Permissions Manager"), function() {
+					frappe.route_options = {
+						doctype: me.doctype
+					};
+					frappe.set_route("permission-manager");
+				});
 			this.appframe.add_icon_btn("2", "icon-glass", __("Customize"), function() {
 				frappe.set_route("Form", "Customize Form", {
 					doctype: me.doctype

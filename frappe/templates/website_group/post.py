@@ -7,7 +7,7 @@ from frappe import _
 from frappe.utils import get_fullname
 from frappe.website.permissions import get_access
 from frappe.utils.file_manager import save_file
-from frappe.templates.generators.website_group import get_pathname
+from frappe.website.doctype.website_group.website_group import get_pathname
 
 def get_post_context(context):
 	post = frappe.get_doc("Post", frappe.form_dict.name)
@@ -130,7 +130,7 @@ def save_post(post, content, picture=None, picture_name=None, title=None,
 	return post.parent_post or post.name
 
 def process_picture(post, picture_name, picture):
-	from frappe.templates.generators.website_group import clear_cache
+	from frappe.website.doctype.website_group.website_group import clear_cache
 
 	post.picture_url = save_file(picture_name, picture, "Post", post.name, decode=True).file_url
 	frappe.db.set_value("Post", post.name, "picture_url", post.picture_url)

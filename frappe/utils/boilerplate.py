@@ -119,6 +119,12 @@ app_version = "0.0.1"
 #	"Role": "home_page"
 # }}
 
+# Generators
+# ----------
+
+# automatically create page for each record of this doctype
+# website_generators = ["Web Page"]
+
 # Installation
 # ------------
 

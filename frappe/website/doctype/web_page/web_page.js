@@ -18,6 +18,7 @@ $.extend(cur_frm.cscript, {
 	},
 	refresh: function(doc) {
 		cur_frm.cscript.layout(doc);
+		cur_frm.set_intro("");
 		if (!doc.__islocal && doc.published) {
 			cur_frm.set_intro(__("Published on website at: {0}",
 				[repl('<a href="/%(website_route)s" target="_blank">/%(website_route)s</a>', doc.__onload)]));

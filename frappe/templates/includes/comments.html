@@ -18,7 +18,7 @@
 		<fieldset>
 			<input class="form-control" name="comment_by_fullname" placeholder="Your Name" type="text"/><br>
 			<input class="form-control" name="comment_by"
-				placeholder="Your Email Id" type="text"/><br>
+				placeholder="Your Email Id" type="email"/><br>
 			<textarea class="form-control" name="comment" rows=10
 				placeholder="Comment"/>
 			</textarea><br>
@@ -59,6 +59,11 @@ $(document).ready(function() {
 
 		if(!args.comment_by_fullname || !args.comment_by || !args.comment) {
 			frappe.msgprint("All fields are necessary to submit the comment.")
+			return false;
+		}
+
+		if (!valid_email(args.comment_by)) {
+			frappe.msgprint("Please enter a valid email address.");
 			return false;
 		}
 

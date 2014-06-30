@@ -6,7 +6,7 @@
 from __future__ import unicode_literals
 import frappe, os
 from frappe.model.meta import Meta
-from frappe.modules import scrub, get_module_path
+from frappe.modules import scrub, get_module_path, load_doctype_module
 from frappe.model.workflow import get_workflow_name
 
 ######
@@ -35,10 +35,11 @@ class FormMeta(Meta):
 			self.add_code()
 			self.load_print_formats()
 			self.load_workflows()
+			self.load_form_grid_templates()
 
 	def as_dict(self, no_nulls=False):
 		d = super(FormMeta, self).as_dict(no_nulls=no_nulls)
-		for k in ("__js", "__css", "__list_js", "__calendar_js", "__map_js",
+		for k in ("__js", "__css", "__list_js", "__calendar_js", "__map_js", "__form_grid_templates",
 			"__linked_with", "__messages", "__print_formats", "__workflow_docs"):
 			d[k] = self.get(k)
 
@@ -152,6 +153,17 @@ class FormMeta(Meta):
 
 		self.set("__workflow_docs", workflow_docs)
 
+
+	def load_form_grid_templates(self):
+		module = load_doctype_module(self.name)
+		app = module.__name__.split(".")[0]
+		templates = {}
+		if hasattr(module, "form_grid_templates"):
+			for key, path in module.form_grid_templates.iteritems():
+				with open(frappe.get_app_path(app, path), "r") as f:
+					templates[key] = f.read()
+
+			self.set("__form_grid_templates", templates)
 
 def render_jinja(content):
 	if "{% include" in content:

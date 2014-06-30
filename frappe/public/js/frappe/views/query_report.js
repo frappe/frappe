@@ -107,8 +107,9 @@ frappe.views.QueryReport = Class.extend({
 								},
 								callback: function(r) {
 									me.appframe.set_title(__("Query Report")+": " + __(me.report_name));
-									frappe.dom.eval(r.message || "");
+									frappe.dom.eval(r.message.script || "");
 									me.setup_filters();
+									me.setup_html_format(r.message.html_format);
 									me.refresh();
 								}
 							});
@@ -122,6 +123,37 @@ frappe.views.QueryReport = Class.extend({
 		} else {
 			var msg = __("No Report Loaded. Please use query-report/[Report Name] to run a report.")
 			this.wrapper.find(".no-report-area").html(msg).toggle(true);
+		}
+	},
+	setup_html_format: function(html_format) {
+		var me = this;
+		if(html_format) {
+			this.appframe.add_primary_action(__('Print'), function() {
+				if(!me.data) {
+					msgprint(__("Run the report first"));
+					return;
+				}
+
+				var data = [];
+				$.each(me.data, function(i, d) {
+					var newd = {}; data.push(newd);
+					$.each(d, function(k, v) {
+						newd[k.replace(/ /g, "_").toLowerCase()] = v; });
+				});
+
+				var content = frappe.render(html_format,
+					{data: data, filters:me.get_values(), report:me});
+
+				var html = frappe.render(frappe.templates.print_template, {
+					title: __(me.report_name), content: content
+				});
+
+				var w = window.open();
+				w.document.write(html);
+				w.document.close();
+
+			}, "icon-print");
+
 		}
 	},
 	setup_filters: function() {

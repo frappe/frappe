@@ -377,7 +377,7 @@ def get_module(modulename):
 	return importlib.import_module(modulename)
 
 def scrub(txt):
-	return txt.replace(' ','_').replace('-', '_').replace('/', '_').lower()
+	return txt.replace(' ','_').replace('-', '_').lower()
 
 def unscrub(txt):
 	return txt.replace('_',' ').replace('-', ' ').title()
