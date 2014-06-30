@@ -32,7 +32,7 @@ class ToDo(Document):
 		}).insert(ignore_permissions=True)
 
 
-# todo is viewable if either owner or assigned_to or System Manager in roles
+# NOTE: todo is viewable if either owner or assigned_to or System Manager in roles
 
 def get_permission_query_conditions(user):
 	if not user: user = frappe.session.user
