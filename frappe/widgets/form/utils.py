@@ -66,7 +66,7 @@ def add_comment(doc):
 def get_next(doctype, value, prev, filters=None, order_by="modified desc"):
 	import frappe.widgets.reportview
 
-	prev = int(prev)
+	prev = not int(prev)
 	sort_field, sort_order = order_by.split(" ")
 
 	if not filters: filters = []
@@ -79,6 +79,8 @@ def get_next(doctype, value, prev, filters=None, order_by="modified desc"):
 	# switch the condition
 	if prev:
 		condition = "<" if condition==">" else "<"
+	else:
+		sort_order = "asc" if sort_order.lower()=="desc" else "desc"
 
 	# add condition for next or prev item
 	if not order_by[0] in [f[1] for f in filters]:
@@ -88,7 +90,7 @@ def get_next(doctype, value, prev, filters=None, order_by="modified desc"):
 		fields = ["name"],
 		filters = filters,
 		order_by = sort_field + " " + sort_order,
-		limit_start=0, limit_page_length=1, as_list=True)
+		limit_start=0, limit_page_length=1, as_list=True, debug=True)
 
 	if not res:
 		frappe.msgprint(_("No further records"))
