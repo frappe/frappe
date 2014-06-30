@@ -14,7 +14,7 @@ def get(args=None):
 	if not args:
 		args = frappe.local.form_dict
 
-	get_docinfo(args.get("doctype"), args.get("name"))
+	get_docinfo(frappe.get_doc(args.get("doctype"), args.get("name")))
 
 	return frappe.db.sql("""select owner, description from `tabToDo`
 		where reference_type=%(doctype)s and reference_name=%(name)s and status="Open"

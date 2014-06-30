@@ -46,7 +46,7 @@ def cancel(doctype=None, name=None):
 
 def send_updated_docs(doc):
 	from load import get_docinfo
-	get_docinfo(doc.doctype, doc.name)
+	get_docinfo(doc)
 
 	d = doc.as_dict()
 	if hasattr(doc, 'localname'):

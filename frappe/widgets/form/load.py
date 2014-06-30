@@ -6,6 +6,7 @@ import frappe, json
 import frappe.utils
 import frappe.defaults
 import frappe.widgets.form.meta
+from frappe.permissions import get_doc_permissions
 from frappe import _
 
 @frappe.whitelist()
@@ -33,7 +34,7 @@ def getdoc(doctype, name, user=None):
 			raise frappe.PermissionError, "read"
 
 		# add file list
-		get_docinfo(doctype, name)
+		get_docinfo(doc)
 
 	except Exception:
 		frappe.errprint(frappe.utils.get_traceback())
@@ -74,11 +75,12 @@ def get_meta_bundle(doctype):
 			bundle.append(frappe.widgets.form.meta.get_meta(df.options))
 	return bundle
 
-def get_docinfo(doctype, name):
+def get_docinfo(doc):
 	frappe.response["docinfo"] = {
-		"attachments": add_attachments(doctype, name),
-		"comments": add_comments(doctype, name),
-		"assignments": add_assignments(doctype, name)
+		"attachments": add_attachments(doc.doctype, doc.name),
+		"comments": add_comments(doc.doctype, doc.name),
+		"assignments": add_assignments(doc.doctype, doc.name),
+		"permissions": get_doc_permissions(doc)
 	}
 
 def get_user_permissions(meta):

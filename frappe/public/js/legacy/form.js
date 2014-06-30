@@ -335,7 +335,7 @@ _f.Frm.prototype.refresh_header = function() {
 _f.Frm.prototype.check_doc_perm = function() {
 	// get perm
 	var dt = this.parent_doctype?this.parent_doctype : this.doctype;
-	this.perm = frappe.perm.get_perm(dt);
+	this.perm = frappe.perm.get_perm(dt, this.doc);
 
 	if(!this.perm[0].read) {
 		return 0;
@@ -358,6 +358,9 @@ _f.Frm.prototype.refresh = function(docname) {
 
 	if(this.docname) { // document to show
 
+		// set the doc
+		this.doc = frappe.get_doc(this.doctype, this.docname);
+
 		// check permissions
 		if(!this.check_doc_perm()) {
 			frappe.show_not_permitted(__(this.doctype) + " " + __(this.docname));
@@ -366,9 +369,6 @@ _f.Frm.prototype.refresh = function(docname) {
 
 		// read only (workflow)
 		this.read_only = frappe.workflow.is_read_only(this.doctype, this.docname);
-
-		// set the doc
-		this.doc = frappe.get_doc(this.doctype, this.docname);
 
 		// check if doctype is already open
 		if (!this.opendocs[this.docname]) {

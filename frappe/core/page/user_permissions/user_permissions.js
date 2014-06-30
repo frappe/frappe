@@ -185,11 +185,14 @@ frappe.UserPermissions = Class.extend({
 		this.body.empty();
 		this.prop_list = prop_list;
 		if(!prop_list || !prop_list.length) {
-			this.body.html("<div class='alert alert-info'>"+__("No User Permissions found.")+"</div>");
+			this.add_message(__("No User Permissions found."));
 		} else {
 			this.show_user_permissions_table();
 		}
 		this.show_add_user_permission();
+	},
+	add_message: function(txt) {
+		$('<div class="alert alert-info">' + txt + '</div>').appendTo(this.body);
 	},
 	refresh: function() {
 		var me = this;
