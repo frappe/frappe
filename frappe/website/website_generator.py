@@ -36,21 +36,26 @@ class WebsiteGenerator(Document):
 			{"ref_doctype":self.doctype, "docname": name or self.name})
 
 	def after_rename(self, olddn, newdn, merge):
-		self.update_route(self.get_route_docname())
+		if self.is_condition_field_enabled():
+			self.update_route(self.get_route_docname())
 
 	def on_trash(self):
 		remove_sitemap(ref_doctype=self.doctype, docname=self.name)
+
+	def is_condition_field_enabled(self):
+		self.controller_module = load_doctype_module(self.doctype)
+		if hasattr(self.controller_module, "condition_field"):
+			return self.get(self.controller_module.condition_field) and True or False
+		else:
+			return True
 
 	def update_sitemap(self):
 		# update route of all descendants
 		route_docname = self.get_route_docname()
 
-		# check if "condtion_field" property is okay
-		self.controller_module = load_doctype_module(self.doctype)
-		if hasattr(self.controller_module, "condition_field"):
-			if not self.get(self.controller_module.condition_field):
-				frappe.delete_doc("Website Route", route_docname, ignore_permissions=True)
-				return
+		if not self.is_condition_field_enabled():
+			frappe.delete_doc("Website Route", route_docname, ignore_permissions=True)
+			return
 
 		if route_docname:
 			self.update_route(route_docname)
