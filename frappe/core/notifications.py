@@ -20,11 +20,8 @@ def get_notification_config():
 
 def get_things_todo():
 	"""Returns a count of incomplete todos"""
-	incomplete_todos = frappe.db.sql("""\
-		SELECT COUNT(*) FROM `tabToDo`
-		WHERE status="Open"
-		AND (owner = %s or assigned_by=%s)""", (frappe.session.user, frappe.session.user))
-	return incomplete_todos[0][0]
+	return frappe.get_list("ToDo", fields=["count(*)"],
+		filters=[["ToDo", "status", "=", "Open"]], as_list=True)[0][0]
 
 def get_todays_events():
 	"""Returns a count of todays events in calendar"""

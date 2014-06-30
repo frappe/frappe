@@ -32,7 +32,7 @@ def get_notifications():
 				open_count_doctype[d] = notification_count[d]
 			else:
 				result = frappe.get_list(d, fields=["count(*)"],
-					filters=[[d, key, "=", condition[key]]], as_list=True, limit_page_length=1)[0][0]
+					filters=[[d, key, "=", condition[key]]], as_list=True)[0][0]
 
 				frappe.get_doc({"doctype":"Notification Count", "for_doctype":d,
 					"open_count":result}).insert(ignore_permissions=True)
