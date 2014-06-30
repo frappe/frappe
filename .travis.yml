@@ -23,6 +23,7 @@ script:
   - frappe --use test_site
   - frappe --reinstall
   - frappe -b
+  - frappe --build_website
   - frappe --serve_test &
   - frappe --verbose --run_tests
 
