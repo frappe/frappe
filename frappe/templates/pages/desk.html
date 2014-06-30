@@ -5,8 +5,10 @@
 	<meta name="author" content="">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
-	<link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon">
-	<link rel="icon" href="images/favicon.ico" type="image/x-icon">
+	<link rel="shortcut icon"
+		href="{{ favicon or "/assets/frappe/images/favicon.ico" }}" type="image/x-icon">
+	<link rel="icon"
+		href="{{ favicon or "/assets/frappe/images/favicon.ico" }}" type="image/x-icon">
 	{% for include in include_css -%}
 	<link type="text/css" rel="stylesheet" href="{{ include }}">
 	{%- endfor -%}
