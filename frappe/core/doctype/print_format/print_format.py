@@ -94,7 +94,7 @@ def get_print_format_name(doctype, format_name):
 
 	# server, find template
 	path = os.path.join(get_doc_path(frappe.db.get_value("DocType", doctype, "module"),
-		"Print Format", format_name), format_name + ".html")
+		"Print Format", format_name), frappe.scrub(format_name) + ".html")
 
 	if os.path.exists(path):
 		with open(path, "r") as pffile:
