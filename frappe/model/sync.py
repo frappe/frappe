@@ -30,13 +30,15 @@ def sync_for(app_name, force=0, sync_everything = False, verbose=False):
 	l = len(files)
 	if l:
 		for i, doc_path in enumerate(files):
-			if import_file_by_path(doc_path, force=force) and verbose:
-				complete = int(float(i+1) / l * 40)
-				sys.stdout.write("\rSyncing {0}: [{1}{2}]".format(app_name, "="*complete, " "*(40-complete)))
-				sys.stdout.flush()
-				#print module_name + ' | ' + doctype + ' | ' + name
+			import_file_by_path(doc_path, force=force)
+			#print module_name + ' | ' + doctype + ' | ' + name
 
 			frappe.db.commit()
+
+			# show progress bar
+			complete = int(float(i+1) / l * 40)
+			sys.stdout.write("\rSyncing {0}: [{1}{2}]".format(app_name, "="*complete, " "*(40-complete)))
+			sys.stdout.flush()
 
 		print ""
 
