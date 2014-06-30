@@ -50,8 +50,7 @@ def sync_generators(generators):
 		frappe.flags.in_sync_website = True
 		for i, g in enumerate(generators):
 			doc = frappe.get_doc(g[0], g[1])
-			doc.ignore_links = True
-			doc.save(ignore_permissions=True)
+			doc.update_sitemap()
 			sys.stdout.write("\rUpdating generators {0}/{1}".format(i+1, l))
 			sys.stdout.flush()
 
