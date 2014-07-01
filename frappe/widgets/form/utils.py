@@ -90,7 +90,7 @@ def get_next(doctype, value, prev, filters=None, order_by="modified desc"):
 		fields = ["name"],
 		filters = filters,
 		order_by = sort_field + " " + sort_order,
-		limit_start=0, limit_page_length=1, as_list=True, debug=True)
+		limit_start=0, limit_page_length=1, as_list=True)
 
 	if not res:
 		frappe.msgprint(_("No further records"))

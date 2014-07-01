@@ -174,5 +174,5 @@ def clear_cache(user=None):
 			if e.args[0]!=1146:
 				# special case, in rename patch
 				raise
-	for p in to_clear:
+	for p in (to_clear + common_keys):
 		frappe.cache().delete_value("__defaults:" + p)
