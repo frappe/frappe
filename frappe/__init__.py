@@ -347,15 +347,7 @@ def get_meta(doctype, cached=True):
 
 def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reload=False, ignore_permissions=False):
 	import frappe.model.delete_doc
-
-	if not ignore_doctypes:
-		ignore_doctypes = []
-
-	if isinstance(name, list):
-		for n in name:
-			frappe.model.delete_doc.delete_doc(doctype, n, force, ignore_doctypes, for_reload, ignore_permissions)
-	else:
-		frappe.model.delete_doc.delete_doc(doctype, name, force, ignore_doctypes, for_reload, ignore_permissions)
+	frappe.model.delete_doc.delete_doc(doctype, name, force, ignore_doctypes, for_reload, ignore_permissions)
 
 def delete_doc_if_exists(doctype, name):
 	if db.exists(doctype, name):
