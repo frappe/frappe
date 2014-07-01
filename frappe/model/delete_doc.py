@@ -21,49 +21,54 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 		doctype = frappe.form_dict.get('dt')
 		name = frappe.form_dict.get('dn')
 
-	if not doctype:
-		frappe.msgprint(_('Nothing to delete'), raise_exception =1)
+	names = name
+	if isinstance(name, basestring):
+		names = [name]
 
-	# already deleted..?
-	if not frappe.db.exists(doctype, name):
-		return
+	for name in names:
 
-	# delete attachments
-	remove_all(doctype, name)
+		# already deleted..?
+		if not frappe.db.exists(doctype, name):
+			return
 
-	if doctype=="DocType":
-		if for_reload:
+		# delete attachments
+		remove_all(doctype, name)
 
-			try:
-				doc = frappe.get_doc(doctype, name)
-			except frappe.DoesNotExistError:
-				pass
+		if doctype=="DocType":
+			if for_reload:
+
+				try:
+					doc = frappe.get_doc(doctype, name)
+				except frappe.DoesNotExistError:
+					pass
+				else:
+					doc.run_method("before_reload")
+
 			else:
-				doc.run_method("before_reload")
+				frappe.db.sql("delete from `tabCustom Field` where dt = %s", name)
+				frappe.db.sql("delete from `tabCustom Script` where dt = %s", name)
+				frappe.db.sql("delete from `tabProperty Setter` where doc_type = %s", name)
+				frappe.db.sql("delete from `tabReport` where ref_doctype=%s", name)
+
+			delete_from_table(doctype, name, ignore_doctypes, None)
 
 		else:
-			frappe.db.sql("delete from `tabCustom Field` where dt = %s", name)
-			frappe.db.sql("delete from `tabCustom Script` where dt = %s", name)
-			frappe.db.sql("delete from `tabProperty Setter` where doc_type = %s", name)
-			frappe.db.sql("delete from `tabReport` where ref_doctype=%s", name)
+			doc = frappe.get_doc(doctype, name)
 
-		delete_from_table(doctype, name, ignore_doctypes, None)
+			if not for_reload:
+				check_permission_and_not_submitted(doc, ignore_permissions)
+				doc.run_method("on_trash")
 
-	else:
-		doc = frappe.get_doc(doctype, name)
+				delete_linked_todos(doc)
+				# check if links exist
+				if not force:
+					check_if_doc_is_linked(doc)
+					check_if_doc_is_dynamically_linked(doc)
 
-		if not for_reload:
-			check_permission_and_not_submitted(doc, ignore_permissions)
-			doc.run_method("on_trash")
-			# check if links exist
-			if not force:
-				check_if_doc_is_linked(doc)
-				check_if_doc_is_dynamically_linked(doc)
+			delete_from_table(doctype, name, ignore_doctypes, doc)
 
-		delete_from_table(doctype, name, ignore_doctypes, doc)
-
-	# delete user_permissions
-	frappe.defaults.clear_default(parenttype="User Permission", key=doctype, value=name)
+		# delete user_permissions
+		frappe.defaults.clear_default(parenttype="User Permission", key=doctype, value=name)
 
 	return 'okay'
 
@@ -135,3 +140,7 @@ def check_if_doc_is_dynamically_linked(doc):
 					{options}=%s and {fieldname}=%s""".format(**df), (doc.doctype, doc.name)):
 					frappe.throw(_("Cannot delete or cancel because {0} {1} is linked with {2} {3}").format(doc.doctype,
 						doc.name, df.parent, name), frappe.LinkExistsError)
+
+def delete_linked_todos(doc):
+	delete_doc("ToDo", frappe.db.sql_list("""select name from `tabToDo`
+		where reference_type=%s and reference_name=%s""", (doc.doctype, doc.name)))
