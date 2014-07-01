@@ -52,6 +52,8 @@ def render_blocks(context):
 		out["meta_block"] = frappe.get_template("templates/includes/meta_block.html").render(context)
 
 
+	out["no_sidebar"] = context.get("no_sidebar", 0)
+
 	if "<!-- no-sidebar -->" in out.get("content", ""):
 		out["no_sidebar"] = 1
 
