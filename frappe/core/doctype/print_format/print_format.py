@@ -104,7 +104,8 @@ def get_print_format_name(doctype, format_name):
 		if html:
 			return html
 		else:
-			return "No template found.\npath: " + path
+			frappe.throw(_("No template found at path: {0}").format(path),
+				frappe.TemplateNotFoundError)
 
 def get_print_style(style=None):
 	if not style:
