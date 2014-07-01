@@ -55,7 +55,7 @@ $.extend(frappe.perm, {
 			// apply user permissions via docinfo (which is processed server-side)
 			var docinfo = frappe.model.get_docinfo(doctype, doc.name);
 			if(docinfo) {
-				$.each(docinfo.permissions, function(ptype, val) {
+				$.each(docinfo.permissions || [], function(ptype, val) {
 					perm[0][ptype] = val;
 				});
 			}

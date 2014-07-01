@@ -84,7 +84,7 @@ def get_website_settings():
 	settings = frappe.get_doc("Website Settings", "Website Settings")
 	for k in ["banner_html", "brand_html", "copyright", "twitter_share_via",
 		"favicon", "facebook_share", "google_plus_one", "twitter_share", "linked_in_share",
-		"disable_signup"]:
+		"disable_signup", "no_sidebar"]:
 		if hasattr(settings, k):
 			context[k] = settings.get(k)
 
