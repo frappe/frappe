@@ -31,7 +31,6 @@ class ToDo(Document):
 					description = self.description)
 		}).insert(ignore_permissions=True)
 
-
 # NOTE: todo is viewable if either owner or assigned_to or System Manager in roles
 
 def get_permission_query_conditions(user):
