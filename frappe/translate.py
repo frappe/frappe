@@ -224,7 +224,7 @@ def get_messages_from_page_or_report(doctype, name, module=None):
 		module = frappe.db.get_value(doctype, name, "module")
 	file_path = frappe.get_module_path(module, doctype, name, name)
 	messages = get_messages_from_file(file_path + ".js")
-	messages = get_messages_from_file(file_path + ".html")
+	messages += get_messages_from_file(file_path + ".html")
 
 	return clean(messages)
 
