@@ -70,7 +70,7 @@ class WebsiteGenerator(Document):
 		route.idx = self.idx
 		route.page_title = self.get_page_title()
 		self.update_permissions(route)
-		route.save()
+		route.save(ignore_permissions=True)
 
 	def insert_route(self):
 		if self.modified:
