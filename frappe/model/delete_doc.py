@@ -25,7 +25,7 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 	if isinstance(name, basestring):
 		names = [name]
 
-	for name in names:
+	for name in names or []:
 
 		# already deleted..?
 		if not frappe.db.exists(doctype, name):
