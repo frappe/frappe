@@ -106,11 +106,12 @@ class User(Document):
 		self.password_reset_mail(get_url("/update-password?key=" + key))
 
 	def get_other_system_managers(self):
-		return frappe.db.sql("""select distinct parent from tabUserRole user_role
-			where role='System Manager' and docstatus<2
-			and parent not in ('Administrator', %s) and exists
-				(select * from `tabUser` user
-				where user.name=user_role.parent and enabled=1)""", (self.name,))
+		return frappe.db.sql("""select distinct user.name from tabUserRole user_role, tabUser user
+			where user_role.role='System Manager'
+				and user.docstatus<2
+				and ifnull(user.enabled,0)=1
+				and user_role.parent = user.name
+			and user_role.parent not in ('Administrator', %s) limit 1""", (self.name,))
 
 	def get_fullname(self):
 		"""get first_name space last_name"""
@@ -161,7 +162,7 @@ class User(Document):
 
 	def a_system_manager_should_exist(self):
 		if not self.get_other_system_managers():
-			throw(_("Hey! There should remain at least one System Manager"))
+			throw(_("There should remain at least one System Manager"))
 
 	def on_trash(self):
 		frappe.clear_cache(user=self.name)

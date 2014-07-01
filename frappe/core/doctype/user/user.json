@@ -463,7 +463,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 5, 
- "modified": "2014-06-10 03:48:14.706370", 
+ "modified": "2014-06-30 15:15:01.469048", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "User", 
@@ -488,7 +488,7 @@
    "permlevel": 0, 
    "read": 1, 
    "role": "All", 
-   "write": 0
+   "write": 1
   }, 
   {
    "apply_user_permissions": 0, 

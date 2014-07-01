@@ -13,7 +13,7 @@ $.extend(frappe.perm, {
 
 	doctype_perm: {},
 
-	has_perm: function(doctype, permlevel, ptype) {
+	has_perm: function(doctype, permlevel, ptype, doc) {
 		if (!permlevel) permlevel = 0;
 		if (!frappe.perm.doctype_perm[doctype]) {
 			frappe.perm.doctype_perm[doctype] = frappe.perm.get_perm(doctype);
@@ -26,10 +26,18 @@ $.extend(frappe.perm, {
 		if (!perms[permlevel])
 			return false;
 
-		return !!perms[permlevel][ptype];
+		var perm = !!perms[permlevel][ptype];
+
+		if(permlevel===0 && perm && doc) {
+			var docinfo = frappe.model.get_docinfo(doctype, doc.name);
+			if(docinfo && !docinfo.permissions[ptype])
+				perm = false;
+		}
+
+		return perm;
 	},
 
-	get_perm: function(doctype) {
+	get_perm: function(doctype, doc) {
 		var perm = [{ read: 0, apply_user_permissions: {} }];
 
 		var meta = frappe.get_doc("DocType", doctype);
@@ -42,6 +50,16 @@ $.extend(frappe.perm, {
 		}
 
 		frappe.perm.build_role_permissions(perm, meta);
+
+		if(doc) {
+			// apply user permissions via docinfo (which is processed server-side)
+			var docinfo = frappe.model.get_docinfo(doctype, doc.name);
+			if(docinfo) {
+				$.each(docinfo.permissions, function(ptype, val) {
+					perm[0][ptype] = val;
+				});
+			}
+		}
 
 		return perm;
 	},
@@ -59,8 +77,9 @@ $.extend(frappe.perm, {
 
 					if (permlevel===0) {
 						var apply_user_permissions = perm[permlevel].apply_user_permissions;
-						var previous_value = Object.keys(apply_user_permissions).indexOf(key)===-1 ? 1 : apply_user_permissions[key];
-						apply_user_permissions[key] = previous_value && p.apply_user_permissions;
+						var current_value = (apply_user_permissions[key]===undefined ?
+								1 : apply_user_permissions[key]);
+						apply_user_permissions[key] = current_value && p.apply_user_permissions;
 					}
 				});
 			}
@@ -98,7 +117,7 @@ $.extend(frappe.perm, {
 	get_field_display_status: function(df, doc, perm, explain) {
 		if(!doc) return "Write";
 
-		perm = perm || frappe.perm.get_perm(doc.doctype);
+		perm = perm || frappe.perm.get_perm(doc.doctype, doc);
 		if(!df.permlevel) df.permlevel = 0;
 		var p = perm[df.permlevel];
 		var status = "None";

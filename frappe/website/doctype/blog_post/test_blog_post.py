@@ -7,7 +7,7 @@ import frappe
 import frappe.defaults
 import unittest
 from frappe.core.page.user_permissions.user_permissions import add, remove, get_permissions
-from frappe.permissions import clear_user_permissions_for_doctype
+from frappe.permissions import clear_user_permissions_for_doctype, get_doc_permissions
 
 test_records = frappe.get_test_records('Blog Post')
 
@@ -36,14 +36,18 @@ class TestBlogPost(unittest.TestCase):
 		self.assertTrue(post.has_permission("read"))
 
 	def test_user_permissions_in_doc(self):
-		frappe.permissions.add_user_permission("Blog Category", "_Test Blog Category 1", "test2@example.com")
+		frappe.permissions.add_user_permission("Blog Category", "_Test Blog Category 1",
+			"test2@example.com")
 
 		frappe.set_user("test2@example.com")
+
 		post = frappe.get_doc("Blog Post", "_test-blog-post")
 		self.assertFalse(post.has_permission("read"))
+		self.assertFalse(get_doc_permissions(post).get("read"))
 
 		post1 = frappe.get_doc("Blog Post", "_test-blog-post-1")
 		self.assertTrue(post1.has_permission("read"))
+		self.assertTrue(get_doc_permissions(post1).get("read"))
 
 	def test_user_permissions_in_report(self):
 		frappe.permissions.add_user_permission("Blog Category", "_Test Blog Category 1", "test2@example.com")
