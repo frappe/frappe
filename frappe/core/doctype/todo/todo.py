@@ -31,6 +31,10 @@ class ToDo(Document):
 					description = self.description)
 		}).insert(ignore_permissions=True)
 
+	def on_trash(self):
+		# remove dynamic links
+		self.db_set("reference_type", None)
+		self.db_set("reference_name", None)
 
 # NOTE: todo is viewable if either owner or assigned_to or System Manager in roles
 

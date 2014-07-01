@@ -1,5 +1,5 @@
 # Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt 
+# MIT License. See license.txt
 
 from __future__ import unicode_literals
 """
@@ -33,17 +33,17 @@ def check_user_tags(dt):
 	except Exception, e:
 		if e.args[0] == 1054:
 			DocTags(dt).setup()
-			
+
 @frappe.whitelist()
 def add_tag():
 	"adds a new tag to a record, and creates the Tag master"
-	
+
 	f = frappe.local.form_dict
 	tag, color = f.get('tag'), f.get('color')
 	dt, dn = f.get('dt'), f.get('dn')
-	
+
 	DocTags(dt).add(dn, tag)
-		
+
 	return tag
 
 @frappe.whitelist()
@@ -51,23 +51,23 @@ def remove_tag():
 	"removes tag from the record"
 	f = frappe.local.form_dict
 	tag, dt, dn = f.get('tag'), f.get('dt'), f.get('dn')
-	
+
 	DocTags(dt).remove(dn, tag)
 
 
-		
+
 class DocTags:
 	"""Tags for a particular doctype"""
 	def __init__(self, dt):
 		self.dt = dt
-		
+
 	def get_tag_fields(self):
 		"""returns tag_fields property"""
 		return frappe.db.get_value('DocType', self.dt, 'tag_fields')
-		
+
 	def get_tags(self, dn):
 		"""returns tag for a particular item"""
-		return frappe.db.get_value(self.dt, dn, '_user_tags', ignore=1) or ''
+		return (frappe.db.get_value(self.dt, dn, '_user_tags', ignore=1) or '').strip()
 
 	def add(self, dn, tag):
 		"""add a new user tag"""
@@ -97,15 +97,15 @@ class DocTags:
 			frappe.db.sql("update `tab%s` set _user_tags=%s where name=%s" % \
 				(self.dt,'%s','%s'), (tags , dn))
 		except Exception, e:
-			if e.args[0]==1054: 
+			if e.args[0]==1054:
 				if not tags:
 					# no tags, nothing to do
 					return
-					
+
 				self.setup()
 				self.update(dn, tl)
 			else: raise
-		
+
 	def setup(self):
 		"""adds the _user_tags column if not exists"""
 		from frappe.model.db_schema import add_column
