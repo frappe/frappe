@@ -6,7 +6,7 @@ import frappe
 from frappe.utils.scheduler import enqueue_events
 from frappe.celery_app import get_celery, celery_task, task_logger, LONGJOBS_PREFIX
 from frappe.cli import get_sites
-from frappe.utils.file_lock import delete_lock
+from frappe.utils.file_lock import create_lock, delete_lock
 
 @celery_task()
 def sync_queues():
@@ -69,6 +69,8 @@ def scheduler_task(site, event, handler, now=False):
 	try:
 		if not now:
 			frappe.connect(site=site)
+		if not create_lock(handler):
+			return
 		frappe.get_attr(handler)()
 
 	except Exception:

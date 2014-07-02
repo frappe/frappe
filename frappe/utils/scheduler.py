@@ -78,9 +78,7 @@ def trigger(site, event, now=False):
 		if not check_lock(handler):
 			if not now:
 				scheduler_task.delay(site=site, event=event, handler=handler)
-				create_lock(handler)
 			else:
-				create_lock(handler)
 				scheduler_task(site=site, event=event, handler=handler, now=True)
 
 def log(method, message=None):
