@@ -48,11 +48,13 @@ def set_new_name(doc):
 
 	# default name for table
 	elif doc.meta.istable:
-		doc.name = make_autoname('#########', doc.doctype)
+		doc.name = make_autoname('hash', doc.doctype)
 
 	# unable to determine a name, use global series
 	if not doc.name:
-		doc.name = make_autoname('#########', doc.doctype)
+		doc.name = make_autoname('hash', doc.doctype)
+
+	doc.name = doc.name.strip()
 
 	validate_name(doc.doctype, doc.name)
 

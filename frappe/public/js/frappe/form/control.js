@@ -209,10 +209,8 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 
 	set_disp_area: function() {
 		this.disp_area && $(this.disp_area)
-			.html(
-				frappe.format(this.value, this.df,
-					{no_icon:true}, this.name ? locals[this.doctype][this.name] : null)
-			);
+			.html(frappe.format(this.value, this.df, {no_icon:true},
+					this.doc || (this.frm && this.frm.doc)));
 	},
 
 	bind_change_event: function() {
