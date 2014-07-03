@@ -15,9 +15,9 @@ class DatabaseQuery(object):
 		self.doctype = doctype
 		self.tables = []
 		self.conditions = []
-		self.ignore_permissions = False
 		self.fields = ["name"]
 		self.user = None
+		self.ignore_permissions = False
 
 	def execute(self, query=None, filters=None, fields=None, or_filters=None,
 		docstatus=None, group_by=None, order_by=None, limit_start=0,
@@ -51,7 +51,7 @@ class DatabaseQuery(object):
 		args.limit = self.add_limit()
 
 		query = """select %(fields)s from %(tables)s where %(conditions)s
-			%(group_by)s order by %(order_by)s %(limit)s""" % args
+			%(group_by)s %(order_by)s %(limit)s""" % args
 
 		return frappe.db.sql(query, as_dict=not self.as_list, debug=self.debug)
 
@@ -76,10 +76,10 @@ class DatabaseQuery(object):
 		args.fields = ', '.join(self.fields)
 
 		self.set_order_by(args)
+		self.check_sort_by_table(args.order_by)
+		args.order_by = args.order_by and (" order by " + args.order_by) or ""
 
 		args.group_by = self.group_by and (" group by " + self.group_by) or ""
-
-		self.check_sort_by_table(args.order_by)
 
 		return args
 
@@ -275,12 +275,22 @@ class DatabaseQuery(object):
 		return frappe.db.sql(query, as_dict = (not self.as_list))
 
 	def set_order_by(self, args):
-		meta = frappe.get_meta(self.doctype)
 		if self.order_by:
 			args.order_by = self.order_by
 		else:
-			args.order_by = "`tab{0}`.`{1}` {2}".format(self.doctype,
-				meta.sort_field or "modified", meta.sort_order or "desc")
+			args.order_by = ""
+
+			# don't add order by from meta if a mysql group function is used without group by clause
+			group_function_without_group_by = (len(self.fields)==1 and
+				(	self.fields[0].startswith("count")
+					or self.fields[0].startswith("min")
+					or self.fields[0].startswith("max")
+				) and not self.group_by)
+
+			if not group_function_without_group_by:
+				meta = frappe.get_meta(self.doctype)
+				args.order_by = "`tab{0}`.`{1}` {2}".format(self.doctype,
+					meta.sort_field or "modified", meta.sort_order or "desc")
 
 	def check_sort_by_table(self, order_by):
 		if "." in order_by:
