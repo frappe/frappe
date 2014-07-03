@@ -42,6 +42,7 @@ frappe.ui.form.Layout = Class.extend({
 		if(doc) this.doc = doc;
 		$.each(this.fields_list, function(i, fieldobj) {
 			if(me.doc) {
+				fieldobj.doc = me.doc;
 				fieldobj.doctype = me.doc.doctype;
 				fieldobj.docname = me.doc.name;
 				fieldobj.df = frappe.meta.get_docfield(me.doc.doctype,

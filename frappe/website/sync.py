@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import frappe, os, sys
 from frappe.modules import load_doctype_module
 from frappe.utils.nestedset import rebuild_tree
+from frappe.utils import update_progress_bar
 import statics, render
 
 def sync(app=None):
@@ -13,7 +14,6 @@ def sync(app=None):
 	else:
 		apps = frappe.get_installed_apps()
 
-	print "Resetting..."
 	render.clear_cache()
 
 	# delete all static web pages
@@ -22,7 +22,6 @@ def sync(app=None):
 	# delete all routes (resetting)
 	frappe.db.sql("delete from `tabWebsite Route`")
 
-	print "Finding routes..."
 	routes, generators = [], []
 	for app in apps:
 		routes += get_sync_pages(app)
@@ -40,8 +39,8 @@ def sync_pages(routes):
 	if l:
 		for i, r in enumerate(routes):
 			r.insert(ignore_permissions=True)
-			sys.stdout.write("\rUpdating pages {0}/{1}".format(i+1, l))
-			sys.stdout.flush()
+			update_progress_bar("Updating Pages", i, l)
+
 		print ""
 
 def sync_generators(generators):
@@ -51,7 +50,7 @@ def sync_generators(generators):
 		for i, g in enumerate(generators):
 			doc = frappe.get_doc(g[0], g[1])
 			doc.update_sitemap()
-			sys.stdout.write("\rUpdating generators {0}/{1}".format(i+1, l))
+			update_progress_bar("Updating Generators", i, l)
 			sys.stdout.flush()
 
 		frappe.flags.in_sync_website = False
