@@ -52,6 +52,8 @@ def sync_worker(app, worker, prefix=''):
 
 def get_active_queues(app, worker):
 	active_queues = app.control.inspect().active_queues()
+	if not (active_queues and active_queues.get(worker)):
+		return []
 	return [queue['name'] for queue in active_queues[worker]]
 
 def get_required_queues(app, prefix=''):
