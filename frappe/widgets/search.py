@@ -74,7 +74,9 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 			frappe.response["values"] = frappe.widgets.reportview.execute(doctype,
 				filters=filters, fields = get_std_fields_list(meta, searchfield or "name"),
 				or_filters = or_filters, limit_start = start,
-				limit_page_length=page_len, as_list=True)
+				limit_page_length=page_len,
+				order_by="`tab{}`.name asc".format(doctype),
+				as_list=True)
 
 def get_std_fields_list(meta, key):
 	# get additional search fields
