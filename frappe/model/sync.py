@@ -10,6 +10,7 @@ import frappe
 import os, sys
 from frappe.modules.import_file import import_file_by_path
 from frappe.modules.patch_handler import block_user
+from frappe.utils import update_progress_bar
 
 def sync_all(force=0, verbose=False):
 	block_user(True)
@@ -36,9 +37,7 @@ def sync_for(app_name, force=0, sync_everything = False, verbose=False):
 			frappe.db.commit()
 
 			# show progress bar
-			complete = int(float(i+1) / l * 40)
-			sys.stdout.write("\rSyncing {0}: [{1}{2}]".format(app_name, "="*complete, " "*(40-complete)))
-			sys.stdout.flush()
+			update_progress_bar("Updating {0}".format(app_name), i, l)
 
 		print ""
 

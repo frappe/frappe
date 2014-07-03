@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import frappe, os, time, sys
 
-from frappe.utils import cint
+from frappe.utils import cint, update_progress_bar
 from markdown2 import markdown
 # from frappe.website.sitemap import get_route_children, get_next
 
@@ -122,12 +122,12 @@ class sync(object):
 
 	def insert_and_update(self):
 		if self.to_insert:
+			l = len(self.to_insert)
 			for i, page in enumerate(self.to_insert):
 				if self.verbose:
 					print "Inserting " + page.route
 				else:
-					sys.stdout.write("\rInserting statics {0}/{1}".format(i+1, len(self.to_insert)))
-					sys.stdout.flush()
+					update_progress_bar("Updating Static Pages", i, l)
 
 				self.insert_web_page(page)
 			if not self.verbose: print ""

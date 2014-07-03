@@ -5,7 +5,7 @@
 
 from __future__ import unicode_literals
 from werkzeug.test import Client
-import os
+import os, sys
 import re
 import urllib
 import frappe
@@ -83,7 +83,7 @@ def get_traceback():
 	"""
 		 Returns the traceback of the Exception
 	"""
-	import sys, traceback
+	import traceback
 	exc_type, value, tb = sys.exc_info()
 
 	trace_list = traceback.format_tb(tb, None) + \
@@ -928,3 +928,11 @@ def get_hook_method(hook_name, fallback=None):
 		return method
 	if fallback:
 		return fallback
+
+def update_progress_bar(txt, i, l):
+	lt = len(txt)
+	if lt < 36:
+		txt = txt + " "*(36-lt)
+	complete = int(float(i+1) / l * 40)
+	sys.stdout.write("\r{0}: [{1}{2}]".format(txt, "="*complete, " "*(40-complete)))
+	sys.stdout.flush()
