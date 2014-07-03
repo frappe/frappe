@@ -282,9 +282,9 @@ class DatabaseQuery(object):
 
 			# don't add order by from meta if a mysql group function is used without group by clause
 			group_function_without_group_by = (len(self.fields)==1 and
-				(	self.fields[0].startswith("count")
-					or self.fields[0].startswith("min")
-					or self.fields[0].startswith("max")
+				(	self.fields[0].lower().startswith("count(")
+					or self.fields[0].lower().startswith("min(")
+					or self.fields[0].lower().startswith("max(")
 				) and not self.group_by)
 
 			if not group_function_without_group_by:
