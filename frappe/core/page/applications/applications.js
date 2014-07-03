@@ -23,7 +23,7 @@ frappe.pages['applications'].onload = function(wrapper) {
 					<input type="text" class="form-control app-search" placeholder="Search" name="search"/>\
 				</div>\
 			</div><hr>').appendTo($main).find(".app-search").on("keyup", function() {
-				var val = $(this).val();
+				var val = ($(this).val() || "").toLowerCase();
 				$main.find(".app-listing").each(function() {
 					$(this).toggle($(this).attr("data-title").toLowerCase().indexOf(val)!==-1);
 				});
