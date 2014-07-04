@@ -37,9 +37,9 @@ class SMTPServer:
 	def __init__(self, login=None, password=None, server=None, port=None, use_ssl=None):
 		# get defaults from mail settings
 		try:
-			es = frappe.get_doc('Outgoing Email Settings', 'Outgoing Email Settings')
+			self.email_settings = frappe.get_doc('Outgoing Email Settings', 'Outgoing Email Settings')
 		except frappe.DoesNotExistError:
-			es = None
+			self.email_settings = None
 
 		self._sess = None
 		if server:
@@ -48,13 +48,13 @@ class SMTPServer:
 			self.use_ssl = cint(use_ssl)
 			self.login = login
 			self.password = password
-		elif es and es.mail_server:
-			self.server = es.mail_server
-			self.port = es.mail_port
-			self.use_ssl = cint(es.use_ssl)
-			self.login = es.mail_login
-			self.password = es.mail_password
-			self.always_use_login_id_as_sender = es.always_use_login_id_as_sender
+		elif self.email_settings and cint(self.email_settings.enabled):
+			self.server = self.email_settings.mail_server
+			self.port = self.email_settings.mail_port
+			self.use_ssl = cint(self.email_settings.use_ssl)
+			self.login = self.email_settings.mail_login
+			self.password = self.email_settings.mail_password
+			self.always_use_login_id_as_sender = self.email_settings.always_use_login_id_as_sender
 		else:
 			self.server = frappe.conf.get("mail_server") or ""
 			self.port = frappe.conf.get("mail_port") or None

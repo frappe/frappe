@@ -66,7 +66,7 @@ def add(user, defkey, defvalue):
 		frappe.throw(_("Cannot set permission for DocType: {0} and Name: {1}").format(
 			defkey, defvalue), frappe.PermissionError)
 
-	frappe.permissions.add_user_permission(defkey, defvalue, user)
+	frappe.permissions.add_user_permission(defkey, defvalue, user, with_message=True)
 
 def get_doctypes_for_user_permissions():
 	user_roles = frappe.get_roles()

@@ -382,7 +382,7 @@ def fmt_money(amount, precision=None, currency=None):
 
 	parts.reverse()
 
-	amount = comma_str.join(parts) + (precision and (decimal_str + decimals) or "")
+	amount = comma_str.join(parts) + ((precision and decimal_str) and (decimal_str + decimals) or "")
 	amount = minus + amount
 
 	if currency:

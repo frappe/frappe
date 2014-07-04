@@ -26,9 +26,14 @@ def send(recipients=None, sender=None, doctype='User', email_field='email',
 		this_month = frappe.db.sql("""select count(*) from `tabBulk Email` where
 			month(creation)=month(%s)""" % nowdate())[0][0]
 
-		monthly_bulk_mail_limit = frappe.conf.get('monthly_bulk_mail_limit') or 500
+		# No limit for own email settings
+		smtp_server = SMTPServer()
+		if smtp_server.email_settings and cint(smtp_server.email_settings.enabled):
+			monthly_bulk_mail_limit = 999999
+		else:
+			monthly_bulk_mail_limit = frappe.conf.get('monthly_bulk_mail_limit') or 500
 
-		if this_month + len(recipients) > monthly_bulk_mail_limit:
+		if ( this_month + len(recipients) ) > monthly_bulk_mail_limit:
 			throw(_("Bulk email limit {0} crossed").format(monthly_bulk_mail_limit),
 				BulkLimitCrossedError)
 

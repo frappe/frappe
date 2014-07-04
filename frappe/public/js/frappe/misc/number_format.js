@@ -115,7 +115,7 @@ window.format_number = function(v, format, decimals){
 	}
 
 	// join decimal
-	part[1] = part[1] ? (info.decimal_str + part[1]) : "";
+	part[1] = (part[1] && info.decimal_str) ? (info.decimal_str + part[1]) : "";
 
 	// join
 	return (is_negative ? "-" : "") + part[0] + part[1];
