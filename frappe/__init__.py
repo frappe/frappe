@@ -94,6 +94,7 @@ def init(site, sites_path=None):
 	local.site_path = os.path.join(sites_path, site)
 
 	local.request_method = request.method if request else None
+	local.request_ip = None
 	local.response = _dict({"docs":[]})
 
 	local.conf = _dict(get_site_config())
