@@ -50,6 +50,9 @@ def set_new_name(doc):
 	elif doc.meta.istable:
 		doc.name = make_autoname('hash', doc.doctype)
 
+	elif doc.meta.issingle:
+		doc.name = doc.doctype
+
 	# unable to determine a name, use global series
 	if not doc.name:
 		doc.name = make_autoname('hash', doc.doctype)
