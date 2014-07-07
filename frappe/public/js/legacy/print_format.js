@@ -7,7 +7,7 @@ _p.def_print_style_body = "html, body, div, span, td, p { \
 		font-size: inherit; \
 	}\
 	.page-settings {\
-		font-family: Arial, Helvetica Neue, sans-serif;\
+		font-family: Helvetica, 'Open Sans', sans-serif;\
 		font-size: 9pt;\
 	}\
 	pre { margin:0; padding:0;}";
