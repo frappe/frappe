@@ -119,7 +119,6 @@ def send_comm_email(d, name, sent_via=None, print_html=None, attachments='[]', s
 			d.content = sent_via.get_content(d)
 
 		footer = "<hr>" + set_portal_link(sent_via, d)
-		footer += "<p style='color: #888;'>" + _("Please see attachment") + "</p>"
 
 	mail = get_email(d.recipients, sender=d.sender, subject=d.subject,
 		msg=d.content, footer=footer)
