@@ -129,7 +129,8 @@ _f.Frm.prototype.setup_print_layout = function() {
 			<div class="col-xs-3" style="padding-top: 7px;">\
 				<input type="checkbox" class="print-letterhead" checked/> Letterhead</div>\
 			<div class="col-xs-6 text-right" style="padding-top: 7px;">\
-				<a style="margin-right: 7px;" class="print-print">Print</a>\
+				<a style="margin-right: 7px;" class="btn-print-preview text-muted small">Preview</a>\
+				<strong><a style="margin-right: 7px;" class="btn-print-print">Print</a></strong>\
 				<a class="close">×</a>\
 			</div>\
 		</div>\
@@ -156,13 +157,22 @@ _f.Frm.prototype.setup_print_layout = function() {
 			 }, !me.print_letterhead.is(":checked"), true, true);
 		})
 
-	this.print_wrapper.find(".print-print").click(function() {
+	this.print_wrapper.find(".btn-print-print").click(function() {
 		_p.build(
 			me.print_sel.val(), // fmtname
 			_p.go, // onload
 			!me.print_letterhead.is(":checked") // no_letterhead
 		);
-	})
+	});
+
+	this.print_wrapper.find(".btn-print-preview").click(function() {
+		_p.build(
+			me.print_sel.val(), // fmtname
+			_p.preview, // onload
+			!me.print_letterhead.is(":checked") // no_letterhead
+		);
+	});
+
 }
 
 _f.Frm.prototype.print_doc = function() {

@@ -38,6 +38,7 @@ _p.preview = function(html) {
 		return;
 	}
 	w.document.write(html);
+	w.document.close();
 	return w
 }
 
