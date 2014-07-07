@@ -50,4 +50,15 @@ def setup_logging():
 				}
 			}
 		}
+		if conf.request_exception_log_file:
+			logging_conf.update({
+				"handlers": {
+					"request_exception": {
+						"level": "ERROR",
+						"formatter": "site_wise",
+						"class": "logging.handlers.WatchedFileHandler",
+						"filename": conf.request_exception_log_file
+					}
+				}
+			})
 	logging.config.dictConfig(logging_conf)
