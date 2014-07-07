@@ -26,7 +26,7 @@ def setup_logging():
 			"disable_existing_loggers": True,
 			"filters": {
 				"context_filter": {
-					"()": "frappe.loggers.ContextFilter"
+					"()": "frappe.setup_logging.ContextFilter"
 				}
 			},
 			"formatters": {
