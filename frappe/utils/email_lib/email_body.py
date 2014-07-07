@@ -146,6 +146,14 @@ class EMail:
 
 		self.msg_root.attach(part)
 
+	def add_pdf_attachment(self, name, html):
+		import pdfkit, os
+		fname = frappe.generate_hash() + ".pdf"
+		pdfkit.from_string(html, fname)
+		with open(fname, "rb") as fileobj:
+			self.add_attachment(name, fileobj.read(), 'application/octet-stream')
+		os.remove(fname)
+
 	def validate(self):
 		"""validate the email ids"""
 		from frappe.utils import validate_email_add

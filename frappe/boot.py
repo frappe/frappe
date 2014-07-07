@@ -24,8 +24,6 @@ def get_bootinfo():
 	# system info
 	bootinfo['sysdefaults'] = frappe.defaults.get_defaults()
 	bootinfo['server_date'] = frappe.utils.nowdate()
-	bootinfo["send_print_in_body_and_attachment"] = frappe.db.get_value("Outgoing Email Settings",
-		None, "send_print_in_body_and_attachment")
 
 	if frappe.session['user'] != 'Guest':
 		bootinfo['user_info'] = get_fullnames()
