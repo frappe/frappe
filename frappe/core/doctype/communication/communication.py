@@ -118,21 +118,24 @@ def send_comm_email(d, name, sent_via=None, print_html=None, attachments='[]', s
 		if hasattr(sent_via, "get_content"):
 			d.content = sent_via.get_content(d)
 
-		footer = set_portal_link(sent_via, d)
-
-	send_print_in_body = frappe.db.get_value("Outgoing Email Settings", None, "send_print_in_body_and_attachment")
-	if print_html and not send_print_in_body:
-		d.content += "<p>Please see attachment for document details.</p>"
+		footer = "<hr>" + set_portal_link(sent_via, d)
+		footer += "<p style='color: #888;'>" + _("Please see attachment") + "</p>"
 
 	mail = get_email(d.recipients, sender=d.sender, subject=d.subject,
-		msg=d.content, footer=footer, print_html=print_html if send_print_in_body else None)
+		msg=d.content, footer=footer)
 
 	if send_me_a_copy:
 		mail.cc.append(frappe.db.get_value("User", frappe.session.user, "email"))
 
 	if print_html:
 		print_html = scrub_urls(print_html)
-		mail.add_attachment(name.replace(' ','').replace('/','-') + '.html', print_html)
+
+		try:
+			mail.add_pdf_attachment(name.replace(' ','').replace('/','-') + '.pdf', print_html)
+		except Exception:
+			frappe.msgprint(_("Error generating PDF, attachment sent as HTML"))
+			mail.add_attachment(name.replace(' ','').replace('/','-') + '.html',
+				print_html, 'text/html')
 
 	for a in json.loads(attachments):
 		try:
@@ -145,7 +148,7 @@ def send_comm_email(d, name, sent_via=None, print_html=None, attachments='[]', s
 def set_portal_link(sent_via, comm):
 	"""set portal link in footer"""
 
-	footer = None
+	footer = ""
 
 	if is_signup_enabled() and hasattr(sent_via, "get_portal_page"):
 		portal_page = sent_via.get_portal_page()
@@ -154,7 +157,7 @@ def set_portal_link(sent_via, comm):
 				sent_via.get("contact_email")) in comm.recipients
 			if is_valid_recipient:
 				url = "%s/%s?name=%s" % (get_url(), portal_page, urllib.quote(sent_via.name))
-				footer = """<!-- Portal Link --><hr>
-						<a href="%s" target="_blank">View this on our website</a>""" % url
+				footer = """<!-- Portal Link -->
+						<p><a href="%s" target="_blank">View this on our website</a></p>""" % url
 
 	return footer
