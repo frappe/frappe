@@ -69,7 +69,7 @@ def application(request):
 		response = frappe.utils.response.handle_session_stopped()
 
 	except Exception, e:
-		http_status_code=getattr(e, "http_status_code", 500)
+		http_status_code = getattr(e, "http_status_code", 500)
 
 		if frappe.local.is_ajax:
 			response = frappe.utils.response.report_error(http_status_code)
