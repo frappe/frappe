@@ -84,7 +84,7 @@ class Document(BaseDocument):
 		else:
 			d = frappe.db.get_value(self.doctype, self.name, "*", as_dict=1)
 			if not d:
-				frappe.throw(("{0} {1} not found").format(_(self.doctype), self.name), frappe.DoesNotExistError)
+				frappe.throw(_("{0} {1} not found").format(_(self.doctype), self.name), frappe.DoesNotExistError)
 			self.update(d)
 
 		if self.name=="DocType" and self.doctype=="DocType":

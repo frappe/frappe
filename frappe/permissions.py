@@ -158,6 +158,9 @@ def set_user_permission_if_allowed(doctype, name, user, with_message=False):
 
 def add_user_permission(doctype, name, user, with_message=False):
 	if name not in frappe.defaults.get_user_permissions(user).get(doctype, []):
+		if not frappe.db.exists(doctype, name):
+			frappe.throw(_("{0} {1} not found").format(_(doctype), name), frappe.DoesNotExistError)
+
 		frappe.defaults.add_default(doctype, name, user, "User Permission")
 	elif with_message:
 		msgprint(_("Permission already set"))
