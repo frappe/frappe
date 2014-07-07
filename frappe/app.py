@@ -3,6 +3,7 @@
 
 import sys, os
 import json
+import logging
 
 from werkzeug.wrappers import Request, Response
 from werkzeug.local import LocalManager
@@ -19,11 +20,15 @@ import frappe.utils.response
 import frappe.website.render
 from frappe.utils import get_site_name
 from frappe.middlewares import StaticDataMiddleware
+from frappe.setup_logging import setup_logging
 
 local_manager = LocalManager([frappe.local])
 
 _site = None
 _sites_path = os.environ.get("SITES_PATH", ".")
+
+setup_logging()
+logger = logging.getLogger(__name__)
 
 @Request.application
 def application(request):
@@ -64,17 +69,22 @@ def application(request):
 		response = frappe.utils.response.handle_session_stopped()
 
 	except Exception, e:
+		http_status_code = getattr(e, "http_status_code", 500)
+
 		if frappe.local.is_ajax:
-			response = frappe.utils.response.report_error(getattr(e, "http_status_code", 500))
+			response = frappe.utils.response.report_error(http_status_code)
 		else:
 			frappe.respond_as_web_page("Server Error",
 				"<pre>"+frappe.get_traceback()+"</pre>",
-				http_status_code=getattr(e, "http_status_code", 500))
+				http_status_code=http_status_code)
 			response = frappe.website.render.render("message")
 
 		if e.__class__ == frappe.AuthenticationError:
 			if hasattr(frappe.local, "login_manager"):
 				frappe.local.login_manager.clear_cookies()
+
+		if http_status_code==500:
+			logger.error('Request Error')
 
 	else:
 		if frappe.local.request.method in ("POST", "PUT") and frappe.db:
