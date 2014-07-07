@@ -6,13 +6,16 @@ es		español
 fr		français
 hi		हिंदी
 hr		hrvatski
+id		Indonesia
 it		italiano
+ja		日本語
 kn		ಕನ್ನಡ
 ko		한국의
 nl		nederlands
-pt-BR	português brasileiro
 pt		português
+pt-BR	português brasileiro
 ro		român
+ru		русский
 sr		српски
 ta		தமிழ்
 th		ไทย
