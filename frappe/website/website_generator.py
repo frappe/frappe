@@ -22,6 +22,10 @@ class WebsiteGenerator(Document):
 	def get_parent_website_route(self):
 		return self.get("parent_website_route", "")
 
+	def validate(self):
+		if self.is_condition_field_enabled() and self.meta.get_field("page_name") and not self.page_name:
+			self.page_name = self.get_page_name()
+
 	def on_update(self):
 		self.update_sitemap()
 		if getattr(self, "save_versions", False):

@@ -20,6 +20,8 @@ class BlogPost(WebsiteGenerator):
 		return self.title
 
 	def validate(self):
+		super(BlogPost, self).validate()
+
 		if not self.blog_intro:
 			self.blog_intro = self.content[:140]
 			self.blog_intro = re.sub("\<[^>]*\>", "", self.blog_intro)
