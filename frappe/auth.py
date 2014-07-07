@@ -20,6 +20,8 @@ class HTTPRequest:
 		if self.domain and self.domain.startswith('www.'):
 			self.domain = self.domain[4:]
 
+		frappe.local.request_ip = frappe.get_request_header('REMOTE_ADDR') \
+				or frappe.get_request_header('X-Forwarded-For') or '127.0.0.1'
 		# language
 		self.set_lang(frappe.get_request_header('HTTP_ACCEPT_LANGUAGE'))
 
@@ -157,7 +159,7 @@ class LoginManager:
 		ip_list = [i.strip() for i in ip_list]
 
 		for ip in ip_list:
-			if frappe.get_request_header('REMOTE_ADDR', '').startswith(ip) or frappe.get_request_header('X-Forwarded-For', '').startswith(ip):
+			if frappe.local.request_ip.startswith(ip):
 				return
 
 		frappe.throw(_("Not allowed from this IP Address"), frappe.AuthenticationError)
