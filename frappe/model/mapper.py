@@ -54,11 +54,7 @@ def get_mapped_doc(from_doctype, from_docname, table_maps, target_doc=None,
 				if table_map.get("filter") and table_map.get("filter")(source_d):
 					continue
 
-				target_d = frappe.new_doc(target_child_doctype, target_doc,
-					target_parentfield)
-				map_doc(source_d, target_d, table_map, source_doc)
-				target_d.idx = None
-				target_doc.append(target_parentfield, target_d)
+				map_child_doc(source_d, target_doc, table_map, source_doc)
 
 	if postprocess:
 		postprocess(source_doc, target_doc)
@@ -106,3 +102,13 @@ def map_doc(source_doc, target_doc, table_map, source_parent=None):
 
 	if "postprocess" in table_map:
 		table_map["postprocess"](source_doc, target_doc, source_parent)
+
+def map_child_doc(source_d, target_parent, table_map, source_parent=None):
+	target_child_doctype = table_map["doctype"]
+	target_parentfield = target_parent.get_parentfield_of_doctype(target_child_doctype)
+	target_d = frappe.new_doc(target_child_doctype, target_parent, target_parentfield)
+
+	map_doc(source_d, target_d, table_map, source_parent)
+	target_d.idx = None
+	target_parent.append(target_parentfield, target_d)
+	return target_d
