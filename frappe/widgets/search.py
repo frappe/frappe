@@ -71,12 +71,21 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 			if meta.get("fields", {"fieldname":"disabled", "fieldtype":"Check"}):
 				filters.append([doctype, "disabled", "!=", 1])
 
-			frappe.response["values"] = frappe.widgets.reportview.execute(doctype,
-				filters=filters, fields = get_std_fields_list(meta, searchfield or "name"),
+			fields = get_std_fields_list(meta, searchfield or "name")
+
+			# find relevance as location of search term from the beginning of string `name`. used for sorting results.
+			fields.append("""locate("{_txt}", name) as `_relevance`""".format(
+				_txt=(txt or "").replace("%", "").replace('"', '\\"'), doctype=doctype))
+
+			values = frappe.widgets.reportview.execute(doctype,
+				filters=filters, fields=fields,
 				or_filters = or_filters, limit_start = start,
 				limit_page_length=page_len,
-				order_by="`tab{}`.name asc".format(doctype),
+				order_by="if(_relevance, _relevance, 99999), name asc".format(doctype),
 				as_list=True)
+
+			# remove _relevance from results
+			frappe.response["values"] = [r[:-1] for r in values]
 
 def get_std_fields_list(meta, key):
 	# get additional search fields
