@@ -63,7 +63,8 @@ def get_route_children(pathname, home_page=None):
 
 	if pathname==home_page or not pathname:
 		children = frappe.db.sql("""select url as name, label as page_title,
-			1 as public_read from `tabTop Bar Item` where parentfield='sidebar_items' order by idx""",
+			1 as public_read from `tabTop Bar Item` where parentfield='sidebar_items'
+			order by idx""",
 			as_dict=True)
 	else:
 		children = frappe.db.sql("""select * from `tabWebsite Route`
@@ -74,15 +75,15 @@ def get_route_children(pathname, home_page=None):
 		if children:
 			# if children are from generator and sort order is specified, then get that condition
 			module = frappe.get_module(children[0].controller)
-			if hasattr(module, "sort_by"):
+			if hasattr(module, "order_by"):
 				children = frappe.db.sql("""select t1.* from
 					`tabWebsite Route` t1, `tab{ref_doctype}` t2
 					where ifnull(t1.parent_website_route,'')=%s
 					and t1.public_read=1
 					and t1.docname = t2.name
-					order by {sort_by}""".format(
+					order by {order_by}""".format(
 						ref_doctype = children[0].ref_doctype,
-						sort_by = module.sort_by),
+						sort_by = module.order_by),
 						pathname, as_dict=True)
 
 			children = [frappe.get_doc("Website Route", pathname)] + children
