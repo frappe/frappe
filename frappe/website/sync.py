@@ -105,8 +105,8 @@ def get_sync_generators(app):
 		module = load_doctype_module(doctype)
 		if hasattr(module, "condition_field"):
 			condition = " where ifnull({0}, 0)=1 ".format(module.condition_field)
-		if hasattr(module, "sort_by"):
-			order_by = "{0} {1}".format(module.sort_by, module.sort_order)
+		if hasattr(module, "order_by"):
+			order_by = module.order_by
 		for name in frappe.db.sql_list("select name from `tab{0}` {1} order by {2}".format(doctype,
 			condition, order_by)):
 			generators.append((doctype, name))
