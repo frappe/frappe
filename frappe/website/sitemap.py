@@ -83,7 +83,7 @@ def get_route_children(pathname, home_page=None):
 					and t1.docname = t2.name
 					order by {order_by}""".format(
 						ref_doctype = children[0].ref_doctype,
-						sort_by = module.order_by),
+						order_by = module.order_by),
 						pathname, as_dict=True)
 
 			children = [frappe.get_doc("Website Route", pathname)] + children
