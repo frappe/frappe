@@ -75,6 +75,12 @@
    "permlevel": 0
   }, 
   {
+   "fieldname": "send_print_as_pdf", 
+   "fieldtype": "Check", 
+   "label": "Send Attached Document Print as PDF", 
+   "permlevel": 0
+  }, 
+  {
    "fieldname": "section_break_10", 
    "fieldtype": "Section Break", 
    "permlevel": 0
@@ -92,7 +98,7 @@
  "idx": 1, 
  "in_create": 1, 
  "issingle": 1, 
- "modified": "2014-07-07 11:42:10.128767", 
+ "modified": "2014-07-09 01:47:56.027654", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Outgoing Email Settings", 

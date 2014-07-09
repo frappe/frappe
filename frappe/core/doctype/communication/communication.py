@@ -129,10 +129,16 @@ def send_comm_email(d, name, sent_via=None, print_html=None, attachments='[]', s
 	if print_html:
 		print_html = scrub_urls(print_html)
 
-		try:
-			mail.add_pdf_attachment(name.replace(' ','').replace('/','-') + '.pdf', print_html)
-		except Exception:
-			frappe.msgprint(_("Error generating PDF, attachment sent as HTML"))
+		send_print_as_pdf = cint(frappe.db.get_value("Outgoing Email Settings", "Outgoing Email Settings", "send_print_as_pdf"))
+
+		if send_print_as_pdf:
+			try:
+				mail.add_pdf_attachment(name.replace(' ','').replace('/','-') + '.pdf', print_html)
+			except Exception:
+				frappe.msgprint(_("Error generating PDF, attachment sent as HTML"))
+				send_print_as_pdf = 0
+
+		if not send_print_as_pdf:
 			mail.add_attachment(name.replace(' ','').replace('/','-') + '.html',
 				print_html, 'text/html')
 
