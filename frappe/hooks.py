@@ -7,6 +7,7 @@ app_description = "Full Stack Web Application Framwork in Python"
 app_icon = "assets/frappe/images/frappe.svg"
 app_version = __version__
 app_color = "#3498db"
+app_email = "support@frappe.io"
 
 before_install = "frappe.utils.install.before_install"
 after_install = "frappe.utils.install.after_install"
