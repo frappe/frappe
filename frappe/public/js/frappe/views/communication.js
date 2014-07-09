@@ -260,13 +260,20 @@ frappe.views.CommunicationComposer = Class.extend({
 
 		// select print format
 		$(fields.select_print_format.wrapper).toggle(false);
-		$(fields.select_print_format.input)
-			.empty()
-			.add_options(cur_frm.print_formats)
-			.val(cur_frm.print_formats[0]);
+
+		if (cur_frm) {
+			$(fields.select_print_format.input)
+				.empty()
+				.add_options(cur_frm.print_formats)
+				.val(cur_frm.print_formats[0]);
+		} else {
+			$(fields.attach_document_print.wrapper).toggle(false);
+		}
 
 	},
 	setup_attach: function() {
+		if (!cur_frm) return;
+
 		var fields = this.dialog.fields_dict;
 		var attach = $(fields.select_attachments.wrapper);
 
@@ -366,10 +373,12 @@ frappe.views.CommunicationComposer = Class.extend({
 						msgprint(__("Email sent to {0}", [form_values.recipients]));
 					me.dialog.hide();
 
-					if (cur_frm.docname && (frappe.last_edited_communication[cur_frm.doctype] || {})[cur_frm.docname]) {
-						delete frappe.last_edited_communication[cur_frm.doctype][cur_frm.docname];
+					if (cur_frm) {
+						if (cur_frm.docname && (frappe.last_edited_communication[cur_frm.doctype] || {})[cur_frm.docname]) {
+							delete frappe.last_edited_communication[cur_frm.doctype][cur_frm.docname];
+						}
+						cur_frm.reload_doc();
 					}
-					cur_frm.reload_doc();
 				} else {
 					msgprint(__("There were errors while sending email. Please try again."));
 				}
@@ -379,7 +388,7 @@ frappe.views.CommunicationComposer = Class.extend({
 
 	setup_earlier_reply: function() {
 		var fields = this.dialog.fields_dict;
-		var comm_list = cur_frm.communication_view
+		var comm_list = (cur_frm && cur_frm.communication_view)
 			? cur_frm.communication_view.list
 			: [];
 		var signature = frappe.boot.user.email_signature || "";

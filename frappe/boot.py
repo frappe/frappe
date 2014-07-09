@@ -65,6 +65,8 @@ def get_bootinfo():
 	if bootinfo.lang:
 		bootinfo.lang = unicode(bootinfo.lang)
 
+	bootinfo.error_report_email = frappe.get_hooks("error_report_email")
+
 	return bootinfo
 
 def load_conf_settings(bootinfo):

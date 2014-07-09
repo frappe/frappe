@@ -68,10 +68,10 @@ frappe.request.call = function(opts) {
 				if(typeof data === "string") data = JSON.parse(data);
 				opts.error && opts.error(data, xhr.responseText);
 			},
-			500: function() {
+			500: function(xhr) {
 				msgprint(__("Server Error: Please check your server logs or contact tech support."))
 				opts.error && opts.error();
-
+				frappe.request.report_error(xhr, opts);
 			}
 		},
 		async: opts.async
@@ -174,7 +174,9 @@ frappe.request.cleanup = function(opts, r) {
 		r.exc = JSON.parse(r.exc);
 		if(r.exc instanceof Array) {
 			$.each(r.exc, function(i, v) {
-				if(v)console.log(v);
+				if(v) {
+					console.log(v);
+				}
 			})
 		} else {
 			console.log(r.exc);
@@ -210,3 +212,44 @@ frappe.request.cleanup = function(opts, r) {
 
 	frappe.last_response = r;
 }
+
+frappe.request.report_error = function(xhr, request_opts) {
+	var data = JSON.parse(xhr.responseText);
+	if (data.exc) {
+		var exc = (JSON.parse(data.exc) || []).join("\n");
+		delete data.exc;
+	} else {
+		var exc = "";
+	}
+
+	if (exc) {
+		var error_report_email = (frappe.boot.error_report_email || []).join(", ");
+		var error_message = '<div><a class="report-btn"><i class="icon-fixed-width icon-envelope"></i> '
+			+ __("Report this issue") + '</a>'
+			+ '<pre style="max-height: 300px; margin-top: 7px;">' + exc + '</pre></div>';
+
+		var msg_dialog = msgprint(error_message);
+
+		msg_dialog.msg_area.find(".report-btn")
+			.toggle(error_report_email ? true : false)
+			.on("click", function() {
+				var error_report_message = [
+					'<h5>Error Report</h5>',
+					'<pre>' + exc + '</pre>',
+					'<hr>',
+					'<h5>Request Data</h5>',
+					'<pre>' + JSON.stringify(request_opts, null, "\t") + '</pre>',
+					'<hr>',
+					'<h5>Response JSON</h5>',
+					'<pre>' + JSON.stringify(data, null, '\t')+ '</pre>'
+				].join("\n");
+
+				var communication_composer = new frappe.views.CommunicationComposer({
+					subject: 'Error Report',
+					recipients: error_report_email,
+					message: error_report_message
+				});
+				communication_composer.dialog.$wrapper.css("z-index", cint(msg_dialog.$wrapper.css("z-index")) + 1);
+			});
+	}
+};

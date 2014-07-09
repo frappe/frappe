@@ -13,7 +13,6 @@ STANDARD_USERS = ("Guest", "Administrator")
 from frappe.model.document import Document
 
 class User(Document):
-
 	def autoname(self):
 		"""set name as email id"""
 		if self.name not in STANDARD_USERS:
