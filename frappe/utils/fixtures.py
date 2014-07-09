@@ -17,6 +17,7 @@ def sync_fixtures(app=None):
 				if fname.endswith(".json") or fname.endswith(".csv"):
 					import_doc(frappe.get_app_path(app, "fixtures", fname), ignore_links=True, overwrite=True)
 
+	frappe.db.commit()
 
 def export_fixtures():
 	for app in frappe.get_installed_apps():

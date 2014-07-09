@@ -249,12 +249,20 @@ fieldset {
 
 .sidebar-item a {
 	color: #999;
+	text-decoration: none;
 }
 
-.sidebar-item a:hover {
+.sidebar-item a:hover,
+.sidebar-item a:focus,
+.sidebar-item a:active {
 	color: #333;
 	text-decoration: none;
-	border-bottom: 2px solid #999;
+
+	/* thanks medium: https://medium.com/designing-medium/crafting-link-underlines-on-medium-7c03a9274f9 */
+	background-image: linear-gradient(to bottom, transparent 50%, rgba(153,153,153, 0.5) 50%);
+	background-repeat: repeat-x;
+	background-size: 5% 20%;
+	background-position: 0 100%;
 }
 
 .sidebar-item a.active {
