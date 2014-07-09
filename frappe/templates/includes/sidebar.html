@@ -3,9 +3,11 @@
 {%- for child in children -%}
 <div class="sidebar-item">
 	{% set is_parent = parents and child.name == parents[-1].name or (loop.first and child.name==pathname) %}
-	<i class="icon-fixed-width
-	{% if (child.lft != None) and (child.rgt - child.lft != 1) and (not loop.first) %}icon-chevron-right{% endif %}"
-	style="margin-left: -15px; color: #ddd; {% if is_parent %}margin-left: -30px;{% endif %}"></i>
+	{% set has_children = (child.lft != None) and (child.rgt - child.lft != 1) and (not loop.first) %}
+	<i class="{% if has_children %} icon-chevron-right {% endif %} icon-fixed-width"
+		style="color: #ddd; {% if is_parent %} margin-left: -30px;
+			{% else %} margin-left: -18px;
+			{% endif %}"></i>
 	<a href="{{ child.name }}" class="no-decoration {% if child.name == pathname %}active{% endif %}">
 		{{ child.page_title or child.name.replace("_", " ").title() }}
 		{% if not child.public_read %}

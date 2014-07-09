@@ -90,9 +90,9 @@ def delete_from_table(doctype, name, ignore_doctypes, doc):
 		tables = get_table_fields("DocField") + get_table_fields("Custom Field")
 
 	# delete from child tables
-	for t in tables:
+	for t in list(set(tables)):
 		if t not in ignore_doctypes:
-			frappe.db.sql("delete from `tab%s` where parent = %s" % (t, '%s'), (name,))
+			frappe.db.sql("delete from `tab%s` where parenttype=%s and parent = %s" % (t, '%s', '%s'), (doctype, name))
 
 def check_permission_and_not_submitted(doc, ignore_permissions=False):
 	# permission
