@@ -525,7 +525,7 @@ $.extend(_p, {
 
 							case 'HTML':
 								var div = $a(me.layout.cur_cell, 'div');
-								div.innerHTML = field.options;
+								div.innerHTML = cstr(field.options);
 								break;
 
 							case 'Code':
