@@ -107,7 +107,8 @@ class DatabaseQuery(object):
 		# add tables from fields
 		if self.fields:
 			for f in self.fields:
-				if "." not in f: continue
+				if ( not ("tab" in f and "." in f) ) or ("locate(" in f): continue
+
 
 				table_name = f.split('.')[0]
 				if table_name.lower().startswith('group_concat('):
