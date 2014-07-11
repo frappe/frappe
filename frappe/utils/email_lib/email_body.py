@@ -146,10 +146,10 @@ class EMail:
 
 		self.msg_root.attach(part)
 
-	def add_pdf_attachment(self, name, html):
+	def add_pdf_attachment(self, name, html, options=None):
 		import pdfkit, os
 		fname = os.path.join("/tmp", frappe.generate_hash() + ".pdf")
-		pdfkit.from_string(html, fname)
+		pdfkit.from_string(html, fname, options=options or {})
 		with open(fname, "rb") as fileobj:
 			self.add_attachment(name, fileobj.read(), 'application/octet-stream')
 		os.remove(fname)
