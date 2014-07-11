@@ -81,6 +81,15 @@
    "permlevel": 0
   }, 
   {
+   "default": "A4", 
+   "depends_on": "eval:doc.send_print_as_pdf", 
+   "fieldname": "pdf_page_size", 
+   "fieldtype": "Select", 
+   "label": "PDF Page Size", 
+   "options": "A4\nLetter", 
+   "permlevel": 0
+  }, 
+  {
    "fieldname": "section_break_10", 
    "fieldtype": "Section Break", 
    "permlevel": 0
@@ -98,7 +107,7 @@
  "idx": 1, 
  "in_create": 1, 
  "issingle": 1, 
- "modified": "2014-07-09 01:47:56.027654", 
+ "modified": "2014-07-11 06:21:27.062249", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Outgoing Email Settings", 
