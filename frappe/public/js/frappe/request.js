@@ -247,7 +247,11 @@ frappe.request.report_error = function(xhr, request_opts) {
 				var communication_composer = new frappe.views.CommunicationComposer({
 					subject: 'Error Report',
 					recipients: error_report_email,
-					message: error_report_message
+					message: error_report_message,
+					doc: {
+						doctype: "User",
+						name: user
+					}
 				});
 				communication_composer.dialog.$wrapper.css("z-index", cint(msg_dialog.$wrapper.css("z-index")) + 1);
 			});
