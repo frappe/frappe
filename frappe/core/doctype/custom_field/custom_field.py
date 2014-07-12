@@ -33,9 +33,9 @@ class CustomField(Document):
 		# validate field
 		from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype
 
-		validate_fields_for_doctype(self.dt)
-
 		frappe.clear_cache(doctype=self.dt)
+
+		validate_fields_for_doctype(self.dt)
 
 		# create property setter to emulate insert after
 		self.create_property_setter()
