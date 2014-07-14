@@ -123,6 +123,11 @@ def get_data():
 				},
 				{
 					"type": "doctype",
+					"name": "Email Alert",
+					"description": _("Setup Email Alert based on various criteria.")
+				},
+				{
+					"type": "doctype",
 					"name": "Standard Reply",
 					"description": _("Standard replies to common queries.")
 				},

@@ -145,20 +145,24 @@ class DocType(Document):
 	def make_controller_template(self):
 		from frappe.modules import get_doc_path, get_module_path, scrub
 
-		pypath = os.path.join(get_doc_path(self.module,
-			self.doctype, self.name), scrub(self.name) + '.py')
+		target_path = get_doc_path(self.module, self.doctype, self.name)
 
-		if not os.path.exists(pypath):
-			# get app publisher for copyright
-			app = frappe.local.module_app[frappe.scrub(self.module)]
-			if not app:
-				frappe.throw(_("App not found"))
-			app_publisher = frappe.get_hooks(hook="app_publisher", app_name=app)[0]
+		app = frappe.local.module_app[scrub(self.module)]
+		if not app:
+			frappe.throw(_("App not found"))
+		app_publisher = frappe.get_hooks(hook="app_publisher", app_name=app)[0]
 
-			with open(pypath, 'w') as pyfile:
-				with open(os.path.join(get_module_path("core"), "doctype", "doctype",
-					"doctype_template.py"), 'r') as srcfile:
-					pyfile.write(srcfile.read().format(app_publisher=app_publisher, classname=self.name.replace(" ", "")))
+		for template in ["controller.py", "test_controller.py", "test_records.json"]:
+			template_name = template.replace("controller", scrub(self.name))
+			target_file_path = os.path.join(target_path, template_name)
+			if not os.path.exists(target_file_path):
+
+				with open(target_file_path, 'w') as target:
+					with open(os.path.join(get_module_path("core"), "doctype", "doctype",
+						"boilerplate", template), 'r') as source:
+						target.write(source.read().format(app_publisher=app_publisher,
+							classname=self.name.replace(" ", ""), doctype=self.name))
+
 
 	def make_amendable(self):
 		"""

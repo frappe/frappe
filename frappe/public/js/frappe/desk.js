@@ -51,7 +51,13 @@ frappe.Application = Class.extend({
 		// control panel startup code
 		this.run_startup_js();
 
+
 		if(frappe.boot) {
+			if(localStorage.getItem("session_lost_route")) {
+				window.location.hash = localStorage.getItem("session_lost_route");
+				localStorage.removeItem("session_lost_route");
+			}
+
 			// route to home page
 			frappe.route();
 		}

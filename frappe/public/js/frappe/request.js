@@ -176,6 +176,7 @@ frappe.request.cleanup = function(opts, r) {
 	// session expired? - Guest has no business here!
 	if(r.session_expired || frappe.get_cookie("sid")==="Guest") {
 		if(!frappe.app.logged_out) {
+			localStorage.setItem("session_lost_route", location.hash);
 			msgprint(__('Session Expired. Logging you out'));
 			frappe.app.logout();
 		}

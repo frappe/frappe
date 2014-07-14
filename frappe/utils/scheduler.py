@@ -12,7 +12,7 @@ from __future__ import unicode_literals
 
 import frappe
 import frappe.utils
-from frappe.utils.file_lock import create_lock, check_lock, delete_lock, LockTimeoutError
+from frappe.utils.file_lock import create_lock, check_lock, delete_lock
 from datetime import datetime
 
 DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
@@ -95,7 +95,7 @@ def log(method, message=None):
 	d = frappe.new_doc("Scheduler Log")
 	d.method = method
 	d.error = message
-	d.insert()
+	d.insert(ignore_permissions=True)
 
 	frappe.db.commit()
 

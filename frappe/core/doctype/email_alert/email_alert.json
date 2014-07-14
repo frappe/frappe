@@ -26,7 +26,8 @@
    "label": "Document Type", 
    "options": "DocType", 
    "permlevel": 0, 
-   "reqd": 1
+   "reqd": 1, 
+   "search_index": 1
   }, 
   {
    "fieldname": "event", 
@@ -35,16 +36,27 @@
    "label": "Send Alert On", 
    "options": "\nNew\nSave\nSubmit\nCancel\nDate Change\nValue Change", 
    "permlevel": 0, 
-   "reqd": 1
+   "reqd": 1, 
+   "search_index": 1
+  }, 
+  {
+   "depends_on": "eval:doc.event==\"Date Change\"", 
+   "description": "Send alert if date matches this field's value", 
+   "fieldname": "date_changed", 
+   "fieldtype": "Select", 
+   "label": "Date Changed", 
+   "permlevel": 0
   }, 
   {
    "depends_on": "eval:doc.event==\"Value Change\"", 
+   "description": "Send alert if this field's value changes", 
    "fieldname": "value_changed", 
    "fieldtype": "Select", 
    "label": "Value Changed", 
    "permlevel": 0
   }, 
   {
+   "depends_on": "", 
    "description": "Optional: The alert will be sent if this expression is true", 
    "fieldname": "condition", 
    "fieldtype": "Data", 
@@ -99,7 +111,7 @@
   }
  ], 
  "icon": "icon-envelope", 
- "modified": "2014-07-11 17:57:11.471260", 
+ "modified": "2014-07-14 12:55:10.467991", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Email Alert", 
