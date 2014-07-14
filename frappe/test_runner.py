@@ -10,7 +10,7 @@ from frappe.modules import load_doctype_module, get_module_name
 from frappe.utils import cstr
 
 
-def main(app=None, module=None, doctype=None, verbose=False, tests=()):
+def main(app=None, module=None, doctype=None, verbose=False, tests=(), force=False):
 	frappe.flags.print_messages = verbose
 	frappe.flags.in_test = True
 
@@ -29,7 +29,7 @@ def main(app=None, module=None, doctype=None, verbose=False, tests=()):
 		frappe.get_attr(fn)()
 
 	if doctype:
-		ret = run_tests_for_doctype(doctype, verbose=verbose, tests=tests)
+		ret = run_tests_for_doctype(doctype, verbose=verbose, tests=tests, force=force)
 	elif module:
 		ret = run_tests_for_module(module, verbose=verbose, tests=tests)
 	else:
@@ -63,10 +63,13 @@ def run_all_tests(app=None, verbose=False):
 
 	return unittest.TextTestRunner(verbosity=1+(verbose and 1 or 0)).run(test_suite)
 
-def run_tests_for_doctype(doctype, verbose=False, tests=()):
+def run_tests_for_doctype(doctype, verbose=False, tests=(), force=False):
 	module = frappe.db.get_value("DocType", doctype, "module")
 	test_module = get_module_name(doctype, module, "test_")
-	make_test_records(doctype, verbose=verbose)
+	if force:
+		for name in frappe.db.sql_list("select name from `tab%s`" % doctype):
+			frappe.delete_doc(doctype, name, force=True)
+	make_test_records(doctype, verbose=verbose, force=force)
 	module = frappe.get_module(test_module)
 	return _run_unittest(module, verbose=verbose, tests=tests)
 
@@ -107,7 +110,7 @@ def _add_test(path, filename, verbose, test_suite=None):
 	module = imp.load_source(filename[:-3], os.path.join(path, filename))
 	test_suite.addTest(unittest.TestLoader().loadTestsFromModule(module))
 
-def make_test_records(doctype, verbose=0):
+def make_test_records(doctype, verbose=0, force=False):
 	frappe.flags.mute_emails = True
 
 	if not frappe.db:
@@ -119,8 +122,8 @@ def make_test_records(doctype, verbose=0):
 
 		if options not in frappe.local.test_objects:
 			frappe.local.test_objects[options] = []
-			make_test_records(options, verbose)
-			make_test_records_for_doctype(options, verbose)
+			make_test_records(options, verbose, force)
+			make_test_records_for_doctype(options, verbose, force)
 
 def get_modules(doctype):
 	module = frappe.db.get_value("DocType", doctype, "module")
@@ -155,7 +158,7 @@ def get_dependencies(doctype):
 
 	return options_list
 
-def make_test_records_for_doctype(doctype, verbose=0):
+def make_test_records_for_doctype(doctype, verbose=0, force=False):
 	module, test_module = get_modules(doctype)
 
 	if verbose:
