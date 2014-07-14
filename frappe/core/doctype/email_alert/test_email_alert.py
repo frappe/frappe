@@ -84,7 +84,7 @@ class TestEmailAlert(unittest.TestCase):
 		self.assertFalse(frappe.db.get_value("Bulk Email", {"ref_doctype": "Event",
 			"ref_docname": event.name, "status":"Not Sent"}))
 
-		event.starts_on  = frappe.utils.now()
+		event.starts_on  = frappe.utils.add_days(frappe.utils.nowdate(), 2) + " 12:00:00"
 		event.save()
 
 		self.assertFalse(frappe.db.get_value("Bulk Email", {"ref_doctype": "Event",

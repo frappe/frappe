@@ -1,6 +1,10 @@
 frappe.email_alert = {
 	setup_fieldname_select: function(frm) {
 		// get the doctype to update fields
+		if(!frm.doc.document_type) {
+			return;
+		}
+
 		frappe.model.with_doctype(frm.doc.document_type, function() {
 
 			var fields = frappe.get_doc("DocType", frm.doc.document_type).fields;
@@ -9,10 +13,10 @@ frappe.email_alert = {
 				function(d) { return in_list(frappe.model.no_value_type, d.fieldtype) ?
 					null : d.fieldname; });
 
-			options = "\n" + options.join("\n");
+			options = options.join("\n");
 
 			// set value changed options
-			frm.set_df_property("value_changed", "options", options);
+			frm.set_df_property("value_changed", "options", "\n" + options);
 
 			// set date changed options
 			frm.set_df_property("date_changed", "options", $.map(fields,
@@ -21,7 +25,7 @@ frappe.email_alert = {
 
 			// set email recipient options
 			frappe.meta.get_docfield("Email Alert Recipient", "email_by_document_field",
-				frm.doc.name).options = options;
+				frm.doc.name).options = "\nowner\n" + options;
 
 		});
 	}

@@ -25,7 +25,8 @@ def trigger_email_alerts(doc, method=None):
 
 			alert = frappe.get_doc("Email Alert", alert)
 			for name in frappe.db.sql_list("""select name from `tab%s` where
-				DATE(%s) = CURDATE()""" % (alert.document_type, alert.date_changed)):
+				DATE(%s) = ADDDATE(CURDATE(), INTERVAL %s DAY)""" % \
+				(alert.document_type, alert.date_changed, alert.days_in_advance or 0)):
 
 				evaluate_alert(frappe.get_doc(alert.document_type, name),
 					alert, "Date Change")
