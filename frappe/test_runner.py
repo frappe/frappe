@@ -100,13 +100,6 @@ def _add_test(path, filename, verbose, test_suite=None):
 	if not test_suite:
 		test_suite = unittest.TestSuite()
 
-	if os.path.basename(os.path.dirname(path))=="doctype":
-		txt_file = os.path.join(path, filename[5:].replace(".py", ".json"))
-		with open(txt_file, 'r') as f:
-			doc = json.loads(f.read())
-		doctype = doc["name"]
-		make_test_records(doctype, verbose)
-
 	module = imp.load_source(filename[:-3], os.path.join(path, filename))
 	test_suite.addTest(unittest.TestLoader().loadTestsFromModule(module))
 
