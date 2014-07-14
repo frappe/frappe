@@ -48,6 +48,15 @@
    "permlevel": 0
   }, 
   {
+   "default": "0", 
+   "depends_on": "eval:doc.event==\"Date Change\"", 
+   "description": "[Optional] Send the email X days in advance of the specified date. 0 equals same day.", 
+   "fieldname": "days_in_advance", 
+   "fieldtype": "Int", 
+   "label": "Days in Advance", 
+   "permlevel": 0
+  }, 
+  {
    "depends_on": "eval:doc.event==\"Value Change\"", 
    "description": "Send alert if this field's value changes", 
    "fieldname": "value_changed", 
@@ -111,7 +120,7 @@
   }
  ], 
  "icon": "icon-envelope", 
- "modified": "2014-07-14 12:55:10.467991", 
+ "modified": "2014-07-14 15:33:46.806944", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Email Alert", 
