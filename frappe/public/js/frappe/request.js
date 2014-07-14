@@ -44,36 +44,37 @@ frappe.request.call = function(opts) {
 	// all requests will be post, set _type as POST for commit
 	opts.args._type = opts.type;
 
+	var statusCode = {
+		200: function(data, xhr) {
+			if(typeof data === "string") data = JSON.parse(data);
+			opts.success_callback && opts.success_callback(data, xhr.responseText);
+		},
+		404: function(xhr) {
+			msgprint(__("Not found"));
+		},
+		403: function(xhr) {
+			msgprint(__("Not permitted"));
+		},
+		417: function(data, xhr) {
+			if(typeof data === "string") data = JSON.parse(data);
+			opts.error_callback && opts.error_callback(data, xhr.responseText);
+		},
+		501: function(data, xhr) {
+			if(typeof data === "string") data = JSON.parse(data);
+			opts.error_callback && opts.error_callback(data, xhr.responseText);
+		},
+		500: function(xhr) {
+			msgprint(__("Server Error: Please check your server logs or contact tech support."))
+			opts.error_callback && opts.error_callback();
+			frappe.request.report_error(xhr, opts);
+		}
+	};
+
 	var ajax_args = {
 		url: opts.url || frappe.request.url,
 		data: opts.args,
 		type: 'POST',
 		dataType: opts.dataType || 'json',
-		statusCode: {
-			200: function(data, xhr) {
-				if(typeof data === "string") data = JSON.parse(data);
-				opts.success && opts.success(data, xhr.responseText);
-			},
-			404: function(xhr) {
-				msgprint(__("Not found"));
-			},
-			403: function(xhr) {
-				msgprint(__("Not permitted"));
-			},
-			417: function(data, xhr) {
-				if(typeof data === "string") data = JSON.parse(data);
-				opts.error && opts.error(data, xhr.responseText);
-			},
-			501: function(data, xhr) {
-				if(typeof data === "string") data = JSON.parse(data);
-				opts.error && opts.error(data, xhr.responseText);
-			},
-			500: function(xhr) {
-				msgprint(__("Server Error: Please check your server logs or contact tech support."))
-				opts.error && opts.error();
-				frappe.request.report_error(xhr, opts);
-			}
-		},
 		async: opts.async
 	};
 
@@ -104,18 +105,31 @@ frappe.request.call = function(opts) {
 	}
 
 	return $.ajax(ajax_args)
-	.fail(function(xhr, textStatus) {
-		opts.error && opts.error(xhr)
-	})
-	.always(function(data) {
-		if(typeof data==="string") {
-			data = JSON.parse(data);
-		}
-		if(data.responseText) {
-			data = JSON.parse(data.responseText);
-		}
-		frappe.request.cleanup(opts, data);
-	});
+		.always(function(data, textStatus, xhr) {
+			if(typeof data==="string") {
+				data = JSON.parse(data);
+			}
+			if(data.responseText) {
+				var xhr = data;
+				data = JSON.parse(data.responseText);
+			}
+			frappe.request.cleanup(opts, data);
+		})
+		.done(function(data, textStatus, xhr) {
+			var status_code_handler = statusCode[xhr.statusCode().status];
+			if (status_code_handler) {
+				status_code_handler(data, xhr);
+			}
+		})
+		.fail(function(xhr, textStatus) {
+			var status_code_handler = statusCode[xhr.statusCode().status];
+			if (status_code_handler) {
+				status_code_handler(xhr);
+			} else {
+				// if not handled by error handler!
+				opts.error_callback && opts.error_callback(xhr);
+			}
+		});
 }
 
 // call execute serverside request
@@ -141,6 +155,11 @@ frappe.request.prepare = function(opts) {
 		console.log(opts)
 		throw "Incomplete Request";
 	}
+
+	opts.success_callback = opts.success;
+	opts.error_callback = opts.error;
+	delete opts.success;
+	delete opts.error;
 
 }
 
@@ -204,7 +223,7 @@ frappe.request.cleanup = function(opts, r) {
 	}
 
 	if(r.docs || r.docinfo) {
-		r.docs = frappe.model.sync(r);
+		frappe.model.sync(r);
 	}
 	if(r.__messages) {
 		$.extend(frappe._messages, r.__messages);
