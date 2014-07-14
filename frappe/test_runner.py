@@ -97,7 +97,7 @@ def _run_unittest(module, verbose=False, tests=()):
 def _add_test(path, filename, verbose, test_suite=None):
 	import os, imp
 
-	if os.path.sep.join("doctype", "doctype", "boilerplate") in path:
+	if os.path.sep.join(["doctype", "doctype", "boilerplate"]) in path:
 		# in /doctype/doctype/boilerplate/
 		return
 
