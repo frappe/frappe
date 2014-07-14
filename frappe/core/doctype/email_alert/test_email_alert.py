@@ -9,9 +9,12 @@ test_records = frappe.get_test_records('Email Alert')
 class TestEmailAlert(unittest.TestCase):
 	def setUp(self):
 		frappe.db.sql("""delete from `tabBulk Email`""")
+		frappe.set_user("test1@example.com")
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
 
 	def test_new_and_save(self):
-		frappe.set_user("test1@example.com")
 		comment = frappe.new_doc("Comment")
 		comment.comment = "test"
 		comment.insert(ignore_permissions=True)
@@ -28,7 +31,6 @@ class TestEmailAlert(unittest.TestCase):
 			"ref_docname": comment.name, "status":"Not Sent"}))
 
 	def test_condition(self):
-		frappe.set_user("test1@example.com")
 		event = frappe.new_doc("Event")
 		event.subject = "test",
 		event.event_type = "Private"
@@ -45,7 +47,6 @@ class TestEmailAlert(unittest.TestCase):
 			"ref_docname": event.name, "status":"Not Sent"}))
 
 	def test_value_changed(self):
-		frappe.set_user("test1@example.com")
 		event = frappe.new_doc("Event")
 		event.subject = "test",
 		event.event_type = "Private"
@@ -68,7 +69,6 @@ class TestEmailAlert(unittest.TestCase):
 			"ref_docname": event.name, "status":"Not Sent"}))
 
 	def test_date_changed(self):
-		frappe.set_user("test1@example.com")
 		event = frappe.new_doc("Event")
 		event.subject = "test",
 		event.event_type = "Private"
