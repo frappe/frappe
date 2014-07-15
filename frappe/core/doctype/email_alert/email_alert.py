@@ -5,14 +5,14 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.model.document import Document
-from frappe.utils import validate_email_add
+from frappe.utils import validate_email_add, nowdate
 
 class EmailAlert(Document):
 	def validate(self):
-		if self.event=="Date Changed" and not self.date_changed:
+		if self.event=="Date Change" and not self.date_changed:
 			frappe.throw(_("Please specify which date field must be checked"))
 
-		if self.event=="Value Changed" and not self.value_changed:
+		if self.event=="Value Change" and not self.value_changed:
 			frappe.throw(_("Please specify which value field must be checked"))
 
 def trigger_daily_alerts():
@@ -24,9 +24,10 @@ def trigger_email_alerts(doc, method=None):
 			where event='Date Change'"""):
 
 			alert = frappe.get_doc("Email Alert", alert)
-			for name in frappe.db.sql_list("""select name from `tab%s` where
-				DATE(%s) = ADDDATE(CURDATE(), INTERVAL %s DAY)""" % \
-				(alert.document_type, alert.date_changed, alert.days_in_advance or 0)):
+
+			for name in frappe.db.sql_list("""select name from `tab{0}` where
+				DATE({1}) = ADDDATE(DATE(%s), INTERVAL %s DAY)""".format(alert.document_type, alert.date_changed),
+					(nowdate(), alert.days_in_advance or 0)):
 
 				evaluate_alert(frappe.get_doc(alert.document_type, name),
 					alert, "Date Change")
@@ -52,7 +53,7 @@ def evaluate_alert(doc, alert, event):
 	if isinstance(alert, basestring):
 		alert = frappe.get_doc("Email Alert", alert)
 	if alert.condition:
-		if not eval(alert.condition):
+		if not eval(alert.condition, {"doc": doc}):
 			return
 
 	if event=="Value Change" and not doc.is_new():
@@ -63,7 +64,7 @@ def evaluate_alert(doc, alert, event):
 	for recipient in alert.email_alert_recipients:
 		recipients = []
 		if recipient.condition:
-			if not eval(recipient.condition):
+			if not eval(recipient.condition, {"doc": doc}):
 				continue
 		if recipient.email_by_document_field:
 			if validate_email_add(doc.get(recipient.email_by_document_field)):
