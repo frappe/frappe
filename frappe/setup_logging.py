@@ -31,7 +31,7 @@ def setup_logging():
 			},
 			"formatters": {
 				"site_wise": {
-					"format": "%(asctime)s %(message)s \n site: %(site)s\n form: %(form_dict)s\n\n%(tb)s\n--------------"
+					"format": "\n%(asctime)s %(message)s \n site: %(site)s\n form: %(form_dict)s\n\n%(tb)s\n--------------"
 				}
 			},
 			"loggers": {

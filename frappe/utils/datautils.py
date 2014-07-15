@@ -52,10 +52,20 @@ def read_csv_content(fcontent, ignore_encoding=False):
 	fcontent = fcontent.encode("utf-8").splitlines(True)
 
 	try:
-		reader = csv.reader(fcontent)
-		# decode everything
-		rows = [[unicode(val, "utf-8").strip() for val in row] for row in reader]
+		rows = []
+		for row in csv.reader(fcontent):
+			r = []
+			for val in row:
+				if val=="":
+					r.append(None)
+				else:
+					# decode everything
+					r.append(unicode(val, "utf-8").strip())
+
+			rows.append(r)
+
 		return rows
+
 	except Exception:
 		frappe.msgprint(_("Not a valid Comma Separated Value (CSV File)"))
 		raise
