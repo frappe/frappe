@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _, msgprint
-from frappe.utils import flt, cint, cstr, now
+from frappe.utils import flt, cint, cstr, now, get_url_to_form
 from frappe.modules import load_doctype_module
 from frappe.model.base_document import BaseDocument
 from frappe.model.naming import set_new_name
@@ -553,3 +553,6 @@ class Document(BaseDocument):
 				self._precision[parentfield or "main"][fieldname] = self._precision.default
 
 		return self._precision[parentfield or "main"][fieldname]
+
+	def get_url(self):
+		return "/desk#Form/{doctype}/{name}".format(doctype=self.doctype, name=self.name)

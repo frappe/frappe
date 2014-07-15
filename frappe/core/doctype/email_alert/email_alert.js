@@ -6,26 +6,27 @@ frappe.email_alert = {
 		}
 
 		frappe.model.with_doctype(frm.doc.document_type, function() {
+			var get_select_options = function(df) {
+				return {value: df.fieldname, label: df.fieldname + " (" + __(df.label) + ")"};
+			}
 
 			var fields = frappe.get_doc("DocType", frm.doc.document_type).fields;
 
 			var options = $.map(fields,
 				function(d) { return in_list(frappe.model.no_value_type, d.fieldtype) ?
-					null : d.fieldname; });
-
-			options = options.join("\n");
+					null : get_select_options(d); });
 
 			// set value changed options
-			frm.set_df_property("value_changed", "options", "\n" + options);
+			frm.set_df_property("value_changed", "options", [""].concat(options));
 
 			// set date changed options
 			frm.set_df_property("date_changed", "options", $.map(fields,
 				function(d) { return (d.fieldtype=="Date" || d.fieldtype=="Datetime") ?
-					d.fieldname : null; }));
+					get_select_options(d) : null; }));
 
 			// set email recipient options
 			frappe.meta.get_docfield("Email Alert Recipient", "email_by_document_field",
-				frm.doc.name).options = "\nowner\n" + options;
+				frm.doc.name).options = ["owner"].concat(options);
 
 		});
 	}

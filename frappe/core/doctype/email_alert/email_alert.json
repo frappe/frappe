@@ -1,10 +1,17 @@
 {
- "autoname": "field:subject", 
+ "autoname": "hash", 
  "creation": "2014-07-11 17:18:09.923399", 
  "docstatus": 0, 
  "doctype": "DocType", 
  "document_type": "System", 
  "fields": [
+  {
+   "default": "1", 
+   "fieldname": "enabled", 
+   "fieldtype": "Check", 
+   "label": "Enabled", 
+   "permlevel": 0
+  }, 
   {
    "fieldname": "filters", 
    "fieldtype": "Section Break", 
@@ -120,7 +127,7 @@
   }
  ], 
  "icon": "icon-envelope", 
- "modified": "2014-07-14 15:33:46.806944", 
+ "modified": "2014-07-15 05:07:14.002351", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Email Alert", 
@@ -140,5 +147,6 @@
   }
  ], 
  "sort_field": "modified", 
- "sort_order": "DESC"
+ "sort_order": "DESC", 
+ "title_field": "subject"
 }

@@ -11,6 +11,7 @@ def execute():
 	ss = frappe.get_doc("System Settings", "System Settings")
 	if ss.time_zone in momentjs_data.get("links"):
 		ss.time_zone = momentjs_data["links"][ss.time_zone]
+		ss.ignore_mandatory = True
 		ss.save()
 
 	for user, time_zone in frappe.db.sql("select name, time_zone from `tabUser` where ifnull(time_zone, '')!=''"):
