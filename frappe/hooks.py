@@ -2,7 +2,7 @@ from frappe.__version__ import __version__
 
 app_name = "frappe"
 app_title = "Frappe Framework"
-app_publisher = "Web Notes Technologies Pvt. Ltd. and Contributors"
+app_publisher = "Web Notes Technologies Pvt. Ltd."
 app_description = "Full Stack Web Application Framwork in Python"
 app_icon = "assets/frappe/images/frappe.svg"
 app_version = __version__
@@ -51,8 +51,17 @@ has_permission = {
 
 doc_events = {
 	"*": {
-		"on_update": "frappe.core.doctype.notification_count.notification_count.clear_doctype_notifications",
-		"on_cancel": "frappe.core.doctype.notification_count.notification_count.clear_doctype_notifications",
+		"after_insert": "frappe.core.doctype.email_alert.email_alert.trigger_email_alerts",
+		"validate": "frappe.core.doctype.email_alert.email_alert.trigger_email_alerts",
+		"on_update": [
+			"frappe.core.doctype.notification_count.notification_count.clear_doctype_notifications",
+			"frappe.core.doctype.email_alert.email_alert.trigger_email_alerts"
+		],
+		"on_submit": "frappe.core.doctype.email_alert.email_alert.trigger_email_alerts",
+		"on_cancel": [
+			"frappe.core.doctype.notification_count.notification_count.clear_doctype_notifications",
+			"frappe.core.doctype.email_alert.email_alert.trigger_email_alerts"
+		],
 		"on_trash": "frappe.core.doctype.notification_count.notification_count.clear_doctype_notifications"
 	},
 	"User Vote": {
@@ -70,6 +79,7 @@ scheduler_events = {
 		"frappe.core.doctype.notification_count.notification_count.delete_event_notification_count",
 		"frappe.core.doctype.event.event.send_event_digest",
 		"frappe.sessions.clear_expired_sessions",
+		"frappe.core.doctype.email_alert.email_alert.trigger_daily_alerts",
 	],
 	"hourly": [
 		"frappe.website.doctype.website_group.website_group.clear_event_cache"

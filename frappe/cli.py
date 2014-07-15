@@ -772,7 +772,7 @@ def smtp_debug_server():
 	os.execv(python, [python, '-m', "smtpd", "-n", "-c", "DebuggingServer", "localhost:25"])
 
 @cmd
-def run_tests(app=None, module=None, doctype=None, verbose=False, tests=(), driver=None):
+def run_tests(app=None, module=None, doctype=None, verbose=False, tests=(), driver=None, force=False):
 	import frappe.test_runner
 	from frappe.utils import sel
 
@@ -781,7 +781,7 @@ def run_tests(app=None, module=None, doctype=None, verbose=False, tests=(), driv
 	ret = 1
 	try:
 		ret = frappe.test_runner.main(app and app[0], module and module[0], doctype and doctype[0], verbose,
-			tests=tests)
+			tests=tests, force=force)
 		if len(ret.failures) == 0 and len(ret.errors) == 0:
 			ret = 0
 	finally:

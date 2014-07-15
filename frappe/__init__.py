@@ -226,19 +226,23 @@ def get_request_header(key, default=None):
 	return request.headers.get(key, default)
 
 def sendmail(recipients=(), sender="", subject="No Subject", message="No Message",
-		as_markdown=False, bulk=False):
+		as_markdown=False, bulk=False, ref_doctype=None, ref_docname=None,
+		add_unsubscribe_link=False):
 
 	if bulk:
 		import frappe.utils.email_lib.bulk
 		frappe.utils.email_lib.bulk.send(recipients=recipients, sender=sender,
-			subject=subject, message=message, add_unsubscribe_link=False)
+			subject=subject, message=message, ref_doctype = ref_doctype,
+			ref_docname = ref_docname, add_unsubscribe_link=add_unsubscribe_link)
 
 	else:
 		import frappe.utils.email_lib
 		if as_markdown:
-			frappe.utils.email_lib.sendmail_md(recipients, sender=sender, subject=subject, msg=message)
+			frappe.utils.email_lib.sendmail_md(recipients, sender=sender,
+				subject=subject, msg=message)
 		else:
-			frappe.utils.email_lib.sendmail(recipients, sender=sender, subject=subject, msg=message)
+			frappe.utils.email_lib.sendmail(recipients, sender=sender,
+				subject=subject, msg=message)
 
 logger = None
 whitelisted = []
