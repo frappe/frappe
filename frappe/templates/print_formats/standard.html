@@ -1,0 +1,68 @@
+{%- if doc.letter_head -%}
+	{{ frappe.db.get_value("Letter Head", doc.letter_head, "content") }}
+{%- endif -%}
+<h2>{{ doc[meta.title_field or "name"] }}</h2>
+<hr>
+{% macro print_value(df, d, meta) -%}
+	{% if df.fieldtype=="Check" %}
+		<i class="{{ 'icon-check' if d[df.fieldname] else 						'icon-check-empty' }}"></i>
+	{% elif df.fieldtype=="Image" %}
+		<img src="{{ doc[meta.get_field(df.fieldname).options] }}" 						class="img-responsive">
+	{% else %}
+		{{ d[df.fieldname] or "" }}
+	{% endif %}
+{%- endmacro %}
+
+{% macro get_width(fieldtype) -%}
+	{%- if fieldtype in ("Int", "Check") -%}{{ 60 }}
+	{%- else -%}{{ 150 }}{% endif -%}
+{%- endmacro %}
+
+{% for df in meta.fields %}
+	{% if not df.permlevel and not df.print_hide %}
+		{% if df.fieldtype=="Section Break" %}
+		{% elif df.fieldtype=="Column Break" %}
+		{% elif df.fieldtype=="Table" %}
+			{% set table_meta = frappe.get_meta(df.options) %}
+			<div style="overflow-x: auto;">
+				<table class="table table-bordered" style="table-layout: fixed">
+					<thead>
+						<tr>
+							<th style="width: 40px">Sr</th>
+							{% for tdf in table_meta.fields %}
+							{% if is_visible(tdf) %}
+								<th style="width: {{ get_width(tdf.fieldtype) }}px">
+									{{ tdf.label }}</th>
+							{% endif %}
+							{% endfor %}
+						</tr>
+					</thead>
+					<tbody>
+						{% for d in doc[df.fieldname] %}
+						<tr>
+							<td>{{ d.idx }}</td>
+							{% for tdf in table_meta.fields %}
+							{% if is_visible(tdf) %}
+								<td>{{ print_value(tdf, d, table_meta) }}</td>
+							{% endif %}
+							{% endfor %}
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+		{% else %}
+		<div class="row">
+			<div class="col-sm-4 text-right">
+				{% if df.fieldtype not in ("Image","HTML") and
+					doc.get(df.fieldname) %}
+				<label>{{ df.label }}</label>
+				{% endif %}
+			</div>
+			<div class="col-sm-8">
+				{% if doc.get(df.fieldname) %}{{ print_value(df, doc, meta) }}{% endif %}
+			</div>
+		</div>
+		{% endif %}
+	{% endif %}
+{% endfor %}

@@ -1,0 +1,19 @@
+/*
+	common style for whole page
+	This should include:
+	+ page size related settings
+	+ font family settings
+	+ line spacing settings
+*/
+@media screen {
+	body {
+		width: 8.3in;
+	    margin: auto;
+	    padding: 10px;
+	}
+}
+
+html, body, div, span, td {
+	font-family: "Georgia", serif;
+	font-size: 13px;
+}
