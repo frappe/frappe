@@ -6,6 +6,7 @@ import frappe, os
 from frappe import _
 import frappe.utils
 from frappe.modules import get_doc_path
+from jinja2 import TemplateNotFound
 
 standard_format = "templates/print_formats/standard.html"
 
@@ -69,20 +70,26 @@ def get_html(doc, name=None, print_format=None):
 	if isinstance(doc, basestring) and isinstance(name, basestring):
 		doc = frappe.get_doc(doc, name)
 
-	template = Environment().from_string(get_print_format_name(doc.doctype,
-		print_format or frappe.form_dict.format))
-	meta = frappe.get_meta(doc.doctype)
+	format_name = print_format or frappe.form_dict.format
+
+	if format_name==standard_format:
+		template = frappe.get_template("templates/print_formats/standard.html")
+	else:
+		template = Environment().from_string(get_print_format(doc.doctype,
+			format_name))
 
 	args = {
 		"doc": doc,
-		"meta": meta,
+		"meta": frappe.get_meta(doc.doctype),
 		"frappe": frappe,
-		"utils": frappe.utils
+		"utils": frappe.utils,
+		"is_visible": lambda tdf: tdf.fieldtype not in ("Column Break",
+			"Section Break") and tdf.label and not tdf.print_hide and not tdf.hidden
 	}
 	html = template.render(args)
 	return html
 
-def get_print_format_name(doctype, format_name):
+def get_print_format(doctype, format_name):
 	if format_name==standard_format:
 		return format_name
 
@@ -110,13 +117,9 @@ def get_print_format_name(doctype, format_name):
 def get_print_style(style=None):
 	if not style:
 		style = frappe.db.get_default("print_style") or "Standard"
-	path = os.path.join(get_doc_path("Core", "DocType", "Print Format"), "styles",
-		style.lower() + ".css")
-	if not os.path.exists(path):
-		if style!="Standard":
-			return get_print_style("Standard")
-		else:
-			return "/* Standard Style Missing ?? */"
-	else:
-		with open(path, 'r') as sfile:
-			return sfile.read()
+
+	try:
+		return frappe.get_template("templates/styles/" + style.lower() + ".css").render()
+	except TemplateNotFound:
+		return frappe.get_template("templates/styles/standard.css").render()
+
