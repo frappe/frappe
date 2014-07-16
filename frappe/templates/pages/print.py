@@ -1,12 +1,157 @@
 # Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt 
+# MIT License. See license.txt
 
 from __future__ import unicode_literals
 
+import frappe, os, copy
+from frappe import _
+
+from frappe.modules import get_doc_path
+from jinja2 import TemplateNotFound
+from frappe.utils.formatters import format_value
+
 no_cache = 1
 no_sitemap = 1
+
 base_template_path = "templates/pages/print.html"
+standard_format = "templates/print_formats/standard.html"
 
 def get_context(context):
-	from frappe.core.doctype.print_format.print_format import get_args
-	return get_args()
+	if not frappe.form_dict.format:
+		frappe.form_dict.format = standard_format
+
+	if not frappe.form_dict.doctype or not frappe.form_dict.name:
+		return {
+			"body": """<h1>Error</h1>
+				<p>Parameters doctype, name and format required</p>
+				<pre>%s</pre>""" % repr(frappe.form_dict)
+		}
+
+	doc = frappe.get_doc(frappe.form_dict.doctype, frappe.form_dict.name)
+
+	for ptype in ("read", "print"):
+		if not frappe.has_permission(doc.doctype, ptype, doc):
+			return {
+				"body": """<h1>Error</h1>
+					<p>No {ptype} permission</p>""".format(ptype=ptype)
+			}
+
+	meta = frappe.get_meta(doc.doctype)
+
+	return {
+		"body": get_html(doc, print_format = frappe.form_dict.format, meta=meta),
+		"css": get_print_style(frappe.form_dict.style),
+		"comment": frappe.session.user,
+		"title": doc.get(meta.title_field) if meta.title_field else doc.name
+	}
+
+def get_html(doc, name=None, print_format=None, meta=None):
+	from jinja2 import Environment
+
+	if isinstance(doc, basestring) and isinstance(name, basestring):
+		doc = frappe.get_doc(doc, name)
+
+	if not meta:
+		meta = frappe.get_meta(doc.doctype)
+
+	if print_format==standard_format:
+		template = frappe.get_template("templates/print_formats/standard.html")
+	else:
+		template = Environment().from_string(get_print_format(doc.doctype,
+			print_format))
+
+	args = {
+		"doc": doc,
+		"meta": frappe.get_meta(doc.doctype),
+		"layout": make_layout(doc, meta),
+		"frappe": frappe,
+		"utils": frappe.utils,
+		"is_visible": is_visible,
+		"format": format_value,
+		"letter_head": frappe.db.get_value("Letter Head",
+			doc.letter_head, "content") if doc.letter_head else ""
+	}
+	html = template.render(args, filters={"len": len})
+	return html
+
+def get_print_format(doctype, format_name):
+	if format_name==standard_format:
+		return format_name
+
+	opts = frappe.db.get_value("Print Format", format_name, "disabled", as_dict=True)
+	if not opts:
+		frappe.throw(_("Print Format {0} does not exist").format(format_name), frappe.DoesNotExistError)
+	elif opts.disabled:
+		frappe.throw(_("Print Format {0} is disabled").format(format_name), frappe.DoesNotExistError)
+
+	# server, find template
+	path = os.path.join(get_doc_path(frappe.db.get_value("DocType", doctype, "module"),
+		"Print Format", format_name), frappe.scrub(format_name) + ".html")
+
+	if os.path.exists(path):
+		with open(path, "r") as pffile:
+			return pffile.read()
+	else:
+		html = frappe.db.get_value("Print Format", format_name, "html")
+		if html:
+			return html
+		else:
+			frappe.throw(_("No template found at path: {0}").format(path),
+				frappe.TemplateNotFoundError)
+
+def get_print_style(style=None):
+	if not style:
+		style = frappe.db.get_default("print_style") or "Standard"
+
+	css = frappe.get_template("templates/styles/standard.css").render()
+
+	try:
+		css += frappe.get_template("templates/styles/" + style.lower() + ".css").render()
+	except TemplateNotFound:
+		pass
+
+	return css
+
+def make_layout(doc, meta):
+	layout, page = [], []
+	layout.append(page)
+	for df in meta.fields:
+		if df.fieldtype=="Section Break" or page==[]:
+			page.append([])
+
+		if df.fieldtype=="Column Break" or (page[-1]==[] and df.fieldtype!="Section Break"):
+			page[-1].append([])
+
+		if is_visible(df) and doc.get(df.fieldname) is not None:
+			page[-1][-1].append(df)
+
+			# if table, add the row info in the field
+			# if a page break is found, create a new docfield
+			if df.fieldtype=="Table":
+				df.rows = []
+				df.start = 0
+				df.end = None
+				for i, row in enumerate(doc.get(df.fieldname)):
+					if row.get("page_break"):
+						# close the earlier row
+						df.end = i
+
+						# new page, with empty section and column
+						page = [[[]]]
+						layout.append(page)
+
+						# continue the table in a new page
+						df = copy.copy(df)
+						df.start = i
+						df.end = None
+						page[-1][-1].append(df)
+
+	# filter empty sections
+	layout = [filter(lambda s: any(filter(lambda c: any(c), s)), page) for page in layout]
+	return layout
+
+def is_visible(df):
+	no_display = ("Section Break", "Column Break", "Button")
+	return (df.fieldtype not in no_display) and df.label and not df.print_hide
+
+

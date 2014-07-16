@@ -1,7 +1,17 @@
-@media screen {
-	body {
-		width: 8.3in;
-	    margin: auto;
-	    padding: 10px;
-	}
+.print-heading {
+	text-align: right;
+	text-transform: uppercase;
+	font-color: #888;
+	font-weight: bold;
+	padding-bottom: 7px;
+	margin-bottom: 15px;
+	border-bottom: 3px solid #aaa;
+}
+
+table.table-bordered {
+	border-top: 3px solid #aaa;
+}
+
+th {
+	background-color: #eee;
 }

@@ -5,15 +5,12 @@
 	+ font family settings
 	+ line spacing settings
 */
-@media screen {
-	body {
-		width: 8.3in;
-	    margin: auto;
-	    padding: 10px;
-	}
-}
-
-html, body, div, span, td {
-	font-family: "Georgia", serif;
-	font-size: 13px;
+.print-format div,
+.print-format span,
+.print-format td,
+.print-format h1,
+.print-format h2,
+.print-format h3,
+.print-format h4 {
+	font-family: serif;
 }

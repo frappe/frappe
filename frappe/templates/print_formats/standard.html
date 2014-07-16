@@ -1,15 +1,84 @@
-{%- if doc.letter_head -%}
-	{{ frappe.db.get_value("Letter Head", doc.letter_head, "content") }}
+{% set section_made = False %}
+
+{% macro render_field(df) -%}
+	{%- if df.fieldtype=="Table" -%}
+        {{ render_table(df) }}
+	{%- elif df.fieldtype in ("Text", "Text Editor", "Code") -%}
+        {{ render_text_field(df) }}
+    {%- else -%}
+        {{ render_field_with_label(df) }}
+	{%- endif -%}
+{%- endmacro -%}
+
+{%- macro render_table(df) -%}
+	{%- set table_meta = frappe.get_meta(df.options) -%}
+    {%- set data = doc.get(df.fieldname)[df.start:df.end] -%}
+    {%- if doc.table_print_templates and
+            doc.table_print_templates.get(df.fieldname) -%}
+        {% include doc.table_print_templates[df.fieldname] %}
+    {%- else -%}
+    	<div style="overflow-x: auto;">
+    		<table class="table table-bordered" style="table-layout: fixed">
+    			<thead>
+    				<tr>
+    					<th style="width: 40px">Sr</th>
+    					{% for tdf in table_meta.fields %}
+    					{% if is_visible(tdf) %}
+    						<th style="width: {{ get_width(tdf.fieldtype) }}px">
+    							{{ tdf.label }}</th>
+    					{% endif %}
+    					{% endfor %}
+    				</tr>
+    			</thead>
+    			<tbody>
+    				{% for d in data %}
+    				<tr>
+    					<td>{{ d.idx }}</td>
+    					{% for tdf in table_meta.fields %}
+    					{% if is_visible(tdf) %}
+    						<td>{{ print_value(tdf, d, table_meta) }}</td>
+    					{% endif %}
+    					{% endfor %}
+    				</tr>
+    				{% endfor %}
+    			</tbody>
+    		</table>
+    	</div>
+    {%- endif -%}
+{%- endmacro -%}
+
+{%- macro render_field_with_label(df) -%}
+    	<div class="row">
+    		<div class="col-sm-4 text-right">
+    			{% if df.fieldtype not in ("Image","HTML") and
+    				doc.get(df.fieldname) %}
+    			<label>{{ df.label }}</label>
+    			{% endif %}
+    		</div>
+    		<div class="col-sm-8">
+    			{% if doc.get(df.fieldname) != None -%}
+                    {{ print_value(df, doc, meta) }}{% endif %}
+    		</div>
+    	</div>
+{%- endmacro -%}
+
+{%- macro render_text_field(df) -%}
+{%- if doc.get(df.fieldname) != None -%}
+<div style="padding: 10px 0px">
+    {%- if df.fieldtype=="Code" %}<pre>{% endif %}
+    {{ doc.get(df.fieldname) }}
+    {% if df.fieldtype=="Code" %}</pre>{% endif -%}
+</div>
 {%- endif -%}
-<h2>{{ doc[meta.title_field or "name"] }}</h2>
-<hr>
-{% macro print_value(df, d, meta) -%}
+{%- endmacro -%}
+
+{%- macro print_value(df, d, meta) -%}
 	{% if df.fieldtype=="Check" %}
 		<i class="{{ 'icon-check' if d[df.fieldname] else 						'icon-check-empty' }}"></i>
 	{% elif df.fieldtype=="Image" %}
 		<img src="{{ doc[meta.get_field(df.fieldname).options] }}" 						class="img-responsive">
 	{% else %}
-		{{ d[df.fieldname] or "" }}
+		{{ format(d[df.fieldname], df, doc) if df.fieldname else "" }}
 	{% endif %}
 {%- endmacro %}
 
@@ -18,51 +87,32 @@
 	{%- else -%}{{ 150 }}{% endif -%}
 {%- endmacro %}
 
-{% for df in meta.fields %}
-	{% if not df.permlevel and not df.print_hide %}
-		{% if df.fieldtype=="Section Break" %}
-		{% elif df.fieldtype=="Column Break" %}
-		{% elif df.fieldtype=="Table" %}
-			{% set table_meta = frappe.get_meta(df.options) %}
-			<div style="overflow-x: auto;">
-				<table class="table table-bordered" style="table-layout: fixed">
-					<thead>
-						<tr>
-							<th style="width: 40px">Sr</th>
-							{% for tdf in table_meta.fields %}
-							{% if is_visible(tdf) %}
-								<th style="width: {{ get_width(tdf.fieldtype) }}px">
-									{{ tdf.label }}</th>
-							{% endif %}
-							{% endfor %}
-						</tr>
-					</thead>
-					<tbody>
-						{% for d in doc[df.fieldname] %}
-						<tr>
-							<td>{{ d.idx }}</td>
-							{% for tdf in table_meta.fields %}
-							{% if is_visible(tdf) %}
-								<td>{{ print_value(tdf, d, table_meta) }}</td>
-							{% endif %}
-							{% endfor %}
-						</tr>
-						{% endfor %}
-					</tbody>
-				</table>
-			</div>
-		{% else %}
-		<div class="row">
-			<div class="col-sm-4 text-right">
-				{% if df.fieldtype not in ("Image","HTML") and
-					doc.get(df.fieldname) %}
-				<label>{{ df.label }}</label>
-				{% endif %}
-			</div>
-			<div class="col-sm-8">
-				{% if doc.get(df.fieldname) %}{{ print_value(df, doc, meta) }}{% endif %}
-			</div>
-		</div>
-		{% endif %}
-	{% endif %}
+{%- macro add_header(page_num, max_pages) -%}
+    {% if letter_head %}
+    <div class="letter-head">{{ letter_head }}</div>
+    {% endif %}
+    <div class="print-heading">
+        <h2>{{ doc.print_heading or doc.doctype }}</h2>
+        <h4 class="text-muted">#{{ doc[meta.title_field or "name"] }}</h4>
+    </div>
+    {% if max_pages > 1 %}
+    <p class="text-right">{{ _("Page #{0} of {1}").format(page_num, max_pages) }}</p>
+    {% endif %}
+{%- endmacro -%}
+
+{% for page in layout %}
+<div class="page-break">
+    {{ add_header(loop.index, layout|len) }}
+    {% for section in page %}
+    <div class="row">
+        {% for column in section %}
+        <div class="col-md-{{ (12 / section|len)|int }}">
+            {% for df in column %}
+                {{ render_field(df) }}
+            {% endfor %}
+        </div>
+        {% endfor %}
+    </div>
+    {% endfor %}
+</div>
 {% endfor %}

@@ -600,7 +600,8 @@ def get_jenv():
 		import frappe.utils
 
 		# frappe will be loaded last, so app templates will get precedence
-		jenv = Environment(loader = get_jloader(), undefined=DebugUndefined)
+		jenv = Environment(loader = get_jloader(),
+			undefined=DebugUndefined)
 		set_filters(jenv)
 
 		jenv.globals.update({
@@ -626,7 +627,7 @@ def get_jloader():
 	return local.jloader
 
 def set_filters(jenv):
-	from frappe.utils import global_date_format
+	from frappe.utils import global_date_format, cint
 	from frappe.website.utils import get_hex_shade
 	from markdown2 import markdown
 	from json import dumps
@@ -635,6 +636,8 @@ def set_filters(jenv):
 	jenv.filters["markdown"] = markdown
 	jenv.filters["json"] = dumps
 	jenv.filters["get_hex_shade"] = get_hex_shade
+	jenv.filters["len"] = len
+	jenv.filters["int"] = cint
 
 	# load jenv_filters from hooks.py
 	for app in get_all_apps(True):
