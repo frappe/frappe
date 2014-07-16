@@ -208,11 +208,13 @@ def get_file(fname):
 	else:
 		file_name = fname
 
-	if not "/" in file_name:
-		file_name = "files/" + file_name
+	file_path = file_name
+
+	if not "/" in file_path:
+		file_path = "files/" + file_path
 
 	# read the file
-	with open(get_site_path("public", file_name), 'r') as f:
+	with open(get_site_path("public", file_path), 'r') as f:
 		content = f.read()
 
 	return [file_name, content]
