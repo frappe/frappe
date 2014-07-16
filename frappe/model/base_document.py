@@ -231,10 +231,11 @@ class BaseDocument(object):
 
 	def _fix_numeric_types(self):
 		for df in self.meta.get("fields"):
-			if df.fieldtype in ("Int", "Check"):
-				self.set(df.fieldname, cint(self.get(df.fieldname)))
-			elif df.fieldtype in ("Float", "Currency"):
-				self.set(df.fieldname, flt(self.get(df.fieldname)))
+			if self.get(df.fieldname) is not None:
+				if df.fieldtype in ("Int", "Check"):
+					self.set(df.fieldname, cint(self.get(df.fieldname)))
+				elif df.fieldtype in ("Float", "Currency"):
+					self.set(df.fieldname, flt(self.get(df.fieldname)))
 
 		if self.docstatus is not None:
 			self.docstatus = cint(self.docstatus)

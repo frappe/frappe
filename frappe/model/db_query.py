@@ -24,7 +24,7 @@ class DatabaseQuery(object):
 		limit_page_length=20, as_list=False, with_childnames=False, debug=False,
 		ignore_permissions=False, user=None):
 		if not ignore_permissions and not frappe.has_permission(self.doctype, "read", user=user):
-			raise frappe.PermissionError
+			raise frappe.PermissionError, self.doctype
 
 		if fields:
 			self.fields = fields
