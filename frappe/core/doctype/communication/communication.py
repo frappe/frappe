@@ -16,6 +16,10 @@ from frappe import _
 from frappe.model.document import Document
 
 class Communication(Document):
+	def validate(self):
+		if not self.parentfield:
+			self.parentfield = "communications"
+
 	def get_parent_doc(self):
 		return frappe.get_doc(self.parenttype, self.parent)
 

@@ -154,7 +154,7 @@
  "idx": 1, 
  "in_dialog": 0, 
  "issingle": 0, 
- "modified": "2014-05-27 03:49:08.475911", 
+ "modified": "2014-07-16 09:33:28.698964", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Communication", 
@@ -162,7 +162,7 @@
  "permissions": [
   {
    "amend": 0, 
-   "apply_user_permissions": 1, 
+   "apply_user_permissions": 0, 
    "create": 1, 
    "delete": 1, 
    "email": 1, 
@@ -189,7 +189,7 @@
   }, 
   {
    "amend": 0, 
-   "apply_user_permissions": 1, 
+   "apply_user_permissions": 0, 
    "create": 1, 
    "delete": 1, 
    "email": 1, 
