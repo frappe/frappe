@@ -152,7 +152,7 @@ class DocType(Document):
 			frappe.throw(_("App not found"))
 		app_publisher = frappe.get_hooks(hook="app_publisher", app_name=app)[0]
 
-		for template in ["controller.py", "test_controller.py", "test_records.json"]:
+		def _make_boilerplate(template):
 			template_name = template.replace("controller", scrub(self.name))
 			target_file_path = os.path.join(target_path, template_name)
 			if not os.path.exists(target_file_path):
@@ -163,6 +163,11 @@ class DocType(Document):
 						target.write(source.read().format(app_publisher=app_publisher,
 							classname=self.name.replace(" ", ""), doctype=self.name))
 
+		_make_boilerplate("controller.py")
+
+		if not (self.istable or self.issingle):
+			_make_boilerplate("test_controller.py")
+			_make_boilerplate("test_records.json")
 
 	def make_amendable(self):
 		"""
