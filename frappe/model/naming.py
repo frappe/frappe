@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe
-
+from frappe import _
 from frappe.utils import now_datetime, cint
 
 def set_new_name(doc):
@@ -135,10 +135,14 @@ def get_default_naming_series(doctype):
 def validate_name(doctype, name, case=None, merge=False):
 	if not name: return 'No Name Specified for %s' % doctype
 	if name.startswith('New '+doctype):
-		raise frappe.NameError, 'There were some errors setting the name, please contact the administrator'
+		frappe.throw(_('There were some errors setting the name, please contact the administrator'), frappe.NameError)
 	if case=='Title Case': name = name.title()
 	if case=='UPPER CASE': name = name.upper()
 	name = name.strip()
+
+	if not frappe.get_meta(doctype).get("issingle") and doctype == name:
+		frappe.throw(_("Name of {0} cannot be {1}").format(doctype, name), frappe.NameError)
+
 	return name
 
 def _get_amended_name(doc):

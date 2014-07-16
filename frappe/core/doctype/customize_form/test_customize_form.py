@@ -112,7 +112,7 @@ class TestCustomizeForm(unittest.TestCase):
 
 	def test_save_customization_custom_field_property(self):
 		d = self.get_customize_form("User")
-		self.assertEquals(frappe.db.get_value("Custom Field", "User-test_custom_field", "reqd"), None)
+		self.assertEquals(frappe.db.get_value("Custom Field", "User-test_custom_field", "reqd"), 0)
 
 		custom_field = d.get("customize_form_fields", {"fieldname": "test_custom_field"})[0]
 		custom_field.reqd = 1
