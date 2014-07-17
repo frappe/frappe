@@ -133,13 +133,13 @@ def send_comm_email(d, name, sent_via=None, print_html=None, attachments='[]', s
 	if print_html:
 		print_html = scrub_urls(print_html)
 
-		outgoing_email_settings = frappe.get_doc("Outgoing Email Settings", "Outgoing Email Settings")
-		send_print_as_pdf = cint(outgoing_email_settings.send_print_as_pdf)
+		print_settings = frappe.get_singles_dict("Print Settings")
+		send_print_as_pdf = cint(print_settings.send_print_as_pdf)
 
 		if send_print_as_pdf:
 			try:
 				options = {
-					'page-size': outgoing_email_settings.pdf_page_size or 'A4'
+					'page-size': print_settings.pdf_page_size or 'A4'
 				}
 				mail.add_pdf_attachment(name.replace(' ','').replace('/','-') + '.pdf', print_html,
 					options=options)

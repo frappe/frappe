@@ -96,6 +96,9 @@ frappe.ui.form.ControlHTML = frappe.ui.form.Control.extend({
 			if(me.df.options)
 				me.$wrapper.html(me.df.options);
 		})
+	},
+	html: function(html) {
+		this.$wrapper.html(html || me.df.options);
 	}
 });
 

@@ -108,19 +108,6 @@ def get_print_format(doctype, format_name):
 			frappe.throw(_("No template found at path: {0}").format(path),
 				frappe.TemplateNotFoundError)
 
-def get_print_style(style=None):
-	if not style:
-		style = frappe.db.get_default("print_style") or "Standard"
-
-	css = frappe.get_template("templates/styles/standard.css").render()
-
-	try:
-		css += frappe.get_template("templates/styles/" + style.lower() + ".css").render()
-	except TemplateNotFound:
-		pass
-
-	return css
-
 def make_layout(doc, meta):
 	layout, page = [], []
 	layout.append(page)
@@ -163,4 +150,16 @@ def is_visible(df):
 	no_display = ("Section Break", "Column Break", "Button")
 	return (df.fieldtype not in no_display) and df.label and not df.print_hide
 
+def get_print_style(style=None):
+	if not style:
+		style = frappe.db.get_default("print_style") or "Standard"
+
+	css = frappe.get_template("templates/styles/standard.css").render()
+
+	try:
+		css += frappe.get_template("templates/styles/" + style.lower() + ".css").render()
+	except TemplateNotFound:
+		pass
+
+	return css
 
