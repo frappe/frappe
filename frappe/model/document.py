@@ -128,7 +128,7 @@ class Document(BaseDocument):
 		self.set("__in_insert", True)
 		self.run_before_save_methods()
 		self._validate()
-		self.delete("__in_insert")
+		self.delete_key("__in_insert")
 
 		# run validate, on update etc.
 
@@ -145,7 +145,7 @@ class Document(BaseDocument):
 		self.run_method("after_insert")
 		self.set("__in_insert", True)
 		self.run_post_save_methods()
-		self.delete("__in_insert")
+		self.delete_key("__in_insert")
 
 		return self
 
