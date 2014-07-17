@@ -1,17 +1,33 @@
 @media screen {
+	.print-format-gutter {
+		background-color: #ddd;
+		padding: 15px 0px;
+	}
 	.print-format {
-		width: 8.3in;
+		background-color: white;
+		box-shadow: 0px 0px 9px rgba(0,0,0,0.5);
+		max-width: 8.3in;
+		min-height: 11.69in;
+		padding: 0.75in;
 	    margin: auto;
 	}
 
 	.page-break {
-		padding: 30px 10px;
+		padding: 30px 0px;
 		border-bottom: 1px dashed #888;
+	}
+
+	.page-break:first-child {
+		padding-top: 0px;
 	}
 
 	.page-break:last-child {
 		border-bottom: 0px;
 	}
+}
+
+.print-format {
+	font-size: 9pt;
 }
 
 .page-break {
@@ -24,7 +40,7 @@
 }
 
 .print-heading h2 {
-	margin-bottom: 0px;
+	margin: 0px;
 }
 .print-heading h4 {
 	margin-top: 5px;

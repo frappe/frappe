@@ -383,9 +383,11 @@ ul.linked-with-list li {
 }
 
 .print-preview {
-	padding: 50px 20px;
-	margin: 0px -15px;
+	padding: 0px;
+	max-width: 8.3in;
+	margin: auto;
 	box-shadow: 1px 1px 5px rgba(0,0,0,0.5);
+	min-height: 11.69in;
 }
 
 .module-view-layout {

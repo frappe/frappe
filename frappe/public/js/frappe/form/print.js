@@ -21,7 +21,8 @@ frappe.ui.form.PrintPreview = Class.extend({
 					<a class="close">×</a>\
 				</div>\
 			</div>\
-			<div class="print-preview" style="padding: 50px; min-height: 1000px;">\
+			<div class="print-preview">\
+				<div class="print-format"></div>\
 			</div>\
 		</div>')
 			.appendTo(this.frm.layout_main)
@@ -66,7 +67,7 @@ frappe.ui.form.PrintPreview = Class.extend({
 	preview: function() {
 		var me = this;
 		this.get_print_html(function(html) {
-			me.wrapper.find(".print-preview").html(html);
+			me.wrapper.find(".print-format").html(html);
 		});
 	},
 	printit: function() {

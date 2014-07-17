@@ -76,27 +76,6 @@
    "permlevel": 0
   }, 
   {
-   "fieldname": "section_break_10", 
-   "fieldtype": "Section Break", 
-   "label": "Attaching Documents", 
-   "permlevel": 0
-  }, 
-  {
-   "fieldname": "send_print_as_pdf", 
-   "fieldtype": "Check", 
-   "label": "Send Attached Document Print as PDF", 
-   "permlevel": 0
-  }, 
-  {
-   "default": "A4", 
-   "depends_on": "eval:doc.send_print_as_pdf", 
-   "fieldname": "pdf_page_size", 
-   "fieldtype": "Select", 
-   "label": "PDF Page Size", 
-   "options": "A4\nLetter", 
-   "permlevel": 0
-  }, 
-  {
    "fieldname": "section_break_15", 
    "fieldtype": "Section Break", 
    "label": "Email Footer", 
@@ -115,7 +94,7 @@
  "idx": 1, 
  "in_create": 1, 
  "issingle": 1, 
- "modified": "2014-07-12 23:58:52.639998", 
+ "modified": "2014-07-17 08:08:00.483391", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Outgoing Email Settings", 

@@ -114,7 +114,7 @@
     {% for section in page %}
     <div class="row">
         {% for column in section %}
-        <div class="col-md-{{ (12 / section|len)|int }}">
+        <div class="col-sm-{{ (12 / section|len)|int }}">
             {% for df in column %}
                 {{ render_field(df) }}
             {% endfor %}

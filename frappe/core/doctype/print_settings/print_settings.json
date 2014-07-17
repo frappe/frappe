@@ -5,16 +5,38 @@
  "document_type": "System", 
  "fields": [
   {
+   "fieldname": "pdf_settings", 
+   "fieldtype": "Section Break", 
+   "label": "PDF Settings", 
+   "permlevel": 0
+  }, 
+  {
+   "description": "Send Email Print Attachments as PDF (Recommended)", 
+   "fieldname": "send_print_as_pdf", 
+   "fieldtype": "Check", 
+   "label": "Send Print as PDF", 
+   "permlevel": 0
+  }, 
+  {
+   "default": "A4", 
+   "fieldname": "pdf_page_size", 
+   "fieldtype": "Select", 
+   "label": "PDF Page Size", 
+   "options": "A4\nLetter", 
+   "permlevel": 0
+  }, 
+  {
+   "fieldname": "print_style_section", 
+   "fieldtype": "Section Break", 
+   "label": "Print Style", 
+   "permlevel": 0
+  }, 
+  {
    "fieldname": "print_style", 
    "fieldtype": "Select", 
    "in_list_view": 1, 
    "label": "Print Style", 
    "options": "Modern\nClassic\nStandard", 
-   "permlevel": 0
-  }, 
-  {
-   "fieldname": "column_break_2", 
-   "fieldtype": "Column Break", 
    "permlevel": 0
   }, 
   {
@@ -24,8 +46,9 @@
    "permlevel": 0
   }
  ], 
+ "icon": "icon-cog", 
  "issingle": 1, 
- "modified": "2014-07-17 06:54:20.782907", 
+ "modified": "2014-07-17 08:08:27.291811", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Print Settings", 
