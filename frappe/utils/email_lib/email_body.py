@@ -142,7 +142,7 @@ class EMail:
 		# Set the filename parameter
 		if fname:
 			part.add_header(b'Content-Disposition',
-				("attachment; filename=%s" % fname).encode('utf-8'))
+				("attachment; filename=\"%s\"" % fname).encode('utf-8'))
 
 		self.msg_root.attach(part)
 
