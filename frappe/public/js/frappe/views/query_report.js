@@ -213,12 +213,18 @@ frappe.views.QueryReport = Class.extend({
 	},
 	refresh: function() {
 		// Run
-		var me =this;
+		var me = this;
 		this.waiting = frappe.messages.waiting(this.wrapper.find(".waiting-area").empty().toggle(true),
 			"Loading Report...");
 		this.wrapper.find(".results").toggle(false);
 		var filters = this.get_values(true);
-		return frappe.call({
+
+		if (this.report_ajax) {
+			// report previous request
+			this.report_ajax.abort();
+		}
+
+		this.report_ajax = frappe.call({
 			method: "frappe.widgets.query_report.run",
 			type: "GET",
 			args: {
@@ -290,60 +296,77 @@ frappe.views.QueryReport = Class.extend({
 		this.setup_sort();
 	},
 	make_columns: function(columns) {
+		var me = this;
+		var formatter = this.get_formatter();
+
 		this.columns = [{id: "_id", field: "_id", name: "Sr No", width: 60}]
 			.concat($.map(columns, function(c) {
-				var col = {name:c, id: c, field: c, sortable: true, width: 80}
-
-				if(c.indexOf(":")!=-1) {
+				if ($.isPlainObject(c)) {
+					var df = c;
+				} else if (c.indexOf(":")!==-1) {
 					var opts = c.split(":");
 					var df = {
 						label: opts.length<=2 ? opts[0] : opts.slice(0, opts.length - 2).join(":"),
 						fieldtype: opts.length<=2 ? opts[1] : opts[opts.length - 2],
 						width: opts.length<=2 ? opts[2] : opts[opts.length - 1]
-					}
-
-					if(!df.fieldtype)
-						df.fieldtype="Data";
-
-					if(df.fieldtype.indexOf("/")!=-1) {
+					};
+					if (df.fieldtype.indexOf("/")!==-1) {
 						var tmp = df.fieldtype.split("/");
 						df.fieldtype = tmp[0];
 						df.options = tmp[1];
 					}
-
-					col.df = df;
-					col.formatter = function(row, cell, value, columnDef, dataContext) {
-						return frappe.format(value, columnDef.df, null, dataContext);
-					}
-
-					// column parameters
-					col.name = col.id = col.field = df.label;
-					col.name = __(df.label);
-					col.fieldtype = opts[1];
-
-					// width
-					if(df.width) {
-						col.width=parseInt(df.width);
-					}
+					df.width = cint(df.width);
 				} else {
-					col.df = {
+					var df = {
 						label: c,
 						fieldtype: "Data"
-					}
+					};
 				}
-				col.name = __(toTitle(col.name.replace(/_/g, " ")))
+
+				if (!df.fieldtype) df.fieldtype = "Data";
+				if (!cint(df.width)) df.width = 80;
+
+				var col = $.extend({}, df, {
+					label: df.label || __(toTitle(df.fieldname.replace(/_/g, " "))),
+					sortable: true,
+					df: df,
+					formatter: formatter
+				});
+
+				col.field = df.fieldname || df.label.replace(/ /g, "_");
+				df.label = __(df.label);
+				col.name = col.id = col.label = df.label;
+
 				return col
 		}));
+	},
+	get_formatter: function() {
+		var formatter = function(row, cell, value, columnDef, dataContext) {
+			return frappe.format(value, columnDef.df, null, dataContext);
+		};
+
+		var query_report_opts = frappe.query_reports[this.report_name];
+		if (query_report_opts && query_report_opts.formatter) {
+			// custom formatter
+			query_report_opts["default_formatter"] = formatter;
+			formatter = query_report_opts.formatter;
+		}
+
+		return formatter;
 	},
 	make_data: function(result, columns) {
 		var me = this;
 		this.data = [];
 		for(var row_idx=0, l=result.length; row_idx < l; row_idx++) {
 			var row = result[row_idx];
-			var newrow = {};
-			for(var i=1, j=this.columns.length; i<j; i++) {
-				newrow[this.columns[i].field] = row[i-1];
-			};
+			if ($.isPlainObject(row)) {
+				var newrow = row;
+			} else {
+				var newrow = {};
+				for(var i=1, j=this.columns.length; i<j; i++) {
+					newrow[this.columns[i].field] = row[i-1];
+				};
+			}
 			newrow._id = row_idx + 1;
 			newrow.id = newrow.name ? newrow.name : ("_" + newrow._id);
 			this.data.push(newrow);
