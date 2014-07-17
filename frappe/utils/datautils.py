@@ -56,11 +56,14 @@ def read_csv_content(fcontent, ignore_encoding=False):
 		for row in csv.reader(fcontent):
 			r = []
 			for val in row:
+				# decode everything
+				val = unicode(val, "utf-8").strip()
+
 				if val=="":
+					# reason: in maraidb strict config, one cannot have blank strings for non string datatypes
 					r.append(None)
 				else:
-					# decode everything
-					r.append(unicode(val, "utf-8").strip())
+					r.append(val)
 
 			rows.append(r)
 
