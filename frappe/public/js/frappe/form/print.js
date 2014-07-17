@@ -104,7 +104,10 @@ frappe.ui.form.PrintPreview = Class.extend({
 	preview_old_style: function() {
 		var me = this;
 		 _p.build(me.print_sel.val(), function(html) {
-			 me.wrapper.find(".print-preview").html(html);
+			me.wrapper.find(".print-format").html('<div class="alert alert-warning">'
+				+__("Warning: This Print Format is in old style and cannot be generated via the API.")
+				+'</div>'
+				+ html);
 		 }, !this.with_letterhead(), true, true);
 	},
 	print_old_style: function() {
