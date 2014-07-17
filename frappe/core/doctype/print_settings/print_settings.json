@@ -1,0 +1,45 @@
+{
+ "creation": "2014-07-17 06:54:20.782907", 
+ "docstatus": 0, 
+ "doctype": "DocType", 
+ "document_type": "System", 
+ "fields": [
+  {
+   "fieldname": "print_style", 
+   "fieldtype": "Select", 
+   "in_list_view": 1, 
+   "label": "Print Style", 
+   "options": "Modern\nClassic\nStandard", 
+   "permlevel": 0
+  }, 
+  {
+   "fieldname": "column_break_2", 
+   "fieldtype": "Column Break", 
+   "permlevel": 0
+  }, 
+  {
+   "fieldname": "print_style_preview", 
+   "fieldtype": "HTML", 
+   "label": "Print Style Preview", 
+   "permlevel": 0
+  }
+ ], 
+ "issingle": 1, 
+ "modified": "2014-07-17 06:54:20.782907", 
+ "modified_by": "Administrator", 
+ "module": "Core", 
+ "name": "Print Settings", 
+ "name_case": "", 
+ "owner": "Administrator", 
+ "permissions": [
+  {
+   "create": 1, 
+   "permlevel": 0, 
+   "read": 1, 
+   "role": "System Manager", 
+   "write": 1
+  }
+ ], 
+ "sort_field": "modified", 
+ "sort_order": "DESC"
+}

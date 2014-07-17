@@ -174,6 +174,7 @@ $.extend(_p, {
 		_p.show_letterhead(container, args);
 
 		_p.run_embedded_js(container, args.doc);
+
 		var style = _p.consolidate_css(container, args);
 
 		_p.render_header_on_break(container, args);
@@ -291,7 +292,12 @@ $.extend(_p, {
 		for(var i=0, j=script_list.length; i<j; i++) {
 			var element = script_list[i];
 			var code = element.innerHTML;
-			var new_html = code ? (eval(code) || "") : "";
+			try {
+				var new_html = code ? (eval(code) || "") : "";
+			} catch(e) {
+				console.log("Error in Custom Script:" + e + "\n" + code);
+				throw e;
+			}
 			if(in_list(["string", "number"], typeof new_html)) {
 				$(element).replaceWith(this.add_span(new_html + ""));
 			}
