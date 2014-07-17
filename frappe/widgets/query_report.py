@@ -100,18 +100,31 @@ def add_total_row(result, columns):
 	has_percent = []
 	for row in result:
 		for i, col in enumerate(columns):
-			col = col.split(":")
-			if len(col) > 1:
-				if col[1] in ["Currency", "Int", "Float", "Percent"] and flt(row[i]):
-					total_row[i] = flt(total_row[i]) + flt(row[i])
-				if col[1] == "Percent" and i not in has_percent:
-					has_percent.append(i)
+			fieldtype = None
+			if isinstance(col, basestring):
+				col = col.split(":")
+				if len(col) > 1:
+					fieldtype = col[1]
+			else:
+				fieldtype = col.get("fieldtype")
+
+			if fieldtype in ["Currency", "Int", "Float", "Percent"] and flt(row[i]):
+				total_row[i] = flt(total_row[i]) + flt(row[i])
+			if fieldtype == "Percent" and i not in has_percent:
+				has_percent.append(i)
 
 	for i in has_percent:
 		total_row[i] = total_row[i] / len(result)
 
-	first_col = columns[0].split(":")
-	if len(first_col) > 1 and first_col[1] not in ["Currency", "Int", "Float", "Percent"]:
+	first_col_fieldtype = None
+	if isinstance(columns[0], basestring):
+		first_col = columns[0].split(":")
+		if len(first_col) > 1:
+			first_col_fieldtype = first_col[1]
+	else:
+		first_col_fieldtype = columns[0].get("fieldtype")
+
+	if first_col_fieldtype not in ["Currency", "Int", "Float", "Percent"]:
 		total_row[0] = "Total"
 
 	result.append(total_row)
@@ -146,10 +159,15 @@ def get_linked_doctypes(columns):
 	linked_doctypes = {}
 
 	for idx, col in enumerate(columns):
-		col = col.split(":")
-		if len(col) > 1 and col[1].startswith("Link"):
-			link_dt = col[1].split("/")[1]
-			linked_doctypes[link_dt] = idx
+		if isinstance(col, basestring):
+			col = col.split(":")
+			if len(col) > 1 and col[1].startswith("Link"):
+				link_dt = col[1].split("/")[1]
+				linked_doctypes[link_dt] = idx
+
+		# dict
+		elif col.get("fieldtype")=="Link" and col.get("options"):
+			linked_doctypes[col["options"]] = idx
 
 	return linked_doctypes
 
