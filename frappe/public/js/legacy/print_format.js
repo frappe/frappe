@@ -296,6 +296,7 @@ $.extend(_p, {
 				var new_html = code ? (eval(code) || "") : "";
 			} catch(e) {
 				console.log("Error in Custom Script:" + e + "\n" + code);
+				console.trace(e);
 				throw e;
 			}
 			if(in_list(["string", "number"], typeof new_html)) {
