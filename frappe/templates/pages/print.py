@@ -3,12 +3,13 @@
 
 from __future__ import unicode_literals
 
-import frappe, os, copy
+import frappe, os, copy, json
 from frappe import _
 
 from frappe.modules import get_doc_path
 from jinja2 import TemplateNotFound
 from frappe.utils.formatters import format_value
+from frappe.utils import cint
 
 no_cache = 1
 no_sitemap = 1
@@ -39,22 +40,28 @@ def get_context(context):
 	meta = frappe.get_meta(doc.doctype)
 
 	return {
-		"body": get_html(doc, print_format = frappe.form_dict.format, meta=meta),
+		"body": get_html(doc, print_format = frappe.form_dict.format,
+			meta=meta, trigger_print = frappe.form_dict.trigger_print),
 		"css": get_print_style(frappe.form_dict.style),
 		"comment": frappe.session.user,
 		"title": doc.get(meta.title_field) if meta.title_field else doc.name
 	}
 
-def get_html(doc, name=None, print_format=None, meta=None):
+@frappe.whitelist()
+def get_html(doc, name=None, print_format=None, meta=None,
+	no_letterhead=False, trigger_print=False):
 	from jinja2 import Environment
 
 	if isinstance(doc, basestring) and isinstance(name, basestring):
 		doc = frappe.get_doc(doc, name)
 
+	if isinstance(doc, basestring):
+		doc = frappe.get_doc(json.loads(doc))
+
 	if not meta:
 		meta = frappe.get_meta(doc.doctype)
 
-	if print_format==standard_format:
+	if print_format in ("Standard", standard_format):
 		template = frappe.get_template("templates/print_formats/standard.html")
 	else:
 		template = Environment().from_string(get_print_format(doc.doctype,
@@ -68,8 +75,10 @@ def get_html(doc, name=None, print_format=None, meta=None):
 		"utils": frappe.utils,
 		"is_visible": is_visible,
 		"format": format_value,
+		"no_letterhead": no_letterhead,
+		"trigger_print": cint(trigger_print),
 		"letter_head": frappe.db.get_value("Letter Head",
-			doc.letter_head, "content") if doc.letter_head else ""
+			doc.letter_head, "content") if doc.get("letter_head") else ""
 	}
 	html = template.render(args, filters={"len": len})
 	return html

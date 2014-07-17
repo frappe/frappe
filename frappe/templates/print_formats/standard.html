@@ -88,13 +88,21 @@
 {%- endmacro %}
 
 {%- macro add_header(page_num, max_pages) -%}
-    {% if letter_head %}
+    {% if letter_head and not no_letterhead|int %}
     <div class="letter-head">{{ letter_head }}</div>
     {% endif %}
     <div class="print-heading">
         <h2>{{ doc.print_heading or doc.doctype }}</h2>
         <h4 class="text-muted">#{{ doc[meta.title_field or "name"] }}</h4>
     </div>
+    {%- if meta.is_submittable and doc.docstatus==0-%}
+    <div class="alert alert-info text-center">
+        <h4 style="margin: 0px;">DRAFT</h4></div>
+    {%- endif -%}
+    {%- if meta.is_submittable and doc.docstatus==2-%}
+    <div class="alert alert-danger text-center">
+        <h4 style="margin: 0px;">CANCELLED</h4></div>
+    {%- endif -%}
     {% if max_pages > 1 %}
     <p class="text-right">{{ _("Page #{0} of {1}").format(page_num, max_pages) }}</p>
     {% endif %}
@@ -116,3 +124,10 @@
     {% endfor %}
 </div>
 {% endfor %}
+
+{%- if trigger_print -%}
+<script>
+window.print();
+window.close();
+</script>
+{%- endif -%}
