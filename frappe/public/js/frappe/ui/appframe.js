@@ -256,7 +256,7 @@ frappe.ui.AppFrame = Class.extend({
 	// appframe::form
 	add_label: function(label) {
 		this.show_form();
-		return $("<label class='col-md-1'>"+label+" </label>")
+		return $("<label class='col-md-1 appframe-only-label'>"+label+" </label>")
 			.appendTo(this.parent.find(".appframe-form .container"));
 	},
 	add_select: function(label, options) {
@@ -302,6 +302,9 @@ frappe.ui.AppFrame = Class.extend({
 		if(df.fieldtype==="Check") {
 			$(f.wrapper).find(":first-child")
 				.removeClass("col-md-offset-4 col-md-8");
+		} else {
+			$(f.wrapper)
+				.prepend('<label class="appframe-control-label">' + __(df.label) + '</label>');
 		}
 
 		if(df["default"])
