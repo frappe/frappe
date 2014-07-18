@@ -327,7 +327,7 @@ frappe.views.QueryReport = Class.extend({
 				if (!cint(df.width)) df.width = 80;
 
 				var col = $.extend({}, df, {
-					label: df.label || __(toTitle(df.fieldname.replace(/_/g, " "))),
+					label: df.label || (df.fieldname && __(toTitle(df.fieldname.replace(/_/g, " ")))) || "",
 					sortable: true,
 					df: df,
 					formatter: formatter
