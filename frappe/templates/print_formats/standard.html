@@ -17,16 +17,17 @@
             doc.table_print_templates.get(df.fieldname) -%}
         {% include doc.table_print_templates[df.fieldname] %}
     {%- else -%}
-    	<div style="overflow-x: auto;">
-    		<table class="table table-bordered" style="table-layout: fixed">
+		{%- if data -%}
+		{%- set visible_columns = get_visible_columns(doc.get(df.fieldname),
+			table_meta) -%}
+    	<div>
+    		<table class="table table-bordered table-condensed">
     			<thead>
     				<tr>
     					<th style="width: 40px">Sr</th>
-    					{% for tdf in table_meta.fields %}
-    					{% if is_visible(tdf) %}
+    					{% for tdf in visible_columns %}
     						<th style="width: {{ get_width(tdf.fieldtype) }}px">
     							{{ tdf.label }}</th>
-    					{% endif %}
     					{% endfor %}
     				</tr>
     			</thead>
@@ -34,16 +35,15 @@
     				{% for d in data %}
     				<tr>
     					<td>{{ d.idx }}</td>
-    					{% for tdf in table_meta.fields %}
-    					{% if is_visible(tdf) %}
+    					{% for tdf in visible_columns %}
     						<td>{{ print_value(tdf, d, table_meta) }}</td>
-    					{% endif %}
     					{% endfor %}
     				</tr>
     				{% endfor %}
     			</tbody>
     		</table>
     	</div>
+		{%- endif -%}
     {%- endif -%}
 {%- endmacro -%}
 
@@ -83,7 +83,7 @@
 {%- endmacro %}
 
 {% macro get_width(fieldtype) -%}
-	{%- if fieldtype in ("Int", "Check") -%}{{ 60 }}
+	{%- if fieldtype in ("Int", "Check", "Float", "Currency") -%}{{ 80 }}
 	{%- else -%}{{ 150 }}{% endif -%}
 {%- endmacro %}
 
@@ -92,8 +92,9 @@
     <div class="letter-head">{{ letter_head }}</div>
     {% endif %}
     <div class="print-heading">
-        <h2>{{ doc.print_heading or doc.doctype }}</h2>
-        <h4 class="text-muted">#{{ doc[meta.title_field or "name"] }}</h4>
+		<h2>{{ doc.print_heading if doc.print_heading != None
+			else doc.doctype }}</h2>
+		<h4 class="text-muted">{{ doc.sub_heading if doc.sub_heading != None else ("#" + doc[meta.title_field or "name"]) }}</h4>
     </div>
     {%- if meta.is_submittable and doc.docstatus==0-%}
     <div class="alert alert-info text-center">

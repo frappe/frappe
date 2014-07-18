@@ -58,6 +58,12 @@ def get_html(doc, name=None, print_format=None, meta=None,
 	if isinstance(doc, basestring):
 		doc = frappe.get_doc(json.loads(doc))
 
+	if hasattr(doc, "before_print"):
+		doc.before_print()
+
+	if not hasattr(doc, "print_heading"): doc.print_heading = None
+	if not hasattr(doc, "sub_heading"): doc.sub_heading = None
+
 	if not meta:
 		meta = frappe.get_meta(doc.doctype)
 
@@ -73,7 +79,7 @@ def get_html(doc, name=None, print_format=None, meta=None,
 		"layout": make_layout(doc, meta),
 		"frappe": frappe,
 		"utils": frappe.utils,
-		"is_visible": is_visible,
+		"get_visible_columns": get_visible_columns,
 		"format": format_value,
 		"no_letterhead": no_letterhead,
 		"trigger_print": cint(trigger_print),
@@ -162,4 +168,21 @@ def get_print_style(style=None):
 		pass
 
 	return css
+
+def get_visible_columns(data, table_meta):
+	columns = []
+	for tdf in table_meta.fields:
+		if is_visible(tdf) and column_has_value(data, tdf.fieldname):
+			columns.append(tdf)
+
+	return columns
+
+def column_has_value(data, fieldname):
+	has_value = False
+	for row in data:
+		if row.get(fieldname) is not None:
+			has_value = True
+			break
+
+	return has_value
 

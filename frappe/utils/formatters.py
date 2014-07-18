@@ -19,5 +19,8 @@ def format_value(value, df, doc=None):
 	elif df.fieldtype == "Percent":
 		return "{}%".format(flt(value, 2))
 
+	if value is None:
+		value = ""
+
 	return value
 
