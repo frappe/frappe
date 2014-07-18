@@ -5,12 +5,9 @@
 
 from __future__ import unicode_literals
 from werkzeug.test import Client
-import os, sys
-import re
-import urllib
+import os, sys, re, urllib, datetime, math
+import babel.dates
 import frappe
-import datetime
-import math
 
 no_value_fields = ['Section Break', 'Column Break', 'HTML', 'Table', 'FlexTable',
 	'Button', 'Image', 'Graph']
@@ -263,6 +260,9 @@ def global_date_format(date):
 	"""returns date as 1 January 2012"""
 	formatted_date = getdate(date).strftime("%d %B %Y")
 	return formatted_date.startswith("0") and formatted_date[1:] or formatted_date
+
+def localize_date(date, format_string=None, locale=None):
+	return babel.dates.format_date(date, format_string or "medium", locale=locale or (frappe.local.lang or "").replace("-", "_"))
 
 def dict_to_str(args, sep='&'):
 	"""
