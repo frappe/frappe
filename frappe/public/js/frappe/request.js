@@ -254,6 +254,13 @@ frappe.request.report_error = function(xhr, request_opts) {
 			.toggle(error_report_email ? true : false)
 			.on("click", function() {
 				var error_report_message = [
+					'<h5>Please type some additional information that could help us reproduce this issue:</h5>',
+					'<div style="min-height: 100px; border: 1px solid #bbb; \
+						border-radius: 5px; padding: 15px; margin-bottom: 15px;"></div>',
+					'<hr>',
+					'<h5>Route</h5>',
+					'<pre>' + frappe.get_route_str() + '</pre>',
+					'<hr>',
 					'<h5>Error Report</h5>',
 					'<pre>' + exc + '</pre>',
 					'<hr>',
