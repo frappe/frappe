@@ -367,7 +367,7 @@ frappe.views.GridReport = Class.extend({
 		var me = this;
 
 		// plot wrapper
-		this.plot_area = $('<div class="plot" style="margin-bottom: 15px; display: none; \
+		this.plot_area = $('<div class="plot" style="margin-top: 15px; margin-bottom: 15px; display: none; \
 			height: 300px; width: 100%;"></div>').appendTo(this.wrapper);
 
 		this.appframe.add_primary_action(__("Export"), function() { return me.export(); }, "icon-download");
