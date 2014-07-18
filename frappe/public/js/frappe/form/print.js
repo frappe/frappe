@@ -126,7 +126,7 @@ frappe.ui.form.PrintPreview = Class.extend({
 	},
 	get_print_format: function() {
 		var format = this.selected_format();
-		if(locals["Print Format"][format]) {
+		if(locals["Print Format"] && locals["Print Format"][format]) {
 			return locals["Print Format"][format]
 		} else {
 			return {}

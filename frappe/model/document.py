@@ -73,6 +73,9 @@ class Document(BaseDocument):
 			# incorrect arguments. let's not proceed.
 			raise frappe.DataError("Document({0}, {1})".format(arg1, arg2))
 
+		if hasattr(self, "__setup__"):
+			self.__setup__()
+
 		self.dont_update_if_missing = []
 
 	def load_from_db(self):
