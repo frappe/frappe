@@ -220,7 +220,7 @@ frappe.views.QueryReport = Class.extend({
 		var filters = this.get_values(true);
 
 		if (this.report_ajax) {
-			// report previous request
+			// abort previous request
 			this.report_ajax.abort();
 		}
 

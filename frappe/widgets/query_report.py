@@ -32,14 +32,12 @@ def get_script(report_name):
 	script_path = os.path.join(report_folder, scrub(report.name) + ".js")
 	print_path = os.path.join(report_folder, scrub(report.name) + ".html")
 
-	script, html_format = None, None
+	script = None
 	if os.path.exists(script_path):
 		with open(script_path, "r") as f:
 			script = f.read()
 
-	if os.path.exists(print_path):
-		with open(print_path, "r") as f:
-			html_format = f.read()
+	html_format = get_html_format(print_path, report, module)
 
 	if not script and report.javascript:
 		script = report.javascript
@@ -55,6 +53,27 @@ def get_script(report_name):
 		"script": script,
 		"html_format": html_format
 	}
+
+def get_html_format(print_path, report, module):
+	html_format = None
+	if os.path.exists(print_path):
+		with open(print_path, "r") as f:
+			html_format = f.read()
+
+	elif report.is_standard == "Yes" and report.report_type == "Script Report":
+		try:
+			# check for html format file path in report's python file
+			report_py = frappe.get_module(get_report_module_dotted_path(module, report.name))
+			if hasattr(report_py, "print_path"):
+				app_name = frappe.local.module_app[scrub(module)]
+				print_path = os.path.join(frappe.get_app_path(app_name), report_py.print_path)
+				if os.path.exists(print_path):
+					with open(print_path, "r") as f:
+						html_format = f.read()
+		except ImportError:
+			pass
+
+	return html_format
 
 @frappe.whitelist()
 def run(report_name, filters=()):
@@ -80,8 +99,7 @@ def run(report_name, filters=()):
 	else:
 		module = report.module or frappe.db.get_value("DocType", report.ref_doctype, "module")
 		if report.is_standard=="Yes":
-			method_name = frappe.local.module_app[scrub(module)] + "." + scrub(module) \
-				+ ".report." + scrub(report.name) + "." + scrub(report.name) + ".execute"
+			method_name = get_report_module_dotted_path(module, report.name) + ".execute"
 			columns, result = frappe.get_attr(method_name)(frappe._dict(filters))
 
 	if report.apply_user_permissions:
@@ -94,6 +112,10 @@ def run(report_name, filters=()):
 		"result": result,
 		"columns": columns
 	}
+
+def get_report_module_dotted_path(module, report_name):
+	return frappe.local.module_app[scrub(module)] + "." + scrub(module) \
+		+ ".report." + scrub(report_name) + "." + scrub(report_name)
 
 def add_total_row(result, columns):
 	total_row = [""]*len(columns)
