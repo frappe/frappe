@@ -17,7 +17,7 @@ frappe.messages.waiting = function(parent, msg, bar_percent) {
 
 frappe.throw = function(msg) {
 	msgprint(msg);
-	throw msg;
+	throw new Error(msg);
 }
 
 frappe.confirm = function(message, ifyes, ifno) {
