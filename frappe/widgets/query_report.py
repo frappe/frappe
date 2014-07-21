@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 
 import frappe
-import os, json
+import os, json, re
 
 from frappe import _
 from frappe.modules import scrub, get_module_path
@@ -60,18 +60,13 @@ def get_html_format(print_path, report, module):
 		with open(print_path, "r") as f:
 			html_format = f.read()
 
-	elif report.is_standard == "Yes" and report.report_type == "Script Report":
-		try:
-			# check for html format file path in report's python file
-			report_py = frappe.get_module(get_report_module_dotted_path(module, report.name))
-			if hasattr(report_py, "print_path"):
-				app_name = frappe.local.module_app[scrub(module)]
-				print_path = os.path.join(frappe.get_app_path(app_name), report_py.print_path)
-				if os.path.exists(print_path):
-					with open(print_path, "r") as f:
-						html_format = f.read()
-		except ImportError:
-			pass
+		for include_directive, path in re.findall("""({% include ['"]([^'"]*)['"] %})""", html_format):
+			for app_name in frappe.get_installed_apps():
+				include_path = frappe.get_app_path(app_name, *path.split(os.path.sep))
+				if os.path.exists(include_path):
+					with open(include_path, "r") as f:
+						html_format = html_format.replace(include_directive, f.read())
+					break
 
 	return html_format
 
