@@ -238,6 +238,9 @@ def get_field_currency(df, doc):
 	"""get currency based on DocField options and fieldvalue in doc"""
 	currency = None
 
+	if not df.options:
+		return None
+
 	if ":" in cstr(df.options):
 		split_opts = df.options.split(":")
 		if len(split_opts)==3:

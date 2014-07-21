@@ -227,7 +227,7 @@ def get_request_header(key, default=None):
 
 def sendmail(recipients=(), sender="", subject="No Subject", message="No Message",
 		as_markdown=False, bulk=False, ref_doctype=None, ref_docname=None,
-		add_unsubscribe_link=False):
+		add_unsubscribe_link=False, attachments=None):
 
 	if bulk:
 		import frappe.utils.email_lib.bulk
@@ -681,3 +681,22 @@ def get_test_records(doctype):
 def format_value(value, df, doc=None):
 	import frappe.utils.formatters
 	return frappe.utils.formatters.format_value(value, df, doc)
+
+def get_print_format(doctype, name, print_format=None, style=None, as_pdf=False):
+	from frappe.website.render import render_page
+	local.form_dict.doctype = doctype
+	local.form_dict.name = name
+	local.form_dict.format = print_format
+	local.form_dict.name = name
+
+	html = render_page("print")
+
+	if as_pdf:
+		print_settings = db.get_singles_dict("Print Settings")
+		if int(print_settings.send_print_as_pdf or 0):
+			from utils.pdf import get_pdf
+			return get_pdf(html, {"page-size": print_settings.pdf_page_size})
+		else:
+			return html
+	else:
+		return html

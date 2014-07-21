@@ -13,6 +13,11 @@ a {
 	cursor: pointer;
 }
 
+.navbar-inverse {
+	background-color: #444;
+	border-bottom: 0px;
+}
+
 a.disabled, a.disabled:hover {
 	color: #888;
 	cursor: default;

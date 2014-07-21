@@ -15,7 +15,7 @@ class BulkLimitCrossedError(frappe.ValidationError): pass
 
 def send(recipients=None, sender=None, doctype='User', email_field='email',
 		subject='[No Subject]', message='[No Content]', ref_doctype=None,
-		ref_docname=None, add_unsubscribe_link=True):
+		ref_docname=None, add_unsubscribe_link=True, attachments=None):
 
 	def is_unsubscribed(rdata):
 		if not rdata:
@@ -76,17 +76,17 @@ def send(recipients=None, sender=None, doctype='User', email_field='email',
 			except HTMLParser.HTMLParseError:
 				text_content = "[See html attachment]"
 
-			add(r, sender, subject, updated, text_content, ref_doctype, ref_docname)
+			add(r, sender, subject, updated, text_content, ref_doctype, ref_docname, attachments)
 
 def add(email, sender, subject, formatted, text_content=None,
-	ref_doctype=None, ref_docname=None):
+	ref_doctype=None, ref_docname=None, attachments=None):
 	"""add to bulk mail queue"""
 	e = frappe.new_doc('Bulk Email')
 	e.sender = sender
 	e.recipient = email
 	try:
 		e.message = get_email(email, sender=e.sender, formatted=formatted, subject=subject,
-			text_content=text_content).as_string()
+			text_content=text_content, attachments=attachments).as_string()
 	except frappe.InvalidEmailAddressError:
 		# bad email id - don't add to queue
 		return

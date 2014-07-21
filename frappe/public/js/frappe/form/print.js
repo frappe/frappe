@@ -13,8 +13,8 @@ frappe.ui.form.PrintPreview = Class.extend({
 				<i class="text-muted icon-print" style="position: absolute; top: 13px; left: 10px; "></i>\
 				<div class="col-xs-3">\
 					<select class="print-preview-select form-control"></select></div>\
-				<div class="col-xs-3" style="padding-top: 7px;">\
-					<input type="checkbox" class="print-letterhead" checked/> Letterhead</div>\
+				<div class="col-xs-3">\
+					<div class="checkbox"><label><input type="checkbox" class="print-letterhead" checked/> Letterhead</label></div></div>\
 				<div class="col-xs-6 text-right" style="padding-top: 7px;">\
 					<a style="margin-right: 7px;" class="btn-print-preview text-muted small">Preview</a>\
 					<strong><a style="margin-right: 7px;" class="btn-print-print">Print</a></strong>\
@@ -92,7 +92,7 @@ frappe.ui.form.PrintPreview = Class.extend({
 			args: {
 				doc: this.frm.doc,
 				print_format: this.selected_format(),
-				no_letterhead: this.with_letterhead()
+				no_letterhead: !this.with_letterhead() ? 1 : 0
 			},
 			callback: function(r) {
 				if(!r.exc) {
@@ -133,6 +133,6 @@ frappe.ui.form.PrintPreview = Class.extend({
 		}
 	},
 	with_letterhead: function() {
-		return this.print_letterhead.is(":checked");
+		return this.print_letterhead.is(":checked") ? 1 : 0;
 	}
 })

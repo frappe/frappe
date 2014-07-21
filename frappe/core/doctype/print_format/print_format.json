@@ -83,7 +83,7 @@
   }, 
   {
    "allow_on_submit": 0, 
-   "depends_on": "eval:doc.print_format_type!=\"Server\"", 
+   "depends_on": "", 
    "fieldname": "html", 
    "fieldtype": "Code", 
    "hidden": 0, 
@@ -109,7 +109,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2014-06-10 04:44:45.823803", 
+ "modified": "2014-07-21 06:32:21.932038", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Print Format", 

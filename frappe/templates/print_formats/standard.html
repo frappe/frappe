@@ -4,7 +4,7 @@
 
 {% for page in layout %}
 <div class="page-break">
-    {{ add_header(loop.index, layout|len, doc) }}
+    {{ add_header(loop.index, layout|len, doc, letter_head, no_letterhead) }}
     {% for section in page %}
     <div class="row">
         {% for column in section %}

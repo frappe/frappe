@@ -50,6 +50,9 @@ def get_context(context):
 def get_html(doc, name=None, print_format=None, meta=None,
 	no_letterhead=False, trigger_print=False):
 
+	if isinstance(no_letterhead, basestring):
+		no_letterhead = cint(no_letterhead)
+
 	if isinstance(doc, basestring) and isinstance(name, basestring):
 		doc = frappe.get_doc(doc, name)
 
@@ -78,16 +81,20 @@ def get_html(doc, name=None, print_format=None, meta=None,
 		"layout": make_layout(doc, meta),
 		"no_letterhead": no_letterhead,
 		"trigger_print": cint(trigger_print),
-		"letter_head": frappe.db.get_value("Letter Head",
-			doc.letter_head, "content") if doc.get("letter_head") else ""
+		"letter_head": get_letter_head(doc, no_letterhead)
 	}
-
-
 
 	html = template.render(args, filters={"len": len})
 
-
 	return html
+
+def get_letter_head(doc, no_letterhead):
+	if no_letterhead:
+		return ""
+	if doc.get("letter_head"):
+		return frappe.db.get_value("Letter Head", doc.letter_head, "content")
+	else:
+		return frappe.db.get_value("Letter Head", {"is_default": 1}, "content") or ""
 
 def get_print_format(doctype, format_name):
 	if format_name==standard_format:
@@ -124,6 +131,9 @@ def make_layout(doc, meta):
 		if df.fieldtype=="Column Break" or (page[-1]==[] and df.fieldtype!="Section Break"):
 			page[-1].append([])
 
+		if df.fieldtype=="HTML" and df.options:
+			doc.set(df.fieldname, True) # show this field
+
 		if is_visible(df) and doc.get(df.fieldname) is not None:
 			page[-1][-1].append(df)
 
@@ -154,7 +164,7 @@ def make_layout(doc, meta):
 
 def is_visible(df):
 	no_display = ("Section Break", "Column Break", "Button")
-	return (df.fieldtype not in no_display) and df.label and not df.print_hide
+	return (df.fieldtype not in no_display) and not df.print_hide
 
 def get_print_style(style=None):
 	if not style:
