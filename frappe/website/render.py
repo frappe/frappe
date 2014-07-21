@@ -21,7 +21,7 @@ def render(path, http_status_code=None):
 	except frappe.DoesNotExistError, e:
 		doctype, name = get_doctype_from_path(path)
 		if doctype and name:
-			path = "view"
+			path = "print"
 			frappe.local.form_dict.doctype = doctype
 			frappe.local.form_dict.name = name
 		elif doctype:
@@ -129,7 +129,7 @@ def build_page(path):
 	return html
 
 def is_ajax():
-	return getattr(frappe.local, "is_ajax")
+	return getattr(frappe.local, "is_ajax", False)
 
 def resolve_path(path):
 	if not path:

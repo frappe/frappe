@@ -5,16 +5,20 @@ from __future__ import unicode_literals
 import frappe
 from frappe import msgprint, throw, _
 from frappe.utils import scrub_urls
+from frappe.utils.pdf import get_pdf
 import email.utils
 from markdown2 import markdown
 
 
 def get_email(recipients, sender='', msg='', subject='[No Subject]',
-	text_content = None, footer=None, print_html=None, formatted=None):
+	text_content = None, footer=None, print_html=None, formatted=None, attachments=None):
 	"""send an html email as multipart with attachments and all"""
 	emailobj = EMail(sender, recipients, subject)
 	msg = markdown(msg)
 	emailobj.set_html(msg, text_content, footer=footer, print_html=print_html, formatted=formatted)
+
+	for attach in attachments:
+		emailobj.add_attachment(**attach)
 
 	return emailobj
 
@@ -147,12 +151,7 @@ class EMail:
 		self.msg_root.attach(part)
 
 	def add_pdf_attachment(self, name, html, options=None):
-		import pdfkit, os
-		fname = os.path.join("/tmp", frappe.generate_hash() + ".pdf")
-		pdfkit.from_string(html, fname, options=options or {})
-		with open(fname, "rb") as fileobj:
-			self.add_attachment(name, fileobj.read(), 'application/octet-stream')
-		os.remove(fname)
+		self.add_attachment(name, get_pdf(html, options), 'application/octet-stream')
 
 	def validate(self):
 		"""validate the email ids"""

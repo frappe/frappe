@@ -35,7 +35,8 @@
    "label": "Is Default", 
    "oldfieldname": "is_default", 
    "oldfieldtype": "Check", 
-   "permlevel": 0
+   "permlevel": 0, 
+   "search_index": 1
   }, 
   {
    "depends_on": "letter_head_name", 
@@ -52,7 +53,7 @@
  "icon": "icon-font", 
  "idx": 1, 
  "max_attachments": 3, 
- "modified": "2014-05-27 03:49:13.372430", 
+ "modified": "2014-07-21 05:57:56.052191", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Letter Head", 
