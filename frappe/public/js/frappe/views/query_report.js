@@ -110,11 +110,16 @@ frappe.views.QueryReport = Class.extend({
 									frappe.dom.eval(r.message.script || "");
 									me.setup_filters();
 									me.setup_html_format(r.message.html_format);
+									frappe.query_reports[me.report_name]["html_format"] = r.message.html_format;
 									me.refresh();
 								}
 							});
 						} else {
 							me.setup_filters();
+
+							// setup a fresh print action
+							me.setup_html_format(frappe.query_reports[me.report_name]["html_format"]);
+
 							me.refresh();
 						}
 					});
@@ -127,8 +132,14 @@ frappe.views.QueryReport = Class.extend({
 	},
 	setup_html_format: function(html_format) {
 		var me = this;
+
+		// don't add multiple Print buttons
+		if (this.$print_action) {
+			this.$print_action.remove();
+		}
+
 		if(html_format) {
-			this.appframe.add_primary_action(__('Print'), function() {
+			this.$print_action = this.appframe.add_primary_action(__('Print'), function() {
 				if(!me.data) {
 					msgprint(__("Run the report first"));
 					return;
