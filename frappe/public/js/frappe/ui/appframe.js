@@ -205,7 +205,7 @@ frappe.ui.AppFrame = Class.extend({
 	},
 
 	add_module_icon: function(module, doctype, onclick, sub_title) {
-		var module_info = frappe.modules[module];
+		var module_info = frappe.get_module(module);
 		if(!module_info) {
 			module_info = {
 				icon: "icon-question-sign",
@@ -215,25 +215,16 @@ frappe.ui.AppFrame = Class.extend({
 		var icon = frappe.boot.doctype_icons[doctype] || module_info.icon;
 
 		this.get_main_icon(icon)
-			.attr("doctype-name", doctype)
-			.attr("module-link", module_info.link)
-			.click(onclick || function() {
-				var route = frappe.get_route();
-				var doctype = $(this).attr("doctype-name");
-				if(doctype && route[0]!=="List" && !locals["DocType"][doctype].issingle) {
-					frappe.set_route("List", doctype)
-				} else if($(this).attr("module-link")!==route[0]){
-					frappe.set_route($(this).attr("module-link"));
-				} else {
-					frappe.set_route("");
-				}
-				return false;
-			});
+			.attr("doctype-name", doctype);
+
+		this.set_title_left(function() { frappe.set_route(module_info.link); });
 	},
 
 	get_main_icon: function(icon) {
-		return this.$title_area.find(".title-icon").html('<i class="'+icon+' icon-fixed-width"></i> ').toggle(true);
-	},
+		return this.$title_area.find(".title-icon")
+			.html('<i class="'+icon+' icon-fixed-width"></i> ')
+			.toggle(true);
+		},
 
 	add_help_button: function(txt) {
 		this.add_icon_btn("2", "icon-question-sign", __("Help"),
