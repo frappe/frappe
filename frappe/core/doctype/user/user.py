@@ -6,6 +6,7 @@ import frappe
 from frappe.utils import cint, now, get_gravatar
 from frappe import throw, msgprint, _
 from frappe.auth import _update_password
+from frappe.core.doctype.notification_count.notification_count import clear_notifications
 import frappe.permissions
 
 STANDARD_USERS = ("Guest", "Administrator")
@@ -71,6 +72,7 @@ class User(Document):
 		new_password = self.new_password
 		self.db_set("new_password", "")
 
+		clear_notifications(user=self.name)
 		frappe.clear_cache(user=self.name)
 
 		try:

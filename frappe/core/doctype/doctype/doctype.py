@@ -12,6 +12,7 @@ from frappe.model import no_value_fields
 from frappe.model.document import Document
 from frappe.model.db_schema import type_map
 from frappe.core.doctype.property_setter.property_setter import make_property_setter
+from frappe.core.doctype.notification_count.notification_count import delete_notification_count_for
 
 form_grid_templates = {
 	"fields": "templates/form_grid/fields.html"
@@ -99,6 +100,8 @@ class DocType(Document):
 			module = load_doctype_module(self.name, self.module)
 			if hasattr(module, "on_doctype_update"):
 				module.on_doctype_update()
+
+		delete_notification_count_for(doctype=self.name)
 		frappe.clear_cache(doctype=self.name)
 
 	def before_rename(self, old, new, merge=False):

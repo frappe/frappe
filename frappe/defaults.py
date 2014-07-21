@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe
+from frappe.core.doctype.notification_count.notification_count import clear_notifications
 
 # Note: DefaultValue records are identified by parenttype
 # __default, __global or 'User Permission'
@@ -161,6 +162,7 @@ def _clear_cache(parent):
 	if parent in common_keys:
 		frappe.clear_cache()
 	else:
+		clear_notifications(user=parent)
 		frappe.clear_cache(user=parent)
 
 def clear_cache(user=None):
