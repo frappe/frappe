@@ -610,6 +610,8 @@ def get_jenv():
 		jenv.globals.update({
 			"frappe": sys.modules[__name__],
 			"frappe.utils": frappe.utils,
+			"get_visible_columns": \
+				frappe.get_attr("frappe.templates.pages.print.get_visible_columns"),
 			"_": _
 		})
 
@@ -675,3 +677,7 @@ def get_test_records(doctype):
 			return json.loads(f.read())
 	else:
 		return []
+
+def format_value(value, df, doc=None):
+	import frappe.utils.formatters
+	return frappe.utils.formatters.format_value(value, df, doc)

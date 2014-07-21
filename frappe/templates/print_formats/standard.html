@@ -1,123 +1,16 @@
-{% set section_made = False %}
-
-{% macro render_field(df) -%}
-	{%- if df.fieldtype=="Table" -%}
-        {{ render_table(df) }}
-	{%- elif df.fieldtype in ("Text", "Text Editor", "Code") -%}
-        {{ render_text_field(df) }}
-    {%- else -%}
-        {{ render_field_with_label(df) }}
-	{%- endif -%}
-{%- endmacro -%}
-
-{%- macro render_table(df) -%}
-	{%- set table_meta = frappe.get_meta(df.options) -%}
-    {%- set data = doc.get(df.fieldname)[df.start:df.end] -%}
-    {%- if doc.table_print_templates and
-            doc.table_print_templates.get(df.fieldname) -%}
-        {% include doc.table_print_templates[df.fieldname] %}
-    {%- else -%}
-		{%- if data -%}
-		{%- set visible_columns = get_visible_columns(doc.get(df.fieldname),
-			table_meta) -%}
-    	<div>
-    		<table class="table table-bordered table-condensed">
-    			<thead>
-    				<tr>
-    					<th style="width: 40px">Sr</th>
-    					{% for tdf in visible_columns %}
-    						<th style="width: {{ get_width(tdf.fieldtype) }}px">
-    							{{ tdf.label }}</th>
-    					{% endfor %}
-    				</tr>
-    			</thead>
-    			<tbody>
-    				{% for d in data %}
-    				<tr>
-    					<td>{{ d.idx }}</td>
-    					{% for tdf in visible_columns %}
-    						<td>{{ print_value(tdf, d, table_meta) }}</td>
-    					{% endfor %}
-    				</tr>
-    				{% endfor %}
-    			</tbody>
-    		</table>
-    	</div>
-		{%- endif -%}
-    {%- endif -%}
-{%- endmacro -%}
-
-{%- macro render_field_with_label(df) -%}
-    	<div class="row">
-    		<div class="col-sm-4 text-right">
-    			{% if df.fieldtype not in ("Image","HTML") and
-    				doc.get(df.fieldname) %}
-    			<label>{{ df.label }}</label>
-    			{% endif %}
-    		</div>
-    		<div class="col-sm-8">
-    			{% if doc.get(df.fieldname) != None -%}
-                    {{ print_value(df, doc, meta) }}{% endif %}
-    		</div>
-    	</div>
-{%- endmacro -%}
-
-{%- macro render_text_field(df) -%}
-{%- if doc.get(df.fieldname) != None -%}
-<div style="padding: 10px 0px">
-    {%- if df.fieldtype=="Code" %}<pre>{% endif %}
-    {{ doc.get(df.fieldname) }}
-    {% if df.fieldtype=="Code" %}</pre>{% endif -%}
-</div>
-{%- endif -%}
-{%- endmacro -%}
-
-{%- macro print_value(df, d, meta) -%}
-	{% if df.fieldtype=="Check" %}
-		<i class="{{ 'icon-check' if d[df.fieldname] else 						'icon-check-empty' }}"></i>
-	{% elif df.fieldtype=="Image" %}
-		<img src="{{ doc[meta.get_field(df.fieldname).options] }}" 						class="img-responsive">
-	{% else %}
-		{{ format(d[df.fieldname], df, doc) if df.fieldname else "" }}
-	{% endif %}
-{%- endmacro %}
-
-{% macro get_width(fieldtype) -%}
-	{%- if fieldtype in ("Int", "Check", "Float", "Currency") -%}{{ 80 }}
-	{%- else -%}{{ 150 }}{% endif -%}
-{%- endmacro %}
-
-{%- macro add_header(page_num, max_pages) -%}
-    {% if letter_head and not no_letterhead|int %}
-    <div class="letter-head">{{ letter_head }}</div>
-    {% endif %}
-    <div class="print-heading">
-		<h2>{{ doc.print_heading if doc.print_heading != None
-			else doc.doctype }}</h2>
-		<h4 class="text-muted">{{ doc.sub_heading if doc.sub_heading != None else ("#" + doc[meta.title_field or "name"]) }}</h4>
-    </div>
-    {%- if meta.is_submittable and doc.docstatus==0-%}
-    <div class="alert alert-info text-center">
-        <h4 style="margin: 0px;">DRAFT</h4></div>
-    {%- endif -%}
-    {%- if meta.is_submittable and doc.docstatus==2-%}
-    <div class="alert alert-danger text-center">
-        <h4 style="margin: 0px;">CANCELLED</h4></div>
-    {%- endif -%}
-    {% if max_pages > 1 %}
-    <p class="text-right">{{ _("Page #{0} of {1}").format(page_num, max_pages) }}</p>
-    {% endif %}
-{%- endmacro -%}
+{%- set section_made = False -%}
+{%- from "templates/print_formats/standard_macros.html" import add_header,
+	 render_field -%}
 
 {% for page in layout %}
 <div class="page-break">
-    {{ add_header(loop.index, layout|len) }}
+    {{ add_header(loop.index, layout|len, doc) }}
     {% for section in page %}
     <div class="row">
         {% for column in section %}
         <div class="col-sm-{{ (12 / section|len)|int }}">
             {% for df in column %}
-                {{ render_field(df) }}
+                {{ render_field(df, doc) }}
             {% endfor %}
         </div>
         {% endfor %}

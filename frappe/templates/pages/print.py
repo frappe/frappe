@@ -8,7 +8,6 @@ from frappe import _
 
 from frappe.modules import get_doc_path
 from jinja2 import TemplateNotFound
-from frappe.utils.formatters import format_value
 from frappe.utils import cint
 
 no_cache = 1
@@ -50,7 +49,6 @@ def get_context(context):
 @frappe.whitelist()
 def get_html(doc, name=None, print_format=None, meta=None,
 	no_letterhead=False, trigger_print=False):
-	from jinja2 import Environment
 
 	if isinstance(doc, basestring) and isinstance(name, basestring):
 		doc = frappe.get_doc(doc, name)
@@ -67,26 +65,28 @@ def get_html(doc, name=None, print_format=None, meta=None,
 	if not meta:
 		meta = frappe.get_meta(doc.doctype)
 
+	jenv = frappe.get_jenv()
 	if print_format in ("Standard", standard_format):
-		template = frappe.get_template("templates/print_formats/standard.html")
+		template = jenv.get_template("templates/print_formats/standard.html")
 	else:
-		template = Environment().from_string(get_print_format(doc.doctype,
+		template =jenv.from_string(get_print_format(doc.doctype,
 			print_format))
 
 	args = {
 		"doc": doc,
 		"meta": frappe.get_meta(doc.doctype),
 		"layout": make_layout(doc, meta),
-		"frappe": frappe,
-		"utils": frappe.utils,
-		"get_visible_columns": get_visible_columns,
-		"format": format_value,
 		"no_letterhead": no_letterhead,
 		"trigger_print": cint(trigger_print),
 		"letter_head": frappe.db.get_value("Letter Head",
 			doc.letter_head, "content") if doc.get("letter_head") else ""
 	}
+
+
+
 	html = template.render(args, filters={"len": len})
+
+
 	return html
 
 def get_print_format(doctype, format_name):
