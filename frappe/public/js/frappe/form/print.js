@@ -103,6 +103,7 @@ frappe.ui.form.PrintPreview = Class.extend({
 	},
 	preview_old_style: function() {
 		var me = this;
+		frappe.require("/assets/js/print_format_v3.min.js");
 		 _p.build(me.print_sel.val(), function(html) {
 			me.wrapper.find(".print-format").html('<div class="alert alert-warning">'
 				+__("Warning: This Print Format is in old style and cannot be generated via the API.")
@@ -111,10 +112,12 @@ frappe.ui.form.PrintPreview = Class.extend({
 		 }, !this.with_letterhead(), true, true);
 	},
 	print_old_style: function() {
+		frappe.require("/assets/js/print_format_v3.min.js");
 		_p.build(this.print_sel.val(), _p.go,
 			!this.with_letterhead());
 	},
 	new_page_preview_old_style: function() {
+		frappe.require("/assets/js/print_format_v3.min.js");
 		_p.build(this.print_sel.val(), _p.preview,
 			!this.with_letterhead());
 	},
