@@ -821,13 +821,10 @@ def get_url(uri=None, full_address=False):
 
 	return url
 
-def get_url_to_form(doctype, name, base_url=None, label=None):
-	if not base_url:
-		base_url = get_url()
-
+def get_url_to_form(doctype, name, label=None):
 	if not label: label = name
 
-	return """<a href="%(base_url)s/desk#!Form/%(doctype)s/%(name)s">%(label)s</a>""" % locals()
+	return """<a href="/desk#!Form/%(doctype)s/%(name)s">%(label)s</a>""" % locals()
 
 def encode_dict(d, encoding="utf-8"):
 	for key in d:
