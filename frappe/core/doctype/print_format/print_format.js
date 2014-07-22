@@ -1,13 +1,17 @@
-cur_frm.cscript.refresh = function (doc) {
+frappe.ui.form.on("Print Format", "refresh", function(frm) {
+	frm.set_intro("");
 	if (user!="Administrator") {
-		if (doc.standard == 'Yes') {
-			cur_frm.toggle_enable(["html", "doc_type", "module"], false);
-			cur_frm.disable_save();
+		if (frm.doc.standard == 'Yes') {
+			frm.toggle_enable(["html", "doc_type", "module"], false);
+			frm.disable_save();
 		} else {
-			cur_frm.toggle_enable(["html", "doc_type", "module"], true);
-			cur_frm.enable_save();
+			frm.toggle_enable(["html", "doc_type", "module"], true);
+			frm.enable_save();
 		}
-
-		cur_frm.toggle_enable("standard", false);
+		frm.toggle_enable("standard", false);
+	} else {
+		if(frm.doc.standard==="Yes") {
+			frm.set_intro(__("This is a standard format. To make changes, please copy it make make a new format."))
+		}
 	}
-}
+})

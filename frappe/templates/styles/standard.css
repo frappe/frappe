@@ -46,3 +46,7 @@
 	margin-top: 5px;
 }
 
+table.no-border, table.no-border td {
+	border: 0px;
+}
+

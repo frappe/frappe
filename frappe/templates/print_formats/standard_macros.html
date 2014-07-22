@@ -79,7 +79,7 @@
 	{% elif df.fieldtype=="Image" %}
 		<img src="{{ doc[doc.meta.get_field(df.fieldname).options] }}" 						class="img-responsive">
 	{% else %}
-		{{ frappe.format_value(doc[df.fieldname], df, parent_doc or doc) if df.fieldname else "" }}
+		{{ doc.get_formatted(df.fieldname, parent_doc or doc) }}
 	{% endif %}
 {%- endmacro %}
 
@@ -93,8 +93,8 @@
     <div class="letter-head">{{ letter_head }}</div>
     {% endif %}
     <div class="print-heading">
-		<h2>{{ doc.print_heading if doc.print_heading != None
-			else doc.doctype }}</h2>
+		<h2>{{ doc.select_print_heading or (doc.print_heading if doc.print_heading != None
+			else doc.doctype) }}</h2>
 		<h4 class="text-muted">{{ doc.sub_heading if doc.sub_heading != None else ("#" + doc[doc.meta.title_field or "name"]) }}</h4>
     </div>
     {%- if doc.meta.is_submittable and doc.docstatus==0-%}
