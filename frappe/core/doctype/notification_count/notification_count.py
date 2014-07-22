@@ -5,7 +5,6 @@
 
 from __future__ import unicode_literals
 import frappe
-
 from frappe.model.document import Document
 
 class NotificationCount(Document):
@@ -15,6 +14,7 @@ class NotificationCount(Document):
 def get_notifications():
 	if frappe.flags.in_install_app:
 		return
+
 	config = get_notification_config()
 	can_read = frappe.user.get_can_read()
 	open_count_doctype = {}
@@ -52,14 +52,20 @@ def get_notifications():
 		"open_count_module": open_count_module
 	}
 
+def clear_notifications(user=None):
+	if frappe.flags.in_install_app=="frappe":
+		return
+
+	if user:
+		frappe.db.sql("""delete from `tabNotification Count` where owner=%s""", (user,))
+	else:
+		frappe.db.sql("""delete from `tabNotification Count`""")
+
 def delete_notification_count_for(doctype):
 	if frappe.flags.in_import: return
 	frappe.db.sql("""delete from `tabNotification Count` where for_doctype = %s""", (doctype,))
 
-def delete_event_notification_count():
-	delete_notification_count_for("Event")
-
-def clear_doctype_notifications(doc, method=None):
+def clear_doctype_notifications(doc, method=None, *args, **kwargs):
 	if frappe.flags.in_import:
 		return
 

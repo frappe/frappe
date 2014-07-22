@@ -407,6 +407,7 @@ def latest(rebuild_website=True, quiet=False):
 	import frappe.model.sync
 	from frappe.utils.fixtures import sync_fixtures
 	import frappe.translate
+	from frappe.core.doctype.notification_count.notification_count import clear_notifications
 
 	verbose = not quiet
 
@@ -419,6 +420,8 @@ def latest(rebuild_website=True, quiet=False):
 		frappe.model.sync.sync_all(verbose=verbose)
 		frappe.translate.clear_cache()
 		sync_fixtures()
+
+		clear_notifications()
 
 		if rebuild_website:
 			build_website()
@@ -533,8 +536,10 @@ def make_custom_server_script(doctype):
 @cmd
 def clear_cache():
 	import frappe.sessions
+	from frappe.core.doctype.notification_count.notification_count import clear_notifications
 	frappe.connect()
 	frappe.clear_cache()
+	clear_notifications()
 	frappe.destroy()
 
 @cmd

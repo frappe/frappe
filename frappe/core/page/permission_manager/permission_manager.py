@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import frappe
 import frappe.defaults
 from frappe.modules.import_file import get_file_path, read_doc_from_file
+from frappe.core.doctype.notification_count.notification_count import delete_notification_count_for
 
 @frappe.whitelist()
 def get_roles_and_doctypes():
@@ -69,6 +70,7 @@ def reset(doctype):
 
 def clear_doctype_cache(doctype):
 	frappe.clear_cache(doctype=doctype)
+	delete_notification_count_for(doctype)
 	for user in frappe.db.sql_list("""select distinct tabUserRole.parent from tabUserRole, tabDocPerm
 		where tabDocPerm.parent = %s
 		and tabDocPerm.role = tabUserRole.role""", doctype):

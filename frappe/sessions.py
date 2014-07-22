@@ -31,16 +31,8 @@ def clear_cache(user=None):
 		for key in ("bootinfo", "lang", "roles", "user_permissions", "home_page"):
 			cache.delete_value(key + ":" + user)
 
-	def clear_notifications(user=None):
-		if frappe.flags.in_install_app!="frappe":
-			if user:
-				frappe.db.sql("""delete from `tabNotification Count` where owner=%s""", (user,))
-			else:
-				frappe.db.sql("""delete from `tabNotification Count`""")
-
 	if user:
 		delete_user_cache(user)
-		clear_notifications(user)
 
 		if frappe.session:
 			if user==frappe.session.user and frappe.session.sid:
@@ -57,7 +49,6 @@ def clear_cache(user=None):
 			cache.delete_value("session:" + sess.sid)
 
 		delete_user_cache("Guest")
-		clear_notifications()
 		clear_global_cache()
 		frappe.defaults.clear_cache()
 

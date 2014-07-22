@@ -320,6 +320,9 @@ def clear_perms(doctype):
 	db.sql("""delete from tabDocPerm where parent=%s""", doctype)
 
 def reset_perms(doctype):
+	from frappe.core.doctype.notification_count.notification_count import delete_notification_count_for
+	delete_notification_count_for(doctype)
+
 	clear_perms(doctype)
 	reload_doc(db.get_value("DocType", doctype, "module"),
 		"DocType", doctype, force=True)
