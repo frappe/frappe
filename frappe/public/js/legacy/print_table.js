@@ -1,16 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
-// MIT License. See license.txt
-
-frappe.provide("frappe.print");
-
-// opts:
-// doctype (parent)
-// docname
-// tabletype
-// fieldname
-// show_all = false;
-
-frappe.print.Table = Class.extend({
+frappe.printTable = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
 		if(!this.columns)
@@ -205,7 +193,7 @@ frappe.print.Table = Class.extend({
 })
 
 function print_table(dt, dn, fieldname, tabletype, cols, head_labels, widths, condition, cssClass, modifier) {
-	return new frappe.print.Table({
+	return new frappe.printTable({
 		doctype: dt,
 		docname: dn,
 		fieldname: fieldname,

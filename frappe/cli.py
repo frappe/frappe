@@ -464,10 +464,10 @@ def reload_doc(module, doctype, docname, force=False):
 	frappe.destroy()
 
 @cmd
-def build(make_copy=False):
+def build(make_copy=False, verbose=False):
 	import frappe.build
 	import frappe
-	frappe.build.bundle(False, make_copy=make_copy)
+	frappe.build.bundle(False, make_copy=make_copy, verbose=verbose)
 
 @cmd
 def watch():
