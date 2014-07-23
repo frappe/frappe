@@ -49,13 +49,13 @@
 
 {%- macro render_field_with_label(df, doc) -%}
     	<div class="row">
-    		<div class="col-sm-5 text-right">
+    		<div class="col-xs-5 text-right">
     			{% if df.fieldtype not in ("Image","HTML") and
     				doc.get(df.fieldname) != None %}
     			<label>{{ df.label }}</label>
     			{% endif %}
     		</div>
-    		<div class="col-sm-7 {%- if df.fieldtype
+    		<div class="col-xs-7 {%- if df.fieldtype
 				in ('Int', 'Check', 'Float', 'Currency') %} text-right{% endif %}">
     			{% if doc.get(df.fieldname) != None -%}
                     {{ print_value(df, doc) }}{% endif %}
@@ -75,9 +75,9 @@
 
 {%- macro print_value(df, doc, parent_doc=None) -%}
 	{% if df.fieldtype=="Check" %}
-		<i class="{{ 'icon-check' if doc[df.fieldname] else 						'icon-check-empty' }}"></i>
+		<i class="{{ 'icon-check' if doc[df.fieldname] else 'icon-check-empty' }}"></i>
 	{% elif df.fieldtype=="Image" %}
-		<img src="{{ doc[doc.meta.get_field(df.fieldname).options] }}" 						class="img-responsive">
+		<img src="{{ doc[doc.meta.get_field(df.fieldname).options] }}" class="img-responsive">
 	{% else %}
 		{{ doc.get_formatted(df.fieldname, parent_doc or doc) }}
 	{% endif %}

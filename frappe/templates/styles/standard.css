@@ -1,3 +1,5 @@
+@import url(http://fonts.googleapis.com/css?family=Noto+Sans:400,700);
+
 @media screen {
 	.print-format-gutter {
 		background-color: #ddd;
@@ -26,8 +28,16 @@
 	}
 }
 
+@media print {
+	.print-format p {
+		margin-left: 1px;
+		margin-right: 1px;
+	}
+}
+
 .print-format {
 	font-size: 9pt;
+	-webkit-print-color-adjust:exact;
 }
 
 .page-break {
@@ -49,4 +59,3 @@
 table.no-border, table.no-border td {
 	border: 0px;
 }
-
