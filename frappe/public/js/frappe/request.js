@@ -184,7 +184,7 @@ frappe.request.cleanup = function(opts, r) {
 	}
 
 	// show messages
-	if(r._server_messages) {
+	if(r._server_messages && !opts.silent) {
 		r._server_messages = JSON.parse(r._server_messages)
 		msgprint(r._server_messages);
 	}
@@ -226,7 +226,7 @@ frappe.request.cleanup = function(opts, r) {
 	if(r.docs || r.docinfo) {
 		frappe.model.sync(r);
 	}
-	if(r.__messages && !opts.silent) {
+	if(r.__messages) {
 		$.extend(frappe._messages, r.__messages);
 	}
 
