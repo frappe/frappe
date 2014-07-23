@@ -226,7 +226,7 @@ frappe.request.cleanup = function(opts, r) {
 	if(r.docs || r.docinfo) {
 		frappe.model.sync(r);
 	}
-	if(r.__messages) {
+	if(r.__messages && !opts.silent) {
 		$.extend(frappe._messages, r.__messages);
 	}
 
