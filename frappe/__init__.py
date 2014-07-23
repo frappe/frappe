@@ -683,13 +683,13 @@ def format_value(value, df, doc=None):
 	return frappe.utils.formatters.format_value(value, df, doc)
 
 def get_print_format(doctype, name, print_format=None, style=None, as_pdf=False):
-	from frappe.website.render import render_page
+	from frappe.website.render import build_page
 	local.form_dict.doctype = doctype
 	local.form_dict.name = name
 	local.form_dict.format = print_format
-	local.form_dict.name = name
+	local.form_dict.style = style
 
-	html = render_page("print")
+	html = build_page("print")
 
 	if as_pdf:
 		print_settings = db.get_singles_dict("Print Settings")

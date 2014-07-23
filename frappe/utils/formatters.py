@@ -14,7 +14,7 @@ def format_value(value, df, doc=None):
 			currency=get_field_currency(df, doc) if doc else None)
 
 	elif df.fieldtype == "Float":
-		return fmt_money(value)
+		return fmt_money(value, precision=get_field_precision(df, doc))
 
 	elif df.fieldtype == "Percent":
 		return "{}%".format(flt(value, 2))

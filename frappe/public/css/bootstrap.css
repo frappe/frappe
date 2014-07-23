@@ -189,9 +189,9 @@ th {
 }
 @media print {
   * {
-    color: #000 !important;
+/*    color: #000 !important;*/
     text-shadow: none !important;
-    background: transparent !important;
+/*    background: transparent !important;*/
     -webkit-box-shadow: none !important;
             box-shadow: none !important;
   }
@@ -211,7 +211,7 @@ th {
   }
   pre,
   blockquote {
-    border: 1px solid #999;
+/*    border: 1px solid #999;*/
 
     page-break-inside: avoid;
   }
@@ -241,24 +241,24 @@ th {
   .navbar {
     display: none;
   }
-  .table td,
+/*  .table td,
   .table th {
     background-color: #fff !important;
   }
-  .btn > .caret,
+*/  .btn > .caret,
   .dropup > .btn > .caret {
     border-top-color: #000 !important;
   }
-  .label {
+/*  .label {
     border: 1px solid #000;
   }
-  .table {
+*/  .table {
     border-collapse: collapse !important;
   }
-  .table-bordered th,
+  /*.table-bordered th,
   .table-bordered td {
     border: 1px solid #ddd !important;
-  }
+  }*/
 }
 @font-face {
   font-family: 'Glyphicons Halflings';

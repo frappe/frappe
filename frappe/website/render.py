@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe
+from frappe.utils import cstr
 import mimetypes, json
 from werkzeug.wrappers import Response
 
@@ -49,7 +50,7 @@ def render(path, http_status_code=None):
 
 def render_403(e):
 	path = "message"
-	frappe.local.message = "Did you log out?"
+	frappe.local.message = "<p><strong>{error}</strong></p><p>Did you log out?</p>".format(error=cstr(e))
 	frappe.local.message_title = "Not Permitted"
 	return render_page(path), e.http_status_code
 

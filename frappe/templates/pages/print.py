@@ -3,12 +3,13 @@
 
 from __future__ import unicode_literals
 
-import frappe, os, copy, json
+import frappe, os, copy, json, re
 from frappe import _
 
 from frappe.modules import get_doc_path
 from jinja2 import TemplateNotFound
 from frappe.utils import cint
+from frappe.utils.pdf import get_pdf
 
 no_cache = 1
 no_sitemap = 1
@@ -28,13 +29,6 @@ def get_context(context):
 		}
 
 	doc = frappe.get_doc(frappe.form_dict.doctype, frappe.form_dict.name)
-
-	for ptype in ("read", "print"):
-		if not frappe.has_permission(doc.doctype, ptype, doc):
-			return {
-				"body": """<h1>Error</h1>
-					<p>No {ptype} permission</p>""".format(ptype=ptype)
-			}
 
 	meta = frappe.get_meta(doc.doctype)
 
@@ -58,6 +52,8 @@ def get_html(doc, name=None, print_format=None, meta=None,
 
 	if isinstance(doc, basestring):
 		doc = frappe.get_doc(json.loads(doc))
+
+	validate_print_permission(doc)
 
 	if hasattr(doc, "before_print"):
 		doc.before_print()
@@ -87,6 +83,18 @@ def get_html(doc, name=None, print_format=None, meta=None,
 	html = template.render(args, filters={"len": len})
 
 	return html
+
+@frappe.whitelist()
+def download_pdf(doctype, name, format=None):
+	html = frappe.get_print_format(doctype, name, format)
+	frappe.local.response.filename = "{name}.pdf".format(name=name.replace(" ", "-").replace("/", "-"))
+	frappe.local.response.filecontent = get_pdf(html)
+	frappe.local.response.type = "download"
+
+def validate_print_permission(doc):
+	for ptype in ("read", "print"):
+		if not frappe.has_permission(doc.doctype, ptype, doc):
+			raise frappe.PermissionError(_("No {0} permission").format(ptype))
 
 def get_letter_head(doc, no_letterhead):
 	if no_letterhead:
@@ -168,12 +176,21 @@ def is_visible(df):
 
 def get_print_style(style=None):
 	if not style:
-		style = frappe.db.get_default("print_style") or "Standard"
+		style = frappe.db.get_single_value("Print Settings", "print_style") or "Standard"
 
 	css = frappe.get_template("templates/styles/standard.css").render()
 
 	try:
-		css += frappe.get_template("templates/styles/" + style.lower() + ".css").render()
+		additional_css = frappe.get_template("templates/styles/" + style.lower() + ".css").render()
+
+		# move @import to top
+		for at_import in list(set(re.findall("(@import url\([^\)]+\)[;]?)", additional_css))):
+			additional_css = additional_css.replace(at_import, "")
+
+			# prepend css with at_import
+			css = at_import + css
+
+		css += additional_css
 	except TemplateNotFound:
 		pass
 
