@@ -5,12 +5,9 @@
 
 from __future__ import unicode_literals
 from werkzeug.test import Client
-import os, sys
-import re
-import urllib
+import os, sys, re, urllib, datetime, math
+import babel.dates
 import frappe
-import datetime
-import math
 
 no_value_fields = ['Section Break', 'Column Break', 'HTML', 'Table', 'FlexTable',
 	'Button', 'Image', 'Graph']
@@ -234,7 +231,7 @@ def get_datetime_str(datetime_obj):
 
 	return datetime_obj.strftime('%Y-%m-%d %H:%M:%S.%f')
 
-def formatdate(string_date=None):
+def formatdate(string_date=None, format_string=None):
 	"""
 	 	Convers the given string date to :data:`user_format`
 		User format specified in defaults
@@ -245,19 +242,19 @@ def formatdate(string_date=None):
 		 * mm-dd-yyyy
 		 * dd/mm/yyyy
 	"""
-	if string_date:
-		string_date = getdate(string_date)
+	date = getdate(string_date) if string_date else now_datetime().date()
+
+	if format_string:
+		return babel.dates.format_date(date, format_string or "medium", locale=(frappe.local.lang or "").replace("-", "_"))
 	else:
-		string_date = now_datetime().date()
+		if getattr(frappe.local, "user_format", None) is None:
+			frappe.local.user_format = frappe.db.get_default("date_format")
 
-	if getattr(frappe.local, "user_format", None) is None:
-		frappe.local.user_format = frappe.db.get_default("date_format")
+		out = frappe.local.user_format
 
-	out = frappe.local.user_format
-
-	return out.replace("dd", string_date.strftime("%d"))\
-		.replace("mm", string_date.strftime("%m"))\
-		.replace("yyyy", string_date.strftime("%Y"))
+		return out.replace("dd", date.strftime("%d"))\
+			.replace("mm", date.strftime("%m"))\
+			.replace("yyyy", date.strftime("%Y"))
 
 def global_date_format(date):
 	"""returns date as 1 January 2012"""
@@ -351,9 +348,17 @@ def fmt_money(amount, precision=None, currency=None):
 	"""
 	Convert to string with commas for thousands, millions etc
 	"""
-	number_format = frappe.db.get_default("number_format") or "#,###.##"
-	decimal_str, comma_str, precision = get_number_format_info(number_format)
+	number_format = None
+	if currency:
+		number_format = frappe.db.get_value("Currency", currency, "number_format")
 
+	if not number_format:
+		number_format = frappe.db.get_default("number_format") or "#,###.##"
+
+	decimal_str, comma_str, number_format_precision = get_number_format_info(number_format)
+
+	if not precision:
+		precision = number_format_precision
 
 	amount = '%.*f' % (precision, flt(amount))
 	if amount.find('.') == -1:
@@ -824,13 +829,10 @@ def get_url(uri=None, full_address=False):
 
 	return url
 
-def get_url_to_form(doctype, name, base_url=None, label=None):
-	if not base_url:
-		base_url = get_url()
-
+def get_url_to_form(doctype, name, label=None):
 	if not label: label = name
 
-	return """<a href="%(base_url)s/desk#!Form/%(doctype)s/%(name)s">%(label)s</a>""" % locals()
+	return """<a href="/desk#!Form/%(doctype)s/%(name)s">%(label)s</a>""" % locals()
 
 def encode_dict(d, encoding="utf-8"):
 	for key in d:

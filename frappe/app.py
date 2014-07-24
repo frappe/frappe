@@ -77,7 +77,7 @@ def application(request):
 			frappe.respond_as_web_page("Server Error",
 				"<pre>"+frappe.get_traceback()+"</pre>",
 				http_status_code=http_status_code)
-			response = frappe.website.render.render("message")
+			response = frappe.website.render.render("message", http_status_code=http_status_code)
 
 		if e.__class__ == frappe.AuthenticationError:
 			if hasattr(frappe.local, "login_manager"):

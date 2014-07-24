@@ -200,6 +200,7 @@ class sync(object):
 
 		route_doc = frappe.get_doc("Website Route", route_details.name)
 		route_doc.static_file_timestamp = cint(os.path.getmtime(route_details.fpath))
+		route_doc.idx = route_details.idx
 		route_doc.save()
 
 	def cleanup(self):

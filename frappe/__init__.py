@@ -233,16 +233,16 @@ def sendmail(recipients=(), sender="", subject="No Subject", message="No Message
 		import frappe.utils.email_lib.bulk
 		frappe.utils.email_lib.bulk.send(recipients=recipients, sender=sender,
 			subject=subject, message=message, ref_doctype = ref_doctype,
-			ref_docname = ref_docname, add_unsubscribe_link=add_unsubscribe_link)
+			ref_docname = ref_docname, add_unsubscribe_link=add_unsubscribe_link, attachments=attachments)
 
 	else:
 		import frappe.utils.email_lib
 		if as_markdown:
 			frappe.utils.email_lib.sendmail_md(recipients, sender=sender,
-				subject=subject, msg=message)
+				subject=subject, msg=message, attachments=attachments)
 		else:
 			frappe.utils.email_lib.sendmail(recipients, sender=sender,
-				subject=subject, msg=message)
+				subject=subject, msg=message, attachments=attachments)
 
 logger = None
 whitelisted = []
@@ -320,6 +320,9 @@ def clear_perms(doctype):
 	db.sql("""delete from tabDocPerm where parent=%s""", doctype)
 
 def reset_perms(doctype):
+	from frappe.core.doctype.notification_count.notification_count import delete_notification_count_for
+	delete_notification_count_for(doctype)
+
 	clear_perms(doctype)
 	reload_doc(db.get_value("DocType", doctype, "module"),
 		"DocType", doctype, force=True)
@@ -680,13 +683,13 @@ def format_value(value, df, doc=None):
 	return frappe.utils.formatters.format_value(value, df, doc)
 
 def get_print_format(doctype, name, print_format=None, style=None, as_pdf=False):
-	from frappe.website.render import render_page
+	from frappe.website.render import build_page
 	local.form_dict.doctype = doctype
 	local.form_dict.name = name
 	local.form_dict.format = print_format
-	local.form_dict.name = name
+	local.form_dict.style = style
 
-	html = render_page("print")
+	html = build_page("print")
 
 	if as_pdf:
 		print_settings = db.get_singles_dict("Print Settings")

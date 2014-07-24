@@ -86,7 +86,7 @@ $.extend(_p, {
 
 		dialog.onshow = function() {
 			var $print = dialog.fields_dict.print_format.$input;
-			$print.empty().add_options(cur_frm.print_formats);
+			$print.empty().add_options(cur_frm.print_preview.print_formats);
 
 			if(cur_frm.$print_view_select && cur_frm.$print_view_select.val())
 				$print.val(cur_frm.$print_view_select.val());

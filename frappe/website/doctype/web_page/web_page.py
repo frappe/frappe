@@ -25,6 +25,11 @@ class WebPage(WebsiteGenerator):
 			"script": self.javascript or ""
 		})
 
+		if "<!-- render-jinja -->" in self.main_section:
+			context["main_section"] = frappe.render_template(self.main_section,
+				{"doc": self, "frappe": frappe})
+			context["no_cache"] = 1
+
 		context.metatags = {
 			"name": self.title,
 			"description": self.description or (self.main_section or "")[:150]

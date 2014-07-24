@@ -17,6 +17,7 @@ frappe.ui.form.PrintPreview = Class.extend({
 					<div class="checkbox"><label><input type="checkbox" class="print-letterhead" checked/> Letterhead</label></div></div>\
 				<div class="col-xs-6 text-right" style="padding-top: 7px;">\
 					<a style="margin-right: 7px;" class="btn-print-preview text-muted small">Preview</a>\
+					<a style="margin-right: 7px;" class="btn-download-pdf text-muted small">Download PDF</a>\
 					<strong><a style="margin-right: 7px;" class="btn-print-print">Print</a></strong>\
 					<a class="close">×</a>\
 				</div>\
@@ -42,11 +43,13 @@ frappe.ui.form.PrintPreview = Class.extend({
 			.find(".print-preview-select")
 			.on("change", function() {
 				if(me.is_old_style()) {
+					me.wrapper.find(".btn-download-pdf").toggle(false);
 					me.preview_old_style();
 				} else {
+					me.wrapper.find(".btn-download-pdf").toggle(true);
 					me.preview();
 				}
-			})
+			});
 
 		this.wrapper.find(".btn-print-print").click(function() {
 			if(me.is_old_style()) {
@@ -61,6 +64,18 @@ frappe.ui.form.PrintPreview = Class.extend({
 				me.new_page_preview_old_style();
 			} else {
 				me.new_page_preview();
+			}
+		});
+
+		this.wrapper.find(".btn-download-pdf").click(function() {
+			if(!me.is_old_style()) {
+				var w = window.open("/api/method/frappe.templates.pages.print.download_pdf?"
+					+"doctype="+encodeURIComponent(me.frm.doc.doctype)
+					+"&name="+encodeURIComponent(me.frm.doc.name)
+					+"&format="+me.selected_format());
+				if(!w) {
+					msgprint(__("Please enable pop-ups")); return;
+				}
 			}
 		});
 	},
@@ -103,13 +118,23 @@ frappe.ui.form.PrintPreview = Class.extend({
 	},
 	preview_old_style: function() {
 		var me = this;
+		this.with_old_style({
+			format: me.print_sel.val(),
+			callback: function(html) {
+				me.wrapper.find(".print-format").html('<div class="alert alert-warning">'
+					+__("Warning: This Print Format is in old style and cannot be generated via the API.")
+					+'</div>'
+					+ html);
+			},
+			no_letterhead: !this.with_letterhead(),
+			only_body: true,
+			no_heading: true
+		});
+	},
+	with_old_style: function(opts) {
+		var me = this;
 		frappe.require("/assets/js/print_format_v3.min.js");
-		 _p.build(me.print_sel.val(), function(html) {
-			me.wrapper.find(".print-format").html('<div class="alert alert-warning">'
-				+__("Warning: This Print Format is in old style and cannot be generated via the API.")
-				+'</div>'
-				+ html);
-		 }, !this.with_letterhead(), true, true);
+		_p.build(opts.format, opts.callback, opts.no_letterhead, opts.only_body, opts.no_heading);
 	},
 	print_old_style: function() {
 		frappe.require("/assets/js/print_format_v3.min.js");
@@ -124,11 +149,14 @@ frappe.ui.form.PrintPreview = Class.extend({
 	selected_format: function() {
 		return this.print_sel.val();
 	},
-	is_old_style: function() {
-		return this.get_print_format().print_format_type==="Client"
+	is_old_style: function(format) {
+		return this.get_print_format(format).print_format_type==="Client";
 	},
-	get_print_format: function() {
-		var format = this.selected_format();
+	get_print_format: function(format) {
+		if (!format) {
+			format = this.selected_format();
+		}
+
 		if(locals["Print Format"] && locals["Print Format"][format]) {
 			return locals["Print Format"][format]
 		} else {

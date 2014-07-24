@@ -106,7 +106,8 @@ frappe.ui.form.Attachments = Class.extend({
 				file_url = '/files/' + attachment.file_name;
 			}
 		}
-		return encodeURI(file_url);
+		// hash is not escaped, https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURI
+		return encodeURI(file_url).replace('#', '%23');
 	},
 	remove_attachment_by_filename: function(filename, callback) {
 		this.remove_attachment(this.get_attachments()[filename], callback);

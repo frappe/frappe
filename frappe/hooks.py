@@ -57,6 +57,7 @@ doc_events = {
 			"frappe.core.doctype.notification_count.notification_count.clear_doctype_notifications",
 			"frappe.core.doctype.email_alert.email_alert.trigger_email_alerts"
 		],
+		"after_rename": "frappe.core.doctype.notification_count.notification_count.clear_doctype_notifications",
 		"on_submit": "frappe.core.doctype.email_alert.email_alert.trigger_email_alerts",
 		"on_cancel": [
 			"frappe.core.doctype.notification_count.notification_count.clear_doctype_notifications",
@@ -76,7 +77,7 @@ scheduler_events = {
 	"all": ["frappe.utils.email_lib.bulk.flush"],
 	"daily": [
 		"frappe.utils.email_lib.bulk.clear_outbox",
-		"frappe.core.doctype.notification_count.notification_count.delete_event_notification_count",
+		"frappe.core.doctype.notification_count.notification_count.clear_notifications",
 		"frappe.core.doctype.event.event.send_event_digest",
 		"frappe.sessions.clear_expired_sessions",
 		"frappe.core.doctype.email_alert.email_alert.trigger_daily_alerts",

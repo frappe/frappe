@@ -27,7 +27,7 @@ frappe.form.formatters = {
 	},
 	Currency: function(value, docfield, options, doc) {
 		var currency = frappe.meta.get_field_currency(docfield, doc);
-		return "<div style='text-align: right'>" + format_currency(value, currency) + "</div>";
+		return "<div style='text-align: right'>" + ((value==null || value==="") ? "" : format_currency(value, currency)) + "</div>";
 	},
 	Check: function(value) {
 		return value ? "<i class='icon-check'></i>" : "<i class='icon-check-empty'></i>";

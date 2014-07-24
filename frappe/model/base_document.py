@@ -83,7 +83,7 @@ class BaseDocument(object):
 		else:
 			self.__dict__[key] = value
 
-	def delete(self, key):
+	def delete_key(self, key):
 		if key in self.__dict__:
 			del self.__dict__[key]
 

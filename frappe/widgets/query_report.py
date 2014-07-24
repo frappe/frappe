@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 
 import frappe
-import os, json
+import os, json, re
 
 from frappe import _
 from frappe.modules import scrub, get_module_path
@@ -32,14 +32,12 @@ def get_script(report_name):
 	script_path = os.path.join(report_folder, scrub(report.name) + ".js")
 	print_path = os.path.join(report_folder, scrub(report.name) + ".html")
 
-	script, html_format = None, None
+	script = None
 	if os.path.exists(script_path):
 		with open(script_path, "r") as f:
 			script = f.read()
 
-	if os.path.exists(print_path):
-		with open(print_path, "r") as f:
-			html_format = f.read()
+	html_format = get_html_format(print_path, report, module)
 
 	if not script and report.javascript:
 		script = report.javascript
@@ -55,6 +53,22 @@ def get_script(report_name):
 		"script": script,
 		"html_format": html_format
 	}
+
+def get_html_format(print_path, report, module):
+	html_format = None
+	if os.path.exists(print_path):
+		with open(print_path, "r") as f:
+			html_format = f.read()
+
+		for include_directive, path in re.findall("""({% include ['"]([^'"]*)['"] %})""", html_format):
+			for app_name in frappe.get_installed_apps():
+				include_path = frappe.get_app_path(app_name, *path.split(os.path.sep))
+				if os.path.exists(include_path):
+					with open(include_path, "r") as f:
+						html_format = html_format.replace(include_directive, f.read())
+					break
+
+	return html_format
 
 @frappe.whitelist()
 def run(report_name, filters=()):
@@ -80,8 +94,7 @@ def run(report_name, filters=()):
 	else:
 		module = report.module or frappe.db.get_value("DocType", report.ref_doctype, "module")
 		if report.is_standard=="Yes":
-			method_name = frappe.local.module_app[scrub(module)] + "." + scrub(module) \
-				+ ".report." + scrub(report.name) + "." + scrub(report.name) + ".execute"
+			method_name = get_report_module_dotted_path(module, report.name) + ".execute"
 			columns, result = frappe.get_attr(method_name)(frappe._dict(filters))
 
 	if report.apply_user_permissions:
@@ -95,23 +108,40 @@ def run(report_name, filters=()):
 		"columns": columns
 	}
 
+def get_report_module_dotted_path(module, report_name):
+	return frappe.local.module_app[scrub(module)] + "." + scrub(module) \
+		+ ".report." + scrub(report_name) + "." + scrub(report_name)
+
 def add_total_row(result, columns):
 	total_row = [""]*len(columns)
 	has_percent = []
 	for row in result:
 		for i, col in enumerate(columns):
-			col = col.split(":")
-			if len(col) > 1:
-				if col[1] in ["Currency", "Int", "Float", "Percent"] and flt(row[i]):
-					total_row[i] = flt(total_row[i]) + flt(row[i])
-				if col[1] == "Percent" and i not in has_percent:
-					has_percent.append(i)
+			fieldtype = None
+			if isinstance(col, basestring):
+				col = col.split(":")
+				if len(col) > 1:
+					fieldtype = col[1]
+			else:
+				fieldtype = col.get("fieldtype")
+
+			if fieldtype in ["Currency", "Int", "Float", "Percent"] and flt(row[i]):
+				total_row[i] = flt(total_row[i]) + flt(row[i])
+			if fieldtype == "Percent" and i not in has_percent:
+				has_percent.append(i)
 
 	for i in has_percent:
 		total_row[i] = total_row[i] / len(result)
 
-	first_col = columns[0].split(":")
-	if len(first_col) > 1 and first_col[1] not in ["Currency", "Int", "Float", "Percent"]:
+	first_col_fieldtype = None
+	if isinstance(columns[0], basestring):
+		first_col = columns[0].split(":")
+		if len(first_col) > 1:
+			first_col_fieldtype = first_col[1]
+	else:
+		first_col_fieldtype = columns[0].get("fieldtype")
+
+	if first_col_fieldtype not in ["Currency", "Int", "Float", "Percent"]:
 		total_row[0] = "Total"
 
 	result.append(total_row)
@@ -146,10 +176,15 @@ def get_linked_doctypes(columns):
 	linked_doctypes = {}
 
 	for idx, col in enumerate(columns):
-		col = col.split(":")
-		if len(col) > 1 and col[1].startswith("Link"):
-			link_dt = col[1].split("/")[1]
-			linked_doctypes[link_dt] = idx
+		if isinstance(col, basestring):
+			col = col.split(":")
+			if len(col) > 1 and col[1].startswith("Link"):
+				link_dt = col[1].split("/")[1]
+				linked_doctypes[link_dt] = idx
+
+		# dict
+		elif col.get("fieldtype")=="Link" and col.get("options"):
+			linked_doctypes[col["options"]] = idx
 
 	return linked_doctypes
 
