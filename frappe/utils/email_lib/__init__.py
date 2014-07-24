@@ -3,7 +3,6 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe import conf
 
 from frappe.utils.email_lib.email_body import get_email
 from frappe.utils.email_lib.smtp import send
@@ -15,13 +14,7 @@ def sendmail_md(recipients, sender=None, msg=None, subject=None, attachments=Non
 
 def sendmail(recipients, sender='', msg='', subject='[No Subject]', attachments=None):
 	"""send an html email as multipart with attachments and all"""
-
-	email = get_email(recipients, sender, msg, subject)
-	for attach in attachments:
-		email.add_attachment(**attach)
-	send(email)
-
-	send(get_email(recipients, sender, msg, subject))
+	send(get_email(recipients, sender, msg, subject, attachments=attachments))
 
 def sendmail_to_system_managers(subject, content):
 	send(get_email(get_system_managers(), None, content, subject))

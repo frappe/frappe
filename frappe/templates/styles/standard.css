@@ -59,3 +59,9 @@
 table.no-border, table.no-border td {
 	border: 0px;
 }
+
+.print-format label {
+	/* wkhtmltopdf breaks label into multiple lines when it is inline-block */
+	display: block;
+}
+
