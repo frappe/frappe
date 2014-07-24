@@ -1,5 +1,5 @@
 {
- "creation": "2013-01-10 16:34:04.000000", 
+ "creation": "2013-01-10 16:34:04", 
  "description": "Property Setter overrides a standard DocType or Field property", 
  "docstatus": 0, 
  "doctype": "DocType", 
@@ -20,6 +20,7 @@
    "depends_on": "eval:doc.__islocal", 
    "fieldname": "doctype_or_field", 
    "fieldtype": "Select", 
+   "in_list_view": 1, 
    "label": "DocType or Field", 
    "options": "\nDocField\nDocType", 
    "permlevel": 0, 
@@ -29,6 +30,7 @@
    "description": "New value to be set", 
    "fieldname": "value", 
    "fieldtype": "Text", 
+   "in_list_view": 1, 
    "label": "Set Value", 
    "permlevel": 0
   }, 
@@ -83,7 +85,7 @@
  ], 
  "icon": "icon-glass", 
  "idx": 1, 
- "modified": "2014-01-20 17:49:03.000000", 
+ "modified": "2014-07-24 02:04:26.838056", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Property Setter", 
@@ -116,5 +118,5 @@
    "write": 1
   }
  ], 
- "search_fields": "doc_name,property"
+ "search_fields": "doc_type,property"
 }
