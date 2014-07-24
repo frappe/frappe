@@ -367,6 +367,10 @@ class Database:
 		return frappe._dict(self.sql("""select field, value from
 			tabSingles where doctype=%s""", doctype))
 
+	def get_single_value(self, doctype, fieldname):
+		val = self.sql("""select value from
+			tabSingles where doctype=%s and field=%s""", (doctype, fieldname))
+		return val[0][0] if val else None
 
 	def get_values_from_table(self, fields, filters, doctype, as_dict, debug, order_by=None, update=None):
 		fl = []

@@ -36,6 +36,10 @@ frappe.views.show_open_count_list = function(element) {
 
 frappe.get_module = function(m) {
 	var module = frappe.modules[m];
+	if (!module) {
+		return;
+	}
+
 	module.name = m;
 
 	if(module.type==="module" && !module.link) {

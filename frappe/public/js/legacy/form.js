@@ -120,63 +120,13 @@ _f.Frm.prototype.setup = function() {
 }
 
 _f.Frm.prototype.setup_print_layout = function() {
-	this.print_wrapper = $('<div>\
-		<div class="print-toolbar row" style="padding-top: 5px; padding-bottom: 5px; margin-top: -15px; \
-			margin-bottom: 15px; padding-left: 15px; position:relative;">\
-			<i class="text-muted icon-print" style="position: absolute; top: 13px; left: 10px; "></i>\
-			<div class="col-xs-3">\
-				<select class="print-preview-select form-control"></select></div>\
-			<div class="col-xs-3" style="padding-top: 7px;">\
-				<input type="checkbox" class="print-letterhead" checked/> Letterhead</div>\
-			<div class="col-xs-6 text-right" style="padding-top: 7px;">\
-				<a style="margin-right: 7px;" class="btn-print-preview text-muted small">Preview</a>\
-				<strong><a style="margin-right: 7px;" class="btn-print-print">Print</a></strong>\
-				<a class="close">×</a>\
-			</div>\
-		</div>\
-		<div class="print-preview">\
-		</div>\
-	</div>')
-		.appendTo(this.layout_main)
-		.toggle(false);
-
-	var me = this;
-	this.print_wrapper.find(".close").click(function() {
-		me.hide_print();
-	});
-
-	this.print_formats = frappe.meta.get_print_formats(this.meta.name);
-	this.print_letterhead = this.print_wrapper
-		.find(".print-letterhead")
-		.on("change", function() { me.print_sel.trigger("change"); });
-	this.print_sel = this.print_wrapper
-		.find(".print-preview-select")
-		.on("change", function() {
-			 _p.build(me.print_sel.val(), function(html) {
-				 me.print_wrapper.find(".print-preview").html(html);
-			 }, !me.print_letterhead.is(":checked"), true, true);
-		})
-
-	this.print_wrapper.find(".btn-print-print").click(function() {
-		_p.build(
-			me.print_sel.val(), // fmtname
-			_p.go, // onload
-			!me.print_letterhead.is(":checked") // no_letterhead
-		);
-	});
-
-	this.print_wrapper.find(".btn-print-preview").click(function() {
-		_p.build(
-			me.print_sel.val(), // fmtname
-			_p.preview, // onload
-			!me.print_letterhead.is(":checked") // no_letterhead
-		);
-	});
-
+	this.print_preview = new frappe.ui.form.PrintPreview({
+		frm: this
+	})
 }
 
 _f.Frm.prototype.print_doc = function() {
-	if(this.print_wrapper.is(":visible")) {
+	if(this.print_preview.wrapper.is(":visible")) {
 		this.hide_print();
 		return;
 	}
@@ -189,17 +139,17 @@ _f.Frm.prototype.print_doc = function() {
 		msgprint(__("Cannot print cancelled documents"));
 		return;
 	}
-	this.print_wrapper.toggle(true);
-	this.print_sel
-		.empty().add_options(this.print_formats)
+	this.print_preview.print_sel
+		.empty().add_options(this.print_preview.print_formats)
 		.trigger("change");
 
+	this.print_preview.wrapper.toggle(true);
 	this.form_wrapper.toggle(false);
 }
 
 _f.Frm.prototype.hide_print = function() {
 	if(this.setup_done) {
-		this.print_wrapper.toggle(false);
+		this.print_preview.wrapper.toggle(false);
 		this.form_wrapper.toggle(true);
 	}
 }

@@ -238,6 +238,9 @@ def get_field_currency(df, doc):
 	"""get currency based on DocField options and fieldvalue in doc"""
 	currency = None
 
+	if not df.options:
+		return None
+
 	if ":" in cstr(df.options):
 		split_opts = df.options.split(":")
 		if len(split_opts)==3:
@@ -263,7 +266,7 @@ def get_field_precision(df, doc):
 
 	decimal_str, comma_str, precision = get_number_format_info(number_format)
 
-	if df.fieldtype == "Float":
+	if df.fieldtype in ("Float", "Percent"):
 		precision = cint(frappe.db.get_default("float_precision")) or 3
 
 	return precision

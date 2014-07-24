@@ -227,22 +227,22 @@ def get_request_header(key, default=None):
 
 def sendmail(recipients=(), sender="", subject="No Subject", message="No Message",
 		as_markdown=False, bulk=False, ref_doctype=None, ref_docname=None,
-		add_unsubscribe_link=False):
+		add_unsubscribe_link=False, attachments=None):
 
 	if bulk:
 		import frappe.utils.email_lib.bulk
 		frappe.utils.email_lib.bulk.send(recipients=recipients, sender=sender,
 			subject=subject, message=message, ref_doctype = ref_doctype,
-			ref_docname = ref_docname, add_unsubscribe_link=add_unsubscribe_link)
+			ref_docname = ref_docname, add_unsubscribe_link=add_unsubscribe_link, attachments=attachments)
 
 	else:
 		import frappe.utils.email_lib
 		if as_markdown:
 			frappe.utils.email_lib.sendmail_md(recipients, sender=sender,
-				subject=subject, msg=message)
+				subject=subject, msg=message, attachments=attachments)
 		else:
 			frappe.utils.email_lib.sendmail(recipients, sender=sender,
-				subject=subject, msg=message)
+				subject=subject, msg=message, attachments=attachments)
 
 logger = None
 whitelisted = []
@@ -603,12 +603,15 @@ def get_jenv():
 		import frappe.utils
 
 		# frappe will be loaded last, so app templates will get precedence
-		jenv = Environment(loader = get_jloader(), undefined=DebugUndefined)
+		jenv = Environment(loader = get_jloader(),
+			undefined=DebugUndefined)
 		set_filters(jenv)
 
 		jenv.globals.update({
 			"frappe": sys.modules[__name__],
 			"frappe.utils": frappe.utils,
+			"get_visible_columns": \
+				frappe.get_attr("frappe.templates.pages.print.get_visible_columns"),
 			"_": _
 		})
 
@@ -629,7 +632,7 @@ def get_jloader():
 	return local.jloader
 
 def set_filters(jenv):
-	from frappe.utils import global_date_format
+	from frappe.utils import global_date_format, cint
 	from frappe.website.utils import get_hex_shade
 	from markdown2 import markdown
 	from json import dumps
@@ -638,6 +641,8 @@ def set_filters(jenv):
 	jenv.filters["markdown"] = markdown
 	jenv.filters["json"] = dumps
 	jenv.filters["get_hex_shade"] = get_hex_shade
+	jenv.filters["len"] = len
+	jenv.filters["int"] = cint
 
 	# load jenv_filters from hooks.py
 	for app in get_all_apps(True):
@@ -672,3 +677,26 @@ def get_test_records(doctype):
 			return json.loads(f.read())
 	else:
 		return []
+
+def format_value(value, df, doc=None):
+	import frappe.utils.formatters
+	return frappe.utils.formatters.format_value(value, df, doc)
+
+def get_print_format(doctype, name, print_format=None, style=None, as_pdf=False):
+	from frappe.website.render import build_page
+	local.form_dict.doctype = doctype
+	local.form_dict.name = name
+	local.form_dict.format = print_format
+	local.form_dict.style = style
+
+	html = build_page("print")
+
+	if as_pdf:
+		print_settings = db.get_singles_dict("Print Settings")
+		if int(print_settings.send_print_as_pdf or 0):
+			from utils.pdf import get_pdf
+			return get_pdf(html, {"page-size": print_settings.pdf_page_size})
+		else:
+			return html
+	else:
+		return html

@@ -139,6 +139,11 @@ def get_data():
 			"items": [
 				{
 					"type": "doctype",
+					"name": "Print Settings",
+					"description": _("Set default format, page size, print style etc.")
+				},
+				{
+					"type": "doctype",
 					"name": "Print Format",
 					"description": _("Customized HTML Templates for printing transctions.")
 				},

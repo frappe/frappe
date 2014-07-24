@@ -39,7 +39,7 @@ def get_items(type, txt, limit_start=0):
 		#template_path = os.path.relpath(template_path)
 		template = env.get_template(template_path)
 	else:
-		template = Template("""<div><a href="/{{ doctype }}/{{ doc.name }}">
+		template = Template("""<div><a href="/{{ doctype }}/{{ doc.name }}" no-pjax>
 			{{ doc[title_field] }}</a></div>""")
 
 	out.items = [template.render(doc=i, doctype=type,

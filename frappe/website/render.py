@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe
+from frappe.utils import cstr
 import mimetypes, json
 from werkzeug.wrappers import Response
 
@@ -21,7 +22,7 @@ def render(path, http_status_code=None):
 	except frappe.DoesNotExistError, e:
 		doctype, name = get_doctype_from_path(path)
 		if doctype and name:
-			path = "view"
+			path = "print"
 			frappe.local.form_dict.doctype = doctype
 			frappe.local.form_dict.name = name
 		elif doctype:
@@ -49,7 +50,7 @@ def render(path, http_status_code=None):
 
 def render_403(e):
 	path = "message"
-	frappe.local.message = "Did you log out?"
+	frappe.local.message = "<p><strong>{error}</strong></p><p>Did you log out?</p>".format(error=cstr(e))
 	frappe.local.message_title = "Not Permitted"
 	return render_page(path), e.http_status_code
 
@@ -129,7 +130,7 @@ def build_page(path):
 	return html
 
 def is_ajax():
-	return getattr(frappe.local, "is_ajax")
+	return getattr(frappe.local, "is_ajax", False)
 
 def resolve_path(path):
 	if not path:

@@ -264,8 +264,8 @@ frappe.views.CommunicationComposer = Class.extend({
 		if (cur_frm) {
 			$(fields.select_print_format.input)
 				.empty()
-				.add_options(cur_frm.print_formats)
-				.val(cur_frm.print_formats[0]);
+				.add_options(cur_frm.print_preview.print_formats)
+				.val(cur_frm.print_preview.print_formats[0]);
 		} else {
 			$(fields.attach_document_print.wrapper).toggle(false);
 		}
@@ -324,20 +324,29 @@ frappe.views.CommunicationComposer = Class.extend({
 				})
 
 			if(form_values.attach_document_print) {
-				_p.build(form_values.select_print_format || "", function(print_format_html) {
-					me.send_email(btn, form_values, selected_attachments, print_format_html);
-				});
+				if (cur_frm.print_preview.is_old_style(form_values.select_print_format || "")) {
+					cur_frm.print_preview.with_old_style({
+						format: form_values.select_print_format,
+						callback: function(print_html) {
+							me.send_email(btn, form_values, selected_attachments, print_html);
+						}
+					});
+				} else {
+					me.send_email(btn, form_values, selected_attachments, null, form_values.select_print_format || "");
+				}
+
 			} else {
 				me.send_email(btn, form_values, selected_attachments);
 			}
 		});
 	},
 
-	send_email: function(btn, form_values, selected_attachments, print_html) {
+	send_email: function(btn, form_values, selected_attachments, print_html, print_format) {
 		var me = this;
 
 		if(!form_values.attach_document_print) {
-			print_html = "";
+			print_html = null;
+			print_format = null;
 		}
 
 		if(form_values.send_email) {
@@ -362,6 +371,7 @@ frappe.views.CommunicationComposer = Class.extend({
 				send_me_a_copy: form_values.send_me_a_copy,
 				send_email: form_values.send_email,
 				print_html: print_html,
+				print_format: print_format,
 				communication_medium: form_values.communication_medium,
 				sent_or_received: form_values.sent_or_received,
 				attachments: selected_attachments

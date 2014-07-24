@@ -189,6 +189,7 @@ frappe.ui.form.Grid = Class.extend({
 		return this.is_editable() && !this.cannot_add_rows
 	},
 	set_multiple_add: function(link, qty) {
+		if(this.multiple_set) return;
 		var me = this;
 		var link_field = frappe.meta.get_docfield(this.df.options, link);
 		$(this.wrapper).find(".grid-add-multiple-rows")
@@ -203,6 +204,7 @@ frappe.ui.form.Grid = Class.extend({
 				});
 				return false;
 			});
+		this.multiple_set = true;
 	}
 });
 

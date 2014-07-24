@@ -270,7 +270,11 @@ frappe.ui.toolbar.show_about = function() {
 
 frappe.ui.toolbar.show_banner = function(msg) {
 	$banner = $('<div class="toolbar-banner">'+msg+'<a class="close">&times;</a></div>')
-		.appendTo($('header'));
-	$banner.find(".close").click(function() { $(".toolbar-banner").toggle(false); });
+		.prependTo($('header .navbar'));
+		$("body").css({"padding-top": "70px"});
+	$banner.find(".close").click(function() {
+		$(".toolbar-banner").toggle(false);
+		$("body").css({"padding-top": "36px"});
+	});
 	return $banner;
 }

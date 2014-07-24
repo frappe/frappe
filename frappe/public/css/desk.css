@@ -13,6 +13,11 @@ a {
 	cursor: pointer;
 }
 
+.navbar-inverse {
+	background-color: #444;
+	border-bottom: 0px;
+}
+
 a.disabled, a.disabled:hover {
 	color: #888;
 	cursor: default;
@@ -383,9 +388,10 @@ ul.linked-with-list li {
 }
 
 .print-preview {
-	padding: 50px 20px;
-	margin: 0px -15px;
-	box-shadow: 1px 1px 5px rgba(0,0,0,0.5);
+	padding: 0px;
+	max-width: 8.3in;
+	margin: auto;
+	min-height: 11.69in;
 }
 
 .module-view-layout {
