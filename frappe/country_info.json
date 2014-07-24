@@ -1903,10 +1903,11 @@
  },
  "Poland": {
   "code": "pl",
+  "currency": "PLN",
   "currency_fraction": "Grosz",
   "currency_fraction_units": 100,
   "currency_symbol": "z\u0142",
-  "number_format": "#,###.##",
+  "number_format": "#.###,##",
   "timezones": [
    "Europe/Warsaw"
   ]
