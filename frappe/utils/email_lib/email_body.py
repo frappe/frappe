@@ -17,6 +17,9 @@ def get_email(recipients, sender='', msg='', subject='[No Subject]',
 	msg = markdown(msg)
 	emailobj.set_html(msg, text_content, footer=footer, print_html=print_html, formatted=formatted)
 
+	if isinstance(attachments, dict):
+		attachments = [attachments]
+
 	for attach in (attachments or []):
 		emailobj.add_attachment(**attach)
 
