@@ -61,8 +61,14 @@ frappe.get_route_str = function(route) {
 	if(route.substr(0,1)=='#') route = route.substr(1);
 	if(route.substr(0,1)=='!') route = route.substr(1);
 
-	route = $.map(route.split('/'),
-		function(r) { return decodeURIComponent(r); }).join('/');
+	route = $.map(route.split('/'), function(r) {
+		try {
+			return decodeURIComponent(r);
+		} catch(e if e instanceof URIError) {
+			return r;
+		}
+
+	}).join('/');
 
 	return route;
 }
