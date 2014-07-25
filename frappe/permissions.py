@@ -187,3 +187,8 @@ def can_export(doctype, raise_exception=False):
 		else:
 			return False
 	return True
+
+def apply_user_permissions(doctype, ptype, user=None):
+	"""Check if apply_user_permissions is checked for a doctype, perm type, user combination"""
+	role_permissions = get_role_permissions(frappe.get_meta(doctype), user=user)
+	return role_permissions.get("apply_user_permissions", {}).get(ptype)
