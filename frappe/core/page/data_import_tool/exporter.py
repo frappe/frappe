@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 
 import frappe, json, os
 import frappe.permissions
-from frappe.utils.datautils import UnicodeWriter
+from frappe.utils.csvutils import UnicodeWriter
 from frappe.utils import cstr, cint, flt
 
 from frappe.core.page.data_import_tool.data_import_tool import data_keys

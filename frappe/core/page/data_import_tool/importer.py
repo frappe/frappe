@@ -8,7 +8,7 @@ import frappe.permissions
 
 from frappe import _
 
-from frappe.utils.datautils import getlink
+from frappe.utils.csvutils import getlink
 from frappe.utils.dateutils import parse_date
 
 from frappe.utils import cint, cstr, flt
@@ -27,7 +27,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 	if params.get("ignore_encoding_errors"):
 		ignore_encoding_errors = True
 
-	from frappe.utils.datautils import read_csv_content_from_uploaded_file
+	from frappe.utils.csvutils import read_csv_content_from_uploaded_file
 
 	def bad_template():
 		frappe.throw(_("Please do not change the rows above {0}").format(data_keys.data_separator))

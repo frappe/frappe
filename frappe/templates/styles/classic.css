@@ -1,0 +1,18 @@
+@import url(http://fonts.googleapis.com/css?family=Noto+Serif:400,700);
+
+/*
+	common style for whole page
+	This should include:
+	+ page size related settings
+	+ font family settings
+	+ line spacing settings
+*/
+.print-format div,
+.print-format span,
+.print-format td,
+.print-format h1,
+.print-format h2,
+.print-format h3,
+.print-format h4 {
+	font-family: 'Noto Serif', serif;
+}

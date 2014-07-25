@@ -4,19 +4,16 @@
 globals attached to frappe module
 + some utility functions that should probably be moved
 """
-
 from __future__ import unicode_literals
 
 from werkzeug.local import Local, release_local
-from werkzeug.exceptions import NotFound
-from MySQLdb import ProgrammingError as SQLError
-
-import os, sys, importlib, inspect
+import os, importlib, inspect
 import json
 
-from .exceptions import *
-
+# public
 from frappe.__version__ import __version__
+from .exceptions import *
+from .utils.jinja import get_jenv, get_template, render_template
 
 local = Local()
 
@@ -227,22 +224,22 @@ def get_request_header(key, default=None):
 
 def sendmail(recipients=(), sender="", subject="No Subject", message="No Message",
 		as_markdown=False, bulk=False, ref_doctype=None, ref_docname=None,
-		add_unsubscribe_link=False):
+		add_unsubscribe_link=False, attachments=None):
 
 	if bulk:
 		import frappe.utils.email_lib.bulk
 		frappe.utils.email_lib.bulk.send(recipients=recipients, sender=sender,
 			subject=subject, message=message, ref_doctype = ref_doctype,
-			ref_docname = ref_docname, add_unsubscribe_link=add_unsubscribe_link)
+			ref_docname = ref_docname, add_unsubscribe_link=add_unsubscribe_link, attachments=attachments)
 
 	else:
 		import frappe.utils.email_lib
 		if as_markdown:
 			frappe.utils.email_lib.sendmail_md(recipients, sender=sender,
-				subject=subject, msg=message)
+				subject=subject, msg=message, attachments=attachments)
 		else:
 			frappe.utils.email_lib.sendmail(recipients, sender=sender,
-				subject=subject, msg=message)
+				subject=subject, msg=message, attachments=attachments)
 
 logger = None
 whitelisted = []
@@ -597,62 +594,6 @@ def get_list(doctype, filters=None, fields=None, or_filters=None, docstatus=None
 
 run_query = get_list
 
-def get_jenv():
-	if not local.jenv:
-		from jinja2 import Environment, DebugUndefined
-		import frappe.utils
-
-		# frappe will be loaded last, so app templates will get precedence
-		jenv = Environment(loader = get_jloader(), undefined=DebugUndefined)
-		set_filters(jenv)
-
-		jenv.globals.update({
-			"frappe": sys.modules[__name__],
-			"frappe.utils": frappe.utils,
-			"_": _
-		})
-
-		local.jenv = jenv
-
-	return local.jenv
-
-def get_jloader():
-	if not local.jloader:
-		from jinja2 import ChoiceLoader, PackageLoader
-
-		apps = get_installed_apps()
-		apps.remove("frappe")
-
-		local.jloader = ChoiceLoader([PackageLoader(app, ".") \
-				for app in apps + ["frappe"]])
-
-	return local.jloader
-
-def set_filters(jenv):
-	from frappe.utils import global_date_format
-	from frappe.website.utils import get_hex_shade
-	from markdown2 import markdown
-	from json import dumps
-
-	jenv.filters["global_date_format"] = global_date_format
-	jenv.filters["markdown"] = markdown
-	jenv.filters["json"] = dumps
-	jenv.filters["get_hex_shade"] = get_hex_shade
-
-	# load jenv_filters from hooks.py
-	for app in get_all_apps(True):
-		for jenv_filter in (get_hooks(app_name=app).jenv_filter or []):
-			filter_name, filter_function = jenv_filter.split(":")
-			jenv.filters[filter_name] = get_attr(filter_function)
-
-def get_template(path):
-	return get_jenv().get_template(path)
-
-def render_template(template, context):
-	from jinja2 import Template
-	template = Template(template)
-	return template.render(**context)
-
 def get_website_route(doctype, name):
 	return db.get_value("Website Route", {"ref_doctype": doctype, "docname": name})
 
@@ -672,3 +613,26 @@ def get_test_records(doctype):
 			return json.loads(f.read())
 	else:
 		return []
+
+def format_value(value, df, doc=None):
+	import frappe.utils.formatters
+	return frappe.utils.formatters.format_value(value, df, doc)
+
+def get_print_format(doctype, name, print_format=None, style=None, as_pdf=False):
+	from frappe.website.render import build_page
+	local.form_dict.doctype = doctype
+	local.form_dict.name = name
+	local.form_dict.format = print_format
+	local.form_dict.style = style
+
+	html = build_page("print")
+
+	if as_pdf:
+		print_settings = db.get_singles_dict("Print Settings")
+		if int(print_settings.send_print_as_pdf or 0):
+			from utils.pdf import get_pdf
+			return get_pdf(html, {"page-size": print_settings.pdf_page_size})
+		else:
+			return html
+	else:
+		return html

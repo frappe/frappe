@@ -11,11 +11,11 @@ Build the `public` folders and setup languages
 import os, sys, frappe, json, shutil
 from cssmin import cssmin
 
-def bundle(no_compress, make_copy=False):
+def bundle(no_compress, make_copy=False, verbose=False):
 	"""concat / minify js files"""
 	# build js files
 	make_asset_dirs(make_copy=make_copy)
-	build(no_compress)
+	build(no_compress, verbose)
 
 def watch(no_compress):
 	"""watch and rebuild if necessary"""
@@ -49,11 +49,11 @@ def make_asset_dirs(make_copy=False):
 			else:
 				os.symlink(os.path.abspath(source), target)
 
-def build(no_compress=False):
+def build(no_compress=False, verbose=False):
 	assets_path = os.path.join(frappe.local.sites_path, "assets")
 
 	for target, sources in get_build_maps().iteritems():
-		pack(os.path.join(assets_path, target), sources, no_compress)
+		pack(os.path.join(assets_path, target), sources, no_compress, verbose)
 
 	shutil.copy(os.path.join(os.path.dirname(os.path.abspath(frappe.__file__)), 'data', 'languages.txt'), frappe.local.sites_path)
 	# reset_app_html()
@@ -89,7 +89,7 @@ def get_build_maps():
 
 timestamps = {}
 
-def pack(target, sources, no_compress):
+def pack(target, sources, no_compress, verbose):
 	from cStringIO import StringIO
 
 	outtype, outtxt = target.split(".")[-1], ''
@@ -109,7 +109,11 @@ def pack(target, sources, no_compress):
 			if outtype=="js" and extn=="js" and (not no_compress) and suffix!="concat" and (".min." not in f):
 				tmpin, tmpout = StringIO(data.encode('utf-8')), StringIO()
 				jsm.minify(tmpin, tmpout)
-				outtxt += unicode(tmpout.getvalue() or '', 'utf-8').strip('\n') + ';'
+				minified = tmpout.getvalue()
+				outtxt += unicode(minified or '', 'utf-8').strip('\n') + ';'
+
+				if verbose:
+					print "{0}: {1}k".format(f, int(len(minified) / 1024))
 			elif outtype=="js" and extn=="html":
 				# add to frappe.templates
 				content = data.replace("\n", " ").replace("'", "\'")

@@ -15,7 +15,7 @@ frappe.tools.downloadify = function(data, roles, me) {
 	var download_from_server = function() {
 		open_url_post("/", {
 			args: { data: data, filename: me.title },
-			cmd: "frappe.utils.datautils.send_csv_to_client"
+			cmd: "frappe.utils.csvutils.send_csv_to_client"
 		}, true);
 	}
 

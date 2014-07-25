@@ -244,9 +244,12 @@ frappe.request.report_error = function(xhr, request_opts) {
 
 	if (exc) {
 		var error_report_email = (frappe.boot.error_report_email || []).join(", ");
-		var error_message = '<div><a class="report-btn"><i class="icon-fixed-width icon-envelope"></i> '
-			+ __("Report this issue") + '</a>'
-			+ '<pre style="max-height: 300px; margin-top: 7px;">' + exc + '</pre></div>';
+		var error_message = '<div>\
+			<pre style="max-height: 300px; margin-top: 7px;">' + exc + '</pre>'
+			+'<p class="text-right"><a class="btn btn-default report-btn">\
+				<i class="icon-fixed-width icon-envelope"></i> '
+			+ __("Report this issue") + '</a></p>'
+			+'</div>';
 
 		var msg_dialog = msgprint(error_message);
 

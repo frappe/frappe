@@ -84,6 +84,9 @@ frappe.Application = Class.extend({
 			if(frappe.boot.timezone_info) {
 				moment.tz.add(frappe.boot.timezone_info);
 			}
+			if(frappe.boot.print_css) {
+				frappe.dom.set_style(frappe.boot.print_css)
+			}
 		} else {
 			this.set_as_guest();
 		}

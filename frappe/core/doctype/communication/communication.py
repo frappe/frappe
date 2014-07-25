@@ -34,7 +34,7 @@ class Communication(Document):
 @frappe.whitelist()
 def make(doctype=None, name=None, content=None, subject=None, sent_or_received = "Sent",
 	sender=None, recipients=None, communication_medium="Email", send_email=False,
-	print_html=None, attachments='[]', send_me_a_copy=False, set_lead=True, date=None):
+	print_html=None, print_format=None, attachments='[]', send_me_a_copy=False, set_lead=True, date=None):
 
 	if doctype and name and not frappe.has_permission(doctype, "email", name):
 		raise frappe.PermissionError("You are not allowed to send emails related to: {doctype} {name}".format(
@@ -42,12 +42,12 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 
 	_make(doctype=doctype, name=name, content=content, subject=subject, sent_or_received=sent_or_received,
 		sender=sender, recipients=recipients, communication_medium=communication_medium, send_email=send_email,
-		print_html=print_html, attachments=attachments, send_me_a_copy=send_me_a_copy, set_lead=set_lead,
+		print_html=print_html, print_format=print_format, attachments=attachments, send_me_a_copy=send_me_a_copy, set_lead=set_lead,
 		date=date)
 
 def _make(doctype=None, name=None, content=None, subject=None, sent_or_received = "Sent",
 	sender=None, recipients=None, communication_medium="Email", send_email=False,
-	print_html=None, attachments='[]', send_me_a_copy=False, set_lead=True, date=None):
+	print_html=None, print_format=None, attachments='[]', send_me_a_copy=False, set_lead=True, date=None):
 
 	# add to Communication
 	sent_via = None
@@ -89,7 +89,7 @@ def _make(doctype=None, name=None, content=None, subject=None, sent_or_received 
 
 	if send_email:
 		d = comm
-		send_comm_email(d, name, sent_via, print_html, attachments, send_me_a_copy)
+		send_comm_email(d, name, sent_via, print_html, print_format, attachments, send_me_a_copy)
 
 @frappe.whitelist()
 def get_customer_supplier(args=None):
@@ -110,7 +110,7 @@ def get_customer_supplier(args=None):
 		}
 	return {}
 
-def send_comm_email(d, name, sent_via=None, print_html=None, attachments='[]', send_me_a_copy=False):
+def send_comm_email(d, name, sent_via=None, print_html=None, print_format=None, attachments='[]', send_me_a_copy=False):
 	footer = None
 
 
@@ -130,26 +130,8 @@ def send_comm_email(d, name, sent_via=None, print_html=None, attachments='[]', s
 	if send_me_a_copy:
 		mail.cc.append(frappe.db.get_value("User", frappe.session.user, "email"))
 
-	if print_html:
-		print_html = scrub_urls(print_html)
-
-		outgoing_email_settings = frappe.get_doc("Outgoing Email Settings", "Outgoing Email Settings")
-		send_print_as_pdf = cint(outgoing_email_settings.send_print_as_pdf)
-
-		if send_print_as_pdf:
-			try:
-				options = {
-					'page-size': outgoing_email_settings.pdf_page_size or 'A4'
-				}
-				mail.add_pdf_attachment(name.replace(' ','').replace('/','-') + '.pdf', print_html,
-					options=options)
-			except Exception:
-				frappe.msgprint(_("Error generating PDF, attachment sent as HTML"))
-				send_print_as_pdf = 0
-
-		if not send_print_as_pdf:
-			mail.add_attachment(name.replace(' ','').replace('/','-') + '.html',
-				print_html, 'text/html')
+	if print_html or print_format:
+		attach_print(mail, sent_via, print_html, print_format)
 
 	for a in json.loads(attachments):
 		try:
@@ -158,6 +140,27 @@ def send_comm_email(d, name, sent_via=None, print_html=None, attachments='[]', s
 			frappe.throw(_("Unable to find attachment {0}").format(a))
 
 	send(mail)
+
+def attach_print(mail, sent_via, print_html, print_format):
+	name = sent_via.name
+	if not print_html and print_format:
+		print_html = frappe.get_print_format(sent_via.doctype, sent_via.name, print_format)
+
+	print_settings = frappe.db.get_singles_dict("Print Settings")
+	send_print_as_pdf = cint(print_settings.send_print_as_pdf)
+
+	if send_print_as_pdf:
+		try:
+			mail.add_pdf_attachment(name.replace(' ','').replace('/','-') + '.pdf', print_html)
+		except Exception:
+			frappe.msgprint(_("Error generating PDF, attachment sent as HTML"))
+			frappe.errprint(frappe.get_traceback())
+			send_print_as_pdf = 0
+
+	if not send_print_as_pdf:
+		print_html = scrub_urls(print_html)
+		mail.add_attachment(name.replace(' ','').replace('/','-') + '.html',
+			print_html, 'text/html')
 
 def set_portal_link(sent_via, comm):
 	"""set portal link in footer"""

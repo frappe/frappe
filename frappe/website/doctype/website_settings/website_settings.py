@@ -98,7 +98,9 @@ def get_website_settings():
 		"disable_signup"]:
 		context[k] = int(context.get(k) or 0)
 
-	context.url = quote(str(get_request_site_address(full_address=True)), safe="/:")
+	if frappe.request:
+		context.url = quote(str(get_request_site_address(full_address=True)), safe="/:")
+
 	context.encoded_title = quote(encode(context.title or ""), str(""))
 
 	for update_website_context in hooks.update_website_context or []:

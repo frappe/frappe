@@ -2,7 +2,7 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-from frappe.utils import formatdate, fmt_money
+from frappe.utils import formatdate, fmt_money, flt
 from frappe.model.meta import get_field_currency, get_field_precision
 
 def format_value(value, df, doc=None):
@@ -10,13 +10,17 @@ def format_value(value, df, doc=None):
 		return formatdate(value)
 
 	elif df.fieldtype == "Currency":
-		return fmt_money(value, precision=get_field_precision(df, doc), currency=get_field_currency(df, doc))
+		return fmt_money(value, precision=get_field_precision(df, doc),
+			currency=get_field_currency(df, doc) if doc else None)
 
 	elif df.fieldtype == "Float":
-		return fmt_money(value)
+		return fmt_money(value, precision=get_field_precision(df, doc))
 
 	elif df.fieldtype == "Percent":
 		return "{}%".format(flt(value, 2))
+
+	if value is None:
+		value = ""
 
 	return value
 

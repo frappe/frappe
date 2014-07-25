@@ -17,11 +17,13 @@
 
 .appframe-footer {
 	border-top: 1px solid #ddd;
-	background-color: rgba(255, 255, 255, 0.9);
+	/*background-color: rgba(255, 255, 255, 0.9);*/
+	background-color: #f9f9f9;
 }
 
 .appframe-titlebar, .appframe-iconbar, .appframe-form {
-	background-color: rgba(255, 255, 255, 0.7);
+	/*background-color: rgba(255, 255, 255, 0.7);*/
+	background-color: #f9f9f9;
 }
 
 .appframe-iconbar {
