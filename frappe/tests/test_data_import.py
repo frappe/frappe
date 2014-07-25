@@ -4,7 +4,7 @@
 import frappe, unittest
 from frappe.core.page.data_import_tool import exporter
 from frappe.core.page.data_import_tool import importer
-from frappe.utils.datautils import read_csv_content
+from frappe.utils.csvutils import read_csv_content
 
 class TestDataImport(unittest.TestCase):
 	def test_export(self):

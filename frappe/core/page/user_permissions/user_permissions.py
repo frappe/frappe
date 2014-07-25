@@ -7,7 +7,7 @@ from frappe import _
 import frappe.defaults
 import frappe.permissions
 from frappe.core.doctype.user.user import get_system_users
-from frappe.utils.datautils import UnicodeWriter, read_csv_content_from_uploaded_file
+from frappe.utils.csvutils import UnicodeWriter, read_csv_content_from_uploaded_file
 from frappe.defaults import clear_default
 
 @frappe.whitelist()

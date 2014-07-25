@@ -4,19 +4,16 @@
 globals attached to frappe module
 + some utility functions that should probably be moved
 """
-
 from __future__ import unicode_literals
 
 from werkzeug.local import Local, release_local
-from werkzeug.exceptions import NotFound
-from MySQLdb import ProgrammingError as SQLError
-
-import os, sys, importlib, inspect
+import os, importlib, inspect
 import json
 
-from .exceptions import *
-
+# public
 from frappe.__version__ import __version__
+from .exceptions import *
+from .utils.jinja import get_jenv, get_template, render_template
 
 local = Local()
 
@@ -596,67 +593,6 @@ def get_list(doctype, filters=None, fields=None, or_filters=None, docstatus=None
 				ignore_permissions=ignore_permissions, user=user)
 
 run_query = get_list
-
-def get_jenv():
-	if not local.jenv:
-		from jinja2 import Environment, DebugUndefined
-		import frappe.utils
-
-		# frappe will be loaded last, so app templates will get precedence
-		jenv = Environment(loader = get_jloader(),
-			undefined=DebugUndefined)
-		set_filters(jenv)
-
-		jenv.globals.update({
-			"frappe": sys.modules[__name__],
-			"frappe.utils": frappe.utils,
-			"get_visible_columns": \
-				frappe.get_attr("frappe.templates.pages.print.get_visible_columns"),
-			"_": _
-		})
-
-		local.jenv = jenv
-
-	return local.jenv
-
-def get_jloader():
-	if not local.jloader:
-		from jinja2 import ChoiceLoader, PackageLoader
-
-		apps = get_installed_apps()
-		apps.remove("frappe")
-
-		local.jloader = ChoiceLoader([PackageLoader(app, ".") \
-				for app in apps + ["frappe"]])
-
-	return local.jloader
-
-def set_filters(jenv):
-	from frappe.utils import global_date_format, cint
-	from frappe.website.utils import get_hex_shade
-	from markdown2 import markdown
-	from json import dumps
-
-	jenv.filters["global_date_format"] = global_date_format
-	jenv.filters["markdown"] = markdown
-	jenv.filters["json"] = dumps
-	jenv.filters["get_hex_shade"] = get_hex_shade
-	jenv.filters["len"] = len
-	jenv.filters["int"] = cint
-
-	# load jenv_filters from hooks.py
-	for app in get_all_apps(True):
-		for jenv_filter in (get_hooks(app_name=app).jenv_filter or []):
-			filter_name, filter_function = jenv_filter.split(":")
-			jenv.filters[filter_name] = get_attr(filter_function)
-
-def get_template(path):
-	return get_jenv().get_template(path)
-
-def render_template(template, context):
-	from jinja2 import Template
-	template = Template(template)
-	return template.render(**context)
 
 def get_website_route(doctype, name):
 	return db.get_value("Website Route", {"ref_doctype": doctype, "docname": name})

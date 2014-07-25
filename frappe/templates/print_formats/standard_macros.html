@@ -26,7 +26,7 @@
     				<tr>
     					<th style="width: 40px">Sr</th>
     					{% for tdf in visible_columns %}
-    						<th style="width: {{ get_width(tdf.fieldtype) }}px;" class="{{ get_align_class(tdf.fieldtype) }}">
+    						<th style="width: {{ get_width(tdf) }}px;" class="{{ get_align_class(tdf.fieldtype) }}">
     							{{ _(tdf.label) }}</th>
     					{% endfor %}
     				</tr>
@@ -82,8 +82,9 @@
 	{% endif %}
 {%- endmacro %}
 
-{% macro get_width(fieldtype) -%}
-	{%- if fieldtype in ("Int", "Check", "Float", "Currency") -%}{{ 80 }}
+{% macro get_width(df) -%}
+	{%- if df.print_width -%}{{ (df.print_width|str).replace("px", "") }}
+	{%- elif df.fieldtype in ("Int", "Check", "Float", "Currency") -%}{{ 80 }}
 	{%- else -%}{{ 150 }}{% endif -%}
 {%- endmacro %}
 

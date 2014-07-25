@@ -68,7 +68,7 @@ def get_html(doc, name=None, print_format=None, meta=None,
 	if print_format in ("Standard", standard_format):
 		template = jenv.get_template("templates/print_formats/standard.html")
 	else:
-		template =jenv.from_string(get_print_format(doc.doctype,
+		template = jenv.from_string(get_print_format(doc.doctype,
 			print_format))
 
 	args = {
