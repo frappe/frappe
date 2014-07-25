@@ -146,11 +146,13 @@ frappe.views.QueryReport = Class.extend({
 				}
 
 				var data = [];
-				$.each(me.data, function(i, d) {
+				// get filtered data
+				for (var i=0, l=me.dataView.getLength(); i<l; i++) {
+					var d = me.dataView.getItem(i);
 					var newd = {}; data.push(newd);
 					$.each(d, function(k, v) {
 						newd[k.replace(/ /g, "_").toLowerCase()] = v; });
-				});
+				}
 
 				var content = frappe.render(html_format,
 					{data: data, filters:me.get_values(), report:me});
@@ -185,10 +187,16 @@ frappe.views.QueryReport = Class.extend({
 				}
 
 				if(df.get_query) f.get_query = df.get_query;
+				if(df.on_change) f.on_change = df.on_change;
 
 				// run report on change
 				f.$input.on("change", function() {
-					me.trigger_refresh();
+					f.$input.blur();
+					if (f.on_change) {
+						f.on_change(me);
+					} else {
+						me.trigger_refresh();
+					}
 				});
 			}
 		});
@@ -305,6 +313,11 @@ frappe.views.QueryReport = Class.extend({
 		this.setup_header_row();
 		this.grid.init();
 		this.setup_sort();
+
+		// further setup of grid like click subscription for tree
+		if (this.get_query_report_opts().tree) {
+			this.setup_tree();
+		}
 	},
 	make_columns: function(columns) {
 		var me = this;
@@ -351,16 +364,28 @@ frappe.views.QueryReport = Class.extend({
 				return col
 		}));
 	},
+	get_query_report_opts: function() {
+		return frappe.query_reports[this.report_name] || {};
+	},
 	get_formatter: function() {
 		var formatter = function(row, cell, value, columnDef, dataContext) {
-			return frappe.format(value, columnDef.df, null, dataContext);
+			var value = frappe.format(value, columnDef.df, null, dataContext);
+
+			if (columnDef.df.is_tree) {
+				value = frappe.query_report.tree_formatter(row, cell, value, columnDef, dataContext);
+			}
+
+			return value;
 		};
 
-		var query_report_opts = frappe.query_reports[this.report_name];
-		if (query_report_opts && query_report_opts.formatter) {
+		var query_report_opts = this.get_query_report_opts();
+		if (query_report_opts.formatter) {
+			var default_formatter = formatter;
+
 			// custom formatter
-			query_report_opts["default_formatter"] = formatter;
-			formatter = query_report_opts.formatter;
+			formatter = function(row, cell, value, columnDef, dataContext) {
+				return query_report_opts.formatter(row, cell, value, columnDef, dataContext, default_formatter);
+			}
 		}
 
 		return formatter;
@@ -387,8 +412,15 @@ frappe.views.QueryReport = Class.extend({
 		// initialize the model
 		this.dataView = new Slick.Data.DataView({ inlineFilters: true });
 		this.dataView.beginUpdate();
+
+		if (this.get_query_report_opts().tree) {
+			this.setup_item_by_name();
+			this.dataView.setFilter(this.tree_filter);
+		} else {
+			this.dataView.setFilter(this.inline_filter);
+		}
+
 		this.dataView.setItems(this.data);
-		this.dataView.setFilter(this.inline_filter);
 		this.dataView.endUpdate();
 
 		var me = this;
@@ -414,6 +446,58 @@ frappe.views.QueryReport = Class.extend({
 			}
 		}
 		return true;
+	},
+	setup_item_by_name: function() {
+		this.item_by_name = {};
+		this.name_field = this.get_query_report_opts().name_field;
+		this.parent_field = this.get_query_report_opts().parent_field;
+		var initial_depth = this.get_query_report_opts().initial_depth;
+		for (var i=0, l=this.data.length; i<l; i++) {
+			var item = this.data[i];
+
+			// only if name field has value
+			if (item[this.name_field]) {
+				this.item_by_name[item[this.name_field]] = item;
+			}
+
+			// set collapsed if initial depth is specified
+			if (initial_depth && item.indent && item.indent==(initial_depth - 1)) {
+				item._collapsed = true;
+			}
+		}
+	},
+	tree_filter: function(item) {
+		var me = frappe.query_report;
+
+		// apply inline filters
+		if (!me.inline_filter(item)) return false;
+
+		var parent_name = item[me.parent_field];
+		while (parent_name) {
+			if (me.item_by_name[parent_name]._collapsed) {
+				return false;
+			}
+			parent_name = me.item_by_name[parent_name][me.parent_field];
+		}
+		return true;
+	},
+	tree_formatter: function(row, cell, value, columnDef, dataContext) {
+		var me = frappe.query_report;
+		var $span = $("<span></span>")
+			.css("padding-left", (cint(dataContext.indent) * 21) + "px")
+			.html(value);
+
+		var idx = me.dataView.getIdxById(dataContext.id);
+		var show_toggle = me.data[idx + 1] && (me.data[idx + 1].indent > me.data[idx].indent)
+
+		if (dataContext[me.name_field] && show_toggle) {
+			$('<span class="toggle"></span>')
+				.addClass(dataContext._collapsed ? "expand" : "collapse")
+				.css("margin-right", "7px")
+				.prependTo($span);
+		}
+
+		return $span.wrap("<p></p>").parent().html();
 	},
 	compare_values: function(value, filter, columnDef) {
 		var invert = false;
@@ -519,6 +603,32 @@ frappe.views.QueryReport = Class.extend({
 			me.dataView.endUpdate();
 			me.dataView.refresh();
 	    });
+	},
+	setup_tree: function() {
+		// set these in frappe.query_reports[report_name]
+		// "tree": true,
+		// "name_field": "account",
+		// "parent_field": "parent_account",
+		// "initial_depth": 3
+
+		// also set "is_tree" true for ColumnDef
+
+		var me = this;
+		this.grid.onClick.subscribe(function (e, args) {
+			if ($(e.target).hasClass("toggle")) {
+				var item = me.dataView.getItem(args.row);
+				if (item) {
+					if (!item._collapsed) {
+						item._collapsed = true;
+					} else {
+						item._collapsed = false;
+					}
+
+					me.dataView.updateItem(item.id, item);
+				}
+				e.stopImmediatePropagation();
+			}
+		});
 	},
 	export_report: function() {
 		if(!frappe.model.can_export(this.report_doc.ref_doctype)) {
