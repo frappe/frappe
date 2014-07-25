@@ -44,7 +44,7 @@ class CustomizeForm(Document):
 		'default': 'Text'
 	}
 
-	allowed_fieldtype_change = (('Currency', 'Float'), ('Small Text', 'Data'),
+	allowed_fieldtype_change = (('Currency', 'Float', 'Percent'), ('Small Text', 'Data'),
 		('Text', 'Text Editor', 'Code'), ('Data', 'Select'))
 
 	def on_update(self):

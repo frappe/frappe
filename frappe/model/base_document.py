@@ -238,7 +238,7 @@ class BaseDocument(object):
 				if df.fieldtype == "Int":
 					self.set(df.fieldname, cint(self.get(df.fieldname)))
 
-				elif df.fieldtype in ("Float", "Currency"):
+				elif df.fieldtype in ("Float", "Currency", "Percent"):
 					self.set(df.fieldname, flt(self.get(df.fieldname)))
 
 		if self.docstatus is not None:

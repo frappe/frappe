@@ -128,7 +128,7 @@ def check_record(d):
 				d[key] = parse_date(val)
 			elif val and docfield.fieldtype in ["Int", "Check"]:
 				d[key] = cint(val)
-			elif val and docfield.fieldtype in ["Currency", "Float"]:
+			elif val and docfield.fieldtype in ["Currency", "Float", "Percent"]:
 				d[key] = flt(val)
 
 def import_doc(d, doctype, overwrite, row_idx, submit=False, ignore_links=False):

@@ -495,7 +495,7 @@ class Document(BaseDocument):
 
 		val1 = doc.get(fieldname)
 
-		if df.fieldtype in ("Currency", "Float"):
+		if df.fieldtype in ("Currency", "Float", "Percent"):
 			val1 = flt(val1, self.precision(df.fieldname, doc.parentfield or None))
 			val2 = flt(val2, self.precision(df.fieldname, doc.parentfield or None))
 		elif df.fieldtype in ("Int", "Check"):
@@ -525,7 +525,7 @@ class Document(BaseDocument):
 	def round_floats_in(self, doc, fieldnames=None):
 		if not fieldnames:
 			fieldnames = (df.fieldname for df in
-				doc.meta.get("fields", {"fieldtype": ["in", ["Currency", "Float"]]}))
+				doc.meta.get("fields", {"fieldtype": ["in", ["Currency", "Float", "Percent"]]}))
 
 		for fieldname in fieldnames:
 			doc.set(fieldname, flt(doc.get(fieldname), self.precision(fieldname, doc.parentfield)))
@@ -552,7 +552,7 @@ class Document(BaseDocument):
 			if df.fieldtype == "Currency":
 				self._precision[parentfield or "main"][fieldname] = cint(self._precision.options.get(df.options)) or \
 					self._precision.default
-			elif df.fieldtype == "Float":
+			elif df.fieldtype in ("Float", "Percent"):
 				self._precision[parentfield or "main"][fieldname] = self._precision.default
 
 		return self._precision[parentfield or "main"][fieldname]

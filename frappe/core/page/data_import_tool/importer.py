@@ -103,7 +103,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 								d[fieldname] = rows[idx][column_idx]
 								if fieldtype in ("Int", "Check"):
 									d[fieldname] = cint(d[fieldname])
-								elif fieldtype in ("Float", "Currency"):
+								elif fieldtype in ("Float", "Currency", "Percent"):
 									d[fieldname] = flt(d[fieldname])
 								elif fieldtype == "Date":
 									d[fieldname] = parse_date(d[fieldname]) if d[fieldname] else None
