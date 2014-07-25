@@ -64,8 +64,12 @@ frappe.get_route_str = function(route) {
 	route = $.map(route.split('/'), function(r) {
 		try {
 			return decodeURIComponent(r);
-		} catch(e if e instanceof URIError) {
-			return r;
+		} catch(e) {
+			if (e instanceof URIError) {
+				return r;
+			} else {
+				throw e;
+			}
 		}
 
 	}).join('/');
