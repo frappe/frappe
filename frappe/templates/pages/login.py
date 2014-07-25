@@ -186,7 +186,7 @@ def create_oauth_user(data, provider):
 		"first_name": data.get("first_name") or data.get("given_name") or data.get("name"),
 		"last_name": data.get("last_name") or data.get("family_name"),
 		"email": data["email"],
-		"gender": data.get("gender"),
+		"gender": data.get("gender").title(),
 		"enabled": 1,
 		"new_password": frappe.generate_hash(data["email"]),
 		"location": data.get("location"),
