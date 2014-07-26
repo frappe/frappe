@@ -20,7 +20,7 @@ Action,حدث
 Actions,الإجراءات
 "Actions for workflow (e.g. Approve, Cancel).",الإجراءات ل سير العمل ( الموافقة على مثل إلغاء) .
 Add,إضافة
-Add A New Rule,إضافة صلاحية جديدة
+Add A New Rule,إضافة قاعدة جديدة
 Add A User Permission,إضافة مستخدم إذن
 Add Attachments,إضافة مرفقات
 Add Bookmark,إضافة للمفضلة
@@ -71,8 +71,8 @@ Always use above Login Id as sender,استخدام دائما فوق معرف ت
 Amend,تعديل
 "An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [<a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a>]","ملف رمز التمديد مع منظمة البن الدولية. يجب أن تكون 16 × 16 بكسل. تم إنشاؤها باستخدام مولد فافيكون. [ <a href=""http://favicon-generator.org/"" target=""_blank"">فافيكون-generator.org</a> ]"
 "Another {0} with name {1} exists, select another name",آخر {0} مع اسم {1} موجودا، حدد اسم آخر
-Anyone Can Read,أي شخص يمكنه قراءة
-Anyone Can Write,أي شخص يمكه كتابة
+Anyone Can Read,أي شخص يمكنه القراءة
+Anyone Can Write,أي شخص يمكه الكتابة
 "Apart from Role based Permission Rules, you can apply User Permissions based on DocTypes.",وبصرف النظر عن دور أساس القواعد إذن ، يمكنك تطبيق أذونات المستخدم استنادا DocTypes .
 "Apart from System Manager, roles with 'Set User Permissions' right can set permissions for other users for that Document Type.","وبصرف النظر عن إدارة النظام ، يمكن أن الأدوار مع حق "" تعيين أذونات المستخدم تعيين أذونات للمستخدمين الآخرين لذلك نوع الوثيقة ."
 App Already Installed,التطبيق المثبتة مسبقا
@@ -622,7 +622,7 @@ Next State,الحالية التالية
 Next actions,الإجراءات التالية
 No,لا
 No Action,بدون إجراء
-No Cache,بدون كاش
+No Cache,بدون ذاكرة مؤقتة
 No Communication tagged with this ,لا الاتصالات المفتاحية هذه
 No Copy,اي نسخة
 No Permissions set for this criteria.,لم يحدد ضوابط لهذه المعايير.
