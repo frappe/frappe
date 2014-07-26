@@ -55,7 +55,7 @@ All Applications,جميع التطبيقات
 All Day,كل يوم
 "All possible Workflow States and roles of the workflow. <br>Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""",جميع الدول سير العمل والأدوار الممكنة لسير العمل. <br> Docstatus خيارات: هو &quot;المحفوظة&quot; 0، يتم &quot;المقدمة&quot; (1) ويتم &quot;إلغاء&quot; 2
 Allow Attach,السماح بالإرفاق
-Allow Import,السماح بالإستيراج
+Allow Import,السماح بالإستيراد
 Allow Import via Data Import Tool,السماح بالإستيراد خلال أداة إستيراد البيانات
 Allow Rename,السماح بإعادة التسمية
 Allow on Submit,السماح بالإعتماد
@@ -205,22 +205,22 @@ Copyright,حق النشر
 Core,جوهر
 Could not connect to outgoing email server,لا يمكن الاتصال بخادم البريد الإلكتروني المنتهية ولايته
 Could not find {0},لا يمكن أن تجد {0}
-Count,عد
-Country,بلد
-Create,خلق
-Created Custom Field {0} in {1},خلق حقل مخصص {0} في {1}
-Created Customer Issue,إنشاء العدد العملاء
-Created Opportunity,خلق الفرص
+Count,عدد
+Country,الدولة
+Create,انشاء
+Created Custom Field {0} in {1},إنشاء الحقل المخصص {0} في {1}
+Created Customer Issue,إنشاء مشاكل عميل
+Created Opportunity,إنشاء فرصة
 Created Support Ticket,إنشاء تذكرة دعم
 Creation / Modified By,إنشاء / تم التعديل بواسطة
 Currency,عملة
-Current status,الوضع الحالي
+Current status,الحالة الحالية
 Custom CSS,العرف CSS
-Custom Field,مخصص الميدانية
-Custom Javascript,العرف الجافا سكريبت
+Custom Field,حقل مخصص
+Custom Javascript,جافا سكريبت مخصصة
 Custom Reports,تقارير مخصصة
-Custom Script,سيناريو مخصص
-Custom?,العرف؟
+Custom Script,سكربت محصص
+Custom?,مخصص
 Customize,تخصيص
 Customize Form,تخصيص نموذج
 Customize Form Field,تخصيص حقل نموذج
