@@ -7,11 +7,14 @@
     <meta name="description" content="">
     <meta name="author" content="">
     <title>{%= title %}</title>
-    <link href="{%= frappe.utils.get_url() %}/assets/frappe/css/bootstrap.css" rel="stylesheet">
+    <link href="{%= frappe.urllib.get_base_url() %}/assets/frappe/css/bootstrap.css" rel="stylesheet">
+	<link href="{%= frappe.urllib.get_base_url() %}/assets/frappe/css/print.css" rel="stylesheet" type="text/css">
   </head>
   <body>
-	  <div class="container">
-        {%= content %}
+	  <div class="print-format-gutter">
+		  <div class="print-format">
+	        {%= content %}
+		  </div>
 	  </div>
   </body>
 </html>
