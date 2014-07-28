@@ -161,7 +161,7 @@ Chat,Chat
 Check,Vérifier
 Check / Uncheck roles assigned to the User. Click on the Role to find out what permissions that Role has.,Cochez / Décochez les rôles assignés au profil. Cliquez sur le Rôle de savoir ce que ce rôle comme autorisations.
 Check this if you want to send emails as this id only (in case of restriction by your email provider).,Cochez cette case si vous souhaitez envoyer des emails en tant que cette id seulement (en cas de restriction par votre fournisseur de messagerie).
-Check this to make this the default letter head in all prints,Cochez cette case pour faire de cette entête de lettre, celle par défaut dans toutes les imprimés
+Check this to make this the default letter head in all prints,"Cochez cette case pour faire de cette entête de lettre, celle par défaut dans toutes les imprimés"
 Checked items shown on desktop,Les éléments cochés sont indiqués sur le bureau
 Child Tables are shown as a Grid in other DocTypes.,Les tableaux enfants sont présentés comme une grille dans les autres documents.
 City,Ville
