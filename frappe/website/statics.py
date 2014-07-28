@@ -18,8 +18,10 @@ def sync_statics(rebuild=False):
 		rebuild = False
 
 class sync(object):
+	def __init__(self, verbose=False):
+		self.verbose = verbose
+
 	def start(self, rebuild=False):
-		self.verbose = False
 		self.synced = []
 		self.synced_paths = []
 		self.to_insert = []
@@ -38,7 +40,6 @@ class sync(object):
 			for basepath, folders, files in os.walk(self.statics_path):
 				self.sync_folder(basepath, folders, files)
 
-
 	def sync_folder(self, basepath, folders, files):
 		self.get_index_txt(basepath, files)
 		index_found = self.sync_index_page(basepath, files)
@@ -51,7 +52,6 @@ class sync(object):
 			self.sync_using_given_index(basepath, folders, files)
 		else:
 			self.sync_alphabetically(basepath, folders, [filename for filename in files if filename.endswith('html') or filename.endswith('md')])
-
 
 	def get_index_txt(self, basepath, files):
 		self.index = []
@@ -134,7 +134,7 @@ class sync(object):
 
 		if self.to_update:
 			for i, route_details in enumerate(self.to_update):
-				if self.verbose:
+				if not self.verbose:
 					print "Updating " + route_details.name
 				else:
 					sys.stdout.write("\rUpdating statics {0}/{1}".format(i+1, len(self.to_update)))
@@ -236,22 +236,6 @@ def get_static_content(fpath, docname, route):
 				if first_line.startswith("# "):
 					d.title = first_line[2:]
 					content = "\n".join(lines[1:])
-
-				# if "{index}" in content:
-				# 	children = get_route_children(route)
-				# 	html = frappe.get_template("templates/includes/static_index.html").render({
-				# 			"items":children})
-				# 	content = content.replace("{index}", html)
-				#
-				# if "{next}" in content:
-				# 	next_item = get_next(route)
-				# 	html = ""
-				# 	if next_item:
-				# 		html = '''<p>
-				# 			<br><a href="{name}" class="btn btn-primary">
-				# 				{page_title} <i class="icon-chevron-right"></i></a>
-				# 		</p>'''.format(**next_item)
-				# 	content = content.replace("{next}", html)
 
 				content = markdown(content)
 

@@ -71,10 +71,21 @@ class WebsiteGenerator(Document):
 		if self.get_route() != route_docname:
 			route.rename(self.get_page_name(), self.get_parent_website_route())
 
-		route.idx = self.idx
-		route.page_title = self.get_page_title()
-		self.update_permissions(route)
-		route.save(ignore_permissions=True)
+		if self.is_changed(route):
+			route.idx = self.idx
+			route.page_title = self.get_page_title()
+			self.update_permissions(route)
+			route.save(ignore_permissions=True)
+
+	def is_changed(self, route):
+		if route.idx != self.idx or route.page_title != self.get_page_title():
+			return True
+		if self.meta.get_field("public_read"):
+			if route.public_read != self.public_read \
+				or route.public_write != self.public_write:
+				return True
+
+		return False
 
 	def insert_route(self):
 		if self.modified:

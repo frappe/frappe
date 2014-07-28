@@ -8,7 +8,10 @@ from frappe.utils.nestedset import rebuild_tree
 from frappe.utils import update_progress_bar
 import statics, render
 
-def sync(app=None):
+all_routes = None
+
+def sync(app=None, verbose=False):
+	global all_routes
 	if app:
 		apps = [app]
 	else:
@@ -16,40 +19,59 @@ def sync(app=None):
 
 	render.clear_cache()
 
-	# delete all static web pages
-	statics.delete_static_web_pages()
+	all_routes = frappe.db.sql_list("select name from `tabWebsite Route`")
 
-	# delete all routes (resetting)
-	frappe.db.sql("delete from `tabWebsite Route`")
-
-	routes, generators = [], []
+	# pages
+	pages = []
 	for app in apps:
-		routes += get_sync_pages(app)
-		generators += get_sync_generators(app)
+		pages += get_sync_pages(app)
+	sync_pages(pages)
 
-	sync_pages(routes)
-	sync_generators(generators)
-
-	# sync statics
-	statics_sync = statics.sync()
+	# sync statics (make generators)
+	statics_sync = statics.sync(verbose=verbose)
 	statics_sync.start()
 
+	# generators
+	generators = []
+	for app in apps:
+		generators += get_sync_generators(app)
+	sync_generators(generators)
+
+	# delete remaining routes
+	for r in all_routes:
+		frappe.delete_doc("Website Route", r)
+
 def sync_pages(routes):
+	global all_routes
 	l = len(routes)
 	if l:
 		for i, r in enumerate(routes):
-			r.insert(ignore_permissions=True)
+			r.autoname()
+			if frappe.db.exists("Website Route", r.name):
+				route = frappe.get_doc("Website Route", r.name)
+				for key in ("page_title", "controller", "template"):
+					route.set(key, r.get(key))
+				route.save(ignore_permissions=True)
+			else:
+				r.insert(ignore_permissions=True)
+
+			if r.name in all_routes:
+				all_routes.remove(r.name)
 			update_progress_bar("Updating Pages", i, l)
 
 		print ""
 
 def sync_generators(generators):
+	global all_routes
 	l = len(generators)
 	if l:
 		frappe.flags.in_sync_website = True
 		for i, g in enumerate(generators):
 			doc = frappe.get_doc(g[0], g[1])
 			doc.update_sitemap()
+			route = doc.get_route()
+			if route in all_routes:
+				all_routes.remove(route)
 			update_progress_bar("Updating Generators", i, l)
 			sys.stdout.flush()
 

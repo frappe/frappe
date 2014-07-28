@@ -22,7 +22,6 @@ class WebsiteRoute(NestedSet):
 		return url
 
 	def validate(self):
-		self.check_if_page_name_is_unique()
 		if not frappe.flags.in_sync_website:
 			self.make_private_if_parent_is_private()
 
@@ -72,21 +71,6 @@ class WebsiteRoute(NestedSet):
 			child = frappe.get_doc("Website Route", name)
 			child.parent_website_route = self.name
 			child.save()
-
-	def check_if_page_name_is_unique(self):
-		exists = False
-		if self.page_or_generator == "Page":
-			# for a page, name and website sitemap config form a unique key
-			exists = frappe.db.sql("""select name from `tabWebsite Route`
-				where name=%s""", self.name)
-		else:
-			# for a generator, name, ref_doctype and docname make a unique key
-			exists = frappe.db.sql("""select name from `tabWebsite Route`
-				where name=%s and (ifnull(ref_doctype, '')!=%s or ifnull(docname, '')!=%s)""",
-				(self.name, self.ref_doctype, self.docname))
-
-		if exists:
-			frappe.throw(_("Page with name {0} already exists").format(self.name), frappe.NameError)
 
 	def make_private_if_parent_is_private(self):
 		if self.parent_website_route:
