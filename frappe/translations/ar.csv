@@ -1,4 +1,4 @@
- by Role ,بالتخصص
+ by Role ,حسب الصلاحية
  is not set,لم يتم تعيين
 """Company History""",&quot;نبذة عن تاريخ الشركة&quot;
 """Team Members"" or ""Management""",&quot;أعضاء الفريق&quot; أو &quot;إدارة&quot;
@@ -14,16 +14,16 @@
 </ol>')"">Naming Options</a>","< و عند _ النقر = "" msgprint (' <ol> \ \ ن <li> قم <B> المجال : [ fieldname ] < / B> - حسب المجال \ \ ن <li> قم <B> naming_series : < / B> - بواسطة تسمية"
 A user can be permitted to multiple records of the same DocType.,يمكن أن يسمح للمستخدم ل سجلات متعددة من نفس DOCTYPE .
 About,حول
-About Us Settings,حول بنا إعدادات
-About Us Team Member,حول عضو فريق بنا
-Action,عمل
+About Us Settings,إعدادات صفحة من نحن
+About Us Team Member,أعضاء فريق صفحة من نحن
+Action,حدث
 Actions,الإجراءات
 "Actions for workflow (e.g. Approve, Cancel).",الإجراءات ل سير العمل ( الموافقة على مثل إلغاء) .
 Add,إضافة
 Add A New Rule,إضافة قاعدة جديدة
 Add A User Permission,إضافة مستخدم إذن
 Add Attachments,إضافة مرفقات
-Add Bookmark,إضافة علامة
+Add Bookmark,إضافة للمفضلة
 Add CSS,إضافة CSS
 Add Column,إضافة عمود
 Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,إضافة خدمة Google Analytics ID: على سبيل المثال. UA-89XXX57-1. الرجاء بحث المساعدة على تحليلات جوجل لمزيد من المعلومات.
@@ -48,17 +48,17 @@ Additional Permissions,ضوابط إضافية
 Address,عنوان
 Address Line 1,العنوان سطر 1
 Address Line 2,العنوان سطر 2
-Address Title,عنوان عنوان
+Address Title,اسم العنوان
 Address and other legal information you may want to put in the footer.,العنوان وغيرها من المعلومات القانونية قد تحتاج لوضع في تذييل الصفحة.
 Admin,مشرف
 All Applications,جميع التطبيقات
 All Day,كل يوم
 "All possible Workflow States and roles of the workflow. <br>Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""",جميع الدول سير العمل والأدوار الممكنة لسير العمل. <br> Docstatus خيارات: هو &quot;المحفوظة&quot; 0، يتم &quot;المقدمة&quot; (1) ويتم &quot;إلغاء&quot; 2
-Allow Attach,تسمح إرفاق
-Allow Import,تسمح استيراد
-Allow Import via Data Import Tool,تسمح استيراد عبر أداة استيراد البيانات
-Allow Rename,تسمح إعادة تسمية
-Allow on Submit,السماح على تقديم
+Allow Attach,السماح بالإرفاق
+Allow Import,السماح بالإستيراد
+Allow Import via Data Import Tool,السماح بالإستيراد خلال أداة إستيراد البيانات
+Allow Rename,السماح بإعادة التسمية
+Allow on Submit,السماح بالإعتماد
 Allow user to login only after this hour (0-24),تسمح للمستخدم لتسجيل الدخول فقط بعد هذه الساعة (0-24)
 Allow user to login only before this hour (0-24),تسمح للمستخدم لتسجيل الدخول فقط قبل هذه الساعة (0-24)
 Allowed,سمح
@@ -71,8 +71,8 @@ Always use above Login Id as sender,استخدام دائما فوق معرف ت
 Amend,تعديل
 "An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [<a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a>]","ملف رمز التمديد مع منظمة البن الدولية. يجب أن تكون 16 × 16 بكسل. تم إنشاؤها باستخدام مولد فافيكون. [ <a href=""http://favicon-generator.org/"" target=""_blank"">فافيكون-generator.org</a> ]"
 "Another {0} with name {1} exists, select another name",آخر {0} مع اسم {1} موجودا، حدد اسم آخر
-Anyone Can Read,أي شخص يمكن قراءة
-Anyone Can Write,أي شخص يمكن الكتابة
+Anyone Can Read,أي شخص يمكنه القراءة
+Anyone Can Write,أي شخص يمكه الكتابة
 "Apart from Role based Permission Rules, you can apply User Permissions based on DocTypes.",وبصرف النظر عن دور أساس القواعد إذن ، يمكنك تطبيق أذونات المستخدم استنادا DocTypes .
 "Apart from System Manager, roles with 'Set User Permissions' right can set permissions for other users for that Document Type.","وبصرف النظر عن إدارة النظام ، يمكن أن الأدوار مع حق "" تعيين أذونات المستخدم تعيين أذونات للمستخدمين الآخرين لذلك نوع الوثيقة ."
 App Already Installed,التطبيق المثبتة مسبقا
@@ -86,23 +86,23 @@ Are you sure you want to delete the attachment?,هل أنت متأكد أنك ت
 Arial,ارييل
 "As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User.",باعتبارها أفضل الممارسات ، عدم تعيين نفس مجموعة من الحكم إذن ل أدوار مختلفة. بدلا من ذلك ، تعيين أدوار متعددة ل نفس العضو .
 Ascending,تصاعدي
-Assign To,تعيين إلى
-Assigned By,يكلفه بها
-Assigned To,تعيين ل
+Assign To,تكليف إلى
+Assigned By,تكليف بواسطة
+Assigned To,كلف إلى
 Assigned To Fullname,تعيين إلى الاسم بالكامل
 Assigned To/Owner,تعيين ل / المالك
 Assignment Added,أضيفت الاحالة
 Assignment Status Changed,الحالة الاحالة تغيير
 Assignments,تعيينات
-Attach,تعلق
+Attach,إرفاق
 Attach Document Print,إرفاق طباعة المستند
-Attach as web link,كما نعلق رابط موقع
+Attach as web link,إرفاق كرابط إنترنت
 Attached To DocType,تعلق على DOCTYPE
-Attached To Name,تعلق على اسم
+Attached To Name,أرفقت للأسم
 Attachments,المرفقات
-Auto Email Id,أرسل بريد الكتروني رقم السيارات
-Auto Name,السيارات اسم
-Auto generated,ولدت السيارات
+Auto Email Id,البريد الإلكتروني التلقائي
+Auto Name,الإسم التلقائي
+Auto generated,أنشئت تلقائياً
 Avatar,الصورة الرمزية
 Back to Login,العودة إلى تسجيل الدخول
 Background Color,لون الخلفية
@@ -205,22 +205,22 @@ Copyright,حق النشر
 Core,جوهر
 Could not connect to outgoing email server,لا يمكن الاتصال بخادم البريد الإلكتروني المنتهية ولايته
 Could not find {0},لا يمكن أن تجد {0}
-Count,عد
-Country,بلد
-Create,خلق
-Created Custom Field {0} in {1},خلق حقل مخصص {0} في {1}
-Created Customer Issue,إنشاء العدد العملاء
-Created Opportunity,خلق الفرص
+Count,عدد
+Country,الدولة
+Create,انشاء
+Created Custom Field {0} in {1},إنشاء الحقل المخصص {0} في {1}
+Created Customer Issue,إنشاء مشاكل عميل
+Created Opportunity,إنشاء فرصة
 Created Support Ticket,إنشاء تذكرة دعم
 Creation / Modified By,إنشاء / تم التعديل بواسطة
 Currency,عملة
-Current status,الوضع الحالي
+Current status,الحالة الحالية
 Custom CSS,العرف CSS
-Custom Field,مخصص الميدانية
-Custom Javascript,العرف الجافا سكريبت
+Custom Field,حقل مخصص
+Custom Javascript,جافا سكريبت مخصصة
 Custom Reports,تقارير مخصصة
-Custom Script,سيناريو مخصص
-Custom?,العرف؟
+Custom Script,سكربت محصص
+Custom?,مخصص
 Customize,تخصيص
 Customize Form,تخصيص نموذج
 Customize Form Field,تخصيص حقل نموذج
@@ -323,7 +323,7 @@ Enter Value,أدخل القيمة
 Enter at least one permission row,يدخل الصف إذن واحد على الأقل
 "Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set ""match"" permission rules. To see list of fields, go to <a href=""#Form/Customize Form/Customize Form"">Customize Form</a>.","الدخول في مجالات القيمة الافتراضية (مفاتيح) والقيم. إذا قمت بإضافة قيم متعددة لحقل، سيتم اختار أول واحد. كما تستخدم هذه الافتراضات لوضع القواعد &quot;مباراة&quot; إذن. لمعرفة قائمة الحقول، انتقل إلى <a href=""#Form/Customize Form/Customize Form"">تخصيص الشكل</a> ."
 "Enter keys to enable login via Facebook, Google, GitHub.",أدخل مفاتيح لتمكين تسجيل الدخول عبر الفيسبوك ، وجوجل، جيثب .
-Equals,التساوي
+Equals,تساوي
 Error,خطأ
 Error: Document has been modified after you have opened it,تم تعديل الوثيقة بعد أن كنت قد فتحه: خطأ
 Event,حدث
@@ -375,11 +375,11 @@ File Size,حجم الملف
 File URL,ملف URL
 File not attached,ملف لا تعلق
 File size exceeded the maximum allowed size of {0} MB,تجاوز حجم الملف الحد الأقصى المسموح به حجم {0} MB
-Filter,تحديد
-Filter records based on User Permissions defined for a user,تصفية السجلات استنادا إلى ضوابط يحددها المستخدم لمستخدم
+Filter,تصفية
+Filter records based on User Permissions defined for a user,تصفية السجلات استنادا إلى صلاحيات المستخدمين المخصصة للمستخدم
 First Name,الاسم الأول
-Float,الطفو
-Float Precision,تعويم الدقة
+Float,رقم عشري
+Float Precision,دقة الرقم  العشري
 Font (Heading),الخط (العنوان)
 Font (Text),الخط (نص)
 Font Size (Text),حجم الخط (نص)
@@ -612,17 +612,17 @@ Naming Series mandatory,تسمية السلسلة إلزامية
 Nested set error. Please contact the Administrator.,خطأ مجموعة متداخلة . يرجى الاتصال مدير البرنامج.
 New,جديد
 New Password,كلمة مرور جديدة
-New Record,رقم قياسي جديد
+New Record,سجل جديد
 New comment on {0} {1},تعليق جديد على {0} {1}
 New password emailed,كلمة مرور جديدة عبر البريد الالكتروني
 New value to be set,القيمة الجديدة التي سيتم تحديدها
 Next Communcation On,وفي المراسلات القادمة
-Next Record,سجل المقبل
-Next State,الدولة القادمة
+Next Record,السجل التالي
+Next State,الحالية التالية
 Next actions,الإجراءات التالية
 No,لا
-No Action,أي إجراء
-No Cache,لا الكاش
+No Action,بدون إجراء
+No Cache,بدون ذاكرة مؤقتة
 No Communication tagged with this ,لا الاتصالات المفتاحية هذه
 No Copy,اي نسخة
 No Permissions set for this criteria.,لم يحدد ضوابط لهذه المعايير.
@@ -639,7 +639,7 @@ No one,لا احد
 No permission to '{0}' {1},لا توجد صلاحية ل '{0} ' {1}
 No permission to edit,لا توجد صلاحية ل تعديل
 No permission to write / remove.,لا توجد صلاحية لكتابة / إزالة.
-No records tagged.,لا توجد سجلات المعلمة.
+No records tagged.,لا توجد سجلات معلمة.
 None,لا شيء
 None: End of Workflow,لا شيء: نهاية سير العمل
 Not Found,لم يتم العثور على
@@ -765,7 +765,7 @@ Post already exists. Cannot add again!,آخر موجود بالفعل. لا يم
 Post does not exist. Please add post!,آخر غير موجود. الرجاء إضافة آخر !
 Post to user,أضف إلى مستخدم
 Posts,المشاركات
-Previous Record,سجل السابق
+Previous Record,السجل السابق
 Primary,أساسي
 Print,طباعة
 Print Format,طباعة شكل
@@ -796,7 +796,7 @@ Read Only,للقراءة فقط
 Received,تلقى
 Recipient,مستلم
 Recipients,المستلمين
-Record does not exist,لا وجود سجل
+Record does not exist,سجل غير موجود
 Ref DocType,المرجع DOCTYPE
 Ref Name,المرجع اسم
 Ref Type,المرجع نوع
@@ -850,7 +850,7 @@ Rules defining transition of state in the workflow.,قواعد تحديد الا
 "Rules for how states are transitions, like next state and which role is allowed to change state etc.",ويسمح النظام لكيفية قيام الولايات التحولات، مثل الدولة والتي المقبل دور في تغيير الدولة الخ.
 SMTP Server (e.g. smtp.gmail.com),خادم SMTP (smtp.gmail.com مثلا)
 Sales,مبيعات
-Same file has already been attached to the record,وقد تم بالفعل تعلق نفس الملف إلى السجل
+Same file has already been attached to the record,نفس الملف تم إرفاقه إلى هذا السجل
 Saturday,السبت
 Save,حفظ
 Scheduler Log,جدولة دخول
@@ -926,7 +926,7 @@ Shortcut,الاختصار
 Show / Hide Modules,إظهار / إخفاء وحدات
 Show Details,عرض التفاصيل
 Show Print First,تظهر أولا طباعة
-Show Tags,تظهر الكلمات
+Show Tags,إظهار الوسوم
 Show or hide modules globally.,إظهار أو إخفاء وحدات على مستوى العالم.
 Show rows with zero values,عرض الصفوف مع قيم الصفر
 Show this field as title,تظهر هذا المجال كما لقب
@@ -973,7 +973,7 @@ Submit,عرض
 Submit an Issue,يقدم العدد
 Submitted,المقدمة
 Submitted Document cannot be converted back to draft. Transition row {0},الوثيقة المقدمة لا يمكن تحويلها إلى مشروع .
-Submitted Record cannot be deleted,لا يمكن حذف سجل المقدمة
+Submitted Record cannot be deleted,السجلات المعتمدة لا يمكن حذفها
 Success,نجاح
 Suggestion,اقتراح
 Sunday,الأحد
@@ -1030,7 +1030,7 @@ Title Prefix,عنوان الاختصار
 Title field must be a valid fieldname,يجب أن يكون حقل العنوان ل fieldname صالحة
 Title is required,مطلوب عنوان
 To,إلى
-To Do,هل ل
+To Do,قائمة المهام
 "To format columns, give column labels in the query.",لتنسيق الأعمدة، وإعطاء تسميات الأعمدة في الاستعلام.
 "To give acess to a role for only specific records, check the 'Apply User Permissions'. User Permissions are used to limit users with such role to specific records.","لإعطاء رصا إلى دور للسجلات معينة فقط ، والتحقق من ""تطبيق أذونات المستخدم ' ."
 "To run a test add the module name in the route after '{0}'. For example, {1}",لتشغيل اختبار إضافة اسم وحدة في الطريق بعد '{0}'. على سبيل المثال، {1}
@@ -1216,7 +1216,7 @@ folder-close,المجلد مسافة قريبة
 folder-open,فتح مجلد
 font,الخط
 forward,إلى الأمام
-found,أسس
+found,موجود
 fullscreen,ملء الشاشة
 gift,هدية
 glass,زجاج
