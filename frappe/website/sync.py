@@ -55,7 +55,8 @@ def sync_pages(routes):
 			else:
 				r.insert(ignore_permissions=True)
 
-			all_routes.remove(r.name)
+			if r.name in all_routes:
+				all_routes.remove(r.name)
 			update_progress_bar("Updating Pages", i, l)
 
 		print ""
@@ -68,7 +69,9 @@ def sync_generators(generators):
 		for i, g in enumerate(generators):
 			doc = frappe.get_doc(g[0], g[1])
 			doc.update_sitemap()
-			all_routes.remove(doc.get_route())
+			route = doc.get_route()
+			if route in all_routes:
+				all_routes.remove(route)
 			update_progress_bar("Updating Generators", i, l)
 			sys.stdout.flush()
 
