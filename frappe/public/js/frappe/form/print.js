@@ -95,7 +95,8 @@ frappe.ui.form.PrintPreview = Class.extend({
 				+"doctype="+encodeURIComponent(me.frm.doc.doctype)
 				+"&name="+encodeURIComponent(me.frm.doc.name)
 				+(printit ? "&trigger_print=1" : "")
-				+"&format="+me.selected_format());
+				+"&format="+me.selected_format()
+				+"&no_letterhead="+(me.with_letterhead() ? "0" : "1"));
 			if(!w) {
 				msgprint(__("Please enable pop-ups")); return;
 			}

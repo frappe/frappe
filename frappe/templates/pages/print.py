@@ -34,7 +34,7 @@ def get_context(context):
 
 	return {
 		"body": get_html(doc, print_format = frappe.form_dict.format,
-			meta=meta, trigger_print = frappe.form_dict.trigger_print),
+			meta=meta, trigger_print = frappe.form_dict.trigger_print, no_letterhead=frappe.form_dict.no_letterhead),
 		"css": get_print_style(frappe.form_dict.style),
 		"comment": frappe.session.user,
 		"title": doc.get(meta.title_field) if meta.title_field else doc.name
