@@ -4,7 +4,7 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-import os
+import osb
 import subprocess
 import frappe
 from frappe.utils import cint
@@ -560,7 +560,7 @@ def clear_all_sessions():
 	frappe.destroy()
 
 @cmd
-def build_website(verbose):
+def build_website(verbose=False):
 	import frappe.website.sync
 	frappe.connect()
 	frappe.website.sync.sync(verbose=verbose)
