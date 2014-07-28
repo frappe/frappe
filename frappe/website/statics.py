@@ -153,9 +153,7 @@ class sync(object):
 		})
 
 		page.fpath = fpath
-		page.main_section = fpath
 		page.route = route
-		page.title = page_name
 		page.update(get_static_content(fpath, page_name, route))
 		return page
 
