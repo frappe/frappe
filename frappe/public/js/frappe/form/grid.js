@@ -274,7 +274,8 @@ frappe.ui.form.GridRow = Class.extend({
 
 		if(this.grid.template) {
 			$('<div class="col-xs-10">').appendTo(this.row)
-				.html(frappe.render(this.grid.template, {doc:this.doc, frm:this.frm, grid_row: this}));
+				.html(frappe.render(this.grid.template, {
+					doc:this.doc || null, frm:this.frm, row: this}));
 		} else {
 			this.add_visible_columns();
 		}
@@ -315,7 +316,7 @@ frappe.ui.form.GridRow = Class.extend({
 			var df = this.static_display_template[ci][0];
 			var colsize = this.static_display_template[ci][1];
 			var txt = this.doc ?
-				frappe.format(this.doc[df.fieldname], df, null, this.doc) :
+				this.get_formatted(df.fieldname) :
 				__(df.label);
 			if(this.doc && df.fieldtype === "Select") {
 				txt = __(txt);
@@ -455,10 +456,11 @@ frappe.ui.form.GridRow = Class.extend({
 			frm: this.frm,
 		});
 		this.layout.make();
-		this.layout.refresh(this.doc);
 
 		this.fields = this.layout.fields;
 		this.fields_dict = this.layout.fields_dict;
+
+		this.layout.refresh(this.doc);
 
 		// copy get_query to fields
 		$.each(this.grid.fieldinfo || {}, function(fieldname, fi) {
@@ -538,8 +540,7 @@ frappe.ui.form.GridRow = Class.extend({
 	refresh_field: function(fieldname) {
 		var $col = this.row.find("[data-fieldname='"+fieldname+"']");
 		if($col.length) {
-			var value = frappe.model.get_value(this.doc.doctype, this.doc.name, fieldname);
-			$col.html(frappe.format(value, $col.data("df"), null, this.doc));
+			$col.html(this.get_formatted(fieldname));
 		}
 
 		// in form
@@ -547,4 +548,9 @@ frappe.ui.form.GridRow = Class.extend({
 			this.fields_dict[fieldname].refresh();
 		}
 	},
+	get_formatted: function(fieldname) {
+		var df = frappe.meta.get_docfield(this.grid.doctype, fieldname, this.frm.docname);
+		return frappe.format(this.doc[fieldname], df, null, this.doc);
+	},
+
 });
