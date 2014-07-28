@@ -413,3 +413,18 @@ def get_active_website_users():
 		where enabled = 1 and user_type = 'Website User'
 		and hour(timediff(now(), last_login)) < 72""")[0][0]
 
+def get_permission_query_conditions(user):
+	if user=="Administrator":
+		return ""
+
+	else:
+		return """(`tabUser`.name not in ({standard_users}))""".format(
+			standard_users='"' + '", "'.join(STANDARD_USERS) + '"')
+
+def has_permission(doc, user):
+	if user != "Administrator" and doc.name in STANDARD_USERS:
+		# dont allow non Administrator user to view / edit Administrator user
+		return False
+
+	else:
+		return False

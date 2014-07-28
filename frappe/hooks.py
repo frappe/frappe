@@ -41,12 +41,14 @@ website_generators = ["Web Page", "Blog Post", "Website Group", "Blog Category"]
 
 permission_query_conditions = {
 	"Event": "frappe.core.doctype.event.event.get_permission_query_conditions",
-	"ToDo": "frappe.core.doctype.todo.todo.get_permission_query_conditions"
+	"ToDo": "frappe.core.doctype.todo.todo.get_permission_query_conditions",
+	"User": "frappe.core.doctype.user.user.get_permission_query_conditions"
 }
 
 has_permission = {
 	"Event": "frappe.core.doctype.event.event.has_permission",
-	"ToDo": "frappe.core.doctype.todo.todo.has_permission"
+	"ToDo": "frappe.core.doctype.todo.todo.has_permission",
+	"User": "frappe.core.doctype.user.user.has_permission"
 }
 
 doc_events = {
