@@ -142,7 +142,7 @@ def make_layout(doc, meta):
 		if df.fieldtype=="HTML" and df.options:
 			doc.set(df.fieldname, True) # show this field
 
-		if is_visible(df) and doc.get(df.fieldname) is not None:
+		if is_visible(df) and doc.get(df.fieldname) not in (None, ""):
 			page[-1][-1].append(df)
 
 			# if table, add the row info in the field
