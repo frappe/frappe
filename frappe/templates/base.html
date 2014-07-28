@@ -8,12 +8,15 @@ Built on Frappe.io. Free and Open Source Framework for the Web. https://frappe.i
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>{{ title }}</title>
 	<meta name="generator" content="frappe">
-	<script type="text/javascript" src="/assets/frappe/js/lib/jquery/jquery.min.js"></script>
+	<script type="text/javascript"
+		src="/assets/frappe/js/lib/jquery/jquery.min.js"></script>
 
 	<link rel="shortcut icon"
-		href="{{ favicon or "/assets/frappe/images/favicon.ico" }}" type="image/x-icon">
+		href="{{ favicon or "/assets/frappe/images/favicon.ico" }}"
+		type="image/x-icon">
 	<link rel="icon"
-		href="{{ favicon or "/assets/frappe/images/favicon.ico" }}" type="image/x-icon">
+		href="{{ favicon or "/assets/frappe/images/favicon.ico" }}"
+		type="image/x-icon">
 	{%- block head_include %}{% endblock -%}
 	{%- block head -%}
 		{% if meta_block is defined %}
