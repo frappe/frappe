@@ -4,7 +4,7 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-import osb
+import os
 import subprocess
 import frappe
 from frappe.utils import cint
