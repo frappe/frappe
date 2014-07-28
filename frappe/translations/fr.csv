@@ -2,7 +2,7 @@
  is not set,n&#39;est pas réglé
 """Company History""",&quot;Histoire de la société&quot;
 """Team Members"" or ""Management""",&quot;Membres de l&#39;équipe&quot; ou &quot;gestion&quot;
-'In List View' not allowed for type {0} in row {1},« Dans la Fenêtre » n'est pas permis pour le type {0} à la ligne {1}
+'In List View' not allowed for type {0} in row {1},« Vu en liste » n'est pas permis pour le type {0} à la ligne {1}
 "000 is black, fff is white","000 est noir, fff est blanc"
 2 days ago,Il ya 2 jours
 "<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank"">[?]</a>","<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank""> [ ? ] </ a >"
@@ -12,59 +12,59 @@
 <li><b>Prompt</b> - Prompt user for a name\
 <li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\
 </ol>')"">Naming Options</a>","< a onclick = "" msgprint ( ' <ol> \ \ n <li> <b> domaine : [ nom du champ ] < / b > - Par domaine \ \ n <li> <b> naming_series : < / b > - En nommant"
-A user can be permitted to multiple records of the same DocType.,Un utilisateur peut être autorisé à plusieurs enregistrements de la même DocType .
-About,Sur
-About Us Settings,À propos de nous Réglages
-About Us Team Member,À propos membre de l&#39;équipe-nous
+A user can be permitted to multiple records of the same DocType.,Un utilisateur peut être autorisé à plusieurs enregistrements du même type de document .
+About,A propos
+About Us Settings,À propos  Réglages
+About Us Team Member,À propos membre de l&#39;équipe
 Action,Action
-Actions,actes
+Actions,Actions
 "Actions for workflow (e.g. Approve, Cancel).","Actions pour flux de travail (par exemple approuver, Annuler ) ."
 Add,Ajouter
 Add A New Rule,Ajouter une nouvelle règle
-Add A User Permission,Ajouter une autorisation de l'utilisateur
+Add A User Permission,Ajouter une autorisation pour l'utilisateur
 Add Attachments,Ajouter des pièces jointes
 Add Bookmark,Ajouter un signet
 Add CSS,Ajouter CSS
 Add Column,Ajouter une colonne
-Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,Ajouter Google Analytics ID: par ex. UA-89XXX57-1. S&#39;il vous plaît chercher de l&#39;aide sur Google Analytics pour plus d&#39;informations.
+Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,Ajouter Google Analytics ID: par ex. UA-89XXX57-1. Veuillez chercher de l&#39;aide sur Google Analytics pour plus d&#39;informations.
 Add Message,Ajouter un message
-Add New Permission Rule,Ajouter une règle d&#39;autorisation New
+Add New Permission Rule,Ajouter une nouvelle règle d&#39;autorisation
 Add Reply,Ajouter une réponse
 Add Total Row,Ajouter une ligne totale
 Add a New Role,Ajouter un nouveau rôle
 Add a banner to the site. (small banners are usually good),Ajouter une bannière sur le site. (Petites bannières sont généralement bien)
 Add all roles,Ajouter tous les rôles
 Add attachment,Ajouter une pièce jointe
-Add code as &lt;script&gt;,Ajoutez le code que &lt;script&gt;
-Add custom javascript to forms.,Ajouter javascript coutume de formes .
-Add fields to forms.,Ajouter des champs à des formes .
+Add code as &lt;script&gt;,Ajoutez le code en tant que &lt;script&gt;
+Add custom javascript to forms.,Ajouter du code javascript aux formulaires.
+Add fields to forms.,Ajouter des champs aux formulaires .
 Add new row,Ajouter une nouvelle ligne
-"Add the name of <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> e.g. ""Open Sans""","Ajoutez le nom de <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> Ex: &quot;Sans ouvertes&quot;"
-Add to To Do,Ajouter à To Do
+"Add the name of <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> e.g. ""Open Sans""","Ajoutez le nom de <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> Ex: &quot;Open sans&quot;"
+Add to To Do,Ajouter à la liste des tâches
 Add to To Do List Of,Ajouter à la Liste des tâches de
-Adding System Manager to this User as there must be atleast one System Manager,Ajout System Manager pour l'utilisateur car il doit être atleast Gérant de système
-Additional Info,Informations additionnelles à
+Adding System Manager to this User as there must be atleast one System Manager,Ajout du rôle System Manager pour l'utilisateur car il doit y avoir au moins un System Manager
+Additional Info,Informations additionnelles
 Additional Permissions,autorisations supplémentaires
 Address,Adresse
 Address Line 1,Adresse ligne 1
 Address Line 2,Adresse ligne 2
-Address Title,Titre Adresse
+Address Title,Adresse Titre
 Address and other legal information you may want to put in the footer.,Adresse et autres informations juridiques que vous voulez mettre dans le pied de page.
 Admin,admin
 All Applications,toutes les applications
 All Day,Toute la journée
-"All possible Workflow States and roles of the workflow. <br>Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""","Tous les Etats de flux de travail et les rôles possibles du flux de travail. <br> Options de Docstatus: 0 est &quot;Saved&quot;, 1 signifie «soumis» et 2 est «annulé»"
-Allow Attach,Laissez Fixez
-Allow Import,Autoriser l&#39;importation
+"All possible Workflow States and roles of the workflow. <br>Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""","Tous les états et les rôles possibles du flux de travail. <br> Options de Docstatus: 0 est &quot;Sauver&quot;, 1 signifie «soumis» et 2 est «annulé»"
+Allow Attach,Permettre pièces jointes
+Allow Import,Permettre l&#39;importation
 Allow Import via Data Import Tool,Autoriser l&#39;importation via l&#39;outil d&#39;importation de données
-Allow Rename,Laissez Renommez
-Allow on Submit,Permettez sur Soumettre
+Allow Rename,Permettre de Renommer
+Allow on Submit,Permettre de Soumettre
 Allow user to login only after this hour (0-24),Permettre à l&#39;utilisateur de se connecter seulement après cette heure (0-24)
 Allow user to login only before this hour (0-24),Permettre à l&#39;utilisateur de se connecter seulement avant cette heure (0-24)
 Allowed,Permis
 "Allowing DocType, DocType. Be careful!",Vous ne pouvez pas ouvrir {0} lorsque son instance est ouverte
 Already Registered,Déjà inscrit
-Already in user's To Do list,Déjà utilisateur de la liste des tâches
+Already in user's To Do list,Déjà dans la liste des tâches de l'utilisateur
 Alternative download link,Les champs obligatoires requises dans {0}
 "Alternatively, you can also specify 'auto_email_id' in site_config.json","Sinon, vous pouvez également spécifier ' auto_email_id ' dans site_config.json"
 Always use above Login Id as sender,Utiliser toujours au-dessus Id de connexion comme expéditeur
@@ -76,29 +76,29 @@ Anyone Can Write,N'importe qui peut écrire
 "Apart from Role based Permission Rules, you can apply User Permissions based on DocTypes.","Outre les règles d'autorisation de rôle basé , vous pouvez appliquer des autorisations des utilisateurs sur la base de DocTypes ."
 "Apart from System Manager, roles with 'Set User Permissions' right can set permissions for other users for that Document Type.","En dehors de System Manager , les rôles avec le droit "" Définir les autorisations des utilisateurs de définir des autorisations pour les autres utilisateurs pour ce type de document ."
 App Already Installed,App déjà installé
-App Name,Nom App
+App Name,Nom de l'App
 App not found,App introuvable
 Application Installer,Installer des applications
 Applications,applications
 Apply Style,appliquer le style
-Apply User Permissions,Appliquer les autorisations des utilisateurs
+Apply User Permissions,Appliquer les autorisations par utilisateurs
 Are you sure you want to delete the attachment?,Êtes-vous sûr de vouloir supprimer la pièce jointe?
 Arial,Arial
 "As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User.","Comme une meilleure pratique , ne pas attribuer le même ensemble de règle d'autorisation pour différents rôles . Au lieu de cela , définir plusieurs rôles à un même utilisateur ."
-Ascending,Ascendant
+Ascending,Croissant
 Assign To,Attribuer à
 Assigned By,Affecté par
 Assigned To,assignée à
-Assigned To Fullname,Assigné à Fullname
+Assigned To Fullname,Assigné à nom complet
 Assigned To/Owner,Assigné à / Propriétaire
 Assignment Added,affectation Ajouté
-Assignment Status Changed,Changement affectation Etat
+Assignment Status Changed,Changement état d'affectation 
 Assignments,Envoyer permanence {0} ?
 Attach,Joindre
-Attach Document Print,Fixez Imprimer le document
+Attach Document Print,Joindre Imprimer de document
 Attach as web link,Joindre lien web
-Attached To DocType,Attaché à DOCTYPE
-Attached To Name,Accolé au nom
+Attached To DocType,Attaché au document de type
+Attached To Name,Attaché au document de nom
 Attachments,Pièces jointes
 Auto Email Id,Identification d&#39;email automatique
 Auto Name,Nom Auto
@@ -109,36 +109,36 @@ Background Color,Couleur de fond
 Background Image,Image de fond
 Banner,Bannière
 Banner HTML,HTML Bannière
-Banner Image,Banner Image
-Banner is above the Top Menu Bar.,Banner est au-dessus de la barre de menu supérieure.
-Base Template Path,Modèle de base Chemin
+Banner Image,Image Bannière
+Banner is above the Top Menu Bar.,La Bannière est au-dessus de la barre de menu supérieure.
+Base Template Path,Chemin du Modèle de base
 Begin this page with a slideshow of images,Commencez cette page avec un diaporama des images
 Belongs to,appartient à
 Bio,Bio
 Birth Date,Date de naissance
 Blog Category,Blog Catégorie
 Blog Intro,Blog Intro
-Blog Introduction,Blog Présentation
-Blog Post,Blog
-Blog Settings,Blog Paramètres
+Blog Introduction,Blog introduction
+Blog Post,Blog post
+Blog Settings,Paramètres du blog
 Blog Title,Titre du blog
 Blogger,Blogger
 Bookmarks,Favoris
 Brand HTML,Marque HTML
-Bulk Email,Bulk Email
-Bulk email limit {0} crossed,Email en vrac limite {0} franchi
+Bulk Email,Email groupé
+Bulk email limit {0} crossed,Email groupé limite {0} franchi
 Button,Bouton
 By,Par
 Calendar,Calendrier
 Cancel,Annuler
 Cancelled,Annulé
 "Cannot Edit {0} directly: To edit {0} properties, create / update {1}, {2} and {3}","Impossible de modifier {0} directement : Pour modifier les propriétés {0} , créer / mettre à jour {1} , {2} et {3}"
-Cannot Update: Incorrect / Expired Link.,Vous ne pouvez pas les mises à jour : Lien Mauvaise / périmée .
-Cannot Update: Incorrect Password,Vous ne pouvez pas les mises à jour : Mot de passe incorrect
+Cannot Update: Incorrect / Expired Link.,Vous ne pouvez pas mettre à jour : Lien Mauvais ou périmée .
+Cannot Update: Incorrect Password,Vous ne pouvez pas mettre à jour : Mot de passe incorrect
 Cannot add more than 50 comments,Vous ne pouvez pas ajouter plus de 50 commentaires
 Cannot cancel before submitting. See Transition {0},Vous ne pouvez pas annuler avant de soumettre .
 Cannot change picture,Vous ne pouvez pas changer l'image
-Cannot change state of Cancelled Document. Transition row {0},Vous ne pouvez pas changer d'état du document annulé .
+Cannot change state of Cancelled Document. Transition row {0},Vous ne pouvez pas changer l'état du document annulé .
 Cannot change {0},Vous ne pouvez pas modifier {0}
 Cannot delete or cancel because {0} {1} is linked with {2} {3},Vous ne pouvez pas supprimer ou annuler parce que {0} {1} est lié à {2} {3}
 Cannot delete {0} as it has child nodes,Vous ne pouvez pas supprimer {0} car il possède des nœuds enfant
@@ -155,69 +155,69 @@ Categorize blog posts.,Catégoriser les messages de blog.
 Category,Catégorie
 Category Name,Nom de la catégorie
 Center,Centre
-"Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit.","Certains documents , comme une facture , ne devraient pas être modifiés une fois finale . L'état final de ces documents est appelée Soumis . Vous pouvez limiter les rôles peuvent Soumettre."
-"Change field properties (hide, readonly, permission etc.)","Modification des propriétés de champ (masquer , en lecture seule , etc permission )"
-Chat,Bavarder
+"Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit.","Certains documents , comme une facture , ne devraient pas être modifiés une fois finale . L'état final de ces documents est appelée Soumis . Vous pouvez limiter les rôles pouvant Soumettre."
+"Change field properties (hide, readonly, permission etc.)","Modification des propriétés de champ (masquer , en lecture seule , permission etc )"
+Chat,Chat
 Check,Vérifier
-Check / Uncheck roles assigned to the User. Click on the Role to find out what permissions that Role has.,Vérifiez / Décochez les rôles assignés au profil. Cliquez sur le Rôle de savoir ce que ce rôle a des autorisations.
-Check this if you want to send emails as this id only (in case of restriction by your email provider).,Cochez cette case si vous souhaitez envoyer des emails que cette id seulement (en cas de restriction par votre fournisseur de messagerie).
-Check this to make this the default letter head in all prints,Cochez cette case pour faire de cette tête de lettre par défaut dans toutes les copies
-Checked items shown on desktop,Les éléments cochés indiqués sur le bureau
-Child Tables are shown as a Grid in other DocTypes.,Tableaux pour enfants sont présentés comme une grille dans DocTypes autres.
+Check / Uncheck roles assigned to the User. Click on the Role to find out what permissions that Role has.,Cochez / Décochez les rôles assignés au profil. Cliquez sur le Rôle de savoir ce que ce rôle comme autorisations.
+Check this if you want to send emails as this id only (in case of restriction by your email provider).,Cochez cette case si vous souhaitez envoyer des emails en tant que cette id seulement (en cas de restriction par votre fournisseur de messagerie).
+Check this to make this the default letter head in all prints,"Cochez cette case pour faire de cette entête de lettre, celle par défaut dans toutes les imprimés"
+Checked items shown on desktop,Les éléments cochés sont indiqués sur le bureau
+Child Tables are shown as a Grid in other DocTypes.,Les tableaux enfants sont présentés comme une grille dans les autres documents.
 City,Ville
-Clear Cache,avec les groupes
+Clear Cache,Vider le cache
 Clear all roles,Effacer tous les rôles
-Click on a link to get options to expand get options ,
-Click on row to view / edit.,non autorisé
+Click on a link to get options to expand get options ,Cliquer sur un lien pour voir les options
+Click on row to view / edit.,Cliquer sur une ligne pour voir / éditer
 Click to Expand / Collapse,Cliquez ici pour afficher / masquer
 Client,Client
-Close,Proche
+Close,Fermer
 Close: {0},Exportation non autorisée. Vous devez {0} rôle à exporter .
 Closed,Fermé
 Code,Code
-Collapse,ERP open source construit pour le web
+Collapse,Plier
 Color,Couleur
 Column Break,Saut de colonne
 Comment,Commenter
-Comment By,Commentaire En
-Comment By Fullname,Commentaire En Fullname
+Comment By,Commentaire de
+Comment By Fullname,Commentaire de Nom complet
 Comment Date,Date de commentaires
-Comment Docname,Commenter docName
-Comment Doctype,Commenter Doctype
-Comment Time,Commenter Temps
+Comment Docname,Commentaire docName
+Comment Doctype,Commentaire Doctype
+Comment Time,Commentaire Temps
 Comments,Commentaires
 Communication,Communication
 Communication Medium,Moyen de communication
 Company History,Historique de l&#39;entreprise
-Company Introduction,Société Introduction
+Company Introduction,Presentation de l&#39;entreprise
 Complaint,Plainte
 Complete By,Compléter par
 Condition Field,champ Condition
 Contact Us Settings,Contactez-nous Réglages
 "Contact options, like ""Sales Query, Support Query"" etc each on a new line or separated by commas.","Options de contact, comme &quot;Requête ventes, du support requête&quot; etc chacun sur une nouvelle ligne ou séparées par des virgules."
-Content,Teneur
+Content,Contenu
 Content Hash,Hash contenu
 Content in markdown format that appears on the main side of your page,Contenu au format markdown qui apparaît sur le côté principal de votre page
-Content web page.,Page de contenu Web.
+Content web page.,Contenu de page Web.
 Controller,contrôleur
 Copy,Copiez
 Copyright,Droit d&#39;auteur
-Core,Cœur
+Core,Noyau
 Could not connect to outgoing email server,Impossible de se connecter à serveur de messagerie sortant
 Could not find {0},Impossible de trouver {0}
-Count,compter
+Count,Compte
 Country,Pays
 Create,Créer
 Created Custom Field {0} in {1},Crée un champ personnalisé {0} dans {1}
-Created Customer Issue,Numéro client créé
-Created Opportunity,Création Opportunity
-Created Support Ticket,Support Ticket créé
+Created Customer Issue,Problème client créé
+Created Opportunity,Opportunité créé
+Created Support Ticket,Ticket de Support créé
 Creation / Modified By,Vous n'êtes pas autorisé à créer / éditer des rapports
 Currency,Monnaie
-Current status,Situation actuelle
+Current status,Statut actuelle
 Custom CSS,CSS personnalisé
 Custom Field,Champ personnalisé
-Custom Javascript,personnalisé Javascript
+Custom Javascript,Javascript personnalisé
 Custom Reports,Rapports personnalisés
 Custom Script,Script personnalisé
 Custom?,Custom?
@@ -225,16 +225,16 @@ Customize,Personnaliser
 Customize Form,Personnaliser le formulaire
 Customize Form Field,Personnaliser un champ de formulaire
 "Customize Label, Print Hide, Default etc.","Personnaliser Label, Imprimer Cacher, etc Par défaut"
-Customized HTML Templates for printing transctions.,Modèles HTML personnalisés pour transctions d'impression .
-Daily Event Digest is sent for Calendar Events where reminders are set.,Daily Digest événement est envoyé pour le calendrier des événements où les rappels sont fixés.
+Customized HTML Templates for printing transctions.,Modèles HTML personnalisés pour imprimés de transactions.
+Daily Event Digest is sent for Calendar Events where reminders are set.,Le résumé quotidien des événements est envoyé pour les événements du calendrier où les rappels sont fixés.
 Danger,Danger
 Data,Données
-Data Import / Export Tool,Données Import / Export outil
+Data Import / Export Tool,Outil d'import / export de données
 Data Import Tool,Outil d'importation de données
 Data missing in table,Données manquantes dans le tableau
 Date,Date
 Date Format,Format de date
-Date and Number Format,Date et numéro Format
+Date and Number Format,Format de date et numéro
 Date must be in format: {0},Il y avait des erreurs
 Datetime,Datetime
 Dear,Cher
@@ -242,41 +242,41 @@ Default,Par défaut
 Default Print Format,Format d&#39;impression par défaut
 Default Value,Valeur par défaut
 "Default: ""Contact Us""",Par défaut: &quot;Contactez-nous&quot;
-DefaultValue,DefaultValue
-Defaults,Par défaut
-"Define read, write, admin permissions for a Website Page.","Définir lire, écrire , les permissions d'administration pour un site Web page ."
+DefaultValue,Valeur par défaut
+Defaults,Valeurs par défaut
+"Define read, write, admin permissions for a Website Page.","Définir les permissions de lire, d'écrire et d'administration pour une page Web."
 Define workflows for forms.,Définir des workflows pour les formulaires.
 Delete,Effacer
 Delete Row,Supprimer la ligne
-Depends On,Sur dépend
-Descending,Descendant
+Depends On,Dépend de
+Descending,Décroissant
 Description,Description
 Description and Status,Description et état
-"Description for listing page, in plain text, only a couple of lines. (max 140 characters)","Description de la page d&#39;inscription, en clair, que quelques lignes. (Max 140 caractères)"
+"Description for listing page, in plain text, only a couple of lines. (max 140 characters)","Description textuel pour l'affichage en liste, quelques lignes seulement. (Max 140 caractères)"
 Description for page header.,Description pour en-tête de page.
 Desktop,Bureau
 Details,Détails
-Did not add,Ne pas ajouter
-Did not cancel,N&#39;a pas annulé
-Did not find {0} for {0} ({1}),Vous n'avez pas trouvé {0} pour {0} ( {1} )
+Did not add,N&#39;a pas été ajouté
+Did not cancel,N&#39;a pas été annulé
+Did not find {0} for {0} ({1}),Nous n'avons pas trouvé {0} pour {0} ( {1} )
 Did not load,N'a pas été chargé
-Did not remove,Ne pas supprimer
-Did not save,N&#39;a pas sauvé
-"Different ""States"" this document can exist in. Like ""Open"", ""Pending Approval"" etc.","Différents «Etats» du présent document ne peut exister po Comme &quot;Ouvrir&quot;, &quot;En attente d&#39;approbation&quot;, etc"
-Disable Customer Signup link in Login page,Désactiver clientèle lien Inscription en page de connexion
+Did not remove,N'a pas été supprimer
+Did not save,N&#39;a pas été sauvé
+"Different ""States"" this document can exist in. Like ""Open"", ""Pending Approval"" etc.","Différents «Etats» dans lesquels le présent document peut exister. Comme &quot;Ouvert&quot;, &quot;En attente d&#39;approbation&quot;, etc"
+Disable Customer Signup link in Login page,Désactiver le lien d'inscription en page de connexion
 Disable Signup,Désactiver Inscription
-Disabled,Handicapé
+Disabled,Désactivé
 Display,Afficher
 Display Settings,Paramètres d&#39;affichage
-Display in the sidebar of this Website Route node,Affichage dans la barre latérale de ce nœud Route du site
-Do not allow user to change after set the first time,Ne pas permettre à l'utilisateur de changer après mis la première fois
-Doc Status,Statut Doc
+Display in the sidebar of this Website Route node,Affichage dans la barre latérale de ce groupe de site Web.
+Do not allow user to change after set the first time,Ne pas permettre à l'utilisateur de changer après avoir mis la première fois
+Doc Status,Statut du document
 DocField,DocField
 DocPerm,DocPerm
 DocType,DOCTYPE
 DocType Details,Détails DocType
 DocType can not be merged,DOCTYPE ne peut pas être fusionné
-DocType on which this Workflow is applicable.,DOCTYPE de la présente Workflow est applicable.
+DocType on which this Workflow is applicable.,DOCTYPE ou la présente Workflow est applicable.
 DocType or Field,DocType ou Champ
 Doclist JSON,DocList JSON
 Docname,docname
@@ -300,13 +300,13 @@ Edit Permissions,Modifier les autorisations
 Editable,Editable
 Email,Email
 Email Host,Hôte Email
-Email Id,Identification d&#39;email
-Email Login,Connexion E-mail
-Email Password,E-mail Mot
-Email Sent,Courriel a été envoyé
+Email Id,Identifiant d l&#39;email
+Email Login,Login de l'email
+Email Password,Mot de passe de l'email
+Email Sent,Le courriel a été envoyé
 Email Settings,Paramètres de messagerie
-Email Signature,Signature e-mail
-Email Use SSL,Envoyer SSL
+Email Signature,Signature email
+Email Use SSL,Envoyer par SSL
 Email address,Adresse e-mail
 "Email addresses, separted by commas","Adresses e-mail par des virgules, separted"
 Email not verified with {1},Envoyer à pas vérifié avec {1}

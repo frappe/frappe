@@ -25,7 +25,7 @@ def handle():
 		DELETE will delete
 	/api/resource/{doctype}/{name}?run_method={method} will run a whitelisted controller method
 	"""
-	parts = frappe.request.path[1:].split("/")
+	parts = frappe.request.path[1:].split("/",3)
 	call = doctype = name = None
 
 	if len(parts) > 1:
@@ -76,7 +76,6 @@ def handle():
 					frappe.db.commit()
 
 				if frappe.local.request.method=="DELETE":
-					doc.update(data)
 					# Not checking permissions here because it's checked in delete_doc
 					frappe.delete_doc(doctype, name)
 					frappe.local.response.http_status_code = 202
