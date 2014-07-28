@@ -377,6 +377,8 @@ def restore(db_name, source_sql, force=False, quiet=False, with_scheduler_enable
 	try:
 		frappe.connect()
 		frappe.utils.scheduler.toggle_scheduler(with_scheduler_enabled)
+		scheduler_status = "disabled" if frappe.utils.scheduler.is_scheduler_disabled() else "enabled"
+		print "*** Scheduler is", scheduler_status, "***"
 	finally:
 		frappe.destroy()
 
