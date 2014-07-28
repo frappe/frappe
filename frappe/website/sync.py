@@ -39,7 +39,7 @@ def sync(app=None, verbose=False):
 
 	# delete remaining routes
 	for r in all_routes:
-		frappe.delete_doc("Website Route", r)
+		frappe.delete_doc("Website Route", r, force=True)
 
 def sync_pages(routes):
 	global all_routes
