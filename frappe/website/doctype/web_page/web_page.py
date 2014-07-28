@@ -14,6 +14,7 @@ condition_field = "published"
 class WebPage(WebsiteGenerator):
 	save_versions = True
 	def get_context(self, context):
+		# if static page, get static content
 		if context.slideshow:
 			context.update(get_slideshow(self))
 

@@ -558,10 +558,10 @@ def clear_all_sessions():
 	frappe.destroy()
 
 @cmd
-def build_website():
+def build_website(verbose):
 	import frappe.website.sync
 	frappe.connect()
-	frappe.website.sync.sync()
+	frappe.website.sync.sync(verbose=verbose)
 	frappe.db.commit()
 	frappe.destroy()
 
