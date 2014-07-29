@@ -97,11 +97,11 @@ def delete_from_table(doctype, name, ignore_doctypes, doc):
 def check_permission_and_not_submitted(doc, ignore_permissions=False):
 	# permission
 	if not ignore_permissions and frappe.session.user!="Administrator" and not doc.has_permission("delete"):
-		frappe.msgprint(_("User not allowed to delete."), raise_exception=True)
+		frappe.msgprint(_("User not allowed to delete {0}: {1}").format(doc.doctype, doc.name), raise_exception=True)
 
 	# check if submitted
 	if doc.docstatus == 1:
-		frappe.msgprint(_("Submitted Record cannot be deleted")+": "+doc.name+"("+doc.doctype+")",
+		frappe.msgprint(_("{0} {1}: Submitted Record cannot be deleted.").format(doc.doctype, doc.name),
 			raise_exception=True)
 
 def check_if_doc_is_linked(doc, method="Delete"):
