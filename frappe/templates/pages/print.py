@@ -172,7 +172,7 @@ def make_layout(doc, meta):
 
 def is_visible(df):
 	no_display = ("Section Break", "Column Break", "Button")
-	return (df.fieldtype not in no_display) and not df.print_hide
+	return (df.fieldtype not in no_display) and not df.get("__print_hide") and not df.print_hide
 
 def get_print_style(style=None):
 	if not style:
