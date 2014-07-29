@@ -30,8 +30,8 @@ frappe.template.compile = function(str) {
 			console.log("Error in Template:");
 			console.log(fn_str);
 			if(e.lineNumber) {
-				console.log("Error in Line 9, Col 11:");
-				console.log(fn_str.split("\n")[8]);
+				console.log("Error in Line "+e.lineNumber+", Col "+e.columnNumber+":");
+				console.log(fn_str.split("\n")[e.lineNumber - 1]);
 			}
 		}
     }

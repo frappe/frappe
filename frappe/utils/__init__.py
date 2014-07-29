@@ -335,3 +335,20 @@ def update_progress_bar(txt, i, l):
 	complete = int(float(i+1) / l * 40)
 	sys.stdout.write("\r{0}: [{1}{2}]".format(txt, "="*complete, " "*(40-complete)))
 	sys.stdout.flush()
+
+def get_html_format(print_path):
+	html_format = None
+	if os.path.exists(print_path):
+		with open(print_path, "r") as f:
+			html_format = f.read()
+
+		for include_directive, path in re.findall("""({% include ['"]([^'"]*)['"] %})""", html_format):
+			for app_name in frappe.get_installed_apps():
+				include_path = frappe.get_app_path(app_name, *path.split(os.path.sep))
+				if os.path.exists(include_path):
+					with open(include_path, "r") as f:
+						html_format = html_format.replace(include_directive, f.read())
+					break
+
+	return html_format
+

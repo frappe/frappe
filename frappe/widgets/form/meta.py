@@ -8,6 +8,7 @@ import frappe, os
 from frappe.model.meta import Meta
 from frappe.modules import scrub, get_module_path, load_doctype_module
 from frappe.model.workflow import get_workflow_name
+from frappe.utils import get_html_format
 
 ######
 
@@ -160,8 +161,7 @@ class FormMeta(Meta):
 		templates = {}
 		if hasattr(module, "form_grid_templates"):
 			for key, path in module.form_grid_templates.iteritems():
-				with open(frappe.get_app_path(app, path), "r") as f:
-					templates[key] = f.read()
+				templates[key] = get_html_format(frappe.get_app_path(app, path))
 
 			self.set("__form_grid_templates", templates)
 
