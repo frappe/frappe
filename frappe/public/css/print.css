@@ -65,3 +65,14 @@ table.no-border, table.no-border td {
 	display: block;
 }
 
+.print-format img {
+	max-width: 100%;
+}
+
+.print-format table td > .primary:first-child {
+	font-weight: bold;
+}
+
+.print-format td {
+	vertical-align: top;
+}

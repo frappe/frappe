@@ -190,7 +190,7 @@ def get_print_style(style=None):
 			# prepend css with at_import
 			css = at_import + css
 
-		css += additional_css
+		css += "\n" + additional_css
 	except TemplateNotFound:
 		pass
 
