@@ -21,6 +21,7 @@ from frappe.utils import get_files_path, get_site_path
 # * Patch remaining unpatched file data records.
 
 def execute():
+	frappe.db.auto_commit_on_many_writes = True
 	rename_replacing_files()
 	for name, file_name, file_url in frappe.db.sql(
 			"""select name, file_name, file_url from `tabFile Data`
@@ -38,8 +39,9 @@ def execute():
 		except IOError:
 			print 'Warning: Error processing ', name
 			b.content_hash = None
-
+		b.ignore_duplicate_entry_error = True
 		b.save()
+	frappe.db.auto_commit_on_many_writes = False
 
 def get_replaced_files():
 	ret = []
@@ -57,7 +59,7 @@ def rename_replacing_files():
 	if len(replaced_files):
 		missing_files = [v[0] for v in replaced_files]
 		with open(get_site_path('missing_files.txt'), 'w') as f:
-			f.write('\n'.join(missing_files) + '\n')
+			f.write(('\n'.join(missing_files) + '\n').encode('utf-8'))
 
 	for file_name, file_datas in replaced_files:
 		print 'processing ' + file_name
@@ -68,7 +70,10 @@ def rename_replacing_files():
 		if os.path.exists(get_files_path(new_file_name)):
 			continue
 			print 'skipping ' + file_name
-		os.rename(get_files_path(file_name), get_files_path(new_file_name))
+		try:
+			os.rename(get_files_path(file_name), get_files_path(new_file_name))
+		except OSError:
+			print 'Error renaming ', file_name
 		for name in file_datas:
 			f = frappe.get_doc('File Data', name)
 			f.file_name = new_file_name
@@ -85,5 +90,9 @@ def invert_dict(ddict):
 	return ret
 
 def get_file_name(fname, hash):
-		partial, extn = fname.rsplit('.', 1)
+		if '.' in fname:
+			partial, extn = fname.rsplit('.', 1)
+		else:
+			partial = fname
+			extn = ''
 		return '{partial}{suffix}.{extn}'.format(partial=partial, extn=extn, suffix=hash[:5])
