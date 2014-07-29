@@ -15,7 +15,7 @@ class MaxFileSizeReachedError(frappe.ValidationError): pass
 
 def get_file_url(file_data_name):
 	data = frappe.db.get_value("File Data", file_data_name, ["file_name", "file_url"], as_dict=True)
-	return data.file_name or data.file_url
+	return data.file_url or data.file_name
 
 def upload():
 	# get record details
