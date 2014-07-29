@@ -6,28 +6,36 @@
 frappe.provide("frappe.form.formatters");
 
 frappe.form.formatters = {
+	_right: function(value, options) {
+		if(options && options.inline) {
+			return value;
+		} else {
+			return "<div style='text-align: right'>" + value + "</div>";
+		}
+	},
 	Data: function(value) {
-		return value==null ? "" : value
+		return value==null ? "" : value;
 	},
 	Select: function(value) {
 		return __(frappe.form.formatters["Data"](value));
 	},
-	Float: function(value, docfield) {
+	Float: function(value, docfield, options) {
 		var decimals = cint(docfield.options, null) || cint(frappe.boot.sysdefaults.float_precision, null);
-
-		return "<div style='text-align: right'>" +
-			((value==null || value==="") ? "" :
-				format_number(value, null, decimals)) + "</div>";
+		return frappe.form.formatters._right(
+			((value==null || value==="")
+				? ""
+				: format_number(value, null, decimals)), options)
 	},
-	Int: function(value) {
-		return value==null ? "": "<div style='text-align: right'>" + cint(value) + "</div>";
+	Int: function(value, docfield, options) {
+		return frappe.form.formatters._right(value==null ? "" : cint(value), options)
 	},
-	Percent: function(value) {
-		return "<div style='text-align: right'>" + flt(value, 2) + "%" + "</div>";
+	Percent: function(value, docfield, options) {
+		return frappe.form.formatters._right(flt(value, 2) + "%", options)
 	},
 	Currency: function(value, docfield, options, doc) {
 		var currency = frappe.meta.get_field_currency(docfield, doc);
-		return "<div style='text-align: right'>" + ((value==null || value==="") ? "" : format_currency(value, currency)) + "</div>";
+		return frappe.form.formatters._right((value==null || value==="")
+			? "" : format_currency(value, currency), options);
 	},
 	Check: function(value) {
 		return value ? "<i class='icon-check'></i>" : "<i class='icon-check-empty'></i>";

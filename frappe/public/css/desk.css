@@ -279,8 +279,9 @@ ul.linked-with-list li {
 }
 
 .grid-heading-row {
-	padding: 8px;
+	padding: 8px 15px;
 	border-bottom: 1px solid #dddddd;
+	font-weight: bold;
 }
 
 .rows .grid-row .divider {
@@ -295,6 +296,10 @@ ul.linked-with-list li {
 
 .grid-row .panel {
 	background-color: #fffff8;
+}
+
+.grid-row td {
+	vertical-align: top;
 }
 
 /* form footer */
