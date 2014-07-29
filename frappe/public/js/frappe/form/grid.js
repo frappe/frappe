@@ -552,6 +552,7 @@ frappe.ui.form.GridRow = Class.extend({
 	},
 	get_formatted: function(fieldname) {
 		var df = frappe.meta.get_docfield(this.grid.doctype, fieldname, this.frm.docname);
+		if(!df) { console.log("fieldname not found: " + fieldname); }
 		return frappe.format(this.doc[fieldname], df, {inline:1}, this.doc);
 	},
 	get_visible_columns: function(blacklist) {

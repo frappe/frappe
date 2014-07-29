@@ -356,7 +356,7 @@ frappe.ui.Listing = Class.extend({
 
 		// render the rows
 		for(var i=0; i < m; i++) {
-			this.render_row(this.add_row(), values[i], this, i);
+			this.render_row(this.add_row(values[i]), values[i], this, i);
 		}
 	},
 	update_paging: function(values) {
@@ -365,8 +365,11 @@ frappe.ui.Listing = Class.extend({
 			this.start += this.page_length;
 		}
 	},
-	add_row: function() {
-		return $('<div class="list-row">').appendTo(this.$w.find('.result-list')).get(0);
+	add_row: function(row) {
+		return $('<div class="list-row">')
+			.data("data", row)
+			.appendTo(this.$w.find('.result-list'))
+			.get(0);
 	},
 	refresh: function() {
 		this.run();

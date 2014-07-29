@@ -155,14 +155,9 @@ div#freeze {
 	border-bottom: "1px solid #eee";
 }
 
-.doclist-row .col {
-	padding-left: 7px;
-	padding-right: 7px;
-}
-
 .list-timestamp {
 	position: absolute;
-	right: 5px;
+	right: 15px;
 	bottom: 2px;
 	font-size: 70%;
 	color: #888;

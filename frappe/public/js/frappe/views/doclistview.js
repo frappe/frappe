@@ -242,7 +242,8 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		this.appframe.add_icon_btn("2", 'icon-tag', __('Show Tags'), function() { me.toggle_tags(); });
 		this.$page.on("click", ".list-tag-preview", function() { me.toggle_tags(); });
 		if(this.can_delete || this.listview.settings.selectable) {
-			this.appframe.add_icon_btn("2", 'icon-remove', __('Delete'), function() { me.delete_items(); });
+			this.appframe.add_icon_btn("2", 'icon-remove', __('Delete'),
+				function() { me.delete_items(); });
 			this.appframe.add_icon_btn("2", 'icon-ok', __('Select All'), function() {
 				me.$page.find('.list-delete').prop("checked",
 					me.$page.find('.list-delete:checked').length ? false : true);
@@ -292,7 +293,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 
 	get_checked_items: function() {
 		return $.map(this.$page.find('.list-delete:checked'), function(e) {
-			return $(e).data('data');
+			return $(e).parents(".list-row:first").data('data');
 		});
 	},
 	delete_items: function() {
