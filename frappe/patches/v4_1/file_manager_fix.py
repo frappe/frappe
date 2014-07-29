@@ -45,7 +45,6 @@ def get_replaced_files():
 	ret = []
 	new_files = dict(frappe.db.sql("select name, file_name from `tabFile Data` where file_name not like 'files/%'"))
 	old_files = dict(frappe.db.sql("select name, file_name from `tabFile Data` where ifnull(content_hash, '')=''"))
-	files = dict(frappe.db.sql("select name, file_name from `tabFile Data` where file_name is not null"))
 	invfiles = invert_dict(new_files)
 
 	for nname, nfilename in new_files.iteritems():
