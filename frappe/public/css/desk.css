@@ -40,7 +40,6 @@ a.form-link {
 }
 
 .text-ellipsis {
-	display: inline-block;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -148,11 +147,27 @@ div#freeze {
 
 /* list */
 
+.progress {
+	height: 10px;
+}
+
 .doclist-row {
 	position: relative;
 	padding-top: 5px;
 	padding-bottom: 6px;
 	border-bottom: "1px solid #eee";
+}
+
+.doclist-row .progress {
+	margin-top: 12px;
+}
+
+.doclist-row .filterable {
+	cursor: pointer;
+}
+
+.doclist-row .label {
+	margin-right: 8px;
 }
 
 .list-timestamp {

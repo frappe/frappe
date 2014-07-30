@@ -46,7 +46,7 @@ frappe.views.ListView = Class.extend({
 
 		// add title field
 		if(this.meta.title_field) {
-			this.title_field = meta.title_field;
+			this.title_field = this.meta.title_field;
 			add_field(this.meta.title_field);
 		}
 
@@ -181,17 +181,10 @@ frappe.views.ListView = Class.extend({
 	},
 
 	render_template: function (row, data) {
-		var me = this,
-			helper = {
-				get_formatted: function(fieldname) {
-					var df = frappe.meta.get_docfield(me.doctype, fieldname);
-					if(!df) { console.log("fieldname not found: " + fieldname); };
-					return frappe.format(data[fieldname], df, {inline:1}, data);
-				}
-			};
-		$(frappe.render(this.template,
-			{ doc : data, list : this, row : helper}))
-			.appendTo($('<div class="doclist-row"></div>').appendTo(row));
+		$(frappe.render(this.template, {
+			doc: frappe.get_format_helper(data),
+			list: this
+		})).appendTo($('<div class="doclist-row"></div>').appendTo(row));
 	},
 
 	render_standard_columns: function(row, data) {
@@ -327,7 +320,7 @@ frappe.views.ListView = Class.extend({
 		}
 
 		// title
-		html += repl('<a class="form-link list-id" style="margin-left: 5px" \
+		html += repl('<a class="form-link list-id" style="margin-left: 5px; margin-right: 8px;" \
 			href="#Form/%(doctype)s/%(name)s" title="%(title)s">%(title)s</a>', {
 				doctype: data.doctype,
 				name: encodeURIComponent(data.name),

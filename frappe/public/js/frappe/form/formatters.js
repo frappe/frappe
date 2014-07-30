@@ -147,3 +147,15 @@ frappe.format = function(value, df, options, doc) {
 
 	return formatter(value, df, options, doc);
 }
+
+frappe.get_format_helper = function(doc) {
+	var helper = {
+		get_formatted: function(fieldname) {
+			var df = frappe.meta.get_docfield(doc.doctype, fieldname);
+			if(!df) { console.log("fieldname not found: " + fieldname); };
+			return frappe.format(doc[fieldname], df, {inline:1}, doc);
+		}
+	};
+	$.extend(helper, doc);
+	return helper;
+}

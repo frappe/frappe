@@ -275,7 +275,10 @@ frappe.ui.form.GridRow = Class.extend({
 		if(this.grid.template) {
 			$('<div class="col-xs-10">').appendTo(this.row)
 				.html(frappe.render(this.grid.template, {
-					doc:this.doc || null, frm:this.frm, row: this}));
+					doc: this.doc ? frappe.get_format_helper(this.doc) : null,
+					frm: this.frm,
+					row: this
+				}));
 		} else {
 			this.add_visible_columns();
 		}
@@ -318,7 +321,7 @@ frappe.ui.form.GridRow = Class.extend({
 			var df = this.static_display_template[ci][0];
 			var colsize = this.static_display_template[ci][1];
 			var txt = this.doc ?
-				this.get_formatted(df.fieldname) :
+				frappe.format(this.doc[df.fieldname], df, null, this.doc) :
 				__(df.label);
 			if(this.doc && df.fieldtype === "Select") {
 				txt = __(txt);
@@ -542,18 +545,14 @@ frappe.ui.form.GridRow = Class.extend({
 	refresh_field: function(fieldname) {
 		var $col = this.row.find("[data-fieldname='"+fieldname+"']");
 		if($col.length) {
-			$col.html(this.get_formatted(fieldname));
+			$col.html(frappe.format(this.doc[fieldname],
+				frappe.meta.get_docfield(this.doc.doctype, fieldname, this.frm.docname), null, this.frm.doc));
 		}
 
 		// in form
 		if(this.fields_dict && this.fields_dict[fieldname]) {
 			this.fields_dict[fieldname].refresh();
 		}
-	},
-	get_formatted: function(fieldname) {
-		var df = frappe.meta.get_docfield(this.grid.doctype, fieldname, this.frm.docname);
-		if(!df) { console.log("fieldname not found: " + fieldname); }
-		return frappe.format(this.doc[fieldname], df, {inline:1}, this.doc);
 	},
 	get_visible_columns: function(blacklist) {
 		var visible_columns = $.map(this.docfields, function(df) {
