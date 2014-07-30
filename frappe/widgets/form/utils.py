@@ -99,7 +99,7 @@ def get_next(doctype, value, prev, filters=None, order_by="modified desc"):
 		return res[0][0]
 
 @frappe.whitelist()
-def get_linked_docs(doctype, name, metadata_loaded=None):
+def get_linked_docs(doctype, name, metadata_loaded=None, no_metadata=False):
 	if not metadata_loaded: metadata_loaded = []
 	meta = frappe.widgets.form.meta.get_meta(doctype)
 	linkinfo = meta.get("__linked_with")
@@ -126,7 +126,7 @@ def get_linked_docs(doctype, name, metadata_loaded=None):
 			if ret:
 				results[dt] = ret
 
-			if not dt in metadata_loaded:
+			if not no_metadata and not dt in metadata_loaded:
 				frappe.local.response.docs.extend(link_meta_bundle)
 
 
