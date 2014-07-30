@@ -100,8 +100,8 @@
 	<div class="letter-head">{{ letter_head }}</div>
 	{% endif %}
 	<div class="print-heading">
-		<h2>{{ doc.select_print_heading or (doc.print_heading if doc.print_heading != None
-			else _(doc.doctype)) }}</h2>
+		<h3>{{ doc.select_print_heading or (doc.print_heading if doc.print_heading != None
+			else _(doc.doctype)) }}</h3>
 		<h4 class="text-muted">{{ doc.sub_heading if doc.sub_heading != None else ("#" + doc[doc.meta.title_field or "name"]) }}</h4>
 	</div>
 	{%- if doc.meta.is_submittable and doc.docstatus==0-%}

@@ -53,6 +53,15 @@ frappe.request.call = function(opts) {
 			msgprint(__("Not found"));
 		},
 		403: function(xhr) {
+			if (xhr.responseJSON && xhr.responseJSON._server_messages) {
+				var _server_messages = JSON.parse(xhr.responseJSON._server_messages);
+
+				// avoid double messages
+				if (_server_messages.indexOf(__("Not permitted"))!==-1) {
+					return;
+				}
+			}
+
 			msgprint(__("Not permitted"));
 		},
 		417: function(data, xhr) {
