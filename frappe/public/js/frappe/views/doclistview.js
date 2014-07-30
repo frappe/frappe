@@ -85,6 +85,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 			this.appframe.set_title_left(this.listview.settings.set_title_left);
 		}
 		this.make_help();
+		this.setup_filterable();
 		this.$page.find(".show_filters").css({"padding":"15px", "margin":"0px -15px"});
 		var me = this;
 		this.$w.on("render-complete", function() {
@@ -99,6 +100,23 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		var h_side = this.$page.find(".layout-side-section").height();
 		if(h_side > h_main)
 			this.$page.find(".layout-main-section").css({"min-height": h_side});
+	},
+
+	setup_filterable: function() {
+		var me = this;
+		this.$page.on("click", ".filterable", function(e) {
+			var filters = $(this).attr("data-filter").split("|");
+			$.each(filters, function(i, f) {
+				f = f.split(",");
+				if(f[2]==="Today") {
+					f[2] = frappe.datetime.get_today();
+				} else if(f[2]=="User") {
+					f[2] = user;
+				}
+				me.filter_list.add_filter(me.doctype, f[0], f[1], f[2]);
+			});
+			me.run();
+		})
 	},
 
 	show_match_help: function() {
@@ -296,6 +314,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 			return $(e).parents(".list-row:first").data('data');
 		});
 	},
+
 	delete_items: function() {
 		var me = this;
 		var dl = this.get_checked_items();
