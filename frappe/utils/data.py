@@ -16,8 +16,9 @@ def getdate(string_date):
 	"""
 	if isinstance(string_date, datetime.date):
 		return string_date
+
 	elif isinstance(string_date, datetime.datetime):
-		return datetime.date()
+		return string_date.date()
 
 	if " " in string_date:
 		string_date = string_date.split(" ")[0]
