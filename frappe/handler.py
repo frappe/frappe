@@ -69,6 +69,11 @@ def handle():
 
 def execute_cmd(cmd):
 	"""execute a request as python module"""
+	for hook in frappe.get_hooks("override_whitelisted_methods", {}).get(cmd, []):
+		# override using the first hook
+		cmd = hook
+		break
+
 	method = get_attr(cmd)
 
 	# check if whitelisted

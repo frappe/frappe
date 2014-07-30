@@ -187,6 +187,13 @@ app_version = "0.0.1"
 
 # before_tests = "{app_name}.install.before_tests"
 
+# Overriding Whitelisted Methods
+# ------------------------------
+#
+# override_whitelisted_methods = {{
+# 	"frappe.core.doctype.event.event.get_events": "{app_name}.event.get_events"
+# }}
+
 """
 
 desktop_template = """from frappe import _
