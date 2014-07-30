@@ -76,6 +76,8 @@ class WebsiteGenerator(Document):
 			route.page_title = self.get_page_title()
 			self.update_permissions(route)
 			route.save(ignore_permissions=True)
+		else:
+			route.clear_cache()
 
 	def is_changed(self, route):
 		if route.idx != self.idx or route.page_title != self.get_page_title():
