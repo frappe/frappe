@@ -198,7 +198,7 @@ frappe.views.ListView = Class.extend({
 			colspans = 0,
 			me = this;
 
-		$(me.get_avatar_and_id(data)).appendTo(body.find(".list-row-id-area"));
+		$(me.get_avatar_and_id(data, true)).appendTo(body.find(".list-row-id-area"));
 
 		// make table
 		$.each(this.columns, function(i, v) {
@@ -290,7 +290,7 @@ frappe.views.ListView = Class.extend({
 			})
 		return col;
 	},
-	get_avatar_and_id: function(data) {
+	get_avatar_and_id: function(data, without_workflow) {
 		this.title_offset_left = 15;
 
 		var html = "";
@@ -328,6 +328,15 @@ frappe.views.ListView = Class.extend({
 			});
 
 		this.title_offset_left += 5;
+
+		if(!without_workflow && this.workflow_state_fieldname) {
+			html+= repl('<span class="label label-%(style)s filterable" data-filter="%(fieldname)s,=,%(value)s">\
+				%(value)s</span>', {
+					fieldname: this.workflow_state_fieldname,
+					value: data[this.workflow_state_fieldname],
+					style: frappe.utils.guess_style(data[this.workflow_state_fieldname])
+				});
+		}
 
 		return html;
 	},
@@ -389,12 +398,9 @@ frappe.views.ListView = Class.extend({
 				+ data[opts.content] + "</span>")
 				.css({"cursor":"pointer"})
 				.addClass("label")
+				.addClass("filterable")
 				.addClass(label_class)
-				.attr("data-fieldname", opts.content)
-				.click(function() {
-					me.doclistview.set_filter($(this).attr("data-fieldname"),
-						$(this).text());
-				})
+				.attr("data-filter", opts.fieldname + ",=," + opts.content)
 				.appendTo(parent.css({"overflow":"hidden"}));
 		}
 		else if(opts.type=="link" && data[opts.content]) {
