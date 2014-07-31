@@ -1,0 +1,1473 @@
+ by Role ,
+ is not set,
+"""Company History""","""Şirket Tarihçesi"""
+"""Team Members"" or ""Management""","""Takım Üyeleri"" veya ""Yönetim"""
+'In List View' not allowed for type {0} in row {1},'Liste görüntüle' izin türü için {0} üst üste {1}
+0 - Draft; 1 - Submitted; 2 - Cancelled,0 - Taslak; 1 - Ekleyen; 2 - İptal
+0 is highest,0 yüksek olduğu
+"000 is black, fff is white","000 siyah, fff beyaz"
+2 days ago,2 gün önce
+"<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank"">[?]</a>","<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank""> [?]</ A>"
+"<a onclick=""msgprint('<ol>\
+<li><b>field:[fieldname]</b> - By Field\
+<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\
+<li><b>Prompt</b> - Prompt user for a name\
+<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\
+</ol>')"">Naming Options</a>","<A onclick = ""msgprint ('<ol> \
+ <li> <b> alanı: [fieldname] </ b> - Alana Göre \
+ <li> <b> naming_series: </ b > - Seri adlandırma By (naming_series denilen alan mevcut olması gerekir \
+ <li> <b> İstemi </ b> - Bir isim için İstemi kullanıcı \
+ <li> <b> [dizi] </ . b> - prefix (bir nokta ile ayrılmış) tarafından Serisi; örnek ÖNLİSANS için # # # # # \
+ </ ol> ') ""> Seçenekler adlandırma </ a>"
+<b>new</b> <i>type of document</i>,Belgenin <b> yeni </ b> tipi </ i>
+"<i>document type...</i>, e.g. <b>customer</b>","<i> belge türü ... </ i>, örneğin <b> müşteri </ b>"
+<i>e.g. <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>,<i> örneğin <strong> (55 + 434) / 4 </ strong> veya <strong> = Math.sin (Math.PI / 2) </ strong> ... </ i>
+<i>module name...</i>,<i> modül adı ... </ i>
+<i>text</i> <b>in</b> <i>document type</i>,<i> metin </ i> <b> </ b> belge türü </ i> <i>
+A user can be permitted to multiple records of the same DocType.,Bir kullanıcı aynı DocType birden kayıtlarına müsaade edilebilir.
+About,Hakkında
+About Us Settings,Hakkımızda Ayarları Hakkında
+About Us Team Member,Hakkımızda Ekip Üyesi Hakkında
+Action,Eylem
+Actions,Eylemler
+"Actions for workflow (e.g. Approve, Cancel).",Iş akışı için eylemleri (örneğin İptal Onayla).
+Add,Ekle
+Add A New Rule,Yeni Kuralı Ekle
+Add A User Permission,Bir Kullanıcı İzni ekle
+Add Attachments,Ekler ekle
+Add Bookmark,Yerimi ekle
+Add CSS,CSS Ekle
+Add Column,Sütun Ekle
+Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,Google Analytics ID ekleyin: örn. UA-89XXX57-1. Daha fazla bilgi için Google Analytics yardım arayın.
+Add Message,Mesaj Ekle
+Add New Permission Rule,Yeni İzin Kuralı Ekle
+Add Reply,Yanıt Ekle
+Add Total Row,Toplam satır ekle
+Add a New Role,Yeni Rol Ekle
+Add a banner to the site. (small banners are usually good),Siteye bir afiş ekleyin. (Küçük afiş genellikle iyidir)
+Add all roles,Tüm rolleri Ekle
+Add attachment,Ek ekle
+Add code as &lt;script&gt;,<script> Gibi kod ekle
+Add custom javascript to forms.,Formlara özel javascript ekle.
+Add fields to forms.,Formlara alanlarını ekleyin.
+Add multiple rows,Birden fazla satır eklemek
+Add new row,Yeni satır ekle
+"Add the name of <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> e.g. ""Open Sans""","<a Href=""http://google.com/webfonts"" target=""_blank""> Google Web Font adını ekleyin </ a>, örneğin ""Açık Sans """
+Add to To Do,Do ekle
+Add to To Do List Of,Of Yapılacaklar Listesi ekle
+Added {0} ({1}),Eklenen {0} ({1})
+Adding System Manager to this User as there must be atleast one System Manager,"En az bir Sistem Yöneticisi olması gerektiği gibi, bu üyeler için Sistem Yöneticisi ekleme"
+Additional Info,Ek Bilgi
+Additional Permissions,Ek İzinler
+Address,İletişim
+Address Line 1,Adres Satırı 1
+Address Line 2,Adres Satırı 2
+Address Title,Adres Başlık
+Address and other legal information you may want to put in the footer.,Adres ve diğer yasal bilgiler altbilgi koymak isteyebilirsiniz.
+Admin,Yönetici
+All Applications,Tüm Uygulamalar
+All Day,Tüm Gün
+All customizations will be removed. Please confirm.,Tüm özelleştirmeler silinecektir. Onaylayın.
+"All possible Workflow States and roles of the workflow. <br>Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""","Tüm olası Akışı Devletler ve iş akışının rolleri. <br> Docstatus Seçenekleri: 0 ""Kaydedildi"" olduğunu, 1 ""Ekleyen"" ve 2 ""iptal"" edildi"
+Allow Attach,Takın ver
+Allow Import,İzin Alma
+Allow Import via Data Import Tool,İzin Alma Veri Alma Aracı üzerinden
+Allow Rename,Adlandır izin
+Allow on Submit,Gönder'i izin
+Allow user to login only after this hour (0-24),Kullanıcı sadece bu saatten sonra (0-24) giriş için izin ver
+Allow user to login only before this hour (0-24),Kullanıcı sadece bu saatten önce (0-24) giriş için izin ver
+Allowed,İzin
+"Allowing DocType, DocType. Be careful!","Izin DocType, DocType. Dikkat et!"
+Already Registered,Zaten Kayıtlı
+Already in user's To Do list,Zaten kullanıcının Yapılacaklar listesi içinde
+Alternative download link,Alternatif indirme linki
+"Alternatively, you can also specify 'auto_email_id' in site_config.json","Alternatif olarak, aynı zamanda site_config.json de 'auto_email_id' belirtebilirsiniz"
+Always use above Login Id as sender,Her zaman gönderici olarak giriş id yukarıda kullanın
+Amend,Değiştirmek
+"An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [<a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a>]",". Ico uzantılı bir simge dosyası. 16 x 16 piksel olmalıdır. Bir favicon jeneratör kullanarak üretti. [<a Href=""http://favicon-generator.org/"" target=""_blank""> favicon-generator.org </ a>]"
+"Another {0} with name {1} exists, select another name","Başka {0} adı ile {1} Varlığından, başka bir isim seçin"
+Any existing permission will be deleted / overwritten.,Varolan herhangi bir izin / yazılır silinecektir.
+Anyone Can Read,Herkes Okuyabilir
+Anyone Can Write,Herkes yaz miyim
+"Apart from Role based Permission Rules, you can apply User Permissions based on DocTypes.","Apart Rol tabanlı İzin Kuralları gelen, belgetürleri dayalı Kullanıcı İzinlerini uygulayabilirsiniz."
+"Apart from System Manager, roles with 'Set User Permissions' right can set permissions for other users for that Document Type.","Apart System Manager, 'Set Kullanıcı İzinleri' hakkı ile rolleri bu Document Type diğer kullanıcılar için izinleri ayarlayabilirsiniz."
+App Name,Uygulama Adı
+App not found,App bulunamadı
+Application Installer,Application Installer
+Applications,Uygulamalar
+Apply Style,Stil Uygula
+Apply User Permissions,Kullanıcı İzinlerini Uygula
+Are you sure you want to delete the attachment?,Eğer eki silmek istediğinizden emin misiniz?
+Arial,Arial
+"As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User.","En iyi uygulama olarak, farklı roller izni kural aynı seti atamak yok. Bunun yerine, aynı kullanıcı için birden roller ayarlayın."
+Ascending,Yükselen
+Assign To,Için atama
+Assigned By,By Atanan
+Assigned To,Atanan
+Assigned To Fullname,FULLNAME Atanan
+Assigned To/Owner,/ Owner Atanan
+Assignment Added,Atama eklendi
+Assignment Status Changed,Atama Durum değiştirildi
+Assignments,Ödevler
+Attach,Ekleme
+Attach Document Print,Belge Yazdır takın
+Attach as web link,Web link olarak takın
+Attached To DocType,DocType için Eklenmiş
+Attached To Name,Adı için Eklenmiş
+Attachments,Eklentiler
+Auto Email Id,Otomatik E-posta Kimliği
+Auto Name,Otomatik Ad
+Auto generated,Otomatik oluşturulan
+Avatar,Resim
+Back to Login,Giriş Sayfasına Dön
+Background Color,Arka Plan Rengi
+Background Image,Arkaplan Resmi
+Background Style,Arkaplan Stili
+Banner,Banner
+Banner HTML,Banner HTML
+Banner Image,Banner Resmi
+Banner is above the Top Menu Bar.,Banner Top Menu Bar üzerindedir.
+Begin this page with a slideshow of images,Görüntülerin bir slayt gösterisi ile bu sayfayı başlayın
+Beginning with,Ile başlayan
+Belongs to,Ait
+Bio,Bio
+Birth Date,Doğum tarihi
+Blog Category,Blog Kategorisi
+Blog Intro,Intro Blog
+Blog Introduction,Blog Tanıtım
+Blog Post,Blog Post
+Blog Settings,Blog Ayarları
+Blog Title,Blog Başlığı
+Blogger,Blogcu
+Bookmarks,Yer imleri
+Both login and password required,Gerekli giriş ve şifre hem de
+Brand HTML,Marka HTML
+Bulk Email,Toplu E-posta
+Bulk email limit {0} crossed,Toplu e-posta limiti {0} geçti
+Button,Buton
+By,Tarafından
+Calculate,Hesapla
+Calendar,Takvim
+Cancel,İptal
+Cancelled,İptal
+"Cannot Edit {0} directly: To edit {0} properties, create / update {1}, {2} and {3}","Düzenleme olamaz {0} doğrudan: {0} özelliklerini düzenlemek için, create / update {1}, {2} ve {3}"
+Cannot Update: Incorrect / Expired Link.,Güncelleme olamaz: geçilmek / Yanlış Linki.
+Cannot Update: Incorrect Password,Güncelleme olamaz: Yanlış Şifre
+Cannot add more than 50 comments,50'den fazla yorum eklemek değil miyim
+Cannot cancel before submitting. See Transition {0},Göndermeden önce iptal edilemiyor. Bkz Geçiş {0}
+Cannot change picture,Resmi değiştirmek değil miyim
+Cannot change state of Cancelled Document. Transition row {0},İptal Belgesinin durumu değiştiremezsiniz. Geçiş satır {0}
+Cannot change {0},Değiştiremezsiniz {0}
+Cannot delete or cancel because {0} {1} is linked with {2} {3},Silmek veya {0} {1} ile bağlantılı olduğu için iptal edemez {2} {3}
+Cannot delete {0} as it has child nodes,O çocuk düğümleri olduğu gibi {0} silemezsiniz
+Cannot edit standard fields,Standart alanları düzenleyebilir olamaz
+Cannot map because following condition fails: ,
+Cannot open instance when its {0} is open,Onun {0} açık olduğunda örneği açılamıyor
+Cannot open {0} when its instance is open,Onun örnek açıkken {0} açılamıyor
+Cannot print cancelled documents,İptal belgeler yazamıyor
+Cannot remove permission for DocType: {0} and Name: {1},DocType için iznini kaldırmak olamaz: {0} ve Adı: {1}
+Cannot reply to a reply,Bir cevapta cevap veremezsiniz
+Cannot set Email Alert on Document Type {0},Belge Türü E-posta Uyarısı ayarlanamaz {0}
+Cannot set permission for DocType: {0} and Name: {1},DocType için izin ayarlanamaz: {0} ve Adı: {1}
+Categorize blog posts.,Blog yazılarını sınıflandırır.
+Category,Kategori
+Category Name,Kategori Adı
+Center,Merkez
+"Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit.","Bazı belgeler, bir Fatura gibi, bir kez nihai değiştirilmemelidir. Bu tür belgeler için son durum gönderildi denir. Sen rolleri Gönder hangi kısıtlayabilirsiniz."
+"Change field properties (hide, readonly, permission etc.)","Değişim alan özellikleri (sakla, salt okunur, izin vb)"
+Chat,Sohbet
+Check,Kontrol
+Check / Uncheck roles assigned to the User. Click on the Role to find out what permissions that Role has.,Giriş / Kullanıcı atanan roller işaretini kaldırın. Rol sahip olduğu izinlerden öğrenmek için Rolü üzerine tıklayın.
+Check this if you want to send emails as this id only (in case of restriction by your email provider).,Yalnızca (e-posta sağlayıcınız tarafından kısıtlama durumunda) bu id gibi e-postalar göndermek istiyorsanız bu edin.
+Check this to make this the default letter head in all prints,Tüm baskılarda bu varsayılan mektup kafa yapmak için bu kontrol
+Check which Documents are readable by a User,Belgeler Kullanıcı tarafından okunabilir olduğunu kontrol
+Checked items shown on desktop,Masaüstünde gösterilen işaretli öğeleri
+Child Tables are shown as a Grid in other DocTypes.,Çocuk Tablolar diğer belgetürleri bir kılavuz olarak gösterilir.
+City,İl
+Classic,Klasik
+Clear Cache,Önbelleği temizle
+Clear all roles,Tüm rolleri temizleyin
+Click on a link to get options,Seçenekler almak için linke tıklayın
+Click on row to view / edit.,/ Düzenlemek görüntülemek için sıranın üstüne tıklayın.
+Client,Müşteri:
+Client-side formats are now deprecated,İstemci tarafı biçimleri artık önerilmemektedir
+Close,Kapat
+Close: {0},Kapat: {0}
+Closed,Kapalı
+Code,Kod
+Collapse,Çöküş
+Column Break,Sütun Arası
+Comment,Yorum yap
+Comment By,By Yorum
+Comment By Fullname,FULLNAME By Yorum
+Comment Date,Yorum Tarihi
+Comment Docname,Docname Yorum
+Comment Doctype,DOCTYPE Yorum
+Comment Time,Zaman Yorum
+Comments,Yorumlar
+Communication,Iletişim becerisi
+Communication Medium,Haberleşme Orta
+Company History,Şirket Tarihçesi
+Company Introduction,Firma Tanıtımı
+Complaint,Complaint (Şikayet)
+Complete By,By Komple
+Condition,Koşul
+Contact Us Settings,Bize Ayarları
+"Contact options, like ""Sales Query, Support Query"" etc each on a new line or separated by commas.","Vb ""Satış Query, Destek Sorgusu"" yeni bir hat üzerinde her veya virgülle ayırarak gibi temas seçenekleri."
+Content,İçerik
+Content Hash,İçerik Hash
+Content in markdown format that appears on the main side of your page,Sayfanızın ana tarafında görünür markdown formatında İçerik
+Content web page.,Içerik web sayfası.
+Controller,Kontrolör
+Copy,Kopyala
+Copyright,Copyrig
+Core,Çekirdek
+Could not connect to outgoing email server,Giden e-posta sunucusu için bağlantı kurulamadı
+Could not find {0},Bulamadı {0}
+Count,Sayısı
+Country,Ülke
+Create,Oluştur
+Create a new {0},Yeni {0} oluşturun
+Created Custom Field {0} in {1},Özel Alan Oluşturuldu {0} {1}
+Created Customer Issue,Oluşturulma Müşteri Sayı
+Created Opportunity,Oluşturulma Fırsat
+Created Support Ticket,Oluşturulma Destek Bilet
+Creation / Modified By,Yaratılış / By Modifiye
+Currency,Para birimi
+Current status,Şu anki durum
+Custom CSS,Özel CSS
+Custom Field,Özel Alan
+Custom Javascript,Özel Javascript
+Custom Reports,Özel Raporlar
+Custom Script,Özel Komut
+Custom?,Özel?
+Customize,Özelleştirme
+Customize Form,Formu özelleştirmek
+Customize Form Field,Form alanını özelleştirmek
+"Customize Label, Print Hide, Default etc.","Vb Etiket, Baskı gizle, Default özelleştirmek"
+Customized HTML Templates for printing transctions.,Baskı transctions için özelleştirilmiş HTML Şablonları.
+Daily Event Digest is sent for Calendar Events where reminders are set.,Günlük Olay Digest hatırlatmaları ayarlanır Takvim olayları için gönderilir.
+Danger,Tehlike
+Data,Veri
+Data Import / Export Tool,Veri İthalat / İhracat Aracı
+Data Import Tool,Veri Alma Aracı
+Data missing in table,Veri tablosunda eksik
+Date,Tarih
+Date Change,Tarih Değişim
+Date Changed,Tarihi Değişti
+Date Format,Tarih Biçimi
+Date and Number Format,Tarih ve Sayı Biçimi
+Date must be in format: {0},Tarih biçiminde olması gerekir: {0}
+Datetime,Datetime
+Days in Advance,Advance gün
+Dear,Sevgili
+Default,Varsayılan
+Default Print Format,Varsayılan Baskı Biçimi
+Default Value,Varsayılan Değer
+Default is system timezone,Varsayılan sistem timezone
+"Default: ""Contact Us""","Default: ""Bize Ulaşın"""
+DefaultValue,DefaultValue
+Defaults,Varsayılanlar
+"Define read, write, admin permissions for a Website Page.",", Okuma yazma tanımlayın, bir Web Sayfası için yönetici izinleri."
+Define workflows for forms.,Formlar için iş akışlarını tanımlayın.
+Delete,Sil
+Delete Row,Row Delete
+Depends On,Bağlıdır
+Descending,Inme
+Description,Açıklama
+Description and Status,Açıklama ve Durum
+"Description for listing page, in plain text, only a couple of lines. (max 140 characters)","Düz metin olarak ilan sayfası Açıklama, çizgilerin sadece bir çift. (Maksimum 140 karakter)"
+Description for page header.,Sayfa başlığında açıklama.
+Desktop,Masaüstü
+Details,Ayrıntılar
+Did not add,Eklemek vermedi
+Did not cancel,Iptal etmedi
+Did not find {0} for {0} ({1}),Için {0} bulamadık {0} ({1})
+Did not load,Yük yoktu
+Did not remove,Kaldırmak değildi
+Did not save,Tasarruf etmedi
+"Different ""States"" this document can exist in. Like ""Open"", ""Pending Approval"" etc.","Bu belge içeri var farklı ""Devletleri"" ""Aç"" gibi, ""Onay Bekliyor"" vb"
+Disable Customer Signup link in Login page,Giriş sayfasında Müşteri Kayıt bağlantıyı devre dışı bırakın
+Disable Signup,Üye Olun devre dışı
+Disabled,Devredışı
+Display,Ekran
+Display Settings,Ekran Ayarları
+Display in the sidebar of this Website Route node,Bu Web Sitesi Rota düğümün kenar çubuğunda görüntüleme
+Do not allow user to change after set the first time,Kullanıcı değiştirmesine izin vermeyin sonra ilk kez ayarlayın
+Doc Status,Doc Durum
+DocField,DocField
+DocPerm,DocPerm
+DocType,DocType
+DocType Details,DocType Detaylar
+DocType can not be merged,DocType birleştirilmiş olamaz
+DocType on which this Workflow is applicable.,DocType hangi bu Akışı uygulanabilir.
+DocType or Field,DocType veya Alan
+Doclist JSON,Doküman Listesi JSON
+Docname,Docname
+Document,Belge
+Document Status transition from ,
+Document Status transition from {0} to {1} is not allowed,{1} {0} Belge Durum geçiş izin verilmez
+Document Type,Belge Türü
+Document is only editable by users of role,Belge rolü kullanıcıları tarafından sadece düzenlenebilir
+Documentation,Dökümantasyon
+Documents,Belgeler
+Download,İndir
+Download Backup,Indir Backup
+Download link for your backup will be emailed on the following email address:,Yedekleme için download linki aşağıdaki e-posta adresine gönderilecektir olacak:
+Drafts,Taslaklar
+Drag to sort columns,Sütunları sıralamak için sürükleyin
+Due Date,Bitiş tarihi
+Duplicate name {0} {1},Çoğaltın adı {0} {1}
+Dynamic Link,Dynamic Link
+ERPNext Demo,ERPNext Demo
+Edit,Düzenle
+Edit Permissions,Düzenleme İzinleri
+Editable,Düzenlenebilir
+Email,E-posta
+Email Alert,E-posta Uyarısı
+Email Alert Recipient,E-posta Uyarısı Alıcı
+Email Alert Recipients,E-posta Uyarısı Alıcıları
+Email By Document Field,Belge Alana Göre E-Posta
+Email Footer,E-Altbilgi
+Email Host,E-posta Sunucu
+Email Id,E-posta Kimliği
+Email Login,E-posta Giriş
+Email Password,E-posta Şifre
+Email Sent,E-posta Gönderildi
+Email Settings,E-posta Ayarları
+Email Signature,E-İmza
+Email Use SSL,E-posta SSL Kullan
+Email address,E-Posta Adresi
+"Email addresses, separted by commas","Virgülle separted e-posta adresleri,"
+Email not verified with {1},E-posta ile doğrulanmadı {1}
+Email sent to {0},E-posta gönderildi {0}
+Email...,E-posta ...
+Emails are muted,E-postalar kapatılır
+Embed image slideshows in website pages.,Web sayfalarında embed görüntü slayt.
+Enable,Etkinleştir
+Enable Comments,Yorumlar etkinleştirin
+Enable Scheduled Jobs,Tarifeli İşler etkinleştirin
+Enabled,Etkin
+Ends on,Biter
+Enter Form Type,Form Tip girin
+Enter Value,Değeri girin
+Enter at least one permission row,En az bir izin satır girmek
+"Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set ""match"" permission rules. To see list of fields, go to <a href=""#Form/Customize Form/Customize Form"">Customize Form</a>.","Varsayılan değer alanları (tuşlar) ve değerleri girin. Eğer bir alan için birden fazla değer eklerseniz, ilki alınacak. Bu varsayılan ayrıca ""maç"" izni kuralları belirlemek için kullanılır. Alanların listesini görmek için, href=""#Form/Customize Form/Customize Form""> Özelleştirmek Formu </ a> <a gidin."
+"Enter keys to enable login via Facebook, Google, GitHub.","Facebook, Google, GitHub üzerinden oturum açmayı etkinleştirme anahtarlarını girin."
+Equals,Eşittir
+Error,Hata
+"Error generating PDF, attachment sent as HTML","HTML olarak gönderilen hata üreten PDF, eki"
+Error: Document has been modified after you have opened it,Hata: Bunu açtıktan sonra Belge modifiye edilmiştir
+Event,Olay
+Event Datetime,Olay Datetime
+Event Individuals,Olay Bireyler
+Event Role,Olay Rolü
+Event Roles,Olay Rolleri
+Event Type,Olay Türü
+Event User,Olay Kullanıcı
+Event end must be after start,Etkinlik sonunda başlamasından sonra olmalıdır
+Events,Etkinlikler
+Events In Today's Calendar,Bugünün Takvim'de Olaylar
+Every Day,Her Gün
+Every Month,Her Ay
+Every Week,Her Hafta
+Every Year,Her Yıl
+Everyone,Herkes
+Example:,Örneğin:
+Expand,Genişlet
+Export,Dışa aktar
+Export not allowed. You need {0} role to export.,İhracat izin verilmiyor. Vermek {0} rol gerekir.
+Exported,Ihraç
+"Expression, Optional","İfade, Opsiyonel"
+Facebook,Faceboo
+Facebook Client ID,Facebook Müşteri Kimliği
+Facebook Client Secret,Facebook Müşteri Sırrı
+Facebook Share,Facebook'ta Paylaş
+Facebook User ID,Facebook Kullanıcı Kimliği
+Facebook Username,Facebook Kullanıcı Adı
+FavIcon,FavIcon
+Female,Kadın
+Field Description,Alan Açıklama
+Field Name,Alan Adı
+Field Type,Alan Türü
+"Field that represents the Workflow State of the transaction (if field is not present, a new hidden Custom Field will be created)","İş Akışı işlem Devleti (alan mevcut değilse, yeni bir gizli Özel Alan oluşturulur) temsil Field"
+Field {0} in row {1} cannot be hidden and mandatory without default,Alan {0} üst üste {1} varsayılan olmadan gizli ve zorunlu olamaz
+Field {0} is not selectable.,Alan {0} seçilebilir değildir.
+Field {0} of type {1} cannot be mandatory,Alan {0} türünde {1} zorunlu olamaz
+Fieldname,Fieldname
+Fieldname is required in row {0},Fieldname aralıksız gereklidir {0}
+Fieldname not set for Custom Field,Fieldname Özel Alan için ayarlı değil
+Fieldname which will be the DocType for this link field.,Bu linki alan için DocType olacaktır fieldname.
+Fieldname {0} appears multiple times in rows {1},Fieldname {0} satırları birden çok kez görüntülenir {1}
+"Fieldname {0} cannot contain letters, numbers or spaces","Fieldname {0} harf, rakam veya boşluk içeremez"
+Fields,Alanlar
+"Fields separated by comma (,) will be included in the<br /><b>Search By</b> list of Search dialog box","Virgülle ayrılmış alanlar (,) Arama iletişim kutusu </ b> tarafından liste <br /> Ara dahil edilecektir"
+Fieldtype cannot be changed from {0} to {1} in row {2},Alan Türleri {0} değiştirilemez {1} üste {2}
+File,Dosya
+File Data,Dosya Veri
+File Name,Dosya adı
+File Size,Dosya Boyutu
+File URL,Dosya URL
+File not attached,Dosya bağlı değil
+File size exceeded the maximum allowed size of {0} MB,Dosya boyutu {0} MB izin verilen maksimum boyutu aştı
+Fill Screen,Ekranı doldurun
+Filter,Filtre
+Filter records based on User Permissions defined for a user,Bir kullanıcı için kullanıcı tanımlı İzinler dayanmaktadır filtre kayıtları
+Filters,Filtreler
+Find {0} in {1},{0} Bul {1}
+First Name,Ad
+Float,Şamandıra
+Float Precision,Precision Float
+Font (Heading),Yazı (Başlık)
+Font (Text),Yazı (Text)
+Font Size,Yazı boyutu
+Font Size (Text),Yazı Tipi Boyutu (Metin)
+Fonts,Fontlar
+Footer,Alt Kısım
+Footer Background,Altbilgi Arkaplan
+Footer Items,Altbilgi Öğeleri
+Footer Text,Altbilgi Metin
+For DocType,DocType için
+"For Links, enter the DocType as range
+For Select, enter list of Options separated by comma","Linkler için, aralık gibi DOCTYPE girmek 
+ Select için, virgülle ayrılmış Seçenekleri listesine girmek"
+"For comparative filters, start with",Karşılaştırmalı filtreler ile başlar
+For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,"İptal ve 'INV004' değişiklik Örneğin yeni bir belge 'INV004-1' olacak. Bu, her değişikliğin izlemenize yardımcı olur."
+For ranges,Aralıkları için
+For top bar,Üst bar için
+For {0} at level {1} in {2} in row {3},Için {0} düzeyde {1} {2} tane üst üste {3}
+Forgot Password,Şifremi Unuttum
+Forgot Password?,Şifremi unuttum?
+Form,Form
+Forum,Foru
+Forums,Forumlar
+Forward To Email Address,İleri E-posta Adresi
+Frappe Framework,Frappe Çerçeve
+Friday,Cuma
+From Date must be before To Date,Tarihten itibaren önce olmalıdır
+Full Name,Tam Adı
+Gantt Chart,Gantt Chart
+Gender,Cinsiyet
+Generator,Şarj dinamosu
+Georgia,Georgia
+Get,Al
+Get From ,
+"Get your globally recognized avatar from <a href=""https://gravatar.com/"">Gravatar.com</a>","<a Href=""https://gravatar.com/""> Gravatar.com </ a> adresinden çapında tanınan avatar alın"
+GitHub,GitHub
+GitHub Client ID,GitHub Müşteri Kimliği
+GitHub Client Secret,GitHub Müşteri Sırrı
+Github User ID,Github Kullanıcı Kimliği
+Github Username,Github Adı
+Google,Google
+Google Analytics ID,Google Analytics Kimliği
+Google Client ID,Google Müşteri Kimliği
+Google Client Secret,Google Müşteri Sırrı
+Google Plus One,Google Plus One
+Google User ID,Google Kullanıcı Kimliği
+Google Web Font (Heading),Google Web Font (Başlık)
+Google Web Font (Text),Google Web Font (Yazı)
+Greater or equals,Büyük veya eşittir
+Greater than,Büyüktür
+"Group Added, refreshing...","Grup Ekleme, ferahlatıcı ..."
+Group Description,Grup Açıklaması
+Group Name,Grup Adı
+Group Title,Grup Başlık
+Group Type,Grup Türü
+Groups,Gruplar
+HTML for header section. Optional,Başlık bölüm için HTML. Opsiyonel
+Have an account? Login,Zaten kullanıcınız var mı? var Giriş
+Header,Başlık
+Heading,Başlık
+Heading Text As,Metin olarak Başlık
+Help,Yardım
+Help on Search,Arama Yardımı
+Helvetica Neue,Helvetica
+Hidden,Gizli
+Hide Actions,Eylemler gizle
+Hide Copy,Kopyala gizle
+Hide Heading,Hide Başlık
+Hide Toolbar,Toolbar gizle
+Hide the sidebar,Kenar çubuğunu gizle
+High,Yüksek
+Highlight,Vurgula
+History,Geçmiş
+Home Page,Ana Sayfa
+Home Page is Products,Ana Sayfa Ürünler olduğunu
+ID (name) of the entity whose property is to be set,Özelliği ayarlanmış edilecek kişinin kimlik (isim)
+Icon,İkon
+Icon will appear on the button,Simge düğmesini görünecektir
+"If a Role does not have access at Level 0, then higher levels are meaningless.","Rol 0 düzeyinde erişimi yoksa, daha yüksek seviyeler anlamsızdır."
+"If checked, all other workflows become inactive.","Eğer işaretli ise, diğer tüm iş akışları inaktif hale gelir."
+"If checked, the Home page will be the default Item Group for the website.","Eğer seçilirse, Ana sayfa web sitesi için varsayılan Ürün Grubu olacak."
+"If image is selected, color will be ignored (attach first)","Görüntü seçilirse, renk (ilk ekleyiniz) göz ardı edilecektir"
+If non standard port (e.g. 587),Standart olmayan bağlantı noktası (örneğin 587) ise
+"If these instructions where not helpful, please add in your suggestions on GitHub Issues.","Bu talimatlar burada yararlı değilse, GitHub konular üzerinde önerileri lütfen ekleyin."
+"If you set this, this Item will come in a drop-down under the selected parent.","Bu ayarlarsanız, bu Ürün seçilen ebeveyn altında açılan gelecektir."
+Ignore User Permissions,Kullanıcı İzinlerini görmezden
+"Ignoring Item {0}, because a group exists with the same name!","Görmezden Öğe {0}, bir grup aynı adla var çünkü!"
+Image,Resim
+Image Link,Görüntü Bağlantısı
+Import,İçe aktar
+Import / Export Data,İthalat / İhracat Verileri
+Import / Export Data from .csv files.,İthalat / İhracat Veri den. Csv dosyaları.
+In,Içind
+In Dialog,Diyaloğu
+In Filter,Filtresi
+In List View,Liste Görünümü
+In Report Filter,Rapor Filtresi
+In points. Default is 9.,Puan. Standart 9 olduğunu.
+In response to,Cevaben
+Incorrect value in row {0}: {1} must be {2} {3},Yanlış değer satırda {0}: {1} olmalı {2} {3}
+Incorrect value: {0} must be {1} {2},Yanlış değeri: {0} olmalı {1} {2}
+Index,İndeks
+Individuals,Bireyler
+Info,Bilgi
+Insert After,Sonra takın
+"Insert After field '{0}' mentioned in Custom Field '{1}', does not exist","'{0}' Özel Alan belirtilen '{1}', yok alanından sonra takın"
+Insert Below,Aşağıda takın
+Insert Code,Kodu eklemek
+Insert Row,Row takın
+Insert Style,Stil ekleme
+Install Applications.,Uygulamaları yükleyin.
+Installed,Yüklü
+Installer,Installer
+Int,Int
+Integrations,Entegrasyonları
+Introduce your company to the website visitor.,Web sitesi ziyaretçi için şirket tanıtmak.
+Introduction,Giriş
+Introductory information for the Contact Us Page,Bize Page tanıtıcı bilgiler
+Invalid Email: {0},Geçersiz E-posta: {0}
+Invalid Filter: {0},Geçersiz Filtre: {0}
+Invalid Home Page,Geçersiz Ana Sayfa
+Invalid Login,Geçersiz Giriş
+Invalid Outgoing Mail Server or Port,Geçersiz Giden Posta Sunucusu veya Liman
+Invalid login or password,Geçersiz giriş ya da şifre
+Invalid recipient address,Geçersiz alıcı adresi
+Inverse,Ters
+Is Active,Aktif Is
+Is Child Table,Çocuk Masa mı
+Is Default,Standart
+Is Event,Olay mı
+Is Mandatory Field,Zorunlu Alan mı
+Is Single,Tektir
+Is Standard,Standart mı
+Is Submittable,Submittable mı
+Is Task,Görev mı
+Item cannot be added to its own descendents,"Ürün, kendi soyundan ilave edilemez"
+JavaScript Format: frappe.query_reports['REPORTNAME'] = {},JavaScript Format: frappe.query_reports ['ReportName'] = {}
+Javascript,Javascript
+Javascript to append to the head section of the page.,Javascript sayfasının baş bölümünde eklenecek.
+Key,Anahtar
+Label,Etiket
+Label Help,Etiket Yardım
+Label and Type,Etiket ve Tipi
+Label is mandatory,Etiket zorunludur
+Landing Page,Açılış Sayfası
+Language,Dil
+Language preference for user interface (only if available).,Kullanıcı arayüzü için dil tercihi (yalnızca varsa).
+"Language, Date and Time settings","Dil, Tarih ve Saat ayarları"
+Last IP,Son IP
+Last Login,Son Giriş
+Last Name,Soyad
+Last updated by,Son güncelleyen
+Lastmod,Lastmod
+Lato,Lato
+Leave blank to repeat always,Her zaman tekrarlamak için boş bırakın
+Left,Sol
+Less or equals,Daha az ya da eşittir
+Less than,Daha az
+Letter,Mektup
+Letter Head,Mektubu Başkanı
+Letter Head Name,Mektubu Başkanı Ad
+Letter Head in HTML,HTML Mektubu Başkanı
+Level,Seviye
+"Level 0 is for document level permissions, higher levels for field level permissions.","Seviye 0, belge düzeyinde izinler için saha düzeyinde izinler için daha yüksek düzeyde olduğunu."
+Like,Beğen
+Link,Bağlantı
+"Link that is the website home page. Standard Links (index, login, products, blog, about, contact)","Bu web sitesi ana sayfası bağlantı. Standart Linkler (indeks, giriş, ürünleri, blog, hakkında, iletişim)"
+Link to other pages in the side bar and next section,Yan çubuk ve sonraki bölümdeki diğer sayfalara bağlantı
+Link to the page you want to open,Açmak istediğiniz sayfaya bağlantı
+Linked In Share,Paylaş Linked
+Linked With,Ile Bağlantılı
+List,Liste
+List a document type,Bir belge türü Liste
+List of Web Site Forum's Posts.,Web Sitesi Forum'un Mesajlar listesi.
+Loading,Yükleniyor
+Loading Report,Yükleme Raporu
+Loading...,Yükleniyor...
+Localization,Yerelleştirme
+Location,Konum
+Log of error on automated events (scheduler).,Otomatik olaylar (zamanlayıcı) hakkında hata açın.
+Login,Giriş
+Login After,Sonra giriniz
+Login Before,Önce giriniz
+Login Id,Giriş Kimliği
+Login not allowed at this time,Oturum şu anda izin verilmiyor
+Logout,Oturumu kapat
+Long Text,Uzun Metin
+Low,Düşük
+Lucida Grande,Lucida Grande
+Mail Password,Posta Şifre
+Main Section,Ana Bölüm
+Make a new,Yeni Üyeler
+Make a new record,Yeni bir kayıt yapmak
+Male,Erkek
+Manage cloud backups on Dropbox,Dropbox üzerinde bulut yedekleme Yönet
+Manage uploaded files.,Yüklenen dosyaları yönetin.
+Mandatory,Zorunlu
+Mandatory fields required in {0},Gerekli zorunlu alanlar {0}
+Mandatory filters required:\n,Zorunlu filtreler gerekli: \n
+Master,Usta
+Max Attachments,Max Eklentiler
+Max width for type Currency is 100px in row {0},Tipi Para için maksimum genişlik 100px satırda {0}
+"Meaning of Submit, Cancel, Amend",Arasında Gönder İptal Amend Anlamı
+Medium,Orta
+"Menu items in the Top Bar. For setting the color of the Top Bar, go to <a href=""#Form/Style Settings"">Style Settings</a>","Top Bar Menü öğeleri. Top Bar rengini ayarlamak için, href=""#Form/Style Settings""> Stil Ayarlarını </ a> <a gitmek"
+Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node,Birleştirme Grup-Grup veya Yaprak Düğüm-to-Yaprak Düğüm arasında mümkündür
+Message,Mesaj
+Message Examples,Mesaj Örnekleri
+Messages,Mesajlar
+Method,Yöntem
+Middle Name (Optional),Orta Ad (İsteğe bağlı)
+Misc,Çeşitli
+Miscellaneous,Muhtelif
+Missing Values Required,Gerekli Eksik Değerler
+Modern,Çağdaş
+Modified by,Tarafından düzenlendi
+Module,Modül
+Module Def,Modül Def
+Module Name,Modül Adı
+Module Not Found,Modül Bulunamadı
+Modules Setup,Modüller Kurulum
+Monday,Pazartesi
+More,Daha fazlası
+More content for the bottom of the page.,Sayfanın alt için daha fazla içerik.
+Move Down: {0},Aşağı Taşı: {0}
+Move Up: {0},Yukarı Taşı: {0}
+Multiple root nodes not allowed.,Çoklu kök düğümler izin verilmiyor.
+Must have report permission to access this report.,Bu rapora erişmek için rapor izni olması gerekir.
+Must specify a Query to run,Çalıştırmak için bir sorgu belirtmek gerekir
+My Settings,Benim Ayarlarım
+Name,İsim
+Name Case,Adı Olgu
+Name and Description,Ad ve Açıklama
+Name is required,Adı gerekli
+Name not permitted,Izin verilmez Ad
+Name not set via Prompt,İstemi yoluyla girilmedi İsim
+Name of the Document Type (DocType) you want this field to be linked to. e.g. Customer,Eğer bu alan ile bağlantılı olmak istiyorum Document Type (Belge Türü) adı. örneğin Müşteri
+Name of {0} cannot be {1},{0} adı olamaz {1}
+Naming,Adlandırma
+Naming Series mandatory,Seri zorunlu adlandırma
+Nested set error. Please contact the Administrator.,İç içe set hatası. Yönetici ile iletişim kurunuz.
+New,Yeni
+New Password,Yeni Şifre
+New Record,Yeni Kayıt
+New comment on {0} {1},Yeni Yorum {0} {1}
+New password emailed,Yeni şifre gönderilecektir
+New value to be set,Kurulacak yeni değer
+New {0},Yeni {0}
+Next Communcation On,Sonraki Communcation On
+Next Record,Sonraki Kayıt
+Next State,Sonraki Devlet
+Next actions,Sonraki eylemler
+No,Hayır
+No Action,No Eylem
+No Communication tagged with this ,
+No Copy,Hayır Kopyala
+No Permissions set for this criteria.,Hayır İzinler Bu kriter için ayarlayın.
+No Report Loaded. Please use query-report/[Report Name] to run a report.,Raporu yok Loaded. Bir rapor çalıştırmak için sorgu-rapor / [Rapor Adı] kullanın.
+No Results,No Sonuçları
+No Sidebar,Hayır Kenar Çubuğu
+No User Permissions found.,Hayır Kullanıcı İzinler bulunamadı.
+No data found,Veri bulunamadı
+No file attached,Ekli dosya yok
+No further records,Başka bir kayıt
+No one,Hiç kimse
+No permission to '{0}' {1},Izniniz yok '{0}' {1}
+No permission to edit,Düzenlemek için izniniz yok
+No permission to write / remove.,/ Kaldır yazma izniniz yok.
+No records tagged.,Hiçbir kayıtları etiketledi.
+No template found at path: {0},Yolda bulunamadı şablon: {0}
+No {0} permission,Hayır {0} izni
+None,Hiç
+None: End of Workflow,Hiçbiri: İş Akışı Sonu
+Not Found,Bulunamadı
+Not Linked to any record.,Herhangi bir kayıt ile ilişkili değildir.
+Not Permitted,İzin yok
+Not Submitted,Ekleyen Değil
+Not a user yet? Sign up,Henüz kullanıcı? Giriş
+Not a valid Comma Separated Value (CSV File),Geçerli bir Virgülle Ayrılmış Değer (CSV Dosyası)
+Not allowed,İzin yok
+Not allowed from this IP Address,Bu IP Adresi izin verilmez
+Not allowed to Import,İthalat için izin verilmez
+Not allowed to access {0} with {1} = {2},Erişime izin yok {0} ile {1} = {2}
+Not allowed to change {0} after submission,Sunulmasından sonra {0} değiştirmek için izin verilmez
+Not allowed to move,Taşımak için izin yok
+Not allowed to reset the password of {0},{0} şifrenizi sıfırlamak için izin verilmez
+Not enough permission to see links.,Değil bağlantıları görmek için yeterli izni.
+Not equals,Eşit değildir
+Not found,Bulunamadı
+Not in Developer Mode! Set in site_config.json,Not Geliştirici Modu! Site_config.json Set
+Not permitted,İzin verilmez
+"Note: For best results, images must be of the same size and width must be greater than height.","Not: En iyi sonuçlar, görsel olarak aynı boyutta olması ve genişlik yükseklikten daha büyük olmalıdır için."
+Note: Other permission rules may also apply,Not: Diğer izni kurallar da geçerli olabilir
+Note: maximum attachment size = 1mb,Not: Maksimum ek boyutu = 1mb
+Nothing to show,Göstermek için hiçbir şey
+Nothing to show for this selection,Bu seçim için göstermek için hiçbir şey
+Notification Count,Bildirim Sayısı
+Notify by Email,E-posta ile bildir
+Number Format,Sayı Biçimi
+Old Parent,Eski Ebeveyn
+On,Erzurum'un
+"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).","Bunu ayarladıktan sonra, kullanıcılar sadece mümkün erişim belgeler (örn. olacak Bağlantı var Blog Post) (örn. Blogger)."
+Only Administrator allowed to create Query / Script Reports,Sadece Administrator Sorgu / Script Raporlar oluşturmak için izin
+Only Administrator can save a standard report. Please rename and save.,Sadece Yönetici standart bir rapor kaydedebilirsiniz. Yeniden adlandırın ve kaydedin.
+Only Allow Edit For,Sadece düzenlemek için izin
+Only allowed {0} rows in one import,Bir ithalat sadece izin {0} satırlar
+Oops! Something went wrong,Oops Bir şeyler yanlış gitti
+Open,Aç
+Open Count,Açık Sayım
+Open Sans,Open Sans
+Open Source Web Applications for the Web,Web için Açık Kaynak Web Uygulamaları
+Open a module or tool,Bir modül veya aracı açmak
+Open {0},Open {0}
+Optional: Alert will only be sent if value is a valid email id.,İsteğe bağlı: değeri geçerli bir e-posta id ise Alarmı sadece gönderilecektir.
+Optional: Always send to these ids. Each email id on a new row,"İsteğe Bağlı: Daima bu kimlikleri gönderin. Yeni bir satırda, her e-posta id"
+Optional: The alert will be sent if this expression is true,İsteğe bağlı: Bu ifade doğru ise uyarı gönderilir
+Options,Seçenekler
+Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType',Alan Seçenekler 'Dynamic Link' type 'DocType' gibi seçenekler ile başka Bağlantı alanı işaret etmelidir
+Options Help,Seçenekler Yardım
+Options for select. Each option on a new line. e.g.: <br>Option 1<br>Option 2<br>Option 3<br>,Select Seçenek. Yeni bir hat üzerinde her seçeneği. örneğin: <br> Seçeneği 1 <br> Seçenek 2 <br> Seçeneği 3 <br>
+Options must be a valid DocType for field {0} in row {1},Seçenekler {0} üst üste {1} alanı için geçerli bir DocType olmalı
+Options not set for link field {0},Seçenekleri link alanına ayarlı değil {0}
+Options requried for Link or Table type field {0} in row {1},Link veya Tablo türü alanı için requried Seçenekler {0} üst üste {1}
+Org History,Org Tarihçe
+Org History Heading,Org Tarih Başlık
+Original Message,Orijinal Mesaj
+Other,Diğer
+Outgoing Email Settings,Giden E-posta Ayarları
+Outgoing Mail Server,Giden posta sunucusu:
+Outgoing Mail Server not specified,Giden Posta Sunucusu belirtilmemiş
+Owner,Sahibi
+PDF Page Size,PDF Sayfa Boyutu
+PDF Settings,PDF Ayarları
+POP3 Mail Server (e.g. pop.gmail.com),POP3 Mail Server (örn. pop.gmail.com)
+Page,Sayfa
+Page #{0} of {1},Sayfa # {0} {1}
+Page Background,Sayfa Arka Plan
+Page HTML,Sayfa HTML
+Page Header,Sayfa Başlığı
+Page Header Background,Sayfa Başlığı Arkaplan
+Page Header Text,Sayfa Başlığı Metni
+Page Links,Sayfa Bağlantıları
+Page Name,Sayfa Adı
+Page Role,Sayfa Rolü
+Page Text,Sayfa Metin
+Page Title,Sayfa Başlığı
+Page content,Sayfa içeriği
+Page not found,Sayfa bulunamadı
+Page or Generator,Sayfa veya Jeneratör
+Page url name (auto-generated),Sayfa url ismi (otomatik oluşturulmuş)
+Parent Label,Veli Etiket
+Parent Post,Veli Mesaj
+Parent Website Page,Veli Web Sayfası
+Parent Website Route,Ebeveyn Sitesi Rota
+Parent Website Sitemap,Ebeveyn Sitesi Site haritası
+Participants,Katılımcılar
+Password,Parola
+Password Updated,Şifre Güncelleme
+Password reset instructions have been sent to your email,Parola sıfırlama bilgileri e-posta gönderildi
+Patch,Yama
+Patch Log,Patch Günlüğü
+Percent,Yüzde
+Perm Level,Perm Seviye
+Permanently Cancel {0}?,Kalıcı {0} İptal?
+Permanently Submit {0}?,Kalıcı {0} Gönder?
+Permanently delete {0}?,Kalıcı {0} silmek?
+Permission Level,İzin Düzeyi
+Permission Levels,İzin Düzeyleri
+Permission Rules,İzin Kurallar
+Permission already set,İzin önceden ayarlanmıştır
+Permissions,İzinler
+Permissions Settings,İzin ayarları
+Permissions are automatically translated to Standard Reports and Searches.,İzinler otomatik olarak Standart Raporları ve aramalar çevrilir.
+"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions.","İzinler Raporu, İthalat, İhracat, Baskı, e-posta ve Set Kullanıcı İzinleri, onaylanmasına, İptal, Gönder, Sil, oluşturma, yaz, oku gibi haklarını ayarlayarak Rolleri ve Belge Türleri (belgetürleri denir) ayarlanır."
+Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles.,"Yüksek seviyelerde İzinleri 'Alan Seviye' izinleri vardır. Tüm Alanlar onları ve izinleri alan için geçerli olduğunu tanımlanan kurallara karşı kurulan 'İzin Düzeyi' var. Bu, gizlemek veya belirli alan salt sadece belirli roller için yapmak istiyorum durumda yararlıdır."
+"Permissions at level 0 are 'Document Level' permissions, i.e. they are primary for access to the document.","0 düzeyinde İzinler onlar belgeye erişim için birincil olan, yani 'Doküman Seviye' izinleri vardır."
+Permissions get applied on Users based on what Roles they are assigned.,İzinler atanmış oldukları ne Rolleri dayalı Kullanıcıları uygulanan olsun.
+Permitted Documents For User,Kullanıcı için izin Belgeler
+Person,Kişi
+Personal Info,Kişisel Bilgiler
+Phone,Telefon
+Phone No.,Telefon No
+Pick Columns,Sütunları almak
+Picture URL,URL resmi
+Pincode,Pinkodu
+Please attach a file first.,Önce bir dosya ekleyiniz.
+Please attach a file or set a URL,Bir dosya eklemek veya bir URL set edin
+Please do not change the rows above {0},Yukarıdaki satırları lütfen değiştirmeyin {0}
+Please enable pop-ups,Pop-up etkinleştirin
+Please enter Event's Date and Time!,Etkinliğin Tarihi ve Saati girin!
+"Please enter both your email and message so that we \
+				can get back to you. Thanks!","E-posta ve mesaj hem girin ki biz \
+ size geri alabilirsiniz. Teşekkürler!"
+Please enter some text!,Bazı metin girin!
+Please enter title!,Başlık giriniz!
+Please login to Upvote!,Upvote için giriş yapın!
+Please make sure that there are no empty columns in the file.,Boş bir sütun dosyasında bulunduğundan emin olun.
+Please refresh to get the latest document.,Son belge almak yenileyin.
+Please reply above this line or remove it if you are replying below it,Bu çizginin üstünde cevap veya altındaki yanıtlarken ise lütfen kaldırın
+Please select a file or url,Bir dosya veya url seçiniz
+Please select atleast 1 column from {0} to sort,{0} sıralamak den en az 1 sütun seçin
+Please set {0} first,İlk {0} set Lütfen
+Please specify,Lütfen belirtiniz
+Please specify 'Auto Email Id' in Setup > Outgoing Email Settings,Ayarlar> Giden E-posta Ayarlarını 'Otomatik e-posta id' belirtiniz
+Please specify Event date and time,Olay tarihi ve saati belirtin
+Please specify doctype,Doctype belirtiniz
+Please specify user,Kullanıcıyı belirtin
+Please specify which date field must be checked,Kontrol edilmesi gereken tarih alanı belirtiniz
+Please specify which value field must be checked,Değer alanı kontrol edilmesi gerektiği belirtiniz
+Please upload using the same template as download.,Indirme gibi aynı şablonu kullanarak yükleyin.
+Plugin,Bileşen
+Port,Port
+Post,Yazı
+Post Publicly,Halka Gönderin
+Post Topic,Mesaj Topic
+Post already exists. Cannot add again!,Mesaj zaten var. Tekrar eklemek değil miyim!
+Post does not exist. Please add post!,Mesaj yok. Yazıyı ekleyiniz!
+Post to user,Kullanıcıya yayınla
+Posts,Mesaj
+Previous Record,Önceki Kayıt
+Primary,Birincil
+Print,Yazdır
+Print Format,Baskı Biçimi
+Print Format Help,Baskı Biçimi Yardım
+Print Format Type,Baskı Format Tipi
+Print Format {0} does not exist,Baskı Biçimi {0} yok
+Print Format {0} is disabled,Baskı Biçimi {0} devre dışı
+Print Hide,Baskı gizle
+Print Settings,Yazdırma Ayarları
+Print Style,Yazdırma Stili
+Print Style Preview,Baskı Önizleme Stil
+Print Width,Baskı Genişliği
+"Print with Letterhead, unless unchecked in a particular Document",", Antetli Yazdır sürece belirli bir Belgesinde denetlenmeyen"
+Print...,Yazdır ...
+Printing and Branding,Baskı ve Markalaşma
+Priority,Öncelik
+Private,Özel
+Properties,Özellikler
+Property,Özellik
+Property Setter,Mülkiyet Setter
+Property Type,Gayrimenkul Tipi
+Public,Genel
+Published,Yayınlandı
+Published On,Yayınlandı
+Published on website at: {0},De internet sitesinde yayımlanan: {0}
+Pull Emails from the Inbox and attach them as Communication records (for known contacts).,Gelen kutusundaki e-postalar çekin ve (bilinen kişiler için) Haberleşme kayıtları gibi ekleyebilirsiniz.
+Query,Sorgu
+Query Options,Sorgu Seçenekleri
+Query Report,Sorgu Raporu
+Query must be a SELECT,Sorgu bir SELECT olmalı
+Quick Help for Setting Permissions,İzinlerini Ayarlama için Hızlı Yardım
+Quick Help for User Permissions,Kullanıcı İzinler için Hızlı Yardım
+Re-open,Yeniden açın
+Read,Okunmuş
+Read Only,Sadece Oku
+Received,Alınan
+Recipient,Alıcı
+Recipients,Alıcılar
+Record does not exist,Kaydı yok
+Ref DocType,Ref DocType
+Ref Name,Ref Adı
+Ref Type,Ref Tipi
+Reference,Referans
+Reference DocName,Referans docname
+Reference DocType,Referans DocType
+Reference Name,Referans Adı
+Reference Type,Referans Tipi
+Refresh,Yenile
+Refreshing...,Yenileniyor ...
+Registered but disabled.,Kayıtlı ama özürlü.
+Registration Details Emailed.,Kayıt Detayları postalanmış.
+Reload Page,Sayfaya güncelle
+Remove Bookmark,Bookmark Kaldır
+Remove all customizations?,Tüm özelleştirmeleri kaldırmak?
+Rename many items by uploading a .csv file.,Bir. Csv dosyası yükleyerek birçok öğe yeniden adlandırın.
+Rename...,Rename ...
+Repeat On,Tekrar açık
+Repeat Till,Till tekrarlayın
+Repeat this Event,Bu olay tekrarlayın
+Replies,Cevaplar
+Report,Rapor
+Report Builder,Rapor Oluşturucu
+Report Builder reports are managed directly by the report builder. Nothing to do.,Rapor Oluşturucu raporları rapor üreticisi tarafından doğrudan yönetilir. Yapacak bir şey yok.
+Report Hide,Rapor gizle
+Report Name,Rapor Adı
+Report Type,Rapor Türü
+Report an Issue,Hata Bildir
+Report cannot be set for Single types,Rapor Tek türleri için ayarlanamaz
+Report this issue,Bu sorunu bildir
+Report was not saved (there were errors),Raporu (hatalar vardı) kaydedilmedi
+Reqd,Reqd
+Reset Password Key,Şifre Key Reset
+Reset Permissions for {0}?,{0} için İzinlerini Sıfırla?
+Response,Tepki
+Restrict IP,IP çok sınırla
+Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111),Bu IP adresi sadece kullanıcıyı kısıtlamak. Çoklu IP adresleri virgül ile ayırarak eklenebilir. Ayrıca (111.111.111) gibi kısmi IP adreslerini de kabul
+Right,Sağ
+Role,Görev Tanımı
+Role Name,Rol Adı
+Role Permissions Manager,Rol İzinler Müdürü
+Role and Level,Rolü ve Seviye
+Role exists,Rol var
+Roles,Roller
+Roles Assigned,Atanan Rolleri
+Roles Assigned To User,Kullanıcı Atanan Rolleri
+Roles HTML,Roller HTML
+Roles can be set for users from their User page.,Roller kendi Kullanıcı sayfasından kullanıcılar için ayarlanabilir.
+Root {0} cannot be deleted,Kök {0} silinemez
+Row,Sıra
+Row #{0}:,Satır # {0}:
+Rules defining transition of state in the workflow.,Iş akışında devletin geçişi tanımlayan kurallar.
+"Rules for how states are transitions, like next state and which role is allowed to change state etc.","Devletlerin yanında devlet ve hangi rolü gibi geçişler, ne için kurallar vb durumunu değiştirmek için izin verilir"
+Run scheduled jobs only if checked,Kontrol yalnızca zamanlanmış işlerini
+Run the report first,İlk raporu çalıştırın
+SMTP Server (e.g. smtp.gmail.com),SMTP Sunucusu (örn. smtp.gmail.com)
+Sales,Satışlar
+Same file has already been attached to the record,Aynı dosya zaten kayda bağlı olmuştur
+Sample,Örneklem
+Saturday,Cumartesi
+Save,Kaydet
+Scheduler Log,Zamanlayıcı Günlüğü
+Script,Komut
+Script Report,Senaryo Raporu
+Script Type,Komut Türü
+Search,Ara
+Search Fields,Arama Alanları
+Search in a document type,Bir belge türü ara
+Search or type a command,Bir komutu ara veya yazın
+Section Break,Bölüm Arası
+Security,Güvenlik
+Security Settings,Güvenlik Ayarları
+Select,Seç
+Select All,Tümünü Seç
+Select Attachments,Ekler Seçiniz
+Select Document Type,Select Document Type
+Select Document Type or Role to start.,Başlatmak için Belge Türü veya Rolü seçin.
+Select Print Format,Select Print Format
+Select Report Name,Seç Rapor Adı
+Select Role,Select Role
+Select To Download:,Download için seçin:
+Select Type,Tipi Seçiniz
+Select User or DocType to start.,Başlatmak için User veya DOCTYPE seçin.
+Select a Banner Image first.,Önce bir Banner Resmi seçin.
+Select an image of approx width 150px with a transparent background for best results.,En iyi sonuçlar için şeffaf bir arka plan ile yaklaşık genişlik 150px bir görüntü seçin.
+Select dates to create a new ,
+"Select modules to be shown (based on permission). If hidden, they will be hidden for all users.","Modülleri seçin (izne bağlı) gösterilecek. Gizliyse, tüm kullanıcılar için gizli olacak."
+Select or drag across time slots to create a new event.,Seçin veya yeni bir etkinlik oluşturmak için zaman dilimleri boyunca sürükleyin.
+"Select target = ""_blank"" to open in a new page.","Seçin hedef, yeni bir sayfa açmak için = ""_blank""."
+Select the label after which you want to insert new field.,Eğer yeni bir alan eklemek istediğiniz sonra etiketi seçin.
+Send,Gönder
+Send Alert On,Uyarı göndermek
+Send As Email,E-posta Olarak Gönder
+Send Email,E-posta Gönder
+Send Email Print Attachments as PDF (Recommended),PDF olarak Email Print Ekler Gönder (Önerilen)
+Send Me A Copy,Bir kopyasını bana gönderin
+Send Password,Şifre Gönder
+Send Print as PDF,Olarak Gönder Yazdır PDF
+Send alert if date matches this field's value,Tarih bu alanın değerini eşleşirse uyarı gönder
+Send alert if this field's value changes,Uyarı gönder Bu alanın değeri değişirse
+Send an email reminder in the morning,Sabah bir hatırlatma e-postası gönder
+Send download link of a recent backup to System Managers,Sistem Yöneticileri için yeni bir yedekleme download linki gönder
+Send enquiries to this email address,Bu e-posta adresine soruşturma gönder
+Sender,Gönderen
+Sent,Gönderilen
+Sent Mail,Gönderilmiş Posta
+Sent Quotation,Gönderilen Teklif
+Sent or Received,Gönderilmiş veya Alınmış
+Series,Sürümler
+Series {0} already used in {1},Series {0} kullanılan {1}
+Server,Sunucu
+Server & Credentials,Sunucu ve Sertifikalar
+Server Error: Please check your server logs or contact tech support.,Sunucu Hatası: sunucu günlükleri ya da kontakt teknik destek kontrol edin.
+Session Expired. Logging you out,Oturum süresi doldu. Seni çıkıyor
+Session Expiry,Oturum Vade
+Session Expiry in Hours e.g. 06:00,06:00 örn. Saat Oturum Vade
+Session Expiry must be in format {0},Oturum Vade formatında olmalıdır {0}
+Set Banner from Image,Image Banner Set
+Set Link,Set Bağlantı
+Set Login and Password if authentication is required.,Kimlik doğrulaması gerekiyorsa Seti Giriş ve Şifre.
+Set Only Once,Sadece bir kez ayarlama
+Set Password,Şifre seç
+Set Permissions on Document Types and Roles,Belge Türleri ve Rol üzerinde İzinleri Ayarlama
+Set Permissions per User,Kullanıcı başına İzinleri Ayarlama
+Set User Permissions,Set User İzinler
+Set Value,Set Değeri
+"Set default format, page size, print style etc.","Set varsayılan biçim, sayfa boyutu, baskı tarzı vs"
+Set numbering series for transactions.,Işlemler için seri numaralandırma ayarlayın.
+Set outgoing mail server.,Giden posta sunucusunu ayarlayın.
+Settings,Ayarlar
+Settings for About Us Page.,Hakkımızda Page Ayarları.
+Settings for Contact Us Page.,Bize Page Ayarları.
+Setup,Kurulum
+Setup > User,Kurulum> Kullanıcı
+Setup > User Permissions Manager,Kurulum> Kullanıcı İzinleri Yöneticisi
+Setup Email Alert based on various criteria.,Kur-posta Uyarısı çeşitli kriterlere dayalı.
+Setup of fonts and background.,Yazı tipi ve arka plan Kur.
+"Setup of top navigation bar, footer and logo.","Üst gezinti çubuğu, altbilgi ve logo Kur."
+Short Bio,Kısa Özgeçmiş
+Short Name,Kısa Adı
+Shortcut,Kısayol
+Show / Hide Modules,Göster / gizle Modülleri
+Show Print First,Baskı ilk gösterisi
+Show Tags,Göster Etiketler
+Show or hide modules globally.,Göster ya da küresel modülleri gizlemek.
+Show rows with zero values,Sıfır değerleri ile Satırları göster
+Show tags,Göster etiketleri
+Show this field as title,Başlık olarak bu alanı göster
+Showing only for (if not empty),Sadece gösteren (yoksa boş)
+Sidebar,Kenar çubuğu
+Sidebar Items,Kenar çubuğu Öğeler
+Sidebar Links for Home Page only,Ana Sayfa Kenar Çubuğu için Linkler sadece
+Sign Up,Kaydolun
+Sign in,Giriş yapın
+Sign up,Giriş
+Single Post (article).,Single Post (makale).
+Single Types have only one record no tables associated. Values are stored in tabSingles,Tek Türleri ilişkili tek bir kayıt yok tablolar var. Değerler tabSingles depolanan
+Sitemap Browser,Site haritası Tarayıcı
+Slideshow,Slayt
+Slideshow Items,Slayt Öğeler
+Slideshow Name,Slayt İsmi
+Small Text,Küçük Metin
+Social Login Keys,Sosyal Giriş Keys
+Solid background color (default light gray),Katı arka plan rengi (varsayılan açık gri)
+Sorry we were unable to find what you were looking for.,Maalesef biz sizin için ne aradığını bulmak için koyamadık.
+Sorry you are not permitted to view this page.,Maalesef bu sayfayı görüntülemek için izin verilmez.
+Sort By,Sırala
+Sort Field,Sıralama Alanı
+Sort Order,Sıralama
+Standard,Standart
+Standard Print Format cannot be updated,Standart Baskı Biçimi güncellenen olamaz
+Standard Reply,Standart Cevap
+Standard Reports,Standart Raporlar
+Standard replies to common queries.,Standart ortak sorgulara cevap.
+Start Report For,İçin Rapor Başlangıç
+Starts on,Başlıyor
+State,Devlet
+States,Devletler
+"States for workflow (e.g. Draft, Approved, Cancelled).","Iş akışı için Devletler (örneğin Taslak, Onaylı, İptal)."
+Static File Timestamp,Statik Dosya Zaman Damgası
+Status,Durum
+Step 1: Set the name and save.,Adım 1: adını ayarlayın ve kaydedin.
+Step 2: Set Letterhead content.,Adım 2: Antetli içeriğini ayarlayın.
+Style,Stil (Style)
+Style Settings,Stil Ayarları
+"Style represents the button color: Success - Green, Danger - Red, Inverse - Black, Primary - Dark Blue, Info - Light Blue, Warning - Orange","Yeşil, Tehlike - - Kırmızı, Ters - Siyah, İlköğretim - Koyu Mavi, Bilgileri - Açık Mavi, Uyarı - Turuncu Başarı: Stil düğme rengini temsil"
+Sub-domain provided by erpnext.com,Erpnext.com tarafından sağlanan alt etki
+Subdomain,Subdomain
+Subject,Konu
+Submit,Gönder
+Submit an Issue,Bir Sorun Gönder
+Submitted,Ekleyen
+Submitted Document cannot be converted back to draft. Transition row {0},Ekleyen Belge taslak geri dönüştürülemez. Geçiş satır {0}
+Success,Başarılı
+Suggestion,Öneri
+Sunday,Pazar
+Switch to Website,Website Anahtarı
+Sync Inbox,Sync Kutusu
+System,Sistem
+System Settings,Sistem Ayarları
+System User,Sistemi Kullanıcı
+System and Website Users,Sistemi ve Web Sitesi Kullanıcıları
+System generated mails will be sent from this email id.,Sistem oluşturulan postalar bu e-posta id gönderilmiş olacaktır.
+Table,Tablo
+Table {0} cannot be empty,Tablo {0} boş olamaz
+Tag,Etiket
+Tag Name,Etiket Adı
+Tags,Etiketler
+Tahoma,Tahoma
+Target,Hedef
+Tasks,Görevler
+Team Members,Takım Üyeleri
+Team Members Heading,Başlık Takım Üyeleri
+Template,Şablon
+Template Pages cannot be moved,Şablon sayfalar taşınamıyor
+Test,Test
+Test Runner,Testi Runner
+Text,Metin
+Text Align,Metin Hizala
+Text Editor,Metin Editörü
+Thank you for your message,Mesajınız için teşekkür ederiz
+The name of your company / website as you want to appear on browser title bar. All pages will have this as the prefix to the title.,Eğer tarayıcı başlık çubuğunda görünmesini istediğiniz gibi şirket / web sitesinin adı. Tüm sayfalar başlığı önek olarak bu olacak.
+The system provides many pre-defined roles. You can add new roles to set finer permissions.,Sistem birçok önceden tanımlı roller sağlar. Sen ince izinlerini ayarlamak için yeni roller ekleyebilir.
+Then By (optional),Sonra By (isteğe bağlı)
+There should remain at least one System Manager,En az bir Sistem Yöneticisi orada kalmalıdır
+There were errors,Hataları vardı
+There were errors while sending email. Please try again.,E-posta gönderirken hatalar vardı. Lütfen tekrar deneyin.
+"There were some errors setting the name, please contact the administrator","Adını ayarı bazı hatalar vardı, yöneticinizle irtibata geçiniz"
+"These permissions will apply for all transactions where the permitted record is linked. For example, if Company C is added to User Permissions of user X, user X will only be able to see transactions that has company C as a linked value.","Bu izinler izin rekor bağlantılı tüm işlemler için geçerli olacaktır. Şirket C kullanıcı X Kullanıcı İzinler eklenir Örneğin, kullanıcı X sadece bir bağlantılı değer olarak firma C sahiptir işlemleri görmek mümkün olacak."
+These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,"Bu değerler otomatik işlemlerde güncellenen olacak ve ayrıca bu değerleri içeren işlemlerden, bu kullanıcı için izinleri kısıtlamak için yararlı olacaktır."
+"These will also be set as default values for those links, if only one such permission record is defined.","Sadece böyle bir izin kaydı tanımlanmış ise, bu da, bu bağlantılar için varsayılan değerler olarak ayarlanacaktır."
+Third Party Authentication,Üçüncü Taraf Doğrulama
+"This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>
+myfield
+eval:doc.myfield=='My Value'<br>
+eval:doc.age>18","Burada tanımlanan fieldname değerine sahip VEYA kurallar geçerlidir (örnek) vardır Bu alan yalnızca görünür: <br> 
+ myfield 
+ eval: doc.myfield == 'My Değer' <br> 
+ eval: doc.age> 18"
+This goes above the slideshow.,Bu slayt yukarıda gider.
+This is PERMANENT action and you cannot undo. Continue?,Bu KALICI eylem ve geri alamazsınız. Devam etmek istiyor musunuz
+"This is a standard format. To make changes, please copy it make make a new format.","Bu standart bir formattır. Değişiklikleri yapmak için, yeni bir biçim make kopyalayın."
+This is permanent action and you cannot undo. Continue?,Bu kalıcı bir eylemdir ve geri alamazsınız. Devam etmek istiyor musunuz
+This must be checked if Style Settings are applicable,"Stil Ayarları geçerli değilse, bu kontrol edilmelidir"
+This role update User Permissions for a user,Bir kullanıcı için bu rolü güncelleştirme Kullanıcı İzinleri
+Thursday,Perşembe
+Tile,Kiremit
+Time,Saat
+Time Zone,Saat Dilimi
+Timezone,Timezone
+Title,Başlık
+Title / headline of your page,Sayfanızın başlık / başlık
+Title Case,Başlık Olgu
+Title Field,Başlık Alan
+Title Prefix,Başlık Öneki
+Title field must be a valid fieldname,Başlık alanı geçerli bir fieldname olmalı
+Title is required,Başlık gereklidir
+To,Kime
+To Do,Yapılacak
+"To format columns, give column labels in the query.",", Sütunlar biçimlendirmek sorgudaki sütun etiketlerini vermek."
+"To give acess to a role for only specific records, check the 'Apply User Permissions'. User Permissions are used to limit users with such role to specific records.","'Kullanıcı İzinlerini Uygula' kontrol, sadece belirli kayıtları için bir rol acess vermek. Kullanıcı İzinler belirli kayıtları böyle rolü ile kullanıcıların sınırlamak için kullanılır."
+"To run a test add the module name in the route after '{0}'. For example, {1}","Bir test '{0}' sonra rotada modül adı eklemek çalıştırın. Örneğin, {1}"
+ToDo,Yapılacaklar
+Too many writes in one request. Please send smaller requests,Çok fazla bir istek yazıyor. Küçük istekleri gönderin
+Top Bar,Top Bar
+Top Bar Background,Top Bar Arkaplan
+Top Bar Item,Top Bar Ürün
+Top Bar Items,Top Bar Öğeler
+Top Bar Text,Top Bar Metin
+Top Bar text and background is same color. Please change.,Top Bar metin ve arka plan rengi aynıdır. Lütfen değiştirin.
+Transaction,Işlem
+Transition Rules,Geçiş Kuralları
+Tuesday,Salı
+Tweet will be shared via your user account (if specified),(Belirtilmişse) Tweet kullanıcı hesabı üzerinden paylaştı olacak
+Twitter Share,Twitter Paylaş
+Twitter Share via,Twitter Share via
+Type,Tip
+Unable to find attachment {0},Bulamayan eki {0}
+Unable to load: {0},Yüklenemiyor: {0}
+Unable to open attached file. Please try again.,Ekli dosyası açılamıyor. Lütfen tekrar deneyin.
+Unable to send emails at this time,Şu anda e-postalar göndermek için açılamıyor
+Unknown Column: {0},Bilinmeyen Sütun: {0}
+"Unknown file encoding. Tried utf-8, windows-1250, windows-1252.","Bilinmeyen dosya kodlama. Denenmiş utf-8, windows-1250, windows-1252."
+Unread Messages,Okunmamış mesajlar
+Unsubscribe,Abonelikten ayrıl
+Unsubscribed,Abonelikten
+Upcoming Events for Today,Bugün için Gelecek Etkinlikler
+Update,Güncelleme
+Update Field,Update Field
+Update Value,Güncelleştirme Değer
+Updated,Güncellenmiş
+Upload,Yükle
+Upload Attachment,Eklenti yükle
+Upload CSV file containing all user permissions in the same format as Download.,İndirme olarak aynı formatta tüm kullanıcı izinleri içeren CSV dosyasını yükleyin.
+Upload a file,Bir dosyayı yükleme
+Upload and Import,Yükleme ve İthalat
+Upload and Sync,Yükle ve Sync
+Uploading...,Yükleme ...
+Upvotes,Upvotes
+Use TLS,TLS kullanın
+User,Kullanıcı
+User Cannot Create,Kullanıcı oluşturma olamaz
+User Cannot Search,Kullanıcı Arayamazsınız
+User Defaults,Kullanıcı Varsayılanları
+User ID of a blog writer.,Bir blog yazarı Kullanıcı kimliği.
+User Image,Kullanıcı Görüntü
+User Permission,Kullanıcı İzni
+User Permissions,Kullanıcı İzinler
+User Permissions Manager,Kullanıcı İzinler Müdürü
+User Roles,Kullanıcı Rolleri
+User Tags,Kullanıcı Etiketler
+User Type,Kullanıcı Türü
+"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ",
+User Vote,Kullanıcı Oy
+User not allowed to delete {0}: {1},Kullanıcı silmek için izin {0}: {1}
+User permissions should not apply for this Link,Kullanıcı izinleri Bu Link için geçerli olmamalı
+User {0} cannot be deleted,Kullanıcı {0} silinemez
+User {0} cannot be disabled,Kullanıcı {0} devre dışı edilemez
+User {0} cannot be renamed,Kullanıcı {0} adını edilemez
+User {0} does not exist,Kullanıcı {0} yok
+UserRole,UserRole
+Users and Permissions,Kullanıcılar ve İzinler
+Users with role {0}:,Rolüne sahip kullanıcılar {0}:
+Valid Login id required.,Geçerli Oturum kimliği gereklidir.
+Valid email and name required,Gerekli geçerli e-posta ve isim
+Value,Değer
+Value Change,Değer Değiştirme
+Value Changed,Değer Değişti
+Value cannot be changed for {0},Değer için değiştirilemez {0}
+Value for a check field can be either 0 or 1,"Bir kontrol alanı için değer 0 ya da 1 olabilir, ya da"
+Value missing for,Değer eksik
+Verdana,Verdana
+Version,Sürüm
+Version restored,Sürüm restore
+View or manage Website Route tree.,Web Rota ağacı görüntülemek ya da yönetmek.
+Visit,Ziyaret
+Warning,Uyarı!
+Warning: This Print Format is in old style and cannot be generated via the API.,Uyarı: Bu Print Format eski tarzda ve API aracılığıyla oluşturulan olamaz.
+Web Page,Web sayfası
+Web Site Forum Page.,Web Sitesi Forum Sayfası.
+Website,Web sitesi
+Website Group,Web sitesi Grup
+Website Route,Web Sitesi Rota
+Website Route Permission,Web Sitesi Güzergah İzin
+Website Script,Script
+Website Settings,Web Sitesi Ayarları
+Website Slideshow,Web Sitesi Slayt
+Website Slideshow Item,Web Sitesi Slayt Ürün
+Website User,Web Sitesi Kullanım
+Wednesday,Çarşamba
+Welcome email sent,Hoşgeldiniz e-posta gönderildi
+"When you Amend a document after Cancel and save it, it will get a new number that is a version of the old number.","Eğer sonra iptal ve bunu kaydetmek Belgeyi Amend zaman, eski sayısının bir versiyonu yeni bir numara almak olacaktır."
+Width,Genişlik
+Will be used in url (usually first name).,Url (genellikle ilk adı) kullanılır.
+With Groups,Gruplarla
+With Ledgers,Defter ile
+With Letterhead,Antetli ile
+Workflow,Workflow
+Workflow Action,İş Akışı Eylem
+Workflow Action Name,İş Akışı Eylem Adı
+Workflow Document State,İş Akışı Belge Devlet
+Workflow Document States,İş Akışı Belge Devletleri
+Workflow Name,İş Akışı Adı
+Workflow State,İş Akışı Durumu
+Workflow State Field,İş Akışı Devlet Field
+Workflow Transition,İş Akışı Geçiş
+Workflow Transitions,İş Akışı Geçişler
+Workflow will start after saving.,İş Akışı kaydettikten sonra başlayacaktır.
+Write,Yaz
+Write a Python file in the same folder where this is saved and return column and result.,Bu kaydedildiği aynı klasörde bir Python dosyası yazın ve sütun ve sonucu döndürür.
+Write a SELECT query. Note result is not paged (all data is sent in one go).,Bir SELECT sorgusu yazın. Not sonuç (tüm veriler tek seferde gönderilir) disk belleği değildir.
+Write titles and introductions to your blog.,Blogunuza başlıklar ve tanıtımları yazın.
+Writers Introduction,Yazarlar Tanıtım
+Year,Yıl
+Yes,Evet
+Yesterday,Dün
+You are not allowed to create / edit reports,/ Düzenleme raporlar oluşturmak için izin verilmez
+You are not allowed to export the data of: {0}. Downloading empty template.,Sen veri ihracat için izin verilmez: {0}. Boş şablon indiriliyor.
+You are not allowed to export this report,Bu raporu vermek için izin verilmez
+You are not allowed to print this document,Bu belgeyi yazdırmak için izin verilmez
+You are not allowed to send emails related to this document,Bu belge ile ilgili e-postalar göndermek için izin verilmez
+"You can change Submitted documents by cancelling them and then, amending them.","Onları değiştiren, daha sonra bunları iptal ve Ekleyen belgeleri değiştirebilirsiniz."
+You can use Customize Form to set levels on fields.,Sen alanlarda düzeylerini ayarlamak için Özelleştirmek Formunu kullanabilirsiniz.
+You can use wildcard %,Joker% kullanabilirsiniz
+You cannot install this app,Bu uygulamayı kuramazsınız
+You have unsaved changes in this form. Please save before you continue.,Bu formda kaydedilmemiş değişiklikler var. Devam etmeden önce lütfen kaydedin.
+You need to be logged in and have System Manager Role to be able to access backups.,Girmen ve yedekleri erişmek mümkün Sistem Yöneticisi Rolü olması gerekir.
+You need write permission to rename,Sen adlandırmak için yazma izni gerekiyor
+"You seem to have written your name instead of your email. \
+					Please enter a valid email address so that we can get back.","Eğer e-posta yerine ismini yazdım gibi görünüyor. \
+ Geri alabilirsiniz böylece geçerli bir e-posta adresi girin."
+"Your download is being built, this may take a few moments...","Sizin indir Bu birkaç dakika sürebilir, inşa ediliyor ..."
+[Label]:[Field Type]/[Options]:[Width],[Etiket]: [Alan Tipi] / [Seçenekler]: [Genişlik]
+[Optional] Send the email X days in advance of the specified date. 0 equals same day.,[İsteğe bağlı] belirtilen tarih öncesinde e-posta X günde gönderin. 0 Aynı gün eşittir.
+add your own CSS (careful!),kendi CSS eklemek (careful!)
+adjust,ayarlamak
+align-center,hizalama merkezi
+align-justify,hizalama-haklı
+align-left,hizalamak-sol
+align-right,hizalamak sağ
+and,ve
+arrow-down,ok-aşağı
+arrow-left,ok-sol
+arrow-right,ok-sağ
+arrow-up,ok-up
+asterisk,yıldız işareti
+backward,geri
+ban-circle,ban-daire
+barcode,Barkod
+beginning with,ile başlayan
+bell,çan
+bold,cesur
+book,kitap
+bookmark,imi
+briefcase,evrak çantası
+bullhorn,borazanı
+calendar,takvim
+camera,kamera
+certificate,sertifika
+check,kontrol
+chevron-down,v-down
+chevron-left,v-sol
+chevron-right,zikzak Doğru
+chevron-up,v-up
+circle-arrow-down,daire-ok-down
+circle-arrow-left,daire-ok-sol
+circle-arrow-right,daire-ok-sağ
+circle-arrow-up,daire-ok-up
+cog,diş
+comment,yorum
+comments,Yorumlar
+dd-mm-yyyy,gg-aa-yyyy
+dd.mm.yyyy,gg.aa.yyyy
+dd/mm/yyyy,gg / aa / yyyy
+download,İNDİR
+download-alt,indir-alt
+edit,Düzenle
+eject,çıkarmak
+envelope,zarf
+exclamation-sign,ünlem işareti-
+eye-close,eye-close
+eye-open,gözü açık
+facetime-video,FaceTime video
+fast-backward,hızlı geri
+fast-forward,hızlı ileri
+file,dosya
+film,film
+filter,filtre
+fire,ateş
+flag,bayrak
+folder-close,klasör yakın
+folder-open,klasör açık
+font,yazı
+forward,ileri
+found,bulundu
+fullscreen,tam ekran
+gift,hediye
+glass,cam
+globe,dünya
+hand-down,el-down
+hand-left,el-sol
+hand-right,el-sağ
+hand-up,el-up
+hdd,hdd
+headphones,kulaklıklar
+heart,yürek
+home,ANA SAYFA
+icon,ikon
+inbox,gelen kutusu
+indent-left,girinti-sol
+indent-right,girinti-sağ
+info-sign,info-sign
+is not allowed.,izin verilmez.
+italic,italik
+leaf,yaprak
+lft,lft
+list,liste
+list-alt,list-alt
+lock,kilitlemek
+lowercase,küçük
+magnet,mıknatıs
+map-marker,harita-işaretleyici
+memcached is not working / stopped. Please start memcached for best results.,memcached çalışmıyor / durdu. En iyi sonuçlar için memcached başlayın.
+minus,eksi
+minus-sign,eksi işareti
+mm-dd-yyyy,aa-gg-yyyy
+mm/dd/yyyy,aa / gg / yyyy
+move,hareket
+music,müzik
+none of,hiçbiri
+off,kapali
+ok,tamam
+ok-circle,ok-daire
+ok-sign,ok-sign
+one of,birini
+or,VEYA
+pause,durma
+pencil,kalem
+picture,resim
+plane,düzlem
+play,oynamak
+play-circle,play-daire
+plus,artı
+plus-sign,artı-sign
+print,baskı
+qrcode,qrcode
+question-sign,soru işareti
+random,rasgele
+refresh,yenileme
+remove,kaldırmak
+remove-circle,remove-daire
+remove-sign,remove-işaret
+repeat,tekrar
+resize-full,yeniden boyutlandırma-full
+resize-horizontal,yeniden boyutlandırma-yatay
+resize-small,yeniden boyutlandırma-küçük
+resize-vertical,yeniden boyutlandırma-dikey
+retweet,retweet
+rgt,rgt
+road,yol
+screenshot,ekran görüntüsü
+search,Arama
+share,hisse
+share-alt,pay-alt
+shopping-cart,alışveriş arabası
+signal,işaret
+star,star
+star-empty,star-boş
+step-backward,adım geri
+step-forward,adım ileri
+stop,Dur
+tag,etiket
+tags,etiketler
+"target = ""_blank""","target = ""_blank"""
+tasks,görevler
+text-height,text-yükseklik
+text-width,metin-genişliği
+th,inci
+th-large,th-büyük
+th-list,th-list
+thumbs-down,başparmak aşağı
+thumbs-up,thumbs-up
+time,saat
+tint,renk
+to,(hesaba)
+trash,çöp
+upload,yükleyin
+use % as wildcard,joker olarak kullanabilirsiniz%
+user,kullanıcı
+user_image_show,user_image_show
+values and dates,değerleri ve tarihleri
+values separated by commas,virgülle ayrılmış değerler
+volume-down,hacim aşağı
+volume-off,hacim-off
+volume-up,hacim-up
+warning-sign,uyarı işareti
+wrench,İngiliz anahtarı
+yyyy-mm-dd,yyyy-aa-gg
+zoom-in,zoom-in
+zoom-out,zoom-out
+{0} List,{0} Listesi
+{0} added,{0} eklendi
+{0} by {1},{0} {1}
+{0} cannot be set for Single types,{0} türleri için ayarlanamaz
+{0} does not exist in row {1},{0} aralıksız yoktur {1}
+{0} in row {1} cannot have both URL and child items,{0} üst üste {1} URL ve alt öğeleri hem de olamaz
+{0} is not a valid email id,{0} geçerli bir e-posta id değil
+{0} is required,{0} gereklidir
+{0} is saved,{0} kaydedilir
+{0} must be one of {1},{0} {1} biri olmalı
+{0} must be set first,{0} ilk olarak ayarlanması gerekir
+{0} not a valid State,{0} geçerli bir devlet
+{0} not allowed in fieldname {1},{0} fieldname izin {1}
+{0} not allowed in name,{0} adı izin
+{0} not allowed to be renamed,{0} adını izin yok
+{0} updated,{0} güncellendi
+{0} {1} already exists,{0} {1} zaten var
+"{0} {1} cannot be ""{2}"". It should be one of ""{3}""","{0} {1} olamaz ""{2}"". Bu ""{3}"" biri olmalıdır"
+{0} {1} cannot be a leaf node as it has children,O çocukları olduğu gibi {0} {1} bir yaprak düğüm olamaz
+"{0} {1} does not exist, select a new target to merge","{0} {1} yok, birleştirmek için yeni bir hedef seçin"
+{0} {1} not found,{0} {1} bulunamadı
+{0} {1}: Submitted Record cannot be deleted.,{0} {1}: Ekleyen Kayıt silinemez.
+{0}: Cannot set Amend without Cancel,{0}: ayarlanamaz İptal olmadan DeğiştirecekATİNA
+{0}: Cannot set Assign Amend if not Submittable,{0}: Ata Amend ayarlanamaz Submittable değilse
+{0}: Cannot set Assign Submit if not Submittable,{0}: Ata Gönder ayarlanamaz Submittable değilse
+{0}: Cannot set Cancel without Submit,{0}: ayarlanamaz Gönder olmadan İptal
+{0}: Cannot set Import without Create,{0}: Create olmadan Al'ı ayarlanamaz
+"{0}: Cannot set Submit, Cancel, Amend without Write","{0}: Yaz olmadan onaylanmasına, İptal, Gönder ayarlanamaz"
+{0}: Cannot set import as {1} is not importable,{0}: {1} alınabilir değil gibi ithalat ayarlanamaz
+"{0}: Create, Submit, Cancel and Amend only valid at level 0","{0}: Oluşturma, Gönder, İptal ve 0 düzeyinde geçerlidir DeğiştirecekATİNA"
+{0}: No basic permissions set,{0}: Temel izinleri set
+"{0}: Only one rule allowed with the same Role, Level and Apply User Permissions",{0}: aynı Rolü Düzeyi ile izin ve Kullanıcı İzinlerini uygulayın Sadece bir kural
+{0}: Permission at level 0 must be set before higher levels are set,{0}: yüksek seviyelerde ayarlanır önce 0 düzeyinde İzni ayarlanması gerekir
+{app_title},{App_title}

@@ -1,1406 +1,1473 @@
  by Role ,
  is not set,
-"""Company History""",ручной левый
-"""Team Members"" or ""Management""","Ваша загрузка строится, это может занять несколько минут, ..."
-'In List View' not allowed for type {0} in row {1},Добавить несколько строк
-0 - Draft; 1 - Submitted; 2 - Cancelled,изменить размер горизонтальной
-0 is highest,Arial
-"000 is black, fff is white",Содержимое веб-страницы.
-2 days ago,Данные не найдены
-"<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank"">[?]</a>",Стандартный
+"""Company History""","""История компании"""
+"""Team Members"" or ""Management""","""Члены команды"" или ""Управление"""
+'In List View' not allowed for type {0} in row {1},"""В Список"" не допускается для типа {0} в строке {1}"
+0 - Draft; 1 - Submitted; 2 - Cancelled,0 - Проект; 1 - Представленные; 2 - Отменено
+0 is highest,0 является самым высоким
+"000 is black, fff is white","000 черный, FFF белый"
+2 days ago,2 дня назад
+"<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank"">[?]</a>","<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank""> [?]</a>"
 "<a onclick=""msgprint('<ol>\
 <li><b>field:[fieldname]</b> - By Field\
 <li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\
 <li><b>Prompt</b> - Prompt user for a name\
 <li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\
-</ol>')"">Naming Options</a>",Последний IP
-<b>new</b> <i>type of document</i>,Отменено
-"<i>document type...</i>, e.g. <b>customer</b>",Эта роль Разрешения обновление пользователя пользователь
-<i>e.g. <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>,Найти {0} в {1}
-<i>module name...</i>,Карта-маркер
-<i>text</i> <b>in</b> <i>document type</i>,глаз открыт
-A user can be permitted to multiple records of the same DocType.,Группы
-About,Пример:
-About Us Settings,минус-знак
-About Us Team Member,ok
-Action,"Выберите даты, чтобы создать новый"
-Actions,выбрасывать
-"Actions for workflow (e.g. Approve, Cancel).",Заголовок
-Add,Пункт {0} отменяется
-Add A New Rule,штрих-код
-Add A User Permission,Пароль
-Add Attachments,Имя Роли
-Add Bookmark,Показать печатаются в первую очередь
-Add CSS,Добавлено {0} ({1})
-Add Column,"Ошибка: документ был изменен после того, как вы открыли его"
-Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,DocType или поле
-Add Message,Действия рабочего процесса Имя
-Add New Permission Rule,Неизвестно
-Add Reply,Полное По
-Add Total Row,Версия восстановлено
-Add a New Role,Не допускается из этого IP-адреса
-Add a banner to the site. (small banners are usually good),Установить разрешения на типов документов и роли
-Add all roles,Снова откройте
-Add attachment,не найдены
-Add code as &lt;script&gt;,Быстрая помощь для Установка разрешений
-Add custom javascript to forms.,Главная Страница является Продукты
-Add fields to forms.,"Регистрации, но отключен."
-Add multiple rows,Установите нумерации серии для сделок.
-Add new row,"Название типа документа (DOCTYPE) вы хотите это поле, чтобы быть связаны с. например клиентов"
-"Add the name of <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> e.g. ""Open Sans""",Не удалить
-Add to To Do,оттенок
-Add to To Do List Of,Отключение Регистрация
-Added {0} ({1}),Отправлено
-Adding System Manager to this User as there must be atleast one System Manager,"Пожалуйста, сформулируйте пользователя"
-Additional Info,Выберите Формат печати
-Additional Permissions,Повторите этот событие
-Address,Сроки и условиях1
-Address Line 1,Кол-во для передачи
-Address Line 2,Возможность От
-Address Title,Доступные Stock для упаковки товаров
-Address and other legal information you may want to put in the footer.,торгово-корзина
-Admin,играть
-All Applications,Файл не прилагается
-All Day,Autoreply при получении новой почты
-All customizations will be removed. Please confirm.,Включить запланированных заданий
-"All possible Workflow States and roles of the workflow. <br>Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""",Меньше чем
-Allow Attach,{0}: введенное на уровне 0 должны быть установлены до более высоких уровней устанавливаются
-Allow Import,Представленные Запись не может быть удален
-Allow Import via Data Import Tool,Поле {0} в строке {1} не может быть скрыт и обязательно без умолчанию
-Allow Rename,Никаких дополнительных записей
-Allow on Submit,"Проверьте, какие документы могут быть прочитаны Пользователем"
-Allow user to login only after this hour (0-24),Тип Пользователя
-Allow user to login only before this hour (0-24),колокол
-Allowed,"Если Роль не имеет доступа на уровне 0, то более высокие уровни не имеют смысла."
-"Allowing DocType, DocType. Be careful!",Нет результатов
-Already Registered,Основное
-Already in user's To Do list,"Нельзя редактировать {0} непосредственно: Для редактирования {0} свойства, создать / обновление {1}, {2} и {3}"
-Alternative download link,Регистрационные детали посылаемые.
-"Alternatively, you can also specify 'auto_email_id' in site_config.json","Примечание: Для достижения наилучших результатов, изображения должны быть того же размера и ширина должна быть больше, чем высота."
-Always use above Login Id as sender,Поиск Поля
-Amend,Уровень
-"An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [<a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a>]",0 - Проект; 1 - Представленные; 2 - Отменено
-"Another {0} with name {1} exists, select another name",Сноска
-Any existing permission will be deleted / overwritten.,ручной право
-Anyone Can Read,Статус
-Anyone Can Write,Пользовательские поля
-"Apart from Role based Permission Rules, you can apply User Permissions based on DocTypes.",Текущее состояние
-"Apart from System Manager, roles with 'Set User Permissions' right can set permissions for other users for that Document Type.",Больше или равно
-App Name,Insert Row
-App not found,Редактор текста
-Application Installer,"Не могу открыть экземпляр, когда его {0} открыто"
-Applications,Весь день
-Apply Style,Удалить
-Apply User Permissions,События в сегодняшнем календаре
-Are you sure you want to delete the attachment?,В диалоге
-Arial,Установка разрешений на пользователя
-"As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User.",Предложение
-Ascending,Сообщить не был сохранен (были ошибки)
-Assign To,"Описание для листинга странице, в виде обычного текста, только пару строк. (Макс. 140 символов)"
-Assigned By,Введите Form Тип
-Assigned To,{0} требуется
-Assigned To Fullname,Только чтения
-Assigned To/Owner,"В качестве лучшего решения, не может присвоить этот набор правило доступа для различных ролей. Вместо этого, установить несколько ролей и тому же пользователю."
-Assignment Added,По убыванию
-Assignment Status Changed,Значения по Умолчанию
-Assignments,"значения, разделенные запятыми"
-Attach,Обязательный
-Attach Document Print,ответ
-Attach as web link,Опции должно быть допустимым DocType для поля {0} в строке {1}
-Attached To DocType,Забыли пароль
-Attached To Name,Разрешить Импорт
-Attachments,Баннер выше верхней строке меню.
-Auto Email Id,Скрыть Копировать
-Auto Name,UserRole
-Auto generated,Мне нравится
-Avatar,<i> имя модуля ... </ I>
-Back to Login,Удалить закладку
-Background Color,Неизвестно Формат печати: {0}
-Background Image,Разрешения Настройки
-Background Style,В Сообщить Фильтр
-Banner,"""Члены команды"" или ""Управление"""
-Banner HTML,Индивидуальные занятия
-Banner Image,Изменен
-Banner is above the Top Menu Bar.,Настройки отображения
-Begin this page with a slideshow of images,Отправить
-Beginning with,Вам не разрешено экспортировать этот отчет
-Belongs to,В приложении к DocType
-Bio,Bin
-Birth Date,Следующая государственный
-Blog Category,Почта Пароль
-Blog Intro,Добыть
-Blog Introduction,"Обновите, чтобы получить последнюю документ."
-Blog Post,LR Нет
-Blog Settings,Монтажник
-Blog Title,Добавить в делать
-Blogger,Отправить мне копию
-Bookmarks,Папка-открытым
-Brand HTML,Дальнейшие действия
-Bulk Email,Последний Войти
-Bulk email limit {0} crossed,им
-Button,{0} добавил
-By,Helvetica Neue
-Calculate,Календарь
-Calendar,Fieldname {0} несколько раз появляется в строках {1}
-Cancel,Сервер
-Cancelled,Покупка получения элемента Supplieds
-"Cannot Edit {0} directly: To edit {0} properties, create / update {1}, {2} and {3}",Fieldname который будет DocType для этого поля связи.
-Cannot Update: Incorrect / Expired Link.,Предыдущая запись
-Cannot Update: Incorrect Password,скачать
-Cannot add more than 50 comments,Разрешить переименовать
-Cannot cancel before submitting. See Transition {0},Отменить подписку
-Cannot change picture,С Ledgers
-Cannot change state of Cancelled Document. Transition row {0},Заголовок страницы текста
-Cannot change {0},Тип группы
-Cannot delete or cancel because {0} {1} is linked with {2} {3},восклицательный знак-
-Cannot delete {0} as it has child nodes,Игнорировать разрешений пользователя
-Cannot edit standard fields,Применить стиль
+</ol>')"">Naming Options</a>","<OnClick = ""msgprint ('<ol> \
+ <li> <b> поле: [имя_поля] </ B> - По области \
+ <li> <b> naming_series: </ B > - По Именование серии (поле называется naming_series должны присутствовать \
+ <li> <b> Подскажите </ B> - Запрашивать имя \
+ <li> <b> [серии] </ . б> - Серия префиксом (разделенных точкой); например PRE # # # # # \
+ </ ол> ') ""> Именование Параметры </>"
+<b>new</b> <i>type of document</i>,<b> новый </ B> <i> тип документа </ I>
+"<i>document type...</i>, e.g. <b>customer</b>","<i> тип документа ... </ I>, например <b> клиентов </ B>"
+<i>e.g. <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>,<i> например <strong> (55 + 434) / 4 </ STRONG> или <strong> = Math.sin (Мф.PI / 2) </ STRONG> ... </ I>
+<i>module name...</i>,<i> имя модуля ... </ I>
+<i>text</i> <b>in</b> <i>document type</i>,<i> текст </ I> <b> в </ B> <i> типа документа </ I>
+A user can be permitted to multiple records of the same DocType.,Пользователь может быть разрешено с несколькими записями той же DocType.
+About,О нас
+About Us Settings,О нас Настройки
+About Us Team Member,О нас Команда Член
+Action,Действие
+Actions,Действия
+"Actions for workflow (e.g. Approve, Cancel).","Действия для рабочего процесса (например, утверждать, отменять)."
+Add,Добавить
+Add A New Rule,Добавить новое правило
+Add A User Permission,Добавить пользователь разрешение
+Add Attachments,Добавить вложения
+Add Bookmark,Добавить в закладки
+Add CSS,Добавить CSS
+Add Column,Добавить столбец
+Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,Добавить Google Analytics ID: например. UA-89XXX57-1. Пожалуйста поиск помощь по Google Analytics для получения дополнительной информации.
+Add Message,Добавить сообщение
+Add New Permission Rule,Добавить новое разрешение Правило
+Add Reply,Ответить
+Add Total Row,Добавить итоговая строка
+Add a New Role,Добавить новую роль
+Add a banner to the site. (small banners are usually good),"Добавить баннер на сайт. (Маленькие баннеры, как правило, хорошо)"
+Add all roles,Добавить все роли
+Add attachment,Добавить вложение
+Add code as &lt;script&gt;,"Добавьте код, как <script>"
+Add custom javascript to forms.,Добавить пользовательские JavaScript в формах.
+Add fields to forms.,Добавление полей в формах.
+Add multiple rows,Добавить несколько строк
+Add new row,Добавить новую строку
+"Add the name of <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> e.g. ""Open Sans""","Добавить имя <a href=""http://google.com/webfonts"" target=""_blank""> Google Web Font </> например ""Открытые Санс """
+Add to To Do,Добавить в делать
+Add to To Do List Of,Добавить в To Do List Of
+Added {0} ({1}),Добавлено {0} ({1})
+Adding System Manager to this User as there must be atleast one System Manager,"Добавление System Manager для этого пользователя, как должно быть по крайней мере один System Manager"
+Additional Info,Дополнительная информация
+Additional Permissions,Дополнительные разрешения
+Address,Адрес
+Address Line 1,Адрес (1-я строка)
+Address Line 2,Адрес (2-я строка)
+Address Title,Адрес Название
+Address and other legal information you may want to put in the footer.,"Адрес и другое юридическое информация, которую вы можете положить в нижней."
+Admin,Администратор
+All Applications,Все приложения
+All Day,Весь день
+All customizations will be removed. Please confirm.,"Все настройки будут удалены. Пожалуйста, подтвердите."
+"All possible Workflow States and roles of the workflow. <br>Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""","Все возможно Workflow Штаты и роли рабочего процесса. <br> Docstatus Опции: 0 ""Сохраненные"", 1 ""Представленные"" и 2 ""Отменено"""
+Allow Attach,Разрешить Прикрепите
+Allow Import,Разрешить Импорт
+Allow Import via Data Import Tool,Разрешить Импорт через Data Import Tool
+Allow Rename,Разрешить переименовать
+Allow on Submit,Разрешить на Отправить
+Allow user to login only after this hour (0-24),Разрешить пользователю войти только после этого часа (0-24)
+Allow user to login only before this hour (0-24),Разрешить пользователю войти только до этого часа (0-24)
+Allowed,Разрешено
+"Allowing DocType, DocType. Be careful!","Разрешение DocType, DocType. Осторожно!"
+Already Registered,Уже регистрировались
+Already in user's To Do list,"Уже в пользователя, чтобы сделать список"
+Alternative download link,Альтернативная ссылка для скачивания
+"Alternatively, you can also specify 'auto_email_id' in site_config.json","Кроме того, вы также можете указать 'auto_email_id' в site_config.json"
+Always use above Login Id as sender,Всегда используйте выше Логин ID как отправитель
+Amend,Изменен
+"An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [<a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a>]","Значок файла с расширением ICO.. Должно быть 16 х 16 пикс. Создано с помощью генератора значок. [<a Href=""http://favicon-generator.org/"" target=""_blank""> Favicon-generator.org </>]"
+"Another {0} with name {1} exists, select another name","Еще {0} с именем {1} существует, выберите другое имя"
+Any existing permission will be deleted / overwritten.,Любой существующий разрешение будут удалены / перезаписаны.
+Anyone Can Read,"Всем, кто может прочитаны"
+Anyone Can Write,"Всем, кто может написать"
+"Apart from Role based Permission Rules, you can apply User Permissions based on DocTypes.","Помимо ролей на основе разрешений Правил, можно применить разрешений пользователя на основе DOCTYPEs."
+"Apart from System Manager, roles with 'Set User Permissions' right can set permissions for other users for that Document Type.","Помимо System Manager, роли с правом ""установить права пользователя"" может задавать разрешения для других пользователей данного типа документа."
+App Name,Имя приложения
+App not found,Приложение не найдено
+Application Installer,Применение установки
+Applications,Применение
+Apply Style,Применить стиль
+Apply User Permissions,Применить разрешений пользователя
+Are you sure you want to delete the attachment?,"Вы уверены, что хотите удалить вложение?"
+Arial,Arial
+"As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User.","В качестве лучшего решения, не может присвоить этот набор правило доступа для различных ролей. Вместо этого, установить несколько ролей и тому же пользователю."
+Ascending,По возрастанию
+Assign To,Ответственный
+Assigned By,Присвоенный
+Assigned To,Ответственный:
+Assigned To Fullname,Назначено FULLNAME
+Assigned To/Owner,Назначено / Владельца
+Assignment Added,Назначение Добавлено
+Assignment Status Changed,Назначение Статус Changed
+Assignments,Присвоение
+Attach,Присоединить
+Attach Document Print,Прикрепите документе печать
+Attach as web link,Прикрепите как веб-ссылку
+Attached To DocType,В приложении к DocType
+Attached To Name,Привязаны к имени
+Attachments,Приложения
+Auto Email Id,Авто электронный идентификатор
+Auto Name,Авто Имя
+Auto generated,Авто генерируется
+Avatar,Аватар
+Back to Login,Войти
+Background Color,Цвет фона
+Background Image,Фоновое изображение
+Background Style,Фон Стиль
+Banner,Баннер
+Banner HTML,Баннер HTML
+Banner Image,Баннер Изображение
+Banner is above the Top Menu Bar.,Баннер выше верхней строке меню.
+Begin this page with a slideshow of images,Начать эту страницу с слайд-шоу из изображений
+Beginning with,Начиная с
+Belongs to,Принадлежит
+Bio,Ваша Биография
+Birth Date,Дата рождения
+Blog Category,Блог Категории
+Blog Intro,Блог Intro
+Blog Introduction,Блог Введение
+Blog Post,Сообщение блога
+Blog Settings,Настройки Блог
+Blog Title,Название блога
+Blogger,Blogger
+Bookmarks,Закладки
+Both login and password required,"Оба Логин и пароль, необходимый"
+Brand HTML,Марка HTML
+Bulk Email,Массовая Email
+Bulk email limit {0} crossed,Предел объемной электронной почты {0} пересек
+Button,Кнопка
+By,От
+Calculate,Калькулировать
+Calendar,Календарь
+Cancel,Отмена
+Cancelled,Отменено
+"Cannot Edit {0} directly: To edit {0} properties, create / update {1}, {2} and {3}","Нельзя редактировать {0} непосредственно: Для редактирования {0} свойства, создать / обновление {1}, {2} и {3}"
+Cannot Update: Incorrect / Expired Link.,Невозможно обновить: Неверно / Истекло Link.
+Cannot Update: Incorrect Password,Невозможно обновить: неправильный пароль
+Cannot add more than 50 comments,Не можете добавить более 50 комментариев
+Cannot cancel before submitting. See Transition {0},Нельзя отменить перед отправкой. См. Переход {0}
+Cannot change picture,Невозможно изменить картину
+Cannot change state of Cancelled Document. Transition row {0},Невозможно изменить состояние Отмененные документа. Переход строка {0}
+Cannot change {0},Невозможно изменить {0}
+Cannot delete or cancel because {0} {1} is linked with {2} {3},"Не удается удалить или отменить, потому что {0} {1} связан с {2} {3}"
+Cannot delete {0} as it has child nodes,"Не удается удалить {0}, поскольку он имеет дочерние узлы"
+Cannot edit standard fields,Не можете редактировать стандартные поля
 Cannot map because following condition fails: ,
-Cannot open instance when its {0} is open,Разное
-Cannot open {0} when its instance is open,"{0} {1} не существует, выберите новую цель объединить"
-Cannot print cancelled documents,Не удается установить разрешение на DocType: {0} и имя: {1}
-Cannot remove permission for DocType: {0} and Name: {1},"Холост Типы нет только одна запись не таблицы, связанные. Значения сохраняются в tabSingles"
-Cannot reply to a reply,{0}: Не удается установить импорт как {1} не является ввозу
-Cannot set permission for DocType: {0} and Name: {1},Удалить строку
-Categorize blog posts.,Помощь
-Category,Скачать
-Category Name,Добавить
-Center,Примечание: Другие правила разрешений может также применяться
-"Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit.",Сервер исходящей почты не указано
-"Change field properties (hide, readonly, permission etc.)",Генератор
-Chat,Условия для проведения мероприятий Роли
-Check,Следующая запись
-Check / Uncheck roles assigned to the User. Click on the Role to find out what permissions that Role has.,DefaultValue
-Check this if you want to send emails as this id only (in case of restriction by your email provider).,Данные Инструмент импорта
-Check this to make this the default letter head in all prints,Сообщения
-Check which Documents are readable by a User,Сторона-реципиент
-Checked items shown on desktop,"Вставьте После области '{0}' упоминается в настраиваемого поля '{1}', не существует"
-Child Tables are shown as a Grid in other DocTypes.,Администратор
-City,Конец контракта Дата
-Clear Cache,Группа Описание
-Clear all roles,Ссылка DocType
-Click on a link to get options,Повторите На
-Click on row to view / edit.,"Сообщение не существует. Пожалуйста, добавьте пост!"
-Client,1
-Close,Отправить по электронной почте
-Close: {0},"Вы можете изменить представленных документов, отменив их, а затем, их изменения."
-Closed,Дата платежа
-Code,Поставщик> Поставщик Тип
-Collapse,Автоматическое обновление
-Column Break,В фильтр
-Comment,Предыдущая
-Comment By,Еще не регистрировались? Зарегистрироваться
-Comment By Fullname,глобус
-Comment Date,"Это поле появится только тогда, когда имя_поля определяется здесь имеет значение ИЛИ правила являются истинными (примеры): инструменты \ nmyfield \ Neval: doc.myfield == 'Мой Значение' <br> \ Neval: doc.age> 18"
-Comment Docname,Не удается отобразить потому следующее условие не выполняется:
-Comment Doctype,E-mail Отправленные
-Comment Time,Шаг 1: Установить имя и сохранить.
-Comments,Ваш Логин ID
-Communication,Применимо к (Пользователь)
-Communication Medium,Загрузка
-Company History,Невозможно отправить электронную почту в это время
-Company Introduction,"К сожалению, мы не смогли найти то, что вы искали."
-Complaint,Менее или равно
-Complete By,Настройки для О нас страницы.
-Contact Us Settings,"Это непрерывного действия, и вы не можете отменить. Продолжить?"
-"Contact options, like ""Sales Query, Support Query"" etc each on a new line or separated by commas.",шеврона вниз
-Content,"Выберите ""Да"", если этот элемент используется для какой-то внутренней цели в вашей компании."
-Content Hash,карандаш
-Content in markdown format that appears on the main side of your page,картинка
-Content web page.,Название дела
-Controller,"Добавление System Manager для этого пользователя, как должно быть по крайней мере один System Manager"
-Copy,Заканчивается на
-Copyright,Принадлежит
-Core,LastMod
-Could not connect to outgoing email server,звезды пусто
-Could not find {0},Члены команды Возглавлять
-Count,начиная с
-Country,Чистая Платное
-Create,Разрешить Прикрепите
-Create a new {0},"<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank""> [?]</a>"
-Created Custom Field {0} in {1},Контакты Настройки
-Created Customer Issue,Вы можете использовать Настроить форму для установки уровней на полях.
-Created Opportunity,Является умолчанию
-Created Support Ticket,Слайд-шоу
-Creation / Modified By,входящие
-Currency,Правило Начальные
-Current status,Добавить в закладки
-Custom CSS,Примечание: Максимальный размер приложения = 1 Мб
-Custom Field,"Чтобы запустить тест добавить имя модуля в маршруте после '{0}'. Например, {1}"
-Custom Javascript,"{0}: Не удается установить Представьте, Отменить, Изменить без Write"
-Custom Reports,Дополнительная информация
-Custom Script,Всегда используйте выше Логин ID как отправитель
-Custom?,скачать-альт
-Customize,Общий вес пакета. Обычно вес нетто + упаковочный материал вес. (Для печати)
-Customize Form,"Эти разрешения будут применяться для всех сделок, где разрешается запись связаны между собой. Например, если компания C добавляется доступа пользователей пользовательского X, пользователь X будет только в состоянии видеть транзакции, которые имеет компания C в виде связанного значения."
-Customize Form Field,Отправить пароль
-"Customize Label, Print Hide, Default etc.",дд / мм / гггг
-Customized HTML Templates for printing transctions.,Просмотр или управляющим Сайт Маршрут дерево.
-Daily Event Digest is sent for Calendar Events where reminders are set.,"Переименовать много пунктов, загрузив. Файл CSV."
-Danger,"Введите ключи для того, чтобы вход с помощью Facebook, Google, GitHub."
-Data,Код для вставки слайд-шоу изображений в веб-страницах.
-Data Import / Export Tool,сертификат
-Data Import Tool,Опции
-Data missing in table,уменьшить выход
-Date,Небольшая Поставляются
-Date Format,Всего Заработок
-Date and Number Format,Лот Имя
-Date must be in format: {0},Linked In Share
-Datetime,обновить
-Dear,Прикрепите как веб-ссылку
-Default,Менеджер по подбору кадров
-Default Print Format,"Пожалуйста, введите мероприятия Дата и время!"
-Default Value,Является событие
-Default is system timezone,Модули установки
-"Default: ""Contact Us""",Модуль
-DefaultValue,Пол
-Defaults,в порядке круга
-"Define read, write, admin permissions for a Website Page.",Экспорт
-Define workflows for forms.,Часовой пояс
-Delete,Готовая продукция
-Delete Row,Статус документа переход от
-Depends On,Уже регистрировались
-Descending,Событие Пользователь
-Description,Новые Облигации Доставка
-Description and Status,Ссылка Имя
-"Description for listing page, in plain text, only a couple of lines. (max 140 characters)",Назначение Статус Changed
-Description for page header.,Ключ
-Desktop,{0} должен быть одним из {1}
-Details,Следующая Дата
-Did not add,Нет доступа для записи / Удалить.
-Did not cancel,Обновление поле
-Did not find {0} for {0} ({1}),"Если флажок установлен, Главная страница будет Пункт Группа по умолчанию для веб-сайта."
-Did not load,Настройки Блог
-Did not remove,Роль и уровень
-Did not save,Повторите До
-"Different ""States"" this document can exist in. Like ""Open"", ""Pending Approval"" etc.",Настройка> Пользователь
-Disable Customer Signup link in Login page,Страница не найдена
-Disable Signup,Успех
-Disabled,Агент
-Display,Сеттер недвижимости
-Display Settings,Обновление Значение
-Display in the sidebar of this Website Route node,Система генерируемые письма будут отправлены из этого электронный идентификатор.
-Do not allow user to change after set the first time,Закладки
-Doc Status,Tweet будут доступны посредством учетной записи пользователя (если он указан)
-DocField,Роль Разрешения менеджер
-DocPerm,й
-DocType,Пользователи и разрешения
-DocType Details,Разрешения не установлен для этого критериев.
-DocType can not be merged,Отчет
-DocType on which this Workflow is applicable.,"Для форматирования столбцов, дать заголовки столбцов в запросе."
-DocType or Field,огонь
-Doclist JSON,"Выберите целевых = ""_blank"", чтобы открыть на новой странице."
-Docname,Запрос Сообщить
-Document,Суббота
+Cannot open instance when its {0} is open,"Не могу открыть экземпляр, когда его {0} открыто"
+Cannot open {0} when its instance is open,"Не могу открыть {0}, когда его экземпляр открыт"
+Cannot print cancelled documents,Невозможно печатать отмененные документы
+Cannot remove permission for DocType: {0} and Name: {1},Невозможно удалить разрешение на DocType: {0} и имя: {1}
+Cannot reply to a reply,Не можете ответить на ответ
+Cannot set Email Alert on Document Type {0},Невозможно установить Отправка электронного сообщения о Тип документа {0}
+Cannot set permission for DocType: {0} and Name: {1},Не удается установить разрешение на DocType: {0} и имя: {1}
+Categorize blog posts.,Классифицировать посты блога.
+Category,Категории
+Category Name,Название категории
+Center,Центр
+"Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit.","Некоторые документы, как счета-фактуры, должны быть установлены только финал. Конечное состояние для таких документов называется Представленные. Вы можете ограничить, какие роли могут Представьте."
+"Change field properties (hide, readonly, permission etc.)","Изменение свойств поля (скрыть, только для чтения, разрешение и т.д.)"
+Chat,Чат
+Check,чек
+Check / Uncheck roles assigned to the User. Click on the Role to find out what permissions that Role has.,"Отметить / Отменить роли, назначенные пользователю. Нажмите на роли, чтобы узнать, с какими эта роль."
+Check this if you want to send emails as this id only (in case of restriction by your email provider).,"Проверьте это, если вы хотите отправить электронную почту, как указанным номером только (в случае ограничения по вашим провайдером электронной почты)."
+Check this to make this the default letter head in all prints,"Проверьте это, чтобы сделать эту письмо по умолчанию голову во всех печатных изданий"
+Check which Documents are readable by a User,"Проверьте, какие документы могут быть прочитаны Пользователем"
+Checked items shown on desktop,"Отмеченные элементы, показанные на рабочем столе"
+Child Tables are shown as a Grid in other DocTypes.,Дочерние таблицы отображаются в виде сетки в других DOCTYPEs.
+City,Город
+Classic,Классические
+Clear Cache,Очистить кэш
+Clear all roles,Очистите все роли
+Click on a link to get options,"Нажмите на ссылку, чтобы получить варианты"
+Click on row to view / edit.,"Нажмите на строке, чтобы просмотреть / редактировать."
+Client,Клиент
+Client-side formats are now deprecated,Клиентские форматы считаются устаревшими
+Close,Закрыть
+Close: {0},Закрыть: {0}
+Closed,Закрыт
+Code,Код
+Collapse,Свернуть
+Column Break,Разрыв столбца
+Comment,Комментарий
+Comment By,Комментарий По
+Comment By Fullname,Комментарий По FULLNAME
+Comment Date,Комментарий Дата
+Comment Docname,Комментарий DOCNAME
+Comment Doctype,Комментарий DOCTYPE
+Comment Time,Комментарий время
+Comments,Комментарии
+Communication,Общение
+Communication Medium,Связь Средний
+Company History,История компании
+Company Introduction,Компания Введение
+Complaint,Жалоба
+Complete By,Полное По
+Condition,Условия
+Contact Us Settings,Контакты Настройки
+"Contact options, like ""Sales Query, Support Query"" etc each on a new line or separated by commas.","Параметры контакта, как ""Sales Query, поддержки Query"" и т.д. каждого с новой строки или через запятую."
+Content,Содержимое
+Content Hash,Содержимое Hash
+Content in markdown format that appears on the main side of your page,"Содержимое в формате уценки, которая появляется на главной части страницы"
+Content web page.,Содержимое веб-страницы.
+Controller,Регулятор
+Copy,Копировать
+Copyright,Авторское право
+Core,Центральная территория
+Could not connect to outgoing email server,Не удалось подключиться к сервера исходящей почты
+Could not find {0},Не удалось найти {0}
+Count,Считать
+Country,Страна
+Create,Создать
+Create a new {0},Создать новую {0}
+Created Custom Field {0} in {1},Дата создания настраиваемого поля {0} в {1}
+Created Customer Issue,Дата выпуска клиентов
+Created Opportunity,Дата Возможность
+Created Support Ticket,Дата техподдержки
+Creation / Modified By,Создание / Изменено
+Currency,Валюта
+Current status,Текущее состояние
+Custom CSS,Свой CSS
+Custom Field,Пользовательские поля
+Custom Javascript,Пользовательские Javascript
+Custom Reports,Пользовательские отчеты
+Custom Script,Специального сценария
+Custom?,Пользовательские?
+Customize,Выполнять по индивидуальному заказу
+Customize Form,Настроить форму
+Customize Form Field,Настроить поля формы
+"Customize Label, Print Hide, Default etc.","Настроить Label, распечатать спрятать, Default т.д."
+Customized HTML Templates for printing transctions.,Индивидуальные шаблоны HTML для печатных transctions.
+Daily Event Digest is sent for Calendar Events where reminders are set.,"Ежедневно событие Дайджест направляется на Календарь событий, где установлены напоминания."
+Danger,Опасность
+Data,Данные
+Data Import / Export Tool,Импорт / Экспорт данных инструментов
+Data Import Tool,Данные Инструмент импорта
+Data missing in table,Данные отсутствует в таблице
+Date,Дата
+Date Change,Дата Изменение
+Date Changed,Дата Изменен
+Date Format,Формат даты
+Date and Number Format,Дата и номер Формат
+Date must be in format: {0},Дата должна быть в формате: {0}
+Datetime,Datetime
+Days in Advance,Дней
+Dear,Уважаемые
+Default,По умолчанию
+Default Print Format,По умолчанию Формат печати
+Default Value,Значение по умолчанию
+Default is system timezone,По умолчанию система часовой пояс
+"Default: ""Contact Us""","По умолчанию: ""Обратная связь"""
+DefaultValue,DefaultValue
+Defaults,Значения по Умолчанию
+"Define read, write, admin permissions for a Website Page.","Определить читать, писать, разрешения администратора для веб-сайта Page."
+Define workflows for forms.,Определите рабочие процессы для форм.
+Delete,Удалить
+Delete Row,Удалить строку
+Depends On,Зависит от
+Descending,По убыванию
+Description,Описание
+Description and Status,Описание и статус
+"Description for listing page, in plain text, only a couple of lines. (max 140 characters)","Описание для листинга странице, в виде обычного текста, только пару строк. (Макс. 140 символов)"
+Description for page header.,Описание для заголовка страницы.
+Desktop,Настольный
+Details,Детали
+Did not add,Не добавить
+Did not cancel,Не отменить
+Did not find {0} for {0} ({1}),Не нашли {0} {0} ({1})
+Did not load,Не сработал
+Did not remove,Не удалить
+Did not save,Не спасти
+"Different ""States"" this document can exist in. Like ""Open"", ""Pending Approval"" etc.","Различные ""Государства"" этот документ может существовать дюйма Как ""Открыть"", ""В ожидании утверждения"" и т.д."
+Disable Customer Signup link in Login page,Отключение клиента Регистрация ссылку в странице входа
+Disable Signup,Отключение Регистрация
+Disabled,Отключено
+Display,Показать
+Display Settings,Настройки отображения
+Display in the sidebar of this Website Route node,Показать в боковой панели этого веб-сайта Маршрут узла
+Do not allow user to change after set the first time,Не позволяйте пользователю изменять после установить в первый раз
+Doc Status,Док Статус
+DocField,DocField
+DocPerm,DocPerm
+DocType,DocType
+DocType Details,DocType Подробнее
+DocType can not be merged,DocType не могут быть объединены
+DocType on which this Workflow is applicable.,"DocType, на котором этот рабочий процесс применим."
+DocType or Field,DocType или поле
+Doclist JSON,DocList JSON
+Docname,DOCNAME
+Document,Документ
 Document Status transition from ,
-Document Status transition from {0} to {1} is not allowed,Добавить пользовательские JavaScript в формах.
-Document Type,Базовая ставка
-Document is only editable by users of role,Sidebar Ссылки для домашней странице только
-Documentation,теги
-Documents,"Введите статические параметры адрес здесь (Например отправитель = ERPNext, имя пользователя = ERPNext, пароль = 1234 и т.д.)"
-Download,Стандартный отвечает на распространенные вопросы.
-Download Backup,Google Web Font (Заголовок)
-Download link for your backup will be emailed on the following email address:,Скрыть действия
-Drafts,Скачать Резервное копирование
-Drag to sort columns,Стрелка вниз
-Due Date,Настройки Вакансии Email
-Duplicate name {0} {1},Веб-страница
-Dynamic Link,Связь Средний
-ERPNext Demo,Были ошибки при отправке электронной почты. Попробуйте ещё раз.
-Edit,Рассылок
-Edit Permissions,Написать запрос на выборку. Результат Примечание не выгружен (все данные передаются на одном дыхании).
-Editable,Добавить сообщение
-Email,"Момент, в который предметы были доставлены со склада"
-Email Footer,Ряд # {0}:
-Email Host,конверт
-Email Id,Добавить резервных копий в Google Drive
-Email Login,"Вам нужно разрешение, чтобы переименовать написать"
-Email Password,Информация-знак
-Email Sent,Больше
-Email Settings,"Ничего, чтобы показать"
-Email Signature,выровнять-оправдать
-Email Use SSL,Показать это поле как название
-Email address,Добавить все роли
-"Email addresses, separted by commas",Формат печати
-Email not verified with {1},дорога
-Email sent to {0},Тип поля
-Email...,Ограничить документ IP
-Emails are muted,Камера
-Embed image slideshows in website pages.,Опубликовать
-Enable,Далее
-Enable Comments,Ссылка на другие страницы в баре стороны и следующем разделе
-Enable Scheduled Jobs,несогласие
-Enabled,Сумма (Компания Валюта)
-Ends on,Добавить вложение
-Enter Form Type,Сайт Слайд-шоу Пункт
-Enter Value,Письмо Голова в HTML
-Enter at least one permission row,Увеличить
-"Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set ""match"" permission rules. To see list of fields, go to <a href=""#Form/Customize Form/Customize Form"">Customize Form</a>.","Они также будут установлены по умолчанию для этих связей, если только одна такая запись разрешение определяется."
-"Enter keys to enable login via Facebook, Google, GitHub.","""История компании"""
-Equals,Блог Intro
-Error,Комментарий время
-"Error generating PDF, attachment sent as HTML",Запустим отчет первым
-Error: Document has been modified after you have opened it,Заседание Срок
-Event,Является Целевая
-Event Datetime,Применить разрешений пользователя
-Event Individuals,Тип
-Event Role,ручной вниз
-Event Roles,Вторник
-Event Type,"Не могу открыть {0}, когда его экземпляр открыт"
-Event User,DocType
-Event end must be after start,Сообщить не могут быть установлены для отдельных видов
-Events,"Memcached не работает / остановлен. Пожалуйста, начните Memcached для достижения наилучших результатов."
-Events In Today's Calendar,Закрыть
-Every Day,Общение
-Every Month,Добавить Вложений
-Every Week,Предупреждение
-Every Year,Не разрешено
-Everyone,Неверное значение в строке {0}: {1} должно быть {2} {3}
-Example:,Страница с именем {0} уже существует
-Expand,Пользователь {0} не может быть переименован
-Export,Высокая
-Export not allowed. You need {0} role to export.,ПОДЕЛИТЬСЯ
-Exported,Создание / Изменено
-Facebook,Workflow Переходы
-Facebook Client ID,Форма
-Facebook Client Secret,"<OnClick = ""msgprint ('<ol> \ \ п <li> <b> поле: [имя_поля] </ B> - По полевой \ \ п <li> <b> naming_series: </ B> - По Именование Серия (поле называется naming_series должны присутствовать \ \ п <li> <b> строки </ B> - Запрашивать имя \ \ н <li> <b> [серии] </ B> - серия префиксом (разделенных точкой);. например PRE # # # # # \ \ п </ ол> ') ""> Именование Параметры </>"
-Facebook Share,Роли могут быть установлены для пользователей из их странице пользователя.
-Facebook User ID,"Поля отделяются запятой (,) будут включены в <br /> <b> Поиск По </ B> список диалоговом окне Поиск"
-Facebook Username,Краткое название
-FavIcon,Имя
-Female,Пользователи с этой ролью могут устанавливать замороженных счетов и создания / изменения бухгалтерских проводок против замороженных счетов
-Field Description,Нет доступа для редактирования
-Field Name,Владелец
-Field Type,Открыть Sans
-"Field that represents the Workflow State of the transaction (if field is not present, a new hidden Custom Field will be created)",Требуется Обязательные фильтры: \ п
-Field {0} in row {1} cannot be hidden and mandatory without default,Получено
-Field {0} is not selectable.,Стандартный ответ
-Field {0} of type {1} cannot be mandatory,Новый
-Fieldname,Сервер SMTP (например smtp.gmail.com)
-Fieldname is required in row {0},"Топ текст Бар и фон одного цвета. Пожалуйста, измените."
-Fieldname not set for Custom Field,Сообщите по электронной почте
-Fieldname which will be the DocType for this link field.,Интервал
-Fieldname {0} appears multiple times in rows {1},А ТАКЖЕ
-"Fieldname {0} cannot contain letters, numbers or spaces",Verdana
-Fields,"Фильтрация записей на основе прав доступа пользователей, определенных для пользователя"
-"Fields separated by comma (,) will be included in the<br /><b>Search By</b> list of Search dialog box",Направлено цитаты
-Fieldtype cannot be changed from {0} to {1} in row {2},"Необходимо указать запрос, чтобы запустить"
-File,гаечный ключ
-File Data,Четверг
-File Name,шаг назад
-File Size,Комментарий По FULLNAME
-File URL,Показаны только (если не пусто)
-File not attached,назад
-File size exceeded the maximum allowed size of {0} MB,Забыли пароль?
-Fill Screen,Регистрация Перед
-Filter,"{0}: Не удается установить Назначить Представьте, если не Submittable"
-Filter records based on User Permissions defined for a user,Документация
-Find {0} in {1},"{0} {1} не может быть листовой узел, как это имеет детей"
-First Name,Правила для расчета количества груза для продажи
-Float,Является дочерней таблице
-Float Precision,"Вложенные набор ошибок. Пожалуйста, обратитесь к администратору."
-Font (Heading),Не добавить
-Font (Text),Представленный
-Font Size (Text),Ссылка
-Fonts,Исходящие Настройки электронной почты
-Footer,Центр
-Footer Background,"Помимо System Manager, роли с правом ""установить права пользователя"" может задавать разрешения для других пользователей данного типа документа."
-Footer Items,Патч Вход
-Footer Text,Объем-до
-For DocType,Содержимое Hash
+Document Status transition from {0} to {1} is not allowed,Статус документа переход от {0} до {1} не допускается
+Document Type,Тип документа
+Document is only editable by users of role,Документ может редактироваться только пользователями роли
+Documentation,Документация
+Documents,Документация
+Download,Скачать
+Download Backup,Скачать Резервное копирование
+Download link for your backup will be emailed on the following email address:,Ссылка на загрузку для резервного копирования будет выслан на электронный адрес:
+Drafts,Черновики
+Drag to sort columns,Перетащите для сортировки столбцов
+Due Date,Дата исполнения
+Duplicate name {0} {1},Дубликат имя {0} {1}
+Dynamic Link,Dynamic Link
+ERPNext Demo,ERPNext Демо
+Edit,Редактировать
+Edit Permissions,Изменить Разрешения
+Editable,Редактируемое
+Email,E-mail
+Email Alert,E-mail оповещения
+Email Alert Recipient,E-mail оповещения Получатель
+Email Alert Recipients,Подписаться на уведомления Получатели
+Email By Document Field,E-mail По Field документов
+Email Footer,E-mail Footer
+Email Host,E-mail Хост
+Email Id,E-mail Id
+Email Login,вход в почту
+Email Password,E-mail Пароль
+Email Sent,E-mail Отправленные
+Email Settings,Настройки Электронной Почты
+Email Signature,Подпись в E-mail
+Email Use SSL,E-mail Использовать SSL
+Email address,Адрес электронной почты
+"Email addresses, separted by commas","Адреса электронной почты, отдел ют запятыми"
+Email not verified with {1},Электронная почта не проверяется с {1}
+Email sent to {0},E-mail отправлено на адрес {0}
+Email...,E-mail ...
+Emails are muted,Письма приглушены
+Embed image slideshows in website pages.,Код для вставки слайд-шоу изображений в веб-страницах.
+Enable,Автоматическое обновление
+Enable Comments,Включить Комментарии
+Enable Scheduled Jobs,Включить запланированных заданий
+Enabled,Включено
+Ends on,Заканчивается на
+Enter Form Type,Введите Form Тип
+Enter Value,Введите значение
+Enter at least one permission row,Введите по крайней мере один разрешений строку
+"Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set ""match"" permission rules. To see list of fields, go to <a href=""#Form/Customize Form/Customize Form"">Customize Form</a>.","Введите значение по умолчанию поля (Keys) и значения. При добавлении нескольких значений для поля, первый будет выбран. Эти значения по умолчанию также используется для установки ""Матч"" разрешающих правил. Чтобы увидеть список полей, перейдите в <a href=""#Form/Customize Form/Customize Form""> Настроить форму </>."
+"Enter keys to enable login via Facebook, Google, GitHub.","Введите ключи для того, чтобы вход с помощью Facebook, Google, GitHub."
+Equals,Равно
+Error,Ошибка
+"Error generating PDF, attachment sent as HTML","Генерирующая Ошибка PDF, Вложение, отправленное как HTML"
+Error: Document has been modified after you have opened it,"Ошибка: документ был изменен после того, как вы открыли его"
+Event,Событие
+Event Datetime,Событие Datetime
+Event Individuals,Условия для проведения мероприятий Лица
+Event Role,Роль событие
+Event Roles,Условия для проведения мероприятий Роли
+Event Type,Тип события
+Event User,Событие Пользователь
+Event end must be after start,Конец событие должно быть после старта
+Events,События
+Events In Today's Calendar,События в сегодняшнем календаре
+Every Day,Каждый день
+Every Month,Каждый месяц
+Every Week,Еженедельно
+Every Year,Каждый год
+Everyone,Все
+Example:,Пример:
+Expand,Увеличить
+Export,Экспорт
+Export not allowed. You need {0} role to export.,Экспорт не допускается. Вам нужно {0} роль для экспорта.
+Exported,Экспортируемый
+"Expression, Optional","Выражение, необязательно"
+Facebook,Фэйсбук
+Facebook Client ID,Facebook ID клиента
+Facebook Client Secret,Facebook Клиент Secret
+Facebook Share,Facebook Поделиться
+Facebook User ID,Facebook ID пользователя
+Facebook Username,Facebook Имя пользователя
+FavIcon,FavIcon
+Female,Жен
+Field Description,Поле Описание
+Field Name,Имя поля
+Field Type,Тип поля
+"Field that represents the Workflow State of the transaction (if field is not present, a new hidden Custom Field will be created)","Поле, которое представляет Workflow государство сделки (если это поле отсутствует, новый скрытый настраиваемого поля будет создан)"
+Field {0} in row {1} cannot be hidden and mandatory without default,Поле {0} в строке {1} не может быть скрыт и обязательно без умолчанию
+Field {0} is not selectable.,Поле {0} не выбирается.
+Field {0} of type {1} cannot be mandatory,Поле {0} типа {1} не может быть обязательным
+Fieldname,Fieldname
+Fieldname is required in row {0},Fieldname требуется в строке {0}
+Fieldname not set for Custom Field,Fieldname не установлен настраиваемого поля
+Fieldname which will be the DocType for this link field.,Fieldname который будет DocType для этого поля связи.
+Fieldname {0} appears multiple times in rows {1},Fieldname {0} несколько раз появляется в строках {1}
+"Fieldname {0} cannot contain letters, numbers or spaces","Fieldname {0} не может содержать буквы, цифры и пробелы"
+Fields,Поля
+"Fields separated by comma (,) will be included in the<br /><b>Search By</b> list of Search dialog box","Поля отделяются запятой (,) будут включены в <br /> <b> Поиск По </ B> список диалоговом окне Поиск"
+Fieldtype cannot be changed from {0} to {1} in row {2},FieldType не может быть изменен от {0} до {1} в строке {2}
+File,Файла
+File Data,Файл данных
+File Name,Имя файла
+File Size,Размер файла:
+File URL,URL файла
+File not attached,Файл не прилагается
+File size exceeded the maximum allowed size of {0} MB,Размер файла превысил максимально допустимый размер {0} МБ
+Fill Screen,Заполнить экран
+Filter,Фильтр
+Filter records based on User Permissions defined for a user,"Фильтрация записей на основе прав доступа пользователей, определенных для пользователя"
+Filters,Фильтры
+Find {0} in {1},Найти {0} в {1}
+First Name,Имя
+Float,Сплавы
+Float Precision,Float Precision
+Font (Heading),Шрифт (Заголовок)
+Font (Text),Шрифт (Текст)
+Font Size,Размер шрифта
+Font Size (Text),Размер шрифта (Текст)
+Fonts,Шрифты
+Footer,Подвал
+Footer Background,Footer фона
+Footer Items,Footer товары
+Footer Text,Сноска
+For DocType,Для DocType
 "For Links, enter the DocType as range
-For Select, enter list of Options separated by comma",Стиль Настройки
-"For comparative filters, start with","Пожалуйста, не изменяйте строки выше {0}"
-For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,Слева
-For ranges,"Например, если вы отмените и изменить 'INV004' станет новый документ ""INV004-1 '. Это поможет вам отслеживать каждой поправки."
-For top bar,Имя не установлено через строки
-For {0} at level {1} in {2} in row {3},Предпочтение Язык для пользовательского интерфейса (только если имеется).
-Forgot Password,Загрузить файл
-Forgot Password?,Войти ошибки на автоматизированных событий (планировщик).
-Form,шеврона оставили
-Forum,Не можете ответить на ответ
-Forums,Открыть {0}
-Forward To Email Address,удалить
-Frappe Framework,"По умолчанию: ""Обратная связь"""
-Friday,"Автоматическое извлечение ведет от почтового ящика, например,"
-From Date must be before To Date,Против Билл {0} от {1}
-Full Name,Рабочие Подробнее
-Gantt Chart,Контакты
-Gender,Отдел продаж Подробнее
-Generator,пауза
-Georgia,Пользователь может быть разрешено с несколькими записями той же DocType.
-Get,Страница Роль
+For Select, enter list of Options separated by comma","Для Ссылки, введите DocType как диапазон 
+ Для Select, введите список опций через запятую"
+"For comparative filters, start with","Для сравнения фильтров, начните с"
+For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,"Например, если вы отмените и изменить 'INV004' станет новый документ ""INV004-1 '. Это поможет вам отслеживать каждой поправки."
+For ranges,Для диапазонов
+For top bar,Для верхней панели
+For {0} at level {1} in {2} in row {3},Для {0} на уровне {1} в {2} в строке {3}
+Forgot Password,Забыли пароль
+Forgot Password?,Забыли пароль?
+Form,Форма
+Forum,Форум
+Forums,Форум
+Forward To Email Address,Вперед на электронный адрес
+Frappe Framework,Фраппе Framework
+Friday,Пятница
+From Date must be before To Date,"С даты должны быть, прежде чем к дате"
+Full Name,Полное имя
+Gantt Chart,Диаграмма Ганта
+Gender,Пол
+Generator,Генератор
+Georgia,Грузия
+Get,Добыть
 Get From ,
-"Get your globally recognized avatar from <a href=""https://gravatar.com/"">Gravatar.com</a>",Загрузка...
-GitHub,Обновлено
-GitHub Client ID,Опции Requried для Link или типа Таблица поля {0} в строке {1}
-GitHub Client Secret,Приоритет
-Github User ID,Значение
-Github Username,быстрой перемотки вперед
-Google,Адрес электронной почты
-Google Analytics ID,Логин ID
-Google Client ID,"Пожалуйста, войдите, чтобы Upvote!"
-Google Client Secret,print
-Google Plus One,Добавить Google Analytics ID: например. UA-89XXX57-1. Пожалуйста поиск помощь по Google Analytics для получения дополнительной информации.
-Google User ID,Выполнять по индивидуальному заказу
-Google Web Font (Heading),Валюта
-Google Web Font (Text),Поиск в тип документа
-Greater or equals,Муж
-Greater than,С группы
-"Group Added, refreshing...",{0} не допускаются в имени поля {1}
-Group Description,Тип ссылки
-Group Name,Слияние возможно только между Группа-в-группе или Leaf узел-листовой узел
-Group Title,Название модуля
-Group Type,Уровни разрешений
-Groups,"Пожалуйста, введите утверждении роли или утверждении Пользователь"
-HTML for header section. Optional,Org История Заголовок
-Have an account? Login,{0} не может быть установлена ​​для отдельных видов
-Header,Семейное положение
-Heading,"Все возможно Workflow Штаты и роли рабочего процесса. <br> Docstatus Опции: 0 ""Сохраненные"", 1 ""Представленные"" и 2 ""Отменено"""
-Heading Text As,Github Имя пользователя
-Help,Описание и статус
-Help on Search,Войти
-Helvetica Neue,Пятница
-Hidden,Разрешения автоматически переведен на стандартные отчеты и альбом.
-Hide Actions,Применение
-Hide Copy,Вы можете использовать подстановочные%
-Hide Heading,"Поле, которое представляет Workflow государство сделки (если это поле отсутствует, новый скрытый настраиваемого поля будет создан)"
-Hide Toolbar,Выбрать Все
-Hide the sidebar,Непрочитанные сообщени
-High,Комплект поставки
-Highlight,Действие
-History,В ответ на
-Home Page,"Язык, даты и времени установки"
-Home Page is Products,Описание
-ID (name) of the entity whose property is to be set,Настольный
-Icon,"Никто,"
-Icon will appear on the button,Старый родительский
-"If a Role does not have access at Level 0, then higher levels are meaningless.",Тэг
-"If checked, all other workflows become inactive.","Правила, определяющие переход государства в рабочий процесс."
-"If checked, the Home page will be the default Item Group for the website.",Не равно
-"If image is selected, color will be ignored (attach first)",Роли пользователей
-If non standard port (e.g. 587),Сделать новый рекорд
-"If these instructions where not helpful, please add in your suggestions on GitHub Issues.",быстро назад
-"If you set this, this Item will come in a drop-down under the selected parent.",задачи
-Ignore User Permissions,Новый пароль по электронной почте
-"Ignoring Item {0}, because a group exists with the same name!",Сведения о себе
-Image,Существует не хватает отпуск баланс для отпуске Тип {0}
-Image Link,Все приложения
-Import,Пользователь не может Искать
-Import / Export Data,Тэги
-Import / Export Data from .csv files.,Использовать TLS
-In,Ответственный
-In Dialog,Выход
-In Filter,"Система предоставляет множество заранее определенных ролей. Вы можете добавить новые роли, чтобы установить более тонкие разрешения."
-In List View,Выберите Роль
-In Report Filter,{App_title}
-In response to,Клиент
-Incorrect value in row {0}: {1} must be {2} {3},Топ Бар Пункт
-Incorrect value: {1} must be {2} {3},Права пользователя не должны применяться для данного канала
-Index,Выбрать
-Individuals,Фильтр
-Info,"Кроме того, вы также можете указать 'auto_email_id' в site_config.json"
-Insert After,Сброс разрешений для {0}?
-"Insert After field '{0}' mentioned in Custom Field '{1}', does not exist",Время
-Insert Below,None: Конец Workflow
-Insert Code,Невозможно обновить: неправильный пароль
-Insert Row,"Отметить / Отменить роли, назначенные пользователю. Нажмите на роли, чтобы узнать, с какими эта роль."
-Insert Style,Логика включения
-Install Applications.,Название Группы
-Installed,наушники
-Installer,Не шаблон не найдено на пути: {0}
-Int,Постоянно Отменить {0}?
-Integrations,Опции не установлен поля связи {0}
-Introduce your company to the website visitor.,и
-Introduction,Подробности по трудоустройству
-Introductory information for the Contact Us Page,Грузия
-Invalid Email: {0},Добавить CSS
-Invalid Filter: {0},Ширина печати
-Invalid Home Page,Сервер исходящей почты
-Invalid Outgoing Mail Server or Port,"Для Ссылки, введите DocType как диапазон \ Nfor Выберите, введите список опций через запятую"
-Invalid login or password,Lucida Grande
-Invalid recipient address,Копировать
-Inverse,Тип документа
-Is Active,Все Связаться
-Is Child Table,Помощь в Поиске
-Is Default,Регистр
-Is Event,Писатели Введение
-Is Mandatory Field,Название поля должно быть допустимым имя_поля
-Is Single,Поиск либо введите команду
-Is Standard,Небольшой текст
-Is Submittable,{0} сохраняется
-Is Task,Загрузить и импорт
-Item cannot be added to its own descendents,"Все настройки будут удалены. Пожалуйста, подтвердите."
-JavaScript Format: frappe.query_reports['REPORTNAME'] = {},Обновление...
-Javascript,ни один из
-Javascript to append to the head section of the page.,Редактируемое
-Key,Javascript для добавления к головной части страницы.
-Label,Склад {0} не может быть удален как существует количество для Пункт {1}
-Label Help,DOCNAME
-Label and Type,Сообщение отдельно (статья).
-Label is mandatory,Добавить вложения
-Landing Page,Опасность
-Language,Счет для склада (непрерывной инвентаризации) будут созданы под этой учетной записью.
-Language preference for user interface (only if available).,Невозможно удалить разрешение на DocType: {0} и имя: {1}
-"Language, Date and Time settings",Google Клиент Secret
-Last IP,лист
-Last Login,"Пожалуйста, сформулируйте дату и время события"
-Last Name,Всего комиссия
-Last updated by,DocType Подробнее
-Lastmod,Выберите Вложения
-Lato,Ответить
-Leave blank to repeat always,мусор
-Left,Настройки HR
-Less or equals,"Вы не можете отправлять письма, связанные с этим документом"
-Less than,Number Формат
-Letter Head,Получить Правила и условия
-Letter Head Name,Дата исполнения
-Letter Head in HTML,Печать
-Level,Материал Запрос товара
-"Level 0 is for document level permissions, higher levels for field level permissions.",Не допускается
-Like,звезда
-Link,{0}: Не удается установить Импорт без Создать
-"Link that is the website home page. Standard Links (index, login, products, blog, about, contact)",Внимание-знак
-Link to other pages in the side bar and next section,Начать Публично
-Link to the page you want to open,Имя поля
-Linked In Share,Выберите на скачивание:
-Linked With,Свой CSS
-List,Специального сценария
-List a document type,"Значение Представьте, Отменить, Изменить"
-List of Web Site Forum's Posts.,Google ID пользователя
-Loading,Заседание Срок в часах например 6:00
-Loading Report,Шрифты
-Loading...,Пользователи с этой ролью могут создавать / изменять записи бухгалтерского учета перед замороженной даты
-Localization,Понедельник
-Location,Нет Разрешения пользователей не найдено.
-Log of error on automated events (scheduler).,Средние булки
-Login,Отсутствует валютный курс для {0}
-Login After,{0} не допускаются в имени
-Login Before,палец вверх
-Login Id,Начиная с
-Login not allowed at this time,Пароль Обновлено
-Logout,Заполнить экран
-Long Text,Баннер набор из изображения
-Low,Музыка
-Lucida Grande,Настройки
-Mail Password,Чат
-Main Section,Ссылка на
-Make a new,Разрешения пользователей
-Make a new record,Никаких действий
-Male,Пункт Налоговая ставка
-Manage cloud backups on Dropbox,Другое
-Manage uploaded files.,Тип скрипта
-Mandatory,Выделить
-Mandatory fields required in {0},"Это должны быть проверены, если Стиль Настройки применимы"
-Mandatory filters required:\n,
-Master,Связанные с
-Max Attachments,Не найдено
-Max width for type Currency is 100px in row {0},Разрыв столбца
-"Meaning of Submit, Cancel, Amend",Только разрешенные {0} строк в одном импорта
-Medium,Год закрыт
-"Menu items in the Top Bar. For setting the color of the Top Bar, go to <a href=""#Form/Style Settings"">Style Settings</a>",События
-Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node,Воскресенье
-Message,Дни с последнего Заказать
-Messages,Баланс Кол-во
-Method,user_image_show
-Middle Name (Optional),Роль событие
-Misc,Приложения
-Miscellaneous,Введите значение
-Missing Values Required,Круг со стрелкой вверх
-Modified by,FieldType не может быть изменен от {0} до {1} в строке {2}
-Module,История компании
-Module Def,"Различные ""Государства"" этот документ может существовать дюйма Как ""Открыть"", ""В ожидании утверждения"" и т.д."
-Module Name,Дата создания настраиваемого поля {0} в {1}
-Module Not Found,Страница текста
-Modules Setup,"Набор Логин и пароль, если требуется аутентификация."
-Monday,Комиссия ставка (%)
-More,Отправить запросы на этот адрес
-More content for the bottom of the page.,Скрыто
-Move Down: {0},Этикетка Помощь
-Move Up: {0},Быстрая помощь для доступа пользователей
-Multiple root nodes not allowed.,Номер заявки Вид
-Must have report permission to access this report.,{0}: Не удается установить Отмена без Отправить
-Must specify a Query to run,"Разрешения быть применена на пользователей на основе того, что Роли они назначены."
-My Settings,E-mail
-Name,Примечание: Существует не хватает отпуск баланс для отпуске Тип {0}
-Name Case,"Запуск запланированных заданий, только если проверяются"
-Name and Description,За год
-Name is required,{0} не может быть приобретен с помощью Корзина
-Name not permitted,изменить размер вертикального
-Name not set via Prompt,GitHub ID клиента
-Name of the Document Type (DocType) you want this field to be linked to. e.g. Customer,Роли HTML
-Naming,Форум
-Naming Series mandatory,Категории
-Nested set error. Please contact the Administrator.,Не разрешается менять {0} после подачи
-New,Ассигнованная сумма
-New Password,Название блога
-New Record,Лато
-New comment on {0} {1},Топ Бар товары
-New password emailed,"Параметры контакта, как ""Sales Query, поддержки Query"" и т.д. каждого с новой строки или через запятую."
-New value to be set,Ссылка на изображение
-New {0},сердце
-Next Communcation On,"Введите значение по умолчанию поля (Keys) и значения. При добавлении нескольких значений для поля, первый будет выбран. Эти значения по умолчанию также используется для установки ""Матч"" разрешающих правил. Чтобы увидеть список полей, перейдите в <a href=""#Form/Customize Form/Customize Form""> Настроить форму </>."
-Next Record,Параметры запроса
-Next State,Родитель Сообщение
-Next actions,Назначено FULLNAME
-No,Отправить на e-mail
-No Action,Синхронизация Входящие
+"Get your globally recognized avatar from <a href=""https://gravatar.com/"">Gravatar.com</a>","Получите ваш всемирно признанный аватар из <a href=""https://gravatar.com/""> Gravatar.com </>"
+GitHub,GitHub
+GitHub Client ID,GitHub ID клиента
+GitHub Client Secret,GitHub Клиент Secret
+Github User ID,Github ID пользователя
+Github Username,Github Имя пользователя
+Google,Гугл
+Google Analytics ID,Google Analytics ID
+Google Client ID,Google ID клиента
+Google Client Secret,Google Клиент Secret
+Google Plus One,Google Плюс один
+Google User ID,Google ID пользователя
+Google Web Font (Heading),Google Web Font (Заголовок)
+Google Web Font (Text),Google Веб шрифта (Текст)
+Greater or equals,Больше или равно
+Greater than,Больше
+"Group Added, refreshing...","Группа Добавлено, освежающий ..."
+Group Description,Группа Описание
+Group Name,Имя Группы
+Group Title,Группа Название
+Group Type,Тип группы
+Groups,Группы
+HTML for header section. Optional,HTML для раздела заголовка. Необязательно
+Have an account? Login,Уже зарегистрированы? Войти
+Header,Шапка
+Heading,Заголовок
+Heading Text As,Заголовок текста Как
+Help,Помощь
+Help on Search,Помощь в Поиске
+Helvetica Neue,Helvetica Neue
+Hidden,Скрыто
+Hide Actions,Скрыть действия
+Hide Copy,Скрыть Копировать
+Hide Heading,Свернуть Заголовок
+Hide Toolbar,Скрыть панель инструментов
+Hide the sidebar,Скрыть боковую панель
+High,Высокая
+Highlight,Выделить
+History,История
+Home Page,Домашняя Страница
+Home Page is Products,Главная Страница является Продукты
+ID (name) of the entity whose property is to be set,"ID (имя) лица, имущество которого должно быть установлено"
+Icon,Значок
+Icon will appear on the button,Иконка появится на кнопку
+"If a Role does not have access at Level 0, then higher levels are meaningless.","Если Роль не имеет доступа на уровне 0, то более высокие уровни не имеют смысла."
+"If checked, all other workflows become inactive.","Если флажок установлен, все остальные рабочие процессы становятся неактивными."
+"If checked, the Home page will be the default Item Group for the website.","Если флажок установлен, Главная страница будет Пункт Группа по умолчанию для веб-сайта."
+"If image is selected, color will be ignored (attach first)","При выборе изображения, цветовой будут игнорироваться (приложить первый)"
+If non standard port (e.g. 587),"Если, не стандартный порт (например, 587)"
+"If these instructions where not helpful, please add in your suggestions on GitHub Issues.","Если эти инструкции, где не помогает, пожалуйста, добавьте в ваши предложения по вопросам GitHub."
+"If you set this, this Item will come in a drop-down under the selected parent.","Если вы установите это, этот предмет придет в раскрывающемся списке под выбранной родителя."
+Ignore User Permissions,Игнорировать разрешений пользователя
+"Ignoring Item {0}, because a group exists with the same name!","Игнорирование Пункт {0}, потому что группа существует с тем же именем!"
+Image,Изображение
+Image Link,Ссылка Изображения
+Import,Импорт
+Import / Export Data,Импорт / Экспорт данных
+Import / Export Data from .csv files.,Импорт / Экспорт данных из. CSV-файлов.
+In,В
+In Dialog,В диалоге
+In Filter,В фильтр
+In List View,В виде списка
+In Report Filter,В Сообщить Фильтр
+In points. Default is 9.,В точках. По умолчанию 9.
+In response to,В ответ на
+Incorrect value in row {0}: {1} must be {2} {3},Неверное значение в строке {0}: {1} должно быть {2} {3}
+Incorrect value: {0} must be {1} {2},Неверное значение: {0} должно быть {1} {2}
+Index,индекс
+Individuals,Индивидуальные занятия
+Info,Информация
+Insert After,Вставьте После
+"Insert After field '{0}' mentioned in Custom Field '{1}', does not exist","Вставьте После области '{0}' упоминается в настраиваемого поля '{1}', не существует"
+Insert Below,Вставить ниже
+Insert Code,Вставить код
+Insert Row,Insert Row
+Insert Style,Вставьте стиль
+Install Applications.,Установка приложений.
+Installed,Установлен
+Installer,Монтажник
+Int,Интервал
+Integrations,Интеграции
+Introduce your company to the website visitor.,Представьте вашу компанию на посетителя сайта.
+Introduction,Введение
+Introductory information for the Contact Us Page,Вводная информация для Контакты Page
+Invalid Email: {0},Неверный e-mail: {0}
+Invalid Filter: {0},Неверный Фильтр: {0}
+Invalid Home Page,Неверный Главная страница
+Invalid Login,Неверный Войти
+Invalid Outgoing Mail Server or Port,Неверный Сервер исходящей почты или порт
+Invalid login or password,Неверный Войти или пароль
+Invalid recipient address,Неверный адрес получателя
+Inverse,Обратный
+Is Active,Активен
+Is Child Table,Является дочерней таблице
+Is Default,Является умолчанию
+Is Event,Является событие
+Is Mandatory Field,Является обязательным поле
+Is Single,Одинокий
+Is Standard,Является Стандартный
+Is Submittable,Является Submittable
+Is Task,Является Целевая
+Item cannot be added to its own descendents,Продукт не может быть добавлен в своих собственных потомков
+JavaScript Format: frappe.query_reports['REPORTNAME'] = {},JavaScript Формат: frappe.query_reports ['REPORTNAME'] = {}
+Javascript,Javascript
+Javascript to append to the head section of the page.,Javascript для добавления к головной части страницы.
+Key,Ключ
+Label,Имя поля
+Label Help,Этикетка Помощь
+Label and Type,Этикетка и Тип
+Label is mandatory,Этикетка является обязательным
+Landing Page,Страница входа
+Language,Язык
+Language preference for user interface (only if available).,Предпочтение Язык для пользовательского интерфейса (только если имеется).
+"Language, Date and Time settings","Язык, даты и времени установки"
+Last IP,Последний IP
+Last Login,Последний Войти
+Last Name,Фамилия
+Last updated by,Последняя актуализация
+Lastmod,LastMod
+Lato,Лато
+Leave blank to repeat always,"Оставьте пустым, чтобы повторить всегда"
+Left,Слева
+Less or equals,Менее или равно
+Less than,Меньше чем
+Letter,Письмо
+Letter Head,Бланк
+Letter Head Name,Имя Бланк
+Letter Head in HTML,Письмо Голова в HTML
+Level,Уровень
+"Level 0 is for document level permissions, higher levels for field level permissions.","Уровень 0 для разрешения на уровне документа, более высокие уровни для разрешения на уровне поля."
+Like,Мне нравится
+Link,Ссылка
+"Link that is the website home page. Standard Links (index, login, products, blog, about, contact)","Ссылка, что находитесь на сайте домашняя страница. Стандартные ссылки (индекс, Логин, продукты, блог, о, контакт)"
+Link to other pages in the side bar and next section,Ссылка на другие страницы в баре стороны и следующем разделе
+Link to the page you want to open,"Ссылка на страницу, которую требуется открыть"
+Linked In Share,Linked In Share
+Linked With,Связанные с
+List,Список
+List a document type,Перечислите тип документа
+List of Web Site Forum's Posts.,Список сообщений веб-форуме сайта.
+Loading,Идёт загрузка
+Loading Report,Загрузка Сообщить
+Loading...,Загрузка...
+Localization,Локализация
+Location,Местоположение
+Log of error on automated events (scheduler).,Войти ошибки на автоматизированных событий (планировщик).
+Login,Войти
+Login After,Введите логин и пароль После
+Login Before,Регистрация Перед
+Login Id,Логин ID
+Login not allowed at this time,Войти не допускается в это время
+Logout,Выход
+Long Text,Длинный текст
+Low,Низкая
+Lucida Grande,Lucida Grande
+Mail Password,Почта Пароль
+Main Section,Основной раздел
+Make a new,Создайте новый
+Make a new record,Сделать новый рекорд
+Male,Муж
+Manage cloud backups on Dropbox,Управление облачных резервные копии на Dropbox
+Manage uploaded files.,Управление загруженные файлы.
+Mandatory,Обязательный
+Mandatory fields required in {0},"Обязательные поля, необходимые в {0}"
+Mandatory filters required:\n,Обязательные фильтры необходимы: \n
+Master,Мастер
+Max Attachments,Максимальное Вложения
+Max width for type Currency is 100px in row {0},Максимальная ширина для типа валюта 100px в строке {0}
+"Meaning of Submit, Cancel, Amend","Значение Представьте, Отменить, Изменить"
+Medium,Средние булки
+"Menu items in the Top Bar. For setting the color of the Top Bar, go to <a href=""#Form/Style Settings"">Style Settings</a>","Элементы меню на верхней панели. Для установки цвета верхней панели, перейдите в <a href=""#Form/Style настройки стиля Settings""> </ A>"
+Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node,Слияние возможно только между Группа-в-группе или Leaf узел-листовой узел
+Message,Сообщение
+Message Examples,Примеры сообщений
+Messages,Сообщения
+Method,Метод
+Middle Name (Optional),Отчество (необязательно)
+Misc,Разное
+Miscellaneous,Разное
+Missing Values Required,Отсутствующие значения Обязательные
+Modern,"модные,"
+Modified by,Изменено
+Module,Модуль
+Module Def,Модуль Def
+Module Name,Название модуля
+Module Not Found,Модуль не найден
+Modules Setup,Модули установки
+Monday,Понедельник
+More,Далее
+More content for the bottom of the page.,Более контент для нижней части страницы.
+Move Down: {0},Вниз: {0}
+Move Up: {0},Вверх: {0}
+Multiple root nodes not allowed.,Несколько корневые узлы не допускается.
+Must have report permission to access this report.,Должен иметь разрешение отчета для доступа к этой отчета.
+Must specify a Query to run,"Необходимо указать запрос, чтобы запустить"
+My Settings,Мои настройки
+Name,Имя
+Name Case,"Название, наименование, обозначение дела"
+Name and Description,Название и описание
+Name is required,Имя обязательно
+Name not permitted,Имя не допускается
+Name not set via Prompt,Имя не установлено через строки
+Name of the Document Type (DocType) you want this field to be linked to. e.g. Customer,"Название типа документа (DOCTYPE) вы хотите это поле, чтобы быть связаны с. например клиентов"
+Name of {0} cannot be {1},Название {0} не может быть {1}
+Naming,Название
+Naming Series mandatory,Именование серии обязательное
+Nested set error. Please contact the Administrator.,"Вложенные набор ошибок. Пожалуйста, обратитесь к администратору."
+New,Новый
+New Password,Новый пароль
+New Record,Новая запись
+New comment on {0} {1},Новый комментарий к {0} {1}
+New password emailed,Новый пароль по электронной почте
+New value to be set,Новое значение будет установлено
+New {0},Новый {0}
+Next Communcation On,Следующая Communcation На
+Next Record,Следующая запись
+Next State,Следующая государственный
+Next actions,Дальнейшие действия
+No,Нет
+No Action,Никаких действий
 No Communication tagged with this ,
-No Copy,"Уровень 0 для разрешения на уровне документа, более высокие уровни для разрешения на уровне поля."
-No Permissions set for this criteria.,E-mail Использовать SSL
-No Report Loaded. Please use query-report/[Report Name] to run a report.,DocList JSON
-No Results,Опубликовано на веб-сайте по адресу: {0}
-No Sidebar,Начните Отчет для
-No User Permissions found.,используйте расширение%
-No data found,Размер файла превысил максимально допустимый размер {0} МБ
-No document selected,Серии значений
-No file attached,Последняя актуализация
-No further records,{Не 0}: Нет базовый набор разрешений
-No one,Формат печати Тип
-No permission to '{0}' {1},Выберите тип
-No permission to edit,Компания Введение
-No permission to write / remove.,Нет Копировать
-No records tagged.,"ID (имя) лица, имущество которого должно быть установлено"
-No template found at path: {0},Установлен
-None,Sidebar товары
-None: End of Workflow,"Тип пользователя ""Система Пользователь"" может получить доступ к рабочему столу. ""Сайт пользователя"" могут быть зарегистрированы только в веб-сайта и страниц портала."
-Not Found,сигнал
-Not Linked to any record.,Показать строки с нулевыми значениями
-Not Permitted,Импорт
-Not Submitted,"Группа Добавлено, освежающий ..."
-Not a user yet? Sign up,знак плюс
-Not a valid Comma Separated Value (CSV File),Ссылка DocType
-Not allowed,один из
-Not allowed from this IP Address,E-mail Footer
-Not allowed to Import,Workflow государственный
-Not allowed to access {0} with {1} = {2},Не в режиме разработчика! Расположенный в site_config.json
-Not allowed to change {0} after submission,стекло
-Not allowed to move,Этикетка является обязательным
-Not allowed to reset the password of {0},Для {0} на уровне {1} в {2} в строке {3}
-Not enough permission to see links.,музыка
-Not equals,Модуль Def
-Not found,Слайд-шоу товары
-Not in Developer Mode! Set in site_config.json,Пользователь не может создавать
-Not permitted,Для производства
-"Note: For best results, images must be of the same size and width must be greater than height.",Регулятор
-Note: Other permission rules may also apply,Введите по крайней мере один разрешений строку
-Note: maximum attachment size = 1mb,Название Приставка
-Nothing to show,Пользовательские отчеты
-Nothing to show for this selection,Сайт группы
-Notification Count,Штаты
-Notify by Email,Стандартный Формат печати не может быть обновлен
-Number Format,"Примечание: Оплата Вступление не будет создана, так как ""Наличные или Банковский счет"" не был указан"
-Old Parent,Пункт {0} должен быть изготовлен или субподрядчиков
-On,Значок
-"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).",Float Precision
-Only Administrator allowed to create Query / Script Reports,не выбрано ни одного документа
-Only Administrator can save a standard report. Please rename and save.,Версия
-Only Allow Edit For,"Еще {0} с именем {1} существует, выберите другое имя"
-Only allowed {0} rows in one import,"Пожалуйста, приложите файл или установить URL"
-Open,Впервые Ответил на
-Open Count,"Написать файл Python в той же папке, где это сохраняется и столбца и результат возвращения."
-Open Sans,Поле {0} типа {1} не может быть обязательным
-Open Source Web Applications for the Web,Черновики
-Open a module or tool,Дочерние таблицы отображаются в виде сетки в других DOCTYPEs.
-Open {0},Не нашли {0} {0} ({1})
-Options,Охрана
-Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType',Пользователь {0} не существует
-Options Help,Настройка> Разрешения пользователей менеджер
-Options for select. Each option on a new line. e.g.: <br>Option 1<br>Option 2<br>Option 3<br>,Сообщить о проблеме
-Options must be a valid DocType for field {0} in row {1},Добавить столбец
-Options not set for link field {0},Имя тега
-Options requried for Link or Table type field {0} in row {1},Ссылка DOCNAME
-Org History,портфель
-Org History Heading,Активен
-Original Message,Система
-Other,Имя
-Outgoing Email Settings,"Адрес и другое юридическое информация, которую вы можете положить в нижней."
-Outgoing Mail Server,Введено Правила
-Outgoing Mail Server not specified,Upvotes
-Owner,Ожидаемая дата начала
-POP3 Mail Server (e.g. pop.gmail.com),Родитель Этикетка
-Page,"Добавьте код, как <script>"
-Page Background,Скидки
-Page HTML,Код
-Page Header,Сессия просрочена. Вход вас
-Page Header Background,перечириканье
-Page Header Text,Поиск
-Page Links,По умолчанию система часовой пояс
-Page Name,Сообщение блога
-Page Role,{0}: Не удается установить Назначить Изменить если не Submittable
-Page Text,Читать
-Page Title,Название и описание
-Page content,"{0} {1} не может быть ""{2}"". Это должно быть одним из ""{3}"""
-Page not found,полноэкранный
-Page or Generator,Участники
-Page url name (auto-generated),мм-дд-гггг
-Page with name {0} already exists,Адрес
-Parent Label,Неверное значение: {1} должно быть {2} {3}
-Parent Post,По умолчанию пользователя
-Parent Website Page,"От значение должно быть меньше, чем значение в строке {0}"
-Parent Website Route,В ожидании Сумма
-Parent Website Sitemap,Подпись в E-mail
-Participants,Текст-высота
-Password,Цели
-Password Updated,Установлен только один раз
-Password reset instructions have been sent to your email,Неверный Главная страница
-Patch,"Пожалуйста, сформулируйте 'Авто электронный идентификатор ""в Setup> Параметры исходящей электронной почты"
-Patch Log,В-третьих Аутентификация партия
-Percent,"000 черный, FFF белый"
-Perm Level,Открыть
-Permanently Cancel {0}?,гггг-мм-дд
-Permanently Submit {0}?,Заголовок текста Как
-Permanently delete {0}?,Название
-Permission Level,Только Разрешить редактирования для
-Permission Levels,Fieldname требуется в строке {0}
-Permission Rules,Шапка
-Permission already set,Адрес Название
-Permissions,Недвижимость
-Permissions Settings,"Если флажок установлен, все остальные рабочие процессы становятся неактивными."
-Permissions are automatically translated to Standard Reports and Searches.,Содержимое
-"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions.",Новый {0}
-Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles.,Борьбе с коррупцией: США издание
-"Permissions at level 0 are 'Document Level' permissions, i.e. they are primary for access to the document.",Для диапазонов
-Permissions get applied on Users based on what Roles they are assigned.,Авто электронный идентификатор
-Permitted Documents For User,Дата и номер Формат
-Person,минус
-Personal Info,Рабочие процессы
-Phone,"Пожалуйста, введите Аббревиатура или короткое имя правильно, как он будет добавлен в качестве суффикса для всех учетных записей глав."
-Phone No.,Все
-Pick Columns,Твердые цвет фона (по умолчанию светло-серый)
-Picture URL,"<i> тип документа ... </ I>, например <b> клиентов </ B>"
-Pincode,Общие настройки
-Please attach a file first.,Страница
-Please attach a file or set a URL,"Нажмите на строке, чтобы просмотреть / редактировать."
-Please do not change the rows above {0},Свернуть Заголовок
-Please enable pop-ups,Страна
-Please enter Event's Date and Time!,"Проверьте это, если вы хотите отправить электронную почту, как указанным номером только (в случае ограничения по вашим провайдером электронной почты)."
-Please enter some text!,Записи
-Please enter title!,значок
-Please login to Upvote!,Справа
-Please make sure that there are no empty columns in the file.,Классифицировать посты блога.
-Please refresh to get the latest document.,Номер телефона
-Please reply above this line or remove it if you are replying below it,Слайд-шоу Имя
-Please select a file or url,Войти не допускается в это время
-Please select atleast 1 column from {0} to sort,шаг вперед
-Please set {0} first,Привязаны к имени
-Please specify,Выставление счетов
-Please specify 'Auto Email Id' in Setup > Outgoing Email Settings,"""Dynamic Link 'Тип варианты поле должен указывать на другой Link Field с вариантами, как« DocType """
-Please specify Event date and time,Добавить в To Do List Of
-Please specify doctype,Домен
-Please specify user,"Не является допустимым значения, разделенные запятыми (CSV-файл)"
-Please upload using the same template as download.,"Разрешения на более высоких уровнях это разрешения ""ровное поле '. Все поля имеют ""уровень разрешений"" набор против них и правилами, определенными в том, что разрешения применяются к полю. Это полезно в случае, если вы хотите, чтобы скрыть или сделать определенные поле только для чтения для определенных ролей."
-Plugin,Роли
-Port,В
-Post,Дата
-Post Publicly,Иконка появится на кнопку
-Post Topic,Настройки Электронной Почты
-Post already exists. Cannot add again!,"Добро пожаловать Письмо, отправленное"
-Post does not exist. Please add post!,найдено
-Post to user,стоп
-Posts,"Вы уверены, что хотите удалить вложение?"
-Previous Record,цель
-Primary,"При выборе изображения, цветовой будут игнорироваться (приложить первый)"
-Print,стрелка налево
-Print Format,Не можете редактировать стандартные поля
-Print Format Type,"""В Список"" не допускается для типа {0} в строке {1}"
-Print Format {0} does not exist,Гугл
-Print Format {0} is disabled,Размер шрифта (Текст)
-Print Hide,Не связаны с какой-либо записи.
-Print Width,Шаг 2: Установите бланков содержание.
-Print...,Мои настройки
-Printing and Branding,Всего заявленной суммы
-Priority,Планируется отправить {0} получателей
-Private,"Чтобы дать широкий доступ к роли только определенных записей, проверить ""Применить разрешений пользователя. Разрешения пользователей используются для ограничения пользователей с такой роли конкретных записей."
-Properties,"Добавить баннер на сайт. (Маленькие баннеры, как правило, хорошо)"
-Property,Жалоба
-Property Setter,"Выберите или перетащите через временные интервалы, чтобы создать новое событие."
-Property Type,Невозможно изменить {0}
-Public,Судебные издержки
-Published,{0} не существует в строке {1}
-Published On,{0} {1} уже существует
-Published on website at: {0},Код товара требуется на Row Нет {0}
-Pull Emails from the Inbox and attach them as Communication records (for known contacts).,Документация
-Query,Вставить ниже
-Query Options,Неверный адрес получателя
-Query Report,"Ежедневно событие Дайджест направляется на Календарь событий, где установлены напоминания."
-Query must be a SELECT,Вчера
-Quick Help for Setting Permissions,Авто генерируется
-Quick Help for User Permissions,Авторское право
-Re-open,Откройте модуль или инструмент
-Read,"Выплаты, производимые"
-Read Only,Краткая справка
-Received,отступ правом
-Recipient,Footer фона
-Recipients,"Пожалуйста, введите МВЗ родительский"
-Record does not exist,Статический Отметка времени файла
-Ref DocType,GitHub Клиент Secret
-Ref Name,Отключено
-Ref Type,{0} в строке {1} не может иметь как URL и дочерние элементы
-Reference,Согласовать
-Reference DocName,Инструкции Восстановление пароля были отправлены на электронную почту
-Reference DocType,Запрос должен быть ВЫБОР
-Reference Name,"{0} {1} статус ""Остановлен"""
-Reference Type,"DocType, на котором этот рабочий процесс применим."
-Refresh,Покупка Заказ позиции Поставляется
-Refreshing...,Разрешить пользователю войти только после этого часа (0-24)
-Registered but disabled.,Более контент для нижней части страницы.
-Registration Details Emailed.,Веб-приложения с открытым исходным кодом для Web
-Reload Page,Нельзя отменить перед отправкой. См. Переход {0}
-Remove Bookmark,Имя приложения
-Remove all customizations?,ID пользователя писателя в блоге.
-Rename many items by uploading a .csv file.,Сайт Маршрут
-Rename...,"Почты POP3-сервер (например, pop.gmail.com)"
-Repeat On,Именование серии обязательное
-Repeat Till,Показать Теги
-Repeat this Event,Введено Уровень
-Replies,Зависит от
-Report,Сайт скрипта
-Report Builder,Порядок сортировки
-Report Builder reports are managed directly by the report builder. Nothing to do.,Планировщик Вход
-Report Hide,<i> например <strong> (55 + 434) / 4 </ STRONG> или <strong> = Math.sin (Мф.PI / 2) </ STRONG> ... </ I>
-Report Name,"Выбор модулей в данном периоде (на основе разрешения). Если скрытые, они будут скрыты для всех пользователей."
-Report Type,BOM {0} для Пункт {1} в строке {2} неактивен или не представили
-Report an Issue,Сброс пароля ключ
-Report cannot be set for Single types,Документ может редактироваться только пользователями роли
-Report was not saved (there were errors),Перетащите для сортировки столбцов
-Reqd,Папка-близко
-Reset Password Key,Добавление полей в формах.
-Reset Permissions for {0}?,Установите пароль
-Response,Данные
-Restrict IP,Свернуть
-Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111),Уже зарегистрированы? Войти
-Right,Выберите пользователя или DocType начать.
-Role,Ширина
-Role Name,Персона
-Role Permissions Manager,Разрешить Импорт через Data Import Tool
-Role and Level,Пользовательские Javascript
-Role exists,В виде списка
-Roles,Создать новую {0}
-Roles Assigned,<b> новый </ B> <i> тип документа </ I>
-Roles Assigned To User,Уважаемые
-Roles HTML,Ссылка на загрузку для резервного копирования будет выслан на электронный адрес:
-Roles can be set for users from their User page.,Корневая {0} не может быть удален
-Root {0} cannot be deleted,"Пожалуйста, установите {0} первый"
-Row,Навсегда удалить {0}?
-Row #{0}:,Разрешения
-Rules defining transition of state in the workflow.,"Пожалуйста, сформулируйте тип документа"
-"Rules for how states are transitions, like next state and which role is allowed to change state etc.",Варианты выбора. Каждый вариант с новой строки. например: инструменты Вариант 1 инструменты Вариант 2 инструменты Вариант 3 инструменты
-Run scheduled jobs only if checked,Twitter Поделиться
-Run the report first,Google Analytics ID
-SMTP Server (e.g. smtp.gmail.com),Описание для заголовка страницы.
-Sales,В Слов (Компания валюте)
-Same file has already been attached to the record,"Штаты для рабочего процесса (например, проекты, одобрен, Отменено)."
-Sample,Формат печати {0} не существует
-Saturday,Предупреждение: Оставьте приложение содержит следующие даты блок
-Save,Сообщение Тема
-Scheduler Log,Введение
-Script,Fieldname не установлен настраиваемого поля
-Script Report,Роли назначены пользователю
-Script Type,Тип события
-Search,Фон Стиль
-Search Fields,Фоновое изображение
-Search in a document type,вход в почту
-Search or type a command,фильтр
-Section Break,Тема
-Security,Fieldname
-Security Settings,{0} должен быть установлен первым
-Select,Дополнительные разрешения
-Select All,Делать
-Select Attachments,Стили
-Select Document Type,Нет доступа для '{0}' {1}
-Select Document Type or Role to start.,изменить размер-маленький
-Select Print Format,Интеграции
-Select Report Name,Не разрешается импортировать
-Select Role,Добавить новое разрешение Правило
-Select To Download:,Имя файла
-Select Type,FavIcon
-Select User or DocType to start.,Родитель Сайт Страница
-Select a Banner Image first.,{0} Список
-Select an image of approx width 150px with a transparent background for best results.,Продукт не может быть добавлен в своих собственных потомков
+No Copy,Нет Копировать
+No Permissions set for this criteria.,Разрешения не установлен для этого критериев.
+No Report Loaded. Please use query-report/[Report Name] to run a report.,"Отчет не загружено. Пожалуйста, используйте запрос-отчет / [Имя Отчет], чтобы запустить отчет."
+No Results,Нет результатов
+No Sidebar,Нет Боковая панель
+No User Permissions found.,Нет Разрешения пользователей не найдено.
+No data found,Данные не найдены
+No file attached,Нет файла прилагается
+No further records,Никаких дополнительных записей
+No one,"Никто,"
+No permission to '{0}' {1},Нет доступа для '{0}' {1}
+No permission to edit,Нет доступа для редактирования
+No permission to write / remove.,Нет доступа для записи / Удалить.
+No records tagged.,Записи отсутствуют помечены.
+No template found at path: {0},Не шаблон не найдено на пути: {0}
+No {0} permission,Нет {0} разрешение
+None,Неизвестно
+None: End of Workflow,None: Конец Workflow
+Not Found,Не найдено
+Not Linked to any record.,Не связаны с какой-либо записи.
+Not Permitted,Не Допустимая
+Not Submitted,Не Представленные
+Not a user yet? Sign up,Еще не регистрировались? Зарегистрироваться
+Not a valid Comma Separated Value (CSV File),"Не является допустимым значения, разделенные запятыми (CSV-файл)"
+Not allowed,Не разрешено
+Not allowed from this IP Address,Не допускается из этого IP-адреса
+Not allowed to Import,Не разрешается импортировать
+Not allowed to access {0} with {1} = {2},Не разрешается доступ {0} с {1} = {2}
+Not allowed to change {0} after submission,Не разрешается менять {0} после подачи
+Not allowed to move,Не разрешается двигаться
+Not allowed to reset the password of {0},Не разрешается сбросить пароль {0}
+Not enough permission to see links.,"Не хватает разрешения, чтобы увидеть ссылки."
+Not equals,Не равно
+Not found,не найдены
+Not in Developer Mode! Set in site_config.json,Не в режиме разработчика! Расположенный в site_config.json
+Not permitted,Не допускается
+"Note: For best results, images must be of the same size and width must be greater than height.","Примечание: Для достижения наилучших результатов, изображения должны быть того же размера и ширина должна быть больше, чем высота."
+Note: Other permission rules may also apply,Примечание: Другие правила разрешений может также применяться
+Note: maximum attachment size = 1mb,Примечание: Максимальный размер приложения = 1 Мб
+Nothing to show,"Ничего, чтобы показать"
+Nothing to show for this selection,"Ничего, чтобы показать для этого выбора"
+Notification Count,Граф Уведомление
+Notify by Email,Сообщите по электронной почте
+Number Format,Number Формат
+Old Parent,Старый родительский
+On,Вкл
+"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).","После установки этого, пользователи смогут только доступ к документам (напр. Сообщение в блоге), где связь существует (например, Blogger)."
+Only Administrator allowed to create Query / Script Reports,Только администратор позволил создать Query / Script отчетов
+Only Administrator can save a standard report. Please rename and save.,"Только администратор может сохранить стандартный отчет. Пожалуйста, переименуйте и сохранить."
+Only Allow Edit For,Только Разрешить редактирования для
+Only allowed {0} rows in one import,Только разрешенные {0} строк в одном импорта
+Oops! Something went wrong,Упс! Что-то пошло не так.
+Open,Открыть
+Open Count,Открыть Граф
+Open Sans,Открыть Sans
+Open Source Web Applications for the Web,Веб-приложения с открытым исходным кодом для Web
+Open a module or tool,Откройте модуль или инструмент
+Open {0},Открыть {0}
+Optional: Alert will only be sent if value is a valid email id.,Дополнительно: оповещения будет отправлен только если значение допустимым ID E-mail.
+Optional: Always send to these ids. Each email id on a new row,Дополнительно: Всегда отправить этих идентификаторов. Каждый электронный идентификатор на новую строку
+Optional: The alert will be sent if this expression is true,"Дополнительно: предупреждение будет отправлено, если это выражение истинно"
+Options,Опции
+Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType',"""Dynamic Link 'Тип варианты поле должен указывать на другой Link Field с вариантами, как« DocType """
+Options Help,Опции Помощь
+Options for select. Each option on a new line. e.g.: <br>Option 1<br>Option 2<br>Option 3<br>,Варианты выбора. Каждый вариант с новой строки. например: инструменты Вариант 1 инструменты Вариант 2 инструменты Вариант 3 инструменты
+Options must be a valid DocType for field {0} in row {1},Опции должно быть допустимым DocType для поля {0} в строке {1}
+Options not set for link field {0},Опции не установлен поля связи {0}
+Options requried for Link or Table type field {0} in row {1},Опции Requried для Link или типа Таблица поля {0} в строке {1}
+Org History,Org История
+Org History Heading,Org История Заголовок
+Original Message,Исходное сообщение
+Other,Другое
+Outgoing Email Settings,Исходящие Настройки электронной почты
+Outgoing Mail Server,Сервер исходящей почты
+Outgoing Mail Server not specified,Сервер исходящей почты не указано
+Owner,Владелец
+PDF Page Size,PDF Размер страницы
+PDF Settings,Настройки PDF
+POP3 Mail Server (e.g. pop.gmail.com),"Почты POP3-сервер (например, pop.gmail.com)"
+Page,Страница
+Page #{0} of {1},Страница # {0} {1}
+Page Background,Фон страницы
+Page HTML,Страница HTML
+Page Header,Борьбе с коррупцией: США издание
+Page Header Background,Заголовок страницы Фон
+Page Header Text,Заголовок страницы текста
+Page Links,Страница Ссылки
+Page Name,Имя страницы
+Page Role,Страница Роль
+Page Text,Страница текста
+Page Title,Название страницы
+Page content,Содержание страницы
+Page not found,Страница не найдена
+Page or Generator,Или генератор
+Page url name (auto-generated),Название URL страницы (автоматически сгенерированный)
+Parent Label,Родитель Этикетка
+Parent Post,Родитель Сообщение
+Parent Website Page,Родитель Сайт Страница
+Parent Website Route,Родитель Сайт Маршрут
+Parent Website Sitemap,Родитель Сайт Карта сайта
+Participants,Участники
+Password,Пароль
+Password Updated,Пароль Обновлено
+Password reset instructions have been sent to your email,Инструкции Восстановление пароля были отправлены на электронную почту
+Patch,Исправление(Патч)
+Patch Log,Патч Вход
+Percent,Процент
+Perm Level,Пермь Уровень
+Permanently Cancel {0}?,Постоянно Отменить {0}?
+Permanently Submit {0}?,Постоянно Представьте {0}?
+Permanently delete {0}?,Навсегда удалить {0}?
+Permission Level,Введено Уровень
+Permission Levels,Уровни разрешений
+Permission Rules,Введено Правила
+Permission already set,Введено уже установлен
+Permissions,Разрешения
+Permissions Settings,Разрешения Настройки
+Permissions are automatically translated to Standard Reports and Searches.,Разрешения автоматически переведен на стандартные отчеты и альбом.
+"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions.","Разрешения устанавливаются на ролей и типов документов (так называемые DOCTYPEs), установив права, как читать, писать, создавать, удалять, Представьте, Отменить, Изменить, Доклад, экспорт, импорт, печать, электронная почта и устанавливать разрешения пользователя."
+Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles.,"Разрешения на более высоких уровнях это разрешения ""ровное поле '. Все поля имеют ""уровень разрешений"" набор против них и правилами, определенными в том, что разрешения применяются к полю. Это полезно в случае, если вы хотите, чтобы скрыть или сделать определенные поле только для чтения для определенных ролей."
+"Permissions at level 0 are 'Document Level' permissions, i.e. they are primary for access to the document.","Разрешения на уровне 0 это разрешения ""уровне документа"", то есть они являются первичными для доступа к документу."
+Permissions get applied on Users based on what Roles they are assigned.,"Разрешения быть применена на пользователей на основе того, что Роли они назначены."
+Permitted Documents For User,Разрешенные Документы для пользователя
+Person,Персона
+Personal Info,Сведения о себе
+Phone,Телефон
+Phone No.,Номер телефона
+Pick Columns,Выберите столбцы
+Picture URL,Ссылка на изображение
+Pincode,Pincode
+Please attach a file first.,"Пожалуйста, приложите файл первый."
+Please attach a file or set a URL,"Пожалуйста, приложите файл или установить URL"
+Please do not change the rows above {0},"Пожалуйста, не изменяйте строки выше {0}"
+Please enable pop-ups,"Пожалуйста, включите всплывающие окна"
+Please enter Event's Date and Time!,"Пожалуйста, введите мероприятия Дата и время!"
+"Please enter both your email and message so that we \
+				can get back to you. Thanks!","Пожалуйста, введите как свою электронную почту и сообщение, чтобы мы \
+ может вернуться к вам. Спасибо!"
+Please enter some text!,"Пожалуйста, введите текст!"
+Please enter title!,"Пожалуйста, введите название!"
+Please login to Upvote!,"Пожалуйста, войдите, чтобы Upvote!"
+Please make sure that there are no empty columns in the file.,"Пожалуйста, убедитесь, что нет никаких пустые столбцы в файле."
+Please refresh to get the latest document.,"Обновите, чтобы получить последнюю документ."
+Please reply above this line or remove it if you are replying below it,"Пожалуйста, ответьте выше этой линии, либо удалить ее, если вы отвечаете под ним"
+Please select a file or url,"Пожалуйста, выберите файл или URL"
+Please select atleast 1 column from {0} to sort,"Пожалуйста, выберите по крайней мере столбец 1 от {0} для сортировки"
+Please set {0} first,"Пожалуйста, установите {0} первый"
+Please specify,"Пожалуйста, сформулируйте"
+Please specify 'Auto Email Id' in Setup > Outgoing Email Settings,"Пожалуйста, сформулируйте 'Авто электронный идентификатор ""в Setup> Параметры исходящей электронной почты"
+Please specify Event date and time,"Пожалуйста, сформулируйте дату и время события"
+Please specify doctype,"Пожалуйста, сформулируйте тип документа"
+Please specify user,"Пожалуйста, сформулируйте пользователя"
+Please specify which date field must be checked,"Просьба уточнить, какие поля даты должны быть проверены"
+Please specify which value field must be checked,"Просьба уточнить, какие значения поля должны быть проверены"
+Please upload using the same template as download.,"Пожалуйста, загрузите, используя тот же шаблон, как скачать."
+Plugin,Плагин
+Port,Порт
+Post,Опубликовать
+Post Publicly,Начать Публично
+Post Topic,Сообщение Тема
+Post already exists. Cannot add again!,Сообщение уже существует. Не можете добавить снова!
+Post does not exist. Please add post!,"Сообщение не существует. Пожалуйста, добавьте пост!"
+Post to user,Начать с пользователем
+Posts,Записи
+Previous Record,Предыдущая запись
+Primary,Основной
+Print,Печать
+Print Format,Формат печати
+Print Format Help,Формат печати Помощь
+Print Format Type,Формат печати Тип
+Print Format {0} does not exist,Формат печати {0} не существует
+Print Format {0} is disabled,Формат печати {0} отключена
+Print Hide,Распечатать Свернуть
+Print Settings,Настройки печати
+Print Style,Распечатать Стиль
+Print Style Preview,Распечатать Стиль Предварительный
+Print Width,Ширина печати
+"Print with Letterhead, unless unchecked in a particular Document","Распечатать на фирменном бланке, если не остановить в определенном документе"
+Print...,Печать ...
+Printing and Branding,Печать и брендинг
+Priority,Приоритет
+Private,Личные
+Properties,Недвижимость
+Property,Свойство
+Property Setter,Сеттер недвижимости
+Property Type,Тип недвижимости
+Public,Публичный
+Published,Опубликовано
+Published On,Опубликовано на
+Published on website at: {0},Опубликовано на веб-сайте по адресу: {0}
+Pull Emails from the Inbox and attach them as Communication records (for known contacts).,Потяните Письма из папки Входящие и прикрепить их в виде записей связи (для известных контактов).
+Query,Запрос
+Query Options,Параметры запроса
+Query Report,Запрос Сообщить
+Query must be a SELECT,Запрос должен быть ВЫБОР
+Quick Help for Setting Permissions,Быстрая помощь для Установка разрешений
+Quick Help for User Permissions,Быстрая помощь для доступа пользователей
+Re-open,Снова откройте
+Read,Читать
+Read Only,Только чтения
+Received,Получено
+Recipient,Сторона-реципиент
+Recipients,Получатели
+Record does not exist,Запись не существует
+Ref DocType,Ссылка DocType
+Ref Name,Лот Имя
+Ref Type,Номер заявки Вид
+Reference,Ссылка на
+Reference DocName,Ссылка DOCNAME
+Reference DocType,Ссылка DocType
+Reference Name,Ссылка Имя
+Reference Type,Тип ссылки
+Refresh,Обновить
+Refreshing...,Обновление...
+Registered but disabled.,"Регистрации, но отключен."
+Registration Details Emailed.,Регистрационные детали посылаемые.
+Reload Page,Перезагрузка страницу
+Remove Bookmark,Удалить закладку
+Remove all customizations?,Удалите все настройки?
+Rename many items by uploading a .csv file.,"Переименовать много пунктов, загрузив. Файл CSV."
+Rename...,Переименовать...
+Repeat On,Повторите На
+Repeat Till,Повторите До
+Repeat this Event,Повторите этот событие
+Replies,Ответы
+Report,Отчет
+Report Builder,Построитель отчетов
+Report Builder reports are managed directly by the report builder. Nothing to do.,Отчеты построителя отчетов управляются непосредственно конструктор отчетов. Действий не требуется.
+Report Hide,Сообщить Свернуть
+Report Name,Название отчета
+Report Type,Тип отчета
+Report an Issue,Сообщить о проблеме
+Report cannot be set for Single types,Сообщить не могут быть установлены для отдельных видов
+Report this issue,Пожаловаться на вопрос
+Report was not saved (there were errors),Сообщить не был сохранен (были ошибки)
+Reqd,Логика включения
+Reset Password Key,Сброс пароля ключ
+Reset Permissions for {0}?,Сброс разрешений для {0}?
+Response,ответ
+Restrict IP,Ограничить документ IP
+Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111),"Ограничить потребителя от этого IP-адреса только. Несколько IP-адреса могут быть добавлены путем разделения запятыми. Принимает также частичное IP адреса, как (111.111.111)"
+Right,Справа
+Role,Роль
+Role Name,Имя Роли
+Role Permissions Manager,Роль Разрешения менеджер
+Role and Level,Роль и уровень
+Role exists,Роль существует
+Roles,Роли
+Roles Assigned,Роли Assigned
+Roles Assigned To User,Роли назначены пользователю
+Roles HTML,Роли HTML
+Roles can be set for users from their User page.,Роли могут быть установлены для пользователей из их странице пользователя.
+Root {0} cannot be deleted,Корневая {0} не может быть удален
+Row,Строка
+Row #{0}:,Ряд # {0}:
+Rules defining transition of state in the workflow.,"Правила, определяющие переход государства в рабочий процесс."
+"Rules for how states are transitions, like next state and which role is allowed to change state etc.","Правила, как государства переходы, как соседнего государства и какую роль может изменять состояние и т.д."
+Run scheduled jobs only if checked,"Запуск запланированных заданий, только если проверяются"
+Run the report first,Запустим отчет первым
+SMTP Server (e.g. smtp.gmail.com),Сервер SMTP (например smtp.gmail.com)
+Sales,Скидки
+Same file has already been attached to the record,То же файл уже прилагаются к протоколу
+Sample,Образец
+Saturday,Суббота
+Save,Сохранить
+Scheduler Log,Планировщик Вход
+Script,Сценарий
+Script Report,Сообщить скрипта
+Script Type,Тип скрипта
+Search,Поиск
+Search Fields,Поиск Поля
+Search in a document type,Поиск в тип документа
+Search or type a command,Поиск либо введите команду
+Section Break,Разделитель Секций
+Security,Охрана
+Security Settings,Безопасность
+Select,Выбрать
+Select All,Выбрать Все
+Select Attachments,Выберите Вложения
+Select Document Type,Выбор типа документа
+Select Document Type or Role to start.,"Выбор типа документа или роль, чтобы начать."
+Select Print Format,Выберите Формат печати
+Select Report Name,Выберите Имя отчета
+Select Role,Выберите Роль
+Select To Download:,Выберите на скачивание:
+Select Type,Выберите тип
+Select User or DocType to start.,Выберите пользователя или DocType начать.
+Select a Banner Image first.,Выберите изображение баннера в первую очередь.
+Select an image of approx width 150px with a transparent background for best results.,Выберите изображение шириной около 150px с прозрачным фоном для достижения наилучших результатов.
 Select dates to create a new ,
-"Select modules to be shown (based on permission). If hidden, they will be hidden for all users.",Комментарий DOCTYPE
-Select or drag across time slots to create a new event.,"Значок файла с расширением ICO.. Должно быть 16 х 16 пикс. Создано с помощью генератора значок. [<a Href=""http://favicon-generator.org/"" target=""_blank""> Favicon-generator.org </>]"
-"Select target = ""_blank"" to open in a new page.",Конец событие должно быть после старта
-Select the label after which you want to insert new field.,Google Плюс один
-Send,Расходов счета является обязательным для пункта {0}
-Send As Email,Добавить итоговая строка
-Send Email,Расписание
-Send Me A Copy,Сайт Маршрут Введено
-Send Password,Вам не разрешено экспортировать данные: {0}. Скачивая пустой шаблон.
-Send an email reminder in the morning,Невозможно изменить картину
-Send download link of a recent backup to System Managers,Жен
-Send enquiries to this email address,Перечислите тип документа
-Sender,Дата Возможность
-Sent,ToDo
-Sent Mail,редактировать
-Sent Quotation,Адрес (2-я строка)
-Sent or Received,Сайт Слайд-шоу
-Series,Чтение 2
-Series {0} already used in {1},Прописью
-Server,Загрузить
-Server Error: Please check your server logs or contact tech support.,Нет Боковая панель
-Session Expired. Logging you out,выровнять левый
-Session Expiry,<i> текст </ I> <b> в </ B> <i> типа документа </ I>
-Session Expiry in Hours e.g. 06:00,Порт
-Session Expiry must be in format {0},Значение по умолчанию
-Set Banner from Image,Роли Assigned
-Set Link,Отправлено или получено
-Set Login and Password if authentication is required.,Любой существующий разрешение будут удалены / перезаписаны.
-Set Only Once,DocPerm
-Set Password,Суб-домен предоставляется erpnext.com
-Set Permissions on Document Types and Roles,выровнять правый
-Set Permissions per User,Опубликовано на
-Set User Permissions,Процент
-Set Value,"Пожалуйста, ответьте выше этой линии, либо удалить ее, если вы отвечаете под ним"
-Set numbering series for transactions.,полк
-Set outgoing mail server.,Поле Описание
-Settings,Материал Запрос Склад
-Settings for About Us Page.,"Получите ваш всемирно признанный аватар из <a href=""https://gravatar.com/""> Gravatar.com </>"
-Settings for Contact Us Page.,E-mail ...
-Setup,Все поставщиком Связаться
-Setup > User,Комментарий
-Setup > User Permissions Manager,"целевых = ""_blank"""
-Setup of fonts and background.,Facebook ID пользователя
-"Setup of top navigation bar, footer and logo.",Список
-Short Bio,Баннер HTML
-Short Name,{0} обновляется
-Shortcut,Google ID клиента
-Show / Hide Modules,Максимальное Вложения
-Show Print First,Цвет фона
-Show Tags,"Некоторые документы, как счета-фактуры, должны быть установлены только финал. Конечное состояние для таких документов называется Представленные. Вы можете ограничить, какие роли могут Представьте."
-Show or hide modules globally.,пленка
-Show rows with zero values,Объем вниз
-Show tags,Добавить новое правило
-Show this field as title,Представленные Документ не может быть преобразован обратно в проект. Переход строка {0}
-Showing only for (if not empty),"Только администратор может сохранить стандартный отчет. Пожалуйста, переименуйте и сохранить."
-Sidebar,"Если эти инструкции, где не помогает, пожалуйста, добавьте в ваши предложения по вопросам GitHub."
-Sidebar Items,DocType не могут быть объединены
-Sidebar Links for Home Page only,играть круга
-Sign Up,Отчеты построителя отчетов управляются непосредственно конструктор отчетов. Действий не требуется.
-Sign in,Выберите изображение шириной около 150px с прозрачным фоном для достижения наилучших результатов.
-Sign up,Личные
-Single Post (article).,Показать Теги
-Single Types have only one record no tables associated. Values are stored in tabSingles,От
-Sitemap Browser,Альтернативная ссылка для скачивания
-Slideshow,Текущий адрес
-Slideshow Items,Новый комментарий к {0} {1}
-Slideshow Name,"Настроить Label, распечатать спрятать, Default т.д."
-Small Text,Не разрешается двигаться
-Social Login Keys,Войти
-Solid background color (default light gray),Каждый год
-Sorry we were unable to find what you were looking for.,Потяните Письма из папки Входящие и прикрепить их в виде записей связи (для известных контактов).
-Sorry you are not permitted to view this page.,random
-Sort By,в порядке-знак
-Sort Field,шеврона до
-Sort Order,Язык
-Standard,Сотрудник {0} уже подало заявку на {1} между {2} и {3}
-Standard Print Format cannot be updated,Google Веб шрифта (Текст)
-Standard Reply,Боковая панель
-Standard Reports,{0} является обязательным для п. {1}
-Standard replies to common queries.,по ролям
-Start Report For,Импорт / Экспорт данных из. CSV-файлов.
-Starts on,Таблица {0} не может быть пустым
-State,Тип отчета
-States,Новая запись
-"States for workflow (e.g. Draft, Approved, Cancelled).",Невозможно нагрузки: {0}
-Static File Timestamp,Шрифт (font)
-Status,Сумма скидки
-Step 1: Set the name and save.,Перезагрузка страницу
-Step 2: Set Letterhead content.,"Стиль представляет цвет кнопки: Успех - Зеленый, Danger - красный, Обратная - черный, Первичная - темно-синий, информация - светло-голубой, Предупреждение - Оранжевый"
-Style,Поле {0} не выбирается.
-Style Settings,Пользователи с ролью {0}:
-"Style represents the button color: Success - Green, Danger - Red, Inverse - Black, Primary - Dark Blue, Info - Light Blue, Warning - Orange",Вы не можете установить это приложение
-Sub-domain provided by erpnext.com,Список сообщений веб-форуме сайта.
-Subdomain,Родитель Сайт Карта сайта
-Subject,"Пожалуйста, введите умолчанию единицу измерения"
-Submit,Представьте вашу компанию на посетителя сайта.
-Submit an Issue,Text Align
-Submitted,Посещаемость не могут быть отмечены для будущих дат
-Submitted Document cannot be converted back to draft. Transition row {0},не установлен
-Submitted Record cannot be deleted,URL файла
-Success,Очистить кэш
-Suggestion,Шрифт (Текст)
-Sunday,Финансовый / отчетного года.
-Switch to Website,Имя поля
-Sync Inbox,Формат даты
-System,Распределение бюджета
-System Settings,Открыть
-System User,календаря
-System and Website Users,Кнопка
-System generated mails will be sent from this email id.,Дата должна быть в формате: {0}
-Table,Pincode
-Table {0} cannot be empty,Только администратор позволил создать Query / Script отчетов
-Tag,магнит
-Tag Name,DocField
-Tags,GitHub
-Tahoma,Марка HTML
-Target,Содержание страницы
-Tasks,Под гарантии
-Team Members,Электронная почта не проверяется с {1}
-Team Members Heading,Тогда в силу (опционально)
-Template,Открытие на работу.
-Template Pages cannot be moved,Домашняя Страница
-Test,Валюты Настройки
-Test Runner,Не удалось подключиться к сервера исходящей почты
-Text,Пользователь Введено
-Text Align,Отсутствующие значения Обязательные
-Text Editor,Вниз: {0}
-The name of your company / website as you want to appear on browser title bar. All pages will have this as the prefix to the title.,Включить Комментарии
-The system provides many pre-defined roles. You can add new roles to set finer permissions.,Применение установки
-Then By (optional),Введите логин и пароль После
-There should remain at least one System Manager,Исходное сообщение
-There were errors,"Жаль, что вы не имеете права просматривать эту страницу."
-There were errors while sending email. Please try again.,По возрастанию
-"These permissions will apply for all transactions where the permitted record is linked. For example, if Company C is added to User Permissions of user X, user X will only be able to see transactions that has company C as a linked value.",Статус документа переход от {0} до {1} не допускается
-These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,Присоединить
-"These will also be set as default values for those links, if only one such permission record is defined.",То же файл уже прилагаются к протоколу
-Third Party Authentication,Переходные правила
+"Select modules to be shown (based on permission). If hidden, they will be hidden for all users.","Выбор модулей в данном периоде (на основе разрешения). Если скрытые, они будут скрыты для всех пользователей."
+Select or drag across time slots to create a new event.,"Выберите или перетащите через временные интервалы, чтобы создать новое событие."
+"Select target = ""_blank"" to open in a new page.","Выберите целевых = ""_blank"", чтобы открыть на новой странице."
+Select the label after which you want to insert new field.,"Выберите метку, после чего Вы хотите вставить новое поле."
+Send,Отправить
+Send Alert On,Отправить оповещение о
+Send As Email,Отправить по электронной почте
+Send Email,Отправить на e-mail
+Send Email Print Attachments as PDF (Recommended),Отправить E-mail Распечатать Вложения как PDF (рекомендуется)
+Send Me A Copy,Отправить мне копию
+Send Password,Отправить пароль
+Send Print as PDF,Отправить Печать в формате PDF
+Send alert if date matches this field's value,"Отправить уведомление, если дата соответствует значению этого поля"
+Send alert if this field's value changes,"Отправить уведомление, если изменяется значение этого поля"
+Send an email reminder in the morning,Отправить по электронной почте напоминание утром
+Send download link of a recent backup to System Managers,"Отправить ссылку на скачивание из последней резервной копии, чтобы системных администраторов"
+Send enquiries to this email address,Отправить запросы на этот адрес
+Sender,Отправитель
+Sent,Отправлено
+Sent Mail,Отправленные
+Sent Quotation,Направлено цитаты
+Sent or Received,Отправлено или получено
+Series,Серии значений
+Series {0} already used in {1},Серия {0} уже используется в {1}
+Server,Сервер
+Server & Credentials,Сервер и Полномочия
+Server Error: Please check your server logs or contact tech support.,"Ошибка сервера: Пожалуйста, проверьте логи сервера или в службу технической поддержки."
+Session Expired. Logging you out,Сессия просрочена. Вход вас
+Session Expiry,Заседание Срок
+Session Expiry in Hours e.g. 06:00,Заседание Срок в часах например 6:00
+Session Expiry must be in format {0},Заседание Срок должен быть в формате {0}
+Set Banner from Image,Баннер набор из изображения
+Set Link,Установите Ссылка
+Set Login and Password if authentication is required.,"Набор Логин и пароль, если требуется аутентификация."
+Set Only Once,Установлен только один раз
+Set Password,Установите пароль
+Set Permissions on Document Types and Roles,Установить разрешения на типов документов и роли
+Set Permissions per User,Установка разрешений на пользователя
+Set User Permissions,Задание разрешений пользователя
+Set Value,Заданное значение
+"Set default format, page size, print style etc.","Установить формат по умолчанию, размер страницы, стиль печати и т.д."
+Set numbering series for transactions.,Установите нумерации серии для сделок.
+Set outgoing mail server.,Установить сервер исходящей почты.
+Settings,Настройки
+Settings for About Us Page.,Настройки для О нас страницы.
+Settings for Contact Us Page.,Настройки для Контакты Page.
+Setup,Настройка
+Setup > User,Настройка> Пользователь
+Setup > User Permissions Manager,Настройка> Разрешения пользователей менеджер
+Setup Email Alert based on various criteria.,Настройка E-mail оповещения на основе различных критериев.
+Setup of fonts and background.,Настройка шрифтов и фона.
+"Setup of top navigation bar, footer and logo.",Настройка верхней панели навигации сноске и логотип.
+Short Bio,Краткая справка
+Short Name,Краткое Имя
+Shortcut,Комбинация клавиш
+Show / Hide Modules,Показать / скрыть модули
+Show Print First,Показать печатаются в первую очередь
+Show Tags,Показать Теги
+Show or hide modules globally.,Показать или скрыть модули во всем мире.
+Show rows with zero values,Показать строки с нулевыми значениями
+Show tags,Показать Теги
+Show this field as title,Показать это поле как название
+Showing only for (if not empty),Показаны только (если не пусто)
+Sidebar,Боковая панель
+Sidebar Items,Sidebar товары
+Sidebar Links for Home Page only,Sidebar Ссылки для домашней странице только
+Sign Up,Зарегистрироваться
+Sign in,Войти
+Sign up,Зарегистрироваться
+Single Post (article).,Сообщение отдельно (статья).
+Single Types have only one record no tables associated. Values are stored in tabSingles,"Холост Типы нет только одна запись не таблицы, связанные. Значения сохраняются в tabSingles"
+Sitemap Browser,Карта сайта Обозреватель
+Slideshow,Слайд-шоу
+Slideshow Items,Слайд-шоу товары
+Slideshow Name,Слайд-шоу Имя
+Small Text,Небольшой текст
+Social Login Keys,Социальная Вход Ключи
+Solid background color (default light gray),Твердые цвет фона (по умолчанию светло-серый)
+Sorry we were unable to find what you were looking for.,"К сожалению, мы не смогли найти то, что вы искали."
+Sorry you are not permitted to view this page.,"Жаль, что вы не имеете права просматривать эту страницу."
+Sort By,Сортировка
+Sort Field,Сортировать поле
+Sort Order,Порядок сортировки
+Standard,Стандартный
+Standard Print Format cannot be updated,Стандартный Формат печати не может быть обновлен
+Standard Reply,Стандартный ответ
+Standard Reports,Стандартные отчеты
+Standard replies to common queries.,Стандартный отвечает на распространенные вопросы.
+Start Report For,Начните Отчет для
+Starts on,Запускает на
+State,Состояние
+States,Штаты
+"States for workflow (e.g. Draft, Approved, Cancelled).","Штаты для рабочего процесса (например, проекты, одобрен, Отменено)."
+Static File Timestamp,Статический Отметка времени файла
+Status,Статус
+Step 1: Set the name and save.,Шаг 1: Установить имя и сохранить.
+Step 2: Set Letterhead content.,Шаг 2: Установите бланков содержание.
+Style,Стили
+Style Settings,Стиль Настройки
+"Style represents the button color: Success - Green, Danger - Red, Inverse - Black, Primary - Dark Blue, Info - Light Blue, Warning - Orange","Стиль представляет цвет кнопки: Успех - Зеленый, Danger - красный, Обратная - черный, Первичная - темно-синий, информация - светло-голубой, Предупреждение - Оранжевый"
+Sub-domain provided by erpnext.com,Суб-домен предоставляется erpnext.com
+Subdomain,Домен
+Subject,Тема
+Submit,Отправить
+Submit an Issue,Представьте о проблеме
+Submitted,Представленный
+Submitted Document cannot be converted back to draft. Transition row {0},Представленные Документ не может быть преобразован обратно в проект. Переход строка {0}
+Success,Успех
+Suggestion,Предложение
+Sunday,Воскресенье
+Switch to Website,Перейти на сайт
+Sync Inbox,Синхронизация Входящие
+System,Система
+System Settings,Настройки системы
+System User,Система Пользователь
+System and Website Users,Системные и сайта Пользователи
+System generated mails will be sent from this email id.,Система генерируемые письма будут отправлены из этого электронный идентификатор.
+Table,Стол
+Table {0} cannot be empty,Таблица {0} не может быть пустым
+Tag,Тэг
+Tag Name,Имя тега
+Tags,Тэги
+Tahoma,Tahoma
+Target,цель
+Tasks,Задачи
+Team Members,Члены команды
+Team Members Heading,Члены команды Возглавлять
+Template,Шаблон
+Template Pages cannot be moved,Шаблон Страницы не могут быть перемещены
+Test,Тест
+Test Runner,Тест Runner
+Text,Текст
+Text Align,Text Align
+Text Editor,Редактор текста
+Thank you for your message,Спасибо за Ваше сообщение
+The name of your company / website as you want to appear on browser title bar. All pages will have this as the prefix to the title.,"Название вашей компании / сайта, как вы хотите, чтобы появиться на титул строке браузера. Все страницы будут иметь это в качестве префикса к титулу."
+The system provides many pre-defined roles. You can add new roles to set finer permissions.,"Система предоставляет множество заранее определенных ролей. Вы можете добавить новые роли, чтобы установить более тонкие разрешения."
+Then By (optional),Тогда в силу (опционально)
+There should remain at least one System Manager,Там должно быть по крайней мере один System Manager
+There were errors,Были ошибки
+There were errors while sending email. Please try again.,Были ошибки при отправке электронной почты. Попробуйте ещё раз.
+"There were some errors setting the name, please contact the administrator","Были некоторые ошибки установки имени, пожалуйста, свяжитесь с администратором"
+"These permissions will apply for all transactions where the permitted record is linked. For example, if Company C is added to User Permissions of user X, user X will only be able to see transactions that has company C as a linked value.","Эти разрешения будут применяться для всех сделок, где разрешается запись связаны между собой. Например, если компания C добавляется доступа пользователей пользовательского X, пользователь X будет только в состоянии видеть транзакции, которые имеет компания C в виде связанного значения."
+These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,"Эти значения будут автоматически обновляться в сделках, а также будет полезна для ограничения разрешений для этого пользователя по операциям, содержащих эти значения."
+"These will also be set as default values for those links, if only one such permission record is defined.","Они также будут установлены по умолчанию для этих связей, если только одна такая запись разрешение определяется."
+Third Party Authentication,В-третьих Аутентификация партия
 "This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>
 myfield
 eval:doc.myfield=='My Value'<br>
-eval:doc.age>18",Комментарий DOCNAME
-This goes above the slideshow.,Определите рабочие процессы для форм.
-This is PERMANENT action and you cannot undo. Continue?,Сайт
-This is permanent action and you cannot undo. Continue?,Вкл
-This must be checked if Style Settings are applicable,Часовой пояс
-This role update User Permissions for a user,Страница HTML
-Thursday,"Пожалуйста, выберите Group или Ledger значение"
-Tile,Создайте новый
-Time,E-mail Хост
-Time Zone,Доставка Для
-Timezone,Вставьте После
-Title,Лом%
-Title / headline of your page,Невозможно изменить состояние Отмененные документа. Переход строка {0}
-Title Case,чек
-Title Field,История
-Title Prefix,Голос пользователя
-Title field must be a valid fieldname,{0}: Не удается установить Изменить без Отменить
-Title is required,значения и даты
-To,Инкассация Дата
-To Do,Город
-"To format columns, give column labels in the query.",Карта сайта Обозреватель
-"To give acess to a role for only specific records, check the 'Apply User Permissions'. User Permissions are used to limit users with such role to specific records.",Предстоящие события Сегодня
-"To run a test add the module name in the route after '{0}'. For example, {1}",Сообщение уже существует. Не можете добавить снова!
-ToDo,"С даты должны быть, прежде чем к дате"
-Too many writes in one request. Please send smaller requests,Невозможно открыть вложенный файл. Попробуйте ещё раз.
-Top Bar,Отключение клиента Регистрация ссылку в странице входа
-Top Bar Background,Страница входа
-Top Bar Item,самолет
-Top Bar Items,Показать в боковой панели этого веб-сайта Маршрут узла
-Top Bar Text,Фэйсбук
-Top Bar text and background is same color. Please change.,"Помимо ролей на основе разрешений Правил, можно применить разрешений пользователя на основе DOCTYPEs."
-Transaction,Кредиты и авансы (активы)
-Transition Rules,удалить-знак
-Tuesday,Тип заказа
-Tweet will be shared via your user account (if specified),Закрыть: {0}
-Twitter Share,Footer товары
-Twitter Share via,Неизвестный Колонка: {0}
-Type,Поддержание же скоростью протяжении цикла продаж
-Unable to find attachment {0},"При Изменить документ после Отменить и сохранить его, он будет получать новый номер, который является версией старой числа."
-Unable to load: {0},Не позволяйте пользователю изменять после установить в первый раз
-Unable to open attached file. Please try again.,Укажите название
-Unable to send emails at this time,"Пожалуйста, введите название!"
-Unknown Column: {0},Пользователь не имеет права удалять.
-Unknown Print Format: {0},Рабочий процесс Государственный поле
-"Unknown file encoding. Tried utf-8, windows-1250, windows-1252.",Каждый месяц
-Unread Messages,"Изменение свойств поля (скрыть, только для чтения, разрешение и т.д.)"
-Unsubscribe,italic
-Unsubscribed,E-mail Дайджест
-Upcoming Events for Today,"Пожалуйста, приложите файл первый."
-Update,Резервные копии будут размещены на
-Update Field,Facebook Клиент Secret
-Update Value,Добавить новую роль
-Updated,"Пожалуйста, напишите что-нибудь"
-Upload,Разрешения пользователей менеджер
-Upload Attachment,"Действия для рабочего процесса (например, утверждать, отменять)."
-Upload CSV file containing all user permissions in the same format as Download.,Разделитель Секций
-Upload a file,"Адреса электронной почты, отдел ют запятыми"
-Upload and Import,Переименовать...
-Upload and Sync,Обновить
-Uploading...,Написать
-Upvotes,Рабочий процесс Штаты Документ
-Use TLS,Неверный Фильтр: {0}
-User,Добавить в корзину
-User Cannot Create,Войти
-User Cannot Search,Посетите нас по адресу
-User Defaults,"Неизвестный кодирования файла. Пробовал UTF-8, окна-1250, Windows-1252."
-User ID of a blog writer.,добавить свой собственный CSS (будьте осторожны!)
-User Image,Записи отсутствуют помечены.
-User Permission,"Проверьте это, чтобы сделать эту письмо по умолчанию голову во всех печатных изданий"
-User Permissions,Не сработал
-User Permissions Manager,Установите Ссылка
-User Roles,Серия {0} уже используется в {1}
-User Tags,не допускается.
-User Type,Сообщить Свернуть
+eval:doc.age>18","Это поле появится только тогда, когда имя_поля определяется здесь имеет значение ИЛИ правила являются истинными (примеры): инструменты 
+ MyField 
+ Eval: doc.myfield == 'Мой Значение' инструменты 
+ Eval: doc.age> 18"
+This goes above the slideshow.,Это идет над слайд-шоу.
+This is PERMANENT action and you cannot undo. Continue?,"Это непрерывного действия, и вы не можете отменить. Продолжить?"
+"This is a standard format. To make changes, please copy it make make a new format.","Это стандартный формат. Чтобы внести изменения, скопируйте это сделать сделать новый формат."
+This is permanent action and you cannot undo. Continue?,"Это постоянное действие, и вы не можете отменить. Продолжить?"
+This must be checked if Style Settings are applicable,"Это должны быть проверены, если Стиль Настройки применимы"
+This role update User Permissions for a user,Эта роль Разрешения обновление пользователя пользователь
+Thursday,Четверг
+Tile,Плитка
+Time,Время
+Time Zone,Часовой Пояс
+Timezone,Часовой пояс
+Title,Как к вам обращаться?
+Title / headline of your page,Название / заголовок вашей страницы
+Title Case,Название дела
+Title Field,Поле заголовка
+Title Prefix,Название Приставка
+Title field must be a valid fieldname,Название поля должно быть допустимым имя_поля
+Title is required,Укажите название
+To,До
+To Do,Делать
+"To format columns, give column labels in the query.","Для форматирования столбцов, дать заголовки столбцов в запросе."
+"To give acess to a role for only specific records, check the 'Apply User Permissions'. User Permissions are used to limit users with such role to specific records.","Чтобы дать широкий доступ к роли только определенных записей, проверить ""Применить разрешений пользователя. Разрешения пользователей используются для ограничения пользователей с такой роли конкретных записей."
+"To run a test add the module name in the route after '{0}'. For example, {1}","Чтобы запустить тест добавить имя модуля в маршруте после '{0}'. Например, {1}"
+ToDo,ToDo
+Too many writes in one request. Please send smaller requests,"Слишком много пишет в одном запросе. Пожалуйста, пришлите меньшие запросы"
+Top Bar,Верхняя панель
+Top Bar Background,Топ Бар Фон
+Top Bar Item,Топ Бар Пункт
+Top Bar Items,Топ Бар товары
+Top Bar Text,Топ Бар аватаром
+Top Bar text and background is same color. Please change.,"Топ текст Бар и фон одного цвета. Пожалуйста, измените."
+Transaction,Транзакция
+Transition Rules,Переходные правила
+Tuesday,Вторник
+Tweet will be shared via your user account (if specified),Tweet будут доступны посредством учетной записи пользователя (если он указан)
+Twitter Share,Twitter Поделиться
+Twitter Share via,Twitter Рассказать по
+Type,Тип
+Unable to find attachment {0},Не удалось найти привязанность {0}
+Unable to load: {0},Невозможно нагрузки: {0}
+Unable to open attached file. Please try again.,Невозможно открыть вложенный файл. Попробуйте ещё раз.
+Unable to send emails at this time,Невозможно отправить электронную почту в это время
+Unknown Column: {0},Неизвестный Колонка: {0}
+"Unknown file encoding. Tried utf-8, windows-1250, windows-1252.","Неизвестный кодирования файла. Пробовал UTF-8, окна-1250, Windows-1252."
+Unread Messages,Непрочитанные сообщени
+Unsubscribe,Отменить подписку
+Unsubscribed,Отписанный
+Upcoming Events for Today,Предстоящие события Сегодня
+Update,Обновить
+Update Field,Обновление поле
+Update Value,Обновление Значение
+Updated,Обновлено
+Upload,Загрузить
+Upload Attachment,Добавить Вложений
+Upload CSV file containing all user permissions in the same format as Download.,"Добавить CSV файл, содержащий все права пользователей в том же формате, Скачать."
+Upload a file,Загрузить файл
+Upload and Import,Загрузить и импорт
+Upload and Sync,Загрузить и синхронизация
+Uploading...,Загрузка...
+Upvotes,Upvotes
+Use TLS,Использовать TLS
+User,Пользователь
+User Cannot Create,Пользователь не может создавать
+User Cannot Search,Пользователь не может Искать
+User Defaults,По умолчанию пользователя
+User ID of a blog writer.,ID пользователя писателя в блоге.
+User Image,Пользователь Изображение
+User Permission,Пользователь Введено
+User Permissions,Разрешения пользователей
+User Permissions Manager,Разрешения пользователей менеджер
+User Roles,Роли пользователей
+User Tags,Пользователь Метки
+User Type,Тип Пользователя
 "User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ",
-User Vote,Facebook Имя пользователя
-User not allowed to delete.,О нас Команда Член
-User permissions should not apply for this Link,Вы не можете создавать / редактировать отчеты
-User {0} cannot be deleted,дд / мм / гггг
-User {0} cannot be disabled,Полное имя
-User {0} cannot be renamed,Должен иметь разрешение отчета для доступа к этой отчета.
-User {0} does not exist,"Игнорирование Пункт {0}, потому что группа существует с тем же именем!"
-UserRole,"Это постоянное действие, и вы не можете отменить. Продолжить?"
-Users and Permissions,Скрыть панель инструментов
-Users with role {0}:,"Название, наименование, обозначение дела"
-Value,Всего сообщений (ы)
-Value cannot be changed for {0},Тип недвижимости
-Value for a check field can be either 0 or 1,﻿
-Value missing for,Плагин
-Verdana,Исправление(Патч)
-Version,Вставить код
-Version restored,Ошибка
-View or manage Website Route tree.,E-mail отправлено на адрес {0}
-Visit,"Если вы установите это, этот предмет придет в раскрывающемся списке под выбранной родителя."
-Warning,"Оставьте пустым, чтобы повторить всегда"
-Web Page,Постоянно Представьте {0}?
-Web Site Forum Page.,го-лист
-Website,Серийный номер / Пакетный
-Website Group,"Ссылка, что находитесь на сайте домашняя страница. Стандартные ссылки (индекс, Логин, продукты, блог, о, контакт)"
-Website Route,0 является самым высоким
-Website Route Permission,Пользователь
-Website Script,Настройки для Контакты Page.
-Website Settings,"Нет адреса, созданные"
-Website Slideshow,[Этикетка]: [поле Тип] / [Опции]: [ширина]
-Website Slideshow Item,Сплавы
-Website User,"Отправить ссылку на скачивание из последней резервной копии, чтобы системных администраторов"
-Wednesday,Приемник Список
-Welcome email sent,Пользователь {0} не может быть удален
-"When you Amend a document after Cancel and save it, it will get a new number that is a version of the old number.",Настройка шрифтов и фона.
-Width,Комментарии
-Will be used in url (usually first name).,Были ошибки
-With Groups,Название рабочий
-With Ledgers,Получить от
-Workflow,Рабочий процесс начнется после сохранения.
-Workflow Action,Среда
-Workflow Action Name,Получатели
-Workflow Document State,Опции Помощь
-Workflow Document States,"Пожалуйста, выберите по крайней мере столбец 1 от {0} для сортировки"
-Workflow Name,Настройки системы
-Workflow State,Обратный
-Workflow State Field,Открыть Граф
-Workflow Transition,Дубликат имя {0} {1}
-Workflow Transitions,комментарии
-Workflow will start after saving.,"Значение для поля проверки может быть либо 0, либо 1"
-Write,Рабочий процесс перехода
-Write a Python file in the same folder where this is saved and return column and result.,Пользователь Метки
-Write a SELECT query. Note result is not paged (all data is sent in one go).,Родитель Сайт Маршрут
-Write titles and introductions to your blog.,Пользователь Изображение
-Writers Introduction,Blogger
-Year,"Состояние утверждения должны быть ""Одобрено"" или ""Отклонено"""
-Yes,Послевузовском
-Yesterday,Нет файла прилагается
-You are not allowed to create / edit reports,"Пожалуйста, включите всплывающие окна"
-You are not allowed to export the data of: {0}. Downloading empty template.,рупор
-You are not allowed to export this report,Разрешить пользователю войти только до этого часа (0-24)
-You are not allowed to print this document,Дата выпуска клиентов
-You are not allowed to send emails related to this document,Не Допустимая
-"You can change Submitted documents by cancelling them and then, amending them.",Список-альт
-You can use Customize Form to set levels on fields.,Управление облачных резервные копии на Dropbox
-You can use wildcard %,Отправить
-You cannot install this app,Запускает на
-You have unsaved changes in this form. Please save before you continue.,"Пожалуйста, введите текст!"
-You need to be logged in and have System Manager Role to be able to access backups.,Tahoma
-You need write permission to rename,Загрузить и синхронизация
-"Your download is being built, this may take a few moments...",книга
-[Label]:[Field Type]/[Options]:[Width],Верхняя панель
-add your own CSS (careful!),Имя Бланк
-adjust,список
-align-center,Комбинация клавиш
-align-justify,Экспорт не допускается. Вам нужно {0} роль для экспорта.
-align-left,глаз близко
-align-right,Импорт / Экспорт данных
-and,"К сожалению, компании не могут быть объединены"
-arrow-down,настроить
-arrow-left,LFT
-arrow-right,Несколько корневые узлы не допускается.
-arrow-up,Значение не может быть изменено для {0}
-asterisk,Изменить
-backward,HTML для раздела заголовка. Необязательно
-ban-circle,комментарий
-barcode,храбрый самоуверенный
-beginning with,Письма приглушены
-bell,Да
-bold,Комментарий По
-book,Очистите все роли
-bookmark,Локализация
-briefcase,Сохранить
-bullhorn,Пользовательские?
-calendar,изменить размер-полный
-camera,Импорт / Экспорт данных инструментов
-certificate,Статус
-check,Зарегистрироваться
-chevron-down,Разрешено
-chevron-left,"Ссылка на страницу, которую требуется открыть"
-chevron-right,forward
-chevron-up,Зарегистрироваться
-circle-arrow-down,Заголовок страницы Фон
-circle-arrow-left,Баннер Изображение
-circle-arrow-right,Печать и брендинг
-circle-arrow-up,Событие
-cog,Не можете добавить более 50 комментариев
-comment,стрелка направо
-comments,Там должно быть по крайней мере один System Manager
-dd-mm-yyyy,Не удалось найти {0}
-dd.mm.yyyy,Имя страницы
-dd/mm/yyyy,Шрифт (Заголовок)
-download,"Всем, кто может прочитаны"
-download-alt,Действия рабочего процесса
-edit,Удалите все настройки?
-eject,"Отчет не загружено. Пожалуйста, используйте запрос-отчет / [Имя Отчет], чтобы запустить отчет."
-envelope,По умолчанию
-exclamation-sign,в нижнем регистре
-eye-close,move
-eye-open,Отчество (необязательно)
-facetime-video,Название страницы
-fast-backward,Каждый день
-fast-forward,Вводная информация для Контакты Page
-file,й по величине
-film,Файл
-filter,JavaScript Формат: frappe.query_reports ['REPORTNAME'] = {}
-fire,Безопасность
-flag,Разрешить на Отправить
-folder-close,Фраппе Framework
-folder-open,Одинокий
-font,Является обязательным поле
-forward,Пользователь
-found,Datetime
-fullscreen,Круг со стрелкой вниз
-gift,Текст
-glass,Загрузка Сообщить
-globe,"Добавить CSV файл, содержащий все права пользователей в том же формате, Скачать."
-hand-down,"{0}: Создание, Отправить, Отмена и Изменить действительны только на уровне 0"
-hand-left,Значение без вести в течение
-hand-right,выкл
-hand-up,Приложение не найдено
-hdd,"Эти значения будут автоматически обновляться в сделках, а также будет полезна для ограничения разрешений для этого пользователя по операциям, содержащих эти значения."
-headphones,По умолчанию Формат печати
-heart,"Не удается удалить или отменить, потому что {0} {1} связан с {2} {3}"
-home,Поля
-icon,Выбор типа документа
-inbox,Название категории
-indent-left,Не разрешается сбросить пароль {0}
-indent-right,"Ошибка сервера: Пожалуйста, проверьте логи сервера или в службу технической поддержки."
-info-sign,Дата рождения
-is not allowed.,Выберите изображение баннера в первую очередь.
-italic,Экспортируемый
-leaf,Домой
-lft,"Чтобы отслеживать предметы, используя штрих-код. Вы сможете ввести элементы в накладной и счет-фактуру путем сканирования штрих-кода товара."
-list,Шаблон Страницы не могут быть перемещены
-list-alt,"{0}: Только одно правило допускается с ту же роль, уровень и Применить разрешений пользователя"
-lock,Workflow государственный документ
-lowercase,"Отмеченные элементы, показанные на рабочем столе"
-magnet,Добавить пользователь разрешение
-map-marker,зубец
-memcached is not working / stopped. Please start memcached for best results.,"Добавить имя <a href=""http://google.com/webfonts"" target=""_blank""> Google Web Font </> например ""Открытые Санс """
-minus,Новое значение будет установлено
-minus-sign,Стандартные отчеты
-mm-dd-yyyy,Разрешенные Документы для пользователя
-mm/dd/yyyy,Недвижимость
-move,Неверный Сервер исходящей почты или порт
-music,Запись не существует
-none of,Написать титулы и внедрения в свой блог.
-off,Аватар
-ok,Задачи
-ok-circle,Скриншот
-ok-sign,Пермь Уровень
-one of,Показать / скрыть модули
-or,Сообщение
-pause,Публичный
-pencil,Считать
-picture,Настроить форму
-plane,Настройка верхней панели навигации сноске и логотип.
-play,"Ничего, чтобы показать для этого выбора"
-play-circle,Вы не можете распечатать этот документ
-plus,Изображение
-plus-sign,Топ Бар аватаром
-print,Обновить
-qrcode,Или генератор
-question-sign,Формат печати {0} отключена
-random,Данные отсутствует в таблице
-refresh,Объем-офф
-remove,"Пожалуйста, убедитесь, что нет никаких пустые столбцы в файле."
-remove-circle,Github ID пользователя
-remove-sign,Детали
-repeat,Баннер
-resize-full,выровнять-центр
-resize-horizontal,удалить круга
-resize-small,Фон страницы
-resize-vertical,"Не хватает разрешения, чтобы увидеть ссылки."
-retweet,Создать
-rgt,"Покупка Заказ позиции, которые будут получены"
-road,или
-screenshot,"Правила, как государства переходы, как соседнего государства и какую роль может изменять состояние и т.д."
-search,Установить сервер исходящей почты.
-share,"Уже в пользователя, чтобы сделать список"
-share-alt,Включено
-shopping-cart,"Если, не стандартный порт (например, 587)"
-signal,Авто Имя
-star,повторить
-star-empty,{0} по {0}
-step-backward,Управление загруженные файлы.
-step-forward,Социальная Вход Ключи
-stop,Круг со стрелкой налево
-tag,запирать
-tags,Ответственный:
-"target = ""_blank""",Настроить поля формы
-tasks,Сообщить скрипта
-text-height,Вверх: {0}
-text-width,Плитка
-th,Дата техподдержки
-th-large,Файл данных
-th-list,Форум
-thumbs-down,Ваша Биография
-thumbs-up,"Элементы меню на верхней панели. Для установки цвета верхней панели, перейдите в <a href=""#Form/Style настройки стиля Settings""> </ A>"
-time,Не Представленные
-tint,Метод
-to,Перейти на сайт
-trash,отступ левого
-upload,Основной раздел
-use % as wildcard,Поле заголовка
-user,"Ограничить потребителя от этого IP-адреса только. Несколько IP-адреса могут быть добавлены путем разделения запятыми. Принимает также частичное IP адреса, как (111.111.111)"
-user_image_show,Закрыт
-values and dates,Максимальная ширина для типа валюта 100px в строке {0}
-values separated by commas,звездочка
-volume-down,Строка
-volume-off,Отправить по электронной почте напоминание утром
-volume-up,Этикетка и Тип
-warning-sign,Граф Уведомление
-wrench,Блог Введение
-yyyy-mm-dd,помечать
-zoom-in,поиск
-zoom-out,Присвоенный
-{0} List,Калькулировать
-{0} added,Является Стандартный
-{0} by {1},Построитель отчетов
-{0} cannot be set for Single types,О нас
-{0} does not exist in row {1},Вопрос-знак
-{0} in row {1} cannot have both URL and child items,Форум веб-сайт Страница.
-{0} is not a valid email id,Не обращайтесь
-{0} is required,Включить Корзина
-{0} is saved,{0} не является допустимым государственный
-{0} must be one of {1},Как к вам обращаться?
-{0} must be set first,QRCode
-{0} not a valid State,Печать ...
-{0} not allowed in fieldname {1},Модуль не найден
-{0} not allowed in name,Тест
-{0} not allowed to be renamed,E-mail Пароль
-{0} updated,Добавить новую строку
-{0} {1} already exists,Файла
-"{0} {1} cannot be ""{2}"". It should be one of ""{3}""",Система Пользователь
-{0} {1} cannot be a leaf node as it has children,Транзакция
-"{0} {1} does not exist, select a new target to merge",Для верхней панели
-{0} {1} not found,Шаблон
-{0}: Cannot set Amend without Cancel,Образец
-{0}: Cannot set Assign Amend if not Submittable,Настройки сайта
-{0}: Cannot set Assign Submit if not Submittable,шеврона право
-{0}: Cannot set Cancel without Submit,Телефон
-{0}: Cannot set Import without Create,"Разрешение DocType, DocType. Осторожно!"
-"{0}: Cannot set Submit, Cancel, Amend without Write",Ответы
-{0}: Cannot set import as {1} is not importable,Неверный e-mail: {0}
-"{0}: Create, Submit, Cancel and Amend only valid at level 0",Facebook ID клиента
-{0}: No basic permissions set,Введено уже установлен
-"{0}: Only one rule allowed with the same Role, Level and Apply User Permissions",Неверный Войти или пароль
-{0}: Permission at level 0 must be set before higher levels are set,Сайт пользователя
-{app_title},Группа Название
+User Vote,Голос пользователя
+User not allowed to delete {0}: {1},Пользователь не имеет права удалить {0}: {1}
+User permissions should not apply for this Link,Права пользователя не должны применяться для данного канала
+User {0} cannot be deleted,Пользователь {0} не может быть удален
+User {0} cannot be disabled,Пользователь {0} не может быть отключена
+User {0} cannot be renamed,Пользователь {0} не может быть переименован
+User {0} does not exist,Пользователь {0} не существует
+UserRole,UserRole
+Users and Permissions,Пользователи и разрешения
+Users with role {0}:,Пользователи с ролью {0}:
+Valid Login id required.,Действительно Логин ID требуется.
+Valid email and name required,Действует электронная почта и имя требуется
+Value,Значение
+Value Change,Стоимость Изменение
+Value Changed,Значение Изменен
+Value cannot be changed for {0},Значение не может быть изменено для {0}
+Value for a check field can be either 0 or 1,"Значение для поля проверки может быть либо 0, либо 1"
+Value missing for,Значение без вести в течение
+Verdana,Verdana
+Version,Версия
+Version restored,Версия восстановлено
+View or manage Website Route tree.,Просмотр или управляющим Сайт Маршрут дерево.
+Visit,Посетите нас по адресу
+Warning,Предупреждение
+Warning: This Print Format is in old style and cannot be generated via the API.,Предупреждение: Данное печати Формат находится в старом стиле и не может быть создан с помощью API.
+Web Page,Веб-страница
+Web Site Forum Page.,Форум веб-сайт Страница.
+Website,Сайт
+Website Group,Сайт группы
+Website Route,Сайт Маршрут
+Website Route Permission,Сайт Маршрут Введено
+Website Script,Сайт скрипта
+Website Settings,Настройки сайта
+Website Slideshow,Сайт Слайд-шоу
+Website Slideshow Item,Сайт Слайд-шоу Пункт
+Website User,Сайт пользователя
+Wednesday,Среда
+Welcome email sent,"Добро пожаловать Письмо, отправленное"
+"When you Amend a document after Cancel and save it, it will get a new number that is a version of the old number.","При Изменить документ после Отменить и сохранить его, он будет получать новый номер, который является версией старой числа."
+Width,Ширина
+Will be used in url (usually first name).,Будет использоваться в URL (обычно имя).
+With Groups,С группы
+With Ledgers,С Ledgers
+With Letterhead,На фирменном бланке
+Workflow,Рабочие процессы
+Workflow Action,Действия рабочего процесса
+Workflow Action Name,Действия рабочего процесса Имя
+Workflow Document State,Workflow государственный документ
+Workflow Document States,Рабочий процесс Штаты Документ
+Workflow Name,Название рабочий
+Workflow State,Workflow государственный
+Workflow State Field,Рабочий процесс Государственный поле
+Workflow Transition,Рабочий процесс перехода
+Workflow Transitions,Workflow Переходы
+Workflow will start after saving.,Рабочий процесс начнется после сохранения.
+Write,Написать
+Write a Python file in the same folder where this is saved and return column and result.,"Написать файл Python в той же папке, где это сохраняется и столбца и результат возвращения."
+Write a SELECT query. Note result is not paged (all data is sent in one go).,Написать запрос на выборку. Результат Примечание не выгружен (все данные передаются на одном дыхании).
+Write titles and introductions to your blog.,Написать титулы и внедрения в свой блог.
+Writers Introduction,Писатели Введение
+Year,Года
+Yes,Да
+Yesterday,Вчера
+You are not allowed to create / edit reports,Вы не можете создавать / редактировать отчеты
+You are not allowed to export the data of: {0}. Downloading empty template.,Вам не разрешено экспортировать данные: {0}. Скачивая пустой шаблон.
+You are not allowed to export this report,Вам не разрешено экспортировать этот отчет
+You are not allowed to print this document,Вы не можете распечатать этот документ
+You are not allowed to send emails related to this document,"Вы не можете отправлять письма, связанные с этим документом"
+"You can change Submitted documents by cancelling them and then, amending them.","Вы можете изменить представленных документов, отменив их, а затем, их изменения."
+You can use Customize Form to set levels on fields.,Вы можете использовать Настроить форму для установки уровней на полях.
+You can use wildcard %,Вы можете использовать подстановочные%
+You cannot install this app,Вы не можете установить это приложение
+You have unsaved changes in this form. Please save before you continue.,"Вы сделали какие-нибудь изменения в этой форме. Пожалуйста, сохраните прежде чем продолжить."
+You need to be logged in and have System Manager Role to be able to access backups.,"Вы должны войти в систему, и есть роль System Manager, чтобы иметь возможность доступа к резервные копии."
+You need write permission to rename,"Вам нужно разрешение, чтобы переименовать написать"
+"You seem to have written your name instead of your email. \
+					Please enter a valid email address so that we can get back.","Вы, кажется, написал свое имя вместо вашей электронной почте. \
+ Пожалуйста, введите действующий адрес электронной почты, чтобы мы могли вернуться."
+"Your download is being built, this may take a few moments...","Ваша загрузка строится, это может занять несколько минут, ..."
+[Label]:[Field Type]/[Options]:[Width],[Этикетка]: [поле Тип] / [Опции]: [ширина]
+[Optional] Send the email X days in advance of the specified date. 0 equals same day.,[Дополнительно] Отправьте сообщение X дней до указанной даты. 0 равна тот же день.
+add your own CSS (careful!),добавить свой собственный CSS (будьте осторожны!)
+adjust,настроить
+align-center,выровнять-центр
+align-justify,выровнять-оправдать
+align-left,выровнять левый
+align-right,выровнять правый
+and,и
+arrow-down,Стрелка вниз
+arrow-left,стрелка налево
+arrow-right,стрелка направо
+arrow-up,Стрелка вверх
+asterisk,звездочка
+backward,назад
+ban-circle,Запрет круга
+barcode,штрих-код
+beginning with,начиная с
+bell,колокол
+bold,храбрый самоуверенный
+book,книга
+bookmark,закладка
+briefcase,портфель
+bullhorn,рупор
+calendar,календаря
+camera,Камера
+certificate,сертификат
+check,проверять
+chevron-down,шеврона вниз
+chevron-left,шеврона оставили
+chevron-right,шеврона право
+chevron-up,шеврона до
+circle-arrow-down,Круг со стрелкой вниз
+circle-arrow-left,Круг со стрелкой налево
+circle-arrow-right,Круг со стрелкой направо
+circle-arrow-up,Круг со стрелкой вверх
+cog,зубец
+comment,комментарий
+comments,комментарии
+dd-mm-yyyy,дд-мм-гггг
+dd.mm.yyyy,дд.мм.гггг
+dd/mm/yyyy,дд / мм / гггг
+download,скачать
+download-alt,скачать-альт
+edit,редактировать
+eject,выбрасывать
+envelope,конверт
+exclamation-sign,восклицательный знак-
+eye-close,глаз близко
+eye-open,глаз открыт
+facetime-video,FaceTime-видео
+fast-backward,быстро назад
+fast-forward,быстрой перемотки вперед
+file,Файл
+film,пленка
+filter,фильтр
+fire,огонь
+flag,помечать
+folder-close,Папка-близко
+folder-open,Папка-открытым
+font,Шрифт (font)
+forward,forward
+found,найдено
+fullscreen,полноэкранный
+gift,подарок
+glass,стекло
+globe,глобус
+hand-down,ручной вниз
+hand-left,ручной левый
+hand-right,ручной право
+hand-up,грабитель
+hdd,жесткий диск
+headphones,наушники
+heart,сердце
+home,Домой
+icon,значок
+inbox,входящие
+indent-left,отступ левого
+indent-right,отступ правом
+info-sign,Информация-знак
+is not allowed.,не допускается.
+italic,italic
+leaf,лист
+lft,LFT
+list,список
+list-alt,Список-альт
+lock,запирать
+lowercase,в нижнем регистре
+magnet,магнит
+map-marker,Карта-маркер
+memcached is not working / stopped. Please start memcached for best results.,"Memcached не работает / остановлен. Пожалуйста, начните Memcached для достижения наилучших результатов."
+minus,минус
+minus-sign,минус-знак
+mm-dd-yyyy,мм-дд-гггг
+mm/dd/yyyy,дд / мм / гггг
+move,move
+music,музыка
+none of,ни один из
+off,выкл
+ok,ok
+ok-circle,в порядке круга
+ok-sign,в порядке-знак
+one of,один из
+or,или
+pause,пауза
+pencil,карандаш
+picture,картинка
+plane,самолет
+play,играть
+play-circle,играть круга
+plus,А ТАКЖЕ
+plus-sign,знак плюс
+print,print
+qrcode,QRCode
+question-sign,Вопрос-знак
+random,random
+refresh,обновить
+remove,удалить
+remove-circle,удалить круга
+remove-sign,удалить-знак
+repeat,повторить
+resize-full,изменить размер-полный
+resize-horizontal,изменить размер горизонтальной
+resize-small,изменить размер-маленький
+resize-vertical,изменить размер вертикального
+retweet,перечириканье
+rgt,полк
+road,дорога
+screenshot,Скриншот
+search,поиск
+share,ПОДЕЛИТЬСЯ
+share-alt,Доля-альт
+shopping-cart,торгово-корзина
+signal,сигнал
+star,звезда
+star-empty,звезды пусто
+step-backward,шаг назад
+step-forward,шаг вперед
+stop,стоп
+tag,тег
+tags,теги
+"target = ""_blank""","целевых = ""_blank"""
+tasks,задачи
+text-height,Текст-высота
+text-width,Текст ширины
+th,й
+th-large,й по величине
+th-list,го-лист
+thumbs-down,несогласие
+thumbs-up,палец вверх
+time,время
+tint,оттенок
+to,им
+trash,мусор
+upload,скачать
+use % as wildcard,используйте расширение%
+user,Пользователь
+user_image_show,user_image_show
+values and dates,значения и даты
+values separated by commas,"значения, разделенные запятыми"
+volume-down,Объем вниз
+volume-off,Объем-офф
+volume-up,Объем-до
+warning-sign,Внимание-знак
+wrench,гаечный ключ
+yyyy-mm-dd,гггг-мм-дд
+zoom-in,увеличение для
+zoom-out,уменьшить выход
+{0} List,{0} Список
+{0} added,{0} добавил
+{0} by {1},{0} по {0}
+{0} cannot be set for Single types,{0} не может быть установлена для отдельных видов
+{0} does not exist in row {1},{0} не существует в строке {1}
+{0} in row {1} cannot have both URL and child items,{0} в строке {1} не может иметь как URL и дочерние элементы
+{0} is not a valid email id,{0} не является допустимым ID E-mail
+{0} is required,{0} требуется
+{0} is saved,{0} сохраняется
+{0} must be one of {1},{0} должен быть одним из {1}
+{0} must be set first,{0} должен быть установлен первым
+{0} not a valid State,{0} не является допустимым государственный
+{0} not allowed in fieldname {1},{0} не допускаются в имени поля {1}
+{0} not allowed in name,{0} не допускаются в имени
+{0} not allowed to be renamed,{0} не могут быть переименованы
+{0} updated,{0} обновляется
+{0} {1} already exists,{0} {1} уже существует
+"{0} {1} cannot be ""{2}"". It should be one of ""{3}""","{0} {1} не может быть ""{2}"". Это должно быть одним из ""{3}"""
+{0} {1} cannot be a leaf node as it has children,"{0} {1} не может быть листовой узел, как это имеет детей"
+"{0} {1} does not exist, select a new target to merge","{0} {1} не существует, выберите новую цель объединить"
+{0} {1} not found,{0} {1} не найден
+{0} {1}: Submitted Record cannot be deleted.,{0} {1}: Представленный Запись не может быть удалена.
+{0}: Cannot set Amend without Cancel,{0}: Не удается установить Изменить без Отменить
+{0}: Cannot set Assign Amend if not Submittable,{0}: Не удается установить Назначить Изменить если не Submittable
+{0}: Cannot set Assign Submit if not Submittable,"{0}: Не удается установить Назначить Представьте, если не Submittable"
+{0}: Cannot set Cancel without Submit,{0}: Не удается установить Отмена без Отправить
+{0}: Cannot set Import without Create,{0}: Не удается установить Импорт без Создать
+"{0}: Cannot set Submit, Cancel, Amend without Write","{0}: Не удается установить Представьте, Отменить, Изменить без Write"
+{0}: Cannot set import as {1} is not importable,{0}: Не удается установить импорт как {1} не является ввозу
+"{0}: Create, Submit, Cancel and Amend only valid at level 0","{0}: Создание, Отправить, Отмена и Изменить действительны только на уровне 0"
+{0}: No basic permissions set,{Не 0}: Нет базовый набор разрешений
+"{0}: Only one rule allowed with the same Role, Level and Apply User Permissions","{0}: Только одно правило допускается с ту же роль, уровень и Применить разрешений пользователя"
+{0}: Permission at level 0 must be set before higher levels are set,{0}: введенное на уровне 0 должны быть установлены до более высоких уровней устанавливаются
+{app_title},{App_title}

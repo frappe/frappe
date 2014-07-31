@@ -3,6 +3,8 @@
 """Company History""",""" Historia de la empresa """
 """Team Members"" or ""Management""",""" Miembros del equipo "" o "" gestión"""
 'In List View' not allowed for type {0} in row {1},""" En Vista de lista ' no permitido para el tipo {0} en la fila {1}"
+0 - Draft; 1 - Submitted; 2 - Cancelled,0 - Proyecto; 1 - Enviado; 2 - Cancelado
+0 is highest,0 es más alto
 "000 is black, fff is white","000 es negro , es blanco fff"
 2 days ago,Hace 2 días
 "<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank"">[?]</a>","<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank""> [ ?] < / a>"
@@ -11,7 +13,17 @@
 <li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\
 <li><b>Prompt</b> - Prompt user for a name\
 <li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\
-</ol>')"">Naming Options</a>","<a onclick = "" msgprint ( ' <ol> \ \ n <li> <b> campo : [ nombre de campo ] < / b > - Por El campo \ \ n <li> <b> naming_series : < / b > - Nombrando"
+</ol>')"">Naming Options</a>","<A onclick = ""msgprint ('<ol> \
+ <li> <b> campo: [nombre de campo] </ b> - Al Campo \
+ <li> <b> naming_series: </ b > - Al nombrar la serie (campo llamado naming_series debe estar presente \
+ <li> <b> Prompt </ b> - Solicitar al usuario un nombre \
+ <li> <b> [serie] </ . b> - Series de prefijo (separados por un punto), por ejemplo PRE # # # # # \
+ </ ol> ') ""> Opciones de nomenclatura </ a>"
+<b>new</b> <i>type of document</i>,<b> nueva </ b> <i> tipo de documento </ i>
+"<i>document type...</i>, e.g. <b>customer</b>","Tipo de documento <i> ... </ i>, por ejemplo <b> cliente </ b>"
+<i>e.g. <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>,<i> ejemplo <strong> (55 + 434) / 4 </ strong> o = <strong> Math.sin (Mat.PI / 2) </ strong> ... </ i>
+<i>module name...</i>,<i> nombre del módulo ... </ i>
+<i>text</i> <b>in</b> <i>document type</i>,texto <i> </ i> <b> en </ b> <i> tipo de documento </ i>
 A user can be permitted to multiple records of the same DocType.,Un usuario se puede permitir que varios registros de un mismo tipo de documento .
 About,acerca de
 About Us Settings,La Empresa Configuración
@@ -38,10 +50,12 @@ Add attachment,Agregar archivo adjunto
 Add code as &lt;script&gt;,Añadir código como <script>
 Add custom javascript to forms.,Añadir personalizada javascript formas .
 Add fields to forms.,Agregar campos a los formularios.
+Add multiple rows,Añadir varias filas
 Add new row,Añadir nueva fila
 "Add the name of <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> e.g. ""Open Sans""","Agregue el nombre del <a href=""http://google.com/webfonts"" target=""_blank""> Google Web Font < / a> por ejemplo, ""Open Sans """
 Add to To Do,Añadir a Tareas
 Add to To Do List Of,Agregar a la lista de tareas pendientes de
+Added {0} ({1}),Añadido: {0} ({1})
 Adding System Manager to this User as there must be atleast one System Manager,Añadiendo el Administrador del sistema para este usuario ya que debe haber al menos un Responsable de Sistema
 Additional Info,Información adicional
 Additional Permissions,Permisos adicionales
@@ -53,6 +67,7 @@ Address and other legal information you may want to put in the footer.,Direcció
 Admin,administración
 All Applications,Todas las aplicaciones
 All Day,Todo el día
+All customizations will be removed. Please confirm.,Se eliminarán todas las personalizaciones. Por favor confirmar.
 "All possible Workflow States and roles of the workflow. <br>Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""","Todos los posibles estados de flujo de trabajo y las funciones de flujo de trabajo. <br> Opciones DocStatus : 0 es ""salvado "" , 1 es "" Enviado "" y 2 está "" Cancelado """
 Allow Attach,Permitir Adjuntar
 Allow Import,Permitir la importación
@@ -71,11 +86,11 @@ Always use above Login Id as sender,Utilice siempre por encima de identificació
 Amend,enmendar
 "An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [<a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a>]","Un archivo de icono con . Ico . En caso de ser de 16 x 16 píxeles . Generado usando un generador de favicon . [ <a href=""http://favicon-generator.org/"" target=""_blank""> favicon - generator.org < / a >]"
 "Another {0} with name {1} exists, select another name","Otra {0} con el nombre {1} que existe, seleccione otro nombre"
+Any existing permission will be deleted / overwritten.,Cualquier permiso existente se eliminará / sobrescribe.
 Anyone Can Read,Cualquiera puede leer
 Anyone Can Write,Cualquiera puede escribir
 "Apart from Role based Permission Rules, you can apply User Permissions based on DocTypes.","Además de reglas de permisos basado en roles , puede aplicar permisos de usuario basado en de DocTypes ."
 "Apart from System Manager, roles with 'Set User Permissions' right can set permissions for other users for that Document Type.","Además de administrador del sistema, papeles con derecho de establecer permisos de usuario ""pueden establecer permisos para otros usuarios de ese tipo de documento ."
-App Already Installed,App ya está instalado
 App Name,Nombre de aplicación
 App not found,App no ​​encontrado
 Application Installer,instalador de aplicaciones
@@ -107,12 +122,13 @@ Avatar,avatar
 Back to Login,Volver a inicio
 Background Color,color de fondo
 Background Image,Imagen de fondo
+Background Style,Estilo de fondo
 Banner,bandera
 Banner HTML,Banner HTML
 Banner Image,Imagen del Anuncio
 Banner is above the Top Menu Bar.,Banner está por encima de la barra de menú superior .
-Base Template Path,Ruta de plantilla Base
 Begin this page with a slideshow of images,Comience esta página con un pase de diapositivas de imágenes
+Beginning with,A partir de
 Belongs to,pertenece a
 Bio,Bio
 Birth Date,Fecha de Nacimiento
@@ -124,11 +140,13 @@ Blog Settings,Configuración de blog
 Blog Title,Título del blog
 Blogger,Blogger
 Bookmarks,marcadores
+Both login and password required,Tanto de usuario y la contraseña necesarios
 Brand HTML,HTML Marca
 Bulk Email,Bulk Email
 Bulk email limit {0} crossed,Límite de correo electrónico a granel {0} cruzado
 Button,botón
 By,por
+Calculate,Calcular
 Calendar,calendario
 Cancel,cancelar
 Cancelled,Cancelado
@@ -142,7 +160,6 @@ Cannot change state of Cancelled Document. Transition row {0},No se puede cambia
 Cannot change {0},No se puede cambiar {0}
 Cannot delete or cancel because {0} {1} is linked with {2} {3},No se puede eliminar o cancelar porque {0} {1} está vinculado con {2} {3}
 Cannot delete {0} as it has child nodes,"No se puede eliminar {0} , ya que tiene nodos secundarios"
-Cannot delete {0} {1} is it is referenced in another record,No se puede eliminar {0} {1} se le hace referencia en otro registro
 Cannot edit standard fields,No se puede editar campos estándar
 Cannot map because following condition fails: ,No se puede asignar por la condición siguiente falla:
 Cannot open instance when its {0} is open,No se puede abrir instancia cuando su {0} es abierto
@@ -150,6 +167,7 @@ Cannot open {0} when its instance is open,No se puede abrir {0} cuando su instan
 Cannot print cancelled documents,No se pueden imprimir documentos cancelados
 Cannot remove permission for DocType: {0} and Name: {1},No se puede quitar el permiso de tipo de documento : {0} y nombre: {1}
 Cannot reply to a reply,No se puede responder a una respuesta
+Cannot set Email Alert on Document Type {0},No se puede establecer una alerta de correo electrónico en Tipo de documento {0}
 Cannot set permission for DocType: {0} and Name: {1},No se puede establecer el permiso de tipo de documento : {0} y nombre: {1}
 Categorize blog posts.,Clasificar las entradas de blog.
 Category,categoría
@@ -162,21 +180,22 @@ Check,comprobar
 Check / Uncheck roles assigned to the User. Click on the Role to find out what permissions that Role has.,Marcar / desmarcar roles asignados al usuario . Haga clic sobre el papel para averiguar los permisos que ese papel lo ha hecho.
 Check this if you want to send emails as this id only (in case of restriction by your email provider).,Seleccione esta opción si desea enviar mensajes de correo electrónico como este id único (en caso de restricción de su proveedor de correo electrónico).
 Check this to make this the default letter head in all prints,Active esta opción para hacer que esta cabeza de la letra por defecto en todas las impresiones
+Check which Documents are readable by a User,Compruebe qué documentos pueden ser leídos por un usuario
 Checked items shown on desktop,Los elementos seleccionados se muestran en el escritorio
 Child Tables are shown as a Grid in other DocTypes.,Tablas secundarias se muestran como una cuadrícula en otras de DocTypes .
 City,ciudad
+Classic,clásico
 Clear Cache,Borrar la caché
 Clear all roles,Desactive todas las funciones
-Click on a link to get options to expand get options ,
+Click on a link to get options,Haga clic en un enlace para obtener opciones
 Click on row to view / edit.,Haga clic en la fila para ver / editar .
-Click to Expand / Collapse,Haga clic para expandir / contraer
 Client,cliente
+Client-side formats are now deprecated,Formatos en el cliente se consideran obsoletas
 Close,cerca
 Close: {0},Cerrar: {0}
 Closed,cerrado
 Code,código
 Collapse,colapso
-Color,color
 Column Break,Salto de columna
 Comment,comentario
 Comment By,El comentario de
@@ -192,7 +211,7 @@ Company History,Historia de la empresa
 Company Introduction,Empresa Introducción
 Complaint,queja
 Complete By,Por completo
-Condition Field,Condición del campo
+Condition,Condición
 Contact Us Settings,Contáctenos Configuración
 "Contact options, like ""Sales Query, Support Query"" etc each on a new line or separated by commas.","Opciones de contacto , como "" Ventas de consultas , Soporte de consultas"" , etc cada uno en una nueva línea o separados por comas."
 Content,contenido
@@ -208,6 +227,7 @@ Could not find {0},No se pudo encontrar {0}
 Count,contar
 Country,país
 Create,crear
+Create a new {0},Crear un nuevo {0}
 Created Custom Field {0} in {1},Creado campo personalizado {0} en {1}
 Created Customer Issue,Creado Issue Cliente
 Created Opportunity,Creado Oportunidad
@@ -233,14 +253,18 @@ Data Import / Export Tool,Herramienta de importación / exportación de datos
 Data Import Tool,Herramienta de importación de datos
 Data missing in table,Los datos que faltan en la tabla
 Date,fecha
+Date Change,Cambio de fecha
+Date Changed,Fecha Modificado
 Date Format,Formato de la fecha
 Date and Number Format,Fecha y Formato de número
 Date must be in format: {0},La fecha debe estar en formato : {0}
 Datetime,Fecha y hora
+Days in Advance,Días de anticipación
 Dear,querido
 Default,defecto
 Default Print Format,Por defecto Formato de impresión
 Default Value,Valor predeterminado
+Default is system timezone,Por defecto es el sistema de zona horaria
 "Default: ""Contact Us""","Por defecto: ""Contact Us"""
 DefaultValue,DefaultValue
 Defaults,predeterminados
@@ -287,7 +311,6 @@ Document Type,Tipo de documento
 Document is only editable by users of role,Documento es sólo editable por los usuarios de papel
 Documentation,documentación
 Documents,Documentos
-Down,abajo
 Download,descargar
 Download Backup,Descargar copia de seguridad
 Download link for your backup will be emailed on the following email address:,Enlace de descarga de la copia de seguridad será enviado por correo electrónico en la siguiente dirección de correo electrónico :
@@ -295,10 +318,17 @@ Drafts,damas
 Drag to sort columns,Arrastre para ordenar las columnas
 Due Date,Fecha de vencimiento
 Duplicate name {0} {1},Nombre duplicado {0} {1}
+Dynamic Link,Enlace Dinámico
+ERPNext Demo,ERPNext demo
 Edit,editar
 Edit Permissions,Editar permisos
 Editable,editable
 Email,Email
+Email Alert,Alerta de Correo
+Email Alert Recipient,Email destinatario Alerta
+Email Alert Recipients,Destinatarios de las Alertas de correo electrónico
+Email By Document Field,Email Por Documento Campo
+Email Footer,Email Footer
 Email Host,email al anfitrión
 Email Id,Identificación del email
 Email Login,Email Login
@@ -316,6 +346,7 @@ Emails are muted,Los correos electrónicos se silencian
 Embed image slideshows in website pages.,Presentaciones de imágenes Incrustar en páginas web .
 Enable,permitir
 Enable Comments,Habilitar Comentarios
+Enable Scheduled Jobs,Habilitar tareas programadas
 Enabled,Activado
 Ends on,finaliza el
 Enter Form Type,Escriba Tipo de formulario
@@ -325,6 +356,7 @@ Enter at least one permission row,Ingrese al menos una fila permiso
 "Enter keys to enable login via Facebook, Google, GitHub.","Enter para activar la conexión a través de Facebook, Google , GitHub ."
 Equals,Iguales
 Error,error
+"Error generating PDF, attachment sent as HTML","Error de generación de PDF, adjuntos enviados como HTML"
 Error: Document has been modified after you have opened it,Error : El documento se ha modificado después de que has abierto
 Event,evento
 Event Datetime,Evento de fecha y hora
@@ -340,11 +372,13 @@ Every Day,Todos los Días
 Every Month,Cada Mes
 Every Week,cada semana
 Every Year,cada año
+Everyone,Todos por los que Brian se habia
 Example:,Ejemplo :
 Expand,expandir
 Export,exportación
 Export not allowed. You need {0} role to export.,Exportaciones no permitido. Es necesario {0} función de exportar .
 Exported,exportado
+"Expression, Optional","Expresión, opcional"
 Facebook,Facebook
 Facebook Client ID,Facebook Client ID
 Facebook Client Secret,Facebook Client Secret
@@ -363,11 +397,12 @@ Field {0} of type {1} cannot be mandatory,El campo {0} de tipo {1} no puede ser 
 Fieldname,Fieldname
 Fieldname is required in row {0},Fieldname se requiere en la fila {0}
 Fieldname not set for Custom Field,Fieldname se pone durante Campo Personalizado
+Fieldname which will be the DocType for this link field.,Fieldname que será el tipo de documento para este campo de enlace.
 Fieldname {0} appears multiple times in rows {1},Fieldname {0} aparece varias veces en filas {1}
 "Fieldname {0} cannot contain letters, numbers or spaces","Fieldname {0} no puede contener letras , números o espacios"
 Fields,Los campos
 "Fields separated by comma (,) will be included in the<br /><b>Search By</b> list of Search dialog box","Los campos separados por comas (,) se incluirán en el /> <br <b> Buscar por < / b > lista de cuadro de diálogo Buscar"
-Fieldtype must be one of {0} in row {1},FieldType debe ser uno de {0} en la fila {1}
+Fieldtype cannot be changed from {0} to {1} in row {2},FieldType no se puede cambiar de {0} a {1} en la fila {2}
 File,expediente
 File Data,archivo de datos
 File Name,Nombre del archivo
@@ -375,20 +410,27 @@ File Size,Tamaño del archivo
 File URL,URL del archivo
 File not attached,Archivo no conectado
 File size exceeded the maximum allowed size of {0} MB,El tamaño del archivo supera el tamaño máximo permitido de {0} MB
+Fill Screen,Rellenar pantalla
 Filter,filtro
 Filter records based on User Permissions defined for a user,Filtrar los registros basados ​​en permisos de usuario definidos para un usuario
+Filters,Filtros
+Find {0} in {1},Encontrar {0} en {1}
 First Name,Nombre
 Float,flotador
 Float Precision,flotador de precisión
 Font (Heading),Fuente ( Heading )
 Font (Text),Fuente ( Texto)
+Font Size,Tamaño de la Fuente
 Font Size (Text),Tamaño de fuente ( texto)
 Fonts,Fuentes
 Footer,pie de página
+Footer Background,Pie de página de fondo
 Footer Items,Pie de página Artículos
+Footer Text,Texto del Pie de página
 For DocType,Por tipo de documento
 "For Links, enter the DocType as range
-For Select, enter list of Options separated by comma","Para Links , introduzca el tipo de documento como el rango \ nPor Select, entrar en la lista de opciones separadas por comas"
+For Select, enter list of Options separated by comma","Para Links, introduzca el tipo de documento como rango 
+ Para Select, entrar en la lista de opciones separadas por comas"
 "For comparative filters, start with","Para los filtros comparativas , comience con"
 For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,Por ejemplo si se cancela y enmendar ' INV004 ' se convertirá en un nuevo documento ' INV004 - 1 ' . Esto le ayuda a mantener un registro de cada enmienda.
 For ranges,Para rangos
@@ -400,6 +442,7 @@ Form,forma
 Forum,foro
 Forums,Foros
 Forward To Email Address,Reenviar a la dirección de correo electrónico
+Frappe Framework,Marco Frappe
 Friday,viernes
 From Date must be before To Date,Desde la fecha debe ser antes de la fecha
 Full Name,Nombre Completo
@@ -409,6 +452,7 @@ Generator,generador
 Georgia,Georgia
 Get,conseguir
 Get From ,Obtener de
+"Get your globally recognized avatar from <a href=""https://gravatar.com/"">Gravatar.com</a>","Obtenga su avatar global de <a href=""https://gravatar.com/""> Gravatar.com </ a>"
 GitHub,GitHub
 GitHub Client ID,GitHub Client ID
 GitHub Client Secret,GitHub Client Secret
@@ -436,15 +480,14 @@ Header,encabezamiento
 Heading,título
 Heading Text As,Encabezado Texto Como
 Help,ayudar
+Help on Search,Ayuda en la búsqueda
 Helvetica Neue,Helvetica Neue
-Hey! There should remain at least one System Manager,Hey! Debe permanecer al menos un administrador del sistema de
 Hidden,oculto
 Hide Actions,Ocultar acciones
 Hide Copy,Ocultar Copy
-Hide Email,Ocultar Email
 Hide Heading,Ocultar Rubro
-Hide Print,Ocultar Imprimir
 Hide Toolbar,Ocultar barra de herramientas
+Hide the sidebar,Ocultar la barra lateral
 High,alto
 Highlight,punto culminante
 History,historia
@@ -455,7 +498,6 @@ Icon,icono
 Icon will appear on the button,Icono aparecerá en el botón
 "If a Role does not have access at Level 0, then higher levels are meaningless.","Si una función no tiene acceso en el Nivel 0, entonces los niveles más altos no tienen sentido ."
 "If checked, all other workflows become inactive.","Si está marcada, todos los otros flujos de trabajo se vuelven inactivas ."
-"If checked, an email with an attached HTML format will be added to part of the EMail body as well as attachment. To only send as attachment, uncheck this.","Si se selecciona, se agregará un correo electrónico con un formato HTML adjunto a una parte del cuerpo del correo electrónico , así como datos adjuntos. Para enviar sólo como archivo adjunto , desmarque esta ."
 "If checked, the Home page will be the default Item Group for the website.","Si se selecciona, la página de inicio será el grupo de elementos predeterminado para el sitio web."
 "If image is selected, color will be ignored (attach first)","Si se selecciona la imagen , se tendrá en cuenta el color (adjunte primero )"
 If non standard port (e.g. 587),Si el puerto no estándar (por ejemplo 587 )
@@ -473,9 +515,10 @@ In Dialog,En diálogo
 In Filter,En Filtro
 In List View,En Vista de lista
 In Report Filter,En Filtro de informe
+In points. Default is 9.,En puntos. El valor predeterminado es 9.
 In response to,En respuesta a
 Incorrect value in row {0}: {1} must be {2} {3},Valor incorrecto en la fila {0}: {1} debe ser {2} {3}
-Incorrect value: {1} must be {2} {3},Valor incorrecto : {1} debe ser {2} {3}
+Incorrect value: {0} must be {1} {2},Valor incorrecto: {0} debe ser {1} {2}
 Index,índice
 Individuals,individuos
 Info,info
@@ -496,6 +539,7 @@ Introductory information for the Contact Us Page,Información preliminar de la p
 Invalid Email: {0},Email no válido : {0}
 Invalid Filter: {0},Filtro no válido: {0}
 Invalid Home Page,Error de página Inicio
+Invalid Login,Inicio de sesión inválido
 Invalid Outgoing Mail Server or Port,Inválido Servidor de correo saliente o el puerto
 Invalid login or password,Inicio de sesión o contraseña no válidos
 Invalid recipient address,Dirección de destinatario no válido
@@ -532,6 +576,7 @@ Leave blank to repeat always,Dejar en blanco para repetir siempre
 Left,izquierda
 Less or equals,Menor o igual
 Less than,menos que
+Letter,Carta
 Letter Head,Cabeza Carta
 Letter Head Name,Nombre Membrete
 Letter Head in HTML,Membrete en HTML
@@ -539,13 +584,13 @@ Level,nivel
 "Level 0 is for document level permissions, higher levels for field level permissions.","El nivel 0 es para los permisos de nivel de documento , los niveles más altos para los permisos de nivel de campo ."
 Like,como
 Link,enlace
-Link Name,Nombre de vínculo
 "Link that is the website home page. Standard Links (index, login, products, blog, about, contact)","Enlace es la página de inicio del sitio web . Links estándar (índice, inicio de sesión, productos , blog, sobre , contacto)"
 Link to other pages in the side bar and next section,Enlace a otras páginas en la barra lateral y sección siguiente
 Link to the page you want to open,Enlace a la página que desea abrir
 Linked In Share,Linked In Compartir
 Linked With,Vinculado con
 List,lista
+List a document type,Incluya un tipo de documento
 List of Web Site Forum's Posts.,Lista de Mensajes de Web Foro Sitio.
 Loading,loading
 Loading Report,Cargando Reportar
@@ -565,6 +610,7 @@ Lucida Grande,Lucida Grande
 Mail Password,mail Contraseña
 Main Section,Sección Principal
 Make a new,Hacer una nueva
+Make a new record,Hacer un nuevo récord
 Male,masculino
 Manage cloud backups on Dropbox,Administrar copias de seguridad de nubes en Dropbox
 Manage uploaded files.,Administrar los archivos subidos.
@@ -579,12 +625,14 @@ Medium,medio
 "Menu items in the Top Bar. For setting the color of the Top Bar, go to <a href=""#Form/Style Settings"">Style Settings</a>","Los elementos de menú en la barra superior. Para ajustar el color de la barra de Inicio , vaya a <a href=""#Form/Style Settings""> Ajustes Style < / a>"
 Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node,La fusión sólo es posible entre el Grupo - a - grupo o la hoja de nodo - a - nodo de la hoja
 Message,mensaje
+Message Examples,Ejemplos de mensajes
 Messages,Mensajes
 Method,método
 Middle Name (Optional),Segundo Nombre ( Opcional)
 Misc,Misc
 Miscellaneous,diverso
 Missing Values Required,Valores perdidos requeridos
+Modern,moderno
 Modified by,Modificado por
 Module,módulo
 Module Def,Módulo Def
@@ -594,7 +642,6 @@ Modules Setup,Módulos de configuración
 Monday,lunes
 More,más
 More content for the bottom of the page.,Más contenido de la parte inferior de la página.
-Move,movimiento
 Move Down: {0},Bajar : {0}
 Move Up: {0},Move Up : {0}
 Multiple root nodes not allowed.,Nodos raíz múltiples no permitidos.
@@ -607,32 +654,32 @@ Name and Description,Nombre y descripción
 Name is required,El nombre es necesario
 Name not permitted,Nombre no permitido
 Name not set via Prompt,Nombre que no se establece a través del símbolo
+Name of the Document Type (DocType) you want this field to be linked to. e.g. Customer,Nombre del tipo de documento (tipo de documento) que desea que este campo sea vinculado. por ejemplo al Cliente
+Name of {0} cannot be {1},Nombre de {0} no puede ser {1}
 Naming,Nombrando
 Naming Series mandatory,Nombrar Series obligatoria
 Nested set error. Please contact the Administrator.,"Error conjunto anidado . Por favor, póngase en contacto con el Administrador."
-New,nuevo
+New,Nuevo
 New Password,Nueva contraseña
 New Record,Nuevo Registro
 New comment on {0} {1},Nuevo comentario en {0} {1}
 New password emailed,Enviado por correo electrónico Nueva contraseña
 New value to be set,Nuevo valor a establecer
+New {0},Nueva {0}
 Next Communcation On,Siguiente Communcation On
 Next Record,próximo registro
 Next State,Siguiente Estado
 Next actions,próximas acciones
 No,no
 No Action,Ninguna acción
-No Cache,No caché
 No Communication tagged with this ,No hay comunicación etiquetado con este
 No Copy,No Copy
 No Permissions set for this criteria.,No hay permisos establecidos para este criterio.
 No Report Loaded. Please use query-report/[Report Name] to run a report.,No informe Cargado . Utilice consulta de informe / [ Nombre del informe ] para ejecutar un informe .
 No Results,No hay resultados
 No Sidebar,No Sidebar
-No Sitemap,No Sitemap
 No User Permissions found.,No se han encontrado los permisos de usuario .
 No data found,No se han encontrado datos
-No document selected,Ningún documento seleccionado
 No file attached,Ningún archivo adjunto
 No further records,No hay registros adicionales
 No one,nadie
@@ -640,6 +687,8 @@ No permission to '{0}' {1},No tiene permiso para '{0} ' {1}
 No permission to edit,No tiene permiso para editar
 No permission to write / remove.,No tiene permiso para escribir / quitar .
 No records tagged.,No hay registros etiquetados .
+No template found at path: {0},No se han encontrado en el camino de la plantilla: {0}
+No {0} permission,No {0} permiso
 None,ninguno
 None: End of Workflow,Ninguno: Fin del Flujo de Trabajo
 Not Found,No se ha encontrado
@@ -663,7 +712,6 @@ Not permitted,No se permite
 "Note: For best results, images must be of the same size and width must be greater than height.","Nota: Para obtener los mejores resultados , las imágenes deben ser del mismo tamaño y el ancho debe ser mayor que la altura."
 Note: Other permission rules may also apply,Nota: también se pueden aplicar otras reglas de permisos
 Note: maximum attachment size = 1mb,Nota: el tamaño máximo de archivo adjunto = 1mb
-Nothing to delete,No hay nada que borrar
 Nothing to show,Nada para mostrar
 Nothing to show for this selection,No hay nada que mostrar para esta selección
 Notification Count,Conde Notificación
@@ -676,11 +724,20 @@ Only Administrator allowed to create Query / Script Reports,Administrador con pe
 Only Administrator can save a standard report. Please rename and save.,"Sólo el administrador puede guardar un informe estándar. Por favor, cambie el nombre y guardar."
 Only Allow Edit For,Sólo Permitir Editar Para
 Only allowed {0} rows in one import,{0} filas autorizada únicamente en una importación
+Oops! Something went wrong,Oups! Algo salió mal
 Open,abierto
 Open Count,Abrir Conde
 Open Sans,Abrir Sans
+Open Source Web Applications for the Web,Open Source Aplicaciones Web para la Web
+Open a module or tool,Abra un módulo o herramienta
+Open {0},Abrir {0}
+Optional: Alert will only be sent if value is a valid email id.,Opcional: Alerta sólo se enviará si el valor es un identificador de correo electrónico válida.
+Optional: Always send to these ids. Each email id on a new row,Opcional: Enviar siempre a estos identificadores. Cada correo electrónico de identificación en una nueva fila
+Optional: The alert will be sent if this expression is true,Opcional: La alerta será enviado si esta expresión es verdadera
 Options,Opciones
+Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType',"'Dynamic Link' type Opciones de campo debe apuntar a otro campo Vínculo con opciones como ""tipo de documento"""
 Options Help,Opciones de Ayuda
+Options for select. Each option on a new line. e.g.: <br>Option 1<br>Option 2<br>Option 3<br>,Opciones para la selecta. Cada opción en una línea nueva. por ejemplo: <br> Opción 1 Opción 2 Foto <br> Opción 3 <br>
 Options must be a valid DocType for field {0} in row {1},Las opciones deben ser un tipo de documento válido para el campo {0} en la fila {1}
 Options not set for link field {0},Las opciones no establecen para campo de enlace {0}
 Options requried for Link or Table type field {0} in row {1},Opciones requried de Link o campo de tipo de tabla {0} en la fila {1}
@@ -691,15 +748,19 @@ Other,otro
 Outgoing Email Settings,Configuración del correo electrónico saliente
 Outgoing Mail Server,Servidor de correo saliente
 Outgoing Mail Server not specified,Servidor de correo saliente no especificada
+Owner,propietario
+PDF Page Size,Tamaño de página PDF
+PDF Settings,Configuración de PDF
 POP3 Mail Server (e.g. pop.gmail.com),POP3 Mail Server (por ejemplo pop.gmail.com )
 Page,página
+Page #{0} of {1},Página # {0} de {1}
 Page Background,Fondo de página
-Page Border,Borde de página
 Page HTML,Página HTML
-Page Headings,encabezamientos Página
+Page Header,Encabezado de página
+Page Header Background,Antecedentes Page Header
+Page Header Text,Encabezado de página del texto
 Page Links,Página Enlaces
 Page Name,Nombre de la página
-Page Name Field,Página Nombre del campo
 Page Role,Página Papel
 Page Text,Página del texto
 Page Title,Título de la página
@@ -707,7 +768,6 @@ Page content,contenido de la página
 Page not found,Página no encontrada
 Page or Generator,Página o generador
 Page url name (auto-generated),Nombre url Página ( generada automáticamente )
-Page with name {0} already exists,Página con el nombre {0} ya existe
 Parent Label,Etiqueta de Padres
 Parent Post,Mensaje de Padres
 Parent Website Page,Sitio web Padres Page
@@ -727,6 +787,7 @@ Permanently delete {0}?,Eliminar permanentemente {0} ?
 Permission Level,Nivel de permisos
 Permission Levels,Niveles de permisos
 Permission Rules,Reglas de permisos
+Permission already set,El permiso ya establecido
 Permissions,Permisos
 Permissions Settings,Configuración de permisos
 Permissions are automatically translated to Standard Reports and Searches.,Los permisos se traducirán automáticamente a los informes estándar y Búsquedas .
@@ -734,6 +795,7 @@ Permissions are automatically translated to Standard Reports and Searches.,Los p
 Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles.,Permisos en los niveles más altos son los permisos ' Field Level ' .
 "Permissions at level 0 are 'Document Level' permissions, i.e. they are primary for access to the document.","Los permisos de nivel 0 son permisos ' Documento Nivel ' , es decir, que son primarios para acceder al documento."
 Permissions get applied on Users based on what Roles they are assigned.,Permisos obtener aplicado en los usuarios sobre la base de lo roles han sido asignados.
+Permitted Documents For User,Documentos permitidos Para usuario
 Person,persona
 Personal Info,Información Personal
 Phone,teléfono
@@ -746,16 +808,26 @@ Please attach a file or set a URL,"Por favor, adjuntar un archivo o conjunto de 
 Please do not change the rows above {0},"Por favor, no cambiar las filas de arriba {0}"
 Please enable pop-ups,"Por favor, activa los pop- ups"
 Please enter Event's Date and Time!,Por favor introduzca la fecha y hora del evento!
+"Please enter both your email and message so that we \
+				can get back to you. Thanks!","Por favor, ingrese tanto su correo electrónico y mensaje para que nos \
+ se pondrá en contacto contigo. ¡Gracias!"
 Please enter some text!,"Por favor, introduzca algún texto !"
 Please enter title!,Por favor introduce el título !
 Please login to Upvote!,Inicia sesión para Upvote !
 Please make sure that there are no empty columns in the file.,"Por favor, asegúrese de que no hay columnas vacías en el archivo ."
 Please refresh to get the latest document.,"Por favor, actualice para obtener el último documento ."
+Please reply above this line or remove it if you are replying below it,"Por favor, responda por encima de esta línea o eliminarlo si contestas a continuación se"
 Please select a file or url,"Por favor, seleccione un archivo o URL"
 Please select atleast 1 column from {0} to sort,Por favor seleccione la columna al menos 1 de {0} para ordenar
+Please set {0} first,"Por favor, configure {0} primero"
 Please specify,"Por favor, especifique"
 Please specify 'Auto Email Id' in Setup > Outgoing Email Settings,"Por favor, especifique ' Id Auto Email ""en Configuración> Configuración del correo electrónico saliente"
 Please specify Event date and time,"Por favor, especifique la fecha y hora del evento"
+Please specify doctype,"Por favor, especifique doctype"
+Please specify user,"Por favor, especifique el usuario"
+Please specify which date field must be checked,Por favor especificar qué campo de fecha debe ser verificado
+Please specify which value field must be checked,"Por favor, especifique qué campo valor debe ser revisado"
+Please upload using the same template as download.,"Por favor, sube con la misma plantilla para su descarga."
 Plugin,Plugin
 Port,puerto
 Post,puesto
@@ -769,9 +841,16 @@ Previous Record,Registro anterior
 Primary,primario
 Print,impresión
 Print Format,Formato de impresión
+Print Format Help,Formato de impresión de Ayuda
 Print Format Type,Formato de impresión Tipo
+Print Format {0} does not exist,Formato de impresión de {0} no existe
+Print Format {0} is disabled,Formato de impresión de {0} está deshabilitado
 Print Hide,Imprimir Ocultar
+Print Settings,Ajustes de impresión
+Print Style,Estilo de impresión
+Print Style Preview,Estilo de impresión Vista previa
 Print Width,Ancho de impresión
+"Print with Letterhead, unless unchecked in a particular Document","Imprimir con membrete, a menos que sin comprobar en un documento concreto"
 Print...,Imprimir ...
 Printing and Branding,Prensa y Branding
 Priority,prioridad
@@ -783,6 +862,7 @@ Property Type,Tipo de Inmueble
 Public,público
 Published,publicado
 Published On,Publicado el
+Published on website at: {0},Publicado en el sitio web en: {0}
 Pull Emails from the Inbox and attach them as Communication records (for known contacts).,Tire de la bandeja de entrada de mensajes de correo electrónico que se adjuntarán como registros de comunicación ( para contactos conocidos) .
 Query,pregunta
 Query Options,Opciones de consulta
@@ -810,7 +890,6 @@ Refreshing...,Refrescante ...
 Registered but disabled.,"De registro , pero está deshabilitado ."
 Registration Details Emailed.,Detalles del registro enviadas por correo electrónico .
 Reload Page,recargar página
-Remove,eliminar
 Remove Bookmark,Retire Bookmark
 Remove all customizations?,Retire todas las personalizaciones ?
 Rename many items by uploading a .csv file.,Cambiar el nombre de muchos artículos mediante la subida de un archivo csv . .
@@ -827,10 +906,12 @@ Report Name,Nombre del informe
 Report Type,Tipo de informe
 Report an Issue,Informar un problema
 Report cannot be set for Single types,Reportar no se puede configurar para los tipos individuales
+Report this issue,Señalar este tema
 Report was not saved (there were errors),Informe no se guardó ( hubo errores )
 Reqd,reqd
 Reset Password Key,Restablecer contraseña de clave
 Reset Permissions for {0}?,Restablecer los permisos para {0} ?
+Response,Respuesta
 Restrict IP,Restringir IP
 Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111),Restringir el usuario desde esta dirección IP única . Varias direcciones IP se pueden agregar al separar con comas. También acepta direcciones IP parciales como ( 111.111.111 )
 Right,derecho
@@ -846,11 +927,15 @@ Roles HTML,Roles HTML
 Roles can be set for users from their User page.,Las funciones se pueden configurar para los usuarios de su página de usuario .
 Root {0} cannot be deleted,Raíz {0} no se puede eliminar
 Row,fila
+Row #{0}:,Fila # {0}:
 Rules defining transition of state in the workflow.,Reglas que definen la transición de estado del flujo de trabajo .
 "Rules for how states are transitions, like next state and which role is allowed to change state etc.","Reglas para cómo los estados son las transiciones , como el siguiente estado y qué papel se le permite cambiar de estado , etc"
+Run scheduled jobs only if checked,Ejecutar los trabajos programados sólo si controladas
+Run the report first,Ejecute el informe primero
 SMTP Server (e.g. smtp.gmail.com),"SMTP Server ( por ejemplo, smtp.gmail.com )"
 Sales,venta
 Same file has already been attached to the record,Lo mismo archivo ya se ha adjuntado al expediente
+Sample,Muestra
 Saturday,sábado
 Save,guardar
 Scheduler Log,Programador Iniciar sesión
@@ -859,6 +944,8 @@ Script Report,Informe de secuencias de comandos
 Script Type,Guión Tipo
 Search,búsqueda
 Search Fields,campos de búsqueda
+Search in a document type,Buscar en un tipo de documento
+Search or type a command,Busque o escriba un comando
 Section Break,Salto de sección
 Security,seguridad
 Security Settings,Configuración de seguridad
@@ -881,10 +968,15 @@ Select or drag across time slots to create a new event.,Seleccione o arrastre a 
 "Select target = ""_blank"" to open in a new page.","Select target = "" _blank"" para abrir en una nueva página."
 Select the label after which you want to insert new field.,Seleccione la etiqueta después de la cual desea insertar el nuevo campo .
 Send,enviar
+Send Alert On,Enviar Alerta en
 Send As Email,Enviar como correo electrónico
+Send Email,Enviar Email
+Send Email Print Attachments as PDF (Recommended),Enviar Email Imprimir adjuntos en formato PDF (recomendado)
 Send Me A Copy,Enviarme una copia
 Send Password,Enviar contraseña
-Send Print in Body and Attachment,Enviar Imprimir en cuerpo y adjuntos
+Send Print as PDF,Enviar Imprimir en PDF
+Send alert if date matches this field's value,Envíe la alarma si la fecha coincide con el valor de este campo
+Send alert if this field's value changes,Enviar alerta si cambia el valor de este campo
 Send an email reminder in the morning,Enviar un recordatorio por correo electrónico en la mañana
 Send download link of a recent backup to System Managers,Enviar enlace de descarga de una copia de seguridad reciente para Gerentes de Sistemas
 Send enquiries to this email address,Puede enviar sus preguntas a la siguiente dirección de correo electrónico
@@ -896,6 +988,7 @@ Sent or Received,Envío y de recepción
 Series,serie
 Series {0} already used in {1},Serie {0} ya se utiliza en {1}
 Server,servidor
+Server & Credentials,Servidor y Credenciales
 Server Error: Please check your server logs or contact tech support.,Error de servidor : Se recomienda consultar los registros del servidor o contacte con Atención tecnología.
 Session Expired. Logging you out,Sesión ha finalizado. Iniciando tu salida
 Session Expiry,Sesión de caducidad
@@ -910,6 +1003,7 @@ Set Permissions on Document Types and Roles,Establecer permisos en los tipos de 
 Set Permissions per User,Establecer permisos por usuario
 Set User Permissions,Establecer permisos de usuario
 Set Value,Valor seleccionado
+"Set default format, page size, print style etc.","Establecer formato por defecto, tamaño de página, el estilo de impresión, etc"
 Set numbering series for transactions.,Establecer series de numeración para las transacciones.
 Set outgoing mail server.,Configure el servidor de correo saliente.
 Settings,Configuración
@@ -918,17 +1012,18 @@ Settings for Contact Us Page.,Ajustes para la página de contacto.
 Setup,disposición
 Setup > User,Configuración> Usuario
 Setup > User Permissions Manager,Configuración> Permisos de usuario Administrador
+Setup Email Alert based on various criteria.,Configuración de Alerta de E-mail basado en varios criterios.
 Setup of fonts and background.,Configuración de fuentes y el fondo .
 "Setup of top navigation bar, footer and logo.","Configuración de la barra de navegación superior , pie de página y el logotipo."
 Short Bio,Biográfica
 Short Name,Nombre corto
 Shortcut,atajo
 Show / Hide Modules,Mostrar / Ocultar Módulos
-Show Details,Mostrar detalles
 Show Print First,Mostrar Imprimir Primera
 Show Tags,Mostrar Etiquetas
 Show or hide modules globally.,Mostrar u ocultar los módulos a nivel mundial.
 Show rows with zero values,Mostrar filas con valores de cero
+Show tags,Mostrar etiquetas
 Show this field as title,Mostrar este campo como título
 Showing only for (if not empty),Mostrando sólo para (si no está vacío)
 Sidebar,Sidebar
@@ -953,7 +1048,9 @@ Sort Field,Ordenar campo
 Sort Order,Orden de Clasificación
 Standard,estándar
 Standard Print Format cannot be updated,Formato de impresión estándar no se puede actualizar
+Standard Reply,Responder estándar
 Standard Reports,Informes estándar
+Standard replies to common queries.,Norma responde a las preguntas comunes.
 Start Report For,Informe de inicio para
 Starts on,comienza el
 State,estado
@@ -973,7 +1070,6 @@ Submit,presentar
 Submit an Issue,Presentar un problema
 Submitted,Enviado
 Submitted Document cannot be converted back to draft. Transition row {0},Documento presentado no se puede convertir de nuevo a redactar .
-Submitted Record cannot be deleted,Registro Enviado no se puede eliminar
 Success,éxito
 Suggestion,sugerencia
 Sunday,domingo
@@ -994,18 +1090,21 @@ Target,objetivo
 Tasks,Tareas
 Team Members,Miembros del Equipo
 Team Members Heading,Miembros del Equipo Rúbrica
+Template,Plantilla
 Template Pages cannot be moved,Páginas de plantillas no se pueden mover
-Template Path,ruta de plantilla
 Test,prueba
 Test Runner,Test Runner
 Text,texto
 Text Align,Alineación del texto
 Text Editor,Editor de texto
+Thank you for your message,¡Gracias por tu mensaje!
 The name of your company / website as you want to appear on browser title bar. All pages will have this as the prefix to the title.,El nombre de su empresa / sitio web como usted desea que aparezca en la barra de título del navegador . Todas las páginas tendrán esto como el prefijo del título.
 The system provides many pre-defined roles. You can add new roles to set finer permissions.,El sistema ofrece muchas funciones predefinidas . Usted puede agregar nuevos roles para establecer permisos más finos.
 Then By (optional),Entonces por ( opcional)
+There should remain at least one System Manager,Debe permanecer al menos un administrador del sistema de
 There were errors,Hubo errores
 There were errors while sending email. Please try again.,"Hubo errores al enviar el correo electrónico. Por favor, inténtelo de nuevo."
+"There were some errors setting the name, please contact the administrator","Había algunos errores de configuración el nombre, por favor póngase en contacto con el administrador"
 "These permissions will apply for all transactions where the permitted record is linked. For example, if Company C is added to User Permissions of user X, user X will only be able to see transactions that has company C as a linked value.",Estos permisos se aplican para todas las transacciones en las que se vincula el registro permitido.
 These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,Estos valores se actualizan automáticamente en las transacciones y también serán útiles para restringir los permisos para este usuario en transacciones que contienen estos valores.
 "These will also be set as default values for those links, if only one such permission record is defined.","Estos también se pueden establecer como valores predeterminados para los enlaces , si no se define sólo uno de dichos registros permiso."
@@ -1013,15 +1112,21 @@ Third Party Authentication,Tercer partido de autenticación
 "This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>
 myfield
 eval:doc.myfield=='My Value'<br>
-eval:doc.age>18",Este campo sólo aparecerá si el nombre del campo definido de aquí tiene valor o las reglas son verdaderas ( ejemplos) : <br> \ nmyfield \ neval : doc.myfield == ' Mi Value' <br> \ neval : doc.age > 18
+eval:doc.age>18","Este campo sólo aparecerá si el nombre del campo definido de aquí tiene valor o las reglas son verdaderas (ejemplos): <br> 
+ myfield 
+ eval: doc.myfield == 'Mi Value' <br> 
+ eval: doc.age> 18"
 This goes above the slideshow.,Esto va por encima de la presentación de diapositivas.
 This is PERMANENT action and you cannot undo. Continue?,Esta es una acción permanente y no se puede deshacer . ¿Desea continuar?
+"This is a standard format. To make changes, please copy it make make a new format.","Este es un formato estándar. Para realizar cambios, por favor cópielo hacer hacer un nuevo formato."
 This is permanent action and you cannot undo. Continue?,Esta es una acción permanente y no se puede deshacer . ¿Desea continuar?
 This must be checked if Style Settings are applicable,Esto se debe comprobar si la configuración de estilo son aplicables
 This role update User Permissions for a user,Este papel Permisos de actualización de usuario para un usuario
 Thursday,jueves
+Tile,Título
 Time,tiempo
 Time Zone,huso horario
+Timezone,Zona horaria
 Title,título
 Title / headline of your page,Título / título de su página
 Title Case,Título Case
@@ -1054,22 +1159,21 @@ Unable to load: {0},No se puede cargar : {0}
 Unable to open attached file. Please try again.,"No se puede abrir el archivo adjunto. Por favor, inténtelo de nuevo."
 Unable to send emails at this time,No se pueden enviar mensajes de correo electrónico en este momento
 Unknown Column: {0},Desconocido Columna: {0}
-Unknown Print Format: {0},Desconocido Formato impresión: {0}
 "Unknown file encoding. Tried utf-8, windows-1250, windows-1252.","Codificación de archivo desconocido . Intentado utf- 8 , Windows -1250 , windows-1252 ."
 Unread Messages,Los mensajes no leídos
 Unsubscribe,Cancelar la suscripción
 Unsubscribed,no suscribirse
-Up,hasta
 Upcoming Events for Today,Eventos para Hoy
 Update,actualización
 Update Field,Actualizar campos
-Update Parent,actualización de los Padres
 Update Value,Update Valor
 Updated,actualizado
 Upload,subir
 Upload Attachment,carga de archivos adjuntos
+Upload CSV file containing all user permissions in the same format as Download.,Subir archivo CSV que contiene todos los permisos de usuario en el mismo formato que en Descargar.
 Upload a file,Subir un archivo
 Upload and Import,Subir e importar
+Upload and Sync,Carga y Sincronización
 Uploading...,Subiendo ...
 Upvotes,upvotes
 Use TLS,Utilice TLS
@@ -1087,7 +1191,7 @@ User Tags,Nube de etiquetas
 User Type,Tipo de usuario
 "User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ",
 User Vote,Vota usuario
-User not allowed to delete.,El usuario no permite eliminar.
+User not allowed to delete {0}: {1},El usuario no permite eliminar {0}: {1}
 User permissions should not apply for this Link,Los permisos de usuario no deben aplicarse para este enlace
 User {0} cannot be deleted,El usuario {0} no se puede eliminar
 User {0} cannot be disabled,El usuario {0} no se puede deshabilitar
@@ -1096,7 +1200,11 @@ User {0} does not exist,El usuario {0} no existe
 UserRole,UserRole
 Users and Permissions,Usuarios y permisos
 Users with role {0}:,Los usuarios con rol {0}:
+Valid Login id required.,Identificación de usuario válido requerido.
+Valid email and name required,Válido de correo electrónico y el nombre requerido
 Value,valor
+Value Change,Cambio de Valor
+Value Changed,Valor Cambiado
 Value cannot be changed for {0},El valor no puede ser cambiado para {0}
 Value for a check field can be either 0 or 1,Valor para un campo de verificación puede ser 0 o 1
 Value missing for,Falta un valor de
@@ -1106,6 +1214,7 @@ Version restored,Versión restaurada
 View or manage Website Route tree.,Ver o director del árbol Web Ruta .
 Visit,visita
 Warning,advertencia
+Warning: This Print Format is in old style and cannot be generated via the API.,Advertencia: Este formato de impresión es de estilo antiguo y no se puede generar a través de la API.
 Web Page,página web
 Web Site Forum Page.,Foro del Sitio Web Página .
 Website,sitio web
@@ -1116,7 +1225,6 @@ Website Script,Guión Sitio web
 Website Settings,Configuración del sitio web
 Website Slideshow,Presentación Página Web
 Website Slideshow Item,Sitio web Presentación del artículo
-Website Template,Website Template
 Website User,Sitio Web
 Wednesday,miércoles
 Welcome email sent,Correo electrónico de bienvenida enviado
@@ -1125,6 +1233,7 @@ Width,ancho
 Will be used in url (usually first name).,Se utilizará en url (generalmente primero nombre).
 With Groups,Con Grupos
 With Ledgers,Con Ledgers
+With Letterhead,Con membrete
 Workflow,Workflow
 Workflow Action,Acción Workflow
 Workflow Action Name,Acción Workflow Nombre
@@ -1151,12 +1260,17 @@ You are not allowed to print this document,No está autorizado a imprimir este d
 You are not allowed to send emails related to this document,Usted no tiene permiso para enviar mensajes de correo electrónico relacionados con este documento
 "You can change Submitted documents by cancelling them and then, amending them.","Puede cambiar los documentos presentados por la cancelación de ellos y luego , de enmendarlos."
 You can use Customize Form to set levels on fields.,Usted puede utilizar Personalizar formulario para establecer los niveles de los campos .
+You can use wildcard %,Puede utilizar caracteres comodín%
 You cannot install this app,No se puede instalar esta aplicación
 You have unsaved changes in this form. Please save before you continue.,Usted tiene cambios sin guardar en este formulario.
 You need to be logged in and have System Manager Role to be able to access backups.,Necesitas estar conectado y tener el Administrador del sistema de funciones para poder tener acceso a las copias de seguridad .
 You need write permission to rename,Usted necesita permiso de escritura para cambiar el nombre
+"You seem to have written your name instead of your email. \
+					Please enter a valid email address so that we can get back.","Parece que ha escrito su nombre en lugar de su correo electrónico. \
+ Por favor, introduce una dirección de email válida para que podamos volver."
 "Your download is being built, this may take a few moments...","Su descarga se está construyendo , esto puede tardar unos minutos ..."
 [Label]:[Field Type]/[Options]:[Width],[ Label ] : [ Tipo de Campo] / [ Opciones] : [Ancho ]
+[Optional] Send the email X days in advance of the specified date. 0 equals same day.,[Opcional] Enviar los días email X antes de la fecha especificada. 0 es igual mismo día.
 add your own CSS (careful!),añada su propio CSS ( ¡cuidado! )
 adjust,ajustar
 align-center,align -center
@@ -1195,6 +1309,7 @@ cog,diente
 comment,comentario
 comments,comentarios
 dd-mm-yyyy,dd- mm- aaaa
+dd.mm.yyyy,dd.mm.aaaa
 dd/mm/yyyy,dd / mm / aaaa
 download,descargar
 download-alt,descargar -alt
@@ -1309,9 +1424,11 @@ tint,tinte
 to,a
 trash,basura
 upload,subir
+use % as wildcard,Use% como comodín
 user,usuario
 user_image_show,user_image_show
 values and dates,valores y fechas
+values separated by commas,valores separados por comas
 volume-down,volumen hacia abajo
 volume-off,volumen de despegue
 volume-up,volumen -up
@@ -1320,6 +1437,8 @@ wrench,llave inglesa
 yyyy-mm-dd,aaaa- mm -dd
 zoom-in,acércate con el zoom
 zoom-out,de alejamiento
+{0} List,{0} Lista
+{0} added,{0} agregado
 {0} by {1},{0} por {1}
 {0} cannot be set for Single types,{0} no se puede establecer para los tipos individuales
 {0} does not exist in row {1},{0} no existe en la fila {1}
@@ -1328,14 +1447,18 @@ zoom-out,de alejamiento
 {0} is required,{0} es necesario
 {0} is saved,{0} se guarda
 {0} must be one of {1},{0} debe ser una de {1}
+{0} must be set first,{0} debe establecerse primero
 {0} not a valid State,{0} no es un Estado válida
 {0} not allowed in fieldname {1},{0} no permitido en el nombre de campo {1}
 {0} not allowed in name,{0} no se permite en nombre
 {0} not allowed to be renamed,{0} no se les permite cambiar el nombre
 {0} updated,{0} actualizado
 {0} {1} already exists,{0} {1} ya existe
+"{0} {1} cannot be ""{2}"". It should be one of ""{3}""","{0} {1} no puede ser ""{2}"". Debe ser uno de ""{3}"""
 {0} {1} cannot be a leaf node as it has children,"{0} {1} no puede ser un nodo de hoja , ya que tiene los niños"
 "{0} {1} does not exist, select a new target to merge","{0} {1} no existe , seleccione un nuevo objetivo de fusionar"
+{0} {1} not found,{0} {1} no encontrado
+{0} {1}: Submitted Record cannot be deleted.,{0} {1}: Registro Enviado no se puede eliminar.
 {0}: Cannot set Amend without Cancel,{0}: no se puede establecer sin Enmendar Cancelar
 {0}: Cannot set Assign Amend if not Submittable,{0}: no se puede establecer Asignar enmendar si no submittable
 {0}: Cannot set Assign Submit if not Submittable,{0}: no se puede establecer Asignar Enviar si no submittable

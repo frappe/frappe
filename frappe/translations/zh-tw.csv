@@ -3,6 +3,8 @@
 """Company History""",“公司歷史”
 """Team Members"" or ""Management""",“團隊成員”或“管理”
 'In List View' not allowed for type {0} in row {1},“在列表視圖中”不允許類型{0}行{1}
+0 - Draft; 1 - Submitted; 2 - Cancelled,0 - 草案; 1 - 呈交; 2 - 取消
+0 is highest,0是最高的
 "000 is black, fff is white",000是黑色的，FFF是白色的
 2 days ago,3天前
 "<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank"">[?]</a>","<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank"">[？]</a>"
@@ -11,7 +13,17 @@
 <li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\
 <li><b>Prompt</b> - Prompt user for a name\
 <li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\
-</ol>')"">Naming Options</a>",<一的onclick = “ msgprint （' <OL> \ \ ñ <LI> <B>場： [字段名] < / B> - 按字段\ \ ñ <LI> <B> naming_series ： < / B> - 通過命名
+</ol>')"">Naming Options</a>","<一的onclick =“msgprint（'<OL> \
+ <LI> <B>場：[字段名] </ B> - 按字段\
+ <LI> <B> naming_series：</ B > - 通過命名系列（場稱為naming_series必須存在\
+ <LI> <B>提示</ B> - 提示用戶輸入一個名字\
+ <LI> <B> [系列] </ ，B> - 系列由前綴（由點號分隔），例如PRE＃＃＃＃＃\
+ </ OL>'）“>命名選項</ a>"
+<b>new</b> <i>type of document</i>,<B>新</ B> <I>類型的文件</ I>
+"<i>document type...</i>, e.g. <b>customer</b>",<I>文檔類型... </ I>，如<B>客戶</ B>
+<i>e.g. <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>,<I>如<STRONG>（55 + 434）/ 4 </ strong>或<STRONG> =數學。黃大仙（公式PI / 2）</ STRONG> ... </ I>
+<i>module name...</i>,<I>模塊名稱... </ I>
+<i>text</i> <b>in</b> <i>document type</i>,<I>文字</ I>（B）在</ B> <I>文檔類型</ I>
 A user can be permitted to multiple records of the same DocType.,用戶可以被允許同一的DocType的多個記錄。
 About,關於
 About Us Settings,關於我們設置
@@ -38,10 +50,12 @@ Add attachment,添加附件
 Add code as &lt;script&gt;,添加代碼為&lt;SCRIPT&gt;
 Add custom javascript to forms.,添加自定義的Java Script才能形成。
 Add fields to forms.,將字段添加到窗體。
+Add multiple rows,添加多行
 Add new row,添加新行
 "Add the name of <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> e.g. ""Open Sans""","新增的名稱<a href=""http://google.com/webfonts"" target=""_blank"">谷歌網頁字體</a>如“打開三世”"
 Add to To Do,添加到待辦事項
 Add to To Do List Of,添加到待辦事項列表
+Added {0} ({1}),添加{0}（{1}）
 Adding System Manager to this User as there must be atleast one System Manager,添加系統管理員給此用戶的，必須有ATLEAST 1系統管理
 Additional Info,附加信息
 Additional Permissions,額外的權限
@@ -53,6 +67,7 @@ Address and other legal information you may want to put in the footer.,地址和
 Admin,管理員
 All Applications,所有應用
 All Day,全日
+All customizations will be removed. Please confirm.,所有自定義都將被刪除。請證實。
 "All possible Workflow States and roles of the workflow. <br>Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""",所有可能的工作流程狀態和工作流的角色。 <br> Docstatus選項：0是“保存”，1“已提交”和2“取消”
 Allow Attach,允許連接
 Allow Import,允許進口
@@ -71,11 +86,11 @@ Always use above Login Id as sender,請務必使用上述登錄ID作為發件人
 Amend,修改
 "An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [<a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a>]","一個圖標文件，擴展名為。ico。應該是16×16像素。使用的favicon生成器生成。 [ <a href=""http://favicon-generator.org/"" target=""_blank"">網站圖標- generator.org</a> ]"
 "Another {0} with name {1} exists, select another name",另一{0}名{1}存在，選擇另一個名字
+Any existing permission will be deleted / overwritten.,任何現有的權限將被刪除/覆蓋。
 Anyone Can Read,任何人都可以閱讀
 Anyone Can Write,任何人都可以寫
 "Apart from Role based Permission Rules, you can apply User Permissions based on DocTypes.",除了基於角色的權限規則，您可以根據文檔類型應用的用戶權限。
 "Apart from System Manager, roles with 'Set User Permissions' right can set permissions for other users for that Document Type.",除了系統管理器，用'設置用戶權限“正確的角色可以設置權限的其他用戶的文件類型。
-App Already Installed,應用程序已安裝
 App Name,應用程序名稱
 App not found,應用程序未找到
 Application Installer,應用程序安裝器
@@ -107,12 +122,13 @@ Avatar,阿凡達
 Back to Login,返回登錄
 Background Color,背景顏色
 Background Image,背景圖片
+Background Style,背景樣式
 Banner,旗幟
 Banner HTML,橫幅的HTML
 Banner Image,橫幅圖片
 Banner is above the Top Menu Bar.,旗幟就是上面的頂部菜單欄。
-Base Template Path,基礎模板路徑
 Begin this page with a slideshow of images,開始這個頁面圖像的幻燈片
+Beginning with,開頭
 Belongs to,屬於
 Bio,生物
 Birth Date,出生日期
@@ -124,11 +140,13 @@ Blog Settings,博客設置
 Blog Title,博客標題
 Blogger,博客
 Bookmarks,書籤
+Both login and password required,既需要登錄名和密碼
 Brand HTML,品牌的HTML
 Bulk Email,大量電子郵件
 Bulk email limit {0} crossed,群發電子郵件的限制{0}劃線
 Button,鈕
 By,通過
+Calculate,計算
 Calendar,日曆
 Cancel,取消
 Cancelled,註銷
@@ -142,7 +160,6 @@ Cannot change state of Cancelled Document. Transition row {0},不能改變註銷
 Cannot change {0},不能改變{0}
 Cannot delete or cancel because {0} {1} is linked with {2} {3},不能刪除或取消，因為{0} {1}與聯{2} {3}
 Cannot delete {0} as it has child nodes,無法刪除{0} ，因為它有子節點
-Cannot delete {0} {1} is it is referenced in another record,無法刪除{0} {1}在另一個記錄中引用
 Cannot edit standard fields,不能編輯標準字段
 Cannot map because following condition fails: ,無法對應，因為以下條件失敗：
 Cannot open instance when its {0} is open,無法打開實例時，它的{0}是開放的
@@ -150,6 +167,7 @@ Cannot open {0} when its instance is open,無法打開{0} ，當它的實例是�
 Cannot print cancelled documents,無法打印的文檔取消
 Cannot remove permission for DocType: {0} and Name: {1},無法刪除權限的DocType ： {0}和名稱： {1}
 Cannot reply to a reply,無法回复回复
+Cannot set Email Alert on Document Type {0},無法設置電子郵件警報的文件類型{0}
 Cannot set permission for DocType: {0} and Name: {1},無法設置權限的DocType ： {0}和名稱： {1}
 Categorize blog posts.,分類博客文章。
 Category,類別
@@ -162,21 +180,22 @@ Check,查
 Check / Uncheck roles assigned to the User. Click on the Role to find out what permissions that Role has.,查看/取消選中分配給個人的角色。點擊角色，找出哪些權限的角色了。
 Check this if you want to send emails as this id only (in case of restriction by your email provider).,如果您要發送的郵件，因為這ID只（如果限制您的電子郵件提供商）進行檢查。
 Check this to make this the default letter head in all prints,勾選這個來讓這個默認的信頭中的所有打印
+Check which Documents are readable by a User,檢查哪些文件是可讀的用戶
 Checked items shown on desktop,在桌面上顯示檢查的項目
 Child Tables are shown as a Grid in other DocTypes.,子表中顯示為其他文檔類型的Grid。
 City,城市
+Classic,經典
 Clear Cache,清除緩存
 Clear all roles,清除所有角色
-Click on a link to get options to expand get options ,點擊一個鏈接以獲取股權以擴大獲取選項
+Click on a link to get options,點擊一個鏈接以獲取選項
 Click on row to view / edit.,點擊一行，查看/編輯。
-Click to Expand / Collapse,點擊展開/折疊
 Client,客戶
+Client-side formats are now deprecated,客戶端的格式現在已經過時
 Close,關閉
 Close: {0},關閉： {0}
 Closed,關閉
 Code,碼
 Collapse,崩潰
-Color,顏色
 Column Break,分欄符
 Comment,評論
 Comment By,評論人
@@ -192,7 +211,7 @@ Company History,公司歷史
 Company Introduction,公司簡介
 Complaint,抱怨
 Complete By,完成
-Condition Field,條件字段
+Condition,條件
 Contact Us Settings,聯繫我們設置
 "Contact options, like ""Sales Query, Support Query"" etc each on a new line or separated by commas.",聯繫人選項，如“銷售查詢，支持查詢”等每一個新行或以逗號分隔。
 Content,內容
@@ -208,6 +227,7 @@ Could not find {0},找不到{0}
 Count,算
 Country,國家
 Create,創建
+Create a new {0},創建一個新的{0}
 Created Custom Field {0} in {1},創建自定義字段{0} {1}
 Created Customer Issue,創建客戶問題
 Created Opportunity,創造機會
@@ -233,14 +253,18 @@ Data Import / Export Tool,數據導入/導出工具
 Data Import Tool,數據導入工具
 Data missing in table,在表中的數據丟失
 Date,日期
+Date Change,日期變更
+Date Changed,更改日期
 Date Format,日期格式
 Date and Number Format,日期和數字格式
 Date must be in format: {0},日期格式必須是： {0}
 Datetime,日期時間
+Days in Advance,提前天
 Dear,親愛
 Default,默認
 Default Print Format,默認打印格式
 Default Value,默認值
+Default is system timezone,默認為系統時區
 "Default: ""Contact Us""",默認：“聯繫我們”
 DefaultValue,默認值
 Defaults,默認
@@ -287,7 +311,6 @@ Document Type,文件類型
 Document is only editable by users of role,文件只有通過編輯角色的用戶
 Documentation,文檔
 Documents,文件
-Down,向下
 Download,下載
 Download Backup,下載備份
 Download link for your backup will be emailed on the following email address:,下載鏈接為您的備份將通過電子郵件發送以下電子郵件地址：
@@ -295,10 +318,17 @@ Drafts,草稿箱
 Drag to sort columns,拖動進行排序的列
 Due Date,到期日
 Duplicate name {0} {1},重複的名稱{0} {1}
+Dynamic Link,動態鏈接
+ERPNext Demo,ERPNext演示
 Edit,編輯
 Edit Permissions,編輯權限
 Editable,編輯
 Email,電子郵件
+Email Alert,電子郵件警報
+Email Alert Recipient,電子郵件警報收件人
+Email Alert Recipients,電子郵件警報收件人
+Email By Document Field,電子郵件通過文檔字段
+Email Footer,電子郵件頁腳
 Email Host,電子郵件主機
 Email Id,電子郵件Id
 Email Login,郵箱登錄
@@ -316,6 +346,7 @@ Emails are muted,電子郵件是靜音
 Embed image slideshows in website pages.,嵌入圖像的幻燈片中的網頁。
 Enable,啟用
 Enable Comments,啟用評論
+Enable Scheduled Jobs,啟用預定作業
 Enabled,啟用
 Ends on,結束於
 Enter Form Type,輸入表單類型
@@ -325,6 +356,7 @@ Enter at least one permission row,輸入至少一個排的權限
 "Enter keys to enable login via Facebook, Google, GitHub.",回車鍵通過Facebook，谷歌， GitHub上啟用登錄。
 Equals,等號
 Error,錯誤
+"Error generating PDF, attachment sent as HTML",錯誤生成PDF，附件發送的HTML
 Error: Document has been modified after you have opened it,錯誤：你已經打開了它之後，文件已被修改
 Event,事件
 Event Datetime,活動日期時間
@@ -340,11 +372,13 @@ Every Day,天天
 Every Month,每月
 Every Week,每一周
 Every Year,每年
+Everyone,大家
 Example:,例如：
 Expand,擴大
 Export,出口
 Export not allowed. You need {0} role to export.,導出不允許的。您需要{0}的角色出口。
 Exported,出口
+"Expression, Optional",表達，可選
 Facebook,Facebook的
 Facebook Client ID,Facebook的客戶端ID
 Facebook Client Secret,Facebook的客戶端秘密
@@ -363,11 +397,12 @@ Field {0} of type {1} cannot be mandatory,域{0}類型{1}不能強制
 Fieldname,字段名
 Fieldname is required in row {0},字段名是必需的行{0}
 Fieldname not set for Custom Field,字段名不為自定義字段設置
+Fieldname which will be the DocType for this link field.,字段名這將是在DOCTYPE這個鏈接字段。
 Fieldname {0} appears multiple times in rows {1},字段名{0}中多次出現列{1}
 "Fieldname {0} cannot contain letters, numbers or spaces",字段名{0}不能包含字母，數字或空格
 Fields,領域
 "Fields separated by comma (,) will be included in the<br /><b>Search By</b> list of Search dialog box",字段用逗號（，）分隔將被納入<br /> <b>搜索</b>的搜索對話框列表
-Fieldtype must be one of {0} in row {1},字段類型必須是{0}之一行{1}
+Fieldtype cannot be changed from {0} to {1} in row {2},字段類型不能從{0}改變為{1}中排{2}
 File,文件
 File Data,文件數據
 File Name,文件名
@@ -375,20 +410,27 @@ File Size,文件大小
 File URL,文件的URL
 File not attached,文件未附
 File size exceeded the maximum allowed size of {0} MB,文件大小超過{0} MB的最大允許大小
+Fill Screen,填充屏幕
 Filter,過濾器
 Filter records based on User Permissions defined for a user,基於對用戶定義的用戶權限篩選記錄
+Filters,篩選器
+Find {0} in {1},找到{0} {1}
 First Name,名字
 Float,浮動
 Float Precision,float精度
 Font (Heading),字體（標題）
 Font (Text),字體（文字）
+Font Size,字體大小
 Font Size (Text),字體大小（文本）
 Fonts,字體
 Footer,頁腳
+Footer Background,頁腳背景
 Footer Items,頁腳項目
+Footer Text,頁腳文本
 For DocType,為的DocType
 "For Links, enter the DocType as range
-For Select, enter list of Options separated by comma",對於鏈接，進入文檔類型為範圍\ n對於選擇，進入選項列表以逗號分隔
+For Select, enter list of Options separated by comma","對於鏈接，進入文檔類型為範圍
+對於選擇，進入選項列表以逗號分隔"
 "For comparative filters, start with",對於比較器，開始
 For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,例如，如果你取消及修訂“INV004”它將成為一個新的文檔&#39;INV004-1&#39;。這可以幫助您跟踪每一項修正案。
 For ranges,對於範圍
@@ -400,6 +442,7 @@ Form,表格
 Forum,論壇
 Forums,論壇
 Forward To Email Address,轉發到郵件地址
+Frappe Framework,冰沙框架
 Friday,星期五
 From Date must be before To Date,從日期必須是之前日期
 Full Name,全名
@@ -409,6 +452,7 @@ Generator,發電機
 Georgia,格魯吉亞
 Get,得到
 Get From ,得到
+"Get your globally recognized avatar from <a href=""https://gravatar.com/"">Gravatar.com</a>","讓您的全球公認的頭像從<a href=""https://gravatar.com/""> Gravatar.com </ A>"
 GitHub,GitHub的
 GitHub Client ID,GitHub的客戶ID
 GitHub Client Secret,GitHub的客戶端秘密
@@ -436,15 +480,14 @@ Header,頭
 Heading,標題
 Heading Text As,標題文字作為
 Help,幫助
+Help on Search,幫助上搜索
 Helvetica Neue,Helvetica Neue字體
-Hey! There should remain at least one System Manager,嘿！應該保持至少一個系統管理器
 Hidden,隱
 Hide Actions,隱藏操作
 Hide Copy,隱藏副本
-Hide Email,隱藏電子郵件
 Hide Heading,隱藏標題
-Hide Print,隱藏打印
 Hide Toolbar,隱藏工具欄
+Hide the sidebar,隱藏側邊欄
 High,高
 Highlight,突出
 History,歷史
@@ -455,7 +498,6 @@ Icon,圖標
 Icon will appear on the button,圖標將顯示在按鈕上
 "If a Role does not have access at Level 0, then higher levels are meaningless.",如果角色沒有訪問權限級別為0級，那麼更高的水平是沒有意義的。
 "If checked, all other workflows become inactive.",如果選中，所有其他的工作流程變得無效。
-"If checked, an email with an attached HTML format will be added to part of the EMail body as well as attachment. To only send as attachment, uncheck this.",如果選中，則帶有附加的HTML格式的電子郵件會被添加到電子郵件正文的一部分，以及作為附件。如果只作為附件發送，請取消勾選此。
 "If checked, the Home page will be the default Item Group for the website.",如果選中，主頁將是默認的項目組的網站上。
 "If image is selected, color will be ignored (attach first)",如果圖像被選中，顏色將被忽略（先附上）
 If non standard port (e.g. 587),如果非標準端口（如587）
@@ -473,9 +515,10 @@ In Dialog,在對話框
 In Filter,在過濾器
 In List View,在列表視圖
 In Report Filter,在報表篩選
+In points. Default is 9.,以點為單位。默認值是9。
 In response to,響應於
 Incorrect value in row {0}: {1} must be {2} {3},不正確的值在列{0} ： {1}必須是{2} {3}
-Incorrect value: {1} must be {2} {3},不正確的值： {1}必須是{2} {3}
+Incorrect value: {0} must be {1} {2},不正確的值：{0}必須是{1} {2}
 Index,指數
 Individuals,個人
 Info,信息
@@ -496,6 +539,7 @@ Introductory information for the Contact Us Page,介紹信息的聯繫我們頁�
 Invalid Email: {0},無效的電子郵件： {0}
 Invalid Filter: {0},無效的過濾器： {0}
 Invalid Home Page,無效的主頁
+Invalid Login,無效登錄
 Invalid Outgoing Mail Server or Port,無效的發送郵件服務器或端口
 Invalid login or password,無效的登錄名或密碼
 Invalid recipient address,無效的收件人地址
@@ -532,6 +576,7 @@ Leave blank to repeat always,留空將總是重複
 Left,左
 Less or equals,小於或等於
 Less than,小於
+Letter,信
 Letter Head,信頭
 Letter Head Name,信頭名
 Letter Head in HTML,信頭中的HTML
@@ -539,13 +584,13 @@ Level,級別
 "Level 0 is for document level permissions, higher levels for field level permissions.",0級是文件級權限，更高層次字段級權限。
 Like,喜歡
 Link,鏈接
-Link Name,鏈接名稱
 "Link that is the website home page. Standard Links (index, login, products, blog, about, contact)",鏈接是網站的主頁。標準鏈接（索引，登錄，產品，博客，約，接觸）
 Link to other pages in the side bar and next section,鏈接到側欄和下一節其他頁面
 Link to the page you want to open,鏈接到你想打開的網頁
 Linked In Share,反向鏈接分享
 Linked With,掛具
 List,表
+List a document type,列出的文件類型
 List of Web Site Forum's Posts.,網站論壇的帖子列表。
 Loading,載入中
 Loading Report,加載報表
@@ -565,6 +610,7 @@ Lucida Grande,龍力大
 Mail Password,郵件密碼
 Main Section,主科
 Make a new,創建一個新的
+Make a new record,制唱片
 Male,男性
 Manage cloud backups on Dropbox,管理上的Dropbox雲備份
 Manage uploaded files.,管理上傳的文件。
@@ -579,12 +625,14 @@ Medium,中
 "Menu items in the Top Bar. For setting the color of the Top Bar, go to <a href=""#Form/Style Settings"">Style Settings</a>","在頂欄菜單項。設置最上面一欄的顏色，去<a href=""#Form/Style Settings"">樣式設置</a>"
 Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node,合併是唯一可能的組到組或葉節點到葉節點
 Message,信息
+Message Examples,消息示例
 Messages,消息
 Method,方法
 Middle Name (Optional),中間名（可選）
 Misc,雜項
 Miscellaneous,雜項
 Missing Values Required,所需遺漏值
+Modern,現代
 Modified by,改性
 Module,模
 Module Def,模塊高清
@@ -594,7 +642,6 @@ Modules Setup,模塊設置
 Monday,星期一
 More,更多
 More content for the bottom of the page.,更多的內容的頁面的底部。
-Move,移動
 Move Down: {0},下移： {0}
 Move Up: {0},上移： {0}
 Multiple root nodes not allowed.,不允許多個根節點。
@@ -607,6 +654,8 @@ Name and Description,名稱和說明
 Name is required,名稱是必需的
 Name not permitted,名稱不允許
 Name not set via Prompt,名稱未通過設置提示
+Name of the Document Type (DocType) you want this field to be linked to. e.g. Customer,你想這個字段鏈接到該文檔類型（DOCTYPE）下的名稱。如客戶
+Name of {0} cannot be {1},{0}的名稱不能為{1}
 Naming,命名
 Naming Series mandatory,命名系列強制性
 Nested set error. Please contact the Administrator.,嵌套組的錯誤。請聯繫管理員。
@@ -616,23 +665,21 @@ New Record,新記錄
 New comment on {0} {1},新評論{0} {1}
 New password emailed,新的密碼通過電子郵件發送
 New value to be set,新的值被設置
+New {0},新的{0}
 Next Communcation On,下一步通信電子在
 Next Record,下一紀錄
 Next State,下一狀態
 Next actions,下一步行動
 No,無
 No Action,無動作
-No Cache,無緩存
 No Communication tagged with this ,無標籤的通信與此
 No Copy,沒有複製
 No Permissions set for this criteria.,沒有權限設置此標準。
 No Report Loaded. Please use query-report/[Report Name] to run a report.,無報告加載。請使用查詢報告/ [報告名稱]運行報告。
 No Results,沒有結果
 No Sidebar,沒有側邊欄
-No Sitemap,沒有網站地圖
 No User Permissions found.,沒有用戶權限找到。
 No data found,沒有找到數據
-No document selected,沒有選擇文件
 No file attached,沒有附加的文件
 No further records,沒有進一步的記錄
 No one,沒有人
@@ -640,6 +687,8 @@ No permission to '{0}' {1},沒有權限“{0}” {1}
 No permission to edit,無權限進行編輯
 No permission to write / remove.,沒有權限寫入/刪除。
 No records tagged.,沒有記錄標記。
+No template found at path: {0},沒有模板的路徑中找到：{0}
+No {0} permission,否{0}的權限
 None,無
 None: End of Workflow,無：結束的工作流程
 Not Found,未找到
@@ -663,7 +712,6 @@ Not permitted,不允許
 "Note: For best results, images must be of the same size and width must be greater than height.",注意：為達到最佳效果，圖像必須具有相同的尺寸和寬度必須大於高度。
 Note: Other permission rules may also apply,注：其它權限規則也可申請
 Note: maximum attachment size = 1mb,注：附件大小上限= 1MB
-Nothing to delete,沒什麼可刪除
 Nothing to show,沒有顯示
 Nothing to show for this selection,沒什麼可顯示該選擇
 Notification Count,通知計數
@@ -676,11 +724,20 @@ Only Administrator allowed to create Query / Script Reports,只有管​​理�
 Only Administrator can save a standard report. Please rename and save.,只有管​​理員可以保存一個標準的報告。請重新命名並保存。
 Only Allow Edit For,只允許編輯
 Only allowed {0} rows in one import,只允許{0}在一個導入行
+Oops! Something went wrong,糟糕！出事了
 Open,開
 Open Count,打開計數
 Open Sans,開放三世
+Open Source Web Applications for the Web,開源Web應用程序的Web
+Open a module or tool,打開一個模塊或工具
+Open {0},打開{0}
+Optional: Alert will only be sent if value is a valid email id.,可選：警報將只當值是一個有效的電子郵件ID發送。
+Optional: Always send to these ids. Each email id on a new row,可選：總是發送給這些ID。在一個新行的每一個電子郵件ID
+Optional: The alert will be sent if this expression is true,可選：警報會在這個表達式為true發送
 Options,選項
+Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType',選擇“動態鏈接”類型的字段都必須指向另一個鏈接字段的選項為'的DocType“
 Options Help,選項幫助
+Options for select. Each option on a new line. e.g.: <br>Option 1<br>Option 2<br>Option 3<br>,對於選擇選項。在新行的每個選項。例如：<BR>選項1免選項2 <BR>選項3 <BR>
 Options must be a valid DocType for field {0} in row {1},選項必須是字段的有效的DocType {0}行{1}
 Options not set for link field {0},對於鏈接字段沒有設置選項{0}
 Options requried for Link or Table type field {0} in row {1},requried的鏈接或表類型字段選項{0}行{1}
@@ -691,15 +748,19 @@ Other,其他
 Outgoing Email Settings,傳出電子郵件設置
 Outgoing Mail Server,發送郵件服務器
 Outgoing Mail Server not specified,未指定發送郵件服務器
+Owner,業主
+PDF Page Size,PDF頁面大小
+PDF Settings,PDF設置
 POP3 Mail Server (e.g. pop.gmail.com),POP3郵件服務器（如：pop.gmail.com）
 Page,頁面
+Page #{0} of {1},頁＃{0} {1}
 Page Background,頁面背景
-Page Border,頁面邊框
 Page HTML,頁面的HTML
-Page Headings,頁面標題
+Page Header,頁眉
+Page Header Background,網頁標題背景
+Page Header Text,頁眉文本
 Page Links,網頁鏈接
 Page Name,網頁名稱
-Page Name Field,頁面名稱字段
 Page Role,第角色
 Page Text,頁面文字
 Page Title,頁面標題
@@ -707,7 +768,6 @@ Page content,頁面內容
 Page not found,找不到網頁
 Page or Generator,頁或生成
 Page url name (auto-generated),頁面的URL名稱（自動生成）
-Page with name {0} already exists,頁面名稱為{0}已存在
 Parent Label,父標籤
 Parent Post,家長發表
 Parent Website Page,父網站頁面
@@ -727,6 +787,7 @@ Permanently delete {0}?,永久刪除{0} ？
 Permission Level,權限級別
 Permission Levels,權限級別
 Permission Rules,權限規則
+Permission already set,權限已經設置
 Permissions,權限
 Permissions Settings,權限設置
 Permissions are automatically translated to Standard Reports and Searches.,權限會自動轉換為標準報表和搜索。
@@ -734,6 +795,7 @@ Permissions are automatically translated to Standard Reports and Searches.,權�
 Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles.,在更高級別的權限是“現場級”的權限。
 "Permissions at level 0 are 'Document Level' permissions, i.e. they are primary for access to the document.",在0級權限是“文件級”的權限，也就是說，它們是主要用於訪問文件。
 Permissions get applied on Users based on what Roles they are assigned.,權限基於什麼角色，他們被分配在用戶得到應用。
+Permitted Documents For User,許可文件對於用戶
 Person,人
 Personal Info,個人信息
 Phone,電話
@@ -746,16 +808,26 @@ Please attach a file or set a URL,請附上一個文件或設置一個URL
 Please do not change the rows above {0},請不要更改上面的行{0}
 Please enable pop-ups,請啟用彈出窗口
 Please enter Event's Date and Time!,請輸入事件的日期和時間！
+"Please enter both your email and message so that we \
+				can get back to you. Thanks!","請同時輸入您的電子郵件和消息，以便我們\
+能盡快給您回复。謝謝！"
 Please enter some text!,請輸入一些文字！
 Please enter title!,請輸入標題！
 Please login to Upvote!,請登錄到的upvote ！
 Please make sure that there are no empty columns in the file.,請確保沒有空列在文件中。
 Please refresh to get the latest document.,請刷新以獲得最新的文檔。
+Please reply above this line or remove it if you are replying below it,請回复這條線以上或刪除它，如果你回复它下面
 Please select a file or url,請選擇一個文件或URL
 Please select atleast 1 column from {0} to sort,請從{0}進行排序至少選擇1列
+Please set {0} first,請設置{0}第一
 Please specify,請註明
 Please specify 'Auto Email Id' in Setup > Outgoing Email Settings,請註明“自動電子郵件Id '在設置>傳出電子郵件設置
 Please specify Event date and time,請註明事件的日期和時間
+Please specify doctype,請註明文檔類型
+Please specify user,請註明用戶
+Please specify which date field must be checked,請指定日期字段必須檢查
+Please specify which value field must be checked,請指定值字段必須檢查
+Please upload using the same template as download.,請上傳使用相同的模板下載。
 Plugin,插件
 Port,端口
 Post,職位
@@ -769,9 +841,16 @@ Previous Record,上一記錄
 Primary,初級
 Print,打印
 Print Format,打印格式
+Print Format Help,打印格式幫助
 Print Format Type,打印格式類型
+Print Format {0} does not exist,打印格式{0}不存在
+Print Format {0} is disabled,打印格式{0}被禁用
 Print Hide,打印隱藏
+Print Settings,打印設置
+Print Style,打印樣式
+Print Style Preview,打印樣式預覽
 Print Width,打印寬度
+"Print with Letterhead, unless unchecked in a particular Document",打印與信，除非選中在一個特定的文件
 Print...,打印...
 Printing and Branding,印刷及品牌
 Priority,優先
@@ -783,6 +862,7 @@ Property Type,物業類型
 Public,公
 Published,發布時間
 Published On,發表於
+Published on website at: {0},發表於網站：{0}
 Pull Emails from the Inbox and attach them as Communication records (for known contacts).,從收件箱拉電子郵件，並將它們附加的通信記錄（稱為觸點）。
 Query,詢問
 Query Options,查詢選項
@@ -810,7 +890,6 @@ Refreshing...,清爽...
 Registered but disabled.,註冊但被禁用。
 Registration Details Emailed.,報名資料通過電子郵件發送。
 Reload Page,刷新頁面
-Remove,清除
 Remove Bookmark,刪除書籤
 Remove all customizations?,刪除所有自定義？
 Rename many items by uploading a .csv file.,通過上傳。csv文件重命名多個項目。
@@ -827,10 +906,12 @@ Report Name,報告名稱
 Report Type,報告類型
 Report an Issue,報告問題
 Report cannot be set for Single types,報告不能單類型設置
+Report this issue,報告此問題
 Report was not saved (there were errors),報告沒有被保存（有錯誤）
 Reqd,REQD
 Reset Password Key,重設密碼鑰匙
 Reset Permissions for {0}?,重置權限{0} ？
+Response,回應
 Restrict IP,限制IP
 Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111),僅此IP地址限制用戶。多個IP地址，可以通過用逗號分隔的補充。也接受像（111.111.111）部分的IP地址
 Right,右邊
@@ -846,11 +927,15 @@ Roles HTML,角色的HTML
 Roles can be set for users from their User page.,角色可以從他們的用戶頁面的用戶進行設置。
 Root {0} cannot be deleted,根{0}無法刪除
 Row,排
+Row #{0}:,行＃{0}：
 Rules defining transition of state in the workflow.,規則定義的工作流狀態的過渡。
 "Rules for how states are transitions, like next state and which role is allowed to change state etc.",規則的狀態是如何過渡，就像下一個狀態以及作用是允許改變狀態等。
+Run scheduled jobs only if checked,程序只能運行檢查計劃的作業
+Run the report first,首先運行報告
 SMTP Server (e.g. smtp.gmail.com),SMTP服務器（如smtp.gmail.com）
 Sales,銷售
 Same file has already been attached to the record,相同的文件已經被連接到記錄
+Sample,樣品
 Saturday,星期六
 Save,節省
 Scheduler Log,調度日誌
@@ -859,6 +944,8 @@ Script Report,腳本報告
 Script Type,腳本類型
 Search,搜索
 Search Fields,搜索字段
+Search in a document type,在文檔類型搜索
+Search or type a command,搜索或輸入命令
 Section Break,分節符
 Security,安全
 Security Settings,安全設置
@@ -881,10 +968,15 @@ Select or drag across time slots to create a new event.,選擇或拖動整個時
 "Select target = ""_blank"" to open in a new page.",選擇目標=“_blank”在新頁面中打開。
 Select the label after which you want to insert new field.,之後要插入新字段中選擇的標籤。
 Send,發送
+Send Alert On,發送警報在
 Send As Email,發送電子郵件
+Send Email,發送電子郵件
+Send Email Print Attachments as PDF (Recommended),發送郵件打印附件為PDF格式（推薦）
 Send Me A Copy,給我發一份
 Send Password,發送密碼
-Send Print in Body and Attachment,發送打印的正文和附件
+Send Print as PDF,發送打印為PDF
+Send alert if date matches this field's value,發送警報，如果日期匹配該字段的值
+Send alert if this field's value changes,發送警報，如果這個字段的值改變
 Send an email reminder in the morning,發送電子郵件提醒，早上
 Send download link of a recent backup to System Managers,發送最近的備份的下載鏈接系統經理
 Send enquiries to this email address,發送諮詢到這個郵箱地址
@@ -896,6 +988,7 @@ Sent or Received,發送或接收
 Series,系列
 Series {0} already used in {1},系列{0}已經被應用在{1}
 Server,服務器
+Server & Credentials,服務器和證書
 Server Error: Please check your server logs or contact tech support.,服務器錯誤：請檢查您的服務器日誌或聯繫技術支持。
 Session Expired. Logging you out,會話過期。您的退出
 Session Expiry,會話過期
@@ -910,6 +1003,7 @@ Set Permissions on Document Types and Roles,在文件類型和角色設置權限
 Set Permissions per User,每個用戶設置權限
 Set User Permissions,設置用戶權限
 Set Value,設定值
+"Set default format, page size, print style etc.",設置默認格式，頁面大小，打印樣式等。
 Set numbering series for transactions.,設置編號系列交易。
 Set outgoing mail server.,設置發送郵件服務器。
 Settings,設置
@@ -918,17 +1012,18 @@ Settings for Contact Us Page.,設置聯繫我們頁面。
 Setup,設置
 Setup > User,設置>用戶
 Setup > User Permissions Manager,設置>用戶權限管理
+Setup Email Alert based on various criteria.,設置電子郵件警報根據不同的標準。
 Setup of fonts and background.,設置字體和背景。
 "Setup of top navigation bar, footer and logo.",安裝程序的頂部導航欄，頁腳和徽標。
 Short Bio,個人簡介
 Short Name,簡稱
 Shortcut,捷徑
 Show / Hide Modules,顯示/隱藏模塊
-Show Details,顯示詳細信息
 Show Print First,顯示打印首
 Show Tags,顯示標籤
 Show or hide modules globally.,顯示或隱藏全局模塊。
 Show rows with zero values,秀行與零值
+Show tags,顯示標籤
 Show this field as title,顯示此字段作為標題
 Showing only for (if not empty),僅顯示為（如果不為空）
 Sidebar,邊欄
@@ -953,7 +1048,9 @@ Sort Field,排序字段
 Sort Order,排序
 Standard,標準
 Standard Print Format cannot be updated,標準打印格式不能被更新
+Standard Reply,標準回复
 Standard Reports,標準報告
+Standard replies to common queries.,標準的答复常見查詢。
 Start Report For,啟動年報
 Starts on,開始於
 State,態
@@ -973,7 +1070,6 @@ Submit,提交
 Submit an Issue,提交問題
 Submitted,提交
 Submitted Document cannot be converted back to draft. Transition row {0},提交的文件不能被轉換回起草。
-Submitted Record cannot be deleted,提交記錄無法刪除
 Success,成功
 Suggestion,建議
 Sunday,星期天
@@ -994,18 +1090,21 @@ Target,目標
 Tasks,根據發票日期付款週期
 Team Members,團隊成員
 Team Members Heading,小組成員標題
+Template,模板
 Template Pages cannot be moved,模板頁面不能移動
-Template Path,模板路徑
 Test,測試
 Test Runner,測試運行
 Text,文本
 Text Align,文本對齊
 Text Editor,文本編輯器
+Thank you for your message,謝謝您的留言
 The name of your company / website as you want to appear on browser title bar. All pages will have this as the prefix to the title.,您的公司/網站的，你想要顯示在瀏覽器標題欄中的名稱。所有頁面都會有這樣的前綴稱號。
 The system provides many pre-defined roles. You can add new roles to set finer permissions.,該系統提供了許多預先定義的角色。您可以添加新的角色設定更精細的權限。
 Then By (optional),再由（可選）
+There should remain at least one System Manager,應該保持至少一個系統管理器
 There were errors,有錯誤
 There were errors while sending email. Please try again.,還有在發送電子郵件是錯誤的。請再試一次。
+"There were some errors setting the name, please contact the administrator",有一些錯誤設置的名稱，請與管理員聯繫
 "These permissions will apply for all transactions where the permitted record is linked. For example, if Company C is added to User Permissions of user X, user X will only be able to see transactions that has company C as a linked value.",這些權限將申請在那裡允許記錄被鏈接的所有交易。
 These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,這些值將在交易中自動更新，也將是有益的權限限制在含有這些值交易這個用戶。
 "These will also be set as default values for those links, if only one such permission record is defined.",這些也將被設置為這些鏈接的默認值，如果只有一個這樣的許可記錄被定義。
@@ -1013,15 +1112,21 @@ Third Party Authentication,第三方認證
 "This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>
 myfield
 eval:doc.myfield=='My Value'<br>
-eval:doc.age>18",此字段將顯示只有這裡定義的字段名有值或規則是真實的（例子）：查看\ nmyfield \ neval ： doc.myfield =='我的價值“太平洋\ neval ： doc.age > 18
+eval:doc.age>18","此字段將顯示只有這裡定義的字段名有值或規則是真實的（例子）：查看
+ MyField的
+ EVAL：doc.myfield =='我的價值“<BR> 
+ EVAL： doc.age> 18"
 This goes above the slideshow.,這正好幻燈片上面。
 This is PERMANENT action and you cannot undo. Continue?,這是永久性的行動，你不能撤消。要繼續嗎？
+"This is a standard format. To make changes, please copy it make make a new format.",這是一個標準的格式。要進行更改，請複製它使做出的新格式。
 This is permanent action and you cannot undo. Continue?,這是永久的行動，你不能撤消。要繼續嗎？
 This must be checked if Style Settings are applicable,這必須進行檢查，如果樣式設置適用
 This role update User Permissions for a user,這個角色更新用戶權限的用戶
 Thursday,星期四
+Tile,瓦
 Time,時間
 Time Zone,時區
+Timezone,時區
 Title,標題
 Title / headline of your page,你的頁面標題/標題
 Title Case,標題案例
@@ -1054,22 +1159,21 @@ Unable to load: {0},無法加載： {0}
 Unable to open attached file. Please try again.,無法打開附加的文件。請再試一次。
 Unable to send emails at this time,無法在這個時候發送電子郵件
 Unknown Column: {0},未知專欄： {0}
-Unknown Print Format: {0},未知的打印格式： {0}
 "Unknown file encoding. Tried utf-8, windows-1250, windows-1252.",未知文件編碼。嘗試UTF-8，windows-1250訪問，windows-1252訪問。
 Unread Messages,未讀消息
 Unsubscribe,退訂
 Unsubscribed,退訂
-Up,向上
 Upcoming Events for Today,近期活動今日
 Update,更新
 Update Field,更新域
-Update Parent,更新父
 Update Value,更新值
 Updated,更新
 Upload,上載
 Upload Attachment,上傳附件
+Upload CSV file containing all user permissions in the same format as Download.,上傳包含在相同的格式，下載的所有用戶權限的CSV文件。
 Upload a file,上傳文件
 Upload and Import,上傳和導入
+Upload and Sync,上傳和同步
 Uploading...,上載...
 Upvotes,Upvotes
 Use TLS,使用TLS
@@ -1087,7 +1191,7 @@ User Tags,用戶標籤
 User Type,用戶類型
 "User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ",
 User Vote,用戶投票
-User not allowed to delete.,用戶不允許刪除。
+User not allowed to delete {0}: {1},用戶不得刪除{0}：{1}
 User permissions should not apply for this Link,用戶權限不應該申請這個鏈接
 User {0} cannot be deleted,用戶{0}無法刪除
 User {0} cannot be disabled,用戶{0}不能被禁用
@@ -1096,7 +1200,11 @@ User {0} does not exist,用戶{0}不存在
 UserRole,的UserRole
 Users and Permissions,用戶和權限
 Users with role {0}:,與角色的用戶{0} ：
+Valid Login id required.,有效的登錄ID必需的。
+Valid email and name required,需要有效的電子郵件和姓名
 Value,值
+Value Change,值變動
+Value Changed,更改的值
 Value cannot be changed for {0},值不能被改變為{0}
 Value for a check field can be either 0 or 1,一檢查字段值可以為0或1
 Value missing for,缺少值
@@ -1106,6 +1214,7 @@ Version restored,版本恢復
 View or manage Website Route tree.,查看或管理的網站路徑樹。
 Visit,訪問
 Warning,警告
+Warning: This Print Format is in old style and cannot be generated via the API.,警告：此打印格式是舊式的，不能透過API生成的。
 Web Page,網頁
 Web Site Forum Page.,網站論壇頁。
 Website,網站
@@ -1116,7 +1225,6 @@ Website Script,網站腳本
 Website Settings,網站設置
 Website Slideshow,網站連續播放
 Website Slideshow Item,網站幻燈片項目
-Website Template,網站地圖配置
 Website User,網站用戶
 Wednesday,星期三
 Welcome email sent,歡迎發送電子郵件
@@ -1125,6 +1233,7 @@ Width,寬度
 Will be used in url (usually first name).,在URL（通常是第一個名字）將被使用。
 With Groups,與團體
 With Ledgers,與總帳
+With Letterhead,與信
 Workflow,工作流程
 Workflow Action,工作流操作
 Workflow Action Name,工作流操作名稱
@@ -1151,12 +1260,17 @@ You are not allowed to print this document,你不允許打印此文檔
 You are not allowed to send emails related to this document,你是不是允許發送與此相關的文檔的電子郵件
 "You can change Submitted documents by cancelling them and then, amending them.",您可以通過取消他們，然後，對其進行修正更改已提交的文件。
 You can use Customize Form to set levels on fields.,您可以使用自定義表格中的字段設置的水平。
+You can use wildcard %,可以使用通配符％
 You cannot install this app,您無法安裝這個程序
 You have unsaved changes in this form. Please save before you continue.,你在本表格未保存的更改。
 You need to be logged in and have System Manager Role to be able to access backups.,您需要先登錄，並具有系統管理員角色才能夠訪問備份。
 You need write permission to rename,你需要寫權限來重新命名
+"You seem to have written your name instead of your email. \
+					Please enter a valid email address so that we can get back.","你似乎已經寫你的電子郵件你的名字代替。\
+請輸入一個有效的電子郵件地址，以便我們能找回。"
 "Your download is being built, this may take a few moments...",您的下載正在修建，這可能需要一些時間......
 [Label]:[Field Type]/[Options]:[Width],[標籤]：[字段類型] / [選項]：[寬]
+[Optional] Send the email X days in advance of the specified date. 0 equals same day.,[可選]發送電子郵件X天提前指定日期。 0等於同一天。
 add your own CSS (careful!),添加您自己的CSS（careful!）
 adjust,調整
 align-center,對準中心
@@ -1195,6 +1309,7 @@ cog,COG
 comment,評論
 comments,評論
 dd-mm-yyyy,日 - 月 - 年
+dd.mm.yyyy,DD.MM.YYYY
 dd/mm/yyyy,日/月/年
 download,下載
 download-alt,下載的Alt
@@ -1309,9 +1424,11 @@ tint,色彩
 to,至
 trash,垃圾
 upload,上載
+use % as wildcard,使用％作為通配符
 user,用戶
 user_image_show,user_image_show
 values and dates,值和日期
+values separated by commas,用逗號分隔的值
 volume-down,容積式
 volume-off,體積過
 volume-up,容積式
@@ -1320,6 +1437,8 @@ wrench,扳手
 yyyy-mm-dd,年 - 月 - 日
 zoom-in,放大式
 zoom-out,拉遠
+{0} List,{0}列表
+{0} added,{0}添加
 {0} by {1},{0} {1}
 {0} cannot be set for Single types,{0}不能單類型設置
 {0} does not exist in row {1},{0}中不存在的行{1}
@@ -1328,14 +1447,18 @@ zoom-out,拉遠
 {0} is required,{0}是必需的
 {0} is saved,{0}被保存
 {0} must be one of {1},{0}必須是{1} 1
+{0} must be set first,{0}必須首先設置
 {0} not a valid State,{0}不是有效的國家
 {0} not allowed in fieldname {1},{0}的字段名不允許{1}
 {0} not allowed in name,{0}名不允許
 {0} not allowed to be renamed,{0}不允許改名
 {0} updated,{0}更新
 {0} {1} already exists,{0} {1}已經存在
+"{0} {1} cannot be ""{2}"". It should be one of ""{3}""",{0} {1}不能為“{2}”。它應該是一個“{3}”
 {0} {1} cannot be a leaf node as it has children,{0} {1}不能是一個葉節點，因為它有孩子
 "{0} {1} does not exist, select a new target to merge",{0} {1}不存在，選擇一個新的目標合併
+{0} {1} not found,{0} {1}未找到
+{0} {1}: Submitted Record cannot be deleted.,{0} {1}：呈交記錄不能被刪除。
 {0}: Cannot set Amend without Cancel,{0} ：無法設置沒有修改取消
 {0}: Cannot set Assign Amend if not Submittable,{0} ：無法設置指定修改，如果不Submittable
 {0}: Cannot set Assign Submit if not Submittable,{0} ：無法設置指定提交如果不是Submittable

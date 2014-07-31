@@ -3,6 +3,8 @@
 """Company History""",&quot;نبذة عن تاريخ الشركة&quot;
 """Team Members"" or ""Management""",&quot;أعضاء الفريق&quot; أو &quot;إدارة&quot;
 'In List View' not allowed for type {0} in row {1},'في قائمة عرض ' لا يسمح لنوع {0} في {1} الصف
+0 - Draft; 1 - Submitted; 2 - Cancelled,0 - مشروع؛ 1 - المقدمة؛ 2 - إلغاء
+0 is highest,0 هو أعلى
 "000 is black, fff is white",000 سوداء، بيضاء FFF
 2 days ago,2 منذ أيام
 "<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank"">[?]</a>","<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank""> [ ؟ ] < / A>"
@@ -11,7 +13,17 @@
 <li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\
 <li><b>Prompt</b> - Prompt user for a name\
 <li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\
-</ol>')"">Naming Options</a>","< و عند _ النقر = "" msgprint (' <ol> \ \ ن <li> قم <B> المجال : [ fieldname ] < / B> - حسب المجال \ \ ن <li> قم <B> naming_series : < / B> - بواسطة تسمية"
+</ol>')"">Naming Options</a>","<وعند _ النقر = ""msgprint ('<ol> \
+ <li> قم <B> المجال: [fieldname] </ B> - بواسطة فيلد \
+ <li> قم <B> naming_series: </ ب > - بواسطة تسمية سلسلة (يجب أن يكون حقل يسمى naming_series الحاضر \
+ <li> قم <B> موجه </ B> - مطالبة المستخدم لاسم \
+ <li> قم <B> [سلسلة] </ ب> - سلسلة بواسطة البادئة (مفصولة نقطة)، على سبيل المثال PRE # # # # # \
+ </ OL> ') ""> تسمية خيارات </ A>"
+<b>new</b> <i>type of document</i>,<B> جديدة </ ب> <I> نوع الوثيقة </ ط>
+"<i>document type...</i>, e.g. <b>customer</b>",<I> نوع الوثيقة ... </ ط>، على سبيل المثال <B> العملاء </ B>
+<i>e.g. <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>,<I> على سبيل المثال على <strong> (55 + 434) / 4 </ STRONG> أو على <strong> = الرياضيات. خطيئة (رياضياتPI / 2) </ STRONG> ... </ ط>
+<i>module name...</i>,<I> اسم الوحدة النمطية ... </ ط>
+<i>text</i> <b>in</b> <i>document type</i>,النص <I> </ ط> <B> في </ ب> <I> نوع الوثيقة </ ط>
 A user can be permitted to multiple records of the same DocType.,يمكن أن يسمح للمستخدم ل سجلات متعددة من نفس DOCTYPE .
 About,حول
 About Us Settings,إعدادات صفحة من نحن
@@ -38,21 +50,24 @@ Add attachment,إضافة المرفقات
 Add code as &lt;script&gt;,إضافة التعليمات البرمجية كما &lt;script&gt;
 Add custom javascript to forms.,إضافة إلى أشكال العرف جافا سكريبت .
 Add fields to forms.,إضافة حقول إلى النماذج.
+Add multiple rows,إضافة صفوف متعددة
 Add new row,إضافة صف جديد
 "Add the name of <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> e.g. ""Open Sans""","إضافة اسم <a href=""http://google.com/webfonts"" target=""_blank"">جوجل خط ويب</a> على سبيل المثال &quot;بلا فتح&quot;"
 Add to To Do,إضافة إلى المهام
 Add to To Do List Of,إضافة إلى قائمة المهام من
+Added {0} ({1}),وأضاف {0} ({1})
 Adding System Manager to this User as there must be atleast one System Manager,مضيفا إدارة نظام ل هذا العضو كما يجب أن يكون هناك أتلست إدارة نظام واحد
 Additional Info,معلومات إضافية
 Additional Permissions,ضوابط إضافية
 Address,عنوان
 Address Line 1,العنوان سطر 1
 Address Line 2,العنوان سطر 2
-Address Title,اسم العنوان
+Address Title,عنوان عنوان
 Address and other legal information you may want to put in the footer.,العنوان وغيرها من المعلومات القانونية قد تحتاج لوضع في تذييل الصفحة.
 Admin,مشرف
 All Applications,جميع التطبيقات
 All Day,كل يوم
+All customizations will be removed. Please confirm.,سيتم إزالة كافة التخصيصات. يرجى تأكيد.
 "All possible Workflow States and roles of the workflow. <br>Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""",جميع الدول سير العمل والأدوار الممكنة لسير العمل. <br> Docstatus خيارات: هو &quot;المحفوظة&quot; 0، يتم &quot;المقدمة&quot; (1) ويتم &quot;إلغاء&quot; 2
 Allow Attach,السماح بالإرفاق
 Allow Import,السماح بالإستيراد
@@ -71,11 +86,11 @@ Always use above Login Id as sender,استخدام دائما فوق معرف ت
 Amend,تعديل
 "An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [<a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a>]","ملف رمز التمديد مع منظمة البن الدولية. يجب أن تكون 16 × 16 بكسل. تم إنشاؤها باستخدام مولد فافيكون. [ <a href=""http://favicon-generator.org/"" target=""_blank"">فافيكون-generator.org</a> ]"
 "Another {0} with name {1} exists, select another name",آخر {0} مع اسم {1} موجودا، حدد اسم آخر
+Any existing permission will be deleted / overwritten.,سيتم حذف أي إذن الحالية / الكتابة.
 Anyone Can Read,أي شخص يمكنه القراءة
 Anyone Can Write,أي شخص يمكه الكتابة
 "Apart from Role based Permission Rules, you can apply User Permissions based on DocTypes.",وبصرف النظر عن دور أساس القواعد إذن ، يمكنك تطبيق أذونات المستخدم استنادا DocTypes .
 "Apart from System Manager, roles with 'Set User Permissions' right can set permissions for other users for that Document Type.","وبصرف النظر عن إدارة النظام ، يمكن أن الأدوار مع حق "" تعيين أذونات المستخدم تعيين أذونات للمستخدمين الآخرين لذلك نوع الوثيقة ."
-App Already Installed,التطبيق المثبتة مسبقا
 App Name,اسم التطبيق
 App not found,لم يتم العثور على التطبيق
 Application Installer,مثبت التطبيق
@@ -107,12 +122,13 @@ Avatar,الصورة الرمزية
 Back to Login,العودة إلى تسجيل الدخول
 Background Color,لون الخلفية
 Background Image,صورة الخلفية
+Background Style,خلفية ستايل
 Banner,راية
 Banner HTML,راية HTML
 Banner Image,راية صورة
 Banner is above the Top Menu Bar.,راية فوق أعلى شريط القوائم.
-Base Template Path,مسار قالب قاعدة
 Begin this page with a slideshow of images,تبدأ هذه الصفحة مع عرض شرائح من الصور
+Beginning with,بدءا
 Belongs to,ينتمي إلى
 Bio,الحيوية
 Birth Date,تاريخ الميلاد
@@ -124,11 +140,13 @@ Blog Settings,إعدادات بلوق
 Blog Title,بلوق العنوان
 Blogger,مدون
 Bookmarks,الإشارات المرجعية
+Both login and password required,كل من تسجيل الدخول وكلمة المرور المطلوبة
 Brand HTML,العلامة التجارية HTML
 Bulk Email,الجزء الأكبر البريد الإلكتروني
 Bulk email limit {0} crossed,الحد معظم البريد الإلكتروني {0} عبروا
 Button,زر
 By,بواسطة
+Calculate,حساب
 Calendar,تقويم
 Cancel,إلغاء
 Cancelled,إلغاء
@@ -142,7 +160,6 @@ Cannot change state of Cancelled Document. Transition row {0},لا يمكن تغ
 Cannot change {0},لا يمكن تغيير {0}
 Cannot delete or cancel because {0} {1} is linked with {2} {3},لا يمكن حذف أو إلغاء ل {0} {1} يرتبط مع {2} {3}
 Cannot delete {0} as it has child nodes,لا يمكن حذف {0} كما أن لديها العقد التابعة
-Cannot delete {0} {1} is it is referenced in another record,لا يمكن حذف {0} {1} و المشار إليها في سجل آخر
 Cannot edit standard fields,لا تستطيع تعديل الحقول القياسية
 Cannot map because following condition fails: ,لا يمكن تعيين بسبب فشل الشرط التالي:
 Cannot open instance when its {0} is open,لا يمكن فتح المثال عندما ه {0} مفتوح
@@ -150,6 +167,7 @@ Cannot open {0} when its instance is open,لا يمكن فتح {0} عندما م
 Cannot print cancelled documents,لا يمكن طباعة المستندات إلغاء
 Cannot remove permission for DocType: {0} and Name: {1},لا يمكن إزالة إذن ل DOCTYPE : {0} و اسم : {1}
 Cannot reply to a reply,لا يمكنك الرد على الرد
+Cannot set Email Alert on Document Type {0},لا يمكن تعيين تنبيه بالبريد الالكتروني على نوع الوثيقة {0}
 Cannot set permission for DocType: {0} and Name: {1},لا يمكن تعيين إذن ل DOCTYPE : {0} و اسم : {1}
 Categorize blog posts.,تصنيف بلوق وظيفة.
 Category,فئة
@@ -162,21 +180,22 @@ Check,تحقق
 Check / Uncheck roles assigned to the User. Click on the Role to find out what permissions that Role has.,تحقق أدوار ازل / المسندة إلى الملف. انقر على دور لمعرفة ما الأذونات التي الدور الذي.
 Check this if you want to send emails as this id only (in case of restriction by your email provider).,الاختيار هذا إذا كنت تريد أن ترسل رسائل البريد الإلكتروني في هذا المعرف فقط (في حالة تقييد من قبل مزود البريد الإلكتروني الخاص بك).
 Check this to make this the default letter head in all prints,التحقق من ذلك لجعل هذه الرسالة الافتراضية الرأس في جميع الطبعات
+Check which Documents are readable by a User,تحقق من وثائق قابلة للقراءة من قبل العضو
 Checked items shown on desktop,العناصر المحددة التي تظهر على سطح المكتب
 Child Tables are shown as a Grid in other DocTypes.,وتظهر جداول الطفل بأنه في الشبكة DocTypes أخرى.
 City,مدينة
+Classic,كلاسيكي
 Clear Cache,مسح ذاكرة التخزين المؤقت
 Clear all roles,مسح كافة الأدوار
-Click on a link to get options to expand get options ,
+Click on a link to get options,انقر على وصلة للحصول على خيارات
 Click on row to view / edit.,انقر على صف لعرض / تحرير .
-Click to Expand / Collapse,انقر لتوسيع / ​​طي
-Client,زبون
+Client,عميل	
+Client-side formats are now deprecated,وانتقدت صيغ العميل الآن
 Close,أغلق
 Close: {0},وثيقة : {0}
 Closed,مغلق
 Code,رمز
 Collapse,انهيار
-Color,اللون
 Column Break,العمود استراحة
 Comment,تعليق
 Comment By,تعليق من جانب
@@ -192,7 +211,7 @@ Company History,نبذة عن تاريخ الشركة
 Company Introduction,الشركة مقدمة
 Complaint,شكوى
 Complete By,الكامل من جانب
-Condition Field,حالة الميدان
+Condition,الحالة
 Contact Us Settings,الاتصال بنا إعدادات
 "Contact options, like ""Sales Query, Support Query"" etc each on a new line or separated by commas.",خيارات الاتصال، مثل &quot;الاستعلام المبيعات والدعم الاستعلام&quot; الخ كل على سطر جديد أو مفصولة بفواصل.
 Content,محتوى
@@ -206,8 +225,9 @@ Core,جوهر
 Could not connect to outgoing email server,لا يمكن الاتصال بخادم البريد الإلكتروني المنتهية ولايته
 Could not find {0},لا يمكن أن تجد {0}
 Count,عدد
-Country,الدولة
+Country,بلد
 Create,انشاء
+Create a new {0},خلق جديد {0}
 Created Custom Field {0} in {1},إنشاء الحقل المخصص {0} في {1}
 Created Customer Issue,إنشاء مشاكل عميل
 Created Opportunity,إنشاء فرصة
@@ -233,14 +253,18 @@ Data Import / Export Tool,البيانات أداة استيراد / تصدير
 Data Import Tool,أداة استيراد البيانات
 Data missing in table,البيانات الناقصة في الجدول
 Date,تاريخ
+Date Change,تاريخ التغيير
+Date Changed,تاريخ تغيير
 Date Format,تنسيق التاريخ
 Date and Number Format,تاريخ و صيغة رقم
 Date must be in format: {0},يجب أن تكون الآن في شكل : {0}
 Datetime,التاريخ والوقت
+Days in Advance,أيام مقدما
 Dear,العزيز
 Default,الافتراضي
 Default Print Format,طباعة شكل الافتراضي
 Default Value,القيمة الافتراضية
+Default is system timezone,الافتراضي هو نظام توقيت
 "Default: ""Contact Us""",الافتراضي: &quot;اتصل بنا&quot;
 DefaultValue,الافتراضية
 Defaults,الافتراضات
@@ -287,7 +311,6 @@ Document Type,نوع الوثيقة
 Document is only editable by users of role,الوثيقة للتحرير فقط من قبل المستخدمين من دور
 Documentation,توثيق
 Documents,وثائق
-Down,إلى
 Download,تحميل
 Download Backup,تحميل النسخ الاحتياطي
 Download link for your backup will be emailed on the following email address:,وسوف تكون عبر البريد الالكتروني وصلة التحميل للنسخ الاحتياطي الخاصة بك على عنوان البريد الإلكتروني التالي :
@@ -295,10 +318,17 @@ Drafts,الداما
 Drag to sort columns,اسحب لفرز الأعمدة
 Due Date,بسبب تاريخ
 Duplicate name {0} {1},تكرار اسم {0} {1}
+Dynamic Link,الارتباط الحيوي
+ERPNext Demo,ERPNext تجريبي
 Edit,تحرير
 Edit Permissions,تحرير ضوابط
 Editable,للتحرير
 Email,البريد الإلكتروني
+Email Alert,تنبيه البريد الإلكتروني
+Email Alert Recipient,مستقبل البريد تنبيه
+Email Alert Recipients,المستلمين تنبيه البريد الإلكتروني
+Email By Document Field,البريد الإلكتروني بواسطة حقل الوثيقة
+Email Footer,البريد الإلكتروني تذييل
 Email Host,البريد الإلكتروني المضيف
 Email Id,البريد الإلكتروني معرف
 Email Login,دخول البريد الالكتروني
@@ -316,6 +346,7 @@ Emails are muted,رسائل البريد الإلكتروني هي صامتة
 Embed image slideshows in website pages.,تضمين عرض الشرائح صورة في صفحات الموقع.
 Enable,تمكين
 Enable Comments,تمكين تعليقات
+Enable Scheduled Jobs,تمكين المهام المجدولة
 Enabled,تمكين
 Ends on,ينتهي في
 Enter Form Type,أدخل نوع النموذج
@@ -325,6 +356,7 @@ Enter at least one permission row,يدخل الصف إذن واحد على ال�
 "Enter keys to enable login via Facebook, Google, GitHub.",أدخل مفاتيح لتمكين تسجيل الدخول عبر الفيسبوك ، وجوجل، جيثب .
 Equals,تساوي
 Error,خطأ
+"Error generating PDF, attachment sent as HTML",توليد الخطأ PDF، HTML المرفقات إرسالها كما
 Error: Document has been modified after you have opened it,تم تعديل الوثيقة بعد أن كنت قد فتحه: خطأ
 Event,حدث
 Event Datetime,الحدث التاريخ والوقت
@@ -340,11 +372,13 @@ Every Day,كل يوم
 Every Month,كل شهر
 Every Week,كل أسبوع
 Every Year,كل سنة
+Everyone,كل شخص
 Example:,على سبيل المثال:
 Expand,وسع
 Export,تصدير
 Export not allowed. You need {0} role to export.,الصادرات غير مسموح به. تحتاج {0} دور للتصدير.
 Exported,تصدير
+"Expression, Optional",التعبير والاختياري
 Facebook,الفيسبوك
 Facebook Client ID,الفيسبوك عميل معرف
 Facebook Client Secret,الفيسبوك العميل السري
@@ -363,11 +397,12 @@ Field {0} of type {1} cannot be mandatory,الحقل {0} من نوع {1} لا ي
 Fieldname,Fieldname
 Fieldname is required in row {0},مطلوب Fieldname في الصف {0}
 Fieldname not set for Custom Field,Fieldname لم يتم تعيين ل حقل مخصص
+Fieldname which will be the DocType for this link field.,Fieldname التي ستكون DOCTYPE لهذا الحقل الارتباط.
 Fieldname {0} appears multiple times in rows {1},Fieldname {0} تظهر عدة مرات في الصفوف {1}
 "Fieldname {0} cannot contain letters, numbers or spaces",Fieldname {0} لا يمكن أن تحتوي على حروف وأرقام أو مسافات
 Fields,الحقول
 "Fields separated by comma (,) will be included in the<br /><b>Search By</b> list of Search dialog box",وسيتم إدراج حقول مفصولة بفواصل (،) في <br /> <b>البحث حسب</b> قائمة مربع الحوار بحث
-Fieldtype must be one of {0} in row {1},Fieldtype يجب أن يكون واحدا من {0} في {1} الصف
+Fieldtype cannot be changed from {0} to {1} in row {2},Fieldtype لا يمكن تغييرها من {0} إلى {1} في {2} الصف
 File,ملف
 File Data,ملف البيانات
 File Name,اسم الملف
@@ -375,20 +410,27 @@ File Size,حجم الملف
 File URL,ملف URL
 File not attached,ملف لا تعلق
 File size exceeded the maximum allowed size of {0} MB,تجاوز حجم الملف الحد الأقصى المسموح به حجم {0} MB
+Fill Screen,ملء الشاشة
 Filter,تصفية
 Filter records based on User Permissions defined for a user,تصفية السجلات استنادا إلى صلاحيات المستخدمين المخصصة للمستخدم
+Filters,فلاتر
+Find {0} in {1},البحث عن {0} في {1}
 First Name,الاسم الأول
 Float,رقم عشري
 Float Precision,دقة الرقم  العشري
 Font (Heading),الخط (العنوان)
 Font (Text),الخط (نص)
+Font Size,حجم الخط
 Font Size (Text),حجم الخط (نص)
 Fonts,الخطوط
 Footer,تذييل
+Footer Background,تذييل الخلفية
 Footer Items,تذييل العناصر
+Footer Text,تذييل النص
 For DocType,ل DOCTYPE
 "For Links, enter the DocType as range
-For Select, enter list of Options separated by comma",ل سريعة ، أدخل DOCTYPE عن مجموعة \ n لل تحديد، قائمة خيارات مفصولة بفواصل دخول
+For Select, enter list of Options separated by comma","لسريعة، أدخل DOCTYPE عن مجموعة 
+ لتحديد، قائمة خيارات مفصولة بفواصل دخول"
 "For comparative filters, start with",للمرشحات النسبية، وتبدأ مع
 For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,على سبيل المثال إذا قمت بإلغاء وتعديل &#39;INV004&#39; سوف تصبح الوثيقة الجديدة &quot;INV004-1&quot;. هذا يساعدك على تتبع كل تعديل.
 For ranges,للنطاقات
@@ -400,6 +442,7 @@ Form,شكل
 Forum,منتدى
 Forums,المنتديات
 Forward To Email Address,انتقل إلى عنوان البريد الإلكتروني
+Frappe Framework,الإطار فرابي
 Friday,الجمعة
 From Date must be before To Date,يجب أن تكون من تاريخ إلى تاريخ قبل
 Full Name,بدر تام
@@ -409,6 +452,7 @@ Generator,مولد كهربائي
 Georgia,جورجيا
 Get,الحصول على
 Get From ,عليه من
+"Get your globally recognized avatar from <a href=""https://gravatar.com/"">Gravatar.com</a>","احصل على صورة شخصية معترف بها عالميا من <a href=""https://gravatar.com/""> Gravatar.com </ A>"
 GitHub,جيثب
 GitHub Client ID,جيثب معرف عميل
 GitHub Client Secret,جيثب سر عميل
@@ -436,15 +480,14 @@ Header,رأس
 Heading,عنوان
 Heading Text As,عنوان النص
 Help,مساعدة
+Help on Search,تساعد على البحث
 Helvetica Neue,هلفتيكا نويه
-Hey! There should remain at least one System Manager,مهلا! هناك ينبغي أن تظل إدارة نظام واحد على الأقل
 Hidden,مخفي
 Hide Actions,إخفاء عمليات
 Hide Copy,إخفاء نسخة
-Hide Email,إخفاء البريد الإلكتروني
 Hide Heading,إخفاء عنوان
-Hide Print,إخفاء طباعة
 Hide Toolbar,إخفاء شريط الأدوات
+Hide the sidebar,إخفاء الشريط الجانبي
 High,ارتفاع
 Highlight,تسليط الضوء على
 History,تاريخ
@@ -455,7 +498,6 @@ Icon,رمز
 Icon will appear on the button,سوف تظهر أيقونة على زر
 "If a Role does not have access at Level 0, then higher levels are meaningless.",إذا لم يكن لديك الوصول دور في المستوى 0، ثم مستويات أعلى لا معنى لها.
 "If checked, all other workflows become inactive.",إذا تم، جميع مهام سير العمل الأخرى تصبح خاملة.
-"If checked, an email with an attached HTML format will be added to part of the EMail body as well as attachment. To only send as attachment, uncheck this.",إذا تم، ستضاف رسالة بالبريد الالكتروني مع تنسيق HTML المرفقة لجزء من الجسم البريد الإلكتروني، فضلا المرفق. لإرسال كمرفق فقط، قم بإلغاء تحديد هذا.
 "If checked, the Home page will be the default Item Group for the website.",إذا تم، سيكون في الصفحة الرئيسية يجب أن يكون فريق المدينة الافتراضية للموقع.
 "If image is selected, color will be ignored (attach first)",إذا تم تحديد الصورة، سيتم تجاهل اللون (إرفاق الأولى)
 If non standard port (e.g. 587),إذا غير المنفذ القياسي (على سبيل المثال 587)
@@ -473,9 +515,10 @@ In Dialog,في مربع حوار
 In Filter,في تصفية
 In List View,في عرض القائمة
 In Report Filter,في تصفية التقرير
+In points. Default is 9.,في نقطة. الافتراضي هو 9.
 In response to,ردا على
 Incorrect value in row {0}: {1} must be {2} {3},قيمة غير صحيحة في الصف {0} : {1} يجب أن يكون {2} {3}
-Incorrect value: {1} must be {2} {3},قيمة غير صحيحة : {1} يجب أن يكون {2} {3}
+Incorrect value: {0} must be {1} {2},قيمة غير صحيحة: {0} يجب أن يكون {1} {2}
 Index,مؤشر
 Individuals,الأفراد
 Info,معلومات
@@ -496,6 +539,7 @@ Introductory information for the Contact Us Page,المعلومات التمهي
 Invalid Email: {0},صالح البريد الإلكتروني: {0}
 Invalid Filter: {0},تصفية الباطلة: {0}
 Invalid Home Page,الصفحة الرئيسية غير صالحة
+Invalid Login,تسجيل الدخول غير صالحة
 Invalid Outgoing Mail Server or Port,خادم البريد الصادر غير صالحة أو ميناء
 Invalid login or password,تسجيل الدخول أو كلمة المرور غير صالحة
 Invalid recipient address,عنوان المستلم غير صالحة
@@ -532,6 +576,7 @@ Leave blank to repeat always,اتركه فارغا لتكرار دائما
 Left,ترك
 Less or equals,أقل أو يساوي
 Less than,أقل من
+Letter,الحرف
 Letter Head,رسالة رئيس
 Letter Head Name,رسالة رئيس الاسم
 Letter Head in HTML,رسالة رئيس في HTML
@@ -539,13 +584,13 @@ Level,مستوى
 "Level 0 is for document level permissions, higher levels for field level permissions.",0 هو مستوى الأذونات لمستوى الوثيقة، مستويات أعلى للحصول على أذونات المستوى الميداني.
 Like,مثل
 Link,رابط
-Link Name,اسم الرابط
 "Link that is the website home page. Standard Links (index, login, products, blog, about, contact)",ربط هذا هو الصفحة الرئيسية ل موقع الويب. روابط القياسية ( مؤشر ، تسجيل الدخول ، والمنتجات، بلوق ، عن، الاتصال )
 Link to other pages in the side bar and next section,ربط إلى صفحات أخرى في شريط الجانب والمقطع التالي
 Link to the page you want to open,الرابط إلى الصفحة التي تريد فتح
 Linked In Share,ترتبط في حصة
 Linked With,ترتبط
 List,قائمة
+List a document type,قائمة نوع مستند
 List of Web Site Forum's Posts.,قائمة مشاركات المنتدى موقع ويب.
 Loading,تحميل
 Loading Report,تحميل تقرير
@@ -565,6 +610,7 @@ Lucida Grande,سدا غراندي
 Mail Password,البريد كلمة المرور
 Main Section,القسم العام
 Make a new,جعل جديدة
+Make a new record,جعل رقما قياسيا جديدا
 Male,ذكر
 Manage cloud backups on Dropbox,إدارة النسخ الاحتياطية سحابة على دروببوإكس
 Manage uploaded files.,إدارة الملفات التي تم تحميلها.
@@ -579,12 +625,14 @@ Medium,متوسط
 "Menu items in the Top Bar. For setting the color of the Top Bar, go to <a href=""#Form/Style Settings"">Style Settings</a>","عناصر القائمة في الشريط العلوي. لتحديد لون الشريط العلوي، انتقل إلى <a href=""#Form/Style Settings"">إعدادات نمط</a>"
 Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node,دمج الممكن الوحيد بين المجموعة إلى المجموعة أو عقدة ورقة إلى ورقة عقدة
 Message,رسالة
+Message Examples,أمثلة رسالة
 Messages,رسائل
 Method,طريقة
 Middle Name (Optional),الاسم الأوسط (اختياري)
 Misc,منوعات
 Miscellaneous,متفرقات
 Missing Values Required,في عداد المفقودين القيم المطلوبة
+Modern,حديث
 Modified by,تعديلها من قبل
 Module,وحدة
 Module Def,وحدة مواطنه
@@ -594,7 +642,6 @@ Modules Setup,إعداد وحدات
 Monday,يوم الاثنين
 More,أكثر
 More content for the bottom of the page.,المزيد من المحتوى لأسفل الصفحة.
-Move,خطوة
 Move Down: {0},تحريك لأسفل : {0}
 Move Up: {0},تحريك لأعلى : {0}
 Multiple root nodes not allowed.,العقد الجذرية متعددة غير مسموح به.
@@ -607,6 +654,8 @@ Name and Description,الاسم والوصف
 Name is required,مطلوب اسم
 Name not permitted,تسمية غير مسموح
 Name not set via Prompt,الأسم: لم تحدد عن طريق موجه
+Name of the Document Type (DocType) you want this field to be linked to. e.g. Customer,اسم نوع الوثيقة (DOCTYPE) تريد هذا الحقل لتكون مرتبطة. على سبيل المثال العملاء
+Name of {0} cannot be {1},اسم {0} لا يمكن أن يكون {1}
 Naming,تسمية
 Naming Series mandatory,تسمية السلسلة إلزامية
 Nested set error. Please contact the Administrator.,خطأ مجموعة متداخلة . يرجى الاتصال مدير البرنامج.
@@ -616,23 +665,21 @@ New Record,سجل جديد
 New comment on {0} {1},تعليق جديد على {0} {1}
 New password emailed,كلمة مرور جديدة عبر البريد الالكتروني
 New value to be set,القيمة الجديدة التي سيتم تحديدها
+New {0},جديد {0}
 Next Communcation On,وفي المراسلات القادمة
 Next Record,السجل التالي
 Next State,الحالية التالية
 Next actions,الإجراءات التالية
 No,لا
 No Action,بدون إجراء
-No Cache,بدون ذاكرة مؤقتة
 No Communication tagged with this ,لا الاتصالات المفتاحية هذه
 No Copy,اي نسخة
 No Permissions set for this criteria.,لم يحدد ضوابط لهذه المعايير.
 No Report Loaded. Please use query-report/[Report Name] to run a report.,أي تقرير المحملة. الرجاء استخدام استعلام تقرير / [اسم التقرير] لتشغيل التقرير.
 No Results,لا نتائج
 No Sidebar,لا الشريط الجانبي
-No Sitemap,لا خريطة الموقع
 No User Permissions found.,لم يتم العثور على أذونات المستخدم .
 No data found,لا توجد بيانات
-No document selected,أي وثيقة مختارة
 No file attached,أي ملف مرفق
 No further records,لا توجد سجلات أخرى
 No one,لا احد
@@ -640,6 +687,8 @@ No permission to '{0}' {1},لا توجد صلاحية ل '{0} ' {1}
 No permission to edit,لا توجد صلاحية ل تعديل
 No permission to write / remove.,لا توجد صلاحية لكتابة / إزالة.
 No records tagged.,لا توجد سجلات معلمة.
+No template found at path: {0},لا توجد في مسار القالب: {0}
+No {0} permission,لا {0} إذن
 None,لا شيء
 None: End of Workflow,لا شيء: نهاية سير العمل
 Not Found,لم يتم العثور على
@@ -663,7 +712,6 @@ Not permitted,لا يسمح
 "Note: For best results, images must be of the same size and width must be greater than height.",ملاحظة: للحصول على أفضل النتائج، يجب أن تكون الصور من نفس الحجم والعرض يجب أن تكون أكبر من الارتفاع.
 Note: Other permission rules may also apply,ملاحظة: قد قواعد أخرى إذن تنطبق أيضا
 Note: maximum attachment size = 1mb,ملاحظة: الحد الأقصى لحجم المرفقات 1MB =
-Nothing to delete,شيئا ل حذف
 Nothing to show,لا شيء لإظهار
 Nothing to show for this selection,شيء لاظهار هذا الاختيار
 Notification Count,عدد إعلام
@@ -676,11 +724,20 @@ Only Administrator allowed to create Query / Script Reports,المسؤول ال�
 Only Administrator can save a standard report. Please rename and save.,مسؤول فقط يمكن حفظ تقرير القياسية. الرجاء إعادة تسمية وحفظ.
 Only Allow Edit For,السماح فقط للتحرير
 Only allowed {0} rows in one import,فقط يسمح {0} الصفوف في استيراد واحد
+Oops! Something went wrong,عفوًا! ذهب شيئا خاطئا
 Open,فتح
 Open Count,فتح عدد
 Open Sans,مفتوحة بلا
+Open Source Web Applications for the Web,مفتوحة المصدر تطبيقات ويب للويب
+Open a module or tool,فتح وحدة نمطية أو أداة
+Open {0},مفتوحة {0}
+Optional: Alert will only be sent if value is a valid email id.,اختياري: سوف يتم إرسال تنبيه فقط إذا كانت القيمة هي هوية بريد إلكتروني صحيح.
+Optional: Always send to these ids. Each email id on a new row,اختياري: دائما إرسالها إلى هذه الهوية. كل معرف البريد الإلكتروني على صف جديد
+Optional: The alert will be sent if this expression is true,اختياري: التنبيه سيتم إرسال إذا كان هذا التعبير صحيح
 Options,خيارات
+Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType',"'الارتباط الحيوي ""نوع من الخيارات الميدانية يجب أن يشير إلى رابط حقل آخر مع خيارات باسم' DOCTYPE '"
 Options Help,خيارات مساعدة
+Options for select. Each option on a new line. e.g.: <br>Option 1<br>Option 2<br>Option 3<br>,خيارات للاختيار. كل خيار في سطر جديد. على سبيل المثال: <BR> الخيار 1 <BR> الخيار 2 <BR> الخيار 3 <BR>
 Options must be a valid DocType for field {0} in row {1},يجب أن تكون الخيارات ل DOCTYPE صالحة لحقل {0} في {1} الصف
 Options not set for link field {0},خيارات لم يتم تعيين لحقل الرابط {0}
 Options requried for Link or Table type field {0} in row {1},خيارات ريكارد ل ينك أو نوع الجدول الحقل {0} في {1} الصف
@@ -691,15 +748,19 @@ Other,آخر
 Outgoing Email Settings,إعدادات البريد الإلكتروني المنتهية ولايته
 Outgoing Mail Server,خادم البريد الصادر
 Outgoing Mail Server not specified,خادم البريد الصادر غير محدد
+Owner,مالك
+PDF Page Size,PDF حجم الصفحة
+PDF Settings,إعدادات PDF
 POP3 Mail Server (e.g. pop.gmail.com),POP3 خادم البريد (على سبيل المثال pop.gmail.com)
 Page,صفحة
+Page #{0} of {1},الصفحة # {0} من {1}
 Page Background,خلفية الصفحة
-Page Border,حد الصفحة
 Page HTML,صفحة HTML
-Page Headings,عناوين الصفحة
+Page Header,رأس الصفحة
+Page Header Background,رأس الصفحة الخلفية
+Page Header Text,رأس الصفحة نص
 Page Links,الصفحة روابط
 Page Name,الصفحة اسم
-Page Name Field,الصفحة اسم الحقل
 Page Role,الصفحة الدور
 Page Text,نص الصفحة
 Page Title,صفحة العنوان
@@ -707,7 +768,6 @@ Page content,صفحة المحتوى
 Page not found,لم يتم العثور على الصفحة
 Page or Generator,الصفحة أو مولد
 Page url name (auto-generated),اسم الصفحة رابط ( تم إنشاؤه تلقائيا )
-Page with name {0} already exists,صفحة مع اسم {0} موجود بالفعل
 Parent Label,الأصل تسمية
 Parent Post,الوالد مشاركة
 Parent Website Page,الوالد الموقع الصفحة
@@ -727,6 +787,7 @@ Permanently delete {0}?,حذف بشكل دائم {0} ؟
 Permission Level,إذن المستوى
 Permission Levels,إذن مستويات
 Permission Rules,إذن قوانين
+Permission already set,إذن بالفعل تعيين
 Permissions,أذونات
 Permissions Settings,أذونات إعدادات
 Permissions are automatically translated to Standard Reports and Searches.,يتم تحويل أذونات تلقائيا إلى التقارير الموحدة و البحث .
@@ -734,6 +795,7 @@ Permissions are automatically translated to Standard Reports and Searches.,يت�
 Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles.,"الأذونات على مستويات أعلى من الأذونات "" على المستوى الميداني ."
 "Permissions at level 0 are 'Document Level' permissions, i.e. they are primary for access to the document.",الأذونات في 0 مستوى الأذونات هي &quot;مستوى الوثيقة، أي أنها الأساسي للوصول إلى المستند.
 Permissions get applied on Users based on what Roles they are assigned.,الحصول على تطبيق الأذونات على المستخدمين على أساس ما الأدوار التي تم تعيينها .
+Permitted Documents For User,المستندات يسمح للمستخدم
 Person,شخص
 Personal Info,معلومات شخصية
 Phone,هاتف
@@ -746,16 +808,26 @@ Please attach a file or set a URL,يرجى إرفاق ملف أو تعيين URL
 Please do not change the rows above {0},من فضلك لا تغيير الصفوف أعلاه {0}
 Please enable pop-ups,يرجى تمكين النوافذ المنبثقة
 Please enter Event's Date and Time!,الرجاء إدخال حدث في التاريخ والوقت !
+"Please enter both your email and message so that we \
+				can get back to you. Thanks!","من فضلك ادخل بريدك الإلكتروني على حد سواء والرسالة حتى نتمكن \
+ يمكن أن نعود اليكم. شكرا!"
 Please enter some text!,الرجاء إدخال النص !
 Please enter title!,يرجى إدخال عنوان !
 Please login to Upvote!,يرجى الدخول إلى Upvote !
 Please make sure that there are no empty columns in the file.,يرجى التأكد من أنه لا توجد أعمدة فارغة في الملف.
 Please refresh to get the latest document.,يرجى تحديث للحصول على أحدث وثيقة.
+Please reply above this line or remove it if you are replying below it,يرجى الرد فوق هذا الخط أو إزالته إذا كنت تقوم بالرد تحته
 Please select a file or url,يرجى تحديد ملف أو URL
 Please select atleast 1 column from {0} to sort,يرجى اختيار العمود 1 من {0} لفرز
+Please set {0} first,الرجاء تعيين {0} الأولى
 Please specify,يرجى تحديد
 Please specify 'Auto Email Id' in Setup > Outgoing Email Settings,"يرجى تحديد "" هوية السيارات البريد الإلكتروني"" في إعداد > إعدادات البريد الإلكتروني المنتهية ولايته"
 Please specify Event date and time,يرجى تحديد تاريخ ووقت الحدث
+Please specify doctype,يرجى تحديد DOCTYPE
+Please specify user,يرجى تحديد المستخدم
+Please specify which date field must be checked,يرجى تحديد أي تاريخ الحقل يجب أن يتم التحقق
+Please specify which value field must be checked,يرجى تحديد أي يجب فحص حقل القيمة
+Please upload using the same template as download.,يرجى تحميل باستخدام نفس القالب التحميل.
 Plugin,المساعد
 Port,ميناء
 Post,بعد
@@ -769,9 +841,16 @@ Previous Record,السجل السابق
 Primary,أساسي
 Print,طباعة
 Print Format,طباعة شكل
+Print Format Help,تنسيق الطباعة مساعدة
 Print Format Type,طباعة نوع تنسيق
+Print Format {0} does not exist,تنسيق الطباعة {0} غير موجود
+Print Format {0} is disabled,تنسيق الطباعة {0} تم تعطيل
 Print Hide,طباعة إخفاء
+Print Settings,إعدادات الطباعة
+Print Style,الطباعة ستايل
+Print Style Preview,معاينة قبل الطباعة ستايل
 Print Width,طباعة العرض
+"Print with Letterhead, unless unchecked in a particular Document",طباعة مع رأسية، إلا إذا لم يتم التحقق منه في مستند خاص
 Print...,طباعة ...
 Printing and Branding,الطباعة و العلامات التجارية
 Priority,أفضلية
@@ -783,6 +862,7 @@ Property Type,نوع الملكية
 Public,جمهور
 Published,نشرت
 Published On,نشرت يوم
+Published on website at: {0},نشرت على موقعه على الانترنت على العنوان التالي: {0}
 Pull Emails from the Inbox and attach them as Communication records (for known contacts).,سحب رسائل البريد الإلكتروني من علبة الوارد وإرفاقها كسجلات الاتصالات (الاتصالات المعروفة لل).
 Query,سؤال
 Query Options,خيارات الاستعلام
@@ -810,7 +890,6 @@ Refreshing...,منعش ...
 Registered but disabled.,سجل لكن تعطيل.
 Registration Details Emailed.,تفاصيل التسجيل عبر البريد الالكتروني.
 Reload Page,تحديث الصفحة
-Remove,نزع
 Remove Bookmark,أضف إزالة
 Remove all customizations?,إزالة كافة التخصيصات ؟
 Rename many items by uploading a .csv file.,إعادة تسمية العديد من العناصر عن طريق تحميل ملف CSV .
@@ -827,10 +906,12 @@ Report Name,تقرير الاسم
 Report Type,نوع التقرير
 Report an Issue,أبلغ عن مشكلة
 Report cannot be set for Single types,لا يمكن تعيين التقرير لأنواع واحدة
+Report this issue,بلغ عن هذه المسألة
 Report was not saved (there were errors),لم يتم حفظ التقرير (كانت هناك أخطاء)
 Reqd,Reqd
 Reset Password Key,إعادة تعيين كلمة المرور الرئيسية
 Reset Permissions for {0}?,إعادة تعيين أذونات ل {0} ؟
+Response,الإستجابة
 Restrict IP,تقييد IP
 Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111),تقييد المستخدم من هذا العنوان IP فقط. يمكن إضافة عناوين IP متعددة عن طريق فصل بفواصل. يقبل أيضا عناوين IP جزئية مثل (111.111.111)
 Right,حق
@@ -846,11 +927,15 @@ Roles HTML,الأدوار HTML
 Roles can be set for users from their User page.,الأدوار يمكن تعيين للمستخدمين من صفحة المستخدم الخاصة بهم.
 Root {0} cannot be deleted,الجذر {0} لا يمكن حذف
 Row,صف
+Row #{0}:,الصف # {0}:
 Rules defining transition of state in the workflow.,قواعد تحديد الانتقال من الدولة في سير العمل.
 "Rules for how states are transitions, like next state and which role is allowed to change state etc.",ويسمح النظام لكيفية قيام الولايات التحولات، مثل الدولة والتي المقبل دور في تغيير الدولة الخ.
+Run scheduled jobs only if checked,تشغيل المهام المجدولة إلا إذا دققت
+Run the report first,تشغيل التقرير الأول
 SMTP Server (e.g. smtp.gmail.com),خادم SMTP (smtp.gmail.com مثلا)
 Sales,مبيعات
 Same file has already been attached to the record,نفس الملف تم إرفاقه إلى هذا السجل
+Sample,العينة
 Saturday,السبت
 Save,حفظ
 Scheduler Log,جدولة دخول
@@ -859,6 +944,8 @@ Script Report,تقرير النصي
 Script Type,نوع البرنامج النصي
 Search,البحث
 Search Fields,البحث الحقول
+Search in a document type,بحث في نوع الوثيقة
+Search or type a command,بحث أو كتابة أمر
 Section Break,قسم استراحة
 Security,أمن
 Security Settings,إعدادات الأمان
@@ -881,10 +968,15 @@ Select or drag across time slots to create a new event.,حدد أو اسحب ع�
 "Select target = ""_blank"" to open in a new page.","حدد الهدف = "" _blank "" لفتح صفحة جديدة في ."
 Select the label after which you want to insert new field.,حدد التسمية بعد الذي تريد إدراج حقل جديد.
 Send,إرسال
+Send Alert On,إرسال تنبيه في
 Send As Email,أرسل للبريد الالكتروني
+Send Email,إرسال البريد الإلكتروني
+Send Email Print Attachments as PDF (Recommended),إرسال البريد الإلكتروني المرفقات طباعة بصيغة PDF (مستحسن)
 Send Me A Copy,أرسل لي نسخة
 Send Password,إرسال كلمة المرور
-Send Print in Body and Attachment,إرسال طباعة في الجسم والتعلق
+Send Print as PDF,إرسال طباعة بصيغة PDF
+Send alert if date matches this field's value,إرسال تنبيه إذا تاريخ مباريات قيمة هذا الحقل
+Send alert if this field's value changes,إرسال تنبيه إذا كانت التغييرات قيمة هذا الحقل
 Send an email reminder in the morning,إرسال رسالة تذكير في الصباح
 Send download link of a recent backup to System Managers,إرسال رابط التحميل من نسخة احتياطية حديثة ل مديري النظام
 Send enquiries to this email address,إرسال الاستفسارات إلى عنوان البريد الإلكتروني هذا
@@ -896,6 +988,7 @@ Sent or Received,المرسلة أو المتلقاة
 Series,سلسلة
 Series {0} already used in {1},سلسلة {0} تستخدم بالفعل في {1}
 Server,خادم
+Server & Credentials,الخادم وثائق التفويض
 Server Error: Please check your server logs or contact tech support.,خطأ الخادم : يرجى مراجعة سجلات الخادم الخاص بك أو الاتصال بالدعم التكنولوجيا .
 Session Expired. Logging you out,انتهى الدورة. تسجيل خروجك
 Session Expiry,الدورة انتهاء الاشتراك
@@ -910,6 +1003,7 @@ Set Permissions on Document Types and Roles,مجموعة ضوابط على أن�
 Set Permissions per User,مجموعة ضوابط لكل مستخدم
 Set User Permissions,تعيين أذونات المستخدم
 Set Value,تعيين القيمة
+"Set default format, page size, print style etc.",تعيين تنسيق افتراضي، حجم الصفحة، نمط الطباعة الخ
 Set numbering series for transactions.,تعيين ترقيم سلسلة للمعاملات .
 Set outgoing mail server.,تعيين ملقم البريد الصادر .
 Settings,إعدادات
@@ -918,17 +1012,18 @@ Settings for Contact Us Page.,إعدادات الاتصال بنا الصفحة.
 Setup,الإعداد
 Setup > User,الإعداد > العضو
 Setup > User Permissions Manager,الإعداد > ضوابط العضو مدير
+Setup Email Alert based on various criteria.,إعداد تنبيه البريد الإلكتروني استنادا إلى معايير مختلفة.
 Setup of fonts and background.,إعداد الخطوط والخلفية.
 "Setup of top navigation bar, footer and logo.",الإعداد من أعلى الملاحة تذييل وبار والشعار.
 Short Bio,بيو قصيرة
 Short Name,الاسم المختصر
 Shortcut,الاختصار
 Show / Hide Modules,إظهار / إخفاء وحدات
-Show Details,عرض التفاصيل
 Show Print First,تظهر أولا طباعة
 Show Tags,إظهار الوسوم
 Show or hide modules globally.,إظهار أو إخفاء وحدات على مستوى العالم.
 Show rows with zero values,عرض الصفوف مع قيم الصفر
+Show tags,تظهر به
 Show this field as title,تظهر هذا المجال كما لقب
 Showing only for (if not empty),تظهر فقط ل (إن لم يكن فارغ)
 Sidebar,الشريط الجانبي
@@ -953,7 +1048,9 @@ Sort Field,نوع الحقل
 Sort Order,ترتيب
 Standard,معيار
 Standard Print Format cannot be updated,لا يمكن تحديث تنسيق الطباعة القياسية
+Standard Reply,معيار الرد
 Standard Reports,تقارير القياسية
+Standard replies to common queries.,الردود على الاستفسارات القياسية الشائعة.
 Start Report For,تقرير عن بدء
 Starts on,يبدأ يوم
 State,دولة
@@ -973,7 +1070,6 @@ Submit,عرض
 Submit an Issue,يقدم العدد
 Submitted,المقدمة
 Submitted Document cannot be converted back to draft. Transition row {0},الوثيقة المقدمة لا يمكن تحويلها إلى مشروع .
-Submitted Record cannot be deleted,السجلات المعتمدة لا يمكن حذفها
 Success,نجاح
 Suggestion,اقتراح
 Sunday,الأحد
@@ -994,18 +1090,21 @@ Target,الهدف
 Tasks,المهام
 Team Members,أعضاء الفريق
 Team Members Heading,الأعضاء فريق عنوان
+Template,ال
 Template Pages cannot be moved,قالب الصفحات لا يمكن نقل
-Template Path,مسار القالب
 Test,اختبار
 Test Runner,اختبار عداء
 Text,نص
 Text Align,محاذاة النص
 Text Editor,النص محرر
+Thank you for your message,شكرا لرسالتك
 The name of your company / website as you want to appear on browser title bar. All pages will have this as the prefix to the title.,اسم الشركة / الموقع كما تريد أن يظهر على شريط العنوان في المتصفح. وسوف يكون هذا كل الصفحات كما البادئة على اللقب.
 The system provides many pre-defined roles. You can add new roles to set finer permissions.,ويوفر النظام العديد من أدوار محددة مسبقا. يمكنك إضافة أدوار جديدة لتعيين أذونات الدقيقة.
 Then By (optional),ثم (اختياري)
+There should remain at least one System Manager,ينبغي أن تظل هناك إدارة نظام واحد على الأقل
 There were errors,كانت هناك أخطاء
 There were errors while sending email. Please try again.,كانت هناك أخطاء أثناء إرسال البريد الإلكتروني. يرجى المحاولة مرة أخرى.
+"There were some errors setting the name, please contact the administrator",كانت هناك بعض الأخطاء تحديد اسم، يرجى الاتصال بمسؤول
 "These permissions will apply for all transactions where the permitted record is linked. For example, if Company C is added to User Permissions of user X, user X will only be able to see transactions that has company C as a linked value.",سيتم تطبيق هذه الأذونات لجميع المعاملات حيث يتم ربط السجل المسموح بها.
 These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,وسيتم تحديث هذه القيم تلقائيا في المعاملات وأيضا سوف تكون مفيدة لتقييد الأذونات لهذا المستخدم على المعاملات التي تحتوي على هذه القيم.
 "These will also be set as default values for those links, if only one such permission record is defined.",كما سيتم تعيين هذه كقيم الافتراضي ل هذه الروابط ، إذا تم تعريف سجل إذن واحد فقط من هذا القبيل.
@@ -1013,15 +1112,21 @@ Third Party Authentication,مصادقة طرف ثالث
 "This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>
 myfield
 eval:doc.myfield=='My Value'<br>
-eval:doc.age>18",سيظهر هذا المجال إلا إذا كان تعريف fieldname هنا له قيمة أو قواعد صحيحة (أمثلة) : <BR> \ nmyfield \ neval : doc.myfield == 'بلدي القيمة ' <BR> \ neval : doc.age > 18
+eval:doc.age>18","سيظهر هذا المجال إلا إذا كان تعريف fieldname هنا له قيمة أو قواعد صحيحة (أمثلة): <BR> 
+ myfield 
+ وحدة التقييم: doc.myfield == 'بلدي القيمة' <BR> 
+ وحدة التقييم: doc.age> 18"
 This goes above the slideshow.,هذا يذهب فوق عرض الشرائح.
 This is PERMANENT action and you cannot undo. Continue?,هذا هو العمل الدائم ويمكنك التراجع لا. المتابعة؟
+"This is a standard format. To make changes, please copy it make make a new format.",هذه هي صيغة قياسية. لإجراء تغييرات، يرجى نسخه جعل جعل شكل جديد.
 This is permanent action and you cannot undo. Continue?,هذا هو العمل الدائم ويمكنك التراجع لا. المتابعة؟
 This must be checked if Style Settings are applicable,هذا يجب أن يتم التحقق إذا إعدادات نمط قابلة للتطبيق
 This role update User Permissions for a user,هذا الدور ضوابط التحديث العضو لمستخدم
 Thursday,الخميس
+Tile,قرميدة
 Time,مرة
 Time Zone,منطقة زمنية
+Timezone,التوقيت
 Title,لقب
 Title / headline of your page,عنوان / عنوان الصفحة الخاصة بك
 Title Case,عنوان القضية
@@ -1054,22 +1159,21 @@ Unable to load: {0},غير قادر على تحميل: {0}
 Unable to open attached file. Please try again.,غير قادر على فتح الملف المرفق. يرجى المحاولة مرة أخرى.
 Unable to send emails at this time,غير قادر على إرسال رسائل البريد الإلكتروني في هذا الوقت
 Unknown Column: {0},غير معروف العمود: {0}
-Unknown Print Format: {0},تنسيق طباعة غير معروف: {0}
 "Unknown file encoding. Tried utf-8, windows-1250, windows-1252.",ترميز الملفات غير معروف . حاول UTF- 8 ، ويندوز 1250، ويندوز 1252 .
 Unread Messages,رسائل غير مقروءة
 Unsubscribe,إلغاء الاشتراك
 Unsubscribed,إلغاء اشتراكك
-Up,فوق
 Upcoming Events for Today,الأحداث القادمة لهذا اليوم
 Update,تحديث
 Update Field,تحديث الميدانية
-Update Parent,التحديث الرئيسي
 Update Value,تحديث القيمة
 Updated,تحديث
 Upload,تحميل
 Upload Attachment,تحميل المرفقات
+Upload CSV file containing all user permissions in the same format as Download.,تحميل ملف CSV يحتوي على جميع أذونات المستخدم في نفس الشكل كما تحميل.
 Upload a file,تحميل ملف
 Upload and Import,تحميل واستيراد
+Upload and Sync,تحميل ومزامنة
 Uploading...,تحميل ...
 Upvotes,Upvotes
 Use TLS,استخدام TLS
@@ -1087,7 +1191,7 @@ User Tags,الكلمات المستخدم
 User Type,نوع المستخدم
 "User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ",
 User Vote,تصويت المستخدم
-User not allowed to delete.,المستخدم لا يسمح لحذفه.
+User not allowed to delete {0}: {1},المستخدم لا يسمح لحذف {0}: {1}
 User permissions should not apply for this Link,لا ينبغي تطبيق أذونات المستخدم لهذا الرابط
 User {0} cannot be deleted,المستخدم {0} لا يمكن حذف
 User {0} cannot be disabled,المستخدم {0} لا يمكن تعطيل
@@ -1096,7 +1200,11 @@ User {0} does not exist,المستخدم {0} غير موجود
 UserRole,UserRole
 Users and Permissions,المستخدمين وأذونات
 Users with role {0}:,المستخدمين مع دور {0} :
+Valid Login id required.,صالحة معرف تسجيل الدخول المطلوبة.
+Valid email and name required,بريد إلكتروني صالح واسم المطلوب
 Value,قيمة
+Value Change,قيمة التغيير
+Value Changed,قيمة تغيير
 Value cannot be changed for {0},لا يمكن تغيير القيمة ل {0}
 Value for a check field can be either 0 or 1,قيمة لحقل الاختيار يمكن أن يكون إما 0 أو 1
 Value missing for,قيمة مفقودة لل
@@ -1106,6 +1214,7 @@ Version restored,النسخة استعادة
 View or manage Website Route tree.,عرض أو إدارة شجرة الموقع الطريق .
 Visit,زيارة
 Warning,تحذير
+Warning: This Print Format is in old style and cannot be generated via the API.,تحذير: هذا تنسيق الطباعة في النمط القديم، ولا يمكن أن تتولد عن طريق API.
 Web Page,صفحة على الإنترنت
 Web Site Forum Page.,الموقع على شبكة الإنترنت المنتدى الصفحة .
 Website,الموقع
@@ -1113,10 +1222,9 @@ Website Group,موقع مجموعة
 Website Route,خريطة الموقع الموقع
 Website Route Permission,الطريق إذن الموقع
 Website Script,الموقع سكربت
-Website Settings,موقع إعدادات
+Website Settings,إعدادات الموقع
 Website Slideshow,موقع عرض الشرائح
 Website Slideshow Item,موقع السلعة عرض شرائح
-Website Template,الموقع خريطة الموقع التكوين
 Website User,موقع العضو
 Wednesday,الأربعاء
 Welcome email sent,نرحب البريد الإلكتروني المرسلة
@@ -1125,6 +1233,7 @@ Width,عرض
 Will be used in url (usually first name).,وسوف تستخدم في رابط (عادة الاسم الأول).
 With Groups,مع المجموعات
 With Ledgers,مع سجلات الحسابات
+With Letterhead,مع رأسية
 Workflow,سير العمل
 Workflow Action,سير العمل العمل
 Workflow Action Name,سير العمل اسم العمل
@@ -1151,12 +1260,17 @@ You are not allowed to print this document,لا يسمح لك طباعة هذه 
 You are not allowed to send emails related to this document,لا يسمح لك بإرسال رسائل البريد الإلكتروني ذات الصلة لهذه الوثيقة
 "You can change Submitted documents by cancelling them and then, amending them.",يمكنك تغيير الوثائق المقدمة من إلغائها ، ثم تعديلها .
 You can use Customize Form to set levels on fields.,يمكنك استخدام نموذج تخصيص ل تحديد مستويات على الحقول .
+You can use wildcard %,يمكنك استخدام حرف البدل٪
 You cannot install this app,لا يمكنك تثبيت هذا التطبيق
 You have unsaved changes in this form. Please save before you continue.,لديك تغييرات لم يتم حفظها في هذا النموذج.
 You need to be logged in and have System Manager Role to be able to access backups.,تحتاج إلى أن تقوم بتسجيل الدخول ولها دور مدير النظام أن يكون قادرا على الوصول إلى النسخ الاحتياطي.
 You need write permission to rename,كنت بحاجة إلى كتابة إذن لإعادة تسمية
+"You seem to have written your name instead of your email. \
+					Please enter a valid email address so that we can get back.","يبدو أنك قد كتبت اسمك بدلا من البريد الإلكتروني الخاص بك. \
+ الرجاء إدخال عنوان بريد إلكتروني صالح حتى نتمكن من الحصول على الظهر."
 "Your download is being built, this may take a few moments...",ويجري بناء التنزيل، وهذا قد يستغرق بضع لحظات ...
 [Label]:[Field Type]/[Options]:[Width],[تسمية]: [نوع الحقل] / [خيارات]: [العرض]
+[Optional] Send the email X days in advance of the specified date. 0 equals same day.,[اختياري] إرسال البريد الإلكتروني X أيام قبل التاريخ المحدد. 0 يساوي نفس اليوم.
 add your own CSS (careful!),إضافة CSS الخاصة بك (careful!)
 adjust,ضبط
 align-center,محاذاة الوسط
@@ -1195,6 +1309,7 @@ cog,تحكم في
 comment,تعليق
 comments,تعليقات
 dd-mm-yyyy,DD-MM-YYYY
+dd.mm.yyyy,dd.mm.yyyy
 dd/mm/yyyy,اليوم / الشهر / السنة
 download,تحميل
 download-alt,تحميل بديل
@@ -1309,9 +1424,11 @@ tint,لون
 to,إلى
 trash,القمامة
 upload,تحميل
+use % as wildcard,استخدام٪ كما البدل
 user,مستخدم
 user_image_show,user_image_show
 values and dates,القيم والتواريخ
+values separated by commas,قيم مفصولة بفواصل
 volume-down,حجم إلى أسفل
 volume-off,حجم حالا
 volume-up,حجم المتابعة
@@ -1320,6 +1437,8 @@ wrench,وجع
 yyyy-mm-dd,YYYY-MM-DD
 zoom-in,التكبير في
 zoom-out,تكبير المغادرة
+{0} List,{0} قائمة
+{0} added,{0} أضاف
 {0} by {1},{0} بواسطة {1}
 {0} cannot be set for Single types,{0} لا يمكن تعيين لأنواع واحدة
 {0} does not exist in row {1},{0} غير موجود في الصف {1}
@@ -1328,14 +1447,18 @@ zoom-out,تكبير المغادرة
 {0} is required,{0} مطلوب
 {0} is saved,{0} تم حفظها
 {0} must be one of {1},{0} يجب أن يكون واحدا من {1}
+{0} must be set first,{0} يجب تعيين أول
 {0} not a valid State,{0} يست دولة صالحة
 {0} not allowed in fieldname {1},{0} غير مسموح به في fieldname {1}
 {0} not allowed in name,{0} غير مسموح به في الاسم
 {0} not allowed to be renamed,{0} غير مسموح به ويجب إعادة تسميته
 {0} updated,{0} تحديث
 {0} {1} already exists,{0} {1} موجود بالفعل
+"{0} {1} cannot be ""{2}"". It should be one of ""{3}""","{0} {1} لا يمكن أن يكون ""{2}"". ينبغي أن يكون واحدا من ""{3}"""
 {0} {1} cannot be a leaf node as it has children,{0} {1} لا يمكن أن يكون عقدة ورقة كما فعلت الأطفال
 "{0} {1} does not exist, select a new target to merge",{0} {1} غير موجود ، حدد هدفا جديدا لدمج
+{0} {1} not found,{0} {1} غير موجود
+{0} {1}: Submitted Record cannot be deleted.,{0} {1}: لا يمكن حذف سجل نشره.
 {0}: Cannot set Amend without Cancel,{0} : لا يمكن تعيين تعدل دون الغاء
 {0}: Cannot set Assign Amend if not Submittable,{0} : لا يمكن تعيين تعيين يعدل إن لم يكن Submittable
 {0}: Cannot set Assign Submit if not Submittable,{0} : لا يمكن تعيين تعيين إرسال إذا لم Submittable
