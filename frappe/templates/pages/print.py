@@ -42,10 +42,12 @@ def get_context(context):
 
 @frappe.whitelist()
 def get_html(doc, name=None, print_format=None, meta=None,
-	no_letterhead=False, trigger_print=False):
+	no_letterhead=None, trigger_print=False):
 
 	if isinstance(no_letterhead, basestring):
 		no_letterhead = cint(no_letterhead)
+	elif no_letterhead is None:
+		no_letterhead = not cint(frappe.db.get_single_value("Print Settings", "with_letterhead"))
 
 	if isinstance(doc, basestring) and isinstance(name, basestring):
 		doc = frappe.get_doc(doc, name)

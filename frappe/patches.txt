@@ -49,3 +49,4 @@ frappe.patches.v4_1.enable_print_as_pdf #2014-06-17
 execute:frappe.db.sql("""update `tabDocPerm` set email=1 where parent='User' and permlevel=0 and `role`='All' and `read`=1 and apply_user_permissions=1""") #2014-07-15
 execute:frappe.db.sql("""update `tabPrint Format` set print_format_type='Client' where ifnull(print_format_type, '')=''""") #2014-07-28
 frappe.patches.v4_1.file_manager_fix
+frappe.patches.v4_2.print_with_letterhead

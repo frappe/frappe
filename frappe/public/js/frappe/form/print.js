@@ -14,7 +14,7 @@ frappe.ui.form.PrintPreview = Class.extend({
 				<div class="col-xs-3">\
 					<select class="print-preview-select form-control"></select></div>\
 				<div class="col-xs-3">\
-					<div class="checkbox"><label><input type="checkbox" class="print-letterhead" checked/> Letterhead</label></div></div>\
+					<div class="checkbox"><label><input type="checkbox" class="print-letterhead" /> Letterhead</label></div></div>\
 				<div class="col-xs-6 text-right" style="padding-top: 7px;">\
 					<a style="margin-right: 7px;" class="btn-print-preview text-muted small">Preview</a>\
 					<a style="margin-right: 7px;" class="btn-download-pdf text-muted small">Download PDF</a>\
@@ -38,7 +38,10 @@ frappe.ui.form.PrintPreview = Class.extend({
 		this.print_formats = frappe.meta.get_print_formats(this.frm.meta.name);
 		this.print_letterhead = this.wrapper
 			.find(".print-letterhead")
-			.on("change", function() { me.print_sel.trigger("change"); });
+			.on("change", function() { me.print_sel.trigger("change"); })
+			.prop("checked", cint(
+				(frappe.model.get_doc(":Print Settings", "Print Settings")
+					|| {with_letterhead: 1}).with_letterhead) ? true : false);
 		this.print_sel = this.wrapper
 			.find(".print-preview-select")
 			.on("change", function() {
@@ -72,7 +75,8 @@ frappe.ui.form.PrintPreview = Class.extend({
 				var w = window.open("/api/method/frappe.templates.pages.print.download_pdf?"
 					+"doctype="+encodeURIComponent(me.frm.doc.doctype)
 					+"&name="+encodeURIComponent(me.frm.doc.name)
-					+"&format="+me.selected_format());
+					+"&format="+me.selected_format()
+					+"&no_letterhead="+(me.with_letterhead() ? "0" : "1"));
 				if(!w) {
 					msgprint(__("Please enable pop-ups")); return;
 				}
