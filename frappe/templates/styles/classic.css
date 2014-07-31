@@ -1,5 +1,3 @@
-@import url(https://fonts.googleapis.com/css?family=Noto+Serif:400,700);
-
 /*
 	common style for whole page
 	This should include:
@@ -14,5 +12,5 @@
 .print-format h2,
 .print-format h3,
 .print-format h4 {
-	font-family: 'Noto Serif', serif;
+	font-family: serif;
 }
