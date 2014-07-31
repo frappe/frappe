@@ -6,4 +6,5 @@ import frappe
 from frappe.model.document import Document
 
 class PrintSettings(Document):
-	pass
+	def on_update(self):
+		frappe.clear_cache()

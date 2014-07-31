@@ -18,7 +18,7 @@ class TestPrintFormat(unittest.TestCase):
 		print_html = self.test_print_user("Standard")
 		self.assertTrue(re.findall('\.print-format {[\s]*font-size: 9pt;', print_html))
 		self.assertFalse(re.findall('th {[\s]*background-color: #eee;[\s]*}', print_html))
-		self.assertFalse("font-family: 'Noto Serif', serif;" in print_html)
+		self.assertFalse("font-family: serif;" in print_html)
 
 	def test_print_user_modern(self):
 		print_html = self.test_print_user("Modern")
@@ -26,4 +26,4 @@ class TestPrintFormat(unittest.TestCase):
 
 	def test_print_user_classic(self):
 		print_html = self.test_print_user("Classic")
-		self.assertTrue("font-family: 'Noto Serif', serif;" in print_html)
+		self.assertTrue("font-family: serif;" in print_html)

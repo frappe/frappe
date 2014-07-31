@@ -37,6 +37,7 @@
 
 .print-format {
 	font-size: 9pt;
+	font-family: 'Noto Sans', sans-serif;
 	-webkit-print-color-adjust:exact;
 }
 
@@ -73,6 +74,11 @@ table.no-border, table.no-border td {
 	font-weight: bold;
 }
 
-.print-format td {
-	vertical-align: top;
+.print-format td, .print-format th {
+	vertical-align: top !important;
+	padding: 6px !important;
+}
+
+.print-format p {
+	margin: 3px 0px 3px;
 }

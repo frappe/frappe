@@ -175,13 +175,17 @@ def is_visible(df):
 	return (df.fieldtype not in no_display) and not df.get("__print_hide") and not df.print_hide
 
 def get_print_style(style=None):
-	if not style:
-		style = frappe.db.get_single_value("Print Settings", "print_style") or "Standard"
+	print_settings = frappe.get_doc("Print Settings")
 
-	css = frappe.get_template("templates/styles/standard.css").render()
+	if not style:
+		style = print_settings.print_style or "Standard"
+
+	context = {"print_settings": print_settings}
+
+	css = frappe.get_template("templates/styles/standard.css").render(context)
 
 	try:
-		additional_css = frappe.get_template("templates/styles/" + style.lower() + ".css").render()
+		additional_css = frappe.get_template("templates/styles/" + style.lower() + ".css").render(context)
 
 		# move @import to top
 		for at_import in list(set(re.findall("(@import url\([^\)]+\)[;]?)", additional_css))):
