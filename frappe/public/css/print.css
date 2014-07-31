@@ -1,3 +1,5 @@
+@import url(http://fonts.googleapis.com/css?family=Noto+Sans:400,700);
+
 @media screen {
 	.print-format-gutter {
 		background-color: #ddd;
@@ -35,6 +37,7 @@
 
 .print-format {
 	font-size: 9pt;
+	font-family: 'Noto Sans', sans-serif;
 	-webkit-print-color-adjust:exact;
 }
 
