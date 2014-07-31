@@ -54,6 +54,15 @@
    "permlevel": 0
   }, 
   {
+   "default": "1", 
+   "description": "Print with Letterhead, unless unchecked in a particular Document", 
+   "fieldname": "with_letterhead", 
+   "fieldtype": "Check", 
+   "label": "With Letterhead", 
+   "permlevel": 0, 
+   "reqd": 0
+  }, 
+  {
    "fieldname": "section_break_8", 
    "fieldtype": "Section Break", 
    "permlevel": 0
@@ -67,7 +76,7 @@
  ], 
  "icon": "icon-cog", 
  "issingle": 1, 
- "modified": "2014-07-31 06:25:45.297096", 
+ "modified": "2014-07-31 07:43:54.550258", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Print Settings", 

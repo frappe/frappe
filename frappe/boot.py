@@ -51,7 +51,7 @@ def get_bootinfo():
 	load_translations(bootinfo)
 	add_timezone_info(bootinfo)
 	load_conf_settings(bootinfo)
-	load_print_css(bootinfo)
+	load_print(bootinfo, doclist)
 
 	# ipinfo
 	if frappe.session['data'].get('ipinfo'):
@@ -150,6 +150,11 @@ def add_timezone_info(bootinfo):
 		frappe.utils.momentjs.update(user, bootinfo.timezone_info)
 		frappe.utils.momentjs.update(system, bootinfo.timezone_info)
 
-def load_print_css(bootinfo):
-	bootinfo.print_css = frappe.get_attr("frappe.templates.pages.print.get_print_style")(frappe.db.get_single_value("Print Settings",
-		"print_style") or "Modern")
+def load_print(bootinfo, doclist):
+	print_settings = frappe.db.get_singles_dict("Print Settings")
+	print_settings.doctype = ":Print Settings"
+	doclist.append(print_settings)
+	load_print_css(bootinfo, print_settings)
+
+def load_print_css(bootinfo, print_settings):
+	bootinfo.print_css = frappe.get_attr("frappe.templates.pages.print.get_print_style")(print_settings.print_style or "Modern")
