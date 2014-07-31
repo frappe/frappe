@@ -74,7 +74,7 @@ def get_jloader():
 
 def set_filters(jenv):
 	import frappe
-	from frappe.utils import global_date_format, cint, cstr
+	from frappe.utils import global_date_format, cint, cstr, flt
 	from frappe.website.utils import get_hex_shade
 	from markdown2 import markdown
 	from json import dumps
@@ -86,6 +86,7 @@ def set_filters(jenv):
 	jenv.filters["len"] = len
 	jenv.filters["int"] = cint
 	jenv.filters["str"] = cstr
+	jenv.filters["flt"] = flt
 
 	# load jenv_filters from hooks.py
 	for app in frappe.get_all_apps(True):
