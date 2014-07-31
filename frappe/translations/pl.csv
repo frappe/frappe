@@ -719,7 +719,7 @@ For Select, enter list of Options separated by comma",
 "Password reset instructions have been sent to your email",
 "Patch",
 "Patch Log",
-"Percent",
+"Percent","Procent"
 "Perm Level",
 "Permanently Cancel {0}?",
 "Permanently Submit {0}?",
@@ -734,10 +734,10 @@ For Select, enter list of Options separated by comma",
 "Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles.",
 "Permissions at level 0 are 'Document Level' permissions, i.e. they are primary for access to the document.",
 "Permissions get applied on Users based on what Roles they are assigned.",
-"Person",
-"Personal Info",
+"Person","Osoba"
+"Personal Info","Informacje personalne"
 "Phone","Telefon"
-"Phone No.",
+"Phone No.","Nr telefonu"
 "Pick Columns",
 "Picture URL",
 "Pincode",
@@ -767,8 +767,8 @@ For Select, enter list of Options separated by comma",
 "Posts",
 "Previous Record",
 "Primary",
-"Print",
-"Print Format",
+"Print","Drukuj"
+"Print Format","Format druku"
 "Print Format Type",
 "Print Hide",
 "Print Width",
