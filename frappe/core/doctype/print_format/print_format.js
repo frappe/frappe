@@ -1,3 +1,7 @@
+frappe.ui.form.on("Print Format", "onload", function(frm) {
+	frm.add_fetch("doc_type", "module", "module");
+});
+
 frappe.ui.form.on("Print Format", "refresh", function(frm) {
 	frm.set_intro("");
 	if (user!="Administrator") {

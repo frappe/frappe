@@ -8,6 +8,18 @@
  "doctype": "DocType", 
  "fields": [
   {
+   "description": "Belongs to", 
+   "fieldname": "doc_type", 
+   "fieldtype": "Link", 
+   "in_filter": 1, 
+   "in_list_view": 1, 
+   "label": "DocType", 
+   "options": "DocType", 
+   "permlevel": 0, 
+   "reqd": 1, 
+   "search_index": 0
+  }, 
+  {
    "allow_on_submit": 0, 
    "fieldname": "module", 
    "fieldtype": "Link", 
@@ -24,18 +36,6 @@
    "report_hide": 0, 
    "reqd": 1, 
    "search_index": 1
-  }, 
-  {
-   "description": "Belongs to", 
-   "fieldname": "doc_type", 
-   "fieldtype": "Link", 
-   "in_filter": 1, 
-   "in_list_view": 1, 
-   "label": "DocType", 
-   "options": "DocType", 
-   "permlevel": 0, 
-   "reqd": 0, 
-   "search_index": 0
   }, 
   {
    "fieldname": "column_break_3", 
@@ -119,7 +119,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2014-07-29 06:40:58.557378", 
+ "modified": "2014-07-31 03:39:35.898711", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Print Format", 
