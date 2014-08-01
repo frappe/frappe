@@ -32,7 +32,7 @@ frappe.views.SidebarStats = Class.extend({
 
 				// reload button at the end
 				if(me.stats.length) {
-					$('<a class="small"><i class="refresh"></i> '+__('Refresh')+'</a>')
+					$('<a class="small"><i class="icon-refresh"></i> '+__('Refresh')+'</a>')
 						.css({"margin-top":"15px", "display":"inline-block"})
 						.click(function() {
 							me.reload_stats();
