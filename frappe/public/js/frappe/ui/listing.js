@@ -82,16 +82,12 @@ frappe.ui.Listing = Class.extend({
 				<h3 class="title hide">%(title)s</h3>\
 				\
 				<div class="list-filters" style="display: none;">\
-					<div class="show_filters" style="display: none;">\
-						<div class="filter_area"></div>\
-						<div>\
-							<button class="btn btn-info search-btn">\
-								<i class="icon-refresh icon-white"></i> \
-								<span class="hidden-phone">Search</span></button>\
-							<button class="btn btn-default add-filter-btn">\
-								<i class="icon-plus"></i> \
-								<span class="hidden-phone">Add Filter</span></button>\
+					<div class="show_filters">\
+						<div class="set-filters">\
+							<button class="btn btn-default btn-xs new-filter text-muted">\
+								<i class="icon-plus"></i> '+__("Add Filter")+'</button>\
 						</div>\
+						<div class="filter_area"></div>\
 					</div>\
 				</div>\
 				\
@@ -197,8 +193,8 @@ frappe.ui.Listing = Class.extend({
 		// hide-filter
 		if(me.show_filters) {
 			this.add_button(__('Filter'), function() {
-				me.filter_list.show_filters();
-			}, 'icon-search').addClass('btn-filter');
+				me.filter_list.add_filter();
+			}, 'icon-filter').addClass('btn-filter');
 		}
 
 		if(me.no_toolbar || me.hide_toolbar) {
@@ -351,8 +347,9 @@ frappe.ui.Listing = Class.extend({
 	render_list: function(values) {
 		var m = Math.min(values.length, this.page_length);
 		this.data = values;
-		if(this.filter_list)
+		if(this.filter_list) {
 			this.filter_values = this.filter_list.get_filters();
+		}
 
 		// render the rows
 		for(var i=0; i < m; i++) {

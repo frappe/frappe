@@ -164,6 +164,7 @@ frappe.views.ListView = Class.extend({
 		// maintain id_list to avoid duplication incase
 		// of filtering by child table
 		if(in_list(this.id_list, data.name)) {
+			$(row).toggle(false);
 			return;
 		} else {
 			this.id_list.push(data.name);
