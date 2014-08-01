@@ -13,6 +13,8 @@ from frappe import conf
 from frappe.sessions import Session, clear_sessions, delete_session
 from frappe.modules.patch_handler import check_session_stopped
 
+from urllib import quote
+
 class HTTPRequest:
 	def __init__(self):
 		# Get Environment variables
@@ -215,7 +217,7 @@ class CookieManager:
 			self.cookies["country"] = {"value": frappe.session.get("session_country")}
 
 	def set_cookie(self, key, value, expires=None):
-		self.cookies[key] = {"value": value, "expires": expires}
+		self.cookies[key] = {"value": quote(value.encode('utf-8')), "expires": expires}
 
 	def delete_cookie(self, to_delete):
 		if not isinstance(to_delete, (list, tuple)):
