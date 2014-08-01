@@ -257,7 +257,14 @@ frappe.ui.Filter = Class.extend({
 		}
 
 		// scrub
-		if(df.fieldtype=='Check') {
+		if(df.fieldname=="docstatus") {
+			df.fieldtype="Select",
+			df.options=[
+				{value:0, label:"Draft"},
+				{value:1, label:"Submitted"},
+				{value:2, label:"Cancelled"},
+			]
+		} else if(df.fieldtype=='Check') {
 			df.fieldtype='Select';
 			df.options='No\nYes';
 		} else if(['Text','Small Text','Text Editor','Code','Tag','Comments','Dynamic Link'].indexOf(df.fieldtype)!=-1) {
@@ -309,13 +316,18 @@ frappe.ui.Filter = Class.extend({
 		var me = this;
 		this.frozen_value = this.get_value();
 
+		var value = __(this.frozen_value[3]);
+		if(this.field.df.fieldname==="docstatus") {
+			value = {0:"Draft", 1:"Submitted", 2:"Cancelled"}[value];
+		}
+
 		// add a button for new filter if missing
 		this.$btn = $(repl('<button class="btn btn-default btn-xs remove-filter">\
 			<i class="icon-filter"></i> %(label)s %(condition)s "%(value)s" <i class="icon-remove text-muted"></i>\
 			</button>', {
 				label: __(this.field.df.label),
 				condition: this.frozen_value[2],
-				value: __(this.frozen_value[3]),
+				value: value,
 			}))
 			.attr("title", __("Remove Filter"))
 			.insertBefore(this.flist.$w.find(".set-filters .new-filter"))
