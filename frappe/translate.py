@@ -301,12 +301,17 @@ def get_untranslated(lang, untranslated_file, get_all=False):
 	for app in apps:
 		messages.extend(get_messages_for_app(app))
 
+	def escape_newlines(s):
+		return (s.replace("\\\n", "|||||")
+				.replace("\\n", "||||")
+				.replace("\n", "|||"))
+
 	if get_all:
 		print str(len(messages)) + " messages"
 		with open(untranslated_file, "w") as f:
 			for m in messages:
-				# replace \n with \\n so that internal linebreaks don't get split
-				f.write((m.replace("\n", "\\n") + os.linesep).encode("utf-8"))
+				# replace \n with ||| so that internal linebreaks don't get split
+				f.write((escape_newlines(m) + os.linesep).encode("utf-8"))
 	else:
 		full_dict = get_full_dict(lang)
 
@@ -318,8 +323,8 @@ def get_untranslated(lang, untranslated_file, get_all=False):
 			print str(len(untranslated)) + " missing translations of " + str(len(messages))
 			with open(untranslated_file, "w") as f:
 				for m in untranslated:
-					# replace \n with \\n so that internal linebreaks don't get split
-					f.write((m.replace("\n", "\\n") + os.linesep).encode("utf-8"))
+					# replace \n with ||| so that internal linebreaks don't get split
+					f.write((escape_newlines(m) + os.linesep).encode("utf-8"))
 		else:
 			print "all translated!"
 
@@ -327,11 +332,20 @@ def update_translations(lang, untranslated_file, translated_file):
 	clear_cache()
 	full_dict = get_full_dict(lang)
 
+	def restore_newlines(s):
+		return (s.replace("|||||", "\\\n")
+				.replace("| | | | |", "\\\n")
+				.replace("||||", "\\n")
+				.replace("| | | |", "\\n")
+				.replace("|||", "\n")
+				.replace("| | |", "\n"))
+
 	translation_dict = {}
-	for key, value in zip(frappe.get_file_items(untranslated_file),
-		frappe.get_file_items(translated_file)):
+	for key, value in zip(frappe.get_file_items(untranslated_file, ignore_empty_lines=False),
+		frappe.get_file_items(translated_file, ignore_empty_lines=False)):
+
 		# undo hack in get_untranslated
-		translation_dict[key.replace("\\n", "\n")] = value.replace("\\n", "\n")
+		translation_dict[restore_newlines(key)] = restore_newlines(value)
 
 	full_dict.update(translation_dict)
 

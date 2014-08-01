@@ -3,6 +3,8 @@
 """Company History""",&quot;Η Εταιρεία Ιστορία&quot;
 """Team Members"" or ""Management""",&quot;Μέλη της ομάδας&quot; ή &quot;Management&quot;
 'In List View' not allowed for type {0} in row {1},«Στην Προβολή λίστας » δεν επιτρέπεται για τον τύπο {0} στη γραμμή {1}
+0 - Draft; 1 - Submitted; 2 - Cancelled,0 - Σχέδιο? 1 - Υποβλήθηκε? 2 - Ακυρώθηκε
+0 is highest,0 είναι η υψηλότερη
 "000 is black, fff is white","000 είναι μαύρο, fff είναι λευκό"
 2 days ago,2 μέρες πριν
 "<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank"">[?]</a>","<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank""> [ ?] < / a>"
@@ -11,7 +13,17 @@
 <li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\
 <li><b>Prompt</b> - Prompt user for a name\
 <li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\
-</ol>')"">Naming Options</a>","<a onclick = "" msgprint ( « <ol> \ \ n <li> <b> πεδίο : [ fieldname ] < / b> - Με πεδίο \ \ n <li> <b> naming_series : < / b> - Με Ονομασία"
+</ol>')"">Naming Options</a>","<A onclick = ""msgprint (« <ol> \
+ <li> <b> πεδίο: [fieldname] </ b> - Με Field \
+ <li> <b> naming_series: </ b > - Με Ονομασία σειράς (πεδίο που ονομάζεται naming_series πρέπει να είναι παρόντες \
+ <li> <b> Prompt </ b> - Προτροπή χρήστη για το όνομα \
+ <li> <b> [σειρά] </ . b> - Σειρά με πρόθεμα (διαχωρίζονται με μια τελεία)? για παράδειγμα PRE # # # # # \
+ </ ol> ') ""> Ονοματοδοσία Επιλογές </ a>"
+<b>new</b> <i>type of document</i>,<b> νέα </ b> <i> τύπο του εγγράφου </ i>
+"<i>document type...</i>, e.g. <b>customer</b>","<i> τύπο εγγράφου ... </ i>, π.χ. <b> πελάτη </ b>"
+<i>e.g. <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>,<i> π.χ. <strong> (55 + 434) / 4 </ strong> ή = <strong> Math.sin (άβακαςPI / 2) </ strong> ... </ i>
+<i>module name...</i>,<i> όνομα της λειτουργικής μονάδας ... </ i>
+<i>text</i> <b>in</b> <i>document type</i>,<i> κείμενο </ i> <b> </ b> <i> τύπο εγγράφου </ i>
 A user can be permitted to multiple records of the same DocType.,Ένας χρήστης μπορεί να επιτραπεί σε πολλαπλές εγγραφές του ίδιου DocType .
 About,Περίπου
 About Us Settings,Σχετικά με εμάς Ρυθμίσεις
@@ -38,10 +50,12 @@ Add attachment,Προσθήκη συνημμένου
 Add code as &lt;script&gt;,Προσθήκη κώδικα ως &lt;script&gt;
 Add custom javascript to forms.,Προσθήκη προσαρμοσμένων javascript για να τις μορφές .
 Add fields to forms.,Προσθήκη πεδίων σε φόρμες .
+Add multiple rows,Προσθήκη πολλαπλές σειρές
 Add new row,Προσθήκη νέας γραμμής
 "Add the name of <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> e.g. ""Open Sans""","Προσθέστε το όνομα της <a href=""http://google.com/webfonts"" target=""_blank"">Google Font Web</a> π.χ. &quot;Open Sans&quot;"
 Add to To Do,Προσθήκη στο να κάνει
 Add to To Do List Of,Προσθήκη στο To Do List του
+Added {0} ({1}),Προστέθηκε {0} ({1})
 Adding System Manager to this User as there must be atleast one System Manager,"Προσθέτοντας Διαχειριστή του Συστήματος για τον χρήστη , όπως πρέπει να υπάρχει atleast Διαχειριστής ενός συστήματος"
 Additional Info,Πρόσθετες Πληροφορίες
 Additional Permissions,Πρόσθετα Δικαιώματα
@@ -53,6 +67,7 @@ Address and other legal information you may want to put in the footer.,Διεύ�
 Admin,Διαχειριστής
 All Applications,Όλες οι αιτήσεις θα
 All Day,Ολοήμερο
+All customizations will be removed. Please confirm.,Όλες οι προσαρμογές θα πρέπει να αφαιρεθεί. Παρακαλούμε να επιβεβαιώσετε.
 "All possible Workflow States and roles of the workflow. <br>Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""","Όλες οι πιθανές κράτη Workflow και τους ρόλους της ροής εργασίας. <br> Docstatus Επιλογές: 0 είναι &quot;Saved&quot;, 1 &quot;Υποβλήθηκε&quot; και 2 &quot;Ακυρώθηκε&quot;"
 Allow Attach,Αφήστε Επισυνάψτε
 Allow Import,Να επιτρέψουν την εισαγωγή
@@ -71,11 +86,11 @@ Always use above Login Id as sender,Πάντα να χρησιμοποιείτε
 Amend,Τροποποιούνται
 "An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [<a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a>]","Ένα αρχείο με το εικονίδιο. Επέκταση ICO. Θα πρέπει να είναι 16 x 16 px. Generated χρησιμοποιώντας μια γεννήτρια favicon. [ <a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a> ]"
 "Another {0} with name {1} exists, select another name","Ένας άλλος {0} με το όνομα {1} υπάρχει, επιλέξτε ένα άλλο όνομα"
+Any existing permission will be deleted / overwritten.,Κάθε υφιστάμενη άδεια θα διαγραφούν / αντικατασταθούν.
 Anyone Can Read,Ο καθένας μπορεί να διαβάσει
 Anyone Can Write,Οποιοσδήποτε μπορεί να γράψει
 "Apart from Role based Permission Rules, you can apply User Permissions based on DocTypes.","Εκτός από το ρόλο που βασίζονται Κανόνες άδεια , μπορείτε να εφαρμόσετε τα δικαιώματα χρήσης με βάση doctypes ."
 "Apart from System Manager, roles with 'Set User Permissions' right can set permissions for other users for that Document Type.","Εκτός από το Διαχειριστή του Συστήματος , οι ρόλοι με το δικαίωμα 'Ρύθμιση δικαιωμάτων χρήστη » να ορίσετε δικαιώματα για άλλους χρήστες για αυτόν τον τύπο εγγράφου ."
-App Already Installed,App ήδη εγκατεστημένο
 App Name,Όνομα App
 App not found,App δεν βρέθηκε
 Application Installer,εγκατάστασης εφαρμογών
@@ -107,12 +122,13 @@ Avatar,Avatar
 Back to Login,Επιστροφή στο Login
 Background Color,Χρώμα φόντου
 Background Image,Εικόνα φόντου
+Background Style,Ιστορικό Style
 Banner,Λάβαρο
 Banner HTML,HTML Διαφήμιση
 Banner Image,Εικόνα Banner
 Banner is above the Top Menu Bar.,Banner είναι πάνω από το Top Menu Bar.
-Base Template Path,Path βάσης Πρότυπο
 Begin this page with a slideshow of images,Ξεκινήστε τη σελίδα με ένα slideshow των εικόνων
+Beginning with,Ξεκινώντας με
 Belongs to,ανήκει στο
 Bio,Bio
 Birth Date,Ημερομηνία Γέννησης
@@ -124,11 +140,13 @@ Blog Settings,Ρυθμίσεις Blog
 Blog Title,Τίτλος Blog
 Blogger,Blogger
 Bookmarks,Σελιδοδείκτες
+Both login and password required,Τόσο χρήστη και κωδικό πρόσβασης που απαιτείται
 Brand HTML,Μάρκα HTML
 Bulk Email,Bulk Email
 Bulk email limit {0} crossed,Μαζική email όριο {0} διέσχισε
 Button,Κουμπί
 By,Με
+Calculate,Υπολογισμός
 Calendar,Ημερολόγιο
 Cancel,Ακύρωση
 Cancelled,Ακυρώθηκε
@@ -142,7 +160,6 @@ Cannot change state of Cancelled Document. Transition row {0},Δεν μπορε�
 Cannot change {0},Δεν μπορεί να αλλάξει {0}
 Cannot delete or cancel because {0} {1} is linked with {2} {3},Δεν είναι δυνατή η διαγραφή ή ακύρωση επειδή {0} {1} συνδέεται με {2} {3}
 Cannot delete {0} as it has child nodes,"Δεν είναι δυνατή η διαγραφή {0} , όπως έχει κόμβους του παιδιού"
-Cannot delete {0} {1} is it is referenced in another record,Δεν είναι δυνατή η διαγραφή {0} {1} είναι ότι γίνεται αναφορά σε άλλη εγγραφή
 Cannot edit standard fields,Δεν μπορείτε να επεξεργαστείτε τα τυπικά πεδία
 Cannot map because following condition fails: ,Δεν είναι δυνατή η χαρτογράφηση γιατί ακόλουθο όρο αποτυγχάνει:
 Cannot open instance when its {0} is open,"Δεν μπορείτε να ανοίξετε παράδειγμα, όταν του {0} είναι ανοικτή"
@@ -150,6 +167,7 @@ Cannot open {0} when its instance is open,Δεν είναι δυνατό το ά
 Cannot print cancelled documents,Δεν είναι δυνατή η εκτύπωση ακυρώνεται έγγραφα
 Cannot remove permission for DocType: {0} and Name: {1},Δεν μπορεί να αφαιρέσει την άδεια για DocType : {0} και Όνομα : {1}
 Cannot reply to a reply,Δεν μπορείτε να απαντήσετε σε μια απάντηση
+Cannot set Email Alert on Document Type {0},Δεν είναι δυνατή η ρύθμιση ειδοποίησης e-mail στο Τύπος εγγράφου {0}
 Cannot set permission for DocType: {0} and Name: {1},Δεν είναι δυνατός ο ορισμός άδεια για DocType : {0} και Όνομα : {1}
 Categorize blog posts.,Κατηγοριοποίηση blog θέσεις.
 Category,Κατηγορία
@@ -162,21 +180,22 @@ Check,Έλεγχος
 Check / Uncheck roles assigned to the User. Click on the Role to find out what permissions that Role has.,Ελέγξτε / ρόλους Αποεπιλέξτε ανατεθεί στο προφίλ. Κάντε κλικ για το ρόλο για να μάθετε ποια είναι τα δικαιώματα που έχει ο ρόλος.
 Check this if you want to send emails as this id only (in case of restriction by your email provider).,"Ελέγξτε αυτό, αν θέλετε να στείλετε μηνύματα ηλεκτρονικού ταχυδρομείου, όπως αυτό id μόνο (στην περίπτωση του περιορισμού από τον παροχέα email σας)."
 Check this to make this the default letter head in all prints,Επιλέξτε το για να κάνουν αυτό το κεφάλι επιστολή προεπιλογή σε όλες τις εκτυπώσεις
+Check which Documents are readable by a User,Ελέγξτε ποια έγγραφα είναι δυνατόν να αναγνωσθούν από έναν χρήστη
 Checked items shown on desktop,Ελέγχθηκε στοιχεία που εμφανίζονται στην επιφάνεια εργασίας
 Child Tables are shown as a Grid in other DocTypes.,Οι πίνακες παιδιών απεικονίζεται ως πλέγμα σε άλλες doctypes.
 City,Πόλη
+Classic,Classic
 Clear Cache,Clear Cache
 Clear all roles,Καταργήστε όλους τους ρόλους
-Click on a link to get options to expand get options ,
+Click on a link to get options,Κάντε κλικ σε ένα σύνδεσμο για να πάρετε τις επιλογές
 Click on row to view / edit.,Κάντε κλικ στην γραμμή για να δείτε / επεξεργαστείτε .
-Click to Expand / Collapse,Click to Expand / Collapse
 Client,Πελάτης
+Client-side formats are now deprecated,Client-side φορμά είναι πλέον παρωχημένο
 Close,Κοντά
 Close: {0},Κλείσιμο : {0}
 Closed,Κλειστό
 Code,Κωδικός
 Collapse,κατάρρευση
-Color,Χρώμα
 Column Break,Break Στήλη
 Comment,Σχόλιο
 Comment By,Σχόλιο από
@@ -192,7 +211,7 @@ Company History,Ιστορικό Εταιρίας
 Company Introduction,Εισαγωγή Εταιρεία
 Complaint,Καταγγελία
 Complete By,Συμπληρώστε Με
-Condition Field,Κατάσταση πεδίο
+Condition,Κατάσταση
 Contact Us Settings,Επικοινωνήστε μαζί μας Ρυθμίσεις
 "Contact options, like ""Sales Query, Support Query"" etc each on a new line or separated by commas.","Επιλογές επικοινωνίας, όπως &quot;Πωλήσεις Query, Υποστήριξη Query&quot; κλπ. το καθένα σε μια νέα γραμμή ή διαχωρισμένες με κόμμα."
 Content,Περιεχόμενο
@@ -208,6 +227,7 @@ Could not find {0},Δεν μπόρεσα να βρω {0}
 Count,αρίθμηση
 Country,Χώρα
 Create,Δημιουργία
+Create a new {0},Δημιουργήστε ένα νέο {0}
 Created Custom Field {0} in {1},Δημιουργήθηκε προσαρμοσμένου πεδίου {0} {1}
 Created Customer Issue,Δημιουργήθηκε Τεύχος πελατών
 Created Opportunity,Δημιουργήθηκε Ευκαιρία
@@ -233,14 +253,18 @@ Data Import / Export Tool,Δεδομένα Εργαλείο Εισαγωγής /
 Data Import Tool,Εργαλείο εισαγωγής δεδομένων
 Data missing in table,Στοιχεία που λείπουν στον πίνακα
 Date,Ημερομηνία
+Date Change,Αλλαγή της ημερομηνίας
+Date Changed,Ημερομηνία Άλλαξε
 Date Format,Μορφή ημερομηνίας
 Date and Number Format,Ημερομηνία και Μορφή αριθμών
 Date must be in format: {0},Η ημερομηνία πρέπει να είναι σε μορφή : {0}
 Datetime,Datetime
+Days in Advance,Ημέρες Advance
 Dear,Αγαπητός
 Default,Αθέτηση
 Default Print Format,Προεπιλογή έντυπη μορφή
 Default Value,Προεπιλεγμένη τιμή
+Default is system timezone,Η προεπιλογή είναι ζώνη ώρας του συστήματος
 "Default: ""Contact Us""",Προεπιλογή: &quot;Επικοινωνήστε μαζί μας&quot;
 DefaultValue,DefaultValue
 Defaults,Προεπιλογές
@@ -287,7 +311,6 @@ Document Type,Τύπος εγγράφου
 Document is only editable by users of role,Το έγγραφο είναι μόνο επεξεργάσιμη από τους χρήστες του ρόλου
 Documentation,Τεκμηρίωση
 Documents,Έγγραφα
-Down,κάτω
 Download,Λήψη
 Download Backup,Λήψη αντιγράφων ασφαλείας
 Download link for your backup will be emailed on the following email address:,Download link για backup σας θα σας αποσταλεί στην ακόλουθη διεύθυνση ηλεκτρονικού ταχυδρομείου :
@@ -295,10 +318,17 @@ Drafts,Συντάκτης
 Drag to sort columns,Σύρετε για να ταξινομήσετε στήλες
 Due Date,Ημερομηνία λήξης
 Duplicate name {0} {1},Διπλότυπο όνομα {0} {1}
+Dynamic Link,Dynamic Link
+ERPNext Demo,ERPNext Demo
 Edit,Επεξεργασία
 Edit Permissions,Επεξεργασία Δικαιώματα
 Editable,Επεξεργάσιμη
 Email,Email
+Email Alert,Ειδοποίηση e-mail
+Email Alert Recipient,Email Alert Παραλήπτης
+Email Alert Recipients,Παραλήπτες Alert Email
+Email By Document Field,Email Με έγγραφο Field
+Email Footer,Email Τελικοί
 Email Host,Host Email
 Email Id,Id Email
 Email Login,Είσοδος Email
@@ -316,6 +346,7 @@ Emails are muted,Emails είναι σε σίγαση
 Embed image slideshows in website pages.,Ενσωμάτωση slideshows εικόνας σε ιστοσελίδες.
 Enable,Ενεργοποίηση
 Enable Comments,Ενεργοποίηση Σχόλια
+Enable Scheduled Jobs,Ενεργοποίηση προγραμματισμένες εργασίες
 Enabled,Ενεργοποιημένο
 Ends on,Λήγει στις
 Enter Form Type,Εισάγετε Τύπος Φόρμα
@@ -325,6 +356,7 @@ Enter at least one permission row,Εισάγετε τουλάχιστον μία
 "Enter keys to enable login via Facebook, Google, GitHub.","Εισάγετε τα πλήκτρα για να ενεργοποιήσετε την είσοδο μέσω του Facebook , Google , GitHub ."
 Equals,Ίσο
 Error,Σφάλμα
+"Error generating PDF, attachment sent as HTML","Σφάλμα κατά PDF, συνημμένο που έχει αποσταλεί ως HTML"
 Error: Document has been modified after you have opened it,Σφάλμα: Το έγγραφο έχει τροποποιηθεί αφού το έχετε ανοίξει
 Event,Συμβάν
 Event Datetime,εκδήλωση Datetime
@@ -340,11 +372,13 @@ Every Day,Κάθε μέρα
 Every Month,Κάθε Μήνα
 Every Week,Κάθε εβδομάδα
 Every Year,Κάθε έτος
+Everyone,Όλοι
 Example:,Παράδειγμα:
 Expand,Αναπτύξτε
 Export,Εξαγωγή
 Export not allowed. You need {0} role to export.,Η εξαγωγή δεν επιτρέπεται . Χρειάζεται {0} ρόλο για την εξαγωγή .
 Exported,εξάγονται
+"Expression, Optional","Έκφραση, Προαιρετικά"
 Facebook,Facebook
 Facebook Client ID,Facebook ταυτότητα πελατών
 Facebook Client Secret,Facebook Πελάτης Secret
@@ -363,11 +397,12 @@ Field {0} of type {1} cannot be mandatory,Το πεδίο {0} του τύπου 
 Fieldname,Fieldname
 Fieldname is required in row {0},Fieldname απαιτείται στη γραμμή {0}
 Fieldname not set for Custom Field,Fieldname δεν έχει οριστεί για το Custom Field
+Fieldname which will be the DocType for this link field.,Fieldname η οποία θα είναι η DocType για αυτό το πεδίο σύνδεσμο.
 Fieldname {0} appears multiple times in rows {1},Fieldname {0} εμφανίζεται πολλαπλές φορές σε σειρές {1}
 "Fieldname {0} cannot contain letters, numbers or spaces","Fieldname {0} δεν μπορεί να περιέχει γράμματα , αριθμούς ή χώρους"
 Fields,Πεδία
 "Fields separated by comma (,) will be included in the<br /><b>Search By</b> list of Search dialog box","Τα πεδία που χωρίζονται με κόμμα (,) θα πρέπει να περιλαμβάνονται στο <br /> <b>Αναζήτηση Με</b> λίστα στο παράθυρο διαλόγου Αναζήτηση"
-Fieldtype must be one of {0} in row {1},Fieldtype πρέπει να είναι ένα από τα {0} στη γραμμή {1}
+Fieldtype cannot be changed from {0} to {1} in row {2},Fieldtype δεν μπορεί να αλλάξει από {0} έως {1} στη γραμμή {2}
 File,Αρχείο
 File Data,Αρχείου δεδομένων
 File Name,Όνομα αρχείου
@@ -375,20 +410,27 @@ File Size,Μέγεθος Αρχείου
 File URL,URL αρχείου
 File not attached,Το αρχείο δεν συνδέεται
 File size exceeded the maximum allowed size of {0} MB,Μέγεθος αρχείου υπερβεί το μέγιστο επιτρεπόμενο μέγεθος του {0} MB
+Fill Screen,Συμπληρώστε Screen
 Filter,Φιλτράρισμα
 Filter records based on User Permissions defined for a user,Φιλτράρισμα εγγραφών με βάση τα δικαιώματα χρήσης που ορίζεται για ένα χρήστη
+Filters,Φίλτρα
+Find {0} in {1},Βρείτε {0} {1}
 First Name,Όνομα
 Float,Επιπλέω
 Float Precision,Float ακριβείας
 Font (Heading),Font (Τομέας)
 Font (Text),Font (Κείμενο)
+Font Size,Μέγεθος γραμματοσειράς
 Font Size (Text),Μέγεθος γραμματοσειράς (κείμενο)
 Fonts,Γραμματοσειρές
 Footer,Υποσέλιδο
+Footer Background,Ιστορικό Τελικοί
 Footer Items,Τελικοί Είδη
+Footer Text,Κείμενο Τελικοί
 For DocType,για DocType
 "For Links, enter the DocType as range
-For Select, enter list of Options separated by comma","Για Links , εισάγετε το DocType ως εύρος \ nΓια την Select , τον κατάλογο των επιλογών που χωρίζονται με κόμμα αρχίζει"
+For Select, enter list of Options separated by comma","Για Links, εισάγετε το DocType ως σειρά 
+ Για Select, τον κατάλογο των επιλογών που χωρίζονται με κόμμα αρχίζει"
 "For comparative filters, start with","Για τις συγκριτικές φίλτρα, ξεκινήστε με"
 For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,"Για παράδειγμα, αν έχετε ακυρώσει και να τροποποιήσει «INV004» θα γίνει ένα νέο έγγραφο «INV004-1». Αυτό σας βοηθά να παρακολουθείτε κάθε τροπολογία."
 For ranges,Για σειρές
@@ -400,6 +442,7 @@ Form,μορφή
 Forum,Φόρουμ
 Forums,φόρουμ
 Forward To Email Address,Μπροστά στη διεύθυνση ηλεκτρονικού ταχυδρομείου
+Frappe Framework,Πλαίσιο Frappe
 Friday,Παρασκευή
 From Date must be before To Date,Από την ημερομηνία πρέπει να είναι πριν από την ημερομηνία
 Full Name,Ονοματεπώνυμο
@@ -409,6 +452,7 @@ Generator,γεννήτρια
 Georgia,Γεωργία
 Get,Λήψη
 Get From ,Πάρτε Από
+"Get your globally recognized avatar from <a href=""https://gravatar.com/"">Gravatar.com</a>","Πάρτε παγκοσμίως αναγνωρισμένη avatar σας από <a href=""https://gravatar.com/""> Gravatar.com </ a>"
 GitHub,GitHub
 GitHub Client ID,GitHub πελάτη ID
 GitHub Client Secret,GitHub πελάτη Secret
@@ -436,15 +480,14 @@ Header,Header
 Heading,Επικεφαλίδα
 Heading Text As,Τομέας κειμένου ως
 Help,Βοήθεια
+Help on Search,Βοήθεια για Αναζήτηση
 Helvetica Neue,Helvetica Neue
-Hey! There should remain at least one System Manager,Hey! Θα πρέπει να παραμείνουν τουλάχιστον ενός διαχειριστή συστήματος
 Hidden,Hidden
 Hide Actions,Απόκρυψη Ενέργειες
 Hide Copy,Απόκρυψη Αντιγραφή
-Hide Email,Απόκρυψη e-mail
 Hide Heading,Απόκρυψη Τομέας
-Hide Print,Απόκρυψη Εκτύπωση
 Hide Toolbar,Απόκρυψη της γραμμής εργαλείων
+Hide the sidebar,Απόκρυψη του sidebar
 High,Υψηλός
 Highlight,Επισημάνετε
 History,Ιστορία
@@ -455,7 +498,6 @@ Icon,Icon
 Icon will appear on the button,Θα εμφανιστεί το εικονίδιο στο κουμπί
 "If a Role does not have access at Level 0, then higher levels are meaningless.","Εάν ένας ρόλος δεν έχει πρόσβαση στο επίπεδο 0 , στη συνέχεια υψηλότερα επίπεδα είναι χωρίς νόημα ."
 "If checked, all other workflows become inactive.","Εάν είναι επιλεγμένο, όλες οι άλλες ροές εργασίας καταστεί ανενεργή."
-"If checked, an email with an attached HTML format will be added to part of the EMail body as well as attachment. To only send as attachment, uncheck this.","Αν επιλεγεί, ένα email με ένα συνημμένο HTML μορφή θα προστεθεί στο μέρος του σώματος ηλεκτρονικού ταχυδρομείου, καθώς ως συνημμένο. Για να στείλετε μόνο ως συνημμένο, καταργήστε την επιλογή αυτή."
 "If checked, the Home page will be the default Item Group for the website.","Εάν επιλεγεί, η σελίδα θα είναι η ομάδα προεπιλεγμένο στοιχείο για την ιστοσελίδα."
 "If image is selected, color will be ignored (attach first)","Εάν η εικόνα έχει επιλεγεί, το χρώμα θα πρέπει να αγνοηθεί (επισυνάψετε πρώτα)"
 If non standard port (e.g. 587),Αν μη τυπική θύρα (π.χ. 587)
@@ -473,9 +515,10 @@ In Dialog,Στο Dialog
 In Filter,Το Φίλτρο
 In List View,Στην Λίστα
 In Report Filter,Στην έκθεση Filter
+In points. Default is 9.,Στα σημεία. Η προεπιλογή είναι 9.
 In response to,Σε απάντηση προς
 Incorrect value in row {0}: {1} must be {2} {3},Λανθασμένη τιμή στη γραμμή {0} : {1} πρέπει να είναι {2} {3}
-Incorrect value: {1} must be {2} {3},Λανθασμένη αξία: {1} πρέπει να είναι {2} {3}
+Incorrect value: {0} must be {1} {2},Λανθασμένη αξία: {0} πρέπει να είναι {1} {2}
 Index,Δείκτης
 Individuals,Ιδιώτες
 Info,Πληροφορίες
@@ -496,6 +539,7 @@ Introductory information for the Contact Us Page,Εισαγωγικές πληρ
 Invalid Email: {0},Μη έγκυρο Email : {0}
 Invalid Filter: {0},Άκυρα Φίλτρο : {0}
 Invalid Home Page,Μη έγκυρο Αρχική Σελίδα
+Invalid Login,Άκυρα Login
 Invalid Outgoing Mail Server or Port,Άκυρα Outgoing Mail Server ή το λιμάνι
 Invalid login or password,Μη έγκυρη είσοδος ή τον κωδικό πρόσβασης
 Invalid recipient address,Μη έγκυρη διεύθυνση παραλήπτη
@@ -532,6 +576,7 @@ Leave blank to repeat always,Αφήστε το κενό για να επαναλ
 Left,Αριστερά
 Less or equals,Λιγότερο ή ίσον
 Less than,λιγότερο από
+Letter,Επιστολή
 Letter Head,Επικεφαλής Επιστολή
 Letter Head Name,Επιστολή Όνομα Head
 Letter Head in HTML,Επιστολή Επικεφαλής σε HTML
@@ -539,13 +584,13 @@ Level,Επίπεδο
 "Level 0 is for document level permissions, higher levels for field level permissions.","Επίπεδο 0 είναι για δικαιώματα σε επίπεδο εγγράφων, τα υψηλότερα επίπεδα για τα δικαιώματα σε επίπεδο τομέα."
 Like,σαν
 Link,Σύνδεσμος
-Link Name,link Name
 "Link that is the website home page. Standard Links (index, login, products, blog, about, contact)","Συνδέσεων που είναι η αρχική σελίδα του ιστοτόπου . Πρότυπο Links ( δείκτης , login , τα προϊόντα , το blog , περίπου , επικοινωνία )"
 Link to other pages in the side bar and next section,Σχέση με άλλες σελίδες στο μπαρ πλευρά και το επόμενο τμήμα
 Link to the page you want to open,Σύνδεσμο προς τη σελίδα που θέλετε να ανοίξετε
 Linked In Share,Συνδέεται Σε Share
 Linked With,Συνδέεται με την
 List,Λίστα
+List a document type,Λίστα έναν τύπο εγγράφου
 List of Web Site Forum's Posts.,Λίστα των μηνυμάτων Web Φόρουμ ιστοσελίδας .
 Loading,Φόρτωση
 Loading Report,Φόρτωση Έκθεση
@@ -565,6 +610,7 @@ Lucida Grande,Lucida Grande
 Mail Password,Mail Κωδικός
 Main Section,Το τμήμα Main
 Make a new,Κάντε μια νέα
+Make a new record,Κάντε ένα νέο ρεκόρ
 Male,Αρσενικός
 Manage cloud backups on Dropbox,Διαχειριστείτε αντιγράφων ασφαλείας σύννεφο Dropbox
 Manage uploaded files.,Διαχειριστείτε τα αρχεία που φορτώνονται .
@@ -579,12 +625,14 @@ Medium,Μέσον
 "Menu items in the Top Bar. For setting the color of the Top Bar, go to <a href=""#Form/Style Settings"">Style Settings</a>","Τα στοιχεία μενού στην πάνω μπάρα. Για τον καθορισμό του χρώματος του Top Bar, πηγαίνετε στο <a href=""#Form/Style Settings"">Settings Style</a>"
 Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node,Η συγχώνευση είναι δυνατή μόνο μεταξύ ομάδας - to- ομάδας ή Leaf κόμβου - to- Leaf κόμβου
 Message,Μήνυμα
+Message Examples,Παραδείγματα μήνυμα
 Messages,Μηνύματα
 Method,Μέθοδος
 Middle Name (Optional),Πατρώνυμο (προαιρετικό)
 Misc,Διάφορα
 Miscellaneous,Διάφορα
 Missing Values Required,Λείπει τιμές Απαραίτητα
+Modern,Σύγχρονος
 Modified by,Τροποποιήθηκε από
 Module,Ενότητα
 Module Def,Ενότητα Def
@@ -594,7 +642,6 @@ Modules Setup,Modules Ρυθμίσεις
 Monday,Δευτέρα
 More,Περισσότερο
 More content for the bottom of the page.,Περισσότερο περιεχόμενο για το κάτω μέρος της σελίδας.
-Move,κίνηση
 Move Down: {0},Μετακίνηση προς τα κάτω : {0}
 Move Up: {0},Μετακίνηση Up : {0}
 Multiple root nodes not allowed.,Πολλαπλούς κόμβους ρίζα δεν επιτρέπονται .
@@ -607,32 +654,32 @@ Name and Description,Όνομα και περιγραφή
 Name is required,Όνομα απαιτείται
 Name not permitted,Όνομα δεν επιτρέπεται
 Name not set via Prompt,Το όνομα δεν έχει οριστεί μέσω εντολών
+Name of the Document Type (DocType) you want this field to be linked to. e.g. Customer,Όνομα του τύπου εγγράφου (DocType) θέλετε αυτό το πεδίο να συνδέεται με. π.χ. Πελάτης
+Name of {0} cannot be {1},Όνομα του {0} δεν μπορεί να είναι {1}
 Naming,ονομάζοντας
 Naming Series mandatory,Ονομασία σειράς υποχρεωτική
 Nested set error. Please contact the Administrator.,Εγκλωβισμένος σφάλμα σύνολο . Παρακαλώ επικοινωνήστε με το Διαχειριστή .
-New,νέος
+New,Νέες
 New Password,New Password
 New Record,Νέα Εγγραφή
 New comment on {0} {1},Νέο σχόλιο για {0} {1}
 New password emailed,Νέος κωδικός μέσω e-mail
 New value to be set,Νέα τιμή που θα καθοριστούν
+New {0},Νέο {0}
 Next Communcation On,Επόμενο Communcation On
 Next Record,Επόμενη εγγραφή
 Next State,Επόμενη κράτος
 Next actions,Επόμενη δράσεις
 No,Όχι
 No Action,Καμία ενέργεια
-No Cache,Δεν Cache
 No Communication tagged with this ,Δεν ανακοίνωση με ετικέτα αυτή
 No Copy,Δεν Copy
 No Permissions set for this criteria.,Δεν Δικαιώματα για το εν λόγω κριτήρια.
 No Report Loaded. Please use query-report/[Report Name] to run a report.,Δεν Report Loaded. Παρακαλούμε χρησιμοποιήστε το ερώτημα-αναφορά / [Name] αναφορά στη εκτελέσετε μια έκθεση.
 No Results,Δεν υπάρχουν αποτελέσματα
 No Sidebar,Δεν Sidebar
-No Sitemap,Δεν Sitemap
 No User Permissions found.,Δεν βρέθηκε δικαιώματα χρήσης .
 No data found,Δεν βρέθηκαν δεδομένα
-No document selected,Δεν επιλεγμένο έγγραφο
 No file attached,Δεν συνημμένο αρχείο
 No further records,Δεν υπάρχουν επιπλέον εγγραφές
 No one,Κανένας
@@ -640,6 +687,8 @@ No permission to '{0}' {1},Δεν έχετε άδεια για '{0} ' {1}
 No permission to edit,Δεν έχετε άδεια για να επεξεργαστείτε
 No permission to write / remove.,Δεν έχετε άδεια για να γράψει / αφαίρεση.
 No records tagged.,Δεν υπάρχουν αρχεία ετικέτα.
+No template found at path: {0},Δεν βρέθηκε στην πορεία πρότυπο: {0}
+No {0} permission,Όχι {0} άδεια
 None,Κανένας
 None: End of Workflow,Κανένας: Τέλος της ροής εργασίας
 Not Found,Δεν Βρέθηκε
@@ -663,7 +712,6 @@ Not permitted,δεν επιτρέπεται
 "Note: For best results, images must be of the same size and width must be greater than height.","Σημείωση: Για βέλτιστα αποτελέσματα, οι εικόνες θα πρέπει να είναι του ίδιου μεγέθους και πλάτους πρέπει να είναι μεγαλύτερη από το ύψος."
 Note: Other permission rules may also apply,Σημείωση: Άλλοι κανόνες άδεια μπορεί επίσης να εφαρμοστεί
 Note: maximum attachment size = 1mb,Σημείωση: Το μέγεθος του συνημμένου μέγιστο = 1MB
-Nothing to delete,Τίποτα για να διαγράψετε
 Nothing to show,Δεν έχει τίποτα να δείξει
 Nothing to show for this selection,Δεν έχει τίποτα να δείξει για αυτή την επιλογή
 Notification Count,γνωστοποίηση Count
@@ -676,11 +724,20 @@ Only Administrator allowed to create Query / Script Reports,Μόνο διαχε�
 Only Administrator can save a standard report. Please rename and save.,Μόνο διαχειριστή να αποθηκεύσετε ένα πρότυπο για την έκθεση. Παρακαλούμε να μετονομάσετε και να αποθηκεύσετε.
 Only Allow Edit For,Μόνο Αφήστε Επεξεργασία για
 Only allowed {0} rows in one import,Επιτρέπεται μόνο {0} σειρές σε μία εισαγωγή
+Oops! Something went wrong,Ωχ! Κάτι πήγε στραβά
 Open,Ανοιχτό
 Open Count,Open Count
 Open Sans,Open Sans
+Open Source Web Applications for the Web,Open Source Web εφαρμογών για το Web
+Open a module or tool,Ανοίξτε μια λειτουργική μονάδα ή ένα εργαλείο
+Open {0},Open {0}
+Optional: Alert will only be sent if value is a valid email id.,Προαιρετικά: Alert θα αποστέλλονται μόνο αν η αξία είναι μια έγκυρη ταυτότητα ηλεκτρονικού ταχυδρομείου.
+Optional: Always send to these ids. Each email id on a new row,Προαιρετικά: Πάντα αποστολή σε αυτούς τους ταυτότητες. Κάθε ταυτότητα ηλεκτρονικού ταχυδρομείου σε μια νέα σειρά
+Optional: The alert will be sent if this expression is true,Προαιρετικά: Η ειδοποίηση θα σταλεί εάν αυτή η έκφραση είναι αληθής
 Options,Επιλογές
+Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType',Επιλογές 'Dynamic Link «τύπος πεδίου πρέπει να είναι στραμμένη σε μια άλλη πεδίου Link με επιλογές όπως« DocType »
 Options Help,Επιλογές Βοήθεια
+Options for select. Each option on a new line. e.g.: <br>Option 1<br>Option 2<br>Option 3<br>,Επιλογές για επιλογή. Κάθε επιλογή σε μια νέα γραμμή. π.χ.: <br> Επιλογή 1 <br> Επιλογή 2 Επιλογή 3 <br> <br>
 Options must be a valid DocType for field {0} in row {1},Επιλογές θα πρέπει να είναι μια έγκυρη DocType για το πεδίο {0} στη γραμμή {1}
 Options not set for link field {0},Επιλογές δεν έχει οριστεί για το πεδίο link {0}
 Options requried for Link or Table type field {0} in row {1},"Επιλογές που απαιτούνται, για Link ή πεδίο τύπου πίνακα {0} στη γραμμή {1}"
@@ -691,15 +748,19 @@ Other,Άλλος
 Outgoing Email Settings,Εξερχόμενες Ρυθμίσεις Email
 Outgoing Mail Server,Διακομιστής εξερχόμενης αλληλογραφίας
 Outgoing Mail Server not specified,Outgoing Mail Server που δεν κατονομάζονται
+Owner,ιδιοκτήτης
+PDF Page Size,PDF Μέγεθος σελίδας
+PDF Settings,Ρυθμίσεις PDF
 POP3 Mail Server (e.g. pop.gmail.com),POP3 Mail Server (π.χ. pop.gmail.com)
 Page,Σελίδα
+Page #{0} of {1},Σελίδα # {0} από {1}
 Page Background,Ιστορικό Σελίδα
-Page Border,Border Σελίδα
 Page HTML,Σελίδα HTML
-Page Headings,Κατά σελίδα επικεφαλίδων
+Page Header,Κεφαλίδα σελίδας
+Page Header Background,Page Header Ιστορικό
+Page Header Text,Σελίδα Κείμενο κεφαλίδας
 Page Links,Σελίδα Links
 Page Name,Όνομα σελίδας
-Page Name Field,Σελίδα Όνομα πεδίου
 Page Role,Ο ρόλος Σελίδα
 Page Text,Κείμενο σελίδας
 Page Title,Τίτλος σελίδας
@@ -707,7 +768,6 @@ Page content,Περιεχόμενο της σελίδας
 Page not found,Η σελίδα δεν βρέθηκε
 Page or Generator,Σελίδα ή Γεννήτρια
 Page url name (auto-generated),Όνομα σελίδας url ( δημιουργείται αυτόματα )
-Page with name {0} already exists,Σελίδα με το όνομα {0} υπάρχει ήδη
 Parent Label,Ετικέτα γονέων
 Parent Post,μητρική Δημοσίευση
 Parent Website Page,Μητρική Website σελίδας
@@ -727,6 +787,7 @@ Permanently delete {0}?,Να διαγράψετε οριστικά {0} ;
 Permission Level,Επίπεδο δικαιωμάτων
 Permission Levels,Επίπεδα δικαιωμάτων
 Permission Rules,Κανόνες άδεια
+Permission already set,Η άδεια έχει ήδη οριστεί
 Permissions,Δικαιώματα
 Permissions Settings,Δικαιώματα Ρυθμίσεις
 Permissions are automatically translated to Standard Reports and Searches.,Τα δικαιώματα μετατρέπονται αυτόματα σε πρότυπο Εκθέσεις και αναζητήσεις .
@@ -734,6 +795,7 @@ Permissions are automatically translated to Standard Reports and Searches.,Τα 
 Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles.,Δικαιώματα σε υψηλότερα επίπεδα είναι τα δικαιώματα «Επίπεδο Πεδίο » .
 "Permissions at level 0 are 'Document Level' permissions, i.e. they are primary for access to the document.","Δικαιώματα σε 0 είναι τα δικαιώματα «Επίπεδο Document», δηλαδή είναι πρωταρχική για την πρόσβαση στο έγγραφο."
 Permissions get applied on Users based on what Roles they are assigned.,Δικαιώματα πάρει εφαρμόζονται σε χρήστες με βάση τους ρόλους που τους έχουν ανατεθεί .
+Permitted Documents For User,Επιτρεπόμενες Έγγραφα για το χρήστη
 Person,Πρόσωπο
 Personal Info,Προσωπικές Πληροφορίες
 Phone,Τηλέφωνο
@@ -746,16 +808,26 @@ Please attach a file or set a URL,Παρακαλείστε να επισυνάψ
 Please do not change the rows above {0},Παρακαλώ μην αλλάξετε τις σειρές πάνω από {0}
 Please enable pop-ups,Παρακαλούμε ενεργοποιήστε τα pop-ups
 Please enter Event's Date and Time!,"Παρακαλούμε, εισάγετε Ημερομηνία Γεγονός και ώρα !"
+"Please enter both your email and message so that we \
+				can get back to you. Thanks!","Παρακαλώ εισάγετε τα δύο e-mail και το μήνυμά σας ώστε να μπορέσουμε \
+ μπορεί να πάρει πίσω σε σας. Ευχαριστώ!"
 Please enter some text!,Παρακαλώ εισάγετε κάποιο κείμενο !
 Please enter title!,Παρακαλώ εισάγετε τον τίτλο !
 Please login to Upvote!,Παρακαλούμε συνδεθείτε για να Upvote !
 Please make sure that there are no empty columns in the file.,Παρακαλούμε βεβαιωθείτε ότι δεν υπάρχουν κενές στήλες στο αρχείο.
 Please refresh to get the latest document.,Παρακαλούμε Ανανέωση για να λάβετε το τελευταίο έγγραφο.
+Please reply above this line or remove it if you are replying below it,Απαντήστε πάνω από αυτή τη γραμμή ή να το αφαιρέσετε αν απαντάτε κάτω
 Please select a file or url,Παρακαλώ επιλέξτε ένα αρχείο ή ένα URL
 Please select atleast 1 column from {0} to sort,Παρακαλώ επιλέξτε atleast στήλη 1 από {0} για να ταξινομήσετε
+Please set {0} first,Παρακαλούμε να ορίσετε {0} Πρώτα
 Please specify,Διευκρινίστε
 Please specify 'Auto Email Id' in Setup > Outgoing Email Settings,Παρακαλείσθε να διευκρινίσετε «ταυτότητα Auto Email ' στην ενότητα Ρύθμιση> Outgoing Ρυθμίσεις Email
 Please specify Event date and time,Παρακαλείστε να προσδιορίσετε την ημερομηνία και την ώρα Event
+Please specify doctype,Παρακαλείστε να προσδιορίσετε τον τύπο εγγράφου
+Please specify user,Παρακαλείστε να προσδιορίσετε τον χρήστη
+Please specify which date field must be checked,Παρακαλείσθε να προσδιορίσετε το πεδίο ημερομηνίας πρέπει να ελέγχεται
+Please specify which value field must be checked,Παρακαλείσθε να προσδιορίσετε ποια πρέπει να ελέγχεται πεδίο τιμών
+Please upload using the same template as download.,Παρακαλούμε να αποστείλετε χρησιμοποιώντας το ίδιο πρότυπο όπως μεταφορτώνει.
 Plugin,plugin
 Port,λιμάνι
 Post,θέση
@@ -769,9 +841,16 @@ Previous Record,Προηγούμενη Εγγραφή
 Primary,Πρωταρχικός
 Print,αποτύπωμα
 Print Format,Εκτύπωση Format
+Print Format Help,Εκτύπωση Format Βοήθεια
 Print Format Type,Εκτύπωση Τύπος Format
+Print Format {0} does not exist,Εκτύπωση αρχείου {0} δεν υπάρχει
+Print Format {0} is disabled,Εκτύπωση αρχείου {0} είναι απενεργοποιημένη
 Print Hide,Εκτύπωση Απόκρυψη
+Print Settings,Ρυθμίσεις εκτύπωσης
+Print Style,Εκτύπωση Style
+Print Style Preview,Προεπισκόπηση εκτύπωσης Style
 Print Width,Πλάτος Εκτύπωση
+"Print with Letterhead, unless unchecked in a particular Document","Εκτύπωση με επιστολόχαρτο, εκτός εάν ανεξέλεγκτη σε ένα συγκεκριμένο έγγραφο"
 Print...,Εκτύπωση ...
 Printing and Branding,Εκτύπωσης και Branding
 Priority,Προτεραιότητα
@@ -783,6 +862,7 @@ Property Type,Τύπος ακινήτου
 Public,Δημόσιο
 Published,Δημοσίευση
 Published On,Δημοσιεύθηκε την
+Published on website at: {0},Δημοσιεύονται στο δικτυακό τόπο στη διεύθυνση: {0}
 Pull Emails from the Inbox and attach them as Communication records (for known contacts).,Τραβήξτε τα μηνύματα από το φάκελο Εισερχόμενα και να τα επισυνάψει τα αρχεία επικοινωνίας (για τους γνωστούς επαφές).
 Query,Απορία
 Query Options,Επιλογές Αιτημάτων
@@ -810,7 +890,6 @@ Refreshing...,Αναζωογονητικό ...
 Registered but disabled.,Εγγεγραμμένοι αλλά και άτομα με ειδικές ανάγκες.
 Registration Details Emailed.,Στοιχεία Εγγραφής εστάλησαν με ηλεκτρονικό ταχυδρομείο.
 Reload Page,Ανανέωση της σελίδας
-Remove,Κατάργηση
 Remove Bookmark,Κατάργηση Bookmark
 Remove all customizations?,Αφαιρέστε όλες τις προσαρμογές ;
 Rename many items by uploading a .csv file.,Μετονομασία πολλά στοιχεία από μεταφόρτωση ενός αρχείου csv . .
@@ -827,10 +906,12 @@ Report Name,Όνομα Έκθεση
 Report Type,Αναφορά Ειδών
 Report an Issue,Αναφορά προβλήματος
 Report cannot be set for Single types,Έκθεση δεν μπορεί να ρυθμιστεί για Ενιαίου τύπους
+Report this issue,Αναφέρετε αυτό το ζήτημα
 Report was not saved (there were errors),Έκθεση δεν αποθηκεύτηκε (υπήρχαν σφάλματα)
 Reqd,Reqd
 Reset Password Key,Επαναφορά Password κλειδί
 Reset Permissions for {0}?,Επαναφορά Δικαιώματα για {0} ;
+Response,Απάντηση
 Restrict IP,Περιορισμός IP
 Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111),"Περιορίστε χρήστη από την διεύθυνση αυτή και μόνο. Πολλαπλές διευθύνσεις IP μπορούν να προστεθούν διαχωρίζοντας με κόμμα. Επίσης δέχεται μερική IP διευθύνσεις, όπως (111.111.111)"
 Right,Δεξιά
@@ -846,11 +927,15 @@ Roles HTML,Ρόλοι HTML
 Roles can be set for users from their User page.,Οι ρόλοι μπορεί να ρυθμιστεί για τους χρήστες από τη σελίδα χρήστη τους .
 Root {0} cannot be deleted,Root {0} δεν μπορεί να διαγραφεί
 Row,Σειρά
+Row #{0}:,Σειρά # {0}:
 Rules defining transition of state in the workflow.,Κανόνες που καθορίζουν τη μετάβαση της κατάστασης στη ροή εργασίας.
 "Rules for how states are transitions, like next state and which role is allowed to change state etc.","Κανόνες για το πώς τα κράτη είναι μεταβάσεις, όπως και το επόμενο κράτος και της οποίας ο ρόλος έχει τη δυνατότητα να αλλάξει κατάσταση, κλπ."
+Run scheduled jobs only if checked,Εκτελέστε προγραμματισμένες εργασίες μόνο εάν ελέγχεται
+Run the report first,Εκτελέστε την πρώτη έκθεση
 SMTP Server (e.g. smtp.gmail.com),SMTP Server (π.χ. smtp.gmail.com)
 Sales,Πωλήσεις
 Same file has already been attached to the record,Το ίδιο αρχείο έχει ήδη επισυναφθεί στο αρχείο
+Sample,Δείγμα
 Saturday,Σάββατο
 Save,εκτός
 Scheduler Log,Scheduler Log
@@ -859,6 +944,8 @@ Script Report,Έκθεση Script
 Script Type,Τύπος Script
 Search,Αναζήτηση
 Search Fields,Πεδία αναζήτησης
+Search in a document type,Αναζήτηση σε ένα είδος εγγράφου
+Search or type a command,Αναζήτηση ή πληκτρολογήστε μια εντολή
 Section Break,Διάλειμμα Ενότητα
 Security,ασφάλεια
 Security Settings,Ρυθμίσεις ασφαλείας
@@ -881,10 +968,15 @@ Select or drag across time slots to create a new event.,Επιλέξτε ή σύ
 "Select target = ""_blank"" to open in a new page.","Επιλέξτε target = "" _blank "" για να ανοίξει σε μια νέα σελίδα ."
 Select the label after which you want to insert new field.,Επιλέξτε την ετικέτα μετά την οποία θέλετε να εισαγάγετε νέο πεδίο.
 Send,Αποστολή
+Send Alert On,Αποστολή ειδοποίησης On
 Send As Email,Αποστολή ως e-mail
+Send Email,Αποστολή Email
+Send Email Print Attachments as PDF (Recommended),Αποστολή Email Print Συνημμένα ως PDF (Συνιστάται)
 Send Me A Copy,Στείλτε μου ένα αντίγραφο
 Send Password,Αποστολή Κωδικού
-Send Print in Body and Attachment,Αποστολή Εκτύπωση στο σώμα και στο Συνημμένο
+Send Print as PDF,Αποστολή Print as PDF
+Send alert if date matches this field's value,Αποστολή ειδοποίησης σε περίπτωση ημερομηνία ταιριάζει με την αξία αυτού του πεδίου
+Send alert if this field's value changes,Αποστολή ειδοποίησης σε περίπτωση αλλαγής της αξίας αυτού του πεδίου
 Send an email reminder in the morning,Στείλτε ένα email υπενθύμισης το πρωί
 Send download link of a recent backup to System Managers,Αποστολή download link από ένα πρόσφατο αντίγραφο ασφαλείας σε Διευθυντές Σύστημα
 Send enquiries to this email address,Στείλτε τις απορίες σε αυτή τη διεύθυνση ηλεκτρονικού ταχυδρομείου
@@ -896,6 +988,7 @@ Sent or Received,Αποστέλλονται ή λαμβάνονται
 Series,σειρά
 Series {0} already used in {1},Σειρά {0} έχει ήδη χρησιμοποιηθεί σε {1}
 Server,Διακομιστή
+Server & Credentials,Server & Εντολής
 Server Error: Please check your server logs or contact tech support.,Σφάλμα διακομιστή : Παρακαλούμε ελέγξτε τα αρχεία καταγραφής του διακομιστή σας ή επικοινωνήστε με την τεχνική υποστήριξη .
 Session Expired. Logging you out,Συνεδρία Έληξε. Έξοδος από
 Session Expiry,Λήξη συνεδρίας
@@ -910,6 +1003,7 @@ Set Permissions on Document Types and Roles,Ορισμός δικαιωμάτω�
 Set Permissions per User,Ορισμός δικαιωμάτων ανά χρήστη
 Set User Permissions,Ορίστε τα δικαιώματα χρήσης
 Set Value,Ορισμός Value
+"Set default format, page size, print style etc.","Ορίστε την προεπιλεγμένη μορφή, το μέγεθος σελίδας, στυλ εκτύπωσης κλπ."
 Set numbering series for transactions.,Ορίστε σειρά αρίθμησης για τις συναλλαγές .
 Set outgoing mail server.,Ορισμός διακομιστή εξερχόμενης αλληλογραφίας .
 Settings,Ρυθμίσεις
@@ -918,17 +1012,18 @@ Settings for Contact Us Page.,Ρυθμίσεις για την Επικοινω�
 Setup,Εγκατάσταση
 Setup > User,Ρύθμιση> User
 Setup > User Permissions Manager,Ρύθμιση> Τα δικαιώματα χρήστη διαχειριστή
+Setup Email Alert based on various criteria.,Ρύθμιση Email Alert με βάση διάφορα κριτήρια.
 Setup of fonts and background.,Ρύθμιση των γραμματοσειρών και του φόντου.
 "Setup of top navigation bar, footer and logo.","Ρύθμιση της επάνω γραμμή πλοήγησης, footer και το λογότυπο."
 Short Bio,Σύντομο Βιογραφικό
 Short Name,Short Name
 Shortcut,Συντόμευση
 Show / Hide Modules,Εμφάνιση / Απόκρυψη Ενότητες
-Show Details,Δείτε Λεπτομέρειες
 Show Print First,Εμφάνιση Εκτύπωση Πρώτη
 Show Tags,Εμφάνιση Ετικέτες
 Show or hide modules globally.,Εμφάνιση ή απόκρυψη μονάδων σε παγκόσμιο επίπεδο .
 Show rows with zero values,Εμφάνιση σειρές με μηδενικές τιμές
+Show tags,Εμφάνιση ετικετών
 Show this field as title,"Δείτε αυτό το πεδίο , όπως τον τίτλο"
 Showing only for (if not empty),Εμφάνιση μόνο ( αν δεν είναι άδειο)
 Sidebar,Sidebar
@@ -953,7 +1048,9 @@ Sort Field,Ταξινόμηση πεδίο
 Sort Order,ταξινόμησης
 Standard,Πρότυπο
 Standard Print Format cannot be updated,Τυπική Μορφή εκτύπωσης δεν μπορούν να ενημερωθούν
+Standard Reply,Πρότυπο Απάντηση
 Standard Reports,πρότυπο Εκθέσεις
+Standard replies to common queries.,Πρότυπο απαντήσεις σε συχνά ερωτήματα.
 Start Report For,Ξεκινήστε την έκθεση για το
 Starts on,Ξεκινά στις
 State,Κατάσταση
@@ -973,7 +1070,6 @@ Submit,Υποβολή
 Submit an Issue,Υποβολή προβλήματος
 Submitted,Υποβλήθηκε
 Submitted Document cannot be converted back to draft. Transition row {0},Υποβλήθηκε έγγραφο δεν μπορεί να μετατραπεί ξανά να συντάξει .
-Submitted Record cannot be deleted,Υποβλήθηκε εγγραφής δεν μπορεί να διαγραφεί
 Success,Επιτυχία
 Suggestion,Πρόταση
 Sunday,Κυριακή
@@ -994,18 +1090,21 @@ Target,Στόχος
 Tasks,καθήκοντα
 Team Members,Μέλη της Ομάδας
 Team Members Heading,Μέλη της Ομάδας Τομέας
+Template,Πρότυπο
 Template Pages cannot be moved,Σελίδες πρότυπο δεν μπορεί να μετακινηθεί
-Template Path,πρότυπο Path
 Test,Δοκιμή
 Test Runner,Runner Test
 Text,Κείμενο
 Text Align,Κείμενο Στοίχιση
 Text Editor,Επεξεργαστής κειμένου
+Thank you for your message,Σας ευχαριστούμε για το μήνυμά σας
 The name of your company / website as you want to appear on browser title bar. All pages will have this as the prefix to the title.,Το όνομα της εταιρείας / ιστοσελίδα σας όπως θέλετε να εμφανίζεται στη γραμμή τίτλου του προγράμματος περιήγησης. Όλες οι σελίδες θα έχουν αυτό ως πρόθεμα για τον τίτλο.
 The system provides many pre-defined roles. You can add new roles to set finer permissions.,Το σύστημα παρέχει πολλές προκαθορισμένες ρόλους . Μπορείτε να προσθέσετε νέους ρόλους για να ορίσετε λεπτότερα δικαιώματα .
 Then By (optional),"Στη συνέχεια, με (προαιρετικό)"
+There should remain at least one System Manager,Εκεί θα πρέπει να παραμείνει τουλάχιστον ενός διαχειριστή συστήματος
 There were errors,Υπήρξαν σφάλματα
 There were errors while sending email. Please try again.,Υπήρξαν σφάλματα κατά την αποστολή ηλεκτρονικού ταχυδρομείου . Παρακαλώ δοκιμάστε ξανά .
+"There were some errors setting the name, please contact the administrator","Υπήρξαν κάποια λάθη ρύθμιση το όνομα, επικοινωνήστε με το διαχειριστή"
 "These permissions will apply for all transactions where the permitted record is linked. For example, if Company C is added to User Permissions of user X, user X will only be able to see transactions that has company C as a linked value.",Αυτά τα δικαιώματα θα ισχύουν για όλες τις συναλλαγές όπου το επιτρεπόμενο αρχείο είναι συνδεδεμένο .
 These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,"Οι τιμές αυτές θα πρέπει να ενημερώνονται αυτόματα σε συναλλαγές και, επίσης, θα ήταν χρήσιμο να περιορίσετε τα δικαιώματα για το χρήστη για τις συναλλαγές που περιέχουν αυτές τις αξίες."
 "These will also be set as default values for those links, if only one such permission record is defined.","Αυτά θα πρέπει επίσης να οριστεί ως προεπιλεγμένες τιμές για αυτούς τους δεσμούς , αν μόνο μια τέτοια εγγραφή άδεια ορίζεται ."
@@ -1013,15 +1112,21 @@ Third Party Authentication,Τρίτο Κόμμα ταυτότητας
 "This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>
 myfield
 eval:doc.myfield=='My Value'<br>
-eval:doc.age>18",Το πεδίο αυτό θα εμφανιστεί μόνο αν η fieldname ορίζεται εδώ έχει αξία ή οι κανόνες είναι αλήθεια ( παραδείγματα) : <br> \ nmyfield \ Neval : doc.myfield == « Value μου » <br> \ Neval : doc.age > 18
+eval:doc.age>18","Το πεδίο αυτό θα εμφανιστεί μόνο αν η fieldname ορίζεται εδώ έχει αξία ή οι κανόνες είναι αλήθεια (παραδείγματα): <br> 
+ myfield 
+ eval: doc.myfield == «Value μου» <br> 
+ eval: doc.age> 18"
 This goes above the slideshow.,Αυτό πηγαίνει πάνω από το slideshow.
 This is PERMANENT action and you cannot undo. Continue?,Αυτό είναι μόνιμη δράση και δεν μπορείτε να αναιρέσετε. Συνέχεια;
+"This is a standard format. To make changes, please copy it make make a new format.","Αυτό είναι μια τυποποιημένη μορφή. Για να κάνετε αλλαγές, παρακαλούμε αντιγράψτε το κάνει να κάνει μια νέα μορφή."
 This is permanent action and you cannot undo. Continue?,Αυτό είναι μόνιμη δράση και δεν μπορείτε να αναιρέσετε. Συνέχεια;
 This must be checked if Style Settings are applicable,Αυτό πρέπει να ελεγχθεί εάν Ρυθμίσεις Style ισχύουν
 This role update User Permissions for a user,Ο ρόλος Δικαιώματα ενημέρωση του χρήστη για ένα χρήστη
 Thursday,Πέμπτη
+Tile,Πλακάκι
 Time,Χρόνος
 Time Zone,Ζώνη ώρας
+Timezone,Χρονική ζώνη
 Title,Τίτλος
 Title / headline of your page,Τίτλος / τίτλος της σελίδας σας
 Title Case,Υπόθεση τίτλος
@@ -1054,22 +1159,21 @@ Unable to load: {0},Δεν είναι δυνατή η φόρτιση : {0}
 Unable to open attached file. Please try again.,Ανίκανος να ανοίξει συνημμένο αρχείο . Παρακαλώ δοκιμάστε ξανά .
 Unable to send emails at this time,Δεν μπορεί να στείλει e-mail αυτή τη στιγμή
 Unknown Column: {0},Άγνωστος Στήλη : {0}
-Unknown Print Format: {0},Άγνωστη Τύπος εκτύπωσης: {0}
 "Unknown file encoding. Tried utf-8, windows-1250, windows-1252.","Άγνωστη κωδικοποίηση του αρχείου . Προσπάθησε utf - 8 , windows - 1250 , windows- 1252 ."
 Unread Messages,Μη αναγνωσμένα μηνύματα
 Unsubscribe,Διαγραφή
 Unsubscribed,Αδιάθετες
-Up,επάνω
 Upcoming Events for Today,Επερχόμενες εκδηλώσεις για σήμερα
 Update,Ενημέρωση
 Update Field,Ενημέρωση Field
-Update Parent,Ενημέρωση Γονέων
 Update Value,Ενημέρωση Value
 Updated,Ενημέρωση
 Upload,Μεταφόρτωση
 Upload Attachment,Ανεβάστε Συνημμένο
+Upload CSV file containing all user permissions in the same format as Download.,Ανεβάστε το αρχείο CSV που περιέχει όλα τα δικαιώματα των χρηστών στην ίδια μορφή όπως Download.
 Upload a file,Μεταφόρτωση αρχείου
 Upload and Import,Ανεβάστε και εισαγωγών
+Upload and Sync,Ανεβάστε και Sync
 Uploading...,Μεταφόρτωση ...
 Upvotes,upvotes
 Use TLS,Χρήση TLS
@@ -1087,7 +1191,7 @@ User Tags,Ετικέτες
 User Type,Τύπος χρήστη
 "User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ",
 User Vote,Ψηφοφορία χρήστη
-User not allowed to delete.,Ο χρήστης δεν επιτρέπεται να διαγράψετε.
+User not allowed to delete {0}: {1},Ο χρήστης δεν επιτρέπεται να διαγράψετε {0}: {1}
 User permissions should not apply for this Link,Δικαιώματα χρήστη δεν πρέπει να εφαρμόζονται για αυτή την σύνδεση
 User {0} cannot be deleted,Χρήστης {0} δεν μπορεί να διαγραφεί
 User {0} cannot be disabled,Χρήστης {0} δεν μπορεί να απενεργοποιηθεί
@@ -1096,7 +1200,11 @@ User {0} does not exist,Χρήστης {0} δεν υπάρχει
 UserRole,UserRole
 Users and Permissions,Χρήστες και δικαιώματα
 Users with role {0}:,Οι χρήστες με ρόλο {0} :
+Valid Login id required.,Ισχύει Είσοδος id απαιτείται.
+Valid email and name required,Έγκυρο e-mail και το όνομα που απαιτούνται
 Value,Αξία
+Value Change,Αξία Αλλαγή
+Value Changed,Αξία Άλλαξε
 Value cannot be changed for {0},Η τιμή δεν μπορεί να αλλάξει για {0}
 Value for a check field can be either 0 or 1,Τιμή για ένα πεδίο ελέγχου μπορεί να είναι είτε 0 ή 1
 Value missing for,Αξία λείπει για
@@ -1106,6 +1214,7 @@ Version restored,έκδοση αποκατασταθεί
 View or manage Website Route tree.,Website Route δέντρο δείτε ή να διαχειριστεί.
 Visit,Επίσκεψη
 Warning,Προειδοποίηση
+Warning: This Print Format is in old style and cannot be generated via the API.,Προειδοποίηση: Αυτή η μορφή εκτύπωσης είναι σε παλιό στυλ και δεν μπορεί να παραχθεί μέσω του API.
 Web Page,Ιστοσελίδα
 Web Site Forum Page.,Web Site Forum σελίδας.
 Website,Δικτυακός τόπος
@@ -1116,7 +1225,6 @@ Website Script,Script Website
 Website Settings,Ρυθμίσεις Website
 Website Slideshow,Παρουσίαση Ιστοσελίδας
 Website Slideshow Item,Website Στοιχείο Παρουσίαση
-Website Template,Website Template
 Website User,Χρήστης Website
 Wednesday,Τετάρτη
 Welcome email sent,Καλώς ήρθατε email που αποστέλλονται
@@ -1125,6 +1233,7 @@ Width,Πλάτος
 Will be used in url (usually first name).,Θα πρέπει να χρησιμοποιείται σε url (συνήθως το πρώτο όνομα).
 With Groups,με Ομάδες
 With Ledgers,με Καθολικά
+With Letterhead,Με επιστολόχαρτο
 Workflow,Workflow
 Workflow Action,Workflow Δράση
 Workflow Action Name,Όνομα Ροής Εργασιών Δράση
@@ -1151,12 +1260,17 @@ You are not allowed to print this document,Δεν επιτρέπεται να ε
 You are not allowed to send emails related to this document,Δεν επιτρέπεται να στείλετε μηνύματα ηλεκτρονικού ταχυδρομείου που σχετίζονται με αυτό το έγγραφο
 "You can change Submitted documents by cancelling them and then, amending them.","Μπορείτε να αλλάξετε Υποβλήθηκε έγγραφα ακυρώνοντας τους και στη συνέχεια , για την τροποποίηση τους ."
 You can use Customize Form to set levels on fields.,Μπορείτε να χρησιμοποιήσετε το Προσαρμογή φόρμας για να ρυθμίσετε τα επίπεδα στα χωράφια .
+You can use wildcard %,Μπορείτε να χρησιμοποιήσετε το χαρακτήρα μπαλαντέρ%
 You cannot install this app,Δεν μπορείτε να εγκαταστήσετε αυτό το app
 You have unsaved changes in this form. Please save before you continue.,Έχετε μη αποθηκευμένες αλλαγές σε αυτή τη μορφή .
 You need to be logged in and have System Manager Role to be able to access backups.,Θα πρέπει να είστε συνδεδεμένοι στο σύστημα και έχουν Ρόλος Manager για να είναι σε θέση να έχουν πρόσβαση σε αντίγραφα ασφαλείας .
 You need write permission to rename,Χρειάζεται να γράψετε την άδεια να μετονομάσετε
+"You seem to have written your name instead of your email. \
+					Please enter a valid email address so that we can get back.","Μπορείτε φαίνεται να έχουν γράψει το όνομά σας, αντί του ηλεκτρονικού ταχυδρομείου σας. \
+ Παρακαλώ εισάγετε μια έγκυρη διεύθυνση e-mail έτσι ώστε να μπορούμε να πάρουμε πίσω."
 "Your download is being built, this may take a few moments...","Η λήψη σας χτίζεται, αυτό μπορεί να διαρκέσει λίγα λεπτά ..."
 [Label]:[Field Type]/[Options]:[Width],[Ετικέτα]: [Type Field] / [Options]: [Width]
+[Optional] Send the email X days in advance of the specified date. 0 equals same day.,[Προαιρετικό] Στείλτε τα email X ημέρες πριν από την καθορισμένη ημερομηνία. 0 ισούται ίδια ημέρα.
 add your own CSS (careful!),προσθέσετε το δικό σας CSS (careful!)
 adjust,προσαρμόσει
 align-center,ευθυγράμμιση κέντρο
@@ -1195,6 +1309,7 @@ cog,δόντι τροχού
 comment,σχόλιο
 comments,σχόλια
 dd-mm-yyyy,dd-mm-yyyy
+dd.mm.yyyy,ηη.μμ.εεεε
 dd/mm/yyyy,ηη / μμ / εεεε
 download,κατεβάστε
 download-alt,download-alt
@@ -1309,9 +1424,11 @@ tint,απόχρωση
 to,να
 trash,σκουπίδια
 upload,μεταφόρτωση
+use % as wildcard,χρησιμοποιήστε% ως μπαλαντέρ
 user,χρήστη
 user_image_show,user_image_show
 values and dates,τιμές και οι ημερομηνίες
+values separated by commas,τιμές διαχωρισμένες με κόμμα
 volume-down,όγκου-down
 volume-off,όγκου-off
 volume-up,όγκου-up
@@ -1320,6 +1437,8 @@ wrench,κλειδί
 yyyy-mm-dd,εεεε-μμ-ηη
 zoom-in,zoom-in
 zoom-out,zoom-out
+{0} List,{0} Λίστα
+{0} added,{0} προστέθηκε
 {0} by {1},{0} από {1}
 {0} cannot be set for Single types,{0} δεν μπορεί να ρυθμιστεί για Ενιαία τύπους
 {0} does not exist in row {1},{0} δεν υπάρχει στη γραμμή {1}
@@ -1328,14 +1447,18 @@ zoom-out,zoom-out
 {0} is required,{0} απαιτείται
 {0} is saved,{0} έχει αποθηκευτεί
 {0} must be one of {1},{0} πρέπει να είναι μία από {1}
+{0} must be set first,{0} πρέπει να ορίσετε πρώτα
 {0} not a valid State,{0} δεν είναι έγκυρο κράτος
 {0} not allowed in fieldname {1},{0} δεν επιτρέπεται σε fieldname {1}
 {0} not allowed in name,{0} δεν επιτρέπονται στο όνομα
 {0} not allowed to be renamed,{0} δεν επιτρέπεται να μετονομαστεί
 {0} updated,{0} ενημέρωση
 {0} {1} already exists,{0} {1} υπάρχει ήδη
+"{0} {1} cannot be ""{2}"". It should be one of ""{3}""","{0} {1} δεν μπορεί να είναι ""{2}"". Θα πρέπει να είναι ένα από τα ""{3}"""
 {0} {1} cannot be a leaf node as it has children,"{0} {1} δεν μπορεί να είναι ένας κόμβος φύλλο , δεδομένου ότι έχει παιδιά"
 "{0} {1} does not exist, select a new target to merge","{0} {1} δεν υπάρχει , επιλέξτε ένα νέο στόχο για τη συγχώνευση"
+{0} {1} not found,{0} {1} δεν βρέθηκε
+{0} {1}: Submitted Record cannot be deleted.,{0} {1}: Υποβλήθηκε εγγραφής δεν μπορούν να διαγραφούν.
 {0}: Cannot set Amend without Cancel,{0} : Δεν είναι δυνατή η ρύθμιση τροποποιούνται χωρίς Ακύρωση
 {0}: Cannot set Assign Amend if not Submittable,"{0} : Δεν είναι δυνατή η ρύθμιση Εκχώρηση τροποποιηθεί , αν όχι Submittable"
 {0}: Cannot set Assign Submit if not Submittable,{0} : Δεν είναι δυνατή η ρύθμιση Εκχώρηση Υποβολή αν δεν Submittable

@@ -1,1350 +1,1473 @@
  by Role ,
  is not set,
-"""Company History""","""Istoricul companiei"""
-"""Team Members"" or ""Management""","""Membrii echipei"" sau ""Management"""
-'In List View' not allowed for type {0} in row {1},"""În Vizualizare listă"" nu este permis pentru tipul {0} în rândul {1}"
-"000 is black, fff is white","000 este negru, FFF este de culoare albă"
-2 days ago,2 zile în urmă
-"<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank"">[?]</a>","<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank""> [?]</a>"
+"""Company History""","""회사 연혁"""
+"""Team Members"" or ""Management""","""팀 회원""또는 ""관리"""
+'In List View' not allowed for type {0} in row {1},'목록보기'허용되지 않는 유형에 대한 {0} 행에서 {1}
+0 - Draft; 1 - Submitted; 2 - Cancelled,0 - 초안; 1 - 제출; 2 - 취소
+0 is highest,0은 가장 높은
+"000 is black, fff is white","000 블랙, FFF은 흰색입니다"
+2 days ago,1 일 전
+"<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank"">[?]</a>","만약 당신이 좋아 href=""https://en.wikipedia.org/wiki/Transport_Layer_Security""의 target=""_blank""> [?]&lt;/a&gt;"
 "<a onclick=""msgprint('<ol>\
 <li><b>field:[fieldname]</b> - By Field\
 <li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\
 <li><b>Prompt</b> - Prompt user for a name\
 <li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\
-</ol>')"">Naming Options</a>","<Un onclick = ""msgprint ("" <ol> \ \ n <li> <b> domeniu: [fieldname] </ b> - în funcție de domeniul \ \ n <li> <b> naming_series: </ b> - De Naming serie (câmp denumit naming_series trebuie să fie prezent \ \ n <li> <b> Prompt </ b> - utilizator Prompt pentru un nume \ \ n <li> <b> [serie] </ b> - Seria de prefix (separat de un punct),. de exemplu PRE # # # # # \ \ n </ ol> ') ""> Naming Opțiuni </ a>"
-A user can be permitted to multiple records of the same DocType.,Un utilizator poate fi permisă în mai multe înregistrări ale aceluiași DocType.Referinta.
-About,Despre
-About Us Settings,Despre noi Setări
-About Us Team Member,Despre noi Echipa membre
-Action,Acțiune:
-Actions,Acțiuni
-"Actions for workflow (e.g. Approve, Cancel).","Acțiuni pentru fluxul de lucru (de exemplu, Aprobare, Cancel)."
-Add,Adaugă
-Add A New Rule,Adăuga o regulă nouă
-Add A User Permission,A adauga permisiunea utilizatorului
-Add Attachments,Adăuga atașamente
-Add Bookmark,Adauga semn de carte
-Add CSS,Adauga CSS
-Add Column,Adauga Coloana
-Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,Adauga Google Analytics ID: de ex. UA-89XXX57-1. Vă rugăm să căutați ajutor de la Google Analytics pentru mai multe informații.
-Add Message,Adauga Mesaj
-Add New Permission Rule,Adauga pe Regulă nouă Permisiunea
-Add Reply,Raspunde
-Add Total Row,Adauga totală Row
-Add a New Role,Adauga un nou rol
-Add a banner to the site. (small banners are usually good),Adauga un banner pe site-ul. (Bannere mici sunt de obicei bune)
-Add all roles,Adauga toate rolurile
-Add attachment,Adauga atașament
-Add code as &lt;script&gt;,Adăugați un cod ca <script>
-Add custom javascript to forms.,Adauga personalizat javascript la forme.
-Add fields to forms.,Adăugați câmpuri la formulare.
-Add new row,Adăuga noi rând
-"Add the name of <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> e.g. ""Open Sans""","Adăugați numele de <a href=""http://google.com/webfonts"" target=""_blank""> Google Web Font </ a> de exemplu ""Sans deschise """
-Add to To Do,Adauga la a face
-Add to To Do List Of,Adauga la a face Lista de
-Adding System Manager to this User as there must be atleast one System Manager,Adăugarea System Manager pentru acest utilizator ca trebuie să existe cel puțin un System Manager
-Additional Info,Informaţii suplimentare
-Additional Permissions,Permisiuni suplimentare
-Address,Adresă
-Address Line 1,Adresa Linia 1
-Address Line 2,Adresa Linia 2
-Address Title,Adresa Titlu
-Address and other legal information you may want to put in the footer.,Adresă și alte informații juridice poate doriți să pună în subsol.
-Admin,Admin
-All Applications,Toate cererile
-All Day,All Day
-"All possible Workflow States and roles of the workflow. <br>Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""","Toate statele posibil flux de lucru și roluri ale fluxului de lucru. <br> Opțiuni Docstatus: 0 este ""Saved"", 1 este ""Inscrisa"" și 2 este ""Anulat"""
-Allow Attach,Permiteți Atașați
-Allow Import,Permiteți Import
-Allow Import via Data Import Tool,Permite Import Import date prin Instrumentul
-Allow Rename,Permiteți Redenumire
-Allow on Submit,Permite pe Submit
-Allow user to login only after this hour (0-24),Permite utilizatorului să loga numai după această oră (0-24)
-Allow user to login only before this hour (0-24),Permite utilizatorului să loga doar înainte de această oră (0-24)
-Allowed,Permis
-"Allowing DocType, DocType. Be careful!","Permiterea DocType, DocType. Fii atent!"
-Already Registered,Deja înregistrat
-Already in user's To Do list,Deja în utilizatorului de a face lista
-Alternative download link,Alternative link de download
-"Alternatively, you can also specify 'auto_email_id' in site_config.json","Alternativ, puteți specifica, de asemenea, ""auto_email_id"" în site_config.json"
-Always use above Login Id as sender,Folosiți întotdeauna deasupra Intra Id-ul ca expeditor
-Amend,Îndreptarea
-"An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [<a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a>]","Un fișier cu extensia ico icon.. Ar trebui să fie de 16 x 16 px. Generată cu ajutorul unui generator de favicon. [<a Href=""http://favicon-generator.org/"" target=""_blank""> favicon-generator.org </ a>]"
-"Another {0} with name {1} exists, select another name","Un alt {0} cu numele {1} există, selectați un alt nume"
-Anyone Can Read,Oricine poate citi
-Anyone Can Write,Oricine poate scrie
-"Apart from Role based Permission Rules, you can apply User Permissions based on DocTypes.","În afară de rolul pe bază de reguli de permisiune, aveți posibilitatea să aplicați permisiuni utilizator pe baza doctypes."
-"Apart from System Manager, roles with 'Set User Permissions' right can set permissions for other users for that Document Type.","În afară de System Manager, roluri cu dreptul ""permisiuni utilizator set"" pot seta permisiuni pentru alți utilizatori pentru acel tip de document."
-App Already Installed,App deja instalate
-App Name,Numele App
-App not found,App nu a fost găsit
-Application Installer,Installer aplicare
-Applications,Aplicatii
-Apply Style,Aplicați Style
-Apply User Permissions,Aplicați permisiuni utilizator
-Are you sure you want to delete the attachment?,Sigur doriți să ștergeți atașament?
-Arial,Arial
-"As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User.","Ca cele mai bune practici, nu atribuie același set de reguli permisiunea de la diferite roluri. În schimb, stabilit roluri multiple către același utilizator."
-Ascending,Ascensiunea
-Assign To,Pentru a atribui
-Assigned By,Atribuite de
-Assigned To,Atribuite
-Assigned To Fullname,Atribuite Nume complet
-Assigned To/Owner,Atribuite / Proprietar
-Assignment Added,Cesiune Adăugat
-Assignment Status Changed,Cesiune Starea Schimbat
-Assignments,Misiuni
-Attach,Ataşare
-Attach Document Print,Atașați Document Print
-Attach as web link,Atașați ca link-ul web
-Attached To DocType,Atașat la DocType
-Attached To Name,Atașat La Nume
-Attachments,Ataşamente
-Auto Email Id,Auto-mail Id-ul
-Auto Name,Auto Numele
-Auto generated,Generat automat
-Avatar,Avatar
-Back to Login,Înapoi la Autentificare
-Background Color,Culoare fundal
-Background Image,Imagine de fundal
-Banner,Steag
-Banner HTML,Banner HTML
-Banner Image,Banner Image
-Banner is above the Top Menu Bar.,Banner este peste bara de meniu sus.
-Base Template Path,Cale Format de bază
-Begin this page with a slideshow of images,Începe această pagină cu un slideshow de imagini
-Belongs to,Aparține
-Bio,Biografie
-Birth Date,Data nașterii
-Blog Category,Blog Categorie
-Blog Intro,Blog Intro
-Blog Introduction,Blog Introducere
-Blog Post,Blog Mesaj
-Blog Settings,Setări Blog
-Blog Title,Blog Titlu
+</ol>')"">Naming Options</a>","<의 onclick = ""msgprint ( '<OL> \
+ <LI>의 <b> 필드 : [필드 이름] </ B> - 필드에 \
+ <LI>의 <b> naming_series : </ B > - 시리즈 명명하여 (naming_series라는 필드가 있어야합니다 \
+ <LI>의 <b> 프롬프트 </ B> - 이름에 대한 프롬프트 사용자 \
+ <LI>의 <b> 【시리즈】 </ . B> - 접두사 (점으로 구분) 계열 별, 예를 들어 PRE에 대한 # # # # # \
+ </ OL> ') ""> 옵션을 명명 </ A>"
+<b>new</b> <i>type of document</i>,문서의 <b> 새로운 </ B> <I> 유형 </ I>
+"<i>document type...</i>, e.g. <b>customer</b>","<I> 문서 유형 ... </ I>, 예를 들어 고객의 <b> </ B>"
+<i>e.g. <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>,<I> 등의 <strong> (55 + 434) / 4 </ STRONG> 또는의 <strong> = Math.sin 이런 (Math.PI / 2) </ STRONG> ... </ I>
+<i>module name...</i>,<I> 모듈 이름 ... </ I>
+<i>text</i> <b>in</b> <i>document type</i>,<I> 텍스트 </ I>의 <b>있는 </ b>을 문서 형식 </ I> <I>
+A user can be permitted to multiple records of the same DocType.,사용자는 동일한 문서 종류의 다중 기록에 허용 될 수있다.
+About,약
+About Us Settings,회사 설정 정보
+About Us Team Member,우리 팀 구성원에 대한
+Action,행위
+Actions,수행
+"Actions for workflow (e.g. Approve, Cancel).","워크 플로 작업 (예를 들어, 취소, 양해 해주십시오)."
+Add,추가
+Add A New Rule,새 규칙을 추가
+Add A User Permission,사용자 권한 추가
+Add Attachments,첨부 파일을 추가
+Add Bookmark,북마크 추가
+Add CSS,CSS 추가
+Add Column,열 추가
+Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,Google 웹 로그 분석 ID를 추가 : 예.UA-89XXX57-1.자세한 내용은 Google 웹 로그 분석에 대한 도움말을 검색하십시오.
+Add Message,메시지 추가
+Add New Permission Rule,새 권한 규칙 추가
+Add Reply,댓글 추가
+Add Total Row,요약 행에게 추가
+Add a New Role,새 역할 추가
+Add a banner to the site. (small banners are usually good),사이트에 배너를 추가합니다. (작은 배너는 일반적으로 좋다)
+Add all roles,모든 역할을 추가
+Add attachment,첨부파일 추가
+Add code as &lt;script&gt;,<SCRIPT>과 같은 코드를 추가
+Add custom javascript to forms.,형태의 사용자 정의 자바 스크립트를 추가합니다.
+Add fields to forms.,양식에 필드를 추가합니다.
+Add multiple rows,여러 행을 추가
+Add new row,새 행을 추가
+"Add the name of <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> e.g. ""Open Sans""","만약 당신이 좋아하면 것인지의 href=""http://google.com/webfonts""의 target=""_blank""> 구글 웹 글꼴의 이름을 추가 </ A> 예 ""오픈 산세 """
+Add to To Do,할 일에 추가
+Add to To Do List Of,의 명부를 추가
+Added {0} ({1}),추가 {0} ({1})
+Adding System Manager to this User as there must be atleast one System Manager,이상이어야 하나의 시스템 관리자가 있어야합니다으로이 사용하기 위해 시스템 관리자를 추가
+Additional Info,추가 정보
+Additional Permissions,추가 권한
+Address,주소
+Address Line 1,1 호선 주소
+Address Line 2,2 호선 주소
+Address Title,주소 제목
+Address and other legal information you may want to put in the footer.,주소 및 기타 법적 정보는 바닥 글에 배치 할 수 있습니다.
+Admin,"<li><a href=""/admin/"">Admin</a></li>"
+All Applications,모든 응용 프로그램
+All Day,하루 종일
+All customizations will be removed. Please confirm.,모든 사용자 지정이 제거됩니다.확인하시기 바랍니다.
+"All possible Workflow States and roles of the workflow. <br>Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""","가능한 모든 워크 플로 상태 및 워크 플로의 역할. <BR> Docstatus 옵션 : 0 ""저장""입니다, 1 ""제출""하고 2 ""취소""한다"
+Allow Attach,연결 허용
+Allow Import,허용 가져 오기
+Allow Import via Data Import Tool,허용 데이터 가져 오기 가져 오기 도구를 통해
+Allow Rename,이름 변경이 허용
+Allow on Submit,제출에 허용
+Allow user to login only after this hour (0-24),사용자는이 시간 이후 (0-24)에 로그인 할 수 있도록 허용
+Allow user to login only before this hour (0-24),사용자는이 시간 전에 (0-24)에 로그인 할 수 있도록 허용
+Allowed,허용
+"Allowing DocType, DocType. Be careful!","허용 문서 종류, 문서 종류.주의!"
+Already Registered,이미 등록
+Already in user's To Do list,이미 사용자의 목록을 할 수있는
+Alternative download link,대체 다운로드 링크
+"Alternatively, you can also specify 'auto_email_id' in site_config.json","또는, 당신은 또한 site_config.json에 'auto_email_id'를 지정할 수 있습니다"
+Always use above Login Id as sender,항상 보낸 사람으로 로그인 아이디 위에 사용
+Amend,수정
+"An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [<a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a>]",". ICO 확장자를 가진 아이콘 파일.16 × 16 PX해야한다.파비콘 생성기를 사용하여 생성됩니다. [만약 당신이 좋아 href=""http://favicon-generator.org/"" target=""_blank""> 파비콘-generator.org </ A>]"
+"Another {0} with name {1} exists, select another name","또 다른 {0} 이름이 {1} 존재, 다른 이름을 선택"
+Any existing permission will be deleted / overwritten.,기존의 모든 권한은 / 덮어 삭제됩니다.
+Anyone Can Read,누구나 읽을 수
+Anyone Can Write,누구나 쓸 수있다
+"Apart from Role based Permission Rules, you can apply User Permissions based on DocTypes.","떨어져 역할 기반 권한 규칙에서, 당신은 doctype에 기반으로 사용자 권한을 적용 할 수 있습니다."
+"Apart from System Manager, roles with 'Set User Permissions' right can set permissions for other users for that Document Type.",외에도 시스템 관리자에서 '설정 사용자 권한의 권리와 역할은 그 문서 형식에 대한 다른 사용자의 권한을 설정할 수 있습니다.
+App Name,앱 이름
+App not found,앱을 찾을 수 없습니다
+Application Installer,응용 프로그램 설치
+Applications,용도
+Apply Style,스타일 적용
+Apply User Permissions,사용자 권한을 적용합니다
+Are you sure you want to delete the attachment?,당신은 당신이 첨부 파일을 삭제 하시겠습니까?
+Arial,굴림
+"As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User.","가장 좋은 방법은 다른 역할에 대한 사용 권한 규칙의 집합을 할당하지 않습니다.대신, 동일한 사용자가 여러 역할을 설정합니다."
+Ascending,오름차순
+Assign To,에 할당
+Assigned By,할당 한
+Assigned To,담당자
+Assigned To Fullname,전체 이름에 할당
+Assigned To/Owner,/ 소유자에 할당
+Assignment Added,할당 추가
+Assignment Status Changed,할당 상태가 변경됨
+Assignments,지정
+Attach,첨부
+Attach Document Print,문서 인쇄를 부착
+Attach as web link,웹 링크로 연결
+Attached To DocType,문서 종류에 부착
+Attached To Name,이름에 부착
+Attachments,첨부
+Auto Email Id,자동 이메일 아이디
+Auto Name,자동차 이름
+Auto generated,자동 생성
+Avatar,화신
+Back to Login,위로 로그인
+Background Color,배경 색상
+Background Image,배경이미지
+Background Style,배경 스타일
+Banner,기치
+Banner HTML,배너 HTML
+Banner Image,배너 이미지
+Banner is above the Top Menu Bar.,배너 상단 메뉴 표시 줄 이상입니다.
+Begin this page with a slideshow of images,이미지의 슬라이드 쇼이 페이지를 시작합니다
+Beginning with,로 시작하는
+Belongs to,속한
+Bio,바이오
+Birth Date,생년월일
+Blog Category,블로그 카테고리
+Blog Intro,소개에게 블로그
+Blog Introduction,블로그 소개
+Blog Post,블로그 포스트
+Blog Settings,블로그 설정
+Blog Title,블로그 제목
 Blogger,Blogger
-Bookmarks,Marcaje
-Brand HTML,Marca HTML
-Bulk Email,Bulk Email
-Bulk email limit {0} crossed,Limita de e-mail în vrac {0} trecut
-Button,Buton
-By,Prin
-Calendar,Calendar
-Cancel,Anulează
-Cancelled,Anulat
-"Cannot Edit {0} directly: To edit {0} properties, create / update {1}, {2} and {3}","Nu se pot edita {0} direct: Pentru a edita {0} proprietăți, crearea / actualizarea {1}, {2} și {3}"
-Cannot Update: Incorrect / Expired Link.,Nu pot actualiza: incorectă / expirat Link.
-Cannot Update: Incorrect Password,Nu pot actualiza: incorectă Parola
-Cannot add more than 50 comments,Nu puteți adăuga mai mult de 50 de comentarii
-Cannot cancel before submitting. See Transition {0},Nu se poate anula înainte de a trimite. A se vedea de tranziție {0}
-Cannot change picture,Nu se poate schimba imagine
-Cannot change state of Cancelled Document. Transition row {0},Nu se poate schimba starea de Document anulat. Tranziție rând {0}
-Cannot change {0},Nu se poate schimba {0}
-Cannot delete or cancel because {0} {1} is linked with {2} {3},Nu se poate șterge sau de a anula din cauza {0} {1} este legat cu {2} {3}
-Cannot delete {0} as it has child nodes,"Nu se poate șterge {0}, deoarece are noduri copil"
-Cannot delete {0} {1} is it is referenced in another record,Nu se poate șterge {0} {1} este este menționat în altă înregistrare
-Cannot edit standard fields,Nu se pot edita câmpuri standard
+Bookmarks,북마크
+Both login and password required,필요한 로그인과 암호가 모두
+Brand HTML,브랜드 HTML
+Bulk Email,대량 이메일
+Bulk email limit {0} crossed,대량 이메일 제한 {0} 넘어
+Button,Button
+By,로
+Calculate,계산
+Calendar,캘린더
+Cancel,취소
+Cancelled,취소
+"Cannot Edit {0} directly: To edit {0} properties, create / update {1}, {2} and {3}","편집 할 수 없습니다 {0} 직접 : {0} 속성을 편집하려면, 생성 / 업데이트 {1}, {2}와 {3}"
+Cannot Update: Incorrect / Expired Link.,업데이트 할 수 없습니다 만료 / 잘못된 링크.
+Cannot Update: Incorrect Password,업데이트 할 수 없습니다 : 잘못된 암호
+Cannot add more than 50 comments,50 개 이상의 댓글을 추가 할 수 없습니다
+Cannot cancel before submitting. See Transition {0},제출하기 전에 취소 할 수 없습니다.보기 전환 {0}
+Cannot change picture,사진을 변경할 수 없습니다
+Cannot change state of Cancelled Document. Transition row {0},취소 된 문서의 상태를 변경할 수 없습니다.전환 행 {0}
+Cannot change {0},변경할 수 없습니다 {0}
+Cannot delete or cancel because {0} {1} is linked with {2} {3},삭제하거나 {0} {1}과 연결되어 있기 때문에 취소 할 수 없습니다 {2} {3}
+Cannot delete {0} as it has child nodes,이 자식 노드를 가지고 {0}을 (를) 삭제할 수 없습니다
+Cannot edit standard fields,표준 필드를 편집 할 수 없습니다
 Cannot map because following condition fails: ,
-Cannot open instance when its {0} is open,"Nu se poate deschide exemplu, atunci când sa {0} este deschis"
-Cannot open {0} when its instance is open,"Nu se poate deschide {0}, atunci când de exemplu sa este deschis"
-Cannot print cancelled documents,Nu se poate imprima documente anulate
-Cannot remove permission for DocType: {0} and Name: {1},Nu se poate elimina permisiunea de DocType: {0} și Nume: {1}
-Cannot reply to a reply,Nu puteti raspunde la un răspuns
-Cannot set permission for DocType: {0} and Name: {1},Nu se poate seta permisiunea de DocType: {0} și Nume: {1}
-Categorize blog posts.,Clasifica blog.
-Category,Categorie
-Category Name,Numele categoriilor
-Center,Centru
-"Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit.","Anumite documente, cum ar fi o factură, nu ar trebui să fie schimbat o dată finală. Starea finală pentru astfel de documente este numit Trimis. Puteți restricționa roluri care pot depune."
-"Change field properties (hide, readonly, permission etc.)","Proprietățile schimbare de câmp (ascunde, readonly, permisiunea etc)"
-Chat,Chat
-Check,Ceck
-Check / Uncheck roles assigned to the User. Click on the Role to find out what permissions that Role has.,Bifeaza / debifeaza rolurile atribuite Utilizatorului. Click pe rolul de a afla ce permisiuni care are rol.
-Check this if you want to send emails as this id only (in case of restriction by your email provider).,Verifica acest lucru dacă doriți să trimiteți e-mailuri ca acest id-ul de numai (în caz de restricție de către furnizorul dvs. de e-mail).
-Check this to make this the default letter head in all prints,Verifica acest lucru pentru a face acest lucru capul scrisoarea implicit în toate printuri
-Checked items shown on desktop,Elemente verificate afișate pe desktop
-Child Tables are shown as a Grid in other DocTypes.,Mese pentru copii sunt prezentate ca o grilă în alte doctypes.
-City,Oraș
-Clear Cache,Clear Cache
-Clear all roles,Șterge toate rolurile
-Click on a link to get options to expand get options ,
-Click on row to view / edit.,Faceți clic pe rând pentru a vizualiza / edita.
-Click to Expand / Collapse,Faceți clic pentru a extinde / Reducere
-Client,Client
-Close,Închideți
-Close: {0},Close: {0}
-Closed,Inchisa
-Code,Cod
-Collapse,Restrange
-Color,Culorarea
-Column Break,Coloana Break
-Comment,Comentariu
-Comment By,Comentariu de
-Comment By Fullname,Comentariu de Nume complet
-Comment Date,Data comentariu
-Comment Docname,Comment Docname
-Comment Doctype,Comment Doctype
-Comment Time,Comment Timp
-Comments,Comentarii
-Communication,Comunicare
-Communication Medium,Comunicare Mediu
-Company History,Istoricul companiei
-Company Introduction,Compania Introducere
-Complaint,reclamatii
-Complete By,Completat de către
-Condition Field,Stare de câmp
-Contact Us Settings,Contactati-ne Setări
-"Contact options, like ""Sales Query, Support Query"" etc each on a new line or separated by commas.","Opțiuni de contact, cum ar fi ""Vanzari interogare, interogare Support"", etc fiecare pe o linie nouă sau separate prin virgule."
-Content,Continut
-Content Hash,Conținut Hash
-Content in markdown format that appears on the main side of your page,Conținut în format reduceri din care apare în partea principală a paginii dvs.
-Content web page.,Pagina web de conținut.
-Controller,Controlor
-Copy,Copierea
-Copyright,Copyright
-Core,Miez
-Could not connect to outgoing email server,Nu sa putut conecta la serverul de e-mail de ieșire
-Could not find {0},Nu am putut găsi {0}
-Count,Număr Caractere
-Country,Ţară
-Create,Creează
-Created Custom Field {0} in {1},Creat camp {0} din {1}
-Created Customer Issue,Creat Issue client
-Created Opportunity,Oportunitate Creat
-Created Support Ticket,Ticket Support Creat
-Creation / Modified By,Crearea / Modificat de
-Currency,Monedă
-Current status,Starea curentă a armatei
-Custom CSS,CSS personalizat
-Custom Field,Câmp personalizat
-Custom Javascript,Personalizat Javascript
-Custom Reports,Rapoarte personalizate
-Custom Script,Script personalizat
-Custom?,Personalizat?
-Customize,Personalizarea
-Customize Form,Particularizarea Form
-Customize Form Field,Particularizarea Form Field
-"Customize Label, Print Hide, Default etc.","Personaliza Label, Print Hide, Default, etc"
-Customized HTML Templates for printing transctions.,HTML template-uri personalizate pentru transctions de imprimare.
-Daily Event Digest is sent for Calendar Events where reminders are set.,De zi cu zi Eveniment Digest este trimis pentru Calendar Evenimente în care sunt stabilite memento-uri.
-Danger,Pericol
-Data,Date
-Data Import / Export Tool,Date instrument de Import / Export
-Data Import Tool,Import date Tool
-Data missing in table,Date dispărute în masă
-Date,Dată
-Date Format,Format dată
-Date and Number Format,Data și numărul Format
-Date must be in format: {0},Data trebuie să fie în format: {0}
-Datetime,Datetime
-Dear,Dragă
-Default,Implicit
-Default Print Format,Implicit Print Format
-Default Value,Valoare implicită
-"Default: ""Contact Us""","Default: ""Contactați-ne"""
-DefaultValue,DefaultValue
-Defaults,Implicite
-"Define read, write, admin permissions for a Website Page.","Defini citi, scrie, permisiuni admin pentru un site web pagină."
-Define workflows for forms.,Defini fluxuri de lucru pentru forme.
-Delete,Șterge
-Delete Row,Delete Row
-Depends On,Depinde
-Descending,Descendensiunea
-Description,Descriere
-Description and Status,Descriere și Stare
-"Description for listing page, in plain text, only a couple of lines. (max 140 characters)","Descriere pentru pagina de listare, în text simplu, doar o pereche de linii. (Maxim 140 de caractere)"
-Description for page header.,Descriere pentru antet pagina.
-Desktop,Desktop
-Details,Detalii
-Did not add,Nu a adăuga
-Did not cancel,Nu a anula
-Did not find {0} for {0} ({1}),Nu am gasit {0} pentru {0} ({1})
-Did not load,Nu a încărcat
-Did not remove,Nu a elimina
-Did not save,Nu a salvat
-"Different ""States"" this document can exist in. Like ""Open"", ""Pending Approval"" etc.","Diferit ""state"", acest document poate exista inch Cum ar fi ""Open"", ""Aprobare în așteptare"", etc"
-Disable Customer Signup link in Login page,Dezactiva client link Inregistrare in Intrare pagină
-Disable Signup,Dezactivați Inregistreaza-te
-Disabled,Invalid
-Display,Afişaj
-Display Settings,Display Settings
-Display in the sidebar of this Website Route node,De afișare în bara laterală a acestui nod Route site
-Do not allow user to change after set the first time,Nu permite utilizatorului să se schimbe după seta prima dată
-Doc Status,Doc Starea
+Cannot open instance when its {0} is open,그 {0}이 열려있을 때 인스턴스를 열 수 없습니다
+Cannot open {0} when its instance is open,해당 인스턴스가 열려있을 때 {0} 열 수 없습니다
+Cannot print cancelled documents,취소 문서를 인쇄 할 수 없습니다
+Cannot remove permission for DocType: {0} and Name: {1},문서 종류에 대한 사용 권한을 제거 할 수 없습니다 : {0}과 이름 : {1}
+Cannot reply to a reply,응답에 회신 할 수 없습니다
+Cannot set Email Alert on Document Type {0},문서 형식에 대한 이메일 알림을 설정할 수 없습니다 {0}
+Cannot set permission for DocType: {0} and Name: {1},문서 종류에 대한 사용 권한을 설정할 수 없습니다 : {0}과 이름 : {1}
+Categorize blog posts.,블로그 게시물을 분류합니다.
+Category,카테고리
+Category Name,카테고리 이름
+Center,가운데
+"Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit.","특정 문서, 송장처럼, 한 번 최종 변경 될 수 없습니다.이러한 문서의 최종 상태는 제출라고합니다.당신은 역할이 등록 할 수있는 제한 할 수 있습니다."
+"Change field properties (hide, readonly, permission etc.)","변경 필드 속성 (숨김, 읽기 전용, 권한 등)"
+Chat,채팅
+Check,확인
+Check / Uncheck roles assigned to the User. Click on the Role to find out what permissions that Role has.,체크 / 사용자에게 할당 된 역할을 취소합니다.역할이 가지는 권한을 찾기 위해 역할을 클릭합니다.
+Check this if you want to send emails as this id only (in case of restriction by your email provider).,만 (이메일 제공 업체에 의해 제한의 경우)이 ID로 이메일을 보내려면이 옵션을 선택합니다.
+Check this to make this the default letter head in all prints,모든 지문이 기본 문자 머리를 만들기 위해이 옵션을 선택
+Check which Documents are readable by a User,문서는 사용자가 읽을 수있는 확인
+Checked items shown on desktop,바탕 화면에 표시 체크 된 항목
+Child Tables are shown as a Grid in other DocTypes.,자식 테이블은 다른 doctype에있는 그리드로 표시됩니다.
+City,시
+Classic,기본
+Clear Cache,캐시 지우기
+Clear all roles,모든 역할을 취소합니다
+Click on a link to get options,옵션을 얻을 수있는 링크를 클릭
+Click on row to view / edit.,/ 편집을 볼 수 행을 클릭합니다.
+Client,클라이언트
+Client-side formats are now deprecated,클라이언트 측 형식은 이제 더 이상 사용되지 않습니다
+Close,닫기
+Close: {0},닫기 : {0}
+Closed,닫힘
+Code,코드
+Collapse,접기
+Column Break,단 나누기
+Comment,코멘트
+Comment By,에 의해 코멘트
+Comment By Fullname,전체 이름으로 코멘트
+Comment Date,댓글 날짜
+Comment Docname,docName 같은에게 코멘트
+Comment Doctype,DOCTYPE에게 코멘트
+Comment Time,타임 코멘트
+Comments,비고
+Communication,통신 네트워크
+Communication Medium,통신 매체
+Company History,회사 연혁
+Company Introduction,회사 소개
+Complaint,불평
+Complete By,으로 완료
+Condition,조건
+Contact Us Settings,연락처 설정
+"Contact options, like ""Sales Query, Support Query"" etc each on a new line or separated by commas.","등 ""판매 쿼리, 지원 쿼리""새 줄에 각 또는 쉼표로 구분하여 같은 연락처 옵션."
+Content,목차
+Content Hash,콘텐츠 해시
+Content in markdown format that appears on the main side of your page,당신의 메인 페이지에 나타납니다 인하 형식의 내용
+Content web page.,콘텐츠 웹 페이지.
+Controller,제어 장치
+Copy,복사
+Copyright,저작권
+Core,코어
+Could not connect to outgoing email server,보내는 전자 메일 서버에 연결할 수 없습니다
+Could not find {0},찾을 수 없습니다 {0}
+Count,갯수
+Country,국가
+Create,생성
+Create a new {0},새 {0} 만들기
+Created Custom Field {0} in {1},사용자 정의 필드 생성 {0}에서 {1}
+Created Customer Issue,생성 된 고객의 이슈
+Created Opportunity,만든 기회
+Created Support Ticket,제작 지원 티켓
+Creation / Modified By,생성 / 수정 한
+Currency,통화
+Current status,현재 상태
+Custom CSS,사용자 정의 CSS
+Custom Field,사용자 정의 필드
+Custom Javascript,사용자 지정 자바 스크립트
+Custom Reports,사용자 정의 보고서
+Custom Script,사용자 정의 스크립트
+Custom?,사용자 지정?
+Customize,사용자 지정
+Customize Form,양식을 사용자 정의
+Customize Form Field,양식 필드에게 사용자 지정
+"Customize Label, Print Hide, Default etc.","등 라벨, 인쇄 숨기기, 기본을 사용자 정의"
+Customized HTML Templates for printing transctions.,인쇄 transctions에 대한 사용자 정의 HTML 템플릿.
+Daily Event Digest is sent for Calendar Events where reminders are set.,매일 이벤트 다이제스트는 미리 알림 설정 달력 이벤트 전송됩니다.
+Danger,위험
+Data,자료
+Data Import / Export Tool,데이터 가져 오기 / 내보내기 도구
+Data Import Tool,데이터 가져 오기 도구
+Data missing in table,데이터는 표에서 누락
+Date,날짜
+Date Change,날짜 변경
+Date Changed,날짜 변경
+Date Format,날짜 Format
+Date and Number Format,날짜 및 숫자 형식
+Date must be in format: {0},날짜 형식이어야합니다 : {0}
+Datetime,날짜
+Days in Advance,일전에
+Dear,귀하님께
+Default,기본값
+Default Print Format,기본 인쇄 형식
+Default Value,Default Value(기본값)
+Default is system timezone,기본값은 시스템 시간대입니다
+"Default: ""Contact Us""","기본값 : ""문의"""
+DefaultValue,DEFAULTVALUE
+Defaults,기본값
+"Define read, write, admin permissions for a Website Page.","읽기, 정의, 쓰기, 웹 사이트 페이지에 대한 관리자 권한이 있어야합니다."
+Define workflows for forms.,형태의 워크 플로를 정의합니다.
+Delete,삭제
+Delete Row,행 전체 삭제
+Depends On,에 따라 달라집니다
+Descending,내림차순
+Description,기술
+Description and Status,설명 및 상태
+"Description for listing page, in plain text, only a couple of lines. (max 140 characters)","일반 텍스트로 목록 페이지에 대한 설명, 라인의 단 몇. (최대 140 자)"
+Description for page header.,페이지 헤더에 대한 설명.
+Desktop,바탕 화면
+Details,세부 정보
+Did not add,추가하지 않은
+Did not cancel,취소하지 않았다
+Did not find {0} for {0} ({1}),에 대한 {0}를 찾을 수 없습니다 {0} ({1})
+Did not load,로드되지 않은
+Did not remove,제거하지 않은
+Did not save,저장하지 않은
+"Different ""States"" this document can exist in. Like ""Open"", ""Pending Approval"" etc.","이 문서가이 존재하는 수있는 다른 ""상태""""열기""와 같은, ""승인 보류""등"
+Disable Customer Signup link in Login page,로그인 페이지에서 고객의 가입 링크를 사용하지 않도록 설정
+Disable Signup,회원 가입에게 사용 안 함
+Disabled,사용 안함
+Display,스크린
+Display Settings,디스플레이 설정
+Display in the sidebar of this Website Route node,이 웹 사이트의 루트 노드의 사이드 바에서 표시
+Do not allow user to change after set the first time,사용자가 변경할 수 없음 후 처음으로 설정
+Doc Status,문서의 상태
 DocField,DocField
 DocPerm,DocPerm
-DocType,DocType
-DocType Details,DocType Detalii
-DocType can not be merged,DocType nu se pot uni
-DocType on which this Workflow is applicable.,DocType pe care acest flux de lucru este aplicabil.
-DocType or Field,DocType sau câmp
-Doclist JSON,Listă documente JSON
-Docname,Docname
-Document,Studiu de caz
+DocType,문서 종류
+DocType Details,문서 종류 세부 사항
+DocType can not be merged,문서 종류는 병합 할 수 없습니다
+DocType on which this Workflow is applicable.,문서 종류가있는이 워크 플로는 적용 할 수 있습니다.
+DocType or Field,문서 종류 또는 필드
+Doclist JSON,JSON 문서 목록
+Docname,docName 같은
+Document,문서
 Document Status transition from ,
-Document Status transition from {0} to {1} is not allowed,Starea document de tranziție de la {0} la {1} nu este permis
-Document Type,Tip de document
-Document is only editable by users of role,Documentul este editabil doar de către utilizatorii de rol
-Documentation,Documentație
-Documents,Documente
-Down,Jos
-Download,Descărcare fişier
-Download Backup,Descarca Backup
-Download link for your backup will be emailed on the following email address:,Download link pentru backup-ul va fi trimis pe adresa de e-mail:
-Drafts,Schițe
-Drag to sort columns,Trageți pentru a sorta coloanele
-Due Date,Datorită Data
-Duplicate name {0} {1},Duplicat nume {0} {1}
-Edit,Editare
-Edit Permissions,Editare permisiuni
-Editable,Editabil
-Email,E-mail
-Email Host,Email Host
-Email Id,E-mail Id-ul
-Email Login,Intra in cont
-Email Password,Email Parola
-Email Sent,E-mail trimis
-Email Settings,Setări e-mail
-Email Signature,E-mail Semnătura
-Email Use SSL,E-mail Utilizați SSL
-Email address,Adresă de e-mail
-"Email addresses, separted by commas","Adrese de email, separted de virgule"
-Email not verified with {1},E-mail nu a verificat cu {1}
-Email sent to {0},E-mail trimis la {0}
-Email...,E-mail ...
-Emails are muted,E-mailuri sunt dezactivate
-Embed image slideshows in website pages.,Slideshow-uri de imagine încorpora în paginile site-ului.
-Enable,Activare
-Enable Comments,Activați Comentarii
-Enabled,Activat
-Ends on,Se termină pe
-Enter Form Type,Introduceți Form Type
-Enter Value,Introduceți valoarea
-Enter at least one permission row,Introduceți cel puțin un rând permisiune
-"Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set ""match"" permission rules. To see list of fields, go to <a href=""#Form/Customize Form/Customize Form"">Customize Form</a>.","Introduceți domenii valoare implicită (chei) și valorile. Dacă adăugați mai multe valori pentru un câmp, primul va fi ales. Aceste valori implicite sunt, de asemenea, utilizate pentru a stabili ""meci"" reguli de permisiune. Pentru a vedea lista de câmpuri, du-te la <a href=""#Form/Customize Form/Customize Form""> Customize formular </ a>."
-"Enter keys to enable login via Facebook, Google, GitHub.","Introduceți cheile pentru a permite autentificare prin intermediul Facebook, Google, GitHub."
-Equals,Egal
-Error,Eroare
-Error: Document has been modified after you have opened it,Eroare: Documentul a fost modificat după ce ați deschis
-Event,Eveniment
-Event Datetime,Eveniment Datetime
-Event Individuals,Persoanele eveniment
-Event Role,Eveniment Rolul
-Event Roles,Roluri de evenimente
-Event Type,Tip eveniment
-Event User,Eveniment utilizator
-Event end must be after start,End eveniment trebuie să fie după început
-Events,Evenimente
-Events In Today's Calendar,Evenimente în calendarul de azi
-Every Day,Zilnic
-Every Month,În fiecare lună
-Every Week,În fiecare săptămână
-Every Year,În fiecare an
-Example:,Exemplu:
-Expand,Extinderea
-Export,Exportă
-Export not allowed. You need {0} role to export.,Export nu este permisă. Ai nevoie de {0} rolul de a exporta.
-Exported,Exportate
-Facebook,Facebook
-Facebook Client ID,Facebook Client ID
-Facebook Client Secret,Facebook Client Secret
-Facebook Share,Facebook Opțiunea
-Facebook User ID,Facebook ID utilizator
-Facebook Username,Facebook Utilizator
-FavIcon,Favicon
-Female,Feminin
-Field Description,Câmp Descriere
-Field Name,Nume câmp
-Field Type,Tip de câmp
-"Field that represents the Workflow State of the transaction (if field is not present, a new hidden Custom Field will be created)","Câmp care reprezintă statul Workflow a tranzacției (în cazul în care câmpul nu este prezent, un nou ascuns camp va fi creat)"
-Field {0} in row {1} cannot be hidden and mandatory without default,Domeniu {0} în rândul {1} ​​nu poate fi ascuns și obligatoriu fără implicit
-Field {0} is not selectable.,Domeniu {0} nu este selectabil.
-Field {0} of type {1} cannot be mandatory,Domeniu {0} de tip {1} nu poate fi obligatorie
-Fieldname,Nume câmp
-Fieldname is required in row {0},Nume_camp este necesară în rândul {0}
-Fieldname not set for Custom Field,Nume câmp nu este setat pentru camp
-Fieldname {0} appears multiple times in rows {1},Nume câmp {0} apare de mai multe ori în rânduri {1}
-"Fieldname {0} cannot contain letters, numbers or spaces","Nume câmp {0} nu poate conține litere, numere sau spații"
-Fields,Fields
-"Fields separated by comma (,) will be included in the<br /><b>Search By</b> list of Search dialog box","Domenii separate prin virgula (,) vor fi incluse în <br /> <b> Căutare după </ b> Lista de caseta de dialog Căutare"
-Fieldtype must be one of {0} in row {1},FIELDTYPE trebuie să fie una din {0} în rândul {1}
-File,Fisier
-File Data,Fișier de date
-File Name,Nume fişier
-File Size,Dimensiune fișier
-File URL,URL fișier
-File not attached,Nu fișier atașat
-File size exceeded the maximum allowed size of {0} MB,Dimensiunea fișierului a depășit mărimea maximă permisă de {0} MB
-Filter,Filtru
-Filter records based on User Permissions defined for a user,Filtrarea înregistrărilor pe bază de permisiuni utilizator definite de un utilizator
-First Name,Prenume
-Float,Plutitor
-Float Precision,Float de precizie
-Font (Heading),Font (Titlu)
-Font (Text),Font (Text)
-Font Size (Text),Dimensiune font (text)
-Fonts,Fonturi
-Footer,Subsol
-Footer Items,Subsol Articole
-For DocType,Pentru DocType
+Document Status transition from {0} to {1} is not allowed,{1} (으)로 {0}에서 문서 상태 전환은 허용되지 않습니다
+Document Type,문서 형식
+Document is only editable by users of role,문서 역할의 사용자 만 편집 할 수 있습니다
+Documentation,Documentation (문서화)
+Documents,서류
+Download,다운로드
+Download Backup,다운로드 지원
+Download link for your backup will be emailed on the following email address:,백업에 대한 다운로드 링크는 다음 이메일 주소에 이메일로 전송됩니다 :
+Drafts,임시보관함
+Drag to sort columns,열을 정렬 드래그
+Due Date,마감일
+Duplicate name {0} {1},중복 된 이름 {0} {1}
+Dynamic Link,동적 링크
+ERPNext Demo,ERPNext 데모
+Edit,편집
+Edit Permissions,편집 권한
+Editable,편집 가능
+Email,이메일
+Email Alert,이메일 경고
+Email Alert Recipient,이메일 경고 수신자
+Email Alert Recipients,이메일 알림받는 사람
+Email By Document Field,문서 필드에 이메일
+Email Footer,이메일 바닥 글
+Email Host,메일 호스트
+Email Id,이메일 아이디
+Email Login,이메일 로그인
+Email Password,이메일 비밀번호
+Email Sent,이메일 전송
+Email Settings,이메일 설정
+Email Signature,이메일 서명
+Email Use SSL,이메일 사용 SSL
+Email address,이메일 주소
+"Email addresses, separted by commas","쉼표로 separted 이메일 주소,"
+Email not verified with {1},이메일 확인하지 {1}
+Email sent to {0},이메일로 전송 {0}
+Email...,이메일 ...
+Emails are muted,이메일은 음소거
+Embed image slideshows in website pages.,웹 사이트 페이지에 포함 된 이미지 슬라이드 쇼.
+Enable,사용
+Enable Comments,댓글을 사용
+Enable Scheduled Jobs,예약 된 작업 사용
+Enabled,사용
+Ends on,에 종료
+Enter Form Type,양식 유형을 입력
+Enter Value,반환 값 입력
+Enter at least one permission row,적어도 하나의 권한 행을 입력
+"Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set ""match"" permission rules. To see list of fields, go to <a href=""#Form/Customize Form/Customize Form"">Customize Form</a>.","기본 값 필드 (키)와 값을 입력합니다.당신은 필드에 여러 값을 추가 할 경우, 첫 번째 선택됩니다.이러한 기본값은 ""일치""권한 규칙을 설정하는 데 사용됩니다.필드의 목록을 보려면, href=""#Form/Customize Form/Customize Form""> 사용자 지정 양식 </ A> <a로 이동합니다."
+"Enter keys to enable login via Facebook, Google, GitHub.","페이스 북, 구글, GitHub의를 통해 로그인 할 수 있도록 키를 입력합니다."
+Equals,같음
+Error,오류
+"Error generating PDF, attachment sent as HTML",HTML로 전송 오류 발생 PDF 첨부 파일
+Error: Document has been modified after you have opened it,오류 : 당신이 그것을 연 후 문서가 수정되었습니다
+Event,이벤트
+Event Datetime,이벤트 날짜 시간
+Event Individuals,이벤트 개인
+Event Role,이벤트의 역할
+Event Roles,이벤트의 역할
+Event Type,이벤트 종류
+Event User,이벤트 사용자
+Event end must be after start,이벤트의 끝은 시작 이후 여야합니다
+Events,이벤트
+Events In Today's Calendar,오늘의 일정 이벤트
+Every Day,매일
+Every Month,매월
+Every Week,매주마다
+Every Year,매년
+Everyone,모두
+Example:,예
+Expand,확장
+Export,내보내기
+Export not allowed. You need {0} role to export.,수출은 허용되지 않습니다.당신은 수출 {0} 역할을해야합니다.
+Exported,수출
+"Expression, Optional","표현, 선택"
+Facebook,페이스북
+Facebook Client ID,페이스 북 클라이언트 ID
+Facebook Client Secret,페이스 북 클라이언트의 비밀
+Facebook Share,페이스 북 공유하기
+Facebook User ID,페이스 북의 사용자 ID
+Facebook Username,페이스 북의 사용자 이름
+FavIcon,파비콘
+Female,여성
+Field Description,필드 설명
+Field Name,필드 이름
+Field Type,필드 유형
+"Field that represents the Workflow State of the transaction (if field is not present, a new hidden Custom Field will be created)","워크 플로 트랜잭션의 상태 (필드가없는 경우, 새로운 숨겨진 사용자 정의 필드가 만들어집니다)을 나타내는 필드"
+Field {0} in row {1} cannot be hidden and mandatory without default,이 필드 {0} 행에서 {1} 기본 않고 숨겨진 필수 할 수 없습니다
+Field {0} is not selectable.,이 필드 {0} 선택할 수 없습니다.
+Field {0} of type {1} cannot be mandatory,이 필드 {0} 유형의 {1}는 필수가 될 수 없습니다
+Fieldname,필드 이름
+Fieldname is required in row {0},필드 이름은 행에 필요한 {0}
+Fieldname not set for Custom Field,필드 이름은 사용자 정의 필드를 설정하지
+Fieldname which will be the DocType for this link field.,이 링크 필드에 대한 문서 종류가 될 것입니다 필드 이름.
+Fieldname {0} appears multiple times in rows {1},필드 이름 {0} 행에 여러 번 나타납니다 {1}
+"Fieldname {0} cannot contain letters, numbers or spaces","필드 이름 {0} 문자, 숫자 또는 공백을 포함 할 수 없습니다"
+Fields,필드
+"Fields separated by comma (,) will be included in the<br /><b>Search By</b> list of Search dialog box","쉼표 (,)로 구분 필드 (,)가 검색 대화 상자의 </ b>를 목록으로 <br의 /> Rb는 검색에 포함됩니다"
+Fieldtype cannot be changed from {0} to {1} in row {2},Fieldtype의 정보는 다음의 제품에 {0}을 변경할 수 없습니다 {1} 행의 {2}
+File,파일
+File Data,파일 데이터
+File Name,파일 이름
+File Size,파일 크기
+File URL,파일의 URL
+File not attached,파일 첨부하지
+File size exceeded the maximum allowed size of {0} MB,파일 크기는 {0} MB의 최대 허용 크기를 초과
+Fill Screen,화면을 가득 채운
+Filter,필터
+Filter records based on User Permissions defined for a user,사용자에 대해 정의 된 사용자의 권한에 따라 레코드 필터
+Filters,필터
+Find {0} in {1},에서 {0}을 찾기 {1}
+First Name,이름
+Float,Float
+Float Precision,정밀 플로트
+Font (Heading),글꼴 (호)
+Font (Text),글꼴 (텍스트)
+Font Size,글꼴 크기
+Font Size (Text),글꼴 크기 (텍스트)
+Fonts,글꼴
+Footer,바닥 글
+Footer Background,바닥 글의 배경
+Footer Items,바닥 글 항목
+Footer Text,바닥 글 텍스트
+For DocType,문서 종류에 대한
 "For Links, enter the DocType as range
-For Select, enter list of Options separated by comma","Pentru Link-uri, intra DocType.Referinta ca gama \ nPentru Select, introduceți lista de opțiuni separate prin virgula"
-"For comparative filters, start with","Pentru filtre comparative, începe cu"
-For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,"De exemplu, dacă vă anula și modifica ""INV004"", acesta va deveni un nou document ""INV004-1"". Acest lucru vă ajută să urmăriți de fiecare amendament."
-For ranges,Pentru intervale
-For top bar,Pentru bara de sus
-For {0} at level {1} in {2} in row {3},"Pentru {} 0, la nivel {1} ​​din {2} în rândul {3}"
-Forgot Password,Am uitat parola
-Forgot Password?,Ați uitat parola?
-Form,Formarea
-Forum,For
-Forums,Pasiunea.
-Forward To Email Address,Mai departe la adresa de email
-Friday,Vineri
-From Date must be before To Date,De la data trebuie să fie înainte de a Dată
-Full Name,Numele complet
-Gantt Chart,Gantt Chart
-Gender,Sex
-Generator,Generator
-Georgia,Georgia
-Get,Obţine
+For Select, enter list of Options separated by comma","링크의 경우, 범위와 문서 종류를 입력 
+ 선택의 경우, 쉼표 (,)로 구분 옵션의 목록을 입력"
+"For comparative filters, start with","비교 필터의 경우, 시작"
+For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,취소 및 'INV004'을 개정 예를 들어 그것은 새 문서 'INV004-1'이 될 것입니다.이것은 당신이 각 개정을 추적하는 데 도움이됩니다.
+For ranges,범위에 대해
+For top bar,상단 막대
+For {0} at level {1} in {2} in row {3},에 대한 {0} 레벨의 {1}에서 {2} 행에서 {3}
+Forgot Password,비밀 번호를 잊으셨습니까
+Forgot Password?,비밀 번호를 잊으셨습니까?
+Form,양식
+Forum,포럼을 통해 문의합니다.
+Forums,포럼
+Forward To Email Address,앞으로 이메일 주소
+Frappe Framework,프라페 프레임 워크
+Friday,금요일
+From Date must be before To Date,날짜 누계 이전이어야합니다
+Full Name,전체 이름
+Gantt Chart,Gantt 차트
+Gender,성별
+Generator,발전기
+Georgia,그루지야
+Get,보세요
 Get From ,
+"Get your globally recognized avatar from <a href=""https://gravatar.com/"">Gravatar.com</a>","만약 당신이 좋아 href=""https://gravatar.com/""> Gravatar.com </ A>에서 세계적으로 인정 아바타를보세요"
 GitHub,GitHub
-GitHub Client ID,GitHub Client ID
-GitHub Client Secret,GitHub Client Secret
-Github User ID,Github ID utilizator
-Github Username,Github Utilizator
-Google,Google
-Google Analytics ID,Google Analytics ID
-Google Client ID,Google Client ID
-Google Client Secret,Google Client Secret
-Google Plus One,Google Plus One
-Google User ID,Google ID utilizator
-Google Web Font (Heading),Google Web Font (Titlu)
-Google Web Font (Text),Google Web Font (Text)
-Greater or equals,Mai mare sau egal
-Greater than,Mai mare decât
-"Group Added, refreshing...","Adaugat de grup, răcoritoare ..."
-Group Description,Grup Descriere
-Group Name,Numele grupului
-Group Title,Grup Titlu
-Group Type,Tipul de grup
-Groups,Grupuri
-HTML for header section. Optional,HTML pentru secțiunea antet. Opţional
-Have an account? Login,Au un cont? Conectare
-Header,Antet
-Heading,Antet
-Heading Text As,Rubrica Text Ca
-Help,Ajutor
-Helvetica Neue,Helvetica Neue
-Hey! There should remain at least one System Manager,Hei! Nu ar trebui să rămână cel puțin un sistem de manager
-Hidden,Ascuns
-Hide Actions,Ascunde Acțiuni
-Hide Copy,Ascunde Copy
-Hide Email,Ascunde e-mail
-Hide Heading,Ascunde Titlu
-Hide Print,Ascunde Print
-Hide Toolbar,Ascunde Toolbar
-High,Ridicată
-Highlight,Evidențiați
-History,Istoric
-Home Page,Pagina principală:
-Home Page is Products,Pagina este Produse
-ID (name) of the entity whose property is to be set,ID-ul (numele) a entității ale cărei proprietate este să fie stabilite
-Icon,Icoană
-Icon will appear on the button,Pictograma va apărea pe butonul
-"If a Role does not have access at Level 0, then higher levels are meaningless.","În cazul în care un rol nu are acces la nivel de 0, apoi niveluri mai ridicate sunt lipsite de sens."
-"If checked, all other workflows become inactive.","În cazul în care verificat, toate celelalte fluxuri de lucru devin inactive."
-"If checked, an email with an attached HTML format will be added to part of the EMail body as well as attachment. To only send as attachment, uncheck this.","Dacă este bifată, un e-mail cu un format HTML atasat vor fi adăugate la o parte a corpului e-mail, precum și atașament. Pentru a trimite doar ca atașament, debifați această."
-"If checked, the Home page will be the default Item Group for the website.","Dacă este bifată, pagina de start va fi elementul Grupul implicit pentru site-ul web."
-"If image is selected, color will be ignored (attach first)","Dacă este selectat imagine, culoare va fi ignorat (atașat)"
-If non standard port (e.g. 587),"Dacă portul non standard (de exemplu, 587)"
-"If these instructions where not helpful, please add in your suggestions on GitHub Issues.","Dacă aceste instrucțiuni în cazul în care nu de ajutor, vă rugăm să adăugați la sugestiile dvs. pe probleme de GitHub."
-"If you set this, this Item will come in a drop-down under the selected parent.","Dacă setați acest lucru, acest articol va veni într-un drop-down sub părintele selectat."
-Ignore User Permissions,Ignora Permisiunile utilizatorului
-"Ignoring Item {0}, because a group exists with the same name!","Ignorarea Postul {0}, pentru că un grup există cu același nume!"
-Image,Imagine
-Image Link,Imagine Link
-Import,Importarea
-Import / Export Data,Import / Export de date
-Import / Export Data from .csv files.,Import / Export date de la. Fișiere CSV.
-In,Î
-In Dialog,În Dialog
-In Filter,În Filter
-In List View,În Vizualizare listă
-In Report Filter,În Raportul Filter
-In response to,Ca răspuns la
-Incorrect value in row {0}: {1} must be {2} {3},Valoare incorectă în rândul {0}: {1} trebuie să fie {2} {3}
-Incorrect value: {1} must be {2} {3},Valoare incorectă: {1} trebuie să fie {2} {3}
-Index,Index
-Individuals,Indivizii
-Info,Informatii
-Insert After,Introduceți După
-"Insert After field '{0}' mentioned in Custom Field '{1}', does not exist","Introduceți După domeniu ""{0}"", menționat în câmp personalizat '{1}', nu există"
-Insert Below,Introduceți mai jos
-Insert Code,Introduceți codul
-Insert Row,Insert Row
-Insert Style,Introduceți Style
-Install Applications.,Instalează aplicații.
-Installed,Instalat
-Installer,Installer
-Int,Int
-Integrations,Integrations
-Introduce your company to the website visitor.,Introducă companiei dvs. la site-ul vizitatorului.
-Introduction,Introducere
-Introductory information for the Contact Us Page,Informații introductive pentru Contactati-ne Pagina
-Invalid Email: {0},Email invalid: {0}
-Invalid Filter: {0},Filtru invalid: {0}
-Invalid Home Page,Invalid Home Page
-Invalid Outgoing Mail Server or Port,Invalid server de mail de ieșire sau Port
-Invalid login or password,Autentificare invalid sau parola
-Invalid recipient address,Adresa destinatarului invalid
-Inverse,Invers
-Is Active,Este activ
-Is Child Table,Este masa pentru copii
-Is Default,Este Implicit
-Is Event,Este un eveniment
-Is Mandatory Field,Este câmp obligatoriu
-Is Single,Single
-Is Standard,Este standard
-Is Submittable,Este Submittable
-Is Task,Este sarcina
-Item cannot be added to its own descendents,Articol nu poate fi adăugat la propriile descendenți
-JavaScript Format: frappe.query_reports['REPORTNAME'] = {},JavaScript Format: frappe.query_reports ['REPORTNAME'] = {}
-Javascript,Javascript
-Javascript to append to the head section of the page.,Javascript pentru a adăuga la secțiunea șef al paginii.
-Key,Cheie
-Label,Etichetarea
-Label Help,Eticheta Ajutor
-Label and Type,Etichetă și de tip
-Label is mandatory,Eticheta este obligatorie
-Landing Page,Landing Page
-Language,Limbă
-Language preference for user interface (only if available).,Preferința de limbă pentru interfața cu utilizatorul (numai dacă este disponibil).
-"Language, Date and Time settings","Setările de limbă, de dată și oră"
-Last IP,Ultima IP
-Last Login,Ultima autentificare
-Last Name,Nume
-Last updated by,Ultima actualizare de
-Lastmod,Lastmod
-Lato,Lato
-Leave blank to repeat always,Lăsați necompletat pentru a repeta mereu
-Left,Stânga
-Less or equals,Mai puțin sau egal
-Less than,Mai puțin de
-Letter Head,Scrisoare cap
-Letter Head Name,Nume scrisoare cap
-Letter Head in HTML,Scrisoare cap în HTML
-Level,Nivel
-"Level 0 is for document level permissions, higher levels for field level permissions.","﻿Nivel 0 este de permisiuni la nivel de documente, niveluri mai ridicate de permisiuni la nivel de domeniu."
-Like,Îmi place
-Link,Legarea
-Link Name,Link Name
-"Link that is the website home page. Standard Links (index, login, products, blog, about, contact)","Link, care este pagina de start site-ul web. Link-uri standard (index, autentificare, produse, blog, despre, contact)"
-Link to other pages in the side bar and next section,Legătura cu alte pagini din bara laterală și secțiunea următoare
-Link to the page you want to open,Link la pagina pe care doriți să deschideți
-Linked In Share,Linked In Ponderea
-Linked With,Legate de
-List,Enumerarea
-List of Web Site Forum's Posts.,Lista de Web site-ului Forumului Mesaje.
-Loading,Încărcare
-Loading Report,Încărcare Raport
-Loading...,Încărcare...
-Localization,Localizare
-Location,Închiriere
-Log of error on automated events (scheduler).,Log de eroare cu privire la evenimentele automate (scheduler).
-Login,Conectare
-Login After,Autentifică-te După
-Login Before,Înainte de conectare
-Login Id,Id-ul de conectare
-Login not allowed at this time,Autentificare nu este permis în acest moment
-Logout,Deconectare
-Long Text,Textul lung
-Low,Scăzut
-Lucida Grande,Lucida Grande
-Mail Password,Mail Parola
-Main Section,Secțiunea principală
-Make a new,Face un nou
-Male,Masculin
-Manage cloud backups on Dropbox,Gestiona backup nor pe Dropbox
-Manage uploaded files.,Gestiona fișierele încărcate.
-Mandatory,Obligatoriu
-Mandatory fields required in {0},Campuri obligatorii prevăzute în {0}
-Mandatory filters required:\n,
-Master,"Maestre,"
-Max Attachments,Max atașate
-Max width for type Currency is 100px in row {0},Lățimea maximă pentru tipul de valuta este de 100px la rând {0}
-"Meaning of Submit, Cancel, Amend","Înțeles Trimiteti, anula, modifică"
-Medium,Medie
-"Menu items in the Top Bar. For setting the color of the Top Bar, go to <a href=""#Form/Style Settings"">Style Settings</a>","Elementele de meniu din bara de sus. Pentru a seta culoarea de bara de sus, du-te la <a href=""#Form/Style Settings""> Stil Setări </ a>"
-Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node,Fuzionarea este posibil numai între Group-la-grup sau Leaf Nod-a-Leaf Node
-Message,Mesaj
-Messages,Mesaje
-Method,Metoda
-Middle Name (Optional),Numele de mijloc (Optional)
-Misc,Misc
-Miscellaneous,diverse
-Missing Values Required,Valorile lipsă necesare
-Modified by,Modificată prin
-Module,Modul
-Module Def,Modulul Def
-Module Name,Modulul Name
-Module Not Found,Modulul Nu a fost găsit
-Modules Setup,Module Setup
-Monday,Luni
-More,Mai mult
-More content for the bottom of the page.,Mai mult conținut pentru partea de jos a paginii.
-Move,Mutarea
-Move Down: {0},Mutare în jos: {0}
-Move Up: {0},Mutare în sus: {0}
-Multiple root nodes not allowed.,Noduri rădăcină multiple nu sunt permise.
-Must have report permission to access this report.,Trebuie să aibă raport permisiunea de a accesa acest raport.
-Must specify a Query to run,Trebuie să specificați o interogare pentru a rula
-My Settings,Setările mele
-Name,Nume
-Name Case,Nume de caz
-Name and Description,Nume și descriere
-Name is required,Este necesar numele
-Name not permitted,Nume interzise
-Name not set via Prompt,Nume nu a stabilit prin Prompt
+GitHub Client ID,GitHub의 클라이언트 ID
+GitHub Client Secret,GitHub의 클라이언트 비밀
+Github User ID,GitHub의 사용자 ID
+Github Username,GitHub의 사용자 이름
+Google,구글
+Google Analytics ID,Google 웹 로그 분석 ID
+Google Client ID,구글 클라이언트 ID
+Google Client Secret,구글 클라이언트 비밀
+Google Plus One,구글 플러스 원
+Google User ID,구글의 사용자 ID
+Google Web Font (Heading),구글 웹 폰트 (호)
+Google Web Font (Text),구글 웹 글꼴 (텍스트)
+Greater or equals,크거나 같음
+Greater than,큼
+"Group Added, refreshing...","그룹 추가, 상쾌 ..."
+Group Description,그룹 설명
+Group Name,그룹 이름
+Group Title,그룹 제목
+Group Type,그룹 종류
+Groups,그룹
+HTML for header section. Optional,머리글 구역에 대한 HTML.선택사항
+Have an account? Login,계정이있으세요?로그인
+Header,머리글
+Heading,헤딩
+Heading Text As,으로 텍스트 제목
+Help,도움말
+Help on Search,검색에 대한 도움말
+Helvetica Neue,헬 베티 노이에
+Hidden,표시 안함
+Hide Actions,작업을 숨기기
+Hide Copy,복사에게 숨기기
+Hide Heading,숨기기 제목
+Hide Toolbar,툴바에게 숨기기
+Hide the sidebar,사이드 바 숨기기
+High,높음
+Highlight,옵션
+History,역사
+Home Page,홈페이지
+Home Page is Products,홈 페이지는 제품입니다
+ID (name) of the entity whose property is to be set,속성 설정 될 엔티티의 ID (이름)
+Icon,아이콘
+Icon will appear on the button,아이콘이 버튼에 나타납니다
+"If a Role does not have access at Level 0, then higher levels are meaningless.","역할은 레벨 0에서 액세스 할 수없는 경우, 높은 수준은 무의미하다."
+"If checked, all other workflows become inactive.",이 옵션을 선택하면 다른 모든 워크 플로는 비활성 상태가됩니다.
+"If checked, the Home page will be the default Item Group for the website.",이 옵션을 선택하면 홈 페이지는 웹 사이트에 대한 기본 항목의 그룹이 될 것입니다.
+"If image is selected, color will be ignored (attach first)","이미지가 선택되면, 색상이 (제 첨부)은 무시 될 것이다"
+If non standard port (e.g. 587),비표준 포트 (예 : 587)의 경우
+"If these instructions where not helpful, please add in your suggestions on GitHub Issues.","이 지침 곳에 도움이되지 않으면, GitHub의 문제에 대한 당신의 제안에 추가하십시오."
+"If you set this, this Item will come in a drop-down under the selected parent.","이 작업을 설정하는 경우,이 항목을 선택한 부모 아래 드롭 다운에서 올 것이다."
+Ignore User Permissions,사용자 권한을 무시
+"Ignoring Item {0}, because a group exists with the same name!",무시 항목 {0} 그룹이 동일한 이름으로 존재하기 때문에!
+Image,영상
+Image Link,이미지 링크
+Import,가져오기
+Import / Export Data,가져 오기 / 내보내기 데이터
+Import / Export Data from .csv files.,가져 오기 / 내보내기 데이터에서. CSV 파일.
+In,"결과적으로, 우리는 생각, 감정의 패턴을 강조하고, 문제되는 사회 매니페스트하고 명확하고 간결 간단하고 기억하기 쉬운 비유를 통해 묘사된다."
+In Dialog,대화 상자에서
+In Filter,필터
+In List View,목록보기
+In Report Filter,보고서 필터에
+In points. Default is 9.,포인트.기본값은 9입니다.
+In response to,에 대한 응답으로
+Incorrect value in row {0}: {1} must be {2} {3},잘못된 값은 행의 {0} {1}해야합니다 {2} {3}
+Incorrect value: {0} must be {1} {2},잘못된 값 : {0}이어야합니다 {1} {2}
+Index,목차
+Individuals,개인
+Info,정보
+Insert After,후 삽입
+"Insert After field '{0}' mentioned in Custom Field '{1}', does not exist","'{0}'사용자 정의 필드에서 언급 한 '{1}', 존재하지 않는 필드 뒤에 삽입"
+Insert Below,아래에 삽입
+Insert Code,코드에게 삽입
+Insert Row,행에게 삽입
+Insert Style,스타일 삽입
+Install Applications.,응용 프로그램을 설치합니다.
+Installed,설치된
+Installer,설치
+Int,이자
+Integrations,통합
+Introduce your company to the website visitor.,웹 사이트 방문자에게 당신의 회사를 소개합니다.
+Introduction,소개
+Introductory information for the Contact Us Page,문의 페이지에 대한 소개 정보
+Invalid Email: {0},잘못된 이메일 : {0}
+Invalid Filter: {0},잘못된 필터 : {0}
+Invalid Home Page,잘못된 홈 페이지
+Invalid Login,잘못된 로그인
+Invalid Outgoing Mail Server or Port,잘못된 보내는 메일 서버 또는 포트
+Invalid login or password,잘못된 로그인 또는 암호
+Invalid recipient address,잘못된받는 사람 주소
+Inverse,역
+Is Active,활성
+Is Child Table,자식 테이블입니다
+Is Default,기본값
+Is Event,행사
+Is Mandatory Field,필수 필드
+Is Single,싱글
+Is Standard,표준입니다
+Is Submittable,Submittable입니다
+Is Task,작업입니다
+Item cannot be added to its own descendents,항목은 자체 하위에 추가 할 수없는
+JavaScript Format: frappe.query_reports['REPORTNAME'] = {},자바 스크립트 형식 : frappe.query_reports [ 'REPORTNAME'] = {}
+Javascript,자바스크립트
+Javascript to append to the head section of the page.,자바 스크립트는 페이지의 헤드 부에 추가한다.
+Key,키
+Label,라벨
+Label Help,라벨 도움말
+Label and Type,레이블 및 유형
+Label is mandatory,상표는 필수입니다
+Landing Page,방문 페이지
+Language,언어
+Language preference for user interface (only if available).,사용자 인터페이스에 대한 언어 환경 (만 가능한 경우).
+"Language, Date and Time settings","언어, 날짜 및 시간 설정"
+Last IP,마지막 IP
+Last Login,마지막 로그인
+Last Name,성
+Last updated by,마지막으로 업데이트
+Lastmod,의 lastmod
+Lato,라토
+Leave blank to repeat always,항상 반복 비워 둡니다
+Left,왼쪽
+Less or equals,작거나 같음
+Less than,작음
+Letter,글자
+Letter Head,레터 헤드
+Letter Head Name,레터 헤드 이름
+Letter Head in HTML,HTML에서 문자 헤드
+Level,레벨
+"Level 0 is for document level permissions, higher levels for field level permissions.","레벨 0, 문서 수준의 사용 권한에 대한 필드 레벨 권한에 대한 높은 수준이다."
+Like,같은
+Link,링크
+"Link that is the website home page. Standard Links (index, login, products, blog, about, contact)","즉, 웹 사이트의 홈 페이지입니다 연결합니다.표준 링크 (인덱스, 로그인, 제품, 블로그, 대한, 접촉)"
+Link to other pages in the side bar and next section,"사이드 바, 다음 섹션의 다른 페이지에 대한 링크"
+Link to the page you want to open,열려는 페이지 링크 :
+Linked In Share,공유 링크
+Linked With,와 연결
+List,목록
+List a document type,문서 유형을 나열
+List of Web Site Forum's Posts.,웹 사이트 포럼의 게시물의 목록입니다.
+Loading,로딩중
+Loading Report,로드 보고서
+Loading...,로딩 중...
+Localization,현지화
+Location,
+Log of error on automated events (scheduler).,자동 이벤트 (스케줄러)에 대한 오류 로그.
+Login,로그인
+Login After,후 로그인
+Login Before,전에 로그인
+Login Id,로그인 아이디
+Login not allowed at this time,로그인이 시간에 허용되지
+Logout,로그아웃
+Long Text,긴 텍스트
+Low,낮음
+Lucida Grande,루시다 그랜드
+Mail Password,이메일 비밀번호
+Main Section,메인 섹션
+Make a new,새 만들기
+Make a new record,새 레코드를 만들
+Male,남성
+Manage cloud backups on Dropbox,보관에 클라우드 백업 관리
+Manage uploaded files.,업로드 된 파일을 관리합니다.
+Mandatory,필수
+Mandatory fields required in {0},에 필요한 필수 필드 {0}
+Mandatory filters required:\n,필수 필터가 필요 : \n
+Master,지도자
+Max Attachments,최대 첨부 파일
+Max width for type Currency is 100px in row {0},유형의 통화에 대한 최대 폭은 행에있는 100 픽셀 {0}
+"Meaning of Submit, Cancel, Amend","의 제출을 취소, 개정의 의미"
+Medium,중간
+"Menu items in the Top Bar. For setting the color of the Top Bar, go to <a href=""#Form/Style Settings"">Style Settings</a>","메뉴 표시 줄에서 메뉴 항목.상단 바의 색상을 설정, href=""#Form/Style Settings""> 스타일 설정 </ a>에 <a로 이동"
+Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node,병합 그룹에 그룹 또는 리프 노드 - 투 - 잎 노드 사이에만 가능합니다
+Message,메시지
+Message Examples,메시지 예
+Messages,쪽지
+Method,방법
+Middle Name (Optional),중간 이름 (선택 사항)
+Misc,기타
+Miscellaneous,기타
+Missing Values Required,필요없는 값
+Modern,현대식
+Modified by,에 의해 수정
+Module,모듈
+Module Def,모듈 데프
+Module Name,모듈 이름
+Module Not Found,모듈을 찾을 수 없음
+Modules Setup,모듈 설치
+Monday,월요일
+More,더
+More content for the bottom of the page.,페이지 하단에 대한 더 많은 내용.
+Move Down: {0},아래로 이동 : {0}
+Move Up: {0},위로 이동 : {0}
+Multiple root nodes not allowed.,여러 루트 노드는 사용할 수 없습니다.
+Must have report permission to access this report.,이 보고서에 액세스 할 수있는 보고서 권한이 있어야합니다.
+Must specify a Query to run,실행 쿼리를 지정해야합니다
+My Settings,내 설정
+Name,이름
+Name Case,이름 케이스
+Name and Description,이름 및 설명
+Name is required,이름이 필요합니다
+Name not permitted,허용되지 않는 이름
+Name not set via Prompt,프롬프트를 통해 설정되지 않은 이름
+Name of the Document Type (DocType) you want this field to be linked to. e.g. Customer,이 필드에 링크 할 문서 형식 (문서 종류)의 이름입니다. 예를 들어 고객
+Name of {0} cannot be {1},{0}의 이름이 될 수 없습니다 {1}
 Naming,Naming
-Naming Series mandatory,Naming Series obligatorie
-Nested set error. Please contact the Administrator.,Imbricate eroare set. Vă rugăm să contactați administratorul.
-New,Nou
-New Password,New Password
-New Record,Înregistrare nouă
-New comment on {0} {1},Nou comentariu la {0} {1}
-New password emailed,Noua parolă prin e-mail
-New value to be set,Noua valoare urmează să fie stabilite
-Next Communcation On,Următor Communcation On
-Next Record,Următor Înregistrare
-Next State,State următor
-Next actions,Acțiuni Înainte
-No,Nu
-No Action,Nicio acțiune
-No Cache,Nu Cache
+Naming Series mandatory,시리즈 필수 이름 지정
+Nested set error. Please contact the Administrator.,중첩 된 세트의 오류입니다.관리자에게 문의하십시오.
+New,새로운
+New Password,새로운 비밀번호
+New Record,새로운 기록
+New comment on {0} {1},에 새로운 코멘트 {0} {1}
+New password emailed,새 암호를 이메일로 전송
+New value to be set,설정하는 새로운 값
+New {0},새로운 {0}
+Next Communcation On,다음 통신의 경우에
+Next Record,다음 기록
+Next State,다음 주
+Next actions,다음 작업
+No,아니네요
+No Action,작업이 없습니다
 No Communication tagged with this ,
-No Copy,Nu Copy
-No Permissions set for this criteria.,Permisiuni stabilit pentru acest criteriu.
-No Report Loaded. Please use query-report/[Report Name] to run a report.,Nici un raport Loaded. Va rugam sa folositi interogare-raport / [Reclama Name] pentru a rula un raport.
-No Results,Nici un rezultat
-No Sidebar,Nu Sidebar
-No Sitemap,Nu Harta site-ului
-No User Permissions found.,Nu sunt permisiuni utilizator găsit.
-No data found,Nu există date
-No document selected,Nici un document selectat
-No file attached,Nici un fișier atașat
-No further records,Nu mai multe înregistrări
-No one,Nici unul
-No permission to '{0}' {1},Permisiunea de a '{0}' {1}
-No permission to edit,Permisiunea de a edita
-No permission to write / remove.,Permisiunea de a scrie / elimina.
-No records tagged.,Nici o inregistrare etichetat.
-None,Nici unul
-None: End of Workflow,Nici una: Sfârșitul de flux de lucru
-Not Found,Nu a fost găsit
-Not Linked to any record.,Nu au legătură cu orice înregistrare.
-Not Permitted,Nu este permisă
-Not Submitted,Nu Inscrisa
-Not a user yet? Sign up,Nu un utilizator încă? Înregistrare
-Not a valid Comma Separated Value (CSV File),Nu este un valabil valoare separate prin virgulă (CSV File)
-Not allowed,Nu este permis
-Not allowed from this IP Address,Nu este permis de la această adresă IP
-Not allowed to Import,Nu este permis sa importe
-Not allowed to access {0} with {1} = {2},Nu este permis accesul la {0} cu {1} = {2}
-Not allowed to change {0} after submission,Nu este permis să se schimbe {0} de la depunerea
-Not allowed to move,Nu este permis să se deplaseze
-Not allowed to reset the password of {0},Nu este permis pentru a reseta parola de {0}
-Not enough permission to see links.,Nu este suficient de permisiunea de a vedea link-uri.
-Not equals,Nu egali
-Not found,Nu a fost găsit
-Not in Developer Mode! Set in site_config.json,Nu în modul Developer! Amplasat în site_config.json
-Not permitted,Nu este permisă
-"Note: For best results, images must be of the same size and width must be greater than height.","Notă: Pentru rezultate optime, imaginile trebuie să fie de aceeași dimensiune și lățime trebuie să fie mai mare decât înălțimea."
-Note: Other permission rules may also apply,"Notă: se poate aplica, de asemenea, alte reguli de permisiune"
-Note: maximum attachment size = 1mb,Notă: dimensiunea maximă atașament = 1mb
-Nothing to delete,Nimic pentru a șterge
-Nothing to show,Nimic pentru a arăta
-Nothing to show for this selection,Nimic pentru a arăta pentru această selecție
-Notification Count,Contele de notificare
-Notify by Email,Anunta prin e-mail
-Number Format,Număr Format
-Old Parent,Vechi mamă
-On,Pornit
-"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).","După ce ați stabilit acest lucru, utilizatorii vor fi doar documente de acces capabile (ex. Blog post), în cazul în care există link-ul (de exemplu, Blogger)."
-Only Administrator allowed to create Query / Script Reports,Numai Administrator permis de a crea Cautare / Script Rapoarte
-Only Administrator can save a standard report. Please rename and save.,Numai Administratorul poate salva un raport standard. Vă rugăm să redenumi și a salva.
-Only Allow Edit For,Permiteți numai Editare pentru
-Only allowed {0} rows in one import,Doar permis {0} rânduri într-o singură import
-Open,Deschide
-Open Count,Deschis Contele
-Open Sans,Deschis Sans
-Options,Optiuni
-Options Help,Opțiuni Ajutor
-Options must be a valid DocType for field {0} in row {1},Opțiuni trebuie să fie un DocType valabil pentru domeniu {0} în rândul {1}
-Options not set for link field {0},Opțiuni nu este setat pentru câmp legătură {0}
-Options requried for Link or Table type field {0} in row {1},Opțiuni requried pentru Link sau câmp de tip masă {0} în rândul {1}
-Org History,Org Istorie
-Org History Heading,Org Istorie rubrica
-Original Message,Mesaj originală
-Other,Altul
-Outgoing Email Settings,Setări e-mail de ieșire
-Outgoing Mail Server,Outgoing Mail Server
-Outgoing Mail Server not specified,Outgoing Mail Server nu este specificat
-POP3 Mail Server (e.g. pop.gmail.com),POP3 Mail Server (de exemplu pop.gmail.com)
-Page,Pagină
-Page Background,Pagina de fundal
-Page Border,Page Border
-Page HTML,Pagina HTML
-Page Headings,Page Titlurile
-Page Links,Page Link-uri
-Page Name,Nume pagină
-Page Name Field,Pagina Nume câmp
-Page Role,Pagina Rolul
-Page Text,Text pagină
-Page Title,Pagina de titlu
-Page content,Conținutul paginii
-Page not found,Pagina nu a fost găsită.
-Page or Generator,Pagina sau Generator
-Page url name (auto-generated),Nume de pagină url (auto-generat)
-Page with name {0} already exists,Pagina cu numele {0} există deja
-Parent Label,Părinte Label
-Parent Post,Părinte Mesaj
-Parent Website Page,Părinte Site Page
-Parent Website Route,Părinte Site Route
-Parent Website Sitemap,Părinte site Harta site-ului
-Participants,Participanţii
-Password,Parolă
-Password Updated,Parola Actualizat
-Password reset instructions have been sent to your email,Instrucțiuni de resetare a parolei au fost trimise la adresa dvs. de email
-Patch,Peticirea
-Patch Log,Patch Conectare
-Percent,La sută
-Perm Level,Nivelul Perm
-Permanently Cancel {0}?,Anula permanent {0}?
-Permanently Submit {0}?,Permanent Trimite {0}?
-Permanently delete {0}?,Șterge definitiv {0}?
-Permission Level,Nivelul de permisiune
-Permission Levels,Niveluri de permisiune
-Permission Rules,Reguli de permisiune
-Permissions,Permisiuni
-Permissions Settings,Permisiuni Setări
-Permissions are automatically translated to Standard Reports and Searches.,Permisiunile sunt traduse în mod automat la rapoarte standard și Căutări.
-"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions.","Permisiunile sunt setate pe Roluri și Tipuri de documente (numite doctypes) prin stabilirea drepturilor, cum ar citi, scrie, Creare, Ștergere, Trimiteti, Cancel, modifică, Raport, Import, Export, Print, e-mail și a seta permisiuni utilizator."
-Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles.,"Permisiuni de la niveluri mai ridicate sunt permisiuni ""echitabile"". Toate câmpurile au un ""nivel de permisiune"", stabilit împotriva lor și a normelor stabilite la permisiunile care se aplică în domeniu. Acest lucru este util în cazul în care doriți să le ascundeți sau să facă anumit domeniu read-only pentru anumite roluri."
-"Permissions at level 0 are 'Document Level' permissions, i.e. they are primary for access to the document.","Permisiunile la nivel de 0 sunt permisiuni ""nivel de document"", adică sunt primar pentru accesul la document."
-Permissions get applied on Users based on what Roles they are assigned.,Permisiuni se aplică pe Utilizatori bazat pe ceea ce Rolurile sunt atribuite.
-Person,Persoană
-Personal Info,Informații personale
-Phone,Telefon
-Phone No.,Telefon No.
-Pick Columns,Alege Coloane
-Picture URL,URL imagine
-Pincode,Parola așa
-Please attach a file first.,Vă rugăm să atașați un fișier în primul rând.
-Please attach a file or set a URL,Vă rugăm să atașați un fișier sau pentru a seta un URL
-Please do not change the rows above {0},Vă rugăm să nu modificați rândurile de mai sus {0}
-Please enable pop-ups,Vă rugăm să activați pop-up-uri
-Please enter Event's Date and Time!,Va rugam sa introduceti evenimentului Data și ora!
-Please enter some text!,Va rugam sa introduceti un text!
-Please enter title!,Va rugam sa introduceti titlu!
-Please login to Upvote!,Va rugam sa va logati pentru a upvote!
-Please make sure that there are no empty columns in the file.,Vă rugăm să asigurați-vă că nu există coloane goale în fișierul.
-Please refresh to get the latest document.,Vă rugăm să reîmprospătați pentru a obține cel mai recent document.
-Please select a file or url,Vă rugăm să selectați un fișier sau URL
-Please select atleast 1 column from {0} to sort,Va rugam sa selectati cel putin coloana 1 din {0} pentru a sorta
-Please specify,Vă rugăm să specificați
-Please specify 'Auto Email Id' in Setup > Outgoing Email Settings,"Vă rugăm să specificați ""Auto-mail Id"" în Setup > Setări e-mail de ieșire"
-Please specify Event date and time,Vă rugăm să specificați data și ora evenimentului
-Plugin,Plugin
-Port,Port
-Post,Publică
-Post Publicly,Publica public
-Post Topic,Creaza un subiect
-Post already exists. Cannot add again!,Mesaj există deja. Nu se poate adăuga din nou!
-Post does not exist. Please add post!,Mesaj nu exista. Vă rugăm să adăugați mesaj!
-Post to user,Publica a utilizatorului
-Posts,Mesaje
-Previous Record,Înregistrare anterioară
-Primary,Principal:
-Print,Tipareste
-Print Format,Print Format
-Print Format Type,Print Format Tip
-Print Hide,Imprimare Ascunde
-Print Width,Lățime de imprimare
-Print...,Print...
-Printing and Branding,Imprimarea și Branding
-Priority,Prioritate
-Private,Privat
-Properties,Proprietati
-Property,Proprietate
-Property Setter,Setter proprietate
-Property Type,Tipul de proprietate
-Public,Public
-Published,Data publicării
-Published On,Publicat în data de
-Pull Emails from the Inbox and attach them as Communication records (for known contacts).,Trageți e-mailuri din Inbox și le atașați ca înregistrările de comunicare (pentru contacte cunoscute).
-Query,Întrebare
-Query Options,Opțiuni de interogare
-Query Report,Raport de interogare
-Query must be a SELECT,Interogare trebuie să fie un SELECT
-Quick Help for Setting Permissions,Ajutor rapid pentru Setarea permisiunilor
-Quick Help for User Permissions,Ajutor rapid pentru permisiuni utilizator
-Re-open,Re-deschis
-Read,Citirea
-Read Only,Numai citire
-Received,Primita
-Recipient,Destinatar
-Recipients,Destinatarii
-Record does not exist,Înregistrare nu există
-Ref DocType,DocType Ref
-Ref Name,Numele Ref
-Ref Type,Tip Ref
-Reference,Referinta
-Reference DocName,Referință DocName
-Reference DocType,DocType referință
-Reference Name,Nume de referință
-Reference Type,Tipul de referință
-Refresh,Actualizare
-Refreshing...,Refreshing ...
-Registered but disabled.,Înregistrat dar dezactivat.
-Registration Details Emailed.,Datele de înregistrare Trimise.
-Reload Page,Reincarca Pagina
-Remove,Elimină
-Remove Bookmark,Scoateți Bookmark
-Remove all customizations?,Elimina toate personalizările?
-Rename many items by uploading a .csv file.,Redenumi multe elemente de încărcarea unui fișier csv..
-Rename...,Redenumi ...
-Repeat On,Repetați On
-Repeat Till,Repetați Till
-Repeat this Event,Repetați acest eveniment
-Replies,Raspunsuri
-Report,Raport
-Report Builder,Report Builder
-Report Builder reports are managed directly by the report builder. Nothing to do.,Rapoartele raport Builder sunt gestionate direct de către constructor raport. Nimic de a face.
-Report Hide,Raport Ascunde
-Report Name,Raport Numele
-Report Type,Tip de raport
-Report an Issue,Raportați o problemă
-Report cannot be set for Single types,Raportul nu poate fi setat pentru tipuri de single
-Report was not saved (there were errors),Raport nu a fost salvat (au existat erori)
+No Copy,더 복사하지
+No Permissions set for this criteria.,사용 권한이 기준이 설정되어 있지.
+No Report Loaded. Please use query-report/[Report Name] to run a report.,는보고는 들어 있지 않습니다.보고서를 실행하는 쿼리 보고서 / [보고서 이름]을 사용하십시오.
+No Results,검색 결과가 없습니다
+No Sidebar,더 사이드 바 없습니다
+No User Permissions found.,어떤 사용자 권한이 없습니다.
+No data found,발견 데이터가 없습니다
+No file attached,첨부 파일이 없습니다 없습니다
+No further records,더 레코드가
+No one,...의 어느 조금도 ... 않다
+No permission to '{0}' {1},에 대한 권한이 없습니다 '{0}'{1}
+No permission to edit,편집 할 권한이 없습니다
+No permission to write / remove.,/ 제거를 기록 할 권한이 없습니다.
+No records tagged.,레코드 태그가 없습니다.
+No template found at path: {0},경로에서 발견되지 템플릿 없습니다 : {0}
+No {0} permission,어떤 {0} 권한이 없습니다
+None,없음
+None: End of Workflow,없음 : 워크 플로우의 끝
+Not Found,찾을 수 없음
+Not Linked to any record.,모든 레코드에 연결되어 있지.
+Not Permitted,허용하지 않음
+Not Submitted,제출하지 않음
+Not a user yet? Sign up,아직 사용자?가입
+Not a valid Comma Separated Value (CSV File),은 (는) 올바른 쉼표로 구분 된 값 (CSV 파일)
+Not allowed,허용되지 않음
+Not allowed from this IP Address,이 IP 주소에서 허용되지 않음
+Not allowed to Import,수입하는 것이 허용되지 않음
+Not allowed to access {0} with {1} = {2},에 액세스 할 수없는 {0}과 {1} = {2}
+Not allowed to change {0} after submission,제출 후 {0}을 변경할 수 없습니다
+Not allowed to move,이동 허용되지 않음
+Not allowed to reset the password of {0},{0}의 암호를 재설정 할 수 없습니다
+Not enough permission to see links.,링크가 아닌 참조 할 수있는 충분한 권한.
+Not equals,같지 않음
+Not found,찾을 수 없음
+Not in Developer Mode! Set in site_config.json,안 개발자 모드!site_config.json에서 설정
+Not permitted,허용하지 않음
+"Note: For best results, images must be of the same size and width must be greater than height.","참고 : 최상의 결과를, 이미지가 같은 크기이어야하며, 폭이 높이보다 큰이어야한다."
+Note: Other permission rules may also apply,참고 : 다른 권한 규정이 적용될 수도 있습니다
+Note: maximum attachment size = 1mb,참고 : 최대 첨부 파일 크기 = 1MB의
+Nothing to show,보여 아무것도
+Nothing to show for this selection,이 선택을 위해 표시하는 아무것도
+Notification Count,알림 카운트
+Notify by Email,이메일로 알림
+Number Format,번호 형식
+Old Parent,이전 부모
+On,켜기
+"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).","이 설정되면, 사용자는 수 액세스 문서 (예 될 것입니다링크가 존재하는 블로그의 포스트) (예 :블로거)."
+Only Administrator allowed to create Query / Script Reports,관리자 만 조회 / 스크립트 보고서를 작성할 수
+Only Administrator can save a standard report. Please rename and save.,관리자 만 표준 보고서를 저장할 수 있습니다.이름을 변경하고 저장하십시오.
+Only Allow Edit For,만 편집을 위해이 허용
+Only allowed {0} rows in one import,한 수입 만 허용 {0} 행
+Oops! Something went wrong,죄송합니다. 문제가 발생했습니다
+Open,열기
+Open Count,오픈 카운트
+Open Sans,오픈 산세
+Open Source Web Applications for the Web,웹을위한 오픈 소스 웹 응용 프로그램
+Open a module or tool,모듈 또는 도구를 엽니 다
+Open {0},열기 {0}
+Optional: Alert will only be sent if value is a valid email id.,선택 사항 : 값이 유효한 이메일 ID 경우 경고 만 전송됩니다.
+Optional: Always send to these ids. Each email id on a new row,선택 사항 : 항상이 ID로 보낼 수 있습니다.새 행에 각 전자 메일 ID
+Optional: The alert will be sent if this expression is true,선택 사항 :이 표현에 해당하는 경우 경고가 전송됩니다
+Options,옵션
+Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType',필드의 옵션 '동적 링크'형식이 '문서 종류'등의 옵션이 다른 링크 필드를 지정해야합니다
+Options Help,옵션 도움말
+Options for select. Each option on a new line. e.g.: <br>Option 1<br>Option 2<br>Option 3<br>,선택을위한 옵션을 선택합니다.새 행에 각 옵션을 선택합니다. 예를 들면 : <BR> 옵션 1 <BR> 옵션 2 <BR> 옵션 3 <BR>
+Options must be a valid DocType for field {0} in row {1},옵션 {0} 행에서 {1} 필드에 유효한 문서 종류이어야합니다
+Options not set for link field {0},옵션 링크 필드에 대해 설정되지 {0}
+Options requried for Link or Table type field {0} in row {1},링크 또는 테이블 형식 필드에 requried 옵션은 {0} 행에서 {1}
+Org History,조직의 역사
+Org History Heading,조직의 역사 제목
+Original Message,원본 메시지
+Other,기타
+Outgoing Email Settings,보내는 전자 메일 설정
+Outgoing Mail Server,보내는 메일 서버
+Outgoing Mail Server not specified,보내는 메일 서버를 지정하지
+Owner,소유권자
+PDF Page Size,PDF 페이지 크기
+PDF Settings,PDF 설정
+POP3 Mail Server (e.g. pop.gmail.com),POP3 메일 서버 (예 : pop.gmail.com)
+Page,페이지
+Page #{0} of {1},페이지 번호 {0}의 {1}
+Page Background,페이지 배경
+Page HTML,페이지의 HTML
+Page Header,페이지 머리글
+Page Header Background,페이지 헤더 배경
+Page Header Text,페이지 머리글 텍스트
+Page Links,페이지 링크
+Page Name,페이지 이름
+Page Role,페이지의 역할
+Page Text,페이지 텍스트
+Page Title,페이지 제목
+Page content,페이지 내용
+Page not found,페이지를 찾을 수 없습니다
+Page or Generator,페이지 또는 발전기
+Page url name (auto-generated),페이지 URL 이름 (자동 생성)
+Parent Label,부모 라벨
+Parent Post,부모 포스트
+Parent Website Page,상위 웹 사이트의 페이지
+Parent Website Route,상위 웹 사이트 루트
+Parent Website Sitemap,상위 웹 사이트의 사이트 맵
+Participants,참석자
+Password,비밀번호
+Password Updated,암호 업데이트
+Password reset instructions have been sent to your email,암호 재설정 지침은 전자 메일로 전송 한
+Patch,패치
+Patch Log,패치 로그
+Percent,퍼센트
+Perm Level,파마 수준
+Permanently Cancel {0}?,영구적으로 {0} 취소?
+Permanently Submit {0}?,영구적으로 {0}를 제출?
+Permanently delete {0}?,영구적으로 {0}을 삭제 하시겠습니까?
+Permission Level,권한 수준
+Permission Levels,권한 수준
+Permission Rules,권한 규칙
+Permission already set,권한이 이미 설정
+Permissions,허가 (또는 접근 권한)
+Permissions Settings,권한 설정
+Permissions are automatically translated to Standard Reports and Searches.,권한은 자동으로 표준 보고서와 검색으로 변환됩니다.
+"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions.","권한은보고, 가져 오기, 내보내기, 인쇄, 전자 메일 및 사용자 설정 권한, 정정, 취소, 제출, 생성, 삭제, 읽기, 쓰기와 같은 권한을 설정하여 역할 및 문서 유형 (doctype에 호출)에 설정됩니다."
+Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles.,높은 수준의 사용 권한은 '필드 레벨'권한입니다.모든 필드는 그들과 권한을 현장에 적용하는 것이에 정의 된 규칙에 대해 설정 '권한 수준'을해야합니다.이 숨기거나 특정 필드를 읽기 전용으로 특정 역할에 대해하고 싶은 경우에 유용합니다.
+"Permissions at level 0 are 'Document Level' permissions, i.e. they are primary for access to the document.","레벨 0의 사용 권한은 문서에 액세스하기위한 기본이다, 즉 '문서 수준'권한입니다."
+Permissions get applied on Users based on what Roles they are assigned.,권한은이 할당 된 역할을 기반으로 사용자에 적용받을.
+Permitted Documents For User,사용자에 대한 허가 서류
+Person,사람
+Personal Info,개인 정보
+Phone,휴대폰
+Phone No.,전화 번호
+Pick Columns,열 선택
+Picture URL,그림 URL
+Pincode,PIN 코드
+Please attach a file first.,먼저 파일을 첨부하시기 바랍니다.
+Please attach a file or set a URL,파일을 첨부하거나 URL을 설정하십시오
+Please do not change the rows above {0},위의 행을 변경하지 마십시오 {0}
+Please enable pop-ups,팝업을 활성화하십시오
+Please enter Event's Date and Time!,이벤트의 날짜와 시간을 입력 해주세요!
+"Please enter both your email and message so that we \
+				can get back to you. Thanks!","이메일과 메시지를 모두 입력하시기 바랍니다 우리 \
+ 다시 얻을 수 있습니다.고맙습니다!"
+Please enter some text!,텍스트를 입력 해주세요!
+Please enter title!,제목을 입력하세요!
+Please login to Upvote!,upvote에 로그인 해주세요!
+Please make sure that there are no empty columns in the file.,빈 열이 파일이 있는지 확인하십시오.
+Please refresh to get the latest document.,최신 문서를 가져 오려면 새로 고침하십시오.
+Please reply above this line or remove it if you are replying below it,이 선 위에 회신 또는 그 아래에 회신하는 경우를 제거하십시오
+Please select a file or url,파일이나 URL을 선택하세요
+Please select atleast 1 column from {0} to sort,{0} 정렬 할에서이어야 1 열을 선택하십시오
+Please set {0} first,먼저 {0}을 설정하십시오
+Please specify,지정하십시오
+Please specify 'Auto Email Id' in Setup > Outgoing Email Settings,> 설정에서 보내는 전자 메일 설정을 '자동 이메일 ID를'지정하십시오
+Please specify Event date and time,이벤트 날짜와 시간을 지정하십시오
+Please specify doctype,문서 타입을 지정하십시오
+Please specify user,사용자 지정하십시오
+Please specify which date field must be checked,확인해야하는 날짜 필드 지정하십시오
+Please specify which value field must be checked,값 필드를 선택해야하는 이유를 적어주세요
+Please upload using the same template as download.,다운로드와 같은 템플릿을 사용하여 업로드하시기 바랍니다.
+Plugin,플러그인
+Port,포트
+Post,우편
+Post Publicly,공개적으로 게시
+Post Topic,포스트 주제
+Post already exists. Cannot add again!,포스트는 이미 존재합니다.다시 추가 할 수 없습니다!
+Post does not exist. Please add post!,글이 존재하지 않습니다.게시물을 추가하십시오!
+Post to user,사용자에게 게시
+Posts,게시물
+Previous Record,이전 기록
+Primary,기본
+Print,인쇄
+Print Format,인쇄 형식
+Print Format Help,인쇄 형식 도움말
+Print Format Type,인쇄 형식 유형
+Print Format {0} does not exist,인쇄 형식 {0}이 (가) 없습니다
+Print Format {0} is disabled,인쇄 형식 {0} 비활성화
+Print Hide,인쇄 숨기기
+Print Settings,인쇄 설정
+Print Style,인쇄 스타일
+Print Style Preview,인쇄 스타일 미리보기
+Print Width,인쇄 폭
+"Print with Letterhead, unless unchecked in a particular Document",", 레터 헤드에 인쇄하지 않는 특정 문서의 검사되지 않은"
+Print...,인쇄 ...
+Printing and Branding,인쇄 및 브랜딩
+Priority,우선순위
+Private,개인
+Properties,속성
+Property,속성
+Property Setter,속성 setter
+Property Type,부동산 유형
+Public,공공
+Published,출판
+Published On,에 게시
+Published on website at: {0},에서 웹 사이트에 게시 된 {0}
+Pull Emails from the Inbox and attach them as Communication records (for known contacts).,받은 편지함에서 이메일을 당겨 (알려진 연락처에 대한) 통신 기록 등을 첨부합니다.
+Query,질문
+Query Options,쿼리 옵션
+Query Report,쿼리 보고서
+Query must be a SELECT,쿼리는 SELECT해야합니다
+Quick Help for Setting Permissions,권한 설정에 대한 빠른 도움말
+Quick Help for User Permissions,사용자 권한에 대한 빠른 도움말
+Re-open,재 오픈
+Read,돇
+Read Only,읽기 전용
+Received,획득
+Recipient,받는 사람
+Recipients,받는 사람
+Record does not exist,기록이 존재하지 않습니다
+Ref DocType,참조 문서 종류
+Ref Name,참조 이름
+Ref Type,참조 유형
+Reference,참고
+Reference DocName,참고 docName 같은
+Reference DocType,참조 문서 종류
+Reference Name,참조명(Reference Name)
+Reference Type,참조 형식
+Refresh,새로 고침
+Refreshing...,상쾌한 ...
+Registered but disabled.,등록 만 사용할.
+Registration Details Emailed.,등록 상세 정보 이메일 전송.
+Reload Page,페이지 새로 고침
+Remove Bookmark,책갈피에게 제거
+Remove all customizations?,모든 사용자 지정을 삭제 하시겠습니까?
+Rename many items by uploading a .csv file.,. csv 파일을 업로드하여 여러 항목의 이름을 변경합니다.
+Rename...,이름 바꾸기 ...
+Repeat On,에 반복
+Repeat Till,까지 반복
+Repeat this Event,이 이벤트를 반복
+Replies,회신
+Report,보고서
+Report Builder,보고서 작성기
+Report Builder reports are managed directly by the report builder. Nothing to do.,보고서 작성기 보고서는 보고서 작성기에서 직접 관리됩니다.아무 상관 없습니다.
+Report Hide,보고서 숨기기
+Report Name,보고서 이름
+Report Type,보고서 유형
+Report an Issue,문제 신고
+Report cannot be set for Single types,보고서는 단일 종류를 설정할 수 없습니다
+Report this issue,이 문제를보고
+Report was not saved (there were errors),보고서는 (오류가 있었다) 저장되지 않았습니다
 Reqd,Reqd
-Reset Password Key,Reset Key Password
-Reset Permissions for {0}?,Reset Permisiunile pentru {0}?
-Restrict IP,Restricționa IP
-Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111),"Restricționa utilizator de numai această adresă IP. Adrese IP multiple pot fi adăugate prin separarea cu virgule. De asemenea, acceptă adrese IP parțiale ca (111.111.111)"
-Right,Dreapta
-Role,Rol
-Role Name,Rol Nume
-Role Permissions Manager,Permisiunile rol Director
-Role and Level,Rol și la nivel
-Role exists,Există rol
-Roles,Roluri
-Roles Assigned,Rolurile atribuite
-Roles Assigned To User,Rolurile atribuite utilizator
-Roles HTML,Roluri HTML
-Roles can be set for users from their User page.,Rolurile pot fi setate pentru utilizatorii de la pagina lor de utilizare.
-Root {0} cannot be deleted,Rădăcină {0} nu poate fi ștearsă
-Row,Rând
-Rules defining transition of state in the workflow.,Normele care definesc tranziție de stat în fluxul de lucru.
-"Rules for how states are transitions, like next state and which role is allowed to change state etc.","Reguli pentru modul în care statele sunt tranzitii, cum ar fi stat lângă și ce rol îi este permis să se schimbe de stat etc"
-SMTP Server (e.g. smtp.gmail.com),Server SMTP (de exemplu smtp.gmail.com)
-Sales,Vanzari
-Same file has already been attached to the record,Același dosar a fost deja atașat la dosarul
-Saturday,Sâmbătă
-Save,Salvează
-Scheduler Log,Scheduler Conectare
-Script,Scenariu
-Script Report,Script Raport
-Script Type,Script-ul de tip
-Search,Căutare
-Search Fields,Căutare Fields
-Section Break,Sfârșit de secțiune
-Security,Securitate
-Security Settings,Setări de securitate
-Select,Selectează
-Select All,Selectează toate
-Select Attachments,Selectați atașate
-Select Document Type,Selectare tip document
-Select Document Type or Role to start.,Selectați Document Type sau Rol pentru a începe.
-Select Print Format,Selectați Print Format
-Select Report Name,Selectați Raport Name
-Select Role,Selectați Rolul
-Select To Download:,Selectați pentru a descărca:
-Select Type,Selectați Tipul
-Select User or DocType to start.,Selectați utilizator sau DocType pentru a începe.
-Select a Banner Image first.,Selectați o imagine banner prima.
-Select an image of approx width 150px with a transparent background for best results.,"Selectați o imagine de lățime de aproximativ 150px cu un fundal transparent, pentru cele mai bune rezultate."
+Reset Password Key,암호 재설정 키
+Reset Permissions for {0}?,{0}에 대한 사용 권한을 다시 설정?
+Response,응답
+Restrict IP,IP에게 제한
+Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111),이 IP 주소 만에서 사용자를 제한합니다.여러 개의 IP 주소를 쉼표로 분리하여 추가 할 수 있습니다.또한 (111.111.111)와 같은 부분적인 IP 주소를 허용
+Right,오른쪽
+Role,역할
+Role Name,역할 이름
+Role Permissions Manager,역할 권한 관리자
+Role and Level,역할과 수준
+Role exists,역할이 존재
+Roles,역할
+Roles Assigned,할당 된 역할
+Roles Assigned To User,사용자에게 할당 된 역할
+Roles HTML,역할 HTML
+Roles can be set for users from their User page.,역할은 사용자 페이지에서 사용자가 설정할 수 있습니다.
+Root {0} cannot be deleted,루트 {0} 삭제할 수 없습니다
+Row,Row
+Row #{0}:,행 # {0} :
+Rules defining transition of state in the workflow.,워크 플로의 상태 전환을 정의하는 규칙.
+"Rules for how states are transitions, like next state and which role is allowed to change state etc.",상태는 다음 상태와 어떤 역할 같은 전환되는 방법에 대한 규칙 등의 상태를 변경할 수 있습니다
+Run scheduled jobs only if checked,선택하는 경우에만 예약 된 작업을 실행
+Run the report first,먼저 보고서를 실행
+SMTP Server (e.g. smtp.gmail.com),SMTP 서버 (예 : smtp.gmail.com)
+Sales,매상
+Same file has already been attached to the record,동일한 파일이 이미 기록에 첨부 된
+Sample,표본(sample)
+Saturday,토요일
+Save,저장
+Scheduler Log,스케줄러 로그
+Script,스크립트
+Script Report,스크립트 보고서
+Script Type,스크립트 유형
+Search,{0}{/0}{1}검색 {/1}
+Search Fields,검색 필드
+Search in a document type,문서 유형의 검색
+Search or type a command,명령을 검색하거나 입력
+Section Break,구역 나누기
+Security,보안
+Security Settings,보안 설정
+Select,고르기
+Select All,모두 선택
+Select Attachments,첨부 파일을 선택합니다
+Select Document Type,문서 유형을 선택
+Select Document Type or Role to start.,시작 문서 형식 또는 역할을 선택합니다.
+Select Print Format,인쇄를 선택 형식
+Select Report Name,보고서 선택 이름
+Select Role,역할 선택
+Select To Download:,다운로드하려면 선택
+Select Type,유형을 선택
+Select User or DocType to start.,시작하는 사용자 또는 문서 종류를 선택합니다.
+Select a Banner Image first.,먼저 배너 이미지를 선택합니다.
+Select an image of approx width 150px with a transparent background for best results.,최상의 결과를 위해 투명 배경으로 약 폭 150 픽셀의 이미지를 선택합니다.
 Select dates to create a new ,
-"Select modules to be shown (based on permission). If hidden, they will be hidden for all users.","Selectați module să fie afișate (bazat pe permisiune). Dacă ascunse, acestea vor fi ascunse pentru toți utilizatorii."
-Select or drag across time slots to create a new event.,Selectați sau glisați peste intervale de timp pentru a crea un nou eveniment.
-"Select target = ""_blank"" to open in a new page.","Selectați target = ""_blank"" pentru a deschide într-o nouă pagină."
-Select the label after which you want to insert new field.,Selectați eticheta după care doriți să inserați câmpul nou.
-Send,Trimiteți
-Send As Email,Trimite ca e-mail
-Send Me A Copy,Trimite-mi o copie
-Send Password,Trimite Parola
-Send Print in Body and Attachment,Trimite Printeaza în corp și Anexa
-Send an email reminder in the morning,Trimite un memento e-mail în dimineața
-Send download link of a recent backup to System Managers,Trimite link-ul de download de o copie de rezervă recentă a Managerii de sistem
-Send enquiries to this email address,Trimite întrebări cu privire la această adresă de e-mail
-Sender,Expeditor
-Sent,Trimis
-Sent Mail,Mail trimis
-Sent Quotation,Cotația trimis
-Sent or Received,Trimise sau primite
-Series,Serie
-Series {0} already used in {1},Series {0} folosit deja în {1}
-Server,Server
-Server Error: Please check your server logs or contact tech support.,Eroare de server: Vă rugăm să verificați jurnalele dvs. de server sau de suport tehnic de contact.
-Session Expired. Logging you out,Sesiunea a expirat. Logging te afară
-Session Expiry,Sesiunea de expirare
-Session Expiry in Hours e.g. 06:00,Sesiunea de expirare în Ore de exemplu 06:00
-Session Expiry must be in format {0},Sesiune de expirare trebuie să fie în format {0}
-Set Banner from Image,Setați Banner din imagine
-Set Link,Setați Link
-Set Login and Password if authentication is required.,"Set de autentificare și parola, dacă este necesară autentificarea."
-Set Only Once,Setat numai o dată
-Set Password,Set Password
-Set Permissions on Document Types and Roles,Setarea permisiunilor pe Tipuri de documente și roluri
-Set Permissions per User,Seta permisiuni pentru fiecare utilizator
-Set User Permissions,Setarea permisiunilor de utilizator
-Set Value,Valoare reglată
-Set numbering series for transactions.,Set serie de numerotare de tranzacții.
-Set outgoing mail server.,Setați server de mail de ieșire.
-Settings,Setări
-Settings for About Us Page.,Setările pentru pagina Despre noi.
-Settings for Contact Us Page.,Setări pentru Contacteaza-ne.
-Setup,Setare
-Setup > User,Configurare> User
-Setup > User Permissions Manager,Configurare> Permisiunile utilizatorului manager
-Setup of fonts and background.,Configurare de fonturi și fundal.
-"Setup of top navigation bar, footer and logo.","Setup de bara de navigare de sus, subsol și logo-ul."
-Short Bio,Bio scurt
-Short Name,Numele scurt
-Shortcut,Scurtătură
-Show / Hide Modules,Arată / Ascunde Module
-Show Details,Arată detalii
-Show Print First,Arată Print Primul
-Show Tags,Arată Tags
-Show or hide modules globally.,Afișarea sau ascunderea module la nivel global.
-Show rows with zero values,Arată rânduri cu valori de zero
-Show this field as title,Arată acest domeniu ca titlu
-Showing only for (if not empty),Se afișează numai pentru (dacă nu este gol)
-Sidebar,Sidebar
-Sidebar Items,Articole Sidebar
-Sidebar Links for Home Page only,Link-uri Sidebar pentru Pagina de numai
-Sign Up,Înregistrare
-Sign in,Logheaza-te
-Sign up,Înregistrare
-Single Post (article).,Single Post (articol).
-Single Types have only one record no tables associated. Values are stored in tabSingles,Tipuri singur avea o singură înregistrare nu tabele asociate. Valorile sunt stocate în tabSingles
-Sitemap Browser,Browser sitemap
-Slideshow,Slideshow
-Slideshow Items,Prezentarea Articole
-Slideshow Name,Slideshow Nume
-Small Text,Mic Text
-Social Login Keys,Social Autentificare Keys
-Solid background color (default light gray),Culoarea de fundal solid (deschis implicit gri)
-Sorry we were unable to find what you were looking for.,Ne pare rau nu am putut pentru a găsi ceea ce căutați pentru.
-Sorry you are not permitted to view this page.,Îmi pare rău că nu sunt permise pentru a vizualiza această pagină.
-Sort By,Sortare după
-Sort Field,Un fel de câmp
-Sort Order,Ordine de sortare
-Standard,Standard
-Standard Print Format cannot be updated,Print Format standard nu poate fi actualizat
-Standard Reports,Rapoarte standard
-Start Report For,Începeți Raport Pentru
-Starts on,Începe pe
-State,Stat
-States,Statele
-"States for workflow (e.g. Draft, Approved, Cancelled).","Statele de flux de lucru (de exemplu Proiectele, Aprobat, anulat)."
-Static File Timestamp,Static Timestamp fișier
-Status,Stare
-Step 1: Set the name and save.,Pasul 1: Setați numele și salva.
-Step 2: Set Letterhead content.,Pasul 2: Set de conținut antet.
-Style,Stil
-Style Settings,Setări de stil
-"Style represents the button color: Success - Green, Danger - Red, Inverse - Black, Primary - Dark Blue, Info - Light Blue, Warning - Orange","Stil reprezinta culoarea butonului: Succes - verde, Pericol - Red, Inverse - negru, primar - Dark Blue, Info - albastru deschis, de avertizare - Orange"
-Sub-domain provided by erpnext.com,Sub-domeniu furnizate de erpnext.com
-Subdomain,Subdomeniu
-Subject,Subiect
-Submit,Trimite
-Submit an Issue,Prezenta eroare
-Submitted,Inscrisa
-Submitted Document cannot be converted back to draft. Transition row {0},A prezentat documente nu pot fi convertite înapoi să elaboreze. Tranziție rând {0}
-Submitted Record cannot be deleted,Înregistrarea prezentate nu pot fi șterse
-Success,Succes
-Suggestion,Sugestie
-Sunday,Duminică
-Switch to Website,Comuta pe site-ul
-Sync Inbox,Sincronizare Inbox
-System,Sistem
-System Settings,Setări de sistem
-System User,Sistem de utilizare
-System and Website Users,De sistem și site Utilizatori
-System generated mails will be sent from this email id.,Mail-uri generate de sistem vor fi trimise la aceasta id-ul de e-mail.
-Table,Tabel
-Table {0} cannot be empty,Tabelul {0} nu poate fi gol
-Tag,Tag
-Tag Name,Tag-ul Numele
-Tags,Tag-uri
-Tahoma,Tahoma
-Target,Ţintă
-Tasks,Task-uri
-Team Members,Membrii echipei
-Team Members Heading,Membrii echipei Rubrică
-Template Pages cannot be moved,Paginile de șabloane nu pot fi mutate
-Template Path,Calea șablon
-Test,Teste
-Test Runner,Runner de testare
-Text,Text
-Text Align,Alinierea textului
-Text Editor,Editor de text
-The name of your company / website as you want to appear on browser title bar. All pages will have this as the prefix to the title.,Numele companiei / site-ul dvs. așa cum doriți să apară pe bara de titlu browser. Toate paginile vor avea aceasta ca prefix la titlu.
-The system provides many pre-defined roles. You can add new roles to set finer permissions.,Sistemul oferă multe roluri predefinite. Puteți adăuga noi roluri pentru a seta permisiuni fine.
-Then By (optional),De atunci (opțional)
-There were errors,Au fost erori
-There were errors while sending email. Please try again.,Au fost erori în timp ce trimiterea de e-mail. Încercaţi din nou.
-"These permissions will apply for all transactions where the permitted record is linked. For example, if Company C is added to User Permissions of user X, user X will only be able to see transactions that has company C as a linked value.","Aceste permisiuni se vor aplica pentru toate tranzacțiile în care înregistrarea este permis legate. De exemplu, dacă firma C se adaugă la permisiunile utilizatorului de utilizator X, X utilizatorul va putea vedea tranzacții pe care le are firma C ca o valoare legată numai."
-These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,"Aceste valori vor fi actualizate în mod automat în tranzacții și, de asemenea, va fi util pentru a restricționa permisiunile pentru acest utilizator cu privire la tranzacțiile care conțin aceste valori."
-"These will also be set as default values for those links, if only one such permission record is defined.","Acestea vor fi, de asemenea, stabilite ca valori implicite pentru aceste link-uri, în cazul în care numai o astfel de înregistrare permisiune este definit."
-Third Party Authentication,Autentificare terță parte
+"Select modules to be shown (based on permission). If hidden, they will be hidden for all users.","선택 모듈 (허가 기준) 표시합니다.숨겨진 경우, 모든 사용자에 대해 숨겨집니다."
+Select or drag across time slots to create a new event.,선택하거나 새 이벤트를 만들 시간 슬롯을 가로 질러 드래그합니다.
+"Select target = ""_blank"" to open in a new page.","선택 대상 새 페이지에 열 = ""_blank""."
+Select the label after which you want to insert new field.,당신이 새 필드를 삽입 할 후 레이블을 선택합니다.
+Send,보내기
+Send Alert On,경고에 보내
+Send As Email,전자 우편으로 보내기
+Send Email,이메일 보내기
+Send Email Print Attachments as PDF (Recommended),PDF로 이메일 프린트 첨부 파일 보내기 (권장)
+Send Me A Copy,저에게 사본을 보내
+Send Password,암호를 보내
+Send Print as PDF,로 보내기 프린트 PDF
+Send alert if date matches this field's value,날짜가이 필드의 값과 일치하는 경우 경고를 보내기
+Send alert if this field's value changes,경고를 보내기 필드의 값이 변경되는 경우
+Send an email reminder in the morning,아침에 이메일 알림 보내기
+Send download link of a recent backup to System Managers,시스템 관리자에 최신 백업의 다운로드 링크를 보내
+Send enquiries to this email address,이 이메일 주소로 문의를 보내
+Sender,보낸 사람
+Sent,발신
+Sent Mail,보낸 편지함
+Sent Quotation,보낸 견적
+Sent or Received,송신 또는 수신
+Series,시리즈
+Series {0} already used in {1},계열 {0} 이미 사용될 {1}
+Server,서버
+Server & Credentials,서버 및 자격 증명
+Server Error: Please check your server logs or contact tech support.,서버 오류 : 서버 로그 또는 연락처 기술 지원을 확인하시기 바랍니다.
+Session Expired. Logging you out,세션이 만료되었습니다.당신을 로그 아웃
+Session Expiry,세션 유효
+Session Expiry in Hours e.g. 06:00,"6시 예를 들어, 시간에 세션 유효"
+Session Expiry must be in format {0},세션 유효 기간은 형식이어야합니다 {0}
+Set Banner from Image,이미지에서 배너를 설정
+Set Link,설정 링크
+Set Login and Password if authentication is required.,인증이 필요한 경우 설정의 로그인 및 암호.
+Set Only Once,한 번만 설정
+Set Password,비밀번호 설정
+Set Permissions on Document Types and Roles,문서의 종류와 역할에 대한 권한 설정
+Set Permissions per User,사용자 당 권한 설정
+Set User Permissions,설정 사용자 권한
+Set Value,설정 값
+"Set default format, page size, print style etc.","설정 기본 형식, 페이지 크기, 인쇄 스타일 등"
+Set numbering series for transactions.,트랜잭션에 대한 일련의 번호로 설정합니다.
+Set outgoing mail server.,보내는 메일 서버를 설정합니다.
+Settings,설정
+Settings for About Us Page.,회사 소개 페이지의 설정.
+Settings for Contact Us Page.,문의 페이지에 대한 설정.
+Setup,설정
+Setup > User,설정> 사용자
+Setup > User Permissions Manager,설정> 사용자 권한 관리자
+Setup Email Alert based on various criteria.,이메일 설정 경고는 다양한 기준에 따라.
+Setup of fonts and background.,글꼴 및 배경 설정.
+"Setup of top navigation bar, footer and logo.","위쪽 탐색 모음, 바닥 글 및 로고의 설치."
+Short Bio,짧은 바이오
+Short Name,짧은 이름
+Shortcut,지름길
+Show / Hide Modules,표시 / 숨기기 모듈
+Show Print First,인쇄 먼저 보여
+Show Tags,보기 태그
+Show or hide modules globally.,표시 또는 전 세계적으로 모듈을 숨 깁니다.
+Show rows with zero values,0 값을 가진 행 표시
+Show tags,보기 태그
+Show this field as title,제목으로이 필드를 표시
+Showing only for (if not empty),만 표시 (비어 있지 않은 경우)
+Sidebar,사이드바
+Sidebar Items,사이드 바 항목
+Sidebar Links for Home Page only,홈 페이지에 대한 사이드 바 링크 만
+Sign Up,가입하기
+Sign in,로그인
+Sign up,가입
+Single Post (article).,단일 포스트 (글).
+Single Types have only one record no tables associated. Values are stored in tabSingles,하나의 유형은 하나뿐 기록 할 테이블이 없습니다.값은 tabSingles에 저장됩니다
+Sitemap Browser,맵 브라우저
+Slideshow,슬라이드쇼
+Slideshow Items,슬라이드 쇼 항목
+Slideshow Name,슬라이드 쇼 이름
+Small Text,작은 텍스트용
+Social Login Keys,사회 로그인 키
+Solid background color (default light gray),단색 배경 색상 (기본 라이트 그레이)
+Sorry we were unable to find what you were looking for.,죄송합니다 우리는 당신이 찾고있는 것을 찾을 수 없습니다.
+Sorry you are not permitted to view this page.,죄송합니다 당신은이 페이지를 볼 수 없습니다.
+Sort By,정렬 기준
+Sort Field,정렬 필드
+Sort Order,정렬 순서
+Standard,표준
+Standard Print Format cannot be updated,표준 인쇄 형식을 업데이트 할 수 없습니다
+Standard Reply,표준 댓글
+Standard Reports,표준 보고서
+Standard replies to common queries.,표준은 일반적으로 쿼리에 응답합니다.
+Start Report For,은 보고서 시작
+Starts on,에 시작
+State,도
+States,미국
+"States for workflow (e.g. Draft, Approved, Cancelled).","워크 플로의 상태 (예를 들어, 초안, 승인, 취소)."
+Static File Timestamp,정적 파일 타임 스탬프
+Status,상태
+Step 1: Set the name and save.,1 단계 : 이름을 설정하고 저장합니다.
+Step 2: Set Letterhead content.,2 단계 : 레터 내용을 설정합니다.
+Style,스타일
+Style Settings,스타일 설정
+"Style represents the button color: Success - Green, Danger - Red, Inverse - Black, Primary - Dark Blue, Info - Light Blue, Warning - Orange","녹색, 위험 - - 빨강, 역 - 블랙, 차 - 진한 파란색, 정보 - 라이트 블루, 경고 - 오렌지 성공 : 스타일 버튼의 색상을 나타냅니다"
+Sub-domain provided by erpnext.com,erpnext.com에서 제공하는 하위 도메인
+Subdomain,하위 도메인
+Subject,주제
+Submit,제출
+Submit an Issue,문제 제출
+Submitted,제출
+Submitted Document cannot be converted back to draft. Transition row {0},제출 된 문서는 초안으로 변환 할 수 없습니다. 전환 행 {0}
+Success,성공
+Suggestion,시사
+Sunday,일요일
+Switch to Website,웹 사이트로 전환
+Sync Inbox,동기화받은 편지함
+System,체계
+System Settings,시스템 설정
+System User,시스템 사용자
+System and Website Users,시스템 및 웹 사이트 사용자
+System generated mails will be sent from this email id.,시스템 생성 메일이 이메일 ID에서 전송됩니다.
+Table,표
+Table {0} cannot be empty,테이블 {0} 비워 둘 수 없습니다
+Tag,(소)<title> 태그
+Tag Name,태그 이름
+Tags,태그
+Tahoma,굴림
+Target,목표물
+Tasks,타스크
+Team Members,팀 회원
+Team Members Heading,제목 팀원
+Template,템플릿
+Template Pages cannot be moved,템플릿 페이지가 이동할 수없는
+Test,미리 보기
+Test Runner,테스트 러너
+Text,글자
+Text Align,텍스트 정렬
+Text Editor,텍스트 편집기
+Thank you for your message,메시지를 수신했습니다
+The name of your company / website as you want to appear on browser title bar. All pages will have this as the prefix to the title.,당신은 브라우저의 제목 표시 줄에 표시 할 회사 / 웹 사이트의 이름입니다.모든 페이지는 제목에 접두사로이있을 것이다.
+The system provides many pre-defined roles. You can add new roles to set finer permissions.,이 시스템은 많은 사전 정의 된 역할을 제공합니다.당신은 미세한 권한을 설정하는 새로운 역할을 추가 할 수 있습니다.
+Then By (optional),그때 (선택 사양)
+There should remain at least one System Manager,적어도 하나의 시스템 관리자가 유지되어야
+There were errors,오류가 발생했습니다
+There were errors while sending email. Please try again.,이메일을 보내는 동안 오류가 발생했습니다.재시도하십시오.
+"There were some errors setting the name, please contact the administrator","이름을 설정 약간의 오차가, 관리자에게 문의하십시오"
+"These permissions will apply for all transactions where the permitted record is linked. For example, if Company C is added to User Permissions of user X, user X will only be able to see transactions that has company C as a linked value.","이 권한은 허용 된 레코드가 연결되어있는 모든 거래에 적용됩니다.회사 C는 사용자의 X의 사용자 권한에 추가 된 경우 예를 들어, 사용자 X는 연결된 값으로 회사 C가 트랜잭션을 볼 수있을 것이다."
+These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,"이 값은 트랜잭션에 자동으로 업데이트되며, 이러한 값을 포함하는 거래에이 사용자에 대한 사용 권한을 제한하는 것이 도움이 될 것입니다."
+"These will also be set as default values for those links, if only one such permission record is defined.","단 하나의 권한 레코드가 정의되어있는 경우이 또한, 해당 링크의 기본 값으로 설정됩니다."
+Third Party Authentication,타사 인증
 "This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>
 myfield
 eval:doc.myfield=='My Value'<br>
-eval:doc.age>18","Acest câmp va apărea numai în cazul în care FieldName definit aici are valoare sau regulile sunt adevărate (exemple): cui \ nmyfield \ NEVAL: doc.myfield == ""Valoarea mea"" <br> \ NEVAL: doc.age> 18"
-This goes above the slideshow.,Acest lucru este valabil mai sus prezentarea.
-This is PERMANENT action and you cannot undo. Continue?,Aceasta este o acțiune permanentă și nu se poate anula. Continuare?
-This is permanent action and you cannot undo. Continue?,Aceasta este o acțiune permanentă și nu se poate anula. Continuare?
-This must be checked if Style Settings are applicable,Acest lucru trebuie verificat dacă setările de stil sunt aplicabile
-This role update User Permissions for a user,Acest rol Permisiunile actualizare pentru utilizator unui utilizator
-Thursday,Joi
-Time,Oră
-Time Zone,Time Zone
-Title,Titlu
-Title / headline of your page,Titlu / titlu al paginii dvs.
-Title Case,Denumirea dosarului
-Title Field,Titlu de câmp
-Title Prefix,Titlu Prefix
-Title field must be a valid fieldname,Câmp titlu trebuie să fie un fieldname valid
-Title is required,Este necesară Titlu
-To,Până la data
-To Do,Pentru a face
-"To format columns, give column labels in the query.","Pentru a formata coloanele, da etichete de coloană în interogare."
-"To give acess to a role for only specific records, check the 'Apply User Permissions'. User Permissions are used to limit users with such role to specific records.","Pentru a da acess la un rol de numai anumite înregistrări, verificați ""Aplicați permisiuni utilizator '. Permisiunile de utilizator sunt folosite pentru a limita utilizatorii cu astfel de rol de înregistrări specifice."
-"To run a test add the module name in the route after '{0}'. For example, {1}","Pentru a rula un test adăugați numele modulului în traseu după ""{0}"". De exemplu, {1}"
-ToDo,ToDo
-Too many writes in one request. Please send smaller requests,"Prea multe, scrie într-o singură cerere. Vă rugăm să trimiteți cereri mai mici"
-Top Bar,Top Bara
-Top Bar Background,Top Bar Context
-Top Bar Item,Top Bar Articol
-Top Bar Items,Top Bar Articole
-Top Bar Text,Top Bar Text
-Top Bar text and background is same color. Please change.,Text de bara de sus și de fundal este aceeași culoare. Vă rugăm să se schimbe.
-Transaction,Tranzacție
-Transition Rules,Reguli de tranziție
-Tuesday,Marți
-Tweet will be shared via your user account (if specified),Tweet va fi partajate prin intermediul contului de utilizator (dacă este specificat)
-Twitter Share,Twitter Distribuiți
-Twitter Share via,Twitter Divide prin
-Type,Tip
-Unable to find attachment {0},În imposibilitatea de a găsi atașament {0}
-Unable to load: {0},Imposibil de încărcare: {0}
-Unable to open attached file. Please try again.,În imposibilitatea de a deschide fișierul atașat. Încercaţi din nou.
-Unable to send emails at this time,În imposibilitatea de a trimite email-uri la acest moment
-Unknown Column: {0},Coloana necunoscut: {0}
-Unknown Print Format: {0},Unknown Print Format: {0}
-"Unknown file encoding. Tried utf-8, windows-1250, windows-1252.","Codare fișier necunoscut. UTF-8 a încercat, ferestre-1250, Windows-1252."
-Unread Messages,Mesaje necitite
-Unsubscribe,Dezabonare
-Unsubscribed,Nesubscrise
-Up,Sus
-Upcoming Events for Today,Evenimente viitoare de azi
-Update,Actualizați
-Update Field,Actualizare câmp
-Update Parent,Actualizare mamă
-Update Value,Valoarea actualizare
-Updated,Actualizat
-Upload,Fișierul se încarcă
-Upload Attachment,Încărcați Attachment
-Upload a file,Încărcați un fișier
-Upload and Import,Încărcați și Import
-Uploading...,Se încarcă ...
+eval:doc.age>18","여기에 정의 된 필드 이름이 값이 OR 규칙에 해당 (예) 인 경우에만이 필드가 나타납니다 : <BR> 
+ MyField에 
+ EVAL : doc.myfield == '나의 가치'<BR> 
+ EVAL : doc.age> 18"
+This goes above the slideshow.,슬라이드 쇼가 위에 간다.
+This is PERMANENT action and you cannot undo. Continue?,이것은 영구 작업입니다 그리고 당신은 실행 취소 할 수 없습니다. 계속하시겠습니까?
+"This is a standard format. To make changes, please copy it make make a new format.","이 표준 형식입니다.변경하려면, 그것은 새로운 형식을 만들어 복사하시기 바랍니다."
+This is permanent action and you cannot undo. Continue?,이것은 영구적 인 조치입니다 그리고 당신은 실행 취소 할 수 없습니다. 계속하시겠습니까?
+This must be checked if Style Settings are applicable,스타일 설정을 적용 할 경우이 확인해야합니다
+This role update User Permissions for a user,사용자에 대한이 역할은 업데이트 사용자 권한
+Thursday,목요일
+Tile,바둑판식 반복
+Time,시간
+Time Zone,시간대
+Timezone,시간대
+Title,제목
+Title / headline of your page,페이지의 제목 / 헤드 라인
+Title Case,제목 케이스
+Title Field,제목 필드
+Title Prefix,제목 접두어
+Title field must be a valid fieldname,제목 필드는 유효한 필드 이름이어야합니다
+Title is required,제목이 필요합니다
+To,선택된 연구에서 치료의 대조적인 차이의 영향을 조
+To Do,명소
+"To format columns, give column labels in the query.",열 형식을 쿼리에 열 레이블을 제공합니다.
+"To give acess to a role for only specific records, check the 'Apply User Permissions'. User Permissions are used to limit users with such role to specific records.","'사용자 권한을 적용'을 확인, 특정 레코드에 대한 역할에 acess를 얻었다.사용자 권한 특정 레코드에 대한 이러한 역할과 사용자를 제한하는 데 사용됩니다."
+"To run a test add the module name in the route after '{0}'. For example, {1}","테스트가 '{0}'후 경로에서 모듈 이름을 추가 실행합니다.예를 들어, {1}"
+ToDo,할일
+Too many writes in one request. Please send smaller requests,너무 많은 사람들이 하나의 요청에 씁니다. 작은 요청을 보내 주시기 바랍니다
+Top Bar,상단 바
+Top Bar Background,상단 바의 배경
+Top Bar Item,상단 바 상품
+Top Bar Items,상단 바의 항목
+Top Bar Text,상단 바의 텍스트
+Top Bar text and background is same color. Please change.,상단 바의 텍스트와 배경은 동일한 색입니다.교환 해주세요.
+Transaction,거래
+Transition Rules,전환 규칙
+Tuesday,화요일
+Tweet will be shared via your user account (if specified),(지정된 경우) 트윗은 사용자 계정을 통해 공유 될 것
+Twitter Share,Twitter에서 공유
+Twitter Share via,Twitter에서 공유를 통해
+Type,종류
+Unable to find attachment {0},찾을 수 없습니다 첨부 파일 {0}
+Unable to load: {0},로드 할 수 없습니다 : {0}
+Unable to open attached file. Please try again.,첨부 파일을 열 수 없습니다.재시도하십시오.
+Unable to send emails at this time,이 시간에 이메일을 보낼 수 없습니다
+Unknown Column: {0},알 수없는 열 {0}
+"Unknown file encoding. Tried utf-8, windows-1250, windows-1252.","알 수없는 파일 인코딩.시도 UTF-8, 윈도우 1250, 윈도우 1252."
+Unread Messages,읽지 않은 메시지
+Unsubscribe,가입 취소
+Unsubscribed,가입되어 있지 않음
+Upcoming Events for Today,오늘을 위해 예정 이벤트
+Update,업데이트
+Update Field,필드 업데이트
+Update Value,갱신 값
+Updated,업데이트
+Upload,업로드
+Upload Attachment,첨부 파일을 업로드
+Upload CSV file containing all user permissions in the same format as Download.,다운로드와 같은 형식으로 모든 사용자 권한이 포함 된 CSV 파일을 업로드합니다.
+Upload a file,파일 업로드
+Upload and Import,업로드 및 가져 오기
+Upload and Sync,업로드 및 동기화
+Uploading...,업로드 ...
 Upvotes,Upvotes
-Use TLS,Utilizați TLS
-User,Utilizator
-User Cannot Create,Utilizatorul nu poate crea
-User Cannot Search,Utilizatorul nu poate căuta
-User Defaults,Prestabilite de utilizator
-User ID of a blog writer.,ID-ul de utilizator al unui scriitor blog.
-User Image,User Image
-User Permission,Permisiunea de utilizare
-User Permissions,Permisiunile utilizatorului
-User Permissions Manager,Permisiunile utilizatorului Director
-User Roles,Roluri de utilizator
-User Tags,Tag-uri de utilizator
-User Type,Tip utilizator
+Use TLS,TLS에게 사용
+User,사용자
+User Cannot Create,사용자가 만들 수 없습니다
+User Cannot Search,사용자는 검색 할 수 없습니다
+User Defaults,사용자 기본값
+User ID of a blog writer.,블로그 작가의 사용자 ID.
+User Image,사용자 이미지
+User Permission,사용자 권한
+User Permissions,사용자 권한
+User Permissions Manager,사용자 권한 관리
+User Roles,사용자 역할
+User Tags,사용자 태그
+User Type,사용자 유형
 "User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ",
-User Vote,Vot utilizator
-User not allowed to delete.,Utilizatorul nu este permis pentru a șterge.
-User permissions should not apply for this Link,Permisiunile de utilizator nu trebuie să se aplice pentru acest link
-User {0} cannot be deleted,{0} utilizator nu pot fi șterse
-User {0} cannot be disabled,Utilizatorul {0} nu poate fi dezactivat
-User {0} cannot be renamed,Utilizatorul {0} nu poate fi redenumit
-User {0} does not exist,{0} utilizator nu exista
+User Vote,사용자 투표
+User not allowed to delete {0}: {1},사용자가 삭제할 수 없습니다 {0} {1}
+User permissions should not apply for this Link,사용자 권한이 링크를 적용하지 않아야합니다
+User {0} cannot be deleted,{0} 사용자가 삭제할 수 없습니다
+User {0} cannot be disabled,{0} 사용자를 비활성화 할 수 없습니다
+User {0} cannot be renamed,{0} 사용자 이름을 변경할 수 없습니다
+User {0} does not exist,{0} 사용자가 존재하지 않습니다
 UserRole,UserRole
-Users and Permissions,Utilizatori și permisiuni
-Users with role {0}:,Utilizatorii cu rol de {0}:
-Value,Valoare
-Value cannot be changed for {0},Valoare nu poate fi schimbat pentru {0}
-Value for a check field can be either 0 or 1,Valoarea pentru un câmp de verificare poate fi 0 sau 1
-Value missing for,Valoare lipsă pentru
-Verdana,Verdana
-Version,Versiune
-Version restored,Versiune restaurată
-View or manage Website Route tree.,Vizualizați sau să gestionați copac site Route.
-Visit,Vizita
-Warning,Avertisment
-Web Page,Pagină web
-Web Site Forum Page.,Site-ul web Forum pagină.
-Website,Site web
-Website Group,Site-ul web Group
-Website Route,Site-ul Route
-Website Route Permission,Permisiunea de site-ul Route
-Website Script,Script-ul de site-ul
-Website Settings,Setarile site ului
-Website Slideshow,Site-ul Slideshow
-Website Slideshow Item,Site-ul Slideshow Articol
-Website Template,Format site-ul
-Website User,Site-ul utilizatorului
-Wednesday,Miercuri
-Welcome email sent,E-mail de bun venit trimis
-"When you Amend a document after Cancel and save it, it will get a new number that is a version of the old number.","Atunci când modifică un document după anula și salvați-l, acesta va primi un număr nou, care este o versiune a numărului vechi."
-Width,Lățime
-Will be used in url (usually first name).,"Va fi utilizat în URL-ul (de obicei, primul nume)."
-With Groups,Cu grupurile
-With Ledgers,Cu Ledgers
-Workflow,Flux de lucru
-Workflow Action,Flux de lucru de acțiune
-Workflow Action Name,Flux de lucru Acțiune Nume
-Workflow Document State,Document flux de lucru de stat
-Workflow Document States,Flux de lucru Statele Document
-Workflow Name,Flux de lucru Nume
-Workflow State,Stare flux de lucru
-Workflow State Field,Flux de lucru de stat Domeniul
-Workflow Transition,Flux de lucru de tranziție
-Workflow Transitions,Flux de lucru Treceri
-Workflow will start after saving.,Flux de lucru va începe după salvarea.
-Write,Scrie
-Write a Python file in the same folder where this is saved and return column and result.,Scrie un fișier Python în același folder în care acest lucru este salvat și a reveni coloană și rezultat.
-Write a SELECT query. Note result is not paged (all data is sent in one go).,Scrie o interogare SELECT. Rezultat notă nu este chemat (toate datele sunt trimise într-un du-te).
-Write titles and introductions to your blog.,Scrie titluri și introduceri la blog-ul.
-Writers Introduction,Scriitori Introducere
-Year,An
-Yes,Da
-Yesterday,Ieri
-You are not allowed to create / edit reports,Nu vi se permite de a crea / edita rapoarte
-You are not allowed to export the data of: {0}. Downloading empty template.,Nu vi se permite să exporte datele din: {0}. Descărcarea șablon gol.
-You are not allowed to export this report,Nu vi se permite să exporte acest raport
-You are not allowed to print this document,Nu vi se permite să imprimați acest document
-You are not allowed to send emails related to this document,Nu este permis pentru a trimite e-mailuri legate de acest document
-"You can change Submitted documents by cancelling them and then, amending them.","Puteți schimba documentele prezentate de anularea lor și apoi, de modificare a acestora."
-You can use Customize Form to set levels on fields.,Puteți folosi Customize formularul pentru a stabili niveluri pe domenii.
-You cannot install this app,Nu puteți instala această aplicație
-You have unsaved changes in this form. Please save before you continue.,Aveți modificări nesalvate din acest formular. Vă rugăm să salvați înainte de a continua.
-You need to be logged in and have System Manager Role to be able to access backups.,Trebuie să fii autentificat și să ai System Manager Rolul a putea accesa backup-uri.
-You need write permission to rename,Ai nevoie de a scrie permisiunea de a redenumi
-"Your download is being built, this may take a few moments...","Descărcarea dvs. este în curs de construit, acest lucru poate dura câteva momente ..."
-[Label]:[Field Type]/[Options]:[Width],[Label]: [tip de câmp] / [Opțiuni]: [Lățime]
-add your own CSS (careful!),adăuga propriile dvs. CSS (careful!)
-adjust,ajusta
-align-center,alinia-centru
-align-justify,alinia-justifica
-align-left,alinia stânga-
-align-right,alinia-dreapta
-and,și
-arrow-down,săgeată-jos
-arrow-left,stânga-săgeată
-arrow-right,săgeată-dreapta
-arrow-up,săgeată-up
-asterisk,asterisc
-backward,înapoiați
-ban-circle,ban-cerc
-barcode,coduri de bare
-beginning with,începând cu
-bell,clopot
-bold,aldini
-book,carte
-bookmark,semn de carte
-briefcase,servietă
-bullhorn,portavocea
-calendar,calendar
-camera,aparat foto
-certificate,certificat
-check,verifica
-chevron-down,Chevron-jos
-chevron-left,Chevron-stânga
-chevron-right,Chevron-dreapta
-chevron-up,Chevron-up
-circle-arrow-down,cerc-săgeată-jos
-circle-arrow-left,cerc-săgeată stânga-
-circle-arrow-right,cerc-săgeată-dreapta
-circle-arrow-up,cerc-săgeată-up
-cog,dinte
-comment,Comentariu
-comments,Comentarii
-dd-mm-yyyy,zz-ll-aaaa
-dd/mm/yyyy,zz / ll / aaaa
-download,descărcare
-download-alt,descarcati-alt
-edit,editare
-eject,evacua
-envelope,plic
-exclamation-sign,exclamare-semn
-eye-close,ochi-close
-eye-open,-ochi deschis
-facetime-video,FaceTime video
-fast-backward,rapid-înapoi
-fast-forward,fast-forward
-file,fișier
-film,film
-filter,filtru
-fire,foc
-flag,Semnalizare
-folder-close,folder-close
-folder-open,-folder deschis
-font,font
-forward,înainte
-found,găsit
-fullscreen,fullscreen
-gift,cadou
-glass,sticlă
-globe,glob
-hand-down,mână-jos
-hand-left,mână-stânga
-hand-right,mana-dreapta
-hand-up,mână-up
-hdd,hdd
-headphones,căști
-heart,inimă
-home,Prima pagină
-icon,icoană
-inbox,Inbox
-indent-left,liniuța-stânga
-indent-right,liniuța-dreapta
-info-sign,info-semn
-is not allowed.,nu este permis.
-italic,cursiv
-leaf,frunze
-lft,LFT
-list,listă
-list-alt,Lista-alt
-lock,blocare
-lowercase,minuscule
-magnet,magnet
-map-marker,Harta marker
-memcached is not working / stopped. Please start memcached for best results.,memcached nu este de lucru / oprit. Vă rugăm să înceapă memcached pentru cele mai bune rezultate.
-minus,minus
-minus-sign,minus-sign
-mm-dd-yyyy,mm-dd-aaaa
-mm/dd/yyyy,mm / dd / yyyy
-move,mișcare
-music,muzică
-none of,nici unul dintre
-off,de pe
-ok,O.K.
-ok-circle,ok-cerc
-ok-sign,ok-semn
-one of,unul dintre
-or,sau
-pause,pauză
-pencil,creion
-picture,poză
-plane,avion
-play,Joacă
-play-circle,play-cerc
-plus,plus
-plus-sign,plus-sign
-print,Imprimare
-qrcode,QRCode
-question-sign,întrebare-semn
-random,randomizați
-refresh,reîmprospăta
-remove,eliminaţi
-remove-circle,elimina-cerc
-remove-sign,elimina-semn
-repeat,repeta
-resize-full,redimensiona-full
-resize-horizontal,redimensiona orizontal
-resize-small,redimensiona-mic
-resize-vertical,redimensiona-vertical
-retweet,retweet
+Users and Permissions,사용자 및 권한
+Users with role {0}:,역할이 사용자 {0}
+Valid Login id required.,유효한 로그인 ID이 필요합니다.
+Valid email and name required,필요한 유효한 이메일 주소와 이름
+Value,가치
+Value Change,값 변경
+Value Changed,값 변경
+Value cannot be changed for {0},값은 변경할 수 없습니다 {0}
+Value for a check field can be either 0 or 1,체크 필드의 값은 0 또는 1이 될 수 있습니다
+Value missing for,값을 누락
+Verdana,굴림
+Version,버전
+Version restored,버전 복원
+View or manage Website Route tree.,웹 사이트 루트 트리를 보거나 관리 할 수 있습니다.
+Visit,방문하기
+Warning,경고
+Warning: This Print Format is in old style and cannot be generated via the API.,경고 :이 인쇄 형식은 이전 스타일과 API를 통해 생성 할 수 없습니다.
+Web Page,웹 페이지
+Web Site Forum Page.,웹 사이트 포럼 페이지.
+Website,웹사이트
+Website Group,웹 사이트 그룹
+Website Route,웹 사이트 루트
+Website Route Permission,웹 사이트의 루트 권한
+Website Script,웹 사이트 스크립트
+Website Settings,웹 사이트 설정
+Website Slideshow,웹 사이트 슬라이드 쇼
+Website Slideshow Item,웹 사이트 슬라이드 쇼 상품
+Website User,웹 사이트의 사용자
+Wednesday,수요일
+Welcome email sent,에 오신 것을 환영합니다 이메일 전송
+"When you Amend a document after Cancel and save it, it will get a new number that is a version of the old number.","당신이 후 취소 및 저장 문서를 개정 할 때, 이전 번호의 버전입니다 새 번호를 얻을 것이다."
+Width,폭
+Will be used in url (usually first name).,홈페이지 (보통 이름)에 사용됩니다.
+With Groups,그룹으로
+With Ledgers,원장과 함께
+With Letterhead,레터
+Workflow,워크 플로우
+Workflow Action,워크 플로 작업
+Workflow Action Name,워크 플로 작업 이름
+Workflow Document State,워크 플로 문서 상태
+Workflow Document States,워크 플로우 문서 미국
+Workflow Name,워크 플로 이름
+Workflow State,워크 플로 상태
+Workflow State Field,워크 플로 상태 필드
+Workflow Transition,워크 플로 전환
+Workflow Transitions,워크 플로 전환
+Workflow will start after saving.,워크 플로우는 저장 한 후 시작합니다.
+Write,쓰기
+Write a Python file in the same folder where this is saved and return column and result.,이이 저장된 동일한 폴더에 파이썬 파일을 작성 및 열 및 결과를 반환합니다.
+Write a SELECT query. Note result is not paged (all data is sent in one go).,SELECT 쿼리를 작성합니다.참고 결과는 (모든 데이터를 한 번에 전송) 페이징되지 않습니다.
+Write titles and introductions to your blog.,블로그 제목과 소개를 작성합니다.
+Writers Introduction,작가 소개
+Year,년
+Yes,예
+Yesterday,Yester일
+You are not allowed to create / edit reports,당신은 / 수정 보고서를 생성 할 수 없습니다
+You are not allowed to export the data of: {0}. Downloading empty template.,당신은의 데이터를 내보낼 수 없습니다 : {0}.빈 템플릿을 다운로드합니다.
+You are not allowed to export this report,당신은이 보고서를 내보낼 수 없습니다
+You are not allowed to print this document,당신은이 문서를 인쇄 할 수 없습니다
+You are not allowed to send emails related to this document,당신은이 문서와 관련된 이메일을 보낼 수 없습니다
+"You can change Submitted documents by cancelling them and then, amending them.","당신이 그들을 개정, 다음이를 취소에 의해 제출 된 문서를 변경할 수 있습니다."
+You can use Customize Form to set levels on fields.,당신은 필드에서 레벨을 설정하는 사용자 지정 양식을 사용할 수 있습니다.
+You can use wildcard %,와일드 카드 %를 사용할 수 있습니다
+You cannot install this app,당신은이 응용 프로그램을 설치할 수 없습니다
+You have unsaved changes in this form. Please save before you continue.,이 형태로 저장되지 않은 변경 사항이 있습니다.계속하기 전에 저장하십시오.
+You need to be logged in and have System Manager Role to be able to access backups.,당신은 로그인 및 백업 액세스 할 수 있도록 시스템 관리자 역할을해야합니다.
+You need write permission to rename,이름을 변경할 수있는 권한을 작성해야합니다
+"You seem to have written your name instead of your email. \
+					Please enter a valid email address so that we can get back.","당신은 당신의 이메일 대신에 당신의 이름을 쓴 것 같다.\
+ 우리가 얻을 수 있도록 유효한 이메일 주소를 입력하십시오."
+"Your download is being built, this may take a few moments...","다운로드가이 몇 분 정도 걸릴 수 있습니다, 건설되고있다 ..."
+[Label]:[Field Type]/[Options]:[Width],[라벨] : [필드 유형] / [옵션] : [폭]
+[Optional] Send the email X days in advance of the specified date. 0 equals same day.,[선택] 지정된 날짜의 사전에 이메일 X 일 보냅니다. 0 당일 같습니다.
+add your own CSS (careful!),자신의 CSS를 추가 (조심하세요)
+adjust,~을 조절하다
+align-center,정렬 센터
+align-justify,정렬 정당화
+align-left,정렬에서 왼쪽으로
+align-right,정렬 오른쪽
+and,손목
+arrow-down,화살표 아래로
+arrow-left,화살표가 왼쪽
+arrow-right,화살표 오른쪽
+arrow-up,화살표까지
+asterisk,별표
+backward,뒤쪽의
+ban-circle,금지 - 원
+barcode,바코드
+beginning with,로 시작하는
+bell,벨
+bold,대담한
+book,"~을 기입하다, ~을 예약하다"
+bookmark,bookmark
+briefcase,서류 가방
+bullhorn,물러나
+calendar,달력
+camera,카메라
+certificate,증명서
+check,"수표, 점검"
+chevron-down,갈매기 다운
+chevron-left,갈매기 왼쪽
+chevron-right,갈매기 오른쪽
+chevron-up,갈매기 업
+circle-arrow-down,원형 화살표 아래로
+circle-arrow-left,원형 화살표 왼쪽
+circle-arrow-right,원형 화살표 오른쪽
+circle-arrow-up,원형 화살표 업
+cog,장부
+comment,코멘트 (comment)
+comments,댓글
+dd-mm-yyyy,DD-MM-YYYY
+dd.mm.yyyy,DD.MM.YYYY
+dd/mm/yyyy,체크인 yyyy / MM / dd
+download,다운로드
+download-alt,다운로드 - 고도
+edit,편집
+eject,배출
+envelope,봉투
+exclamation-sign,느낌표 기호
+eye-close,눈을 닫기
+eye-open,눈 오픈
+facetime-video,페이스 타임 비디오
+fast-backward,되감기
+fast-forward,빨리 감기
+file,파일
+film,영화
+filter,필터
+fire,~에 불을지르다
+flag,플래그
+folder-close,폴더 닫기
+folder-open,폴더 오픈
+font,글꼴
+forward,앞으로
+found,~의 기초를세우다
+fullscreen,전체 화면
+gift,선물
+glass,유리
+globe,지구
+hand-down,손 다운
+hand-left,손으로 왼쪽
+hand-right,손 오른쪽
+hand-up,손으로 업
+hdd,하드 디스크
+headphones,헤드폰
+heart,심장
+home,집
+icon,아이콘
+inbox,받은 편지함
+indent-left,들여 쓰기 왼쪽
+indent-right,들여 쓰기 오른쪽
+info-sign,정보 기호
+is not allowed.,허용되지 않습니다.
+italic,이탤릭체
+leaf,잎
+lft,좌
+list,list
+list-alt,목록 - 고도
+lock,"자물쇠를 채우다, ~을 잠그다"
+lowercase,소문자
+magnet,자석
+map-marker,지도 마커
+memcached is not working / stopped. Please start memcached for best results.,memcached를 작동하지 않는 / 정지.최상의 결과를 memcached를 시작하십시오.
+minus,마이너스
+minus-sign,마이너스 기호
+mm-dd-yyyy,MM-DD-YYYY
+mm/dd/yyyy,yyyy/mm/dd
+move,움직이기
+music,음악
+none of,의 없음
+off,떨어져서
+ok,OK를
+ok-circle,OK-원
+ok-sign,확인 서명
+one of,중 하나
+or,또는
+pause,일지정지
+pencil,연필
+picture,사진
+plane,"평면, 비행기"
+play,재생
+play-circle,재생 원
+plus,플러스
+plus-sign,더하기 기호
+print,~을 인쇄하다
+qrcode,하시면 자동
+question-sign,질문 서명
+random,임의
+refresh,"~을 상쾌하게하다, ~을 새롭게하다"
+remove,삭제
+remove-circle,제거 - 원
+remove-sign,제거 서명
+repeat,반복
+resize-full,크기를 조정 - 전체
+resize-horizontal,크기를 수평
+resize-small,크기를 작은
+resize-vertical,크기를 조정 수직
+retweet,리트 위트 (retweet)
 rgt,RGT
-road,rutier
-screenshot,screenshot
-search,căutare
-share,acțiune
-share-alt,cota-alt
-shopping-cart,cosul
-signal,semnal
-star,stea
-star-empty,stele gol
-step-backward,pas-înapoi
-step-forward,pas înainte
-stop,stop
-tag,etichetă
-tags,tag-uri
-"target = ""_blank""","target = ""_blank"""
-tasks,task-uri
-text-height,text-înălțime
-text-width,text cu lățime
-th,-lea
-th-large,th-mare
-th-list,th-list
-thumbs-down,degetele-jos
-thumbs-up,thumbs-up
-time,Timp Operare
-tint,tentă
-to,către
-trash,gunoi
-upload,încărca
-user,utilizator
+road,"도로, 길"
+screenshot,스크린 샷
+search,~을 찾다
+share,분담
+share-alt,공유 - 고도
+shopping-cart,쇼핑 - 카트
+signal,신호
+star,별
+star-empty,스타 빈
+step-backward,스텝 뒤로
+step-forward,단계 앞으로
+stop,멈춤
+tag,꼬리표
+tags,태그
+"target = ""_blank""","대상 = ""_blank"""
+tasks,작업
+text-height,텍스트 높이
+text-width,텍스트 폭
+th,일
+th-large,일 대형
+th-list,일 목록
+thumbs-down,엄지 손가락 아래로
+thumbs-up,엄지 손가락 최대
+time,시간
+tint,색조
+to,구입
+trash,쓰레기
+upload,업로드
+use % as wildcard,와일드 카드로 %를 사용
+user,사용자
 user_image_show,user_image_show
-values and dates,valori și date
-volume-down,volum-jos
-volume-off,volum-off
-volume-up,volum-up
-warning-sign,avertizare semn de
-wrench,cheie
-yyyy-mm-dd,aaaa-ll-zz
-zoom-in,zoom-in
-zoom-out,zoom-out
-{0} by {1},{0} de {1}
-{0} cannot be set for Single types,{0} nu poate fi setat pentru tipuri de single
-{0} does not exist in row {1},{0} nu există în rândul {1}
-{0} in row {1} cannot have both URL and child items,{0} în rândul {1} ​​nu poate avea atât de URL și elemente copil
-{0} is not a valid email id,{0} nu este un id-ul de e-mail validă
-{0} is required,{0} este necesară
-{0} is saved,{0} este salvat
-{0} must be one of {1},{0} trebuie sa fie unul din {1}
-{0} not a valid State,{0} nu este un stat valid
-{0} not allowed in fieldname {1},{0} nu este permis în fieldname {1}
-{0} not allowed in name,{0} nu este permis în nume
-{0} not allowed to be renamed,{0} nu este permis să fie redenumite
-{0} updated,{0} actualizat
-{0} {1} already exists,{0} {1} există deja
-{0} {1} cannot be a leaf node as it has children,"{0} {1} nu poate fi un nod frunză, deoarece are copii"
-"{0} {1} does not exist, select a new target to merge","{0} {1} nu există, selectați un nou obiectiv de a fuziona"
-{0}: Cannot set Amend without Cancel,"{0}: Nu se poate seta modifică, fără a anula"
-{0}: Cannot set Assign Amend if not Submittable,{0}: Nu se poate seta Alocați modifică dacă nu Submittable
-{0}: Cannot set Assign Submit if not Submittable,{0}: Nu se poate seta Alocați Trimite dacă nu Submittable
-{0}: Cannot set Cancel without Submit,{0}: Nu se poate seta anula fără Trimite
-{0}: Cannot set Import without Create,{0}: Nu se poate seta Import fără a crea
-"{0}: Cannot set Submit, Cancel, Amend without Write","{0}: Nu se poate seta Trimite, anula, modifică fără scriere"
-{0}: Cannot set import as {1} is not importable,{0}: Nu se poate seta de import ca {1} nu este importable
-"{0}: Create, Submit, Cancel and Amend only valid at level 0","{0}: Crearea, Trimite, Anulare și modifică valabile doar la nivel de 0"
-{0}: No basic permissions set,{0}: Nu set de permisiuni de bază
-"{0}: Only one rule allowed with the same Role, Level and Apply User Permissions","{0}: Doar o singură regulă permis cu același rol, nivelul și aplicați permisiuni utilizator"
-{0}: Permission at level 0 must be set before higher levels are set,{0}: Permisiunea de la nivel 0 trebuie să fie stabilite înainte de a se stabili un nivel mai ridicat
+values and dates,값과 날짜
+values separated by commas,쉼표로 구분 된 값
+volume-down,볼륨 다운
+volume-off,볼륨 오프
+volume-up,볼륨 업
+warning-sign,경고 기호
+wrench,렌치
+yyyy-mm-dd,YYYY-MM-DD
+zoom-in,확대에서
+zoom-out,줌 아웃
+{0} List,{0} 목록
+{0} added,{0} 추가
+{0} by {1},{0} 의 {1}
+{0} cannot be set for Single types,{0} 하나씩 종류에 대해 설정 될 수 없다
+{0} does not exist in row {1},{0} 행에 존재하지 않는 {1}
+{0} in row {1} cannot have both URL and child items,{0} 행 {1}의 URL 및 하위 항목을 모두 가질 수 없습니다
+{0} is not a valid email id,{0} 유효한 이메일 ID가 아닌
+{0} is required,{0}이 필요합니다
+{0} is saved,{0} 저장됩니다
+{0} must be one of {1},{0} {1} 중 하나 여야합니다
+{0} must be set first,{0} 먼저 설정해야합니다
+{0} not a valid State,{0}은 유효한 상태
+{0} not allowed in fieldname {1},{0} 필드 이름에 허용되지 않는 {1}
+{0} not allowed in name,{0}의 이름으로 사용할 수 없습니다
+{0} not allowed to be renamed,{0} 이름을 바꿀 수 없습니다
+{0} updated,{0} 업데이트
+{0} {1} already exists,{0} {1}이 (가) 이미 있습니다
+"{0} {1} cannot be ""{2}"". It should be one of ""{3}""","{0} {1}이 될 수 없습니다 ""{2}"".그것은 ""{3}""중 하나 여야합니다"
+{0} {1} cannot be a leaf node as it has children,이 아이를 가지고 {0} {1} 잎 노드가 될 수 없습니다
+"{0} {1} does not exist, select a new target to merge","{0} {1}이 (가) 없습니다, 병합하는 새로운 대상을 선택"
+{0} {1} not found,{0} {1}을 (를) 찾을 수 없습니다
+{0} {1}: Submitted Record cannot be deleted.,{0} {1} : 제출 된 기록은 삭제할 수 없습니다.
+{0}: Cannot set Amend without Cancel,{0} : 설정할 수 없습니다 취소없이 개정
+{0}: Cannot set Assign Amend if not Submittable,{0} : 지정을 개정 설정할 수 Submittable 아니라면
+{0}: Cannot set Assign Submit if not Submittable,{0} : 지정 제출을 설정할 수 없습니다 Submittable없는 경우
+{0}: Cannot set Cancel without Submit,{0} : 설정할 수 없습니다 제출하지 않고 취소
+{0}: Cannot set Import without Create,{0} 작성하지 않고 수입을 설정할 수 없습니다
+"{0}: Cannot set Submit, Cancel, Amend without Write","{0} : 쓰기없이 정정, 취소, 제출 설정할 수"
+{0}: Cannot set import as {1} is not importable,{0} {1} 가져올 수 없습니다로 가져 오기를 설정할 수 없습니다
+"{0}: Create, Submit, Cancel and Amend only valid at level 0","{0} : 생성, 등록, 취소 및 레벨 0 만 유효한 개정"
+{0}: No basic permissions set,{0} : 없음 기본 사용 권한을 설정하지
+"{0}: Only one rule allowed with the same Role, Level and Apply User Permissions","{0} : 같은 역할, 레벨에 허용 사용자 권한을 적용 단 하나의 규칙"
+{0}: Permission at level 0 must be set before higher levels are set,{0} : 높은 수준이 설정되기 전에 레벨 0에서 사용 권한이 설정되어야합니다
 {app_title},{app_title}

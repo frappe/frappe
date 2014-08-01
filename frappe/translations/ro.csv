@@ -3,6 +3,8 @@
 """Company History""","""Istoricul companiei"""
 """Team Members"" or ""Management""","""Membrii echipei"" sau ""Management"""
 'In List View' not allowed for type {0} in row {1},"""În Vizualizare listă"" nu este permis pentru tipul {0} în rândul {1}"
+0 - Draft; 1 - Submitted; 2 - Cancelled,0 - Proiect; 1 - Trimis; 2 - Anulat
+0 is highest,0 este cel mai mare
 "000 is black, fff is white","000 este negru, FFF este de culoare albă"
 2 days ago,2 zile în urmă
 "<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank"">[?]</a>","<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank""> [?]</a>"
@@ -11,7 +13,17 @@
 <li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\
 <li><b>Prompt</b> - Prompt user for a name\
 <li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\
-</ol>')"">Naming Options</a>","<Un onclick = ""msgprint ("" <ol> \ \ n <li> <b> domeniu: [fieldname] </ b> - în funcție de domeniul \ \ n <li> <b> naming_series: </ b> - De Naming serie (câmp denumit naming_series trebuie să fie prezent \ \ n <li> <b> Prompt </ b> - utilizator Prompt pentru un nume \ \ n <li> <b> [serie] </ b> - Seria de prefix (separat de un punct),. de exemplu PRE # # # # # \ \ n </ ol> ') ""> Naming Opțiuni </ a>"
+</ol>')"">Naming Options</a>","<Un onclick = ""msgprint ("" <ol> \
+ <li> <b> domeniu: [fieldname] </ b> - pe domenii \
+ <li> <b> naming_series: </ b > - De Naming Series (domeniu denumit naming_series trebuie să fie prezent \
+ <li> <b> Prompt </ b> - utilizator Prompt pentru un nume \
+ <li> <b> [serie] </ . b> - Seria de prefix (separate de un punct), de exemplu, PRE # # # # # \
+ </ ol> ') ""> Naming Opțiuni </ a>"
+<b>new</b> <i>type of document</i>,<b> nou </ b> <i> tip de document </ i>
+"<i>document type...</i>, e.g. <b>customer</b>","tip de document <i> ... </ i>, de exemplu <b> client </ b>"
+<i>e.g. <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>,<i> exemplu <strong> (55 + 434) / 4 </ strong> sau <strong> = Math.sin (Math.PI / 2) </ strong> ... </ i>
+<i>module name...</i>,<i> nume de modul ... </ i>
+<i>text</i> <b>in</b> <i>document type</i>,Textul <i> </ i> <b> în </ b> <i> tip de document </ i>
 A user can be permitted to multiple records of the same DocType.,Un utilizator poate fi permisă în mai multe înregistrări ale aceluiași DocType.Referinta.
 About,Despre
 About Us Settings,Despre noi Setări
@@ -21,7 +33,7 @@ Actions,Acțiuni
 "Actions for workflow (e.g. Approve, Cancel).","Acțiuni pentru fluxul de lucru (de exemplu, Aprobare, Cancel)."
 Add,Adaugă
 Add A New Rule,Adăuga o regulă nouă
-Add A User Permission,A adauga permisiunea utilizatorului
+Add A User Permission,Adauga un permisiunea utilizatorului
 Add Attachments,Adăuga atașamente
 Add Bookmark,Adauga semn de carte
 Add CSS,Adauga CSS
@@ -38,10 +50,12 @@ Add attachment,Adauga atașament
 Add code as &lt;script&gt;,Adăugați un cod ca <script>
 Add custom javascript to forms.,Adauga personalizat javascript la forme.
 Add fields to forms.,Adăugați câmpuri la formulare.
+Add multiple rows,Adăugați mai multe rânduri
 Add new row,Adăuga noi rând
 "Add the name of <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> e.g. ""Open Sans""","Adăugați numele de <a href=""http://google.com/webfonts"" target=""_blank""> Google Web Font </ a> de exemplu ""Sans deschise """
 Add to To Do,Adauga la a face
 Add to To Do List Of,Adauga la a face Lista de
+Added {0} ({1}),Adăugat {0} ({1})
 Adding System Manager to this User as there must be atleast one System Manager,Adăugarea System Manager pentru acest utilizator ca trebuie să existe cel puțin un System Manager
 Additional Info,Informaţii suplimentare
 Additional Permissions,Permisiuni suplimentare
@@ -53,6 +67,7 @@ Address and other legal information you may want to put in the footer.,Adresă �
 Admin,Admin
 All Applications,Toate cererile
 All Day,All Day
+All customizations will be removed. Please confirm.,Toate personalizările vor fi eliminate. Vă rugăm să confirmați.
 "All possible Workflow States and roles of the workflow. <br>Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""","Toate statele posibil flux de lucru și roluri ale fluxului de lucru. <br> Opțiuni Docstatus: 0 este ""Saved"", 1 este ""Inscrisa"" și 2 este ""Anulat"""
 Allow Attach,Permiteți Atașați
 Allow Import,Permiteți Import
@@ -71,11 +86,11 @@ Always use above Login Id as sender,Folosiți întotdeauna deasupra Intra Id-ul 
 Amend,Îndreptarea
 "An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [<a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a>]","Un fișier cu extensia ico icon.. Ar trebui să fie de 16 x 16 px. Generată cu ajutorul unui generator de favicon. [<a Href=""http://favicon-generator.org/"" target=""_blank""> favicon-generator.org </ a>]"
 "Another {0} with name {1} exists, select another name","Un alt {0} cu numele {1} există, selectați un alt nume"
+Any existing permission will be deleted / overwritten.,Orice permisiune existente vor fi șterse / suprascris.
 Anyone Can Read,Oricine poate citi
 Anyone Can Write,Oricine poate scrie
 "Apart from Role based Permission Rules, you can apply User Permissions based on DocTypes.","În afară de rolul pe bază de reguli de permisiune, aveți posibilitatea să aplicați permisiuni utilizator pe baza doctypes."
 "Apart from System Manager, roles with 'Set User Permissions' right can set permissions for other users for that Document Type.","În afară de System Manager, roluri cu dreptul ""permisiuni utilizator set"" pot seta permisiuni pentru alți utilizatori pentru acel tip de document."
-App Already Installed,App deja instalate
 App Name,Numele App
 App not found,App nu a fost găsit
 Application Installer,Installer aplicare
@@ -107,12 +122,13 @@ Avatar,Avatar
 Back to Login,Înapoi la Autentificare
 Background Color,Culoare fundal
 Background Image,Imagine de fundal
+Background Style,Context Style
 Banner,Steag
 Banner HTML,Banner HTML
 Banner Image,Banner Image
 Banner is above the Top Menu Bar.,Banner este peste bara de meniu sus.
-Base Template Path,Cale Format de bază
 Begin this page with a slideshow of images,Începe această pagină cu un slideshow de imagini
+Beginning with,Începând cu
 Belongs to,Aparține
 Bio,Biografie
 Birth Date,Data nașterii
@@ -124,11 +140,13 @@ Blog Settings,Setări Blog
 Blog Title,Blog Titlu
 Blogger,Blogger
 Bookmarks,Marcaje
+Both login and password required,Atât de conectare și parola necesare
 Brand HTML,Marca HTML
 Bulk Email,Bulk Email
 Bulk email limit {0} crossed,Limita de e-mail în vrac {0} trecut
 Button,Buton
 By,Prin
+Calculate,Calculeaz
 Calendar,Calendar
 Cancel,Anulează
 Cancelled,Anulat
@@ -142,7 +160,6 @@ Cannot change state of Cancelled Document. Transition row {0},Nu se poate schimb
 Cannot change {0},Nu se poate schimba {0}
 Cannot delete or cancel because {0} {1} is linked with {2} {3},Nu se poate șterge sau de a anula din cauza {0} {1} este legat cu {2} {3}
 Cannot delete {0} as it has child nodes,"Nu se poate șterge {0}, deoarece are noduri copil"
-Cannot delete {0} {1} is it is referenced in another record,Nu se poate șterge {0} {1} este este menționat în altă înregistrare
 Cannot edit standard fields,Nu se pot edita câmpuri standard
 Cannot map because following condition fails: ,
 Cannot open instance when its {0} is open,"Nu se poate deschide exemplu, atunci când sa {0} este deschis"
@@ -150,6 +167,7 @@ Cannot open {0} when its instance is open,"Nu se poate deschide {0}, atunci cân
 Cannot print cancelled documents,Nu se poate imprima documente anulate
 Cannot remove permission for DocType: {0} and Name: {1},Nu se poate elimina permisiunea de DocType: {0} și Nume: {1}
 Cannot reply to a reply,Nu puteti raspunde la un răspuns
+Cannot set Email Alert on Document Type {0},Nu se poate seta de e-mail de alertă pe Document Type {0}
 Cannot set permission for DocType: {0} and Name: {1},Nu se poate seta permisiunea de DocType: {0} și Nume: {1}
 Categorize blog posts.,Clasifica blog.
 Category,Categorie
@@ -162,21 +180,22 @@ Check,Ceck
 Check / Uncheck roles assigned to the User. Click on the Role to find out what permissions that Role has.,Bifeaza / debifeaza rolurile atribuite Utilizatorului. Click pe rolul de a afla ce permisiuni care are rol.
 Check this if you want to send emails as this id only (in case of restriction by your email provider).,Verifica acest lucru dacă doriți să trimiteți e-mailuri ca acest id-ul de numai (în caz de restricție de către furnizorul dvs. de e-mail).
 Check this to make this the default letter head in all prints,Verifica acest lucru pentru a face acest lucru capul scrisoarea implicit în toate printuri
+Check which Documents are readable by a User,Verificați care Documentele sunt ușor de citit de către un utilizator
 Checked items shown on desktop,Elemente verificate afișate pe desktop
 Child Tables are shown as a Grid in other DocTypes.,Mese pentru copii sunt prezentate ca o grilă în alte doctypes.
 City,Oraș
+Classic,Conditionarea clasica apare atunci cand unui stimul i se raspunde printr-un reflex natural
 Clear Cache,Clear Cache
 Clear all roles,Șterge toate rolurile
-Click on a link to get options to expand get options ,
+Click on a link to get options,Faceți clic pe un link pentru a obține opțiunile
 Click on row to view / edit.,Faceți clic pe rând pentru a vizualiza / edita.
-Click to Expand / Collapse,Faceți clic pentru a extinde / Reducere
 Client,Client
+Client-side formats are now deprecated,Formate pe partea de client sunt acum depasite
 Close,Închideți
 Close: {0},Close: {0}
 Closed,Inchisa
 Code,Cod
 Collapse,Restrange
-Color,Culorarea
 Column Break,Coloana Break
 Comment,Comentariu
 Comment By,Comentariu de
@@ -192,7 +211,7 @@ Company History,Istoricul companiei
 Company Introduction,Compania Introducere
 Complaint,reclamatii
 Complete By,Completat de către
-Condition Field,Stare de câmp
+Condition,Condiție
 Contact Us Settings,Contactati-ne Setări
 "Contact options, like ""Sales Query, Support Query"" etc each on a new line or separated by commas.","Opțiuni de contact, cum ar fi ""Vanzari interogare, interogare Support"", etc fiecare pe o linie nouă sau separate prin virgule."
 Content,Continut
@@ -208,6 +227,7 @@ Could not find {0},Nu am putut găsi {0}
 Count,Număr Caractere
 Country,Ţară
 Create,Creează
+Create a new {0},A crea un nou {0}
 Created Custom Field {0} in {1},Creat camp {0} din {1}
 Created Customer Issue,Creat Issue client
 Created Opportunity,Oportunitate Creat
@@ -233,14 +253,18 @@ Data Import / Export Tool,Date instrument de Import / Export
 Data Import Tool,Import date Tool
 Data missing in table,Date dispărute în masă
 Date,Dată
+Date Change,Data Change
+Date Changed,Dată schimbată
 Date Format,Format dată
 Date and Number Format,Data și numărul Format
 Date must be in format: {0},Data trebuie să fie în format: {0}
 Datetime,Datetime
+Days in Advance,Zile în avans
 Dear,Dragă
 Default,Implicit
 Default Print Format,Implicit Print Format
 Default Value,Valoare implicită
+Default is system timezone,Implicit este un sistem de fus orar
 "Default: ""Contact Us""","Default: ""Contactați-ne"""
 DefaultValue,DefaultValue
 Defaults,Implicite
@@ -287,18 +311,24 @@ Document Type,Tip de document
 Document is only editable by users of role,Documentul este editabil doar de către utilizatorii de rol
 Documentation,Documentație
 Documents,Documente
-Down,Jos
 Download,Descărcare fişier
 Download Backup,Descarca Backup
 Download link for your backup will be emailed on the following email address:,Download link pentru backup-ul va fi trimis pe adresa de e-mail:
 Drafts,Schițe
 Drag to sort columns,Trageți pentru a sorta coloanele
-Due Date,Datorită Data
+Due Date,Data scadenței
 Duplicate name {0} {1},Duplicat nume {0} {1}
-Edit,Editare
+Dynamic Link,Link dinamic
+ERPNext Demo,ERPNext Demo
+Edit,Editează
 Edit Permissions,Editare permisiuni
 Editable,Editabil
 Email,E-mail
+Email Alert,Email Alert
+Email Alert Recipient,Email-ul destinatarului Alert
+Email Alert Recipients,Destinatarii e-mail alerte
+Email By Document Field,E-mail prin documentul de câmp
+Email Footer,Email Subsol
 Email Host,Email Host
 Email Id,E-mail Id-ul
 Email Login,Intra in cont
@@ -316,6 +346,7 @@ Emails are muted,E-mailuri sunt dezactivate
 Embed image slideshows in website pages.,Slideshow-uri de imagine încorpora în paginile site-ului.
 Enable,Activare
 Enable Comments,Activați Comentarii
+Enable Scheduled Jobs,Activați Jobs programate
 Enabled,Activat
 Ends on,Se termină pe
 Enter Form Type,Introduceți Form Type
@@ -325,6 +356,7 @@ Enter at least one permission row,Introduceți cel puțin un rând permisiune
 "Enter keys to enable login via Facebook, Google, GitHub.","Introduceți cheile pentru a permite autentificare prin intermediul Facebook, Google, GitHub."
 Equals,Egal
 Error,Eroare
+"Error generating PDF, attachment sent as HTML","Generatoare de eroare PDF, atașament trimis ca HTML"
 Error: Document has been modified after you have opened it,Eroare: Documentul a fost modificat după ce ați deschis
 Event,Eveniment
 Event Datetime,Eveniment Datetime
@@ -340,11 +372,13 @@ Every Day,Zilnic
 Every Month,În fiecare lună
 Every Week,În fiecare săptămână
 Every Year,În fiecare an
+Everyone,Toată lumea
 Example:,Exemplu:
 Expand,Extinderea
 Export,Exportă
 Export not allowed. You need {0} role to export.,Export nu este permisă. Ai nevoie de {0} rolul de a exporta.
 Exported,Exportate
+"Expression, Optional","Expresie, opțional"
 Facebook,Facebook
 Facebook Client ID,Facebook Client ID
 Facebook Client Secret,Facebook Client Secret
@@ -357,17 +391,18 @@ Field Description,Câmp Descriere
 Field Name,Nume câmp
 Field Type,Tip de câmp
 "Field that represents the Workflow State of the transaction (if field is not present, a new hidden Custom Field will be created)","Câmp care reprezintă statul Workflow a tranzacției (în cazul în care câmpul nu este prezent, un nou ascuns camp va fi creat)"
-Field {0} in row {1} cannot be hidden and mandatory without default,Domeniu {0} în rândul {1} ​​nu poate fi ascuns și obligatoriu fără implicit
+Field {0} in row {1} cannot be hidden and mandatory without default,Domeniu {0} în rândul {1} nu poate fi ascuns și obligatoriu fără implicit
 Field {0} is not selectable.,Domeniu {0} nu este selectabil.
 Field {0} of type {1} cannot be mandatory,Domeniu {0} de tip {1} nu poate fi obligatorie
 Fieldname,Nume câmp
 Fieldname is required in row {0},Nume_camp este necesară în rândul {0}
 Fieldname not set for Custom Field,Nume câmp nu este setat pentru camp
+Fieldname which will be the DocType for this link field.,Nume câmp care va fi DocType.Referinta pentru acest domeniu link.
 Fieldname {0} appears multiple times in rows {1},Nume câmp {0} apare de mai multe ori în rânduri {1}
 "Fieldname {0} cannot contain letters, numbers or spaces","Nume câmp {0} nu poate conține litere, numere sau spații"
 Fields,Fields
 "Fields separated by comma (,) will be included in the<br /><b>Search By</b> list of Search dialog box","Domenii separate prin virgula (,) vor fi incluse în <br /> <b> Căutare după </ b> Lista de caseta de dialog Căutare"
-Fieldtype must be one of {0} in row {1},FIELDTYPE trebuie să fie una din {0} în rândul {1}
+Fieldtype cannot be changed from {0} to {1} in row {2},FIELDTYPE nu poate fi schimbat de la {0} la {1} în rândul {2}
 File,Fisier
 File Data,Fișier de date
 File Name,Nume fişier
@@ -375,31 +410,39 @@ File Size,Dimensiune fișier
 File URL,URL fișier
 File not attached,Nu fișier atașat
 File size exceeded the maximum allowed size of {0} MB,Dimensiunea fișierului a depășit mărimea maximă permisă de {0} MB
+Fill Screen,Umple ecranul
 Filter,Filtru
 Filter records based on User Permissions defined for a user,Filtrarea înregistrărilor pe bază de permisiuni utilizator definite de un utilizator
+Filters,Filtre
+Find {0} in {1},Găsi {0} din {1}
 First Name,Prenume
 Float,Plutitor
 Float Precision,Float de precizie
 Font (Heading),Font (Titlu)
 Font (Text),Font (Text)
+Font Size,Dimensiune font
 Font Size (Text),Dimensiune font (text)
 Fonts,Fonturi
 Footer,Subsol
+Footer Background,Subsol Context
 Footer Items,Subsol Articole
+Footer Text,Subsol Text
 For DocType,Pentru DocType
 "For Links, enter the DocType as range
-For Select, enter list of Options separated by comma","Pentru Link-uri, intra DocType.Referinta ca gama \ nPentru Select, introduceți lista de opțiuni separate prin virgula"
+For Select, enter list of Options separated by comma","Pentru Link-uri, intra DocType.Referinta ca gama 
+ Pentru Select, introduceți lista de opțiuni separate prin virgula"
 "For comparative filters, start with","Pentru filtre comparative, începe cu"
 For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,"De exemplu, dacă vă anula și modifica ""INV004"", acesta va deveni un nou document ""INV004-1"". Acest lucru vă ajută să urmăriți de fiecare amendament."
 For ranges,Pentru intervale
 For top bar,Pentru bara de sus
-For {0} at level {1} in {2} in row {3},"Pentru {} 0, la nivel {1} ​​din {2} în rândul {3}"
+For {0} at level {1} in {2} in row {3},Pentru {0} la nivel {1} din {2} în rândul {3}
 Forgot Password,Am uitat parola
 Forgot Password?,Ați uitat parola?
 Form,Formarea
 Forum,For
 Forums,Pasiunea.
 Forward To Email Address,Mai departe la adresa de email
+Frappe Framework,Cadru frappe
 Friday,Vineri
 From Date must be before To Date,De la data trebuie să fie înainte de a Dată
 Full Name,Numele complet
@@ -409,6 +452,7 @@ Generator,Generator
 Georgia,Georgia
 Get,Obţine
 Get From ,
+"Get your globally recognized avatar from <a href=""https://gravatar.com/"">Gravatar.com</a>","Ia-ti un avatar recunoscute la nivel mondial de la <a href=""https://gravatar.com/""> Gravatar.com </ a>"
 GitHub,GitHub
 GitHub Client ID,GitHub Client ID
 GitHub Client Secret,GitHub Client Secret
@@ -436,26 +480,24 @@ Header,Antet
 Heading,Antet
 Heading Text As,Rubrica Text Ca
 Help,Ajutor
+Help on Search,Ajutor pe Cautare
 Helvetica Neue,Helvetica Neue
-Hey! There should remain at least one System Manager,Hei! Nu ar trebui să rămână cel puțin un sistem de manager
 Hidden,Ascuns
 Hide Actions,Ascunde Acțiuni
 Hide Copy,Ascunde Copy
-Hide Email,Ascunde e-mail
 Hide Heading,Ascunde Titlu
-Hide Print,Ascunde Print
 Hide Toolbar,Ascunde Toolbar
+Hide the sidebar,Ascunde bara laterală
 High,Ridicată
 Highlight,Evidențiați
 History,Istoric
-Home Page,Pagina principală:
+Home Page,Pagina principală
 Home Page is Products,Pagina este Produse
 ID (name) of the entity whose property is to be set,ID-ul (numele) a entității ale cărei proprietate este să fie stabilite
 Icon,Icoană
 Icon will appear on the button,Pictograma va apărea pe butonul
 "If a Role does not have access at Level 0, then higher levels are meaningless.","În cazul în care un rol nu are acces la nivel de 0, apoi niveluri mai ridicate sunt lipsite de sens."
 "If checked, all other workflows become inactive.","În cazul în care verificat, toate celelalte fluxuri de lucru devin inactive."
-"If checked, an email with an attached HTML format will be added to part of the EMail body as well as attachment. To only send as attachment, uncheck this.","Dacă este bifată, un e-mail cu un format HTML atasat vor fi adăugate la o parte a corpului e-mail, precum și atașament. Pentru a trimite doar ca atașament, debifați această."
 "If checked, the Home page will be the default Item Group for the website.","Dacă este bifată, pagina de start va fi elementul Grupul implicit pentru site-ul web."
 "If image is selected, color will be ignored (attach first)","Dacă este selectat imagine, culoare va fi ignorat (atașat)"
 If non standard port (e.g. 587),"Dacă portul non standard (de exemplu, 587)"
@@ -473,9 +515,10 @@ In Dialog,În Dialog
 In Filter,În Filter
 In List View,În Vizualizare listă
 In Report Filter,În Raportul Filter
+In points. Default is 9.,În puncte. Implicit este 9.
 In response to,Ca răspuns la
 Incorrect value in row {0}: {1} must be {2} {3},Valoare incorectă în rândul {0}: {1} trebuie să fie {2} {3}
-Incorrect value: {1} must be {2} {3},Valoare incorectă: {1} trebuie să fie {2} {3}
+Incorrect value: {0} must be {1} {2},Valoare incorectă: {0} trebuie sa fie {1} {2}
 Index,Index
 Individuals,Indivizii
 Info,Informatii
@@ -496,6 +539,7 @@ Introductory information for the Contact Us Page,Informații introductive pentru
 Invalid Email: {0},Email invalid: {0}
 Invalid Filter: {0},Filtru invalid: {0}
 Invalid Home Page,Invalid Home Page
+Invalid Login,Invalid Intra
 Invalid Outgoing Mail Server or Port,Invalid server de mail de ieșire sau Port
 Invalid login or password,Autentificare invalid sau parola
 Invalid recipient address,Adresa destinatarului invalid
@@ -532,20 +576,21 @@ Leave blank to repeat always,Lăsați necompletat pentru a repeta mereu
 Left,Stânga
 Less or equals,Mai puțin sau egal
 Less than,Mai puțin de
+Letter,Scrisoare
 Letter Head,Scrisoare cap
 Letter Head Name,Nume scrisoare cap
 Letter Head in HTML,Scrisoare cap în HTML
 Level,Nivel
-"Level 0 is for document level permissions, higher levels for field level permissions.","﻿Nivel 0 este de permisiuni la nivel de documente, niveluri mai ridicate de permisiuni la nivel de domeniu."
+"Level 0 is for document level permissions, higher levels for field level permissions.","Nivelul 0 este de permisiuni la nivel de documente, niveluri mai ridicate de permisiuni la nivel de domeniu."
 Like,Îmi place
 Link,Legarea
-Link Name,Link Name
 "Link that is the website home page. Standard Links (index, login, products, blog, about, contact)","Link, care este pagina de start site-ul web. Link-uri standard (index, autentificare, produse, blog, despre, contact)"
 Link to other pages in the side bar and next section,Legătura cu alte pagini din bara laterală și secțiunea următoare
 Link to the page you want to open,Link la pagina pe care doriți să deschideți
 Linked In Share,Linked In Ponderea
 Linked With,Legate de
 List,Enumerarea
+List a document type,Lista de un tip de document
 List of Web Site Forum's Posts.,Lista de Web site-ului Forumului Mesaje.
 Loading,Încărcare
 Loading Report,Încărcare Raport
@@ -565,12 +610,13 @@ Lucida Grande,Lucida Grande
 Mail Password,Mail Parola
 Main Section,Secțiunea principală
 Make a new,Face un nou
+Make a new record,Face un nou record
 Male,Masculin
 Manage cloud backups on Dropbox,Gestiona backup nor pe Dropbox
 Manage uploaded files.,Gestiona fișierele încărcate.
 Mandatory,Obligatoriu
 Mandatory fields required in {0},Campuri obligatorii prevăzute în {0}
-Mandatory filters required:\n,
+Mandatory filters required:\n,Filtre obligatorii necesare: \n
 Master,"Maestre,"
 Max Attachments,Max atașate
 Max width for type Currency is 100px in row {0},Lățimea maximă pentru tipul de valuta este de 100px la rând {0}
@@ -579,12 +625,14 @@ Medium,Medie
 "Menu items in the Top Bar. For setting the color of the Top Bar, go to <a href=""#Form/Style Settings"">Style Settings</a>","Elementele de meniu din bara de sus. Pentru a seta culoarea de bara de sus, du-te la <a href=""#Form/Style Settings""> Stil Setări </ a>"
 Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node,Fuzionarea este posibil numai între Group-la-grup sau Leaf Nod-a-Leaf Node
 Message,Mesaj
+Message Examples,Exemple de mesaje
 Messages,Mesaje
 Method,Metoda
 Middle Name (Optional),Numele de mijloc (Optional)
 Misc,Misc
 Miscellaneous,diverse
 Missing Values Required,Valorile lipsă necesare
+Modern,Modern
 Modified by,Modificată prin
 Module,Modul
 Module Def,Modulul Def
@@ -594,7 +642,6 @@ Modules Setup,Module Setup
 Monday,Luni
 More,Mai mult
 More content for the bottom of the page.,Mai mult conținut pentru partea de jos a paginii.
-Move,Mutarea
 Move Down: {0},Mutare în jos: {0}
 Move Up: {0},Mutare în sus: {0}
 Multiple root nodes not allowed.,Noduri rădăcină multiple nu sunt permise.
@@ -607,6 +654,8 @@ Name and Description,Nume și descriere
 Name is required,Este necesar numele
 Name not permitted,Nume interzise
 Name not set via Prompt,Nume nu a stabilit prin Prompt
+Name of the Document Type (DocType) you want this field to be linked to. e.g. Customer,Denumirea tipului de document (DocType) pe care doriți acest domeniu să fie legate de. de exemplu Clientul
+Name of {0} cannot be {1},Numele de {0} nu poate fi {1}
 Naming,Naming
 Naming Series mandatory,Naming Series obligatorie
 Nested set error. Please contact the Administrator.,Imbricate eroare set. Vă rugăm să contactați administratorul.
@@ -616,23 +665,21 @@ New Record,Înregistrare nouă
 New comment on {0} {1},Nou comentariu la {0} {1}
 New password emailed,Noua parolă prin e-mail
 New value to be set,Noua valoare urmează să fie stabilite
+New {0},Nou {0}
 Next Communcation On,Următor Communcation On
 Next Record,Următor Înregistrare
 Next State,State următor
 Next actions,Acțiuni Înainte
 No,Nu
 No Action,Nicio acțiune
-No Cache,Nu Cache
 No Communication tagged with this ,
 No Copy,Nu Copy
 No Permissions set for this criteria.,Permisiuni stabilit pentru acest criteriu.
 No Report Loaded. Please use query-report/[Report Name] to run a report.,Nici un raport Loaded. Va rugam sa folositi interogare-raport / [Reclama Name] pentru a rula un raport.
 No Results,Nici un rezultat
 No Sidebar,Nu Sidebar
-No Sitemap,Nu Harta site-ului
 No User Permissions found.,Nu sunt permisiuni utilizator găsit.
 No data found,Nu există date
-No document selected,Nici un document selectat
 No file attached,Nici un fișier atașat
 No further records,Nu mai multe înregistrări
 No one,Nici unul
@@ -640,6 +687,8 @@ No permission to '{0}' {1},Permisiunea de a '{0}' {1}
 No permission to edit,Permisiunea de a edita
 No permission to write / remove.,Permisiunea de a scrie / elimina.
 No records tagged.,Nici o inregistrare etichetat.
+No template found at path: {0},Nu a fost gasit la cale șablon: {0}
+No {0} permission,Nu {0} permisiunea
 None,Nici unul
 None: End of Workflow,Nici una: Sfârșitul de flux de lucru
 Not Found,Nu a fost găsit
@@ -663,7 +712,6 @@ Not permitted,Nu este permisă
 "Note: For best results, images must be of the same size and width must be greater than height.","Notă: Pentru rezultate optime, imaginile trebuie să fie de aceeași dimensiune și lățime trebuie să fie mai mare decât înălțimea."
 Note: Other permission rules may also apply,"Notă: se poate aplica, de asemenea, alte reguli de permisiune"
 Note: maximum attachment size = 1mb,Notă: dimensiunea maximă atașament = 1mb
-Nothing to delete,Nimic pentru a șterge
 Nothing to show,Nimic pentru a arăta
 Nothing to show for this selection,Nimic pentru a arăta pentru această selecție
 Notification Count,Contele de notificare
@@ -676,11 +724,20 @@ Only Administrator allowed to create Query / Script Reports,Numai Administrator 
 Only Administrator can save a standard report. Please rename and save.,Numai Administratorul poate salva un raport standard. Vă rugăm să redenumi și a salva.
 Only Allow Edit For,Permiteți numai Editare pentru
 Only allowed {0} rows in one import,Doar permis {0} rânduri într-o singură import
+Oops! Something went wrong,Hopa! Ceva a mers prost
 Open,Deschide
 Open Count,Deschis Contele
 Open Sans,Deschis Sans
+Open Source Web Applications for the Web,Open Source Aplicatii web pentru Web
+Open a module or tool,Deschideți un modul sau instrument
+Open {0},Deschis {0}
+Optional: Alert will only be sent if value is a valid email id.,Optional: Alerta va fi trimis numai dacă valoarea este un id-ul de e-mail validă.
+Optional: Always send to these ids. Each email id on a new row,Optional: trimite întotdeauna la aceste id-uri. Fiecare id-ul de e-mail pe un rând nou
+Optional: The alert will be sent if this expression is true,Optional: Alerta va fi trimis în cazul în care această expresie este adevărat
 Options,Optiuni
+Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType',"""Dynamic Link"" tip opțiuni de câmp trebuie să indice un alt Link câmp cu opțiuni precum ""DocType"""
 Options Help,Opțiuni Ajutor
+Options for select. Each option on a new line. e.g.: <br>Option 1<br>Option 2<br>Option 3<br>,Opțiuni pentru selectați. Fiecare opțiune pe o linie nouă. de exemplu: <br> Opțiunea 1 <br> Opțiunea 2 <br> Opțiunea 3 <br>
 Options must be a valid DocType for field {0} in row {1},Opțiuni trebuie să fie un DocType valabil pentru domeniu {0} în rândul {1}
 Options not set for link field {0},Opțiuni nu este setat pentru câmp legătură {0}
 Options requried for Link or Table type field {0} in row {1},Opțiuni requried pentru Link sau câmp de tip masă {0} în rândul {1}
@@ -691,23 +748,26 @@ Other,Altul
 Outgoing Email Settings,Setări e-mail de ieșire
 Outgoing Mail Server,Outgoing Mail Server
 Outgoing Mail Server not specified,Outgoing Mail Server nu este specificat
+Owner,Proprietar
+PDF Page Size,PDF Page Size
+PDF Settings,Setări PDF
 POP3 Mail Server (e.g. pop.gmail.com),POP3 Mail Server (de exemplu pop.gmail.com)
-Page,Pagină
+Page,Pagina
+Page #{0} of {1},Pagina # {0} din {1}
 Page Background,Pagina de fundal
-Page Border,Page Border
 Page HTML,Pagina HTML
-Page Headings,Page Titlurile
+Page Header,Antet
+Page Header Background,Context Antet
+Page Header Text,Text Antet
 Page Links,Page Link-uri
 Page Name,Nume pagină
-Page Name Field,Pagina Nume câmp
 Page Role,Pagina Rolul
 Page Text,Text pagină
-Page Title,Pagina de titlu
+Page Title,Titlu pagină
 Page content,Conținutul paginii
 Page not found,Pagina nu a fost găsită.
 Page or Generator,Pagina sau Generator
 Page url name (auto-generated),Nume de pagină url (auto-generat)
-Page with name {0} already exists,Pagina cu numele {0} există deja
 Parent Label,Părinte Label
 Parent Post,Părinte Mesaj
 Parent Website Page,Părinte Site Page
@@ -727,6 +787,7 @@ Permanently delete {0}?,Șterge definitiv {0}?
 Permission Level,Nivelul de permisiune
 Permission Levels,Niveluri de permisiune
 Permission Rules,Reguli de permisiune
+Permission already set,Permisiunea deja stabilite
 Permissions,Permisiuni
 Permissions Settings,Permisiuni Setări
 Permissions are automatically translated to Standard Reports and Searches.,Permisiunile sunt traduse în mod automat la rapoarte standard și Căutări.
@@ -734,6 +795,7 @@ Permissions are automatically translated to Standard Reports and Searches.,Permi
 Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles.,"Permisiuni de la niveluri mai ridicate sunt permisiuni ""echitabile"". Toate câmpurile au un ""nivel de permisiune"", stabilit împotriva lor și a normelor stabilite la permisiunile care se aplică în domeniu. Acest lucru este util în cazul în care doriți să le ascundeți sau să facă anumit domeniu read-only pentru anumite roluri."
 "Permissions at level 0 are 'Document Level' permissions, i.e. they are primary for access to the document.","Permisiunile la nivel de 0 sunt permisiuni ""nivel de document"", adică sunt primar pentru accesul la document."
 Permissions get applied on Users based on what Roles they are assigned.,Permisiuni se aplică pe Utilizatori bazat pe ceea ce Rolurile sunt atribuite.
+Permitted Documents For User,Documente permise pentru utilizator
 Person,Persoană
 Personal Info,Informații personale
 Phone,Telefon
@@ -746,16 +808,26 @@ Please attach a file or set a URL,Vă rugăm să atașați un fișier sau pentru
 Please do not change the rows above {0},Vă rugăm să nu modificați rândurile de mai sus {0}
 Please enable pop-ups,Vă rugăm să activați pop-up-uri
 Please enter Event's Date and Time!,Va rugam sa introduceti evenimentului Data și ora!
+"Please enter both your email and message so that we \
+				can get back to you. Thanks!","Va rugam sa introduceti atât de e-mail și mesajul dvs., astfel încât ne-am \
+ pot sa ma intorc la tine. Va mulţumim!"
 Please enter some text!,Va rugam sa introduceti un text!
 Please enter title!,Va rugam sa introduceti titlu!
 Please login to Upvote!,Va rugam sa va logati pentru a upvote!
 Please make sure that there are no empty columns in the file.,Vă rugăm să asigurați-vă că nu există coloane goale în fișierul.
 Please refresh to get the latest document.,Vă rugăm să reîmprospătați pentru a obține cel mai recent document.
+Please reply above this line or remove it if you are replying below it,Vă rugăm să răspundeți mai sus această linie sau scoateți-l dacă răspundeți mai jos se
 Please select a file or url,Vă rugăm să selectați un fișier sau URL
 Please select atleast 1 column from {0} to sort,Va rugam sa selectati cel putin coloana 1 din {0} pentru a sorta
+Please set {0} first,Vă rugăm să setați {0} primul
 Please specify,Vă rugăm să specificați
 Please specify 'Auto Email Id' in Setup > Outgoing Email Settings,"Vă rugăm să specificați ""Auto-mail Id"" în Setup > Setări e-mail de ieșire"
 Please specify Event date and time,Vă rugăm să specificați data și ora evenimentului
+Please specify doctype,Vă rugăm să specificați doctype
+Please specify user,Vă rugăm să specificați de utilizator
+Please specify which date field must be checked,Vă rugăm să specificați care data domeniu trebuie să fie verificate
+Please specify which value field must be checked,Vă rugăm să specificați care trebuie verificat de câmp valoare
+Please upload using the same template as download.,Vă rugăm să încărcați folosind același șablon ca și descărcare.
 Plugin,Plugin
 Port,Port
 Post,Publică
@@ -769,9 +841,16 @@ Previous Record,Înregistrare anterioară
 Primary,Principal:
 Print,Tipareste
 Print Format,Print Format
+Print Format Help,Print Format Ajutor
 Print Format Type,Print Format Tip
+Print Format {0} does not exist,Print Format {0} nu există
+Print Format {0} is disabled,Print Format {0} este dezactivat
 Print Hide,Imprimare Ascunde
+Print Settings,Setări de imprimare
+Print Style,Print Style
+Print Style Preview,Print Preview Style
 Print Width,Lățime de imprimare
+"Print with Letterhead, unless unchecked in a particular Document","De imprimare cu antet, cu excepția cazului în necontrolate într-un anumit document"
 Print...,Print...
 Printing and Branding,Imprimarea și Branding
 Priority,Prioritate
@@ -783,6 +862,7 @@ Property Type,Tipul de proprietate
 Public,Public
 Published,Data publicării
 Published On,Publicat în data de
+Published on website at: {0},Publicat pe site-ul la: {0}
 Pull Emails from the Inbox and attach them as Communication records (for known contacts).,Trageți e-mailuri din Inbox și le atașați ca înregistrările de comunicare (pentru contacte cunoscute).
 Query,Întrebare
 Query Options,Opțiuni de interogare
@@ -810,7 +890,6 @@ Refreshing...,Refreshing ...
 Registered but disabled.,Înregistrat dar dezactivat.
 Registration Details Emailed.,Datele de înregistrare Trimise.
 Reload Page,Reincarca Pagina
-Remove,Elimină
 Remove Bookmark,Scoateți Bookmark
 Remove all customizations?,Elimina toate personalizările?
 Rename many items by uploading a .csv file.,Redenumi multe elemente de încărcarea unui fișier csv..
@@ -821,16 +900,18 @@ Repeat this Event,Repetați acest eveniment
 Replies,Raspunsuri
 Report,Raport
 Report Builder,Report Builder
-Report Builder reports are managed directly by the report builder. Nothing to do.,Rapoartele raport Builder sunt gestionate direct de către constructor raport. Nimic de a face.
+Report Builder reports are managed directly by the report builder. Nothing to do.,Rapoartele raport Builder sunt gestionate direct de către constructor raport. Nimic de-a face.
 Report Hide,Raport Ascunde
 Report Name,Raport Numele
 Report Type,Tip de raport
 Report an Issue,Raportați o problemă
 Report cannot be set for Single types,Raportul nu poate fi setat pentru tipuri de single
+Report this issue,Raporta această problemă
 Report was not saved (there were errors),Raport nu a fost salvat (au existat erori)
 Reqd,Reqd
 Reset Password Key,Reset Key Password
 Reset Permissions for {0}?,Reset Permisiunile pentru {0}?
+Response,Răspuns
 Restrict IP,Restricționa IP
 Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111),"Restricționa utilizator de numai această adresă IP. Adrese IP multiple pot fi adăugate prin separarea cu virgule. De asemenea, acceptă adrese IP parțiale ca (111.111.111)"
 Right,Dreapta
@@ -846,11 +927,15 @@ Roles HTML,Roluri HTML
 Roles can be set for users from their User page.,Rolurile pot fi setate pentru utilizatorii de la pagina lor de utilizare.
 Root {0} cannot be deleted,Rădăcină {0} nu poate fi ștearsă
 Row,Rând
+Row #{0}:,Rând # {0}:
 Rules defining transition of state in the workflow.,Normele care definesc tranziție de stat în fluxul de lucru.
 "Rules for how states are transitions, like next state and which role is allowed to change state etc.","Reguli pentru modul în care statele sunt tranzitii, cum ar fi stat lângă și ce rol îi este permis să se schimbe de stat etc"
+Run scheduled jobs only if checked,Rulați locuri de muncă programate numai dacă verificate
+Run the report first,Executați raportul primul
 SMTP Server (e.g. smtp.gmail.com),Server SMTP (de exemplu smtp.gmail.com)
 Sales,Vanzari
 Same file has already been attached to the record,Același dosar a fost deja atașat la dosarul
+Sample,Exemplu
 Saturday,Sâmbătă
 Save,Salvează
 Scheduler Log,Scheduler Conectare
@@ -859,6 +944,8 @@ Script Report,Script Raport
 Script Type,Script-ul de tip
 Search,Căutare
 Search Fields,Căutare Fields
+Search in a document type,Cauta un tip de document
+Search or type a command,Căutare sau tastați o comandă
 Section Break,Sfârșit de secțiune
 Security,Securitate
 Security Settings,Setări de securitate
@@ -881,10 +968,15 @@ Select or drag across time slots to create a new event.,Selectați sau glisați 
 "Select target = ""_blank"" to open in a new page.","Selectați target = ""_blank"" pentru a deschide într-o nouă pagină."
 Select the label after which you want to insert new field.,Selectați eticheta după care doriți să inserați câmpul nou.
 Send,Trimiteți
+Send Alert On,Trimite Alert On
 Send As Email,Trimite ca e-mail
+Send Email,Trimiteți-ne email
+Send Email Print Attachments as PDF (Recommended),Trimite e-mail Print atașate în format PDF (recomandat)
 Send Me A Copy,Trimite-mi o copie
 Send Password,Trimite Parola
-Send Print in Body and Attachment,Trimite Printeaza în corp și Anexa
+Send Print as PDF,Trimite Printeaza ca PDF
+Send alert if date matches this field's value,Trimite alertă în cazul în care data meciurile valoarea acestui câmp
+Send alert if this field's value changes,Trimite alertă în cazul în care modificările de valoare acest teren lui
 Send an email reminder in the morning,Trimite un memento e-mail în dimineața
 Send download link of a recent backup to System Managers,Trimite link-ul de download de o copie de rezervă recentă a Managerii de sistem
 Send enquiries to this email address,Trimite întrebări cu privire la această adresă de e-mail
@@ -894,8 +986,9 @@ Sent Mail,Mail trimis
 Sent Quotation,Cotația trimis
 Sent or Received,Trimise sau primite
 Series,Serie
-Series {0} already used in {1},Series {0} folosit deja în {1}
+Series {0} already used in {1},Seria {0} folosit deja în {1}
 Server,Server
+Server & Credentials,Server & Atestări
 Server Error: Please check your server logs or contact tech support.,Eroare de server: Vă rugăm să verificați jurnalele dvs. de server sau de suport tehnic de contact.
 Session Expired. Logging you out,Sesiunea a expirat. Logging te afară
 Session Expiry,Sesiunea de expirare
@@ -910,7 +1003,8 @@ Set Permissions on Document Types and Roles,Setarea permisiunilor pe Tipuri de d
 Set Permissions per User,Seta permisiuni pentru fiecare utilizator
 Set User Permissions,Setarea permisiunilor de utilizator
 Set Value,Valoare reglată
-Set numbering series for transactions.,Set serie de numerotare de tranzacții.
+"Set default format, page size, print style etc.","Set format implicit, dimensiunea paginii, stilul de imprimare etc"
+Set numbering series for transactions.,Set serie de numerotare pentru tranzacții.
 Set outgoing mail server.,Setați server de mail de ieșire.
 Settings,Setări
 Settings for About Us Page.,Setările pentru pagina Despre noi.
@@ -918,17 +1012,18 @@ Settings for Contact Us Page.,Setări pentru Contacteaza-ne.
 Setup,Setare
 Setup > User,Configurare> User
 Setup > User Permissions Manager,Configurare> Permisiunile utilizatorului manager
+Setup Email Alert based on various criteria.,Setup E-mail Alert bazat pe diverse criterii.
 Setup of fonts and background.,Configurare de fonturi și fundal.
 "Setup of top navigation bar, footer and logo.","Setup de bara de navigare de sus, subsol și logo-ul."
 Short Bio,Bio scurt
 Short Name,Numele scurt
 Shortcut,Scurtătură
 Show / Hide Modules,Arată / Ascunde Module
-Show Details,Arată detalii
 Show Print First,Arată Print Primul
 Show Tags,Arată Tags
 Show or hide modules globally.,Afișarea sau ascunderea module la nivel global.
 Show rows with zero values,Arată rânduri cu valori de zero
+Show tags,Arată tag-uri
 Show this field as title,Arată acest domeniu ca titlu
 Showing only for (if not empty),Se afișează numai pentru (dacă nu este gol)
 Sidebar,Sidebar
@@ -953,7 +1048,9 @@ Sort Field,Un fel de câmp
 Sort Order,Ordine de sortare
 Standard,Standard
 Standard Print Format cannot be updated,Print Format standard nu poate fi actualizat
+Standard Reply,Standard Reply
 Standard Reports,Rapoarte standard
+Standard replies to common queries.,Standard răspunde la întrebări comune.
 Start Report For,Începeți Raport Pentru
 Starts on,Începe pe
 State,Stat
@@ -973,7 +1070,6 @@ Submit,Trimite
 Submit an Issue,Prezenta eroare
 Submitted,Inscrisa
 Submitted Document cannot be converted back to draft. Transition row {0},A prezentat documente nu pot fi convertite înapoi să elaboreze. Tranziție rând {0}
-Submitted Record cannot be deleted,Înregistrarea prezentate nu pot fi șterse
 Success,Succes
 Suggestion,Sugestie
 Sunday,Duminică
@@ -984,7 +1080,7 @@ System Settings,Setări de sistem
 System User,Sistem de utilizare
 System and Website Users,De sistem și site Utilizatori
 System generated mails will be sent from this email id.,Mail-uri generate de sistem vor fi trimise la aceasta id-ul de e-mail.
-Table,Tabel
+Table,Tabela
 Table {0} cannot be empty,Tabelul {0} nu poate fi gol
 Tag,Tag
 Tag Name,Tag-ul Numele
@@ -994,18 +1090,21 @@ Target,Ţintă
 Tasks,Task-uri
 Team Members,Membrii echipei
 Team Members Heading,Membrii echipei Rubrică
+Template,Sablon
 Template Pages cannot be moved,Paginile de șabloane nu pot fi mutate
-Template Path,Calea șablon
 Test,Teste
 Test Runner,Runner de testare
 Text,Text
 Text Align,Alinierea textului
 Text Editor,Editor de text
+Thank you for your message,Vă mulțumim pentru mesajul dvs.
 The name of your company / website as you want to appear on browser title bar. All pages will have this as the prefix to the title.,Numele companiei / site-ul dvs. așa cum doriți să apară pe bara de titlu browser. Toate paginile vor avea aceasta ca prefix la titlu.
 The system provides many pre-defined roles. You can add new roles to set finer permissions.,Sistemul oferă multe roluri predefinite. Puteți adăuga noi roluri pentru a seta permisiuni fine.
 Then By (optional),De atunci (opțional)
+There should remain at least one System Manager,Nu ar trebui să rămână cel puțin un sistem de manager
 There were errors,Au fost erori
 There were errors while sending email. Please try again.,Au fost erori în timp ce trimiterea de e-mail. Încercaţi din nou.
+"There were some errors setting the name, please contact the administrator","Au existat unele erori de stabilire numele, vă rugăm să contactați administratorul"
 "These permissions will apply for all transactions where the permitted record is linked. For example, if Company C is added to User Permissions of user X, user X will only be able to see transactions that has company C as a linked value.","Aceste permisiuni se vor aplica pentru toate tranzacțiile în care înregistrarea este permis legate. De exemplu, dacă firma C se adaugă la permisiunile utilizatorului de utilizator X, X utilizatorul va putea vedea tranzacții pe care le are firma C ca o valoare legată numai."
 These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,"Aceste valori vor fi actualizate în mod automat în tranzacții și, de asemenea, va fi util pentru a restricționa permisiunile pentru acest utilizator cu privire la tranzacțiile care conțin aceste valori."
 "These will also be set as default values for those links, if only one such permission record is defined.","Acestea vor fi, de asemenea, stabilite ca valori implicite pentru aceste link-uri, în cazul în care numai o astfel de înregistrare permisiune este definit."
@@ -1013,15 +1112,21 @@ Third Party Authentication,Autentificare terță parte
 "This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>
 myfield
 eval:doc.myfield=='My Value'<br>
-eval:doc.age>18","Acest câmp va apărea numai în cazul în care FieldName definit aici are valoare sau regulile sunt adevărate (exemple): cui \ nmyfield \ NEVAL: doc.myfield == ""Valoarea mea"" <br> \ NEVAL: doc.age> 18"
+eval:doc.age>18","Acest câmp va apărea numai în cazul în care FieldName definit aici are valoare sau regulile sunt adevărate (exemple): <br> 
+ myfield 
+ eval: doc.myfield == ""Valoarea mea"" <br> 
+ eval: doc.age> 18"
 This goes above the slideshow.,Acest lucru este valabil mai sus prezentarea.
 This is PERMANENT action and you cannot undo. Continue?,Aceasta este o acțiune permanentă și nu se poate anula. Continuare?
+"This is a standard format. To make changes, please copy it make make a new format.","Acesta este un format standard. Pentru a efectua modificări, vă rugăm să copiați-l face face un nou format."
 This is permanent action and you cannot undo. Continue?,Aceasta este o acțiune permanentă și nu se poate anula. Continuare?
 This must be checked if Style Settings are applicable,Acest lucru trebuie verificat dacă setările de stil sunt aplicabile
 This role update User Permissions for a user,Acest rol Permisiunile actualizare pentru utilizator unui utilizator
 Thursday,Joi
+Tile,Țiglă
 Time,Oră
 Time Zone,Time Zone
+Timezone,Timezone
 Title,Titlu
 Title / headline of your page,Titlu / titlu al paginii dvs.
 Title Case,Denumirea dosarului
@@ -1054,22 +1159,21 @@ Unable to load: {0},Imposibil de încărcare: {0}
 Unable to open attached file. Please try again.,În imposibilitatea de a deschide fișierul atașat. Încercaţi din nou.
 Unable to send emails at this time,În imposibilitatea de a trimite email-uri la acest moment
 Unknown Column: {0},Coloana necunoscut: {0}
-Unknown Print Format: {0},Unknown Print Format: {0}
 "Unknown file encoding. Tried utf-8, windows-1250, windows-1252.","Codare fișier necunoscut. UTF-8 a încercat, ferestre-1250, Windows-1252."
 Unread Messages,Mesaje necitite
 Unsubscribe,Dezabonare
 Unsubscribed,Nesubscrise
-Up,Sus
 Upcoming Events for Today,Evenimente viitoare de azi
 Update,Actualizați
 Update Field,Actualizare câmp
-Update Parent,Actualizare mamă
 Update Value,Valoarea actualizare
 Updated,Actualizat
 Upload,Fișierul se încarcă
 Upload Attachment,Încărcați Attachment
+Upload CSV file containing all user permissions in the same format as Download.,Încărcați fișier CSV care conține toate permisiunile de utilizator în același format ca și Download.
 Upload a file,Încărcați un fișier
 Upload and Import,Încărcați și Import
+Upload and Sync,Încărcare și sincronizare
 Uploading...,Se încarcă ...
 Upvotes,Upvotes
 Use TLS,Utilizați TLS
@@ -1087,16 +1191,20 @@ User Tags,Tag-uri de utilizator
 User Type,Tip utilizator
 "User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ",
 User Vote,Vot utilizator
-User not allowed to delete.,Utilizatorul nu este permis pentru a șterge.
+User not allowed to delete {0}: {1},Utilizatorul nu este permis pentru a șterge {0}: {1}
 User permissions should not apply for this Link,Permisiunile de utilizator nu trebuie să se aplice pentru acest link
-User {0} cannot be deleted,{0} utilizator nu pot fi șterse
+User {0} cannot be deleted,Utilizatorul {0} nu poate fi ștearsă
 User {0} cannot be disabled,Utilizatorul {0} nu poate fi dezactivat
 User {0} cannot be renamed,Utilizatorul {0} nu poate fi redenumit
-User {0} does not exist,{0} utilizator nu exista
+User {0} does not exist,Utilizatorul {0} nu există
 UserRole,UserRole
 Users and Permissions,Utilizatori și permisiuni
 Users with role {0}:,Utilizatorii cu rol de {0}:
+Valid Login id required.,Valabil Intra id este necesar.
+Valid email and name required,E-mail validă și numele necesar
 Value,Valoare
+Value Change,Valoarea variației
+Value Changed,Valoarea Schimbat
 Value cannot be changed for {0},Valoare nu poate fi schimbat pentru {0}
 Value for a check field can be either 0 or 1,Valoarea pentru un câmp de verificare poate fi 0 sau 1
 Value missing for,Valoare lipsă pentru
@@ -1106,6 +1214,7 @@ Version restored,Versiune restaurată
 View or manage Website Route tree.,Vizualizați sau să gestionați copac site Route.
 Visit,Vizita
 Warning,Avertisment
+Warning: This Print Format is in old style and cannot be generated via the API.,Avertisment: Acest format de imprimare este în stil vechi și nu pot fi generate prin intermediul API.
 Web Page,Pagină web
 Web Site Forum Page.,Site-ul web Forum pagină.
 Website,Site web
@@ -1116,7 +1225,6 @@ Website Script,Script-ul de site-ul
 Website Settings,Setarile site ului
 Website Slideshow,Site-ul Slideshow
 Website Slideshow Item,Site-ul Slideshow Articol
-Website Template,Format site-ul
 Website User,Site-ul utilizatorului
 Wednesday,Miercuri
 Welcome email sent,E-mail de bun venit trimis
@@ -1125,6 +1233,7 @@ Width,Lățime
 Will be used in url (usually first name).,"Va fi utilizat în URL-ul (de obicei, primul nume)."
 With Groups,Cu grupurile
 With Ledgers,Cu Ledgers
+With Letterhead,Cu antet
 Workflow,Flux de lucru
 Workflow Action,Flux de lucru de acțiune
 Workflow Action Name,Flux de lucru Acțiune Nume
@@ -1151,12 +1260,17 @@ You are not allowed to print this document,Nu vi se permite să imprimați acest
 You are not allowed to send emails related to this document,Nu este permis pentru a trimite e-mailuri legate de acest document
 "You can change Submitted documents by cancelling them and then, amending them.","Puteți schimba documentele prezentate de anularea lor și apoi, de modificare a acestora."
 You can use Customize Form to set levels on fields.,Puteți folosi Customize formularul pentru a stabili niveluri pe domenii.
+You can use wildcard %,Puteți utiliza wildcard%
 You cannot install this app,Nu puteți instala această aplicație
 You have unsaved changes in this form. Please save before you continue.,Aveți modificări nesalvate din acest formular. Vă rugăm să salvați înainte de a continua.
 You need to be logged in and have System Manager Role to be able to access backups.,Trebuie să fii autentificat și să ai System Manager Rolul a putea accesa backup-uri.
 You need write permission to rename,Ai nevoie de a scrie permisiunea de a redenumi
+"You seem to have written your name instead of your email. \
+					Please enter a valid email address so that we can get back.","Se pare că ai scris numele în loc de e-mail. \
+ Va rugam sa introduceti o adresa de email valida pentru a putea lua înapoi."
 "Your download is being built, this may take a few moments...","Descărcarea dvs. este în curs de construit, acest lucru poate dura câteva momente ..."
 [Label]:[Field Type]/[Options]:[Width],[Label]: [tip de câmp] / [Opțiuni]: [Lățime]
+[Optional] Send the email X days in advance of the specified date. 0 equals same day.,[Optional] Trimite pe e-mail X zile înainte de data specificată. 0 este egal în aceeași zi.
 add your own CSS (careful!),adăuga propriile dvs. CSS (careful!)
 adjust,ajusta
 align-center,alinia-centru
@@ -1195,6 +1309,7 @@ cog,dinte
 comment,Comentariu
 comments,Comentarii
 dd-mm-yyyy,zz-ll-aaaa
+dd.mm.yyyy,zz.ll.aaaa
 dd/mm/yyyy,zz / ll / aaaa
 download,descărcare
 download-alt,descarcati-alt
@@ -1309,9 +1424,11 @@ tint,tentă
 to,către
 trash,gunoi
 upload,încărca
+use % as wildcard,utilizați% ca metacaracter
 user,utilizator
 user_image_show,user_image_show
 values and dates,valori și date
+values separated by commas,valori separate prin virgule
 volume-down,volum-jos
 volume-off,volum-off
 volume-up,volum-up
@@ -1320,22 +1437,28 @@ wrench,cheie
 yyyy-mm-dd,aaaa-ll-zz
 zoom-in,zoom-in
 zoom-out,zoom-out
+{0} List,{0} Lista
+{0} added,{0} a adăugat
 {0} by {1},{0} de {1}
 {0} cannot be set for Single types,{0} nu poate fi setat pentru tipuri de single
 {0} does not exist in row {1},{0} nu există în rândul {1}
-{0} in row {1} cannot have both URL and child items,{0} în rândul {1} ​​nu poate avea atât de URL și elemente copil
+{0} in row {1} cannot have both URL and child items,{0} în rândul {1} nu poate avea atât de URL și elemente copil
 {0} is not a valid email id,{0} nu este un id-ul de e-mail validă
 {0} is required,{0} este necesară
 {0} is saved,{0} este salvat
 {0} must be one of {1},{0} trebuie sa fie unul din {1}
+{0} must be set first,{0} trebuie să fie stabilite în primul rând
 {0} not a valid State,{0} nu este un stat valid
 {0} not allowed in fieldname {1},{0} nu este permis în fieldname {1}
 {0} not allowed in name,{0} nu este permis în nume
 {0} not allowed to be renamed,{0} nu este permis să fie redenumite
 {0} updated,{0} actualizat
 {0} {1} already exists,{0} {1} există deja
+"{0} {1} cannot be ""{2}"". It should be one of ""{3}""","{0} {1} nu poate fi ""{2}"". Ar trebui să fie unul dintre ""{3}"""
 {0} {1} cannot be a leaf node as it has children,"{0} {1} nu poate fi un nod frunză, deoarece are copii"
 "{0} {1} does not exist, select a new target to merge","{0} {1} nu există, selectați un nou obiectiv de a fuziona"
+{0} {1} not found,{0} {1} nu a fost găsit
+{0} {1}: Submitted Record cannot be deleted.,{0} {1}: Înregistrare prezentate nu pot fi șterse.
 {0}: Cannot set Amend without Cancel,"{0}: Nu se poate seta modifică, fără a anula"
 {0}: Cannot set Assign Amend if not Submittable,{0}: Nu se poate seta Alocați modifică dacă nu Submittable
 {0}: Cannot set Assign Submit if not Submittable,{0}: Nu se poate seta Alocați Trimite dacă nu Submittable

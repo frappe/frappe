@@ -1,0 +1,1473 @@
+ by Role ,
+ is not set,
+"""Company History""","""Lịch sử công ty"""
+"""Team Members"" or ""Management""","""Các thành viên nhóm"" hay ""quản lý"""
+'In List View' not allowed for type {0} in row {1},"""Trong danh sách Xem 'không được phép cho loại {0} trong hàng {1}"
+0 - Draft; 1 - Submitted; 2 - Cancelled,0 - Dự thảo; 1 - Đăng; 2 - Hủy
+0 is highest,0 là cao nhất
+"000 is black, fff is white","000 là màu đen, fff là màu trắng"
+2 days ago,2 ngày trước
+"<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank"">[?]</a>","<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank""> [?]</ A>"
+"<a onclick=""msgprint('<ol>\
+<li><b>field:[fieldname]</b> - By Field\
+<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\
+<li><b>Prompt</b> - Prompt user for a name\
+<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\
+</ol>')"">Naming Options</a>","<A onclick = ""msgprint ('<ol> \
+ <li> <b> lĩnh vực: [fieldname] </ b> - Theo Dòng \
+ <li> <b> naming_series: </ b > - By Đặt tên Series (lĩnh vực được gọi naming_series phải có mặt \
+ <li> <b> Prompt </ b> - sử dụng Prompt cho một tên \
+ <li> <b> [loạt] </ . b> - Series của tiền tố (cách nhau bằng một dấu chấm), ví dụ PRE # # # # # \
+ </ ol> ') ""> đặt tên Tùy chọn </ a>"
+<b>new</b> <i>type of document</i>,<b> mới </ b> <i> loại tài liệu </ i>
+"<i>document type...</i>, e.g. <b>customer</b>","loại tài liệu <i> ... </ i>, ví dụ như <b> khách hàng </ b>"
+<i>e.g. <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>,<i> ví dụ <strong> (55 + 434) / 4 </ strong> hoặc = <strong> Math.sin (Math.PI / 2) </ strong> ... </ i>
+<i>module name...</i>,<i> tên mô-đun ... </ i>
+<i>text</i> <b>in</b> <i>document type</i>,văn bản <i> </ i> <b> trong </ b> <i> loại tài liệu </ i>
+A user can be permitted to multiple records of the same DocType.,Một người sử dụng có thể được phép nhiều hồ sơ của DocType cùng.
+About,Về
+About Us Settings,Giới thiệu thiết lập
+About Us Team Member,Giới thiệu đội viên
+Action,Hoạt động
+Actions,Tác vụ
+"Actions for workflow (e.g. Approve, Cancel).","Hành động cho công việc (ví dụ: Phê duyệt, Hủy bỏ)."
+Add,Thêm
+Add A New Rule,Thêm một Rule mới
+Add A User Permission,Thêm một phép tài
+Add Attachments,Thêm đính kèm
+Add Bookmark,Add Bookmark
+Add CSS,Thêm CSS
+Add Column,Thêm cột
+Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,Thêm Google Analytics ID: ví dụ. UA-89XXX57-1. Hãy tìm kiếm sự giúp đỡ về Google Analytics để biết thêm thông tin.
+Add Message,Thêm tin nhắn
+Add New Permission Rule,Add New phép tắc
+Add Reply,Thêm lời
+Add Total Row,Tổng số Row thêm
+Add a New Role,Thêm một vai trò mới
+Add a banner to the site. (small banners are usually good),Thêm một biểu ngữ cho trang web. (Biểu ngữ nhỏ thường tốt)
+Add all roles,Thêm tất cả các vai trò
+Add attachment,Thêm tập tin đính kèm
+Add code as &lt;script&gt;,Thêm mã như <script>
+Add custom javascript to forms.,Thêm tùy chỉnh với các hình thức javascript.
+Add fields to forms.,Thêm các lĩnh vực với các hình thức.
+Add multiple rows,Thêm nhiều hàng
+Add new row,Thêm hàng mới
+"Add the name of <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> e.g. ""Open Sans""","Thêm tên của <a href=""http://google.com/webfonts"" target=""_blank""> Google Font Web </ a> ví dụ ""Mở Sans """
+Add to To Do,Thêm vào để làm
+Add to To Do List Of,Thêm vào để làm Danh sách các
+Added {0} ({1}),Thêm {0} ({1})
+Adding System Manager to this User as there must be atleast one System Manager,Thêm hệ thống quản lý để tài này phải có ít nhất một hệ thống quản lý
+Additional Info,Thông tin bổ sung
+Additional Permissions,Quyền thêm
+Address,Địa chỉ
+Address Line 1,Địa chỉ Line 1
+Address Line 2,Địa chỉ Dòng 2
+Address Title,Địa chỉ Tiêu đề
+Address and other legal information you may want to put in the footer.,Địa chỉ và thông tin pháp lý khác mà bạn có thể muốn đặt ở chân.
+Admin,Quản trị
+All Applications,Tất cả các ứng dụng
+All Day,Tất cả các ngày
+All customizations will be removed. Please confirm.,Tất cả các tùy chỉnh sẽ được gỡ bỏ. Vui lòng xác nhận.
+"All possible Workflow States and roles of the workflow. <br>Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""","Quy trình làm việc tất cả các nước và vai trò của công việc có thể. <br> Docstatus Tùy chọn: 0 là ""lưu"", 1 là ""Gửi"" và 2 là ""hủy bỏ"""
+Allow Attach,Cho phép Đính kèm
+Allow Import,Cho phép nhập khẩu
+Allow Import via Data Import Tool,Cho phép nhập dữ liệu thông qua công cụ nhập khẩu
+Allow Rename,Cho phép đổi tên
+Allow on Submit,Cho phép vào Submit
+Allow user to login only after this hour (0-24),Cho phép người dùng đăng nhập chỉ sau giờ này (0-24)
+Allow user to login only before this hour (0-24),Cho phép người dùng đăng nhập chỉ trước khi giờ này (0-24)
+Allowed,Cho phép
+"Allowing DocType, DocType. Be careful!","Cho phép DocType, DocType. Chị cẩn thận đó!"
+Already Registered,Đã đăng ký
+Already in user's To Do list,Đã được sử dụng để làm của danh sách
+Alternative download link,Thay thế liên kết tải về
+"Alternatively, you can also specify 'auto_email_id' in site_config.json","Ngoài ra, bạn cũng có thể chỉ định 'auto_email_id' trong site_config.json"
+Always use above Login Id as sender,Luôn luôn sử dụng trên Id Đăng nhập như người gửi
+Amend,Sửa đổi
+"An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [<a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a>]","Một biểu tượng tập tin với phần mở rộng ico.. Nên 16 x 16 px. Tạo ra bằng cách sử dụng một máy phát điện favicon. [<a Href=""http://favicon-generator.org/"" target=""_blank""> favicon-generator.org </ a>]"
+"Another {0} with name {1} exists, select another name","Khác {0} với tên {1} tồn tại, chọn tên khác"
+Any existing permission will be deleted / overwritten.,Bất kỳ sự cho phép hiện tại sẽ bị xóa / ghi đè.
+Anyone Can Read,Bất cứ ai cũng có thể đọc
+Anyone Can Write,Bất cứ ai cũng có thể viết
+"Apart from Role based Permission Rules, you can apply User Permissions based on DocTypes.","Ngoài vai trò dựa trên quy phép, bạn có thể áp dụng tài Quyền dựa trên doctypes."
+"Apart from System Manager, roles with 'Set User Permissions' right can set permissions for other users for that Document Type.","Ngoài hệ thống quản lý, vai trò với quyền 'Thiết lập tài Quyền' có thể thiết lập quyền truy cập cho người dùng khác cho rằng loại tài liệu."
+App Name,Tên ứng dụng
+App not found,Ứng dụng không tìm thấy
+Application Installer,Ứng dụng cài đặt
+Applications,Ứng dụng
+Apply Style,Áp dụng phong cách
+Apply User Permissions,Áp dụng tài Quyền
+Are you sure you want to delete the attachment?,Bạn có chắc bạn muốn xóa các tập tin đính kèm?
+Arial,Arial
+"As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User.","Như một thực hành tốt nhất, không chỉ định cùng một bộ quy tắc để cho phép Vai trò khác nhau. Thay vào đó, thiết lập nhiều vai trò cùng một người dùng."
+Ascending,Tăng dần
+Assign To,Để gán
+Assigned By,Giao By
+Assigned To,Để giao
+Assigned To Fullname,Để giao Họ tên
+Assigned To/Owner,Để giao / chủ sở hữu
+Assignment Added,Phân công nhập
+Assignment Status Changed,Tình trạng chuyển nhượng thay đổi
+Assignments,Bài tập
+Attach,Đính kèm
+Attach Document Print,Đính kèm tài liệu In
+Attach as web link,Đính kèm là liên kết web
+Attached To DocType,Để gắn DocType
+Attached To Name,Để gắn Tên
+Attachments,File đính kèm
+Auto Email Id,Tự động Email Id
+Auto Name,Tên tự động
+Auto generated,Tự động tạo ra
+Avatar,Avatar
+Back to Login,Sao để đăng nhập
+Background Color,Màu nền
+Background Image,Hình nền
+Background Style,Kiểu nền
+Banner,Bảng quảng cáo
+Banner HTML,Biểu ngữ HTML
+Banner Image,Hình ảnh biểu ngữ
+Banner is above the Top Menu Bar.,Banner trên Menu Top Bar.
+Begin this page with a slideshow of images,Bắt đầu trang này với một trình chiếu hình ảnh
+Beginning with,Bắt đầu với
+Belongs to,Thuộc về
+Bio,Sinh học
+Birth Date,Ngày sinh
+Blog Category,Blog mục
+Blog Intro,Blog Giới thiệu
+Blog Introduction,Blog Giới thiệu
+Blog Post,Bài Blog
+Blog Settings,Thiết lập Blog
+Blog Title,Blog Title
+Blogger,Blogger
+Bookmarks,Đánh dấu
+Both login and password required,Cả hai tên đăng nhập và mật khẩu cần thiết
+Brand HTML,Thương hiệu HTML
+Bulk Email,Số lượng lớn Email
+Bulk email limit {0} crossed,Giới hạn số lượng lớn email {0} vượt qua
+Button,Nút
+By,Bài viết của
+Calculate,Tính toán
+Calendar,Lịch
+Cancel,Hủy bỏ
+Cancelled,Hủy
+"Cannot Edit {0} directly: To edit {0} properties, create / update {1}, {2} and {3}","Không thể Chỉnh sửa {0} trực tiếp: Để chỉnh sửa {0} tài sản, tạo / cập nhật {1}, {2} và {3}"
+Cannot Update: Incorrect / Expired Link.,Không thể Cập nhật: Không đúng / hết hạn liên kết.
+Cannot Update: Incorrect Password,Không thể Cập nhật: Mật khẩu không chính xác
+Cannot add more than 50 comments,Không thể thêm hơn 50 ý kiến
+Cannot cancel before submitting. See Transition {0},Không thể hủy bỏ trước khi trình. Xem chuyển {0}
+Cannot change picture,Không thể thay đổi hình ảnh
+Cannot change state of Cancelled Document. Transition row {0},Không thể thay đổi trạng thái của tài liệu bị hủy. Hàng chuyển {0}
+Cannot change {0},Không thể thay đổi {0}
+Cannot delete or cancel because {0} {1} is linked with {2} {3},Không thể xóa hoặc hủy bỏ vì {0} {1} được liên kết với {2} {3}
+Cannot delete {0} as it has child nodes,Không thể xóa {0} vì nó có các nút con
+Cannot edit standard fields,Không thể chỉnh sửa các lĩnh vực tiêu chuẩn
+Cannot map because following condition fails: ,
+Cannot open instance when its {0} is open,Không thể mở ví dụ khi nó {0} là mở
+Cannot open {0} when its instance is open,Không thể mở {0} khi cá thể của nó là mở
+Cannot print cancelled documents,Không thể in tài liệu bị hủy bỏ
+Cannot remove permission for DocType: {0} and Name: {1},Không thể loại bỏ sự cho phép cho DocType: {0} và Tên: {1}
+Cannot reply to a reply,Không có quyền trả lời bài trả lời
+Cannot set Email Alert on Document Type {0},Không thể thiết lập thông báo email trên Document Type {0}
+Cannot set permission for DocType: {0} and Name: {1},Không thể thiết lập quyền cho DocType: {0} và Tên: {1}
+Categorize blog posts.,Phân loại các bài viết blog.
+Category,Thể loại
+Category Name,Category Name
+Center,Trung tâm
+"Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit.","Một số tài liệu, giống như một hóa đơn, nên không thể thay đổi một lần thức. Trạng thái cuối cùng cho các tài liệu như vậy được gọi là Đăng. Bạn có thể hạn chế những vai trò có thể Submit."
+"Change field properties (hide, readonly, permission etc.)","Tính chất thay đổi lĩnh vực (ẩn, chỉ đọc, cho phép vv)"
+Chat,Trò chuyện
+Check,Kiểm tra
+Check / Uncheck roles assigned to the User. Click on the Role to find out what permissions that Role has.,Kiểm tra / Bỏ chọn vai trò được gán cho người dùng. Click vào vai trò để tìm ra những độ cấp phép đó có vai trò.
+Check this if you want to send emails as this id only (in case of restriction by your email provider).,Kiểm tra này nếu bạn muốn gửi email như id này chỉ (trong trường hợp hạn chế bởi nhà cung cấp email của bạn).
+Check this to make this the default letter head in all prints,Kiểm tra này để làm cho đầu thư mặc định trong tất cả các bản in
+Check which Documents are readable by a User,Kiểm tra các tài liệu có thể được đọc bởi một người dùng
+Checked items shown on desktop,Mục kiểm tra hiển thị trên máy tính để bàn
+Child Tables are shown as a Grid in other DocTypes.,Bàn trẻ em được thể hiện như một lưới trong doctypes khác.
+City,Thành phố
+Classic,Cổ điển
+Clear Cache,Clear Cache
+Clear all roles,Xóa tất cả các vai trò
+Click on a link to get options,Nhấp chuột vào một liên kết để có được lựa chọn
+Click on row to view / edit.,Bấm vào hàng để xem / chỉnh sửa.
+Client,Khách hàng
+Client-side formats are now deprecated,Định dạng phía khách hàng hiện đang bị phản đối
+Close,Đóng
+Close: {0},Đóng cửa: {0}
+Closed,Đã đóng
+Code,Code
+Collapse,Sụp đổ
+Column Break,Cột lao
+Comment,Bình luận
+Comment By,Bình luận bởi
+Comment By Fullname,Bình luận bởi Họ tên
+Comment Date,Bình luận ngày
+Comment Docname,Bình luận Docname
+Comment Doctype,Bình luận DOCTYPE
+Comment Time,Thời gian bình luận
+Comments,Thẻ chú thích
+Communication,Liên lạc
+Communication Medium,Thông tin liên lạc trung
+Company History,Lịch sử công ty
+Company Introduction,Giới thiệu công ty
+Complaint,Khiếu nại
+Complete By,Hoàn chỉnh bởi
+Condition,Điều kiện
+Contact Us Settings,Thiết lập Liên hệ
+"Contact options, like ""Sales Query, Support Query"" etc each on a new line or separated by commas.","Tùy chọn liên lạc, như ""Bán hàng truy vấn, hỗ trợ truy vấn"", vv mỗi ngày một dòng mới hoặc cách nhau bằng dấu phẩy."
+Content,Lọc nội dung
+Content Hash,Nội dung Hash
+Content in markdown format that appears on the main side of your page,Nội dung ở định dạng markdown xuất hiện trên mặt chính của trang web của bạn
+Content web page.,Trang web nội dung.
+Controller,Controller
+Copy,Sao chép
+Copyright,Bản quyền
+Core,Nh
+Could not connect to outgoing email server,Không thể kết nối đến máy chủ email gửi đi
+Could not find {0},Không thể tìm thấy {0}
+Count,Cỡ
+Country,Tại
+Create,Tạo
+Create a new {0},Tạo ra một mới {0}
+Created Custom Field {0} in {1},Tạo Trường Tuỳ chỉnh {0} trong {1}
+Created Customer Issue,Tạo hành khách hàng
+Created Opportunity,Cơ hội tạo ra
+Created Support Ticket,Tạo Hỗ trợ vé
+Creation / Modified By,Tạo / sửa đổi theo
+Currency,Tiền tệ
+Current status,Tình trạng hiện tại
+Custom CSS,CSS Tuỳ chỉnh
+Custom Field,Trường Tuỳ chỉnh
+Custom Javascript,Tùy chỉnh Javascript
+Custom Reports,Báo cáo tùy chỉnh
+Custom Script,Tùy chỉnh Script
+Custom?,Tùy chỉnh?
+Customize,Tuỳ chỉnh
+Customize Form,Tùy chỉnh mẫu
+Customize Form Field,Tùy chỉnh Field
+"Customize Label, Print Hide, Default etc.","Tùy chỉnh Label, In Ẩn, Default, vv"
+Customized HTML Templates for printing transctions.,Tùy chỉnh mẫu HTML cho transctions in ấn.
+Daily Event Digest is sent for Calendar Events where reminders are set.,Hàng ngày tổ chức sự kiện Digest được gửi cho Lịch sự kiện mà nhắc nhở được thiết lập.
+Danger,Nguy hiểm
+Data,Dữ liệu
+Data Import / Export Tool,Công cụ dữ liệu nhập / xuất
+Data Import Tool,Công cụ dữ liệu nhập khẩu
+Data missing in table,Dữ liệu bị mất trong bảng
+Date,Năm
+Date Change,Thay đổi ngày
+Date Changed,Thay đổi ngày
+Date Format,Định dạng ngày
+Date and Number Format,Ngày và định dạng số
+Date must be in format: {0},Ngày phải có định dạng: {0}
+Datetime,Datetime
+Days in Advance,Ngày trước
+Dear,Thân
+Default,Mặc định
+Default Print Format,Mặc định In Định dạng
+Default Value,Giá trị mặc định
+Default is system timezone,Mặc định là hệ thống múi giờ
+"Default: ""Contact Us""","Mặc định: ""Liên hệ"""
+DefaultValue,DefaultValue
+Defaults,Mặc định
+"Define read, write, admin permissions for a Website Page.","Xác định đọc, viết, cho phép quản trị cho một Website Trang."
+Define workflows for forms.,Xác định quy trình công việc cho các hình thức.
+Delete,Xóa
+Delete Row,Xóa Row
+Depends On,Phụ thuộc Bật
+Descending,Giảm dần
+Description,Mô tả
+Description and Status,Mô tả và trạng
+"Description for listing page, in plain text, only a couple of lines. (max 140 characters)","Mô tả cho trang danh sách, trong văn bản đơn giản, chỉ có một vài dòng. (Tối đa 140 ký tự)"
+Description for page header.,Mô tả cho trang tiêu đề.
+Desktop,Máy tính để bàn
+Details,Chi tiết
+Did not add,Không thêm
+Did not cancel,Không hủy bỏ
+Did not find {0} for {0} ({1}),Không tìm thấy {0} {0} ({1})
+Did not load,Không tải
+Did not remove,Không loại bỏ
+Did not save,Không lưu
+"Different ""States"" this document can exist in. Like ""Open"", ""Pending Approval"" etc.","Khác nhau ""Hoa"" tài liệu này có thể tồn tại in Như ""Open"", ""Đang xem xét"", vv"
+Disable Customer Signup link in Login page,Vô hiệu hóa liên kết Đăng ký khách hàng trong trang đăng nhập
+Disable Signup,Vô hiệu hóa đăng ký
+Disabled,Đã tắt
+Display,Hiển thị
+Display Settings,Thiết lập hiển thị
+Display in the sidebar of this Website Route node,Màn hình hiển thị trong thanh bên của Website nút Route này
+Do not allow user to change after set the first time,Không cho phép người dùng thay đổi sau khi thiết lập lần đầu tiên
+Doc Status,Doc Trạng thái
+DocField,DocField
+DocPerm,DocPerm
+DocType,DocType
+DocType Details,DocType chi tiết
+DocType can not be merged,DocType không thể được sáp nhập
+DocType on which this Workflow is applicable.,DocType mà Workflow này được áp dụng.
+DocType or Field,DocType hoặc Dòng
+Doclist JSON,Doclist JSON
+Docname,Docname
+Document,Tài liệu
+Document Status transition from ,
+Document Status transition from {0} to {1} is not allowed,Tình trạng tài liệu chuyển đổi từ {0} đến {1} không được phép
+Document Type,Loại tài liệu
+Document is only editable by users of role,Tài liệu chỉ có thể sửa bằng cách sử dụng của vai trò
+Documentation,Tài liệu
+Documents,Tài liệu
+Download,Đã tải xuống
+Download Backup,Tải về sao lưu
+Download link for your backup will be emailed on the following email address:,Tải về liên kết cho sao lưu của bạn sẽ được gửi vào địa chỉ email sau đây:
+Drafts,Dự thảo
+Drag to sort columns,Kéo để sắp xếp cột
+Due Date,Ngày đáo hạn
+Duplicate name {0} {1},Trùng lặp tên {0} {1}
+Dynamic Link,Liên kết động
+ERPNext Demo,ERPNext Demo
+Edit,Sửa
+Edit Permissions,Sửa Quyền
+Editable,Có thể chỉnh sửa
+Email,Email
+Email Alert,Thông báo email
+Email Alert Recipient,Email người nhận báo
+Email Alert Recipients,Người nhận thông báo email
+Email By Document Field,Email của tài liệu Dòng
+Email Footer,Email Footer
+Email Host,Email chủ
+Email Id,Email Id
+Email Login,Email đăng nhập
+Email Password,Email Mật khẩu
+Email Sent,Email gửi
+Email Settings,Thiết lập email
+Email Signature,Chữ ký email
+Email Use SSL,Email Sử dụng SSL
+Email address,email
+"Email addresses, separted by commas","Địa chỉ email, separted bằng dấu phẩy"
+Email not verified with {1},Email không xác minh với {1}
+Email sent to {0},Email gửi đến {0}
+Email...,Email ...
+Emails are muted,Email là tắt tiếng
+Embed image slideshows in website pages.,Trình chiếu hình ảnh nhúng trong các trang web.
+Enable,K.hoạt
+Enable Comments,Cho phép nhận xét
+Enable Scheduled Jobs,Việc cho phép theo lịch trình
+Enabled,Đã bật
+Ends on,Kết thúc vào ngày
+Enter Form Type,Nhập Loại Mẫu
+Enter Value,Giá trị nhập
+Enter at least one permission row,Nhập ít nhất một dòng phép
+"Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set ""match"" permission rules. To see list of fields, go to <a href=""#Form/Customize Form/Customize Form"">Customize Form</a>.","Nhập lĩnh vực giá trị mặc định (phím) và giá trị. Nếu bạn thêm nhiều giá trị cho một lĩnh vực, một trong những đầu tiên sẽ được chọn. Các giá trị mặc định cũng được sử dụng để thiết lập ""phù hợp"" quy định cho phép. Để xem danh sách các lĩnh vực, đi đến <a href=""#Form/Customize Form/Customize Form""> Tùy chỉnh các mẫu </ a>."
+"Enter keys to enable login via Facebook, Google, GitHub.","Nhập phím để cho phép đăng nhập thông qua Facebook, Google, GitHub."
+Equals,Bình đẳng
+Error,Lỗi
+"Error generating PDF, attachment sent as HTML","Lỗi tạo PDF, tập tin đính kèm được gửi như HTML"
+Error: Document has been modified after you have opened it,Lỗi: tài liệu đã được sửa đổi sau khi bạn đã mở nó
+Event,Sự Kiện
+Event Datetime,Sự kiện kiểu ngày giờ
+Event Individuals,Cá nhân tổ chức sự kiện
+Event Role,Vai trò tổ chức sự kiện
+Event Roles,Vai trò tổ chức sự kiện
+Event Type,Loại sự kiện
+Event User,Sự kiện tài
+Event end must be after start,Kết thúc sự kiện phải sau bắt đầu
+Events,Sự kiện
+Events In Today's Calendar,Sự kiện Trong Hôm nay của Lịch
+Every Day,Mỗi ngày
+Every Month,Mỗi tháng
+Every Week,Mỗi tuần
+Every Year,Mỗi năm
+Everyone,Tất cả mọi người
+Example:,Ví dụ:
+Expand,Mở rộng
+Export,Xuất
+Export not allowed. You need {0} role to export.,Xuất khẩu không được phép. Bạn cần {0} vai trò xuất khẩu.
+Exported,Xuất khẩu
+"Expression, Optional","Biểu hiện, Tùy chọn"
+Facebook,Fac
+Facebook Client ID,Facebook Khách hàng ID
+Facebook Client Secret,Facebook Khách hàng bí mật
+Facebook Share,Facebook Chia sẻ
+Facebook User ID,Facebook User ID
+Facebook Username,Facebook Tên
+FavIcon,Favicon
+Female,Nữ
+Field Description,Dòng Mô tả
+Field Name,Tên trường
+Field Type,Loại lĩnh vực
+"Field that represents the Workflow State of the transaction (if field is not present, a new hidden Custom Field will be created)","Lĩnh vực đại diện cho Nhà nước Quy trình làm việc của giao dịch (nếu trường không có mặt, một ẩn mới Trường Tuỳ chỉnh sẽ được tạo ra)"
+Field {0} in row {1} cannot be hidden and mandatory without default,Lĩnh vực {0} trong hàng {1} có thể không được ẩn và bắt buộc mà không mặc định
+Field {0} is not selectable.,Lĩnh vực {0} không phải là lựa chọn.
+Field {0} of type {1} cannot be mandatory,Lĩnh vực {0} kiểu {1} có thể không được bắt buộc
+Fieldname,Fieldname
+Fieldname is required in row {0},Fieldname là cần thiết trong hàng {0}
+Fieldname not set for Custom Field,Fieldname không được thiết lập cho Trường Tuỳ chỉnh
+Fieldname which will be the DocType for this link field.,Fieldname đó sẽ là DOCTYPE cho trường liên kết này.
+Fieldname {0} appears multiple times in rows {1},Fieldname {0} xuất hiện nhiều lần trong hàng {1}
+"Fieldname {0} cannot contain letters, numbers or spaces","Fieldname {0} không thể chứa chữ cái, số hoặc không gian"
+Fields,Các trường
+"Fields separated by comma (,) will be included in the<br /><b>Search By</b> list of Search dialog box","Các lĩnh vực được phân cách bằng dấu phẩy (,) sẽ được bao gồm trong <br /> Tìm theo </ b> danh sách các hộp thoại tìm kiếm"
+Fieldtype cannot be changed from {0} to {1} in row {2},Fieldtype không thể thay đổi từ {0} đến {1} trong hàng {2}
+File,Tập tin
+File Data,Tập tin dữ liệu
+File Name,File Name
+File Size,Dung lượng
+File URL,URL tập tin
+File not attached,Nộp không đính kèm
+File size exceeded the maximum allowed size of {0} MB,Kích thước tập tin vượt quá kích thước tối đa cho phép của {0} MB
+Fill Screen,Điền vào màn hình
+Filter,Bộ lọc
+Filter records based on User Permissions defined for a user,Hồ sơ bộ lọc dựa trên Quyền người dùng định nghĩa cho một người dùng
+Filters,Bộ lọc
+Find {0} in {1},Tìm {0} trong {1}
+First Name,Họ
+Float,Phao
+Float Precision,Nổi chính xác
+Font (Heading),Phông chữ (nhóm)
+Font (Text),Phông chữ (Text)
+Font Size,Kích thước văn bản
+Font Size (Text),Cỡ chữ (Text)
+Fonts,Phông chữ
+Footer,Chân
+Footer Background,Bối cảnh chân
+Footer Items,Chân mục
+Footer Text,Tiêu đề chân trang
+For DocType,Cho DocType
+"For Links, enter the DocType as range
+For Select, enter list of Options separated by comma","Đối với Liên kết, nhập DocType như phạm vi 
+ Đối Chọn, nhập danh sách các tùy chọn phân cách bằng dấu phẩy"
+"For comparative filters, start with","Cho các bộ lọc so sánh, bắt đầu với"
+For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,"Ví dụ, nếu bạn hủy bỏ, sửa đổi 'INV004' nó sẽ trở thành một tài liệu mới 'INV004-1'. Điều này giúp bạn theo dõi từng sửa đổi."
+For ranges,Cho các phạm vi
+For top bar,Cho thanh hàng đầu
+For {0} at level {1} in {2} in row {3},Cho {0} ở mức {1} trong {2} trong hàng {3}
+Forgot Password,Quên mật khẩu
+Forgot Password?,Quên mật khẩu?
+Form,Biểu mẫu
+Forum,Forum
+Forums,Diễn đàn
+Forward To Email Address,Chuyển tiếp Để Địa chỉ Email
+Frappe Framework,Khung sinh tố
+Friday,Thứ sáu
+From Date must be before To Date,Từ ngày phải trước Đến ngày
+Full Name,Tên đầy đủ
+Gantt Chart,Biểu đồ Gantt
+Gender,Giới Tính
+Generator,Máy phát điện
+Georgia,Georgia
+Get,Được
+Get From ,
+"Get your globally recognized avatar from <a href=""https://gravatar.com/"">Gravatar.com</a>","Nhận avatar nhận trên toàn cầu của bạn từ <a href=""https://gravatar.com/""> Gravatar.com </ a>"
+GitHub,GitHub
+GitHub Client ID,GitHub Khách hàng ID
+GitHub Client Secret,GitHub Khách hàng bí mật
+Github User ID,Github User ID
+Github Username,Github Tên
+Google,Google
+Google Analytics ID,Google Analytics ID
+Google Client ID,Google Khách hàng ID
+Google Client Secret,Google Khách hàng bí mật
+Google Plus One,Google Plus One
+Google User ID,Google ID của người dùng
+Google Web Font (Heading),Google Font Web (nhóm)
+Google Web Font (Text),Google Font Web (Text)
+Greater or equals,Lớn hơn hoặc ngang hàng
+Greater than,Lớn hơn
+"Group Added, refreshing...","Nhóm tăng, làm mới ..."
+Group Description,Nhóm Mô tả
+Group Name,Tên nhóm
+Group Title,Nhóm Tiêu đề
+Group Type,Loại nhóm
+Groups,Nhóm
+HTML for header section. Optional,HTML cho phần tiêu đề. Tùy chọn
+Have an account? Login,Có tài khoản? Đăng nhập
+Header,Phần đầu
+Heading,Nhóm
+Heading Text As,Nhóm Tiêu Như
+Help,Trợ giúp
+Help on Search,Giúp đỡ về Tìm kiếm
+Helvetica Neue,Helvetica Neue
+Hidden,Ẩn
+Hide Actions,Ẩn Actions
+Hide Copy,Sao chép ẩn
+Hide Heading,Hiện nhóm
+Hide Toolbar,Thanh công cụ ẩn
+Hide the sidebar,Ẩn bên
+High,Cao
+Highlight,Điểm nổi bật
+History,Các phiên bản
+Home Page,Trang chủ
+Home Page is Products,Trang chủ là sản phẩm
+ID (name) of the entity whose property is to be set,ID (tên) của đơn vị có tài sản phải được thiết lập
+Icon,Biểu tượng
+Icon will appear on the button,Biểu tượng sẽ xuất hiện trên nút
+"If a Role does not have access at Level 0, then higher levels are meaningless.","Nếu một vai trò không có quyền truy cập ở cấp độ 0, sau đó cấp độ cao hơn là vô nghĩa."
+"If checked, all other workflows become inactive.","Nếu được chọn, tất cả các công việc khác trở nên không hoạt động."
+"If checked, the Home page will be the default Item Group for the website.","Nếu được chọn, trang chủ sẽ là mục Nhóm mặc định cho trang web."
+"If image is selected, color will be ignored (attach first)","Nếu hình ảnh được lựa chọn, màu sắc sẽ bị bỏ qua (đính kèm đầu tiên)"
+If non standard port (e.g. 587),Nếu cổng phi tiêu chuẩn (ví dụ 587)
+"If these instructions where not helpful, please add in your suggestions on GitHub Issues.","Nếu những hướng dẫn mà không hữu ích, hãy thêm vào đề xuất của bạn về các vấn đề GitHub."
+"If you set this, this Item will come in a drop-down under the selected parent.","Nếu bạn thiết lập này, khoản này sẽ đến trong một thả xuống dưới phụ huynh lựa chọn."
+Ignore User Permissions,Bỏ qua tài Quyền
+"Ignoring Item {0}, because a group exists with the same name!","Bỏ qua mục {0}, bởi vì một nhóm tồn tại có cùng tên!"
+Image,Hình
+Image Link,Liên kết hình ảnh
+Import,Nhập khẩu
+Import / Export Data,Nhập khẩu / xuất khẩu dữ liệu
+Import / Export Data from .csv files.,Nhập khẩu / xuất khẩu dữ liệu từ. Csv.
+In,Ở
+In Dialog,Trong Dialog
+In Filter,Bộ lọc trong
+In List View,Trong Danh sách Xem
+In Report Filter,Trong Báo cáo Lọc
+In points. Default is 9.,Trong điểm. Mặc định là 9.
+In response to,"Để đáp ứng với điều này,"
+Incorrect value in row {0}: {1} must be {2} {3},Giá trị không chính xác trong hàng {0}: {1} phải {2} {3}
+Incorrect value: {0} must be {1} {2},Giá trị không đúng: {0} phải {1} {2}
+Index,I
+Individuals,Cá nhân
+Info,Thông tin
+Insert After,Sau khi chèn
+"Insert After field '{0}' mentioned in Custom Field '{1}', does not exist","Sau khi chèn trường '{0}' được đề cập trong Trường Tuỳ chỉnh '{1}', không tồn tại"
+Insert Below,Dưới đây chèn
+Insert Code,Chèn Mã
+Insert Row,Chèn Row
+Insert Style,Chèn phong cách
+Install Applications.,Cài đặt ứng dụng.
+Installed,Đã cài
+Installer,Cài đặt
+Int,Int
+Integrations,Tích hợp
+Introduce your company to the website visitor.,Giới thiệu công ty của bạn để người truy cập website.
+Introduction,Giới thiệu chung
+Introductory information for the Contact Us Page,Thông tin giới thiệu cho Liên Lạc Trang
+Invalid Email: {0},Email không hợp lệ: {0}
+Invalid Filter: {0},Bộ lọc không hợp lệ: {0}
+Invalid Home Page,Trang chủ không hợp lệ
+Invalid Login,Đăng nhập không hợp lệ
+Invalid Outgoing Mail Server or Port,Không hợp lệ Outgoing Server Mail hoặc Cảng
+Invalid login or password,Đăng nhập hoặc mật khẩu không hợp lệ
+Invalid recipient address,Địa chỉ người nhận không hợp lệ
+Inverse,Đảo ngược
+Is Active,Là hoạt động
+Is Child Table,Bảng là trẻ em
+Is Default,Mặc định là
+Is Event,Là tổ chức sự kiện
+Is Mandatory Field,Dòng là bắt buộc
+Is Single,Là Đơn
+Is Standard,Là tiêu chuẩn
+Is Submittable,Là Submittable
+Is Task,Là nhiệm vụ
+Item cannot be added to its own descendents,Mục không thể được thêm vào con cháu của mình
+JavaScript Format: frappe.query_reports['REPORTNAME'] = {},Định dạng JavaScript: frappe.query_reports ['REPORTNAME'] = {}
+Javascript,Javascript
+Javascript to append to the head section of the page.,Javascript để nối thêm vào phần đầu của trang.
+Key,Chìa khoá
+Label,Nhăn
+Label Help,Nhãn Trợ giúp
+Label and Type,Nhãn và Type
+Label is mandatory,Nhãn là bắt buộc
+Landing Page,Trang hạ cánh
+Language,Ngôn ngữ
+Language preference for user interface (only if available).,Tuỳ chọn ngôn ngữ cho giao diện người dùng (nếu có).
+"Language, Date and Time settings","Ngôn ngữ, giờ và ngày"
+Last IP,IP cuối cùng
+Last Login,Đăng nhập
+Last Name,Tên
+Last updated by,Cập nhật lần cuối bởi
+Lastmod,Sửa đổi cuối cùng
+Lato,Lato
+Leave blank to repeat always,Để trống để lặp lại luôn luôn
+Left,Trái
+Less or equals,Ít hơn hoặc ngang hàng
+Less than,Ít hơn
+Letter,Kí hiệu
+Letter Head,Thư Head
+Letter Head Name,Tên thư Head
+Letter Head in HTML,Thư trưởng trong HTML
+Level,Mức độ
+"Level 0 is for document level permissions, higher levels for field level permissions.","Mức 0 là các quyền cấp tài liệu, cấp độ cao hơn cho phép cấp cơ sở."
+Like,Thích
+Link,Liên kết
+"Link that is the website home page. Standard Links (index, login, products, blog, about, contact)","Liên kết đó là trang chủ của trang web. Liên kết tiêu chuẩn (chỉ số, đăng nhập, sản phẩm, blog, về, liên lạc)"
+Link to other pages in the side bar and next section,Liên kết đến các trang khác trong thanh bên và phần tiếp theo
+Link to the page you want to open,Liên kết đến các trang web mà bạn muốn mở
+Linked In Share,Trong liên kết Chia sẻ
+Linked With,Liên kết với
+List,Danh sách
+List a document type,Liệt kê một loại tài liệu
+List of Web Site Forum's Posts.,Danh sách các bài viết trang web của Diễn đàn.
+Loading,Đang tải STRING_0}
+Loading Report,Tải Báo cáo
+Loading...,Đang tải...
+Localization,Bản địa hóa
+Location,Vị trí
+Log of error on automated events (scheduler).,Đăng nhập lỗi về các sự kiện tự động (lịch).
+Login,Đăng nhập
+Login After,Sau khi đăng nhập
+Login Before,Trước khi đăng nhập
+Login Id,Id đăng nhập
+Login not allowed at this time,Đăng nhập không được phép tại thời điểm này
+Logout,Đăng xuất
+Long Text,Tiêu đề dài
+Low,Thấp
+Lucida Grande,Lucida Grande
+Mail Password,Mail Mật khẩu
+Main Section,Mục chính
+Make a new,Làm mới
+Make a new record,Thực hiện một kỷ lục mới
+Male,Name
+Manage cloud backups on Dropbox,Quản lý sao lưu đám mây trên Dropbox
+Manage uploaded files.,Quản lý các file được tải lên.
+Mandatory,Bắt buộc
+Mandatory fields required in {0},Bắt buộc cần thiết trong {0}
+Mandatory filters required:\n,Bộ lọc bắt buộc cần thiết: \n
+Master,Tổng
+Max Attachments,Max File đính kèm
+Max width for type Currency is 100px in row {0},Tối đa chiều rộng cho các loại tiền tệ là 100px trong hàng {0}
+"Meaning of Submit, Cancel, Amend","Nghĩa là của Gửi, Hủy bỏ, sửa đổi"
+Medium,Trung bình
+"Menu items in the Top Bar. For setting the color of the Top Bar, go to <a href=""#Form/Style Settings"">Style Settings</a>","Mục trình đơn trong Top Bar. Để thiết lập màu sắc của Top Bar, đi đến <a href=""#Form/Style Settings""> Cài đặt Kiểu </ a>"
+Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node,Sáp nhập chỉ có thể giữa Tập đoàn Group-to-hoặc lá Node-to-lá Node
+Message,Tin nhắn
+Message Examples,Ví dụ tin nhắn
+Messages,Tin nhắn
+Method,Phương pháp
+Middle Name (Optional),Trung Tên (bắt buộc)
+Misc,Misc
+Miscellaneous,Khác
+Missing Values Required,Giá trị mất tích bắt buộc
+Modern,Hiện đại
+Modified by,Sửa đổi bởi
+Module,Mô-đun
+Module Def,Mô-đun Def
+Module Name,Tên mô-đun
+Module Not Found,Không tìm thấy mô-đun
+Modules Setup,Các mô-đun cài đặt
+Monday,Thứ Hai
+More,Nhiều Hơn
+More content for the bottom of the page.,Nhiều nội dung cho dưới cùng của trang.
+Move Down: {0},Move Down: {0}
+Move Up: {0},Move Up: {0}
+Multiple root nodes not allowed.,Nhiều nút gốc không được phép.
+Must have report permission to access this report.,Phải có sự cho phép báo cáo để truy cập báo cáo này.
+Must specify a Query to run,Phải xác định một truy vấn để chạy
+My Settings,Thiết lập của tôi
+Name,Tên
+Name Case,Trường hợp tên
+Name and Description,Tên và mô tả
+Name is required,{0} không thể mua được bằng Giỏ hàng
+Name not permitted,Tên không được phép
+Name not set via Prompt,Tên được không thiết lập thông qua Prompt
+Name of the Document Type (DocType) you want this field to be linked to. e.g. Customer,Tên của các loại tài liệu (DocType) bạn muốn lĩnh vực này được liên kết đến. ví dụ như khách hàng
+Name of {0} cannot be {1},Tên của {0} không thể {1}
+Naming,Đặt tên
+Naming Series mandatory,Đặt tên Dòng bắt buộc
+Nested set error. Please contact the Administrator.,Lỗi bộ lồng nhau. Xin vui lòng liên hệ với quản trị.
+New,Mới
+New Password,Mật khẩu mới
+New Record,Ghi nhận mới
+New comment on {0} {1},Comment mới trên {0} {1}
+New password emailed,Mật khẩu mới qua email
+New value to be set,Giá trị mới được thiết lập
+New {0},Mới {0}
+Next Communcation On,Tiếp Communcation Mở
+Next Record,Tiếp theo ghi
+Next State,Nhà nước tiếp theo
+Next actions,Hành động tiếp theo
+No,Không đồng ý
+No Action,Không có hành động
+No Communication tagged with this ,
+No Copy,Sao chép không
+No Permissions set for this criteria.,Quyền không thiết lập cho các tiêu chí này.
+No Report Loaded. Please use query-report/[Report Name] to run a report.,Báo cáo không tải. Vui lòng sử dụng truy vấn báo cáo / [Báo cáo Tên] để chạy báo cáo.
+No Results,Không có kết quả
+No Sidebar,Không Sidebar
+No User Permissions found.,Không có tài Quyền được tìm thấy.
+No data found,Không tìm thấy dữ liệu
+No file attached,Không có tập tin đính kèm
+No further records,Không có hồ sơ tiếp tục
+No one,Không ai
+No permission to '{0}' {1},Không có quyền '{0}' {1}
+No permission to edit,Không có quyền chỉnh sửa
+No permission to write / remove.,Không có quyền viết / loại bỏ.
+No records tagged.,Không có hồ sơ được gắn thẻ.
+No template found at path: {0},Không tìm thấy tại con đường mẫu: {0}
+No {0} permission,Không có {0} phép
+None,Không
+None: End of Workflow,Không: Kết thúc quy trình làm việc
+Not Found,Không tìm thấy
+Not Linked to any record.,Không liên kết với bất kỳ kỷ lục.
+Not Permitted,Không được phép
+Not Submitted,Không Đăng
+Not a user yet? Sign up,Không phải là một người sử dụng chưa? Đăng ký
+Not a valid Comma Separated Value (CSV File),Không phải là một giá trị Comma Separated hợp lệ (CSV file)
+Not allowed,Không được phép
+Not allowed from this IP Address,Không được phép từ địa chỉ IP này
+Not allowed to Import,Không được phép nhập khẩu
+Not allowed to access {0} with {1} = {2},Không được phép truy cập {0} với {1} = {2}
+Not allowed to change {0} after submission,Không được phép thay đổi {0} sau khi nộp
+Not allowed to move,Không được phép di chuyển
+Not allowed to reset the password of {0},Không được phép đặt lại mật khẩu của {0}
+Not enough permission to see links.,Không đủ quyền để xem liên kết.
+Not equals,Không bình đẳng
+Not found,Không tìm thấy
+Not in Developer Mode! Set in site_config.json,Không trong chế độ phát triển! Thiết lập trong site_config.json
+Not permitted,Không được phép
+"Note: For best results, images must be of the same size and width must be greater than height.","Lưu ý: Để có kết quả tốt nhất, hình ảnh phải có cùng kích thước và chiều rộng phải lớn hơn chiều cao."
+Note: Other permission rules may also apply,Lưu ý: các quy tắc cho phép khác cũng có thể áp dụng
+Note: maximum attachment size = 1mb,Lưu ý: kích thước tập tin đính kèm tối đa = 1mb
+Nothing to show,Không có gì để hiển thị
+Nothing to show for this selection,Không có gì để hiển thị cho lựa chọn này
+Notification Count,Lượt thông báo
+Notify by Email,Thông báo qua email
+Number Format,Định dạng số
+Old Parent,Cũ Chánh
+On,Bật
+"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).","Một khi bạn đã thiết lập này, người dùng sẽ chỉ là các tài liệu truy cập có thể (ví dụ: Blog Post) nơi liên kết tồn tại (ví dụ: Blogger)."
+Only Administrator allowed to create Query / Script Reports,Quản trị viên chỉ được phép tạo ra truy vấn / Script Báo cáo
+Only Administrator can save a standard report. Please rename and save.,Chỉ Quản trị viên có thể tiết kiệm một báo cáo tiêu chuẩn. Xin đổi tên và lưu lại.
+Only Allow Edit For,Cho phép chỉ sửa Đối với
+Only allowed {0} rows in one import,Chỉ được phép {0} hàng trong một nhập khẩu
+Oops! Something went wrong,Rất tiếc! Một cái gì đó đã đi sai
+Open,Mở
+Open Count,Lượt mở
+Open Sans,Mở Sans
+Open Source Web Applications for the Web,Các ứng dụng web mã nguồn mở cho web
+Open a module or tool,Mở một mô-đun hoặc công cụ
+Open {0},Mở {0}
+Optional: Alert will only be sent if value is a valid email id.,Tùy chọn: Báo sẽ chỉ được gửi nếu giá trị là một id email hợp lệ.
+Optional: Always send to these ids. Each email id on a new row,Tùy chọn: Luôn luôn gửi đến các id. Mỗi email id trên một hàng mới
+Optional: The alert will be sent if this expression is true,Tùy chọn: Các cảnh báo sẽ được gửi nếu biểu thức này là đúng sự thật
+Options,Tùy chọn
+Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType','Liên kết động' loại tùy chọn của trường phải trỏ đến một liên kết với các tùy chọn như Dòng 'DOCTYPE'
+Options Help,Tùy chọn Trợ giúp
+Options for select. Each option on a new line. e.g.: <br>Option 1<br>Option 2<br>Option 3<br>,Lựa chọn để chọn. Mỗi lựa chọn trên một dòng mới. ví dụ như: <br> Lựa chọn 1 Lựa chọn 2 <br> <br> Lựa chọn 3 <br>
+Options must be a valid DocType for field {0} in row {1},Lựa chọn phải là một DOCTYPE hợp lệ cho lĩnh vực {0} trong hàng {1}
+Options not set for link field {0},Tùy chọn không được đặt cho trường liên kết {0}
+Options requried for Link or Table type field {0} in row {1},Tùy chọn requried cho Link hoặc loại Bảng lĩnh vực {0} trong hàng {1}
+Org History,Org Lịch sử
+Org History Heading,Org Lịch sử nhóm
+Original Message,Thông báo ban đầu
+Other,Khác
+Outgoing Email Settings,Email Settings đi
+Outgoing Mail Server,Outgoing Mail Server
+Outgoing Mail Server not specified,Outgoing Mail Server không quy định
+Owner,Chủ sở hữu
+PDF Page Size,PDF Trang Kích
+PDF Settings,Thiết lập định dạng file pdf
+POP3 Mail Server (e.g. pop.gmail.com),POP3 Mail Server (ví dụ pop.gmail.com)
+Page,Trang
+Page #{0} of {1},Trang # {0} {1}
+Page Background,Page Background
+Page HTML,Trang HTML
+Page Header,Tiêu đề trang
+Page Header Background,Tiêu đề trang Background
+Page Header Text,Trang tiêu đề Tiêu đề
+Page Links,Trang Liên kết
+Page Name,Tên trang
+Page Role,Trang Vai trò
+Page Text,Tiêu đề trang
+Page Title,Tiêu đề trang
+Page content,Nội dung trang
+Page not found,Trang không tìm thấy
+Page or Generator,Trang phát hoặc
+Page url name (auto-generated),Tên trang url (tự động tạo ra)
+Parent Label,Nhãn mẹ
+Parent Post,Cha mẹ cuối
+Parent Website Page,Mẹ Trang Trang
+Parent Website Route,Mẹ Trang web Route
+Parent Website Sitemap,Mẹ Trang web Sitemap
+Participants,Các thành phần đối tượng
+Password,Mật khẩu
+Password Updated,Cập nhật mật khẩu
+Password reset instructions have been sent to your email,Hướng dẫn đặt lại mật khẩu đã được gửi đến email của bạn
+Patch,Vá
+Patch Log,Vá Đăng nhập
+Percent,Phần trăm
+Perm Level,Perm Cấp
+Permanently Cancel {0}?,Hủy bỏ vĩnh viễn {0}?
+Permanently Submit {0}?,Gửi vĩnh viễn {0}?
+Permanently delete {0}?,Vĩnh viễn xóa {0}?
+Permission Level,Cấp phép
+Permission Levels,Mức độ cho phép
+Permission Rules,Quy định cho phép
+Permission already set,Cho phép đã được thiết lập
+Permissions,Quyền
+Permissions Settings,Quyền chỉnh
+Permissions are automatically translated to Standard Reports and Searches.,Quyền được tự động dịch để báo cáo và kiếm tiêu chuẩn.
+"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions.","Khoản được thiết lập trên vai trò và các loại tài liệu (gọi là doctypes) bằng cách thiết lập quyền như Đọc, Viết, Tạo, Xóa, Gửi, Hủy bỏ, sửa đổi, Báo cáo, nhập khẩu, xuất khẩu, in, email và tài Set Quyền."
+Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles.,Quyền ở các cấp độ cao hơn là quyền 'Dòng Cấp. Tất cả các lĩnh vực có một 'phép Cấp' thiết lập chống lại họ và các quy tắc quy định tại đó cho phép áp dụng đối với lĩnh vực này. Điều này rất hữu ích trong trường hợp bạn muốn ẩn hoặc làm cho lĩnh vực nhất định chỉ đọc cho vai trò nhất định.
+"Permissions at level 0 are 'Document Level' permissions, i.e. they are primary for access to the document.","Quyền ở mức 0 là quyền ""Tài liệu Cấp ', tức là họ chính để truy cập vào tài liệu."
+Permissions get applied on Users based on what Roles they are assigned.,Quyền được áp dụng trên người sử dụng dựa trên những gì vai trò được giao.
+Permitted Documents For User,Tài liệu được phép Đối với tài
+Person,Chịu Trách Nhiệm
+Personal Info,Thông tin cá nhân
+Phone,Chuyển tệp
+Phone No.,Điện thoại số
+Pick Columns,Chọn cột
+Picture URL,URL hình ảnh
+Pincode,Pincode
+Please attach a file first.,Xin đính kèm một tập tin đầu tiên.
+Please attach a file or set a URL,Xin đính kèm một tập tin hoặc thiết lập một URL
+Please do not change the rows above {0},Xin vui lòng không thay đổi các hàng trên {0}
+Please enable pop-ups,Vui lòng kích hoạt cửa sổ pop-up
+Please enter Event's Date and Time!,Vui lòng nhập tổ chức sự kiện của ngày và thời gian!
+"Please enter both your email and message so that we \
+				can get back to you. Thanks!","Vui lòng nhập cả email và tin nhắn của bạn để chúng tôi \
+ có thể lấy lại cho bạn. Cảm ơn anh!"
+Please enter some text!,Xin vui lòng nhập một số văn bản!
+Please enter title!,Vui lòng nhập tiêu đề!
+Please login to Upvote!,Xin vui lòng đăng nhập vào upvote!
+Please make sure that there are no empty columns in the file.,Hãy chắc chắn rằng không có cột trống trong tập tin.
+Please refresh to get the latest document.,Xin vui lòng làm mới để có được những tài liệu mới nhất.
+Please reply above this line or remove it if you are replying below it,Vui lòng trả lời trên dòng này hoặc loại bỏ nó nếu bạn đang trả lời dưới nó
+Please select a file or url,Vui lòng chọn một tập tin hoặc url
+Please select atleast 1 column from {0} to sort,Vui lòng chọn ít nhất 1 cột từ {0} để sắp xếp
+Please set {0} first,Hãy đặt {0} đầu tiên
+Please specify,Vui lòng chỉ
+Please specify 'Auto Email Id' in Setup > Outgoing Email Settings,Vui lòng ghi rõ 'Id Auto Email' trong Cài đặt> Cài đặt Email Đi
+Please specify Event date and time,Vui lòng ghi rõ ngày và thời gian tổ chức sự kiện
+Please specify doctype,Vui lòng ghi rõ loại tài liệu
+Please specify user,Vui lòng chỉ sử dụng
+Please specify which date field must be checked,Xin vui lòng xác định các lĩnh vực ngày phải được kiểm tra
+Please specify which value field must be checked,Hãy xác định những lĩnh vực giá trị phải được kiểm tra
+Please upload using the same template as download.,Xin vui lòng tải lên bằng cách sử dụng cùng một mẫu như download.
+Plugin,Plugin
+Port,Cổng
+Post,Bài
+Post Publicly,Gửi công khai
+Post Topic,Bài Chủ đề
+Post already exists. Cannot add again!,Bài đã tồn tại. Không thể thêm một lần nữa!
+Post does not exist. Please add post!,Bài không tồn tại. Xin vui lòng thêm bài!
+Post to user,Gửi cho người sử dụng
+Posts,Bài viết
+Previous Record,Ghi lại trước
+Primary,Vũ khí chinh
+Print,In
+Print Format,Định dạng in
+Print Format Help,Định dạng in Trợ giúp
+Print Format Type,Định dạng in Loại
+Print Format {0} does not exist,Định dạng in {0} không tồn tại
+Print Format {0} is disabled,Định dạng in {0} bị vô hiệu hóa
+Print Hide,In Ẩn
+Print Settings,Cài đặt In
+Print Style,In US
+Print Style Preview,In US Preview
+Print Width,Chiều rộng in
+"Print with Letterhead, unless unchecked in a particular Document","In với đề thư, trừ khi không được kiểm soát trong một tài liệu đặc biệt"
+Print...,In ...
+Printing and Branding,In ấn và xây dựng thương hiệu
+Priority,Ưu tiên
+Private,Riêng
+Properties,Thuộc tính
+Property,Đặc tính
+Property Setter,Setter tài sản
+Property Type,Loại bất động sản
+Public,Công bố
+Published,Công bố
+Published On,Được công bố trên
+Published on website at: {0},Công bố trên trang web tại: {0}
+Pull Emails from the Inbox and attach them as Communication records (for known contacts).,Kéo email từ Hộp thư đến và đính kèm chúng như hồ sơ Truyền thông (cho địa chỉ liên lạc được biết đến).
+Query,Truy vấn
+Query Options,Tùy chọn truy vấn
+Query Report,Báo cáo truy vấn
+Query must be a SELECT,Truy vấn phải là một SELECT
+Quick Help for Setting Permissions,Trợ giúp nhanh cho Thiết Quyền
+Quick Help for User Permissions,Trợ giúp nhanh cho người dùng Quyền
+Re-open,Mở lại
+Read,Đọc
+Read Only,Chỉ đọc
+Received,Nhận được
+Recipient,Người nhận
+Recipients,Người nhận
+Record does not exist,Hồ sơ không tồn tại
+Ref DocType,DocType ref
+Ref Name,Tài liệu tham khảo Tên
+Ref Type,Tài liệu tham khảo Loại
+Reference,Tham chiếu
+Reference DocName,Tài liệu tham khảo DocName
+Reference DocType,Tài liệu tham khảo DocType
+Reference Name,Tên tài liệu tham khảo
+Reference Type,Loại tài liệu tham khảo
+Refresh,Cập nhật
+Refreshing...,Làm mới ...
+Registered but disabled.,Đăng ký nhưng bị tàn tật.
+Registration Details Emailed.,Đăng ký chi tiết gửi bằng email.
+Reload Page,Cập nhật lại trang
+Remove Bookmark,Loại bỏ Bookmark
+Remove all customizations?,Loại bỏ tất cả các tùy chỉnh?
+Rename many items by uploading a .csv file.,Đổi tên nhiều mặt hàng bằng cách tải lên một tập tin csv..
+Rename...,Đổi tên ...
+Repeat On,Lặp lại Mở
+Repeat Till,Đến lặp lại
+Repeat this Event,Lặp lại sự kiện này
+Replies,Trả lời
+Report,Báo cáo
+Report Builder,Báo cáo Builder
+Report Builder reports are managed directly by the report builder. Nothing to do.,Báo cáo báo cáo Builder được quản lý trực tiếp của những người xây dựng báo cáo. Không có gì để làm.
+Report Hide,Báo cáo Ẩn
+Report Name,Tên báo cáo
+Report Type,Loại báo cáo
+Report an Issue,Báo cho quản trị
+Report cannot be set for Single types,Báo cáo không thể được thiết lập cho các loại đơn
+Report this issue,Báo cáo vấn đề này
+Report was not saved (there were errors),Báo cáo không được lưu (có lỗi)
+Reqd,Reqd
+Reset Password Key,Reset Password chính
+Reset Permissions for {0}?,Thiết lập lại Quyền cho {0}?
+Response,Phản ứng
+Restrict IP,Hạn chế IP
+Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111),Hạn chế người dùng từ địa chỉ IP này mà thôi. Nhiều địa chỉ IP có thể được thêm bằng cách tách biệt bằng dấu phẩy. Cũng chấp nhận địa chỉ IP một phần như (111.111.111)
+Right,Được rồi.
+Role,Vai trò
+Role Name,Tên vai trò
+Role Permissions Manager,Vai trò Quyền Giám đốc
+Role and Level,Vai trò và Cấp
+Role exists,Vai trò tồn tại
+Roles,Vai trò
+Roles Assigned,Vai trò được chỉ định
+Roles Assigned To User,Vai trò phân công cho tài
+Roles HTML,Vai trò HTML
+Roles can be set for users from their User page.,Vai trò có thể được thiết lập cho người sử dụng từ trang tài của họ.
+Root {0} cannot be deleted,Gốc {0} không thể bị xóa
+Row,Số luồng
+Row #{0}:,Hàng # {0}:
+Rules defining transition of state in the workflow.,Quy định việc xác định quá trình chuyển đổi của nhà nước trong các công việc.
+"Rules for how states are transitions, like next state and which role is allowed to change state etc.","Qui tắc để các quốc gia là quá trình chuyển đổi, như trạng thái tiếp theo và đó vai trò được phép thay đổi trạng thái, vv"
+Run scheduled jobs only if checked,Chạy các công việc dự kiến chỉ khi kiểm tra
+Run the report first,Chạy báo cáo đầu tiên
+SMTP Server (e.g. smtp.gmail.com),SMTP Server (ví dụ smtp.gmail.com)
+Sales,Bán hàng
+Same file has already been attached to the record,Cùng một tập tin đã được gắn liền với kỷ lục
+Sample,Mẫu
+Saturday,Thứ bảy
+Save,Lưu
+Scheduler Log,Lịch Đăng nhập
+Script,script
+Script Report,Kịch bản Báo cáo
+Script Type,Loại kịch bản
+Search,Tìm kiếm
+Search Fields,Tìm kiếm Fields
+Search in a document type,Tìm kiếm trong một loại tài liệu
+Search or type a command,Tìm kiếm hoặc gõ lệnh
+Section Break,Phần phá vỡ
+Security,Bảo mật
+Security Settings,Security Settings
+Select,Chọn
+Select All,Chọn tất cả
+Select Attachments,Chọn File đính kèm
+Select Document Type,Chọn kiểu tài liệu
+Select Document Type or Role to start.,Hãy chọn loại tài liệu hoặc Vai trò để bắt đầu.
+Select Print Format,Chọn In Định dạng
+Select Report Name,Chọn Tên Báo cáo
+Select Role,Chọn Vai trò
+Select To Download:,Để chọn Download:
+Select Type,Hãy chọn loại
+Select User or DocType to start.,Chọn người dùng hoặc DocType để bắt đầu.
+Select a Banner Image first.,Chọn một Banner Hình ảnh đầu tiên.
+Select an image of approx width 150px with a transparent background for best results.,Chọn một hình ảnh của khoảng chiều rộng 150px với nền trong suốt cho kết quả tốt nhất.
+Select dates to create a new ,
+"Select modules to be shown (based on permission). If hidden, they will be hidden for all users.","Chọn module được hiển thị (dựa trên sự cho phép). Nếu ẩn, họ sẽ được ẩn cho tất cả người dùng."
+Select or drag across time slots to create a new event.,Chọn hoặc kéo trên các khe thời gian để tạo ra một sự kiện mới.
+"Select target = ""_blank"" to open in a new page.","Chọn target = ""_blank"" để mở một trang mới."
+Select the label after which you want to insert new field.,Chọn nhãn sau đó bạn muốn chèn lĩnh vực mới.
+Send,Gửi
+Send Alert On,Gửi báo Mở
+Send As Email,Khi gửi Email
+Send Email,Gởi thư
+Send Email Print Attachments as PDF (Recommended),Gửi Email In File đính kèm dưới dạng PDF (Recommended)
+Send Me A Copy,Nhớ gửi Bản sao
+Send Password,Gửi Mật khẩu
+Send Print as PDF,Gửi In PDF
+Send alert if date matches this field's value,Gửi cảnh báo nếu ngày phù hợp với giá trị của lĩnh vực này
+Send alert if this field's value changes,Gửi cảnh báo nếu thay đổi giá trị của lĩnh vực này
+Send an email reminder in the morning,Gửi một email nhắc nhở trong buổi sáng
+Send download link of a recent backup to System Managers,Gửi liên kết tải về một bản sao lưu gần đây Hệ thống quản lý
+Send enquiries to this email address,Gửi yêu cầu đến địa chỉ email này
+Sender,Người gửi
+Sent,Đã gửi
+Sent Mail,Thư gửi
+Sent Quotation,Báo giá gửi
+Sent or Received,Gửi hoặc nhận
+Series,Tùng thư
+Series {0} already used in {1},Loạt {0} đã được sử dụng trong {1}
+Server,Máy chủ
+Server & Credentials,Máy chủ và Giây chứng nhận
+Server Error: Please check your server logs or contact tech support.,Server Error: Vui lòng kiểm tra nhật ký máy chủ của bạn hoặc hỗ trợ liên lạc công nghệ cao.
+Session Expired. Logging you out,Phiên hết hạn. Đăng nhập bạn ra ngoài
+Session Expiry,Phiên hết hạn
+Session Expiry in Hours e.g. 06:00,Phiên hết hạn trong giờ ví dụ 06:00
+Session Expiry must be in format {0},Phiên hết hạn phải có dạng {0}
+Set Banner from Image,Đặt Banner từ hình ảnh
+Set Link,Thiết lập liên kết
+Set Login and Password if authentication is required.,Bộ nhập và mật khẩu nếu yêu cầu xác nhận.
+Set Only Once,Chỉ khi thiết lập
+Set Password,Đặt mật khẩu
+Set Permissions on Document Types and Roles,Set Quyền trên các loại tài liệu và vai trò
+Set Permissions per User,Set Quyền cho mỗi tài
+Set User Permissions,Thiết lập Quyền tài
+Set Value,Thiết lập giá trị
+"Set default format, page size, print style etc.","Thiết lập định dạng mặc định, kích thước trang, phong cách in vv"
+Set numbering series for transactions.,Thiết lập đánh số hàng loạt cho các giao dịch.
+Set outgoing mail server.,Thiết lập máy chủ thư gửi đi.
+Settings,Cài đặt
+Settings for About Us Page.,Cài đặt cho Giới thiệu trang.
+Settings for Contact Us Page.,Cài đặt cho Liên Lạc Trang.
+Setup,Cài đặt
+Setup > User,Thiết lập> Người dùng
+Setup > User Permissions Manager,Thiết lập> Người dùng Quyền Giám đốc
+Setup Email Alert based on various criteria.,Thiết lập thông báo email dựa trên các tiêu chí khác nhau.
+Setup of fonts and background.,Thiết lập các phông chữ và nền.
+"Setup of top navigation bar, footer and logo.","Thiết lập các đầu thanh điều hướng, chân và logo."
+Short Bio,Bio ngắn
+Short Name,Tên viết tắt
+Shortcut,Đường tắt
+Show / Hide Modules,Show / Hide Modules
+Show Print First,Hiện In Đầu tiên
+Show Tags,Chương trình khóa
+Show or hide modules globally.,Hiển thị hoặc ẩn các mô-đun trên toàn cầu.
+Show rows with zero values,Hiển thị các hàng với giá trị bằng không
+Show tags,Chương trình thẻ
+Show this field as title,Hiện lĩnh vực này như tiêu đề
+Showing only for (if not empty),Chỉ hiển thị cho (nếu không trống)
+Sidebar,Sidebar
+Sidebar Items,Mục bên
+Sidebar Links for Home Page only,Liên kết bên cho Home Page chỉ
+Sign Up,Ghi tên
+Sign in,Đăng nhập
+Sign up,Đăng ký
+Single Post (article).,Single Post (bài viết).
+Single Types have only one record no tables associated. Values are stored in tabSingles,Các loại duy nhất chỉ có một kỷ lục không có bảng liên quan. Giá trị được lưu trữ trong tabSingles
+Sitemap Browser,Sơ đồ trình duyệt
+Slideshow,Ảnh Slideshow
+Slideshow Items,Slideshow mục
+Slideshow Name,Tên slideshow
+Small Text,Tiêu đề nhỏ
+Social Login Keys,Đăng nhập xã hội phím
+Solid background color (default light gray),Màu nền tảng vững chắc (ánh sáng mặc định màu xám)
+Sorry we were unable to find what you were looking for.,Xin lỗi chúng tôi không thể tìm thấy những gì bạn đang tìm kiếm.
+Sorry you are not permitted to view this page.,Xin lỗi bạn không được phép xem trang này.
+Sort By,Sắp xếp theo
+Sort Field,Sắp xếp Dòng
+Sort Order,Xếp theo thứ tự
+Standard,Tiêu chuẩn
+Standard Print Format cannot be updated,Tiêu chuẩn In Định dạng không thể được cập nhật
+Standard Reply,Tiêu chuẩn Trả lời
+Standard Reports,Báo cáo tiêu chuẩn
+Standard replies to common queries.,Tiêu chuẩn để trả lời các truy vấn thông thường.
+Start Report For,Báo cáo bắt đầu Đối với
+Starts on,Bắt đầu từ ngày
+State,Trạng thái
+States,Hoa
+"States for workflow (e.g. Draft, Approved, Cancelled).","Hoa cho công việc (ví dụ như Dự thảo, phê duyệt, hủy bỏ)."
+Static File Timestamp,Static File Dấu thời gian
+Status,Trạng thái
+Step 1: Set the name and save.,Bước 1: Đặt tên và lưu lại.
+Step 2: Set Letterhead content.,Bước 2: Thiết lập nội dung Giấy tiêu.
+Style,Thời trang
+Style Settings,Thiết lập phong cách
+"Style represents the button color: Success - Green, Danger - Red, Inverse - Black, Primary - Dark Blue, Info - Light Blue, Warning - Orange","Phong cách đại diện cho các nút màu: Thành công - Green, nguy hiểm - Đỏ, Inverse - Black, Tiểu học - Dark Blue, Thông tin - Light Blue, Cảnh báo - Orange"
+Sub-domain provided by erpnext.com,Sub-domain cung cấp bởi erpnext.com
+Subdomain,Tên miền phụ
+Subject,Chủ đề
+Submit,Gửi
+Submit an Issue,Nộp cho quản trị
+Submitted,Đã lần gửi
+Submitted Document cannot be converted back to draft. Transition row {0},Tài liệu gửi không thể được chuyển đổi trở lại dự thảo. Hàng chuyển {0}
+Success,Thành công
+Suggestion,Đề nghị
+Sunday,Chủ Nhật
+Switch to Website,Chuyển sang trang web
+Sync Inbox,Đồng bộ Hộp thư
+System,Hệ thống
+System Settings,Cài đặt hệ thống
+System User,Hệ thống tài
+System and Website Users,Hệ thống và Website Người dùng
+System generated mails will be sent from this email id.,Thư hệ thống tạo ra sẽ được gửi từ email id này.
+Table,Bảng
+Table {0} cannot be empty,Bảng {0} không thể để trống
+Tag,Tag
+Tag Name,Tag Tên
+Tags,Chọn mục
+Tahoma,Tahoma
+Target,File thiết kế nguồn
+Tasks,Công việc
+Team Members,Nhóm thành viên
+Team Members Heading,Nhóm thành viên nhóm
+Template,Mẫu
+Template Pages cannot be moved,Trang mẫu không thể được di chuyển
+Test,K.tra
+Test Runner,Test Runner
+Text,Vãn bản
+Text Align,Văn bản Align
+Text Editor,Text Editor
+Thank you for your message,Cảm ơn bạn đã tin nhắn của bạn
+The name of your company / website as you want to appear on browser title bar. All pages will have this as the prefix to the title.,Tên của công ty / trang web của bạn như bạn muốn xuất hiện trên thanh tiêu đề trình duyệt. Tất cả các trang sẽ có điều này là tiền tố để tiêu đề.
+The system provides many pre-defined roles. You can add new roles to set finer permissions.,Hệ thống cung cấp nhiều vai trò được xác định trước. Bạn có thể thêm vai trò mới để thiết lập quyền tốt hơn.
+Then By (optional),Sau đó bởi (tùy chọn)
+There should remain at least one System Manager,Có nên vẫn còn ít nhất một hệ thống quản lý
+There were errors,Có một số lỗi
+There were errors while sending email. Please try again.,Có lỗi khi gửi email. Vui lòng thử lại sau.
+"There were some errors setting the name, please contact the administrator","Đã có một số lỗi thiết lập tên, xin vui lòng liên hệ với quản trị"
+"These permissions will apply for all transactions where the permitted record is linked. For example, if Company C is added to User Permissions of user X, user X will only be able to see transactions that has company C as a linked value.","Các điều khoản sẽ được áp dụng cho tất cả các giao dịch mà các bản ghi cho phép được liên kết. Ví dụ, nếu Công ty C được thêm vào danh Quyền của người sử dụng X, người sử dụng X sẽ chỉ có thể nhìn thấy các giao dịch có công ty C như là một giá trị được liên kết."
+These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,Những giá trị này sẽ được tự động cập nhật trong các giao dịch và cũng sẽ hữu ích để hạn chế quyền truy cập cho người dùng này về giao dịch có chứa các giá trị.
+"These will also be set as default values for those links, if only one such permission record is defined.","Đây cũng sẽ được thiết lập như là giá trị mặc định cho các liên kết này, nếu chỉ có một bản ghi cho phép như được định nghĩa."
+Third Party Authentication,Bên thứ ba xác thực
+"This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>
+myfield
+eval:doc.myfield=='My Value'<br>
+eval:doc.age>18","Lĩnh vực này sẽ chỉ xuất hiện nếu fieldname định nghĩa ở đây có giá trị hoặc các quy định là đúng (ví dụ): <br> 
+ myfield 
+ eval: doc.myfield == 'Giá trị của tôi' <br> 
+ eval: doc.age> 18"
+This goes above the slideshow.,Điều này đi trên các slideshow.
+This is PERMANENT action and you cannot undo. Continue?,Đây là hành động thường xuyên và bạn không thể hoàn tác. Tiếp tục?
+"This is a standard format. To make changes, please copy it make make a new format.","Đây là một định dạng chuẩn. Để thay đổi, hãy chép nó làm cho thực hiện một định dạng mới."
+This is permanent action and you cannot undo. Continue?,Đây là hành động thường xuyên và bạn không thể hoàn tác. Tiếp tục?
+This must be checked if Style Settings are applicable,Điều này phải được kiểm tra nếu thiết lập phong cách được áp dụng
+This role update User Permissions for a user,Vai trò này Quyền cập nhật người dùng cho một người sử dụng
+Thursday,Thứ năm
+Tile,Ngói
+Time,Thời gian
+Time Zone,Múi giờ
+Timezone,Múi giờ
+Title,Tiêu đề
+Title / headline of your page,Tiêu đề / tiêu đề của trang của bạn
+Title Case,Trường hợp tiêu đề
+Title Field,Dòng tiêu đề
+Title Prefix,Tiêu đề Tiền tố
+Title field must be a valid fieldname,Lĩnh vực tiêu đề phải là một fieldname hợp lệ
+Title is required,Tiêu đề là cần thiết
+To,Để
+To Do,Để làm
+"To format columns, give column labels in the query.","Để định dạng cột, cho nhãn cột trong truy vấn."
+"To give acess to a role for only specific records, check the 'Apply User Permissions'. User Permissions are used to limit users with such role to specific records.","Để cung cấp cho acess để một vai trò chỉ ghi cụ thể, kiểm tra 'Áp dụng tài Quyền. Người sử dụng Quyền được sử dụng để hạn chế người sử dụng với vai trò như các hồ sơ cụ thể."
+"To run a test add the module name in the route after '{0}'. For example, {1}","Để chạy một thử nghiệm thêm vào tên module tuyến đường sau khi '{0}'. Ví dụ, {1}"
+ToDo,Việc cần làm
+Too many writes in one request. Please send smaller requests,Quá nhiều viết trong một yêu cầu. Xin vui lòng gửi yêu cầu nhỏ hơn
+Top Bar,Top Bar
+Top Bar Background,Top Bar nền
+Top Bar Item,Top Bar mục
+Top Bar Items,Top Bar mục
+Top Bar Text,Top Bar Tiêu đề
+Top Bar text and background is same color. Please change.,Bar văn bản và nền hàng đầu là cùng một màu sắc. Hãy thay đổi.
+Transaction,cô lập Giao dịch
+Transition Rules,Quy định chuyển tiếp
+Tuesday,Thứ ba
+Tweet will be shared via your user account (if specified),Tweet sẽ được chia sẻ thông qua tài khoản người dùng của bạn (nếu được chỉ định)
+Twitter Share,Twitter Chia sẻ
+Twitter Share via,Twitter Chia sẻ qua
+Type,Loại
+Unable to find attachment {0},Không thể tìm thấy tập tin đính kèm {0}
+Unable to load: {0},Không thể tải: {0}
+Unable to open attached file. Please try again.,Không thể mở tập tin đính kèm. Vui lòng thử lại sau.
+Unable to send emails at this time,Không thể gửi email vào thời điểm này
+Unknown Column: {0},Cột không rõ: {0}
+"Unknown file encoding. Tried utf-8, windows-1250, windows-1252.","Không biết mã hóa tập tin. Cố gắng UTF-8, các cửa sổ-1250, các cửa sổ-1252."
+Unread Messages,Tin nhắn chưa đọc
+Unsubscribe,Hủy đăng ký
+Unsubscribed,Bỏ đăng ký
+Upcoming Events for Today,Sự kiện sắp tới cho Hôm nay
+Update,Cập nhật
+Update Field,Cập nhật Dòng
+Update Value,Cập nhật giá trị gia tăng
+Updated,Xin vui lòng viết một cái gì đó
+Upload,Tải lên
+Upload Attachment,Tải lên tập tin đính kèm
+Upload CSV file containing all user permissions in the same format as Download.,Tải lên tập tin CSV có chứa tất cả các quyền của người dùng trong định dạng giống như Download.
+Upload a file,Tải lên một tập tin
+Upload and Import,Tải lên và nhập khẩu
+Upload and Sync,Tải lên và Sync
+Uploading...,Tải lên ...
+Upvotes,Upvotes
+Use TLS,Sử dụng TLS
+User,Người dùng
+User Cannot Create,Người sử dụng không thể tạo
+User Cannot Search,Người sử dụng không thể tìm kiếm
+User Defaults,Mặc định người sử dụng
+User ID of a blog writer.,ID người dùng của một nhà văn blog.
+User Image,Sử dụng hình ảnh
+User Permission,Giấy phép sử dụng
+User Permissions,Người sử dụng Quyền
+User Permissions Manager,Người sử dụng Quyền Giám đốc
+User Roles,Vai trò người sử dụng
+User Tags,Sử dụng khóa
+User Type,Loại sử dụng
+"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ",
+User Vote,Người sử dụng bình chọn
+User not allowed to delete {0}: {1},Người sử dụng không được phép xóa {0}: {1}
+User permissions should not apply for this Link,Cho phép người dùng không nên áp dụng cho các Liên kết này
+User {0} cannot be deleted,Người sử dụng {0} không thể bị xóa
+User {0} cannot be disabled,Người sử dụng {0} không thể bị vô hiệu hóa
+User {0} cannot be renamed,Người sử dụng {0} không thể đổi tên
+User {0} does not exist,Người sử dụng {0} không tồn tại
+UserRole,UserRole
+Users and Permissions,Người sử dụng và Quyền
+Users with role {0}:,Người sử dụng với vai trò {0}:
+Valid Login id required.,Đăng nhập id hợp lệ yêu cầu.
+Valid email and name required,Email hợp lệ và tên yêu cầu
+Value,Giá trị
+Value Change,Thay đổi giá trị
+Value Changed,Thay đổi giá trị
+Value cannot be changed for {0},Giá trị không thể thay đổi cho {0}
+Value for a check field can be either 0 or 1,Giá trị cho một lĩnh vực kiểm tra có thể là 0 hoặc 1
+Value missing for,Giá trị mất tích
+Verdana,Verdana
+Version,Phiên bản
+Version restored,Phiên bản phục hồi
+View or manage Website Route tree.,Xem hoặc quản lý cây Trang web lộ.
+Visit,Lần
+Warning,Cảnh báo
+Warning: This Print Format is in old style and cannot be generated via the API.,Cảnh báo: Định dạng in này là theo phong cách cũ và không thể được tạo ra thông qua các API.
+Web Page,Trang web
+Web Site Forum Page.,Trang web Diễn đàn Trang.
+Website,Trang web
+Website Group,Nhóm trang web
+Website Route,Trang web Route
+Website Route Permission,Trang web Route phép
+Website Script,Trang web Script
+Website Settings,Thiết lập trang web
+Website Slideshow,Xem trình diễn trang web
+Website Slideshow Item,Xem trình diễn trang web mục
+Website User,Website của người dùng
+Wednesday,Thứ tư
+Welcome email sent,Email chào mừng gửi
+"When you Amend a document after Cancel and save it, it will get a new number that is a version of the old number.","Khi bạn sửa đổi một tài liệu sau khi Hủy bỏ và lưu nó, nó sẽ nhận được một số mới mà là một phiên bản của số cũ."
+Width,Chiều rộng
+Will be used in url (usually first name).,Sẽ được sử dụng trong url (tên thường đầu tiên).
+With Groups,Với các nhóm
+With Ledgers,Với Ledgers
+With Letterhead,Với đề thư
+Workflow,Quy trình làm việc
+Workflow Action,Công việc hành động
+Workflow Action Name,Công việc hành động Tên
+Workflow Document State,Công việc tài liệu nhà nước
+Workflow Document States,Công việc tài liệu Hoa
+Workflow Name,Tên công việc
+Workflow State,Công việc nhà nước
+Workflow State Field,Công việc nhà nước Dòng
+Workflow Transition,Công việc chuyển tiếp
+Workflow Transitions,Công việc chuyển tiếp
+Workflow will start after saving.,Quy trình làm việc sẽ bắt đầu sau khi tiết kiệm.
+Write,Viết
+Write a Python file in the same folder where this is saved and return column and result.,Viết một tập tin Python trong cùng thư mục này được lưu lại và quay trở lại cột và kết quả.
+Write a SELECT query. Note result is not paged (all data is sent in one go).,Viết một truy vấn SELECT. Lưu ý kết quả là không đánh số trang (tất cả các dữ liệu được gửi trong một đi).
+Write titles and introductions to your blog.,Viết các tiêu đề và giới thiệu blog của bạn.
+Writers Introduction,Giới thiệu nhà văn
+Year,Năm
+Yes,Đồng ý
+Yesterday,Hôm qua
+You are not allowed to create / edit reports,Bạn không được phép tạo / chỉnh sửa báo cáo
+You are not allowed to export the data of: {0}. Downloading empty template.,Bạn không được phép để xuất dữ liệu của: {0}. Tải về mẫu sản phẩm nào.
+You are not allowed to export this report,Bạn không được phép xuất khẩu báo cáo này
+You are not allowed to print this document,Bạn không được phép để in tài liệu này
+You are not allowed to send emails related to this document,Bạn không được phép gửi email liên quan đến tài liệu này
+"You can change Submitted documents by cancelling them and then, amending them.","Bạn có thể thay đổi các văn bản Gửi bởi hủy bỏ chúng và sau đó, sửa đổi chúng."
+You can use Customize Form to set levels on fields.,Bạn có thể sử dụng Tùy chỉnh các mẫu để thiết lập mức độ trên các lĩnh vực.
+You can use wildcard %,Bạn có thể sử dụng ký tự đại diện%
+You cannot install this app,Bạn không thể cài đặt ứng dụng này
+You have unsaved changes in this form. Please save before you continue.,Bạn có thay đổi chưa được lưu trong mẫu này. Xin vui lòng lưu trước khi tiếp tục.
+You need to be logged in and have System Manager Role to be able to access backups.,Bạn cần phải đăng nhập và có hệ thống quản lý Vai trò để có thể truy cập vào các bản sao lưu.
+You need write permission to rename,Bạn cần viết phép đổi tên
+"You seem to have written your name instead of your email. \
+					Please enter a valid email address so that we can get back.","Bạn dường như đã viết tên của bạn thay vì email của bạn. \
+ Xin vui lòng nhập một địa chỉ email hợp lệ để chúng tôi có thể quay lại."
+"Your download is being built, this may take a few moments...","Tải về của bạn đang được xây dựng, điều này có thể mất một vài phút ..."
+[Label]:[Field Type]/[Options]:[Width],[Nhãn]: [Dòng Type] / [Options]: [Chiều rộng]
+[Optional] Send the email X days in advance of the specified date. 0 equals same day.,[Tùy chọn] Gửi email ngày X trước ngày quy định. 0 bằng cùng một ngày.
+add your own CSS (careful!),thêm CSS của riêng bạn (careful!)
+adjust,điều chỉnh
+align-center,sắp xếp trung tâm
+align-justify,sắp xếp biện minh cho
+align-left,sắp xếp bên trái
+align-right,sắp xếp bên phải
+and,và
+arrow-down,mũi tên xuống
+arrow-left,mũi tên bên trái
+arrow-right,mũi tên bên phải
+arrow-up,mũi tên lên
+asterisk,dấu
+backward,lạc hậu
+ban-circle,ban-vòng tròn
+barcode,mã vạch
+beginning with,bắt đầu với
+bell,chuông
+bold,liều lĩnh táo bạo trơ trẽn
+book,cuốn sách
+bookmark,đánh dấu
+briefcase,cặp
+bullhorn,bullhorn
+calendar,lịch
+camera,máy ảnh
+certificate,Giấy chứng nhận
+check,Kiểm tra
+chevron-down,Chevron xuống
+chevron-left,Chevron bên trái
+chevron-right,Chevron phải
+chevron-up,Chevron-up
+circle-arrow-down,vòng tròn mũi tên xuống
+circle-arrow-left,vòng tròn mũi tên bên trái
+circle-arrow-right,vòng tròn mũi tên bên phải
+circle-arrow-up,vòng tròn mũi tên lên
+cog,răng cưa
+comment,bình luận
+comments,bình luận
+dd-mm-yyyy,dd-mm-yyyy
+dd.mm.yyyy,DD.MM.YYYY
+dd/mm/yyyy,dd / mm / yyyy
+download,tải
+download-alt,tải-alt
+edit,chỉnh sửa
+eject,đuổi ra
+envelope,phong bì
+exclamation-sign,chấm than-dấu
+eye-close,mắt gần
+eye-open,mắt mở
+facetime-video,FaceTime video
+fast-backward,nhanh chóng lạc hậu
+fast-forward,nhanh về phía trước
+file,file
+film,quay phim
+filter,bộ lọc
+fire,lửa
+flag,cờ
+folder-close,thư mục đóng
+folder-open,thư mục mở
+font,font chữ
+forward,về phía trước
+found,tìm thấy
+fullscreen,toàn màn hình
+gift,ban cho
+glass,ly
+globe,toàn cầu
+hand-down,tay xuống
+hand-left,tay trái
+hand-right,tay phải
+hand-up,tay lên
+hdd,hdd
+headphones,tai nghe
+heart,tim
+home,trang chủ
+icon,biểu tượng
+inbox,hộp thư
+indent-left,thụt lề trái
+indent-right,thụt lề bên phải
+info-sign,thông tin-dấu
+is not allowed.,không được phép.
+italic,nghiêng
+leaf,lá
+lft,lft
+list,Danh sách cấm
+list-alt,danh sách-alt
+lock,khóa
+lowercase,chữ thường
+magnet,nam châm
+map-marker,bản đồ đánh dấu
+memcached is not working / stopped. Please start memcached for best results.,memcached không hoạt động / dừng lại. Hãy bắt đầu memcached cho kết quả tốt nhất.
+minus,trừ
+minus-sign,trừ-dấu
+mm-dd-yyyy,mm-dd-yyyy
+mm/dd/yyyy,dd / mm / yyyy
+move,di chuyển
+music,nhạc
+none of,không có
+off,tắt
+ok,ok
+ok-circle,ok vòng tròn
+ok-sign,ok-dấu
+one of,một trong
+or,hoặc
+pause,tạm dừng
+pencil,bút chì
+picture,phim
+plane,phi cơ
+play,chơi
+play-circle,chơi vòng tròn
+plus,thêm
+plus-sign,dấu cộng
+print,in
+qrcode,qrcode
+question-sign,câu hỏi-dấu
+random,ngâu nhiên
+refresh,làm mới
+remove,loại bỏ
+remove-circle,loại bỏ vòng tròn
+remove-sign,loại bỏ dấu hiệu-
+repeat,lặp lại
+resize-full,thay đổi kích thước đầy
+resize-horizontal,thay đổi kích thước-ngang
+resize-small,thay đổi kích thước nhỏ
+resize-vertical,thay đổi kích thước thẳng đứng
+retweet,retweet
+rgt,rgt
+road,đường
+screenshot,ảnh chụp màn hình
+search,tìm kiếm
+share,chia
+share-alt,cổ alt
+shopping-cart,mua sắm giỏ hàng
+signal,tín hiệu
+star,ngôi sao
+star-empty,sao có sản phẩm nào
+step-backward,bước lùi
+step-forward,bước về phía trước
+stop,dừng
+tag,tag
+tags,Từ khóa
+"target = ""_blank""","target = ""_blank"""
+tasks,nhiệm vụ
+text-height,văn bản chiều cao
+text-width,văn bản rộng
+th,thứ
+th-large,thứ lớn
+th-list,th-danh sách
+thumbs-down,ngón tay cái xuống
+thumbs-up,ngón tay cái lên
+time,thời gian
+tint,gạch sọc
+to,để
+trash,thùng rác
+upload,tải lên
+use % as wildcard,sử dụng ký tự đại diện% như
+user,người sử dụng
+user_image_show,user_image_show
+values and dates,giá trị và ngày
+values separated by commas,giá trị cách nhau bằng dấu phẩy
+volume-down,khối lượng xuống
+volume-off,khối lượng-off
+volume-up,khối lượng-up
+warning-sign,cảnh báo-dấu
+wrench,cờ lê
+yyyy-mm-dd,yyyy-mm-dd
+zoom-in,phóng to-in
+zoom-out,Zoom-out
+{0} List,{0} Danh sách
+{0} added,{0} thêm
+{0} by {1},{0} bởi {1}
+{0} cannot be set for Single types,{0} không thể được thiết lập cho các loại đơn
+{0} does not exist in row {1},{0} không tồn tại trong hàng {1}
+{0} in row {1} cannot have both URL and child items,{0} trong hàng {1} không thể có cả hai URL và các mục con
+{0} is not a valid email id,{0} không phải là một id email hợp lệ
+{0} is required,Cho phép Giỏ hàng
+{0} is saved,{0} được lưu
+{0} must be one of {1},{0} phải là một trong {1}
+{0} must be set first,{0} phải được thiết lập đầu tiên
+{0} not a valid State,{0} không phải là một nhà nước hợp lệ
+{0} not allowed in fieldname {1},{0} không được phép vào fieldname {1}
+{0} not allowed in name,{0} không được phép vào tên
+{0} not allowed to be renamed,{0} không được phép đổi tên
+{0} updated,{0} cập nhật
+{0} {1} already exists,{0} {1} đã tồn tại
+"{0} {1} cannot be ""{2}"". It should be one of ""{3}""","{0} {1} không thể ""{2}"". Nó phải là một trong những ""{3}"""
+{0} {1} cannot be a leaf node as it has children,{0} {1} không thể là một nút lá vì nó có trẻ em
+"{0} {1} does not exist, select a new target to merge","{0} {1} không tồn tại, hãy chọn một mục tiêu mới để hợp nhất"
+{0} {1} not found,{0} {1} không tìm thấy
+{0} {1}: Submitted Record cannot be deleted.,{0} {1}: Ghi lại Đăng không thể bị xóa.
+{0}: Cannot set Amend without Cancel,{0}: Không thể thiết lập mà không cần sửa đổi Hủy bỏ
+{0}: Cannot set Assign Amend if not Submittable,{0}: Không thể thiết lập Chỉ định sửa đổi nếu không Submittable
+{0}: Cannot set Assign Submit if not Submittable,{0}: Không thể thiết lập Assign Gửi nếu không Submittable
+{0}: Cannot set Cancel without Submit,{0}: Không thể thiết lập Hủy bỏ mà không Gửi
+{0}: Cannot set Import without Create,{0}: Không thể thiết lập mà không cần nhập Tạo
+"{0}: Cannot set Submit, Cancel, Amend without Write","{0}: Không thể thiết lập Gửi, Hủy bỏ, sửa đổi mà không Viết"
+{0}: Cannot set import as {1} is not importable,{0}: Không thể thiết lập nhập khẩu như {1} không phải là importable
+"{0}: Create, Submit, Cancel and Amend only valid at level 0","{0}: Tạo, Gửi, huỷ bỏ và sửa đổi chỉ có giá trị ở mức 0"
+{0}: No basic permissions set,{0}: Không có quyền thiết lập cơ bản
+"{0}: Only one rule allowed with the same Role, Level and Apply User Permissions","{0}: Chỉ có một quy tắc cho phép với vai trò tương tự, Cấp và Áp dụng tài Quyền"
+{0}: Permission at level 0 must be set before higher levels are set,{0}: Quyền ở mức 0 phải được thiết lập trước khi cấp độ cao hơn được thiết lập
+{app_title},{} App_title

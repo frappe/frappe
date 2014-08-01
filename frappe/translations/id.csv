@@ -1,1406 +1,1473 @@
  by Role ,
  is not set,
-"""Company History""",tangan kiri
-"""Team Members"" or ""Management""","Download sedang dibangun, ini mungkin memerlukan beberapa saat ..."
-'In List View' not allowed for type {0} in row {1},Tambahkan beberapa baris
-0 - Draft; 1 - Submitted; 2 - Cancelled,resize-horisontal
-0 is highest,Arial
-"000 is black, fff is white",Halaman web konten.
-2 days ago,Tidak ada data
-"<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank"">[?]</a>",Standar
+"""Company History""","""Sejarah Perusahaan"""
+"""Team Members"" or ""Management""","""Anggota Tim"" atau ""Manajemen"""
+'In List View' not allowed for type {0} in row {1},'Dalam Daftar View' tidak diperbolehkan untuk jenis {0} berturut-turut {1}
+0 - Draft; 1 - Submitted; 2 - Cancelled,0 - Draft; 1 - Dikirim; 2 - Dibatalkan
+0 is highest,0 tertinggi
+"000 is black, fff is white","000 hitam, fff putih"
+2 days ago,2 hari lalu
+"<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank"">[?]</a>","<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank""> [?]</ A>"
 "<a onclick=""msgprint('<ol>\
 <li><b>field:[fieldname]</b> - By Field\
 <li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\
 <li><b>Prompt</b> - Prompt user for a name\
 <li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\
-</ol>')"">Naming Options</a>",IP Terakhir
-<b>new</b> <i>type of document</i>,Cancelled
-"<i>document type...</i>, e.g. <b>customer</b>",Peran ini Permissions pembaruan Pengguna untuk pengguna
-<i>e.g. <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>,Cari {0} pada {1}
-<i>module name...</i>,peta-penanda
-<i>text</i> <b>in</b> <i>document type</i>,eye-terbuka
-A user can be permitted to multiple records of the same DocType.,Grup
-About,Contoh:
-About Us Settings,minus tanda
-About Us Team Member,ok
-Action,Pilih tanggal untuk membuat yang baru
-Actions,mengeluarkan
-"Actions for workflow (e.g. Approve, Cancel).",Kepala
-Add,Item {0} dibatalkan
-Add A New Rule,barcode
-Add A User Permission,Kata sandi
-Add Attachments,Nama Peran
-Add Bookmark,Tampilkan Print Pertama
-Add CSS,Ditambahkan {0} ({1})
-Add Column,Kesalahan: Dokumen telah dimodifikasi setelah Anda membukanya
-Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,DocType atau Bidang
-Add Message,Workflow Aksi Nama
-Add New Permission Rule,Tidak
-Add Reply,Lengkap Dengan
-Add Total Row,Versi dipulihkan
-Add a New Role,Tidak diizinkan dari IP Address ini
-Add a banner to the site. (small banners are usually good),Permissions Set tentang Jenis Dokumen dan Peran
-Add all roles,Re-terbuka
-Add attachment,Tidak Ditemukan
-Add code as &lt;script&gt;,Bantuan Cepat untuk Pengaturan Permissions
-Add custom javascript to forms.,Halaman rumah adalah Produk
-Add fields to forms.,Terdaftar tapi dinonaktifkan.
-Add multiple rows,Mengatur penomoran seri untuk transaksi.
-Add new row,Nama Tipe Dokumen (DocType) Anda ingin bidang ini dapat dihubungkan dengan. misalnya Pelanggan
-"Add the name of <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> e.g. ""Open Sans""",Tidak menghapus
-Add to To Do,warna
-Add to To Do List Of,Nonaktifkan Signup
-Added {0} ({1}),Terkirim
-Adding System Manager to this User as there must be atleast one System Manager,Silakan tentukan pengguna
-Additional Info,Pilih Print Format
-Additional Permissions,Ulangi Acara ini
-Address,Syarat dan Conditions1
-Address Line 1,Jumlah Transfer
-Address Line 2,Peluang Dari
-Address Title,Tersedia Stock untuk Packing Produk
-Address and other legal information you may want to put in the footer.,shopping-cart
-Admin,bermain
-All Applications,Berkas tidak terpasang
-All Day,Autoreply ketika mail baru diterima
-All customizations will be removed. Please confirm.,Aktifkan Jobs Terjadwal
-"All possible Workflow States and roles of the workflow. <br>Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""",Kurang dari
-Allow Attach,{0}: Izin pada tingkat 0 harus ditetapkan sebelum tingkat yang lebih tinggi ditetapkan
-Allow Import,Rekam disampaikan tidak dapat dihapus
-Allow Import via Data Import Tool,Lapangan {0} berturut-turut {1} tidak dapat disembunyikan dan wajib tanpa standar
-Allow Rename,Tidak ada catatan lebih lanjut
-Allow on Submit,Periksa Dokumen yang dapat dibaca oleh Pengguna
-Allow user to login only after this hour (0-24),Tipe Pengguna
-Allow user to login only before this hour (0-24),bel
-Allowed,"Jika Peran yang tidak memiliki akses di Level 0, maka tingkat yang lebih tinggi tidak ada artinya."
-"Allowing DocType, DocType. Be careful!",No Results
-Already Registered,Utama
-Already in user's To Do list,"Tidak dapat Mengedit {0} langsung: Untuk mengedit {0} properti, membuat / update {1}, {2} dan {3}"
-Alternative download link,Pendaftaran Detail Diemail.
-"Alternatively, you can also specify 'auto_email_id' in site_config.json","Catatan: Untuk hasil terbaik, gambar harus dengan ukuran yang sama dan lebar harus lebih besar dari ketinggian."
-Always use above Login Id as sender,Cari Fields
-Amend,Level
-"An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [<a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a>]",0 - Draft; 1 - Dikirim; 2 - Dibatalkan
-"Another {0} with name {1} exists, select another name",Footer Teks
-Any existing permission will be deleted / overwritten.,tangan kanan
-Anyone Can Read,Propinsi
-Anyone Can Write,Bidang Kustom
-"Apart from Role based Permission Rules, you can apply User Permissions based on DocTypes.",Status saat ini
-"Apart from System Manager, roles with 'Set User Permissions' right can set permissions for other users for that Document Type.",Lebih besar atau sama dengan
-App Name,Masukkan Row
-App not found,Teks Editor
-Application Installer,Tidak dapat membuka contoh ketika nya {0} terbuka
-Applications,Semua Hari
-Apply Style,Hapus
-Apply User Permissions,Acara Dalam Kalender Hari ini
-Are you sure you want to delete the attachment?,Dalam Dialog
-Arial,Permissions Set per Pengguna
-"As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User.",Saran
-Ascending,Laporan tidak disimpan (ada kesalahan)
-Assign To,"Keterangan untuk halaman listing, dalam teks biasa, hanya beberapa baris. (Max 140 karakter)"
-Assigned By,Masukkan Form Type
-Assigned To,{0} diperlukan
-Assigned To Fullname,Read Only
-Assigned To/Owner,"Sebagai praktik terbaik, tidak menetapkan set yang sama dari izin aturan untuk Peran yang berbeda. Sebaliknya, mengatur beberapa Peran untuk Pengguna yang sama."
-Assignment Added,Menurun
-Assignment Status Changed,Standar
-Assignments,nilai-nilai dipisahkan oleh koma
-Attach,Wajib
-Attach Document Print,Tanggapan
-Attach as web link,Pilihan harus DocType valid untuk bidang {0} berturut-turut {1}
-Attached To DocType,Lupa Sandi
-Attached To Name,Izinkan Impor
-Attachments,Banner di atas Menu Top Bar.
-Auto Email Id,Sembunyikan Copy
-Auto Name,UserRole
-Auto generated,Seperti
-Avatar,<i> nama modul ... </ i>
-Back to Login,Hapus Bookmark
-Background Color,Diketahui Print Format: {0}
-Background Image,Pengaturan Perizinan
-Background Style,Dalam Laporan Filter
-Banner,"""Anggota Tim"" atau ""Manajemen"""
-Banner HTML,Individu
-Banner Image,Merubah
-Banner is above the Top Menu Bar.,Pengaturan Tampilan
-Begin this page with a slideshow of images,Kirim
-Beginning with,Anda tidak diizinkan untuk mengekspor laporan ini
-Belongs to,Terlampir Untuk DocType
-Bio,Bin
-Birth Date,Negara berikutnya
-Blog Category,Mail Password
-Blog Intro,Mendapatkan
-Blog Introduction,Silahkan refresh untuk mendapatkan dokumen terbaru.
-Blog Post,LR ada
-Blog Settings,Pemasang
-Blog Title,Tambahkan ke To Do
-Blogger,Kirim Me Salin A
-Bookmarks,folder terbuka
-Brand HTML,Tindakan berikutnya
-Bulk Email,Terakhir Login
-Bulk email limit {0} crossed,to
-Button,{0} ditambahkan
-By,Helvetica Neue
-Calculate,Kalender
-Calendar,Fieldname {0} muncul beberapa kali dalam baris {1}
-Cancel,Server
-Cancelled,Penerimaan Pembelian Barang Supplieds
-"Cannot Edit {0} directly: To edit {0} properties, create / update {1}, {2} and {3}",Fieldname yang akan menjadi DocType untuk bidang link ini.
-Cannot Update: Incorrect / Expired Link.,Rekam Sebelumnya
-Cannot Update: Incorrect Password,meng-upload
-Cannot add more than 50 comments,Izinkan Rename
-Cannot cancel before submitting. See Transition {0},Unsubscribe
-Cannot change picture,Dengan Buku Pembantu
-Cannot change state of Cancelled Document. Transition row {0},Header Halaman Text
-Cannot change {0},Jenis Grup
-Cannot delete or cancel because {0} {1} is linked with {2} {3},seru-sign
-Cannot delete {0} as it has child nodes,Abaikan Izin Pengguna
-Cannot edit standard fields,Terapkan Gaya
+</ol>')"">Naming Options</a>","<A onclick = ""msgprint ('<ol> \
+ <li> <b> bidang: [fieldname] </ b> - Oleh Lapangan \
+ <li> <b> naming_series: </ b > - Dengan Penamaan Series (field yang disebut naming_series harus hadir \
+ <li> <b> Prompt </ b> - pengguna Prompt untuk nama \
+ <li> <b> [seri] </ . b> - Series by prefix (dipisahkan oleh sebuah titik), misalnya PRE # # # # # \
+ </ ol> ') ""> Penamaan Pilihan </ a>"
+<b>new</b> <i>type of document</i>,baru </ b> <i> jenis <b> dokumen </ i>
+"<i>document type...</i>, e.g. <b>customer</b>","Jenis dokumen <i> ... </ i>, misalnya <b> pelanggan </ b>"
+<i>e.g. <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>,<i> misalnya <strong> (55 + 434) / 4 </ strong> atau <strong> = Math.sin (Math.PI / 2) </ strong> ... </ i>
+<i>module name...</i>,<i> nama modul ... </ i>
+<i>text</i> <b>in</b> <i>document type</i>,teks <i> </ i> <b> di </ b> <i> jenis dokumen </ i>
+A user can be permitted to multiple records of the same DocType.,Seorang pengguna dapat diizinkan untuk beberapa catatan dari DocType sama.
+About,Tentang
+About Us Settings,Tentang Kami Pengaturan
+About Us Team Member,Tentang Kami Anggota Tim
+Action,Tindakan
+Actions,Tindakan
+"Actions for workflow (e.g. Approve, Cancel).","Tindakan untuk alur kerja (misalnya Menyetujui, Batal)."
+Add,Tambahkan
+Add A New Rule,Tambah Aturan Baru
+Add A User Permission,Tambah Pengguna Izin
+Add Attachments,Tambahkan Lampiran
+Add Bookmark,Tambahkan Bookmark
+Add CSS,Tambah CSS
+Add Column,Add Column
+Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,Tambahkan Google Analytics ID: misalnya. UA-89XXX57-1. Silahkan cari bantuan pada Google Analytics untuk informasi lebih lanjut.
+Add Message,Tambahkan Pesan
+Add New Permission Rule,Tambahkan Rule Izin Baru
+Add Reply,Add Reply
+Add Total Row,Tambah Jumlah Row
+Add a New Role,Tambahkan Peran Baru
+Add a banner to the site. (small banners are usually good),Tambahkan iklan ke situs. (Spanduk kecil biasanya baik)
+Add all roles,Tambahkan semua peran
+Add attachment,Tambahkan lampiran
+Add code as &lt;script&gt;,Tambahkan kode sebagai <script>
+Add custom javascript to forms.,Tambahkan kustom javascript untuk bentuk.
+Add fields to forms.,Menambahkan kolom ke bentuk.
+Add multiple rows,Tambahkan beberapa baris
+Add new row,Tambahkan baris baru
+"Add the name of <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> e.g. ""Open Sans""","Tambahkan nama <a href=""http://google.com/webfonts"" target=""_blank""> Google Font Web </ a> misalnya ""Buka Sans """
+Add to To Do,Tambahkan ke To Do
+Add to To Do List Of,Tambahkan ke To Do List Of
+Added {0} ({1}),Ditambahkan {0} ({1})
+Adding System Manager to this User as there must be atleast one System Manager,Menambahkan System Manager untuk Pengguna ini karena harus ada minimal satu System Manager
+Additional Info,Info Tambahan
+Additional Permissions,Izin Tambahan
+Address,Alamat
+Address Line 1,Alamat Baris 1
+Address Line 2,Alamat Baris 2
+Address Title,Alamat Judul
+Address and other legal information you may want to put in the footer.,Alamat dan informasi hukum lainnya Anda mungkin ingin dimasukkan ke dalam footer.
+Admin,Admin
+All Applications,Semua Aplikasi
+All Day,Semua Hari
+All customizations will be removed. Please confirm.,Semua kustomisasi akan terhapus. Silakan konfirmasi.
+"All possible Workflow States and roles of the workflow. <br>Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""","Semua mungkin Workflow Serikat dan peran dari alur kerja. <br> Docstatus Options: 0 adalah ""Tersimpan"", 1 adalah ""Dikirim"" dan 2 ""Dibatalkan"""
+Allow Attach,Izinkan Lampirkan
+Allow Import,Izinkan Impor
+Allow Import via Data Import Tool,Izinkan Impor via Impor Data Alat
+Allow Rename,Izinkan Rename
+Allow on Submit,Biarkan Submit
+Allow user to login only after this hour (0-24),Memungkinkan pengguna untuk login hanya setelah jam ini (0-24)
+Allow user to login only before this hour (0-24),Memungkinkan pengguna untuk login hanya sebelum jam ini (0-24)
+Allowed,Diizinkan
+"Allowing DocType, DocType. Be careful!","Membiarkan DocType, DocType. Hati-hati!"
+Already Registered,Sudah Terdaftar
+Already in user's To Do list,Sudah di pengguna To Do list
+Alternative download link,Link download Alternative
+"Alternatively, you can also specify 'auto_email_id' in site_config.json","Atau, Anda juga dapat menentukan 'auto_email_id' di site_config.json"
+Always use above Login Id as sender,Selalu gunakan di atas Login Id sebagai pengirim
+Amend,Merubah
+"An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [<a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a>]","File icon dengan ekstensi ico.. Harus 16 x 16 px. Dihasilkan dengan menggunakan generator favicon. [<a Href=""http://favicon-generator.org/"" target=""_blank""> favicon-generator.org </ a>]"
+"Another {0} with name {1} exists, select another name","Lain {0} dengan nama {1} ada, pilih nama lain"
+Any existing permission will be deleted / overwritten.,Setiap izin yang ada akan dihapus / ditimpa.
+Anyone Can Read,Siapapun Bisa Baca
+Anyone Can Write,Siapapun Bisa Menulis
+"Apart from Role based Permission Rules, you can apply User Permissions based on DocTypes.","Terlepas dari Peran berbasis Aturan Izin, Anda dapat menerapkan Permissions Pengguna berdasarkan Doctypes."
+"Apart from System Manager, roles with 'Set User Permissions' right can set permissions for other users for that Document Type.","Terlepas dari System Manager, peran dengan benar 'Set User Permissions' dapat mengatur hak akses bagi pengguna lain untuk itu Document Type."
+App Name,Nama App
+App not found,App tidak ditemukan
+Application Installer,Application Installer
+Applications,Aplikasi
+Apply Style,Terapkan Gaya
+Apply User Permissions,Terapkan Perizinan Pengguna
+Are you sure you want to delete the attachment?,Apakah Anda yakin ingin menghapus lampiran?
+Arial,Arial
+"As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User.","Sebagai praktik terbaik, tidak menetapkan set yang sama dari izin aturan untuk Peran yang berbeda. Sebaliknya, mengatur beberapa Peran untuk Pengguna yang sama."
+Ascending,Ascending
+Assign To,Untuk menetapkan
+Assigned By,Ditugaskan By
+Assigned To,Ditugaskan Untuk
+Assigned To Fullname,Ditugaskan Untuk Nama Lengkap
+Assigned To/Owner,Ditugaskan Untuk / Owner
+Assignment Added,Tugas Ditambahkan
+Assignment Status Changed,Status Tugas Berubah
+Assignments,Tugas
+Attach,Melampirkan
+Attach Document Print,Lampirkan Dokumen Cetak
+Attach as web link,Lampirkan sebagai link web
+Attached To DocType,Terlampir Untuk DocType
+Attached To Name,Terlampir Untuk Nama
+Attachments,Lampiran
+Auto Email Id,Auto Email Id
+Auto Name,Name
+Auto generated,Auto dihasilkan
+Avatar,Avatar
+Back to Login,Kembali ke Login
+Background Color,Background Color
+Background Image,Background Image
+Background Style,Background Style
+Banner,Spanduk
+Banner HTML,Banner HTML
+Banner Image,Banner Gambar
+Banner is above the Top Menu Bar.,Banner di atas Menu Top Bar.
+Begin this page with a slideshow of images,Mulailah halaman ini dengan slideshow gambar
+Beginning with,Dimulai dengan
+Belongs to,Milik
+Bio,Bio
+Birth Date,Lahir Tanggal
+Blog Category,Blog Kategori
+Blog Intro,Blog Intro
+Blog Introduction,Blog Pendahuluan
+Blog Post,Posting Blog
+Blog Settings,Pengaturan Blog
+Blog Title,Judul Blog
+Blogger,Blogger
+Bookmarks,Bookmarks
+Both login and password required,Kedua login dan password yang diperlukan
+Brand HTML,Merek HTML
+Bulk Email,Bulk Email
+Bulk email limit {0} crossed,Limit email massal {0} menyeberangi
+Button,Tombol
+By,Oleh
+Calculate,Menghitung
+Calendar,Kalender
+Cancel,Batalkan
+Cancelled,Cancelled
+"Cannot Edit {0} directly: To edit {0} properties, create / update {1}, {2} and {3}","Tidak dapat Mengedit {0} langsung: Untuk mengedit {0} properti, membuat / update {1}, {2} dan {3}"
+Cannot Update: Incorrect / Expired Link.,Tidak bisa Perbarui: salah / Expired Link.
+Cannot Update: Incorrect Password,Tidak bisa Perbarui: Kata sandi salah
+Cannot add more than 50 comments,Tidak dapat menambahkan lebih dari 50 komentar
+Cannot cancel before submitting. See Transition {0},Tidak dapat membatalkan sebelum mengirimkan. Lihat Transition {0}
+Cannot change picture,Tidak dapat mengubah gambar
+Cannot change state of Cancelled Document. Transition row {0},Tidak dapat mengubah keadaan Dibatalkan Dokumen. Transisi baris {0}
+Cannot change {0},Tidak dapat mengubah {0}
+Cannot delete or cancel because {0} {1} is linked with {2} {3},Tidak dapat menghapus atau membatalkan karena {0} {1} dihubungkan dengan {2} {3}
+Cannot delete {0} as it has child nodes,Tidak dapat menghapus {0} karena memiliki node anak
+Cannot edit standard fields,Tidak dapat mengedit bidang standar
 Cannot map because following condition fails: ,
-Cannot open instance when its {0} is open,Lain-Lain
-Cannot open {0} when its instance is open,"{0} {1} tidak ada, pilih target baru untuk menggabungkan"
-Cannot print cancelled documents,Tidak dapat menyetel izin untuk DocType: {0} dan Nama: {1}
-Cannot remove permission for DocType: {0} and Name: {1},Jenis tunggal hanya memiliki satu record tabel tidak terkait. Nilai disimpan dalam tabSingles
-Cannot reply to a reply,{0}: Tidak dapat mengatur impor sebagai {1} tidak diimpor
-Cannot set permission for DocType: {0} and Name: {1},Hapus baris
-Categorize blog posts.,Bantuan
-Category,Unduh
-Category Name,Tambahkan
-Center,Catatan: aturan izin lain juga mungkin berlaku
-"Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit.",Outgoing Mail Server tidak ditentukan
-"Change field properties (hide, readonly, permission etc.)",Generator
-Chat,Peran event
-Check,Next Record
-Check / Uncheck roles assigned to the User. Click on the Role to find out what permissions that Role has.,DefaultValue
-Check this if you want to send emails as this id only (in case of restriction by your email provider).,Impor Alat Data
-Check this to make this the default letter head in all prints,Pesan
-Check which Documents are readable by a User,Penerima
-Checked items shown on desktop,"Masukkan Setelah field '{0}' yang disebutkan di Bidang Kustom '{1}', tidak ada"
-Child Tables are shown as a Grid in other DocTypes.,Admin
-City,Tanggal Kontrak End
-Clear Cache,Kelompok Deskripsi
-Clear all roles,Referensi DocType
-Click on a link to get options,Ulangi On
-Click on row to view / edit.,Post tidak ada. Silahkan menambahkan posting!
-Client,Tunggal
-Close,Kirim Sebagai Email
-Close: {0},"Anda dapat mengubah dokumen Dikirim oleh membatalkan mereka dan kemudian, mengubah mereka."
-Closed,Tanggal Jatuh Tempo Pembayaran
-Code,Pemasok> Pemasok Type
-Collapse,Aktifkan
-Column Break,Dalam Filter
-Comment,Sebelumnya
-Comment By,Bukan pengguna belum? Daftar
-Comment By Fullname,di seluruh dunia.
-Comment Date,Bidang ini akan muncul hanya jika fieldname didefinisikan di sini memiliki nilai OR aturan yang benar (contoh): <br> \ nmyfield \ neval: doc.myfield == 'Nilai My' <br> \ neval: doc.age> 18
-Comment Docname,Tidak dapat memetakan karena kondisi berikut gagal:
-Comment Doctype,Email Terkirim
-Comment Time,Langkah 1: Mengatur nama dan simpan.
-Comments,Login Id Anda
-Communication,Berlaku Untuk (User)
-Communication Medium,Memuat
-Company History,Tidak dapat mengirim email saat ini
-Company Introduction,Maaf kami tidak dapat menemukan apa yang Anda cari.
-Complaint,Kurang atau sama dengan
-Complete By,Pengaturan Tentang Kami PT.
-Contact Us Settings,Ini adalah tindakan PERMANEN dan Anda tidak dapat membatalkan. Lanjutkan?
-"Contact options, like ""Sales Query, Support Query"" etc each on a new line or separated by commas.",chevron-down
-Content,"Pilih ""Ya"" jika item ini digunakan untuk tujuan internal perusahaan Anda."
-Content Hash,pensil
-Content in markdown format that appears on the main side of your page,gambar
-Content web page.,Judul Kasus
-Controller,Menambahkan System Manager untuk Pengguna ini karena harus ada minimal satu System Manager
-Copy,Berakhir pada
-Copyright,Milik
-Core,Lastmod
-Could not connect to outgoing email server,Bintang-kosong
-Could not find {0},Anggota Tim Pos
-Count,dimulai dengan
-Country,Pay Net
-Create,Izinkan Lampirkan
-Create a new {0},"<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank""> [?]</ A>"
-Created Custom Field {0} in {1},Hubungi Kami Settings
-Created Customer Issue,Anda dapat menggunakan Formulir Customize untuk mengatur tingkat pada bidang.
-Created Opportunity,Apakah default
-Created Support Ticket,Rangkai Salindia
-Creation / Modified By,inbox
-Currency,Aturan Pengiriman Kondisi
-Current status,Tambahkan Bookmark
-Custom CSS,Catatan: ukuran lampiran maksimum = 1mb
-Custom Field,"Untuk menjalankan tes menambahkan nama modul dalam rute setelah '{0}'. Misalnya, {1}"
-Custom Javascript,"{0}: Tidak dapat mengatur Submit, Batal, Mengubah tanpa Write"
-Custom Reports,Info Tambahan
-Custom Script,Selalu gunakan di atas Login Id sebagai pengirim
-Custom?,men-download-alt
-Customize,Berat kotor paket. Berat + kemasan biasanya net berat bahan. (Untuk mencetak)
-Customize Form,"Izin ini akan berlaku untuk semua transaksi di mana catatan diizinkan terkait. Sebagai contoh, jika Perusahaan C ditambahkan ke User Permissions pengguna X, pengguna X akan hanya dapat melihat transaksi yang memiliki perusahaan C sebagai nilai terkait."
-Customize Form Field,Kirim Kata Sandi
-"Customize Label, Print Hide, Default etc.",hh / bb / tttt
-Customized HTML Templates for printing transctions.,Lihat atau mengelola pohon Situs Route.
-Daily Event Digest is sent for Calendar Events where reminders are set.,Rename banyak item dengan meng-upload file csv..
-Danger,"Masukkan kunci untuk mengaktifkan login via Facebook, Google, GitHub."
-Data,Image slideshow menanamkan dalam halaman situs web.
-Data Import / Export Tool,sertifikat
-Data Import Tool,Pilihan
-Data missing in table,zoom-out
-Date,Sebagian Disampaikan
-Date Format,Total Penghasilan
-Date and Number Format,Ref Nama
-Date must be in format: {0},Linked In Share
-Datetime,menyegarkan
-Dear,Lampirkan sebagai link web
-Default,HR Manager
-Default Print Format,Masukkan Event Tanggal dan Waktu!
-Default Value,Apakah acara
-Default is system timezone,Modul Pengaturan
-"Default: ""Contact Us""",modul
-DefaultValue,Jenis Kelamin
-Defaults,ok-lingkaran
-"Define read, write, admin permissions for a Website Page.",Ekspor
-Define workflows for forms.,"Zona Waktu: GMT +2; CET +1, dan EST (AS-Timur) +7"
-Delete,Barang Jadi
-Delete Row,Transisi Dokumen Status dari
-Depends On,Sudah Terdaftar
-Descending,Kegiatan Pengguna
-Description,Catatan Pengiriman Baru
-Description and Status,Referensi Nama
-"Description for listing page, in plain text, only a couple of lines. (max 140 characters)",Status Tugas Berubah
-Description for page header.,Kunci
-Desktop,{0} harus menjadi salah satu {1}
-Details,Berikutnya Tanggal
-Did not add,Tidak ada izin untuk menulis / menghapus.
-Did not cancel,Update Field
-Did not find {0} for {0} ({1}),"Jika dicentang, halaman Home akan menjadi default Barang Grup untuk website."
-Did not load,Pengaturan Blog
-Did not remove,Peran dan Tingkat
-Did not save,Ulangi Sampai
-"Different ""States"" this document can exist in. Like ""Open"", ""Pending Approval"" etc.",Pengaturan> Pengguna
-Disable Customer Signup link in Login page,Halaman tidak ditemukan
-Disable Signup,Sukses
-Disabled,Agen
-Display,Setter Properti
-Display Settings,Update Nilai
-Display in the sidebar of this Website Route node,Mail sistem yang dihasilkan akan dikirim dari id email ini.
-Do not allow user to change after set the first time,Bookmarks
-Doc Status,Tweet akan dibagi melalui account pengguna Anda (bila ditentukan)
-DocField,Permissions Peran Manajer
-DocPerm,th
-DocType,Pengguna dan Perizinan
-DocType Details,Tidak ada Izin ditetapkan untuk kriteria ini.
-DocType can not be merged,laporan
-DocType on which this Workflow is applicable.,"Untuk memformat kolom, memberi label kolom dalam query."
-DocType or Field,api
-Doclist JSON,"Pilih target = ""_blank"" untuk membuka di halaman baru."
-Docname,Query Report
-Document,Sabtu
+Cannot open instance when its {0} is open,Tidak dapat membuka contoh ketika nya {0} terbuka
+Cannot open {0} when its instance is open,Tidak dapat membuka {0} ketika misalnya yang terbuka
+Cannot print cancelled documents,Tidak dapat mencetak dokumen dibatalkan
+Cannot remove permission for DocType: {0} and Name: {1},Tidak bisa menghapus izin untuk DocType: {0} dan Nama: {1}
+Cannot reply to a reply,Tidak dapat menjawab balasan
+Cannot set Email Alert on Document Type {0},Tidak dapat mengatur Notifikasi Email pada Document Type {0}
+Cannot set permission for DocType: {0} and Name: {1},Tidak dapat menyetel izin untuk DocType: {0} dan Nama: {1}
+Categorize blog posts.,Mengkategorikan posting blog.
+Category,Kategori
+Category Name,Kategori Nama
+Center,Pusat
+"Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit.","Dokumen-dokumen tertentu, seperti Faktur, tidak boleh berubah sekali final. Keadaan akhir untuk dokumen tersebut disebut Dikirim. Anda dapat membatasi peran yang dapat Submit."
+"Change field properties (hide, readonly, permission etc.)","Sifat perubahan lapangan (hide, dibaca, izin dll)"
+Chat,Obrolan
+Check,Check
+Check / Uncheck roles assigned to the User. Click on the Role to find out what permissions that Role has.,Periksa / Hapus tanda centang peran yang ditugaskan kepada Pengguna. Klik pada Peran untuk mengetahui hak akses yang memiliki Peran.
+Check this if you want to send emails as this id only (in case of restriction by your email provider).,Periksa ini jika Anda ingin mengirim email sebagai id ini saja (dalam hal pembatasan oleh penyedia email Anda).
+Check this to make this the default letter head in all prints,Periksa ini untuk membuat surat default kepala di semua cetakan
+Check which Documents are readable by a User,Periksa Dokumen yang dapat dibaca oleh Pengguna
+Checked items shown on desktop,Item yang diperiksa ditunjukkan pada desktop
+Child Tables are shown as a Grid in other DocTypes.,Tabel Anak akan ditampilkan sebagai Grid di Doctypes lainnya.
+City,Kota
+Classic,Klasik
+Clear Cache,Membersihkan sejarah
+Clear all roles,Hapus semua peran
+Click on a link to get options,Klik link untuk mendapatkan opsi
+Click on row to view / edit.,Klik pada baris untuk melihat / edit.
+Client,Client (Nasabah)
+Client-side formats are now deprecated,Format sisi klien sekarang ditinggalkan
+Close,Tutup
+Close: {0},Tutup: {0}
+Closed,Tertutup
+Code,Kode
+Collapse,Keruntuhan
+Column Break,Kolom Istirahat
+Comment,Komentar
+Comment By,Komentar By
+Comment By Fullname,Komentar By Nama Lengkap
+Comment Date,Komentar Tanggal
+Comment Docname,Komentar Docname
+Comment Doctype,Komentar Doctype
+Comment Time,Komentar Waktu
+Comments,Komentar
+Communication,Komunikasi
+Communication Medium,Komunikasi Medium
+Company History,Sejarah Perusahaan
+Company Introduction,Pendahuluan Perusahaan
+Complaint,Keluhan
+Complete By,Lengkap Dengan
+Condition,Kondisi
+Contact Us Settings,Hubungi Kami Settings
+"Contact options, like ""Sales Query, Support Query"" etc each on a new line or separated by commas.","Opsi kontak, seperti ""Penjualan Query, Dukungan Query"" dll masing-masing pada baris baru atau dipisahkan dengan koma."
+Content,Isi Halaman
+Content Hash,Content Hash
+Content in markdown format that appears on the main side of your page,Konten dalam format penurunan harga yang muncul di sisi utama halaman Anda
+Content web page.,Halaman web konten.
+Controller,Pengawas
+Copy,Salin
+Copyright,Hak cipta
+Core,Otot inti
+Could not connect to outgoing email server,Tidak dapat terhubung ke server email keluar
+Could not find {0},Tidak dapat menemukan {0}
+Count,Hitung
+Country,Negara
+Create,Buat
+Create a new {0},Buat baru {0}
+Created Custom Field {0} in {1},Dibuat Bidang Kustom {0} pada {1}
+Created Customer Issue,Dibuat Issue Pelanggan
+Created Opportunity,Peluang Dibuat
+Created Support Ticket,Dibuat Dukungan Tiket
+Creation / Modified By,Penciptaan / Modifikasi By
+Currency,Mata uang
+Current status,Status saat ini
+Custom CSS,Kustom CSS
+Custom Field,Bidang Kustom
+Custom Javascript,Kustom Javascript
+Custom Reports,Laporan Kustom
+Custom Script,Kustom Script
+Custom?,Kustom?
+Customize,Sesuaikan
+Customize Form,Sesuaikan Form
+Customize Form Field,Sesuaikan Form Lapangan
+"Customize Label, Print Hide, Default etc.","Sesuaikan Label, Cetak Hide, Default dll"
+Customized HTML Templates for printing transctions.,Disesuaikan Template HTML untuk transctions pencetakan.
+Daily Event Digest is sent for Calendar Events where reminders are set.,Harian Kegiatan Digest dikirim untuk Kalender Acara di mana pengingat ditetapkan.
+Danger,Bahaya
+Data,Data
+Data Import / Export Tool,Data Impor / Ekspor Alat
+Data Import Tool,Impor Alat Data
+Data missing in table,Data hilang dalam tabel
+Date,Tanggal
+Date Change,Tanggal Perubahan
+Date Changed,Tanggal Berubah
+Date Format,Format Tanggal
+Date and Number Format,Tanggal dan Nomor Format
+Date must be in format: {0},Tanggal harus dalam format: {0}
+Datetime,Datetime
+Days in Advance,Hari di Muka
+Dear,Kepada Yth.
+Default,Dfault
+Default Print Format,Standar Print Format
+Default Value,Default Value
+Default is system timezone,Default-nya adalah sistem zona waktu
+"Default: ""Contact Us""","Default: ""Hubungi Kami"""
+DefaultValue,DefaultValue
+Defaults,Standar
+"Define read, write, admin permissions for a Website Page.","Tentukan membaca, menulis, izin admin untuk Page Website."
+Define workflows for forms.,Tentukan alur kerja untuk bentuk.
+Delete,Hapus
+Delete Row,Hapus baris
+Depends On,Tergantung On
+Descending,Menurun
+Description,Deskripsi
+Description and Status,Deskripsi dan Status
+"Description for listing page, in plain text, only a couple of lines. (max 140 characters)","Keterangan untuk halaman listing, dalam teks biasa, hanya beberapa baris. (Max 140 karakter)"
+Description for page header.,Deskripsi untuk header halaman.
+Desktop,Desktop
+Details,Penjelasan
+Did not add,Tidak menambahkan
+Did not cancel,Tidak membatalkan
+Did not find {0} for {0} ({1}),Tidak menemukan {0} untuk {0} ({1})
+Did not load,Tidak memuat
+Did not remove,Tidak menghapus
+Did not save,Tidak menyimpan
+"Different ""States"" this document can exist in. Like ""Open"", ""Pending Approval"" etc.","Berbeda ""Negara"" dokumen ini dapat eksis masuk Like ""Open"", ""Menunggu Persetujuan"" dll"
+Disable Customer Signup link in Login page,Nonaktifkan Link Daftar Pelanggan di halaman Login
+Disable Signup,Nonaktifkan Signup
+Disabled,Dinonaktifkan
+Display,Tampilan
+Display Settings,Pengaturan Tampilan
+Display in the sidebar of this Website Route node,Tampilan di sidebar situs ini Route simpul
+Do not allow user to change after set the first time,Jangan memungkinkan pengguna untuk mengubah setelah set pertama kalinya
+Doc Status,Status Doc
+DocField,DocField
+DocPerm,DocPerm
+DocType,DocType
+DocType Details,DocType Detail
+DocType can not be merged,DocType tidak dapat digabungkan
+DocType on which this Workflow is applicable.,DocType yang Workflow ini berlaku.
+DocType or Field,DocType atau Bidang
+Doclist JSON,Doclist JSON
+Docname,Docname
+Document,Dokumen
 Document Status transition from ,
-Document Status transition from {0} to {1} is not allowed,Tambahkan kustom javascript untuk bentuk.
-Document Type,Tingkat Dasar
-Document is only editable by users of role,Links Sidebar untuk Halaman hanya
-Documentation,tag
-Documents,"Masukkan parameter url statis di sini (Misalnya pengirim = ERPNext, username = ERPNext, password = 1234 dll)"
-Download,Standard balasan atas pertanyaan umum.
-Download Backup,Google Font Web (Heading)
-Download link for your backup will be emailed on the following email address:,Sembunyikan Actions
-Drafts,Download Backup
-Drag to sort columns,panah-down
-Due Date,Pengaturan Jobs Email
-Duplicate name {0} {1},Halaman web
-Dynamic Link,Komunikasi Medium
-ERPNext Demo,Ada kesalahan saat mengirim email. Silakan coba lagi.
-Edit,Mailing massa
-Edit Permissions,Tulis query SELECT. Hasil catatan tidak paged (semua data yang dikirim dalam satu pergi).
-Editable,Tambahkan Pesan
-Email,Waktu di mana barang dikirim dari gudang
-Email Footer,Row # {0}:
-Email Host,amplop
-Email Id,Upload Backup ke Google Drive
-Email Login,Anda perlu menulis izin untuk mengubah nama
-Email Password,info-tanda
-Email Sent,Lebih besar dari
-Email Settings,Tidak ada yang menunjukkan
-Email Signature,menyelaraskan-membenarkan
-Email Use SSL,Tampilkan bidang ini sebagai judul
-Email address,Tambahkan semua peran
-"Email addresses, separted by commas",Format Cetak
-Email not verified with {1},jalan
-Email sent to {0},Field Type
-Email...,Membatasi IP
-Emails are muted,kamera
-Embed image slideshows in website pages.,Post
-Enable,Lanjut
-Enable Comments,Link ke halaman lain di sisi bar dan bagian berikutnya
-Enable Scheduled Jobs,thumbs-down
-Enabled,Jumlah (Perusahaan Mata Uang)
-Ends on,Tambahkan lampiran
-Enter Form Type,Situs web Slideshow Barang
-Enter Value,Surat Kepala di HTML
-Enter at least one permission row,Memperluas
-"Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set ""match"" permission rules. To see list of fields, go to <a href=""#Form/Customize Form/Customize Form"">Customize Form</a>.","Ini juga akan ditetapkan sebagai nilai default untuk link tersebut, jika hanya satu catatan izin tersebut didefinisikan."
-"Enter keys to enable login via Facebook, Google, GitHub.","""Sejarah Perusahaan"""
-Equals,Blog Intro
-Error,Komentar Waktu
-"Error generating PDF, attachment sent as HTML",Jalankan laporan pertama
-Error: Document has been modified after you have opened it,Sesi kadaluarsa
-Event,Apakah Tugas
-Event Datetime,Terapkan Perizinan Pengguna
-Event Individuals,Jenis
-Event Role,tangan-down
-Event Roles,Selasa
-Event Type,Tidak dapat membuka {0} ketika misalnya yang terbuka
-Event User,DocType
-Event end must be after start,Laporan tidak dapat ditetapkan untuk jenis Tunggal
-Events,memcached tidak bekerja / berhenti. Silakan mulai memcached untuk hasil terbaik.
-Events In Today's Calendar,Tutup
-Every Day,Komunikasi
-Every Month,Upload Attachment
-Every Week,Peringatan
-Every Year,Tidak diizinkan
-Everyone,Nilai yang salah dalam baris {0}: {1} harus {2} {3}
-Example:,Halaman dengan nama {0} sudah ada
-Expand,Pengguna {0} tidak dapat diganti
-Export,Tinggi
-Export not allowed. You need {0} role to export.,saham
-Exported,Penciptaan / Modifikasi By
-Facebook,Workflow Transisi
-Facebook Client ID,Bentuk
-Facebook Client Secret,"<A onclick = ""msgprint ('<ol> \ \ n <li> bidang <b>: [fieldname] </ b> - Oleh Lapangan \ \ n <li> <b> naming_series: </ b> - Dengan Penamaan Series (field disebut naming_series harus hadir \ \ n <li> <b> Prompt </ b> - pengguna Prompt untuk nama \ \ n <li> <b> [seri] </ b> - Series by prefix (dipisahkan oleh sebuah titik);. misalnya PRE # # # # # \ \ n </ ol> ') ""> Penamaan Pilihan </ a>"
-Facebook Share,Peran dapat diatur untuk pengguna dari halaman Pengguna mereka.
-Facebook User ID,"Fields dipisahkan dengan tanda koma (,) akan dimasukkan dalam <br /> <b> Cari berdasarkan </ b> daftar kotak dialog Search"
-Facebook Username,Nama pendek
-FavIcon,Nama
-Female,Pengguna dengan peran ini diperbolehkan untuk mengatur account beku dan membuat / memodifikasi entri akuntansi terhadap rekening beku
-Field Description,Tidak ada izin untuk mengedit
-Field Name,Pemilik
-Field Type,Buka Sans
-"Field that represents the Workflow State of the transaction (if field is not present, a new hidden Custom Field will be created)",Filter wajib diperlukan: \ n
-Field {0} in row {1} cannot be hidden and mandatory without default,Diterima
-Field {0} is not selectable.,Standard Reply
-Field {0} of type {1} cannot be mandatory,Baru
-Fieldname,SMTP Server (misalnya smtp.gmail.com)
-Fieldname is required in row {0},Top Bar teks dan latar belakang adalah warna yang sama. Silahkan ubah.
-Fieldname not set for Custom Field,Memberitahu melalui Email
-Fieldname which will be the DocType for this link field.,Int
-Fieldname {0} appears multiple times in rows {1},plus
-"Fieldname {0} cannot contain letters, numbers or spaces",Verdana
-Fields,Filter record berdasarkan Permissions Ditentukan pengguna untuk pengguna
-"Fields separated by comma (,) will be included in the<br /><b>Search By</b> list of Search dialog box",Dikirim Quotation
-Fieldtype cannot be changed from {0} to {1} in row {2},Harus menentukan Query untuk menjalankan
-File,kunci
-File Data,Kamis
-File Name,langkah-mundur
-File Size,Komentar By Nama Lengkap
-File URL,Menampilkan hanya untuk (jika tidak kosong)
-File not attached,terbelakang
-File size exceeded the maximum allowed size of {0} MB,Lupa Password?
-Fill Screen,Login Sebelum
-Filter,{0}: Tidak dapat mengatur Assign Submit jika tidak Submittable
-Filter records based on User Permissions defined for a user,Docuements
-Find {0} in {1},{0} {1} tidak bisa menjadi simpul daun karena memiliki anak-anak
-First Name,Aturan untuk menghitung jumlah pengiriman untuk penjualan
-Float,Apakah Anak Table
-Float Precision,Bersarang kesalahan set. Silahkan hubungi Administrator.
-Font (Heading),Tidak menambahkan
-Font (Text),Dikirim
-Font Size (Text),Link
-Fonts,Pengaturan Email Outgoing
-Footer,Pusat
-Footer Background,"Terlepas dari System Manager, peran dengan benar 'Set User Permissions' dapat mengatur hak akses bagi pengguna lain untuk itu Document Type."
-Footer Items,Patch Log
-Footer Text,volume-up
-For DocType,Content Hash
+Document Status transition from {0} to {1} is not allowed,Transisi Dokumen Status dari {0} ke {1} tidak diperbolehkan
+Document Type,Jenis Dokumen
+Document is only editable by users of role,Dokumen hanya dapat diedit oleh pengguna dari peran
+Documentation,Dokumentasi
+Documents,Docuements
+Download,Unduh
+Download Backup,Download Backup
+Download link for your backup will be emailed on the following email address:,Download link untuk cadangan Anda akan dikirimkan melalui email di alamat email berikut:
+Drafts,Konsep
+Drag to sort columns,Tarik untuk mengurutkan kolom
+Due Date,Tanggal Jatuh Tempo
+Duplicate name {0} {1},Gandakan nama {0} {1}
+Dynamic Link,Dynamic Link
+ERPNext Demo,ERPNext Demo
+Edit,Ubah
+Edit Permissions,Edit Perizinan
+Editable,Editable
+Email,siska_chute34@yahoo.com
+Email Alert,Notifikasi Email
+Email Alert Recipient,Email Penerima Notifikasi
+Email Alert Recipients,Penerima Email Notifikasi
+Email By Document Field,Email Dengan Dokumen Lapangan
+Email Footer,Email Footer
+Email Host,Email host
+Email Id,Email Id
+Email Login,Email Login
+Email Password,Email Sandi
+Email Sent,Email Terkirim
+Email Settings,Pengaturan Email
+Email Signature,Email Signature
+Email Use SSL,Email Gunakan SSL
+Email address,Alamat Email
+"Email addresses, separted by commas","Alamat email, separted dengan koma"
+Email not verified with {1},Email tidak diverifikasi dengan {1}
+Email sent to {0},Email dikirim ke {0}
+Email...,Email ...
+Emails are muted,Email akan dinonaktifkan
+Embed image slideshows in website pages.,Image slideshow menanamkan dalam halaman situs web.
+Enable,Aktifkan
+Enable Comments,Aktifkan Komentar
+Enable Scheduled Jobs,Aktifkan Jobs Terjadwal
+Enabled,Diaktifkan
+Ends on,Berakhir pada
+Enter Form Type,Masukkan Form Type
+Enter Value,Masukkan Nilai
+Enter at least one permission row,Masukkan setidaknya satu izin baris
+"Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set ""match"" permission rules. To see list of fields, go to <a href=""#Form/Customize Form/Customize Form"">Customize Form</a>.","Masukkan bidang nilai default (tombol) dan nilai-nilai. Jika Anda menambahkan beberapa nilai untuk field, yang pertama akan dijemput. Default ini juga digunakan untuk mengatur ""pertandingan"" aturan izin. Untuk melihat daftar bidang, pergi ke <a href=""#Form/Customize Form/Customize Form""> Customize Form </ a>."
+"Enter keys to enable login via Facebook, Google, GitHub.","Masukkan kunci untuk mengaktifkan login via Facebook, Google, GitHub."
+Equals,Equals
+Error,Kesalahan
+"Error generating PDF, attachment sent as HTML","Menghasilkan kesalahan PDF, lampiran HTML dikirim sebagai"
+Error: Document has been modified after you have opened it,Kesalahan: Dokumen telah dimodifikasi setelah Anda membukanya
+Event,Acara
+Event Datetime,Kegiatan Datetime
+Event Individuals,Individu Acara
+Event Role,Peran acara
+Event Roles,Peran event
+Event Type,Event Type
+Event User,Kegiatan Pengguna
+Event end must be after start,Akhir acara harus setelah start
+Events,Peristiwa
+Events In Today's Calendar,Acara Dalam Kalender Hari ini
+Every Day,Setiap Hari
+Every Month,Setiap Bulan
+Every Week,Setiap Minggu
+Every Year,Setiap Tahun
+Everyone,Semua orang
+Example:,Contoh:
+Expand,Memperluas
+Export,Ekspor
+Export not allowed. You need {0} role to export.,Ekspor tidak diperbolehkan. Anda perlu {0} peran untuk ekspor.
+Exported,Diekspor
+"Expression, Optional","Expression, Opsional"
+Facebook,Facebook
+Facebook Client ID,Facebook Client ID
+Facebook Client Secret,Facebook Client Rahasia
+Facebook Share,Facebook Share
+Facebook User ID,Facebook Pengguna ID
+Facebook Username,Username
+FavIcon,FavIcon
+Female,Perempuan
+Field Description,Bidang Deskripsi
+Field Name,Nama Field
+Field Type,Field Type
+"Field that represents the Workflow State of the transaction (if field is not present, a new hidden Custom Field will be created)","Bidang yang mewakili Negara Workflow transaksi (jika lapangan tidak hadir, baru tersembunyi Bidang Kustom akan dibuat)"
+Field {0} in row {1} cannot be hidden and mandatory without default,Lapangan {0} berturut-turut {1} tidak dapat disembunyikan dan wajib tanpa standar
+Field {0} is not selectable.,Lapangan {0} adalah tidak dapat dipilih.
+Field {0} of type {1} cannot be mandatory,Lapangan {0} tipe {1} tidak wajib
+Fieldname,Fieldname
+Fieldname is required in row {0},Fieldname diperlukan berturut-turut {0}
+Fieldname not set for Custom Field,Fieldname tidak ditetapkan untuk Bidang Kustom
+Fieldname which will be the DocType for this link field.,Fieldname yang akan menjadi DocType untuk bidang link ini.
+Fieldname {0} appears multiple times in rows {1},Fieldname {0} muncul beberapa kali dalam baris {1}
+"Fieldname {0} cannot contain letters, numbers or spaces","Fieldname {0} tidak dapat berisi huruf, angka atau spasi"
+Fields,Bidang
+"Fields separated by comma (,) will be included in the<br /><b>Search By</b> list of Search dialog box","Fields dipisahkan dengan tanda koma (,) akan dimasukkan dalam <br /> <b> Cari berdasarkan </ b> daftar kotak dialog Search"
+Fieldtype cannot be changed from {0} to {1} in row {2},Fieldtype tidak dapat diubah dari {0} ke {1} di baris {2}
+File,File
+File Data,Data file
+File Name,berkas nama
+File Size,Ukuran File
+File URL,URL File
+File not attached,Berkas tidak terpasang
+File size exceeded the maximum allowed size of {0} MB,Ukuran file melebihi ukuran maksimum yang diperbolehkan dari {0} MB
+Fill Screen,Isi Layar
+Filter,Filter
+Filter records based on User Permissions defined for a user,Filter record berdasarkan Permissions Ditentukan pengguna untuk pengguna
+Filters,Penyaring
+Find {0} in {1},Cari {0} pada {1}
+First Name,Nama Depan
+Float,Mengapung
+Float Precision,Mengapung Presisi
+Font (Heading),Font (Pos)
+Font (Text),Font (Text)
+Font Size,Font Size
+Font Size (Text),Font Size (Text)
+Fonts,Font
+Footer,Footer
+Footer Background,Footer Latar Belakang
+Footer Items,Footer Items
+Footer Text,Footer Teks
+For DocType,Untuk DocType
 "For Links, enter the DocType as range
-For Select, enter list of Options separated by comma",Pengaturan Style
-"For comparative filters, start with",Harap jangan mengubah baris di atas {0}
-For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,Waktu tersisa
-For ranges,Sebagai contoh jika Anda membatalkan dan mengubah 'INV004' itu akan menjadi dokumen baru 'INV004-1'. Ini akan membantu Anda untuk melacak setiap perubahan.
-For top bar,Name tidak diatur melalui Prompt
-For {0} at level {1} in {2} in row {3},Preferensi bahasa untuk antarmuka pengguna (hanya jika tersedia).
-Forgot Password,Mengupload file
-Forgot Password?,Log kesalahan pada peristiwa otomatis (scheduler).
-Form,chevron-kiri
-Forum,Tidak dapat menjawab balasan
-Forums,Terbuka {0}
-Forward To Email Address,menghapus
-Frappe Framework,"Default: ""Hubungi Kami"""
-Friday,Secara otomatis mengekstrak Memimpin dari kotak surat misalnya
-From Date must be before To Date,Melawan Bill {0} tanggal {1}
-Full Name,Rincian Kerja
-Gantt Chart,Kontak
-Gender,Rincian Tim Penjualan
-Generator,berhenti sebentar
-Georgia,Seorang pengguna dapat diizinkan untuk beberapa catatan dari DocType sama.
-Get,Halaman Peran
+For Select, enter list of Options separated by comma","Untuk Link, masukkan DocType sebagai rentang 
+ Untuk Pilih, masukkan daftar Options dipisahkan dengan koma"
+"For comparative filters, start with","Untuk filter komparatif, mulailah dengan"
+For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,Sebagai contoh jika Anda membatalkan dan mengubah 'INV004' itu akan menjadi dokumen baru 'INV004-1'. Ini akan membantu Anda untuk melacak setiap perubahan.
+For ranges,Untuk rentang
+For top bar,Untuk top bar
+For {0} at level {1} in {2} in row {3},Untuk {0} pada tingkat {1} dalam {2} berturut-turut {3}
+Forgot Password,Lupa Sandi
+Forgot Password?,Lupa Password?
+Form,Bentuk
+Forum,Forum
+Forums,Forum
+Forward To Email Address,Forward Untuk Alamat Email
+Frappe Framework,Frappe Kerangka
+Friday,Jum'at
+From Date must be before To Date,Dari Tanggal harus sebelum To Date
+Full Name,Nama Lengkap
+Gantt Chart,Gantt Bagan
+Gender,Jenis Kelamin
+Generator,Generator
+Georgia,Georgia
+Get,Mendapatkan
 Get From ,
-"Get your globally recognized avatar from <a href=""https://gravatar.com/"">Gravatar.com</a>",Memuat...
-GitHub,Diperbarui
-GitHub Client ID,Pilihan requried untuk Link atau jenis Table bidang {0} berturut-turut {1}
-GitHub Client Secret,Prioritas
-Github User ID,Nilai
-Github Username,fast-forward
-Google,Alamat Email
-Google Analytics ID,Login Id
-Google Client ID,Silahkan login ke Upvote!
-Google Client Secret,mencetak
-Google Plus One,Tambahkan Google Analytics ID: misalnya. UA-89XXX57-1. Silahkan cari bantuan pada Google Analytics untuk informasi lebih lanjut.
-Google User ID,Sesuaikan
-Google Web Font (Heading),Mata uang
-Google Web Font (Text),Cari dalam jenis dokumen
-Greater or equals,Laki-laki
-Greater than,Dengan Grup
-"Group Added, refreshing...",{0} tidak diperbolehkan dalam fieldname {1}
-Group Description,Referensi Type
-Group Name,Penggabungan ini hanya mungkin antara kelompok-to-Grup atau Leaf Node-to-Leaf Node
-Group Title,Nama Modul
-Group Type,Tingkat Izin
-Groups,Masukkan Menyetujui Peran atau Menyetujui Pengguna
-HTML for header section. Optional,Org Sejarah Pos
-Have an account? Login,{0} tidak dapat diatur untuk jenis Tunggal
-Header,Status Perkawinan
-Heading,"Semua mungkin Workflow Serikat dan peran dari alur kerja. <br> Docstatus Options: 0 adalah ""Tersimpan"", 1 adalah ""Dikirim"" dan 2 ""Dibatalkan"""
-Heading Text As,Github Nama
-Help,Deskripsi dan Status
-Help on Search,Masuk
-Helvetica Neue,Jum'at
-Hidden,Permissions secara otomatis diterjemahkan ke Laporan dan Searches Standard.
-Hide Actions,Aplikasi
-Hide Copy,Anda dapat menggunakan wildcard%
-Hide Heading,"Bidang yang mewakili Negara Workflow transaksi (jika lapangan tidak hadir, baru tersembunyi Bidang Kustom akan dibuat)"
-Hide Toolbar,Pilih semua
-Hide the sidebar,Pesan belum dibaca
-High,Packing List
-Highlight,Tindakan
-History,Menanggapi
-Home Page,"Pengaturan bahasa, Tanggal dan Waktu"
-Home Page is Products,Deskripsi
-ID (name) of the entity whose property is to be set,Desktop
-Icon,Tak seorangpun
-Icon will appear on the button,Induk tua
-"If a Role does not have access at Level 0, then higher levels are meaningless.",Label
-"If checked, all other workflows become inactive.",Aturan mendefinisikan transisi negara dalam alur kerja.
-"If checked, the Home page will be the default Item Group for the website.",Tidak sama dengan
-"If image is selected, color will be ignored (attach first)",Peran Pengguna
-If non standard port (e.g. 587),Membuat rekor baru
-"If these instructions where not helpful, please add in your suggestions on GitHub Issues.",cepat mundur
-"If you set this, this Item will come in a drop-down under the selected parent.",tugas
-Ignore User Permissions,New password email
-"Ignoring Item {0}, because a group exists with the same name!",Info Pribadi
-Image,Tidak ada saldo cuti cukup bagi Leave Type {0}
-Image Link,Semua Aplikasi
-Import,Pengguna tidak bisa Cari
-Import / Export Data,Tags
-Import / Export Data from .csv files.,Gunakan TLS
-In,Untuk menetapkan
-In Dialog,Keluar
-In Filter,Sistem ini menyediakan banyak peran yang telah ditentukan. Anda dapat menambahkan peran baru untuk mengatur hak akses lebih halus.
-In List View,Pilih Peran
-In Report Filter,{} App_title
-In response to,Client (Nasabah)
-Incorrect value in row {0}: {1} must be {2} {3},Top Bar Barang
-Incorrect value: {1} must be {2} {3},Akses user harus tidak berlaku untuk Link ini
-Index,Pilih
-Individuals,Filter
-Info,"Atau, Anda juga dapat menentukan 'auto_email_id' di site_config.json"
-Insert After,Atur Ulang Perizinan untuk {0}?
-"Insert After field '{0}' mentioned in Custom Field '{1}', does not exist",Durasi
-Insert Below,Tidak ada: Akhir Workflow
-Insert Code,Tidak bisa Perbarui: Kata sandi salah
-Insert Row,Periksa / Hapus tanda centang peran yang ditugaskan kepada Pengguna. Klik pada Peran untuk mengetahui hak akses yang memiliki Peran.
-Insert Style,Reqd
-Install Applications.,Nama Grup
-Installed,headphone
-Installer,Tidak ada template yang ditemukan di jalan: {0}
-Int,Permanen Batal {0}?
-Integrations,Pilihan tidak diatur untuk bidang tautan {0}
-Introduce your company to the website visitor.,Dan
-Introduction,Rincian Pekerjaan
-Introductory information for the Contact Us Page,Georgia
-Invalid Email: {0},Tambahkan CSS
-Invalid Filter: {0},Cetak Lebar
-Invalid Home Page,Outgoing Mail Server
-Invalid Outgoing Mail Server or Port,"Untuk Link, masukkan DocType sebagai rentang \ nUntuk Pilih, masukkan daftar Options dipisahkan dengan koma"
-Invalid login or password,Lucida Grande
-Invalid recipient address,Salin
-Inverse,Jenis Dokumen
-Is Active,Semua Kontak
-Is Child Table,Bantuan pencarian
-Is Default,Buku besar
-Is Event,Penulis Pengantar
-Is Mandatory Field,Judul lapangan harus fieldname valid
-Is Single,Cari atau ketik perintah
-Is Standard,Teks Kecil
-Is Submittable,{0} disimpan
-Is Task,Upload dan Impor
-Item cannot be added to its own descendents,Semua kustomisasi akan dihapus. Silakan konfirmasi.
-JavaScript Format: frappe.query_reports['REPORTNAME'] = {},Refreshing ...
-Javascript,tidak ada
-Javascript to append to the head section of the page.,Editable
-Key,Javascript untuk menambahkan ke bagian kepala halaman.
-Label,Gudang {0} tidak dapat dihapus sebagai kuantitas ada untuk Item {1}
-Label Help,Docname
-Label and Type,Single Post (artikel).
-Label is mandatory,Tambahkan Lampiran
-Landing Page,Bahaya
-Language,Account untuk gudang (Inventaris Perpetual) akan dibuat di bawah Rekening ini.
-Language preference for user interface (only if available).,Tidak dapat menghapus izin untuk DocType: {0} dan Nama: {1}
-"Language, Date and Time settings",Google Client Rahasia
-Last IP,daun
-Last Login,Silakan tentukan tanggal dan waktu acara
-Last Name,Jumlah Komisi
-Last updated by,DocType Detail
-Lastmod,Pilih Lampiran
-Lato,Add Reply
-Leave blank to repeat always,sampah
-Left,Pengaturan HR
-Less or equals,Anda tidak diizinkan untuk mengirim email yang berhubungan dengan dokumen ini
-Less than,Nomor Format
-Letter Head,Dapatkan Syarat dan Ketentuan
-Letter Head Name,Tanggal Jatuh Tempo
-Letter Head in HTML,Cetak
-Level,Material Permintaan Barang
-"Level 0 is for document level permissions, higher levels for field level permissions.",Tidak diijinkan
-Like,bintang
-Link,{0}: Tidak dapat mengatur impor tanpa Buat
-"Link that is the website home page. Standard Links (index, login, products, blog, about, contact)",warning-sign
-Link to other pages in the side bar and next section,Posting Publik
-Link to the page you want to open,Label
-Linked In Share,Pilih Untuk Download:
-Linked With,Kustom CSS
-List,Kustom Script
-List a document type,"Artinya dari Submit, Batal, Amend"
-List of Web Site Forum's Posts.,Google User ID
-Loading,Sesi kadaluarsa di Jam misalnya 06:00
-Loading Report,Font
-Loading...,Pengguna dengan peran ini diperbolehkan untuk membuat / memodifikasi entri akuntansi sebelum tanggal beku
-Localization,Senin
-Location,No User Permissions ditemukan.
-Log of error on automated events (scheduler).,Sedang
-Login,Hilang Kurs mata uang Tarif untuk {0}
-Login After,{0} tidak diperbolehkan dalam nama
-Login Before,thumbs-up
-Login Id,Dimulai dengan
-Login not allowed at this time,Sandi Diperbarui
-Logout,Isi Layar
-Long Text,Set Banner dari Image
-Low,Musik
-Lucida Grande,Pengaturan
-Mail Password,Obrolan
-Main Section,Referensi
-Make a new,Permissions Pengguna
-Make a new record,No Action
-Male,Tarif Pajak Barang
-Manage cloud backups on Dropbox,Lain-lain
-Manage uploaded files.,Script Type
-Mandatory,Menyoroti
-Mandatory fields required in {0},Ini harus diperiksa jika Pengaturan Gaya berlaku
-Mandatory filters required:\n,
-Master,Terhubung Dengan
-Max Attachments,Tidak Ditemukan
-Max width for type Currency is 100px in row {0},Kolom Istirahat
-"Meaning of Submit, Cancel, Amend",Hanya diperbolehkan {0} baris dalam satu impor
-Medium,Tahun Ditutup
-"Menu items in the Top Bar. For setting the color of the Top Bar, go to <a href=""#Form/Style Settings"">Style Settings</a>",Peristiwa
-Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node,Minggu
-Message,Hari Sejak Orde terakhir
-Messages,Balance Qty
-Method,user_image_show
-Middle Name (Optional),Peran acara
-Misc,Lampiran
-Miscellaneous,Masukkan Nilai
-Missing Values Required,lingkaran-panah-up
-Modified by,Fieldtype tidak dapat diubah dari {0} ke {1} berturut-turut {2}
-Module,Sejarah Perusahaan
-Module Def,"Berbeda ""Negara"" dokumen ini dapat eksis masuk Seperti ""Open"", ""Menunggu Persetujuan"" dll"
-Module Name,Dibuat Bidang Kustom {0} pada {1}
-Module Not Found,Halaman Text
-Modules Setup,Set Login dan Password jika otentikasi diperlukan.
-Monday,Komisi Rate (%)
-More,Kirim pertanyaan ke alamat email ini
-More content for the bottom of the page.,Tersembunyi
-Move Down: {0},Label Bantuan
-Move Up: {0},Bantuan Cepat untuk Permissions Pengguna
-Multiple root nodes not allowed.,Ref Type
-Must have report permission to access this report.,{0}: Tidak dapat mengatur Batalkan tanpa Kirim
-Must specify a Query to run,Izin bisa diterapkan pada Pengguna berdasarkan apa Peran mereka ditugaskan.
-My Settings,siska_chute34@yahoo.com
-Name,Catatan: Tidak ada saldo cuti cukup bagi Leave Type {0}
-Name Case,Menjalankan pekerjaan dijadwalkan hanya jika diperiksa
-Name and Description,Tahunan
-Name is required,{0} tidak dapat dibeli dengan menggunakan Keranjang Belanja
-Name not permitted,resize-vertikal
-Name not set via Prompt,GitHub ID Client
-Name of the Document Type (DocType) you want this field to be linked to. e.g. Customer,Peran HTML
-Naming,Forum
-Naming Series mandatory,Kategori
-Nested set error. Please contact the Administrator.,Tidak diperbolehkan untuk mengubah {0} setelah pengiriman
-New,Jumlah yang dialokasikan
-New Password,Judul Blog
-New Record,Lato
-New comment on {0} {1},Top Bar Items
-New password emailed,"Opsi kontak, seperti ""Penjualan Query, Dukungan Query"" dll masing-masing pada baris baru atau dipisahkan dengan koma."
-New value to be set,URL gambar
-New {0},isinya dihati
-Next Communcation On,"Masukkan bidang nilai default (tombol) dan nilai-nilai. Jika Anda menambahkan beberapa nilai untuk field, yang pertama akan dijemput. Default ini juga digunakan untuk mengatur ""pertandingan"" aturan izin. Untuk melihat daftar bidang, pergi ke <a href=""#Form/Customize Form/Customize Form""> Customize Form </ a>."
-Next Record,Opsi Query
-Next State,Induk Posting
-Next actions,Ditugaskan Untuk Nama Lengkap
-No,Kirim Email
-No Action,Sinkronisasi Inbox
+"Get your globally recognized avatar from <a href=""https://gravatar.com/"">Gravatar.com</a>","Dapatkan avatar Anda diakui secara global dari <a href=""https://gravatar.com/""> Gravatar.com </ a>"
+GitHub,GitHub
+GitHub Client ID,GitHub ID Client
+GitHub Client Secret,GitHub Client Rahasia
+Github User ID,Github Pengguna ID
+Github Username,Github Nama
+Google,Google
+Google Analytics ID,Google Analytics ID
+Google Client ID,ID Google Client
+Google Client Secret,Google Client Rahasia
+Google Plus One,Google Plus One
+Google User ID,Google User ID
+Google Web Font (Heading),Google Font Web (Heading)
+Google Web Font (Text),Google Font Web (Text)
+Greater or equals,Lebih besar atau sama dengan
+Greater than,Lebih besar dari
+"Group Added, refreshing...","Grup Ditambahkan, menyegarkan ..."
+Group Description,Kelompok Deskripsi
+Group Name,Nama Grup
+Group Title,Judul kelompok
+Group Type,Jenis Grup
+Groups,Grup
+HTML for header section. Optional,HTML untuk bagian header. Pilihan
+Have an account? Login,Punya akun? Masuk
+Header,Header
+Heading,Kepala
+Heading Text As,Pos Text Sebagai
+Help,Bantuan
+Help on Search,Bantuan pencarian
+Helvetica Neue,Helvetica Neue
+Hidden,Tersembunyi
+Hide Actions,Sembunyikan Actions
+Hide Copy,Sembunyikan Copy
+Hide Heading,Sembunyikan Heading
+Hide Toolbar,Sembunyikan Toolbar
+Hide the sidebar,Sembunyikan sidebar
+High,Tinggi
+Highlight,Menyoroti
+History,Sejarah
+Home Page,Beranda
+Home Page is Products,Halaman rumah adalah Produk
+ID (name) of the entity whose property is to be set,ID (nama) dari entitas yang properti harus ditetapkan
+Icon,Icon
+Icon will appear on the button,Icon akan muncul pada tombol
+"If a Role does not have access at Level 0, then higher levels are meaningless.","Jika Peran yang tidak memiliki akses di Level 0, maka tingkat yang lebih tinggi tidak ada artinya."
+"If checked, all other workflows become inactive.","Jika dicentang, semua alur kerja lainnya menjadi tidak aktif."
+"If checked, the Home page will be the default Item Group for the website.","Jika dicentang, halaman Home akan menjadi default Barang Grup untuk website."
+"If image is selected, color will be ignored (attach first)","Jika gambar dipilih, warna akan diabaikan (melampirkan pertama)"
+If non standard port (e.g. 587),Jika port non standar (misalnya 587)
+"If these instructions where not helpful, please add in your suggestions on GitHub Issues.","Jika instruksi ini, jika tidak membantu, silakan tambahkan saran Anda pada GitHub Isu."
+"If you set this, this Item will come in a drop-down under the selected parent.","Jika Anda mengatur ini, item ini akan datang dalam drop-down di bawah induk yang dipilih."
+Ignore User Permissions,Abaikan Izin Pengguna
+"Ignoring Item {0}, because a group exists with the same name!","Mengabaikan Barang {0}, karena kelompok itu ada dengan nama yang sama!"
+Image,Gambar
+Image Link,Image Link
+Import,Impor
+Import / Export Data,Impor / Export Data
+Import / Export Data from .csv files.,Impor / Ekspor Data dari. File csv.
+In,... Dalam
+In Dialog,Dalam Dialog
+In Filter,Dalam Filter
+In List View,Dalam Daftar View
+In Report Filter,Dalam Laporan Filter
+In points. Default is 9.,Dalam poin. Default-nya adalah 9.
+In response to,Menanggapi
+Incorrect value in row {0}: {1} must be {2} {3},Nilai yang salah dalam baris {0}: {1} harus {2} {3}
+Incorrect value: {0} must be {1} {2},Nilai yang tidak benar: {0} harus {1} {2}
+Index,Indeks
+Individuals,Individu
+Info,Info
+Insert After,Masukkan Setelah
+"Insert After field '{0}' mentioned in Custom Field '{1}', does not exist","Masukkan Setelah field '{0}' yang disebutkan di Bidang Kustom '{1}', tidak ada"
+Insert Below,Sisipkan bawah
+Insert Code,Masukkan Kode
+Insert Row,Masukkan Row
+Insert Style,Masukkan Style
+Install Applications.,Install Aplikasi.
+Installed,Dipasang
+Installer,Pemasang
+Int,Int
+Integrations,Integrasi
+Introduce your company to the website visitor.,Memperkenalkan perusahaan Anda kepada pengunjung situs.
+Introduction,Pendahuluan
+Introductory information for the Contact Us Page,Informasi pengantar untuk Hubungi Kami Halaman
+Invalid Email: {0},Email tidak valid: {0}
+Invalid Filter: {0},Filter tidak valid: {0}
+Invalid Home Page,Valid Halaman
+Invalid Login,Login tidak valid
+Invalid Outgoing Mail Server or Port,Outgoing Mail Server valid atau Pelabuhan
+Invalid login or password,Login atau kata sandi tidak valid
+Invalid recipient address,Alamat penerima tidak valid
+Inverse,Terbalik
+Is Active,Aktif
+Is Child Table,Apakah Anak Table
+Is Default,Apakah default
+Is Event,Apakah acara
+Is Mandatory Field,Apakah Lapangan Wajib
+Is Single,Tunggal
+Is Standard,Adalah Standard
+Is Submittable,Apakah Submittable
+Is Task,Apakah Tugas
+Item cannot be added to its own descendents,Item tidak dapat ditambahkan ke keturunan sendiri
+JavaScript Format: frappe.query_reports['REPORTNAME'] = {},JavaScript Format: frappe.query_reports ['REPORTNAME'] = {}
+Javascript,Javascript
+Javascript to append to the head section of the page.,Javascript untuk menambahkan ke bagian kepala halaman.
+Key,Kunci
+Label,Label
+Label Help,Label Bantuan
+Label and Type,Label dan Jenis
+Label is mandatory,Label adalah wajib
+Landing Page,Halaman Arahan
+Language,Bahasa
+Language preference for user interface (only if available).,Preferensi bahasa untuk antarmuka pengguna (hanya jika tersedia).
+"Language, Date and Time settings","Pengaturan bahasa, Tanggal dan Waktu"
+Last IP,IP Terakhir
+Last Login,Terakhir Login
+Last Name,Nama Belakang
+Last updated by,Terakhir diperbarui oleh
+Lastmod,Lastmod
+Lato,Lato
+Leave blank to repeat always,Biarkan kosong untuk mengulang selalu
+Left,Waktu tersisa
+Less or equals,Kurang atau sama dengan
+Less than,Kurang dari
+Letter,Surat
+Letter Head,Surat Kepala
+Letter Head Name,Nama Surat Kepala
+Letter Head in HTML,Surat Kepala di HTML
+Level,Level
+"Level 0 is for document level permissions, higher levels for field level permissions.","Level 0 adalah untuk izin tingkat dokumen, tingkat yang lebih tinggi untuk izin tingkat lapangan."
+Like,Seperti
+Link,Link
+"Link that is the website home page. Standard Links (index, login, products, blog, about, contact)","Menghubungkan bahwa situs web halaman rumah. Links Standard (index, login, produk, blog, tentang, kontak)"
+Link to other pages in the side bar and next section,Link ke halaman lain di sisi bar dan bagian berikutnya
+Link to the page you want to open,Link ke halaman yang ingin Anda buka
+Linked In Share,Linked In Share
+Linked With,Terhubung Dengan
+List,Daftar
+List a document type,Daftar jenis dokumen
+List of Web Site Forum's Posts.,Daftar Situs Forum Web Posts.
+Loading,Memuat
+Loading Report,Memuat Laporan
+Loading...,Memuat...
+Localization,Lokalisasi
+Location,Lokasi
+Log of error on automated events (scheduler).,Log kesalahan pada peristiwa otomatis (scheduler).
+Login,Masuk
+Login After,Login Setelah
+Login Before,Login Sebelum
+Login Id,Login Id
+Login not allowed at this time,Login tidak diizinkan untuk saat ini
+Logout,Keluar
+Long Text,Panjang Teks
+Low,Rendah
+Lucida Grande,Lucida Grande
+Mail Password,Mail Password
+Main Section,Bagian Utama
+Make a new,Membuat baru
+Make a new record,Membuat rekor baru
+Male,Laki-laki
+Manage cloud backups on Dropbox,Mengelola backup awan di Dropbox
+Manage uploaded files.,Mengelola file upload.
+Mandatory,Wajib
+Mandatory fields required in {0},Bidang wajib yang dibutuhkan dalam {0}
+Mandatory filters required:\n,Filter wajib yang dibutuhkan: \n
+Master,Nahkoda
+Max Attachments,Max Lampiran
+Max width for type Currency is 100px in row {0},Max lebar untuk jenis mata uang adalah 100px berturut-turut {0}
+"Meaning of Submit, Cancel, Amend","Artinya dari Submit, Batal, Amend"
+Medium,Sedang
+"Menu items in the Top Bar. For setting the color of the Top Bar, go to <a href=""#Form/Style Settings"">Style Settings</a>","Item menu di Top Bar. Untuk pengaturan warna Top Bar, pergi ke <a href=""#Form/Style Settings""> Setelan Gaya </ a>"
+Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node,Penggabungan ini hanya mungkin antara kelompok-to-Grup atau Leaf Node-to-Leaf Node
+Message,Pesan
+Message Examples,Contoh pesan
+Messages,Pesan
+Method,Metode
+Middle Name (Optional),Nama Tengah (Opsional)
+Misc,Lain-lain
+Miscellaneous,Lain-Lain
+Missing Values Required,Hilang Nilai Diperlukan
+Modern,Modern
+Modified by,Diubah oleh
+Module,modul
+Module Def,Modul Def
+Module Name,Nama Modul
+Module Not Found,Modul Tidak Ditemukan
+Modules Setup,Modul Pengaturan
+Monday,Senin
+More,Lanjut
+More content for the bottom of the page.,Konten lainnya untuk bagian bawah halaman.
+Move Down: {0},Move Down: {0}
+Move Up: {0},Pindah Up: {0}
+Multiple root nodes not allowed.,Beberapa node akar tidak diperbolehkan.
+Must have report permission to access this report.,Harus memiliki ijin laporan untuk mengakses laporan ini.
+Must specify a Query to run,Harus menentukan Query untuk menjalankan
+My Settings,Pengaturan saya
+Name,Nama
+Name Case,Nama Kasus
+Name and Description,Nama dan Deskripsi
+Name is required,Nama dibutuhkan
+Name not permitted,Nama tidak diizinkan
+Name not set via Prompt,Name tidak diatur melalui Prompt
+Name of the Document Type (DocType) you want this field to be linked to. e.g. Customer,Nama Tipe Dokumen (DocType) Anda ingin bidang ini dapat dihubungkan dengan. misalnya Pelanggan
+Name of {0} cannot be {1},Nama {0} tidak dapat {1}
+Naming,Penamaan
+Naming Series mandatory,Penamaan Seri wajib
+Nested set error. Please contact the Administrator.,Bersarang kesalahan set. Silahkan hubungi Administrator.
+New,Baru
+New Password,Kata sandi Baru
+New Record,Rekaman Baru
+New comment on {0} {1},Komentar baru pada {0} {1}
+New password emailed,New password email
+New value to be set,Nilai baru yang akan ditetapkan
+New {0},New {0}
+Next Communcation On,Selanjutnya Communcation On
+Next Record,Next Record
+Next State,Negara berikutnya
+Next actions,Tindakan berikutnya
+No,Nomor
+No Action,No Action
 No Communication tagged with this ,
-No Copy,"Level 0 adalah untuk izin tingkat dokumen, tingkat yang lebih tinggi untuk izin tingkat lapangan."
-No Permissions set for this criteria.,Email Gunakan SSL
-No Report Loaded. Please use query-report/[Report Name] to run a report.,Doclist JSON
-No Results,Ditampilkan di website di: {0}
-No Sidebar,Mulai Report Untuk
-No User Permissions found.,menggunakan% sebagai wildcard
-No data found,Ukuran file melebihi ukuran maksimum yang diperbolehkan dari {0} MB
-No document selected,Seri
-No file attached,Terakhir diperbarui oleh
-No further records,{0}: Tidak ada dasar mengatur hak akses
-No one,Print Format Type
-No permission to '{0}' {1},Pilih Type
-No permission to edit,Pendahuluan Perusahaan
-No permission to write / remove.,Tidak ada Copy
-No records tagged.,ID (nama) dari entitas yang properti harus ditetapkan
-No template found at path: {0},Dipasang
-None,Sidebar Items
-None: End of Workflow,"Pengguna Type ""Sistem Pengguna"" dapat mengakses Desktop. ""Website User"" hanya dapat login ke website dan Portal halaman."
-Not Found,sinyal
-Not Linked to any record.,Tampilkan baris dengan nilai nol
-Not Permitted,Impor
-Not Submitted,"Grup Ditambahkan, menyegarkan ..."
-Not a user yet? Sign up,tanda plus
-Not a valid Comma Separated Value (CSV File),DocType Ref
-Not allowed,salah satu
-Not allowed from this IP Address,Email Footer
-Not allowed to Import,Workflow Negara
-Not allowed to access {0} with {1} = {2},Tidak dalam Mode Developer! Terletak di site_config.json
-Not allowed to change {0} after submission,kaca
-Not allowed to move,Label adalah wajib
-Not allowed to reset the password of {0},Untuk {0} pada tingkat {1} di {2} berturut-turut {3}
-Not enough permission to see links.,musik
-Not equals,Modul Def
-Not found,Slideshow Items
-Not in Developer Mode! Set in site_config.json,Pengguna Tidak dapat Buat
-Not permitted,Untuk Produksi
-"Note: For best results, images must be of the same size and width must be greater than height.",Pengawas
-Note: Other permission rules may also apply,Masukkan setidaknya satu izin baris
-Note: maximum attachment size = 1mb,Judul Prefix
-Nothing to show,Laporan Kustom
-Nothing to show for this selection,Situs Web Group
-Notification Count,Negara
-Notify by Email,Standard Print Format tidak dapat diperbarui
-Number Format,Catatan: Entry Pembayaran tidak akan dibuat karena 'Cash atau Rekening Bank tidak ditentukan
-Old Parent,Item {0} harus diproduksi atau sub-kontrak
-On,Icon
-"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).",Mengapung Presisi
-Only Administrator allowed to create Query / Script Reports,Tidak ada dokumen yang dipilih
-Only Administrator can save a standard report. Please rename and save.,Versi
-Only Allow Edit For,"Lain {0} dengan nama {1} ada, pilih nama lain"
-Only allowed {0} rows in one import,Harap melampirkan file atau menetapkan URL
-Open,Pertama Menanggapi On
-Open Count,Menulis sebuah file Python dalam folder yang sama di mana ini disimpan dan kembali kolom dan hasilnya.
-Open Sans,Lapangan {0} tipe {1} tidak wajib
-Open Source Web Applications for the Web,Konsep
-Open a module or tool,Tabel Anak akan ditampilkan sebagai Grid di Doctypes lainnya.
-Open {0},Tidak menemukan {0} untuk {0} ({1})
-Options,Keamanan
-Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType',Pengguna {0} tidak ada
-Options Help,Pengaturan> Permissions User Manager
-Options for select. Each option on a new line. e.g.: <br>Option 1<br>Option 2<br>Option 3<br>,Laporkan Masalah
-Options must be a valid DocType for field {0} in row {1},Add Column
-Options not set for link field {0},Tag Nama
-Options requried for Link or Table type field {0} in row {1},Referensi DocName
-Org History,tas kantor
-Org History Heading,Aktif
-Original Message,Sistem
-Other,Nama Depan
-Outgoing Email Settings,Alamat dan informasi hukum lainnya Anda mungkin ingin dimasukkan ke dalam footer.
-Outgoing Mail Server,Aturan Izin
-Outgoing Mail Server not specified,Upvotes
-Owner,Diharapkan Tanggal Mulai
-POP3 Mail Server (e.g. pop.gmail.com),Induk Label
-Page,Tambahkan kode sebagai <script>
-Page Background,Penjualan
-Page HTML,Kode
-Page Header,Sesi kadaluarsa. Mengeluarkan Anda
-Page Header Background,-retweet
-Page Header Text,Pencarian
-Page Links,Default-nya adalah sistem zona waktu
-Page Name,Posting Blog
-Page Role,{0}: Tidak dapat mengatur Assign Mengubah jika tidak Submittable
-Page Text,Membaca
-Page Title,Nama dan Deskripsi
-Page content,"{0} {1} tidak dapat ""{2}"". Ini harus menjadi salah satu dari ""{3}"""
-Page not found,fullscreen
-Page or Generator,Para peserta
-Page url name (auto-generated),mm-dd-yyyy
-Page with name {0} already exists,Alamat
-Parent Label,Nilai yang tidak benar: {1} harus {2} {3}
-Parent Post,Default Pengguna
-Parent Website Page,Dari nilai harus kurang dari nilai berturut-turut {0}
-Parent Website Route,Pending Jumlah
-Parent Website Sitemap,Email Signature
-Participants,text-height
-Password,Tujuan
-Password Updated,Set Hanya Sekali
-Password reset instructions have been sent to your email,Valid Halaman
-Patch,Silakan tentukan 'Auto Email Id' dalam Setup> Setting Email Outgoing
-Patch Log,Pihak Ketiga Otentikasi
-Percent,"000 hitam, fff putih"
-Perm Level,Buka
-Permanently Cancel {0}?,yyyy-mm-dd
-Permanently Submit {0}?,Pos Text Sebagai
-Permanently delete {0}?,Penamaan
-Permission Level,Hanya Izinkan Sunting Untuk
-Permission Levels,Fieldname diperlukan berturut-turut {0}
-Permission Rules,Header
-Permission already set,Alamat Judul
-Permissions,Properti
-Permissions Settings,"Jika dicentang, semua alur kerja lainnya menjadi tidak aktif."
-Permissions are automatically translated to Standard Reports and Searches.,Isi Halaman
-"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions.",New {0}
-Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles.,Header Halaman
-"Permissions at level 0 are 'Document Level' permissions, i.e. they are primary for access to the document.",Untuk rentang
-Permissions get applied on Users based on what Roles they are assigned.,Auto Email Id
-Permitted Documents For User,Tanggal dan Nomor Format
-Person,kurang
-Personal Info,Alur kerja
-Phone,Silakan Singkatan atau Nama pendek dengan benar karena akan ditambahkan sebagai Suffix kepada semua Kepala Akun.
-Phone No.,Semua orang
-Pick Columns,Background warna solid (light standar abu-abu)
-Picture URL,"Jenis dokumen <i> ... </ i>, misalnya <b> pelanggan </ b>"
-Pincode,Pengaturan global
-Please attach a file first.,Halaman
-Please attach a file or set a URL,Klik pada baris untuk melihat / edit.
-Please do not change the rows above {0},Sembunyikan Heading
-Please enable pop-ups,Negara
-Please enter Event's Date and Time!,Periksa ini jika Anda ingin mengirim email sebagai id ini saja (dalam hal pembatasan oleh penyedia email Anda).
-Please enter some text!,Posts
-Please enter title!,icon
-Please login to Upvote!,Benar
-Please make sure that there are no empty columns in the file.,Mengkategorikan posting blog.
-Please refresh to get the latest document.,Nomor Telepon
-Please reply above this line or remove it if you are replying below it,Nama Slideshow
-Please select a file or url,Login tidak diizinkan untuk saat ini
-Please select atleast 1 column from {0} to sort,langkah-maju
-Please set {0} first,Terlampir Untuk Nama
-Please specify,Penagihan
-Please specify 'Auto Email Id' in Setup > Outgoing Email Settings,Jenis Options 'Dynamic Link' lapangan harus mengarah ke Link Field lain dengan pilihan sebagai 'DocType'
-Please specify Event date and time,Tambahkan ke To Do List Of
-Please specify doctype,Subdomain
-Please specify user,Bukan Nilai Comma Separated valid (CSV file)
-Please upload using the same template as download.,Perizinan di tingkat yang lebih tinggi adalah izin 'Lapangan Tingkat'. Semua Fields memiliki 'Izin Tingkat' set melawan mereka dan aturan yang ditetapkan pada saat itu izin berlaku untuk lapangan. Hal ini berguna jika Anda ingin menyembunyikan atau membuat bidang tertentu read-only untuk Peran tertentu.
-Plugin,4.1.2 Roles(Peran)
-Port,... Dalam
-Post,Tanggal
-Post Publicly,Icon akan muncul pada tombol
-Post Topic,Pengaturan Email
-Post already exists. Cannot add again!,Welcome email yang dikirim
-Post does not exist. Please add post!,ditemukan
-Post to user,berhenti
-Posts,Apakah Anda yakin ingin menghapus lampiran?
-Previous Record,Sasaran
-Primary,"Jika gambar dipilih, warna akan diabaikan (melampirkan pertama)"
-Print,panah kiri
-Print Format,Tidak dapat mengedit bidang standar
-Print Format Type,'Dalam Daftar View' tidak diperbolehkan untuk jenis {0} berturut-turut {1}
-Print Format {0} does not exist,Google
-Print Format {0} is disabled,Font Size (Text)
-Print Hide,Tidak Terkait dengan catatan apapun.
-Print Width,Langkah 2: Mengatur konten Kop surat.
-Print...,Pengaturan saya
-Printing and Branding,Jumlah Total Diklaim
-Priority,Dijadwalkan untuk mengirim ke {0} penerima
-Private,"Untuk memberikan acess untuk peran hanya catatan khusus, centang 'Terapkan Perizinan Pengguna. Permissions pengguna yang digunakan untuk membatasi pengguna dengan peran seperti catatan tertentu."
-Properties,Tambahkan iklan ke situs. (Spanduk kecil biasanya baik)
-Property,Keluhan
-Property Setter,Pilih atau seret di slot waktu untuk membuat acara baru.
-Property Type,Tidak dapat mengubah {0}
-Public,Beban Legal
-Published,{0} tidak ada di baris {1}
-Published On,{0} {1} sudah ada
-Published on website at: {0},Item Code dibutuhkan pada Row ada {0}
-Pull Emails from the Inbox and attach them as Communication records (for known contacts).,Dokumentasi
-Query,Sisipkan bawah
-Query Options,Alamat penerima tidak valid
-Query Report,Harian Kegiatan Digest dikirim untuk Kalender Acara di mana pengingat ditetapkan.
-Query must be a SELECT,Kemarin
-Quick Help for Setting Permissions,Auto dihasilkan
-Quick Help for User Permissions,Hak cipta
-Re-open,Buka modul atau alat
-Read,Pembayaran Dibuat
-Read Only,Bio singkat
-Received,indent kanan
-Recipient,Footer Latar Belakang
-Recipients,Masukkan pusat biaya orang tua
-Record does not exist,Static file Timestamp
-Ref DocType,GitHub Client Rahasia
-Ref Name,Dinonaktifkan
-Ref Type,{0} berturut-turut {1} tidak dapat memiliki dua URL dan barang-barang anak
-Reference,Mendamaikan
-Reference DocName,Sandi instruksi ulang telah dikirim ke email Anda
-Reference DocType,Pertanyaan harus SELECT
-Reference Name,{0} {1} status 'Berhenti'
-Reference Type,DocType yang Workflow ini berlaku.
-Refresh,Purchase Order Items Disediakan
-Refreshing...,Memungkinkan pengguna untuk login hanya setelah jam ini (0-24)
-Registered but disabled.,Konten lainnya untuk bagian bawah halaman.
-Registration Details Emailed.,Open Source Web Aplikasi untuk Web
-Reload Page,Tidak dapat membatalkan sebelum mengirimkan. Lihat Transition {0}
-Remove Bookmark,Nama App
-Remove all customizations?,User ID dari seorang penulis blog.
-Rename many items by uploading a .csv file.,Situs web Route
-Rename...,POP3 Mail Server (misalnya pop.gmail.com)
-Repeat On,Penamaan Seri wajib
-Repeat Till,Tampilkan tags
-Repeat this Event,Izin Tingkat
-Replies,Tergantung On
-Report,Script Website
-Report Builder,Tata Urutan
-Report Builder reports are managed directly by the report builder. Nothing to do.,Scheduler Log
-Report Hide,<i> misalnya <strong> (55 + 434) / 4 </ strong> atau <strong> = Math.sin (Math.PI / 2) </ strong> ... </ i>
-Report Name,"Pilih modul yang akan ditampilkan (berdasarkan izin). Jika tersembunyi, mereka akan tersembunyi untuk semua pengguna."
-Report Type,BOM {0} untuk Item {1} berturut-turut {2} tidak aktif atau tidak disampaikan
-Report an Issue,Reset Password Key
-Report cannot be set for Single types,Dokumen hanya dapat diedit oleh pengguna dari peran
-Report was not saved (there were errors),Tarik untuk mengurutkan kolom
-Reqd,folder-close
-Reset Password Key,Menambahkan kolom ke bentuk.
-Reset Permissions for {0}?,Atur Kata Sandi
-Response,Data
-Restrict IP,Keruntuhan
-Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111),Punya akun? Masuk
-Right,Pilih Pengguna atau DocType untuk memulai.
-Role,Lebar
-Role Name,Orang
-Role Permissions Manager,Izinkan Impor via Impor Data Alat
-Role and Level,Kustom Javascript
-Role exists,Dalam Daftar View
-Roles,Buat baru {0}
-Roles Assigned,baru </ b> <i> jenis <b> dokumen </ i>
-Roles Assigned To User,Kepada Yth.
-Roles HTML,Download link untuk cadangan Anda akan dikirimkan melalui email di alamat email berikut:
-Roles can be set for users from their User page.,Akar {0} tidak dapat dihapus
-Root {0} cannot be deleted,Silakan set {0} pertama
-Row,Secara permanen menghapus {0}?
-Row #{0}:,4.1.3 Permissions (Otorisasi)
-Rules defining transition of state in the workflow.,Silakan tentukan doctype
-"Rules for how states are transitions, like next state and which role is allowed to change state etc.",Pilihan untuk pilih. Setiap opsi pada baris baru. misalnya: <br> Opsi 1 Opsi 2 <br> <br> Opsi 3 <br>
-Run scheduled jobs only if checked,Twitter Share
-Run the report first,Google Analytics ID
-SMTP Server (e.g. smtp.gmail.com),Deskripsi untuk header halaman.
-Sales,Dalam Kata-kata (Perusahaan Mata Uang)
-Same file has already been attached to the record,"Serikat untuk alur kerja (misalnya Draft, Disetujui, Dibatalkan)."
-Sample,Cetak Format {0} tidak ada
-Saturday,Peringatan: Tinggalkan aplikasi berisi tanggal blok berikut
-Save,Kirim Topik
-Scheduler Log,Pendahuluan
-Script,Fieldname tidak ditetapkan untuk Bidang Kustom
-Script Report,Peran Ditugaskan Untuk Pengguna
-Script Type,Event Type
-Search,Background Style
-Search Fields,Background Image
-Search in a document type,Email Login
-Search or type a command,filter
-Section Break,Perihal
-Security,Fieldname
-Security Settings,{0} harus diatur terlebih dahulu
-Select,Izin Tambahan
-Select All,To Do
-Select Attachments,Gaya
-Select Document Type,Tidak ada izin untuk '{0}' {1}
-Select Document Type or Role to start.,resize-kecil
-Select Print Format,Integrasi
-Select Report Name,Tidak diizinkan untuk Impor
-Select Role,Tambahkan Rule Izin Baru
-Select To Download:,berkas nama
-Select Type,FavIcon
-Select User or DocType to start.,Induk Website Halaman
-Select a Banner Image first.,{0} Daftar
-Select an image of approx width 150px with a transparent background for best results.,Item tidak dapat ditambahkan ke keturunan sendiri
+No Copy,Tidak ada Copy
+No Permissions set for this criteria.,Tidak ada Izin ditetapkan untuk kriteria ini.
+No Report Loaded. Please use query-report/[Report Name] to run a report.,Ada Laporan Loaded. Silakan gunakan laporan query / [Nama Laporan] untuk menjalankan laporan.
+No Results,No Results
+No Sidebar,Tidak ada Sidebar
+No User Permissions found.,No User Permissions ditemukan.
+No data found,Tidak ada data
+No file attached,Tidak ada file terlampir
+No further records,Tidak ada catatan lebih lanjut
+No one,Tak seorangpun
+No permission to '{0}' {1},Tidak ada izin untuk '{0}' {1}
+No permission to edit,Tidak ada izin untuk mengedit
+No permission to write / remove.,Tidak ada izin untuk menulis / menghapus.
+No records tagged.,Ada catatan tagged.
+No template found at path: {0},Tidak ada template yang ditemukan di jalan: {0}
+No {0} permission,Tidak ada {0} izin
+None,Tidak
+None: End of Workflow,Tidak ada: Akhir Workflow
+Not Found,Tidak Ditemukan
+Not Linked to any record.,Tidak Terkait dengan catatan apapun.
+Not Permitted,Tidak Diijinkan
+Not Submitted,Tidak Dikirim
+Not a user yet? Sign up,Bukan pengguna yet? Daftar
+Not a valid Comma Separated Value (CSV File),Bukan Nilai Comma Separated valid (CSV file)
+Not allowed,Tidak diizinkan
+Not allowed from this IP Address,Tidak diizinkan dari IP Address ini
+Not allowed to Import,Tidak diizinkan untuk Impor
+Not allowed to access {0} with {1} = {2},Tidak diizinkan untuk mengakses {0} dengan {1} = {2}
+Not allowed to change {0} after submission,Tidak diperbolehkan untuk mengubah {0} setelah pengiriman
+Not allowed to move,Tidak diizinkan untuk bergerak
+Not allowed to reset the password of {0},Tidak diizinkan untuk me-reset password dari {0}
+Not enough permission to see links.,Tidak cukup izin untuk melihat link.
+Not equals,Tidak sama dengan
+Not found,Tidak Ditemukan
+Not in Developer Mode! Set in site_config.json,Tidak dalam Mode Developer! Terletak di site_config.json
+Not permitted,Tidak diijinkan
+"Note: For best results, images must be of the same size and width must be greater than height.","Catatan: Untuk hasil terbaik, gambar harus dengan ukuran yang sama dan lebar harus lebih besar dari ketinggian."
+Note: Other permission rules may also apply,Catatan: aturan izin lain juga mungkin berlaku
+Note: maximum attachment size = 1mb,Catatan: ukuran lampiran maksimum = 1mb
+Nothing to show,Tidak ada yang menunjukkan
+Nothing to show for this selection,Apa-apa untuk menunjukkan untuk seleksi ini
+Notification Count,Pemberitahuan Hitungan
+Notify by Email,Memberitahu melalui Email
+Number Format,Nomor Format
+Old Parent,Induk tua
+On,Nyala
+"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).","Setelah Anda telah mengatur ini, pengguna hanya akan bisa mengakses dokumen (misalnya Blog Post) di mana link yang ada (misalnya Blogger)."
+Only Administrator allowed to create Query / Script Reports,Hanya Administrator diizinkan untuk membuat Query / Script Laporan
+Only Administrator can save a standard report. Please rename and save.,Hanya Administrator dapat menyimpan laporan standar. Silahkan mengubah nama dan simpan.
+Only Allow Edit For,Hanya Izinkan Sunting Untuk
+Only allowed {0} rows in one import,Hanya diperbolehkan {0} baris dalam satu impor
+Oops! Something went wrong,Ups! Ada yang salah
+Open,Buka
+Open Count,Buka Hitungan
+Open Sans,Buka Sans
+Open Source Web Applications for the Web,Open Source Web Aplikasi untuk Web
+Open a module or tool,Buka modul atau alat
+Open {0},Terbuka {0}
+Optional: Alert will only be sent if value is a valid email id.,Opsional: Pemberitahuan hanya akan dikirim jika nilai adalah id email yang valid.
+Optional: Always send to these ids. Each email id on a new row,Opsional: Selalu kirim ke id ini. Setiap id email pada baris baru
+Optional: The alert will be sent if this expression is true,Opsional: alert akan dikirim jika ungkapan ini benar
+Options,Pilihan
+Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType',Jenis Options 'Dynamic Link' lapangan harus mengarah ke Link Field lain dengan pilihan sebagai 'DocType'
+Options Help,Pilihan Bantuan
+Options for select. Each option on a new line. e.g.: <br>Option 1<br>Option 2<br>Option 3<br>,Pilihan untuk pilih. Setiap opsi pada baris baru. misalnya: <br> Opsi 1 Opsi 2 <br> <br> Opsi 3 <br>
+Options must be a valid DocType for field {0} in row {1},Pilihan harus DocType valid untuk bidang {0} berturut-turut {1}
+Options not set for link field {0},Pilihan tidak diatur untuk bidang tautan {0}
+Options requried for Link or Table type field {0} in row {1},Pilihan requried untuk Link atau jenis Table bidang {0} berturut-turut {1}
+Org History,Org Sejarah
+Org History Heading,Org Sejarah Pos
+Original Message,Original Message
+Other,Lain-lain
+Outgoing Email Settings,Pengaturan Email Outgoing
+Outgoing Mail Server,Outgoing Mail Server
+Outgoing Mail Server not specified,Outgoing Mail Server tidak ditentukan
+Owner,Pemilik
+PDF Page Size,PDF Page Size
+PDF Settings,Pengaturan PDF
+POP3 Mail Server (e.g. pop.gmail.com),POP3 Mail Server (misalnya pop.gmail.com)
+Page,Halaman
+Page #{0} of {1},Halaman # {0} dari {1}
+Page Background,Halaman Latar Belakang
+Page HTML,Halaman HTML
+Page Header,Header Halaman
+Page Header Background,Header Halaman Latar Belakang
+Page Header Text,Header Halaman Text
+Page Links,Halaman Links
+Page Name,Nama Halaman
+Page Role,Halaman Peran
+Page Text,Halaman Text
+Page Title,Page Title
+Page content,Konten halaman
+Page not found,Halaman tidak ditemukan
+Page or Generator,Page atau Generator
+Page url name (auto-generated),Nama url halaman (auto-generated)
+Parent Label,Induk Label
+Parent Post,Induk Posting
+Parent Website Page,Induk Website Halaman
+Parent Website Route,Parent Situs Route
+Parent Website Sitemap,Parent Situs Sitemap
+Participants,Para peserta
+Password,Kata sandi
+Password Updated,Sandi Diperbarui
+Password reset instructions have been sent to your email,Sandi instruksi ulang telah dikirim ke email Anda
+Patch,Tambalan
+Patch Log,Patch Log
+Percent,Persen
+Perm Level,Perm Tingkat
+Permanently Cancel {0}?,Permanen Batal {0}?
+Permanently Submit {0}?,Kirim permanen {0}?
+Permanently delete {0}?,Secara permanen menghapus {0}?
+Permission Level,Izin Tingkat
+Permission Levels,Tingkat Izin
+Permission Rules,Aturan Izin
+Permission already set,Izin sudah ditetapkan
+Permissions,4.1.3 Permissions (Otorisasi)
+Permissions Settings,Pengaturan Perizinan
+Permissions are automatically translated to Standard Reports and Searches.,Permissions secara otomatis diterjemahkan ke Laporan dan Searches Standard.
+"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions.","Perizinan di-set pada Peran dan Jenis Dokumen (disebut Doctypes) dengan menetapkan hak-hak seperti Baca, Tulis, Buat, Hapus, Kirim, Batal, Mengubah, Report, Impor, Ekspor, Print, Email dan Set User Permissions."
+Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles.,Perizinan di tingkat yang lebih tinggi adalah izin 'Lapangan Tingkat'. Semua Fields memiliki 'Izin Tingkat' set melawan mereka dan aturan yang ditetapkan pada saat itu izin berlaku untuk lapangan. Hal ini berguna jika Anda ingin menyembunyikan atau membuat bidang tertentu read-only untuk Peran tertentu.
+"Permissions at level 0 are 'Document Level' permissions, i.e. they are primary for access to the document.","Perizinan di level 0 adalah izin 'Document Tingkat', yaitu mereka yang utama untuk akses ke dokumen."
+Permissions get applied on Users based on what Roles they are assigned.,Izin bisa diterapkan pada Pengguna berdasarkan apa Peran mereka ditugaskan.
+Permitted Documents For User,Dokumen Diijinkan Untuk Pengguna
+Person,Orang
+Personal Info,Info Pribadi
+Phone,Telepon
+Phone No.,Nomor Telepon
+Pick Columns,Pilih Kolom
+Picture URL,URL gambar
+Pincode,Kode PIN
+Please attach a file first.,Harap melampirkan file pertama.
+Please attach a file or set a URL,Harap melampirkan file atau menetapkan URL
+Please do not change the rows above {0},Harap jangan mengubah baris di atas {0}
+Please enable pop-ups,Aktifkan pop-up
+Please enter Event's Date and Time!,Masukkan Event Tanggal dan Waktu!
+"Please enter both your email and message so that we \
+				can get back to you. Thanks!","Ketikkan kedua email dan pesan sehingga kita \
+ bisa kembali kepada Anda. Terima kasih!"
+Please enter some text!,Silahkan masukkan beberapa teks!
+Please enter title!,Masukkan judul!
+Please login to Upvote!,Silahkan login ke Upvote!
+Please make sure that there are no empty columns in the file.,Pastikan bahwa tidak ada kolom kosong dalam file.
+Please refresh to get the latest document.,Silahkan refresh untuk mendapatkan dokumen terbaru.
+Please reply above this line or remove it if you are replying below it,Silakan balas atas garis ini atau menghapusnya jika Anda membalas di bawahnya
+Please select a file or url,Silahkan pilih file atau url
+Please select atleast 1 column from {0} to sort,Silahkan pilih atleast 1 kolom dari {0} untuk mengurutkan
+Please set {0} first,Silakan set {0} pertama
+Please specify,Silakan tentukan
+Please specify 'Auto Email Id' in Setup > Outgoing Email Settings,Silakan tentukan 'Auto Email Id' dalam Setup> Setting Email Outgoing
+Please specify Event date and time,Silakan tentukan tanggal dan waktu acara
+Please specify doctype,Silakan tentukan doctype
+Please specify user,Silakan tentukan pengguna
+Please specify which date field must be checked,Silakan tentukan tanggal yang lapangan harus diperiksa
+Please specify which value field must be checked,Silakan tentukan mana bidang nilai harus diperiksa
+Please upload using the same template as download.,Silakan upload menggunakan template yang sama seperti download.
+Plugin,Plugin
+Port,Port
+Post,Post
+Post Publicly,Posting Publik
+Post Topic,Kirim Topik
+Post already exists. Cannot add again!,Posting sudah ada. Tidak dapat menambahkan lagi!
+Post does not exist. Please add post!,Post tidak ada. Silahkan menambahkan posting!
+Post to user,Posting ke pengguna
+Posts,Posts
+Previous Record,Rekam Sebelumnya
+Primary,Utama
+Print,Cetak
+Print Format,Format Cetak
+Print Format Help,Print Format Bantuan
+Print Format Type,Print Format Type
+Print Format {0} does not exist,Cetak Format {0} tidak ada
+Print Format {0} is disabled,Cetak Format {0} dinonaktifkan
+Print Hide,Cetak Sembunyikan
+Print Settings,Pengaturan Cetak
+Print Style,Print Style
+Print Style Preview,Print Style Preview
+Print Width,Cetak Lebar
+"Print with Letterhead, unless unchecked in a particular Document","Mencetak dengan Kop Surat, kecuali dicentang dalam Dokumen tertentu"
+Print...,Cetak ...
+Printing and Branding,Percetakan dan Branding
+Priority,Prioritas
+Private,Swasta
+Properties,Properti
+Property,Harta benda
+Property Setter,Setter Properti
+Property Type,Jenis properti
+Public,Publik
+Published,Diterbitkan
+Published On,Published On
+Published on website at: {0},Ditampilkan di website di: {0}
+Pull Emails from the Inbox and attach them as Communication records (for known contacts).,Tarik Email dari Kotak masuk dan melampirkannya sebagai catatan Komunikasi (untuk kontak yang dikenal).
+Query,Query
+Query Options,Opsi Query
+Query Report,Pertanyaan Laporan
+Query must be a SELECT,Pertanyaan harus SELECT
+Quick Help for Setting Permissions,Bantuan Cepat untuk Pengaturan Permissions
+Quick Help for User Permissions,Bantuan Cepat untuk Permissions Pengguna
+Re-open,Re-terbuka
+Read,Membaca
+Read Only,Read Only
+Received,Diterima
+Recipient,Penerima
+Recipients,Penerima
+Record does not exist,Rekam tidak ada
+Ref DocType,DocType Ref
+Ref Name,Ref Nama
+Ref Type,Ref Type
+Reference,Referensi
+Reference DocName,Referensi DocName
+Reference DocType,Referensi DocType
+Reference Name,Referensi Nama
+Reference Type,Referensi Type
+Refresh,Segarkan
+Refreshing...,Refreshing ...
+Registered but disabled.,Terdaftar tapi dinonaktifkan.
+Registration Details Emailed.,Pendaftaran Detail Diemail.
+Reload Page,Reload this Page
+Remove Bookmark,Hapus Bookmark
+Remove all customizations?,Hapus semua kustomisasi?
+Rename many items by uploading a .csv file.,Rename banyak item dengan meng-upload file csv..
+Rename...,Ubah nama ...
+Repeat On,Ulangi On
+Repeat Till,Ulangi Sampai
+Repeat this Event,Ulangi Acara ini
+Replies,Balasan
+Report,laporan
+Report Builder,Report Builder
+Report Builder reports are managed directly by the report builder. Nothing to do.,Laporan Report Builder dikelola langsung oleh pembangun laporan. Tidak ada hubungannya.
+Report Hide,Laporan Hide
+Report Name,Nama Laporan
+Report Type,Jenis Laporan
+Report an Issue,Laporkan Masalah
+Report cannot be set for Single types,Laporan tidak dapat ditetapkan untuk jenis Tunggal
+Report this issue,Melaporkan masalah ini
+Report was not saved (there were errors),Laporan tidak disimpan (ada kesalahan)
+Reqd,Reqd
+Reset Password Key,Reset Password Key
+Reset Permissions for {0}?,Atur Ulang Perizinan untuk {0}?
+Response,Tanggapan
+Restrict IP,Membatasi IP
+Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111),Membatasi pengguna dari alamat IP ini saja. Beberapa alamat IP dapat ditambahkan dengan memisahkan dengan koma. Juga menerima alamat IP parsial seperti (111.111.111)
+Right,Benar
+Role,Peran
+Role Name,Nama Peran
+Role Permissions Manager,Permissions Peran Manajer
+Role and Level,Peran dan Tingkat
+Role exists,Peran ada
+Roles,4.1.2 Roles(Peran)
+Roles Assigned,Peran Ditugaskan
+Roles Assigned To User,Peran Ditugaskan Untuk Pengguna
+Roles HTML,Peran HTML
+Roles can be set for users from their User page.,Peran dapat diatur untuk pengguna dari halaman Pengguna mereka.
+Root {0} cannot be deleted,Akar {0} tidak dapat dihapus
+Row,Baris
+Row #{0}:,Row # {0}:
+Rules defining transition of state in the workflow.,Aturan mendefinisikan transisi negara dalam alur kerja.
+"Rules for how states are transitions, like next state and which role is allowed to change state etc.","Aturan untuk bagaimana negara adalah transisi, seperti negara berikutnya dan mana peran diperbolehkan untuk mengubah keadaan dll"
+Run scheduled jobs only if checked,Menjalankan pekerjaan dijadwalkan hanya jika diperiksa
+Run the report first,Jalankan laporan pertama
+SMTP Server (e.g. smtp.gmail.com),SMTP Server (misalnya smtp.gmail.com)
+Sales,Penjualan
+Same file has already been attached to the record,File yang sama telah melekat pada catatan
+Sample,Sampel
+Saturday,Sabtu
+Save,Simpan
+Scheduler Log,Scheduler Log
+Script,Skrip
+Script Report,Script Laporan
+Script Type,Script Type
+Search,Pencarian
+Search Fields,Cari Fields
+Search in a document type,Cari dalam jenis dokumen
+Search or type a command,Cari atau ketik perintah
+Section Break,Bagian istirahat
+Security,Keamanan
+Security Settings,Pengaturan Keamanan
+Select,Pilih
+Select All,Pilih semua
+Select Attachments,Pilih Lampiran
+Select Document Type,Pilih Jenis Dokumen
+Select Document Type or Role to start.,Pilih Document Type atau Peran untuk memulai.
+Select Print Format,Pilih Print Format
+Select Report Name,Pilih Nama Laporan
+Select Role,Pilih Peran
+Select To Download:,Pilih Untuk Download:
+Select Type,Pilih Type
+Select User or DocType to start.,Pilih Pengguna atau DocType untuk memulai.
+Select a Banner Image first.,Pilih Gambar Banner pertama.
+Select an image of approx width 150px with a transparent background for best results.,Pilih gambar lebar kira-kira 150px dengan latar belakang transparan untuk hasil terbaik.
 Select dates to create a new ,
-"Select modules to be shown (based on permission). If hidden, they will be hidden for all users.",Komentar Doctype
-Select or drag across time slots to create a new event.,"File icon dengan ekstensi ico.. Harus 16 x 16 px. Dihasilkan dengan menggunakan generator favicon. [<a Href=""http://favicon-generator.org/"" target=""_blank""> favicon-generator.org </ a>]"
-"Select target = ""_blank"" to open in a new page.",Akhir acara harus setelah start
-Select the label after which you want to insert new field.,Google Plus One
-Send,Rekening pengeluaran adalah wajib untuk item {0}
-Send As Email,Tambah Jumlah Row
-Send Email,Jadwal
-Send Me A Copy,Situs web Route Izin
-Send Password,Anda tidak diizinkan untuk mengekspor data: {0}. Men-download template yang kosong.
-Send an email reminder in the morning,Tidak dapat mengubah gambar
-Send download link of a recent backup to System Managers,Perempuan
-Send enquiries to this email address,Daftar jenis dokumen
-Sender,Peluang Dibuat
-Sent,ToDo
-Sent Mail,edit
-Sent Quotation,Alamat Baris 2
-Sent or Received,Situs Slideshow
-Series,Membaca 2
-Series {0} already used in {1},Dalam Kata
-Server,Unggah
-Server Error: Please check your server logs or contact tech support.,Tidak ada Sidebar
-Session Expired. Logging you out,menyelaraskan kiri
-Session Expiry,teks <i> </ i> <b> di </ b> <i> jenis dokumen </ i>
-Session Expiry in Hours e.g. 06:00,Port
-Session Expiry must be in format {0},Default Value
-Set Banner from Image,Peran Ditugaskan
-Set Link,Dikirim atau diterima
-Set Login and Password if authentication is required.,Setiap izin yang ada akan dihapus / ditimpa.
-Set Only Once,DocPerm
-Set Password,Sub-domain yang disediakan oleh erpnext.com
-Set Permissions on Document Types and Roles,menyelaraskan kanan
-Set Permissions per User,Published On
-Set User Permissions,Persen
-Set Value,Silakan balas atas garis ini atau menghapusnya jika Anda membalas di bawahnya
-Set numbering series for transactions.,rgt
-Set outgoing mail server.,Bidang Deskripsi
-Settings,Permintaan Material Untuk Gudang
-Settings for About Us Page.,"Dapatkan avatar Anda diakui secara global dari <a href=""https://gravatar.com/""> Gravatar.com </ a>"
-Settings for Contact Us Page.,Email ...
-Setup,Semua Pemasok Kontak
-Setup > User,Komentar
-Setup > User Permissions Manager,"target = ""_blank"""
-Setup of fonts and background.,Facebook Pengguna ID
-"Setup of top navigation bar, footer and logo.",Daftar
-Short Bio,Banner HTML
-Short Name,{0} diperbarui
-Shortcut,ID Google Client
-Show / Hide Modules,Max Lampiran
-Show Print First,Background Color
-Show Tags,"Dokumen-dokumen tertentu, seperti Faktur, tidak boleh berubah sekali final. Keadaan akhir untuk dokumen tersebut disebut Dikirim. Anda dapat membatasi peran yang dapat Submit."
-Show or hide modules globally.,film
-Show rows with zero values,Volume-down
-Show tags,Tambah Aturan Baru
-Show this field as title,Dikirim Dokumen tidak dapat dikonversi kembali untuk menyusun. Transisi baris {0}
-Showing only for (if not empty),Hanya Administrator dapat menyimpan laporan standar. Silahkan mengubah nama dan simpan.
-Sidebar,"Jika instruksi ini, jika tidak membantu, silakan tambahkan saran Anda pada GitHub Isu."
-Sidebar Items,DocType tidak dapat digabungkan
-Sidebar Links for Home Page only,bermain-lingkaran
-Sign Up,Laporan Report Builder dikelola langsung oleh pembangun laporan. Tidak ada hubungannya.
-Sign in,Pilih gambar lebar kira-kira 150px dengan latar belakang transparan untuk hasil terbaik.
-Sign up,Swasta
-Single Post (article).,Tampilkan Tags
-Single Types have only one record no tables associated. Values are stored in tabSingles,Oleh
-Sitemap Browser,Link download Alternative
-Slideshow,Alamat saat ini adalah
-Slideshow Items,Komentar baru pada {0} {1}
-Slideshow Name,"Sesuaikan Label, Cetak Hide, Default dll"
-Small Text,Tidak diizinkan untuk bergerak
-Social Login Keys,Kembali ke Login
-Solid background color (default light gray),Setiap Tahun
-Sorry we were unable to find what you were looking for.,Tarik Email dari Kotak masuk dan melampirkannya sebagai catatan Komunikasi (untuk kontak yang dikenal).
-Sorry you are not permitted to view this page.,random
-Sort By,ok-tanda
-Sort Field,chevron-up
-Sort Order,Bahasa
-Standard,Karyawan {0} telah diterapkan untuk {1} antara {2} dan {3}
-Standard Print Format cannot be updated,Google Font Web (Text)
-Standard Reply,Sidebar
-Standard Reports,{0} adalah wajib untuk Item {1}
-Standard replies to common queries.,by Peran
-Start Report For,Impor / Ekspor Data dari. File csv.
-Starts on,Tabel {0} tidak boleh kosong
-State,Jenis Laporan
-States,Rekaman Baru
-"States for workflow (e.g. Draft, Approved, Cancelled).",Tidak dapat beban: {0}
-Static File Timestamp,fon
-Status,Jumlah Diskon
-Step 1: Set the name and save.,Reload this Page
-Step 2: Set Letterhead content.,"Gaya merupakan tombol warna: Sukses - Hijau, Danger - Red, Inverse - Black, Primer - Dark Blue, Info - Light Blue, Peringatan - Jeruk"
-Style,Lapangan {0} tidak dapat dipilih.
-Style Settings,Pengguna dengan peran {0}:
-"Style represents the button color: Success - Green, Danger - Red, Inverse - Black, Primary - Dark Blue, Info - Light Blue, Warning - Orange",Anda tidak dapat menginstal aplikasi ini
-Sub-domain provided by erpnext.com,Daftar Situs Forum Web Posts.
-Subdomain,Parent Situs Sitemap
-Subject,Masukkan Satuan default Ukur
-Submit,Memperkenalkan perusahaan Anda kepada pengunjung situs.
-Submit an Issue,Teks Align
-Submitted,Kehadiran tidak dapat ditandai untuk tanggal di masa depan
-Submitted Document cannot be converted back to draft. Transition row {0},tidak diatur
-Submitted Record cannot be deleted,URL File
-Success,Membersihkan sejarah
-Suggestion,Font (Text)
-Sunday,Keuangan / akuntansi tahun.
-Switch to Website,Nama Field
-Sync Inbox,Format Tanggal
-System,Distribusi anggaran
-System Settings,Buka
-System User,kalender
-System and Website Users,Tombol
-System generated mails will be sent from this email id.,Tanggal harus dalam format: {0}
-Table,Kode PIN
-Table {0} cannot be empty,Hanya Administrator diizinkan untuk membuat Query / Script Laporan
-Tag,magnet
-Tag Name,DocField
-Tags,GitHub
-Tahoma,Merek HTML
-Target,Konten halaman
-Tasks,Berdasarkan Jaminan
-Team Members,Email tidak diverifikasi dengan {1}
-Team Members Heading,Kemudian By (opsional)
-Template,Membuka untuk Job.
-Template Pages cannot be moved,Beranda
-Test,Pengaturan Mata Uang
-Test Runner,Tidak dapat terhubung ke server email keluar
-Text,Pengguna Izin
-Text Align,Hilang Nilai Diperlukan
-Text Editor,Move Down: {0}
-The name of your company / website as you want to appear on browser title bar. All pages will have this as the prefix to the title.,Aktifkan Komentar
-The system provides many pre-defined roles. You can add new roles to set finer permissions.,Application Installer
-Then By (optional),Login Setelah
-There should remain at least one System Manager,Original Message
-There were errors,Maaf Anda tidak diizinkan untuk melihat halaman ini.
-There were errors while sending email. Please try again.,Ascending
-"These permissions will apply for all transactions where the permitted record is linked. For example, if Company C is added to User Permissions of user X, user X will only be able to see transactions that has company C as a linked value.",Transisi Dokumen Status dari {0} ke {1} tidak diperbolehkan
-These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,Melampirkan
-"These will also be set as default values for those links, if only one such permission record is defined.",File yang sama telah melekat pada catatan
-Third Party Authentication,Aturan Transisi
+"Select modules to be shown (based on permission). If hidden, they will be hidden for all users.","Pilih modul yang akan ditampilkan (berdasarkan izin). Jika tersembunyi, mereka akan tersembunyi untuk semua pengguna."
+Select or drag across time slots to create a new event.,Pilih atau seret di slot waktu untuk membuat acara baru.
+"Select target = ""_blank"" to open in a new page.","Pilih target = ""_blank"" untuk membuka di halaman baru."
+Select the label after which you want to insert new field.,Pilih label setelah itu Anda ingin memasukkan bidang baru.
+Send,Kirim
+Send Alert On,Kirim Notifikasi On
+Send As Email,Kirim Sebagai Email
+Send Email,Kirim Email
+Send Email Print Attachments as PDF (Recommended),Kirim Email Cetak Lampiran sebagai PDF (Recommended)
+Send Me A Copy,Kirim Me Salin A
+Send Password,Kirim Kata Sandi
+Send Print as PDF,Kirim Cetak sebagai PDF
+Send alert if date matches this field's value,Kirim peringatan jika tanggal sesuai nilai bidang ini
+Send alert if this field's value changes,Kirim peringatan jika perubahan nilai field ini
+Send an email reminder in the morning,Kirim email pengingat di pagi hari
+Send download link of a recent backup to System Managers,Kirim link download dari cadangan baru ke Sistem Manajer
+Send enquiries to this email address,Kirim pertanyaan ke alamat email ini
+Sender,Pengirim
+Sent,Terkirim
+Sent Mail,Dikirim Mail
+Sent Quotation,Dikirim Quotation
+Sent or Received,Dikirim atau diterima
+Series,Seri
+Series {0} already used in {1},Seri {0} sudah digunakan dalam {1}
+Server,Server
+Server & Credentials,Server & Kredensial
+Server Error: Please check your server logs or contact tech support.,Server Error: Silahkan periksa log server atau menghubungi dukungan teknis.
+Session Expired. Logging you out,Sesi kadaluarsa. Mengeluarkan Anda
+Session Expiry,Sesi kadaluarsa
+Session Expiry in Hours e.g. 06:00,Sesi kadaluarsa di Jam misalnya 06:00
+Session Expiry must be in format {0},Sesi kadaluarsa harus dalam format {0}
+Set Banner from Image,Set Banner dari Image
+Set Link,Set Tautan
+Set Login and Password if authentication is required.,Set Login dan Password jika otentikasi diperlukan.
+Set Only Once,Set Hanya Sekali
+Set Password,Atur Kata Sandi
+Set Permissions on Document Types and Roles,Permissions Set tentang Jenis Dokumen dan Peran
+Set Permissions per User,Permissions Set per Pengguna
+Set User Permissions,Set User Permissions
+Set Value,Mengatur Nilai
+"Set default format, page size, print style etc.","Mengatur format standar, ukuran halaman, gaya cetak dll"
+Set numbering series for transactions.,Mengatur penomoran seri untuk transaksi.
+Set outgoing mail server.,Mengatur server surat keluar.
+Settings,Pengaturan
+Settings for About Us Page.,Pengaturan Tentang Kami PT.
+Settings for Contact Us Page.,Pengaturan untuk Hubungi Kami PT.
+Setup,Pengaturan
+Setup > User,Pengaturan> Pengguna
+Setup > User Permissions Manager,Pengaturan> Permissions User Manager
+Setup Email Alert based on various criteria.,Pengaturan Notifikasi Email berdasarkan berbagai kriteria.
+Setup of fonts and background.,Setup font dan latar belakang.
+"Setup of top navigation bar, footer and logo.","Setup atas bar navigasi, footer dan logo."
+Short Bio,Bio singkat
+Short Name,Nama pendek
+Shortcut,Shortcut
+Show / Hide Modules,Tampilkan / Sembunyikan Modul
+Show Print First,Tampilkan Cetak Pertama
+Show Tags,Tampilkan Tags
+Show or hide modules globally.,Menampilkan atau menyembunyikan modul global.
+Show rows with zero values,Tampilkan baris dengan nilai nol
+Show tags,Tampilkan tags
+Show this field as title,Tampilkan bidang ini sebagai judul
+Showing only for (if not empty),Menampilkan hanya untuk (jika tidak kosong)
+Sidebar,Sidebar
+Sidebar Items,Sidebar Items
+Sidebar Links for Home Page only,Links Sidebar untuk Halaman hanya
+Sign Up,Pendaftaran
+Sign in,Masuk
+Sign up,Daftar
+Single Post (article).,Single Post (artikel).
+Single Types have only one record no tables associated. Values are stored in tabSingles,Jenis tunggal hanya memiliki satu record tabel tidak terkait. Nilai yang disimpan dalam tabSingles
+Sitemap Browser,Sitemap Browser
+Slideshow,Rangkai Salindia
+Slideshow Items,Slideshow Items
+Slideshow Name,Nama Slideshow
+Small Text,Teks Kecil
+Social Login Keys,Sosial Login Keys
+Solid background color (default light gray),Background warna solid (light standar abu-abu)
+Sorry we were unable to find what you were looking for.,Maaf kami tidak dapat menemukan apa yang Anda cari.
+Sorry you are not permitted to view this page.,Maaf Anda tidak diizinkan untuk melihat halaman ini.
+Sort By,Urut Berdasarkan
+Sort Field,Urutkan Lapangan
+Sort Order,Tata Urutan
+Standard,Standar
+Standard Print Format cannot be updated,Standard Print Format tidak dapat diperbarui
+Standard Reply,Standard Reply
+Standard Reports,Laporan standar
+Standard replies to common queries.,Standard balasan atas pertanyaan umum.
+Start Report For,Mulai Report Untuk
+Starts on,Mulai dari
+State,Propinsi
+States,Negara
+"States for workflow (e.g. Draft, Approved, Cancelled).","Serikat untuk alur kerja (misalnya Draft, Disetujui, Dibatalkan)."
+Static File Timestamp,Static file Timestamp
+Status,Status
+Step 1: Set the name and save.,Langkah 1: Mengatur nama dan simpan.
+Step 2: Set Letterhead content.,Langkah 2: Mengatur konten Kop surat.
+Style,Gaya
+Style Settings,Pengaturan Style
+"Style represents the button color: Success - Green, Danger - Red, Inverse - Black, Primary - Dark Blue, Info - Light Blue, Warning - Orange","Gaya merupakan tombol warna: Sukses - Hijau, Danger - Red, Inverse - Black, Primer - Dark Blue, Info - Light Blue, Peringatan - Jeruk"
+Sub-domain provided by erpnext.com,Sub-domain yang disediakan oleh erpnext.com
+Subdomain,Subdomain
+Subject,Perihal
+Submit,Kirim
+Submit an Issue,Menyerahkan Masalah
+Submitted,Dikirim
+Submitted Document cannot be converted back to draft. Transition row {0},Dikirim Dokumen tidak dapat dikonversi kembali untuk menyusun. Transisi baris {0}
+Success,Sukses
+Suggestion,Saran
+Sunday,Minggu
+Switch to Website,Beralih ke Website
+Sync Inbox,Sinkronisasi Inbox
+System,Sistem
+System Settings,Pengaturan Sistem
+System User,Sistem Pengguna
+System and Website Users,Sistem dan Pengguna
+System generated mails will be sent from this email id.,Mail sistem yang dihasilkan akan dikirim dari id email ini.
+Table,Meja
+Table {0} cannot be empty,Tabel {0} tidak boleh kosong
+Tag,Label
+Tag Name,Tag Nama
+Tags,Tags
+Tahoma,Tahoma
+Target,Sasaran
+Tasks,Tugas
+Team Members,Anggota Tim
+Team Members Heading,Anggota Tim Pos
+Template,Contoh
+Template Pages cannot be moved,Halaman Template tidak dapat dipindahkan
+Test,tes
+Test Runner,Uji Runner
+Text,Teks
+Text Align,Teks Align
+Text Editor,Teks Editor
+Thank you for your message,Terima kasih untuk pesan Anda
+The name of your company / website as you want to appear on browser title bar. All pages will have this as the prefix to the title.,Nama perusahaan Anda / website Anda inginkan untuk muncul di title bar browser. Semua halaman akan memiliki ini sebagai awalan untuk judul.
+The system provides many pre-defined roles. You can add new roles to set finer permissions.,Sistem ini menyediakan banyak peran yang telah ditentukan. Anda dapat menambahkan peran baru untuk mengatur hak akses lebih halus.
+Then By (optional),Kemudian By (opsional)
+There should remain at least one System Manager,Ada harus tetap setidaknya satu System Manager
+There were errors,Ada kesalahan
+There were errors while sending email. Please try again.,Ada kesalahan saat mengirim email. Silakan coba lagi.
+"There were some errors setting the name, please contact the administrator","Ada beberapa kesalahan pengaturan nama, silahkan hubungi administrator"
+"These permissions will apply for all transactions where the permitted record is linked. For example, if Company C is added to User Permissions of user X, user X will only be able to see transactions that has company C as a linked value.","Izin ini akan berlaku untuk semua transaksi di mana catatan diizinkan terkait. Sebagai contoh, jika Perusahaan C ditambahkan ke User Permissions pengguna X, pengguna X akan hanya dapat melihat transaksi yang memiliki perusahaan C sebagai nilai terkait."
+These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,Nilai-nilai ini akan secara otomatis diperbarui dalam transaksi dan juga akan berguna untuk membatasi hak akses untuk pengguna ini transaksi yang mengandung nilai-nilai ini.
+"These will also be set as default values for those links, if only one such permission record is defined.","Ini juga akan ditetapkan sebagai nilai default untuk link tersebut, jika hanya satu catatan izin tersebut didefinisikan."
+Third Party Authentication,Pihak Ketiga Otentikasi
 "This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>
 myfield
 eval:doc.myfield=='My Value'<br>
-eval:doc.age>18",Komentar Docname
-This goes above the slideshow.,Tentukan alur kerja untuk bentuk.
-This is PERMANENT action and you cannot undo. Continue?,Situs Web
-This is permanent action and you cannot undo. Continue?,Nyala
-This must be checked if Style Settings are applicable,Timezone
-This role update User Permissions for a user,Halaman HTML
-Thursday,Silahkan pilih Grup atau Ledger nilai
-Tile,Membuat baru
-Time,Email host
-Time Zone,Pengiriman Untuk
-Timezone,Masukkan Setelah
-Title,Scrap%
-Title / headline of your page,Tidak dapat mengubah keadaan Dibatalkan Dokumen. Transisi baris {0}
-Title Case,Check
-Title Field,Sejarah
-Title Prefix,Vote Pengguna
-Title field must be a valid fieldname,{0}: Tidak dapat mengatur Mengubah tanpa Batal
-Title is required,nilai dan tanggal
-To,Pencairan Tanggal
-To Do,Kota
-"To format columns, give column labels in the query.",Sitemap Browser
-"To give acess to a role for only specific records, check the 'Apply User Permissions'. User Permissions are used to limit users with such role to specific records.",Acara Mendatang untuk Hari Ini
-"To run a test add the module name in the route after '{0}'. For example, {1}",Posting sudah ada. Tidak dapat menambahkan lagi!
-ToDo,Dari Tanggal harus sebelum To Date
-Too many writes in one request. Please send smaller requests,Tidak dapat membuka file terlampir. Silakan coba lagi.
-Top Bar,Nonaktifkan Link Daftar Pelanggan di halaman Login
-Top Bar Background,Halaman Arahan
-Top Bar Item,pesawat
-Top Bar Items,Tampilan di sidebar situs ini Route simpul
-Top Bar Text,Facebook
-Top Bar text and background is same color. Please change.,"Terlepas dari Peran berbasis Aturan Izin, Anda dapat menerapkan Permissions Pengguna berdasarkan Doctypes."
-Transaction,Kredit dan Uang Muka (Aset)
-Transition Rules,hapus-tanda
-Tuesday,Pesanan Type
-Tweet will be shared via your user account (if specified),Tutup: {0}
-Twitter Share,Footer Items
-Twitter Share via,Kolom diketahui: {0}
-Type,Menjaga Tingkat Sama Sepanjang Siklus Penjualan
-Unable to find attachment {0},"Ketika Anda Mengubah dokumen setelah Batal dan menyimpannya, itu akan mendapatkan nomor baru yang merupakan versi dari nomor lama."
-Unable to load: {0},Jangan memungkinkan pengguna untuk mengubah setelah set pertama kalinya
-Unable to open attached file. Please try again.,Judul iklan harus diisi
-Unable to send emails at this time,Masukkan judul!
-Unknown Column: {0},Pengguna tidak diperbolehkan untuk menghapus.
-Unknown Print Format: {0},Workflow Negara Bidang
-"Unknown file encoding. Tried utf-8, windows-1250, windows-1252.",Setiap Bulan
-Unread Messages,"Sifat perubahan lapangan (hide, dibaca, izin dll)"
-Unsubscribe,italic
-Unsubscribed,Email Digest
-Upcoming Events for Today,Harap melampirkan file pertama.
-Update,Backup akan di-upload ke
-Update Field,Facebook Client Rahasia
-Update Value,Tambahkan Peran Baru
-Updated,Silahkan menulis sesuatu
-Upload,Permissions User Manager
-Upload Attachment,"Tindakan untuk alur kerja (misalnya Menyetujui, Batal)."
-Upload CSV file containing all user permissions in the same format as Download.,Bagian istirahat
-Upload a file,"Alamat email, separted dengan koma"
-Upload and Import,Ubah nama ...
-Upload and Sync,Perbarui
-Uploading...,Menulis
-Upvotes,Workflow Dokumen Serikat
-Use TLS,Filter tidak valid: {0}
-User,Add to Cart
-User Cannot Create,Masuk
-User Cannot Search,Kunjungan
-User Defaults,"Diketahui encoding berkas. Mencoba utf-8, windows-1250, windows-1252."
-User ID of a blog writer.,menambahkan CSS Anda sendiri (careful!)
-User Image,Tidak ada catatan tagged.
-User Permission,Periksa ini untuk membuat surat default kepala di semua cetakan
-User Permissions,Tidak memuat
-User Permissions Manager,Set Tautan
-User Roles,Seri {0} sudah digunakan dalam {1}
-User Tags,tidak diperbolehkan.
-User Type,Laporan Hide
+eval:doc.age>18","Bidang ini akan muncul hanya jika fieldname didefinisikan di sini memiliki nilai OR aturan yang benar (contoh): <br> 
+ MyField 
+ eval: doc.myfield == 'Nilai My' <br> 
+ eval: doc.age> 18"
+This goes above the slideshow.,Ini berjalan di atas slideshow.
+This is PERMANENT action and you cannot undo. Continue?,Ini adalah tindakan PERMANEN dan Anda tidak dapat membatalkan. Lanjutkan?
+"This is a standard format. To make changes, please copy it make make a new format.","Ini adalah format standar. Untuk melakukan perubahan, silahkan salin membuat membuat format baru."
+This is permanent action and you cannot undo. Continue?,Ini adalah tindakan permanen dan Anda tidak dapat membatalkan. Lanjutkan?
+This must be checked if Style Settings are applicable,Ini harus diperiksa jika Pengaturan Gaya berlaku
+This role update User Permissions for a user,Peran ini Permissions pembaruan Pengguna untuk pengguna
+Thursday,Kamis
+Tile,Ubin
+Time,Durasi
+Time Zone,"Zona Waktu: GMT +2; CET +1, dan EST (AS-Timur) +7"
+Timezone,Timezone
+Title,Judul
+Title / headline of your page,Judul / judul halaman Anda
+Title Case,Judul Kasus
+Title Field,Judul Lapangan
+Title Prefix,Judul Prefix
+Title field must be a valid fieldname,Judul lapangan harus fieldname valid
+Title is required,Judul iklan harus diisi
+To,untuk
+To Do,To Do
+"To format columns, give column labels in the query.","Untuk memformat kolom, memberi label kolom dalam query."
+"To give acess to a role for only specific records, check the 'Apply User Permissions'. User Permissions are used to limit users with such role to specific records.","Untuk memberikan acess untuk peran hanya catatan khusus, centang 'Terapkan Perizinan Pengguna. Permissions pengguna yang digunakan untuk membatasi pengguna dengan peran seperti catatan tertentu."
+"To run a test add the module name in the route after '{0}'. For example, {1}","Untuk menjalankan tes menambahkan nama modul dalam rute setelah '{0}'. Misalnya, {1}"
+ToDo,ToDo
+Too many writes in one request. Please send smaller requests,Terlalu banyak menulis dalam satu permintaan. Silakan kirim permintaan yang lebih kecil
+Top Bar,Top Bar
+Top Bar Background,Top Bar Latar Belakang
+Top Bar Item,Top Bar Barang
+Top Bar Items,Top Bar Items
+Top Bar Text,Top Bar Text
+Top Bar text and background is same color. Please change.,Top Bar teks dan latar belakang adalah warna yang sama. Silahkan ubah.
+Transaction,Transaksi
+Transition Rules,Aturan Transisi
+Tuesday,Selasa
+Tweet will be shared via your user account (if specified),Tweet akan dibagi melalui account pengguna Anda (bila ditentukan)
+Twitter Share,Twitter Share
+Twitter Share via,Twitter Share via
+Type,Jenis
+Unable to find attachment {0},Tidak dapat menemukan lampiran {0}
+Unable to load: {0},Tidak dapat beban: {0}
+Unable to open attached file. Please try again.,Tidak dapat membuka file terlampir. Silakan coba lagi.
+Unable to send emails at this time,Tidak dapat mengirim email saat ini
+Unknown Column: {0},Kolom diketahui: {0}
+"Unknown file encoding. Tried utf-8, windows-1250, windows-1252.","Diketahui encoding berkas. Mencoba utf-8, windows-1250, windows-1252."
+Unread Messages,Pesan belum dibaca
+Unsubscribe,Unsubscribe
+Unsubscribed,Berhenti berlangganan
+Upcoming Events for Today,Acara Mendatang untuk Hari Ini
+Update,Perbarui
+Update Field,Update Field
+Update Value,Update Nilai
+Updated,Diperbarui
+Upload,Unggah
+Upload Attachment,Upload Attachment
+Upload CSV file containing all user permissions in the same format as Download.,Upload file CSV yang berisi semua akses user dalam format yang sama seperti Download.
+Upload a file,Mengupload file
+Upload and Import,Upload dan Impor
+Upload and Sync,Upload dan Sinkronisasi
+Uploading...,Mengunggah ...
+Upvotes,Upvotes
+Use TLS,Gunakan TLS
+User,Pengguna
+User Cannot Create,Pengguna Tidak dapat Buat
+User Cannot Search,Pengguna tidak bisa Cari
+User Defaults,Default Pengguna
+User ID of a blog writer.,User ID dari seorang penulis blog.
+User Image,KOSONG
+User Permission,Pengguna Izin
+User Permissions,Permissions Pengguna
+User Permissions Manager,Permissions User Manager
+User Roles,Peran Pengguna
+User Tags,Pengguna Tags
+User Type,Tipe Pengguna
 "User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ",
-User Vote,Username
-User not allowed to delete.,Tentang Kami Anggota Tim
-User permissions should not apply for this Link,Anda tidak diizinkan untuk membuat / mengedit laporan
-User {0} cannot be deleted,hh / bb / tttt
-User {0} cannot be disabled,Nama Lengkap
-User {0} cannot be renamed,Harus memiliki izin untuk mengakses laporan laporan ini.
-User {0} does not exist,"Mengabaikan Barang {0}, karena kelompok itu ada dengan nama yang sama!"
-UserRole,Ini adalah tindakan permanen dan Anda tidak dapat membatalkan. Lanjutkan?
-Users and Permissions,Sembunyikan Toolbar
-Users with role {0}:,Nama Kasus
-Value,Total Pesan (s)
-Value cannot be changed for {0},Jenis properti
-Value for a check field can be either 0 or 1,﻿
-Value missing for,Plugin
-Verdana,Tambalan
-Version,Masukkan Kode
-Version restored,Kesalahan
-View or manage Website Route tree.,Email dikirim ke {0}
-Visit,"Jika Anda mengatur ini, item ini akan datang dalam drop-down di bawah induk yang dipilih."
-Warning,Biarkan kosong untuk mengulang selalu
-Web Page,Kirim permanen {0}?
-Web Site Forum Page.,th-list
-Website,Serial No / Batch
-Website Group,"Menghubungkan bahwa situs web halaman rumah. Links Standard (index, login, produk, blog, tentang, kontak)"
-Website Route,0 tertinggi
-Website Route Permission,pemakai
-Website Script,Pengaturan untuk Hubungi Kami PT.
-Website Settings,Tidak ada alamat dibuat
-Website Slideshow,[Label]: [Field Type] / [Options]: [Lebar]
-Website Slideshow Item,Mengapung
-Website User,Kirim link download dari cadangan baru ke Sistem Manajer
-Wednesday,Receiver Daftar
-Welcome email sent,Pengguna {0} tidak dapat dihapus
-"When you Amend a document after Cancel and save it, it will get a new number that is a version of the old number.",Setup font dan latar belakang.
-Width,Komentar
-Will be used in url (usually first name).,Ada kesalahan
-With Groups,Workflow Nama
-With Ledgers,Dapatkan Dari
-Workflow,Workflow akan dimulai setelah menabung.
-Workflow Action,Rabu
-Workflow Action Name,Penerima
-Workflow Document State,Pilihan Bantuan
-Workflow Document States,Silahkan pilih minimal 1 kolom dari {0} untuk mengurutkan
-Workflow Name,Pengaturan Sistem
-Workflow State,Terbalik
-Workflow State Field,Buka Hitungan
-Workflow Transition,Gandakan nama {0} {1}
-Workflow Transitions,komentar
-Workflow will start after saving.,Nilai untuk bidang pemeriksaan dapat berupa 0 atau 1
-Write,Workflow Transisi
-Write a Python file in the same folder where this is saved and return column and result.,Pengguna Tags
-Write a SELECT query. Note result is not paged (all data is sent in one go).,Parent Situs Route
-Write titles and introductions to your blog.,KOSONG
-Writers Introduction,Blogger
-Year,Status Persetujuan harus 'Disetujui' atau 'Ditolak'
-Yes,Pasca Sarjana
-Yesterday,Tidak ada file terlampir
-You are not allowed to create / edit reports,Aktifkan pop-up
-You are not allowed to export the data of: {0}. Downloading empty template.,pengeras suara
-You are not allowed to export this report,Memungkinkan pengguna untuk login hanya sebelum jam ini (0-24)
-You are not allowed to print this document,Dibuat Issue Pelanggan
-You are not allowed to send emails related to this document,Tidak Diijinkan
-"You can change Submitted documents by cancelling them and then, amending them.",daftar-alt
-You can use Customize Form to set levels on fields.,Mengelola backup awan di Dropbox
-You can use wildcard %,Kirim
-You cannot install this app,Mulai dari
-You have unsaved changes in this form. Please save before you continue.,Masukkan teks!
-You need to be logged in and have System Manager Role to be able to access backups.,Tahoma
-You need write permission to rename,Upload dan Sinkronisasi
-"Your download is being built, this may take a few moments...",buku
-[Label]:[Field Type]/[Options]:[Width],Top Bar
-add your own CSS (careful!),Nama Surat Kepala
-adjust,daftar
-align-center,Shortcut
-align-justify,Ekspor tidak diperbolehkan. Anda perlu {0} peran untuk ekspor.
-align-left,eye-close
-align-right,Impor / Ekspor Data
-and,"Maaf, perusahaan tidak dapat digabungkan"
-arrow-down,menyesuaikan
-arrow-left,lft
-arrow-right,Beberapa node akar tidak diperbolehkan.
-arrow-up,Nilai tidak dapat diubah untuk {0}
-asterisk,Ubah
-backward,HTML untuk bagian header. Pilihan
-ban-circle,komentar
-barcode,berani
-beginning with,Email akan dinonaktifkan
-bell,Ya
-bold,Komentar By
-book,Hapus semua peran
-bookmark,Lokalisasi
-briefcase,Simpan
-bullhorn,Kustom?
-calendar,mengubah ukuran penuh
-camera,Data Impor / Ekspor Alat
-certificate,Status
-check,Pendaftaran
-chevron-down,Diizinkan
-chevron-left,Link ke halaman yang ingin Anda buka
-chevron-right,depan
-chevron-up,Daftar
-circle-arrow-down,Header Halaman Latar Belakang
-circle-arrow-left,Banner Gambar
-circle-arrow-right,Percetakan dan Branding
-circle-arrow-up,Acara
-cog,Tidak dapat menambahkan lebih dari 50 komentar
-comment,panah kanan
-comments,Ada harus tetap setidaknya satu System Manager
-dd-mm-yyyy,Tidak dapat menemukan {0}
-dd.mm.yyyy,Nama Halaman
-dd/mm/yyyy,Font (Pos)
-download,Siapapun Bisa Baca
-download-alt,Workflow Action
-edit,Hapus semua kustomisasi?
-eject,Tidak ada Laporan Loaded. Silakan gunakan laporan query / [Nama Laporan] untuk menjalankan laporan.
-envelope,Dfault
-exclamation-sign,huruf kecil
-eye-close,bergerak
-eye-open,Nama Tengah (Opsional)
-facetime-video,Page Title
-fast-backward,Setiap Hari
-fast-forward,Informasi pengantar untuk Hubungi Kami Halaman
-file,th-besar
-film,berkas
-filter,JavaScript Format: frappe.query_reports ['REPORTNAME'] = {}
-fire,Pengaturan Keamanan
-flag,Biarkan Submit
-folder-close,Frappe Kerangka
-folder-open,Tunggal
-font,Apakah Lapangan Wajib
-forward,Pengguna
-found,Datetime
-fullscreen,lingkaran-panah-down
-gift,Teks
-glass,Memuat Laporan
-globe,Upload file CSV yang berisi semua akses user dalam format yang sama seperti Download.
-hand-down,"{0}: Buat, Kirim, Batal dan Amend hanya berlaku pada level 0"
-hand-left,Nilai hilang untuk
-hand-right,lepas
-hand-up,App tidak ditemukan
-hdd,Nilai-nilai ini akan secara otomatis diperbarui dalam transaksi dan juga akan berguna untuk membatasi hak akses untuk pengguna ini transaksi yang mengandung nilai-nilai ini.
-headphones,Standar Print Format
-heart,Tidak dapat menghapus atau membatalkan karena {0} {1} dihubungkan dengan {2} {3}
-home,Bidang
-icon,Pilih Jenis Dokumen
-inbox,Kategori Nama
-indent-left,Tidak diizinkan untuk me-reset password dari {0}
-indent-right,Server Error: Silakan periksa log server atau menghubungi dukungan teknis.
-info-sign,Lahir Tanggal
-is not allowed.,Pilih Gambar Banner pertama.
-italic,Diekspor
-leaf,Beranda
-lft,Untuk melacak item menggunakan barcode. Anda akan dapat memasukkan item dalam Pengiriman Note dan Faktur Penjualan dengan memindai barcode barang.
-list,Halaman Template tidak dapat dipindahkan
-list-alt,"{0}: Hanya satu aturan diperbolehkan dengan Peran yang sama, Tingkat dan Terapkan Izin Pengguna"
-lock,Workflow Dokumen Negara
-lowercase,Item yang diperiksa ditunjukkan pada desktop
-magnet,Tambah Pengguna Izin
-map-marker,gigi
-memcached is not working / stopped. Please start memcached for best results.,"Tambahkan nama <a href=""http://google.com/webfonts"" target=""_blank""> Google Font Web </ a> misalnya ""Buka Sans """
-minus,Nilai baru yang akan ditetapkan
-minus-sign,Laporan standar
-mm-dd-yyyy,Dokumen Diijinkan Untuk Pengguna
-mm/dd/yyyy,Harta benda
-move,Outgoing Mail Server valid atau Pelabuhan
-music,Rekam tidak ada
-none of,Menulis judul dan perkenalan ke blog Anda.
-off,Avatar
-ok,Tugas
-ok-circle,screenshot
-ok-sign,Perm Tingkat
-one of,Tampilkan / Sembunyikan Modul
-or,Pesan
-pause,Publik
-pencil,Hitung
-picture,Sesuaikan Form
-plane,"Setup atas bar navigasi, footer dan logo."
-play,Apa-apa untuk menunjukkan untuk seleksi ini
-play-circle,Anda tidak diizinkan untuk mencetak dokumen ini
-plus,Gambar
-plus-sign,Top Bar Text
-print,Segarkan
-qrcode,Page atau Generator
-question-sign,Cetak Format {0} dinonaktifkan
-random,Data hilang dalam tabel
-refresh,Volume-off
-remove,Pastikan bahwa tidak ada kolom kosong dalam file.
-remove-circle,Github Pengguna ID
-remove-sign,Penjelasan
-repeat,Spanduk
-resize-full,menyelaraskan pusat
-resize-horizontal,hapus-lingkaran
-resize-small,Halaman Latar Belakang
-resize-vertical,Tidak cukup izin untuk melihat link.
-retweet,Buat
-rgt,Purchase Order Items Akan Diterima
-road,atau
-screenshot,"Aturan untuk bagaimana negara adalah transisi, seperti negara berikutnya dan mana peran diperbolehkan untuk mengubah keadaan dll"
-search,Mengatur server surat keluar.
-share,Sudah di pengguna To Do list
-share-alt,Diaktifkan
-shopping-cart,Jika port non standar (misalnya 587)
-signal,Name
-star,ulangi
-star-empty,{0} oleh {1}
-step-backward,Mengelola file upload.
-step-forward,Social Login Keys
-stop,lingkaran-panah-kiri
-tag,mengunci
-tags,Ditugaskan Untuk
-"target = ""_blank""",Sesuaikan Form Lapangan
-tasks,Script Laporan
-text-height,Pindah Up: {0}
-text-width,Ubin
-th,Dibuat Dukungan Tiket
-th-large,Data file
-th-list,Forum
-thumbs-down,Bio
-thumbs-up,"Item menu di Top Bar. Untuk pengaturan warna Top Bar, pergi ke <a href=""#Form/Style Settings""> Setelan Gaya </ a>"
-time,Tidak Dikirim
-tint,Metode
-to,Beralih ke Website
-trash,indent-kiri
-upload,Bagian Utama
-use % as wildcard,Judul Lapangan
-user,Membatasi pengguna dari alamat IP ini saja. Beberapa alamat IP dapat ditambahkan dengan memisahkan dengan koma. Juga menerima alamat IP parsial seperti (111.111.111)
-user_image_show,Tertutup
-values and dates,Max lebar untuk jenis mata uang adalah 100px berturut-turut {0}
-values separated by commas,asterisk
-volume-down,Baris
-volume-off,Kirim email pengingat di pagi hari
-volume-up,Label dan Jenis
-warning-sign,Pemberitahuan Hitungan
-wrench,Blog Pendahuluan
-yyyy-mm-dd,tanda
-zoom-in,Pencarian
-zoom-out,Ditugaskan By
-{0} List,Menghitung
-{0} added,Adalah Standard
-{0} by {1},Report Builder
-{0} cannot be set for Single types,Tentang
-{0} does not exist in row {1},Pertanyaan-tanda
-{0} in row {1} cannot have both URL and child items,Forum Situs Web Page.
-{0} is not a valid email id,Jangan Hubungi
-{0} is required,Aktifkan Keranjang Belanja
-{0} is saved,{0} tidak valid Negara
-{0} must be one of {1},Judul
-{0} must be set first,QRCode
-{0} not a valid State,Cetak ...
-{0} not allowed in fieldname {1},Modul Tidak Ditemukan
-{0} not allowed in name,tes
-{0} not allowed to be renamed,Email Sandi
-{0} updated,Tambahkan baris baru
-{0} {1} already exists,File
-"{0} {1} cannot be ""{2}"". It should be one of ""{3}""",Sistem Pengguna
-{0} {1} cannot be a leaf node as it has children,Transaksi
-"{0} {1} does not exist, select a new target to merge",Untuk top bar
-{0} {1} not found,Contoh
-{0}: Cannot set Amend without Cancel,Sampel
-{0}: Cannot set Assign Amend if not Submittable,Pengaturan situs web
-{0}: Cannot set Assign Submit if not Submittable,chevron-kanan
-{0}: Cannot set Cancel without Submit,Telepon
-{0}: Cannot set Import without Create,"Membiarkan DocType, DocType. Hati-hati!"
-"{0}: Cannot set Submit, Cancel, Amend without Write",Balasan
-{0}: Cannot set import as {1} is not importable,Email tidak valid: {0}
-"{0}: Create, Submit, Cancel and Amend only valid at level 0",Facebook Client ID
-{0}: No basic permissions set,Izin sudah ditetapkan
-"{0}: Only one rule allowed with the same Role, Level and Apply User Permissions",Login atau kata sandi tidak valid
-{0}: Permission at level 0 must be set before higher levels are set,Website User
-{app_title},Judul kelompok
+User Vote,Vote Pengguna
+User not allowed to delete {0}: {1},Pengguna tidak diperbolehkan untuk menghapus {0}: {1}
+User permissions should not apply for this Link,Akses user harus tidak berlaku untuk Link ini
+User {0} cannot be deleted,Pengguna {0} tidak dapat dihapus
+User {0} cannot be disabled,Pengguna {0} tidak dapat dinonaktifkan
+User {0} cannot be renamed,Pengguna {0} tidak dapat diganti
+User {0} does not exist,Pengguna {0} tidak ada
+UserRole,UserRole
+Users and Permissions,Pengguna dan Perizinan
+Users with role {0}:,Pengguna dengan peran {0}:
+Valid Login id required.,Login id yang valid dibutuhkan.
+Valid email and name required,Email yang valid dan nama diperlukan
+Value,Nilai
+Value Change,Nilai Perubahan
+Value Changed,Nilai Berubah
+Value cannot be changed for {0},Nilai tidak dapat diubah untuk {0}
+Value for a check field can be either 0 or 1,Nilai untuk bidang pemeriksaan dapat berupa 0 atau 1
+Value missing for,Nilai hilang untuk
+Verdana,Verdana
+Version,Versi
+Version restored,Versi dipulihkan
+View or manage Website Route tree.,Lihat atau mengelola pohon Situs Route.
+Visit,Kunjungan
+Warning,Peringatan
+Warning: This Print Format is in old style and cannot be generated via the API.,Peringatan: Format Cetak ini dalam gaya lama dan tidak dapat dihasilkan melalui API.
+Web Page,Halaman web
+Web Site Forum Page.,Forum Situs Web Page.
+Website,Situs Web
+Website Group,Situs Web Group
+Website Route,Situs web Route
+Website Route Permission,Situs web Route Izin
+Website Script,Script Website
+Website Settings,Pengaturan situs web
+Website Slideshow,Situs Slideshow
+Website Slideshow Item,Situs web Slideshow Barang
+Website User,Website User
+Wednesday,Rabu
+Welcome email sent,Welcome email yang dikirim
+"When you Amend a document after Cancel and save it, it will get a new number that is a version of the old number.","Ketika Anda Mengubah dokumen setelah Batal dan menyimpannya, itu akan mendapatkan nomor baru yang merupakan versi dari nomor lama."
+Width,Lebar
+Will be used in url (usually first name).,Akan digunakan dalam url (nama biasanya pertama).
+With Groups,Dengan Grup
+With Ledgers,Dengan Buku Pembantu
+With Letterhead,Dengan Surat
+Workflow,Alur kerja
+Workflow Action,Workflow Action
+Workflow Action Name,Workflow Aksi Nama
+Workflow Document State,Workflow Dokumen Negara
+Workflow Document States,Workflow Dokumen Serikat
+Workflow Name,Workflow Nama
+Workflow State,Workflow Negara
+Workflow State Field,Workflow Negara Bidang
+Workflow Transition,Workflow Transisi
+Workflow Transitions,Transisi Workflow
+Workflow will start after saving.,Workflow akan dimulai setelah menabung.
+Write,Menulis
+Write a Python file in the same folder where this is saved and return column and result.,Menulis sebuah file Python dalam folder yang sama di mana ini disimpan dan kembali kolom dan hasilnya.
+Write a SELECT query. Note result is not paged (all data is sent in one go).,Tulis query SELECT. Hasil catatan tidak paged (semua data yang dikirim dalam satu pergi).
+Write titles and introductions to your blog.,Menulis judul dan perkenalan ke blog Anda.
+Writers Introduction,Penulis Pengantar
+Year,Tahun
+Yes,Ya
+Yesterday,Kemarin
+You are not allowed to create / edit reports,Anda tidak diizinkan untuk membuat / mengedit laporan
+You are not allowed to export the data of: {0}. Downloading empty template.,Anda tidak diizinkan untuk mengekspor data: {0}. Men-download template yang kosong.
+You are not allowed to export this report,Anda tidak diizinkan untuk mengekspor laporan ini
+You are not allowed to print this document,Anda tidak diizinkan untuk mencetak dokumen ini
+You are not allowed to send emails related to this document,Anda tidak diizinkan untuk mengirim email yang berhubungan dengan dokumen ini
+"You can change Submitted documents by cancelling them and then, amending them.","Anda dapat mengubah dokumen Dikirim oleh membatalkan mereka dan kemudian, mengubah mereka."
+You can use Customize Form to set levels on fields.,Anda dapat menggunakan Formulir Customize untuk mengatur tingkat pada bidang.
+You can use wildcard %,Anda dapat menggunakan wildcard%
+You cannot install this app,Anda tidak dapat menginstal aplikasi ini
+You have unsaved changes in this form. Please save before you continue.,Anda belum menyimpan perubahan pada formulir ini. Silakan simpan sebelum Anda melanjutkan.
+You need to be logged in and have System Manager Role to be able to access backups.,Anda harus login dan memiliki System Manager Peran untuk dapat mengakses backup.
+You need write permission to rename,Anda perlu menulis izin untuk mengubah nama
+"You seem to have written your name instead of your email. \
+					Please enter a valid email address so that we can get back.","Anda tampaknya telah menulis nama Anda, bukan email Anda. \
+ Harap masukkan alamat email yang valid sehingga kami bisa kembali."
+"Your download is being built, this may take a few moments...","Download sedang dibangun, ini mungkin memerlukan beberapa saat ..."
+[Label]:[Field Type]/[Options]:[Width],[Label]: [Field Type] / [Options]: [Lebar]
+[Optional] Send the email X days in advance of the specified date. 0 equals same day.,[Opsional] Kirim hari X email sebelum tanggal yang ditentukan. 0 sama dengan hari yang sama.
+add your own CSS (careful!),menambahkan CSS Anda sendiri (careful!)
+adjust,menyesuaikan
+align-center,menyelaraskan-pusat
+align-justify,menyelaraskan-membenarkan
+align-left,menyelaraskan kiri
+align-right,menyelaraskan kanan
+and,Dan
+arrow-down,panah-down
+arrow-left,panah kiri
+arrow-right,panah kanan
+arrow-up,panah-up
+asterisk,asterisk
+backward,terbelakang
+ban-circle,larangan-lingkaran
+barcode,barcode
+beginning with,dimulai dengan
+bell,bel
+bold,berani
+book,buku
+bookmark,penanda
+briefcase,tas kantor
+bullhorn,pengeras suara
+calendar,kalender
+camera,kamera
+certificate,sertifikat
+check,memeriksa
+chevron-down,chevron-down
+chevron-left,chevron-kiri
+chevron-right,chevron-kanan
+chevron-up,chevron-up
+circle-arrow-down,lingkaran-panah-down
+circle-arrow-left,lingkaran-panah-kiri
+circle-arrow-right,lingkaran-panah-kanan
+circle-arrow-up,lingkaran-panah-up
+cog,gigi
+comment,komentar
+comments,komentar
+dd-mm-yyyy,dd-mm-yyyy
+dd.mm.yyyy,dd.mm.yyyy
+dd/mm/yyyy,hh / bb / tttt
+download,Download
+download-alt,men-download-alt
+edit,edit
+eject,mengeluarkan
+envelope,amplop
+exclamation-sign,seru-sign
+eye-close,eye-close
+eye-open,eye-terbuka
+facetime-video,facetime video
+fast-backward,cepat mundur
+fast-forward,fast-forward
+file,berkas
+film,film
+filter,filter
+fire,api
+flag,tanda
+folder-close,folder-close
+folder-open,folder terbuka
+font,fon
+forward,depan
+found,ditemukan
+fullscreen,fullscreen
+gift,hadiah
+glass,kaca
+globe,di seluruh dunia.
+hand-down,tangan-down
+hand-left,tangan kiri
+hand-right,tangan kanan
+hand-up,hand-up
+hdd,hdd
+headphones,headphone
+heart,isinya dihati
+home,Beranda
+icon,icon
+inbox,inbox
+indent-left,indent-kiri
+indent-right,indent kanan
+info-sign,info-tanda
+is not allowed.,tidak diperbolehkan.
+italic,italic
+leaf,daun
+lft,lft
+list,daftar
+list-alt,daftar-alt
+lock,mengunci
+lowercase,huruf kecil
+magnet,magnet
+map-marker,peta-penanda
+memcached is not working / stopped. Please start memcached for best results.,memcached tidak bekerja / berhenti. Silakan mulai memcached untuk hasil terbaik.
+minus,kurang
+minus-sign,minus tanda
+mm-dd-yyyy,mm-dd-yyyy
+mm/dd/yyyy,hh / bb / tttt
+move,bergerak
+music,musik
+none of,tidak ada
+off,lepas
+ok,ok
+ok-circle,ok-lingkaran
+ok-sign,ok-tanda
+one of,salah satu
+or,atau
+pause,berhenti sebentar
+pencil,pensil
+picture,gambar
+plane,pesawat
+play,bermain
+play-circle,bermain-lingkaran
+plus,plus
+plus-sign,tanda plus
+print,mencetak
+qrcode,QRCode
+question-sign,Pertanyaan-tanda
+random,random
+refresh,menyegarkan
+remove,menghapus
+remove-circle,hapus-lingkaran
+remove-sign,hapus-tanda
+repeat,ulangi
+resize-full,mengubah ukuran-penuh
+resize-horizontal,resize-horisontal
+resize-small,resize-kecil
+resize-vertical,resize-vertikal
+retweet,-retweet
+rgt,rgt
+road,jalan
+screenshot,screenshot
+search,Pencarian
+share,saham
+share-alt,share-alt
+shopping-cart,shopping-cart
+signal,sinyal
+star,bintang
+star-empty,Bintang-kosong
+step-backward,langkah-mundur
+step-forward,langkah-maju
+stop,berhenti
+tag,label
+tags,tag
+"target = ""_blank""","target = ""_blank"""
+tasks,tugas
+text-height,text-height
+text-width,text-width
+th,th
+th-large,th-besar
+th-list,th-list
+thumbs-down,thumbs-down
+thumbs-up,thumbs-up
+time,wakt
+tint,warna
+to,to
+trash,sampah
+upload,meng-upload
+use % as wildcard,menggunakan% sebagai wildcard
+user,pemakai
+user_image_show,user_image_show
+values and dates,nilai dan tanggal
+values separated by commas,nilai-nilai dipisahkan oleh koma
+volume-down,Volume-down
+volume-off,Volume-off
+volume-up,volume-up
+warning-sign,warning-sign
+wrench,kunci
+yyyy-mm-dd,yyyy-mm-dd
+zoom-in,zoom-in
+zoom-out,zoom-out
+{0} List,{0} Daftar
+{0} added,{0} ditambahkan
+{0} by {1},{0} oleh {1}
+{0} cannot be set for Single types,{0} tidak dapat ditetapkan untuk tipe Tunggal
+{0} does not exist in row {1},{0} tidak ada di baris {1}
+{0} in row {1} cannot have both URL and child items,{0} berturut-turut {1} tidak dapat memiliki dua URL dan barang-barang anak
+{0} is not a valid email id,{0} bukan id email yang valid
+{0} is required,{0} diperlukan
+{0} is saved,{0} disimpan
+{0} must be one of {1},{0} harus menjadi salah satu {1}
+{0} must be set first,{0} harus diatur terlebih dahulu
+{0} not a valid State,{0} tidak valid Negara
+{0} not allowed in fieldname {1},{0} Tidak diperbolehkan dalam fieldname {1}
+{0} not allowed in name,{0} tidak diperbolehkan dalam nama
+{0} not allowed to be renamed,{0} tidak diperbolehkan untuk diganti
+{0} updated,{0} diperbarui
+{0} {1} already exists,{0} {1} sudah ada
+"{0} {1} cannot be ""{2}"". It should be one of ""{3}""","{0} {1} tidak dapat ""{2}"". Ini harus menjadi salah satu dari ""{3}"""
+{0} {1} cannot be a leaf node as it has children,{0} {1} tidak bisa menjadi simpul daun karena memiliki anak-anak
+"{0} {1} does not exist, select a new target to merge","{0} {1} belum ada, pilih target baru untuk menggabungkan"
+{0} {1} not found,{0} {1} tidak ditemukan
+{0} {1}: Submitted Record cannot be deleted.,{0} {1}: Rekam didaftarkan tidak dapat dihapus.
+{0}: Cannot set Amend without Cancel,{0}: Tidak dapat mengatur Mengubah tanpa Batal
+{0}: Cannot set Assign Amend if not Submittable,{0}: Tidak dapat mengatur Assign Mengubah jika tidak Submittable
+{0}: Cannot set Assign Submit if not Submittable,{0}: Tidak dapat mengatur Assign Submit jika tidak Submittable
+{0}: Cannot set Cancel without Submit,{0}: Tidak dapat mengatur Batalkan tanpa Kirim
+{0}: Cannot set Import without Create,{0}: Tidak dapat mengatur Impor tanpa Buat
+"{0}: Cannot set Submit, Cancel, Amend without Write","{0}: Tidak dapat mengatur Submit, Batal, Mengubah tanpa Write"
+{0}: Cannot set import as {1} is not importable,{0}: Tidak dapat mengatur impor sebagai {1} adalah tidak diimpor
+"{0}: Create, Submit, Cancel and Amend only valid at level 0","{0}: Buat, Kirim, Batal dan Amend hanya berlaku pada level 0"
+{0}: No basic permissions set,{0}: Tidak ada dasar mengatur hak akses
+"{0}: Only one rule allowed with the same Role, Level and Apply User Permissions","{0}: Hanya satu aturan diperbolehkan dengan Peran yang sama, Tingkat dan Terapkan Izin Pengguna"
+{0}: Permission at level 0 must be set before higher levels are set,{0}: Izin pada tingkat 0 harus ditetapkan sebelum tingkat yang lebih tinggi ditetapkan
+{app_title},{} App_title
