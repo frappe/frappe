@@ -135,5 +135,7 @@ frappe.format = function(value, df, options, doc) {
 		df._options = doc ? doc[df.options] : null;
 	}
 
-	return frappe.form.get_formatter(fieldtype)(value, df, options, doc);
+	formatter = df.formatter || frappe.form.get_formatter(fieldtype);
+
+	return formatter(value, df, options, doc);
 }
