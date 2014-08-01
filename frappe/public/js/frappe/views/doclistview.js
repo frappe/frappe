@@ -86,6 +86,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		}
 		this.make_help();
 		this.setup_filterable();
+		this.init_filters();
 		this.$page.find(".show_filters").css({"padding":"15px", "margin":"0px -15px"});
 		var me = this;
 		this.$w.on("render-complete", function() {
@@ -117,6 +118,18 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 			});
 			me.run();
 		})
+	},
+
+	init_filters: function() {
+		var me = this;
+		if(this.listview.settings.filters) {
+			$.each(this.listview.settings.filters, function(i, f) {
+				if(f.length===3) {
+					f = [me.doctype, f[0], f[1], f[2]]
+				}
+				me.filter_list.add_filter(f[0], f[1], f[2], f[4]);
+			});
+		}
 	},
 
 	show_match_help: function() {

@@ -1,0 +1,18 @@
+<div class="row" style="max-height: 32px;">
+	<div class="col-xs-11">
+		<div class="text-ellipsis">
+			{%= list.get_avatar_and_id(doc) %}
+			<span class="label label-{%= frappe.utils.guess_style(doc.status) %} filterable"
+				data-filter="status,=,{%= doc.status %}">{%= __(doc.status) %}</span>
+
+			<span class="label label-{%= frappe.utils.guess_style(doc.priority) %}
+				filterable"
+				data-filter="priority,=,{%= doc.priority %}">{%= __(doc.priority) %}</span>
+		</div>
+	</div>
+	<div class="col-xs-1 text-right">
+		<span class="filterable" data-filter="assigned_to,=,{%= doc.assigned_to %}">
+		{%= frappe.avatar(doc.assigned_to) %}
+		</span>
+	</div>
+</div>
