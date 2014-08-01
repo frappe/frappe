@@ -208,6 +208,9 @@ frappe.ui.Listing = Class.extend({
 			doctype: this.doctype,
 			filter_fields: this.filter_fields
 		});
+		if(frappe.model.is_submittable(this.doctype)) {
+			this.filter_list.add_filter(this.doctype, "docstatus", "!=", 2);
+		};
 	},
 
 	clear: function() {
