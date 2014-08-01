@@ -122,6 +122,10 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 
 	init_filters: function() {
 		var me = this;
+		if(frappe.model.is_submittable(this.doctype)) {
+			this.filter_list.add_filter(this.doctype, "docstatus", "!=", 2);
+		};
+
 		if(this.listview.settings.filters) {
 			$.each(this.listview.settings.filters, function(i, f) {
 				if(f.length===3) {
