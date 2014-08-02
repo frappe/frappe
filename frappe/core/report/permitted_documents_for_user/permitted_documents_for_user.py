@@ -44,9 +44,11 @@ def query_doctypes(doctype, txt, searchfield, start, page_len, filters):
 	user_obj.build_permissions()
 	can_read = user_obj.can_read
 
+	single_doctypes = [d[0] for d in frappe.db.get_values("DocType", {"issingle": 1})]
+
 	out = []
 	for dt in can_read:
-		if txt.lower().replace("%", "") in dt.lower():
+		if txt.lower().replace("%", "") in dt.lower() and dt not in single_doctypes:
 			out.append([dt])
 
 	return out
