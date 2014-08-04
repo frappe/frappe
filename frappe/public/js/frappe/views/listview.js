@@ -322,11 +322,16 @@ frappe.views.ListView = Class.extend({
 		}
 
 		// title
+		var full_title = data[this.title_field || "name"], title = full_title;
+		if(full_title.length > 40) {
+			title = full_title.slice(0, 40) + "...";
+		}
 		html += repl('<a class="form-link list-id" style="margin-left: 5px; margin-right: 8px;" \
-			href="#Form/%(doctype)s/%(name)s" title="%(title)s">%(title)s</a>', {
+			href="#Form/%(doctype)s/%(name)s" title="%(full_title)s">%(title)s</a>', {
 				doctype: data.doctype,
 				name: encodeURIComponent(data.name),
-				title: data[this.title_field || "name"]
+				title: title,
+				full_title: full_title,
 			});
 
 		this.title_offset_left += 5;
