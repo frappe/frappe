@@ -344,9 +344,10 @@ class BaseDocument(object):
 				frappe.throw(_("Not allowed to change {0} after submission").format(df.label),
 					frappe.UpdateAfterSubmitError)
 
-	def get_formatted(self, fieldname, doc=None):
+	def get_formatted(self, fieldname, doc=None, currency=None, as_html=False):
 		from frappe.utils.formatters import format_value
-		return format_value(self.get(fieldname), self.meta.get_field(fieldname), doc=doc or self)
+		return format_value(self.get(fieldname), self.meta.get_field(fieldname),
+			doc=doc or self, currency=currency, as_html=as_html)
 
 def _filter(data, filters, limit=None):
 	"""pass filters as:
