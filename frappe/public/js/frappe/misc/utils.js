@@ -156,9 +156,9 @@ frappe.utils = {
 		var style = default_style || "default";
 		if(!text)
 			return style;
-		if(has_words(["Pending", "Review"], text)) {
+		if(has_words(["Pending", "Review", "Medium"], text)) {
 			style = "warning";
-		} else if(has_words(["Open", "Rejected"], text)) {
+		} else if(has_words(["Open", "Rejected", "Urgent", "High"], text)) {
 			style = "danger";
 		} else if(has_words(["Closed", "Finished", "Converted", "Completed", "Confirmed",
 			"Approved", "Yes", "Active"], text)) {

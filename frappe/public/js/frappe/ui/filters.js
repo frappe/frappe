@@ -25,8 +25,8 @@ frappe.ui.FilterList = Class.extend({
 	},
 
 	clear_filters: function() {
+		$.each(this.filters, function(i, f) { f.remove(true); });
 		this.filters = [];
-		this.$w.find('.filter_area').empty();
 	},
 
 	add_filter: function(tablename, fieldname, condition, value) {
@@ -157,22 +157,16 @@ frappe.ui.Filter = Class.extend({
 		}
 	},
 
-	remove: function() {
+	remove: function(dont_run) {
 		this.$w.remove();
 		this.$btn_group && this.$btn_group.remove();
-		var value = this.field.get_parsed_value();
-		var fieldname = this.field.df.fieldname;
 		this.field = null;
 
-		// hide filter section
-		// if(!this.flist.get_filters().length) {
-		// 	this.flist.$w.find('.set_filters').toggle(true);
-		// 	this.flist.$w.find('.show_filters').toggle(false);
-		// }
-
-		this.flist.update_filters();
-		this.flist.listobj.dirty = true;
-		this.flist.listobj.run();
+		if(!dont_run) {
+			this.flist.update_filters();
+			this.flist.listobj.dirty = true;
+			this.flist.listobj.run();
+		}
 	},
 
 	set_values: function(tablename, fieldname, condition, value) {
@@ -321,11 +315,6 @@ frappe.ui.Filter = Class.extend({
 
 		var me = this;
 
-		var value = __(this.get_selected_value());
-		if(this.field.df.fieldname==="docstatus") {
-			value = {0:"Draft", 1:"Submitted", 2:"Cancelled"}[value];
-		}
-
 		// add a button for new filter if missing
 		this.$btn_group = $('<div class="btn-group">\
 			<button class="btn btn-default btn-sm toggle-filter"\
@@ -351,11 +340,16 @@ frappe.ui.Filter = Class.extend({
 	},
 
 	set_filter_button_text: function() {
+		var value = this.get_selected_value();
+		if(this.field.df.fieldname==="docstatus") {
+			value = {0:"Draft", 1:"Submitted", 2:"Cancelled"}[value];
+		}
+
 		this.$btn_group.find(".toggle-filter")
 			.html(repl('<i class="icon-filter"></i> %(label)s %(condition)s "%(value)s"', {
 				label: __(this.field.df.label),
 				condition: this.get_condition(),
-				value: this.get_selected_value(),
+				value: value,
 			}));
 	}
 

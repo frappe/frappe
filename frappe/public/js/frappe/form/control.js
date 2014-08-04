@@ -788,7 +788,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 				<a class="btn-search" title="Search Link">\
 					<i class="icon-search"></i>\
 				</a><a class="btn-open" title="Open Link">\
-					<i class="icon-play"></i>\
+					<i class="icon-arrow-right"></i>\
 				</a><a class="btn-new" title="Make New">\
 					<i class="icon-plus"></i>\
 				</a>\
