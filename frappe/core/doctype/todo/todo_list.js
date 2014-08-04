@@ -1,11 +1,12 @@
 frappe.listview_settings['ToDo'] = {
 	onload: function(me) {
 		frappe.route_options = {
-			"status": "Open",
-			"owner": user
+			"owner": user,
+			"status": "Open"
 		};
 	},
 	fields: ["status", "priority", "due_date", "assigned_to"],
+	filters: [["status","=","Open"]],
 	set_title_left: function() {
 		frappe.set_route();
 	},
