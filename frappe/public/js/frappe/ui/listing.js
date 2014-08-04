@@ -70,7 +70,8 @@ frappe.ui.Listing = Class.extend({
 				<div class="list-filters" style="display: none;">\
 					<div class="show_filters">\
 						<div class="set-filters">\
-							<button class="btn btn-default btn-xs new-filter text-muted">\
+							<button class="btn btn-default btn-sm new-filter text-muted" \
+								style="margin-bottom: 10px">\
 								<i class="icon-plus"></i> '+__("Add Filter")+'</button>\
 						</div>\
 						<div class="filter_area"></div>\

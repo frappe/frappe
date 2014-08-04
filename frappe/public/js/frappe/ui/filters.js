@@ -98,10 +98,10 @@ frappe.ui.Filter = Class.extend({
 			</select>\
 		</div>\
 		<div class="filter_field col-sm-4 col-xs-9"></div>\
-		<div class="col-sm-2 col-xs-3" style="margin-top: 8px;">\
-			<a class="set-filter-and-run btn btn-default btn-xs pull-left">\
+		<div class="col-sm-2 col-xs-3">\
+			<a class="set-filter-and-run btn btn-primary pull-left">\
 				<i class="icon-ok"></i></a>\
-			<a class="close remove-filter">&times;</a>\
+			<a class="close remove-filter" style="margin-top: 5px;">&times;</a>\
 		</div>\
 		</div></div>').appendTo(this.flist.$w.find('.filter_area'));
 	},
@@ -159,7 +159,7 @@ frappe.ui.Filter = Class.extend({
 
 	remove: function() {
 		this.$w.remove();
-		this.$btn && this.$btn.remove();
+		this.$btn_group && this.$btn_group.remove();
 		var value = this.field.get_parsed_value();
 		var fieldname = this.field.df.fieldname;
 		this.field = null;
@@ -286,56 +286,78 @@ frappe.ui.Filter = Class.extend({
 	},
 
 	get_value: function() {
-		if(this.frozen_value) {
-			return this.frozen_value;
-		}
+		return [this.fieldselect.selected_doctype,
+			this.field.df.fieldname, this.get_condition(), this.get_selected_value()];
+	},
 
-		var me = this;
-		var val = me.field.get_parsed_value();
-		var cond = me.$w.find('.condition').val();
+	get_selected_value: function() {
+		var val = this.field.get_parsed_value();
 
-		if(me.field.df.original_type == 'Check') {
+		if(this.field.df.original_type == 'Check') {
 			val = (val=='Yes' ? 1 :0);
 		}
 
-		if(cond=='like') {
+		if(this.get_condition()==='like') {
 			// add % only if not there at the end
 			if ((val.length === 0) || (val.lastIndexOf("%") !== (val.length - 1))) {
 				val = (val || "") + '%';
 			}
 		} else if(val === '%') val = null;
 
-		return [me.fieldselect.selected_doctype,
-			me.field.df.fieldname, me.$w.find('.condition').val(), val];
+		return val;
+	},
+
+	get_condition: function() {
+		return this.$w.find('.condition').val();
 	},
 
 	freeze: function() {
-		if(this.frozen_value)
+		if(this.$btn_group) {
+			// already made, just hide the condition setter
+			this.set_filter_button_text();
+			this.$w.toggle(false);
 			return;
+		}
 
 		var me = this;
-		this.frozen_value = this.get_value();
 
-		var value = __(this.frozen_value[3]);
+		var value = __(this.get_selected_value());
 		if(this.field.df.fieldname==="docstatus") {
 			value = {0:"Draft", 1:"Submitted", 2:"Cancelled"}[value];
 		}
 
 		// add a button for new filter if missing
-		this.$btn = $(repl('<button class="btn btn-default btn-xs remove-filter">\
-			<i class="icon-filter"></i> %(label)s %(condition)s "%(value)s" <i class="icon-remove text-muted"></i>\
-			</button>', {
-				label: __(this.field.df.label),
-				condition: this.frozen_value[2],
-				value: value,
-			}))
-			.attr("title", __("Remove Filter"))
-			.insertBefore(this.flist.$w.find(".set-filters .new-filter"))
-			.on("click", function() {
-				me.remove();
-			});
-		this.$w.remove();
+		this.$btn_group = $('<div class="btn-group">\
+			<button class="btn btn-default btn-sm toggle-filter"\
+				title="'+__("Edit Filter")+'">\
+				<i class="icon-filter"></i> %(label)s %(condition)s "%(value)s"\
+			</button>\
+			<button class="btn btn-default btn-sm remove-filter"\
+				title="'+__("Remove Filter")+'">\
+				<i class="icon-remove text-muted"></i>\
+			</button></div>')
+			.insertBefore(this.flist.$w.find(".set-filters .new-filter"));
+
+		this.set_filter_button_text();
+
+		this.$btn_group.find(".remove-filter").on("click", function() {
+			me.remove();
+		});
+
+		this.$btn_group.find(".toggle-filter").on("click", function() {
+			me.$w.toggle();
+		})
+		this.$w.toggle(false);
 	},
+
+	set_filter_button_text: function() {
+		this.$btn_group.find(".toggle-filter")
+			.html(repl('<i class="icon-filter"></i> %(label)s %(condition)s "%(value)s"', {
+				label: __(this.field.df.label),
+				condition: this.get_condition(),
+				value: this.get_selected_value(),
+			}));
+	}
 
 });
 
