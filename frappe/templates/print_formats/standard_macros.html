@@ -66,9 +66,11 @@
 {%- if doc.get(df.fieldname) != None -%}
 <div style="padding: 10px 0px">
 	{%- if df.fieldtype in ("Text", "Code") %}<label>{{ _(df.label) }}</label>{%- endif %}
-	{%- if df.fieldtype=="Code" %}<pre>{% endif -%}
-	{{ doc.get(df.fieldname) }}
-	{% if df.fieldtype=="Code" %}</pre>{% endif -%}
+	{%- if df.fieldtype=="Code" %}
+		<pre>{{ doc.get(df.fieldname) }}</pre>
+	{% else -%}
+		{{ doc.get_formatted(df.fieldname, parent_doc or doc, as_html=True) }}
+	{% endif -%}
 </div>
 {%- endif -%}
 {%- endmacro -%}
