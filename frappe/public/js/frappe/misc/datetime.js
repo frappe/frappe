@@ -4,6 +4,7 @@
 frappe.provide('frappe.datetime');
 
 moment.defaultFormat = "YYYY-MM-DD";
+moment.defaultDatetimeFormat = "YYYY-MM-DD HH:mm:ss"
 frappe.provide("frappe.datetime");
 
 $.extend(frappe.datetime, {

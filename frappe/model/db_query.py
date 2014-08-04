@@ -276,6 +276,7 @@ class DatabaseQuery(object):
 		return frappe.db.sql(query, as_dict = (not self.as_list))
 
 	def set_order_by(self, args):
+		meta = frappe.get_meta(self.doctype)
 		if self.order_by:
 			args.order_by = self.order_by
 		else:
@@ -289,9 +290,13 @@ class DatabaseQuery(object):
 				) and not self.group_by)
 
 			if not group_function_without_group_by:
-				meta = frappe.get_meta(self.doctype)
+
 				args.order_by = "`tab{0}`.`{1}` {2}".format(self.doctype,
 					meta.sort_field or "modified", meta.sort_order or "desc")
+
+				# draft docs always on top
+				if meta.is_submittable:
+					args.order_by = "`tab{0}`.docstatus asc, ".format(self.doctype) + args.order_by
 
 	def check_sort_by_table(self, order_by):
 		if "." in order_by:

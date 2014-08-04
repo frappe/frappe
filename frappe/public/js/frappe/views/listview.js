@@ -313,7 +313,8 @@ frappe.views.ListView = Class.extend({
 
 		// docstatus lock
 		if(frappe.model.is_submittable(this.doctype)) {
-			html += repl('<span class="docstatus" style="margin-right: 3px;"> \
+			html += repl('<span class="docstatus filterable" style="margin-right: 3px;"\
+				data-filter="docstatus,=,%(docstatus)s"> \
 				<i class="%(docstatus_icon)s icon-fixed-width" \
 				title="%(docstatus_title)s"></i></span>', data);
 
@@ -451,7 +452,7 @@ frappe.views.ListView = Class.extend({
 
 		// docstatus
 		if(data.docstatus==0 || data.docstatus==null) {
-			data.docstatus_icon = 'icon-check-empty';
+			data.docstatus_icon = 'icon-edit text-danger';
 			data.docstatus_title = __('Editable');
 		} else if(data.docstatus==1) {
 			data.docstatus_icon = 'icon-lock';
