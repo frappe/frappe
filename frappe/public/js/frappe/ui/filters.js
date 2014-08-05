@@ -266,6 +266,9 @@ frappe.ui.Filter = Class.extend({
 		} else if(df.fieldtype=='Link' && this.$w.find('.condition').val()!="=") {
 			df.fieldtype = 'Data';
 		}
+		if(df.fieldtype==="Data" && (df.options || "").toLowerCase()==="email") {
+			df.options = null;
+		}
 	},
 
 	set_default_condition: function(df, fieldtype) {
@@ -341,8 +344,13 @@ frappe.ui.Filter = Class.extend({
 
 	set_filter_button_text: function() {
 		var value = this.get_selected_value();
+
 		if(this.field.df.fieldname==="docstatus") {
 			value = {0:"Draft", 1:"Submitted", 2:"Cancelled"}[value];
+		}
+
+		if(this.field.df.original_type==="Check") {
+			value = {0:"No", 1:"Yes"}[cint(value)];
 		}
 
 		this.$btn_group.find(".toggle-filter")

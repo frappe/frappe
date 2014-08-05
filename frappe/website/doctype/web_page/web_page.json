@@ -157,7 +157,7 @@
  "icon": "icon-file-alt", 
  "idx": 1, 
  "max_attachments": 20, 
- "modified": "2014-06-17 05:56:30.267409", 
+ "modified": "2014-08-05 04:54:49.018407", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Web Page", 
@@ -176,5 +176,6 @@
    "submit": 0, 
    "write": 1
   }
- ]
+ ], 
+ "title_field": "title"
 }

@@ -1,0 +1,24 @@
+<div class="row" style="max-height: 30px;">
+	<div class="col-xs-12">
+		<div class="text-ellipsis">
+			{%= list.get_avatar_and_id(doc) %}
+
+			<span style="margin-right: 8px;"
+				title="{%= doc.published
+					? __("Published") : __("Not Published") %}" class="filterable"
+				data-filter="published,=,{%= doc.published ? "Yes" : "No" %}">
+				<i class="icon-globe text-{%= doc.published ? "success" : "muted" %}"></i>
+			</span>
+
+			<span class="label label-info filterable" title="{%= __("Category") %}"
+				data-filter="blog_category,=,{%= doc.blog_category %}">
+				<i class="icon-tag"></i> {%= doc.blog_category %}
+			</span>
+
+			<span class="label label-default filterable" title="{%= __("Blogger") %}"
+				data-filter="blogger,=,{%= doc.blogger %}">
+				<i class="icon-user"></i> {%= doc.blogger %}
+			</span>
+		</div>
+	</div>
+</div>

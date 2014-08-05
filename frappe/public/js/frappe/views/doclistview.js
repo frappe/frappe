@@ -65,11 +65,15 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 
 		this.appframe.set_title(__("{0} List", [this.doctype]));
 		this.appframe.add_module_icon(module, this.doctype, null, true);
-		this.appframe.set_title_left(function() { frappe.set_route(frappe.get_module(module).link); });
+		this.appframe.set_title_left(function() {
+			frappe.set_route(frappe.listview_parent_route[me.doctype]
+				|| frappe.get_module(module).link);
+		});
 		this.appframe.set_views_for(this.doctype, "list");
 	},
 
 	setup: function() {
+		var me = this;
 		this.can_delete = frappe.model.can_delete(this.doctype);
 		this.meta = locals.DocType[this.doctype];
 		this.$page.find('.frappe-list-area').empty(),
@@ -78,17 +82,11 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		this.init_stats();
 		this.init_minbar();
 		this.show_match_help();
-		if(this.listview.settings.onload) {
-			this.listview.settings.onload(this);
-		}
-		if(this.listview.settings.set_title_left) {
-			this.appframe.set_title_left(this.listview.settings.set_title_left);
-		}
+		this.init_listview();
 		this.make_help();
 		this.setup_filterable();
 		this.init_filters();
 		this.$page.find(".show_filters").css({"padding":"15px", "margin":"0px -15px"});
-		var me = this;
 		this.$w.on("render-complete", function() {
 			// if only one record, open the form, if not coming from the form itself
 			if(me.data.length===1
@@ -96,6 +94,20 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 				frappe.set_route("Form", me.doctype, me.data[0].name);
 			}
 		});
+	},
+
+	init_listview: function() {
+		if(this.listview.settings.onload) {
+			this.listview.settings.onload(this);
+		}
+
+		if(this.listview.settings.set_title_left) {
+			this.appframe.set_title_left(this.listview.settings.set_title_left);
+		} else if(this.listview.settings.parent_route) {
+			this.appframe.set_title_left(function() {
+				frappe.set_route(me.listview.settings.parent_route);
+			});
+		}
 	},
 
 	set_sidebar_height: function() {

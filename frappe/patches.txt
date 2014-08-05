@@ -50,3 +50,4 @@ execute:frappe.db.sql("""update `tabDocPerm` set email=1 where parent='User' and
 execute:frappe.db.sql("""update `tabPrint Format` set print_format_type='Client' where ifnull(print_format_type, '')=''""") #2014-07-28
 frappe.patches.v4_1.file_manager_fix
 frappe.patches.v4_2.print_with_letterhead
+execute:frappe.delete_doc("DocType", "Control Panel", force=1)
