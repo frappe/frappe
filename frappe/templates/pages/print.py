@@ -221,11 +221,19 @@ def get_visible_columns(data, table_meta):
 	return columns
 
 def column_has_value(data, fieldname):
+	"""Check if at least one cell in column has non-zero and non-blank value"""
 	has_value = False
+
 	for row in data:
-		if row.get(fieldname) is not None:
-			has_value = True
-			break
+		value = row.get(fieldname)
+		if value:
+			if isinstance(value, basestring):
+				if strip_html(value).strip():
+					has_value = True
+					break
+			else:
+				has_value = True
+				break
 
 	return has_value
 
