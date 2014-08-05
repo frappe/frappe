@@ -43,6 +43,7 @@ class RateLimitExceededError(ValidationError): pass
 class CannotChangeConstantError(ValidationError): pass
 class UpdateAfterSubmitError(ValidationError): pass
 class LinkValidationError(ValidationError): pass
+class CancelledLinkError(LinkValidationError): pass
 class DocstatusTransitionError(ValidationError): pass
 class TimestampMismatchError(ValidationError): pass
 class EmptyTableError(ValidationError): pass

@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import frappe, json, sys
 from frappe import _
-from frappe.utils import cint, flt, now, cstr
+from frappe.utils import cint, flt, now, cstr, strip_html
 from frappe.model import default_fields
 from frappe.model.naming import set_new_name
 
@@ -260,12 +260,12 @@ class BaseDocument(object):
 		missing = []
 
 		for df in self.meta.get("fields", {"reqd": 1}):
-			if self.get(df.fieldname) in (None, []) or not cstr(self.get(df.fieldname)).strip():
+			if self.get(df.fieldname) in (None, []) or not strip_html(cstr(self.get(df.fieldname))).strip():
 				missing.append((df.fieldname, get_msg(df)))
 
 		return missing
 
-	def get_invalid_links(self):
+	def get_invalid_links(self, is_submittable=False):
 		def get_msg(df, docname):
 			if self.parentfield:
 				return "{} #{}: {}: {}".format(_("Row"), self.idx, _(df.label), docname)
@@ -273,6 +273,7 @@ class BaseDocument(object):
 				return "{}: {}".format(_(df.label), docname)
 
 		invalid_links = []
+		cancelled_links = []
 		for df in self.meta.get_link_fields() + self.meta.get("fields",
 			{"fieldtype":"Dynamic Link"}):
 
@@ -291,10 +292,17 @@ class BaseDocument(object):
 				# MySQL is case insensitive. Preserve case of the original docname in the Link Field.
 				value = frappe.db.get_value(doctype, docname)
 				setattr(self, df.fieldname, value)
-			if docname and not value:
-				invalid_links.append((df.fieldname, docname, get_msg(df, docname)))
 
-		return invalid_links
+				if not value:
+					invalid_links.append((df.fieldname, docname, get_msg(df, docname)))
+
+				elif (df.fieldname != "amended_from"
+					and (is_submittable or self.meta.is_submittable) and frappe.get_meta(doctype).is_submittable
+					and cint(frappe.db.get_value(doctype, docname, "docstatus"))==2):
+
+					cancelled_links.append((df.fieldname, docname, get_msg(df, docname)))
+
+		return invalid_links, cancelled_links
 
 	def _validate_selects(self):
 		if frappe.flags.in_import:
