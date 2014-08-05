@@ -223,6 +223,7 @@ frappe.views.moduleview.ModuleView = Class.extend({
 					if(!route) {
 						if(item.type==="doctype") {
 							route = "List/" + encodeURIComponent(item.name);
+							frappe.listview_parent_route[item.name] = ["Module", me.module];
 						} else if(item.type==="page") {
 							route = item.route || item.link || item.name;
 						} else if(item.type==="report") {

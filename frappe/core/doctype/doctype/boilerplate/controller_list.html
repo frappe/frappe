@@ -20,6 +20,7 @@
 			<!-- sample label -->
 			<span class="label
 				label-{{%= frappe.utils.guess_style(doc.status) %}} filterable"
+				title="{{%= __("Title") %}}"
 				data-filter="status,=,{{%= doc.status %}}">
 				{{%= doc.status %}}
 			</span>

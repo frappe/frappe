@@ -11,6 +11,8 @@ frappe.views.get_listview = function(doctype, parent) {
 }
 
 frappe.provide("frappe.listview_settings");
+frappe.provide("frappe.listview_parent_route");
+
 frappe.views.ListView = Class.extend({
 	init: function(doclistview, doctype) {
 		this.doclistview = doclistview;
