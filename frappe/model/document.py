@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _, msgprint
-from frappe.utils import flt, cint, cstr, now, get_url_to_form
+from frappe.utils import flt, cint, cstr, now
 from frappe.modules import load_doctype_module
 from frappe.model.base_document import BaseDocument
 from frappe.model.naming import set_new_name
@@ -354,16 +354,22 @@ class Document(BaseDocument):
 		if self.get("ignore_links"):
 			return
 
-		invalid_links = self.get_invalid_links()
+		invalid_links, cancelled_links = self.get_invalid_links()
+
 		for d in self.get_all_children():
-			invalid_links.extend(d.get_invalid_links())
+			result = d.get_invalid_links(is_submittable=self.meta.is_submittable)
+			invalid_links.extend(result[0])
+			cancelled_links.extend(result[1])
 
-		if not invalid_links:
-			return
+		if invalid_links:
+			msg = ", ".join((each[2] for each in invalid_links))
+			frappe.throw(_("Could not find {0}").format(msg),
+				frappe.LinkValidationError)
 
-		msg = ", ".join((each[2] for each in invalid_links))
-		frappe.throw(_("Could not find {0}").format(msg),
-			frappe.LinkValidationError)
+		if cancelled_links:
+			msg = ", ".join((each[2] for each in cancelled_links))
+			frappe.throw(_("Cannot link cancelled document: {0}").format(msg),
+				frappe.CancelledLinkError)
 
 	def get_all_children(self, parenttype=None):
 		ret = []
