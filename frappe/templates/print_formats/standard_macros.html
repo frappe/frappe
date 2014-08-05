@@ -69,7 +69,7 @@
 	{%- if df.fieldtype=="Code" %}
 		<pre>{{ doc.get(df.fieldname) }}</pre>
 	{% else -%}
-		{{ doc.get_formatted(df.fieldname, parent_doc or doc, as_html=True) }}
+		{{ doc.get_formatted(df.fieldname, parent_doc or doc) }}
 	{% endif -%}
 </div>
 {%- endif -%}
