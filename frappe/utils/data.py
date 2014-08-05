@@ -417,11 +417,12 @@ def is_html(text):
 			break
 	return out
 
+
+# from Jinja2 code
+_striptags_re = re.compile(r'(<!--.*?-->|<[^>]*>)')
 def strip_html(text):
-	"""
-		removes anything enclosed in and including <>
-	"""
-	return re.compile(r'<.*?>').sub('', text)
+	"""removes anything enclosed in and including <>"""
+	return _striptags_re.sub("", text)
 
 def escape_html(text):
 	html_escape_table = {
