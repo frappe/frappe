@@ -8,7 +8,9 @@
     <meta name="author" content="">
     <title>{%= title %}</title>
     <link href="{%= frappe.urllib.get_base_url() %}/assets/frappe/css/bootstrap.css" rel="stylesheet">
-	<link href="{%= frappe.urllib.get_base_url() %}/assets/frappe/css/print.css" rel="stylesheet" type="text/css">
+	<style>
+		{%= frappe.boot.print_css %}
+	</style>
   </head>
   <body>
 	  <div class="print-format-gutter">
