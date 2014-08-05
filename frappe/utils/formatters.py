@@ -6,7 +6,7 @@ from frappe.utils import formatdate, fmt_money, flt
 from frappe.model.meta import get_field_currency, get_field_precision
 import re
 
-def format_value(value, df, doc=None, currency=None, as_html=False):
+def format_value(value, df, doc=None, currency=None):
 	if df.fieldtype=="Date":
 		return formatdate(value)
 
@@ -23,8 +23,9 @@ def format_value(value, df, doc=None, currency=None, as_html=False):
 	if value is None:
 		value = ""
 
-	if as_html and not re.search("(\<br|\<div|\<p)", value):
-		return value.replace("\n", "<br>")
+	if df.fieldtype in ("Text", "Small Text"):
+		if not re.search("(\<br|\<div|\<p)", value):
+			return value.replace("\n", "<br>")
 
 	return value
 

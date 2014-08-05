@@ -617,9 +617,9 @@ def get_test_records(doctype):
 	else:
 		return []
 
-def format_value(value, df, doc=None, currency=None, as_html=False):
+def format_value(value, df, doc=None, currency=None):
 	import frappe.utils.formatters
-	return frappe.utils.formatters.format_value(value, df, doc, currency=currency, as_html=as_html)
+	return frappe.utils.formatters.format_value(value, df, doc, currency=currency)
 
 def get_print_format(doctype, name, print_format=None, style=None, as_pdf=False):
 	from frappe.website.render import build_page

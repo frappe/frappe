@@ -126,13 +126,13 @@ frappe.ui.form.Toolbar = Class.extend({
 		}
 
 		// Print
-		if(!me.frm.doc.__islocal || frappe.model.can_print(null, me.frm)) {
+		if(!me.frm.doc.__islocal && frappe.model.can_print(null, me.frm)) {
 			this.appframe.add_dropdown_button("File", __("Print..."), function() {
 				me.frm.print_doc();}, 'icon-print');
 		}
 
 		// email
-		if(!me.frm.doc.__islocal || frappe.model.can_email(null, me.frm)) {
+		if(!me.frm.doc.__islocal && frappe.model.can_email(null, me.frm)) {
 			this.appframe.add_dropdown_button("File", __("Email..."), function() {
 				me.frm.email_doc();}, 'icon-envelope');
 		}
