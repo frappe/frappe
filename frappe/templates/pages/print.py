@@ -192,7 +192,7 @@ def get_print_style(style=None):
 	if not style:
 		style = print_settings.print_style or "Standard"
 
-	context = {"print_settings": print_settings}
+	context = {"print_settings": print_settings, "print_style": style}
 
 	css = frappe.get_template("templates/styles/standard.css").render(context)
 

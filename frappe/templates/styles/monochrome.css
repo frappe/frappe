@@ -1,0 +1,26 @@
+.print-format * {
+	color: #000 !important;
+}
+
+.print-format .alert {
+	background-color: inherit;
+	border: 1px dashed #333;
+}
+
+.print-format .table-bordered,
+.print-format .table-bordered > thead > tr > th,
+.print-format .table-bordered > tbody > tr > th,
+.print-format .table-bordered > tfoot > tr > th,
+.print-format .table-bordered > thead > tr > td,
+.print-format .table-bordered > tbody > tr > td,
+.print-format .table-bordered > tfoot > tr > td {
+	border: 1px solid #333;
+}
+
+.print-format hr {
+	border-top: 1px solid #333;
+}
+
+.print-heading {
+	border-bottom: 2px solid #333;
+}
