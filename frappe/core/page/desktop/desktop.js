@@ -11,8 +11,7 @@ frappe.pages['desktop'].refresh = function(wrapper) {
 	frappe.ui.toolbar.add_dropdown_button("File", __("All Applications"), function() {
 		frappe.desktop.show_all_modules();
 	}, 'icon-th');
-
-}
+};
 
 frappe.desktop.refresh = function() {
 	frappe.desktop.render();
@@ -104,8 +103,9 @@ frappe.desktop.render = function() {
 
 	$(document).on("notification-update", function() {
 		frappe.desktop.show_pending_notifications();
-	})
+	});
 
+	$(document).trigger("desktop-render");
 }
 
 frappe.desktop.show_all_modules = function() {
