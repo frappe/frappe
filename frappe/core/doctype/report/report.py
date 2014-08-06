@@ -3,7 +3,8 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe import conf, _
+from frappe import _
+from frappe.utils import cint
 
 from frappe.model.document import Document
 
@@ -15,7 +16,7 @@ class Report(Document):
 
 		if not self.is_standard:
 			self.is_standard = "No"
-			if frappe.session.user=="Administrator" and getattr(conf, 'developer_mode',0)==1:
+			if frappe.session.user=="Administrator" and getattr(frappe.local.conf, 'developer_mode',0)==1:
 				self.is_standard = "Yes"
 
 		if self.is_standard == "Yes" and frappe.session.user!="Administrator":
@@ -32,6 +33,10 @@ class Report(Document):
 
 	def export_doc(self):
 		from frappe.modules.export_file import export_to_files
-		if self.is_standard == 'Yes' and (conf.get('developer_mode') or 0) == 1:
+		if self.is_standard == 'Yes' and (frappe.local.conf.get('developer_mode') or 0) == 1:
 			export_to_files(record_list=[['Report', self.name]],
 				record_module=self.module)
+
+	@Document.whitelist
+	def toggle_disable(self, disable):
+		self.db_set("disabled", cint(disable))

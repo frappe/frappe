@@ -11,7 +11,22 @@ cur_frm.cscript.refresh = function(doc) {
 				frappe.set_route("query-report", doc.name);
 				break;
 		}
-	}, "icon-table")
+	}, "icon-table");
+
+	if (doc.is_standard === "Yes") {
+		cur_frm.add_custom_button(doc.disabled ? __("Enable Report") : __("Disable Report"), function() {
+			$.ajax({
+				url: "/api/resource/Report/" + encodeURIComponent(doc.name),
+				type: "POST",
+				data: {
+					run_method: "toggle_disable",
+					disable: doc.disabled ? 0 : 1
+				}
+			}).always(function() {
+				cur_frm.reload_doc();
+			});
+		}, doc.disabled ? "icon-ok" : "icon-off");
+	}
 
 	cur_frm.set_intro("");
 	switch(doc.report_type) {
