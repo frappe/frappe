@@ -21,9 +21,14 @@
 	background-color: #f9f9f9;
 }
 
-.appframe-titlebar, .appframe-iconbar, .appframe-form {
+.appframe-titlebar, .appframe-iconbar, .appframe-form, .appframe-primary-actions {
 	/*background-color: rgba(255, 255, 255, 0.7);*/
 	background-color: #f9f9f9;
+}
+
+.appframe-primary-actions .btn {
+	margin: 10px;
+	margin-left: 0px;
 }
 
 .appframe-iconbar {

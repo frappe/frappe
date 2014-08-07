@@ -229,9 +229,14 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 				}
 				if(me.validate) {
 					me.validate(value, function(value1) {
-						if(value !== value1)
+						if(value !== value1) {
 							me.set_input(value1)
+						} else {
+							me.set_mandatory && me.set_mandatory(value);
+						}
 					});
+				} else {
+					me.set_mandatory && me.set_mandatory(value);
 				}
 			}
 		});
