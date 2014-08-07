@@ -340,7 +340,7 @@ frappe.views.QueryReport = Class.extend({
 						df.options = tmp[1];
 					}
 					df.width = cint(df.width);
-				} else {
+				} else {e
 					var df = {
 						label: c,
 						fieldtype: "Data"
@@ -632,7 +632,7 @@ frappe.views.QueryReport = Class.extend({
 	},
 	export_report: function() {
 		if(!frappe.model.can_export(this.report_doc.ref_doctype)) {
-			msgprint(_("You are not allowed to export this report"));
+			msgprint(frappe._("You are not allowed to export this report"));
 			return false;
 		}
 
