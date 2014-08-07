@@ -41,7 +41,7 @@ frappe.ui.form.Toolbar = Class.extend({
 	set_title: function() {
 		if(this.frm.meta.title_field) {
 			var title = (this.frm.doc[this.frm.meta.title_field] || "").trim() || __(this.frm.docname);
-			if(this.frm.doc.__islocal) {
+			if(this.frm.doc.__islocal || title === this.frm.docname) {
 				this.appframe.set_title_sub("");
 			} else {
 				this.appframe.set_title_sub("#" + this.frm.docname);
@@ -83,7 +83,7 @@ frappe.ui.form.Toolbar = Class.extend({
 				case 1:
 					return ' <i class="icon-lock" title="' +__("Submitted") + '">';
 				case 2:
-					return ' <i class="icon-remove text-danger" title="' +__("Cancelled") + '">';
+					return ' <i class="icon-ban-circle text-danger" title="' +__("Cancelled") + '">';
 			}
 		} else {
 			return "";
@@ -118,7 +118,7 @@ frappe.ui.form.Toolbar = Class.extend({
 		// Cancel
 		if(this.can_cancel()) {
 			this.appframe.add_dropdown_button("File", __("Cancel"), function() {
-				me.frm.savecancel(this);}, 'icon-remove');
+				me.frm.savecancel(this);}, 'icon-ban-circle');
 		}
 
 		// Amend
@@ -149,7 +149,7 @@ frappe.ui.form.Toolbar = Class.extend({
 		// copy
 		if(in_list(frappe.boot.user.can_create, me.frm.doctype) && !me.frm.meta.allow_copy) {
 			this.appframe.add_dropdown_button("File", __("Copy"), function() {
-				me.frm.copy_doc();}, 'icon-file');
+				me.frm.copy_doc();}, 'icon-copy');
 		}
 
 		// rename
@@ -162,7 +162,7 @@ frappe.ui.form.Toolbar = Class.extend({
 		if((cint(me.frm.doc.docstatus) != 1) && !me.frm.doc.__islocal
 			&& frappe.model.can_delete(me.frm.doctype)) {
 			this.appframe.add_dropdown_button("File", __("Delete"), function() {
-				me.frm.savetrash();}, 'icon-remove-sign');
+				me.frm.savetrash();}, 'icon-trash');
 		}
 
 	},
@@ -272,7 +272,7 @@ frappe.ui.form.Toolbar = Class.extend({
 			return;
 		} else if(docstatus==1 && p[CANCEL]) {
 			this.appframe.add_button('Cancel', function() {
-				me.frm.savecancel(this) }, 'icon-remove');
+				me.frm.savecancel(this) }, 'icon-ban-circle');
 		} else if(docstatus==2 && p[AMEND]) {
 			this.appframe.add_button('Amend', function() {
 				me.frm.amend_doc() }, 'icon-pencil', true);

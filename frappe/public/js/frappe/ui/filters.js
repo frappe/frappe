@@ -346,11 +346,13 @@ frappe.ui.Filter = Class.extend({
 		var value = this.get_selected_value();
 
 		if(this.field.df.fieldname==="docstatus") {
-			value = {0:"Draft", 1:"Submitted", 2:"Cancelled"}[value];
+			value = {0:"Draft", 1:"Submitted", 2:"Cancelled"}[value] || value;
 		}
 
 		if(this.field.df.original_type==="Check") {
 			value = {0:"No", 1:"Yes"}[cint(value)];
+		} else if (in_list(["Date", "Datetime"], this.field.df.fieldtype)) {
+			value = frappe.datetime.str_to_user(value);
 		}
 
 		this.$btn_group.find(".toggle-filter")

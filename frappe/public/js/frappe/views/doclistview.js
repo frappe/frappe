@@ -128,7 +128,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 				} else if(f[2]=="User") {
 					f[2] = user;
 				}
-				me.filter_list.add_filter(me.doctype, f[0], f[1], f[2]);
+				me.filter_list.add_filter(me.doctype, f[0], f[1], f.slice(2).join(","));
 			});
 			me.run();
 		})
@@ -287,7 +287,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		this.appframe.add_icon_btn("2", 'icon-tag', __('Show Tags'), function() { me.toggle_tags(); });
 		this.$page.on("click", ".list-tag-preview", function() { me.toggle_tags(); });
 		if(this.can_delete || this.listview.settings.selectable) {
-			this.appframe.add_icon_btn("2", 'icon-remove', __('Delete'),
+			this.appframe.add_icon_btn("2", 'icon-trash', __('Delete'),
 				function() { me.delete_items(); });
 			this.appframe.add_icon_btn("2", 'icon-ok', __('Select All'), function() {
 				me.$page.find('.list-delete').prop("checked",

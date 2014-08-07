@@ -5,8 +5,7 @@ frappe.listview_settings['ToDo'] = {
 			"status": "Open"
 		};
 	},
-	fields: ["status", "priority", "due_date", "assigned_to"],
-	filters: [["status","=","Open"]],
+	add_fields: ["reference_type", "reference_name"],
 	set_title_left: function() {
 		frappe.set_route();
 	},

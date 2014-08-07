@@ -551,7 +551,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 						});
 					}));
 
-			}, 'icon-remove');
+			}, 'icon-trash');
 		}
 	},
 

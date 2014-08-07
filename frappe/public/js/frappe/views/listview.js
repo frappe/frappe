@@ -223,7 +223,7 @@ frappe.views.ListView = Class.extend({
 				function(v) { return v ? v : null; }),
 			me = this;
 
-		if(me.title_field) {
+		if(me.title_field && data[me.title_field]!==data.name) {
 			$('<div class="list-doc-name">')
 				.appendTo(row)
 				.css({"left": me.title_offset_left})
@@ -423,7 +423,7 @@ frappe.views.ListView = Class.extend({
 				})
 				.attr("data-fieldname", opts.content)
 				.attr("data-value", data[opts.content])
-				.find("a").attr("href", "#");
+				.find("a").removeAttr("href");
 
 		}
 		else if(data[opts.content]) {
@@ -465,7 +465,7 @@ frappe.views.ListView = Class.extend({
 			data.docstatus_icon = 'icon-lock';
 			data.docstatus_title = __('Submitted');
 		} else if(data.docstatus==2) {
-			data.docstatus_icon = 'icon-remove';
+			data.docstatus_icon = 'icon-ban-circle';
 			data.docstatus_title = __('Cancelled');
 		}
 
