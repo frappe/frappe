@@ -52,7 +52,7 @@ cur_frm.cscript.refresh = function(doc) {
 				"user": doc.name
 			};
 			frappe.set_route("user-permissions");
-		})
+		}, null, "btn-default")
 
 		if(has_common(user_roles, ["Administrator", "System Manager"])) {
 			cur_frm.toggle_display(['sb1', 'sb3'], true);

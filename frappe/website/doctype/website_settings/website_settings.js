@@ -19,7 +19,7 @@ frappe.ui.form.on("Website Settings", "refresh", function(frm) {
 					}
 				})
 			})
-		})
+		}, null, "btn-default")
 	}
 })
 
@@ -29,31 +29,31 @@ $.extend(cur_frm.cscript, {
 	onload_post_render: function(doc) {
 		this.set_parent_label_options();
 	},
-	
+
 	label: function(doc, cdt, cdn) {
 		var item = frappe.get_doc(cdt, cdn);
 		if(item.parentfield === "top_bar_items") {
 			this.set_parent_label_options();
 		}
 	},
-	
+
 	parent_label: function(doc, cdt, cdn) {
 		this.label(doc, cdt, cdn);
 	},
-	
+
 	url: function(doc, cdt, cdn) {
 		this.label(doc, cdt, cdn);
 	},
-	
+
 	set_parent_label_options: function() {
-		frappe.meta.get_docfield("Top Bar Item", "parent_label", cur_frm.docname).options = 
+		frappe.meta.get_docfield("Top Bar Item", "parent_label", cur_frm.docname).options =
 			this.get_parent_options("top_bar_items");
-		
+
 		if($(cur_frm.fields_dict.top_bar_items.grid.wrapper).find(".grid-row-open")) {
 			cur_frm.fields_dict.top_bar_items.grid.refresh();
 		}
 	},
-	
+
 	// get labels of parent items
 	get_parent_options: function(table_field) {
 		var items = cur_frm.doc[table_field] || [];
