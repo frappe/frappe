@@ -207,7 +207,9 @@ def setup_utilities(parser):
 	parser.add_argument("--make_conf", nargs="*", metavar=("DB-NAME", "DB-PASSWORD"),
 		help="Create new conf.py file")
 	parser.add_argument("--make_custom_server_script", nargs=1, metavar="DOCTYPE",
-		help="Create new conf.py file")
+		help="Create new custome server script")
+	parser.add_argument("--init_list", nargs=1, metavar="DOCTYPE",
+		help="Create new list.js and list.html files")
 	parser.add_argument("--set_admin_password", metavar='ADMIN-PASSWORD', nargs="*",
 		help="Set administrator password")
 	parser.add_argument("--request", metavar='URL-ARGS', nargs=1, help="Run request as admin")
@@ -533,6 +535,11 @@ def make_custom_server_script(doctype):
 	frappe.connect()
 	make_custom_server_script_file(doctype)
 	frappe.destroy()
+
+@cmd
+def init_list(doctype):
+	import frappe.core.doctype.doctype.doctype
+	frappe.core.doctype.doctype.doctype.init_list(doctype)
 
 # clear
 @cmd

@@ -730,8 +730,12 @@ _f.Frm.prototype.set_footnote = function(txt) {
 }
 
 
-_f.Frm.prototype.add_custom_button = function(label, fn, icon) {
-	return this.appframe.add_primary_action(label, fn, icon || "icon-arrow-right");
+_f.Frm.prototype.add_custom_button = function(label, fn, icon, toolbar) {
+	if(toolbar) {
+		return this.appframe.add_icon_btn("4", icon || "icon-arrow-play", label, fn);
+	} else {
+		return this.appframe.add_primary_action(label, fn, icon || "icon-arrow-play");
+	}
 }
 _f.Frm.prototype.clear_custom_buttons = function() {
 	this.appframe.clear_primary_action()

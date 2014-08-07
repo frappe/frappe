@@ -9,6 +9,7 @@
    "fieldname": "title", 
    "fieldtype": "Data", 
    "label": "Title", 
+   "no_copy": 0, 
    "permlevel": 0, 
    "reqd": 1
   }, 
@@ -82,6 +83,7 @@
    "fieldtype": "Data", 
    "hidden": 1, 
    "label": "Page Name", 
+   "no_copy": 1, 
    "permlevel": 0, 
    "read_only": 1
   }, 
@@ -96,7 +98,7 @@
  "icon": "icon-quote-left", 
  "idx": 1, 
  "max_attachments": 5, 
- "modified": "2014-06-27 05:08:37.936947", 
+ "modified": "2014-08-05 04:54:26.723053", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Blog Post", 
@@ -139,5 +141,6 @@
    "submit": 0, 
    "write": 0
   }
- ]
+ ], 
+ "title_field": "title"
 }

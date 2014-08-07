@@ -65,11 +65,15 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 
 		this.appframe.set_title(__("{0} List", [this.doctype]));
 		this.appframe.add_module_icon(module, this.doctype, null, true);
-		this.appframe.set_title_left(function() { frappe.set_route(frappe.get_module(module).link); });
+		this.appframe.set_title_left(function() {
+			frappe.set_route(frappe.listview_parent_route[me.doctype]
+				|| frappe.get_module(module).link);
+		});
 		this.appframe.set_views_for(this.doctype, "list");
 	},
 
 	setup: function() {
+		var me = this;
 		this.can_delete = frappe.model.can_delete(this.doctype);
 		this.meta = locals.DocType[this.doctype];
 		this.$page.find('.frappe-list-area').empty(),
@@ -78,20 +82,32 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		this.init_stats();
 		this.init_minbar();
 		this.show_match_help();
-		if(this.listview.settings.onload) {
-			this.listview.settings.onload(this);
-		}
-		if(this.listview.settings.set_title_left) {
-			this.appframe.set_title_left(this.listview.settings.set_title_left);
-		}
+		this.init_listview();
 		this.make_help();
+		this.setup_filterable();
+		this.init_filters();
 		this.$page.find(".show_filters").css({"padding":"15px", "margin":"0px -15px"});
-		var me = this;
 		this.$w.on("render-complete", function() {
-			if(me.data.length===1) {
+			// if only one record, open the form, if not coming from the form itself
+			if(me.data.length===1
+				&& frappe.get_prev_route()[2]!== me.data[0].name) {
 				frappe.set_route("Form", me.doctype, me.data[0].name);
 			}
 		});
+	},
+
+	init_listview: function() {
+		if(this.listview.settings.onload) {
+			this.listview.settings.onload(this);
+		}
+
+		if(this.listview.settings.set_title_left) {
+			this.appframe.set_title_left(this.listview.settings.set_title_left);
+		} else if(this.listview.settings.parent_route) {
+			this.appframe.set_title_left(function() {
+				frappe.set_route(me.listview.settings.parent_route);
+			});
+		}
 	},
 
 	set_sidebar_height: function() {
@@ -99,6 +115,35 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		var h_side = this.$page.find(".layout-side-section").height();
 		if(h_side > h_main)
 			this.$page.find(".layout-main-section").css({"min-height": h_side});
+	},
+
+	setup_filterable: function() {
+		var me = this;
+		this.$page.on("click", ".filterable", function(e) {
+			var filters = $(this).attr("data-filter").split("|");
+			$.each(filters, function(i, f) {
+				f = f.split(",");
+				if(f[2]==="Today") {
+					f[2] = frappe.datetime.get_today();
+				} else if(f[2]=="User") {
+					f[2] = user;
+				}
+				me.filter_list.add_filter(me.doctype, f[0], f[1], f[2]);
+			});
+			me.run();
+		})
+	},
+
+	init_filters: function() {
+		var me = this;
+		if(this.listview.settings.filters) {
+			$.each(this.listview.settings.filters, function(i, f) {
+				if(f.length===3) {
+					f = [me.doctype, f[0], f[1], f[2]]
+				}
+				me.filter_list.add_filter(f[0], f[1], f[2], f[3]);
+			});
+		}
 	},
 
 	show_match_help: function() {
@@ -242,7 +287,8 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		this.appframe.add_icon_btn("2", 'icon-tag', __('Show Tags'), function() { me.toggle_tags(); });
 		this.$page.on("click", ".list-tag-preview", function() { me.toggle_tags(); });
 		if(this.can_delete || this.listview.settings.selectable) {
-			this.appframe.add_icon_btn("2", 'icon-remove', __('Delete'), function() { me.delete_items(); });
+			this.appframe.add_icon_btn("2", 'icon-remove', __('Delete'),
+				function() { me.delete_items(); });
 			this.appframe.add_icon_btn("2", 'icon-ok', __('Select All'), function() {
 				me.$page.find('.list-delete').prop("checked",
 					me.$page.find('.list-delete:checked').length ? false : true);
@@ -292,9 +338,10 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 
 	get_checked_items: function() {
 		return $.map(this.$page.find('.list-delete:checked'), function(e) {
-			return $(e).data('data');
+			return $(e).parents(".list-row:first").data('data');
 		});
 	},
+
 	delete_items: function() {
 		var me = this;
 		var dl = this.get_checked_items();

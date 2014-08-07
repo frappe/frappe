@@ -4,11 +4,11 @@
 from __future__ import unicode_literals
 
 import frappe
-import os, json, re
+import os, json
 
 from frappe import _
 from frappe.modules import scrub, get_module_path
-from frappe.utils import flt, cint
+from frappe.utils import flt, cint, get_html_format
 import frappe.widgets.reportview
 
 def get_report_doc(report_name):
@@ -40,7 +40,7 @@ def get_script(report_name):
 		with open(script_path, "r") as f:
 			script = f.read()
 
-	html_format = get_html_format(print_path, report, module)
+	html_format = get_html_format(print_path)
 
 	if not script and report.javascript:
 		script = report.javascript
@@ -56,22 +56,6 @@ def get_script(report_name):
 		"script": script,
 		"html_format": html_format
 	}
-
-def get_html_format(print_path, report, module):
-	html_format = None
-	if os.path.exists(print_path):
-		with open(print_path, "r") as f:
-			html_format = f.read()
-
-		for include_directive, path in re.findall("""({% include ['"]([^'"]*)['"] %})""", html_format):
-			for app_name in frappe.get_installed_apps():
-				include_path = frappe.get_app_path(app_name, *path.split(os.path.sep))
-				if os.path.exists(include_path):
-					with open(include_path, "r") as f:
-						html_format = html_format.replace(include_directive, f.read())
-					break
-
-	return html_format
 
 @frappe.whitelist()
 def run(report_name, filters=()):

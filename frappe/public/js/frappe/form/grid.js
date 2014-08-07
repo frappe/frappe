@@ -19,7 +19,7 @@ frappe.ui.form.Grid = Class.extend({
 		this.wrapper = $('<div>\
 		<div class="form-grid">\
 			<div class="grid-heading-row" style="font-size: 15px; background-color: #f9f9f9;"></div>\
-			<div class="panel-body">\
+			<div class="panel-body" style="padding-top: 7px;">\
 				<div class="rows"></div>\
 				<div class="small grid-footer">\
 					<a href="#" class="grid-add-row pull-right" style="margin-left: 10px;">+ '
@@ -274,7 +274,11 @@ frappe.ui.form.GridRow = Class.extend({
 
 		if(this.grid.template) {
 			$('<div class="col-xs-10">').appendTo(this.row)
-				.html(frappe.render(this.grid.template, {doc:this.doc, frm:this.frm, grid_row: this}));
+				.html(frappe.render(this.grid.template, {
+					doc: this.doc ? frappe.get_format_helper(this.doc) : null,
+					frm: this.frm,
+					row: this
+				}));
 		} else {
 			this.add_visible_columns();
 		}
@@ -305,6 +309,8 @@ frappe.ui.form.GridRow = Class.extend({
 				$col.find(".grid-insert-row").click(function() { me.insert(); return false; });
 				$col.find(".grid-delete-row").click(function() { me.remove(); return false; });
 			}
+		} else {
+			$('<div class="col-xs-1"></div>').appendTo(this.row);
 		}
 
 	},
@@ -455,10 +461,11 @@ frappe.ui.form.GridRow = Class.extend({
 			frm: this.frm,
 		});
 		this.layout.make();
-		this.layout.refresh(this.doc);
 
 		this.fields = this.layout.fields;
 		this.fields_dict = this.layout.fields_dict;
+
+		this.layout.refresh(this.doc);
 
 		// copy get_query to fields
 		$.each(this.grid.fieldinfo || {}, function(fieldname, fi) {
@@ -538,8 +545,8 @@ frappe.ui.form.GridRow = Class.extend({
 	refresh_field: function(fieldname) {
 		var $col = this.row.find("[data-fieldname='"+fieldname+"']");
 		if($col.length) {
-			var value = frappe.model.get_value(this.doc.doctype, this.doc.name, fieldname);
-			$col.html(frappe.format(value, $col.data("df"), null, this.doc));
+			$col.html(frappe.format(this.doc[fieldname],
+				frappe.meta.get_docfield(this.doc.doctype, fieldname, this.frm.docname), null, this.frm.doc));
 		}
 
 		// in form
@@ -547,4 +554,15 @@ frappe.ui.form.GridRow = Class.extend({
 			this.fields_dict[fieldname].refresh();
 		}
 	},
+	get_visible_columns: function(blacklist) {
+		var visible_columns = $.map(this.docfields, function(df) {
+			if(df.print_hide || df.hidden
+				|| in_list(blacklist, df.fieldname)
+				|| in_list(["Section Break", "Column Break"], df.fieldtype))
+				return null;
+			else
+				return df;
+		});
+		return visible_columns;
+	}
 });

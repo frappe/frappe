@@ -11,11 +11,15 @@ frappe.views.get_listview = function(doctype, parent) {
 }
 
 frappe.provide("frappe.listview_settings");
+frappe.provide("frappe.listview_parent_route");
+
 frappe.views.ListView = Class.extend({
 	init: function(doclistview, doctype) {
 		this.doclistview = doclistview;
 		this.doctype = doctype;
+		this.meta = frappe.get_doc("DocType", this.doctype);
 		this.settings = frappe.listview_settings[this.doctype] || {};
+		this.template = this.meta.__listview_template || null;
 		this.set_fields();
 		this.set_columns();
 		this.id_list = [];
@@ -43,10 +47,9 @@ frappe.views.ListView = Class.extend({
 			'modified_by'], function(i, fieldname) { add_field(fieldname); })
 
 		// add title field
-		var meta = frappe.get_doc("DocType", this.doctype);
-		if(meta.title_field) {
-			this.title_field = meta.title_field;
-			add_field(meta.title_field);
+		if(this.meta.title_field) {
+			this.title_field = this.meta.title_field;
+			add_field(this.meta.title_field);
 		}
 
 		// add workflow field (as priority)
@@ -56,7 +59,7 @@ frappe.views.ListView = Class.extend({
 			this.stats.push(this.workflow_state_fieldname);
 		}
 
-		$.each(meta.fields, function(i,d) {
+		$.each(this.meta.fields, function(i,d) {
 			if(d.in_list_view && frappe.perm.has_perm(me.doctype, d.permlevel, "read")) {
 				if(d.fieldtype=="Image" && d.options) {
 					add_field(d.options);
@@ -110,27 +113,18 @@ frappe.views.ListView = Class.extend({
 			if(in_list(overridden, d.fieldname) || d.fieldname === me.title_field) {
 				return;
 			}
-			// field width
-			var colspan = "3";
-			if(in_list(["Int", "Percent", "Select"], d.fieldtype)) {
-				colspan = "2";
-			} else if(d.fieldtype=="Check") {
-				colspan = "1";
-			} else if(in_list(["name", "subject", "title"], d.fieldname)) { // subjects are longer
-				colspan = "4";
-			} else if(d.fieldtype=="Text Editor" || d.fieldtype=="Text") {
-				colspan = "4";
-			}
-			me.total_colspans += parseInt(colspan);
-			me.columns.push({colspan: colspan, content: d.fieldname,
-				type:d.fieldtype, df:d, title:__(d.label) });
+			me.add_column(d);
 		});
 
 		// additional columns
 		if(this.settings.add_columns) {
 			$.each(this.settings.add_columns, function(i, d) {
-				me.columns.push(d);
-				me.total_colspans += parseInt(d.colspan);
+				if(typeof d==="string") {
+					me.add_column(frappe.meta.get_docfield(me.doctype, d));
+				} else {
+					me.columns.push(d);
+					me.total_colspans += parseInt(d.colspan);
+				}
 			});
 		}
 
@@ -146,30 +140,68 @@ frappe.views.ListView = Class.extend({
 		}
 
 	},
+	add_column: function(df) {
+		// field width
+		var colspan = "3";
+		if(in_list(["Int", "Percent", "Select"], df.fieldtype)) {
+			colspan = "2";
+		} else if(df.fieldtype=="Check") {
+			colspan = "1";
+		} else if(in_list(["name", "subject", "title"], df.fieldname)) { // subjects are longer
+			colspan = "4";
+		} else if(df.fieldtype=="Text Editor" || df.fieldtype=="Text") {
+			colspan = "4";
+		}
+		this.total_colspans += parseInt(colspan);
+		this.columns.push({colspan: colspan, content: df.fieldname,
+			type:df.fieldtype, df:df, title:__(df.label) });
+
+	},
 	render: function(row, data) {
 		this.prepare_data(data);
-		//$(row).removeClass("list-row");
+
+		$(row).css({"position": "relative"});
 
 
 		// maintain id_list to avoid duplication incase
 		// of filtering by child table
 		if(in_list(this.id_list, data.name)) {
+			$(row).toggle(false);
 			return;
 		} else {
 			this.id_list.push(data.name);
 		}
 
+		if(this.template) {
+			this.render_template(row, data);
+		} else {
+			this.render_standard_columns(row, data);
+		}
 
-		var left_cols = 4 + this.shift_right, right_cols = 8 - this.shift_right;
-		var body = $('<div class="doclist-row row">\
-			<div class="list-row-id-area col-sm-'+left_cols+'" style="white-space: nowrap;\
-				text-overflow: ellipsis; max-height: 30px"></div>\
-			<div class="list-row-content-area col-sm-'+right_cols+'"></div>\
-		</div>').appendTo($(row).css({"position":"relative"})),
+		this.render_timestamp_and_comments(row, data);
+		this.render_tags(row, data);
+
+	},
+
+	render_template: function (row, data) {
+		$(frappe.render(this.template, {
+			doc: frappe.get_format_helper(data),
+			list: this
+		})).appendTo($('<div class="doclist-row"></div>').appendTo(row));
+	},
+
+	render_standard_columns: function(row, data) {
+		var left_cols = 4 + this.shift_right,
+			right_cols = 8 - this.shift_right,
+			body = $('<div class="doclist-row row">\
+				<div class="list-row-id-area col-sm-'+left_cols+'" style="white-space: nowrap;\
+					text-overflow: ellipsis; max-height: 30px"></div>\
+				<div class="list-row-content-area col-sm-'+right_cols+'"></div>\
+			</div>').appendTo(row),
 			colspans = 0,
 			me = this;
 
-		me.render_avatar_and_id(data, body.find(".list-row-id-area"))
+		$(me.get_avatar_and_id(data, true)).appendTo(body.find(".list-row-id-area"));
 
 		// make table
 		$.each(this.columns, function(i, v) {
@@ -177,13 +209,19 @@ frappe.views.ListView = Class.extend({
 			colspans = colspans + flt(colspan)
 
 			if(colspans <= 12) {
-				var col = me.make_column(body.find(".list-row-content-area"), colspan);
+				var col = me.make_column(body.find(".list-row-content-area"),
+					colspan);
 				me.render_column(data, col, v);
 			}
 		});
 
-		var comments = data._comments ? JSON.parse(data._comments) : [];
-		var tags = $.map((data._user_tags || "").split(","), function(v) { return v ? v : null; });
+	},
+
+	render_timestamp_and_comments: function(row, data) {
+		var comments = data._comments ? JSON.parse(data._comments) : [],
+			tags = $.map((data._user_tags || "").split(","),
+				function(v) { return v ? v : null; }),
+			me = this;
 
 		if(me.title_field) {
 			$('<div class="list-doc-name">')
@@ -210,19 +248,18 @@ frappe.views.ListView = Class.extend({
 						: "")
 					+ comment_when(data.modified));
 
-		// row #2
+	},
+
+	render_tags: function(row, data) {
+		var me = this;
 		var row2 = $('<div class="row tag-row" style="margin-bottom: 5px;">\
 			<div class="col-xs-12">\
 				<div class="col-xs-3"></div>\
 				<div class="col-xs-7">\
 					<div class="list-tag xs-hidden"></div>\
-					<div class="list-last-modified text-muted xs-visible"></div>\
 				</div>\
 			</div>\
 		</div>').appendTo(row);
-
-		// modified
-		body.find(".list-last-modified").html(__("Last updated by") + ": " + frappe.user_info(data.modified_by).fullname);
 
 		if(!me.doclistview.tags_shown) {
 			row2.addClass("hide");
@@ -242,6 +279,7 @@ frappe.views.ListView = Class.extend({
 				$(this).text());
 		});
 	},
+
 	make_column: function(body, colspan) {
 		var col = $("<div class='col'>")
 			.appendTo(body)
@@ -255,47 +293,61 @@ frappe.views.ListView = Class.extend({
 			})
 		return col;
 	},
-	render_avatar_and_id: function(data, parent) {
+	get_avatar_and_id: function(data, without_workflow) {
 		this.title_offset_left = 15;
 
+		var html = "";
+
+		// checkbox
 		if((frappe.model.can_delete(this.doctype) || this.settings.selectable) && !this.no_delete) {
-			$('<input class="list-delete" type="checkbox">')
-				.data('name', data.name)
-				.data('data', data)
-				.css({"margin-right": "5px"})
-				.appendTo(parent)
+			html += '<input class="list-delete" type="checkbox"\
+				 style="margin-right: 5px;">';
 
 			this.title_offset_left += 13 + 5;
 		}
 
+		// avatar
 		var user_for_avatar = data.user_for_avatar || data.modified_by;
-		var $avatar = $(frappe.avatar(user_for_avatar, false, __("Modified by")+": "
-			+ frappe.user_info(user_for_avatar).fullname))
-				.appendTo(parent)
-				.css({"max-width": "100%"})
+		html += frappe.avatar(user_for_avatar, false, __("Modified by")+": "
+			+ frappe.user_info(user_for_avatar).fullname)
 
 		this.title_offset_left += 30 + 5;
 
-
+		// docstatus lock
 		if(frappe.model.is_submittable(this.doctype)) {
-			$(parent).append(repl('<span class="docstatus" style="margin-right: 3px;"> \
+			html += repl('<span class="docstatus filterable" style="margin-right: 3px;"\
+				data-filter="docstatus,=,%(docstatus)s"> \
 				<i class="%(docstatus_icon)s icon-fixed-width" \
-				title="%(docstatus_title)s"></i></span>', data));
+				title="%(docstatus_title)s"></i></span>', data);
 
 				this.title_offset_left += 15 + 4;
 		}
 
-		var title = data[this.title_field || "name"];
-		$("<a class='form-link list-id' style='margin-left: 5px'>")
-			.attr("href", "#Form/" + data.doctype + "/" + encodeURIComponent(data.name))
-			.html(title)
-			.appendTo(parent.css({"overflow":"hidden"}));
+		// title
+		var full_title = data[this.title_field || "name"], title = full_title;
+		if(full_title.length > 40) {
+			title = full_title.slice(0, 40) + "...";
+		}
+		html += repl('<a class="form-link list-id" style="margin-left: 5px; margin-right: 8px;" \
+			href="#Form/%(doctype)s/%(name)s" title="%(full_title)s">%(title)s</a>', {
+				doctype: data.doctype,
+				name: encodeURIComponent(data.name),
+				title: title,
+				full_title: full_title,
+			});
 
 		this.title_offset_left += 5;
 
-		parent.attr("title", title).tooltip();
+		if(!without_workflow && this.workflow_state_fieldname) {
+			html+= repl('<span class="label label-%(style)s filterable" data-filter="%(fieldname)s,=,%(value)s">\
+				%(value)s</span>', {
+					fieldname: this.workflow_state_fieldname,
+					value: data[this.workflow_state_fieldname],
+					style: frappe.utils.guess_style(data[this.workflow_state_fieldname])
+				});
+		}
 
-
+		return html;
 	},
 
 	render_column: function(data, parent, opts) {
@@ -355,12 +407,9 @@ frappe.views.ListView = Class.extend({
 				+ data[opts.content] + "</span>")
 				.css({"cursor":"pointer"})
 				.addClass("label")
+				.addClass("filterable")
 				.addClass(label_class)
-				.attr("data-fieldname", opts.content)
-				.click(function() {
-					me.doclistview.set_filter($(this).attr("data-fieldname"),
-						$(this).text());
-				})
+				.attr("data-filter", opts.fieldname + ",=," + opts.content)
 				.appendTo(parent.css({"overflow":"hidden"}));
 		}
 		else if(opts.type=="link" && data[opts.content]) {
@@ -410,7 +459,7 @@ frappe.views.ListView = Class.extend({
 
 		// docstatus
 		if(data.docstatus==0 || data.docstatus==null) {
-			data.docstatus_icon = 'icon-check-empty';
+			data.docstatus_icon = 'icon-edit text-danger';
 			data.docstatus_title = __('Editable');
 		} else if(data.docstatus==1) {
 			data.docstatus_icon = 'icon-lock';
