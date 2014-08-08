@@ -409,7 +409,7 @@ frappe.views.ListView = Class.extend({
 				.addClass("label")
 				.addClass("filterable")
 				.addClass(label_class)
-				.attr("data-filter", opts.fieldname + ",=," + opts.content)
+				.attr("data-filter", opts.df.fieldname + ",=," + data[opts.content])
 				.appendTo(parent.css({"overflow":"hidden"}));
 		}
 		else if(opts.type=="link" && data[opts.content]) {
