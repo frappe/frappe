@@ -24,7 +24,7 @@ frappe.confirm = function(message, ifyes, ifno) {
 	var d = new frappe.ui.Dialog({
 		title: "Confirm",
 		fields: [
-			{fieldtype:"HTML", options:"<p>" + message + "</p>"}
+			{fieldtype:"HTML", options:"<p class='frappe-confirm-message'>" + message + "</p>"}
 		],
 		primary_action: function() { d.hide(); ifyes(); }
 	});

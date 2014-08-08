@@ -264,8 +264,7 @@ frappe.ui.AppFrame = Class.extend({
 			.addClass('col-md-2')
 			.css({
 				"padding-left": "0px",
-				"padding-right": "0px",
-				"margin-right": "5px",
+				"padding-right": "7px",
 			})
 			.attr("title", __(df.label)).tooltip();
 		f.$input.attr("placeholder", __(df.label));
@@ -280,7 +279,7 @@ frappe.ui.AppFrame = Class.extend({
 
 		if(df.fieldtype=="Button") {
 			$(f.wrapper).find(".appframe-control-label").html("&nbsp;")
-			f.$input.addClass("btn-sm").css({"width": "100%"});
+			f.$input.addClass("btn-sm").css({"width": "100%", "margin-top": "-1px"});
 		}
 
 		if(df["default"])

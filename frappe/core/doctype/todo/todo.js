@@ -7,15 +7,17 @@ frappe.ui.form.on("ToDo", "refresh", function(frm) {
 		}, frappe.boot.doctype_icons[frm.doc.reference_type]);
 	}
 
-	if(frm.doc.status=="Open") {
-		frm.add_custom_button(__("Close"), function() {
-			frm.set_value("status", "Closed");
-			frm.save();
-		}, "icon-ok", "btn-success");
-	} else {
-		frm.add_custom_button(__("Re-open"), function() {
-			frm.set_value("status", "Open");
-			frm.save();
-		}, null, "btn-default");
+	if (!frm.doc.__islocal) {
+		if(frm.doc.status=="Open") {
+			frm.add_custom_button(__("Close"), function() {
+				frm.set_value("status", "Closed");
+				frm.save();
+			}, "icon-ok", "btn-success");
+		} else {
+			frm.add_custom_button(__("Re-open"), function() {
+				frm.set_value("status", "Open");
+				frm.save();
+			}, null, "btn-default");
+		}
 	}
 });

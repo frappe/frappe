@@ -17,6 +17,7 @@ frappe.ui.form.Toolbar = Class.extend({
 		if(this.frm.meta.hide_toolbar) {
 			this.appframe.set_title_right();
 			this.frm.save_disabled = true;
+			this.appframe.clear_primary_action();
 			this.appframe.iconbar.hide();
 		} else {
 			this.appframe.iconbar.clear(1)
