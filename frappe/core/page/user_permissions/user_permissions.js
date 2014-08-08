@@ -5,8 +5,16 @@ frappe.pages['user-permissions'].onload = function(wrapper) {
 		icon: "icon-shield",
 		single_column: true
 	});
-	$(wrapper).find(".layout-main").html("<div class='user-settings' style='min-height: 200px;'></div>\
-	<table class='table table-bordered' style='background-color: #f9f9f9;'>\
+
+	wrapper.appframe.set_title_left(function() { frappe.set_route(["Module", "Setup"]) });
+
+	$(wrapper).find(".layout-main").html("<div class='user-settings' \
+		style='min-height: 200px;'></div>\
+	<p style='margin-top: 15px;'>\
+		<a class='view-role-permissions'><i class='icon-chevron-right'></i> Edit Role Permissions</a>\
+	</p>\
+	<table class='table table-bordered' \
+		style='background-color: #f9f9f9; margin-top: 15px;'>\
 	<tr><td>\
 		<h4><i class='icon-question-sign'></i> "+__("Quick Help for User Permissions")+":</h4>\
 		<ol>\
@@ -45,10 +53,12 @@ frappe.UserPermissions = Class.extend({
 	},
 	make: function() {
 		var me = this;
-		this.wrapper.appframe.add_primary_action("Role Permissions", function() {
-			frappe.route_options = { doctype: me.get_doctype() || "" };
-			frappe.set_route("permission-manager");
-		}, "icon-lock");
+
+		$(this.wrapper).find(".view-role-permissions").on("click", function() {
+				frappe.route_options = { doctype: me.get_doctype() || "" };
+				frappe.set_route("permission-manager");
+			})
+
 		return frappe.call({
 			module:"frappe.core",
 			page:"user_permissions",

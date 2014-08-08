@@ -35,6 +35,12 @@ frappe.ui.form.AssignTo = Class.extend({
 		var me = this;
 		this.frm.get_docinfo().assignments = d;
 		this.$list.empty();
+
+		if(me.primary_action) {
+			me.primary_action.remove();
+			me.primary_action = null;
+		}
+
 		if(this.dialog) {
 			this.dialog.hide();
 		}
@@ -57,23 +63,17 @@ frappe.ui.form.AssignTo = Class.extend({
 					</div>\
 					</div>', info))
 					.appendTo(this.$list);
+
+				if(d[i].owner===user) {
+					me.primary_action = this.frm.appframe.add_primary_action(__("Assignment Complete"), function() {
+						me.remove(user);
+					}, "icon-ok", "btn-success")
+				}
 			}
 
 			// set remove
 			this.$list.find('a.close').click(function() {
-				frappe.call({
-					method:'frappe.widgets.form.assign_to.remove',
-					args: {
-						doctype: me.frm.doctype,
-						name: me.frm.docname,
-						assign_to: $(this).attr('data-owner')
-					},
-					callback:function(r,rt) {
-						me.render(r.message);
-						me.frm.toolbar.show_infobar();
-						me.frm.comments.refresh();
-					}
-				});
+				me.remove($(this).attr('data-owner'));
 				return false;
 			});
 		} else {
@@ -131,6 +131,22 @@ frappe.ui.form.AssignTo = Class.extend({
 		}
 
 		me.dialog.show();
+	},
+	remove: function(owner) {
+		var me = this;
+		frappe.call({
+			method:'frappe.widgets.form.assign_to.remove',
+			args: {
+				doctype: me.frm.doctype,
+				name: me.frm.docname,
+				assign_to: owner
+			},
+			callback:function(r,rt) {
+				me.render(r.message);
+				me.frm.toolbar.show_infobar();
+				me.frm.comments.refresh();
+			}
+		});
 	}
 });
 

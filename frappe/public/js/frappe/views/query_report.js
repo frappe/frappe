@@ -60,7 +60,7 @@ frappe.views.QueryReport = Class.extend({
 		this.appframe.set_title_right(__('Refresh'), function() { me.refresh(); });
 
 		// Edit
-		var edit_btn = this.appframe.add_primary_action(__('Edit'), function() {
+		var edit_btn = this.appframe.add_button(__('Edit'), function() {
 			if(!frappe.user.is_report_manager()) {
 				msgprint(__("You are not allowed to create / edit reports"));
 				return false;
@@ -68,11 +68,11 @@ frappe.views.QueryReport = Class.extend({
 			frappe.set_route("Form", "Report", me.report_name);
 		}, "icon-edit");
 
-		this.appframe.add_primary_action(__('Export'), function() { me.export_report(); },
+		this.appframe.add_button(__('Export'), function() { me.export_report(); },
 			"icon-download");
 
 		if(frappe.model.can_set_user_permissions("Report")) {
-			this.appframe.add_primary_action(__("User Permissions"), function() {
+			this.appframe.add_button(__("User Permissions"), function() {
 				frappe.route_options = {
 					doctype: "Report",
 					name: me.report_name
@@ -139,7 +139,7 @@ frappe.views.QueryReport = Class.extend({
 		}
 
 		if(html_format) {
-			this.$print_action = this.appframe.add_primary_action(__('Print'), function() {
+			this.$print_action = this.appframe.add_button(__('Print'), function() {
 				if(!me.data) {
 					msgprint(__("Run the report first"));
 					return;
@@ -197,6 +197,7 @@ frappe.views.QueryReport = Class.extend({
 					} else {
 						me.trigger_refresh();
 					}
+					f.set_mandatory && f.set_mandatory(f.$input.val());
 				});
 			}
 		});
@@ -284,12 +285,14 @@ frappe.views.QueryReport = Class.extend({
 			if(v) filters[f.df.fieldname] = v;
 		})
 		if(raise && mandatory_fields.length) {
-			frappe.throw(__("Mandatory filters required:\n") + __(mandatory_fields.join("\n")));
+			this.wrapper.find(".waiting-area").empty().toggle(false);
+			this.wrapper.find(".no-report-area").html(__("Please set filters")).toggle(true);
+			throw "Filters required";
 		}
-		return filters
+		return filters;
 	},
 	make_results: function(result, columns) {
-		this.wrapper.find(".waiting-area").empty().toggle(false);
+		this.wrapper.find(".waiting-area, .no-report-area").empty().toggle(false);
 		this.wrapper.find(".results").toggle(true);
 		this.make_columns(columns);
 		this.make_data(result, columns);

@@ -3,10 +3,9 @@
 
 frappe.ui.form.on("Event", "refresh", function(frm) {
 	if(frm.doc.ref_type && frm.doc.ref_name) {
-		frm.set_intro('Reference: <a href="#Form/'+frm.doc.ref_type+'/'+frm.doc.ref_name+'">'
-			+ frm.doc.ref_name + '</a>');
-	} else {
-		frm.set_intro();
+		frm.add_custom_button(__(frm.doc.ref_name), function() {
+			frappe.set_route("Form", frm.doc.ref_type, frm.doc.ref_name);
+		}, frappe.boot.doctype_icons[frm.doc.ref_type]);
 	}
 });
 

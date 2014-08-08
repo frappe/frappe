@@ -58,11 +58,11 @@ frappe.ui.form.on("Customize Form", "refresh", function(frm) {
 
 		frm.add_custom_button('Refresh Form', function() {
 			frm.script_manager.trigger("doc_type");
-		}, "icon-refresh");
+		}, "icon-refresh", "btn-default");
 
 		frm.add_custom_button('Reset to defaults', function() {
 			frappe.customize_form.confirm(__('Remove all customizations?'), frm);
-		}, "icon-eraser");
+		}, "icon-eraser", "btn-default");
 	}
 
 	// if(!frm.doc.doc_type) {

@@ -47,12 +47,12 @@ cur_frm.cscript.refresh = function(doc) {
 	cur_frm.toggle_display(['sb1', 'sb3'], false);
 
 	if(!doc.__islocal){
-		cur_frm.add_custom_button("Set Properties", function() {
+		cur_frm.add_custom_button("Set User Permissions", function() {
 			frappe.route_options = {
 				"user": doc.name
 			};
 			frappe.set_route("user-permissions");
-		})
+		}, null, "btn-default")
 
 		if(has_common(user_roles, ["Administrator", "System Manager"])) {
 			cur_frm.toggle_display(['sb1', 'sb3'], true);

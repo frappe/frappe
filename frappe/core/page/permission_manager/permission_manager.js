@@ -8,6 +8,8 @@ frappe.pages['permission-manager'].onload = function(wrapper) {
 	$(wrapper).find(".layout-main").html("<div class='perm-engine' style='min-height: 200px;'></div>"
 		+ permissions_help);
 	wrapper.permission_engine = new frappe.PermissionEngine(wrapper);
+	wrapper.appframe.set_title_left(function() { frappe.set_route(["Module", "Setup"]) });
+
 }
 
 frappe.pages['permission-manager'].refresh = function(wrapper) {
@@ -86,40 +88,37 @@ frappe.PermissionEngine = Class.extend({
 		}
 		return false;
 	},
-	make_reset_button: function() {
+	reset_std_permissions: function(data) {
 		var me = this;
-		me.reset_button = me.wrapper.appframe.add_primary_action("Reset Permissions", function() {
-			me.get_standard_permissions(function(data) {
-				var d = frappe.confirm(__("Reset Permissions for {0}?", [me.get_doctype()]), function() {
-					return frappe.call({
-						module:"frappe.core",
-						page:"permission_manager",
-						method:"reset",
-						args: {
-							doctype:me.get_doctype(),
-						},
-						callback: function() { me.refresh(); }
-					});
-				});
-
-				// show standard permissions
-				var $d = $(d.wrapper).find(".msgprint").append("<hr><h4>Standard Permissions</h4>");
-				var $wrapper = $("<p></p>").appendTo($d);
-				$.each(data.message, function(i, d) {
-					d.rights = [];
-					$.each(me.rights, function(i, r) {
-						if(d[r]===1) {
-							d.rights.push(__(toTitle(r.replace("_", " "))));
-						}
-					});
-					d.rights = d.rights.join(", ");
-					$wrapper.append(repl('<div class="row">\
-						<div class="col-xs-4"><b>%(role)s</b>, Level %(permlevel)s</div>\
-						<div class="col-xs-8">%(rights)s</div>\
-					</div><br>', d));
-				});
+		var d = frappe.confirm(__("Reset Permissions for {0}?", [me.get_doctype()]), function() {
+			return frappe.call({
+				module:"frappe.core",
+				page:"permission_manager",
+				method:"reset",
+				args: {
+					doctype:me.get_doctype(),
+				},
+				callback: function() { me.refresh(); }
 			});
-		}).prop("disabled", true);
+		});
+
+		// show standard permissions
+		var $d = $(d.wrapper).find(".frappe-confirm-message").append("<hr><h4>Standard Permissions</h4>");
+		var $wrapper = $("<p></p>").appendTo($d);
+		$.each(data.message, function(i, d) {
+			d.rights = [];
+			$.each(me.rights, function(i, r) {
+				if(d[r]===1) {
+					d.rights.push(__(toTitle(r.replace("_", " "))));
+				}
+			});
+			d.rights = d.rights.join(", ");
+			$wrapper.append(repl('<div class="row">\
+				<div class="col-xs-5"><b>%(role)s</b>, Level %(permlevel)s</div>\
+				<div class="col-xs-7">%(rights)s</div>\
+			</div><br>', d));
+		});
+
 	},
 	get_doctype: function() {
 		var doctype = this.doctype_select.val();
@@ -152,7 +151,6 @@ frappe.PermissionEngine = Class.extend({
 				me.render(r.message);
 			}
 		});
-		me.reset_button.prop("disabled", me.get_doctype() ? false : true);
 	},
 	render: function(perm_list) {
 		this.body.empty();
@@ -164,6 +162,7 @@ frappe.PermissionEngine = Class.extend({
 			this.show_permission_table(this.perm_list);
 		}
 		this.show_add_rule();
+		this.make_reset_button();
 	},
 	show_permission_table: function(perm_list) {
 		var me = this;
@@ -326,8 +325,9 @@ frappe.PermissionEngine = Class.extend({
 	},
 	show_add_rule: function() {
 		var me = this;
-		$("<button class='btn btn-default btn-info'>"+__("Add A New Rule")+"</button>")
-			.appendTo($("<p>").appendTo(this.body))
+		$("<button class='btn btn-default btn-primary'><i class='icon-plus'></i> "
+			+__("Add A New Rule")+"</button>")
+			.appendTo($("<p class='permission-toolbar'>").appendTo(this.body))
 			.click(function() {
 				var d = new frappe.ui.Dialog({
 					title: __("Add New Permission Rule"),
@@ -374,6 +374,19 @@ frappe.PermissionEngine = Class.extend({
 				d.show();
 			});
 	},
+
+	make_reset_button: function() {
+		var me = this;
+		$('<button class="btn btn-default" style="margin-left: 10px;">\
+			<i class="icon-refresh"></i> Restore Original Permissions</button>')
+			.appendTo(this.body.find(".permission-toolbar"))
+			.on("click", function() {
+				me.get_standard_permissions(function(data) {
+					me.reset_std_permissions(data);
+				});
+			})
+	},
+
 	get_perm: function(name) {
 		return $.map(this.perm_list, function(d) { if(d.name==name) return d; })[0];
 	},
@@ -390,7 +403,7 @@ frappe.PermissionEngine = Class.extend({
 	}
 })
 
-var permissions_help = ['<table class="table table-bordered" style="background-color: #f9f9f9;">',
+var permissions_help = ['<table class="table table-bordered" style="background-color: #f9f9f9; margin-top: 30px;">',
 	'<tr><td>',
 		'<h4><i class="icon-question-sign"></i> ',
 			__('Quick Help for Setting Permissions'),
