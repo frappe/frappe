@@ -519,7 +519,7 @@ frappe.ui.form.ControlButton = frappe.ui.form.ControlData.extend({
 		this.has_input = true;
 	},
 	onclick: function() {
-		if(this.frm && this.frm.doc && this.frm.cscript) {
+		if(this.frm && this.frm.doc) {
 			if(this.frm.script_manager.get_handlers(this.df.fieldname, this.doctype, this.docname)) {
 				this.frm.script_manager.trigger(this.df.fieldname, this.doctype, this.docname);
 			} else {
