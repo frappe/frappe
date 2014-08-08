@@ -547,3 +547,6 @@ class Database:
 			self._conn.close()
 			self._cursor = None
 			self._conn = None
+
+	def escape(self, s):
+		return MySQLdb.escape_string(s)

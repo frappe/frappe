@@ -180,15 +180,20 @@ class DatabaseQuery(object):
 					opts = f[3]
 					if not isinstance(opts, (list, tuple)):
 						opts = f[3].split(",")
-					opts = ["'" + t.strip().replace("'", "\\'") + "'" for t in opts]
-					f[3] = "(" + ', '.join(opts) + ")"
-					conditions.append('ifnull(' + tname + '.' + f[1] + ", '') " + f[2] + " " + f[3])
+					opts = [frappe.db.escape(t.strip()) for t in opts]
+					f[3] = '("{0}")'.format('", "'.join(opts))
+					conditions.append('ifnull({tname}.{fname}, "") {operator} {value}'.format(
+						tname=tname, fname=f[1], operator=f[2], value=f[3]))
 				else:
 					df = frappe.get_meta(f[0]).get("fields", {"fieldname": f[1]})
 
 					if f[2] == "like" or (isinstance(f[3], basestring) and
 						(not df or df[0].fieldtype not in ["Float", "Int", "Currency", "Percent"])):
-							value, default_val = ("'" + f[3].replace("'", "\\'") + "'"), '""'
+							if f[2] == "like":
+								# because "like" uses backslash (\) for escaping
+								f[3] = f[3].replace("\\", "\\\\")
+
+							value, default_val = '"{0}"'.format(frappe.db.escape(f[3])), '""'
 					else:
 						value, default_val = flt(f[3]), 0
 
