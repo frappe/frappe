@@ -24,7 +24,16 @@ def after_install():
 			'parenttype':'User', 'parentfield':'user_roles'},
 		{'doctype':'UserRole', 'parent': 'Guest', 'role': 'Guest',
 			'parenttype':'User', 'parentfield':'user_roles'},
-		{'doctype': "Role", "role_name": "Report Manager"}
+		{'doctype': "Role", "role_name": "Report Manager"},
+		{'doctype': "Workflow State", "workflow_state_name": "Pending",
+			"icon": "question-sign", "style": ""},
+		{'doctype': "Workflow State", "workflow_state_name": "Approved",
+			"icon": "ok-sign", "style": "Success"},
+		{'doctype': "Workflow State", "workflow_state_name": "Rejected",
+			"icon": "remove", "style": "Danger"},
+		{'doctype': "Workflow Action", "workflow_action_name": "Approve"},
+		{'doctype': "Workflow Action", "workflow_action_name": "Reject"},
+		{'doctype': "Workflow Action", "workflow_action_name": "Review"}
 	]
 
 	for d in install_docs:

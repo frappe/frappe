@@ -147,6 +147,11 @@ h2.titlebar-left-item {
 	padding: 9px 0px;
 }
 
+.iconbar-4 {
+	border-left: 1px solid #ddd;
+	padding-left: 4px;
+}
+
 .iconbar ul {
 	list-style: none;
 	margin: 0 0 0 0;

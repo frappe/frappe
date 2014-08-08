@@ -19,12 +19,21 @@ frappe.template.compile = function(str) {
 	          .replace(/((^|%})[^\t]*)'/g, "$1\r")
 	          .replace(/\t=(.*?)%}/g, "',$1,'")
 	          .split("\t").join("');")
-	          .split("%}").join("p.push('")
+	          .split("%}").join("\np.push('")
 	          .split("\r").join("\\'")
 	      + "');}return p.join('');";
 
   		frappe.template.debug[str] = fn_str;
-		frappe.template.compiled[str] = new Function("obj", fn_str);
+		try {
+			frappe.template.compiled[str] = new Function("obj", fn_str);
+		} catch (e) {
+			console.log("Error in Template:");
+			console.log(fn_str);
+			if(e.lineNumber) {
+				console.log("Error in Line "+e.lineNumber+", Col "+e.columnNumber+":");
+				console.log(fn_str.split("\n")[e.lineNumber - 1]);
+			}
+		}
     }
 
 	return frappe.template.compiled[str];

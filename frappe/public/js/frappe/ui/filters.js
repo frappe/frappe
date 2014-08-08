@@ -11,11 +11,8 @@ frappe.ui.FilterList = Class.extend({
 	set_events: function() {
 		var me = this;
 		// show filters
-		this.$w.find('.add-filter-btn').bind('click', function() {
+		this.$w.find('.new-filter').bind('click', function() {
 			me.add_filter();
-		});
-		this.$w.find('.search-btn').bind('click', function() {
-			me.listobj.run();
 		});
 	},
 
@@ -28,16 +25,13 @@ frappe.ui.FilterList = Class.extend({
 	},
 
 	clear_filters: function() {
+		$.each(this.filters, function(i, f) { f.remove(true); });
 		this.filters = [];
-		this.$w.find('.filter_area').empty();
 	},
 
 	add_filter: function(tablename, fieldname, condition, value) {
 		this.push_new_filter(tablename, fieldname, condition, value);
-		// list must be expanded
-		if(fieldname) {
-			this.$w.find('.show_filters').toggle(true);
-		}
+		this.$w.find('.show_filters').toggle(true);
 	},
 
 	push_new_filter: function(tablename, fieldname, condition, value) {
@@ -54,9 +48,11 @@ frappe.ui.FilterList = Class.extend({
 		// get filter values as dict
 		var values = [];
 		$.each(this.filters, function(i, filter) {
-			if(filter.field)
+			if(filter.field) {
+				filter.freeze();
 				values.push(filter.get_value());
-		})
+			}
+		});
 		return values;
 	},
 
@@ -87,26 +83,27 @@ frappe.ui.Filter = Class.extend({
 		this.set_events();
 	},
 	make: function() {
-		this.flist.$w.find('.filter_area').append('<div class="list_filter row">\
+		this.$w = $('<div class="well"><div class="list_filter row">\
 		<div class="fieldname_select_area col-sm-4 form-group"></div>\
-		<div class="col-sm-3 form-group">\
+		<div class="col-sm-2 form-group">\
 			<select class="condition form-control">\
 				<option value="=">' + __("Equals") + '</option>\
 				<option value="like">' + __("Like") + '</option>\
-				<option value=">=">' + __("Greater or equals") + '</option>\
-				<option value="<=">' + __("Less or equals") + '</option>\
-				<option value=">">' + __("Greater than") + '</option>\
-				<option value="<">' + __("Less than") + '</option>\
+				<option value=">=">' + __(">=") + '</option>\
+				<option value="<=">' + __("<=") + '</option>\
+				<option value=">">' + __(">") + '</option>\
+				<option value="<">' + __("<") + '</option>\
 				<option value="in">' + __("In") + '</option>\
 				<option value="!=">' + __("Not equals") + '</option>\
 			</select>\
 		</div>\
-		<div class="filter_field col-sm-4 col-xs-11"></div>\
-		<div class="col-sm-1 col-xs-1" style="margin-top: 8px;">\
-			<a class="close">&times;</a>\
+		<div class="filter_field col-sm-4 col-xs-9"></div>\
+		<div class="col-sm-2 col-xs-3">\
+			<a class="set-filter-and-run btn btn-primary pull-left">\
+				<i class="icon-ok"></i></a>\
+			<a class="close remove-filter" style="margin-top: 5px;">&times;</a>\
 		</div>\
-		</div>');
-		this.$w = this.flist.$w.find('.list_filter:last-child');
+		</div></div>').appendTo(this.flist.$w.find('.filter_area'));
 	},
 	make_select: function() {
 		var me = this;
@@ -125,22 +122,12 @@ frappe.ui.Filter = Class.extend({
 	set_events: function() {
 		var me = this;
 
-		this.$w.find('a.close').bind('click', function() {
-			me.$w.css('display','none');
-			var value = me.field.get_parsed_value();
-			var fieldname = me.field.df.fieldname;
-			me.field = null;
+		this.$w.find("a.close").on("click", function() {
+			me.remove();
+		});
 
-			// hide filter section
-			if(!me.flist.get_filters().length) {
-				me.flist.$w.find('.set_filters').toggle(true);
-				me.flist.$w.find('.show_filters').toggle(false);
-			}
-
-			me.flist.update_filters();
-			me.flist.listobj.dirty = true;
+		this.$w.find(".set-filter-and-run").on("click", function() {
 			me.flist.listobj.run();
-			return false;
 		});
 
 		// add help for "in" codition
@@ -167,6 +154,18 @@ frappe.ui.Filter = Class.extend({
 			this.set_values(me.tablename, me.fieldname, me.condition, me.value);
 		} else {
 			me.set_field(me.doctype, 'name');
+		}
+	},
+
+	remove: function(dont_run) {
+		this.$w.remove();
+		this.$btn_group && this.$btn_group.remove();
+		this.field = null;
+
+		if(!dont_run) {
+			this.flist.update_filters();
+			this.flist.listobj.dirty = true;
+			this.flist.listobj.run();
 		}
 	},
 
@@ -252,13 +251,23 @@ frappe.ui.Filter = Class.extend({
 		}
 
 		// scrub
-		if(df.fieldtype=='Check') {
+		if(df.fieldname=="docstatus") {
+			df.fieldtype="Select",
+			df.options=[
+				{value:0, label:"Draft"},
+				{value:1, label:"Submitted"},
+				{value:2, label:"Cancelled"},
+			]
+		} else if(df.fieldtype=='Check') {
 			df.fieldtype='Select';
 			df.options='No\nYes';
 		} else if(['Text','Small Text','Text Editor','Code','Tag','Comments','Dynamic Link'].indexOf(df.fieldtype)!=-1) {
 			df.fieldtype = 'Data';
 		} else if(df.fieldtype=='Link' && this.$w.find('.condition').val()!="=") {
 			df.fieldtype = 'Data';
+		}
+		if(df.fieldtype==="Data" && (df.options || "").toLowerCase()==="email") {
+			df.options = null;
 		}
 	},
 
@@ -274,23 +283,84 @@ frappe.ui.Filter = Class.extend({
 	},
 
 	get_value: function() {
-		var me = this;
-		var val = me.field.get_parsed_value();
-		var cond = me.$w.find('.condition').val();
+		return [this.fieldselect.selected_doctype,
+			this.field.df.fieldname, this.get_condition(), this.get_selected_value()];
+	},
 
-		if(me.field.df.original_type == 'Check') {
+	get_selected_value: function() {
+		var val = this.field.get_parsed_value();
+
+		if(this.field.df.original_type == 'Check') {
 			val = (val=='Yes' ? 1 :0);
 		}
 
-		if(cond=='like') {
+		if(this.get_condition()==='like') {
 			// add % only if not there at the end
 			if ((val.length === 0) || (val.lastIndexOf("%") !== (val.length - 1))) {
 				val = (val || "") + '%';
 			}
 		} else if(val === '%') val = null;
 
-		return [me.fieldselect.selected_doctype,
-			me.field.df.fieldname, me.$w.find('.condition').val(), val];
+		return val;
+	},
+
+	get_condition: function() {
+		return this.$w.find('.condition').val();
+	},
+
+	freeze: function() {
+		if(this.$btn_group) {
+			// already made, just hide the condition setter
+			this.set_filter_button_text();
+			this.$w.toggle(false);
+			return;
+		}
+
+		var me = this;
+
+		// add a button for new filter if missing
+		this.$btn_group = $('<div class="btn-group">\
+			<button class="btn btn-default btn-sm toggle-filter"\
+				title="'+__("Edit Filter")+'">\
+				<i class="icon-filter"></i> %(label)s %(condition)s "%(value)s"\
+			</button>\
+			<button class="btn btn-default btn-sm remove-filter"\
+				title="'+__("Remove Filter")+'">\
+				<i class="icon-remove text-muted"></i>\
+			</button></div>')
+			.insertBefore(this.flist.$w.find(".set-filters .new-filter"));
+
+		this.set_filter_button_text();
+
+		this.$btn_group.find(".remove-filter").on("click", function() {
+			me.remove();
+		});
+
+		this.$btn_group.find(".toggle-filter").on("click", function() {
+			me.$w.toggle();
+		})
+		this.$w.toggle(false);
+	},
+
+	set_filter_button_text: function() {
+		var value = this.get_selected_value();
+
+		if(this.field.df.fieldname==="docstatus") {
+			value = {0:"Draft", 1:"Submitted", 2:"Cancelled"}[value] || value;
+		}
+
+		if(this.field.df.original_type==="Check") {
+			value = {0:"No", 1:"Yes"}[cint(value)];
+		} else if (in_list(["Date", "Datetime"], this.field.df.fieldtype)) {
+			value = frappe.datetime.str_to_user(value);
+		}
+
+		this.$btn_group.find(".toggle-filter")
+			.html(repl('<i class="icon-filter"></i> %(label)s %(condition)s "%(value)s"', {
+				label: __(this.field.df.label),
+				condition: this.get_condition(),
+				value: value,
+			}));
 	}
 
 });

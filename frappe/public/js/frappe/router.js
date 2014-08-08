@@ -54,6 +54,14 @@ frappe.get_route = function(route) {
 	return frappe.get_route_str(route).split('/')
 }
 
+frappe.get_prev_route = function() {
+	if(frappe.route_history && frappe.route_history.length > 1) {
+		return frappe.route_history[frappe.route_history.length - 2];
+	} else {
+		return [];
+	}
+}
+
 frappe.get_route_str = function(route) {
 	if(!route)
 		route = window.location.hash;

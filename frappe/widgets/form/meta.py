@@ -8,6 +8,7 @@ import frappe, os
 from frappe.model.meta import Meta
 from frappe.modules import scrub, get_module_path, load_doctype_module
 from frappe.model.workflow import get_workflow_name
+from frappe.utils import get_html_format
 
 ######
 
@@ -35,12 +36,13 @@ class FormMeta(Meta):
 			self.add_code()
 			self.load_print_formats()
 			self.load_workflows()
-			self.load_form_grid_templates()
+			self.load_templates()
 
 	def as_dict(self, no_nulls=False):
 		d = super(FormMeta, self).as_dict(no_nulls=no_nulls)
-		for k in ("__js", "__css", "__list_js", "__calendar_js", "__map_js", "__form_grid_templates",
-			"__linked_with", "__messages", "__print_formats", "__workflow_docs"):
+		for k in ("__js", "__css", "__list_js", "__calendar_js", "__map_js",
+			"__linked_with", "__messages", "__print_formats", "__workflow_docs",
+			"__form_grid_templates", "__listview_template"):
 			d[k] = self.get(k)
 
 		for i, df in enumerate(d.get("fields")):
@@ -59,6 +61,10 @@ class FormMeta(Meta):
 		self._add_code(_get_path(self.name + '_list.js'), '__list_js')
 		self._add_code(_get_path(self.name + '_calendar.js'), '__calendar_js')
 		self._add_code(_get_path(self.name + '_map.js'), '__map_js')
+
+		listview_template = _get_path(self.name + '_list.html')
+		if os.path.exists(listview_template):
+			self.set("__listview_template", get_html_format(listview_template))
 
 		self.add_code_via_hook("doctype_js", "__js")
 		self.add_custom_script()
@@ -154,14 +160,13 @@ class FormMeta(Meta):
 		self.set("__workflow_docs", workflow_docs)
 
 
-	def load_form_grid_templates(self):
+	def load_templates(self):
 		module = load_doctype_module(self.name)
 		app = module.__name__.split(".")[0]
 		templates = {}
 		if hasattr(module, "form_grid_templates"):
 			for key, path in module.form_grid_templates.iteritems():
-				with open(frappe.get_app_path(app, path), "r") as f:
-					templates[key] = f.read()
+				templates[key] = get_html_format(frappe.get_app_path(app, path))
 
 			self.set("__form_grid_templates", templates)
 

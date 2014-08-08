@@ -64,34 +64,17 @@ frappe.ui.Listing = Class.extend({
 		$.extend(this, this.opts);
 
 		$(this.parent).html(repl('\
-			<div class="show-docstatus hide" style="min-height: 40px;">\
-			    <div class="pull-right" style="margin-left: 15px;"><div class="checkbox"><label>\
-					<input type="checkbox" data-docstatus="2">\
-						<span class="text-muted small">'+__('Cancelled')+'</span>\
-			    </label></div></div>\
-			    <div class="pull-right" style="margin-left: 15px;"><div class="checkbox"><label>\
-					<input type="checkbox" data-docstatus="1" checked="checked">\
-						<span class="text-muted small">'+__('Submitted')+'</span>\
-			    </label></div></div>\
-			    <div class="pull-right" style="margin-left: 15px;"><div class="checkbox"><label>\
-					<input type="checkbox" data-docstatus="0" checked="checked">\
-						<span class="text-muted small">'+__('Drafts')+'</span>\
-			    </label></div></div>\
-			</div>\
 			<div class="frappe-list">\
 				<h3 class="title hide">%(title)s</h3>\
 				\
 				<div class="list-filters" style="display: none;">\
-					<div class="show_filters" style="display: none;">\
-						<div class="filter_area"></div>\
-						<div>\
-							<button class="btn btn-info search-btn">\
-								<i class="icon-refresh icon-white"></i> \
-								<span class="hidden-phone">Search</span></button>\
-							<button class="btn btn-default add-filter-btn">\
-								<i class="icon-plus"></i> \
-								<span class="hidden-phone">Add Filter</span></button>\
+					<div class="show_filters">\
+						<div class="set-filters">\
+							<button class="btn btn-default btn-sm new-filter text-muted" \
+								style="margin-bottom: 10px">\
+								<i class="icon-plus"></i> '+__("Add Filter")+'</button>\
 						</div>\
+						<div class="filter_area"></div>\
 					</div>\
 				</div>\
 				\
@@ -134,7 +117,6 @@ frappe.ui.Listing = Class.extend({
 		if(this.show_filters) {
 			this.make_filters();
 		}
-		this.setup_docstatus_filter();
 	},
 	add_button: function(label, click, icon) {
 		if(this.appframe) {
@@ -197,8 +179,8 @@ frappe.ui.Listing = Class.extend({
 		// hide-filter
 		if(me.show_filters) {
 			this.add_button(__('Filter'), function() {
-				me.filter_list.show_filters();
-			}, 'icon-search').addClass('btn-filter');
+				me.filter_list.add_filter();
+			}, 'icon-filter').addClass('btn-filter');
 		}
 
 		if(me.no_toolbar || me.hide_toolbar) {
@@ -227,17 +209,9 @@ frappe.ui.Listing = Class.extend({
 			doctype: this.doctype,
 			filter_fields: this.filter_fields
 		});
-	},
-
-	setup_docstatus_filter: function() {
-		var me = this;
-		this.can_submit = frappe.model.is_submittable(me.doctype);
-		if(this.can_submit) {
-			$(this.parent).find('.show-docstatus').removeClass('hide');
-			$(this.parent).find('.show-docstatus input').click(function() {
-				me.run();
-			})
-		}
+		if(frappe.model.is_submittable(this.doctype)) {
+			this.filter_list.add_filter(this.doctype, "docstatus", "!=", 2);
+		};
 	},
 
 	clear: function() {
@@ -289,11 +263,6 @@ frappe.ui.Listing = Class.extend({
 				limit_page_length: this.page_length
 			}
 		}
-
-		args.docstatus = this.can_submit ? $.map($(this.parent).find('.show-docstatus :checked'),
-			function(inp) {
-				return $(inp).attr('data-docstatus');
-			}) : []
 
 		// append user-defined arguments
 		if(this.args)
@@ -351,12 +320,13 @@ frappe.ui.Listing = Class.extend({
 	render_list: function(values) {
 		var m = Math.min(values.length, this.page_length);
 		this.data = values;
-		if(this.filter_list)
+		if(this.filter_list) {
 			this.filter_values = this.filter_list.get_filters();
+		}
 
 		// render the rows
 		for(var i=0; i < m; i++) {
-			this.render_row(this.add_row(), values[i], this, i);
+			this.render_row(this.add_row(values[i]), values[i], this, i);
 		}
 	},
 	update_paging: function(values) {
@@ -365,8 +335,11 @@ frappe.ui.Listing = Class.extend({
 			this.start += this.page_length;
 		}
 	},
-	add_row: function() {
-		return $('<div class="list-row">').appendTo(this.$w.find('.result-list')).get(0);
+	add_row: function(row) {
+		return $('<div class="list-row">')
+			.data("data", row)
+			.appendTo(this.$w.find('.result-list'))
+			.get(0);
 	},
 	refresh: function() {
 		this.run();

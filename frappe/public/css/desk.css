@@ -1,3 +1,5 @@
+@import url(http://fonts.googleapis.com/css?family=Noto+Sans:400,700);
+
 html {
 	min-height: 100%;
 	position: relative;
@@ -38,7 +40,6 @@ a.form-link {
 }
 
 .text-ellipsis {
-	display: inline-block;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -72,6 +73,11 @@ div#freeze {
 	padding-bottom: 15px;
 	margin-bottom: 15px;
 	border-bottom: 1px solid #c7c7c7;
+}
+
+.set-filters .btn-group {
+	margin-bottom: 10px;
+	margin-right: 10px;
 }
 
 .list-row {
@@ -146,6 +152,10 @@ div#freeze {
 
 /* list */
 
+.progress {
+	height: 10px;
+}
+
 .doclist-row {
 	position: relative;
 	padding-top: 5px;
@@ -153,14 +163,21 @@ div#freeze {
 	border-bottom: "1px solid #eee";
 }
 
-.doclist-row .col {
-	padding-left: 7px;
-	padding-right: 7px;
+.doclist-row .progress {
+	margin-top: 12px;
+}
+
+.doclist-row .filterable {
+	cursor: pointer;
+}
+
+.doclist-row .label {
+	margin-right: 8px;
 }
 
 .list-timestamp {
 	position: absolute;
-	right: 5px;
+	right: 15px;
 	bottom: 2px;
 	font-size: 70%;
 	color: #888;
@@ -277,13 +294,15 @@ ul.linked-with-list li {
 }
 
 .grid-heading-row {
-	padding: 8px;
+	padding: 8px 15px;
 	border-bottom: 1px solid #dddddd;
+	font-weight: bold;
 }
 
 .rows .grid-row .divider {
 	padding-bottom: 5px;
 	margin-bottom: 5px;
+	margin-top: 8px;
 	border-bottom: 1px solid #dddddd;
 }
 
@@ -293,6 +312,14 @@ ul.linked-with-list li {
 
 .grid-row .panel {
 	background-color: #fffff8;
+}
+
+.grid-row td {
+	vertical-align: top;
+}
+
+.grid-row p {
+	margin-bottom: 5px;
 }
 
 /* form footer */

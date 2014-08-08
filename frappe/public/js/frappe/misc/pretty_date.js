@@ -38,7 +38,7 @@ function prettyDate(time){
 
 var comment_when = function(datetime) {
 	return '<span class="frappe-timestamp" data-timestamp="'+datetime
-		+'" title="'+datetime+'">'
+		+'" title="'+frappe.datetime.str_to_user(datetime)+'">'
 		+ prettyDate(datetime) + '</span>';
 };
 
