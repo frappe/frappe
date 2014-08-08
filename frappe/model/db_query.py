@@ -50,7 +50,10 @@ class DatabaseQuery(object):
 		args = self.prepare_args()
 		args.limit = self.add_limit()
 
-		query = """select %(fields)s from %(tables)s where %(conditions)s
+		if args.conditions:
+			args.conditions = "where " + args.conditions
+
+		query = """select %(fields)s from %(tables)s %(conditions)s
 			%(group_by)s %(order_by)s %(limit)s""" % args
 
 		return frappe.db.sql(query, as_dict=not self.as_list, debug=self.debug)
@@ -141,7 +144,6 @@ class DatabaseQuery(object):
 	def build_conditions(self):
 		self.conditions = []
 		self.or_conditions = []
-		self.add_docstatus_conditions()
 		self.build_filter_conditions(self.filters, self.conditions)
 		self.build_filter_conditions(self.or_filters, self.or_conditions)
 
@@ -154,12 +156,6 @@ class DatabaseQuery(object):
 			match_conditions = self.build_match_conditions()
 			if match_conditions:
 				self.conditions.append("(" + match_conditions + ")")
-
-	def add_docstatus_conditions(self):
-		if self.docstatus:
-			self.conditions.append(self.tables[0] + '.docstatus in (' + ','.join(self.docstatus) + ')')
-		else:
-			self.conditions.append(self.tables[0] + '.docstatus < 2')
 
 	def build_filter_conditions(self, filters, conditions):
 		"""build conditions from user filters"""
