@@ -121,6 +121,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		var me = this;
 		this.$page.on("click", ".filterable", function(e) {
 			var filters = $(this).attr("data-filter").split("|");
+			var added = false;
 			$.each(filters, function(i, f) {
 				f = f.split(",");
 				if(f[2]==="Today") {
@@ -128,9 +129,10 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 				} else if(f[2]=="User") {
 					f[2] = user;
 				}
-				me.filter_list.add_filter(me.doctype, f[0], f[1], f.slice(2).join(","));
+				added = added || me.filter_list.add_filter(me.doctype,
+					f[0], f[1], f.slice(2).join(","));
 			});
-			me.run();
+			added && me.run();
 		})
 	},
 
