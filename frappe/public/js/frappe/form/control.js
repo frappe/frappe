@@ -16,7 +16,7 @@ function make_field(docfield, doctype, parent, frm, in_grid, hide_label) { // Fa
 		df: docfield,
 		doctype: doctype,
 		parent: parent,
-		hide_label: hide_label,
+		only_input: hide_label,
 		frm: frm
 	});
 }

@@ -33,7 +33,8 @@ frappe.call = function(opts) {
 		freeze: opts.freeze,
 		show_spinner: !opts.no_spinner,
 		progress_bar: opts.progress_bar,
-		async: opts.async
+		async: opts.async,
+		url: opts.url || frappe.request.url,
 	});
 }
 
@@ -160,7 +161,7 @@ frappe.request.prepare = function(opts) {
 	}
 
 	// no cmd?
-	if(!opts.args.cmd) {
+	if(!opts.args.cmd && !opts.url) {
 		console.log(opts)
 		throw "Incomplete Request";
 	}
