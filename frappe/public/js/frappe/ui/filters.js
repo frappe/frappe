@@ -30,18 +30,36 @@ frappe.ui.FilterList = Class.extend({
 	},
 
 	add_filter: function(tablename, fieldname, condition, value) {
-		this.push_new_filter(tablename, fieldname, condition, value);
 		this.$w.find('.show_filters').toggle(true);
+		return this.push_new_filter(tablename, fieldname, condition, value);
 	},
 
 	push_new_filter: function(tablename, fieldname, condition, value) {
-		this.filters.push(new frappe.ui.Filter({
+		if(this.filter_exists(tablename, fieldname, condition, value)) return;
+
+		var filter = new frappe.ui.Filter({
 			flist: this,
 			tablename: tablename,
 			fieldname: fieldname,
 			condition: condition,
 			value: value
-        }));
+        });
+
+		this.filters.push(filter);
+
+		return filter;
+	},
+
+	filter_exists: function(tablename, fieldname, condition, value) {
+		for(var i in this.filters) {
+			if(this.filters[i].field) {
+				var f = this.filters[i].get_value();
+				if(f[0]==tablename && f[1]==fieldname && f[2]==condition
+					&& f[3]==value) return true;
+
+			}
+		}
+		return false;
 	},
 
 	get_filters: function() {

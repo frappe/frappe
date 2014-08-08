@@ -337,16 +337,19 @@ frappe.ui.make_app_page = function(opts) {
 		<div class="appframe-footer hide"></div>').appendTo($wrapper);
 
 	if(opts.single_column) {
-		$('<div class="layout-main"></div>').appendTo($wrapper.find(".appframe"));
+		opts.parent.body = $('<div class="layout-main"></div>').appendTo($wrapper.find(".appframe"));
 	} else {
-		$('<div class="row">\
+		opts.parent.layout = $('<div class="row">\
 			<div class="layout-main-section col-sm-9"></div>\
 			<div class="layout-side-section col-sm-3"></div>\
 			</div>').appendTo($wrapper.find(".appframe"));
+
+		opts.parent.body = opts.parent.layout.find(".layout-main-section");
 	}
 	opts.parent.appframe = new frappe.ui.AppFrame($wrapper);
 	if(opts.set_document_title!==undefined)
 		opts.parent.appframe.set_document_title = opts.set_document_title;
 	if(opts.title) opts.parent.appframe.set_title(opts.title);
 	if(opts.icon) opts.parent.appframe.get_main_icon(opts.icon);
+
 }
