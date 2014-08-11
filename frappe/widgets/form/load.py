@@ -104,9 +104,9 @@ def add_attachments(dt, dn):
 	return attachments
 
 def add_comments(dt, dn, limit=20):
-	cl = frappe.db.sql("""select name, comment, comment_by, creation from `tabComment`
+	cl = frappe.db.sql("""select name, comment, comment_by, creation, comment_type from `tabComment`
 		where comment_doctype=%s and comment_docname=%s
-		order by creation desc limit %s""" % ('%s','%s', limit), (dt, dn), as_dict=1)
+		order by creation asc limit %s""" % ('%s','%s', limit), (dt, dn), as_dict=1)
 
 	return cl
 

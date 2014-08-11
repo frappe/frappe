@@ -5,7 +5,9 @@ frappe.provide('frappe.model');
 
 $.extend(frappe.model, {
 	no_value_type: ['Section Break', 'Column Break', 'HTML', 'Table',
- 	'Button', 'Image'],
+ 	'Button', 'Image', 'Fold'],
+
+	layout_fields: ['Section Break', 'Column Break', 'Fold'],
 
 	std_fields_list: ['name', 'owner', 'creation', 'modified', 'modified_by',
 		'_user_tags', '_comments', 'docstatus', 'parent', 'parenttype', 'parentfield', 'idx'],

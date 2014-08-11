@@ -174,52 +174,6 @@ frappe.get_shade = function(color, factor) {
 		+ get_hex(get_int(color.substr(4,2)) + factor)
 }
 
-frappe.get_gradient_css = function(col, diff) {
-	if(!diff) diff = 10
-	var col1 = frappe.get_shade(col, diff);
-	var col2 = frappe.get_shade(col, -diff);
-	return "\nbackground-color: " + col + " !important;"
-		+"\nbackground: -moz-linear-gradient(top,  #"+col1+" 0%, #"+col2+" 99%) !important;"
-		+"\nbackground:-webkit-gradient(linear, left top, left bottom, color-stop(0%,#"+col1+"), color-stop(99%,#"+col2+")) !important;"
-		+"\nbackground:-webkit-linear-gradient(top,  #"+col1+" 0%,#"+col2+" 99%) !important;"
-		+"\nbackground:-o-linear-gradient(top,  #"+col1+" 0%,#"+col2+" 99%) !important;"
-		+"\nbackground:-ms-linear-gradient(top,  #"+col1+" 0%,#"+col2+" 99%) !important;"
-		+"\nbackground:-o-linear-gradient(top,  #"+col1+" 0%,#"+col2+" 99%) !important;"
-		+"\nbackground:linear-gradient(top,  #"+col1+" 0%,#%"+col2+" 99%) !important;"
-		+"\nfilter:progid:DXImageTransform.Microsoft.gradient( startColorstr='#"+col1+"', endColorstr='#"+col1+"',GradientType=0 ) !important;"
-}
-
-$.fn.gradientify = function(col) {
-	if(!col) col = this.css("background-color");
-	var col1 = frappe.get_shade(col, 1.05);
-	var col2 = frappe.get_shade(col, 0.95);
-
-	this.css({
-		"background": "-moz-linear-gradient(top,  #"+col1+" 0%, #"+col2+" 99%)"
-	});
-	this.css({
-		"background": "-webkit-gradient(linear, left top, left bottom, color-stop(0%,#"+col1+"), color-stop(99%,#"+col2+"))"
-	});
-	this.css({
-		"background": "-webkit-linear-gradient(top,  #"+col1+" 0%,#"+col2+" 99%)"
-	});
-	this.css({
-		"background": "-o-linear-gradient(top,  #"+col1+" 0%,#"+col2+" 99%);"
-	});
-	this.css({
-		"background": "-ms-linear-gradient(top,  #"+col1+" 0%,#"+col2+" 99%);"
-	});
-	this.css({
-		"background": "-o-linear-gradient(top,  #"+col1+" 0%,#"+col2+" 99%);"
-	});
-	this.css({
-		"background": "linear-gradient(top,  #"+col1+" 0%,#%"+col2+" 99%);"
-	});
-	this.css({
-		"filter": "progid:DXImageTransform.Microsoft.gradient( startColorstr='#"+col1+"', endColorstr='#"+col1+"',GradientType=0 )"
-	});
-}
-
 frappe.get_cookie = function(c) {
 	var clist = (document.cookie+'').split(';');
 	var cookies = {};
@@ -265,21 +219,9 @@ frappe.dom.set_box_shadow = function(ele, spread) {
 		return $(this);
 	}
 	$.fn.set_working = function() {
-		var ele = this.get(0);
-		$(ele).prop('disabled', true);
-		if(ele.loading_img) {
-			$(ele.loading_img).toggle(true);
-		} else {
-			ele.loading_img = $('<img src="assets/frappe/images/ui/button-load.gif" \
-				style="margin-left: 4px; margin-bottom: -2px; display: inline;" />')
-				.insertAfter(ele);
-		}
+		this.prop('disabled', true);
 	}
 	$.fn.done_working = function() {
-		var ele = this.get(0);
-		$(ele).prop('disabled', false);
-		if(ele.loading_img) {
-			$(ele.loading_img).toggle(false);
-		};
+		this.prop('disabled', false);
 	}
 })(jQuery);

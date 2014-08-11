@@ -172,10 +172,6 @@ def make_layout(doc, meta):
 	layout = [filter(lambda s: any(filter(lambda c: any(c), s)), page) for page in layout]
 	return layout
 
-def is_visible(df):
-	no_display = ("Section Break", "Column Break", "Button")
-	return (df.fieldtype not in no_display) and not df.get("__print_hide") and not df.print_hide
-
 def has_value(df, doc):
 	value = doc.get(df.fieldname)
 	if value in (None, ""):

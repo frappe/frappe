@@ -614,7 +614,7 @@ _f.Frm.prototype._save = function(save_action, callback, btn, on_error) {
 }
 
 
-_f.Frm.prototype.savesubmit = function(btn, on_error) {
+_f.Frm.prototype.savesubmit = function(btn, callback, on_error) {
 	var me = this;
 	this.validate_form_action("Submit");
 	frappe.confirm(__("Permanently Submit {0}?", [this.docname]), function() {
@@ -628,13 +628,14 @@ _f.Frm.prototype.savesubmit = function(btn, on_error) {
 
 		me.save('Submit', function(r) {
 			if(!r.exc) {
+				callback && callback();
 				me.script_manager.trigger("on_submit");
 			}
 		}, btn, on_error);
 	});
 };
 
-_f.Frm.prototype.savecancel = function(btn, on_error) {
+_f.Frm.prototype.savecancel = function(btn, callback, on_error) {
 	var me = this;
 	this.validate_form_action('Cancel');
 	frappe.confirm(__("Permanently Cancel {0}?", [this.docname]), function() {
@@ -649,6 +650,7 @@ _f.Frm.prototype.savecancel = function(btn, on_error) {
 		var after_cancel = function(r) {
 			if(!r.exc) {
 				me.refresh();
+				callback && callback();
 				me.script_manager.trigger("after_cancel");
 			} else {
 				on_error();

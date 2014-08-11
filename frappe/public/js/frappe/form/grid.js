@@ -18,7 +18,7 @@ frappe.ui.form.Grid = Class.extend({
 
 		this.wrapper = $('<div>\
 		<div class="form-grid">\
-			<div class="grid-heading-row" style="font-size: 15px; background-color: #f9f9f9;"></div>\
+			<div class="grid-heading-row" style="font-size: 15px;"></div>\
 			<div class="panel-body" style="padding-top: 7px;">\
 				<div class="rows"></div>\
 				<div class="small grid-footer">\
@@ -349,7 +349,7 @@ frappe.ui.form.GridRow = Class.extend({
 		for(var ci in this.docfields) {
 			var df = this.docfields[ci];
 			if(!df.hidden && df.in_list_view && this.grid.frm.get_perm(df.permlevel, "read")
-				&& !in_list(["Section Break", "Column Break"], df.fieldtype)) {
+				&& !in_list(frappe.model.layout_fields, df.fieldtype)) {
 					var colsize = 2;
 					switch(df.fieldtype) {
 						case "Text":
@@ -558,7 +558,7 @@ frappe.ui.form.GridRow = Class.extend({
 		var visible_columns = $.map(this.docfields, function(df) {
 			if(df.print_hide || df.hidden
 				|| in_list(blacklist, df.fieldname)
-				|| in_list(["Section Break", "Column Break"], df.fieldtype))
+				|| in_list(frappe.model.layout_fields, df.fieldtype))
 				return null;
 			else
 				return df;

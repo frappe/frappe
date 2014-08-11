@@ -35,9 +35,11 @@ frappe.get_gravatar = function(email_id) {
 }
 
 frappe.ui.set_user_background = function(src, selector, style) {
-	if(!selector) selector = "body";
+
+	if(!selector) selector = "#page-desktop";
 	if(!style) style = "Fill Screen";
 	if(!src) src = "assets/frappe/images/ui/random-polygons.jpg";
+
 	frappe.dom.set_style(repl('%(selector)s { \
 		background: url("%(src)s") center center;\
 		background-attachment: fixed; \

@@ -2,14 +2,21 @@
 // MIT License. See license.txt
 frappe.provide("frappe.ui.form");
 
+// 	- page
+//		- section
+//			- column
+//		- section
+
+
 frappe.ui.form.Layout = Class.extend({
 	init: function(opts) {
 		this.views = {};
+		this.pages = [];
 		this.sections = [];
 		this.fields_list = [];
 		this.fields_dict = {};
 		this.labelled_section_count = 0;
-		this.ignore_types = ["Section Break", "Column Break"];
+		this.ignore_types = frappe.model.layout_fields;
 
 		$.extend(this, opts);
 	},
@@ -65,6 +72,9 @@ frappe.ui.form.Layout = Class.extend({
 		}
 		$.each(this.fields, function(i, df) {
 			switch(df.fieldtype) {
+				case "Fold":
+					me.make_page(df);
+					break;
 				case "Section Break":
 					me.make_section(df);
 					break;
@@ -91,6 +101,7 @@ frappe.ui.form.Layout = Class.extend({
 			.addClass("col-md-" + colspan);
 	},
 	make_field: function(df, colspan) {
+		!this.section && this.make_section();
 		!this.column && this.make_column();
 		var fieldobj = make_field(df, this.doctype, this.column.get(0), this.frm);
 		fieldobj.layout = this;
@@ -100,12 +111,34 @@ frappe.ui.form.Layout = Class.extend({
 			fieldobj.perm = this.frm.perm;
 		}
 	},
+	make_page: function(df) {
+		var head = $('<div class="form-page-header">\
+			<button class="btn btn-default btn-primary btn-fold">'+__("View Details")
+			+'</button>\
+		</div>').appendTo(this.wrapper);
+
+		this.page = $('<div class="form-page hide"></div>').appendTo(this.wrapper);
+
+		head.find(".btn-fold").on("click", function() {
+			var page = $(this).parent().next();
+			if(page.hasClass("hide")) {
+				$(this).removeClass("btn-primary").html(__("Hide Details"));
+				page.removeClass("hide");
+			} else {
+				$(this).addClass("btn-primary").html(__("View Details"));
+				page.addClass("hide");
+			}
+		});
+
+		this.section = null;
+	},
 	make_section: function(df) {
-		if(this.section) {
-			//$("<hr>").appendTo(this.wrapper);
+		if(!this.page) {
+			this.page = $('<div class="form-page"></div>').appendTo(this.wrapper);
 		}
+
 		this.section = $('<div class="row">')
-			.appendTo(this.wrapper);
+			.appendTo(this.page);
 		this.sections.push(this.section);
 
 		var section = this.section[0];

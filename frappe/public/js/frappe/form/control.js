@@ -1045,7 +1045,7 @@ frappe.ui.form.ControlTable = frappe.ui.form.Control.extend({
 			var prev_fieldtype = cur_frm.meta.fields[this.df.idx - 2].fieldtype;
 		}
 
-		if(["Column Break", "Section Break", "HTML"].indexOf(prev_fieldtype)===-1) {
+		if(frappe.model.layout_fields.indexOf(prev_fieldtype)===-1) {
 			$("<label>" + this.df.label + "<label>").appendTo(this.wrapper);
 		}
 

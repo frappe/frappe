@@ -503,6 +503,7 @@ $.extend(_p, {
 
 					render_normal: function(field, data, i) {
 						switch(field.fieldtype) {
+							case: 'Fold': break;
 							case 'Section Break':
 								me.layout.addrow();
 

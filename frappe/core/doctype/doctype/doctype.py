@@ -191,7 +191,7 @@ def validate_fields(fields):
 			frappe.throw(_("Fieldname {0} appears multiple times in rows {1}").format(fieldname, ", ".join(duplicates)))
 
 	def check_illegal_mandatory(d):
-		if d.fieldtype in ('HTML', 'Button', 'Section Break', 'Column Break') and d.reqd:
+		if (d.fieldtype in no_value_fields) and d.fieldtype!="Table" and d.reqd:
 			frappe.throw(_("Field {0} of type {1} cannot be mandatory").format(d.label, d.fieldtype))
 
 	def check_link_table_options(d):
@@ -228,6 +228,14 @@ def validate_fields(fields):
 				or (doctype_pointer[0].options!="DocType"):
 				frappe.throw(_("Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType'"))
 
+	def check_fold(fields):
+		for i, f in enumerate(fields):
+			if f.fieldtype=="Fold":
+				prev = fields[i-1]
+				if prev.fieldtype != "Section Break" \
+					or (prev.fieldtype=="Section Break" and not prev.label):
+					frappe.throw(_("Fold must come after labelled Section Break"))
+
 	for d in fields:
 		if not d.permlevel: d.permlevel = 0
 		if not d.fieldname:
@@ -241,6 +249,7 @@ def validate_fields(fields):
 		check_in_list_view(d)
 
 	check_min_items_in_list(fields)
+	check_fold(fields)
 
 def validate_permissions_for_doctype(doctype, for_remove=False):
 	doctype = frappe.get_doc("DocType", doctype)

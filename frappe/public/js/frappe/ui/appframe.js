@@ -304,7 +304,7 @@ frappe.ui.make_app_page = function(opts) {
 		]
 	*/
 	$wrapper = $(opts.parent)
-	$('<div class="appframe-titlebar">\
+	$('<div class="app-page container"><div class="appframe-titlebar">\
 			<div class="container">\
 				<div class="row">\
 					<div class="titlebar-item col-sm-8">\
@@ -333,7 +333,7 @@ frappe.ui.make_app_page = function(opts) {
 				<div class="workflow-button-area btn-group pull-right hide"></div>\
 				<div class="clearfix"></div>\
 			</div>\
-		</div>\
+		</div></div>\
 		<div class="appframe-footer hide"></div>').appendTo($wrapper);
 
 	if(opts.single_column) {

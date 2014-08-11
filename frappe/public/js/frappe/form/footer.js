@@ -26,7 +26,6 @@ frappe.ui.form.Footer = Class.extend({
 			<div class="after-save row">\
 				<div class="col-md-8">\
 					<div class="form-comments">\
-						<h5><i class="icon-comments"></i> '+__("Comments")+'</h5>\
 					</div>\
 				</div>\
 				<div class="col-md-4">\
