@@ -5,8 +5,9 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.utils import cint
-
 from frappe.model.document import Document
+from frappe.modules.export_file import export_to_files
+from frappe.modules import make_boilerplate
 
 class Report(Document):
 	def validate(self):
@@ -32,10 +33,19 @@ class Report(Document):
 		self.export_doc()
 
 	def export_doc(self):
-		from frappe.modules.export_file import export_to_files
+		if frappe.flags.in_import:
+			return
+
 		if self.is_standard == 'Yes' and (frappe.local.conf.get('developer_mode') or 0) == 1:
 			export_to_files(record_list=[['Report', self.name]],
 				record_module=self.module)
+
+			self.create_report_py()
+
+	def create_report_py(self):
+		if self.report_type == "Script Report":
+			make_boilerplate("controller.py", self, {"name": self.name})
+			make_boilerplate("controller.js", self, {"name": self.name})
 
 	@Document.whitelist
 	def toggle_disable(self, disable):
