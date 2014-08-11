@@ -635,7 +635,7 @@ frappe.views.QueryReport = Class.extend({
 	},
 	export_report: function() {
 		if(!frappe.model.can_export(this.report_doc.ref_doctype)) {
-			msgprint(_("You are not allowed to export this report"));
+			msgprint(__("You are not allowed to export this report"));
 			return false;
 		}
 
