@@ -549,4 +549,4 @@ class Database:
 			self._conn = None
 
 	def escape(self, s):
-		return MySQLdb.escape_string(s)
+		return unicode(MySQLdb.escape_string((s or "").encode("utf-8")), "utf-8")
