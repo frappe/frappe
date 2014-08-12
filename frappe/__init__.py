@@ -7,8 +7,7 @@ globals attached to frappe module
 from __future__ import unicode_literals
 
 from werkzeug.local import Local, release_local
-import os, importlib, inspect
-import json
+import os, importlib, inspect, logging, json
 
 # public
 from frappe.__version__ import __version__
@@ -639,3 +638,14 @@ def get_print_format(doctype, name, print_format=None, style=None, as_pdf=False)
 			return html
 	else:
 		return html
+
+logging_setup_complete = False
+def get_logger(module=None):
+	from frappe.setup_logging import setup_logging
+	global logging_setup_complete
+
+	if not logging_setup_complete:
+		setup_logging()
+		logging_setup_complete = True
+
+	return logging.getLogger(module or "frappe")

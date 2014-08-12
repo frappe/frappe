@@ -35,7 +35,7 @@ def setup_logging():
 				}
 			},
 			"loggers": {
-				"frappe.app": {
+				"frappe": {
 					"level": "INFO",
 					"propagate": False,
 					"filters": ["context_filter"],
