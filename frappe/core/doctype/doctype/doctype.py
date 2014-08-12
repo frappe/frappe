@@ -229,12 +229,16 @@ def validate_fields(fields):
 				frappe.throw(_("Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType'"))
 
 	def check_fold(fields):
+		fold_exists = False
 		for i, f in enumerate(fields):
 			if f.fieldtype=="Fold":
-				prev = fields[i-1]
-				if prev.fieldtype != "Section Break" \
-					or (prev.fieldtype=="Section Break" and not prev.label):
-					frappe.throw(_("Fold must come after labelled Section Break"))
+				if fold_exists:
+					frappe.throw(_("There can be only one Fold in a form"))
+				fold_exists = True
+				nxt = fields[i+1]
+				if nxt.fieldtype != "Section Break" \
+					or (nxt.fieldtype=="Section Break" and not nxt.label):
+					frappe.throw(_("Fold must come before a labelled Section Break"))
 
 	for d in fields:
 		if not d.permlevel: d.permlevel = 0

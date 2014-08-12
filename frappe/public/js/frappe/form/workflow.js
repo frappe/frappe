@@ -66,7 +66,7 @@ frappe.ui.form.States = Class.extend({
 		// hide if its not yet saved
 		if(this.frm.doc.__islocal) {
 			this.set_default_state();
-			this.parent.toggle(false);
+			this.parent && this.parent.toggle(false);
 			return;
 		}
 

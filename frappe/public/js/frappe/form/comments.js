@@ -66,6 +66,9 @@ frappe.ui.form.Comments = Class.extend({
 				"Assignment Completed": "icon-ok",
 				"Comment": "icon-comment",
 				"Workflow": "icon-arrow-right",
+				"Label": "icon-tag",
+				"Attachment": "icon-paper-clip",
+				"Attachment Removed": "icon-paper-clip"
 			}[c.comment_type]
 
 			c.icon_bg = {
@@ -74,11 +77,21 @@ frappe.ui.form.Comments = Class.extend({
 				"Cancelled": "#c0392b",
 				"Assigned": "#f39c12",
 				"Assignment Completed": "#16a085",
-				"Comment": "#7f8c8d",
-				"Workflow": "#2c3e50"
+				"Comment": "#f39c12",
+				"Workflow": "#2c3e50",
+				"Label": "#2c3e50",
+				"Attachment": "#7f8c8d",
+				"Attachment Removed": "#eee"
+			}[c.comment_type];
+
+			c.icon_fg = {
+				"Attachment Removed": "#333",
 			}[c.comment_type]
 
-			if(c.comment_type==="Workflow") {
+			if(!c.icon_fg) c.icon_fg = "#fff";
+
+			// label view
+			if(c.comment_type==="Workflow" || c.comment_type==="Label") {
 				c.comment_html = repl('<span class="label label-%(style)s">%(text)s</span>', {
 					style: frappe.utils.guess_style(c.comment),
 					text: c.comment
@@ -87,13 +100,20 @@ frappe.ui.form.Comments = Class.extend({
 				c.comment_html = frappe.markdown(c.comment);
 			}
 
+			// icon centering -- pixed perfect
+			if(in_list(["Comment"], c.comment_type)) {
+				c.padding = "padding-left: 8px;";
+			} else {
+				c.padding = "";
+			}
+
 			$(repl('<div class="media comment" data-name="%(name)s">\
 					<span class="pull-left avatar avatar-small">\
 						<img class="media-object" src="%(image)s">\
 					</span>\
 					<span class="pull-left comment-icon">\
 						<i class="%(icon)s icon-timeline" \
-							style="background-color: %(icon_bg)s"></i>\
+							style="background-color: %(icon_bg)s; color: %(icon_fg)s; %(padding)s"></i>\
 					</span>\
 					<div class="media-body comment-body">\
 						%(comment_html)s\

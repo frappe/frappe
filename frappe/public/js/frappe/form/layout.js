@@ -112,26 +112,37 @@ frappe.ui.form.Layout = Class.extend({
 		}
 	},
 	make_page: function(df) {
-		var head = $('<div class="form-page-header">\
-			<button class="btn btn-default btn-primary btn-fold">'+__("View Details")
-			+'</button>\
-		</div>').appendTo(this.wrapper);
+		var me = this,
+			head = $('<div class="form-page-header">\
+				<button class="btn btn-default btn-primary btn-fold">\
+					<span class="octicon octicon-fold"></span>\
+					<span class="text">'+__("View Details")+'</span>\
+				</button>\
+			</div>').appendTo(this.wrapper);
 
 		this.page = $('<div class="form-page hide"></div>').appendTo(this.wrapper);
 
-		head.find(".btn-fold").on("click", function() {
+		this.fold_btn = head.find(".btn-fold").on("click", function() {
 			var page = $(this).parent().next();
 			if(page.hasClass("hide")) {
-				$(this).removeClass("btn-primary").html(__("Hide Details"));
+				$(this).removeClass("btn-primary").find(".text").html(__("Hide Details"));
 				page.removeClass("hide");
+				me.folded = false;
 			} else {
-				$(this).addClass("btn-primary").html(__("View Details"));
+				$(this).addClass("btn-primary").find(".text").html(__("View Details"));
 				page.addClass("hide");
+				me.folded = true;
 			}
 		});
 
 		this.section = null;
+		this.folded = true;
 	},
+
+	unfold: function() {
+		this.fold_btn.trigger('click');
+	},
+
 	make_section: function(df) {
 		if(!this.page) {
 			this.page = $('<div class="form-page"></div>').appendTo(this.wrapper);
@@ -147,7 +158,7 @@ frappe.ui.form.Layout = Class.extend({
 			if(df.label) {
 				this.labelled_section_count++;
 				var head = $('<h4 class="col-md-12">'
-					+ (df.options ? (' <i class="icon-in-circle '+df.options+'"></i> ') : "")
+					+ (df.options ? (' <i class="icon-fixed-width text-muted '+df.options+'"></i> ') : "")
 					+ '<span class="section-count-label">' + __(this.labelled_section_count) + "</span>. "
 					+ __(df.label)
 					+ "</h4>")

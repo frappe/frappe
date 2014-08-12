@@ -7,7 +7,7 @@ frappe.ui.form.PrintPreview = Class.extend({
 		this.bind_events();
 	},
 	make: function() {
-		this.wrapper = $('<div>\
+		this.wrapper = $('<div class="form-print-wrapper">\
 			<div class="print-toolbar row" style="padding-top: 5px; padding-bottom: 5px; margin-top: -15px; \
 				margin-bottom: 15px; padding-left: 15px; position:relative;">\
 				<i class="text-muted icon-print" style="position: absolute; top: 13px; left: 10px; "></i>\
@@ -17,7 +17,8 @@ frappe.ui.form.PrintPreview = Class.extend({
 					<div class="checkbox"><label><input type="checkbox" class="print-letterhead" /> Letterhead</label></div></div>\
 				<div class="col-xs-6 text-right" style="padding-top: 7px;">\
 					<a style="margin-right: 7px;" class="btn-print-preview text-muted small">Preview</a>\
-					<a style="margin-right: 7px;" class="btn-download-pdf text-muted small">Download PDF</a>\
+					<a style="margin-right: 7px;" class="btn-download-pdf text-muted small">\
+						<span class="octicon octicon-file-pdf"></span> Download PDF</a>\
 					<strong><a style="margin-right: 7px;" class="btn-print-print">Print</a></strong>\
 					<a class="close">×</a>\
 				</div>\

@@ -33,6 +33,7 @@
 		"public/css/tag-it.css",
 		"public/css/bootstrap.css",
 		"public/css/font-awesome.css",
+		"public/css/octicons/octicons.css",
 		"public/css/desk.css",
 		"public/css/appframe.css",
 		"public/css/app_icon.css",

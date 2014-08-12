@@ -13,7 +13,7 @@ def remove_attach():
 	"""remove attachment"""
 	import frappe.utils.file_manager
 	fid = frappe.form_dict.get('fid')
-	frappe.utils.file_manager.remove_file(fid)
+	return frappe.utils.file_manager.remove_file(fid)
 
 @frappe.whitelist()
 def get_fields():

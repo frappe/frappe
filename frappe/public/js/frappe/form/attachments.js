@@ -129,6 +129,8 @@ frappe.ui.form.Attachments = Class.extend({
 				}
 				me.remove_fileid(fileid);
 				me.frm.toolbar.show_infobar();
+				me.frm.get_docinfo().comments.push(r.message);
+				me.frm.comments.refresh();
 				if(callback) callback();
 			}
 		});
@@ -153,7 +155,10 @@ frappe.ui.form.Attachments = Class.extend({
 			callback: function(attachment, r) {
 				me.dialog.hide();
 				me.update_attachment(attachment);
-				if(fieldname) this.frm.set_value(fieldname, attachment.file_url);
+				me.frm.get_docinfo().comments.push(r.message.comment);
+				me.frm.comments.refresh();
+
+				if(fieldname) me.frm.set_value(fieldname, attachment.file_url);
 			},
 			onerror: function() {
 				me.dialog.hide();

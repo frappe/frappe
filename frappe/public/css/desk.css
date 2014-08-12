@@ -115,19 +115,14 @@ div#freeze {
 	margin-top: 3px;
 }
 
-.icon-in-circle {
-	color: #b7b7b7;
-	background-color: white;
-	border-radius:50%;
-	text-align: center;
-	width: 20px;
-	height: 20px;
-	font-size: 20px;
-	display: inline-block;
-}
-
 .form-layout {
 	/*margin-top: -15px;*/
+}
+
+.form-print-wrapper {
+	margin: 0px -15px -15px -15px;
+	background-color: #ddd;
+	padding: 0px 15px 30px 15px;
 }
 
 .form-page-header {
@@ -302,7 +297,7 @@ div#freeze {
 	color: #fff;
 	height: 29px;
 	width: 29px;
-	padding: 7px 9px;
+	padding: 8px 9px 7px 9px;
 	border-radius: 50%;
 	background-color: #d7d7d7;
 	text-align: center;
@@ -361,6 +356,14 @@ ul.linked-with-list li {
 
 .rows .grid-row .data-row, .rows .grid-row .panel-heading {
 	cursor: pointer;
+}
+
+.data-row {
+	margin-left: -20px;
+}
+
+.row-index {
+	text-align: right;
 }
 
 .grid-row .panel {

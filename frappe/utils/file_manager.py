@@ -34,10 +34,16 @@ def upload():
 	elif file_url:
 		filedata = save_url(file_url, dt, dn)
 
+
+	if dt and dn:
+		comment = frappe.get_doc(dt, dn).add_comment("Attachment",
+			_("Added {0}").format("<a href='{file_url}' target='_blank'>{file_name}</a>".format(**filedata.as_dict())))
+
 	return {
 		"name": filedata.name,
 		"file_name": filedata.file_name,
-		"file_url": filedata.file_url
+		"file_url": filedata.file_url,
+		"comment": comment.as_dict()
 	}
 
 def save_uploaded(dt, dn):
@@ -177,15 +183,20 @@ def remove_all(dt, dn):
 def remove_file(fid, attached_to_doctype=None, attached_to_name=None):
 	"""Remove file and File Data entry"""
 	if not (attached_to_doctype and attached_to_name):
-		attached = frappe.db.get_value("File Data", fid, ["attached_to_doctype", "attached_to_name"])
+		attached = frappe.db.get_value("File Data", fid,
+			["attached_to_doctype", "attached_to_name", "file_name"])
 		if attached:
-			attached_to_doctype, attached_to_name = attached
+			attached_to_doctype, attached_to_name, file_name = attached
 
-	ignore_permissions = False
+	ignore_permissions, comment = False, None
 	if attached_to_doctype and attached_to_name:
-		ignore_permissions = frappe.get_doc(attached_to_doctype, attached_to_name).has_permission("write") or False
+		doc = frappe.get_doc(attached_to_doctype, attached_to_name)
+		ignore_permissions = doc.has_permission("write") or False
+		comment = doc.add_comment("Attachment Removed", _("Removed {0}").format(file_name))
 
 	frappe.delete_doc("File Data", fid, ignore_permissions=ignore_permissions)
+
+	return comment
 
 def delete_file_data_content(doc):
 	method = get_hook_method('delete_file_data_content', fallback=delete_file_from_filesystem)

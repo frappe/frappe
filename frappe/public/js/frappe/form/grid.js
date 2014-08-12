@@ -72,6 +72,7 @@ frappe.ui.form.Grid = Class.extend({
 			}
 		} else {
 			// redraw
+			var _scroll_y = window.scrollY;
 			this.wrapper.find(".grid-row").remove();
 			this.make_head();
 			this.grid_rows = [];
@@ -97,6 +98,7 @@ frappe.ui.form.Grid = Class.extend({
 
 			this.last_display_status = this.display_status;
 			this.last_docname = this.frm.docname;
+			scroll(0, _scroll_y);
 		}
 	},
 	refresh_row: function(docname) {
@@ -421,8 +423,16 @@ frappe.ui.form.GridRow = Class.extend({
 			this.render_form();
 			this.row.toggle(false);
 			this.form_panel.toggle(true);
-			if(this.frm.doc.docstatus===0)
-				this.form_area.find(":input:first").focus();
+			if(this.frm.doc.docstatus===0) {
+				var first = this.form_area.find(":input:first");
+				if(first.length && first.attr("data-fieldtype")!="Date") {
+					try {
+						first.get(0).focus();
+					} catch(e) {
+						console.log("Dialog: unable to focus on first input: " + e);
+					}
+				}
+			}
 		} else {
 			if(this.form_panel)
 				this.form_panel.toggle(false);
