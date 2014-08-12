@@ -5,7 +5,6 @@ from __future__ import unicode_literals
 
 import frappe
 from frappe import _
-import os
 
 from frappe.utils import now, cint
 from frappe.model import no_value_fields
@@ -13,7 +12,7 @@ from frappe.model.document import Document
 from frappe.model.db_schema import type_map
 from frappe.core.doctype.property_setter.property_setter import make_property_setter
 from frappe.core.doctype.notification_count.notification_count import delete_notification_count_for
-from frappe.modules import get_doc_path, get_module_path, scrub
+from frappe.modules import make_boilerplate
 
 form_grid_templates = {
 	"fields": "templates/form_grid/fields.html"
@@ -379,19 +378,3 @@ def init_list(doctype):
 	make_boilerplate("controller_list.js", doc)
 	make_boilerplate("controller_list.html", doc)
 
-def make_boilerplate(template, doc):
-	target_path = get_doc_path(doc.module, doc.doctype, doc.name)
-	template_name = template.replace("controller", scrub(doc.name))
-	target_file_path = os.path.join(target_path, template_name)
-
-	app = frappe.local.module_app[scrub(doc.module)]
-	if not app:
-		frappe.throw(_("App not found"))
-	app_publisher = frappe.get_hooks(hook="app_publisher", app_name=app)[0]
-
-	if not os.path.exists(target_file_path):
-		with open(target_file_path, 'w') as target:
-			with open(os.path.join(get_module_path("core"), "doctype", "doctype",
-				"boilerplate", template), 'r') as source:
-				target.write(source.read().format(app_publisher=app_publisher,
-					classname=doc.name.replace(" ", ""), doctype=doc.name))

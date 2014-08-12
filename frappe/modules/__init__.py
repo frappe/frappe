@@ -7,6 +7,7 @@ from __future__ import unicode_literals
 """
 import frappe, os
 import frappe.utils
+from frappe import _
 
 lower_case_files_for = ['DocType', 'Page', 'Report',
 	"Workflow", 'Module Def', 'Desktop Item', 'Workflow State', 'Workflow Action', 'Print Format']
@@ -67,3 +68,27 @@ def get_module_name(doctype, module, prefix="", app=None):
 
 def get_module_app(module):
 	return frappe.local.module_app[scrub(module)]
+
+def get_app_publisher(module):
+	app = frappe.local.module_app[scrub(module)]
+	if not app:
+		frappe.throw(_("App not found"))
+	app_publisher = frappe.get_hooks(hook="app_publisher", app_name=app)[0]
+	return app_publisher
+
+def make_boilerplate(template, doc, opts=None):
+	target_path = get_doc_path(doc.module, doc.doctype, doc.name)
+	template_name = template.replace("controller", scrub(doc.name))
+	target_file_path = os.path.join(target_path, template_name)
+
+	app_publisher = get_app_publisher(doc.module)
+
+	if not os.path.exists(target_file_path):
+		if not opts:
+			opts = {}
+
+		with open(target_file_path, 'w') as target:
+			with open(os.path.join(get_module_path("core"), "doctype", doc.doctype,
+				"boilerplate", template), 'r') as source:
+				target.write(source.read().format(app_publisher=app_publisher,
+					classname=doc.name.replace(" ", ""), doctype=doc.name, **opts))
