@@ -199,7 +199,7 @@ def update_oauth_user(user, data, provider):
 			"first_name": data.get("first_name") or data.get("given_name") or data.get("name"),
 			"last_name": data.get("last_name") or data.get("family_name"),
 			"email": data["email"],
-			"gender": data.get("gender" or "").title(),
+			"gender": (data.get("gender") or "").title(),
 			"enabled": 1,
 			"new_password": frappe.generate_hash(data["email"]),
 			"location": data.get("location"),
