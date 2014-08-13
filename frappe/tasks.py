@@ -101,6 +101,9 @@ def enqueue_scheduler_events():
 @celery_task()
 def enqueue_events_for_site(site):
 	try:
+		frappe.init(site=site)
+		if frappe.local.conf.maintenance_mode:
+			return
 		frappe.connect(site=site)
 		enqueue_events(site)
 	finally:

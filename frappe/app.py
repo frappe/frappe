@@ -41,7 +41,7 @@ def application(request):
 
 		init_site(request)
 
-		if frappe.local.conf.get('maintainance_mode'):
+		if frappe.local.conf.get('maintenance_mode'):
 			raise frappe.SessionStopped
 
 		make_form_dict(request)
