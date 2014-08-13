@@ -5,7 +5,10 @@
 
 from __future__ import unicode_literals
 import frappe
+import MySQLdb
 from frappe.model.document import Document
+
+logger = frappe.get_logger()
 
 class NotificationCount(Document):
 	pass
@@ -34,18 +37,34 @@ def get_notifications():
 				result = frappe.get_list(d, fields=["count(*)"],
 					filters=[[d, key, "=", condition[key]]], as_list=True)[0][0]
 
-				frappe.get_doc({"doctype":"Notification Count", "for_doctype":d,
-					"open_count":result}).insert(ignore_permissions=True)
-
 				open_count_doctype[d] = result
+
+				try:
+					frappe.get_doc({"doctype":"Notification Count", "for_doctype":d,
+						"open_count":result}).insert(ignore_permissions=True)
+
+				except MySQLdb.OperationalError, e:
+					if e.args[0] != 1213:
+						raise
+
+					logger.error("Deadlock")
 
 	for m in config.for_module:
 		if m in notification_count:
 			open_count_module[m] = notification_count[m]
 		else:
 			open_count_module[m] = frappe.get_attr(config.for_module[m])()
-			frappe.get_doc({"doctype":"Notification Count", "for_doctype":m,
-				"open_count":open_count_module[m]}).insert(ignore_permissions=True)
+
+			try:
+				frappe.get_doc({"doctype":"Notification Count", "for_doctype":m,
+					"open_count":open_count_module[m]}).insert(ignore_permissions=True)
+
+			except MySQLdb.OperationalError, e:
+				if e.args[0] != 1213:
+					raise
+
+				logger.error("Deadlock")
+
 
 	return {
 		"open_count_doctype": open_count_doctype,
