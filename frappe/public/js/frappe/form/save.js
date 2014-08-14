@@ -4,6 +4,8 @@
 frappe.provide("frappe.ui.form");
 
 frappe.ui.form.save = function(frm, action, callback, btn) {
+	$(btn).prop("disabled", true);
+
 	var save = function() {
 		check_name();
 		if(check_mandatory()) {
@@ -16,6 +18,8 @@ frappe.ui.form.save = function(frm, action, callback, btn) {
 				},
 				btn: btn
 			});
+		} else {
+			$(btn).prop("disabled", false);
 		}
 	};
 
@@ -41,6 +45,7 @@ frappe.ui.form.save = function(frm, action, callback, btn) {
 				doc.__newname = strip(newname);
 			} else {
 				msgprint(__("Name is required"));
+				$(btn).prop("disabled", false);
 				throw "name required";
 			}
 		}
@@ -96,7 +101,7 @@ frappe.ui.form.save = function(frm, action, callback, btn) {
 	var scroll_to = function(fieldname) {
 		var f = cur_frm.fields_dict[fieldname];
 		if(f) {
-			$(document).scrollTop($(f.wrapper).offset().top + 100);
+			$(document).scrollTop($(f.wrapper).offset().top - 80);
 		}
 		frm.scroll_set = true;
 	};

@@ -166,7 +166,7 @@ $.extend(frappe.ui.toolbar, {
 			.insertBefore(menu.find(".divider"))
 			.find("a")
 			.click(function() {
-				click();
+				click.apply(this);
 			});
 	},
 	get_menu: function(label) {
