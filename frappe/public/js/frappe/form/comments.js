@@ -52,7 +52,7 @@ frappe.ui.form.Comments = Class.extend({
 				c["delete"] = "";
 			}
 			c.image = frappe.user_info(c.comment_by).image || frappe.get_gravatar(c.comment_by);
-			c.comment_on = dateutil.comment_when(c.creation);
+			c.comment_on = comment_when(c.creation);
 			c.fullname = frappe.user_info(c.comment_by).fullname;
 
 			if(!c.comment_type) c.comment_type = "Comment"
