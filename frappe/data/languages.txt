@@ -19,5 +19,7 @@ ru		русский
 sr		српски
 ta		தமிழ்
 th		ไทย
+tr		Türk
+vi		việt
 zh-cn	中国（简体）
 zh-tw	中國（繁體）
