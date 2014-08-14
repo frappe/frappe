@@ -197,7 +197,10 @@ frappe.ui.AppFrame = Class.extend({
 		this.get_main_icon(icon)
 			.attr("doctype-name", doctype);
 
-		this.set_title_left(function() { frappe.set_route(module_info.link); });
+		this.set_title_left(function() {
+			var route = frappe.get_route()[0]==module_info.link ? "" : module_info.link;
+			frappe.set_route(route);
+		});
 	},
 
 	get_main_icon: function(icon) {

@@ -23,7 +23,6 @@ frappe.ui.form.Comments = Class.extend({
 					<button class="btn btn-default btn-go btn-sm">\
 						<i class="icon-ok"></i> Add comment</button>\
 				</div>\
-				<span class="small text-muted">%(fullname)s</span>\
 			</div>\
 		</div>', {image: frappe.user_info(user).image,
 			fullname: user_fullname})).appendTo(this.parent);
@@ -47,7 +46,7 @@ frappe.ui.form.Comments = Class.extend({
 			"comment_by": this.frm.doc.owner, "creation": this.frm.doc.creation}].concat(this.get_comments());
 
 		$.each(comments, function(i, c) {
-			if(frappe.model.can_delete("Comment")) {
+			if((c.comment_type || "Comment") === "Comment" && frappe.model.can_delete("Comment")) {
 				c["delete"] = '<a class="close" href="#">&times;</a>';
 			} else {
 				c["delete"] = "";

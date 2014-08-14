@@ -39,7 +39,7 @@ frappe.ui.form.Control = Class.extend({
 	},
 
 	make_wrapper: function() {
-		this.$wrapper = $("<div>").appendTo(this.parent);
+		this.$wrapper = $("<div class='frappe-control'></div>").appendTo(this.parent);
 	},
 
 	// returns "Read", "Write" or "None"
@@ -139,9 +139,9 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 	},
 	make_wrapper: function() {
 		if(this.only_input) {
-			this.$wrapper = $('<div class="form-group">').appendTo(this.parent);
+			this.$wrapper = $('<div class="form-group frappe-control">').appendTo(this.parent);
 		} else {
-			this.$wrapper = $('<div class="form-horizontal">\
+			this.$wrapper = $('<div class="form-horizontal frappe-control">\
 				<div class="form-group row" style="margin: 0px">\
 					<label class="control-label small col-xs-'+(this.horizontal?"4":"12")
 						+'" style="padding-right: 0px;"></label>\
@@ -477,7 +477,7 @@ frappe.ui.form.ControlSmallText = frappe.ui.form.ControlText;
 frappe.ui.form.ControlCheck = frappe.ui.form.ControlData.extend({
 	input_type: "checkbox",
 	make_wrapper: function() {
-		this.$wrapper = $('<div class="form-group row" style="margin: 0px;">\
+		this.$wrapper = $('<div class="form-group row frappe-control" style="margin: 0px;">\
 		<div class="col-md-offset-4 col-md-8">\
 			<div class="checkbox" style="margin: 5px 0px">\
 				<label>\

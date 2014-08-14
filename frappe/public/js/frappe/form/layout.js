@@ -47,6 +47,9 @@ frappe.ui.form.Layout = Class.extend({
 	refresh: function(doc) {
 		var me = this;
 		if(doc) this.doc = doc;
+
+		this.wrapper.find(".empty-form-alert").remove();
+
 		$.each(this.fields_list, function(i, fieldobj) {
 			if(me.doc) {
 				fieldobj.doc = me.doc;
@@ -61,9 +64,19 @@ frappe.ui.form.Layout = Class.extend({
 		});
 		if(this.frm)
 			$(this.frm.wrapper).trigger("refresh-fields");
+
+			console.log(this.wrapper.find(".frappe-control:visible"));
+
+		setTimeout(function() {
+			if(!(me.wrapper.find(".frappe-control:visible").length)) {
+				$('<div class="alert alert-info empty-form-alert">'+__("This form does not have any input")+'</div>')
+				.appendTo(me.wrapper)
+			}
+		}, 100);
 	},
 	render: function() {
 		var me = this;
+
 
 		this.section = null;
 		this.column = null;
@@ -85,6 +98,7 @@ frappe.ui.form.Layout = Class.extend({
 					me.make_field(df);
 			}
 		});
+
 	},
 	make_column: function(df) {
 		this.column = $('<div class="form-column">\
