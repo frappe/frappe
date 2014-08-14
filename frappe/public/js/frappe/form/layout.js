@@ -64,9 +64,6 @@ frappe.ui.form.Layout = Class.extend({
 		});
 		if(this.frm)
 			$(this.frm.wrapper).trigger("refresh-fields");
-
-			console.log(this.wrapper.find(".frappe-control:visible"));
-
 		setTimeout(function() {
 			if(!(me.wrapper.find(".frappe-control:visible").length)) {
 				$('<div class="alert alert-info empty-form-alert">'+__("This form does not have any input")+'</div>')
