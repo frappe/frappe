@@ -9,19 +9,20 @@ from frappe.model.document import Document
 class ToDo(Document):
 	def validate(self):
 		if self.is_new():
-			self.add_comment(frappe._("Assignment Added"))
+			self.add_comment(frappe._("Assigned to {0}").format(self.owner), "Assigned")
 		else:
 			cur_status = frappe.db.get_value("ToDo", self.name, "status")
 			if cur_status != self.status:
-				self.add_comment(frappe._("Assignment Status Changed"))
+				self.add_comment(frappe._("Assignment Status Changed"), "Assignment Completed")
 
-	def add_comment(self, text):
+	def add_comment(self, text, comment_type):
 		if not self.reference_type and self.reference_name:
 			return
 
 		comment = frappe.get_doc({
 			"doctype":"Comment",
 			"comment_by": frappe.session.user,
+			"comment_type": comment_type,
 			"comment_doctype": self.reference_type,
 			"comment_docname": self.reference_name,
 			"comment": """<div>{text}:

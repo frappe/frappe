@@ -35,16 +35,13 @@ frappe.Application = Class.extend({
 		// load boot info
 		this.load_bootinfo();
 
-		// page container
-		this.make_page_container();
+		if(user!="Guest") this.set_user_display_settings();
 
 		// navbar
 		this.make_nav_bar();
 
 		// favicon
 		this.set_favicon();
-
-		if(user!="Guest") this.set_user_display_settings();
 
 		this.setup_keyboard_shortcuts();
 
@@ -58,9 +55,13 @@ frappe.Application = Class.extend({
 				localStorage.removeItem("session_lost_route");
 			}
 
-			// route to home page
-			frappe.route();
 		}
+
+		// page container
+		this.make_page_container();
+
+		// route to home page
+		frappe.route();
 
 		// trigger app startup
 		$(document).trigger('startup');
@@ -176,7 +177,7 @@ frappe.Application = Class.extend({
 	make_nav_bar: function() {
 		// toolbar
 		if(frappe.boot) {
-			frappe.container.frappe_toolbar = new frappe.ui.toolbar.Toolbar();
+			frappe.frappe_toolbar = new frappe.ui.toolbar.Toolbar();
 		}
 	},
 	logout: function() {

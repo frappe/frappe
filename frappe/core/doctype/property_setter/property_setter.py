@@ -28,7 +28,7 @@ class PropertySetter(Document):
 		return frappe.db.sql("""select fieldname, label, fieldtype
 		from tabDocField
 		where parent=%s
-		and fieldtype not in ('Section Break', 'Column Break', 'HTML', 'Read Only', 'Table')
+		and fieldtype not in ('Section Break', 'Column Break', 'HTML', 'Read Only', 'Table', 'Fold')
 		and ifnull(fieldname, '') != ''
 		order by label asc""", dt, as_dict=1)
 

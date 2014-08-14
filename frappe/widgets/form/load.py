@@ -77,9 +77,9 @@ def get_meta_bundle(doctype):
 
 def get_docinfo(doc):
 	frappe.response["docinfo"] = {
-		"attachments": add_attachments(doc.doctype, doc.name),
-		"comments": add_comments(doc.doctype, doc.name),
-		"assignments": add_assignments(doc.doctype, doc.name),
+		"attachments": get_attachments(doc.doctype, doc.name),
+		"comments": get_comments(doc.doctype, doc.name),
+		"assignments": get_assignments(doc.doctype, doc.name),
 		"permissions": get_doc_permissions(doc)
 	}
 
@@ -90,7 +90,7 @@ def get_user_permissions(meta):
 		out[df.options] = all_user_permissions[df.options]
 	return out
 
-def add_attachments(dt, dn):
+def get_attachments(dt, dn):
 	attachments = []
 	for f in frappe.db.sql("""select name, file_name, file_url from
 		`tabFile Data` where attached_to_name=%s and attached_to_doctype=%s""",
@@ -103,14 +103,14 @@ def add_attachments(dt, dn):
 
 	return attachments
 
-def add_comments(dt, dn, limit=20):
-	cl = frappe.db.sql("""select name, comment, comment_by, creation from `tabComment`
+def get_comments(dt, dn, limit=20):
+	cl = frappe.db.sql("""select name, comment, comment_by, creation, comment_type from `tabComment`
 		where comment_doctype=%s and comment_docname=%s
-		order by creation desc limit %s""" % ('%s','%s', limit), (dt, dn), as_dict=1)
+		order by creation asc limit %s""" % ('%s','%s', limit), (dt, dn), as_dict=1)
 
 	return cl
 
-def add_assignments(dt, dn):
+def get_assignments(dt, dn):
 	cl = frappe.db.sql("""select owner, description from `tabToDo`
 		where reference_type=%(doctype)s and reference_name=%(name)s and status="Open"
 		order by modified desc limit 5""", {

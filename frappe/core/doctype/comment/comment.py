@@ -67,6 +67,9 @@ class Comment(Document):
 			clear_cache(route)
 
 	def on_trash(self):
+		if (self.comment_type or "Comment") != "Comment":
+			frappe.only_for("System Manager")
+
 		_comments = self.get_comments_from_parent()
 		for c in _comments:
 			if c.get("name")==self.name:

@@ -1,5 +1,9 @@
 {% if(doc) { %}
-	<div class="row">
+	<div class="row" style="background-color: #{%= {
+		"Fold": "ffc",
+		"Section Break": "ddd",
+		"Column Break": "eee"
+	}[doc.fieldtype] || "fff" %}; border-radius: 5px;">
 		<div class="col-sm-4">
 			<p>
 			{% if (doc.fieldtype==="Section Break") { %}<strong>{% } %}

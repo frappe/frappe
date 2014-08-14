@@ -18,19 +18,14 @@ frappe.ui.form.Footer = Class.extend({
 	make: function() {
 		var me = this;
 		this.wrapper = $('<div class="form-footer container">\
-			<!--i class="icon-cut" style="margin-top: -23px; margin-bottom: 23px; \
-				display: block; margin-left: 15px;"></i-->\
-			<div>\
-				<div class="help-area"></div>\
-			</div>\
 			<div class="after-save row">\
 				<div class="col-md-8">\
 					<div class="form-comments">\
-						<h5><i class="icon-comments"></i> '+__("Comments")+'</h5>\
 					</div>\
 				</div>\
 				<div class="col-md-4">\
 					<div class="form-tags">\
+						<div style="height: 30px;"></div>\
 						<h5 style="display: inline-block"><i class="icon-tag"></i> '+__("Tags")+'</h5>\
 						<span class="tag-area"></span><br>\
 					</div><br><br>\
@@ -50,13 +45,14 @@ frappe.ui.form.Footer = Class.extend({
 					</div>\
 				</div>\
 			</div>\
+			<div class="pull-right" style="padding: 7px; background-color: #eee; border-radius: 4px;">\
+				<a onclick="scroll(0,0)"><i class="icon-chevron-up text-muted"></i></a></div>\
 		</div>')
 			.appendTo(this.parent);
 		this.wrapper.find(".btn-save").click(function() {
 			me.frm.save('Save', null, this);
 		})
 
-		this.help_area = this.wrapper.find(".help-area").get(0);
 	},
 	make_tags: function() {
 		this.frm.tags = new frappe.ui.TagEditor({

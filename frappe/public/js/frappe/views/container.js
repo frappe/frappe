@@ -15,7 +15,7 @@ frappe.views.Container = Class.extend({
 		this.pagemargin = 50;
 	},
 	add_page: function(label, onshow, onhide) {
-		var page = $('<div class="content"></div>')
+		var page = $('<div class="content page-container"></div>')
 			.attr('id', "page-" + label)
 			.attr("data-page-route", label)
 			.toggle(false)

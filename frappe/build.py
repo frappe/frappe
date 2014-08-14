@@ -98,7 +98,9 @@ def pack(target, sources, no_compress, verbose):
 	for f in sources:
 		suffix = None
 		if ':' in f: f, suffix = f.split(':')
-		if not os.path.exists(f) or os.path.isdir(f): continue
+		if not os.path.exists(f) or os.path.isdir(f):
+			print "did not find " + f
+			continue
 		timestamps[f] = os.path.getmtime(f)
 		try:
 			with open(f, 'r') as sourcefile:

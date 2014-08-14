@@ -18,7 +18,7 @@ frappe.ui.form.Grid = Class.extend({
 
 		this.wrapper = $('<div>\
 		<div class="form-grid">\
-			<div class="grid-heading-row" style="font-size: 15px; background-color: #f9f9f9;"></div>\
+			<div class="grid-heading-row" style="font-size: 15px;"></div>\
 			<div class="panel-body" style="padding-top: 7px;">\
 				<div class="rows"></div>\
 				<div class="small grid-footer">\
@@ -72,6 +72,7 @@ frappe.ui.form.Grid = Class.extend({
 			}
 		} else {
 			// redraw
+			var _scroll_y = window.scrollY;
 			this.wrapper.find(".grid-row").remove();
 			this.make_head();
 			this.grid_rows = [];
@@ -97,6 +98,7 @@ frappe.ui.form.Grid = Class.extend({
 
 			this.last_display_status = this.display_status;
 			this.last_docname = this.frm.docname;
+			scroll(0, _scroll_y);
 		}
 	},
 	refresh_row: function(docname) {
@@ -349,7 +351,7 @@ frappe.ui.form.GridRow = Class.extend({
 		for(var ci in this.docfields) {
 			var df = this.docfields[ci];
 			if(!df.hidden && df.in_list_view && this.grid.frm.get_perm(df.permlevel, "read")
-				&& !in_list(["Section Break", "Column Break"], df.fieldtype)) {
+				&& !in_list(frappe.model.layout_fields, df.fieldtype)) {
 					var colsize = 2;
 					switch(df.fieldtype) {
 						case "Text":
@@ -421,8 +423,16 @@ frappe.ui.form.GridRow = Class.extend({
 			this.render_form();
 			this.row.toggle(false);
 			this.form_panel.toggle(true);
-			if(this.frm.doc.docstatus===0)
-				this.form_area.find(":input:first").focus();
+			if(this.frm.doc.docstatus===0) {
+				var first = this.form_area.find(":input:first");
+				if(first.length && first.attr("data-fieldtype")!="Date") {
+					try {
+						first.get(0).focus();
+					} catch(e) {
+						console.log("Dialog: unable to focus on first input: " + e);
+					}
+				}
+			}
 		} else {
 			if(this.form_panel)
 				this.form_panel.toggle(false);
@@ -558,7 +568,7 @@ frappe.ui.form.GridRow = Class.extend({
 		var visible_columns = $.map(this.docfields, function(df) {
 			if(df.print_hide || df.hidden
 				|| in_list(blacklist, df.fieldname)
-				|| in_list(["Section Break", "Column Break"], df.fieldtype))
+				|| in_list(frappe.model.layout_fields, df.fieldtype))
 				return null;
 			else
 				return df;

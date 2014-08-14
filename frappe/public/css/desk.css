@@ -66,8 +66,16 @@ div#freeze {
 	text-align: center;
 }
 
-/* listing */
 
+.app-page {
+	border: 1px solid #c7c7c7;
+	border-radius: 4px;
+	margin-top: 15px;
+	padding: 0px;
+	overflow: hidden;
+}
+
+/* listing */
 .show_filters {
 	padding-top: 15px;
 	padding-bottom: 15px;
@@ -107,19 +115,21 @@ div#freeze {
 	margin-top: 3px;
 }
 
-.icon-in-circle {
-	color: #b7b7b7;
-	background-color: white;
-	border-radius:50%;
-	text-align: center;
-	width: 20px;
-	height: 20px;
-	font-size: 20px;
-	display: inline-block;
-}
-
 .form-layout {
 	/*margin-top: -15px;*/
+}
+
+.form-print-wrapper {
+	margin: 0px -15px -15px -15px;
+	background-color: #ddd;
+	padding: 0px 15px 30px 15px;
+}
+
+.form-page-header {
+	border-top: 1px solid #eee;
+	margin: 15px -15px -15px -15px;
+	padding: 10px 15px;
+	background-color: #f9f9f9;
 }
 
 .form-control {
@@ -262,6 +272,43 @@ div#freeze {
 }
 /* form */
 
+.comment-connector {
+	height: 30px;
+	margin-left: 70px;
+	border-left: 1px solid #d7d7d7;
+}
+
+.comment-body {
+	border-left: 1px solid #d7d7d7;
+	padding: 5px 15px 15px 30px;
+}
+
+.comment-body p {
+	margin-bottom: 5px;
+}
+
+.comment-icon {
+	margin-right: -14px !important;
+	margin-left: 15px;
+	z-index: 1;
+}
+
+.icon-timeline {
+	color: #fff;
+	height: 29px;
+	width: 29px;
+	padding: 8px 9px 7px 9px;
+	border-radius: 50%;
+	background-color: #d7d7d7;
+	text-align: center;
+	display: inline-block;
+	float: left;
+}
+
+.comment {
+	margin-top: 0px;
+}
+
 .frappe-editor {
 	cursor: text;
 }
@@ -295,7 +342,8 @@ ul.linked-with-list li {
 
 .grid-heading-row {
 	padding: 8px 15px;
-	border-bottom: 1px solid #dddddd;
+	border-bottom: 1px solid #c7c7c7;
+	background-color: #f9f9f9;
 	font-weight: bold;
 }
 
@@ -303,11 +351,19 @@ ul.linked-with-list li {
 	padding-bottom: 5px;
 	margin-bottom: 5px;
 	margin-top: 8px;
-	border-bottom: 1px solid #dddddd;
+	border-bottom: 1px solid #c7c7c7;
 }
 
 .rows .grid-row .data-row, .rows .grid-row .panel-heading {
 	cursor: pointer;
+}
+
+.data-row {
+	margin-left: -20px;
+}
+
+.row-index {
+	text-align: right;
 }
 
 .grid-row .panel {
@@ -402,6 +458,7 @@ ul.linked-with-list li {
 .form-group {
 	margin-bottom: 7px;
 }
+
 
 /* hack */
 .ui-datepicker { z-index: 9999999 !important; }

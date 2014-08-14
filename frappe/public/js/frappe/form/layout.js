@@ -2,14 +2,21 @@
 // MIT License. See license.txt
 frappe.provide("frappe.ui.form");
 
+// 	- page
+//		- section
+//			- column
+//		- section
+
+
 frappe.ui.form.Layout = Class.extend({
 	init: function(opts) {
 		this.views = {};
+		this.pages = [];
 		this.sections = [];
 		this.fields_list = [];
 		this.fields_dict = {};
 		this.labelled_section_count = 0;
-		this.ignore_types = ["Section Break", "Column Break"];
+		this.ignore_types = frappe.model.layout_fields;
 
 		$.extend(this, opts);
 	},
@@ -40,6 +47,9 @@ frappe.ui.form.Layout = Class.extend({
 	refresh: function(doc) {
 		var me = this;
 		if(doc) this.doc = doc;
+
+		this.wrapper.find(".empty-form-alert").remove();
+
 		$.each(this.fields_list, function(i, fieldobj) {
 			if(me.doc) {
 				fieldobj.doc = me.doc;
@@ -54,9 +64,19 @@ frappe.ui.form.Layout = Class.extend({
 		});
 		if(this.frm)
 			$(this.frm.wrapper).trigger("refresh-fields");
+
+			console.log(this.wrapper.find(".frappe-control:visible"));
+
+		setTimeout(function() {
+			if(!(me.wrapper.find(".frappe-control:visible").length)) {
+				$('<div class="alert alert-info empty-form-alert">'+__("This form does not have any input")+'</div>')
+				.appendTo(me.wrapper)
+			}
+		}, 100);
 	},
 	render: function() {
 		var me = this;
+
 
 		this.section = null;
 		this.column = null;
@@ -65,6 +85,9 @@ frappe.ui.form.Layout = Class.extend({
 		}
 		$.each(this.fields, function(i, df) {
 			switch(df.fieldtype) {
+				case "Fold":
+					me.make_page(df);
+					break;
 				case "Section Break":
 					me.make_section(df);
 					break;
@@ -75,6 +98,7 @@ frappe.ui.form.Layout = Class.extend({
 					me.make_field(df);
 			}
 		});
+
 	},
 	make_column: function(df) {
 		this.column = $('<div class="form-column">\
@@ -91,6 +115,7 @@ frappe.ui.form.Layout = Class.extend({
 			.addClass("col-md-" + colspan);
 	},
 	make_field: function(df, colspan) {
+		!this.section && this.make_section();
 		!this.column && this.make_column();
 		var fieldobj = make_field(df, this.doctype, this.column.get(0), this.frm);
 		fieldobj.layout = this;
@@ -100,12 +125,45 @@ frappe.ui.form.Layout = Class.extend({
 			fieldobj.perm = this.frm.perm;
 		}
 	},
+	make_page: function(df) {
+		var me = this,
+			head = $('<div class="form-page-header">\
+				<button class="btn btn-default btn-primary btn-fold">\
+					<span class="octicon octicon-fold"></span>\
+					<span class="text">'+__("View Details")+'</span>\
+				</button>\
+			</div>').appendTo(this.wrapper);
+
+		this.page = $('<div class="form-page hide"></div>').appendTo(this.wrapper);
+
+		this.fold_btn = head.find(".btn-fold").on("click", function() {
+			var page = $(this).parent().next();
+			if(page.hasClass("hide")) {
+				$(this).removeClass("btn-primary").find(".text").html(__("Hide Details"));
+				page.removeClass("hide");
+				me.folded = false;
+			} else {
+				$(this).addClass("btn-primary").find(".text").html(__("View Details"));
+				page.addClass("hide");
+				me.folded = true;
+			}
+		});
+
+		this.section = null;
+		this.folded = true;
+	},
+
+	unfold: function() {
+		this.fold_btn.trigger('click');
+	},
+
 	make_section: function(df) {
-		if(this.section) {
-			//$("<hr>").appendTo(this.wrapper);
+		if(!this.page) {
+			this.page = $('<div class="form-page"></div>').appendTo(this.wrapper);
 		}
+
 		this.section = $('<div class="row">')
-			.appendTo(this.wrapper);
+			.appendTo(this.page);
 		this.sections.push(this.section);
 
 		var section = this.section[0];
@@ -114,7 +172,7 @@ frappe.ui.form.Layout = Class.extend({
 			if(df.label) {
 				this.labelled_section_count++;
 				var head = $('<h4 class="col-md-12">'
-					+ (df.options ? (' <i class="icon-in-circle '+df.options+'"></i> ') : "")
+					+ (df.options ? (' <i class="icon-fixed-width text-muted '+df.options+'"></i> ') : "")
 					+ '<span class="section-count-label">' + __(this.labelled_section_count) + "</span>. "
 					+ __(df.label)
 					+ "</h4>")

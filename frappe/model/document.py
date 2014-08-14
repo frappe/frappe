@@ -428,9 +428,11 @@ class Document(BaseDocument):
 		elif self._action=="submit":
 			self.run_method("on_update")
 			self.run_method("on_submit")
+			self.add_comment("Submitted")
 		elif self._action=="cancel":
 			self.run_method("on_cancel")
 			self.check_no_back_links_exist()
+			self.add_comment("Cancelled")
 		elif self._action=="update_after_submit":
 			self.run_method("on_update_after_submit")
 
@@ -564,3 +566,14 @@ class Document(BaseDocument):
 
 	def get_url(self):
 		return "/desk#Form/{doctype}/{name}".format(doctype=self.doctype, name=self.name)
+
+	def add_comment(self, comment_type, text=None):
+		comment = frappe.get_doc({
+			"doctype":"Comment",
+			"comment_by": frappe.session.user,
+			"comment_type": comment_type,
+			"comment_doctype": self.doctype,
+			"comment_docname": self.name,
+			"comment": text or comment_type
+		}).insert(ignore_permissions=True)
+		return comment

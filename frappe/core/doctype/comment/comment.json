@@ -17,6 +17,12 @@
    "search_index": 0
   }, 
   {
+   "fieldname": "comment_type", 
+   "fieldtype": "Data", 
+   "label": "Comment Type", 
+   "permlevel": 0
+  }, 
+  {
    "fieldname": "comment_by", 
    "fieldtype": "Data", 
    "in_list_view": 1, 
@@ -100,7 +106,7 @@
  "icon": "icon-comments", 
  "idx": 1, 
  "issingle": 0, 
- "modified": "2014-07-14 12:14:08.315217", 
+ "modified": "2014-08-11 05:43:35.647132", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Comment", 

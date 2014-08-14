@@ -1,11 +1,11 @@
 // Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
-// MIT License. See license.txt 
+// MIT License. See license.txt
 
 frappe.ui.form.States = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
 		this.state_fieldname = frappe.workflow.get_state_fieldname(this.frm.doctype);
-		
+
 		// no workflow?
 		if(!this.state_fieldname)
 			return;
@@ -17,13 +17,13 @@ frappe.ui.form.States = Class.extend({
 			me.refresh();
 		})
 	},
-	
+
 	make: function() {
 		this.parent = this.frm.appframe.parent
 			.find(".workflow-button-area")
 			.empty()
 			.removeClass("hide");
-		
+
 		this.workflow_button = $('<button class="btn btn-default dropdown-toggle" data-toggle="dropdown">\
 			<i class="icon-small"></i> <span class="state-text"></span>\
 			<span class="caret"></span></button>')
@@ -44,13 +44,13 @@ frappe.ui.form.States = Class.extend({
 				title: "Workflow: "
 					+ frappe.workflow.workflows[me.frm.doctype].name
 			})
-			var next_html = $.map(frappe.workflow.get_transitions(me.frm.doctype, state), 
-				function(d) { 
+			var next_html = $.map(frappe.workflow.get_transitions(me.frm.doctype, state),
+				function(d) {
 					return d.action.bold() + __(" by Role ") + d.allowed;
 				}).join(", ") || __("None: End of Workflow").bold();
-			
+
 			$(d.body).html("<p>"+__("Current status")+": " + state.bold() + "</p>"
-				+ "<p>"+__("Document is only editable by users of role")+": " 
+				+ "<p>"+__("Document is only editable by users of role")+": "
 					+ frappe.workflow.get_document_state(me.frm.doctype,
 						state).allow_edit.bold() + "</p>"
 				+ "<p>"+__("Next actions")+": "+ next_html +"</p>"
@@ -61,24 +61,24 @@ frappe.ui.form.States = Class.extend({
 			d.show();
 		});
 	},
-	
+
 	refresh: function() {
 		// hide if its not yet saved
 		if(this.frm.doc.__islocal) {
 			this.set_default_state();
-			this.parent.toggle(false);
+			this.parent && this.parent.toggle(false);
 			return;
 		}
 
 		this.make();
-		
+
 		// state text
 		var state = this.get_state();
-		
+
 		if(state) {
 			// show current state on the button
 			this.workflow_button.find(".state-text").text(state);
-			
+
 			var state_doc = frappe.get_doc("Workflow State", state);
 
 			if (state_doc) {
@@ -102,7 +102,7 @@ frappe.ui.form.States = Class.extend({
 			}
 		}
 	},
-	
+
 	show_actions: function(state) {
 		var $ul = this.dropdown;
 		$ul.empty();
@@ -110,10 +110,10 @@ frappe.ui.form.States = Class.extend({
 		$.each(frappe.workflow.get_transitions(this.frm.doctype, state), function(i, d) {
 			if(in_list(user_roles, d.allowed)) {
 				d.icon = frappe.get_list("Workflow State", d.next_state).icon;
-				
+
 				$(repl('<li><a href="#" data-action="%(action)s">\
 					<i class="icon icon-%(icon)s"></i> %(action)s</a></li>', d))
-					.appendTo($ul);		
+					.appendTo($ul);
 			}
 		});
 
@@ -130,14 +130,14 @@ frappe.ui.form.States = Class.extend({
 			this.frm.set_value(this.state_fieldname, default_state);
 		}
 	},
-	
+
 	get_state: function() {
 		if(!this.frm.doc[this.state_fieldname]) {
 			this.set_default_state();
-		}			
+		}
 		return this.frm.doc[this.state_fieldname];
 	},
-	
+
 	bind_action: function() {
 		var me = this;
 		this.dropdown.on("click", "[data-action]", function() {
@@ -147,7 +147,7 @@ frappe.ui.form.States = Class.extend({
 
 			// set new state
 			var next_state = frappe.workflow.get_next_state(me.frm.doctype,
-					me.frm.doc[me.state_fieldname], action);			
+					me.frm.doc[me.state_fieldname], action);
 			me.frm.doc[me.state_fieldname] = next_state;
 			var new_state = frappe.workflow.get_document_state(me.frm.doctype, next_state);
 			var new_docstatus = cint(new_state.doc_status);
@@ -164,26 +164,30 @@ frappe.ui.form.States = Class.extend({
 				me.frm.refresh();
 			}
 
+			// success - add a comment
+			var success = function() {
+				me.frm.comments.insert_comment("Workflow", next_state);
+			}
 			if(new_docstatus==1 && me.frm.doc.docstatus==0) {
-				me.frm.savesubmit(null, on_error);
+				me.frm.savesubmit(null, success, on_error);
 			} else if(new_docstatus==0 && me.frm.doc.docstatus==0) {
-				me.frm.save("Save", null, null, on_error);
+				me.frm.save("Save", success, null, on_error);
 			} else if(new_docstatus==1 && me.frm.doc.docstatus==1) {
-				me.frm.save("Update", null, null, on_error);
+				me.frm.save("Update", success, null, on_error);
 			} else if(new_docstatus==2 && me.frm.doc.docstatus==1) {
-				me.frm.savecancel(null, on_error);
+				me.frm.savecancel(null, success, on_error);
 			} else {
-				msgprint(__("Document Status transition from ") + me.frm.doc.docstatus + " " 
-					+ __("to") + 
+				msgprint(__("Document Status transition from ") + me.frm.doc.docstatus + " "
+					+ __("to") +
 					new_docstatus + " " + __("is not allowed."));
 				msgprint(__("Document Status transition from {0} to {1} is not allowed", [me.frm.doc.docstatus, new_docstatus]));
 				return false;
 			}
-			
+
 			// hide dropdown
 			me.workflow_button.dropdown('toggle');
-			
+
 			return false;
 		})
-	}	
+	}
 });
