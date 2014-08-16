@@ -88,7 +88,7 @@ def make_boilerplate(template, doc, opts=None):
 			opts = {}
 
 		with open(target_file_path, 'w') as target:
-			with open(os.path.join(get_module_path("core"), "doctype", doc.doctype,
+			with open(os.path.join(get_module_path("core"), "doctype", scrub(doc.doctype),
 				"boilerplate", template), 'r') as source:
 				target.write(source.read().format(app_publisher=app_publisher,
 					classname=doc.name.replace(" ", ""), doctype=doc.name, **opts))
