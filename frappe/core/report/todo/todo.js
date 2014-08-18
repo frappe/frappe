@@ -1,1 +1,0 @@
-__("Test") // for test case
