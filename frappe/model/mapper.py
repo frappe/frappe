@@ -87,13 +87,14 @@ def map_fields(source_doc, target_doc, table_map, source_parent):
 			if val not in (None, ""):
 				target_doc.set(df.fieldname, val)
 
-			# map link fields having options == source doctype
-			elif df.fieldtype == "Link" and not target_doc.get(df.fieldname):
-				if df.options == source_doc.doctype:
-					target_doc.set(df.fieldname, source_doc.name)
+			elif df.fieldtype == "Link":
+				if not target_doc.get(df.fieldname):
+					# map link fields having options == source doctype
+					if df.options == source_doc.doctype:
+						target_doc.set(df.fieldname, source_doc.name)
 
-				elif source_parent and df.options == source_parent.doctype:
-					target_doc.set(df.fieldname, source_parent.name)
+					elif source_parent and df.options == source_parent.doctype:
+						target_doc.set(df.fieldname, source_parent.name)
 
 	# map other fields
 	field_map = table_map.get("field_map")
@@ -113,6 +114,26 @@ def map_fields(source_doc, target_doc, table_map, source_parent):
 	# map idx
 	if source_doc.idx:
 		target_doc.idx = source_doc.idx
+
+	# add fetch
+	for df in target_doc.meta.get("fields", {"fieldtype": "Link"}):
+		if target_doc.get(df.fieldname):
+			map_fetch_fields(target_doc, df, no_copy_fields)
+
+def map_fetch_fields(target_doc, df, no_copy_fields):
+	linked_doc = frappe.get_doc(df.options, target_doc.get(df.fieldname))
+
+	# options should be like "link_fieldname.fieldname_in_liked_doc"
+	for fetch_df in target_doc.meta.get("fields", {"options": "^{0}.".format(df.fieldname)}):
+		if not (fetch_df.fieldtype == "Read Only" or fetch_df.read_only):
+			continue
+
+		if not target_doc.get(fetch_df.fieldname) and fetch_df.fieldname not in no_copy_fields:
+			source_fieldname = fetch_df.options.split(".")[1]
+			val = linked_doc.get(source_fieldname)
+
+			if val not in (None, ""):
+				target_doc.set(fetch_df.fieldname, val)
 
 def map_child_doc(source_d, target_parent, table_map, source_parent=None):
 	target_child_doctype = table_map["doctype"]
