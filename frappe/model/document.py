@@ -118,6 +118,9 @@ class Document(BaseDocument):
 		raise frappe.PermissionError("No permission to {} {} {}".format(perm_type, self.doctype, self.name or ""))
 
 	def insert(self, ignore_permissions=None):
+		if getattr(self, "in_print", False):
+			return
+
 		if ignore_permissions!=None:
 			self.ignore_permissions = ignore_permissions
 
@@ -156,6 +159,9 @@ class Document(BaseDocument):
 		return self
 
 	def save(self, ignore_permissions=None):
+		if getattr(self, "in_print", False):
+			return
+
 		if ignore_permissions!=None:
 			self.ignore_permissions = ignore_permissions
 
