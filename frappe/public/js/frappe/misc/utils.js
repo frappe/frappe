@@ -170,8 +170,8 @@ frappe.utils = {
 	},
 
 	sort: function(list, key, compare_type, reverse) {
-		if(list.length < 2)
-			return list;
+		if(!list || list.length < 2)
+			return list || [];
 
 		var sort_fn = {
 			"string": function(a, b) {

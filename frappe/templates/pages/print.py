@@ -29,7 +29,6 @@ def get_context(context):
 		}
 
 	doc = frappe.get_doc(frappe.form_dict.doctype, frappe.form_dict.name)
-
 	meta = frappe.get_meta(doc.doctype)
 
 	return {
@@ -54,6 +53,8 @@ def get_html(doc, name=None, print_format=None, meta=None,
 
 	if isinstance(doc, basestring):
 		doc = frappe.get_doc(json.loads(doc))
+
+	doc.in_print = True
 
 	validate_print_permission(doc)
 
