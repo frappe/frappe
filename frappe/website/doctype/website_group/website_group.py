@@ -7,13 +7,10 @@ from frappe.website.website_generator import WebsiteGenerator
 from frappe.website.render import can_cache
 from frappe.templates.website_group.forum import get_post_list_html
 
-no_cache = True
-template = "templates/generators/website_group.html"
-
 class WebsiteGroup(WebsiteGenerator):
-	def get_page_title(self):
-		return self.group_title
-
+	page_title_field = "name"
+	no_cache = True
+	template = "templates/generators/website_group.html"
 	def on_update(self):
 		WebsiteGenerator.on_update(self)
 		clear_cache(website_group=self.name)

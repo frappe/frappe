@@ -115,7 +115,7 @@ class sync(object):
 		else:
 			# Route does not exist, new page
 			page = self.get_web_page_for_insert(route, fpath, page_name,
-				priority, parent_website_route)
+				priority, parent_web_page)
 			self.to_insert.append(page)
 
 		self.synced.append(route)
@@ -149,7 +149,7 @@ class sync(object):
 			"idx": priority,
 			"page_name": page_name,
 			"published": 1,
-			"parent_website_route": parent_website_route
+			"parent_web_page": parent_web_page
 		})
 
 		page.fpath = fpath

@@ -4,6 +4,14 @@
 from __future__ import unicode_literals
 import frappe, re
 
+def delete_page_cache(path):
+	if not path:
+		path = ""
+	cache = frappe.cache()
+	cache.delete_value("page:" + path)
+	cache.delete_value("page_context:" + path)
+	cache.delete_value("sitemap_options:" + path)
+
 def scrub_relative_urls(html):
 	"""prepend a slash before a relative url"""
 	html = re.sub("""(src|href)[^\w'"]*['"](?!http|ftp|/|#|%|{)([^'" >]+)['"]""", '\g<1> = "/\g<2>"', html)

@@ -9,15 +9,14 @@ from frappe.website.website_generator import WebsiteGenerator
 from frappe.website.render import clear_cache
 from frappe.utils import today, cint, global_date_format, get_fullname
 from frappe.website.utils import find_first_image, get_comment_list
-
-order_by = "published_on desc"
-condition_field = "published"
-template = "templates/generators/blog_post.html"
+from frappe.templates.pages.blog import get_children
 
 class BlogPost(WebsiteGenerator):
+	condition_field = "published"
+	template = "templates/generators/blog_post.html"
 	save_versions = True
-	def get_page_title(self):
-		return self.title
+	order_by = "published_on desc"
+	parent_website_route_field = "blog_category"
 
 	def validate(self):
 		super(BlogPost, self).validate()
@@ -31,12 +30,6 @@ class BlogPost(WebsiteGenerator):
 
 		if self.published and not self.published_on:
 			self.published_on = today()
-
-		# make sure route for category exists
-		self.parent_website_route = self.get_category_route()
-		if not self.parent_website_route:
-			frappe.get_doc("Blog Category", self.blog_category).save(ignore_permissions=True)
-			self.parent_website_route = self.get_category_route()
 
 		# update posts
 		frappe.db.sql("""update tabBlogger set posts=(select count(*) from `tabBlog Post`
@@ -81,6 +74,9 @@ class BlogPost(WebsiteGenerator):
 
 		return context
 
+	def get_children(self):
+		return get_children()
+
 def clear_blog_cache():
 	for blog in frappe.db.sql_list("""select page_name from
 		`tabBlog Post` where ifnull(published,0)=1"""):
@@ -97,18 +93,18 @@ def get_blog_list(start=0, by=None, category=None):
 		condition += " and t1.blog_category='%s'" % category.replace("'", "\'")
 	query = """\
 		select
-			t1.title, t1.name, t3.name as page_name, t1.published_on as creation,
+			t1.title, t1.name,
+				concat(t1.parent_website_route, "/", t1.page_name) as page_name,
+				t1.published_on as creation,
 				day(t1.published_on) as day, monthname(t1.published_on) as month,
 				year(t1.published_on) as year,
 				ifnull(t1.blog_intro, t1.content) as content,
 				t2.full_name, t2.avatar, t1.blogger,
 				(select count(name) from `tabComment` where
 					comment_doctype='Blog Post' and comment_docname=t1.name) as comments
-		from `tabBlog Post` t1, `tabBlogger` t2, `tabWebsite Route` t3
+		from `tabBlog Post` t1, `tabBlogger` t2
 		where ifnull(t1.published,0)=1
 		and t1.blogger = t2.name
-		and t3.docname = t1.name
-		and t3.ref_doctype = "Blog Post"
 		%(condition)s
 		order by published_on desc, name asc
 		limit %(start)s, 20""" % {"start": start, "condition": condition}

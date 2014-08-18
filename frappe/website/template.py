@@ -10,8 +10,6 @@ from jinja2.utils import concat
 from jinja2 import meta
 import re
 
-from sitemap import get_next
-
 def render_blocks(context):
 	"""returns a dict of block name and its rendered content"""
 
@@ -66,7 +64,7 @@ def render_blocks(context):
 		out["content"] = out["content"].replace("{index}", html)
 
 	if "{next}" in out.get("content", ""):
-		next_item = get_next(context["pathname"])
+		next_item = context.get_next()
 		if next_item:
 			if next_item.name[0]!="/": next_item.name = "/" + next_item.name
 			html = '''<p><br><a href="{name}" class="btn btn-primary">

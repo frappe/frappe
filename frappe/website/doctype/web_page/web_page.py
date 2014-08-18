@@ -8,11 +8,11 @@ from frappe.website.website_generator import WebsiteGenerator
 from frappe.website.doctype.website_slideshow.website_slideshow import get_slideshow
 from frappe.website.utils import find_first_image, get_comment_list
 
-template = "templates/generators/web_page.html"
-condition_field = "published"
 
 class WebPage(WebsiteGenerator):
 	save_versions = True
+	template = "templates/generators/web_page.html"
+	condition_field = "published"
 	def get_context(self, context):
 		# if static page, get static content
 		if context.slideshow:

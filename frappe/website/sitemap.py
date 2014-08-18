@@ -2,9 +2,10 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-import frappe
+import frappe, os
 
-from frappe.website.utils import scrub_relative_urls, get_home_page, can_cache
+from frappe.website.utils import can_cache, delete_page_cache
+from frappe.model.document import get_controller
 
 def get_sitemap_options(path):
 	sitemap_options = None
@@ -18,11 +19,12 @@ def get_sitemap_options(path):
 		if can_cache(sitemap_options.no_cache):
 			frappe.cache().set_value(cache_key, sitemap_options)
 
-	return frappe._dict(sitemap_options)
+	return sitemap_options
 
 def build_sitemap_options(path):
-	sitemap_options = frappe._dict(frappe.get_doc("Website Route", path).as_dict())
-	home_page = get_home_page()
+	sitemap_options = resolve_route(path)
+	if not sitemap_options:
+		raise frappe.DoesNotExistError
 
 	if sitemap_options.controller:
 		module = frappe.get_module(sitemap_options.controller)
@@ -35,20 +37,7 @@ def build_sitemap_options(path):
 
 	sitemap_options.doctype = sitemap_options.ref_doctype
 	sitemap_options.title = sitemap_options.page_title
-	sitemap_options.pathname = sitemap_options.name
-
-	# establish hierarchy
-	sitemap_options.parents = frappe.db.sql("""select name, page_title from
-		`tabWebsite Route`
-		where lft < %s and rgt > %s
-		order by lft asc""", (sitemap_options.lft, sitemap_options.rgt), as_dict=True)
-
-	if not sitemap_options.no_sidebar:
-		sitemap_options.children = get_route_children(sitemap_options.pathname, home_page)
-
-		if not sitemap_options.children and sitemap_options.parent_website_route \
-			and sitemap_options.parent_website_route!=home_page:
-			sitemap_options.children = get_route_children(sitemap_options.parent_website_route, home_page)
+	sitemap_options.pathname = path
 
 	# determine templates to be used
 	if not sitemap_options.base_template_path:
@@ -57,43 +46,102 @@ def build_sitemap_options(path):
 
 	return sitemap_options
 
-def get_route_children(pathname, home_page=None):
-	if not home_page:
-		home_page = get_home_page()
+def resolve_route(path):
+	route = get_page_route(path)
+	if route:
+		return route
 
-	if pathname==home_page or not pathname:
-		children = frappe.db.sql("""select url as name, label as page_title,
-			1 as public_read from `tabTop Bar Item` where parentfield='sidebar_items'
-			order by idx""",
-			as_dict=True)
-	else:
-		children = frappe.db.sql("""select * from `tabWebsite Route`
-			where ifnull(parent_website_route,'')=%s
-			and public_read=1
-			order by idx, page_title asc""", pathname, as_dict=True)
+	return get_generator_route(path)
 
-		if children:
-			# if children are from generator and sort order is specified, then get that condition
-			module = frappe.get_module(children[0].controller)
-			if hasattr(module, "order_by"):
-				children = frappe.db.sql("""select t1.* from
-					`tabWebsite Route` t1, `tab{ref_doctype}` t2
-					where ifnull(t1.parent_website_route,'')=%s
-					and t1.public_read=1
-					and t1.docname = t2.name
-					order by {order_by}""".format(
-						ref_doctype = children[0].ref_doctype,
-						order_by = module.order_by),
-						pathname, as_dict=True)
+def get_page_route(path):
+	found = filter(lambda p: p.page_name==path, get_pages())
+	return found[0] if found else None
 
-			children = [frappe.get_doc("Website Route", pathname)] + children
+def get_generator_route(path):
+	def get_route(doctype, condition_field, order_by):
+		condition = []
+		if condition_field:
+			condition.append("ifnull({0}, 0)=1".format(condition_field))
+		meta = frappe.get_meta(doctype)
 
-	return children
+		if meta.get_field("parent_website_route"):
+			condition.append("""concat(ifnull(parent_website_route, ""),
+				if(ifnull(parent_website_route, "")="", "", "/"), page_name) = %s""")
+		else:
+			condition.append("page_name = %s")
 
-def get_next(route):
-	siblings = get_route_children(frappe.db.get_value("Website Route",
-		route, "parent_website_route"))
-	for i, r in enumerate(siblings):
-		if i < len(siblings) - 1:
-			if route==r.name:
-				return siblings[i+1]
+		g = frappe.db.sql("""select name from `tab{0}` where {1}
+			 order by {2}""".format(doctype, " and ".join(condition), order_by), path)
+
+		if g:
+			return frappe.get_doc(doctype, g[0][0]).get_website_route()
+
+	return process_generators(get_route)
+
+def clear_sitemap():
+	for p in get_pages():
+		delete_page_cache(p.name)
+
+	def clear_generators(doctype, condition_field, order_by):
+		meta = frappe.get_meta(doctype)
+		query = "select page_name from `tab{0}`"
+		if meta.get_field("parent_website_route"):
+			query = """select concat(ifnull(parent_website_route, ""),
+				if(ifnull(parent_website_route, "")="", "", "/"), page_name) from `tab{0}`"""
+		for route in frappe.db.sql_list(query.format(doctype)):
+			if route:
+				delete_page_cache(route)
+
+	process_generators(clear_generators)
+
+def process_generators(func):
+	for app in frappe.get_installed_apps():
+		for doctype in frappe.get_hooks("website_generators", app_name = app):
+			order_by = "name asc"
+			condition_field = None
+			controller = get_controller(doctype)
+
+			if hasattr(controller, "condition_field"):
+				condition_field = controller.condition_field
+			if hasattr(controller, "order_by"):
+				order_by = controller.order_by
+
+			val = func(doctype, condition_field, order_by)
+			if val:
+				return val
+
+def get_pages():
+	pages = frappe.cache().get_value("_website_pages")
+	if not pages:
+		pages = []
+		for app in frappe.get_installed_apps():
+			app_path = frappe.get_app_path(app)
+			path = os.path.join(app_path, "templates", "pages")
+			if os.path.exists(path):
+				for fname in os.listdir(path):
+					fname = frappe.utils.cstr(fname)
+					page_name, extn = fname.rsplit(".", 1)
+					if extn in ("html", "xml", "js", "css"):
+						route_page_name = page_name if extn=="html" else fname
+
+						# add website route
+						route = frappe._dict()
+						route.page_or_generator = "Page"
+						route.template = os.path.relpath(os.path.join(path, fname), app_path)
+						route.name = route.page_name = route_page_name
+						route.public_read = 1
+						controller_path = os.path.join(path, page_name + ".py")
+
+						if os.path.exists(controller_path):
+							controller = app + "." + os.path.relpath(controller_path,
+								app_path).replace(os.path.sep, ".")[:-3]
+							route.controller = controller
+							try:
+								route.page_title = frappe.get_attr(controller + "." + "page_title")
+							except AttributeError:
+								pass
+
+						pages.append(route)
+
+		frappe.cache().set_value("_website_pages", pages)
+	return pages

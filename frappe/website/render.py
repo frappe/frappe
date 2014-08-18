@@ -8,8 +8,9 @@ import mimetypes, json
 from werkzeug.wrappers import Response
 
 from frappe.website.context import get_context
-from frappe.website.utils import scrub_relative_urls, get_home_page, can_cache
+from frappe.website.utils import scrub_relative_urls, get_home_page, can_cache, delete_page_cache
 from frappe.website.permissions import clear_permissions
+from frappe.website.sitemap import clear_sitemap
 
 class PageNotFoundError(Exception): pass
 
@@ -165,22 +166,11 @@ def clear_cache(path=None):
 
 	if path:
 		delete_page_cache(path)
-		for p in frappe.db.sql_list('''select name from
-			`tabWebsite Route` where name like "{0}/%"'''.format(path.replace('"', '\"'))):
-			delete_page_cache(p)
 	else:
-		for p in frappe.db.sql_list("""select name from `tabWebsite Route`"""):
-			if p is not None:
-				delete_page_cache(p)
-
+		clear_sitemap()
 		frappe.clear_cache("Guest")
 		clear_permissions()
 
 	for method in frappe.get_hooks("website_clear_cache"):
 		frappe.get_attr(method)(path)
 
-def delete_page_cache(path):
-	cache = frappe.cache()
-	cache.delete_value("page:" + path)
-	cache.delete_value("page_context:" + path)
-	cache.delete_value("sitemap_options:" + path)

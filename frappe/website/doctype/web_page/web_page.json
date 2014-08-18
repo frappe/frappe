@@ -30,8 +30,16 @@
    "read_only": 0
   }, 
   {
-   "fieldname": "parent_website_route", 
+   "fieldname": "parent_web_page", 
    "fieldtype": "Link", 
+   "label": "Parent Web Page", 
+   "options": "Web Page", 
+   "permlevel": 0
+  }, 
+  {
+   "fieldname": "parent_website_route", 
+   "fieldtype": "Read Only", 
+   "hidden": 1, 
    "label": "Parent Website Page", 
    "options": "Website Route", 
    "permlevel": 0
@@ -157,7 +165,7 @@
  "icon": "icon-file-alt", 
  "idx": 1, 
  "max_attachments": 20, 
- "modified": "2014-08-05 04:54:49.018407", 
+ "modified": "2014-08-18 08:10:03.220821", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Web Page", 

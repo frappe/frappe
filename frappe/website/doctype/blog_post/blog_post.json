@@ -50,10 +50,10 @@
   }, 
   {
    "fieldname": "parent_website_route", 
-   "fieldtype": "Link", 
+   "fieldtype": "Read Only", 
    "hidden": 1, 
    "label": "Parent Website Route", 
-   "options": "Website Route", 
+   "options": "", 
    "permlevel": 0, 
    "read_only": 1
   }, 
@@ -98,7 +98,7 @@
  "icon": "icon-quote-left", 
  "idx": 1, 
  "max_attachments": 5, 
- "modified": "2014-08-05 04:54:26.723053", 
+ "modified": "2014-08-18 07:08:56.343029", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Blog Post", 

@@ -160,7 +160,7 @@ def get_traceback():
 
 def errprint(msg):
 	from utils import cstr
-	if not request:
+	if not request or (not "cmd" in local.form_dict):
 		print cstr(msg)
 
 	error_log.append(cstr(msg))
