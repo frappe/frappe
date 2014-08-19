@@ -585,3 +585,10 @@ def quote_urls(html):
 	return re.sub('(href|src){1}([\s]*=[\s]*[\'"]?)((?:http)[^\'">]+)([\'"]?)',
 		_quote_url, html)
 
+def unique(seq):
+	"""use this instead of list(set()) to preserve order of the original list.
+	Thanks to Stackoverflow: http://stackoverflow.com/questions/480214/how-do-you-remove-duplicates-from-a-list-in-python-whilst-preserving-order"""
+
+	seen = set()
+	seen_add = seen.add
+	return [ x for x in seq if not (x in seen or seen_add(x)) ]
