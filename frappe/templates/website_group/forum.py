@@ -12,9 +12,8 @@ def get_post_list_html(group, view, limit_start=0, limit_length=20):
 
 	# verify permission for paging
 	if frappe.local.form_dict.cmd == "get_post_list_html":
-		pathname = frappe.db.get_value("Website Route",
-			{"ref_doctype": "Website Group", "docname": group})
-		access = get_access(pathname)
+		doc = frappe.get_doc("Website Group", group)
+		access = get_access(doc, doc.get_route())
 
 		if not access.get("read"):
 			return frappe.PermissionError
@@ -57,7 +56,7 @@ def get_post_list_html(group, view, limit_start=0, limit_length=20):
 		from `tabPost` p, `tabUser` pr
 		where p.website_group = %s and pr.name = p.owner and ifnull(p.parent_post, '')=''
 		{conditions} order by {order_by} limit %s, %s""".format(conditions=conditions, order_by=order_by),
-		tuple(values), as_dict=True, debug=True)
+		tuple(values), as_dict=True)
 
 	context = { "posts": posts, "limit_start": limit_start, "view": get_views(group_type)[view] }
 

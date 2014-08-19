@@ -72,10 +72,9 @@ class BlogPost(WebsiteGenerator):
 
 		context.comment_list = get_comment_list(self.doctype, self.name)
 
-		return context
+		context.children = get_children()
 
-	def get_children(self):
-		return get_children()
+		return context
 
 def clear_blog_cache():
 	for blog in frappe.db.sql_list("""select page_name from

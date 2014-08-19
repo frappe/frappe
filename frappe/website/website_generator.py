@@ -70,8 +70,10 @@ class WebsiteGenerator(Document):
 	def set_parent_website_route(self):
 		if hasattr(self, "parent_website_route_field"):
 			field = self.meta.get_field(self.parent_website_route_field)
-			self.parent_website_route = frappe.get_doc(field.options,
-				self.get(self.parent_website_route_field)).get_route()
+			parent = self.get(self.parent_website_route_field)
+			if parent:
+				self.parent_website_route = frappe.get_doc(field.options,
+					parent).get_route()
 
 	def update_routes_of_descendants(self, old_route = None):
 		if not self.is_new():
@@ -85,12 +87,6 @@ class WebsiteGenerator(Document):
 					(old_route, self.get_route(), old_route + "%"))
 
 	def get_website_route(self):
-		if self.modified:
-			# for sitemap.xml
-			lastmod = frappe.utils.get_datetime(self.modified).strftime("%Y-%m-%d")
-		else:
-			lastmod = now()
-
 		route = frappe._dict()
 		route.update({
 			"doc": self,
@@ -101,7 +97,6 @@ class WebsiteGenerator(Document):
 			"page_name": self.get_page_name(),
 			"controller": get_module_name(self.doctype, self.meta.module),
 			"template": self.template,
-			"lastmod": lastmod,
 			"parent_website_route": self.get("parent_website_route", ""),
 			"page_title": self.get(self.page_title_field)
 		})
@@ -167,11 +162,13 @@ class WebsiteGenerator(Document):
 				order by {order_by}""".format(
 					doctype = self.doctype,
 					title_field = getattr(self, "page_title_field", "name"),
-					order_by = getattr(self, "order_by", "page_name asc")),
-					self.get_route(), as_dict=True, debug=1)
+					order_by = getattr(self, "order_by", "idx asc")),
+					self.get_route(), as_dict=True)
 
 			for c in children:
-				c.name = make_route(c.name)
+				c.name = make_route(c)
+
+			return children
 		else:
 			return []
 

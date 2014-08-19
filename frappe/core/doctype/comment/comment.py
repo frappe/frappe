@@ -19,7 +19,7 @@ class Comment(Document):
 		self.update_comment_in_doc()
 
 	def update_comment_in_doc(self):
-		if self.comment_doctype and self.comment_docname and self.comment:
+		if self.comment_doctype and self.comment_docname and self.comment and self.comment_type=="Comment":
 			try:
 				_comments = self.get_comments_from_parent()
 				updated = False

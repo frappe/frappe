@@ -4,12 +4,11 @@
 from __future__ import unicode_literals
 import frappe
 
-# frequently used imports (used by other modules)
-
 from frappe.website.doctype.website_settings.website_settings import get_website_settings
 from frappe.website.template import render_blocks
 from frappe.website.sitemap import get_sitemap_options
 from frappe.website.utils import can_cache
+from frappe.website.permissions import get_access
 
 def get_context(path):
 	context = None
@@ -29,7 +28,10 @@ def get_context(path):
 		context = get_sitemap_options(path)
 
 		# permission may be required for rendering
-		context["access"] = frappe._dict({"public_read":1, "public_write":1})
+		if context.doc and context.doc.doctype=="Website Group":
+			context["access"] = get_access(context.doc, context.pathname)
+		else:
+			context["access"] = frappe._dict({"public_read":1, "public_write":1})
 
 		context = build_context(context)
 		add_data_path(context)

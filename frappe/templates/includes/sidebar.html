@@ -1,5 +1,4 @@
 <div class="sidebar-exists"></div>
-{% set children = doc.get_children() if doc else (get_children() if get_children else []) %}
 {% if children -%}
 {%- for child in children -%}
 <div class="sidebar-item">

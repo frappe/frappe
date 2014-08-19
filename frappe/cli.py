@@ -568,9 +568,10 @@ def clear_all_sessions():
 
 @cmd
 def build_website(verbose=False):
-	import frappe.website.sync
+	from frappe.website import render, statics
 	frappe.connect()
-	frappe.website.sync.sync(verbose=verbose)
+	render.clear_cache()
+	statics.sync(verbose=verbose).start()
 	frappe.db.commit()
 	frappe.destroy()
 
