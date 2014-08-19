@@ -109,10 +109,25 @@ frappe.ui.form.Attachments = Class.extend({
 		// hash is not escaped, https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURI
 		return encodeURI(file_url).replace(/#/g, '%23');
 	},
+	get_file_id_from_file_url: function(file_url) {
+		var fid;
+		$.each(this.get_attachments(), function(i, attachment) {
+			if (attachment.file_url === file_url) {
+				fid = attachment.name;
+				return false;
+			}
+		});
+		return fid;
+	},
 	remove_attachment_by_filename: function(filename, callback) {
-		this.remove_attachment(this.get_attachments()[filename], callback);
+		this.remove_attachment(this.get_file_id_from_file_url(filename), callback);
 	},
 	remove_attachment: function(fileid, callback) {
+		if (!fileid) {
+			if (callback) callback();
+			return;
+		}
+
 		var me = this;
 		return frappe.call({
 			method: 'frappe.widgets.form.utils.remove_attach',
@@ -131,7 +146,7 @@ frappe.ui.form.Attachments = Class.extend({
 				me.frm.toolbar.show_infobar();
 				me.frm.get_docinfo().comments.push(r.message);
 				me.frm.comments.refresh();
-				if(callback) callback();
+				if (callback) callback();
 			}
 		});
 	},
