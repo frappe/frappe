@@ -182,6 +182,7 @@ def remove_all(dt, dn):
 
 def remove_file(fid, attached_to_doctype=None, attached_to_name=None):
 	"""Remove file and File Data entry"""
+	file_name = None
 	if not (attached_to_doctype and attached_to_name):
 		attached = frappe.db.get_value("File Data", fid,
 			["attached_to_doctype", "attached_to_name", "file_name"])
