@@ -12,6 +12,7 @@ ja		日本語
 kn		ಕನ್ನಡ
 ko		한국의
 nl		nederlands
+pl      polski
 pt		português
 pt-BR	português brasileiro
 ro		român
