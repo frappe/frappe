@@ -11,9 +11,9 @@ import frappe
 import frappe.database
 import getpass
 from frappe.model.db_schema import DbManager
-import frappe.website.sync
 from frappe.model.sync import sync_for
 from frappe.utils.fixtures import sync_fixtures
+from frappe.website import render, statics
 
 def install_db(root_login="root", root_password=None, db_name=None, source_sql=None,
 	admin_password = 'admin', verbose=True, force=0, site_config=None, reinstall=False):
@@ -129,7 +129,8 @@ def add_to_installed_apps(app_name, rebuild_website=True):
 		frappe.db.commit()
 
 		if rebuild_website:
-			frappe.website.sync.sync()
+			render.clear_cache()
+			statics.sync().start()
 
 		frappe.db.commit()
 
