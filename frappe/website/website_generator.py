@@ -45,8 +45,7 @@ class WebsiteGenerator(Document):
 		page_name = self.get("page_name")
 		if not page_name:
 			page_name = cleanup_page_name(self.get(self.page_title_field))
-			if self.is_new():
-				self.set("page_name", page_name)
+			self.set("page_name", page_name)
 
 		return page_name
 
