@@ -17,6 +17,7 @@ class BlogPost(WebsiteGenerator):
 	save_versions = True
 	order_by = "published_on desc"
 	parent_website_route_field = "blog_category"
+	page_title_field = "title"
 
 	def validate(self):
 		super(BlogPost, self).validate()
