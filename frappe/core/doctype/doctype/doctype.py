@@ -133,9 +133,9 @@ class DocType(Document):
 			"property": "options", "field_name": "naming_series"})
 
 		if not existing_property_setter:
-			make_property_setter(self.name, "naming_series", "options", naming_series[0].options, "Text")
+			make_property_setter(self.name, "naming_series", "options", naming_series[0].options, "Text", validate_fields_for_doctype=False)
 			if naming_series[0].default:
-				make_property_setter(self.name, "naming_series", "default", naming_series[0].default, "Text")
+				make_property_setter(self.name, "naming_series", "default", naming_series[0].default, "Text", validate_fields_for_doctype=False)
 
 	def export_doc(self):
 		from frappe.modules.export_file import export_to_files

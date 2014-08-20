@@ -50,11 +50,11 @@ class PropertySetter(Document):
 				(self.field_name, self.doc_type), as_dict = 1)[0]
 
 	def on_update(self):
-		if not getattr(self, "ignore_validate", False):
+		if not getattr(self, "ignore_validate", False) and getattr(self, "validate_fields_for_doctype", True):
 			from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype
 			validate_fields_for_doctype(self.doc_type)
 
-def make_property_setter(doctype, fieldname, property, value, property_type, for_doctype = False):
+def make_property_setter(doctype, fieldname, property, value, property_type, for_doctype = False, validate_fields_for_doctype=True):
 	# WARNING: Ignores Permissions
 	property_setter = frappe.get_doc({
 		"doctype":"Property Setter",
@@ -66,5 +66,6 @@ def make_property_setter(doctype, fieldname, property, value, property_type, for
 		"property_type": property_type
 	})
 	property_setter.ignore_permissions = True
+	property_setter.validate_fields_for_doctype = validate_fields_for_doctype
 	property_setter.insert()
 	return property_setter
