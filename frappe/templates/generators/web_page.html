@@ -28,6 +28,6 @@ $(function() {
 </script>
 {% endblock %}
 
-{% block style %}{{ style }}{% endblock %}
+{% block style %}{{ style or "" }}{% endblock %}
 
-{% block script %}{{ script }}{% endblock %}
+{% block script %}{{ script or "" }}{% endblock %}

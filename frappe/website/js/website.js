@@ -360,9 +360,11 @@ $.extend(frappe, {
 	},
 	toggle_template_blocks: function() {
 		// this assumes frappe base template
-		$(".page-header").toggleClass("hidden", !!!$("[data-html-block='header']").text().trim());
-		$(".page-footer").toggleClass("hidden", !!!$(".page-footer").text().trim());
-		$(".page-header-right").empty();
+		$(".page-header").toggleClass("hidden",
+			!!!$("[data-html-block='header']").text().trim());
+
+		$(".page-footer").toggleClass("hidden",
+			!!!$(".page-footer").text().trim());
 
 		// hide breadcrumbs if no breadcrumb content or if it is same as the header
 		$("[data-html-block='breadcrumbs'] .breadcrumb").toggleClass("hidden",

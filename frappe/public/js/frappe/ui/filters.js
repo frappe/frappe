@@ -279,7 +279,7 @@ frappe.ui.Filter = Class.extend({
 		} else if(df.fieldtype=='Check') {
 			df.fieldtype='Select';
 			df.options='No\nYes';
-		} else if(['Text','Small Text','Text Editor','Code','Tag','Comments','Dynamic Link'].indexOf(df.fieldtype)!=-1) {
+		} else if(['Text','Small Text','Text Editor','Code','Tag','Comments','Dynamic Link', 'Read Only'].indexOf(df.fieldtype)!=-1) {
 			df.fieldtype = 'Data';
 		} else if(df.fieldtype=='Link' && this.$w.find('.condition').val()!="=") {
 			df.fieldtype = 'Data';
