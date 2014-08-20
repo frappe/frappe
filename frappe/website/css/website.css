@@ -249,6 +249,13 @@ fieldset {
 	font-size: 85%;
 }
 
+.sidebar-item:first-child {
+	padding-top: 10px;
+}
+.sidebar-item:last-child {
+	padding-bottom: 10px;
+}
+
 .sidebar-item a {
 	color: #999;
 	text-decoration: none;

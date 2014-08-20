@@ -108,7 +108,7 @@ class sync(object):
 
 		title = self.get_title(template_path)
 
-		if not frappe.db.exists("Web Page", page_name):
+		if not frappe.db.get_value("Web Page", {"page_name":page_name}):
 			web_page = frappe.new_doc("Web Page")
 			web_page.page_name = page_name
 			web_page.parent_web_page = parent_web_page
@@ -120,7 +120,7 @@ class sync(object):
 			self.to_insert.append(web_page)
 
 		else:
-			web_page = frappe.get_doc("Web Page", page_name)
+			web_page = frappe.get_doc("Web Page", {"page_name":page_name})
 			dirty = False
 			for key in ("parent_web_page", "title", "template_path", "published", "idx"):
 				if web_page.get(key) != locals().get(key):

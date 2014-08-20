@@ -1,5 +1,6 @@
 <div class="sidebar-exists"></div>
 {% if children -%}
+<div class="sidebar-items">
 {%- for child in children -%}
 <div class="sidebar-item">
 	<a href="{{ child.name }}" class="no-decoration {% if pathname.startswith(child.name) %}active{% endif %}">
@@ -7,4 +8,5 @@
 	</a>
 </div>
 {%- endfor -%}
+</div>
 {%- endif %}
