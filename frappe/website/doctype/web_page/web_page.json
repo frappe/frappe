@@ -30,10 +30,18 @@
    "read_only": 0
   }, 
   {
-   "fieldname": "parent_website_route", 
+   "fieldname": "parent_web_page", 
    "fieldtype": "Link", 
-   "label": "Parent Website Page", 
-   "options": "Website Route", 
+   "label": "Parent Web Page", 
+   "options": "Web Page", 
+   "permlevel": 0
+  }, 
+  {
+   "fieldname": "parent_website_route", 
+   "fieldtype": "Read Only", 
+   "hidden": 1, 
+   "label": "Parent Website Route", 
+   "options": "", 
    "permlevel": 0
   }, 
   {
@@ -48,6 +56,13 @@
    "fieldtype": "Int", 
    "label": "Priority", 
    "permlevel": 0
+  }, 
+  {
+   "fieldname": "template_path", 
+   "fieldtype": "Data", 
+   "label": "Template Path", 
+   "permlevel": 0, 
+   "read_only": 1
   }, 
   {
    "fieldname": "cb1", 
@@ -157,7 +172,7 @@
  "icon": "icon-file-alt", 
  "idx": 1, 
  "max_attachments": 20, 
- "modified": "2014-08-05 04:54:49.018407", 
+ "modified": "2014-08-19 02:19:05.426465", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Web Page", 

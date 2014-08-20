@@ -5,22 +5,23 @@ from __future__ import unicode_literals
 import frappe
 from frappe.website.website_generator import WebsiteGenerator
 from frappe.website.render import clear_cache
-
-template = "templates/generators/blog_category.html"
-no_cache = True
+from frappe.templates.pages.blog import get_children
 
 class BlogCategory(WebsiteGenerator):
+	page_title_field = "title"
+	template = "templates/generators/blog_category.html"
+	no_cache = True
 	def autoname(self):
 		# to override autoname of WebsiteGenerator
 		self.name = self.category_name
-
-	def get_page_title(self):
-		return self.title or self.name
 
 	def on_update(self):
 		WebsiteGenerator.on_update(self)
 		clear_cache()
 
-	def get_parent_website_route(self):
-		parent_website_sitemap = super(BlogCategory, self).get_parent_website_route()
-		return parent_website_sitemap or "blog"
+	def get_children(self):
+		return get_children()
+
+	def validate(self):
+		self.parent_website_route = "blog"
+		super(BlogCategory, self).validate()

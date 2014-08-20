@@ -6,4 +6,10 @@ import frappe
 
 page_title = "Blog"
 def get_context(context):
-	return frappe.get_doc("Blog Settings", "Blog Settings").as_dict()
+	context.update(frappe.get_doc("Blog Settings", "Blog Settings").as_dict())
+	context.children = get_children()
+
+def get_children():
+	return frappe.db.sql("""select concat("blog/", page_name) as name,
+		title from `tabBlog Category`
+		where ifnull(published, 0) = 1 order by title asc""", as_dict=1)

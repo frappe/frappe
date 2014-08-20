@@ -67,9 +67,6 @@ doc_events = {
 		],
 		"on_trash": "frappe.core.doctype.notification_count.notification_count.clear_doctype_notifications"
 	},
-	"User Vote": {
-		"after_insert": "frappe.website.doctype.website_group.website_group.clear_cache_on_doc_event"
-	},
 	"Website Route Permission": {
 		"on_update": "frappe.website.doctype.website_group.website_group.clear_cache_on_doc_event"
 	}

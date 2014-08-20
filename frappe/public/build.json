@@ -12,6 +12,7 @@
 		"public/js/lib/nprogress.js",
 		"public/js/frappe/translate.js",
 		"public/js/frappe/misc/pretty_date.js",
+		"public/js/lib/moment/moment.min.js",
 		"website/js/website.js",
 		"website/js/website_group.js"
 	],

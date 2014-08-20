@@ -51,3 +51,4 @@ execute:frappe.db.sql("""update `tabPrint Format` set print_format_type='Client'
 frappe.patches.v4_1.file_manager_fix
 frappe.patches.v4_2.print_with_letterhead
 execute:frappe.delete_doc("DocType", "Control Panel", force=1)
+frappe.patches.v4_2.refactor_website_routing

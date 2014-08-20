@@ -19,7 +19,7 @@ class Comment(Document):
 		self.update_comment_in_doc()
 
 	def update_comment_in_doc(self):
-		if self.comment_doctype and self.comment_docname and self.comment:
+		if self.comment_doctype and self.comment_docname and self.comment and self.comment_type=="Comment":
 			try:
 				_comments = self.get_comments_from_parent()
 				updated = False
@@ -58,13 +58,7 @@ class Comment(Document):
 		# use sql, so that we do not mess with the timestamp
 		frappe.db.sql("""update `tab%s` set `_comments`=%s where name=%s""" % (self.comment_doctype,
 			"%s", "%s"), (json.dumps(_comments), self.comment_docname))
-
-		# clear parent cache if route exists:
-		route = frappe.db.get_value("Website Route", {"ref_doctype": self.comment_doctype,
-			"docname": self.comment_docname})
-
-		if route:
-			clear_cache(route)
+		clear_cache(route)
 
 	def on_trash(self):
 		if (self.comment_type or "Comment") != "Comment":

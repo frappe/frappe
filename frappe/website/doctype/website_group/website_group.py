@@ -6,20 +6,25 @@ import frappe
 from frappe.website.website_generator import WebsiteGenerator
 from frappe.website.render import can_cache
 from frappe.templates.website_group.forum import get_post_list_html
+from frappe.utils.nestedset import NestedSet
 
-no_cache = True
-template = "templates/generators/website_group.html"
-
-class WebsiteGroup(WebsiteGenerator):
-	def get_page_title(self):
-		return self.group_title
+class WebsiteGroup(WebsiteGenerator, NestedSet):
+	no_cache = True
+	template = "templates/generators/website_group.html"
+	parent_website_route_field = "parent_website_group"
+	page_title_field = "group_title"
 
 	def on_update(self):
 		WebsiteGenerator.on_update(self)
+		NestedSet.on_update(self)
 		clear_cache(website_group=self.name)
 
+	def on_trash(self):
+		WebsiteGenerator.on_trash(self)
+		NestedSet.on_trash(self)
+
 	def after_insert(self):
-		clear_cache(path=self.parent_website_route)
+		clear_cache(website_group=self.name)
 
 	def get_context(self, context):
 		group, view = guess_group_view(context)
@@ -59,6 +64,8 @@ def get_group_context(group, view, context):
 
 	if can_cache(view.get("no_cache")):
 		frappe.cache().set_value(cache_key, group_context)
+
+	group_context.children = context.doc.get_children()
 
 	return group_context
 
@@ -131,11 +138,9 @@ def has_access(access, view):
 	else:
 		return access.get("read")
 
-def clear_cache(path=None, website_group=None):
+def clear_cache(website_group=None):
 	from frappe.templates.website_group.post import clear_post_cache
-	if path:
-		website_groups = [frappe.db.get_value("Website Route", path, "docname")]
-	elif website_group:
+	if website_group:
 		website_groups = [website_group]
 	else:
 		clear_post_cache()
@@ -150,13 +155,6 @@ def clear_cache(path=None, website_group=None):
 def clear_event_cache():
 	for group in frappe.db.sql_list("""select name from `tabWebsite Group` where group_type='Event'"""):
 		clear_cache(website_group=group)
-
-def clear_cache_on_doc_event(doc, method, *args, **kwargs):
-	clear_cache(path=doc.website_route, website_group=doc.website_group)
-
-def get_pathname(group):
-	return frappe.db.get_value("Website Route", {"ref_doctype": "Website Group",
-		"docname": group})
 
 views = {
 	"Forum": {

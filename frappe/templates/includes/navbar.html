@@ -43,7 +43,8 @@
 								{% if child.class %} class="{{ child.class }}" {% endif %}>
 
 								{%- if child.url -%}
-									<a href="{{ child.url }}" {{ child.target or '' }}>
+									<a href="{{ child.url }}" {{ child.target or '' }}
+										rel="nofollow">
 										{%- if child.icon -%}
 										<i class="icon-fixed-width {{ child.icon }}"></i>
 										{%- endif -%}

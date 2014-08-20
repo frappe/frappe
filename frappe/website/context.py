@@ -4,13 +4,11 @@
 from __future__ import unicode_literals
 import frappe
 
-# frequently used imports (used by other modules)
-from frappe.website.permissions import get_access
-
 from frappe.website.doctype.website_settings.website_settings import get_website_settings
 from frappe.website.template import render_blocks
-from frappe.website.sitemap import get_sitemap_options
+from frappe.website.router import get_route_info
 from frappe.website.utils import can_cache
+from frappe.website.permissions import get_access
 
 def get_context(path):
 	context = None
@@ -27,10 +25,13 @@ def get_context(path):
 		context = frappe.cache().get_value(cache_key)
 
 	if not context:
-		context = get_sitemap_options(path)
+		context = get_route_info(path)
 
 		# permission may be required for rendering
-		context["access"] = get_access(context.pathname)
+		if context.doc and context.doc.doctype=="Website Group":
+			context["access"] = get_access(context.doc, context.pathname)
+		else:
+			context["access"] = frappe._dict({"public_read":1, "public_write":1})
 
 		context = build_context(context)
 		add_data_path(context)
@@ -39,7 +40,7 @@ def get_context(path):
 			frappe.cache().set_value(cache_key, context)
 
 	else:
-		context["access"] = get_access(context.pathname)
+		context["access"] = frappe._dict({"public_read":1, "public_write":1})
 		add_data_path(context)
 
 	context.update(context.data or {})
@@ -52,18 +53,19 @@ def build_context(sitemap_options):
 	context.update(get_website_settings())
 
 	# provide doc
-	if context.doctype and context.docname:
-		doc = frappe.get_doc(context.doctype, context.docname)
-		context.doc = doc
-		context.update(doc.as_dict())
+	if context.doc:
+		context.update(context.doc.as_dict())
 		if hasattr(context.doc, "get_context"):
 			context.update(context.doc.get_context(context) or {})
 
 	elif context.controller:
 		module = frappe.get_module(context.controller)
 
-		if module and hasattr(module, "get_context"):
-			context.update(module.get_context(context) or {})
+		if module:
+			if hasattr(module, "get_context"):
+				context.update(module.get_context(context) or {})
+			if hasattr(module, "get_children"):
+				context.get_children = module.get_children
 
 	add_metatags(context)
 

@@ -14,10 +14,10 @@
   {
    "description": "Link that is the website home page. Standard Links (index, login, products, blog, about, contact)", 
    "fieldname": "home_page", 
-   "fieldtype": "Link", 
+   "fieldtype": "Data", 
    "in_list_view": 1, 
    "label": "Home Page", 
-   "options": "Website Route", 
+   "options": "", 
    "permlevel": 0, 
    "reqd": 0
   }, 
@@ -227,7 +227,7 @@
  "idx": 1, 
  "issingle": 1, 
  "max_attachments": 10, 
- "modified": "2014-07-01 12:37:35.745377", 
+ "modified": "2014-08-20 12:55:53.402229", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Website Settings", 

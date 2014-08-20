@@ -48,13 +48,6 @@ def get_data():
 					"description": _("Setup of top navigation bar, footer and logo."),
 				},
 				{
-					"type": "page",
-					"name":"sitemap-browser",
-					"label": _("Sitemap Browser"),
-					"description": _("View or manage Website Route tree."),
-					"icon": "icon-sitemap"
-				},
-				{
 					"type": "doctype",
 					"name": "Style Settings",
 					"description": _("Setup of fonts and background."),

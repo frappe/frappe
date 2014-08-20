@@ -3,14 +3,14 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe.website.permissions import get_access, clear_permissions
-from frappe.website.doctype.website_group.website_group import get_pathname
+from frappe.website.permissions import get_access
 from frappe.utils.email_lib.bulk import send
 
 @frappe.whitelist()
 def suggest_user(term, group):
-	pathname = get_pathname(group)
-	if not get_access(pathname).get("admin"):
+	doc = frappe.get_doc("Website Group", group)
+	pathname = doc.get_route()
+	if not get_access(doc, pathname).get("admin"):
 		raise frappe.PermissionError
 
 	users = frappe.db.sql("""select pr.name, pr.first_name, pr.last_name,
@@ -32,8 +32,9 @@ def suggest_user(term, group):
 
 @frappe.whitelist()
 def add_sitemap_permission(group, user):
-	pathname = get_pathname(group)
-	if not get_access(pathname).get("admin"):
+	doc = frappe.get_doc("Website Group", group)
+	pathname = doc.get_route()
+	if not get_access(doc, pathname).get("admin"):
 		raise frappe.PermissionError
 
 	permission = frappe.get_doc({
@@ -54,19 +55,19 @@ def add_sitemap_permission(group, user):
 
 @frappe.whitelist()
 def update_permission(group, user, perm, value):
-	pathname = get_pathname(group)
-	if not get_access(pathname).get("admin"):
+	doc = frappe.get_doc("Website Group", group)
+	pathname = doc.get_route()
+	if not get_access(doc, pathname).get("admin"):
 		raise frappe.PermissionError
 
-	permission = frappe.get_doc("Website Route Permission", {"website_route": pathname, "user": user})
+	permission = frappe.get_doc("Website Route Permission",
+		{"website_route": pathname, "user": user, "reference": group})
 	permission.set(perm, int(value))
 	permission.save(ignore_permissions=True)
 
 	# send email
 	if perm=="admin" and int(value):
-		group_title = frappe.db.get_value("Website Route", pathname, "page_title")
-
-		subject = "You have been made Administrator of Group " + group_title
+		subject = "You have been made Administrator of Group " + doc.group_title
 
 		send(recipients=[user],
 			subject= subject, add_unsubscribe_link=False,
@@ -76,7 +77,9 @@ def update_permission(group, user, perm, value):
 
 @frappe.whitelist()
 def update_description(group, description):
-	if not get_access(get_pathname(group)).get("admin"):
+	doc = frappe.get_doc("Website Group", group)
+	pathname = doc.get_route()
+	if not get_access(doc, pathname).get("admin"):
 		raise frappe.PermissionError
 
 	group = frappe.get_doc("Website Group", group)
@@ -85,17 +88,16 @@ def update_description(group, description):
 
 @frappe.whitelist()
 def add_website_group(group, new_group, public_read, public_write, group_type="Forum"):
-	if not get_access(get_pathname(group)).get("admin"):
+	doc = frappe.get_doc("Website Group", group)
+	pathname = doc.get_route()
+	if not get_access(doc, pathname).get("admin"):
 		raise frappe.PermissionError
-
-	parent_website_route = frappe.db.get_value("Website Route",
-		{"ref_doctype": "Website Group", "docname": group})
 
 	frappe.get_doc({
 		"doctype": "Website Group",
 		"group_name": group + "-" + new_group,
 		"group_title": new_group,
-		"parent_website_route": parent_website_route,
+		"parent_website_group": group,
 		"group_type": group_type,
 		"public_read": int(public_read),
 		"public_write": int(public_write)

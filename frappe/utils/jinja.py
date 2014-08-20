@@ -51,8 +51,7 @@ def get_allowed_functions_for_jenv():
 			"get_meta": frappe.get_meta,
 			"get_doc": frappe.get_doc,
 			"get_list": frappe.get_list,
-			"utils": datautils,
-			"get_website_route": frappe.get_website_route
+			"utils": datautils
 		},
 		"get_visible_columns": \
 			frappe.get_attr("frappe.templates.pages.print.get_visible_columns"),
