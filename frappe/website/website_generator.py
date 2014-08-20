@@ -50,11 +50,12 @@ class WebsiteGenerator(Document):
 		return page_name
 
 	def before_rename(self, oldname, name, merge):
-		self.old_route = self.get_route()
+		self._local = self.get_route()
 		clear_cache(self.get_route())
 
 	def after_rename(self, olddn, newdn, merge):
-		self.update_routes_of_descendants(self.old_route)
+		if getattr(self, "_local"):
+			self.update_routes_of_descendants(self._local)
 		clear_cache(self.get_route())
 
 	def on_trash(self):

@@ -22,7 +22,8 @@ def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=F
 	meta = frappe.get_meta(doctype)
 
 	# call before_rename
-	out = frappe.get_doc(doctype, old).run_method("before_rename", old, new, merge) or {}
+	old_doc = frappe.get_doc(doctype, old)
+	out = old_doc.run_method("before_rename", old, new, merge) or {}
 	new = (out.get("new") or new) if isinstance(out, dict) else (out or new)
 	new = validate_rename(doctype, new, meta, merge, force, ignore_permissions)
 
@@ -45,7 +46,12 @@ def rename_doc(doctype, old, new, force=False, merge=False, ignore_permissions=F
 		frappe.delete_doc(doctype, old)
 
 	# call after_rename
-	frappe.get_doc(doctype, new).run_method("after_rename", old, new, merge)
+	new_doc = frappe.get_doc(doctype, new)
+
+	# copy any flags if required
+	new_doc._local = getattr(old_doc, "_local", None)
+
+	new_doc.run_method("after_rename", old, new, merge)
 
 	rename_versions(doctype, old, new)
 
