@@ -239,7 +239,11 @@ def get_content_hash(content):
 def get_file_name(fname, optional_suffix):
 	n_records = frappe.db.sql("select name from `tabFile Data` where file_name='{}'".format(fname))
 	if len(n_records) > 0 or os.path.exists(get_files_path(fname)):
-		partial, extn = fname.rsplit('.', 1)
-		return '{partial}{suffix}.{extn}'.format(partial=partial, extn=extn, suffix=optional_suffix)
+		f = fname.rsplit('.', 1)
+		if len(f) == 1:
+			partial, extn = f[0], None
+		elif len(f) == 2:
+			partial, extn = f
+		return '{partial}{suffix}{extn}'.format(partial=partial, extn="."+extn if extn else "", suffix=optional_suffix)
 	return fname
 
