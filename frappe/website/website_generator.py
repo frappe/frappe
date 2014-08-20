@@ -9,7 +9,7 @@ from frappe.website.utils import cleanup_page_name, get_home_page
 from frappe.website.render import clear_cache
 from frappe.utils import now
 from frappe.modules import get_module_name
-from frappe.website.sitemap import get_page_route
+from frappe.website.router import get_page_route
 
 class WebsiteGenerator(Document):
 	page_title_field = "name"

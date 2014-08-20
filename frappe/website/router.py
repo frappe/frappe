@@ -7,7 +7,7 @@ import frappe, os
 from frappe.website.utils import can_cache, delete_page_cache
 from frappe.model.document import get_controller
 
-def get_sitemap_options(path):
+def get_route_info(path):
 	sitemap_options = None
 	cache_key = "sitemap_options:{}".format(path)
 
@@ -15,36 +15,36 @@ def get_sitemap_options(path):
 		sitemap_options = frappe.cache().get_value(cache_key)
 
 	if not sitemap_options:
-		sitemap_options = build_sitemap_options(path)
+		sitemap_options = build_route(path)
 		if can_cache(sitemap_options.no_cache):
 			frappe.cache().set_value(cache_key, sitemap_options)
 
 	return sitemap_options
 
-def build_sitemap_options(path):
-	sitemap_options = resolve_route(path)
-	if not sitemap_options:
+def build_route(path):
+	context = resolve_route(path)
+	if not context:
 		raise frappe.DoesNotExistError
 
-	if sitemap_options.controller:
-		module = frappe.get_module(sitemap_options.controller)
+	if context.controller:
+		module = frappe.get_module(context.controller)
 
 		# get sitemap config fields too
 		for prop in ("base_template_path", "template", "no_cache", "no_sitemap",
 			"condition_field"):
 			if hasattr(module, prop):
-				sitemap_options[prop] = getattr(module, prop)
+				context[prop] = getattr(module, prop)
 
-	sitemap_options.doctype = sitemap_options.ref_doctype
-	sitemap_options.title = sitemap_options.page_title
-	sitemap_options.pathname = path
+	context.doctype = context.ref_doctype
+	context.title = context.page_title
+	context.pathname = path
 
 	# determine templates to be used
-	if not sitemap_options.base_template_path:
+	if not context.base_template_path:
 		app_base = frappe.get_hooks("base_template")
-		sitemap_options.base_template_path = app_base[0] if app_base else "templates/base.html"
+		context.base_template_path = app_base[0] if app_base else "templates/base.html"
 
-	return sitemap_options
+	return context
 
 def resolve_route(path):
 	route = get_page_route(path)
@@ -58,20 +58,28 @@ def get_page_route(path):
 	return found[0] if found else None
 
 def get_generator_route(path):
+	parts = path.rsplit("/", 1)
+	if len(parts)==1:
+		page_name = path
+		parent = None
+	else:
+		parent, page_name = parts
+
 	def get_route(doctype, condition_field, order_by):
-		condition = []
+		condition = ["page_name=%s"]
+
 		if condition_field:
 			condition.append("ifnull({0}, 0)=1".format(condition_field))
-		meta = frappe.get_meta(doctype)
 
-		if meta.get_field("parent_website_route"):
-			condition.append("""concat(ifnull(parent_website_route, ""),
-				if(ifnull(parent_website_route, "")="", "", "/"), page_name) = %s""")
-		else:
-			condition.append("page_name = %s")
+		values = (page_name,)
+		if parent:
+			meta = frappe.get_meta(doctype)
+			if meta.get_field("parent_website_route"):
+				condition.append("""parent_website_route=%s""")
+				values = (page_name, parent)
 
 		g = frappe.db.sql("""select name from `tab{0}` where {1}
-			 order by {2}""".format(doctype, " and ".join(condition), order_by), path)
+			 order by {2}""".format(doctype, " and ".join(condition), order_by), values)
 
 		if g:
 			return frappe.get_doc(doctype, g[0][0]).get_website_route()
@@ -84,13 +92,15 @@ def clear_sitemap():
 
 	def clear_generators(doctype, condition_field, order_by):
 		meta = frappe.get_meta(doctype)
-		query = "select page_name from `tab{0}`"
+
 		if meta.get_field("parent_website_route"):
-			query = """select concat(ifnull(parent_website_route, ""),
-				if(ifnull(parent_website_route, "")="", "", "/"), page_name) from `tab{0}`"""
-		for route in frappe.db.sql_list(query.format(doctype)):
-			if route:
-				delete_page_cache(route)
+			query = "select page_name, parent_website_route from `tab{0}`"
+		else:
+			query = "select page_name, "" from `tab{0}`"
+
+		for r in frappe.db.sql(query.format(doctype)):
+			if r[0]:
+				delete_page_cache(((r[1] + "/") if r[1] else "") + r[0])
 
 	process_generators(clear_generators)
 

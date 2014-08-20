@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import frappe, re, os
 import requests, requests.exceptions
 from frappe.website.website_generator import WebsiteGenerator
+from frappe.website.router import resolve_route
 from frappe.website.doctype.website_slideshow.website_slideshow import get_slideshow
 from frappe.website.utils import find_first_image, get_comment_list
 from markdown2 import markdown
@@ -114,7 +115,7 @@ def check_broken_links():
 				link = link[1:] # remove leading /
 				link = link.split("#")[0]
 
-				if not frappe.db.exists("Website Route", link):
+				if not resolve_route(link):
 					print p.name + ":" + link
 					cnt += 1
 

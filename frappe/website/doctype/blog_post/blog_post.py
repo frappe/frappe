@@ -36,10 +36,6 @@ class BlogPost(WebsiteGenerator):
 			where ifnull(blogger,'')=tabBlogger.name)
 			where name=%s""", (self.blogger,))
 
-	def get_category_route(self):
-		return frappe.db.get_value("Website Route",
-			{"ref_doctype": "Blog Category", "docname": self.blog_category})
-
 	def on_update(self):
 		WebsiteGenerator.on_update(self)
 		clear_cache("writers")

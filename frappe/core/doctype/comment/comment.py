@@ -58,13 +58,7 @@ class Comment(Document):
 		# use sql, so that we do not mess with the timestamp
 		frappe.db.sql("""update `tab%s` set `_comments`=%s where name=%s""" % (self.comment_doctype,
 			"%s", "%s"), (json.dumps(_comments), self.comment_docname))
-
-		# clear parent cache if route exists:
-		route = frappe.db.get_value("Website Route", {"ref_doctype": self.comment_doctype,
-			"docname": self.comment_docname})
-
-		if route:
-			clear_cache(route)
+		clear_cache(route)
 
 	def on_trash(self):
 		if (self.comment_type or "Comment") != "Comment":

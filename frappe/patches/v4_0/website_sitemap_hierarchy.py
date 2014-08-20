@@ -12,10 +12,10 @@ def execute():
 
 	frappe.reload_doc("website", "doctype", "website_settings")
 
-	original_home_page = frappe.db.get_value("Website Settings", "Website Settings", "home_page")
-
-	home_page = frappe.db.sql("""select name from `tabWebsite Route`
-		where (name=%s or docname=%s) and name!='index'""", (original_home_page, original_home_page))
-	home_page = home_page[0][0] if home_page else original_home_page
-
-	frappe.db.set_value("Website Settings", "Website Settings", "home_page", home_page)
+	# original_home_page = frappe.db.get_value("Website Settings", "Website Settings", "home_page")
+	#
+	# home_page = frappe.db.sql("""select name from `tabWebsite Route`
+	# 	where (name=%s or docname=%s) and name!='index'""", (original_home_page, original_home_page))
+	# home_page = home_page[0][0] if home_page else original_home_page
+	#
+	# frappe.db.set_value("Website Settings", "Website Settings", "home_page", home_page)

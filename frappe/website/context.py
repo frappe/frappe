@@ -6,7 +6,7 @@ import frappe
 
 from frappe.website.doctype.website_settings.website_settings import get_website_settings
 from frappe.website.template import render_blocks
-from frappe.website.sitemap import get_sitemap_options
+from frappe.website.router import get_route_info
 from frappe.website.utils import can_cache
 from frappe.website.permissions import get_access
 
@@ -25,7 +25,7 @@ def get_context(path):
 		context = frappe.cache().get_value(cache_key)
 
 	if not context:
-		context = get_sitemap_options(path)
+		context = get_route_info(path)
 
 		# permission may be required for rendering
 		if context.doc and context.doc.doctype=="Website Group":

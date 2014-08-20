@@ -596,9 +596,6 @@ def get_list(doctype, filters=None, fields=None, or_filters=None, docstatus=None
 
 run_query = get_list
 
-def get_website_route(doctype, name):
-	return db.get_value("Website Route", {"ref_doctype": doctype, "docname": name})
-
 def add_version(doc):
 	get_doc({
 		"doctype": "Version",

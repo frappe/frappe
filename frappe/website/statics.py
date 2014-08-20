@@ -5,7 +5,6 @@ from __future__ import unicode_literals
 import frappe, os, time, sys
 
 from frappe.utils import update_progress_bar
-# from frappe.website.sitemap import get_route_children, get_next
 
 def sync_statics(rebuild=False):
 	s = sync()

@@ -67,9 +67,7 @@ def update_permission(group, user, perm, value):
 
 	# send email
 	if perm=="admin" and int(value):
-		group_title = frappe.db.get_value("Website Route", pathname, "page_title")
-
-		subject = "You have been made Administrator of Group " + group_title
+		subject = "You have been made Administrator of Group " + doc.group_title
 
 		send(recipients=[user],
 			subject= subject, add_unsubscribe_link=False,
@@ -95,14 +93,11 @@ def add_website_group(group, new_group, public_read, public_write, group_type="F
 	if not get_access(doc, pathname).get("admin"):
 		raise frappe.PermissionError
 
-	parent_website_route = frappe.db.get_value("Website Route",
-		{"ref_doctype": "Website Group", "docname": group})
-
 	frappe.get_doc({
 		"doctype": "Website Group",
 		"group_name": group + "-" + new_group,
 		"group_title": new_group,
-		"parent_website_route": parent_website_route,
+		"parent_website_group": group,
 		"group_type": group_type,
 		"public_read": int(public_read),
 		"public_write": int(public_write)

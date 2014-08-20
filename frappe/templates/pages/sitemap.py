@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 import urllib
 import frappe
 from frappe.utils import get_request_site_address, get_datetime
-from frappe.website.sitemap import get_pages, process_generators
+from frappe.website.router import get_pages, process_generators
 
 no_cache = 1
 no_sitemap = 1

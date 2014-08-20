@@ -10,7 +10,7 @@ from werkzeug.wrappers import Response
 from frappe.website.context import get_context
 from frappe.website.utils import scrub_relative_urls, get_home_page, can_cache, delete_page_cache
 from frappe.website.permissions import clear_permissions
-from frappe.website.sitemap import clear_sitemap
+from frappe.website.router import clear_sitemap
 
 class PageNotFoundError(Exception): pass
 
@@ -162,8 +162,6 @@ def set_content_type(response, data, path):
 	return data
 
 def clear_cache(path=None):
-	cache = frappe.cache()
-
 	if path:
 		delete_page_cache(path)
 	else:
