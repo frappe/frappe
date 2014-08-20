@@ -52,18 +52,18 @@ class WebPage(WebsiteGenerator):
 
 	def render_dynamic(self, context):
 		# dynamic
-		if "<!-- render-jinja -->" in self.main_section:
-			context["main_section"] = frappe.render_template(self.main_section,
+		if "<!-- render-jinja -->" in context.main_section:
+			context["main_section"] = frappe.render_template(context.main_section,
 				{"doc": self, "frappe": frappe})
 			context["no_cache"] = 1
 
 	def set_metatags(self, context):
 		context.metatags = {
-			"name": self.title,
-			"description": self.description or (self.main_section or "")[:150]
+			"name": context.title,
+			"description": context.description or (context.main_section or "")[:150]
 		}
 
-		image = find_first_image(self.main_section or "")
+		image = find_first_image(context.main_section or "")
 		if image:
 			context.metatags["image"] = image
 

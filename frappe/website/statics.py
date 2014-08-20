@@ -100,6 +100,8 @@ class sync(object):
 
 		page_name = os.path.basename(route)
 		parent_web_page = os.path.basename(os.path.dirname(route))
+		published = 1
+		idx = priority
 
 		if page_name in self.synced:
 			return
@@ -112,13 +114,15 @@ class sync(object):
 			web_page.parent_web_page = parent_web_page
 			web_page.template_path = template_path
 			web_page.title = title
+			web_page.published = published
+			web_page.idx = idx
 			web_page.from_website_sync = True
 			self.to_insert.append(web_page)
 
 		else:
 			web_page = frappe.get_doc("Web Page", page_name)
 			dirty = False
-			for key in ("parent_web_page", "title", "template_path"):
+			for key in ("parent_web_page", "title", "template_path", "published", "idx"):
 				if web_page.get(key) != locals().get(key):
 					web_page.set(key, locals().get(key))
 					dirty = True

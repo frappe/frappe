@@ -80,7 +80,7 @@ class WebsiteGenerator(Document):
 			if not old_route:
 				old_route = frappe.get_doc(self.doctype, self.name).get_route()
 
-			if old_route != self.get_route():
+			if old_route and old_route != self.get_route():
 				frappe.db.sql("""update `tab{0}` set
 					parent_website_route = replace(parent_website_route, %s, %s)
 					where parent_website_route like %s""".format(self.doctype),
