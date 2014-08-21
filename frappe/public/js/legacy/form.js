@@ -564,6 +564,7 @@ _f.Frm.prototype.reload_doc = function() {
 
 var validated;
 _f.Frm.prototype.save = function(save_action, callback, btn, on_error) {
+	$(btn).prop("disabled", true);
 	$(document.activeElement).blur();
 
 	// let any pending js process finish
