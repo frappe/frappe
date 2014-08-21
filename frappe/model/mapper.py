@@ -124,7 +124,6 @@ def map_fetch_fields(target_doc, df, no_copy_fields):
 	try:
 		linked_doc = frappe.get_doc(df.options, target_doc.get(df.fieldname))
 	except:
-		frappe.errprint(frappe.get_traceback())
 		return
 
 	# options should be like "link_fieldname.fieldname_in_liked_doc"
