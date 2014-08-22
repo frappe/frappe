@@ -124,9 +124,19 @@ _f.Frm.prototype.setup_drag_drop = function() {
 	var me = this;
 	$(this.wrapper).on('dragenter dragover', false)
 		.on('drop', function (e) {
-			var dataTransfer = e.originalEvent.dataTransfer;
 			e.stopPropagation();
 			e.preventDefault();
+			if(me.doc.__islocal) {
+				msgprint(__("Please save before attaching."));
+				return false;
+				throw "attach error";
+			}
+			if(me.attachments.max_reached()) {
+				msgprint(__("Maximum Attachment Limit for this record reached."));
+				throw "attach error";
+			}
+
+			var dataTransfer = e.originalEvent.dataTransfer;
 			if (dataTransfer && dataTransfer.files && dataTransfer.files.length > 0) {
 				frappe.upload.upload_file(dataTransfer.files[0], me.attachments.get_args(), {
 					callback: function(attachment, r) {

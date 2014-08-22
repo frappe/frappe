@@ -11,14 +11,6 @@ $(cur_frm.wrapper).on("grid-row-render", function(e, grid_row) {
 	}
 })
 
-cur_frm.cscript.allow_attach = function(doc, cdt, cdn) {
-	if(doc.allow_attach) {
-		unhide_field('max_attachments');
-	} else {
-		hide_field('max_attachments');
-	}
-}
-
 cur_frm.cscript.onload = function(doc, cdt, cdn) {
 	this.allow_attach(doc, cdt, cdn);
 }
