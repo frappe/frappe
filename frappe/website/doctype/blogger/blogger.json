@@ -1,6 +1,5 @@
 {
- "allow_attach": 1, 
- "allow_import": 1, 
+  "allow_import": 1, 
  "autoname": "field:short_name", 
  "creation": "2013-03-25 16:00:51", 
  "description": "User ID of a Blogger", 

@@ -1,6 +1,5 @@
 {
- "allow_attach": 1, 
- "autoname": "field:slideshow_name", 
+  "autoname": "field:slideshow_name", 
  "creation": "2013-03-07 15:53:15.000000", 
  "description": "Slideshow like display for the website", 
  "docstatus": 0, 

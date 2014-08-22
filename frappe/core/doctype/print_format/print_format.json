@@ -1,6 +1,5 @@
 {
- "allow_attach": 0, 
- "allow_copy": 0, 
+  "allow_copy": 0, 
  "allow_rename": 0, 
  "autoname": "Prompt", 
  "creation": "2013-01-23 19:54:43", 
