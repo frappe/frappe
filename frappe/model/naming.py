@@ -134,8 +134,10 @@ def revert_series_if_last(key, name):
 	count = cint(name.replace(prefix, ""))
 	current = frappe.db.sql("select `current` from `tabSeries` where name=%s for update", (prefix,))
 
+	print prefix, count, current
+
 	if current and current[0][0]==count:
-		frappe.db.sql("update tabSeries set current=current-1")
+		frappe.db.sql("update tabSeries set current=current-1 where name=%s", prefix)
 
 def get_default_naming_series(doctype):
 	"""get default value for `naming_series` property"""

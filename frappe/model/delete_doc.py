@@ -66,8 +66,8 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 					check_if_doc_is_linked(doc)
 					check_if_doc_is_dynamically_linked(doc)
 
-			delete_from_table(doctype, name, ignore_doctypes, doc)
 			update_naming_series(doc)
+			delete_from_table(doctype, name, ignore_doctypes, doc)
 
 		# delete user_permissions
 		frappe.defaults.clear_default(parenttype="User Permission", key=doctype, value=name)
@@ -80,7 +80,7 @@ def update_naming_series(doc):
 			and getattr(doc, "naming_series", None):
 			revert_series_if_last(doc.naming_series, doc.name)
 
-		elif doc.meta.autoname.split(":")[0] not in ("Prompt", "field"):
+		elif doc.meta.autoname.split(":")[0] not in ("Prompt", "field", "hash"):
 			revert_series_if_last(doc.meta.autoname, doc.name)
 
 def delete_from_table(doctype, name, ignore_doctypes, doc):
