@@ -42,7 +42,11 @@ def set_value(doctype, name, fieldname, value):
 		child.set(fieldname, value)
 	else:
 		doc = frappe.get_doc(doctype, name)
-		doc.set(fieldname, value)
+		df = doc.meta.get_field(fieldname)
+		if df.fieldtype == "Read Only" or df.read_only:
+			frappe.throw(_("Can not edit Read Only fields"))
+		else:
+			doc.set(fieldname, value)
 
 	doc.save()
 
