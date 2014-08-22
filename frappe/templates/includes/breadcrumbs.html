@@ -1,4 +1,4 @@
-{% set parents = doc.parents or [] %}
+{% set parents = doc.get_parents() if (doc and doc.parents) else [] %}
 <ul class="breadcrumb">
 	{% if parents|length > 0 %}
 		{% for parent in parents %}
