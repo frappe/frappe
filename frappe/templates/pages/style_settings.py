@@ -25,8 +25,6 @@ def get_context(context):
 	doc = frappe.get_doc("Style Settings", "Style Settings")
 	prepare(doc)
 
-	print doc.__dict__
-
 	return { "doc": doc }
 
 def prepare(doc):
