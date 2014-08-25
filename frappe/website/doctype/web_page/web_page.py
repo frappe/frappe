@@ -52,7 +52,7 @@ class WebPage(WebsiteGenerator):
 
 	def render_dynamic(self, context):
 		# dynamic
-		if "<!-- render-jinja -->" in context.main_section:
+		if context.main_section and "<!-- render-jinja -->" in context.main_section:
 			context["main_section"] = frappe.render_template(context.main_section,
 				{"doc": self, "frappe": frappe})
 			context["no_cache"] = 1
