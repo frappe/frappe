@@ -5,8 +5,6 @@ frappe.pages['data-import-tool'].onload = function(wrapper) {
 		icon: "icon-upload"
 	});
 
-	wrapper.appframe.set_title_left(function() { frappe.set_route(frappe.get_module("Setup").link); });
-
 	// check permission for import
 	if(!((frappe.boot.user.can_import && frappe.boot.user.can_import.length) ||
 		user_roles.indexOf("System Manager")!==-1)) {

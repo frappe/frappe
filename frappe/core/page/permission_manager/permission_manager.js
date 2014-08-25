@@ -8,7 +8,6 @@ frappe.pages['permission-manager'].onload = function(wrapper) {
 	$(wrapper).find(".layout-main").html("<div class='perm-engine' style='min-height: 200px;'></div>"
 		+ permissions_help);
 	wrapper.permission_engine = new frappe.PermissionEngine(wrapper);
-	wrapper.appframe.set_title_left(function() { frappe.set_route(["Module", "Setup"]) });
 
 }
 
