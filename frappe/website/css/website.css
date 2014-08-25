@@ -242,9 +242,10 @@ fieldset {
 }
 
 .sidebar-item {
-	background-color: #f7f7f7;
-	margin: 0 -15px;
-	padding: 5px 10px;
+	/*background-color: #f7f7f7;*/
+	border-left: 1px solid #eee;
+	margin-left: -30px;
+	padding: 5px 15px;
 	color: #999;
 	font-size: 85%;
 }
