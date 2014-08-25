@@ -156,21 +156,29 @@ class WebsiteGenerator(Document):
 			order by idx""", as_dict=True)
 
 		if self.meta.get_field("parent_website_route"):
-			children = frappe.db.sql("""select name, page_name,
-				parent_website_route, {title_field} as title from `tab{doctype}`
-				where ifnull(parent_website_route,'')=%s
-				order by {order_by}""".format(
-					doctype = self.doctype,
-					title_field = getattr(self, "page_title_field", "name"),
-					order_by = getattr(self, "order_by", "idx asc")),
-					self.get_route(), as_dict=True)
+			children = self.get_children_of(self.get_route())
 
-			for c in children:
-				c.name = make_route(c)
+			if not children and self.parent_website_route:
+				children = self.get_children_of(self.parent_website_route)
 
 			return children
 		else:
 			return []
+
+	def get_children_of(self, route):
+		children = frappe.db.sql("""select name, page_name,
+			parent_website_route, {title_field} as title from `tab{doctype}`
+			where ifnull(parent_website_route,'')=%s
+			order by {order_by}""".format(
+				doctype = self.doctype,
+				title_field = getattr(self, "page_title_field", "name"),
+				order_by = getattr(self, "order_by", "idx asc")),
+				route, as_dict=True)
+
+		for c in children:
+			c.name = make_route(c)
+
+		return children
 
 	def get_next(self):
 		if self.meta.get_field("parent_website_route") and self.parent_website_route:
