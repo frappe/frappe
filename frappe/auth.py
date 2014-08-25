@@ -217,7 +217,7 @@ class CookieManager:
 			self.cookies["country"] = {"value": frappe.session.get("session_country")}
 
 	def set_cookie(self, key, value, expires=None):
-		self.cookies[key] = {"value": quote(value.encode('utf-8')), "expires": expires}
+		self.cookies[key] = {"value": value, "expires": expires}
 
 	def delete_cookie(self, to_delete):
 		if not isinstance(to_delete, (list, tuple)):
@@ -227,7 +227,8 @@ class CookieManager:
 
 	def flush_cookies(self, response):
 		for key, opts in self.cookies.items():
-			response.set_cookie(key, opts.get("value"), expires=opts.get("expires"))
+			response.set_cookie(key, quote((opts.get("value") or "").encode('utf-8')),
+				expires=opts.get("expires"))
 
 		# expires yesterday!
 		expires = datetime.datetime.now() + datetime.timedelta(days=-1)
