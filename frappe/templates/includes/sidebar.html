@@ -3,7 +3,7 @@
 <div class="sidebar-items">
 {%- for child in children -%}
 <div class="sidebar-item">
-	<a href="{{ child.name }}" class="no-decoration {% if pathname.startswith(child.name) %}active{% endif %}">
+	<a href="{{ child.name }}" class="no-decoration {% if (pathname or "").startswith(child.name) %}active{% endif %}">
 		{{  child.title or child.page_title or child.name.replace("_", " ").title() }}
 	</a>
 </div>
