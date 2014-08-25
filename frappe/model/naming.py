@@ -134,8 +134,6 @@ def revert_series_if_last(key, name):
 	count = cint(name.replace(prefix, ""))
 	current = frappe.db.sql("select `current` from `tabSeries` where name=%s for update", (prefix,))
 
-	print prefix, count, current
-
 	if current and current[0][0]==count:
 		frappe.db.sql("update tabSeries set current=current-1 where name=%s", prefix)
 
