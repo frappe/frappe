@@ -4,24 +4,20 @@ from frappe.model import rename_field
 
 def execute():
 	tables = frappe.db.sql_list("show tables")
-	if "tabWebsite Route" not in tables:
-		frappe.rename_doc("DocType", "Website Sitemap", "Website Route", force=True)
-
-	if "tabWebsite Template" not in tables:
-		frappe.rename_doc("DocType", "Website Sitemap Config", "Website Template", force=True)
+	for doctype in ("Website Sitemap", "Website Sitemap Config"):
+		if "tab{}".format(doctype) in tables:
+			frappe.delete_doc("DocType", doctype, force=1)
+			frappe.db.sql("drop table `tab{}`".format(doctype))
 
 	if "tabWebsite Route Permission" not in tables:
 		frappe.rename_doc("DocType", "Website Sitemap Permission", "Website Route Permission", force=True)
 
-	for d in ("Blog Category", "Blog Post", "Web Page", "Website Route", "Website Group"):
+	for d in ("Blog Category", "Blog Post", "Web Page", "Website Group"):
 		frappe.reload_doc("website", "doctype", frappe.scrub(d))
 		rename_field_if_exists(d, "parent_website_sitemap", "parent_website_route")
 
-	#frappe.reload_doc("website", "doctype", "website_template")
-	#frappe.reload_doc("website", "doctype", "website_route")
 	frappe.reload_doc("website", "doctype", "website_route_permission")
 
-	#rename_field_if_exists("Website Route", "website_sitemap_config", "website_template")
 	rename_field_if_exists("Website Route Permission", "website_sitemap", "website_route")
 
 	for d in ("blog_category", "blog_post", "web_page", "website_group", "post", "user_vote"):

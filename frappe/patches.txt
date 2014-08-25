@@ -41,7 +41,6 @@ execute:frappe.reset_perms("User") #2014-06-13
 execute:frappe.db.sql("""delete from `tabUserRole` where ifnull(parentfield, '')='' or ifnull(`role`, '')=''""") #2014-08-18
 frappe.patches.v4_0.remove_user_owner_custom_field
 execute:frappe.delete_doc("DocType", "Website Template")
-execute:frappe.reload_doc('website', 'doctype', 'website_route') #2014-06-17
 execute:frappe.db.sql("""update `tabProperty Setter` set property_type='Text' where property in ('options', 'default')""") #2014-06-20
 frappe.patches.v4_1.enable_outgoing_email_settings
 execute:frappe.db.sql("""update `tabSingles` set `value`=`doctype` where `field`='name'""") #2014-07-04
