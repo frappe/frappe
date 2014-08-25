@@ -9,6 +9,7 @@ import frappe.defaults
 from frappe.utils.file_manager import remove_all
 from frappe import _
 from rename_doc import dynamic_link_queries
+from frappe.model.naming import revert_series_if_last
 
 def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reload=False, ignore_permissions=False):
 	"""
@@ -65,12 +66,22 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 					check_if_doc_is_linked(doc)
 					check_if_doc_is_dynamically_linked(doc)
 
+			update_naming_series(doc)
 			delete_from_table(doctype, name, ignore_doctypes, doc)
 
 		# delete user_permissions
 		frappe.defaults.clear_default(parenttype="User Permission", key=doctype, value=name)
 
 	return 'okay'
+
+def update_naming_series(doc):
+	if doc.meta.autoname:
+		if doc.meta.autoname.startswith("naming_series:") \
+			and getattr(doc, "naming_series", None):
+			revert_series_if_last(doc.naming_series, doc.name)
+
+		elif doc.meta.autoname.split(":")[0] not in ("Prompt", "field", "hash"):
+			revert_series_if_last(doc.meta.autoname, doc.name)
 
 def delete_from_table(doctype, name, ignore_doctypes, doc):
 	if doctype!="DocType" and doctype==name:

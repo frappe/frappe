@@ -1,6 +1,5 @@
 {
- "allow_attach": 0, 
- "allow_copy": 0, 
+  "allow_copy": 0, 
  "autoname": "Prompt", 
  "creation": "2013-02-18 13:36:19", 
  "custom": 0, 
@@ -277,17 +276,9 @@
    "permlevel": 0
   }, 
   {
-   "fieldname": "allow_attach", 
-   "fieldtype": "Check", 
-   "label": "Allow Attach", 
-   "oldfieldname": "allow_attach", 
-   "oldfieldtype": "Check", 
-   "permlevel": 0
-  }, 
-  {
    "fieldname": "max_attachments", 
    "fieldtype": "Int", 
-   "hidden": 1, 
+   "hidden": 0, 
    "label": "Max Attachments", 
    "oldfieldname": "max_attachments", 
    "oldfieldtype": "Int", 
@@ -345,7 +336,7 @@
  "idx": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2014-05-08 09:23:56.952829", 
+ "modified": "2014-08-22 05:33:03.067964", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "DocType", 

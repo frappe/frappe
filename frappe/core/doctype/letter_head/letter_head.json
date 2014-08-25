@@ -1,6 +1,5 @@
 {
- "allow_attach": 1, 
- "autoname": "field:letter_head_name", 
+  "autoname": "field:letter_head_name", 
  "creation": "2012-11-22 17:45:46", 
  "docstatus": 0, 
  "doctype": "DocType", 

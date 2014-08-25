@@ -115,8 +115,36 @@ _f.Frm.prototype.setup = function() {
 		parent: $(this.wrapper).find(".appframe-footer")
 	})
 
+	this.setup_drag_drop();
 
 	this.setup_done = true;
+}
+
+_f.Frm.prototype.setup_drag_drop = function() {
+	var me = this;
+	$(this.wrapper).on('dragenter dragover', false)
+		.on('drop', function (e) {
+			e.stopPropagation();
+			e.preventDefault();
+			if(me.doc.__islocal) {
+				msgprint(__("Please save before attaching."));
+				return false;
+				throw "attach error";
+			}
+			if(me.attachments.max_reached()) {
+				msgprint(__("Maximum Attachment Limit for this record reached."));
+				throw "attach error";
+			}
+
+			var dataTransfer = e.originalEvent.dataTransfer;
+			if (dataTransfer && dataTransfer.files && dataTransfer.files.length > 0) {
+				frappe.upload.upload_file(dataTransfer.files[0], me.attachments.get_args(), {
+					callback: function(attachment, r) {
+						me.attachments.attachment_uploaded(attachment, r);
+					}
+				});
+			}
+		});
 }
 
 _f.Frm.prototype.setup_print_layout = function() {

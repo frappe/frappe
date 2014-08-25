@@ -1,6 +1,5 @@
 {
- "allow_attach": 1, 
- "allow_copy": 0, 
+  "allow_copy": 0, 
  "allow_import": 1, 
  "allow_rename": 1, 
  "creation": "2014-03-11 14:55:00", 

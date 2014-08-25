@@ -40,3 +40,16 @@ class TestEvent(unittest.TestCase):
 		self.assertTrue("_Test Event 1" in subjects)
 		self.assertTrue("_Test Event 3" in subjects)
 		self.assertFalse("_Test Event 2" in subjects)
+
+	def test_revert_logic(self):
+		ev = frappe.get_doc(test_records[0]).insert()
+		name = ev.name
+
+		frappe.delete_doc("Event", ev.name)
+
+		# insert again
+		ev = frappe.get_doc(test_records[0]).insert()
+
+		# the name should be same!
+		self.assertEquals(ev.name, name)
+

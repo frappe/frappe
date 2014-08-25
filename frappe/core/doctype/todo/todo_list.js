@@ -6,7 +6,4 @@ frappe.listview_settings['ToDo'] = {
 		};
 	},
 	add_fields: ["reference_type", "reference_name"],
-	set_title_left: function() {
-		frappe.set_route();
-	}
 }

@@ -162,6 +162,8 @@ img {
 	box-shadow: none;
 	border-radius: 0px;
 	margin-bottom: 0px;
+	padding-top: 15px;
+	padding-bottom: 15px;
 }
 
 .navbar-brand {
@@ -169,6 +171,10 @@ img {
 	max-width: 80%;
 	min-height: 20px;
 	height: auto;
+}
+
+.navbar a.active {
+	font-weight: bold;
 }
 
 @media (min-width: 768px) {
@@ -220,7 +226,7 @@ fieldset {
 .page-header {
 	margin: 0px;
 	margin-bottom: 20px;
-	padding: 15px 0px;
+	padding: 25px 0px;
 }
 
 .page-container {
@@ -242,9 +248,10 @@ fieldset {
 }
 
 .sidebar-item {
-	background-color: #f7f7f7;
-	margin: 0 -15px;
-	padding: 5px 10px;
+	/*background-color: #f7f7f7;*/
+	border-left: 1px solid #eee;
+	margin-left: -30px;
+	padding: 5px 15px;
 	color: #999;
 	font-size: 85%;
 }

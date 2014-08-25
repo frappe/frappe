@@ -12,6 +12,8 @@ frappe.ui.form.Attachments = Class.extend({
 		var me = this;
 		this.wrapper = $('<div>\
 			<div class="attachment-list"></div>\
+			<p class="text-muted small">'
+				+__("You can also drag and drop attachments")+'</div>\
 		</div>').appendTo(this.parent);
 		this.$list = this.wrapper.find(".attachment-list");
 
@@ -158,22 +160,14 @@ frappe.ui.form.Attachments = Class.extend({
 			});
 		}
 		this.dialog.show();
+		this.fieldname = fieldname;
 
 		$(this.dialog.body).empty();
 		frappe.upload.make({
 			parent: this.dialog.body,
-			args: {
-				from_form: 1,
-				doctype: this.frm.doctype,
-				docname: this.frm.docname,
-			},
+			args: this.get_args(),
 			callback: function(attachment, r) {
-				me.dialog.hide();
-				me.update_attachment(attachment);
-				me.frm.get_docinfo().comments.push(r.message.comment);
-				me.frm.comments.refresh();
-
-				if(fieldname) me.frm.set_value(fieldname, attachment.file_url);
+				me.attachment_uploaded(attachment, r);
 			},
 			onerror: function() {
 				me.dialog.hide();
@@ -182,11 +176,30 @@ frappe.ui.form.Attachments = Class.extend({
 			max_height: this.frm.cscript ? this.frm.cscript.attachment_max_height : null,
 		});
 	},
-	update_attachment: function(attachment, fieldname) {
+	get_args: function() {
+		return {
+			from_form: 1,
+			doctype: this.frm.doctype,
+			docname: this.frm.docname,
+		}
+	},
+	attachment_uploaded:  function(attachment, r) {
+		this.dialog && this.dialog.hide();
+		this.update_attachment(attachment, r.message.comment);
+
+		if(this.fieldname) {
+			this.frm.set_value(this.fieldname, attachment.file_url);
+		}
+	},
+	update_attachment: function(attachment, comment) {
 		if(attachment.name) {
 			this.add_to_attachments(attachment);
 			this.refresh();
 			this.frm.toolbar.show_infobar();
+			if(comment) {
+				this.frm.get_docinfo().comments.push(comment);
+				this.frm.comments.refresh();
+			}
 		}
 	},
 	add_to_attachments: function (attachment) {

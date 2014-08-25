@@ -1,6 +1,5 @@
 {
- "allow_attach": 0, 
- "allow_copy": 0, 
+  "allow_copy": 0, 
  "allow_rename": 0, 
  "autoname": "TDI.########", 
  "creation": "2012-07-03 13:30:35", 

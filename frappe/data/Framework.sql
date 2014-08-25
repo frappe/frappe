@@ -130,7 +130,6 @@ CREATE TABLE `tabDocType` (
   `allow_import` int(1) DEFAULT NULL,
   `hide_toolbar` int(1) DEFAULT NULL,
   `hide_heading` int(1) DEFAULT NULL,
-  `allow_attach` int(1) DEFAULT NULL,
   `use_template` int(1) DEFAULT NULL,
   `max_attachments` int(11) DEFAULT NULL,
   `print_outline` varchar(255) DEFAULT NULL,

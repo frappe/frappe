@@ -1,6 +1,5 @@
 {
- "allow_attach": 1, 
- "allow_import": 1, 
+  "allow_import": 1, 
  "creation": "2013-03-28 10:35:30", 
  "docstatus": 0, 
  "doctype": "DocType", 

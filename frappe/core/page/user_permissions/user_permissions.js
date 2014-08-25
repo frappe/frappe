@@ -6,8 +6,6 @@ frappe.pages['user-permissions'].onload = function(wrapper) {
 		single_column: true
 	});
 
-	wrapper.appframe.set_title_left(function() { frappe.set_route(["Module", "Setup"]) });
-
 	$(wrapper).find(".layout-main").html("<div class='user-settings' \
 		style='min-height: 200px;'></div>\
 	<p style='margin-top: 15px;'>\

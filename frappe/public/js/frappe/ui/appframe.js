@@ -311,7 +311,7 @@ frappe.ui.make_app_page = function(opts) {
 			<div class="container">\
 				<div class="row">\
 					<div class="titlebar-item col-sm-8">\
-						<h3 class="titlebar-left-item"></h2>\
+						<h3 class="titlebar-left-item hide"></h2>\
 						<h3 class="titlebar-center-item"></h2>\
 					</div>\
 					<div class="titlebar-item text-right col-sm-4"></div>\
