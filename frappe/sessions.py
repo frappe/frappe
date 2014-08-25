@@ -11,10 +11,11 @@ permission, homepage, default variables, system defaults etc
 import frappe, json
 from frappe import _
 import frappe.utils
-from frappe.utils import cint
+from frappe.utils import cint, cstr
 import frappe.model.meta
 import frappe.defaults
 import frappe.translate
+from urllib import unquote
 
 @frappe.whitelist()
 def clear(user=None):
@@ -117,7 +118,7 @@ def get():
 
 class Session:
 	def __init__(self, user, resume=False):
-		self.sid = frappe.form_dict.get('sid') or frappe.request.cookies.get('sid', 'Guest')
+		self.sid = cstr(frappe.form_dict.get('sid') or unquote(frappe.request.cookies.get('sid', 'Guest')))
 		self.user = user
 		self.data = frappe._dict({'data': frappe._dict({})})
 		self.time_diff = None

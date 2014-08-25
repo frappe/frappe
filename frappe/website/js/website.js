@@ -324,6 +324,9 @@ $.extend(frappe, {
 		// change id of current page
 		$(".page-container").attr("id", "page-" + data.path);
 
+		// clear page-header-right
+		$(".page-header-right").html("");
+
 		window.ga && ga('send', 'pageview', location.pathname);
 		$(document).trigger("page-change");
 	},
