@@ -257,7 +257,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 				__('Make a new') + ' %(doctype_label)s</button></p>')
 			: '';
 		var no_result_message = repl('<div class="well" style="margin-top: 20px;">\
-		<p>' + __("No") + ' %(doctype_label)s ' + __("found") + '</p>' + new_button + '</div>', {
+		<p>' + __("No {0} found", ' %(doctype_label)s ')  + '</p>' + new_button + '</div>', {
 			doctype_label: __(this.doctype),
 			doctype: this.doctype,
 		});
