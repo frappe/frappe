@@ -155,6 +155,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 
 		if(keys(match_rules).length) {
 			var match_text = []
+			console.log(match_rules);
 			$.each(match_rules, function(key, values) {
 				if(values.length==0) {
 					match_text.push(__(key) + __(" is not set"));

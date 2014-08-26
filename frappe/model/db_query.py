@@ -223,15 +223,18 @@ class DatabaseQuery(object):
 		if role_permissions.get("apply_user_permissions", {}).get("read"):
 			# get user permissions
 			user_permissions = frappe.defaults.get_user_permissions(self.user)
-			self.add_user_permissions(user_permissions)
+			self.add_user_permissions(user_permissions,
+				user_permission_doctypes=role_permissions.get("user_permission_doctypes"))
 
 		if as_condition:
 			return self.build_match_condition_string()
 		else:
 			return self.match_filters
 
-	def add_user_permissions(self, user_permissions):
-		fields_to_check = frappe.get_meta(self.doctype).get_fields_to_check_permissions(user_permissions.keys())
+	def add_user_permissions(self, user_permissions, user_permission_doctypes=None):
+		user_permission_doctypes = frappe.permissions.get_user_permission_doctypes(user_permission_doctypes,
+			user_permissions)
+		fields_to_check = frappe.get_meta(self.doctype).get_fields_to_check_permissions(user_permission_doctypes)
 
 		# check in links
 		for df in fields_to_check:

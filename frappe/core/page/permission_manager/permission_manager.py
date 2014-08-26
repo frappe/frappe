@@ -22,11 +22,26 @@ def get_roles_and_doctypes():
 @frappe.whitelist()
 def get_permissions(doctype=None, role=None):
 	frappe.only_for("System Manager")
-	return frappe.db.sql("""select * from tabDocPerm
+	out = frappe.db.sql("""select * from tabDocPerm
 		where %s%s order by parent, permlevel, role""" %
 		(doctype and (" parent='%s'" % doctype.replace("'", "\'")) or "",
 		role and ((doctype and " and " or "") + " role='%s'" % role.replace("'", "\'")) or ""),
 		as_dict=True)
+
+	def get_linked_doctypes(dt):
+		return list(set([dt] + [d.options for d in
+			frappe.get_meta(dt).get("fields", {
+				"fieldtype":"Link",
+				"ignore_user_permissions":("!=", 1),
+				"options": ("!=", "[Select]")
+			})
+		]))
+
+	linked_doctypes = {}
+	for d in out:
+		d.linked_doctypes = linked_doctypes.setdefault(d.parent, get_linked_doctypes(d.parent))
+
+	return out
 
 @frappe.whitelist()
 def remove(doctype, name):
@@ -51,7 +66,7 @@ def add(parent, role, permlevel):
 	validate_and_reset(parent)
 
 @frappe.whitelist()
-def update(name, doctype, ptype, value=0):
+def update(name, doctype, ptype, value=None):
 	frappe.only_for("System Manager")
 	frappe.db.sql("""update tabDocPerm set `%s`=%s where name=%s"""\
 	 	% (ptype, '%s', '%s'), (value, name))
@@ -88,6 +103,7 @@ def get_users_with_role(role):
 
 @frappe.whitelist()
 def get_standard_permissions(doctype):
+	frappe.only_for("System Manager")
 	module = frappe.db.get_value("DocType", doctype, "module")
 	path = get_file_path(module, "DocType", doctype)
 	return read_doc_from_file(path).get("permissions")
