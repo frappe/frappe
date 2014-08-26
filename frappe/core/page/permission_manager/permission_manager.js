@@ -41,13 +41,13 @@ frappe.PermissionEngine = Class.extend({
 	setup_appframe: function() {
 		var me = this;
 		this.doctype_select
-			= this.wrapper.appframe.add_select("doctypes",
+			= this.wrapper.appframe.add_select(__("Document Types"),
 				[{value: "", label: __("Select Document Type")+"..."}].concat(this.options.doctypes))
 				.change(function() {
 					frappe.set_route("permission-manager", $(this).val());
 				});
 		this.role_select
-			= this.wrapper.appframe.add_select("roles",
+			= this.wrapper.appframe.add_select(__("Roles"),
 				[__("Select Role")+"..."].concat(this.options.roles))
 				.change(function() {
 					me.refresh();
@@ -130,7 +130,7 @@ frappe.PermissionEngine = Class.extend({
 	refresh: function() {
 		var me = this;
 		if(!me.doctype_select) {
-			this.body.html("<div class='alert alert-info'>Loading...</div>");
+			this.body.html("<div class='alert alert-info'>" + __("Loading") + "...</div>");
 			return;
 		}
 		if(!me.get_doctype() && !me.get_role()) {
@@ -164,6 +164,7 @@ frappe.PermissionEngine = Class.extend({
 		this.make_reset_button();
 	},
 	show_permission_table: function(perm_list) {
+
 		var me = this;
 		this.table = $("<div class='table-responsive'>\
 			<table class='table table-bordered'>\
@@ -172,8 +173,8 @@ frappe.PermissionEngine = Class.extend({
 			</table>\
 		</div>").appendTo(this.body);
 
-		$.each([["Document Type", 150], ["Role", 170], ["Level", 40],
-			["Permissions", 350], ["", 40]], function(i, col) {
+		$.each([[__("Document Type"), 150], [__("Role"), 170], [__("Level"), 40],
+			[__("Permissions"), 350], ["", 40]], function(i, col) {
 			$("<th>").html(col[0]).css("width", col[1]+"px")
 				.appendTo(me.table.find("thead tr"));
 		});
@@ -210,13 +211,13 @@ frappe.PermissionEngine = Class.extend({
 	add_cell: function(row, d, fieldname) {
 		return $("<td>").appendTo(row)
 			.attr("data-fieldname", fieldname)
-			.html(d[fieldname]);
+			.html(__(d[fieldname]));
 	},
 
 	add_check: function(cell, d, fieldname, label) {
 		var me = this;
 
-		if(!label) label = fieldname.replace(/_/g, " ");
+		if(!label) label = toTitle(fieldname.replace(/_/g, " "));
 		if(d.permlevel > 0 && ["read", "write"].indexOf(fieldname)==-1) {
 			return;
 		}
@@ -269,7 +270,7 @@ frappe.PermissionEngine = Class.extend({
 		"print", "email", "report", "import", "export", "set_user_permissions"],
 
 	set_show_users: function(cell, role) {
-		cell.html("<a href='#'>"+role+"</a>")
+		cell.html("<a href='#'>"+__(role)+"</a>")
 			.find("a")
 			.attr("data-role", role)
 			.click(function() {
@@ -358,14 +359,14 @@ frappe.PermissionEngine = Class.extend({
 				var d = new frappe.ui.Dialog({
 					title: __("Add New Permission Rule"),
 					fields: [
-						{fieldtype:"Select", label:"Document Type",
+						{fieldtype:"Select", label:__("Document Type"),
 							options:me.options.doctypes, reqd:1, fieldname:"parent"},
-						{fieldtype:"Select", label:"Role",
+						{fieldtype:"Select", label:__("Role"),
 							options:me.options.roles, reqd:1},
-						{fieldtype:"Select", label:"Permission Level",
+						{fieldtype:"Select", label:__("Permission Level"),
 							options:[0,1,2,3,4,5,6,7,8,9], reqd:1, fieldname: "permlevel",
 							description: __("Level 0 is for document level permissions, higher levels for field level permissions.")},
-						{fieldtype:"Button", label:"Add"},
+						{fieldtype:"Button", label:__("Add")},
 					]
 				});
 				if(me.get_doctype()) {
@@ -480,7 +481,7 @@ frappe.PermissionEngine = Class.extend({
 	make_reset_button: function() {
 		var me = this;
 		$('<button class="btn btn-default" style="margin-left: 10px;">\
-			<i class="icon-refresh"></i> Restore Original Permissions</button>')
+			<i class="icon-refresh"></i> ' + __("Restore Original Permissions") + '</button>')
 			.appendTo(this.body.find(".permission-toolbar"))
 			.on("click", function() {
 				me.get_standard_permissions(function(data) {
