@@ -74,7 +74,7 @@ def search_widget(doctype, txt, query=None, searchfield=None, start=0,
 			fields = get_std_fields_list(meta, searchfield or "name")
 
 			# find relevance as location of search term from the beginning of string `name`. used for sorting results.
-			fields.append("""locate("{_txt}", name) as `_relevance`""".format(
+			fields.append("""locate("{_txt}", `tab{doctype}`.`name`) as `_relevance`""".format(
 				_txt=frappe.db.escape((txt or "").replace("%", "")), doctype=doctype))
 
 			values = frappe.widgets.reportview.execute(doctype,

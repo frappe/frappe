@@ -15,7 +15,7 @@ class DatabaseQuery(object):
 		self.doctype = doctype
 		self.tables = []
 		self.conditions = []
-		self.fields = ["name"]
+		self.fields = ["`tab{0}`.`name`".format(doctype)]
 		self.user = None
 		self.ignore_permissions = False
 
