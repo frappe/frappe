@@ -43,14 +43,14 @@ def build_response(response_type=None):
 def as_csv():
 	response = Response()
 	response.headers[b"Content-Type"] = b"text/csv; charset: utf-8"
-	response.headers[b"Content-Disposition"] = ("attachment; filename=%s.csv" % frappe.response['doctype'].replace(' ', '_')).encode("utf-8")
+	response.headers[b"Content-Disposition"] = ("attachment; filename=\"%s.csv\"" % frappe.response['doctype'].replace(' ', '_')).encode("utf-8")
 	response.data = frappe.response['result']
 	return response
 
 def as_raw():
 	response = Response()
 	response.headers[b"Content-Type"] = frappe.response.get("content_type") or mimetypes.guess_type(frappe.response['filename'])[0] or b"application/unknown"
-	response.headers[b"Content-Disposition"] = ("filename=%s" % frappe.response['filename'].replace(' ', '_')).encode("utf-8")
+	response.headers[b"Content-Disposition"] = ("filename=\"%s\"" % frappe.response['filename'].replace(' ', '_')).encode("utf-8")
 	response.data = frappe.response['filecontent']
 	return response
 

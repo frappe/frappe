@@ -84,7 +84,17 @@ $.extend(frappe.perm, {
 				});
 
 				if (permlevel===0 && p.apply_user_permissions && p.user_permission_doctypes) {
-					perm[permlevel]["user_permission_doctypes"] = JSON.parse(p.user_permission_doctypes);
+					// set user_permission_doctypes in perms
+					var user_permission_doctypes = p.user_permission_doctypes
+							? JSON.parse(p.user_permission_doctypes) : null;
+
+					if (user_permission_doctypes && (!perm[permlevel].user_permission_doctypes ||
+						user_permission_doctypes.length <= perm[permlevel].user_permission_doctypes.length)) {
+							// selecting the least no. of "user_permission_doctypes" for lesser filtering
+							// why? if there is a conflict of two user_permission_doctypes, the least restrictive should win
+							// hence, using the simplistic approach of less no. of "user_permission_doctypes" implies least restrictive!
+							perm[permlevel]["user_permission_doctypes"] = user_permission_doctypes;
+						}
 				}
 			}
 		});

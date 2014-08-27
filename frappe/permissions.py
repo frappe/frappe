@@ -93,9 +93,17 @@ def get_role_permissions(meta, user=None):
 						perms["apply_user_permissions"][ptype] = (perms["apply_user_permissions"].get(ptype, 1)
 							and p.get("apply_user_permissions"))
 
-				if p.apply_user_permissions:
-					perms["user_permission_doctypes"] = (json.loads(p.user_permission_doctypes)
-						if p.user_permission_doctypes else None)
+				if p.apply_user_permissions and p.user_permission_doctypes:
+					# set user_permission_doctypes in perms
+					user_permission_doctypes = (json.loads(p.user_permission_doctypes)
+							if p.user_permission_doctypes else None)
+
+					if user_permission_doctypes and (not perms.get("user_permission_doctypes") or
+						len(user_permission_doctypes) <= len(perms["user_permission_doctypes"])):
+						# selecting the least no. of "user_permission_doctypes" for lesser filtering
+						# why? if there is a conflict of two user_permission_doctypes, the least restrictive should win
+						# hence, using the simplistic approach of less no. of "user_permission_doctypes" implies least restrictive!
+						perms["user_permission_doctypes"] = user_permission_doctypes
 
 		for key, value in perms.get("apply_user_permissions").items():
 			if not value:

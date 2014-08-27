@@ -106,6 +106,7 @@ def get_dict(fortype, name=None):
 		elif fortype=="boot":
 			messages = get_messages_from_include_files()
 			messages += frappe.db.sql_list("select name from tabDocType")
+			messages += frappe.db.sql_list("select name from tabRole")
 			messages += frappe.db.sql_list("select name from `tabModule Def`")
 
 		translation_assets[asset_key] = make_dict_from_messages(messages)
@@ -193,6 +194,7 @@ def get_messages_from_doctype(name):
 
 	messages = [meta.name, meta.module]
 
+	# translations of field labels, description and options
 	for d in meta.get("fields"):
 		messages.extend([d.label, d.description])
 
@@ -201,6 +203,11 @@ def get_messages_from_doctype(name):
 			options = d.options.split('\n')
 			if not "icon" in options[0]:
 				messages.extend(options)
+
+	# translations of roles
+	for d in meta.get("permissions"):
+		if d.role:
+			messages.append(d.role)
 
 	# extract from js, py files
 	doctype_file_path = frappe.get_module_path(meta.module, "doctype", meta.name, meta.name)
@@ -301,6 +308,8 @@ def get_untranslated(lang, untranslated_file, get_all=False):
 	for app in apps:
 		messages.extend(get_messages_for_app(app))
 
+	messages = list(set(messages))
+
 	def escape_newlines(s):
 		return (s.replace("\\\n", "|||||")
 				.replace("\\n", "||||")
@@ -366,3 +375,10 @@ def write_translations_file(app, lang, full_dict=None):
 	frappe.create_folder(tpath)
 	write_csv_file(os.path.join(tpath, lang + ".csv"),
 		app_messages, full_dict or get_full_dict(lang))
+
+def send_translations(translation_dict):
+	"""send these translations in response"""
+	if "__messages" not in frappe.local.response:
+		frappe.local.response["__messages"] = {}
+
+	frappe.local.response["__messages"].update(translation_dict)
