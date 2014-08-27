@@ -63,7 +63,8 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		this.appframe = this.page.appframe;
 		var module = locals.DocType[this.doctype].module;
 
-		this.appframe.set_title(__("{0} List", [this.doctype]));
+		var title = __(this.doctype);
+		this.appframe.set_title(__("{0} List", [title]));
 		this.appframe.add_module_icon(module, this.doctype, null, true);
 		this.appframe.set_title_left(function() {
 			frappe.set_route(frappe.listview_parent_route[me.doctype]
@@ -257,7 +258,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 				__('Make a new') + ' %(doctype_label)s</button></p>')
 			: '';
 		var no_result_message = repl('<div class="well" style="margin-top: 20px;">\
-		<p>' + __("No") + ' %(doctype_label)s ' + __("found") + '</p>' + new_button + '</div>', {
+		<p>' + __("No {0} found", [' %(doctype_label)s '])  + '</p>' + new_button + '</div>', {
 			doctype_label: __(this.doctype),
 			doctype: this.doctype,
 		});
