@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import msgprint, throw, _
-from frappe.utils import scrub_urls
+from frappe.utils import scrub_urls, get_url
 from frappe.utils.pdf import get_pdf
 import email.utils
 from markdown2 import markdown
@@ -192,6 +192,9 @@ class EMail:
 		self.msg_root['Reply-To'] = self.reply_to.encode("utf-8")
 		if self.cc:
 			self.msg_root['CC'] = ', '.join([r.strip() for r in self.cc]).encode("utf-8")
+
+		# add frappe site header
+		self.msg_root.add_header(b'X-Frappe-Site', get_url().encode('utf-8'))
 
 	def as_string(self):
 		"""validate, build message and convert to string"""
