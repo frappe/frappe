@@ -107,6 +107,7 @@ def get_website_settings():
 		frappe.get_attr(update_website_context)(context)
 
 	context.web_include_js = hooks.web_include_js or []
+
 	context.web_include_css = hooks.web_include_css or []
 
 	return context

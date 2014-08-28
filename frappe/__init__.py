@@ -286,6 +286,9 @@ def clear_cache(user=None, doctype=None):
 		translate.clear_cache()
 		reset_metadata_version()
 
+		for fn in frappe.get_hooks("clear_cache"):
+			get_attr(fn)()
+
 	frappe.local.role_permissions = {}
 
 def get_roles(username=None):
