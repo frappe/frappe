@@ -72,11 +72,15 @@ $.extend(frappe.datetime, {
 
 	user_to_str: function(val, no_time_str) {
 		var user_fmt = dateutil.get_user_fmt().toUpperCase();
-		if(val.indexOf(" ")===-1) {
-			return moment(val, user_fmt).format();
-		} else {
-			return moment(val, user_fmt + " HH:mm:ss").format("YYYY-MM-DD HH:mm:ss");
+		var system_fmt = "YYYY-MM-DD";
+
+		if(val.indexOf(" ")!==-1) {
+			user_fmt += " HH:mm:ss";
+			system_fmt += " HH:mm:ss";
 		}
+
+		// user_fmt.replace("YYYY", "YY")? user might only input 2 digits of the year, which should also be parsed
+		return moment(val, [user_fmt.replace("YYYY", "YY"), user_fmt]).format(system_fmt);
 	},
 
 	user_to_obj: function(d) {
