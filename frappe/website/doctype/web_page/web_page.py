@@ -88,7 +88,7 @@ def get_static_content(doc, context):
 		if not d.title:
 			d.title = doc.name.replace("-", " ").replace("_", " ").title()
 
-		doc.render_dynamic(context)
+		doc.render_dynamic(d)
 
 	for extn in ("js", "css"):
 		fpath = doc.template_path.rsplit(".", 1)[0] + "." + extn
