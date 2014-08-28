@@ -75,10 +75,17 @@ def clear_notifications(user=None):
 	if frappe.flags.in_install_app=="frappe":
 		return
 
-	if user:
-		frappe.db.sql("""delete from `tabNotification Count` where owner=%s""", (user,))
-	else:
-		frappe.db.sql("""delete from `tabNotification Count`""")
+	try:
+		if user:
+			frappe.db.sql("""delete from `tabNotification Count` where owner=%s""", (user,))
+		else:
+			frappe.db.sql("""delete from `tabNotification Count`""")
+
+	except MySQLdb.OperationalError, e:
+		if e.args[0] != 1213:
+			raise
+
+		logger.error("Deadlock")
 
 def delete_notification_count_for(doctype):
 	if frappe.flags.in_import: return
