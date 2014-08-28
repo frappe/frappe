@@ -9,6 +9,7 @@ import MySQLdb
 import warnings
 import datetime
 import frappe
+import re
 import frappe.model.meta
 from frappe.utils import now, get_datetime
 from frappe import _
@@ -536,10 +537,14 @@ class Database:
 	def add_index(self, doctype, fields, index_name=None):
 		if not index_name:
 			index_name = "_".join(fields) + "_index"
+
+			# remove index length if present e.g. (10) from index name
+			index_name = re.sub(r"\s*\([^)]+\)\s*", r"", index_name)
+
 		if not frappe.db.sql("""show index from `tab%s` where Key_name="%s" """ % (doctype, index_name)):
 			frappe.db.commit()
 			frappe.db.sql("""alter table `tab%s`
-				add index %s(%s)""" % (doctype, index_name, ", ".join(fields)))
+				add index `%s`(%s)""" % (doctype, index_name, ", ".join(fields)))
 
 	def close(self):
 		if self._conn:
