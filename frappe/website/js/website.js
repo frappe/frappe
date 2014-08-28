@@ -107,9 +107,14 @@ $.extend(frappe, {
 			} catch(e) {
 				console.log(data.exc);
 			}
-			if (opts.error_msg && data._server_messages) {
+
+			if (data._server_messages) {
 				var server_messages = (JSON.parse(data._server_messages || '[]')).join("<br>");
-				$(opts.error_msg).html(server_messages).toggle(true);
+				if(opts.error_msg) {
+					$(opts.error_msg).html(server_messages).toggle(true);
+				} else {
+					frappe.msgprint(server_messages);
+				}
 			}
 		} else{
 			if(opts.btn) {
@@ -265,7 +270,12 @@ $.extend(frappe, {
 		history.pushState(null, null, href);
 
 		var _render = function(data) {
-			history.replaceState(data, data.title, href);
+			try {
+				history.replaceState(data, data.title, href);
+			} catch(e) {
+				// data too big (?)
+				history.replaceState(null, data.title, href);
+			}
 			scroll(0,0);
 			frappe.render_json(data);
 		};
@@ -290,6 +300,7 @@ $.extend(frappe, {
 		$('[data-html-block]').each(function(i, section) {
 			var $section = $(section);
 			var stype = $section.attr("data-html-block");
+
 
 			// handle meta separately
 			if (stype==="meta_block") return;

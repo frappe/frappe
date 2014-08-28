@@ -23,6 +23,8 @@ def export_fixtures():
 	for app in frappe.get_installed_apps():
 		for fixture in frappe.get_hooks("fixtures", app_name=app):
 			print "Exporting " + fixture
+			if not os.path.exists(frappe.get_app_path(app, "fixtures")):
+				os.mkdir(frappe.get_app_path(app, "fixtures"))
 			if frappe.db.get_value("DocType", fixture, "issingle"):
 				export_fixture(fixture, fixture, app)
 			else:

@@ -1,9 +1,11 @@
 function prettyDate(time){
 	if(moment) {
-		var user_timezone = frappe.boot.user.time_zone;
-		var system_timezone = sys_defaults.time_zone;
-		var zones = (frappe.boot.timezone_info || {}).zones || {};
-		if (user_timezone && (user_timezone != system_timezone)
+		if(frappe.boot) {
+			var user_timezone = frappe.boot.user.time_zone;
+			var system_timezone = sys_defaults.time_zone;
+			var zones = (frappe.boot.timezone_info || {}).zones || {};
+		}
+		if (frappe.boot && user_timezone && (user_timezone != system_timezone)
 			&& zones[user_timezone] && zones[system_timezone]) {
 			return moment.tz(time, sys_defaults.time_zone).tz(frappe.boot.user.time_zone).fromNow();
 		} else {
@@ -37,8 +39,10 @@ function prettyDate(time){
 
 
 var comment_when = function(datetime) {
+	var timestamp = frappe.datetime.str_to_user ?
+		frappe.datetime.str_to_user(datetime) : datetime;
 	return '<span class="frappe-timestamp" data-timestamp="'+datetime
-		+'" title="'+frappe.datetime.str_to_user(datetime)+'">'
+		+'" title="'+timestamp+'">'
 		+ prettyDate(datetime) + '</span>';
 };
 

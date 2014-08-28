@@ -9,6 +9,7 @@ from frappe.website.router import resolve_route
 from frappe.website.doctype.website_slideshow.website_slideshow import get_slideshow
 from frappe.website.utils import find_first_image, get_comment_list
 from markdown2 import markdown
+from frappe.utils.jinja import render_template
 
 class WebPage(WebsiteGenerator):
 	save_versions = True
@@ -32,14 +33,13 @@ class WebPage(WebsiteGenerator):
 
 		if self.template_path:
 			# load content from template
-			context.update(get_static_content(self, self.template_path))
+			context.update(get_static_content(self, context))
 		else:
 			context.update({
 				"style": self.css or "",
 				"script": self.javascript or ""
 			})
 
-		self.render_dynamic(context)
 		self.set_metatags(context)
 
 		if not context.header:
@@ -53,7 +53,7 @@ class WebPage(WebsiteGenerator):
 	def render_dynamic(self, context):
 		# dynamic
 		if context.main_section and "<!-- render-jinja -->" in context.main_section:
-			context["main_section"] = frappe.render_template(context.main_section,
+			context["main_section"] = render_template(context.main_section,
 				{"doc": self, "frappe": frappe})
 			context["no_cache"] = 1
 
@@ -68,12 +68,12 @@ class WebPage(WebsiteGenerator):
 			context.metatags["image"] = image
 
 
-def get_static_content(doc, template_path):
+def get_static_content(doc, context):
 	d = frappe._dict({})
-	with open(template_path, "r") as contentfile:
+	with open(doc.template_path, "r") as contentfile:
 		content = unicode(contentfile.read(), 'utf-8')
 
-		if template_path.endswith(".md"):
+		if doc.template_path.endswith(".md"):
 			if content:
 				lines = content.splitlines()
 				first_line = lines[0].strip()
@@ -88,8 +88,10 @@ def get_static_content(doc, template_path):
 		if not d.title:
 			d.title = doc.name.replace("-", " ").replace("_", " ").title()
 
+		doc.render_dynamic(d)
+
 	for extn in ("js", "css"):
-		fpath = template_path.rsplit(".", 1)[0] + "." + extn
+		fpath = doc.template_path.rsplit(".", 1)[0] + "." + extn
 		if os.path.exists(fpath):
 			with open(fpath, "r") as f:
 				d["css" if extn=="css" else "javascript"] = f.read()
