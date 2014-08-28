@@ -6,6 +6,8 @@
 import frappe
 import frappe.defaults
 import unittest
+import json
+import frappe.model.meta
 from frappe.core.page.user_permissions.user_permissions import add, remove, get_permissions
 from frappe.permissions import clear_user_permissions_for_doctype, get_doc_permissions
 
@@ -30,6 +32,9 @@ class TestBlogPost(unittest.TestCase):
 		clear_user_permissions_for_doctype("Blog Category")
 		clear_user_permissions_for_doctype("Blog Post")
 		clear_user_permissions_for_doctype("Blogger")
+		frappe.db.sql("""update `tabDocPerm` set user_permission_doctypes=null
+			where parent='Blog Post' and permlevel=0 and apply_user_permissions=1
+			and `read`=1""")
 
 	def test_basic_permission(self):
 		post = frappe.get_doc("Blog Post", "_test-blog-post")
@@ -145,3 +150,25 @@ class TestBlogPost(unittest.TestCase):
 		doc.title = "New"
 		self.assertRaises(frappe.CannotChangeConstantError, doc.save)
 		blog_post.get_field("title").set_only_once = 0
+
+	def test_user_permission_doctypes(self):
+		frappe.permissions.add_user_permission("Blog Category", "_Test Blog Category 1",
+			"test2@example.com")
+		frappe.permissions.add_user_permission("Blogger", "_Test Blogger 1",
+			"test2@example.com")
+
+		frappe.set_user("test2@example.com")
+
+		frappe.db.sql("""update `tabDocPerm` set user_permission_doctypes=%s
+			where parent='Blog Post' and permlevel=0 and apply_user_permissions=1
+			and `read`=1""", json.dumps(["Blogger"]))
+
+		frappe.model.meta.clear_cache("Blog Post")
+
+		doc = frappe.get_doc("Blog Post", "_test-blog-post")
+		self.assertFalse(doc.has_permission("read"))
+
+		doc = frappe.get_doc("Blog Post", "_test-blog-post-2")
+		self.assertTrue(doc.has_permission("read"))
+
+		frappe.model.meta.clear_cache("Blog Post")

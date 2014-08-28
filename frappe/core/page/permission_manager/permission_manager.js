@@ -41,13 +41,13 @@ frappe.PermissionEngine = Class.extend({
 	setup_appframe: function() {
 		var me = this;
 		this.doctype_select
-			= this.wrapper.appframe.add_select("doctypes",
+			= this.wrapper.appframe.add_select(__("Document Types"),
 				[{value: "", label: __("Select Document Type")+"..."}].concat(this.options.doctypes))
 				.change(function() {
 					frappe.set_route("permission-manager", $(this).val());
 				});
 		this.role_select
-			= this.wrapper.appframe.add_select("roles",
+			= this.wrapper.appframe.add_select(__("Roles"),
 				[__("Select Role")+"..."].concat(this.options.roles))
 				.change(function() {
 					me.refresh();
@@ -95,7 +95,7 @@ frappe.PermissionEngine = Class.extend({
 				page:"permission_manager",
 				method:"reset",
 				args: {
-					doctype:me.get_doctype(),
+					doctype: me.get_doctype(),
 				},
 				callback: function() { me.refresh(); }
 			});
@@ -130,7 +130,7 @@ frappe.PermissionEngine = Class.extend({
 	refresh: function() {
 		var me = this;
 		if(!me.doctype_select) {
-			this.body.html("<div class='alert alert-info'>Loading...</div>");
+			this.body.html("<div class='alert alert-info'>" + __("Loading") + "...</div>");
 			return;
 		}
 		if(!me.get_doctype() && !me.get_role()) {
@@ -164,6 +164,7 @@ frappe.PermissionEngine = Class.extend({
 		this.make_reset_button();
 	},
 	show_permission_table: function(perm_list) {
+
 		var me = this;
 		this.table = $("<div class='table-responsive'>\
 			<table class='table table-bordered'>\
@@ -172,77 +173,104 @@ frappe.PermissionEngine = Class.extend({
 			</table>\
 		</div>").appendTo(this.body);
 
-		$.each([["Document Type", 150], ["Role", 170], ["Level", 40],
-			["Permissions", 350], ["", 40]], function(i, col) {
+		$.each([[__("Document Type"), 150], [__("Role"), 170], [__("Level"), 40],
+			[__("Permissions"), 350], ["", 40]], function(i, col) {
 			$("<th>").html(col[0]).css("width", col[1]+"px")
 				.appendTo(me.table.find("thead tr"));
 		});
 
-		var add_cell = function(row, d, fieldname) {
-			return $("<td>").appendTo(row)
-				.attr("data-fieldname", fieldname)
-				.html(d[fieldname]);
-		};
-
-		var add_check = function(cell, d, fieldname, label, without_grid) {
-			if(!label) label = fieldname.replace(/_/g, " ");
-			if(d.permlevel > 0 && ["read", "write"].indexOf(fieldname)==-1) {
-				return;
-			}
-
-			var checkbox = $("<div class='col-md-4'><div class='checkbox'>\
-					<label><input type='checkbox'>"+__(label)+"</input></label>"
-					+ (d.help || "") + "</div></div>").appendTo(cell)
-				.attr("data-fieldname", fieldname)
-				.css("text-transform", "capitalize");
-
-			checkbox.find("input")
-				.prop("checked", d[fieldname] ? true: false)
-				.attr("data-ptype", fieldname)
-				.attr("data-name", d.name)
-				.attr("data-doctype", d.parent)
-
-			return checkbox;
-		};
-
 		$.each(perm_list, function(i, d) {
 			if(!d.permlevel) d.permlevel = 0;
 			var row = $("<tr>").appendTo(me.table.find("tbody"));
-			add_cell(row, d, "parent");
-			var role_cell = add_cell(row, d, "role");
+			me.add_cell(row, d, "parent");
+			var role_cell = me.add_cell(row, d, "role");
 			me.set_show_users(role_cell, d.role);
 
 			if (d.permlevel===0) {
-				d.help = '<div style="margin-left: 20px;">\
-					<a class="show-user-permissions small">Show User Pemissions</a></div>';
-				add_check(role_cell, d, "apply_user_permissions")
-					.removeClass("col-md-4")
-					.css({"margin-top": "15px"});
-				d.help = "";
+				me.setup_user_permissions(d, role_cell);
 			}
 
-			var cell = add_cell(row, d, "permlevel");
+			var cell = me.add_cell(row, d, "permlevel");
 			if(d.permlevel==0) {
 				cell.css("font-weight", "bold");
 				row.addClass("warning");
 			}
 
-			var perm_cell = add_cell(row, d, "permissions").css("padding-top", 0);
+			var perm_cell = me.add_cell(row, d, "permissions").css("padding-top", 0);
 			var perm_container = $("<div class='row'></div>").appendTo(perm_cell);
 
 			$.each(me.rights, function(i, r) {
-				add_check(perm_container, d, r);
+				me.add_check(perm_container, d, r);
 			});
 
 			// buttons
 			me.add_delete_button(row, d);
 		});
 	},
+
+	add_cell: function(row, d, fieldname) {
+		return $("<td>").appendTo(row)
+			.attr("data-fieldname", fieldname)
+			.html(__(d[fieldname]));
+	},
+
+	add_check: function(cell, d, fieldname, label) {
+		var me = this;
+
+		if(!label) label = toTitle(fieldname.replace(/_/g, " "));
+		if(d.permlevel > 0 && ["read", "write"].indexOf(fieldname)==-1) {
+			return;
+		}
+
+		var checkbox = $("<div class='col-md-4'><div class='checkbox'>\
+				<label><input type='checkbox'>"+__(label)+"</input></label>"
+				+ (d.help || "") + "</div></div>").appendTo(cell)
+			.attr("data-fieldname", fieldname);
+
+		checkbox.find("input")
+			.prop("checked", d[fieldname] ? true: false)
+			.attr("data-ptype", fieldname)
+			.attr("data-name", d.name)
+			.attr("data-doctype", d.parent)
+
+		checkbox.find("label")
+			.css("text-transform", "capitalize");
+
+		return checkbox;
+	},
+
+	setup_user_permissions: function(d, role_cell) {
+		var me = this;
+		d.help = frappe.render('<ul class="user-permission-help small hidden" style="margin-left: -10px;">\
+				<li style="margin-top: 7px;"><a class="show-user-permission-doctypes">{%= __("Select Document Types") %}</a></li>\
+				<li style="margin-top: 3px;"><a class="show-user-permissions">{%= __("Show User Permissions") %}</a></li>\
+			</ul>', {});
+
+		var checkbox = this.add_check(role_cell, d, "apply_user_permissions")
+			.removeClass("col-md-4")
+			.css({"margin-top": "15px"});
+
+		checkbox.find(".show-user-permission-doctypes").on("click", function() {
+			me.show_user_permission_doctypes(d);
+		});
+
+		var toggle_user_permissions = function() {
+			checkbox.find(".user-permission-help").toggleClass("hidden", !checkbox.find("input").prop("checked"));
+		};
+
+		toggle_user_permissions();
+		checkbox.find("input").on('click', function() {
+			toggle_user_permissions();
+		});
+
+		d.help = "";
+	},
+
 	rights: ["read", "write", "create", "delete", "submit", "cancel", "amend",
 		"print", "email", "report", "import", "export", "set_user_permissions"],
 
 	set_show_users: function(cell, role) {
-		cell.html("<a href='#'>"+role+"</a>")
+		cell.html("<a href='#'>"+__(role)+"</a>")
 			.find("a")
 			.attr("data-role", role)
 			.click(function() {
@@ -331,14 +359,14 @@ frappe.PermissionEngine = Class.extend({
 				var d = new frappe.ui.Dialog({
 					title: __("Add New Permission Rule"),
 					fields: [
-						{fieldtype:"Select", label:"Document Type",
+						{fieldtype:"Select", label:__("Document Type"),
 							options:me.options.doctypes, reqd:1, fieldname:"parent"},
-						{fieldtype:"Select", label:"Role",
+						{fieldtype:"Select", label:__("Role"),
 							options:me.options.roles, reqd:1},
-						{fieldtype:"Select", label:"Permission Level",
+						{fieldtype:"Select", label:__("Permission Level"),
 							options:[0,1,2,3,4,5,6,7,8,9], reqd:1, fieldname: "permlevel",
 							description: __("Level 0 is for document level permissions, higher levels for field level permissions.")},
-						{fieldtype:"Button", label:"Add"},
+						{fieldtype:"Button", label:__("Add")},
 					]
 				});
 				if(me.get_doctype()) {
@@ -374,10 +402,86 @@ frappe.PermissionEngine = Class.extend({
 			});
 	},
 
+	show_user_permission_doctypes: function(d) {
+		if (!d.dialog) {
+			var fields = [];
+			for (var i=0, l=d.linked_doctypes.length; i<l; i++) {
+				fields.push({
+					fieldtype: "Check",
+					label: __(d.linked_doctypes[i]),
+					fieldname: d.linked_doctypes[i]
+				});
+			}
+
+			fields.push({
+				fieldtype: "Button",
+				label: __("Set"),
+				fieldname: "set_user_permission_doctypes"
+			})
+
+			var dialog = new frappe.ui.Dialog({
+				title: __('Apply User Permissions of these Document Types'),
+				fields: fields
+			});
+
+			var fields_to_check = d.user_permission_doctypes
+				? JSON.parse(d.user_permission_doctypes) : d.linked_doctypes;
+
+			for (var i=0, l=fields_to_check.length; i<l; i++) {
+				dialog.set_value(fields_to_check[i], 1);
+			}
+
+			var btn = dialog.get_input("set_user_permission_doctypes");
+			btn.on("click", function() {
+				var values = dialog.get_values();
+				var user_permission_doctypes = [];
+				$.each(values, function(key, val) {
+					if (val) {
+						user_permission_doctypes.push(key);
+					}
+				});
+				if (!user_permission_doctypes || !user_permission_doctypes.length ||
+					user_permission_doctypes.length === d.linked_doctypes.length) {
+					// if all checked
+					user_permission_doctypes = undefined;
+				} else {
+					user_permission_doctypes.sort();
+					user_permission_doctypes = JSON.stringify(user_permission_doctypes);
+				}
+
+				frappe.call({
+					module: "frappe.core",
+					page: "permission_manager",
+					method: "update",
+					args: {
+						doctype: d.parent,
+						name: d.name,
+						ptype: "user_permission_doctypes",
+						value: user_permission_doctypes
+					},
+					callback: function(r) {
+						if(r.exc) {
+							msgprint(__("Did not set"));
+						} else {
+							var msg = msgprint(__("Saved!"));
+							setTimeout(function() { msg.hide(); }, 3000);
+							d.user_permission_doctypes = user_permission_doctypes;
+							dialog.hide();
+						}
+					}
+				});
+			});
+
+			d.dialog = dialog;
+		}
+
+		d.dialog.show();
+	},
+
 	make_reset_button: function() {
 		var me = this;
 		$('<button class="btn btn-default" style="margin-left: 10px;">\
-			<i class="icon-refresh"></i> Restore Original Permissions</button>')
+			<i class="icon-refresh"></i> ' + __("Restore Original Permissions") + '</button>')
 			.appendTo(this.body.find(".permission-toolbar"))
 			.on("click", function() {
 				me.get_standard_permissions(function(data) {
@@ -477,6 +581,9 @@ var permissions_help = ['<table class="table table-bordered" style="background-c
 			'<li>',
 				__("To give acess to a role for only specific records, check the 'Apply User Permissions'. User Permissions are used to limit users with such role to specific records.")
 				+ ' (<a href="#user-permissions">' + __('Setup > User Permissions Manager') + '</a>)',
+			'</li>',
+			'<li>',
+				__("Select Document Types to set which User Permissions are used to limit access."),
 			'</li>',
 			'<li>',
 				__("Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger)."),

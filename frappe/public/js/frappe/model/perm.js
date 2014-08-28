@@ -82,6 +82,20 @@ $.extend(frappe.perm, {
 						apply_user_permissions[key] = current_value && p.apply_user_permissions;
 					}
 				});
+
+				if (permlevel===0 && p.apply_user_permissions && p.user_permission_doctypes) {
+					// set user_permission_doctypes in perms
+					var user_permission_doctypes = p.user_permission_doctypes
+							? JSON.parse(p.user_permission_doctypes) : null;
+
+					if (user_permission_doctypes && (!perm[permlevel].user_permission_doctypes ||
+						user_permission_doctypes.length <= perm[permlevel].user_permission_doctypes.length)) {
+							// selecting the least no. of "user_permission_doctypes" for lesser filtering
+							// why? if there is a conflict of two user_permission_doctypes, the least restrictive should win
+							// hence, using the simplistic approach of less no. of "user_permission_doctypes" implies least restrictive!
+							perm[permlevel]["user_permission_doctypes"] = user_permission_doctypes;
+						}
+				}
 			}
 		});
 
@@ -94,6 +108,8 @@ $.extend(frappe.perm, {
 	},
 
 	get_match_rules: function(doctype, ptype) {
+		var me = this;
+
 		if (!ptype) ptype = "read";
 
 		var perm = frappe.perm.get_perm(doctype);
@@ -105,13 +121,30 @@ $.extend(frappe.perm, {
 		var match_rules = {};
 		var user_permissions = frappe.defaults.get_user_permissions();
 		if(user_permissions && !$.isEmptyObject(user_permissions)) {
-			var fields_to_check = frappe.meta.get_fields_to_check_permissions(doctype, null, user_permissions);
+			var user_permission_doctypes = me.get_user_permission_doctypes(perm[0].user_permission_doctypes,
+				user_permissions);
+
+			var fields_to_check = frappe.meta.get_fields_to_check_permissions(doctype, null, user_permission_doctypes);
 			$.each(fields_to_check, function(i, df) {
 				match_rules[df.label] = user_permissions[df.options];
 			});
 		}
 
 		return match_rules;
+	},
+
+	get_user_permission_doctypes: function(user_permission_doctypes, user_permissions) {
+		if (user_permission_doctypes) {
+			var out = [];
+			$.each(user_permission_doctypes, function(i, doctype) {
+				if (user_permissions[doctype]) {
+					out.push(doctype);
+				}
+			});
+			return out;
+		} else {
+			return Object.keys(user_permissions);
+		}
 	},
 
 	get_field_display_status: function(df, doc, perm, explain) {

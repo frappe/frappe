@@ -1,8 +1,9 @@
 # Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt 
+# MIT License. See license.txt
 
 from __future__ import unicode_literals
 import frappe
+from frappe.translate import send_translations
 
 @frappe.whitelist()
 def get(name):
@@ -28,14 +29,14 @@ def getpage():
 
 	# load translations
 	if frappe.lang != "en":
-		frappe.response["__messages"] = frappe.get_lang_dict("page", page)
+		send_translations(frappe.get_lang_dict("page", page))
 
 	frappe.response.docs.append(doc)
 
 def has_permission(page):
 	if frappe.user.name == "Administrator" or "System Manager" in frappe.user.get_roles():
 		return True
-		
+
 	page_roles = [d.role for d in page.get("roles")]
 	if page_roles:
 		if frappe.session.user == "Guest" and "Guest" not in page_roles:
@@ -43,7 +44,7 @@ def has_permission(page):
 		elif not set(page_roles).intersection(set(frappe.get_roles())):
 			# check if roles match
 			return False
-		
+
 	if not frappe.has_permission("Page", ptype="read", doc=page):
 		# check if there are any user_permissions
 		return False

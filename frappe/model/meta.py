@@ -194,15 +194,15 @@ class Meta(Document):
 
 		self.set("fields", newlist)
 
-	def get_fields_to_check_permissions(self, user_permissions_doctypes):
+	def get_fields_to_check_permissions(self, user_permission_doctypes):
 		fields = self.get("fields", {
 			"fieldtype":"Link",
 			"parent": self.name,
 			"ignore_user_permissions":("!=", 1),
-			"options":("in", user_permissions_doctypes)
+			"options":("in", user_permission_doctypes)
 		})
 
-		if self.name in user_permissions_doctypes:
+		if self.name in user_permission_doctypes:
 			fields.append(frappe._dict({
 				"label":"Name",
 				"fieldname":"name",

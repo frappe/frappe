@@ -2,7 +2,7 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-import frappe, copy
+import frappe, copy, json
 from frappe import _, msgprint
 from frappe.utils import cint
 
@@ -42,7 +42,8 @@ def has_permission(doctype, ptype="read", doc=None, verbose=True, user=None):
 			doc = frappe.get_doc(meta.name, doc)
 
 		if role_permissions["apply_user_permissions"].get(ptype):
-			if not user_has_permission(doc, verbose=verbose, user=user):
+			if not user_has_permission(doc, verbose=verbose, user=user,
+				user_permission_doctypes=role_permissions.get("user_permission_doctypes")):
 				return False
 
 		if not has_controller_permissions(doc, ptype, user=user):
@@ -66,7 +67,8 @@ def get_doc_permissions(doc, verbose=False, user=None):
 	if not cint(meta.allow_import):
 		role_permissions["import"] = 0
 
-	if not user_has_permission(doc, verbose=verbose, user=user):
+	if not user_has_permission(doc, verbose=verbose, user=user,
+		user_permission_doctypes=role_permissions.get("user_permission_doctypes")):
 		# no user permissions, switch off all user-level permissions
 		for ptype in role_permissions:
 			if role_permissions["apply_user_permissions"].get(ptype):
@@ -88,7 +90,20 @@ def get_role_permissions(meta, user=None):
 					perms[ptype] = perms.get(ptype, 0) or cint(p.get(ptype))
 
 					if ptype != "set_user_permissions" and p.get(ptype):
-						perms["apply_user_permissions"][ptype] = perms["apply_user_permissions"].get(ptype, 1) and p.get("apply_user_permissions")
+						perms["apply_user_permissions"][ptype] = (perms["apply_user_permissions"].get(ptype, 1)
+							and p.get("apply_user_permissions"))
+
+				if p.apply_user_permissions and p.user_permission_doctypes:
+					# set user_permission_doctypes in perms
+					user_permission_doctypes = (json.loads(p.user_permission_doctypes)
+							if p.user_permission_doctypes else None)
+
+					if user_permission_doctypes and (not perms.get("user_permission_doctypes") or
+						len(user_permission_doctypes) <= len(perms["user_permission_doctypes"])):
+						# selecting the least no. of "user_permission_doctypes" for lesser filtering
+						# why? if there is a conflict of two user_permission_doctypes, the least restrictive should win
+						# hence, using the simplistic approach of less no. of "user_permission_doctypes" implies least restrictive!
+						perms["user_permission_doctypes"] = user_permission_doctypes
 
 		for key, value in perms.get("apply_user_permissions").items():
 			if not value:
@@ -98,16 +113,17 @@ def get_role_permissions(meta, user=None):
 
 	return frappe.local.role_permissions[cache_key]
 
-def user_has_permission(doc, verbose=True, user=None):
+def user_has_permission(doc, verbose=True, user=None, user_permission_doctypes=None):
 	from frappe.defaults import get_user_permissions
 	user_permissions = get_user_permissions(user)
-	user_permissions_keys = user_permissions.keys()
+	user_permission_doctypes = get_user_permission_doctypes(user_permission_doctypes, user_permissions)
 
 	def check_user_permission(d):
 		result = True
 		meta = frappe.get_meta(d.get("doctype"))
-		for df in meta.get_fields_to_check_permissions(user_permissions_keys):
-			if d.get(df.fieldname) and d.get(df.fieldname) not in user_permissions[df.options]:
+		for df in meta.get_fields_to_check_permissions(user_permission_doctypes):
+			if (df.options in user_permissions and d.get(df.fieldname)
+				and d.get(df.fieldname) not in user_permissions[df.options]):
 				result = False
 
 				if verbose:
@@ -192,3 +208,12 @@ def apply_user_permissions(doctype, ptype, user=None):
 	"""Check if apply_user_permissions is checked for a doctype, perm type, user combination"""
 	role_permissions = get_role_permissions(frappe.get_meta(doctype), user=user)
 	return role_permissions.get("apply_user_permissions", {}).get(ptype)
+
+def get_user_permission_doctypes(user_permission_doctypes, user_permissions):
+	if user_permission_doctypes:
+		# select those user permission doctypes for which user permissions exist!
+		user_permission_doctypes = list(set(user_permission_doctypes).intersection(set(user_permissions.keys())))
+	else:
+		user_permission_doctypes = user_permissions.keys()
+
+	return user_permission_doctypes

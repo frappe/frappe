@@ -116,7 +116,8 @@ frappe.ui.AppFrame = Class.extend({
 			views.push({
 				icon: module_info.icon,
 				route: "Module/" + meta.module,
-				type: "module"
+				type: "module",
+				label: __("Module")
 			})
 		}
 
@@ -124,6 +125,7 @@ frappe.ui.AppFrame = Class.extend({
 			icon: "icon-file-alt",
 			route: "",
 			type: "form",
+			label: __("Form"),
 			set_route: function() {
 				console.log(me.doctype);
 				if(frappe.views.formview[me.doctype]) {
@@ -140,7 +142,8 @@ frappe.ui.AppFrame = Class.extend({
 			views.push({
 				icon: "icon-list",
 				route: "List/" + doctype,
-				type: "list"
+				type: "list",
+				label: __("List")
 			});
 		}
 
@@ -148,7 +151,8 @@ frappe.ui.AppFrame = Class.extend({
 			views.push({
 				icon: "icon-calendar",
 				route: "Calendar/" + doctype,
-				type: "calendar"
+				type: "calendar",
+				label: __("Calendar")
 			});
 		}
 
@@ -156,7 +160,8 @@ frappe.ui.AppFrame = Class.extend({
 			views.push({
 				icon: "icon-tasks",
 				route: "Gantt/" + doctype,
-				type: "gantt"
+				type: "gantt",
+				label: __("Gantt Chart")
 			});
 		}
 
@@ -164,7 +169,8 @@ frappe.ui.AppFrame = Class.extend({
 			views.push({
 				icon: "icon-table",
 				route: "Report/" + doctype,
-				type: "report"
+				type: "report",
+				label: __("Report")
 			});
 		}
 
@@ -174,7 +180,7 @@ frappe.ui.AppFrame = Class.extend({
 	set_views: function(views, active_view) {
 		var me = this;
 		$.each(views, function(i, e) {
-			var btn = me.add_icon_btn("3", e.icon, __(toTitle(e.type)), e.set_route || function() {
+			var btn = me.add_icon_btn("3", e.icon, __(e.label) || __(toTitle(e.type)), e.set_route || function() {
 				window.location.hash = "#" + $(this).attr("data-route");
 			}).attr("data-route", e.route);
 

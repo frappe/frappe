@@ -20,7 +20,7 @@ def get_data():
 				{
 					"type": "page",
 					"name": "permission-manager",
-					"label": "Role Permissions Manager",
+					"label": _("Role Permissions Manager"),
 					"icon": "icon-lock",
 					"description": _("Set Permissions on Document Types and Roles")
 				},
