@@ -140,26 +140,47 @@ def get_filtered_data(ref_doctype, columns, data):
 	result = []
 
 	linked_doctypes = get_linked_doctypes(columns)
-	match_filters = get_user_match_filters(linked_doctypes, ref_doctype)
+	match_filters_per_doctype = get_user_match_filters(linked_doctypes, ref_doctype)
 
-	if match_filters:
-		matched_columns = get_matched_columns(linked_doctypes, match_filters)
+	if match_filters_per_doctype:
 		for row in data:
-			match = True
-
-			if not ("owner" in match_filters and matched_columns.get("user", None)==match_filters["owner"]):
-				for col, idx in matched_columns.items():
-					if row[idx] not in match_filters[col]:
-						match = False
-						break
-
-			if match:
+			if has_match(row, linked_doctypes, match_filters_per_doctype):
 				result.append(row)
 	else:
 		for row in data:
 			result.append(row)
 
 	return result
+
+def has_match(row, linked_doctypes, doctype_match_filters):
+	filter_column_cache = {}
+
+	resultant_match = True
+	for doctype, filter_list in doctype_match_filters.items():
+		matched_for_doctype = False
+
+		for match_filters in filter_list:
+			match = True
+			matched_columns = get_matched_columns(linked_doctypes, match_filters, filter_column_cache)
+			for col, idx in matched_columns.items():
+				if row[idx] not in match_filters[col]:
+					match = False
+					break
+
+			# each doctype could have multiple conflicting user permission doctypes, hence using OR
+			# so that even if one of the sets allows a match, it is true
+			matched_for_doctype = matched_for_doctype or match
+
+			if matched_for_doctype:
+				break
+
+		# each doctype's user permissions should match the row! hence using AND
+		resultant_match = resultant_match and matched_for_doctype
+
+		if not resultant_match:
+			break
+
+	return resultant_match
 
 def get_linked_doctypes(columns):
 	linked_doctypes = {}
@@ -181,18 +202,21 @@ def get_user_match_filters(doctypes, ref_doctype):
 	match_filters = {}
 
 	for dt in doctypes:
-		match_filters.update(frappe.widgets.reportview.build_match_conditions(dt, False))
+		match_filters[dt] = frappe.widgets.reportview.build_match_conditions(dt, False)
 
 	return match_filters
 
-def get_matched_columns(linked_doctypes, match_filters):
-	if "owner" in match_filters:
-		match_filters["user"] = match_filters["owner"]
+def get_matched_columns(linked_doctypes, match_filters, filter_column_cache):
+	if not filter_column_cache.get(match_filters.keys()):
+		if "owner" in match_filters:
+			match_filters["user"] = match_filters["owner"]
 
-	col_idx_map = {}
-	for dt, idx in linked_doctypes.items():
-		link_field = dt.lower().replace(" ", "_")
-		if link_field in match_filters:
-			col_idx_map[link_field] = idx
+		col_idx_map = {}
+		for dt, idx in linked_doctypes.items():
+			link_field = dt.lower().replace(" ", "_")
+			if link_field in match_filters:
+				col_idx_map[link_field] = idx
 
-	return col_idx_map
+		filter_column_cache[match_filters.keys()] = col_idx_map
+
+	return filter_column_cache[match_filters.keys()]
