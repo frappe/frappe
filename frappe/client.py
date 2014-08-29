@@ -92,7 +92,7 @@ def submit(doclist):
 	doclistobj = frappe.get_doc(doclist)
 	doclistobj.submit()
 
-	return doclist.as_dict()
+	return doclistobj.as_dict()
 
 @frappe.whitelist()
 def cancel(doctype, name):
