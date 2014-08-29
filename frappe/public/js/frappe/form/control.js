@@ -339,6 +339,10 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 			} else
 				callback(v);
 		} else {
+			// trim strings!
+			if (typeof v==="string") {
+				v = v.trim();
+			}
 			callback(v);
 		}
 	}
