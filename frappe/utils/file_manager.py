@@ -137,7 +137,7 @@ def save_file(fname, content, dt, dn, decode=False):
 	return f
 
 def get_file_data_from_hash(content_hash):
-	for name in frappe.db.sql_list("select name from `tabFile Data` where content_hash='{}'".format(content_hash)):
+	for name in frappe.db.sql_list("select name from `tabFile Data` where content_hash=%s", content_hash):
 		b = frappe.get_doc('File Data', name)
 		return {k:b.get(k) for k in frappe.get_hooks()['write_file_keys']}
 	return False
@@ -237,7 +237,7 @@ def get_content_hash(content):
 	return hashlib.md5(content).hexdigest()
 
 def get_file_name(fname, optional_suffix):
-	n_records = frappe.db.sql("select name from `tabFile Data` where file_name='{}'".format(fname))
+	n_records = frappe.db.sql("select name from `tabFile Data` where file_name=%s", fname)
 	if len(n_records) > 0 or os.path.exists(get_files_path(fname)):
 		f = fname.rsplit('.', 1)
 		if len(f) == 1:

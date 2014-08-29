@@ -326,14 +326,20 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		});
 		d.get_input(docfield.fieldname).val(row[docfield.fieldname]);
 		d.get_input("update").on("click", function() {
+			var args = {
+				doctype: docfield.parent,
+				name: row[docfield.parent===me.doctype ? "name" : docfield.parent+":name"],
+				fieldname: docfield.fieldname,
+				value: d.get_value(docfield.fieldname)
+			};
+
+			if (!args.name) {
+				frappe.throw(__("ID field is required to edit values using Report. Please select the ID field using the Column Picker"));
+			}
+
 			frappe.call({
 				method: "frappe.client.set_value",
-				args: {
-					doctype: docfield.parent,
-					name: row[docfield.parent===me.doctype ? "name" : docfield.parent+":name"],
-					fieldname: docfield.fieldname,
-					value: d.get_value(docfield.fieldname)
-				},
+				args: args,
 				callback: function(r) {
 					if(!r.exc) {
 						d.hide();
