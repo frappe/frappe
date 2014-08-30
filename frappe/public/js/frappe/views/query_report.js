@@ -475,14 +475,22 @@ frappe.views.QueryReport = Class.extend({
 		// apply inline filters
 		if (!me.inline_filter(item)) return false;
 
-		var parent_name = item[me.parent_field];
-		while (parent_name) {
-			if (me.item_by_name[parent_name]._collapsed) {
-				return false;
+		try {
+			var parent_name = item[me.parent_field];
+			while (parent_name) {
+				if (me.item_by_name[parent_name]._collapsed) {
+					return false;
+				}
+				parent_name = me.item_by_name[parent_name][me.parent_field];
 			}
-			parent_name = me.item_by_name[parent_name][me.parent_field];
+			return true;
+		} catch (e) {
+			if (e.message.indexOf("[parent_name] is undefined")!==-1) {
+				msgprint(__("Unable to display this tree report, due to missing data. Most likely, it is being filtered out due to permissions."));
+			}
+
+			throw e;
 		}
-		return true;
 	},
 	tree_formatter: function(row, cell, value, columnDef, dataContext) {
 		var me = frappe.query_report;
