@@ -138,7 +138,6 @@ def add_total_row(result, columns):
 
 def get_filtered_data(ref_doctype, columns, data):
 	result = []
-
 	linked_doctypes = get_linked_doctypes(columns)
 	match_filters_per_doctype = get_user_match_filters(linked_doctypes, ref_doctype)
 
@@ -153,17 +152,19 @@ def get_filtered_data(ref_doctype, columns, data):
 	return result
 
 def has_match(row, linked_doctypes, doctype_match_filters):
-	filter_column_cache = {}
-
 	resultant_match = True
+
+	if not row:
+		# allow empty rows :)
+		return resultant_match
+
 	for doctype, filter_list in doctype_match_filters.items():
 		matched_for_doctype = False
 
 		for match_filters in filter_list:
 			match = True
-			matched_columns = get_matched_columns(linked_doctypes, match_filters, filter_column_cache)
-			for col, idx in matched_columns.items():
-				if row[idx] not in match_filters[col]:
+			for dt, idx in linked_doctypes.items():
+				if dt in match_filters and row[idx] not in match_filters[dt]:
 					match = False
 					break
 
@@ -194,7 +195,7 @@ def get_linked_doctypes(columns):
 
 		# dict
 		elif col.get("fieldtype")=="Link" and col.get("options"):
-			linked_doctypes[col["options"]] = idx
+			linked_doctypes[col["options"]] = col["fieldname"]
 
 	return linked_doctypes
 
@@ -202,21 +203,8 @@ def get_user_match_filters(doctypes, ref_doctype):
 	match_filters = {}
 
 	for dt in doctypes:
-		match_filters[dt] = frappe.widgets.reportview.build_match_conditions(dt, False)
+		filter_list = frappe.widgets.reportview.build_match_conditions(dt, False)
+		if filter_list:
+			match_filters[dt] = filter_list
 
 	return match_filters
-
-def get_matched_columns(linked_doctypes, match_filters, filter_column_cache):
-	if not filter_column_cache.get(match_filters.keys()):
-		if "owner" in match_filters:
-			match_filters["user"] = match_filters["owner"]
-
-		col_idx_map = {}
-		for dt, idx in linked_doctypes.items():
-			link_field = dt.lower().replace(" ", "_")
-			if link_field in match_filters:
-				col_idx_map[link_field] = idx
-
-		filter_column_cache[match_filters.keys()] = col_idx_map
-
-	return filter_column_cache[match_filters.keys()]

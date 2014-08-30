@@ -256,7 +256,7 @@ class DatabaseQuery(object):
 					fieldname=df.fieldname,
 					values=", ".join([('"'+v.replace('"', '\"')+'"') for v in user_permissions[df.options]])
 				))
-				match_filters[df.fieldname] = user_permissions[df.options]
+				match_filters[df.options] = user_permissions[df.options]
 
 			if match_conditions:
 				self.match_conditions.append(" and ".join(match_conditions))
