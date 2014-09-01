@@ -159,7 +159,7 @@ frappe.ui.Listing = Class.extend({
 
 		// hide-refresh
 		if(!(this.hide_refresh || this.no_refresh)) {
-			this.add_button('Refresh', function() {
+			this.add_button(__('Refresh'), function() {
 				me.run();
 			}, 'icon-refresh');
 
