@@ -54,7 +54,7 @@ frappe.pages['data-import-tool'].onload = function(wrapper) {
 	$select = $(wrapper).find('[name="dit-doctype"]');
 
 	frappe.messages.waiting($(wrapper).find(".dit-progress-area").toggle(false),
-		__("Performing hardcore import process...."), 100);
+		__("Performing hardcore import process")+ "....", 100);
 
 	// load doctypes
 	frappe.call({
