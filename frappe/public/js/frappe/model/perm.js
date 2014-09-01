@@ -251,4 +251,15 @@ $.extend(frappe.perm, {
 
 		return status;
 	},
+
+	is_visible: function(df, doc, perm) {
+		if (typeof df === 'string') {
+			// df is fieldname
+			df = frappe.meta.get_docfield(doc.doctype, df, doc.parent || doc.name);
+		}
+
+		var status = frappe.perm.get_field_display_status(df, doc, perm);
+
+		return status==="None" ? false : true;
+	},
 });
