@@ -60,8 +60,11 @@ def trigger_email_alerts(doc, method=None):
 def evaluate_alert(doc, alert, event):
 	if isinstance(alert, basestring):
 		alert = frappe.get_doc("Email Alert", alert)
+
+	context = {"doc": doc, "nowdate": nowdate}
+
 	if alert.condition:
-		if not eval(alert.condition, {"doc": doc}):
+		if not eval(alert.condition, context):
 			return
 
 	if event=="Value Change" and not doc.is_new():
@@ -72,7 +75,7 @@ def evaluate_alert(doc, alert, event):
 	for recipient in alert.email_alert_recipients:
 		recipients = []
 		if recipient.condition:
-			if not eval(recipient.condition, {"doc": doc}):
+			if not eval(recipient.condition, context):
 				continue
 		if recipient.email_by_document_field:
 			if validate_email_add(doc.get(recipient.email_by_document_field)):
