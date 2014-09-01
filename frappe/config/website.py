@@ -18,6 +18,11 @@ def get_data():
 				},
 				{
 					"type": "doctype",
+					"name": "Web Form",
+					"description": _("User editable form on Website."),
+				},
+				{
+					"type": "doctype",
 					"name": "Blogger",
 					"description": _("User ID of a blog writer."),
 				},

@@ -1,0 +1,116 @@
+{% block title %}{{ title }}{% endblock %}
+
+{% block header %}
+{{ title }}
+{% endblock %}
+
+{% block content %}
+
+{% if login_required and user=="Guest" %}
+<div class="alert alert-warning">{{ _("Please login to create a new {0}").format(_(doc_type)) }}</div>
+
+{% else %}
+<div class="form-message alert alert-info hide"></div>
+<form class="form-horizontal" role="form"
+	data-web-form="{{ name }}">
+	<input type="hidden" name="web_form" value="{{ name }}">
+	<input type="hidden" name="doctype" value="{{ doc_type }}">
+	{% if params.name -%}
+	<input type="hidden" name="name" value="{{ params.name }}">
+	{%- endif %}
+{% for field in web_form_fields %}
+	{% if field.fieldtype=="Data" %}
+	<div class="form-group">
+		<label for="{{ field.fieldname }}" class="col-sm-3 control-label">
+			{{ field.label }}</label>
+		<div class="col-sm-9">
+			<input type="text" class="form-control" name="{{ field.fieldname }}"
+				id="{{ field.fieldname }}" placeholder="{{ field.placeholder or '' }}">
+			{% if field.description -%}
+			<span class="help-block">{{ field.description }}</span>
+			{%- endif %}
+		</div>
+	</div>
+	{% elif field.fieldtype=="Select" %}
+	<div class="form-group">
+		<label for="{{ field.fieldname }}" class="col-sm-3 control-label">
+			{{ field.label }}</label>
+		<div class="col-sm-9">
+			<select class="form-control" name="{{ field.fieldname }}"
+				id="{{ field.fieldname }}">
+				{% for option in field.options.split("\n") %}
+				<option value="{{ option }}">{{ option }}</option>
+				{% endfor %}
+			</select>
+			{% if field.description -%}
+			<span class="help-block">{{ field.description }}</span>
+			{%- endif %}
+		</div>
+	</div>
+	{% elif field.fieldtype=="Text" %}
+	<div class="form-group">
+		<label for="{{ field.fieldname }}" class="col-sm-3 control-label">
+			{{ field.label }}</label>
+		<div class="col-sm-9">
+			<textarea class="form-control" name="{{ field.fieldname }}"
+				id="{{ field.fieldname }}" style="height: 100px;"></textarea>
+			{% if field.description -%}
+			<span class="help-block">{{ field.description }}</span>
+			{%- endif %}
+		</div>
+	</div>
+	{% elif field.fieldtype=="Check" %}
+	<div class="form-group">
+		<div class="col-sm-offset-3 col-sm-9">
+			<div class="checkbox">
+				<label>
+					<input type="checkbox" id="{{ field.fieldname }}"
+						name="{{ field.fieldname }}"> {{ field.label }}
+				</label>
+			</div>
+		</div>
+	</div>
+	{% endif %}
+{% endfor %}
+<div class="form-group">
+	<div class="col-sm-offset-3 col-sm-9">
+		<button type="submit" class="btn btn-primary">Submit</button>
+	</div>
+</div>
+</form>
+{% endif %}
+{% endblock %}
+
+{% block script %}
+<script>
+frappe.ready(function() {
+	var args = {},
+		$form = $("form[data-web-form='{{ name }}']");
+	$form.find("[name]").each(function() {
+		args[$(this).attr("name")] = $(this).val();
+	});
+
+	$("form[data-web-form='{{ name }}']").on("submit", function() {
+		args =
+		frappe.call({
+			type: "POST",
+			method: "frappe.website.doctype.web_form.web_form.accept",
+			args: args,
+			btn: $form.find("[type='submit']"),
+			callback: function(data) {
+				if(!data.exc) {
+					$form.addClass("hide");
+					$(".form-message")
+						.html("{{ success_message or 'Thank You!' }}")
+						.removeClass("hide");
+					{% if success_url -%}
+					window.location.href = "{{ success_url }}"
+					{%- endif %};
+				}
+			}
+		})
+		return false;
+	})
+});
+</script>
+{% endblock %}

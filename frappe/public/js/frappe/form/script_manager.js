@@ -13,6 +13,10 @@ frappe.ui.form.on = frappe.ui.form.on_change = function(doctype, fieldname, hand
 	frappe.ui.form.handlers[doctype][fieldname].push(handler)
 }
 
+frappe.ui.form.trigger = function(doctype, fieldname, callback) {
+	cur_frm.script_manager.trigger(fieldname, doctype, null, callback);
+}
+
 frappe.ui.form.ScriptManager = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
