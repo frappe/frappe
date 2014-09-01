@@ -12,17 +12,17 @@ frappe.pages['data-import-tool'].onload = function(wrapper) {
 			return false;
 		}
 
-	$(wrapper).find('.layout-main-section').append('<h3>1. Download Template</h3>\
+	$(wrapper).find('.layout-main-section').append('<h3>1. ' + __("Download Template") + '</h3>\
 		<div style="min-height: 150px">\
-			<p class="help">Download a template for importing a table.</p>\
+			<p class="help">' + __("Download a template for importing a table.") + '</p>\
 			<div class="row">\
 				<div class="col-md-6">\
 					<select class="form-control" style="width: 200px" name="dit-doctype">\
 					</select><br><br>\
 					<label>\
-					    <input type="checkbox" name="dit-with-data"> <span>Download with data</span>\
+					    <input type="checkbox" name="dit-with-data"> <span>'+ __("Download with data") + '</span>\
 					</label>\
-					<p class="text-muted">Export all rows in CSV fields for re-upload. This is ideal for bulk-editing.</p>\
+					<p class="text-muted">' + __("Export all rows in CSV fields for re-upload. This is ideal for bulk-editing.") + '</p>\
 				</div>\
 				<div class="col-md-6">\
 					<div class="alert alert-warning hide" id="dit-download"></div>\
@@ -30,23 +30,23 @@ frappe.pages['data-import-tool'].onload = function(wrapper) {
 			</div>\
 		</div>\
 		<hr>\
-		<h3>2. Import Data</h3>\
-		<p class="help">Attach .csv file to import data</p>\
+		<h3>2. '+ __("Import Data") + '</h3>\
+		<p class="help">' + __("Attach .csv file to import data") + '</p>\
 		<div id="dit-upload-area"></div><br>\
 		<div class="dit-progress-area" style="display: None"></div>\
 		<p id="dit-output"></p>\
 		<div class="well">\
-		<h4>Help: Importing non-English data in Microsoft Excel</h4>\
-				<p>While uploading non English files ensure that the encoding is UTF-8.</p>\
+		<h4>' + __("Help: Importing non-English data in Microsoft Excel") + '</h4>\
+				<p>' + __("While uploading non English files ensure that the encoding is UTF-8.") + '</p>\
 				<ol>\
-					<li>In Excel, save the file in CSV (Comma Delimited) format</li>\
-					<li>Open this saved file in Notepad</li>\
-					<li>Click on File -&gt; Save As</li>\
-					<li>File Name: &lt;your filename&gt;.csv<br />\
+					<li>' + __("In Excel, save the file in CSV (Comma Delimited) format") + '</li>\
+					<li>' + __("Open this saved file in Notepad") + '</li>\
+					<li>' + __("Click on File -&gt; Save As") + '</li>\
+					<li>' + __("File Name: &lt;your filename&gt;.csv<br />\
 						Save as type: Text Documents (*.txt)<br />\
-						Encoding: UTF-8\
+						Encoding: UTF-8") + '\
 					</li>\
-					<li>Click on Save</li>\
+					<li>' + __("Click on Save") + '</li>\
 				</ol>\
 				</p>\
 			</div>');
@@ -54,13 +54,13 @@ frappe.pages['data-import-tool'].onload = function(wrapper) {
 	$select = $(wrapper).find('[name="dit-doctype"]');
 
 	frappe.messages.waiting($(wrapper).find(".dit-progress-area").toggle(false),
-		"Performing hardcore import process....", 100);
+		__("Performing hardcore import process")+ "....", 100);
 
 	// load doctypes
 	frappe.call({
 		method: 'frappe.core.page.data_import_tool.data_import_tool.get_doctypes',
 		callback: function(r) {
-			$select.add_options(['Select...'].concat(r.message));
+			$select.add_options([__('Select') + '...'].concat(r.message));
 			wrapper.doctypes = r.message;
 			wrapper.set_route_options();
 		}
@@ -130,7 +130,7 @@ frappe.pages['data-import-tool'].onload = function(wrapper) {
 					method: 'frappe.core.page.data_import_tool.data_import_tool.get_doctype_options',
 					args: {doctype: val},
 					callback: function(r) {
-						$('<h4><i class="icon-download"></i> Download</h4>').appendTo('#dit-download');
+						$('<h4><i class="icon-download"></i>' + __("Download") + '</h4>').appendTo('#dit-download');
 						var with_data = $('[name="dit-with-data"]:checked').length ? 'Yes' : 'No';
 						// download link
 						$.each(r.message, function(i, v) {
@@ -144,7 +144,7 @@ frappe.pages['data-import-tool'].onload = function(wrapper) {
 						});
 
 						if(r.message.length > 1) {
-							$('<br><span>All Tables (Main + Child Tables):</span><br>').appendTo('#dit-download');
+							$('<br><span>' + __("All Tables (Main + Child Tables)") + ':</span><br>').appendTo('#dit-download');
 							var link = wrapper
 								.add_template_download_link(r.message[0])
 								.data('all_doctypes', "Yes")
@@ -187,7 +187,7 @@ frappe.pages['data-import-tool'].onload = function(wrapper) {
 			return v;
 		});
 
-		r.messages = ["<h4 style='color:red'>Import Failed!</h4>"]
+		r.messages = ["<h4 style='color:red'>" + __("Import Failed!") + "</h4>"]
 			.concat(r.messages);
 
 		write_messages(r);
@@ -205,7 +205,7 @@ frappe.pages['data-import-tool'].onload = function(wrapper) {
 				onerror(r);
 			} else {
 				// replace links if error has occured
-				r.messages = ["<h4 style='color:green'>Import Successful!</h4>"].
+				r.messages = ["<h4 style='color:green'>" + __("Import Successful!") + "</h4>"].
 					concat(r.message.messages)
 
 				write_messages(r);
@@ -217,18 +217,18 @@ frappe.pages['data-import-tool'].onload = function(wrapper) {
 	var $submit_btn = $('#dit-upload-area button.btn-upload')
 		.html('<i class="icon-upload"></i> ' + __("Upload and Import"));
 
-	$('<label><input type="checkbox" name="overwrite"> <span>Overwrite</span></label>\
-		<p class="text-muted">If you are uploading a child table (for example Item Price), the all the entries of that table will be deleted (for that parent record) and new entries will be made.</p><br>')
+	$('<label><input type="checkbox" name="overwrite"> <span>' + __("Overwrite") + '</span></label>\
+		<p class="text-muted">' + __("If you are uploading a child table (for example Item Price), the all the entries of that table will be deleted (for that parent record) and new entries will be made.") + '</p><br>')
 		.insertBefore($submit_btn);
 
 	// add submit option
 	$('<label><input type="checkbox" name="_submit"> <span>Submit</span></label>\
-		<p class="text-muted">If you are inserting new records (overwrite not checked) \
-			and if you have submit permission, the record will be submitted.</p><br>')
+		<p class="text-muted">' + __("If you are inserting new records (overwrite not checked) \
+			and if you have submit permission, the record will be submitted.") + '</p><br>')
 		.insertBefore($submit_btn);
 
 	// add ignore option
-	$('<label><input type="checkbox" name="ignore_encoding_errors"> <span>Ignore Encoding Errors</span></label><br></br>')
+	$('<label><input type="checkbox" name="ignore_encoding_errors"> <span>' + __("Ignore Encoding Errors") + '</span></label><br></br>')
 		.insertBefore($submit_btn);
 
 	// rename button

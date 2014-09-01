@@ -111,14 +111,14 @@ frappe.desktop.render = function() {
 frappe.desktop.show_all_modules = function() {
 	if(!frappe.desktop.all_modules_dialog) {
 		var d = new frappe.ui.Dialog({
-			title: '<i class="icon-th text-muted"></i> All Applications'
+			title: '<i class="icon-th text-muted"></i> '+ __("All Applications")
 		});
 
 		var desktop_items = frappe.user.get_desktop_items(true);
 		var user_desktop_items = frappe.user.get_user_desktop_items();
 
 		$('<input class="form-control desktop-app-search" \
-			type="text" placeholder="Search Filter">')
+			type="text" placeholder="' + __("Search Filter") +'>')
 			.appendTo(d.body)
 			.on("keyup", function() {
 				var val = $(this).val();
@@ -136,6 +136,7 @@ frappe.desktop.show_all_modules = function() {
 			var module = frappe.get_module(m);
 			if(module.link && desktop_items.indexOf(m)!==-1) {
 				module.app_icon = frappe.ui.app_icon.get_html(m, true);
+				module.label = __(module.label);
 				$(repl('<div class="list-group-item" data-label="%(name)s">\
 				<div class="row">\
 					<div class="col-xs-2"><a href="#%(link)s">%(app_icon)s</a></div>\
