@@ -217,8 +217,12 @@ class DatabaseQuery(object):
 
 		if not self.tables: self.extract_tables()
 
+		meta = frappe.get_meta(self.doctype)
+		role_permissions = frappe.permissions.get_role_permissions(meta, user=self.user)
+		if not meta.istable and not role_permissions.get("read") and not getattr(self, "ignore_permissions", False):
+			frappe.throw(_("No permission to read {0}").format(self.doctype))
+
 		# apply user permissions?
-		role_permissions = frappe.permissions.get_role_permissions(frappe.get_meta(self.doctype), user=self.user)
 		if role_permissions.get("apply_user_permissions", {}).get("read"):
 			# get user permissions
 			user_permissions = frappe.defaults.get_user_permissions(self.user)
