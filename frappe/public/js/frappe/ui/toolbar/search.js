@@ -54,9 +54,9 @@ frappe.search = {
 				return false;
 			}
 		}).data('ui-autocomplete')._renderItem = function(ul, d) {
-			var html = "<span class='small'>" + d.value + "</span>";
+			var html = "<span class='small'>" + __(d.value) + "</span>";
 			if(d.description && d.value!==d.description) {
-				html += '<br><span class="small text-muted">' + d.description + '</span>';
+				html += '<br><span class="small text-muted">' + __(d.description) + '</span>';
 			}
 			return $('<li></li>')
 				.data('item.autocomplete', d)
@@ -140,7 +140,7 @@ frappe.search.verbs = [
 	function(txt) {
 		frappe.search.find(frappe.boot.user.can_read, txt, function(match) {
 			return {
-				value: __("{0} List", ["<b>"+match+"</b>"]),
+				value: __("{0} List", ["<b>"+__(match)+"</b>"]),
 				route:["List", match]
 			}
 		});
@@ -150,7 +150,7 @@ frappe.search.verbs = [
 	function(txt) {
 		frappe.search.find(keys(frappe.search.pages), txt, function(match) {
 			return {
-				value: __("Open {0}", ["<b>"+match+"</b>"]),
+				value: __("Open {0}", ["<b>"+__(match)+"</b>"]),
 				route: [frappe.search.pages[match].route || frappe.search.pages[match].name]
 			}
 		});
@@ -160,7 +160,7 @@ frappe.search.verbs = [
 	function(txt) {
 		frappe.search.find(keys(frappe.modules), txt, function(match) {
 			ret = {
-				value: __("Open {0}", ["<b>"+match+"</b>"]),
+				value: __("Open {0}", ["<b>"+__(match)+"</b>"]),
 			}
 			if(frappe.modules[match].link) {
 				ret.route = [frappe.modules[match].link];
@@ -177,7 +177,7 @@ frappe.search.verbs = [
 			parts = txt.split(" in ");
 			frappe.search.find(frappe.boot.user.can_read, parts[1], function(match) {
 				return {
-					value: __('Find {0} in {1}', ["<b>"+parts[0]+"</b>", "<b>"+match+"</b>"]),
+					value: __('Find {0} in {1}', ["<b>"+__(parts[0])+"</b>", "<b>"+__(match)+"</b>"]),
 					route_options: {"name": ["like", "%" + parts[0] + "%"]},
 					route: ["List", match]
 				}

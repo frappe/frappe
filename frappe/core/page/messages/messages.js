@@ -172,10 +172,10 @@ frappe.core.pages.messages = Class.extend({
 			method:'get_active_users',
 			callback: function(r,rt) {
 				var $body = $(me.wrapper).find('.layout-side-section');
-				$('<h4>Users</h4><hr>\
+				$('<h4>' + __("Users") + '</h4><hr>\
 					<div id="show-everyone">\
 						<a href="#messages/'+user+'" class="btn btn-default">\
-							Messages from everyone</a><hr></div>\
+							' + __("Messages from everyone") + '</a><hr></div>\
 				').appendTo($body);
 
 				$("#show-everyone").toggle(me.contact!==user);
