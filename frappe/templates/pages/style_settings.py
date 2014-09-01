@@ -13,7 +13,7 @@ default_properties = {
 	"top_bar_foreground": "000000",
 	"page_text": "000000",
 	"page_header_background": "263248",
-	"page_header_text": "ffffff",
+	"page_header_color": "ffffff",
 	"font_size": "14px",
 	"google_web_font_for_heading": "Noto Sans",
 	"google_web_font_for_text": "Noto Sans"
