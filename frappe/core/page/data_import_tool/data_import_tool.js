@@ -175,6 +175,7 @@ frappe.pages['data-import-tool'].onload = function(wrapper) {
 	}
 
 	var onerror = function(r) {
+		$(wrapper).find(".dit-progress-area").toggle(false);
 		r.messages = $.map(r.message.messages, function(v) {
 			var msg = v.replace("Inserted", "Valid")
 				.replace("Updated", "Valid").split("<");
