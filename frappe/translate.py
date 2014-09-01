@@ -194,6 +194,9 @@ def get_messages_from_doctype(name):
 
 	messages = [meta.name, meta.module]
 
+	if meta.description:
+		messages.append(meta.description)
+
 	# translations of field labels, description and options
 	for d in meta.get("fields"):
 		messages.extend([d.label, d.description])
