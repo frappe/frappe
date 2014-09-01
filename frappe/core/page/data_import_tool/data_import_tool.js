@@ -126,6 +126,7 @@ frappe.pages['data-import-tool'].onload = function(wrapper) {
 
 				// get options
 				return frappe.call({
+					btn: this,
 					method: 'frappe.core.page.data_import_tool.data_import_tool.get_doctype_options',
 					args: {doctype: val},
 					callback: function(r) {
