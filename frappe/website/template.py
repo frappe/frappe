@@ -64,11 +64,11 @@ def render_blocks(context):
 		out["content"] = out["content"].replace("{index}", html)
 
 	if "{next}" in out.get("content", ""):
-		next_item = context.get_next()
+		next_item = context.doc.get_next()
 		if next_item:
 			if next_item.name[0]!="/": next_item.name = "/" + next_item.name
 			html = '''<p><br><a href="{name}" class="btn btn-primary">
-				{page_title} <i class="icon-chevron-right"></i></a>
+				{title} <i class="icon-chevron-right"></i></a>
 			</p>'''.format(**next_item)
 			out["content"] = out["content"].replace("{next}", html)
 
