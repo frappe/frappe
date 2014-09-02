@@ -4,10 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.website.website_generator import WebsiteGenerator
-
-# parameters
-# name (edit)
-# new
+from frappe import _
 
 class WebForm(WebsiteGenerator):
 	template = "templates/generators/web_form.html"
@@ -17,6 +14,20 @@ class WebForm(WebsiteGenerator):
 
 	def get_context(self, context):
 		context.params = frappe.form_dict
+		if self.login_required and frappe.session.user != "Guest":
+			if self.allow_edit:
+				if self.allow_multiple:
+					meta = frappe.get_meta(self.doc_type)
+					context.items = frappe.db.sql("""select name,
+						{0} as title, creation as timestamp
+						from `tab{1}` where owner=%s order by creation desc""".format(meta.title_field or "name",
+						self.doc_type), frappe.session.user, as_dict=True)
+				else:
+					name = frappe.db.get_value(self.doc_type, {"owner": frappe.session.user},
+						"name")
+					if name:
+						context.doc_name = name
+
 		if frappe.form_dict.name:
 			context.doc = frappe.get_doc(self.doc_type, frappe.form_dict.name)
 
@@ -36,10 +47,10 @@ def accept():
 
 	if args.name:
 		if doc.owner==frappe.session.user:
-			doc.update(ignore_permissions=True)
+			doc.save(ignore_permissions=True)
 		else:
 			# only if permissions are present
-			doc.update()
+			doc.save()
 
 	else:
 		# insert

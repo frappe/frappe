@@ -2,11 +2,13 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
+import frappe
 from frappe.utils import formatdate, fmt_money, flt
 from frappe.model.meta import get_field_currency, get_field_precision
 import re
 
 def format_value(value, df, doc=None, currency=None):
+	df = frappe._dict(df)
 	if df.fieldtype=="Date":
 		return formatdate(value)
 

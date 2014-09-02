@@ -145,6 +145,13 @@
    "set_only_once": 0
   }, 
   {
+   "depends_on": "login_required", 
+   "fieldname": "allow_comments", 
+   "fieldtype": "Check", 
+   "label": "Allow Comments", 
+   "permlevel": 0
+  }, 
+  {
    "fieldname": "actions", 
    "fieldtype": "Section Break", 
    "label": "Actions", 
@@ -186,7 +193,7 @@
  "is_submittable": 0, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2014-09-01 18:12:25.643567", 
+ "modified": "2014-09-02 13:52:53.494298", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Web Form", 

@@ -163,7 +163,7 @@ def formatdate(string_date=None, format_string=None):
 		if getattr(frappe.local, "user_format", None) is None:
 			frappe.local.user_format = frappe.db.get_default("date_format")
 
-		out = frappe.local.user_format
+		out = frappe.local.user_format or "yyyy-mm-dd"
 
 		return out.replace("dd", date.strftime("%d"))\
 			.replace("mm", date.strftime("%m"))\

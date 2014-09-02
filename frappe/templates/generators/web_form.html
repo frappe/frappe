@@ -7,8 +7,36 @@
 {% block content %}
 
 {% if login_required and user=="Guest" %}
-<div class="alert alert-warning">{{ _("Please login to create a new {0}").format(_(doc_type)) }}</div>
-
+<div class="alert alert-info">
+	{{ _("Please login to create a new {0}").format(_(doc_type)) }}
+</div>
+{% elif (login_required and doc_name and not params.name) %}
+<div class="alert alert-info">
+	{{ _("{0} already exists").format(_(doc_type)) }}
+</div>
+<p>
+	<a href="{{ pathname }}?name={{ doc_name }}" class="btn btn-primary">
+		{{ _("Edit your record") }}
+	</a>
+</p>
+{% elif (login_required and allow_multiple and not params.name and not params.new) %}
+<p>
+	<a href="{{ pathname }}?new=1" class="btn btn-primary">
+		{{ _("New {0}").format(_(doc_type)) }}
+	</a>
+</p>
+<div class="list-group">
+	{% for i in items %}
+	<div class="list-group-item">
+		<a href="{{ pathname }}?name={{ i.name }}">
+			{{ i.title }}
+		</a>
+		<span class="text-muted pull-right">
+			{{ frappe.format_value(i.creation, {"fieldtype":"Date"}) }}
+		</span>
+	</div>
+	{% endfor %}
+</div>
 {% else %}
 <div class="form-message alert alert-info hide"></div>
 <form class="form-horizontal" role="form"
@@ -25,7 +53,9 @@
 			{{ field.label }}</label>
 		<div class="col-sm-9">
 			<input type="text" class="form-control" name="{{ field.fieldname }}"
-				id="{{ field.fieldname }}" placeholder="{{ field.placeholder or '' }}">
+				id="{{ field.fieldname }}" placeholder="{{ field.placeholder or '' }}"
+				{{ field.reqd and "required" or "" }} data-label="{{ field.label }}"
+				value="{{ doc and doc.get(field.fieldname) or '' }}">
 			{% if field.description -%}
 			<span class="help-block">{{ field.description }}</span>
 			{%- endif %}
@@ -37,9 +67,12 @@
 			{{ field.label }}</label>
 		<div class="col-sm-9">
 			<select class="form-control" name="{{ field.fieldname }}"
-				id="{{ field.fieldname }}">
+				 data-label="{{ field.label }}"
+				id="{{ field.fieldname }}" {{ field.reqd and "required" or "" }}>
 				{% for option in field.options.split("\n") %}
-				<option value="{{ option }}">{{ option }}</option>
+				<option value="{{ option }}"
+					"{{ doc and doc.get(field.fieldname)==option and 'selected' or '' }}">
+					{{ option }}</option>
 				{% endfor %}
 			</select>
 			{% if field.description -%}
@@ -53,7 +86,9 @@
 			{{ field.label }}</label>
 		<div class="col-sm-9">
 			<textarea class="form-control" name="{{ field.fieldname }}"
-				id="{{ field.fieldname }}" style="height: 100px;"></textarea>
+				id="{{ field.fieldname }}" style="height: 100px;"
+				data-label="{{ field.label }}"
+				{{ field.reqd and "required" or "" }}>{{ doc and doc.get(field.fieldname) or '' }}</textarea>
 			{% if field.description -%}
 			<span class="help-block">{{ field.description }}</span>
 			{%- endif %}
@@ -65,7 +100,9 @@
 			<div class="checkbox">
 				<label>
 					<input type="checkbox" id="{{ field.fieldname }}"
-						name="{{ field.fieldname }}"> {{ field.label }}
+						name="{{ field.fieldname }}"
+						"{{ doc and doc.get(field.fieldname) and 'checked' or '' }}">
+						{{ field.label }}
 				</label>
 			</div>
 		</div>
@@ -75,6 +112,7 @@
 <div class="form-group">
 	<div class="col-sm-offset-3 col-sm-9">
 		<button type="submit" class="btn btn-primary">Submit</button>
+		<a href="{{ pathname }}" class="btn btn-default">Cancel</a>
 	</div>
 </div>
 </form>
@@ -84,14 +122,20 @@
 {% block script %}
 <script>
 frappe.ready(function() {
-	var args = {},
-		$form = $("form[data-web-form='{{ name }}']");
-	$form.find("[name]").each(function() {
-		args[$(this).attr("name")] = $(this).val();
-	});
+	var $form = $("form[data-web-form='{{ name }}']");
 
 	$("form[data-web-form='{{ name }}']").on("submit", function() {
-		args =
+		var args = {};
+
+		$form.find("[name]").each(function() {
+			var $input = $(this), val = $input.val();
+
+			if($input.prop("required") && val===undefined) {
+				frappe.msgprint($)
+			}
+			args[$(this).attr("name")] = $(this).val();
+		});
+
 		frappe.call({
 			type: "POST",
 			method: "frappe.website.doctype.web_form.web_form.accept",
@@ -100,11 +144,14 @@ frappe.ready(function() {
 			callback: function(data) {
 				if(!data.exc) {
 					$form.addClass("hide");
+					scroll(0, 0);
 					$(".form-message")
 						.html("{{ success_message or 'Thank You!' }}")
 						.removeClass("hide");
 					{% if success_url -%}
-					window.location.href = "{{ success_url }}"
+					setTimeout(function() {
+						window.location.href = "{{ success_url }}";
+					}, 1000);
 					{%- endif %};
 				}
 			}
