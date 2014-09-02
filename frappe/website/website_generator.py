@@ -149,6 +149,10 @@ class WebsiteGenerator(Document):
 		parents.reverse()
 		return parents
 
+	def get_parent(self):
+		if hasattr(self, "parent_website_route_field"):
+			return self.get(self.parent_website_route_field)
+
 	def get_children(self):
 		if self.get_route()==get_home_page():
 			return frappe.db.sql("""select url as name, label as page_title,
@@ -183,8 +187,7 @@ class WebsiteGenerator(Document):
 	def get_next(self):
 		if self.meta.get_field("parent_website_route") and self.parent_website_route:
 			route = self.get_route()
-			siblings = frappe.get_doc(self.doctype,
-				self.parent_website_route).get_children()
+			siblings = frappe.get_doc(self.doctype, self.get_parent()).get_children()
 			for i, r in enumerate(siblings):
 				if i < len(siblings) - 1:
 					if route==r.name:
