@@ -18,7 +18,7 @@ frappe.ui.form.LinkSelector = Class.extend({
 	},
 	make: function() {
 		this.dialog = new frappe.ui.Dialog({
-			title: __("Select ") + (this.doctype=='[Select]' ? __("Value") : __(this.doctype)),
+			title: __("Select {0}", [(this.doctype=='[Select]') ? __("value") : __(this.doctype)]),
 			fields: [
 				{
 					fieldtype: "Data", fieldname: "txt", label: __("Beginning with"),

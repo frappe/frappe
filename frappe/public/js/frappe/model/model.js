@@ -368,7 +368,7 @@ $.extend(frappe.model, {
 
 	rename_doc: function(doctype, docname, callback) {
 		var d = new frappe.ui.Dialog({
-			title: __("Rename ") + __(docname),
+			title: __("Rename {0}", [__(docname)]),
 			fields: [
 				{label:__("New Name"), fieldtype:"Data", reqd:1},
 				{label:__("Merge with existing"), fieldtype:"Check", fieldname:"merge"},

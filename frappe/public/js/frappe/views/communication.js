@@ -37,8 +37,7 @@ frappe.views.CommunicationList = Class.extend({
 	},
 	clear_list: function() {
 		this.body.remove();
-		$("<p class='text-muted'>" + __("No Communication tagged with this ")
-			+ __(this.doc.doctype) + __(" yet.") + "</p>").appendTo(this.wrapper);
+		$("<p class='text-muted'>" + __("No Communication tagged with this {0} yet.", [__(this.doc.doctype)]) + "</p>").appendTo(this.wrapper);
 	},
 	make_body: function() {
 		$(this.parent)

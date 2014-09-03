@@ -787,11 +787,11 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			<input type="text" class="input-with-feedback form-control" \
 				style="display: table-cell">\
 			<span class="link-field-btn" style="display: table-cell">\
-				<a class="btn-search" title=' + __("Search Link") + '>\
+				<a class="btn-search" title="' + __("Search Link") + '">\
 					<i class="icon-search"></i>\
-				</a><a class="btn-open" title=' + __("Open Link") + '>\
+				</a><a class="btn-open" title="' + __("Open Link") + '">\
 					<i class="icon-arrow-right"></i>\
-				</a><a class="btn-new" title=' + __("Make New") + '>\
+				</a><a class="btn-new" title="' + __("Make New") + '">\
 					<i class="icon-plus"></i>\
 				</a>\
 			</span>\

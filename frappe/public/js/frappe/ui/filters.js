@@ -503,17 +503,17 @@ frappe.ui.FieldSelect = Class.extend({
 	add_field_option: function(df) {
 		var me = this;
 		if(me.doctype && df.parent==me.doctype) {
-			var label = df.label;
+			var label = __(df.label);
 			var table = me.doctype;
 			if(df.fieldtype=='Table') me.table_fields.push(df);
 		} else {
-			var label = df.label + ' (' + df.parent + ')';
+			var label = __(df.label) + ' (' + __(df.parent) + ')';
 			var table = df.parent;
 		}
 		if(frappe.model.no_value_type.indexOf(df.fieldtype)==-1 &&
 			!(me.fields_by_name[df.parent] && me.fields_by_name[df.parent][df.fieldname])) {
 				this.options.push({
-					label: __(label),
+					label: label,
 					value: table + "." + df.fieldname,
 					fieldname: df.fieldname,
 					doctype: df.parent
