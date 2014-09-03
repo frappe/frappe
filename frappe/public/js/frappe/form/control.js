@@ -791,11 +791,11 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			<input type="text" class="input-with-feedback form-control" \
 				style="display: table-cell">\
 			<span class="link-field-btn" style="display: table-cell">\
-				<a class="btn-search" title="Search Link">\
+				<a class="btn-search" title="' + __("Search Link") + '">\
 					<i class="icon-search"></i>\
-				</a><a class="btn-open" title="Open Link">\
+				</a><a class="btn-open" title="' + __("Open Link") + '">\
 					<i class="icon-arrow-right"></i>\
-				</a><a class="btn-new" title="Make New">\
+				</a><a class="btn-new" title="' + __("Make New") + '">\
 					<i class="icon-plus"></i>\
 				</a>\
 			</span>\
@@ -898,7 +898,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 					callback: function(r) {
 						if(frappe.model.can_create(doctype)) {
 							r.results.push({
-								value: "<i class='icon-plus'></i> <em>" + __("Create a new {0}", [me.df.options]) + "</em>",
+								value: "<i class='icon-plus'></i> <em>" + __("Create a new {0}", [__(me.df.options)]) + "</em>",
 								make_new: true
 							});
 						};
@@ -941,9 +941,9 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 				}
 			}
 		}).data('ui-autocomplete')._renderItem = function(ul, d) {
-			var html = "<strong>" + d.value + "</strong>";
+			var html = "<strong>" + __(d.value) + "</strong>";
 			if(d.description && d.value!==d.description) {
-				html += '<br><span class="small">' + d.description + '</span>';
+				html += '<br><span class="small">' + __(d.description) + '</span>';
 			}
 			return $('<li></li>')
 				.data('item.autocomplete', d)

@@ -37,8 +37,7 @@ frappe.views.CommunicationList = Class.extend({
 	},
 	clear_list: function() {
 		this.body.remove();
-		$("<p class='text-muted'>" + __("No Communication tagged with this ")
-			+ this.doc.doctype +" yet.</p>").appendTo(this.wrapper);
+		$("<p class='text-muted'>" + __("No Communication tagged with this {0} yet.", [__(this.doc.doctype)]) + "</p>").appendTo(this.wrapper);
 	},
 	make_body: function() {
 		$(this.parent)
@@ -59,7 +58,7 @@ frappe.views.CommunicationList = Class.extend({
 		var subject = this.doc.subject;
 		if(!subject && this.list.length) {
 			// get subject from previous message
-			subject = this.list[0].subject || "[No Subject]";
+			subject = this.list[0].subject || __("[No Subject]");
 			if(strip(subject.toLowerCase().split(":")[0])!="re") {
 				subject = "Re: " + subject;
 			}
@@ -74,13 +73,13 @@ frappe.views.CommunicationList = Class.extend({
 	prepare: function(doc) {
 		//doc.when = comment_when(this.doc.modified);
 		doc.when = comment_when(doc.creation);
-		if(!doc.content) doc.content = "[no content]";
+		if(!doc.content) doc.content = __("[no content]");
 		if(!frappe.utils.is_html(doc.content)) {
 			doc.content = doc.content.replace(/\n/g, "<br>");
 		}
 		doc.content = frappe.utils.remove_script_and_style(doc.content);
 
-		if(!doc.sender) doc.sender = "[unknown sender]";
+		if(!doc.sender) doc.sender = __("[unknown sender]");
 		doc._sender = doc.sender.replace(/</, "&lt;").replace(/>/, "&gt;");
 		doc._sender_id = doc.sender.indexOf("<")!== -1 ?
 			strip(doc.sender.split("<")[1].split(">")[0]) : doc.sender;

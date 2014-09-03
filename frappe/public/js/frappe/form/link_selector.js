@@ -2,7 +2,7 @@
 // MIT License. See license.txt
 
 frappe.ui.form.LinkSelector = Class.extend({
-	_help: "Dialog box to select a Link Value",
+	_help: __("Dialog box to select a Link Value"),
 	init: function(opts) {
 		/* help: Options: doctype, get_query, target */
 		$.extend(this, opts);
@@ -18,7 +18,7 @@ frappe.ui.form.LinkSelector = Class.extend({
 	},
 	make: function() {
 		this.dialog = new frappe.ui.Dialog({
-			title: "Select " + (this.doctype=='[Select]' ? "Value" : this.doctype),
+			title: __("Select {0}", [(this.doctype=='[Select]') ? __("value") : __(this.doctype)]),
 			fields: [
 				{
 					fieldtype: "Data", fieldname: "txt", label: __("Beginning with"),
@@ -28,7 +28,7 @@ frappe.ui.form.LinkSelector = Class.extend({
 					fieldtype: "HTML", fieldname: "results"
 				}
 			],
-			primary_action_label: "Search",
+			primary_action_label: __("Search"),
 			primary_action: function() {
 				me.search();
 			}

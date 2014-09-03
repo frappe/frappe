@@ -31,10 +31,10 @@ frappe.ui.toolbar.RecentDocs = Class.extend({
 		var html = repl('<li data-docref="%(dt)s/%(dn)s">\
 			<a href="#Form/%(dt_encoded)s/%(dn_encoded)s">\
 				<i class="icon-fixed-width %(icon)s"></i> \
-				%(dn)s</span>\
+				%(dnshow)s</span>\
 			</a></li>',
 			{dt_encoded:encodeURIComponent(dt), dn_encoded:encodeURIComponent(dn),
-			dt: dt, dn: dn, icon:frappe.boot.doctype_icons[dt]});
+			dt: dt, dn: dn,dnshow:__(dn), icon:frappe.boot.doctype_icons[dt]});
 		if(on_top) {
 			$('#toolbar-recent').prepend(html);
 		} else {

@@ -21,7 +21,7 @@ frappe.ui.form.Comments = Class.extend({
 				<textarea style="height: 80px" class="form-control"></textarea>\
 				<div class="text-right" style="margin-top: 10px">\
 					<button class="btn btn-default btn-go btn-sm">\
-						<i class="icon-ok"></i> Add comment</button>\
+						<i class="icon-ok"></i> ' + __("Add comment") + '</button>\
 				</div>\
 			</div>\
 		</div>', {image: frappe.user_info(user).image,

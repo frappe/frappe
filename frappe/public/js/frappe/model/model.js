@@ -12,19 +12,19 @@ $.extend(frappe.model, {
 	std_fields_list: ['name', 'owner', 'creation', 'modified', 'modified_by',
 		'_user_tags', '_comments', 'docstatus', 'parent', 'parenttype', 'parentfield', 'idx'],
 	std_fields: [
-		{fieldname:'name', fieldtype:'Link', label:'ID'},
-		{fieldname:'owner', fieldtype:'Data', label:'Created By'},
-		{fieldname:'idx', fieldtype:'Int', label:'Index'},
-		{fieldname:'creation', fieldtype:'Date', label:'Created On'},
-		{fieldname:'modified', fieldtype:'Date', label:'Last Updated On'},
-		{fieldname:'modified_by', fieldtype:'Data', label:'Last Updated By'},
-		{fieldname:'_user_tags', fieldtype:'Data', label:'Tags'},
-		{fieldname:'_comments', fieldtype:'Text', label:'Comments'},
-		{fieldname:'docstatus', fieldtype:'Int', label:'Document Status'},
+		{fieldname:'name', fieldtype:'Link', label:__('ID')},
+		{fieldname:'owner', fieldtype:'Data', label:__('Created By')},
+		{fieldname:'idx', fieldtype:'Int', label:__('Index')},
+		{fieldname:'creation', fieldtype:'Date', label:__('Created On')},
+		{fieldname:'modified', fieldtype:'Date', label:__('Last Updated On')},
+		{fieldname:'modified_by', fieldtype:'Data', label:__('Last Updated By')},
+		{fieldname:'_user_tags', fieldtype:'Data', label:__('Tags')},
+		{fieldname:'_comments', fieldtype:'Text', label:__('Comments')},
+		{fieldname:'docstatus', fieldtype:'Int', label:__('Document Status')},
 	],
 
 	std_fields_table: [
-		{fieldname:'parent', fieldtype:'Data', label:'Parent'},
+		{fieldname:'parent', fieldtype:'Data', label:__('Parent')},
 	],
 
 	new_names: {},
@@ -368,11 +368,11 @@ $.extend(frappe.model, {
 
 	rename_doc: function(doctype, docname, callback) {
 		var d = new frappe.ui.Dialog({
-			title: "Rename " + docname,
+			title: __("Rename {0}", [__(docname)]),
 			fields: [
-				{label:"New Name", fieldtype:"Data", reqd:1},
-				{label:"Merge with existing", fieldtype:"Check", fieldname:"merge"},
-				{label:"Rename", fieldtype: "Button"}
+				{label:__("New Name"), fieldtype:"Data", reqd:1},
+				{label:__("Merge with existing"), fieldtype:"Check", fieldname:"merge"},
+				{label:__("Rename"), fieldtype: "Button"}
 			]
 		});
 		d.get_input("rename").on("click", function() {
