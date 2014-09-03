@@ -323,7 +323,6 @@ ERPNext Demo,ERPNext Demo
 Edit,Ubah
 Edit Permissions,Edit Perizinan
 Editable,Editable
-Email,siska_chute34@yahoo.com
 Email Alert,Notifikasi Email
 Email Alert Recipient,Email Penerima Notifikasi
 Email Alert Recipients,Penerima Email Notifikasi
@@ -429,7 +428,7 @@ Footer Items,Footer Items
 Footer Text,Footer Teks
 For DocType,Untuk DocType
 "For Links, enter the DocType as range
-For Select, enter list of Options separated by comma","Untuk Link, masukkan DocType sebagai rentang 
+For Select, enter list of Options separated by comma","Untuk Link, masukkan DocType sebagai rentang
  Untuk Pilih, masukkan daftar Options dipisahkan dengan koma"
 "For comparative filters, start with","Untuk filter komparatif, mulailah dengan"
 For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,Sebagai contoh jika Anda membatalkan dan mengubah 'INV004' itu akan menjadi dokumen baru 'INV004-1'. Ini akan membantu Anda untuk melacak setiap perubahan.
@@ -1112,9 +1111,9 @@ Third Party Authentication,Pihak Ketiga Otentikasi
 "This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>
 myfield
 eval:doc.myfield=='My Value'<br>
-eval:doc.age>18","Bidang ini akan muncul hanya jika fieldname didefinisikan di sini memiliki nilai OR aturan yang benar (contoh): <br> 
- MyField 
- eval: doc.myfield == 'Nilai My' <br> 
+eval:doc.age>18","Bidang ini akan muncul hanya jika fieldname didefinisikan di sini memiliki nilai OR aturan yang benar (contoh): <br>
+ MyField
+ eval: doc.myfield == 'Nilai My' <br>
  eval: doc.age> 18"
 This goes above the slideshow.,Ini berjalan di atas slideshow.
 This is PERMANENT action and you cannot undo. Continue?,Ini adalah tindakan PERMANEN dan Anda tidak dapat membatalkan. Lanjutkan?
