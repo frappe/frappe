@@ -2,9 +2,10 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
-import frappe
+import frappe, json
 from frappe.website.website_generator import WebsiteGenerator
 from frappe import _
+from frappe.utils.file_manager import save_file, remove_file_by_url
 
 class WebForm(WebsiteGenerator):
 	template = "templates/generators/web_form.html"
@@ -31,18 +32,35 @@ class WebForm(WebsiteGenerator):
 		if frappe.form_dict.name:
 			context.doc = frappe.get_doc(self.doc_type, frappe.form_dict.name)
 
+		context.types = [f.fieldtype for f in self.web_form_fields]
+
 		return context
 
 @frappe.whitelist(allow_guest=True)
 def accept():
 	args = frappe.form_dict
+	files = []
+
 	if args.name:
+		# update
 		doc = frappe.get_doc(args.doctype, args.name)
 	else:
+		# insert
 		doc = frappe.new_doc(args.doctype)
 
+	# set values
 	for fieldname, value in args.iteritems():
 		if fieldname not in ("web_form", "cmd"):
+			if value and value.startswith("{"):
+				try:
+					filedata = json.loads(value)
+					if "__file_attachment" in filedata:
+						files.append((fieldname, filedata))
+						continue
+
+				except ValueError:
+					pass
+
 			doc.set(fieldname, value)
 
 	if args.name:
@@ -59,3 +77,21 @@ def accept():
 			frappe.throw(_("You must login to submit this form"))
 
 		doc.insert(ignore_permissions = True)
+
+	# add files
+	if files:
+		for f in files:
+			fieldname, filedata = f
+
+			# remove earlier attachmed file (if exists)
+			if doc.get(fieldname):
+				remove_file_by_url(doc.get(fieldname), doc.doctype, doc.name)
+
+			# save new file
+			filedoc = save_file(filedata["filename"], filedata["dataurl"],
+				doc.doctype, doc.name, decode=True)
+
+			# update values
+			doc.set(fieldname, filedoc.file_url)
+
+		doc.save()

@@ -178,6 +178,12 @@
    "permlevel": 0
   }, 
   {
+   "fieldname": "introduction_text", 
+   "fieldtype": "Text", 
+   "label": "Introduction", 
+   "permlevel": 0
+  }, 
+  {
    "fieldname": "web_form_fields", 
    "fieldtype": "Table", 
    "label": "Web Form Fields", 
@@ -193,7 +199,7 @@
  "is_submittable": 0, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2014-09-02 13:52:53.494298", 
+ "modified": "2014-09-03 14:47:17.181589", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Web Form", 

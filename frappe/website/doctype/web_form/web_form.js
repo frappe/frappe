@@ -18,12 +18,21 @@ frappe.web_form = {
 frappe.ui.form.on("Web Form", "refresh", function(frm) {
 	frappe.web_form.set_fieldname_select(frm);
 
+	cur_frm.set_intro("");
 	if (!frm.doc.__islocal && frm.doc.published) {
 		cur_frm.set_intro(__("Published on website at: {0}",
 			[repl('<a href="/%(website_route)s" target="_blank">/%(website_route)s</a>',
 				frm.doc.__onload)]));
 	}
 
+});
+
+frappe.ui.form.on("Web Form", "title", function(frm) {
+	if(frm.doc.__islocal) {
+		var page_name = frm.doc.title.toLowerCase().replace(/ /g, "-");
+		frm.set_value("page_name", page_name);
+		frm.set_value("success_url", "/" + page_name);
+	}
 });
 
 frappe.ui.form.on("Web Form", "doc_type", function(frm) {

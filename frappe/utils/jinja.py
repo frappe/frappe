@@ -52,7 +52,8 @@ def get_allowed_functions_for_jenv():
 			"get_doc": frappe.get_doc,
 			"get_list": frappe.get_list,
 			"utils": datautils,
-			"user": frappe.session.user
+			"user": frappe.session.user,
+			"date_format": frappe.db.get_default("date_format") or "yyyy-mm-dd"
 		},
 		"get_visible_columns": \
 			frappe.get_attr("frappe.templates.pages.print.get_visible_columns"),

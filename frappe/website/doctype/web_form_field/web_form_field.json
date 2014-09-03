@@ -36,7 +36,7 @@
    "in_list_view": 1, 
    "label": "Fieldtype", 
    "no_copy": 0, 
-   "options": "Attach\nCheck\nData\nHTML\nSelect\nText", 
+   "options": "Attach\nCheck\nData\nDate\nDatetime\nHTML\nSelect\nText", 
    "permlevel": 0, 
    "print_hide": 0, 
    "read_only": 0, 
@@ -67,6 +67,18 @@
    "fieldname": "reqd", 
    "fieldtype": "Check", 
    "label": "Mandatory", 
+   "permlevel": 0
+  }, 
+  {
+   "fieldname": "read_only", 
+   "fieldtype": "Check", 
+   "label": "Read Only", 
+   "permlevel": 0
+  }, 
+  {
+   "fieldname": "hidden", 
+   "fieldtype": "Check", 
+   "label": "Hidden", 
    "permlevel": 0
   }, 
   {
@@ -182,7 +194,7 @@
  "is_submittable": 0, 
  "issingle": 0, 
  "istable": 1, 
- "modified": "2014-09-01 14:14:40.425829", 
+ "modified": "2014-09-03 15:47:51.643284", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Web Form Field", 

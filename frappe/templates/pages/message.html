@@ -1,7 +1,6 @@
 {% block title %}{{ title }}{% endblock %}
 
-{% block header %}<span {% if success!=None %}class="text-{{ 'success' if success else 'danger'}}"{% endif %}>
-	{{ title }}</span>{% endblock %}
+{% block header %}{{ title }}{% endblock %}
 
 {% block content %}
 <div class="message-content">
