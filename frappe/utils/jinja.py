@@ -92,3 +92,11 @@ def set_filters(jenv):
 		for jenv_filter in (frappe.get_hooks(app_name=app).jenv_filter or []):
 			filter_name, filter_function = jenv_filter.split(":")
 			jenv.filters[filter_name] = frappe.get_attr(filter_function)
+
+def render_include(content):
+	from frappe.utils import cstr
+
+	content = cstr(content)
+	if "{% include" in content:
+		content = get_jenv().from_string(content).render()
+	return content
