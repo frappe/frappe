@@ -25,3 +25,12 @@
 	width: 72px;
 	height: 72px;
 }
+
+.avatar-xs {
+	margin-right: 3px;
+	margin-top: -2px;
+	width: 15px;
+	height: 15px;
+	border: none;
+	border-radius: 3px;
+}

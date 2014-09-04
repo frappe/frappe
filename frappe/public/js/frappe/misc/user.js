@@ -12,16 +12,15 @@ frappe.user_info = function(uid) {
 	return frappe.boot.user_info[uid];
 }
 
-frappe.avatar = function(user, large, title) {
+frappe.avatar = function(user, css_class, title) {
 	var image = frappe.utils.get_file_link(frappe.user_info(user).image);
-	var to_size = large ? 72 : 30;
 	if(!title) title = frappe.user_info(user).fullname;
 
-	return repl('<span class="avatar %(small_or_large)s" title="%(title)s">\
+	return repl('<span class="avatar %(css_class)s" title="%(title)s">\
 		<img src="%(image)s"></span>', {
 			image: image,
 			title: title,
-			small_or_large: large ? "avatar-large" : "avatar-small"
+			css_class: css_class || "avatar-small"
 		});
 }
 
@@ -60,9 +59,6 @@ $.extend(frappe.user, {
 	},
 	image: function(uid) {
 		return frappe.user_info(uid).image;
-	},
-	avatar: function(uid, large) {
-		return frappe.avatar(uid, large);
 	},
 	has_role: function(rl) {
 		if(typeof rl=='string')

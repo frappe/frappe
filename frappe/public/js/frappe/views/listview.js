@@ -44,7 +44,7 @@ frappe.views.ListView = Class.extend({
 		}
 
 		$.each(['name', 'owner', 'docstatus', '_user_tags', '_comments', 'modified',
-			'modified_by'], function(i, fieldname) { add_field(fieldname); })
+			'modified_by', '_assign'], function(i, fieldname) { add_field(fieldname); })
 
 		// add title field
 		if(this.meta.title_field) {
@@ -221,6 +221,7 @@ frappe.views.ListView = Class.extend({
 		var comments = data._comments ? JSON.parse(data._comments) : [],
 			tags = $.map((data._user_tags || "").split(","),
 				function(v) { return v ? v : null; }),
+			assign = data._assign ? JSON.parse(data._assign) : [],
 			me = this;
 
 		if(me.title_field && data[me.title_field]!==data.name) {
@@ -230,24 +231,18 @@ frappe.views.ListView = Class.extend({
 				.html('<a href="#Form/'+ data.doctype+'/'+data.name +'">#' + data.name + "</a>");
 		}
 
+		$(row).find(".list-timestamp").remove();
+
 		var timestamp_and_comment =
 			$('<div class="list-timestamp">')
 				.appendTo(row)
-				.html(""
-					+ (tags.length ? (
-							'<span style="margin-right: 10px;" class="list-tag-preview">' + tags.join(", ") + '</span>'
-						): "")
-					+ (comments.length ?
-						('<a style="margin-right: 10px;" href="#Form/'+
-							this.doctype + '/' + data.name
-							+'" title="'+
-							comments[comments.length-1].comment
-							+'"><i class="icon-comments"></i> '
-							+ comments.length + " " + (
-								comments.length===1 ? __("comment") : __("comments")) + '</a>')
-						: "")
-					+ comment_when(data.modified));
-
+				.html(frappe.render(frappe.templates.list_info_template, {
+					"tags": tags,
+					"comments": comments,
+					"assign": assign,
+					"data": data,
+					"doctype": this.doctype
+				}));
 	},
 
 	render_tags: function(row, data) {
@@ -272,7 +267,11 @@ frappe.views.ListView = Class.extend({
 				doctype: this.doctype,
 				docname: data.name
 			},
-			user_tags: data._user_tags
+			user_tags: data._user_tags,
+			on_change: function(user_tags) {
+				data._user_tags = user_tags;
+				me.render_timestamp_and_comments(row, data);
+			}
 		});
 		tag_editor.$w.on("click", ".tagit-label", function() {
 			me.doclistview.set_filter("_user_tags",

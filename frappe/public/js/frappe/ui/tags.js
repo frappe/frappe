@@ -5,7 +5,7 @@ frappe.ui.TagEditor = Class.extend({
 	init: function(opts) {
 		/* docs:
 		Arguments
-		
+
 		- parent
 		- user_tags
 		- doctype
@@ -20,21 +20,38 @@ frappe.ui.TagEditor = Class.extend({
 			placeholderText: __('Add Tag'),
 			onTagAdded: function(ev, tag) {
 				if(me.initialized && !me.refreshing) {
+					var tag = tag.find('.tagit-label').text();
 					return frappe.call({
 						method: 'frappe.widgets.tags.add_tag',
-						args: me.get_args(tag.find('.tagit-label').text())
-					});					
+						args: me.get_args(tag),
+						callback: function(r) {
+							var user_tags = me.user_tags.split(",");
+							user_tags.push(tag)
+							me.user_tags = user_tags.join(",");
+							me.on_change && me.on_change(me.user_tags);
+						}
+					});
 				}
 			},
 			onTagRemoved: function(ev, tag) {
 				if(!me.refreshing) {
+					var tag = tag.find('.tagit-label').text();
 					return frappe.call({
 						method: 'frappe.widgets.tags.remove_tag',
-						args: me.get_args(tag.find('.tagit-label').text())
+						args: me.get_args(tag),
+						callback: function(r) {
+							var user_tags = me.user_tags.split(",");
+							user_tags.splice(user_tags.indexOf(tag), 1);
+							me.user_tags = user_tags.join(",");
+							me.on_change && me.on_change(me.user_tags);
+						}
 					});
 				}
 			}
-		});	
+		});
+		if (!this.user_tags) {
+			this.user_tags = "";
+		}
 		this.refresh(this.user_tags);
 		this.initialized = true;
 	},
@@ -51,15 +68,15 @@ frappe.ui.TagEditor = Class.extend({
 		me.refreshing = true;
 		me.$tags.tagit("removeAll");
 
-		if(!user_tags && this.frm) 
+		if(!user_tags && this.frm)
 			user_tags = frappe.model.get_value(this.frm.doctype, this.frm.docname, "_user_tags");
-		
+
 		if(user_tags) {
 			$.each(user_tags.split(','), function(i, v) {
 				me.$tags.tagit("createTag", v);
 			});
 		}
 		me.refreshing = false;
-		
+
 	}
 })

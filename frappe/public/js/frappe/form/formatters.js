@@ -101,6 +101,15 @@ frappe.form.formatters = {
 		});
 		return html;
 	},
+	Assign: function(value) {
+		var html = "";
+		$.each(JSON.parse(value || "[]"), function(i, v) {
+			if(v) html+= '<span class="label label-warning" \
+				style="margin-right: 7px;"\
+				data-field="_assign">'+v+'</span>';
+		});
+		return html;
+	},
 	SmallText: function(value) {
 		return frappe.form.formatters.Text(value);
 	},

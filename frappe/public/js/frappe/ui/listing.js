@@ -361,7 +361,7 @@ frappe.ui.Listing = Class.extend({
 				if(fieldname=='_user_tags') {
 					// and for tags
 					this.filter_list.add_filter(doctype, fieldname,
-						'like', '%' + label);
+						'like', '%' + label + '%');
 				} else {
 					// or for rest using "in"
 					filter.set_values(doctype, fieldname, 'in', v + ', ' + label);
@@ -370,9 +370,9 @@ frappe.ui.Listing = Class.extend({
 		} else {
 			// no filter for this item,
 			// setup one
-			if(['_user_tags', '_comments'].indexOf(fieldname)!==-1) {
+			if(['_user_tags', '_comments', '_assign'].indexOf(fieldname)!==-1) {
 				this.filter_list.add_filter(doctype, fieldname,
-					'like', '%' + label);
+					'like', '%' + label + '%');
 			} else {
 				this.filter_list.add_filter(doctype, fieldname, '=', label);
 			}
