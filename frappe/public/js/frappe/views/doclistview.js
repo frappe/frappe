@@ -302,13 +302,20 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		var me = this;
 		this.appframe.add_icon_btn("2", 'icon-tag', __('Show Tags'), function() { me.toggle_tags(); });
 		this.$page.on("click", ".list-tag-preview", function() { me.toggle_tags(); });
+
+		this.appframe.add_icon_btn("2", 'icon-user', __('Assigned To Me'),
+			function() {
+				me.filter_list.add_filter(me.doctype, "_assign", 'like', '%' + user + '%');
+				me.run();
+			});
+
 		if(this.can_delete || this.listview.settings.selectable) {
-			this.appframe.add_icon_btn("2", 'icon-trash', __('Delete'),
-				function() { me.delete_items(); });
 			this.appframe.add_icon_btn("2", 'icon-ok', __('Select All'), function() {
 				me.$page.find('.list-delete').prop("checked",
 					me.$page.find('.list-delete:checked').length ? false : true);
 			});
+			this.appframe.add_icon_btn("2", 'icon-trash', __('Delete'),
+				function() { me.delete_items(); });
 		}
 		if(frappe.model.can_import(this.doctype)) {
 			this.appframe.add_icon_btn("2", "icon-upload", __("Import"), function() {
