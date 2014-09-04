@@ -6,6 +6,7 @@
 import frappe
 import frappe.defaults
 import unittest
+import json
 
 test_records = frappe.get_test_records('Event')
 
@@ -52,4 +53,44 @@ class TestEvent(unittest.TestCase):
 
 		# the name should be same!
 		self.assertEquals(ev.name, name)
+
+	def test_assign(self):
+		from frappe.widgets.form.assign_to import add
+
+		ev = frappe.get_doc(test_records[0]).insert()
+
+		add({
+			"assign_to": "test@example.com",
+			"doctype": "Event",
+			"name": ev.name,
+			"description": "Test Assignment"
+		})
+
+		ev = frappe.get_doc("Event", ev.name)
+
+		self.assertEquals(ev._assign, json.dumps(["test@example.com"]))
+
+		# add another one
+		add({
+			"assign_to": "test1@example.com",
+			"doctype": "Event",
+			"name": ev.name,
+			"description": "Test Assignment"
+		})
+
+		ev = frappe.get_doc("Event", ev.name)
+
+		self.assertEquals(ev._assign, json.dumps(["test@example.com", "test1@example.com"]))
+
+		# close an assignment
+		todo = frappe.get_doc("ToDo", {"reference_type": ev.doctype, "reference_name": ev.name,
+			"owner": "test1@example.com"})
+		todo.status = "Closed"
+		todo.save()
+
+		ev = frappe.get_doc("Event", ev.name)
+		self.assertEquals(ev._assign, json.dumps(["test@example.com"]))
+
+		# cleanup
+		ev.delete()
 

@@ -134,7 +134,7 @@ class DatabaseQuery(object):
 		columns = frappe.db.get_table_columns(self.doctype)
 		to_remove = []
 		for fld in self.fields:
-			for f in ("_user_tags", "_comments"):
+			for f in ("_user_tags", "_comments", "_assign"):
 				if f in fld and not f in columns:
 					to_remove.append(fld)
 

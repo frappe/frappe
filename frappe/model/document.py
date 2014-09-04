@@ -413,6 +413,9 @@ class Document(BaseDocument):
 		self.docstatus = 2
 		self.save()
 
+	def delete(self):
+		frappe.delete_doc(self.doctype, self.name)
+
 	def run_before_save_methods(self):
 		if getattr(self, "ignore_validate", False):
 			return

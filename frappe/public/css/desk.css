@@ -89,7 +89,7 @@ div#freeze {
 }
 
 .list-row {
-	padding: 5px 15px;
+	padding: 5px 15px 10px;
 	margin: 0px -15px;
 	border-bottom: 1px solid #c7c7c7;
 }
@@ -177,7 +177,7 @@ div#freeze {
 	margin-top: 12px;
 }
 
-.doclist-row .filterable {
+.filterable {
 	cursor: pointer;
 }
 
@@ -188,7 +188,7 @@ div#freeze {
 .list-timestamp {
 	position: absolute;
 	right: 15px;
-	bottom: 2px;
+	bottom: 5px;
 	font-size: 70%;
 	color: #888;
 }
