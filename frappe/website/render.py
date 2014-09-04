@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe
+from frappe import _
 from frappe.utils import cstr
 import mimetypes, json
 from werkzeug.wrappers import Response
@@ -36,10 +37,10 @@ def render(path, http_status_code=None):
 		try:
 			data = render_page(path)
 		except frappe.PermissionError, e:
-			data, http_status_code = render_403(e)
+			data, http_status_code = render_403(e, path)
 
 	except frappe.PermissionError, e:
-		data, http_status_code = render_403(e)
+		data, http_status_code = render_403(e, path)
 
 	except Exception:
 		path = "error"
@@ -49,10 +50,13 @@ def render(path, http_status_code=None):
 	return build_response(path, data, http_status_code or 200)
 
 
-def render_403(e):
+def render_403(e, pathname):
 	path = "message"
-	frappe.local.message = "<p><strong>{error}</strong></p><p>Did you log out?</p>".format(error=cstr(e))
-	frappe.local.message_title = "Not Permitted"
+	frappe.local.message = """<p><strong>{error}</strong></p>
+	<p>
+		<a href="/login?redirect-to=/{pathname}" class="btn btn-primary>{login}</a>
+	</p>""".format(error=cstr(e), login=_("Login"), pathname=pathname)
+	frappe.local.message_title = _("Not Permitted")
 	return render_page(path), e.http_status_code
 
 def get_doctype_from_path(path):

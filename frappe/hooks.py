@@ -35,7 +35,7 @@ notification_config = "frappe.core.notifications.get_notification_config"
 
 before_tests = "frappe.utils.install.before_tests"
 
-website_generators = ["Web Page", "Blog Post", "Website Group", "Blog Category"]
+website_generators = ["Web Page", "Blog Post", "Website Group", "Blog Category", "Web Form"]
 
 # permissions
 

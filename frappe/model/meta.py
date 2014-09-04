@@ -241,16 +241,16 @@ def get_field_currency(df, doc):
 	"""get currency based on DocField options and fieldvalue in doc"""
 	currency = None
 
-	if not df.options:
+	if not df.get("options"):
 		return None
 
-	if ":" in cstr(df.options):
-		split_opts = df.options.split(":")
+	if ":" in cstr(df.get("options")):
+		split_opts = df.get("options").split(":")
 		if len(split_opts)==3:
 			currency = frappe.db.get_value(split_opts[0], doc.get(split_opts[1]),
 				split_opts[2])
 	else:
-		currency = doc.get(df.options)
+		currency = doc.get(df.get("options"))
 
 	return currency
 

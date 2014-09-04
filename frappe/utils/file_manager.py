@@ -107,6 +107,9 @@ def save_file(fname, content, dt, dn, decode=False):
 	if decode:
 		if isinstance(content, unicode):
 			content = content.encode("utf-8")
+
+		if "," in content:
+			content = content.split(",")[1]
 		content = base64.b64decode(content)
 
 	file_size = check_max_file_size(content)
@@ -179,6 +182,16 @@ def remove_all(dt, dn):
 			remove_file(fid, dt, dn)
 	except Exception, e:
 		if e.args[0]!=1054: raise # (temp till for patched)
+
+def remove_file_by_url(file_url, doctype=None, name=None):
+	if doctype and name:
+		fid = frappe.db.get_value("File Data", {"file_url": file_url,
+			"attached_to_doctype": doctype, "attached_to_name": name})
+	else:
+		fid = frappe.db.get_value("File Data", {"file_url": file_url})
+
+	if fid:
+		return remove_file(fid)
 
 def remove_file(fid, attached_to_doctype=None, attached_to_name=None):
 	"""Remove file and File Data entry"""
