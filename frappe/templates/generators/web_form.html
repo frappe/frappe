@@ -278,10 +278,6 @@ frappe.ready(function() {
 		dateFormat: "{{ frappe.date_format.replace('yyyy', 'yy') }}",
 	})
 	{% endif %}
-
-	{% for f in web_form_fields %}
-	{% endfor %}
-
 });
 </script>
 {% endblock %}

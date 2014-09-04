@@ -41,6 +41,10 @@ def accept():
 	args = frappe.form_dict
 	files = []
 
+	web_form = frappe.get_doc("Web Form", args.web_form)
+	if args.doctype != web_form.doc_type:
+		frappe.throw(_("Invalid Request"))
+
 	if args.name:
 		# update
 		doc = frappe.get_doc(args.doctype, args.name)
@@ -50,7 +54,7 @@ def accept():
 
 	# set values
 	for fieldname, value in args.iteritems():
-		if fieldname not in ("web_form", "cmd"):
+		if fieldname not in ("web_form", "cmd", "owner"):
 			if value and value.startswith("{"):
 				try:
 					filedata = json.loads(value)
@@ -72,7 +76,6 @@ def accept():
 
 	else:
 		# insert
-		web_form = frappe.get_doc("Web Form", args.web_form)
 		if web_form.login_required and frappe.session.user=="Guest":
 			frappe.throw(_("You must login to submit this form"))
 

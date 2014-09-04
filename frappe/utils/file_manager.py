@@ -190,8 +190,6 @@ def remove_file_by_url(file_url, doctype=None, name=None):
 	else:
 		fid = frappe.db.get_value("File Data", {"file_url": file_url})
 
-	print file_url, doctype, name, fid
-
 	if fid:
 		return remove_file(fid)
 
