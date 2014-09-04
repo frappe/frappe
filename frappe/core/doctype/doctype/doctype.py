@@ -228,6 +228,10 @@ def validate_fields(fields):
 				or (doctype_pointer[0].options!="DocType"):
 				frappe.throw(_("Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType'"))
 
+	def check_illegal_default(d):
+		if d.fieldtype == "Check" and d.default and d.default not in ('0', '1'):
+			frappe.throw(_("Default for 'Check' type of field must be either '0' or '1'"))
+
 	def check_fold(fields):
 		fold_exists = False
 		for i, f in enumerate(fields):
@@ -254,6 +258,7 @@ def validate_fields(fields):
 		check_dynamic_link_options(d)
 		check_hidden_and_mandatory(d)
 		check_in_list_view(d)
+		check_illegal_default(d)
 
 	check_min_items_in_list(fields)
 	check_fold(fields)
