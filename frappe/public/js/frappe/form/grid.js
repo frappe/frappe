@@ -491,7 +491,7 @@ frappe.ui.form.GridRow = Class.extend({
 		if(!this.form_area) {
 			$('<div class="panel-heading">\
 				<div class="toolbar">\
-					<span class="panel-title">Editing Row #<span class="row-index"></span></span>\
+					<span class="panel-title">' + __("Editing Row") + ' #<span class="row-index"></span></span>\
 					<span class="text-success pull-right grid-toggle-row" \
 						title="'+__("Close")+'"\
 						style="margin-left: 7px;">\
@@ -508,7 +508,7 @@ frappe.ui.form.GridRow = Class.extend({
 			<div class="panel-body">\
 				<div class="form-area"></div>\
 				<div class="toolbar footer-toolbar" style="margin-top: 15px">\
-					<span class="text-muted"><a href="#" class="shortcuts"><i class="icon-keyboard"></i> Shortcuts</a></span>\
+					<span class="text-muted"><a href="#" class="shortcuts"><i class="icon-keyboard"></i>' + __("Shortcuts") + '</a></span>\
 					<span class="text-success pull-right grid-toggle-row" \
 						title="'+__("Close")+'"\
 						style="margin-left: 7px; cursor: pointer;">\

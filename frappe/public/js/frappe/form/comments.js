@@ -93,10 +93,10 @@ frappe.ui.form.Comments = Class.extend({
 			if(c.comment_type==="Workflow" || c.comment_type==="Label") {
 				c.comment_html = repl('<span class="label label-%(style)s">%(text)s</span>', {
 					style: frappe.utils.guess_style(c.comment),
-					text: c.comment
+					text: __(c.comment)
 				});
 			} else {
-				c.comment_html = frappe.markdown(c.comment);
+				c.comment_html = frappe.markdown(__(c.comment));
 			}
 
 			// icon centering -- pixed perfect
