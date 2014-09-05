@@ -75,6 +75,10 @@ div#freeze {
 	overflow: hidden;
 }
 
+.page-container .container {
+	max-width: 970px;
+}
+
 /* listing */
 .show_filters {
 	padding-top: 15px;
