@@ -75,26 +75,28 @@ $.extend(frappe.model, {
 	},
 
 	get_default_value: function(df, doc, parent_doc) {
-		// look in user permissions
 		var user_permissions = frappe.defaults.get_user_permissions();
 		var has_user_permissions = (df.fieldtype==="Link" && user_permissions
 			&& df.ignore_user_permissions != 1 && user_permissions[df.options]);
 
-		if (has_user_permissions && user_permissions[df.options].length===1) {
-			return user_permissions[df.options][0];
+		if (df.fieldtype==="Link" && df.options!=="User") {
+			// 1 - look in user permissions
+			if (has_user_permissions && user_permissions[df.options].length===1) {
+				return user_permissions[df.options][0];
+			}
+
+			// 2 - look in user defaults
+			var user_default = frappe.defaults.get_user_default(df.fieldname);
+			var is_allowed_user_default = user_default &&
+				(!has_user_permissions || user_permissions[df.options].indexOf(user_default)!==-1);
+
+			// is this user default also allowed as per user permissions?
+			if (is_allowed_user_default) {
+				return frappe.defaults.get_user_default(df.fieldname);
+			}
 		}
 
-		// look in user defaults
-		var user_default = frappe.defaults.get_user_default(df.fieldname);
-		var is_allowed_user_default = user_default &&
-			(!has_user_permissions || user_permissions[df.options].indexOf(user_default)!==-1);
-
-		// is this user default also allowed as per user permissions?
-		if (is_allowed_user_default) {
-			return frappe.defaults.get_user_default(df.fieldname);
-		}
-
-		// look in default of docfield
+		// 3 - look in default of docfield
 		if (df['default']) {
 
 			if (df["default"] == "__user") {

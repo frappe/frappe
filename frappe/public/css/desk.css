@@ -75,6 +75,10 @@ div#freeze {
 	overflow: hidden;
 }
 
+.page-container .container {
+	max-width: 970px;
+}
+
 /* listing */
 .show_filters {
 	padding-top: 15px;
@@ -188,7 +192,7 @@ div#freeze {
 .list-timestamp {
 	position: absolute;
 	right: 15px;
-	bottom: 5px;
+	bottom: 3px;
 	font-size: 70%;
 	color: #888;
 }
