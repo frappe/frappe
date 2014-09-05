@@ -261,7 +261,7 @@ def fmt_money(amount, precision=None, currency=None):
 
 	decimal_str, comma_str, number_format_precision = get_number_format_info(number_format)
 
-	if not precision:
+	if precision is None:
 		precision = number_format_precision
 
 	amount = '%.*f' % (precision, flt(amount))

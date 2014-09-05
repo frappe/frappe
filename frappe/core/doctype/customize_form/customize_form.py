@@ -40,7 +40,8 @@ class CustomizeForm(Document):
 		'allow_on_submit': 'Check',
 		'depends_on': 'Data',
 		'description': 'Text',
-		'default': 'Text'
+		'default': 'Text',
+		'precision': 'Select'
 	}
 
 	allowed_fieldtype_change = (('Currency', 'Float', 'Percent'), ('Small Text', 'Data'),
