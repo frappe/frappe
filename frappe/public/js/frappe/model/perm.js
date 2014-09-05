@@ -155,9 +155,8 @@ $.extend(frappe.perm, {
 					out.push(valid_doctypes);
 				}
 			});
-		}
 
-		if (!out.length) {
+		} else {
 			out = [Object.keys(user_permissions)];
 		}
 

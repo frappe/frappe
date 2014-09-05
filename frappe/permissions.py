@@ -226,7 +226,7 @@ def get_user_permission_doctypes(user_permission_doctypes, user_permissions):
 		user_permission_doctypes = [list(set(doctypes).intersection(set(user_permissions.keys())))
 			for doctypes in user_permission_doctypes]
 
-	if not user_permission_doctypes:
+	else:
 		user_permission_doctypes = [user_permissions.keys()]
 
 
