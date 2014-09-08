@@ -76,8 +76,8 @@ window.format_number = function(v, format, decimals){
 
 	info = get_number_format_info(format);
 
-	//Fix the decimal first, toFixed will auto fill trailing zero.
-	decimals = decimals || info.precision;
+	// Fix the decimal first, toFixed will auto fill trailing zero.
+	if (decimals == null) decimals = info.precision;
 
 	v = flt(v, decimals, format);
 

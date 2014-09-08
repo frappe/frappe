@@ -562,6 +562,7 @@ frappe.ui.form.GridRow = Class.extend({
 		// in form
 		if(this.fields_dict && this.fields_dict[fieldname]) {
 			this.fields_dict[fieldname].refresh();
+			this.layout.refresh_dependency();
 		}
 	},
 	get_visible_columns: function(blacklist) {

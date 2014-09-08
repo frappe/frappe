@@ -552,26 +552,24 @@ class Document(BaseDocument):
 		if parentfield and not isinstance(parentfield, basestring):
 			parentfield = parentfield.parentfield
 
+		cache_key = parentfield or "main"
+
 		if not hasattr(self, "_precision"):
-			self._precision = frappe._dict({
-				"default": cint(frappe.db.get_default("float_precision")) or 3,
-				"options": {}
-			})
+			self._precision = frappe._dict()
 
-		if self._precision.setdefault(parentfield or "main", {}).get(fieldname) is None:
-			meta = frappe.get_meta(self.meta.get_field(parentfield).options if parentfield else self.doctype)
-			df = meta.get_field(fieldname)
+		if cache_key not in self._precision:
+			self._precision[cache_key] = frappe._dict()
 
-			if df.fieldtype == "Currency" and df.options and not self._precision.options.get(df.options):
-				self._precision.options[df.options] = get_field_precision(df, self)
+		if fieldname not in self._precision[cache_key]:
+			self._precision[cache_key][fieldname] = None
 
-			if df.fieldtype == "Currency":
-				self._precision[parentfield or "main"][fieldname] = cint(self._precision.options.get(df.options)) or \
-					self._precision.default
-			elif df.fieldtype in ("Float", "Percent"):
-				self._precision[parentfield or "main"][fieldname] = self._precision.default
+			doctype = self.meta.get_field(parentfield).options if parentfield else self.doctype
+			df = frappe.get_meta(doctype).get_field(fieldname)
 
-		return self._precision[parentfield or "main"][fieldname]
+			if df.fieldtype in ("Currency", "Float", "Percent"):
+				self._precision[cache_key][fieldname] = get_field_precision(df, self)
+
+		return self._precision[cache_key][fieldname]
 
 	def get_url(self):
 		return "/desk#Form/{doctype}/{name}".format(doctype=self.doctype, name=self.name)

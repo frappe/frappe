@@ -232,6 +232,10 @@ def validate_fields(fields):
 		if d.fieldtype == "Check" and d.default and d.default not in ('0', '1'):
 			frappe.throw(_("Default for 'Check' type of field must be either '0' or '1'"))
 
+	def check_precision(d):
+		if d.fieldtype in ("Currency", "Float", "Percent") and d.precision is not None and not (1 <= cint(d.precision) <= 6):
+			frappe.throw(_("Precision should be between 1 and 6"))
+
 	def check_fold(fields):
 		fold_exists = False
 		for i, f in enumerate(fields):

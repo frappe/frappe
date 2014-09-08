@@ -19,12 +19,28 @@ frappe.form.formatters = {
 	Select: function(value) {
 		return __(frappe.form.formatters["Data"](value));
 	},
-	Float: function(value, docfield, options) {
-		var decimals = cint(docfield.options, null) || cint(frappe.boot.sysdefaults.float_precision, null);
-		return frappe.form.formatters._right(
-			((value==null || value==="")
-				? ""
-				: format_number(value, null, decimals)), options)
+	Float: function(value, docfield, options, doc) {
+		// don't allow 0 precision for Floats, hence or'ing with null
+		var precision = docfield.precision || cint(frappe.boot.sysdefaults.float_precision) || null;
+		if (docfield.options && docfield.options.trim()) {
+			// options points to a currency field, but expects precision of float!
+			docfield.precision = precision;
+			return frappe.form.formatters.Currency(value, docfield, options, doc);
+
+		} else {
+			// show 1.000000 as 1
+			if (!is_null(value)) {
+				var temp = cstr(value).split(".");
+				if (temp[1]==undefined || cint(temp[1])===0) {
+					precision = 0;
+				}
+			}
+
+			return frappe.form.formatters._right(
+				((value==null || value==="")
+					? ""
+					: format_number(value, null, precision)), options);
+		}
 	},
 	Int: function(value, docfield, options) {
 		return frappe.form.formatters._right(value==null ? "" : cint(value), options)
@@ -35,7 +51,7 @@ frappe.form.formatters = {
 	Currency: function(value, docfield, options, doc) {
 		var currency = frappe.meta.get_field_currency(docfield, doc);
 		return frappe.form.formatters._right((value==null || value==="")
-			? "" : format_currency(value, currency), options);
+			? "" : format_currency(value, currency, docfield.precision || null), options);
 	},
 	Check: function(value) {
 		return value ? "<i class='icon-check'></i>" : "<i class='icon-check-empty'></i>";

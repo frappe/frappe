@@ -194,7 +194,7 @@ _f.Frm.prototype.watch_model_updates = function() {
 			me.fields_dict[fieldname]
 				&& me.fields_dict[fieldname].refresh(fieldname);
 
-			me.refresh_dependency();
+			me.layout.refresh_dependency();
 			me.script_manager.trigger(fieldname, doc.doctype, doc.name);
 		}
 	})
@@ -432,9 +432,6 @@ _f.Frm.prototype.refresh_fields = function() {
 
 	// cleanup activities after refresh
 	this.cleanup_refresh(this);
-
-	// dependent fields
-	this.refresh_dependency();
 }
 
 
@@ -466,60 +463,6 @@ _f.Frm.prototype.cleanup_refresh = function() {
 	if(me.meta.autoname=="naming_series:" && !me.doc.__islocal) {
 		cur_frm.toggle_display("naming_series", false);
 	}
-}
-
-// Resolve "depends_on" and show / hide accordingly
-
-_f.Frm.prototype.refresh_dependency = function() {
-	var me = this;
-	var doc = locals[this.doctype][this.docname];
-
-	// build dependants' dictionary
-	var has_dep = false;
-
-	for(fkey in me.fields) {
-		var f = me.fields[fkey];
-		f.dependencies_clear = true;
-		if(f.df.depends_on) {
-			has_dep = true;
-		}
-	}
-
-	if(!has_dep)return;
-
-	// show / hide based on values
-	for(var i=me.fields.length-1;i>=0;i--) {
-		var f = me.fields[i];
-		f.guardian_has_value = true;
-		if(f.df.depends_on) {
-			// evaluate guardian
-			var v = doc[f.df.depends_on];
-			if(f.df.depends_on.substr(0,5)=='eval:') {
-				f.guardian_has_value = eval(f.df.depends_on.substr(5));
-			} else if(f.df.depends_on.substr(0,3)=='fn:') {
-				f.guardian_has_value = me.script_manager.trigger(f.df.depends_on.substr(3), me.doctype, me.docname);
-			} else {
-				if(!v) {
-					f.guardian_has_value = false;
-				}
-			}
-
-			// show / hide
-			if(f.guardian_has_value) {
-				if(f.df.hidden_due_to_dependency) {
-					f.df.hidden_due_to_dependency = false;
-					f.refresh();
-				}
-			} else {
-				if(!f.df.hidden_due_to_dependency) {
-					f.df.hidden_due_to_dependency = true;
-					f.refresh();
-				}
-			}
-		}
-	}
-
-	this.layout.refresh_section_count();
 }
 
 _f.Frm.prototype.setnewdoc = function() {

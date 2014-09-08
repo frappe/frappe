@@ -71,6 +71,9 @@ frappe.ui.form.Layout = Class.extend({
 				.appendTo(me.wrapper)
 			}
 		}, 100);
+
+		// dependent fields
+		this.refresh_dependency();
 	},
 	render: function() {
 		var me = this;
@@ -318,5 +321,59 @@ frappe.ui.form.Layout = Class.extend({
 	get_open_grid_row: function() {
 		return $(".grid-row-open").data("grid_row");
 	},
+	refresh_dependency: function() {
+		// Resolve "depends_on" and show / hide accordingly
+		var me = this;
 
+		var doc = me.doc;
+		if (!doc) return;
+
+		var parent = doc.parent ? locals[doc.parenttype][doc.parent] : {};
+
+		// build dependants' dictionary
+		var has_dep = false;
+
+		for(fkey in this.fields_list) {
+			var f = this.fields_list[fkey];
+			f.dependencies_clear = true;
+			if(f.df.depends_on) {
+				has_dep = true;
+			}
+		}
+
+		if(!has_dep)return;
+
+		// show / hide based on values
+		for(var i=me.fields_list.length-1;i>=0;i--) {
+			var f = me.fields_list[i];
+			f.guardian_has_value = true;
+			if(f.df.depends_on) {
+				// evaluate guardian
+				if(f.df.depends_on.substr(0,5)=='eval:') {
+					f.guardian_has_value = eval(f.df.depends_on.substr(5));
+				} else if(f.df.depends_on.substr(0,3)=='fn:' && me.frm) {
+					f.guardian_has_value = me.frm.script_manager.trigger(f.df.depends_on.substr(3), me.doctype, me.docname);
+				} else {
+					if(!doc[f.df.depends_on]) {
+						f.guardian_has_value = false;
+					}
+				}
+
+				// show / hide
+				if(f.guardian_has_value) {
+					if(f.df.hidden_due_to_dependency) {
+						f.df.hidden_due_to_dependency = false;
+						f.refresh();
+					}
+				} else {
+					if(!f.df.hidden_due_to_dependency) {
+						f.df.hidden_due_to_dependency = true;
+						f.refresh();
+					}
+				}
+			}
+		}
+
+		this.refresh_section_count();
+	}
 })
