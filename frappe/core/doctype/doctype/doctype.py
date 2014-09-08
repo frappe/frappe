@@ -28,7 +28,7 @@ class DocType(Document):
 		self.validate_series()
 		self.scrub_field_names()
 		self.validate_title_field()
-		validate_fields(self.get("fields"))
+		validate_fields(self)
 
 		if self.istable:
 			# no permission records for child table
@@ -175,10 +175,10 @@ class DocType(Document):
 		return max_idx and max_idx[0][0] or 0
 
 def validate_fields_for_doctype(doctype):
-	validate_fields(frappe.get_meta(doctype).get("fields"))
+	validate_fields(frappe.get_meta(doctype))
 
 # this is separate because it is also called via custom field
-def validate_fields(fields):
+def validate_fields(meta):
 	def check_illegal_characters(fieldname):
 		for c in ['.', ',', ' ', '-', '&', '%', '=', '"', "'", '*', '$',
 			'(', ')', '[', ']', '/']:
@@ -251,6 +251,14 @@ def validate_fields(fields):
 				else:
 					frappe.throw(_("Fold can not be at the end of the form"))
 
+	def check_search_fields(meta):
+		fieldname_list = [d.fieldname for d in fields]
+		for fieldname in (meta.search_fields or "").split(","):
+			fieldname = fieldname.strip()
+			if fieldname not in fieldname_list:
+				frappe.throw(_("Search Fields should contain valid fieldnames"))
+
+	fields = meta.get("fields")
 	for d in fields:
 		if not d.permlevel: d.permlevel = 0
 		if not d.fieldname:
@@ -266,6 +274,7 @@ def validate_fields(fields):
 
 	check_min_items_in_list(fields)
 	check_fold(fields)
+	check_search_fields(meta)
 
 def validate_permissions_for_doctype(doctype, for_remove=False):
 	doctype = frappe.get_doc("DocType", doctype)
