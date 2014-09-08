@@ -377,7 +377,7 @@ frappe.ui.Filter = Class.extend({
 			.html(repl('<i class="icon-filter"></i> %(label)s %(condition)s "%(value)s"', {
 				label: __(this.field.df.label),
 				condition: this.get_condition(),
-				value: value,
+				value: __(value),
 			}));
 	}
 

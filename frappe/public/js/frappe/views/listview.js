@@ -440,7 +440,7 @@ frappe.views.ListView = Class.extend({
 		if(!in_list(["avatar", "_user_tags", "check"], opts.content)) {
 			if($(parent).attr("title")==undefined) {
 				$(parent).attr("title", (opts.title || opts.content) + ": "
-					+ (data[opts.content] || "Not Set"))
+					+ (data[opts.content] || __("Not Set")))
 			}
 			$(parent).tooltip();
 		}
@@ -499,7 +499,7 @@ frappe.views.ListView = Class.extend({
 	render_bar_graph: function(parent, data, field, label) {
 		var args = {
 			percent: data[field],
-			label: label
+			label: __(label)
 		}
 		$(parent).append(repl('<span class="progress" style="width: 100%; float: left; margin: 5px 0px;"> \
 			<span class="progress-bar" title="%(percent)s% %(label)s" \

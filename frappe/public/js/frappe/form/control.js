@@ -551,7 +551,7 @@ frappe.ui.form.ControlButton = frappe.ui.form.ControlData.extend({
 	set_label: function() {
 		$(this.label_span).html("&nbsp;");
 		this.$input && this.$input.html((this.df.icon ?
-			('<i class="'+this.df.icon+' icon-fixed-width"></i> ') : "") + this.df.label);
+			('<i class="'+this.df.icon+' icon-fixed-width"></i> ') : "") + __(this.df.label));
 	}
 });
 
@@ -1054,7 +1054,7 @@ frappe.ui.form.ControlTable = frappe.ui.form.Control.extend({
 		}
 
 		if(frappe.model.layout_fields.indexOf(prev_fieldtype)===-1) {
-			$("<label>" + this.df.label + "<label>").appendTo(this.wrapper);
+			$("<label>" + __(this.df.label) + "<label>").appendTo(this.wrapper);
 		}
 
 		this.grid = new frappe.ui.form.Grid({
