@@ -252,6 +252,9 @@ def validate_fields(meta):
 					frappe.throw(_("Fold can not be at the end of the form"))
 
 	def check_search_fields(meta):
+		if not meta.search_fields:
+			return
+
 		fieldname_list = [d.fieldname for d in fields]
 		for fieldname in (meta.search_fields or "").split(","):
 			fieldname = fieldname.strip()
