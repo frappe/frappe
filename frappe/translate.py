@@ -380,8 +380,10 @@ def rebuild_all_translation_files():
 		for app in frappe.get_all_apps():
 			write_translations_file(app, lang)
 
-def write_translations_file(app, lang, full_dict=None):
-	app_messages = get_messages_for_app(app)
+def write_translations_file(app, lang, full_dict=None, app_messages=None):
+	if not app_messages:
+		app_messages = get_messages_for_app(app)
+
 	if not app_messages:
 		return
 
