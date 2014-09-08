@@ -384,7 +384,15 @@ bsEditorToolbar = Class.extend({
 		if (this.toolbar) {
 			$(this.toolbar).find('.btn[data-' + this.options.command_role + ']').each(function () {
 				var command = $(this).data(me.options.command_role);
-				if (document.queryCommandState(command)) {
+
+				// try catch for buggy firefox!
+				try {
+					var query_command_state = document.queryCommandState(command);
+				} catch(e) {
+					var query_command_state = false;
+				}
+
+				if (query_command_state) {
 					$(this).addClass(me.options.active_toolbar_class);
 				} else {
 					$(this).removeClass(me.options.active_toolbar_class);
