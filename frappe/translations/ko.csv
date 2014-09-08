@@ -8,17 +8,7 @@
 "000 is black, fff is white","000 블랙, FFF은 흰색입니다"
 2 days ago,1 일 전
 "<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank"">[?]</a>","만약 당신이 좋아 href=""https://en.wikipedia.org/wiki/Transport_Layer_Security""의 target=""_blank""> [?]&lt;/a&gt;"
-"<a onclick=""msgprint('<ol>\
-<li><b>field:[fieldname]</b> - By Field\
-<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\
-<li><b>Prompt</b> - Prompt user for a name\
-<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\
-</ol>')"">Naming Options</a>","<의 onclick = ""msgprint ( '<OL> \
- <LI>의 <b> 필드 : [필드 이름] </ B> - 필드에 \
- <LI>의 <b> naming_series : </ B > - 시리즈 명명하여 (naming_series라는 필드가 있어야합니다 \
- <LI>의 <b> 프롬프트 </ B> - 이름에 대한 프롬프트 사용자 \
- <LI>의 <b> 【시리즈】 </ . B> - 접두사 (점으로 구분) 계열 별, 예를 들어 PRE에 대한 # # # # # \
- </ OL> ') ""> 옵션을 명명 </ A>"
+"<a onclick=""msgprint('<ol>\<li><b>field:[fieldname]</b> - By Field\<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\<li><b>Prompt</b> - Prompt user for a name\<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\</ol>')"">Naming Options</a>","<의 onclick = ""msgprint ( '<OL> \ <LI>의 <b> 필드 : [필드 이름] </ B> - 필드에 \ <LI>의 <b> naming_series : </ B > - 시리즈 명명하여 (naming_series라는 필드가 있어야합니다 \ <LI>의 <b> 프롬프트 </ B> - 이름에 대한 프롬프트 사용자 \ <LI>의 <b> 【시리즈】 </ . B> - 접두사 (점으로 구분) 계열 별, 예를 들어 PRE에 대한 # # # # # \ </ OL> ') ""> 옵션을 명명 </ A>"
 <b>new</b> <i>type of document</i>,문서의 <b> 새로운 </ B> <I> 유형 </ I>
 "<i>document type...</i>, e.g. <b>customer</b>","<I> 문서 유형 ... </ I>, 예를 들어 고객의 <b> </ B>"
 <i>e.g. <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>,<I> 등의 <strong> (55 + 434) / 4 </ STRONG> 또는의 <strong> = Math.sin 이런 (Math.PI / 2) </ STRONG> ... </ I>
@@ -428,9 +418,7 @@ Footer Background,바닥 글의 배경
 Footer Items,바닥 글 항목
 Footer Text,바닥 글 텍스트
 For DocType,문서 종류에 대한
-"For Links, enter the DocType as range
-For Select, enter list of Options separated by comma","링크의 경우, 범위와 문서 종류를 입력 
- 선택의 경우, 쉼표 (,)로 구분 옵션의 목록을 입력"
+"For Links, enter the DocType as rangeFor Select, enter list of Options separated by comma","링크의 경우, 범위와 문서 종류를 입력  선택의 경우, 쉼표 (,)로 구분 옵션의 목록을 입력"
 "For comparative filters, start with","비교 필터의 경우, 시작"
 For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,취소 및 'INV004'을 개정 예를 들어 그것은 새 문서 'INV004-1'이 될 것입니다.이것은 당신이 각 개정을 추적하는 데 도움이됩니다.
 For ranges,범위에 대해
@@ -808,9 +796,7 @@ Please attach a file or set a URL,파일을 첨부하거나 URL을 설정하십�
 Please do not change the rows above {0},위의 행을 변경하지 마십시오 {0}
 Please enable pop-ups,팝업을 활성화하십시오
 Please enter Event's Date and Time!,이벤트의 날짜와 시간을 입력 해주세요!
-"Please enter both your email and message so that we \
-				can get back to you. Thanks!","이메일과 메시지를 모두 입력하시기 바랍니다 우리 \
- 다시 얻을 수 있습니다.고맙습니다!"
+Please enter both your email and message so that we \				can get back to you. Thanks!,이메일과 메시지를 모두 입력하시기 바랍니다 우리 \ 다시 얻을 수 있습니다.고맙습니다!
 Please enter some text!,텍스트를 입력 해주세요!
 Please enter title!,제목을 입력하세요!
 Please login to Upvote!,upvote에 로그인 해주세요!
@@ -1109,13 +1095,7 @@ There were errors while sending email. Please try again.,이메일을 보내는 
 These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,"이 값은 트랜잭션에 자동으로 업데이트되며, 이러한 값을 포함하는 거래에이 사용자에 대한 사용 권한을 제한하는 것이 도움이 될 것입니다."
 "These will also be set as default values for those links, if only one such permission record is defined.","단 하나의 권한 레코드가 정의되어있는 경우이 또한, 해당 링크의 기본 값으로 설정됩니다."
 Third Party Authentication,타사 인증
-"This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>
-myfield
-eval:doc.myfield=='My Value'<br>
-eval:doc.age>18","여기에 정의 된 필드 이름이 값이 OR 규칙에 해당 (예) 인 경우에만이 필드가 나타납니다 : <BR> 
- MyField에 
- EVAL : doc.myfield == '나의 가치'<BR> 
- EVAL : doc.age> 18"
+This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>myfieldeval:doc.myfield=='My Value'<br>eval:doc.age>18,여기에 정의 된 필드 이름이 값이 OR 규칙에 해당 (예) 인 경우에만이 필드가 나타납니다 : <BR>  MyField에  EVAL : doc.myfield == '나의 가치'<BR>  EVAL : doc.age> 18
 This goes above the slideshow.,슬라이드 쇼가 위에 간다.
 This is PERMANENT action and you cannot undo. Continue?,이것은 영구 작업입니다 그리고 당신은 실행 취소 할 수 없습니다. 계속하시겠습니까?
 "This is a standard format. To make changes, please copy it make make a new format.","이 표준 형식입니다.변경하려면, 그것은 새로운 형식을 만들어 복사하시기 바랍니다."
@@ -1265,9 +1245,7 @@ You cannot install this app,당신은이 응용 프로그램을 설치할 수 �
 You have unsaved changes in this form. Please save before you continue.,이 형태로 저장되지 않은 변경 사항이 있습니다.계속하기 전에 저장하십시오.
 You need to be logged in and have System Manager Role to be able to access backups.,당신은 로그인 및 백업 액세스 할 수 있도록 시스템 관리자 역할을해야합니다.
 You need write permission to rename,이름을 변경할 수있는 권한을 작성해야합니다
-"You seem to have written your name instead of your email. \
-					Please enter a valid email address so that we can get back.","당신은 당신의 이메일 대신에 당신의 이름을 쓴 것 같다.\
- 우리가 얻을 수 있도록 유효한 이메일 주소를 입력하십시오."
+You seem to have written your name instead of your email. \					Please enter a valid email address so that we can get back.,당신은 당신의 이메일 대신에 당신의 이름을 쓴 것 같다.\ 우리가 얻을 수 있도록 유효한 이메일 주소를 입력하십시오.
 "Your download is being built, this may take a few moments...","다운로드가이 몇 분 정도 걸릴 수 있습니다, 건설되고있다 ..."
 [Label]:[Field Type]/[Options]:[Width],[라벨] : [필드 유형] / [옵션] : [폭]
 [Optional] Send the email X days in advance of the specified date. 0 equals same day.,[선택] 지정된 날짜의 사전에 이메일 X 일 보냅니다. 0 당일 같습니다.

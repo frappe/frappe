@@ -8,17 +8,7 @@
 "000 is black, fff is white","000 là màu đen, fff là màu trắng"
 2 days ago,2 ngày trước
 "<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank"">[?]</a>","<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank""> [?]</ A>"
-"<a onclick=""msgprint('<ol>\
-<li><b>field:[fieldname]</b> - By Field\
-<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\
-<li><b>Prompt</b> - Prompt user for a name\
-<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\
-</ol>')"">Naming Options</a>","<A onclick = ""msgprint ('<ol> \
- <li> <b> lĩnh vực: [fieldname] </ b> - Theo Dòng \
- <li> <b> naming_series: </ b > - By Đặt tên Series (lĩnh vực được gọi naming_series phải có mặt \
- <li> <b> Prompt </ b> - sử dụng Prompt cho một tên \
- <li> <b> [loạt] </ . b> - Series của tiền tố (cách nhau bằng một dấu chấm), ví dụ PRE # # # # # \
- </ ol> ') ""> đặt tên Tùy chọn </ a>"
+"<a onclick=""msgprint('<ol>\<li><b>field:[fieldname]</b> - By Field\<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\<li><b>Prompt</b> - Prompt user for a name\<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\</ol>')"">Naming Options</a>","<A onclick = ""msgprint ('<ol> \ <li> <b> lĩnh vực: [fieldname] </ b> - Theo Dòng \ <li> <b> naming_series: </ b > - By Đặt tên Series (lĩnh vực được gọi naming_series phải có mặt \ <li> <b> Prompt </ b> - sử dụng Prompt cho một tên \ <li> <b> [loạt] </ . b> - Series của tiền tố (cách nhau bằng một dấu chấm), ví dụ PRE # # # # # \ </ ol> ') ""> đặt tên Tùy chọn </ a>"
 <b>new</b> <i>type of document</i>,<b> mới </ b> <i> loại tài liệu </ i>
 "<i>document type...</i>, e.g. <b>customer</b>","loại tài liệu <i> ... </ i>, ví dụ như <b> khách hàng </ b>"
 <i>e.g. <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>,<i> ví dụ <strong> (55 + 434) / 4 </ strong> hoặc = <strong> Math.sin (Math.PI / 2) </ strong> ... </ i>
@@ -428,9 +418,7 @@ Footer Background,Bối cảnh chân
 Footer Items,Chân mục
 Footer Text,Tiêu đề chân trang
 For DocType,Cho DocType
-"For Links, enter the DocType as range
-For Select, enter list of Options separated by comma","Đối với Liên kết, nhập DocType như phạm vi 
- Đối Chọn, nhập danh sách các tùy chọn phân cách bằng dấu phẩy"
+"For Links, enter the DocType as rangeFor Select, enter list of Options separated by comma","Đối với Liên kết, nhập DocType như phạm vi  Đối Chọn, nhập danh sách các tùy chọn phân cách bằng dấu phẩy"
 "For comparative filters, start with","Cho các bộ lọc so sánh, bắt đầu với"
 For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,"Ví dụ, nếu bạn hủy bỏ, sửa đổi 'INV004' nó sẽ trở thành một tài liệu mới 'INV004-1'. Điều này giúp bạn theo dõi từng sửa đổi."
 For ranges,Cho các phạm vi
@@ -808,9 +796,7 @@ Please attach a file or set a URL,Xin đính kèm một tập tin hoặc thiết
 Please do not change the rows above {0},Xin vui lòng không thay đổi các hàng trên {0}
 Please enable pop-ups,Vui lòng kích hoạt cửa sổ pop-up
 Please enter Event's Date and Time!,Vui lòng nhập tổ chức sự kiện của ngày và thời gian!
-"Please enter both your email and message so that we \
-				can get back to you. Thanks!","Vui lòng nhập cả email và tin nhắn của bạn để chúng tôi \
- có thể lấy lại cho bạn. Cảm ơn anh!"
+Please enter both your email and message so that we \				can get back to you. Thanks!,Vui lòng nhập cả email và tin nhắn của bạn để chúng tôi \ có thể lấy lại cho bạn. Cảm ơn anh!
 Please enter some text!,Xin vui lòng nhập một số văn bản!
 Please enter title!,Vui lòng nhập tiêu đề!
 Please login to Upvote!,Xin vui lòng đăng nhập vào upvote!
@@ -1109,13 +1095,7 @@ There were errors while sending email. Please try again.,Có lỗi khi gửi ema
 These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,Những giá trị này sẽ được tự động cập nhật trong các giao dịch và cũng sẽ hữu ích để hạn chế quyền truy cập cho người dùng này về giao dịch có chứa các giá trị.
 "These will also be set as default values for those links, if only one such permission record is defined.","Đây cũng sẽ được thiết lập như là giá trị mặc định cho các liên kết này, nếu chỉ có một bản ghi cho phép như được định nghĩa."
 Third Party Authentication,Bên thứ ba xác thực
-"This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>
-myfield
-eval:doc.myfield=='My Value'<br>
-eval:doc.age>18","Lĩnh vực này sẽ chỉ xuất hiện nếu fieldname định nghĩa ở đây có giá trị hoặc các quy định là đúng (ví dụ): <br> 
- myfield 
- eval: doc.myfield == 'Giá trị của tôi' <br> 
- eval: doc.age> 18"
+This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>myfieldeval:doc.myfield=='My Value'<br>eval:doc.age>18,Lĩnh vực này sẽ chỉ xuất hiện nếu fieldname định nghĩa ở đây có giá trị hoặc các quy định là đúng (ví dụ): <br>  myfield  eval: doc.myfield == 'Giá trị của tôi' <br>  eval: doc.age> 18
 This goes above the slideshow.,Điều này đi trên các slideshow.
 This is PERMANENT action and you cannot undo. Continue?,Đây là hành động thường xuyên và bạn không thể hoàn tác. Tiếp tục?
 "This is a standard format. To make changes, please copy it make make a new format.","Đây là một định dạng chuẩn. Để thay đổi, hãy chép nó làm cho thực hiện một định dạng mới."
@@ -1265,9 +1245,7 @@ You cannot install this app,Bạn không thể cài đặt ứng dụng này
 You have unsaved changes in this form. Please save before you continue.,Bạn có thay đổi chưa được lưu trong mẫu này. Xin vui lòng lưu trước khi tiếp tục.
 You need to be logged in and have System Manager Role to be able to access backups.,Bạn cần phải đăng nhập và có hệ thống quản lý Vai trò để có thể truy cập vào các bản sao lưu.
 You need write permission to rename,Bạn cần viết phép đổi tên
-"You seem to have written your name instead of your email. \
-					Please enter a valid email address so that we can get back.","Bạn dường như đã viết tên của bạn thay vì email của bạn. \
- Xin vui lòng nhập một địa chỉ email hợp lệ để chúng tôi có thể quay lại."
+You seem to have written your name instead of your email. \					Please enter a valid email address so that we can get back.,Bạn dường như đã viết tên của bạn thay vì email của bạn. \ Xin vui lòng nhập một địa chỉ email hợp lệ để chúng tôi có thể quay lại.
 "Your download is being built, this may take a few moments...","Tải về của bạn đang được xây dựng, điều này có thể mất một vài phút ..."
 [Label]:[Field Type]/[Options]:[Width],[Nhãn]: [Dòng Type] / [Options]: [Chiều rộng]
 [Optional] Send the email X days in advance of the specified date. 0 equals same day.,[Tùy chọn] Gửi email ngày X trước ngày quy định. 0 bằng cùng một ngày.

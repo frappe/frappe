@@ -8,17 +8,7 @@
 "000 is black, fff is white","000 est noir, fff est blanc"
 2 days ago,Il ya 2 jours
 "<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank"">[?]</a>","<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank""> [ ? ] </ a >"
-"<a onclick=""msgprint('<ol>\
-<li><b>field:[fieldname]</b> - By Field\
-<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\
-<li><b>Prompt</b> - Prompt user for a name\
-<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\
-</ol>')"">Naming Options</a>","<A onclick = ""msgprint ('<ol> \
- <li> <b> domaine: [nom du champ] </ b> - Par domaine \
- <li> <b> naming_series: </ b > - En nommant série (champ appelé naming_series doit être présent \
- <li> <b> invite </ b> - Demander à l'utilisateur pour un nom \
- <li> <b> [série] </ . b> - Série par préfixe (séparés par un point), par exemple PRE # # # # # \
- </ ol> ') ""> Désignation d'options </ a>"
+"<a onclick=""msgprint('<ol>\<li><b>field:[fieldname]</b> - By Field\<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\<li><b>Prompt</b> - Prompt user for a name\<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\</ol>')"">Naming Options</a>","<A onclick = ""msgprint ('<ol> \ <li> <b> domaine: [nom du champ] </ b> - Par domaine \ <li> <b> naming_series: </ b > - En nommant série (champ appelé naming_series doit être présent \ <li> <b> invite </ b> - Demander à l'utilisateur pour un nom \ <li> <b> [série] </ . b> - Série par préfixe (séparés par un point), par exemple PRE # # # # # \ </ ol> ') ""> Désignation d'options </ a>"
 <b>new</b> <i>type of document</i>,<b> nouvelle </ b> <i> type de document </ i>
 "<i>document type...</i>, e.g. <b>customer</b>","<i> type de document ... </ i>, par exemple <b> client </ b>"
 <i>e.g. <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>,<i> par exemple <strong> (55 + 434) / 4 </ strong> ou = <strong> Math.sin (Math.PI / 2) </ strong> ... </ i>
@@ -428,9 +418,7 @@ Footer Background,Pied de page Contexte
 Footer Items,Articles de bas de page
 Footer Text,Pied de page texte
 For DocType,pour DocType
-"For Links, enter the DocType as range
-For Select, enter list of Options separated by comma","Pour Liens, entrez le Doctype que la gamme 
- Pour Choisir, entrez liste d'options séparées par des virgules"
+"For Links, enter the DocType as rangeFor Select, enter list of Options separated by comma","Pour Liens, entrez le Doctype que la gamme  Pour Choisir, entrez liste d'options séparées par des virgules"
 "For comparative filters, start with","Pour les filtres de comparaison, commencez par"
 For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,"Par exemple, si vous annulez et modifier »INV004 &#39;il deviendra un nouveau document» INV004-1&#39;. Cela vous aide à garder la trace de chaque modification."
 For ranges,Pour les plages
@@ -808,9 +796,7 @@ Please attach a file or set a URL,S&#39;il vous plaît joindre un fichier ou dé
 Please do not change the rows above {0},S'il vous plaît ne pas modifier les lignes ci-dessus {0}
 Please enable pop-ups,S'il vous plaît autoriser les pop -ups
 Please enter Event's Date and Time!,Ou créés par
-"Please enter both your email and message so that we \
-				can get back to you. Thanks!","S'il vous plaît entrer votre e-mail à la fois et le message afin que nous \
- peut revenir à vous. Merci !"
+Please enter both your email and message so that we \				can get back to you. Thanks!,S'il vous plaît entrer votre e-mail à la fois et le message afin que nous \ peut revenir à vous. Merci !
 Please enter some text!,missions
 Please enter title!,Vous n'êtes pas autorisé à créer {0}
 Please login to Upvote!,Affichage seulement pour ( si non vide )
@@ -1109,13 +1095,7 @@ There were errors while sending email. Please try again.,Colonne inconnu : {0}
 These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,Ces valeurs seront automatiquement mis à jour dans les transactions et sera également utile pour restreindre les autorisations pour cet utilisateur sur les transactions contenant ces valeurs.
 "These will also be set as default values for those links, if only one such permission record is defined.","Elles seront également définies comme valeurs par défaut pour ces liens , si un seul tel dossier d'autorisation est définie ."
 Third Party Authentication,Third Party Authentication
-"This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>
-myfield
-eval:doc.myfield=='My Value'<br>
-eval:doc.age>18","Ce champ ne s'affiche que si le nom du champ défini ici a une valeur ou les règles sont de véritables exemples (): Photos 
- myfield 
- eval: doc.myfield == 'Mon Value' Photos 
- eval: doc.age> 18"
+This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>myfieldeval:doc.myfield=='My Value'<br>eval:doc.age>18,Ce champ ne s'affiche que si le nom du champ défini ici a une valeur ou les règles sont de véritables exemples (): Photos  myfield  eval: doc.myfield == 'Mon Value' Photos  eval: doc.age> 18
 This goes above the slideshow.,Cela va au-dessus du diaporama.
 This is PERMANENT action and you cannot undo. Continue?,Il s&#39;agit d&#39;une action permanente et vous ne pouvez pas annuler. Continuer?
 "This is a standard format. To make changes, please copy it make make a new format.","Il s'agit d'un format standard. Pour apporter des modifications, s'il vous plaît copiez-il faire un nouveau format."
@@ -1265,9 +1245,7 @@ You cannot install this app,Vous ne pouvez pas installer cette application
 You have unsaved changes in this form. Please save before you continue.,Vous avez des modifications non enregistrées dans ce formulaire .
 You need to be logged in and have System Manager Role to be able to access backups.,Vous devez être connecté et avoir System Manager Rôle de pouvoir accéder à des sauvegardes .
 You need write permission to rename,Vous devez écrire la permission de renommer
-"You seem to have written your name instead of your email. \
-					Please enter a valid email address so that we can get back.","Vous semblez avoir écrit votre nom à la place de votre e-mail. \
- S'il vous plaît entrer une adresse email valide afin que nous puissions revenir."
+You seem to have written your name instead of your email. \					Please enter a valid email address so that we can get back.,Vous semblez avoir écrit votre nom à la place de votre e-mail. \ S'il vous plaît entrer une adresse email valide afin que nous puissions revenir.
 "Your download is being built, this may take a few moments...","Votre téléchargement est en cours de construction, ce qui peut prendre quelques instants ..."
 [Label]:[Field Type]/[Options]:[Width],[Étiquette]: [Type de champ] / [Options]: [Largeur]
 [Optional] Send the email X days in advance of the specified date. 0 equals same day.,[Optionnel] Envoyer les emails X jours à l'avance de la date spécifiée. 0 est égal même jour.

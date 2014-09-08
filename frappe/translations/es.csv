@@ -8,34 +8,24 @@
 "000 is black, fff is white","000 es negro , es blanco fff"
 2 days ago,Hace 2 días
 "<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank"">[?]</a>","<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank""> [ ?] < / a>"
-"<a onclick=""msgprint('<ol>\
-<li><b>field:[fieldname]</b> - By Field\
-<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\
-<li><b>Prompt</b> - Prompt user for a name\
-<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\
-</ol>')"">Naming Options</a>","<A onclick = ""msgprint ('<ol> \
- <li> <b> campo: [nombre de campo] </ b> - Al Campo \
- <li> <b> naming_series: </ b > - Al nombrar la serie (campo llamado naming_series debe estar presente \
- <li> <b> Prompt </ b> - Solicitar al usuario un nombre \
- <li> <b> [serie] </ . b> - Series de prefijo (separados por un punto), por ejemplo PRE # # # # # \
- </ ol> ') ""> Opciones de nomenclatura </ a>"
+"<a onclick=""msgprint('<ol>\<li><b>field:[fieldname]</b> - By Field\<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\<li><b>Prompt</b> - Prompt user for a name\<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\</ol>')"">Naming Options</a>","<A onclick = ""msgprint ('<ol> \ <li> <b> campo: [nombre de campo] </ b> - Al Campo \ <li> <b> naming_series: </ b > - Al nombrar la serie (campo llamado naming_series debe estar presente \ <li> <b> Prompt </ b> - Solicitar al usuario un nombre \ <li> <b> [serie] </ . b> - Series de prefijo (separados por un punto), por ejemplo PRE # # # # # \ </ ol> ') ""> Opciones de nomenclatura </ a>"
 <b>new</b> <i>type of document</i>,<b> nueva </ b> <i> tipo de documento </ i>
 "<i>document type...</i>, e.g. <b>customer</b>","Tipo de documento <i> ... </ i>, por ejemplo <b> cliente </ b>"
 <i>e.g. <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>,<i> ejemplo <strong> (55 + 434) / 4 </ strong> o = <strong> Math.sin (Mat.PI / 2) </ strong> ... </ i>
 <i>module name...</i>,<i> nombre del módulo ... </ i>
 <i>text</i> <b>in</b> <i>document type</i>,texto <i> </ i> <b> en </ b> <i> tipo de documento </ i>
 A user can be permitted to multiple records of the same DocType.,Un usuario se puede permitir que varios registros de un mismo tipo de documento .
-About,acerca de
-About Us Settings,La Empresa Configuración
-About Us Team Member,Sobre Nosotros Team Member
-Action,acción
-Actions,acciones
-"Actions for workflow (e.g. Approve, Cancel).","Acciones para el flujo de trabajo (por ejemplo, aprobar, Cancelar ) ."
-Add,añadir
-Add A New Rule,Añadir una nueva regla
-Add A User Permission,Añadir un usuario permiso
-Add Attachments,Agregar archivos adjuntos
-Add Bookmark,Añadir marcador
+About,Acerca De
+About Us Settings,Configuración de Acerca de Nosotros
+About Us Team Member,Miembro del Equipo Acerca de Nosotros
+Action,Acción
+Actions,Acciones
+"Actions for workflow (e.g. Approve, Cancel).","Acciones para el flujo de trabajo (por ejemplo, Aprobar, Cancelar)."
+Add,Añadir
+Add A New Rule,Añadir una Nueva Regla
+Add A User Permission,Agregar un Permiso de Usuario
+Add Attachments,Agregar Archivos Adjuntos
+Add Bookmark,Añadir Marcador
 Add CSS,Añadir CSS
 Add Column,Añadir columna
 Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,"Añadir Google Analytics ID : ej . UA- 89XXX57 - 1 . Por favor, busca ayuda sobre Google Analytics para obtener más información ."
@@ -43,9 +33,9 @@ Add Message,Añadir Mensaje
 Add New Permission Rule,Añadir nueva regla de permiso
 Add Reply,Añadir respuesta
 Add Total Row,Añadir fila Total
-Add a New Role,Añadir un nuevo papel
-Add a banner to the site. (small banners are usually good),Añadir una bandera al sitio. ( pequeños banners son generalmente buenos )
-Add all roles,Añadir todos los roles
+Add a New Role,Añadir un Nuevo Rol
+Add a banner to the site. (small banners are usually good),Añadir un banner al sitio. (banners pequeños son mejores)
+Add all roles,Agregar todos los roles
 Add attachment,Agregar archivo adjunto
 Add code as &lt;script&gt;,Añadir código como <script>
 Add custom javascript to forms.,Añadir personalizada javascript formas .
@@ -119,17 +109,17 @@ Auto Email Id,Auto Identificación del email
 Auto Name,Auto Nombre
 Auto generated,generada Auto
 Avatar,avatar
-Back to Login,Volver a inicio
-Background Color,color de fondo
-Background Image,Imagen de fondo
-Background Style,Estilo de fondo
-Banner,bandera
+Back to Login,Volver a Inicio de Sesión
+Background Color,Color de Fondo
+Background Image,Imagen de Fondo
+Background Style,Estilo de Fondo
+Banner,Anuncio
 Banner HTML,Banner HTML
 Banner Image,Imagen del Anuncio
 Banner is above the Top Menu Bar.,Banner está por encima de la barra de menú superior .
 Begin this page with a slideshow of images,Comience esta página con un pase de diapositivas de imágenes
 Beginning with,A partir de
-Belongs to,pertenece a
+Belongs to,Pertenece A
 Bio,Bio
 Birth Date,Fecha de Nacimiento
 Blog Category,Blog Categoría
@@ -144,7 +134,7 @@ Both login and password required,Tanto de usuario y la contraseña necesarios
 Brand HTML,HTML Marca
 Bulk Email,Bulk Email
 Bulk email limit {0} crossed,Límite de correo electrónico a granel {0} cruzado
-Button,botón
+Button,Botón
 By,por
 Calculate,Calcular
 Calendar,calendario
@@ -428,9 +418,7 @@ Footer Background,Pie de página de fondo
 Footer Items,Pie de página Artículos
 Footer Text,Texto del Pie de página
 For DocType,Por tipo de documento
-"For Links, enter the DocType as range
-For Select, enter list of Options separated by comma","Para Links, introduzca el tipo de documento como rango 
- Para Select, entrar en la lista de opciones separadas por comas"
+"For Links, enter the DocType as rangeFor Select, enter list of Options separated by comma","Para Links, introduzca el tipo de documento como rango  Para Select, entrar en la lista de opciones separadas por comas"
 "For comparative filters, start with","Para los filtros comparativas , comience con"
 For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,Por ejemplo si se cancela y enmendar ' INV004 ' se convertirá en un nuevo documento ' INV004 - 1 ' . Esto le ayuda a mantener un registro de cada enmienda.
 For ranges,Para rangos
@@ -808,9 +796,7 @@ Please attach a file or set a URL,"Por favor, adjuntar un archivo o conjunto de 
 Please do not change the rows above {0},"Por favor, no cambiar las filas de arriba {0}"
 Please enable pop-ups,"Por favor, activa los pop- ups"
 Please enter Event's Date and Time!,Por favor introduzca la fecha y hora del evento!
-"Please enter both your email and message so that we \
-				can get back to you. Thanks!","Por favor, ingrese tanto su correo electrónico y mensaje para que nos \
- se pondrá en contacto contigo. ¡Gracias!"
+Please enter both your email and message so that we \				can get back to you. Thanks!,"Por favor, ingrese tanto su correo electrónico y mensaje para que nos \ se pondrá en contacto contigo. ¡Gracias!"
 Please enter some text!,"Por favor, introduzca algún texto !"
 Please enter title!,Por favor introduce el título !
 Please login to Upvote!,Inicia sesión para Upvote !
@@ -860,7 +846,7 @@ Property,propiedad
 Property Setter,Setter Property
 Property Type,Tipo de Inmueble
 Public,público
-Published,publicado
+Published,Publicado
 Published On,Publicado el
 Published on website at: {0},Publicado en el sitio web en: {0}
 Pull Emails from the Inbox and attach them as Communication records (for known contacts).,Tire de la bandeja de entrada de mensajes de correo electrónico que se adjuntarán como registros de comunicación ( para contactos conocidos) .
@@ -1109,13 +1095,7 @@ There were errors while sending email. Please try again.,"Hubo errores al enviar
 These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,Estos valores se actualizan automáticamente en las transacciones y también serán útiles para restringir los permisos para este usuario en transacciones que contienen estos valores.
 "These will also be set as default values for those links, if only one such permission record is defined.","Estos también se pueden establecer como valores predeterminados para los enlaces , si no se define sólo uno de dichos registros permiso."
 Third Party Authentication,Tercer partido de autenticación
-"This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>
-myfield
-eval:doc.myfield=='My Value'<br>
-eval:doc.age>18","Este campo sólo aparecerá si el nombre del campo definido de aquí tiene valor o las reglas son verdaderas (ejemplos): <br> 
- myfield 
- eval: doc.myfield == 'Mi Value' <br> 
- eval: doc.age> 18"
+This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>myfieldeval:doc.myfield=='My Value'<br>eval:doc.age>18,Este campo sólo aparecerá si el nombre del campo definido de aquí tiene valor o las reglas son verdaderas (ejemplos): <br>  myfield  eval: doc.myfield == 'Mi Value' <br>  eval: doc.age> 18
 This goes above the slideshow.,Esto va por encima de la presentación de diapositivas.
 This is PERMANENT action and you cannot undo. Continue?,Esta es una acción permanente y no se puede deshacer . ¿Desea continuar?
 "This is a standard format. To make changes, please copy it make make a new format.","Este es un formato estándar. Para realizar cambios, por favor cópielo hacer hacer un nuevo formato."
@@ -1265,9 +1245,7 @@ You cannot install this app,No se puede instalar esta aplicación
 You have unsaved changes in this form. Please save before you continue.,Usted tiene cambios sin guardar en este formulario.
 You need to be logged in and have System Manager Role to be able to access backups.,Necesitas estar conectado y tener el Administrador del sistema de funciones para poder tener acceso a las copias de seguridad .
 You need write permission to rename,Usted necesita permiso de escritura para cambiar el nombre
-"You seem to have written your name instead of your email. \
-					Please enter a valid email address so that we can get back.","Parece que ha escrito su nombre en lugar de su correo electrónico. \
- Por favor, introduce una dirección de email válida para que podamos volver."
+You seem to have written your name instead of your email. \					Please enter a valid email address so that we can get back.,"Parece que ha escrito su nombre en lugar de su correo electrónico. \ Por favor, introduce una dirección de email válida para que podamos volver."
 "Your download is being built, this may take a few moments...","Su descarga se está construyendo , esto puede tardar unos minutos ..."
 [Label]:[Field Type]/[Options]:[Width],[ Label ] : [ Tipo de Campo] / [ Opciones] : [Ancho ]
 [Optional] Send the email X days in advance of the specified date. 0 equals same day.,[Opcional] Enviar los días email X antes de la fecha especificada. 0 es igual mismo día.
@@ -1284,11 +1262,11 @@ arrow-right,arrow-right
 arrow-up,flecha hacia arriba
 asterisk,asterisco
 backward,hacia atrás
-ban-circle,prohibición de círculo
+ban-circle,círculo-prohibición
 barcode,código de barras
 beginning with,a partir de
 bell,campana
-bold,audaz
+bold,negrita
 book,libro
 bookmark,marcador
 briefcase,maletín

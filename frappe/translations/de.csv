@@ -8,21 +8,16 @@
 "000 is black, fff is white","000 ist schwarz, fff ist weiß"
 2 days ago,vor 2 Tagen
 "<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank"">[?]</a>","<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank""> [?] </ a>"
-"<a onclick=""msgprint('<ol>\
-<li><b>field:[fieldname]</b> - By Field\
-<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\
-<li><b>Prompt</b> - Prompt user for a name\
-<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\
-</ol>')"">Naming Options</a>",
+"<a onclick=""msgprint('<ol>\<li><b>field:[fieldname]</b> - By Field\<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\<li><b>Prompt</b> - Prompt user for a name\<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\</ol>')"">Naming Options</a>",
 <b>new</b> <i>type of document</i>,<b> neue </ b> <i> Art von Dokument </ i>
 "<i>document type...</i>, e.g. <b>customer</b>","<i> Dokumententyp ... </ i>, z. B. <b> Kunden </ b>"
 <i>e.g. <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>,<i> zB <strong> (55 + 434) / 4 </ strong> oder = <strong> Math.sin (Math.PI / 2) </ strong> ... </ i>
 <i>module name...</i>,<i> Modulnamen ... </ i>
 <i>text</i> <b>in</b> <i>document type</i>,<i> Text </ i> <b> in </ b> <i> Dokumenttyp </ i>
-A user can be permitted to multiple records of the same DocType.,Ein Benutzer kann mehrere Datensätze der gleichen DokTyp gestattet.
+A user can be permitted to multiple records of the same DocType.,Ein Benutzer kann die Genehmigung für mehrere Datensätze des gleichen DocType haben.
 About,Info
-About Us Settings,Über uns-Einstellungen
-About Us Team Member,Über uns Teammitglied
+About Us Settings,Über uns Einstellungen
+About Us Team Member,Über uns Team-Mitglied
 Action,Aktion
 "Actions for workflow (e.g. Approve, Cancel).","Aktionen für Workflows (z. B. genehmigen , Abbruch) ."
 Add,Hinzufügen
@@ -41,7 +36,7 @@ Add Tag,
 Add Total Row,Gesamtzeile hinzufügen
 Add a New Role,Fügen Sie eine neue Rolle
 Add a banner to the site. (small banners are usually good),Der Website ein Werbebanner hinzufügen. (kleine Banner sind in der Regel gut)
-Add all roles,In alle Rollen
+Add all roles,Alle Rollen hinzufügen
 Add attachment,Anhang hinzufügen
 Add code as &lt;script&gt;,Code als <script> hinzufügen
 Add comment,
@@ -127,7 +122,7 @@ Auto generated,Automatisch erstellt
 Avatar,Avatar
 Background Color,Hintergrundfarbe
 Background Image,Hintergrundbild
-Background Style,Hintergrund-Stil
+Background Style,Hintergrundstil
 Banner,Banner
 Banner HTML,Banner HTML
 Banner Image,Banner Bild
@@ -146,7 +141,7 @@ Blog Title,Blog-Titel
 Blogger,Blogger
 Bookmarks,Lesezeichen
 Both login and password required,Sowohl Login und Passwort erforderlich
-Brand HTML,Marken-HTML
+Brand HTML,Firmenmarke HTML
 Bulk Email,Spam
 Bulk Email records.,Spam-Aufzeichnungen
 Bulk email limit {0} crossed,Bulk E-Mail Grenze {0} gekreuzt
@@ -160,11 +155,11 @@ Cancelled,Abgebrochen
 "Cannot Edit {0} directly: To edit {0} properties, create / update {1}, {2} and {3}","Kann nicht bearbeiten {0} direkt: Zum {0} Eigenschaften bearbeiten, erstellen / aktualisieren {1}, {2} und {3}"
 Cannot Update: Incorrect / Expired Link.,Kann nicht aktualisieren : Falsche / Expired -Link.
 Cannot Update: Incorrect Password,Kann nicht aktualisieren : Falsche Passwort
-Cannot add more than 50 comments,Kann mehr als 50 Kommentare nicht hinzufügen
+Cannot add more than 50 comments,Kann nicht mehr als 50 Kommentare hinzufügen
 Cannot cancel before submitting. See Transition {0},Kann nicht vor der Vorlage zu stornieren.
 Cannot change picture,Kann Bild nicht ändern
 Cannot change state of Cancelled Document. Transition row {0},Zustand der Cancelled Dokument kann nicht geändert werden .
-Cannot change {0},Kann nicht geändert werden {0}
+Cannot change {0},Kann {0} nicht ändern
 Cannot delete or cancel because {0} {1} is linked with {2} {3},"Kann nicht gelöscht oder kündigen, weil {0} {1} ist mit verbunden {2} {3}"
 Cannot delete {0} as it has child nodes,"Kann nicht gelöscht werden {0} , wie es untergeordnete Knoten hat"
 Cannot edit standard fields,Kann Standardfelder nicht bearbeiten
@@ -432,9 +427,7 @@ Fieldtype cannot be changed from {0} to {1} in row {2},Feldtyp kann nicht von {0
 File,Datei
 File Data,Dateidaten
 File Name,Dateiname
-"File Name: &lt;your filename&gt;.csv<br />\
-						Save as type: Text Documents (*.txt)<br />\
-						Encoding: UTF-8",
+File Name: &lt;your filename&gt;.csv<br />\						Save as type: Text Documents (*.txt)<br />\						Encoding: UTF-8,
 File Size,Dateigröße
 File URL,Datei-URL
 File not attached,Datei nicht angebracht
@@ -460,8 +453,7 @@ Footer Background,Footer Hintergrund
 Footer Items,Inhalte der Fußzeile
 Footer Text,Footer Text
 For DocType,für DocType
-"For Links, enter the DocType as range
-For Select, enter list of Options separated by comma",
+"For Links, enter the DocType as rangeFor Select, enter list of Options separated by comma",
 "For comparative filters, start with","Bei Vergleichsfiltern, beginnen mit"
 For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,"Wenn Sie beispielsweise 'INV004' abbrechen und ändern, wird daraus ein neues Dokument 'INV004-1'. Dies hilft Ihnen, den Überblick über jede Änderung zu behalten."
 For ranges,Für Bereiche
@@ -518,7 +510,7 @@ Hide Toolbar,Symbolleiste ausblenden
 Hide the sidebar,Ausblenden der Seitenleiste
 High,Hoch
 Highlight,Hervorheben
-History,Verlauf
+History,Historie
 Home Page,Homepage
 Home Page is Products,Homepage ist Produkte
 ID (name) of the entity whose property is to be set,"ID (Name) der Einheit, deren Eigenschaft festgelegt werden muss"
@@ -531,8 +523,7 @@ Icon will appear on the button,Symbol wird auf der Schaltfläche angezeigt
 "If image is selected, color will be ignored (attach first)","Wenn das Bild ausgewählt ist, wird die Farbe ignoriert (zuerst anhängen)"
 If non standard port (e.g. 587),Wenn kein Standardport (z. B. 587)
 "If these instructions where not helpful, please add in your suggestions on GitHub Issues.","Werden diese Hinweise nicht geholfen , wo , fügen Sie bitte in Ihre Anregungen auf GitHub Themen."
-"If you are inserting new records (overwrite not checked) \
-			and if you have submit permission, the record will be submitted.",
+"If you are inserting new records (overwrite not checked) \			and if you have submit permission, the record will be submitted.",
 "If you are uploading a child table (for example Item Price), the all the entries of that table will be deleted (for that parent record) and new entries will be made.",
 "If you set this, this Item will come in a drop-down under the selected parent.","Wenn Sie diese Einstellung , wird dieser Artikel in einer Drop-Down unter der ausgewählten Mutter kommen ."
 Ignore Encoding Errors,
@@ -759,8 +750,8 @@ Note: Other permission rules may also apply,Hinweis: Andere Berechtigungsregeln 
 Note: fields having empty value for above criteria are not filtered out.,
 Nothing to show,Nichts anzuzeigen
 Nothing to show for this selection,Nichts für diese Auswahl zeigen
-Notification Count,Benachrichtigung Graf
-Notify by Email,Benachrichtigen Sie per E-Mail
+Notification Count,Benachrichtigungsanzahl
+Notify by Email,Benachrichtung per E-Mail
 Number Format,Zahlenformat
 Old Parent,Alte übergeordnete Position
 On,Auf
@@ -812,8 +803,7 @@ Page Role,Seitenrolle
 Page Text,Seitentext
 Page content,Seiteninhalt
 Page not found,Seite nicht gefunden
-"Page to show on the website
-",
+Page to show on the website,
 Page url name (auto-generated),Seiten-URL -Namen ( automatisch generiert)
 Parent,
 Parent Label,Übergeordnete Bezeichnung
@@ -857,8 +847,7 @@ Please attach a file or set a URL,Fügen Sie eine Datei hinzu oder legen Sie ein
 Please do not change the rows above {0},Bitte nicht die Zeilen oben ändern {0}
 Please enable pop-ups,Bitte aktivieren Sie Pop-ups
 Please enter Event's Date and Time!,Bitte geben Sie das Datum und Ereignis -Zeit!
-"Please enter both your email and message so that we \
-				can get back to you. Thanks!",
+Please enter both your email and message so that we \				can get back to you. Thanks!,
 Please enter email address,Bitte geben Sie E-Mail -Adresse
 Please enter some text!,Bitte geben Sie einen Text!
 Please enter title!,Bitte Titel !
@@ -926,7 +915,7 @@ Quick Help for User Permissions,Schnelle Hilfe für Benutzerberechtigungen
 Re-open,Re -open
 Read,Lesen
 Read Only,Schreibgeschützt
-Received,Received
+Received,Erhalten
 Recipient,Empfänger
 Recipients,Empfänger
 Record does not exist,Nehmen Sie existiert nicht
@@ -939,7 +928,7 @@ Reference DocType,Referenz-Dokumententyp
 Reference Name,Referenzname
 Reference Type,Referenztyp
 Refresh,Aktualisieren
-Refreshing...,Erfrischend ...
+Refreshing...,Aktualisiere...
 Registered but disabled.,"Registriert, aber deaktiviert."
 Registration Details Emailed.,Per E-Mail zugesendete Details zur Anmeldung
 Reload Page,Seite neu laden
@@ -1001,7 +990,7 @@ Sales User,
 Same file has already been attached to the record,Gleiche Datei wurde bereits dem Datensatz hinzugefügt
 Sample,Beispiel
 Saturday,Samstag
-Save,Speichern
+Save,Sichern
 Saved!,
 Scheduler Log,Scheduler-Protokoll
 Script,Skript
@@ -1145,14 +1134,14 @@ Suggestion,Vorschlag
 Sunday,Sonntag
 Support Manager,
 Support Team,
-Switch to Website,Wechseln Sie zur Website
+Switch to Website,Zur Webseite wechseln
 Sync Inbox,Posteingang synchronisieren
 System,System
 System Manager,
 System Settings,Systemeinstellungen
 System User,Systembenutzer
-System and Website Users,System-und Website-Nutzer
-System generated mails will be sent from this email id.,Vom System erstellte Mails werden von dieser E-Mail-ID gesendet.
+System and Website Users,System- und Webseiten-Nutzer
+System generated mails will be sent from this email id.,System generierten E-Mails werden von dieser E-Mail Adresse gesendet werden.
 Table,Tabelle
 Table {0} cannot be empty,Tabelle {0} darf nicht leer sein
 Tag,Tag
@@ -1181,10 +1170,7 @@ There were errors while sending email. Please try again.,Es gab Fehler beim Vers
 These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,"Diese Werte werden automatisch bei Transaktionen aktualisiert. Außerdem sind sie nützlich, um die Berechtigungen dieses Benutzers bei Transaktionen mit diesen Werten zu beschränken."
 "These will also be set as default values for those links, if only one such permission record is defined.","Diese werden auch als Standardwerte für diese Links gesetzt werden , wenn nur eine solche Erlaubnis Datensatz definiert."
 Third Party Authentication,Third Party Authentication
-"This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>
-myfield
-eval:doc.myfield=='My Value'<br>
-eval:doc.age>18",
+This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>myfieldeval:doc.myfield=='My Value'<br>eval:doc.age>18,
 This form does not have any input,
 This goes above the slideshow.,Dies kommt über der Diaschau.
 This is PERMANENT action and you cannot undo. Continue?,"Dies ist eine DAUERHAFTE Aktion, die Sie nicht rückgängig machen können. Fortsetzen?"
@@ -1346,8 +1332,7 @@ You don't have permission to get a report on: {0},
 You have unsaved changes in this form. Please save before you continue.,Sie haben noch nicht gespeicherte Änderungen in dieser Form .
 You need to be logged in and have System Manager Role to be able to access backups.,"Sie müssen eingeloggt sein und über System-Manager -Rolle an der Lage, Backups zugreifen."
 You need write permission to rename,Sie benötigen Schreibberechtigung umbenennen
-"You seem to have written your name instead of your email. \
-					Please enter a valid email address so that we can get back.",
+You seem to have written your name instead of your email. \					Please enter a valid email address so that we can get back.,
 "Your download is being built, this may take a few moments...","Ihr Download wird aufgebaut, dies kann einige Sekunden dauern ..."
 [Label]:[Field Type]/[Options]:[Width],[Label]:[Field Type]/[Options]:[Width]
 [No Subject],
@@ -1519,8 +1504,8 @@ volume-up,Lautstärke erhöhen
 warning-sign,Warnschild
 wrench,Schraubenschlüssel
 yyyy-mm-dd,JJJJ-MM-TT
-zoom-in,Vergrößern
-zoom-out,Verkleinern
+zoom-in,vergrößern
+zoom-out,verkleinern
 {0} List,{0} Liste
 {0} added,{0} gegeben
 {0} by {1},{0} von {1}
