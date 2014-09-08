@@ -8,17 +8,7 @@
 "000 is black, fff is white","000 este negru, FFF este de culoare albă"
 2 days ago,2 zile în urmă
 "<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank"">[?]</a>","<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank""> [?]</a>"
-"<a onclick=""msgprint('<ol>\
-<li><b>field:[fieldname]</b> - By Field\
-<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\
-<li><b>Prompt</b> - Prompt user for a name\
-<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\
-</ol>')"">Naming Options</a>","<Un onclick = ""msgprint ("" <ol> \
- <li> <b> domeniu: [fieldname] </ b> - pe domenii \
- <li> <b> naming_series: </ b > - De Naming Series (domeniu denumit naming_series trebuie să fie prezent \
- <li> <b> Prompt </ b> - utilizator Prompt pentru un nume \
- <li> <b> [serie] </ . b> - Seria de prefix (separate de un punct), de exemplu, PRE # # # # # \
- </ ol> ') ""> Naming Opțiuni </ a>"
+"<a onclick=""msgprint('<ol>\<li><b>field:[fieldname]</b> - By Field\<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\<li><b>Prompt</b> - Prompt user for a name\<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\</ol>')"">Naming Options</a>","<Un onclick = ""msgprint ("" <ol> \ <li> <b> domeniu: [fieldname] </ b> - pe domenii \ <li> <b> naming_series: </ b > - De Naming Series (domeniu denumit naming_series trebuie să fie prezent \ <li> <b> Prompt </ b> - utilizator Prompt pentru un nume \ <li> <b> [serie] </ . b> - Seria de prefix (separate de un punct), de exemplu, PRE # # # # # \ </ ol> ') ""> Naming Opțiuni </ a>"
 <b>new</b> <i>type of document</i>,<b> nou </ b> <i> tip de document </ i>
 "<i>document type...</i>, e.g. <b>customer</b>","tip de document <i> ... </ i>, de exemplu <b> client </ b>"
 <i>e.g. <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>,<i> exemplu <strong> (55 + 434) / 4 </ strong> sau <strong> = Math.sin (Math.PI / 2) </ strong> ... </ i>
@@ -428,9 +418,7 @@ Footer Background,Subsol Context
 Footer Items,Subsol Articole
 Footer Text,Subsol Text
 For DocType,Pentru DocType
-"For Links, enter the DocType as range
-For Select, enter list of Options separated by comma","Pentru Link-uri, intra DocType.Referinta ca gama 
- Pentru Select, introduceți lista de opțiuni separate prin virgula"
+"For Links, enter the DocType as rangeFor Select, enter list of Options separated by comma","Pentru Link-uri, intra DocType.Referinta ca gama  Pentru Select, introduceți lista de opțiuni separate prin virgula"
 "For comparative filters, start with","Pentru filtre comparative, începe cu"
 For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,"De exemplu, dacă vă anula și modifica ""INV004"", acesta va deveni un nou document ""INV004-1"". Acest lucru vă ajută să urmăriți de fiecare amendament."
 For ranges,Pentru intervale
@@ -808,9 +796,7 @@ Please attach a file or set a URL,Vă rugăm să atașați un fișier sau pentru
 Please do not change the rows above {0},Vă rugăm să nu modificați rândurile de mai sus {0}
 Please enable pop-ups,Vă rugăm să activați pop-up-uri
 Please enter Event's Date and Time!,Va rugam sa introduceti evenimentului Data și ora!
-"Please enter both your email and message so that we \
-				can get back to you. Thanks!","Va rugam sa introduceti atât de e-mail și mesajul dvs., astfel încât ne-am \
- pot sa ma intorc la tine. Va mulţumim!"
+Please enter both your email and message so that we \				can get back to you. Thanks!,"Va rugam sa introduceti atât de e-mail și mesajul dvs., astfel încât ne-am \ pot sa ma intorc la tine. Va mulţumim!"
 Please enter some text!,Va rugam sa introduceti un text!
 Please enter title!,Va rugam sa introduceti titlu!
 Please login to Upvote!,Va rugam sa va logati pentru a upvote!
@@ -1109,13 +1095,7 @@ There were errors while sending email. Please try again.,Au fost erori în timp 
 These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,"Aceste valori vor fi actualizate în mod automat în tranzacții și, de asemenea, va fi util pentru a restricționa permisiunile pentru acest utilizator cu privire la tranzacțiile care conțin aceste valori."
 "These will also be set as default values for those links, if only one such permission record is defined.","Acestea vor fi, de asemenea, stabilite ca valori implicite pentru aceste link-uri, în cazul în care numai o astfel de înregistrare permisiune este definit."
 Third Party Authentication,Autentificare terță parte
-"This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>
-myfield
-eval:doc.myfield=='My Value'<br>
-eval:doc.age>18","Acest câmp va apărea numai în cazul în care FieldName definit aici are valoare sau regulile sunt adevărate (exemple): <br> 
- myfield 
- eval: doc.myfield == ""Valoarea mea"" <br> 
- eval: doc.age> 18"
+This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>myfieldeval:doc.myfield=='My Value'<br>eval:doc.age>18,"Acest câmp va apărea numai în cazul în care FieldName definit aici are valoare sau regulile sunt adevărate (exemple): <br>  myfield  eval: doc.myfield == ""Valoarea mea"" <br>  eval: doc.age> 18"
 This goes above the slideshow.,Acest lucru este valabil mai sus prezentarea.
 This is PERMANENT action and you cannot undo. Continue?,Aceasta este o acțiune permanentă și nu se poate anula. Continuare?
 "This is a standard format. To make changes, please copy it make make a new format.","Acesta este un format standard. Pentru a efectua modificări, vă rugăm să copiați-l face face un nou format."
@@ -1265,9 +1245,7 @@ You cannot install this app,Nu puteți instala această aplicație
 You have unsaved changes in this form. Please save before you continue.,Aveți modificări nesalvate din acest formular. Vă rugăm să salvați înainte de a continua.
 You need to be logged in and have System Manager Role to be able to access backups.,Trebuie să fii autentificat și să ai System Manager Rolul a putea accesa backup-uri.
 You need write permission to rename,Ai nevoie de a scrie permisiunea de a redenumi
-"You seem to have written your name instead of your email. \
-					Please enter a valid email address so that we can get back.","Se pare că ai scris numele în loc de e-mail. \
- Va rugam sa introduceti o adresa de email valida pentru a putea lua înapoi."
+You seem to have written your name instead of your email. \					Please enter a valid email address so that we can get back.,Se pare că ai scris numele în loc de e-mail. \ Va rugam sa introduceti o adresa de email valida pentru a putea lua înapoi.
 "Your download is being built, this may take a few moments...","Descărcarea dvs. este în curs de construit, acest lucru poate dura câteva momente ..."
 [Label]:[Field Type]/[Options]:[Width],[Label]: [tip de câmp] / [Opțiuni]: [Lățime]
 [Optional] Send the email X days in advance of the specified date. 0 equals same day.,[Optional] Trimite pe e-mail X zile înainte de data specificată. 0 este egal în aceeași zi.

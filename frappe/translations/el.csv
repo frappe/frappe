@@ -8,17 +8,7 @@
 "000 is black, fff is white","000 είναι μαύρο, fff είναι λευκό"
 2 days ago,2 μέρες πριν
 "<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank"">[?]</a>","<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank""> [ ?] < / a>"
-"<a onclick=""msgprint('<ol>\
-<li><b>field:[fieldname]</b> - By Field\
-<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\
-<li><b>Prompt</b> - Prompt user for a name\
-<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\
-</ol>')"">Naming Options</a>","<A onclick = ""msgprint (« <ol> \
- <li> <b> πεδίο: [fieldname] </ b> - Με Field \
- <li> <b> naming_series: </ b > - Με Ονομασία σειράς (πεδίο που ονομάζεται naming_series πρέπει να είναι παρόντες \
- <li> <b> Prompt </ b> - Προτροπή χρήστη για το όνομα \
- <li> <b> [σειρά] </ . b> - Σειρά με πρόθεμα (διαχωρίζονται με μια τελεία)? για παράδειγμα PRE # # # # # \
- </ ol> ') ""> Ονοματοδοσία Επιλογές </ a>"
+"<a onclick=""msgprint('<ol>\<li><b>field:[fieldname]</b> - By Field\<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\<li><b>Prompt</b> - Prompt user for a name\<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\</ol>')"">Naming Options</a>","<A onclick = ""msgprint (« <ol> \ <li> <b> πεδίο: [fieldname] </ b> - Με Field \ <li> <b> naming_series: </ b > - Με Ονομασία σειράς (πεδίο που ονομάζεται naming_series πρέπει να είναι παρόντες \ <li> <b> Prompt </ b> - Προτροπή χρήστη για το όνομα \ <li> <b> [σειρά] </ . b> - Σειρά με πρόθεμα (διαχωρίζονται με μια τελεία)? για παράδειγμα PRE # # # # # \ </ ol> ') ""> Ονοματοδοσία Επιλογές </ a>"
 <b>new</b> <i>type of document</i>,<b> νέα </ b> <i> τύπο του εγγράφου </ i>
 "<i>document type...</i>, e.g. <b>customer</b>","<i> τύπο εγγράφου ... </ i>, π.χ. <b> πελάτη </ b>"
 <i>e.g. <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>,<i> π.χ. <strong> (55 + 434) / 4 </ strong> ή = <strong> Math.sin (άβακαςPI / 2) </ strong> ... </ i>
@@ -428,9 +418,7 @@ Footer Background,Ιστορικό Τελικοί
 Footer Items,Τελικοί Είδη
 Footer Text,Κείμενο Τελικοί
 For DocType,για DocType
-"For Links, enter the DocType as range
-For Select, enter list of Options separated by comma","Για Links, εισάγετε το DocType ως σειρά 
- Για Select, τον κατάλογο των επιλογών που χωρίζονται με κόμμα αρχίζει"
+"For Links, enter the DocType as rangeFor Select, enter list of Options separated by comma","Για Links, εισάγετε το DocType ως σειρά  Για Select, τον κατάλογο των επιλογών που χωρίζονται με κόμμα αρχίζει"
 "For comparative filters, start with","Για τις συγκριτικές φίλτρα, ξεκινήστε με"
 For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,"Για παράδειγμα, αν έχετε ακυρώσει και να τροποποιήσει «INV004» θα γίνει ένα νέο έγγραφο «INV004-1». Αυτό σας βοηθά να παρακολουθείτε κάθε τροπολογία."
 For ranges,Για σειρές
@@ -808,9 +796,7 @@ Please attach a file or set a URL,Παρακαλείστε να επισυνάψ
 Please do not change the rows above {0},Παρακαλώ μην αλλάξετε τις σειρές πάνω από {0}
 Please enable pop-ups,Παρακαλούμε ενεργοποιήστε τα pop-ups
 Please enter Event's Date and Time!,"Παρακαλούμε, εισάγετε Ημερομηνία Γεγονός και ώρα !"
-"Please enter both your email and message so that we \
-				can get back to you. Thanks!","Παρακαλώ εισάγετε τα δύο e-mail και το μήνυμά σας ώστε να μπορέσουμε \
- μπορεί να πάρει πίσω σε σας. Ευχαριστώ!"
+Please enter both your email and message so that we \				can get back to you. Thanks!,Παρακαλώ εισάγετε τα δύο e-mail και το μήνυμά σας ώστε να μπορέσουμε \ μπορεί να πάρει πίσω σε σας. Ευχαριστώ!
 Please enter some text!,Παρακαλώ εισάγετε κάποιο κείμενο !
 Please enter title!,Παρακαλώ εισάγετε τον τίτλο !
 Please login to Upvote!,Παρακαλούμε συνδεθείτε για να Upvote !
@@ -1109,13 +1095,7 @@ There were errors while sending email. Please try again.,Υπήρξαν σφάλ
 These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,"Οι τιμές αυτές θα πρέπει να ενημερώνονται αυτόματα σε συναλλαγές και, επίσης, θα ήταν χρήσιμο να περιορίσετε τα δικαιώματα για το χρήστη για τις συναλλαγές που περιέχουν αυτές τις αξίες."
 "These will also be set as default values for those links, if only one such permission record is defined.","Αυτά θα πρέπει επίσης να οριστεί ως προεπιλεγμένες τιμές για αυτούς τους δεσμούς , αν μόνο μια τέτοια εγγραφή άδεια ορίζεται ."
 Third Party Authentication,Τρίτο Κόμμα ταυτότητας
-"This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>
-myfield
-eval:doc.myfield=='My Value'<br>
-eval:doc.age>18","Το πεδίο αυτό θα εμφανιστεί μόνο αν η fieldname ορίζεται εδώ έχει αξία ή οι κανόνες είναι αλήθεια (παραδείγματα): <br> 
- myfield 
- eval: doc.myfield == «Value μου» <br> 
- eval: doc.age> 18"
+This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>myfieldeval:doc.myfield=='My Value'<br>eval:doc.age>18,Το πεδίο αυτό θα εμφανιστεί μόνο αν η fieldname ορίζεται εδώ έχει αξία ή οι κανόνες είναι αλήθεια (παραδείγματα): <br>  myfield  eval: doc.myfield == «Value μου» <br>  eval: doc.age> 18
 This goes above the slideshow.,Αυτό πηγαίνει πάνω από το slideshow.
 This is PERMANENT action and you cannot undo. Continue?,Αυτό είναι μόνιμη δράση και δεν μπορείτε να αναιρέσετε. Συνέχεια;
 "This is a standard format. To make changes, please copy it make make a new format.","Αυτό είναι μια τυποποιημένη μορφή. Για να κάνετε αλλαγές, παρακαλούμε αντιγράψτε το κάνει να κάνει μια νέα μορφή."
@@ -1265,9 +1245,7 @@ You cannot install this app,Δεν μπορείτε να εγκαταστήσε�
 You have unsaved changes in this form. Please save before you continue.,Έχετε μη αποθηκευμένες αλλαγές σε αυτή τη μορφή .
 You need to be logged in and have System Manager Role to be able to access backups.,Θα πρέπει να είστε συνδεδεμένοι στο σύστημα και έχουν Ρόλος Manager για να είναι σε θέση να έχουν πρόσβαση σε αντίγραφα ασφαλείας .
 You need write permission to rename,Χρειάζεται να γράψετε την άδεια να μετονομάσετε
-"You seem to have written your name instead of your email. \
-					Please enter a valid email address so that we can get back.","Μπορείτε φαίνεται να έχουν γράψει το όνομά σας, αντί του ηλεκτρονικού ταχυδρομείου σας. \
- Παρακαλώ εισάγετε μια έγκυρη διεύθυνση e-mail έτσι ώστε να μπορούμε να πάρουμε πίσω."
+You seem to have written your name instead of your email. \					Please enter a valid email address so that we can get back.,"Μπορείτε φαίνεται να έχουν γράψει το όνομά σας, αντί του ηλεκτρονικού ταχυδρομείου σας. \ Παρακαλώ εισάγετε μια έγκυρη διεύθυνση e-mail έτσι ώστε να μπορούμε να πάρουμε πίσω."
 "Your download is being built, this may take a few moments...","Η λήψη σας χτίζεται, αυτό μπορεί να διαρκέσει λίγα λεπτά ..."
 [Label]:[Field Type]/[Options]:[Width],[Ετικέτα]: [Type Field] / [Options]: [Width]
 [Optional] Send the email X days in advance of the specified date. 0 equals same day.,[Προαιρετικό] Στείλτε τα email X ημέρες πριν από την καθορισμένη ημερομηνία. 0 ισούται ίδια ημέρα.

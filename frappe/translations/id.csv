@@ -8,17 +8,7 @@
 "000 is black, fff is white","000 hitam, fff putih"
 2 days ago,2 hari lalu
 "<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank"">[?]</a>","<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank""> [?]</ A>"
-"<a onclick=""msgprint('<ol>\
-<li><b>field:[fieldname]</b> - By Field\
-<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\
-<li><b>Prompt</b> - Prompt user for a name\
-<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\
-</ol>')"">Naming Options</a>","<A onclick = ""msgprint ('<ol> \
- <li> <b> bidang: [fieldname] </ b> - Oleh Lapangan \
- <li> <b> naming_series: </ b > - Dengan Penamaan Series (field yang disebut naming_series harus hadir \
- <li> <b> Prompt </ b> - pengguna Prompt untuk nama \
- <li> <b> [seri] </ . b> - Series by prefix (dipisahkan oleh sebuah titik), misalnya PRE # # # # # \
- </ ol> ') ""> Penamaan Pilihan </ a>"
+"<a onclick=""msgprint('<ol>\<li><b>field:[fieldname]</b> - By Field\<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\<li><b>Prompt</b> - Prompt user for a name\<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\</ol>')"">Naming Options</a>","<A onclick = ""msgprint ('<ol> \ <li> <b> bidang: [fieldname] </ b> - Oleh Lapangan \ <li> <b> naming_series: </ b > - Dengan Penamaan Series (field yang disebut naming_series harus hadir \ <li> <b> Prompt </ b> - pengguna Prompt untuk nama \ <li> <b> [seri] </ . b> - Series by prefix (dipisahkan oleh sebuah titik), misalnya PRE # # # # # \ </ ol> ') ""> Penamaan Pilihan </ a>"
 <b>new</b> <i>type of document</i>,baru </ b> <i> jenis <b> dokumen </ i>
 "<i>document type...</i>, e.g. <b>customer</b>","Jenis dokumen <i> ... </ i>, misalnya <b> pelanggan </ b>"
 <i>e.g. <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>,<i> misalnya <strong> (55 + 434) / 4 </ strong> atau <strong> = Math.sin (Math.PI / 2) </ strong> ... </ i>
@@ -427,9 +417,7 @@ Footer Background,Footer Latar Belakang
 Footer Items,Footer Items
 Footer Text,Footer Teks
 For DocType,Untuk DocType
-"For Links, enter the DocType as range
-For Select, enter list of Options separated by comma","Untuk Link, masukkan DocType sebagai rentang
- Untuk Pilih, masukkan daftar Options dipisahkan dengan koma"
+"For Links, enter the DocType as rangeFor Select, enter list of Options separated by comma","Untuk Link, masukkan DocType sebagai rentang  Untuk Pilih, masukkan daftar Options dipisahkan dengan koma"
 "For comparative filters, start with","Untuk filter komparatif, mulailah dengan"
 For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,Sebagai contoh jika Anda membatalkan dan mengubah 'INV004' itu akan menjadi dokumen baru 'INV004-1'. Ini akan membantu Anda untuk melacak setiap perubahan.
 For ranges,Untuk rentang
@@ -807,9 +795,7 @@ Please attach a file or set a URL,Harap melampirkan file atau menetapkan URL
 Please do not change the rows above {0},Harap jangan mengubah baris di atas {0}
 Please enable pop-ups,Aktifkan pop-up
 Please enter Event's Date and Time!,Masukkan Event Tanggal dan Waktu!
-"Please enter both your email and message so that we \
-				can get back to you. Thanks!","Ketikkan kedua email dan pesan sehingga kita \
- bisa kembali kepada Anda. Terima kasih!"
+Please enter both your email and message so that we \				can get back to you. Thanks!,Ketikkan kedua email dan pesan sehingga kita \ bisa kembali kepada Anda. Terima kasih!
 Please enter some text!,Silahkan masukkan beberapa teks!
 Please enter title!,Masukkan judul!
 Please login to Upvote!,Silahkan login ke Upvote!
@@ -1108,13 +1094,7 @@ There were errors while sending email. Please try again.,Ada kesalahan saat meng
 These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,Nilai-nilai ini akan secara otomatis diperbarui dalam transaksi dan juga akan berguna untuk membatasi hak akses untuk pengguna ini transaksi yang mengandung nilai-nilai ini.
 "These will also be set as default values for those links, if only one such permission record is defined.","Ini juga akan ditetapkan sebagai nilai default untuk link tersebut, jika hanya satu catatan izin tersebut didefinisikan."
 Third Party Authentication,Pihak Ketiga Otentikasi
-"This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>
-myfield
-eval:doc.myfield=='My Value'<br>
-eval:doc.age>18","Bidang ini akan muncul hanya jika fieldname didefinisikan di sini memiliki nilai OR aturan yang benar (contoh): <br>
- MyField
- eval: doc.myfield == 'Nilai My' <br>
- eval: doc.age> 18"
+This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>myfieldeval:doc.myfield=='My Value'<br>eval:doc.age>18,Bidang ini akan muncul hanya jika fieldname didefinisikan di sini memiliki nilai OR aturan yang benar (contoh): <br>  MyField  eval: doc.myfield == 'Nilai My' <br>  eval: doc.age> 18
 This goes above the slideshow.,Ini berjalan di atas slideshow.
 This is PERMANENT action and you cannot undo. Continue?,Ini adalah tindakan PERMANEN dan Anda tidak dapat membatalkan. Lanjutkan?
 "This is a standard format. To make changes, please copy it make make a new format.","Ini adalah format standar. Untuk melakukan perubahan, silahkan salin membuat membuat format baru."
@@ -1264,9 +1244,7 @@ You cannot install this app,Anda tidak dapat menginstal aplikasi ini
 You have unsaved changes in this form. Please save before you continue.,Anda belum menyimpan perubahan pada formulir ini. Silakan simpan sebelum Anda melanjutkan.
 You need to be logged in and have System Manager Role to be able to access backups.,Anda harus login dan memiliki System Manager Peran untuk dapat mengakses backup.
 You need write permission to rename,Anda perlu menulis izin untuk mengubah nama
-"You seem to have written your name instead of your email. \
-					Please enter a valid email address so that we can get back.","Anda tampaknya telah menulis nama Anda, bukan email Anda. \
- Harap masukkan alamat email yang valid sehingga kami bisa kembali."
+You seem to have written your name instead of your email. \					Please enter a valid email address so that we can get back.,"Anda tampaknya telah menulis nama Anda, bukan email Anda. \ Harap masukkan alamat email yang valid sehingga kami bisa kembali."
 "Your download is being built, this may take a few moments...","Download sedang dibangun, ini mungkin memerlukan beberapa saat ..."
 [Label]:[Field Type]/[Options]:[Width],[Label]: [Field Type] / [Options]: [Lebar]
 [Optional] Send the email X days in advance of the specified date. 0 equals same day.,[Opsional] Kirim hari X email sebelum tanggal yang ditentukan. 0 sama dengan hari yang sama.
