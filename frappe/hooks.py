@@ -71,9 +71,9 @@ doc_events = {
 }
 
 scheduler_events = {
-	"all": ["frappe.utils.email_lib.bulk.flush"],
+	"all": ["frappe.email.bulk.flush"],
 	"daily": [
-		"frappe.utils.email_lib.bulk.clear_outbox",
+		"frappe.email.bulk.clear_outbox",
 		"frappe.core.doctype.notification_count.notification_count.clear_notifications",
 		"frappe.core.doctype.event.event.send_event_digest",
 		"frappe.sessions.clear_expired_sessions",

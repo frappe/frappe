@@ -86,7 +86,7 @@ class EMail:
 	def set_html_as_text(self, html):
 		"""return html2text"""
 		import HTMLParser
-		from frappe.utils.email_lib.html2text import html2text
+		from frappe.email.html2text import html2text
 		try:
 			self.set_text(html2text(html))
 		except HTMLParser.HTMLParseError:
