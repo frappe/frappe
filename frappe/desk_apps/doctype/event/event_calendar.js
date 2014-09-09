@@ -11,5 +11,5 @@ frappe.views.calendar["Event"] = {
 		"Public": "success",
 		"Private": "info"
 	},
-	get_events_method: "frappe.core.doctype.event.event.get_events"
+	get_events_method: "frappe.desk_apps.doctype.event.event.get_events"
 }
