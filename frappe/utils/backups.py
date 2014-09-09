@@ -95,7 +95,7 @@ class BackupGenerator:
 		"""
 			Sends the link to backup file located at erpnext/backups
 		"""
-		from frappe.utils.email_lib import sendmail, get_system_managers
+		from frappe.email import sendmail, get_system_managers
 
 		recipient_list = get_system_managers()
 		db_backup_url = get_url(os.path.join('backups', os.path.basename(self.backup_path_db)))

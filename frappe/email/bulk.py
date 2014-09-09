@@ -6,9 +6,9 @@ import frappe
 import HTMLParser
 import urllib
 from frappe import msgprint, throw, _
-from frappe.utils.email_lib.smtp import SMTPServer
-from frappe.utils.email_lib.email_body import get_email, get_formatted_html
-from frappe.utils.email_lib.html2text import html2text
+from frappe.email.smtp import SMTPServer
+from frappe.email.email_body import get_email, get_formatted_html
+from frappe.email.html2text import html2text
 from frappe.utils import cint, get_url, nowdate
 
 class BulkLimitCrossedError(frappe.ValidationError): pass
@@ -45,7 +45,7 @@ def send(recipients=None, sender=None, doctype='User', email_field='email',
 				<small><a href="%s/?%s">
 				Unsubscribe</a> from this list.</small></div>""" % (get_url(),
 				urllib.urlencode({
-					"cmd": "frappe.utils.email_lib.bulk.unsubscribe",
+					"cmd": "frappe.email.bulk.unsubscribe",
 					"email": doc.get(email_field),
 					"type": doctype,
 					"email_field": email_field
