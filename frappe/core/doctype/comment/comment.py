@@ -10,7 +10,8 @@ from frappe.model.document import Document
 
 class Comment(Document):
 	def get_feed(self):
-		return "<i>{0}</i>".format(self.comment)
+		return """<a href="#Form/{0}/{1}">{0} {1}</a>: <i>{2}</i>""".format(self.comment_doctype, self.comment_docname,
+			self.comment)
 
 	def validate(self):
 		if frappe.db.sql("""select count(*) from tabComment where comment_doctype=%s
