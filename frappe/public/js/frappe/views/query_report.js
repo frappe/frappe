@@ -326,7 +326,7 @@ frappe.views.QueryReport = Class.extend({
 		var me = this;
 		var formatter = this.get_formatter();
 
-		this.columns = [{id: "_id", field: "_id", name: "Sr No", width: 60}]
+		this.columns = [{id: "_id", field: "_id", name: __("Sr No"), width: 60}]
 			.concat($.map(columns, function(c) {
 				if ($.isPlainObject(c)) {
 					var df = c;
