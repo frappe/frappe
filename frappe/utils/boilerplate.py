@@ -142,11 +142,11 @@ app_version = "0.0.1"
 # Permissions evaluated in scripted ways
 
 # permission_query_conditions = {{
-# 	"Event": "frappe.desk_apps.doctype.event.event.get_permission_query_conditions",
+# 	"Event": "frappe.desk.doctype.event.event.get_permission_query_conditions",
 # }}
 #
 # has_permission = {{
-# 	"Event": "frappe.desk_apps.doctype.event.event.has_permission",
+# 	"Event": "frappe.desk.doctype.event.event.has_permission",
 # }}
 
 # Document Events
@@ -191,7 +191,7 @@ app_version = "0.0.1"
 # ------------------------------
 #
 # override_whitelisted_methods = {{
-# 	"frappe.desk_apps.doctype.event.event.get_events": "{app_name}.event.get_events"
+# 	"frappe.desk.doctype.event.event.get_events": "{app_name}.event.get_events"
 # }}
 
 """

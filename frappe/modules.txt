@@ -5,3 +5,4 @@ Email
 Custom
 Geo
 Desk Apps
+Print

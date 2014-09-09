@@ -10,7 +10,7 @@ frappe.ui.form.save = function(frm, action, callback, btn) {
 		check_name();
 		if(check_mandatory()) {
 			_call({
-				method: "frappe.widgets.form.save.savedocs",
+				method: "frappe.desk.form.save.savedocs",
 				args: { doc: frm.doc, action:action},
 				callback: function(r) {
 					$(document).trigger("save", [frm.doc]);
@@ -25,7 +25,7 @@ frappe.ui.form.save = function(frm, action, callback, btn) {
 
 	var cancel = function() {
 		_call({
-			method: "frappe.widgets.form.save.cancel",
+			method: "frappe.desk.form.save.cancel",
 			args: { doctype: frm.doc.doctype, name: frm.doc.name },
 			callback: function(r) {
 				$(document).trigger("save", [frm.doc]);

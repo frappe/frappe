@@ -2,8 +2,8 @@
 # MIT License. See license.txt
 
 import frappe, unittest
-from frappe.widgets.form.meta import get_meta
-from frappe.widgets.form.load import getdoctype, getdoc 
+from frappe.desk.form.meta import get_meta
+from frappe.desk.form.load import getdoctype, getdoc 
 
 class TestFormLoad(unittest.TestCase):
 	def test_load(self):

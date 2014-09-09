@@ -38,14 +38,14 @@ website_generators = ["Web Page", "Blog Post", "Website Group", "Blog Category",
 # permissions
 
 permission_query_conditions = {
-	"Event": "frappe.desk_apps.doctype.event.event.get_permission_query_conditions",
-	"ToDo": "frappe.desk_apps.doctype.todo.todo.get_permission_query_conditions",
+	"Event": "frappe.desk.doctype.event.event.get_permission_query_conditions",
+	"ToDo": "frappe.desk.doctype.todo.todo.get_permission_query_conditions",
 	"User": "frappe.core.doctype.user.user.get_permission_query_conditions"
 }
 
 has_permission = {
-	"Event": "frappe.desk_apps.doctype.event.event.has_permission",
-	"ToDo": "frappe.desk_apps.doctype.todo.todo.has_permission",
+	"Event": "frappe.desk.doctype.event.event.has_permission",
+	"ToDo": "frappe.desk.doctype.todo.todo.has_permission",
 	"User": "frappe.core.doctype.user.user.has_permission"
 }
 
@@ -75,7 +75,7 @@ scheduler_events = {
 	"daily": [
 		"frappe.email.bulk.clear_outbox",
 		"frappe.core.doctype.notification_count.notification_count.clear_notifications",
-		"frappe.desk_apps.doctype.event.event.send_event_digest",
+		"frappe.desk.doctype.event.event.send_event_digest",
 		"frappe.sessions.clear_expired_sessions",
 		"frappe.email.doctype.email_alert.email_alert.trigger_daily_alerts",
 	],

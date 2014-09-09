@@ -102,7 +102,7 @@ frappe.views.QueryReport = Class.extend({
 					frappe.model.with_doctype(me.report_doc.ref_doctype, function() {
 						if(!frappe.query_reports[me.report_name]) {
 							return frappe.call({
-								method:"frappe.widgets.query_report.get_script",
+								method:"frappe.desk.query_report.get_script",
 								args: {
 									report_name: me.report_name
 								},
@@ -243,7 +243,7 @@ frappe.views.QueryReport = Class.extend({
 		}
 
 		this.report_ajax = frappe.call({
-			method: "frappe.widgets.query_report.run",
+			method: "frappe.desk.query_report.run",
 			type: "GET",
 			args: {
 				"report_name": me.report_name,

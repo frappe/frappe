@@ -202,7 +202,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		var me = this;
 		// init list
 		this.make({
-			method: 'frappe.widgets.reportview.get',
+			method: 'frappe.desk.reportview.get',
 			get_args: this.get_args,
 			parent: this.wrapper,
 			freeze: true,
@@ -375,7 +375,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 			function() {
 				me.set_working(true);
 				return frappe.call({
-					method: 'frappe.widgets.reportview.delete_items',
+					method: 'frappe.desk.reportview.delete_items',
 					args: {
 						items: $.map(dl, function(d, i) { return d.name }),
 						doctype: me.doctype

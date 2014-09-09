@@ -22,7 +22,7 @@ frappe.ui.TagEditor = Class.extend({
 				if(me.initialized && !me.refreshing) {
 					var tag = tag.find('.tagit-label').text();
 					return frappe.call({
-						method: 'frappe.widgets.tags.add_tag',
+						method: 'frappe.desk.tags.add_tag',
 						args: me.get_args(tag),
 						callback: function(r) {
 							var user_tags = me.user_tags.split(",");
@@ -37,7 +37,7 @@ frappe.ui.TagEditor = Class.extend({
 				if(!me.refreshing) {
 					var tag = tag.find('.tagit-label').text();
 					return frappe.call({
-						method: 'frappe.widgets.tags.remove_tag',
+						method: 'frappe.desk.tags.remove_tag',
 						args: me.get_args(tag),
 						callback: function(r) {
 							var user_tags = me.user_tags.split(",");
