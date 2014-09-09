@@ -3,10 +3,10 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe.utils import cint
 
 @frappe.whitelist()
 def get_feed(limit_start, limit_page_length):
 	"""get feed"""
-	return frappe.get_list("Feed", fields=["name", "feed_type", "doc_type", "subject", "owner", "modified"],
+	return frappe.get_list("Feed", fields=["name", "feed_type", "doc_type",
+		"subject", "owner", "modified", "doc_name", "creation"],
 		limit_start = limit_start, limit_page_length = limit_page_length)
