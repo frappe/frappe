@@ -62,7 +62,7 @@ def send_event_digest():
 			text += '<p style="color: #888; font-size: 80%; margin-top: 20px; padding-top: 10px; border-top: 1px solid #eee;">'\
 				+ frappe._("Daily Event Digest is sent for Calendar Events where reminders are set.")+'</p>'
 
-			from frappe.utils.email_lib import sendmail
+			from frappe.email import sendmail
 			sendmail(recipients=user.email, subject=frappe._("Upcoming Events for Today"),
 				msg = text)
 

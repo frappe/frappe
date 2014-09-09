@@ -8,8 +8,8 @@ import urllib
 from email.utils import formataddr
 from frappe.website.utils import is_signup_enabled
 from frappe.utils import get_url, cstr
-from frappe.utils.email_lib.email_body import get_email
-from frappe.utils.email_lib.smtp import send
+from frappe.email.email_body import get_email
+from frappe.email.smtp import send
 from frappe.utils import scrub_urls, cint
 from frappe import _
 

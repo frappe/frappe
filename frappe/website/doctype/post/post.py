@@ -8,8 +8,8 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.utils import get_fullname
-from frappe.utils.email_lib.bulk import send
-from frappe.utils.email_lib import sendmail
+from frappe.email.bulk import send
+from frappe.email import sendmail
 
 from frappe.model.document import Document
 

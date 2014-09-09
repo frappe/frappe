@@ -17,7 +17,7 @@ class OutgoingEmailSettings(Document):
 
 		if self.mail_server and not frappe.local.flags.in_patch:
 			from frappe.utils import cint
-			from frappe.utils.email_lib.smtp import SMTPServer
+			from frappe.email.smtp import SMTPServer
 			smtpserver = SMTPServer(login = self.mail_login,
 				password = self.mail_password,
 				server = self.mail_server,

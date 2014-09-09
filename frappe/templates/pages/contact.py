@@ -47,7 +47,7 @@ def send_message(subject="Website Query", message="", sender=""):
 	# send email
 	forward_to_email = frappe.db.get_value("Contact Us Settings", None, "forward_to_email")
 	if forward_to_email:
-		from frappe.utils.email_lib import sendmail
+		from frappe.email import sendmail
 		sendmail(forward_to_email, sender, message, subject)
 
 	return "okay"

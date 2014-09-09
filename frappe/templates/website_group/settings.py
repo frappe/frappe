@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.website.permissions import get_access
-from frappe.utils.email_lib.bulk import send
+from frappe.email.bulk import send
 
 @frappe.whitelist()
 def suggest_user(term, group):

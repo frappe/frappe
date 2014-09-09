@@ -228,18 +228,18 @@ def sendmail(recipients=(), sender="", subject="No Subject", message="No Message
 		add_unsubscribe_link=False, attachments=None):
 
 	if bulk:
-		import frappe.utils.email_lib.bulk
-		frappe.utils.email_lib.bulk.send(recipients=recipients, sender=sender,
+		import frappe.email.bulk
+		frappe.email.bulk.send(recipients=recipients, sender=sender,
 			subject=subject, message=message, ref_doctype = ref_doctype,
 			ref_docname = ref_docname, add_unsubscribe_link=add_unsubscribe_link, attachments=attachments)
 
 	else:
-		import frappe.utils.email_lib
+		import frappe.email
 		if as_markdown:
-			frappe.utils.email_lib.sendmail_md(recipients, sender=sender,
+			frappe.email.sendmail_md(recipients, sender=sender,
 				subject=subject, msg=message, attachments=attachments)
 		else:
-			frappe.utils.email_lib.sendmail(recipients, sender=sender,
+			frappe.email.sendmail(recipients, sender=sender,
 				subject=subject, msg=message, attachments=attachments)
 
 logger = None
