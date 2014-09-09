@@ -356,7 +356,7 @@ def reset_password(user):
 		return _("User {0} does not exist").format(user)
 
 def user_query(doctype, txt, searchfield, start, page_len, filters):
-	from frappe.widgets.reportview import get_match_cond
+	from frappe.desk.reportview import get_match_cond
 	txt = "%{}%".format(txt)
 	return frappe.db.sql("""select name, concat_ws(' ', first_name, middle_name, last_name)
 		from `tabUser`

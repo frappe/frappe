@@ -54,7 +54,7 @@ $.extend(frappe.model, {
 				cached_timestamp = cached_doc.modified;
 			}
 			return frappe.call({
-				method:'frappe.widgets.form.load.getdoctype',
+				method:'frappe.desk.form.load.getdoctype',
 				type: "GET",
 				args: {
 					doctype: doctype,
@@ -99,7 +99,7 @@ $.extend(frappe.model, {
 			callback(name);
 		} else {
 			return frappe.call({
-				method: 'frappe.widgets.form.load.getdoc',
+				method: 'frappe.desk.form.load.getdoc',
 				type: "GET",
 				args: {
 					doctype: doctype,

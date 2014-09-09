@@ -144,7 +144,7 @@ frappe.ui.form.Comments = Class.extend({
 	insert_comment: function(comment_type, comment, btn) {
 		var me = this;
 		return frappe.call({
-			method: "frappe.widgets.form.utils.add_comment",
+			method: "frappe.desk.form.utils.add_comment",
 			args: {
 				doc:{
 					doctype: "Comment",

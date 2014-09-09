@@ -7,7 +7,7 @@ from frappe import _
 import frappe.utils
 import frappe.sessions
 import frappe.utils.file_manager
-import frappe.widgets.form.run_method
+import frappe.desk.form.run_method
 from frappe.utils.response import build_response
 
 @frappe.whitelist(allow_guest=True)
@@ -16,7 +16,7 @@ def startup():
 
 @frappe.whitelist()
 def runserverobj(method, docs=None, dt=None, dn=None, arg=None, args=None):
-	frappe.widgets.form.run_method.runserverobj(method, docs=docs, dt=dt, dn=dn, arg=arg, args=args)
+	frappe.desk.form.run_method.runserverobj(method, docs=docs, dt=dt, dn=dn, arg=arg, args=args)
 
 @frappe.whitelist(allow_guest=True)
 def logout():

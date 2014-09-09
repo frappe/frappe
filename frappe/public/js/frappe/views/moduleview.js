@@ -14,7 +14,7 @@ frappe.views.ModuleFactory = frappe.views.Factory.extend({
 });
 
 frappe.views.moduleview.make = function(wrapper, module, method) {
-	if(!method) method = "frappe.widgets.moduleview.get";
+	if(!method) method = "frappe.desk.moduleview.get";
 
 	wrapper.module_view = new frappe.views.moduleview.ModuleView(wrapper, module, method);
 
@@ -100,7 +100,7 @@ frappe.views.moduleview.ModuleView = Class.extend({
 	make: function(wrapper, module) {
 		var me = this;
 		return frappe.call({
-			method: "frappe.widgets.moduleview.get",
+			method: "frappe.desk.moduleview.get",
 			args: {
 				module: module
 			},
@@ -303,7 +303,7 @@ frappe.views.moduleview.ModuleView = Class.extend({
 			var section_label = $(this).parent().attr("data-section-label");
 			if(!me.item_count || me.item_count[section_label]==null) {
 				frappe.call({
-					"method": "frappe.widgets.moduleview.get_section_count",
+					"method": "frappe.desk.moduleview.get_section_count",
 					"args": {
 						"module": me.module,
 						"section_label": section_label,

@@ -130,7 +130,7 @@ frappe.ui.form.InfoBar = Class.extend({
 		}
 
 		return frappe.call({
-			method: "frappe.widgets.form.utils.get_next",
+			method: "frappe.desk.form.utils.get_next",
 			args: {
 				doctype: me.frm.doctype,
 				value: me.frm.doc[order_by.split(" ")[0]],

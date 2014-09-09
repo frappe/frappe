@@ -232,7 +232,7 @@ frappe.ui.Listing = Class.extend({
 			me.set_working(true);
 
 		return frappe.call({
-			method: this.opts.method || 'frappe.widgets.query_builder.runquery',
+			method: this.opts.method || 'frappe.desk.query_builder.runquery',
 			type: "GET",
 			args: this.get_call_args(),
 			callback: function(r) {

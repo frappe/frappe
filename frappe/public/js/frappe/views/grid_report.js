@@ -9,7 +9,7 @@ $.extend(frappe.report_dump, {
 	with_data: function(doctypes, callback, progress_bar) {
 		var pre_loaded = keys(frappe.report_dump.last_modified);
 		return frappe.call({
-			method: "frappe.widgets.report_dump.get_data",
+			method: "frappe.desk.report_dump.get_data",
 			type: "GET",
 			args: {
 				doctypes: doctypes,
