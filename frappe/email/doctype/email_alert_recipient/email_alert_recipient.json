@@ -1,0 +1,42 @@
+{
+ "creation": "2014-07-11 17:19:37.037109",
+ "docstatus": 0,
+ "doctype": "DocType",
+ "document_type": "",
+ "fields": [
+  {
+   "description": "Optional: Alert will only be sent if value is a valid email id.",
+   "fieldname": "email_by_document_field",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Email By Document Field",
+   "permlevel": 0
+  },
+  {
+   "description": "Optional: Always send to these ids. Each email id on a new row",
+   "fieldname": "cc",
+   "fieldtype": "Text",
+   "in_list_view": 1,
+   "label": "CC",
+   "permlevel": 0
+  },
+  {
+   "description": "Expression, Optional",
+   "fieldname": "condition",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Condition",
+   "permlevel": 0
+  }
+ ],
+ "istable": 1,
+ "modified": "2014-07-11 17:54:53.298536",
+ "modified_by": "Administrator",
+ "module": "Email",
+ "name": "Email Alert Recipient",
+ "name_case": "",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC"
+}
