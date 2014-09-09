@@ -46,7 +46,7 @@ permission_query_conditions = {
 	"ToDo": "frappe.desk.doctype.todo.todo.get_permission_query_conditions",
 	"User": "frappe.core.doctype.user.user.get_permission_query_conditions",
 	"Feed": "frappe.desk.doctype.feed.feed.get_permission_query_conditions",
-	"Note": "erpnext.utilities.doctype.note.note.get_permission_query_conditions"
+	"Note": "frappe.desk.doctype.note.note.get_permission_query_conditions"
 }
 
 has_permission = {
@@ -54,7 +54,7 @@ has_permission = {
 	"ToDo": "frappe.desk.doctype.todo.todo.has_permission",
 	"User": "frappe.core.doctype.user.user.has_permission",
 	"Feed": "frappe.desk.doctype.feed.feed.has_permission",
-	"Note": "erpnext.utilities.doctype.note.note.has_permission"
+	"Note": "frappe.desk.doctype.note.note.has_permission"
 }
 
 doc_events = {
