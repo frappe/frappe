@@ -62,7 +62,10 @@ def before_tests():
 
 def import_country_and_currency():
 	from frappe.geo.country_info import get_all
+	print "Importing Geo..."
+
 	data = get_all()
+
 
 	for name in data:
 		country = frappe._dict(data[name])
