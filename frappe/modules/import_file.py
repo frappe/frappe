@@ -66,7 +66,11 @@ def read_doc_from_file(path):
 	doc = None
 	if os.path.exists(path):
 		with open(path, 'r') as f:
-			doc = json.loads(f.read())
+			try:
+				doc = json.loads(f.read())
+			except ValueError:
+				print "bad json: {0}".format(path)
+				raise
 	else:
 		raise Exception, '%s missing' % path
 
