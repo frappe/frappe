@@ -2,6 +2,13 @@ from frappe import _
 
 def get_data():
 	return {
+		"Activity": {
+			"color": "#e67e22",
+			"icon": "icon-play",
+			"label": _("Activity"),
+			"link": "activity",
+			"type": "page"
+		},
 		"Calendar": {
 			"color": "#2980b9",
 			"icon": "icon-calendar",
@@ -22,6 +29,14 @@ def get_data():
 			"label": _("To Do"),
 			"link": "List/ToDo",
 			"doctype": "ToDo",
+			"type": "list"
+		},
+		"Notes": {
+			"color": "#95a5a6",
+			"doctype": "Note",
+			"icon": "icon-file-alt",
+			"label": _("Notes"),
+			"link": "List/Note",
 			"type": "list"
 		},
 		"Website": {
