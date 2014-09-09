@@ -15,7 +15,7 @@ frappe.pages['activity'].onload = function(wrapper) {
 		method: 'frappe.desk.page.activity.activity.get_feed',
 		parent: $(wrapper).find(".layout-main"),
 		render_row: function(row, data) {
-			new erpnext.ActivityFeed(row, data);
+			new frappe.ActivityFeed(row, data);
 		}
 	});
 	list.run();
@@ -30,47 +30,46 @@ frappe.pages['activity'].onload = function(wrapper) {
 	}
 }
 
-erpnext.last_feed_date = false;
-erpnext.ActivityFeed = Class.extend({
+frappe.last_feed_date = false;
+frappe.ActivityFeed = Class.extend({
 	init: function(row, data) {
 		this.scrub_data(data);
 		this.add_date_separator(row, data);
-		if(!data.add_class) data.add_class = "label-default";
+		if(!data.add_class)
+			data.add_class = "label-default";
+
 		$(row).append(repl('<div style="margin: 0px">\
-			<span class="avatar avatar-small"><img src="%(imgsrc)s" /></span> \
-			<span %(onclick)s class="label %(add_class)s">%(feed_type)s</span>\
-			%(link)s %(subject)s <span class="user-info">%(by)s</span></div>', data));
+			<span class="avatar avatar-small">\
+				<img src="%(imgsrc)s" /></span> \
+			<i class="icon-fixed-width %(icon)s" style="margin-right: 5px;"></i>\
+			<a %(onclick)s class="label %(add_class)s">\
+				%(feed_type)s</a>\
+			%(subject)s <span class="user-info">%(by)s / %(when)s</span></div>', data));
 	},
 	scrub_data: function(data) {
 		data.by = frappe.user_info(data.owner).fullname;
 		data.imgsrc = frappe.utils.get_file_link(frappe.user_info(data.owner).image);
 
-		// feedtype
-		if(!data.feed_type) {
-			data.feed_type = __(data.doc_type);
-			data.add_class = "label-info";
-			data.onclick = repl('onclick="window.location.href=\'#!List/%(feed_type)s\';"', data)
+		data.icon = "icon-flag";
+		if(data.doc_type) {
+			data.feed_type = data.doc_type;
+			data.onclick = repl('href="#Form/%(doc_type)s/%(doc_name)s"', data);
+			data.icon = frappe.boot.doctype_icons[data.doc_type];
 		}
 
 		// color for comment
-		if(data.feed_type=='Comment') {
-			data.add_class = "label-danger";
-		}
+		data.add_class = {
+			"Comment": "label-danger",
+			"Assignment": "label-warning",
+			"Login": "label-default"
+		}[data.feed_type] || "label-info"
 
-		if(data.feed_type=='Assignment') {
-			data.add_class = "label-warning";
-		}
-
-		// link
-		if(data.doc_name && data.feed_type!='Login') {
-			data.link = frappe.format(data.doc_name, {"fieldtype":"Link", "options":data.doc_type})
-		} else {
-			data.link = "";
-		}
+		data.when = comment_when(data.creation);
+		data.feed_type = __(data.feed_type);
 	},
 	add_date_separator: function(row, data) {
 		var date = dateutil.str_to_obj(data.modified);
-		var last = erpnext.last_feed_date;
+		var last = frappe.last_feed_date;
 
 		if((last && dateutil.obj_to_str(last) != dateutil.obj_to_str(date)) || (!last)) {
 			var diff = dateutil.get_day_diff(dateutil.get_today(), dateutil.obj_to_str(date));
@@ -83,6 +82,6 @@ erpnext.ActivityFeed = Class.extend({
 			}
 			$(row).html(repl('<div class="date-sep" style="padding-left: 15px;">%(date)s</div>', {date: pdate}));
 		}
-		erpnext.last_feed_date = date;
+		frappe.last_feed_date = date;
 	}
 })
