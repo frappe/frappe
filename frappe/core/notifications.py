@@ -29,7 +29,7 @@ def get_things_todo():
 
 def get_todays_events():
 	"""Returns a count of todays events in calendar"""
-	from frappe.core.doctype.event.event import get_events
+	from frappe.desk_apps.doctype.event.event import get_events
 	from frappe.utils import nowdate
 	today = nowdate()
 	return len(get_events(today, today))
