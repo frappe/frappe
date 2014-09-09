@@ -67,7 +67,7 @@ def update_feed(doc, method=None):
 
 			frappe.get_doc({
 				"doctype": "Feed",
-				"feed_type": "Document Update",
+				"feed_type": "",
 				"doc_type": doc.doctype,
 				"doc_name": doc.name,
 				"subject": feed,
