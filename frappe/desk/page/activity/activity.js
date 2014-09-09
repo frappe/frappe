@@ -44,7 +44,8 @@ frappe.ActivityFeed = Class.extend({
 			<i class="icon-fixed-width %(icon)s" style="margin-right: 5px;"></i>\
 			<a %(onclick)s class="label %(add_class)s">\
 				%(feed_type)s</a>\
-			%(subject)s <span class="user-info">%(by)s / %(when)s</span></div>', data));
+			<span class="small">%(subject)s</span>\
+			<span class="user-info">%(by)s / %(when)s</span></div>', data));
 	},
 	scrub_data: function(data) {
 		data.by = frappe.user_info(data.owner).fullname;

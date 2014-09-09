@@ -1,7 +1,7 @@
 // Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-frappe.provide('frappe.core.pages.messages');
+frappe.provide('frappe.desk.pages.messages');
 
 frappe.pages.messages.onload = function(wrapper) {
 	frappe.ui.make_app_page({
@@ -26,18 +26,18 @@ frappe.pages.messages.onload = function(wrapper) {
 
 	wrapper.appframe.add_module_icon("Messages");
 
-	frappe.core.pages.messages = new frappe.core.pages.messages(wrapper);
+	frappe.desk.pages.messages = new frappe.desk.pages.messages(wrapper);
 }
 
 $(frappe.pages.messages).bind('show', function() {
 	// remove alerts
 	$('#alert-container .alert').remove();
 
-	frappe.core.pages.messages.show();
-	setTimeout("frappe.core.pages.messages.refresh()", 5000);
+	frappe.desk.pages.messages.show();
+	setTimeout("frappe.desk.pages.messages.refresh()", 5000);
 })
 
-frappe.core.pages.messages = Class.extend({
+frappe.desk.pages.messages = Class.extend({
 	init: function(wrapper) {
 		this.wrapper = wrapper;
 		this.show_active_users();
@@ -52,7 +52,7 @@ frappe.core.pages.messages = Class.extend({
 			var txt = $('#post-message textarea').val();
 			if(txt) {
 				return frappe.call({
-					module: 'frappe.core',
+					module: 'frappe.desk',
 					page:'messages',
 					method:'post',
 					args: {
@@ -88,7 +88,7 @@ frappe.core.pages.messages = Class.extend({
 	},
 	// check for updates every 5 seconds if page is active
 	refresh: function() {
-		setTimeout("frappe.core.pages.messages.refresh()", 5000);
+		setTimeout("frappe.desk.pages.messages.refresh()", 5000);
 		if(frappe.container.page.label != 'Messages')
 			return;
 		if(!frappe.session_alive)
@@ -131,7 +131,7 @@ frappe.core.pages.messages = Class.extend({
 				data.delete_html = "";
 				if(data.owner==user || data.comment.indexOf("assigned to")!=-1) {
 					data.delete_html = repl('<a class="close" \
-						onclick="frappe.core.pages.messages.delete(this)"\
+						onclick="frappe.desk.pages.messages.delete(this)"\
 						data-name="%(name)s">&times;</a>', data);
 				}
 
@@ -167,7 +167,7 @@ frappe.core.pages.messages = Class.extend({
 	show_active_users: function() {
 		var me = this;
 		return frappe.call({
-			module:'frappe.core',
+			module:'frappe.desk',
 			page:'messages',
 			method:'get_active_users',
 			callback: function(r,rt) {
