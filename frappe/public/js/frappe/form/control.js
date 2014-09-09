@@ -894,7 +894,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 
 				return frappe.call({
 					type: "GET",
-					method:'frappe.widgets.search.search_link',
+					method:'frappe.desk.search.search_link',
 					no_spinner: true,
 					args: args,
 					callback: function(r) {

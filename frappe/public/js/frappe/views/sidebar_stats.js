@@ -19,7 +19,7 @@ frappe.views.SidebarStats = Class.extend({
 		var me = this
 		return frappe.call({
 			type: "GET",
-			method: 'frappe.widgets.reportview.get_stats',
+			method: 'frappe.desk.reportview.get_stats',
 			args: {
 				stats: me.stats,
 				doctype: me.doctype

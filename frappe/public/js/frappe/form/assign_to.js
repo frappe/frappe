@@ -105,7 +105,7 @@ frappe.ui.form.AssignTo = Class.extend({
 				var args = me.dialog.get_values();
 				if(args && assign_to) {
 					return frappe.call({
-						method:'frappe.widgets.form.assign_to.add',
+						method:'frappe.desk.form.assign_to.add',
 						args: $.extend(args, {
 							doctype: me.frm.doctype,
 							name: me.frm.docname,
@@ -135,7 +135,7 @@ frappe.ui.form.AssignTo = Class.extend({
 	remove: function(owner) {
 		var me = this;
 		frappe.call({
-			method:'frappe.widgets.form.assign_to.remove',
+			method:'frappe.desk.form.assign_to.remove',
 			args: {
 				doctype: me.frm.doctype,
 				name: me.frm.docname,

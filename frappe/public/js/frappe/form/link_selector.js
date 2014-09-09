@@ -65,7 +65,7 @@ frappe.ui.form.LinkSelector = Class.extend({
 		}
 
 		return frappe.call({
-			method: "frappe.widgets.search.search_widget",
+			method: "frappe.desk.search.search_widget",
 			type: "GET",
 			args: args,
 			callback: function(r) {

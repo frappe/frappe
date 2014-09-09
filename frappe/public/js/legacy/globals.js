@@ -1,8 +1,8 @@
 // Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-frappe.provide('frappe.widgets.form');
-frappe.provide('frappe.widgets.report');
+frappe.provide('frappe.desk.form');
+frappe.provide('frappe.desk.report');
 frappe.provide('frappe.utils');
 frappe.provide('frappe.model');
 frappe.provide('frappe.user');

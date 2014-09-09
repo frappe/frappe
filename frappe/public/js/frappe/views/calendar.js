@@ -97,7 +97,7 @@ frappe.views.Calendar = Class.extend({
 			selectHelper: true,
 			events: function(start, end, callback) {
 				return frappe.call({
-					method: me.get_events_method || "frappe.widgets.calendar.get_events",
+					method: me.get_events_method || "frappe.desk.calendar.get_events",
 					type: "GET",
 					args: me.get_args(start, end),
 					callback: function(r) {
@@ -185,7 +185,7 @@ frappe.views.Calendar = Class.extend({
 		var me = this;
 		frappe.model.remove_from_locals(me.doctype, event.name);
 		return frappe.call({
-			method: me.update_event_method || "frappe.widgets.calendar.update_event",
+			method: me.update_event_method || "frappe.desk.calendar.update_event",
 			args: me.get_update_args(event),
 			callback: function(r) {
 				if(r.exc) {
