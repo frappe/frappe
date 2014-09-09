@@ -159,3 +159,17 @@ class TestCustomizeForm(unittest.TestCase):
 
 		frappe.local.test_objects["Property Setter"] = []
 		make_test_records_for_doctype("Property Setter")
+
+	def test_set_allow_on_submit(self):
+		d = self.get_customize_form("User")
+		d.get("customize_form_fields", {"fieldname": "first_name"})[0].allow_on_submit = 1
+		d.get("customize_form_fields", {"fieldname": "test_custom_field"})[0].allow_on_submit = 1
+		d.run_method("save_customization")
+
+		d = self.get_customize_form("User")
+
+		# don't allow for standard fields
+		self.assertEquals(d.get("customize_form_fields", {"fieldname": "first_name"})[0].allow_on_submit or 0, 0)
+
+		# allow for custom field
+		self.assertEquals(d.get("customize_form_fields", {"fieldname": "test_custom_field"})[0].allow_on_submit, 1)
