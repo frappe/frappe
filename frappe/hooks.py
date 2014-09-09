@@ -51,17 +51,17 @@ has_permission = {
 
 doc_events = {
 	"*": {
-		"after_insert": "frappe.core.doctype.email_alert.email_alert.trigger_email_alerts",
-		"validate": "frappe.core.doctype.email_alert.email_alert.trigger_email_alerts",
+		"after_insert": "frappe.email.doctype.email_alert.email_alert.trigger_email_alerts",
+		"validate": "frappe.email.doctype.email_alert.email_alert.trigger_email_alerts",
 		"on_update": [
 			"frappe.core.doctype.notification_count.notification_count.clear_doctype_notifications",
-			"frappe.core.doctype.email_alert.email_alert.trigger_email_alerts"
+			"frappe.email.doctype.email_alert.email_alert.trigger_email_alerts"
 		],
 		"after_rename": "frappe.core.doctype.notification_count.notification_count.clear_doctype_notifications",
-		"on_submit": "frappe.core.doctype.email_alert.email_alert.trigger_email_alerts",
+		"on_submit": "frappe.email.doctype.email_alert.email_alert.trigger_email_alerts",
 		"on_cancel": [
 			"frappe.core.doctype.notification_count.notification_count.clear_doctype_notifications",
-			"frappe.core.doctype.email_alert.email_alert.trigger_email_alerts"
+			"frappe.email.doctype.email_alert.email_alert.trigger_email_alerts"
 		],
 		"on_trash": "frappe.core.doctype.notification_count.notification_count.clear_doctype_notifications"
 	},
@@ -77,7 +77,7 @@ scheduler_events = {
 		"frappe.core.doctype.notification_count.notification_count.clear_notifications",
 		"frappe.core.doctype.event.event.send_event_digest",
 		"frappe.sessions.clear_expired_sessions",
-		"frappe.core.doctype.email_alert.email_alert.trigger_daily_alerts",
+		"frappe.email.doctype.email_alert.email_alert.trigger_daily_alerts",
 	],
 	"hourly": [
 		"frappe.website.doctype.website_group.website_group.clear_event_cache"

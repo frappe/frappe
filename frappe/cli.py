@@ -531,7 +531,7 @@ def make_conf(db_name=None, db_password=None, site_config=None):
 
 @cmd
 def make_custom_server_script(doctype):
-	from frappe.core.doctype.custom_script.custom_script import make_custom_server_script_file
+	from frappe.custom.doctype.custom_script.custom_script import make_custom_server_script_file
 	frappe.connect()
 	make_custom_server_script_file(doctype)
 	frappe.destroy()
