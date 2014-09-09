@@ -223,7 +223,7 @@ def get_messages_from_report(name):
 		frappe.db.get_value("DocType", report.ref_doctype, "module"))
 	if report.query:
 		messages.extend(re.findall('"([^:,^"]*):', report.query))
-		messages.append(report.report_name)
+	messages.append(report.report_name)
 	return clean(messages)
 
 def get_messages_from_page_or_report(doctype, name, module=None):
