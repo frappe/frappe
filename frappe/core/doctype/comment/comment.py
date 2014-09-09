@@ -9,6 +9,8 @@ from frappe.website.render import clear_cache
 from frappe.model.document import Document
 
 class Comment(Document):
+	def get_feed(self):
+		return "<i>{0}</i>".format(self.comment)
 
 	def validate(self):
 		if frappe.db.sql("""select count(*) from tabComment where comment_doctype=%s

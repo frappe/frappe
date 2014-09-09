@@ -108,7 +108,7 @@ frappe.core.pages.messages = Class.extend({
 	make_list: function() {
 		this.list = new frappe.ui.Listing({
 			parent: $(this.wrapper).find('.all-messages'),
-			method: 'frappe.core.page.messages.messages.get_list',
+			method: 'frappe.desk.page.messages.messages.get_list',
 			args: {
 				contact: null
 			},
@@ -157,7 +157,7 @@ frappe.core.pages.messages = Class.extend({
 	delete: function(ele) {
 		$(ele).parent().css('opacity', 0.6);
 		return frappe.call({
-			method: 'frappe.core.page.messages.messages.delete',
+			method: 'frappe.desk.page.messages.messages.delete',
 			args: {name : $(ele).attr('data-name')},
 			callback: function() {
 				$(ele).parent().toggle(false);
