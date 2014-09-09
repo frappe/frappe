@@ -42,12 +42,15 @@ def after_install():
 		except frappe.NameError:
 			pass
 
+	import_country_and_currency()
+
 	# all roles to admin
 	frappe.get_doc("User", "Administrator").add_roles(*frappe.db.sql_list("""select name from tabRole"""))
 
 	# update admin password
 	from frappe.auth import _update_password
 	_update_password("Administrator", frappe.conf.get("admin_password"))
+
 
 	frappe.db.commit()
 
@@ -56,3 +59,36 @@ def before_tests():
 	frappe.db.sql("delete from `tabEvent`")
 	frappe.db.commit()
 	frappe.clear_cache()
+
+def import_country_and_currency():
+	from frappe.geo.country_info import get_all
+	data = get_all()
+
+	for name in data:
+		country = frappe._dict(data[name])
+		add_country_and_currency(name, country)
+
+	# enable frequently used currencies
+	for currency in ("INR", "USD", "GBP", "EUR", "AED", "AUD", "JPY", "CNY", "CHF"):
+		frappe.db.set_value("Currency", currency, "enabled", 1)
+
+def add_country_and_currency(name, country):
+	if not frappe.db.exists("Country", name):
+		frappe.get_doc({
+			"doctype": "Country",
+			"country_name": name,
+			"code": country.code,
+			"date_format": country.date_format or "dd-mm-yyyy",
+			"time_zones": "\n".join(country.timezones or [])
+		}).insert()
+
+	if country.currency and not frappe.db.exists("Currency", country.currency):
+		frappe.get_doc({
+			"doctype": "Currency",
+			"currency_name": country.currency,
+			"fraction": country.currency_fraction,
+			"symbol": country.currency_symbol,
+			"fraction_units": country.currency_fraction_units,
+			"number_format": country.number_format
+		}).insert()
+

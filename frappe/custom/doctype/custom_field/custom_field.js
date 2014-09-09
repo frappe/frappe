@@ -69,7 +69,7 @@ cur_frm.cscript.dt = function(doc, dt, dn) {
 	}
 	var insert_after = doc.insert_after || null;
 	return frappe.call({
-		method: 'frappe.core.doctype.custom_field.custom_field.get_fields_label',
+		method: 'frappe.custom.doctype.custom_field.custom_field.get_fields_label',
 		args: { doctype: doc.dt, fieldname: doc.fieldname },
 		callback: function(r, rt) {
 			set_field_options('insert_after', r.message);
