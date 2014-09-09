@@ -7,6 +7,7 @@ import frappe.defaults
 import frappe.permissions
 from frappe.model.document import Document
 from frappe.utils import get_fullname
+from frappe import _
 
 class Feed(Document):
 	pass
@@ -66,7 +67,7 @@ def update_feed(doc, method=None):
 
 			frappe.get_doc({
 				"doctype": "Feed",
-				"feedtype": "Document Update",
+				"feed_type": "Document Update",
 				"doc_type": doc.doctype,
 				"doc_name": doc.name,
 				"subject": feed,
@@ -76,7 +77,7 @@ def update_feed(doc, method=None):
 def login_feed(login_manager):
 	frappe.get_doc({
 		"doctype": "Feed",
-		"feedtype": "Login",
-		"subject": _("{0} logged in").format(get_user_fullname(login_manager.user)),
-		"full_name": get_fullname(doc.owner)
+		"feed_type": "Login",
+		"subject": _("{0} logged in").format(get_fullname(login_manager.user)),
+		"full_name": get_fullname(login_manager.user)
 	}).insert(ignore_permissions=True)

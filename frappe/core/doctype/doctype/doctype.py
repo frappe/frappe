@@ -19,6 +19,9 @@ form_grid_templates = {
 }
 
 class DocType(Document):
+	def get_feed(self):
+		return self.name
+
 	def validate(self):
 		if not frappe.conf.get("developer_mode"):
 			frappe.throw(_("Not in Developer Mode! Set in site_config.json"))
