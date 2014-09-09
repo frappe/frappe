@@ -29,6 +29,7 @@ type_map = {
 	,'Text':		('text', '')
 	,'Data':		('varchar', '255')
 	,'Link':		('varchar', '255')
+	,'Dynamic Link':('varchar', '255')
 	,'Password':	('varchar', '255')
 	,'Select':		('varchar', '255')
 	,'Read Only':	('varchar', '255')
@@ -77,8 +78,8 @@ class DbTable:
 			name varchar(255) not null primary key,
 			creation datetime(6),
 			modified datetime(6),
-			modified_by varchar(40),
-			owner varchar(60),
+			modified_by varchar(255),
+			owner varchar(255),
 			docstatus int(1) default '0',
 			parent varchar(255),
 			parentfield varchar(255),
@@ -197,6 +198,9 @@ class DbTable:
 					query.append("drop index `{}`".format(col.fieldname))
 
 		for col in list(set(self.set_default).difference(set(self.change_type))):
+			if col.fieldname=="name":
+				continue
+
 			if not col.default:
 				col_default = "null"
 			else:
@@ -390,7 +394,7 @@ def remove_all_foreign_keys():
 	frappe.db.sql("set foreign_key_checks = 0")
 	frappe.db.commit()
 	for t in frappe.db.sql("select name from tabDocType where ifnull(issingle,0)=0"):
-		dbtab = frappe.model.db_schema.DbTable(t[0])
+		dbtab = DbTable(t[0])
 		try:
 			fklist = dbtab.get_foreign_keys()
 		except Exception, e:

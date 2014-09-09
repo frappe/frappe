@@ -16,7 +16,12 @@ frappe.ui.form.InfoBar = Class.extend({
 
 
 		this.$timestamp = this.appframe.add_icon_btn("2", "icon-user", __("Creation / Modified By"),
-			function() { })
+			function() {
+				msgprint("Created By: " + frappe.user.full_name(me.frm.doc.owner) + "<br>" +
+					"Created On: " + comment_when(me.frm.doc.creation) + "<br>" +
+					"Last Modified By: " + frappe.user.full_name(me.frm.doc.modified_by) + "<br>" +
+					"Last Modifed On: " + comment_when(me.frm.doc.modified))
+			});
 
 		this.$comments = this.appframe.add_icon_btn("2", "icon-comments", __("Comments"), function() {
 				me.scroll_to(".form-comments");
@@ -34,15 +39,15 @@ frappe.ui.form.InfoBar = Class.extend({
 		this.$links = this.appframe.add_icon_btn("2", "icon-link", __("Linked With"),
 				function() { me.frm.toolbar.show_linked_with(); });
 
-		// link to user restrictions
-		if(!me.frm.meta.issingle && frappe.model.can_restrict(me.frm.doctype, me.frm)) {
+		// link to user permissions
+		if(!me.frm.meta.issingle && frappe.model.can_set_user_permissions(me.frm.doctype, me.frm)) {
 			this.$user_properties = this.appframe.add_icon_btn("2", "icon-shield",
-				__("User Permission Restrictions"), function() {
+				__("User Permissions Manager"), function() {
 					frappe.route_options = {
-						property: me.frm.doctype,
-						restriction: me.frm.docname
+						doctype: me.frm.doctype,
+						name: me.frm.docname
 					};
-					frappe.set_route("user-properties");
+					frappe.set_route("user-permissions");
 				});
 		}
 
@@ -76,19 +81,6 @@ frappe.ui.form.InfoBar = Class.extend({
 
 	highlight_items: function() {
 		var me = this;
-
-		this.$timestamp
-			.popover("destroy")
-			.popover({
-				title: "Created and Modified By",
-				content: "Created By: " + frappe.user.full_name(me.frm.doc.owner) + "<br>" +
-					"Created On: " + dateutil.str_to_user(me.frm.doc.creation) + "<br>" +
-					"Last Modified By: " + frappe.user.full_name(me.frm.doc.modified_by) + "<br>" +
-					"Last Modifed On: " + dateutil.str_to_user(me.frm.doc.modified),
-				trigger:"hover",
-				html: true,
-				placement: "bottom"
-			})
 
 		this.$comments
 			.popover("destroy")
@@ -124,13 +116,27 @@ frappe.ui.form.InfoBar = Class.extend({
 	},
 
 	go_prev_next: function(prev) {
-		var me = this;
+		var me = this,
+			filters = null,
+			order_by = "modified desc",
+			doclistview = frappe.pages["List/" + me.frm.doctype];
+
+		// filters / order defined in listview
+		if(doclistview) {
+			filters = doclistview.doclistview.filter_list.get_filters();
+			if(doclistview.doclistview.listview.order_by) {
+				order_by = doclistview.doclistview.listview.order_by;
+			}
+		}
+
 		return frappe.call({
 			method: "frappe.widgets.form.utils.get_next",
 			args: {
 				doctype: me.frm.doctype,
-				name: me.frm.docname,
-				prev: prev ? 1 : 0
+				value: me.frm.doc[order_by.split(" ")[0]],
+				prev: prev ? 1 : 0,
+				filters: filters,
+				order_by: order_by
 			},
 			callback: function(r) {
 				if(r.message)

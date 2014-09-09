@@ -6,7 +6,7 @@ import frappe
 from frappe.utils.scheduler import enqueue_events
 from frappe.celery_app import get_celery, celery_task, task_logger, LONGJOBS_PREFIX
 from frappe.cli import get_sites
-from frappe.utils.file_lock import delete_lock
+from frappe.utils.file_lock import create_lock, delete_lock
 
 @celery_task()
 def sync_queues():
@@ -17,11 +17,11 @@ def sync_queues():
 	if shortjob_workers:
 		for worker in shortjob_workers:
 			sync_worker(app, worker)
-	
+
 	if longjob_workers:
 		for worker in longjob_workers:
 			sync_worker(app, worker, prefix=LONGJOBS_PREFIX)
-			
+
 def get_workers(app):
 	longjob_workers = []
 	shortjob_workers = []
@@ -32,7 +32,7 @@ def get_workers(app):
 			longjob_workers.append(worker)
 		else:
 			shortjob_workers.append(worker)
-	
+
 	return shortjob_workers, longjob_workers
 
 def sync_worker(app, worker, prefix=''):
@@ -52,6 +52,8 @@ def sync_worker(app, worker, prefix=''):
 
 def get_active_queues(app, worker):
 	active_queues = app.control.inspect().active_queues()
+	if not (active_queues and active_queues.get(worker)):
+		return []
 	return [queue['name'] for queue in active_queues[worker]]
 
 def get_required_queues(app, prefix=''):
@@ -67,22 +69,25 @@ def scheduler_task(site, event, handler, now=False):
 	traceback = ""
 	task_logger.info('running {handler} for {site} for event: {event}'.format(handler=handler, site=site, event=event))
 	try:
+		frappe.init(site=site)
+		if not create_lock(handler):
+			return
 		if not now:
 			frappe.connect(site=site)
 		frappe.get_attr(handler)()
-	
+
 	except Exception:
 		frappe.db.rollback()
 		traceback = log(handler, "Method: {event}, Handler: {handler}".format(event=event, handler=handler))
 		task_logger.warn(traceback)
 		raise
-		
+
 	else:
 		frappe.db.commit()
 
 	finally:
 		delete_lock(handler)
-		
+
 		if not now:
 			frappe.destroy()
 
@@ -91,6 +96,15 @@ def scheduler_task(site, event, handler, now=False):
 @celery_task()
 def enqueue_scheduler_events():
 	for site in get_sites():
+		enqueue_events_for_site.delay(site=site)
+
+@celery_task()
+def enqueue_events_for_site(site):
+	try:
+		frappe.init(site=site)
+		if frappe.local.conf.maintenance_mode:
+			return
 		frappe.connect(site=site)
 		enqueue_events(site)
+	finally:
 		frappe.destroy()

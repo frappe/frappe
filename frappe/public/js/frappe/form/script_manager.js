@@ -13,6 +13,10 @@ frappe.ui.form.on = frappe.ui.form.on_change = function(doctype, fieldname, hand
 	frappe.ui.form.handlers[doctype][fieldname].push(handler)
 }
 
+frappe.ui.form.trigger = function(doctype, fieldname, callback) {
+	cur_frm.script_manager.trigger(fieldname, doctype, null, callback);
+}
+
 frappe.ui.form.ScriptManager = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
@@ -80,7 +84,7 @@ frappe.ui.form.ScriptManager = Class.extend({
 		console.log("----- end of error message -----");
 		console.group && console.groupEnd();
 	},
-	validate_link_and_fetch: function(df, docname, value, callback) {
+	validate_link_and_fetch: function(df, doctype, docname, value, callback) {
 		var me = this;
 
 		if(value) {
@@ -94,7 +98,7 @@ frappe.ui.form.ScriptManager = Class.extend({
 				type: "GET",
 				args: {
 					'value': value,
-					'options': df.options,
+					'options': doctype,
 					'fetch': fetch
 				},
 				no_spinner: true,

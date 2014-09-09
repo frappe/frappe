@@ -14,22 +14,30 @@ def get(args=None):
 	if not args:
 		args = frappe.local.form_dict
 
-	get_docinfo(args.get("doctype"), args.get("name"))
+	get_docinfo(frappe.get_doc(args.get("doctype"), args.get("name")))
 
-	return frappe.db.sql_list("""select owner from `tabToDo`
+	return frappe.db.sql("""select owner, description from `tabToDo`
 		where reference_type=%(doctype)s and reference_name=%(name)s and status="Open"
-		order by modified desc limit 5""", args)
+		order by modified desc limit 5""", args, as_dict=True)
 
 @frappe.whitelist()
 def add(args=None):
-	"""add in someone's to do list"""
+	"""add in someone's to do list
+		args = {
+			"assign_to": ,
+			"doctype": ,
+			"name": ,
+			"description":
+		}
+
+	"""
 	if not args:
 		args = frappe.local.form_dict
 
 	if frappe.db.sql("""select owner from `tabToDo`
 		where reference_type=%(doctype)s and reference_name=%(name)s and status="Open"
 		and owner=%(assign_to)s""", args):
-		frappe.msgprint(_("Already in todo"), raise_exception=True)
+		frappe.msgprint(_("Already in user's To Do list"), raise_exception=True)
 		return
 	else:
 		from frappe.utils import nowdate
@@ -50,15 +58,6 @@ def add(args=None):
 		if frappe.get_meta(args['doctype']).get_field("assigned_to"):
 			frappe.db.set_value(args['doctype'], args['name'], "assigned_to", args['assign_to'])
 
-	try:
-		if cint(args.get("restrict")):
-			from frappe.core.page.user_properties import user_properties
-			user_properties.add(args['assign_to'], args['doctype'], args['name'])
-			frappe.msgprint(_("Restriction added"))
-	except frappe.PermissionError:
-		frappe.throw(_("Not permitted to restrict User {0} for {1} {2}").format(args["assign_to"],
-			args["doctype"], args["name"]))
-
 	# notify
 	if not args.get("no_notification"):
 		notify_assignment(d.assigned_by, d.owner, d.reference_type, d.reference_name, action='ASSIGN', description=args.get("description"), notify=args.get('notify'))
@@ -68,15 +67,18 @@ def add(args=None):
 @frappe.whitelist()
 def remove(doctype, name, assign_to):
 	"""remove from todo"""
-	todo = frappe.get_doc("ToDo", {"reference_type":doctype, "reference_name":name, "owner":assign_to, "status":"Open"})
-	todo.status = "Closed"
-	todo.save(ignore_permissions=True)
+	try:
+		todo = frappe.get_doc("ToDo", {"reference_type":doctype, "reference_name":name, "owner":assign_to, "status":"Open"})
+		todo.status = "Closed"
+		todo.save(ignore_permissions=True)
+
+		notify_assignment(todo.assigned_by, todo.owner, todo.reference_type, todo.reference_name)
+	except frappe.DoesNotExistError:
+		pass
 
 	# clear assigned_to if field exists
 	if frappe.get_meta(doctype).get_field("assigned_to"):
 		frappe.db.set_value(doctype, name, "assigned_to", None)
-
-	notify_assignment(todo.assigned_by, todo.owner, todo.reference_type, todo.reference_name)
 
 	return get({"doctype": doctype, "name": name})
 
@@ -132,5 +134,4 @@ def notify_assignment(assigned_by, owner, doc_type, doc_name, action='CLOSE',
 
 	arg["parenttype"] = "Assignment"
 	from frappe.core.page.messages import messages
-	import json
-	messages.post(json.dumps(arg))
+	messages.post(**arg)

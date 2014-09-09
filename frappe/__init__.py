@@ -4,19 +4,15 @@
 globals attached to frappe module
 + some utility functions that should probably be moved
 """
-
 from __future__ import unicode_literals
 
 from werkzeug.local import Local, release_local
-from werkzeug.exceptions import NotFound
-from MySQLdb import ProgrammingError as SQLError
+import os, importlib, inspect, logging, json
 
-import os, sys, importlib, inspect
-import json
-
+# public
+from frappe.__version__ import __version__
 from .exceptions import *
-
-__version__ = "4.0.1"
+from .utils.jinja import get_jenv, get_template, render_template
 
 local = Local()
 
@@ -68,7 +64,6 @@ response = local("response")
 session = local("session")
 user = local("user")
 flags = local("flags")
-restrictions = local("restrictions")
 
 error_log = local("error_log")
 debug_log = local("debug_log")
@@ -84,29 +79,36 @@ def init(site, sites_path=None):
 		sites_path = '.'
 
 	local.error_log = []
+	local.message_log = []
+	local.debug_log = []
+	local.flags = _dict({})
+	local.rollback_observers = []
+	local.test_objects = {}
+
 	local.site = site
 	local.sites_path = sites_path
 	local.site_path = os.path.join(sites_path, site)
-	local.message_log = []
-	local.debug_log = []
+
 	local.request_method = request.method if request else None
+	local.request_ip = None
 	local.response = _dict({"docs":[]})
+
 	local.conf = _dict(get_site_config())
 	local.lang = local.conf.lang or "en"
-	local.initialised = True
-	local.flags = _dict({})
-	local.rollback_observers = []
+
 	local.module_app = None
 	local.app_modules = None
+
 	local.user = None
-	local.restrictions = None
-	local.user_perms = {}
-	local.test_objects = {}
+	local.role_permissions = {}
+
 	local.jenv = None
 	local.jloader =None
 	local.cache = {}
 
 	setup_module_map()
+
+	local.initialised = True
 
 def connect(site=None, db_name=None):
 	from database import Database
@@ -158,7 +160,7 @@ def get_traceback():
 
 def errprint(msg):
 	from utils import cstr
-	if not request:
+	if not request or (not "cmd" in local.form_dict):
 		print cstr(msg)
 
 	error_log.append(cstr(msg))
@@ -199,36 +201,46 @@ def msgprint(msg, small=0, raise_exception=0, as_table=False):
 def throw(msg, exc=ValidationError):
 	msgprint(msg, raise_exception=exc)
 
-def create_folder(path):
-	if not os.path.exists(path): os.makedirs(path)
+def create_folder(path, with_init=False):
+	from frappe.utils import touch_file
+	if not os.path.exists(path):
+		os.makedirs(path)
+
+		if with_init:
+			touch_file(os.path.join(path, "__init__.py"))
 
 def set_user(username):
 	from frappe.utils.user import User
 	local.session.user = username
 	local.session.sid = username
 	local.cache = {}
+	local.form_dict = _dict()
+	local.jenv = None
 	local.session.data = {}
 	local.user = User(username)
-	local.restrictions = None
-	local.user_perms = {}
+	local.role_permissions = {}
 
 def get_request_header(key, default=None):
 	return request.headers.get(key, default)
 
 def sendmail(recipients=(), sender="", subject="No Subject", message="No Message",
-		as_markdown=False, bulk=False):
+		as_markdown=False, bulk=False, ref_doctype=None, ref_docname=None,
+		add_unsubscribe_link=False, attachments=None):
 
 	if bulk:
 		import frappe.utils.email_lib.bulk
 		frappe.utils.email_lib.bulk.send(recipients=recipients, sender=sender,
-			subject=subject, message=message, add_unsubscribe_link=False)
+			subject=subject, message=message, ref_doctype = ref_doctype,
+			ref_docname = ref_docname, add_unsubscribe_link=add_unsubscribe_link, attachments=attachments)
 
 	else:
 		import frappe.utils.email_lib
 		if as_markdown:
-			frappe.utils.email_lib.sendmail_md(recipients, sender=sender, subject=subject, msg=message)
+			frappe.utils.email_lib.sendmail_md(recipients, sender=sender,
+				subject=subject, msg=message, attachments=attachments)
 		else:
-			frappe.utils.email_lib.sendmail(recipients, sender=sender, subject=subject, msg=message)
+			frappe.utils.email_lib.sendmail(recipients, sender=sender,
+				subject=subject, msg=message, attachments=attachments)
 
 logger = None
 whitelisted = []
@@ -276,18 +288,27 @@ def clear_cache(user=None, doctype=None):
 		translate.clear_cache()
 		reset_metadata_version()
 
+		for fn in frappe.get_hooks("clear_cache"):
+			get_attr(fn)()
+
+	frappe.local.role_permissions = {}
+
 def get_roles(username=None):
-	from frappe.utils.user import User
 	if not local.session:
 		return ["Guest"]
-	elif not username or username==local.session.user:
-		return local.user.get_roles()
-	else:
-		return User(username).get_roles()
 
-def has_permission(doctype, ptype="read", doc=None):
+	return get_user(username).get_roles()
+
+def get_user(username):
+	from frappe.utils.user import User
+	if not username or username == local.session.user:
+		return local.user
+	else:
+		return User(username)
+
+def has_permission(doctype, ptype="read", doc=None, user=None):
 	import frappe.permissions
-	return frappe.permissions.has_permission(doctype, ptype, doc)
+	return frappe.permissions.has_permission(doctype, ptype, doc, user=user)
 
 def is_table(doctype):
 	tables = cache().get_value("is_table")
@@ -300,6 +321,9 @@ def clear_perms(doctype):
 	db.sql("""delete from tabDocPerm where parent=%s""", doctype)
 
 def reset_perms(doctype):
+	from frappe.core.doctype.notification_count.notification_count import delete_notification_count_for
+	delete_notification_count_for(doctype)
+
 	clear_perms(doctype)
 	reload_doc(db.get_value("DocType", doctype, "module"),
 		"DocType", doctype, force=True)
@@ -307,7 +331,8 @@ def reset_perms(doctype):
 def generate_hash(txt=None):
 	"""Generates random hash for session id"""
 	import hashlib, time
-	return hashlib.sha224((txt or "") + repr(time.time())).hexdigest()
+	from .utils import random_string
+	return hashlib.sha224((txt or "") + repr(time.time()) + repr(random_string(8))).hexdigest()
 
 def reset_metadata_version():
 	v = generate_hash()
@@ -332,15 +357,7 @@ def get_meta(doctype, cached=True):
 
 def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reload=False, ignore_permissions=False):
 	import frappe.model.delete_doc
-
-	if not ignore_doctypes:
-		ignore_doctypes = []
-
-	if isinstance(name, list):
-		for n in name:
-			frappe.model.delete_doc.delete_doc(doctype, n, force, ignore_doctypes, for_reload, ignore_permissions)
-	else:
-		frappe.model.delete_doc.delete_doc(doctype, name, force, ignore_doctypes, for_reload, ignore_permissions)
+	frappe.model.delete_doc.delete_doc(doctype, name, force, ignore_doctypes, for_reload, ignore_permissions)
 
 def delete_doc_if_exists(doctype, name):
 	if db.exists(doctype, name):
@@ -362,7 +379,7 @@ def get_module(modulename):
 	return importlib.import_module(modulename)
 
 def scrub(txt):
-	return txt.replace(' ','_').replace('-', '_').replace('/', '_').lower()
+	return txt.replace(' ','_').replace('-', '_').lower()
 
 def unscrub(txt):
 	return txt.replace('_',' ').replace('-', ' ').title()
@@ -396,10 +413,25 @@ def get_all_apps(with_frappe=False, with_internal_apps=True, sites_path=None):
 	return apps
 
 def get_installed_apps():
-	if flags.in_install_db:
+	if getattr(flags, "in_install_db", True):
 		return []
 	installed = json.loads(db.get_global("installed_apps") or "[]")
 	return installed
+
+@whitelist()
+def get_versions():
+	versions = {}
+	for app in get_installed_apps():
+		versions[app] = {
+			"title": get_hooks("app_title", app_name=app),
+			"description": get_hooks("app_description", app_name=app)
+		}
+		try:
+			versions[app]["version"] = get_attr(app + ".__version__")
+		except AttributeError:
+			versions[app]["version"] = '0.0.1'
+
+	return versions
 
 def get_hooks(hook=None, default=None, app_name=None):
 	def load_app_hooks(app_name=None):
@@ -449,6 +481,7 @@ def setup_module_map():
 			if app=="webnotes": app="frappe"
 			local.app_modules.setdefault(app, [])
 			for module in get_module_list(app):
+				module = scrub(module)
 				local.module_app[module] = app
 				local.app_modules[app].append(module)
 
@@ -456,10 +489,13 @@ def setup_module_map():
 			_cache.set_value("app_modules", local.app_modules)
 			_cache.set_value("module_app", local.module_app)
 
-def get_file_items(path, raise_not_found=False):
+def get_file_items(path, raise_not_found=False, ignore_empty_lines=True):
 	content = read_file(path, raise_not_found=raise_not_found)
 	if content:
-		return [p.strip() for p in content.splitlines() if p.strip() and not p.startswith("#")]
+		# \ufeff is no-width-break, \u200b is no-width-space
+		content = content.replace("\ufeff", "").replace("\u200b", "").strip()
+
+		return [p.strip() for p in content.splitlines() if (not ignore_empty_lines) or (p.strip() and not p.startswith("#"))]
 	else:
 		return []
 
@@ -494,9 +530,9 @@ def call(fn, *args, **kwargs):
 			newargs[a] = kwargs.get(a)
 	return fn(*args, **newargs)
 
-def make_property_setter(args):
+def make_property_setter(args, ignore_validate=False):
 	args = _dict(args)
-	get_doc({
+	ps = get_doc({
 		'doctype': "Property Setter",
 		'doctype_or_field': args.doctype_or_field or "DocField",
 		'doc_type': args.doctype,
@@ -505,13 +541,16 @@ def make_property_setter(args):
 		'value': args.value,
 		'property_type': args.property_type or "Data",
 		'__islocal': 1
-	}).save()
+	})
+	ps.ignore_validate = ignore_validate
+	ps.insert()
 
 def import_doc(path, ignore_links=False, ignore_insert=False, insert=False):
 	from frappe.core.page.data_import_tool import data_import_tool
 	data_import_tool.import_doc(path, ignore_links=ignore_links, ignore_insert=ignore_insert, insert=insert)
 
 def copy_doc(doc):
+	""" No_copy fields also get copied."""
 	import copy
 	if not isinstance(doc, dict):
 		d = doc.as_dict()
@@ -523,6 +562,8 @@ def copy_doc(doc):
 	newdoc.set("__islocal", 1)
 	newdoc.owner = None
 	newdoc.creation = None
+	newdoc.amended_from = None
+	newdoc.amendment_date = None
 	for d in newdoc.get_all_children():
 		d.name = None
 		d.parent = None
@@ -540,7 +581,7 @@ def respond_as_web_page(title, html, success=None, http_status_code=None):
 	local.message = html
 	local.message_success = success
 	local.response['type'] = 'page'
-	local.response['page_name'] = 'message.html'
+	local.response['page_name'] = 'message'
 	if http_status_code:
 		local.response['http_status_code'] = http_status_code
 
@@ -550,69 +591,15 @@ def build_match_conditions(doctype, as_condition=True):
 
 def get_list(doctype, filters=None, fields=None, or_filters=None, docstatus=None,
 			group_by=None, order_by=None, limit_start=0, limit_page_length=None,
-			as_list=False, debug=False, ignore_permissions=False):
+			as_list=False, debug=False, ignore_permissions=False, user=None):
 	import frappe.model.db_query
 	return frappe.model.db_query.DatabaseQuery(doctype).execute(filters=filters,
 				fields=fields, docstatus=docstatus, or_filters=or_filters,
 				group_by=group_by, order_by=order_by, limit_start=limit_start,
 				limit_page_length=limit_page_length, as_list=as_list, debug=debug,
-				ignore_permissions=ignore_permissions)
+				ignore_permissions=ignore_permissions, user=user)
 
 run_query = get_list
-
-def get_jenv():
-	if not local.jenv:
-		from jinja2 import Environment, DebugUndefined
-		import frappe.utils
-
-		# frappe will be loaded last, so app templates will get precedence
-		jenv = Environment(loader = get_jloader(), undefined=DebugUndefined)
-		set_filters(jenv)
-
-		jenv.globals.update({
-			"frappe": sys.modules[__name__],
-			"frappe.utils": frappe.utils,
-			"_": _
-		})
-
-		local.jenv = jenv
-
-	return local.jenv
-
-def get_jloader():
-	if not local.jloader:
-		from jinja2 import ChoiceLoader, PackageLoader
-
-		apps = get_installed_apps()
-		apps.remove("frappe")
-
-		local.jloader = ChoiceLoader([PackageLoader(app, ".") \
-				for app in apps + ["frappe"]])
-
-	return local.jloader
-
-def set_filters(jenv):
-	from frappe.utils import global_date_format
-	from frappe.website.utils import get_hex_shade
-	from markdown2 import markdown
-	from json import dumps
-
-	jenv.filters["global_date_format"] = global_date_format
-	jenv.filters["markdown"] = markdown
-	jenv.filters["json"] = dumps
-	jenv.filters["get_hex_shade"] = get_hex_shade
-
-	# load jenv_filters from hooks.txt
-	for app in get_all_apps(True):
-		for jenv_filter in (get_hooks(app_name=app).jenv_filter or []):
-			filter_name, filter_function = jenv_filter.split(":")
-			jenv.filters[filter_name] = get_attr(filter_function)
-
-def get_template(path):
-	return get_jenv().get_template(path)
-
-def get_website_route(doctype, name):
-	return db.get_value("Website Route", {"ref_doctype": doctype, "docname": name})
 
 def add_version(doc):
 	get_doc({
@@ -630,3 +617,37 @@ def get_test_records(doctype):
 			return json.loads(f.read())
 	else:
 		return []
+
+def format_value(value, df, doc=None, currency=None):
+	import frappe.utils.formatters
+	return frappe.utils.formatters.format_value(value, df, doc, currency=currency)
+
+def get_print_format(doctype, name, print_format=None, style=None, as_pdf=False):
+	from frappe.website.render import build_page
+	local.form_dict.doctype = doctype
+	local.form_dict.name = name
+	local.form_dict.format = print_format
+	local.form_dict.style = style
+
+	html = build_page("print")
+
+	if as_pdf:
+		print_settings = db.get_singles_dict("Print Settings")
+		if int(print_settings.send_print_as_pdf or 0):
+			from utils.pdf import get_pdf
+			return get_pdf(html, {"page-size": print_settings.pdf_page_size})
+		else:
+			return html
+	else:
+		return html
+
+logging_setup_complete = False
+def get_logger(module=None):
+	from frappe.setup_logging import setup_logging
+	global logging_setup_complete
+
+	if not logging_setup_complete:
+		setup_logging()
+		logging_setup_complete = True
+
+	return logging.getLogger(module or "frappe")

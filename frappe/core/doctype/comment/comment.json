@@ -1,22 +1,31 @@
 {
- "autoname": "CWR/.#####", 
- "creation": "2012-08-08 10:40:11.000000", 
+ "autoname": "hash", 
+ "creation": "2012-08-08 10:40:11", 
  "docstatus": 0, 
  "doctype": "DocType", 
  "fields": [
   {
    "fieldname": "comment", 
    "fieldtype": "Text", 
+   "in_list_view": 1, 
    "label": "Comment", 
    "no_copy": 0, 
    "oldfieldname": "comment", 
    "oldfieldtype": "Text", 
    "permlevel": 0, 
+   "reqd": 1, 
    "search_index": 0
+  }, 
+  {
+   "fieldname": "comment_type", 
+   "fieldtype": "Data", 
+   "label": "Comment Type", 
+   "permlevel": 0
   }, 
   {
    "fieldname": "comment_by", 
    "fieldtype": "Data", 
+   "in_list_view": 1, 
    "label": "Comment By", 
    "no_copy": 0, 
    "oldfieldname": "comment_by", 
@@ -27,6 +36,7 @@
   {
    "fieldname": "comment_by_fullname", 
    "fieldtype": "Data", 
+   "in_list_view": 1, 
    "label": "Comment By Fullname", 
    "no_copy": 0, 
    "oldfieldname": "comment_by_fullname", 
@@ -37,6 +47,7 @@
   {
    "fieldname": "comment_date", 
    "fieldtype": "Date", 
+   "in_list_view": 1, 
    "label": "Comment Date", 
    "no_copy": 0, 
    "oldfieldname": "comment_date", 
@@ -47,6 +58,7 @@
   {
    "fieldname": "comment_time", 
    "fieldtype": "Data", 
+   "in_list_view": 1, 
    "label": "Comment Time", 
    "no_copy": 0, 
    "oldfieldname": "comment_time", 
@@ -94,7 +106,7 @@
  "icon": "icon-comments", 
  "idx": 1, 
  "issingle": 0, 
- "modified": "2014-01-24 13:00:20.000000", 
+ "modified": "2014-08-22 05:24:28.072749", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Comment", 

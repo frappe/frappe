@@ -13,7 +13,7 @@ def remove_attach():
 	"""remove attachment"""
 	import frappe.utils.file_manager
 	fid = frappe.form_dict.get('fid')
-	frappe.utils.file_manager.remove_file(fid)
+	return frappe.utils.file_manager.remove_file(fid)
 
 @frappe.whitelist()
 def get_fields():
@@ -48,6 +48,9 @@ def validate_link():
 
 		# get fetch values
 		if fetch:
+			# escape with "`"
+			fetch = ", ".join(("`{0}`".format(f.strip()) for f in fetch.split(",")))
+
 			frappe.response['fetch_values'] = [frappe.utils.parse_val(c) \
 				for c in frappe.db.sql("select %s from `tab%s` where name=%s" \
 					% (fetch, options, '%s'), (value,))[0]]
@@ -63,15 +66,33 @@ def add_comment(doc):
 	return doc.as_dict()
 
 @frappe.whitelist()
-def get_next(doctype, name, prev):
+def get_next(doctype, value, prev, filters=None, order_by="modified desc"):
 	import frappe.widgets.reportview
 
-	prev = int(prev)
-	field = "`tab%s`.name" % doctype
+	prev = not int(prev)
+	sort_field, sort_order = order_by.split(" ")
+
+	if not filters: filters = []
+	if isinstance(filters, basestring):
+		filters = json.loads(filters)
+
+	# condition based on sort order
+	condition = ">" if sort_order.lower()=="desc" else "<"
+
+	# switch the condition
+	if prev:
+		condition = "<" if condition==">" else "<"
+	else:
+		sort_order = "asc" if sort_order.lower()=="desc" else "desc"
+
+	# add condition for next or prev item
+	if not order_by[0] in [f[1] for f in filters]:
+		filters.append([doctype, sort_field, condition, value])
+
 	res = frappe.widgets.reportview.execute(doctype,
-		fields = [field],
-		filters = [[doctype, "name", "<" if prev else ">", name]],
-		order_by = field + " " + ("desc" if prev else "asc"),
+		fields = ["name"],
+		filters = filters,
+		order_by = sort_field + " " + sort_order,
 		limit_start=0, limit_page_length=1, as_list=True)
 
 	if not res:
@@ -81,7 +102,7 @@ def get_next(doctype, name, prev):
 		return res[0][0]
 
 @frappe.whitelist()
-def get_linked_docs(doctype, name, metadata_loaded=None):
+def get_linked_docs(doctype, name, metadata_loaded=None, no_metadata=False):
 	if not metadata_loaded: metadata_loaded = []
 	meta = frappe.widgets.form.meta.get_meta(doctype)
 	linkinfo = meta.get("__linked_with")
@@ -108,7 +129,7 @@ def get_linked_docs(doctype, name, metadata_loaded=None):
 			if ret:
 				results[dt] = ret
 
-			if not dt in metadata_loaded:
+			if not no_metadata and not dt in metadata_loaded:
 				frappe.local.response.docs.extend(link_meta_bundle)
 
 

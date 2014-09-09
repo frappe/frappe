@@ -13,6 +13,8 @@ from frappe import conf
 from frappe.sessions import Session, clear_sessions, delete_session
 from frappe.modules.patch_handler import check_session_stopped
 
+from urllib import quote
+
 class HTTPRequest:
 	def __init__(self):
 		# Get Environment variables
@@ -20,6 +22,8 @@ class HTTPRequest:
 		if self.domain and self.domain.startswith('www.'):
 			self.domain = self.domain[4:]
 
+		frappe.local.request_ip = frappe.get_request_header('REMOTE_ADDR') \
+				or frappe.get_request_header('X-Forwarded-For') or '127.0.0.1'
 		# language
 		self.set_lang(frappe.get_request_header('HTTP_ACCEPT_LANGUAGE'))
 
@@ -157,7 +161,7 @@ class LoginManager:
 		ip_list = [i.strip() for i in ip_list]
 
 		for ip in ip_list:
-			if frappe.get_request_header('REMOTE_ADDR', '').startswith(ip) or frappe.get_request_header('X-Forwarded-For', '').startswith(ip):
+			if frappe.local.request_ip.startswith(ip):
 				return
 
 		frappe.throw(_("Not allowed from this IP Address"), frappe.AuthenticationError)
@@ -223,7 +227,8 @@ class CookieManager:
 
 	def flush_cookies(self, response):
 		for key, opts in self.cookies.items():
-			response.set_cookie(key, opts.get("value"), expires=opts.get("expires"))
+			response.set_cookie(key, quote((opts.get("value") or "").encode('utf-8')),
+				expires=opts.get("expires"))
 
 		# expires yesterday!
 		expires = datetime.datetime.now() + datetime.timedelta(days=-1)

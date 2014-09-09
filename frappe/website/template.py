@@ -27,7 +27,7 @@ def render_blocks(context):
 		for block, render in template.blocks.items():
 			out[block] = scrub_relative_urls(concat(render(template.new_context(context))))
 
-	_render_blocks(context["template_path"])
+	_render_blocks(context["template"])
 
 	# default blocks if not found
 	if "title" not in out and out.get("header"):
@@ -39,15 +39,38 @@ def render_blocks(context):
 	if "header" not in out and out.get("title"):
 		out["header"] = out["title"]
 
-	if not out["header"].startswith("<h"):
+	if out.get("header") and not out["header"].startswith("<h"):
 		out["header"] = "<h2>" + out["header"] + "</h2>"
 
 	if "breadcrumbs" not in out:
 		out["breadcrumbs"] = scrub_relative_urls(
 			frappe.get_template("templates/includes/breadcrumbs.html").render(context))
 
+	if "meta_block" not in out:
+		out["meta_block"] = frappe.get_template("templates/includes/meta_block.html").render(context)
+
+
+	out["no_sidebar"] = context.get("no_sidebar", 0)
+
 	if "<!-- no-sidebar -->" in out.get("content", ""):
 		out["no_sidebar"] = 1
+
+	if "<!-- title:" in out.get("content", ""):
+		out["title"] = re.findall('<!-- title:([^>]*) -->', out.get("content"))[0].strip()
+
+	if "{index}" in out.get("content", "") and context.get("children"):
+		html = frappe.get_template("templates/includes/static_index.html").render({
+				"items": context["children"]})
+		out["content"] = out["content"].replace("{index}", html)
+
+	if "{next}" in out.get("content", ""):
+		next_item = context.doc.get_next()
+		if next_item:
+			if next_item.name[0]!="/": next_item.name = "/" + next_item.name
+			html = '''<p><br><a href="{name}" class="btn btn-primary">
+				{title} <i class="icon-chevron-right"></i></a>
+			</p>'''.format(**next_item)
+			out["content"] = out["content"].replace("{next}", html)
 
 	if "sidebar" not in out and not out.get("no_sidebar"):
 		out["sidebar"] = scrub_relative_urls(

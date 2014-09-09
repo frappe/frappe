@@ -36,6 +36,10 @@ frappe.views.show_open_count_list = function(element) {
 
 frappe.get_module = function(m) {
 	var module = frappe.modules[m];
+	if (!module) {
+		return;
+	}
+
 	module.name = m;
 
 	if(module.type==="module" && !module.link) {
@@ -191,11 +195,11 @@ frappe.views.moduleview.ModuleView = Class.extend({
 				}
 
 				item.description = cstr(item.description);
-
+				
 				$list_item = $($r('<li class="list-group-item">\
 					<div class="row">\
 						<div class="col-sm-6 list-item-name">\
-							<a data-label="%(label)s"><i class="%(icon)s icon-fixed-width"></i> %(label)s</a></div>\
+							<a class="form-link" data-label="%(label)s"><i class="%(icon)s icon-fixed-width"></i> %(label)s</a></div>\
 						<div class="col-sm-6 text-muted list-item-description">%(description)s</div>\
 					</div>\
 					</li>', item)).appendTo($list);
@@ -219,6 +223,7 @@ frappe.views.moduleview.ModuleView = Class.extend({
 					if(!route) {
 						if(item.type==="doctype") {
 							route = "List/" + encodeURIComponent(item.name);
+							frappe.listview_parent_route[item.name] = ["Module", me.module];
 						} else if(item.type==="page") {
 							route = item.route || item.link || item.name;
 						} else if(item.type==="report") {

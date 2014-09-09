@@ -6,44 +6,72 @@
 frappe.provide("frappe.form.formatters");
 
 frappe.form.formatters = {
+	_right: function(value, options) {
+		if(options && options.inline) {
+			return value;
+		} else {
+			return "<div style='text-align: right'>" + value + "</div>";
+		}
+	},
 	Data: function(value) {
-		return value==null ? "" : value
+		return value==null ? "" : value;
 	},
-	Float: function(value, docfield) {
-		var decimals = cint(docfield.options, null) || cint(frappe.boot.sysdefaults.float_precision, null);
+	Select: function(value) {
+		return __(frappe.form.formatters["Data"](value));
+	},
+	Float: function(value, docfield, options, doc) {
+		// don't allow 0 precision for Floats, hence or'ing with null
+		var precision = docfield.precision || cint(frappe.boot.sysdefaults.float_precision) || null;
+		if (docfield.options && docfield.options.trim()) {
+			// options points to a currency field, but expects precision of float!
+			docfield.precision = precision;
+			return frappe.form.formatters.Currency(value, docfield, options, doc);
 
-		return "<div style='text-align: right'>" + 
-			((value==null || value==="") ? "" :
-				format_number(value, null, decimals)) + "</div>";
+		} else {
+			// show 1.000000 as 1
+			if (!is_null(value)) {
+				var temp = cstr(value).split(".");
+				if (temp[1]==undefined || cint(temp[1])===0) {
+					precision = 0;
+				}
+			}
+
+			return frappe.form.formatters._right(
+				((value==null || value==="")
+					? ""
+					: format_number(value, null, precision)), options);
+		}
 	},
-	Int: function(value) {
-		return value==null ? "": "<div style='text-align: right'>" + cint(value) + "</div>";
+	Int: function(value, docfield, options) {
+		return frappe.form.formatters._right(value==null ? "" : cint(value), options)
 	},
-	Percent: function(value) {
-		return "<div style='text-align: right'>" + flt(value, 2) + "%" + "</div>";
+	Percent: function(value, docfield, options) {
+		return frappe.form.formatters._right(flt(value, 2) + "%", options)
 	},
 	Currency: function(value, docfield, options, doc) {
 		var currency = frappe.meta.get_field_currency(docfield, doc);
-		return "<div style='text-align: right'>" + format_currency(value, currency) + "</div>";
+		return frappe.form.formatters._right((value==null || value==="")
+			? "" : format_currency(value, currency, docfield.precision || null), options);
 	},
 	Check: function(value) {
 		return value ? "<i class='icon-check'></i>" : "<i class='icon-check-empty'></i>";
 	},
 	Link: function(value, docfield, options) {
-		if(options && options.for_print) 
+		var doctype = docfield._options || docfield.options;
+		if(options && options.for_print)
 			return value;
-		if(!value) 
+		if(!value)
 			return "";
 		if(docfield && docfield.link_onclick) {
-			return repl('<a onclick="%(onclick)s">%(value)s</a>', 
+			return repl('<a onclick="%(onclick)s">%(value)s</a>',
 				{onclick: docfield.link_onclick.replace(/"/g, '&quot;'), value:value});
-		} else if(docfield && docfield.options) {
+		} else if(docfield && doctype) {
 			return repl('%(icon)s<a href="#Form/%(doctype)s/%(name)s">%(label)s</a>', {
-				doctype: encodeURIComponent(docfield.options),
+				doctype: encodeURIComponent(doctype),
 				name: encodeURIComponent(value),
 				label: value,
 				icon: (options && options.no_icon) ? "" :
-					('<i class="icon-fixed-width '+frappe.boot.doctype_icons[docfield.options]+'"></i> ')
+					('<i class="icon-fixed-width '+frappe.boot.doctype_icons[doctype]+'"></i> ')
 			});
 		} else {
 			return value;
@@ -54,12 +82,13 @@ frappe.form.formatters = {
 	},
 	Text: function(value) {
 		if(value) {
-			var tags = ["<p[^>]>", "<div[^>]>", "<br[^>]>"];
+			var tags = ["<p", "<div", "<br"];
 			var match = false;
 
 			for(var i=0; i<tags.length; i++) {
 				if(value.match(tags[i])) {
 					match = true;
+					break;
 				}
 			}
 
@@ -85,6 +114,15 @@ frappe.form.formatters = {
 			if(v) html+= '<span class="label label-warning" \
 				style="margin-right: 7px;"\
 				data-field="_comments" data-label="'+v.name+'">'+v.comment+'</span>';
+		});
+		return html;
+	},
+	Assign: function(value) {
+		var html = "";
+		$.each(JSON.parse(value || "[]"), function(i, v) {
+			if(v) html+= '<span class="label label-warning" \
+				style="margin-right: 7px;"\
+				data-field="_assign">'+v+'</span>';
 		});
 		return html;
 	},
@@ -115,11 +153,34 @@ frappe.form.formatters = {
 }
 
 frappe.form.get_formatter = function(fieldtype) {
-	if(!fieldtype) fieldtype = "Data";
+	if(!fieldtype)
+		fieldtype = "Data";
 	return frappe.form.formatters[fieldtype.replace(/ /g, "")] || frappe.form.formatters.Data;
 }
 
 frappe.format = function(value, df, options, doc) {
 	if(!df) df = {"fieldtype":"Data"};
-	return frappe.form.get_formatter(df.fieldtype)(value, df, options, doc);
+	var fieldtype = df.fieldtype || "Data";
+
+	// format Dynamic Link as a Link
+	if(fieldtype==="Dynamic Link") {
+		fieldtype = "Link";
+		df._options = doc ? doc[df.options] : null;
+	}
+
+	formatter = df.formatter || frappe.form.get_formatter(fieldtype);
+
+	return formatter(value, df, options, doc);
+}
+
+frappe.get_format_helper = function(doc) {
+	var helper = {
+		get_formatted: function(fieldname) {
+			var df = frappe.meta.get_docfield(doc.doctype, fieldname);
+			if(!df) { console.log("fieldname not found: " + fieldname); };
+			return frappe.format(doc[fieldname], df, {inline:1}, doc);
+		}
+	};
+	$.extend(helper, doc);
+	return helper;
 }

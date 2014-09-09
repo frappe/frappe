@@ -18,6 +18,11 @@ def get_data():
 				},
 				{
 					"type": "doctype",
+					"name": "Web Form",
+					"description": _("User editable form on Website."),
+				},
+				{
+					"type": "doctype",
 					"name": "Blogger",
 					"description": _("User ID of a blog writer."),
 				},
@@ -46,13 +51,6 @@ def get_data():
 					"type": "doctype",
 					"name": "Website Settings",
 					"description": _("Setup of top navigation bar, footer and logo."),
-				},
-				{
-					"type": "page",
-					"name":"sitemap-browser",
-					"label": _("Sitemap Browser"),
-					"description": _("View or manage Website Route tree."),
-					"icon": "icon-sitemap"
 				},
 				{
 					"type": "doctype",
@@ -89,6 +87,11 @@ def get_data():
 					"name": "Website Page Permission",
 					"description": _("Define read, write, admin permissions for a Website Page."),
 				},
+				{
+					"type": "doctype",
+					"name": "Social Login Keys",
+					"description": _("Enter keys to enable login via Facebook, Google, GitHub."),
+				}
 			]
 		},
 	]

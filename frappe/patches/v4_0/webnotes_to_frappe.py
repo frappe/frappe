@@ -1,6 +1,7 @@
 import frappe, json
 
 def execute():
+	frappe.clear_cache()
 	installed = frappe.get_installed_apps()
 	if "webnotes" in installed:
 		installed.remove("webnotes")

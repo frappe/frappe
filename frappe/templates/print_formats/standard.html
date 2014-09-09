@@ -1,0 +1,26 @@
+{%- from "templates/print_formats/standard_macros.html" import add_header,
+	 render_field -%}
+
+{% for page in layout %}
+<div class="page-break">
+    {{ add_header(loop.index, layout|len, doc, letter_head, no_letterhead) }}
+    {% for section in page %}
+    <div class="row">
+        {% for column in section %}
+        <div class="col-xs-{{ (12 / section|len)|int }}">
+            {% for df in column %}
+                {{ render_field(df, doc) }}
+            {% endfor %}
+        </div>
+        {% endfor %}
+    </div>
+    {% endfor %}
+</div>
+{% endfor %}
+
+{%- if trigger_print -%}
+<script>
+window.print();
+window.close();
+</script>
+{%- endif -%}

@@ -1,10 +1,12 @@
 .avatar {
-	display: inline-block; 
+	display: inline-block;
 	vertical-align: middle;
-	border-radius: 50%;
+	border-radius: 5px;
 	overflow: hidden;
 	background-color: #ddd;
 	border: 1px solid #eee;
+	width: 50px;
+	height: 50px;
 }
 
 .avatar img {
@@ -22,4 +24,13 @@
 	margin-right: 10px;
 	width: 72px;
 	height: 72px;
+}
+
+.avatar-xs {
+	margin-right: 3px;
+	margin-top: -2px;
+	width: 17px;
+	height: 17px;
+	border: none;
+	border-radius: 3px;
 }

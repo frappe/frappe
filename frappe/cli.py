@@ -7,6 +7,7 @@ from __future__ import unicode_literals
 import os
 import subprocess
 import frappe
+from frappe.utils import cint
 
 site_arg_optional = ['serve', 'build', 'watch', 'celery', 'resize_images']
 
@@ -35,7 +36,10 @@ def main():
 				args = parsed_args.copy()
 				args["site"] = site
 				frappe.init(site, sites_path=sites_path)
-				return run(fn, args)
+				ret = run(fn, args)
+				if ret:
+					# if there's a return value, it's an error, so quit
+					return ret
 		else:
 			site = get_site(parsed_args)
 			if fn not in site_arg_optional and not site:
@@ -128,18 +132,20 @@ def setup_install(parser):
 		help="Make a new application with boilerplate")
 	parser.add_argument("--install", metavar="DB-NAME", nargs=1,
 		help="Install a new db")
+	parser.add_argument("--root_password", metavar="ROOT-PASSWD",
+		help="MariaDB root password")
 	parser.add_argument("--sites_path", metavar="SITES_PATH", nargs=1,
 		help="path to directory with sites")
 	parser.add_argument("--install_app", metavar="APP-NAME", nargs=1,
 		help="Install a new app")
 	parser.add_argument("--add_to_installed_apps", metavar="APP-NAME", nargs="*",
 		help="Add these app(s) to Installed Apps")
-	parser.add_argument("--root-password", nargs=1,
-		help="Root password for new app")
 	parser.add_argument("--reinstall", default=False, action="store_true",
 		help="Install a fresh app in db_name specified in conf.py")
 	parser.add_argument("--restore", metavar=("DB-NAME", "SQL-FILE"), nargs=2,
 		help="Restore from an sql file")
+	parser.add_argument("--with_scheduler_enabled", default=False, action="store_true",
+		help="Enable scheduler on restore")
 	parser.add_argument("--add_system_manager", nargs="+",
 		metavar=("EMAIL", "[FIRST-NAME] [LAST-NAME]"), help="Add a user with all roles")
 
@@ -201,8 +207,10 @@ def setup_utilities(parser):
 	parser.add_argument("--make_conf", nargs="*", metavar=("DB-NAME", "DB-PASSWORD"),
 		help="Create new conf.py file")
 	parser.add_argument("--make_custom_server_script", nargs=1, metavar="DOCTYPE",
-		help="Create new conf.py file")
-	parser.add_argument("--set_admin_password", metavar='ADMIN-PASSWORD', nargs=1,
+		help="Create new custome server script")
+	parser.add_argument("--init_list", nargs=1, metavar="DOCTYPE",
+		help="Create new list.js and list.html files")
+	parser.add_argument("--set_admin_password", metavar='ADMIN-PASSWORD', nargs="*",
 		help="Set administrator password")
 	parser.add_argument("--request", metavar='URL-ARGS', nargs=1, help="Run request as admin")
 	parser.add_argument("--mysql", action="store_true", help="get mysql shell for a site")
@@ -224,8 +232,8 @@ def setup_utilities(parser):
 	# clear
 	parser.add_argument("--clear_web", default=False, action="store_true",
 		help="Clear website cache")
-	parser.add_argument("--build_sitemap", default=False, action="store_true",
-		help="Build Website Route")
+	parser.add_argument("--build_website", default=False, action="store_true",
+		help="Sync statics and clear cache")
 	parser.add_argument("--sync_statics", default=False, action="store_true",
 		help="Sync files from templates/statics to Web Pages")
 	parser.add_argument("--clear_cache", default=False, action="store_true",
@@ -242,6 +250,11 @@ def setup_utilities(parser):
 	parser.add_argument("--run_scheduler_event", nargs=1,
 		metavar="all | daily | weekly | monthly",
 		help="Run a scheduler event")
+	parser.add_argument("--enable_scheduler", default=False, action="store_true",
+		help="Enable scheduler")
+	parser.add_argument("--disable_scheduler", default=False, action="store_true",
+		help="Disable scheduler")
+
 
 	# replace
 	parser.add_argument("--replace", nargs=3,
@@ -280,20 +293,51 @@ def use(sites_path):
 		sitefile.write(frappe.local.site)
 
 # install
-@cmd
-def install(db_name, root_login="root", root_password=None, source_sql=None,
-		admin_password = 'admin', force=False, site_config=None, reinstall=False, quiet=False):
+def _install(db_name, root_login="root", root_password=None, source_sql=None,
+		admin_password = 'admin', force=False, site_config=None, reinstall=False, quiet=False, install_apps=None):
+
 	from frappe.installer import install_db, install_app, make_site_dirs
+	import frappe.utils.scheduler
+
 	verbose = not quiet
+
+	# enable scheduler post install?
+	enable_scheduler = _is_scheduler_enabled()
 
 	install_db(root_login=root_login, root_password=root_password, db_name=db_name, source_sql=source_sql,
 		admin_password = admin_password, verbose=verbose, force=force, site_config=site_config, reinstall=reinstall)
 	make_site_dirs()
 	install_app("frappe", verbose=verbose, set_as_patched=not source_sql)
+
 	if frappe.conf.get("install_apps"):
 		for app in frappe.conf.install_apps:
 			install_app(app, verbose=verbose, set_as_patched=not source_sql)
+
+	if install_apps:
+		for app in install_apps:
+			install_app(app, verbose=verbose, set_as_patched=not source_sql)
+
+	frappe.utils.scheduler.toggle_scheduler(enable_scheduler)
+	scheduler_status = "disabled" if frappe.utils.scheduler.is_scheduler_disabled() else "enabled"
+	print "*** Scheduler is", scheduler_status, "***"
+
+@cmd
+def install(db_name, root_login="root", root_password=None, source_sql=None,
+		admin_password = 'admin', force=False, site_config=None, reinstall=False, quiet=False, install_apps=None):
+	_install(db_name, root_login, root_password, source_sql, admin_password, force, site_config, reinstall, quiet, install_apps)
 	frappe.destroy()
+
+def _is_scheduler_enabled():
+	enable_scheduler = False
+	try:
+		frappe.connect()
+		enable_scheduler = cint(frappe.db.get_default("enable_scheduler"))
+	except:
+		pass
+	finally:
+		frappe.db.close()
+
+	return enable_scheduler
 
 @cmd
 def install_app(app_name, quiet=False):
@@ -310,7 +354,7 @@ def add_to_installed_apps(*apps):
 	all_apps = frappe.get_all_apps(with_frappe=True)
 	for each in apps:
 		if each in all_apps:
-			add_to_installed_apps(each, rebuild_sitemap=False)
+			add_to_installed_apps(each, rebuild_website=False)
 	frappe.destroy()
 
 @cmd
@@ -318,18 +362,27 @@ def reinstall(quiet=False):
 	verbose = not quiet
 	try:
 		frappe.connect()
+		installed = frappe.get_installed_apps()
 		frappe.clear_cache()
 	except:
-		pass
+		installed = []
 	finally:
 		frappe.db.close()
 
-	install(db_name=frappe.conf.db_name, verbose=verbose, force=True, reinstall=True)
+	install(db_name=frappe.conf.db_name, verbose=verbose, force=True, reinstall=True, install_apps=installed)
 
 @cmd
-def restore(db_name, source_sql, force=False, quiet=False):
-	verbose = not quiet
-	install(db_name, source_sql=source_sql, verbose=verbose, force=force)
+def restore(db_name, source_sql, force=False, quiet=False, with_scheduler_enabled=False):
+	import frappe.utils.scheduler
+	_install(db_name, source_sql=source_sql, quiet=quiet, force=force)
+
+	try:
+		frappe.connect()
+		frappe.utils.scheduler.toggle_scheduler(with_scheduler_enabled)
+		scheduler_status = "disabled" if frappe.utils.scheduler.is_scheduler_disabled() else "enabled"
+		print "*** Scheduler is", scheduler_status, "***"
+	finally:
+		frappe.destroy()
 
 @cmd
 def add_system_manager(email, first_name=None, last_name=None):
@@ -353,13 +406,12 @@ def update(remote=None, branch=None, reload_gunicorn=False):
 		subprocess.check_output("killall -HUP gunicorn".split())
 
 @cmd
-def latest(rebuild_website_config=True, quiet=False):
+def latest(rebuild_website=True, quiet=False):
 	import frappe.modules.patch_handler
 	import frappe.model.sync
-	from frappe.website import rebuild_config
 	from frappe.utils.fixtures import sync_fixtures
 	import frappe.translate
-	from frappe.website import statics
+	from frappe.core.doctype.notification_count.notification_count import clear_notifications
 
 	verbose = not quiet
 
@@ -370,16 +422,13 @@ def latest(rebuild_website_config=True, quiet=False):
 		frappe.modules.patch_handler.run_all()
 		# sync
 		frappe.model.sync.sync_all(verbose=verbose)
+		frappe.translate.clear_cache()
 		sync_fixtures()
 
-		statics.sync().start()
-		# build website config if any changes in templates etc.
-		if rebuild_website_config:
-			rebuild_config()
+		clear_notifications()
 
-
-		frappe.translate.clear_cache()
-
+		if rebuild_website:
+			build_website()
 	finally:
 		frappe.destroy()
 
@@ -419,10 +468,10 @@ def reload_doc(module, doctype, docname, force=False):
 	frappe.destroy()
 
 @cmd
-def build(make_copy=False):
+def build(make_copy=False, verbose=False):
 	import frappe.build
 	import frappe
-	frappe.build.bundle(False, make_copy=make_copy)
+	frappe.build.bundle(False, make_copy=make_copy, verbose=verbose)
 
 @cmd
 def watch():
@@ -487,12 +536,19 @@ def make_custom_server_script(doctype):
 	make_custom_server_script_file(doctype)
 	frappe.destroy()
 
+@cmd
+def init_list(doctype):
+	import frappe.core.doctype.doctype.doctype
+	frappe.core.doctype.doctype.doctype.init_list(doctype)
+
 # clear
 @cmd
 def clear_cache():
 	import frappe.sessions
+	from frappe.core.doctype.notification_count.notification_count import clear_notifications
 	frappe.connect()
 	frappe.clear_cache()
+	clear_notifications()
 	frappe.destroy()
 
 @cmd
@@ -511,17 +567,19 @@ def clear_all_sessions():
 	frappe.destroy()
 
 @cmd
-def build_sitemap():
-	from frappe.website import rebuild_config
+def build_website(verbose=False):
+	from frappe.website import render, statics
 	frappe.connect()
-	rebuild_config()
+	render.clear_cache()
+	statics.sync(verbose=verbose).start()
+	frappe.db.commit()
 	frappe.destroy()
 
 @cmd
-def sync_statics():
+def sync_statics(force=False):
 	from frappe.website import statics
 	frappe.connect()
-	statics.sync_statics()
+	statics.sync_statics(rebuild = force)
 	frappe.db.commit()
 	frappe.destroy()
 
@@ -556,6 +614,24 @@ def run_scheduler_event(event, force=False):
 	import frappe.utils.scheduler
 	frappe.connect()
 	frappe.utils.scheduler.trigger(frappe.local.site, event, now=force)
+	frappe.destroy()
+
+@cmd
+def enable_scheduler():
+	import frappe.utils.scheduler
+	frappe.connect()
+	frappe.utils.scheduler.enable_scheduler()
+	frappe.db.commit()
+	print "Enabled"
+	frappe.destroy()
+
+@cmd
+def disable_scheduler():
+	import frappe.utils.scheduler
+	frappe.connect()
+	frappe.utils.scheduler.disable_scheduler()
+	frappe.db.commit()
+	print "Disabled"
 	frappe.destroy()
 
 # replace
@@ -665,8 +741,13 @@ def checkout(branch):
 	git(("checkout", branch))
 
 @cmd
-def set_admin_password(admin_password):
+def set_admin_password(admin_password=None):
 	import frappe
+	import getpass
+
+	while not admin_password:
+		admin_password = getpass.getpass("Administrator's password: ")
+
 	frappe.connect()
 	frappe.db.sql("""update __Auth set `password`=password(%s)
 		where user='Administrator'""", (admin_password,))
@@ -706,7 +787,7 @@ def smtp_debug_server():
 	os.execv(python, [python, '-m', "smtpd", "-n", "-c", "DebuggingServer", "localhost:25"])
 
 @cmd
-def run_tests(app=None, module=None, doctype=None, verbose=False, tests=(), driver=None):
+def run_tests(app=None, module=None, doctype=None, verbose=False, tests=(), driver=None, force=False):
 	import frappe.test_runner
 	from frappe.utils import sel
 
@@ -715,7 +796,7 @@ def run_tests(app=None, module=None, doctype=None, verbose=False, tests=(), driv
 	ret = 1
 	try:
 		ret = frappe.test_runner.main(app and app[0], module and module[0], doctype and doctype[0], verbose,
-			tests=tests)
+			tests=tests, force=force)
 		if len(ret.failures) == 0 and len(ret.errors) == 0:
 			ret = 0
 	finally:

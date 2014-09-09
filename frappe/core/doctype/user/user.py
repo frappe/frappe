@@ -3,9 +3,10 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe.utils import cint, now
+from frappe.utils import cint, now, get_gravatar
 from frappe import throw, msgprint, _
 from frappe.auth import _update_password
+from frappe.core.doctype.notification_count.notification_count import clear_notifications
 import frappe.permissions
 
 STANDARD_USERS = ("Guest", "Administrator")
@@ -13,7 +14,6 @@ STANDARD_USERS = ("Guest", "Administrator")
 from frappe.model.document import Document
 
 class User(Document):
-
 	def autoname(self):
 		"""set name as email id"""
 		if self.name not in STANDARD_USERS:
@@ -27,7 +27,10 @@ class User(Document):
 		self.add_system_manager_role()
 		self.check_enable_disable()
 		self.update_gravatar()
+		self.ensure_unique_roles()
 		self.remove_all_roles_for_guest()
+		if self.language == "Loading...":
+			self.language = None
 
 	def check_enable_disable(self):
 		# do not allow disabling administrator/guest
@@ -38,7 +41,7 @@ class User(Document):
 			self.a_system_manager_should_exist()
 
 		# clear sessions if disabled
-		if not cint(self.enabled) and getattr(frappe, "login_manager", None):
+		if not cint(self.enabled) and getattr(frappe.local, "login_manager", None):
 			frappe.local.login_manager.logout(user=self.name)
 
 	def add_system_manager_role(self):
@@ -69,6 +72,7 @@ class User(Document):
 		new_password = self.new_password
 		self.db_set("new_password", "")
 
+		clear_notifications(user=self.name)
 		frappe.clear_cache(user=self.name)
 
 		try:
@@ -88,10 +92,8 @@ class User(Document):
 			pass # email server not set, don't send email
 
 	def update_gravatar(self):
-		import md5
 		if not self.user_image:
-			self.user_image = "https://secure.gravatar.com/avatar/" + md5.md5(self.name).hexdigest() \
-				+ "?d=retro"
+			self.user_image = get_gravatar(self.name)
 
 	@Document.hook
 	def validate_reset_password(self):
@@ -105,11 +107,12 @@ class User(Document):
 		self.password_reset_mail(get_url("/update-password?key=" + key))
 
 	def get_other_system_managers(self):
-		return frappe.db.sql("""select distinct parent from tabUserRole user_role
-			where role='System Manager' and docstatus<2
-			and parent not in ('Administrator', %s) and exists
-				(select * from `tabUser` user
-				where user.name=user_role.parent and enabled=1)""", (self.name,))
+		return frappe.db.sql("""select distinct user.name from tabUserRole user_role, tabUser user
+			where user_role.role='System Manager'
+				and user.docstatus<2
+				and ifnull(user.enabled,0)=1
+				and user_role.parent = user.name
+			and user_role.parent not in ('Administrator', %s) limit 1""", (self.name,))
 
 	def get_fullname(self):
 		"""get first_name space last_name"""
@@ -160,7 +163,7 @@ class User(Document):
 
 	def a_system_manager_should_exist(self):
 		if not self.get_other_system_managers():
-			throw(_("Hey! There should remain at least one System Manager"))
+			throw(_("There should remain at least one System Manager"))
 
 	def on_trash(self):
 		frappe.clear_cache(user=self.name)
@@ -243,16 +246,36 @@ class User(Document):
 
 		self.save()
 
+	def remove_roles(self, *roles):
+		existing_roles = dict((d.role, d) for d in self.get("user_roles"))
+		for role in roles:
+			if role in existing_roles:
+				self.get("user_roles").remove(existing_roles[role])
+
+		self.save()
+
 	def remove_all_roles_for_guest(self):
 		if self.name == "Guest":
 			self.set("user_roles", list(set(d for d in self.get("user_roles") if d.role == "Guest")))
 
+	def ensure_unique_roles(self):
+		exists = []
+		for i, d in enumerate(self.get("user_roles")):
+			if (not d.role) or (d.role in exists):
+				self.get("user_roles").remove(d)
+			else:
+				exists.append(d.role)
+
 @frappe.whitelist()
 def get_languages():
 	from frappe.translate import get_lang_dict
+	import pytz
 	languages = get_lang_dict().keys()
 	languages.sort()
-	return [""] + languages
+	return {
+		"languages": [""] + languages,
+		"timezones": pytz.all_timezones
+	}
 
 @frappe.whitelist()
 def get_all_roles(arg=None):
@@ -268,9 +291,8 @@ def get_user_roles(arg=None):
 @frappe.whitelist()
 def get_perm_info(arg=None):
 	"""get permission info"""
-	return frappe.db.sql("""select parent, permlevel, `{}` from tabDocPerm where role=%s
-		and docstatus<2 order by parent, permlevel""".format("`, `".join(frappe.permissions.rights)),
-			(frappe.form_dict['role'],), as_dict=1)
+	return frappe.db.sql("""select * from tabDocPerm where role=%s
+		and docstatus<2 order by parent, permlevel""", (frappe.form_dict['role'],), as_dict=1)
 
 @frappe.whitelist(allow_guest=True)
 def update_password(new_password, key=None, old_password=None):
@@ -391,3 +413,18 @@ def get_active_website_users():
 		where enabled = 1 and user_type = 'Website User'
 		and hour(timediff(now(), last_login)) < 72""")[0][0]
 
+def get_permission_query_conditions(user):
+	if user=="Administrator":
+		return ""
+
+	else:
+		return """(`tabUser`.name not in ({standard_users}))""".format(
+			standard_users='"' + '", "'.join(STANDARD_USERS) + '"')
+
+def has_permission(doc, user):
+	if (user != "Administrator") and (doc.name in STANDARD_USERS):
+		# dont allow non Administrator user to view / edit Administrator user
+		return False
+
+	else:
+		return True

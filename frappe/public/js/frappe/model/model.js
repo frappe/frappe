@@ -5,24 +5,29 @@ frappe.provide('frappe.model');
 
 $.extend(frappe.model, {
 	no_value_type: ['Section Break', 'Column Break', 'HTML', 'Table',
- 	'Button', 'Image'],
+ 	'Button', 'Image', 'Fold'],
+
+	layout_fields: ['Section Break', 'Column Break', 'Fold'],
 
 	std_fields_list: ['name', 'owner', 'creation', 'modified', 'modified_by',
-		'_user_tags', '_comments', 'docstatus', 'parent', 'parenttype', 'parentfield', 'idx'],
+		'_user_tags', '_comments', '_assign', 'docstatus',
+		'parent', 'parenttype', 'parentfield', 'idx'],
+
 	std_fields: [
-		{fieldname:'name', fieldtype:'Link', label:'ID'},
-		{fieldname:'owner', fieldtype:'Data', label:'Created By'},
-		{fieldname:'idx', fieldtype:'Int', label:'Index'},
-		{fieldname:'creation', fieldtype:'Date', label:'Created On'},
-		{fieldname:'modified', fieldtype:'Date', label:'Last Updated On'},
-		{fieldname:'modified_by', fieldtype:'Data', label:'Last Updated By'},
-		{fieldname:'_user_tags', fieldtype:'Data', label:'Tags'},
-		{fieldname:'_comments', fieldtype:'Text', label:'Comments'},
-		{fieldname:'docstatus', fieldtype:'Int', label:'Document Status'},
+		{fieldname:'name', fieldtype:'Link', label:__('ID')},
+		{fieldname:'owner', fieldtype:'Data', label:__('Created By')},
+		{fieldname:'idx', fieldtype:'Int', label:__('Index')},
+		{fieldname:'creation', fieldtype:'Date', label:__('Created On')},
+		{fieldname:'modified', fieldtype:'Date', label:__('Last Updated On')},
+		{fieldname:'modified_by', fieldtype:'Data', label:__('Last Updated By')},
+		{fieldname:'_user_tags', fieldtype:'Data', label:__('Tags')},
+		{fieldname:'_comments', fieldtype:'Text', label:__('Comments')},
+		{fieldname:'_assign', fieldtype:'Text', label:__('Assigned To')},
+		{fieldname:'docstatus', fieldtype:'Int', label:__('Document Status')},
 	],
 
 	std_fields_table: [
-		{fieldname:'parent', fieldtype:'Data', label:'Parent'},
+		{fieldname:'parent', fieldtype:'Data', label:__('Parent')},
 	],
 
 	new_names: {},
@@ -68,7 +73,7 @@ $.extend(frappe.model, {
 						localStorage["_doctype:" + doctype] = JSON.stringify(r.docs);
 					}
 					frappe.model.init_doctype(doctype);
-					frappe.defaults.set_restrictions(r.restrictions);
+					frappe.defaults.set_user_permissions(r.user_permissions);
 					callback(r);
 				}
 			});
@@ -177,12 +182,12 @@ $.extend(frappe.model, {
 		return frappe.boot.user.can_email.indexOf(doctype)!==-1;
 	},
 
-	can_restrict: function(doctype, frm) {
-		// system manager can always restrict
+	can_set_user_permissions: function(doctype, frm) {
+		// system manager can always set user permissions
 		if(user_roles.indexOf("System Manager")!==-1) return true;
 
-		if(frm) return frm.perm[0].restrict===1;
-		return frappe.boot.user.can_restrict.indexOf(doctype)!==-1;
+		if(frm) return frm.perm[0].set_user_permissions===1;
+		return frappe.boot.user.can_set_user_permissions.indexOf(doctype)!==-1;
 	},
 
 	has_value: function(dt, dn, fn) {
@@ -212,9 +217,8 @@ $.extend(frappe.model, {
 	},
 
 	get_value: function(doctype, filters, fieldname) {
-		if(typeof filters==="string") {
-			return locals[doctype] && locals[doctype][filters]
-				&& locals[doctype][filters][fieldname];
+		if(typeof filters==="string" && locals[doctype] && locals[doctype][filters]) {
+			return locals[doctype][filters][fieldname];
 		} else {
 			var l = frappe.get_list(doctype, filters);
 			return (l.length && l[0]) ? l[0][fieldname] : null;
@@ -367,11 +371,11 @@ $.extend(frappe.model, {
 
 	rename_doc: function(doctype, docname, callback) {
 		var d = new frappe.ui.Dialog({
-			title: "Rename " + docname,
+			title: __("Rename {0}", [__(docname)]),
 			fields: [
-				{label:"New Name", fieldtype:"Data", reqd:1},
-				{label:"Merge with existing", fieldtype:"Check", fieldname:"merge"},
-				{label:"Rename", fieldtype: "Button"}
+				{label:__("New Name"), fieldtype:"Data", reqd:1},
+				{label:__("Merge with existing"), fieldtype:"Check", fieldname:"merge"},
+				{label:__("Rename"), fieldtype: "Button"}
 			]
 		});
 		d.get_input("rename").on("click", function() {
@@ -405,7 +409,7 @@ $.extend(frappe.model, {
 
 	round_floats_in: function(doc, fieldnames) {
 		if(!fieldnames) {
-			fieldnames = frappe.meta.get_fieldnames(doc.doctype, doc.name,
+			fieldnames = frappe.meta.get_fieldnames(doc.doctype, doc.parent,
 				{"fieldtype": ["in", ["Currency", "Float"]]});
 		}
 		$.each(fieldnames, function(i, fieldname) {
@@ -437,3 +441,13 @@ $.extend(frappe.model, {
 frappe.get_doc = frappe.model.get_doc;
 frappe.get_children = frappe.model.get_children;
 frappe.get_list = frappe.model.get_list;
+
+var getchildren = function(doctype, parent, parentfield) {
+	var children = [];
+	$.each(locals[doctype] || {}, function(i, d) {
+		if(d.parent === parent && d.parentfield === parentfield) {
+			children.push(d);
+		}
+	});
+	return children;
+}

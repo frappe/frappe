@@ -2,31 +2,35 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-import frappe, os, time
+import frappe, os, time, sys
 
-from frappe import _
-from frappe.utils import cint
-from markdown2 import markdown
-from frappe.website.sitemap import get_route_children
+from frappe.utils import update_progress_bar
 
-def sync_statics():
+def sync_statics(rebuild=False):
 	s = sync()
+	s.verbose = True
 	while True:
-		s.start()
+		s.start(rebuild)
 		frappe.db.commit()
 		time.sleep(2)
+		rebuild = False
 
 class sync(object):
-	def start(self):
+	def __init__(self, verbose=False):
+		self.verbose = verbose
+
+	def start(self, rebuild=False):
 		self.synced = []
+		self.synced_paths = []
+		self.to_insert = []
+		self.to_update = []
 		self.updated = 0
+		self.rebuild = rebuild
 		for app in frappe.get_installed_apps():
 			self.sync_for_app(app)
 
+		self.insert_and_update()
 		self.cleanup()
-
-		if self.updated:
-			print str(self.updated) + " files updated"
 
 	def sync_for_app(self, app):
 		self.statics_path = frappe.get_app_path(app, "templates", "statics")
@@ -34,22 +38,18 @@ class sync(object):
 			for basepath, folders, files in os.walk(self.statics_path):
 				self.sync_folder(basepath, folders, files)
 
-
 	def sync_folder(self, basepath, folders, files):
-		folder_route = os.path.relpath(basepath, self.statics_path)
 		self.get_index_txt(basepath, files)
-		self.sync_index_page(basepath, files)
+		index_found = self.sync_index_page(basepath, files)
 
-		if not frappe.db.exists("Website Route", folder_route) and basepath!=self.statics_path:
+		if not index_found and basepath!=self.statics_path:
 			# not synced either by generator or by index.html
 			return
 
 		if self.index:
 			self.sync_using_given_index(basepath, folders, files)
-
 		else:
 			self.sync_alphabetically(basepath, folders, [filename for filename in files if filename.endswith('html') or filename.endswith('md')])
-
 
 	def get_index_txt(self, basepath, files):
 		self.index = []
@@ -62,7 +62,7 @@ class sync(object):
 			fname = "index." + extn
 			if fname in files:
 				self.sync_file(fname, os.path.join(basepath, fname), None)
-				return
+				return True
 
 	def sync_using_given_index(self, basepath, folders, files):
 		for i, page_name in enumerate(self.index):
@@ -90,126 +90,102 @@ class sync(object):
 			if not (page_name=="index" and basepath!=self.statics_path):
 				self.sync_file(fname, os.path.join(basepath, fname), None)
 
-	def sync_file(self, fname, fpath, priority):
-		route = os.path.relpath(fpath, self.statics_path).rsplit(".", 1)[0]
+	def sync_file(self, fname, template_path, priority):
+		route = os.path.relpath(template_path, self.statics_path).rsplit(".", 1)[0]
 
-		if fname.rsplit(".", 1)[0]=="index" and os.path.dirname(fpath) != self.statics_path:
+		if fname.rsplit(".", 1)[0]=="index" and \
+			os.path.dirname(template_path) != self.statics_path:
 			route = os.path.dirname(route)
 
-		if route in self.synced:
+
+		page_name = os.path.basename(route)
+		parent_web_page = os.path.basename(os.path.dirname(route))
+		published = 1
+		idx = priority
+
+		if page_name in self.synced:
 			return
 
-		parent_website_route = os.path.dirname(route)
-		page_name = os.path.basename(route)
+		title = self.get_title(template_path)
 
-		route_details = frappe.db.get_value("Website Route", route,
-			["name", "idx", "static_file_timestamp", "docname"], as_dict=True)
+		if not frappe.db.get_value("Web Page", {"page_name":page_name}):
+			web_page = frappe.new_doc("Web Page")
+			web_page.page_name = page_name
+			web_page.parent_web_page = parent_web_page
+			web_page.template_path = template_path
+			web_page.title = title
+			web_page.published = published
+			web_page.idx = idx
+			web_page.from_website_sync = True
+			self.to_insert.append(web_page)
 
-		if route_details:
-			self.update_web_page(route_details, fpath, priority, parent_website_route)
 		else:
-			# Route does not exist, new page
-			self.insert_web_page(route, fpath, page_name, priority, parent_website_route)
+			web_page = frappe.get_doc("Web Page", {"page_name":page_name})
+			dirty = False
+			for key in ("parent_web_page", "title", "template_path", "published", "idx"):
+				if web_page.get(key) != locals().get(key):
+					web_page.set(key, locals().get(key))
+					dirty = True
 
-	def insert_web_page(self, route, fpath, page_name, priority, parent_website_route):
-		page = frappe.get_doc({
-			"doctype":"Web Page",
-			"idx": priority,
-			"page_name": page_name,
-			"published": 1,
-			"parent_website_route": parent_website_route
-		})
+			if dirty:
+				web_page.from_website_sync = True
+				self.to_update.append(web_page)
 
-		page.update(get_static_content(fpath, page_name, route))
+		self.synced.append(page_name)
 
-		try:
-			page.insert()
-		except frappe.NameError:
-			# page exists, if deleted static, delete it and try again
-			old_route = frappe.get_doc("Website Route", {"ref_doctype":"Web Page",
-				"docname": page.name})
-			if old_route.static_file_timestamp and not os.path.exists(os.path.join(self.statics_path,
-				old_route.name)):
+	def get_title(self, fpath):
+		title = os.path.basename(fpath).rsplit(".", 1)[0]
+		if title =="index":
+			title = os.path.basename(os.path.dirname(fpath))
 
-				frappe.delete_doc("Web Page", page.name)
-				page.insert() # retry
+		title = title.replace("-", " ").replace("_", " ").title()
 
+		with open(fpath, "r") as f:
+			content = unicode(f.read().strip(), "utf-8")
 
-		# update timestamp
-		route_doc = frappe.get_doc("Website Route", {"ref_doctype": "Web Page",
-			"docname": page.name})
-		route_doc.static_file_timestamp = cint(os.path.getmtime(fpath))
-		route_doc.save()
+			if content.startswith("# "):
+				title = content.splitlines()[0][2:]
 
-		self.updated += 1
-		print route_doc.name + " inserted"
-		self.synced.append(route)
+			if "<!-- title:" in content:
+				title = content.split("<!-- title:", 1)[1].split("-->", 1)[0].strip()
 
-	def update_web_page(self, route_details, fpath, priority, parent_website_route):
-		if str(cint(os.path.getmtime(fpath)))!= route_details.static_file_timestamp \
-			or (cint(route_details.idx) != cint(priority) and (priority is not None)):
+		return title
 
-			page = frappe.get_doc("Web Page", route_details.docname)
-			page.update(get_static_content(fpath, route_details.docname, route_details.name))
-			page.idx = priority
-			page.save()
+	def insert_and_update(self):
+		if self.to_insert:
+			l = len(self.to_insert)
+			for i, page in enumerate(self.to_insert):
+				if self.verbose:
+					print "Inserting " + page.page_name
+				else:
+					update_progress_bar("Updating Static Pages", i, l)
 
-			route_doc = frappe.get_doc("Website Route", route_details.name)
-			route_doc.static_file_timestamp = cint(os.path.getmtime(fpath))
-			route_doc.save()
+				page.insert()
+			if not self.verbose: print ""
 
-			print route_doc.name + " updated"
-			self.updated += 1
+		if self.to_update:
+			for i, page in enumerate(self.to_update):
+				if not self.verbose:
+					print "Updating " + page.page_name
+				else:
+					sys.stdout.write("\rUpdating statics {0}/{1}".format(i+1, len(self.to_update)))
+					sys.stdout.flush()
 
-		self.synced.append(route_details.name)
+				page.save()
+			if not self.verbose: print ""
 
 	def cleanup(self):
 		if self.synced:
-			frappe.delete_doc("Web Page", frappe.db.sql_list("""select docname
-				from `tabWebsite Route`
-				where ifnull(static_file_timestamp,'')!='' and name not in ({})
-				order by (rgt-lft) asc""".format(', '.join(["%s"]*len(self.synced))),
-					tuple(self.synced)))
+			# delete static web pages that are not in immediate list
+			frappe.delete_doc("Web Page", frappe.db.sql_list("""select name
+				from `tabWeb Page`
+				where ifnull(template_path,'')!=''
+				and name not in ({})""".format(', '.join(["%s"]*len(self.synced))),
+					tuple(self.synced)), force=1)
 		else:
-			frappe.delete_doc("Web Page", frappe.db.sql_list("""select docname
-				from `tabWebsite Route`
-				where ifnull(static_file_timestamp,'')!=''
-				order by (rgt-lft) asc"""))
+			# delete all static web pages
+			frappe.delete_doc("Web Page", frappe.db.sql_list("""select name
+				from `tabWeb Page`
+				where ifnull(template_path,'')!=''"""), force=1)
 
 
-def get_static_content(fpath, docname, route):
-	d = frappe._dict({})
-	with open(fpath, "r") as contentfile:
-		content = unicode(contentfile.read(), 'utf-8')
-
-		if fpath.endswith(".md"):
-			if content:
-				lines = content.splitlines()
-				first_line = lines[0].strip()
-
-				if first_line.startswith("# "):
-					d.title = first_line[2:]
-					content = "\n".join(lines[1:])
-
-				if "{index}" in content:
-					children = get_route_children(route)
-					html = frappe.get_template("templates/includes/static_index.html").render({
-							"items":children})
-					content = content.replace("{index}", html)
-
-				content = markdown(content)
-
-		d.main_section = unicode(content.encode("utf-8"), 'utf-8')
-		if not d.title:
-			d.title = docname.replace("-", " ").replace("_", " ").title()
-
-	for extn in ("js", "css"):
-		fpath = fpath.rsplit(".", 1)[0] + "." + extn
-		if os.path.exists(fpath):
-			with open(fpath, "r") as f:
-				d["css" if extn=="css" else "javascript"] = f.read()
-
-	d.insert_style = 1 if d.css else 0
-	d.insert_code = 1 if d.javascript else 0
-
-	return d

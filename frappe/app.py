@@ -3,6 +3,7 @@
 
 import sys, os
 import json
+import logging
 
 from werkzeug.wrappers import Request, Response
 from werkzeug.local import LocalManager
@@ -25,6 +26,8 @@ local_manager = LocalManager([frappe.local])
 _site = None
 _sites_path = os.environ.get("SITES_PATH", ".")
 
+logger = frappe.get_logger()
+
 @Request.application
 def application(request):
 	frappe.local.request = request
@@ -36,7 +39,7 @@ def application(request):
 
 		init_site(request)
 
-		if frappe.local.conf.get('maintainance_mode'):
+		if frappe.local.conf.get('maintenance_mode'):
 			raise frappe.SessionStopped
 
 		make_form_dict(request)
@@ -63,27 +66,34 @@ def application(request):
 	except frappe.SessionStopped, e:
 		response = frappe.utils.response.handle_session_stopped()
 
-	except (frappe.AuthenticationError,
-		frappe.PermissionError,
-		frappe.DoesNotExistError,
-		frappe.NameError,
-		frappe.OutgoingEmailError,
-		frappe.ValidationError,
-		frappe.UnsupportedMediaType), e:
+	except Exception, e:
+		http_status_code = getattr(e, "http_status_code", 500)
 
 		if frappe.local.is_ajax:
-			response = frappe.utils.response.report_error(e.http_status_code)
+			response = frappe.utils.response.report_error(http_status_code)
 		else:
-			response = frappe.website.render.render("error", e.http_status_code)
+			frappe.respond_as_web_page("Server Error",
+				"<pre>"+frappe.get_traceback()+"</pre>",
+				http_status_code=http_status_code)
+			response = frappe.website.render.render("message", http_status_code=http_status_code)
 
 		if e.__class__ == frappe.AuthenticationError:
 			if hasattr(frappe.local, "login_manager"):
 				frappe.local.login_manager.clear_cookies()
 
+		if http_status_code==500:
+			logger.error('Request Error')
+
 	else:
 		if frappe.local.request.method in ("POST", "PUT") and frappe.db:
 			frappe.db.commit()
 			rollback = False
+
+		# update session
+		if getattr(frappe.local, "session_obj", None):
+			updated_in_db = frappe.local.session_obj.update()
+			if updated_in_db:
+				frappe.db.commit()
 
 	finally:
 		if frappe.local.request.method in ("POST", "PUT") and frappe.db and rollback:
@@ -131,4 +141,4 @@ def serve(port=8000, profile=False, site=None, sites_path='.'):
 		})
 
 	run_simple('0.0.0.0', int(port), application, use_reloader=True,
-		use_debugger=True, use_evalex=True)
+		use_debugger=True, use_evalex=True, threaded=True)

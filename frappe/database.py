@@ -9,6 +9,7 @@ import MySQLdb
 import warnings
 import datetime
 import frappe
+import re
 import frappe.model.meta
 from frappe.utils import now, get_datetime
 from frappe import _
@@ -169,7 +170,7 @@ class Database:
 
 		if query[:6].lower() in ['update', 'insert']:
 			self.transaction_writes += 1
-			if self.transaction_writes > 10000:
+			if self.transaction_writes > 20000:
 				if self.auto_commit_on_many_writes:
 					frappe.db.commit()
 				else:
@@ -367,16 +368,20 @@ class Database:
 		return frappe._dict(self.sql("""select field, value from
 			tabSingles where doctype=%s""", doctype))
 
+	def get_single_value(self, doctype, fieldname):
+		val = self.sql("""select value from
+			tabSingles where doctype=%s and field=%s""", (doctype, fieldname))
+		return val[0][0] if val else None
 
 	def get_values_from_table(self, fields, filters, doctype, as_dict, debug, order_by=None, update=None):
 		fl = []
 		if isinstance(fields, (list, tuple)):
 			for f in fields:
-				if "(" in f: # function
+				if "(" in f or " as " in f: # function
 					fl.append(f)
 				else:
 					fl.append("`" + f + "`")
-			fl = ", ".join(fields)
+			fl = ", ".join(fl)
 		else:
 			fl = fields
 			if fields=="*":
@@ -485,6 +490,9 @@ class Database:
 	def table_exists(self, tablename):
 		return tablename in [d[0] for d in self.sql("show tables")]
 
+	def a_row_exists(self, doctype):
+		return self.sql("select name from `tab{doctype}` limit 1".format(doctype=doctype))
+
 	def exists(self, dt, dn=None):
 		if isinstance(dt, basestring):
 			if dt!="DocType" and dt==dn:
@@ -529,10 +537,14 @@ class Database:
 	def add_index(self, doctype, fields, index_name=None):
 		if not index_name:
 			index_name = "_".join(fields) + "_index"
+
+			# remove index length if present e.g. (10) from index name
+			index_name = re.sub(r"\s*\([^)]+\)\s*", r"", index_name)
+
 		if not frappe.db.sql("""show index from `tab%s` where Key_name="%s" """ % (doctype, index_name)):
 			frappe.db.commit()
 			frappe.db.sql("""alter table `tab%s`
-				add index %s(%s)""" % (doctype, index_name, ", ".join(fields)))
+				add index `%s`(%s)""" % (doctype, index_name, ", ".join(fields)))
 
 	def close(self):
 		if self._conn:
@@ -540,3 +552,6 @@ class Database:
 			self._conn.close()
 			self._cursor = None
 			self._conn = None
+
+	def escape(self, s):
+		return unicode(MySQLdb.escape_string((s or "").encode("utf-8")), "utf-8")

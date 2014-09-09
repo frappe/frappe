@@ -1,15 +1,15 @@
 {
  "autoname": "WSP.######", 
- "creation": "2014-01-29 17:56:29.000000", 
+ "creation": "2014-01-29 17:56:29", 
  "docstatus": 0, 
  "doctype": "DocType", 
  "fields": [
   {
    "fieldname": "website_route", 
-   "fieldtype": "Link", 
+   "fieldtype": "Data", 
    "in_list_view": 1, 
    "label": "Website Route", 
-   "options": "Website Route", 
+   "options": "", 
    "permlevel": 0, 
    "reqd": 1, 
    "search_index": 1
@@ -44,11 +44,18 @@
    "in_list_view": 1, 
    "label": "Admin", 
    "permlevel": 0
+  }, 
+  {
+   "fieldname": "reference", 
+   "fieldtype": "Link", 
+   "label": "reference", 
+   "options": "Website Group", 
+   "permlevel": 0
   }
  ], 
  "icon": "icon-shield", 
  "idx": 1, 
- "modified": "2014-02-24 13:17:18.000000", 
+ "modified": "2014-08-20 12:56:15.141568", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Website Route Permission", 
@@ -66,5 +73,7 @@
    "role": "Website Manager", 
    "write": 1
   }
- ]
+ ], 
+ "sort_field": "modified", 
+ "sort_order": "DESC"
 }

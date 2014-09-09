@@ -32,7 +32,7 @@ _classes = {}
 def get_controller(doctype):
 	if not doctype in _classes:
 		module = load_doctype_module(doctype)
-		classname = doctype.replace(" ", "")
+		classname = doctype.replace(" ", "").replace("-", "")
 		if hasattr(module, classname):
 			_class = getattr(module, classname)
 			if issubclass(_class, Document):
@@ -48,6 +48,7 @@ def get_controller(doctype):
 class Document(BaseDocument):
 	def __init__(self, arg1, arg2=None):
 		self.doctype = self.name = None
+
 		if arg1 and isinstance(arg1, basestring):
 			if not arg2:
 				# single
@@ -58,7 +59,7 @@ class Document(BaseDocument):
 					# filter
 					self.name = frappe.db.get_value(arg1, arg2, "name")
 					if self.name is None:
-						raise frappe.DoesNotExistError, (arg1, arg2)
+						frappe.throw(_("{0} {1} not found").format(_(arg1), arg2), frappe.DoesNotExistError)
 				else:
 					self.name = arg2
 
@@ -72,6 +73,11 @@ class Document(BaseDocument):
 			# incorrect arguments. let's not proceed.
 			raise frappe.DataError("Document({0}, {1})".format(arg1, arg2))
 
+		if hasattr(self, "__setup__"):
+			self.__setup__()
+
+		self.dont_update_if_missing = []
+
 	def load_from_db(self):
 		if not getattr(self, "_metaclass", False) and self.meta.issingle:
 			self.update(frappe.db.get_singles_dict(self.doctype))
@@ -81,7 +87,7 @@ class Document(BaseDocument):
 		else:
 			d = frappe.db.get_value(self.doctype, self.name, "*", as_dict=1)
 			if not d:
-				frappe.throw(("{0} {1} not found").format(_(self.doctype), self.name), frappe.DoesNotExistError)
+				frappe.throw(_("{0} {1} not found").format(_(self.doctype), self.name), frappe.DoesNotExistError)
 			self.update(d)
 
 		if self.name=="DocType" and self.doctype=="DocType":
@@ -99,6 +105,10 @@ class Document(BaseDocument):
 			else:
 				self.set(df.fieldname, [])
 
+	def check_permission(self, permtype, permlabel=None):
+		if not self.has_permission(permtype):
+			self.raise_no_permission_to(permlabel or permtype)
+
 	def has_permission(self, permtype):
 		if getattr(self, "ignore_permissions", False):
 			return True
@@ -108,21 +118,26 @@ class Document(BaseDocument):
 		raise frappe.PermissionError("No permission to {} {} {}".format(perm_type, self.doctype, self.name or ""))
 
 	def insert(self, ignore_permissions=None):
+		if getattr(self, "in_print", False):
+			return
+
 		if ignore_permissions!=None:
 			self.ignore_permissions = ignore_permissions
 
 		self.set("__islocal", True)
 
-		if not self.has_permission("create"):
-			self.raise_no_permission_to("create")
+		self.check_permission("create")
 		self._set_defaults()
 		self._set_docstatus_user_and_timestamp()
 		self.check_if_latest()
-		set_new_name(self)
+		self.set_new_name()
 		self.run_method("before_insert")
 		self.set_parent_in_children()
+
+		self.set("__in_insert", True)
 		self.run_before_save_methods()
 		self._validate()
+		self.delete_key("__in_insert")
 
 		# run validate, on update etc.
 
@@ -137,11 +152,16 @@ class Document(BaseDocument):
 			d.db_insert()
 
 		self.run_method("after_insert")
+		self.set("__in_insert", True)
 		self.run_post_save_methods()
+		self.delete_key("__in_insert")
 
 		return self
 
 	def save(self, ignore_permissions=None):
+		if getattr(self, "in_print", False):
+			return
+
 		if ignore_permissions!=None:
 			self.ignore_permissions = ignore_permissions
 
@@ -149,14 +169,16 @@ class Document(BaseDocument):
 			self.insert()
 			return
 
-		if not self.has_permission("write"):
-			self.raise_no_permission_to("save")
+		self.check_permission("write", "save")
 
 		self._set_docstatus_user_and_timestamp()
 		self.check_if_latest()
 		self.set_parent_in_children()
 		self.run_before_save_methods()
-		self._validate()
+
+		if self._action != "cancel":
+			self._validate()
+
 		if self._action == "update_after_submit":
 			self.validate_update_after_submit()
 
@@ -189,6 +211,12 @@ class Document(BaseDocument):
 
 		return self
 
+	def set_new_name(self):
+		set_new_name(self)
+		# set name for children
+		for d in self.get_all_children():
+			set_new_name(d)
+
 	def update_single(self, d):
 		frappe.db.sql("""delete from tabSingles where doctype=%s""", self.doctype)
 		for field, value in d.iteritems():
@@ -219,8 +247,10 @@ class Document(BaseDocument):
 	def _validate(self):
 		self._validate_mandatory()
 		self._validate_links()
+		self._validate_selects()
 		self._validate_constants()
 		for d in self.get_all_children():
+			d._validate_selects()
 			d._validate_constants()
 
 		self._extract_images_from_text_editor()
@@ -278,20 +308,17 @@ class Document(BaseDocument):
 				self._action = "save"
 			elif self.docstatus==1:
 				self._action = "submit"
-				if not self.has_permission("submit"):
-					self.raise_no_permission_to("submit")
+				self.check_permission("submit")
 			else:
 				raise frappe.DocstatusTransitionError("Cannot change docstatus from 0 to 2")
 
 		elif docstatus==1:
 			if self.docstatus==1:
 				self._action = "update_after_submit"
-				if not self.has_permission("submit"):
-					self.raise_no_permission_to("submit")
+				self.check_permission("submit")
 			elif self.docstatus==2:
 				self._action = "cancel"
-				if not self.has_permission("cancel"):
-					self.raise_no_permission_to("cancel")
+				self.check_permission("cancel")
 			else:
 				raise frappe.DocstatusTransitionError("Cannot change docstatus from 1 to 0")
 
@@ -333,16 +360,22 @@ class Document(BaseDocument):
 		if self.get("ignore_links"):
 			return
 
-		invalid_links = self.get_invalid_links()
+		invalid_links, cancelled_links = self.get_invalid_links()
+
 		for d in self.get_all_children():
-			invalid_links.extend(d.get_invalid_links())
+			result = d.get_invalid_links(is_submittable=self.meta.is_submittable)
+			invalid_links.extend(result[0])
+			cancelled_links.extend(result[1])
 
-		if not invalid_links:
-			return
+		if invalid_links:
+			msg = ", ".join((each[2] for each in invalid_links))
+			frappe.throw(_("Could not find {0}").format(msg),
+				frappe.LinkValidationError)
 
-		msg = ", ".join((each[2] for each in invalid_links))
-		frappe.throw(_("Could not find {0}").format(msg),
-			frappe.LinkValidationError)
+		if cancelled_links:
+			msg = ", ".join((each[2] for each in cancelled_links))
+			frappe.throw(_("Cannot link cancelled document: {0}").format(msg),
+				frappe.CancelledLinkError)
 
 	def get_all_children(self, parenttype=None):
 		ret = []
@@ -363,10 +396,14 @@ class Document(BaseDocument):
 
 	def run_method(self, method, *args, **kwargs):
 		"""run standard triggers, plus those in frappe"""
-		if hasattr(self, method):
+		if hasattr(self, method) and hasattr(getattr(self, method), "__call__"):
 			fn = lambda self, *args, **kwargs: getattr(self, method)(*args, **kwargs)
-			fn.__name__ = method.encode("utf-8")
-			return Document.hook(fn)(self, *args, **kwargs)
+		else:
+			# hack! to run hooks even if method does not exist
+			fn = lambda self, *args, **kwargs: None
+
+		fn.__name__ = method.encode("utf-8")
+		return Document.hook(fn)(self, *args, **kwargs)
 
 	def submit(self):
 		self.docstatus = 1
@@ -375,6 +412,9 @@ class Document(BaseDocument):
 	def cancel(self):
 		self.docstatus = 2
 		self.save()
+
+	def delete(self):
+		frappe.delete_doc(self.doctype, self.name)
 
 	def run_before_save_methods(self):
 		if getattr(self, "ignore_validate", False):
@@ -389,7 +429,6 @@ class Document(BaseDocument):
 		elif self._action=="cancel":
 			self.run_method("before_cancel")
 		elif self._action=="update_after_submit":
-			self.run_method("validate")
 			self.run_method("before_update_after_submit")
 
 	def run_post_save_methods(self):
@@ -398,10 +437,18 @@ class Document(BaseDocument):
 		elif self._action=="submit":
 			self.run_method("on_update")
 			self.run_method("on_submit")
+			self.add_comment("Submitted")
 		elif self._action=="cancel":
 			self.run_method("on_cancel")
+			self.check_no_back_links_exist()
+			self.add_comment("Cancelled")
 		elif self._action=="update_after_submit":
 			self.run_method("on_update_after_submit")
+
+	def check_no_back_links_exist(self):
+		from frappe.model.delete_doc import check_if_doc_is_linked
+		if not self.get("ignore_links"):
+			check_if_doc_is_linked(self, method="Cancel")
 
 	@staticmethod
 	def whitelist(f):
@@ -464,14 +511,14 @@ class Document(BaseDocument):
 
 		val1 = doc.get(fieldname)
 
-		if df.fieldtype in ("Currency", "Float"):
+		if df.fieldtype in ("Currency", "Float", "Percent"):
 			val1 = flt(val1, self.precision(df.fieldname, doc.parentfield or None))
 			val2 = flt(val2, self.precision(df.fieldname, doc.parentfield or None))
 		elif df.fieldtype in ("Int", "Check"):
 			val1 = cint(val1)
 			val2 = cint(val2)
 		elif df.fieldtype in ("Data", "Text", "Small Text", "Long Text",
-			"Text Editor", "Select", "Link"):
+			"Text Editor", "Select", "Link", "Dynamic Link"):
 				val1 = cstr(val1)
 				val2 = cstr(val2)
 
@@ -481,7 +528,7 @@ class Document(BaseDocument):
 			if doc.parentfield:
 				msg = _("Incorrect value in row {0}: {1} must be {2} {3}".format(doc.idx, label, condition_str, val2))
 			else:
-				msg = _("Incorrect value: {1} must be {2} {3}".format(label, condition_str, val2))
+				msg = _("Incorrect value: {0} must be {1} {2}".format(label, condition_str, val2))
 
 			# raise passed exception or True
 			msgprint(msg, raise_exception=raise_exception or True)
@@ -494,7 +541,7 @@ class Document(BaseDocument):
 	def round_floats_in(self, doc, fieldnames=None):
 		if not fieldnames:
 			fieldnames = (df.fieldname for df in
-				doc.meta.get("fields", {"fieldtype": ["in", ["Currency", "Float"]]}))
+				doc.meta.get("fields", {"fieldtype": ["in", ["Currency", "Float", "Percent"]]}))
 
 		for fieldname in fieldnames:
 			doc.set(fieldname, flt(doc.get(fieldname), self.precision(fieldname, doc.parentfield)))
@@ -505,23 +552,35 @@ class Document(BaseDocument):
 		if parentfield and not isinstance(parentfield, basestring):
 			parentfield = parentfield.parentfield
 
+		cache_key = parentfield or "main"
+
 		if not hasattr(self, "_precision"):
-			self._precision = frappe._dict({
-				"default": cint(frappe.db.get_default("float_precision")) or 3,
-				"options": {}
-			})
+			self._precision = frappe._dict()
 
-		if self._precision.setdefault(parentfield or "main", {}).get(fieldname) is None:
-			meta = frappe.get_meta(self.meta.get_field(parentfield).options if parentfield else self.doctype)
-			df = meta.get_field(fieldname)
+		if cache_key not in self._precision:
+			self._precision[cache_key] = frappe._dict()
 
-			if df.fieldtype == "Currency" and df.options and not self._precision.options.get(df.options):
-				self._precision.options[df.options] = get_field_precision(df, self)
+		if fieldname not in self._precision[cache_key]:
+			self._precision[cache_key][fieldname] = None
 
-			if df.fieldtype == "Currency":
-				self._precision[parentfield or "main"][fieldname] = cint(self._precision.options.get(df.options)) or \
-					self._precision.default
-			elif df.fieldtype == "Float":
-				self._precision[parentfield or "main"][fieldname] = self._precision.default
+			doctype = self.meta.get_field(parentfield).options if parentfield else self.doctype
+			df = frappe.get_meta(doctype).get_field(fieldname)
 
-		return self._precision[parentfield or "main"][fieldname]
+			if df.fieldtype in ("Currency", "Float", "Percent"):
+				self._precision[cache_key][fieldname] = get_field_precision(df, self)
+
+		return self._precision[cache_key][fieldname]
+
+	def get_url(self):
+		return "/desk#Form/{doctype}/{name}".format(doctype=self.doctype, name=self.name)
+
+	def add_comment(self, comment_type, text=None):
+		comment = frappe.get_doc({
+			"doctype":"Comment",
+			"comment_by": frappe.session.user,
+			"comment_type": comment_type,
+			"comment_doctype": self.doctype,
+			"comment_docname": self.name,
+			"comment": text or comment_type
+		}).insert(ignore_permissions=True)
+		return comment

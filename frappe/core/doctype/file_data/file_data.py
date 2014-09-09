@@ -1,5 +1,5 @@
 # Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt 
+# MIT License. See license.txt
 
 from __future__ import unicode_literals
 """
@@ -16,20 +16,20 @@ from frappe.utils.file_manager import delete_file_data_content
 class FileData(Document):
 	def before_insert(self):
 		frappe.local.rollback_observers.append(self)
-	
+
 	def on_update(self):
-		# check duplicate assignement
-		n_records = frappe.db.sql("""select name from `tabFile Data`
-			where content_hash=%s 
-			and name!=%s
-			and attached_to_doctype=%s 
-			and attached_to_name=%s""", (self.content_hash, self.name, self.attached_to_doctype,
-				self.attached_to_name))
-		if len(n_records) > 0:
-			self.duplicate_entry = n_records[0][0]
-			frappe.msgprint(frappe._("Same file has already been attached to the record"))
-			frappe.db.rollback()
-			raise frappe.DuplicateEntryError
+		if not getattr(self, "ignore_duplicate_entry_error", False):
+			# check duplicate assignement
+			n_records = frappe.db.sql("""select name from `tabFile Data`
+				where content_hash=%s
+				and name!=%s
+				and attached_to_doctype=%s
+				and attached_to_name=%s""", (self.content_hash, self.name, self.attached_to_doctype,
+					self.attached_to_name))
+			if len(n_records) > 0:
+				self.duplicate_entry = n_records[0][0]
+				frappe.msgprint(frappe._("Same file has already been attached to the record"))
+				raise frappe.DuplicateEntryError
 
 	def on_trash(self):
 		if self.attached_to_name:
@@ -37,9 +37,9 @@ class FileData(Document):
 			try:
 				if not getattr(self, 'ignore_permissions', False) and \
 					not frappe.has_permission(self.attached_to_doctype, "write", self.attached_to_name):
-					
+
 					frappe.msgprint(frappe._("No permission to write / remove."), raise_exception=True)
-					
+
 			except frappe.DoesNotExistError:
 				pass
 

@@ -53,9 +53,9 @@ def run_single(patchmodule=None, method=None, methodargs=None, force=False):
 
 def execute_patch(patchmodule, method=None, methodargs=None):
 	"""execute the patch"""
-	success = False
 	block_user(True)
 	frappe.db.begin()
+
 	try:
 		log('Executing {patch} in {site} ({db})'.format(patch=patchmodule or str(methodargs),
 			site=frappe.local.site, db=frappe.db.cur_db_name))
@@ -63,22 +63,21 @@ def execute_patch(patchmodule, method=None, methodargs=None):
 			if patchmodule.startswith("execute:"):
 				exec patchmodule.split("execute:")[1] in globals()
 			else:
-				frappe.get_attr(patchmodule + ".execute")()
+				frappe.get_attr(patchmodule.split()[0] + ".execute")()
 			update_patch_log(patchmodule)
 		elif method:
 			method(**methodargs)
 
-		frappe.db.commit()
-		success = True
-	except Exception, e:
+	except Exception:
 		frappe.db.rollback()
-		tb = frappe.get_traceback()
-		log(tb)
+		raise
 
-	block_user(False)
-	if success:
+	else:
+		frappe.db.commit()
+		block_user(False)
 		log('Success')
-	return success
+
+	return True
 
 def update_patch_log(patchmodule):
 	"""update patch_file in patch log"""

@@ -75,27 +75,59 @@ $.extend(frappe.model, {
 	},
 
 	get_default_value: function(df, doc, parent_doc) {
-		var def_vals = {
-			"__user": user,
-			"Today": dateutil.get_today(),
+		var user_permissions = frappe.defaults.get_user_permissions();
+		var has_user_permissions = (df.fieldtype==="Link" && user_permissions
+			&& df.ignore_user_permissions != 1 && user_permissions[df.options]);
+
+		// don't set defaults for "User" link field using User Permissions!
+		if (df.fieldtype==="Link" && df.options!=="User") {
+			// 1 - look in user permissions
+			if (has_user_permissions && user_permissions[df.options].length===1) {
+				return user_permissions[df.options][0];
+			}
+
+			// 2 - look in user defaults
+			var user_default = frappe.defaults.get_user_default(df.fieldname);
+			var is_allowed_user_default = user_default &&
+				(!has_user_permissions || user_permissions[df.options].indexOf(user_default)!==-1);
+
+			// is this user default also allowed as per user permissions?
+			if (is_allowed_user_default) {
+				return frappe.defaults.get_user_default(df.fieldname);
+			}
 		}
 
-		var restrictions = frappe.defaults.get_restrictions();
-		if(df.fieldtype==="Link" && restrictions
-			&& df.ignore_restrictions != 1
-			&& restrictions[df.options]
-			&& (restrictions[df.options].length===1))
-			return restrictions[df.options][0];
-		else if(frappe.defaults.get_user_default(df.fieldname))
-			return frappe.defaults.get_user_default(df.fieldname);
-		else if(df["default"] && df["default"][0]===":")
-			return frappe.model.get_default_from_boot_docs(df, doc, parent_doc);
-		else if(def_vals[df["default"]])
-			return def_vals[df["default"]];
-		else if(df.fieldtype=="Time" && (!df["default"]))
-			return dateutil.get_cur_time()
-		else if(df["default"] && df["default"][0]!==":")
-			return df["default"];
+		// 3 - look in default of docfield
+		if (df['default']) {
+
+			if (df["default"] == "__user") {
+				return user;
+
+			} else if (df["default"] == "Today") {
+				return dateutil.get_today();
+
+			} else if (df["default"][0]===":") {
+				var boot_doc = frappe.model.get_default_from_boot_docs(df, doc, parent_doc);
+				var is_allowed_boot_doc = !has_user_permissions || user_permissions[df.options].indexOf(boot_doc)!==-1;
+
+				if (is_allowed_boot_doc) {
+					return frappe.model.get_default_from_boot_docs(df, doc, parent_doc);
+				}
+			}
+
+			// is this default value is also allowed as per user permissions?
+			var is_allowed_default = !has_user_permissions || user_permissions[df.options].indexOf(df["default"])!==-1;
+			if (df.fieldtype!=="Link" || df.options==="User" || is_allowed_default) {
+				return df["default"];
+			}
+
+		} else if (df.fieldtype=="Time") {
+			return dateutil.now_time();
+
+		} else if(df.fieldtype=="Datetime") {
+			return dateutil.now_datetime()
+
+		}
 	},
 
 	get_default_from_boot_docs: function(df, doc, parent_doc) {

@@ -4,6 +4,14 @@
 from __future__ import unicode_literals
 import frappe, re
 
+def delete_page_cache(path):
+	if not path:
+		path = ""
+	cache = frappe.cache()
+	cache.delete_value("page:" + path)
+	cache.delete_value("page_context:" + path)
+	cache.delete_value("sitemap_options:" + path)
+
 def scrub_relative_urls(html):
 	"""prepend a slash before a relative url"""
 	html = re.sub("""(src|href)[^\w'"]*['"](?!http|ftp|/|#|%|{)([^'" >]+)['"]""", '\g<1> = "/\g<2>"', html)
@@ -19,6 +27,12 @@ def find_first_image(html):
 
 def can_cache(no_cache=False):
 	return not (frappe.conf.disable_website_cache or no_cache)
+
+def get_comment_list(doctype, name):
+	return frappe.db.sql("""select
+		comment, comment_by_fullname, creation
+		from `tabComment` where comment_doctype=%s
+		and comment_docname=%s order by creation""", (doctype, name), as_dict=1) or []
 
 def get_home_page():
 	def _get_home_page():

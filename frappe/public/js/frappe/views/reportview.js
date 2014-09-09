@@ -53,7 +53,7 @@ frappe.views.ReportViewPage = Class.extend({
 		var module = locals.DocType[this.doctype].module;
 		this.page.appframe.set_title(__(this.doctype));
 		this.page.appframe.add_module_icon(module, this.doctype)
-		this.page.appframe.set_title_left(function() { frappe.set_route(frappe.get_module(module).link); });
+		this.page.appframe.set_title_left(function() { frappe.set_route((frappe.get_module(module) || {}).link); });
 		this.page.appframe.set_views_for(this.doctype, "report");
 
 		this.page.reportview = new frappe.views.ReportView({
@@ -107,7 +107,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		this.make_export();
 		this.set_init_columns();
 		this.make_save();
-		this.make_user_restrictions();
+		this.make_user_permissions();
 		this.set_tag_and_status_filter();
 	},
 
@@ -118,7 +118,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 			var columns = [['name', this.doctype],];
 			$.each(frappe.meta.docfield_list[this.doctype], function(i, df) {
 				if((df.in_filter || df.in_list_view) && df.fieldname!='naming_series'
-					&& !in_list(frappe.model.no_value_type, df.fieldname)) {
+					&& !in_list(frappe.model.no_value_type, df.fieldtype)) {
 					columns.push([df.fieldname, df.parent]);
 				}
 			});
@@ -171,7 +171,6 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 			fields: $.map(this.columns, function(v) { return me.get_full_column_name(v) }),
 			order_by: this.get_order_by(),
 			filters: this.filter_list.get_filters(),
-			docstatus: ['0','1','2'],
 			with_childnames: 1
 		}
 	},
@@ -221,8 +220,12 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 				width: (docfield ? cint(docfield.width) : 120) || 120,
 				formatter: function(row, cell, value, columnDef, dataContext) {
 					var docfield = columnDef.docfield;
-					if(docfield.fieldname==="_user_tags") docfield.fieldtype = "Tag";
-					if(docfield.fieldname==="_comments") docfield.fieldtype = "Comment";
+					docfield.fieldtype = {
+						"_user_tags": "Tag",
+						"_comments": "Comment",
+						"_assign": "Assign"
+					}[docfield.fieldname] || docfield.fieldtype;
+
 					if(docfield.fieldtype==="Link" && docfield.fieldname!=="name") {
 						docfield.link_onclick =
 							repl('frappe.container.page.reportview.set_filter("%(fieldname)s", "%(value)s").page.reportview.run()',
@@ -327,14 +330,20 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		});
 		d.get_input(docfield.fieldname).val(row[docfield.fieldname]);
 		d.get_input("update").on("click", function() {
+			var args = {
+				doctype: docfield.parent,
+				name: row[docfield.parent===me.doctype ? "name" : docfield.parent+":name"],
+				fieldname: docfield.fieldname,
+				value: d.get_value(docfield.fieldname)
+			};
+
+			if (!args.name) {
+				frappe.throw(__("ID field is required to edit values using Report. Please select the ID field using the Column Picker"));
+			}
+
 			frappe.call({
 				method: "frappe.client.set_value",
-				args: {
-					doctype: docfield.parent,
-					name: row[docfield.parent===me.doctype ? "name" : docfield.parent+":name"],
-					fieldname: docfield.fieldname,
-					value: d.get_value(docfield.fieldname)
-				},
+				args: args,
 				callback: function(r) {
 					if(!r.exc) {
 						d.hide();
@@ -398,12 +407,14 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		this.$w.find('.result-list').on("click", ".label-info", function() {
 			if($(this).attr("data-label")) {
 				me.set_filter("_user_tags", $(this).attr("data-label"));
+				me.refresh();
 			}
 		});
 		this.$w.find('.result-list').on("click", "[data-workflow-state]", function() {
 			if($(this).attr("data-workflow-state")) {
 				me.set_filter(me.state_fieldname,
 					$(this).attr("data-workflow-state"));
+				me.refresh();
 			}
 		});
 	},
@@ -550,19 +561,19 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 						});
 					}));
 
-			}, 'icon-remove');
+			}, 'icon-trash');
 		}
 	},
 
-	make_user_restrictions: function() {
+	make_user_permissions: function() {
 		var me = this;
-		if(this.docname && frappe.model.can_restrict("Report")) {
-			this.page.appframe.add_button(__("User Permission Restrictions"), function() {
+		if(this.docname && frappe.model.can_set_user_permissions("Report")) {
+			this.page.appframe.add_button(__("User Permissions Manager"), function() {
 				frappe.route_options = {
-					property: "Report",
-					restriction: me.docname
+					doctype: "Report",
+					name: me.docname
 				};
-				frappe.set_route("user-properties");
+				frappe.set_route("user-permissions");
 			}, "icon-shield");
 		}
 	},
@@ -599,7 +610,15 @@ frappe.ui.ColumnPicker = Class.extend({
 			me.add_column(c);
 		});
 
-		$(this.dialog.body).find('.column-list').sortable();
+		$(this.dialog.body).find('.column-list').sortable({
+			update: function(event, ui) {
+				me.columns = [];
+				$.each($(me.dialog.body).find('.column-list .column-list-item'),
+					function(i, ele) {
+						me.columns.push($(ele).data("fieldselect"))
+					});
+			}
+		});
 
 		// add column
 		$(this.dialog.body).find('.btn-add').click(function() {
@@ -624,7 +643,7 @@ frappe.ui.ColumnPicker = Class.extend({
 	add_column: function(c) {
 		if(!c) return;
 		var w = $('<div style="padding: 5px; background-color: #eee; \
-			width: 90%; margin-bottom: 10px; border-radius: 3px; cursor: move;">\
+			width: 90%; margin-bottom: 10px; border-radius: 3px; cursor: move;" class="column-list-item">\
 			<img src="assets/frappe/images/ui/drag-handle.png" style="margin-right: 10px;">\
 			<a class="close" style="margin-top: 5px;">&times</a>\
 			</div>')
@@ -637,6 +656,8 @@ frappe.ui.ColumnPicker = Class.extend({
 
 		fieldselect.$select.css({width: '70%', 'margin-top':'5px'})
 		fieldselect.val((c[1] || this.doctype) + "." + c[0]);
+
+		w.data("fieldselect", fieldselect);
 
 		w.find('.close').data("fieldselect", fieldselect).click(function() {
 			console.log(me.columns.indexOf($(this).data('fieldselect')));

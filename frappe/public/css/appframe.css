@@ -5,28 +5,41 @@
 	padding-bottom: 15px;
 }
 
+.appframe-wrapper {
+	background-color: #fff;
+	min-height: 400px;
+	/*box-shadow: 1px 0px 1px rgba(0,0,0,0.4);*/
+}
+
 .appframe-titlebar {
 	border-bottom: 1px solid #c7c7c7;
 }
 
-.appframe-titlebar, .appframe-footer {
-	background: url(/assets/frappe/images/ui/sos.png) repeat;
-	-webkit-box-shadow: inset 0 0 7px rgba(0, 0, 0, .07);
-	        box-shadow: inset 0 0 7px rgba(0, 0, 0, .07);
+.appframe-titlebar, .appframe-iconbar, .appframe-form, .appframe-primary-actions {
+	/*background-color: rgba(255, 255, 255, 0.7);*/
+	background-color: #f9f9f9;
+}
+
+.appframe-primary-actions {
+	border-bottom: 1px solid #c7c7c7;
+}
+
+.appframe-primary-actions .btn {
+	margin: 10px;
+	margin-left: 0px;
 }
 
 .appframe-iconbar {
-	border-bottom: 1px solid #eee;
+	border-bottom: 1px solid #c7c7c7;
 }
 
 .titlebar-item {
-	padding-top: 15px;
-	padding-bottom: 15px;
+	padding-top: 10px;
+	padding-bottom: 10px;
 }
 
-.titlebar-item h2 {
+.titlebar-item h3 {
 	display: inline-block;
-	font-weight: normal;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -34,9 +47,10 @@
 	margin: 0px;
 }
 
-.titlebar-item.text-left {
-
+.titlebar-item.text-right {
+	margin-top: 3px;
 }
+
 .titlebar-left-item  {
 	float: left;
 	width: 30px;
@@ -49,6 +63,13 @@ h2.titlebar-left-item {
 .titlebar-center-item  {
 	float: left;
 	width: 90%;
+}
+
+.title-sub {
+	font-size: 50%;
+	color: #888;
+	margin-left: 34px;
+	margin-top: 4px;
 }
 
 @media (max-width: 768px) {
@@ -101,7 +122,7 @@ h2.titlebar-left-item {
 }
 
 .appframe-form {
-	padding: 5px 0px;
+	padding: 2px 0px 5px 0px;
 }
 
 .appframe-form input, .appframe-form select, .appframe-form label {
@@ -116,12 +137,17 @@ h2.titlebar-left-item {
 
 .appframe-form .form-control {
 	height: 28px;
+	margin-top: 0px;
 }
-
 
 .iconbar {
 	display: inline-block;
 	padding: 9px 0px;
+}
+
+.iconbar-4 {
+	border-left: 1px solid #c7c7c7;
+	padding-left: 4px;
 }
 
 .iconbar ul {
@@ -157,11 +183,22 @@ h2.titlebar-left-item {
 	color: orange;
 }
 
-
-.appframe-footer {
-	margin-top: 15px;
-}
-
 .workflow-button-area {
 	margin-bottom: 15px;
+}
+
+.appframe-control-label {
+	font-size: 75% !important;
+	margin: 0px auto !important;
+	padding: 0px 4px !important;
+}
+
+.appframe-only-label {
+	margin-top: 21px !important;
+	text-align: center;
+}
+
+.appframe-form .checkbox {
+	margin-top: 15px !important;
+	margin-bottom: -7px !important;
 }

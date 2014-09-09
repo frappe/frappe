@@ -11,8 +11,7 @@ frappe.pages['desktop'].refresh = function(wrapper) {
 	frappe.ui.toolbar.add_dropdown_button("File", __("All Applications"), function() {
 		frappe.desktop.show_all_modules();
 	}, 'icon-th');
-
-}
+};
 
 frappe.desktop.refresh = function() {
 	frappe.desktop.render();
@@ -104,21 +103,22 @@ frappe.desktop.render = function() {
 
 	$(document).on("notification-update", function() {
 		frappe.desktop.show_pending_notifications();
-	})
+	});
 
+	$(document).trigger("desktop-render");
 }
 
 frappe.desktop.show_all_modules = function() {
 	if(!frappe.desktop.all_modules_dialog) {
 		var d = new frappe.ui.Dialog({
-			title: '<i class="icon-th text-muted"></i> All Applications'
+			title: '<i class="icon-th text-muted"></i> '+ __("All Applications")
 		});
 
-		var desktop_items = frappe.user.get_desktop_items();
+		var desktop_items = frappe.user.get_desktop_items(true);
 		var user_desktop_items = frappe.user.get_user_desktop_items();
 
 		$('<input class="form-control desktop-app-search" \
-			type="text" placeholder="Search Filter">')
+			type="text" placeholder="' + __("Search Filter") +'>')
 			.appendTo(d.body)
 			.on("keyup", function() {
 				var val = $(this).val();
@@ -131,10 +131,12 @@ frappe.desktop.show_all_modules = function() {
 		$wrapper = $('<div class="list-group">').appendTo(d.body);
 
 		// list of applications (frappe.user.get_desktop_items())
-		$.each(keys(frappe.modules).sort(), function(i, m) {
+		var items = keys(frappe.modules).sort();
+		$.each(items, function(i, m) {
 			var module = frappe.get_module(m);
 			if(module.link && desktop_items.indexOf(m)!==-1) {
 				module.app_icon = frappe.ui.app_icon.get_html(m, true);
+				module.label = __(module.label);
 				$(repl('<div class="list-group-item" data-label="%(name)s">\
 				<div class="row">\
 					<div class="col-xs-2"><a href="#%(link)s">%(app_icon)s</a></div>\
@@ -150,16 +152,10 @@ frappe.desktop.show_all_modules = function() {
 		// check shown items
 		$wrapper.find('[type="checkbox"]')
 			.on("click", function() {
-				// update user_desktop_items (when checked or un-checked)
-				var user_desktop_items = frappe.user.get_user_desktop_items();
-				var module = $(this).attr("data-name");
-				if($(this).prop("checked")) {
-					user_desktop_items.push(module);
-				} else {
-					if(user_desktop_items.indexOf(module)!==-1) {
-						user_desktop_items.splice(user_desktop_items.indexOf(module), 1);
-					}
-				}
+				var user_desktop_items = [];
+				$wrapper.find('[type="checkbox"]:checked').each(function(i,ele) {
+					user_desktop_items.push($(ele).attr("data-name"));
+				})
 				frappe.defaults.set_default("_user_desktop_items", user_desktop_items);
 				frappe.desktop.refresh();
 			})

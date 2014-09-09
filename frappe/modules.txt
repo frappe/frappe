@@ -1,2 +1,2 @@
-core
-website
+Core
+Website

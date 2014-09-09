@@ -39,15 +39,15 @@
 						</a>
 				        <ul class="dropdown-menu">
 							{%- for child in post_login -%}
-							<li data-label="{{ child.label }}"
+							<li {% if child.label %}data-label="{{ child.label }}" {% endif %}
 								{% if child.class %} class="{{ child.class }}" {% endif %}>
 
 								{%- if child.url -%}
-									<a href="{{ child.url }}" {{ child.target or '' }}>
+									<a href="{{ child.url }}" {{ child.target or '' }}
+										rel="nofollow">
 										{%- if child.icon -%}
 										<i class="icon-fixed-width {{ child.icon }}"></i>
 										{%- endif -%}
-
 										{{ child.label }}
 									</a>
 								{%- endif -%}
@@ -55,9 +55,8 @@
 							{%- endfor -%}
 						</ul>
 					</li>
-					{% if not disable_signup %}
-					<li class="btn-login-area"><a href="/login">Sign Up / Login</a></li>
-					{% endif %}
+					<li class="btn-login-area"><a href="/login">
+						{%- if not disable_signup %}Sign Up / {% endif -%} Login</a></li>
 				</ul>
 			</div>
 		</div>

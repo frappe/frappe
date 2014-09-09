@@ -61,6 +61,10 @@ class Meta(Document):
 	def get_link_fields(self):
 		return self.get("fields", {"fieldtype": "Link", "options":["!=", "[Select]"]})
 
+	def get_select_fields(self):
+		return self.get("fields", {"fieldtype": "Select", "options":["not in",
+			["[Select]", "Loading...", "attach_files:"]]})
+
 	def get_table_fields(self):
 		if not hasattr(self, "_table_fields"):
 			if self.name!="DocType":
@@ -190,19 +194,26 @@ class Meta(Document):
 
 		self.set("fields", newlist)
 
-	def get_restricted_fields(self, restricted_types):
-		restricted_fields = self.get("fields", {
+	def get_fields_to_check_permissions(self, user_permission_doctypes):
+		fields = self.get("fields", {
 			"fieldtype":"Link",
 			"parent": self.name,
-			"ignore_restrictions":("!=", 1),
-			"options":("in", restricted_types)
+			"ignore_user_permissions":("!=", 1),
+			"options":("in", user_permission_doctypes)
 		})
-		if self.name in restricted_types:
-			restricted_fields.append(frappe._dict({
-				"label":"Name", "fieldname":"name", "options": self.name
-			}))
-		return restricted_fields
 
+		if self.name in user_permission_doctypes:
+			fields.append(frappe._dict({
+				"label":"Name",
+				"fieldname":"name",
+				"options": self.name
+			}))
+
+		return fields
+
+	def is_print_hide(self, fieldname):
+		df = self.get_field(fieldname)
+		return df.get("__print_hide") or df.print_hide
 
 doctype_table_fields = [
 	frappe._dict({"fieldname": "fields", "options": "DocField"}),
@@ -230,13 +241,16 @@ def get_field_currency(df, doc):
 	"""get currency based on DocField options and fieldvalue in doc"""
 	currency = None
 
-	if ":" in cstr(df.options):
-		split_opts = df.options.split(":")
+	if not df.get("options"):
+		return None
+
+	if ":" in cstr(df.get("options")):
+		split_opts = df.get("options").split(":")
 		if len(split_opts)==3:
 			currency = frappe.db.get_value(split_opts[0], doc.get(split_opts[1]),
 				split_opts[2])
 	else:
-		currency = doc.get(df.options)
+		currency = doc.get(df.get("options"))
 
 	return currency
 
@@ -244,19 +258,23 @@ def get_field_precision(df, doc):
 	"""get precision based on DocField options and fieldvalue in doc"""
 	from frappe.utils import get_number_format_info
 
-	number_format = None
+	precision = cint(df.precision) or cint(frappe.db.get_default("float_precision")) or 3
+
 	if df.fieldtype == "Currency":
+		number_format = None
 		currency = get_field_currency(df, doc)
+
+		if not currency:
+			# use default currency
+			currency = frappe.db.get_default("currency")
+
 		if currency:
 			number_format = frappe.db.get_value("Currency", currency, "number_format")
 
-	if not number_format:
-		number_format = frappe.db.get_default("number_format") or "#,###.##"
+		if not number_format:
+			number_format = frappe.db.get_default("number_format") or "#,###.##"
 
-	decimal_str, comma_str, precision = get_number_format_info(number_format)
-
-	if df.fieldtype == "Float":
-		precision = cint(frappe.db.get_default("float_precision")) or 3
+		decimal_str, comma_str, precision = get_number_format_info(number_format)
 
 	return precision
 

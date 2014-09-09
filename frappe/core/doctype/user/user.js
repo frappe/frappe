@@ -13,6 +13,7 @@ cur_frm.cscript.onload = function(doc, dt, dn) {
 cur_frm.cscript.before_load = function(doc, dt, dn, callback) {
 	var update_language_select = function(user_language) {
 		cur_frm.set_df_property("language", "options", frappe.languages || ["", "English"]);
+		cur_frm.set_df_property("time_zone", "options", [""].concat(frappe.all_timezones));
 		callback && callback();
 	}
 
@@ -20,7 +21,8 @@ cur_frm.cscript.before_load = function(doc, dt, dn, callback) {
 		frappe.call({
 			method: "frappe.core.doctype.user.user.get_languages",
 			callback: function(r) {
-				frappe.languages = r.message;
+				frappe.languages = r.message.languages;
+				frappe.all_timezones = r.message.timezones;
 				update_language_select();
 			}
 		});
@@ -45,12 +47,12 @@ cur_frm.cscript.refresh = function(doc) {
 	cur_frm.toggle_display(['sb1', 'sb3'], false);
 
 	if(!doc.__islocal){
-		cur_frm.add_custom_button("Set Properties", function() {
+		cur_frm.add_custom_button("Set User Permissions", function() {
 			frappe.route_options = {
 				"user": doc.name
 			};
-			frappe.set_route("user-properties");
-		})
+			frappe.set_route("user-permissions");
+		}, null, "btn-default")
 
 		if(has_common(user_roles, ["Administrator", "System Manager"])) {
 			cur_frm.toggle_display(['sb1', 'sb3'], true);
@@ -223,6 +225,7 @@ frappe.RoleEditor = Class.extend({
 				$body.append('<table class="user-perm"><thead><tr>'
 					+ '<th style="text-align: left">' + __('Document Type') + '</th>'
 					+ '<th>' + __('Level') + '</th>'
+					+ '<th>' + __('Apply User Permissions') + '</th>'
 					+ '<th>' + __('Read') + '</th>'
 					+ '<th>' + __('Write') + '</th>'
 					+ '<th>' + __('Create') + '</th>'
@@ -235,8 +238,7 @@ frappe.RoleEditor = Class.extend({
 					// + '<th>' + __('Export') + '</th>'
 					// + '<th>' + __('Print') + '</th>'
 					// + '<th>' + __('Email') + '</th>'
-					+ '<th>' + __('Only Restricted Documents') + '</th>'
-					+ '<th>' + __('Can Restrict Others') + '</th>'
+					+ '<th>' + __('Set User Permissions') + '</th>'
 					+ '</tr></thead><tbody></tbody></table>');
 
 				for(var i=0, l=r.message.length; i<l; i++) {
@@ -256,6 +258,7 @@ frappe.RoleEditor = Class.extend({
 					$body.find('tbody').append(repl('<tr>\
 						<td style="text-align: left">%(parent)s</td>\
 						<td>%(permlevel)s</td>\
+						<td>%(apply_user_permissions)s</td>\
 						<td>%(read)s</td>\
 						<td>%(write)s</td>\
 						<td>%(create)s</td>\
@@ -268,8 +271,7 @@ frappe.RoleEditor = Class.extend({
 						// <td>%(export)s</td>\
 						// <td>%(print)s</td>\
 						// <td>%(email)s</td>'
-						+ '<td>%(restricted)s</td>\
-						<td>%(restrict)s</td>\
+						+ '<td>%(set_user_permissions)s</td>\
 						</tr>', perm))
 				}
 
@@ -280,8 +282,9 @@ frappe.RoleEditor = Class.extend({
 	},
 	make_perm_dialog: function() {
 		this.perm_dialog = new frappe.ui.Dialog({
-			title:'Role Permissions',
-			width: "800px"
+			title:'Role Permissions'
 		});
+
+		this.perm_dialog.$wrapper.find('.modal-dialog').css("width", "800px");
 	}
 });

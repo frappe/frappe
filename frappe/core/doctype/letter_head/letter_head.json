@@ -1,6 +1,5 @@
 {
- "allow_attach": 1, 
- "autoname": "field:letter_head_name", 
+  "autoname": "field:letter_head_name", 
  "creation": "2012-11-22 17:45:46", 
  "docstatus": 0, 
  "doctype": "DocType", 
@@ -35,7 +34,8 @@
    "label": "Is Default", 
    "oldfieldname": "is_default", 
    "oldfieldtype": "Check", 
-   "permlevel": 0
+   "permlevel": 0, 
+   "search_index": 1
   }, 
   {
    "depends_on": "letter_head_name", 
@@ -52,14 +52,13 @@
  "icon": "icon-font", 
  "idx": 1, 
  "max_attachments": 3, 
- "modified": "2014-05-07 06:03:07.760995", 
+ "modified": "2014-07-21 05:57:56.052191", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Letter Head", 
  "owner": "Administrator", 
  "permissions": [
   {
-   "cancel": 0, 
    "create": 1, 
    "delete": 1, 
    "email": 1, 
@@ -72,6 +71,7 @@
    "write": 1
   }, 
   {
+   "apply_user_permissions": 1, 
    "delete": 0, 
    "email": 0, 
    "permlevel": 0, 

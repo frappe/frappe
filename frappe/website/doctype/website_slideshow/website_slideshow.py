@@ -9,7 +9,6 @@ import frappe
 from frappe.model.document import Document
 
 class WebsiteSlideshow(Document):
-
 	def on_update(self):
 		# a slide show can be in use and any change in it should get reflected
 		from frappe.website.render import clear_cache

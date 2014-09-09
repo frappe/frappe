@@ -7,6 +7,7 @@ from frappe import _
 from frappe.utils import get_request_site_address, encode
 from frappe.model.document import Document
 from urllib import quote
+from frappe.website.router import resolve_route
 
 class WebsiteSettings(Document):
 	def validate(self):
@@ -15,8 +16,9 @@ class WebsiteSettings(Document):
 		self.validate_home_page()
 
 	def validate_home_page(self):
-		if self.home_page and \
-			not frappe.db.get_value("Website Route", {"name": self.home_page}):
+		if frappe.flags.in_install_app:
+			return
+		if self.home_page and not resolve_route(self.home_page):
 			frappe.throw(_("Invalid Home Page") + " (Standard pages - index, login, products, blog, about, contact)")
 
 	def validate_top_bar_items(self):
@@ -46,6 +48,9 @@ class WebsiteSettings(Document):
 		from frappe.website.render import clear_cache
 		clear_cache()
 
+		# clears role based home pages
+		frappe.clear_cache()
+
 def get_website_settings():
 	hooks = frappe.get_hooks()
 
@@ -74,14 +79,14 @@ def get_website_settings():
 			order by idx asc""", as_dict=1),
 		"post_login": [
 			{"label": "Reset Password", "url": "update-password", "icon": "icon-key"},
-			{"label": "Logout", "url": "?cmd=web_logout", "icon": "icon-signout"}
+			{"label": "Logout", "url": "/?cmd=web_logout", "icon": "icon-signout"}
 		]
 	})
 
 	settings = frappe.get_doc("Website Settings", "Website Settings")
 	for k in ["banner_html", "brand_html", "copyright", "twitter_share_via",
 		"favicon", "facebook_share", "google_plus_one", "twitter_share", "linked_in_share",
-		"disable_signup"]:
+		"disable_signup", "no_sidebar"]:
 		if hasattr(settings, k):
 			context[k] = settings.get(k)
 
@@ -95,13 +100,16 @@ def get_website_settings():
 		"disable_signup"]:
 		context[k] = int(context.get(k) or 0)
 
-	context.url = quote(str(get_request_site_address(full_address=True)), safe="/:")
+	if frappe.request:
+		context.url = quote(str(get_request_site_address(full_address=True)), safe="/:")
+
 	context.encoded_title = quote(encode(context.title or ""), str(""))
 
 	for update_website_context in hooks.update_website_context or []:
 		frappe.get_attr(update_website_context)(context)
 
 	context.web_include_js = hooks.web_include_js or []
+
 	context.web_include_css = hooks.web_include_css or []
 
 	return context

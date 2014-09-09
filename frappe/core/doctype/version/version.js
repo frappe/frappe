@@ -11,5 +11,5 @@ frappe.ui.form.on("Version", "refresh", function(frm) {
 				}
 			}
 		})
-	})
+	});
 })

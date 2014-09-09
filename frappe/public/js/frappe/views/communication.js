@@ -37,31 +37,28 @@ frappe.views.CommunicationList = Class.extend({
 	},
 	clear_list: function() {
 		this.body.remove();
-		$("<p class='text-muted'>" + __("No Communication tagged with this ")
-			+ this.doc.doctype +" yet.</p>").appendTo(this.wrapper);
+		$("<p class='text-muted'>" + __("No Communication tagged with this {0} yet.", [__(this.doc.doctype)]) + "</p>").appendTo(this.wrapper);
 	},
 	make_body: function() {
 		$(this.parent)
 			.empty()
 
 		this.wrapper = $("<div>\
-			<div style='margin-bottom: 8px;'>\
+			<div style='margin-bottom: 15px; margin-left: 40px;'>\
 				<button class='btn btn-default' \
 					onclick='cur_frm.communication_view.add_reply()'>\
 				<i class='icon-plus'></i> "+__("Add Message")+"</button></div>\
 			</div>")
 			.appendTo(this.parent);
 
-		this.body = $('<div class="list-group">')
-		.css({"border":"1px solid #dddddd", "border-radius":"4px"})
-			.appendTo(this.wrapper);
+		this.body = $('<div>').appendTo(this.wrapper);
 	},
 
 	add_reply: function() {
 		var subject = this.doc.subject;
 		if(!subject && this.list.length) {
 			// get subject from previous message
-			subject = this.list[0].subject || "[No Subject]";
+			subject = this.list[0].subject || __("[No Subject]");
 			if(strip(subject.toLowerCase().split(":")[0])!="re") {
 				subject = "Re: " + subject;
 			}
@@ -75,15 +72,17 @@ frappe.views.CommunicationList = Class.extend({
 
 	prepare: function(doc) {
 		//doc.when = comment_when(this.doc.modified);
-		doc.when = doc.creation;
-		if(!doc.content) doc.content = "[no content]";
+		doc.when = comment_when(doc.creation);
+		if(!doc.content) doc.content = __("[no content]");
 		if(!frappe.utils.is_html(doc.content)) {
 			doc.content = doc.content.replace(/\n/g, "<br>");
 		}
 		doc.content = frappe.utils.remove_script_and_style(doc.content);
 
-		if(!doc.sender) doc.sender = "[unknown sender]";
+		if(!doc.sender) doc.sender = __("[unknown sender]");
 		doc._sender = doc.sender.replace(/</, "&lt;").replace(/>/, "&gt;");
+		doc._sender_id = doc.sender.indexOf("<")!== -1 ?
+			strip(doc.sender.split("<")[1].split(">")[0]) : doc.sender;
 		doc.content = doc.content.split("-----"+__("In response to")+"-----")[0];
 		doc.content = doc.content.split("-----"+__("Original Message")+"-----")[0];
 	},
@@ -96,42 +95,30 @@ frappe.views.CommunicationList = Class.extend({
 			"Phone": "icon-phone",
 			"SMS": "icon-mobile-phone",
 		}[doc.communication_medium] || "icon-envelope";
-		var comm = $(repl('<div class="list-group-item">\
-				<div class="comm-header row" title="'+__('Click to Expand / Collapse')+'">\
-					<div class="col-sm-3"><i class="%(icon)s"></i> %(_sender)s</div>\
-					<div class="col-sm-6">%(subject)s</div>\
-					<div class="col-sm-3 text-right">%(when)s</div>\
+		doc.avatar = frappe.get_gravatar(doc._sender_id);
+		var comm = $(repl('<div style="border: 1px solid #f2f2f2; border-radius: 5px; padding: 15px; margin-bottom: 10px;>\
+			<div class="media">\
+			<span class="pull-left avatar avatar-small"><img class="media-object" src="%(avatar)s"></span>\
+			<div class="media-body">\
+				<div class="media=heading"><i class="%(icon)s icon-fixed-width"></i> <strong>%(subject)s</strong></div>\
+				<div class="text-muted small">\
+					%(_sender)s | %(when)s\
+					| <a href="#Form/Communication/%(name)s">'+__('Details')+'</a>\
 				</div>\
-				<div class="comm-content" style="overflow-x: auto; display: none;">\
-					<div class="inner" style="border-top: 1px solid #f3f3f3; margin-top: 10px; padding-top: 10px;">\
-					</div>\
-					<div class="show-details pull-right" style="margin-right: 10px;">\
-						<a href="#Form/Communication/%(name)s">'+__('Show Details')+'</a>\
-					</div>\
-				</div>\
-			</td></tr>', doc))
+				<div class="comm-content">%(content)s</div>\
+			</div></div>', doc))
 			.appendTo(this.body);
-
-		if(!doc.name) {
-			comm.find(".show-details").toggle(false);
-		}
-
-		comm.find(".comm-header")
-			.css({"cursor":"pointer"})
-			.click(function() {
-				$(this).parent().find(".comm-content").toggle();
-			});
-
 		this.comm_list.push(comm);
-		comm.find(".comm-content .inner").html(doc.content);
 	}
 });
+
+frappe.last_edited_communication = {};
+frappe.standard_replies = {};
 
 frappe.views.CommunicationComposer = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts)
 		this.make();
-		this.dialog.show();
 	},
 	make: function() {
 		var me = this;
@@ -143,6 +130,8 @@ frappe.views.CommunicationComposer = Class.extend({
 					description:__("Email addresses, separted by commas")},
 				{label:__("Subject"), fieldtype:"Data", reqd: 1,
 					fieldname:"subject"},
+				{label:__("Standard Reply"), fieldtype:"Link", options:"Standard Reply",
+					fieldname:"standard_reply"},
 				{label:__("Message"), fieldtype:"Text Editor", reqd: 1,
 					fieldname:"content"},
 				{label:__("Send As Email"), fieldtype:"Check",
@@ -169,6 +158,7 @@ frappe.views.CommunicationComposer = Class.extend({
 		this.dialog.$wrapper.find("[data-edit='outdent']").remove();
 		this.dialog.get_input("send").addClass("btn-primary");
 
+
 		$(document).on("upload_complete", function(event, attachment) {
 			if(me.dialog.display) {
 				var wrapper = $(me.dialog.fields_dict.select_attachments.wrapper);
@@ -190,15 +180,74 @@ frappe.views.CommunicationComposer = Class.extend({
 			}
 		})
 		this.prepare();
+		this.dialog.show();
+
 	},
 	prepare: function() {
 		this.setup_print();
 		this.setup_attach();
 		this.setup_email();
 		this.setup_autosuggest();
+		this.setup_last_edited_communication();
+		this.setup_standard_reply();
 		$(this.dialog.fields_dict.recipients.input).val(this.recipients || "").change();
 		$(this.dialog.fields_dict.subject.input).val(this.subject || "").change();
 		this.setup_earlier_reply();
+	},
+
+	setup_standard_reply: function() {
+		var me = this;
+		this.dialog.get_input("standard_reply").on("change", function() {
+			var standard_reply = $(this).val();
+			var prepend_reply = function() {
+				var content_field = me.dialog.fields_dict.content;
+				var content = content_field.get_value() || "";
+				content_field.set_input(
+					frappe.standard_replies[standard_reply]
+						+ "<br><br>" + content);
+			}
+			if(frappe.standard_replies[standard_reply]) {
+				prepend_reply();
+			} else {
+				$.ajax({
+					url:"/api/resource/Standard Reply/" + standard_reply,
+					statusCode: {
+						200: function(data) {
+							frappe.standard_replies[standard_reply] = data.data.response;
+							prepend_reply();
+						}
+					}
+				});
+			}
+		});
+	},
+
+	setup_last_edited_communication: function() {
+		var me = this;
+		this.dialog.onhide = function() {
+			if(cur_frm && cur_frm.docname) {
+				if (!frappe.last_edited_communication[cur_frm.doctype]) {
+					frappe.last_edited_communication[cur_frm.doctype] = {};
+				}
+				frappe.last_edited_communication[cur_frm.doctype][cur_frm.docname] = {
+					recipients: me.dialog.get_value("recipients"),
+					subject: me.dialog.get_value("subject"),
+					content: me.dialog.get_value("content"),
+				}
+			}
+		}
+
+		this.dialog.onshow = function() {
+			if (cur_frm && cur_frm.docname &&
+				(frappe.last_edited_communication[cur_frm.doctype] || {})[cur_frm.docname]) {
+
+				c = frappe.last_edited_communication[cur_frm.doctype][cur_frm.docname];
+				me.dialog.set_value("subject", c.subject || "");
+				me.dialog.set_value("recipients", c.recipients || "");
+				me.dialog.set_value("content", c.content || "");
+			}
+		}
+
 	},
 	setup_print: function() {
 		// print formats
@@ -211,13 +260,20 @@ frappe.views.CommunicationComposer = Class.extend({
 
 		// select print format
 		$(fields.select_print_format.wrapper).toggle(false);
-		$(fields.select_print_format.input)
-			.empty()
-			.add_options(cur_frm.print_formats)
-			.val(cur_frm.print_formats[0]);
+
+		if (cur_frm) {
+			$(fields.select_print_format.input)
+				.empty()
+				.add_options(cur_frm.print_preview.print_formats)
+				.val(cur_frm.print_preview.print_formats[0]);
+		} else {
+			$(fields.attach_document_print.wrapper).toggle(false);
+		}
 
 	},
 	setup_attach: function() {
+		if (!cur_frm) return;
+
 		var fields = this.dialog.fields_dict;
 		var attach = $(fields.select_attachments.wrapper);
 
@@ -225,8 +281,11 @@ frappe.views.CommunicationComposer = Class.extend({
 		if(files.length) {
 			$("<p><b>"+__("Add Attachments")+":</b></p>").appendTo(attach.empty());
 			$.each(files, function(i, f) {
-				$(repl("<p><input type='checkbox' \
-					data-file-name='%(file)s'> %(file)s</p>", {file:f})).appendTo(attach)
+				if (!f.file_name) return;
+
+				$(repl("<p class='checkbox'><label style='margin-right: 3px;'><input type='checkbox' \
+					data-file-name='%(name)s'> %(file_name)s</label> <a href='%(file_url)s' target='_blank' class='text-muted'> <i class='icon-share'></i></p>", f))
+					.appendTo(attach)
 			});
 		}
 	},
@@ -265,20 +324,29 @@ frappe.views.CommunicationComposer = Class.extend({
 				})
 
 			if(form_values.attach_document_print) {
-				_p.build(form_values.select_print_format || "", function(print_format_html) {
-					me.send_email(btn, form_values, selected_attachments, print_format_html);
-				});
+				if (cur_frm.print_preview.is_old_style(form_values.select_print_format || "")) {
+					cur_frm.print_preview.with_old_style({
+						format: form_values.select_print_format,
+						callback: function(print_html) {
+							me.send_email(btn, form_values, selected_attachments, print_html);
+						}
+					});
+				} else {
+					me.send_email(btn, form_values, selected_attachments, null, form_values.select_print_format || "");
+				}
+
 			} else {
 				me.send_email(btn, form_values, selected_attachments);
 			}
 		});
 	},
 
-	send_email: function(btn, form_values, selected_attachments, print_html) {
+	send_email: function(btn, form_values, selected_attachments, print_html, print_format) {
 		var me = this;
 
 		if(!form_values.attach_document_print) {
-			print_html = "";
+			print_html = null;
+			print_format = null;
 		}
 
 		if(form_values.send_email) {
@@ -303,6 +371,7 @@ frappe.views.CommunicationComposer = Class.extend({
 				send_me_a_copy: form_values.send_me_a_copy,
 				send_email: form_values.send_email,
 				print_html: print_html,
+				print_format: print_format,
 				communication_medium: form_values.communication_medium,
 				sent_or_received: form_values.sent_or_received,
 				attachments: selected_attachments
@@ -313,7 +382,13 @@ frappe.views.CommunicationComposer = Class.extend({
 					if(form_values.send_email)
 						msgprint(__("Email sent to {0}", [form_values.recipients]));
 					me.dialog.hide();
-					cur_frm.reload_doc();
+
+					if (cur_frm) {
+						if (cur_frm.docname && (frappe.last_edited_communication[cur_frm.doctype] || {})[cur_frm.docname]) {
+							delete frappe.last_edited_communication[cur_frm.doctype][cur_frm.docname];
+						}
+						cur_frm.reload_doc();
+					}
 				} else {
 					msgprint(__("There were errors while sending email. Please try again."));
 				}
@@ -323,7 +398,7 @@ frappe.views.CommunicationComposer = Class.extend({
 
 	setup_earlier_reply: function() {
 		var fields = this.dialog.fields_dict;
-		var comm_list = cur_frm.communication_view
+		var comm_list = (cur_frm && cur_frm.communication_view)
 			? cur_frm.communication_view.list
 			: [];
 		var signature = frappe.boot.user.email_signature || "";
@@ -342,7 +417,8 @@ frappe.views.CommunicationComposer = Class.extend({
 		if(comm_list.length > 0) {
 			fields.content.set_input(reply
 				+ "<p></p>"
-				+"-----"+__("In response to")+"-----<p></p>"
+				+"-----"+__("In response to")+"-----"
+				+"<p style='font-size: 11px; color: #888'>"+__("Please reply above this line or remove it if you are replying below it")+"</p><br><br>"
 				+ comm_list[0].content);
 		} else {
 			fields.content.set_input(reply);

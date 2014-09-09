@@ -13,4 +13,6 @@ def execute():
 		if "profile" in get_table_columns("Website Route Permission"):
 			rename_field("Website Route Permission", "profile", "user")
 	frappe.reload_doc("website", "doctype", "blogger")
-	rename_field("Blogger", "profile", "user")
+
+	if "profile" in get_table_columns("Blogger"):
+		rename_field("Blogger", "profile", "user")

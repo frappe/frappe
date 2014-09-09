@@ -33,9 +33,9 @@ class CustomField(Document):
 		# validate field
 		from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype
 
-		validate_fields_for_doctype(self.dt)
-
 		frappe.clear_cache(doctype=self.dt)
+
+		validate_fields_for_doctype(self.dt)
 
 		# create property setter to emulate insert after
 		self.create_property_setter()
@@ -78,22 +78,27 @@ class CustomField(Document):
 
 @frappe.whitelist()
 def get_fields_label(doctype=None):
-	return [{"value": df.fieldname, "label": _(df.label)} for df in frappe.get_meta(doctype).get("fields")]
+	return [{"value": df.fieldname or "", "label": _(df.label or "")} for df in frappe.get_meta(doctype).get("fields")]
 
 def create_custom_field_if_values_exist(doctype, df):
 	df = frappe._dict(df)
 	if df.fieldname in frappe.db.get_table_columns(doctype) and \
 		frappe.db.sql("""select count(*) from `tab{doctype}`
-			where ifnull({fieldname},'')!=''""".format(doctype=doctype, fieldname=df.fieldname))[0][0] and \
-		not frappe.db.get_value("Custom Field", {"dt": doctype, "fieldname": df.fieldname}):
-			frappe.get_doc({
-				"doctype":"Custom Field",
-				"dt": doctype,
-				"permlevel": df.permlevel or 0,
-				"label": df.label,
-				"fieldname": df.fieldname,
-				"fieldtype": df.fieldtype,
-				"options": df.options,
-				"insert_after": df.insert_after
-			}).insert()
+			where ifnull({fieldname},'')!=''""".format(doctype=doctype, fieldname=df.fieldname))[0][0]:
 
+		create_custom_field(doctype, df)
+
+
+def create_custom_field(doctype, df):
+	if not frappe.db.get_value("Custom Field", {"dt": doctype, "fieldname": df.fieldname}):
+		frappe.get_doc({
+			"doctype":"Custom Field",
+			"dt": doctype,
+			"permlevel": df.get("permlevel") or 0,
+			"label": df.get("label"),
+			"fieldname": df.get("fieldname"),
+			"fieldtype": df.get("fieldtype"),
+			"options": df.get("options"),
+			"insert_after": df.get("insert_after"),
+			"print_hide": df.get("print_hide")
+		}).insert()

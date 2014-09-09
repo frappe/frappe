@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe
-
+from frappe import _
 from frappe.utils import now_datetime, cint
 
 def set_new_name(doc):
@@ -13,13 +13,11 @@ def set_new_name(doc):
 	# amendments
 	if getattr(doc, "amended_from", None):
 		return _get_amended_name(doc)
-	else:
-		tmp = getattr(doc, "autoname", None)
-		if tmp and not isinstance(tmp, basestring):
-			# autoname in a function, not a property
-			doc.autoname()
-			if doc.name:
-				return
+
+	elif hasattr(doc, "run_method"):
+		doc.run_method("autoname")
+		if doc.name:
+			return
 
 	autoname = frappe.get_meta(doc.doctype).autoname
 
@@ -50,11 +48,16 @@ def set_new_name(doc):
 
 	# default name for table
 	elif doc.meta.istable:
-		doc.name = make_autoname('#########', doc.doctype)
+		doc.name = make_autoname('hash', doc.doctype)
+
+	elif doc.meta.issingle:
+		doc.name = doc.doctype
 
 	# unable to determine a name, use global series
 	if not doc.name:
-		doc.name = make_autoname('#########', doc.doctype)
+		doc.name = make_autoname('hash', doc.doctype)
+
+	doc.name = doc.name.strip()
 
 	validate_name(doc.doctype, doc.name)
 
@@ -120,6 +123,20 @@ def getseries(key, digits, doctype=''):
 		current = 1
 	return ('%0'+str(digits)+'d') % current
 
+def revert_series_if_last(key, name):
+	if ".#" in key:
+		prefix, hashes = key.rsplit(".", 1)
+		if "#" not in hashes:
+			return
+	else:
+		prefix = key
+
+	count = cint(name.replace(prefix, ""))
+	current = frappe.db.sql("select `current` from `tabSeries` where name=%s for update", (prefix,))
+
+	if current and current[0][0]==count:
+		frappe.db.sql("update tabSeries set current=current-1 where name=%s", prefix)
+
 def get_default_naming_series(doctype):
 	"""get default value for `naming_series` property"""
 	naming_series = frappe.get_meta(doctype).get_field("naming_series").options or ""
@@ -132,10 +149,14 @@ def get_default_naming_series(doctype):
 def validate_name(doctype, name, case=None, merge=False):
 	if not name: return 'No Name Specified for %s' % doctype
 	if name.startswith('New '+doctype):
-		raise frappe.NameError, 'There were some errors setting the name, please contact the administrator'
+		frappe.throw(_('There were some errors setting the name, please contact the administrator'), frappe.NameError)
 	if case=='Title Case': name = name.title()
 	if case=='UPPER CASE': name = name.upper()
 	name = name.strip()
+
+	if not frappe.get_meta(doctype).get("issingle") and doctype == name:
+		frappe.throw(_("Name of {0} cannot be {1}").format(doctype, name), frappe.NameError)
+
 	return name
 
 def _get_amended_name(doc):

@@ -6,6 +6,7 @@ import frappe, json
 import frappe.utils
 import frappe.defaults
 import frappe.widgets.form.meta
+from frappe.permissions import get_doc_permissions
 from frappe import _
 
 @frappe.whitelist()
@@ -27,14 +28,13 @@ def getdoc(doctype, name, user=None):
 
 	try:
 		doc = frappe.get_doc(doctype, name)
-		doc.set("__onload", frappe._dict())
-		doc.run_method("onload")
+		run_onload(doc)
 
 		if not doc.has_permission("read"):
 			raise frappe.PermissionError, "read"
 
 		# add file list
-		get_docinfo(doctype, name)
+		get_docinfo(doc)
 
 	except Exception:
 		frappe.errprint(frappe.utils.get_traceback())
@@ -61,7 +61,7 @@ def getdoctype(doctype, with_parent=False, cached_timestamp=None):
 	if not docs:
 		docs = get_meta_bundle(doctype)
 
-	frappe.response['restrictions'] = get_restrictions(docs[0])
+	frappe.response['user_permissions'] = get_user_permissions(docs[0])
 
 	if cached_timestamp and docs[0].modified==cached_timestamp:
 		return "use_cache"
@@ -75,21 +75,22 @@ def get_meta_bundle(doctype):
 			bundle.append(frappe.widgets.form.meta.get_meta(df.options))
 	return bundle
 
-def get_docinfo(doctype, name):
+def get_docinfo(doc):
 	frappe.response["docinfo"] = {
-		"attachments": add_attachments(doctype, name),
-		"comments": add_comments(doctype, name),
-		"assignments": add_assignments(doctype, name)
+		"attachments": get_attachments(doc.doctype, doc.name),
+		"comments": get_comments(doc.doctype, doc.name),
+		"assignments": get_assignments(doc.doctype, doc.name),
+		"permissions": get_doc_permissions(doc)
 	}
 
-def get_restrictions(meta):
+def get_user_permissions(meta):
 	out = {}
-	all_restrictions = frappe.defaults.get_restrictions()
-	for df in meta.get_restricted_fields(all_restrictions):
-		out[df.options] = all_restrictions[df.options]
+	all_user_permissions = frappe.defaults.get_user_permissions()
+	for df in meta.get_fields_to_check_permissions(all_user_permissions):
+		out[df.options] = all_user_permissions[df.options]
 	return out
 
-def add_attachments(dt, dn):
+def get_attachments(dt, dn):
 	attachments = []
 	for f in frappe.db.sql("""select name, file_name, file_url from
 		`tabFile Data` where attached_to_name=%s and attached_to_doctype=%s""",
@@ -102,20 +103,20 @@ def add_attachments(dt, dn):
 
 	return attachments
 
-def add_comments(dt, dn, limit=20):
-	cl = frappe.db.sql("""select name, comment, comment_by, creation from `tabComment`
+def get_comments(dt, dn, limit=20):
+	cl = frappe.db.sql("""select name, comment, comment_by, creation, comment_type from `tabComment`
 		where comment_doctype=%s and comment_docname=%s
-		order by creation desc limit %s""" % ('%s','%s', limit), (dt, dn), as_dict=1)
+		order by creation asc limit %s""" % ('%s','%s', limit), (dt, dn), as_dict=1)
 
 	return cl
 
-def add_assignments(dt, dn):
-	cl = frappe.db.sql_list("""select owner from `tabToDo`
+def get_assignments(dt, dn):
+	cl = frappe.db.sql("""select owner, description from `tabToDo`
 		where reference_type=%(doctype)s and reference_name=%(name)s and status="Open"
 		order by modified desc limit 5""", {
 			"doctype": dt,
 			"name": dn
-		})
+		}, as_dict=True)
 
 	return cl
 
@@ -129,3 +130,7 @@ def get_badge_info(doctypes, filters):
 		out[doctype] = frappe.db.get_value(doctype, filters, "count(*)")
 
 	return out
+
+def run_onload(doc):
+	doc.set("__onload", frappe._dict())
+	doc.run_method("onload")

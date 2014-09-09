@@ -107,6 +107,15 @@ $.extend(frappe, {
 			} catch(e) {
 				console.log(data.exc);
 			}
+
+			if (data._server_messages) {
+				var server_messages = (JSON.parse(data._server_messages || '[]')).join("<br>");
+				if(opts.error_msg) {
+					$(opts.error_msg).html(server_messages).toggle(true);
+				} else {
+					frappe.msgprint(server_messages);
+				}
+			}
 		} else{
 			if(opts.btn) {
 				$(opts.btn).addClass("btn-success");
@@ -192,18 +201,23 @@ $.extend(frappe, {
 			$(document).on("click", "#wrap a", frappe.handle_click);
 
 			$(window).on("popstate", function(event) {
+				// don't run this on hash change
+				if (location.hash && (!window.previous_href || window.previous_href.replace(location.hash, '') ===
+					 location.href.replace(location.hash, '')))
+					 return;
+
 				// hack for chrome's onload popstate call
 				if(window.initial_href==location.href && window.previous_href==undefined) {
-					frappe.set_force_reload(true);
+					window.history.replaceState({"reload": true},
+						window.document.title, location.href);
 					return;
 				}
 
 				window.previous_href = location.href;
 				var state = event.originalEvent.state;
 				if(!state) {
-					console.log("state not found!");
-					frappe.set_force_reload(true);
-					state = window.history.state;
+					window.location.reload();
+					return;
 				}
 				frappe.render_json(state);
 			});
@@ -256,7 +270,12 @@ $.extend(frappe, {
 		history.pushState(null, null, href);
 
 		var _render = function(data) {
-			history.replaceState(data, data.title, href);
+			try {
+				history.replaceState(data, data.title, href);
+			} catch(e) {
+				// data too big (?)
+				history.replaceState(null, data.title, href);
+			}
 			scroll(0,0);
 			frappe.render_json(data);
 		};
@@ -273,44 +292,54 @@ $.extend(frappe, {
 		});
 	},
 	render_json: function(data) {
-		if(data.reload) {
-			window.location = location.href;
-		} else {
-			$('[data-html-block]').each(function(i, section) {
-				var $section = $(section);
-				var stype = $section.attr("data-html-block");
-				var block_data = data[stype] || "";
-
-				// NOTE: use frappe.ready instead of $.ready for reliable execution
-				if(stype==="script") {
-					$section.remove();
-					$("<script data-html-block='script'></script>")
-						.html(block_data)
-						.appendTo("body");
-				} else if(stype==="script_lib") {
-					// render once
-					if(!$("[data-block-html='script_lib'][data-path='"+data.path+"']").length) {
-						$("<script data-block-html='script_lib' data-path='"+data.path+"'></script>")
-						.html(data.script_lib)
-						.appendTo("body");
-					}
-				} else {
-					$section.html(block_data);
-				}
-			});
-			if(data.title) $("title").html(data.title);
-
-			// change id of current page
-			$(".page-container").attr("id", "page-" + data.path);
-
-			window.ga && ga('send', 'pageview', location.pathname);
-			$(document).trigger("page-change");
+		if (data.reload) {
+			window.location.reload();
+			return;
 		}
-	},
-	set_force_reload: function(reload) {
-		// learned this from twitter's implementation
-		window.history.replaceState({"reload": reload},
-			window.document.title, location.href);
+
+		$('[data-html-block]').each(function(i, section) {
+			var $section = $(section);
+			var stype = $section.attr("data-html-block");
+
+
+			// handle meta separately
+			if (stype==="meta_block") return;
+
+			var block_data = data[stype] || "";
+
+			// NOTE: use frappe.ready instead of $.ready for reliable execution
+			if(stype==="script") {
+				$section.remove();
+				$("<script data-html-block='script'></script>")
+					.html(block_data)
+					.appendTo("body");
+			} else if(stype==="script_lib") {
+				// render once
+				if(!$("[data-block-html='script_lib'][data-path='"+data.path+"']").length) {
+					$("<script data-block-html='script_lib' data-path='"+data.path+"'></script>")
+					.html(data.script_lib)
+					.appendTo("body");
+				}
+			} else {
+				$section.html(block_data);
+			}
+		});
+		if(data.title) $("title").html(data.title);
+
+		// change meta tags
+		$('[data-html-block="meta_block"]').remove();
+		if(data.meta_block) {
+			$("head").append(data.meta_block);
+		}
+
+		// change id of current page
+		$(".page-container").attr("id", "page-" + data.path);
+
+		// clear page-header-right
+		$(".page-header-right").html("");
+
+		window.ga && ga('send', 'pageview', location.pathname);
+		$(document).trigger("page-change");
 	},
 	supports_pjax: function() {
 		return (window.history && window.history.pushState && window.history.replaceState &&
@@ -337,20 +366,19 @@ $.extend(frappe, {
 		$(".navbar a.active").removeClass("active");
 		$(".navbar a").each(function() {
 			var href = $(this).attr("href");
-			if(pathname.indexOf(href)===0) {
-				var more = pathname.replace(href, "");
-				if(!more || more.substr(0, 1)==="/") {
-					$(this).addClass("active");
-					return false;
-				}
+			if(href===pathname) {
+				$(this).addClass("active");
+				return false;
 			}
 		})
 	},
 	toggle_template_blocks: function() {
 		// this assumes frappe base template
-		$(".page-header").toggleClass("hidden", !!!$("[data-html-block='header']").text().trim());
-		$(".page-footer").toggleClass("hidden", !!!$(".page-footer").text().trim());
-		$(".page-header-right").empty();
+		$(".page-header").toggleClass("hidden",
+			!!!$("[data-html-block='header']").text().trim());
+
+		$(".page-footer").toggleClass("hidden",
+			!!!$(".page-footer").text().trim());
 
 		// hide breadcrumbs if no breadcrumb content or if it is same as the header
 		$("[data-html-block='breadcrumbs'] .breadcrumb").toggleClass("hidden",

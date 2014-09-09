@@ -12,6 +12,7 @@
 		"public/js/lib/nprogress.js",
 		"public/js/frappe/translate.js",
 		"public/js/frappe/misc/pretty_date.js",
+		"public/js/lib/moment/moment.min.js",
 		"website/js/website.js",
 		"website/js/website_group.js"
 	],
@@ -32,8 +33,8 @@
 
 		"public/css/tag-it.css",
 		"public/css/bootstrap.css",
-		"public/css/bootstrap-responsive.css",
 		"public/css/font-awesome.css",
+		"public/css/octicons/octicons.css",
 		"public/css/desk.css",
 		"public/css/appframe.css",
 		"public/css/app_icon.css",
@@ -52,6 +53,8 @@
 		"public/js/lib/bootstrap.min.js",
 		"public/js/lib/nprogress.js",
 		"public/js/lib/beautify-html.js",
+		"public/js/lib/moment/moment.min.js",
+		"public/js/lib/moment/moment-timezone.min.js",
 		"public/js/frappe/format.js",
 
 		"public/js/frappe/provide.js",
@@ -65,13 +68,15 @@
 		"public/js/frappe/router.js",
 		"public/js/frappe/desk.js",
 		"public/js/frappe/defaults.js",
+		"public/js/lib/microtemplate.js",
+
+		"public/html/print_template.html",
+		"public/html/list_info_template.html",
 
 		"public/js/legacy/globals.js",
 		"public/js/legacy/datatype.js",
-		"public/js/legacy/datetime.js",
 		"public/js/legacy/dom.js",
 		"public/js/legacy/handler.js",
-		"public/js/legacy/printElement.js",
 		"public/js/legacy/loaders.js",
 
 		"public/js/frappe/ui/appframe.js",
@@ -117,19 +122,17 @@
 		"public/js/frappe/views/test_runner.js",
 		"public/js/frappe/form/formatters.js",
 
-		"public/js/legacy/layout.js",
-
 		"public/js/frappe/ui/toolbar/selector_dialog.js",
 		"public/js/frappe/ui/toolbar/new.js",
 		"public/js/frappe/ui/toolbar/search.js",
 		"public/js/frappe/ui/toolbar/report.js",
 		"public/js/frappe/ui/toolbar/recent.js",
 		"public/js/frappe/ui/toolbar/bookmarks.js",
+		"public/js/frappe/ui/toolbar/about.js",
 		"public/js/frappe/ui/toolbar/toolbar.js",
 		"public/js/frappe/ui/editor.js",
 
 		"public/js/legacy/form.js",
-		"public/js/legacy/print_format.js",
 		"public/js/legacy/clientscriptAPI.js",
 
 		"public/js/frappe/form/toolbar.js",
@@ -146,7 +149,12 @@
 		"public/js/frappe/form/linked_with.js",
 		"public/js/frappe/form/workflow.js",
 		"public/js/frappe/form/assign_to.js",
-		"public/js/frappe/print/print_table.js"
+		"public/js/frappe/form/print.js"
+	],
+	"js/print_format_v3.min.js": [
+		"public/js/legacy/layout.js",
+		"public/js/legacy/print_table.js",
+		"public/js/legacy/print_format.js"
 	],
 	"js/slickgrid.min.js": [
 		"public/js/lib/slickgrid/jquery.event.drag.js",

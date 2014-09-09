@@ -20,7 +20,9 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		// clear all custom menus on page change
 		$(document).on("page-change", function() {
 			$("header .navbar .custom-menu").remove();
-		})
+		});
+
+		frappe.search.setup();
 	},
 	make: function() {
 		$('header').append('<div class="navbar navbar-inverse navbar-fixed-top" role="navigation">\
@@ -37,6 +39,16 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 				<div class="collapse navbar-collapse navbar-responsive-collapse">\
 					<ul class="nav navbar-nav navbar-left">\
 					</ul>\
+			        <form class="navbar-form navbar-left" role="search" onsubmit="return false;">\
+			          <div class="form-group">\
+			            <input id="navbar-search" type="text" class="form-control small"\
+							placeholder="' + __("Search or type a command") + '" \
+							style="padding: 2px 6px; height: 24px; margin-top: 5px; \
+								margin-left: 10px; background-color: #ddd; \
+								min-width: 220px; font-size: 85%;\
+								border-radius: 10px;">\
+			          </div>\
+			        </form>\
 					<img src="assets/frappe/images/ui/spinner.gif" id="spinner"/>\
 					<ul class="nav navbar-nav navbar-right">\
 						<li class="dropdown">\
@@ -73,8 +85,8 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		frappe.ui.toolbar.new_dialog = new frappe.ui.toolbar.NewDialog();
 		frappe.ui.toolbar.search = new frappe.ui.toolbar.Search();
 		frappe.ui.toolbar.report = new frappe.ui.toolbar.Report();
-		$('.navbar .nav:first').append('<li class="dropdown">\
-			<a onclick="return frappe.ui.toolbar.search.show();"><i class="icon-search"></i><li>');
+		// $('.navbar .nav:first').append('<li class="dropdown">\
+		// 	<a onclick="return frappe.ui.toolbar.search.show();"><i class="icon-search"></i><li>');
 		$('.navbar .nav:first').append('<li class="dropdown">\
 			<a class="dropdown-toggle" href="#"  data-toggle="dropdown"\
 				title="'+__("File")+'"\
@@ -105,7 +117,7 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 				<li><a href="#" onclick="return frappe.ui.toolbar.show_about();">\
 					<i class="icon-fixed-width icon-info-sign"></i> '
 					+__('About')+'</a></li>\
-				<li><a href="http://frappe.io/apps" target="_blank">\
+				<li><a href="https://frappe.io" target="_blank" data-link="docs">\
 					<i class="icon-fixed-width icon-file"></i> '+__('Documentation')+'</a></li> \
 				<li><a href="http://frappe.io/getting-help" target="_blank">\
 					<i class="icon-fixed-width icon-question-sign"></i> '+__('Forums')+'</a></li> \
@@ -119,9 +131,8 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		</li>');
 	},
 	set_user_name: function() {
-		var fn = user_fullname;
-		if(fn.length > 15) fn = fn.substr(0,12) + '...';
-		$('#toolbar-user-name').html(fn);
+		$('#toolbar-user-name').html('<img src="'
+			+frappe.user_info().image+'" style="max-width: 24px; max-height: 24px; margin: -2px 0px;">');
 	},
 
 	make_user_menu: function() {
@@ -155,7 +166,7 @@ $.extend(frappe.ui.toolbar, {
 			.insertBefore(menu.find(".divider"))
 			.find("a")
 			.click(function() {
-				click();
+				click.apply(this);
 			});
 	},
 	get_menu: function(label) {
@@ -183,7 +194,7 @@ frappe.ui.toolbar.update_notifications = function() {
 				<span class="badge pull-right">\
 					%(count)s</span> \
 				<i class="icon-fixed-width %(icon)s"></i> %(module)s </a></li>', {
-					module: module,
+					module: __(module),
 					count: count,
 					icon: frappe.modules[module].icon
 				}))
@@ -256,9 +267,14 @@ frappe.ui.toolbar.show_about = function() {
 	return false;
 }
 
+
 frappe.ui.toolbar.show_banner = function(msg) {
 	$banner = $('<div class="toolbar-banner">'+msg+'<a class="close">&times;</a></div>')
-		.appendTo($('header'));
-	$banner.find(".close").click(function() { $(".toolbar-banner").toggle(false); });
+		.prependTo($('header .navbar'));
+		$("body").css({"padding-top": "70px"});
+	$banner.find(".close").click(function() {
+		$(".toolbar-banner").toggle(false);
+		$("body").css({"padding-top": "36px"});
+	});
 	return $banner;
 }

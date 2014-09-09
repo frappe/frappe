@@ -11,23 +11,26 @@ $.extend(cur_frm.cscript, {
 			}
 			if(doc.insert_style) {
 				if(!doc.css) {
-					cur_frm.set_value("css", '#page-'+doc.name+' { }');	
+					cur_frm.set_value("css", '#page-'+doc.name+' { }');
 				}
 			}
 		}
 	},
 	refresh: function(doc) {
 		cur_frm.cscript.layout(doc);
-		if(!doc.__islocal && doc.published) {
-			cur_frm.appframe.add_button("View In Website", function() {
-				window.open(doc.page_name);
-			}, "icon-globe");
+		cur_frm.set_intro("");
+		if(cur_frm.doc.template_path) {
+			cur_frm.set_read_only();
+		}
+		if (!doc.__islocal && doc.published) {
+			cur_frm.set_intro(__("Published on website at: {0}",
+				[repl('<a href="/%(website_route)s" target="_blank">/%(website_route)s</a>', doc.__onload)]));
 		}
 	},
 	insert_style: function(doc) {
-		cur_frm.cscript.layout(doc);		
+		cur_frm.cscript.layout(doc);
 	},
 	insert_code: function(doc) {
-		cur_frm.cscript.layout(doc);		
+		cur_frm.cscript.layout(doc);
 	}
 });

@@ -1,9 +1,8 @@
 {
- "allow_attach": 0, 
- "allow_copy": 0, 
+  "allow_copy": 0, 
  "allow_rename": 0, 
  "autoname": "TDI.########", 
- "creation": "2012-07-03 13:30:35.000000", 
+ "creation": "2012-07-03 13:30:35", 
  "docstatus": 0, 
  "doctype": "DocType", 
  "fields": [
@@ -83,6 +82,16 @@
    "search_index": 0
   }, 
   {
+   "fieldname": "owner", 
+   "fieldtype": "Link", 
+   "ignore_user_permissions": 1, 
+   "in_list_view": 0, 
+   "label": "Assigned To", 
+   "options": "User", 
+   "permlevel": 0, 
+   "reqd": 1
+  }, 
+  {
    "fieldname": "section_break_6", 
    "fieldtype": "Section Break", 
    "label": "Reference", 
@@ -91,13 +100,14 @@
   {
    "allow_on_submit": 0, 
    "fieldname": "reference_type", 
-   "fieldtype": "Data", 
+   "fieldtype": "Link", 
    "hidden": 0, 
    "in_filter": 0, 
    "label": "Reference Type", 
    "no_copy": 0, 
    "oldfieldname": "reference_type", 
    "oldfieldtype": "Data", 
+   "options": "DocType", 
    "permlevel": 0, 
    "print_hide": 0, 
    "report_hide": 0, 
@@ -107,13 +117,14 @@
   {
    "allow_on_submit": 0, 
    "fieldname": "reference_name", 
-   "fieldtype": "Data", 
+   "fieldtype": "Dynamic Link", 
    "hidden": 0, 
    "in_filter": 0, 
    "label": "Reference Name", 
    "no_copy": 0, 
    "oldfieldname": "reference_name", 
    "oldfieldtype": "Data", 
+   "options": "reference_type", 
    "permlevel": 0, 
    "print_hide": 0, 
    "report_hide": 0, 
@@ -145,6 +156,7 @@
   {
    "fieldname": "assigned_by", 
    "fieldtype": "Link", 
+   "ignore_user_permissions": 1, 
    "label": "Assigned By", 
    "options": "User", 
    "permlevel": 0
@@ -158,14 +170,14 @@
  "in_dialog": 0, 
  "issingle": 0, 
  "max_attachments": 0, 
- "modified": "2014-03-12 17:06:46.000000", 
+ "modified": "2014-06-30 05:40:15.471434", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "ToDo", 
  "owner": "Administrator", 
  "permissions": [
   {
-   "cancel": 0, 
+   "apply_user_permissions": 1, 
    "create": 1, 
    "delete": 0, 
    "email": 1, 
@@ -174,7 +186,6 @@
    "print": 1, 
    "read": 1, 
    "report": 1, 
-   "restricted": 1, 
    "role": "All", 
    "submit": 0, 
    "write": 1
@@ -194,5 +205,6 @@
  ], 
  "read_only": 0, 
  "read_only_onload": 0, 
+ "search_fields": "description, reference_type, reference_name", 
  "title_field": "description"
 }

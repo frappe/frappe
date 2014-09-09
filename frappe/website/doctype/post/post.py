@@ -39,7 +39,7 @@ class Post(Document):
 
 	def on_update(self):
 		from frappe.templates.website_group.post import clear_post_cache
-		from frappe.templates.generators.website_group import clear_cache
+		from frappe.website.doctype.website_group.website_group import clear_cache
 
 		clear_cache(website_group=self.website_group)
 		clear_post_cache(self.parent_post or self.name)

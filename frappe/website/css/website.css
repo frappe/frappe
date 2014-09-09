@@ -49,6 +49,7 @@ img {
 
 .web-footer {
 	padding: 20px 0px;
+	min-height: 140px;
 }
 
 .avatar {
@@ -161,6 +162,8 @@ img {
 	box-shadow: none;
 	border-radius: 0px;
 	margin-bottom: 0px;
+	padding-top: 15px;
+	padding-bottom: 15px;
 }
 
 .navbar-brand {
@@ -168,6 +171,10 @@ img {
 	max-width: 80%;
 	min-height: 20px;
 	height: auto;
+}
+
+.navbar a.active {
+	font-weight: bold;
 }
 
 @media (min-width: 768px) {
@@ -219,7 +226,7 @@ fieldset {
 .page-header {
 	margin: 0px;
 	margin-bottom: 20px;
-	padding: 15px 0px;
+	padding: 25px 0px;
 }
 
 .page-container {
@@ -241,19 +248,37 @@ fieldset {
 }
 
 .sidebar-item {
-	margin: 20px auto;
+	/*background-color: #f7f7f7;*/
+	border-left: 1px solid #eee;
+	margin-left: -30px;
+	padding: 5px 15px;
 	color: #999;
 	font-size: 85%;
 }
 
-.sidebar-item a {
-	color: #999;
+.sidebar-item:first-child {
+	padding-top: 10px;
+}
+.sidebar-item:last-child {
+	padding-bottom: 10px;
 }
 
-.sidebar-item a:hover {
+.sidebar-item a {
+	color: #999;
+	text-decoration: none;
+}
+
+.sidebar-item a:hover,
+.sidebar-item a:focus,
+.sidebar-item a:active {
 	color: #333;
 	text-decoration: none;
-	border-bottom: 2px solid #999;
+
+	/* thanks medium: https://medium.com/designing-medium/crafting-link-underlines-on-medium-7c03a9274f9 */
+	background-image: linear-gradient(to bottom, transparent 50%, rgba(153,153,153, 0.5) 50%);
+	background-repeat: repeat-x;
+	background-size: 5% 20%;
+	background-position: 0 100%;
 }
 
 .sidebar-item a.active {

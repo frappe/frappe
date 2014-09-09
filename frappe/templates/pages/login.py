@@ -7,11 +7,14 @@ import json
 import frappe.utils
 from frappe import _
 
+class SignupDisabledError(frappe.PermissionError): pass
+
 no_cache = True
 
 def get_context(context):
 	# get settings from site config
 	context["title"] = "Login"
+	context["disable_signup"] = frappe.utils.cint(frappe.db.get_value("Website Settings", "Website Settings", "disable_signup"))
 
 	for provider in ("google", "github", "facebook"):
 		if get_oauth_keys(provider):
@@ -67,7 +70,7 @@ oauth2_providers = {
 		"auth_url_data": {
 			"display": "page",
 			"response_type": "code",
-			"scope": "email,user_birthday"
+			"scope": "email,public_profile"
 		},
 
 		# relative to base_url
@@ -159,54 +162,72 @@ def login_via_oauth2(provider, code, decoder=None):
 def login_oauth_user(data, provider=None):
 	user = data["email"]
 
-	if not frappe.db.exists("User", user):
-		create_oauth_user(data, provider)
+	try:
+		update_oauth_user(user, data, provider)
+	except SignupDisabledError:
+		return frappe.respond_as_web_page("Signup is Disabled", "Sorry. Signup from Website is disabled.",
+			success=False, http_status_code=403)
 
 	frappe.local.login_manager.user = user
 	frappe.local.login_manager.post_login()
 
 	# redirect!
 	frappe.local.response["type"] = "redirect"
-	frappe.local.response["location"] = "/app" if frappe.local.response.get('message') == 'Logged In' else "/"
+
+	# the #desktop is added to prevent a facebook redirect bug
+	frappe.local.response["location"] = "/desk#desktop" if frappe.local.response.get('message') == 'Logged In' else "/"
 
 	# because of a GET request!
 	frappe.db.commit()
 
-def create_oauth_user(data, provider):
-	if data.get("birthday"):
-		from frappe.utils.dateutils import parse_date
-		data["birthday"] = parse_date(data["birthday"])
-
+def update_oauth_user(user, data, provider):
 	if isinstance(data.get("location"), dict):
 		data["location"] = data.get("location").get("name")
 
-	user = frappe.get_doc({
-		"doctype":"User",
-		"first_name": data.get("first_name") or data.get("given_name") or data.get("name"),
-		"last_name": data.get("last_name") or data.get("family_name"),
-		"email": data["email"],
-		"gender": data.get("gender"),
-		"enabled": 1,
-		"new_password": frappe.generate_hash(data["email"]),
-		"location": data.get("location"),
-		"birth_date":  data.get("birthday"),
-		"user_type": "Website User",
-		"user_image": data.get("picture") or data.get("avatar_url")
-	})
+	save = False
 
-	if provider=="facebook":
+	if not frappe.db.exists("User", user):
+
+		# is signup disabled?
+		if frappe.utils.cint(frappe.db.get_single_value("Website Settings", "disable_signup")):
+			raise SignupDisabledError
+
+		save = True
+		user = frappe.new_doc("User")
 		user.update({
-			"fb_username": data["username"],
-			"fb_userid": data["id"],
-			"user_image": "https://graph.facebook.com/{username}/picture".format(username=data["username"])
+			"doctype":"User",
+			"first_name": data.get("first_name") or data.get("given_name") or data.get("name"),
+			"last_name": data.get("last_name") or data.get("family_name"),
+			"email": data["email"],
+			"gender": (data.get("gender") or "").title(),
+			"enabled": 1,
+			"new_password": frappe.generate_hash(data["email"]),
+			"location": data.get("location"),
+			"user_type": "Website User",
+			"user_image": data.get("picture") or data.get("avatar_url")
 		})
-	elif provider=="google":
+
+	else:
+		user = frappe.get_doc("User", user)
+
+	if provider=="facebook" and not user.get("fb_userid"):
+		save = True
+		user.update({
+			"fb_username": data.get("username"),
+			"fb_userid": data["id"],
+			"user_image": "https://graph.facebook.com/{id}/picture".format(id=data["id"])
+		})
+
+	elif provider=="google" and not user.get("google_userid"):
+		save = True
 		user.google_userid = data["id"]
 
-	elif provider=="github":
+	elif provider=="github" and not user.get("github_userid"):
+		save = True
 		user.github_userid = data["id"]
 		user.github_username = data["login"]
 
-	user.ignore_permissions = True
-	user.no_welcome_mail = True
-	user.insert()
+	if save:
+		user.ignore_permissions = True
+		user.no_welcome_mail = True
+		user.save()

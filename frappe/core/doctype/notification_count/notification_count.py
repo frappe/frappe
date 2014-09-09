@@ -5,8 +5,10 @@
 
 from __future__ import unicode_literals
 import frappe
-
+import MySQLdb
 from frappe.model.document import Document
+
+logger = frappe.get_logger()
 
 class NotificationCount(Document):
 	pass
@@ -15,6 +17,7 @@ class NotificationCount(Document):
 def get_notifications():
 	if frappe.flags.in_install_app:
 		return
+
 	config = get_notification_config()
 	can_read = frappe.user.get_can_read()
 	open_count_doctype = {}
@@ -32,34 +35,63 @@ def get_notifications():
 				open_count_doctype[d] = notification_count[d]
 			else:
 				result = frappe.get_list(d, fields=["count(*)"],
-					filters=[[d, key, "=", condition[key]]], as_list=True, limit_page_length=1)[0][0]
-
-				frappe.get_doc({"doctype":"Notification Count", "for_doctype":d,
-					"open_count":result}).insert(ignore_permissions=True)
+					filters=[[d, key, "=", condition[key]]], as_list=True)[0][0]
 
 				open_count_doctype[d] = result
+
+				try:
+					frappe.get_doc({"doctype":"Notification Count", "for_doctype":d,
+						"open_count":result}).insert(ignore_permissions=True)
+
+				except MySQLdb.OperationalError, e:
+					if e.args[0] != 1213:
+						raise
+
+					logger.error("Deadlock")
 
 	for m in config.for_module:
 		if m in notification_count:
 			open_count_module[m] = notification_count[m]
 		else:
 			open_count_module[m] = frappe.get_attr(config.for_module[m])()
-			frappe.get_doc({"doctype":"Notification Count", "for_doctype":m,
-				"open_count":open_count_module[m]}).insert(ignore_permissions=True)
+
+			try:
+				frappe.get_doc({"doctype":"Notification Count", "for_doctype":m,
+					"open_count":open_count_module[m]}).insert(ignore_permissions=True)
+
+			except MySQLdb.OperationalError, e:
+				if e.args[0] != 1213:
+					raise
+
+				logger.error("Deadlock")
+
 
 	return {
 		"open_count_doctype": open_count_doctype,
 		"open_count_module": open_count_module
 	}
 
+def clear_notifications(user=None):
+	if frappe.flags.in_install_app=="frappe":
+		return
+
+	try:
+		if user:
+			frappe.db.sql("""delete from `tabNotification Count` where owner=%s""", (user,))
+		else:
+			frappe.db.sql("""delete from `tabNotification Count`""")
+
+	except MySQLdb.OperationalError, e:
+		if e.args[0] != 1213:
+			raise
+
+		logger.error("Deadlock")
+
 def delete_notification_count_for(doctype):
 	if frappe.flags.in_import: return
 	frappe.db.sql("""delete from `tabNotification Count` where for_doctype = %s""", (doctype,))
 
-def delete_event_notification_count():
-	delete_notification_count_for("Event")
-
-def clear_doctype_notifications(doc, method=None):
+def clear_doctype_notifications(doc, method=None, *args, **kwargs):
 	if frappe.flags.in_import:
 		return
 

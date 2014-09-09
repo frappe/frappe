@@ -1,11 +1,12 @@
 # Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-"""Use blog post test to test permission restriction logic"""
+"""Use blog post test to test user permissions logic"""
 
 import frappe
 import frappe.defaults
 import unittest
+import json
 
 test_records = frappe.get_test_records('Event')
 
@@ -40,3 +41,56 @@ class TestEvent(unittest.TestCase):
 		self.assertTrue("_Test Event 1" in subjects)
 		self.assertTrue("_Test Event 3" in subjects)
 		self.assertFalse("_Test Event 2" in subjects)
+
+	def test_revert_logic(self):
+		ev = frappe.get_doc(test_records[0]).insert()
+		name = ev.name
+
+		frappe.delete_doc("Event", ev.name)
+
+		# insert again
+		ev = frappe.get_doc(test_records[0]).insert()
+
+		# the name should be same!
+		self.assertEquals(ev.name, name)
+
+	def test_assign(self):
+		from frappe.widgets.form.assign_to import add
+
+		ev = frappe.get_doc(test_records[0]).insert()
+
+		add({
+			"assign_to": "test@example.com",
+			"doctype": "Event",
+			"name": ev.name,
+			"description": "Test Assignment"
+		})
+
+		ev = frappe.get_doc("Event", ev.name)
+
+		self.assertEquals(ev._assign, json.dumps(["test@example.com"]))
+
+		# add another one
+		add({
+			"assign_to": "test1@example.com",
+			"doctype": "Event",
+			"name": ev.name,
+			"description": "Test Assignment"
+		})
+
+		ev = frappe.get_doc("Event", ev.name)
+
+		self.assertEquals(ev._assign, json.dumps(["test@example.com", "test1@example.com"]))
+
+		# close an assignment
+		todo = frappe.get_doc("ToDo", {"reference_type": ev.doctype, "reference_name": ev.name,
+			"owner": "test1@example.com"})
+		todo.status = "Closed"
+		todo.save()
+
+		ev = frappe.get_doc("Event", ev.name)
+		self.assertEquals(ev._assign, json.dumps(["test@example.com"]))
+
+		# cleanup
+		ev.delete()
+

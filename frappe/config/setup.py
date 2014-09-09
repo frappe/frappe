@@ -20,17 +20,25 @@ def get_data():
 				{
 					"type": "page",
 					"name": "permission-manager",
-					"label": "Permission Manager",
+					"label": _("Role Permissions Manager"),
 					"icon": "icon-lock",
 					"description": _("Set Permissions on Document Types and Roles")
 				},
 				{
 					"type": "page",
-					"name": "user-properties",
-					"label": _("User Permission Restrictions"),
-					"icon": "icon-user",
-					"description": _("Set Defaults and Restrictions for Users")
+					"name": "user-permissions",
+					"label": _("User Permissions Manager"),
+					"icon": "icon-shield",
+					"description": _("Set Permissions per User")
 				},
+				{
+					"type": "report",
+					"is_query_report": True,
+					"doctype": "User",
+					"icon": "icon-eye-open",
+					"name": "Permitted Documents For User",
+					"description": _("Check which Documents are readable by a User")
+				}
 			]
 		},
 		{
@@ -113,12 +121,27 @@ def get_data():
 					"name": "Outgoing Email Settings",
 					"description": _("Set outgoing mail server.")
 				},
+				{
+					"type": "doctype",
+					"name": "Email Alert",
+					"description": _("Setup Email Alert based on various criteria.")
+				},
+				{
+					"type": "doctype",
+					"name": "Standard Reply",
+					"description": _("Standard replies to common queries.")
+				},
 			]
 		},
 		{
 			"label": _("Printing and Branding"),
 			"icon": "icon-print",
 			"items": [
+				{
+					"type": "doctype",
+					"name": "Print Settings",
+					"description": _("Set default format, page size, print style etc.")
+				},
 				{
 					"type": "doctype",
 					"name": "Print Format",
@@ -167,11 +190,6 @@ def get_data():
 					"icon": "icon-download-alt",
 					"description": _("Send download link of a recent backup to System Managers"),
 					"hide_count": True
-				},
-				{
-					"type": "doctype",
-					"name": "Social Login Keys",
-					"description": _("Enter keys to enable login via Facebook, Google, GitHub."),
 				},
 				{
 					"type": "doctype",

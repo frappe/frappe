@@ -2,7 +2,7 @@
  "allow_copy": 0, 
  "allow_rename": 1, 
  "autoname": "field:page_name", 
- "creation": "2012-12-20 17:16:49.000000", 
+ "creation": "2012-12-20 17:16:49", 
  "docstatus": 0, 
  "doctype": "DocType", 
  "fields": [
@@ -16,6 +16,7 @@
   {
    "fieldname": "page_name", 
    "fieldtype": "Data", 
+   "in_list_view": 1, 
    "label": "Page Name", 
    "oldfieldname": "page_name", 
    "oldfieldtype": "Data", 
@@ -25,12 +26,14 @@
   {
    "fieldname": "title", 
    "fieldtype": "Data", 
+   "in_list_view": 1, 
    "label": "Title", 
    "permlevel": 0
   }, 
   {
    "fieldname": "icon", 
    "fieldtype": "Data", 
+   "in_list_view": 1, 
    "label": "icon", 
    "permlevel": 0
   }, 
@@ -84,14 +87,13 @@
  "idx": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2013-12-30 13:48:02.000000", 
+ "modified": "2014-05-27 03:49:14.476843", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Page", 
  "owner": "Administrator", 
  "permissions": [
   {
-   "cancel": 0, 
    "create": 1, 
    "email": 1, 
    "permlevel": 0, 
@@ -102,6 +104,7 @@
    "write": 1
   }, 
   {
+   "apply_user_permissions": 1, 
    "email": 1, 
    "permlevel": 0, 
    "print": 1, 

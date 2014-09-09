@@ -17,31 +17,25 @@ frappe.ui.form.Footer = Class.extend({
 	},
 	make: function() {
 		var me = this;
-		$("<div>").css({"border-top":"1px solid #c7c7c7"}).appendTo(this.parent)
 		this.wrapper = $('<div class="form-footer container">\
-			<!--i class="icon-cut" style="margin-top: -23px; margin-bottom: 23px; \
-				display: block; margin-left: 15px; color: #888;"></i-->\
-			<div>\
-				<div class="help-area"></div>\
-			</div>\
 			<div class="after-save row">\
 				<div class="col-md-8">\
 					<div class="form-comments">\
-						<h5><i class="icon-comments"></i> '+__("Comments")+'</h5>\
 					</div>\
 				</div>\
 				<div class="col-md-4">\
 					<div class="form-tags">\
+						<div style="height: 30px;"></div>\
 						<h5 style="display: inline-block"><i class="icon-tag"></i> '+__("Tags")+'</h5>\
 						<span class="tag-area"></span><br>\
-					</div><hr>\
+					</div><br><br>\
 					<div class="form-assignments" style="margin-bottom: 7px;">\
 						<h5>\
 							<i class="icon-flag"></i> '+__("Assigned To")+': \
 							<button class="btn small btn-default pull-right"\
 								style="margin-top:-7px;">'+__("Add")+'</button>\
 						</h5>\
-					</div><hr>\
+					</div><br><br>\
 					<div class="form-attachments">\
 						<h5>\
 							<i class="icon-paper-clip"></i> '+__("Attachments")+':\
@@ -51,13 +45,14 @@ frappe.ui.form.Footer = Class.extend({
 					</div>\
 				</div>\
 			</div>\
+			<div class="pull-right" style="padding: 7px; background-color: #eee; border-radius: 4px;">\
+				<a onclick="scroll(0,0)"><i class="icon-chevron-up text-muted"></i></a></div>\
 		</div>')
 			.appendTo(this.parent);
 		this.wrapper.find(".btn-save").click(function() {
 			me.frm.save('Save', null, this);
 		})
-		
-		this.help_area = this.wrapper.find(".help-area").get(0);
+
 	},
 	make_tags: function() {
 		this.frm.tags = new frappe.ui.TagEditor({
@@ -67,7 +62,7 @@ frappe.ui.form.Footer = Class.extend({
 	},
 	make_attachments: function() {
 		this.frm.attachments = new frappe.ui.form.Attachments({
-			parent: this.wrapper.find(".form-attachments"), 
+			parent: this.wrapper.find(".form-attachments"),
 			frm: this.frm
 		});
 	},

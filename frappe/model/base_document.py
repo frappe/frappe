@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import frappe, json, sys
 from frappe import _
-from frappe.utils import cint, flt, now
+from frappe.utils import cint, flt, now, cstr, strip_html
 from frappe.model import default_fields
 from frappe.model.naming import set_new_name
 
@@ -13,6 +13,7 @@ class BaseDocument(object):
 
 	def __init__(self, d):
 		self.update(d)
+		self.dont_update_if_missing = []
 
 	@property
 	def meta(self):
@@ -33,6 +34,8 @@ class BaseDocument(object):
 		for key, value in d.iteritems():
 			self.set(key, value)
 
+		return self
+
 	def update_if_missing(self, d):
 		if isinstance(d, BaseDocument):
 			d = d.get_valid_dict()
@@ -40,7 +43,8 @@ class BaseDocument(object):
 		if "doctype" in d:
 			self.set("doctype", d.get("doctype"))
 		for key, value in d.iteritems():
-			if self.get(key) is None:
+			# dont_update_if_missing is a list of fieldnames, for which, you don't want to set default value
+			if (self.get(key) is None) and (value is not None) and (key not in self.dont_update_if_missing):
 				self.set(key, value)
 
 	def get_db_value(self, key):
@@ -78,6 +82,10 @@ class BaseDocument(object):
 			self.extend(key, value)
 		else:
 			self.__dict__[key] = value
+
+	def delete_key(self, key):
+		if key in self.__dict__:
+			del self.__dict__[key]
 
 	def append(self, key, value=None):
 		if value==None:
@@ -160,6 +168,9 @@ class BaseDocument(object):
 				if doc[k] is None:
 					del doc[k]
 
+		if self.get("_user_tags"):
+			doc["_user_tags"] = self.get("_user_tags")
+
 		if self.get("__islocal"):
 			doc["__islocal"] = 1
 
@@ -220,10 +231,15 @@ class BaseDocument(object):
 
 	def _fix_numeric_types(self):
 		for df in self.meta.get("fields"):
-			if df.fieldtype in ("Int", "Check"):
+			if df.fieldtype == "Check":
 				self.set(df.fieldname, cint(self.get(df.fieldname)))
-			elif df.fieldtype in ("Float", "Currency"):
-				self.set(df.fieldname, flt(self.get(df.fieldname)))
+
+			elif self.get(df.fieldname) is not None:
+				if df.fieldtype == "Int":
+					self.set(df.fieldname, cint(self.get(df.fieldname)))
+
+				elif df.fieldtype in ("Float", "Currency", "Percent"):
+					self.set(df.fieldname, flt(self.get(df.fieldname)))
 
 		if self.docstatus is not None:
 			self.docstatus = cint(self.docstatus)
@@ -244,12 +260,12 @@ class BaseDocument(object):
 		missing = []
 
 		for df in self.meta.get("fields", {"reqd": 1}):
-			if self.get(df.fieldname) in (None, []):
+			if self.get(df.fieldname) in (None, []) or not strip_html(cstr(self.get(df.fieldname))).strip():
 				missing.append((df.fieldname, get_msg(df)))
 
 		return missing
 
-	def get_invalid_links(self):
+	def get_invalid_links(self, is_submittable=False):
 		def get_msg(df, docname):
 			if self.parentfield:
 				return "{} #{}: {}: {}".format(_("Row"), self.idx, _(df.label), docname)
@@ -257,17 +273,63 @@ class BaseDocument(object):
 				return "{}: {}".format(_(df.label), docname)
 
 		invalid_links = []
-		for df in self.meta.get_link_fields():
-			doctype = df.options
+		cancelled_links = []
+		for df in self.meta.get_link_fields() + self.meta.get("fields",
+			{"fieldtype":"Dynamic Link"}):
 
-			if not doctype:
-				frappe.throw(_("Options not set for link field {0}").format(df.fieldname))
 
 			docname = self.get(df.fieldname)
-			if docname and not frappe.db.get_value(doctype, docname):
-				invalid_links.append((df.fieldname, docname, get_msg(df, docname)))
+			if docname:
+				if df.fieldtype=="Link":
+					doctype = df.options
+					if not doctype:
+						frappe.throw(_("Options not set for link field {0}").format(df.fieldname))
+				else:
+					doctype = self.get(df.options)
+					if not doctype:
+						frappe.throw(_("{0} must be set first").format(self.meta.get_label(df.options)))
 
-		return invalid_links
+				# MySQL is case insensitive. Preserve case of the original docname in the Link Field.
+				value = frappe.db.get_value(doctype, docname)
+				setattr(self, df.fieldname, value)
+
+				if not value:
+					invalid_links.append((df.fieldname, docname, get_msg(df, docname)))
+
+				elif (df.fieldname != "amended_from"
+					and (is_submittable or self.meta.is_submittable) and frappe.get_meta(doctype).is_submittable
+					and cint(frappe.db.get_value(doctype, docname, "docstatus"))==2):
+
+					cancelled_links.append((df.fieldname, docname, get_msg(df, docname)))
+
+		return invalid_links, cancelled_links
+
+	def _validate_selects(self):
+		if frappe.flags.in_import:
+			return
+
+		for df in self.meta.get_select_fields():
+			if df.fieldname=="naming_series" or not (self.get(df.fieldname) and df.options):
+				continue
+
+			options = (df.options or "").split("\n")
+
+			# if only empty options
+			if not filter(None, options):
+				continue
+
+			# strip and set
+			self.set(df.fieldname, cstr(self.get(df.fieldname)).strip())
+			value = self.get(df.fieldname)
+
+			if value not in options and not (frappe.flags.in_test and value.startswith("_T-")):
+				# show an elaborate message
+				prefix = _("Row #{0}:").format(self.idx) if self.get("parentfield") else ""
+				label = _(self.meta.get_label(df.fieldname))
+				comma_options = '", "'.join(_(each) for each in options)
+
+				frappe.throw(_('{0} {1} cannot be "{2}". It should be one of "{3}"').format(prefix, label,
+					value, comma_options))
 
 	def _validate_constants(self):
 		if frappe.flags.in_import:
@@ -289,6 +351,11 @@ class BaseDocument(object):
 			if df and not df.allow_on_submit and (self.get(key) or value) and self.get(key) != value:
 				frappe.throw(_("Not allowed to change {0} after submission").format(df.label),
 					frappe.UpdateAfterSubmitError)
+
+	def get_formatted(self, fieldname, doc=None, currency=None):
+		from frappe.utils.formatters import format_value
+		return format_value(self.get(fieldname), self.meta.get_field(fieldname),
+			doc=doc or self, currency=currency)
 
 def _filter(data, filters, limit=None):
 	"""pass filters as:

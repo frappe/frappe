@@ -1,7 +1,7 @@
 {% block title %}{{ title }}{% endblock %}
 
 {% block header %}
-{% if "<" in header %}{{ header }}{% else %}<h2>{{ header }}</h2>{% endif %}
+{{ header }}
 {% endblock %}
 
 {% block content %}
@@ -28,6 +28,6 @@ $(function() {
 </script>
 {% endblock %}
 
-{% block style %}{{ style }}{% endblock %}
+{% block style %}{{ style or "" }}{% endblock %}
 
-{% block script %}{{ script }}{% endblock %}
+{% block script %}{{ script or "" }}{% endblock %}

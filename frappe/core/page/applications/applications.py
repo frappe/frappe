@@ -13,7 +13,7 @@ def get_app_list():
 	for app in frappe.get_all_apps(True):
 		app_hooks = frappe.get_hooks(app_name=app)
 
-		if app_hooks.get('hide_in_installer'):
+		if app not in installed and app_hooks.get('hide_in_installer'):
 			continue
 
 		out[app] = {}

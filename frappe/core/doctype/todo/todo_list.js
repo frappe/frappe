@@ -1,18 +1,9 @@
 frappe.listview_settings['ToDo'] = {
 	onload: function(me) {
-		$(frappe.container.page)
-			.find(".layout-main-section")
-			.css({
-				"background-color":"cornsilk",
-				"min-height": "400px"
-			})
-		if(user_roles.indexOf("System Manager")!==-1) {
-			frappe.route_options = {
-				"owner": user
-			}
-		}
+		frappe.route_options = {
+			"owner": user,
+			"status": "Open"
+		};
 	},
-	set_title_left: function() {
-		frappe.set_route();
-	}
+	add_fields: ["reference_type", "reference_name"],
 }

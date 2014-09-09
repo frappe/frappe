@@ -17,9 +17,11 @@ frappe.ui.form.Toolbar = Class.extend({
 		if(this.frm.meta.hide_toolbar) {
 			this.appframe.set_title_right();
 			this.frm.save_disabled = true;
+			this.appframe.clear_primary_action();
 			this.appframe.iconbar.hide();
 		} else {
-			this.appframe.iconbar.clear(1)
+			this.appframe.iconbar.clear(1);
+			this.appframe.iconbar.clear(4)
 			this.make_file_menu();
 			this.make_cancel_amend_button();
 			this.set_title_right();
@@ -38,7 +40,12 @@ frappe.ui.form.Toolbar = Class.extend({
 	},
 	set_title: function() {
 		if(this.frm.meta.title_field) {
-			var title = this.frm.doc[this.frm.meta.title_field] || __(this.frm.docname);
+			var title = (this.frm.doc[this.frm.meta.title_field] || "").trim() || __(this.frm.docname);
+			if(this.frm.doc.__islocal || title === this.frm.docname) {
+				this.appframe.set_title_sub("");
+			} else {
+				this.appframe.set_title_sub("#" + this.frm.docname);
+			}
 		} else {
 			var title = __(this.frm.docname);
 		}
@@ -76,7 +83,7 @@ frappe.ui.form.Toolbar = Class.extend({
 				case 1:
 					return ' <i class="icon-lock" title="' +__("Submitted") + '">';
 				case 2:
-					return ' <i class="icon-remove text-danger" title="' +__("Cancelled") + '">';
+					return ' <i class="icon-ban-circle text-danger" title="' +__("Cancelled") + '">';
 			}
 		} else {
 			return "";
@@ -111,7 +118,7 @@ frappe.ui.form.Toolbar = Class.extend({
 		// Cancel
 		if(this.can_cancel()) {
 			this.appframe.add_dropdown_button("File", __("Cancel"), function() {
-				me.frm.savecancel(this);}, 'icon-remove');
+				me.frm.savecancel(this);}, 'icon-ban-circle');
 		}
 
 		// Amend
@@ -121,13 +128,13 @@ frappe.ui.form.Toolbar = Class.extend({
 		}
 
 		// Print
-		if(!me.frm.doc.__islocal || frappe.model.can_print(null, me.frm)) {
+		if(!me.frm.doc.__islocal && frappe.model.can_print(null, me.frm)) {
 			this.appframe.add_dropdown_button("File", __("Print..."), function() {
 				me.frm.print_doc();}, 'icon-print');
 		}
 
 		// email
-		if(!me.frm.doc.__islocal || frappe.model.can_email(null, me.frm)) {
+		if(!me.frm.doc.__islocal && frappe.model.can_email(null, me.frm)) {
 			this.appframe.add_dropdown_button("File", __("Email..."), function() {
 				me.frm.email_doc();}, 'icon-envelope');
 		}
@@ -142,7 +149,7 @@ frappe.ui.form.Toolbar = Class.extend({
 		// copy
 		if(in_list(frappe.boot.user.can_create, me.frm.doctype) && !me.frm.meta.allow_copy) {
 			this.appframe.add_dropdown_button("File", __("Copy"), function() {
-				me.frm.copy_doc();}, 'icon-file');
+				me.frm.copy_doc();}, 'icon-copy');
 		}
 
 		// rename
@@ -155,7 +162,7 @@ frappe.ui.form.Toolbar = Class.extend({
 		if((cint(me.frm.doc.docstatus) != 1) && !me.frm.doc.__islocal
 			&& frappe.model.can_delete(me.frm.doctype)) {
 			this.appframe.add_dropdown_button("File", __("Delete"), function() {
-				me.frm.savetrash();}, 'icon-remove-sign');
+				me.frm.savetrash();}, 'icon-trash');
 		}
 
 	},
@@ -202,12 +209,12 @@ frappe.ui.form.Toolbar = Class.extend({
 		}
 		this.frm.linked_with.show();
 	},
-	set_title_right: function() {
+	set_title_right: function(dirty) {
 		var me = this,
 			current = this.appframe.get_title_right_text(),
 			status = null;
 
-		if (!this.frm.doc.__unsaved) {
+		if (!dirty) {
 			// don't clear actions menu if dirty
 			this.appframe.clear_primary_action();
 		}
@@ -265,7 +272,7 @@ frappe.ui.form.Toolbar = Class.extend({
 			return;
 		} else if(docstatus==1 && p[CANCEL]) {
 			this.appframe.add_button('Cancel', function() {
-				me.frm.savecancel(this) }, 'icon-remove');
+				me.frm.savecancel(this) }, 'icon-ban-circle');
 		} else if(docstatus==2 && p[AMEND]) {
 			this.appframe.add_button('Amend', function() {
 				me.frm.amend_doc() }, 'icon-pencil', true);
@@ -285,7 +292,7 @@ frappe.ui.form.Toolbar = Class.extend({
 			.toggleClass("text-warning", this.frm.doc.__unsaved ? true : false)
 
 		this.set_title();
-		this.set_title_right();
+		this.set_title_right(true);
 
 		// set state in wrapper
 		$(this.frm.wrapper).attr("data-state", this.frm.doc.__unsaved ? "dirty" : "clean");

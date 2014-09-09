@@ -1,6 +1,6 @@
 {
  "autoname": "EV.#####", 
- "creation": "2013-06-10 13:17:47.000000", 
+ "creation": "2013-06-10 13:17:47", 
  "docstatus": 0, 
  "doctype": "DocType", 
  "fields": [
@@ -218,24 +218,26 @@
   }, 
   {
    "fieldname": "ref_type", 
-   "fieldtype": "Data", 
+   "fieldtype": "Link", 
    "hidden": 0, 
    "label": "Ref Type", 
    "no_copy": 0, 
    "oldfieldname": "ref_type", 
    "oldfieldtype": "Data", 
+   "options": "DocType", 
    "permlevel": 0, 
-   "read_only": 1, 
+   "read_only": 0, 
    "search_index": 0
   }, 
   {
    "fieldname": "ref_name", 
-   "fieldtype": "Data", 
+   "fieldtype": "Dynamic Link", 
    "hidden": 0, 
    "label": "Ref Name", 
    "no_copy": 0, 
    "oldfieldname": "ref_name", 
    "oldfieldtype": "Data", 
+   "options": "ref_type", 
    "permlevel": 0, 
    "read_only": 1, 
    "search_index": 0
@@ -244,14 +246,14 @@
  "icon": "icon-calendar", 
  "idx": 1, 
  "in_create": 1, 
- "modified": "2014-01-24 13:00:01.000000", 
+ "modified": "2014-06-20 06:40:05.415405", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Event", 
  "owner": "Administrator", 
  "permissions": [
   {
-   "cancel": 0, 
+   "apply_user_permissions": 1, 
    "create": 1, 
    "delete": 0, 
    "email": 1, 
@@ -264,7 +266,6 @@
    "write": 1
   }, 
   {
-   "cancel": 0, 
    "create": 1, 
    "delete": 1, 
    "email": 1, 

@@ -169,7 +169,7 @@ _f.Frm.prototype.call_server = function(method, args, callback) {
 
 _f.Frm.prototype.get_files = function() {
 	return cur_frm.attachments
-		? keys(cur_frm.attachments.get_attachments()).sort()
+		? frappe.utils.sort(cur_frm.attachments.get_attachments(), "file_name", "string")
 		: [] ;
 }
 
@@ -263,8 +263,14 @@ _f.Frm.prototype.new_doc = function(doctype, field) {
 
 _f.Frm.prototype.set_read_only = function() {
 	var perm = [];
-	$.each(frappe.perm.get_perm(cur_frm.doc.doctype, cur_frm.doc.name), function(i, permlevel) {
-		if(permlevel!=null) perm[permlevel] = {read:1};
+	$.each(frappe.perm.get_perm(cur_frm.doc.doctype), function(i, p) {
+		perm[p.permlevel || 0] = {read:1};
 	});
 	cur_frm.perm = perm;
+}
+
+_f.Frm.prototype.get_formatted = function(fieldname) {
+	return frappe.format(this.doc[fieldname],
+			frappe.meta.get_docfield(this.doctype, fieldname, this.docname),
+			{no_icon:true}, this.doc);
 }

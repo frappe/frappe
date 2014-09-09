@@ -15,15 +15,16 @@ class DatabaseQuery(object):
 		self.doctype = doctype
 		self.tables = []
 		self.conditions = []
+		self.fields = ["`tab{0}`.`name`".format(doctype)]
+		self.user = None
 		self.ignore_permissions = False
-		self.fields = ["name"]
 
 	def execute(self, query=None, filters=None, fields=None, or_filters=None,
 		docstatus=None, group_by=None, order_by=None, limit_start=0,
 		limit_page_length=20, as_list=False, with_childnames=False, debug=False,
-		ignore_permissions=False):
-		if not frappe.has_permission(self.doctype, "read"):
-			raise frappe.PermissionError
+		ignore_permissions=False, user=None):
+		if not ignore_permissions and not frappe.has_permission(self.doctype, "read", user=user):
+			raise frappe.PermissionError, self.doctype
 
 		if fields:
 			self.fields = fields
@@ -38,7 +39,7 @@ class DatabaseQuery(object):
 		self.debug = debug
 		self.as_list = as_list
 		self.ignore_permissions = ignore_permissions
-
+		self.user = user or frappe.session.user
 
 		if query:
 			return self.run_custom_query(query)
@@ -49,8 +50,11 @@ class DatabaseQuery(object):
 		args = self.prepare_args()
 		args.limit = self.add_limit()
 
-		query = """select %(fields)s from %(tables)s where %(conditions)s
-			%(group_by)s order by %(order_by)s %(limit)s""" % args
+		if args.conditions:
+			args.conditions = "where " + args.conditions
+
+		query = """select %(fields)s from %(tables)s %(conditions)s
+			%(group_by)s %(order_by)s %(limit)s""" % args
 
 		return frappe.db.sql(query, as_dict=not self.as_list, debug=self.debug)
 
@@ -75,10 +79,10 @@ class DatabaseQuery(object):
 		args.fields = ', '.join(self.fields)
 
 		self.set_order_by(args)
+		self.check_sort_by_table(args.order_by)
+		args.order_by = args.order_by and (" order by " + args.order_by) or ""
 
 		args.group_by = self.group_by and (" group by " + self.group_by) or ""
-
-		self.check_sort_by_table(args.order_by)
 
 		return args
 
@@ -86,7 +90,7 @@ class DatabaseQuery(object):
 		if isinstance(self.filters, basestring):
 			self.filters = json.loads(self.filters)
 		if isinstance(self.fields, basestring):
-			self.filters = json.loads(self.fields)
+			self.fields = json.loads(self.fields)
 		if isinstance(self.filters, dict):
 			fdict = self.filters
 			self.filters = []
@@ -106,7 +110,8 @@ class DatabaseQuery(object):
 		# add tables from fields
 		if self.fields:
 			for f in self.fields:
-				if "." not in f: continue
+				if ( not ("tab" in f and "." in f) ) or ("locate(" in f): continue
+
 
 				table_name = f.split('.')[0]
 				if table_name.lower().startswith('group_concat('):
@@ -127,19 +132,36 @@ class DatabaseQuery(object):
 	def remove_user_tags(self):
 		"""remove column _user_tags if not in table"""
 		columns = frappe.db.get_table_columns(self.doctype)
+
+		# remove from fields
 		to_remove = []
 		for fld in self.fields:
-			for f in ("_user_tags", "_comments"):
+			for f in ("_user_tags", "_comments", "_assign"):
 				if f in fld and not f in columns:
 					to_remove.append(fld)
 
 		for fld in to_remove:
 			del self.fields[self.fields.index(fld)]
 
+		# remove from filters
+		to_remove = []
+		for each in self.filters:
+			if isinstance(each, basestring):
+				each = [each]
+
+			for element in each:
+				if element in ("_user_tags", "_comments", "_assign") and element not in columns:
+					to_remove.append(each)
+
+		for each in to_remove:
+			if isinstance(self.filters, dict):
+				del self.filters[each]
+			else:
+				self.filters.remove(each)
+
 	def build_conditions(self):
 		self.conditions = []
 		self.or_conditions = []
-		self.add_docstatus_conditions()
 		self.build_filter_conditions(self.filters, self.conditions)
 		self.build_filter_conditions(self.or_filters, self.or_conditions)
 
@@ -151,13 +173,7 @@ class DatabaseQuery(object):
 		if not self.ignore_permissions:
 			match_conditions = self.build_match_conditions()
 			if match_conditions:
-				self.conditions.append(match_conditions)
-
-	def add_docstatus_conditions(self):
-		if self.docstatus:
-			self.conditions.append(self.tables[0] + '.docstatus in (' + ','.join(self.docstatus) + ')')
-		else:
-			self.conditions.append(self.tables[0] + '.docstatus < 2')
+				self.conditions.append("(" + match_conditions + ")")
 
 	def build_filter_conditions(self, filters, conditions):
 		"""build conditions from user filters"""
@@ -178,15 +194,20 @@ class DatabaseQuery(object):
 					opts = f[3]
 					if not isinstance(opts, (list, tuple)):
 						opts = f[3].split(",")
-					opts = ["'" + t.strip().replace("'", "\\'") + "'" for t in opts]
-					f[3] = "(" + ', '.join(opts) + ")"
-					conditions.append('ifnull(' + tname + '.' + f[1] + ", '') " + f[2] + " " + f[3])
+					opts = [frappe.db.escape(t.strip()) for t in opts]
+					f[3] = '("{0}")'.format('", "'.join(opts))
+					conditions.append('ifnull({tname}.{fname}, "") {operator} {value}'.format(
+						tname=tname, fname=f[1], operator=f[2], value=f[3]))
 				else:
 					df = frappe.get_meta(f[0]).get("fields", {"fieldname": f[1]})
 
 					if f[2] == "like" or (isinstance(f[3], basestring) and
 						(not df or df[0].fieldtype not in ["Float", "Int", "Currency", "Percent"])):
-							value, default_val = ("'" + f[3].replace("'", "\\'") + "'"), '""'
+							if f[2] == "like":
+								# because "like" uses backslash (\) for escaping
+								f[3] = f[3].replace("\\", "\\\\")
+
+							value, default_val = '"{0}"'.format(frappe.db.escape(f[3])), '""'
 					else:
 						value, default_val = flt(f[3]), 0
 
@@ -209,67 +230,68 @@ class DatabaseQuery(object):
 
 	def build_match_conditions(self, as_condition=True):
 		"""add match conditions if applicable"""
-		self.match_filters = {}
+		self.match_filters = []
 		self.match_conditions = []
-		self.match_or_conditions = []
 
 		if not self.tables: self.extract_tables()
 
-		# explict permissions
-		restricted_by_user = frappe.permissions.get_user_perms(frappe.get_meta(self.doctype)).restricted
+		meta = frappe.get_meta(self.doctype)
+		role_permissions = frappe.permissions.get_role_permissions(meta, user=self.user)
+		if not meta.istable and not role_permissions.get("read") and not getattr(self, "ignore_permissions", False):
+			frappe.throw(_("No permission to read {0}").format(self.doctype))
 
-		# get restrictions
-		restrictions = frappe.defaults.get_restrictions()
-
-		if restricted_by_user:
-			self.match_or_conditions.append('`tab{doctype}`.`owner`="{user}"'.format(doctype=self.doctype,
-				user=frappe.local.session.user))
-			self.match_filters["owner"] = frappe.session.user
-
-		if restrictions:
-			self.add_restrictions(restrictions)
+		# apply user permissions?
+		if role_permissions.get("apply_user_permissions", {}).get("read"):
+			# get user permissions
+			user_permissions = frappe.defaults.get_user_permissions(self.user)
+			self.add_user_permissions(user_permissions,
+				user_permission_doctypes=role_permissions.get("user_permission_doctypes"))
 
 		if as_condition:
-			return self.build_match_condition_string()
+			conditions = ""
+			if self.match_conditions:
+				# will turn out like ((blog_post in (..) and blogger in (...)) or (blog_category in (...)))
+				conditions = "((" + ") or (".join(self.match_conditions) + "))"
+
+			doctype_conditions = self.get_permission_query_conditions()
+			if doctype_conditions:
+				conditions += (' and ' + doctype_conditions) if conditions else doctype_conditions
+
+			return conditions
+
 		else:
 			return self.match_filters
 
-	def add_restrictions(self, restrictions):
-		fields_to_check = frappe.get_meta(self.doctype).get_restricted_fields(restrictions.keys())
-		if self.doctype in restrictions:
-			fields_to_check.append(frappe._dict({"fieldname":"name", "options":self.doctype}))
+	def add_user_permissions(self, user_permissions, user_permission_doctypes=None):
+		user_permission_doctypes = frappe.permissions.get_user_permission_doctypes(user_permission_doctypes,
+			user_permissions)
+		meta = frappe.get_meta(self.doctype)
 
-		# check in links
-		for df in fields_to_check:
-			self.match_conditions.append("""(ifnull(`tab{doctype}`.`{fieldname}`, "")="" or \
-				`tab{doctype}`.`{fieldname}` in ({values}))""".format(doctype=self.doctype,
+		for doctypes in user_permission_doctypes:
+			match_filters = {}
+			match_conditions = []
+			# check in links
+			for df in meta.get_fields_to_check_permissions(doctypes):
+				match_conditions.append("""(ifnull(`tab{doctype}`.`{fieldname}`, "")=""
+					or `tab{doctype}`.`{fieldname}` in ({values}))""".format(
+					doctype=self.doctype,
 					fieldname=df.fieldname,
-					values=", ".join([('"'+v.replace('"', '\"')+'"') \
-						for v in restrictions[df.options]])))
-			self.match_filters.setdefault(df.fieldname, [])
-			self.match_filters[df.fieldname]= restrictions[df.options]
+					values=", ".join([('"'+v.replace('"', '\"')+'"') for v in user_permissions[df.options]])
+				))
+				match_filters[df.options] = user_permissions[df.options]
 
-	def build_match_condition_string(self):
-		conditions = " and ".join(self.match_conditions)
-		doctype_conditions = self.get_permission_query_conditions()
-		if doctype_conditions:
-			conditions += ' and ' + doctype_conditions if conditions else doctype_conditions
+			if match_conditions:
+				self.match_conditions.append(" and ".join(match_conditions))
 
-		if self.match_or_conditions:
-			if conditions:
-				conditions = '({conditions}) or {or_conditions}'.format(conditions=conditions,
-					or_conditions = ' or '.join(self.match_or_conditions))
-			else:
-				conditions = " or ".join(self.match_or_conditions)
-
-		return conditions
+			if match_filters:
+				self.match_filters.append(match_filters)
 
 	def get_permission_query_conditions(self):
 		condition_methods = frappe.get_hooks("permission_query_conditions", {}).get(self.doctype, [])
 		if condition_methods:
 			conditions = []
 			for method in condition_methods:
-				c = frappe.get_attr(method)()
+				c = frappe.call(frappe.get_attr(method), self.user)
 				if c:
 					conditions.append(c)
 
@@ -285,8 +307,23 @@ class DatabaseQuery(object):
 		if self.order_by:
 			args.order_by = self.order_by
 		else:
-			args.order_by = "`tab{0}`.`{1}` {2}".format(self.doctype,
-				meta.sort_field or "modified", meta.sort_order or "desc")
+			args.order_by = ""
+
+			# don't add order by from meta if a mysql group function is used without group by clause
+			group_function_without_group_by = (len(self.fields)==1 and
+				(	self.fields[0].lower().startswith("count(")
+					or self.fields[0].lower().startswith("min(")
+					or self.fields[0].lower().startswith("max(")
+				) and not self.group_by)
+
+			if not group_function_without_group_by:
+
+				args.order_by = "`tab{0}`.`{1}` {2}".format(self.doctype,
+					meta.sort_field or "modified", meta.sort_order or "desc")
+
+				# draft docs always on top
+				if meta.is_submittable:
+					args.order_by = "`tab{0}`.docstatus asc, ".format(self.doctype) + args.order_by
 
 	def check_sort_by_table(self, order_by):
 		if "." in order_by:

@@ -27,6 +27,13 @@
    "width": "150px"
   }, 
   {
+   "description": "Filter records based on User Permissions defined for a user", 
+   "fieldname": "apply_user_permissions", 
+   "fieldtype": "Check", 
+   "label": "Apply User Permissions", 
+   "permlevel": 0
+  }, 
+  {
    "fieldname": "column_break_2", 
    "fieldtype": "Column Break", 
    "permlevel": 0
@@ -45,6 +52,15 @@
    "reqd": 0, 
    "search_index": 0, 
    "width": "40px"
+  }, 
+  {
+   "depends_on": "", 
+   "description": "JSON list of DocTypes used to apply User Permissions. If empty, all linked DocTypes will be used to apply User Permissions.", 
+   "fieldname": "user_permission_doctypes", 
+   "fieldtype": "Text", 
+   "label": "User Permission DocTypes", 
+   "permlevel": 0, 
+   "read_only": 1
   }, 
   {
    "fieldname": "section_break_4", 
@@ -171,6 +187,18 @@
    "permlevel": 0
   }, 
   {
+   "description": "This role update User Permissions for a user", 
+   "fieldname": "set_user_permissions", 
+   "fieldtype": "Check", 
+   "label": "Set User Permissions", 
+   "permlevel": 0
+  }, 
+  {
+   "fieldname": "column_break_19", 
+   "fieldtype": "Column Break", 
+   "permlevel": 0
+  }, 
+  {
    "fieldname": "print", 
    "fieldtype": "Check", 
    "label": "Print", 
@@ -181,25 +209,6 @@
    "fieldtype": "Check", 
    "label": "Email", 
    "permlevel": 0
-  }, 
-  {
-   "fieldname": "column_break_19", 
-   "fieldtype": "Column Break", 
-   "permlevel": 0
-  }, 
-  {
-   "description": "Only restricted users can access", 
-   "fieldname": "restricted", 
-   "fieldtype": "Check", 
-   "label": "Only Restricted Documents", 
-   "permlevel": 0
-  }, 
-  {
-   "description": "This role can restrict users for accessing the record.", 
-   "fieldname": "restrict", 
-   "fieldtype": "Check", 
-   "label": "Can Restrict Others", 
-   "permlevel": 0
   }
  ], 
  "hide_heading": 0, 
@@ -207,7 +216,7 @@
  "idx": 1, 
  "issingle": 0, 
  "istable": 1, 
- "modified": "2014-05-01 05:20:48.162224", 
+ "modified": "2014-08-26 01:43:31.499363", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "DocPerm", 

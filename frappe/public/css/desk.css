@@ -1,3 +1,5 @@
+@import url(http://fonts.googleapis.com/css?family=Noto+Sans:400,700);
+
 html {
 	min-height: 100%;
 	position: relative;
@@ -13,10 +15,20 @@ a {
 	cursor: pointer;
 }
 
+.navbar-inverse {
+	background-color: #444;
+	border-bottom: 0px;
+}
+
 a.disabled, a.disabled:hover {
 	color: #888;
 	cursor: default;
 	text-decoration: none;
+}
+
+a.form-link {
+	font-weight: bold;
+	font-size: 102%;
 }
 
 .layout-main {
@@ -28,7 +40,6 @@ a.disabled, a.disabled:hover {
 }
 
 .text-ellipsis {
-	display: inline-block;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
@@ -55,8 +66,20 @@ div#freeze {
 	text-align: center;
 }
 
-/* listing */
 
+.app-page {
+	border: 1px solid #c7c7c7;
+	border-radius: 4px;
+	margin-top: 15px;
+	padding: 0px;
+	overflow: hidden;
+}
+
+.page-container .container {
+	max-width: 970px;
+}
+
+/* listing */
 .show_filters {
 	padding-top: 15px;
 	padding-bottom: 15px;
@@ -64,8 +87,13 @@ div#freeze {
 	border-bottom: 1px solid #c7c7c7;
 }
 
+.set-filters .btn-group {
+	margin-bottom: 10px;
+	margin-right: 10px;
+}
+
 .list-row {
-	padding: 5px 15px;
+	padding: 5px 15px 10px;
 	margin: 0px -15px;
 	border-bottom: 1px solid #c7c7c7;
 }
@@ -91,19 +119,21 @@ div#freeze {
 	margin-top: 3px;
 }
 
-.icon-in-circle {
-	color: #b7b7b7;
-	background-color: white;
-	border-radius:50%;
-	text-align: center;
-	width: 20px;
-	height: 20px;
-	font-size: 20px;
-	display: inline-block;
-}
-
 .form-layout {
 	/*margin-top: -15px;*/
+}
+
+.form-print-wrapper {
+	margin: 0px -15px -15px -15px;
+	background-color: #ddd;
+	padding: 0px 15px 30px 15px;
+}
+
+.form-page-header {
+	border-top: 1px solid #eee;
+	margin: 15px -15px -15px -15px;
+	padding: 10px 15px;
+	background-color: #f9f9f9;
 }
 
 .form-control {
@@ -136,22 +166,43 @@ div#freeze {
 
 /* list */
 
+.progress {
+	height: 10px;
+}
+
 .doclist-row {
 	position: relative;
 	padding-top: 5px;
-	padding-bottom: 3px;
+	padding-bottom: 6px;
 	border-bottom: "1px solid #eee";
 }
 
-.doclist-row .col {
-	padding-left: 7px;
-	padding-right: 7px;
+.doclist-row .progress {
+	margin-top: 12px;
+}
+
+.filterable {
+	cursor: pointer;
+}
+
+.doclist-row .label {
+	margin-right: 8px;
 }
 
 .list-timestamp {
 	position: absolute;
-	right: 5px;
+	right: 15px;
+	bottom: 3px;
+	font-size: 70%;
+	color: #888;
+}
+
+.list-doc-name {
+	position: absolute;
 	bottom: 2px;
+}
+
+.list-doc-name a {
 	font-size: 70%;
 	color: #888;
 }
@@ -199,7 +250,7 @@ div#freeze {
 	position: fixed;
 	bottom: 8px;
 	right: 8px;
-	z-index: 10;
+	z-index: 1050;
 }
 
 #alert-container .alert {
@@ -224,6 +275,43 @@ div#freeze {
 	color: #888;
 }
 /* form */
+
+.comment-connector {
+	height: 30px;
+	margin-left: 70px;
+	border-left: 1px solid #d7d7d7;
+}
+
+.comment-body {
+	border-left: 1px solid #d7d7d7;
+	padding: 5px 15px 15px 30px;
+}
+
+.comment-body p {
+	margin-bottom: 5px;
+}
+
+.comment-icon {
+	margin-right: -14px !important;
+	margin-left: 15px;
+	z-index: 1;
+}
+
+.icon-timeline {
+	color: #fff;
+	height: 29px;
+	width: 29px;
+	padding: 8px 9px 7px 9px;
+	border-radius: 50%;
+	background-color: #d7d7d7;
+	text-align: center;
+	display: inline-block;
+	float: left;
+}
+
+.comment {
+	margin-top: 0px;
+}
 
 .frappe-editor {
 	cursor: text;
@@ -257,32 +345,55 @@ ul.linked-with-list li {
 }
 
 .grid-heading-row {
-	padding: 8px;
-	border-bottom: 1px solid #dddddd;
+	padding: 8px 15px;
+	border-bottom: 1px solid #c7c7c7;
+	background-color: #f9f9f9;
+	font-weight: bold;
 }
 
 .rows .grid-row .divider {
 	padding-bottom: 5px;
 	margin-bottom: 5px;
-	border-bottom: 1px solid #dddddd;
+	margin-top: 8px;
+	border-bottom: 1px solid #c7c7c7;
 }
 
 .rows .grid-row .data-row, .rows .grid-row .panel-heading {
 	cursor: pointer;
 }
 
+.data-row {
+	margin-left: -20px;
+}
+
+.row-index {
+	text-align: right;
+}
+
 .grid-row .panel {
 	background-color: #fffff8;
+}
+
+.grid-row td {
+	vertical-align: top;
+}
+
+.grid-row p {
+	margin-bottom: 5px;
 }
 
 /* form footer */
 
 .form-footer {
-	padding-top: 15px;
-	padding-bottom: 15px;
-	color: #888;
+	padding-bottom: 30px;
 	/*box-shadow: 0px -1px 6px rgba(0,0,0,0.3);*/
 }
+
+.form-footer h5 {
+	margin: 15px 0px;
+	font-weight: bold;
+}
+
 
 .like-disabled-input {
 	background-color: #f8f8f8;
@@ -352,6 +463,7 @@ ul.linked-with-list li {
 	margin-bottom: 7px;
 }
 
+
 /* hack */
 .ui-datepicker { z-index: 9999999 !important; }
 .ui-autocomplete {
@@ -364,9 +476,10 @@ ul.linked-with-list li {
 }
 
 .print-preview {
-	padding: 50px 20px;
-	margin: 0px -15px;
-	box-shadow: 1px 1px 5px rgba(0,0,0,0.5);
+	padding: 0px;
+	max-width: 8.3in;
+	margin: auto;
+	min-height: 11.69in;
 }
 
 .module-view-layout {

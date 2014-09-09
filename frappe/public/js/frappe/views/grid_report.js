@@ -104,6 +104,7 @@ frappe.views.GridReport = Class.extend({
 		$.extend(this, opts);
 
 		this.wrapper = $('<div>').appendTo(this.parent);
+		this.appframe.parent.find(".appframe").css({"padding-top": "0px"});
 
 		if(this.filters) {
 			this.make_filters();
@@ -255,7 +256,7 @@ frappe.views.GridReport = Class.extend({
 			} else if(v.fieldtype==='Button' && v.label==="Refresh") {
 				input = me.appframe.set_title_right(v.label, null, v.icon);
 			} else if(v.fieldtype==='Button') {
-				input = me.appframe.add_primary_action(v.label, null, v.icon);
+				input = me.appframe.add_button(v.label, null, v.icon);
 			} else if(v.fieldtype==='Date') {
 				input = me.appframe.add_date(v.label);
 			} else if(v.fieldtype==='Label') {
@@ -353,8 +354,7 @@ frappe.views.GridReport = Class.extend({
 		this.round_off_data();
 		this.prepare_data_view();
 		// plot might need prepared data
-		this.wrapper.find(".processing").toggle(true);
-		this.wrapper.find(".processing").delay(2000).fadeOut(300);
+		show_alert("Updated", 2);
 		this.render();
 		this.render_plot && this.render_plot();
 	},
@@ -367,18 +367,10 @@ frappe.views.GridReport = Class.extend({
 		var me = this;
 
 		// plot wrapper
-		this.plot_area = $('<div class="plot" style="margin-bottom: 15px; display: none; \
+		this.plot_area = $('<div class="plot" style="margin-top: 15px; margin-bottom: 15px; display: none; \
 			height: 300px; width: 100%;"></div>').appendTo(this.wrapper);
 
-		// print / export
-		$('<div style="text-align: right;"> \
-			<div class="processing" style="background-color: #fec; display: none; \
-				float: left; margin: 2px">Updated! </div> \
-			<a href="#" class="grid-report-export"> \
-				<i class="icon icon-download-alt"></i> Export</a> \
-		</div>').appendTo(this.wrapper);
-
-		this.wrapper.find(".grid-report-export").click(function() { return me.export(); });
+		this.appframe.add_button(__("Export"), function() { return me.export(); }, "icon-download");
 
 		// grid wrapper
 		this.grid_wrapper = $("<div style='height: 500px; border: 1px solid #aaa; \

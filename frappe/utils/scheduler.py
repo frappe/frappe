@@ -12,7 +12,7 @@ from __future__ import unicode_literals
 
 import frappe
 import frappe.utils
-from frappe.utils.file_lock import create_lock, check_lock, delete_lock, LockTimeoutError
+from frappe.utils.file_lock import create_lock, check_lock, delete_lock
 from datetime import datetime
 
 DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
@@ -78,9 +78,7 @@ def trigger(site, event, now=False):
 		if not check_lock(handler):
 			if not now:
 				scheduler_task.delay(site=site, event=event, handler=handler)
-				create_lock(handler)
 			else:
-				create_lock(handler)
 				scheduler_task(site=site, event=event, handler=handler, now=True)
 
 def log(method, message=None):
@@ -97,20 +95,26 @@ def log(method, message=None):
 	d = frappe.new_doc("Scheduler Log")
 	d.method = method
 	d.error = message
-	d.insert()
+	d.insert(ignore_permissions=True)
 
 	frappe.db.commit()
 
 	return message
 
 def is_scheduler_disabled():
-	return frappe.utils.cint(frappe.db.get_global("disable_scheduler"))
+	return not frappe.utils.cint(frappe.db.get_default("enable_scheduler"))
+
+def toggle_scheduler(enable):
+	ss = frappe.get_doc("System Settings")
+	ss.enable_scheduler = 1 if enable else 0
+	ss.ignore_mandatory = True
+	ss.save()
 
 def enable_scheduler():
-	frappe.db.set_global("disable_scheduler", 0)
+	toggle_scheduler(True)
 
 def disable_scheduler():
-	frappe.db.set_global("disable_scheduler", 1)
+	toggle_scheduler(False)
 
 def get_errors(from_date, to_date, limit):
 	errors = frappe.db.sql("""select modified, method, error from `tabScheduler Log`

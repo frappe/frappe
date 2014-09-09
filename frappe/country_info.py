@@ -5,13 +5,14 @@
 from __future__ import unicode_literals
 
 import os, json, frappe
+from frappe.utils.momentjs import get_all_timezones
 
 def get_country_info(country=None):
 	data = get_all()
 	data = frappe._dict(data.get(country, {}))
 	if not 'date_format' in data:
 		data.date_format = "dd-mm-yyyy"
-			
+
 	return data
 
 def get_all():
@@ -19,26 +20,23 @@ def get_all():
 		all_data = json.loads(local_info.read())
 	return all_data
 
-@frappe.whitelist()	
+@frappe.whitelist()
 def get_country_timezone_info():
-	import pytz
 	return {
 		"country_info": get_all(),
-		"all_timezones": pytz.all_timezones
+		"all_timezones": get_all_timezones()
 	}
 
 def update():
 	with open(os.path.join(os.path.dirname(__file__), "currency_info.json"), "r") as nformats:
 		nformats = json.loads(nformats.read())
-		
+
 	all_data = get_all()
-	
+
 	for country in all_data:
 		data = all_data[country]
-		data["number_format"] = nformats.get(data.get("currency", "default"), 
+		data["number_format"] = nformats.get(data.get("currency", "default"),
 			nformats.get("default"))["display"]
-	
-	print all_data
-	
+
 	with open(os.path.join(os.path.dirname(__file__), "country_info.json"), "w") as local_info:
 		local_info.write(json.dumps(all_data, indent=1))

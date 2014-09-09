@@ -3,7 +3,7 @@
 
 frappe.provide('frappe.views');
 
-// opts: 
+// opts:
 // stats = list of fields
 // doctype
 // parent
@@ -29,10 +29,10 @@ frappe.views.SidebarStats = Class.extend({
 				$.each(me.stats, function(i, v) {
 					me.render_stat(v, (r.message || {})[v]);
 				});
-				
+
 				// reload button at the end
 				if(me.stats.length) {
-					$('<a class="small"><i class="refresh"></i> '+__('Refresh')+'</a>')
+					$('<a class="small"><i class="icon-refresh"></i> '+__('Refresh')+'</a>')
 						.css({"margin-top":"15px", "display":"inline-block"})
 						.click(function() {
 							me.reload_stats();
@@ -46,11 +46,14 @@ frappe.views.SidebarStats = Class.extend({
 	},
 	render_stat: function(field, stat) {
 		var me = this;
+		var show_tags =  '<a class="list-tag-preview small" style="margin-left: 7px;">'
+			+__("Show tags") +'</a>';
 
 		if(!stat || !stat.length) {
 			if(field==='_user_tags') {
 				$('<div class="side-panel">\
-					<h5 class="text-muted"><i class="icon-tag"></i> '+__('Tags')+'</h5>\
+					<h5 class="text-muted"><i class="icon-tag">\
+						</i> '+__('Tags')+show_tags+'</h5>\
 					<div class="side-panel-body">\
 						<div class="text-muted small"><i>'+__('No records tagged.')+'</i><br>'
 						+'</div>\
@@ -59,9 +62,9 @@ frappe.views.SidebarStats = Class.extend({
 			return;
 		}
 
-		var label = frappe.meta.docfield_map[this.doctype][field] ? 
+		var label = frappe.meta.docfield_map[this.doctype][field] ?
 			frappe.meta.docfield_map[this.doctype][field].label : field;
-		if(label==='_user_tags') label = 'Tags';
+		if(label==='_user_tags') label = 'Tags' + show_tags;
 
 		// grid
 		var $w = $('<div class="side-panel">\
@@ -76,12 +79,12 @@ frappe.views.SidebarStats = Class.extend({
 		$.each(stat, function(i,v) { sum = sum + v[1]; })
 
 		// render items
-		$.each(stat, function(i, v) { 
+		$.each(stat, function(i, v) {
 			me.render_stat_item(i, v, sum, field).appendTo($w.find('.side-panel-body'));
 		});
 
 		$w.appendTo(this.wrapper);
-	},	
+	},
 	render_stat_item: function(i, v, max, field) {
 		var me = this;
 		var args = {}
@@ -91,8 +94,8 @@ frappe.views.SidebarStats = Class.extend({
 		args.count = v[1];
 		args.field = field;
 		args.bar_style = "";
-		
-		$item = $(repl('<div class="progress">\
+
+		$item = $(repl('<div class="progress" style="height: 7px;">\
 				<div class="progress-bar %(bar_style)s" style="width: %(width)s%"></div>\
 			</div>\
 			<div class="stat-label" style="margin-top: -19px; text-align: center; \
@@ -100,7 +103,7 @@ frappe.views.SidebarStats = Class.extend({
 				<a href="#" data-label="%(label)s" data-field="%(field)s">\
 					%(_label)s</a> (%(count)s)\
 		</div>', args));
-		
+
 		this.setup_stat_item_click($item);
 		return $item;
 	},
@@ -116,5 +119,5 @@ frappe.views.SidebarStats = Class.extend({
 			me.set_filter(fieldname, label);
 			return false;
 		});
-	},	
+	},
 });

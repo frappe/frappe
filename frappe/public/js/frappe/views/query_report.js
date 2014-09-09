@@ -60,7 +60,7 @@ frappe.views.QueryReport = Class.extend({
 		this.appframe.set_title_right(__('Refresh'), function() { me.refresh(); });
 
 		// Edit
-		var edit_btn = this.appframe.add_primary_action(__('Edit'), function() {
+		var edit_btn = this.appframe.add_button(__('Edit'), function() {
 			if(!frappe.user.is_report_manager()) {
 				msgprint(__("You are not allowed to create / edit reports"));
 				return false;
@@ -68,16 +68,16 @@ frappe.views.QueryReport = Class.extend({
 			frappe.set_route("Form", "Report", me.report_name);
 		}, "icon-edit");
 
-		this.appframe.add_primary_action(__('Export'), function() { me.export_report(); },
+		this.appframe.add_button(__('Export'), function() { me.export_report(); },
 			"icon-download");
 
-		if(frappe.model.can_restrict("Report")) {
-			this.appframe.add_primary_action(__("User Restrictions"), function() {
+		if(frappe.model.can_set_user_permissions("Report")) {
+			this.appframe.add_button(__("User Permissions"), function() {
 				frappe.route_options = {
-					property: "Report",
-					restriction: me.report_name
+					doctype: "Report",
+					name: me.report_name
 				};
-				frappe.set_route("user-properties");
+				frappe.set_route("user-permissions");
 			}, "icon-shield");
 		}
 	},
@@ -91,12 +91,12 @@ frappe.views.QueryReport = Class.extend({
 				this.wrapper.find(".no-report-area").toggle(false);
 				me.appframe.set_title(__("Query Report")+": " + __(me.report_name));
 
-				me.appframe.set_title_left(function() {
-					frappe.set_route(frappe.get_module(me.report_doc.module).link); });
-
-
 				frappe.model.with_doc("Report", me.report_name, function() {
+
 					me.report_doc = frappe.get_doc("Report", me.report_name);
+
+					me.appframe.set_title_left(function() {
+						frappe.set_route(frappe.get_module(me.report_doc.module).link); });
 
 					frappe.model.with_doctype(me.report_doc.ref_doctype, function() {
 						if(!frappe.query_reports[me.report_name]) {
@@ -107,13 +107,19 @@ frappe.views.QueryReport = Class.extend({
 								},
 								callback: function(r) {
 									me.appframe.set_title(__("Query Report")+": " + __(me.report_name));
-									frappe.dom.eval(r.message || "");
+									frappe.dom.eval(r.message.script || "");
 									me.setup_filters();
+									me.setup_html_format(r.message.html_format);
+									frappe.query_reports[me.report_name]["html_format"] = r.message.html_format;
 									me.refresh();
 								}
 							});
 						} else {
 							me.setup_filters();
+
+							// setup a fresh print action
+							me.setup_html_format(frappe.query_reports[me.report_name]["html_format"]);
+
 							me.refresh();
 						}
 					});
@@ -122,6 +128,45 @@ frappe.views.QueryReport = Class.extend({
 		} else {
 			var msg = __("No Report Loaded. Please use query-report/[Report Name] to run a report.")
 			this.wrapper.find(".no-report-area").html(msg).toggle(true);
+		}
+	},
+	setup_html_format: function(html_format) {
+		var me = this;
+
+		// don't add multiple Print buttons
+		if (this.$print_action) {
+			this.$print_action.remove();
+		}
+
+		if(html_format) {
+			this.$print_action = this.appframe.add_button(__('Print'), function() {
+				if(!me.data) {
+					msgprint(__("Run the report first"));
+					return;
+				}
+
+				var data = [];
+				// get filtered data
+				for (var i=0, l=me.dataView.getLength(); i<l; i++) {
+					var d = me.dataView.getItem(i);
+					var newd = {}; data.push(newd);
+					$.each(d, function(k, v) {
+						newd[k.replace(/ /g, "_").toLowerCase()] = v; });
+				}
+
+				var content = frappe.render(html_format,
+					{data: data, filters:me.get_values(), report:me});
+
+				var html = frappe.render(frappe.templates.print_template, {
+					title: __(me.report_name), content: content
+				});
+
+				var w = window.open();
+				w.document.write(html);
+				w.document.close();
+
+			}, "icon-print");
+
 		}
 	},
 	setup_filters: function() {
@@ -138,12 +183,29 @@ frappe.views.QueryReport = Class.extend({
 					f.set_input(df["default"]);
 				}
 				if(df.fieldtype=="Check") {
-					$(f.wrapper).find("input[type='checkbox']").css({"float":"None"});
+					$(f.wrapper).find("input[type='checkbox']").css({"float":"None", "margin-left": "0px"});
 				}
 
 				if(df.get_query) f.get_query = df.get_query;
+				if(df.on_change) f.on_change = df.on_change;
+
+				// run report on change
+				f.$input.on("change", function() {
+					f.$input.blur();
+					if (f.on_change) {
+						f.on_change(me);
+					} else {
+						me.trigger_refresh();
+					}
+					f.set_mandatory && f.set_mandatory(f.$input.val());
+				});
 			}
 		});
+
+		// hide appframe form if no filters
+		var $filters = this.appframe.parent.find('.appframe-form .filters');
+		this.appframe.parent.find('.appframe-form').toggle($filters.length ? true : false);
+
 		this.set_route_filters()
 		this.set_filters_by_name();
 	},
@@ -171,15 +233,18 @@ frappe.views.QueryReport = Class.extend({
 	},
 	refresh: function() {
 		// Run
-		var me =this;
+		var me = this;
 		this.waiting = frappe.messages.waiting(this.wrapper.find(".waiting-area").empty().toggle(true),
 			"Loading Report...");
 		this.wrapper.find(".results").toggle(false);
-		var filters = {};
-		$.each(this.filters || [], function(i, f) {
-			filters[f.df.fieldname] = f.get_parsed_value();
-		})
-		return frappe.call({
+		var filters = this.get_values(true);
+
+		if (this.report_ajax) {
+			// abort previous request
+			this.report_ajax.abort();
+		}
+
+		this.report_ajax = frappe.call({
 			method: "frappe.widgets.query_report.run",
 			type: "GET",
 			args: {
@@ -194,7 +259,23 @@ frappe.views.QueryReport = Class.extend({
 
 		return this.report_ajax;
 	},
-	get_values: function() {
+	trigger_refresh: function() {
+		var me = this;
+		var filters = me.get_values();
+
+		// check if required filters are not missing
+		var missing = false;
+		$.each(me.filters, function(k, _f) {
+			if (_f.df.reqd && !filters[_f.df.fieldname]) {
+				missing = true;
+				return;
+			}
+		});
+		if (!missing) {
+			me.refresh();
+		}
+	},
+	get_values: function(raise) {
 		var filters = {};
 		var mandatory_fields = [];
 		$.each(this.filters || [], function(i, f) {
@@ -203,13 +284,15 @@ frappe.views.QueryReport = Class.extend({
 			if(f.df.reqd && !v) mandatory_fields.push(f.df.label);
 			if(v) filters[f.df.fieldname] = v;
 		})
-		if(mandatory_fields.length) {
-			frappe.throw(__("Mandatory filters required:\n") + __(mandatory_fields.join("\n")));
+		if(raise && mandatory_fields.length) {
+			this.wrapper.find(".waiting-area").empty().toggle(false);
+			this.wrapper.find(".no-report-area").html(__("Please set filters")).toggle(true);
+			throw "Filters required";
 		}
-		return filters
+		return filters;
 	},
 	make_results: function(result, columns) {
-		this.wrapper.find(".waiting-area").empty().toggle(false);
+		this.wrapper.find(".waiting-area, .no-report-area").empty().toggle(false);
 		this.wrapper.find(".results").toggle(true);
 		this.make_columns(columns);
 		this.make_data(result, columns);
@@ -233,62 +316,96 @@ frappe.views.QueryReport = Class.extend({
 		this.setup_header_row();
 		this.grid.init();
 		this.setup_sort();
+
+		// further setup of grid like click subscription for tree
+		if (this.get_query_report_opts().tree) {
+			this.setup_tree();
+		}
 	},
 	make_columns: function(columns) {
+		var me = this;
+		var formatter = this.get_formatter();
+
 		this.columns = [{id: "_id", field: "_id", name: "Sr No", width: 60}]
 			.concat($.map(columns, function(c) {
-				var col = {name:c, id: c, field: c, sortable: true, width: 80}
-
-				if(c.indexOf(":")!=-1) {
+				if ($.isPlainObject(c)) {
+					var df = c;
+				} else if (c.indexOf(":")!==-1) {
 					var opts = c.split(":");
 					var df = {
 						label: opts.length<=2 ? opts[0] : opts.slice(0, opts.length - 2).join(":"),
 						fieldtype: opts.length<=2 ? opts[1] : opts[opts.length - 2],
 						width: opts.length<=2 ? opts[2] : opts[opts.length - 1]
-					}
-
-					if(!df.fieldtype)
-						df.fieldtype="Data";
-
-					if(df.fieldtype.indexOf("/")!=-1) {
+					};
+					if (df.fieldtype.indexOf("/")!==-1) {
 						var tmp = df.fieldtype.split("/");
 						df.fieldtype = tmp[0];
 						df.options = tmp[1];
 					}
-
-					col.df = df;
-					col.formatter = function(row, cell, value, columnDef, dataContext) {
-						return frappe.format(value, columnDef.df, null, dataContext);
-					}
-
-					// column parameters
-					col.name = col.id = col.field = df.label;
-					col.name = __(df.label);
-					col.fieldtype = opts[1];
-
-					// width
-					if(df.width) {
-						col.width=parseInt(df.width);
-					}
+					df.width = cint(df.width);
 				} else {
-					col.df = {
+					var df = {
 						label: c,
 						fieldtype: "Data"
-					}
+					};
 				}
-				col.name = __(toTitle(col.name.replace(/_/g, " ")))
+
+				if (!df.fieldtype) df.fieldtype = "Data";
+				if (!cint(df.width)) df.width = 80;
+
+				var col = $.extend({}, df, {
+					label: df.label || (df.fieldname && __(toTitle(df.fieldname.replace(/_/g, " ")))) || "",
+					sortable: true,
+					df: df,
+					formatter: formatter
+				});
+
+				col.field = df.fieldname || df.label.replace(/ /g, "_");
+				df.label = __(df.label);
+				col.name = col.id = col.label = df.label;
+
 				return col
 		}));
+	},
+	get_query_report_opts: function() {
+		return frappe.query_reports[this.report_name] || {};
+	},
+	get_formatter: function() {
+		var formatter = function(row, cell, value, columnDef, dataContext) {
+			var value = frappe.format(value, columnDef.df, null, dataContext);
+
+			if (columnDef.df.is_tree) {
+				value = frappe.query_report.tree_formatter(row, cell, value, columnDef, dataContext);
+			}
+
+			return value;
+		};
+
+		var query_report_opts = this.get_query_report_opts();
+		if (query_report_opts.formatter) {
+			var default_formatter = formatter;
+
+			// custom formatter
+			formatter = function(row, cell, value, columnDef, dataContext) {
+				return query_report_opts.formatter(row, cell, value, columnDef, dataContext, default_formatter);
+			}
+		}
+
+		return formatter;
 	},
 	make_data: function(result, columns) {
 		var me = this;
 		this.data = [];
 		for(var row_idx=0, l=result.length; row_idx < l; row_idx++) {
 			var row = result[row_idx];
-			var newrow = {};
-			for(var i=1, j=this.columns.length; i<j; i++) {
-				newrow[this.columns[i].field] = row[i-1];
-			};
+			if ($.isPlainObject(row)) {
+				var newrow = row;
+			} else {
+				var newrow = {};
+				for(var i=1, j=this.columns.length; i<j; i++) {
+					newrow[this.columns[i].field] = row[i-1];
+				};
+			}
 			newrow._id = row_idx + 1;
 			newrow.id = newrow.name ? newrow.name : ("_" + newrow._id);
 			this.data.push(newrow);
@@ -298,8 +415,15 @@ frappe.views.QueryReport = Class.extend({
 		// initialize the model
 		this.dataView = new Slick.Data.DataView({ inlineFilters: true });
 		this.dataView.beginUpdate();
+
+		if (this.get_query_report_opts().tree) {
+			this.setup_item_by_name();
+			this.dataView.setFilter(this.tree_filter);
+		} else {
+			this.dataView.setFilter(this.inline_filter);
+		}
+
 		this.dataView.setItems(this.data);
-		this.dataView.setFilter(this.inline_filter);
 		this.dataView.endUpdate();
 
 		var me = this;
@@ -325,6 +449,66 @@ frappe.views.QueryReport = Class.extend({
 			}
 		}
 		return true;
+	},
+	setup_item_by_name: function() {
+		this.item_by_name = {};
+		this.name_field = this.get_query_report_opts().name_field;
+		this.parent_field = this.get_query_report_opts().parent_field;
+		var initial_depth = this.get_query_report_opts().initial_depth;
+		for (var i=0, l=this.data.length; i<l; i++) {
+			var item = this.data[i];
+
+			// only if name field has value
+			if (item[this.name_field]) {
+				this.item_by_name[item[this.name_field]] = item;
+			}
+
+			// set collapsed if initial depth is specified
+			if (initial_depth && item.indent && item.indent==(initial_depth - 1)) {
+				item._collapsed = true;
+			}
+		}
+	},
+	tree_filter: function(item) {
+		var me = frappe.query_report;
+
+		// apply inline filters
+		if (!me.inline_filter(item)) return false;
+
+		try {
+			var parent_name = item[me.parent_field];
+			while (parent_name) {
+				if (me.item_by_name[parent_name]._collapsed) {
+					return false;
+				}
+				parent_name = me.item_by_name[parent_name][me.parent_field];
+			}
+			return true;
+		} catch (e) {
+			if (e.message.indexOf("[parent_name] is undefined")!==-1) {
+				msgprint(__("Unable to display this tree report, due to missing data. Most likely, it is being filtered out due to permissions."));
+			}
+
+			throw e;
+		}
+	},
+	tree_formatter: function(row, cell, value, columnDef, dataContext) {
+		var me = frappe.query_report;
+		var $span = $("<span></span>")
+			.css("padding-left", (cint(dataContext.indent) * 21) + "px")
+			.html(value);
+
+		var idx = me.dataView.getIdxById(dataContext.id);
+		var show_toggle = me.data[idx + 1] && (me.data[idx + 1].indent > me.data[idx].indent)
+
+		if (dataContext[me.name_field] && show_toggle) {
+			$('<span class="toggle"></span>')
+				.addClass(dataContext._collapsed ? "expand" : "collapse")
+				.css("margin-right", "7px")
+				.prependTo($span);
+		}
+
+		return $span.wrap("<p></p>").parent().html();
 	},
 	compare_values: function(value, filter, columnDef) {
 		var invert = false;
@@ -431,9 +615,35 @@ frappe.views.QueryReport = Class.extend({
 			me.dataView.refresh();
 	    });
 	},
+	setup_tree: function() {
+		// set these in frappe.query_reports[report_name]
+		// "tree": true,
+		// "name_field": "account",
+		// "parent_field": "parent_account",
+		// "initial_depth": 3
+
+		// also set "is_tree" true for ColumnDef
+
+		var me = this;
+		this.grid.onClick.subscribe(function (e, args) {
+			if ($(e.target).hasClass("toggle")) {
+				var item = me.dataView.getItem(args.row);
+				if (item) {
+					if (!item._collapsed) {
+						item._collapsed = true;
+					} else {
+						item._collapsed = false;
+					}
+
+					me.dataView.updateItem(item.id, item);
+				}
+				e.stopImmediatePropagation();
+			}
+		});
+	},
 	export_report: function() {
 		if(!frappe.model.can_export(this.report_doc.ref_doctype)) {
-			msgprint(_("You are not allowed to export this report"));
+			msgprint(__("You are not allowed to export this report"));
 			return false;
 		}
 

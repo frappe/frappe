@@ -10,10 +10,10 @@ import os, json
 import frappe
 import frappe.database
 import getpass
-from frappe import _
 from frappe.model.db_schema import DbManager
 from frappe.model.sync import sync_for
 from frappe.utils.fixtures import sync_fixtures
+from frappe.website import render, statics
 
 def install_db(root_login="root", root_password=None, db_name=None, source_sql=None,
 	admin_password = 'admin', verbose=True, force=0, site_config=None, reinstall=False):
@@ -94,7 +94,7 @@ def install_app(name, verbose=False, set_as_patched=True):
 
 	if name in installed_apps:
 		print "App Already Installed"
-		frappe.msgprint(_("App Already Installed"))
+		frappe.msgprint("App {0} already installed".format(name))
 		return
 
 	if name != "frappe":
@@ -116,20 +116,23 @@ def install_app(name, verbose=False, set_as_patched=True):
 	for after_install in app_hooks.after_install or []:
 		frappe.get_attr(after_install)()
 
-	sync_fixtures()
+	print "Installing Fixtures..."
+	sync_fixtures(name)
 
 	frappe.flags.in_install_app = False
 
-def add_to_installed_apps(app_name, rebuild_sitemap=True):
+def add_to_installed_apps(app_name, rebuild_website=True):
 	installed_apps = frappe.get_installed_apps()
 	if not app_name in installed_apps:
 		installed_apps.append(app_name)
 		frappe.db.set_global("installed_apps", json.dumps(installed_apps))
 		frappe.db.commit()
 
-		if rebuild_sitemap:
-			from frappe.website.doctype.website_template.website_template import rebuild_website_template
-			rebuild_website_template()
+		if rebuild_website:
+			render.clear_cache()
+			statics.sync().start()
+
+		frappe.db.commit()
 
 		frappe.clear_cache()
 
@@ -190,5 +193,5 @@ def add_module_defs(app):
 	for module in modules:
 		d = frappe.new_doc("Module Def")
 		d.app_name = app
-		d.module_name = frappe.unscrub(module)
+		d.module_name = module
 		d.save()

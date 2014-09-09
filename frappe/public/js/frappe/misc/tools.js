@@ -15,7 +15,7 @@ frappe.tools.downloadify = function(data, roles, me) {
 	var download_from_server = function() {
 		open_url_post("/", {
 			args: { data: data, filename: me.title },
-			cmd: "frappe.utils.datautils.send_csv_to_client"
+			cmd: "frappe.utils.csvutils.send_csv_to_client"
 		}, true);
 	}
 
@@ -124,7 +124,7 @@ frappe.slickgrid_tools = {
 					frappe.call({
 						method:"frappe.client.make_width_property_setter",
 						args: {
-							doclist: [{
+							doc: {
 								doctype:'Property Setter',
 								doctype_or_field: 'DocField',
 								doc_type: col.docfield.parent,
@@ -132,7 +132,7 @@ frappe.slickgrid_tools = {
 								property: 'width',
 								value: col.width,
 								"__islocal": 1
-							}]
+							}
 						}
 					});
 					col.previousWidth = col.width;

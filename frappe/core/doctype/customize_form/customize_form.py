@@ -18,7 +18,6 @@ class CustomizeForm(Document):
 		'sort_order': 'Data',
 		'default_print_format': 'Data',
 		'read_only_onload': 'Check',
-		'allow_attach': 'Check',
 		'allow_copy': 'Check',
 		'max_attachments': 'Int'
 	}
@@ -32,7 +31,7 @@ class CustomizeForm(Document):
 		'width': 'Data',
 		'print_width': 'Data',
 		'reqd': 'Check',
-		'ignore_restrictions': 'Check',
+		'ignore_user_permissions': 'Check',
 		'in_filter': 'Check',
 		'in_list_view': 'Check',
 		'hidden': 'Check',
@@ -41,11 +40,12 @@ class CustomizeForm(Document):
 		'allow_on_submit': 'Check',
 		'depends_on': 'Data',
 		'description': 'Text',
-		'default': 'Text'
+		'default': 'Text',
+		'precision': 'Select'
 	}
 
-	allowed_fieldtype_change = (('Currency', 'Float'), ('Small Text', 'Data'),
-		('Text', 'Text Editor', 'Code'))
+	allowed_fieldtype_change = (('Currency', 'Float', 'Percent'), ('Small Text', 'Data'),
+		('Text', 'Text Editor', 'Code'), ('Data', 'Select'), ('Text', 'Small Text'))
 
 	def on_update(self):
 		frappe.db.sql("delete from tabSingles where doctype='Customize Form'")
@@ -187,6 +187,7 @@ class CustomizeForm(Document):
 			return
 
 		# create a new property setter
+		# ignore validation becuase it will be done at end
 		frappe.make_property_setter({
 			"doctype": self.doc_type,
 			"doctype_or_field": "DocField" if fieldname else "DocType",
@@ -194,7 +195,7 @@ class CustomizeForm(Document):
 			"property": property,
 			"value": value,
 			"property_type": property_type
-		})
+		}, ignore_validate=True)
 
 	def delete_existing_property_setter(self, property, fieldname=None):
 		# first delete existing property setter
@@ -204,14 +205,14 @@ class CustomizeForm(Document):
 		if existing_property_setter:
 			frappe.delete_doc("Property Setter", existing_property_setter)
 
-	def get_existing_property_value(self, property, fieldname=None):
+	def get_existing_property_value(self, property_name, fieldname=None):
 		# check if there is any need to make property setter!
 		if fieldname:
 			property_value = frappe.db.get_value("DocField", {"parent": self.doc_type,
-				"fieldname": fieldname}, property)
+				"fieldname": fieldname}, property_name)
 		else:
 			try:
-				property_value = frappe.db.get_value("DocType", self.doc_type, property)
+				property_value = frappe.db.get_value("DocType", self.doc_type, property_name)
 			except Exception, e:
 				if e.args[0]==1054:
 					property_value = None
@@ -221,18 +222,19 @@ class CustomizeForm(Document):
 		return property_value
 
 	def validate_fieldtype_change(self, df, old_value, new_value):
+		allowed = False
 		for allowed_changes in self.allowed_fieldtype_change:
-			if ((old_value in allowed_changes and new_value in allowed_changes)
-				or (old_value not in allowed_changes and new_value not in allowed_changes)):
-				continue
-			else:
-				frappe.throw(_("Fieldtype must be one of {0} in row {1}").format(", ".join([_(fieldtype) for fieldtype in allowed_changes]), df.idx))
+			if (old_value in allowed_changes and new_value in allowed_changes):
+				allowed = True
+		if not allowed:
+			frappe.throw(_("Fieldtype cannot be changed from {0} to {1} in row {2}").format(old_value, new_value, df.idx))
 
 	def reset_to_defaults(self):
 		if not self.doc_type:
 			return
 
-		frappe.db.sql("""delete from `tabProperty Setter` where doc_type=%s""", self.doc_type)
+		frappe.db.sql("""delete from `tabProperty Setter` where doc_type=%s
+			and ifnull(field_name, '')!='naming_series'""", self.doc_type)
 		frappe.clear_cache(doctype=self.doc_type)
 		self.fetch_to_customize()
 

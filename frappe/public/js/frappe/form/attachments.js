@@ -12,6 +12,8 @@ frappe.ui.form.Attachments = Class.extend({
 		var me = this;
 		this.wrapper = $('<div>\
 			<div class="attachment-list"></div>\
+			<p class="text-muted small">'
+				+__("You can also drag and drop attachments")+'</div>\
 		</div>').appendTo(this.parent);
 		this.$list = this.wrapper.find(".attachment-list");
 
@@ -61,14 +63,14 @@ frappe.ui.form.Attachments = Class.extend({
 	},
 	add_attachment: function(attachment) {
 		var file_name = attachment.file_name;
-		var file_url = attachment.file_url;
+		var file_url = this.get_file_url(attachment);
 		var fileid = attachment.name;
 		if (!file_name) {
 			file_name = file_url;
 		}
 
 		var me = this;
-		var $attach = $(repl('<div class="alert alert-info" style="margin-bottom: 7px">\
+		var $attach = $(repl('<div style="margin-bottom: 7px">\
 			<span style="display: inline-block; width: 90%; \
 				text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">\
 				<i class="icon-file"></i> <a href="%(file_url)s"\
@@ -96,10 +98,38 @@ frappe.ui.form.Attachments = Class.extend({
 			$close.remove();
 		}
 	},
+	get_file_url: function(attachment) {
+		var file_url = attachment.file_url;
+		if (!file_url) {
+			if (attachment.file_name.indexOf('files/') === 0) {
+				file_url = '/' + attachment.file_name;
+			}
+			else {
+				file_url = '/files/' + attachment.file_name;
+			}
+		}
+		// hash is not escaped, https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURI
+		return encodeURI(file_url).replace(/#/g, '%23');
+	},
+	get_file_id_from_file_url: function(file_url) {
+		var fid;
+		$.each(this.get_attachments(), function(i, attachment) {
+			if (attachment.file_url === file_url) {
+				fid = attachment.name;
+				return false;
+			}
+		});
+		return fid;
+	},
 	remove_attachment_by_filename: function(filename, callback) {
-		this.remove_attachment(this.get_attachments()[filename], callback);
+		this.remove_attachment(this.get_file_id_from_file_url(filename), callback);
 	},
 	remove_attachment: function(fileid, callback) {
+		if (!fileid) {
+			if (callback) callback();
+			return;
+		}
+
 		var me = this;
 		return frappe.call({
 			method: 'frappe.widgets.form.utils.remove_attach',
@@ -116,7 +146,9 @@ frappe.ui.form.Attachments = Class.extend({
 				}
 				me.remove_fileid(fileid);
 				me.frm.toolbar.show_infobar();
-				if(callback) callback();
+				me.frm.get_docinfo().comments.push(r.message);
+				me.frm.comments.refresh();
+				if (callback) callback();
 			}
 		});
 	},
@@ -128,19 +160,14 @@ frappe.ui.form.Attachments = Class.extend({
 			});
 		}
 		this.dialog.show();
+		this.fieldname = fieldname;
 
 		$(this.dialog.body).empty();
 		frappe.upload.make({
 			parent: this.dialog.body,
-			args: {
-				from_form: 1,
-				doctype: this.frm.doctype,
-				docname: this.frm.docname,
-			},
+			args: this.get_args(),
 			callback: function(attachment, r) {
-				me.dialog.hide();
-				me.update_attachment(attachment);
-				if(fieldname) this.frm.set_value(fieldname, attachment.file_url);
+				me.attachment_uploaded(attachment, r);
 			},
 			onerror: function() {
 				me.dialog.hide();
@@ -149,11 +176,30 @@ frappe.ui.form.Attachments = Class.extend({
 			max_height: this.frm.cscript ? this.frm.cscript.attachment_max_height : null,
 		});
 	},
-	update_attachment: function(attachment, fieldname) {
+	get_args: function() {
+		return {
+			from_form: 1,
+			doctype: this.frm.doctype,
+			docname: this.frm.docname,
+		}
+	},
+	attachment_uploaded:  function(attachment, r) {
+		this.dialog && this.dialog.hide();
+		this.update_attachment(attachment, r.message.comment);
+
+		if(this.fieldname) {
+			this.frm.set_value(this.fieldname, attachment.file_url);
+		}
+	},
+	update_attachment: function(attachment, comment) {
 		if(attachment.name) {
 			this.add_to_attachments(attachment);
 			this.refresh();
 			this.frm.toolbar.show_infobar();
+			if(comment) {
+				this.frm.get_docinfo().comments.push(comment);
+				this.frm.comments.refresh();
+			}
 		}
 	},
 	add_to_attachments: function (attachment) {

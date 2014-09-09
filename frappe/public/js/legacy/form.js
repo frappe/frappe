@@ -115,58 +115,46 @@ _f.Frm.prototype.setup = function() {
 		parent: $(this.wrapper).find(".appframe-footer")
 	})
 
+	this.setup_drag_drop();
 
 	this.setup_done = true;
 }
 
-_f.Frm.prototype.setup_print_layout = function() {
-	this.print_wrapper = $('<div>\
-		<div class="print-toolbar row" style="padding-top: 5px; padding-bottom: 5px; margin-top: -15px; \
-			margin-bottom: 15px; padding-left: 15px; position:relative;">\
-			<i class="text-muted icon-print" style="position: absolute; top: 13px; left: 10px; "></i>\
-			<div class="col-xs-3">\
-				<select class="print-preview-select form-control"></select></div>\
-			<div class="col-xs-3" style="padding-top: 7px;">\
-				<input type="checkbox" class="print-letterhead" checked/> Letterhead</div>\
-			<div class="col-xs-6 text-right" style="padding-top: 7px;">\
-				<a style="margin-right: 7px;" class="print-print">Print</a>\
-				<a class="close">×</a>\
-			</div>\
-		</div>\
-		<div class="print-preview">\
-		</div>\
-	</div>')
-		.appendTo(this.layout_main)
-		.toggle(false);
-
+_f.Frm.prototype.setup_drag_drop = function() {
 	var me = this;
-	this.print_wrapper.find(".close").click(function() {
-		me.hide_print();
-	});
+	$(this.wrapper).on('dragenter dragover', false)
+		.on('drop', function (e) {
+			e.stopPropagation();
+			e.preventDefault();
+			if(me.doc.__islocal) {
+				msgprint(__("Please save before attaching."));
+				return false;
+				throw "attach error";
+			}
+			if(me.attachments.max_reached()) {
+				msgprint(__("Maximum Attachment Limit for this record reached."));
+				throw "attach error";
+			}
 
-	this.print_formats = frappe.meta.get_print_formats(this.meta.name);
-	this.print_letterhead = this.print_wrapper
-		.find(".print-letterhead")
-		.on("change", function() { me.print_sel.trigger("change"); });
-	this.print_sel = this.print_wrapper
-		.find(".print-preview-select")
-		.on("change", function() {
-			 _p.build(me.print_sel.val(), function(html) {
-				 me.print_wrapper.find(".print-preview").html(html);
-			 }, !me.print_letterhead.is(":checked"), true, true);
-		})
+			var dataTransfer = e.originalEvent.dataTransfer;
+			if (dataTransfer && dataTransfer.files && dataTransfer.files.length > 0) {
+				frappe.upload.upload_file(dataTransfer.files[0], me.attachments.get_args(), {
+					callback: function(attachment, r) {
+						me.attachments.attachment_uploaded(attachment, r);
+					}
+				});
+			}
+		});
+}
 
-	this.print_wrapper.find(".print-print").click(function() {
-		_p.build(
-			me.print_sel.val(), // fmtname
-			_p.go, // onload
-			!me.print_letterhead.is(":checked") // no_letterhead
-		);
+_f.Frm.prototype.setup_print_layout = function() {
+	this.print_preview = new frappe.ui.form.PrintPreview({
+		frm: this
 	})
 }
 
 _f.Frm.prototype.print_doc = function() {
-	if(this.print_wrapper.is(":visible")) {
+	if(this.print_preview.wrapper.is(":visible")) {
 		this.hide_print();
 		return;
 	}
@@ -179,17 +167,17 @@ _f.Frm.prototype.print_doc = function() {
 		msgprint(__("Cannot print cancelled documents"));
 		return;
 	}
-	this.print_wrapper.toggle(true);
-	this.print_sel
-		.empty().add_options(this.print_formats)
+	this.print_preview.print_sel
+		.empty().add_options(this.print_preview.print_formats)
 		.trigger("change");
 
+	this.print_preview.wrapper.toggle(true);
 	this.form_wrapper.toggle(false);
 }
 
 _f.Frm.prototype.hide_print = function() {
 	if(this.setup_done) {
-		this.print_wrapper.toggle(false);
+		this.print_preview.wrapper.toggle(false);
 		this.form_wrapper.toggle(true);
 	}
 }
@@ -206,7 +194,7 @@ _f.Frm.prototype.watch_model_updates = function() {
 			me.fields_dict[fieldname]
 				&& me.fields_dict[fieldname].refresh(fieldname);
 
-			me.refresh_dependency();
+			me.layout.refresh_dependency();
 			me.script_manager.trigger(fieldname, doc.doctype, doc.name);
 		}
 	})
@@ -335,8 +323,7 @@ _f.Frm.prototype.refresh_header = function() {
 _f.Frm.prototype.check_doc_perm = function() {
 	// get perm
 	var dt = this.parent_doctype?this.parent_doctype : this.doctype;
-	var dn = this.parent_docname?this.parent_docname : this.docname;
-	this.perm = frappe.perm.get_perm(dt, dn);
+	this.perm = frappe.perm.get_perm(dt, this.doc);
 
 	if(!this.perm[0].read) {
 		return 0;
@@ -359,6 +346,9 @@ _f.Frm.prototype.refresh = function(docname) {
 
 	if(this.docname) { // document to show
 
+		// set the doc
+		this.doc = frappe.get_doc(this.doctype, this.docname);
+
 		// check permissions
 		if(!this.check_doc_perm()) {
 			frappe.show_not_permitted(__(this.doctype) + " " + __(this.docname));
@@ -367,9 +357,6 @@ _f.Frm.prototype.refresh = function(docname) {
 
 		// read only (workflow)
 		this.read_only = frappe.workflow.is_read_only(this.doctype, this.docname);
-
-		// set the doc
-		this.doc = frappe.get_doc(this.doctype, this.docname);
 
 		// check if doctype is already open
 		if (!this.opendocs[this.docname]) {
@@ -445,9 +432,6 @@ _f.Frm.prototype.refresh_fields = function() {
 
 	// cleanup activities after refresh
 	this.cleanup_refresh(this);
-
-	// dependent fields
-	this.refresh_dependency();
 }
 
 
@@ -481,60 +465,6 @@ _f.Frm.prototype.cleanup_refresh = function() {
 	}
 }
 
-// Resolve "depends_on" and show / hide accordingly
-
-_f.Frm.prototype.refresh_dependency = function() {
-	var me = this;
-	var doc = locals[this.doctype][this.docname];
-
-	// build dependants' dictionary
-	var has_dep = false;
-
-	for(fkey in me.fields) {
-		var f = me.fields[fkey];
-		f.dependencies_clear = true;
-		if(f.df.depends_on) {
-			has_dep = true;
-		}
-	}
-
-	if(!has_dep)return;
-
-	// show / hide based on values
-	for(var i=me.fields.length-1;i>=0;i--) {
-		var f = me.fields[i];
-		f.guardian_has_value = true;
-		if(f.df.depends_on) {
-			// evaluate guardian
-			var v = doc[f.df.depends_on];
-			if(f.df.depends_on.substr(0,5)=='eval:') {
-				f.guardian_has_value = eval(f.df.depends_on.substr(5));
-			} else if(f.df.depends_on.substr(0,3)=='fn:') {
-				f.guardian_has_value = me.script_manager.trigger(f.df.depends_on.substr(3), me.doctype, me.docname);
-			} else {
-				if(!v) {
-					f.guardian_has_value = false;
-				}
-			}
-
-			// show / hide
-			if(f.guardian_has_value) {
-				if(f.df.hidden_due_to_dependency) {
-					f.df.hidden_due_to_dependency = false;
-					f.refresh();
-				}
-			} else {
-				if(!f.df.hidden_due_to_dependency) {
-					f.df.hidden_due_to_dependency = true;
-					f.refresh();
-				}
-			}
-		}
-	}
-
-	this.layout.refresh_section_count();
-}
-
 _f.Frm.prototype.setnewdoc = function() {
 	// moved this call to refresh function
 	// this.check_doctype_conflict(docname);
@@ -564,6 +494,12 @@ _f.Frm.prototype.runscript = function(scriptname, callingfield, onrefresh) {
 				// fields
 				me.refresh_fields();
 
+				// enable button
+				if(callingfield)
+					$(callingfield.input).done_working();
+			},
+			// error
+			function() {
 				// enable button
 				if(callingfield)
 					$(callingfield.input).done_working();
@@ -599,6 +535,7 @@ _f.Frm.prototype.reload_doc = function() {
 
 var validated;
 _f.Frm.prototype.save = function(save_action, callback, btn, on_error) {
+	btn && $(btn).prop("disabled", true);
 	$(document.activeElement).blur();
 
 	// let any pending js process finish
@@ -614,13 +551,16 @@ _f.Frm.prototype._save = function(save_action, callback, btn, on_error) {
 	if((!this.meta.in_dialog || this.in_form) && !this.meta.istable)
 		scroll(0, 0);
 
-	// validate
-	validated = true;
-	this.script_manager.trigger("validate");
-	if(!validated) {
-		if(on_error)
-			on_error();
-		return;
+	if(save_action != "Update") {
+		// validate
+		validated = true;
+		this.script_manager.trigger("validate");
+
+		if(!validated) {
+			if(on_error)
+				on_error();
+			return;
+		}
 	}
 
 	var after_save = function(r) {
@@ -646,7 +586,7 @@ _f.Frm.prototype._save = function(save_action, callback, btn, on_error) {
 }
 
 
-_f.Frm.prototype.savesubmit = function(btn, on_error) {
+_f.Frm.prototype.savesubmit = function(btn, callback, on_error) {
 	var me = this;
 	this.validate_form_action("Submit");
 	frappe.confirm(__("Permanently Submit {0}?", [this.docname]), function() {
@@ -660,13 +600,14 @@ _f.Frm.prototype.savesubmit = function(btn, on_error) {
 
 		me.save('Submit', function(r) {
 			if(!r.exc) {
+				callback && callback();
 				me.script_manager.trigger("on_submit");
 			}
 		}, btn, on_error);
 	});
 };
 
-_f.Frm.prototype.savecancel = function(btn, on_error) {
+_f.Frm.prototype.savecancel = function(btn, callback, on_error) {
 	var me = this;
 	this.validate_form_action('Cancel');
 	frappe.confirm(__("Permanently Cancel {0}?", [this.docname]), function() {
@@ -681,6 +622,7 @@ _f.Frm.prototype.savecancel = function(btn, on_error) {
 		var after_cancel = function(r) {
 			if(!r.exc) {
 				me.refresh();
+				callback && callback();
 				me.script_manager.trigger("after_cancel");
 			} else {
 				on_error();
@@ -762,9 +704,10 @@ _f.Frm.prototype.set_footnote = function(txt) {
 }
 
 
-_f.Frm.prototype.add_custom_button = function(label, fn, icon) {
-	return this.appframe.add_primary_action(label, fn, icon || "icon-arrow-right");
+_f.Frm.prototype.add_custom_button = function(label, fn, icon, toolbar_or_class) {
+	return this.appframe.add_primary_action(label, fn, icon || "icon-arrow-play", toolbar_or_class);
 }
+
 _f.Frm.prototype.clear_custom_buttons = function() {
 	this.appframe.clear_primary_action()
 }

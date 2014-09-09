@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe, json
+from frappe.widgets.form.load import run_onload
 
 @frappe.whitelist()
 def savedocs():
@@ -21,6 +22,7 @@ def savedocs():
 			raise
 
 		# update recent documents
+		run_onload(doc)
 		frappe.user.update_recent(doc.doctype, doc.name)
 		send_updated_docs(doc)
 
@@ -44,7 +46,7 @@ def cancel(doctype=None, name=None):
 
 def send_updated_docs(doc):
 	from load import get_docinfo
-	get_docinfo(doc.doctype, doc.name)
+	get_docinfo(doc)
 
 	d = doc.as_dict()
 	if hasattr(doc, 'localname'):

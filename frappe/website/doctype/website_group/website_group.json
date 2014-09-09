@@ -1,5 +1,5 @@
 {
- "creation": "2014-01-29 15:57:42.000000", 
+ "creation": "2014-01-29 15:57:42", 
  "docstatus": 0, 
  "doctype": "DocType", 
  "document_type": "Master", 
@@ -34,12 +34,19 @@
    "reqd": 1
   }, 
   {
+   "fieldname": "parent_website_group", 
+   "fieldtype": "Link", 
+   "label": "Parent Website Group", 
+   "options": "Website Group", 
+   "permlevel": 0
+  }, 
+  {
    "description": "Display in the sidebar of this Website Route node", 
    "fieldname": "parent_website_route", 
-   "fieldtype": "Link", 
+   "fieldtype": "Read Only", 
    "in_list_view": 0, 
-   "label": "Parent Website Page", 
-   "options": "Website Route", 
+   "label": "Parent Website Route", 
+   "options": "", 
    "permlevel": 0
   }, 
   {
@@ -98,11 +105,32 @@
    "label": "Replies", 
    "permlevel": 0, 
    "read_only": 1
+  }, 
+  {
+   "fieldname": "lft", 
+   "fieldtype": "Int", 
+   "hidden": 1, 
+   "label": "lft", 
+   "permlevel": 0
+  }, 
+  {
+   "fieldname": "rgt", 
+   "fieldtype": "Int", 
+   "hidden": 1, 
+   "label": "rgt", 
+   "permlevel": 0
+  }, 
+  {
+   "fieldname": "old_parent", 
+   "fieldtype": "Read Only", 
+   "hidden": 1, 
+   "label": "Old Parent", 
+   "permlevel": 0
   }
  ], 
  "icon": "icon-group", 
  "idx": 1, 
- "modified": "2014-03-04 09:36:30.000000", 
+ "modified": "2014-08-19 14:33:40.664635", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Website Group", 
@@ -119,5 +147,7 @@
    "role": "Website Manager", 
    "write": 1
   }
- ]
+ ], 
+ "sort_field": "modified", 
+ "sort_order": "DESC"
 }

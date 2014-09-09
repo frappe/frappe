@@ -3,12 +3,15 @@
 
 from __future__ import unicode_literals
 import frappe
+from frappe import _
+from frappe.utils import cstr
 import mimetypes, json
 from werkzeug.wrappers import Response
 
 from frappe.website.context import get_context
-from frappe.website.utils import scrub_relative_urls, get_home_page, can_cache
+from frappe.website.utils import scrub_relative_urls, get_home_page, can_cache, delete_page_cache
 from frappe.website.permissions import clear_permissions
+from frappe.website.router import clear_sitemap
 
 class PageNotFoundError(Exception): pass
 
@@ -21,7 +24,7 @@ def render(path, http_status_code=None):
 	except frappe.DoesNotExistError, e:
 		doctype, name = get_doctype_from_path(path)
 		if doctype and name:
-			path = "view"
+			path = "print"
 			frappe.local.form_dict.doctype = doctype
 			frappe.local.form_dict.name = name
 		elif doctype:
@@ -34,10 +37,10 @@ def render(path, http_status_code=None):
 		try:
 			data = render_page(path)
 		except frappe.PermissionError, e:
-			data, http_status_code = render_403(e)
+			data, http_status_code = render_403(e, path)
 
 	except frappe.PermissionError, e:
-		data, http_status_code = render_403(e)
+		data, http_status_code = render_403(e, path)
 
 	except Exception:
 		path = "error"
@@ -47,10 +50,13 @@ def render(path, http_status_code=None):
 	return build_response(path, data, http_status_code or 200)
 
 
-def render_403(e):
+def render_403(e, pathname):
 	path = "message"
-	frappe.local.message = "Did you log out?"
-	frappe.local.message_title = "Not Permitted"
+	frappe.local.message = """<p><strong>{error}</strong></p>
+	<p>
+		<a href="/login?redirect-to=/{pathname}" class="btn btn-primary>{login}</a>
+	</p>""".format(error=cstr(e), login=_("Login"), pathname=pathname)
+	frappe.local.message_title = _("Not Permitted")
 	return render_page(path), e.http_status_code
 
 def get_doctype_from_path(path):
@@ -129,7 +135,7 @@ def build_page(path):
 	return html
 
 def is_ajax():
-	return getattr(frappe.local, "is_ajax")
+	return getattr(frappe.local, "is_ajax", False)
 
 def resolve_path(path):
 	if not path:
@@ -160,24 +166,13 @@ def set_content_type(response, data, path):
 	return data
 
 def clear_cache(path=None):
-	cache = frappe.cache()
-
 	if path:
 		delete_page_cache(path)
-
 	else:
-		for p in frappe.db.sql_list("""select name from `tabWebsite Route`"""):
-			if p is not None:
-				delete_page_cache(p)
-
-		cache.delete_value("home_page")
+		clear_sitemap()
+		frappe.clear_cache("Guest")
 		clear_permissions()
 
 	for method in frappe.get_hooks("website_clear_cache"):
 		frappe.get_attr(method)(path)
 
-def delete_page_cache(path):
-	cache = frappe.cache()
-	cache.delete_value("page:" + path)
-	cache.delete_value("page_context:" + path)
-	cache.delete_value("sitemap_options:" + path)

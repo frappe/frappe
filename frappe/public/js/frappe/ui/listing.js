@@ -68,20 +68,17 @@ frappe.ui.Listing = Class.extend({
 				<h3 class="title hide">%(title)s</h3>\
 				\
 				<div class="list-filters" style="display: none;">\
-					<div class="show_filters" style="display: none;">\
-						<div class="filter_area"></div>\
-						<div>\
-							<button class="btn btn-info search-btn">\
-								<i class="icon-refresh icon-white"></i> \
-								<span class="hidden-phone">Search</span></button>\
-							<button class="btn btn-default add-filter-btn">\
-								<i class="icon-plus"></i> \
-								<span class="hidden-phone">Add Filter</span></button>\
+					<div class="show_filters">\
+						<div class="set-filters">\
+							<button class="btn btn-default btn-sm new-filter text-muted" \
+								style="margin-bottom: 10px">\
+								<i class="icon-plus"></i> '+__("Add Filter")+'</button>\
 						</div>\
+						<div class="filter_area"></div>\
 					</div>\
 				</div>\
 				\
-				<div style="margin-bottom:9px" class="list-toolbar-wrapper">\
+				<div style="margin-bottom:9px" class="list-toolbar-wrapper hide">\
 					<div class="list-toolbar btn-group" style="display:inline-block; margin-right: 10px;">\
 					</div>\
 					<div style="display: none; width: 24px; margin-left: 4px">\
@@ -125,6 +122,7 @@ frappe.ui.Listing = Class.extend({
 		if(this.appframe) {
 			return this.appframe.add_button(label, click, icon)
 		} else {
+			this.$w.find('.list-toolbar-wrapper').removeClass("hide");
 			$button = $('<button class="btn btn-default"></button>')
 				.appendTo(this.$w.find('.list-toolbar'))
 				.html((icon ? ("<i class='"+icon+"'></i> ") : "") + label)
@@ -161,7 +159,7 @@ frappe.ui.Listing = Class.extend({
 
 		// hide-refresh
 		if(!(this.hide_refresh || this.no_refresh)) {
-			this.add_button('Refresh', function() {
+			this.add_button(__('Refresh'), function() {
 				me.run();
 			}, 'icon-refresh');
 
@@ -181,8 +179,8 @@ frappe.ui.Listing = Class.extend({
 		// hide-filter
 		if(me.show_filters) {
 			this.add_button(__('Filter'), function() {
-				me.filter_list.show_filters();
-			}, 'icon-search').addClass('btn-filter');
+				me.filter_list.add_filter();
+			}, 'icon-filter').addClass('btn-filter');
 		}
 
 		if(me.no_toolbar || me.hide_toolbar) {
@@ -211,6 +209,9 @@ frappe.ui.Listing = Class.extend({
 			doctype: this.doctype,
 			filter_fields: this.filter_fields
 		});
+		if(frappe.model.is_submittable(this.doctype)) {
+			this.filter_list.add_filter(this.doctype, "docstatus", "!=", 2);
+		};
 	},
 
 	clear: function() {
@@ -319,12 +320,13 @@ frappe.ui.Listing = Class.extend({
 	render_list: function(values) {
 		var m = Math.min(values.length, this.page_length);
 		this.data = values;
-		if(this.filter_list)
+		if(this.filter_list) {
 			this.filter_values = this.filter_list.get_filters();
+		}
 
 		// render the rows
 		for(var i=0; i < m; i++) {
-			this.render_row(this.add_row(), values[i], this, i);
+			this.render_row(this.add_row(values[i]), values[i], this, i);
 		}
 	},
 	update_paging: function(values) {
@@ -333,8 +335,11 @@ frappe.ui.Listing = Class.extend({
 			this.start += this.page_length;
 		}
 	},
-	add_row: function() {
-		return $('<div class="list-row">').appendTo(this.$w.find('.result-list')).get(0);
+	add_row: function(row) {
+		return $('<div class="list-row">')
+			.data("data", row)
+			.appendTo(this.$w.find('.result-list'))
+			.get(0);
 	},
 	refresh: function() {
 		this.run();
@@ -356,7 +361,7 @@ frappe.ui.Listing = Class.extend({
 				if(fieldname=='_user_tags') {
 					// and for tags
 					this.filter_list.add_filter(doctype, fieldname,
-						'like', '%' + label);
+						'like', '%' + label + '%');
 				} else {
 					// or for rest using "in"
 					filter.set_values(doctype, fieldname, 'in', v + ', ' + label);
@@ -365,9 +370,9 @@ frappe.ui.Listing = Class.extend({
 		} else {
 			// no filter for this item,
 			// setup one
-			if(['_user_tags', '_comments'].indexOf(fieldname)!==-1) {
+			if(['_user_tags', '_comments', '_assign'].indexOf(fieldname)!==-1) {
 				this.filter_list.add_filter(doctype, fieldname,
-					'like', '%' + label);
+					'like', '%' + label + '%');
 			} else {
 				this.filter_list.add_filter(doctype, fieldname, '=', label);
 			}

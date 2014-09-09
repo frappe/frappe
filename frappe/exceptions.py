@@ -5,6 +5,9 @@ from __future__ import unicode_literals
 
 # BEWARE don't put anything in this file except exceptions
 
+from werkzeug.exceptions import NotFound
+from MySQLdb import ProgrammingError as SQLError
+
 class ValidationError(Exception):
 	http_status_code = 417
 
@@ -40,7 +43,10 @@ class RateLimitExceededError(ValidationError): pass
 class CannotChangeConstantError(ValidationError): pass
 class UpdateAfterSubmitError(ValidationError): pass
 class LinkValidationError(ValidationError): pass
+class CancelledLinkError(LinkValidationError): pass
 class DocstatusTransitionError(ValidationError): pass
 class TimestampMismatchError(ValidationError): pass
 class EmptyTableError(ValidationError): pass
 class LinkExistsError(ValidationError): pass
+class InvalidEmailAddressError(ValidationError): pass
+class TemplateNotFoundError(ValidationError): pass

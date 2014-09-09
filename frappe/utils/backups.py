@@ -101,14 +101,15 @@ class BackupGenerator:
 		db_backup_url = get_url(os.path.join('backups', os.path.basename(self.backup_path_db)))
 		files_backup_url = get_url(os.path.join('backups', os.path.basename(self.backup_path_files)))
 
-		msg = """<p>Hello,</p>
-		<p>Your backups are ready to be downloaded.</p>
-		<p>1. <a href="%(db_backup_url)s">Click here to download\
-		 the database backup</a></p>
-		<p>2. <a href="%(files_backup_url)s">Click here to download\
-		the files backup</a></p>
-		<p>This link will be valid for 24 hours. A new backup will be available
-		for download only after 24 hours.</p>""" % {
+		msg = """Hello,
+
+Your backups are ready to be downloaded.
+
+1. [Click here to download the database backup](%(db_backup_url)s)
+2. [Click here to download the files backup](%(files_backup_url)s)
+
+This link will be valid for 24 hours. A new backup will be available for
+download only after 24 hours.""" % {
 			"db_backup_url": db_backup_url,
 			"files_backup_url": files_backup_url
 		}
@@ -128,7 +129,7 @@ def get_backup():
 	"""
 	#if verbose: print frappe.db.cur_db_name + " " + conf.db_password
 	delete_temp_backups()
-	odb = BackupGenerator(frappe.db.cur_db_name, frappe.db.cur_db_name,\
+	odb = BackupGenerator(frappe.conf.db_name, frappe.conf.db_name,\
 						  frappe.conf.db_password, db_host = frappe.db.host)
 	odb.get_backup()
 	recipient_list = odb.send_email()

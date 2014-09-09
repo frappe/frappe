@@ -4,38 +4,48 @@
 // misc user functions
 
 frappe.user_info = function(uid) {
-	var def = {
-		'fullname':uid,
-		'image': 'assets/frappe/images/ui/avatar.png'
+	if(!uid)
+		uid = user;
+	if(!(frappe.boot.user_info && frappe.boot.user_info[uid])) {
+		return {fullname: toTitle(uid.split("@")[0]) || "Unknown"};
 	}
-	if(!frappe.boot.user_info) return def
-	if(!frappe.boot.user_info[uid]) return def
-	if(!frappe.boot.user_info[uid].fullname)
-		frappe.boot.user_info[uid].fullname = uid;
-	if(!frappe.boot.user_info[uid].image)
-		frappe.boot.user_info[uid].image = def.image;
 	return frappe.boot.user_info[uid];
 }
 
-frappe.avatar = function(user, large, title) {
+frappe.avatar = function(user, css_class, title) {
 	var image = frappe.utils.get_file_link(frappe.user_info(user).image);
-	var to_size = large ? 72 : 30;
 	if(!title) title = frappe.user_info(user).fullname;
 
-	return repl('<span class="avatar %(small_or_large)s" title="%(title)s">\
+	return repl('<span class="avatar %(css_class)s" title="%(title)s">\
 		<img src="%(image)s"></span>', {
 			image: image,
 			title: title,
-			small_or_large: large ? "avatar-large" : "avatar-small"
+			css_class: css_class || "avatar-small"
 		});
 }
 
-frappe.ui.set_user_background = function(src, selector) {
+frappe.gravatars = {};
+frappe.get_gravatar = function(email_id) {
+	frappe.require("/assets/frappe/js/lib/md5.min.js");
+	if(!frappe.gravatars[email_id]) {
+		frappe.gravatars[email_id] = "https://secure.gravatar.com/avatar/" + md5(email_id) + "?d=retro";
+	}
+	return frappe.gravatars[email_id];
+}
+
+frappe.ui.set_user_background = function(src, selector, style) {
 	if(!selector) selector = "#page-desktop";
+	if(!style) style = "Fill Screen";
 	if(!src) src = "assets/frappe/images/ui/random-polygons.jpg";
+
+	// hack! load background image asap, before page is rendered
+	$('<img src="'+src+'" style="height: 1px; width: 1px; margin-bottom: -1px;">').appendTo("body");
+
 	frappe.dom.set_style(repl('%(selector)s { \
-		background: url("%(src)s") center center; \
-	}', {src:src, selector:selector}))
+		background: url("%(src)s") center center;\
+		background-attachment: fixed; \
+		%(style)s \
+	}', {src:src, selector:selector, style: style==="Fill Screen" ? "background-size: cover;" : ""}));
 }
 
 frappe.provide('frappe.user');
@@ -50,9 +60,6 @@ $.extend(frappe.user, {
 	image: function(uid) {
 		return frappe.user_info(uid).image;
 	},
-	avatar: function(uid, large) {
-		return frappe.avatar(uid, large);
-	},
 	has_role: function(rl) {
 		if(typeof rl=='string')
 			rl = [rl];
@@ -61,19 +68,23 @@ $.extend(frappe.user, {
 				return true;
 		}
 	},
-	get_desktop_items: function() {
+	get_desktop_items: function(global) {
 		// get user sequence preference
-		var user_list = frappe.defaults.get_default("_desktop_items");
-		if(user_list && user_list.length)
-			var modules_list = user_list;
+		var modules_list = null;
+		if(!global) {
+			var user_list = frappe.defaults.get_default("_desktop_items");
+			if(user_list && user_list.length)
+				var modules_list = user_list;
 
-		if(modules_list) {
-			// add missing modules - they will be hidden anyways by the view
-			$.each(frappe.modules, function(m, module) {
-				if(module.link && modules_list.indexOf(m)==-1) {
-					modules_list.push(m);
-				}
-			});
+			if(modules_list) {
+				// add missing modules - they will be hidden anyways by the view
+				$.each(frappe.modules, function(m, module) {
+					var module = frappe.get_module(m);
+					if(module.link && modules_list.indexOf(m)==-1) {
+						modules_list.push(m);
+					}
+				});
+			}
 		}
 
 		if(!modules_list || !modules_list.length) {

@@ -69,6 +69,11 @@ def handle():
 
 def execute_cmd(cmd):
 	"""execute a request as python module"""
+	for hook in frappe.get_hooks("override_whitelisted_methods", {}).get(cmd, []):
+		# override using the first hook
+		cmd = hook
+		break
+
 	method = get_attr(cmd)
 
 	# check if whitelisted
@@ -86,11 +91,6 @@ def execute_cmd(cmd):
 	# returns with a message
 	if ret:
 		frappe.response['message'] = ret
-
-	# update session
-	if "session_obj" in frappe.local:
-		frappe.local.session_obj.update()
-
 
 def get_attr(cmd):
 	"""get method object from cmd"""

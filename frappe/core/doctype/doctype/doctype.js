@@ -11,18 +11,6 @@ $(cur_frm.wrapper).on("grid-row-render", function(e, grid_row) {
 	}
 })
 
-cur_frm.cscript.allow_attach = function(doc, cdt, cdn) {
-	if(doc.allow_attach) {
-		unhide_field('max_attachments');
-	} else {
-		hide_field('max_attachments');
-	}
-}
-
-cur_frm.cscript.onload = function(doc, cdt, cdn) {
-	this.allow_attach(doc, cdt, cdn);
-}
-
 cur_frm.cscript.refresh = function(doc, cdt, cdn) {
 	if(in_list(user_roles, 'System Manager') && !in_list(user_roles, 'Administrator')) {
 		// make the document read-only

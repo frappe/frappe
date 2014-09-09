@@ -100,10 +100,13 @@ login.login_handlers = (function() {
 	var login_handlers = {
 		200: function(data) {
 			if(data.message=="Logged In") {
-				window.location.href = "desk";
+				window.location.href = get_url_arg("redirect-to") || "/desk";
 			} else if(data.message=="No App") {
 				if(localStorage) {
-					var last_visited = localStorage.getItem("last_visited") || "/index";
+					var last_visited =
+						localStorage.getItem("last_visited")
+							|| get_url_arg("redirect-to")
+							|| "/index";
 					localStorage.removeItem("last_visited");
 					window.location.href = last_visited;
 				} else {
@@ -124,5 +127,6 @@ frappe.ready(function() {
 	window.location.hash = "#login";
 	login.bind_events();
 	login.login();
+	$(".form-signup, .form-forgot").removeClass("hide");
 	$(document).trigger('login_rendered');
 });

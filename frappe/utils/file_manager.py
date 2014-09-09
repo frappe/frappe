@@ -15,7 +15,7 @@ class MaxFileSizeReachedError(frappe.ValidationError): pass
 
 def get_file_url(file_data_name):
 	data = frappe.db.get_value("File Data", file_data_name, ["file_name", "file_url"], as_dict=True)
-	return data.file_name or data.file_url
+	return data.file_url or data.file_name
 
 def upload():
 	# get record details
@@ -34,10 +34,16 @@ def upload():
 	elif file_url:
 		filedata = save_url(file_url, dt, dn)
 
+
+	if dt and dn:
+		comment = frappe.get_doc(dt, dn).add_comment("Attachment",
+			_("Added {0}").format("<a href='{file_url}' target='_blank'>{file_name}</a>".format(**filedata.as_dict())))
+
 	return {
 		"name": filedata.name,
 		"file_name": filedata.file_name,
-		"file_url": filedata.file_url
+		"file_url": filedata.file_url,
+		"comment": comment.as_dict()
 	}
 
 def save_uploaded(dt, dn):
@@ -68,6 +74,8 @@ def save_url(file_url, dt, dn):
 def get_uploaded_content():
 	# should not be unicode when reading a file, hence using frappe.form
 	if 'filedata' in frappe.form_dict:
+		if "," in frappe.form_dict.filedata:
+			frappe.form_dict.filedata = frappe.form_dict.filedata.rsplit(",", 1)[1]
 		frappe.uploaded_content = base64.b64decode(frappe.form_dict.filedata)
 		frappe.uploaded_filename = frappe.form_dict.filename
 		return frappe.uploaded_filename, frappe.uploaded_content
@@ -99,6 +107,9 @@ def save_file(fname, content, dt, dn, decode=False):
 	if decode:
 		if isinstance(content, unicode):
 			content = content.encode("utf-8")
+
+		if "," in content:
+			content = content.split(",")[1]
 		content = base64.b64decode(content)
 
 	file_size = check_max_file_size(content)
@@ -129,7 +140,7 @@ def save_file(fname, content, dt, dn, decode=False):
 	return f
 
 def get_file_data_from_hash(content_hash):
-	for name in frappe.db.sql_list("select name from `tabFile Data` where content_hash='{}'".format(content_hash)):
+	for name in frappe.db.sql_list("select name from `tabFile Data` where content_hash=%s", content_hash):
 		b = frappe.get_doc('File Data', name)
 		return {k:b.get(k) for k in frappe.get_hooks()['write_file_keys']}
 	return False
@@ -144,11 +155,12 @@ def save_file_on_filesystem(fname, content, content_type=None):
 	}
 
 def check_max_file_size(content):
-	max_file_size = conf.get('max_file_size') or 1000000
+	max_file_size = conf.get('max_file_size') or 3145728
 	file_size = len(content)
 
 	if file_size > max_file_size:
-		frappe.msgprint(_("File size exceeded the maximum allowed size"),
+		frappe.msgprint(_("File size exceeded the maximum allowed size of {0} MB").format(
+			max_file_size / 1048576),
 			raise_exception=MaxFileSizeReachedError)
 
 	return file_size
@@ -171,18 +183,36 @@ def remove_all(dt, dn):
 	except Exception, e:
 		if e.args[0]!=1054: raise # (temp till for patched)
 
+def remove_file_by_url(file_url, doctype=None, name=None):
+	if doctype and name:
+		fid = frappe.db.get_value("File Data", {"file_url": file_url,
+			"attached_to_doctype": doctype, "attached_to_name": name})
+	else:
+		fid = frappe.db.get_value("File Data", {"file_url": file_url})
+
+	if fid:
+		return remove_file(fid)
+
 def remove_file(fid, attached_to_doctype=None, attached_to_name=None):
 	"""Remove file and File Data entry"""
+	file_name = None
 	if not (attached_to_doctype and attached_to_name):
-		attached = frappe.db.get_value("File Data", fid, ["attached_to_doctype", "attached_to_name"])
+		attached = frappe.db.get_value("File Data", fid,
+			["attached_to_doctype", "attached_to_name", "file_name"])
 		if attached:
-			attached_to_doctype, attached_to_name = attached
+			attached_to_doctype, attached_to_name, file_name = attached
 
-	ignore_permissions = False
+	ignore_permissions, comment = False, None
 	if attached_to_doctype and attached_to_name:
-		ignore_permissions = frappe.get_doc(attached_to_doctype, attached_to_name).has_permission("write") or False
+		doc = frappe.get_doc(attached_to_doctype, attached_to_name)
+		ignore_permissions = doc.has_permission("write") or False
+		if not file_name:
+			file_name = frappe.db.get_value("File Data", fid, "file_name")
+		comment = doc.add_comment("Attachment Removed", _("Removed {0}").format(file_name))
 
 	frappe.delete_doc("File Data", fid, ignore_permissions=ignore_permissions)
+
+	return comment
 
 def delete_file_data_content(doc):
 	method = get_hook_method('delete_file_data_content', fallback=delete_file_from_filesystem)
@@ -205,11 +235,13 @@ def get_file(fname):
 	else:
 		file_name = fname
 
-	if not "/" in file_name:
-		file_name = "files/" + file_name
+	file_path = file_name
+
+	if not "/" in file_path:
+		file_path = "files/" + file_path
 
 	# read the file
-	with open(get_site_path("public", file_name), 'r') as f:
+	with open(get_site_path("public", file_path), 'r') as f:
 		content = f.read()
 
 	return [file_name, content]
@@ -218,9 +250,13 @@ def get_content_hash(content):
 	return hashlib.md5(content).hexdigest()
 
 def get_file_name(fname, optional_suffix):
-	n_records = frappe.db.sql("select name from `tabFile Data` where file_name='{}'".format(fname))
-	if len(n_records) > 0:
-		partial, extn = fname.rsplit('.', 1)
-		return '{partial}{suffix}.{extn}'.format(partial=partial, extn=extn, suffix=optional_suffix)
+	n_records = frappe.db.sql("select name from `tabFile Data` where file_name=%s", fname)
+	if len(n_records) > 0 or os.path.exists(get_files_path(fname)):
+		f = fname.rsplit('.', 1)
+		if len(f) == 1:
+			partial, extn = f[0], None
+		elif len(f) == 2:
+			partial, extn = f
+		return '{partial}{suffix}{extn}'.format(partial=partial, extn="."+extn if extn else "", suffix=optional_suffix)
 	return fname
 

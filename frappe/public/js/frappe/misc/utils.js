@@ -5,6 +5,7 @@ frappe.provide('frappe.utils');
 
 frappe.utils = {
 	get_file_link: function(filename) {
+		filename = cstr(filename);
 		if(frappe.utils.is_url(filename)) {
 			return filename;
 		} else if(filename.indexOf("/")===-1) {
@@ -14,7 +15,7 @@ frappe.utils = {
 		}
 	},
 	is_html: function(txt) {
-		if(txt.indexOf("<br>")==-1 && txt.indexOf("<p")==-1 
+		if(txt.indexOf("<br>")==-1 && txt.indexOf("<p")==-1
 			&& txt.indexOf("<img")==-1 && txt.indexOf("<div")==-1) {
 			return false;
 		}
@@ -95,7 +96,7 @@ frappe.utils = {
 			me.footnote_area = $('<div class="alert alert-info form-intro-area" style="margin-top: 20px;">')
 				.appendTo(wrapper);
 		}
-		
+
 		if(txt) {
 			if(txt.search(/<p>/)==-1) txt = '<p>' + txt + '</p>';
 			me.footnote_area.html(txt);
@@ -113,11 +114,11 @@ frappe.utils = {
 		return args;
 	},
 	get_url_from_dict: function(args) {
-		return $.map(args, function(val, key) { 
-			if(val!==null) 
-				return encodeURIComponent(key)+"="+encodeURIComponent(val); 
-			else 
-				return null; 
+		return $.map(args, function(val, key) {
+			if(val!==null)
+				return encodeURIComponent(key)+"="+encodeURIComponent(val);
+			else
+				return null;
 		}).join("&") || "";
 	},
 	validate_type: function ( val, type ) {
@@ -152,12 +153,14 @@ frappe.utils = {
 		return '' !== val ? regExp.test( val ) : false;
 	},
 	guess_style: function(text, default_style) {
-		var style = default_style;
-		if(!text) 
+		var style = default_style || "default";
+		if(!text)
 			return style;
-		if(has_words(["Open", "Pending"], text)) {
+		if(has_words(["Pending", "Review", "Medium"], text)) {
+			style = "warning";
+		} else if(has_words(["Open", "Rejected", "Urgent", "High"], text)) {
 			style = "danger";
-		} else if(has_words(["Closed", "Finished", "Converted", "Completed", "Confirmed", 
+		} else if(has_words(["Closed", "Finished", "Converted", "Completed", "Confirmed",
 			"Approved", "Yes", "Active"], text)) {
 			style = "success";
 		} else if(has_words(["Submitted"], text)) {
@@ -165,10 +168,10 @@ frappe.utils = {
 		}
 		return style;
 	},
-	
+
 	sort: function(list, key, compare_type, reverse) {
-		if(list.length < 2)
-			return list;
+		if(!list || list.length < 2)
+			return list || [];
 
 		var sort_fn = {
 			"string": function(a, b) {
@@ -178,14 +181,14 @@ frappe.utils = {
 				return flt(a[key]) - flt(b[key]);
 			}
 		};
-				
+
 		if(!compare_type)
 		 	compare_type = typeof list[0][key]==="string" ? "string" : "number";
-		
+
 		list.sort(sort_fn[compare_type]);
-		
+
 		if(reverse) { list.reverse(); }
-		
+
 		return list;
 	},
 	unique: function(list) {
@@ -199,7 +202,7 @@ frappe.utils = {
 		}
 		return arr;
 	},
-	
+
 	dict: function(keys,values) {
 		// make dictionaries from keys and values
 		var out = [];
@@ -212,17 +215,52 @@ frappe.utils = {
 		});
 		return out;
 	},
-	
+
 	sum: function(list) {
 		return list.reduce(function(previous_value, current_value) { return flt(previous_value) + flt(current_value); }, 0.0);
 	},
-	
+
+	intersection: function(a, b) {
+		// from stackoverflow: http://stackoverflow.com/questions/1885557/simplest-code-for-array-intersection-in-javascript
+		/* finds the intersection of
+		 * two arrays in a simple fashion.
+		 *
+		 * PARAMS
+		 *  a - first array, must already be sorted
+		 *  b - second array, must already be sorted
+		 *
+		 * NOTES
+		 *
+		 *  Should have O(n) operations, where n is
+		 *    n = MIN(a.length(), b.length())
+		 */
+		var ai=0, bi=0;
+		var result = new Array();
+
+		// sorted copies
+		a = ([].concat(a)).sort();
+		b = ([].concat(b)).sort();
+
+		while( ai < a.length && bi < b.length ) {
+			if (a[ai] < b[bi] ) { ai++; }
+			else if (a[ai] > b[bi] ) { bi++; }
+			else {
+				/* they're equal */
+				result.push(a[ai]);
+				ai++;
+				bi++;
+			}
+		}
+
+		return result;
+	},
+
 	resize_image: function(reader, callback, max_width, max_height) {
 		var tempImg = new Image();
 		if(!max_width) max_width = 600;
 		if(!max_height) max_height = 400;
 		tempImg.src = reader.result;
-		
+
 		tempImg.onload = function() {
 			var tempW = tempImg.width;
 			var tempH = tempImg.height;
@@ -246,5 +284,5 @@ frappe.utils = {
 			var dataURL = canvas.toDataURL("image/jpeg");
 			setTimeout(function() { callback(dataURL); }, 10 );
 		}
-	}
+	},
 };

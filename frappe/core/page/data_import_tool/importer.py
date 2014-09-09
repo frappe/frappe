@@ -8,7 +8,7 @@ import frappe.permissions
 
 from frappe import _
 
-from frappe.utils.datautils import getlink
+from frappe.utils.csvutils import getlink
 from frappe.utils.dateutils import parse_date
 
 from frappe.utils import cint, cstr, flt
@@ -27,7 +27,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 	if params.get("ignore_encoding_errors"):
 		ignore_encoding_errors = True
 
-	from frappe.utils.datautils import read_csv_content_from_uploaded_file
+	from frappe.utils.csvutils import read_csv_content_from_uploaded_file
 
 	def bad_template():
 		frappe.throw(_("Please do not change the rows above {0}").format(data_keys.data_separator))
@@ -103,7 +103,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 								d[fieldname] = rows[idx][column_idx]
 								if fieldtype in ("Int", "Check"):
 									d[fieldname] = cint(d[fieldname])
-								elif fieldtype in ("Float", "Currency"):
+								elif fieldtype in ("Float", "Currency", "Percent"):
 									d[fieldname] = flt(d[fieldname])
 								elif fieldtype == "Date":
 									d[fieldname] = parse_date(d[fieldname]) if d[fieldname] else None
@@ -172,8 +172,12 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 		overwrite = params.get('overwrite')
 
 	# delete child rows (if parenttype)
-	if parenttype and overwrite:
-		delete_child_rows(data, doctype)
+	parentfield = None
+	if parenttype:
+		parentfield = get_parent_field(doctype, parenttype)
+
+		if overwrite:
+			delete_child_rows(data, doctype)
 
 	ret = []
 	error = False
@@ -188,13 +192,12 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 		doc = get_doc(row_idx)
 		try:
 			frappe.local.message_log = []
-			if doc.get("parentfield"):
-				parent = frappe.get_doc(doc["parenttype"], doc["parentfield"])
-				parent.append(doc)
+			if parentfield:
+				parent = frappe.get_doc(parenttype, doc["parent"])
+				doc = parent.append(parentfield, doc)
 				parent.save()
 				ret.append('Inserted row for %s at #%s' % (getlink(parenttype,
 					doc.parent), unicode(doc.idx)))
-
 			else:
 				if overwrite and frappe.db.exists(doctype, doc["name"]):
 					original = frappe.get_doc(doctype, doc["name"])
@@ -214,7 +217,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 			error = True
 			if doc:
 				frappe.errprint(doc if isinstance(doc, dict) else doc.as_dict())
-			err_msg = frappe.local.message_log and "<br>".join(frappe.local.message_log) or cstr(e)
+			err_msg = frappe.local.message_log and "\n\n".join(frappe.local.message_log) or cstr(e)
 			ret.append('Error for row (#%d) %s : %s' % (row_idx + 1,
 				len(row)>1 and row[1] or "", err_msg))
 			frappe.errprint(frappe.get_traceback())

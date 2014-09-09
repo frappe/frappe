@@ -7,7 +7,7 @@ _p.def_print_style_body = "html, body, div, span, td, p { \
 		font-size: inherit; \
 	}\
 	.page-settings {\
-		font-family: Arial, Helvetica Neue, Sans;\
+		font-family: Helvetica, 'Open Sans', sans-serif;\
 		font-size: 9pt;\
 	}\
 	pre { margin:0; padding:0;}";
@@ -38,6 +38,7 @@ _p.preview = function(html) {
 		return;
 	}
 	w.document.write(html);
+	w.document.close();
 	return w
 }
 
@@ -85,7 +86,7 @@ $.extend(_p, {
 
 		dialog.onshow = function() {
 			var $print = dialog.fields_dict.print_format.$input;
-			$print.empty().add_options(cur_frm.print_formats);
+			$print.empty().add_options(cur_frm.print_preview.print_formats);
 
 			if(cur_frm.$print_view_select && cur_frm.$print_view_select.val())
 				$print.val(cur_frm.$print_view_select.val());
@@ -173,6 +174,7 @@ $.extend(_p, {
 		_p.show_letterhead(container, args);
 
 		_p.run_embedded_js(container, args.doc);
+
 		var style = _p.consolidate_css(container, args);
 
 		_p.render_header_on_break(container, args);
@@ -285,23 +287,34 @@ $.extend(_p, {
 
 	// This is used to calculate and substitude values in the HTML
 	run_embedded_js: function(container, doc) {
-		script_list = $(container).find("script");
-		for(var i=0; i<script_list.length; i++) {
+		var script_list = $(container).find("script");
+
+		for(var i=0, j=script_list.length; i<j; i++) {
 			var element = script_list[i];
 			var code = element.innerHTML;
-			var new_html = code ? (eval(code) || "") : "";
+			try {
+				var new_html = code ? (eval(code) || "") : "";
+			} catch(e) {
+				console.log("Error in Custom Script:" + e + "\n" + code);
+				console.trace(e);
+				throw e;
+			}
 			if(in_list(["string", "number"], typeof new_html)) {
 				$(element).replaceWith(this.add_span(new_html + ""));
 			}
 		}
+
+		// remove scripts once executed
+		$(container).find("script").remove();
 	},
 
 	add_span: function(html) {
-		var tags = ["<span[^>]>", "<p[^>]>", "<div[^>]>", "<br[^>]>", "<table[^>]>"];
+		var tags = ["<span", "<p", "<div", "<br", "<table"];
 		var match = false;
 		for(var i=0; i<tags.length; i++) {
 			if(html.match(tags[i])) {
 				match = true;
+				break;
 			}
 		}
 
@@ -490,6 +503,7 @@ $.extend(_p, {
 
 					render_normal: function(field, data, i) {
 						switch(field.fieldtype) {
+							case 'Fold': break;
 							case 'Section Break':
 								me.layout.addrow();
 
@@ -519,7 +533,7 @@ $.extend(_p, {
 
 							case 'HTML':
 								var div = $a(me.layout.cur_cell, 'div');
-								div.innerHTML = field.options;
+								div.innerHTML = cstr(field.options);
 								break;
 
 							case 'Code':

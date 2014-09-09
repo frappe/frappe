@@ -1,5 +1,5 @@
 // Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
-// MIT License. See license.txt 
+// MIT License. See license.txt
 
 frappe.provide('frappe.core.pages.messages');
 
@@ -8,26 +8,31 @@ frappe.pages.messages.onload = function(wrapper) {
 		parent: wrapper,
 		title: "Messages"
 	});
-	
-	$('<div><div class="avatar avatar-large">\
-		<img id="avatar-image" src="assets/frappe/images/ui/avatar.png"></div>\
-		<h3 style="display: inline-block" id="message-title">Everyone</h3>\
-	</div><hr>\
+
+	$('<div style="margin-bottom: 15px;">\
+		<span class="avatar" style="margin-top: -10px;"><img id="avatar-image" src=""></span>\
+		<h3 style="display: inline-block" id="message-title">' + __("Everyone") + '</h3>\
+	</div>\
 	<div id="post-message">\
-	<textarea class="form-control" rows=3 style="margin-bottom: 15px;"></textarea>\
-	<div><button class="btn btn-default">Post</button></div><hr>\
+	<textarea class="form-control" style="height: 80px; margin-bottom: 15px;"></textarea>\
+	<div class="checkbox">\
+		<label>\
+			<input type="checkbox" id="messages-email" checked="checked">\
+				<span class="text-muted small">'+__('Send Email')+'</span>\
+		</label></div>\
+	<div><button class="btn btn-default">'+__('Post')+'</button></div><hr>\
 	</div>\
 	<div class="all-messages"></div><br>').appendTo($(wrapper).find('.layout-main-section'));
 
 	wrapper.appframe.add_module_icon("Messages");
-	
+
 	frappe.core.pages.messages = new frappe.core.pages.messages(wrapper);
 }
 
 $(frappe.pages.messages).bind('show', function() {
 	// remove alerts
 	$('#alert-container .alert').remove();
-	
+
 	frappe.core.pages.messages.show();
 	setTimeout("frappe.core.pages.messages.refresh()", 5000);
 })
@@ -38,11 +43,11 @@ frappe.core.pages.messages = Class.extend({
 		this.show_active_users();
 		this.make_post_message();
 		this.make_list();
-		//this.update_messages('reset'); //Resets notification icons		
+		//this.update_messages('reset'); //Resets notification icons
 	},
 	make_post_message: function() {
 		var me = this;
-		
+
 		$('#post-message .btn').click(function() {
 			var txt = $('#post-message textarea').val();
 			if(txt) {
@@ -52,7 +57,8 @@ frappe.core.pages.messages = Class.extend({
 					method:'post',
 					args: {
 						txt: txt,
-						contact: me.contact
+						contact: me.contact,
+						notify: $('#messages-email').prop("checked") ? 1 : 0
 					},
 					callback:function(r,rt) {
 						$('#post-message textarea').val('')
@@ -60,7 +66,7 @@ frappe.core.pages.messages = Class.extend({
 					},
 					btn: this
 				});
-			}			
+			}
 		});
 	},
 	show: function() {
@@ -72,20 +78,20 @@ frappe.core.pages.messages = Class.extend({
 		$('#avatar-image').attr("src", frappe.utils.get_file_link(frappe.user_info(contact).image));
 
 		$("#show-everyone").toggle(contact!==user);
-		
+
 		$("#post-message button").text(contact==user ? __("Post Publicly") : __("Post to user"))
-		
+
 		this.contact = contact;
 		this.list.opts.args.contact = contact;
 		this.list.run();
-		
+
 	},
 	// check for updates every 5 seconds if page is active
 	refresh: function() {
 		setTimeout("frappe.core.pages.messages.refresh()", 5000);
-		if(frappe.container.page.label != 'Messages') 
+		if(frappe.container.page.label != 'Messages')
 			return;
-		if(!frappe.session_alive) 
+		if(!frappe.session_alive)
 			return;
 		this.show();
 	},
@@ -110,18 +116,15 @@ frappe.core.pages.messages = Class.extend({
 			no_loading: true,
 			render_row: function(wrapper, data) {
 				$(wrapper).removeClass('list-row');
-				
-				data.creation = dateutil.comment_when(data.creation);
+
+				data.creation = comment_when(data.creation);
 				data.comment_by_fullname = frappe.user_info(data.owner).fullname;
 				data.image = frappe.utils.get_file_link(frappe.user_info(data.owner).image);
-				data.mark_html = "";
+				data.info = "";
 
 				data.reply_html = '';
 				if(data.owner==user) {
-					data.cls = 'message-self';
-					data.comment_by_fullname = 'You';	
-				} else {
-					data.cls = 'message-other';
+					data.comment_by_fullname = 'You';
 				}
 
 				// delete
@@ -131,18 +134,23 @@ frappe.core.pages.messages = Class.extend({
 						onclick="frappe.core.pages.messages.delete(this)"\
 						data-name="%(name)s">&times;</a>', data);
 				}
-				
+
 				if(data.owner==data.comment_docname && data.parenttype!="Assignment") {
-					data.mark_html = "<div class='message-mark' title='Public'\
-						style='background-color: green'></div>"
+					data.info = '<span class="label label-success">Public</span>'
 				}
 
-				wrapper.innerHTML = repl('<div class="message %(cls)s">%(mark_html)s\
-						<span class="avatar avatar-small"><img src="%(image)s"></span><b>%(comment)s</b>\
-						%(delete_html)s\
-						<div class="help">by %(comment_by_fullname)s, %(creation)s</div>\
-					</div>\
-					<div style="clear: both;"></div>', data);
+				$(wrapper)
+					.addClass("media").addClass(data.cls);
+				wrapper.innerHTML = repl('<span class="pull-left avatar avatar-small">\
+							<img class="media-object" src="%(image)s">\
+						</span>\
+						<div class="media-body">\
+							%(comment)s\
+							%(delete_html)s\
+							<div class="text-muted" style="margin-right: 60px;">\
+								<span class="small">by <strong>%(comment_by_fullname)s</strong>, \
+								%(creation)s</span> %(info)s</div>\
+						</div>', data);
 			}
 		});
 	},
@@ -164,14 +172,14 @@ frappe.core.pages.messages = Class.extend({
 			method:'get_active_users',
 			callback: function(r,rt) {
 				var $body = $(me.wrapper).find('.layout-side-section');
-				$('<h4>Users</h4><hr>\
+				$('<h4>' + __("Users") + '</h4><hr>\
 					<div id="show-everyone">\
 						<a href="#messages/'+user+'" class="btn btn-default">\
-							Messages from everyone</a><hr></div>\
+							' + __("Messages from everyone") + '</a><hr></div>\
 				').appendTo($body);
 
 				$("#show-everyone").toggle(me.contact!==user);
-				
+
 				r.message.sort(function(a, b) { return b.has_session - a.has_session; });
 				for(var i in r.message) {
 					var p = r.message[i];
@@ -186,7 +194,7 @@ frappe.core.pages.messages = Class.extend({
 								title="%(status)s"><img src="%(image)s" /></span>\
 							<a href="#!messages/%(name)s">%(fullname)s</a>\
 							</p>', p))
-							.appendTo($body);						
+							.appendTo($body);
 					}
 				}
 			}

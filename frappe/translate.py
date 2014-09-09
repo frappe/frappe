@@ -17,6 +17,8 @@ Contributing:
 # frappe._
 
 import frappe, os, re, codecs, json
+from frappe.utils.jinja import render_include
+from jinja2 import TemplateError
 
 def guess_language_from_http_header(lang):
 	"""set frappe.local.lang from HTTP headers at beginning of request"""
@@ -79,7 +81,7 @@ def get_all_languages():
 	return [a.split()[0] for a in get_lang_info()]
 
 def get_lang_dict():
-	return dict([[a[1], a[0]] for a in [a.split() for a in get_lang_info()]])
+	return dict([[a[1], a[0]] for a in [a.split(None, 1) for a in get_lang_info()]])
 
 def get_lang_info():
 	return frappe.cache().get_value("langinfo",
@@ -106,6 +108,7 @@ def get_dict(fortype, name=None):
 		elif fortype=="boot":
 			messages = get_messages_from_include_files()
 			messages += frappe.db.sql_list("select name from tabDocType")
+			messages += frappe.db.sql_list("select name from tabRole")
 			messages += frappe.db.sql_list("select name from `tabModule Def`")
 
 		translation_assets[asset_key] = make_dict_from_messages(messages)
@@ -193,6 +196,10 @@ def get_messages_from_doctype(name):
 
 	messages = [meta.name, meta.module]
 
+	if meta.description:
+		messages.append(meta.description)
+
+	# translations of field labels, description and options
 	for d in meta.get("fields"):
 		messages.extend([d.label, d.description])
 
@@ -202,9 +209,17 @@ def get_messages_from_doctype(name):
 			if not "icon" in options[0]:
 				messages.extend(options)
 
+	# translations of roles
+	for d in meta.get("permissions"):
+		if d.role:
+			messages.append(d.role)
+
 	# extract from js, py files
 	doctype_file_path = frappe.get_module_path(meta.module, "doctype", meta.name, meta.name)
 	messages.extend(get_messages_from_file(doctype_file_path + ".js"))
+	messages.extend(get_messages_from_file(doctype_file_path + "_list.js"))
+	messages.extend(get_messages_from_file(doctype_file_path + "_list.html"))
+	messages.extend(get_messages_from_file(doctype_file_path + "_calendar.js"))
 	return clean(messages)
 
 def get_messages_from_page(name):
@@ -224,6 +239,7 @@ def get_messages_from_page_or_report(doctype, name, module=None):
 		module = frappe.db.get_value(doctype, name, "module")
 	file_path = frappe.get_module_path(module, doctype, name, name)
 	messages = get_messages_from_file(file_path + ".js")
+	messages += get_messages_from_file(file_path + ".html")
 
 	return clean(messages)
 
@@ -234,14 +250,14 @@ def get_server_messages(app):
 			if dontwalk in folders: folders.remove(dontwalk)
 
 		for f in files:
-			if f.endswith(".py") or f.endswith(".html"):
+			if f.endswith(".py") or f.endswith(".html") or f.endswith(".js"):
 				messages.extend(get_messages_from_file(os.path.join(basepath, f)))
 
 	return clean(messages)
 
 def get_messages_from_include_files(app_name=None):
 	messages = []
-	for file in (frappe.get_hooks("app_include_js") or []) + (frappe.get_hooks("web_include_js") or []):
+	for file in (frappe.get_hooks("app_include_js", app_name=app_name) or []) + (frappe.get_hooks("web_include_js", app_name=app_name) or []):
 		messages.extend(get_messages_from_file(os.path.join(frappe.local.sites_path, file)))
 
 	return clean(messages)
@@ -255,6 +271,12 @@ def get_messages_from_file(path):
 		return []
 
 def extract_messages_from_code(code, is_py=False):
+	try:
+		code = render_include(code)
+	except TemplateError:
+		# Exception will occur when it encounters John Resig's microtemplating code
+		pass
+
 	messages = []
 	messages += re.findall('_\("([^"]*)"', code)
 	messages += re.findall("_\('([^']*)'", code)
@@ -300,11 +322,19 @@ def get_untranslated(lang, untranslated_file, get_all=False):
 	for app in apps:
 		messages.extend(get_messages_for_app(app))
 
+	messages = list(set(messages))
+
+	def escape_newlines(s):
+		return (s.replace("\\\n", "|||||")
+				.replace("\\n", "||||")
+				.replace("\n", "|||"))
+
 	if get_all:
 		print str(len(messages)) + " messages"
 		with open(untranslated_file, "w") as f:
 			for m in messages:
-				f.write((m + "\n").encode("utf-8"))
+				# replace \n with ||| so that internal linebreaks don't get split
+				f.write((escape_newlines(m) + os.linesep).encode("utf-8"))
 	else:
 		full_dict = get_full_dict(lang)
 
@@ -316,7 +346,8 @@ def get_untranslated(lang, untranslated_file, get_all=False):
 			print str(len(untranslated)) + " missing translations of " + str(len(messages))
 			with open(untranslated_file, "w") as f:
 				for m in untranslated:
-					f.write((m + "\n").encode("utf-8"))
+					# replace \n with ||| so that internal linebreaks don't get split
+					f.write((escape_newlines(m) + os.linesep).encode("utf-8"))
 		else:
 			print "all translated!"
 
@@ -324,8 +355,22 @@ def update_translations(lang, untranslated_file, translated_file):
 	clear_cache()
 	full_dict = get_full_dict(lang)
 
-	full_dict.update(dict(zip(frappe.get_file_items(untranslated_file),
-		frappe.get_file_items(translated_file))))
+	def restore_newlines(s):
+		return (s.replace("|||||", "\\\n")
+				.replace("| | | | |", "\\\n")
+				.replace("||||", "\\n")
+				.replace("| | | |", "\\n")
+				.replace("|||", "\n")
+				.replace("| | |", "\n"))
+
+	translation_dict = {}
+	for key, value in zip(frappe.get_file_items(untranslated_file, ignore_empty_lines=False),
+		frappe.get_file_items(translated_file, ignore_empty_lines=False)):
+
+		# undo hack in get_untranslated
+		translation_dict[restore_newlines(key)] = restore_newlines(value)
+
+	full_dict.update(translation_dict)
 
 	for app in frappe.get_all_apps(True):
 		write_translations_file(app, lang, full_dict)
@@ -335,8 +380,21 @@ def rebuild_all_translation_files():
 		for app in frappe.get_all_apps():
 			write_translations_file(app, lang)
 
-def write_translations_file(app, lang, full_dict=None):
+def write_translations_file(app, lang, full_dict=None, app_messages=None):
+	if not app_messages:
+		app_messages = get_messages_for_app(app)
+
+	if not app_messages:
+		return
+
 	tpath = frappe.get_pymodule_path(app, "translations")
 	frappe.create_folder(tpath)
 	write_csv_file(os.path.join(tpath, lang + ".csv"),
-		get_messages_for_app(app), full_dict or get_full_dict(lang))
+		app_messages, full_dict or get_full_dict(lang))
+
+def send_translations(translation_dict):
+	"""send these translations in response"""
+	if "__messages" not in frappe.local.response:
+		frappe.local.response["__messages"] = {}
+
+	frappe.local.response["__messages"].update(translation_dict)

@@ -25,7 +25,7 @@ def handle():
 		DELETE will delete
 	/api/resource/{doctype}/{name}?run_method={method} will run a whitelisted controller method
 	"""
-	parts = frappe.request.path[1:].split("/")
+	parts = frappe.request.path[1:].split("/",3)
 	call = doctype = name = None
 
 	if len(parts) > 1:
@@ -43,18 +43,20 @@ def handle():
 
 	elif call=="resource":
 		if "run_method" in frappe.local.form_dict:
+			method = frappe.local.form_dict.pop("run_method")
 			doc = frappe.get_doc(doctype, name)
-			doc.is_whitelisted(frappe.local.form_dict.run_method)
+			doc.is_whitelisted(method)
 
 			if frappe.local.request.method=="GET":
 				if not doc.has_permission("read"):
 					frappe.throw(_("Not permitted"), frappe.PermissionError)
-					doc.run_method(frappe.local.form_dict.run_method, **frappe.local.form_dict)
+					doc.run_method(method, **frappe.local.form_dict)
 
 			if frappe.local.request.method=="POST":
 				if not doc.has_permission("write"):
 					frappe.throw(_("Not permitted"), frappe.PermissionError)
-				doc.run_method(frappe.local.form_dict.run_method, **frappe.local.form_dict)
+
+				doc.run_method(method, **frappe.local.form_dict)
 				frappe.db.commit()
 
 		else:
@@ -76,7 +78,6 @@ def handle():
 					frappe.db.commit()
 
 				if frappe.local.request.method=="DELETE":
-					doc.update(data)
 					# Not checking permissions here because it's checked in delete_doc
 					frappe.delete_doc(doctype, name)
 					frappe.local.response.http_status_code = 202

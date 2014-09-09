@@ -9,48 +9,55 @@ from __future__ import unicode_literals
 import frappe
 import os, sys
 from frappe.modules.import_file import import_file_by_path
-from frappe.utils import get_path, cstr
+from frappe.modules.patch_handler import block_user
+from frappe.utils import update_progress_bar
 
 def sync_all(force=0, verbose=False):
+	block_user(True)
+
 	for app in frappe.get_installed_apps():
 		sync_for(app, force, verbose=verbose)
+
+	block_user(False)
+
 	frappe.clear_cache()
 
 def sync_for(app_name, force=0, sync_everything = False, verbose=False):
+	files = []
 	for module_name in frappe.local.app_modules.get(app_name) or []:
 		folder = os.path.dirname(frappe.get_module(app_name + "." + module_name).__file__)
-		walk_and_sync(folder, force, sync_everything, verbose=verbose)
+		files += get_doc_files(folder, force, sync_everything, verbose=verbose)
 
-def walk_and_sync(start_path, force=0, sync_everything = False, verbose=False):
+	l = len(files)
+	if l:
+		for i, doc_path in enumerate(files):
+			import_file_by_path(doc_path, force=force)
+			#print module_name + ' | ' + doctype + ' | ' + name
+
+			frappe.db.commit()
+
+			# show progress bar
+			update_progress_bar("Updating {0}".format(app_name), i, l)
+
+		print ""
+
+
+def get_doc_files(start_path, force=0, sync_everything = False, verbose=False):
 	"""walk and sync all doctypes and pages"""
 
-	modules = []
-
+	out = []
 	document_type = ['doctype', 'page', 'report', 'print_format']
+	for doctype in document_type:
+		doctype_path = os.path.join(start_path, doctype)
+		if os.path.exists(doctype_path):
 
-	for path, folders, files in os.walk(start_path):
-		# sort folders so that doctypes are synced before pages or reports
+			# Note: sorted is a hack because custom* and doc* need
+			# be synced first
 
-		for dontwalk in (".git", "locale", "public"):
-			if dontwalk in folders:
-				folders.remove(dontwalk)
+			for docname in sorted(os.listdir(doctype_path)):
+				if os.path.isdir(os.path.join(doctype_path, docname)):
+					doc_path = os.path.join(doctype_path, docname, docname) + ".json"
+					if os.path.exists(doc_path):
+						out.append(doc_path)
 
-		folders.sort()
-
-		if sync_everything or (os.path.basename(os.path.dirname(path)) in document_type):
-			for f in files:
-				f = cstr(f)
-				if f.endswith(".json"):
-					doc_name = f.split(".json")[0]
-					if doc_name == os.path.basename(path):
-
-						module_name = path.split(os.sep)[-3]
-						doctype = path.split(os.sep)[-2]
-						name = path.split(os.sep)[-1]
-
-						if import_file_by_path(os.path.join(path, f), force=force) and verbose:
-							print module_name + ' | ' + doctype + ' | ' + name
-
-						frappe.db.commit()
-
-	return modules
+	return out

@@ -58,11 +58,11 @@ frappe.ui.form.on("Customize Form", "refresh", function(frm) {
 
 		frm.add_custom_button('Refresh Form', function() {
 			frm.script_manager.trigger("doc_type");
-		}, "icon-refresh");
+		}, "icon-refresh", "btn-default");
 
 		frm.add_custom_button('Reset to defaults', function() {
 			frappe.customize_form.confirm(__('Remove all customizations?'), frm);
-		}, "icon-eraser");
+		}, "icon-eraser", "btn-default");
 	}
 
 	// if(!frm.doc.doc_type) {
@@ -73,8 +73,10 @@ frappe.ui.form.on("Customize Form", "refresh", function(frm) {
 	// }
 
 	if(frappe.route_options) {
-		frappe.model.set_value("Customize Form", null, "doc_type", frappe.route_options.doctype)
-		frappe.route_options = null;
+		setTimeout(function() {
+			frm.set_value("doc_type", frappe.route_options.doctype);
+			frappe.route_options = null;
+		}, 1000);
 	}
 });
 
@@ -83,39 +85,24 @@ frappe.customize_form.confirm = function(msg, frm) {
 
 	var d = new frappe.ui.Dialog({
 		title: 'Reset To Defaults',
-		width: 500
-	});
-
-	$y(d.body, {padding: '32px', textAlign: 'center'});
-
-	$a(d.body, 'div', '', '', msg);
-
-	var button_wrapper = $a(d.body, 'div');
-	$y(button_wrapper, {paddingTop: '15px'});
-
-	var proceed_btn = $btn(button_wrapper, 'Proceed', function() {
-		return frm.call({
-			doc: frm.doc,
-			method: "reset_to_defaults",
-			callback: function(r) {
-				if(r.exc) {
-					msgprint(r.exc);
-				} else {
-					frappe.customize_form.confirm.dialog.hide();
-					frappe.customize_form.clear_locals_and_refresh(frm);
+		fields: [
+			{fieldtype:"HTML", options:__("All customizations will be removed. Please confirm.")},
+		],
+		primary_action: function() {
+			return frm.call({
+				doc: frm.doc,
+				method: "reset_to_defaults",
+				callback: function(r) {
+					if(r.exc) {
+						msgprint(r.exc);
+					} else {
+						d.hide();
+						frappe.customize_form.clear_locals_and_refresh(frm);
+					}
 				}
-			}
-		});
+			});
+		}
 	});
-
-	$y(proceed_btn, {marginRight: '20px', fontWeight: 'bold'});
-
-	var cancel_btn = $btn(button_wrapper, 'Cancel', function() {
-		frappe.customize_form.confirm.dialog.hide();
-	});
-
-	$(cancel_btn).addClass('btn-small btn-info');
-	$y(cancel_btn, {fontWeight: 'bold'});
 
 	frappe.customize_form.confirm.dialog = d;
 	d.show();
@@ -159,7 +146,7 @@ frappe.customize_form.add_fields_help = function(frm) {
 					<td><b>Perm Level</b></td>\
 					<td>\
 						Assign a permission level to the field.<br />\
-						(Permissions can be managed via Setup &gt; Permission Manager)\
+						(Permissions can be managed via Setup &gt; Role Permissions Manager)\
 					</td>\
 				</tr>\
 				<tr>\

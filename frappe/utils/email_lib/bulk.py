@@ -14,8 +14,9 @@ from frappe.utils import cint, get_url, nowdate
 class BulkLimitCrossedError(frappe.ValidationError): pass
 
 def send(recipients=None, sender=None, doctype='User', email_field='email',
-		subject='[No Subject]', message='[No Content]', ref_doctype=None, ref_docname=None,
-		add_unsubscribe_link=True):
+		subject='[No Subject]', message='[No Content]', ref_doctype=None,
+		ref_docname=None, add_unsubscribe_link=True, attachments=None):
+
 	def is_unsubscribed(rdata):
 		if not rdata:
 			return 1
@@ -25,9 +26,14 @@ def send(recipients=None, sender=None, doctype='User', email_field='email',
 		this_month = frappe.db.sql("""select count(*) from `tabBulk Email` where
 			month(creation)=month(%s)""" % nowdate())[0][0]
 
-		monthly_bulk_mail_limit = frappe.conf.get('monthly_bulk_mail_limit') or 500
+		# No limit for own email settings
+		smtp_server = SMTPServer()
+		if smtp_server.email_settings and cint(smtp_server.email_settings.enabled):
+			monthly_bulk_mail_limit = 999999
+		else:
+			monthly_bulk_mail_limit = frappe.conf.get('monthly_bulk_mail_limit') or 500
 
-		if this_month + len(recipients) > monthly_bulk_mail_limit:
+		if ( this_month + len(recipients) ) > monthly_bulk_mail_limit:
 			throw(_("Bulk email limit {0} crossed").format(monthly_bulk_mail_limit),
 				BulkLimitCrossedError)
 
@@ -70,18 +76,18 @@ def send(recipients=None, sender=None, doctype='User', email_field='email',
 			except HTMLParser.HTMLParseError:
 				text_content = "[See html attachment]"
 
-			add(r, sender, subject, updated, text_content, ref_doctype, ref_docname)
+			add(r, sender, subject, updated, text_content, ref_doctype, ref_docname, attachments)
 
 def add(email, sender, subject, formatted, text_content=None,
-	ref_doctype=None, ref_docname=None):
+	ref_doctype=None, ref_docname=None, attachments=None):
 	"""add to bulk mail queue"""
 	e = frappe.new_doc('Bulk Email')
 	e.sender = sender
 	e.recipient = email
 	try:
 		e.message = get_email(email, sender=e.sender, formatted=formatted, subject=subject,
-			text_content=text_content).as_string()
-	except frappe.ValidationError:
+			text_content=text_content, attachments=attachments).as_string()
+	except frappe.InvalidEmailAddressError:
 		# bad email id - don't add to queue
 		return
 

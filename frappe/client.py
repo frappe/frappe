@@ -42,7 +42,11 @@ def set_value(doctype, name, fieldname, value):
 		child.set(fieldname, value)
 	else:
 		doc = frappe.get_doc(doctype, name)
-		doc.set(fieldname, value)
+		df = doc.meta.get_field(fieldname)
+		if df.fieldtype == "Read Only" or df.read_only:
+			frappe.throw(_("Can not edit Read Only fields"))
+		else:
+			doc.set(fieldname, value)
 
 	doc.save()
 
@@ -88,7 +92,7 @@ def submit(doclist):
 	doclistobj = frappe.get_doc(doclist)
 	doclistobj.submit()
 
-	return doclist.as_dict()
+	return doclistobj.as_dict()
 
 @frappe.whitelist()
 def cancel(doctype, name):
@@ -108,8 +112,9 @@ def set_default(key, value, parent=None):
 	frappe.clear_cache(user=frappe.session.user)
 
 @frappe.whitelist()
-def make_width_property_setter():
-	doc = json.loads(frappe.form_dict)
+def make_width_property_setter(doc):
+	if isinstance(doc, basestring):
+		doc = json.loads(doc)
 	if doc["doctype"]=="Property Setter" and doc["property"]=="width":
 		frappe.get_doc(doc).insert(ignore_permissions = True)
 
@@ -139,6 +144,8 @@ def has_permission(doctype, docname, perm_type="read"):
 
 @frappe.whitelist()
 def get_js(src):
+	if src[0]=="/":
+		src = src[1:]
 	contentpath = os.path.join(frappe.local.sites_path, src)
 	with open(contentpath, "r") as srcfile:
 		code = frappe.utils.cstr(srcfile.read())

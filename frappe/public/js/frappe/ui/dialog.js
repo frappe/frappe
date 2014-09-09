@@ -7,22 +7,9 @@ var cur_dialog;
 
 frappe.ui.open_dialogs = [];
 frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
-	_intro:'	usage:\n\
-		\n\
-		var dialog = new frappe.ui.Dialog({\n\
-			title: "Dialog Title",\n\
-			fields: [\n\
-				{fieldname:"field1", fieldtype:"Data", reqd:1, label: "Test 1"},\n\
-				{fieldname:"field2", fieldtype:"Link", reqd:1, label: "Test 1", options:"Some DocType"},\n\
-				{fieldname:"mybutton", fieldtype:"Button", reqd:1, label: "Submit"},\n\
-			]\n\
-		})\n\
-		dialog.get_input("mybutton").click(function() { /* do something; */ dialog.hide(); });\n\
-		dialog.show()',
 	init: function(opts) {
 		this.display = false;
 		this.is_dialog = true;
-		if(!opts.width) opts.width = "600px";
 
 		$.extend(this, opts);
 		this._super();
@@ -31,13 +18,22 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 	make: function() {
 		this.$wrapper = frappe.get_modal("", "");
 		this.wrapper = this.$wrapper.find('.modal-dialog')
-			.css("width", this.width)
 			.get(0);
 		this.make_head();
 		this.body = this.$wrapper.find(".modal-body").get(0);
 
 		// make fields (if any)
 		this._super();
+
+		// show footer
+		if(this.primary_action) {
+			this.$wrapper.find(".modal-footer").removeClass("hide");
+			var $btn = this.get_primary_btn();
+			$btn.click(this.primary_action);
+			if(this.primary_action_label) {
+				$btn.html(this.primary_action_label);
+			}
+		}
 
 		var me = this;
 		this.$wrapper
@@ -69,6 +65,9 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 			})
 
 
+	},
+	get_primary_btn: function() {
+		return this.$wrapper.find(".modal-footer .btn-primary");
 	},
 	make_head: function() {
 		var me = this;

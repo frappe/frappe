@@ -14,6 +14,8 @@ install:
   - sudo apt-get update
   - sudo apt-get purge -y mysql-common
   - sudo apt-get install mariadb-server mariadb-common libmariadbclient-dev
+  - wget http://downloads.sourceforge.net/project/wkhtmltopdf/0.12.1/wkhtmltox-0.12.1_linux-precise-amd64.deb
+  - sudo dpkg -i wkhtmltox-0.12.1_linux-precise-amd64.deb
 
   - CFLAGS=-O0 pip install -r requirements.txt
   - pip install --editable .
@@ -23,10 +25,12 @@ script:
   - frappe --use test_site
   - frappe --reinstall
   - frappe -b
+  - frappe --build_website
   - frappe --serve_test &
   - frappe --verbose --run_tests
 
 before_script:
   - mysql -e 'create database test_frappe'
   - echo "USE mysql;\nCREATE USER 'test_frappe'@'localhost' IDENTIFIED BY 'test_frappe';\nFLUSH PRIVILEGES;\n" | mysql -u root
+  - echo "USE mysql;\nGRANT ALL PRIVILEGES ON \`test_frappe\`.* TO 'test_frappe'@'localhost';\n" | mysql -u root
 

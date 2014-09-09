@@ -23,13 +23,14 @@ frappe.pages['applications'].onload = function(wrapper) {
 					<input type="text" class="form-control app-search" placeholder="Search" name="search"/>\
 				</div>\
 			</div><hr>').appendTo($main).find(".app-search").on("keyup", function() {
-				var val = $(this).val();
+				var val = ($(this).val() || "").toLowerCase();
 				$main.find(".app-listing").each(function() {
 					$(this).toggle($(this).attr("data-title").toLowerCase().indexOf(val)!==-1);
 				});
-			})
+			});
 
-			$.each(r.message, function(app_key, app) {
+			$.each(Object.keys(r.message).sort(), function(i, app_key) {
+				var app = r.message[app_key];
 				frappe.modules[app_key] = {
 					label: app.app_title,
 					icon: app.app_icon,

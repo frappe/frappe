@@ -11,40 +11,29 @@ permission, homepage, default variables, system defaults etc
 import frappe, json
 from frappe import _
 import frappe.utils
-from frappe.utils import cint
+from frappe.utils import cint, cstr
 import frappe.model.meta
 import frappe.defaults
 import frappe.translate
+from urllib import unquote
 
 @frappe.whitelist()
 def clear(user=None):
 	frappe.local.session_obj.update(force=True)
 	frappe.local.db.commit()
 	clear_cache(frappe.session.user)
+	clear_global_cache()
 	frappe.response['message'] = "Cache Cleared"
-
 
 def clear_cache(user=None):
 	cache = frappe.cache()
 
-	frappe.model.meta.clear_cache()
-	cache.delete_value(["app_hooks", "installed_apps", "app_modules", "module_apps", "home_page",
-		"time_zone"])
-
 	def delete_user_cache(user):
-		for key in ("bootinfo", "lang", "roles", "restrictions", "home_page"):
+		for key in ("bootinfo", "lang", "roles", "user_permissions", "home_page"):
 			cache.delete_value(key + ":" + user)
-
-	def clear_notifications(user=None):
-		if frappe.flags.in_install_app!="frappe":
-			if user:
-				frappe.db.sql("""delete from `tabNotification Count` where owner=%s""", (user,))
-			else:
-				frappe.db.sql("""delete from `tabNotification Count`""")
 
 	if user:
 		delete_user_cache(user)
-		clear_notifications(user)
 
 		if frappe.session:
 			if user==frappe.session.user and frappe.session.sid:
@@ -61,8 +50,12 @@ def clear_cache(user=None):
 			cache.delete_value("session:" + sess.sid)
 
 		delete_user_cache("Guest")
-		clear_notifications()
+		clear_global_cache()
 		frappe.defaults.clear_cache()
+
+def clear_global_cache():
+	frappe.model.meta.clear_cache()
+	frappe.cache().delete_value(["app_hooks", "installed_apps", "app_modules", "module_apps", "time_zone"])
 
 def clear_sessions(user=None, keep_current=False):
 	if not user:
@@ -125,7 +118,7 @@ def get():
 
 class Session:
 	def __init__(self, user, resume=False):
-		self.sid = frappe.form_dict.get('sid') or frappe.request.cookies.get('sid', 'Guest')
+		self.sid = cstr(frappe.form_dict.get('sid') or unquote(frappe.request.cookies.get('sid', 'Guest')))
 		self.user = user
 		self.data = frappe._dict({'data': frappe._dict({})})
 		self.time_diff = None
@@ -249,29 +242,32 @@ class Session:
 
 	def update(self, force=False):
 		"""extend session expiry"""
-		self.data['data']['last_updated'] = frappe.utils.now()
+		if (frappe.session['user'] == "Guest" or frappe.form_dict.cmd=="logout"):
+			return
+
+		now = frappe.utils.now()
+
+		self.data['data']['last_updated'] = now
 		self.data['data']['lang'] = unicode(frappe.lang)
 
-
 		# update session in db
-		time_diff = None
 		last_updated = frappe.cache().get_value("last_db_session_update:" + self.sid)
+		time_diff = frappe.utils.time_diff_in_seconds(now, last_updated) if last_updated else None
 
-		if last_updated:
-			time_diff = frappe.utils.time_diff_in_seconds(frappe.utils.now(),
-				last_updated)
-
-		if force or (frappe.session['user'] != 'Guest' and \
-			((time_diff==None) or (time_diff > 1800))):
-			# database persistence is secondary, don't update it too often
+		# database persistence is secondary, don't update it too often
+		updated_in_db = False
+		if force or (time_diff==None) or (time_diff > 600):
 			frappe.db.sql("""update tabSessions set sessiondata=%s,
 				lastupdate=NOW() where sid=%s""" , (str(self.data['data']),
 				self.data['sid']))
 
-		if frappe.form_dict.cmd not in ("frappe.sessions.clear", "logout"):
-			frappe.cache().set_value("last_db_session_update:" + self.sid,
-				frappe.utils.now())
-			frappe.cache().set_value("session:" + self.sid, self.data)
+			updated_in_db = True
+
+		# set in memcache
+		frappe.cache().set_value("last_db_session_update:" + self.sid, now)
+		frappe.cache().set_value("session:" + self.sid, self.data)
+
+		return updated_in_db
 
 def get_expiry_period():
 	exp_sec = frappe.defaults.get_global_default("session_expiry") or "06:00:00"
