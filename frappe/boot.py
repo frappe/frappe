@@ -8,7 +8,7 @@ bootstrap client session
 
 import frappe
 import frappe.defaults
-import frappe.desk.page
+import frappe.desk.desk_page
 from frappe.utils import get_gravatar
 
 def get_bootinfo():
@@ -132,10 +132,10 @@ def add_home_page(bootinfo, docs):
 		return
 	home_page = frappe.db.get_default("desktop:home_page")
 	try:
-		page = frappe.desk.page.get(home_page)
+		page = frappe.desk.desk_page.get(home_page)
 	except (frappe.DoesNotExistError, frappe.PermissionError):
 		frappe.message_log.pop()
-		page = frappe.desk.page.get('desktop')
+		page = frappe.desk.desk_page.get('desktop')
 
 	bootinfo['home_page'] = page.name
 	docs.append(page)
