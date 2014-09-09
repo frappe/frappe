@@ -1,3 +1,4 @@
 Core
 Website
 Workflow
+Email
