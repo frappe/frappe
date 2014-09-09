@@ -79,6 +79,7 @@ $.extend(frappe.model, {
 		var has_user_permissions = (df.fieldtype==="Link" && user_permissions
 			&& df.ignore_user_permissions != 1 && user_permissions[df.options]);
 
+		// don't set defaults for "User" link field using User Permissions!
 		if (df.fieldtype==="Link" && df.options!=="User") {
 			// 1 - look in user permissions
 			if (has_user_permissions && user_permissions[df.options].length===1) {
@@ -116,7 +117,7 @@ $.extend(frappe.model, {
 
 			// is this default value is also allowed as per user permissions?
 			var is_allowed_default = !has_user_permissions || user_permissions[df.options].indexOf(df["default"])!==-1;
-			if (is_allowed_default) {
+			if (df.fieldtype!=="Link" || df.options==="User" || is_allowed_default) {
 				return df["default"];
 			}
 
