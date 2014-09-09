@@ -4,5 +4,5 @@ Workflow
 Email
 Custom
 Geo
-Desk Apps
+Desk
 Print
