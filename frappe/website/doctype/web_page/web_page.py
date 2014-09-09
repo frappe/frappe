@@ -18,6 +18,9 @@ class WebPage(WebsiteGenerator):
 	page_title_field = "title"
 	parent_website_route_field = "parent_web_page"
 
+	def get_feed(self):
+		return self.title
+
 	def validate(self):
 		if self.template_path and not getattr(self, "from_website_sync"):
 			frappe.throw(frappe._("Cannot edit templated page"))

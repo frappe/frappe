@@ -7,7 +7,7 @@ frappe.pages['applications'].onload = function(wrapper) {
 	});
 
 	frappe.call({
-		method:"frappe.core.page.applications.applications.get_app_list",
+		method:"frappe.desk.page.messages.applications.get_app_list",
 		callback: function(r) {
 			var $main = $(wrapper).find(".layout-main");
 
@@ -64,7 +64,7 @@ frappe.pages['applications'].onload = function(wrapper) {
 						.attr("data-app", app.app_name)
 						.on("click", function() {
 						frappe.call({
-							method:"frappe.core.page.applications.applications.install_app",
+							method:"frappe.desk.page.messages.applications.install_app",
 							args: {name: $(this).attr("data-app")},
 							callback: function(r) {
 								if(!r.exc) {
