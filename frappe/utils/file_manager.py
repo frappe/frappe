@@ -117,12 +117,12 @@ def save_file(fname, content, dt, dn, decode=False):
 	content_type = mimetypes.guess_type(fname)[0]
 	fname = get_file_name(fname, content_hash[-6:])
 
-	method = get_hook_method('write_file', fallback=save_file_on_filesystem)
-
 	file_data = get_file_data_from_hash(content_hash)
 	if not file_data:
+		method = get_hook_method('write_file', fallback=save_file_on_filesystem)
 		file_data = method(fname, content, content_type=content_type)
 		file_data = copy(file_data)
+
 	file_data.update({
 		"doctype": "File Data",
 		"attached_to_doctype": dt,
@@ -254,9 +254,9 @@ def get_file_name(fname, optional_suffix):
 	if len(n_records) > 0 or os.path.exists(get_files_path(fname)):
 		f = fname.rsplit('.', 1)
 		if len(f) == 1:
-			partial, extn = f[0], None
-		elif len(f) == 2:
-			partial, extn = f
-		return '{partial}{suffix}{extn}'.format(partial=partial, extn="."+extn if extn else "", suffix=optional_suffix)
+			partial, extn = f[0], ""
+		else:
+			partial, extn = f[0], "." + f[1]
+		return '{partial}{suffix}{extn}'.format(partial=partial, extn=extn, suffix=optional_suffix)
 	return fname
 
