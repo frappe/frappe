@@ -235,7 +235,7 @@ frappe.views.QueryReport = Class.extend({
 		// Run
 		var me = this;
 		this.waiting = frappe.messages.waiting(this.wrapper.find(".waiting-area").empty().toggle(true),
-			"Loading Report...");
+			__("Loading Report") + "...");
 		this.wrapper.find(".results").toggle(false);
 		var filters = this.get_values(true);
 
