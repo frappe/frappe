@@ -228,18 +228,18 @@ def sendmail(recipients=(), sender="", subject="No Subject", message="No Message
 		add_unsubscribe_link=False, attachments=None):
 
 	if bulk:
-		import frappe.utils.email_lib.bulk
-		frappe.utils.email_lib.bulk.send(recipients=recipients, sender=sender,
+		import frappe.email.bulk
+		frappe.email.bulk.send(recipients=recipients, sender=sender,
 			subject=subject, message=message, ref_doctype = ref_doctype,
 			ref_docname = ref_docname, add_unsubscribe_link=add_unsubscribe_link, attachments=attachments)
 
 	else:
-		import frappe.utils.email_lib
+		import frappe.email
 		if as_markdown:
-			frappe.utils.email_lib.sendmail_md(recipients, sender=sender,
+			frappe.email.sendmail_md(recipients, sender=sender,
 				subject=subject, msg=message, attachments=attachments)
 		else:
-			frappe.utils.email_lib.sendmail(recipients, sender=sender,
+			frappe.email.sendmail(recipients, sender=sender,
 				subject=subject, msg=message, attachments=attachments)
 
 logger = None
@@ -586,8 +586,8 @@ def respond_as_web_page(title, html, success=None, http_status_code=None):
 		local.response['http_status_code'] = http_status_code
 
 def build_match_conditions(doctype, as_condition=True):
-	import frappe.widgets.reportview
-	return frappe.widgets.reportview.build_match_conditions(doctype, as_condition)
+	import frappe.desk.reportview
+	return frappe.desk.reportview.build_match_conditions(doctype, as_condition)
 
 def get_list(doctype, filters=None, fields=None, or_filters=None, docstatus=None,
 			group_by=None, order_by=None, limit_start=0, limit_page_length=None,

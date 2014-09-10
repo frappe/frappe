@@ -98,7 +98,9 @@ def delete_from_table(doctype, name, ignore_doctypes, doc):
 			return frappe.db.sql_list("""select options from `tab{}` where fieldtype='Table'
 				and parent=%s""".format(field_doctype), doctype)
 
-		tables = get_table_fields("DocField") + get_table_fields("Custom Field")
+		tables = get_table_fields("DocField")
+		if not frappe.flags.in_install_app=="frappe":
+			tables += get_table_fields("Custom Field")
 
 	# delete from child tables
 	for t in list(set(tables)):

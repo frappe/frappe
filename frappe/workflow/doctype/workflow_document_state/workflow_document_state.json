@@ -1,0 +1,75 @@
+{
+ "allow_import": 1,
+ "creation": "2013-02-22 01:27:36",
+ "description": "Represents the states allowed in one document and role assigned to change the state.",
+ "docstatus": 0,
+ "doctype": "DocType",
+ "document_type": "Master",
+ "fields": [
+  {
+   "fieldname": "state",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "State",
+   "options": "Workflow State",
+   "permlevel": 0,
+   "print_width": "160px",
+   "reqd": 1,
+   "width": "160px"
+  },
+  {
+   "description": "0 - Draft; 1 - Submitted; 2 - Cancelled",
+   "fieldname": "doc_status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Doc Status",
+   "options": "0\n1\n2",
+   "permlevel": 0,
+   "print_width": "80px",
+   "width": "80px"
+  },
+  {
+   "fieldname": "update_field",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Update Field",
+   "permlevel": 0
+  },
+  {
+   "fieldname": "update_value",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Update Value",
+   "permlevel": 0
+  },
+  {
+   "fieldname": "allow_edit",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Only Allow Edit For",
+   "options": "Role",
+   "permlevel": 0,
+   "print_width": "160px",
+   "reqd": 1,
+   "width": "160px"
+  },
+  {
+   "fieldname": "message",
+   "fieldtype": "Text",
+   "in_list_view": 1,
+   "label": "Message",
+   "permlevel": 0,
+   "print_width": "160px",
+   "reqd": 0,
+   "width": "160px"
+  }
+ ],
+ "idx": 1,
+ "istable": 1,
+ "modified": "2014-05-27 06:35:01.070158",
+ "modified_by": "Administrator",
+ "module": "Workflow",
+ "name": "Workflow Document State",
+ "owner": "Administrator",
+ "permissions": []
+}

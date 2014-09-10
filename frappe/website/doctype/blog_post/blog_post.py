@@ -19,6 +19,9 @@ class BlogPost(WebsiteGenerator):
 	parent_website_route_field = "blog_category"
 	page_title_field = "title"
 
+	def get_feed(self):
+		return self.title
+
 	def validate(self):
 		super(BlogPost, self).validate()
 

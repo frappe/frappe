@@ -24,7 +24,7 @@ frappe.views.pageview = {
 		} else {
 			// get fresh
 			return frappe.call({
-				method: 'frappe.widgets.page.getpage',
+				method: 'frappe.desk.desk_page.getpage',
 				args: {'name':name },
 				callback: function(r) {
 					localStorage["_page:" + name] = JSON.stringify(r.docs);

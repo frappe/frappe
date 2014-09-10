@@ -132,7 +132,7 @@ frappe.ui.form.Attachments = Class.extend({
 
 		var me = this;
 		return frappe.call({
-			method: 'frappe.widgets.form.utils.remove_attach',
+			method: 'frappe.desk.form.utils.remove_attach',
 			args: {
 				fid: fileid,
 				dt: me.frm.doctype,

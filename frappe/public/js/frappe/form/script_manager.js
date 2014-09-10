@@ -94,7 +94,7 @@ frappe.ui.form.ScriptManager = Class.extend({
 				fetch = this.frm.fetch_dict[df.fieldname].columns.join(', ');
 
 			return frappe.call({
-				method:'frappe.widgets.form.utils.validate_link',
+				method:'frappe.desk.form.utils.validate_link',
 				type: "GET",
 				args: {
 					'value': value,
