@@ -86,7 +86,7 @@ def run(report_name, filters=()):
 			method_name = get_report_module_dotted_path(module, report.name) + ".execute"
 			columns, result = frappe.get_attr(method_name)(frappe._dict(filters))
 
-	if report.apply_user_permissions:
+	if report.apply_user_permissions and result:
 		result = get_filtered_data(report.ref_doctype, columns, result)
 
 	if cint(report.add_total_row) and result:
