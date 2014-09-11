@@ -199,7 +199,7 @@ def get_linked_doctypes(columns, data):
 
 	# remove doctype if column is empty
 	for doctype, key in linked_doctypes.items():
-		if not any(d[key] for d in data):
+		if not any(d[key] for d in data if d):
 			del linked_doctypes[doctype]
 
 	return linked_doctypes
