@@ -13,7 +13,7 @@ frappe.ui.form.save = function(frm, action, callback, btn) {
 				method: "frappe.widgets.form.save.savedocs",
 				args: { doc: frm.doc, action:action},
 				callback: function(r) {
-					$(document).trigger("save", frm.doc);
+					$(document).trigger("save", [frm.doc]);
 					callback(r);
 				},
 				btn: btn
@@ -28,7 +28,7 @@ frappe.ui.form.save = function(frm, action, callback, btn) {
 			method: "frappe.widgets.form.save.cancel",
 			args: { doctype: frm.doc.doctype, name: frm.doc.name },
 			callback: function(r) {
-				$(document).trigger("save", frm.doc);
+				$(document).trigger("save", [frm.doc]);
 				callback(r);
 			},
 			btn: btn

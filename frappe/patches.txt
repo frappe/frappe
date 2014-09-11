@@ -50,4 +50,8 @@ execute:frappe.db.sql("""update `tabPrint Format` set print_format_type='Client'
 frappe.patches.v4_1.file_manager_fix
 frappe.patches.v4_2.print_with_letterhead
 execute:frappe.delete_doc("DocType", "Control Panel", force=1)
+execute:frappe.reload_doc('website', 'doctype', 'web_form') #2014-09-04
+execute:frappe.reload_doc('website', 'doctype', 'web_form_field') #2014-09-04
 frappe.patches.v4_2.refactor_website_routing
+frappe.patches.v4_2.set_assign_in_doc
+frappe.patches.v4_3.remove_allow_on_submit_customization

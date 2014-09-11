@@ -562,16 +562,16 @@ frappe.ui.form.GridRow = Class.extend({
 		// in form
 		if(this.fields_dict && this.fields_dict[fieldname]) {
 			this.fields_dict[fieldname].refresh();
+			this.layout.refresh_dependency();
 		}
 	},
 	get_visible_columns: function(blacklist) {
+		var me = this;
 		var visible_columns = $.map(this.docfields, function(df) {
-			if(df.print_hide || df.hidden
-				|| in_list(blacklist, df.fieldname)
-				|| in_list(frappe.model.layout_fields, df.fieldtype))
-				return null;
-			else
-				return df;
+			var visible = !df.hidden && df.in_list_view && me.grid.frm.get_perm(df.permlevel, "read")
+				&& !in_list(frappe.model.layout_fields, df.fieldtype) && !in_list(blacklist, df.fieldname);
+
+			return visible ? df : null;
 		});
 		return visible_columns;
 	}

@@ -214,6 +214,8 @@ def set_user(username):
 	local.session.user = username
 	local.session.sid = username
 	local.cache = {}
+	local.form_dict = _dict()
+	local.jenv = None
 	local.session.data = {}
 	local.user = User(username)
 	local.role_permissions = {}

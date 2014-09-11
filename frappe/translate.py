@@ -17,6 +17,8 @@ Contributing:
 # frappe._
 
 import frappe, os, re, codecs, json
+from frappe.utils.jinja import render_include
+from jinja2 import TemplateError
 
 def guess_language_from_http_header(lang):
 	"""set frappe.local.lang from HTTP headers at beginning of request"""
@@ -194,6 +196,9 @@ def get_messages_from_doctype(name):
 
 	messages = [meta.name, meta.module]
 
+	if meta.description:
+		messages.append(meta.description)
+
 	# translations of field labels, description and options
 	for d in meta.get("fields"):
 		messages.extend([d.label, d.description])
@@ -212,6 +217,9 @@ def get_messages_from_doctype(name):
 	# extract from js, py files
 	doctype_file_path = frappe.get_module_path(meta.module, "doctype", meta.name, meta.name)
 	messages.extend(get_messages_from_file(doctype_file_path + ".js"))
+	messages.extend(get_messages_from_file(doctype_file_path + "_list.js"))
+	messages.extend(get_messages_from_file(doctype_file_path + "_list.html"))
+	messages.extend(get_messages_from_file(doctype_file_path + "_calendar.js"))
 	return clean(messages)
 
 def get_messages_from_page(name):
@@ -264,6 +272,12 @@ def get_messages_from_file(path):
 		return []
 
 def extract_messages_from_code(code, is_py=False):
+	try:
+		code = render_include(code)
+	except TemplateError:
+		# Exception will occur when it encounters John Resig's microtemplating code
+		pass
+
 	messages = []
 	messages += re.findall('_\("([^"]*)"', code)
 	messages += re.findall("_\('([^']*)'", code)
@@ -367,8 +381,10 @@ def rebuild_all_translation_files():
 		for app in frappe.get_all_apps():
 			write_translations_file(app, lang)
 
-def write_translations_file(app, lang, full_dict=None):
-	app_messages = get_messages_for_app(app)
+def write_translations_file(app, lang, full_dict=None, app_messages=None):
+	if not app_messages:
+		app_messages = get_messages_for_app(app)
+
 	if not app_messages:
 		return
 

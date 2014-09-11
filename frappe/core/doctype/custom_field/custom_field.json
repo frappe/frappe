@@ -63,6 +63,16 @@
    "search_index": 0
   }, 
   {
+   "depends_on": "eval:in_list([\"Float\", \"Currency\", \"Percent\"], doc.fieldtype)", 
+   "description": "Set non-standard precision for a Float or Currency field", 
+   "fieldname": "precision", 
+   "fieldtype": "Select", 
+   "label": "Precision", 
+   "options": "\n1\n2\n3\n4\n5\n6", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
    "fieldname": "options_help", 
    "fieldtype": "HTML", 
    "label": "Options Help", 
@@ -257,7 +267,7 @@
  ], 
  "icon": "icon-glass", 
  "idx": 1, 
- "modified": "2014-06-20 05:54:17.225853", 
+ "modified": "2014-09-05 07:41:13.076820", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Custom Field", 

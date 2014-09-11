@@ -73,14 +73,15 @@ $.extend(frappe.model, {
 		locals[doc.doctype][doc.name] = doc;
 
 		if(!doc.parentfield) {
-			$.each(doc, function(key, value) {
+			for(var i in doc) {
+				var value = doc[i];
 				if($.isArray(value)) {
 					$.each(value, function(i, d) {
 						if(!d.parent) d.parent = doc.name;
 						frappe.model.add_to_locals(d);
 					});
 				}
-			});
+			}
 		}
 	}
 

@@ -8,17 +8,7 @@
 "000 is black, fff is white",000 سوداء، بيضاء FFF
 2 days ago,2 منذ أيام
 "<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank"">[?]</a>","<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank""> [ ؟ ] < / A>"
-"<a onclick=""msgprint('<ol>\
-<li><b>field:[fieldname]</b> - By Field\
-<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\
-<li><b>Prompt</b> - Prompt user for a name\
-<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\
-</ol>')"">Naming Options</a>","<وعند _ النقر = ""msgprint ('<ol> \
- <li> قم <B> المجال: [fieldname] </ B> - بواسطة فيلد \
- <li> قم <B> naming_series: </ ب > - بواسطة تسمية سلسلة (يجب أن يكون حقل يسمى naming_series الحاضر \
- <li> قم <B> موجه </ B> - مطالبة المستخدم لاسم \
- <li> قم <B> [سلسلة] </ ب> - سلسلة بواسطة البادئة (مفصولة نقطة)، على سبيل المثال PRE # # # # # \
- </ OL> ') ""> تسمية خيارات </ A>"
+"<a onclick=""msgprint('<ol>\<li><b>field:[fieldname]</b> - By Field\<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\<li><b>Prompt</b> - Prompt user for a name\<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\</ol>')"">Naming Options</a>","<وعند _ النقر = ""msgprint ('<ol> \ <li> قم <B> المجال: [fieldname] </ B> - بواسطة فيلد \ <li> قم <B> naming_series: </ ب > - بواسطة تسمية سلسلة (يجب أن يكون حقل يسمى naming_series الحاضر \ <li> قم <B> موجه </ B> - مطالبة المستخدم لاسم \ <li> قم <B> [سلسلة] </ ب> - سلسلة بواسطة البادئة (مفصولة نقطة)، على سبيل المثال PRE # # # # # \ </ OL> ') ""> تسمية خيارات </ A>"
 <b>new</b> <i>type of document</i>,<B> جديدة </ ب> <I> نوع الوثيقة </ ط>
 "<i>document type...</i>, e.g. <b>customer</b>",<I> نوع الوثيقة ... </ ط>، على سبيل المثال <B> العملاء </ B>
 <i>e.g. <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>,<I> على سبيل المثال على <strong> (55 + 434) / 4 </ STRONG> أو على <strong> = الرياضيات. خطيئة (رياضياتPI / 2) </ STRONG> ... </ ط>
@@ -33,7 +23,7 @@ Actions,الإجراءات
 "Actions for workflow (e.g. Approve, Cancel).",الإجراءات ل سير العمل ( الموافقة على مثل إلغاء) .
 Add,إضافة
 Add A New Rule,إضافة قاعدة جديدة
-Add A User Permission,إضافة مستخدم إذن
+Add A User Permission,إضافة صلاحية مستخدم
 Add Attachments,إضافة مرفقات
 Add Bookmark,إضافة للمفضلة
 Add CSS,إضافة CSS
@@ -428,9 +418,7 @@ Footer Background,تذييل الخلفية
 Footer Items,تذييل العناصر
 Footer Text,تذييل النص
 For DocType,ل DOCTYPE
-"For Links, enter the DocType as range
-For Select, enter list of Options separated by comma","لسريعة، أدخل DOCTYPE عن مجموعة 
- لتحديد، قائمة خيارات مفصولة بفواصل دخول"
+"For Links, enter the DocType as rangeFor Select, enter list of Options separated by comma",لسريعة، أدخل DOCTYPE عن مجموعة  لتحديد، قائمة خيارات مفصولة بفواصل دخول
 "For comparative filters, start with",للمرشحات النسبية، وتبدأ مع
 For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,على سبيل المثال إذا قمت بإلغاء وتعديل &#39;INV004&#39; سوف تصبح الوثيقة الجديدة &quot;INV004-1&quot;. هذا يساعدك على تتبع كل تعديل.
 For ranges,للنطاقات
@@ -445,7 +433,7 @@ Forward To Email Address,انتقل إلى عنوان البريد الإلكت�
 Frappe Framework,الإطار فرابي
 Friday,الجمعة
 From Date must be before To Date,يجب أن تكون من تاريخ إلى تاريخ قبل
-Full Name,بدر تام
+Full Name,الاسم الكامل
 Gantt Chart,مخطط جانت
 Gender,جنس
 Generator,مولد كهربائي
@@ -607,7 +595,7 @@ Logout,خروج
 Long Text,نص طويل
 Low,منخفض
 Lucida Grande,سدا غراندي
-Mail Password,البريد كلمة المرور
+Mail Password,كلمة مرور البريد الإلكتروني
 Main Section,القسم العام
 Make a new,جعل جديدة
 Make a new record,جعل رقما قياسيا جديدا
@@ -682,7 +670,7 @@ No User Permissions found.,لم يتم العثور على أذونات المس
 No data found,لا توجد بيانات
 No file attached,أي ملف مرفق
 No further records,لا توجد سجلات أخرى
-No one,لا احد
+No one,لا أحد
 No permission to '{0}' {1},لا توجد صلاحية ل '{0} ' {1}
 No permission to edit,لا توجد صلاحية ل تعديل
 No permission to write / remove.,لا توجد صلاحية لكتابة / إزالة.
@@ -808,9 +796,7 @@ Please attach a file or set a URL,يرجى إرفاق ملف أو تعيين URL
 Please do not change the rows above {0},من فضلك لا تغيير الصفوف أعلاه {0}
 Please enable pop-ups,يرجى تمكين النوافذ المنبثقة
 Please enter Event's Date and Time!,الرجاء إدخال حدث في التاريخ والوقت !
-"Please enter both your email and message so that we \
-				can get back to you. Thanks!","من فضلك ادخل بريدك الإلكتروني على حد سواء والرسالة حتى نتمكن \
- يمكن أن نعود اليكم. شكرا!"
+Please enter both your email and message so that we \				can get back to you. Thanks!,من فضلك ادخل بريدك الإلكتروني على حد سواء والرسالة حتى نتمكن \ يمكن أن نعود اليكم. شكرا!
 Please enter some text!,الرجاء إدخال النص !
 Please enter title!,يرجى إدخال عنوان !
 Please login to Upvote!,يرجى الدخول إلى Upvote !
@@ -1049,7 +1035,7 @@ Sort Order,ترتيب
 Standard,معيار
 Standard Print Format cannot be updated,لا يمكن تحديث تنسيق الطباعة القياسية
 Standard Reply,معيار الرد
-Standard Reports,تقارير القياسية
+Standard Reports,تقارير قياسية
 Standard replies to common queries.,الردود على الاستفسارات القياسية الشائعة.
 Start Report For,تقرير عن بدء
 Starts on,يبدأ يوم
@@ -1109,13 +1095,7 @@ There were errors while sending email. Please try again.,كانت هناك أخ�
 These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,وسيتم تحديث هذه القيم تلقائيا في المعاملات وأيضا سوف تكون مفيدة لتقييد الأذونات لهذا المستخدم على المعاملات التي تحتوي على هذه القيم.
 "These will also be set as default values for those links, if only one such permission record is defined.",كما سيتم تعيين هذه كقيم الافتراضي ل هذه الروابط ، إذا تم تعريف سجل إذن واحد فقط من هذا القبيل.
 Third Party Authentication,مصادقة طرف ثالث
-"This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>
-myfield
-eval:doc.myfield=='My Value'<br>
-eval:doc.age>18","سيظهر هذا المجال إلا إذا كان تعريف fieldname هنا له قيمة أو قواعد صحيحة (أمثلة): <BR> 
- myfield 
- وحدة التقييم: doc.myfield == 'بلدي القيمة' <BR> 
- وحدة التقييم: doc.age> 18"
+This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>myfieldeval:doc.myfield=='My Value'<br>eval:doc.age>18,سيظهر هذا المجال إلا إذا كان تعريف fieldname هنا له قيمة أو قواعد صحيحة (أمثلة): <BR>  myfield  وحدة التقييم: doc.myfield == 'بلدي القيمة' <BR>  وحدة التقييم: doc.age> 18
 This goes above the slideshow.,هذا يذهب فوق عرض الشرائح.
 This is PERMANENT action and you cannot undo. Continue?,هذا هو العمل الدائم ويمكنك التراجع لا. المتابعة؟
 "This is a standard format. To make changes, please copy it make make a new format.",هذه هي صيغة قياسية. لإجراء تغييرات، يرجى نسخه جعل جعل شكل جديد.
@@ -1265,9 +1245,7 @@ You cannot install this app,لا يمكنك تثبيت هذا التطبيق
 You have unsaved changes in this form. Please save before you continue.,لديك تغييرات لم يتم حفظها في هذا النموذج.
 You need to be logged in and have System Manager Role to be able to access backups.,تحتاج إلى أن تقوم بتسجيل الدخول ولها دور مدير النظام أن يكون قادرا على الوصول إلى النسخ الاحتياطي.
 You need write permission to rename,كنت بحاجة إلى كتابة إذن لإعادة تسمية
-"You seem to have written your name instead of your email. \
-					Please enter a valid email address so that we can get back.","يبدو أنك قد كتبت اسمك بدلا من البريد الإلكتروني الخاص بك. \
- الرجاء إدخال عنوان بريد إلكتروني صالح حتى نتمكن من الحصول على الظهر."
+You seem to have written your name instead of your email. \					Please enter a valid email address so that we can get back.,يبدو أنك قد كتبت اسمك بدلا من البريد الإلكتروني الخاص بك. \ الرجاء إدخال عنوان بريد إلكتروني صالح حتى نتمكن من الحصول على الظهر.
 "Your download is being built, this may take a few moments...",ويجري بناء التنزيل، وهذا قد يستغرق بضع لحظات ...
 [Label]:[Field Type]/[Options]:[Width],[تسمية]: [نوع الحقل] / [خيارات]: [العرض]
 [Optional] Send the email X days in advance of the specified date. 0 equals same day.,[اختياري] إرسال البريد الإلكتروني X أيام قبل التاريخ المحدد. 0 يساوي نفس اليوم.

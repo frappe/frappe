@@ -8,17 +8,7 @@
 "000 is black, fff is white","000 je crno, FFF je bijela"
 2 days ago,Prije 2 dana
 "<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank"">[?]</a>","<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target""_blank""> [ ? ] < / a>"
-"<a onclick=""msgprint('<ol>\
-<li><b>field:[fieldname]</b> - By Field\
-<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\
-<li><b>Prompt</b> - Prompt user for a name\
-<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\
-</ol>')"">Naming Options</a>","<Onclick = ""msgprint ('<ol> \
- <li> <b> polje: [podataka, Naziv Polja] </ b> - Prema području \
- <li> <b> naming_series: </ b > - imenovanjem Series (polje pozvao naming_series mora biti prisutan \
- <li> <b> Zatraži </ b> - Zatraži od korisnika za ime \
- <li> <b> [serija] </ . b> - Series by prefiks (odvojenih točkom), na primjer prije # # # # # \
- </ ol> ') ""> Imenovanje Enter </>"
+"<a onclick=""msgprint('<ol>\<li><b>field:[fieldname]</b> - By Field\<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\<li><b>Prompt</b> - Prompt user for a name\<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\</ol>')"">Naming Options</a>","<Onclick = ""msgprint ('<ol> \ <li> <b> polje: [podataka, Naziv Polja] </ b> - Prema području \ <li> <b> naming_series: </ b > - imenovanjem Series (polje pozvao naming_series mora biti prisutan \ <li> <b> Zatraži </ b> - Zatraži od korisnika za ime \ <li> <b> [serija] </ . b> - Series by prefiks (odvojenih točkom), na primjer prije # # # # # \ </ ol> ') ""> Imenovanje Enter </>"
 <b>new</b> <i>type of document</i>,<b> Nova </ b> <i> vrsta dokumenta </ i>
 "<i>document type...</i>, e.g. <b>customer</b>","<i> vrstu dokumenta ... </ i>, npr. <b> kupac </ b>"
 <i>e.g. <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>,<i> npr. <strong> (55 + 434) / 4 </ strong> ili <strong> = Math.sin (math.PI / 2) </ strong> ... </ i>
@@ -428,9 +418,7 @@ Footer Background,Footer Pozadina
 Footer Items,Footer Proizvodi
 Footer Text,Podnožje
 For DocType,za DOCTYPEhtml
-"For Links, enter the DocType as range
-For Select, enter list of Options separated by comma","Za Linkovi, unesite DOCTYPEhtml kao rasponu 
- Za Select, unesite popis Opcije razdvojene zarezom"
+"For Links, enter the DocType as rangeFor Select, enter list of Options separated by comma","Za Linkovi, unesite DOCTYPEhtml kao rasponu  Za Select, unesite popis Opcije razdvojene zarezom"
 "For comparative filters, start with","Za komparativne filtera, početi s"
 For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,"Na primjer, ako ste odustali i dopune &#39;INV004&#39; postat će novi dokument &#39;INV004-1&#39;. To vam pomaže pratiti svaku izmjenu i dopunu."
 For ranges,Za raspone
@@ -808,9 +796,7 @@ Please attach a file or set a URL,Molimo priložite datoteku ili postaviti URL
 Please do not change the rows above {0},"Molim vas, nemojte mijenjati retke iznad {0}"
 Please enable pop-ups,Molimo omogućite pop-up prozora
 Please enter Event's Date and Time!,Unesite događaja Datum i vrijeme!
-"Please enter both your email and message so that we \
-				can get back to you. Thanks!","Molimo unesite i svoj e-mail i poruke, tako da smo \
- može se vratiti k vama. Zahvaljujemo!"
+Please enter both your email and message so that we \				can get back to you. Thanks!,"Molimo unesite i svoj e-mail i poruke, tako da smo \ može se vratiti k vama. Zahvaljujemo!"
 Please enter some text!,Unesite tekst !
 Please enter title!,Unesite naslov !
 Please login to Upvote!,"Molimo , prijavite se upvote !"
@@ -1109,13 +1095,7 @@ There were errors while sending email. Please try again.,Bilo je grešaka tijeko
 These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,"Ove vrijednosti će se automatski ažuriraju u prometu, te će također biti korisno ograničiti dozvole za ovog korisnika o transakcijama koje sadrže te vrijednosti."
 "These will also be set as default values for those links, if only one such permission record is defined.","To će također biti postavljen kao zadane vrijednosti za one linkove , ako samo jedan je takvo dopuštenje rekord definiran ."
 Third Party Authentication,Autentičnosti treće strane
-"This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>
-myfield
-eval:doc.myfield=='My Value'<br>
-eval:doc.age>18","Ovo polje će se pojaviti samo ako podataka, Naziv Polja ovdje definirana ima vrijednost ili pravila su pravi (primjeri): <br> 
- myfield 
- vrednuje: doc.myfield == 'Moj Vrijednost' <br> 
- vrednuje: doc.age> 18"
+This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>myfieldeval:doc.myfield=='My Value'<br>eval:doc.age>18,"Ovo polje će se pojaviti samo ako podataka, Naziv Polja ovdje definirana ima vrijednost ili pravila su pravi (primjeri): <br>  myfield  vrednuje: doc.myfield == 'Moj Vrijednost' <br>  vrednuje: doc.age> 18"
 This goes above the slideshow.,To ide iznad slideshow.
 This is PERMANENT action and you cannot undo. Continue?,"To je stalna akcija, a ne možete poništiti. Nastaviti?"
 "This is a standard format. To make changes, please copy it make make a new format.","To je standardni format. Da bi promjene, kopirajte to bi napraviti novi format."
@@ -1265,9 +1245,7 @@ You cannot install this app,Vi ne možete instalirati ovu aplikaciju
 You have unsaved changes in this form. Please save before you continue.,Vi niste spremili promjene u ovom obliku .
 You need to be logged in and have System Manager Role to be able to access backups.,Morate biti prijavljeni i imati sustav Manager ulogu da bi mogli pristupiti sigurnosne kopije .
 You need write permission to rename,Trebate pismeno dopuštenje za preimenovanje
-"You seem to have written your name instead of your email. \
-					Please enter a valid email address so that we can get back.","Čini se da si napisao svoje ime, umjesto svoj e-mail. \
- Molimo da unesete ispravnu e-mail adresu tako da se možemo vratiti."
+You seem to have written your name instead of your email. \					Please enter a valid email address so that we can get back.,"Čini se da si napisao svoje ime, umjesto svoj e-mail. \ Molimo da unesete ispravnu e-mail adresu tako da se možemo vratiti."
 "Your download is being built, this may take a few moments...","Vaš preuzimanje se gradi, to može potrajati nekoliko trenutaka ..."
 [Label]:[Field Type]/[Options]:[Width],[Label]: [Field Type] / [Options]: [Širina]
 [Optional] Send the email X days in advance of the specified date. 0 equals same day.,[Opcionalno] poslati e-X dana prije navedenog datuma. 0 jednaka isti dan.

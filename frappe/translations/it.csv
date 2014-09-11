@@ -8,23 +8,13 @@
 "000 is black, fff is white","000 è nero, fff è bianco"
 2 days ago,2 giorni fà
 "<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank"">[?]</a>","<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank""> [ ? ] < / a>"
-"<a onclick=""msgprint('<ol>\
-<li><b>field:[fieldname]</b> - By Field\
-<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\
-<li><b>Prompt</b> - Prompt user for a name\
-<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\
-</ol>')"">Naming Options</a>","<A onclick = ""msgprint ('<ol> \
- <li> <b> campo: [nomecampo] </ b> - In Campo \
- <li> <b> naming_series: </ b > - Per Naming Series (campo denominato naming_series deve essere presente \
- <li> <b> Prompt </ b> - Richiedi all'utente un nome \
- <li> <b> [serie] </ . b> - Series by prefisso (separati da un punto), ad esempio PRE # # # # # \
- </ ol> ') ""> Naming Opzioni </ a>"
+"<a onclick=""msgprint('<ol>\<li><b>field:[fieldname]</b> - By Field\<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\<li><b>Prompt</b> - Prompt user for a name\<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\</ol>')"">Naming Options</a>","<A onclick = ""msgprint ('<ol> \ <li> <b> campo: [nomecampo] </ b> - In Campo \ <li> <b> naming_series: </ b > - Per Naming Series (campo denominato naming_series deve essere presente \ <li> <b> Prompt </ b> - Richiedi all'utente un nome \ <li> <b> [serie] </ . b> - Series by prefisso (separati da un punto), ad esempio PRE # # # # # \ </ ol> ') ""> Naming Opzioni </ a>"
 <b>new</b> <i>type of document</i>,<b> nuovo </ b> <i> tipo di documento </ i>
 "<i>document type...</i>, e.g. <b>customer</b>","<i> tipo di documento ... </ i>, ad esempio <b> cliente </ b>"
 <i>e.g. <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>,<i> esempio <strong> (55 + 434) / 4 </ strong> o = <strong> Math.sin (Math.PI / 2) </ strong> ... </ i>
 <i>module name...</i>,<i> nome del modulo ... </ i>
 <i>text</i> <b>in</b> <i>document type</i>,text <i> </ i> <b> in </ b> <i> tipo di documento </ i>
-A user can be permitted to multiple records of the same DocType.,Un utente può essere consentito a più record dello stesso DocType .
+A user can be permitted to multiple records of the same DocType.,Un utente può essere consentito in più record per lo stesso tipo di documento (DocType).
 About,About
 About Us Settings,Chi siamo Impostazioni
 About Us Team Member,Chi Siamo Membri Team
@@ -428,9 +418,7 @@ Footer Background,Footer Background
 Footer Items,elementi Piè di pagina
 Footer Text,Piè di pagina di testo
 For DocType,per DocType
-"For Links, enter the DocType as range
-For Select, enter list of Options separated by comma","Per i collegamenti, inserire il DocType come gamma 
- Per Select, l'elenco delle opzioni separate da virgole entrare"
+"For Links, enter the DocType as rangeFor Select, enter list of Options separated by comma","Per i collegamenti, inserire il DocType come gamma  Per Select, l'elenco delle opzioni separate da virgole entrare"
 "For comparative filters, start with","Per i filtri di confronto, iniziare con"
 For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,Ad esempio in caso di annullamento e modifica 'INV004' diventerà un nuovo documento 'INV004-1'. Questo vi aiuta a tenere traccia di ogni modifica.
 For ranges,Per Intervallo
@@ -808,9 +796,7 @@ Please attach a file or set a URL,Si prega di allegare un file o impostare un UR
 Please do not change the rows above {0},Si prega di non modificare le righe al di sopra {0}
 Please enable pop-ups,Si prega di abilitare i pop-up
 Please enter Event's Date and Time!,Inserisci Data e ora di Event !
-"Please enter both your email and message so that we \
-				can get back to you. Thanks!","Si prega di inserire sia il tuo indirizzo email e il messaggio in modo da \
- può tornare a voi. Grazie!"
+Please enter both your email and message so that we \				can get back to you. Thanks!,Si prega di inserire sia il tuo indirizzo email e il messaggio in modo da \ può tornare a voi. Grazie!
 Please enter some text!,Inserisci il testo !
 Please enter title!,Inserisci il titolo!
 Please login to Upvote!,Effettua il login per upvote !
@@ -1109,13 +1095,7 @@ There were errors while sending email. Please try again.,Ci sono stati errori du
 These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,Questi valori saranno aggiornati automaticamente nelle transazioni e anche sarà utile per limitare le autorizzazioni per l&#39;utente sulle operazioni che contengono questi valori.
 "These will also be set as default values for those links, if only one such permission record is defined.","Questi saranno anche essere impostati come valori predefiniti per questi link , se solo uno di questi record di autorizzazione è definito."
 Third Party Authentication,L'autenticazione di terze parti
-"This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>
-myfield
-eval:doc.myfield=='My Value'<br>
-eval:doc.age>18","Questo campo viene visualizzato solo se il nome del campo definito qui ha valore O le regole sono veri (esempi): <br> 
- myfield 
- eval: doc.myfield == 'il mio valore' <br> 
- eval: doc.age> 18"
+This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>myfieldeval:doc.myfield=='My Value'<br>eval:doc.age>18,Questo campo viene visualizzato solo se il nome del campo definito qui ha valore O le regole sono veri (esempi): <br>  myfield  eval: doc.myfield == 'il mio valore' <br>  eval: doc.age> 18
 This goes above the slideshow.,Questo va al di sopra della presentazione.
 This is PERMANENT action and you cannot undo. Continue?,Questa è l&#39;azione permanente e non può essere annullata. Continuare?
 "This is a standard format. To make changes, please copy it make make a new format.","Questo è un formato standard. Per apportare modifiche, ti preghiamo di copiare ne fanno fare un nuovo formato."
@@ -1265,9 +1245,7 @@ You cannot install this app,Non è possibile installare questa app
 You have unsaved changes in this form. Please save before you continue.,Hai modifiche non salvate in questa forma .
 You need to be logged in and have System Manager Role to be able to access backups.,Devi essere registrato ed avere Sistema Role Manager per poter accedere backup.
 You need write permission to rename,È necessario permesso di scrittura per rinominare
-"You seem to have written your name instead of your email. \
-					Please enter a valid email address so that we can get back.","Sembra che tu abbia scritto il tuo nome al posto del tuo indirizzo email. \
- Si prega di inserire un indirizzo email valido in modo che possiamo tornare indietro."
+You seem to have written your name instead of your email. \					Please enter a valid email address so that we can get back.,Sembra che tu abbia scritto il tuo nome al posto del tuo indirizzo email. \ Si prega di inserire un indirizzo email valido in modo che possiamo tornare indietro.
 "Your download is being built, this may take a few moments...","Il download è in costruzione, l&#39;operazione potrebbe richiedere alcuni minuti ..."
 [Label]:[Field Type]/[Options]:[Width],[Label]: [Tipo di campo] / [Opzioni]: [Larghezza]
 [Optional] Send the email X days in advance of the specified date. 0 equals same day.,[Facoltativo] inviare l'email di X giorni prima della data specificata. 0 equivale stesso giorno.

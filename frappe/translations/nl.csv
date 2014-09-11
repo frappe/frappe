@@ -8,49 +8,39 @@
 "000 is black, fff is white","000 is zwart, fff is wit"
 2 days ago,2 dagen geleden
 "<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank"">[?]</a>","<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank""> [ ? ] < / a>"
-"<a onclick=""msgprint('<ol>\
-<li><b>field:[fieldname]</b> - By Field\
-<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\
-<li><b>Prompt</b> - Prompt user for a name\
-<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\
-</ol>')"">Naming Options</a>","<A onclick = ""msgprint ('<ol> \
- <li> <b> veld: [veldnaam] </ b> - Door Field \
- <li> <b> naming_series: </ b > - Door Naming Series (veld genaamd naming_series moet aanwezig zijn \
- <li> <b> Prompt </ b> - Vraagt de gebruiker om een naam \
- <li> <b> [serie] </ . b> - Series by prefix (gescheiden door een punt), bijvoorbeeld PRE # # # # # \
- </ ol> ') ""> Naamgeving Opties </ a>"
+"<a onclick=""msgprint('<ol>\<li><b>field:[fieldname]</b> - By Field\<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\<li><b>Prompt</b> - Prompt user for a name\<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\</ol>')"">Naming Options</a>","<A onclick = ""msgprint ('<ol> \ <li> <b> veld: [veldnaam] </ b> - Door Field \ <li> <b> naming_series: </ b > - Door Naming Series (veld genaamd naming_series moet aanwezig zijn \ <li> <b> Prompt </ b> - Vraagt de gebruiker om een naam \ <li> <b> [serie] </ . b> - Series by prefix (gescheiden door een punt), bijvoorbeeld PRE # # # # # \ </ ol> ') ""> Naamgeving Opties </ a>"
 <b>new</b> <i>type of document</i>,<b> nieuwe </ b> <i> type document </ i>
 "<i>document type...</i>, e.g. <b>customer</b>","<i> documenttype ... </ i>, bijv. <b> klant </ b>"
 <i>e.g. <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>,<i> bijv. <strong> (55 + 434) / 4 </ strong> of <strong> = Math.sin (Math.PI / 2) </ strong> ... </ i>
 <i>module name...</i>,<i> module naam ... </ i>
 <i>text</i> <b>in</b> <i>document type</i>,<i> tekst </ i> <b> in </ b> <i> documenttype </ i>
-A user can be permitted to multiple records of the same DocType.,Een gebruiker kan worden toegestaan ​​om meerdere records van dezelfde DocType .
+A user can be permitted to multiple records of the same DocType.,Een gebruiker kan worden toegelaten ​​tot meerdere records van dezelfde DocType .
 About,Over
 About Us Settings,Over Ons Instellingen
-About Us Team Member,Over ons Team Member
+About Us Team Member,Over ons Teamlid
 Action,Actie
-Actions,acties
+Actions,Acties
 "Actions for workflow (e.g. Approve, Cancel).","Acties voor workflow ( bijv. goedkeuren , Annuleren) ."
 Add,Toevoegen
-Add A New Rule,Voeg een nieuwe regel
-Add A User Permission,Add A User Permission
+Add A New Rule,Voeg een nieuwe regel toe
+Add A User Permission,Voeg een gebruikerstoegang toe
 Add Attachments,Bijlagen toevoegen
 Add Bookmark,Voeg bladwijzer toe
-Add CSS,Voeg CSS
+Add CSS,Voeg CSS toe
 Add Column,Kolom toevoegen
-Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,Voeg Google Analytics ID: bv. UA-89XXX57-1. Zoek dan hulp bij Google Analytics voor meer informatie.
+Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,Voeg Google Analytics ID toe: bv. UA-89XXX57-1. Zoek hulp bij Google Analytics voor meer informatie.
 Add Message,Bericht toevoegen
 Add New Permission Rule,Toevoegen nieuwe Toestemming regel
 Add Reply,Voeg antwoord
 Add Total Row,Voeg Totaal Row
-Add a New Role,Voeg een nieuwe rol
-Add a banner to the site. (small banners are usually good),Plaats ook een banner op de site. (Kleine banners zijn meestal goed)
-Add all roles,Voeg alle rollen
+Add a New Role,Voeg een nieuwe rol toe
+Add a banner to the site. (small banners are usually good),Plaat een banner op de site. (Kleine banners zijn meestal goed)
+Add all roles,Voeg alle rollen toe
 Add attachment,Bijlage toevoegen
-Add code as &lt;script&gt;,Voeg code als &lt;script&gt;
-Add custom javascript to forms.,Voeg aangepaste javascript te vormen .
-Add fields to forms.,Velden toe aan een formulier .
-Add multiple rows,Voeg meerdere rijen
+Add code as &lt;script&gt;,Voeg code toe als <script>
+Add custom javascript to forms.,Voeg aangepaste javascript toe aan formulieren.
+Add fields to forms.,Voeg velden toe aan formulieren
+Add multiple rows,Meerdere rijen toevoegen
 Add new row,Voeg een nieuwe rij
 "Add the name of <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> e.g. ""Open Sans""","Voeg de naam van de <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> bv. &quot;Open Sans&quot;"
 Add to To Do,Toevoegen aan To Do
@@ -428,9 +418,7 @@ Footer Background,Voettekst Achtergrond
 Footer Items,Footer Items
 Footer Text,Footer Text
 For DocType,voor DocType
-"For Links, enter the DocType as range
-For Select, enter list of Options separated by comma","Voor Links, voer de DocType als range 
- Voor Kiezen, voer lijst van opties, gescheiden door een komma"
+"For Links, enter the DocType as rangeFor Select, enter list of Options separated by comma","Voor Links, voer de DocType als range  Voor Kiezen, voer lijst van opties, gescheiden door een komma"
 "For comparative filters, start with","Voor vergelijkingsdoeleinden filters, te beginnen met"
 For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,Bijvoorbeeld als u wilt annuleren en wijzigen &#39;INV004&#39; het zal worden een nieuw document &#39;INV004-1&#39;. Dit helpt u bij te houden van elke wijziging.
 For ranges,Voor bereiken
@@ -808,9 +796,7 @@ Please attach a file or set a URL,Gelieve een bestand of stel een URL
 Please do not change the rows above {0},Gelieve niet de rijen veranderen bovenstaande {0}
 Please enable pop-ups,Schakel pop - ups
 Please enter Event's Date and Time!,Vul Event Datum en tijd !
-"Please enter both your email and message so that we \
-				can get back to you. Thanks!","Vul zowel uw e-mail en bericht, zodat we \
- terug naar je kunt krijgen. Danke!"
+Please enter both your email and message so that we \				can get back to you. Thanks!,"Vul zowel uw e-mail en bericht, zodat we \ terug naar je kunt krijgen. Danke!"
 Please enter some text!,U dient een tekst !
 Please enter title!,Vul de titel!
 Please login to Upvote!,Log in om Upvote !
@@ -1109,13 +1095,7 @@ There were errors while sending email. Please try again.,Er zijn fouten opgetred
 These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,Deze waarden worden automatisch bijgewerkt in transacties en zal ook nuttig zijn om machtigingen voor deze gebruiker op de transacties die deze waarden te beperken.
 "These will also be set as default values for those links, if only one such permission record is defined.","Deze zullen ook worden ingesteld als standaardwaarden voor deze banden , als er maar een dergelijke toestemming record wordt gedefinieerd ."
 Third Party Authentication,Third Party Authentication
-"This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>
-myfield
-eval:doc.myfield=='My Value'<br>
-eval:doc.age>18","Dit veld verschijnt alleen als de veldnaam hier gedefinieerd heeft waarde of de regels waar zijn (voorbeelden): <br> 
- myfield 
- eval: doc.myfield == 'Mijn Waarde' <br> 
- eval: doc.age> 18"
+This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>myfieldeval:doc.myfield=='My Value'<br>eval:doc.age>18,Dit veld verschijnt alleen als de veldnaam hier gedefinieerd heeft waarde of de regels waar zijn (voorbeelden): <br>  myfield  eval: doc.myfield == 'Mijn Waarde' <br>  eval: doc.age> 18
 This goes above the slideshow.,Dit gaat boven de diavoorstelling.
 This is PERMANENT action and you cannot undo. Continue?,Dit is PERMANENTE actie en u ongedaan kunt maken niet. Doorgaan?
 "This is a standard format. To make changes, please copy it make make a new format.","Dit is een standaard formaat. Om wijzigingen aan te brengen, kopieer het te maken een nieuw formaat."
@@ -1265,9 +1245,7 @@ You cannot install this app,U kunt deze app niet installeren
 You have unsaved changes in this form. Please save before you continue.,Je hebt opgeslagen wijzigingen in deze vorm .
 You need to be logged in and have System Manager Role to be able to access backups.,Je moet ingelogd zijn en hebben System Manager Rol om toegang tot back-ups.
 You need write permission to rename,Je hebt toestemming nodig om te hernoemen schrijven
-"You seem to have written your name instead of your email. \
-					Please enter a valid email address so that we can get back.","Je lijkt je naam te hebben geschreven in plaats van uw e-mail. \
- Vul een geldig e-mailadres, zodat we terug kunnen krijgen."
+You seem to have written your name instead of your email. \					Please enter a valid email address so that we can get back.,"Je lijkt je naam te hebben geschreven in plaats van uw e-mail. \ Vul een geldig e-mailadres, zodat we terug kunnen krijgen."
 "Your download is being built, this may take a few moments...","Uw download wordt gebouwd, kan dit enige tijd duren ..."
 [Label]:[Field Type]/[Options]:[Width],[Label]: [Veld Type] / [Opties]: [Breedte]
 [Optional] Send the email X days in advance of the specified date. 0 equals same day.,[Optioneel] Stuur de e-mail X dagen voor de opgegeven datum. 0 gelijk dezelfde dag.
@@ -1435,8 +1413,8 @@ volume-up,volume-up
 warning-sign,waarschuwing-teken
 wrench,moersleutel
 yyyy-mm-dd,yyyy-mm-dd
-zoom-in,zoom-in
-zoom-out,zoom-out
+zoom-in,inzoomen
+zoom-out,uitzoomen
 {0} List,{0} Lijst
 {0} added,{0} toegevoegd
 {0} by {1},{0} van {1}

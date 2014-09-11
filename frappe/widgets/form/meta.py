@@ -9,6 +9,8 @@ from frappe.model.meta import Meta
 from frappe.modules import scrub, get_module_path, load_doctype_module
 from frappe.model.workflow import get_workflow_name
 from frappe.utils import get_html_format
+from frappe.translate import make_dict_from_messages, extract_messages_from_code
+from frappe.utils.jinja import render_include
 
 ######
 
@@ -19,7 +21,7 @@ def get_meta(doctype, cached=True):
 		meta = FormMeta(doctype)
 
 	if frappe.local.lang != 'en':
-		meta.set("__messages", frappe.get_lang_dict("doctype", doctype))
+		meta.set_translations(frappe.local.lang)
 
 	return meta
 
@@ -60,7 +62,6 @@ class FormMeta(Meta):
 		self._add_code(_get_path(self.name + '.css'), "__css")
 		self._add_code(_get_path(self.name + '_list.js'), '__list_js')
 		self._add_code(_get_path(self.name + '_calendar.js'), '__calendar_js')
-		self._add_code(_get_path(self.name + '_map.js'), '__map_js')
 
 		listview_template = _get_path(self.name + '_list.html')
 		if os.path.exists(listview_template):
@@ -72,7 +73,7 @@ class FormMeta(Meta):
 	def _add_code(self, path, fieldname):
 		js = frappe.read_file(path)
 		if js:
-			self.set(fieldname, (self.get(fieldname) or "") + "\n\n" + render_jinja(js))
+			self.set(fieldname, (self.get(fieldname) or "") + "\n\n" + render_include(js))
 
 	def add_code_via_hook(self, hook, fieldname):
 		for app_name in frappe.get_installed_apps():
@@ -95,11 +96,6 @@ class FormMeta(Meta):
 			"script_type": "Client"}, "script") or ""
 
 		self.set("__js", (self.get('__js') or '') + "\n\n" + custom)
-
-	def render_jinja(content):
-		if "{% include" in content:
-			content = frappe.get_jenv().from_string(content).render()
-		return content
 
 	def add_search_fields(self):
 		"""add search fields found in the doctypes indicated by link fields' options"""
@@ -170,8 +166,14 @@ class FormMeta(Meta):
 
 			self.set("__form_grid_templates", templates)
 
-def render_jinja(content):
-	if "{% include" in content:
-		content = frappe.get_jenv().from_string(content).render()
-	return content
+	def set_translations(self, lang):
+		self.set("__messages", frappe.get_lang_dict("doctype", self.name))
+
+		# set translations for grid templates
+		if self.get("__form_grid_templates"):
+			for content in self.get("__form_grid_templates").values():
+				messages = extract_messages_from_code(content)
+				messages = make_dict_from_messages(messages)
+				self.get("__messages").update(messages)
+
 

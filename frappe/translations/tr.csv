@@ -8,17 +8,7 @@
 "000 is black, fff is white","000 siyah, fff beyaz"
 2 days ago,2 gün önce
 "<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank"">[?]</a>","<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank""> [?]</ A>"
-"<a onclick=""msgprint('<ol>\
-<li><b>field:[fieldname]</b> - By Field\
-<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\
-<li><b>Prompt</b> - Prompt user for a name\
-<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\
-</ol>')"">Naming Options</a>","<A onclick = ""msgprint ('<ol> \
- <li> <b> alanı: [fieldname] </ b> - Alana Göre \
- <li> <b> naming_series: </ b > - Seri adlandırma By (naming_series denilen alan mevcut olması gerekir \
- <li> <b> İstemi </ b> - Bir isim için İstemi kullanıcı \
- <li> <b> [dizi] </ . b> - prefix (bir nokta ile ayrılmış) tarafından Serisi; örnek ÖNLİSANS için # # # # # \
- </ ol> ') ""> Seçenekler adlandırma </ a>"
+"<a onclick=""msgprint('<ol>\<li><b>field:[fieldname]</b> - By Field\<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\<li><b>Prompt</b> - Prompt user for a name\<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\</ol>')"">Naming Options</a>","<A onclick = ""msgprint ('<ol> \ <li> <b> alanı: [fieldname] </ b> - Alana Göre \ <li> <b> naming_series: </ b > - Seri adlandırma By (naming_series denilen alan mevcut olması gerekir \ <li> <b> İstemi </ b> - Bir isim için İstemi kullanıcı \ <li> <b> [dizi] </ . b> - prefix (bir nokta ile ayrılmış) tarafından Serisi; örnek ÖNLİSANS için # # # # # \ </ ol> ') ""> Seçenekler adlandırma </ a>"
 <b>new</b> <i>type of document</i>,Belgenin <b> yeni </ b> tipi </ i>
 "<i>document type...</i>, e.g. <b>customer</b>","<i> belge türü ... </ i>, örneğin <b> müşteri </ b>"
 <i>e.g. <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>,<i> örneğin <strong> (55 + 434) / 4 </ strong> veya <strong> = Math.sin (Math.PI / 2) </ strong> ... </ i>
@@ -428,9 +418,7 @@ Footer Background,Altbilgi Arkaplan
 Footer Items,Altbilgi Öğeleri
 Footer Text,Altbilgi Metin
 For DocType,DocType için
-"For Links, enter the DocType as range
-For Select, enter list of Options separated by comma","Linkler için, aralık gibi DOCTYPE girmek 
- Select için, virgülle ayrılmış Seçenekleri listesine girmek"
+"For Links, enter the DocType as rangeFor Select, enter list of Options separated by comma","Linkler için, aralık gibi DOCTYPE girmek  Select için, virgülle ayrılmış Seçenekleri listesine girmek"
 "For comparative filters, start with",Karşılaştırmalı filtreler ile başlar
 For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,"İptal ve 'INV004' değişiklik Örneğin yeni bir belge 'INV004-1' olacak. Bu, her değişikliğin izlemenize yardımcı olur."
 For ranges,Aralıkları için
@@ -808,9 +796,7 @@ Please attach a file or set a URL,Bir dosya eklemek veya bir URL set edin
 Please do not change the rows above {0},Yukarıdaki satırları lütfen değiştirmeyin {0}
 Please enable pop-ups,Pop-up etkinleştirin
 Please enter Event's Date and Time!,Etkinliğin Tarihi ve Saati girin!
-"Please enter both your email and message so that we \
-				can get back to you. Thanks!","E-posta ve mesaj hem girin ki biz \
- size geri alabilirsiniz. Teşekkürler!"
+Please enter both your email and message so that we \				can get back to you. Thanks!,E-posta ve mesaj hem girin ki biz \ size geri alabilirsiniz. Teşekkürler!
 Please enter some text!,Bazı metin girin!
 Please enter title!,Başlık giriniz!
 Please login to Upvote!,Upvote için giriş yapın!
@@ -1109,13 +1095,7 @@ There were errors while sending email. Please try again.,E-posta gönderirken ha
 These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,"Bu değerler otomatik işlemlerde güncellenen olacak ve ayrıca bu değerleri içeren işlemlerden, bu kullanıcı için izinleri kısıtlamak için yararlı olacaktır."
 "These will also be set as default values for those links, if only one such permission record is defined.","Sadece böyle bir izin kaydı tanımlanmış ise, bu da, bu bağlantılar için varsayılan değerler olarak ayarlanacaktır."
 Third Party Authentication,Üçüncü Taraf Doğrulama
-"This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>
-myfield
-eval:doc.myfield=='My Value'<br>
-eval:doc.age>18","Burada tanımlanan fieldname değerine sahip VEYA kurallar geçerlidir (örnek) vardır Bu alan yalnızca görünür: <br> 
- myfield 
- eval: doc.myfield == 'My Değer' <br> 
- eval: doc.age> 18"
+This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>myfieldeval:doc.myfield=='My Value'<br>eval:doc.age>18,Burada tanımlanan fieldname değerine sahip VEYA kurallar geçerlidir (örnek) vardır Bu alan yalnızca görünür: <br>  myfield  eval: doc.myfield == 'My Değer' <br>  eval: doc.age> 18
 This goes above the slideshow.,Bu slayt yukarıda gider.
 This is PERMANENT action and you cannot undo. Continue?,Bu KALICI eylem ve geri alamazsınız. Devam etmek istiyor musunuz
 "This is a standard format. To make changes, please copy it make make a new format.","Bu standart bir formattır. Değişiklikleri yapmak için, yeni bir biçim make kopyalayın."
@@ -1265,9 +1245,7 @@ You cannot install this app,Bu uygulamayı kuramazsınız
 You have unsaved changes in this form. Please save before you continue.,Bu formda kaydedilmemiş değişiklikler var. Devam etmeden önce lütfen kaydedin.
 You need to be logged in and have System Manager Role to be able to access backups.,Girmen ve yedekleri erişmek mümkün Sistem Yöneticisi Rolü olması gerekir.
 You need write permission to rename,Sen adlandırmak için yazma izni gerekiyor
-"You seem to have written your name instead of your email. \
-					Please enter a valid email address so that we can get back.","Eğer e-posta yerine ismini yazdım gibi görünüyor. \
- Geri alabilirsiniz böylece geçerli bir e-posta adresi girin."
+You seem to have written your name instead of your email. \					Please enter a valid email address so that we can get back.,Eğer e-posta yerine ismini yazdım gibi görünüyor. \ Geri alabilirsiniz böylece geçerli bir e-posta adresi girin.
 "Your download is being built, this may take a few moments...","Sizin indir Bu birkaç dakika sürebilir, inşa ediliyor ..."
 [Label]:[Field Type]/[Options]:[Width],[Etiket]: [Alan Tipi] / [Seçenekler]: [Genişlik]
 [Optional] Send the email X days in advance of the specified date. 0 equals same day.,[İsteğe bağlı] belirtilen tarih öncesinde e-posta X günde gönderin. 0 Aynı gün eşittir.

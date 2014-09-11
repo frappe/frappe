@@ -138,22 +138,12 @@ def add_total_row(result, columns):
 
 def get_filtered_data(ref_doctype, columns, data):
 	result = []
+	linked_doctypes = get_linked_doctypes(columns, data)
+	match_filters_per_doctype = get_user_match_filters(linked_doctypes, ref_doctype)
 
-	linked_doctypes = get_linked_doctypes(columns)
-	match_filters = get_user_match_filters(linked_doctypes, ref_doctype)
-
-	if match_filters:
-		matched_columns = get_matched_columns(linked_doctypes, match_filters)
+	if match_filters_per_doctype:
 		for row in data:
-			match = True
-
-			if not ("owner" in match_filters and matched_columns.get("user", None)==match_filters["owner"]):
-				for col, idx in matched_columns.items():
-					if row[idx] not in match_filters[col]:
-						match = False
-						break
-
-			if match:
+			if has_match(row, linked_doctypes, match_filters_per_doctype):
 				result.append(row)
 	else:
 		for row in data:
@@ -161,7 +151,39 @@ def get_filtered_data(ref_doctype, columns, data):
 
 	return result
 
-def get_linked_doctypes(columns):
+def has_match(row, linked_doctypes, doctype_match_filters):
+	resultant_match = True
+
+	if not row:
+		# allow empty rows :)
+		return resultant_match
+
+	for doctype, filter_list in doctype_match_filters.items():
+		matched_for_doctype = False
+
+		for match_filters in filter_list:
+			match = True
+			for dt, idx in linked_doctypes.items():
+				if dt in match_filters and row[idx] not in match_filters[dt]:
+					match = False
+					break
+
+			# each doctype could have multiple conflicting user permission doctypes, hence using OR
+			# so that even if one of the sets allows a match, it is true
+			matched_for_doctype = matched_for_doctype or match
+
+			if matched_for_doctype:
+				break
+
+		# each doctype's user permissions should match the row! hence using AND
+		resultant_match = resultant_match and matched_for_doctype
+
+		if not resultant_match:
+			break
+
+	return resultant_match
+
+def get_linked_doctypes(columns, data):
 	linked_doctypes = {}
 
 	for idx, col in enumerate(columns):
@@ -173,7 +195,12 @@ def get_linked_doctypes(columns):
 
 		# dict
 		elif col.get("fieldtype")=="Link" and col.get("options"):
-			linked_doctypes[col["options"]] = idx
+			linked_doctypes[col["options"]] = col["fieldname"]
+
+	# remove doctype if column is empty
+	for doctype, key in linked_doctypes.items():
+		if not any(d[key] for d in data):
+			del linked_doctypes[doctype]
 
 	return linked_doctypes
 
@@ -181,18 +208,8 @@ def get_user_match_filters(doctypes, ref_doctype):
 	match_filters = {}
 
 	for dt in doctypes:
-		match_filters.update(frappe.widgets.reportview.build_match_conditions(dt, False))
+		filter_list = frappe.widgets.reportview.build_match_conditions(dt, False)
+		if filter_list:
+			match_filters[dt] = filter_list
 
 	return match_filters
-
-def get_matched_columns(linked_doctypes, match_filters):
-	if "owner" in match_filters:
-		match_filters["user"] = match_filters["owner"]
-
-	col_idx_map = {}
-	for dt, idx in linked_doctypes.items():
-		link_field = dt.lower().replace(" ", "_")
-		if link_field in match_filters:
-			col_idx_map[link_field] = idx
-
-	return col_idx_map

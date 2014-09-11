@@ -40,22 +40,24 @@ def get_new_doc(doctype, parent_doc = None, parentfield = None):
 	return doc
 
 def get_default_value(df, defaults, user_permissions, parent_doc):
-	# 1 - look in user permissions
 	user_permissions_exist = (df.fieldtype=="Link"
 		and not getattr(df, "ignore_user_permissions", False)
 		and df.options in (user_permissions or []))
 
-	if user_permissions_exist and len(user_permissions[df.options])==1:
-		return user_permissions[df.options][0]
+	# don't set defaults for "User" link field using User Permissions!
+	if df.fieldtype == "Link" and df.options != "User":
+		# 1 - look in user permissions
+		if user_permissions_exist and len(user_permissions[df.options])==1:
+			return user_permissions[df.options][0]
 
-	# 2 - Look in user defaults
-	user_default = defaults.get(df.fieldname)
-	is_allowed_user_default = user_default and (not user_permissions_exist
-		or (user_default in user_permissions.get(df.options, [])))
+		# 2 - Look in user defaults
+		user_default = defaults.get(df.fieldname)
+		is_allowed_user_default = user_default and (not user_permissions_exist
+			or (user_default in user_permissions.get(df.options, [])))
 
-	# is this user default also allowed as per user permissions?
-	if is_allowed_user_default:
-		return user_default
+		# is this user default also allowed as per user permissions?
+		if is_allowed_user_default:
+			return user_default
 
 	# 3 - look in default of docfield
 	if df.get("default"):
@@ -80,9 +82,8 @@ def get_default_value(df, defaults, user_permissions, parent_doc):
 				return default_value
 
 		# a static default value
-		is_allowed_default_value = (not user_permissions_exist or
-			(df.default in user_permissions.get(df.options, [])))
-		if is_allowed_default_value:
+		is_allowed_default_value = (not user_permissions_exist or (df.default in user_permissions.get(df.options, [])))
+		if df.fieldtype!="Link" or df.options=="User" or is_allowed_default_value:
 			return df.default
 
 	elif df.fieldtype == "Time":

@@ -71,6 +71,7 @@
 		"public/js/lib/microtemplate.js",
 
 		"public/html/print_template.html",
+		"public/html/list_info_template.html",
 
 		"public/js/legacy/globals.js",
 		"public/js/legacy/datatype.js",

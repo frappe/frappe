@@ -1,0 +1,283 @@
+{% block title %}{{ title }}{% endblock %}
+
+{% block header %}
+{{ title }}
+{% endblock %}
+
+{% block content %}
+{% if introduction_text %}
+<p class="lead">{{ introduction_text }}</p>
+<hr>
+{% endif %}
+{% if login_required and frappe.user=="Guest" %}
+<div class="alert alert-info">
+	{{ _("Please login to create a new {0}").format(_(doc_type)) }}
+</div>
+<p>
+	<a href="/login?redirect-to=/{{ pathname }}" class="btn btn-primary">
+		{{ _("Login") }}
+	</a>
+</p>
+{% elif (login_required and doc_name and not params.name) %}
+<div class="alert alert-info">
+	{{ _("{0} already exists").format(_(doc_type)) }}
+</div>
+<p>
+	<a href="{{ pathname }}?name={{ doc_name }}" class="btn btn-primary">
+		{{ _("Edit your record") }}
+	</a>
+</p>
+{% elif (login_required and allow_multiple and not params.name and not params.new) %}
+<p>
+	<a href="{{ pathname }}?new=1" class="btn btn-primary">
+		{{ _("New {0}").format(_(doc_type)) }}
+	</a>
+</p>
+<div class="list-group">
+	{% for i in items %}
+	<div class="list-group-item">
+		<a href="{{ pathname }}?name={{ i.name }}">
+			{{ i.title }}
+		</a>
+		<span class="text-muted pull-right">
+			{{ frappe.format_value(i.creation, {"fieldtype":"Date"}) }}
+		</span>
+	</div>
+	{% endfor %}
+</div>
+{% else %}
+
+{%- macro properties(field) %}name="{{ field.fieldname }}" id="{{ field.fieldname }}" {% if field.placeholder %}placeholder="{{ field.placeholder }}"{% endif %} data-label="{{ field.label }}" data-fieldtype="{{ field.fieldtype }}" {{ field.reqd and "required" or "" }} {{ field.read_only and "disabled" or "" }}{% endmacro -%}
+
+{%- macro value(field) -%}{% if doc %}{{ doc.get(field.fieldname) or "" }}{% else %}{{ getCookie(field.options) or "" }}{% endif %}{%- endmacro -%}
+
+{%- macro help(field) -%}
+{% if field.description -%}
+<span class="help-block">{{ field.description }}</span>
+{%- endif -%}
+{%- endmacro %}
+
+{% macro label(field) %}<label for="{{ field.fieldname }}" class="col-sm-3 control-label">{{ field.label }}</label>{% endmacro %}
+
+<div class="form-message alert alert-info hide"></div>
+<form class="form-horizontal" role="form"
+	data-web-form="{{ name }}">
+	<input type="hidden" name="web_form" value="{{ name }}">
+	<input type="hidden" name="doctype" value="{{ doc_type }}">
+	{% if params.name -%}
+	<input type="hidden" name="name" value="{{ params.name }}">
+	{%- endif %}
+{% for field in web_form_fields %}
+	{% if field.hidden %}
+	<input type="hidden"
+		name="{{ field.fieldname }}" value="{{ field.default }}">
+	{% elif field.fieldtype in ("Data", "Date", "Datetime") %}
+	<div class="form-group">
+		{{ label(field) }}
+		<div class="col-sm-9">
+			<input type="text" class="form-control" {{ properties(field) }}
+				value="{{ value(field) }}">
+			{{ help(field) }}
+		</div>
+	</div>
+	{% elif field.fieldtype=="Select" %}
+	<div class="form-group">
+		{{ label(field) }}
+		<div class="col-sm-9">
+			<select class="form-control" {{ properties(field) }}>
+				{% for option in field.options.split("\n") %}
+				<option value="{{ option }}"
+					"value(field)==option and 'selected' or '' }}">
+					{{ option }}</option>
+				{% endfor %}
+			</select>
+			{{ help(field) }}
+		</div>
+	</div>
+	{% elif field.fieldtype=="Text" %}
+	<div class="form-group">
+		{{ label(field) }}
+		<div class="col-sm-9">
+			<textarea class="form-control" style="height: 100px;"
+			{{ properties(field) }}>{{ value(field) }}</textarea>
+			{{ help(field) }}
+		</div>
+	</div>
+	{% elif field.fieldtype=="Attach" %}
+	<div class="form-group">
+		{{ label(field) }}
+		<div class="col-sm-9">
+			{% if value(field) -%}
+			<p>
+				<i class="icon-paperclip"></i>
+				<a href="{{ doc.get(field.fieldname) }}" target="blank">
+					{{ doc.get(field.fieldname) }}
+				</a>
+				<br><button class="btn btn-small btn-default
+					change-attach" style="margin-top: 5px;">Change</button>
+			</p>
+			{%- endif %}
+			<p class="{{ value(field) and 'hide' or '' }} attach-input-wrap">
+				<input type="file" style="margin-top: 7px;"
+					{{ properties(field) }}>
+			</p>
+			{{ help(field) }}
+		</div>
+	</div>
+	{% elif field.fieldtype=="Check" %}
+	<div class="form-group">
+		<div class="col-sm-offset-3 col-sm-9">
+			<div class="checkbox">
+				<label>
+					<input type="checkbox" id="{{ field.fieldname }}"
+						name="{{ field.fieldname }}"
+						"{{ doc and doc.get(field.fieldname) and 'checked' or '' }}">
+						{{ field.label }}
+				</label>
+				{{ help(field) }}
+			</div>
+		</div>
+	</div>
+	{% endif %}
+{% endfor %}
+<div class="form-group">
+	<div class="col-sm-offset-3 col-sm-9">
+		<button type="submit" class="btn btn-primary">Submit</button>
+		<a href="{{ pathname }}" class="btn btn-default">Cancel</a>
+	</div>
+</div>
+</form>
+{% if allow_comments -%}
+<div class="row">
+	<div class="col-sm-offset-3 col-sm-9">
+		<hr>
+		<h3>{{ _("Comments") }}</h3>
+		{% include 'templates/includes/comments.html' %}
+	</div>
+</div>
+{%- endif %}
+{% endif %}
+{% endblock %}
+
+{% block script %}
+<script>
+frappe.ready(function() {
+	window.file_reading = false;
+	var $form = $("form[data-web-form='{{ name }}']");
+
+	// read file attachment
+	$form.on("change", "[type='file']", function() {
+		var $input = $(this);
+		if($input.attr("type")==="file") {
+			var input = $input.get(0);
+			var reader = new FileReader();
+
+			input.filedata = null;
+			if(input.files.length) {
+				file = input.files[0];
+				window.file_reading = true;
+				reader.onload = function(e) {
+					input.filedata = {
+						"__file_attachment": 1,
+						"filename": file.name,
+						"dataurl": reader.result
+					};
+					window.file_reading = false;
+				}
+
+				reader.readAsDataURL(file);
+			}
+		}
+	});
+
+	// change attach
+	$form.on("click", ".change-attach", function() {
+		$(this).parent().addClass("hide")
+			.parent().find(".attach-input-wrap").removeClass("hide");
+
+		return false;
+	});
+
+	$("form[data-web-form='{{ name }}']").on("submit", function() {
+		var args = {};
+		if(window.saving)
+			return;
+		window.saving = true;
+
+		if(window.file_reading) {
+			window.saving = false;
+			frappe.msgprint("Reading file, please retry.");
+			return;
+		}
+
+		$form.find("[name]").each(function() {
+			var $input = $(this);
+			if($input.attr("type")==="file") {
+				var val = $input.get(0).filedata;
+			} else {
+				var val = $input.val();
+			}
+
+			if($input.prop("required") && val===undefined) {
+				frappe.msgprint(__("{0} is required",
+					$input.attr("data-label")));
+				window.saving = false;
+				throw "mandatory missing";
+			}
+
+			args[$input.attr("name")] = val;
+		});
+
+		frappe.call({
+			type: "POST",
+			method: "frappe.website.doctype.web_form.web_form.accept",
+			args: args,
+			btn: $form.find("[type='submit']"),
+			callback: function(data) {
+				if(!data.exc) {
+					$form.addClass("hide");
+					scroll(0, 0);
+					$(".form-message")
+						.html("{{ success_message or 'Thank You!' }}")
+						.removeClass("hide");
+					{% if success_url -%}
+					setTimeout(function() {
+						window.location.href = "{{ success_url }}";
+					}, 1000);
+					{%- endif %};
+				}
+				window.saving = false;
+			}
+		});
+
+		return false;
+	});
+
+	// import date picker / timepicker if required
+	{% if "Date" in types %}
+	frappe.require("assets/frappe/js/lib/jquery/jquery.ui.min.js");
+	frappe.require("assets/frappe/js/lib/jquery/bootstrap_theme/jquery-ui.selected.css");
+	$form.find("[data-fieldtype='Date']").datepicker({
+		altFormat:'yy-mm-dd',
+		changeYear: true,
+		yearRange: "-70Y:+10Y",
+		dateFormat: "{{ frappe.date_format.replace('yyyy', 'yy') }}",
+	})
+
+	{% endif %}
+
+	{% if "Datetime" in types %}
+	frappe.require("assets/frappe/js/lib/jquery/jquery.ui.slider.min.js");
+	frappe.require("assets/frappe/js/lib/jquery/jquery.ui.sliderAccess.js");
+	frappe.require("assets/frappe/js/lib/jquery/jquery.ui.timepicker-addon.css");
+	frappe.require("assets/frappe/js/lib/jquery/jquery.ui.timepicker-addon.js");
+	$form.find("[data-fieldtype='Date']").datetimepicker({
+		altFormat:'yy-mm-dd',
+		changeYear: true,
+		yearRange: "-70Y:+10Y",
+		dateFormat: "{{ frappe.date_format.replace('yyyy', 'yy') }}",
+	})
+	{% endif %}
+});
+</script>
+{% endblock %}

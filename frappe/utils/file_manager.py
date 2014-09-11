@@ -107,6 +107,9 @@ def save_file(fname, content, dt, dn, decode=False):
 	if decode:
 		if isinstance(content, unicode):
 			content = content.encode("utf-8")
+
+		if "," in content:
+			content = content.split(",")[1]
 		content = base64.b64decode(content)
 
 	file_size = check_max_file_size(content)
@@ -114,12 +117,12 @@ def save_file(fname, content, dt, dn, decode=False):
 	content_type = mimetypes.guess_type(fname)[0]
 	fname = get_file_name(fname, content_hash[-6:])
 
-	method = get_hook_method('write_file', fallback=save_file_on_filesystem)
-
 	file_data = get_file_data_from_hash(content_hash)
 	if not file_data:
+		method = get_hook_method('write_file', fallback=save_file_on_filesystem)
 		file_data = method(fname, content, content_type=content_type)
 		file_data = copy(file_data)
+
 	file_data.update({
 		"doctype": "File Data",
 		"attached_to_doctype": dt,
@@ -137,7 +140,7 @@ def save_file(fname, content, dt, dn, decode=False):
 	return f
 
 def get_file_data_from_hash(content_hash):
-	for name in frappe.db.sql_list("select name from `tabFile Data` where content_hash='{}'".format(content_hash)):
+	for name in frappe.db.sql_list("select name from `tabFile Data` where content_hash=%s", content_hash):
 		b = frappe.get_doc('File Data', name)
 		return {k:b.get(k) for k in frappe.get_hooks()['write_file_keys']}
 	return False
@@ -179,6 +182,16 @@ def remove_all(dt, dn):
 			remove_file(fid, dt, dn)
 	except Exception, e:
 		if e.args[0]!=1054: raise # (temp till for patched)
+
+def remove_file_by_url(file_url, doctype=None, name=None):
+	if doctype and name:
+		fid = frappe.db.get_value("File Data", {"file_url": file_url,
+			"attached_to_doctype": doctype, "attached_to_name": name})
+	else:
+		fid = frappe.db.get_value("File Data", {"file_url": file_url})
+
+	if fid:
+		return remove_file(fid)
 
 def remove_file(fid, attached_to_doctype=None, attached_to_name=None):
 	"""Remove file and File Data entry"""
@@ -237,13 +250,13 @@ def get_content_hash(content):
 	return hashlib.md5(content).hexdigest()
 
 def get_file_name(fname, optional_suffix):
-	n_records = frappe.db.sql("select name from `tabFile Data` where file_name='{}'".format(fname))
+	n_records = frappe.db.sql("select name from `tabFile Data` where file_name=%s", fname)
 	if len(n_records) > 0 or os.path.exists(get_files_path(fname)):
 		f = fname.rsplit('.', 1)
 		if len(f) == 1:
-			partial, extn = f[0], None
-		elif len(f) == 2:
-			partial, extn = f
-		return '{partial}{suffix}{extn}'.format(partial=partial, extn="."+extn if extn else "", suffix=optional_suffix)
+			partial, extn = f[0], ""
+		else:
+			partial, extn = f[0], "." + f[1]
+		return '{partial}{suffix}{extn}'.format(partial=partial, extn=extn, suffix=optional_suffix)
 	return fname
 

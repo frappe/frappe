@@ -96,7 +96,7 @@ def clear_sitemap():
 		if meta.get_field("parent_website_route"):
 			query = "select page_name, parent_website_route from `tab{0}`"
 		else:
-			query = "select page_name, "" from `tab{0}`"
+			query = "select page_name, '' from `tab{0}`"
 
 		for r in frappe.db.sql(query.format(doctype)):
 			if r[0]:

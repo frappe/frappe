@@ -17,7 +17,7 @@ class FileData(Document):
 	def before_insert(self):
 		frappe.local.rollback_observers.append(self)
 
-	def on_update(self):
+	def validate(self):
 		if not getattr(self, "ignore_duplicate_entry_error", False):
 			# check duplicate assignement
 			n_records = frappe.db.sql("""select name from `tabFile Data`
@@ -28,8 +28,7 @@ class FileData(Document):
 					self.attached_to_name))
 			if len(n_records) > 0:
 				self.duplicate_entry = n_records[0][0]
-				frappe.msgprint(frappe._("Same file has already been attached to the record"))
-				raise frappe.DuplicateEntryError
+				frappe.throw(frappe._("Same file has already been attached to the record"), frappe.DuplicateEntryError)
 
 	def on_trash(self):
 		if self.attached_to_name:

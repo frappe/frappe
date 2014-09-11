@@ -220,8 +220,12 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 				width: (docfield ? cint(docfield.width) : 120) || 120,
 				formatter: function(row, cell, value, columnDef, dataContext) {
 					var docfield = columnDef.docfield;
-					if(docfield.fieldname==="_user_tags") docfield.fieldtype = "Tag";
-					if(docfield.fieldname==="_comments") docfield.fieldtype = "Comment";
+					docfield.fieldtype = {
+						"_user_tags": "Tag",
+						"_comments": "Comment",
+						"_assign": "Assign"
+					}[docfield.fieldname] || docfield.fieldtype;
+
 					if(docfield.fieldtype==="Link" && docfield.fieldname!=="name") {
 						docfield.link_onclick =
 							repl('frappe.container.page.reportview.set_filter("%(fieldname)s", "%(value)s").page.reportview.run()',
@@ -326,14 +330,20 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		});
 		d.get_input(docfield.fieldname).val(row[docfield.fieldname]);
 		d.get_input("update").on("click", function() {
+			var args = {
+				doctype: docfield.parent,
+				name: row[docfield.parent===me.doctype ? "name" : docfield.parent+":name"],
+				fieldname: docfield.fieldname,
+				value: d.get_value(docfield.fieldname)
+			};
+
+			if (!args.name) {
+				frappe.throw(__("ID field is required to edit values using Report. Please select the ID field using the Column Picker"));
+			}
+
 			frappe.call({
 				method: "frappe.client.set_value",
-				args: {
-					doctype: docfield.parent,
-					name: row[docfield.parent===me.doctype ? "name" : docfield.parent+":name"],
-					fieldname: docfield.fieldname,
-					value: d.get_value(docfield.fieldname)
-				},
+				args: args,
 				callback: function(r) {
 					if(!r.exc) {
 						d.hide();

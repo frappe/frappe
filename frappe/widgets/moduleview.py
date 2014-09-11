@@ -54,6 +54,9 @@ def build_standard_config(module):
 		from `tabDocType` where module=%s and ifnull(istable, 0)=0
 		order by document_type desc, name asc""", module, as_dict=True)
 
+	for d in doctypes:
+		d.description = _(d.description or "")
+
 	documents = [d for d in doctypes if d.document_type in ("Transaction", "Master", "")]
 	if documents:
 		data.append({
@@ -178,7 +181,7 @@ def get_report_list(module, is_standard="No"):
 			"type": "report",
 			"doctype": r.ref_doctype,
 			"is_query_report": 1 if r.report_type in ("Query Report", "Script Report") else 0,
-			"description": r.report_type,
+			"description": _(r.report_type),
 			"label": _(r.name),
 			"name": r.name
 		})

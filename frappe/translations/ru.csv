@@ -8,17 +8,7 @@
 "000 is black, fff is white","000 черный, FFF белый"
 2 days ago,2 дня назад
 "<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank"">[?]</a>","<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank""> [?]</a>"
-"<a onclick=""msgprint('<ol>\
-<li><b>field:[fieldname]</b> - By Field\
-<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\
-<li><b>Prompt</b> - Prompt user for a name\
-<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\
-</ol>')"">Naming Options</a>","<OnClick = ""msgprint ('<ol> \
- <li> <b> поле: [имя_поля] </ B> - По области \
- <li> <b> naming_series: </ B > - По Именование серии (поле называется naming_series должны присутствовать \
- <li> <b> Подскажите </ B> - Запрашивать имя \
- <li> <b> [серии] </ . б> - Серия префиксом (разделенных точкой); например PRE # # # # # \
- </ ол> ') ""> Именование Параметры </>"
+"<a onclick=""msgprint('<ol>\<li><b>field:[fieldname]</b> - By Field\<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\<li><b>Prompt</b> - Prompt user for a name\<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\</ol>')"">Naming Options</a>","<OnClick = ""msgprint ('<ol> \ <li> <b> поле: [имя_поля] </ B> - По области \ <li> <b> naming_series: </ B > - По Именование серии (поле называется naming_series должны присутствовать \ <li> <b> Подскажите </ B> - Запрашивать имя \ <li> <b> [серии] </ . б> - Серия префиксом (разделенных точкой); например PRE # # # # # \ </ ол> ') ""> Именование Параметры </>"
 <b>new</b> <i>type of document</i>,<b> новый </ B> <i> тип документа </ I>
 "<i>document type...</i>, e.g. <b>customer</b>","<i> тип документа ... </ I>, например <b> клиентов </ B>"
 <i>e.g. <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>,<i> например <strong> (55 + 434) / 4 </ STRONG> или <strong> = Math.sin (Мф.PI / 2) </ STRONG> ... </ I>
@@ -428,9 +418,7 @@ Footer Background,Footer фона
 Footer Items,Footer товары
 Footer Text,Сноска
 For DocType,Для DocType
-"For Links, enter the DocType as range
-For Select, enter list of Options separated by comma","Для Ссылки, введите DocType как диапазон 
- Для Select, введите список опций через запятую"
+"For Links, enter the DocType as rangeFor Select, enter list of Options separated by comma","Для Ссылки, введите DocType как диапазон  Для Select, введите список опций через запятую"
 "For comparative filters, start with","Для сравнения фильтров, начните с"
 For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,"Например, если вы отмените и изменить 'INV004' станет новый документ ""INV004-1 '. Это поможет вам отслеживать каждой поправки."
 For ranges,Для диапазонов
@@ -808,9 +796,7 @@ Please attach a file or set a URL,"Пожалуйста, приложите фа
 Please do not change the rows above {0},"Пожалуйста, не изменяйте строки выше {0}"
 Please enable pop-ups,"Пожалуйста, включите всплывающие окна"
 Please enter Event's Date and Time!,"Пожалуйста, введите мероприятия Дата и время!"
-"Please enter both your email and message so that we \
-				can get back to you. Thanks!","Пожалуйста, введите как свою электронную почту и сообщение, чтобы мы \
- может вернуться к вам. Спасибо!"
+Please enter both your email and message so that we \				can get back to you. Thanks!,"Пожалуйста, введите как свою электронную почту и сообщение, чтобы мы \ может вернуться к вам. Спасибо!"
 Please enter some text!,"Пожалуйста, введите текст!"
 Please enter title!,"Пожалуйста, введите название!"
 Please login to Upvote!,"Пожалуйста, войдите, чтобы Upvote!"
@@ -1109,13 +1095,7 @@ There were errors while sending email. Please try again.,Были ошибки �
 These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,"Эти значения будут автоматически обновляться в сделках, а также будет полезна для ограничения разрешений для этого пользователя по операциям, содержащих эти значения."
 "These will also be set as default values for those links, if only one such permission record is defined.","Они также будут установлены по умолчанию для этих связей, если только одна такая запись разрешение определяется."
 Third Party Authentication,В-третьих Аутентификация партия
-"This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>
-myfield
-eval:doc.myfield=='My Value'<br>
-eval:doc.age>18","Это поле появится только тогда, когда имя_поля определяется здесь имеет значение ИЛИ правила являются истинными (примеры): инструменты 
- MyField 
- Eval: doc.myfield == 'Мой Значение' инструменты 
- Eval: doc.age> 18"
+This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>myfieldeval:doc.myfield=='My Value'<br>eval:doc.age>18,"Это поле появится только тогда, когда имя_поля определяется здесь имеет значение ИЛИ правила являются истинными (примеры): инструменты  MyField  Eval: doc.myfield == 'Мой Значение' инструменты  Eval: doc.age> 18"
 This goes above the slideshow.,Это идет над слайд-шоу.
 This is PERMANENT action and you cannot undo. Continue?,"Это непрерывного действия, и вы не можете отменить. Продолжить?"
 "This is a standard format. To make changes, please copy it make make a new format.","Это стандартный формат. Чтобы внести изменения, скопируйте это сделать сделать новый формат."
@@ -1265,9 +1245,7 @@ You cannot install this app,Вы не можете установить это �
 You have unsaved changes in this form. Please save before you continue.,"Вы сделали какие-нибудь изменения в этой форме. Пожалуйста, сохраните прежде чем продолжить."
 You need to be logged in and have System Manager Role to be able to access backups.,"Вы должны войти в систему, и есть роль System Manager, чтобы иметь возможность доступа к резервные копии."
 You need write permission to rename,"Вам нужно разрешение, чтобы переименовать написать"
-"You seem to have written your name instead of your email. \
-					Please enter a valid email address so that we can get back.","Вы, кажется, написал свое имя вместо вашей электронной почте. \
- Пожалуйста, введите действующий адрес электронной почты, чтобы мы могли вернуться."
+You seem to have written your name instead of your email. \					Please enter a valid email address so that we can get back.,"Вы, кажется, написал свое имя вместо вашей электронной почте. \ Пожалуйста, введите действующий адрес электронной почты, чтобы мы могли вернуться."
 "Your download is being built, this may take a few moments...","Ваша загрузка строится, это может занять несколько минут, ..."
 [Label]:[Field Type]/[Options]:[Width],[Этикетка]: [поле Тип] / [Опции]: [ширина]
 [Optional] Send the email X days in advance of the specified date. 0 equals same day.,[Дополнительно] Отправьте сообщение X дней до указанной даты. 0 равна тот же день.

@@ -282,8 +282,9 @@ frappe.RoleEditor = Class.extend({
 	},
 	make_perm_dialog: function() {
 		this.perm_dialog = new frappe.ui.Dialog({
-			title:'Role Permissions',
-			width: "800px"
+			title:'Role Permissions'
 		});
+
+		this.perm_dialog.$wrapper.find('.modal-dialog').css("width", "800px");
 	}
 });

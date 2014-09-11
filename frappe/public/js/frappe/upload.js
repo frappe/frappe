@@ -10,7 +10,8 @@ frappe.upload = {
 				+ __('Upload a file') + '</a> | <a class="action-link" href="#"><i class="icon-link"></i> '
 				 + __('Attach as web link') + '</a></p>\
 			<div class="action-attach-input">\
-				<input class="alert alert-info" style="padding: 7px; margin: 7px 0px;" type="file" name="filedata" />\
+				<input class="alert alert-info" style="padding: 7px; margin: 7px 0px;" \
+					type="file" name="filedata" />\
 			</div>\
 			<div class="action-link-input" style="display: none; margin-top: 7px;">\
 				<input class="form-control" style="max-width: 300px;" type="text" name="file_url" />\

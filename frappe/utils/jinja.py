@@ -51,7 +51,9 @@ def get_allowed_functions_for_jenv():
 			"get_meta": frappe.get_meta,
 			"get_doc": frappe.get_doc,
 			"get_list": frappe.get_list,
-			"utils": datautils
+			"utils": datautils,
+			"user": frappe.session.user,
+			"date_format": frappe.db.get_default("date_format") or "yyyy-mm-dd"
 		},
 		"get_visible_columns": \
 			frappe.get_attr("frappe.templates.pages.print.get_visible_columns"),
@@ -92,3 +94,11 @@ def set_filters(jenv):
 		for jenv_filter in (frappe.get_hooks(app_name=app).jenv_filter or []):
 			filter_name, filter_function = jenv_filter.split(":")
 			jenv.filters[filter_name] = frappe.get_attr(filter_function)
+
+def render_include(content):
+	from frappe.utils import cstr
+
+	content = cstr(content)
+	if "{% include" in content:
+		content = get_jenv().from_string(content).render()
+	return content

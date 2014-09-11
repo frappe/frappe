@@ -385,20 +385,26 @@ frappe.ui.form.ControlFloat = frappe.ui.form.ControlInt.extend({
 		return callback(isNaN(parseFloat(value)) ? null : flt(value));
 	},
 	format_for_input: function(value) {
-		var formatted_value = format_number(parseFloat(value),
-			null, cint(frappe.boot.sysdefaults.float_precision, null));
+		var number_format;
+		var precision = this.df.precision || cint(frappe.boot.sysdefaults.float_precision, null);
+		if (this.df.fieldtype==="Float" && this.df.options && this.df.options.trim()) {
+			number_format = get_number_format(this.get_currency());
+		}
+		var formatted_value = format_number(parseFloat(value), number_format, precision);
 		return isNaN(parseFloat(value)) ? "" : formatted_value;
+	},
+
+	// even a float field can be formatted based on currency format instead of float format
+	get_currency: function() {
+		return frappe.meta.get_field_currency(this.df, this.get_doc());
 	}
 });
 
 frappe.ui.form.ControlCurrency = frappe.ui.form.ControlFloat.extend({
 	format_for_input: function(value) {
 		var formatted_value = format_number(parseFloat(value),
-			get_number_format(this.get_currency()));
+			get_number_format(this.get_currency()), this.df.precision || null);
 		return isNaN(parseFloat(value)) ? "" : formatted_value;
-	},
-	get_currency: function() {
-		return frappe.meta.get_field_currency(this.df, this.get_doc());
 	}
 });
 

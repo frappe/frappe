@@ -2,28 +2,38 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-from frappe.utils import formatdate, fmt_money, flt
+import frappe
+from frappe.utils import formatdate, fmt_money, flt, cstr, cint
 from frappe.model.meta import get_field_currency, get_field_precision
 import re
 
 def format_value(value, df, doc=None, currency=None):
-	if df.fieldtype=="Date":
+	if df.get("fieldtype")=="Date":
 		return formatdate(value)
 
-	elif df.fieldtype == "Currency":
+	elif df.get("fieldtype") == "Currency" or (df.get("fieldtype")=="Float" and (df.options or "").strip()):
 		return fmt_money(value, precision=get_field_precision(df, doc),
 			currency=currency if currency else (get_field_currency(df, doc) if doc else None))
 
-	elif df.fieldtype == "Float":
-		return fmt_money(value, precision=get_field_precision(df, doc))
+	elif df.get("fieldtype") == "Float":
+		precision = get_field_precision(df, doc)
 
-	elif df.fieldtype == "Percent":
+		# show 1.000000 as 1
+		# options should not specified
+		if not df.options and value is not None:
+			temp = cstr(value).split(".")
+			if len(temp)==1 or cint(temp[1])==0:
+				precision = 0
+
+		return fmt_money(value, precision=precision)
+
+	elif df.get("fieldtype") == "Percent":
 		return "{}%".format(flt(value, 2))
 
 	if value is None:
 		value = ""
 
-	if df.fieldtype in ("Text", "Small Text"):
+	if df.get("fieldtype") in ("Text", "Small Text"):
 		if not re.search("(\<br|\<div|\<p)", value):
 			return value.replace("\n", "<br>")
 
