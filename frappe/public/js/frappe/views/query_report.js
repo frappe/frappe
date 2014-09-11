@@ -50,7 +50,7 @@ frappe.views.QueryReport = Class.extend({
 			<p class="text-muted"><br>\
 				'+__('For comparative filters, start with')+' ">" or "<", e.g. >5 or >01-02-2012\
 				<br>'+__('For ranges')+' ('+__('values and dates')+') use ":", \
-					e.g. "5:10"  (' + __("to filter values between 5 & 10") + '</p>\
+					e.g. "5:10"  (' + __("to filter values between 5 & 10") + ')</p>\
 		</div>').appendTo(this.wrapper);
 
 		this.make_toolbar();
