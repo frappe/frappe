@@ -127,14 +127,23 @@ def add_to_installed_apps(app_name, rebuild_website=True):
 		installed_apps.append(app_name)
 		frappe.db.set_global("installed_apps", json.dumps(installed_apps))
 		frappe.db.commit()
+		post_install(rebuild_website)
 
-		if rebuild_website:
-			render.clear_cache()
-			statics.sync().start()
-
+def remove_from_installed_apps(app_name):
+	installed_apps = frappe.get_installed_apps()
+	if app_name in installed_apps:
+		installed_apps.remove(app_name)
+		frappe.db.set_global("installed_apps", json.dumps(installed_apps))
 		frappe.db.commit()
+		post_install()
 
-		frappe.clear_cache()
+def post_install(rebuild_website=False):
+	if rebuild_website:
+		render.clear_cache()
+		statics.sync().start()
+
+	frappe.db.commit()
+	frappe.clear_cache()
 
 def set_all_patches_as_completed(app):
 	patch_path = os.path.join(frappe.get_pymodule_path(app), "patches.txt")

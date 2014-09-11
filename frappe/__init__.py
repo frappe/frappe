@@ -438,7 +438,14 @@ def get_hooks(hook=None, default=None, app_name=None):
 		hooks = {}
 		for app in [app_name] if app_name else get_installed_apps():
 			app = "frappe" if app=="webnotes" else app
-			app_hooks = get_module(app + ".hooks")
+			try:
+				app_hooks = get_module(app + ".hooks")
+			except ImportError:
+				if local.flags.in_install_app:
+					# if app is not installed while restoring
+					# ignore it
+					pass
+				raise
 			for key in dir(app_hooks):
 				if not key.startswith("_"):
 					append_hook(hooks, key, getattr(app_hooks, key))
