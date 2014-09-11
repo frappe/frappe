@@ -313,6 +313,18 @@ div#freeze {
 	margin-top: 0px;
 }
 
+.comment-large {
+	border: 1px solid #d7d7d7;
+	padding: 10px;
+	border-radius: 5px;
+}
+
+.comment-header {
+	margin: -10px -10px 10px -10px;
+	background-color: #f2f2f2;
+	padding: 5px 10px;
+}
+
 .frappe-editor {
 	cursor: text;
 }

@@ -73,10 +73,12 @@ frappe.views.CommunicationList = Class.extend({
 	prepare: function(doc) {
 		//doc.when = comment_when(this.doc.modified);
 		doc.when = comment_when(doc.creation);
-		if(!doc.content) doc.content = __("[no content]");
+		if(!doc.content)
+			doc.content = __("[no content]");
 		if(!frappe.utils.is_html(doc.content)) {
 			doc.content = doc.content.replace(/\n/g, "<br>");
 		}
+
 		doc.content = frappe.utils.remove_script_and_style(doc.content);
 
 		if(!doc.sender) doc.sender = __("[unknown sender]");
@@ -96,17 +98,7 @@ frappe.views.CommunicationList = Class.extend({
 			"SMS": "icon-mobile-phone",
 		}[doc.communication_medium] || "icon-envelope";
 		doc.avatar = frappe.get_gravatar(doc._sender_id);
-		var comm = $(repl('<div style="border: 1px solid #f2f2f2; border-radius: 5px; padding: 15px; margin-bottom: 10px;>\
-			<div class="media">\
-			<span class="pull-left avatar avatar-small"><img class="media-object" src="%(avatar)s"></span>\
-			<div class="media-body">\
-				<div class="media=heading"><i class="%(icon)s icon-fixed-width"></i> <strong>%(subject)s</strong></div>\
-				<div class="text-muted small">\
-					%(_sender)s | %(when)s\
-					| <a href="#Form/Communication/%(name)s">'+__('Details')+'</a>\
-				</div>\
-				<div class="comm-content">%(content)s</div>\
-			</div></div>', doc))
+		var comm = $(frappe.render(frappe.templates.timeline_template, {data:doc}))
 			.appendTo(this.body);
 		this.comm_list.push(comm);
 	}

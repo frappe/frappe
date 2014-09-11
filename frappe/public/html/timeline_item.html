@@ -1,0 +1,28 @@
+<div class="media comment" data-name="{%= data.name %}">
+	<span class="pull-left avatar avatar-small">
+		<img class="media-object" src="{%= data.image %}">
+	</span>
+	<span class="pull-left comment-icon">
+		<i class="{%= data.icon %} icon-timeline"
+			style="background-color: {%= data.icon_bg %};
+				color: {%= data.icon_fg %}; {%= data.padding %}"></i>
+	</span>
+	<div class="media-body comment-body">
+		<div class="{%= data.doctype=="Communication" ? "comment-large" : "" %}">
+			{% if(data.subject) { %}
+			<div class="comment-header small">{%= data.subject %}</div>
+			{% } %}
+			<div>
+				{%= data.comment_html %}
+			</div>
+			<div>
+				<span class="small text-muted">
+					{%= data.fullname %} / {%= data.comment_on %} /
+					<a href="#Form/{%= data.doctype %}/{%= data.name %}">
+						{%= __("Details") %}</a>
+					{%= data.delete %}
+				</span>
+			</div>
+		</div>
+	</div>
+</div>

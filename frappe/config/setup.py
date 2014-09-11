@@ -118,8 +118,8 @@ def get_data():
 			"items": [
 				{
 					"type": "doctype",
-					"name": "Outgoing Email Settings",
-					"description": _("Set outgoing mail server.")
+					"name": "Email Account",
+					"description": _("Add / Manage Email Accounts.")
 				},
 				{
 					"type": "doctype",
