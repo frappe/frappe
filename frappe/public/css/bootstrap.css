@@ -915,7 +915,7 @@ a {
 }
 a:hover,
 a:focus {
-  color: #000;
+  color: #2980b9;
   text-decoration: underline;
 }
 a:focus {
@@ -3129,7 +3129,7 @@ fieldset[disabled] .btn-link {
 }
 .btn-link:hover,
 .btn-link:focus {
-  color: #000;
+  color: #2980b9;
   text-decoration: underline;
   background-color: transparent;
 }
@@ -4440,7 +4440,7 @@ fieldset[disabled] .navbar-inverse .btn-link:focus {
 .pagination > li > span:hover,
 .pagination > li > a:focus,
 .pagination > li > span:focus {
-  color: #000;
+  color: #2980b9;
   background-color: #eee;
   border-color: #ddd;
 }
@@ -6360,5 +6360,9 @@ h4 {
 ul.with-margin li,
 ol.with-margin li {
   margin: 7px auto;
+}
+a:hover,
+a:focus {
+  text-decoration: none;
 }
 /*# sourceMappingURL=bootstrap.css.map */
