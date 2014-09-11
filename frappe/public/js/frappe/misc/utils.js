@@ -21,6 +21,26 @@ frappe.utils = {
 		}
 		return true;
 	},
+	strip_whitespace: function(html) {
+		return (html || "").replace(/<p>\s*<\/p>/g, "").replace(/<br>(\s*<br>\s*)+/g, "<br><br>");
+	},
+	strip_original_content: function(txt) {
+		var out = [],
+			part = [],
+			newline = txt.indexOf("<br>")===-1 ? "\n" : "<br>";
+
+		$.each(txt.split(newline), function(i, t) {
+			var tt = strip(t);
+			if(tt && (tt.substr(0,1)===">" || tt.substr(0,4)==="&gt;")) {
+				part.push(t);
+			} else {
+				out.concat(part);
+				out.push(t);
+				part = [];
+			}
+		});
+		return out.join(newline);
+	},
 	is_url: function(txt) {
 		return txt.toLowerCase().substr(0,7)=='http://'
 			|| txt.toLowerCase().substr(0,8)=='https://'

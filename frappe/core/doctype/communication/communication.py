@@ -7,10 +7,9 @@ import json
 import urllib
 from email.utils import formataddr
 from frappe.website.utils import is_signup_enabled
-from frappe.utils import get_url, cstr
+from frappe.utils import get_url, cstr, cint, scrub_urls
 from frappe.email.email_body import get_email
 from frappe.email.smtp import send
-from frappe.utils import scrub_urls, cint
 from frappe import _
 
 from frappe.model.document import Document
@@ -30,6 +29,9 @@ class Communication(Document):
 
 	def on_update(self):
 		self.update_parent()
+
+def on_doctype_update(self):
+	frappe.db.add_index("Communication", ["reference_doctype", "reference_name"])
 
 @frappe.whitelist()
 def make(doctype=None, name=None, content=None, subject=None, sent_or_received = "Sent",
@@ -113,7 +115,6 @@ def get_customer_supplier(args=None):
 def send_comm_email(d, name, sent_via=None, print_html=None, print_format=None, attachments='[]', send_me_a_copy=False):
 	footer = None
 
-
 	if sent_via:
 		if hasattr(sent_via, "get_sender"):
 			d.sender = sent_via.get_sender(d) or d.sender
@@ -126,6 +127,8 @@ def send_comm_email(d, name, sent_via=None, print_html=None, print_format=None, 
 
 	mail = get_email(d.recipients, sender=d.sender, subject=d.subject,
 		msg=d.content, footer=footer)
+
+	mail.set_message_id(d.name)
 
 	if send_me_a_copy:
 		mail.cc.append(frappe.db.get_value("User", frappe.session.user, "email"))

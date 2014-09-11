@@ -51,13 +51,23 @@ frappe.ui.form.Comments = Class.extend({
 			} else {
 				c["delete"] = "";
 			}
-			c.image = frappe.user_info(c.comment_by).image || frappe.get_gravatar(c.comment_by);
+
+			if(c.comment_by.indexOf("<")!==-1) {
+				c.comment_by = c.comment_by.split("<")[1].split(">")[0];
+			}
+
+			c.image = frappe.user_info(c.comment_by).image
+				|| frappe.get_gravatar(c.comment_by);
 			c.comment_on = comment_when(c.creation);
 			c.fullname = frappe.user_info(c.comment_by).fullname;
 
 			if(!c.comment_type) c.comment_type = "Comment"
 
 			c.icon = {
+				"Email": "icon-envelope",
+				"Chat": "icon-comments",
+				"Phone": "icon-phone",
+				"SMS": "icon-mobile-phone",
 				"Created": "icon-plus",
 				"Submitted": "icon-lock",
 				"Cancelled": "icon-remove",
@@ -71,8 +81,12 @@ frappe.ui.form.Comments = Class.extend({
 			}[c.comment_type]
 
 			c.icon_bg = {
+				"Email": "#3498db",
+				"Chat": "#3498db",
+				"Phone": "#3498db",
+				"SMS": "#3498db",
 				"Created": "#1abc9c",
-				"Submitted": "#3498db",
+				"Submitted": "#1abc9c",
 				"Cancelled": "#c0392b",
 				"Assigned": "#f39c12",
 				"Assignment Completed": "#16a085",
@@ -87,7 +101,8 @@ frappe.ui.form.Comments = Class.extend({
 				"Attachment Removed": "#333",
 			}[c.comment_type]
 
-			if(!c.icon_fg) c.icon_fg = "#fff";
+			if(!c.icon_fg)
+				c.icon_fg = "#fff";
 
 			// label view
 			if(c.comment_type==="Workflow" || c.comment_type==="Label") {
@@ -96,7 +111,18 @@ frappe.ui.form.Comments = Class.extend({
 					text: __(c.comment)
 				});
 			} else {
-				c.comment_html = frappe.markdown(__(c.comment));
+				if(c.comment_type=="Email") {
+					c.comment = c.comment.split("-----"+__("In response to")+"-----")[0];
+					c.comment = frappe.utils.strip_original_content(c.comment);
+					c.comment = frappe.utils.remove_script_and_style(c.comment);
+				}
+
+				if(!frappe.utils.is_html(c.comment)) {
+					c.comment_html = frappe.markdown(__(c.comment));
+				} else {
+					c.comment_html = c.comment;
+					c.comment_html = frappe.utils.strip_whitespace(c.comment_html);
+				}
 			}
 
 			// icon centering -- pixed perfect
@@ -106,22 +132,7 @@ frappe.ui.form.Comments = Class.extend({
 				c.padding = "";
 			}
 
-			$(repl('<div class="media comment" data-name="%(name)s">\
-					<span class="pull-left avatar avatar-small">\
-						<img class="media-object" src="%(image)s">\
-					</span>\
-					<span class="pull-left comment-icon">\
-						<i class="%(icon)s icon-timeline" \
-							style="background-color: %(icon_bg)s; color: %(icon_fg)s; %(padding)s"></i>\
-					</span>\
-					<div class="media-body comment-body">\
-						%(comment_html)s\
-						<div>\
-							<span class="small text-muted">\
-								%(fullname)s / %(comment_on)s %(delete)s</span>\
-						</div>\
-					</div>\
-				</div>', c))
+			$(frappe.render(frappe.templates.timeline_item, {data:c}))
 				.appendTo(me.list)
 				.on("click", ".close", function() {
 					var name = $(this).parents(".comment:first").attr("data-name");

@@ -104,11 +104,32 @@ def get_attachments(dt, dn):
 	return attachments
 
 def get_comments(dt, dn, limit=20):
-	cl = frappe.db.sql("""select name, comment, comment_by, creation, comment_type from `tabComment`
+	comments = frappe.db.sql("""select name, comment, comment_by, creation,
+		comment_type, "Comment" as doctype from `tabComment`
 		where comment_doctype=%s and comment_docname=%s
-		order by creation asc limit %s""" % ('%s','%s', limit), (dt, dn), as_dict=1)
+		order by creation desc limit %s""" % ('%s','%s', limit),
+			(dt, dn), as_dict=1)
 
-	return cl
+	communications = frappe.db.sql("""select name,
+			content as comment, owner as comment_by, creation,
+			communication_medium as comment_type, subject,
+			"Communication" as doctype
+		from tabCommunication
+		where reference_doctype=%s and reference_name=%s
+		order by creation desc limit {0}""".format(limit), (dt, dn),
+			as_dict=True)
+
+	for c in communications:
+		c.attachments = json.dumps([f.file_url for f in frappe.get_list("File Data",
+			fields=["file_url"],
+			filters={"attached_to_doctype": "Communication",
+				"attached_to_name": c.name}
+			)])
+
+	comments += communications
+	comments = sorted(comments, key = lambda d: d.creation)
+
+	return comments
 
 def get_assignments(dt, dn):
 	cl = frappe.db.sql("""select owner, description from `tabToDo`
