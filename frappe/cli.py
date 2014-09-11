@@ -140,6 +140,8 @@ def setup_install(parser):
 		help="Install a new app")
 	parser.add_argument("--add_to_installed_apps", metavar="APP-NAME", nargs="*",
 		help="Add these app(s) to Installed Apps")
+	parser.add_argument("--remove_from_installed_apps", metavar="APP-NAME", nargs="*",
+		help="Remove these app(s) from Installed Apps")
 	parser.add_argument("--reinstall", default=False, action="store_true",
 		help="Install a fresh app in db_name specified in conf.py")
 	parser.add_argument("--restore", metavar=("DB-NAME", "SQL-FILE"), nargs=2,
@@ -352,9 +354,17 @@ def add_to_installed_apps(*apps):
 	from frappe.installer import add_to_installed_apps
 	frappe.connect()
 	all_apps = frappe.get_all_apps(with_frappe=True)
-	for each in apps:
-		if each in all_apps:
-			add_to_installed_apps(each, rebuild_website=False)
+	for app in apps:
+		if app in all_apps:
+			add_to_installed_apps(app, rebuild_website=False)
+	frappe.destroy()
+
+@cmd
+def remove_from_installed_apps(*apps):
+	from frappe.installer import remove_from_installed_apps
+	frappe.connect()
+	for app in apps:
+		remove_from_installed_apps(app)
 	frappe.destroy()
 
 @cmd
