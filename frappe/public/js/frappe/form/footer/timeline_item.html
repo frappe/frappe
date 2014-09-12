@@ -20,6 +20,18 @@
 			<div>
 				{%= data.comment_html %}
 			</div>
+			{% if(data.attachments && data.attachments.length) { %}
+			<div style="margin: 10px 0px">
+				{% $.each(data.attachments, function(i, a) { %}
+				<div class="text-ellipsis">
+					<a href="{%= a %}" class="text-muted small" target="_blank">
+						<i class="icon-paperclip"></i>
+						{%= a.split("/").slice(-1)[0] %}
+					</a>
+				</div>
+				{% }); %}
+			</div>
+			{% } %}
 			<div>
 				<span class="small text-muted">
 					{%= data.fullname %} / {%= data.comment_on %}

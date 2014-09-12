@@ -292,21 +292,22 @@ div#freeze {
 }
 
 .comment-icon {
-	margin-right: -15px !important;
+	margin-right: -18px !important;
 	margin-left: 15px;
 	z-index: 1;
 }
 
 .icon-timeline {
 	color: #fff;
-	height: 29px;
-	width: 29px;
+	height: 33px;
+	width: 33px;
 	padding: 8px 9px 7px 9px;
 	border-radius: 50%;
 	background-color: #d7d7d7;
 	text-align: center;
 	display: inline-block;
 	float: left;
+	border: 2px solid #ffffff;
 }
 
 .comment {

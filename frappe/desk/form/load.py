@@ -126,10 +126,7 @@ def get_comments(dt, dn, limit=100):
 				"attached_to_name": c.name}
 			)])
 
-	comments += communications
-	comments = sorted(comments, key = lambda d: d.creation)
-
-	return comments
+	return comments + communications
 
 def get_assignments(dt, dn):
 	cl = frappe.db.sql("""select owner, description from `tabToDo`

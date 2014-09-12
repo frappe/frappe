@@ -99,7 +99,7 @@ frappe.views.CommunicationComposer = Class.extend({
 
 			// prepend "Re:"
 			if(strip(this.subject.toLowerCase().split(":")[0])!="re") {
-				this.subject = "Re: " + subject;
+				this.subject = "Re: " + this.subject;
 			}
 		}
 	},
