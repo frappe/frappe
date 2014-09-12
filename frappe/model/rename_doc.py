@@ -299,7 +299,7 @@ def rename_dynamic_links(doctype, old, new):
 
 			# dynamic link in single, just one value to check
 			if frappe.get_meta(df.parent).issingle:
-				refdoc = frappe.get_singles_dict(df.parent)
+				refdoc = frappe.db.get_singles_dict(df.parent)
 				if refdoc.get(df.options)==doctype and refdoc.get(df.fieldname)==old:
 
 					frappe.db.sql("""update tabSingles set value=%s where
