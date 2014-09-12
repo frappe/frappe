@@ -91,7 +91,7 @@ frappe.ui.form.Footer = Class.extend({
 			this.frm.attachments.refresh();
 			this.frm.comments.refresh();
 			this.frm.assign_to.refresh();
-			this.frm.tags.refresh();
+			this.frm.tags && this.frm.tags.refresh();
 		}
 	},
 });

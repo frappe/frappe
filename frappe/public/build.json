@@ -107,6 +107,7 @@
 		"public/js/frappe/ui/tags.js",
 
 		"public/js/frappe/views/container.js",
+		"public/js/frappe/views/factory.js",
 		"public/js/frappe/views/pageview.js",
 		"public/js/frappe/views/doclistview.js",
 		"public/js/frappe/views/sidebar_stats.js",
