@@ -70,8 +70,8 @@ class ToDo(Document):
 				raise
 
 # NOTE: todo is viewable if either owner or assigned_to or System Manager in roles
-def on_doctype_update(self):
-	frappe.db.add_index("Communication", ["reference_type", "reference_name"])
+def on_doctype_update():
+	frappe.db.add_index("ToDo", ["reference_type", "reference_name"])
 
 def get_permission_query_conditions(user):
 	if not user: user = frappe.session.user

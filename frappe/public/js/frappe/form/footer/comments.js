@@ -13,28 +13,30 @@ frappe.ui.form.Comments = Class.extend({
 		this.list = $('<div class="comments"></div>')
 			.appendTo(this.parent);
 
-		this.row = $(repl('<div class="media comment" data-name="%(name)s">\
-			<span class="pull-left avatar avatar-small">\
-				<img class="media-object" src="%(image)s">\
-			</span>\
-			<div class="media-body">\
-				<textarea style="height: 80px" class="form-control"></textarea>\
-				<div class="text-right" style="margin-top: 10px">\
-					<button class="btn btn-default btn-go btn-sm">\
-						<i class="icon-ok"></i> ' + __("Add comment") + '</button>\
-				</div>\
-			</div>\
-		</div>', {image: frappe.user_info(user).image,
-			fullname: user_fullname})).appendTo(this.parent);
+		this.row = $(repl(frappe.render(frappe.templates.new_timeline_comment,
+				{
+					image: frappe.user_info(user).image,
+					fullname: user_fullname
+				}
+			))).appendTo(this.parent);
 
 		this.input = this.row.find(".form-control");
 		this.button = this.row.find(".btn-go")
 			.click(function() {
-				me.add_comment(this);
+				if(me.wrapper.find(".comment-is-communication").prop("checked")) {
+					new frappe.views.CommunicationComposer({
+						doc: me.frm.doc,
+						txt: me.input.val(),
+						frm: me.frm
+					})
+				} else {
+					me.add_comment(this);
+				}
 			});
 	},
 	refresh: function() {
-		var me = this;
+		var me = this,
+			last_type = "Comment";
 		if(this.frm.doc.__islocal) {
 			this.wrapper.toggle(false);
 			return;
@@ -42,7 +44,7 @@ frappe.ui.form.Comments = Class.extend({
 		this.wrapper.toggle(true);
 		this.list.empty();
 
-		comments = [{"comment": "Created", "comment_type": "Created",
+		var comments = [{"comment": "Created", "comment_type": "Created",
 			"comment_by": this.frm.doc.owner, "creation": this.frm.doc.creation}].concat(this.get_comments());
 
 		$.each(comments, function(i, c) {
@@ -61,7 +63,8 @@ frappe.ui.form.Comments = Class.extend({
 			c.comment_on = comment_when(c.creation);
 			c.fullname = frappe.user_info(c.comment_by).fullname;
 
-			if(!c.comment_type) c.comment_type = "Comment"
+			if(!c.comment_type)
+				c.comment_type = "Comment"
 
 			c.icon = {
 				"Email": "icon-envelope",
@@ -138,9 +141,17 @@ frappe.ui.form.Comments = Class.extend({
 					var name = $(this).parents(".comment:first").attr("data-name");
 					me.delete_comment(name);
 					return false;
-				})
+				});
+
+			if(c.comment_type==="Email") {
+				last_type = c.comment_type;
+			}
 
 		});
+
+		this.wrapper.find(".comment-is-communication").prop("checked",
+			last_type==="Email")
+
 	},
 	get_comments: function() {
 		return this.frm.get_docinfo().comments
@@ -174,6 +185,7 @@ frappe.ui.form.Comments = Class.extend({
 					me.frm.toolbar.show_infobar();
 					me.input.val("");
 					me.refresh();
+					scroll(0, $(me.frm.wrapper).find(".form-comments .btn-go").offset().top);
 				}
 			}
 		});
@@ -202,5 +214,35 @@ frappe.ui.form.Comments = Class.extend({
 				}
 			}
 		});
+	},
+
+	get_recipient: function() {
+		if(this.frm.email_field) {
+			return this.frm.doc[this.frm.email_field];
+		} else {
+			return this.frm.doc.email_id || this.frm.doc.email || "";
+		}
+	},
+
+	get_last_email: function(from_recipient) {
+		var last_email = null,
+			comments = this.frm.get_docinfo().comments,
+			email = this.get_recipient();
+
+		$.each(comments.reverse(), function(i, c) {
+			if(c.comment_type=="Email") {
+				if(from_recipient) {
+					if(c.comment_by.indexOf(email)!==-1) {
+						last_email = c;
+						return false;
+					}
+				} else {
+					last_email = c;
+					return false;
+				}
+			}
+		});
+
+		return last_email;
 	}
 })

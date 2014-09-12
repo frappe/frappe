@@ -24,7 +24,7 @@ frappe.ui.form.InfoBar = Class.extend({
 			});
 
 		this.$comments = this.appframe.add_icon_btn("2", "icon-comments", __("Comments"), function() {
-				me.scroll_to(".form-comments");
+				me.scroll_to(".form-comments .btn-go");
 			});
 
 		this.$attachments = this.appframe.add_icon_btn("2", "icon-paper-clip", __("Attachments"),  function() {
@@ -32,7 +32,7 @@ frappe.ui.form.InfoBar = Class.extend({
 			});
 
 		this.$assignments = this.appframe.add_icon_btn("2", "icon-flag", __("Assignments"),  function() {
-				me.scroll_to(".form-attachments");
+				me.scroll_to(".form-assignments");
 			});
 
 
@@ -111,8 +111,8 @@ frappe.ui.form.InfoBar = Class.extend({
 
 	scroll_to: function(cls) {
 		$('html, body').animate({
-			scrollTop: $(this.frm.wrapper).find(cls).offset().top
-		}, 1000);
+			scrollTop: $(this.frm.wrapper).find(cls).offset().top - 100
+		}, 100);
 	},
 
 	go_prev_next: function(prev) {

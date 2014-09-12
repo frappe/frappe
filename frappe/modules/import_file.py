@@ -32,7 +32,11 @@ def get_file_path(module, dt, dn):
 
 def import_file_by_path(path, force=False):
 	frappe.flags.in_import = True
-	docs = read_doc_from_file(path)
+	try:
+		docs = read_doc_from_file(path)
+	except IOError:
+		print path + " missing"
+		return
 
 	if docs:
 		if not isinstance(docs, list):
@@ -72,7 +76,7 @@ def read_doc_from_file(path):
 				print "bad json: {0}".format(path)
 				raise
 	else:
-		raise Exception, '%s missing' % path
+		raise IOError, '%s missing' % path
 
 	return doc
 
