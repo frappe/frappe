@@ -148,10 +148,7 @@ frappe.views.QueryReport = Class.extend({
 				var data = [];
 				// get filtered data
 				for (var i=0, l=me.dataView.getLength(); i<l; i++) {
-					var d = me.dataView.getItem(i);
-					var newd = {}; data.push(newd);
-					$.each(d, function(k, v) {
-						newd[k.replace(/ /g, "_").toLowerCase()] = v; });
+					data.push(me.dataView.getItem(i));
 				}
 
 				var content = frappe.render(html_format,
@@ -360,7 +357,7 @@ frappe.views.QueryReport = Class.extend({
 					formatter: formatter
 				});
 
-				col.field = df.fieldname || df.label.replace(/ /g, "_");
+				col.field = df.fieldname || df.label;
 				df.label = __(df.label);
 				col.name = col.id = col.label = df.label;
 
