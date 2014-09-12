@@ -84,6 +84,7 @@ class Document(BaseDocument):
 			if not single_doc:
 				single_doc = frappe.new_doc(self.doctype).as_dict()
 				single_doc["name"] = self.doctype
+				del single_doc["__islocal"]
 
 			self.update(single_doc)
 			self.init_valid_columns()

@@ -89,5 +89,5 @@ def get_default_value(df, defaults, user_permissions, parent_doc):
 	elif df.fieldtype == "Time":
 		return nowtime()
 
-	elif (df.fieldtype == "Select" and df.options and df.options != "[Select]"):
+	elif (df.fieldtype == "Select" and df.options and df.options not in ("[Select]", "Loading...")):
 		return df.options.split("\n")[0]
