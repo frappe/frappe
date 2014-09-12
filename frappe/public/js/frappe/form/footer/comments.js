@@ -34,7 +34,7 @@ frappe.ui.form.Comments = Class.extend({
 				}
 			});
 	},
-	refresh: function() {
+	refresh: function(scroll_to_end) {
 		var me = this,
 			last_type = "Comment";
 		if(this.frm.doc.__islocal) {
@@ -47,7 +47,7 @@ frappe.ui.form.Comments = Class.extend({
 		var comments = [{"comment": "Created", "comment_type": "Created",
 			"comment_by": this.frm.doc.owner, "creation": this.frm.doc.creation}].concat(this.get_comments());
 
-		$.each(comments, function(i, c) {
+		$.each(comments.sort(function(a, b) { return a.creation > b.creation ? 1 : -1 }), function(i, c) {
 			if((c.comment_type || "Comment") === "Comment" && frappe.model.can_delete("Comment")) {
 				c["delete"] = '<a class="close" href="#">&times;</a>';
 			} else {
@@ -62,6 +62,9 @@ frappe.ui.form.Comments = Class.extend({
 				|| frappe.get_gravatar(c.comment_by);
 			c.comment_on = comment_when(c.creation);
 			c.fullname = frappe.user_info(c.comment_by).fullname;
+
+			if(c.attachments && typeof c.attachments==="string")
+				c.attachments = JSON.parse(c.attachments);
 
 			if(!c.comment_type)
 				c.comment_type = "Comment"
@@ -129,8 +132,10 @@ frappe.ui.form.Comments = Class.extend({
 			}
 
 			// icon centering -- pixed perfect
-			if(in_list(["Comment"], c.comment_type)) {
+			if(in_list(["Comment", "Email"], c.comment_type)) {
 				c.padding = "padding-left: 8px;";
+			} else if(in_list(["Created"], c.comment_type)) {
+				c.padding = "padding-left: 9px;";
 			} else {
 				c.padding = "";
 			}
@@ -150,7 +155,11 @@ frappe.ui.form.Comments = Class.extend({
 		});
 
 		this.wrapper.find(".comment-is-communication").prop("checked",
-			last_type==="Email")
+			last_type==="Email");
+
+		if(scroll_to_end) {
+			scroll(0, $(this.frm.wrapper).find(".form-comments .btn-go").offset().top);
+		}
 
 	},
 	get_comments: function() {
@@ -184,8 +193,7 @@ frappe.ui.form.Comments = Class.extend({
 						me.get_comments().concat([r.message]);
 					me.frm.toolbar.show_infobar();
 					me.input.val("");
-					me.refresh();
-					scroll(0, $(me.frm.wrapper).find(".form-comments .btn-go").offset().top);
+					me.refresh(true);
 				}
 			}
 		});
@@ -209,7 +217,7 @@ frappe.ui.form.Comments = Class.extend({
 								else return v;
 							}
 						);
-					me.refresh();
+					me.refresh(true);
 					me.frm.toolbar.show_infobar();
 				}
 			}
@@ -229,7 +237,7 @@ frappe.ui.form.Comments = Class.extend({
 			comments = this.frm.get_docinfo().comments,
 			email = this.get_recipient();
 
-		$.each(comments.reverse(), function(i, c) {
+		$.each(comments.sort(function(a, b) { return a.creation > b.creation ? -1 : 1 }), function(i, c) {
 			if(c.comment_type=="Email") {
 				if(from_recipient) {
 					if(c.comment_by.indexOf(email)!==-1) {

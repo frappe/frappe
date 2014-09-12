@@ -328,7 +328,8 @@ frappe.ui.form.Layout = Class.extend({
 		var doc = me.doc;
 		if (!doc) return;
 
-		var parent = doc.parent ? locals[doc.parenttype][doc.parent] : {};
+		var parent = (doc.parent && doc.parenttype && locals[doc.parenttype]) ?
+			 locals[doc.parenttype][doc.parent] : {};
 
 		// build dependants' dictionary
 		var has_dep = false;
