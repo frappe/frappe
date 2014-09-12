@@ -9,17 +9,20 @@
 	</span>
 	<div class="media-body comment-body">
 		<div class="{%= data.doctype=="Communication" ? "comment-large" : "" %}">
-			{% if(data.subject) { %}
-			<div class="comment-header small">{%= data.subject %}</div>
+			{% if(data.doctype=="Communication") { %}
+			<div class="comment-header small">
+				{%= data.subject || __("No Subject") %}
+					<a class="pull-right"
+						href="#Form/{%= data.doctype %}/{%= data.name %}">
+						{%= __("Details") %}</a>
+			</div>
 			{% } %}
 			<div>
 				{%= data.comment_html %}
 			</div>
 			<div>
 				<span class="small text-muted">
-					{%= data.fullname %} / {%= data.comment_on %} /
-					<a href="#Form/{%= data.doctype %}/{%= data.name %}">
-						{%= __("Details") %}</a>
+					{%= data.fullname %} / {%= data.comment_on %}
 					{%= data.delete %}
 				</span>
 			</div>

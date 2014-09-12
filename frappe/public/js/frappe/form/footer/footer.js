@@ -17,37 +17,7 @@ frappe.ui.form.Footer = Class.extend({
 	},
 	make: function() {
 		var me = this;
-		this.wrapper = $('<div class="form-footer container">\
-			<div class="after-save row">\
-				<div class="col-md-8">\
-					<div class="form-comments">\
-					</div>\
-				</div>\
-				<div class="col-md-4">\
-					<div class="form-tags">\
-						<div style="height: 30px;"></div>\
-						<h5 style="display: inline-block"><i class="icon-tag"></i> '+__("Tags")+'</h5>\
-						<span class="tag-area"></span><br>\
-					</div><br><br>\
-					<div class="form-assignments" style="margin-bottom: 7px;">\
-						<h5>\
-							<i class="icon-flag"></i> '+__("Assigned To")+': \
-							<button class="btn small btn-default pull-right"\
-								style="margin-top:-7px;">'+__("Add")+'</button>\
-						</h5>\
-					</div><br><br>\
-					<div class="form-attachments">\
-						<h5>\
-							<i class="icon-paper-clip"></i> '+__("Attachments")+':\
-							<button class="btn small btn-default pull-right"\
-								style="margin-top:-7px;">'+__("Add")+'</button>\
-						</h5>\
-					</div>\
-				</div>\
-			</div>\
-			<div class="pull-right" style="padding: 7px; background-color: #eee; border-radius: 4px;">\
-				<a onclick="scroll(0,0)"><i class="icon-chevron-up text-muted"></i></a></div>\
-		</div>')
+		this.wrapper = $(frappe.render(frappe.templates.form_footer, {}))
 			.appendTo(this.parent);
 		this.wrapper.find(".btn-save").click(function() {
 			me.frm.save('Save', null, this);

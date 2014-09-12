@@ -30,7 +30,7 @@ class Communication(Document):
 	def on_update(self):
 		self.update_parent()
 
-def on_doctype_update(self):
+def on_doctype_update():
 	frappe.db.add_index("Communication", ["reference_doctype", "reference_name"])
 
 @frappe.whitelist()

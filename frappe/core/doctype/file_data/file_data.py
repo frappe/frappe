@@ -50,6 +50,6 @@ class FileData(Document):
 	def on_rollback(self):
 		self.on_trash()
 
-def on_doctype_update(self):
+def on_doctype_update():
 	frappe.db.add_index("File Data", ["attached_to_doctype", "attached_to_name"])
 

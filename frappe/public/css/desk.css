@@ -279,11 +279,11 @@ div#freeze {
 .comment-connector {
 	height: 30px;
 	margin-left: 70px;
-	border-left: 1px solid #d7d7d7;
+	border-left: 3px solid #f2f2f2;
 }
 
 .comment-body {
-	border-left: 1px solid #d7d7d7;
+	border-left: 3px solid #f2f2f2;
 	padding: 5px 15px 15px 30px;
 }
 
@@ -292,7 +292,7 @@ div#freeze {
 }
 
 .comment-icon {
-	margin-right: -14px !important;
+	margin-right: -15px !important;
 	margin-left: 15px;
 	z-index: 1;
 }
