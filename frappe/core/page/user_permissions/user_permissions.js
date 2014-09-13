@@ -9,7 +9,7 @@ frappe.pages['user-permissions'].onload = function(wrapper) {
 	$(wrapper).find(".layout-main").html("<div class='user-settings' \
 		style='min-height: 200px;'></div>\
 	<p style='margin-top: 15px;'>\
-		<a class='view-role-permissions'><i class='icon-chevron-right'></i> Edit Role Permissions</a>\
+		<a class='view-role-permissions'><i class='icon-chevron-right'></i> " + __("Edit Role Permissions") + "</a>\
 	</p>\
 	<table class='table table-bordered' \
 		style='background-color: #f9f9f9; margin-top: 15px;'>\

@@ -4,13 +4,14 @@
 from __future__ import unicode_literals
 
 import frappe, json, os
+from frappe import _
 import frappe.modules.import_file
 
 data_keys = frappe._dict({
-	"data_separator": 'Start entering data below this line',
+	"data_separator": _('Start entering data below this line'),
 	"main_table": "Table:",
 	"parent_table": "Parent Table:",
-	"columns": "Column Name:",
+	"columns": _("Column Name:"),
 	"doctype": "DocType:"
 })
 

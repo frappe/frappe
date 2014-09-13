@@ -23,7 +23,7 @@ def clear(user=None):
 	frappe.local.db.commit()
 	clear_cache(frappe.session.user)
 	clear_global_cache()
-	frappe.response['message'] = "Cache Cleared"
+	frappe.response['message'] = _("Cache Cleared")
 
 def clear_cache(user=None):
 	cache = frappe.cache()
