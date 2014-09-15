@@ -225,22 +225,22 @@ def get_request_header(key, default=None):
 
 def sendmail(recipients=(), sender="", subject="No Subject", message="No Message",
 		as_markdown=False, bulk=False, ref_doctype=None, ref_docname=None,
-		add_unsubscribe_link=False, attachments=None):
+		add_unsubscribe_link=False, attachments=None, content=None):
 
 	if bulk:
 		import frappe.email.bulk
 		frappe.email.bulk.send(recipients=recipients, sender=sender,
-			subject=subject, message=message, ref_doctype = ref_doctype,
+			subject=subject, message=content or message, ref_doctype = ref_doctype,
 			ref_docname = ref_docname, add_unsubscribe_link=add_unsubscribe_link, attachments=attachments)
 
 	else:
 		import frappe.email
 		if as_markdown:
 			frappe.email.sendmail_md(recipients, sender=sender,
-				subject=subject, msg=message, attachments=attachments)
+				subject=subject, msg=content or message, attachments=attachments)
 		else:
 			frappe.email.sendmail(recipients, sender=sender,
-				subject=subject, msg=message, attachments=attachments)
+				subject=subject, msg=content or message, attachments=attachments)
 
 logger = None
 whitelisted = []

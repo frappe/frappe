@@ -132,7 +132,7 @@ frappe.ui.form.Comments = Class.extend({
 			}
 
 			// icon centering -- pixed perfect
-			if(in_list(["Comment", "Email"], c.comment_type)) {
+			if(in_list(["Comment", "Email", "Assignment Completed"], c.comment_type)) {
 				c.padding = "padding-left: 8px;";
 			} else if(in_list(["Created"], c.comment_type)) {
 				c.padding = "padding-left: 9px;";

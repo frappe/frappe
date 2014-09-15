@@ -15,6 +15,10 @@ def send(email, as_bulk=False):
 		frappe.msgprint(_("Emails are muted"))
 		return
 
+	if frappe.flags.in_test:
+		frappe.flags.sent_mail = email.as_string()
+		return
+
 	try:
 		smtpserver = SMTPServer()
 		if hasattr(smtpserver, "always_use_login_id_as_sender") and \
@@ -33,34 +37,57 @@ def send(email, as_bulk=False):
 		frappe.msgprint(_("Invalid recipient address"))
 		raise
 
+def get_outgoing_email_account(raise_exception_not_set=True):
+	if not getattr(frappe.local, "outgoing_email_account", None):
+		email_account = frappe.db.get_value("Email Account", {
+			"owner": frappe.session.user, "enable_outgoing": 1})
+
+		if not email_account:
+			email_account = frappe.db.get_value('Email Account', {"is_default": 1})
+
+		if not email_account and not raise_exception_not_set:
+			return None
+
+		if not email_account:
+			frappe.throw(_("Please setup default Email Account from Setup > Email > Email Account"))
+
+		frappe.local.outgoing_email_account = frappe.get_doc("Email Account", email_account)
+
+	return frappe.local.outgoing_email_account
+
 class SMTPServer:
 	def __init__(self, login=None, password=None, server=None, port=None, use_ssl=None):
 		# get defaults from mail settings
-		try:
-			self.email_settings = frappe.get_doc('Outgoing Email Settings', 'Outgoing Email Settings')
-		except frappe.DoesNotExistError:
-			self.email_settings = None
 
 		self._sess = None
+		self.email_account = None
 		if server:
 			self.server = server
 			self.port = port
 			self.use_ssl = cint(use_ssl)
 			self.login = login
 			self.password = password
-		elif self.email_settings and cint(self.email_settings.enabled):
-			self.server = self.email_settings.mail_server
-			self.port = self.email_settings.mail_port
-			self.use_ssl = cint(self.email_settings.use_ssl)
-			self.login = self.email_settings.mail_login
-			self.password = self.email_settings.mail_password
-			self.always_use_login_id_as_sender = self.email_settings.always_use_login_id_as_sender
+
 		else:
-			self.server = frappe.conf.get("mail_server") or ""
-			self.port = frappe.conf.get("mail_port") or None
-			self.use_ssl = cint(frappe.conf.get("use_ssl") or 0)
-			self.login = frappe.conf.get("mail_login") or ""
-			self.password = frappe.conf.get("mail_password") or ""
+			self.setup_from_user_or_default_outgoing()
+
+			# from config
+			if not self.server:
+				self.server = frappe.conf.get("mail_server") or ""
+				self.port = frappe.conf.get("mail_port") or None
+				self.use_ssl = cint(frappe.conf.get("use_ssl") or 0)
+				self.login = frappe.conf.get("mail_login") or ""
+				self.password = frappe.conf.get("mail_password") or ""
+
+	def setup_from_user_or_default_outgoing(self):
+		self.email_account = get_outgoing_email_account(raise_exception_not_set=False)
+		if self.email_account:
+			self.server = self.email_account.smtp_server
+			self.login = self.email_account.email_id
+			self.password = self.email_account.password
+			self.port = self.email_account.smtp_port
+			self.use_ssl = self.email_account.use_tls
+
 
 	@property
 	def sess(self):
@@ -70,7 +97,7 @@ class SMTPServer:
 
 		# check if email server specified
 		if not self.server:
-			err_msg = _('Outgoing Mail Server not specified')
+			err_msg = _('Email Account not setup. Please create a new Email Account from Setup > Email > Email Account')
 			frappe.msgprint(err_msg)
 			raise frappe.OutgoingEmailError, err_msg
 

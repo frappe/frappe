@@ -3,8 +3,9 @@
 
 from __future__ import unicode_literals
 import time
-import poplib
+import _socket, poplib
 import frappe
+from frappe import _
 from frappe.utils import extract_email_id, convert_utc_to_user_timezone, now, cint
 from frappe.utils.scheduler import log
 
@@ -37,11 +38,11 @@ class POP3Server:
 
 			self.pop.user(self.settings.username)
 			self.pop.pass_(self.settings.password)
-		except _socket.error, e:
+		except _socket.error:
 			# Invalid mail server -- due to refusing connection
 			frappe.msgprint(_('Invalid Mail Server. Please rectify and try again.'))
 			raise
-		except poplib.error_proto, e:
+		except poplib.error_proto:
 			frappe.msgprint(_('Invalid User Name or Support Password. Please rectify and try again.'))
 			raise
 
@@ -132,7 +133,7 @@ class POP3Server:
 		if not incoming_mail:
 			try:
 				# retrieve headers
-				incoming_mail = EMail(b'\n'.join(self.pop.top(msg_num, 5)[1]))
+				incoming_mail = Email(b'\n'.join(self.pop.top(msg_num, 5)[1]))
 			except:
 				pass
 
@@ -232,7 +233,7 @@ class Email:
 		from frappe.utils.file_manager import save_file, MaxFileSizeReachedError
 		for attachment in self.attachments:
 			try:
-				fid = save_file(attachment['filename'], attachment['content'],
+				save_file(attachment['filename'], attachment['content'],
 					doc.doctype, doc.name)
 			except MaxFileSizeReachedError:
 				# WARNING: bypass max file size exception

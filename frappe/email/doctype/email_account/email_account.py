@@ -2,7 +2,7 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
-import frappe
+import frappe, os
 from frappe import _
 from frappe.model.document import Document
 from frappe.utils import validate_email_add, cint
@@ -10,24 +10,37 @@ from frappe.email.smtp import SMTPServer
 from frappe.email.receive import POP3Server, Email
 
 class EmailAccount(Document):
+	def autoname(self):
+		if not self.email_account_name:
+			self.email_account_name = self.email_id.split("@", 1)[0]\
+				.replace("_", " ").replace(".", " ").replace("-", " ").title()
+
+			if self.service:
+				self.email_account_name = self.email_account_name + " " + self.service
+
+		self.name = self.email_account_name
+
 	def validate(self):
 		if self.email_id and not validate_email_add(self.email_id):
 			frappe.throw(_("{0} is not a valid email id").format(self.email_id),
 				frappe.InvalidEmailAddressError)
 
 		self.there_must_be_atleast_one_default()
-		self.check_smtp()
-		self.append_to_must_have_subject_and_status()
 
-		if self.enabled:
+		if frappe.local.flags.in_patch or frappe.local.flags.in_test:
+			return
+
+		if self.enable_incoming:
 			self.get_pop3()
+
+		self.check_smtp()
 
 	def on_update(self):
 		self.there_must_be_only_one_default()
 
 	def there_must_be_atleast_one_default(self):
 		if not frappe.db.get_value("Email Account", {"is_default": 1}):
-			if not self.is_default:
+			if not self.is_default and (self.is_global and self.enable_outgoing):
 				self.is_default = 1
 				frappe.msgprint(_("Setting as Default"))
 
@@ -42,15 +55,13 @@ class EmailAccount(Document):
 				email_account.is_default = 0
 				email_account.save()
 
-	def append_to_must_have_subject_and_status(self):
-		if self.append_to:
-			meta = frappe.get_meta(self.append_to)
-			if not (meta.has_field("subject") and meta.has_field("status")):
-				frappe.throw(_("Append To DocType must have fields 'Subject' and 'Status'"))
-
 	def check_smtp(self):
 		if self.enable_outgoing and self.smtp_server \
 			and not frappe.local.flags.in_patch:
+
+			if not self.smtp_server:
+				frappe.throw(_("{0} is required").format("SMTP Server"))
+
 			SMTPServer(login = self.email_id,
 				password = self.password,
 				server = self.smtp_server,
@@ -60,20 +71,26 @@ class EmailAccount(Document):
 
 	def get_pop3(self):
 		args = {
-			"host": self.smtp_server,
+			"host": self.pop3_server,
 			"use_ssl": self.use_ssl,
 			"username": self.email_id,
 			"password": self.password
 		}
 
-		pop3 = POP3Server(args)
+		if not self.pop3_server:
+			frappe.throw(_("{0} is required").format("POP3 Server"))
+
+		pop3 = POP3Server(frappe._dict(args))
 		pop3.connect()
 		return pop3
 
 	def receive(self):
-		if self.enabled:
-			pop3 = self.get_pop3()
-			incoming_mails = pop3.get_messages()
+		if self.enable_incoming:
+			if frappe.local.flags.in_test:
+				incoming_mails = self.get_test_mails()
+			else:
+				pop3 = self.get_pop3()
+				incoming_mails = pop3.get_messages()
 
 			for raw in incoming_mails:
 				email = Email(raw)
@@ -85,7 +102,7 @@ class EmailAccount(Document):
 					"sent_or_received": "Received",
 					"sender_full_name": email.from_real_name,
 					"sender": email.from_email,
-					"recipients": email.get("To"),
+					"recipients": email.mail.get("To"),
 					"email_account": self.name
 				})
 
@@ -96,8 +113,11 @@ class EmailAccount(Document):
 				# save attachments
 				email.save_attachments_in_doc(communication)
 
+				if self.enable_auto_reply:
+					self.send_auto_reply(communication)
+
 	def set_thread(self, communication, email):
-		in_reply_to = (email.get("In-Reply-To") or "").strip(" <>")
+		in_reply_to = (email.mail.get("In-Reply-To") or "").strip(" <>")
 		parent = None
 		if in_reply_to:
 			if "@" in in_reply_to:
@@ -112,11 +132,15 @@ class EmailAccount(Document):
 					parent = frappe.get_doc(parent.reference_doctype,
 						parent.reference_name)
 
+
 		if not parent and self.append_to:
 			# no parent found, but must be tagged
 			# insert parent type doc
 			parent = self.new_doc(self.append_to)
-			parent.subject = email.subject
+
+			if parent.meta.get_field("subject"):
+				parent.subject = email.subject
+
 			parent.ignore_mandatory = True
 			parent.insert(ignore_permissions=True)
 
@@ -126,3 +150,23 @@ class EmailAccount(Document):
 		if parent:
 			communication.reference_doctype = parent.doctype
 			communication.reference_name = parent.name
+
+	def send_auto_reply(self, communication):
+		if self.auto_reply_message:
+			frappe.sendmail(recipients = [communication.from_email],
+				sender = self.email_id,
+				subject = _("Re: ") + communication.subject,
+				content = self.auto_reply_message or\
+					 frappe.render_template("templates/emails/auto_reply.html", {}),
+				bulk=True)
+
+	def get_test_mails(self):
+		incoming_mails = []
+		with open(os.path.join(os.path.dirname(__file__), "test_mails", "incoming-1.raw"), "r") as f:
+			incoming_mails.append(f.read())
+
+		return incoming_mails
+
+def sync_emails(self):
+	for email_account in frappe.get_list("Email Account", filters={"enable_incoming": 1}):
+		frappe.tasks.pull_from_email_account.delay(frappe.local.site, email_account.name)

@@ -26,7 +26,7 @@
   }, 
   {
    "description": "Check this if this is a global email id like \"sales@yourcompany.com\"", 
-   "fieldname": "global", 
+   "fieldname": "is_global", 
    "fieldtype": "Check", 
    "label": "Global", 
    "permlevel": 0, 
@@ -62,15 +62,15 @@
   }, 
   {
    "allow_on_submit": 0, 
-   "default": "1", 
+   "default": "", 
    "description": "Check this to pull emails from your mailbox", 
-   "fieldname": "enabled", 
+   "fieldname": "enable_incoming", 
    "fieldtype": "Check", 
    "hidden": 0, 
    "ignore_user_permissions": 0, 
    "in_filter": 0, 
    "in_list_view": 1, 
-   "label": "Enabled", 
+   "label": "Enable Incoming", 
    "no_copy": 0, 
    "permlevel": 0, 
    "precision": "", 
@@ -125,7 +125,7 @@
    "print_hide": 0, 
    "read_only": 0, 
    "report_hide": 0, 
-   "reqd": 1, 
+   "reqd": 0, 
    "search_index": 0, 
    "set_only_once": 0
   }, 
@@ -151,20 +151,20 @@
   {
    "allow_on_submit": 0, 
    "description": "e.g. pop.gmail.com", 
-   "fieldname": "pop3_mail_server", 
+   "fieldname": "pop3_server", 
    "fieldtype": "Data", 
    "hidden": 0, 
    "ignore_user_permissions": 0, 
    "in_filter": 0, 
    "in_list_view": 1, 
-   "label": "POP3 Mail Server", 
+   "label": "POP3 Server", 
    "no_copy": 0, 
    "permlevel": 0, 
    "precision": "", 
    "print_hide": 0, 
    "read_only": 0, 
    "report_hide": 0, 
-   "reqd": 1, 
+   "reqd": 0, 
    "search_index": 0, 
    "set_only_once": 0
   }, 
@@ -204,6 +204,7 @@
    "precision": ""
   }, 
   {
+   "default": "1", 
    "fieldname": "enable_outgoing", 
    "fieldtype": "Check", 
    "label": "Enable Outgoing", 
@@ -337,6 +338,20 @@
    "reqd": 0, 
    "search_index": 0, 
    "set_only_once": 0
+  }, 
+  {
+   "fieldname": "set_footer", 
+   "fieldtype": "Section Break", 
+   "label": "Set Footer", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "footer", 
+   "fieldtype": "Text Editor", 
+   "label": "Footer", 
+   "permlevel": 0, 
+   "precision": ""
   }
  ], 
  "hide_heading": 0, 
@@ -347,7 +362,7 @@
  "is_submittable": 0, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2014-09-11 15:42:06.931247", 
+ "modified": "2014-09-15 12:01:38.649639", 
  "modified_by": "Administrator", 
  "module": "Email", 
  "name": "Email Account", 
