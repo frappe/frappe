@@ -47,7 +47,7 @@ cur_frm.cscript.refresh = function(doc) {
 	cur_frm.toggle_display(['sb1', 'sb3'], false);
 
 	if(!doc.__islocal){
-		cur_frm.add_custom_button("Set User Permissions", function() {
+		cur_frm.add_custom_button(__("Set User Permissions"), function() {
 			frappe.route_options = {
 				"user": doc.name
 			};
@@ -95,7 +95,7 @@ frappe.RoleEditor = Class.extend({
 	init: function(wrapper) {
 		var me = this;
 		this.wrapper = wrapper;
-		$(wrapper).html('<div class="help">Loading...</div>')
+		$(wrapper).html('<div class="help">' + __("Loading") + '...</div>')
 		return frappe.call({
 			method: 'frappe.core.doctype.user.user.get_all_roles',
 			callback: function(r) {
@@ -138,10 +138,10 @@ frappe.RoleEditor = Class.extend({
 
 		$.each(this.roles, function(i, role) {
 			$(me.wrapper).append(repl('<div class="user-role" \
-				data-user-role="%(role)s">\
+				data-user-role="%(role_value)s">\
 				<input type="checkbox" style="margin-top:0px;"> \
-				<a href="#">%(role)s</a>\
-			</div>', {role: role}));
+				<a href="#">%(role_display)s</a>\
+			</div>', {role_value: role,role_display:__(role)}));
 		});
 
 		$(this.wrapper).find('input[type="checkbox"]').change(function() {
@@ -282,7 +282,7 @@ frappe.RoleEditor = Class.extend({
 	},
 	make_perm_dialog: function() {
 		this.perm_dialog = new frappe.ui.Dialog({
-			title:'Role Permissions'
+			title:__('Role Permissions')
 		});
 
 		this.perm_dialog.$wrapper.find('.modal-dialog').css("width", "800px");
