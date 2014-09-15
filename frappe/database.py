@@ -6,6 +6,7 @@
 
 from __future__ import unicode_literals
 import MySQLdb
+from markdown2 import UnicodeWithAttrs
 import warnings
 import datetime
 import frappe
@@ -48,6 +49,7 @@ class Database:
 			use_unicode=True, charset='utf8')
 		self._conn.converter[246]=float
 		self._conn.converter[12]=get_datetime
+		self._conn.encoders[UnicodeWithAttrs] = self._conn.encoders[unicode]
 
 		self._cursor = self._conn.cursor()
 		if self.user != 'root':
