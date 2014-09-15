@@ -549,9 +549,15 @@ def import_doc(path, ignore_links=False, ignore_insert=False, insert=False):
 	from frappe.core.page.data_import_tool import data_import_tool
 	data_import_tool.import_doc(path, ignore_links=ignore_links, ignore_insert=ignore_insert, insert=insert)
 
-def copy_doc(doc):
+def copy_doc(doc, ignore_no_copy=True):
 	""" No_copy fields also get copied."""
 	import copy
+
+	def remove_no_copy_fields(d):
+		for df in d.meta.get("fields", {"no_copy": 1}):
+			if hasattr(d, df.fieldname):
+				d.set(df.fieldname, None)
+
 	if not isinstance(doc, dict):
 		d = doc.as_dict()
 	else:
@@ -564,12 +570,18 @@ def copy_doc(doc):
 	newdoc.creation = None
 	newdoc.amended_from = None
 	newdoc.amendment_date = None
+	if not ignore_no_copy:
+		remove_no_copy_fields(newdoc)
+
 	for d in newdoc.get_all_children():
 		d.name = None
 		d.parent = None
 		d.set("__islocal", 1)
 		d.owner = None
 		d.creation = None
+		if not ignore_no_copy:
+			remove_no_copy_fields(d)
+
 	return newdoc
 
 def compare(val1, condition, val2):
