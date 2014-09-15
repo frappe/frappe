@@ -7,14 +7,14 @@ import frappe
 from frappe.email.email_body import get_email
 from frappe.email.smtp import send
 
-def sendmail_md(recipients, sender=None, msg=None, subject=None, attachments=None):
+def sendmail_md(recipients, sender=None, msg=None, subject=None, attachments=None, content=None):
 	"""send markdown email"""
 	import markdown2
-	sendmail(recipients, sender, markdown2.markdown(msg), subject, attachments)
+	sendmail(recipients, sender, markdown2.markdown(content or msg), subject, attachments)
 
-def sendmail(recipients, sender='', msg='', subject='[No Subject]', attachments=None):
+def sendmail(recipients, sender='', msg='', subject='[No Subject]', attachments=None, content=None):
 	"""send an html email as multipart with attachments and all"""
-	send(get_email(recipients, sender, msg, subject, attachments=attachments))
+	send(get_email(recipients, sender, content or msg, subject, attachments=attachments))
 
 def sendmail_to_system_managers(subject, content):
 	send(get_email(get_system_managers(), None, content, subject))
@@ -34,7 +34,6 @@ def get_contact_list():
 
 def get_system_managers():
 	return frappe.db.sql_list("""select parent FROM tabUserRole
-				  WHERE role='System Manager'
-				  AND parent!='Administrator'
-				  AND parent IN
-						 (SELECT email FROM tabUser WHERE enabled=1)""")
+		WHERE role='System Manager'
+		AND parent!='Administrator'
+		AND parent IN (SELECT email FROM tabUser WHERE enabled=1)""")

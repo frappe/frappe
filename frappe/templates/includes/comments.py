@@ -45,7 +45,6 @@ def add_comment(args=None):
 	owner = frappe.db.get_value(comment.comment_doctype, comment.comment_docname, "owner")
 	recipients = list(set(commentors if owner=="Administrator" else (commentors + [owner])))
 
-
 	from frappe.email.bulk import send
 	send(recipients=recipients,
 		doctype='Comment',

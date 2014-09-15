@@ -83,7 +83,10 @@ doc_events = {
 }
 
 scheduler_events = {
-	"all": ["frappe.email.bulk.flush"],
+	"all": [
+		"frappe.email.bulk.flush",
+		"frappe.tasks.pull_emails"
+	],
 	"daily": [
 		"frappe.email.bulk.clear_outbox",
 		"frappe.core.doctype.notification_count.notification_count.clear_notifications",
@@ -95,5 +98,3 @@ scheduler_events = {
 		"frappe.website.doctype.website_group.website_group.clear_event_cache"
 	]
 }
-
-mail_footer = "frappe.email.doctype.outgoing_email_settings.outgoing_email_settings.get_mail_footer"

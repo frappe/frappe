@@ -3,19 +3,20 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe import msgprint, throw, _
-from frappe.utils import scrub_urls, get_url
+from frappe import throw, _
 from frappe.utils.pdf import get_pdf
+from frappe.email.smtp import get_outgoing_email_account
+from frappe.utils import get_url, scrub_urls
 import email.utils
 from markdown2 import markdown
 
-
 def get_email(recipients, sender='', msg='', subject='[No Subject]',
-	text_content = None, footer=None, print_html=None, formatted=None, attachments=None):
+	text_content = None, footer=None, print_html=None, formatted=None, attachments=None,
+	content=None):
 	"""send an html email as multipart with attachments and all"""
 	emailobj = EMail(sender, recipients, subject)
-	msg = markdown(msg)
-	emailobj.set_html(msg, text_content, footer=footer, print_html=print_html, formatted=formatted)
+	msg = markdown(content or msg)
+	emailobj.set_html(content or msg, text_content, footer=footer, print_html=print_html, formatted=formatted)
 
 	if isinstance(attachments, dict):
 		attachments = [attachments]
@@ -166,14 +167,7 @@ class EMail:
 			return email
 
 		if not self.sender:
-			self.sender = frappe.db.get_value('Outgoing Email Settings', None,
-				'auto_email_id') or frappe.conf.get('auto_email_id') or None
-			if not self.sender:
-				msg = _("Please specify 'Auto Email Id' in Setup > Outgoing Email Settings")
-				msgprint(msg)
-				if not "expires_on" in frappe.conf:
-					msgprint(_("Alternatively, you can also specify 'auto_email_id' in site_config.json"))
-				raise frappe.ValidationError, msg
+			self.sender = get_outgoing_email_account().email_id
 
 		self.sender = _validate(self.sender)
 		self.reply_to = _validate(self.reply_to)
@@ -223,11 +217,16 @@ def get_footer(footer=None):
 	"""append a footer (signature)"""
 	footer = footer or ""
 
-	# hooks
-	for f in frappe.get_hooks("mail_footer"):
-		# mail_footer could be a function that returns a value
-		mail_footer = frappe.get_attr(f)
-		footer += (mail_footer if isinstance(mail_footer, basestring) else mail_footer())
+	email_account = get_outgoing_email_account()
+
+	if email_account.add_signature and email_account.signature:
+		footer += email_account.signature
+
+	if email_account.footer:
+		footer += email_account.footer
+	else:
+		for default_mail_footer in frappe.get_hooks("default_mail_footer"):
+			footer += default_mail_footer
 
 	footer += "<!--unsubscribe link here-->"
 

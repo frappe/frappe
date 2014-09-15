@@ -7,7 +7,7 @@ def execute():
 		("desk", ("event", "event_role", "event_user", "todo", "feed",
 			"note", "note_user")),
 		("email", ("bulk_email", "email_alert", "email_alert_recipient",
-			"outgoing_email_settings", "standard_reply")),
+			"standard_reply")),
 		("geo", ("country", "currency")),
 		("print", ("letter_head", "print_format", "print_settings"))
 	)
