@@ -9,6 +9,7 @@ execute:frappe.reload_doc('core', 'doctype', 'email_alert') #2014-07-15
 execute:frappe.db.sql("alter table `tabSessions` modify `user` varchar(255), engine=InnoDB")
 execute:frappe.db.sql("delete from `tabDocField` where parent='0'")
 frappe.patches.v4_0.change_varchar_length
+frappe.patches.v5_0.v4_to_v5
 
 frappe.patches.v4_0.webnotes_to_frappe
 execute:frappe.reset_perms("Module Def")
@@ -55,3 +56,4 @@ execute:frappe.reload_doc('website', 'doctype', 'web_form_field') #2014-09-04
 frappe.patches.v4_2.refactor_website_routing
 frappe.patches.v4_2.set_assign_in_doc
 frappe.patches.v4_3.remove_allow_on_submit_customization
+frappe.patches.v5_0.communication_parent

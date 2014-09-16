@@ -108,3 +108,13 @@ def enqueue_events_for_site(site):
 		enqueue_events(site)
 	finally:
 		frappe.destroy()
+
+@celery_task()
+def pull_from_email_account(site, email_account):
+	try:
+		frappe.init(site=site)
+		frappe.connect(site=site)
+		email_account = frappe.get_doc("Email Account", email_account)
+		email_account.receive()
+	finally:
+		frappe.destroy()

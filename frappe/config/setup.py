@@ -1,5 +1,5 @@
 from frappe import _
-from frappe.widgets.moduleview import add_setup_section
+from frappe.desk.moduleview import add_setup_section
 
 def get_data():
 	data = [
@@ -118,8 +118,8 @@ def get_data():
 			"items": [
 				{
 					"type": "doctype",
-					"name": "Outgoing Email Settings",
-					"description": _("Set outgoing mail server.")
+					"name": "Email Account",
+					"description": _("Add / Manage Email Accounts.")
 				},
 				{
 					"type": "doctype",

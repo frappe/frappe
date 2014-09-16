@@ -50,7 +50,7 @@ frappe.ui.form.LinkedWith = Class.extend({
 					</div></div>');
 			
 			frappe.call({
-				method:"frappe.widgets.form.utils.get_linked_docs",
+				method:"frappe.desk.form.utils.get_linked_docs",
 				args: {
 					doctype: me.frm.doctype,
 					name: me.frm.docname,

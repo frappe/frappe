@@ -144,13 +144,17 @@
 		"public/js/frappe/form/control.js",
 		"public/js/frappe/form/link_selector.js",
 		"public/js/frappe/form/grid.js",
-		"public/js/frappe/form/attachments.js",
-		"public/js/frappe/form/footer.js",
-		"public/js/frappe/form/comments.js",
 		"public/js/frappe/form/linked_with.js",
 		"public/js/frappe/form/workflow.js",
-		"public/js/frappe/form/assign_to.js",
-		"public/js/frappe/form/print.js"
+		"public/js/frappe/form/print.js",
+
+		"public/js/frappe/form/footer/form_footer.html",
+		"public/js/frappe/form/footer/timeline_item.html",
+		"public/js/frappe/form/footer/new_timeline_comment.html",
+		"public/js/frappe/form/footer/footer.js",
+		"public/js/frappe/form/footer/attachments.js",
+		"public/js/frappe/form/footer/comments.js",
+		"public/js/frappe/form/footer/assign_to.js"
 	],
 	"js/print_format_v3.min.js": [
 		"public/js/legacy/layout.js",

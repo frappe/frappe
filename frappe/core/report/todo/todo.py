@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
-from frappe.widgets.reportview import execute as runreport
+from frappe.desk.reportview import execute as runreport
 from frappe.utils import getdate
 
 def execute(filters=None):

@@ -136,8 +136,8 @@ class Document(BaseDocument):
 		self._set_defaults()
 		self._set_docstatus_user_and_timestamp()
 		self.check_if_latest()
-		self.set_new_name()
 		self.run_method("before_insert")
+		self.set_new_name()
 		self.set_parent_in_children()
 
 		self.set("__in_insert", True)

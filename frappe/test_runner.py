@@ -115,8 +115,6 @@ def _add_test(path, filename, verbose, test_suite=None):
 	test_suite.addTest(unittest.TestLoader().loadTestsFromModule(module))
 
 def make_test_records(doctype, verbose=0, force=False):
-	frappe.flags.mute_emails = True
-
 	if not frappe.db:
 		frappe.connect()
 

@@ -1,0 +1,43 @@
+<div class="media comment" data-name="{%= data.name %}">
+	<span class="pull-left avatar avatar-small">
+		<img class="media-object" src="{%= data.image %}">
+	</span>
+	<span class="pull-left comment-icon">
+		<i class="{%= data.icon %} icon-timeline"
+			style="background-color: {%= data.icon_bg %};
+				color: {%= data.icon_fg %}; {%= data.padding %}"></i>
+	</span>
+	<div class="media-body comment-body">
+		<div class="{%= data.doctype=="Communication" ? "comment-large" : "" %}">
+			{% if(data.doctype=="Communication") { %}
+			<div class="comment-header small">
+				{%= data.subject || __("No Subject") %}
+					<a class="pull-right"
+						href="#Form/{%= data.doctype %}/{%= data.name %}">
+						{%= __("Details") %}</a>
+			</div>
+			{% } %}
+			<div>
+				{%= data.comment_html %}
+			</div>
+			{% if(data.attachments && data.attachments.length) { %}
+			<div style="margin: 10px 0px">
+				{% $.each(data.attachments, function(i, a) { %}
+				<div class="text-ellipsis">
+					<a href="{%= a %}" class="text-muted small" target="_blank">
+						<i class="icon-paperclip"></i>
+						{%= a.split("/").slice(-1)[0] %}
+					</a>
+				</div>
+				{% }); %}
+			</div>
+			{% } %}
+			<div>
+				<span class="small text-muted">
+					{%= data.fullname %} / {%= data.comment_on %}
+					{%= data.delete %}
+				</span>
+			</div>
+		</div>
+	</div>
+</div>

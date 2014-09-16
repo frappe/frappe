@@ -93,7 +93,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		this.page.appframe.set_title(this.page_title)
 		this.make({
 			appframe: this.page.appframe,
-			method: 'frappe.widgets.reportview.get',
+			method: 'frappe.desk.reportview.get',
 			get_args: this.get_args,
 			parent: $(this.page).find('.layout-main'),
 			start: 0,
@@ -480,7 +480,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		}
 		var export_btn = this.page.appframe.add_button(__('Export'), function() {
 			var args = me.get_args();
-			args.cmd = 'frappe.widgets.reportview.export_query'
+			args.cmd = 'frappe.desk.reportview.export_query'
 			open_url_post(frappe.request.url, args);
 		}, 'icon-download-alt');
 	},
@@ -502,7 +502,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 
 				// callback
 				return frappe.call({
-					method: 'frappe.widgets.reportview.save_report',
+					method: 'frappe.desk.reportview.save_report',
 					args: {
 						name: name,
 						doctype: me.doctype,
@@ -550,7 +550,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 				if(frappe.confirm(__("This is PERMANENT action and you cannot undo. Continue?"),
 					function() {
 						return frappe.call({
-							method: 'frappe.widgets.reportview.delete_items',
+							method: 'frappe.desk.reportview.delete_items',
 							args: {
 								items: delete_list,
 								doctype: me.doctype

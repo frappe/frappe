@@ -225,22 +225,22 @@ def get_request_header(key, default=None):
 
 def sendmail(recipients=(), sender="", subject="No Subject", message="No Message",
 		as_markdown=False, bulk=False, ref_doctype=None, ref_docname=None,
-		add_unsubscribe_link=False, attachments=None):
+		add_unsubscribe_link=False, attachments=None, content=None, doctype=None, name=None):
 
 	if bulk:
-		import frappe.utils.email_lib.bulk
-		frappe.utils.email_lib.bulk.send(recipients=recipients, sender=sender,
-			subject=subject, message=message, ref_doctype = ref_doctype,
-			ref_docname = ref_docname, add_unsubscribe_link=add_unsubscribe_link, attachments=attachments)
+		import frappe.email.bulk
+		frappe.email.bulk.send(recipients=recipients, sender=sender,
+			subject=subject, message=content or message, ref_doctype = doctype or ref_doctype,
+			ref_docname = name or ref_docname, add_unsubscribe_link=add_unsubscribe_link, attachments=attachments)
 
 	else:
-		import frappe.utils.email_lib
+		import frappe.email
 		if as_markdown:
-			frappe.utils.email_lib.sendmail_md(recipients, sender=sender,
-				subject=subject, msg=message, attachments=attachments)
+			frappe.email.sendmail_md(recipients, sender=sender,
+				subject=subject, msg=content or message, attachments=attachments)
 		else:
-			frappe.utils.email_lib.sendmail(recipients, sender=sender,
-				subject=subject, msg=message, attachments=attachments)
+			frappe.email.sendmail(recipients, sender=sender,
+				subject=subject, msg=content or message, attachments=attachments)
 
 logger = None
 whitelisted = []
@@ -438,7 +438,14 @@ def get_hooks(hook=None, default=None, app_name=None):
 		hooks = {}
 		for app in [app_name] if app_name else get_installed_apps():
 			app = "frappe" if app=="webnotes" else app
-			app_hooks = get_module(app + ".hooks")
+			try:
+				app_hooks = get_module(app + ".hooks")
+			except ImportError:
+				if local.flags.in_install_app:
+					# if app is not installed while restoring
+					# ignore it
+					pass
+				raise
 			for key in dir(app_hooks):
 				if not key.startswith("_"):
 					append_hook(hooks, key, getattr(app_hooks, key))
@@ -586,8 +593,8 @@ def respond_as_web_page(title, html, success=None, http_status_code=None):
 		local.response['http_status_code'] = http_status_code
 
 def build_match_conditions(doctype, as_condition=True):
-	import frappe.widgets.reportview
-	return frappe.widgets.reportview.build_match_conditions(doctype, as_condition)
+	import frappe.desk.reportview
+	return frappe.desk.reportview.build_match_conditions(doctype, as_condition)
 
 def get_list(doctype, filters=None, fields=None, or_filters=None, docstatus=None,
 			group_by=None, order_by=None, limit_start=0, limit_page_length=None,
