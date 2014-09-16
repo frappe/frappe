@@ -220,7 +220,7 @@ frappe.ui.toolbar.update_notifications = function() {
 				<span class="badge pull-right">\
 					%(count)s</span> \
 				<i class="icon-fixed-width %(icon)s"></i> %(doctype)s </a></li>', {
-					doctype: doctype,
+					doctype: __(doctype),
 					icon: frappe.boot.doctype_icons[doctype],
 					count: count
 				}))

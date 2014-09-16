@@ -120,10 +120,10 @@ class User(Document):
 			(self.first_name and " " or '') + (self.last_name or '')
 
 	def password_reset_mail(self, link):
-		self.send_login_mail("Password Reset", "templates/emails/password_reset.html", {"link": link})
+		self.send_login_mail(_("Password Reset"), "templates/emails/password_reset.html", {"link": link})
 
 	def password_update_mail(self, password):
-		self.send_login_mail("Password Update", "templates/emails/password_update.html", {"new_password": password})
+		self.send_login_mail(_("Password Update"), "templates/emails/password_update.html", {"new_password": password})
 
 	def send_welcome_mail(self):
 		from frappe.utils import random_string, get_url
@@ -132,7 +132,7 @@ class User(Document):
 		self.db_set("reset_password_key", key)
 		link = get_url("/update-password?key=" + key)
 
-		self.send_login_mail("Verify Your Account", "templates/emails/new_user.html", {"link": link})
+		self.send_login_mail(_("Verify Your Account"), "templates/emails/new_user.html", {"link": link})
 
 	def send_login_mail(self, subject, template, add_args):
 		"""send mail with login details"""
