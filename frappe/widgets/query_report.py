@@ -86,7 +86,7 @@ def run(report_name, filters=()):
 			method_name = get_report_module_dotted_path(module, report.name) + ".execute"
 			columns, result = frappe.get_attr(method_name)(frappe._dict(filters))
 
-	if report.apply_user_permissions:
+	if report.apply_user_permissions and result:
 		result = get_filtered_data(report.ref_doctype, columns, result)
 
 	if cint(report.add_total_row) and result:
@@ -138,7 +138,7 @@ def add_total_row(result, columns):
 
 def get_filtered_data(ref_doctype, columns, data):
 	result = []
-	linked_doctypes = get_linked_doctypes(columns)
+	linked_doctypes = get_linked_doctypes(columns, data)
 	match_filters_per_doctype = get_user_match_filters(linked_doctypes, ref_doctype)
 
 	if match_filters_per_doctype:
@@ -183,7 +183,7 @@ def has_match(row, linked_doctypes, doctype_match_filters):
 
 	return resultant_match
 
-def get_linked_doctypes(columns):
+def get_linked_doctypes(columns, data):
 	linked_doctypes = {}
 
 	for idx, col in enumerate(columns):
@@ -196,6 +196,11 @@ def get_linked_doctypes(columns):
 		# dict
 		elif col.get("fieldtype")=="Link" and col.get("options"):
 			linked_doctypes[col["options"]] = col["fieldname"]
+
+	# remove doctype if column is empty
+	for doctype, key in linked_doctypes.items():
+		if not any(d[key] for d in data if d):
+			del linked_doctypes[doctype]
 
 	return linked_doctypes
 

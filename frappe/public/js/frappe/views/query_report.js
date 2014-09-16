@@ -50,7 +50,7 @@ frappe.views.QueryReport = Class.extend({
 			<p class="text-muted"><br>\
 				'+__('For comparative filters, start with')+' ">" or "<", e.g. >5 or >01-02-2012\
 				<br>'+__('For ranges')+' ('+__('values and dates')+') use ":", \
-					e.g. "5:10" (to filter values between 5 & 10)</p>\
+					e.g. "5:10"  (' + __("to filter values between 5 & 10") + ')</p>\
 		</div>').appendTo(this.wrapper);
 
 		this.make_toolbar();
@@ -148,10 +148,7 @@ frappe.views.QueryReport = Class.extend({
 				var data = [];
 				// get filtered data
 				for (var i=0, l=me.dataView.getLength(); i<l; i++) {
-					var d = me.dataView.getItem(i);
-					var newd = {}; data.push(newd);
-					$.each(d, function(k, v) {
-						newd[k.replace(/ /g, "_").toLowerCase()] = v; });
+					data.push(me.dataView.getItem(i));
 				}
 
 				var content = frappe.render(html_format,
@@ -235,7 +232,7 @@ frappe.views.QueryReport = Class.extend({
 		// Run
 		var me = this;
 		this.waiting = frappe.messages.waiting(this.wrapper.find(".waiting-area").empty().toggle(true),
-			"Loading Report...");
+			__("Loading Report") + "...");
 		this.wrapper.find(".results").toggle(false);
 		var filters = this.get_values(true);
 
@@ -326,7 +323,7 @@ frappe.views.QueryReport = Class.extend({
 		var me = this;
 		var formatter = this.get_formatter();
 
-		this.columns = [{id: "_id", field: "_id", name: "Sr No", width: 60}]
+		this.columns = [{id: "_id", field: "_id", name: __("Sr No"), width: 60}]
 			.concat($.map(columns, function(c) {
 				if ($.isPlainObject(c)) {
 					var df = c;
@@ -360,7 +357,7 @@ frappe.views.QueryReport = Class.extend({
 					formatter: formatter
 				});
 
-				col.field = df.fieldname || df.label.replace(/ /g, "_");
+				col.field = df.fieldname || df.label;
 				df.label = __(df.label);
 				col.name = col.id = col.label = df.label;
 

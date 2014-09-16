@@ -89,7 +89,15 @@ def clear_notifications(user=None):
 
 def delete_notification_count_for(doctype):
 	if frappe.flags.in_import: return
-	frappe.db.sql("""delete from `tabNotification Count` where for_doctype = %s""", (doctype,))
+
+	try:
+		frappe.db.sql("""delete from `tabNotification Count` where for_doctype = %s""", (doctype,))
+
+	except MySQLdb.OperationalError, e:
+		if e.args[0] != 1213:
+			raise
+
+		logger.error("Deadlock")
 
 def clear_doctype_notifications(doc, method=None, *args, **kwargs):
 	if frappe.flags.in_import:

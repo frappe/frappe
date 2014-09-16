@@ -55,6 +55,11 @@ frappe.ui.form.Footer = Class.extend({
 
 	},
 	make_tags: function() {
+		if (this.frm.meta.issingle) {
+			this.wrapper.find(".form-tags").toggle(false);
+			return;
+		}
+
 		this.frm.tags = new frappe.ui.TagEditor({
 			parent: this.wrapper.find(".tag-area"),
 			frm: this.frm,
@@ -86,7 +91,7 @@ frappe.ui.form.Footer = Class.extend({
 			this.frm.attachments.refresh();
 			this.frm.comments.refresh();
 			this.frm.assign_to.refresh();
-			this.frm.tags.refresh();
+			this.frm.tags && this.frm.tags.refresh();
 		}
 	},
 });

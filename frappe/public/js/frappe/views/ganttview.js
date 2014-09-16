@@ -44,7 +44,7 @@ frappe.views.Gantt = Class.extend({
 		this.appframe.add_module_icon(module)
 		this.appframe.set_views_for(this.doctype, "gantt");
 
-		this.appframe.set_title_right("Refresh",
+		this.appframe.set_title_right(__("Refresh"),
 			function() { me.refresh(); }, "icon-refresh")
 
 		this.appframe.add_field({fieldtype:"Date", label:"From",

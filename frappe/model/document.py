@@ -80,7 +80,13 @@ class Document(BaseDocument):
 
 	def load_from_db(self):
 		if not getattr(self, "_metaclass", False) and self.meta.issingle:
-			self.update(frappe.db.get_singles_dict(self.doctype))
+			single_doc = frappe.db.get_singles_dict(self.doctype)
+			if not single_doc:
+				single_doc = frappe.new_doc(self.doctype).as_dict()
+				single_doc["name"] = self.doctype
+				del single_doc["__islocal"]
+
+			self.update(single_doc)
 			self.init_valid_columns()
 			self._fix_numeric_types()
 

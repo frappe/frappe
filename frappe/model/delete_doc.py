@@ -140,7 +140,7 @@ def check_if_doc_is_dynamically_linked(doc):
 			if frappe.get_meta(df.parent).issingle:
 
 				# dynamic link in single doc
-				refdoc = frappe.get_singles_dict(df.parent)
+				refdoc = frappe.db.get_singles_dict(df.parent)
 				if refdoc.get(df.options)==doc.doctype and refdoc.get(df.fieldname)==doc.name:
 					frappe.throw(_("Cannot delete or cancel because {0} {1} is linked with {2} {3}").format(doc.doctype,
 						doc.name, df.parent, ""), frappe.LinkExistsError)
