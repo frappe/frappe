@@ -8,6 +8,7 @@ from frappe import _
 import frappe.permissions
 from frappe.utils.csvutils import UnicodeWriter
 from frappe.utils import cstr, cint, flt
+from  frappe.core.page.data_import_tool.data_import_tool import get_data_keys
 
 @frappe.whitelist()
 def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data="No"):
@@ -25,7 +26,6 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 			doctype_parentfield[df.options] = df.fieldname
 
 	def get_data_keys_definition():
-		from  frappe.core.page.data_import_tool.data_import_tool import get_data_keys
 		return get_data_keys()
 	
 	def add_main_header():

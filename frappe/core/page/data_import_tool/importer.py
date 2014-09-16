@@ -12,7 +12,7 @@ from frappe.utils.csvutils import getlink
 from frappe.utils.dateutils import parse_date
 
 from frappe.utils import cint, cstr, flt
-
+from  frappe.core.page.data_import_tool.data_import_tool import get_data_keys
 
 @frappe.whitelist()
 def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, overwrite=None, ignore_links=False):
@@ -29,7 +29,6 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 	from frappe.utils.csvutils import read_csv_content_from_uploaded_file
 
 	def get_data_keys_definition():
-		from  frappe.core.page.data_import_tool.data_import_tool import get_data_keys
 		return get_data_keys()
 
 	def bad_template():
