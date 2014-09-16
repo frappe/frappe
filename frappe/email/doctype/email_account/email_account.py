@@ -2,7 +2,7 @@
 # For license information, please see license.txt
 
 from __future__ import unicode_literals
-import frappe, os
+import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.utils import validate_email_add, cint
@@ -84,10 +84,10 @@ class EmailAccount(Document):
 		pop3.connect()
 		return pop3
 
-	def receive(self):
+	def receive(self, test_mails=None):
 		if self.enable_incoming:
 			if frappe.local.flags.in_test:
-				incoming_mails = self.get_test_mails()
+				incoming_mails = test_mails
 			else:
 				pop3 = self.get_pop3()
 				incoming_mails = pop3.get_messages()
@@ -132,7 +132,6 @@ class EmailAccount(Document):
 					parent = frappe.get_doc(parent.reference_doctype,
 						parent.reference_name)
 
-
 		if not parent and self.append_to:
 			# no parent found, but must be tagged
 			# insert parent type doc
@@ -144,9 +143,6 @@ class EmailAccount(Document):
 			parent.ignore_mandatory = True
 			parent.insert(ignore_permissions=True)
 
-		if not parent:
-			parent = self
-
 		if parent:
 			communication.reference_doctype = parent.doctype
 			communication.reference_name = parent.name
@@ -157,15 +153,9 @@ class EmailAccount(Document):
 				sender = self.email_id,
 				subject = _("Re: ") + communication.subject,
 				content = self.auto_reply_message or\
-					 frappe.render_template("templates/emails/auto_reply.html", {}),
+					 frappe.get_template("templates/emails/auto_reply.html").render(communication.as_dict()),
 				bulk=True)
 
-	def get_test_mails(self):
-		incoming_mails = []
-		with open(os.path.join(os.path.dirname(__file__), "test_mails", "incoming-1.raw"), "r") as f:
-			incoming_mails.append(f.read())
-
-		return incoming_mails
 
 def sync_emails(self):
 	for email_account in frappe.get_list("Email Account", filters={"enable_incoming": 1}):

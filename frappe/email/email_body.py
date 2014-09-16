@@ -14,9 +14,13 @@ def get_email(recipients, sender='', msg='', subject='[No Subject]',
 	text_content = None, footer=None, print_html=None, formatted=None, attachments=None,
 	content=None):
 	"""send an html email as multipart with attachments and all"""
+	content = content or msg
 	emailobj = EMail(sender, recipients, subject)
-	msg = markdown(content or msg)
-	emailobj.set_html(content or msg, text_content, footer=footer, print_html=print_html, formatted=formatted)
+
+	if not content.strip().startswith("<"):
+		content = markdown(content)
+
+	emailobj.set_html(content, text_content, footer=footer, print_html=print_html, formatted=formatted)
 
 	if isinstance(attachments, dict):
 		attachments = [attachments]

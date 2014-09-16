@@ -9,7 +9,6 @@ import frappe
 from frappe import _
 from frappe.utils import get_fullname
 from frappe.email.bulk import send
-from frappe.email import sendmail
 
 from frappe.model.document import Document
 
@@ -48,9 +47,9 @@ class Post(Document):
 			and frappe.session.user != self.assigned_to:
 
 			# send assignment email
-			sendmail(recipients=[self.assigned_to],
+			frappe.sendmail(recipients=[self.assigned_to],
 				subject="You have been assigned this Task by {}".format(get_fullname(self.modified_by)),
-				msg=self.get_reply_email_message(self.name, get_fullname(self.owner)))
+				content=self.get_reply_email_message(self.name, get_fullname(self.owner)))
 
 	def send_email_on_reply(self):
 		owner_fullname = get_fullname(self.owner)

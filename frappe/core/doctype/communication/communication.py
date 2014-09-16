@@ -43,6 +43,9 @@ class Communication(Document):
 
 	def send(self, send_me_a_copy=False, print_html=None, print_format=None,
 		attachments=None):
+		if print_format:
+			self.content += self.get_attach_link(print_format)
+
 		mail = get_email(self.recipients, sender=self.sender, subject=self.subject,
 			content=self.content)
 
@@ -65,6 +68,14 @@ class Communication(Document):
 
 		frappe.email.smtp.send(mail)
 
+	def get_attach_link(self, print_format):
+		return frappe.get_template("templates/emails/print_link.html").render({
+			"url": get_url(),
+			"doctype": self.reference_doctype,
+			"name": self.reference_name,
+			"print_format": print_format
+		})
+
 def on_doctype_update():
 	frappe.db.add_index("Communication", ["reference_doctype", "reference_name"])
 
@@ -85,11 +96,15 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 		"recipients": recipients,
 		"communication_medium": "Email",
 		"sent_or_received": sent_or_received,
+		"reference_doctype": doctype,
+		"reference_name": name
 	})
 	comm.insert(ignore_permissions=True)
 
 	if send_email:
 		comm.send(send_me_a_copy, print_html, print_format, attachments)
+
+	return comm.name
 
 def attach_print(mail, parent_doc, print_html, print_format):
 	name = parent_doc.name if parent_doc else "attachment"
