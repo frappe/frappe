@@ -103,6 +103,7 @@ frappe.views.GridReport = Class.extend({
 		var me = this;
 		$.extend(this, opts);
 
+		$(this.page).find(".app-page").addClass("full-width");
 		this.wrapper = $('<div>').appendTo(this.parent);
 		this.appframe.parent.find(".appframe").css({"padding-top": "0px"});
 
@@ -125,6 +126,7 @@ frappe.views.GridReport = Class.extend({
 			// reapply filters on show
 			frappe.cur_grid_report = me;
 			me.get_data_and_refresh();
+			frappe.container.set_full_width();
 		});
 
 	},
