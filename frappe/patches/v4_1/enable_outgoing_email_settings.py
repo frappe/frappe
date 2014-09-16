@@ -6,6 +6,6 @@ import frappe
 
 def execute():
 	return
-	frappe.reload_doc("core", "doctype", "outgoing_email_settings")
-	if (frappe.db.get_value("Outgoing Email Settings", "Outgoing Email Settings", "mail_server") or "").strip():
-		frappe.db.set_value("Outgoing Email Settings", "Outgoing Email Settings", "enabled", 1)
+	# frappe.reload_doc("core", "doctype", "outgoing_email_settings")
+	# if (frappe.db.get_value("Outgoing Email Settings", "Outgoing Email Settings", "mail_server") or "").strip():
+	# 	frappe.db.set_value("Outgoing Email Settings", "Outgoing Email Settings", "enabled", 1)

@@ -28,14 +28,12 @@ def send(recipients=None, sender=None, doctype='User', email_field='email',
 
 		# No limit for own email settings
 		smtp_server = SMTPServer()
-		if smtp_server.email_settings and cint(smtp_server.email_settings.enabled):
-			monthly_bulk_mail_limit = 999999
-		else:
+		if not smtp_server.email_account:
 			monthly_bulk_mail_limit = frappe.conf.get('monthly_bulk_mail_limit') or 500
 
-		if ( this_month + len(recipients) ) > monthly_bulk_mail_limit:
-			throw(_("Bulk email limit {0} crossed").format(monthly_bulk_mail_limit),
-				BulkLimitCrossedError)
+			if (this_month + len(recipients)) > monthly_bulk_mail_limit:
+				throw(_("Bulk email limit {0} crossed").format(monthly_bulk_mail_limit),
+					BulkLimitCrossedError)
 
 	def update_message(formatted, doc, add_unsubscribe_link):
 		updated = formatted
