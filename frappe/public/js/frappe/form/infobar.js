@@ -89,7 +89,7 @@ frappe.ui.form.InfoBar = Class.extend({
 			var last = this.docinfo.comments[0];
 			this.$comments
 				.popover({
-					title: "Last Comment",
+					title: __("Last Comment"),
 					content: last.comment
 						+ '<p class="text-muted small">By '
 						+ frappe.user_info(last.comment_by).fullname
