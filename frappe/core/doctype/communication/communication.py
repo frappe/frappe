@@ -4,9 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 import json
-import urllib
-from frappe.website.utils import is_signup_enabled
-from frappe.utils import get_url, cstr, cint, scrub_urls
+from frappe.utils import get_url, cint, scrub_urls
 from frappe.email.email_body import get_email
 import frappe.email.smtp
 from frappe import _
@@ -128,3 +126,7 @@ def attach_print(mail, parent_doc, print_html, print_format):
 		print_html = scrub_urls(print_html)
 		mail.add_attachment(name.replace(' ','').replace('/','-') + '.html',
 			print_html, 'text/html')
+
+@frappe.whitelist()
+def get_convert_to():
+	return frappe.get_hooks("communication_convert_to")

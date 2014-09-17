@@ -87,13 +87,6 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		this.setup_filterable();
 		this.init_filters();
 		this.$page.find(".show_filters").css({"padding":"15px", "margin":"0px -15px"});
-		this.$w.on("render-complete", function() {
-			// if only one record, open the form, if not coming from the form itself
-			if(me.data.length===1
-				&& frappe.get_prev_route()[2]!== me.data[0].name) {
-				frappe.set_route("Form", me.doctype, me.data[0].name);
-			}
-		});
 	},
 
 	init_listview: function() {
