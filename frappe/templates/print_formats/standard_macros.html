@@ -105,7 +105,7 @@
 		<h3>{{ doc.select_print_heading or (doc.print_heading if doc.print_heading != None
 			else _(doc.doctype)) }}</h3>
 		<h4 class="text-muted">{{ doc.sub_heading if doc.sub_heading != None
-				else "#{}".format(doc[doc.meta.title_field or "name"]) }}</h4>
+				else ("#" + doc[doc.meta.title_field or "name"]) }}</h4>
 	</div>
 	{%- if doc.meta.is_submittable and doc.docstatus==0-%}
 	<div class="alert alert-info text-center">
