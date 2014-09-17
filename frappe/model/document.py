@@ -9,6 +9,7 @@ from frappe.modules import load_doctype_module
 from frappe.model.base_document import BaseDocument
 from frappe.model.naming import set_new_name
 from werkzeug.exceptions import NotFound, Forbidden
+import hashlib
 
 # once_only validation
 # methods
@@ -590,3 +591,6 @@ class Document(BaseDocument):
 			"comment": text or comment_type
 		}).insert(ignore_permissions=True)
 		return comment
+
+	def get_signature(self):
+		return hashlib.sha224(self.creation).hexdigest()
