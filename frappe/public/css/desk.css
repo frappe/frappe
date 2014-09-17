@@ -75,7 +75,7 @@ div#freeze {
 	overflow: hidden;
 }
 
-.page-container .container {
+.limit-container-width .container {
 	max-width: 970px;
 }
 

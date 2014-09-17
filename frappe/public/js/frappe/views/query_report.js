@@ -12,7 +12,8 @@ frappe.standard_pages["query-report"] = function() {
 	frappe.ui.make_app_page({
 		parent: wrapper,
 		title: __('Query Report'),
-		single_column: true
+		single_column: true,
+		full_width: true
 	});
 
 	frappe.query_report = new frappe.views.QueryReport({

@@ -13,6 +13,8 @@ frappe.views.Container = Class.extend({
 		this.page = null; // current page
 		this.pagewidth = $('#body_div').width();
 		this.pagemargin = 50;
+
+		$(document).on("page-change", this.set_full_width);
 	},
 	add_page: function(label, onshow, onhide) {
 		var page = $('<div class="content page-container"></div>')
@@ -71,5 +73,11 @@ frappe.views.Container = Class.extend({
 		$(this.page).trigger('show');
 		scroll(0,0);
 		return this.page;
+	},
+	set_full_width: function() {
+		// limit max-width to 970px for most pages
+		$("body").toggleClass("limit-container-width", !$(frappe.container.page).find(".app-page.full-width").length);
 	}
 });
+
+
