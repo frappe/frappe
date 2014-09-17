@@ -96,13 +96,37 @@ frappe.ui.AppFrame = Class.extend({
 			this.add_icon_btn("4", icon, label, click);
 			return;
 		}
+
 		var wrapper = this.parent.find(".appframe-primary-actions .container");
 		this.parent.find(".appframe-primary-actions").removeClass("hide");
-		return $(repl('<button class="btn %(klass)s btn-sm">\
-			<i class="%(icon)s"></i> %(label)s</button>', {label:label, icon:icon,
-				klass: toolbar_or_class || "btn-primary"}))
-			.on("click", click)
-			.appendTo(wrapper);
+
+		if($.isArray(click)) {
+			// if onclick is an array, add a dropdown button
+			var $btn_group = $('<div class="btn-group">\
+				<button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">\
+					'+label+' <span class="caret"></span>\
+				</button>\
+				<ul class="dropdown-menu" role="menu">\
+				</ul>').appendTo(wrapper);
+
+			var $ul = $btn_group.find(".dropdown-menu");
+			$.each(click, function(i, v) {
+				var $a = $('<li><a>'+v.label+'</a></li>')
+					.appendTo($ul)
+					.find('a').on('click', v.click);
+				if(v.value) $a.attr('data-value', v.value);
+			});
+
+			// activate dropdown
+			$btn_group.find(".dropdown-toggle").dropdown();
+		} else {
+			return $(repl('<button class="btn %(klass)s btn-sm">\
+				<i class="%(icon)s"></i> %(label)s</button>', {label:label, icon:icon,
+					klass: toolbar_or_class || "btn-primary"}))
+				.on("click", click)
+				.appendTo(wrapper);
+		};
+
 	},
 
 	set_views_for: function(doctype, active_view) {

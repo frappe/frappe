@@ -319,7 +319,7 @@ frappe.ui.Listing = Class.extend({
 
 	render_list: function(values) {
 		var m = Math.min(values.length, this.page_length);
-		this.data = values;
+		this.last_page = values;
 		if(this.filter_list) {
 			this.filter_values = this.filter_list.get_filters();
 		}

@@ -18,6 +18,7 @@ class PageNotFoundError(Exception): pass
 def render(path, http_status_code=None):
 	"""render html page"""
 	path = resolve_path(path.strip("/"))
+	frappe.local.path = path
 
 	try:
 		data = render_page(path)
@@ -54,8 +55,8 @@ def render_403(e, pathname):
 	path = "message"
 	frappe.local.message = """<p><strong>{error}</strong></p>
 	<p>
-		<a href="/login?redirect-to=/{pathname}" class="btn btn-primary>{login}</a>
-	</p>""".format(error=cstr(e), login=_("Login"), pathname=pathname)
+		<a href="/login?redirect-to=/{pathname}" class="btn btn-primary">{login}</a>
+	</p>""".format(error=cstr(e), login=_("Login"), pathname=frappe.local.path)
 	frappe.local.message_title = _("Not Permitted")
 	return render_page(path), e.http_status_code
 
