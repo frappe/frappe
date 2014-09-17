@@ -312,7 +312,7 @@ frappe.ui.make_app_page = function(opts) {
 			"title: [optional] set this title"
 		]
 	*/
-	$wrapper = $(opts.parent)
+	var $wrapper = $(opts.parent)
 	$('<div class="app-page container"><div class="appframe-titlebar">\
 			<div class="container">\
 				<div class="row">\
@@ -360,5 +360,6 @@ frappe.ui.make_app_page = function(opts) {
 		opts.parent.appframe.set_document_title = opts.set_document_title;
 	if(opts.title) opts.parent.appframe.set_title(opts.title);
 	if(opts.icon) opts.parent.appframe.get_main_icon(opts.icon);
+	if(opts.full_width) $wrapper.find(".app-page").addClass("full-width");
 
 }

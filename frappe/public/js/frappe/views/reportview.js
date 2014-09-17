@@ -41,7 +41,7 @@ frappe.views.ReportViewPage = Class.extend({
 		var me = this;
 		this.page = frappe.container.add_page(this.page_name);
 		frappe.ui.make_app_page({parent:this.page,
-			single_column:true});
+			single_column:true, full_width: true});
 		frappe.container.change_to(this.page_name);
 
 		$(this.page).on('show', function(){
