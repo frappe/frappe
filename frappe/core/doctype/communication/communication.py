@@ -44,6 +44,7 @@ class Communication(Document):
 	def send(self, send_me_a_copy=False, print_html=None, print_format=None,
 		attachments=None):
 		if print_format:
+			print self.get_attach_link(print_format)
 			self.content += self.get_attach_link(print_format)
 
 		mail = get_email(self.recipients, sender=self.sender, subject=self.subject,
@@ -73,7 +74,8 @@ class Communication(Document):
 			"url": get_url(),
 			"doctype": self.reference_doctype,
 			"name": self.reference_name,
-			"print_format": print_format
+			"print_format": print_format,
+			"key": self.get_parent_doc().get_signature()
 		})
 
 def on_doctype_update():
@@ -126,20 +128,3 @@ def attach_print(mail, parent_doc, print_html, print_format):
 		print_html = scrub_urls(print_html)
 		mail.add_attachment(name.replace(' ','').replace('/','-') + '.html',
 			print_html, 'text/html')
-
-def set_portal_link(sent_via, comm):
-	"""set portal link in footer"""
-
-	footer = ""
-
-	if is_signup_enabled() and hasattr(sent_via, "get_portal_page"):
-		portal_page = sent_via.get_portal_page()
-		if portal_page:
-			is_valid_recipient = cstr(sent_via.get("email") or sent_via.get("email_id") or
-				sent_via.get("contact_email")) in comm.recipients
-			if is_valid_recipient:
-				url = "%s/%s?name=%s" % (get_url(), portal_page, urllib.quote(sent_via.name))
-				footer = """<!-- Portal Link -->
-						<p><a href="%s" target="_blank">View this on our website</a></p>""" % url
-
-	return footer

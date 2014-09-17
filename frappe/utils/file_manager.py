@@ -39,6 +39,8 @@ def upload():
 		comment = frappe.get_doc(dt, dn).add_comment("Attachment",
 			_("Added {0}").format("<a href='{file_url}' target='_blank'>{file_name}</a>".format(**filedata.as_dict())))
 
+	print dt, dn, comment
+
 	return {
 		"name": filedata.name,
 		"file_name": filedata.file_name,

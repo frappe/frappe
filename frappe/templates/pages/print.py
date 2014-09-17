@@ -95,6 +95,10 @@ def download_pdf(doctype, name, format=None):
 	frappe.local.response.type = "download"
 
 def validate_print_permission(doc):
+	if frappe.form_dict.get("key"):
+		if frappe.form_dict.key == doc.get_signature():
+			return
+
 	for ptype in ("read", "print"):
 		if not frappe.has_permission(doc.doctype, ptype, doc):
 			raise frappe.PermissionError(_("No {0} permission").format(ptype))

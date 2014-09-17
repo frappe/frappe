@@ -10,11 +10,11 @@ from frappe.model.document import Document
 class ToDo(Document):
 	def validate(self):
 		if self.is_new():
-			self.add_comment(frappe._("Assigned to {0}").format(self.owner), "Assigned")
+			self.add_assign_comment(frappe._("Assigned to {0}").format(self.owner), "Assigned")
 		else:
 			cur_status = frappe.db.get_value("ToDo", self.name, "status")
 			if cur_status != self.status:
-				self.add_comment(frappe._("Assignment Status Changed"), "Assignment Completed")
+				self.add_assign_comment(frappe._("Assignment Status Changed"), "Assignment Completed")
 
 	def on_update(self):
 		self.update_in_reference()
@@ -22,7 +22,7 @@ class ToDo(Document):
 	def on_trash(self):
 		self.update_in_reference()
 
-	def add_comment(self, text, comment_type):
+	def add_assign_comment(self, text, comment_type):
 		if not self.reference_type and self.reference_name:
 			return
 
