@@ -107,30 +107,31 @@ def get_linked_docs(doctype, name, metadata_loaded=None, no_metadata=False):
 	meta = frappe.widgets.form.meta.get_meta(doctype)
 	linkinfo = meta.get("__linked_with")
 	results = {}
-	for dt, link in linkinfo.items():
-		link["doctype"] = dt
-		link_meta_bundle = frappe.widgets.form.load.get_meta_bundle(dt)
-		linkmeta = link_meta_bundle[0]
-		if not linkmeta.get("issingle"):
-			fields = [d.fieldname for d in linkmeta.get("fields", {"in_list_view":1,
-				"fieldtype": ["not in", ["Image", "HTML", "Button", "Table"]]})] \
-				+ ["name", "modified", "docstatus"]
-
-			fields = ["`tab{dt}`.`{fn}`".format(dt=dt, fn=sf.strip()) for sf in fields if sf]
-
-			if link.get("child_doctype"):
-				ret = frappe.get_list(doctype=dt, fields=fields,
-					filters=[[link.get('child_doctype'), link.get("fieldname"), '=', name]])
-
-			else:
-				ret = frappe.get_list(doctype=dt, fields=fields,
-					filters=[[dt, link.get("fieldname"), '=', name]])
-
-			if ret:
-				results[dt] = ret
-
-			if not no_metadata and not dt in metadata_loaded:
-				frappe.local.response.docs.extend(link_meta_bundle)
+	if linkinfo:
+		for dt, link in linkinfo.items():
+			link["doctype"] = dt
+			link_meta_bundle = frappe.widgets.form.load.get_meta_bundle(dt)
+			linkmeta = link_meta_bundle[0]
+			if not linkmeta.get("issingle"):
+				fields = [d.fieldname for d in linkmeta.get("fields", {"in_list_view":1,
+					"fieldtype": ["not in", ["Image", "HTML", "Button", "Table"]]})] \
+					+ ["name", "modified", "docstatus"]
+	
+				fields = ["`tab{dt}`.`{fn}`".format(dt=dt, fn=sf.strip()) for sf in fields if sf]
+	
+				if link.get("child_doctype"):
+					ret = frappe.get_list(doctype=dt, fields=fields,
+						filters=[[link.get('child_doctype'), link.get("fieldname"), '=', name]])
+	
+				else:
+					ret = frappe.get_list(doctype=dt, fields=fields,
+						filters=[[dt, link.get("fieldname"), '=', name]])
+	
+				if ret:
+					results[dt] = ret
+	
+				if not no_metadata and not dt in metadata_loaded:
+					frappe.local.response.docs.extend(link_meta_bundle)
 
 
 	return results
