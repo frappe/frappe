@@ -791,7 +791,7 @@ def run_tests(app=None, module=None, doctype=None, verbose=False, tests=(), driv
 	import frappe.test_runner
 	from frappe.utils import sel
 
-	sel.start(verbose, driver)
+	#sel.start(verbose, driver)
 
 	ret = 1
 	try:

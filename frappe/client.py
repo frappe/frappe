@@ -9,6 +9,12 @@ import frappe.utils
 import json, os
 
 @frappe.whitelist()
+def get_list(doctype, fields=None, filters=None, order_by=None,
+	limit_start=None, limit_page_length=None):
+	return frappe.get_list(doctype, fields=fields, filters=filters, order_by=order_by,
+		limit_start=limit_start, limit_page_length=limit_page_length)
+
+@frappe.whitelist()
 def get(doctype, name=None, filters=None):
 	if filters and not name:
 		name = frappe.db.get_value(doctype, json.loads(filters))

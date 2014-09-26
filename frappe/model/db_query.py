@@ -223,10 +223,13 @@ class DatabaseQuery(object):
 		if not isinstance(f, (list, tuple)):
 			frappe.throw("Filter must be a tuple or list (in a list)")
 
-		if len(f) != 4:
+		if len(f) == 3:
+			f = (self.doctype, f[0], f[1], f[2])
+
+		elif len(f) != 4:
 			frappe.throw("Filter must have 4 values (doctype, fieldname, condition, value): " + str(f))
 
-		return f
+		return list(f)
 
 	def build_match_conditions(self, as_condition=True):
 		"""add match conditions if applicable"""

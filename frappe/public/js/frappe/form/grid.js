@@ -508,7 +508,7 @@ frappe.ui.form.GridRow = Class.extend({
 			<div class="panel-body">\
 				<div class="form-area"></div>\
 				<div class="toolbar footer-toolbar" style="margin-top: 15px">\
-					<span class="text-muted"><a href="#" class="shortcuts"><i class="icon-keyboard"></i>' + __("Shortcuts") + '</a></span>\
+					<span class="text-muted"><a href="#" class="shortcuts"> <i class="icon-keyboard"></i>' + __("Shortcuts") + '</a></span>\
 					<span class="text-success pull-right grid-toggle-row" \
 						title="'+__("Close")+'"\
 						style="margin-left: 7px; cursor: pointer;">\

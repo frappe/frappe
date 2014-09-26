@@ -190,7 +190,12 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 					me.disp_area && $(me.disp_area).toggle(false);
 					$(me.input_area).toggle(true);
 					$(me.input_area).find("input").prop("disabled", false);
-					!me.has_input && me.make_input();
+					if(!me.has_input) {
+						me.make_input();
+						if(me.df.on_make) {
+							me.df.on_make(me);
+						}
+					};
 					if(me.doctype && me.docname)
 						me.set_input(me.value);
 				} else {
