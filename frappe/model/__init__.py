@@ -7,9 +7,13 @@ import frappe
 import json
 
 
-no_value_fields = ['Section Break', 'Column Break', 'HTML', 'Table', 'Button', 'Image', 'Fold']
-default_fields = ['doctype','name','owner','creation','modified','modified_by','parent','parentfield','parenttype','idx','docstatus']
-integer_docfield_properties = ["reqd", "search_index", "in_list_view", "permlevel", "hidden", "read_only", "ignore_user_permissions", "allow_on_submit", "report_hide", "in_filter", "no_copy", "print_hide"]
+no_value_fields = ['Section Break', 'Column Break', 'HTML', 'Table', 'Button',
+	'Image', 'Fold']
+default_fields = ['doctype','name','owner','creation','modified','modified_by',
+	'parent','parentfield','parenttype','idx','docstatus']
+integer_docfield_properties = ["reqd", "search_index", "in_list_view", "permlevel",
+	"hidden", "read_only", "ignore_user_permissions", "allow_on_submit", "report_hide",
+	"in_filter", "no_copy", "print_hide", "unique"]
 
 def insert(doclist):
 	if not isinstance(doclist, list):

@@ -30,6 +30,7 @@ CREATE TABLE `tabDocField` (
   `print_hide` int(1) DEFAULT NULL,
   `report_hide` int(1) DEFAULT NULL,
   `reqd` int(1) DEFAULT NULL,
+  `unique` int(1) DEFAULT NULL,
   `no_copy` int(1) DEFAULT NULL,
   `allow_on_submit` int(1) DEFAULT NULL,
   `trigger` varchar(255) DEFAULT NULL,

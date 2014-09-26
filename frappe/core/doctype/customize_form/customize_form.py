@@ -31,6 +31,7 @@ class CustomizeForm(Document):
 		'width': 'Data',
 		'print_width': 'Data',
 		'reqd': 'Check',
+		'unique': 'Check',
 		'ignore_user_permissions': 'Check',
 		'in_filter': 'Check',
 		'in_list_view': 'Check',

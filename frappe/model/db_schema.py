@@ -36,14 +36,27 @@ type_map = {
 	,'Attach':		('varchar', '255')
 }
 
-default_columns = ['name', 'creation', 'modified', 'modified_by', 'owner', 'docstatus', 'parent',\
-	 'parentfield', 'parenttype', 'idx']
+default_columns = ['name', 'creation', 'modified', 'modified_by', 'owner',
+	'docstatus', 'parent', 'parentfield', 'parenttype', 'idx']
 
 default_shortcuts = ['_Login', '__user', '_Full Name', 'Today', '__today']
 
-# -------------------------------------------------
-# Class database table
-# -------------------------------------------------
+def updatedb(dt):
+	"""
+	Syncs a `DocType` to the table
+	   * creates if required
+	   * updates columns
+	   * updates indices
+	"""
+	res = frappe.db.sql("select ifnull(issingle, 0) from tabDocType where name=%s", (dt,))
+	if not res:
+		raise Exception, 'Wrong doctype "%s" in updatedb' % dt
+
+	if not res[0][0]:
+		frappe.db.commit()
+		tab = DbTable(dt, 'tab')
+		tab.sync()
+		frappe.db.begin()
 
 class DbTable:
 	def __init__(self, doctype, prefix = 'tab'):
@@ -55,12 +68,20 @@ class DbTable:
 		# lists for change
 		self.add_column = []
 		self.change_type = []
+
 		self.add_index = []
 		self.drop_index = []
+
 		self.set_default = []
 
 		# load
 		self.get_columns_from_docfields()
+
+	def sync(self):
+		if not self.name in DbManager(frappe.db).get_tables_list(frappe.db.cur_db_name):
+			self.create()
+		else:
+			self.alter()
 
 	def create(self):
 		add_text = ''
@@ -89,31 +110,6 @@ class DbTable:
 			ENGINE=InnoDB
 			CHARACTER SET=utf8""" % (self.name, add_text))
 
-	def get_columns_from_docfields(self):
-		"""
-			get columns from docfields and custom fields
-		"""
-		fl = frappe.db.sql("SELECT * FROM tabDocField WHERE parent = %s", self.doctype, as_dict = 1)
-
-		try:
-			custom_fl = frappe.db.sql("""\
-				SELECT * FROM `tabCustom Field`
-				WHERE dt = %s AND docstatus < 2""", (self.doctype,), as_dict=1)
-			if custom_fl: fl += custom_fl
-		except Exception, e:
-			if e.args[0]!=1146: # ignore no custom field
-				raise
-
-		for f in fl:
-			self.columns[f['fieldname']] = DbColumn(self, f['fieldname'],
-					f['fieldtype'], f.get('length'), f.get('default'),
-					f.get('search_index'), f.get('options'))
-
-	def get_columns_from_db(self):
-		self.show_columns = frappe.db.sql("desc `%s`" % self.name)
-		for c in self.show_columns:
-			self.current_columns[c[0]] = {'name': c[0], 'type':c[1], 'index':c[3], 'default':c[4]}
-
 	def get_column_definitions(self):
 		column_list = [] + default_columns
 		ret = []
@@ -133,6 +129,31 @@ class DbTable:
 				ret.append('index `' + key + '`(`' + key + '`)')
 		return ret
 
+	def get_columns_from_docfields(self):
+		"""
+			get columns from docfields and custom fields
+		"""
+		fl = frappe.db.sql("SELECT * FROM tabDocField WHERE parent = %s", self.doctype, as_dict = 1)
+
+		try:
+			custom_fl = frappe.db.sql("""\
+				SELECT * FROM `tabCustom Field`
+				WHERE dt = %s AND docstatus < 2""", (self.doctype,), as_dict=1)
+			if custom_fl: fl += custom_fl
+		except Exception, e:
+			if e.args[0]!=1146: # ignore no custom field
+				raise
+
+		for f in fl:
+			self.columns[f['fieldname']] = DbColumn(self, f['fieldname'],
+					f['fieldtype'], f.get('length'), f.get('default'),
+					f.get('search_index'), f.get('options'), f.get('unique'))
+
+	def get_columns_from_db(self):
+		self.show_columns = frappe.db.sql("desc `%s`" % self.name)
+		for c in self.show_columns:
+			self.current_columns[c[0]] = {'name': c[0],
+				'type':c[1], 'index':c[3]=="MUL", 'default':c[4], "unique":c[3]=="UNI"}
 
 	# GET foreign keys
 	def get_foreign_keys(self):
@@ -165,16 +186,10 @@ class DbTable:
 			frappe.db.sql("alter table `%s` drop foreign key `%s`" % (self.name, fk_dict[col.fieldname]))
 			frappe.db.sql("set foreign_key_checks=1")
 
-	def sync(self):
-		if not self.name in DbManager(frappe.db).get_tables_list(frappe.db.cur_db_name):
-			self.create()
-		else:
-			self.alter()
-
 	def alter(self):
 		self.get_columns_from_db()
 		for col in self.columns.values():
-			col.check(self.current_columns.get(col.fieldname, None))
+			col.build_for_alter_table(self.current_columns.get(col.fieldname, None))
 
 		query = []
 
@@ -193,11 +208,12 @@ class DbTable:
 		for col in self.drop_index:
 			if col.fieldname != 'name': # primary key
 				# if index key exists
-				if frappe.db.sql("show index from `%s` where key_name = %s" %
-						(self.name, '%s'), col.fieldname):
+				if frappe.db.sql("""show index from `{0}`
+					where key_name=%s
+					and Non_unique=%s""".format(self.name), (col.fieldname, 1 if col.unique else 0), debug=1):
 					query.append("drop index `{}`".format(col.fieldname))
 
-		for col in list(set(self.set_default).difference(set(self.change_type))):
+		for col in self.set_default:
 			if col.fieldname=="name":
 				continue
 
@@ -212,7 +228,8 @@ class DbTable:
 			frappe.db.sql("alter table `{}` {}".format(self.name, ", ".join(query)))
 
 class DbColumn:
-	def __init__(self, table, fieldname, fieldtype, length, default, set_index, options):
+	def __init__(self, table, fieldname, fieldtype, length, default,
+		set_index, options, unique):
 		self.table = table
 		self.fieldname = fieldname
 		self.fieldtype = fieldtype
@@ -220,18 +237,22 @@ class DbColumn:
 		self.set_index = set_index
 		self.default = default
 		self.options = options
+		self.unique = unique
 
-	def get_definition(self, with_default=1):
-		ret = get_definition(self.fieldtype)
+	def get_definition(self):
+		column_def = get_definition(self.fieldtype)
 
-		if with_default and self.default and (self.default not in default_shortcuts) \
-			and not self.default.startswith(":") and ret not in ['text', 'longtext']:
-			ret += ' default "' + self.default.replace('"', '\"') + '"'
+		if self.default and (self.default not in default_shortcuts) \
+			and not self.default.startswith(":") and column_def not in ['text', 'longtext']:
+			column_def += ' default "' + self.default.replace('"', '\"') + '"'
 
-		return ret
+		if self.unique:
+			column_def += ' unique'
 
-	def check(self, current_def):
-		column_def = self.get_definition(0)
+		return column_def
+
+	def build_for_alter_table(self, current_def):
+		column_def = get_definition(self.fieldtype)
 
 		# no columns
 		if not column_def:
@@ -244,20 +265,27 @@ class DbColumn:
 			return
 
 		# type
-		if current_def['type'] != column_def:
+		if (current_def['type'] != column_def) or (self.unique and not current_def['unique']):
 			self.table.change_type.append(self)
 
-		# index
 		else:
+			# index
 			if (current_def['index'] and not self.set_index):
+				self.table.drop_index.append(self)
+
+			if (current_def['unique'] and not self.unique):
 				self.table.drop_index.append(self)
 
 			if (not current_def['index'] and self.set_index and not (column_def in ['text', 'longtext'])):
 				self.table.add_index.append(self)
 
-		# default
-		if (self.default_changed(current_def) and (self.default not in default_shortcuts) and not cstr(self.default).startswith(":") and not (column_def in ['text','longtext'])):
-			self.table.set_default.append(self)
+			# default
+			if (self.default_changed(current_def) \
+				and (self.default not in default_shortcuts) \
+				and not cstr(self.default).startswith(":") \
+				and not (column_def in ['text','longtext'])):
+				self.table.set_default.append(self)
+
 
 
 	def default_changed(self, current_def):
@@ -373,22 +401,6 @@ def validate_column_name(n):
 	return n
 
 
-def updatedb(dt):
-	"""
-	Syncs a `DocType` to the table
-	   * creates if required
-	   * updates columns
-	   * updates indices
-	"""
-	res = frappe.db.sql("select ifnull(issingle, 0) from tabDocType where name=%s", (dt,))
-	if not res:
-		raise Exception, 'Wrong doctype "%s" in updatedb' % dt
-
-	if not res[0][0]:
-		frappe.db.commit()
-		tab = DbTable(dt, 'tab')
-		tab.sync()
-		frappe.db.begin()
 
 def remove_all_foreign_keys():
 	frappe.db.sql("set foreign_key_checks = 0")
@@ -417,8 +429,8 @@ def get_definition(fieldtype):
 		ret += '(' + d[1] + ')'
 	return ret
 
-
 def add_column(doctype, column_name, fieldtype):
+	"""Add a column to the database"""
 	frappe.db.commit()
 	frappe.db.sql("alter table `tab%s` add column %s %s" % (doctype,
 		column_name, get_definition(fieldtype)))
