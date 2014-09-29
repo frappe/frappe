@@ -55,6 +55,7 @@ def get_outgoing_email_account(raise_exception_not_set=True):
 				"email_id": frappe.conf.get("mail_login"),
 				"password": frappe.conf.get("mail_password")
 			})
+			email_account.from_site_config = True
 
 		if not email_account and not raise_exception_not_set:
 			return None
