@@ -580,7 +580,7 @@ def expand_relative_urls(html):
 def quote_urls(html):
 	def _quote_url(match):
 		groups = list(match.groups())
-		groups[2] = urllib.quote(groups[2], safe="~@#$&()*!+=:;,.?/'")
+		groups[2] = urllib.quote(groups[2].encode("utf-8"), safe=b"~@#$&()*!+=:;,.?/'").decode("utf-8")
 		return "".join(groups)
 	return re.sub('(href|src){1}([\s]*=[\s]*[\'"]?)((?:http)[^\'">]+)([\'"]?)',
 		_quote_url, html)
