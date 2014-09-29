@@ -221,12 +221,12 @@ def get_footer(footer=None):
 	"""append a footer (signature)"""
 	footer = footer or ""
 
-	email_account = get_outgoing_email_account()
+	email_account = get_outgoing_email_account(False)
 
-	if email_account.add_signature and email_account.signature:
+	if email_account and email_account.add_signature and email_account.signature:
 		footer += email_account.signature
 
-	if email_account.footer:
+	if email_account and email_account.footer:
 		footer += email_account.footer
 	else:
 		for default_mail_footer in frappe.get_hooks("default_mail_footer"):

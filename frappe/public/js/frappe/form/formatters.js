@@ -69,7 +69,7 @@ frappe.form.formatters = {
 			return repl('%(icon)s<a href="#Form/%(doctype)s/%(name)s">%(label)s</a>', {
 				doctype: encodeURIComponent(doctype),
 				name: encodeURIComponent(value),
-				label: value,
+				label: __(value),
 				icon: (options && options.no_icon) ? "" :
 					('<i class="icon-fixed-width '+frappe.boot.doctype_icons[doctype]+'"></i> ')
 			});
