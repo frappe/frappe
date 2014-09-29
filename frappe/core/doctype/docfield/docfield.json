@@ -79,6 +79,13 @@
    "width": "50px"
   }, 
   {
+   "fieldname": "unique", 
+   "fieldtype": "Check", 
+   "label": "Unique", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
    "fieldname": "in_list_view", 
    "fieldtype": "Check", 
    "label": "In List View", 
@@ -314,7 +321,7 @@
  "in_dialog": 1, 
  "issingle": 0, 
  "istable": 1, 
- "modified": "2014-09-05 07:41:05.956027", 
+ "modified": "2014-09-26 05:03:44.822570", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "DocField", 

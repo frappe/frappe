@@ -146,6 +146,13 @@
    "search_index": 0
   },
   {
+   "fieldname": "unique",
+   "fieldtype": "Check",
+   "label": "Unique",
+   "permlevel": 0,
+   "precision": ""
+  },
+  {
    "fieldname": "read_only",
    "fieldtype": "Check",
    "label": "Read Only",
@@ -267,7 +274,7 @@
  ],
  "icon": "icon-glass",
  "idx": 1,
- "modified": "2014-09-05 07:41:13.076821",
+ "modified": "2014-09-26 05:04:49.148737",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Custom Field",
