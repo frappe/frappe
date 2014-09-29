@@ -42,7 +42,6 @@ class Communication(Document):
 	def send(self, send_me_a_copy=False, print_html=None, print_format=None,
 		attachments=None):
 		if print_format:
-			print self.get_attach_link(print_format)
 			self.content += self.get_attach_link(print_format)
 
 		mail = get_email(self.recipients, sender=self.sender, subject=self.subject,

@@ -45,6 +45,17 @@ def get_outgoing_email_account(raise_exception_not_set=True):
 		if not email_account:
 			email_account = frappe.db.get_value('Email Account', {"is_default": 1})
 
+		if not email_account and frappe.conf.get("mail_server"):
+			# from site_config.json
+			email_account = frappe.new_doc("Email Account")
+			email_account.update({
+				"smtp_server": frappe.conf.get("mail_server"),
+				"smtp_port": frappe.conf.get("mail_port"),
+				"use_tls": cint(frappe.conf.get("use_ssl") or 0),
+				"email_id": frappe.conf.get("mail_login"),
+				"password": frappe.conf.get("mail_password")
+			})
+
 		if not email_account and not raise_exception_not_set:
 			return None
 
@@ -70,14 +81,6 @@ class SMTPServer:
 
 		else:
 			self.setup_from_user_or_default_outgoing()
-
-			# from config
-			if not self.server:
-				self.server = frappe.conf.get("mail_server") or ""
-				self.port = frappe.conf.get("mail_port") or None
-				self.use_ssl = cint(frappe.conf.get("use_ssl") or 0)
-				self.login = frappe.conf.get("mail_login") or ""
-				self.password = frappe.conf.get("mail_password") or ""
 
 	def setup_from_user_or_default_outgoing(self):
 		self.email_account = get_outgoing_email_account(raise_exception_not_set=False)
