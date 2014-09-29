@@ -7,7 +7,6 @@ import frappe, os, time
 def sync_statics(rebuild=False):
 	s = sync()
 	s.verbose = True
-	frappe.db.sql("delete from `tabWeb Page` where ifnull(template_path, '')!=''")
 	# s.start(rebuild)
 	# frappe.db.commit()
 
@@ -25,7 +24,9 @@ class sync(object):
 		self.synced = []
 		self.synced_paths = []
 		self.updated = 0
-		self.rebuild = rebuild
+		if rebuild:
+			frappe.db.sql("delete from `tabWeb Page` where ifnull(template_path, '')!=''")
+
 		for app in frappe.get_installed_apps():
 			self.sync_for_app(app)
 		self.cleanup()
