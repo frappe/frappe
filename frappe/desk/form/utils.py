@@ -107,6 +107,10 @@ def get_linked_docs(doctype, name, metadata_loaded=None, no_metadata=False):
 	meta = frappe.desk.form.meta.get_meta(doctype)
 	linkinfo = meta.get("__linked_with")
 	results = {}
+
+	if not linkinfo:
+		return results
+
 	for dt, link in linkinfo.items():
 		link["doctype"] = dt
 		link_meta_bundle = frappe.desk.form.load.get_meta_bundle(dt)
