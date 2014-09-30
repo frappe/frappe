@@ -91,9 +91,8 @@ def get_user_permissions(meta):
 	return out
 
 def get_attachments(dt, dn):
-	return frappe.get_list("File Data", fields=["name", "file_name", "file_url"],
-		filters = {"attached_to_name": dn, "attached_to_doctype": dt},
-		ignore_permissions=True)
+	return frappe.get_all("File Data", fields=["name", "file_name", "file_url"],
+		filters = {"attached_to_name": dn, "attached_to_doctype": dt})
 
 def get_comments(dt, dn, limit=100):
 	comments = frappe.db.sql("""select name, comment, comment_by, creation,

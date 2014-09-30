@@ -51,6 +51,7 @@ def get_allowed_functions_for_jenv():
 			"get_meta": frappe.get_meta,
 			"get_doc": frappe.get_doc,
 			"get_list": frappe.get_list,
+			"get_all": frappe.get_all,
 			"utils": datautils,
 			"user": frappe.session.user,
 			"date_format": frappe.db.get_default("date_format") or "yyyy-mm-dd"
