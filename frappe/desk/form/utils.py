@@ -111,6 +111,7 @@ def get_linked_docs(doctype, name, metadata_loaded=None, no_metadata=False):
 	if not linkinfo:
 		return results
 
+	me = frappe.db.get_value(doctype, name, ["parenttype", "parent"], as_dict=True)
 	for dt, link in linkinfo.items():
 		link["doctype"] = dt
 		link_meta_bundle = frappe.desk.form.load.get_meta_bundle(dt)
@@ -123,7 +124,14 @@ def get_linked_docs(doctype, name, metadata_loaded=None, no_metadata=False):
 			fields = ["`tab{dt}`.`{fn}`".format(dt=dt, fn=sf.strip()) for sf in fields if sf]
 
 			try:
-				if link.get("child_doctype"):
+				if link.get("get_parent"):
+					if me and me.parent and me.parenttype == dt:
+						ret = frappe.get_list(doctype=dt, fields=fields,
+							filters=[[dt, "name", '=', me.parent]])
+					else:
+						ret = None
+
+				elif link.get("child_doctype"):
 					ret = frappe.get_list(doctype=dt, fields=fields,
 						filters=[[link.get('child_doctype'), link.get("fieldname"), '=', name]])
 

@@ -116,22 +116,29 @@ class FormMeta(Meta):
 
 		links = dict(links)
 
-		if not links:
-			return {}
-
 		ret = {}
 
 		for dt in links:
 			ret[dt] = { "fieldname": links[dt] }
 
-		for grand_parent, options in frappe.db.sql("""select parent, options from tabDocField
-			where fieldtype="Table"
-				and options in (select name from tabDocType
-					where istable=1 and name in (%s))""" % ", ".join(["%s"] * len(links)) ,tuple(links)):
+		if links:
+			for grand_parent, options in frappe.db.sql("""select parent, options from tabDocField
+				where fieldtype="Table"
+					and options in (select name from tabDocType
+						where istable=1 and name in (%s))""" % ", ".join(["%s"] * len(links)) ,tuple(links)):
 
-			ret[grand_parent] = {"child_doctype": options, "fieldname": links[options] }
-			if options in ret:
-				del ret[options]
+				ret[grand_parent] = {"child_doctype": options, "fieldname": links[options] }
+				if options in ret:
+					del ret[options]
+
+		links = frappe.db.sql("""select dt from `tabCustom Field`
+			where (fieldtype="Table" and options=%s)""", (self.name))
+		links += frappe.db.sql("""select parent from tabDocField
+			where (fieldtype="Table" and options=%s)""", (self.name))
+
+		for dt, in links:
+			if not dt in ret:
+				ret[dt] = {"get_parent": True}
 
 		self.set("__linked_with", ret)
 
