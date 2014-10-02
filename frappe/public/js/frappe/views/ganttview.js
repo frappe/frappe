@@ -9,7 +9,7 @@ frappe.views.GanttFactory = frappe.views.Factory.extend({
 		frappe.model.with_doctype(route[1], function() {
 			var page = me.make_page();
 			$(page).on("show", function() {
-				me.set_filters_from_route_options();
+				page.ganttview.set_filters_from_route_options();
 			});
 
 			var options = {
@@ -169,11 +169,11 @@ frappe.views.Gantt = Class.extend({
 			$.each(frappe.route_options, function(k, value) {
 				if(me.appframe.fields_dict[k]) {
 					me.appframe.fields_dict[k].set_input(value);
-					me.refresh();
-					return false;
 				};
 			})
 			frappe.route_options = null;
+			me.refresh();
+			return false;
 		}
 	}
 });
