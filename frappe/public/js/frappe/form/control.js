@@ -596,6 +596,10 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 		})
 	},
 	onclick: function() {
+		if(this.doc && this.doc.__islocal) {
+			frappe.msgprint(__("Please save the document before uploading."));
+			return;
+		}
 		if(!this.dialog) {
 			this.dialog = new frappe.ui.Dialog({
 				title: __(this.df.label || __("Upload")),

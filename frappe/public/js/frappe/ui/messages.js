@@ -53,7 +53,7 @@ frappe.get_value = function(field, callback) {
 }
 
 var msg_dialog=null;
-function msgprint(msg, title) {
+frappe.msgprint = function(msg, title) {
 	if(!msg) return;
 
 	if(msg instanceof Array) {
@@ -103,6 +103,8 @@ function msgprint(msg, title) {
 
 	return msg_dialog;
 }
+
+var msgprint = frappe.msgprint;
 
 // Floating Message
 function show_alert(txt, seconds) {
