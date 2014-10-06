@@ -2,13 +2,14 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-import frappe, os, time, sys
-
-from frappe.utils import update_progress_bar
+import frappe, os, time
 
 def sync_statics(rebuild=False):
 	s = sync()
 	s.verbose = True
+	# s.start(rebuild)
+	# frappe.db.commit()
+
 	while True:
 		s.start(rebuild)
 		frappe.db.commit()
@@ -22,14 +23,12 @@ class sync(object):
 	def start(self, rebuild=False):
 		self.synced = []
 		self.synced_paths = []
-		self.to_insert = []
-		self.to_update = []
 		self.updated = 0
-		self.rebuild = rebuild
+		if rebuild:
+			frappe.db.sql("delete from `tabWeb Page` where ifnull(template_path, '')!=''")
+
 		for app in frappe.get_installed_apps():
 			self.sync_for_app(app)
-
-		self.insert_and_update()
 		self.cleanup()
 
 	def sync_for_app(self, app):
@@ -80,8 +79,9 @@ class sync(object):
 				if fname in files:
 					self.sync_file(fname, os.path.join(basepath, fname), i)
 					break
-				elif page_name not in folders:
-					print page_name + " not found in " + basepath
+				else:
+					if page_name not in folders:
+						print page_name + " not found in " + basepath
 
 	def sync_alphabetically(self, basepath, folders, files):
 		files.sort()
@@ -97,18 +97,23 @@ class sync(object):
 			os.path.dirname(template_path) != self.statics_path:
 			route = os.path.dirname(route)
 
+		parent_web_page = frappe.db.sql("""select name from `tabWeb Page` where
+			page_name=%s and ifnull(parent_website_route, '')=ifnull(%s, '')""",
+				(os.path.basename(os.path.dirname(route)), os.path.dirname(os.path.dirname(route))))
+
+		parent_web_page = parent_web_page and parent_web_page[0][0] or ""
 
 		page_name = os.path.basename(route)
-		parent_web_page = os.path.basename(os.path.dirname(route))
+
 		published = 1
 		idx = priority
 
-		if page_name in self.synced:
+		if (parent_web_page, page_name) in self.synced:
 			return
 
 		title = self.get_title(template_path)
 
-		if not frappe.db.get_value("Web Page", {"page_name":page_name}):
+		if not frappe.db.get_value("Web Page", {"template_path":template_path}):
 			web_page = frappe.new_doc("Web Page")
 			web_page.page_name = page_name
 			web_page.parent_web_page = parent_web_page
@@ -117,10 +122,11 @@ class sync(object):
 			web_page.published = published
 			web_page.idx = idx
 			web_page.from_website_sync = True
-			self.to_insert.append(web_page)
+			web_page.insert()
+			if self.verbose: print "Inserted: " + web_page.name
 
 		else:
-			web_page = frappe.get_doc("Web Page", {"page_name":page_name})
+			web_page = frappe.get_doc("Web Page", {"template_path":template_path})
 			dirty = False
 			for key in ("parent_web_page", "title", "template_path", "published", "idx"):
 				if web_page.get(key) != locals().get(key):
@@ -129,9 +135,10 @@ class sync(object):
 
 			if dirty:
 				web_page.from_website_sync = True
-				self.to_update.append(web_page)
+				web_page.save()
+				if self.verbose: print "Updated: " + web_page.name
 
-		self.synced.append(page_name)
+		self.synced.append((parent_web_page, page_name))
 
 	def get_title(self, fpath):
 		title = os.path.basename(fpath).rsplit(".", 1)[0]
@@ -151,37 +158,13 @@ class sync(object):
 
 		return title
 
-	def insert_and_update(self):
-		if self.to_insert:
-			l = len(self.to_insert)
-			for i, page in enumerate(self.to_insert):
-				if self.verbose:
-					print "Inserting " + page.page_name
-				else:
-					update_progress_bar("Updating Static Pages", i, l)
-
-				page.insert()
-			if not self.verbose: print ""
-
-		if self.to_update:
-			for i, page in enumerate(self.to_update):
-				if not self.verbose:
-					print "Updating " + page.page_name
-				else:
-					sys.stdout.write("\rUpdating statics {0}/{1}".format(i+1, len(self.to_update)))
-					sys.stdout.flush()
-
-				page.save()
-			if not self.verbose: print ""
-
 	def cleanup(self):
 		if self.synced:
 			# delete static web pages that are not in immediate list
-			frappe.delete_doc("Web Page", frappe.db.sql_list("""select name
-				from `tabWeb Page`
-				where ifnull(template_path,'')!=''
-				and name not in ({})""".format(', '.join(["%s"]*len(self.synced))),
-					tuple(self.synced)), force=1)
+			for static_page in frappe.db.sql("""select name, page_name, parent_web_page
+				from `tabWeb Page` where ifnull(template_path,'')!=''""", as_dict=1):
+				if (static_page.parent_web_page, static_page.page_name) not in self.synced:
+					frappe.delete_doc("Web Page", static_page.name, force=1)
 		else:
 			# delete all static web pages
 			frappe.delete_doc("Web Page", frappe.db.sql_list("""select name

@@ -130,6 +130,7 @@ def get_linked_docs(doctype, name, metadata_loaded=None, no_metadata=False):
 				else:
 					ret = frappe.get_list(doctype=dt, fields=fields,
 						filters=[[dt, link.get("fieldname"), '=', name]])
+
 			except frappe.PermissionError:
 				continue
 
@@ -138,6 +139,5 @@ def get_linked_docs(doctype, name, metadata_loaded=None, no_metadata=False):
 
 			if not no_metadata and not dt in metadata_loaded:
 				frappe.local.response.docs.extend(link_meta_bundle)
-
 
 	return results
