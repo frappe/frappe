@@ -28,11 +28,10 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 	if doctype:
 		if isinstance(doctype, basestring):
 			doctype = [doctype];
-		
 		if len(doctype) > 1:
-			docs_to_export = doctype[1]#dictionary for selective exports
-		#here, doctype is allways a list. Was converted to list in module fixtures.py
+			docs_to_export = doctype[1]
 		doctype = doctype[0]
+		
 	if not parent_doctype:
 		parent_doctype = doctype
 
