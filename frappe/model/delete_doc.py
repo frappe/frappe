@@ -133,7 +133,7 @@ def check_if_doc_is_linked(doc, method="Delete"):
 			if item and item.parent != doc.name and ((method=="Delete" and item.docstatus<2) or
 					(method=="Cancel" and item.docstatus==1)):
 				frappe.throw(_("Cannot delete or cancel because {0} {1} is linked with {2} {3}").format(doc.doctype,
-					doc.name, item.parent or item.name, item.parenttype if item.parent else link_dt),
+					doc.name, item.parenttype if item.parent else link_dt, item.parent or item.name),
 					frappe.LinkExistsError)
 
 def check_if_doc_is_dynamically_linked(doc):

@@ -407,6 +407,9 @@ class Database:
 		else:
 			return {}
 
+	def update(self, *args, **kwargs):
+		return self.set_value(*args, **kwargs)
+
 	def set_value(self, dt, dn, field, val, modified=None, modified_by=None):
 		if not modified:
 			modified = now()
@@ -414,9 +417,13 @@ class Database:
 			modified_by = frappe.session.user
 
 		if dn and dt!=dn:
-			self.sql("""update `tab%s` set `%s`=%s, modified=%s, modified_by=%s
-				where name=%s""" % (dt, field, "%s", "%s", "%s", "%s"),
-				(val, modified, modified_by, dn))
+			conditions, values = self.build_conditions(dn)
+
+			values.update({"val": val, "modified": modified, "modified_by": modified_by})
+
+			self.sql("""update `tab{0}` set `{1}`=%(val)s, modified=%(modified)s, modified_by=%(modified_by)s where
+				{2}""".format(dt, field, conditions), values)
+
 		else:
 			if self.sql("select value from tabSingles where field=%s and doctype=%s", (field, dt)):
 				self.sql("""update tabSingles set value=%s where field=%s and doctype=%s""",

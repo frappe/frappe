@@ -46,8 +46,8 @@ class EmailAccount(Document):
 
 	def there_must_be_only_one_default(self):
 		if self.is_default:
-			for email_account in frappe.get_list("Email Account",
-				{"is_default": 1}, ignore_permissions=True):
+			for email_account in frappe.get_all("Email Account",
+				{"is_default": 1}):
 				if email_account.name==self.name:
 					continue
 				email_account = frappe.get_doc("Email Account",

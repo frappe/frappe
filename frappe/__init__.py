@@ -608,17 +608,13 @@ def build_match_conditions(doctype, as_condition=True):
 	import frappe.desk.reportview
 	return frappe.desk.reportview.build_match_conditions(doctype, as_condition)
 
-def get_list(doctype, filters=None, fields=None, or_filters=None, docstatus=None,
-			group_by=None, order_by=None, limit_start=0, limit_page_length=None,
-			as_list=False, debug=False, ignore_permissions=False, user=None):
+def get_list(doctype, *args, **kwargs):
 	import frappe.model.db_query
-	return frappe.model.db_query.DatabaseQuery(doctype).execute(filters=filters,
-				fields=fields, docstatus=docstatus, or_filters=or_filters,
-				group_by=group_by, order_by=order_by, limit_start=limit_start,
-				limit_page_length=limit_page_length, as_list=as_list, debug=debug,
-				ignore_permissions=ignore_permissions, user=user)
+	return frappe.model.db_query.DatabaseQuery(doctype).execute(None, *args, **kwargs)
 
-run_query = get_list
+def get_all(doctype, *args, **kwargs):
+	kwargs["ignore_permissions"] = True
+	return get_list(doctype, *args, **kwargs)
 
 def add_version(doc):
 	get_doc({
