@@ -24,6 +24,7 @@ def get_template(path):
 	return get_jenv().get_template(path)
 
 def render_template(template, context):
+	context.update(get_allowed_functions_for_jenv())
 	template = Template(template)
 	return template.render(**context)
 

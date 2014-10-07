@@ -243,7 +243,7 @@ def validate_fields(meta):
 				if fold_exists:
 					frappe.throw(_("There can be only one Fold in a form"))
 				fold_exists = True
-				if i < len(fields)-1:
+				if i < len(fields)-2:
 					nxt = fields[i+1]
 					if nxt.fieldtype != "Section Break" \
 						or (nxt.fieldtype=="Section Break" and not nxt.label):
