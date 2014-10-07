@@ -571,7 +571,7 @@ def build_website(verbose=False):
 	from frappe.website import render, statics
 	frappe.connect()
 	render.clear_cache()
-	statics.sync(verbose=verbose).start()
+	statics.sync(verbose=verbose).start(True)
 	frappe.db.commit()
 	frappe.destroy()
 
