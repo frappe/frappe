@@ -85,6 +85,9 @@ frappe.views.ListView = Class.extend({
 		// additional fields
 		if(this.settings.add_fields) {
 			$.each(this.settings.add_fields, function(i, d) {
+				if(d.indexOf("`tab")===-1) {
+					d = "`tab" + me.doctype + "`." + d;
+				}
 				if(me.fields.indexOf(d)==-1)
 					me.fields.push(d);
 			});
