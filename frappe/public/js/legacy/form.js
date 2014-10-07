@@ -696,8 +696,8 @@ _f.Frm.prototype.get_perm = function(permlevel, access_type) {
 }
 
 
-_f.Frm.prototype.set_intro = function(txt) {
-	frappe.utils.set_intro(this, this.body, txt);
+_f.Frm.prototype.set_intro = function(txt, append) {
+	frappe.utils.set_intro(this, this.body, txt, append);
 }
 
 _f.Frm.prototype.set_footnote = function(txt) {

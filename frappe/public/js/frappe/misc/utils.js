@@ -99,13 +99,13 @@ frappe.utils = {
 			return list;
 		}
 	},
-	set_intro: function(me, wrapper, txt) {
+	set_intro: function(me, wrapper, txt, append) {
 		if(!me.intro_area) {
 			me.intro_area = $('<div class="alert alert-info form-intro-area">')
 				.prependTo(wrapper);
 		}
 		if(txt) {
-			me.intro_area.html(txt);
+			me.intro_area.html(((append && strip(me.intro_area.text())) ? (me.intro_area.html() + "<br><br>") : "") + txt);
 		} else {
 			me.intro_area.remove();
 			me.intro_area = null;
