@@ -744,15 +744,15 @@ Page,صفحة
 Page #{0} of {1},الصفحة # {0} من {1}
 Page Background,خلفية الصفحة
 Page HTML,صفحة HTML
-Page Header,رأس الصفحة
-Page Header Background,رأس الصفحة الخلفية
+Page Header,ترويسة الصفحة
+Page Header Background,خلفية ترويسة الصفحة
 Page Header Text,رأس الصفحة نص
-Page Links,الصفحة روابط
-Page Name,الصفحة اسم
+Page Links,روابط الصفحة
+Page Name,اسم الصفحة
 Page Role,الصفحة الدور
 Page Text,نص الصفحة
 Page Title,صفحة العنوان
-Page content,صفحة المحتوى
+Page content,محتوى الصفحة
 Page not found,لم يتم العثور على الصفحة
 Page or Generator,الصفحة أو مولد
 Page url name (auto-generated),اسم الصفحة رابط ( تم إنشاؤه تلقائيا )
@@ -1181,7 +1181,7 @@ UserRole,UserRole
 Users and Permissions,المستخدمين وأذونات
 Users with role {0}:,المستخدمين مع دور {0} :
 Valid Login id required.,صالحة معرف تسجيل الدخول المطلوبة.
-Valid email and name required,بريد إلكتروني صالح واسم المطلوب
+Valid email and name required, مطلوب بريد إلكتروني صالح واسم صالح 
 Value,قيمة
 Value Change,قيمة التغيير
 Value Changed,قيمة تغيير
@@ -1305,7 +1305,7 @@ film,فيلم
 filter,تصفية
 fire,حريق
 flag,علم
-folder-close,المجلد مسافة قريبة
+folder-close,غلق مجلد
 folder-open,فتح مجلد
 font,الخط
 forward,إلى الأمام
@@ -1413,7 +1413,7 @@ volume-up,حجم المتابعة
 warning-sign,علامة إنذار
 wrench,وجع
 yyyy-mm-dd,YYYY-MM-DD
-zoom-in,التكبير في
+zoom-in,تكبير
 zoom-out,تكبير المغادرة
 {0} List,{0} قائمة
 {0} added,{0} أضاف

@@ -597,8 +597,8 @@ Low,ต่ำ
 Lucida Grande,แกรนด์ Lucida
 Mail Password,รหัสผ่านอีเมล
 Main Section,มาตราหลัก
-Make a new,ทำให้ใหม่
-Make a new record,ให้บันทึกใหม่
+Make a new,สร้างใหม่
+Make a new record,สร้างบันทึกใหม่
 Male,ชาย
 Manage cloud backups on Dropbox,จัดการ การสำรองข้อมูล บน คลาวด์ Dropbox
 Manage uploaded files.,จัดการไฟล์ ที่อัปโหลด
@@ -923,7 +923,7 @@ Sales,ขาย
 Same file has already been attached to the record,ไฟล์เดียวกันได้ถูกแนบมากับบันทึก
 Sample,กลุ่มข้อมูลตัวอย่าง
 Saturday,วันเสาร์
-Save,ประหยัด
+Save,บันทึก
 Scheduler Log,เข้าสู่ระบบการจัดตารางเวลา
 Script,ต้นฉบับ
 Script Report,รายงานสคริปต์
@@ -960,7 +960,7 @@ Send Email,ส่งอีเมล์
 Send Email Print Attachments as PDF (Recommended),ส่งอีเมล์สิ่งที่แนบมาพิมพ์เป็น PDF (แนะนำ)
 Send Me A Copy,ส่งสำเนา
 Send Password,ส่ง รหัสผ่าน
-Send Print as PDF,ส่งพิมพ์เป็น PDF
+Send Print as PDF,ส่งเอกสารพิมพ์เป็นไฟล์ PDF
 Send alert if date matches this field's value,ส่งการแจ้งเตือนถ้าวันที่ตรงกับค่าของเขตนี้
 Send alert if this field's value changes,ส่งการแจ้งเตือนหากมีการเปลี่ยนแปลงค่าของเขตนี้
 Send an email reminder in the morning,ส่งอีเมลเตือนในตอนเช้า
