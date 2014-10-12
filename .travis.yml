@@ -13,7 +13,7 @@ install:
   - sudo add-apt-repository 'deb http://ftp.osuosl.org/pub/mariadb/repo/5.5/ubuntu precise main'
   - sudo apt-get update
   - sudo apt-get purge -y mysql-common
-  - sudo apt-get install mariadb-server=5.5.39 mariadb-common=5.5.39 libmariadbclient-dev=5.5.39
+  - sudo apt-get install mariadb-server=5.5.39+maria-1~precise mariadb-common=5.5.39+maria-1~precise libmariadbclient-dev=5.5.39+maria-1~precise
   - wget http://downloads.sourceforge.net/project/wkhtmltopdf/0.12.1/wkhtmltox-0.12.1_linux-precise-amd64.deb
   - sudo dpkg -i wkhtmltox-0.12.1_linux-precise-amd64.deb
 
