@@ -152,7 +152,7 @@
 </div>
 </form>
 {% if allow_comments -%}
-<div class="row">
+<div class="row comments">
 	<div class="col-sm-offset-3 col-sm-9">
 		<hr>
 		<h3>{{ _("Comments") }}</h3>
@@ -243,6 +243,7 @@ frappe.ready(function() {
 			callback: function(data) {
 				if(!data.exc) {
 					$form.addClass("hide");
+					$(".comments").addClass("hide");
 					scroll(0, 0);
 					$(".form-message")
 						.html("{{ success_message or 'Thank You!' }}")

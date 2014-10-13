@@ -29,7 +29,7 @@ def render(path, http_status_code=None):
 			frappe.local.form_dict.name = name
 		elif doctype:
 			path = "list"
-			frappe.local.form_dict.type = doctype
+			frappe.local.form_dict.doctype = doctype
 		else:
 			path = "404"
 			http_status_code = e.http_status_code

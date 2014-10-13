@@ -1,18 +1,17 @@
-{% block title %}{{ type }} {{ _("List") }}{% endblock %}
+{% block title %}{{ doctype }} {{ _("List") }}{% endblock %}
 
 {% block header %}
-<h2>{{ type }} {{ _("List") }}</h2>
+<h2>{{ doctype }} {{ _("List") }}</h2>
 {% endblock %}
 
 {% block content %}
-<!-- no-sidebar -->
 <div class="row">
 	<div class=" col-sm-offset-8 col-sm-4">
 		<form class="form-inline form-search" action="/list">
 			<div class="input-group">
-				<input class="form-control" type="text" name="txt"
+				<input class="form-control" doctype="text" name="txt"
 					placeholder="Search..." value="{{ txt or '' }}">
-				<input type="hidden" name="type" value="{{ type }}">
+				<input type="hidden" name="doctype" value="{{ doctype }}">
 				<span class="input-group-btn">
 					<button class="btn btn-default" type="submit">
 						<i class="icon-search"></i></button>
@@ -23,13 +22,14 @@
 </div>
 <br>
 {% if txt %}
-<div class="alert alert-warning">Results filtered by <b>{{ txt }}</b>. <a href="/list?type={{ type }}" class="close">&times;</a></div>
+<div class="alert alert-warning">Results filtered by <b>{{ txt }}</b>. <a href="/list?doctype={{ doctype }}" class="close">&times;</a></div>
 {% endif %}
-<div class="list-group" data-type="{{ type }}" data-txt="{{ txt or '[notxt]' }}">
+<div data-doctype="{{ doctype }}" data-txt="{{ txt or '[notxt]' }}">
 {% for item in items %}
-	<div class="list-group-item">
+	<div>
 	{{ item }}
 	</div>
+</div>
 {% endfor %}
 </div>
 <div class="more-block text-center hide">
@@ -41,7 +41,7 @@
 <script>
 frappe.ready(function() {
 	// show more button if len is 20
-	$list_group = $(".list-group[data-type='{{ type }}'][data-txt='{{ txt or "[notxt]" }}']");
+	$list_group = $(".list-group[data-doctype='{{ doctype }}'][data-txt='{{ txt or "[notxt]" }}']");
 
 	// more ajax
 	frappe.start = 20;
@@ -49,7 +49,7 @@ frappe.ready(function() {
 		$.ajax({
 			url:"/api/method/frappe.templates.pages.list.get_items",
 			data: {
-				type: "{{ type }}",
+				doctype: "{{ doctype }}",
 				txt: "{{ txt or '' }}",
 				limit_start: frappe.start
 			},

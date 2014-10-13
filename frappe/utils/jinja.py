@@ -1,7 +1,6 @@
 # Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 from __future__ import unicode_literals
-from jinja2 import Template
 
 def get_jenv():
 	import frappe
@@ -24,10 +23,7 @@ def get_template(path):
 	return get_jenv().get_template(path)
 
 def render_template(template, context):
-	if not "frappe" in context:
-		context.update(get_allowed_functions_for_jenv())
-	template = Template(template)
-	return template.render(**context)
+	return get_jenv().from_string(template).render(context)
 
 def get_allowed_functions_for_jenv():
 	import frappe
