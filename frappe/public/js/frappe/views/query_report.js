@@ -90,7 +90,7 @@ frappe.views.QueryReport = Class.extend({
 			if((me.report_name!=route[1]) || frappe.route_options) {
 				me.report_name = route[1];
 				this.wrapper.find(".no-report-area").toggle(false);
-				me.appframe.set_title(__("Query Report")+": " + __(me.report_name));
+				me.appframe.set_title(__(me.report_name));
 
 				frappe.model.with_doc("Report", me.report_name, function() {
 

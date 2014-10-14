@@ -81,7 +81,7 @@ def get_generator_route(path):
 		g = frappe.db.sql("""select name from `tab{0}` where {1}
 			 order by {2}""".format(doctype, " and ".join(condition), order_by), values)
 
-		if g:
+		if g and path==frappe.get_doc(doctype, g[0][0]).get_route():
 			return frappe.get_doc(doctype, g[0][0]).get_website_route()
 
 	return process_generators(get_route)
