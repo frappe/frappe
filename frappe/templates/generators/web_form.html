@@ -36,12 +36,15 @@
 <div class="list-group">
 	{% for i in items %}
 	<div class="list-group-item">
+		{% if allow_delete %}
+			<button class="close" data-name="{{ i.name }}">&times;</button>
+		{% endif %}
 		<a href="{{ pathname }}?name={{ i.name }}">
 			{{ i.title }}
-		</a>
-		<span class="text-muted pull-right">
-			{{ frappe.format_value(i.creation, {"fieldtype":"Date"}) }}
-		</span>
+		</a><br>
+		<div class="text-muted small">
+			{{ frappe.format_date(i.creation) }}
+		</div>
 	</div>
 	{% endfor %}
 </div>
@@ -202,6 +205,7 @@ frappe.ready(function() {
 		return false;
 	});
 
+	// submit
 	$("form[data-web-form='{{ name }}']").on("submit", function() {
 		var args = {};
 		if(window.saving)
@@ -246,13 +250,9 @@ frappe.ready(function() {
 					$(".comments").addClass("hide");
 					scroll(0, 0);
 					$(".form-message")
-						.html("{{ success_message or 'Thank You!' }}")
+						.html("{{ success_message or 'Thank You!' }}"
+							+ '<p><a href="{{ success_url }}">Continue</a></p>')
 						.removeClass("hide");
-					{% if success_url -%}
-					setTimeout(function() {
-						window.location.href = "{{ success_url }}";
-					}, 4000);
-					{%- endif %};
 				}
 				window.saving = false;
 			}
@@ -260,6 +260,26 @@ frappe.ready(function() {
 
 		return false;
 	});
+
+	// close button
+	$(".close").on("click", function() {
+		var name = $(this).attr("data-name");
+		if(name) {
+			frappe.call({
+				type:"POST",
+				method: "frappe.website.doctype.web_form.web_form.delete",
+				args: {
+					"web_form": "{{ name }}",
+					"name": name
+				},
+				callback: function(r) {
+					if(!r.exc) {
+						location.reload();
+					}
+				}
+			});
+		}
+	})
 
 	// import date picker / timepicker if required
 	{% if "Date" in types %}

@@ -14,8 +14,9 @@ from frappe.website.router import get_page_route
 class WebsiteGenerator(Document):
 	page_title_field = "name"
 	def autoname(self):
-		self.name = self.get_page_name()
-		append_number_if_name_exists(self)
+		if self.meta.autoname != "hash":
+			self.name = self.get_page_name()
+			append_number_if_name_exists(self)
 
 	def onload(self):
 		self.get("__onload").website_route = self.get_route()
@@ -44,6 +45,7 @@ class WebsiteGenerator(Document):
 	def get_or_make_page_name(self):
 		page_name = self.get("page_name")
 		if not page_name:
+			print self.page_title_field, self.get(self.page_title_field)
 			page_name = cleanup_page_name(self.get(self.page_title_field))
 			self.set("page_name", page_name)
 

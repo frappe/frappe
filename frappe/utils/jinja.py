@@ -44,6 +44,7 @@ def get_allowed_functions_for_jenv():
 		"frappe": {
 			"_": frappe._,
 			"format_value": frappe.format_value,
+			"format_date": frappe.utils.data.global_date_format,
 			"local": frappe.local,
 			"get_hooks": frappe.get_hooks,
 			"get_meta": frappe.get_meta,

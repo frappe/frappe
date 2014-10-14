@@ -611,6 +611,10 @@ def get_list(doctype, filters=None, fields=None, or_filters=None, docstatus=None
 				limit_page_length=limit_page_length, as_list=as_list, debug=debug,
 				ignore_permissions=ignore_permissions, user=user)
 
+def get_all(doctype, **args):
+	args["ignore_permissions"] = True
+	return get_list(doctype, **args)
+
 run_query = get_list
 
 def add_version(doc):

@@ -93,6 +93,15 @@ $.extend(frappe, {
 			$(opts.btn).prop("disabled", false);
 		}
 
+		if (data._server_messages) {
+			var server_messages = (JSON.parse(data._server_messages || '[]')).join("<br>");
+			if(opts.error_msg) {
+				$(opts.error_msg).html(server_messages).toggle(true);
+			} else {
+				frappe.msgprint(server_messages);
+			}
+		}
+
 		if(data.exc) {
 			if(opts.btn) {
 				$(opts.btn).addClass("btn-danger");
@@ -108,14 +117,6 @@ $.extend(frappe, {
 				console.log(data.exc);
 			}
 
-			if (data._server_messages) {
-				var server_messages = (JSON.parse(data._server_messages || '[]')).join("<br>");
-				if(opts.error_msg) {
-					$(opts.error_msg).html(server_messages).toggle(true);
-				} else {
-					frappe.msgprint(server_messages);
-				}
-			}
 		} else{
 			if(opts.btn) {
 				$(opts.btn).addClass("btn-success");
