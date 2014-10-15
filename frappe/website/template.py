@@ -43,6 +43,9 @@ def render_blocks(context):
 		out["header"] = "<h2>" + out["header"] + "</h2>"
 
 	if "breadcrumbs" not in out:
+		if context.doc and hasattr(context.doc, "get_parents"):
+			context.parents = context.doc.get_parents(context)
+
 		out["breadcrumbs"] = scrub_relative_urls(
 			frappe.get_template("templates/includes/breadcrumbs.html").render(context))
 

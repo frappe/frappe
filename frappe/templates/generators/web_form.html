@@ -62,9 +62,20 @@
 
 {% macro label(field) %}<label for="{{ field.fieldname }}" class="col-sm-3 control-label">{{ field.label }}</label>{% endmacro %}
 
+
 <div class="form-message alert alert-info hide"></div>
 <form class="form-horizontal" role="form"
 	data-web-form="{{ name }}">
+	{% if params.name and web_page_link_text %}
+	<div class="row">
+		<div class="col-sm-offset-3 col-sm-9">
+			<div class="alert alert-info">
+				<a href="{{ ('/' + doc.parent_website_route) if doc.parent_website_route else ''  }}/{{ doc.page_name }}">
+					{{ web_page_link_text }}</a>
+			</div>
+		</div>
+	</div>
+	{% endif %}
 	<input type="hidden" name="web_form" value="{{ name }}">
 	<input type="hidden" name="doctype" value="{{ doc_type }}">
 	{% if params.name -%}

@@ -22,7 +22,7 @@ class WebForm(WebsiteGenerator):
 					context.items = frappe.db.sql("""select name,
 						{0} as title, creation
 						from `tab{1}`
-						where owner=%s
+						where owner=%s and docstatus = 0
 						order by creation desc""".format(meta.title_field or "name",
 						self.doc_type), frappe.session.user, as_dict=True)
 				else:
@@ -37,7 +37,7 @@ class WebForm(WebsiteGenerator):
 		context.types = [f.fieldtype for f in self.web_form_fields]
 		return context
 
-	def get_parents(self):
+	def get_parents(self, context):
 		if self.breadcrumbs:
 			return json.loads(self.breadcrumbs)
 

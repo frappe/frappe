@@ -45,7 +45,6 @@ class WebsiteGenerator(Document):
 	def get_or_make_page_name(self):
 		page_name = self.get("page_name")
 		if not page_name:
-			print self.page_title_field, self.get(self.page_title_field)
 			page_name = cleanup_page_name(self.get(self.page_title_field))
 			self.set("page_name", page_name)
 
@@ -100,7 +99,7 @@ class WebsiteGenerator(Document):
 			"controller": get_module_name(self.doctype, self.meta.module),
 			"template": self.template,
 			"parent_website_route": self.get("parent_website_route", ""),
-			"page_title": self.get(self.page_title_field)
+			"page_title": getattr(self, "page_title", None) or self.get(self.page_title_field)
 		})
 
 		self.update_permissions(route)
@@ -114,7 +113,7 @@ class WebsiteGenerator(Document):
 		else:
 			route.public_read = 1
 
-	def get_parents(self):
+	def get_parents(self, context):
 		parents = []
 		parent = self
 		while parent:

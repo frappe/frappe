@@ -39,12 +39,16 @@ def get_allowed_functions_for_jenv():
 			# only allow functions
 			datautils[key] = obj
 
+	if "_" in frappe.local.form_dict:
+		del frappe.local.form_dict["_"]
+
 	return {
 		# make available limited methods of frappe
 		"frappe": {
 			"_": frappe._,
 			"format_value": frappe.format_value,
 			"format_date": frappe.utils.data.global_date_format,
+			"form_dict": frappe.local.form_dict,
 			"local": frappe.local,
 			"get_hooks": frappe.get_hooks,
 			"get_meta": frappe.get_meta,
