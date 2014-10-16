@@ -56,7 +56,6 @@ frappe.views.Gantt = Class.extend({
 		if(this.filters) {
 			$.each(this.filters, function(i, df) {
 				me.appframe.add_field(df);
-				return false;
 			});
 		}
 	},
