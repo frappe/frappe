@@ -107,7 +107,7 @@ frappe.views.QueryReport = Class.extend({
 									report_name: me.report_name
 								},
 								callback: function(r) {
-									me.appframe.set_title(__("Query Report")+": " + __(me.report_name));
+									me.appframe.set_title(__(me.report_name));
 									frappe.dom.eval(r.message.script || "");
 									me.setup_filters();
 									me.setup_html_format(r.message.html_format);
