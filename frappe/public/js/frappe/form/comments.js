@@ -42,7 +42,7 @@ frappe.ui.form.Comments = Class.extend({
 		this.wrapper.toggle(true);
 		this.list.empty();
 
-		comments = [{"comment": "Created", "comment_type": "Created",
+		comments = [{"comment": __("Created"), "comment_type": "Created",
 			"comment_by": this.frm.doc.owner, "creation": this.frm.doc.creation}].concat(this.get_comments());
 
 		$.each(comments, function(i, c) {

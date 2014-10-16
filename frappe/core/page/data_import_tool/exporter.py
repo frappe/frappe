@@ -4,11 +4,11 @@
 from __future__ import unicode_literals
 
 import frappe, json, os
+from frappe import _
 import frappe.permissions
 from frappe.utils.csvutils import UnicodeWriter
 from frappe.utils import cstr, cint, flt
-
-from frappe.core.page.data_import_tool.data_import_tool import data_keys
+from  frappe.core.page.data_import_tool.data_import_tool import get_data_keys
 
 @frappe.whitelist()
 def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data="No"):
@@ -25,27 +25,30 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 			child_doctypes.append(df.options)
 			doctype_parentfield[df.options] = df.fieldname
 
+	def get_data_keys_definition():
+		return get_data_keys()
+	
 	def add_main_header():
-		w.writerow(['Data Import Template'])
-		w.writerow([data_keys.main_table, doctype])
+		w.writerow([_('Data Import Template')])
+		w.writerow([get_data_keys_definition().main_table, doctype])
 
 		if parent_doctype != doctype:
-			w.writerow([data_keys.parent_table, parent_doctype])
+			w.writerow([get_data_keys_definition().parent_table, parent_doctype])
 		else:
 			w.writerow([''])
 
 		w.writerow([''])
-		w.writerow(['Notes:'])
-		w.writerow(['Please do not change the template headings.'])
-		w.writerow(['First data column must be blank.'])
-		w.writerow(['If you are uploading new records, leave the "name" (ID) column blank.'])
-		w.writerow(['If you are uploading new records, "Naming Series" becomes mandatory, if present.'])
-		w.writerow(['Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.'])
-		w.writerow(['For updating, you can update only selective columns.'])
-		w.writerow(['You can only upload upto 5000 records in one go. (may be less in some cases)'])
+		w.writerow([_('Notes:')])
+		w.writerow([_('Please do not change the template headings.')])
+		w.writerow([_('First data column must be blank.')])
+		w.writerow([_('If you are uploading new records, leave the "name" (ID) column blank.')])
+		w.writerow([_('If you are uploading new records, "Naming Series" becomes mandatory, if present.')])
+		w.writerow([_('Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.')])
+		w.writerow([_('For updating, you can update only selective columns.')])
+		w.writerow([_('You can only upload upto 5000 records in one go. (may be less in some cases)')])
 		if key == "parent":
-			w.writerow(['"Parent" signifies the parent table in which this row must be added'])
-			w.writerow(['If you are updating, please select "Overwrite" else existing rows will not be deleted.'])
+			w.writerow([_('"Parent" signifies the parent table in which this row must be added')])
+			w.writerow([_('If you are updating, please select "Overwrite" else existing rows will not be deleted.')])
 
 	def build_field_columns(dt):
 		meta = frappe.get_meta(dt)
@@ -66,7 +69,7 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 				"fieldtype": "Data",
 				"reqd": 1,
 				"idx": 0,
-				"info": "Leave blank for new records"
+				"info": _("Leave blank for new records")
 			}), True)
 
 		for docfield in tablecolumns:
@@ -88,7 +91,7 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 			and (docfield.fieldname not in ('parenttype', 'trash_reason')) and not docfield.hidden:
 			tablerow.append("")
 			fieldrow.append(docfield.fieldname)
-			labelrow.append(docfield.label)
+			labelrow.append(_(docfield.label))
 			mandatoryrow.append(docfield.reqd and 'Yes' or 'No')
 			typerow.append(docfield.fieldtype)
 			inforow.append(getinforow(docfield))
@@ -109,7 +112,7 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 			if not docfield.options:
 				return ''
 			else:
-				return 'One of: %s' % ', '.join(filter(None, docfield.options.split('\n')))
+				return _("One of") + ': %s' % ', '.join(filter(None, docfield.options.split('\n')))
 		elif docfield.fieldtype == 'Link':
 			return 'Valid %s' % docfield.options
 		elif docfield.fieldtype == 'Int':
@@ -128,7 +131,7 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 		w.writerow(mandatoryrow)
 		w.writerow(typerow)
 		w.writerow(inforow)
-		w.writerow([data_keys.data_separator])
+		w.writerow([get_data_keys_definition().data_separator])
 
 	def add_data():
 		def add_data_row(row_group, dt, doc, rowidx):
@@ -169,12 +172,12 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 	add_main_header()
 
 	w.writerow([''])
-	tablerow = [data_keys.doctype, ""]
-	labelrow = ["Column Labels:", "ID"]
-	fieldrow = [data_keys.columns, key]
-	mandatoryrow = ['Mandatory:', 'Yes']
-	typerow = ['Type:', 'Data (text)']
-	inforow = ['Info:', '']
+	tablerow = [get_data_keys_definition().doctype, ""]
+	labelrow = [_("Column Labels:"), "ID"]
+	fieldrow = [get_data_keys_definition().columns, key]
+	mandatoryrow = [_("Mandatory:"), _("Yes")]
+	typerow = [_('Type:'), 'Data (text)']
+	inforow = [_('Info:'), '']
 	columns = [key]
 
 	build_field_columns(doctype)

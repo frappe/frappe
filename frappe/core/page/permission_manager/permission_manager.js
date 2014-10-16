@@ -286,7 +286,7 @@ frappe.PermissionEngine = Class.extend({
 						r.message = $.map(r.message, function(p) {
 							return $.format('<a href="#Form/User/{0}">{1}</a>', [p, p]);
 						})
-						msgprint(__("Users with role {0}:", [role])
+						msgprint(__("Users with role {0}:", [__(role)])
 							+ "<br>" + r.message.join("<br>"));
 					}
 				})
@@ -362,11 +362,11 @@ frappe.PermissionEngine = Class.extend({
 						{fieldtype:"Select", label:__("Document Type"),
 							options:me.options.doctypes, reqd:1, fieldname:"parent"},
 						{fieldtype:"Select", label:__("Role"),
-							options:me.options.roles, reqd:1},
+							options:me.options.roles, reqd:1,fieldname:"role"},
 						{fieldtype:"Select", label:__("Permission Level"),
 							options:[0,1,2,3,4,5,6,7,8,9], reqd:1, fieldname: "permlevel",
 							description: __("Level 0 is for document level permissions, higher levels for field level permissions.")},
-						{fieldtype:"Button", label:__("Add")},
+						{fieldtype:"Button", label:__("Add"),fieldname:"add"},
 					]
 				});
 				if(me.get_doctype()) {

@@ -4,15 +4,18 @@
 from __future__ import unicode_literals
 
 import frappe, json, os
+from frappe import _
 import frappe.modules.import_file
 
-data_keys = frappe._dict({
-	"data_separator": 'Start entering data below this line',
-	"main_table": "Table:",
-	"parent_table": "Parent Table:",
-	"columns": "Column Name:",
-	"doctype": "DocType:"
-})
+@frappe.whitelist()
+def get_data_keys():
+    return frappe._dict({
+        "data_separator": _('Start entering data below this line'),
+        "main_table": _("Table") + ":",
+        "parent_table": _("Parent Table") + ":",
+        "columns": _("Column Name") + ":",
+        "doctype": _("DocType") + ":"
+    })
 
 @frappe.whitelist()
 def get_doctypes():

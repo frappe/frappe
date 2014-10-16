@@ -42,7 +42,7 @@ frappe.ui.form.on("Customize Form", "refresh", function(frm) {
 	frm.frm_head.appframe.iconbar.clear("1");
 
 	if(frm.doc.doc_type) {
-		frm.appframe.set_title_right("Update", function() {
+		frm.appframe.set_title_right(__("Update"), function() {
 			if(frm.doc.doc_type) {
 				return frm.call({
 					doc: frm.doc,
@@ -56,11 +56,11 @@ frappe.ui.form.on("Customize Form", "refresh", function(frm) {
 			}
 		});
 
-		frm.add_custom_button('Refresh Form', function() {
+		frm.add_custom_button(__('Refresh Form'), function() {
 			frm.script_manager.trigger("doc_type");
 		}, "icon-refresh", "btn-default");
 
-		frm.add_custom_button('Reset to defaults', function() {
+		frm.add_custom_button(__('Reset to defaults'), function() {
 			frappe.customize_form.confirm(__('Remove all customizations?'), frm);
 		}, "icon-eraser", "btn-default");
 	}
@@ -119,69 +119,69 @@ frappe.customize_form.clear_locals_and_refresh = function(frm) {
 frappe.customize_form.add_fields_help = function(frm) {
 	$(frm.grids[0].parent).before(
 		'<div style="padding: 10px">\
-			<a id="fields_help" class="link_type">Help</a>\
+			<a id="fields_help" class="link_type">' + __("Help") + '</a>\
 		</div>');
 	$('#fields_help').click(function() {
 		var d = new frappe.ui.Dialog({
-			title: 'Help: Field Properties',
+			title: __('Help: Field Properties'),
 			width: 600
 		});
 
 		var help =
 			"<table cellspacing='25'>\
 				<tr>\
-					<td><b>Label</b></td>\
-					<td>Set the display label for the field</td>\
+					<td><b>" + __("Label") + "</b></td>\
+					<td>" + __("Set the display label for the field") + "</td>\
 				</tr>\
 				<tr>\
-					<td><b>Type</b></td>\
-					<td>Change type of field. (Currently, Type change is \
-						allowed among 'Currency and Float')</td>\
+					<td><b>" + __("Type") + "</b></td>\
+					<td>" + __("Change type of field. (Currently, Type change is \
+						allowed among 'Currency and Float')") + "</td>\
 				</tr>\
 				<tr>\
-					<td width='25%'><b>Options</b></td>\
-					<td width='75%'>Specify the value of the field</td>\
+					<td width='25%'><b>" + __("Options") + "</b></td>\
+					<td width='75%'>" + __("Specify the value of the field") + "</td>\
 				</tr>\
 				<tr>\
-					<td><b>Perm Level</b></td>\
+					<td><b>" + __("Perm Level") + "</b></td>\
 					<td>\
-						Assign a permission level to the field.<br />\
-						(Permissions can be managed via Setup &gt; Role Permissions Manager)\
+						" + __("Assign a permission level to the field.") + "<br />\
+						(" + __("Permissions can be managed via Setup &gt; Role Permissions Manager") + "\
 					</td>\
 				</tr>\
 				<tr>\
-					<td><b>Width</b></td>\
+					<td><b>" + __("Width") + "</b></td>\
 					<td>\
-						Width of the input box<br />\
-						Example: <i>120px</i>\
+						" + __("Width of the input box") + "<br />\
+						" + __("Example") + ": <i>120px</i>\
 					</td>\
 				</tr>\
 				<tr>\
-					<td><b>Reqd</b></td>\
-					<td>Mark the field as Mandatory</td>\
+					<td><b>" + __("Reqd") + "</b></td>\
+					<td>" + __("Mark the field as Mandatory") + "</td>\
 				</tr>\
 				<tr>\
-					<td><b>In Filter</b></td>\
-					<td>Use the field to filter records</td>\
+					<td><b>" + __("In Filter") + "</b></td>\
+					<td>" + __("Use the field to filter records") + "</td>\
 				</tr>\
 				<tr>\
-					<td><b>Hidden</b></td>\
-					<td>Hide field in form</td>\
+					<td><b>" + __("Hidden") + "</b></td>\
+					<td>" + __("Hide field in form") + "</td>\
 				</tr>\
 				<tr>\
-					<td><b>Print Hide</b></td>\
-					<td>Hide field in Standard Print Format</td>\
+					<td><b>" + __("Print Hide") + "</b></td>\
+					<td>" + __("Hide field in Standard Print Format") + "</td>\
 				</tr>\
 				<tr>\
-					<td><b>Report Hide</b></td>\
-					<td>Hide field in Report Builder</td>\
+					<td><b>" + __("Report Hide") + "</b></td>\
+					<td>" + __("Hide field in Report Builder") + "</td>\
 				</tr>\
 				<tr>\
-					<td><b>Allow on Submit</b></td>\
-					<td>Allow field to remain editable even after submission</td>\
+					<td><b>" + __("Allow on Submit") + "</b></td>\
+					<td>" + __("Allow field to remain editable even after submission") + "</td>\
 				</tr>\
 				<tr>\
-					<td><b>Depends On</b></td>\
+					<td><b>" + __("Depends On") + "</b></td>\
 					<td>\
 						Show field if a condition is met<br />\
 						Example: <code>eval:doc.status=='Cancelled'</code>\
@@ -190,18 +190,18 @@ frappe.customize_form.add_fields_help = function(frm) {
 					</td>\
 				</tr>\
 				<tr>\
-					<td><b>Description</b></td>\
-					<td>Show a description below the field</td>\
+					<td><b>" + __("Description") + "</b></td>\
+					<td>" + __("Show a description below the field") + "</td>\
 				</tr>\
 				<tr>\
-					<td><b>Default</b></td>\
-					<td>Specify a default value</td>\
+					<td><b>" + __("Default") + "</b></td>\
+					<td>" + __("Specify a default value") + "</td>\
 				</tr>\
 				<tr>\
 					<td></td>\
 					<td><a class='link_type' \
 							onclick='frappe.customize_form.fields_help_dialog.hide()'\
-							style='color:grey'>Press Esc to close</a>\
+							style='color:grey'>" + __("Press Esc to close") + "</a>\
 					</td>\
 				</tr>\
 			</table>"
