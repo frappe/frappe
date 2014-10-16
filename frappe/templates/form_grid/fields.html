@@ -23,7 +23,7 @@
 			{%= doc.fieldtype %}
 			<br><span class="small">{%= doc.fieldname %}</span>
 		</div>
-		<div class="col-sm-4">
+		<div class="col-sm-4 grid-static-col">
 			{%= doc.options && doc.options.split("\n").join("<br>") || "" %}
 			{% if(doc["default"]) { %}
 			<br>{%= __("Default") %}: <strong>{%= doc["default"] %}</strong>
