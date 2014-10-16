@@ -181,6 +181,7 @@
 <script>
 frappe.ready(function() {
 	window.file_reading = false;
+	frappe.datepicker_format = "{{ frappe.date_format.replace('yyyy', 'yy') }}";
 	var $form = $("form[data-web-form='{{ name }}']");
 
 	// read file attachment
@@ -236,6 +237,9 @@ frappe.ready(function() {
 				var val = $input.get(0).filedata;
 			} else if(input_type==="checkbox") {
 				var val = $input.is(":checked") ? 1 : 0;
+			} else if($input.attr("data-fieldtype")==="Date") {
+				var val = $.datepicker.formatDate("yy-mm-dd",
+					$input.datepicker('getDate'));
 			} else {
 				var val = $input.val();
 			}
@@ -300,7 +304,16 @@ frappe.ready(function() {
 		altFormat:'yy-mm-dd',
 		changeYear: true,
 		yearRange: "-70Y:+10Y",
-		dateFormat: "{{ frappe.date_format.replace('yyyy', 'yy') }}",
+		dateFormat: frappe.datepicker_format,
+	});
+
+	// convert dates to user format
+	$form.find("[data-fieldtype='Date']").each(function() {
+		var val = $(this).val();
+		if(val) {
+			$(this).val($.datepicker.formatDate(frappe.datepicker_format,
+				$.datepicker.parseDate("yy-mm-dd", val)));
+		}
 	})
 
 	{% endif %}
@@ -314,7 +327,7 @@ frappe.ready(function() {
 		altFormat:'yy-mm-dd',
 		changeYear: true,
 		yearRange: "-70Y:+10Y",
-		dateFormat: "{{ frappe.date_format.replace('yyyy', 'yy') }}",
+		dateFormat: frappe.datepicker_format,
 	})
 	{% endif %}
 });
