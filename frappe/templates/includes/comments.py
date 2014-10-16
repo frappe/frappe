@@ -46,7 +46,7 @@ def add_comment(args=None):
 	recipients = list(set(commentors if owner=="Administrator" else (commentors + [owner])))
 
 	message = _("{0} by {1}").format(markdown2.markdown(args.get("comment")), comment.comment_by_fullname)
-	message += "<p><a href='{0}/{1}'>{2}</a></p>".format(frappe.utils.get_request_site_address(),
+	message += "<p><a href='{0}/{1}' style='font-size: 80%'>{2}</a></p>".format(frappe.utils.get_request_site_address(),
 		page_name, _("View it in your browser"))
 
 	from frappe.utils.email_lib.bulk import send

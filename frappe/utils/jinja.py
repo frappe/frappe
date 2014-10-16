@@ -27,6 +27,7 @@ def render_template(template, context):
 
 def get_allowed_functions_for_jenv():
 	import frappe
+	import frappe.utils
 	import frappe.utils.data
 
 	datautils = {}
@@ -56,7 +57,8 @@ def get_allowed_functions_for_jenv():
 			"get_list": frappe.get_list,
 			"utils": datautils,
 			"user": frappe.session.user,
-			"date_format": frappe.db.get_default("date_format") or "yyyy-mm-dd"
+			"date_format": frappe.db.get_default("date_format") or "yyyy-mm-dd",
+			"get_gravatar": frappe.utils.get_gravatar
 		},
 		"get_visible_columns": \
 			frappe.get_attr("frappe.templates.pages.print.get_visible_columns"),
