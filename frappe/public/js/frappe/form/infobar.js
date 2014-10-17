@@ -86,7 +86,7 @@ frappe.ui.form.InfoBar = Class.extend({
 			.popover("destroy")
 
 		if(this.docinfo.comments && this.docinfo.comments.length) {
-			var last = this.docinfo.comments[0];
+			var last = this.docinfo.comments[this.docinfo.comments.length - 1];
 			this.$comments
 				.popover({
 					title: __("Last Comment"),
