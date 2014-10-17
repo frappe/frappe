@@ -362,6 +362,11 @@ ul.linked-with-list li {
 	cursor: pointer;
 }
 
+.grid-static-col {
+	max-height: 200px;
+	overflow: hidden;
+}
+
 .data-row {
 	margin-left: -20px;
 }

@@ -7,15 +7,15 @@ from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
 from frappe.website.utils import cleanup_page_name, get_home_page
 from frappe.website.render import clear_cache
-from frappe.utils import now
 from frappe.modules import get_module_name
 from frappe.website.router import get_page_route
 
 class WebsiteGenerator(Document):
 	page_title_field = "name"
 	def autoname(self):
-		self.name = self.get_page_name()
-		append_number_if_name_exists(self)
+		if self.meta.autoname != "hash":
+			self.name = self.get_page_name()
+			append_number_if_name_exists(self)
 
 	def onload(self):
 		self.get("__onload").website_route = self.get_route()
@@ -38,6 +38,9 @@ class WebsiteGenerator(Document):
 		self.get_page_name()
 		return make_route(self)
 
+	def clear_cache(self):
+		clear_cache(self.get_route())
+
 	def get_page_name(self):
 		return self.get_or_make_page_name()
 
@@ -51,12 +54,12 @@ class WebsiteGenerator(Document):
 
 	def before_rename(self, oldname, name, merge):
 		self._local = self.get_route()
-		clear_cache(self.get_route())
+		self.clear_cache()
 
 	def after_rename(self, olddn, newdn, merge):
 		if getattr(self, "_local"):
 			self.update_routes_of_descendants(self._local)
-		clear_cache(self.get_route())
+		self.clear_cache()
 
 	def on_trash(self):
 		clear_cache(self.get_route())
@@ -98,7 +101,7 @@ class WebsiteGenerator(Document):
 			"controller": get_module_name(self.doctype, self.meta.module),
 			"template": self.template,
 			"parent_website_route": self.get("parent_website_route", ""),
-			"page_title": self.get(self.page_title_field)
+			"page_title": getattr(self, "page_title", None) or self.get(self.page_title_field)
 		})
 
 		self.update_permissions(route)
@@ -112,7 +115,7 @@ class WebsiteGenerator(Document):
 		else:
 			route.public_read = 1
 
-	def get_parents(self):
+	def get_parents(self, context):
 		parents = []
 		parent = self
 		while parent:

@@ -54,7 +54,7 @@ $(document).ready(function() {
 			comment: $("[name='comment']").val(),
 			comment_doctype: "{{ doctype }}",
 			comment_docname: "{{ name }}",
-			page_name: "{{ path }}",
+			page_name: "{{ pathname }}",
 		}
 
 		if(!args.comment_by_fullname || !args.comment_by || !args.comment) {

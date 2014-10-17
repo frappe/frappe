@@ -173,6 +173,14 @@ def get_user_fullname(user):
 	fullname = frappe.db.sql("SELECT CONCAT_WS(' ', first_name, last_name) FROM `tabUser` WHERE name=%s", (user,))
 	return fullname and fullname[0][0] or ''
 
+def get_fullname_and_avatar(user):
+	first_name, last_name, avatar = frappe.db.get_value("User",
+		user, ["first_name", "last_name", "user_image"])
+	return {
+		"fullname": " ".join(filter(None, [first_name, last_name])),
+		"avatar": avatar
+	}
+
 def get_system_managers(only_name=False):
 	"""returns all system manager's user details"""
 	import email.utils

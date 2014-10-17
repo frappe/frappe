@@ -1,7 +1,6 @@
 # Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 from __future__ import unicode_literals
-from jinja2 import Template
 
 def get_jenv():
 	import frappe
@@ -24,13 +23,11 @@ def get_template(path):
 	return get_jenv().get_template(path)
 
 def render_template(template, context):
-	if not "frappe" in context:
-		context.update(get_allowed_functions_for_jenv())
-	template = Template(template)
-	return template.render(**context)
+	return get_jenv().from_string(template).render(context)
 
 def get_allowed_functions_for_jenv():
 	import frappe
+	import frappe.utils
 	import frappe.utils.data
 
 	datautils = {}
@@ -43,11 +40,16 @@ def get_allowed_functions_for_jenv():
 			# only allow functions
 			datautils[key] = obj
 
+	if "_" in frappe.local.form_dict:
+		del frappe.local.form_dict["_"]
+
 	return {
 		# make available limited methods of frappe
 		"frappe": {
 			"_": frappe._,
 			"format_value": frappe.format_value,
+			"format_date": frappe.utils.data.global_date_format,
+			"form_dict": frappe.local.form_dict,
 			"local": frappe.local,
 			"get_hooks": frappe.get_hooks,
 			"get_meta": frappe.get_meta,
@@ -55,7 +57,8 @@ def get_allowed_functions_for_jenv():
 			"get_list": frappe.get_list,
 			"utils": datautils,
 			"user": frappe.session.user,
-			"date_format": frappe.db.get_default("date_format") or "yyyy-mm-dd"
+			"date_format": frappe.db.get_default("date_format") or "yyyy-mm-dd",
+			"get_gravatar": frappe.utils.get_gravatar
 		},
 		"get_visible_columns": \
 			frappe.get_attr("frappe.templates.pages.print.get_visible_columns"),
