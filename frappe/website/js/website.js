@@ -348,19 +348,15 @@ $.extend(frappe, {
 		  !navigator.userAgent.match(/((iPod|iPhone|iPad).+\bOS\s+[1-4]|WebApps\/.+CFNetwork)/))
 	},
 	get_pathname: function() {
-		return location.pathname && location.pathname.split("/")[1].split(".")[0];
+		return location.pathname;
 	},
 	page_ready_events: {},
 	ready: function(fn) {
-		if(!frappe.page_ready_events[frappe.get_pathname()]) {
-			frappe.page_ready_events[frappe.get_pathname()] = [];
-		}
-		frappe.page_ready_events[frappe.get_pathname()].push(fn);
+		frappe.page_ready_events[frappe.get_pathname()] = fn;
 	},
 	trigger_ready: function() {
-		$.each((frappe.page_ready_events[frappe.get_pathname()] || []), function(i, fn) {
-			fn();
-		});
+		var ready = frappe.page_ready_events[frappe.get_pathname()];
+		ready && ready();
 	},
 	make_navbar_active: function() {
 		var pathname = window.location.pathname;

@@ -56,7 +56,7 @@
 
 {%- macro help(field) -%}
 {% if field.description -%}
-<span class="help-block">{{ field.description }}</span>
+<span class="help-block small">{{ field.description }}</span>
 {%- endif -%}
 {%- endmacro %}
 
@@ -116,7 +116,7 @@
 	<div class="form-group">
 		{{ label(field) }}
 		<div class="col-sm-9">
-			<textarea class="form-control" style="height: 100px;"
+			<textarea class="form-control" style="height: 200px;"
 			{{ properties(field) }}>{{ value(field) }}</textarea>
 			{{ help(field) }}
 		</div>
