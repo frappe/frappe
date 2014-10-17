@@ -82,6 +82,12 @@ frappe.ui.form.AssignTo = Class.extend({
 	},
 	add: function() {
 		var me = this;
+
+		if(this.frm.doc.__unsaved == 1) {
+			frappe.throw(__("Please save the document before assignment"));
+			return;
+		}
+
 		if(!me.dialog) {
 			me.dialog = new frappe.ui.Dialog({
 				title: __('Add to To Do'),
@@ -115,7 +121,7 @@ frappe.ui.form.AssignTo = Class.extend({
 							if(!r.exc) {
 								me.render(r.message);
 								me.frm.toolbar.show_infobar();
-								me.frm.comments.refresh();
+								me.frm.reload_doc();
 							}
 						},
 						btn: this
@@ -134,6 +140,12 @@ frappe.ui.form.AssignTo = Class.extend({
 	},
 	remove: function(owner) {
 		var me = this;
+
+		if(this.frm.doc.__unsaved == 1) {
+			frappe.throw(__("Please save the document before removing assignment"));
+			return;
+		}
+
 		frappe.call({
 			method:'frappe.widgets.form.assign_to.remove',
 			args: {
@@ -144,7 +156,7 @@ frappe.ui.form.AssignTo = Class.extend({
 			callback:function(r,rt) {
 				me.render(r.message);
 				me.frm.toolbar.show_infobar();
-				me.frm.comments.refresh();
+				me.frm.reload_doc();
 			}
 		});
 	}
