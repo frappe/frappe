@@ -1,7 +1,7 @@
 frappe.pages['user-permissions'].onload = function(wrapper) {
 	frappe.ui.make_app_page({
 		parent: wrapper,
-		title: "User Permissions Manager",
+		title: __("User Permissions Manager"),
 		icon: "icon-shield",
 		single_column: true
 	});
@@ -9,7 +9,7 @@ frappe.pages['user-permissions'].onload = function(wrapper) {
 	$(wrapper).find(".layout-main").html("<div class='user-settings' \
 		style='min-height: 200px;'></div>\
 	<p style='margin-top: 15px;'>\
-		<a class='view-role-permissions'><i class='icon-chevron-right'></i> Edit Role Permissions</a>\
+		<a class='view-role-permissions'><i class='icon-chevron-right'></i> " + __("Edit Role Permissions") + "</a>\
 	</p>\
 	<table class='table table-bordered' \
 		style='background-color: #f9f9f9; margin-top: 15px;'>\
@@ -68,14 +68,14 @@ frappe.UserPermissions = Class.extend({
 					fieldname: "user",
 					label: __("User"),
 					fieldtype: "Select",
-					options: (["Select User..."].concat(r.message.users)).join("\n")
+					options: ([__("Select User") + "..."].concat(r.message.users)).join("\n")
 				});
 
 				me.filters.doctype = me.wrapper.appframe.add_field({
 					fieldname: "doctype",
 					label: __("DocType"),
 					fieldtype: "Select",
-					options: (["Select DocType..."].concat(me.get_link_names())).join("\n")
+					options: ([__("Select DocType") + "..."].concat(me.get_link_names())).join("\n")
 				});
 
 				me.filters.user_permission = me.wrapper.appframe.add_field({
@@ -127,7 +127,7 @@ frappe.UserPermissions = Class.extend({
 
 		me.upload.$input.on("click", function() {
 			var d = new frappe.ui.Dialog({
-				title: "Upload User Permissions",
+				title: __("Upload User Permissions"),
 				fields: [
 					{
 						fieldtype:"HTML",
@@ -149,7 +149,7 @@ frappe.UserPermissions = Class.extend({
 						},
 						callback: function(r) {
 							if(!r.exc) {
-								msgprint("Permissions Updated");
+								msgprint(__("Permissions Updated"));
 								d.hide();
 							}
 						}
@@ -178,11 +178,11 @@ frappe.UserPermissions = Class.extend({
 	},
 	get_user: function() {
 		var user = this.filters.user.$input.val();
-		return user=="Select User..." ? null : user;
+		return user== __("Select User") + "..." ? null : user;
 	},
 	get_doctype: function() {
 		var doctype = this.filters.doctype.$input.val();
-		return doctype=="Select DocType..." ? null : doctype;
+		return doctype== __("Select DocType") + "..." ? null : doctype;
 	},
 	get_user_permission: function() {
 		// autosuggest hack!
@@ -289,7 +289,7 @@ frappe.UserPermissions = Class.extend({
 			.appendTo($("<p>").appendTo(this.body))
 			.click(function() {
 				var d = new frappe.ui.Dialog({
-					title: "Add New User Permission",
+					title: __("Add New User Permission"),
 					fields: [
 						{fieldtype:"Select", label:__("User"),
 							options:me.options.users, reqd:1, fieldname:"user"},
@@ -331,7 +331,7 @@ frappe.UserPermissions = Class.extend({
 						args: args,
 						callback: function(r) {
 							if(r.exc) {
-								msgprint("Did not add");
+								msgprint(__("Did not add"));
 							} else {
 								me.refresh();
 							}

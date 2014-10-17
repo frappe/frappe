@@ -12,8 +12,7 @@ from frappe.utils.csvutils import getlink
 from frappe.utils.dateutils import parse_date
 
 from frappe.utils import cint, cstr, flt
-from frappe.core.page.data_import_tool.data_import_tool import data_keys
-
+from  frappe.core.page.data_import_tool.data_import_tool import get_data_keys
 
 @frappe.whitelist()
 def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, overwrite=None, ignore_links=False):
@@ -29,8 +28,11 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 
 	from frappe.utils.csvutils import read_csv_content_from_uploaded_file
 
+	def get_data_keys_definition():
+		return get_data_keys()
+
 	def bad_template():
-		frappe.throw(_("Please do not change the rows above {0}").format(data_keys.data_separator))
+		frappe.throw(_("Please do not change the rows above {0}").format(get_data_keys_definition().data_separator))
 
 	def check_data_length():
 		max_rows = 5000
@@ -41,7 +43,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 
 	def get_start_row():
 		for i, row in enumerate(rows):
-			if row and row[0]==data_keys.data_separator:
+			if row and row[0]==get_data_keys_definition().data_separator:
 				return i+1
 		bad_template()
 
@@ -68,7 +70,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 		return columns
 
 	def make_column_map():
-		doctype_row, row_idx = get_header_row_and_idx(data_keys.doctype)
+		doctype_row, row_idx = get_header_row_and_idx(get_data_keys_definition().doctype)
 		if row_idx == -1: # old style
 			return
 
@@ -142,8 +144,8 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 	start_row = get_start_row()
 	header = rows[:start_row]
 	data = rows[start_row:]
-	doctype = get_header_row(data_keys.main_table)[1]
-	columns = filter_empty_columns(get_header_row(data_keys.columns)[1:])
+	doctype = get_header_row(get_data_keys_definition().main_table)[1]
+	columns = filter_empty_columns(get_header_row(get_data_keys_definition().columns)[1:])
 	doctypes = []
 	doctype_parentfield = {}
 	column_idx_to_fieldname = {}
@@ -153,7 +155,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 			doctype, "is_submittable")):
 		submit_after_import = False
 
-	parenttype = get_header_row(data_keys.parent_table)
+	parenttype = get_header_row(get_data_keys_definition().parent_table)
 
 	if len(parenttype) > 1:
 		parenttype = parenttype[1]

@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 
 import frappe
+import getpass
 
 def before_install():
 	frappe.reload_doc("core", "doctype", "docfield")
@@ -47,9 +48,24 @@ def after_install():
 
 	# update admin password
 	from frappe.auth import _update_password
-	_update_password("Administrator", frappe.conf.get("admin_password"))
+	_update_password("Administrator", get_admin_password())
 
 	frappe.db.commit()
+
+def get_admin_password():
+	def ask_admin_password():
+		admin_password = getpass.getpass("Set Administrator password: ")
+		admin_password2 = getpass.getpass("Re-enter Administrator password: ")
+		if not admin_password == admin_password2:
+			print "\nPasswords do not match"
+			return ask_admin_password()
+		return admin_password
+
+	admin_password = frappe.conf.get("admin_password")
+	if not admin_password:
+		return ask_admin_password()
+	return admin_password
+
 
 def before_tests():
 	frappe.db.sql("delete from `tabCustom Field`")

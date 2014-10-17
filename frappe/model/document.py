@@ -587,6 +587,6 @@ class Document(BaseDocument):
 			"comment_type": comment_type,
 			"comment_doctype": self.doctype,
 			"comment_docname": self.name,
-			"comment": text or comment_type
+			"comment": text or _(comment_type)
 		}).insert(ignore_permissions=True)
 		return comment

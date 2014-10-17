@@ -1,10 +1,10 @@
 <h3>{{ title }}</h3>
-<p>Dear {{ first_name }}{% if last_name %} {{ last_name}}{% endif %},</p>
-<p>A new account has been created for you.</p>
-<p>Your login id is: <b>{{ user }}</b>
-<p>Click on the link below to complete your registration and set a new password.</p>
-<p><b><a href="{{ link }}">Complete Registration</a></b></p>
+<p>{{_("Dear")}} {{ first_name }}{% if last_name %} {{ last_name}}{% endif %},</p>
+<p>{{_("A new account has been created for you")}}.</p>
+<p>{{_("Your login id is")}}: <b>{{ user }}</b>
+<p>{{_("Click on the link below to complete your registration and set a new password")}}.</p>
+<p><b><a href="{{ link }}">{{_("Complete Registration")}}</a></b></p>
 <br>
-<p>You can also copy-paste this link in your browser <a href="{{ link }}">{{ link }}</a></p>
-<p>Thank you,<br>
+<p>{{_("You can also copy-paste this link in your browser")}} <a href="{{ link }}">{{ link }}</a></p>
+<p>{{_("Thank you")}},<br>
 {{ user_fullname }}</p>
