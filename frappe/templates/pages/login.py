@@ -169,8 +169,8 @@ def login_oauth_user(data, provider=None):
 			success=False, http_status_code=403)
 
 	frappe.local.login_manager.user = user
-	frappe.local.login_manager.post_login()
 	frappe.set_user(user)
+	frappe.local.login_manager.post_login()
 
 	# redirect!
 	frappe.local.response["type"] = "redirect"
