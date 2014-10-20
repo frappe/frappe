@@ -170,7 +170,7 @@ def login_oauth_user(data, provider=None):
 
 	frappe.local.login_manager.user = user
 	frappe.local.login_manager.post_login()
-	frappe.local.user = frappe.utils.user.User()
+	frappe.set_user(user)
 
 	# redirect!
 	frappe.local.response["type"] = "redirect"
