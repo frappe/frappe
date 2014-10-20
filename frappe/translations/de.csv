@@ -17,13 +17,13 @@
 A user can be permitted to multiple records of the same DocType.,Ein Benutzer kann die Genehmigung für mehrere Datensätze des gleichen DocType haben.
 About,Info
 About Us Settings,Über uns Einstellungen
-About Us Team Member,Über uns Team-Mitglied
+About Us Team Member,Über uns Teammitglied
 Action,Aktion
 "Actions for workflow (e.g. Approve, Cancel).","Aktionen für Workflows (z. B. genehmigen , Abbruch) ."
 Add,Hinzufügen
-Add A New Rule,Hinzufügen einer neuen Regel
-Add A User Permission,Fügen Sie ein Benutzerberechtigung hinzu
-Add Attachments,Hinzufügen von Dateianhängen
+Add A New Rule,Neue Regel hinzufügen
+Add A User Permission,Benutzerberechtigung hinzufügen
+Add Attachments,Anhänge hinzufügen
 Add Bookmark,Lesezeichen hinzufügen
 Add CSS,CSS hinzufügen
 Add Column,Spalte hinzufügen
@@ -34,11 +34,11 @@ Add New Permission Rule,Neue Berechtigungsregel hinzufügen
 Add Reply,Antwort hinzufügen
 Add Tag,
 Add Total Row,Gesamtzeile hinzufügen
-Add a New Role,Fügen Sie eine neue Rolle hinzu
+Add a New Role,Neue Rolle hinzufügen
 Add a banner to the site. (small banners are usually good),Der Website ein Werbebanner hinzufügen. (kleine Banner sind in der Regel gut)
 Add all roles,Alle Rollen hinzufügen
 Add attachment,Anhang hinzufügen
-Add code as &lt;script&gt;,Code als <script> hinzufügen
+Add code as &lt;script&gt;,Code als <script> hinzfügen
 Add comment,
 Add custom javascript to forms.,"Fügen Sie benutzerdefinierte Javascript, um Formen ."
 Add fields to forms.,Fügen Sie Felder zu Formularen .
@@ -1351,7 +1351,7 @@ arrow-left,Pfeil-nach-links
 arrow-right,Pfeil-nach-rechts
 arrow-up,Pfeil-nach-oben
 asterisk,Sternchen
-backward,Rücktaste
+backward,zurück
 ban-circle,ban-circle
 barcode,Strichcode
 beginning with,beginnend mit
