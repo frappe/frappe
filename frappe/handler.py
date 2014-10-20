@@ -21,6 +21,7 @@ def runserverobj(method, docs=None, dt=None, dn=None, arg=None, args=None):
 @frappe.whitelist(allow_guest=True)
 def logout():
 	frappe.local.login_manager.logout()
+	frappe.set_user("Guest")
 	frappe.db.commit()
 
 @frappe.whitelist(allow_guest=True)
