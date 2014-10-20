@@ -60,6 +60,9 @@ def build_context(sitemap_options):
 			if ret:
 				context.update(ret)
 
+		for prop in ("no_cache", "no_sitemap"):
+			context[prop] = getattr(context.doc, "no_cache", False)
+
 	elif context.controller:
 		module = frappe.get_module(context.controller)
 
