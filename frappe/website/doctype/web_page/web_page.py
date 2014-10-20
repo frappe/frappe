@@ -10,6 +10,7 @@ from frappe.website.doctype.website_slideshow.website_slideshow import get_slide
 from frappe.website.utils import find_first_image, get_comment_list
 from markdown2 import markdown
 from frappe.utils.jinja import render_template
+from jinja2.exceptions import TemplateSyntaxError
 
 class WebPage(WebsiteGenerator):
 	save_versions = True
@@ -57,9 +58,12 @@ class WebPage(WebsiteGenerator):
 		# dynamic
 		if context.main_section and ("<!-- render-jinja -->" in context.main_section) \
 			or ("{{" in context.main_section):
-			context["main_section"] = render_template(context.main_section,
-				context)
-			context["no_cache"] = 1
+			try:
+				context["main_section"] = render_template(context.main_section,
+					context)
+				context["no_cache"] = 1
+			except TemplateSyntaxError:
+				pass
 
 	def get_dynamic_context(self, context):
 		template_path_base = self.template_path.rsplit(".", 1)[0]
