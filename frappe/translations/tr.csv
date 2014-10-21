@@ -14,18 +14,18 @@
 <i>e.g. <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>,<i> örneğin <strong> (55 + 434) / 4 </ strong> veya <strong> = Math.sin (Math.PI / 2) </ strong> ... </ i>
 <i>module name...</i>,<i> modül adı ... </ i>
 <i>text</i> <b>in</b> <i>document type</i>,<i> metin </ i> <b> </ b> belge türü </ i> <i>
-A user can be permitted to multiple records of the same DocType.,Bir kullanıcı aynı DocType birden kayıtlarına müsaade edilebilir.
+A user can be permitted to multiple records of the same DocType.,Bir kullanıcı aynı dosya tipi için birden fazla kayda onay verebilir.
 About,Hakkında
-About Us Settings,Hakkımızda Ayarları Hakkında
-About Us Team Member,Hakkımızda Ekip Üyesi Hakkında
+About Us Settings,Hakkımızda Ayarları
+About Us Team Member,Ekip üyeleri hakkında
 Action,Eylem
 Actions,Eylemler
-"Actions for workflow (e.g. Approve, Cancel).",Iş akışı için eylemleri (örneğin İptal Onayla).
+"Actions for workflow (e.g. Approve, Cancel).","İş akışı için eylemler (örneğin İptal, Onayla)."
 Add,Ekle
-Add A New Rule,Yeni Kuralı Ekle
-Add A User Permission,Bir Kullanıcı İzni ekle
-Add Attachments,Ekler ekle
-Add Bookmark,Yerimi ekle
+Add A New Rule,Yeni Kural Ekle
+Add A User Permission,Kullanıcı İzni Ekleyin
+Add Attachments,Ekleri ekle
+Add Bookmark,Yer imi ekle
 Add CSS,CSS Ekle
 Add Column,Sütun Ekle
 Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,Google Analytics ID ekleyin: örn. UA-89XXX57-1. Daha fazla bilgi için Google Analytics yardım arayın.
@@ -35,7 +35,7 @@ Add Reply,Yanıt Ekle
 Add Total Row,Toplam satır ekle
 Add a New Role,Yeni Rol Ekle
 Add a banner to the site. (small banners are usually good),Siteye bir afiş ekleyin. (Küçük afiş genellikle iyidir)
-Add all roles,Tüm rolleri Ekle
+Add all roles,Rol Ekleyin
 Add attachment,Ek ekle
 Add code as &lt;script&gt;,<script> Gibi kod ekle
 Add custom javascript to forms.,Formlara özel javascript ekle.
@@ -110,22 +110,22 @@ Auto Name,Otomatik Ad
 Auto generated,Otomatik oluşturulan
 Avatar,Resim
 Back to Login,Giriş Sayfasına Dön
-Background Color,Arka Plan Rengi
+Background Color,Arkaplan Rengi
 Background Image,Arkaplan Resmi
 Background Style,Arkaplan Stili
 Banner,Banner
 Banner HTML,Banner HTML
 Banner Image,Banner Resmi
 Banner is above the Top Menu Bar.,Banner Top Menu Bar üzerindedir.
-Begin this page with a slideshow of images,Görüntülerin bir slayt gösterisi ile bu sayfayı başlayın
+Begin this page with a slideshow of images,Bu sayfayı slayt gösterisi ile başlatın.
 Beginning with,Ile başlayan
 Belongs to,Ait
-Bio,Bio
+Bio,Biyo
 Birth Date,Doğum tarihi
 Blog Category,Blog Kategorisi
-Blog Intro,Intro Blog
+Blog Intro,Blog girişi
 Blog Introduction,Blog Tanıtım
-Blog Post,Blog Post
+Blog Post,Blog postası
 Blog Settings,Blog Ayarları
 Blog Title,Blog Başlığı
 Blogger,Blogcu
@@ -1262,11 +1262,11 @@ arrow-right,ok-sağ
 arrow-up,ok-up
 asterisk,yıldız işareti
 backward,geri
-ban-circle,ban-daire
+ban-circle,'Giriş izni yok' simgesi
 barcode,Barkod
 beginning with,ile başlayan
 bell,çan
-bold,cesur
+bold,kalın
 book,kitap
 bookmark,imi
 briefcase,evrak çantası
@@ -1413,8 +1413,8 @@ volume-up,hacim-up
 warning-sign,uyarı işareti
 wrench,İngiliz anahtarı
 yyyy-mm-dd,yyyy-aa-gg
-zoom-in,zoom-in
-zoom-out,zoom-out
+zoom-in,Yakınlaştırın
+zoom-out,Uzaklaştırın
 {0} List,{0} Listesi
 {0} added,{0} eklendi
 {0} by {1},{0} {1}

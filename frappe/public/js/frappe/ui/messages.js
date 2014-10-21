@@ -22,7 +22,7 @@ frappe.throw = function(msg) {
 
 frappe.confirm = function(message, ifyes, ifno) {
 	var d = new frappe.ui.Dialog({
-		title: "Confirm",
+		title: __("Confirm"),
 		fields: [
 			{fieldtype:"HTML", options:"<p class='frappe-confirm-message'>" + message + "</p>"}
 		],
@@ -37,7 +37,7 @@ frappe.confirm = function(message, ifyes, ifno) {
 
 frappe.get_value = function(field, callback) {
 	var d = new frappe.ui.Dialog({
-		fields: [field, {fieldtype:"Button", "label":"Submit"}],
+		fields: [field, {fieldtype:"Button", "label":__("Submit")}],
 		title: __("Enter Value"),
 	})
 	d.get_input("submit").on("click", function() {

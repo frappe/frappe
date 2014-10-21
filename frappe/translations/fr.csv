@@ -15,20 +15,20 @@
 <i>module name...</i>,<i> nom du module ... </ i>
 <i>text</i> <b>in</b> <i>document type</i>,texte <i> </ i> <b> dans </ b> <i> type de document </ i>
 A user can be permitted to multiple records of the same DocType.,Un utilisateur peut être autorisé à plusieurs enregistrements du même type de document .
-About,Sur
-About Us Settings,À propos  Réglages
-About Us Team Member,À propos membre de l&#39;équipe
+About,À propos
+About Us Settings,Paramètrages À propos
+About Us Team Member,À propos du membre de l'équipe
 Action,Action
 Actions,Actions
 "Actions for workflow (e.g. Approve, Cancel).","Actions pour flux de travail (par exemple approuver, Annuler ) ."
 Add,Ajouter
 Add A New Rule,Ajouter une nouvelle règle
-Add A User Permission,Ajouter une autorisation pour l'utilisateur
+Add A User Permission,Ajouter une permission d'utilisateur
 Add Attachments,Ajouter des pièces jointes
 Add Bookmark,Ajouter un signet
 Add CSS,Ajouter CSS
 Add Column,Ajouter une colonne
-Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,Ajouter Google Analytics ID: par ex. UA-89XXX57-1. Veuillez chercher de l&#39;aide sur Google Analytics pour plus d&#39;informations.
+Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,Ajouter l'identifiant de Google Analytics: par ex. UA-89XXX57-1. Veuillez chercher de l'aide sur Google Analytics pour plus d'informations.
 Add Message,Ajouter un message
 Add New Permission Rule,Ajouter une nouvelle règle d&#39;autorisation
 Add Reply,Ajouter une réponse
@@ -47,19 +47,19 @@ Add to To Do,Ajouter à la liste des tâches
 Add to To Do List Of,Ajouter à la Liste des tâches de
 Added {0} ({1}),Ajouté {0} ({1})
 Adding System Manager to this User as there must be atleast one System Manager,Ajout du rôle System Manager pour l'utilisateur car il doit y avoir au moins un System Manager
-Additional Info,Informations additionnelles
+Additional Info,Informations supplémentaires
 Additional Permissions,autorisations supplémentaires
 Address,Adresse
 Address Line 1,Adresse ligne 1
 Address Line 2,Adresse ligne 2
-Address Title,Titre Adresse
+Address Title,Titre de l'adresse
 Address and other legal information you may want to put in the footer.,Adresse et autres informations juridiques que vous voulez mettre dans le pied de page.
 Admin,admin
 All Applications,toutes les applications
 All Day,Toute la journée
 All customizations will be removed. Please confirm.,Toutes les personnalisations seront supprimés. Veuillez confirmer.
 "All possible Workflow States and roles of the workflow. <br>Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""","Tous les états et les rôles possibles du flux de travail. <br> Options de Docstatus: 0 est &quot;Sauver&quot;, 1 signifie «soumis» et 2 est «annulé»"
-Allow Attach,Permettre pièces jointes
+Allow Attach,Permettre les pièces jointes
 Allow Import,Permettre l&#39;importation
 Allow Import via Data Import Tool,Autoriser l&#39;importation via l&#39;outil d&#39;importation de données
 Allow Rename,Permettre de Renommer
@@ -115,16 +115,16 @@ Background Image,Image de fond
 Background Style,Style du fond
 Banner,Bannière
 Banner HTML,HTML Bannière
-Banner Image,Image Bannière
-Banner is above the Top Menu Bar.,La Bannière est au-dessus de la barre de menu supérieure.
+Banner Image,Image de la bannière
+Banner is above the Top Menu Bar.,La Bannière est au-dessus de la barre de menu en haut.
 Begin this page with a slideshow of images,Commencez cette page avec un diaporama des images
 Beginning with,Commençant avec
 Belongs to,appartient à
 Bio,Bio
 Birth Date,Date de naissance
-Blog Category,Blog Catégorie
+Blog Category,Catégorie du blog
 Blog Intro,Blog Intro
-Blog Introduction,Blog introduction
+Blog Introduction,Introduction du blog
 Blog Post,Blog
 Blog Settings,Paramètres du blog
 Blog Title,Titre du blog
@@ -132,8 +132,8 @@ Blogger,Blogger
 Bookmarks,Favoris
 Both login and password required,Les deux login et mot de passe requis
 Brand HTML,Marque HTML
-Bulk Email,Email groupé
-Bulk email limit {0} crossed,Email groupé limite {0} franchi
+Bulk Email,Courriel groupé
+Bulk email limit {0} crossed,La limite du courriel groupé  {0} est atteinte
 Button,Bouton
 By,Par
 Calculate,Calculer
@@ -145,7 +145,7 @@ Cannot Update: Incorrect / Expired Link.,Vous ne pouvez pas mettre à jour : Lie
 Cannot Update: Incorrect Password,Vous ne pouvez pas mettre à jour : Mot de passe incorrect
 Cannot add more than 50 comments,Vous ne pouvez pas ajouter plus de 50 commentaires
 Cannot cancel before submitting. See Transition {0},Vous ne pouvez pas annuler avant de soumettre .
-Cannot change picture,Vous ne pouvez pas changer l'image
+Cannot change picture,Impossible de changer l'image
 Cannot change state of Cancelled Document. Transition row {0},Vous ne pouvez pas changer l'état du document annulé .
 Cannot change {0},Vous ne pouvez pas modifier {0}
 Cannot delete or cancel because {0} {1} is linked with {2} {3},Vous ne pouvez pas supprimer ou annuler parce que {0} {1} est lié à {2} {3}
@@ -193,7 +193,7 @@ Comment By Fullname,Commentaire de Nom complet
 Comment Date,Date de commentaires
 Comment Docname,Commentaire docName
 Comment Doctype,Commentaire Doctype
-Comment Time,Commentaire Temps
+Comment Time,L'heure du commentaire
 Comments,Commentaires
 Communication,Communication
 Communication Medium,Moyen de communication
@@ -239,7 +239,7 @@ Customized HTML Templates for printing transctions.,Modèles HTML personnalisés
 Daily Event Digest is sent for Calendar Events where reminders are set.,Le résumé quotidien des événements est envoyé pour les événements du calendrier où les rappels sont fixés.
 Danger,Danger
 Data,Données
-Data Import / Export Tool,Outil d'import / export de données
+Data Import / Export Tool,Outil d'import / d'export de données
 Data Import Tool,Outil d'importation de données
 Data missing in table,Données manquantes dans le tableau
 Date,Date
@@ -260,7 +260,7 @@ DefaultValue,Valeur par défaut
 Defaults,Valeurs par défaut
 "Define read, write, admin permissions for a Website Page.","Définir les permissions de lire, d'écrire et d'administration pour une page Web."
 Define workflows for forms.,Définir des workflows pour les formulaires.
-Delete,Effacer
+Delete,Supprimer
 Delete Row,Supprimer la ligne
 Depends On,Dépend de
 Descending,Décroissant
@@ -649,16 +649,16 @@ Naming Series mandatory,Nommer obligatoire Series
 Nested set error. Please contact the Administrator.,Niché erreur de réglage . S'il vous plaît contacter l'administrateur .
 New,Nouveau
 New Password,Nouveau mot de passe
-New Record,Nouveau record
+New Record,Nouvelle ligne
 New comment on {0} {1},Nouveau commentaire sur {0} {1}
-New password emailed,Nouveau mot de passe par courriel
+New password emailed,Nouveau mot de passe est envoyé par courriel
 New value to be set,La nouvelle valeur à régler
 New {0},Nouvelle {0}
 Next Communcation On,Suivant Communcation sur
-Next Record,S'il vous plaît vous connecter à Upvote !
-Next State,État Suivante
+Next Record,Prochaine ligne
+Next State,État Suivant
 Next actions,Prochaines actions
-No,Aucun
+No,Non
 No Action,Aucune action
 No Communication tagged with this ,Aucune communication étiqueté avec cette
 No Copy,Pas de copie
@@ -667,9 +667,9 @@ No Report Loaded. Please use query-report/[Report Name] to run a report.,Non Sig
 No Results,Vous ne pouvez pas ouvrir par exemple lorsque son {0} est ouvert
 No Sidebar,Pas Sidebar
 No User Permissions found.,Pas autorisations des utilisateurs trouvent .
-No data found,Aucune donnée disponible
+No data found,Aucune donnée trouvée
 No file attached,Pas de fichier joint
-No further records,Pas d&#39;autres dossiers
+No further records,Pas d'autres enregistrements
 No one,Personne
 No permission to '{0}' {1},Pas de permission pour '{0} ' {1}
 No permission to edit,Pas de permission pour modifier
@@ -805,8 +805,8 @@ Please refresh to get the latest document.,S&#39;il vous plaît Refresh pour obt
 Please reply above this line or remove it if you are replying below it,S'il vous plaît répondez-dessus de cette ligne ou de le supprimer si vous répondez dessous
 Please select a file or url,S&#39;il vous plaît sélectionner un fichier ou une URL
 Please select atleast 1 column from {0} to sort,S'il vous plaît sélectionner au moins une colonne de {0} pour trier
-Please set {0} first,S'il vous plaît mettre {0} premier
-Please specify,S&#39;il vous plaît spécifier
+Please set {0} first,Veuillez mettre {0} en premier
+Please specify,Veuillez spécifier
 Please specify 'Auto Email Id' in Setup > Outgoing Email Settings,"S'il vous plaît spécifier ""Auto Email Id » dans Configuration> Paramètres de messagerie sortants"
 Please specify Event date and time,S'il vous plaît préciser la date et l'heure de l'événement
 Please specify doctype,S'il vous plaît indiquer doctype
@@ -850,7 +850,7 @@ Published,Publié
 Published On,Publié le
 Published on website at: {0},Publié sur le site Web au: {0}
 Pull Emails from the Inbox and attach them as Communication records (for known contacts).,Tirez e-mails à partir de la boîte de réception et les attacher comme des enregistrements de communication (pour les contacts connus).
-Query,Question
+Query,Requête
 Query Options,Options de requête
 Query Report,Rapport de requêtes
 Query must be a SELECT,Requête doit être un SELECT
@@ -861,7 +861,7 @@ Read,Lire
 Read Only,Lecture seule
 Received,reçu
 Recipient,Destinataire
-Recipients,Récipiendaires
+Recipients,Destinataires
 Record does not exist,N'existe pas d'enregistrement
 Ref DocType,Réf DocType
 Ref Name,Nom Réf
@@ -898,7 +898,7 @@ Reqd,Reqd
 Reset Password Key,Réinitialiser le mot clé
 Reset Permissions for {0}?,Réinitialiser des autorisations pour {0} ?
 Response,Réponse
-Restrict IP,Restreindre IP
+Restrict IP,Restreindre l'IP
 Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111),Restreindre l&#39;utilisateur à partir de cette adresse IP. Plusieurs adresses IP peuvent être ajoutés par séparant par des virgules. Accepte également les adresses IP partielles comme (111.111.111)
 Right,Droit
 Role,Rôle
@@ -1233,7 +1233,7 @@ Writers Introduction,Writers Présentation
 Year,Année
 Yes,Oui
 Yesterday,Hier
-You are not allowed to create / edit reports,enregistrement précédent
+You are not allowed to create / edit reports,Vous n'avez pas droit de crééer / modifier des rapports
 You are not allowed to export the data of: {0}. Downloading empty template.,Vous n'êtes pas autorisé à exporter les données de : {0} . Téléchargement modèle vide .
 You are not allowed to export this report,S'il vous plaît entrez la date et l'heure de l'événement !
 You are not allowed to print this document,"Pour signaler un problème, passez à"
@@ -1249,8 +1249,8 @@ You seem to have written your name instead of your email. \					Please enter a v
 "Your download is being built, this may take a few moments...","Votre téléchargement est en cours de construction, ce qui peut prendre quelques instants ..."
 [Label]:[Field Type]/[Options]:[Width],[Étiquette]: [Type de champ] / [Options]: [Largeur]
 [Optional] Send the email X days in advance of the specified date. 0 equals same day.,[Optionnel] Envoyer les emails X jours à l'avance de la date spécifiée. 0 est égal même jour.
-add your own CSS (careful!),ajouter vos propres CSS (méfiance!)
-adjust,ajuster
+add your own CSS (careful!),ajouter vos propres CSS (prudence!)
+adjust,paramétrer
 align-center,alignez-centre
 align-justify,alignement justifier
 align-left,alignement à gauche
@@ -1261,15 +1261,15 @@ arrow-left,flèche gauche
 arrow-right,arrow-right
 arrow-up,arrow-up
 asterisk,astérisque
-backward,rétrograde
+backward,Revenir en arrière
 ban-circle,interdiction de cercle
 barcode,code à barres
 beginning with,en commençant par
 bell,cloche
-bold,audacieux
+bold,gras
 book,livre
 bookmark,favoris
-briefcase,serviette
+briefcase,Malette
 bullhorn,mégaphone
 calendar,calendrier
 camera,appareil photo
@@ -1361,7 +1361,7 @@ plus,plus
 plus-sign,signe +
 print,imprimer
 qrcode,qrcode
-question-sign,question-signe
+question-sign,Point d'intérrogation
 random,aléatoire
 refresh,rafraîchir
 remove,enlever
@@ -1413,8 +1413,8 @@ volume-up,volume-up
 warning-sign,avertissement signe
 wrench,clé
 yyyy-mm-dd,aaaa-mm-jj
-zoom-in,zoom-in
-zoom-out,zoom-out
+zoom-in,Aggrandir
+zoom-out,Réduire
 {0} List,{0} Liste
 {0} added,{0} ajoutée
 {0} by {1},{0} par {1}

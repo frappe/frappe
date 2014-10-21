@@ -3,47 +3,48 @@
 
 from __future__ import unicode_literals
 import frappe, os
-from frappe.modules import get_doc_path
-from jinja2 import Environment, Template, FileSystemLoader
+from frappe.modules import get_doc_path, load_doctype_module
 
 no_cache = 1
 no_sitemap = 1
 
 def get_context(context):
-	context.type = frappe.local.form_dict.type
+	context.doctype = frappe.local.form_dict.doctype
 	context.txt = frappe.local.form_dict.txt
-	context.update(get_items(context.type, context.txt))
+	module = load_doctype_module(context.doctype)
+	context.update(get_items(context.doctype, context.txt))
 	return context
 
 @frappe.whitelist(allow_guest=True)
-def get_items(type, txt, limit_start=0):
-	meta = frappe.get_meta(type)
+def get_items(doctype, txt, limit_start=0):
+	meta = frappe.get_meta(doctype)
 	filters, or_filters = [], []
 	out = frappe._dict()
+	module = load_doctype_module(doctype)
 
 	if txt:
 		if meta.search_fields:
 			for f in meta.get_search_fields():
-				or_filters.append([type, f.strip(), "like", "%" + txt + "%"])
+				or_filters.append([doctype, f.strip(), "like", "%" + txt + "%"])
 		else:
-			filters.append([type, "name", "like", "%" + txt + "%"])
+			filters.append([doctype, "name", "like", "%" + txt + "%"])
 
 
-	out.raw_items = frappe.get_list(type, fields = ["*"],
+	out.raw_items = frappe.get_list(doctype, fields = ["*"],
 		filters=filters, or_filters = or_filters, limit_start=limit_start,
 		limit_page_length = 20)
-	template_path = os.path.join(get_doc_path(meta.module, "DocType", meta.name), "list_item.html")
 
-	if os.path.exists(template_path):
-		env = Environment(loader = FileSystemLoader("/"))
-		#template_path = os.path.relpath(template_path)
-		template = env.get_template(template_path)
+	if hasattr(module, "get_list_item"):
+		out["items"] = []
+		for i in out.raw_items:
+			i.doc = i
+			out["items"].append(module.get_list_item(i))
 	else:
 		template = Template("""<div><a href="/{{ doctype }}/{{ doc.name }}" no-pjax>
 			{{ doc[title_field] }}</a></div>""")
 
-	out.items = [template.render(doc=i, doctype=type,
-		title_field = meta.title_field or "name") for i in out.raw_items]
+		out.items = [template.render(doc=i, doctype=doctype,
+			title_field = meta.title_field or "name") for i in out.raw_items]
 
 	out.meta = meta
 

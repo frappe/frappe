@@ -23,14 +23,15 @@ def clear(user=None):
 	frappe.local.db.commit()
 	clear_cache(frappe.session.user)
 	clear_global_cache()
-	frappe.response['message'] = "Cache Cleared"
+	frappe.response['message'] = _("Cache Cleared")
 
 def clear_cache(user=None):
 	cache = frappe.cache()
 
 	def delete_user_cache(user):
-		for key in ("bootinfo", "lang", "roles", "user_permissions", "home_page"):
-			cache.delete_value(key + ":" + user)
+		if user:
+			for key in ("bootinfo", "lang", "roles", "user_permissions", "home_page"):
+				cache.delete_value(key + ":" + user)
 
 	if user:
 		delete_user_cache(user)
@@ -261,10 +262,10 @@ class Session:
 				lastupdate=NOW() where sid=%s""" , (str(self.data['data']),
 				self.data['sid']))
 
+			frappe.cache().set_value("last_db_session_update:" + self.sid, now)
 			updated_in_db = True
 
 		# set in memcache
-		frappe.cache().set_value("last_db_session_update:" + self.sid, now)
 		frappe.cache().set_value("session:" + self.sid, self.data)
 
 		return updated_in_db

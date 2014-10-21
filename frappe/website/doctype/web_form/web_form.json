@@ -145,10 +145,37 @@
    "set_only_once": 0
   }, 
   {
+   "depends_on": "allow_multiple", 
+   "fieldname": "allow_delete", 
+   "fieldtype": "Check", 
+   "label": "Allow Delete", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
    "depends_on": "login_required", 
    "fieldname": "allow_comments", 
    "fieldtype": "Check", 
    "label": "Allow Comments", 
+   "permlevel": 0
+  }, 
+  {
+   "fieldname": "fields", 
+   "fieldtype": "Section Break", 
+   "label": "Fields", 
+   "permlevel": 0
+  }, 
+  {
+   "fieldname": "introduction_text", 
+   "fieldtype": "Text", 
+   "label": "Introduction", 
+   "permlevel": 0
+  }, 
+  {
+   "fieldname": "web_form_fields", 
+   "fieldtype": "Table", 
+   "label": "Web Form Fields", 
+   "options": "Web Form Field", 
    "permlevel": 0
   }, 
   {
@@ -172,23 +199,27 @@
    "permlevel": 0
   }, 
   {
-   "fieldname": "fields", 
+   "fieldname": "advanced", 
    "fieldtype": "Section Break", 
-   "label": "Fields", 
-   "permlevel": 0
+   "label": "Advanced", 
+   "permlevel": 0, 
+   "precision": ""
   }, 
   {
-   "fieldname": "introduction_text", 
-   "fieldtype": "Text", 
-   "label": "Introduction", 
-   "permlevel": 0
+   "description": "Text to be displayed for Link to Web Page if this form has a web page. Link route will be automatically generated based on `page_name` and `parent_website_route`", 
+   "fieldname": "web_page_link_text", 
+   "fieldtype": "Data", 
+   "label": "Web Page Link Text", 
+   "permlevel": 0, 
+   "precision": ""
   }, 
   {
-   "fieldname": "web_form_fields", 
-   "fieldtype": "Table", 
-   "label": "Web Form Fields", 
-   "options": "Web Form Field", 
-   "permlevel": 0
+   "description": "In JSON as <pre>[{\"title\":\"Jobs\", \"name\":\"jobs\"}]</pre>", 
+   "fieldname": "breadcrumbs", 
+   "fieldtype": "Small Text", 
+   "label": "Breadcrumbs", 
+   "permlevel": 0, 
+   "precision": ""
   }
  ], 
  "hide_heading": 0, 
@@ -199,7 +230,7 @@
  "is_submittable": 0, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2014-09-03 14:47:17.181589", 
+ "modified": "2014-10-15 11:47:58.064235", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Web Form", 

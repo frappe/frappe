@@ -109,15 +109,13 @@ def notify_assignment(assigned_by, owner, doc_type, doc_name, action='CLOSE',
 		if owner == frappe.session.get('user'):
 			arg = {
 				'contact': assigned_by,
-				'txt': "The task %s, that you assigned to %s, has been \
-					closed." % (assignment,
+				'txt': _("The task %s, that you assigned to %s, has been closed.") % (assignment,
 						user_info.get(owner, {}).get('fullname'))
 			}
 		else:
 			arg = {
 				'contact': assigned_by,
-				'txt': "The task %s, that you assigned to %s, \
-					has been closed	by %s." % (assignment,
+				'txt': _("The task %s, that you assigned to %s, has been closed by %s.") % (assignment,
 					user_info.get(owner, {}).get('fullname'),
 					user_info.get(frappe.session.get('user'),
 						{}).get('fullname'))
@@ -125,10 +123,9 @@ def notify_assignment(assigned_by, owner, doc_type, doc_name, action='CLOSE',
 	else:
 		arg = {
 			'contact': owner,
-			'txt': "A new task, %s, has been assigned to you by %s. %s" \
-				% (assignment,
+			'txt': _("A new task, %s, has been assigned to you by %s. %s") % (assignment,
 				user_info.get(frappe.session.get('user'), {}).get('fullname'),
-				description and ("<p>Description: " + description + "</p>") or ""),
+				description and ("<p>" + _("Description") + ": " + description + "</p>") or ""),
 			'notify': notify
 		}
 

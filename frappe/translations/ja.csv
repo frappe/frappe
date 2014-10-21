@@ -14,7 +14,7 @@
 <i>e.g. <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>,<I>例えばある[（55 + 434）/ 4 </ STRONG>またはある[=数学。罪（数PI / 2）</ STRONG> ... </ I>
 <i>module name...</i>,<I>モジュール名... </ I>
 <i>text</i> <b>in</b> <i>document type</i>,<I>テキスト</ I> <B>中の</ B> <I>ドキュメントタイプ</ I>
-A user can be permitted to multiple records of the same DocType.,ユーザが同じのDocTypeの複数のレコードを許可することができる。
+A user can be permitted to multiple records of the same DocType.,使用者が同じのDocTypeの複数のレコードを許可することができる。
 About,概要
 About Us Settings,会社の設定について
 About Us Team Member,問い合わせチームメンバーについて
@@ -311,7 +311,7 @@ Duplicate name {0} {1},重複する名前{0} {1}
 Dynamic Link,動的リンク
 ERPNext Demo,ERPNextデモ
 Edit,編集
-Edit Permissions,権限の編集
+Edit Permissions,認可を編集する
 Editable,編集可能な
 Email,Eメール
 Email Alert,電子メールアラート
@@ -329,11 +329,11 @@ Email Signature,電子メールの署名
 Email Use SSL,電子メールを使用したSSL
 Email address,メールアドレス
 "Email addresses, separted by commas",カンマでseparted電子メールアドレス、
-Email not verified with {1},メールによって確認していない{1}
+Email not verified with {1},電子メールは{1}で確認されませんでした。
 Email sent to {0},{0}に送信された電子メール
 Email...,電子メール...
 Emails are muted,メールはミュートされ
-Embed image slideshows in website pages.,ウェブサイトのページ内の画像のスライドショーを埋め込む。
+Embed image slideshows in website pages.,ウェブサイトのページ内の画像のスライドショーを埋め込んでください。
 Enable,可能
 Enable Comments,コメントを有効にする
 Enable Scheduled Jobs,スケジュールされたジョブを有効にする
@@ -347,7 +347,7 @@ Enter at least one permission row,少なくとも1の許可の行を入力して
 Equals,等号
 Error,エラー
 "Error generating PDF, attachment sent as HTML",HTMLとして送信されたエラー発生ファイル、添付ファイル
-Error: Document has been modified after you have opened it,エラー：あなたがそれを開いた後にドキュメントが変更されました
+Error: Document has been modified after you have opened it,エラー：あなたがそれを開いた後に文書が変更されました
 Event,イベント
 Event Datetime,イベント日時
 Event Individuals,イベント個人
@@ -421,7 +421,7 @@ For DocType,のDocType用
 "For Links, enter the DocType as rangeFor Select, enter list of Options separated by comma",リンクについては、範囲としてのDocTypeに入る選択して、カンマで区切られたオプションのリストを入力します。
 "For comparative filters, start with",比較のフィルタの場合、で始まる
 For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,あなたがキャンセルして「INV004」を改正する場合は、新しいドキュメント 'INV004-1」となります。これにより、各修正案を追跡するのに役立ちます。
-For ranges,範囲については、
+For ranges,範囲について
 For top bar,トップバーの
 For {0} at level {1} in {2} in row {3},{0}のレベルで{1} {2}の行の{3}
 Forgot Password,パスワードを忘れた方はこちら
@@ -439,7 +439,7 @@ Gender,性別
 Generator,発電機
 Georgia,ジョージア
 Get,ゲット
-Get From ,
+Get From ,フォームを取得
 "Get your globally recognized avatar from <a href=""https://gravatar.com/"">Gravatar.com</a>","もし、ごhref=""https://gravatar.com/""> Gravatar.com </ A>から世界的に認知されたアバターを入手"
 GitHub,GitHub
 GitHub Client ID,GitHubのクライアントID
@@ -450,13 +450,13 @@ Google,グーグル。
 Google Analytics ID,{0}Google Analytics ID{/0}
 Google Client ID,GoogleのクライアントID
 Google Client Secret,Googleのクライアントの秘密
-Google Plus One,グーグルプラスワン
+Google Plus One,Googleプラスワン
 Google User ID,GoogleのユーザーID
 Google Web Font (Heading),Googleウェブフォント（見出し）
 Google Web Font (Text),Googleウェブフォント（テキスト）
-Greater or equals,グレーターまたは等号
+Greater or equals,大か等しい
 Greater than,より大きい
-"Group Added, refreshing...",グループ追加、さわやかな...
+"Group Added, refreshing...",グループを追加しました、さわやかな...
 Group Description,コミュニティの説明
 Group Name,グループ名
 Group Title,グループタイトル
@@ -473,7 +473,7 @@ Helvetica Neue,ヘルベチカノイエ
 Hidden,非表示
 Hide Actions,アクション隠す
 Hide Copy,コピーを隠す
-Hide Heading,隠す見出し
+Hide Heading,見出しを隠す
 Hide Toolbar,ツールバーを非表示に
 Hide the sidebar,サイドバーを隠す
 High,高
@@ -543,7 +543,7 @@ Is Submittable,Submittableです
 Is Task,課題である
 Item cannot be added to its own descendents,アイテムには独自の子孫に追加することはできません
 JavaScript Format: frappe.query_reports['REPORTNAME'] = {},JavaScriptの形式：frappe.query_reports ['REPORTNAME'] = {}
-Javascript,Javascript
+Javascript,ジャバスプリクト
 Javascript to append to the head section of the page.,Javascriptがページのheadセクションに追加する。
 Key,キー (key)
 Label,ラベル
@@ -565,7 +565,7 @@ Left,左
 Less or equals,以下のequals
 Less than,未満
 Letter,手紙
-Letter Head,レターヘッド
+Letter Head,レターヘッド（会社名•所在地などを便箋上部に印刷したもの）
 Letter Head Name,レターヘッドの名前
 Letter Head in HTML,HTMLでレターヘッド
 Level,レベル
@@ -744,17 +744,17 @@ Page,ページ
 Page #{0} of {1},ページ＃{0}の{1}
 Page Background,ページの背景
 Page HTML,ページのHTML
-Page Header,ページヘッダー
-Page Header Background,ページヘッダーの背景
-Page Header Text,ページヘッダーテキスト
+Page Header,ページ見出し
+Page Header Background,ページ見出しの背景
+Page Header Text,ページ見出しテキスト
 Page Links,ページへのリンク
 Page Name,ページ名
 Page Role,ページの役割
 Page Text,ページテキスト
 Page Title,ページ タイトル
-Page content,ページコンテンツ
+Page content,ページ内容
 Page not found,ページが見つかりません
-Page or Generator,ページまたは発電機
+Page or Generator,ページまたはジェネレーター
 Page url name (auto-generated),ページURL名（自動生成された）
 Parent Label,親ラベル
 Parent Post,親ポスト
@@ -850,10 +850,10 @@ Published,公開済み
 Published On,上で公開
 Published on website at: {0},のウェブサイト上で公開：{0}
 Pull Emails from the Inbox and attach them as Communication records (for known contacts).,受信トレイからメールを引いて（知らコンタクト用）通信記録として取り付けます。
-Query,クエリ
+Query,質問
 Query Options,クエリーオプション
 Query Report,クエリ レポート
-Query must be a SELECT,クエリは、SELECTでなければなりません
+Query must be a SELECT,質問は、セレクトでなければなりません。
 Quick Help for Setting Permissions,アクセス権を設定するためのクイックヘルプ
 Quick Help for User Permissions,ユーザーのアクセス許可のためのクイックヘルプ
 Re-open,再オープン
@@ -1021,7 +1021,7 @@ Sign up,申込み
 Single Post (article).,シングルポスト（記事）。
 Single Types have only one record no tables associated. Values are stored in tabSingles,シングルタイプはテーブルが関連付けられていない唯一の記録がある。値がtabSinglesに格納されてい
 Sitemap Browser,サイトマップブラウザー
-Slideshow,スライドショー
+Slideshow,スライドショー（一連の画像を順次表示するもの）
 Slideshow Items,スライドショーアイテム
 Slideshow Name,スライドショーの名前
 Small Text,小さなテキスト
@@ -1135,18 +1135,18 @@ Twitter Share,Twitterで共有
 Twitter Share via,Twitterで共有経由
 Type,データ型
 Unable to find attachment {0},添付ファイル{0}が見つかりません
-Unable to load: {0},ロードできません：{0}
+Unable to load: {0},{0}を読み取ることが出来ません。
 Unable to open attached file. Please try again.,添付ファイルを開くことができません。もう一度お試しください。
-Unable to send emails at this time,この時に電子メールを送信することができません。
+Unable to send emails at this time,メールを送信することができません。
 Unknown Column: {0},不明なコラム：{0}
-"Unknown file encoding. Tried utf-8, windows-1250, windows-1252.",未知のファイルのエンコーディング。UTF-8、Windowsベース1250、Windowsベース1252を試してみました。
+"Unknown file encoding. Tried utf-8, windows-1250, windows-1252.",未知のファイルのエンコーディング（符号化）。UTF-8、Windowsベース1250、Windowsベース1252を試し済み。
 Unread Messages,未読メッセージ
-Unsubscribe,サービス退会
+Unsubscribe,購読解除
 Unsubscribed,購読解除
-Upcoming Events for Today,今日のための今後のイベント
+Upcoming Events for Today,今日すべき事柄。
 Update,更新
-Update Field,フィールドの更新
-Update Value,更新値
+Update Field,フィールド（欄）の更新
+Update Value,値の更新
 Updated,更新日
 Upload,アップロード
 Upload Attachment,添付ファイルをアップロード
@@ -1157,7 +1157,7 @@ Upload and Sync,アップロードと同期
 Uploading...,アップロードしています...
 Upvotes,Upvotes
 Use TLS,TLSを使用
-User,ユーザー
+User,ユーザー（使用者）
 User Cannot Create,ユーザーが作成できない
 User Cannot Search,ユーザーが検索することはできません
 User Defaults,ユーザー·デフォルト設定
@@ -1181,39 +1181,39 @@ UserRole,USERROLE
 Users and Permissions,ユーザーと権限
 Users with role {0}:,ロールを持つユーザー{0}：
 Valid Login id required.,有効なログインIDが必要です。
-Valid email and name required,有効な電子メールと名前が必要
+Valid email and name required,有効なメールアドレスと名前が必要です。
 Value,値
 Value Change,値変更
-Value Changed,値を変更
-Value cannot be changed for {0},値は{0}のために変更することはできません
+Value Changed,値を変更済み
+Value cannot be changed for {0},{0}の値は変更することはできません。
 Value for a check field can be either 0 or 1,チェックフィールドの値は0または1のいずれかになります
-Value missing for,値に対して不足している
-Verdana,Verdana
-Version,バージョン
-Version restored,バージョンに復元
-View or manage Website Route tree.,ウェブサイトのルートツリーを表示したり、管理します。
-Visit,訪問
+Value missing for,の値の記入漏れ。
+Verdana,ヴァーダナ(視認性向上のために開発された書体）
+Version,バージョン／版
+Version restored,復元版
+View or manage Website Route tree.,ウェブサイトの系図経路の表示または管理。
+Visit,観覧／アクセス
 Warning,警告
-Warning: This Print Format is in old style and cannot be generated via the API.,警告：この印刷フォーマットは古いスタイルであり、APIを介して生成することはできません。
+Warning: This Print Format is in old style and cannot be generated via the API.,警告：古い印刷書式のため、APIを介して生産することはできません。
 Web Page,ウェブページ
-Web Site Forum Page.,Webサイトのフォーラムページ。
+Web Site Forum Page.,ウェブサイトの掲示板
 Website,ウェブサイト
 Website Group,ウェブサイトのグループ
-Website Route,ウェブルート
-Website Route Permission,ウェブサイトのルート許可
-Website Script,ウェブサイトのスクリプト
+Website Route,ウェブルート（経路）
+Website Route Permission,ウェブサイトルートの許可
+Website Script,ウェブサイトのスクリプト(処理手順プログラム）
 Website Settings,Webサイト設定
 Website Slideshow,ウェブサイトのスライドショー
 Website Slideshow Item,ウェブサイトのスライドショーアイテム
-Website User,ウェブサイトのユーザー
+Website User,ウェブサイトのユーザー（利用者）
 Wednesday,水曜日
-Welcome email sent,ウェルカムメール送信された
-"When you Amend a document after Cancel and save it, it will get a new number that is a version of the old number.",あなたが後にそれをキャンセルして、保存した文書を改正する場合は、古い番号のバージョンである新しい番号を取得します。
+Welcome email sent,ウェルカムメール（歓迎メール）が送信されました。
+"When you Amend a document after Cancel and save it, it will get a new number that is a version of the old number.",キャンセル後、書類を訂正し保存することで更新された書類は古い番号から新規の番号を取得します。
 Width,幅
-Will be used in url (usually first name).,URL（通常はファーストネーム）で使用されます。
+Will be used in url (usually first name).,URLで使用されます。（通常名前で表記されます）
 With Groups,グループと
 With Ledgers,元帳と
-With Letterhead,レターヘッド付き
+With Letterhead,レターヘッド付き（会社名•所在地などを便箋上部に印刷したもの。）
 Workflow,作業の流れ
 Workflow Action,ワークフローアクション
 Workflow Action Name,ワークフローアクション名
@@ -1221,32 +1221,32 @@ Workflow Document State,ワークフロードキュメントの状態
 Workflow Document States,ワークフロードキュメントの状態
 Workflow Name,ワークフロー名
 Workflow State,ワークフローの状態
-Workflow State Field,ワークフローの状態フィールド
-Workflow Transition,ワークフロートランジション
-Workflow Transitions,ワークフロートランジション
+Workflow State Field,ワークフローの欄の状態
+Workflow Transition,ワークフロートランジション（仕事の流れの変遷）
+Workflow Transitions,ワークフロートランジション（仕事の流れの変遷）
 Workflow will start after saving.,ワークフローは保存した後に開始されます。
 Write,書き込む
-Write a Python file in the same folder where this is saved and return column and result.,これが保存されているのと同じフォルダにあるPythonファイルを作成し、列と結果を返します。
-Write a SELECT query. Note result is not paged (all data is sent in one go).,SELECTクエリを記述します。注結果は、（すべてのデータが一度に送信されます）ページングされていません。
-Write titles and introductions to your blog.,あなたのブログにタイトルや紹介を書きます。
+Write a Python file in the same folder where this is saved and return column and result.,パイソンファイルをそれが保存されている同じフォルダーに保存し、コラム（縦の行）と数値を報告する。
+Write a SELECT query. Note result is not paged (all data is sent in one go).,SELECTクエリ（質問）の記入。結果／返答は一度にまとめて送られてきます。
+Write titles and introductions to your blog.,あなたのブログにタイトルと紹介文を記載して下さい。
 Writers Introduction,作家紹介
 Year,年
 Yes,はい
 Yesterday,昨日
-You are not allowed to create / edit reports,あなたは/編集レポートを作成することが許可されていません
-You are not allowed to export the data of: {0}. Downloading empty template.,あなたは、データをエクスポートすることはできません：{0}。空のテンプレートのダウンロード。
-You are not allowed to export this report,あなたは、このレポートをエクスポートすることはできません
-You are not allowed to print this document,あなたは、この文書を印刷することはできません
-You are not allowed to send emails related to this document,あなたは、このドキュメントに関連する電子メールを送信することが許可されていません
-"You can change Submitted documents by cancelling them and then, amending them.",あなたはそれらを修正し、それを打ち消すことによって提出された書類を変更することができます。
-You can use Customize Form to set levels on fields.,あなたは、フィールド上のレベルを設定するカスタマイズフォームを使用することができます。
-You can use wildcard %,ワイルドカード％を使用することができます
-You cannot install this app,あなたは、このアプリをインストールすることはできません
-You have unsaved changes in this form. Please save before you continue.,この形式で保存されていない変更があります。続行する前に、保存してください。
-You need to be logged in and have System Manager Role to be able to access backups.,あなたはログインしてバックアップにアクセスできるようにするシステムマネージャの役割を持ってする必要があります。
-You need write permission to rename,名前を変更する権限を書く必要があります
-You seem to have written your name instead of your email. \					Please enter a valid email address so that we can get back.,あなたは、あなたの電子メールの代わりに自分の名前を書かれているように見える。\我々は取り戻すことができるように、有効なメールアドレスを入力してください。
-"Your download is being built, this may take a few moments...",あなたのダウンロードは、これはしばらく時間がかかる場合があり、建設されている...
+You are not allowed to create / edit reports,レポートを作成／編集することが許可されていません。
+You are not allowed to export the data of: {0}. Downloading empty template.,{0}のデータを出力することはできません。テンプレート（空白の定型書式ファイル）をダウンロードしています。
+You are not allowed to export this report,この記事を出力することが許可されていません。
+You are not allowed to print this document,この文書を印刷することが許可されていません。
+You are not allowed to send emails related to this document,この書類に関連するメールを送信することが許可されていません。
+"You can change Submitted documents by cancelling them and then, amending them.",書類を取り消し、修正することによって提出した書類を変更することができます。
+You can use Customize Form to set levels on fields.,欄の制限を設定できるカスタマイズフォームを使用することができます。
+You can use wildcard %,ワイルドカードの（％）を使用することができます
+You cannot install this app,このアプリ（プログラム）をインストール（取り込む）することはできません
+You have unsaved changes in this form. Please save before you continue.,この書式に保存されていない変更事項があります。継続する前に、保存してください。
+You need to be logged in and have System Manager Role to be able to access backups.,"ログインして,’’システムマネージャロー（機能）’’でバックアップにアクセス（接続）できるようにする必要があります。"
+You need write permission to rename,名前を変更するために許可書を書く必要があります
+You seem to have written your name instead of your email. \					Please enter a valid email address so that we can get back.,メールアドレスの代わりに自分の名前を書かれているようです。\　連絡が取れる有効なメールアドレスを入力してください。
+"Your download is being built, this may take a few moments...",ダウンロード中。これはしばらくお待ち下さい。
 [Label]:[Field Type]/[Options]:[Width],[ラベル]：[フィールドタイプ] / [オプション]：[幅]
 [Optional] Send the email X days in advance of the specified date. 0 equals same day.,[オプション]指定した日付の前に電子メールのX日に送信します。 0は同じ日に等しい。
 add your own CSS (careful!),独自のCSSを追加（careful!）
@@ -1306,7 +1306,7 @@ filter,filter
 fire,火災
 flag,flag
 folder-close,フォルダを閉じる
-folder-open,フォルダオープン
+folder-open,フォルダを開ける
 font,font
 forward,まえがき
 found,発見
@@ -1406,13 +1406,13 @@ use % as wildcard,ワイルドカードとして％を使用
 user,ユーザー
 user_image_show,user_image_show
 values and dates,値と日付
-values separated by commas,カンマで区切られた値
-volume-down,ボリュームダウン
-volume-off,ボリュームオフ
-volume-up,ボリュームアップ
+values separated by commas,"カンマ(,)で区切られた値"
+volume-down,音量を落とす
+volume-off,無音／音量を消す。
+volume-up,音量を上げる。
 warning-sign,警告サイン
-wrench,レンチ
-yyyy-mm-dd,YYYY-MM-DD
+wrench,レンチ（ねじ回し）
+yyyy-mm-dd,年／月／日
 zoom-in,ズームアップ
 zoom-out,ズームアウト
 {0} List,{0}リスト

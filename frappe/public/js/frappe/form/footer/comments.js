@@ -44,7 +44,7 @@ frappe.ui.form.Comments = Class.extend({
 		this.wrapper.toggle(true);
 		this.list.empty();
 
-		var comments = [{"comment": "Created", "comment_type": "Created",
+		var comments = [{"comment": __("Created"), "comment_type": "Created",
 			"comment_by": this.frm.doc.owner, "creation": this.frm.doc.creation}].concat(this.get_comments());
 
 		$.each(comments.sort(function(a, b) { return a.creation > b.creation ? 1 : -1 }), function(i, c) {

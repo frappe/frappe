@@ -135,9 +135,9 @@ frappe.pages['data-import-tool'].onload = function(wrapper) {
 						// download link
 						$.each(r.message, function(i, v) {
 							if(i==0)
-								$('<span>Main Table:</span><br>').appendTo('#dit-download');
+								$('<span>' + __("Main Table") + ':</span><br>').appendTo('#dit-download');
 							if(i==1)
-								$('<br><span>Child Tables:</span><br>').appendTo('#dit-download');
+								$('<br><span>' + __("Child Tables") + ':</span><br>').appendTo('#dit-download');
 
 							wrapper.add_template_download_link(v);
 							$('#dit-download').append('<br>');
@@ -222,7 +222,7 @@ frappe.pages['data-import-tool'].onload = function(wrapper) {
 		.insertBefore($submit_btn);
 
 	// add submit option
-	$('<label><input type="checkbox" name="_submit"> <span>Submit</span></label>\
+	$('<label><input type="checkbox" name="_submit"> <span>' + __("Submit") + '</span></label>\
 		<p class="text-muted">' + __("If you are inserting new records (overwrite not checked) \
 			and if you have submit permission, the record will be submitted.") + '</p><br>')
 		.insertBefore($submit_btn);

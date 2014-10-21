@@ -74,14 +74,13 @@ class sync(object):
 						break
 
 			# other files
-			for extn in ("md", "html"):
-				fname = page_name + "." + extn
-				if fname in files:
-					self.sync_file(fname, os.path.join(basepath, fname), i)
-					break
-				else:
-					if page_name not in folders:
-						print page_name + " not found in " + basepath
+			if page_name + ".md" in files:
+				self.sync_file(page_name + ".md", os.path.join(basepath, page_name + ".md"), i)
+			elif page_name + ".html" in files:
+				self.sync_file(page_name + ".html", os.path.join(basepath, page_name + ".html"), i)
+			else:
+				if page_name not in folders:
+					print page_name + " not found in " + basepath
 
 	def sync_alphabetically(self, basepath, folders, files):
 		files.sort()

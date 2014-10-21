@@ -335,20 +335,20 @@ class DbManager:
 
 		return [t[0] for t in self.db.sql("SHOW TABLES")]
 
-	def create_user(self,user,password):
+	def create_user(self, user, password, host):
 		#Create user if it doesn't exist.
 		try:
 			if password:
-				self.db.sql("CREATE USER '%s'@'localhost' IDENTIFIED BY '%s';" % (user[:16], password))
+				self.db.sql("CREATE USER '%s'@'%s' IDENTIFIED BY '%s';" % (user[:16], host, password))
 			else:
-				self.db.sql("CREATE USER '%s'@'localhost';"%user[:16])
+				self.db.sql("CREATE USER '%s'@'%s';" % (user[:16], host))
 		except Exception:
 			raise
 
-	def delete_user(self,target):
+	def delete_user(self, target, host):
 	# delete user if exists
 		try:
-			self.db.sql("DROP USER '%s'@'localhost';" % target)
+			self.db.sql("DROP USER '%s'@'%s';" % (target, host))
 		except Exception, e:
 			if e.args[0]==1396:
 				pass
@@ -364,14 +364,14 @@ class DbManager:
 	def drop_database(self,target):
 		self.db.sql("DROP DATABASE IF EXISTS `%s`;"%target)
 
-	def grant_all_privileges(self,target,user):
-		self.db.sql("GRANT ALL PRIVILEGES ON `%s`.* TO '%s'@'localhost';" % (target, user))
+	def grant_all_privileges(self, target, user, host):
+		self.db.sql("GRANT ALL PRIVILEGES ON `%s`.* TO '%s'@'%s';" % (target, user, host))
 
-	def grant_select_privilges(self,db,table,user):
+	def grant_select_privilges(self, db, table, user, host):
 		if table:
-			self.db.sql("GRANT SELECT ON %s.%s to '%s'@'localhost';" % (db,table,user))
+			self.db.sql("GRANT SELECT ON %s.%s to '%s'@'%s';" % (db, table, user, host))
 		else:
-			self.db.sql("GRANT SELECT ON %s.* to '%s'@'localhost';" % (db,user))
+			self.db.sql("GRANT SELECT ON %s.* to '%s'@'%s';" % (db, user, host))
 
 	def flush_privileges(self):
 		self.db.sql("FLUSH PRIVILEGES")
@@ -383,8 +383,8 @@ class DbManager:
 	def restore_database(self,target,source,user,password):
 		from frappe.utils import make_esc
 		esc = make_esc('$ ')
-		os.system("mysql -u %s -p%s %s < %s" % \
-			(esc(user), esc(password), esc(target), source))
+		os.system("mysql -u %s -p%s -h%s %s < %s" % \
+			(esc(user), esc(password), esc(frappe.db.host), esc(target), source))
 
 	def drop_table(self,table_name):
 		"""drop table if exists"""

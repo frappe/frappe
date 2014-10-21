@@ -231,46 +231,46 @@ bsEditorToolbar = Class.extend({
 			<div class="btn-toolbar" data-role="editor-toolbar" style="margin-bottom: 7px;">\
 				<div class="btn-group form-group">\
 					<a class="btn btn-default btn-small dropdown-toggle" data-toggle="dropdown" \
-						title="Font Size"><i class="icon-text-height"></i> <b class="caret"></b></a>\
+						title="' + __("Font Size") + '"><i class="icon-text-height"></i> <b class="caret"></b></a>\
 					<ul class="dropdown-menu" role="menu">\
-						<li><a href="#" data-edit="formatBlock &lt;p&gt;"><p>Paragraph</p></a></li>\
-						<li><a href="#" data-edit="formatBlock &lt;h1&gt;"><h1>Heading 1</h1></a></li>\
-						<li><a href="#" data-edit="formatBlock &lt;h2&gt;"><h2>Heading 2</h2></a></li>\
-						<li><a href="#" data-edit="formatBlock &lt;h3&gt;"><h3>Heading 3</h3></a></li>\
-						<li><a href="#" data-edit="formatBlock &lt;h4&gt;"><h4>Heading 4</h4></a></li>\
-						<li><a href="#" data-edit="formatBlock &lt;h5&gt;"><h5>Heading 5</h5></a></li>\
+						<li><a href="#" data-edit="formatBlock &lt;p&gt;"><p>' + __("Paragraph") + '</p></a></li>\
+						<li><a href="#" data-edit="formatBlock &lt;h1&gt;"><h1>' + __("Heading") + ' 1</h1></a></li>\
+						<li><a href="#" data-edit="formatBlock &lt;h2&gt;"><h2>' + __("Heading") + ' 2</h2></a></li>\
+						<li><a href="#" data-edit="formatBlock &lt;h3&gt;"><h3>' + __("Heading") + ' 3</h3></a></li>\
+						<li><a href="#" data-edit="formatBlock &lt;h4&gt;"><h4>' + __("Heading") + ' 4</h4></a></li>\
+						<li><a href="#" data-edit="formatBlock &lt;h5&gt;"><h5>' + __("Heading") + ' 5</h5></a></li>\
 					</ul>\
 				</div>\
 				<div class="btn-group form-group">\
-					<a class="btn btn-default btn-small" data-edit="bold" title="Bold (Ctrl/Cmd+B)">\
+					<a class="btn btn-default btn-small" data-edit="bold" title="' + __("Bold (Ctrl/Cmd+B)") + '">\
 						<i class="icon-bold"></i></a>\
-					<a class="btn btn-default btn-small" data-edit="insertunorderedlist" title="Bullet list">\
+					<a class="btn btn-default btn-small" data-edit="insertunorderedlist" title="' + __("Bullet list") + '">\
 						<i class="icon-list-ul"></i></a>\
-					<a class="btn btn-default btn-small" data-edit="insertorderedlist" title="Number list">\
+					<a class="btn btn-default btn-small" data-edit="insertorderedlist" title="' + __("Number list") + '">\
 						<i class="icon-list-ol"></i></a>\
-					<a class="btn btn-default btn-small" data-edit="outdent" title="Reduce indent (Shift+Tab)">\
+					<a class="btn btn-default btn-small" data-edit="outdent" title="' + __("Reduce indent (Shift+Tab)") + '">\
 						<i class="icon-indent-left"></i></a>\
-					<a class="btn btn-default btn-small" data-edit="indent" title="Indent (Tab)">\
+					<a class="btn btn-default btn-small" data-edit="indent" title="' + __("Indent (Tab)") + '">\
 						<i class="icon-indent-right"></i></a>\
 				</div>\
 				<div class="btn-group hidden-xs form-group">\
-					<a class="btn btn-default btn-small" data-edit="justifyleft" title="Align Left (Ctrl/Cmd+L)">\
+					<a class="btn btn-default btn-small" data-edit="justifyleft" title="' + __("Align Left (Ctrl/Cmd+L)") + '">\
 						<i class="icon-align-left"></i></a>\
-					<a class="btn btn-default btn-small" data-edit="justifycenter" title="Center (Ctrl/Cmd+E)">\
+					<a class="btn btn-default btn-small" data-edit="justifycenter" title="' + __("Center (Ctrl/Cmd+E)") + '">\
 						<i class="icon-align-center"></i></a>\
-					<a class="btn btn-default btn-small btn-add-link" title="Insert Link">\
+					<a class="btn btn-default btn-small btn-add-link" title="' + __("Insert Link") + '">\
 						<i class="icon-link"></i></a>\
-					<a class="btn btn-default btn-small" title="Remove Link" data-edit="unlink">\
+					<a class="btn btn-default btn-small" title="' + __("Remove Link") +'" data-edit="unlink">\
 						<i class="icon-unlink"></i></a>\
-					<a class="btn btn-default btn-small btn-insert-img" title="Insert picture (or just drag & drop)">\
+					<a class="btn btn-default btn-small btn-insert-img" title="' + __("Insert picture (or just drag & drop)") + '">\
 						<i class="icon-picture"></i></a>\
 					<a class="btn btn-default btn-small" data-edit="insertHorizontalRule" \
-						title="Horizontal Line Break">─</a>\
+						title="' + __("Horizontal Line Break") + '">─</a>\
 				</div>\
 				<div class="btn-group form-group">\
-					<a class="btn btn-default btn-small btn-html" title="HTML">\
+					<a class="btn btn-default btn-small btn-html" title="' + __("HTML") + '">\
 						<i class="icon-code"></i></a>\
-					<a class="btn btn-default btn-small btn-success" data-action="Save" title="Save">\
+					<a class="btn btn-default btn-small btn-success" data-action="Save" title="' + __("Save") + '">\
 						<i class="icon-save"></i></a>\
 				</div>\
 				<input type="file" data-edit="insertImage" />\
@@ -455,7 +455,7 @@ bsHTMLEditor = Class.extend({
 		this.modal = bs_get_modal("<i class='icon-code'></i> Edit HTML", '<textarea class="form-control" \
 			style="height: 400px; width: 100%; font-family: Monaco, \'Courier New\', monospace; font-size: 11px">\
 			</textarea><br>\
-			<button class="btn btn-primary" style="margin-top: 7px;">Save</button>');
+			<button class="btn btn-primary" style="margin-top: 7px;">' + __("Save") + '</button>');
 		this.modal.addClass("frappe-ignore-click");
 		this.modal.find(".btn-primary").on("click", function() {
 			var html = me.modal.find("textarea").val();
@@ -493,10 +493,10 @@ bsLinkEditor = Class.extend({
 			</div>\
 			<div class="checkbox" style="position: static;">\
 				<label>\
-				    <input type="checkbox"> <span>Open Link in a new Window</span>\
+				    <input type="checkbox"> <span>' + __("Open Link in a new Window") + '</span>\
 				</label>\
 			</div>\
-			<button class="btn btn-primary" style="margin-top: 7px;">Insert</button>');
+			<button class="btn btn-primary" style="margin-top: 7px;">' + __("Insert") + '</button>');
 
 		this.modal.addClass("frappe-ignore-click");
 		this.modal.find(".btn-primary").on("click", function() {

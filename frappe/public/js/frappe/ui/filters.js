@@ -317,7 +317,7 @@ frappe.ui.Filter = Class.extend({
 			if ((val.length === 0) || (val.lastIndexOf("%") !== (val.length - 1))) {
 				val = (val || "") + '%';
 			}
-		} else if(val === '%') val = null;
+		} else if(val === '%') val = "";
 
 		return val;
 	},

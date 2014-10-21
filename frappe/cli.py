@@ -132,6 +132,7 @@ def setup_install(parser):
 		help="Make a new application with boilerplate")
 	parser.add_argument("--install", metavar="DB-NAME", nargs=1,
 		help="Install a new db")
+	parser.add_argument("--admin_password", metavar="ADMIN-PASSWD", help="Administrator password for site")
 	parser.add_argument("--root_password", metavar="ROOT-PASSWD",
 		help="MariaDB root password")
 	parser.add_argument("--sites_path", metavar="SITES_PATH", nargs=1,
@@ -325,7 +326,7 @@ def _install(db_name, root_login="root", root_password=None, source_sql=None,
 
 @cmd
 def install(db_name, root_login="root", root_password=None, source_sql=None,
-		admin_password = 'admin', force=False, site_config=None, reinstall=False, quiet=False, install_apps=None):
+		admin_password=None, force=False, site_config=None, reinstall=False, quiet=False, install_apps=None):
 	_install(db_name, root_login, root_password, source_sql, admin_password, force, site_config, reinstall, quiet, install_apps)
 	frappe.destroy()
 
