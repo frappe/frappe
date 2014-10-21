@@ -8,6 +8,9 @@ from frappe.model.meta import get_field_currency, get_field_precision
 import re
 
 def format_value(value, df, doc=None, currency=None):
+	# Convert dict to object if necessary
+	df = frappe._dict(df)
+	
 	if df.get("fieldtype")=="Date":
 		return formatdate(value)
 
