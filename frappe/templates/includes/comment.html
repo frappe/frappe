@@ -1,9 +1,12 @@
-<div class="comment-row">
-	<div class="comment-title text-muted">
-		<span itemprop="name" class="author">{{ comment.comment_by_fullname }}</span> / 
-			<span itemprop="commentTime">{{ comment.creation|global_date_format }}</span>:
+<div class="media">
+	<a class="pull-left" href="#">
+		<img class="media-object" style="width: 48px;" src="{{ frappe.get_gravatar(comment.comment_by) }}" alt="{{ comment.comment_by_fullname }}">
+	</a>
+	<div class="media-body">
+		<h5 class="media-heading" itemprop="name">{{ comment.comment_by_fullname }}</h5>
+		<p class="text-muted small">
+			<span itemprop="commentTime">{{ comment.creation|global_date_format }}</span>
+		</p>
+		<div itemprop="commentText">{{ comment.comment|markdown }}</div>
 	</div>
-	<p class="comment-content" itemprop="commentText" 
-		style="margin-left: 20px;">{{ comment.comment|markdown }}</p>
-	<hr>
 </div>

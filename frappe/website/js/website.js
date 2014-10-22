@@ -93,6 +93,15 @@ $.extend(frappe, {
 			$(opts.btn).prop("disabled", false);
 		}
 
+		if (data._server_messages) {
+			var server_messages = (JSON.parse(data._server_messages || '[]')).join("<br>");
+			if(opts.error_msg) {
+				$(opts.error_msg).html(server_messages).toggle(true);
+			} else {
+				frappe.msgprint(server_messages);
+			}
+		}
+
 		if(data.exc) {
 			if(opts.btn) {
 				$(opts.btn).addClass("btn-danger");
@@ -108,14 +117,6 @@ $.extend(frappe, {
 				console.log(data.exc);
 			}
 
-			if (data._server_messages) {
-				var server_messages = (JSON.parse(data._server_messages || '[]')).join("<br>");
-				if(opts.error_msg) {
-					$(opts.error_msg).html(server_messages).toggle(true);
-				} else {
-					frappe.msgprint(server_messages);
-				}
-			}
 		} else{
 			if(opts.btn) {
 				$(opts.btn).addClass("btn-success");
@@ -347,19 +348,15 @@ $.extend(frappe, {
 		  !navigator.userAgent.match(/((iPod|iPhone|iPad).+\bOS\s+[1-4]|WebApps\/.+CFNetwork)/))
 	},
 	get_pathname: function() {
-		return location.pathname && location.pathname.split("/")[1].split(".")[0];
+		return location.pathname;
 	},
 	page_ready_events: {},
 	ready: function(fn) {
-		if(!frappe.page_ready_events[frappe.get_pathname()]) {
-			frappe.page_ready_events[frappe.get_pathname()] = [];
-		}
-		frappe.page_ready_events[frappe.get_pathname()].push(fn);
+		frappe.page_ready_events[frappe.get_pathname()] = fn;
 	},
 	trigger_ready: function() {
-		$.each((frappe.page_ready_events[frappe.get_pathname()] || []), function(i, fn) {
-			fn();
-		});
+		var ready = frappe.page_ready_events[frappe.get_pathname()];
+		ready && ready();
 	},
 	make_navbar_active: function() {
 		var pathname = window.location.pathname;

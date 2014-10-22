@@ -333,7 +333,7 @@ frappe.ui.form.GridRow = Class.extend({
 			add_class += (["Int", "Currency", "Float"].indexOf(df.fieldtype)!==-1) ?
 				" text-right": "";
 
-			$col = $('<div class="col col-xs-'+colsize+add_class+'"></div>')
+			$col = $('<div class="col col-xs-'+colsize+add_class+' grid-static-col"></div>')
 				.html(txt)
 				.attr("data-fieldname", df.fieldname)
 				.data("df", df)

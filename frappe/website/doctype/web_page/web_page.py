@@ -10,6 +10,7 @@ from frappe.website.doctype.website_slideshow.website_slideshow import get_slide
 from frappe.website.utils import find_first_image, get_comment_list
 from markdown2 import markdown
 from frappe.utils.jinja import render_template
+from jinja2.exceptions import TemplateSyntaxError
 
 class WebPage(WebsiteGenerator):
 	save_versions = True
@@ -32,8 +33,11 @@ class WebPage(WebsiteGenerator):
 			context.comment_list = get_comment_list(self.doctype, self.name)
 
 		if self.template_path:
+			# render dynamic context (if .py file exists)
+			context = self.get_dynamic_context(frappe._dict(context))
+
 			# load content from template
-			context.update(get_static_content(self, context))
+			get_static_content(self, context)
 		else:
 			context.update({
 				"style": self.css or "",
@@ -52,10 +56,29 @@ class WebPage(WebsiteGenerator):
 
 	def render_dynamic(self, context):
 		# dynamic
-		if context.main_section and "<!-- render-jinja -->" in context.main_section:
-			context["main_section"] = render_template(context.main_section,
-				{"doc": self, "frappe": frappe})
-			context["no_cache"] = 1
+		if context.main_section and ("<!-- render-jinja -->" in context.main_section) \
+			or ("{{" in context.main_section):
+			try:
+				context["main_section"] = render_template(context.main_section,
+					context)
+				context["no_cache"] = 1
+			except TemplateSyntaxError:
+				pass
+
+	def get_dynamic_context(self, context):
+		template_path_base = self.template_path.rsplit(".", 1)[0]
+		template_module = os.path.dirname(os.path.relpath(self.template_path,
+			os.path.join(frappe.get_app_path("frappe"),"..", "..")))\
+			.replace(os.path.sep, ".") + "." + frappe.scrub(template_path_base.rsplit(os.path.sep, 1)[1])
+
+		try:
+			method = template_module.split(".", 1)[1] + ".get_context"
+			get_context = frappe.get_attr(method)
+			ret = get_context(context)
+			if ret:
+				context = ret
+		except ImportError: pass
+		return context
 
 	def set_metatags(self, context):
 		context.metatags = {
@@ -69,7 +92,6 @@ class WebPage(WebsiteGenerator):
 
 
 def get_static_content(doc, context):
-	d = frappe._dict({})
 	with open(doc.template_path, "r") as contentfile:
 		content = unicode(contentfile.read(), 'utf-8')
 
@@ -79,24 +101,24 @@ def get_static_content(doc, context):
 				first_line = lines[0].strip()
 
 				if first_line.startswith("# "):
-					d.title = first_line[2:]
+					context.title = first_line[2:]
 					content = "\n".join(lines[1:])
 
 				content = markdown(content)
 
-		d.main_section = unicode(content.encode("utf-8"), 'utf-8')
-		if not d.title:
-			d.title = doc.name.replace("-", " ").replace("_", " ").title()
+		context.main_section = unicode(content.encode("utf-8"), 'utf-8')
+		if not context.title:
+			context.title = doc.name.replace("-", " ").replace("_", " ").title()
 
-		doc.render_dynamic(d)
+		doc.render_dynamic(context)
 
 	for extn in ("js", "css"):
 		fpath = doc.template_path.rsplit(".", 1)[0] + "." + extn
 		if os.path.exists(fpath):
 			with open(fpath, "r") as f:
-				d["css" if extn=="css" else "javascript"] = f.read()
+				context["css" if extn=="css" else "javascript"] = f.read()
 
-	return d
+	return context
 
 def check_broken_links():
 	cnt = 0

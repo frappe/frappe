@@ -30,7 +30,7 @@ def can_cache(no_cache=False):
 
 def get_comment_list(doctype, name):
 	return frappe.db.sql("""select
-		comment, comment_by_fullname, creation
+		comment, comment_by_fullname, creation, comment_by
 		from `tabComment` where comment_doctype=%s
 		and comment_docname=%s order by creation""", (doctype, name), as_dict=1) or []
 

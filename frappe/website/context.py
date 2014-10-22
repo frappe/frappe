@@ -56,14 +56,22 @@ def build_context(sitemap_options):
 	if context.doc:
 		context.update(context.doc.as_dict())
 		if hasattr(context.doc, "get_context"):
-			context.update(context.doc.get_context(context) or {})
+			ret = context.doc.get_context(context)
+			if ret:
+				context.update(ret)
+
+		for prop in ("no_cache", "no_sitemap"):
+			if not prop in context:
+				context[prop] = getattr(context.doc, prop, False)
 
 	elif context.controller:
 		module = frappe.get_module(context.controller)
 
 		if module:
 			if hasattr(module, "get_context"):
-				context.update(module.get_context(context) or {})
+				ret = module.get_context(context)
+				if ret:
+					context.update(ret)
 			if hasattr(module, "get_children"):
 				context.get_children = module.get_children
 

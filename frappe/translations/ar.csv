@@ -136,7 +136,7 @@ Bulk Email,الجزء الأكبر البريد الإلكتروني
 Bulk email limit {0} crossed,الحد معظم البريد الإلكتروني {0} عبروا
 Button,زر
 By,بواسطة
-Calculate,حساب
+Calculate,إحسب
 Calendar,تقويم
 Cancel,إلغاء
 Cancelled,إلغاء
@@ -193,7 +193,7 @@ Comment By Fullname,التعليق بواسطة الاسم بالكامل
 Comment Date,التعليق تاريخ
 Comment Docname,التعليق Docname
 Comment Doctype,التعليق DOCTYPE
-Comment Time,التعليق الوقت
+Comment Time,وقت التعليق 
 Comments,تعليقات
 Communication,اتصالات
 Communication Medium,الاتصالات متوسطة
