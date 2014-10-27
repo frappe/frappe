@@ -9,7 +9,7 @@ frappe.provide("frappe.datetime");
 
 $.extend(frappe.datetime, {
 	str_to_obj: function(d) {
-		return moment(d)._d;
+		return moment(d, "YYYY-MM-DD HH:mm:ss")._d;
 	},
 
 	obj_to_str: function(d) {
