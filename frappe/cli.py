@@ -124,6 +124,8 @@ def setup_parser():
 		help="Show verbose output (where applicable)")
 	parser.add_argument("--quiet", default=False, action="store_true",
 		help="Do not show verbose output (where applicable)")
+	parser.add_argument("--args", metavar="pass arguments", nargs="*",
+		help="pass arguments to the method")
 
 	return parser.parse_args()
 
@@ -604,9 +606,12 @@ def reset_perms():
 	frappe.destroy()
 
 @cmd
-def execute(method):
+def execute(method, args=None):
 	frappe.connect()
-	ret = frappe.get_attr(method)()
+	if args:
+		ret = frappe.get_attr(method)(*args)
+	else:
+		ret = frappe.get_attr(method)()
 	frappe.db.commit()
 	frappe.destroy()
 	if ret:
