@@ -116,6 +116,10 @@ class WebsiteGenerator(Document):
 			route.public_read = 1
 
 	def get_parents(self, context):
+		# already set
+		if context.parents:
+			return context.parents
+
 		parents = []
 		parent = self
 		while parent:

@@ -73,6 +73,9 @@ class HTTPRequest:
 class LoginManager:
 	def __init__(self):
 		self.user = None
+		self.info = None
+		self.full_name = None
+
 		if frappe.local.form_dict.get('cmd')=='login' or frappe.local.request.path=="/api/method/login":
 			self.login()
 		else:
@@ -85,6 +88,10 @@ class LoginManager:
 		self.post_login()
 
 	def post_login(self):
+		self.info = frappe.db.get_value("User", self.user,
+			["user_type", "first_name", "last_name", "user_image"], as_dict=1)
+		self.full_name = " ".join(filter(None, [self.info.first_name, self.info.last_name]))
+
 		self.run_trigger('on_login')
 		self.validate_ip_address()
 		self.validate_hour()
@@ -95,24 +102,21 @@ class LoginManager:
 		# set sid again
 		frappe.local.cookie_manager.init_cookies()
 
-		info = frappe.db.get_value("User", self.user,
-			["user_type", "first_name", "last_name", "user_image"], as_dict=1)
-		if info.user_type=="Website User":
+		if self.info.user_type=="Website User":
 			frappe.local.cookie_manager.set_cookie("system_user", "no")
 			frappe.local.response["message"] = "No App"
 		else:
 			frappe.local.cookie_manager.set_cookie("system_user", "yes")
 			frappe.local.response['message'] = 'Logged In'
 
-		full_name = " ".join(filter(None, [info.first_name, info.last_name]))
-		frappe.response["full_name"] = full_name
-		frappe.local.cookie_manager.set_cookie("full_name", full_name)
+		frappe.response["full_name"] = self.full_name
+		frappe.local.cookie_manager.set_cookie("full_name", self.full_name)
 		frappe.local.cookie_manager.set_cookie("user_id", self.user)
-		frappe.local.cookie_manager.set_cookie("user_image", info.user_image or "")
+		frappe.local.cookie_manager.set_cookie("user_image", self.info.user_image or "")
 
 	def make_session(self, resume=False):
 		# start session
-		frappe.local.session_obj = Session(user=self.user, resume=resume)
+		frappe.local.session_obj = Session(user=self.user, resume=resume, full_name=self.full_name)
 
 		# reset user if changed to Guest
 		self.user = frappe.local.session_obj.user

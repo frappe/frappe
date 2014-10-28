@@ -2,7 +2,7 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-import frappe, re, os
+import frappe, re, os, json
 import requests, requests.exceptions
 from frappe.website.website_generator import WebsiteGenerator
 from frappe.website.router import resolve_route
@@ -53,7 +53,8 @@ class WebPage(WebsiteGenerator):
 			context.header = self.title
 
 		# for sidebar
-		context.children = self.get_children()
+		if not context.children:
+			context.children = self.get_children()
 
 		return context
 
@@ -69,10 +70,12 @@ class WebPage(WebsiteGenerator):
 				pass
 
 	def get_dynamic_context(self, context):
+		"update context from `.py` and load sidebar from `_sidebar.json` if either exists"
 		template_path_base = self.template_path.rsplit(".", 1)[0]
-		template_module = os.path.dirname(os.path.relpath(self.template_path,
-			os.path.join(frappe.get_app_path("frappe"),"..", "..")))\
-			.replace(os.path.sep, ".") + "." + frappe.scrub(template_path_base.rsplit(os.path.sep, 1)[1])
+		template_module_path = os.path.dirname(os.path.relpath(self.template_path,
+			os.path.join(frappe.get_app_path("frappe"),"..", "..")))
+		template_module = template_module_path.replace(os.path.sep, ".") \
+			+ "." + frappe.scrub(template_path_base.rsplit(os.path.sep, 1)[1])
 
 		try:
 			method = template_module.split(".", 1)[1] + ".get_context"
@@ -81,6 +84,13 @@ class WebPage(WebsiteGenerator):
 			if ret:
 				context = ret
 		except ImportError: pass
+
+		# sidebar?
+		sidebar_path = os.path.join(os.path.dirname(self.template_path), "_sidebar.json")
+		if os.path.exists(sidebar_path):
+			with open(sidebar_path, "r") as f:
+				context.children = json.loads(f.read())
+
 		return context
 
 	def set_metatags(self, context):

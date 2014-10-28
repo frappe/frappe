@@ -73,7 +73,7 @@ def build_context(sitemap_options):
 				if ret:
 					context.update(ret)
 			if hasattr(module, "get_children"):
-				context.get_children = module.get_children
+				context.children = module.get_children(context)
 
 	add_metatags(context)
 
