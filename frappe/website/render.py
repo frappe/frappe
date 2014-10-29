@@ -43,6 +43,12 @@ def render(path, http_status_code=None):
 	except frappe.PermissionError, e:
 		data, http_status_code = render_403(e, path)
 
+	except frappe.Redirect, e:
+		return build_response(path, "", 301, {
+			"Location": frappe.flags.redirect_location,
+			"Cache-Control": "no-store, no-cache, must-revalidate"
+		})
+
 	except Exception:
 		path = "error"
 		data = render_page(path)
@@ -78,13 +84,18 @@ def get_doctype_from_path(path):
 
 	return None, None
 
-def build_response(path, data, http_status_code):
+def build_response(path, data, http_status_code, headers=None):
 	# build response
 	response = Response()
 	response.data = set_content_type(response, data, path)
 	response.status_code = http_status_code
 	response.headers[b"X-Page-Name"] = path.encode("utf-8")
 	response.headers[b"X-From-Cache"] = frappe.local.response.from_cache or False
+
+	if headers:
+		for key, val in headers.iteritems():
+			response.headers[bytes(key)] = val.encode("utf-8")
+
 	return response
 
 def render_page(path):

@@ -40,7 +40,7 @@ class WebPage(WebsiteGenerator):
 			context = self.get_dynamic_context(frappe._dict(context))
 
 			# load content from template
-			get_static_content(self, context)
+			self.get_static_content(context)
 		else:
 			context.update({
 				"style": self.css or "",
@@ -68,6 +68,42 @@ class WebPage(WebsiteGenerator):
 				context["no_cache"] = 1
 			except TemplateSyntaxError:
 				pass
+
+	def get_static_content(self, context):
+		with open(self.template_path, "r") as contentfile:
+			content = unicode(contentfile.read(), 'utf-8')
+
+			if self.template_path.endswith(".md"):
+				if content:
+					lines = content.splitlines()
+					first_line = lines[0].strip()
+
+					if first_line.startswith("# "):
+						context.title = first_line[2:]
+						content = "\n".join(lines[1:])
+
+					content = markdown(content)
+
+			context.main_section = unicode(content.encode("utf-8"), 'utf-8')
+
+			self.check_for_redirect(context)
+
+			if not context.title:
+				context.title = self.name.replace("-", " ").replace("_", " ").title()
+
+			self.render_dynamic(context)
+
+		for extn in ("js", "css"):
+			fpath = self.template_path.rsplit(".", 1)[0] + "." + extn
+			if os.path.exists(fpath):
+				with open(fpath, "r") as f:
+					context["css" if extn=="css" else "javascript"] = f.read()
+
+	def check_for_redirect(self, context):
+		if "<!-- redirect:" in context.main_section:
+			frappe.local.flags.redirect_location = \
+				context.main_section.split("<!-- redirect:")[1].split("-->")[0].strip()
+			raise frappe.Redirect
 
 	def get_dynamic_context(self, context):
 		"update context from `.py` and load sidebar from `_sidebar.json` if either exists"
@@ -102,36 +138,6 @@ class WebPage(WebsiteGenerator):
 		image = find_first_image(context.main_section or "")
 		if image:
 			context.metatags["image"] = image
-
-
-def get_static_content(doc, context):
-	with open(doc.template_path, "r") as contentfile:
-		content = unicode(contentfile.read(), 'utf-8')
-
-		if doc.template_path.endswith(".md"):
-			if content:
-				lines = content.splitlines()
-				first_line = lines[0].strip()
-
-				if first_line.startswith("# "):
-					context.title = first_line[2:]
-					content = "\n".join(lines[1:])
-
-				content = markdown(content)
-
-		context.main_section = unicode(content.encode("utf-8"), 'utf-8')
-		if not context.title:
-			context.title = doc.name.replace("-", " ").replace("_", " ").title()
-
-		doc.render_dynamic(context)
-
-	for extn in ("js", "css"):
-		fpath = doc.template_path.rsplit(".", 1)[0] + "." + extn
-		if os.path.exists(fpath):
-			with open(fpath, "r") as f:
-				context["css" if extn=="css" else "javascript"] = f.read()
-
-	return context
 
 def check_broken_links():
 	cnt = 0
