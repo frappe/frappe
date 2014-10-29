@@ -2,7 +2,7 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-import frappe, re, os, json
+import frappe, re, os, json, imp
 import requests, requests.exceptions
 from frappe.website.website_generator import WebsiteGenerator
 from frappe.website.router import resolve_route
@@ -60,14 +60,15 @@ class WebPage(WebsiteGenerator):
 
 	def render_dynamic(self, context):
 		# dynamic
-		if context.main_section and ("<!-- render-jinja -->" in context.main_section) \
-			or ("{{" in context.main_section):
+		is_jinja = "<!-- render-jinja -->" in context.main_section
+		if is_jinja or ("{{" in context.main_section):
 			try:
 				context["main_section"] = render_template(context.main_section,
 					context)
 				context["no_cache"] = 1
 			except TemplateSyntaxError:
-				pass
+				if is_jinja:
+					raise
 
 	def get_static_content(self, context):
 		with open(self.template_path, "r") as contentfile:
@@ -107,19 +108,16 @@ class WebPage(WebsiteGenerator):
 
 	def get_dynamic_context(self, context):
 		"update context from `.py` and load sidebar from `_sidebar.json` if either exists"
-		template_path_base = self.template_path.rsplit(".", 1)[0]
-		template_module_path = os.path.dirname(os.path.relpath(self.template_path,
-			os.path.join(frappe.get_app_path("frappe"),"..", "..")))
-		template_module = template_module_path.replace(os.path.sep, ".") \
-			+ "." + frappe.scrub(template_path_base.rsplit(os.path.sep, 1)[1])
+		basename = os.path.basename(self.template_path).rsplit(".", 1)[0]
+		module_path = os.path.join(os.path.dirname(self.template_path),
+			frappe.scrub(basename) + ".py")
 
-		try:
-			method = template_module.split(".", 1)[1] + ".get_context"
-			get_context = frappe.get_attr(method)
-			ret = get_context(context)
-			if ret:
-				context = ret
-		except ImportError: pass
+		if os.path.exists(module_path):
+			module = imp.load_source(basename, module_path)
+			if hasattr(module, "get_context"):
+				ret = module.get_context(context)
+				if ret:
+					context = ret
 
 		# sidebar?
 		sidebar_path = os.path.join(os.path.dirname(self.template_path), "_sidebar.json")

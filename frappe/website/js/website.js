@@ -357,6 +357,31 @@ $.extend(frappe, {
 	trigger_ready: function() {
 		var ready = frappe.page_ready_events[frappe.get_pathname()];
 		ready && ready();
+		frappe.bind_filters();
+	},
+	bind_filters: function() {
+		// set in select
+		$(".filter").each(function() {
+			var key = $(this).attr("data-key");
+			var val = get_url_arg(key).replace(/\+/g, " ");
+
+			if(val) $(this).val(val);
+		});
+
+		// search url
+		var search = function() {
+			var args = {};
+			$(".filter").each(function() {
+				var val = $(this).val();
+				if(val) args[$(this).attr("data-key")] = val;
+			});
+
+			window.location.href = location.pathname + "?" + $.param(args);
+		}
+
+		$(".filter").on("change", function() {
+			search();
+		});
 	},
 	make_navbar_active: function() {
 		var pathname = window.location.pathname;

@@ -202,7 +202,7 @@ class DatabaseQuery(object):
 					df = frappe.get_meta(f[0]).get("fields", {"fieldname": f[1]})
 
 					if f[2] == "like" or (isinstance(f[3], basestring) and
-						(not df or df[0].fieldtype not in ["Float", "Int", "Currency", "Percent"])):
+						(not df or df[0].fieldtype not in ["Float", "Int", "Currency", "Percent", "Check"])):
 							if f[2] == "like":
 								# because "like" uses backslash (\) for escaping
 								f[3] = f[3].replace("\\", "\\\\")
