@@ -224,19 +224,21 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 			} else {
 				// inline
 				var value = me.get_value();
-				if(me.parse) {
-					value = me.parse(value);
+				var parsed = me.parse ? me.parse(value) : value;
+				var set_input = function(before, after) {
+					if(before !== after) {
+						me.set_input(after);
+					} else {
+						me.set_mandatory && me.set_mandatory(before);
+					}
 				}
 				if(me.validate) {
-					me.validate(value, function(value1) {
-						if(value !== value1) {
-							me.set_input(value1)
-						} else {
-							me.set_mandatory && me.set_mandatory(value);
-						}
+					me.validate(parsed, function(validated) {
+						set_input(value, validated);
 					});
 				} else {
-					me.set_mandatory && me.set_mandatory(value);
+					set_input(value, parsed);
+
 				}
 			}
 		});
@@ -375,14 +377,17 @@ frappe.ui.form.ControlInt = frappe.ui.form.ControlData.extend({
 				return false;
 			})
 	},
+	parse: function(value) {
+		return cint(value, null);
+	},
 	validate: function(value, callback) {
-		return callback(cint(value, null));
+		return callback(value);
 	}
 });
 
 frappe.ui.form.ControlFloat = frappe.ui.form.ControlInt.extend({
-	validate: function(value, callback) {
-		return callback(isNaN(parseFloat(value)) ? null : flt(value));
+	parse: function(value) {
+		return isNaN(parseFloat(value)) ? null : flt(value);
 	},
 	format_for_input: function(value) {
 		var number_format;
