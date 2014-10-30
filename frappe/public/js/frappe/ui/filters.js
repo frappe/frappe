@@ -365,12 +365,12 @@ frappe.ui.Filter = Class.extend({
 
 		if(this.field.df.fieldname==="docstatus") {
 			value = {0:"Draft", 1:"Submitted", 2:"Cancelled"}[value] || value;
-		}
-
-		if(this.field.df.original_type==="Check") {
+		} else if(this.field.df.original_type==="Check") {
 			value = {0:"No", 1:"Yes"}[cint(value)];
 		} else if (in_list(["Date", "Datetime"], this.field.df.fieldtype)) {
 			value = frappe.datetime.str_to_user(value);
+		} else {
+			value = this.field.get_value();
 		}
 
 		this.$btn_group.find(".toggle-filter")
