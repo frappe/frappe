@@ -18,7 +18,11 @@ class WebsiteGenerator(Document):
 			append_number_if_name_exists(self)
 
 	def onload(self):
-		self.get("__onload").website_route = self.get_route()
+		self.get("__onload").update({
+			"is_website_generator": True,
+			"website_route": self.get_route(),
+			"published": self.website_published()
+		})
 
 	def validate(self):
 		self.set_parent_website_route()

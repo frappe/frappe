@@ -319,6 +319,20 @@ _f.Frm.prototype.refresh_header = function() {
 	if(this.frm_head) {
 		this.frm_head.refresh();
 	}
+
+	this.show_web_link();
+}
+
+_f.Frm.prototype.show_web_link = function() {
+	var doc = this.doc;
+	if(this.fields_dict.parent_website_route) {
+		if(!doc.__islocal && doc.__onload.published) {
+			cur_frm.set_intro(__("Published on website at: {0}",
+				[repl('<a href="/%(website_route)s" target="_blank">/%(website_route)s</a>', doc.__onload)]));
+		} else {
+			cur_frm.set_intro("");
+		}
+	}
 }
 
 _f.Frm.prototype.check_doc_perm = function() {

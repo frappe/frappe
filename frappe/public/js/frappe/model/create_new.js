@@ -100,8 +100,11 @@ $.extend(frappe.model, {
 		// 3 - look in default of docfield
 		if (df['default']) {
 
-			if (df["default"] == "__user") {
+			if (df["default"] == "__user" || df["default"] == "user") {
 				return user;
+
+			} else if (df["default"] == "user_fullname") {
+				return user_fullname;
 
 			} else if (df["default"] == "Today") {
 				return dateutil.get_today();

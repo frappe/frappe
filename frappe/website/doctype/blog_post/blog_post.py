@@ -74,8 +74,6 @@ class BlogPost(WebsiteGenerator):
 
 		context.children = get_children()
 
-		return context
-
 def clear_blog_cache():
 	for blog in frappe.db.sql_list("""select page_name from
 		`tabBlog Post` where ifnull(published,0)=1"""):
