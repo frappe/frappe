@@ -216,7 +216,7 @@ def set_user(username):
 	local.cache = {}
 	local.form_dict = _dict()
 	local.jenv = None
-	local.session.data = {}
+	local.session.data = _dict()
 	local.user = User(username)
 	local.role_permissions = {}
 

@@ -140,15 +140,15 @@ class Session:
 		else:
 			sid = frappe.generate_hash()
 
-		self.data['user'] = self.user
-		self.data['sid'] = sid
-		self.data['data']['user'] = self.user
-		self.data['data']['session_ip'] = frappe.get_request_header('REMOTE_ADDR')
+		self.data.user = self.user
+		self.data.sid = sid
+		self.data.data.user = self.user
+		self.data.data.session_ip = frappe.get_request_header('REMOTE_ADDR')
 		if self.user != "Guest":
-			self.data['data']['last_updated'] = frappe.utils.now()
-			self.data['data']['session_expiry'] = get_expiry_period()
-			self.data['data']['full_name'] = self.full_name
-		self.data['data']['session_country'] = get_geo_ip_country(frappe.get_request_header('REMOTE_ADDR'))
+			self.data.data.last_updated = frappe.utils.now()
+			self.data.data.session_expiry = get_expiry_period()
+			self.data.data.full_name = self.full_name
+		self.data.data.session_country = get_geo_ip_country(frappe.get_request_header('REMOTE_ADDR'))
 
 		# insert session
 		if self.user!="Guest":
