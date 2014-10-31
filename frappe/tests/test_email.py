@@ -8,6 +8,7 @@ import unittest, frappe
 
 from frappe.test_runner import make_test_records
 make_test_records("User")
+make_test_records("Email Account")
 
 class TestEmail(unittest.TestCase):
 	def setUp(self):
