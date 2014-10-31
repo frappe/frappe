@@ -164,7 +164,7 @@ class WebsiteGenerator(Document):
 		if hasattr(self, "parent_website_route_field"):
 			return self.get(self.parent_website_route_field)
 
-	def get_children(self):
+	def get_children(self, context=None):
 		if self.get_route()==get_home_page():
 			return frappe.db.sql("""select url as name, label as page_title,
 			1 as public_read from `tabTop Bar Item` where parentfield='sidebar_items'

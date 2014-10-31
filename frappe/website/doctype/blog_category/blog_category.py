@@ -19,7 +19,7 @@ class BlogCategory(WebsiteGenerator):
 		WebsiteGenerator.on_update(self)
 		clear_cache()
 
-	def get_children(self):
+	def get_children(self, context=None):
 		return get_children()
 
 	def validate(self):
