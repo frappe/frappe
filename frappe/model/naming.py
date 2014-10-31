@@ -150,7 +150,7 @@ def validate_name(doctype, name, case=None, merge=False):
 	if case=='UPPER CASE': name = name.upper()
 	name = name.strip()
 
-	if not frappe.get_meta(doctype).get("issingle") and doctype == name:
+	if not frappe.get_meta(doctype).get("issingle") and (doctype == name) and (name!="DocType"):
 		frappe.throw(_("Name of {0} cannot be {1}").format(doctype, name), frappe.NameError)
 
 	return name
