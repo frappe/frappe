@@ -26,23 +26,6 @@ def send(recipients=None, sender=None, doctype='User', email_field='email',
 		this_month = frappe.db.sql("""select count(*) from `tabBulk Email` where
 			month(creation)=month(%s)""" % nowdate())[0][0]
 
-		frappe.get_doc({
-			"is_default": 1,
-			"is_global": 1,
-			"doctype": "Email Account",
-			"email_account_name": "_Test Email Account for Bulk",
-			"enable_outgoing": 1,
-			"smtp_server": "test.example.com",
-			"email_id": "test@example.com",
-			"password": "password",
-			"add_signature": 1,
-			"signature": "\nBest Wishes\nTest Signature",
-			"enable_auto_reply": 1,
-			"auto_reply_message": "",
-			"enable_incoming": 1,
-			"pop3_server": "pop.test.example.com"
-		}).insert(ignore_permissions=True)
-
 		# No limit for own email settings
 		smtp_server = SMTPServer()
 		if smtp_server.email_account and not getattr(smtp_server.email_account,
