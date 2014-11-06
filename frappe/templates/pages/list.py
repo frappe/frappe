@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 import frappe, os
 from frappe.modules import get_doc_path, load_doctype_module
+from jinja2 import Template
 
 no_cache = 1
 no_sitemap = 1
