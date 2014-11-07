@@ -104,10 +104,16 @@ class DbTable:
 			if e.args[0]!=1146: # ignore no custom field
 				raise
 
+		# get precision from property setters
+		precisions = {}
+		for ps in frappe.get_all("Property Setter", fields=["field_name", "value"],
+			filters={"doc_type": self.doctype, "doctype_or_field": "DocField", "property": "precision"}):
+				precisions[ps.field_name] = ps.value
+
 		for f in fl:
 			self.columns[f['fieldname']] = DbColumn(self, f['fieldname'],
-					f['fieldtype'], f.get('length'), f.get('default'),
-					f.get('search_index'), f.get('options'), f.get('precision'))
+				f['fieldtype'], f.get('length'), f.get('default'), f.get('search_index'),
+				f.get('options'), precisions.get(f['fieldname']) or f.get('precision'))
 
 	def get_columns_from_db(self):
 		self.show_columns = frappe.db.sql("desc `%s`" % self.name)
@@ -417,7 +423,7 @@ def get_definition(fieldtype, precision=None):
 	if d[1]:
 		length = d[1]
 		if fieldtype in ["Float", "Currency", "Percent"] and cint(precision) > 6:
-			length = '18,{0}'.format(precision)
+			length = '18,9'
 		ret += '(' + length + ')'
 
 	return ret

@@ -104,6 +104,7 @@ class CustomizeForm(Document):
 				self.make_property_setter(property=property, value=self.get(property),
 					property_type=self.doctype_properties[property])
 
+		update_db = False
 		for df in self.get("customize_form_fields"):
 			if df.get("__islocal"):
 				continue
@@ -125,13 +126,14 @@ class CustomizeForm(Document):
 
 					elif property == "precision" and cint(df.get("precision")) > 6 \
 							and cint(df.get("precision")) > cint(meta_df[0].get("precision")):
-						from frappe.model.db_schema import get_definition
-						frappe.db.sql_ddl("alter table `tab{table}` modify {col_name} {col_def}"\
-							.format(table=self.doc_type, col_name=df.fieldname,
-								col_def=get_definition(df.fieldtype, df.precision)))
+						update_db = True
 
 					self.make_property_setter(property=property, value=df.get(property),
 						property_type=self.docfield_properties[property], fieldname=df.fieldname)
+
+		if update_db:
+			from frappe.model.db_schema import updatedb
+			updatedb(self.doc_type)
 
 	def update_custom_fields(self):
 		for df in self.get("customize_form_fields"):
