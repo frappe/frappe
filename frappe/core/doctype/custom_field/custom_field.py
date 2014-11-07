@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe.utils import cint, cstr
+from frappe.utils import cstr
 from frappe import _
 
 from frappe.model.document import Document
@@ -30,12 +30,12 @@ class CustomField(Document):
 			frappe.throw(_("Fieldname not set for Custom Field"))
 
 	def on_update(self):
-		# validate field
-		from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype
-
 		frappe.clear_cache(doctype=self.dt)
 
-		validate_fields_for_doctype(self.dt)
+		if not self.ignore_validate:
+			# validate field
+			from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype
+			validate_fields_for_doctype(self.dt)
 
 		# create property setter to emulate insert after
 		self.create_property_setter()
