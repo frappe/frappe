@@ -8,6 +8,7 @@ from __future__ import unicode_literals
 """
 import frappe, json
 from frappe import _
+from frappe.utils import cint
 from frappe.model.document import Document
 from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype
 
@@ -121,6 +122,13 @@ class CustomizeForm(Document):
 						frappe.msgprint(_("Row {0}: Not allowed to enable Allow on Submit for standard fields")\
 							.format(df.idx))
 						continue
+
+					elif property == "precision" and cint(df.get("precision")) > 6 \
+							and cint(df.get("precision")) > cint(meta_df[0].get("precision")):
+						from frappe.model.db_schema import get_definition
+						frappe.db.sql_ddl("alter table `tab{table}` modify {col_name} {col_def}"\
+							.format(table=self.doc_type, col_name=df.fieldname,
+								col_def=get_definition(df.fieldtype, df.precision)))
 
 					self.make_property_setter(property=property, value=df.get(property),
 						property_type=self.docfield_properties[property], fieldname=df.fieldname)
