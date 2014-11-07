@@ -6,13 +6,32 @@ from __future__ import unicode_literals
 import frappe, json, os
 from frappe import _
 import frappe.permissions
+import re
 from frappe.utils.csvutils import UnicodeWriter
 from frappe.utils import cstr, cint, flt
 from  frappe.core.page.data_import_tool.data_import_tool import get_data_keys
 
+reflags = {
+	"I":re.I,
+	"L":re.L,
+	"M":re.M,
+	"U":re.U,
+	"S":re.S,
+	"X":re.X,
+	"D": re.DEBUG
+}
+
 @frappe.whitelist()
 def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data="No"):
 	all_doctypes = all_doctypes=="Yes"
+	docs_to_export = {}
+	if doctype:
+		if isinstance(doctype, basestring):
+			doctype = [doctype];
+		if len(doctype) > 1:
+			docs_to_export = doctype[1]
+		doctype = doctype[0]
+		
 	if not parent_doctype:
 		parent_doctype = doctype
 
@@ -151,6 +170,28 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 			# get permitted data only
 			data = frappe.get_list(doctype, fields=["*"], limit_page_length=None)
 			for doc in data:
+				op = docs_to_export.get("op")
+				names = docs_to_export.get("name")
+				
+				if names and op:
+					if op == '=' and doc.name not in names:
+						continue
+					elif op == '!=' and doc.name in names:
+						continue
+				elif names:
+					try:
+						sflags = docs_to_export.get("flags", "I,U").upper()
+						flags = 0
+						for a in re.split('\W+',sflags):
+							flags = flags | reflags.get(a,0)
+						
+						c = re.compile(names, flags)
+						m = c.match(doc.name)
+						if not m:
+							continue
+					except:
+						if doc.name not in names:
+							continue
 				# add main table
 				row_group = []
 
