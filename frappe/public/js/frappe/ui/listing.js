@@ -70,9 +70,12 @@ frappe.ui.Listing = Class.extend({
 				<div class="list-filters" style="display: none;">\
 					<div class="show_filters">\
 						<div class="set-filters">\
+							<button class="btn btn-primary btn-sm btn-new hide" \
+								style="margin-bottom: 10px; margin-right: 5px;">\
+								<i class="icon-plus"></i> '+__("New")+'</button>\
 							<button class="btn btn-default btn-sm new-filter text-muted" \
 								style="margin-bottom: 10px">\
-								<i class="icon-plus"></i> '+__("Add Filter")+'</button>\
+								<i class="icon-filter"></i> '+__("Add Filter")+'</button>\
 						</div>\
 						<div class="filter_area"></div>\
 					</div>\
@@ -167,13 +170,17 @@ frappe.ui.Listing = Class.extend({
 
 		// new
 		if(this.new_doctype) {
-			if(this.appframe) {
-				this.appframe.set_title_right("<i class='icon-plus'></i> " + __('New'), function() {
-					(me.custom_new_doc || me.make_new_doc).apply(me, [me.new_doctype]); });
-			}
-			this.add_button(__('New'), function() {
-				(me.custom_new_doc || me.make_new_doc).apply(me, [me.new_doctype]);
-			}, 'icon-plus');
+			var make_new_doc = function() { (me.custom_new_doc || me.make_new_doc).apply(me, [me.new_doctype]); };
+
+			// if(this.appframe) {
+			// 	this.appframe.set_title_right("<i class='icon-plus'></i> " + __('New'), function() {
+			// 		make_new_doc(); });
+			// }
+			// this.add_button(__('New'), function() {
+			// 	make_new_doc();
+			// }, 'icon-plus');
+
+			this.$w.find(".btn-new").removeClass("hide").on("click", function() { make_new_doc(); });
 		}
 
 		// hide-filter
