@@ -8,6 +8,7 @@ from __future__ import unicode_literals
 """
 import frappe, json
 from frappe import _
+from frappe.utils import cint
 from frappe.model.document import Document
 from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype
 
@@ -103,6 +104,7 @@ class CustomizeForm(Document):
 				self.make_property_setter(property=property, value=self.get(property),
 					property_type=self.doctype_properties[property])
 
+		update_db = False
 		for df in self.get("customize_form_fields"):
 			if df.get("__islocal"):
 				continue
@@ -122,8 +124,16 @@ class CustomizeForm(Document):
 							.format(df.idx))
 						continue
 
+					elif property == "precision" and cint(df.get("precision")) > 6 \
+							and cint(df.get("precision")) > cint(meta_df[0].get("precision")):
+						update_db = True
+
 					self.make_property_setter(property=property, value=df.get(property),
 						property_type=self.docfield_properties[property], fieldname=df.fieldname)
+
+		if update_db:
+			from frappe.model.db_schema import updatedb
+			updatedb(self.doc_type)
 
 	def update_custom_fields(self):
 		for df in self.get("customize_form_fields"):
@@ -159,6 +169,7 @@ class CustomizeForm(Document):
 				changed = True
 
 		if changed:
+			custom_field.ignore_validate = True
 			custom_field.save()
 
 	def delete_custom_fields(self):

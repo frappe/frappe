@@ -22,10 +22,12 @@ def sync_fixtures(app=None):
 def export_fixtures():
 	for app in frappe.get_installed_apps():
 		for fixture in frappe.get_hooks("fixtures", app_name=app):
-			print "Exporting " + fixture
+			print "Exporting {0}".format(fixture)
 			if not os.path.exists(frappe.get_app_path(app, "fixtures")):
 				os.mkdir(frappe.get_app_path(app, "fixtures"))
-			if frappe.db.get_value("DocType", fixture, "issingle"):
-				export_fixture(fixture, fixture, app)
+			if isinstance(fixture, basestring):
+				fixture = [fixture];
+			if frappe.db.get_value("DocType", fixture[0], "issingle"):
+				export_fixture(fixture[0], fixture[0], app)
 			else:
-				export_csv(fixture, frappe.get_app_path(app, "fixtures", frappe.scrub(fixture) + ".csv"))
+				export_csv(fixture, frappe.get_app_path(app, "fixtures", frappe.scrub(fixture[0]) + ".csv"))

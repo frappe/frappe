@@ -86,7 +86,7 @@
    "fieldname": "precision", 
    "fieldtype": "Select", 
    "label": "Precision", 
-   "options": "\n1\n2\n3\n4\n5\n6", 
+   "options": "\n1\n2\n3\n4\n5\n6\n7\n8\n9", 
    "permlevel": 0, 
    "precision": ""
   }, 
@@ -278,7 +278,7 @@
  "idx": 1, 
  "issingle": 0, 
  "istable": 1, 
- "modified": "2014-09-05 07:41:29.641454", 
+ "modified": "2014-11-07 11:08:52.125289", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Customize Form Field", 
