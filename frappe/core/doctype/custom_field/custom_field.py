@@ -31,8 +31,7 @@ class CustomField(Document):
 
 	def on_update(self):
 		frappe.clear_cache(doctype=self.dt)
-
-		if not getattr(self, "ignore_validate", None):
+		if not getattr(self, "ignore_validate", False):
 			# validate field
 			from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype
 			validate_fields_for_doctype(self.dt)
@@ -74,7 +73,7 @@ class CustomField(Document):
 			"fieldname": self.fieldname,
 			"property": "previous_field",
 			"value": self.insert_after
-		})
+		}, validate_fields_for_doctype=False)
 
 @frappe.whitelist()
 def get_fields_label(doctype=None):
