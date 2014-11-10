@@ -537,7 +537,7 @@ def call(fn, *args, **kwargs):
 			newargs[a] = kwargs.get(a)
 	return fn(*args, **newargs)
 
-def make_property_setter(args, ignore_validate=False):
+def make_property_setter(args, ignore_validate=False, validate_fields_for_doctype=True):
 	args = _dict(args)
 	ps = get_doc({
 		'doctype': "Property Setter",
@@ -550,6 +550,7 @@ def make_property_setter(args, ignore_validate=False):
 		'__islocal': 1
 	})
 	ps.ignore_validate = ignore_validate
+	ps.validate_fields_for_doctype = validate_fields_for_doctype
 	ps.insert()
 
 def import_doc(path, ignore_links=False, ignore_insert=False, insert=False):

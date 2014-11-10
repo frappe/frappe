@@ -47,6 +47,7 @@ def get_allowed_functions_for_jenv():
 		# make available limited methods of frappe
 		"frappe": {
 			"_": frappe._,
+			"get_url": frappe.utils.get_url,
 			"format_value": frappe.format_value,
 			"format_date": frappe.utils.data.global_date_format,
 			"form_dict": frappe.local.form_dict,

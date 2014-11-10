@@ -68,7 +68,7 @@
    "fieldname": "precision",
    "fieldtype": "Select",
    "label": "Precision",
-   "options": "\n1\n2\n3\n4\n5\n6",
+   "options": "\n1\n2\n3\n4\n5\n6\n7\n8\n9",
    "permlevel": 0,
    "precision": ""
   },
@@ -274,7 +274,7 @@
  ],
  "icon": "icon-glass",
  "idx": 1,
- "modified": "2014-09-26 05:04:49.148737",
+ "modified": "2014-09-26 05:04:49.148738",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Custom Field",
