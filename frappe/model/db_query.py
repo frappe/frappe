@@ -72,7 +72,12 @@ class DatabaseQuery(object):
 					self.fields.append(t + ".name as '%s:name'" % t[4:-1])
 
 		# query dict
-		args.tables = ', '.join(self.tables)
+		args.tables = self.tables[0]
+
+		# left join parent, child tables
+		for tname in self.tables[1:]:
+			args.tables += " left join " + tname + " on " + tname + '.parent = ' + self.tables[0] + '.name'
+
 		if self.or_conditions:
 			self.conditions.append("({0})".format(" or ".join(self.or_conditions)))
 		args.conditions = ' and '.join(self.conditions)
@@ -164,10 +169,6 @@ class DatabaseQuery(object):
 		self.or_conditions = []
 		self.build_filter_conditions(self.filters, self.conditions)
 		self.build_filter_conditions(self.or_filters, self.or_conditions)
-
-		# join parent, child tables
-		for tname in self.tables[1:]:
-			self.conditions.append(tname + '.parent = ' + self.tables[0] + '.name')
 
 		# match conditions
 		if not self.ignore_permissions:
