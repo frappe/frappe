@@ -468,3 +468,11 @@ a.active {
 }
 
 /* end - needs review */
+
+/* docs */
+.docs-attr-name {
+	font-size: 120%;
+}
+.docs-attr-desc {
+	padding-left: 30px;
+}

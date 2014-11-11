@@ -129,7 +129,7 @@ def add_lang_dict(code):
 	return code
 
 def make_dict_from_messages(messages, full_dict=None):
-	"""Returns translated messages as a dict in Language specified in :attr:`frappe.local.lang`
+	"""Returns translated messages as a dict in Language specified in `frappe.local.lang`
 
 	:param messages: List of untranslated messages
 	"""
@@ -161,7 +161,7 @@ def get_full_dict(lang):
 	return frappe.cache().get_value("lang:" + lang, lambda:load_lang(lang))
 
 def load_lang(lang, apps=None):
-	"""Combine all translations from `.csv` files in all :term:`apps`"""
+	"""Combine all translations from `.csv` files in all `apps`"""
 	out = {}
 	for app in (apps or frappe.get_all_apps(True)):
 		path = os.path.join(frappe.get_pymodule_path(app), "translations", lang + ".csv")
@@ -180,7 +180,7 @@ def clear_cache():
 		cache.delete_value("translation_assets:" + lang)
 
 def get_messages_for_app(app):
-	"""Returns all messages (list) for a specified :term:`app`"""
+	"""Returns all messages (list) for a specified `app`"""
 	messages = []
 	modules = ", ".join(['"{}"'.format(m.title().replace("_", " ")) \
 		for m in frappe.local.app_modules[app]])
@@ -439,7 +439,7 @@ def rebuild_all_translation_files():
 def write_translations_file(app, lang, full_dict=None, app_messages=None):
 	"""Write a translation file for a given language.
 
-	:param app: :term:`app` for which translations are to be written.
+	:param app: `app` for which translations are to be written.
 	:param lang: Language code.
 	:param full_dict: Full translated langauge dict (optional).
 	:param app_messages: Source strings (optional).
@@ -456,7 +456,7 @@ def write_translations_file(app, lang, full_dict=None, app_messages=None):
 		app_messages, full_dict or get_full_dict(lang))
 
 def send_translations(translation_dict):
-	"""Append translated dict in :attr:`frappe.local.response`"""
+	"""Append translated dict in `frappe.local.response`"""
 	if "__messages" not in frappe.local.response:
 		frappe.local.response["__messages"] = {}
 

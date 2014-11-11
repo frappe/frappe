@@ -32,6 +32,7 @@ def get_comment_list(doctype, name):
 	return frappe.db.sql("""select
 		comment, comment_by_fullname, creation, comment_by
 		from `tabComment` where comment_doctype=%s
+		and ifnull(comment_type, "Comment")="Comment"
 		and comment_docname=%s order by creation""", (doctype, name), as_dict=1) or []
 
 def get_home_page():

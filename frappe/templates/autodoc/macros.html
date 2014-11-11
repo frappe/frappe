@@ -1,8 +1,9 @@
 {% macro automodule(name) %}
 {% for obj in frappe.automodule(name) %}
 	{% if obj.type=="function" %}
-		<p>{{ name }}.<b>{{ obj.name }}</b>({{ print_args(obj.args) }})</p>
-		<p style="margin-left: 20px;">{{ obj.docs|markdown }}</p>
+		<p class="docs-attr-name">
+			{{ name }}.<b>{{ obj.name }}</b>({{ print_args(obj.args) }})</p>
+		<div class="docs-attr-desc">{{ obj.docs|markdown }}</div>
 		<br>
 	{% endif %}
 {% endfor %}
@@ -10,6 +11,7 @@
 
 {% macro print_args(args) -%}
 <i>{% for arg in args[0] -%}
-	{{ arg }}{{ loop.index }}{% if not loop.last %}, {% endif %}
+	{%- set default_idx = args[3]|len - args[0]|len + (loop.index - 1) if args[3] else -1 -%}
+	{{ arg }}{% if default_idx >= 0 %}={{ args[3][default_idx] }}{% endif %}{% if not loop.last %}, {% endif %}
 	{%- endfor %}</i>
 {%- endmacro %}
