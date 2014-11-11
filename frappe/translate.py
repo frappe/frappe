@@ -4,24 +4,18 @@
 from __future__ import unicode_literals
 
 """
-Contributing:
-1. Add the .csv file
-2. Run import
-3. Then run translate
-"""
+	frappe.translate
+	~~~~~~~~~~~~~~~~
 
-# loading
-# doctype, page, report
-# boot(startup)
-# frappe.require
-# frappe._
+	Translation tools for frappe
+"""
 
 import frappe, os, re, codecs, json
 from frappe.utils.jinja import render_include
 from jinja2 import TemplateError
 
 def guess_language_from_http_header(lang):
-	"""set frappe.local.lang from HTTP headers at beginning of request"""
+	"""Set `frappe.local.lang` from HTTP headers at beginning of request"""
 	if not lang:
 		return frappe.local.lang
 
@@ -51,7 +45,7 @@ def guess_language_from_http_header(lang):
 	return guess or frappe.local.lang
 
 def get_user_lang(user=None):
-	"""set frappe.local.lang from user preferences on session beginning or resumption"""
+	"""Set frappe.local.lang from user preferences on session beginning or resumption"""
 	if not user:
 		user = frappe.session.user
 
@@ -73,21 +67,30 @@ def get_user_lang(user=None):
 	return lang
 
 def set_default_language(language):
+	"""Set Global default language"""
 	lang = get_lang_dict()[language]
 	frappe.db.set_default("lang", lang)
 	frappe.local.lang = lang
 
 def get_all_languages():
+	"""Returns all language codes ar, ch etc"""
 	return [a.split()[0] for a in get_lang_info()]
 
 def get_lang_dict():
+	"""Returns all languages in dict format, full name is the key e.g. `{"english":"en"}`"""
 	return dict([[a[1], a[0]] for a in [a.split(None, 1) for a in get_lang_info()]])
 
 def get_lang_info():
+	"""Returns a listified version of `apps/languages.txt`"""
 	return frappe.cache().get_value("langinfo",
 		lambda:frappe.get_file_items(os.path.join(frappe.local.sites_path, "languages.txt")))
 
 def get_dict(fortype, name=None):
+	"""Returns translation dict for a type of object.
+
+	 :param fortype: must be one of `doctype`, `page`, `report`, `include`, `jsfile`, `boot`
+	 :param name: name of the document for which assets are to be returned.
+	 """
 	fortype = fortype.lower()
 	cache = frappe.cache()
 	cache_key = "translation_assets:" + frappe.local.lang
@@ -117,11 +120,19 @@ def get_dict(fortype, name=None):
 	return translation_assets[asset_key]
 
 def add_lang_dict(code):
+	"""Extracts messages and returns Javascript code snippet to be appened at the end
+	of the given script
+
+	:param code: Javascript code snippet to which translations needs to be appended."""
 	messages = extract_messages_from_code(code)
 	code += "\n\n$.extend(frappe._messages, %s)" % json.dumps(make_dict_from_messages(messages))
 	return code
 
 def make_dict_from_messages(messages, full_dict=None):
+	"""Returns translated messages as a dict in Language specified in :attr:`frappe.local.lang`
+
+	:param messages: List of untranslated messages
+	"""
 	out = {}
 	if full_dict==None:
 		full_dict = get_full_dict(frappe.local.lang)
@@ -133,14 +144,24 @@ def make_dict_from_messages(messages, full_dict=None):
 	return out
 
 def get_lang_js(fortype, name):
+	"""Returns code snippet to be appended at the end of a JS script.
+
+	:param fortype: Type of object, e.g. `DocType`
+	:param name: Document name
+	"""
 	return "\n\n$.extend(frappe._messages, %s)" % json.dumps(get_dict(fortype, name))
 
 def get_full_dict(lang):
+	"""Load and return the entire translations dictionary for a language from :meth:`frape.cache`
+
+	:param lang: Language Code, e.g. `hi`
+	"""
 	if lang == "en":
 		return {}
 	return frappe.cache().get_value("lang:" + lang, lambda:load_lang(lang))
 
 def load_lang(lang, apps=None):
+	"""Combine all translations from `.csv` files in all :term:`apps`"""
 	out = {}
 	for app in (apps or frappe.get_all_apps(True)):
 		path = os.path.join(frappe.get_pymodule_path(app), "translations", lang + ".csv")
@@ -151,6 +172,7 @@ def load_lang(lang, apps=None):
 	return out
 
 def clear_cache():
+	"""Clear all translation assets from :meth:`frappe.cache`"""
 	cache = frappe.cache()
 	cache.delete_value("langinfo")
 	for lang in get_all_languages():
@@ -158,6 +180,7 @@ def clear_cache():
 		cache.delete_value("translation_assets:" + lang)
 
 def get_messages_for_app(app):
+	"""Returns all messages (list) for a specified :term:`app`"""
 	messages = []
 	modules = ", ".join(['"{}"'.format(m.title().replace("_", " ")) \
 		for m in frappe.local.app_modules[app]])
@@ -189,8 +212,9 @@ def get_messages_for_app(app):
 
 	return list(set(messages))
 
-
 def get_messages_from_doctype(name):
+	"""Extract all translatable messages for a doctype. Includes labels, Python code,
+	Javascript code, html templates"""
 	messages = []
 	meta = frappe.get_meta(name)
 
@@ -223,18 +247,20 @@ def get_messages_from_doctype(name):
 	return clean(messages)
 
 def get_messages_from_page(name):
-	return get_messages_from_page_or_report("Page", name)
+	"""Returns all translatable strings from a :class:`frappe.core.doctype.Page`"""
+	return _get_messages_from_page_or_report("Page", name)
 
 def get_messages_from_report(name):
+	"""Returns all translatable strings from a :class:`frappe.core.doctype.Report`"""
 	report = frappe.get_doc("Report", name)
-	messages = get_messages_from_page_or_report("Report", name,
+	messages = _get_messages_from_page_or_report("Report", name,
 		frappe.db.get_value("DocType", report.ref_doctype, "module"))
 	if report.query:
 		messages.extend(re.findall('"([^:,^"]*):', report.query))
 	messages.append(report.report_name)
 	return clean(messages)
 
-def get_messages_from_page_or_report(doctype, name, module=None):
+def _get_messages_from_page_or_report(doctype, name, module=None):
 	if not module:
 		module = frappe.db.get_value(doctype, name, "module")
 	file_path = frappe.get_module_path(module, doctype, name, name)
@@ -245,6 +271,7 @@ def get_messages_from_page_or_report(doctype, name, module=None):
 	return clean(messages)
 
 def get_server_messages(app):
+	"""Extracts all translatable strings (tagged with :func:`frappe._`) from Python modules inside an app"""
 	messages = []
 	for basepath, folders, files in os.walk(frappe.get_pymodule_path(app)):
 		for dontwalk in (".git", "public", "locale"):
@@ -257,6 +284,7 @@ def get_server_messages(app):
 	return clean(messages)
 
 def get_messages_from_include_files(app_name=None):
+	"""Extracts all translatable strings from Javascript app files"""
 	messages = []
 	for file in (frappe.get_hooks("app_include_js", app_name=app_name) or []) + (frappe.get_hooks("web_include_js", app_name=app_name) or []):
 		messages.extend(get_messages_from_file(os.path.join(frappe.local.sites_path, file)))
@@ -264,7 +292,10 @@ def get_messages_from_include_files(app_name=None):
 	return clean(messages)
 
 def get_messages_from_file(path):
-	"""get list of messages from a code file"""
+	"""Returns a list of transatable strings from a code file
+
+	:param path: path of the code file
+	"""
 	if os.path.exists(path):
 		with open(path, 'r') as sourcefile:
 			return extract_messages_from_code(sourcefile.read(), path.endswith(".py"))
@@ -272,6 +303,10 @@ def get_messages_from_file(path):
 		return []
 
 def extract_messages_from_code(code, is_py=False):
+	"""Extracts translatable srings from a code file
+
+	:param code: code from which translatable files are to be extracted
+	:param is_py: include messages in triple quotes e.g. `_('''message''')`"""
 	try:
 		code = render_include(code)
 	except TemplateError:
@@ -286,6 +321,7 @@ def extract_messages_from_code(code, is_py=False):
 	return clean(messages)
 
 def clean(messages):
+	"""Scrub and return list of translatable messages. Strips empty strings, numbers, known CSS classes etc."""
 	l = []
 	messages = list(set(messages))
 	for m in messages:
@@ -295,6 +331,9 @@ def clean(messages):
 	return l
 
 def read_csv_file(path):
+	"""Read CSV file and return as list of list
+
+	:param path: File path"""
 	from csv import reader
 	with codecs.open(path, 'r', 'utf-8') as msgfile:
 		data = msgfile.read()
@@ -303,6 +342,12 @@ def read_csv_file(path):
 	return newdata
 
 def write_csv_file(path, app_messages, lang_dict):
+	"""Write translation CSV file
+
+	:param path: File path, usually `[app]/translations`.
+	:param app_messages: Translatable strings for this app.
+	:param lang_dict: Full translated dict.
+	"""
 	app_messages.sort()
 	from csv import writer
 	with open(path, 'w') as msgfile:
@@ -314,7 +359,11 @@ def write_csv_file(path, app_messages, lang_dict):
 			w.writerow([m.encode('utf-8'), t.encode('utf-8')])
 
 def get_untranslated(lang, untranslated_file, get_all=False):
-	"""translate objects using Google API. Add you own API key for translation"""
+	"""Returns all untranslated strings for a language and writes in a file
+
+	:param lang: Language code.
+	:param untranslated_file: Output file path.
+	:param get_all: Return all strings, translated or not."""
 	clear_cache()
 	apps = frappe.get_all_apps(True)
 
@@ -353,6 +402,11 @@ def get_untranslated(lang, untranslated_file, get_all=False):
 			print "all translated!"
 
 def update_translations(lang, untranslated_file, translated_file):
+	"""Update translations from a source and target file for a given language.
+
+	:param lang: Language code (e.g. `en`).
+	:param untranslated_file: File path with the messages in English.
+	:param translated_file: File path with messages in language to be updated."""
 	clear_cache()
 	full_dict = get_full_dict(lang)
 
@@ -377,11 +431,19 @@ def update_translations(lang, untranslated_file, translated_file):
 		write_translations_file(app, lang, full_dict)
 
 def rebuild_all_translation_files():
+	"""Rebuild all translation files: `[app]/translations/[lang].csv`."""
 	for lang in get_all_languages():
 		for app in frappe.get_all_apps():
 			write_translations_file(app, lang)
 
 def write_translations_file(app, lang, full_dict=None, app_messages=None):
+	"""Write a translation file for a given language.
+
+	:param app: :term:`app` for which translations are to be written.
+	:param lang: Language code.
+	:param full_dict: Full translated langauge dict (optional).
+	:param app_messages: Source strings (optional).
+	"""
 	if not app_messages:
 		app_messages = get_messages_for_app(app)
 
@@ -394,7 +456,7 @@ def write_translations_file(app, lang, full_dict=None, app_messages=None):
 		app_messages, full_dict or get_full_dict(lang))
 
 def send_translations(translation_dict):
-	"""send these translations in response"""
+	"""Append translated dict in :attr:`frappe.local.response`"""
 	if "__messages" not in frappe.local.response:
 		frappe.local.response["__messages"] = {}
 

@@ -1,0 +1,15 @@
+{% macro automodule(name) %}
+{% for obj in frappe.automodule(name) %}
+	{% if obj.type=="function" %}
+		<p>{{ name }}.<b>{{ obj.name }}</b>({{ print_args(obj.args) }})</p>
+		<p style="margin-left: 20px;">{{ obj.docs|markdown }}</p>
+		<br>
+	{% endif %}
+{% endfor %}
+{% endmacro %}
+
+{% macro print_args(args) -%}
+<i>{% for arg in args[0] -%}
+	{{ arg }}{{ loop.index }}{% if not loop.last %}, {% endif %}
+	{%- endfor %}</i>
+{%- endmacro %}

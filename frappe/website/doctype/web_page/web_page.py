@@ -60,12 +60,13 @@ class WebPage(WebsiteGenerator):
 
 	def render_dynamic(self, context):
 		# dynamic
-		is_jinja = "<!-- render-jinja -->" in context.main_section
+		is_jinja = "<!-- jinja -->" in context.main_section
 		if is_jinja or ("{{" in context.main_section):
 			try:
 				context["main_section"] = render_template(context.main_section,
 					context)
-				context["no_cache"] = 1
+				if not "<!-- static -->" in context.main_section:
+					context["no_cache"] = 1
 			except TemplateSyntaxError:
 				if is_jinja:
 					raise
