@@ -86,7 +86,7 @@ frappe.views.CommunicationComposer = Class.extend({
 	},
 
 	setup_subject_and_recipients: function() {
-		this.subject = this.doc.subject || "";
+		this.subject = this.subject || "";
 		this.recipients = this.frm && this.frm.comments.get_recipient();
 
 		if(!this.subject && this.frm) {
