@@ -350,3 +350,8 @@ def get_html_format(print_path):
 
 	return html_format
 
+def is_markdown(text):
+	if "<!-- markdown -->" in text:
+		return True
+	else:
+		return not re.search("<p[\s]*>|<br[\s]*>", context.content)

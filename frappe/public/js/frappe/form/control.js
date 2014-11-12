@@ -1060,7 +1060,7 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 		this.md_editor_wrapper = $("<div class='hide'>")
 			.appendTo(this.input_area);
 		this.md_editor = $("<textarea class='form-control'>").css({
-			"height": "468px",
+			"height": "451px",
 			"font-family": "Monaco, \"Courier New\", monospace"
 		})
 		.appendTo(this.md_editor_wrapper)
@@ -1069,11 +1069,15 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 			me.editor.set_input(value);
 			me.parse_validate_and_set_in_model(value);
 		});
+
+		$('<div class="text-muted small">Add &lt;!-- markdown --&gt; \
+			to always interpret as markdown</div>')
+			.appendTo(this.md_editor_wrapper);
 	},
 	make_switcher: function() {
 		var me = this;
 		this.current_editor = this.editor;
-		this.switcher = $('<p class="text-muted text-right small">\
+		this.switcher = $('<p class="text-right small">\
 			<a href="#" class="switcher"></a></p>')
 			.appendTo(this.input_area)
 			.click(function() {
@@ -1110,7 +1114,11 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 
 		// guess editor type
 		if(value) {
-			var is_markdown = value.search(/<br\s*>|<p\s*>/) === -1;
+			if(value.indexOf("<!-- markdown -->") !== -1) {
+				var is_markdown = true;
+			} else {
+				var is_markdown = value.search(/<br\s*>|<p\s*>/) === -1;
+			}
 			if((is_markdown && this.current_editor===this.editor)
 				|| (!is_markdown && this.current_editor===this.md_editor)) {
 				this.switch();
