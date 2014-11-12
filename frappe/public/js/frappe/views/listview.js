@@ -198,7 +198,7 @@ frappe.views.ListView = Class.extend({
 			right_cols = 8 - this.shift_right,
 			body = $('<div class="doclist-row row">\
 				<div class="list-row-id-area col-sm-'+left_cols+'" style="white-space: nowrap;\
-					text-overflow: ellipsis; max-height: 30px"></div>\
+					text-overflow: ellipsis; max-height: 30px; overflow: hidden;"></div>\
 				<div class="list-row-content-area col-sm-'+right_cols+'"></div>\
 			</div>').appendTo(row),
 			colspans = 0,

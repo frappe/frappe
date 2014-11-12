@@ -1064,6 +1064,7 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 			"font-family": "Monaco, \"Courier New\", monospace"
 		})
 		.appendTo(this.md_editor_wrapper)
+		.allowTabs()
 		.on("change", function() {
 			var value = $(this).val();
 			me.editor.set_input(value);
