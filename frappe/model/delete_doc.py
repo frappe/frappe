@@ -69,10 +69,10 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 			update_naming_series(doc)
 			delete_from_table(doctype, name, ignore_doctypes, doc)
 
+		insert_feed(doc)
+
 		# delete user_permissions
 		frappe.defaults.clear_default(parenttype="User Permission", key=doctype, value=name)
-
-	return 'okay'
 
 def update_naming_series(doc):
 	if doc.meta.autoname:
@@ -157,3 +157,18 @@ def check_if_doc_is_dynamically_linked(doc):
 def delete_linked_todos(doc):
 	delete_doc("ToDo", frappe.db.sql_list("""select name from `tabToDo`
 		where reference_type=%s and reference_name=%s""", (doc.doctype, doc.name)))
+
+def insert_feed(doc):
+	from frappe.utils import get_fullname
+
+	if frappe.flags.in_install_app:
+		return
+
+	frappe.get_doc({
+		"doctype": "Feed",
+		"feed_type": "",
+		"doc_type": doc.doctype,
+		"doc_name": doc.name,
+		"subject": """{0} {1}: <i>{2}</i>""".format(doc.doctype, doc.name, "Deleted"),
+		"full_name": get_fullname(doc.owner)
+	}).insert(ignore_permissions=True)

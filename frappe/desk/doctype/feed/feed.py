@@ -53,8 +53,11 @@ def has_permission(doc, user):
 
 def update_feed(doc, method=None):
 	"adds a new feed"
+	if doc.doctype == "Feed":
+		return
 	if frappe.flags.in_patch:
 		return
+
 
 	if hasattr(doc, "get_feed"):
 		feed = doc.get_feed()
