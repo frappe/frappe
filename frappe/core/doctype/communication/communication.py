@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 import json
-from frappe.utils import get_url, cint, scrub_urls
+from frappe.utils import get_url, cint, scrub_urls, get_formatted_email
 from frappe.email.email_body import get_email
 import frappe.email.smtp
 from frappe import _
@@ -43,7 +43,6 @@ class Communication(Document):
 		attachments=None):
 		if print_format:
 			self.content += self.get_attach_link(print_format)
-
 		mail = get_email(self.recipients, sender=self.sender, subject=self.subject,
 			content=self.content)
 
@@ -91,7 +90,7 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 		"doctype":"Communication",
 		"subject": subject,
 		"content": content,
-		"sender": sender,
+		"sender": get_formatted_email(frappe.session.user),
 		"recipients": recipients,
 		"communication_medium": "Email",
 		"sent_or_received": sent_or_received,

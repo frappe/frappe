@@ -271,7 +271,6 @@ frappe.views.CommunicationComposer = Class.extend({
 		return frappe.call({
 			method:"frappe.core.doctype.communication.communication.make",
 			args: {
-				sender: [frappe.user_info(user).fullname, frappe.boot.user.email],
 				recipients: form_values.recipients,
 				subject: form_values.subject,
 				content: form_values.content,

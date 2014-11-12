@@ -40,7 +40,7 @@ def send(email, as_bulk=False):
 def get_outgoing_email_account(raise_exception_not_set=True):
 	if not getattr(frappe.local, "outgoing_email_account", None):
 		email_account = frappe.db.get_value("Email Account", {
-			"owner": frappe.session.user, "enable_outgoing": 1})
+			"email_id": frappe.session.user, "enable_outgoing": 1})
 
 		if not email_account:
 			email_account = frappe.db.get_value('Email Account', {"is_default": 1})
