@@ -1035,25 +1035,87 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 	horizontal: false,
 	make_input: function() {
 		$(this.input_area).css({"min-height":"360px"});
+		this.has_input = true;
+		this.make_rich_text_editor();
+		this.make_markdown_editor();
+		this.make_switcher();
+	},
+	make_rich_text_editor: function() {
 		var me = this;
+		this.editor_wrapper = $("<div>").appendTo(this.input_area);
 		this.editor = new (frappe.provide(this.editor_name))({
-			parent: this.input_area,
+			parent: this.editor_wrapper,
 			change: function(value) {
+				me.md_editor.val(value);
 				me.parse_validate_and_set_in_model(value);
 			},
 			field: this
 		});
-		this.has_input = true;
 		this.editor.editor.keypress("ctrl+s meta+s", function() {
 			me.frm.save_or_update();
 		});
 	},
+	make_markdown_editor: function() {
+		var me = this;
+		this.md_editor_wrapper = $("<div class='hide'>")
+			.appendTo(this.input_area);
+		this.md_editor = $("<textarea class='form-control'>").css({
+			"height": "468px",
+			"font-family": "Monaco, \"Courier New\", monospace"
+		})
+		.appendTo(this.md_editor_wrapper)
+		.on("change", function() {
+			var value = $(this).val();
+			me.editor.set_input(value);
+			me.parse_validate_and_set_in_model(value);
+		});
+	},
+	make_switcher: function() {
+		var me = this;
+		this.current_editor = this.editor;
+		this.switcher = $('<p class="text-muted text-right small">\
+			<a href="#" class="switcher"></a></p>')
+			.appendTo(this.input_area)
+			.click(function() {
+				me.switch();
+				return false;
+			});
+		this.render_switcher();
+	},
+	switch: function() {
+		if(this.current_editor===this.editor) {
+			this.editor_wrapper.addClass("hide");
+			this.md_editor_wrapper.removeClass("hide");
+			this.current_editor = this.md_editor;
+		} else {
+			this.md_editor_wrapper.addClass("hide");
+			this.editor_wrapper.removeClass("hide");
+			this.current_editor = this.editor;
+		}
+		this.render_switcher();
+	},
+	render_switcher: function() {
+		this.switcher.html(__("Edit as {0}", [this.current_editor == this.editor ?
+			__("Markdown") : __("Rich Text")]));
+	},
 	get_value: function() {
-		return this.editor.get_value();
+		return this.current_editor === this.editor
+			? this.editor.get_value()
+			: this.md_editor.get_value();
 	},
 	set_input: function(value) {
 		this.editor.set_input(value);
+		this.md_editor.val(value);
 		this.last_value = value;
+
+		// guess editor type
+		if(value) {
+			var is_markdown = value.search(/<br\s*>|<p\s*>/) === -1;
+			if((is_markdown && this.current_editor===this.editor)
+				|| (!is_markdown && this.current_editor===this.md_editor)) {
+				this.switch();
+			}
+		}
 	}
 });
 

@@ -458,12 +458,14 @@ bsHTMLEditor = Class.extend({
 			<button class="btn btn-primary" style="margin-top: 7px;">' + __("Save") + '</button>');
 		this.modal.addClass("frappe-ignore-click");
 		this.modal.find(".btn-primary").on("click", function() {
-			var html = me.modal.find("textarea").val();
+			me._html = me.modal.find("textarea").val();
+
 			$.each(me.editor.dataurls, function(key, val) {
-				html = html.replace(key, val);
+				me._html = replace_all(me._html, key, val);
 			});
-			var editor = me.editor.data("object")
-			editor.set_input(html)
+
+			var editor = me.editor.data("object");
+			editor.set_input(me._html);
 			editor.options.change && editor.options.change(editor.clean_html());
 			me.modal.modal("hide");
 		});
@@ -478,7 +480,7 @@ bsHTMLEditor = Class.extend({
 		html = html.replace(/<img\s*src=\s*["\'](data:[^,]*),([^"\']*)["\']/g, function(full, g1, g2) {
 			var key = g2.slice(0,5) + "..." + g2.slice(-5);
 			me.editor.dataurls[key] = g1 + "," + g2;
-			return '<img src="'+g1 + "," + key+'"';
+			return '<img src="'+ key+'"';
 		});
 		this.modal.find("textarea").val(html_beautify(html));
 	}

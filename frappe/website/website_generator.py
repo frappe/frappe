@@ -28,12 +28,12 @@ class WebsiteGenerator(Document):
 	def validate(self):
 		self.set_parent_website_route()
 
+		if not self.page_name:
+			self.page_name = self.make_page_name()
+
 		if self.meta.get_field("page_name") and not self.get("__islocal"):
 			current_route = self.get_route()
 			current_page_name = self.page_name
-
-			self.page_name = self.make_page_name()
-
 			# page name changed, rename everything
 			if current_page_name and current_page_name != self.page_name:
 				self.update_routes_of_descendants(current_route)
