@@ -354,4 +354,4 @@ def is_markdown(text):
 	if "<!-- markdown -->" in text:
 		return True
 	else:
-		return not re.search("<p[\s]*>|<br[\s]*>", context.content)
+		return not re.search("<p[\s]*>|<br[\s]*>", text)
