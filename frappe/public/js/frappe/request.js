@@ -29,6 +29,7 @@ frappe.call = function(opts) {
 		args: args,
 		success: opts.callback,
 		error: opts.error,
+		always: opts.always,
 		btn: opts.btn,
 		freeze: opts.freeze,
 		show_spinner: !opts.no_spinner,
@@ -124,6 +125,7 @@ frappe.request.call = function(opts) {
 				data = JSON.parse(data.responseText);
 			}
 			frappe.request.cleanup(opts, data);
+			if(opts.always) opts.always(data);
 		})
 		.done(function(data, textStatus, xhr) {
 			var status_code_handler = statusCode[xhr.statusCode().status];
