@@ -15,6 +15,25 @@ import hashlib
 # methods
 
 def get_doc(arg1, arg2=None):
+	"""returns a frappe.model.Document object.
+
+	:param arg1: Document dict or DocType name.
+	:param arg2: [optional] document name.
+
+	There are two ways to call `get_doc`
+
+		# will fetch the latest user object (with child table) from the database
+		user = get_doc("User", "test@example.com")
+
+		# create a new object
+		user = get_doc({
+			"doctype":"User"
+			"email_id": "test@example.com",
+			"user_roles: [
+				{"role": "System Manager"}
+			]
+		})
+	"""
 	if isinstance(arg1, BaseDocument):
 		return arg1
 	elif isinstance(arg1, basestring):
@@ -31,6 +50,9 @@ def get_doc(arg1, arg2=None):
 _classes = {}
 
 def get_controller(doctype):
+	"""Returns the **class** object of the given DocType
+
+	:param doctype: DocType name as string."""
 	if not doctype in _classes:
 		module = load_doctype_module(doctype)
 		classname = doctype.replace(" ", "").replace("-", "")
@@ -47,7 +69,16 @@ def get_controller(doctype):
 	return _classes[doctype]
 
 class Document(BaseDocument):
+	"""All controllers inherit from `Document`."""
 	def __init__(self, arg1, arg2=None):
+		"""Constructor.
+
+		:param arg1: DocType name as string or document **dict**
+		:param arg2: Document name, if `arg1` is DocType name.
+
+		If DocType name and document name are passed, the object will load
+		all values (including child documents) from the database.
+		"""
 		self.doctype = self.name = None
 
 		if arg1 and isinstance(arg1, basestring):
@@ -80,6 +111,8 @@ class Document(BaseDocument):
 		self.dont_update_if_missing = []
 
 	def load_from_db(self):
+		"""Load document and children from database and create properties
+		from fields"""
 		if not getattr(self, "_metaclass", False) and self.meta.issingle:
 			single_doc = frappe.db.get_singles_dict(self.doctype)
 			if not single_doc:
@@ -113,18 +146,29 @@ class Document(BaseDocument):
 				self.set(df.fieldname, [])
 
 	def check_permission(self, permtype, permlabel=None):
+		"""Raise `frappe.PermissionError` if not permitted"""
 		if not self.has_permission(permtype):
 			self.raise_no_permission_to(permlabel or permtype)
 
 	def has_permission(self, permtype):
+		"""Call `frappe.has_permission` if `self.ignore_permissions`
+		is not set.
+
+		:param permtype: one of `read`, `write`, `submit`, `cancel`, `delete`"""
 		if getattr(self, "ignore_permissions", False):
 			return True
 		return frappe.has_permission(self.doctype, permtype, self)
 
 	def raise_no_permission_to(self, perm_type):
+		"""Raise `frappe.PermissionError`."""
 		raise frappe.PermissionError("No permission to {} {} {}".format(perm_type, self.doctype, self.name or ""))
 
 	def insert(self, ignore_permissions=None):
+		"""Insert the document in the database (as a new document).
+		This will check for user permissions and execute `before_insert`,
+		`validate`, `on_update`, `after_insert` methods if they are written.
+
+		:param ignore_permissions: Do not check permissions if True."""
 		if getattr(self, "in_print", False):
 			return
 
@@ -166,6 +210,13 @@ class Document(BaseDocument):
 		return self
 
 	def save(self, ignore_permissions=None):
+		"""Save the current document in the database in the **DocType**'s table or
+		`tabSingles` (for single types).
+
+		This will check for user permissions and execute
+		`validate` before updating, `on_update` after updating triggers.
+
+		:param ignore_permissions: Do not check permissions if True."""
 		if getattr(self, "in_print", False):
 			return
 

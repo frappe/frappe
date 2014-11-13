@@ -1,12 +1,29 @@
 {% macro automodule(name) %}
 {% for obj in frappe.automodule(name) %}
 	{% if obj.type=="function" %}
-		<p class="docs-attr-name">
-			{{ name }}.<b>{{ obj.name }}</b>({{ print_args(obj.args) }})</p>
-		<div class="docs-attr-desc">{{ obj.docs|markdown }}</div>
-		<br>
+        {{ render_function(obj) }}
+	{% elif obj.type=="class" %}
+        {{ render_class(obj) }}
 	{% endif %}
 {% endfor %}
+{% endmacro %}
+
+{% macro render_class(obj) %}
+	<h3 style="font-weight: normal;">Class <b>{{ obj.name }}</b></h3>
+    <div class="docs-attr-desc">{{ obj.docs|markdown }}</div>
+    <div style="padding-left: 30px;">
+        {% for func in obj.members %}
+        {{ render_function(func) }}
+        {% endfor %}
+    </div>
+    <hr>
+{% endmacro %}
+
+{% macro render_function(obj, module_name) %}
+	<p class="docs-attr-name">
+		{{ module_name + "." if module_name else "" }}<b>{{ obj.name }}</b>({{ print_args(obj.args) if obj.args else "" }})</p>
+	<div class="docs-attr-desc">{{ obj.docs|markdown }}</div>
+	<br>
 {% endmacro %}
 
 {% macro print_args(args) -%}
