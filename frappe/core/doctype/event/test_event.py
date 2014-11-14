@@ -80,7 +80,7 @@ class TestEvent(unittest.TestCase):
 
 		ev = frappe.get_doc("Event", ev.name)
 
-		self.assertEquals(ev._assign, json.dumps(["test@example.com", "test1@example.com"]))
+		self.assertEquals(set(json.loads(ev._assign)), set(["test@example.com", "test1@example.com"]))
 
 		# close an assignment
 		todo = frappe.get_doc("ToDo", {"reference_type": ev.doctype, "reference_name": ev.name,
