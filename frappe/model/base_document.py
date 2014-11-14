@@ -203,7 +203,7 @@ class BaseDocument(object):
 		except Exception, e:
 			if e.args[0]==1062:
 				type, value, traceback = sys.exc_info()
-				frappe.msgprint(_("Duplicate name {0} {1}".format(self.doctype, self.name)))
+				frappe.msgprint(_("Duplicate name {0} {1}").format(self.doctype, self.name))
 				raise frappe.NameError, (self.doctype, self.name, e), traceback
 			else:
 				raise
