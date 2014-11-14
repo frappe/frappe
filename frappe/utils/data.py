@@ -325,6 +325,9 @@ def money_in_words(number, main_currency = None, fraction_currency=None):
 	"""
 	from frappe.utils import get_defaults
 
+	if not number or flt(number) < 0:
+		return ""
+
 	d = get_defaults()
 	if not main_currency:
 		main_currency = d.get('currency', 'INR')
