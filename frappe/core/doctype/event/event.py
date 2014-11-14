@@ -108,7 +108,9 @@ def get_events(start, end, user=None, for_reminder=False):
 
 	def add_event(e, date):
 		new_event = e.copy()
-		enddate = add_days(date,int(date_diff(e.ends_on.split(" ")[0], e.starts_on.split(" ")[0])))
+
+		enddate = add_days(date,int(date_diff(e.ends_on.split(" ")[0], e.starts_on.split(" ")[0]))) \
+			if (e.starts_on and e.ends_on) else date
 		new_event.starts_on = date + " " + e.starts_on.split(" ")[1]
 		if e.ends_on:
 			new_event.ends_on = enddate + " " + e.ends_on.split(" ")[1]
