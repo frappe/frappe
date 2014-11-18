@@ -358,6 +358,11 @@ $.extend(frappe, {
 		var ready = frappe.page_ready_events[frappe.get_pathname()];
 		ready && ready();
 		frappe.bind_filters();
+		if(hljs) {
+			$('pre code').each(function(i, block) {
+				hljs.highlightBlock(block);
+			});
+		}
 	},
 	bind_filters: function() {
 		// set in select

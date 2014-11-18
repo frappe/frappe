@@ -29,7 +29,11 @@
             <td {% if df.reqd %}class="danger" title="Mandatory"{% endif %}><code>{{ df.fieldname }}</code></td>
             <td {% if df.fieldtype=="Column Break" %}class="info"{% endif %}>
                 {{ df.fieldtype }}</td>
-            <td {% if df.hidden %}class="text-muted" title="Hidden"{% endif %}>{{ df.label }}</td>
+            <td {% if df.hidden %}class="text-muted" title="Hidden"{% endif %}>
+                {{ df.label }}
+                {% if df.description %}<p class="text-muted small">
+                    {{ df.description }}</p>{% endif %}
+            </td>
             <td>{% if df.options %}
                 {% if df.fieldtype in ("Table", "Link") %}
                 <a href="{{ autodoc.get_doclink(df.options) or "#" }}">{{ df.options }}</a>
