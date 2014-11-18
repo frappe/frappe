@@ -270,12 +270,14 @@ class Document(BaseDocument):
 		return self
 
 	def set_new_name(self):
+		"""Calls `frappe.naming.se_new_name` for parent and child docs."""
 		set_new_name(self)
 		# set name for children
 		for d in self.get_all_children():
 			set_new_name(d)
 
 	def update_single(self, d):
+		"""Updates values for Single type Document in `tabSingles`."""
 		frappe.db.sql("""delete from tabSingles where doctype=%s""", self.doctype)
 		for field, value in d.iteritems():
 			if field != "doctype":
@@ -329,6 +331,13 @@ class Document(BaseDocument):
 					d.update_if_missing(new_doc)
 
 	def check_if_latest(self):
+		"""Checks if `modified` timestamp provided by document being updated is same as the
+		`modified` timestamp in the database. If there is a different, the document has been
+		updated in the database after the current copy was read. Will throw an error if
+		timestamps don't match.
+
+		Will also validate document transitions (Save > Submit > Cancel) calling
+		`self.check_docstatus_transition`."""
 		conflict = False
 		self._action = "save"
 		if not self.get('__islocal'):
@@ -359,6 +368,13 @@ class Document(BaseDocument):
 			self.check_docstatus_transition(0)
 
 	def check_docstatus_transition(self, docstatus):
+		"""Ensures valid `docstatus` transition.
+		Valid transitions are (number in brackets is `docstatus`):
+
+		- Save (0) > Save (0)
+		- Save (0) > Submit (1)
+		- Submit (1) > Submit (1)
+		- Submit (1) > Cancel (2)"""
 		if not self.docstatus:
 			self.docstatus = 0
 		if docstatus==0:
@@ -384,6 +400,7 @@ class Document(BaseDocument):
 			raise frappe.ValidationError
 
 	def set_parent_in_children(self):
+		"""Updates `parent` and `parenttype` property in all children."""
 		for d in self.get_all_children():
 			d.parent = self.name
 			d.parenttype = self.doctype
@@ -436,6 +453,7 @@ class Document(BaseDocument):
 				frappe.CancelledLinkError)
 
 	def get_all_children(self, parenttype=None):
+		"""Returns all children documents from **Table** type field in a list."""
 		ret = []
 		for df in self.meta.get("fields", {"fieldtype": "Table"}):
 			if parenttype:
@@ -453,7 +471,7 @@ class Document(BaseDocument):
 				extract_images_from_html(self, df.fieldname)
 
 	def run_method(self, method, *args, **kwargs):
-		"""run standard triggers, plus those in frappe"""
+		"""run standard triggers, plus those in hooks"""
 		if hasattr(self, method) and hasattr(getattr(self, method), "__call__"):
 			fn = lambda self, *args, **kwargs: getattr(self, method)(*args, **kwargs)
 		else:
@@ -464,17 +482,26 @@ class Document(BaseDocument):
 		return Document.hook(fn)(self, *args, **kwargs)
 
 	def submit(self):
+		"""Submit the document. Sets `docstatus` = 1, then saves."""
 		self.docstatus = 1
 		self.save()
 
 	def cancel(self):
+		"""Cancel the document. Sets `docstatus` = 2, then saves."""
 		self.docstatus = 2
 		self.save()
 
 	def delete(self):
+		"""Delete document."""
 		frappe.delete_doc(self.doctype, self.name)
 
 	def run_before_save_methods(self):
+		"""Run standard methods before  `INSERT` or `UPDATE`. Standard Methods are:
+
+		- `validate`, `before_save` for **Save**.
+		- `validate`, `before_submit` for **Submit**.
+		- `before_cancel` for **Cancel**
+		- `before_update_after_submit` for **Update after Submit**"""
 		if getattr(self, "ignore_validate", False):
 			return
 
@@ -490,6 +517,12 @@ class Document(BaseDocument):
 			self.run_method("before_update_after_submit")
 
 	def run_post_save_methods(self):
+		"""Run standard methods after `INSERT` or `UPDATE`. Standard Methods are:
+
+		- `on_update` for **Save**.
+		- `on_update`, `on_submit` for **Submit**.
+		- `on_cancel` for **Cancel**
+		- `update_after_submit` for **Update after Submit**"""
 		if self._action=="save":
 			self.run_method("on_update")
 		elif self._action=="submit":
@@ -504,17 +537,24 @@ class Document(BaseDocument):
 			self.run_method("on_update_after_submit")
 
 	def check_no_back_links_exist(self):
+		"""Check if document links to any active document before Cancel."""
 		from frappe.model.delete_doc import check_if_doc_is_linked
 		if not self.get("ignore_links"):
 			check_if_doc_is_linked(self, method="Cancel")
 
 	@staticmethod
 	def whitelist(f):
+		"""Decorator: Whitelist method to be called remotely via REST API."""
 		f.whitelisted = True
 		return f
 
 	@staticmethod
 	def hook(f):
+		"""Decorator: Make method `hookable` (i.e. extensible by another app).
+
+		Note: If each hooked method returns a value (dict), then all returns are
+		collated in one dict and returned. Ideally, don't return values in hookable
+		methods, set properties in the document."""
 		def add_to_return_value(self, new_return_value):
 			if isinstance(new_return_value, dict):
 				if not self.get("_return_value"):
@@ -554,8 +594,8 @@ class Document(BaseDocument):
 			raise Forbidden("Method {0} not whitelisted".format(method))
 
 	def validate_value(self, fieldname, condition, val2, doc=None, raise_exception=None):
-		"""check that value of fieldname should be 'condition' val2
-			else throw exception"""
+		"""Check that value of fieldname should be 'condition' val2
+			else throw Exception."""
 		error_condition_map = {
 			"in": _("one of"),
 			"not in": _("none of"),
@@ -592,11 +632,16 @@ class Document(BaseDocument):
 			msgprint(msg, raise_exception=raise_exception or True)
 
 	def validate_table_has_rows(self, parentfield, raise_exception=None):
+		"""Raise exception if Table field is empty."""
 		if not (isinstance(self.get(parentfield), list) and len(self.get(parentfield)) > 0):
 			label = self.meta.get_label(parentfield)
 			frappe.throw(_("Table {0} cannot be empty").format(label), raise_exception or frappe.EmptyTableError)
 
 	def round_floats_in(self, doc, fieldnames=None):
+		"""Round floats for all `Currency`, `Float`, `Percent` fields for the given doc.
+
+		:param doc: Document whose numeric properties are to be rounded.
+		:param fieldnames: [Optional] List of fields to be rounded."""
 		if not fieldnames:
 			fieldnames = (df.fieldname for df in
 				doc.meta.get("fields", {"fieldtype": ["in", ["Currency", "Float", "Percent"]]}))
@@ -605,6 +650,10 @@ class Document(BaseDocument):
 			doc.set(fieldname, flt(doc.get(fieldname), self.precision(fieldname, doc.parentfield)))
 
 	def precision(self, fieldname, parentfield=None):
+		"""Returns float precision for a particular field (or get global default).
+
+		:param fieldname: Fieldname for which precision is required.
+		:param parentfield: If fieldname is in child table."""
 		from frappe.model.meta import get_field_precision
 
 		if parentfield and not isinstance(parentfield, basestring):
@@ -630,9 +679,13 @@ class Document(BaseDocument):
 		return self._precision[cache_key][fieldname]
 
 	def get_url(self):
+		"""Returns Desk URL for this document. `/desk#Form/{doctype}/{name}`"""
 		return "/desk#Form/{doctype}/{name}".format(doctype=self.doctype, name=self.name)
 
 	def add_comment(self, comment_type, text=None):
+		"""Add a comment to this document.
+
+		:param comment_type: e.g. `Comment`. See Comment for more info."""
 		comment = frappe.get_doc({
 			"doctype":"Comment",
 			"comment_by": frappe.session.user,
@@ -644,4 +697,5 @@ class Document(BaseDocument):
 		return comment
 
 	def get_signature(self):
+		"""Returns signature (hash) for private URL."""
 		return hashlib.sha224(self.creation).hexdigest()

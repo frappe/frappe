@@ -29,7 +29,8 @@ def get_allowed_functions_for_jenv():
 	import frappe
 	import frappe.utils
 	import frappe.utils.data
-	from frappe.utils.autodoc import automodule
+	from frappe.utils.autodoc import automodule, get_doclink
+	from frappe.model.document import get_controller
 
 	datautils = {}
 	for key, obj in frappe.utils.data.__dict__.items():
@@ -66,8 +67,12 @@ def get_allowed_functions_for_jenv():
 			"date_format": frappe.db.get_default("date_format") or "yyyy-mm-dd",
 			"get_fullname": frappe.utils.get_fullname,
 			"get_gravatar": frappe.utils.get_gravatar,
-			"full_name": frappe.local.session.data.full_name,
-			"automodule": automodule
+			"full_name": frappe.local.session.data.full_name
+		},
+		"autodoc": {
+			"get_doclink": get_doclink,
+			"automodule": automodule,
+			"get_controller": get_controller
 		},
 		"get_visible_columns": \
 			frappe.get_attr("frappe.templates.pages.print.get_visible_columns"),

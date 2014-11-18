@@ -8,7 +8,8 @@ frappe.utils.autodoc
 Inspect elements of a given module and return its objects
 """
 
-import inspect, importlib, re
+import inspect, importlib, re, frappe
+from frappe.model.document import get_controller
 
 def automodule(name):
 	"""Returns a list of attributes for given module string.
@@ -38,8 +39,6 @@ def automodule(name):
 		if inspect.isfunction(value):
 			attributes.append(get_function_info(value))
 
-	print filter(None, attributes)
-
 	return filter(None, attributes)
 
 def get_class_info(class_obj, module_name):
@@ -48,11 +47,17 @@ def get_class_info(class_obj, module_name):
 		member = getattr(class_obj, attrname)
 
 		if inspect.ismethod(member):
+
+			if getattr(member, "__module__", None) != module_name:
+				# inherited member, ignore
+				continue
+
 			members.append(get_function_info(member))
 
 	return {
 		"name": class_obj.__name__,
 		"type": "class",
+		"bases": [b.__module__ + "." + b.__name__ for b in class_obj.__bases__],
 		"members": filter(None, members),
 		"docs": parse(getattr(class_obj, "__doc__", ""))
 	}
@@ -78,19 +83,20 @@ def parse(docs):
 	if ":param" in docs:
 		out, title_set = [], False
 		for line in docs.splitlines():
-			if ":param" in line and not title_set:
-				# add title and list
-				out.append("")
-				out.append("**Parameters:**")
-				out.append("")
-				title_set = True
-
 			if ":param" in line:
+				if not title_set:
+					# add title and list
+					out.append("")
+					out.append("**Parameters:**")
+					out.append("")
+					title_set = True
+
 				line = re.sub("\s*:param\s([^:]+):(.*)", "- **\g<1>** - \g<2>", line)
 
-			if title_set and not ":param" in line:
+			elif title_set and not ":param" in line:
 				# marker for end of list
 				out.append("")
+				title_set = False
 
 			out.append(line)
 
@@ -114,3 +120,20 @@ def strip_leading_tabs(docs):
 			docs = "\n".join([lines[0]] + [l[strip_left:] for l in lines[1:]])
 
 	return docs
+
+def automodel(doctype):
+	"""return doctype template"""
+	pass
+
+def get_doclink(name):
+	"""Returns `__doclink__` property of a module or DocType if exists"""
+	if "." in name:
+		obj = frappe.get_attr(name)
+
+	else:
+		obj = get_controller(name)
+
+	if hasattr(obj, "__doclink__"):
+		return obj.__doclink__
+	else:
+		return ""

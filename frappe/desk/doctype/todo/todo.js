@@ -11,7 +11,10 @@ frappe.ui.form.on("ToDo", "refresh", function(frm) {
 		if(frm.doc.status=="Open") {
 			frm.add_custom_button(__("Close"), function() {
 				frm.set_value("status", "Closed");
-				frm.save();
+				frm.save(null, function() {
+					// back to list
+					frappe.set_route("List", "ToDo");
+				});
 			}, "icon-ok", "btn-success");
 		} else {
 			frm.add_custom_button(__("Re-open"), function() {

@@ -19,10 +19,18 @@ form_grid_templates = {
 }
 
 class DocType(Document):
+	__doclink__ = "https://frappe.io/developers/modules/core/doctype"
 	def get_feed(self):
 		return self.name
 
 	def validate(self):
+		"""Validate DocType before saving.
+
+		- Check if developer mode is set.
+		- Validate series
+		- Check fieldnames (duplication etc)
+		- Clear permission table for child tables
+		- Add `amended_from` and `ameneded_by` if Amendable"""
 		if not frappe.conf.get("developer_mode"):
 			frappe.throw(_("Not in Developer Mode! Set in site_config.json"))
 		for c in [".", "/", "#", "&", "=", ":", "'", '"']:
