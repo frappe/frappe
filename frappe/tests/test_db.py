@@ -1,3 +1,5 @@
+#  -*- coding: utf-8 -*-
+
 # Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
@@ -14,3 +16,6 @@ class TestDB(unittest.TestCase):
 		self.assertEquals(frappe.db.get_value("User", {"name": ["<=", "Administrator"]}), "Administrator")
 		self.assertEquals("test1@example.com", frappe.db.get_value("User", {"name": [">", "s"]}))
 		self.assertEquals("test1@example.com", frappe.db.get_value("User", {"name": [">=", "t"]}))
+
+	def test_escape(self):
+		frappe.db.escape("香港濟生堂製藥有限公司 - IT".encode("utf-8"))
