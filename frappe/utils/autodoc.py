@@ -39,7 +39,19 @@ def automodule(name):
 		if inspect.isfunction(value):
 			attributes.append(get_function_info(value))
 
-	return filter(None, attributes)
+	return {
+		"members": filter(None, attributes),
+	}
+
+def get_version(name):
+	def _for_module(m):
+		return importlib.import_module(m.split(".")[0]).__version__
+
+	if "." in name or name=="frappe":
+		return _for_module(name)
+	else:
+		return _for_module(get_controller(name).__module__)
+
 
 def get_class_info(class_obj, module_name):
 	members = []
@@ -69,7 +81,8 @@ def get_function_info(value):
 			"name": value.__name__,
 			"type": "function",
 			"args": inspect.getargspec(value),
-			"docs": parse(docs)
+			"docs": parse(docs),
+			"whitelisted": value in frappe.whitelisted
 		}
 
 def parse(docs):
@@ -91,7 +104,7 @@ def parse(docs):
 					out.append("")
 					title_set = True
 
-				line = re.sub("\s*:param\s([^:]+):(.*)", "- **\g<1>** - \g<2>", line)
+				line = re.sub("\s*:param\s([^:]+):(.*)", "- **`\g<1>`** - \g<2>", line)
 
 			elif title_set and not ":param" in line:
 				# marker for end of list

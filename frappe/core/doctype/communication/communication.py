@@ -12,11 +12,14 @@ from frappe import _
 from frappe.model.document import Document
 
 class Communication(Document):
+	"""Communication represents an external communication like Email."""
 	def validate(self):
+		"""Set default sender email_id from current user."""
 		if not self.sender:
 			self.sender = frappe.db.get_value("User", frappe.session.user, "email")
 
 	def get_parent_doc(self):
+		"""Returns document of `reference_doctype`, `reference_doctype`"""
 		if not hasattr(self, "parent_doc"):
 			if self.reference_doctype and self.reference_name:
 				self.parent_doc = frappe.get_doc(self.reference_doctype, self.reference_name)
@@ -25,10 +28,11 @@ class Communication(Document):
 		return self.parent_doc
 
 	def on_update(self):
+		"""Update parent status as `Open` or `Replied`."""
 		self.update_parent()
 
 	def update_parent(self):
-		"""update status of parent Lead or Contact based on who is replying"""
+		"""Update status of parent document based on who is replying."""
 		parent = self.get_parent_doc()
 		if not parent:
 			return
@@ -41,6 +45,11 @@ class Communication(Document):
 
 	def send(self, send_me_a_copy=False, print_html=None, print_format=None,
 		attachments=None):
+		"""Send communication via Email.
+
+		:param send_me_a_copy: **cc** to current user.
+		:param print_html: Send given value as HTML attachment.
+		:param print_format: Attach print format of parent document."""
 		if print_format:
 			self.content += self.get_attach_link(print_format)
 		mail = get_email(self.recipients, sender=self.sender, subject=self.subject,
@@ -66,6 +75,7 @@ class Communication(Document):
 		frappe.email.smtp.send(mail)
 
 	def get_attach_link(self, print_format):
+		"""Returns public link for the attachment via `templates/emails/print_link.html`."""
 		return frappe.get_template("templates/emails/print_link.html").render({
 			"url": get_url(),
 			"doctype": self.reference_doctype,
@@ -75,12 +85,28 @@ class Communication(Document):
 		})
 
 def on_doctype_update():
+	"""Add index in `tabCommunication` for `(reference_doctype, reference_name)`"""
 	frappe.db.add_index("Communication", ["reference_doctype", "reference_name"])
 
 @frappe.whitelist()
 def make(doctype=None, name=None, content=None, subject=None, sent_or_received = "Sent",
 	sender=None, recipients=None, communication_medium="Email", send_email=False,
-	print_html=None, print_format=None, attachments='[]', send_me_a_copy=False, set_lead=True, date=None):
+	print_html=None, print_format=None, attachments='[]', send_me_a_copy=False):
+	"""Make a new communication.
+
+	:param doctype: Reference DocType.
+	:param name: Reference Document name.
+	:param content: Communication body.
+	:param subject: Communication subject.
+	:param sent_or_received: Sent or Received (default **Sent**).
+	:param sender: Communcation sender (default current user).
+	:param recipients: Communication recipients as list.
+	:param communication_medium: Medium of communication (default **Email**).
+	:param send_mail: Send via email (default **False**).
+	:param print_html: HTML Print format to be sent as attachment.
+	:param print_format: Print Format name of parent document to be sent as attachment.
+	:param attachments: List of attachments as list of files or JSON string.
+	:param send_me_a_copy: Set current user as **cc** in email."""
 
 	if doctype and name and not frappe.has_permission(doctype, "email", name):
 		raise frappe.PermissionError("You are not allowed to send emails related to: {doctype} {name}".format(

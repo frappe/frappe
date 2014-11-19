@@ -197,7 +197,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 	// get table_name.column_name
 	get_full_column_name: function(v) {
 		if(!v) return;
-		return (v[1] ? ('`tab' + v[1] + '`') : this.tab_name) + '.' + v[0];
+		return (v[1] ? ('`tab' + v[1] + '`') : this.tab_name) + '.`' + v[0] + '`';
 	},
 
 	// build columns for slickgrid

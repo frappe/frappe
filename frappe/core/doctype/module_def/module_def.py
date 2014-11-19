@@ -7,7 +7,7 @@ import frappe, os
 from frappe.model.document import Document
 
 class ModuleDef(Document):
-	__doclink__ = "https://frappe.io/developers/modules/core/module_def"
+	__doclink__ = "https://frappe.io/docs/models/core/module_def"
 	def on_update(self):
 		"""If in `developer_mode`, create folder for module and
 			add in `modules.txt` of app if missing."""

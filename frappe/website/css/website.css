@@ -433,6 +433,10 @@ a.active {
 	cursor: default;
 }
 
+:target {
+   background-color: #ffa;
+}
+
 .page-breadcrumbs .breadcrumb {
 	padding: 0px;
 	margin-bottom: 2px;

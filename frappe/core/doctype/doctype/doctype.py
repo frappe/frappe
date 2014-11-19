@@ -19,7 +19,7 @@ form_grid_templates = {
 }
 
 class DocType(Document):
-	__doclink__ = "https://frappe.io/developers/modules/core/doctype"
+	__doclink__ = "https://frappe.io/docs/models/core/doctype"
 	def get_feed(self):
 		return self.name
 

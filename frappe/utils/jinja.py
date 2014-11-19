@@ -29,7 +29,7 @@ def get_allowed_functions_for_jenv():
 	import frappe
 	import frappe.utils
 	import frappe.utils.data
-	from frappe.utils.autodoc import automodule, get_doclink
+	from frappe.utils.autodoc import automodule, get_doclink, get_version
 	from frappe.model.document import get_controller
 
 	datautils = {}
@@ -70,6 +70,7 @@ def get_allowed_functions_for_jenv():
 			"full_name": frappe.local.session.data.full_name
 		},
 		"autodoc": {
+			"get_version": get_version,
 			"get_doclink": get_doclink,
 			"automodule": automodule,
 			"get_controller": get_controller

@@ -1,12 +1,19 @@
 {% macro automodule(name) %}
-{% for obj in autodoc.automodule(name) %}
+{% set m = autodoc.automodule(name) %}
+{{ version(name) }}
+{% for obj in m.members %}
 	{% if obj.type=="function" %}
-        {{ render_function(obj) }}
+        {{ render_function(obj, name) }}
 	{% elif obj.type=="class" %}
         {{ render_class(obj) }}
 	{% endif %}
 {% endfor %}
+{% endmacro %}
 
+{% macro version(name) %}
+<p class="text-right">
+    <span class="label label-default">Version {{ autodoc.get_version(name) }}</span>
+</p>
 {% endmacro %}
 
 {% macro render_class(obj) %}
@@ -24,15 +31,23 @@
 {% endmacro %}
 
 {% macro render_function(obj, module_name) %}
+    {% set full_name = (module_name + "." if module_name else "" ) + obj.name %}
+    {% if obj.whitelisted %}<p><span class="label label-info">Public API</span>
+        <br><code>/api/method/{{ full_name }}</code>
+    </p>{% endif %}
 	<p class="docs-attr-name">
-		{{ module_name + "." if module_name else "" }}<b>{{ obj.name }}</b>({{ print_args(obj.args) if obj.args else "" }})</p>
+        <a name="{{ full_name }}" href="#{{ full_name }}" class="text-muted small">
+            <i class="icon-link small" style="color: #ccc;"></i></a>
+		{{ module_name + "." if module_name else "" }}<b>{{ obj.name }}</b>
+        <i class="text-muted">({{ print_args(obj.args) if obj.args else "" }})</i>
+    </p>
 	<div class="docs-attr-desc">{{ obj.docs|markdown }}</div>
 	<br>
 {% endmacro %}
 
 {% macro print_args(args) -%}
-<i>{% for arg in args[0] -%}
+{% for arg in args[0] -%}
 	{%- set default_idx = args[3]|len - args[0]|len + (loop.index - 1) if args[3] else -1 -%}
 	{{ arg }}{% if default_idx >= 0 %}={{ args[3][default_idx] }}{% endif %}{% if not loop.last %}, {% endif %}
-	{%- endfor %}</i>
+	{%- endfor %}
 {%- endmacro %}
