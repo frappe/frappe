@@ -9,7 +9,6 @@ from frappe import _
 from frappe.model.document import Document
 
 class CustomField(Document):
-
 	def autoname(self):
 		self.set_fieldname()
 		self.name = self.dt + "-" + self.fieldname
@@ -40,9 +39,9 @@ class CustomField(Document):
 		self.create_property_setter()
 
 		# update the schema
-		if not frappe.flags.in_test:
-			from frappe.model.db_schema import updatedb
-			updatedb(self.dt)
+		# if not frappe.flags.in_test:
+		from frappe.model.db_schema import updatedb
+		updatedb(self.dt)
 
 	def on_trash(self):
 		# delete property setter entries
