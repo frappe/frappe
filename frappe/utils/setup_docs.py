@@ -43,30 +43,29 @@ def is_py_module(basepath, folders, files):
 		and (not "doctype" in folders)
 
 def write_modules(basepath, folders, files):
-	make_folder(basepath)
+	module_folder = os.path.join(api_base_path, os.path.relpath(basepath, app_path))
+	make_folder(module_folder)
 
 	for f in files:
 		if f.endswith(".py"):
 			module_name = os.path.relpath(os.path.join(basepath, f),
 				app_path)[:-3].replace("/", ".").replace(".__init__", "")
 
-			parts = module_name.split(".")
-
-			module_doc_path = os.path.join(api_base_path, ("/".join(parts[:-1])),
+			module_doc_path = os.path.join(module_folder,
 				app_name + "." + module_name + ".md")
 
+			make_folder(basepath)
 
 			if not os.path.exists(module_doc_path):
 				print "Writing " + module_doc_path
 				with open(module_doc_path, "w") as f:
 					f.write("""# %s
 
-{%%- from "templates/autodoc/macros.html " import automodule -%%}
+{%%- from "templates/autodoc/macros.html" import automodule -%%}
 
 {{ automodule("%s") }}""" % (app_name + "." + module_name, app_name + "." + module_name))
 
-	update_index_txt(basepath)
-
+	update_index_txt(module_folder)
 
 def make_folder(path):
 	if not os.path.exists(path):
