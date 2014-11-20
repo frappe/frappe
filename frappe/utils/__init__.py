@@ -353,5 +353,7 @@ def get_html_format(print_path):
 def is_markdown(text):
 	if "<!-- markdown -->" in text:
 		return True
+	elif "<!-- html -->" in text:
+		return False
 	else:
 		return not re.search("<p[\s]*>|<br[\s]*>", text)

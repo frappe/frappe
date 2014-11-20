@@ -60,6 +60,9 @@ frappe.ui.form.Control = Class.extend({
 		return this.doctype && this.docname
 			&& locals[this.doctype] && locals[this.doctype][this.docname] || {};
 	},
+	set_value: function(value) {
+		this.parse_validate_and_set_in_model(value);
+	},
 	parse_validate_and_set_in_model: function(value) {
 		var me = this;
 		this.inside_change_event = true;
@@ -1089,15 +1092,31 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 	},
 	switch: function() {
 		if(this.current_editor===this.editor) {
+			// switch to md
+			var value = this.editor.get_value();
 			this.editor_wrapper.addClass("hide");
 			this.md_editor_wrapper.removeClass("hide");
 			this.current_editor = this.md_editor;
+			this.add_type_marker("markdown");
 		} else {
+			// switch to html
+			var value = this.md_editor.val();
 			this.md_editor_wrapper.addClass("hide");
 			this.editor_wrapper.removeClass("hide");
 			this.current_editor = this.editor;
+			this.add_type_marker("html");
 		}
 		this.render_switcher();
+	},
+	add_type_marker: function(marker) {
+		var opp_marker = marker==="html" ? "markdown" : "html";
+		if(this.value.indexOf("<!-- " + opp_marker + " -->")!==-1) {
+			// replace opposite marker
+			this.set_value(this.value.split("<!-- " + opp_marker + " -->").join("<!-- " + marker + " -->"));
+		} else if(this.value.indexOf("<!-- " + marker + " -->")===-1) {
+			// add marker (marker missing)
+			this.set_value(this.value + "\n\n\n<!-- " + marker + " -->");
+		}
 	},
 	render_switcher: function() {
 		this.switcher.html(__("Edit as {0}", [this.current_editor == this.editor ?
@@ -1106,25 +1125,27 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 	get_value: function() {
 		return this.current_editor === this.editor
 			? this.editor.get_value()
-			: this.md_editor.get_value();
+			: this.md_editor.val();
 	},
 	set_input: function(value) {
-		this.editor.set_input(value);
-		this.md_editor.val(value);
-		this.last_value = value;
+		this._set_input(value);
 
 		// guess editor type
+		var is_markdown = false;
 		if(value) {
 			if(value.indexOf("<!-- markdown -->") !== -1) {
 				var is_markdown = true;
-			} else {
-				var is_markdown = value.search(/<br\s*>|<p\s*>/) === -1;
 			}
 			if((is_markdown && this.current_editor===this.editor)
 				|| (!is_markdown && this.current_editor===this.md_editor)) {
 				this.switch();
 			}
 		}
+	},
+	_set_input: function(value) {
+		this.editor.set_input(value);
+		this.md_editor.val(value);
+		this.last_value = value;
 	}
 });
 
