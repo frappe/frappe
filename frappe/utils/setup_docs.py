@@ -5,6 +5,7 @@ import os, json
 models_base_path = "apps/frappe_io/frappe_io/www/docs/models"
 api_base_path = "apps/frappe_io/frappe_io/www/docs/api"
 app_path = "apps/frappe/frappe"
+app_name = "frappe"
 
 def make_docs():
 	"""Generate source templates for models reference and module API.
@@ -14,8 +15,11 @@ def make_docs():
 	for basepath, folders, files in os.walk(app_path):
 		if "doctype" in folders and not "doctype" in basepath:
 			module = os.path.basename(basepath)
-			make_index_txt_and_index_md(module)
-			update_index_txt(module)
+
+			module_folder = os.path.join(models_base_path, module)
+
+			make_folder(module_folder)
+			update_index_txt(module_folder)
 
 		if "doctype" in basepath:
 			parts = basepath.split("/")
@@ -25,30 +29,73 @@ def make_docs():
 			if doctype not in ("doctype", "boilerplate"):
 				write_model_file(basepath, module, doctype)
 
-def make_index_txt_and_index_md(module):
-	module_folder = os.path.join(models_base_path, module)
-	if not os.path.exists(module_folder):
-		os.makedirs(module_folder)
-		index_txt_path = os.path.join(module_folder, "index.txt")
-		if not os.path.exists(index_txt_path):
-			with open(index_txt_path, "w") as f:
-				f.write("")
-		index_md_path = os.path.join(module_folder, "index.md")
-		if not os.path.exists(index_md_path):
-			with open(index_md_path, "w") as f:
-				f.write("# {0}\n\n{{index}}".format(module.title()))
+		elif is_py_module(basepath, folders, files):
+			write_modules(basepath, folders, files)
 
-def update_index_txt(module):
-	module_folder = os.path.join(models_base_path, module)
-	index_txt_path = os.path.join(module_folder, "index.txt")
-	models = filter(lambda d: d.endswith(".md") and d!="index.md", os.listdir(module_folder))
-	models = [d[:-3] for d in models]
+def is_py_module(basepath, folders, files):
+	return "__init__.py" in files \
+		and (not "/doctype" in basepath) \
+		and (not "/patches" in basepath) \
+		and (not "/report" in basepath) \
+		and (not "/page" in basepath) \
+		and (not "/templates" in basepath) \
+		and (not "/tests" in basepath) \
+		and (not "doctype" in folders)
+
+def write_modules(basepath, folders, files):
+	make_folder(basepath)
+
+	for f in files:
+		if f.endswith(".py"):
+			module_name = os.path.relpath(os.path.join(basepath, f),
+				app_path)[:-3].replace("/", ".").replace(".__init__", "")
+
+			parts = module_name.split(".")
+
+			module_doc_path = os.path.join(api_base_path, ("/".join(parts[:-1])),
+				app_name + "." + module_name + ".md")
+
+
+			if not os.path.exists(module_doc_path):
+				print "Writing " + module_doc_path
+				with open(module_doc_path, "w") as f:
+					f.write("""# %s
+
+{%%- from "templates/autodoc/macros.html " import automodule -%%}
+
+{{ automodule("%s") }}""" % (app_name + "." + module_name, app_name + "." + module_name))
+
+	update_index_txt(basepath)
+
+
+def make_folder(path):
+	if not os.path.exists(path):
+		os.makedirs(path)
+
+	index_txt_path = os.path.join(path, "index.txt")
+	if not os.path.exists(index_txt_path):
+		print "Writing " + index_txt_path
+		with open(index_txt_path, "w") as f:
+			f.write("")
+
+	index_md_path = os.path.join(path, "index.md")
+	if not os.path.exists(index_md_path):
+		print "Writing " + index_md_path
+		with open(index_md_path, "w") as f:
+			f.write("# {0}\n\n{{index}}".format(os.path.basename(path).title()))
+
+def update_index_txt(path):
+	index_txt_path = os.path.join(path, "index.txt")
+	pages = filter(lambda d: d.endswith(".md") and d!="index.md", os.listdir(path))
+	pages = [d[:-3] for d in pages]
+
 	with open(index_txt_path, "r") as f:
 		index_parts = filter(None, f.read().splitlines())
 
-	if set(models) != set(index_parts):
+	if not set(pages).issubset(set(index_parts)):
+		print "Updating " + index_txt_path
 		with open(index_txt_path, "w") as f:
-			f.write("\n".join(models))
+			f.write("\n".join(pages))
 
 def write_model_file(basepath, doctype, module):
 	model_path = os.path.join(models_base_path, module, doctype + ".md")
@@ -59,7 +106,7 @@ def write_model_file(basepath, doctype, module):
 			with open(model_json_path, "r") as j:
 				doctype_real_name = json.loads(j.read()).get("name")
 
-			print doctype_real_name
+			print "Writing " + model_path
 
 			with open(model_path, "w") as f:
 				f.write("""# %s

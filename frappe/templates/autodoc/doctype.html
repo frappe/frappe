@@ -37,7 +37,7 @@
                 {% if df.description %}<p class="text-muted small">
                     {{ df.description }}</p>{% endif %}
             </td>
-            <td>{% if df.options %}
+            <td>{% if df.options and df.fieldtype not in ("HTML") %}
                 {% if df.fieldtype in ("Table", "Link") %}
                 <a href="{{ autodoc.get_doclink(df.options) or "#" }}">{{ df.options }}</a>
                 {% else %}<pre>{{ df.options }}</pre>{% endif %}
