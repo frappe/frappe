@@ -71,7 +71,10 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 			delete_from_table(doctype, name, ignore_doctypes, doc)
 
 		if doc:
-			insert_feed(doc)
+			try:
+				insert_feed(doc)
+			except ImportError:
+				pass
 
 		# delete user_permissions
 		frappe.defaults.clear_default(parenttype="User Permission", key=doctype, value=name)
