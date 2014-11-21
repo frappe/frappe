@@ -358,7 +358,7 @@ $.extend(frappe, {
 		var ready = frappe.page_ready_events[frappe.get_pathname()];
 		ready && ready();
 	},
-	hightlight_code_blocks: function() {
+	highlight_code_blocks: function() {
 		if(hljs) {
 			$('pre code').each(function(i, block) {
 				hljs.highlightBlock(block);
@@ -582,7 +582,6 @@ $(document).on("page-change", function() {
 	frappe.toggle_template_blocks();
 	frappe.trigger_ready();
 	frappe.bind_filters();
-	frappe.hightlight_code_blocks();
-	frappe.hightlight_named_link();
+	frappe.highlight_code_blocks();
 	frappe.make_navbar_active();
 });
