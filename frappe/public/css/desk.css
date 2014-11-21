@@ -104,6 +104,10 @@ div#freeze {
 	padding: 5px 15px;
 }
 
+.star-action.icon-star {
+	color: #ffdb4c;
+}
+
 /* module */
 
 .alert-badge {

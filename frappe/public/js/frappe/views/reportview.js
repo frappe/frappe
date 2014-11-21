@@ -223,7 +223,8 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 					docfield.fieldtype = {
 						"_user_tags": "Tag",
 						"_comments": "Comment",
-						"_assign": "Assign"
+						"_assign": "Assign",
+						"_starred_by": "StarredBy",
 					}[docfield.fieldname] || docfield.fieldtype;
 
 					if(docfield.fieldtype==="Link" && docfield.fieldname!=="name") {

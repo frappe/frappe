@@ -377,7 +377,7 @@ frappe.ui.Listing = Class.extend({
 		} else {
 			// no filter for this item,
 			// setup one
-			if(['_user_tags', '_comments', '_assign'].indexOf(fieldname)!==-1) {
+			if(['_user_tags', '_comments', '_assign', '_starred_by'].indexOf(fieldname)!==-1) {
 				this.filter_list.add_filter(doctype, fieldname,
 					'like', '%' + label + '%');
 			} else {

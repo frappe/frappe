@@ -35,9 +35,13 @@ frappe.ui.form.InfoBar = Class.extend({
 				me.scroll_to(".form-assignments");
 			});
 
-
 		this.$links = this.appframe.add_icon_btn("2", "icon-link", __("Linked With"),
 				function() { me.frm.toolbar.show_linked_with(); });
+
+		this.$star = this.appframe.add_icon_btn("2", "icon-star star-action", __("Star this document"),
+				function() {
+					frappe.ui.toggle_star(me.$star, me.frm.doctype,
+						me.frm.doc.name) }).find(".star-action");
 
 		// link to user permissions
 		if(!me.frm.meta.issingle && frappe.model.can_set_user_permissions(me.frm.doctype, me.frm)) {
@@ -106,7 +110,14 @@ frappe.ui.form.InfoBar = Class.extend({
 				me["$" + v].addClass("appframe-iconbar-active");
 			else
 				me["$" + v].removeClass("appframe-iconbar-active");
-		})
+		});
+
+		// toggle star icon
+		this.$star
+			.attr("data-name", me.frm.doc.name)
+			.removeClass("icon-star")
+			.removeClass("icon-star-empty")
+			.addClass("icon-star" + ((me.frm.doc._starred_by || "").indexOf(user)===-1 ? "-empty" : ""))
 	},
 
 	scroll_to: function(cls) {

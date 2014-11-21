@@ -168,14 +168,9 @@ class BaseDocument(object):
 				if doc[k] is None:
 					del doc[k]
 
-		if self.get("_user_tags"):
-			doc["_user_tags"] = self.get("_user_tags")
-
-		if self.get("__islocal"):
-			doc["__islocal"] = 1
-
-		elif self.get("__onload"):
-			doc["__onload"] = self.get("__onload")
+		for key in ("_user_tags", "__islocal", "__onload", "_starred_by"):
+			if self.get(key):
+				doc[key] = self.get(key)
 
 		return doc
 

@@ -135,13 +135,13 @@ class DatabaseQuery(object):
 			raise frappe.PermissionError, doctype
 
 	def remove_user_tags(self):
-		"""remove column _user_tags if not in table"""
+		"""Removes optional columns like `_user_tags`, `_comments` etc. if not in table"""
 		columns = frappe.db.get_table_columns(self.doctype)
 
 		# remove from fields
 		to_remove = []
 		for fld in self.fields:
-			for f in ("_user_tags", "_comments", "_assign"):
+			for f in ("_user_tags", "_comments", "_assign", "_starred_by"):
 				if f in fld and not f in columns:
 					to_remove.append(fld)
 
@@ -155,7 +155,7 @@ class DatabaseQuery(object):
 				each = [each]
 
 			for element in each:
-				if element in ("_user_tags", "_comments", "_assign") and element not in columns:
+				if element in ("_user_tags", "_comments", "_assign", "_starred_by") and element not in columns:
 					to_remove.append(each)
 
 		for each in to_remove:

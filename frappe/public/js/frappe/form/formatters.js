@@ -99,6 +99,14 @@ frappe.form.formatters = {
 
 		return frappe.form.formatters.Data(value);
 	},
+	StarredBy: function(value) {
+		var html = "";
+		$.each(JSON.parse(value || "[]"), function(i, v) {
+			if(v) html+= '<span class="avatar avatar-small" \
+				style="margin-right: 3px;"><img src="'+frappe.user_info(v).image+'"></span>';
+		});
+		return html;
+	},
 	Tag: function(value) {
 		var html = "";
 		$.each((value || "").split(","), function(i, v) {

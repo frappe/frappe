@@ -8,6 +8,8 @@ frappe.request.url = '/';
 
 // generic server call (call page, object)
 frappe.call = function(opts) {
+	if(opts.quiet)
+		opts.no_spinner = true;
 	var args = $.extend({}, opts.args);
 
 	// cmd

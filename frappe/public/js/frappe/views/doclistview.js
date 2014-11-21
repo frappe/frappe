@@ -81,6 +81,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		this.init_list(false);
 		this.init_stats();
 		this.init_minbar();
+		this.init_star();
 		this.show_match_help();
 		this.init_listview();
 		this.make_help();
@@ -296,9 +297,16 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		this.appframe.add_icon_btn("2", 'icon-tag', __('Show Tags'), function() { me.toggle_tags(); });
 		this.$page.on("click", ".list-tag-preview", function() { me.toggle_tags(); });
 
+
 		this.appframe.add_icon_btn("2", 'icon-user', __('Assigned To Me'),
 			function() {
 				me.filter_list.add_filter(me.doctype, "_assign", 'like', '%' + user + '%');
+				me.run();
+			});
+
+		this.appframe.add_icon_btn("2", 'icon-star', __('Starred by Me'),
+			function() {
+				me.filter_list.add_filter(me.doctype, "_starred_by", 'like', '%' + user + '%');
 				me.run();
 			});
 
@@ -340,6 +348,13 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 				})
 			});
 		}
+	},
+
+	init_star: function() {
+		var me = this;
+		this.$page.on("click", ".star-action", function() {
+			frappe.ui.toggle_star($(this), me.doctype, $(this).attr("data-name"));
+		});
 	},
 
 	toggle_tags: function() {
@@ -403,7 +418,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 				return false;
 			} else {
 				// second filter set for this field
-				if(fieldname=='_user_tags') {
+				if(fieldname=='_user_tags' || fieldname=="_starred_by") {
 					// and for tags
 					this.filter_list.add_filter(this.doctype, fieldname, 'like', '%' + label);
 				} else {
@@ -414,7 +429,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		} else {
 			// no filter for this item,
 			// setup one
-			if(fieldname=='_user_tags') {
+			if(fieldname=='_user_tags' || fieldname=="_starred_by") {
 				this.filter_list.add_filter(this.doctype, fieldname, 'like', '%' + label);
 			} else {
 				this.filter_list.add_filter(this.doctype, fieldname, '=', label);

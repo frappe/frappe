@@ -105,6 +105,7 @@
 		"public/js/frappe/ui/filters.js",
 		"public/js/frappe/ui/tree.js",
 		"public/js/frappe/ui/tags.js",
+		"public/js/frappe/ui/star.js",
 
 		"public/js/frappe/views/container.js",
 		"public/js/frappe/views/factory.js",
