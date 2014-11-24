@@ -20,6 +20,7 @@ def execute(doctype, query=None, filters=None, fields=None, or_filters=None, doc
 		order_by, limit_start, limit_page_length, as_list, with_childnames, debug)
 
 def get_form_params():
+	"""Stringify GET request parameters."""
 	data = frappe._dict(frappe.local.form_dict)
 
 	del data["cmd"]
@@ -30,6 +31,9 @@ def get_form_params():
 		data["fields"] = json.loads(data["fields"])
 	if isinstance(data.get("docstatus"), basestring):
 		data["docstatus"] = json.loads(data["docstatus"])
+
+	# queries must always be server side
+	data.query = None
 
 	return data
 
