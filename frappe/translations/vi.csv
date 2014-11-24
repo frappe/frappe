@@ -1,5 +1,5 @@
- by Role ,
- is not set,
+ by Role , by Role 
+ is not set, is not set
 """Company History""","""Lịch sử công ty"""
 """Team Members"" or ""Management""","""Các thành viên nhóm"" hay ""quản lý"""
 'In List View' not allowed for type {0} in row {1},"""Trong danh sách Xem 'không được phép cho loại {0} trong hàng {1}"
@@ -151,7 +151,7 @@ Cannot change {0},Không thể thay đổi {0}
 Cannot delete or cancel because {0} {1} is linked with {2} {3},Không thể xóa hoặc hủy bỏ vì {0} {1} được liên kết với {2} {3}
 Cannot delete {0} as it has child nodes,Không thể xóa {0} vì nó có các nút con
 Cannot edit standard fields,Không thể chỉnh sửa các lĩnh vực tiêu chuẩn
-Cannot map because following condition fails: ,
+Cannot map because following condition fails: ,Cannot map because following condition fails: 
 Cannot open instance when its {0} is open,Không thể mở ví dụ khi nó {0} là mở
 Cannot open {0} when its instance is open,Không thể mở {0} khi cá thể của nó là mở
 Cannot print cancelled documents,Không thể in tài liệu bị hủy bỏ
@@ -295,7 +295,7 @@ DocType or Field,DocType hoặc Dòng
 Doclist JSON,Doclist JSON
 Docname,Docname
 Document,Tài liệu
-Document Status transition from ,
+Document Status transition from ,Document Status transition from 
 Document Status transition from {0} to {1} is not allowed,Tình trạng tài liệu chuyển đổi từ {0} đến {1} không được phép
 Document Type,Loại tài liệu
 Document is only editable by users of role,Tài liệu chỉ có thể sửa bằng cách sử dụng của vai trò
@@ -439,7 +439,7 @@ Gender,Giới Tính
 Generator,Máy phát điện
 Georgia,Georgia
 Get,Được
-Get From ,
+Get From ,Get From 
 "Get your globally recognized avatar from <a href=""https://gravatar.com/"">Gravatar.com</a>","Nhận avatar nhận trên toàn cầu của bạn từ <a href=""https://gravatar.com/""> Gravatar.com </ a>"
 GitHub,GitHub
 GitHub Client ID,GitHub Khách hàng ID
@@ -660,7 +660,7 @@ Next State,Nhà nước tiếp theo
 Next actions,Hành động tiếp theo
 No,Không đồng ý
 No Action,Không có hành động
-No Communication tagged with this ,
+No Communication tagged with this ,No Communication tagged with this 
 No Copy,Sao chép không
 No Permissions set for this criteria.,Quyền không thiết lập cho các tiêu chí này.
 No Report Loaded. Please use query-report/[Report Name] to run a report.,Báo cáo không tải. Vui lòng sử dụng truy vấn báo cáo / [Báo cáo Tên] để chạy báo cáo.
@@ -948,7 +948,7 @@ Select Type,Hãy chọn loại
 Select User or DocType to start.,Chọn người dùng hoặc DocType để bắt đầu.
 Select a Banner Image first.,Chọn một Banner Hình ảnh đầu tiên.
 Select an image of approx width 150px with a transparent background for best results.,Chọn một hình ảnh của khoảng chiều rộng 150px với nền trong suốt cho kết quả tốt nhất.
-Select dates to create a new ,
+Select dates to create a new ,Select dates to create a new 
 "Select modules to be shown (based on permission). If hidden, they will be hidden for all users.","Chọn module được hiển thị (dựa trên sự cho phép). Nếu ẩn, họ sẽ được ẩn cho tất cả người dùng."
 Select or drag across time slots to create a new event.,Chọn hoặc kéo trên các khe thời gian để tạo ra một sự kiện mới.
 "Select target = ""_blank"" to open in a new page.","Chọn target = ""_blank"" để mở một trang mới."
@@ -1169,7 +1169,7 @@ User Permissions Manager,Người sử dụng Quyền Giám đốc
 User Roles,Vai trò người sử dụng
 User Tags,Sử dụng khóa
 User Type,Loại sử dụng
-"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ",
+"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ","User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. "
 User Vote,Người sử dụng bình chọn
 User not allowed to delete {0}: {1},Người sử dụng không được phép xóa {0}: {1}
 User permissions should not apply for this Link,Cho phép người dùng không nên áp dụng cho các Liên kết này

@@ -14,49 +14,49 @@
 <i>e.g. <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>,<i> por exemplo <strong> (55 + 434) / 4 </ strong> ou = <strong> Math.sin (Math.PI / 2) </ strong> ... </ i>
 <i>module name...</i>,<i> nome do módulo ... </ i>
 <i>text</i> <b>in</b> <i>document type</i>,texto <i> </ i> <b> em </ b> <i> tipo de documento </ i>
-A user can be permitted to multiple records of the same DocType.,Um usuário pode ter permissão para vários registros do mesmo TipoDoc .
+A user can be permitted to multiple records of the same DocType.,Um utilizador pode ter permissão para vários registos do mesmo DocType .
 About,Sobre
 About Us Settings,Quem Somos Configurações
 About Us Team Member,Quem Somos Membro da Equipe
 Action,Ação
-Actions,acties
+Actions,Ações
 "Actions for workflow (e.g. Approve, Cancel).","Ações para o fluxo de trabalho (por exemplo, Aprovar , Cancelar) ."
 Add,Adicionar
 Add A New Rule,Adicionar uma nova regra
-Add A User Permission,Adicionar uma permissão de usuário
+Add A User Permission,Adicionar uma permissão de utilizador
 Add Attachments,Adicionar anexos
 Add Bookmark,Adicionar marcadores
 Add CSS,Adicionar CSS
 Add Column,Adicionar coluna
 Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,"Adicionar Google Analytics ID: por exemplo. UA-89XXX57-1. Por favor, procure ajuda no Google Analytics para obter mais informações."
 Add Message,Adicionar mensagem
-Add New Permission Rule,Adicionar regra nova permissão
+Add New Permission Rule,Adicionar uma regra de permissão nova
 Add Reply,Adicione Responder
-Add Total Row,Adicionar Linha de Total
-Add a New Role,Adicionar uma nova função
-Add a banner to the site. (small banners are usually good),Adicionar um banner para o site. (Pequenos banners são geralmente boas)
-Add all roles,Adicione todos os papéis
+Add Total Row,Adicionar uma Linha de Total
+Add a New Role,Adicionar uma nova regra
+Add a banner to the site. (small banners are usually good),Adicionar um banner para o site. (Pequenos banners são geralmente preferíveis)
+Add all roles,Adicione todos as regras
 Add attachment,Adicionar anexo
 Add code as &lt;script&gt;,Adicionar código como &lt;script&gt;
 Add custom javascript to forms.,Adicionar javascript personalizado aos formulários.
-Add fields to forms.,Adicione campos de formulários .
+Add fields to forms.,Adicione campos aos formulários .
 Add multiple rows,Adicionar várias linhas
 Add new row,Adicionar nova linha
 "Add the name of <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> e.g. ""Open Sans""","Adicione o nome do <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> por exemplo, &quot;Sans Abertas&quot;"
-Add to To Do,Adicionar ao que fazer
+Add to To Do,Adicionar à Lista de Tarefas
 Add to To Do List Of,Adicionar à Lista de tarefas de
 Added {0} ({1}),Adicionado {0} ({1})
-Adding System Manager to this User as there must be atleast one System Manager,Adicionando System Manager para este usuário como deve haver pelo menos um System Manager
+Adding System Manager to this User as there must be atleast one System Manager,Atribuindo a este utilizador a função de Gestor de Sistema por ter que existir pelo menos um Gestor de Sistema
 Additional Info,Informações Adicionais
 Additional Permissions,Permissões adicionais
 Address,Endereço
 Address Line 1,Endereço Linha 1
 Address Line 2,Endereço Linha 2
-Address Title,Título endereço
-Address and other legal information you may want to put in the footer.,Endereço e informações jurídicas outro que você pode querer colocar no rodapé.
+Address Title,Título do endereço
+Address and other legal information you may want to put in the footer.,Endereço e informações jurídicas que você pode querer colocar no rodapé.
 Admin,Administrador
 All Applications,Todos os aplicativos
-All Day,Dia de Todos os
+All Day,Todo o Dia
 All customizations will be removed. Please confirm.,"Todas as personalizações serão removidos. Por favor, confirme."
 "All possible Workflow States and roles of the workflow. <br>Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""","Todos os eventuais Estados de fluxo de trabalho e os papéis do fluxo de trabalho. <br> Docstatus Opções: 0 é &quot;Salvo&quot;, 1 é &quot;Enviado&quot; e 2 é &quot;Cancelado&quot;"
 Allow Attach,Permitir Anexar
@@ -64,15 +64,15 @@ Allow Import,Permitir a importação
 Allow Import via Data Import Tool,Permitir a importação via ferramenta de importação de dados
 Allow Rename,Permitir Renomear
 Allow on Submit,Permitir em Enviar
-Allow user to login only after this hour (0-24),Permitir que o usuário fazer o login somente após esta hora (0-24)
-Allow user to login only before this hour (0-24),Permitir que o usuário fazer o login antes só esta hora (0-24)
+Allow user to login only after this hour (0-24),Permitir que o utilizador faça login apenas após esta hora (0-24)
+Allow user to login only before this hour (0-24),Permitir que o utilizador faça login apenas antes desta hora (0-24)
 Allowed,Permitido
 "Allowing DocType, DocType. Be careful!","Permitindo DocType , DocType . Tenha cuidado !"
-Already Registered,Já registrado
-Already in user's To Do list,Já no usuário para fazer a lista
-Alternative download link,Link para download Alternativa
+Already Registered,Já está registado
+Already in user's To Do list,Já está na lista a fazer do utilizador
+Alternative download link,Link para download Alternativo
 "Alternatively, you can also specify 'auto_email_id' in site_config.json","Alternativamente, você também pode especificar ' auto_email_id ' em site_config.json"
-Always use above Login Id as sender,Gebruik altijd boven Inloggen Id als afzender
+Always use above Login Id as sender,Utilize sempre o id do login acima indicado como remetente.
 Amend,Emendar
 "An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [<a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a>]","Um arquivo com ícone. Extensão ico. Deve ser de 16 x 16 px. Gerado usando um gerador de favicon. [ <a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a> ]"
 "Another {0} with name {1} exists, select another name","Outra {0} com o nome {1} existe , selecione outro nome"
@@ -948,7 +948,7 @@ Select Type,Selecione o Tipo
 Select User or DocType to start.,Selecione Usuário ou TipoDoc para começar.
 Select a Banner Image first.,Selecione um Banner Image primeiro.
 Select an image of approx width 150px with a transparent background for best results.,Selecione uma imagem de aproximadamente 150px de largura com um fundo transparente para melhores resultados.
-Select dates to create a new ,
+Select dates to create a new ,Select dates to create a new 
 "Select modules to be shown (based on permission). If hidden, they will be hidden for all users.","Selecione os módulos a ser mostrado (com base em permissão) . Se escondido , eles serão escondidos por todos os usuários."
 Select or drag across time slots to create a new event.,Selecione ou arraste intervalos de tempo para criar um novo evento.
 "Select target = ""_blank"" to open in a new page.","Selecteer target = "" _blank "" te openen in een nieuwe pagina ."
@@ -1169,7 +1169,7 @@ User Permissions Manager,Permissões de usuário Gerente
 User Roles,Funções do Usuário
 User Tags,Etiquetas de usuários
 User Type,Tipo de Usuário
-"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ",
+"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ","User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. "
 User Vote,Vote Usuário
 User not allowed to delete {0}: {1},Usuário não tem permissão para excluir {0}: {1}
 User permissions should not apply for this Link,As permissões de usuário não deve candidatar-se a este link
@@ -1251,9 +1251,9 @@ You seem to have written your name instead of your email. \					Please enter a v
 [Optional] Send the email X days in advance of the specified date. 0 equals same day.,[Opcional] enviar o email X dias de antecedência da data especificada. 0 é igual mesmo dia.
 add your own CSS (careful!),adicionar seu próprio CSS (cuidado!)
 adjust,ajustar
-align-center,alinhar-centro
+align-center,alinhar-centrar
 align-justify,alinhar-justificar
-align-left,alinhar-esquerda
+align-left,alinhar à esquerda
 align-right,alinhar à direita
 and,e
 arrow-down,seta para baixo

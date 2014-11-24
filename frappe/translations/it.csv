@@ -948,7 +948,7 @@ Select Type,Seleziona tipo
 Select User or DocType to start.,Selezionare utente o DocType per iniziare.
 Select a Banner Image first.,Selezionare un Banner Immagine prima.
 Select an image of approx width 150px with a transparent background for best results.,Selezionare un&#39;immagine di circa larghezza 150px con sfondo trasparente per i migliori risultati.
-Select dates to create a new ,
+Select dates to create a new ,Select dates to create a new 
 "Select modules to be shown (based on permission). If hidden, they will be hidden for all users.","Selezionare i moduli da visualizzare ( sulla base di permesso) . Se nascosto , essi vengono nascosti per tutti gli utenti ."
 Select or drag across time slots to create a new event.,Selezionare o trascinare gli intervalli di tempo per creare un nuovo evento.
 "Select target = ""_blank"" to open in a new page.","Selezionare target = "" _blank "" per aprire in una nuova pagina ."
@@ -1169,7 +1169,7 @@ User Permissions Manager,Autorizzazioni utente Gestione
 User Roles,ruoli degli utenti
 User Tags,Tags utente
 User Type,Tipo di utente
-"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ",
+"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ","User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. "
 User Vote,Voto degli utenti
 User not allowed to delete {0}: {1},L'utente non ha permesso di eliminare {0}: {1}
 User permissions should not apply for this Link,Autorizzazioni utente non deve applicare per questo link

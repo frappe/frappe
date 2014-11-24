@@ -948,7 +948,7 @@ Select Type,เลือกประเภท
 Select User or DocType to start.,เลือก ผู้ใช้ หรือ DocType ที่จะเริ่มต้น
 Select a Banner Image first.,เลือกภาพแบนเนอร์แรก
 Select an image of approx width 150px with a transparent background for best results.,เลือกภาพจาก 150px ความกว้างประมาณกับพื้นหลังโปร่งใสเพื่อให้ได้ผลลัพธ์ที่ดีที่สุด
-Select dates to create a new ,
+Select dates to create a new ,Select dates to create a new 
 "Select modules to be shown (based on permission). If hidden, they will be hidden for all users.",เลือก โมดูล ที่จะแสดง (ขึ้นอยู่กับ สิทธิ์) ถ้า ซ่อน พวกเขา จะถูกซ่อนไว้ สำหรับผู้ใช้ทั้งหมด
 Select or drag across time slots to create a new event.,เลือกหรือลากผ่านช่วงเวลาที่จะสร้างเหตุการณ์ใหม่
 "Select target = ""_blank"" to open in a new page.","เลือก target = ""_blank"" จะเปิดใน หน้าใหม่"
@@ -1169,7 +1169,7 @@ User Permissions Manager,จัดการ สิทธิ์ของผู้
 User Roles,บทบาท ของผู้ใช้
 User Tags,แท็กผู้ใช้
 User Type,ประเภทผู้ใช้
-"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ",
+"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ","User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. "
 User Vote,โหวต ของผู้ใช้
 User not allowed to delete {0}: {1},ผู้ใช้ไม่ได้รับอนุญาตในการลบ {0}: {1}
 User permissions should not apply for this Link,สิทธิ์ผู้ใช้ ไม่ควร ใช้สำหรับ การเชื่อมโยง นี้

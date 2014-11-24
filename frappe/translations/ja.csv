@@ -1,5 +1,5 @@
- by Role ,
- is not set,
+ by Role , by Role 
+ is not set, is not set
 """Company History""",「会社の歴史」
 """Team Members"" or ""Management""",「チームメンバー」または「管理」
 'In List View' not allowed for type {0} in row {1},「リスト表示では「許可されていないタイプのため{0}行{1}
@@ -33,7 +33,7 @@ Add Message,メッセージを追加
 Add New Permission Rule,新しいアクセス許可ルールの追加
 Add Reply,返事を追加する
 Add Total Row,合計行を追加
-Add a New Role,新しいロールの追加
+Add a New Role,新しい役割の追加
 Add a banner to the site. (small banners are usually good),サイトにバナーを追加します。 （小バナーは、通常は良いです）
 Add all roles,すべての役割を追加する
 Add attachment,添付ファイルを追加
@@ -128,7 +128,7 @@ Blog Introduction,ブログの紹介
 Blog Post,ブログの投稿
 Blog Settings,ブログ設定
 Blog Title,ブログのタイトル
-Blogger,Blogger
+Blogger,ブロガー
 Bookmarks,ブックマーク
 Both login and password required,ログインとパスワードの両方が必要
 Brand HTML,ブランドのHTML
@@ -141,8 +141,8 @@ Calendar,カレンダー
 Cancel,キャンセル
 Cancelled,キャンセル済み
 "Cannot Edit {0} directly: To edit {0} properties, create / update {1}, {2} and {3}",編集することはできません{0}に直接：{0}のプロパティを編集するには、作成/更新{1}、{2}と{3}
-Cannot Update: Incorrect / Expired Link.,更新することはできません：期限切れ/不正なリンク。
-Cannot Update: Incorrect Password,更新することはできません。間違ったパスワードを
+Cannot Update: Incorrect / Expired Link.,更新することはできません：不適切な/期限切れリンク
+Cannot Update: Incorrect Password,更新することはできません。パスワードが間違っています。
 Cannot add more than 50 comments,50以上のコメントを追加することはできません
 Cannot cancel before submitting. See Transition {0},送信する前にキャンセルすることはできません。トランジション{0}を参照してください。
 Cannot change picture,画像を変更することはできません
@@ -151,7 +151,7 @@ Cannot change {0},変更することはできません{0}
 Cannot delete or cancel because {0} {1} is linked with {2} {3},{0} {1}が{2} {3}とリンクされているため、削除するか、キャンセルすることはできません
 Cannot delete {0} as it has child nodes,それが子ノードを持っているように{0}を削除することはできません
 Cannot edit standard fields,標準フィールドを編集することはできません
-Cannot map because following condition fails: ,
+Cannot map because following condition fails: ,Cannot map because following condition fails: 
 Cannot open instance when its {0} is open,その{0}開いているときに、インスタンスを開くことはできません
 Cannot open {0} when its instance is open,そのインスタンスが開いているときに{0}を開くことはできません
 Cannot print cancelled documents,キャンセルの文書を印刷することはできません
@@ -173,9 +173,9 @@ Check this to make this the default letter head in all prints,すべての印刷
 Check which Documents are readable by a User,ドキュメントは、ユーザーが読み取り可能であるかを確認
 Checked items shown on desktop,デスクトップに表示されるチェックされた項目
 Child Tables are shown as a Grid in other DocTypes.,子テーブルは、他の文書型のグリッドとして表示されます。
-City,市区町村
+City,都市
 Classic,クラシック
-Clear Cache,キャッシュをクリア
+Clear Cache,現金をクリア
 Clear all roles,すべての役割をクリア
 Click on a link to get options,オプションを取得するには、リンクをクリックして
 Click on row to view / edit.,/編集]を表示するには、行をクリックしてください。
@@ -183,7 +183,7 @@ Client,顧客
 Client-side formats are now deprecated,クライアント側の書式も推奨されていません
 Close,閉じる
 Close: {0},閉じる：{0}
-Closed,クローズ
+Closed,閉じました。
 Code,コード
 Collapse,折りたたみ
 Column Break,列の区切り
@@ -194,7 +194,7 @@ Comment Date,評価日時
 Comment Docname,DOCNAMEコメント
 Comment Doctype,文書型コメント
 Comment Time,タイムコメント
-Comments,解説
+Comments,コメント
 Communication,コミュニケーション
 Communication Medium,通信メディア
 Company History,社史
@@ -204,7 +204,7 @@ Complete By,までに完了
 Condition,条件
 Contact Us Settings,お問い合わせの設定
 "Contact options, like ""Sales Query, Support Query"" etc each on a new line or separated by commas.",「セールスクエリ、クエリのサポート」などのような接触オプション、新しい行にそれぞれまたはカンマで区切ります。
-Content,目次
+Content,内容
 Content Hash,コンテンツハッシュ
 Content in markdown format that appears on the main side of your page,あなたのページのメイン側に表示されるマークダウン形式のコンテンツ
 Content web page.,コンテンツのWebページ。
@@ -268,38 +268,38 @@ Description,説明
 Description and Status,説明とステータス
 "Description for listing page, in plain text, only a couple of lines. (max 140 characters)",プレーンテキストで一覧ページの説明、行の唯一のカップル。 （最大140文字）
 Description for page header.,ページヘッダの説明。
-Desktop,デスクトップ版
+Desktop,デスクトップ
 Details,詳細
 Did not add,追加しませんでした
 Did not cancel,キャンセルされませんでした
 Did not find {0} for {0} ({1}),（{1}）{0} {0}のために見つけられませんでした
 Did not load,ロードされませんでした
-Did not remove,削除しなかった
-Did not save,保存していない
+Did not remove,削除されませんでした。
+Did not save,保存しませんでした。
 "Different ""States"" this document can exist in. Like ""Open"", ""Pending Approval"" etc.",このドキュメントはインチ存在できる異なる「状態」「開く」、「承認待ち」などのような
 Disable Customer Signup link in Login page,ログインページに顧客のサインアップリンクを無効にする
 Disable Signup,登録を無効にする
-Disabled,無効
+Disabled,無効にしました。
 Display,表示
 Display Settings,ディスプレイの設定
 Display in the sidebar of this Website Route node,このウェブサイトのルートノードのサイドバーに表示
 Do not allow user to change after set the first time,ユーザーは後の最初の時間を設定変更することはできません
-Doc Status,DOCの状態
-DocField,DocField
-DocPerm,DocPerm
-DocType,のDocType
-DocType Details,のDocTypeの詳細
-DocType can not be merged,DOCTYPEがマージすることはできません
+Doc Status,ドキュメントの状態
+DocField,ドキュメントの分野
+DocPerm,ドキュメントの管理
+DocType,ドキュメントタイプ
+DocType Details,ドキュメントタイプの詳細
+DocType can not be merged,ドキュメントタイプが合併することはできません。
 DocType on which this Workflow is applicable.,DOCTYPEがどのこのワークフローを適用することができる。
-DocType or Field,のDocTypeまたはフィールド
-Doclist JSON,Doclist、JSON
-Docname,DOCNAME
+DocType or Field,ドキュメントタイプまたは分野
+Doclist JSON,ドキュメントリスト、JSON
+Docname,ドキュメント名
 Document,ドキュメント
-Document Status transition from ,
-Document Status transition from {0} to {1} is not allowed,{1}の{0}からの文書の状態遷移は許可されていません
-Document Type,伝票タイプ
-Document is only editable by users of role,文書には、ロールのユーザーのみ編集可能です
-Documentation,ドキュメント
+Document Status transition from ,Document Status transition from 
+Document Status transition from {0} to {1} is not allowed,{{0}から{1}までのドキュメント・ステータス推移は許可されません。
+Document Type,ドキュメントタイプ
+Document is only editable by users of role,文書は、役割のユーザーによって編集可能です。
+Documentation,ドキュメンテーション
 Documents,文書
 Download,ダウンロード
 Download Backup,ダウンロードバックアップ
@@ -314,9 +314,9 @@ Edit,編集
 Edit Permissions,認可を編集する
 Editable,編集可能な
 Email,Eメール
-Email Alert,電子メールアラート
+Email Alert,電子メール警告
 Email Alert Recipient,電子メール警告の受信者
-Email Alert Recipients,電子メールアラートの受信者
+Email Alert Recipients,電子メール警告の受信者
 Email By Document Field,ドキュメントフィールドによって電子メール
 Email Footer,電子メールのフッター
 Email Host,電子メールホスト
@@ -559,10 +559,10 @@ Last Login,最終ログイン
 Last Name,お名前（姓）
 Last updated by,最終更新者
 Lastmod,LASTMOD
-Lato,ラト
+Lato,LATO
 Leave blank to repeat always,常に繰り返す空白のままにします
 Left,左
-Less or equals,以下のequals
+Less or equals,以下か同等
 Less than,未満
 Letter,手紙
 Letter Head,レターヘッド（会社名•所在地などを便箋上部に印刷したもの）
@@ -581,22 +581,22 @@ List,リスト
 List a document type,ドキュメントタイプを一覧表示します
 List of Web Site Forum's Posts.,Webサイトのフォーラムの投稿のリスト。
 Loading,読み込み中
-Loading Report,積載レポート
+Loading Report,レポートを読み込み中
 Loading...,読み込んでいます...
-Localization,ローカライズ
-Location,ロケーション
+Localization,現地化
+Location,位置
 Log of error on automated events (scheduler).,自動化されたイベント（スケジューラ）にエラーのログ。
 Login,ログイン
 Login After,ログイン後
-Login Before,前にログイン
+Login Before,ログインする前に
 Login Id,ログインID
-Login not allowed at this time,ログインこの時点では許可されていません
+Login not allowed at this time,この時点でログインは許可されていません。
 Logout,ログアウト
 Long Text,長いテキスト
 Low,低
 Lucida Grande,ルシーダグランデ
 Mail Password,メールパスワード
-Main Section,要部
+Main Section,主なセクション
 Make a new,新しいを作成する
 Make a new record,新しいレコードを作る
 Male,男性
@@ -660,14 +660,14 @@ Next State,次の状態
 Next actions,次のアクション
 No,いいえ
 No Action,何もしない
-No Communication tagged with this ,
+No Communication tagged with this ,No Communication tagged with this 
 No Copy,何をコピーしない
 No Permissions set for this criteria.,いいえ権限は、この基準に設定されていません。
 No Report Loaded. Please use query-report/[Report Name] to run a report.,報告はロードされません。レポートを実行するためにクエリレポート/ [レポート名]を使用してください。
 No Results,がありませんでした
 No Sidebar,いいえサイドバーません
 No User Permissions found.,いいえユーザーのアクセス許可が見つかりませんでした。
-No data found,見つからデータなし
+No data found,データーが見つかりません
 No file attached,添付ファイルがありません
 No further records,これ以上のレコードがない
 No one,誰も見ることができない
@@ -700,7 +700,7 @@ Not permitted,許可されていません
 "Note: For best results, images must be of the same size and width must be greater than height.",注：最良の結果を得るには、画像が同じ大きさと幅のものでなければならない高さよりも大きくなければなりません。
 Note: Other permission rules may also apply,注意：他の許可ルールも適用される場合があります
 Note: maximum attachment size = 1mb,注：添付ファイルの最大サイズは1メガバイト=
-Nothing to show,表示することは何もない
+Nothing to show,表示するものがありません
 Nothing to show for this selection,この選択のために表示することは何もない
 Notification Count,通知回数
 Notify by Email,電子メールによる通知
@@ -919,10 +919,10 @@ Rules defining transition of state in the workflow.,ワークフローの状態�
 Run scheduled jobs only if checked,スケジュールされたジョブを実行して確認した場合にのみ
 Run the report first,最初のレポートを実行します。
 SMTP Server (e.g. smtp.gmail.com),SMTPサーバー（例：smtp.gmail.com）
-Sales,セールス
+Sales,販売
 Same file has already been attached to the record,同じファイルが既に記録に添付されています
 Sample,例
-Saturday,土曜日 (午前中のみ）
+Saturday,土曜日 
 Save,保存
 Scheduler Log,スケジューラログ
 Script,スクリプト
@@ -948,7 +948,7 @@ Select Type,タイプを選択
 Select User or DocType to start.,開始するにはユーザーまたはのDocTypeを選択します。
 Select a Banner Image first.,最初のバナー画像を選択します。
 Select an image of approx width 150px with a transparent background for best results.,最良の結果を得るための透明な背景を持つ約幅150ピクセルの画像を選択します。
-Select dates to create a new ,
+Select dates to create a new ,Select dates to create a new 
 "Select modules to be shown (based on permission). If hidden, they will be hidden for all users.",（許可に基づいて）表示されるようにモジュールを選択します。隠された場合は、すべてのユーザーに対して非表示になります。
 Select or drag across time slots to create a new event.,選択するか、新規イベントを作成するためのタイムスロットをドラッグ。
 "Select target = ""_blank"" to open in a new page.","新しいページで開くように選択し、ターゲット= ""_blank""。"
@@ -966,7 +966,7 @@ Send alert if this field's value changes,アラートを送信し、このフィ
 Send an email reminder in the morning,午前中にメールリマインダーを送る
 Send download link of a recent backup to System Managers,システム管理者への最新のバックアップのダウンロードリンクを送信
 Send enquiries to this email address,このメールアドレスに問い合わせ先】
-Sender,センダー
+Sender,送信者
 Sent,送信済み
 Sent Mail,送信済みメール
 Sent Quotation,送信された引用
@@ -1022,7 +1022,7 @@ Single Post (article).,シングルポスト（記事）。
 Single Types have only one record no tables associated. Values are stored in tabSingles,シングルタイプはテーブルが関連付けられていない唯一の記録がある。値がtabSinglesに格納されてい
 Sitemap Browser,サイトマップブラウザー
 Slideshow,スライドショー（一連の画像を順次表示するもの）
-Slideshow Items,スライドショーアイテム
+Slideshow Items,スライドショー項目
 Slideshow Name,スライドショーの名前
 Small Text,小さなテキスト
 Social Login Keys,社会ログインキー
@@ -1067,64 +1067,65 @@ System User,システムユーザー
 System and Website Users,システムとウェブサイトユーザー
 System generated mails will be sent from this email id.,システム生成されたメールは、この電子メールIDから送信されます。
 Table,表（テーブル）
-Table {0} cannot be empty,テーブル{0}空にすることはできません
-Tag,タグ
-Tag Name,タグ名
-Tags,タグ
+Table {0} cannot be empty,表{0}を空欄にすることはできません。
+Tag,タグ（札／マークする）
+Tag Name,タグ名（札名）
+Tags,タグ（札／マークする）
 Tahoma,MS Pゴシック
-Target,ターゲット
-Tasks,タスク
+Target,ターゲット／標的／目標
+Tasks,タスク／仕事／任務
 Team Members,チームメンバー
-Team Members Heading,チームメンバーは見出し
-Template,テンプレート
+Team Members Heading,チームメンバーの見出し
+Template,テンプレート（パソコンのデータ版で資料作成時などに役立つ定型的な表や書式のこと）
 Template Pages cannot be moved,テンプレートページを移動することはできません
 Test,テスト
-Test Runner,テストランナー
-Text,テキスト
-Text Align,テキストの整列
-Text Editor,テキストエディタ
-Thank you for your message,あなたのメッセージをありがとうございました
-The name of your company / website as you want to appear on browser title bar. All pages will have this as the prefix to the title.,あなたの会社/ウェブサイトの名前は、ブラウザのタイトルバーに表示するように。すべてのページは、タイトルの接頭辞として、これを持つことになります。
-The system provides many pre-defined roles. You can add new roles to set finer permissions.,このシステムは、多くの事前定義された役割を提供しています。あなたが細かい権限を設定するために新しいロールを追加することができます。
-Then By (optional),それまでに（オプション）
-There should remain at least one System Manager,少なくとも1つのシステム·マネージャーが残されている必要があります
+Test Runner,テストランナー／テストを実行する人。
+Text,文章／メッセージ
+Text Align,文章を行を整える。
+Text Editor,文章の編集。
+Thank you for your message,メッセージをありがとうございました。
+The name of your company / website as you want to appear on browser title bar. All pages will have this as the prefix to the title.,あなたの会社/ウェブサイトの名前は、観覧者のタイトルバーに表示されます。すべてのページにタイトルの接頭辞として、これが付きます。
+The system provides many pre-defined roles. You can add new roles to set finer permissions.,このシステムは、多くの事前定義された機能／役割を提供しています。あなたは細かい権限を設定するための新しい機能／役割を追加することができます。
+Then By (optional),それまでに（オプション／任意の）
+There should remain at least one System Manager,少なくとも1つのシステム·マネージャーが残っているはずです。
 There were errors,エラーが発生しました
-There were errors while sending email. Please try again.,電子メールの送信中にエラーが発生しました。もう一度お試しください。
-"There were some errors setting the name, please contact the administrator",名の設定は多少の誤差がありました、管理者に連絡してください
-"These permissions will apply for all transactions where the permitted record is linked. For example, if Company C is added to User Permissions of user X, user X will only be able to see transactions that has company C as a linked value.",これらの権限は許可されたレコードがリンクされているすべてのトランザクションのために適用されます。C社は、ユーザXのユーザー権限に追加された場合、ユーザXは、リンクされた値としてC社を持って取引を見ることができます。
-These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,これらの値は自動的にトランザクションで更新され、また、これらの値を含む取引に、このユーザーの権限を制限するのに有用であろう。
-"These will also be set as default values for those links, if only one such permission record is defined.",唯一つのそのような許可レコードが定義されている場合、これらはまた、それらのリンクのデフォルト値として設定される。
+There were errors while sending email. Please try again.,メールの送信中にエラーが発生しました。もう一度お試しください。
+"There were some errors setting the name, please contact the administrator",名前の設定で多少のエラーが発生しました。管理者に連絡してください。
+"These permissions will apply for all transactions where the permitted record is linked. For example, if Company C is added to User Permissions of user X, user X will only be able to see transactions that has company C as a linked value.",これらの権限は許可記録がリンクされているすべての取引に適用されます。例えば、C社がユーザXのユーザー権限に追加された場合、ユーザXだけがC社のリンクされた取引を見ることができます。
+These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,これらの値は自動的に処理の段階で更新され、また取引にこの値が含まれているユーザーの権限を制限するのに役立つでしょう。
+"These will also be set as default values for those links, if only one such permission record is defined.",許可記録が定義されている場合のみ、それらのリンクは既定値として設定される。
 Third Party Authentication,第三者認証
 This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>myfieldeval:doc.myfield=='My Value'<br>eval:doc.age>18,ここで定義されたフィールド名が値を持っているかのルールが真（例）している場合にのみ、このフィールドが表示されます：検索 myFieldという評価：doc.myfield == '私の値'検索評価： doc.age> 18
-This goes above the slideshow.,これは、スライドショーを上回った。
-This is PERMANENT action and you cannot undo. Continue?,これは永久的な行動であり、あなたは元に戻すことはできません。続行しますか。
-"This is a standard format. To make changes, please copy it make make a new format.",これは標準的な形式です。変更を行うには、新しいフォーマットを作成すること、それをコピーしてください。
+This goes above the slideshow.,これは、スライドショーの上にいきます。
+This is PERMANENT action and you cannot undo. Continue?,これは固定された行動／作業であり、あなたが取り消すことはできません。続行しますか？
+"This is a standard format. To make changes, please copy it make make a new format.",これは標準的な形式です。修正する場合は、これをコピーして新しい形式を作成して下さい。
 This is permanent action and you cannot undo. Continue?,これは永久的な行動であり、あなたは元に戻すことはできません。続行しますか。
-This must be checked if Style Settings are applicable,スタイル設定が適用される場合、これはチェックしなければならない
-This role update User Permissions for a user,ユーザーのためのこの役割は、ユーザーの更新権限
+This must be checked if Style Settings are applicable,スタイル設定を使用する場合、これは確認して下さい。
+This role update User Permissions for a user,これはユーザーのためにユーザー許可を更新する役割です。
 Thursday,木曜日
 Tile,タイル
 Time,時間
 Time Zone,時間帯
-Timezone,タイムゾーン
-Title,タイトル
-Title / headline of your page,あなたのページのタイトル/ヘッドライン
-Title Case,タイトルケース
-Title Field,タイトルフィールド
-Title Prefix,タイトルプレフィックス
-Title field must be a valid fieldname,タイトルフィールドは、有効なフィールド名である必要があります
-Title is required,タイトルを入力下さい。
-To,おわり
-To Do,TO DO
-"To format columns, give column labels in the query.",フォーマット列に、クエリで列ラベルを与える。
-"To give acess to a role for only specific records, check the 'Apply User Permissions'. User Permissions are used to limit users with such role to specific records.",「ユーザー権限の適用」をチェックして、特定のレコードだけの役割にアセスを得た。ユーザーのアクセス許可は、特定のレコードにそのような役割を持つユーザーを制限するために使用されています。
-"To run a test add the module name in the route after '{0}'. For example, {1}",テストを実行するには、 '{0}'の後にルートでモジュール名を追加します。たとえば、{1}
-ToDo,ToDoの
-Too many writes in one request. Please send smaller requests,1要求が多すぎ書き込みます。小さい要求を送信してください。
+Timezone,時間帯
+Title,タイトル／題
+Title / headline of your page,あなたのページの題/見出し
+Title Case,見出しの大文字指定
+Title Field,タイトルフィールド／欄のタイトル
+Title Prefix,接頭辞のタイトル
+Title field must be a valid fieldname,タイトルフィールド（欄のタイトル）は、有効なフィールド名（欄名）である必要があります。
+Title is required,題を入力下さい。
+To,"〜宛。
+"
+To Do,するために
+"To format columns, give column labels in the query.",フォーマットのコラム（縦の列）に、質問の標識を設ける。
+"To give acess to a role for only specific records, check the 'Apply User Permissions'. User Permissions are used to limit users with such role to specific records.",特定な記録用の任務にアクセスを与えるためには、「ユーザー許可の適用」をチェックして下さい。ユーザー許可は特定の記録用の役割を持っているユーザーだけに使用されます。
+"To run a test add the module name in the route after '{0}'. For example, {1}",テストを実行するには、 '{0}'の後にルートにモジュール名を追加します。たとえば、{1}
+ToDo,するために／するための
+Too many writes in one request. Please send smaller requests,1つの要求書に記入が多すぎます。要求内容を小さくして送信してください。
 Top Bar,トップバー
 Top Bar Background,トップバーの背景
 Top Bar Item,トップバーの項目
-Top Bar Items,トップバーのアイテム
+Top Bar Items,トップバーの項目
 Top Bar Text,トップバーのテキスト
 Top Bar text and background is same color. Please change.,トップバーのテキストと背景が同じ色である。変更してください。
 Transaction,取引
@@ -1147,39 +1148,39 @@ Upcoming Events for Today,今日すべき事柄。
 Update,更新
 Update Field,フィールド（欄）の更新
 Update Value,値の更新
-Updated,更新日
-Upload,アップロード
-Upload Attachment,添付ファイルをアップロード
-Upload CSV file containing all user permissions in the same format as Download.,ダウンロードと同じ形式で、すべてのユーザーのアクセス許可を含むCSVファイルをアップロードします。
-Upload a file,ファイルをアップロード
-Upload and Import,アップロードとインポート
+Updated,更新済み
+Upload,アップロード（手元のデータをメインのコンピューターに送ること。）
+Upload Attachment,添付ファイルをアップロード（添付ファイルをメインのコンピューターに送信する。）
+Upload CSV file containing all user permissions in the same format as Download.,ダウンロードと同じ形式に、全ユーザーのアクセス許可を含むCSVファイルをアップロードします。
+Upload a file,ファイルのアップロード。（ファイルをメインのコンピューターに送信すること。）
+Upload and Import,アップロード（手元のデータをメインのコンピューターに送信すること。）とインポート（取り込む）
 Upload and Sync,アップロードと同期
-Uploading...,アップロードしています...
+Uploading...,アップロードしています...（手元のコンピューターのデータをメインのコンピューターに送信中）
 Upvotes,Upvotes
-Use TLS,TLSを使用
+Use TLS,TLS（通信経路を記号化し、デジタル証明書の受け渡しによって相互確認を行う方式）を使用
 User,ユーザー（使用者）
-User Cannot Create,ユーザーが作成できない
+User Cannot Create,ユーザーは作成できません。
 User Cannot Search,ユーザーが検索することはできません
-User Defaults,ユーザー·デフォルト設定
+User Defaults,ユーザー·デフォルト設定(初期設定）
 User ID of a blog writer.,ブログライターのユーザーID。
-User Image,ユーザー画像
-User Permission,ユーザー権限
+User Image,ユーザー画像（利用者の人物紹介画像）
+User Permission,ユーザーのアクセス許可
 User Permissions,ユーザーのアクセス許可
-User Permissions Manager,ユーザー権限のマネージャ
+User Permissions Manager,ユーザー（利用者）へ許可を与えるの管理人
 User Roles,ユーザーの役割
-User Tags,ユーザータグ
-User Type,ユーザー タイプ
-"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ",
+User Tags,ユーザータグ(札／マーク付け）
+User Type,ユーザー タイプ（利用者の種類）
+"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ",ユーザータイプ''システムユーザー’’はデスクトップにアクセス（接続）が可能。''ウェブサイトユーザー’’のみメインページへのログイン（入室）が可能。
 User Vote,ユーザー投票
-User not allowed to delete {0}: {1},ユーザーが削除することはできません{0}：{1}
-User permissions should not apply for this Link,ユーザーのアクセス許可は、このリンクを申請するべきではありません
+User not allowed to delete {0}: {1},ユーザーは{0}：{1}を削除することはできません。
+User permissions should not apply for this Link,ユーザー（利用者）はこのリンクへのアクセスを許可されていません。
 User {0} cannot be deleted,ユーザー{0}を削除することはできません
 User {0} cannot be disabled,ユーザー{0}無効にすることはできません
 User {0} cannot be renamed,ユーザー{0}の名前を変更できません
 User {0} does not exist,ユーザー{0}は存在しません
-UserRole,USERROLE
-Users and Permissions,ユーザーと権限
-Users with role {0}:,ロールを持つユーザー{0}：
+UserRole,ユーザーの役割（利用者の役割）
+Users and Permissions,ユーザーと許可
+Users with role {0}:,ユーザー（利用者）と役割／任務{0}：
 Valid Login id required.,有効なログインIDが必要です。
 Valid email and name required,有効なメールアドレスと名前が必要です。
 Value,値
@@ -1288,7 +1289,7 @@ comment,コメント
 comments,注釈
 dd-mm-yyyy,DD-MM-YYYY
 dd.mm.yyyy,DD.MM.YYYY
-dd/mm/yyyy,yyyy / mm / dd人数
+dd/mm/yyyy,yyyy / mm / dd
 download,ダウンロード
 download-alt,ダウンロード-ALT
 edit,編集
@@ -1388,23 +1389,23 @@ step-forward,ステップフォワード
 stop,配信の停止
 tag,タグ
 tags,タグ
-"target = ""_blank""","ターゲット= ""_blank"""
+"target = ""_blank""","ターゲット= ""空白"""
 tasks,タスク
-text-height,テキストの高さ
+text-height,文章の高さ
 text-width,テキスト幅
 th,目
 th-large,TH-ラージ
 th-list,TH-リスト
-thumbs-down,不賛成の
+thumbs-down,不賛成
 thumbs-up,賛成
 time,time
-tint,色合い
+tint,色合い／色調
 to,上を以下のように変更します。
 trash,ごみ
 upload,アップロード
-use % as wildcard,ワイルドカードとして％を使用
+use % as wildcard,ワイルドカードとして％を使用して下さい。
 user,ユーザー
-user_image_show,user_image_show
+user_image_show,ユーザー（利用者）画像の表示。
 values and dates,値と日付
 values separated by commas,"カンマ(,)で区切られた値"
 volume-down,音量を落とす
