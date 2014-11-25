@@ -15,21 +15,6 @@ integer_docfield_properties = ["reqd", "search_index", "in_list_view", "permleve
 	"hidden", "read_only", "ignore_user_permissions", "allow_on_submit", "report_hide",
 	"in_filter", "no_copy", "print_hide", "unique"]
 
-def insert(doclist):
-	if not isinstance(doclist, list):
-		doclist = [doclist]
-
-	for d in doclist:
-		if isinstance(d, dict):
-			d["__islocal"] = 1
-		else:
-			d.set("__islocal", 1)
-
-	wrapper = frappe.get_doc(doclist)
-	wrapper.save()
-
-	return wrapper
-
 def rename(doctype, old, new, debug=False):
 	import frappe.model.rename_doc
 	frappe.model.rename_doc.rename_doc(doctype, old, new, debug)

@@ -12,7 +12,7 @@ from __future__ import unicode_literals
 
 	where patch1, patch2 is module name
 """
-import frappe, os
+import frappe, os, frappe.permissions
 
 class PatchError(Exception): pass
 

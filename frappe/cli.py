@@ -598,11 +598,12 @@ def sync_statics(force=False):
 
 @cmd
 def reset_perms():
+	from frappe.permissions import reset_perms
 	frappe.connect()
 	for d in frappe.db.sql_list("""select name from `tabDocType`
 		where ifnull(istable, 0)=0 and ifnull(custom, 0)=0"""):
 			frappe.clear_cache(doctype=d)
-			frappe.reset_perms(d)
+			reset_perms(d)
 	frappe.destroy()
 
 @cmd
