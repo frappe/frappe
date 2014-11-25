@@ -96,7 +96,7 @@ frappe.views.CommunicationList = Class.extend({
 			"SMS": "icon-mobile-phone",
 		}[doc.communication_medium] || "icon-envelope";
 		doc.avatar = frappe.get_gravatar(doc._sender_id);
-		var comm = $(repl('<div style="border: 1px solid #f2f2f2; border-radius: 5px; padding: 15px; margin-bottom: 10px;>\
+		var comm = $(repl('<div style="border: 1px solid #f2f2f2; border-radius: 5px; padding: 15px; margin-bottom: 10px;">\
 			<div class="media">\
 			<span class="pull-left avatar avatar-small"><img class="media-object" src="%(avatar)s"></span>\
 			<div class="media-body">\
