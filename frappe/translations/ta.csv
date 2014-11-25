@@ -948,7 +948,7 @@ Select Type,வகை தேர்வு
 Select User or DocType to start.,தொடங்க பயனர் அல்லது DOCTYPE தேர்ந்தெடுக்கவும்.
 Select a Banner Image first.,முதல் ஒரு பேனர் பட தேர்ந்தெடுக்கவும்.
 Select an image of approx width 150px with a transparent background for best results.,சிறந்த முடிவுகளை ஒரு வெளிப்படையான பின்னணி கொண்ட சுமார் அகலம் 150px ஒரு படத்தை தேர்ந்தெடுக்கவும்.
-Select dates to create a new ,
+Select dates to create a new ,Select dates to create a new 
 "Select modules to be shown (based on permission). If hidden, they will be hidden for all users.","தேர்வு தொகுதிகள் ( அனுமதி அடிப்படையில்) பார்க்க வேண்டும் . மறைத்து என்றால், அவர்கள் அனைத்து பயனர்கள் மறைத்து வேண்டும் ."
 Select or drag across time slots to create a new event.,தேர்வு அல்லது ஒரு புதிய நிகழ்வை உருவாக்க நேரம் இடங்கள் முழுவதும் இழுக்கவும்.
 "Select target = ""_blank"" to open in a new page.","தேர்ந்தெடு இலக்கு ஒரு புதிய பக்கம் திறக்க = ""_blank"" ."
@@ -1169,7 +1169,7 @@ User Permissions Manager,பயனர் அனுமதிகள் மேல�
 User Roles,பயனர் பங்களிப்புகள்
 User Tags,பயனர் குறிச்சொற்கள்
 User Type,பயனர் வகை
-"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ",
+"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ","User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. "
 User Vote,பயனர் ஓட்டு
 User not allowed to delete {0}: {1},பயனர் நீக்க அனுமதி இல்லை {0} {1}
 User permissions should not apply for this Link,பயனர் அனுமதிகள் இந்த இணைப்பு விண்ணப்பிக்க முடியாது

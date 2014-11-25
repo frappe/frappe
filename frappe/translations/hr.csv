@@ -948,7 +948,7 @@ Select Type,Odaberite Vid
 Select User or DocType to start.,Odaberite korisnik ili vrstu dokumenata za početak .
 Select a Banner Image first.,Odaberite Slika Banner prvi.
 Select an image of approx width 150px with a transparent background for best results.,Odaberite sliku od cca 150px širine s transparentnom pozadinom za najbolje rezultate.
-Select dates to create a new ,
+Select dates to create a new ,Select dates to create a new 
 "Select modules to be shown (based on permission). If hidden, they will be hidden for all users.","Odaberite modula koji će biti prikazan ( na temelju odobrenja ) . Ako skriveno , oni će biti skriven za sve korisnike ."
 Select or drag across time slots to create a new event.,Odaberite ili povucite preko minutaže stvoriti novi događaj.
 "Select target = ""_blank"" to open in a new page.","Select target = "" _blank "" otvara se u novu stranicu ."
@@ -1169,7 +1169,7 @@ User Permissions Manager,Korisnik Dozvole Manager
 User Roles,Korisničke Uloge
 User Tags,Upute Tags
 User Type,Vrsta korisnika
-"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ",
+"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ","User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. "
 User Vote,Korisnik Glasaj
 User not allowed to delete {0}: {1},Korisnik nije dopušteno brisati {0}: {1}
 User permissions should not apply for this Link,Ovlaštenja korisnika ne bi trebao podnijeti zahtjev za ovaj link

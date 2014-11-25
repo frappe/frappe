@@ -20,7 +20,7 @@ About Us Settings,Paramètrages À propos
 About Us Team Member,À propos du membre de l'équipe
 Action,Action
 Actions,Actions
-"Actions for workflow (e.g. Approve, Cancel).","Actions pour flux de travail (par exemple approuver, Annuler ) ."
+"Actions for workflow (e.g. Approve, Cancel).","Actions pour workflow (par exemple approuver, Annuler ) ."
 Add,Ajouter
 Add A New Rule,Ajouter une nouvelle règle
 Add A User Permission,Ajouter une permission d'utilisateur
@@ -53,7 +53,7 @@ Address,Adresse
 Address Line 1,Adresse ligne 1
 Address Line 2,Adresse ligne 2
 Address Title,Titre de l'adresse
-Address and other legal information you may want to put in the footer.,Adresse et autres informations juridiques que vous voulez mettre dans le pied de page.
+Address and other legal information you may want to put in the footer.,Adresse et autres informations juridiques que vous voudriez mettre dans le pied de page.
 Admin,admin
 All Applications,toutes les applications
 All Day,Toute la journée
@@ -70,21 +70,21 @@ Allowed,Permis
 "Allowing DocType, DocType. Be careful!",Vous ne pouvez pas ouvrir {0} lorsque son instance est ouverte
 Already Registered,Déjà inscrit
 Already in user's To Do list,Déjà dans la liste des tâches de l'utilisateur
-Alternative download link,Les champs obligatoires requises dans {0}
+Alternative download link,Lien de téléchargement alternatif
 "Alternatively, you can also specify 'auto_email_id' in site_config.json","Sinon, vous pouvez également spécifier ' auto_email_id ' dans site_config.json"
 Always use above Login Id as sender,Utiliser toujours au-dessus Id de connexion comme expéditeur
 Amend,Modifier
 "An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [<a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a>]","Un fichier d&#39;icône avec l&#39;extension. Ico. Doit être de 16 x 16 px. Généré à l&#39;aide d&#39;un générateur de favicon. [ <a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a> ]"
 "Another {0} with name {1} exists, select another name","Un autre {0} avec le nom {1} existe, choisir un autre nom"
-Any existing permission will be deleted / overwritten.,Toute autorisation existante ne sera supprimée / écrasé.
+Any existing permission will be deleted / overwritten.,Toute autorisation existante sera supprimée / écrasée.
 Anyone Can Read,N'importe qui peut lire
 Anyone Can Write,N'importe qui peut écrire
 "Apart from Role based Permission Rules, you can apply User Permissions based on DocTypes.","Outre les règles d'autorisation de rôle basé , vous pouvez appliquer des autorisations des utilisateurs sur la base de DocTypes ."
 "Apart from System Manager, roles with 'Set User Permissions' right can set permissions for other users for that Document Type.","En dehors de System Manager , les rôles avec le droit "" Définir les autorisations des utilisateurs de définir des autorisations pour les autres utilisateurs pour ce type de document ."
-App Name,Nom de l'App
-App not found,App introuvable
+App Name,Nom de l'application
+App not found,Application introuvable
 Application Installer,Installer des applications
-Applications,applications
+Applications,Applications
 Apply Style,appliquer le style
 Apply User Permissions,Appliquer les autorisations par utilisateurs
 Are you sure you want to delete the attachment?,Êtes-vous sûr de vouloir supprimer la pièce jointe?
@@ -101,9 +101,9 @@ Assignment Status Changed,Changement état d'affectation
 Assignments,Envoyer permanence {0} ?
 Attach,Joindre
 Attach Document Print,Joindre Imprimer de document
-Attach as web link,Joindre lien web
-Attached To DocType,Attaché au document de type
-Attached To Name,Attaché au document de nom
+Attach as web link,Joindre comme lien web
+Attached To DocType,Joint au document
+Attached To Name,Joint au nom
 Attachments,Pièces jointes
 Auto Email Id,Identification d&#39;email automatique
 Auto Name,Nom Auto
@@ -125,12 +125,12 @@ Birth Date,Date de naissance
 Blog Category,Catégorie du blog
 Blog Intro,Blog Intro
 Blog Introduction,Introduction du blog
-Blog Post,Blog
+Blog Post,Article de blog
 Blog Settings,Paramètres du blog
 Blog Title,Titre du blog
 Blogger,Blogger
 Bookmarks,Favoris
-Both login and password required,Les deux login et mot de passe requis
+Both login and password required,Un login et un mot de passe sont requis
 Brand HTML,Marque HTML
 Bulk Email,Courriel groupé
 Bulk email limit {0} crossed,La limite du courriel groupé  {0} est atteinte
@@ -154,7 +154,7 @@ Cannot edit standard fields,Vous ne pouvez pas modifier les champs standards
 Cannot map because following condition fails: ,Impossible de mapper parce condition suivante échoue:
 Cannot open instance when its {0} is open,Création / modification par
 Cannot open {0} when its instance is open,pas trouvé
-Cannot print cancelled documents,Vous n'êtes pas autorisé à envoyer des e-mails relatifs à ce document
+Cannot print cancelled documents,Impossible d'imprimer les documents annulés
 Cannot remove permission for DocType: {0} and Name: {1},Vous ne pouvez pas retirer l'autorisation de DocType : {0} et Nom : {1}
 Cannot reply to a reply,Vous ne pouvez pas répondre à une réponse
 Cannot set Email Alert on Document Type {0},Vous ne pouvez pas définir une alerte email sur Type de document {0}
@@ -247,7 +247,7 @@ Date Change,Changement de date
 Date Changed,Date de modification
 Date Format,Format de date
 Date and Number Format,Format de date et numéro
-Date must be in format: {0},Il y avait des erreurs
+Date must be in format: {0},Les dates doivent être au format: {0}
 Datetime,Datetime
 Days in Advance,Jours à l'avance
 Dear,Cher
@@ -948,7 +948,7 @@ Select Type,Sélectionnez le type de
 Select User or DocType to start.,Sélectionnez l'utilisateur ou Doctype pour commencer.
 Select a Banner Image first.,Choisissez une bannière image première.
 Select an image of approx width 150px with a transparent background for best results.,Sélectionnez une image d&#39;une largeur d&#39;environ 150px avec un fond transparent pour de meilleurs résultats.
-Select dates to create a new ,
+Select dates to create a new ,Select dates to create a new 
 "Select modules to be shown (based on permission). If hidden, they will be hidden for all users.","Sélectionnez les modules à être affichées ( sur la base de l'autorisation ) . Si caché , ils seront cachés pour tous les utilisateurs ."
 Select or drag across time slots to create a new event.,Sélectionnez ou glisser sur des intervalles de temps pour créer un nouvel événement.
 "Select target = ""_blank"" to open in a new page.","Sélectionnez target = "" _blank "" pour ouvrir dans une nouvelle page ."
@@ -1169,7 +1169,7 @@ User Permissions Manager,Les autorisations des utilisateurs Gestionnaire
 User Roles,Rôles de l'utilisateur
 User Tags,Nuage de Tags
 User Type,Type d&#39;utilisateur
-"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ",
+"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ","User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. "
 User Vote,Vote de l'utilisateur
 User not allowed to delete {0}: {1},Utilisateur non autorisé à supprimer {0}: {1}
 User permissions should not apply for this Link,Autorisations de l'utilisateur ne devraient pas s'appliquer pour ce Lien

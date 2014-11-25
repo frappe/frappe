@@ -948,7 +948,7 @@ Select Type,प्रकार का चयन करें
 Select User or DocType to start.,शुरू करने के लिए प्रयोक्ता या टैग का चयन करें.
 Select a Banner Image first.,पहले एक बैनर छवि का चयन करें.
 Select an image of approx width 150px with a transparent background for best results.,अच्छे परिणाम के लिए एक पारदर्शी पृष्ठभूमि के साथ लगभग चौड़ाई 150px की एक छवि का चयन करें.
-Select dates to create a new ,
+Select dates to create a new ,Select dates to create a new 
 "Select modules to be shown (based on permission). If hidden, they will be hidden for all users.","चयन मॉड्यूल (अनुमति के आधार पर) दिखाया जाएगा . छिपे हुए हैं, वे सभी उपयोगकर्ताओं के लिए छिपा हुआ होगा ."
 Select or drag across time slots to create a new event.,का चयन करें या एक नई घटना बनाने के लिए टाइम स्लॉट भर में खींचें.
 "Select target = ""_blank"" to open in a new page.","चुनने का लक्ष्य एक नया पेज में खोलने के लिए = "" _blank"" ."
@@ -1169,7 +1169,7 @@ User Permissions Manager,उपयोगकर्ता अनुमतिया
 User Roles,उपयोगकर्ता भूमिका
 User Tags,उपयोगकर्ता के टैग
 User Type,प्रयोक्ता प्रकार
-"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ",
+"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ","User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. "
 User Vote,उपयोगकर्ता वोट
 User not allowed to delete {0}: {1},उपयोगकर्ता को नष्ट करने की अनुमति नहीं {0} {1}
 User permissions should not apply for this Link,उपयोगकर्ता अनुमतियाँ इस लिंक के लिए आवेदन नहीं करना चाहिए
