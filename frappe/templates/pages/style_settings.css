@@ -5,7 +5,7 @@
 
 body {
 {% if doc.background_image %}
-	background: url("../{{ doc.background_image }}") repeat;
+	background: url("{{ doc.background_image }}") repeat;
 {% elif doc.background_color %}
 	background-color: #{{ doc.background_color }};
 	background-image: none;
