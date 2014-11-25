@@ -948,7 +948,7 @@ Select Type,حدد نوع
 Select User or DocType to start.,حدد العضو أو DOCTYPE للبدء.
 Select a Banner Image first.,تحديد صورة بانر الأول.
 Select an image of approx width 150px with a transparent background for best results.,اختر صورة من تقريبا عرض 150px مع خلفية شفافة للحصول على أفضل النتائج.
-Select dates to create a new ,
+Select dates to create a new ,Select dates to create a new 
 "Select modules to be shown (based on permission). If hidden, they will be hidden for all users.",حدد وحدات ليتم عرضها (على أساس إذن ) . إذا مخفي ، وسوف تكون مخفية لجميع المستخدمين.
 Select or drag across time slots to create a new event.,حدد أو اسحب عبر فتحات الوقت لإنشاء حدث جديد.
 "Select target = ""_blank"" to open in a new page.","حدد الهدف = "" _blank "" لفتح صفحة جديدة في ."
@@ -1070,7 +1070,7 @@ Table,جدول
 Table {0} cannot be empty,الجدول {0} لا يمكن أن تكون فارغة
 Tag,بطاقة
 Tag Name,علامة الاسم
-Tags,به
+Tags,علامات
 Tahoma,تاهوما
 Target,الهدف
 Tasks,المهام
@@ -1169,7 +1169,7 @@ User Permissions Manager,مدير ضوابط المستخدم
 User Roles,أدوار المستخدم
 User Tags,الكلمات المستخدم
 User Type,نوع المستخدم
-"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ",
+"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ","User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. "
 User Vote,تصويت المستخدم
 User not allowed to delete {0}: {1},المستخدم لا يسمح لحذف {0}: {1}
 User permissions should not apply for this Link,لا ينبغي تطبيق أذونات المستخدم لهذا الرابط

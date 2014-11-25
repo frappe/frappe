@@ -298,6 +298,7 @@ def read_csv_file(path):
 	from csv import reader
 	with codecs.open(path, 'r', 'utf-8') as msgfile:
 		data = msgfile.read()
+		data = data.replace(chr(28), "").replace(chr(29), "")
 		data = reader([r.encode('utf-8') for r in data.splitlines()])
 		newdata = [[unicode(val, 'utf-8') for val in row] for row in data]
 	return newdata

@@ -90,7 +90,10 @@ class DatabaseQuery(object):
 		if isinstance(self.filters, basestring):
 			self.filters = json.loads(self.filters)
 		if isinstance(self.fields, basestring):
-			self.fields = json.loads(self.fields)
+			if self.fields == "*":
+				self.fields = ["*"]
+			else:
+				self.fields = json.loads(self.fields)
 		if isinstance(self.filters, dict):
 			fdict = self.filters
 			self.filters = []

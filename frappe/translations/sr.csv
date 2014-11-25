@@ -948,7 +948,7 @@ Select Type,Изаберите Врста
 Select User or DocType to start.,Изаберите корисника или ДОЦТИПЕ да почне .
 Select a Banner Image first.,Изаберите прво слику Баннер.
 Select an image of approx width 150px with a transparent background for best results.,Изаберите слику ширине 150пк ца са транспарентном позадином за најбоље резултате.
-Select dates to create a new ,
+Select dates to create a new ,Select dates to create a new 
 "Select modules to be shown (based on permission). If hidden, they will be hidden for all users.","Выбор модулей в данном периоде (на основе разрешения ) . Если скрытые, они будут скрыты для всех пользователей."
 Select or drag across time slots to create a new event.,Изаберите или превуците преко терминима да креирате нови догађај.
 "Select target = ""_blank"" to open in a new page.","Одаберите таргет = ""_бланк "" отвара нову страницу у ."
@@ -1169,7 +1169,7 @@ User Permissions Manager,Усер Дозволе менаџер
 User Roles,Роли пользователей
 User Tags,Корисник Тагс:
 User Type,Тип корисника
-"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ",
+"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ","User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. "
 User Vote,Голос пользователя
 User not allowed to delete {0}: {1},Корисник није дозвољено да избришете {0}: {1}
 User permissions should not apply for this Link,Корисника дозволе не би требало да се пријаве за овај Линк

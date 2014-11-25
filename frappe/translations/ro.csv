@@ -1,5 +1,5 @@
- by Role ,
- is not set,
+ by Role , by Role 
+ is not set, is not set
 """Company History""","""Istoricul companiei"""
 """Team Members"" or ""Management""","""Membrii echipei"" sau ""Management"""
 'In List View' not allowed for type {0} in row {1},"""În Vizualizare listă"" nu este permis pentru tipul {0} în rândul {1}"
@@ -14,13 +14,13 @@
 <i>e.g. <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>,<i> exemplu <strong> (55 + 434) / 4 </ strong> sau <strong> = Math.sin (Math.PI / 2) </ strong> ... </ i>
 <i>module name...</i>,<i> nume de modul ... </ i>
 <i>text</i> <b>in</b> <i>document type</i>,Textul <i> </ i> <b> în </ b> <i> tip de document </ i>
-A user can be permitted to multiple records of the same DocType.,Un utilizator poate fi permisă în mai multe înregistrări ale aceluiași DocType.Referinta.
+A user can be permitted to multiple records of the same DocType.,Un utilizator poate fi permis  în mai multe înregistrări ale aceluiași DocType.
 About,Despre
-About Us Settings,Despre noi Setări
-About Us Team Member,Despre noi Echipa membre
+About Us Settings,Setări Despre noi
+About Us Team Member,Membru Echipă Despre noi
 Action,Acțiune:
 Actions,Acțiuni
-"Actions for workflow (e.g. Approve, Cancel).","Acțiuni pentru fluxul de lucru (de exemplu, Aprobare, Cancel)."
+"Actions for workflow (e.g. Approve, Cancel).","Acțiuni pentru fluxul de lucru (de exemplu, Aprobare, Anulare)."
 Add,Adaugă
 Add A New Rule,Adăuga o regulă nouă
 Add A User Permission,Adauga un permisiunea utilizatorului
@@ -151,7 +151,7 @@ Cannot change {0},Nu se poate schimba {0}
 Cannot delete or cancel because {0} {1} is linked with {2} {3},Nu se poate șterge sau de a anula din cauza {0} {1} este legat cu {2} {3}
 Cannot delete {0} as it has child nodes,"Nu se poate șterge {0}, deoarece are noduri copil"
 Cannot edit standard fields,Nu se pot edita câmpuri standard
-Cannot map because following condition fails: ,
+Cannot map because following condition fails: ,Cannot map because following condition fails: 
 Cannot open instance when its {0} is open,"Nu se poate deschide exemplu, atunci când sa {0} este deschis"
 Cannot open {0} when its instance is open,"Nu se poate deschide {0}, atunci când de exemplu sa este deschis"
 Cannot print cancelled documents,Nu se poate imprima documente anulate
@@ -295,7 +295,7 @@ DocType or Field,DocType sau câmp
 Doclist JSON,Listă documente JSON
 Docname,Docname
 Document,Studiu de caz
-Document Status transition from ,
+Document Status transition from ,Document Status transition from 
 Document Status transition from {0} to {1} is not allowed,Starea document de tranziție de la {0} la {1} nu este permis
 Document Type,Tip de document
 Document is only editable by users of role,Documentul este editabil doar de către utilizatorii de rol
@@ -439,7 +439,7 @@ Gender,Sex
 Generator,Generator
 Georgia,Georgia
 Get,Obţine
-Get From ,
+Get From ,Get From 
 "Get your globally recognized avatar from <a href=""https://gravatar.com/"">Gravatar.com</a>","Ia-ti un avatar recunoscute la nivel mondial de la <a href=""https://gravatar.com/""> Gravatar.com </ a>"
 GitHub,GitHub
 GitHub Client ID,GitHub Client ID
@@ -660,7 +660,7 @@ Next State,State următor
 Next actions,Acțiuni Înainte
 No,Nu
 No Action,Nicio acțiune
-No Communication tagged with this ,
+No Communication tagged with this ,No Communication tagged with this 
 No Copy,Nu Copy
 No Permissions set for this criteria.,Permisiuni stabilit pentru acest criteriu.
 No Report Loaded. Please use query-report/[Report Name] to run a report.,Nici un raport Loaded. Va rugam sa folositi interogare-raport / [Reclama Name] pentru a rula un raport.
@@ -948,7 +948,7 @@ Select Type,Selectați Tipul
 Select User or DocType to start.,Selectați utilizator sau DocType pentru a începe.
 Select a Banner Image first.,Selectați o imagine banner prima.
 Select an image of approx width 150px with a transparent background for best results.,"Selectați o imagine de lățime de aproximativ 150px cu un fundal transparent, pentru cele mai bune rezultate."
-Select dates to create a new ,
+Select dates to create a new ,Select dates to create a new 
 "Select modules to be shown (based on permission). If hidden, they will be hidden for all users.","Selectați module să fie afișate (bazat pe permisiune). Dacă ascunse, acestea vor fi ascunse pentru toți utilizatorii."
 Select or drag across time slots to create a new event.,Selectați sau glisați peste intervale de timp pentru a crea un nou eveniment.
 "Select target = ""_blank"" to open in a new page.","Selectați target = ""_blank"" pentru a deschide într-o nouă pagină."
@@ -1169,7 +1169,7 @@ User Permissions Manager,Permisiunile utilizatorului Director
 User Roles,Roluri de utilizator
 User Tags,Tag-uri de utilizator
 User Type,Tip utilizator
-"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ",
+"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ","User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. "
 User Vote,Vot utilizator
 User not allowed to delete {0}: {1},Utilizatorul nu este permis pentru a șterge {0}: {1}
 User permissions should not apply for this Link,Permisiunile de utilizator nu trebuie să se aplice pentru acest link

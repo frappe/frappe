@@ -84,6 +84,8 @@ def make_autoname(key, doctype=''):
 
 	if not "#" in key:
 		key = key + ".#####"
+	elif not "." in key:
+		frappe.throw(_("Invalid naming series (. missing)") + (_(" for {0}").format(doctype) if doctype else ""))
 
 	n = ''
 	l = key.split('.')

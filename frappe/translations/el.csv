@@ -16,8 +16,8 @@
 <i>text</i> <b>in</b> <i>document type</i>,<i> κείμενο </ i> <b> </ b> <i> τύπο εγγράφου </ i>
 A user can be permitted to multiple records of the same DocType.,Ένας χρήστης μπορεί να επιτραπεί σε πολλαπλές εγγραφές του ίδιου DocType .
 About,Σχετικά
-About Us Settings,Σχετικά με εμάς Ρυθμίσεις
-About Us Team Member,Σχετικά με εμάς Μέλος της Ομάδας
+About Us Settings,Ρυθμίσεις σχετικά με εμάς 
+About Us Team Member,Μέλος της Ομάδας σχετικά με εμάς 
 Action,Δράση
 Actions,δράσεις
 "Actions for workflow (e.g. Approve, Cancel).","Ενέργειες για τη ροή εργασίας ( π.χ. Έγκριση , Ακύρωση ) ."
@@ -77,7 +77,7 @@ Amend,Τροποποιούνται
 "An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [<a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a>]","Ένα αρχείο με το εικονίδιο. Επέκταση ICO. Θα πρέπει να είναι 16 x 16 px. Generated χρησιμοποιώντας μια γεννήτρια favicon. [ <a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a> ]"
 "Another {0} with name {1} exists, select another name","Ένας άλλος {0} με το όνομα {1} υπάρχει, επιλέξτε ένα άλλο όνομα"
 Any existing permission will be deleted / overwritten.,Κάθε υφιστάμενη άδεια θα διαγραφούν / αντικατασταθούν.
-Anyone Can Read,Ο καθένας μπορεί να διαβάσει
+Anyone Can Read,Οποιοσδηποτε μπορεί να διαβάσει
 Anyone Can Write,Οποιοσδήποτε μπορεί να γράψει
 "Apart from Role based Permission Rules, you can apply User Permissions based on DocTypes.","Εκτός από το ρόλο που βασίζονται Κανόνες άδεια , μπορείτε να εφαρμόσετε τα δικαιώματα χρήσης με βάση doctypes ."
 "Apart from System Manager, roles with 'Set User Permissions' right can set permissions for other users for that Document Type.","Εκτός από το Διαχειριστή του Συστήματος , οι ρόλοι με το δικαίωμα 'Ρύθμιση δικαιωμάτων χρήστη » να ορίσετε δικαιώματα για άλλους χρήστες για αυτόν τον τύπο εγγράφου ."
@@ -91,14 +91,14 @@ Are you sure you want to delete the attachment?,Είστε σίγουροι ότ
 Arial,Arial
 "As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User.","Ως βέλτιστη πρακτική , δεν αποδίδουν το ίδιο σύνολο κανόνα άδεια για διαφορετικούς ρόλους . Αντ 'αυτού , που πολλούς ρόλους στο ίδιο το χρήστη ."
 Ascending,Αύξουσα
-Assign To,Εκχώρηση σε
+Assign To,Ανάθεση σε
 Assigned By,Ανατέθηκε από
 Assigned To,Ανατέθηκε σε
 Assigned To Fullname,Ανατέθηκε σε Ονοματεπώνυμο
 Assigned To/Owner,Ανατέθηκε σε / Ιδιοκτήτης
-Assignment Added,εκχώρηση Προστέθηκε
-Assignment Status Changed,Εκχώρηση Άλλαξε Η Κατάσταση
-Assignments,αναθέσεις
+Assignment Added,Προστέθηκε Ανάθεση
+Assignment Status Changed,Η ανάθεση άλλαξε κατάσταση
+Assignments,Αναθέσεις
 Attach,Επισυνάψτε
 Attach Document Print,Συνδέστε Εκτύπωση εγγράφου
 Attach as web link,Να επισυναφθεί ως σύνδεσμο ιστού
@@ -948,7 +948,7 @@ Select Type,Επιλέξτε Τύπο
 Select User or DocType to start.,Επιλέξτε το χρήστη ή DocType για να ξεκινήσει .
 Select a Banner Image first.,Επιλέξτε μια εικόνα banner πρώτα.
 Select an image of approx width 150px with a transparent background for best results.,Επιλέξτε μια εικόνα 150px πλάτους περ. με ένα διαφανές φόντο για καλύτερα αποτελέσματα.
-Select dates to create a new ,
+Select dates to create a new ,Select dates to create a new 
 "Select modules to be shown (based on permission). If hidden, they will be hidden for all users.","Επιλέξτε ενότητες που πρέπει να δείξει ( με βάση την άδεια ) . Αν κρύβεται , θα είναι κρυμμένα για όλους τους χρήστες ."
 Select or drag across time slots to create a new event.,Επιλέξτε ή σύρετε χρονοθυρίδες για να δημιουργήσετε ένα νέο συμβάν.
 "Select target = ""_blank"" to open in a new page.","Επιλέξτε target = "" _blank "" για να ανοίξει σε μια νέα σελίδα ."
@@ -1169,7 +1169,7 @@ User Permissions Manager,Δικαιώματα χρήστης του Διαχει
 User Roles,Ρόλοι Χρηστών
 User Tags,Ετικέτες
 User Type,Τύπος χρήστη
-"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ",
+"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ","User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. "
 User Vote,Ψηφοφορία χρήστη
 User not allowed to delete {0}: {1},Ο χρήστης δεν επιτρέπεται να διαγράψετε {0}: {1}
 User permissions should not apply for this Link,Δικαιώματα χρήστη δεν πρέπει να εφαρμόζονται για αυτή την σύνδεση
