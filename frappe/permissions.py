@@ -250,3 +250,12 @@ def get_user_permission_doctypes(user_permission_doctypes, user_permissions):
 					break
 
 	return user_permission_doctypes
+
+def reset_perms(doctype):
+	"""Reset permissions for given doctype."""
+	from frappe.core.doctype.notification_count.notification_count import delete_notification_count_for
+	delete_notification_count_for(doctype)
+
+	frappe.db.sql("""delete from tabDocPerm where parent=%s""", doctype)
+	frappe.reload_doc(frappe.db.get_value("DocType", doctype, "module"),
+		"DocType", doctype, force=True)
