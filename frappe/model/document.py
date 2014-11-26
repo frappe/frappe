@@ -55,7 +55,8 @@ def get_controller(doctype):
 
 	:param doctype: DocType name as string."""
 	if not doctype in _classes:
-		module_name, custom = frappe.db.get_value("DocType", doctype, ["module", "custom"])
+		module_name, custom = frappe.db.get_value("DocType", doctype, ["module", "custom"]) \
+			or ["Core", False]
 
 		if custom:
 			_class = Document
