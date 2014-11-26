@@ -14,6 +14,7 @@ class EmailTimeoutError(frappe.ValidationError): pass
 class TotalSizeExceededError(frappe.ValidationError): pass
 
 class POP3Server:
+	"""Wrapper for POP server to pull emails."""
 	def __init__(self, args=None):
 		self.setup(args)
 
@@ -30,6 +31,7 @@ class POP3Server:
 		pass
 
 	def connect(self):
+		"""Connect to **Email Account**."""
 		try:
 			if cint(self.settings.use_ssl):
 				self.pop = Timed_POP3_SSL(self.settings.host, timeout=frappe.conf.get("pop_timeout"))
@@ -48,6 +50,7 @@ class POP3Server:
 			raise
 
 	def get_messages(self):
+		"""Returns new email messages in a list."""
 		if not self.check_mails():
 			return # nothing to do
 
@@ -145,7 +148,11 @@ class POP3Server:
 		return error_msg
 
 class Email:
+	"""Wrapper for an email."""
 	def __init__(self, content):
+		"""Parses headers, content, attachments from given raw message.
+
+		:param content: Raw message."""
 		import email, email.utils
 		import datetime
 
@@ -169,10 +176,12 @@ class Email:
 			self.date = now()
 
 	def parse(self):
+		"""Walk and process multi-part email."""
 		for part in self.mail.walk():
 			self.process_part(part)
 
 	def set_subject(self):
+		"""Parse and decode `Subject` header."""
 		import email.header
 		_subject = email.header.decode_header(self.mail.get("Subject", "No Subject"))
 		self.subject = _subject[0][0] or ""
@@ -193,6 +202,7 @@ class Email:
 			self.content, self.content_type = self.html_content, 'text/html'
 
 	def process_part(self, part):
+		"""Parse email `part` and set it to `text_content`, `html_content` or `attachments`."""
 		content_type = part.get_content_type()
 		charset = part.get_content_charset()
 		if not charset: charset = self.get_charset(part)
@@ -207,9 +217,11 @@ class Email:
 			self.get_attachment(part, charset)
 
 	def get_text_content(self):
+		"""Returns text or html content."""
 		return self.text_content or self.html_content
 
 	def get_charset(self, part):
+		"""Detect chartset."""
 		charset = part.get_content_charset()
 		if not charset:
 			import chardet
@@ -231,6 +243,7 @@ class Email:
 		})
 
 	def save_attachments_in_doc(self, doc):
+		"""Save email attachments in given document."""
 		from frappe.utils.file_manager import save_file, MaxFileSizeReachedError
 		for attachment in self.attachments:
 			try:
@@ -244,6 +257,7 @@ class Email:
 				pass
 
 	def get_thread_id(self):
+		"""Extract thread ID from `[]`"""
 		import re
 		l = re.findall('(?<=\[)[\w/-]+', self.subject)
 		return l and l[0] or None
