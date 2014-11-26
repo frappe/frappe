@@ -36,17 +36,19 @@ def reload_doc(module, dt=None, dn=None, force=True):
 	return import_files(module, dt, dn, force=force)
 
 def export_doc(doctype, name, module=None):
-	"""write out a doc"""
+	"""Write a doc to standard path."""
 	from frappe.modules.export_file import write_document_file
 
 	if not module: module = frappe.db.get_value(doctype, name, 'module')
 	write_document_file(frappe.get_doc(doctype, name), module)
 
 def get_doctype_module(doctype):
+	"""Returns **Module Def** name of given doctype."""
 	return frappe.db.get_value('DocType', doctype, 'module') or "core"
 
 doctype_python_modules = {}
 def load_doctype_module(doctype, module=None, prefix=""):
+	"""Returns the module object for given doctype."""
 	if not module:
 		module = get_doctype_module(doctype)
 

@@ -92,14 +92,17 @@ frappe.views.CommunicationComposer = Class.extend({
 		if(!this.subject && this.frm) {
 			// get subject from last communication
 			var last = this.frm.comments.get_last_email();
-			this.subject = last.subject;
-			if(!this.recipients) {
-				this.recipients = last.comment_by;
-			}
 
-			// prepend "Re:"
-			if(strip(this.subject.toLowerCase().split(":")[0])!="re") {
-				this.subject = "Re: " + this.subject;
+			if(last) {
+				this.subject = last.subject;
+				if(!this.recipients) {
+					this.recipients = last.comment_by;
+				}
+
+				// prepend "Re:"
+				if(strip(this.subject.toLowerCase().split(":")[0])!="re") {
+					this.subject = "Re: " + this.subject;
+				}
 			}
 		}
 	},
@@ -355,13 +358,14 @@ frappe.views.CommunicationComposer = Class.extend({
 			.autocomplete({
 				source: function(request, response) {
 					return frappe.call({
-						method:'frappe.utils.email_lib.get_contact_list',
+						method:'frappe.email.get_contact_list',
 						args: {
 							'select': "email_id",
 							'from': "Contact",
 							'where': "email_id",
 							'txt': extractLast(request.term).value || '%'
 						},
+						quiet: true,
 						callback: function(r) {
 							response($.ui.autocomplete.filter(
 								r.cl || [], extractLast(request.term)));

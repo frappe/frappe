@@ -194,8 +194,8 @@ frappe.views.moduleview.ModuleView = Class.extend({
 					item.icon = item.icon || frappe.boot.doctype_icons[item.doctype];
 				}
 
-				item.description = cstr(item.description);
-				
+				item.description = cstr(item.description) + " ";
+
 				$list_item = $($r('<li class="list-group-item">\
 					<div class="row">\
 						<div class="col-sm-6 list-item-name">\

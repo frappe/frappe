@@ -50,20 +50,26 @@ def get_doc(arg1, arg2=None):
 _classes = {}
 
 def get_controller(doctype):
-	"""Returns the **class** object of the given DocType
+	"""Returns the **class** object of the given DocType.
+	For `custom` type, returns `frappe.model.document.Document`.
 
 	:param doctype: DocType name as string."""
 	if not doctype in _classes:
-		module = load_doctype_module(doctype)
-		classname = doctype.replace(" ", "").replace("-", "")
-		if hasattr(module, classname):
-			_class = getattr(module, classname)
-			if issubclass(_class, Document):
+		module_name, custom = frappe.db.get_value("DocType", doctype, ["module", "custom"])
+
+		if custom:
+			_class = Document
+		else:
+			module = load_doctype_module(doctype, module_name)
+			classname = doctype.replace(" ", "").replace("-", "")
+			if hasattr(module, classname):
 				_class = getattr(module, classname)
+				if issubclass(_class, Document):
+					_class = getattr(module, classname)
+				else:
+					raise ImportError, doctype
 			else:
 				raise ImportError, doctype
-		else:
-			raise ImportError, doctype
 		_classes[doctype] = _class
 
 	return _classes[doctype]

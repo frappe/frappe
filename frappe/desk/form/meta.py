@@ -164,14 +164,15 @@ class FormMeta(Meta):
 
 
 	def load_templates(self):
-		module = load_doctype_module(self.name)
-		app = module.__name__.split(".")[0]
-		templates = {}
-		if hasattr(module, "form_grid_templates"):
-			for key, path in module.form_grid_templates.iteritems():
-				templates[key] = get_html_format(frappe.get_app_path(app, path))
+		if not self.custom:
+			module = load_doctype_module(self.name)
+			app = module.__name__.split(".")[0]
+			templates = {}
+			if hasattr(module, "form_grid_templates"):
+				for key, path in module.form_grid_templates.iteritems():
+					templates[key] = get_html_format(frappe.get_app_path(app, path))
 
-			self.set("__form_grid_templates", templates)
+				self.set("__form_grid_templates", templates)
 
 	def set_translations(self, lang):
 		self.set("__messages", frappe.get_lang_dict("doctype", self.name))

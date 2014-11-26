@@ -31,8 +31,8 @@ class DocType(Document):
 		- Check fieldnames (duplication etc)
 		- Clear permission table for child tables
 		- Add `amended_from` and `ameneded_by` if Amendable"""
-		if not frappe.conf.get("developer_mode"):
-			frappe.throw(_("Not in Developer Mode! Set in site_config.json"))
+		if not frappe.conf.get("developer_mode") and not self.custom:
+			frappe.throw(_("Not in Developer Mode! Set in site_config.json or make 'Custom' DocType."))
 		for c in [".", "/", "#", "&", "=", ":", "'", '"']:
 			if c in self.name:
 				frappe.throw(_("{0} not allowed in name").format(c))
