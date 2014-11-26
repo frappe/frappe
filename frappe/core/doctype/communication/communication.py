@@ -116,7 +116,7 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 		"doctype":"Communication",
 		"subject": subject,
 		"content": content,
-		"sender": get_formatted_email(frappe.session.user),
+		"sender": sender or get_formatted_email(frappe.session.user),
 		"recipients": recipients,
 		"communication_medium": "Email",
 		"sent_or_received": sent_or_received,

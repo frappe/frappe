@@ -8,6 +8,7 @@ test_records = frappe.get_test_records('Email Account')
 
 from frappe.core.doctype.communication.communication import make
 from frappe.desk.form.load import get_attachments
+from frappe.utils.file_manager import delete_file_from_filesystem
 
 class TestEmailAccount(unittest.TestCase):
 	def test_incoming(self):
@@ -24,6 +25,9 @@ class TestEmailAccount(unittest.TestCase):
 
 	def test_incoming_with_attach(self):
 		frappe.db.sql("delete from tabCommunication where sender='test_sender@example.com'")
+		existing_file = frappe.get_doc({'doctype': 'File Data', 'file_name': 'erpnext-conf-14.png'})
+		frappe.delete_doc("File Data", existing_file.name)
+		delete_file_from_filesystem(existing_file)
 
 		with open(os.path.join(os.path.dirname(__file__), "test_mails", "incoming-2.raw"), "r") as f:
 			test_mails = [f.read()]
@@ -41,7 +45,7 @@ class TestEmailAccount(unittest.TestCase):
 	def test_outgoing(self):
 		frappe.flags.sent_mail = None
 		make(subject = "test-mail-000", content="test mail 000", recipients="test_receiver@example.com",
-			send_email=True)
+			send_email=True, sender="test_sender@example.com")
 
 		sent_mail = email.message_from_string(frappe.flags.sent_mail)
 		self.assertTrue("test-mail-000" in sent_mail.get("Subject"))
