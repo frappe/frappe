@@ -42,8 +42,9 @@ class POP3Server:
 			# Invalid mail server -- due to refusing connection
 			frappe.msgprint(_('Invalid Mail Server. Please rectify and try again.'))
 			raise
-		except poplib.error_proto:
-			frappe.msgprint(_('Invalid User Name or Support Password. Please rectify and try again.'))
+		except poplib.error_proto, e:
+			if not "SYS/TEMP" in str(e):
+				frappe.msgprint(_('Invalid User Name or Support Password. Please rectify and try again.'))
 			raise
 
 	def get_messages(self):
