@@ -50,6 +50,7 @@ class DocType(Document):
 		self.make_amendable()
 
 	def change_modified_of_parent(self):
+		"""Change the timestamp of parent DocType if the current one is a child to clear caches."""
 		if frappe.flags.in_import:
 			return
 		parent_list = frappe.db.sql("""SELECT parent
@@ -58,6 +59,7 @@ class DocType(Document):
 			frappe.db.sql('UPDATE tabDocType SET modified=%s WHERE `name`=%s', (now(), p[0]))
 
 	def scrub_field_names(self):
+		"""Sluggify fieldnames if not set from Label."""
 		restricted = ('name','parent','creation','modified','modified_by',
 			'parentfield','parenttype',"file_list")
 		for d in self.get("fields"):
@@ -72,11 +74,13 @@ class DocType(Document):
 
 
 	def validate_title_field(self):
+		"""Throw exception if `title_field` is not a valid field."""
 		if self.title_field and \
 			self.title_field not in [d.fieldname for d in self.get("fields")]:
 			frappe.throw(_("Title field must be a valid fieldname"))
 
 	def validate_series(self, autoname=None, name=None):
+		"""Validate if `autoname` property is correctly set."""
 		if not autoname: autoname = self.autoname
 		if not name: name = self.name
 
@@ -94,6 +98,7 @@ class DocType(Document):
 				frappe.throw(_("Series {0} already used in {1}").format(prefix, used_in[0][0]))
 
 	def on_update(self):
+		"""Update database schema, make controller templates if `custom` is not set and clear cache."""
 		from frappe.model.db_schema import updatedb
 		updatedb(self.name)
 
@@ -116,21 +121,25 @@ class DocType(Document):
 		frappe.clear_cache(doctype=self.name)
 
 	def before_rename(self, old, new, merge=False):
+		"""Throw exception if merge. DocTypes cannot be merged."""
 		if merge:
 			frappe.throw(_("DocType can not be merged"))
 
 	def after_rename(self, old, new, merge=False):
+		"""Change table name using `RENAME TABLE` if table exists. Or update
+		`doctype` property for Single type."""
 		if self.issingle:
 			frappe.db.sql("""update tabSingles set doctype=%s where doctype=%s""", (new, old))
 		else:
 			frappe.db.sql("rename table `tab%s` to `tab%s`" % (old, new))
 
 	def before_reload(self):
+		"""Preserve naming series changes in Property Setter."""
 		if not (self.issingle and self.istable):
 			self.preserve_naming_series_options_in_property_setter()
 
 	def preserve_naming_series_options_in_property_setter(self):
-		"""preserve naming_series as property setter if it does not exist"""
+		"""Preserve naming_series as property setter if it does not exist"""
 		naming_series = self.get("fields", {"fieldname": "naming_series"})
 
 		if not naming_series:
@@ -149,14 +158,17 @@ class DocType(Document):
 				make_property_setter(self.name, "naming_series", "default", naming_series[0].default, "Text", validate_fields_for_doctype=False)
 
 	def export_doc(self):
+		"""Export to standard folder `[module]/doctype/[name]/[name].json`."""
 		from frappe.modules.export_file import export_to_files
 		export_to_files(record_list=[['DocType', self.name]])
 
 	def import_doc(self):
+		"""Import from standard folder `[module]/doctype/[name]/[name].json`."""
 		from frappe.modules.import_module import import_from_files
 		import_from_files(record_list=[[self.module, 'doctype', self.name]])
 
 	def make_controller_template(self):
+		"""Make boilderplate controller template."""
 		make_boilerplate("controller.py", self)
 
 		if not (self.istable or self.issingle):
@@ -164,9 +176,7 @@ class DocType(Document):
 			make_boilerplate("test_records.json", self)
 
 	def make_amendable(self):
-		"""
-			if is_submittable is set, add amended_from docfields
-		"""
+		"""If is_submittable is set, add amended_from docfields."""
 		if self.is_submittable:
 			if not frappe.db.sql("""select name from tabDocField
 				where fieldname = 'amended_from' and parent = %s""", self.name):
@@ -181,6 +191,7 @@ class DocType(Document):
 					})
 
 	def get_max_idx(self):
+		"""Returns the highest `idx`"""
 		max_idx = frappe.db.sql("""select max(idx) from `tabDocField` where parent = %s""",
 			self.name)
 		return max_idx and max_idx[0][0] or 0
@@ -190,6 +201,21 @@ def validate_fields_for_doctype(doctype):
 
 # this is separate because it is also called via custom field
 def validate_fields(meta):
+	"""Validate doctype fields. Checks
+
+	1. There are no illegal characters in fieldnames
+	2. If fieldnames are unique.
+	3. Fields that do have database columns are not mandatory.
+	4. `Link` and `Table` options are valid.
+	5. **Hidden** and **Mandatory** are not set simultaneously.
+	6. Sets default `in_list_view`.
+	7. `Check` type field has default as 0 or 1.
+	8. `Dynamic Links` are correctly defined.
+	9. Precision is set in numeric fields and is between 1 & 6.
+	10. Fold is not at the end (if set).
+	11. `search_fields` are valid.
+
+	:param meta: `frappe.model.meta.Meta` object to check."""
 	def check_illegal_characters(fieldname):
 		for c in ['.', ',', ' ', '-', '&', '%', '=', '"', "'", '*', '$',
 			'(', ')', '[', ']', '/']:
@@ -291,6 +317,7 @@ def validate_fields(meta):
 	check_search_fields(meta)
 
 def validate_permissions_for_doctype(doctype, for_remove=False):
+	"""Validates if permissions are set correctly."""
 	doctype = frappe.get_doc("DocType", doctype)
 
 	if frappe.conf.developer_mode and not frappe.flags.in_test:
@@ -397,6 +424,7 @@ def validate_permissions(doctype, for_remove=False):
 		remove_rights_for_single(d)
 
 def make_module_and_roles(doc, perm_fieldname="permissions"):
+	"""Make `Module Def` and `Role` records if already not made. Called while installing."""
 	try:
 		if not frappe.db.exists("Module Def", doc.module):
 			m = frappe.get_doc({"doctype": "Module Def", "module_name": doc.module})
@@ -422,6 +450,7 @@ def make_module_and_roles(doc, perm_fieldname="permissions"):
 			raise
 
 def init_list(doctype):
+	"""Make boilerplate list views."""
 	doc = frappe.get_meta(doctype)
 	make_boilerplate("controller_list.js", doc)
 	make_boilerplate("controller_list.html", doc)
