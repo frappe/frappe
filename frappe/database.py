@@ -457,6 +457,7 @@ class Database:
 		"""Return the temperory value and delete it."""
 		value = self.get_global(key, "__temp")
 		frappe.defaults.clear_default(key=key, parent="__temp")
+		return value
 
 	def set_global(self, key, val, user='__global'):
 		"""Save a global key value. Global values will be automatically set if they match fieldname."""
