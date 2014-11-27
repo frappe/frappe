@@ -10,6 +10,7 @@ from markdown2 import UnicodeWithAttrs
 import warnings
 import datetime
 import frappe
+import frappe.defaults
 import re
 import frappe.model.meta
 from frappe.utils import now, get_datetime
@@ -446,34 +447,45 @@ class Database:
 			where name=%s""".format(doctype=doctype), (modified, docname))
 		return modified
 
+	def set_temp(self, value):
+		"""Set a temperory value and return a key."""
+		key = frappe.generate_hash()
+		frappe.defaults.set_default(key, value, parent="__temp")
+		return key
+
+	def get_temp(self, key):
+		"""Return the temperory value and delete it."""
+		value = self.get_global(key, "__temp")
+		frappe.defaults.clear_default(key=key, parent="__temp")
+
 	def set_global(self, key, val, user='__global'):
+		"""Save a global key value. Global values will be automatically set if they match fieldname."""
 		self.set_default(key, val, user)
 
 	def get_global(self, key, user='__global'):
+		"""Returns a global key value."""
 		return self.get_default(key, user)
 
 	def set_default(self, key, val, parent="__default", parenttype=None):
-		import frappe.defaults
+		"""Sets a global / user default value."""
 		frappe.defaults.set_default(key, val, parent, parenttype)
 
 	def add_default(self, key, val, parent="__default", parenttype=None):
-		import frappe.defaults
+		"""Append a default value for a key, there can be multiple default values for a particular key."""
 		frappe.defaults.add_default(key, val, parent, parenttype)
 
 	def get_default(self, key, parent="__default"):
-		"""get default value"""
-		import frappe.defaults
+		"""Returns default value as a list if multiple or single"""
 		d = frappe.defaults.get_defaults(parent).get(key)
 		return isinstance(d, list) and d[0] or d
 
 	def get_defaults_as_list(self, key, parent="__default"):
-		import frappe.defaults
+		"""Returns default values as a list."""
 		d = frappe.defaults.get_default(key, parent)
 		return isinstance(d, basestring) and [d] or d
 
 	def get_defaults(self, key=None, parent="__default"):
-		"""get all defaults"""
-		import frappe.defaults
+		"""Get all defaults"""
 		if key:
 			return frappe.defaults.get_defaults(parent).get(key)
 		else:

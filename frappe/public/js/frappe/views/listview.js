@@ -306,7 +306,7 @@ frappe.views.ListView = Class.extend({
 		// starrable
 		html += '<i class="icon-star' + (data._starred_by.indexOf(user)===-1 ? "-empty" : "")
 			+ ' icon-fixed-width star-action text-muted" \
-				style="margin-right: 3px; margin-left: -3px; cursor: pointer" data-name="'
+				style="margin-right: 3px; cursor: pointer" data-name="'
 			+ data.name.replace(/"/g, '\"') +'"></i>';
 
 		this.title_offset_left += 13;

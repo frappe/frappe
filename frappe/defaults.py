@@ -75,6 +75,13 @@ def get_global_default(key):
 # Common
 
 def set_default(key, value, parent, parenttype="__default"):
+	"""Override or add a default value.
+	Adds default value in table `tabDefaultValue`.
+
+	:param key: Default key.
+	:param value: Default value.
+	:param parent: Usually, **User** to whom the default belongs.
+	:param parenttype: [optional] default is `__default`."""
 	if frappe.db.sql("""select defkey from `tabDefaultValue` where
 		defkey=%s and parent=%s """, (key, parent)):
 		# update
@@ -97,6 +104,14 @@ def add_default(key, value, parent, parenttype=None):
 	_clear_cache(parent)
 
 def clear_default(key=None, value=None, parent=None, name=None, parenttype=None):
+	"""Clear a default value by any of the given parameters and delete caches.
+
+	:param key: Default key.
+	:param value: Default value.
+	:param parent: User name, or `__global`, `__default`.
+	:param name: Default ID.
+	:param parenttype: Clear defaults table for a particular type e.g. **User**.
+	"""
 	conditions = []
 	values = []
 

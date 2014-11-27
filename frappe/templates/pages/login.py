@@ -159,7 +159,19 @@ def login_via_oauth2(provider, code, decoder=None):
 
 	login_oauth_user(info, provider=provider)
 
-def login_oauth_user(data, provider=None):
+@frappe.whitelist()
+def login_oauth_user(data=None, provider=None, email_id=None, key=None):
+	if email_id and key:
+		data = frappe.db.get_temp(key)
+		data["email"] = email_id
+
+	elif not "email" in data:
+		# ask for user email
+		key = frappe.db.set_temp(data)
+		frappe.local.response["type"] = "redirect"
+		frappe.local.response["location"] = "/complete_signup?key=" + key
+		return
+
 	user = data["email"]
 
 	try:
