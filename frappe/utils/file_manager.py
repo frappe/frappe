@@ -169,7 +169,7 @@ def write_file(content, file_path, fname):
 	# create directory (if not exists)
 	frappe.create_folder(get_files_path())
 	# write the file
-	with open(os.path.join(file_path, fname), 'w+') as f:
+	with open(os.path.join(file_path.encode('utf-8'), fname.encode('utf-8')), 'w+') as f:
 		f.write(content)
 	return get_files_path(fname)
 
@@ -250,7 +250,7 @@ def get_content_hash(content):
 
 def get_file_name(fname, optional_suffix):
 	n_records = frappe.db.sql("select name from `tabFile Data` where file_name=%s", fname)
-	if len(n_records) > 0 or os.path.exists(get_files_path(fname)):
+	if len(n_records) > 0 or os.path.exists(get_files_path(fname.encode('utf-8'))):
 		f = fname.rsplit('.', 1)
 		if len(f) == 1:
 			partial, extn = f[0], ""

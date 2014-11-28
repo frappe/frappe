@@ -165,9 +165,12 @@ def formatdate(string_date=None, format_string=None):
 
 		out = frappe.local.user_format or "yyyy-mm-dd"
 
-		return out.replace("dd", date.strftime("%d"))\
-			.replace("mm", date.strftime("%m"))\
-			.replace("yyyy", date.strftime("%Y"))
+		try:
+			return out.replace("dd", date.strftime("%d"))\
+				.replace("mm", date.strftime("%m"))\
+				.replace("yyyy", date.strftime("%Y"))
+		except ValueError, e:
+			raise frappe.ValidationError, str(e)
 
 def global_date_format(date):
 	"""returns date as 1 January 2012"""
@@ -324,6 +327,9 @@ def money_in_words(number, main_currency = None, fraction_currency=None):
 	Returns string in words with currency and fraction currency.
 	"""
 	from frappe.utils import get_defaults
+
+	if not number or flt(number) < 0:
+		return ""
 
 	d = get_defaults()
 	if not main_currency:

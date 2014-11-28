@@ -10,6 +10,7 @@ import os, json
 import frappe
 import frappe.database
 import getpass
+import importlib
 from frappe.model.db_schema import DbManager
 from frappe.model.sync import sync_for
 from frappe.utils.fixtures import sync_fixtures
@@ -33,6 +34,7 @@ def install_db(root_login="root", root_password=None, db_name=None, source_sql=N
 
 	frappe.connect(db_name=db_name)
 	import_db_from_sql(source_sql, verbose)
+	remove_missing_apps()
 
 	create_auth_table()
 	frappe.flags.in_install_db = False
@@ -207,3 +209,14 @@ def add_module_defs(app):
 		d.app_name = app
 		d.module_name = module
 		d.save()
+
+def remove_missing_apps():
+	apps = ('frappe_subscription',)
+	installed_apps = frappe.get_installed_apps()
+	for app in apps:
+		if app in installed_apps:
+			try:
+				importlib.import_module(app)
+			except ImportError:
+				installed_apps.remove(app)
+				frappe.db.set_global("installed_apps", json.dumps(installed_apps))

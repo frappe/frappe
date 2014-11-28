@@ -13,6 +13,8 @@ import frappe
 from frappe import _
 from frappe.utils import cstr, cint
 
+class InvalidColumnName(frappe.ValidationError): pass
+
 type_map = {
 	'Currency':		('decimal', '18,6')
 	,'Int':			('int', '11')
@@ -401,7 +403,7 @@ def validate_column_name(n):
 	n = n.replace(' ','_').strip().lower()
 	import re
 	if re.search("[\W]", n):
-		frappe.throw(_("Fieldname {0} cannot contain letters, numbers or spaces").format(n))
+		frappe.throw(_("Fieldname {0} cannot contain letters, numbers or spaces").format(n), InvalidColumnName)
 	return n
 
 

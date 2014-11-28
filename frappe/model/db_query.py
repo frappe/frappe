@@ -95,7 +95,10 @@ class DatabaseQuery(object):
 		if isinstance(self.filters, basestring):
 			self.filters = json.loads(self.filters)
 		if isinstance(self.fields, basestring):
-			self.fields = json.loads(self.fields)
+			if self.fields == "*":
+				self.fields = ["*"]
+			else:
+				self.fields = json.loads(self.fields)
 		if isinstance(self.filters, dict):
 			fdict = self.filters
 			self.filters = []
@@ -321,13 +324,12 @@ class DatabaseQuery(object):
 				) and not self.group_by)
 
 			if not group_function_without_group_by:
-
 				args.order_by = "`tab{0}`.`{1}` {2}".format(self.doctype,
-					meta.sort_field or "modified", meta.sort_order or "desc")
+					meta.get("sort_field") or "modified", meta.get("sort_order") or "desc")
 
 				# draft docs always on top
 				if meta.is_submittable:
-					args.order_by = "`tab{0}`.docstatus asc, ".format(self.doctype) + args.order_by
+					args.order_by = "`tab{0}`.docstatus asc, {1}".format(self.doctype, args.order_by)
 
 	def check_sort_by_table(self, order_by):
 		if "." in order_by:

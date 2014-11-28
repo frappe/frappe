@@ -8,6 +8,8 @@ import frappe.defaults
 import unittest
 import json
 
+from frappe.core.doctype.event.event import get_events
+
 test_records = frappe.get_test_records('Event')
 
 class TestEvent(unittest.TestCase):
@@ -80,7 +82,7 @@ class TestEvent(unittest.TestCase):
 
 		ev = frappe.get_doc("Event", ev.name)
 
-		self.assertEquals(ev._assign, json.dumps(["test@example.com", "test1@example.com"]))
+		self.assertEquals(set(json.loads(ev._assign)), set(["test@example.com", "test1@example.com"]))
 
 		# close an assignment
 		todo = frappe.get_doc("ToDo", {"reference_type": ev.doctype, "reference_name": ev.name,
@@ -93,4 +95,27 @@ class TestEvent(unittest.TestCase):
 
 		# cleanup
 		ev.delete()
+
+	def test_recurring(self):
+		ev = frappe.get_doc({
+			"doctype":"Event",
+			"subject": "_Test Event",
+			"starts_on": "2014-02-01",
+			"event_type": "Public",
+			"repeat_this_event": 1,
+			"repeat_on": "Every Year"
+		})
+		ev.insert()
+
+		ev_list = get_events("2014-02-01", "2014-02-01", "Administrator", for_reminder=True)
+		self.assertTrue(filter(lambda e: e.name==ev.name, ev_list))
+
+		ev_list1 = get_events("2015-01-20", "2015-01-20", "Administrator", for_reminder=True)
+		self.assertFalse(filter(lambda e: e.name==ev.name, ev_list1))
+
+		ev_list2 = get_events("2014-02-20", "2014-02-20", "Administrator", for_reminder=True)
+		self.assertFalse(filter(lambda e: e.name==ev.name, ev_list2))
+
+		ev_list3 = get_events("2015-02-01", "2015-02-01", "Administrator", for_reminder=True)
+		self.assertTrue(filter(lambda e: e.name==ev.name, ev_list3))
 

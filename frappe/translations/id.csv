@@ -1,5 +1,5 @@
- by Role ,
- is not set,
+ by Role , by Role 
+ is not set, is not set
 """Company History""","""Sejarah Perusahaan"""
 """Team Members"" or ""Management""","""Anggota Tim"" atau ""Manajemen"""
 'In List View' not allowed for type {0} in row {1},'Dalam Daftar View' tidak diperbolehkan untuk jenis {0} berturut-turut {1}
@@ -16,14 +16,14 @@
 <i>text</i> <b>in</b> <i>document type</i>,teks <i> </ i> <b> di </ b> <i> jenis dokumen </ i>
 A user can be permitted to multiple records of the same DocType.,Seorang pengguna dapat diizinkan untuk beberapa catatan dari DocType sama.
 About,Tentang
-About Us Settings,Tentang Kami Pengaturan
+About Us Settings,Pengaturan Tetang Kami
 About Us Team Member,Tentang Kami Anggota Tim
 Action,Tindakan
 Actions,Tindakan
 "Actions for workflow (e.g. Approve, Cancel).","Tindakan untuk alur kerja (misalnya Menyetujui, Batal)."
 Add,Tambahkan
 Add A New Rule,Tambah Aturan Baru
-Add A User Permission,Tambah Pengguna Izin
+Add A User Permission,Tambah Izin Pengguna
 Add Attachments,Tambahkan Lampiran
 Add Bookmark,Tambahkan Bookmark
 Add CSS,Tambah CSS
@@ -34,10 +34,10 @@ Add New Permission Rule,Tambahkan Rule Izin Baru
 Add Reply,Add Reply
 Add Total Row,Tambah Jumlah Row
 Add a New Role,Tambahkan Peran Baru
-Add a banner to the site. (small banners are usually good),Tambahkan iklan ke situs. (Spanduk kecil biasanya baik)
+Add a banner to the site. (small banners are usually good),Tambahkan iklan ke situs. (Spanduk kecil biasanya lebih baik)
 Add all roles,Tambahkan semua peran
 Add attachment,Tambahkan lampiran
-Add code as &lt;script&gt;,Tambahkan kode sebagai <script>
+Add code as &lt;script&gt;,Tambahkan kode sebagai
 Add custom javascript to forms.,Tambahkan kustom javascript untuk bentuk.
 Add fields to forms.,Menambahkan kolom ke bentuk.
 Add multiple rows,Tambahkan beberapa baris
@@ -151,7 +151,7 @@ Cannot change {0},Tidak dapat mengubah {0}
 Cannot delete or cancel because {0} {1} is linked with {2} {3},Tidak dapat menghapus atau membatalkan karena {0} {1} dihubungkan dengan {2} {3}
 Cannot delete {0} as it has child nodes,Tidak dapat menghapus {0} karena memiliki node anak
 Cannot edit standard fields,Tidak dapat mengedit bidang standar
-Cannot map because following condition fails: ,
+Cannot map because following condition fails: ,Cannot map because following condition fails: 
 Cannot open instance when its {0} is open,Tidak dapat membuka contoh ketika nya {0} terbuka
 Cannot open {0} when its instance is open,Tidak dapat membuka {0} ketika misalnya yang terbuka
 Cannot print cancelled documents,Tidak dapat mencetak dokumen dibatalkan
@@ -295,7 +295,7 @@ DocType or Field,DocType atau Bidang
 Doclist JSON,Doclist JSON
 Docname,Docname
 Document,Dokumen
-Document Status transition from ,
+Document Status transition from ,Document Status transition from 
 Document Status transition from {0} to {1} is not allowed,Transisi Dokumen Status dari {0} ke {1} tidak diperbolehkan
 Document Type,Jenis Dokumen
 Document is only editable by users of role,Dokumen hanya dapat diedit oleh pengguna dari peran
@@ -438,7 +438,7 @@ Gender,Jenis Kelamin
 Generator,Generator
 Georgia,Georgia
 Get,Mendapatkan
-Get From ,
+Get From ,Get From 
 "Get your globally recognized avatar from <a href=""https://gravatar.com/"">Gravatar.com</a>","Dapatkan avatar Anda diakui secara global dari <a href=""https://gravatar.com/""> Gravatar.com </ a>"
 GitHub,GitHub
 GitHub Client ID,GitHub ID Client
@@ -659,7 +659,7 @@ Next State,Negara berikutnya
 Next actions,Tindakan berikutnya
 No,Nomor
 No Action,No Action
-No Communication tagged with this ,
+No Communication tagged with this ,No Communication tagged with this 
 No Copy,Tidak ada Copy
 No Permissions set for this criteria.,Tidak ada Izin ditetapkan untuk kriteria ini.
 No Report Loaded. Please use query-report/[Report Name] to run a report.,Ada Laporan Loaded. Silakan gunakan laporan query / [Nama Laporan] untuk menjalankan laporan.
@@ -947,7 +947,7 @@ Select Type,Pilih Type
 Select User or DocType to start.,Pilih Pengguna atau DocType untuk memulai.
 Select a Banner Image first.,Pilih Gambar Banner pertama.
 Select an image of approx width 150px with a transparent background for best results.,Pilih gambar lebar kira-kira 150px dengan latar belakang transparan untuk hasil terbaik.
-Select dates to create a new ,
+Select dates to create a new ,Select dates to create a new 
 "Select modules to be shown (based on permission). If hidden, they will be hidden for all users.","Pilih modul yang akan ditampilkan (berdasarkan izin). Jika tersembunyi, mereka akan tersembunyi untuk semua pengguna."
 Select or drag across time slots to create a new event.,Pilih atau seret di slot waktu untuk membuat acara baru.
 "Select target = ""_blank"" to open in a new page.","Pilih target = ""_blank"" untuk membuka di halaman baru."
@@ -1168,7 +1168,7 @@ User Permissions Manager,Permissions User Manager
 User Roles,Peran Pengguna
 User Tags,Pengguna Tags
 User Type,Tipe Pengguna
-"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ",
+"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ","User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. "
 User Vote,Vote Pengguna
 User not allowed to delete {0}: {1},Pengguna tidak diperbolehkan untuk menghapus {0}: {1}
 User permissions should not apply for this Link,Akses user harus tidak berlaku untuk Link ini

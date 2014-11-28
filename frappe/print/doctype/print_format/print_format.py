@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 import frappe.utils
+from jinja2 import TemplateSyntaxError
 
 from frappe.model.document import Document
 
@@ -15,6 +16,12 @@ class PrintFormat(Document):
 		# old_doc_type is required for clearing item cache
 		self.old_doc_type = frappe.db.get_value('Print Format',
 				self.name, 'doc_type')
+
+		jenv = frappe.get_jenv()
+		try:
+			jenv.from_string(self.html)
+		except TemplateSyntaxError:
+			frappe.throw(frappe._("Syntax error in Jinja template"))
 
 	def on_update(self):
 		if hasattr(self, 'old_doc_type') and self.old_doc_type:

@@ -1,5 +1,5 @@
- by Role ,
- is not set,
+ by Role , by Role 
+ is not set, is not set
 """Company History""",""" ಕಂಪೆನಿ ಇತಿಹಾಸ """
 """Team Members"" or ""Management""","""ತಂಡದ ಸದಸ್ಯರು"" ಅಥವಾ "" ನಿರ್ವಹಣೆ """
 'In List View' not allowed for type {0} in row {1},' ListView ರಲ್ಲಿ ' ಅವಕಾಶ ಮಾದರಿ {0} ಸತತವಾಗಿ {1}
@@ -151,7 +151,7 @@ Cannot change {0},ಬದಲಾಯಿಸಲಾಗುವುದಿಲ್ಲ {0}
 Cannot delete or cancel because {0} {1} is linked with {2} {3},ಅಳಿಸಲು ಅಥವಾ {0} {1} ಸಂಬಂಧ ಕಾರಣ ರದ್ದುಗೊಳಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ {2} {3}
 Cannot delete {0} as it has child nodes,{0} ಆಲ್ಡ್ವಿಚ್ childNodes ಅಳಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ
 Cannot edit standard fields,ಡೀಫಾಲ್ಟ್ ಜಾಗ ಸಂಪಾದಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ
-Cannot map because following condition fails: ,
+Cannot map because following condition fails: ,Cannot map because following condition fails: 
 Cannot open instance when its {0} is open,ಅದರ {0} ತೆರೆದಿರುತ್ತದೆ ಉದಾಹರಣೆಗೆ ತೆರೆಯಲು ಸಾಧ್ಯವಾಗಿಲ್ಲ
 Cannot open {0} when its instance is open,ಅದರ ಉದಾಹರಣೆಗೆ ತೆರೆದುಕೊಂಡಿದ್ದಾಗ {0} ತೆರೆಯಲು ಸಾಧ್ಯವಾಗಿಲ್ಲ
 Cannot print cancelled documents,ರದ್ದು ದಾಖಲೆಗಳನ್ನು ಮುದ್ರಿಸಲು ಸಾಧ್ಯವಾಗಿಲ್ಲ
@@ -295,7 +295,7 @@ DocType or Field,Doctype ಅಥವಾ ಫೀಲ್ಡ್
 Doclist JSON,ಡಾಕ್ಲಿಸ್ಟ್ JSON
 Docname,Docname
 Document,ದಾಖಲೆ
-Document Status transition from ,
+Document Status transition from ,Document Status transition from 
 Document Status transition from {0} to {1} is not allowed,{1} ಗೆ {0} ನಿಂದ ಡಾಕ್ಯುಮೆಂಟ್ ಸ್ಥಿತಿಯನ್ನು ಪರಿವರ್ತನೆ ಅನುಮತಿಸಲಾಗುವುದಿಲ್ಲ
 Document Type,ಡಾಕ್ಯುಮೆಂಟ್ ಪ್ರಕಾರ
 Document is only editable by users of role,ಡಾಕ್ಯುಮೆಂಟ್ ಪಾತ್ರವನ್ನು ಬಳಕೆದಾರರು ಮಾತ್ರ ಸಂಪಾದಿಸಬಹುದು
@@ -439,7 +439,7 @@ Gender,ಲಿಂಗ
 Generator,ಜನರೇಟರ್
 Georgia,ಜಾರ್ಜಿಯಾ
 Get,ಪಡೆಯಿರಿ
-Get From ,
+Get From ,Get From 
 "Get your globally recognized avatar from <a href=""https://gravatar.com/"">Gravatar.com</a>","ಕವಿದ href=""https://gravatar.com/""> Gravatar.com </ ಒಂದು> ನಿಮ್ಮ ಜಾಗತಿಕವಾಗಿ ಮಾನ್ಯತೆ ಅವತಾರ ಪಡೆಯಿರಿ"
 GitHub,GitHub
 GitHub Client ID,GitHub ಕ್ಲೈಂಟ್ ID
@@ -660,7 +660,7 @@ Next State,ಮುಂದೆ ರಾಜ್ಯ
 Next actions,ಮುಂದೆ ಕ್ರಮಗಳು
 No,ಇಲ್ಲ
 No Action,ಯಾವುದೇ ಆಕ್ಷನ್
-No Communication tagged with this ,
+No Communication tagged with this ,No Communication tagged with this 
 No Copy,ಯಾವುದೇ ಪ್ರತಿಯನ್ನು
 No Permissions set for this criteria.,ಯಾವುದೇ ಅನುಮತಿಗಳು ಈ ಮಾನದಂಡಗಳನ್ನು ಸೆಟ್ .
 No Report Loaded. Please use query-report/[Report Name] to run a report.,ಯಾವುದೇ ವರದಿ ಲೋಡೆಡ್ . ಒಂದು ವರದಿ ರನ್ ಪ್ರಶ್ನಾವಳಿ ವರದಿ / [ವರದಿ ಹೆಸರು ] ಬಳಸಿ.
@@ -948,7 +948,7 @@ Select Type,ಕೌಟುಂಬಿಕತೆ ಆಯ್ಕೆ
 Select User or DocType to start.,ಆರಂಭಿಸಲು ಬಳಕೆದಾರ ಅಥವಾ doctype ಆಯ್ಕೆ .
 Select a Banner Image first.,ಮೊದಲ ಒಂದು ಬ್ಯಾನರ್ ಚಿತ್ರ ಆಯ್ಕೆಮಾಡಿ .
 Select an image of approx width 150px with a transparent background for best results.,ಉತ್ತಮ ಫಲಿತಾಂಶಗಳಿಗಾಗಿ ಒಂದು ಪಾರದರ್ಶಕ ಹಿನ್ನೆಲೆ ಸುಮಾರು ಅಗಲ 150px ಚಿತ್ರವನ್ನು ಆಯ್ಕೆ .
-Select dates to create a new ,
+Select dates to create a new ,Select dates to create a new 
 "Select modules to be shown (based on permission). If hidden, they will be hidden for all users.","ಆಯ್ಕೆ ಮಾಡ್ಯೂಲ್ ( ಅನುಮತಿ ಆಧರಿಸಿ ) ತೋರಿಸಲಾಗುತ್ತದೆ . ಮರೆಮಾಡಲಾಗಿದೆ ವೇಳೆ , theywill ಎಲ್ಲಾ ಬಳಕೆದಾರರಿಗೆ ಮರೆ ."
 Select or drag across time slots to create a new event.,ಆಯ್ಕೆ ಅಥವಾ ಹೊಸ ಈವೆಂಟ್ ರಚಿಸಲು ಸಮಯಾವಧಿಗಳ ಅಡ್ಡಲಾಗಿ ಎಳೆಯಿರಿ .
 "Select target = ""_blank"" to open in a new page.","ಆಯ್ಕೆ ಗುರಿ ಹೊಸ ಪುಟ ತೆರೆಯಲು = ""_blank"" ."
@@ -1169,7 +1169,7 @@ User Permissions Manager,ಬಳಕೆದಾರ ಅನುಮತಿಗಳು ಮ�
 User Roles,ಬಳಕೆದಾರ ಪಾತ್ರಗಳು
 User Tags,ಬಳಕೆದಾರ ಟ್ಯಾಗ್ಗಳು
 User Type,ಬಳಕೆದಾರನ ಪ್ರಕಾರ
-"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ",
+"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ","User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. "
 User Vote,ಬಳಕೆದಾರ ವೋಟ್
 User not allowed to delete {0}: {1},ಬಳಕೆದಾರ ಅಳಿಸಲು ನಿಮಗೆ ಅನುಮತಿ ಇಲ್ಲ {0}: {1}
 User permissions should not apply for this Link,ಬಳಕೆದಾರ ಅನುಮತಿಗಳನ್ನು ಈ ಲಿಂಕ್ ಅರ್ಜಿ ಮಾಡಬಾರದು

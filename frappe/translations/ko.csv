@@ -1,5 +1,5 @@
- by Role ,
- is not set,
+ by Role , by Role 
+ is not set, is not set
 """Company History""","""회사 연혁"""
 """Team Members"" or ""Management""","""팀 회원""또는 ""관리"""
 'In List View' not allowed for type {0} in row {1},'목록보기'허용되지 않는 유형에 대한 {0} 행에서 {1}
@@ -151,7 +151,7 @@ Cannot change {0},변경할 수 없습니다 {0}
 Cannot delete or cancel because {0} {1} is linked with {2} {3},삭제하거나 {0} {1}과 연결되어 있기 때문에 취소 할 수 없습니다 {2} {3}
 Cannot delete {0} as it has child nodes,이 자식 노드를 가지고 {0}을 (를) 삭제할 수 없습니다
 Cannot edit standard fields,표준 필드를 편집 할 수 없습니다
-Cannot map because following condition fails: ,
+Cannot map because following condition fails: ,Cannot map because following condition fails: 
 Cannot open instance when its {0} is open,그 {0}이 열려있을 때 인스턴스를 열 수 없습니다
 Cannot open {0} when its instance is open,해당 인스턴스가 열려있을 때 {0} 열 수 없습니다
 Cannot print cancelled documents,취소 문서를 인쇄 할 수 없습니다
@@ -295,7 +295,7 @@ DocType or Field,문서 종류 또는 필드
 Doclist JSON,JSON 문서 목록
 Docname,docName 같은
 Document,문서
-Document Status transition from ,
+Document Status transition from ,Document Status transition from 
 Document Status transition from {0} to {1} is not allowed,{1} (으)로 {0}에서 문서 상태 전환은 허용되지 않습니다
 Document Type,문서 형식
 Document is only editable by users of role,문서 역할의 사용자 만 편집 할 수 있습니다
@@ -439,7 +439,7 @@ Gender,성별
 Generator,발전기
 Georgia,그루지야
 Get,보세요
-Get From ,
+Get From ,Get From 
 "Get your globally recognized avatar from <a href=""https://gravatar.com/"">Gravatar.com</a>","만약 당신이 좋아 href=""https://gravatar.com/""> Gravatar.com </ A>에서 세계적으로 인정 아바타를보세요"
 GitHub,GitHub
 GitHub Client ID,GitHub의 클라이언트 ID
@@ -584,7 +584,7 @@ Loading,로딩중
 Loading Report,로드 보고서
 Loading...,로딩 중...
 Localization,현지화
-Location,
+Location,Location
 Log of error on automated events (scheduler).,자동 이벤트 (스케줄러)에 대한 오류 로그.
 Login,로그인
 Login After,후 로그인
@@ -660,7 +660,7 @@ Next State,다음 주
 Next actions,다음 작업
 No,아니네요
 No Action,작업이 없습니다
-No Communication tagged with this ,
+No Communication tagged with this ,No Communication tagged with this 
 No Copy,더 복사하지
 No Permissions set for this criteria.,사용 권한이 기준이 설정되어 있지.
 No Report Loaded. Please use query-report/[Report Name] to run a report.,는보고는 들어 있지 않습니다.보고서를 실행하는 쿼리 보고서 / [보고서 이름]을 사용하십시오.
@@ -948,7 +948,7 @@ Select Type,유형을 선택
 Select User or DocType to start.,시작하는 사용자 또는 문서 종류를 선택합니다.
 Select a Banner Image first.,먼저 배너 이미지를 선택합니다.
 Select an image of approx width 150px with a transparent background for best results.,최상의 결과를 위해 투명 배경으로 약 폭 150 픽셀의 이미지를 선택합니다.
-Select dates to create a new ,
+Select dates to create a new ,Select dates to create a new 
 "Select modules to be shown (based on permission). If hidden, they will be hidden for all users.","선택 모듈 (허가 기준) 표시합니다.숨겨진 경우, 모든 사용자에 대해 숨겨집니다."
 Select or drag across time slots to create a new event.,선택하거나 새 이벤트를 만들 시간 슬롯을 가로 질러 드래그합니다.
 "Select target = ""_blank"" to open in a new page.","선택 대상 새 페이지에 열 = ""_blank""."
@@ -1169,7 +1169,7 @@ User Permissions Manager,사용자 권한 관리
 User Roles,사용자 역할
 User Tags,사용자 태그
 User Type,사용자 유형
-"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ",
+"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ","User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. "
 User Vote,사용자 투표
 User not allowed to delete {0}: {1},사용자가 삭제할 수 없습니다 {0} {1}
 User permissions should not apply for this Link,사용자 권한이 링크를 적용하지 않아야합니다

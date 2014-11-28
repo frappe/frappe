@@ -114,6 +114,13 @@ frappe.ui.form.save = function(frm, action, callback, btn) {
 		// 	btn: btn
 		// }
 		$(opts.btn).prop("disabled", true);
+
+		if(frappe.ui.form.is_saving) {
+			msgprint(__("Already saving. Please wait a few moments."));
+			throw "saving";
+		}
+		frappe.ui.form.is_saving = true;
+
 		return frappe.call({
 			freeze: true,
 			method: opts.method,
@@ -121,6 +128,9 @@ frappe.ui.form.save = function(frm, action, callback, btn) {
 			callback: function(r) {
 				$(opts.btn).prop("disabled", false);
 				opts.callback && opts.callback(r);
+			},
+			always: function() {
+				frappe.ui.form.is_saving = false;
 			}
 		})
 	};

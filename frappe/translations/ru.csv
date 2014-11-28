@@ -1,5 +1,5 @@
- by Role ,
- is not set,
+ by Role , by Role 
+ is not set, is not set
 """Company History""","""История компании"""
 """Team Members"" or ""Management""","""Члены команды"" или ""Управление"""
 'In List View' not allowed for type {0} in row {1},"""В Список"" не допускается для типа {0} в строке {1}"
@@ -151,7 +151,7 @@ Cannot change {0},Невозможно изменить {0}
 Cannot delete or cancel because {0} {1} is linked with {2} {3},"Не удается удалить или отменить, потому что {0} {1} связан с {2} {3}"
 Cannot delete {0} as it has child nodes,"Не удается удалить {0}, поскольку он имеет дочерние узлы"
 Cannot edit standard fields,Не можете редактировать стандартные поля
-Cannot map because following condition fails: ,
+Cannot map because following condition fails: ,Cannot map because following condition fails: 
 Cannot open instance when its {0} is open,"Не могу открыть экземпляр, когда его {0} открыто"
 Cannot open {0} when its instance is open,"Не могу открыть {0}, когда его экземпляр открыт"
 Cannot print cancelled documents,Невозможно печатать отмененные документы
@@ -295,7 +295,7 @@ DocType or Field,DocType или поле
 Doclist JSON,DocList JSON
 Docname,DOCNAME
 Document,Документ
-Document Status transition from ,
+Document Status transition from ,Document Status transition from 
 Document Status transition from {0} to {1} is not allowed,Статус документа переход от {0} до {1} не допускается
 Document Type,Тип документа
 Document is only editable by users of role,Документ может редактироваться только пользователями роли
@@ -439,7 +439,7 @@ Gender,Пол
 Generator,Генератор
 Georgia,Грузия
 Get,Добыть
-Get From ,
+Get From ,Get From 
 "Get your globally recognized avatar from <a href=""https://gravatar.com/"">Gravatar.com</a>","Получите ваш всемирно признанный аватар из <a href=""https://gravatar.com/""> Gravatar.com </>"
 GitHub,GitHub
 GitHub Client ID,GitHub ID клиента
@@ -660,7 +660,7 @@ Next State,Следующее состояние
 Next actions,Дальнейшие действия
 No,Нет
 No Action,Никаких действий
-No Communication tagged with this ,
+No Communication tagged with this ,No Communication tagged with this 
 No Copy,Нет Копировать
 No Permissions set for this criteria.,Разрешения не установлен для этого критериев.
 No Report Loaded. Please use query-report/[Report Name] to run a report.,"Отчет не загружено. Пожалуйста, используйте запрос-отчет / [Имя Отчет], чтобы запустить отчет."
@@ -948,7 +948,7 @@ Select Type,Выберите тип
 Select User or DocType to start.,Сначала выберите пользователя или тип документа.
 Select a Banner Image first.,Выберите изображение баннера в первую очередь.
 Select an image of approx width 150px with a transparent background for best results.,Выберите изображение шириной около 150px с прозрачным фоном для достижения наилучших результатов.
-Select dates to create a new ,
+Select dates to create a new ,Select dates to create a new 
 "Select modules to be shown (based on permission). If hidden, they will be hidden for all users.","Выбор модулей в данном периоде (на основе разрешения). Если скрытые, они будут скрыты для всех пользователей."
 Select or drag across time slots to create a new event.,"Выберите или перетащите через временные интервалы, чтобы создать новое событие."
 "Select target = ""_blank"" to open in a new page.","Выберите целевых = ""_blank"", чтобы открыть на новой странице."
@@ -1169,7 +1169,7 @@ User Permissions Manager,Разрешения пользователей мен�
 User Roles,Роли пользователей
 User Tags,Пользователь Метки
 User Type,Тип Пользователя
-"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ",
+"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ","User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. "
 User Vote,Голос пользователя
 User not allowed to delete {0}: {1},Пользователь не имеет права удалить {0}: {1}
 User permissions should not apply for this Link,Права пользователя не должны применяться для данного канала

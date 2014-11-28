@@ -948,7 +948,7 @@ Select Type,Selecteer Type
 Select User or DocType to start.,Selecteer Gebruiker of DocType te beginnen.
 Select a Banner Image first.,Kies eerst een banner afbeelding.
 Select an image of approx width 150px with a transparent background for best results.,Selecteer een afbeelding van ca. breedte 150px met een transparante achtergrond voor het beste resultaat.
-Select dates to create a new ,
+Select dates to create a new ,Select dates to create a new 
 "Select modules to be shown (based on permission). If hidden, they will be hidden for all users.","Selecteer modules te worden vermeld ( gebaseerd op toestemming) . Als verborgen , zullen ze worden verborgen voor alle gebruikers ."
 Select or drag across time slots to create a new event.,Selecteer of sleep over tijdsloten om een ​​nieuwe gebeurtenis te maken.
 "Select target = ""_blank"" to open in a new page.","Selecteer target = "" _blank "" te openen in een nieuwe pagina ."
@@ -1169,7 +1169,7 @@ User Permissions Manager,Gebruikersmachtigingen Manager
 User Roles,Gebruikersrollen
 User Tags,Gebruiker-tags
 User Type,Gebruikerstype
-"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ",
+"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ","User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. "
 User Vote,gebruiker Stem
 User not allowed to delete {0}: {1},Gebruiker niet toegestaan om te verwijderen {0}: {1}
 User permissions should not apply for this Link,Gebruikersrechten moet niet solliciteren naar deze Link
