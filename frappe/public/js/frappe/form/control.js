@@ -440,6 +440,7 @@ frappe.ui.form.ControlDate = frappe.ui.form.ControlData.extend({
 		if(!dateutil.validate(value)) {
 			msgprint (__("Date must be in format: {0}", [sys_defaults.date_format || "yyyy-mm-dd"]));
 			callback("");
+			return;
 		}
 		return callback(value);
 	}
