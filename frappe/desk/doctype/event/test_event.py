@@ -8,7 +8,7 @@ import frappe.defaults
 import unittest
 import json
 
-from frappe.core.doctype.event.event import get_events
+from frappe.desk.doctype.event.event import get_events
 
 test_records = frappe.get_test_records('Event')
 
