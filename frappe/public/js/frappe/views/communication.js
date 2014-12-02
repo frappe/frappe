@@ -150,7 +150,7 @@ frappe.views.CommunicationComposer = Class.extend({
 		}
 
 		this.dialog.onshow = function() {
-			if (cur_frm && cur_frm.docname &&
+			if (cur_frm && cur_frm.docname && !me.txt &&
 				(frappe.last_edited_communication[cur_frm.doctype] || {})[cur_frm.docname]) {
 
 				c = frappe.last_edited_communication[cur_frm.doctype][cur_frm.docname];

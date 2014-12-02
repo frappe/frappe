@@ -10,8 +10,6 @@ frappe.ui.form.Comments = Class.extend({
 		var me = this;
 		this.wrapper =this.parent;
 		$('<div class="comment-connector"></div>').appendTo(this.parent);
-		this.list = $('<div class="comments"></div>')
-			.appendTo(this.parent);
 
 		this.row = $(repl(frappe.render(frappe.templates.new_timeline_comment,
 				{
@@ -19,6 +17,9 @@ frappe.ui.form.Comments = Class.extend({
 					fullname: user_fullname
 				}
 			))).appendTo(this.parent);
+
+		this.list = $('<div class="comments"></div>')
+			.appendTo(this.parent);
 
 		this.input = this.row.find(".form-control");
 		this.button = this.row.find(".btn-go")
@@ -47,7 +48,7 @@ frappe.ui.form.Comments = Class.extend({
 		var comments = [{"comment": __("Created"), "comment_type": "Created",
 			"comment_by": this.frm.doc.owner, "creation": this.frm.doc.creation}].concat(this.get_comments());
 
-		$.each(comments.sort(function(a, b) { return a.creation > b.creation ? 1 : -1 }), function(i, c) {
+		$.each(comments.sort(function(a, b) { return a.creation > b.creation ? -1 : 1 }), function(i, c) {
 			if((c.comment_type || "Comment") === "Comment" && frappe.model.can_delete("Comment")) {
 				c["delete"] = '<a class="close" href="#">&times;</a>';
 			} else {

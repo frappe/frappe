@@ -332,7 +332,8 @@ def sign_up(email, full_name):
 			return _("Already Registered")
 	else:
 		if frappe.db.sql("""select count(*) from tabUser where
-			TIMEDIFF(%s, modified) > '1:00:00' """, now())[0][0] > 200:
+			HOUR(TIMEDIFF(CURRENT_TIMESTAMP, TIMESTAMP(modified)))=1""")[0][0] > 200:
+			frappe.msgprint("Login is closed for sometime, please check back again in an hour.")
 			raise Exception, "Too Many New Users"
 		from frappe.utils import random_string
 		user = frappe.get_doc({

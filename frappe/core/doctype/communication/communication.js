@@ -5,21 +5,21 @@ frappe.ui.form.on("setup", "Communication", function(frm) {
 			frappe.communication_convert_to = r.message;
 			frm.convert_to_click = [];
 			$.each(r.message, function(i, v) {
-				frm.convert_to_click.append({label:__(v), value:v, function() {
+				frm.convert_to_click.append({label:__(v), value:v, action:function() {
 					frm.convert_to($(this).attr("data-value"));
-				}})
-			})
+				}});
+			});
 			frm.set_convert_button();
 		}
 	});
 
 	frm.set_convert_button = function() {
 		frm.add_custom_button(__("Add To"), frm.convert_to_click);
-	}
+	};
 
 	frm.convert_to = function(doctype) {
 
-	}
+	};
 });
 
 frappe.ui.form.on("refresh", "Communication", function(frm) {
