@@ -1,5 +1,6 @@
 {
-  "allow_copy": 0, 
+ "allow_copy": 0, 
+ "allow_import": 1, 
  "allow_rename": 0, 
  "autoname": "TDI.########", 
  "creation": "2012-07-03 13:30:35", 
@@ -170,7 +171,7 @@
  "in_dialog": 0, 
  "issingle": 0, 
  "max_attachments": 0, 
- "modified": "2014-06-30 05:40:15.471434", 
+ "modified": "2014-12-11 10:52:00.765033", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "ToDo", 
