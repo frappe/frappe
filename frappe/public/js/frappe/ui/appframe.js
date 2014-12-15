@@ -246,11 +246,16 @@ frappe.ui.AppFrame = Class.extend({
 	},
 
 	add_icon_btn: function(group, icon, label, click) {
-		return this.iconbar.add_btn(group, icon, label, click);
+		if(this.sidebar_links.length) {
+			return $('<a class="small">' + label + '</a>').appendTo($('<p>')
+				.appendTo(this.sidebar_links)).click(click);
+		} else {
+			return this.iconbar.add_btn(group, icon, label, click);
+		}
 	},
 
 	add_button: function(label, click, icon, is_title) {
-		return this.iconbar.add_btn("1", icon, __(label), click);
+		return this.add_icon_btn("1", icon, __(label), click);
 	},
 
 	add_dropdown_button: function(parent, label, click, icon) {
@@ -337,7 +342,7 @@ frappe.ui.make_app_page = function(opts) {
 		]
 	*/
 	var $wrapper = $(opts.parent)
-	$('<div class="app-page container"><div class="appframe-titlebar">\
+	$('<div class="appframe-titlebar">\
 			<div class="container">\
 				<div class="row">\
 					<div class="titlebar-item col-sm-8">\
@@ -348,25 +353,27 @@ frappe.ui.make_app_page = function(opts) {
 				</div>\
 			</div>\
 		</div>\
-		<div class="appframe-iconbar hide">\
-			<div class="container">\
+		<div class="app-page container">\
+			<div class="appframe-iconbar hide">\
+				<div class="container">\
+				</div>\
+			</div>\
+			<div class="appframe-form hide">\
+				<div class="container">\
+				</div>\
+			</div>\
+			<div class="appframe-primary-actions hide">\
+				<div class="container">\
+				</div>\
+			</div>\
+			<div class="appframe-wrapper">\
+				<div class="appframe container">\
+					<div class="appframe-timestamp hide"></div>\
+					<div class="workflow-button-area btn-group pull-right hide"></div>\
+					<div class="clearfix"></div>\
+				</div>\
 			</div>\
 		</div>\
-		<div class="appframe-form hide">\
-			<div class="container">\
-			</div>\
-		</div>\
-		<div class="appframe-primary-actions hide">\
-			<div class="container">\
-			</div>\
-		</div>\
-		<div class="appframe-wrapper">\
-			<div class="appframe container">\
-				<div class="appframe-timestamp hide"></div>\
-				<div class="workflow-button-area btn-group pull-right hide"></div>\
-				<div class="clearfix"></div>\
-			</div>\
-		</div></div>\
 		<div class="appframe-footer hide"></div>').appendTo($wrapper);
 
 	if(opts.single_column) {
@@ -374,12 +381,16 @@ frappe.ui.make_app_page = function(opts) {
 	} else {
 		opts.parent.layout = $('<div class="row">\
 			<div class="layout-main-section col-sm-9"></div>\
-			<div class="layout-side-section col-sm-3"></div>\
+			<div class="col-sm-3 layout-side-section">\
+				<div class="sidebar-links" style="margin-top: 5px;"></div>\
+			</div>\
 			</div>').appendTo($wrapper.find(".appframe"));
+
 
 		opts.parent.body = opts.parent.layout.find(".layout-main-section");
 	}
 	opts.parent.appframe = new frappe.ui.AppFrame($wrapper);
+	opts.parent.appframe.sidebar_links = $wrapper.find(".sidebar-links");
 	if(opts.set_document_title!==undefined)
 		opts.parent.appframe.set_document_title = opts.set_document_title;
 	if(opts.title) opts.parent.appframe.set_title(opts.title);

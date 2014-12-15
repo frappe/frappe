@@ -90,7 +90,7 @@ class Database:
 			frappe.db.sql("select name from tabCustomer where name like %s", "a%")
 
 			# values as dict
-			frappe.db.sql("select name from tabCustomer where name like %(name)s and owner="%(owner)s",
+			frappe.db.sql("select name from tabCustomer where name like %(name)s and owner=%(owner)s",
 				{"name": "a%", "owner":"test@example.com"})
 
 		"""

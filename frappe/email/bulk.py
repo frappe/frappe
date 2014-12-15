@@ -56,7 +56,8 @@ def send(recipients=None, sender=None, doctype='User', email_field='email',
 
 	if not recipients: recipients = []
 	if not sender or sender == "Administrator":
-		sender = get_outgoing_email_account().email_id
+		email_account = get_outgoing_email_account()
+		sender = email_account.get("sender") or email_account.email_id
 	check_bulk_limit(len(recipients))
 
 	formatted = get_formatted_html(subject, message)

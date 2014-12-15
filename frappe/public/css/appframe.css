@@ -1,8 +1,8 @@
 /* appframe header */
 
 .appframe {
-	padding-top: 15px;
-	padding-bottom: 15px;
+/*	padding-top: 15px;
+	padding-bottom: 15px;*/
 }
 
 .appframe-wrapper {
@@ -14,10 +14,9 @@
 	border-bottom: 1px solid #c7c7c7;
 }
 
-.appframe-titlebar, .appframe-iconbar, .appframe-form, .appframe-primary-actions {
-	/*background-color: rgba(255, 255, 255, 0.7);*/
+/*.appframe-titlebar, .appframe-iconbar, .appframe-form, .appframe-primary-actions {
 	background-color: #f9f9f9;
-}
+}*/
 
 .appframe-primary-actions {
 	border-bottom: 1px solid #c7c7c7;

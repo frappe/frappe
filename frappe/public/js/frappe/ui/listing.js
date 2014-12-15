@@ -71,10 +71,9 @@ frappe.ui.Listing = Class.extend({
 					<div class="show_filters">\
 						<div class="set-filters">\
 							<button class="btn btn-primary btn-sm btn-new hide" \
-								style="margin-bottom: 10px; margin-right: 5px;">\
+								style="margin-right: 5px;">\
 								<i class="icon-plus"></i> '+__("New")+'</button>\
-							<button class="btn btn-default btn-sm new-filter text-muted" \
-								style="margin-bottom: 10px">\
+							<button class="btn btn-default btn-sm new-filter text-muted">\
 								<i class="icon-filter"></i> '+__("Add Filter")+'</button>\
 						</div>\
 						<div class="filter_area"></div>\
@@ -184,11 +183,11 @@ frappe.ui.Listing = Class.extend({
 		}
 
 		// hide-filter
-		if(me.show_filters) {
-			this.add_button(__('Filter'), function() {
-				me.filter_list.add_filter();
-			}, 'icon-filter').addClass('btn-filter');
-		}
+		// if(me.show_filters) {
+		// 	this.add_button(__('Filter'), function() {
+		// 		me.filter_list.add_filter();
+		// 	}, 'icon-filter').addClass('btn-filter');
+		// }
 
 		if(me.no_toolbar || me.hide_toolbar) {
 			me.$w.find('.list-toolbar-wrapper').toggle(false);

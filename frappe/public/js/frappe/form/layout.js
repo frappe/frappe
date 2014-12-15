@@ -170,7 +170,7 @@ frappe.ui.form.Layout = Class.extend({
 		var section = this.section[0];
 		section.df = df;
 		if(df) {
-			if(df.label) {
+			if(df.label && false) {
 				this.labelled_section_count++;
 				var head = $('<h4 class="col-md-12">'
 					+ (df.options ? (' <i class="icon-fixed-width text-muted '+df.options+'"></i> ') : "")
@@ -184,7 +184,7 @@ frappe.ui.form.Layout = Class.extend({
 					head.css({"margin-top": "0px"})
 			}
 
-			if(df.label || df.show_section_border) {
+			if(true || df.label || df.show_section_border) {
 				if(this.sections.length > 1) {
 					this.section.css("border-top", "1px solid #eee");
 

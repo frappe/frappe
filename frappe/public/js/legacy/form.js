@@ -82,12 +82,11 @@ _f.Frm.prototype.setup = function() {
 	// wrapper
 	this.wrapper = this.parent;
 	frappe.ui.make_app_page({
-		parent: this.wrapper,
-		single_column: true
+		parent: this.wrapper
 	});
 	this.appframe = this.wrapper.appframe;
 	this.layout_main = $(this.wrapper)
-		.find(".layout-main")
+		.find(".layout-main-section")
 		.css({"padding-bottom": "0px"})
 		.get(0);
 
@@ -326,7 +325,7 @@ _f.Frm.prototype.refresh_header = function() {
 _f.Frm.prototype.show_web_link = function() {
 	var doc = this.doc;
 	if(this.fields_dict.parent_website_route) {
-		if(!doc.__islocal && doc.__onload.published) {
+		if(!doc.__islocal && doc.__onload && doc.__onload.published) {
 			cur_frm.set_intro(__("Published on website at: {0}",
 				[repl('<a href="/%(website_route)s" target="_blank">/%(website_route)s</a>', doc.__onload)]));
 		} else {

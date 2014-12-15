@@ -31,6 +31,10 @@ a.form-link {
 	font-size: 102%;
 }
 
+em.link-option {
+	font-weight: normal;
+}
+
 .layout-main {
 	padding-bottom: 10px;
 }
@@ -69,8 +73,7 @@ div#freeze {
 
 .app-page {
 	border: 1px solid #c7c7c7;
-	border-radius: 4px;
-	margin-top: 15px;
+	border-top: 0px;
 	padding: 0px;
 	overflow: hidden;
 }
@@ -81,14 +84,17 @@ div#freeze {
 
 /* listing */
 .show_filters {
-	padding-top: 15px;
-	padding-bottom: 15px;
+	padding: 15px;
+	padding-bottom: 5px;
 	margin-bottom: 15px;
 	border-bottom: 1px solid #c7c7c7;
 }
 
-.set-filters .btn-group {
+.set-filters .btn {
 	margin-bottom: 10px;
+}
+
+.set-filters .btn-group {
 	margin-right: 10px;
 }
 

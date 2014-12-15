@@ -810,13 +810,8 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 			<input type="text" class="input-with-feedback form-control" \
 				style="display: table-cell">\
 			<span class="link-field-btn" style="display: table-cell">\
-				<a class="btn-search" title="' + __("Search Link") + '">\
-					<i class="icon-search"></i>\
-				</a><a class="btn-open" title="' + __("Open Link") + '">\
-					<i class="icon-arrow-right"></i>\
-				</a><a class="btn-new" title="' + __("Make New") + '">\
-					<i class="icon-plus"></i>\
-				</a>\
+				<a class="btn-open" title="' + __("Open Link") + '">\
+					<i class="icon-arrow-right"></i></a>\
 			</span>\
 		</div>').prependTo(this.input_area);
 		this.$input_area = $(this.input_area);
@@ -841,17 +836,6 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 	setup_buttons: function() {
 		var me = this;
 
-		// magnifier - search
-		this.$input_area.find(".btn-search").on("click", function() {
-			var doctype = me.get_options();
-			if(!doctype) return;
-			new frappe.ui.form.LinkSelector({
-				doctype: doctype,
-				target: me,
-				txt: me.get_value()
-			});
-		});
-
 		// open
 		this.$input_area.find(".btn-open").on("click", function() {
 			var value = me.get_value();
@@ -859,18 +843,25 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 				frappe.set_route("Form", me.get_options(), value);
 		});
 
-		// new
-		if(this.df.fieldtype==="Dynamic Link" || frappe.model.can_create(me.df.options)) {
-			this.$input_area.find(".btn-new").on("click", function() {
-				var doctype = me.get_options();
-				if(!doctype) return;
-				me.frm.new_doc(doctype, me);
-			});
+		if(this.only_input) this.$input_area.find(".btn-open").remove();
+	},
+	open_advanced_search: function() {
+		var doctype = this.get_options();
+		if(!doctype) return;
+		new frappe.ui.form.LinkSelector({
+			doctype: doctype,
+			target: this,
+			txt: this.get_value()
+		});
+	},
+	new_doc: function() {
+		var doctype = this.get_options();
+		if(!doctype) return;
+		if(this.frm) {
+			this.frm.new_doc(doctype, this);
 		} else {
-			this.$input_area.find(".btn-new").remove();
+			new_doc(doctype);
 		}
-
-		if(this.only_input) this.$input_area.find(".btn-open, .btn-new").remove();
 	},
 	setup_autocomplete: function() {
 		var me = this;
@@ -915,12 +906,22 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 					no_spinner: true,
 					args: args,
 					callback: function(r) {
-						if(frappe.model.can_create(doctype)) {
+						if(frappe.model.can_create(doctype)
+							&& me.df.fieldtype !== "Dynamic Link") {
+							// new item
 							r.results.push({
-								value: "<i class='icon-plus'></i> <em>" + __("Create a new {0}", [__(me.df.options)]) + "</em>",
-								make_new: true
+								value: "<i class='icon-plus'></i> <em class='link-option'>"
+									+ __("Create a new {0}", [__(me.df.options)]) + "</em>",
+								action: me.new_doc
 							});
 						};
+						// advanced search
+						r.results.push({
+							value: "<i class='icon-search'></i> <em class='link-option'>"
+								+ __("Advanced Search") + "</em>",
+							action: me.open_advanced_search
+						});
+
 						me.$input.cache[doctype][request.term] = r.results;
 						response(r.results);
 					},
@@ -933,21 +934,14 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 				me.autocomplete_open = false;
 			},
 			focus: function( event, ui ) {
-				if(ui.item.make_new) {
+				if(ui.item.action) {
 					return false;
 				}
 			},
 			select: function(event, ui) {
 				me.autocomplete_open = false;
-				if(ui.item.make_new) {
-					var doctype = me.get_options();
-					if(!doctype) return;
-
-					if (me.frm) {
-						me.frm.new_doc(doctype, me);
-					} else {
-						new_doc(doctype);
-					}
+				if(ui.item.action) {
+					ui.item.action.apply(me);
 					return false;
 				}
 

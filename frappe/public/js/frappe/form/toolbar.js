@@ -21,7 +21,7 @@ frappe.ui.form.Toolbar = Class.extend({
 			this.appframe.iconbar.hide();
 		} else {
 			this.appframe.iconbar.clear(1);
-			this.appframe.iconbar.clear(4)
+			this.appframe.iconbar.clear(4);
 			this.make_file_menu();
 			this.make_cancel_amend_button();
 			this.set_title_right();
