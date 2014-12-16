@@ -7,9 +7,10 @@ from __future__ import unicode_literals
 import os
 import subprocess
 import frappe
+import json
 from frappe.utils import cint
 
-site_arg_optional = ['serve', 'build', 'watch', 'celery', 'resize_images']
+site_arg_optional = ['serve', 'build', 'watch', 'celery', 'resize_images', 'doctor', 'dump_queue_status', 'purge_all_tasks']
 
 def get_site(parsed_args):
 	if not parsed_args.get("site") and os.path.exists(os.path.join(parsed_args["sites_path"], "currentsite.txt")):
@@ -272,6 +273,14 @@ def setup_utilities(parser):
 		help="""Export fixtures""")
 	parser.add_argument("--import_doc", nargs=1, metavar="PATH",
 		help="""Import (insert/update) doclist. If the argument is a directory, all files ending with .json are imported""")
+
+	# doctor
+	parser.add_argument("--doctor", default=False, action="store_true",
+		help="Print diagnostic information for task queues")
+	parser.add_argument("--purge_all_tasks", default=False, action="store_true",
+		help="Purge any pending periodic tasks of 'all' event. Doesn't purge hourly, daily and weekly")
+	parser.add_argument("--dump_queue_status", default=False, action="store_true",
+		help="Dump detailed diagnostic infomation for task queues in JSON format")
 
 def setup_translation(parser):
 	parser.add_argument("--build_message_files", default=False, action="store_true",
@@ -949,68 +958,20 @@ def update_site_config(site_config, verbose=False):
 	frappe.destroy()
 
 @cmd
-def bump(repo, bump_type):
+def doctor():
+	from frappe.utils.doctor import doctor as _doctor
+	return _doctor()
 
-	import json
-	assert repo in ['lib', 'app']
-	assert bump_type in ['minor', 'major', 'patch']
+@cmd
+def purge_all_tasks():
+	from frappe.utils.doctor import purge_pending_tasks
+	count = purge_pending_tasks()
+	print "Purged {} tasks".format(count)
 
-	def validate(repo_path):
-		import git
-		repo = git.Repo(repo_path)
-		if repo.active_branch != 'master':
-			raise Exception, "Current branch not master in {}".format(repo_path)
-
-	def bump_version(version, version_type):
-		import semantic_version
-		v = semantic_version.Version(version)
-		if version_type == 'minor':
-			v.minor += 1
-		elif version_type == 'major':
-			v.major += 1
-		elif version_type == 'patch':
-			v.patch += 1
-		return unicode(v)
-
-	def add_tag(repo_path, version):
-		import git
-		repo = git.Repo(repo_path)
-		repo.index.add(['config.json'])
-		repo.index.commit('bumped to version {}'.format(version))
-		repo.create_tag('v' + version, repo.head)
-
-	def update_framework_requirement(version):
-		with open('app/config.json') as f:
-			config = json.load(f)
-		config['requires_framework_version'] = '==' + version
-		with open('app/config.json', 'w') as f:
-			json.dump(config, f, indent=1, sort_keys=True)
-
-	validate('lib/')
-	validate('app/')
-
-	if repo == 'app':
-		with open('app/config.json') as f:
-			config = json.load(f)
-		new_version = bump_version(config['app_version'], bump_type)
-		config['app_version'] = new_version
-		with open('app/config.json', 'w') as f:
-			json.dump(config, f, indent=1, sort_keys=True)
-		add_tag('app/', new_version)
-
-	elif repo == 'lib':
-		with open('lib/config.json') as f:
-			config = json.load(f)
-		new_version = bump_version(config['framework_version'], bump_type)
-		config['framework_version'] = new_version
-		with open('lib/config.json', 'w') as f:
-			json.dump(config, f, indent=1, sort_keys=True)
-		add_tag('lib/', new_version)
-
-		update_framework_requirement(new_version)
-
-		bump('app', bump_type)
-
+@cmd
+def dump_queue_status():
+	from frappe.utils.doctor import dump_queue_status as _dump_queue_status
+	print json.dumps(_dump_queue_status(), indent=1)
 
 if __name__=="__main__":
 	out = main()
