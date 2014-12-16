@@ -1,0 +1,60 @@
+<div class="form-sidebar">
+    <ul class="sidebar-section user-actions list-unstyled hide">
+    </ul>
+    <div class="sidebar-section">
+        <h5>{%= __("Comments") %}
+            <span class="label label-default n-comments"></span></h5>
+    </div>
+    <div class="sidebar-section">
+        <ul class="standard-actions list-unstyled">
+            <li><a href="#List/{%= doctype %}">{%= __("View List") %}</a></li>
+            <li data-perm="{%= doctype %}::allow_print">
+                <a onclick="cur_frm.print_doc()">{%= __("Print") %}</a></li>
+            <li>
+                <a onclick="cur_frm.copy_doc()">{%= __("Duplicate") %}</a></li>
+            <li>
+                <a onclick="cur_frm.toolbar.show_linked_with()">{%= __("Links") %}</a></li>
+            <li class="system-manager">
+                <a onclick="cur_frm.show_settings()">{%= __("Settings") %}</a></li>
+        </ul>
+    </div>
+	<div class="sidebar-section form-tags">
+		<h5 style="display: inline-block">
+			{%= __("Tags") %}
+		</h5>
+		<div class="tag-area"></div>
+		<div class="clearfix"></div>
+	</div>
+	<div class="sidebar-section form-assignments">
+		<h5>
+			{%= __("Assigned To") %}:
+		</h5>
+        <div class="assign-list"></div>
+        <div>
+			<a class="small">{%= __("Add Attachment") %}</a>
+        </div>
+	</div>
+	<div class="sidebar-section form-attachments">
+		<h5>
+			{%= __("Attachments") %}:
+		</h5>
+        <div class="attachment-list"></div>
+        <div>
+			<a class="small">{%= __("Add Attachment") %}</a>
+            <br><span class="small text-muted">
+                {%= __("Drag and drop to attach") %}</span>
+        </div>
+	</div>
+	<div class="sidebar-section">
+		<h5>
+			{%= __("Last Edited") %}
+		</h5>
+        <div class="modified-by text-muted small"></div>
+	</div>
+	<div class="sidebar-section">
+		<h5>
+			{%= __("Created By") %}
+		</h5>
+        <div class="created-by text-muted small"></div>
+	</div>
+</div>

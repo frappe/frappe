@@ -9,10 +9,12 @@ frappe.provide('frappe.views');
 // parent
 // set_filter = function called on click
 
-frappe.views.SidebarStats = Class.extend({
+frappe.views.ListSidebar = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
-		this.wrapper = $("<div>").css({"padding-bottom": "15px"}).appendTo(this.parent);
+		this.wrapper = $(frappe.render(frappe.templates.list_sidebar,
+			{doctype: this.doclistview.doctype}))
+			.appendTo(this.parent);
 		this.get_stats();
 	},
 	get_stats: function() {
@@ -32,7 +34,7 @@ frappe.views.SidebarStats = Class.extend({
 
 				// reload button at the end
 				if(me.stats.length) {
-					$('<a class="small"><i class="icon-refresh"></i> '+__('Refresh')+'</a>')
+					$('<a class="small">'+__('Refresh Stats')+'</a>')
 						.css({"margin-top":"15px", "display":"inline-block"})
 						.click(function() {
 							me.reload_stats();
@@ -51,8 +53,8 @@ frappe.views.SidebarStats = Class.extend({
 
 		if(!stat || !stat.length) {
 			if(field==='_user_tags') {
-				$('<div class="side-panel">\
-					<h5 class="text-muted"><i class="icon-tag">\
+				$('<div class="sidebar-section">\
+					<h5 class="text-muted">\
 						</i> '+__('Tags')+show_tags+'</h5>\
 					<div class="side-panel-body">\
 						<div class="text-muted small"><i>'+__('No records tagged.')+'</i><br>'
@@ -67,8 +69,8 @@ frappe.views.SidebarStats = Class.extend({
 		if(label==='_user_tags') label = 'Tags' + show_tags;
 
 		// grid
-		var $w = $('<div class="side-panel">\
-			<h5 class="text-muted"><i class="icon-tag"></i> '+ __(label) +'</h5>\
+		var $w = $('<div class="sidebar-section">\
+			<h5 class="text-muted">'+ __(label) +'</h5>\
 			<div class="side-panel-body">\
 			</div>\
 		</div>');

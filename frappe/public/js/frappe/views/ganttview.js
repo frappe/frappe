@@ -42,7 +42,6 @@ frappe.views.Gantt = Class.extend({
 		this.appframe = this.page.appframe;
 		this.appframe.set_title(__("Gantt Chart") + " - " + __(this.doctype));
 		this.appframe.add_module_icon(module)
-		this.appframe.set_views_for(this.doctype, "gantt");
 
 		this.appframe.set_title_right(__("Refresh"),
 			function() { me.refresh(); }, "icon-refresh")

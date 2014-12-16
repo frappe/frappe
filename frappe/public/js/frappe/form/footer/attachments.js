@@ -10,12 +10,7 @@ frappe.ui.form.Attachments = Class.extend({
 	},
 	make: function() {
 		var me = this;
-		this.wrapper = $('<div>\
-			<div class="attachment-list"></div>\
-			<p class="text-muted small">'
-				+__("You can also drag and drop attachments")+'</div>\
-		</div>').appendTo(this.parent);
-		this.$list = this.wrapper.find(".attachment-list");
+		this.$list = this.parent.find(".attachment-list");
 
 		this.parent.find(".btn").click(function() {
 			me.new_attachment();
@@ -51,8 +46,6 @@ frappe.ui.form.Attachments = Class.extend({
 			attachments.forEach(function(attachment) {
 				that.add_attachment(attachment)
 			});
-		} else {
-			$('<p class="text-muted">' + __("None") + '</p>').appendTo(this.$list);
 		}
 
 		// refresh select fields with options attach_files:

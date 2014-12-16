@@ -109,7 +109,7 @@ frappe.ui.form.ControlImage = frappe.ui.form.Control.extend({
 	make: function() {
 		this._super();
 		var me = this;
-		this.$wrapper = $("<div class='row'><div class='col-xs-4'></div></div>")
+		this.$wrapper = $("<div class='row'></div>")
 			.appendTo(this.parent)
 			.css({"max-width": "600px", "margin": "0px"});
 		this.$body = $("<div class='col-xs-8'>").appendTo(this.$wrapper)
@@ -144,20 +144,16 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 		if(this.only_input) {
 			this.$wrapper = $('<div class="form-group frappe-control">').appendTo(this.parent);
 		} else {
-			this.$wrapper = $('<div class="form-horizontal frappe-control">\
-				<div class="form-group row" style="margin: 0px">\
-					<label class="control-label small col-xs-'+(this.horizontal?"4":"12")
-						+'" style="padding-right: 0px;"></label>\
-					<div class="col-xs-'+(this.horizontal?"8":"12")+'">\
+			this.$wrapper = $('<div class="frappe-control">\
+				<div class="form-group" style="margin: 0px">\
+					<label class="control-label" style="padding-right: 0px;"></label>\
+					<div>\
 						<div class="control-input"></div>\
 						<div class="control-value like-disabled-input" style="display: none;"></div>\
 						<p class="help-box small text-muted"></p>\
 					</div>\
 				</div>\
 			</div>').appendTo(this.parent);
-			if(!this.horizontal) {
-				this.$wrapper.removeClass("form-horizontal");
-			}
 		}
 	},
 	set_input_areas: function() {
@@ -220,7 +216,7 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 
 	set_disp_area: function() {
 		this.disp_area && $(this.disp_area)
-			.html(frappe.format(this.value, this.df, {no_icon:true},
+			.html(frappe.format(this.value, this.df, {no_icon:true, inline:true},
 					this.doc || (this.frm && this.frm.doc)));
 	},
 
@@ -497,16 +493,14 @@ frappe.ui.form.ControlCheck = frappe.ui.form.ControlData.extend({
 	input_type: "checkbox",
 	make_wrapper: function() {
 		this.$wrapper = $('<div class="form-group row frappe-control" style="margin: 0px;">\
-		<div class="col-md-offset-4 col-md-8">\
-			<div class="checkbox" style="margin: 5px 0px">\
+			<div class="checkbox">\
 				<label>\
 					<span class="input-area"></span>\
-					<span class="disp-area" style="display:none;"></span>\
+					<span class="disp-area" style="display:none; margin-left: -20px;"></span>\
 					<span class="label-area small"></span>\
 				</label>\
 				<p class="help-box small text-muted"></p>\
 			</div>\
-		</div>\
 		</div>').appendTo(this.parent)
 	},
 	set_input_areas: function() {
@@ -806,23 +800,28 @@ frappe.ui.form.ControlSelect = frappe.ui.form.ControlData.extend({
 frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 	make_input: function() {
 		var me = this;
-		$('<div class="link-field" style="display: table; width: 100%;">\
-			<input type="text" class="input-with-feedback form-control" \
-				style="display: table-cell">\
-			<span class="link-field-btn" style="display: table-cell">\
+		$('<div class="link-field" style="position: relative;">\
+			<input type="text" class="input-with-feedback form-control">\
+			<span class="link-btn" style="position: absolute; right: 4px; display: none;\
+				top: 4px; background-color: #eee; border-radius: 2px; padding: 3px;">\
 				<a class="btn-open" title="' + __("Open Link") + '">\
-					<i class="icon-arrow-right"></i></a>\
+					<i class="icon-link"></i></a>\
 			</span>\
 		</div>').prependTo(this.input_area);
 		this.$input_area = $(this.input_area);
 		this.$input = this.$input_area.find('input');
+		this.$link = this.$input_area.find('.link-btn');
 		this.set_input_attributes();
 		this.$input.on("focus", function() {
+			me.$link.toggle(true);
 			setTimeout(function() {
 				if(!me.$input.val()) {
 					me.$input.autocomplete("search", "");
 				}
 			}, 500);
+		});
+		this.$input.on("blur", function() {
+			setTimeout(function() { me.$link.toggle(false); }, 500);
 		});
 		this.input = this.$input.get(0);
 		this.has_input = true;

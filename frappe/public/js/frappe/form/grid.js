@@ -18,16 +18,14 @@ frappe.ui.form.Grid = Class.extend({
 
 		this.wrapper = $('<div>\
 		<div class="form-grid">\
-			<div class="grid-heading-row" style="font-size: 15px;"></div>\
-			<div class="panel-body" style="padding-top: 7px;">\
+			<div class="grid-heading-row"></div>\
+			<div class="panel-body" style="padding-top: 7px; padding-bottom: 7px">\
 				<div class="rows"></div>\
-				<div class="small grid-footer">\
-					<a href="#" class="grid-add-row pull-right" style="margin-left: 10px;">+ '
+				<div class="small grid-footer text-center">\
+					<a href="#" class="grid-add-row" style="margin-left: 10px;">+ '
 						+__("Add new row")+'.</a>\
-					<a href="#" class="grid-add-multiple-rows pull-right hide" style="margin-left: 10px;">+ '
+					<a href="#" class="grid-add-multiple-rows hide" style="margin-left: 10px;">+ '
 						+__("Add multiple rows")+'.</a>\
-					<span class="text-muted pull-right" style="margin-right: 5px;">'
-						+ __("Click on row to view / edit.") + '</span>\
 					<div class="clearfix"></div>\
 				</div>\
 			</div>\
@@ -219,7 +217,7 @@ frappe.ui.form.GridRow = Class.extend({
 	make: function() {
 		var me = this;
 		this.wrapper = $('<div class="grid-row"></div>').appendTo(this.parent).data("grid_row", this);
-		this.row = $('<div class="data-row" style="min-height: 26px;"></div>').appendTo(this.wrapper)
+		this.row = $('<div class="data-row"></div>').appendTo(this.wrapper)
 			.on("click", function() {
 				me.toggle_view();
 				return false;
@@ -271,11 +269,11 @@ frappe.ui.form.GridRow = Class.extend({
 	make_static_display: function() {
 		var me = this;
 		this.row.empty();
-		$('<div class="col-xs-1 row-index">' + (this.doc ? this.doc.idx : "#")+ '</div>')
+		$('<div class="row-index small">' + (this.doc ? this.doc.idx : "&nbsp;")+ '</div>')
 			.appendTo(this.row);
 
 		if(this.grid.template) {
-			$('<div class="col-xs-10">').appendTo(this.row)
+			$('<div class="row-data">').appendTo(this.row)
 				.html(frappe.render(this.grid.template, {
 					doc: this.doc ? frappe.get_format_helper(this.doc) : null,
 					frm: this.frm,
@@ -285,36 +283,7 @@ frappe.ui.form.GridRow = Class.extend({
 			this.add_visible_columns();
 		}
 
-		this.add_buttons();
-
 		$(this.frm.wrapper).trigger("grid-row-render", [this]);
-	},
-
-	add_buttons: function() {
-		var me = this;
-		if(this.doc && this.grid.is_editable()) {
-			if(!this.grid.$row_actions) {
-				this.grid.$row_actions = $('<div class="col-xs-1 pull-right" \
-					style="text-align: right; padding-right: 5px;">\
-					<span class="text-success grid-insert-row" style="padding: 4px;">\
-						<i class="icon icon-plus-sign"></i></span>\
-					<span class="grid-delete-row" style="padding: 4px;">\
-						<i class="icon icon-trash"></i></span>\
-				</div>');
-			}
-			$col = this.grid.$row_actions.clone().appendTo(this.row);
-
-			if($col.width() < 50) {
-				$col.toggle(false);
-			} else {
-				$col.toggle(true);
-				$col.find(".grid-insert-row").click(function() { me.insert(); return false; });
-				$col.find(".grid-delete-row").click(function() { me.remove(); return false; });
-			}
-		} else {
-			$('<div class="col-xs-1"></div>').appendTo(this.row);
-		}
-
 	},
 
 	add_visible_columns: function() {
@@ -363,7 +332,7 @@ frappe.ui.form.GridRow = Class.extend({
 							break;
 					}
 					total_colsize += colsize
-					if(total_colsize > 11)
+					if(total_colsize > 12)
 						return false;
 					this.static_display_template.push([df, colsize]);
 				}
@@ -371,16 +340,18 @@ frappe.ui.form.GridRow = Class.extend({
 
 		// redistribute if total-col size is less than 12
 		var passes = 0;
-		while(total_colsize < 11 && passes < 10) {
+		while(total_colsize < 12 && passes < 12) {
 			for(var i in this.static_display_template) {
 				var df = this.static_display_template[i][0];
 				var colsize = this.static_display_template[i][1];
-				if(colsize>1 && colsize<12 && ["Int", "Currency", "Float"].indexOf(df.fieldtype)===-1) {
+				if(colsize > 1 && colsize < 12 && ["Int", "Currency", "Float",
+					"Check", "Percent"].indexOf(df.fieldtype)===-1
+					&& !in_list(frappe.model.std_fields_list, df.fieldname)) {
 					this.static_display_template[i][1] += 1;
 					total_colsize++;
 				}
 
-				if(total_colsize >= 11)
+				if(total_colsize >= 12)
 					break;
 			}
 			passes++;

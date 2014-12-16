@@ -2,21 +2,31 @@
 // MIT License. See license.txt
 
 frappe.provide('frappe.views.doclistview');
-frappe.provide('frappe.doclistviews');
+frappe.provide('frappe.listviews');
 
+cur_list = null;
 frappe.views.ListFactory = frappe.views.Factory.extend({
 	make: function(route) {
-		var me = this;
-		frappe.model.with_doctype(route[1], function() {
-			if(locals["DocType"][route[1]].issingle) {
-				frappe.set_re_route("Form", route[1]);
+		var me = this,
+			doctype = route[1];
+		frappe.model.with_doctype(doctype, function() {
+			if(locals["DocType"][doctype].issingle) {
+				frappe.set_re_route("Form", doctype);
 			} else {
 				new frappe.views.DocListView({
-					doctype: route[1],
+					doctype: doctype,
 					page: me.make_page(true)
 				});
+				me.set_cur_list();
 			}
 		});
+	},
+	show: function() {
+		this._super();
+		this.set_cur_list();
+	},
+	set_cur_list: function() {
+		cur_list = frappe.container.page && frappe.container.page.doclistview;
 	}
 });
 
@@ -68,10 +78,6 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 			frappe.set_route(frappe.listview_parent_route[me.doctype]
 				|| frappe.get_module(module).link);
 		});
-		this.appframe.add_button("Report View", function() {
-			frappe.set_route("Report", me.doctype);
-		})
-		//this.appframe.set_views_for(this.doctype, "list");
 	},
 
 	setup: function() {
@@ -86,10 +92,8 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		this.init_star();
 		this.show_match_help();
 		this.init_listview();
-		this.make_help();
 		this.setup_filterable();
 		this.init_filters();
-		this.$page.find(".show_filters").css({"margin":"0px -15px"});
 	},
 
 	init_listview: function() {
@@ -180,12 +184,6 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 					+ "</p>");
 				$(this.footnote_area).css({"margin-top":"0px", "margin-bottom":"20px"});
 			}
-		}
-	},
-	make_help: function() {
-		// Help
-		if(this.meta.description) {
-			this.appframe.add_help_button(this.meta.description);
 		}
 	},
 	setup_listview: function() {
@@ -294,22 +292,18 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 
 		return args;
 	},
+	assigned_to_me: function() {
+		this.filter_list.add_filter(this.doctype, "_assign", 'like', '%' + user + '%');
+		this.run();
+	},
+	starred_by_me: function() {
+		this.filter_list.add_filter(this.doctype, "_starred_by", 'like', '%' + user + '%');
+		this.run();
+	},
 	init_minbar: function() {
 		var me = this;
 		this.$page.on("click", ".list-tag-preview", function() { me.toggle_tags(); });
-
-
-		this.appframe.add_icon_btn("2", 'icon-user', __('Assigned To Me'),
-			function() {
-				me.filter_list.add_filter(me.doctype, "_assign", 'like', '%' + user + '%');
-				me.run();
-			});
-
-		this.appframe.add_icon_btn("2", 'icon-star', __('Starred by Me'),
-			function() {
-				me.filter_list.add_filter(me.doctype, "_starred_by", 'like', '%' + user + '%');
-				me.run();
-			});
+		return;
 
 		if(this.can_delete || this.listview.settings.selectable) {
 			this.appframe.add_icon_btn("2", 'icon-ok', __('Select All'), function() {
@@ -400,7 +394,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 	},
 	init_stats: function() {
 		var me = this;
-		this.sidebar_stats = new frappe.views.SidebarStats({
+		this.sidebar_stats = new frappe.views.ListSidebar({
 			doctype: this.doctype,
 			stats: this.listview.stats,
 			parent: $('<div>').appendTo(this.$page.find('.layout-side-section')),

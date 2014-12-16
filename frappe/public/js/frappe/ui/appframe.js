@@ -69,7 +69,7 @@ frappe.ui.AppFrame = Class.extend({
 		var $right = this.parent.find(".titlebar-item.text-right")
 		if(txt) {
 			this.title_right && this.title_right.remove();
-			this.title_right = $("<a class='btn "+btn_class+"'>")
+			this.title_right = $("<a class='btn btn-sm "+btn_class+"'>")
 				.html((icon ? '<i class="'+icon+'"></i> ' : "") + txt)
 				.click(click)
 				.appendTo($right.attr("data-text", txt));
@@ -86,12 +86,10 @@ frappe.ui.AppFrame = Class.extend({
 		return this.parent.find(".titlebar-item.text-right").attr("data-text");
 	},
 
-	clear_primary_action: function() {
-		this.parent.find(".appframe-primary-actions").addClass("hide");
-		this.parent.find(".appframe-primary-actions .container").empty();
-	},
-
 	add_primary_action: function(label, click, icon, toolbar_or_class) {
+		this.sidebar.add_user_action(label, click);
+		return;
+
 		if(toolbar_or_class===true) {
 			this.add_icon_btn("4", icon, label, click);
 			return;
@@ -127,91 +125,6 @@ frappe.ui.AppFrame = Class.extend({
 				.appendTo(wrapper);
 		};
 
-	},
-
-	set_views_for: function(doctype, active_view) {
-		this.doctype = doctype;
-		var me = this,
-			meta = locals.DocType[doctype],
-			views = [],
-			module_info = frappe.modules[meta.module];
-
-		if(module_info) {
-			views.push({
-				icon: module_info.icon,
-				route: "Module/" + meta.module,
-				type: "module",
-				label: __("Module")
-			})
-		}
-
-		views.push({
-			icon: "icon-file-alt",
-			route: "",
-			type: "form",
-			label: __("Form"),
-			set_route: function() {
-				console.log(me.doctype);
-				if(frappe.views.formview[me.doctype]) {
-					frappe.set_route("Form", me.doctype, frappe.views.formview[me.doctype].frm.docname);
-				} else {
-					new_doc(me.doctype);
-				}
-				return false;
-			}
-		});
-
-
-		if(!meta.issingle) {
-			views.push({
-				icon: "icon-list",
-				route: "List/" + doctype,
-				type: "list",
-				label: __("List")
-			});
-		}
-
-		if(frappe.views.calendar[doctype]) {
-			views.push({
-				icon: "icon-calendar",
-				route: "Calendar/" + doctype,
-				type: "calendar",
-				label: __("Calendar")
-			});
-		}
-
-		if(frappe.views.calendar[doctype] && frappe.views.calendar[doctype]) {
-			views.push({
-				icon: "icon-tasks",
-				route: "Gantt/" + doctype,
-				type: "gantt",
-				label: __("Gantt Chart")
-			});
-		}
-
-		if(frappe.model.can_get_report(doctype)) {
-			views.push({
-				icon: "icon-table",
-				route: "Report/" + doctype,
-				type: "report",
-				label: __("Report")
-			});
-		}
-
-		this.set_views(views, active_view);
-	},
-
-	set_views: function(views, active_view) {
-		var me = this;
-		$.each(views, function(i, e) {
-			var btn = me.add_icon_btn("3", e.icon, __(e.label) || __(toTitle(e.type)), e.set_route || function() {
-				window.location.hash = "#" + $(this).attr("data-route");
-			}).attr("data-route", e.route);
-
-			if(e.type===active_view) {
-				btn.find("i").css({"color": "#428bca"});
-			}
-		});
 	},
 
 	add_module_icon: function(module, doctype, onclick, sub_title) {
@@ -342,49 +255,19 @@ frappe.ui.make_app_page = function(opts) {
 		]
 	*/
 	var $wrapper = $(opts.parent)
-	$('<div class="appframe-titlebar">\
-			<div class="container">\
-				<div class="row">\
-					<div class="titlebar-item col-sm-8">\
-						<h3 class="titlebar-left-item hide"></h2>\
-						<h3 class="titlebar-center-item"></h2>\
-					</div>\
-					<div class="titlebar-item text-right col-sm-4"></div>\
-				</div>\
-			</div>\
-		</div>\
-		<div class="app-page container">\
-			<div class="appframe-iconbar hide">\
-				<div class="container">\
-				</div>\
-			</div>\
-			<div class="appframe-form hide">\
-				<div class="container">\
-				</div>\
-			</div>\
-			<div class="appframe-primary-actions hide">\
-				<div class="container">\
-				</div>\
-			</div>\
-			<div class="appframe-wrapper">\
-				<div class="appframe container">\
-					<div class="appframe-timestamp hide"></div>\
-					<div class="workflow-button-area btn-group pull-right hide"></div>\
-					<div class="clearfix"></div>\
-				</div>\
-			</div>\
-		</div>\
-		<div class="appframe-footer hide"></div>').appendTo($wrapper);
+	$(frappe.templates.appframe).appendTo($wrapper);
 
+	var $appframe = $wrapper.find(".appframe");
 	if(opts.single_column) {
-		opts.parent.body = $('<div class="layout-main"></div>').appendTo($wrapper.find(".appframe"));
+		opts.parent.body = $('<div class="layout-main"></div>').appendTo($appframe);
 	} else {
 		opts.parent.layout = $('<div class="row">\
-			<div class="layout-main-section col-sm-9"></div>\
-			<div class="col-sm-3 layout-side-section">\
-				<div class="sidebar-links" style="margin-top: 5px;"></div>\
+			<div class="col-sm-10">\
+				<div class="layout-main-section" style="margin: 0px -15px;"></div>\
 			</div>\
-			</div>').appendTo($wrapper.find(".appframe"));
+			<div class="col-sm-2 layout-side-section">\
+			</div>\
+			</div>').appendTo($appframe);
 
 
 		opts.parent.body = opts.parent.layout.find(".layout-main-section");

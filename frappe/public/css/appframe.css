@@ -11,7 +11,7 @@
 }
 
 .appframe-titlebar {
-	border-bottom: 1px solid #c7c7c7;
+	border-bottom: 1px solid #d1d8dd;
 }
 
 /*.appframe-titlebar, .appframe-iconbar, .appframe-form, .appframe-primary-actions {
@@ -19,7 +19,7 @@
 }*/
 
 .appframe-primary-actions {
-	border-bottom: 1px solid #c7c7c7;
+	border-bottom: 1px solid #d1d8dd;
 }
 
 .appframe-primary-actions .btn {
@@ -28,7 +28,7 @@
 }
 
 .appframe-iconbar {
-	border-bottom: 1px solid #c7c7c7;
+	border-bottom: 1px solid #d1d8dd;
 }
 
 .titlebar-item {
@@ -116,7 +116,7 @@ h2.titlebar-left-item {
 }
 
 .appframe-iconbar, .appframe-form {
-	/*border-bottom: 1px solid #c7c7c7;*/
+	/*border-bottom: 1px solid #d1d8dd;*/
 }
 
 .appframe-form {
@@ -144,7 +144,7 @@ h2.titlebar-left-item {
 }
 
 .iconbar-4 {
-	border-left: 1px solid #c7c7c7;
+	border-left: 1px solid #d1d8dd;
 	padding-left: 4px;
 }
 

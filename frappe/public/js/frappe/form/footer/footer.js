@@ -26,24 +26,24 @@ frappe.ui.form.Footer = Class.extend({
 	},
 	make_tags: function() {
 		if (this.frm.meta.issingle) {
-			this.wrapper.find(".form-tags").toggle(false);
+			this.frm.sidebar.parent.find(".form-tags").toggle(false);
 			return;
 		}
 
 		this.frm.tags = new frappe.ui.TagEditor({
-			parent: this.wrapper.find(".tag-area"),
+			parent: this.frm.sidebar.parent.find(".tag-area"),
 			frm: this.frm,
 		})
 	},
 	make_attachments: function() {
 		this.frm.attachments = new frappe.ui.form.Attachments({
-			parent: this.wrapper.find(".form-attachments"),
+			parent: this.frm.sidebar.parent.find(".form-attachments"),
 			frm: this.frm
 		});
 	},
 	make_assignments: function() {
 		this.frm.assign_to = new frappe.ui.form.AssignTo({
-			parent: this.wrapper.find(".form-assignments"),
+			parent: this.frm.sidebar.parent.find(".form-assignments"),
 			frm: this.frm
 		});
 	},

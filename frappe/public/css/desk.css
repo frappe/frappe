@@ -51,7 +51,7 @@ em.link-option {
 
 @media (max-width: 767px) {
 	.layout-side-section {
-		border-top: 1px solid #c7c7c7;
+		border-top: 1px solid #d1d8dd;
 	}
 }
 
@@ -72,22 +72,25 @@ div#freeze {
 
 
 .app-page {
-	border: 1px solid #c7c7c7;
-	border-top: 0px;
 	padding: 0px;
 	overflow: hidden;
 }
 
-.limit-container-width .container {
-	max-width: 970px;
+.layout-main-section {
+	border: 1px solid #d1d8dd;
+	border-top: 0px;
 }
+
+/*.limit-container-width .container {
+	max-width: 970px;
+}*/
 
 /* listing */
 .show_filters {
 	padding: 15px;
 	padding-bottom: 5px;
 	margin-bottom: 15px;
-	border-bottom: 1px solid #c7c7c7;
+	border-bottom: 1px solid #d1d8dd;
 }
 
 .set-filters .btn {
@@ -100,12 +103,11 @@ div#freeze {
 
 .list-row {
 	padding: 5px 15px 10px;
-	margin: 0px -15px;
-	border-bottom: 1px solid #c7c7c7;
+	border-bottom: 1px solid #d1d8dd;
 }
 
 .side-panel {
-	border-bottom: 1px solid #c7c7c7;
+	border-bottom: 1px solid #d1d8dd;
 	margin: 0px -15px;
 	padding: 5px 15px;
 }
@@ -140,10 +142,9 @@ div#freeze {
 }
 
 .form-page-header {
-	border-top: 1px solid #eee;
-	margin: 15px -15px -15px -15px;
+	border-top: 1px solid #d1d8dd;
 	padding: 10px 15px;
-	background-color: #f9f9f9;
+	background-color: #f7fafc;
 }
 
 .form-control {
@@ -157,7 +158,15 @@ div#freeze {
 
 .form-dashboard {
 	display: none;
-	border-bottom: 1px solid #e7e7e7;
+	border-bottom: 1px solid #d1d8dd;
+}
+
+.form-section {
+	margin: 0px;
+	padding: 15px;
+}
+.form-section:nth-child(even) {
+	background-color: #fafbfc;
 }
 
 .help ol {
@@ -174,6 +183,28 @@ div#freeze {
 	margin-left: 3px;
 }
 
+.sidebar-section li {
+	margin-top: 5px;
+}
+
+.sidebar-section {
+	margin-top: 25px;
+}
+.sidebar-section:last-child {
+	margin-bottom: 20px;
+}
+.sidebar-section h5 {
+	text-transform: uppercase;
+	color: #888;
+	font-size: 90%;
+}
+.user-actions {
+	margin-bottom: 15px;
+}
+.user-actions a {
+	font-weight: bold;
+}
+
 /* list */
 
 .progress {
@@ -184,7 +215,6 @@ div#freeze {
 	position: relative;
 	padding-top: 5px;
 	padding-bottom: 6px;
-	border-bottom: "1px solid #eee";
 }
 
 .doclist-row .progress {
@@ -356,21 +386,21 @@ ul.linked-with-list {
 
 ul.linked-with-list li {
 	padding: 5px 0px;
-	border-bottom: 1px solid #c7c7c7;
+	border-bottom: 1px solid #d1d8dd;
 }
 
 /* form grid */
 
 .form-grid {
-	border: 2px solid #c7c7c7;
+	border: 1px solid #d1d8dd;
 	margin-bottom: 15px;
 	border-radius: 3px;
 }
 
 .grid-heading-row {
 	padding: 8px 15px;
-	border-bottom: 1px solid #c7c7c7;
-	background-color: #f9f9f9;
+	border-bottom: 1px solid #d1d8dd;
+	background-color: #f7fafc;
 	font-weight: bold;
 }
 
@@ -378,11 +408,15 @@ ul.linked-with-list li {
 	padding-bottom: 5px;
 	margin-bottom: 5px;
 	margin-top: 8px;
-	border-bottom: 1px solid #c7c7c7;
+	border-bottom: 1px solid #d1d8dd;
 }
 
 .rows .grid-row .data-row, .rows .grid-row .panel-heading {
 	cursor: pointer;
+}
+
+.panel-body {
+	background-color: #fff;
 }
 
 .grid-static-col {
@@ -390,12 +424,15 @@ ul.linked-with-list li {
 	overflow: hidden;
 }
 
-.data-row {
-	margin-left: -20px;
-}
-
 .row-index {
 	text-align: right;
+	width: 30px;
+	margin-left: -15px;
+	float: left;
+}
+
+.row-data > .row {
+	margin-left: 15px;
 }
 
 .grid-row .panel {
@@ -423,12 +460,17 @@ ul.linked-with-list li {
 }
 
 
+.control-label, .grid-heading-row {
+	color: #8c99a5;
+	font-size: 85%;
+}
+
 .like-disabled-input {
-	background-color: #f8f8f8;
-	padding: 6px;
 	margin-bottom: 7px;
 	border-radius: 3px;
 	min-height: 30px;
+	font-size: 110%;
+	font-weight: bold;
 }
 
 /* jquery ui */

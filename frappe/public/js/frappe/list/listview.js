@@ -2,8 +2,8 @@
 // MIT License. See license.txt
 
 frappe.views.get_listview = function(doctype, parent) {
-	if(frappe.doclistviews[doctype]) {
-		var listview = new frappe.doclistviews[doctype](parent);
+	if(frappe.listviews[doctype]) {
+		var listview = new frappe.listviews[doctype](parent);
 	} else {
 		var listview = new frappe.views.ListView(parent, doctype);
 	}

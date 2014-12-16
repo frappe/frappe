@@ -85,15 +85,23 @@ _f.Frm.prototype.setup = function() {
 		parent: this.wrapper
 	});
 	this.appframe = this.wrapper.appframe;
-	this.layout_main = $(this.wrapper)
-		.find(".layout-main-section")
+	var $main_section = $(this.wrapper).find(".layout-main-section");
+	this.layout_main = $main_section
 		.css({"padding-bottom": "0px"})
 		.get(0);
+
+	this.sidebar = new frappe.ui.form.Sidebar({
+		frm: this,
+		parent: $(this.wrapper).find(".layout-side-section")
+	});
+
+	this.appframe.sidebar = this.sidebar;
 
 	this.toolbar = new frappe.ui.form.Toolbar({
 		frm: this,
 		appframe: this.appframe
 	});
+
 	this.frm_head = this.toolbar;
 
 	// print layout
@@ -111,7 +119,7 @@ _f.Frm.prototype.setup = function() {
 
 	this.footer = new frappe.ui.form.Footer({
 		frm: this,
-		parent: $(this.wrapper).find(".appframe-footer")
+		parent: $('<div>').appendTo($main_section.parent())
 	})
 
 	this.setup_drag_drop();
@@ -402,6 +410,7 @@ _f.Frm.prototype.render_form = function() {
 	if(!this.meta.istable) {
 		// header
 		this.refresh_header();
+		this.sidebar.refresh();
 
 		// call trigger
 		this.script_manager.trigger("refresh");
@@ -719,11 +728,11 @@ _f.Frm.prototype.set_footnote = function(txt) {
 
 
 _f.Frm.prototype.add_custom_button = function(label, fn, icon, toolbar_or_class) {
-	return this.appframe.add_primary_action(label, fn, icon || "icon-arrow-play", toolbar_or_class);
+	this.sidebar.add_user_action(label, fn);
 }
 
 _f.Frm.prototype.clear_custom_buttons = function() {
-	this.appframe.clear_primary_action()
+	this.frm.sidebar.clear_user_actions();
 }
 
 _f.Frm.prototype.add_fetch = function(link_field, src_field, tar_field) {

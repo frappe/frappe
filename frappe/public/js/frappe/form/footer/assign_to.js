@@ -12,11 +12,7 @@ frappe.ui.form.AssignTo = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
 		var me = this;
-		this.wrapper = $('<div>\
-			<div class="alert-list" style="margin-bottom: 7px;"></div>\
-		</div>').appendTo(this.parent);
-
-		this.$list = this.wrapper.find(".alert-list");
+		this.$list = this.parent.find(".assign-list");
 
 		this.parent.find(".btn").click(function() {
 			me.add();
@@ -76,8 +72,6 @@ frappe.ui.form.AssignTo = Class.extend({
 				me.remove($(this).attr('data-owner'));
 				return false;
 			});
-		} else {
-			$('<p class="text-muted">' + __("No one") + '</p>').appendTo(this.$list);
 		}
 	},
 	add: function() {

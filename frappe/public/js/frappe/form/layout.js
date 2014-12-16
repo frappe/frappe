@@ -128,11 +128,8 @@ frappe.ui.form.Layout = Class.extend({
 	},
 	make_page: function(df) {
 		var me = this,
-			head = $('<div class="form-page-header">\
-				<button class="btn btn-default btn-primary btn-fold">\
-					<span class="octicon octicon-fold"></span>\
-					<span class="text">'+__("View Details")+'</span>\
-				</button>\
+			head = $('<div class="form-page-header text-center">\
+				<a class="btn-fold">'+__("View Details")+'</a>\
 			</div>').appendTo(this.wrapper);
 
 		this.page = $('<div class="form-page hide"></div>').appendTo(this.wrapper);
@@ -140,11 +137,11 @@ frappe.ui.form.Layout = Class.extend({
 		this.fold_btn = head.find(".btn-fold").on("click", function() {
 			var page = $(this).parent().next();
 			if(page.hasClass("hide")) {
-				$(this).removeClass("btn-primary").find(".text").html(__("Hide Details"));
+				$(this).removeClass("btn-fold").html(__("Hide Details"));
 				page.removeClass("hide");
 				me.folded = false;
 			} else {
-				$(this).addClass("btn-primary").find(".text").html(__("View Details"));
+				$(this).addClass("btn-fold").html(__("View Details"));
 				page.addClass("hide");
 				me.folded = true;
 			}
@@ -163,39 +160,13 @@ frappe.ui.form.Layout = Class.extend({
 			this.page = $('<div class="form-page"></div>').appendTo(this.wrapper);
 		}
 
-		this.section = $('<div class="row">')
+		this.section = $('<div class="row form-section">')
 			.appendTo(this.page);
 		this.sections.push(this.section);
 
 		var section = this.section[0];
 		section.df = df;
 		if(df) {
-			if(df.label && false) {
-				this.labelled_section_count++;
-				var head = $('<h4 class="col-md-12">'
-					+ (df.options ? (' <i class="icon-fixed-width text-muted '+df.options+'"></i> ') : "")
-					+ '<span class="section-count-label">' + __(this.labelled_section_count) + "</span>. "
-					+ __(df.label)
-					+ "</h4>")
-					.css({"margin":"15px 0px"})
-					.appendTo(this.section);
-
-				if(df && df.idx===1)
-					head.css({"margin-top": "0px"})
-			}
-
-			if(true || df.label || df.show_section_border) {
-				if(this.sections.length > 1) {
-					this.section.css("border-top", "1px solid #eee");
-
-					if (df.label) {
-						this.section.css("margin-top", "15px");
-					} else {
-						this.section.css("padding-top", "15px");
-					}
-				}
-			}
-
 			if(df.description) {
 				$('<div class="col-md-12 small text-muted">' + __(df.description) + '</div>')
 					.css("padding-left", "40px")

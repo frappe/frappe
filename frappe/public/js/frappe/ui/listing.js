@@ -159,35 +159,12 @@ frappe.ui.Listing = Class.extend({
 			this.$w.find('h3').html(this.title).toggle(true);
 		}
 
-		// hide-refresh
-		if(!(this.hide_refresh || this.no_refresh)) {
-			this.add_button(__('Refresh'), function() {
-				me.run();
-			}, 'icon-refresh');
-
-		}
-
 		// new
 		if(this.new_doctype) {
 			var make_new_doc = function() { (me.custom_new_doc || me.make_new_doc).apply(me, [me.new_doctype]); };
 
-			// if(this.appframe) {
-			// 	this.appframe.set_title_right("<i class='icon-plus'></i> " + __('New'), function() {
-			// 		make_new_doc(); });
-			// }
-			// this.add_button(__('New'), function() {
-			// 	make_new_doc();
-			// }, 'icon-plus');
-
 			this.$w.find(".btn-new").removeClass("hide").on("click", function() { make_new_doc(); });
 		}
-
-		// hide-filter
-		// if(me.show_filters) {
-		// 	this.add_button(__('Filter'), function() {
-		// 		me.filter_list.add_filter();
-		// 	}, 'icon-filter').addClass('btn-filter');
-		// }
 
 		if(me.no_toolbar || me.hide_toolbar) {
 			me.$w.find('.list-toolbar-wrapper').toggle(false);

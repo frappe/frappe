@@ -80,6 +80,7 @@
 		"public/js/legacy/handler.js",
 		"public/js/legacy/loaders.js",
 
+		"public/js/frappe/ui/appframe.html",
 		"public/js/frappe/ui/appframe.js",
 		"public/js/frappe/ui/iconbar.js",
 		"public/js/frappe/form/layout.js",
@@ -111,10 +112,7 @@
 		"public/js/frappe/views/container.js",
 		"public/js/frappe/views/factory.js",
 		"public/js/frappe/views/pageview.js",
-		"public/js/frappe/views/doclistview.js",
-		"public/js/frappe/views/sidebar_stats.js",
 		"public/js/frappe/views/moduleview.js",
-		"public/js/frappe/views/listview.js",
 		"public/js/frappe/views/formview.js",
 		"public/js/frappe/views/reportview.js",
 		"public/js/frappe/views/calendar.js",
@@ -124,6 +122,11 @@
 		"public/js/frappe/views/communication.js",
 		"public/js/frappe/views/test_runner.js",
 		"public/js/frappe/form/formatters.js",
+
+		"public/js/frappe/list/doclistview.js",
+		"public/js/frappe/list/list_sidebar.js",
+		"public/js/frappe/list/list_sidebar.html",
+		"public/js/frappe/list/listview.js",
 
 		"public/js/frappe/ui/toolbar/selector_dialog.js",
 		"public/js/frappe/ui/toolbar/new.js",
@@ -149,6 +152,8 @@
 		"public/js/frappe/form/linked_with.js",
 		"public/js/frappe/form/workflow.js",
 		"public/js/frappe/form/print.js",
+		"public/js/frappe/form/sidebar.js",
+		"public/js/frappe/form/form_sidebar.html",
 
 		"public/js/frappe/form/footer/form_footer.html",
 		"public/js/frappe/form/footer/timeline_item.html",

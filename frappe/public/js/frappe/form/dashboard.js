@@ -4,10 +4,10 @@
 frappe.ui.form.Dashboard = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
-		this.wrapper = $('<div class="form-dashboard row"></div>')
-			.css({"margin-bottom":"20px", "padding-bottom":"10px"})
-			.prependTo(this.frm.layout.wrapper);
-		this.body = $('<div></div>').appendTo(this.wrapper).css("margin-bottom", "20px");
+		this.wrapper = $('<div class="form-dashboard"></div>')
+		.prependTo(this.frm.layout.wrapper);
+		this.body = $('<div class="row"></div>').appendTo(this.wrapper)
+			.css("padding", "15px");
 
 	},
 	reset: function() {

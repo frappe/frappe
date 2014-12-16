@@ -1,0 +1,20 @@
+<div class="list-sidebar">
+    <div class="sidebar-section">
+        <ul class="user-actions list-unstyled hide">
+        </ul>
+        <ul class="standard-actions list-unstyled">
+            <li>
+                <a onclick="cur_list.run()">{%= __("Refresh") %}</a></li>
+            <li>
+                <a href="#Report/{%= doctype %}">{%= __("Report View") %}</a></li>
+            <li>
+                <a onclick="cur_list.assigned_to_me()">{%= __("Assigned To Me") %}</a></li>
+            <li>
+                <a onclick="cur_list.starred_by_me()">{%= __("Starred By Me") %}</a></li>
+            <li class="system-manager">
+                <a onclick="cur_list.show_settings()">{%= __("Settings") %}</a></li>
+        </ul>
+    </div>
+    <div class="sidebar-section">
+    </div>
+</div>

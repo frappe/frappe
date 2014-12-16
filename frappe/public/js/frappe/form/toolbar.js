@@ -8,16 +8,16 @@ frappe.ui.form.Toolbar = Class.extend({
 		this.make();
 		this.add_update_button_on_dirty();
 		this.appframe.add_module_icon(this.frm.meta.module, this.frm.doctype);
-		this.appframe.set_views_for(this.frm.meta.name, "form");
 	},
 	make: function() {
 		this.set_title();
+		this.frm.sidebar.clear_user_actions();
 		this.show_title_as_dirty();
 
+		return;
 		if(this.frm.meta.hide_toolbar) {
 			this.appframe.set_title_right();
 			this.frm.save_disabled = true;
-			this.appframe.clear_primary_action();
 			this.appframe.iconbar.hide();
 		} else {
 			this.appframe.iconbar.clear(1);
@@ -216,7 +216,7 @@ frappe.ui.form.Toolbar = Class.extend({
 
 		if (!dirty) {
 			// don't clear actions menu if dirty
-			this.appframe.clear_primary_action();
+			this.frm.sidebar.clear_user_actions();
 		}
 
 		if (this.can_submit()) {
