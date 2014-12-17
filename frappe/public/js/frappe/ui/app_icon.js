@@ -18,9 +18,9 @@ frappe.ui.app_icon = {
 			})
 			icon = '<object>'+icon+'</object>';
 		} else {
-			icon = '<i class="'+icon+'"></i>'
+			icon = '<i class="'+icon+'" style="color: ' + color + '"></i>';
 		}
 		return '<div class="app-icon'+ (small ? " app-icon-small" : "")
-			+'" style="background-color:'+color+'">'+icon+'</div>'
+			+'" style="border: 2px solid '+color+'">'+icon+'</div>'
 	}
 }

@@ -66,12 +66,10 @@ frappe.form.formatters = {
 			return repl('<a onclick="%(onclick)s">%(value)s</a>',
 				{onclick: docfield.link_onclick.replace(/"/g, '&quot;'), value:value});
 		} else if(docfield && doctype) {
-			return repl('%(icon)s<a href="#Form/%(doctype)s/%(name)s">%(label)s</a>', {
+			return repl('<a href="#Form/%(doctype)s/%(name)s">%(label)s</a>', {
 				doctype: encodeURIComponent(doctype),
 				name: encodeURIComponent(value),
-				label: __(value),
-				icon: (options && options.no_icon) ? "" :
-					('<i class="icon-fixed-width '+frappe.boot.doctype_icons[doctype]+'"></i> ')
+				label: __(value)
 			});
 		} else {
 			return value;

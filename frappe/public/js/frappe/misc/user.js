@@ -34,6 +34,7 @@ frappe.get_gravatar = function(email_id) {
 }
 
 frappe.ui.set_user_background = function(src, selector, style) {
+	return;
 	if(!selector) selector = "#page-desktop";
 	if(!style) style = "Fill Screen";
 	if(!src) src = "assets/frappe/images/ui/random-polygons.jpg";

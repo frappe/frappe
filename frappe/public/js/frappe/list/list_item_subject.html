@@ -1,0 +1,24 @@
+<i class="icon-star{% if (_starred_by.indexOf(_user)===-1) { %}-empty{% } %}
+    icon-fixed-width star-action text-muted"
+    style="margin-right: 10px; cursor: pointer" data-name="{%= _name %}">
+</i>
+{% if (_checkbox) { %}
+<input class="list-delete" type="checkbox" style="margin-right: 10px;">
+<a class="form-link list-id" style="margin-right: 10px;"
+	href="#Form/{%= _doctype_encoded %}/{%= _name_encoded %}" title="{%= _full_title %}">{%= _title %}</a>
+{% } %}
+{% if (_submittable) { %}
+    <span class="docstatus filterable" style="margin-right: 10px;" data-filter="docstatus,=,{%= docstatus %}">
+    {% if (docstatus===0) { %}
+    	<i class="icon-edit icon-fixed-width" title="{%= __("Draft") %}"></i></span>
+    {% } else if (docstatus===1) { %}
+    	<i class="icon-lock icon-fixed-width" title="{%= __("Submitted") %}"></i></span>
+    {% } else if (docstatus===2) { %}
+    	<i class="icon-remove icon-fixed-width" title="{%= __("Cancelled") %}"></i></span>
+    {% } %}
+{% } %}
+{% if (_workflow && !_without_workflow) { %}
+<span class="label label-{%= _workflow.style %} filterable"
+    data-filter="{%= _workflow.fieldname %},=,{%= _workflow.value %}">
+	{%= _workflow.value %}</span>
+{% } %}

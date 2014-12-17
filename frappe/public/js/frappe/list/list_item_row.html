@@ -1,0 +1,31 @@
+<div class="row doclist-row">
+    <div class="col-xs-10">
+        {%= main %}
+    </div>
+    <div class="col-xs-2 text-right list-row-right">
+        {% if (data._assign_list.length) { %}
+    		<span class="filterable"
+                data-filter="_assign,like,%{%= data._assign_list[data._assign_list.length - 1] %}%">
+    			{%= frappe.avatar(data._assign_list[data._assign_list.length - 1]) %}</span>
+        {% } else { %}
+            <span class="avatar avatar-small avatar-empty"></span>
+        {% } %}
+    	<span>
+    		<i class="icon-comments {% if(!data._comments_list.length) { %}text-muted{% } %}"></i>
+                {%= data._comments_list.length || 0 %}
+        </span>
+    </div>
+</div>
+<div class="text-muted list-info-row small"
+    style="padding-left: {% if(data._checkbox) { %}54{% } else { %}31{% } %}px;">
+    {% if (data._full_title !== data.name) { %}
+    <a class="text-muted" href="#Form/{%= data._doctype_encoded %}/{%= data._name_encoded %}">#{%= data.name %}</a>
+    {% } %}
+    {%= comment_when(data.modified) %}
+    {% if (data._tags && data._tags.length) { %}
+    	<span style="margin-right: 10px;" class="list-tag-preview">
+    		{%= data._tags.join(", ") %}
+        </span>
+    {% } %}
+</div>
+<div class="clearfix"></div>

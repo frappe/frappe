@@ -1,5 +1,3 @@
-@import url(http://fonts.googleapis.com/css?family=Noto+Sans:400,700);
-
 html {
 	min-height: 100%;
 	position: relative;
@@ -8,16 +6,16 @@ html {
 body {
 	height: 100%;
 	margin: 0px;
-	padding-top: 36px;
+	padding-top: 44px;
 }
 
 a {
 	cursor: pointer;
 }
 
-.navbar-inverse {
-	background-color: #444;
-	border-bottom: 0px;
+.navbar-default {
+	background-color: #f5f7fa;
+	border-bottom: 1px solid #ebeff2;
 }
 
 a.disabled, a.disabled:hover {
@@ -86,10 +84,14 @@ div#freeze {
 }*/
 
 /* listing */
+
+.no-result {
+	padding: 15px;
+}
+
 .show_filters {
 	padding: 15px;
 	padding-bottom: 5px;
-	margin-bottom: 15px;
 	border-bottom: 1px solid #d1d8dd;
 }
 
@@ -102,8 +104,15 @@ div#freeze {
 }
 
 .list-row {
-	padding: 5px 15px 10px;
+	padding: 10px 15px 15px 15px;
 	border-bottom: 1px solid #d1d8dd;
+}
+
+.list-item-col {
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	height: 30px;
+	padding-top: 3px;
 }
 
 .side-panel {
@@ -165,7 +174,7 @@ div#freeze {
 	margin: 0px;
 	padding: 15px;
 }
-.form-section:nth-child(even) {
+.form-section:nth-child(even), .list-row:nth-child(even) {
 	background-color: #fafbfc;
 }
 
@@ -207,14 +216,12 @@ div#freeze {
 
 /* list */
 
-.progress {
-	height: 10px;
+.list-filters {
+	background-color: #f7fafc;
 }
 
-.doclist-row {
-	position: relative;
-	padding-top: 5px;
-	padding-bottom: 6px;
+.progress {
+	height: 10px;
 }
 
 .doclist-row .progress {
@@ -229,22 +236,14 @@ div#freeze {
 	margin-right: 8px;
 }
 
-.list-timestamp {
-	position: absolute;
-	right: 15px;
-	bottom: 3px;
-	font-size: 70%;
-	color: #888;
+.list-info-row {
+	float: left;
+	margin-top: -5px;
 }
 
-.list-doc-name {
-	position: absolute;
-	bottom: 2px;
-}
-
-.list-doc-name a {
-	font-size: 70%;
-	color: #888;
+.list-row-right {
+	margin-top: 8px;
+	margin-bottom: -8px;
 }
 
 /* module */

@@ -25,7 +25,7 @@ frappe.ui.toolbar.Toolbar = Class.extend({
 		frappe.search.setup();
 	},
 	make: function() {
-		$('header').append('<div class="navbar navbar-inverse navbar-fixed-top" role="navigation">\
+		$('header').append('<div class="navbar navbar-default navbar-fixed-top" role="navigation" style="padding: 3px 0px">\
 			<div class="container">\
 				<div class="navbar-header">\
 					<button type="button" class="navbar-toggle" data-toggle="collapse" \
