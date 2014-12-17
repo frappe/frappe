@@ -387,29 +387,44 @@ frappe.ui.form.ControlInt = frappe.ui.form.ControlData.extend({
 
 frappe.ui.form.ControlFloat = frappe.ui.form.ControlInt.extend({
 	parse: function(value) {
-		return isNaN(parseFloat(value)) ? null : flt(value);
+		return isNaN(parseFloat(value)) ? null : flt(value, this.get_precision());
 	},
+
 	format_for_input: function(value) {
 		var number_format;
-		var precision = this.df.precision || cint(frappe.boot.sysdefaults.float_precision, null);
 		if (this.df.fieldtype==="Float" && this.df.options && this.df.options.trim()) {
-			number_format = get_number_format(this.get_currency());
+			number_format = this.get_number_format();
 		}
-		var formatted_value = format_number(parseFloat(value), number_format, precision);
+		var formatted_value = format_number(parseFloat(value), number_format, this.get_precision());
 		return isNaN(parseFloat(value)) ? "" : formatted_value;
 	},
 
 	// even a float field can be formatted based on currency format instead of float format
-	get_currency: function() {
-		return frappe.meta.get_field_currency(this.df, this.get_doc());
+	get_number_format: function() {
+		var currency = frappe.meta.get_field_currency(this.df, this.get_doc());
+		return get_number_format(currency);
+	},
+
+	get_precision: function() {
+		// round based on field precision or float precision, else don't round
+		return this.df.precision || cint(frappe.boot.sysdefaults.float_precision, null);
 	}
 });
 
 frappe.ui.form.ControlCurrency = frappe.ui.form.ControlFloat.extend({
 	format_for_input: function(value) {
-		var formatted_value = format_number(parseFloat(value),
-			get_number_format(this.get_currency()), this.df.precision || null);
+		var formatted_value = format_number(parseFloat(value), this.get_number_format(), this.get_precision());
 		return isNaN(parseFloat(value)) ? "" : formatted_value;
+	},
+
+	get_precision: function() {
+		// always round based on field precision or currency's precision
+		// this method is also called in this.parse()
+		if (!this.df.precision) {
+			this.df.precision = get_number_format_info(this.get_number_format()).precision;
+		}
+
+		return this.df.precision;
 	}
 });
 
