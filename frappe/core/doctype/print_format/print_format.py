@@ -20,7 +20,8 @@ class PrintFormat(Document):
 		jenv = frappe.get_jenv()
 		try:
 			jenv.from_string(self.html)
-		except TemplateSyntaxError:
+		except TemplateSyntaxError, e:
+			frappe.msgprint('Line {}: {}'.format(e.lineno, e.message))
 			frappe.throw(frappe._("Syntax error in Jinja template"))
 
 	def on_update(self):
