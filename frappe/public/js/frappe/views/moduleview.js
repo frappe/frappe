@@ -76,7 +76,6 @@ frappe.views.moduleview.ModuleView = Class.extend({
 			single_column: true,
 			title: __(frappe.modules[module] && frappe.modules[module].label || module)
 		});
-		wrapper.appframe.add_module_icon(module);
 		wrapper.appframe.set_title_left(function() { frappe.set_route(""); });
 		wrapper.appframe.set_title_right(__("Refresh"), function() {
 			me.make(wrapper, module);

@@ -24,7 +24,7 @@ frappe.pages.messages.onload = function(wrapper) {
 	</div>\
 	<div class="all-messages"></div><br>').appendTo($(wrapper).find('.layout-main-section'));
 
-	wrapper.appframe.add_module_icon("Messages");
+	frappe.add_breadcrumbs("Messages");
 
 	frappe.desk.pages.messages = new frappe.desk.pages.messages(wrapper);
 }

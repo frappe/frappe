@@ -34,7 +34,7 @@ frappe.views.Calendar = Class.extend({
 	make_page: function() {
 		var module = locals.DocType[this.doctype].module;
 		this.page.appframe.set_title(__("Calendar") + " - " + __(this.doctype));
-		this.page.appframe.add_module_icon(module==="Core" ? "Calendar" : module)
+		frappe.add_breadcrumbs(module==="Core" ? "Calendar" : module, this.doctype)
 		this.page.appframe.add_button("New", function() {
 			var doc = frappe.model.get_new_doc(me.doctype);
 			frappe.set_route("Form", me.doctype, doc.name);

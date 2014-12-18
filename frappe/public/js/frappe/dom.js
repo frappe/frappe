@@ -62,7 +62,14 @@ frappe.dom = {
 	freeze: function() {
 		// blur
 		if(!$('#freeze').length) {
-			$("<div id='freeze'>").appendTo("#body_div").css('opacity', 0.6);
+			$("<div id='freeze' class='modal-backdrop'>")
+				.on("click", function() {
+					if (cur_frm && cur_frm.cur_grid) {
+						cur_frm.cur_grid.toggle_view();
+						return false;
+					}
+				})
+				.appendTo("#body_div");
 		}
 		$('#freeze').toggle(true);
 		frappe.dom.freeze_count++;

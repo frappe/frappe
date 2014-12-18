@@ -7,7 +7,7 @@ frappe.ui.form.Toolbar = Class.extend({
 		$.extend(this, opts);
 		this.make();
 		this.add_update_button_on_dirty();
-		this.appframe.add_module_icon(this.frm.meta.module, this.frm.doctype);
+		frappe.add_breadcrumbs(this.frm.meta.module, this.frm.doctype)
 	},
 	make: function() {
 		this.set_title();

@@ -12,6 +12,8 @@
 
 .appframe-titlebar {
 	border-bottom: 1px solid #d1d8dd;
+	padding-top: 10px;
+	padding-bottom: 10px;
 }
 
 /*.appframe-titlebar, .appframe-iconbar, .appframe-form, .appframe-primary-actions {
@@ -29,11 +31,6 @@
 
 .appframe-iconbar {
 	border-bottom: 1px solid #d1d8dd;
-}
-
-.titlebar-item {
-	padding-top: 10px;
-	padding-bottom: 10px;
 }
 
 .titlebar-item h3 {
@@ -66,7 +63,6 @@ h2.titlebar-left-item {
 .title-sub {
 	font-size: 50%;
 	color: #888;
-	margin-left: 34px;
 	margin-top: 4px;
 }
 

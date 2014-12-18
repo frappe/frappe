@@ -94,7 +94,6 @@ frappe.search = {
 		});
 	},
 	find: function(list, txt, process) {
-		var ret = null;
 		$.each(list, function(i, item) {
 			_item = __(item).toLowerCase().replace(/-/g, " ");
 			if(txt===_item || _item.indexOf(txt) !== -1) {
@@ -103,7 +102,6 @@ frappe.search = {
 				frappe.search.options.push(option);
 			}
 		});
-		return ret;
 	}
 }
 
@@ -120,6 +118,20 @@ frappe.search.verbs = [
 				},
 				match: txt
 			});
+		}
+	},
+
+	// recent
+	function(txt) {
+		for(var doctype in locals) {
+			if(doctype[0]!==":" && !frappe.model.is_table(doctype)) {
+				var ret = frappe.search.find(keys(locals[doctype]), txt, function(match) {
+					return {
+						value: __(doctype) + " <b>" + match + "</b>",
+						route: ["Form", doctype, match]
+					}
+				});
+			}
 		}
 	},
 

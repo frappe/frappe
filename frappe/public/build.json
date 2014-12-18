@@ -137,6 +137,7 @@
 		"public/js/frappe/ui/toolbar/recent.js",
 		"public/js/frappe/ui/toolbar/bookmarks.js",
 		"public/js/frappe/ui/toolbar/about.js",
+		"public/js/frappe/ui/toolbar/navbar.html",
 		"public/js/frappe/ui/toolbar/toolbar.js",
 		"public/js/frappe/ui/editor.js",
 
@@ -150,6 +151,7 @@
 		"public/js/frappe/form/script_manager.js",
 		"public/js/frappe/form/control.js",
 		"public/js/frappe/form/link_selector.js",
+		"public/js/frappe/form/grid_form.html",
 		"public/js/frappe/form/grid.js",
 		"public/js/frappe/form/linked_with.js",
 		"public/js/frappe/form/workflow.js",

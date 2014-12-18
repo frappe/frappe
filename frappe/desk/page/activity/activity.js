@@ -7,7 +7,7 @@ frappe.pages['activity'].onload = function(wrapper) {
 		title: __("Activity"),
 		single_column: true
 	})
-	wrapper.appframe.add_module_icon("Activity");
+	frappe.add_breadcrumbs("Activity");
 
 	var list = new frappe.ui.Listing({
 		hide_refresh: true,

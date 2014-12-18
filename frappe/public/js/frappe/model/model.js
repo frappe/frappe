@@ -157,6 +157,16 @@ $.extend(frappe.model, {
 		return locals.DocType[doctype] && locals.DocType[doctype].is_submittable;
 	},
 
+	is_table: function(doctype) {
+		if(!doctype) return false;
+		return locals.DocType[doctype] && locals.DocType[doctype].istable;
+	},
+
+	is_single: function(doctype) {
+		if(!doctype) return false;
+		return locals.DocType[doctype] && locals.DocType[doctype].issingle;
+	},
+
 	can_import: function(doctype, frm) {
 		// system manager can always import
 		if(user_roles.indexOf("System Manager")!==-1) return true;

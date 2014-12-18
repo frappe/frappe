@@ -18,6 +18,10 @@ a {
 	border-bottom: 1px solid #ebeff2;
 }
 
+.navbar-brand {
+	font-size: inherit;
+}
+
 a.disabled, a.disabled:hover {
 	color: #888;
 	cursor: default;
@@ -52,22 +56,6 @@ em.link-option {
 		border-top: 1px solid #d1d8dd;
 	}
 }
-
-/* freeze */
-
-div#freeze {
-	position: fixed;
-	display: none;
-	top: 0px;
-	left: 0px;
-	bottom: 0px;
-	right: 0px;
-	background-color: #aaa;
-	opacity: 0.6;
-	z-index: 1;
-	text-align: center;
-}
-
 
 .app-page {
 	padding: 0px;
@@ -104,7 +92,7 @@ div#freeze {
 }
 
 .list-row {
-	padding: 10px 15px 15px 15px;
+	padding: 7px 15px 10px 15px;
 	border-bottom: 1px solid #d1d8dd;
 }
 
@@ -113,6 +101,36 @@ div#freeze {
 	text-overflow: ellipsis;
 	height: 30px;
 	padding-top: 3px;
+}
+
+.list-filters {
+	background-color: #f7fafc;
+}
+
+.progress {
+	height: 10px;
+}
+
+.doclist-row .progress {
+	margin-top: 12px;
+}
+
+.filterable {
+	cursor: pointer;
+}
+
+.doclist-row .label {
+	margin-right: 8px;
+}
+
+.list-info-row {
+	float: left;
+	margin-top: -7px;
+}
+
+.list-row-right {
+	margin-top: 8px;
+	margin-bottom: -8px;
 }
 
 .side-panel {
@@ -212,38 +230,6 @@ div#freeze {
 }
 .user-actions a {
 	font-weight: bold;
-}
-
-/* list */
-
-.list-filters {
-	background-color: #f7fafc;
-}
-
-.progress {
-	height: 10px;
-}
-
-.doclist-row .progress {
-	margin-top: 12px;
-}
-
-.filterable {
-	cursor: pointer;
-}
-
-.doclist-row .label {
-	margin-right: 8px;
-}
-
-.list-info-row {
-	float: left;
-	margin-top: -5px;
-}
-
-.list-row-right {
-	margin-top: 8px;
-	margin-bottom: -8px;
 }
 
 /* module */
@@ -397,25 +383,40 @@ ul.linked-with-list li {
 }
 
 .grid-heading-row {
-	padding: 8px 15px;
 	border-bottom: 1px solid #d1d8dd;
 	background-color: #f7fafc;
 	font-weight: bold;
 }
 
-.rows .grid-row .divider {
-	padding-bottom: 5px;
-	margin-bottom: 5px;
-	margin-top: 8px;
+.grid-row {
+	padding: 10px 15px;
 	border-bottom: 1px solid #d1d8dd;
 }
 
-.rows .grid-row .data-row, .rows .grid-row .panel-heading {
+.grid-row:last-child {
+	border: none;
+}
+
+.rows .grid-row .data-row, .rows .grid-row .grid-footer-toolbar, .grid-form-heading {
 	cursor: pointer;
 }
 
-.panel-body {
+.data-row.row {
+	margin: 0px;
+}
+
+.grid-body {
 	background-color: #fff;
+}
+
+.grid-footer {
+	padding: 10px 15px;
+	border-top: 1px solid #d1d8dd;
+}
+
+.grid-empty {
+	padding: 10px 15px;
+	color: #d1d8dd;
 }
 
 .grid-static-col {
@@ -434,16 +435,30 @@ ul.linked-with-list li {
 	margin-left: 15px;
 }
 
-.grid-row .panel {
-	background-color: #fffff8;
-}
-
 .grid-row td {
 	vertical-align: top;
 }
 
 .grid-row p {
 	margin-bottom: 5px;
+}
+
+.form-in-grid {
+	margin: -10px -15px;
+	z-index: 1021;
+	position: relative;
+	background-color: white;
+}
+
+.grid-form-heading {
+	padding: 10px 15px;
+	font-size: 120%;
+	border-bottom: 1px solid #d1d8dd;
+}
+
+.grid-footer-toolbar {
+	padding: 10px 15px;
+	border-top: 1px solid #d1d8dd;
 }
 
 /* form footer */
@@ -566,4 +581,18 @@ ul.linked-with-list li {
 	  margin-top: 0px;
 	  margin-left: 2px;
 	}
+}
+
+#freeze {
+	background-color: #557698;
+	opacity: 0.2;
+	z-index: 1020;
+}
+
+kbd {
+	color: inherit;
+	background-color: #F0F4F7;
+    -webkit-box-shadow: none;
+            box-shadow: none;
+
 }
