@@ -206,7 +206,7 @@ frappe.Application = Class.extend({
 	setup_keyboard_shortcuts: function() {
 		$(document)
 			.keydown("meta+g ctrl+g", function(e) {
-				frappe.ui.toolbar.search.show();
+				$("#navbar-search").focus()
 				return false;
 			})
 			.keydown("meta+s ctrl+s", function(e) {
@@ -250,6 +250,9 @@ frappe.Application = Class.extend({
 					return false;
 				}
 			})
+			.keydown("ctrl+shift+r meta+shift+r", function(e) {
+				frappe.ui.toolbar.clear_cache();
+			});
 
 	},
 

@@ -7,6 +7,7 @@ body {
 	height: 100%;
 	margin: 0px;
 	padding-top: 44px;
+	color: #36414C;
 }
 
 a {
@@ -26,6 +27,10 @@ a.disabled, a.disabled:hover {
 	color: #888;
 	cursor: default;
 	text-decoration: none;
+}
+
+.page-container {
+	padding-bottom: 15px;
 }
 
 a.form-link {
@@ -96,6 +101,10 @@ em.link-option {
 	border-bottom: 1px solid #d1d8dd;
 }
 
+.list-row:last-child {
+	border-bottom: 0px;
+}
+
 .list-item-col {
 	white-space: nowrap;
 	text-overflow: ellipsis;
@@ -105,6 +114,11 @@ em.link-option {
 
 .list-filters {
 	background-color: #f7fafc;
+}
+
+.list-paging-area {
+	padding: 10px 15px;
+	border-top: 1px solid #d1d8dd;
 }
 
 .progress {
@@ -163,9 +177,19 @@ em.link-option {
 }
 
 .form-print-wrapper {
-	margin: 0px -15px -15px -15px;
-	background-color: #ddd;
-	padding: 0px 15px 30px 15px;
+	border: 1px solid #d1d8dd;
+	border-top: none;
+}
+
+.print-preview-wrapper {
+	padding: 30px 0px;
+	background-color: #f5f7fa;
+}
+
+.print-toolbar {
+	margin: 0px;
+	padding: 10px 0px;
+	border-bottom: 1px solid #d1d8dd;
 }
 
 .form-page-header {
@@ -192,7 +216,7 @@ em.link-option {
 	margin: 0px;
 	padding: 15px;
 }
-.form-section:nth-child(even), .list-row:nth-child(even) {
+.form-section:nth-child(even), .list-row:nth-child(even), .timeline-item:nth-child(even) {
 	background-color: #fafbfc;
 }
 
@@ -301,54 +325,23 @@ em.link-option {
 }
 /* form */
 
-.comment-connector {
-	height: 30px;
-	margin-left: 70px;
-	border-left: 3px solid #f2f2f2;
+.timeline {
+	border: 1px solid #d1d8dd;
+	margin: 30px -15px;
 }
 
-.comment-body {
-	border-left: 3px solid #f2f2f2;
-	padding: 5px 15px 15px 30px;
+.timeline-item {
+	padding: 15px 30px;
 }
 
-.comment-body p {
-	margin-bottom: 5px;
+.timeline-item blockquote {
+	font-size: inherit;
 }
 
-.comment-icon {
-	margin-right: -18px !important;
-	margin-left: 15px;
-	z-index: 1;
-}
-
-.icon-timeline {
-	color: #fff;
-	height: 33px;
-	width: 33px;
-	padding: 8px 9px 7px 9px;
-	border-radius: 50%;
-	background-color: #d7d7d7;
-	text-align: center;
-	display: inline-block;
-	float: left;
-	border: 2px solid #ffffff;
-}
-
-.comment {
-	margin-top: 0px;
-}
-
-.comment-large {
-	border: 1px solid #d7d7d7;
-	padding: 10px;
-	border-radius: 5px;
-}
-
-.comment-header {
-	margin: -10px -10px 10px -10px;
-	background-color: #f2f2f2;
-	padding: 5px 10px;
+.timeline-head {
+	background-color: #fafbfc;
+	padding: 30px 30px 15px 30px;
+	border-bottom: 1px solid #d1d8dd;
 }
 
 .frappe-editor {
@@ -414,7 +407,7 @@ ul.linked-with-list li {
 	border-top: 1px solid #d1d8dd;
 }
 
-.grid-empty {
+.grid-empty, .list-loading {
 	padding: 10px 15px;
 	color: #d1d8dd;
 }

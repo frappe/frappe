@@ -29,21 +29,6 @@ frappe.ui.form.Layout = Class.extend({
 		this.setup_tabbing();
 		this.render();
 	},
-	add_view: function(label) {
-		var view = $('<div class="form-add-view">').appendTo(this.parent).toggle(false);
-		this.views[label] = view;
-	},
-	set_view: function(label) {
-		if(this.cur_view) this.cur_view.toggle(false);
-		if(label) {
-			this.wrapper.toggle(false);
-			if(!this.views[label])
-				this.add_view(label);
-			this.cur_view = this.views[label].toggle(true);
-		} else {
-			this.wrapper.toggle(true);
-		}
-	},
 	refresh: function(doc) {
 		var me = this;
 		if(doc) this.doc = doc;

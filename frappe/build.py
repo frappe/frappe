@@ -8,8 +8,8 @@ from frappe.utils.minify import JavascriptMinify
 Build the `public` folders and setup languages
 """
 
-import os, sys, frappe, json, shutil
-from cssmin import cssmin
+import os, frappe, json, shutil, re
+# from cssmin import cssmin
 
 def bundle(no_compress, make_copy=False, verbose=False):
 	"""concat / minify js files"""
@@ -81,7 +81,7 @@ def get_build_maps():
 							source_paths.append(s)
 
 						build_maps[target] = source_paths
-				except Exception, e:
+				except Exception:
 					print path
 					raise
 
@@ -118,14 +118,14 @@ def pack(target, sources, no_compress, verbose):
 					print "{0}: {1}k".format(f, int(len(minified) / 1024))
 			elif outtype=="js" and extn=="html":
 				# add to frappe.templates
-				content = data.replace("\n", " ").replace("'", "\'")
+				content = re.sub("\s+", " ", data).replace("'", "\'")
 				outtxt += """frappe.templates["{key}"] = '{content}';\n""".format(\
 					key=f.rsplit("/", 1)[1][:-5], content=content)
 			else:
 				outtxt += ('\n/*\n *\t%s\n */' % f)
 				outtxt += '\n' + data + '\n'
 
-		except Exception, e:
+		except Exception:
 			print "--Error in:" + f + "--"
 			print frappe.get_traceback()
 

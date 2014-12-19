@@ -1,25 +1,29 @@
-<div class="media comment" data-name="{%= data.name %}">
+<div class="media timeline-item" data-name="{%= data.name %}">
 	<span class="pull-left avatar avatar-small">
 		<img class="media-object" src="{%= data.image %}">
 	</span>
-	<span class="pull-left comment-icon">
-		<i class="{%= data.icon %} icon-timeline"
-			style="background-color: {%= data.icon_bg %};
-				color: {%= data.icon_fg %}; {%= data.padding %}"></i>
-	</span>
-	<div class="media-body comment-body">
-		<div class="{%= data.doctype=="Communication" ? "comment-large" : "" %}">
+	<div class="media-body">
+		<div>
+            <h6>
+                <i class="{%= data.icon %} icon-fixed-width"></i>
+                {%= data.fullname %} <span class="text-muted" style="font-weight: normal;">
+                    &dash; {%= data.comment_on %}</span>
+            </h6>
 			{% if(data.doctype=="Communication") { %}
-			<div class="comment-header small">
-				{%= data.subject || __("No Subject") %}
-					<a class="pull-right"
-						href="#Form/{%= data.doctype %}/{%= data.name %}">
-						{%= __("Details") %}</a>
-			</div>
-			{% } %}
-			<div>
-				{%= data.comment_html %}
-			</div>
+				<blockquote>
+                    <h6>
+                        {%= data.subject %}
+                        <a href="#Form/{%= data.doctype %}/{%= data.name %}">{%= __("Details") %}</a>
+                    </h6>
+        			<div>
+        				{%= data.comment_html %}
+        			</div>
+                </blockquote>
+            {% } else { %}
+    			<div>
+    				{%= data.comment_html %}
+    			</div>
+            {% } %}
 			{% if(data.attachments && data.attachments.length) { %}
 			<div style="margin: 10px 0px">
 				{% $.each(data.attachments, function(i, a) { %}
@@ -34,7 +38,7 @@
 			{% } %}
 			<div>
 				<span class="small text-muted">
-					{%= data.fullname %} / {%= data.comment_on %}
+
 					{%= data.delete %}
 				</span>
 			</div>

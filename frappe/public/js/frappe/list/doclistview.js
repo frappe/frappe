@@ -63,7 +63,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		this.page.doclistview = this;
 		this.$page = $(this.page).css({"min-height": "400px"});
 
-		$('<div class="frappe-list-area" style="margin-bottom: 25px;">\
+		$('<div class="frappe-list-area">\
 			<div class="help">'+__('Loading')+'...</div></div>')
 			.appendTo(this.$page.find(".layout-main-section"));
 

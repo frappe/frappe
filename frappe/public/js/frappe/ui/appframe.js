@@ -241,6 +241,21 @@ frappe.ui.AppFrame = Class.extend({
 	show_form: function() {
 		this.parent.find(".appframe-form").removeClass("hide");
 	},
+	views: {},
+	add_view: function(name, html) {
+		this.views[name] = $(html).appendTo($(this.parent).find(".appframe"));
+		if(!this.current_view) {
+			this.current_view = this.views[name];
+		} else {
+			this.views[name].toggle(false);
+		}
+		return this.views[name];
+	},
+	set_view: function(name) {
+		this.current_view && this.current_view.toggle(false);
+		this.views[name].toggle(true);
+		this.current_view = this.views[name];
+	}
 });
 
 // parent, title, single_column
@@ -258,26 +273,27 @@ frappe.ui.make_app_page = function(opts) {
 	$(frappe.templates.appframe).appendTo($wrapper);
 
 	var $appframe = $wrapper.find(".appframe");
+
+	opts.parent.appframe = new frappe.ui.AppFrame($wrapper);
+
 	if(opts.single_column) {
-		opts.parent.body = $('<div class="layout-main"></div>').appendTo($appframe);
+		opts.parent.body = opts.parent.appframe.add_view("main", '<div class="layout-main">');
 	} else {
-		opts.parent.layout = $('<div class="row">\
+		var main = opts.parent.appframe.add_view("main", '<div class="row layout-main">\
 			<div class="col-sm-10">\
 				<div class="layout-main-section" style="margin: 0px -15px;"></div>\
 			</div>\
-			<div class="col-sm-2 layout-side-section">\
-			</div>\
-			</div>').appendTo($appframe);
-
-
-		opts.parent.body = opts.parent.layout.find(".layout-main-section");
+			<div class="col-sm-2 layout-side-section"></div>\
+		</div>');
+		opts.parent.body = main.find(".layout-main-section");
 	}
-	opts.parent.appframe = new frappe.ui.AppFrame($wrapper);
-	opts.parent.appframe.sidebar_links = $wrapper.find(".sidebar-links");
+
 	if(opts.set_document_title!==undefined)
 		opts.parent.appframe.set_document_title = opts.set_document_title;
-	if(opts.title) opts.parent.appframe.set_title(opts.title);
-	if(opts.icon) opts.parent.appframe.get_main_icon(opts.icon);
-	if(opts.full_width) $wrapper.find(".app-page").addClass("full-width");
 
+	if(opts.title)
+		opts.parent.appframe.set_title(opts.title);
+
+	if(opts.icon)
+		opts.parent.appframe.get_main_icon(opts.icon);
 }

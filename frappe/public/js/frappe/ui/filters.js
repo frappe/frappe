@@ -340,7 +340,7 @@ frappe.ui.Filter = Class.extend({
 		this.$btn_group = $('<div class="btn-group">\
 			<button class="btn btn-default btn-sm toggle-filter"\
 				title="'+__("Edit Filter")+'">\
-				<i class="icon-filter"></i> %(label)s %(condition)s "%(value)s"\
+				%(label)s %(condition)s "%(value)s"\
 			</button>\
 			<button class="btn btn-default btn-sm remove-filter"\
 				title="'+__("Remove Filter")+'">\
@@ -374,7 +374,7 @@ frappe.ui.Filter = Class.extend({
 		}
 
 		this.$btn_group.find(".toggle-filter")
-			.html(repl('<i class="icon-filter"></i> %(label)s %(condition)s "%(value)s"', {
+			.html(repl('%(label)s %(condition)s "%(value)s"', {
 				label: __(this.field.df.label),
 				condition: this.get_condition(),
 				value: __(value),

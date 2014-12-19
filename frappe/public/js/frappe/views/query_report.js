@@ -13,7 +13,6 @@ frappe.standard_pages["query-report"] = function() {
 		parent: wrapper,
 		title: __('Query Report'),
 		single_column: true,
-		full_width: true
 	});
 
 	frappe.query_report = new frappe.views.QueryReport({

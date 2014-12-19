@@ -8,23 +8,15 @@ frappe.ui.form.Comments = Class.extend({
 	},
 	make: function() {
 		var me = this;
-		this.wrapper =this.parent;
-		$('<div class="comment-connector"></div>').appendTo(this.parent);
+		this.wrapper = $(frappe.render_template("timeline",
+			{ image: frappe.user_info(user).image, fullname: user_fullname })).appendTo(this.parent);
 
-		this.row = $(repl(frappe.render(frappe.templates.new_timeline_comment,
-				{
-					image: frappe.user_info(user).image,
-					fullname: user_fullname
-				}
-			))).appendTo(this.parent);
+			this.list = this.wrapper.find(".timeline-items");
 
-		this.list = $('<div class="comments"></div>')
-			.appendTo(this.parent);
-
-		this.input = this.row.find(".form-control");
-		this.button = this.row.find(".btn-go")
+		this.input = this.wrapper.find(".form-control");
+		this.button = this.wrapper.find(".btn-go")
 			.click(function() {
-				if(me.wrapper.find(".comment-is-communication").prop("checked")) {
+				if(me.wrapper.find(".is-email").prop("checked")) {
 					new frappe.views.CommunicationComposer({
 						doc: me.frm.doc,
 						txt: me.input.val(),
@@ -53,8 +45,7 @@ frappe.ui.form.Comments = Class.extend({
 				me.render_comment(c);
 		});
 
-		this.wrapper.find(".comment-is-communication").prop("checked",
-			last_type==="Email");
+		this.wrapper.find(".is-email").prop("checked", last_type==="Email");
 
 		if(scroll_to_end) {
 			scroll(0, $(this.frm.wrapper).find(".form-comments .btn-go").offset().top);
@@ -85,46 +76,7 @@ frappe.ui.form.Comments = Class.extend({
 		if(!c.comment_type)
 			c.comment_type = "Comment"
 
-		c.icon = {
-			"Email": "icon-envelope",
-			"Chat": "icon-comments",
-			"Phone": "icon-phone",
-			"SMS": "icon-mobile-phone",
-			"Created": "icon-plus",
-			"Submitted": "icon-lock",
-			"Cancelled": "icon-remove",
-			"Assigned": "icon-user",
-			"Assignment Completed": "icon-ok",
-			"Comment": "icon-comment",
-			"Workflow": "icon-arrow-right",
-			"Label": "icon-tag",
-			"Attachment": "icon-paper-clip",
-			"Attachment Removed": "icon-paper-clip"
-		}[c.comment_type]
-
-		c.icon_bg = {
-			"Email": "#3498db",
-			"Chat": "#3498db",
-			"Phone": "#3498db",
-			"SMS": "#3498db",
-			"Created": "#1abc9c",
-			"Submitted": "#1abc9c",
-			"Cancelled": "#c0392b",
-			"Assigned": "#f39c12",
-			"Assignment Completed": "#16a085",
-			"Comment": "#f39c12",
-			"Workflow": "#2c3e50",
-			"Label": "#2c3e50",
-			"Attachment": "#7f8c8d",
-			"Attachment Removed": "#eee"
-		}[c.comment_type];
-
-		c.icon_fg = {
-			"Attachment Removed": "#333",
-		}[c.comment_type]
-
-		if(!c.icon_fg)
-			c.icon_fg = "#fff";
+		this.set_icon_and_color(c);
 
 		// label view
 		if(c.comment_type==="Workflow" || c.comment_type==="Label") {
@@ -156,7 +108,7 @@ frappe.ui.form.Comments = Class.extend({
 			c.padding = "";
 		}
 
-		$(frappe.render(frappe.templates.timeline_item, {data:c}))
+		$(frappe.render_template("timeline_item", {data:c}))
 			.appendTo(me.list)
 			.on("click", ".close", function() {
 				var name = $(this).parents(".comment:first").attr("data-name");
@@ -167,6 +119,49 @@ frappe.ui.form.Comments = Class.extend({
 		if(c.comment_type==="Email") {
 			last_type = c.comment_type;
 		}
+
+	},
+	set_icon_and_color: function(c) {
+		c.icon = {
+			"Email": "icon-envelope",
+			"Chat": "icon-comments",
+			"Phone": "icon-phone",
+			"SMS": "icon-mobile-phone",
+			"Created": "icon-plus",
+			"Submitted": "icon-lock",
+			"Cancelled": "icon-remove",
+			"Assigned": "icon-user",
+			"Assignment Completed": "icon-ok",
+			"Comment": "icon-comment",
+			"Workflow": "icon-arrow-right",
+			"Label": "icon-tag",
+			"Attachment": "icon-paper-clip",
+			"Attachment Removed": "icon-paper-clip"
+		}[c.comment_type]
+
+		c.color = {
+			"Email": "#3498db",
+			"Chat": "#3498db",
+			"Phone": "#3498db",
+			"SMS": "#3498db",
+			"Created": "#1abc9c",
+			"Submitted": "#1abc9c",
+			"Cancelled": "#c0392b",
+			"Assigned": "#f39c12",
+			"Assignment Completed": "#16a085",
+			"Comment": "#f39c12",
+			"Workflow": "#2c3e50",
+			"Label": "#2c3e50",
+			"Attachment": "#7f8c8d",
+			"Attachment Removed": "#eee"
+		}[c.comment_type];
+
+		c.icon_fg = {
+			"Attachment Removed": "#333",
+		}[c.comment_type]
+
+		if(!c.icon_fg)
+			c.icon_fg = "#fff";
 
 	},
 	update_sidebar_comments: function() {

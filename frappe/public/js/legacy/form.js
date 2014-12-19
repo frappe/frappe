@@ -178,14 +178,12 @@ _f.Frm.prototype.print_doc = function() {
 		.empty().add_options(this.print_preview.print_formats)
 		.trigger("change");
 
-	this.print_preview.wrapper.toggle(true);
-	this.form_wrapper.toggle(false);
+	this.appframe.set_view("print");
 }
 
 _f.Frm.prototype.hide_print = function() {
 	if(this.setup_done) {
-		this.print_preview.wrapper.toggle(false);
-		this.form_wrapper.toggle(true);
+		this.appframe.set_view("main");
 	}
 }
 
