@@ -11,7 +11,8 @@ function flt(v, decimals, number_format) {
 
 		// strip currency symbol if exists
 		if(v.indexOf(" ")!=-1) {
-			v = v.split(" ")[1];
+			// using slice(1).join(" ") because space could also be a group separator
+			v = isNaN(parseFloat(v.split(" ")[0])) ? v.split(" ").slice(1).join(" ") : v;
 		}
 
 		v = strip_number_groups(v, number_format);
@@ -40,15 +41,16 @@ function cint(v, def) {
 
 function strip_number_groups(v, number_format) {
 	if(!number_format) number_format = get_number_format();
+	var info = get_number_format_info(number_format);
 
 	// strip groups (,)
-	if(get_number_format_info(number_format).group_sep==".") {
-		v = v.replace(/\./g,'');
+	var group_regex = new RegExp(info.group_sep==="." ? "\\." : info.group_sep, "g");
+	v = v.replace(group_regex, "");
 
-		// sanitize decimal separator to .
-		v = v.replace(/,/g, ".");
-	} else {
-		v=v.replace(/,/g,'');
+	// replace decimal separator with (.)
+	if (info.decimal_str!=="." && info.decimal_str!=="") {
+		var decimal_regex = new RegExp(info.decimal_str, "g");
+		v = v.replace(decimal_regex, ".");
 	}
 
 	return v;
