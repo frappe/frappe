@@ -159,12 +159,7 @@ frappe.ui.AppFrame = Class.extend({
 	},
 
 	add_icon_btn: function(group, icon, label, click) {
-		if(this.sidebar_links.length) {
-			return $('<a class="small">' + label + '</a>').appendTo($('<p>')
-				.appendTo(this.sidebar_links)).click(click);
-		} else {
-			return this.iconbar.add_btn(group, icon, label, click);
-		}
+		return this.iconbar.add_btn(group, icon, label, click);
 	},
 
 	add_button: function(label, click, icon, is_title) {
