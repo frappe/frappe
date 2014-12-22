@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe.core.doctype.notification_count.notification_count import clear_notifications
+from frappe.desk.notifications import clear_notifications
 
 # Note: DefaultValue records are identified by parenttype
 # __default, __global or 'User Permission'

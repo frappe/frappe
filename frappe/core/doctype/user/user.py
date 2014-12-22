@@ -6,7 +6,7 @@ import frappe
 from frappe.utils import cint, now, get_gravatar
 from frappe import throw, msgprint, _
 from frappe.auth import _update_password
-from frappe.core.doctype.notification_count.notification_count import clear_notifications
+from frappe.desk.notifications import clear_notifications
 import frappe.permissions
 
 STANDARD_USERS = ("Guest", "Administrator")

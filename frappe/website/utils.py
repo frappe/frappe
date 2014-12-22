@@ -8,9 +8,9 @@ def delete_page_cache(path):
 	if not path:
 		path = ""
 	cache = frappe.cache()
-	cache.delete_value("page:" + path)
-	cache.delete_value("page_context:" + path)
-	cache.delete_value("sitemap_options:" + path)
+	cache.delete_keys("page:" + path)
+	cache.delete_keys("page_context:" + path)
+	cache.delete_keys("sitemap_options:" + path)
 
 def scrub_relative_urls(html):
 	"""prepend a slash before a relative url"""

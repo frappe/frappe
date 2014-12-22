@@ -85,7 +85,7 @@ def clear_expired_sessions():
 
 def get():
 	"""get session boot info"""
-	from frappe.core.doctype.notification_count.notification_count import \
+	from frappe.desk.notifications import \
 		get_notification_info_for_boot, get_notifications
 	from frappe.boot import get_bootinfo, get_startup_js
 
@@ -99,8 +99,6 @@ def get():
 			bootinfo["notification_info"].update(get_notifications())
 
 	if not bootinfo:
-		if not frappe.cache().get_stats():
-			frappe.msgprint(_("memcached is not working / stopped. Please start memcached for best results."))
 
 		# if not create it
 		bootinfo = get_bootinfo()

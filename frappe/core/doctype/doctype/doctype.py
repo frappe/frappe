@@ -11,7 +11,7 @@ from frappe.model import no_value_fields
 from frappe.model.document import Document
 from frappe.model.db_schema import type_map
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
-from frappe.core.doctype.notification_count.notification_count import delete_notification_count_for
+from frappe.desk.notifications import delete_notification_count_for
 from frappe.modules import make_boilerplate
 
 form_grid_templates = {

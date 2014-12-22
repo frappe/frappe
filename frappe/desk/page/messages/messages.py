@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe.core.doctype.notification_count.notification_count import delete_notification_count_for
+from frappe.desk.notifications import delete_notification_count_for
 from frappe.core.doctype.user.user import STANDARD_USERS
 from frappe.utils import cint
 

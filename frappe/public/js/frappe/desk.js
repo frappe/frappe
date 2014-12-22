@@ -119,7 +119,7 @@ frappe.Application = Class.extend({
 	refresh_notifications: function() {
 		if(frappe.session_alive) {
 			return frappe.call({
-				method: "frappe.core.doctype.notification_count.notification_count.get_notifications",
+				method: "frappe.desk.notifications.get_notifications",
 				callback: function(r) {
 					if(r.message) {
 						$.extend(frappe.boot.notification_info, r.message);

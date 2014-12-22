@@ -156,16 +156,15 @@ def destroy():
 
 	release_local(local)
 
-_memc = None
-
 # memcache
+redis_server = None
 def cache():
 	"""Returns memcache connection."""
-	global _memc
-	if not _memc:
-		from frappe.memc import MClient
-		_memc = MClient(['localhost:11211'])
-	return _memc
+	global redis_server
+	if not redis_server:
+		from frappe.utils.redis_wrapper import RedisWrapper
+		redis_server = RedisWrapper(conf.get("redis_server") or "localhost")
+	return redis_server
 
 def get_traceback():
 	"""Returns error traceback."""

@@ -1,17 +1,8 @@
 # Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
-# For license information, please see license.txt
-
 from __future__ import unicode_literals
 import frappe
-import MySQLdb
-from frappe.model.document import Document
-
-logger = frappe.get_logger()
-
-class NotificationCount(Document):
-	pass
 
 @frappe.whitelist()
 def get_notifications():
@@ -22,9 +13,11 @@ def get_notifications():
 	can_read = frappe.user.get_can_read()
 	open_count_doctype = {}
 	open_count_module = {}
+	cache = frappe.cache()
 
-	notification_count = dict(frappe.db.sql("""select for_doctype, open_count
-		from `tabNotification Count` where owner=%s""", (frappe.session.user,)))
+	notification_count = cache.get_all("notification_count:" \
+		+ frappe.session.user + ":").iteritems()
+	notification_count = dict([(d.rsplit(":", 1)[1], v) for d, v in notification_count])
 
 	for d in config.for_doctype:
 		if d in can_read:
@@ -39,15 +32,8 @@ def get_notifications():
 
 				open_count_doctype[d] = result
 
-				try:
-					frappe.get_doc({"doctype":"Notification Count", "for_doctype":d,
-						"open_count":result}).insert(ignore_permissions=True)
-
-				except MySQLdb.OperationalError, e:
-					if e.args[0] != 1213:
-						raise
-
-					logger.error("Deadlock")
+				cache.set_value("notification_count:" + frappe.session.user + ":" + d,
+					result)
 
 	for m in config.for_module:
 		if m in notification_count:
@@ -55,54 +41,21 @@ def get_notifications():
 		else:
 			open_count_module[m] = frappe.get_attr(config.for_module[m])()
 
-			try:
-				frappe.get_doc({"doctype":"Notification Count", "for_doctype":m,
-					"open_count":open_count_module[m]}).insert(ignore_permissions=True)
-
-			except MySQLdb.OperationalError, e:
-				if e.args[0] != 1213:
-					raise
-
-				logger.error("Deadlock")
-
+			cache.set_value("notification_count:" + frappe.session.user + ":" + m,
+				open_count_module[m])
 
 	return {
 		"open_count_doctype": open_count_doctype,
 		"open_count_module": open_count_module
 	}
 
-def clear_notifications(user=None):
-	if frappe.flags.in_install_app=="frappe":
-		return
-
-	try:
-		if user:
-			frappe.db.sql("""delete from `tabNotification Count` where owner=%s""", (user,))
-		else:
-			frappe.db.sql("""delete from `tabNotification Count`""")
-
-	except MySQLdb.OperationalError, e:
-		if e.args[0] != 1213:
-			raise
-
-		logger.error("Deadlock")
+def clear_notifications(user="*"):
+	frappe.cache().delete_keys("notification_count:" + user + ":")
 
 def delete_notification_count_for(doctype):
-	if frappe.flags.in_import: return
-
-	try:
-		frappe.db.sql("""delete from `tabNotification Count` where for_doctype = %s""", (doctype,))
-
-	except MySQLdb.OperationalError, e:
-		if e.args[0] != 1213:
-			raise
-
-		logger.error("Deadlock")
+	frappe.cache().delete_keys("notification_count:*:" + doctype)
 
 def clear_doctype_notifications(doc, method=None, *args, **kwargs):
-	if frappe.flags.in_import:
-		return
-
 	config = get_notification_config()
 	doctype = doc.doctype
 
@@ -115,9 +68,7 @@ def clear_doctype_notifications(doc, method=None, *args, **kwargs):
 
 def get_notification_info_for_boot():
 	out = get_notifications()
-
 	config = get_notification_config()
-
 	can_read = frappe.user.get_can_read()
 	conditions = {}
 	module_doctypes = {}
@@ -145,11 +96,3 @@ def get_notification_config():
 			config.setdefault(key, {})
 			config[key].update(nc.get(key, {}))
 	return config
-
-def on_doctype_update():
-	if not frappe.db.sql("""show index from `tabNotification Count`
-		where Key_name="notification_count_owner_index" """):
-		frappe.db.commit()
-		frappe.db.sql("""alter table `tabNotification Count`
-			add index notification_count_owner_index(owner)""")
-

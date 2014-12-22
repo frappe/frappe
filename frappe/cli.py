@@ -224,7 +224,6 @@ def setup_utilities(parser):
 	parser.add_argument("--smtp", action="store_true", help="Run smtp debug server",
 		dest="smtp_debug_server")
 	parser.add_argument("--python", action="store_true", help="get python shell for a site")
-	parser.add_argument("--flush_memcache", action="store_true", help="flush memcached")
 	parser.add_argument("--ipython", action="store_true", help="get ipython shell for a site")
 	parser.add_argument("--execute", help="execute a function", nargs=1, metavar="FUNCTION")
 	parser.add_argument("--get_site_status", action="store_true", help="Get site details")
@@ -424,7 +423,7 @@ def latest(rebuild_website=True, quiet=False):
 	import frappe.model.sync
 	from frappe.utils.fixtures import sync_fixtures
 	import frappe.translate
-	from frappe.core.doctype.notification_count.notification_count import clear_notifications
+	from frappe.desk.notifications import clear_notifications
 
 	verbose = not quiet
 
@@ -558,7 +557,7 @@ def init_list(doctype):
 @cmd
 def clear_cache():
 	import frappe.sessions
-	from frappe.core.doctype.notification_count.notification_count import clear_notifications
+	from frappe.desk.notifications import clear_notifications
 	frappe.connect()
 	frappe.clear_cache()
 	clear_notifications()
@@ -857,11 +856,6 @@ def request(args):
 def resize_images(path):
 	import frappe.utils.image
 	frappe.utils.image.resize_images(path)
-
-@cmd
-def flush_memcache():
-	frappe.cache().flush_all()
-
 
 def replace_code(start, txt1, txt2, extn, search=None, force=False):
 	"""replace all txt1 by txt2 in files with extension (extn)"""
