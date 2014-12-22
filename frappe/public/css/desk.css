@@ -23,6 +23,10 @@ a {
 	font-size: inherit;
 }
 
+.nav-pills a {
+	color: inherit;
+}
+
 a.disabled, a.disabled:hover {
 	color: #888;
 	cursor: default;
@@ -34,6 +38,7 @@ a.disabled, a.disabled:hover {
 }
 
 a.form-link {
+	color: inherit;
 	font-weight: bold;
 	font-size: 102%;
 }
@@ -112,9 +117,9 @@ em.link-option {
 	padding-top: 3px;
 }
 
-.list-filters {
+/*.list-filters {
 	background-color: #f7fafc;
-}
+}*/
 
 .list-paging-area {
 	padding: 10px 15px;
@@ -216,7 +221,7 @@ em.link-option {
 	margin: 0px;
 	padding: 15px;
 }
-.form-section:nth-child(even), .list-row:nth-child(even), .timeline-item:nth-child(even) {
+.form-section:nth-child(even), .timeline-item:nth-child(even) {
 	background-color: #fafbfc;
 }
 
@@ -236,6 +241,11 @@ em.link-option {
 
 .sidebar-section li {
 	margin-top: 5px;
+	font-size: 12px;
+}
+
+.sidebar-section a {
+	color: inherit;
 }
 
 .sidebar-section {
@@ -356,6 +366,10 @@ textarea.form-control {
 	height: 120px;
 }
 
+.control-value a {
+	color: inherit;
+}
+
 ul.linked-with-list {
 	list-style: none;
 	margin: 0 0 20px 0;
@@ -382,7 +396,7 @@ ul.linked-with-list li {
 }
 
 .grid-row {
-	padding: 10px 15px;
+	padding: 8px 15px;
 	border-bottom: 1px solid #d1d8dd;
 }
 
@@ -400,6 +414,14 @@ ul.linked-with-list li {
 
 .grid-body {
 	background-color: #fff;
+}
+
+.grid-body .data-row {
+	font-size: 12px;
+}
+
+.grid-body .data-row a {
+	color: inherit;
 }
 
 .grid-footer {

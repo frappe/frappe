@@ -114,7 +114,7 @@ frappe.ui.form.Layout = Class.extend({
 	make_page: function(df) {
 		var me = this,
 			head = $('<div class="form-page-header text-center">\
-				<a class="btn-fold">'+__("View Details")+'</a>\
+				<a class="btn-fold h6">'+__("Show more details")+'</a>\
 			</div>').appendTo(this.wrapper);
 
 		this.page = $('<div class="form-page hide"></div>').appendTo(this.wrapper);
@@ -122,11 +122,11 @@ frappe.ui.form.Layout = Class.extend({
 		this.fold_btn = head.find(".btn-fold").on("click", function() {
 			var page = $(this).parent().next();
 			if(page.hasClass("hide")) {
-				$(this).removeClass("btn-fold").html(__("Hide Details"));
+				$(this).removeClass("btn-fold").html(__("Hide details"));
 				page.removeClass("hide");
 				me.folded = false;
 			} else {
-				$(this).addClass("btn-fold").html(__("View Details"));
+				$(this).addClass("btn-fold").html(__("Show more details"));
 				page.addClass("hide");
 				me.folded = true;
 			}

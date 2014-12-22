@@ -4,25 +4,34 @@
 	</span>
 	<div class="media-body">
 		<div>
-            <h6>
-                <i class="{%= data.icon %} icon-fixed-width"></i>
-                {%= data.fullname %} <span class="text-muted" style="font-weight: normal;">
-                    &dash; {%= data.comment_on %}</span>
-            </h6>
-			{% if(data.doctype=="Communication") { %}
+			<div class="pull-right">
+				<span class="small text-muted">
+					{%= data.delete %}
+				</span>
+			</div>
+			{% if(data.doctype=="Communication" || data.comment_type=="Comment") { %}
+                <h6>
+                    <i class="{%= data.icon %} icon-fixed-width"></i>
+                    {%= data.fullname %} <span class="text-muted" style="font-weight: normal;">
+                        &dash; {%= data.comment_on %}</span>
+                </h6>
 				<blockquote>
+                    {% if(data.doctype=="Communication") { %}
                     <h6>
                         {%= data.subject %}
                         <a href="#Form/{%= data.doctype %}/{%= data.name %}">{%= __("Details") %}</a>
                     </h6>
+                    {% } %}
         			<div>
         				{%= data.comment_html %}
         			</div>
                 </blockquote>
             {% } else { %}
-    			<div>
-    				{%= data.comment_html %}
-    			</div>
+                <h6>
+                    <i class="{%= data.icon %} icon-fixed-width"></i>
+                    {%= data.fullname %} {%= data.comment %}<span class="text-muted" style="font-weight: normal;">
+                        &dash; {%= data.comment_on %}</span>
+                </h6>
             {% } %}
 			{% if(data.attachments && data.attachments.length) { %}
 			<div style="margin: 10px 0px">
@@ -36,12 +45,6 @@
 				{% }); %}
 			</div>
 			{% } %}
-			<div>
-				<span class="small text-muted">
-
-					{%= data.delete %}
-				</span>
-			</div>
 		</div>
 	</div>
 </div>

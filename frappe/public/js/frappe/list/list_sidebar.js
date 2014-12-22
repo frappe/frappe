@@ -97,7 +97,7 @@ frappe.views.ListSidebar = Class.extend({
 		args.field = field;
 		args.bar_style = "";
 
-		$item = $(repl('<div class="progress" style="height: 7px;">\
+		$item = $(repl('<div class="progress" style="height: 5px;">\
 				<div class="progress-bar %(bar_style)s" style="width: %(width)s%"></div>\
 			</div>\
 			<div class="stat-label" style="margin-top: -19px; text-align: center; \

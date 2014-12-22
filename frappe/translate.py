@@ -50,7 +50,7 @@ def get_user_lang(user=None):
 		user = frappe.session.user
 
 	# via cache
-	lang = frappe.cache().get_value("lang:" + user)
+	lang = frappe.cache().get_value("lang", user=user)
 
 	if not lang:
 
@@ -62,7 +62,7 @@ def get_user_lang(user=None):
 			default_lang = frappe.db.get_default("lang")
 			lang = default_lang or frappe.local.lang
 
-		frappe.cache().set_value("lang:" + user, lang or "en")
+		frappe.cache().set_value("lang", lang or "en", user=user)
 
 	return lang
 

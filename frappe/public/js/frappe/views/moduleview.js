@@ -95,6 +95,8 @@ frappe.views.moduleview.ModuleView = Class.extend({
 				me.update_open_count(wrapper.$layout);
 			}
 		});
+
+		$(wrapper).find(".layout-main").css({"padding-top": "15px"});
 	},
 	make: function(wrapper, module) {
 		var me = this;
@@ -156,7 +158,7 @@ frappe.views.moduleview.ModuleView = Class.extend({
 				.appendTo($sections);
 
 			// create content pane for this nav
-			var $content = $('<div class="panel panel-default"></div>')
+			var $content = $('<div class="panel panel-default""></div>')
 				.toggle(false)
 				.attr("data-content-label", d._label)
 				.appendTo($layout.find(".contents"));

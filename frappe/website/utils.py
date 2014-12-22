@@ -55,7 +55,7 @@ def get_home_page():
 
 		return home_page
 
-	return frappe.cache().get_value("home_page:" + frappe.session.user, _get_home_page)
+	return frappe.cache().get_value("home_page", _get_home_page, user=True)
 
 def is_signup_enabled():
 	if getattr(frappe.local, "is_signup_enabled", None) is None:

@@ -275,10 +275,10 @@ frappe.ui.make_app_page = function(opts) {
 		opts.parent.body = opts.parent.appframe.add_view("main", '<div class="layout-main">');
 	} else {
 		var main = opts.parent.appframe.add_view("main", '<div class="row layout-main">\
+			<div class="col-sm-2 layout-side-section"></div>\
 			<div class="col-sm-10">\
 				<div class="layout-main-section" style="margin: 0px -15px;"></div>\
 			</div>\
-			<div class="col-sm-2 layout-side-section"></div>\
 		</div>');
 		opts.parent.body = main.find(".layout-main-section");
 	}
