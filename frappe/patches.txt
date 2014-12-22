@@ -57,3 +57,4 @@ frappe.patches.v4_2.refactor_website_routing
 frappe.patches.v4_2.set_assign_in_doc
 frappe.patches.v4_3.remove_allow_on_submit_customization
 frappe.patches.v5_0.communication_parent
+frappe.patches.v5_0.clear_website_group

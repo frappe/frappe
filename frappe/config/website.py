@@ -28,16 +28,6 @@ def get_data():
 				},
 				{
 					"type": "doctype",
-					"name": "Website Group",
-					"description": _("Web Site Forum Page."),
-				},
-				{
-					"type": "doctype",
-					"name": "Post",
-					"description": _("List of Web Site Forum's Posts."),
-				},
-				{
-					"type": "doctype",
 					"name": "Website Slideshow",
 					"description": _("Embed image slideshows in website pages."),
 				},
