@@ -45,15 +45,11 @@ def export_csv(doctype, path):
 
 def export_json(doctype, name, path):
 	from frappe.utils.response import json_handler
-	if not name or name=="-":
-		name = doctype
+	docs = frappe.get_list(doctype, fields=["*"], limit_page_length=None)
+	for doc in docs:
+		doc['doctype'] = doctype
 	with open(path, "w") as outfile:
-		doc = frappe.get_doc(doctype, name)
-		for d in doc.get_all_children():
-			d.set("parent", None)
-			d.set("name", None)
-			d.set("__islocal", 1)
-		outfile.write(json.dumps(doc, default=json_handler, indent=1, sort_keys=True))
+		outfile.write(json.dumps(docs, default=json_handler, indent=1, sort_keys=True))
 
 @frappe.whitelist()
 def export_fixture(doctype, name, app):
@@ -75,7 +71,9 @@ def import_doc(path, overwrite=False, ignore_links=False, ignore_insert=False, i
 
 	for f in files:
 		if f.endswith(".json"):
-			frappe.modules.import_file.import_file_by_path(f)
+			frappe.flags.mute_emails = True
+			frappe.modules.import_file.import_file_by_path(f, data_import=True)
+			frappe.flags.mute_emails = False
 		elif f.endswith(".csv"):
-			import_file_by_path(f, ignore_links=ignore_links, overwrite=overwrite, submit=submit)
+			import_file_by_path(f, ignore_links=ignore_links, overwrite=overwrite, submit=submit, data_import=True)
 			frappe.db.commit()

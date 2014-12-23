@@ -30,7 +30,7 @@ def get_file_path(module, dt, dn):
 
 	return path
 
-def import_file_by_path(path, force=False):
+def import_file_by_path(path, force=False, data_import=False):
 	frappe.flags.in_import = True
 	try:
 		docs = read_doc_from_file(path)
@@ -51,7 +51,7 @@ def import_file_by_path(path, force=False):
 
 			original_modified = doc.get("modified")
 
-			import_doc(doc, force=force)
+			import_doc(doc, force=force, data_import=data_import)
 
 			if original_modified:
 				# since there is a new timestamp on the file, update timestamp in
@@ -87,7 +87,7 @@ ignore_values = {
 
 ignore_doctypes = ["Page Role", "DocPerm"]
 
-def import_doc(docdict, force=False):
+def import_doc(docdict, force=False, data_import=False):
 	docdict["__islocal"] = 1
 	doc = frappe.get_doc(docdict)
 
@@ -112,8 +112,9 @@ def import_doc(docdict, force=False):
 
 	doc.ignore_children_type = ignore
 	doc.ignore_links = True
-	doc.ignore_validate = True
-	doc.ignore_permissions = True
-	doc.ignore_mandatory = True
-	doc.ignore_user_permissions = True
+	if not data_import:
+		doc.ignore_validate = True
+		doc.ignore_permissions = True
+		doc.ignore_mandatory = True
+		doc.ignore_user_permissions = True
 	doc.insert()
