@@ -332,7 +332,7 @@ class BaseDocument(object):
 					value, comma_options))
 
 	def _validate_constants(self):
-		if frappe.flags.in_import:
+		if frappe.flags.in_import or self.is_new():
 			return
 
 		constants = [d.fieldname for d in self.meta.get("fields", {"set_only_once": 1})]
