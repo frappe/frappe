@@ -10,7 +10,7 @@ mysql-python==1.2.5
 pygeoip
 python-dateutil
 python-memcached
-pytz==2013d
+pytz
 six
 slugify
 termcolor
