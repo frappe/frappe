@@ -71,8 +71,6 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 	},
 	make_head: function() {
 		var me = this;
-		//this.appframe = new frappe.ui.AppFrame(this.wrapper);
-		//this.appframe.set_document_title = false;
 		this.set_title(this.title);
 	},
 	set_title: function(t) {

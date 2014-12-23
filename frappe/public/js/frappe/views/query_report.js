@@ -28,7 +28,7 @@ frappe.views.QueryReport = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
 		// globalify for slickgrid
-		this.appframe = this.parent.appframe;
+		this.page = this.parent.page;
 		this.parent.query_report = this;
 		this.make();
 	},
@@ -57,10 +57,10 @@ frappe.views.QueryReport = Class.extend({
 	},
 	make_toolbar: function() {
 		var me = this;
-		this.appframe.set_title_right(__('Refresh'), function() { me.refresh(); });
+		this.page.set_primary_action(__('Refresh'), function() { me.refresh(); });
 
 		// Edit
-		var edit_btn = this.appframe.add_button(__('Edit'), function() {
+		var edit_btn = this.page.add_button(__('Edit'), function() {
 			if(!frappe.user.is_report_manager()) {
 				msgprint(__("You are not allowed to create / edit reports"));
 				return false;
@@ -68,11 +68,11 @@ frappe.views.QueryReport = Class.extend({
 			frappe.set_route("Form", "Report", me.report_name);
 		}, "icon-edit");
 
-		this.appframe.add_button(__('Export'), function() { me.export_report(); },
+		this.page.add_button(__('Export'), function() { me.export_report(); },
 			"icon-download");
 
 		if(frappe.model.can_set_user_permissions("Report")) {
-			this.appframe.add_button(__("User Permissions"), function() {
+			this.page.add_button(__("User Permissions"), function() {
 				frappe.route_options = {
 					doctype: "Report",
 					name: me.report_name
@@ -89,14 +89,11 @@ frappe.views.QueryReport = Class.extend({
 			if((me.report_name!=route[1]) || frappe.route_options) {
 				me.report_name = route[1];
 				this.wrapper.find(".no-report-area").toggle(false);
-				me.appframe.set_title(__(me.report_name));
+				me.page.set_title(__(me.report_name));
 
 				frappe.model.with_doc("Report", me.report_name, function() {
 
 					me.report_doc = frappe.get_doc("Report", me.report_name);
-
-					me.appframe.set_title_left(function() {
-						frappe.set_route(frappe.get_module(me.report_doc.module).link); });
 
 					frappe.model.with_doctype(me.report_doc.ref_doctype, function() {
 						if(!frappe.query_reports[me.report_name]) {
@@ -106,7 +103,7 @@ frappe.views.QueryReport = Class.extend({
 									report_name: me.report_name
 								},
 								callback: function(r) {
-									me.appframe.set_title(__(me.report_name));
+									me.page.set_title(__(me.report_name));
 									frappe.dom.eval(r.message.script || "");
 									me.setup_filters();
 									me.setup_html_format(r.message.html_format);
@@ -139,7 +136,7 @@ frappe.views.QueryReport = Class.extend({
 		}
 
 		if(html_format) {
-			this.$print_action = this.appframe.add_button(__('Print'), function() {
+			this.$print_action = this.page.add_button(__('Print'), function() {
 				if(!me.data) {
 					msgprint(__("Run the report first"));
 					return;
@@ -171,9 +168,9 @@ frappe.views.QueryReport = Class.extend({
 		var me = this;
 		$.each(frappe.query_reports[this.report_name].filters || [], function(i, df) {
 			if(df.fieldtype==="Break") {
-				me.appframe.add_break();
+				me.page.add_break();
 			} else {
-				var f = me.appframe.add_field(df);
+				var f = me.page.add_field(df);
 				$(f.wrapper).addClass("filters pull-left");
 				me.filters.push(f);
 				if(df["default"]) {
@@ -199,16 +196,16 @@ frappe.views.QueryReport = Class.extend({
 			}
 		});
 
-		// hide appframe form if no filters
-		var $filters = this.appframe.parent.find('.appframe-form .filters');
-		this.appframe.parent.find('.appframe-form').toggle($filters.length ? true : false);
+		// hide page form if no filters
+		var $filters = this.page.parent.find('.page-form .filters');
+		this.page.parent.find('.page-form').toggle($filters.length ? true : false);
 
 		this.set_route_filters()
 		this.set_filters_by_name();
 	},
 	clear_filters: function() {
 		this.filters = [];
-		this.appframe.parent.find('.appframe-form .filters').remove();
+		this.page.parent.find('.page-form .filters').remove();
 	},
 	set_route_filters: function() {
 		var me = this;

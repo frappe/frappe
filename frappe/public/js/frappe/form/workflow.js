@@ -19,7 +19,7 @@ frappe.ui.form.States = Class.extend({
 	},
 
 	make: function() {
-		this.parent = this.frm.appframe.parent
+		this.parent = this.frm.page.parent
 			.find(".workflow-button-area")
 			.empty()
 			.removeClass("hide");

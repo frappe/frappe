@@ -110,7 +110,7 @@ frappe.show_not_permitted = function(page_name) {
 frappe.show_message_page = function(page_name, title, message) {
 	if(!page_name) page_name = frappe.get_route_str();
 	var page = frappe.pages[page_name] || frappe.container.add_page(page_name);
-	$(page).html('<div class="appframe">\
+	$(page).html('<div class="page">\
 		<div style="margin: 50px; text-align:center;">\
 			<h3>'+title+'</h3><br>\
 			<p>'+message+'</p><br>\

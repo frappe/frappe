@@ -10,17 +10,6 @@ frappe.ui.form.make_control = function (opts) {
 	}
 }
 
-// old style
-function make_field(docfield, doctype, parent, frm, in_grid, hide_label) { // Factory
-	return frappe.ui.form.make_control({
-		df: docfield,
-		doctype: doctype,
-		parent: parent,
-		only_input: hide_label,
-		frm: frm
-	});
-}
-
 frappe.ui.form.Control = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);

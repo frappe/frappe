@@ -105,7 +105,7 @@ frappe.views.GridReport = Class.extend({
 
 		$(this.page).find(".app-page").addClass("full-width");
 		this.wrapper = $('<div>').appendTo(this.parent);
-		this.appframe.parent.find(".appframe").css({"padding-top": "0px"});
+		this.page.parent.find(".page").css({"padding-top": "0px"});
 
 		if(this.filters) {
 			this.make_filters();
@@ -249,24 +249,24 @@ frappe.views.GridReport = Class.extend({
 			v.fieldname = v.fieldname || v.label.replace(/ /g, '_').toLowerCase();
 			var input = null;
 			if(v.fieldtype=='Select') {
-				input = me.appframe.add_select(v.label, v.options || [v.default_value]);
+				input = me.page.add_select(v.label, v.options || [v.default_value]);
 			} else if(v.fieldtype=="Link") {
-				input = me.appframe.add_data(v.label);
+				input = me.page.add_data(v.label);
 				input.autocomplete({
 					source: v.list || [],
 				});
 			} else if(v.fieldtype==='Button' && v.label==="Refresh") {
-				input = me.appframe.set_title_right(v.label, null, v.icon);
+				input = me.page.set_primary_action(v.label, null, v.icon);
 			} else if(v.fieldtype==='Button') {
-				input = me.appframe.add_button(v.label, null, v.icon);
+				input = me.page.add_button(v.label, null, v.icon);
 			} else if(v.fieldtype==='Date') {
-				input = me.appframe.add_date(v.label);
+				input = me.page.add_date(v.label);
 			} else if(v.fieldtype==='Label') {
-				input = me.appframe.add_label(v.label);
+				input = me.page.add_label(v.label);
 			} else if(v.fieldtype==='Data') {
-				input = me.appframe.add_data(v.label);
+				input = me.page.add_data(v.label);
 			} else if(v.fieldtype==='Check') {
-				input = me.appframe.add_check(v.label);
+				input = me.page.add_check(v.label);
 			}
 
 			if(input) {
@@ -372,7 +372,7 @@ frappe.views.GridReport = Class.extend({
 		this.plot_area = $('<div class="plot" style="margin-top: 15px; margin-bottom: 15px; display: none; \
 			height: 300px; width: 100%;"></div>').appendTo(this.wrapper);
 
-		this.appframe.add_button(__("Export"), function() { return me.export(); }, "icon-download");
+		this.page.add_button(__("Export"), function() { return me.export(); }, "icon-download");
 
 		// grid wrapper
 		this.grid_wrapper = $("<div style='height: 500px; border: 1px solid #aaa; \

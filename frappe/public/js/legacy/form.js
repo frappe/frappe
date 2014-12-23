@@ -84,7 +84,7 @@ _f.Frm.prototype.setup = function() {
 	frappe.ui.make_app_page({
 		parent: this.wrapper
 	});
-	this.appframe = this.wrapper.appframe;
+	this.page = this.wrapper.page;
 	var $main_section = $(this.wrapper).find(".layout-main-section");
 	this.layout_main = $main_section
 		.css({"padding-bottom": "0px"})
@@ -95,11 +95,11 @@ _f.Frm.prototype.setup = function() {
 		parent: $(this.wrapper).find(".layout-side-section")
 	});
 
-	this.appframe.sidebar = this.sidebar;
+	this.page.sidebar = this.sidebar;
 
 	this.toolbar = new frappe.ui.form.Toolbar({
 		frm: this,
-		appframe: this.appframe
+		page: this.page
 	});
 
 	this.frm_head = this.toolbar;
@@ -178,12 +178,12 @@ _f.Frm.prototype.print_doc = function() {
 		.empty().add_options(this.print_preview.print_formats)
 		.trigger("change");
 
-	this.appframe.set_view("print");
+	this.page.set_view("print");
 }
 
 _f.Frm.prototype.hide_print = function() {
 	if(this.setup_done) {
-		this.appframe.set_view("main");
+		this.page.set_view("main");
 	}
 }
 
@@ -495,6 +495,7 @@ _f.Frm.prototype.setnewdoc = function() {
 		me.script_manager.trigger("onload");
 		me.opendocs[me.docname] = true;
 		me.render_form();
+		frappe.add_breadcrumbs(me.meta.module, me.doctype)
 	})
 
 }
@@ -679,12 +680,12 @@ _f.Frm.prototype.amend_doc = function() {
 _f.Frm.prototype.disable_save = function() {
 	// IMPORTANT: this function should be called in refresh event
 	this.save_disabled = true;
-	this.appframe.set_title_right("", null);
+	this.page.clear_primary_action();
 }
 
 _f.Frm.prototype.enable_save = function() {
 	this.save_disabled = false;
-	this.toolbar.set_title_right();
+	this.toolbar.set_primary_action();
 }
 
 _f.Frm.prototype.save_or_update = function() {
@@ -726,11 +727,11 @@ _f.Frm.prototype.set_footnote = function(txt) {
 
 
 _f.Frm.prototype.add_custom_button = function(label, fn, icon, toolbar_or_class) {
-	this.sidebar.add_user_action(label, fn);
+	this.page.add_menu_item(label, fn);
 }
 
 _f.Frm.prototype.clear_custom_buttons = function() {
-	this.frm.sidebar.clear_user_actions();
+	this.page.clear_user_actions();
 }
 
 _f.Frm.prototype.add_fetch = function(link_field, src_field, tar_field) {

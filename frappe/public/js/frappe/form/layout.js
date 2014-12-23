@@ -103,7 +103,14 @@ frappe.ui.form.Layout = Class.extend({
 	make_field: function(df, colspan) {
 		!this.section && this.make_section();
 		!this.column && this.make_column();
-		var fieldobj = make_field(df, this.doctype, this.column.get(0), this.frm);
+
+		var fieldobj = frappe.ui.form.make_control({
+			df: df,
+			doctype: this.doctype,
+			parent: this.column.get(0),
+			frm: this.frm
+		});
+
 		fieldobj.layout = this;
 		this.fields_list.push(fieldobj);
 		this.fields_dict[df.fieldname] = fieldobj;

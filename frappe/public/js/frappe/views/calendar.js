@@ -10,7 +10,7 @@ frappe.views.CalendarFactory = frappe.views.Factory.extend({
 		frappe.model.with_doctype(route[1], function() {
 			var options = {
 				doctype: route[1],
-				page: me.make_page()
+				parent: me.make_page()
 			};
 			$.extend(options, frappe.views.calendar[route[1]] || {});
 
@@ -33,21 +33,21 @@ frappe.views.Calendar = Class.extend({
 	},
 	make_page: function() {
 		var module = locals.DocType[this.doctype].module;
-		this.page.appframe.set_title(__("Calendar") + " - " + __(this.doctype));
+		this.parent.page.set_title(__("Calendar") + " - " + __(this.doctype));
 		frappe.add_breadcrumbs(module==="Core" ? "Calendar" : module, this.doctype)
-		this.page.appframe.add_button("New", function() {
+		this.parent.page.add_button("New", function() {
 			var doc = frappe.model.get_new_doc(me.doctype);
 			frappe.set_route("Form", me.doctype, doc.name);
 		}, "icon-plus");
 
 		var me = this;
-		$(this.page).on("show", function() {
+		$(this.parent).on("show", function() {
 			me.$cal.fullCalendar("refetchEvents");
 		})
 	},
 	make: function() {
 		var me = this;
-		this.$wrapper = $(this.page).find(".layout-main");
+		this.$wrapper = $(this.parent).find(".layout-main");
 		this.$cal = $("<div>").appendTo(this.$wrapper);
 		frappe.utils.set_footnote(this, this.$wrapper, __("Select or drag across time slots to create a new event."));
 		//

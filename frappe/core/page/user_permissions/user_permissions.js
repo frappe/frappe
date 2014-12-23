@@ -64,21 +64,21 @@ frappe.UserPermissions = Class.extend({
 			callback: function(r) {
 				me.options = r.message;
 
-				me.filters.user = me.wrapper.appframe.add_field({
+				me.filters.user = me.wrapper.page.add_field({
 					fieldname: "user",
 					label: __("User"),
 					fieldtype: "Select",
 					options: ([__("Select User") + "..."].concat(r.message.users)).join("\n")
 				});
 
-				me.filters.doctype = me.wrapper.appframe.add_field({
+				me.filters.doctype = me.wrapper.page.add_field({
 					fieldname: "doctype",
 					label: __("DocType"),
 					fieldtype: "Select",
 					options: ([__("Select DocType") + "..."].concat(me.get_link_names())).join("\n")
 				});
 
-				me.filters.user_permission = me.wrapper.appframe.add_field({
+				me.filters.user_permission = me.wrapper.page.add_field({
 					fieldname: "user_permission",
 					label: __("Name"),
 					fieldtype: "Link",
@@ -86,14 +86,14 @@ frappe.UserPermissions = Class.extend({
 				});
 
 				if(user_roles.indexOf("System Manager")!==-1) {
-					me.download = me.wrapper.appframe.add_field({
+					me.download = me.wrapper.page.add_field({
 						fieldname: "download",
 						label: __("Download"),
 						fieldtype: "Button",
 						icon: "icon-download"
 					});
 
-					me.upload = me.wrapper.appframe.add_field({
+					me.upload = me.wrapper.page.add_field({
 						fieldname: "upload",
 						label: __("Upload"),
 						fieldtype: "Button",

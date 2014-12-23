@@ -14,7 +14,7 @@ frappe.views.GanttFactory = frappe.views.Factory.extend({
 
 			var options = {
 				doctype: route[1],
-				page: page
+				parent: page
 			};
 			$.extend(options, frappe.views.calendar[route[1]] || {});
 
@@ -39,27 +39,27 @@ frappe.views.Gantt = Class.extend({
 		var module = locals.DocType[this.doctype].module,
 			me = this;
 
-		this.appframe = this.page.appframe;
-		this.appframe.set_title(__("Gantt Chart") + " - " + __(this.doctype));
+		this.page = this.parent.page;
+		this.page.set_title(__("Gantt Chart") + " - " + __(this.doctype));
 		frappe.add_breadcrumbs(module)
 
-		this.appframe.set_title_right(__("Refresh"),
+		this.page.set_primary_action(__("Refresh"),
 			function() { me.refresh(); }, "icon-refresh")
 
-		this.appframe.add_field({fieldtype:"Date", label:"From",
+		this.page.add_field({fieldtype:"Date", label:"From",
 			fieldname:"start", "default": frappe.datetime.month_start(), input_css: {"z-index": 3}});
 
-		this.appframe.add_field({fieldtype:"Date", label:"To",
+		this.page.add_field({fieldtype:"Date", label:"To",
 			fieldname:"end", "default": frappe.datetime.month_end(), input_css: {"z-index": 3}});
 
 		if(this.filters) {
 			$.each(this.filters, function(i, df) {
-				me.appframe.add_field(df);
+				me.page.add_field(df);
 			});
 		}
 	},
 	refresh: function() {
-		var parent = $(this.page)
+		var parent = $(this.parent)
 			.find(".layout-main")
 			.empty()
 			.css('min-height', '300px')
@@ -71,8 +71,8 @@ frappe.views.Gantt = Class.extend({
 			type: "GET",
 			args: {
 				doctype: this.doctype,
-				start: this.appframe.fields_dict.start.get_parsed_value(),
-				end: this.appframe.fields_dict.end.get_parsed_value(),
+				start: this.page.fields_dict.start.get_parsed_value(),
+				end: this.page.fields_dict.end.get_parsed_value(),
 				filters: this.get_filters()
 			},
 			callback: function(r) {
@@ -104,7 +104,7 @@ frappe.views.Gantt = Class.extend({
 		if(this.filters) {
 			$.each(this.filters, function(i, df) {
 				if(df.options===value)
-					me.appframe.fields_dict[df.fieldname].set_input(value);
+					me.page.fields_dict[df.fieldname].set_input(value);
 					return false;
 			});
 		}
@@ -115,7 +115,7 @@ frappe.views.Gantt = Class.extend({
 		if(this.filters) {
 			$.each(this.filters, function(i, df) {
 				filter_vals[df.fieldname || df.label] =
-					me.appframe.fields_dict[df.fieldname || df.label].get_parsed_value();
+					me.page.fields_dict[df.fieldname || df.label].get_parsed_value();
 			});
 		}
 		return filter_vals;
@@ -165,8 +165,8 @@ frappe.views.Gantt = Class.extend({
 		var me = this;
 		if(frappe.route_options) {
 			$.each(frappe.route_options, function(k, value) {
-				if(me.appframe.fields_dict[k]) {
-					me.appframe.fields_dict[k].set_input(value);
+				if(me.page.fields_dict[k]) {
+					me.page.fields_dict[k].set_input(value);
 				};
 			})
 			frappe.route_options = null;

@@ -61,7 +61,7 @@ frappe.ui.form.AssignTo = Class.extend({
 					.appendTo(this.$list);
 
 				if(d[i].owner===user) {
-					me.primary_action = this.frm.appframe.add_primary_action(__("Assignment Complete"), function() {
+					me.primary_action = this.frm.page.add_menu_item(__("Assignment Complete"), function() {
 						me.remove(user);
 					}, "icon-ok", "btn-success")
 				}

@@ -15,7 +15,7 @@ frappe.views.ListFactory = frappe.views.Factory.extend({
 			} else {
 				new frappe.views.DocListView({
 					doctype: doctype,
-					page: me.make_page(true)
+					parent: me.make_page(true)
 				});
 				me.set_cur_list();
 			}
@@ -50,7 +50,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		this.setup();
 
 		var me = this;
-		$(this.page).on("show", function() {
+		$(this.parent).on("show", function() {
 			me.refresh();
 		});
 
@@ -60,8 +60,8 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 
 	make_page: function() {
 		var me = this;
-		this.page.doclistview = this;
-		this.$page = $(this.page).css({"min-height": "400px"});
+		this.parent.doclistview = this;
+		this.$page = $(this.parent).css({"min-height": "400px"});
 
 		$('<div class="frappe-list-area">\
 			<div class="help">'+__('Loading')+'...</div></div>')
@@ -69,15 +69,11 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 
 		this.$page.find(".layout-main-section")
 			.addClass("listview-main-section");
-		this.appframe = this.page.appframe;
+		this.page = this.parent.page;
 		var module = locals.DocType[this.doctype].module;
 
-		this.appframe.set_title(__("{0} List", [__(this.doctype)]));
+		this.page.set_title(__("{0} List", [__(this.doctype)]));
 		frappe.add_breadcrumbs(module);
-		this.appframe.set_title_left(function() {
-			frappe.set_route(frappe.listview_parent_route[me.doctype]
-				|| frappe.get_module(module).link);
-		});
 	},
 
 	setup: function() {
@@ -99,14 +95,6 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 	init_listview: function() {
 		if(this.listview.settings.onload) {
 			this.listview.settings.onload(this);
-		}
-
-		if(this.listview.settings.set_title_left) {
-			this.appframe.set_title_left(this.listview.settings.set_title_left);
-		} else if(this.listview.settings.parent_route) {
-			this.appframe.set_title_left(function() {
-				frappe.set_route(me.listview.settings.parent_route);
-			});
 		}
 	},
 
@@ -306,22 +294,22 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		return;
 
 		if(this.can_delete || this.listview.settings.selectable) {
-			this.appframe.add_icon_btn("2", 'icon-ok', __('Select All'), function() {
+			this.page.add_icon_btn("2", 'icon-ok', __('Select All'), function() {
 				me.$page.find('.list-delete').prop("checked",
 					me.$page.find('.list-delete:checked').length ? false : true);
 			});
-			this.appframe.add_icon_btn("2", 'icon-trash', __('Delete'),
+			this.page.add_icon_btn("2", 'icon-trash', __('Delete'),
 				function() { me.delete_items(); });
 		}
 		if(frappe.model.can_import(this.doctype)) {
-			this.appframe.add_icon_btn("2", "icon-upload", __("Import"), function() {
+			this.page.add_icon_btn("2", "icon-upload", __("Import"), function() {
 				frappe.set_route("data-import-tool", {
 					doctype: me.doctype
 				})
 			});
 		}
 		if(frappe.model.can_set_user_permissions(this.doctype)) {
-			this.appframe.add_icon_btn("2", "icon-shield",
+			this.page.add_icon_btn("2", "icon-shield",
 				__("User Permissions Manager"), function() {
 					frappe.route_options = {
 						doctype: me.doctype
@@ -330,14 +318,14 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 				});
 		}
 		if(in_list(user_roles, "System Manager")) {
-			this.appframe.add_icon_btn("2", "icon-lock",
+			this.page.add_icon_btn("2", "icon-lock",
 				__("Role Permissions Manager"), function() {
 					frappe.route_options = {
 						doctype: me.doctype
 					};
 					frappe.set_route("permission-manager");
 				});
-			this.appframe.add_icon_btn("2", "icon-glass", __("Customize"), function() {
+			this.page.add_icon_btn("2", "icon-glass", __("Customize"), function() {
 				frappe.set_route("Form", "Customize Form", {
 					doctype: me.doctype
 				})

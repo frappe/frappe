@@ -7,7 +7,7 @@ frappe.ui.form.PrintPreview = Class.extend({
 		this.bind_events();
 	},
 	make: function() {
-		this.wrapper = this.frm.appframe.add_view("print", frappe.render_template("print_layout", {}));
+		this.wrapper = this.frm.page.add_view("print", frappe.render_template("print_layout", {}));
 	},
 	bind_events: function() {
 		var me = this;

@@ -15,7 +15,6 @@
 		"public/js/lib/moment/moment.min.js",
 		"public/js/lib/highlight.pack.js",
 		"website/js/website.js",
-		"website/js/website_group.js"
 	],
 	"js/canvasResize.min.js": [
 		"website/js/jquery.exif.js",
@@ -37,7 +36,6 @@
 		"public/css/font-awesome.css",
 		"public/css/octicons/octicons.css",
 		"public/css/desk.css",
-		"public/css/appframe.css",
 		"public/css/app_icon.css",
 		"public/css/avatar.css",
 		"public/css/navbar.css",
@@ -80,8 +78,8 @@
 		"public/js/legacy/handler.js",
 		"public/js/legacy/loaders.js",
 
-		"public/js/frappe/ui/appframe.html",
-		"public/js/frappe/ui/appframe.js",
+		"public/js/frappe/ui/page.html",
+		"public/js/frappe/ui/page.js",
 		"public/js/frappe/ui/iconbar.js",
 		"public/js/frappe/form/layout.js",
 		"public/js/frappe/ui/field_group.js",

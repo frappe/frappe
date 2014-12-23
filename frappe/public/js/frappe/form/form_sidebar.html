@@ -5,18 +5,6 @@
         <h5>{%= __("Comments") %}
             <span class="label label-default n-comments"></span></h5>
     </div>
-    <div class="sidebar-section">
-        <ul class="standard-actions list-unstyled">
-            <li data-perm="{%= doctype %}::allow_print">
-                <a onclick="cur_frm.print_doc()">{%= __("Print") %}</a></li>
-            <li>
-                <a onclick="cur_frm.copy_doc()">{%= __("Duplicate") %}</a></li>
-            <li>
-                <a onclick="cur_frm.toolbar.show_linked_with()">{%= __("Links") %}</a></li>
-            <li class="system-manager">
-                <a onclick="cur_frm.show_settings()">{%= __("Settings") %}</a></li>
-        </ul>
-    </div>
 	<div class="sidebar-section form-tags">
 		<h5 style="display: inline-block">
 			{%= __("Tags") %}

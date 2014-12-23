@@ -6,7 +6,7 @@ frappe.pages['modules_setup'].onload = function(wrapper) {
 		single_column: true
 	});
 
-	wrapper.appframe.set_title_right(__("Update"), function() {
+	wrapper.page.set_primary_action(__("Update"), function() {
 		frappe.modules_setup.update(this);
 	})
 

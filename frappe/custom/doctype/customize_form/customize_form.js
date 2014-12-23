@@ -40,10 +40,10 @@ frappe.ui.form.on("Customize Form", "doc_type", function(frm) {
 
 frappe.ui.form.on("Customize Form", "refresh", function(frm) {
 	frm.disable_save();
-	frm.frm_head.appframe.iconbar.clear("1");
+	frm.frm_head.page.iconbar.clear("1");
 
 	if(frm.doc.doc_type) {
-		frm.appframe.set_title_right(__("Update"), function() {
+		frm.page.set_primary_action(__("Update"), function() {
 			if(frm.doc.doc_type) {
 				return frm.call({
 					doc: frm.doc,
@@ -67,7 +67,7 @@ frappe.ui.form.on("Customize Form", "refresh", function(frm) {
 	}
 
 	// if(!frm.doc.doc_type) {
-	// 	var frm_head = frm.frm_head.appframe;
+	// 	var frm_head = frm.frm_head.page;
 	// 	$(frm_head.buttons['Update']).prop('disabled', true);
 	// 	$(frm_head.buttons['Refresh Form']).prop('disabled', true);
 	// 	$(frm_head.buttons['Reset to defaults']).prop('disabled', true);
