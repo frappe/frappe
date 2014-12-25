@@ -101,7 +101,7 @@ frappe.ui.Filter = Class.extend({
 		this.set_events();
 	},
 	make: function() {
-		this.$w = $('<div class="well"><div class="list_filter row">\
+		this.$w = $('<div class="msg-box"><div class="list_filter row">\
 		<div class="fieldname_select_area col-sm-4 form-group"></div>\
 		<div class="col-sm-2 form-group">\
 			<select class="condition form-control">\

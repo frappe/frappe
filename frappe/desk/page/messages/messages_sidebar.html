@@ -1,0 +1,10 @@
+<ul class="nav nav-pills nav-stacked" style="margin-right: -15px;">
+    {% for (var i=0, l= data.length; i < l; i++) { var contact = data[i]; %}
+    <li data-user="{%= contact.name %}" class="h6 module-sidebar-item">
+        <a class="messages-sidebar-link text-ellipsis">
+                <span class="indicator {% if(contact.has_session > 0) { %} green {% } else { %} grey {% } %}">
+                    {%= frappe.user.full_name(contact.name) %}</span>
+            </a>
+    </li>
+    {% } %}
+</ul>

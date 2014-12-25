@@ -121,10 +121,10 @@ frappe.ui.form.Layout = Class.extend({
 	make_page: function(df) {
 		var me = this,
 			head = $('<div class="form-page-header text-center">\
-				<a class="btn-fold h6">'+__("Show more details")+'</a>\
+				<a class="btn-fold h6 text-muted">'+__("Show more details")+'</a>\
 			</div>').appendTo(this.wrapper);
 
-		this.page = $('<div class="form-page hide"></div>').appendTo(this.wrapper);
+		this.page = $('<div class="form-page second-page hide"></div>').appendTo(this.wrapper);
 
 		this.fold_btn = head.find(".btn-fold").on("click", function() {
 			var page = $(this).parent().next();

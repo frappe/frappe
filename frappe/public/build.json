@@ -110,6 +110,8 @@
 		"public/js/frappe/views/container.js",
 		"public/js/frappe/views/factory.js",
 		"public/js/frappe/views/pageview.js",
+		"public/js/frappe/views/module_section.html",
+		"public/js/frappe/views/module_sidebar.html",
 		"public/js/frappe/views/moduleview.js",
 		"public/js/frappe/views/formview.js",
 		"public/js/frappe/views/reportview.js",

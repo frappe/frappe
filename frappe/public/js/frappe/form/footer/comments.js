@@ -42,7 +42,7 @@ frappe.ui.form.Comments = Class.extend({
 
 		$.each(comments.sort(function(a, b) { return a.creation > b.creation ? -1 : 1 }),
 			function(i, c) {
-				me.render_comment(c);
+				if(c.comment) me.render_comment(c);
 		});
 
 		this.wrapper.find(".is-email").prop("checked", last_type==="Email");
@@ -60,6 +60,8 @@ frappe.ui.form.Comments = Class.extend({
 		} else {
 			c["delete"] = "";
 		}
+
+		if(!c.comment_by) c.comment_by = this.frm.doc.owner;
 
 		if(c.comment_by.indexOf("<")!==-1) {
 			c.comment_by = c.comment_by.split("<")[1].split(">")[0];
@@ -199,7 +201,6 @@ frappe.ui.form.Comments = Class.extend({
 				if(!r.exc) {
 					me.frm.get_docinfo().comments =
 						me.get_comments().concat([r.message]);
-					me.frm.toolbar.show_infobar();
 					me.input.val("");
 					me.refresh(true);
 				}
@@ -226,7 +227,6 @@ frappe.ui.form.Comments = Class.extend({
 							}
 						);
 					me.refresh(true);
-					me.frm.toolbar.show_infobar();
 				}
 			}
 		});

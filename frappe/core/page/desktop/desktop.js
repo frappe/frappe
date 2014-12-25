@@ -1,7 +1,12 @@
 frappe.provide('frappe.desktop');
 
 frappe.pages['desktop'].onload = function(wrapper) {
-	// setup dialog
+	$('<div style="min-height: 500px; background: None; text-align: center; \
+			margin: 0px auto;">	\
+			<div id="icon-grid" class="container">\
+			</div>\
+		</div>\
+		<div style="clear: both"></div>').appendTo(wrapper);
 
 	// load desktop
 	frappe.desktop.refresh();

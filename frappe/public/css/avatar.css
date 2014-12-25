@@ -1,9 +1,9 @@
 .avatar {
 	display: inline-block;
 	vertical-align: middle;
-	border-radius: 3px;
+	border-radius: 4px;
 	overflow: hidden;
-	border: 1px solid #d1d8dd;
+	border: 1px solid transparent;
 	width: 50px;
 	height: 50px;
 }
@@ -19,8 +19,8 @@
 
 .avatar-small {
 	margin-right: 5px;
-	width: 30px;
-	height: 30px;
+	width: 24px;
+	height: 24px;
 }
 
 .avatar-large {

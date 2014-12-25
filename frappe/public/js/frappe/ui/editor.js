@@ -97,7 +97,6 @@ bsEditor = Class.extend({
 		},
 		toolbar_selector: '[data-role=editor-toolbar]',
 		command_role: 'edit',
-		active_toolbar_class: 'btn-info',
 		selection_marker: 'edit-focus-marker',
 		selection_color: 'darkgrey',
 		remove_typography: false,

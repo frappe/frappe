@@ -1,0 +1,24 @@
+<div class="module-section">
+    {% for(var i=0, j= data.items.length; i < j; i++) { var item = data.items[i]; %}
+    <div class="row module-item" data-item-index={%= i %}>
+        <div class="col-md-9">
+            {% if (item.description) { %}<h4>{% } else { %}<h5>{% } %}
+            {%= item.label %}
+            {% if (item.type==="doctype") { %}
+            <span class="open-notification hide"
+                data-doctype="{%= item.name %}">
+            </span>
+            {% } %}
+            {% if (item.description) { %}
+                </h4>
+                <p class="text-muted">{%= item.description %}</p>
+            {% } else { %}</h5>{% } %}
+        </div>
+        <div class="col-md-3 text-muted text-right small" style="padding-top: 5px;">
+            {% if (item.last_modified) { %}
+            {%= comment_when(item.last_modified) %}
+            {% } %}
+        </div>
+    </div>
+    {% } %}
+</div>

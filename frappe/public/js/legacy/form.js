@@ -85,14 +85,11 @@ _f.Frm.prototype.setup = function() {
 		parent: this.wrapper
 	});
 	this.page = this.wrapper.page;
-	var $main_section = $(this.wrapper).find(".layout-main-section");
-	this.layout_main = $main_section
-		.css({"padding-bottom": "0px"})
-		.get(0);
+	this.layout_main = this.page.main.get(0);
 
 	this.sidebar = new frappe.ui.form.Sidebar({
 		frm: this,
-		parent: $(this.wrapper).find(".layout-side-section")
+		parent: this.page.sidebar
 	});
 
 	this.page.sidebar = this.sidebar;
@@ -119,7 +116,7 @@ _f.Frm.prototype.setup = function() {
 
 	this.footer = new frappe.ui.form.Footer({
 		frm: this,
-		parent: $('<div>').appendTo($main_section.parent())
+		parent: $('<div>').appendTo(this.page.main.parent())
 	})
 
 	this.setup_drag_drop();

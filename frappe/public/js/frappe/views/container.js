@@ -83,10 +83,10 @@ frappe.views.Container = Class.extend({
 		if(!breadcrumbs) return;
 
 		var divider = function() {
-			$('<li style="padding: 8px 0px"><i class="icon-chevron-right text-muted"></i></li>').appendTo($breadcrumbs);
+			$('<li style="padding: 8px 0px" class="hidden-xs"><i class="icon-chevron-right text-muted"></i></li>').appendTo($breadcrumbs);
 		}
 
-		if(breadcrumbs.module) {
+		if(breadcrumbs.module && breadcrumbs.module != "Desk") {
 			divider();
 			$('<li><a href="#Module/'+ breadcrumbs.module +'">'+ __(breadcrumbs.module) +'</a></li>').appendTo($breadcrumbs);
 		}

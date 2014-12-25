@@ -105,7 +105,7 @@ frappe.views.GridReport = Class.extend({
 
 		$(this.page).find(".app-page").addClass("full-width");
 		this.wrapper = $('<div>').appendTo(this.parent);
-		this.page.parent.find(".page").css({"padding-top": "0px"});
+		this.parent.find(".page").css({"padding-top": "0px"});
 
 		if(this.filters) {
 			this.make_filters();
@@ -883,7 +883,7 @@ frappe.views.TreeGridReport = frappe.views.GridReportWithPlot.extend({
 		var msgbox = msgprint($.format('<p>{0}</p>\
 			<p><input type="checkbox" name="with_groups" checked="checked"> {1}</p>\
 			<p><input type="checkbox" name="with_ledgers" checked="checked"> {2}</p>\
-			<p><button class="btn btn-info"> {3}</button>', [
+			<p><button class="btn btn-primary"> {3}</button>', [
 				__('Select To Download:'),
 				__('With Groups'),
 				__('With Ledgers'),

@@ -60,9 +60,9 @@ class RedisWrapper(redis.Redis):
 	def delete_value(self, keys, user=None):
 		"""Delete value, list of values."""
 		if not isinstance(keys, (list, tuple)):
-			keys = (keys,)
+			keys = (self.make_key(keys, user=user),)
+
 		for key in keys:
-			key = self.make_key(key, user=user)
 			self.delete(key)
 			if key in frappe.local.cache:
 				del frappe.local.cache[key]

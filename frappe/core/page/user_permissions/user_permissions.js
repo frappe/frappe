@@ -285,7 +285,7 @@ frappe.UserPermissions = Class.extend({
 
 	show_add_user_permission: function() {
 		var me = this;
-		$("<button class='btn btn-info'>"+__("Add A User Permission")+"</button>")
+		$("<button class='btn btn-primary'>"+__("Add A User Permission")+"</button>")
 			.appendTo($("<p>").appendTo(this.body))
 			.click(function() {
 				var d = new frappe.ui.Dialog({

@@ -6,15 +6,17 @@ import frappe
 import json
 
 from frappe.model.document import Document
+from frappe.utils import get_fullname
 
 class ToDo(Document):
 	def validate(self):
 		if self.is_new():
-			self.add_assign_comment(frappe._("Assigned to {0}").format(self.owner), "Assigned")
+			self.add_assign_comment(frappe._("Assigned to {0}").format(get_fullname(self.owner)), "Assigned")
 		else:
 			cur_status = frappe.db.get_value("ToDo", self.name, "status")
 			if cur_status != self.status:
-				self.add_assign_comment(frappe._("Assignment Status Changed"), "Assignment Completed")
+				self.add_assign_comment(frappe._("Assignment closed by {0}".format(get_fullname(frappe.session.user))),
+					"Assignment Completed")
 
 	def on_update(self):
 		self.update_in_reference()

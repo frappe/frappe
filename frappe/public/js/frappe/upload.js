@@ -19,7 +19,7 @@ frappe.upload = {
 					+ (opts.sample_url || 'e.g. http://example.com/somefile.png') +
 				'</p>\
 			</div>\
-			<button class="btn btn-info btn-upload"><i class="icon-upload"></i> ' +__('Upload')
+			<button class="btn btn-primary btn-upload"><i class="icon-upload"></i> ' +__('Upload')
 				+'</button></div>').appendTo(opts.parent);
 
 

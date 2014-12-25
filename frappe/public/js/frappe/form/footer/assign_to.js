@@ -14,7 +14,7 @@ frappe.ui.form.AssignTo = Class.extend({
 		var me = this;
 		this.$list = this.parent.find(".assign-list");
 
-		this.parent.find(".btn").click(function() {
+		this.btn = this.parent.find(".add-assignment").click(function() {
 			me.add();
 		});
 		this.refresh();
@@ -48,16 +48,10 @@ frappe.ui.form.AssignTo = Class.extend({
 				info.image = frappe.user_info(d[i].owner).image;
 				info.description = d[i].description || "";
 
-				$(repl('<div class="media">\
-					<span class="pull-left avatar avatar-small">\
-						<img src="%(image)s" class="media-object"></span>\
-					<div class="media-body">\
-						%(fullname)s \
-						<a class="close" href="#" style="top: 1px;"\
-							data-owner="%(owner)s">&times;</a>\
-						<div class="text-muted small">%(description)s</div>\
-					</div>\
-					</div>', info))
+				$(repl('<div class="text-ellipsis">\
+					<span class="avatar avatar-small"><img src="%(image)s"></span>\
+					<span class="h6 text-muted">%(fullname)s</span>\
+				</div>', info))
 					.appendTo(this.$list);
 
 				if(d[i].owner===user) {
@@ -72,7 +66,12 @@ frappe.ui.form.AssignTo = Class.extend({
 				me.remove($(this).attr('data-owner'));
 				return false;
 			});
+
+			this.btn.toggle(false);
+		} else {
+			this.btn.toggle(true);
 		}
+
 	},
 	add: function() {
 		var me = this;
@@ -114,7 +113,6 @@ frappe.ui.form.AssignTo = Class.extend({
 						callback: function(r,rt) {
 							if(!r.exc) {
 								me.render(r.message);
-								me.frm.toolbar.show_infobar();
 								me.frm.reload_doc();
 							}
 						},
@@ -149,7 +147,6 @@ frappe.ui.form.AssignTo = Class.extend({
 			},
 			callback:function(r,rt) {
 				me.render(r.message);
-				me.frm.toolbar.show_infobar();
 				me.frm.reload_doc();
 			}
 		});

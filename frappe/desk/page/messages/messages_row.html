@@ -1,0 +1,21 @@
+<div class="row small">
+    <div class="col-xs-10">
+        <div class="media">
+        	<span class="pull-left avatar avatar-small">
+        		<img class="media-object" src="{%= frappe.user.image(data.owner) %}">
+        	</span>
+            <div class="media-body">
+                {%= data.comment %}
+            </div>
+        </div>
+    </div>
+    <div class="col-xs-2 text-right">
+        <div class="text-muted">{%= comment_when(data.modified) %}</div>
+        {% if (data.owner==user || data.comment.indexOf("assigned to")!=-1) { %}
+        <div>
+            <a class="delete text-extra-muted" data-name="%(name)s"
+                onclick="frappe.desk.pages.messages.delete(this)">Delete</a>
+        </div>
+        {% } %}
+    </div>
+</div>

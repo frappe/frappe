@@ -88,11 +88,11 @@ frappe.ui.Listing = Class.extend({
 		}
 	},
 	show_view: function($btn, $div, $btn_unsel, $div_unsel) {
-		$btn_unsel.removeClass('btn-info');
+		$btn_unsel.removeClass('btn-primary');
 		$btn_unsel.find('i').removeClass('icon-white');
 		$div_unsel.toggle(false);
 
-		$btn.addClass('btn-info');
+		$btn.addClass('btn-primary');
 		$btn.find('i').addClass('icon-white');
 		$div.toggle(true);
 	},
@@ -117,8 +117,7 @@ frappe.ui.Listing = Class.extend({
 		// new
 		if(this.new_doctype) {
 			var make_new_doc = function() { (me.custom_new_doc || me.make_new_doc).apply(me, [me.new_doctype]); };
-
-			this.$w.find(".btn-new").removeClass("hide").on("click", function() { make_new_doc(); });
+			this.page.set_primary_action(__("New"), function() { make_new_doc(); });
 		}
 
 		if(me.no_toolbar || me.hide_toolbar) {

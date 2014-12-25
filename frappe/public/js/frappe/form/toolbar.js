@@ -40,16 +40,6 @@ frappe.ui.form.Toolbar = Class.extend({
 		this.page.set_title(title);
 		this.set_indicator();
 	},
-	show_infobar: function() {
-		/* docs:
-		Render info bar that shows timestamp, # of comments, # of attachments etc.
-		only if saved doc. (doc.__islocal is falsy)
-		*/
-		if(this.infobar)
-			this.infobar.refresh();
-		else
-			this.infobar = new frappe.ui.form.InfoBar({page:this.page, frm:this.frm});
-	},
 	get_dropdown_menu: function(label) {
 		return this.page.add_dropdown(label);
 	},

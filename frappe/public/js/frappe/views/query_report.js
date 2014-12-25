@@ -42,12 +42,11 @@ frappe.views.QueryReport = Class.extend({
 	make: function() {
 		this.wrapper = $("<div>").appendTo($(this.parent).find(".layout-main"));
 		$('<div class="waiting-area" style="display: none;"></div>\
-		<div class="no-report-area well" style="display: none;">\
+		<div class="no-report-area msg-box no-border" style="display: none;">\
 		</div>\
 		<div class="results" style="display: none;">\
-			<div class="result-area" style="height:400px; \
-				border: 1px solid #aaa;"></div>\
-			<p class="text-muted"><br>\
+			<div class="result-area" style="height:400px;"></div>\
+			<p class="msg-box small">\
 				'+__('For comparative filters, start with')+' ">" or "<", e.g. >5 or >01-02-2012\
 				<br>'+__('For ranges')+' ('+__('values and dates')+') use ":", \
 					e.g. "5:10"  (' + __("to filter values between 5 & 10") + ')</p>\
@@ -57,28 +56,28 @@ frappe.views.QueryReport = Class.extend({
 	},
 	make_toolbar: function() {
 		var me = this;
-		this.page.set_primary_action(__('Refresh'), function() { me.refresh(); });
+		this.page.set_secondary_action(__('Refresh'), function() { me.refresh(); });
 
 		// Edit
-		var edit_btn = this.page.add_button(__('Edit'), function() {
+		this.page.add_menu_item(__('Edit'), function() {
 			if(!frappe.user.is_report_manager()) {
 				msgprint(__("You are not allowed to create / edit reports"));
 				return false;
 			}
 			frappe.set_route("Form", "Report", me.report_name);
-		}, "icon-edit");
+		}, true);
 
-		this.page.add_button(__('Export'), function() { me.export_report(); },
-			"icon-download");
+		this.page.add_menu_item(__('Export'), function() { me.export_report(); },
+			true);
 
 		if(frappe.model.can_set_user_permissions("Report")) {
-			this.page.add_button(__("User Permissions"), function() {
+			this.page.add_menu_item(__("User Permissions"), function() {
 				frappe.route_options = {
 					doctype: "Report",
 					name: me.report_name
 				};
 				frappe.set_route("user-permissions");
-			}, "icon-shield");
+			}, true);
 		}
 	},
 	load: function() {
@@ -96,6 +95,9 @@ frappe.views.QueryReport = Class.extend({
 					me.report_doc = frappe.get_doc("Report", me.report_name);
 
 					frappe.model.with_doctype(me.report_doc.ref_doctype, function() {
+						var module = locals.DocType[me.report_doc.ref_doctype].module;
+						frappe.add_breadcrumbs(module)
+
 						if(!frappe.query_reports[me.report_name]) {
 							return frappe.call({
 								method:"frappe.desk.query_report.get_script",
@@ -136,7 +138,7 @@ frappe.views.QueryReport = Class.extend({
 		}
 
 		if(html_format) {
-			this.$print_action = this.page.add_button(__('Print'), function() {
+			this.$print_action = this.page.add_menu_item(__('Print'), function() {
 				if(!me.data) {
 					msgprint(__("Run the report first"));
 					return;
@@ -159,7 +161,7 @@ frappe.views.QueryReport = Class.extend({
 				w.document.write(html);
 				w.document.close();
 
-			}, "icon-print");
+			}, true);
 
 		}
 	},
@@ -177,7 +179,7 @@ frappe.views.QueryReport = Class.extend({
 					f.set_input(df["default"]);
 				}
 				if(df.fieldtype=="Check") {
-					$(f.wrapper).find("input[type='checkbox']").css({"float":"None", "margin-left": "0px"});
+					$(f.wrapper).find("input[type='checkbox']");
 				}
 
 				if(df.get_query) f.get_query = df.get_query;
@@ -197,15 +199,15 @@ frappe.views.QueryReport = Class.extend({
 		});
 
 		// hide page form if no filters
-		var $filters = this.page.parent.find('.page-form .filters');
-		this.page.parent.find('.page-form').toggle($filters.length ? true : false);
+		var $filters = $(this.parent).find('.page-form .filters');
+		$(this.parent).find('.page-form').toggle($filters.length ? true : false);
 
 		this.set_route_filters()
 		this.set_filters_by_name();
 	},
 	clear_filters: function() {
 		this.filters = [];
-		this.page.parent.find('.page-form .filters').remove();
+		$(this.parent).find('.page-form .filters').remove();
 	},
 	set_route_filters: function() {
 		var me = this;
@@ -295,7 +297,7 @@ frappe.views.QueryReport = Class.extend({
 	render: function(result, columns) {
 		this.columnFilters = {};
 		this.make_dataview();
-		this.id = frappe.dom.set_unique_id(this.wrapper.find(".result-area").get(0));
+		this.id = frappe.dom.set_unique_id(this.wrapper.find(".result-area").addClass("slick-wrapper").get(0));
 
 		this.grid = new Slick.Grid("#"+this.id, this.dataView, this.columns,
 			this.slickgrid_options);

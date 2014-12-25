@@ -472,7 +472,11 @@ frappe.ui.form.ControlDatetime = frappe.ui.form.ControlDate.extend({
 
 frappe.ui.form.ControlText = frappe.ui.form.ControlData.extend({
 	html_element: "textarea",
-	horizontal: false
+	horizontal: false,
+	make_wrapper: function() {
+		this._super();
+		this.$wrapper.find(".like-disabled-input").addClass("for-description");
+	}
 });
 
 frappe.ui.form.ControlLongText = frappe.ui.form.ControlText;
@@ -481,7 +485,7 @@ frappe.ui.form.ControlSmallText = frappe.ui.form.ControlText;
 frappe.ui.form.ControlCheck = frappe.ui.form.ControlData.extend({
 	input_type: "checkbox",
 	make_wrapper: function() {
-		this.$wrapper = $('<div class="form-group row frappe-control" style="margin: 0px;">\
+		this.$wrapper = $('<div class="form-group frappe-control">\
 			<div class="checkbox">\
 				<label>\
 					<span class="input-area"></span>\
@@ -791,9 +795,8 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		var me = this;
 		$('<div class="link-field" style="position: relative;">\
 			<input type="text" class="input-with-feedback form-control">\
-			<span class="link-btn" style="position: absolute; right: 4px; display: none;\
-				top: 4px; background-color: #eee; border-radius: 2px; padding: 3px;">\
-				<a class="btn-open" title="' + __("Open Link") + '">\
+			<span class="link-btn">\
+				<a class="btn-open grey" title="' + __("Open Link") + '">\
 					<i class="icon-link"></i></a>\
 			</span>\
 		</div>').prependTo(this.input_area);

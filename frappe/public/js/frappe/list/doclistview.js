@@ -84,7 +84,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		this.setup_listview();
 		this.init_list(false);
 		this.init_stats();
-		this.init_minbar();
+		this.init_menu();
 		this.init_star();
 		this.show_match_help();
 		this.init_listview();
@@ -251,11 +251,11 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 
 	make_no_result: function() {
 		var new_button = frappe.boot.user.can_create.indexOf(this.doctype)!=-1
-			? ('<hr><p><button class="btn btn-primary" \
+			? ('<p><button class="btn btn-default btn-sm" \
 				list_view_doc="' + this.doctype + '">'+
 				__('Make a new {0}', [__(this.doctype)]) + '</button></p>')
 			: '';
-		var no_result_message = '<div class="well" style="margin-top: 20px;">\
+		var no_result_message = '<div class="msg-box no-border" style="margin-top: 20px;">\
 			<p>' + __("No {0} found", [__(this.doctype)])  + '</p>' + new_button + '</div>';
 
 		return no_result_message;
@@ -288,48 +288,50 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		this.filter_list.add_filter(this.doctype, "_starred_by", 'like', '%' + user + '%');
 		this.run();
 	},
-	init_minbar: function() {
+	init_menu: function() {
 		var me = this;
 		this.$page.on("click", ".list-tag-preview", function() { me.toggle_tags(); });
-		return;
+
+		this.page.set_secondary_action(__("Refresh"), function() {
+			me.run();
+		});
 
 		if(this.can_delete || this.listview.settings.selectable) {
-			this.page.add_icon_btn("2", 'icon-ok', __('Select All'), function() {
+			this.page.add_menu_item(__('Select All'), function() {
 				me.$page.find('.list-delete').prop("checked",
 					me.$page.find('.list-delete:checked').length ? false : true);
-			});
-			this.page.add_icon_btn("2", 'icon-trash', __('Delete'),
-				function() { me.delete_items(); });
+			}, true);
+			this.page.add_menu_item(__('Delete'),
+				function() { me.delete_items(); }, true);
 		}
+		this.page.add_divider();
 		if(frappe.model.can_import(this.doctype)) {
-			this.page.add_icon_btn("2", "icon-upload", __("Import"), function() {
+			this.page.add_menu_item(__("Import"), function() {
 				frappe.set_route("data-import-tool", {
 					doctype: me.doctype
-				})
+				}, true)
 			});
 		}
 		if(frappe.model.can_set_user_permissions(this.doctype)) {
-			this.page.add_icon_btn("2", "icon-shield",
-				__("User Permissions Manager"), function() {
+			this.page.add_menu_item(__("User Permissions Manager"), function() {
 					frappe.route_options = {
 						doctype: me.doctype
 					};
 					frappe.set_route("user-permissions");
-				});
+				}, true);
 		}
 		if(in_list(user_roles, "System Manager")) {
-			this.page.add_icon_btn("2", "icon-lock",
-				__("Role Permissions Manager"), function() {
-					frappe.route_options = {
-						doctype: me.doctype
-					};
-					frappe.set_route("permission-manager");
-				});
-			this.page.add_icon_btn("2", "icon-glass", __("Customize"), function() {
+			this.page.add_menu_item(__("Role Permissions Manager"), function() {
+				frappe.route_options = {
+					doctype: me.doctype
+				};
+				frappe.set_route("permission-manager");
+			}, true);
+			this.page.add_menu_item(__("Customize"), function() {
 				frappe.set_route("Form", "Customize Form", {
 					doctype: me.doctype
 				})
-			});
+			}, true);
 		}
 	},
 

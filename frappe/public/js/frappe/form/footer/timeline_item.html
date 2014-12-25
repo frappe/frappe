@@ -15,7 +15,7 @@
                     {%= data.fullname %} <span class="text-muted" style="font-weight: normal;">
                         &dash; {%= data.comment_on %}</span>
                 </h6>
-				<blockquote>
+				<div class="reply">
                     {% if(data.doctype=="Communication") { %}
                     <h6>
                         {%= data.subject %}
@@ -25,11 +25,19 @@
         			<div>
         				{%= data.comment_html %}
         			</div>
-                </blockquote>
+                </div>
+            {% } else if(in_list(["Assignment Completed", "Assigned"], data.comment_type)) { %}
+                <h6>
+                    <i class="{%= data.icon %} icon-fixed-width"></i>
+                        {%= data.comment %}
+                        <span class="text-muted" style="font-weight: normal;">
+                        &dash; {%= data.comment_on %}</span>
+                </h6>
             {% } else { %}
                 <h6>
                     <i class="{%= data.icon %} icon-fixed-width"></i>
-                    {%= data.fullname %} {%= data.comment %}<span class="text-muted" style="font-weight: normal;">
+                    {%= data.fullname %} {%= data.comment %}
+                        <span class="text-muted" style="font-weight: normal;">
                         &dash; {%= data.comment_on %}</span>
                 </h6>
             {% } %}

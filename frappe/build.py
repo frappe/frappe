@@ -118,9 +118,7 @@ def pack(target, sources, no_compress, verbose):
 					print "{0}: {1}k".format(f, int(len(minified) / 1024))
 			elif outtype=="js" and extn=="html":
 				# add to frappe.templates
-				content = re.sub("\s+", " ", data).replace("'", "\'")
-				outtxt += """frappe.templates["{key}"] = '{content}';\n""".format(\
-					key=f.rsplit("/", 1)[1][:-5], content=content)
+				outtxt += html_to_js_template(f, data)
 			else:
 				outtxt += ('\n/*\n *\t%s\n */' % f)
 				outtxt += '\n' + data + '\n'
@@ -137,6 +135,11 @@ def pack(target, sources, no_compress, verbose):
 		f.write(outtxt.encode("utf-8"))
 
 	print "Wrote %s - %sk" % (target, str(int(os.path.getsize(target)/1024)))
+
+def html_to_js_template(path, content):
+	content = re.sub("\s+", " ", content).replace("'", "\'")
+	return """frappe.templates["{key}"] = '{content}';\n""".format(\
+		key=path.rsplit("/", 1)[-1][:-5], content=content)
 
 def files_dirty():
 	for target, sources in get_build_maps().iteritems():

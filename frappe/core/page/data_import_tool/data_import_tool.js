@@ -35,7 +35,7 @@ frappe.pages['data-import-tool'].onload = function(wrapper) {
 		<div id="dit-upload-area"></div><br>\
 		<div class="dit-progress-area" style="display: None"></div>\
 		<p id="dit-output"></p>\
-		<div class="well">\
+		<div class="msg-box">\
 		<h4>' + __("Help: Importing non-English data in Microsoft Excel") + '</h4>\
 				<p>' + __("While uploading non English files ensure that the encoding is UTF-8.") + '</p>\
 				<ol>\

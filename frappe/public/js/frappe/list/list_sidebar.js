@@ -34,7 +34,7 @@ frappe.views.ListSidebar = Class.extend({
 
 				// reload button at the end
 				if(me.stats.length) {
-					$('<a class="small">'+__('Refresh Stats')+'</a>')
+					$('<a class="small text-muted">'+__('Refresh Stats')+'</a>')
 						.css({"margin-top":"15px", "display":"inline-block"})
 						.click(function() {
 							me.reload_stats();
@@ -49,7 +49,7 @@ frappe.views.ListSidebar = Class.extend({
 	render_stat: function(field, stat) {
 		var me = this;
 		var show_tags =  '<a class="list-tag-preview small" style="margin-left: 7px;">'
-			+__("Show tags") +'</a>';
+			+ '<span class="small">' + __("Edit") +'</span></a>';
 
 		if(!stat || !stat.length) {
 			if(field==='_user_tags') {
@@ -97,13 +97,10 @@ frappe.views.ListSidebar = Class.extend({
 		args.field = field;
 		args.bar_style = "";
 
-		$item = $(repl('<div class="progress" style="height: 5px;">\
-				<div class="progress-bar %(bar_style)s" style="width: %(width)s%"></div>\
-			</div>\
-			<div class="stat-label" style="margin-top: -19px; text-align: center; \
-				margin-bottom: 5px; font-size: 80%;">\
-				<a href="#" data-label="%(label)s" data-field="%(field)s">\
-					%(_label)s</a> (%(count)s)\
+		$item = $(repl('<div class="stat-label small text-muted" >\
+			<a href="#" data-label="%(label)s" data-field="%(field)s">\
+				<span class="label label-default pull-right">%(count)s</span>\
+				<span>%(_label)s</span></a>\
 		</div>', args));
 
 		this.setup_stat_item_click($item);

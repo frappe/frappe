@@ -39,7 +39,7 @@ frappe.ui.Page = Class.extend({
 		$(frappe.render_template("page", {})).appendTo(this.wrapper);
 
 		if(this.single_column) {
-			this.add_view("main", '<div class="layout-main">');
+			this.add_view("main", '<div class="layout-main layout-main-section">');
 		} else {
 			var main = this.add_view("main", '<div class="row layout-main">\
 				<div class="col-sm-2 layout-side-section"></div>\
@@ -51,7 +51,7 @@ frappe.ui.Page = Class.extend({
 
 		this.$title_area = this.wrapper.find("h1");
 
-		this.$sub_title_area = this.wrapper.find("h3");
+		this.$sub_title_area = this.wrapper.find("h6");
 
 		if(this.set_document_title!==undefined)
 			this.set_document_title = this.set_document_title;
@@ -62,12 +62,15 @@ frappe.ui.Page = Class.extend({
 		if(this.icon)
 			this.get_main_icon(this.icon);
 
+		this.main = this.wrapper.find(".layout-main-section");
+		this.sidebar = this.wrapper.find(".layout-side-section");
 		this.page_actions = this.wrapper.find(".page-actions");
 		this.menu = this.page_actions.find(".dropdown-menu");
 		this.indicator = this.wrapper.find(".indicator");
 		this.btn_primary = this.page_actions.find(".btn-primary");
 		this.btn_secondary = this.page_actions.find(".btn-secondary");
 		this.menu_btn_group = this.page_actions.find(".btn-group");
+		this.page_form = $('<div class="page-form row hide"></div>').prependTo(this.main);
 	},
 
 	set_indicator: function(label, color) {
@@ -98,17 +101,17 @@ frappe.ui.Page = Class.extend({
 	add_menu_item: function(label, click, standard) {
 		this.show_menu();
 
-		var $link = $('<li><a class="grey-link">'+ label +'</a><li>');
-		$link.find("a").on("click", click);
+		var $li = $('<li><a class="grey-link">'+ label +'</a><li>'),
+			$link = $li.find("a").on("click", click);
 
 		if(standard) {
-			$link.appendTo(this.menu);
+			$li.appendTo(this.menu);
 		} else {
 			this.divider = this.menu.find(".divider");
 			if(!this.divider.length) {
 				this.divider = $('<li class="divider user-action"></li>').prependTo(this.menu);
 			}
-			$link.addClass("user-action").insertBefore(this.divider);
+			$li.addClass("user-action").insertBefore(this.divider);
 		}
 
 		return $link;
@@ -212,7 +215,7 @@ frappe.ui.Page = Class.extend({
 	add_label: function(label) {
 		this.show_form();
 		return $("<label class='col-md-1 page-only-label'>"+label+" </label>")
-			.appendTo(this.wrapper.find(".page-form .container"));
+			.appendTo(this.page_form);
 	},
 	add_select: function(label, options) {
 		var field = this.add_field({label:label, fieldtype:"Select"})
@@ -227,38 +230,30 @@ frappe.ui.Page = Class.extend({
 		return field.$wrapper.find("input").attr("placeholder", label);
 	},
 	add_check: function(label) {
-		return $("<div class='checkbox' style='margin-right: 10px; margin-top: 7px; float: left;'><label><input type='checkbox'>" + label + "</label></div>")
-			.appendTo(this.wrapper.find(".page-form .container"))
+		return $("<div class='checkbox'><label><input type='checkbox'>" + label + "</label></div>")
+			.appendTo(this.page_form)
 			.find("input");
 	},
 	add_break: function() {
 		// add further fields in the next line
-		this.wrapper.find(".page-form .container")
-			.append('<div class="clearfix invisible-xs"></div>');
+		this.page_form.append('<div class="clearfix invisible-xs"></div>');
 	},
 	add_field: function(df) {
 		this.show_form();
 		var f = frappe.ui.form.make_control({
 			df: df,
-			parent: this.wrapper.find(".page-form .container"),
+			parent: this.page_form,
 			only_input: df.fieldtype=="Check" ? false : true,
 		})
 		f.refresh();
 		$(f.wrapper)
 			.addClass('col-md-2')
-			.css({
-				"padding-left": "0px",
-				"padding-right": "7px",
-			})
 			.attr("title", __(df.label)).tooltip();
-		f.$input.attr("placeholder", __(df.label));
+		f.$input.addClass("input-sm").attr("placeholder", __(df.label));
 
 		if(df.fieldtype==="Check") {
 			$(f.wrapper).find(":first-child")
 				.removeClass("col-md-offset-4 col-md-8");
-		} else {
-			$(f.wrapper)
-				.prepend('<label class="page-control-label">' + __(df.label) + '</label>');
 		}
 
 		if(df.fieldtype=="Button") {
@@ -272,7 +267,7 @@ frappe.ui.Page = Class.extend({
 		return f;
 	},
 	show_form: function() {
-		this.wrapper.find(".page-form").removeClass("hide");
+		this.page_form.removeClass("hide");
 	},
 	add_view: function(name, html) {
 		this.views[name] = $(html).appendTo($(this.wrapper).find(".page-content"));

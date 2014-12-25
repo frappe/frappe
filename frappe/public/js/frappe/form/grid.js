@@ -23,9 +23,9 @@ frappe.ui.form.Grid = Class.extend({
 				<div class="rows"></div>\
 				<div class="grid-empty text-center hide">'+__("No Data")+'</div>\
 				<div class="small grid-footer text-center">\
-					<a href="#" class="grid-add-row" style="margin-left: 10px;">+ '
+					<a href="#" class="grid-add-row grey" style="margin-left: 10px;">+ '
 						+__("Add new row")+'.</a>\
-					<a href="#" class="grid-add-multiple-rows hide" style="margin-left: 10px;">+ '
+					<a href="#" class="grid-add-multiple-rows grey hide" style="margin-left: 10px;">+ '
 						+__("Add multiple rows")+'.</a>\
 					<div class="clearfix"></div>\
 				</div>\
