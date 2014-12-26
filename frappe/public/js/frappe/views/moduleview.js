@@ -63,6 +63,7 @@ frappe.views.moduleview.ModuleView = Class.extend({
 		this.sections = {};
 		this.current_section = null;
 		this.page.set_title(__(frappe.modules[module] && frappe.modules[module].label || module));
+		this.page.main.html('<div class="msg-box text-extra-muted">Loading...</div>');
 
 		this.make();
 	},
@@ -82,6 +83,7 @@ frappe.views.moduleview.ModuleView = Class.extend({
 	},
 
 	render: function() {
+		this.page.main.empty();
 		this.make_sidebar();
 		this.sections_by_label = {};
 

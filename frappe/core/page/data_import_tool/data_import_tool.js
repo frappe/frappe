@@ -1,9 +1,45 @@
+frappe.DataImportTool = Class.extend({
+	init: function(page) {
+		this.page = page;
+		this.make();
+	},
+	make_sidebar: function() {
+		var me = this;
+		this.page.sidebar.html(frappe.render_template("data_import_sidebar", {}));
+		// bind click
+		this.page.sidebar.find("a").on("click", function() {
+			var li = $(this).parents("li:first");
+			if (li.hasClass("active"))
+				return false;
+
+			var section = li.attr("data-section");
+
+			// active
+			me.page.sidebar.find("li.active").removeClass("active");
+			li.addClass("active");
+
+		});
+
+		$(me.page.sidebar.find("a")[0]).click();
+	},
+	activate: function() {
+
+	}
+})
+
 frappe.pages['data-import-tool'].onload = function(wrapper) {
 	wrapper.app_page = frappe.ui.make_app_page({
 		parent: wrapper,
 		title: __("Data Import / Export Tool"),
 		icon: "icon-upload"
 	});
+
+	frappe.data_import_tool = new frappe.DataImportTool(wrapper.page);
+
+
+	return;
+
+
 
 	// check permission for import
 	if(!((frappe.boot.user.can_import && frappe.boot.user.can_import.length) ||

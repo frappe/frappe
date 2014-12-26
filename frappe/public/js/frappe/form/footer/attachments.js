@@ -63,11 +63,10 @@ frappe.ui.form.Attachments = Class.extend({
 		}
 
 		var me = this;
-		var $attach = $(repl('<div style="margin-bottom: 7px">\
-			<span style="display: inline-block; width: 90%; \
-				text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">\
-				<i class="icon-file"></i> <a href="%(file_url)s"\
-					target="_blank" title="%(file_name)s">%(file_name)s</a></span><a href="#" class="close">&times;</a>\
+		var $attach = $(repl('<div class="text-ellipsis">\
+				<a href="#" class="close">&times;</a>\
+				<a class="h6" href="%(file_url)s" style="margin-top: 0px;"\
+					target="_blank" title="%(file_name)s">%(file_name)s</a>\
 			</div>', {
 				file_name: file_name,
 				file_url: file_url

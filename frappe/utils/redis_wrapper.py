@@ -8,7 +8,6 @@ class RedisWrapper(redis.Redis):
 	"""Redis client that will automatically prefix conf.db_name"""
 	def make_key(self, key, user=None):
 		if user:
-			print user
 			if user == True:
 				user = frappe.session.user
 

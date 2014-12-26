@@ -271,7 +271,7 @@ frappe.ui.form.GridRow = Class.extend({
 	make_static_display: function() {
 		var me = this;
 		this.row.empty();
-		$('<div class="row-index small">' + (this.doc ? this.doc.idx : "&nbsp;")+ '</div>')
+		$('<div class="row-index">' + (this.doc ? this.doc.idx : "&nbsp;")+ '</div>')
 			.appendTo(this.row);
 
 		if(this.grid.template) {

@@ -74,11 +74,6 @@ def get_data():
 				},
 				{
 					"type": "doctype",
-					"name": "Website Page Permission",
-					"description": _("Define read, write, admin permissions for a Website Page."),
-				},
-				{
-					"type": "doctype",
 					"name": "Social Login Keys",
 					"description": _("Enter keys to enable login via Facebook, Google, GitHub."),
 				}

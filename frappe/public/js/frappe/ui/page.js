@@ -104,7 +104,7 @@ frappe.ui.Page = Class.extend({
 		var $li = $('<li><a class="grey-link">'+ label +'</a><li>'),
 			$link = $li.find("a").on("click", click);
 
-		if(standard) {
+		if(standard===true) {
 			$li.appendTo(this.menu);
 		} else {
 			this.divider = this.menu.find(".divider");

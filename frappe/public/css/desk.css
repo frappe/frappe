@@ -56,7 +56,7 @@ a.disabled, a.disabled:hover {
 a.grey, .sidebar-section a, .nav-pills a, .control-value a, .data-row a {
 	color: inherit;
     border-bottom: 1px solid transparent;
-    margin-bottom:0.8em;
+    margin-bottom: 0.4em;
 }
 
 a.grey:hover, .sidebar-section a:hover, .nav-pills a:hover, .control-value a:hover, .data-row a:hover {
@@ -136,6 +136,10 @@ em.link-option {
 .layout-main-section {
 	border: 1px solid #d1d8dd;
 	border-top: 0px;
+}
+
+.form-intro-area {
+	padding: 15px 22px;
 }
 
 .page-form {
@@ -572,7 +576,7 @@ ul.linked-with-list li {
 }
 
 .grid-row {
-	padding: 8px 15px;
+	padding: 10px 15px;
 	border-bottom: 1px solid #d1d8dd;
 }
 
@@ -805,8 +809,8 @@ kbd {
 }
 
 .msg-box {
-	border-top: 1px solid #d1d8dd;
-	padding: 15px;
+	padding: 30px 15px;
+	text-align: center;
 	color: #8D99A6;
 }
 
