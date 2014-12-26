@@ -1,7 +1,26 @@
 frappe.DataImportTool = Class.extend({
 	init: function(page) {
 		this.page = page;
-		this.make();
+		this.make_main();
+		this.make_sidebar();
+		this.setup_select();
+	},
+	make_main: function() {
+		var me = this;
+		this.page.main.html(frappe.render_template("data_import_main", {}));
+		this.select = this.page.main.find("select.doctype");
+		frappe.call({
+			method: 'frappe.core.page.data_import_tool.data_import_tool.get_doctypes',
+			callback: function(r) {
+				me.select.add_options([""].concat(r.message));
+				me.doctypes = r.message;
+				if(frappe.route_options) {
+					me.set_route_options();
+				} else {
+					me.select.focus();
+				}
+			}
+		});
 	},
 	make_sidebar: function() {
 		var me = this;
@@ -16,14 +35,50 @@ frappe.DataImportTool = Class.extend({
 
 			// active
 			me.page.sidebar.find("li.active").removeClass("active");
+			me.page.main.find(".section").addClass("hide");
+			me.page.main.find("." + section).removeClass("hide");
 			li.addClass("active");
 
 		});
 
 		$(me.page.sidebar.find("a")[0]).click();
 	},
-	activate: function() {
+	setup_select: function() {
+		var me = this;
+		this.download_area = this.page.main.find(".data-import-download");
+		this.select.on("change", function(){
+			me.doctype = $(this).val();
 
+			if(!me.doctype) {
+				return;
+			}
+
+			me.download_area.empty();
+			me.with_data = $('[name="dit-with-data"]:checked').length ? 'Yes' : 'No'
+
+			frappe.model.with_doctype(me.doctype, function() {
+				// get options
+				return frappe.call({
+					btn: this,
+					method: 'frappe.core.page.data_import_tool.data_import_tool.get_doctype_options',
+					args: {doctype: me.doctype},
+					callback: function(r) {
+						$(frappe.render_template("data_import_download",
+							{data:r.message, me: me})).appendTo(me.download_area);
+					}
+				});
+			});
+
+		});
+
+	},
+	set_route_options: function() {
+		if(frappe.route_options
+			&& frappe.route_options.doctype
+			&& in_list(this.doctypes, frappe.route_options.doctype)) {
+				this.select.val(frappe.route_options.doctype).change();
+				frappe.route_options = null;
+		}
 	}
 })
 
@@ -92,25 +147,6 @@ frappe.pages['data-import-tool'].onload = function(wrapper) {
 	frappe.messages.waiting($(wrapper).find(".dit-progress-area").toggle(false),
 		__("Performing hardcore import process")+ "....", 100);
 
-	// load doctypes
-	frappe.call({
-		method: 'frappe.core.page.data_import_tool.data_import_tool.get_doctypes',
-		callback: function(r) {
-			$select.add_options([__('Select') + '...'].concat(r.message));
-			wrapper.doctypes = r.message;
-			wrapper.set_route_options();
-		}
-	});
-
-	wrapper.set_route_options = function() {
-		if(frappe.route_options
-			&& frappe.route_options.doctype
-			&& in_list(wrapper.doctypes, frappe.route_options.doctype)) {
-				$select.val(frappe.route_options.doctype).change();
-				frappe.route_options = null;
-		}
-	}
-
 	// check if template with_data is allowed
 	var validate_download_with_data = function(doctype, verbose) {
 		// if no export permission, uncheck with data
@@ -153,42 +189,6 @@ frappe.pages['data-import-tool'].onload = function(wrapper) {
 
 	// load options
 	$select.change(function() {
-		var val = $(this).val()
-		if(val!='Select...') {
-			$('#dit-download').empty().removeClass("hide");
-
-			frappe.model.with_doctype(val, function() {
-				validate_download_with_data(val);
-
-				// get options
-				return frappe.call({
-					btn: this,
-					method: 'frappe.core.page.data_import_tool.data_import_tool.get_doctype_options',
-					args: {doctype: val},
-					callback: function(r) {
-						$('<h4><i class="icon-download"></i>' + __("Download") + '</h4>').appendTo('#dit-download');
-						var with_data = $('[name="dit-with-data"]:checked').length ? 'Yes' : 'No';
-						// download link
-						$.each(r.message, function(i, v) {
-							if(i==0)
-								$('<span>' + __("Main Table") + ':</span><br>').appendTo('#dit-download');
-							if(i==1)
-								$('<br><span>' + __("Child Tables") + ':</span><br>').appendTo('#dit-download');
-
-							wrapper.add_template_download_link(v);
-							$('#dit-download').append('<br>');
-						});
-
-						if(r.message.length > 1) {
-							$('<br><span>' + __("All Tables (Main + Child Tables)") + ':</span><br>').appendTo('#dit-download');
-							var link = wrapper
-								.add_template_download_link(r.message[0])
-								.data('all_doctypes', "Yes")
-						}
-					}
-				})
-			});
-		}
 	});
 
 	var write_messages = function(r) {
