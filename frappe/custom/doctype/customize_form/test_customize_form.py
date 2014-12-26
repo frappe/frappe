@@ -39,28 +39,28 @@ class TestCustomizeForm(unittest.TestCase):
 	def test_fetch_to_customize(self):
 		d = self.get_customize_form()
 		self.assertEquals(d.doc_type, None)
-		self.assertEquals(len(d.get("customize_form_fields")), 0)
+		self.assertEquals(len(d.get("fields")), 0)
 
 		d = self.get_customize_form("Event")
 		self.assertEquals(d.doc_type, "Event")
-		self.assertEquals(len(d.get("customize_form_fields")), 30)
+		self.assertEquals(len(d.get("fields")), 30)
 
 		d = self.get_customize_form("User")
 		self.assertEquals(d.doc_type, "User")
-		self.assertEquals(len(d.get("customize_form_fields")), 55)
-		self.assertEquals(d.get("customize_form_fields")[-1].fieldname, "test_custom_field")
-		self.assertEquals(d.get("customize_form_fields", {"fieldname": "location"})[0].in_list_view, 1)
+		self.assertEquals(len(d.get("fields")), 55)
+		self.assertEquals(d.get("fields")[-1].fieldname, "test_custom_field")
+		self.assertEquals(d.get("fields", {"fieldname": "location"})[0].in_list_view, 1)
 
 		return d
 
 	def test_save_customization_idx(self):
 		d = self.get_customize_form("User")
-		original_sequence = [df.fieldname for df in d.get("customize_form_fields")]
+		original_sequence = [df.fieldname for df in d.get("fields")]
 
 		# move field to last
-		location_field = d.get("customize_form_fields", {"fieldname": "location"})[0]
-		d.get("customize_form_fields").remove(location_field)
-		d.append("customize_form_fields", location_field)
+		location_field = d.get("fields", {"fieldname": "location"})[0]
+		d.get("fields").remove(location_field)
+		d.append("fields", location_field)
 		d.run_method("save_customization")
 		frappe.clear_cache(doctype=d.doc_type)
 
@@ -98,13 +98,13 @@ class TestCustomizeForm(unittest.TestCase):
 		self.assertEquals(frappe.db.get_value("Property Setter",
 			{"doc_type": "User", "property": "reqd", "field_name": "location"}, "value"), None)
 
-		location_field = d.get("customize_form_fields", {"fieldname": "location"})[0]
+		location_field = d.get("fields", {"fieldname": "location"})[0]
 		location_field.reqd = 1
 		d.run_method("save_customization")
 		self.assertEquals(frappe.db.get_value("Property Setter",
 			{"doc_type": "User", "property": "reqd", "field_name": "location"}, "value"), '1')
 
-		location_field = d.get("customize_form_fields", {"fieldname": "location"})[0]
+		location_field = d.get("fields", {"fieldname": "location"})[0]
 		location_field.reqd = 0
 		d.run_method("save_customization")
 		self.assertEquals(frappe.db.get_value("Property Setter",
@@ -114,19 +114,19 @@ class TestCustomizeForm(unittest.TestCase):
 		d = self.get_customize_form("User")
 		self.assertEquals(frappe.db.get_value("Custom Field", "User-test_custom_field", "reqd"), 0)
 
-		custom_field = d.get("customize_form_fields", {"fieldname": "test_custom_field"})[0]
+		custom_field = d.get("fields", {"fieldname": "test_custom_field"})[0]
 		custom_field.reqd = 1
 		d.run_method("save_customization")
 		self.assertEquals(frappe.db.get_value("Custom Field", "User-test_custom_field", "reqd"), 1)
 
-		custom_field = d.get("customize_form_fields", {"is_custom_field": True})[0]
+		custom_field = d.get("fields", {"is_custom_field": True})[0]
 		custom_field.reqd = 0
 		d.run_method("save_customization")
 		self.assertEquals(frappe.db.get_value("Custom Field", "User-test_custom_field", "reqd"), 0)
 
 	def test_save_customization_new_field(self):
 		d = self.get_customize_form("User")
-		d.append("customize_form_fields", {
+		d.append("fields", {
 			"label": "Test Add Custom Field Via Customize Form",
 			"fieldtype": "Data",
 			"__islocal": 1
@@ -141,8 +141,8 @@ class TestCustomizeForm(unittest.TestCase):
 
 	def test_save_customization_remove_field(self):
 		d = self.get_customize_form("User")
-		custom_field = d.get("customize_form_fields", {"fieldname": "test_custom_field"})[0]
-		d.get("customize_form_fields").remove(custom_field)
+		custom_field = d.get("fields", {"fieldname": "test_custom_field"})[0]
+		d.get("fields").remove(custom_field)
 		d.run_method("save_customization")
 
 		self.assertEquals(frappe.db.get_value("Custom Field", custom_field.name), None)
@@ -155,21 +155,21 @@ class TestCustomizeForm(unittest.TestCase):
 		d.doc_type = "User"
 		d.run_method('reset_to_defaults')
 
-		self.assertEquals(d.get("customize_form_fields", {"fieldname": "location"})[0].in_list_view, None)
+		self.assertEquals(d.get("fields", {"fieldname": "location"})[0].in_list_view, None)
 
 		frappe.local.test_objects["Property Setter"] = []
 		make_test_records_for_doctype("Property Setter")
 
 	def test_set_allow_on_submit(self):
 		d = self.get_customize_form("User")
-		d.get("customize_form_fields", {"fieldname": "first_name"})[0].allow_on_submit = 1
-		d.get("customize_form_fields", {"fieldname": "test_custom_field"})[0].allow_on_submit = 1
+		d.get("fields", {"fieldname": "first_name"})[0].allow_on_submit = 1
+		d.get("fields", {"fieldname": "test_custom_field"})[0].allow_on_submit = 1
 		d.run_method("save_customization")
 
 		d = self.get_customize_form("User")
 
 		# don't allow for standard fields
-		self.assertEquals(d.get("customize_form_fields", {"fieldname": "first_name"})[0].allow_on_submit or 0, 0)
+		self.assertEquals(d.get("fields", {"fieldname": "first_name"})[0].allow_on_submit or 0, 0)
 
 		# allow for custom field
-		self.assertEquals(d.get("customize_form_fields", {"fieldname": "test_custom_field"})[0].allow_on_submit, 1)
+		self.assertEquals(d.get("fields", {"fieldname": "test_custom_field"})[0].allow_on_submit, 1)

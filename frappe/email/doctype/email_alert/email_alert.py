@@ -72,7 +72,7 @@ def evaluate_alert(doc, alert, event):
 			doc.name, alert.value_changed):
 			return # value not changed
 
-	for recipient in alert.email_alert_recipients:
+	for recipient in alert.recipients:
 		recipients = []
 		if recipient.condition:
 			if not eval(recipient.condition, context):

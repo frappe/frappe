@@ -1,6 +1,6 @@
 {
  "autoname": "field:workflow_name",
- "creation": "2012-12-28 10:49:55.000000",
+ "creation": "2012-12-28 10:49:55",
  "description": "Defines workflow states and rules for a document.",
  "docstatus": 0,
  "doctype": "DocType",
@@ -9,6 +9,7 @@
   {
    "fieldname": "workflow_name",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Workflow Name",
    "permlevel": 0,
    "read_only": 0,
@@ -18,6 +19,7 @@
    "description": "DocType on which this Workflow is applicable.",
    "fieldname": "document_type",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Document Type",
    "options": "DocType",
    "permlevel": 0,
@@ -27,6 +29,7 @@
    "description": "If checked, all other workflows become inactive.",
    "fieldname": "is_active",
    "fieldtype": "Check",
+   "in_list_view": 1,
    "label": "Is Active",
    "permlevel": 0
   },
@@ -39,9 +42,9 @@
   },
   {
    "description": "All possible Workflow States and roles of the workflow. <br>Docstatus Options: 0 is\"Saved\", 1 is \"Submitted\" and 2 is \"Cancelled\"",
-   "fieldname": "workflow_document_states",
+   "fieldname": "states",
    "fieldtype": "Table",
-   "label": "Workflow Document States",
+   "label": "Document States",
    "options": "Workflow Document State",
    "permlevel": 0,
    "reqd": 1
@@ -55,9 +58,9 @@
   },
   {
    "description": "Rules defining transition of state in the workflow.",
-   "fieldname": "workflow_transitions",
+   "fieldname": "transitions",
    "fieldtype": "Table",
-   "label": "Workflow Transitions",
+   "label": "Transitions",
    "options": "Workflow Transition",
    "permlevel": 0,
    "reqd": 1
@@ -73,14 +76,14 @@
  ],
  "icon": "icon-random",
  "idx": 1,
- "modified": "2014-01-20 17:49:35.000001",
+ "modified": "2014-12-26 16:53:17.720709",
  "modified_by": "Administrator",
  "module": "Workflow",
  "name": "Workflow",
  "owner": "Administrator",
  "permissions": [
   {
-   "cancel": 1,
+   "cancel": 0,
    "create": 1,
    "delete": 1,
    "email": 1,
@@ -88,6 +91,7 @@
    "print": 1,
    "read": 1,
    "role": "System Manager",
+   "submit": 0,
    "write": 1
   }
  ]

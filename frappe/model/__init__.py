@@ -35,7 +35,6 @@ def copytables(srctype, src, srcfield, tartype, tar, tarfield, srcfields, tarfie
 	return l
 
 def db_exists(dt, dn):
-	import frappe
 	return frappe.db.exists(dt, dn)
 
 def delete_fields(args_dict, delete=0):
@@ -97,12 +96,12 @@ def rename_field(doctype, old_fieldname, new_fieldname):
 			frappe.db.sql("""update `tab%s` set `%s`=`%s`""" % \
 				(doctype, new_fieldname, old_fieldname))
 
+		update_reports(doctype, old_fieldname, new_fieldname)
+		update_users_report_view_settings(doctype, old_fieldname, new_fieldname)
+
 	# update in property setter
 	frappe.db.sql("""update `tabProperty Setter` set field_name = %s
 		where doc_type=%s and field_name=%s""", (new_fieldname, doctype, old_fieldname))
-
-	update_reports(doctype, old_fieldname, new_fieldname)
-	update_users_report_view_settings(doctype, old_fieldname, new_fieldname)
 
 def update_reports(doctype, old_fieldname, new_fieldname):
 	def _get_new_sort_by(report_dict, report, key):

@@ -83,4 +83,4 @@ class TestDataImport(unittest.TestCase):
 		importer.upload(content)
 
 		ev = frappe.get_doc("Event", {"subject":"__Test Event"})
-		self.assertTrue("Administrator" in [d.person for d in ev.event_individuals])
+		self.assertTrue("Administrator" in [d.person for d in ev.users])

@@ -35,10 +35,10 @@ def has_permission(doc, user):
 	if doc.event_type=="Public" or doc.owner==user:
 		return True
 
-	if doc.get("event_individuals", {"person": user}):
+	if doc.get("users", {"person": user}):
 		return True
 
-	if doc.get("event_roles", {"role":("in", frappe.get_roles(user))}):
+	if doc.get("roles", {"role":("in", frappe.get_roles(user))}):
 		return True
 
 	return False

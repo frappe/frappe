@@ -39,7 +39,7 @@ class Workflow(Document):
 
 	def update_default_workflow_status(self):
 		docstatus_map = {}
-		states = self.get("workflow_document_states")
+		states = self.get("states")
 		for d in states:
 			if not d.doc_status in docstatus_map:
 				frappe.db.sql("""update `tab%s` set `%s` = %s where \
@@ -49,13 +49,13 @@ class Workflow(Document):
 
 	def validate_docstatus(self):
 		def get_state(state):
-			for s in self.workflow_document_states:
+			for s in self.states:
 				if s.state==state:
 					return s
 
 			frappe.throw(frappe._("{0} not a valid State").format(state))
 
-		for t in self.workflow_transitions:
+		for t in self.transitions:
 			state = get_state(t.state)
 			next_state = get_state(t.next_state)
 

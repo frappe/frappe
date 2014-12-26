@@ -21,7 +21,7 @@ from frappe.utils import sel
 
 	# def test_material_request(self):
 	# 	sel.new_doc("Stock", "Material Request")
-	# 	sel.add_child("indent_details")
+	# 	sel.add_child("items")
 	# 	sel.set_field("item_code", "_Test Item")
 	# 	sel.set_field("schedule_date", "10-10-2014")
 	# 	sel.primary_action()

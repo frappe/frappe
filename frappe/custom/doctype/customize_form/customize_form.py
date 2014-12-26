@@ -68,7 +68,7 @@ class CustomizeForm(Document):
 			new_d = {"fieldname": d.fieldname, "is_custom_field": d.get("is_custom_field"), "name": d.name}
 			for property in self.docfield_properties:
 				new_d[property] = d.get(property)
-			self.append("customize_form_fields", new_d)
+			self.append("fields", new_d)
 
 		# NOTE doc is sent to clientside by run_method
 
@@ -106,7 +106,7 @@ class CustomizeForm(Document):
 					property_type=self.doctype_properties[property])
 
 		update_db = False
-		for df in self.get("customize_form_fields"):
+		for df in self.get("fields"):
 			if df.get("__islocal"):
 				continue
 
@@ -137,7 +137,7 @@ class CustomizeForm(Document):
 			updatedb(self.doc_type)
 
 	def update_custom_fields(self):
-		for df in self.get("customize_form_fields"):
+		for df in self.get("fields"):
 			if df.get("__islocal"):
 				self.add_custom_field(df)
 			else:
@@ -176,7 +176,7 @@ class CustomizeForm(Document):
 	def delete_custom_fields(self):
 		meta = frappe.get_meta(self.doc_type)
 		fields_to_remove = (set([df.fieldname for df in meta.get("fields")])
-			- set(df.fieldname for df in self.get("customize_form_fields")))
+			- set(df.fieldname for df in self.get("fields")))
 
 		for fieldname in fields_to_remove:
 			df = meta.get("fields", {"fieldname": fieldname})[0]
@@ -186,11 +186,11 @@ class CustomizeForm(Document):
 	def set_idx_property_setter(self):
 		meta = frappe.get_meta(self.doc_type)
 		field_order_has_changed = [df.fieldname for df in meta.get("fields")] != \
-			[d.fieldname for d in self.get("customize_form_fields")]
+			[d.fieldname for d in self.get("fields")]
 
 		if field_order_has_changed:
 			_idx = []
-			for df in sorted(self.get("customize_form_fields"), key=lambda x: x.idx):
+			for df in sorted(self.get("fields"), key=lambda x: x.idx):
 				_idx.append(df.fieldname)
 
 			self.make_property_setter(property="_idx", value=json.dumps(_idx), property_type="Text")

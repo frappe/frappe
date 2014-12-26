@@ -425,7 +425,7 @@ frappe.ui.form.GridRow = Class.extend({
 			this.form_panel.toggle(true);
 			if(this.frm.doc.docstatus===0) {
 				var first = this.form_area.find(":input:first");
-				if(first.length && first.attr("data-fieldtype")!="Date") {
+				if(first.length && !in_list(["Date", "Datetime", "Time"], first.attr("data-fieldtype"))) {
 					try {
 						first.get(0).focus();
 					} catch(e) {

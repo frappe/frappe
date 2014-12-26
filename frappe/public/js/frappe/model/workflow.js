@@ -23,18 +23,18 @@ frappe.workflow = {
 	},
 	get_default_state: function(doctype) {
 		frappe.workflow.setup(doctype);
-		return frappe.workflow.workflows[doctype].workflow_document_states[0].state;
+		return frappe.workflow.workflows[doctype].states[0].state;
 	},
 	get_transitions: function(doctype, state) {
 		frappe.workflow.setup(doctype);
-		return frappe.get_children(frappe.workflow.workflows[doctype], "workflow_transitions", {state:state});
+		return frappe.get_children(frappe.workflow.workflows[doctype], "transitions", {state:state});
 	},
 	get_document_state: function(doctype, state) {
 		frappe.workflow.setup(doctype);
-		return frappe.get_children(frappe.workflow.workflows[doctype], "workflow_document_states", {state:state})[0];
+		return frappe.get_children(frappe.workflow.workflows[doctype], "states", {state:state})[0];
 	},
 	get_next_state: function(doctype, state, action) {
-		return frappe.get_children(frappe.workflow.workflows[doctype], "workflow_transitions", {
+		return frappe.get_children(frappe.workflow.workflows[doctype], "transitions", {
 			state:state, action:action})[0].next_state;
 	},
  	is_read_only: function(doctype, name) {
@@ -57,7 +57,7 @@ frappe.workflow = {
 		return false;
 	},
 	get_update_fields: function(doctype) {
-		var update_fields = $.unique($.map(frappe.workflow.workflows[doctype].workflow_document_states || [], 
+		var update_fields = $.unique($.map(frappe.workflow.workflows[doctype].states || [], 
 			function(d) {
 				return d.update_field;
 			}));
