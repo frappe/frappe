@@ -55,7 +55,8 @@ def update_feed(doc, method=None):
 	"adds a new feed"
 	if doc.doctype == "Feed":
 		return
-	if frappe.flags.in_patch:
+
+	if frappe.flags.in_patch or frappe.flags.in_install_app:
 		return
 
 

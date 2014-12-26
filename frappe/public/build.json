@@ -14,7 +14,7 @@
 		"public/js/frappe/misc/pretty_date.js",
 		"public/js/lib/moment/moment.min.js",
 		"public/js/lib/highlight.pack.js",
-		"website/js/website.js",
+		"website/js/website.js"
 	],
 	"js/canvasResize.min.js": [
 		"website/js/jquery.exif.js",
