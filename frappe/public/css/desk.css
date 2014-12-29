@@ -817,3 +817,17 @@ kbd {
 .no-border {
 	border: none !important;
 }
+
+.message-row {
+	padding: 10px 15px;
+}
+
+.message-row .indicator {
+	margin-left: -10px;
+	margin-right: -20px;
+}
+
+.message-box .indicator {
+	margin-right: 15px;
+	margin-top: 7px;
+}

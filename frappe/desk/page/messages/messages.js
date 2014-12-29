@@ -2,9 +2,6 @@
 // MIT License. See license.txt
 
 // TODO
-// Everyone
-// Text Box
-// Email + Post Message
 // new message popup
 
 frappe.provide('frappe.desk.pages.messages');
@@ -20,31 +17,16 @@ frappe.pages.messages.onload = function(parent) {
 	frappe.desk.pages.messages = new frappe.desk.pages.messages(parent);
 }
 
-$(frappe.pages.messages).bind('show', function() {
-	return;
-
-	// remove alerts
-	$('#alert-container .alert').remove();
-
-	frappe.desk.pages.messages.show();
-	setTimeout("frappe.desk.pages.messages.refresh()", 5000);
-})
-
 frappe.desk.pages.messages = Class.extend({
 	init: function(wrapper, page) {
 		this.wrapper = wrapper;
 		this.page = wrapper.page;
 		this.make();
-
-		return;
-		this.show_active_users();
-		this.make_post_message();
-		this.make_list();
-		//this.update_messages('reset'); //Resets notification icons
 	},
 
 	make: function() {
 		this.make_sidebar();
+		this.set_next_refresh();
 	},
 
 	make_sidebar: function() {
@@ -58,7 +40,7 @@ frappe.desk.pages.messages = Class.extend({
 				r.message.sort(function(a, b) { return cint(b.has_session) - cint(a.has_session); });
 
 				// render
-				$(frappe.render_template("messages_sidebar", {data: r.message})).appendTo(me.page.sidebar);
+				me.page.sidebar.html(frappe.render_template("messages_sidebar", {data: r.message}));
 
 				// bind click
 				me.page.sidebar.find("a").on("click", function() {
@@ -82,8 +64,46 @@ frappe.desk.pages.messages = Class.extend({
 
 	make_messages: function(contact) {
 		var me = this;
+
+		this.page.main.html($(frappe.render_template("messages_main", { "contact": contact })));
+
+		this.page.main.find(".btn-post").on("click", function() {
+			var btn = $(this);
+			var message_box = btn.parents(".message-box");
+			var textarea = message_box.find("textarea");
+			var contact = btn.attr("data-contact");
+			var txt = textarea.val();
+			var send_email = message_box.find('input[type="checkbox"]:checked').length > 0;
+
+			if(txt) {
+				return frappe.call({
+					module: 'frappe.desk',
+					page:'messages',
+					method:'post',
+					args: {
+						txt: txt,
+						contact: contact,
+						notify: send_email ? 1 : 0
+					},
+					callback:function(r,rt) {
+						textarea.val('');
+						me.list.run();
+					},
+					btn: this
+				});
+			}
+		});
+
+		this.make_message_list(contact);
+
+		this.list.run();
+	},
+
+	make_message_list: function(contact) {
+		var me = this;
+
 		this.list = new frappe.ui.Listing({
-			parent: this.page.main,
+			parent: this.page.main.find(".message-list"),
 			method: 'frappe.desk.page.messages.messages.get_list',
 			args: {
 				contact: contact
@@ -91,22 +111,13 @@ frappe.desk.pages.messages = Class.extend({
 			hide_refresh: true,
 			no_loading: true,
 			render_row: function(wrapper, data) {
-				$(frappe.render_template("messages_row", {
+				var row = $(frappe.render_template("messages_row", {
 					data: data
 				})).appendTo(wrapper);
-
-				return;
-
-				// todo
-
-				if(data.owner==data.comment_docname && data.parenttype!="Assignment") {
-					data.info = '<span class="label label-success">Public</span>'
-				}
+				row.find(".avatar, .indicator").tooltip();
 			}
 
 		});
-
-		this.list.run();
 	},
 
 	delete: function(ele) {
@@ -120,58 +131,25 @@ frappe.desk.pages.messages = Class.extend({
 		});
 	},
 
-	////
-
-	make_post_message: function() {
-		var me = this;
-
-		$('#post-message .btn').click(function() {
-			var txt = $('#post-message textarea').val();
-			if(txt) {
-				return frappe.call({
-					module: 'frappe.desk',
-					page:'messages',
-					method:'post',
-					args: {
-						txt: txt,
-						contact: me.contact,
-						notify: $('#messages-email').prop("checked") ? 1 : 0
-					},
-					callback:function(r,rt) {
-						$('#post-message textarea').val('')
-						me.list.run();
-					},
-					btn: this
-				});
-			}
-		});
-	},
-	show: function() {
-		var contact = this.get_contact() || this.contact || user;
-
-		$('#message-title').html(contact===user ? "Everyone" :
-			frappe.user_info(contact).fullname)
-
-		$('#avatar-image').attr("src", frappe.utils.get_file_link(frappe.user_info(contact).image));
-
-		$("#show-everyone").toggle(contact!==user);
-
-		$("#post-message button").text(contact==user ? __("Post Publicly") : __("Post to user"))
-
-		this.contact = contact;
-		this.list.opts.args.contact = contact;
-		this.list.run();
-
-	},
-	// check for updates every 5 seconds if page is active
 	refresh: function() {
-		setTimeout("frappe.desk.pages.messages.refresh()", 5000);
-		if(frappe.container.page.label != 'Messages')
-			return;
+		// check for updates every 5 seconds if page is active
+		this.set_next_refresh();
+
 		if(!frappe.session_alive)
 			return;
-		this.show();
+
+		if (this.list) {
+			this.list.run();
+		}
 	},
+
+	set_next_refresh: function() {
+		// 30 seconds
+		setTimeout("frappe.desk.pages.messages.refresh()", 30000);
+	},
+
+	////
+
 	get_contact: function() {
 		var route = location.hash;
 		if(route.indexOf('/')!=-1) {

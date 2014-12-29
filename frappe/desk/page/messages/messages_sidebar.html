@@ -3,7 +3,7 @@
     <li data-user="{%= contact.name %}" class="h6 module-sidebar-item">
         <a class="messages-sidebar-link text-ellipsis">
                 <span class="indicator {% if(contact.has_session > 0) { %} green {% } else { %} grey {% } %}">
-                    {%= frappe.user.full_name(contact.name) %}</span>
+                    {%= contact.name===user ? __("Everyone") : frappe.user.full_name(contact.name) %}</span>
             </a>
     </li>
     {% } %}
