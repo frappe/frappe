@@ -1946,9 +1946,11 @@
  },
  "Romania": {
   "code": "ro",
-  "currency_fraction": "Ban",
+  "currency": "RON",
+  "currency_fraction": "Bani",
   "currency_fraction_units": 100,
-  "currency_symbol": "L",
+  "currency_name": "Romanian New Leu",
+  "currency_symbol": "lei",
   "number_format": "#,###.##",
   "timezones": [
    "Europe/Bucharest"
