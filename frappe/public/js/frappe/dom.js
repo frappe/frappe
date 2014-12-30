@@ -112,26 +112,8 @@ frappe.dom = {
 	}
 }
 
-frappe.get_modal = function(title, body_html) {
-	var modal = $('<div class="modal" style="overflow: auto;" tabindex="-1">\
-		<div class="modal-dialog">\
-			<div class="modal-content">\
-				<div class="modal-header">\
-					<a type="button" class="close"\
-						data-dismiss="modal" aria-hidden="true">&times;</a>\
-					<h4 class="modal-title">'+title+'</h4>\
-				</div>\
-				<div class="modal-body ui-front">'+body_html+'\
-				</div>\
-				<div class="modal-footer hide">\
-					<button type="button" class="btn btn-default" data-dismiss="modal">' + __("Close") + '</button>\
-					<button type="button" class="btn btn-primary">' + __("Confirm") + '</button>\
-				</div>\
-			</div>\
-		</div>\
-		</div>').appendTo(document.body);
-
-	return modal;
+frappe.get_modal = function(title, content) {
+	return $(frappe.render_template("modal", {title:title, content:content})).appendTo(document.body);
 };
 
 var pending_req = 0

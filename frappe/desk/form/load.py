@@ -41,9 +41,6 @@ def getdoc(doctype, name, user=None):
 		frappe.msgprint(_('Did not load'))
 		raise
 
-	if doc and not name.startswith('_'):
-		frappe.user.update_recent(doctype, name)
-
 	frappe.response.docs.append(doc)
 
 @frappe.whitelist()

@@ -12,8 +12,7 @@ frappe.provide('frappe.views');
 frappe.views.ListSidebar = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
-		this.wrapper = $(frappe.render(frappe.templates.list_sidebar,
-			{doctype: this.doclistview.doctype}))
+		this.wrapper = $(frappe.render_template("list_sidebar", {doctype: this.doclistview.doctype}))
 			.appendTo(this.parent);
 		this.get_stats();
 	},

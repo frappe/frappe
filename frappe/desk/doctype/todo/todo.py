@@ -34,11 +34,7 @@ class ToDo(Document):
 			"comment_type": comment_type,
 			"comment_doctype": self.reference_type,
 			"comment_docname": self.reference_name,
-			"comment": """<div>{text}:
-				<a href='#Form/ToDo/{name}'>{status}: {description}</a></div>""".format(text=text,
-					status = frappe._(self.status),
-					name = self.name,
-					description = self.description)
+			"comment": """{text}""".format(text=text)
 		}).insert(ignore_permissions=True)
 
 	def update_in_reference(self):

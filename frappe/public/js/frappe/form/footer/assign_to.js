@@ -49,8 +49,8 @@ frappe.ui.form.AssignTo = Class.extend({
 				info.description = d[i].description || "";
 
 				$(repl('<div class="text-ellipsis">\
-					<span class="avatar avatar-small"><img src="%(image)s"></span>\
-					<span class="h6 text-muted">%(fullname)s</span>\
+					<a href="#" class="close" data-owner="%(owner)s">&times;</a>\
+					<span class="h6">%(fullname)s</span>\
 				</div>', info))
 					.appendTo(this.$list);
 
@@ -58,6 +58,10 @@ frappe.ui.form.AssignTo = Class.extend({
 					me.primary_action = this.frm.page.add_menu_item(__("Assignment Complete"), function() {
 						me.remove(user);
 					}, "icon-ok", "btn-success")
+				}
+
+				if(!(d[i].owner === user || me.frm.perm[0].write)) {
+					me.$list.find('a.close').remove();
 				}
 			}
 
@@ -89,37 +93,16 @@ frappe.ui.form.AssignTo = Class.extend({
 						label:__("Assign To"),
 						description:__("Add to To Do List Of"), reqd:true},
 					{fieldtype:'Data', fieldname:'description', label:__("Comment"), reqd:true},
+					{fieldtype:'Check', fieldname:'notify',
+						label:__("Notify by Email"), "default":1},
 					{fieldtype:'Date', fieldname:'date', label: __("Complete By")},
 					{fieldtype:'Select', fieldname:'priority', label: __("Priority"),
 						options:'Low\nMedium\nHigh', 'default':'Medium'},
-					{fieldtype:'Check', fieldname:'notify',
-						label:__("Notify by Email"), "default":1},
-					{fieldtype:'Button', label:__("Add"), fieldname:'add_btn'}
-				]
+				],
+				primary_action: function() { me.add_assignment(); },
+				primary_action_label: __("Add")
 			});
 
-			me.dialog.fields_dict.add_btn.input.onclick = function() {
-
-				var assign_to = me.dialog.fields_dict.assign_to.get_value();
-				var args = me.dialog.get_values();
-				if(args && assign_to) {
-					return frappe.call({
-						method:'frappe.desk.form.assign_to.add',
-						args: $.extend(args, {
-							doctype: me.frm.doctype,
-							name: me.frm.docname,
-							assign_to: assign_to
-						}),
-						callback: function(r,rt) {
-							if(!r.exc) {
-								me.render(r.message);
-								me.frm.reload_doc();
-							}
-						},
-						btn: this
-					});
-				}
-			}
 			me.dialog.fields_dict.assign_to.get_query = "frappe.core.doctype.user.user.user_query";
 		}
 		me.dialog.clear();
@@ -129,6 +112,28 @@ frappe.ui.form.AssignTo = Class.extend({
 		}
 
 		me.dialog.show();
+	},
+	add_assignment: function() {
+		var me = this;
+		var assign_to = me.dialog.fields_dict.assign_to.get_value();
+		var args = me.dialog.get_values();
+		if(args && assign_to) {
+			return frappe.call({
+				method:'frappe.desk.form.assign_to.add',
+				args: $.extend(args, {
+					doctype: me.frm.doctype,
+					name: me.frm.docname,
+					assign_to: assign_to
+				}),
+				callback: function(r,rt) {
+					if(!r.exc) {
+						me.render(r.message);
+						me.frm.reload_doc();
+					}
+				},
+				btn: this
+			});
+		}
 	},
 	remove: function(owner) {
 		var me = this;

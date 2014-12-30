@@ -82,7 +82,8 @@ _f.Frm.prototype.setup = function() {
 	// wrapper
 	this.wrapper = this.parent;
 	frappe.ui.make_app_page({
-		parent: this.wrapper
+		parent: this.wrapper,
+		single_column: this.meta.hide_toolbar
 	});
 	this.page = this.wrapper.page;
 	this.layout_main = this.page.main.get(0);
@@ -114,11 +115,12 @@ _f.Frm.prototype.setup = function() {
 	this.script_manager.setup();
 	this.watch_model_updates();
 
-	this.footer = new frappe.ui.form.Footer({
-		frm: this,
-		parent: $('<div>').appendTo(this.page.main.parent())
-	})
-
+	if(!this.meta.hide_toolbar) {
+		this.footer = new frappe.ui.form.Footer({
+			frm: this,
+			parent: $('<div>').appendTo(this.page.main.parent())
+		})
+	}
 	this.setup_drag_drop();
 
 	this.setup_done = true;

@@ -163,6 +163,7 @@ frappe.ui.form.Attachments = Class.extend({
 			onerror: function() {
 				me.dialog.hide();
 			},
+			btn: this.dialog.set_primary_action(__("Attach")),
 			max_width: this.frm.cscript ? this.frm.cscript.attachment_max_width : null,
 			max_height: this.frm.cscript ? this.frm.cscript.attachment_max_height : null,
 		});

@@ -184,7 +184,7 @@ frappe.views.ListView = Class.extend({
 		if(this.template) {
 			var main = frappe.render(this.template, {doc: frappe.get_format_helper(data), list: this });
 		} else {
-			var main = frappe.render(frappe.templates.list_item_standard, {
+			var main = frappe.render_template("list_item_standard", {
 				data: data,
 				columns: this.columns,
 				subject: this.get_avatar_and_id(data, true),
@@ -192,7 +192,7 @@ frappe.views.ListView = Class.extend({
 			});
 		}
 
-		$(frappe.render(frappe.templates.list_item_row, {data: data, main: main})).appendTo(row);
+		$(frappe.render_template("list_item_row", {data: data, main: main})).appendTo(row);
 
 		this.render_tags(row, data);
 
@@ -230,7 +230,7 @@ frappe.views.ListView = Class.extend({
 
 	get_avatar_and_id: function(data, without_workflow) {
 		data._without_workflow = without_workflow;
-		return frappe.render(frappe.templates.list_item_subject, data);
+		return frappe.render_template("list_item_subject", data);
 	},
 
 	prepare_data: function(data) {

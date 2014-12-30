@@ -7,9 +7,8 @@ frappe.provide("frappe.module_page");
 frappe.views.ModuleFactory = frappe.views.Factory.extend({
 	make: function(route) {
 		var module = route[1];
-		var parent = this.make_page(true);
 		frappe.views.moduleview[module] = parent;
-		parent.moduleview = new frappe.views.moduleview.ModuleView(parent, module);
+		new frappe.views.moduleview.ModuleView(module);
 	},
 });
 
@@ -56,15 +55,10 @@ frappe.get_module = function(m) {
 
 
 frappe.views.moduleview.ModuleView = Class.extend({
-	init: function(parent, module) {
+	init: function(module) {
 		this.module = module;
-		this.parent = parent;
-		this.page = parent.page;
 		this.sections = {};
 		this.current_section = null;
-		this.page.set_title(__(frappe.modules[module] && frappe.modules[module].label || module));
-		this.page.main.html('<div class="msg-box text-extra-muted">Loading...</div>');
-
 		this.make();
 	},
 
@@ -77,6 +71,11 @@ frappe.views.moduleview.ModuleView = Class.extend({
 			},
 			callback: function(r) {
 				me.data = r.message;
+				me.parent = frappe.make_page(true);
+				frappe.views.moduleview[me.module] = me.parent;
+				me.page = me.parent.page;
+				me.parent.moduleview = me;
+				me.page.set_title(__(frappe.modules[me.module] && frappe.modules[me.module].label || me.module));
 				me.render();
 			}
 		});

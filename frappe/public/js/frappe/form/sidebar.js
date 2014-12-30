@@ -3,8 +3,8 @@ frappe.ui.form.Sidebar = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
 		this.parent.addClass("hidden-xs");
-		this.wrapper = $(frappe.render(frappe.templates.form_sidebar,
-			{doctype: this.frm.doctype}))
+		this.wrapper = $(frappe.render_template("form_sidebar",
+			{doctype: this.frm.doctype, frm:this.frm}))
 			.appendTo(this.parent);
 		this.$user_actions = this.wrapper.find(".user-actions");
 	},

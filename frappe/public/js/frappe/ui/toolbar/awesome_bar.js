@@ -124,7 +124,9 @@ frappe.search.verbs = [
 	// recent
 	function(txt) {
 		for(var doctype in locals) {
-			if(doctype[0]!==":" && !frappe.model.is_table(doctype)) {
+			if(doctype[0]!==":" && !frappe.model.is_table(doctype)
+				&& !in_list(frappe.boot.single_types, doctype)
+				&& doctype !== "DocType") {
 				var ret = frappe.search.find(keys(locals[doctype]), txt, function(match) {
 					return {
 						value: __(doctype) + " <b>" + match + "</b>",
@@ -151,9 +153,16 @@ frappe.search.verbs = [
 	// doctype list
 	function(txt) {
 		frappe.search.find(frappe.boot.user.can_read, txt, function(match) {
-			return {
-				value: __("{0} List", ["<b>"+__(match)+"</b>"]),
-				route:["List", match]
+			if(in_list(frappe.boot.single_types, match)) {
+				return {
+					value: __("{0}", ["<b>"+__(match)+"</b>"]),
+					route:["Form", match, match]
+				}
+			} else {
+				return {
+					value: __("{0} List", ["<b>"+__(match)+"</b>"]),
+					route:["List", match]
+				}
 			}
 		});
 	},

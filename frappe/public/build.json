@@ -60,6 +60,7 @@
 		"public/js/frappe/class.js",
 		"public/js/frappe/translate.js",
 		"public/js/frappe/assets.js",
+		"public/js/frappe/ui/modal.html",
 		"public/js/frappe/dom.js",
 		"public/js/frappe/ui/messages.js",
 		"public/js/frappe/ui/listing.html",
@@ -101,6 +102,7 @@
 		"public/js/frappe/misc/datetime.js",
 		"public/js/frappe/misc/number_format.js",
 
+		"public/js/frappe/ui/upload.html",
 		"public/js/frappe/upload.js",
 		"public/js/frappe/ui/filters.js",
 		"public/js/frappe/ui/tree.js",
@@ -133,7 +135,7 @@
 
 		"public/js/frappe/ui/toolbar/selector_dialog.js",
 		"public/js/frappe/ui/toolbar/new.js",
-		"public/js/frappe/ui/toolbar/search.js",
+		"public/js/frappe/ui/toolbar/awesome_bar.js",
 		"public/js/frappe/ui/toolbar/report.js",
 		"public/js/frappe/ui/toolbar/recent.js",
 		"public/js/frappe/ui/toolbar/bookmarks.js",

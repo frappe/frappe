@@ -13,11 +13,11 @@ frappe.ui.form.Footer = Class.extend({
 		// render-complete
 		$(this.frm.wrapper).on("render_complete", function() {
 			me.refresh();
-		})
+		});
 	},
 	make: function() {
 		var me = this;
-		this.wrapper = $(frappe.render(frappe.templates.form_footer, {}))
+		this.wrapper = $(frappe.render_template("form_footer", {}))
 			.appendTo(this.parent);
 		this.wrapper.find(".btn-save").click(function() {
 			me.frm.save('Save', null, this);

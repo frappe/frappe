@@ -85,12 +85,21 @@ frappe.ui.form.ControlHTML = frappe.ui.form.Control.extend({
 		var me = this;
 		this.disp_area = this.wrapper;
 		this.$wrapper.on("refresh", function() {
-			if(me.df.options)
-				me.$wrapper.html(me.df.options);
+			var content = me.get_content();
+			if(content) me.$wrapper.html(content);
 		})
 	},
+	get_content: function() {
+		return me.df.options || "";
+	},
 	html: function(html) {
-		this.$wrapper.html(html || me.df.options);
+		this.$wrapper.html(html || me.get_content());
+	}
+});
+
+frappe.ui.form.ControlHeading = frappe.ui.form.ControlHTML.extend({
+	get_content: function() {
+		return "<h4>" + __(this.df.label) + "</h4>";
 	}
 });
 
@@ -520,7 +529,7 @@ frappe.ui.form.ControlCheck = frappe.ui.form.ControlData.extend({
 frappe.ui.form.ControlButton = frappe.ui.form.ControlData.extend({
 	make_input: function() {
 		var me = this;
-		this.$input = $('<button class="btn btn-default">')
+		this.$input = $('<button class="btn btn-default btn-sm">')
 			.prependTo(me.input_area)
 			.on("click", function() {
 				me.onclick();
@@ -558,7 +567,7 @@ frappe.ui.form.ControlButton = frappe.ui.form.ControlData.extend({
 frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 	make_input: function() {
 		var me = this;
-		this.$input = $('<button class="btn btn-default">')
+		this.$input = $('<button class="btn btn-default btn-sm">')
 			.html(__("Upload"))
 			.prependTo(me.input_area)
 			.on("click", function() {
@@ -615,6 +624,7 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 			args: {},
 			max_width: this.df.max_width,
 			max_height: this.df.max_height,
+			btn: this.dialog.set_primary_action(__("Upload")),
 			callback: function(attachment, r) {
 				me.dialog.hide();
 				me.on_upload_complete(attachment);
@@ -732,7 +742,7 @@ frappe.ui.form.ControlSelect = frappe.ui.form.ControlData.extend({
 	setup_attachment: function() {
 		var me = this;
 		$(this.input).css({"width": "85%", "display": "inline-block"});
-		this.$attach = $("<button class='btn btn-default' title='"+ __("Add attachment") + "'\
+		this.$attach = $("<button class='btn btn-default btn-sm' title='"+ __("Add attachment") + "'\
 			style='padding-left: 6px; padding-right: 6px; margin-right: 6px;'>\
 			<i class='icon-plus'></i></button>")
 			.click(function() {

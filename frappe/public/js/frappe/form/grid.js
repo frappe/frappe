@@ -473,7 +473,7 @@ frappe.ui.form.GridRow = Class.extend({
 	},
 	make_form: function() {
 		if(!this.form_area) {
-			$(frappe.render(frappe.templates.grid_form, {grid:this})).appendTo(this.form_panel);
+			$(frappe.render_template("grid_form", {grid:this})).appendTo(this.form_panel);
 			this.form_area = this.wrapper.find(".form-area");
 			this.set_row_index();
 			this.set_form_events();

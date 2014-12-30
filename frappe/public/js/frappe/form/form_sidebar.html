@@ -1,6 +1,7 @@
 <div class="form-sidebar">
     <ul class="sidebar-section user-actions list-unstyled hide">
     </ul>
+    {% if (!frm.meta.hide_toolbar) { %}
     <div class="sidebar-section">
         <h6>{%= __("Comments") %}
             <span class="label label-default n-comments"></span></h6>
@@ -18,7 +19,7 @@
 		</h6>
         <div class="assign-list"></div>
         <div>
-			<a class="text-muted h6 add-assignment">{%= __("Add Assignment") %}</a>
+			<a class="text-muted h6 add-assignment">{%= __("Assign") %}</a>
         </div>
 	</div>
 	<div class="sidebar-section form-attachments">
@@ -45,4 +46,5 @@
 		</h6>
         <div class="created-by text-muted small"></div>
 	</div>
+    {% } %}
 </div>

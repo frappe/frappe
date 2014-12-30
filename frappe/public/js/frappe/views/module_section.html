@@ -3,7 +3,7 @@
     <div class="row module-item" data-item-index={%= i %}>
         <div class="col-md-9">
             {% if (item.description) { %}<h4>{% } else { %}<h5>{% } %}
-            {%= item.label %}
+            {%= item.label || item.name %}
             {% if (item.type==="doctype") { %}
             <span class="open-notification hide"
                 data-doctype="{%= item.name %}">

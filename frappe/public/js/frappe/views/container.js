@@ -87,6 +87,7 @@ frappe.views.Container = Class.extend({
 		}
 
 		if(breadcrumbs.module && breadcrumbs.module != "Desk") {
+			if(breadcrumbs.module==="Core") breadcrumbs.module = "Setup";
 			divider();
 			$('<li><a href="#Module/'+ breadcrumbs.module +'">'+ __(breadcrumbs.module) +'</a></li>').appendTo($breadcrumbs);
 		}

@@ -4,9 +4,9 @@
 </i>
 {% if (_checkbox) { %}
 <input class="list-delete" type="checkbox" style="margin-right: 10px;">
+{% } %}
 <a class="grey list-id" style="margin-right: 10px;"
 	href="#Form/{%= _doctype_encoded %}/{%= _name_encoded %}" title="{%= _full_title %}">{%= _title %}</a>
-{% } %}
 {% if (_submittable) { %}
     <span class="docstatus filterable" style="margin-right: 10px;" data-filter="docstatus,=,{%= docstatus %}">
     {% if (docstatus===0) { %}

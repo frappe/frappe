@@ -4,7 +4,7 @@
 
 frappe.ui.toolbar.Toolbar = Class.extend({
 	init: function() {
-		$('header').append(frappe.render(frappe.templates.navbar, {}));
+		$('header').append(frappe.render_template("navbar", {}));
 
 		$(document).on("notification-update", function() {
 			frappe.ui.toolbar.update_notifications();
