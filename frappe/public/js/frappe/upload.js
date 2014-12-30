@@ -22,24 +22,10 @@ frappe.upload = {
 		// get the first file
 		opts.btn.click(function() {
 			// convert functions to values
-			for(key in opts.args) {
-				if(typeof val==="function")
-					opt.args[key] = opts.args[key]();
-			}
 
-			// add other inputs in the div as arguments
-			opts.args.params = {};
-			$upload.find("input[name]").each(function() {
-				var key = $(this).attr("name");
-				var type = $(this).attr("type");
-				if(key!="filedata" && key!="file_url") {
-					if(type === "checkbox") {
-						opts.args.params[key] = $(this).is(":checked");
-					} else {
-						opts.args.params[key] = $(this).val();
-					}
-				}
-			})
+			if(opts.get_params) {
+				opts.args.params = opts.get_params();
+			}
 
 			opts.args.file_url = $upload.find('[name="file_url"]').val();
 

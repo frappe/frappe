@@ -1,25 +1,69 @@
 <div class="data-import-tool">
     <div class="data-import-selector">
-    	<select class="form-control doctype" style="width: 200px" placeholder="{%= __("Select Type") %}">
-    	</select>
+        <h6>{%= __("Select Type of Document to Import") %}</h6>
+    	<div>
+            <select class="form-control doctype" style="width: 200px" placeholder="{%= __("Select Type") %}">
+                <option value=""></option>
+                {% for (var i=0, l= frappe.boot.user.can_import.length; i < l; i++) {
+                    var doctype = frappe.boot.user.can_import[i]; %}
+                <option value="{%= doctype %}">{%= __(doctype) %}</option>
+                {% } %}
+            </select>
+        </div>
     </div>
-    <div class="section export hide">
+    <div class="export-import-section hide">
+        <hr>
         <h3>{%= __("Export") %}</h3>
-        <div class="checkbox">
-            <label>
-                <input type="checkbox" name="dit-with-data"> <span>{%= __("Download with data") %}</span>
-            </label>
+        <p class="text-muted">{%= __("To import or update records, you must first download the template for importing.") %}</p>
+        <div class="row" style="max-width: 700px;">
+            <div class="col-sm-4">
+                <p><a class="btn btn-default btn-sm btn-download-template">
+                    {%= __("Download Blank Template") %}</a></p>
+            </div>
+            <div class="col-sm-8">
+                <h6 class="text-muted">{%= __("Recommended for inserting new records.") %}</h6>
+            </div>
         </div>
-        <div class="data-import-download">
-            <div class="text-muted"><br>{%= __("Select type to export") %}</div>
+        <div class="row" style="max-width: 700px;">
+            <div class="col-sm-4">
+                <p><a class="btn btn-default btn-sm btn-download-data">
+                    {%= __("Download with Data") %}</a></p>
+            </div>
+            <div class="col-sm-8">
+                <h6 class="text-muted">{%= __("Recommended bulk editing records via import, or understanding the import format.") %}</h6>
+            </div>
         </div>
-    </div>
-    <div class="section import hide">
+        <hr>
         <h3>{%= __("Import") %}</h3>
-
-    </div>
-    <div class="section help hide">
-        <h3>{%= __("Help") %}</h3>
-
+        <div class="row">
+            <div class="col-md-6">
+                <div class="upload-area"></div>
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" name="always_insert">
+                            {%= __("Insert all records, even if ID matches.") %}
+                    </label>
+                </div>
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" name="submit_after_import">
+                            {%= __("Submit after importing.") %}
+                    </label>
+                </div>
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" name="ignore_encoding_errors">
+                            {%= __("Ignore encoding errors.") %}
+                    </label>
+                </div>
+                <p>
+                    <button class="btn btn-sm btn-primary btn-import">Import</button>
+                </p>
+            </div>
+            <div class="import-log hide col-md-6">
+                <h3>Import Log</h3>
+                <div class="import-log-messages"></div>
+            </div>
+        </div>
     </div>
 </div>

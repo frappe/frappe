@@ -16,7 +16,7 @@ frappe.ui.make_app_page = function(opts) {
 	*/
 
 	opts.parent.page = new frappe.ui.Page(opts);
-
+	return opts.parent.page;
 }
 
 frappe.ui.Page = Class.extend({

@@ -1,9 +1,7 @@
-.data-import-tool .section {
+.data-import-tool {
 	padding: 15px;
 }
 
-.data-import-selector {
-	padding: 15px;
-	border-bottom: 1px solid #d1d8dd;
-	background-color: #F0F4F7;
+.data-import-tool hr {
+	margin: 10px -15px;
 }
