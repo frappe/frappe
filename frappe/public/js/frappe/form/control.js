@@ -90,10 +90,10 @@ frappe.ui.form.ControlHTML = frappe.ui.form.Control.extend({
 		})
 	},
 	get_content: function() {
-		return me.df.options || "";
+		return this.df.options || "";
 	},
 	html: function(html) {
-		this.$wrapper.html(html || me.get_content());
+		this.$wrapper.html(html || this.get_content());
 	}
 });
 
