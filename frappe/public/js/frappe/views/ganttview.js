@@ -62,7 +62,6 @@ frappe.views.Gantt = Class.extend({
 		var parent = $(this.parent)
 			.find(".layout-main")
 			.empty()
-			.css('min-height', '300px')
 			.html('<div class="alert alert-info">Loading...</div>');
 
 		var me = this;

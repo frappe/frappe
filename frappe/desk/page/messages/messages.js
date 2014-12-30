@@ -12,8 +12,6 @@ frappe.pages.messages.onload = function(parent) {
 		title: "Messages"
 	});
 
-	frappe.add_breadcrumbs("Messages");
-
 	frappe.desk.pages.messages = new frappe.desk.pages.messages(parent);
 }
 

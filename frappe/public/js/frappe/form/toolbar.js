@@ -89,7 +89,7 @@ frappe.ui.form.Toolbar = Class.extend({
 
 		// rename
 		if(me.frm.meta.allow_rename && me.frm.perm[0].write) {
-			this.page.add_menu_item(__("Rename..."), function() {
+			this.page.add_menu_item(__("Rename"), function() {
 				me.frm.rename_doc();}, true);
 		}
 
@@ -102,8 +102,7 @@ frappe.ui.form.Toolbar = Class.extend({
 
 		// New
 		if(p[CREATE]) {
-			this.page.add_menu_item(__("New") + " "
-				+ __(me.frm.doctype), function() {
+			this.page.add_menu_item(__("New {0}", [__(me.frm.doctype)]), function() {
 				new_doc(me.frm.doctype);}, true);
 		}
 

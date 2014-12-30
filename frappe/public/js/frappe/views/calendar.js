@@ -35,10 +35,10 @@ frappe.views.Calendar = Class.extend({
 		var module = locals.DocType[this.doctype].module;
 		this.parent.page.set_title(__("Calendar") + " - " + __(this.doctype));
 		frappe.add_breadcrumbs(module==="Core" ? "Calendar" : module, this.doctype)
-		this.parent.page.add_button("New", function() {
+		this.parent.page.set_primary_action(__("New"), function() {
 			var doc = frappe.model.get_new_doc(me.doctype);
 			frappe.set_route("Form", me.doctype, doc.name);
-		}, "icon-plus");
+		});
 
 		var me = this;
 		$(this.parent).on("show", function() {
@@ -56,6 +56,24 @@ frappe.views.Calendar = Class.extend({
 		// 	.appendTo(this.$wrapper);
 
 		this.$cal.fullCalendar(this.cal_options);
+
+		this.set_css();
+	},
+	set_css: function() {
+		// flatify buttons
+		this.$wrapper.find("button.fc-state-default")
+			.removeClass("fc-state-default")
+			.addClass("btn btn-default");
+
+		this.$wrapper.find(".fc-button-group").addClass("btn-group");
+
+		var btn_group = this.$wrapper.find(".fc-right .fc-button-group");
+		btn_group.find(".fc-state-active").addClass("active");
+
+		btn_group.find(".btn").on("click", function() {
+			btn_group.find(".btn").removeClass("active");
+			$(this).addClass("active");
+		});
 	},
 	field_map: {
 		"id": "name",
@@ -65,22 +83,22 @@ frappe.views.Calendar = Class.extend({
 	},
 	styles: {
 		"standard": {
-			"color": "#999"
+			"color": "#F0F4F7"
 		},
 		"important": {
-			"color": "#b94a48"
+			"color": "#FFDCDC"
 		},
 		"warning": {
-			"color": "#f89406"
+			"color": "#FFE6BF",
 		},
 		"success": {
-			"color": "#468847"
+			"color": "#E4FFC1",
 		},
 		"info": {
-			"color": "#3a87ad"
+			"color": "#E8DDFF"
 		},
 		"inverse": {
-			"color": "#333333"
+			"color": "#D9F6FF"
 		}
 	},
 	setup_options: function() {
@@ -94,7 +112,7 @@ frappe.views.Calendar = Class.extend({
 			editable: true,
 			selectable: true,
 			selectHelper: true,
-			events: function(start, end, callback) {
+			events: function(start, end, timezone, callback) {
 				return frappe.call({
 					method: me.get_events_method || "frappe.desk.calendar.get_events",
 					type: "GET",
@@ -119,9 +137,13 @@ frappe.views.Calendar = Class.extend({
 			eventResize: function(event, dayDelta, minuteDelta, allDay, revertFunc) {
 				me.update_event(event, revertFunc);
 			},
-			select: function(startDate, endDate, allDay, jsEvent, view) {
-				if(jsEvent.day_clicked && view.name=="month")
+			select: function(startDate, endDate, jsEvent, view) {
+				if (view.name==="month" && (endDate - startDate)===86400000) {
+					// detect single day click in month view
 					return;
+
+				}
+
 				var event = frappe.model.get_new_doc(me.doctype);
 
 				event[me.field_map.start] = frappe.datetime.get_datetime_as_string(startDate);
@@ -130,7 +152,7 @@ frappe.views.Calendar = Class.extend({
 					event[me.field_map.end] = frappe.datetime.get_datetime_as_string(endDate);
 
 				if(me.field_map.allDay)
-					event[me.field_map.allDay] = allDay ? 1 : 0;
+					event[me.field_map.allDay] = (startDate._ambigTime && endDate._ambigTime) ? 1 : 0;
 
 				frappe.set_route("Form", me.doctype, event.name);
 			},
@@ -178,6 +200,7 @@ frappe.views.Calendar = Class.extend({
 			} else {
 				$.extend(d, me.styles["standard"]);
 			}
+			d["textColor"] = "#36414C";
 		})
 	},
 	update_event: function(event, revertFunc) {

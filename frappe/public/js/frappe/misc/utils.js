@@ -119,7 +119,7 @@ frappe.utils = {
 	},
 	set_footnote: function(me, wrapper, txt) {
 		if(!me.footnote_area) {
-			me.footnote_area = $('<div class="alert alert-info form-intro-area" style="margin-top: 20px;">')
+			me.footnote_area = $('<div class="text-muted form-intro-area" style="margin-top: 10px;">')
 				.appendTo(wrapper);
 		}
 
