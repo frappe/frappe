@@ -102,7 +102,7 @@ class WebsiteGenerator(Document):
 
 				if old_routes:
 					for old_route in old_routes:
-						clear_cache(old_route)
+						clear_cache(make_route(old_route))
 
 					frappe.db.sql("""update `tab{0}` set
 						parent_website_route = replace(parent_website_route, %s, %s),

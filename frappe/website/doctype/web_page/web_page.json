@@ -1,5 +1,5 @@
 {
-  "creation": "2013-03-28 10:35:30", 
+ "creation": "2013-03-28 10:35:30", 
  "description": "Page to show on the website\n", 
  "docstatus": 0, 
  "doctype": "DocType", 
@@ -25,6 +25,7 @@
    "fieldtype": "Data", 
    "in_list_view": 1, 
    "label": "Page Name", 
+   "no_copy": 1, 
    "permlevel": 0, 
    "read_only": 0
   }, 
@@ -40,6 +41,7 @@
    "fieldtype": "Read Only", 
    "hidden": 1, 
    "label": "Parent Website Route", 
+   "no_copy": 1, 
    "options": "", 
    "permlevel": 0
   }, 
@@ -171,7 +173,7 @@
  "icon": "icon-file-alt", 
  "idx": 1, 
  "max_attachments": 20, 
- "modified": "2014-08-19 02:19:05.426465", 
+ "modified": "2014-11-28 15:00:09.806213", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Web Page", 
