@@ -3,8 +3,6 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe.desk import reportview
-from frappe.utils import cint
 from frappe import _
 
 @frappe.whitelist()
@@ -156,7 +154,7 @@ def set_last_modified(data):
 
 def get_last_modified(doctype):
 	try:
-		last_modified = reportview.execute(doctype, fields=["max(modified)"], as_list=True)[0][0]
+		last_modified = frappe.get_all(doctype, fields=["max(modified)"], as_list=True, limit_page_length=1)[0][0]
 	except Exception, e:
 		if e.args[0]==1146:
 			last_modified = None

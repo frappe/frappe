@@ -35,13 +35,14 @@
         </div>
         <hr>
         <h3>{%= __("Import") %}</h3>
+        <p class="text-muted">{%= __("Update the template and save in CSV (Comma Separate Values) format before attaching.") %}</p>
         <div class="row">
             <div class="col-md-6">
                 <div class="upload-area"></div>
                 <div class="checkbox">
                     <label>
                         <input type="checkbox" name="always_insert">
-                            {%= __("Insert all records, even if ID matches.") %}
+                            {%= __("Always insert, even if ID is given.") %}
                     </label>
                 </div>
                 <div class="checkbox">
