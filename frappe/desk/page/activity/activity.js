@@ -2,12 +2,12 @@
 // License: GNU General Public License v3. See license.txt
 
 frappe.pages['activity'].onload = function(wrapper) {
-	frappe.ui.make_app_page({
+	var page = frappe.ui.make_app_page({
 		parent: wrapper,
-		title: __("Activity"),
 		single_column: true
-	})
-	frappe.add_breadcrumbs("Activity");
+	});
+
+	page.set_title(__("Activty"), frappe.get_module("Activity").icon);
 
 	var list = new frappe.ui.Listing({
 		hide_refresh: true,

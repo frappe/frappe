@@ -353,15 +353,10 @@ em.link-option {
 
 .alert-badge {
 	margin: 4px 0px;
-	padding: 10px;
 }
 
 .alert-badge .badge {
 	margin-top: 3px;
-}
-
-.form-layout {
-	/*margin-top: -15px;*/
 }
 
 .form-print-wrapper {
@@ -392,11 +387,6 @@ em.link-option {
 
 .form-control {
 	padding: 6px 8px;
-}
-
-.form-headline {
-	margin-bottom: 10px;
-	font-size: 120%;
 }
 
 .form-dashboard {

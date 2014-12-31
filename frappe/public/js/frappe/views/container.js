@@ -89,7 +89,13 @@ frappe.views.Container = Class.extend({
 		if(breadcrumbs.module && breadcrumbs.module != "Desk") {
 			if(breadcrumbs.module==="Core") breadcrumbs.module = "Setup";
 			divider();
-			$('<li><a href="#Module/'+ breadcrumbs.module +'">'+ __(breadcrumbs.module) +'</a></li>').appendTo($breadcrumbs);
+			var module_info = frappe.get_module(breadcrumbs.module),
+				icon = module_info.icon,
+				label = module_info.label;
+			if(icon) {
+				icon = '<span class="'+icon+' text-muted"></span> '
+			}
+			$('<li><a href="#Module/'+ breadcrumbs.module +'">'+ icon + __(label) +'</a></li>').appendTo($breadcrumbs);
 		}
 		if(breadcrumbs.doctype) {
 			divider();

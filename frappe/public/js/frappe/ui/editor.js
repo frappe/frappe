@@ -242,15 +242,15 @@ bsEditorToolbar = Class.extend({
 				</div>\
 				<div class="btn-group form-group">\
 					<a class="btn btn-default btn-small" data-edit="bold" title="' + __("Bold (Ctrl/Cmd+B)") + '">\
-						<i class="icon-bold"></i></a>\
+						B</a>\
 					<a class="btn btn-default btn-small" data-edit="insertunorderedlist" title="' + __("Bullet list") + '">\
-						<i class="icon-list-ul"></i></a>\
+						<i class="octicon octicon-list-unordered"></i></a>\
 					<a class="btn btn-default btn-small" data-edit="insertorderedlist" title="' + __("Number list") + '">\
-						<i class="icon-list-ol"></i></a>\
+						<i class="octicon octicon-list-ordered"></i></a>\
 					<a class="btn btn-default btn-small" data-edit="outdent" title="' + __("Reduce indent (Shift+Tab)") + '">\
-						<i class="icon-indent-left"></i></a>\
+						<i class="octicon octicon-move-left"></i></a>\
 					<a class="btn btn-default btn-small" data-edit="indent" title="' + __("Indent (Tab)") + '">\
-						<i class="icon-indent-right"></i></a>\
+						<i class="octicon octicon-move-right"></i></a>\
 				</div>\
 				<div class="btn-group hidden-xs form-group">\
 					<a class="btn btn-default btn-small" data-edit="justifyleft" title="' + __("Align Left (Ctrl/Cmd+L)") + '">\
@@ -262,15 +262,15 @@ bsEditorToolbar = Class.extend({
 					<a class="btn btn-default btn-small" title="' + __("Remove Link") +'" data-edit="unlink">\
 						<i class="icon-unlink"></i></a>\
 					<a class="btn btn-default btn-small btn-insert-img" title="' + __("Insert picture (or just drag & drop)") + '">\
-						<i class="icon-picture"></i></a>\
+						<i class="octicon octicon-file-media"></i></a>\
 					<a class="btn btn-default btn-small" data-edit="insertHorizontalRule" \
-						title="' + __("Horizontal Line Break") + '">─</a>\
+						title="' + __("Horizontal Line Break") + '"><i class="octicon octicon-horizontal-rule"></i></a>\
 				</div>\
 				<div class="btn-group form-group">\
 					<a class="btn btn-default btn-small btn-html" title="' + __("HTML") + '">\
-						<i class="icon-code"></i></a>\
+						<i class="octicon octicon-code"></i></a>\
 					<a class="btn btn-default btn-small btn-success" data-action="Save" title="' + __("Save") + '">\
-						<i class="icon-save"></i></a>\
+						<i class="octicon octicon-check"></i></a>\
 				</div>\
 				<input type="file" data-edit="insertImage" />\
 			</div>').prependTo(parent);

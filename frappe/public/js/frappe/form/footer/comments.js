@@ -125,20 +125,20 @@ frappe.ui.form.Comments = Class.extend({
 	},
 	set_icon_and_color: function(c) {
 		c.icon = {
-			"Email": "icon-envelope",
-			"Chat": "icon-comments",
-			"Phone": "icon-phone",
-			"SMS": "icon-mobile-phone",
-			"Created": "icon-plus",
-			"Submitted": "icon-lock",
-			"Cancelled": "icon-remove",
-			"Assigned": "icon-user",
-			"Assignment Completed": "icon-ok",
-			"Comment": "icon-comment",
-			"Workflow": "icon-arrow-right",
-			"Label": "icon-tag",
-			"Attachment": "icon-paper-clip",
-			"Attachment Removed": "icon-paper-clip"
+			"Email": "octicon octicon-mail",
+			"Chat": "octicon octicon-comment-discussion",
+			"Phone": "octicon octicon-device-mobile",
+			"SMS": "octicon octicon-comment",
+			"Created": "octicon octicon-plus",
+			"Submitted": "octicon octicon-lock",
+			"Cancelled": "octicon octicon-x",
+			"Assigned": "octicon octicon-tag",
+			"Assignment Completed": "octicon octicon-check",
+			"Comment": "octicon octicon-comment-discussion",
+			"Workflow": "octicon octicon-git-branch",
+			"Label": "octicon octicon-tag",
+			"Attachment": "octicon octicon-upload",
+			"Attachment Removed": "octicon octicon-x"
 		}[c.comment_type]
 
 		c.color = {

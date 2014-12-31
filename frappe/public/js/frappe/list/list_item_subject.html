@@ -10,11 +10,11 @@
 {% if (_submittable) { %}
     <span class="docstatus filterable" style="margin-right: 10px;" data-filter="docstatus,=,{%= docstatus %}">
     {% if (docstatus===0) { %}
-    	<i class="icon-edit icon-fixed-width" title="{%= __("Draft") %}"></i></span>
+    	<i class="octicon octicon-pencil" title="{%= __("Draft") %}"></i></span>
     {% } else if (docstatus===1) { %}
-    	<i class="icon-lock icon-fixed-width" title="{%= __("Submitted") %}"></i></span>
+    	<i class="octicon octicon-lock" title="{%= __("Submitted") %}"></i></span>
     {% } else if (docstatus===2) { %}
-    	<i class="icon-remove icon-fixed-width" title="{%= __("Cancelled") %}"></i></span>
+    	<i class="octicon octicon-x" title="{%= __("Cancelled") %}"></i></span>
     {% } %}
 {% } %}
 {% if (_workflow && !_without_workflow) { %}

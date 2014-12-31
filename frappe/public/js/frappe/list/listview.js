@@ -19,7 +19,10 @@ frappe.views.ListView = Class.extend({
 		this.doctype = doctype;
 		this.meta = frappe.get_doc("DocType", this.doctype);
 		this.settings = frappe.listview_settings[this.doctype] || {};
-		this.template = this.meta.__listview_template || null;
+		if(this.meta.__listview_template) {
+			this.template_name = doctype + "_listview";
+			frappe.templates[this.template_name] = this.meta.__listview_template;
+		}
 		this.set_fields();
 		this.set_columns();
 		this.id_list = [];
@@ -181,8 +184,11 @@ frappe.views.ListView = Class.extend({
 		}
 
 
-		if(this.template) {
-			var main = frappe.render(this.template, {doc: frappe.get_format_helper(data), list: this });
+		if(this.template_name) {
+			var main = frappe.render_template(this.template_name, {
+				doc: frappe.get_format_helper(data),
+				list: this
+			});
 		} else {
 			var main = frappe.render_template("list_item_standard", {
 				data: data,

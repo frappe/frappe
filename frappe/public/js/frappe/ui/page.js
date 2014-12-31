@@ -156,10 +156,13 @@ frappe.ui.Page = Class.extend({
 		return this.$title_area;
 	},
 
-	set_title: function(txt) {
+	set_title: function(txt, icon) {
 		// strip icon
 		this.title = txt;
 		document.title = txt.replace(/<[^>]*>/g, "");
+		if(icon) {
+			txt = '<span class="'+ icon +' text-muted" style="font-size: 24px;"></span> ' + txt;
+		}
 		this.$title_area.find(".title-text").html(txt);
 	},
 

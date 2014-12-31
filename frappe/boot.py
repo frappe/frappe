@@ -104,7 +104,7 @@ def get_fullnames():
 		concat(ifnull(first_name, ''),
 			if(ifnull(last_name, '')!='', ' ', ''), ifnull(last_name, '')) as fullname,
 			user_image as image, gender, email
-		from tabUser where ifnull(enabled, 0)=1 and user_type="System User" """, as_dict=1)
+		from tabUser where ifnull(enabled, 0)=1 and user_type!="Website User" """, as_dict=1)
 
 	d = {}
 	for r in ret:

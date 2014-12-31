@@ -57,6 +57,7 @@ frappe.get_module = function(m) {
 frappe.views.moduleview.ModuleView = Class.extend({
 	init: function(module) {
 		this.module = module;
+		this.module_info = frappe.get_module(module);
 		this.sections = {};
 		this.current_section = null;
 		this.make();
@@ -75,7 +76,8 @@ frappe.views.moduleview.ModuleView = Class.extend({
 				frappe.views.moduleview[me.module] = me.parent;
 				me.page = me.parent.page;
 				me.parent.moduleview = me;
-				me.page.set_title(__(frappe.modules[me.module] && frappe.modules[me.module].label || me.module));
+				me.page.set_title(__(frappe.modules[me.module]
+					&& frappe.modules[me.module].label || me.module), me.module_info.icon);
 				me.render();
 			}
 		});

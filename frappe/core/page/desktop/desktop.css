@@ -1,3 +1,16 @@
+#page-desktop {
+	position: absolute;
+	min-width: 100%;
+	min-height: 100%;
+	overflow: auto;
+	padding-top: 14px;
+	padding-bottom: 50px;
+	margin-bottom: -50px;
+	border: 0px;
+	background-color: transparent;
+	background-color: #fcfdfe;
+}
+
 #icon-grid {
 	padding-top: 15px;
 	padding-bottom: 30px;
@@ -5,10 +18,10 @@
 
 .case-wrapper {
 	position: relative;
-	margin: 15px;
+	margin: 0px;
 	float: left;
 	width: 100px;
-	height: 100px;
+	height: 120px;
 }
 
 .case-label {
@@ -37,9 +50,9 @@
 	border-radius: 30px;
 	-moz-border-radius: 30px;
 	-webkit-border-radius: 30px;
-	line-height: 12px;
+	line-height: 15px;
 	background: #FF5858;
-	padding: 7px;
+	padding: 5px;
 	z-index: 5;
 }
 
@@ -49,14 +62,3 @@
 	min-width: 15px;
 }
 
-#page-desktop {
-	position: absolute;
-	min-width: 100%;
-	min-height: 100%;
-	overflow: auto;
-	padding-top: 14px;
-	padding-bottom: 50px;
-	margin-bottom: -50px;
-	border: 0px;
-	background-color: transparent;
-}

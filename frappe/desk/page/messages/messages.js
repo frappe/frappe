@@ -7,10 +7,10 @@
 frappe.provide('frappe.desk.pages.messages');
 
 frappe.pages.messages.onload = function(parent) {
-	frappe.ui.make_app_page({
+	var page = frappe.ui.make_app_page({
 		parent: parent,
-		title: "Messages"
 	});
+	page.set_title(__("Messages"), frappe.get_module("Messages").icon);
 
 	frappe.desk.pages.messages = new frappe.desk.pages.messages(parent);
 }
