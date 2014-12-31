@@ -3,8 +3,6 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe.desk import reportview
-from frappe.utils import cint
 from frappe import _
 
 @frappe.whitelist()
@@ -14,11 +12,7 @@ def get(module):
 	data = get_data(module)
 
 	out = {
-		"data": data,
-		"item_count": {
-			data[0]["label"]: get_section_count(section=data[0])
-		},
-		"reports": get_report_list(module)
+		"data": data
 	}
 
 	return out
@@ -33,7 +27,12 @@ def get_data(module):
 	else:
 		add_custom_doctypes(data, doctype_info)
 
+	add_section(data, _("Custom Reports"), "icon-list-alt",
+		get_report_list(module))
+
 	data = combine_common_sections(data)
+
+	set_last_modified(data)
 
 	return data
 
@@ -147,52 +146,21 @@ def get_setup_section(app, module, label, icon):
 				"items": section["items"]
 			}
 
-@frappe.whitelist()
-def get_section_count(section=None, module=None, section_label=None):
-	"""Get count for doctypes listed in module info."""
-	doctypes = []
-	if module and section_label:
-		data = get_data(module)
-		for each in data:
-			if each["label"] == section_label:
-				section = each
-				break
+def set_last_modified(data):
+	for section in data:
+		for item in section["items"]:
+			if item["type"] == "doctype":
+				item["last_modified"] = get_last_modified(item["name"])
 
-	if section:
-		doctypes = get_doctypes(section)
-
-	count = get_count(doctypes)
-
-	return count
-
-def get_doctypes(section):
-	doctypes = []
-
-	for item in section.get("items", []):
-		if item.get("type")=="doctype":
-			doctypes.append(item["name"])
-		elif item.get("doctype"):
-			doctypes.append(item["doctype"])
-
-	return list(set(doctypes))
-
-def get_count(doctypes):
-	count = {}
-	can_read = frappe.user.get_can_read()
-	for d in doctypes:
-		if d in can_read:
-			count[d] = get_doctype_count_from_table(d)
-	return count
-
-def get_doctype_count_from_table(doctype):
+def get_last_modified(doctype):
 	try:
-		count = reportview.execute(doctype, fields=["count(*)"], as_list=True)[0][0]
+		last_modified = frappe.get_all(doctype, fields=["max(modified)"], as_list=True, limit_page_length=1)[0][0]
 	except Exception, e:
 		if e.args[0]==1146:
-			count = None
+			last_modified = None
 		else:
 			raise
-	return cint(count)
+	return last_modified
 
 def get_report_list(module, is_standard="No"):
 	"""Returns list on new style reports for modules."""
@@ -206,7 +174,6 @@ def get_report_list(module, is_standard="No"):
 			"type": "report",
 			"doctype": r.ref_doctype,
 			"is_query_report": 1 if r.report_type in ("Query Report", "Script Report") else 0,
-			"description": _(r.report_type),
 			"label": _(r.name),
 			"name": r.name
 		})

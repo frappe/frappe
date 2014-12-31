@@ -1,18 +1,29 @@
 .app-icon {
 	border-radius: 5px;
 	overflow: hidden;
-	padding: 20px;
+	padding: 15px;
 	display: inline-block;
 	margin: auto;
 	text-align: center;
+	/*border: 1px solid #36414C;*/
+	border: 1px solid #d1d8dd;
+	background-color: #fff;
+}
+
+.app-icon:hover {
+	background-color: #f5f7fa;
 }
 
 
 .app-icon i {
-	font-size: 30px;
-	min-width: 30px;
-	color: #f8f8f8;
+	font-size: 40px;
+	min-width: 40px;
+	color: #8D99A6;
 	display: inline-block;
+}
+
+.app-icon:hover i {
+	color: inherit;
 }
 
 .app-icon svg, .app-icon img {

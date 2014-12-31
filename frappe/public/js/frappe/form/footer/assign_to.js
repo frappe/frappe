@@ -12,13 +12,9 @@ frappe.ui.form.AssignTo = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
 		var me = this;
-		this.wrapper = $('<div>\
-			<div class="alert-list" style="margin-bottom: 7px;"></div>\
-		</div>').appendTo(this.parent);
+		this.$list = this.parent.find(".assign-list");
 
-		this.$list = this.wrapper.find(".alert-list");
-
-		this.parent.find(".btn").click(function() {
+		this.btn = this.parent.find(".add-assignment").click(function() {
 			me.add();
 		});
 		this.refresh();
@@ -52,22 +48,20 @@ frappe.ui.form.AssignTo = Class.extend({
 				info.image = frappe.user_info(d[i].owner).image;
 				info.description = d[i].description || "";
 
-				$(repl('<div class="media">\
-					<span class="pull-left avatar avatar-small">\
-						<img src="%(image)s" class="media-object"></span>\
-					<div class="media-body">\
-						%(fullname)s \
-						<a class="close" href="#" style="top: 1px;"\
-							data-owner="%(owner)s">&times;</a>\
-						<div class="text-muted small">%(description)s</div>\
-					</div>\
-					</div>', info))
+				$(repl('<div class="text-ellipsis">\
+					<a href="#" class="close" data-owner="%(owner)s">&times;</a>\
+					<span class="h6">%(fullname)s</span>\
+				</div>', info))
 					.appendTo(this.$list);
 
 				if(d[i].owner===user) {
-					me.primary_action = this.frm.appframe.add_primary_action(__("Assignment Complete"), function() {
+					me.primary_action = this.frm.page.add_menu_item(__("Assignment Complete"), function() {
 						me.remove(user);
 					}, "icon-ok", "btn-success")
+				}
+
+				if(!(d[i].owner === user || me.frm.perm[0].write)) {
+					me.$list.find('a.close').remove();
 				}
 			}
 
@@ -76,9 +70,12 @@ frappe.ui.form.AssignTo = Class.extend({
 				me.remove($(this).attr('data-owner'));
 				return false;
 			});
+
+			this.btn.toggle(false);
 		} else {
-			$('<p class="text-muted">' + __("No one") + '</p>').appendTo(this.$list);
+			this.btn.toggle(true);
 		}
+
 	},
 	add: function() {
 		var me = this;
@@ -96,38 +93,16 @@ frappe.ui.form.AssignTo = Class.extend({
 						label:__("Assign To"),
 						description:__("Add to To Do List Of"), reqd:true},
 					{fieldtype:'Data', fieldname:'description', label:__("Comment"), reqd:true},
+					{fieldtype:'Check', fieldname:'notify',
+						label:__("Notify by Email"), "default":1},
 					{fieldtype:'Date', fieldname:'date', label: __("Complete By")},
 					{fieldtype:'Select', fieldname:'priority', label: __("Priority"),
 						options:'Low\nMedium\nHigh', 'default':'Medium'},
-					{fieldtype:'Check', fieldname:'notify',
-						label:__("Notify by Email"), "default":1},
-					{fieldtype:'Button', label:__("Add"), fieldname:'add_btn'}
-				]
+				],
+				primary_action: function() { me.add_assignment(); },
+				primary_action_label: __("Add")
 			});
 
-			me.dialog.fields_dict.add_btn.input.onclick = function() {
-
-				var assign_to = me.dialog.fields_dict.assign_to.get_value();
-				var args = me.dialog.get_values();
-				if(args && assign_to) {
-					return frappe.call({
-						method:'frappe.desk.form.assign_to.add',
-						args: $.extend(args, {
-							doctype: me.frm.doctype,
-							name: me.frm.docname,
-							assign_to: assign_to
-						}),
-						callback: function(r,rt) {
-							if(!r.exc) {
-								me.render(r.message);
-								me.frm.toolbar.show_infobar();
-								me.frm.reload_doc();
-							}
-						},
-						btn: this
-					});
-				}
-			}
 			me.dialog.fields_dict.assign_to.get_query = "frappe.core.doctype.user.user.user_query";
 		}
 		me.dialog.clear();
@@ -137,6 +112,28 @@ frappe.ui.form.AssignTo = Class.extend({
 		}
 
 		me.dialog.show();
+	},
+	add_assignment: function() {
+		var me = this;
+		var assign_to = me.dialog.fields_dict.assign_to.get_value();
+		var args = me.dialog.get_values();
+		if(args && assign_to) {
+			return frappe.call({
+				method:'frappe.desk.form.assign_to.add',
+				args: $.extend(args, {
+					doctype: me.frm.doctype,
+					name: me.frm.docname,
+					assign_to: assign_to
+				}),
+				callback: function(r,rt) {
+					if(!r.exc) {
+						me.render(r.message);
+						me.frm.reload_doc();
+					}
+				},
+				btn: this
+			});
+		}
 	},
 	remove: function(owner) {
 		var me = this;
@@ -155,7 +152,6 @@ frappe.ui.form.AssignTo = Class.extend({
 			},
 			callback:function(r,rt) {
 				me.render(r.message);
-				me.frm.toolbar.show_infobar();
 				me.frm.reload_doc();
 			}
 		});

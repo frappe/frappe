@@ -99,13 +99,19 @@ frappe.utils = {
 			return list;
 		}
 	},
-	set_intro: function(me, wrapper, txt, append) {
+	set_intro: function(me, wrapper, txt, append, indicator) {
 		if(!me.intro_area) {
-			me.intro_area = $('<div class="alert alert-info form-intro-area">')
+			me.intro_area = $('<div class="form-intro-area">')
 				.prependTo(wrapper);
 		}
+		if(!indicator) {
+			indicator = "grey";
+		}
 		if(txt) {
-			me.intro_area.html(((append && strip(me.intro_area.text())) ? (me.intro_area.html() + "<br><br>") : "") + txt);
+			if(!append) {
+				me.intro_area.empty();
+			}
+			me.intro_area.html('<div class="indicator '+indicator+'">'+txt+'</div>')
 		} else {
 			me.intro_area.remove();
 			me.intro_area = null;
@@ -113,7 +119,7 @@ frappe.utils = {
 	},
 	set_footnote: function(me, wrapper, txt) {
 		if(!me.footnote_area) {
-			me.footnote_area = $('<div class="alert alert-info form-intro-area" style="margin-top: 20px;">')
+			me.footnote_area = $('<div class="text-muted form-intro-area" style="margin-top: 10px;">')
 				.appendTo(wrapper);
 		}
 

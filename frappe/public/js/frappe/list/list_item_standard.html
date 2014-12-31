@@ -1,0 +1,22 @@
+<div class="row">
+    <div class="col-sm-{%= subject_cols %}">
+        <div class="text-ellipsis">{%= subject %}</div>
+    </div>
+    {% var total_cols=parseInt(subject_cols); for (var i=0, l=columns.length; i<l; i++ ) {
+        var col = columns[i], value=data[col.fieldname]; total_cols += parseInt(col.colspan); %}
+        {% if (total_cols < 12) { %}
+        <div class="col-sm-{%= col.colspan %} list-item-col">
+            <div class="text-ellipsis">
+            {% if (col.fieldtype==="Image") { %}
+                <img src="{%= value %}" style="max-height: 30px; max-width: 100%;">
+            {% } else if(col.fieldtype==="Select") { %}
+                <span class="filterable label label-{%= frappe.utils.guess_style(value) %}"
+                    data-filter="{%= col.fieldname %},=,{%= value %}">{%= value %}</span>
+            {% } else { %}
+                {%= frappe.format(value, col) %}
+            {% } %}
+            </div>
+        </div>
+        {% } %}
+    {% } %}
+</div>

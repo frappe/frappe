@@ -26,41 +26,39 @@ frappe.views.ReportViewPage = Class.extend({
 			me.make_report_view();
 			if(me.docname) {
 				frappe.model.with_doc('Report', me.docname, function(r) {
-					me.page.reportview.set_columns_and_filters(
+					me.parent.reportview.set_columns_and_filters(
 						JSON.parse(frappe.get_doc("Report", me.docname).json));
-					me.page.reportview.set_route_filters();
-					me.page.reportview.run();
+					me.parent.reportview.set_route_filters();
+					me.parent.reportview.run();
 				});
 			} else {
-				me.page.reportview.set_route_filters();
-				me.page.reportview.run();
+				me.parent.reportview.set_route_filters();
+				me.parent.reportview.run();
 			}
 		});
 	},
 	make_page: function() {
 		var me = this;
-		this.page = frappe.container.add_page(this.page_name);
-		frappe.ui.make_app_page({parent:this.page,
-			single_column:true, full_width: true});
+		this.parent = frappe.container.add_page(this.page_name);
+		frappe.ui.make_app_page({parent:this.parent, single_column:true});
+		this.page = this.parent.page;
+
 		frappe.container.change_to(this.page_name);
 
-		$(this.page).on('show', function(){
-			if(me.page.reportview.set_route_filters())
-				me.page.reportview.run();
-		})
+		$(this.parent).on('show', function(){
+			if(me.parent.reportview.set_route_filters())
+				me.parent.reportview.run();
+		});
 	},
 	make_report_view: function() {
+		this.page.set_title(__(this.doctype));
 		var module = locals.DocType[this.doctype].module;
-		this.page.appframe.set_title(__(this.doctype));
-		this.page.appframe.add_module_icon(module, this.doctype)
-		this.page.appframe.set_title_left(function() { frappe.set_route((frappe.get_module(module) || {}).link); });
-		this.page.appframe.set_views_for(this.doctype, "report");
+		frappe.add_breadcrumbs(module, this.doctype)
 
-		this.page.reportview = new frappe.views.ReportView({
+		this.parent.reportview = new frappe.views.ReportView({
 			doctype: this.doctype,
 			docname: this.docname,
-			page: this.page,
-			wrapper: $(this.page).find(".layout-main")
+			parent: this.parent
 		});
 	}
 });
@@ -68,8 +66,6 @@ frappe.views.ReportViewPage = Class.extend({
 frappe.views.ReportView = frappe.ui.Listing.extend({
 	init: function(opts) {
 		var me = this;
-		$(this.page).find('.layout-main').html(__('Loading Report')+'...');
-		$(this.page).find('.layout-main').empty();
 		$.extend(this, opts);
 		this.can_delete = frappe.model.can_delete(me.doctype);
 		this.tab_name = '`tab'+this.doctype+'`';
@@ -89,13 +85,14 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 
 	setup: function() {
 		var me = this;
+		this.page = this.parent.page;
 		this.page_title = __('Report')+ ': ' + __(this.docname ? (this.doctype + ' - ' + this.docname) : this.doctype);
-		this.page.appframe.set_title(this.page_title)
+		this.page.set_title(this.page_title)
 		this.make({
-			appframe: this.page.appframe,
+			page: this.parent.page,
 			method: 'frappe.desk.reportview.get',
 			get_args: this.get_args,
-			parent: $(this.page).find('.layout-main'),
+			parent: $(this.parent).find('.layout-main'),
 			start: 0,
 			show_filters: true,
 			new_doctype: this.doctype,
@@ -264,15 +261,13 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		this.dataView = new Slick.Data.DataView();
 		this.set_data(this.data);
 
-		var grid_wrapper = this.$w.find('.result-list');
+		var grid_wrapper = this.$w.find('.result-list').addClass("slick-wrapper");
 
 		// set height if not auto
 		if(!options.autoHeight)
 			grid_wrapper.css('height', '500px');
 
 		this.grid = new Slick.Grid(grid_wrapper
-			.css('border', '1px solid #ccc')
-			.css('border-top', '0px')
 			.get(0), this.dataView,
 			columns, options);
 
@@ -398,9 +393,9 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 	make_column_picker: function() {
 		var me = this;
 		this.column_picker = new frappe.ui.ColumnPicker(this);
-		this.page.appframe.add_button(__('Pick Columns'), function() {
+		this.page.add_menu_item(__('Pick Columns'), function() {
 			me.column_picker.show(me.columns);
-		}, 'icon-th-list');
+		}, true);
 	},
 
 	set_tag_and_status_filter: function() {
@@ -436,7 +431,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 				<option value="asc">'+__('Ascending')+'</option>\
 				<option value="desc">'+__('Descending')+'</option>\
 			</select></div><hr>\
-			<div><button class="btn btn-info">'+__('Update')+'</div>');
+			<div><button class="btn btn-primary">'+__('Update')+'</div>');
 
 		// first
 		this.sort_by_select = new frappe.ui.FieldSelect({
@@ -463,11 +458,11 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		this.sort_order_next_select.val('desc');
 
 		// button actions
-		this.page.appframe.add_button(__('Sort By'), function() {
+		this.page.add_menu_item(__('Sort By'), function() {
 			me.sort_dialog.show();
-		}, 'icon-sort-by-alphabet');
+		}, true);
 
-		$(this.sort_dialog.body).find('.btn-info').click(function() {
+		$(this.sort_dialog.body).find('.btn-primary').click(function() {
 			me.sort_dialog.hide();
 			me.run();
 		});
@@ -479,18 +474,18 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		if(!frappe.model.can_export(this.doctype)) {
 			return;
 		}
-		var export_btn = this.page.appframe.add_button(__('Export'), function() {
+		var export_btn = this.page.add_menu_item(__('Export'), function() {
 			var args = me.get_args();
 			args.cmd = 'frappe.desk.reportview.export_query'
 			open_url_post(frappe.request.url, args);
-		}, 'icon-download-alt');
+		}, true);
 	},
 
 	// save
 	make_save: function() {
 		var me = this;
 		if(frappe.user.is_report_manager()) {
-			this.page.appframe.add_button(__('Save'), function() {
+			this.page.add_menu_item(__('Save'), function() {
 				// name
 				if(me.docname) {
 					var name = me.docname
@@ -525,19 +520,19 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 							frappe.set_route('Report', me.doctype, r.message);
 					}
 				});
-			}, 'icon-save');
+			}, true);
 		}
 	},
 
 	make_delete: function() {
 		var me = this;
 		if(this.can_delete) {
-			$(this.page).on("click", "input[type='checkbox'][data-row]", function() {
+			$(this.parent).on("click", "input[type='checkbox'][data-row]", function() {
 				me.data[$(this).attr("data-row")]._checked
 					= this.checked ? true : false;
 			});
 
-			this.page.appframe.add_button(__("Delete"), function() {
+			this.page.add_menu_item(__("Delete"), function() {
 				var delete_list = []
 				$.each(me.data, function(i, d) {
 					if(d._checked) {
@@ -562,20 +557,20 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 						});
 					}));
 
-			}, 'icon-trash');
+			}, true);
 		}
 	},
 
 	make_user_permissions: function() {
 		var me = this;
 		if(this.docname && frappe.model.can_set_user_permissions("Report")) {
-			this.page.appframe.add_button(__("User Permissions Manager"), function() {
+			this.page.add_menu_item(__("User Permissions Manager"), function() {
 				frappe.route_options = {
 					doctype: "Report",
 					name: me.docname
 				};
 				frappe.set_route("user-permissions");
-			}, "icon-shield");
+			}, true);
 		}
 	},
 });
@@ -592,7 +587,7 @@ frappe.ui.ColumnPicker = Class.extend({
 			<div><button class="btn btn-default btn-add"><i class="icon-plus"></i>\
 				'+__("Add Column")+'</button></div>\
 			<hr>\
-			<div><button class="btn btn-info">'+__("Update")+'</div>');
+			<div><button class="btn btn-primary">'+__("Update")+'</div>');
 
 	},
 	show: function(columns) {
@@ -627,7 +622,7 @@ frappe.ui.ColumnPicker = Class.extend({
 		});
 
 		// update
-		$(this.dialog.body).find('.btn-info').click(function() {
+		$(this.dialog.body).find('.btn-primary').click(function() {
 			me.dialog.hide();
 			// selected columns as list of [column_name, table_name]
 			var columns = $.map(me.columns, function(v) {

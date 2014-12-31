@@ -13,11 +13,11 @@ frappe.ui.form.Footer = Class.extend({
 		// render-complete
 		$(this.frm.wrapper).on("render_complete", function() {
 			me.refresh();
-		})
+		});
 	},
 	make: function() {
 		var me = this;
-		this.wrapper = $(frappe.render(frappe.templates.form_footer, {}))
+		this.wrapper = $(frappe.render_template("form_footer", {}))
 			.appendTo(this.parent);
 		this.wrapper.find(".btn-save").click(function() {
 			me.frm.save('Save', null, this);
@@ -26,24 +26,24 @@ frappe.ui.form.Footer = Class.extend({
 	},
 	make_tags: function() {
 		if (this.frm.meta.issingle) {
-			this.wrapper.find(".form-tags").toggle(false);
+			this.frm.sidebar.parent.find(".form-tags").toggle(false);
 			return;
 		}
 
 		this.frm.tags = new frappe.ui.TagEditor({
-			parent: this.wrapper.find(".tag-area"),
+			parent: this.frm.sidebar.parent.find(".tag-area"),
 			frm: this.frm,
 		})
 	},
 	make_attachments: function() {
 		this.frm.attachments = new frappe.ui.form.Attachments({
-			parent: this.wrapper.find(".form-attachments"),
+			parent: this.frm.sidebar.parent.find(".form-attachments"),
 			frm: this.frm
 		});
 	},
 	make_assignments: function() {
 		this.frm.assign_to = new frappe.ui.form.AssignTo({
-			parent: this.wrapper.find(".form-assignments"),
+			parent: this.frm.sidebar.parent.find(".form-assignments"),
 			frm: this.frm
 		});
 	},

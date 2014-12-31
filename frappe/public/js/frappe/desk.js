@@ -117,18 +117,34 @@ frappe.Application = Class.extend({
 	},
 
 	refresh_notifications: function() {
+		var me = this;
 		if(frappe.session_alive) {
 			return frappe.call({
-				method: "frappe.core.doctype.notification_count.notification_count.get_notifications",
+				method: "frappe.desk.notifications.get_notifications",
 				callback: function(r) {
 					if(r.message) {
 						$.extend(frappe.boot.notification_info, r.message);
 						$(document).trigger("notification-update");
+
+						// update in module views
+						me.update_notification_count_in_modules();
 					}
 				},
 				no_spinner: true
 			});
 		}
+	},
+
+	update_notification_count_in_modules: function() {
+		$.each(frappe.boot.notification_info.open_count_doctype, function(doctype, count) {
+			if(count) {
+				$('.open-notification[data-doctype="'+ doctype +'"]')
+					.removeClass("hide").html(count);
+			} else {
+				$('.open-notification[data-doctype="'+ doctype +'"]')
+					.addClass("hide");
+			}
+		});
 	},
 
 	set_globals: function() {
@@ -206,7 +222,7 @@ frappe.Application = Class.extend({
 	setup_keyboard_shortcuts: function() {
 		$(document)
 			.keydown("meta+g ctrl+g", function(e) {
-				frappe.ui.toolbar.search.show();
+				$("#navbar-search").focus()
 				return false;
 			})
 			.keydown("meta+s ctrl+s", function(e) {
@@ -250,6 +266,9 @@ frappe.Application = Class.extend({
 					return false;
 				}
 			})
+			.keydown("ctrl+shift+r meta+shift+r", function(e) {
+				frappe.ui.toolbar.clear_cache();
+			});
 
 	},
 

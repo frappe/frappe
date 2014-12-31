@@ -10,14 +10,9 @@ frappe.ui.form.Attachments = Class.extend({
 	},
 	make: function() {
 		var me = this;
-		this.wrapper = $('<div>\
-			<div class="attachment-list"></div>\
-			<p class="text-muted small">'
-				+__("You can also drag and drop attachments")+'</div>\
-		</div>').appendTo(this.parent);
-		this.$list = this.wrapper.find(".attachment-list");
+		this.$list = this.parent.find(".attachment-list");
 
-		this.parent.find(".btn").click(function() {
+		this.parent.find(".add-attachment").click(function() {
 			me.new_attachment();
 		});
 	},
@@ -51,8 +46,6 @@ frappe.ui.form.Attachments = Class.extend({
 			attachments.forEach(function(attachment) {
 				that.add_attachment(attachment)
 			});
-		} else {
-			$('<p class="text-muted">' + __("None") + '</p>').appendTo(this.$list);
 		}
 
 		// refresh select fields with options attach_files:
@@ -70,11 +63,10 @@ frappe.ui.form.Attachments = Class.extend({
 		}
 
 		var me = this;
-		var $attach = $(repl('<div style="margin-bottom: 7px">\
-			<span style="display: inline-block; width: 90%; \
-				text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">\
-				<i class="icon-file"></i> <a href="%(file_url)s"\
-					target="_blank" title="%(file_name)s">%(file_name)s</a></span><a href="#" class="close">&times;</a>\
+		var $attach = $(repl('<div class="text-ellipsis">\
+				<a href="#" class="close">&times;</a>\
+				<a class="h6" href="%(file_url)s" style="margin-top: 0px;"\
+					target="_blank" title="%(file_name)s">%(file_name)s</a>\
 			</div>', {
 				file_name: file_name,
 				file_url: file_url
@@ -145,7 +137,6 @@ frappe.ui.form.Attachments = Class.extend({
 					return;
 				}
 				me.remove_fileid(fileid);
-				me.frm.toolbar.show_infobar();
 				me.frm.get_docinfo().comments.push(r.message);
 				me.frm.comments.refresh();
 				if (callback) callback();
@@ -172,6 +163,7 @@ frappe.ui.form.Attachments = Class.extend({
 			onerror: function() {
 				me.dialog.hide();
 			},
+			btn: this.dialog.set_primary_action(__("Attach")),
 			max_width: this.frm.cscript ? this.frm.cscript.attachment_max_width : null,
 			max_height: this.frm.cscript ? this.frm.cscript.attachment_max_height : null,
 		});
@@ -195,7 +187,6 @@ frappe.ui.form.Attachments = Class.extend({
 		if(attachment.name) {
 			this.add_to_attachments(attachment);
 			this.refresh();
-			this.frm.toolbar.show_infobar();
 			if(comment) {
 				this.frm.get_docinfo().comments.push(comment);
 				this.frm.comments.refresh();

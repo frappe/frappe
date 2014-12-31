@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe.model.document import Document
+from frappe.build import html_to_js_template
 
 class Page(Document):
 	def autoname(self):
@@ -79,11 +80,12 @@ class Page(Document):
 			with open(fpath, 'r') as f:
 				self.style = unicode(f.read(), "utf-8")
 
-		# html
-		fpath = os.path.join(path, scrub(self.name) + '.html')
-		if os.path.exists(fpath):
-			with open(fpath, 'r') as f:
-				self.content = unicode(f.read(), "utf-8")
+		# html as js template
+		for fname in os.listdir(path):
+			if fname.endswith(".html"):
+				with open(os.path.join(path, fname), 'r') as f:
+					template = unicode(f.read(), "utf-8")
+					self.script = html_to_js_template(fname, template) + self.script
 
 		if frappe.lang != 'en':
 			from frappe.translate import get_lang_js

@@ -60,7 +60,7 @@ frappe.pages['applications'].onload = function(wrapper) {
 					$btn = $('<button class="btn btn-success" disabled=disabled>\
 						<i class="icon-ok"></i> Installed</button>');
 				} else {
-					$btn = $('<button class="btn btn-info">Install</button>')
+					$btn = $('<button class="btn btn-primary">Install</button>')
 						.attr("data-app", app.app_name)
 						.on("click", function() {
 						frappe.call({

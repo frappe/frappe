@@ -27,12 +27,7 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 
 		// show footer
 		if(this.primary_action) {
-			this.$wrapper.find(".modal-footer").removeClass("hide");
-			var $btn = this.get_primary_btn();
-			$btn.click(this.primary_action);
-			if(this.primary_action_label) {
-				$btn.html(this.primary_action_label);
-			}
+			this.set_primary_action(this.primary_action_label || __("Submit"), this.primary_action);
 		}
 
 		var me = this;
@@ -53,7 +48,7 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 				me.display = true;
 				cur_dialog = me;
 				frappe.ui.open_dialogs.push(me);
-				var first = me.$wrapper.find(':input:first');
+				var first = $(me.body).find('.modal-content :input:first');
 				if(first.length && first.attr("data-fieldtype")!="Date") {
 					try {
 						first.get(0).focus();
@@ -67,12 +62,13 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 
 	},
 	get_primary_btn: function() {
-		return this.$wrapper.find(".modal-footer .btn-primary");
+		return this.$wrapper.find(".modal-header .btn-primary").removeClass("hide");
+	},
+	set_primary_action: function(label, click) {
+		return this.get_primary_btn().html(label).click(click);
 	},
 	make_head: function() {
 		var me = this;
-		//this.appframe = new frappe.ui.AppFrame(this.wrapper);
-		//this.appframe.set_document_title = false;
 		this.set_title(this.title);
 	},
 	set_title: function(t) {

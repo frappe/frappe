@@ -25,15 +25,13 @@ web_include_css = [
 		"style_settings.css"
 	]
 
-website_clear_cache = "frappe.website.doctype.website_group.website_group.clear_cache"
-
 write_file_keys = ["file_url", "file_name"]
 
 notification_config = "frappe.core.notifications.get_notification_config"
 
 before_tests = "frappe.utils.install.before_tests"
 
-website_generators = ["Web Page", "Blog Post", "Website Group", "Blog Category", "Web Form"]
+website_generators = ["Web Page", "Blog Post", "Blog Category", "Web Form"]
 
 # login
 
@@ -62,23 +60,20 @@ doc_events = {
 		"after_insert": "frappe.email.doctype.email_alert.email_alert.trigger_email_alerts",
 		"validate": "frappe.email.doctype.email_alert.email_alert.trigger_email_alerts",
 		"on_update": [
-			"frappe.core.doctype.notification_count.notification_count.clear_doctype_notifications",
+			"frappe.desk.notifications.clear_doctype_notifications",
 			"frappe.email.doctype.email_alert.email_alert.trigger_email_alerts",
 			"frappe.desk.doctype.feed.feed.update_feed"
 		],
-		"after_rename": "frappe.core.doctype.notification_count.notification_count.clear_doctype_notifications",
+		"after_rename": "frappe.desk.notifications.clear_doctype_notifications",
 		"on_submit": [
 			"frappe.email.doctype.email_alert.email_alert.trigger_email_alerts",
 			"frappe.desk.doctype.feed.feed.update_feed"
 		],
 		"on_cancel": [
-			"frappe.core.doctype.notification_count.notification_count.clear_doctype_notifications",
+			"frappe.desk.notifications.clear_doctype_notifications",
 			"frappe.email.doctype.email_alert.email_alert.trigger_email_alerts"
 		],
-		"on_trash": "frappe.core.doctype.notification_count.notification_count.clear_doctype_notifications"
-	},
-	"Website Route Permission": {
-		"on_update": "frappe.website.doctype.website_group.website_group.clear_cache_on_doc_event"
+		"on_trash": "frappe.desk.notifications.clear_doctype_notifications"
 	}
 }
 
@@ -89,12 +84,9 @@ scheduler_events = {
 	],
 	"daily": [
 		"frappe.email.bulk.clear_outbox",
-		"frappe.core.doctype.notification_count.notification_count.clear_notifications",
+		"frappe.desk.notifications.clear_notifications",
 		"frappe.desk.doctype.event.event.send_event_digest",
 		"frappe.sessions.clear_expired_sessions",
 		"frappe.email.doctype.email_alert.email_alert.trigger_daily_alerts",
-	],
-	"hourly": [
-		"frappe.website.doctype.website_group.website_group.clear_event_cache"
 	]
 }

@@ -2,16 +2,16 @@
 // License: GNU General Public License v3. See license.txt
 
 frappe.pages['activity'].onload = function(wrapper) {
-	frappe.ui.make_app_page({
+	var page = frappe.ui.make_app_page({
 		parent: wrapper,
-		title: __("Activity"),
 		single_column: true
-	})
-	wrapper.appframe.add_module_icon("Activity");
+	});
+
+	page.set_title(__("Activty"), frappe.get_module("Activity").icon);
 
 	var list = new frappe.ui.Listing({
 		hide_refresh: true,
-		appframe: wrapper.appframe,
+		page: wrapper.page,
 		method: 'frappe.desk.page.activity.activity.get_feed',
 		parent: $(wrapper).find(".layout-main"),
 		render_row: function(row, data) {
@@ -20,11 +20,11 @@ frappe.pages['activity'].onload = function(wrapper) {
 	});
 	list.run();
 
-	wrapper.appframe.set_title_right(__("Refresh"), function() { list.run(); });
+	wrapper.page.set_primary_action(__("Refresh"), function() { list.run(); });
 
 	// Build Report Button
 	if(frappe.boot.user.can_get_report.indexOf("Feed")!=-1) {
-		wrapper.appframe.add_button(__('Build Report'), function() {
+		wrapper.page.add_button(__('Build Report'), function() {
 			frappe.set_route('Report', "Feed");
 		}, 'icon-th');
 	}

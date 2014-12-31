@@ -19,10 +19,12 @@ frappe.ui.form.States = Class.extend({
 	},
 
 	make: function() {
-		this.parent = this.frm.appframe.parent
+		this.parent = this.frm.page.main
 			.find(".workflow-button-area")
 			.empty()
 			.removeClass("hide");
+
+			console.log(this.parent);
 
 		this.workflow_button = $('<button class="btn btn-default dropdown-toggle" data-toggle="dropdown">\
 			<i class="icon-small"></i> <span class="state-text"></span>\

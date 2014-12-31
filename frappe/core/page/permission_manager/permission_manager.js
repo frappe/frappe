@@ -33,21 +33,21 @@ frappe.PermissionEngine = Class.extend({
 			method: "get_roles_and_doctypes",
 			callback: function(r) {
 				me.options = r.message;
-				me.setup_appframe();
+				me.setup_page();
 			}
 		});
 
 	},
-	setup_appframe: function() {
+	setup_page: function() {
 		var me = this;
 		this.doctype_select
-			= this.wrapper.appframe.add_select(__("Document Types"),
+			= this.wrapper.page.add_select(__("Document Types"),
 				[{value: "", label: __("Select Document Type")+"..."}].concat(this.options.doctypes))
 				.change(function() {
 					frappe.set_route("permission-manager", $(this).val());
 				});
 		this.role_select
-			= this.wrapper.appframe.add_select(__("Roles"),
+			= this.wrapper.page.add_select(__("Roles"),
 				[__("Select Role")+"..."].concat(this.options.roles))
 				.change(function() {
 					me.refresh();

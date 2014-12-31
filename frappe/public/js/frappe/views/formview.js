@@ -9,9 +9,9 @@ frappe.views.FormFactory = frappe.views.Factory.extend({
 			dt = route[1];
 
 		if(!frappe.views.formview[dt]) {
-			me.page = frappe.container.add_page("Form/" + dt);
-			frappe.views.formview[dt] = me.page;
 			frappe.model.with_doctype(dt, function() {
+				me.page = frappe.container.add_page("Form/" + dt);
+				frappe.views.formview[dt] = me.page;
 				me.page.frm = new _f.Frm(dt, me.page, true);
 				me.show_doc(route);
 			});

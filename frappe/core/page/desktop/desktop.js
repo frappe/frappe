@@ -1,16 +1,18 @@
 frappe.provide('frappe.desktop');
 
 frappe.pages['desktop'].onload = function(wrapper) {
-	// setup dialog
+	$('<div style="min-height: 500px; background: none; text-align: center; \
+			margin: 0px auto;">	\
+			<div id="icon-grid" class="container">\
+			</div>\
+		</div>\
+		<div style="clear: both"></div>').appendTo(wrapper);
 
 	// load desktop
 	frappe.desktop.refresh();
 }
 
 frappe.pages['desktop'].refresh = function(wrapper) {
-	frappe.ui.toolbar.add_dropdown_button("File", __("All Applications"), function() {
-		frappe.desktop.show_all_modules();
-	}, 'icon-th');
 };
 
 frappe.desktop.refresh = function() {
@@ -86,7 +88,7 @@ frappe.desktop.render = function() {
 
 	// all applications
 	frappe.modules["All Applications"] = {
-		icon: "icon-th",
+		icon: "octicon octicon-three-bars",
 		label: "All Applications",
 		_label: __("All Applications"),
 		_id: "all_applications",

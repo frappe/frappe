@@ -21,7 +21,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 	# extra input params
 	params = json.loads(frappe.form_dict.get("params") or '{}')
 
-	if params.get("_submit"):
+	if params.get("submit_after_import"):
 		submit_after_import = True
 	if params.get("ignore_encoding_errors"):
 		ignore_encoding_errors = True
@@ -170,6 +170,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 	make_column_map()
 
 	frappe.db.begin()
+
 	if overwrite==None:
 		overwrite = params.get('overwrite')
 
@@ -201,7 +202,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 				ret.append('Inserted row for %s at #%s' % (getlink(parenttype,
 					doc.parent), unicode(doc.idx)))
 			else:
-				if overwrite and frappe.db.exists(doctype, doc["name"]):
+				if overwrite and doc["name"] and frappe.db.exists(doctype, doc["name"]):
 					original = frappe.get_doc(doctype, doc["name"])
 					original.update(doc)
 					original.ignore_links = ignore_links
@@ -252,4 +253,5 @@ def get_parent_field(doctype, parenttype):
 def delete_child_rows(rows, doctype):
 	"""delete child rows for all parents"""
 	for p in list(set([r[1] for r in rows])):
-		frappe.db.sql("""delete from `tab%s` where parent=%s""" % (doctype, '%s'), p)
+		if p:
+			frappe.db.sql("""delete from `tab{0}` where parent=%s""".format(doctype), p)

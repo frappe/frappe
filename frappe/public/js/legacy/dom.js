@@ -2,7 +2,7 @@
 // MIT License. See license.txt
 
 function $btn(parent, label, onclick, style, css_class, is_ajax) {
-	if(css_class==='green') css_class='btn-info';
+	if(css_class==='green') css_class='btn-primary';
 	return new frappe.ui.Button(
 		{parent:parent, label:label, onclick:onclick, style:style, is_ajax: is_ajax, css_class: css_class}
 	).btn;

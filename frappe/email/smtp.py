@@ -53,7 +53,8 @@ def get_outgoing_email_account(raise_exception_not_set=True):
 				"smtp_port": frappe.conf.get("mail_port"),
 				"use_tls": cint(frappe.conf.get("use_ssl") or 0),
 				"email_id": frappe.conf.get("mail_login"),
-				"password": frappe.conf.get("mail_password")
+				"password": frappe.conf.get("mail_password"),
+				"sender": frappe.conf.get("auto_email_id")
 			})
 			email_account.from_site_config = True
 

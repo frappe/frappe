@@ -4,10 +4,10 @@
 frappe.ui.form.Dashboard = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
-		this.wrapper = $('<div class="form-dashboard row"></div>')
-			.css({"margin-bottom":"20px", "padding-bottom":"10px"})
-			.prependTo(this.frm.layout.wrapper);
-		this.body = $('<div></div>').appendTo(this.wrapper).css("margin-bottom", "20px");
+		this.wrapper = $('<div class="form-dashboard"></div>')
+		.prependTo(this.frm.layout.wrapper);
+		this.body = $('<div class="row"></div>').appendTo(this.wrapper)
+			.css("padding", "15px");
 
 	},
 	reset: function() {
@@ -18,7 +18,7 @@ frappe.ui.form.Dashboard = Class.extend({
 	set_headline: function(html) {
 		if(!this.headline)
 			this.headline =
-				$('<div class="form-headline col-md-12">').prependTo(this.body);
+				$('<h4 class="form-headline col-md-12"></h4>').prependTo(this.body);
 		this.headline.html(html);
 		this.wrapper.toggle(true);
 	},
@@ -40,9 +40,8 @@ frappe.ui.form.Dashboard = Class.extend({
 	},
 	add_badge: function(label, doctype, onclick) {
 		var badge = $(repl('<div class="col-md-4">\
-			<div class="alert alert-info alert-badge">\
-				<i class="icon-fixed-width %(icon)s"></i> \
-				<a class="badge-link">%(label)s</a>\
+			<div class="alert-badge">\
+				<a class="badge-link grey">%(label)s</a>\
 				<span class="badge pull-right">-</span>\
 			</div></div>', {label:label, icon: frappe.boot.doctype_icons[doctype]}))
 				.appendTo(this.body)

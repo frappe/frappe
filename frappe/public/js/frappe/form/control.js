@@ -10,17 +10,6 @@ frappe.ui.form.make_control = function (opts) {
 	}
 }
 
-// old style
-function make_field(docfield, doctype, parent, frm, in_grid, hide_label) { // Factory
-	return frappe.ui.form.make_control({
-		df: docfield,
-		doctype: doctype,
-		parent: parent,
-		only_input: hide_label,
-		frm: frm
-	});
-}
-
 frappe.ui.form.Control = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
@@ -96,12 +85,21 @@ frappe.ui.form.ControlHTML = frappe.ui.form.Control.extend({
 		var me = this;
 		this.disp_area = this.wrapper;
 		this.$wrapper.on("refresh", function() {
-			if(me.df.options)
-				me.$wrapper.html(me.df.options);
+			var content = me.get_content();
+			if(content) me.$wrapper.html(content);
 		})
 	},
+	get_content: function() {
+		return this.df.options || "";
+	},
 	html: function(html) {
-		this.$wrapper.html(html || me.df.options);
+		this.$wrapper.html(html || this.get_content());
+	}
+});
+
+frappe.ui.form.ControlHeading = frappe.ui.form.ControlHTML.extend({
+	get_content: function() {
+		return "<h4>" + __(this.df.label) + "</h4>";
 	}
 });
 
@@ -109,7 +107,7 @@ frappe.ui.form.ControlImage = frappe.ui.form.Control.extend({
 	make: function() {
 		this._super();
 		var me = this;
-		this.$wrapper = $("<div class='row'><div class='col-xs-4'></div></div>")
+		this.$wrapper = $("<div class='row'></div>")
 			.appendTo(this.parent)
 			.css({"max-width": "600px", "margin": "0px"});
 		this.$body = $("<div class='col-xs-8'>").appendTo(this.$wrapper)
@@ -144,20 +142,16 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 		if(this.only_input) {
 			this.$wrapper = $('<div class="form-group frappe-control">').appendTo(this.parent);
 		} else {
-			this.$wrapper = $('<div class="form-horizontal frappe-control">\
-				<div class="form-group row" style="margin: 0px">\
-					<label class="control-label small col-xs-'+(this.horizontal?"4":"12")
-						+'" style="padding-right: 0px;"></label>\
-					<div class="col-xs-'+(this.horizontal?"8":"12")+'">\
+			this.$wrapper = $('<div class="frappe-control">\
+				<div class="form-group" style="margin: 0px">\
+					<label class="control-label" style="padding-right: 0px;"></label>\
+					<div>\
 						<div class="control-input"></div>\
 						<div class="control-value like-disabled-input" style="display: none;"></div>\
 						<p class="help-box small text-muted"></p>\
 					</div>\
 				</div>\
 			</div>').appendTo(this.parent);
-			if(!this.horizontal) {
-				this.$wrapper.removeClass("form-horizontal");
-			}
 		}
 	},
 	set_input_areas: function() {
@@ -220,7 +214,7 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 
 	set_disp_area: function() {
 		this.disp_area && $(this.disp_area)
-			.html(frappe.format(this.value, this.df, {no_icon:true},
+			.html(frappe.format(this.value, this.df, {no_icon:true, inline:true},
 					this.doc || (this.frm && this.frm.doc)));
 	},
 
@@ -503,7 +497,11 @@ frappe.ui.form.ControlDatetime = frappe.ui.form.ControlDate.extend({
 
 frappe.ui.form.ControlText = frappe.ui.form.ControlData.extend({
 	html_element: "textarea",
-	horizontal: false
+	horizontal: false,
+	make_wrapper: function() {
+		this._super();
+		this.$wrapper.find(".like-disabled-input").addClass("for-description");
+	}
 });
 
 frappe.ui.form.ControlLongText = frappe.ui.form.ControlText;
@@ -512,17 +510,15 @@ frappe.ui.form.ControlSmallText = frappe.ui.form.ControlText;
 frappe.ui.form.ControlCheck = frappe.ui.form.ControlData.extend({
 	input_type: "checkbox",
 	make_wrapper: function() {
-		this.$wrapper = $('<div class="form-group row frappe-control" style="margin: 0px;">\
-		<div class="col-md-offset-4 col-md-8">\
-			<div class="checkbox" style="margin: 5px 0px">\
+		this.$wrapper = $('<div class="form-group frappe-control">\
+			<div class="checkbox">\
 				<label>\
 					<span class="input-area"></span>\
-					<span class="disp-area" style="display:none;"></span>\
+					<span class="disp-area" style="display:none; margin-left: -20px;"></span>\
 					<span class="label-area small"></span>\
 				</label>\
 				<p class="help-box small text-muted"></p>\
 			</div>\
-		</div>\
 		</div>').appendTo(this.parent)
 	},
 	set_input_areas: function() {
@@ -549,7 +545,7 @@ frappe.ui.form.ControlCheck = frappe.ui.form.ControlData.extend({
 frappe.ui.form.ControlButton = frappe.ui.form.ControlData.extend({
 	make_input: function() {
 		var me = this;
-		this.$input = $('<button class="btn btn-default">')
+		this.$input = $('<button class="btn btn-default btn-sm">')
 			.prependTo(me.input_area)
 			.on("click", function() {
 				me.onclick();
@@ -587,7 +583,7 @@ frappe.ui.form.ControlButton = frappe.ui.form.ControlData.extend({
 frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 	make_input: function() {
 		var me = this;
-		this.$input = $('<button class="btn btn-default">')
+		this.$input = $('<button class="btn btn-default btn-sm">')
 			.html(__("Upload"))
 			.prependTo(me.input_area)
 			.on("click", function() {
@@ -644,6 +640,7 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 			args: {},
 			max_width: this.df.max_width,
 			max_height: this.df.max_height,
+			btn: this.dialog.set_primary_action(__("Upload")),
 			callback: function(attachment, r) {
 				me.dialog.hide();
 				me.on_upload_complete(attachment);
@@ -761,7 +758,7 @@ frappe.ui.form.ControlSelect = frappe.ui.form.ControlData.extend({
 	setup_attachment: function() {
 		var me = this;
 		$(this.input).css({"width": "85%", "display": "inline-block"});
-		this.$attach = $("<button class='btn btn-default' title='"+ __("Add attachment") + "'\
+		this.$attach = $("<button class='btn btn-default btn-sm' title='"+ __("Add attachment") + "'\
 			style='padding-left: 6px; padding-right: 6px; margin-right: 6px;'>\
 			<i class='icon-plus'></i></button>")
 			.click(function() {
@@ -822,28 +819,27 @@ frappe.ui.form.ControlSelect = frappe.ui.form.ControlData.extend({
 frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 	make_input: function() {
 		var me = this;
-		$('<div class="link-field" style="display: table; width: 100%;">\
-			<input type="text" class="input-with-feedback form-control" \
-				style="display: table-cell">\
-			<span class="link-field-btn" style="display: table-cell">\
-				<a class="btn-search" title="' + __("Search Link") + '">\
-					<i class="icon-search"></i>\
-				</a><a class="btn-open" title="' + __("Open Link") + '">\
-					<i class="icon-arrow-right"></i>\
-				</a><a class="btn-new" title="' + __("Make New") + '">\
-					<i class="icon-plus"></i>\
-				</a>\
+		$('<div class="link-field" style="position: relative;">\
+			<input type="text" class="input-with-feedback form-control">\
+			<span class="link-btn">\
+				<a class="btn-open grey" title="' + __("Open Link") + '">\
+					<i class="icon-link"></i></a>\
 			</span>\
 		</div>').prependTo(this.input_area);
 		this.$input_area = $(this.input_area);
 		this.$input = this.$input_area.find('input');
+		this.$link = this.$input_area.find('.link-btn');
 		this.set_input_attributes();
 		this.$input.on("focus", function() {
+			me.$link.toggle(true);
 			setTimeout(function() {
 				if(!me.$input.val()) {
 					me.$input.autocomplete("search", "");
 				}
 			}, 500);
+		});
+		this.$input.on("blur", function() {
+			setTimeout(function() { me.$link.toggle(false); }, 500);
 		});
 		this.input = this.$input.get(0);
 		this.has_input = true;
@@ -857,17 +853,6 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 	setup_buttons: function() {
 		var me = this;
 
-		// magnifier - search
-		this.$input_area.find(".btn-search").on("click", function() {
-			var doctype = me.get_options();
-			if(!doctype) return;
-			new frappe.ui.form.LinkSelector({
-				doctype: doctype,
-				target: me,
-				txt: me.get_value()
-			});
-		});
-
 		// open
 		this.$input_area.find(".btn-open").on("click", function() {
 			var value = me.get_value();
@@ -875,18 +860,25 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 				frappe.set_route("Form", me.get_options(), value);
 		});
 
-		// new
-		if(this.df.fieldtype==="Dynamic Link" || frappe.model.can_create(me.df.options)) {
-			this.$input_area.find(".btn-new").on("click", function() {
-				var doctype = me.get_options();
-				if(!doctype) return;
-				me.frm.new_doc(doctype, me);
-			});
+		if(this.only_input) this.$input_area.find(".btn-open").remove();
+	},
+	open_advanced_search: function() {
+		var doctype = this.get_options();
+		if(!doctype) return;
+		new frappe.ui.form.LinkSelector({
+			doctype: doctype,
+			target: this,
+			txt: this.get_value()
+		});
+	},
+	new_doc: function() {
+		var doctype = this.get_options();
+		if(!doctype) return;
+		if(this.frm) {
+			this.frm.new_doc(doctype, this);
 		} else {
-			this.$input_area.find(".btn-new").remove();
+			new_doc(doctype);
 		}
-
-		if(this.only_input) this.$input_area.find(".btn-open, .btn-new").remove();
 	},
 	setup_autocomplete: function() {
 		var me = this;
@@ -931,12 +923,22 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 					no_spinner: true,
 					args: args,
 					callback: function(r) {
-						if(frappe.model.can_create(doctype)) {
+						if(frappe.model.can_create(doctype)
+							&& me.df.fieldtype !== "Dynamic Link") {
+							// new item
 							r.results.push({
-								value: "<i class='icon-plus'></i> <em>" + __("Create a new {0}", [__(me.df.options)]) + "</em>",
-								make_new: true
+								value: "<i class='icon-plus'></i> <em class='link-option'>"
+									+ __("Create a new {0}", [__(me.df.options)]) + "</em>",
+								action: me.new_doc
 							});
 						};
+						// advanced search
+						r.results.push({
+							value: "<i class='icon-search'></i> <em class='link-option'>"
+								+ __("Advanced Search") + "</em>",
+							action: me.open_advanced_search
+						});
+
 						me.$input.cache[doctype][request.term] = r.results;
 						response(r.results);
 					},
@@ -949,21 +951,14 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 				me.autocomplete_open = false;
 			},
 			focus: function( event, ui ) {
-				if(ui.item.make_new) {
+				if(ui.item.action) {
 					return false;
 				}
 			},
 			select: function(event, ui) {
 				me.autocomplete_open = false;
-				if(ui.item.make_new) {
-					var doctype = me.get_options();
-					if(!doctype) return;
-
-					if (me.frm) {
-						me.frm.new_doc(doctype, me);
-					} else {
-						new_doc(doctype);
-					}
+				if(ui.item.action) {
+					ui.item.action.apply(me);
 					return false;
 				}
 

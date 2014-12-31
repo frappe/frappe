@@ -112,28 +112,14 @@ class User:
 		self.can_read += self.can_write
 		self.all_read += self.can_read
 
+		if "System Manager" in self.roles:
+			self.can_import = frappe.db.sql_list("""select name from `tabDocType`
+				where allow_import = 1""")
+
 	def get_defaults(self):
 		import frappe.defaults
 		self.defaults = frappe.defaults.get_defaults(self.name)
 		return self.defaults
-
-	# update recent documents
-	def update_recent(self, dt, dn):
-		rdl = frappe.cache().get_value("recent:" + self.name) or []
-		new_rd = [dt, dn]
-
-		# clear if exists
-		for i in range(len(rdl)):
-			rd = rdl[i]
-			if rd==new_rd:
-				del rdl[i]
-				break
-
-		if len(rdl) > 19:
-			rdl = rdl[:19]
-
-		rdl = [new_rd] + rdl
-		r = frappe.cache().set_value("recent:" + self.name, rdl)
 
 	def _get(self, key):
 		if not self.can_read:
@@ -200,7 +186,7 @@ def get_system_managers(only_name=False):
 		return [email.utils.formataddr((p.fullname, p.name)) for p in system_managers]
 
 def add_role(user, role):
-	user_wrapper = frappe.get_doc("User", user).add_roles(role)
+	frappe.get_doc("User", user).add_roles(role)
 
 def add_system_manager(email, first_name=None, last_name=None):
 	# add user
@@ -220,19 +206,19 @@ def add_system_manager(email, first_name=None, last_name=None):
 		where name not in ("Administrator", "Guest", "All")""")
 	user.add_roles(*roles)
 
-def get_roles(username=None, with_standard=True):
+def get_roles(user=None, with_standard=True):
 	"""get roles of current user"""
-	if not username:
-		username = frappe.session.user
+	if not user:
+		user = frappe.session.user
 
-	if username=='Guest':
+	if user=='Guest':
 		return ['Guest']
 
-	roles = frappe.cache().get_value("roles:" + username)
+	roles = frappe.cache().get_value("roles", user=user)
 	if not roles:
 		roles = [r[0] for r in frappe.db.sql("""select role from tabUserRole
-			where parent=%s and role!='All'""", (username,))] + ['All']
-		frappe.cache().set_value("roles:" + username, roles)
+			where parent=%s and role!='All'""", (user,))] + ['All']
+		frappe.cache().set_value("roles", roles, user=user)
 
 	# filter standard if required
 	if not with_standard:

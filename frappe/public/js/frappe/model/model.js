@@ -5,7 +5,7 @@ frappe.provide('frappe.model');
 
 $.extend(frappe.model, {
 	no_value_type: ['Section Break', 'Column Break', 'HTML', 'Table',
- 	'Button', 'Image', 'Fold'],
+ 	'Button', 'Image', 'Fold', 'Heading'],
 
 	layout_fields: ['Section Break', 'Column Break', 'Fold'],
 
@@ -155,6 +155,16 @@ $.extend(frappe.model, {
 	is_submittable: function(doctype) {
 		if(!doctype) return false;
 		return locals.DocType[doctype] && locals.DocType[doctype].is_submittable;
+	},
+
+	is_table: function(doctype) {
+		if(!doctype) return false;
+		return locals.DocType[doctype] && locals.DocType[doctype].istable;
+	},
+
+	is_single: function(doctype) {
+		if(!doctype) return false;
+		return locals.DocType[doctype] && locals.DocType[doctype].issingle;
 	},
 
 	can_import: function(doctype, frm) {

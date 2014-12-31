@@ -63,57 +63,11 @@ frappe.ui.Listing = Class.extend({
 		this.prepare_opts();
 		$.extend(this, this.opts);
 
-		$(this.parent).html(repl('\
-			<div class="frappe-list">\
-				<h3 class="title hide">%(title)s</h3>\
-				\
-				<div class="list-filters" style="display: none;">\
-					<div class="show_filters">\
-						<div class="set-filters">\
-							<button class="btn btn-primary btn-sm btn-new hide" \
-								style="margin-bottom: 10px; margin-right: 5px;">\
-								<i class="icon-plus"></i> '+__("New")+'</button>\
-							<button class="btn btn-default btn-sm new-filter text-muted" \
-								style="margin-bottom: 10px">\
-								<i class="icon-filter"></i> '+__("Add Filter")+'</button>\
-						</div>\
-						<div class="filter_area"></div>\
-					</div>\
-				</div>\
-				\
-				<div style="margin-bottom:9px" class="list-toolbar-wrapper hide">\
-					<div class="list-toolbar btn-group" style="display:inline-block; margin-right: 10px;">\
-					</div>\
-					<div style="display: none; width: 24px; margin-left: 4px">\
-						<img src="assets/frappe/images/ui/button-load.gif" \
-						class="img-load"/></div>\
-				</div><div style="clear:both"></div>\
-				<div class="no-result" style="display: none;">\
-					%(no_result_message)s\
-				</div>\
-				<div class="result">\
-					<div class="result-list"></div>\
-				</div>\
-				<div class="paging-button" style="margin-top: 15px; display: none;">\
-					<div class="row">\
-						<div class="col-sm-6">\
-							<button class="btn btn-default btn-more">%(_more)s...</button>\
-						</div>\
-						<div class="col-sm-6">\
-							<div class="btn-group pull-right btn-group-paging">\
-								<button type="button" class="btn btn-default btn-small btn-info" data-value="20">20</button>\
-								<button type="button" class="btn btn-default btn-small" data-value="100">100</button>\
-								<button type="button" class="btn btn-default btn-small" data-value="500">500</button>\
-							</div>\
-						</div>\
-					</div>\
-				</div>\
-			</div>\
-		', this.opts));
+		$(this.parent).html(frappe.render_template("listing", this.opts));
 		this.$w = $(this.parent).find('.frappe-list');
 		this.set_events();
 
-		if(this.appframe) {
+		if(this.page) {
 			this.$w.find('.list-toolbar-wrapper').toggle(false);
 		}
 
@@ -122,8 +76,8 @@ frappe.ui.Listing = Class.extend({
 		}
 	},
 	add_button: function(label, click, icon) {
-		if(this.appframe) {
-			return this.appframe.add_button(label, click, icon)
+		if(this.page) {
+			return this.page.add_button(label, click, icon)
 		} else {
 			this.$w.find('.list-toolbar-wrapper').removeClass("hide");
 			$button = $('<button class="btn btn-default"></button>')
@@ -134,11 +88,11 @@ frappe.ui.Listing = Class.extend({
 		}
 	},
 	show_view: function($btn, $div, $btn_unsel, $div_unsel) {
-		$btn_unsel.removeClass('btn-info');
+		$btn_unsel.removeClass('btn-primary');
 		$btn_unsel.find('i').removeClass('icon-white');
 		$div_unsel.toggle(false);
 
-		$btn.addClass('btn-info');
+		$btn.addClass('btn-primary');
 		$btn.find('i').addClass('icon-white');
 		$div.toggle(true);
 	},
@@ -160,34 +114,10 @@ frappe.ui.Listing = Class.extend({
 			this.$w.find('h3').html(this.title).toggle(true);
 		}
 
-		// hide-refresh
-		if(!(this.hide_refresh || this.no_refresh)) {
-			this.add_button(__('Refresh'), function() {
-				me.run();
-			}, 'icon-refresh');
-
-		}
-
 		// new
 		if(this.new_doctype) {
 			var make_new_doc = function() { (me.custom_new_doc || me.make_new_doc).apply(me, [me.new_doctype]); };
-
-			// if(this.appframe) {
-			// 	this.appframe.set_title_right("<i class='icon-plus'></i> " + __('New'), function() {
-			// 		make_new_doc(); });
-			// }
-			// this.add_button(__('New'), function() {
-			// 	make_new_doc();
-			// }, 'icon-plus');
-
-			this.$w.find(".btn-new").removeClass("hide").on("click", function() { make_new_doc(); });
-		}
-
-		// hide-filter
-		if(me.show_filters) {
-			this.add_button(__('Filter'), function() {
-				me.filter_list.add_filter();
-			}, 'icon-filter').addClass('btn-filter');
+			this.page.set_primary_action(__("New"), function() { make_new_doc(); });
 		}
 
 		if(me.no_toolbar || me.hide_toolbar) {
@@ -283,7 +213,7 @@ frappe.ui.Listing = Class.extend({
 	render_results: function(r) {
 		if(this.start===0) this.clear();
 
-		this.$w.find('.paging-button').toggle(false);
+		this.$w.find('.list-paging-area, .list-loading').toggle(false);
 
 		if(r.message) {
 			r.values = this.get_values_from_response(r.message);
@@ -338,7 +268,7 @@ frappe.ui.Listing = Class.extend({
 	},
 	update_paging: function(values) {
 		if(values.length >= this.page_length) {
-			this.$w.find('.paging-button').toggle(true);
+			this.$w.find('.list-paging-area').toggle(true);
 			this.start += this.page_length;
 		}
 	},
