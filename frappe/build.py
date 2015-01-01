@@ -31,13 +31,14 @@ def watch(no_compress):
 	setup()
 
 	import time
+	compile_less()
 	build(no_compress=True)
 
 	while True:
+		compile_less()
 		if files_dirty():
 			build(no_compress=True)
 
-		compile_less()
 		time.sleep(3)
 
 def make_asset_dirs(make_copy=False):
