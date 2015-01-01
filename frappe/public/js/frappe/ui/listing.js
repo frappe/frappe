@@ -77,7 +77,7 @@ frappe.ui.Listing = Class.extend({
 	},
 	add_button: function(label, click, icon) {
 		if(this.page) {
-			return this.page.add_button(label, click, icon)
+			return this.page.add_menu_item(label, click, icon)
 		} else {
 			this.$w.find('.list-toolbar-wrapper').removeClass("hide");
 			$button = $('<button class="btn btn-default"></button>')

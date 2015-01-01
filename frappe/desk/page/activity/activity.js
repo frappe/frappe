@@ -24,7 +24,7 @@ frappe.pages['activity'].onload = function(wrapper) {
 
 	// Build Report Button
 	if(frappe.boot.user.can_get_report.indexOf("Feed")!=-1) {
-		wrapper.page.add_button(__('Build Report'), function() {
+		wrapper.page.set_secondary_action(__('Build Report'), function() {
 			frappe.set_route('Report', "Feed");
 		}, 'icon-th');
 	}

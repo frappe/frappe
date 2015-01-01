@@ -751,3 +751,22 @@ th.fc-widget-header {
 .fn-gantt .today {
   background-color: #D9F6FF !important;
 }
+.page-only-label {
+  margin-top: 5px;
+  text-align: center;
+}
+.grid-report .plot {
+  margin: 15px;
+  display: none;
+  height: 300px !important;
+  width: 97% !important;
+}
+.grid-report .ui-widget {
+  border: none !important;
+  outline: none !important;
+  border-top: 1px solid #d1d8dd !important;
+}
+.grid-report .show-zero {
+  margin: 10px;
+  display: none;
+}

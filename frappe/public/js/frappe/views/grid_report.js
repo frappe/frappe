@@ -103,8 +103,7 @@ frappe.views.GridReport = Class.extend({
 		var me = this;
 		$.extend(this, opts);
 
-		$(this.page).find(".app-page").addClass("full-width");
-		this.wrapper = $('<div>').appendTo(this.parent);
+		this.wrapper = $('<div class="grid-report"></div>').appendTo(this.parent);
 		this.parent.find(".page").css({"padding-top": "0px"});
 
 		if(this.filters) {
@@ -126,7 +125,6 @@ frappe.views.GridReport = Class.extend({
 			// reapply filters on show
 			frappe.cur_grid_report = me;
 			me.get_data_and_refresh();
-			frappe.container.set_full_width();
 		});
 
 	},
@@ -166,17 +164,19 @@ frappe.views.GridReport = Class.extend({
 		});
 
 		// refresh
-		this.filter_inputs.refresh && this.filter_inputs.refresh.click(function() {
+		this.page.set_primary_action(__("Refresh"), function() {
 			me.get_data(function() {
 				me.refresh();
 			});
 		});
 
-		// reset filters
-		this.filter_inputs.reset_filters && this.filter_inputs.reset_filters.click(function() {
-			me.init_filter_values();
-			me.refresh();
-		});
+		// reset filters button
+		if (this.filter_inputs) {
+			this.page.add_menu_item(__("Reset Filters"), function() {
+				me.init_filter_values();
+				me.refresh();
+			}, true);
+		}
 
 		// range
 		this.filter_inputs.range && this.filter_inputs.range.on("change", function() {
@@ -255,10 +255,10 @@ frappe.views.GridReport = Class.extend({
 				input.autocomplete({
 					source: v.list || [],
 				});
-			} else if(v.fieldtype==='Button' && v.label==="Refresh") {
+			} else if(v.fieldtype==='Button' && v.label===__("Refresh")) {
 				input = me.page.set_primary_action(v.label, null, v.icon);
 			} else if(v.fieldtype==='Button') {
-				input = me.page.add_button(v.label, null, v.icon);
+				input = me.page.add_menu_item(v.label, null, true);
 			} else if(v.fieldtype==='Date') {
 				input = me.page.add_date(v.label);
 			} else if(v.fieldtype==='Label') {
@@ -369,10 +369,9 @@ frappe.views.GridReport = Class.extend({
 		var me = this;
 
 		// plot wrapper
-		this.plot_area = $('<div class="plot" style="margin-top: 15px; margin-bottom: 15px; display: none; \
-			height: 300px; width: 100%;"></div>').appendTo(this.wrapper);
+		this.plot_area = $('<div class="plot"></div>').appendTo(this.wrapper);
 
-		this.page.add_button(__("Export"), function() { return me.export(); }, "icon-download");
+		this.page.add_menu_item(__("Export"), function() { return me.export(); }, true);
 
 		// grid wrapper
 		this.grid_wrapper = $("<div style='height: 500px; border: 1px solid #aaa; \
@@ -381,9 +380,9 @@ frappe.views.GridReport = Class.extend({
 		this.id = frappe.dom.set_unique_id(this.grid_wrapper.get(0));
 
 		// zero-value check
-		$('<div style="margin: 10px 0px; display: none" class="show-zero">\
-				<input type="checkbox"> '+__('Show rows with zero values')
-			+'</div>').appendTo(this.wrapper);
+		$('<div class="checkbox show-zero">\
+				<label><input type="checkbox"> '+__('Show rows with zero values')
+			+'</label></div>').appendTo(this.wrapper);
 
 		this.bind_show();
 
