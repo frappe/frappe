@@ -18,6 +18,11 @@ frappe.views.FormFactory = frappe.views.Factory.extend({
 		} else {
 			me.show_doc(route);
 		}
+
+		$(document).on("page-change", function() {
+			var open_form = frappe.ui.form.get_open_grid_form();
+			open_form && open_form.hide_form();
+		});
 	},
 	show_doc: function(route) {
 		var dt = route[1],

@@ -1,0 +1,39 @@
+@import "variables.less";
+
+.tree {
+	padding: 15px;
+}
+
+.tree li {
+	list-style: none;
+}
+
+.tree-link {
+	cursor: pointer;
+}
+
+.tree-hover {
+	background-color: @panel-bg;
+	min-height: 20px;
+	border: 1px solid @border-color;
+}
+
+.tree-node-toolbar {
+	display: inline-block;
+	padding: 0px 5px;
+	margin-left: 15px;
+	border-radius: 3px;
+	background-color: @btn-bg;
+}
+
+.tree-toolbar-item {
+	display: inline-block;
+	padding: 0px 5px;
+	padding-top: 1px;
+	border-right: 1px solid @border-color;
+	font-size: 90%;
+}
+
+.tree-toolbar-item:last-child {
+	border-right: 0px;
+}

@@ -1,6 +1,10 @@
 // Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
+frappe.ui.form.get_open_grid_form = function() {
+	return $(".grid-row-open").data("grid_row");
+}
+
 frappe.ui.form.Grid = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
@@ -265,7 +269,7 @@ frappe.ui.form.GridRow = Class.extend({
 
 		// refersh form fields
 		if(this.get_open_form()) {
-			this.layout.refresh(this.doc);
+			this.layout && this.layout.refresh(this.doc);
 		}
 	},
 	make_static_display: function() {
@@ -360,7 +364,7 @@ frappe.ui.form.GridRow = Class.extend({
 		}
 	},
 	get_open_form: function() {
-		return $(".grid-row-open").data("grid_row");
+		return frappe.ui.form.get_open_grid_form();
 	},
 	toggle_view: function(show, callback) {
 		if(!this.doc) return this;

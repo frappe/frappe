@@ -107,10 +107,10 @@ frappe.ui.form.ControlImage = frappe.ui.form.Control.extend({
 	make: function() {
 		this._super();
 		var me = this;
-		this.$wrapper = $("<div class='row'></div>")
+		this.$wrapper = $("<div></div>")
 			.appendTo(this.parent)
 			.css({"max-width": "600px", "margin": "0px"});
-		this.$body = $("<div class='col-xs-8'>").appendTo(this.$wrapper)
+		this.$body = $("<div></div>").appendTo(this.$wrapper)
 			.css({"margin-bottom": "10px", "max-width": "100%"})
 		this.$wrapper.on("refresh", function() {
 				me.$body.empty();
@@ -118,7 +118,7 @@ frappe.ui.form.ControlImage = frappe.ui.form.Control.extend({
 					me.$img = $("<img src='"+me.frm.doc[me.df.options]+"' style='max-width: 100%;'>")
 						.appendTo(me.$body);
 				} else {
-					me.$buffer = $("<div class='missing-image'><i class='icon-camera'></i></div>")
+					me.$buffer = $("<div class='missing-image'><i class='octicon octicon-circle-slash'></i></div>")
 						.appendTo(me.$body)
 				}
 				return false;
@@ -709,7 +709,7 @@ frappe.ui.form.ControlAttachImage = frappe.ui.form.ControlAttach.extend({
 	make_input: function() {
 		this._super();
 		this.img = $("<img class='img-responsive'>").appendTo($('<div style="margin: 7px 0px;">\
-			<div class="missing-image"><i class="icon-camera"></i></div></div>')
+			<div class="missing-image"><i class="octicon octicon-circle-slash"></i></div></div>')
 			.prependTo(this.input_area)).toggle(false);
 
 		var me = this;

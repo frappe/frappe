@@ -11,14 +11,25 @@ Build the `public` folders and setup languages
 import os, frappe, json, shutil, re
 # from cssmin import cssmin
 
+
+app_paths = None
+def setup():
+	global app_paths
+	pymodules = [frappe.get_module(app) for app in frappe.get_all_apps(True)]
+	app_paths = [os.path.dirname(pymodule.__file__) for pymodule in pymodules]
+
 def bundle(no_compress, make_copy=False, verbose=False):
 	"""concat / minify js files"""
 	# build js files
+	setup()
+
 	make_asset_dirs(make_copy=make_copy)
 	build(no_compress, verbose)
 
 def watch(no_compress):
 	"""watch and rebuild if necessary"""
+	setup()
+
 	import time
 	build(no_compress=True)
 
@@ -26,6 +37,7 @@ def watch(no_compress):
 		if files_dirty():
 			build(no_compress=True)
 
+		compile_less()
 		time.sleep(3)
 
 def make_asset_dirs(make_copy=False):
@@ -61,8 +73,6 @@ def build(no_compress=False, verbose=False):
 def get_build_maps():
 	"""get all build.jsons with absolute paths"""
 	# framework js and css files
-	pymodules = [frappe.get_module(app) for app in frappe.get_all_apps(True)]
-	app_paths = [os.path.dirname(pymodule.__file__) for pymodule in pymodules]
 
 	build_maps = {}
 	for app_path in app_paths:
@@ -152,3 +162,18 @@ def files_dirty():
 	else:
 		return False
 
+def compile_less():
+	for path in app_paths:
+		less_path = os.path.join(path, "public", "less")
+		if os.path.exists(less_path):
+			for fname in os.listdir(less_path):
+				if fname.endswith(".less") and fname != "variables.less":
+					fpath = os.path.join(less_path, fname)
+					mtime = os.path.getmtime(fpath)
+					if fpath in timestamps and mtime == timestamps[fpath]:
+						continue
+
+					timestamps[fpath] = mtime
+					print "compiling {0}".format(fpath)
+					os.system("lessc {0} > {1}".format(fpath,
+						os.path.join(path, "public", "css", fname.rsplit(".", 1)[0] + ".css")))
