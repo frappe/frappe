@@ -41,3 +41,7 @@
 ### IP Address Database
 
 - GeoIP: (c) 2014 MaxMind, http://dev.maxmind.com/geoip/geoip2/downloadable/
+
+---
+
+Last updated: 1st Jan 2015
