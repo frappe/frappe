@@ -386,10 +386,9 @@ $.extend(frappe.model, {
 			fields: [
 				{label:__("New Name"), fieldtype:"Data", reqd:1},
 				{label:__("Merge with existing"), fieldtype:"Check", fieldname:"merge"},
-				{label:__("Rename"), fieldtype: "Button"}
 			]
 		});
-		d.get_input("rename").on("click", function() {
+		d.set_primary_action(__("Rename"), function() {
 			var args = d.get_values();
 			if(!args) return;
 			d.get_input("rename").set_working();

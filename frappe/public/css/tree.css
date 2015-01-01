@@ -3,9 +3,13 @@
 }
 .tree li {
   list-style: none;
+  margin: 2px 0px;
 }
 .tree-link {
   cursor: pointer;
+}
+.tree-link.active i {
+  color: #5e64ff !important;
 }
 .tree-hover {
   background-color: #f7fafc;
@@ -16,16 +20,5 @@
   display: inline-block;
   padding: 0px 5px;
   margin-left: 15px;
-  border-radius: 3px;
-  background-color: #f0f4f7;
-}
-.tree-toolbar-item {
-  display: inline-block;
-  padding: 0px 5px;
-  padding-top: 1px;
-  border-right: 1px solid #d1d8dd;
-  font-size: 90%;
-}
-.tree-toolbar-item:last-child {
-  border-right: 0px;
+  margin-bottom: -4px;
 }
