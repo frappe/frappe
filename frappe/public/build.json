@@ -16,10 +16,6 @@
 		"public/js/lib/highlight.pack.js",
 		"website/js/website.js"
 	],
-	"js/canvasResize.min.js": [
-		"website/js/jquery.exif.js",
-		"website/js/jquery.canvasResize.js"
-	],
 	"js/editor.min.js": [
 		"public/js/lib/jquery/jquery.hotkeys.js",
 		"public/js/frappe/class.js",
@@ -48,7 +44,6 @@
 		"public/js/lib/jquery/jquery.ui.min.js",
 		"public/js/lib/tag-it.min.js",
 		"public/js/lib/jquery/jquery.hotkeys.js",
-		"public/js/lib/center_image.js",
 		"public/js/lib/bootstrap.min.js",
 		"public/js/lib/nprogress.js",
 		"public/js/lib/beautify-html.js",
