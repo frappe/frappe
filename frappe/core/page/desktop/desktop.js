@@ -196,7 +196,7 @@ frappe.desktop.show_pending_notifications = function() {
 			var notifier = $("#module-count-" + frappe.get_module(module)._id);
 			if(notifier.length) {
 				notifier.toggle(sum ? true : false);
-				notifier.find(".circle-text").html(sum || "");
+				// notifier.find(".circle-text").html(sum || "");
 			}
 		}
 	});

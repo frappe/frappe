@@ -31,34 +31,39 @@
 	/*text-shadow: 1px 1px 3px rgba(0, 0, 0, 1), 0px 3px 15px rgba(0, 0, 0, 0.5);*/
 }
 
+.circle {
+	position: absolute;
+	top: 0px;
+	right: 15px;
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	-moz-border-radius: 50%;
+	-webkit-border-radius: 50%;
+	line-height: none;
+	background: #FF5858;
+	z-index: 5;
+}
+
+/*.circle-text {
+	color: white;
+	display: inline-block;
+	min-width: 15px;
+}*/
+
 @media (max-width: 768px) {
 	.case-wrapper {
 		margin: 9px;
 		width: 70px;
-		height: 80px;
+		height: 90px;
 	}
 	.case-label {
 		padding-top: 2px;
 		font-size: 85%;
 	}
+	.circle {
+		right: 3px;
+	}
 }
 
-.circle {
-	position: absolute;
-	top: -10px;
-	right: 5px;
-	border-radius: 30px;
-	-moz-border-radius: 30px;
-	-webkit-border-radius: 30px;
-	line-height: 15px;
-	background: #FF5858;
-	padding: 5px;
-	z-index: 5;
-}
-
-.circle-text {
-	color: white;
-	display: inline-block;
-	min-width: 15px;
-}
 

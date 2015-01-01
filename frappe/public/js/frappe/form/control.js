@@ -584,7 +584,7 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 	make_input: function() {
 		var me = this;
 		this.$input = $('<button class="btn btn-default btn-sm">')
-			.html(__("Upload"))
+			.html(__("Attach"))
 			.prependTo(me.input_area)
 			.on("click", function() {
 				me.onclick();

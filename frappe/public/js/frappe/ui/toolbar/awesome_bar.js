@@ -144,7 +144,7 @@ frappe.search.verbs = [
 			frappe.search.find(frappe.boot.user.can_create, txt.substr(4), function(match) {
 				return {
 					value:__("New {0}", ["<b>"+match+"</b>"]),
-					route:["Form", match, "New " + match]
+					onclick: function() { new_doc(match); }
 				}
 			});
 		}

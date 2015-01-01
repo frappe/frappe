@@ -8,10 +8,10 @@
 	border-bottom: 3px solid #aaa;
 }
 
-table.table-bordered {
+.print-format table.table-bordered {
 	border-top: 3px solid #aaa;
 }
 
-th {
+.print-format th {
 	background-color: #eee;
 }

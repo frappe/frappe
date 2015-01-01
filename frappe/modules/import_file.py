@@ -88,6 +88,7 @@ ignore_values = {
 ignore_doctypes = ["Page Role", "DocPerm"]
 
 def import_doc(docdict, force=False, data_import=False):
+	frappe.flags.in_import = True
 	docdict["__islocal"] = 1
 	doc = frappe.get_doc(docdict)
 
@@ -118,3 +119,5 @@ def import_doc(docdict, force=False, data_import=False):
 		doc.ignore_mandatory = True
 		doc.ignore_user_permissions = True
 	doc.insert()
+
+	frappe.flags.in_import = False
