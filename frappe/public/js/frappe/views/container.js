@@ -87,11 +87,12 @@ frappe.views.Container = Class.extend({
 		}
 
 		if(breadcrumbs.module && breadcrumbs.module != "Desk") {
-			if(breadcrumbs.module==="Core") breadcrumbs.module = "Setup";
+			if(in_list(["Core", "Email", "Custom"], breadcrumbs.module))
+				breadcrumbs.module = "Setup";
 			divider();
 			var module_info = frappe.get_module(breadcrumbs.module),
-				icon = module_info.icon,
-				label = module_info.label;
+				icon = module_info && module_info.icon,
+				label = module_info ? module_info.label : breadcrumbs.module;
 			if(icon) {
 				icon = '<span class="'+icon+' text-muted"></span> '
 			}

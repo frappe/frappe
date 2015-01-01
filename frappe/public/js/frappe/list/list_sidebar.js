@@ -47,14 +47,14 @@ frappe.views.ListSidebar = Class.extend({
 	},
 	render_stat: function(field, stat) {
 		var me = this;
-		var show_tags =  '<a class="list-tag-preview small" style="margin-left: 7px;">'
-			+ '<span class="small">' + __("Edit") +'</span></a>';
+		var show_tags =  '<a class="list-tag-preview" style="margin-left: 7px;">'
+			+ '<span class="octicon octicon-pencil" style="font-size: 12px;"></span></a>';
 
 		if(!stat || !stat.length) {
 			if(field==='_user_tags') {
 				$('<div class="sidebar-section">\
-					<h5 class="text-muted">\
-						</i> '+__('Tags')+show_tags+'</h5>\
+					<h6>\
+						</i> '+__('Tags')+show_tags+'</h6>\
 					<div class="side-panel-body">\
 						<div class="text-muted small"><i>'+__('No records tagged.')+'</i><br>'
 						+'</div>\
@@ -69,7 +69,7 @@ frappe.views.ListSidebar = Class.extend({
 
 		// grid
 		var $w = $('<div class="sidebar-section">\
-			<h5 class="text-muted">'+ __(label) +'</h5>\
+			<h6>'+ __(label) +'</h6>\
 			<div class="side-panel-body">\
 			</div>\
 		</div>');

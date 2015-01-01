@@ -359,6 +359,7 @@ em.link-option {
 .sidebar-section h6 {
   text-transform: uppercase;
   color: #8d99a6;
+  font-size: 10px;
 }
 .sidebar-section h6 .label {
   font-size: 12px;
