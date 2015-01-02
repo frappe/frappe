@@ -136,13 +136,15 @@ def update_link_field_values(link_fields, old, new, doctype):
 				where doctype=%s and field=%s and value=%s""",
 				(new, field['parent'], field['fieldname'], old))
 		else:
-			if field['parent']!=new:
-				frappe.db.sql("""\
-					update `tab%s` set `%s`=%s
-					where `%s`=%s""" \
-					% (field['parent'], field['fieldname'], '%s',
-						field['fieldname'], '%s'),
-					(new, old))
+			# because the table hasn't been renamed yet!
+			parent = field['parent'] if field['parent']!=new else old
+
+			frappe.db.sql("""\
+				update `tab%s` set `%s`=%s
+				where `%s`=%s""" \
+				% (parent, field['fieldname'], '%s',
+					field['fieldname'], '%s'),
+				(new, old))
 
 def get_link_fields(doctype):
 	# get link fields from tabDocField
@@ -305,9 +307,13 @@ def rename_dynamic_links(doctype, old, new):
 					frappe.db.sql("""update tabSingles set value=%s where
 						field=%s and value=%s and doctype=%s""", (new, df.fieldname, old, df.parent))
 			else:
+				# because the table hasn't been renamed yet!
+				parent = df.parent if df.parent != new else old
+
 				# replace for each value where renamed
 				for to_change in frappe.db.sql_list("""select name from `tab{parent}` where
-					{options}=%s and {fieldname}=%s""".format(**df), (doctype, old)):
+					{options}=%s and {fieldname}=%s""".format(parent=parent, options=df.options,
+					fieldname=df.fieldname), (doctype, old)):
 
 					frappe.db.sql("""update `tab{parent}` set {fieldname}=%s
 						where name=%s""".format(**df), (new, to_change))

@@ -766,6 +766,7 @@ th.fc-widget-header {
   border: none !important;
   outline: none !important;
   border-top: 1px solid #d1d8dd !important;
+  background-color: #fafbfc !important;
 }
 .grid-report .show-zero {
   margin: 10px;
