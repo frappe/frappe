@@ -112,8 +112,6 @@ def get_fullnames():
 			r.image = get_gravatar()
 		d[r.name] = r
 
-	print "here"
-
 	return d
 
 def get_startup_js():
