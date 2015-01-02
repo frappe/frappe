@@ -66,6 +66,8 @@ frappe.ui.form.Toolbar = Class.extend({
 		if(!me.frm.doc.__islocal && frappe.model.can_print(null, me.frm)) {
 			this.page.add_menu_item(__("Print"), function() {
 				me.frm.print_doc();}, true);
+			this.page.add_action_icon("icon-print", function() {
+				me.frm.print_doc();});
 		}
 
 		// email

@@ -15,6 +15,9 @@ frappe.views.ListSidebar = Class.extend({
 		this.wrapper = $(frappe.render_template("list_sidebar", {doctype: this.doclistview.doctype}))
 			.appendTo(this.parent);
 		this.get_stats();
+		if(frappe.views.calendar[this.doctype]) {
+			this.wrapper.find(".calendar-link, .gantt-link").removeClass("hide");
+		}
 	},
 	get_stats: function() {
 		var me = this

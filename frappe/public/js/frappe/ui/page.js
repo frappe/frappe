@@ -71,10 +71,17 @@ frappe.ui.Page = Class.extend({
 		this.btn_secondary = this.page_actions.find(".btn-secondary");
 		this.menu_btn_group = this.page_actions.find(".btn-group");
 		this.page_form = $('<div class="page-form row hide"></div>').prependTo(this.main);
+		this.icon_group = this.page_actions.find(".page-icon-group");
 	},
 
 	set_indicator: function(label, color) {
 		this.clear_indicator().removeClass("hide").html(label).addClass(color);
+	},
+
+	add_action_icon: function(icon, click) {
+		return $('<a class="text-extra-muted"><i class="'+icon+'"></i></a>')
+			.appendTo(this.icon_group.removeClass("hide"))
+			.click(click);
 	},
 
 	clear_indicator: function() {
@@ -96,6 +103,10 @@ frappe.ui.Page = Class.extend({
 	clear_actions: function() {
 		this.btn_primary.addClass("hide").unbind("click");
 		this.btn_secondary.addClass("hide").unbind("click");
+	},
+
+	clear_icons: function() {
+		this.icon_group.addClass("hide").empty();
 	},
 
 	add_menu_item: function(label, click, standard) {

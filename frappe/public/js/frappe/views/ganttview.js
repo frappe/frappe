@@ -41,9 +41,9 @@ frappe.views.Gantt = Class.extend({
 
 		this.page = this.parent.page;
 		this.page.set_title(__("Gantt Chart") + " - " + __(this.doctype));
-		frappe.add_breadcrumbs(module)
+		frappe.add_breadcrumbs(module, this.doctype);
 
-		this.page.set_primary_action(__("Refresh"),
+		this.page.set_secondary_action(__("Refresh"),
 			function() { me.refresh(); }, "icon-refresh")
 
 		this.page.add_field({fieldtype:"Date", label:"From",
@@ -57,13 +57,11 @@ frappe.views.Gantt = Class.extend({
 				me.page.add_field(df);
 			});
 		}
+
+		this.wrapper = $("<div></div>").appendTo(this.page.main);
+
 	},
 	refresh: function() {
-		var parent = $(this.parent)
-			.find(".layout-main")
-			.empty()
-			.html('<div class="alert alert-info">Loading...</div>');
-
 		var me = this;
 		return frappe.call({
 			method: this.get_events_method,
@@ -75,11 +73,11 @@ frappe.views.Gantt = Class.extend({
 				filters: this.get_filters()
 			},
 			callback: function(r) {
-				$(parent).empty();
+				$(me.wrapper).empty();
 				if(!r.message || !r.message.length) {
-					$(parent).html('<div class="alert alert-info">' + __('Nothing to show for this selection') + '</div>');
+					$(me.wrapper).html('<p class="text-muted" style="padding: 15px;">' + __('Nothing to show for this selection') + '</p>');
 				} else {
-					var gantt_area = $('<div class="gantt">').appendTo(parent);
+					var gantt_area = $('<div class="gantt">').appendTo(me.wrapper);
 					gantt_area.gantt({
 						source: me.get_source(r),
 						navigate: "scroll",

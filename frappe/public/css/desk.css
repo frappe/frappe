@@ -93,6 +93,11 @@ em.link-option {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.scroll-to-top {
+  background-color: #fafbfc;
+  padding: 7px;
+  border-radius: 3px;
+}
 @media (max-width: 767px) {
   .layout-side-section {
     border-top: 1px solid #d1d8dd;
@@ -110,6 +115,9 @@ em.link-option {
 .page-actions {
   padding-top: 20px;
   padding-bottom: 20px;
+}
+.page-icon-group a {
+  margin-right: 7px;
 }
 /* show menu aligned to the right border of the dropdown */
 .page-actions .dropdown-menu {
