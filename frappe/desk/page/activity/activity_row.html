@@ -1,0 +1,12 @@
+<div class="row activity-row">
+	<div class="col-xs-3 text-right activity-date"><span class="{%= date_class %}">
+		{%= date_sep || "" %}</span></div>
+	<div class="col-xs-9 activity-message" data-doctype="{%= doc_type %}" data-docname="{%= doc_name %}"
+		title="{%= by %} / {%= dateutil.obj_to_user(creation) %}">
+		<span class="avatar avatar-small">
+			<img src="{%= imgsrc %}">
+		</span>
+		<span class="label {%= add_class %} activity-label text-ellipsis">{%= feed_type %}</span>
+		<span class="small">{%= subject %}</span>
+	</div>
+</div>

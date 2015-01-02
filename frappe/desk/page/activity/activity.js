@@ -20,6 +20,14 @@ frappe.pages['activity'].onload = function(wrapper) {
 	});
 	list.run();
 
+	this.page.main.on("click", ".activity-message", function() {
+		var doctype = $(this).attr("data-doctype"),
+			docname = $(this).attr("data-docname");
+		if (doctype && docname) {
+			frappe.set_route(["Form", doctype, docname]);
+		}
+	});
+
 	wrapper.page.set_primary_action(__("Refresh"), function() { list.run(); });
 
 	// Build Report Button
@@ -38,14 +46,7 @@ frappe.ActivityFeed = Class.extend({
 		if(!data.add_class)
 			data.add_class = "label-default";
 
-		$(row).append(repl('<div style="margin: 0px">\
-			<span class="avatar avatar-small">\
-				<img src="%(imgsrc)s" /></span> \
-			<i class="icon-fixed-width %(icon)s" style="margin-right: 5px;"></i>\
-			<a %(onclick)s class="label %(add_class)s">\
-				%(feed_type)s</a>\
-			<span class="small">%(subject)s</span>\
-			<span class="user-info">%(by)s / %(when)s</span></div>', data));
+		$(row).append(frappe.render_template("activity_row", data));
 	},
 	scrub_data: function(data) {
 		data.by = frappe.user_info(data.owner).fullname;
@@ -54,9 +55,10 @@ frappe.ActivityFeed = Class.extend({
 		data.icon = "icon-flag";
 		if(data.doc_type) {
 			data.feed_type = data.doc_type;
-			data.onclick = repl('href="#Form/%(doc_type)s/%(doc_name)s"', data);
 			data.icon = frappe.boot.doctype_icons[data.doc_type];
 		}
+
+		data.feed_type = data.feed_type || "Comment";
 
 		// color for comment
 		data.add_class = {
@@ -81,7 +83,11 @@ frappe.ActivityFeed = Class.extend({
 			} else {
 				pdate = dateutil.global_date_format(date);
 			}
-			$(row).html(repl('<div class="date-sep" style="padding-left: 15px;">%(date)s</div>', {date: pdate}));
+			data.date_sep = pdate;
+			data.date_class = "date-indicator";
+		} else {
+			data.date_sep = null;
+			data.date_class = "";
 		}
 		frappe.last_feed_date = date;
 	}
