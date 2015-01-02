@@ -29,6 +29,8 @@ def run_all():
 def get_all_patches():
 	patches = []
 	for app in frappe.get_installed_apps():
+		if app == "shopping_cart":
+			continue
 		# 3-to-4 fix
 		if app=="webnotes":
 			app="frappe"
