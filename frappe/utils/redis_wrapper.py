@@ -54,17 +54,16 @@ class RedisWrapper(redis.Redis):
 
 	def delete_keys(self, key):
 		"""Delete keys with wildcard `*`."""
-		self.delete_value(self.get_keys(key))
+		self.delete_value(self.get_keys(key), make_keys=False)
 
-	def delete_value(self, keys, user=None):
+	def delete_value(self, keys, user=None, make_keys=True):
 		"""Delete value, list of values."""
 		if not isinstance(keys, (list, tuple)):
-			for key in keys:
-				if key in frappe.local.cache:
-					del frappe.local.cache[key]
-			keys = (self.make_key(keys, user=user),)
+			keys = (keys, )
 
 		for key in keys:
+			if make_keys:
+				key = self.make_key(key)
 			self.delete(key)
 			if key in frappe.local.cache:
 				del frappe.local.cache[key]
