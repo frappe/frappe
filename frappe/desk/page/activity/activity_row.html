@@ -2,7 +2,7 @@
 	<div class="col-xs-3 text-right activity-date"><span class="{%= date_class %}">
 		{%= date_sep || "" %}</span></div>
 	<div class="col-xs-9 activity-message" data-doctype="{%= doc_type %}" data-docname="{%= doc_name %}"
-		title="{%= by %} / {%= dateutil.obj_to_user(creation) %}">
+		title="{%= by %} / {%= dateutil.str_to_user(creation) %}">
 		<span class="avatar avatar-small">
 			<img src="{%= imgsrc %}">
 		</span>

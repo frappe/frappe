@@ -84,7 +84,7 @@ frappe.ActivityFeed = Class.extend({
 				pdate = dateutil.global_date_format(date);
 			}
 			data.date_sep = pdate;
-			data.date_class = "date-indicator";
+			data.date_class = pdate=='Today' ? "date-indicator blue" : "date-indicator";
 		} else {
 			data.date_sep = null;
 			data.date_class = "";

@@ -17,7 +17,7 @@ $.extend(frappe.datetime, {
 	},
 
 	obj_to_user: function(d) {
-		return frappe.datetime.str_to_user(moment(d).format("YYYY-MM-DD HH:mm:ss"));
+		return moment(d).format(dateutil.get_user_fmt().toUpperCase());
 	},
 
 	get_diff: function(d1, d2) {

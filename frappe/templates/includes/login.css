@@ -2,18 +2,22 @@
 	display: none;
 }
 
-#wrap {
-	background-color: #f2f2f2;
-}
 .page-content {
 	right: 0%;
 	width: 100%;
 }
 
+#wrap {
+	background-color: #fafbfc;
+}
+
 .form-signin {
-  max-width: 330px;
-  padding: 15px;
+  max-width: 360px;
+  padding: 30px;
   margin: 0 auto;
+  border: 1px solid #d1d8dd;
+  border-radius: 5px;
+  background-color: #fff;
 }
 .form-signin .form-signin-heading,
 .form-signin .checkbox {
@@ -43,4 +47,8 @@ input#login_password, input#signup_email {
   margin-bottom: 10px;
   border-top-left-radius: 0;
   border-top-right-radius: 0;
+}
+
+.btn-social {
+	margin: 10px;
 }

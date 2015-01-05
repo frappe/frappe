@@ -28,6 +28,14 @@
     height:8px;
     width:8px;
     border-radius:8px;
+	background: #d1d8dd;
+}
+
+.date-indicator.blue {
+	color: #5e64ff;
+}
+
+.date-indicator.blue::after {
 	background: #5e64ff;
 }
 
