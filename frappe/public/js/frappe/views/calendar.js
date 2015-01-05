@@ -153,8 +153,15 @@ frappe.views.Calendar = Class.extend({
 				if(me.field_map.end)
 					event[me.field_map.end] = frappe.datetime.get_datetime_as_string(endDate);
 
-				if(me.field_map.allDay)
-					event[me.field_map.allDay] = (startDate._ambigTime && endDate._ambigTime) ? 1 : 0;
+				if(me.field_map.allDay) {
+					var all_day = (startDate._ambigTime && endDate._ambigTime) ? 1 : 0;
+
+					event[me.field_map.allDay] = all_day;
+
+					if (all_day)
+						event[me.field_map.end] = frappe.datetime.get_datetime_as_string(endDate.subtract(1, "s"));
+				}
+
 
 				frappe.set_route("Form", me.doctype, event.name);
 			},

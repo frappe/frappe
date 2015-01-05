@@ -14,8 +14,8 @@ class Event(Document):
 	def validate(self):
 		if self.starts_on and self.ends_on and self.starts_on > self.ends_on:
 			frappe.msgprint(frappe._("Event end must be after start"), raise_exception=True)
-		if self.starts_on and self.ends_on and int(date_diff(self.ends_on.split(" ")[0], self.starts_on.split(" ")[0])) > 0 \
-			and self.repeat_on == "Every Day":
+		if self.repeat_on == "Every Day" and self.starts_on and self.ends_on \
+			and int(date_diff(self.ends_on.split(" ")[0], self.starts_on.split(" ")[0])) > 0:
 			frappe.msgprint(frappe._("Every day events should finish on the same day."), raise_exception=True)
 
 def get_permission_query_conditions(user):
