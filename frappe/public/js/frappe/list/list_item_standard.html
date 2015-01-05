@@ -1,21 +1,23 @@
 <div class="row">
-    <div class="col-sm-{%= subject_cols %}">
-        <div class="text-ellipsis">{%= subject %}</div>
-    </div>
-    {% var total_cols=parseInt(subject_cols); for (var i=0, l=columns.length; i<l; i++ ) {
+    {% var total_cols=0; for (var i=0, l=columns.length; i < l; i++ ) {
         var col = columns[i], value=data[col.fieldname]; total_cols += parseInt(col.colspan); %}
-        {% if (total_cols < 12) { %}
-        <div class="col-sm-{%= col.colspan %} list-item-col">
-            <div class="text-ellipsis">
-            {% if (col.fieldtype==="Image") { %}
+        {% if (total_cols <= 12) { %}
+        <div class="col-sm-{%= col.colspan %}
+            {% if(col.type==="Subject") { %}col-xs-12{% } else { %}hidden-xs{% } %}
+            list-item-col text-ellipsis" title="{%= col.title + ": " + value %}">
+            {% if (col.type==="Subject") { %}
+                {%= subject %}
+            {% } else if (col.fieldtype==="Image") { %}
                 <img src="{%= value %}" style="max-height: 30px; max-width: 100%;">
             {% } else if(col.fieldtype==="Select") { %}
-                <span class="filterable label label-{%= frappe.utils.guess_style(value) %}"
+                <span class="filterable indicator {%= frappe.utils.guess_colour(value) %}"
                     data-filter="{%= col.fieldname %},=,{%= value %}">{%= value %}</span>
+            {% } else if(col.fieldtype==="Link") { %}
+                <a class="filterable grey"
+                    data-filter="{%= col.fieldname %},=,{%= value %}">{%= value %}</a>
             {% } else { %}
                 {%= frappe.format(value, col) %}
             {% } %}
-            </div>
         </div>
         {% } %}
     {% } %}

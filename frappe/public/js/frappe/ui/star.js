@@ -2,7 +2,7 @@
 // MIT License. See license.txt
 
 frappe.ui.toggle_star = function($btn, doctype, name) {
-	var add = $btn.hasClass("icon-star-empty") ? "Yes" : "No";
+	var add = $btn.hasClass("not-starred") ? "Yes" : "No";
 	frappe.call({
 		method: "frappe.desk.star.toggle_star",
 		quiet: true,
@@ -17,13 +17,13 @@ frappe.ui.toggle_star = function($btn, doctype, name) {
 				var action_buttons = $(".star-action[data-name='"+ name.replace(/"/g, '\"') +"']");
 
 				if(add==="Yes") {
-					action_buttons.removeClass("icon-star-empty").addClass("icon-star");
+					action_buttons.removeClass("not-starred").removeClass("text-extra-muted");
 				} else {
-					action_buttons.removeClass("icon-star").addClass("icon-star-empty");
+					action_buttons.addClass("not-starred").addClass("text-extra-muted");
 				}
 
 				// update in locals (form)
-				var doc = locals[doctype][name];
+				var doc = locals[doctype] && locals[doctype][name];
 				if(doc) {
 					var starred_by = JSON.parse(doc._starred_by || "[]"),
 						idx = starred_by.indexOf(user);

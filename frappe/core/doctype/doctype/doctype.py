@@ -245,6 +245,8 @@ def validate_fields(meta):
 			frappe.throw(_("Field {0} in row {1} cannot be hidden and mandatory without default").format(d.label, d.idx))
 
 	def check_min_items_in_list(fields):
+		if not meta.get("__islocal"):
+			return
 		if len(filter(lambda d: d.in_list_view, fields))==0:
 			for d in fields[:5]:
 				if d.fieldtype in type_map:

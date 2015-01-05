@@ -8,7 +8,7 @@ import urllib
 from frappe import msgprint, throw, _
 from frappe.email.smtp import SMTPServer, get_outgoing_email_account
 from frappe.email.email_body import get_email, get_formatted_html
-from frappe.email.html2text import html2text
+from html2text import html2text
 from frappe.utils import cint, get_url, nowdate
 
 class BulkLimitCrossedError(frappe.ValidationError): pass

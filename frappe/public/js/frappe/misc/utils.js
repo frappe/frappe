@@ -178,21 +178,30 @@ frappe.utils = {
 		// test regExp if not null
 		return '' !== val ? regExp.test( val ) : false;
 	},
-	guess_style: function(text, default_style) {
+	guess_style: function(text, default_style, _colour) {
 		var style = default_style || "default";
-		if(!text)
-			return style;
-		if(has_words(["Pending", "Review", "Medium"], text)) {
-			style = "warning";
-		} else if(has_words(["Open", "Rejected", "Urgent", "High"], text)) {
-			style = "danger";
-		} else if(has_words(["Closed", "Finished", "Converted", "Completed", "Confirmed",
-			"Approved", "Yes", "Active"], text)) {
-			style = "success";
-		} else if(has_words(["Submitted"], text)) {
-			style = "info";
+		var colour = "darkgrey";
+		if(text) {
+			if(has_words(["Pending", "Review", "Medium"], text)) {
+				style = "warning";
+				colour = "orange";
+			} else if(has_words(["Open", "Rejected", "Urgent", "High"], text)) {
+				style = "danger";
+				colour = "red";
+			} else if(has_words(["Closed", "Finished", "Converted", "Completed", "Confirmed",
+				"Approved", "Yes", "Active", "Available", "Paid"], text)) {
+				style = "success";
+				colour = "green";
+			} else if(has_words(["Submitted"], text)) {
+				style = "info";
+				colour = "blue";
+			}
 		}
-		return style;
+		return _colour ? colour : style;
+	},
+
+	guess_colour: function(text) {
+		return frappe.utils.guess_style(text, null, true);
 	},
 
 	sort: function(list, key, compare_type, reverse) {

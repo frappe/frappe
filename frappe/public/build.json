@@ -27,8 +27,8 @@
 		"public/js/lib/slickgrid/slick.grid.css",
 		"public/js/lib/slickgrid/slick-default-theme.css",
 
-		"public/css/tag-it.css",
 		"public/css/bootstrap.css",
+		"public/css/tag-it.css",
 		"public/css/font-awesome.css",
 		"public/css/octicons/octicons.css",
 		"public/css/desk.css",

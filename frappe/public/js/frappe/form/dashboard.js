@@ -7,7 +7,7 @@ frappe.ui.form.Dashboard = Class.extend({
 		this.wrapper = $('<div class="form-dashboard"></div>')
 		.prependTo(this.frm.layout.wrapper);
 		this.body = $('<div class="row"></div>').appendTo(this.wrapper)
-			.css("padding", "15px");
+			.css("padding", "15px 30px");
 
 	},
 	reset: function() {

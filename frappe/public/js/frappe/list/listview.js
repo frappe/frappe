@@ -99,7 +99,12 @@ frappe.views.ListView = Class.extend({
 	},
 	set_columns: function() {
 		this.columns = [];
-		this.total_colspans = 0;
+		this.total_colspans = 4;
+		this.columns.push({
+			colspan: 4,
+			type: "Subject"
+		});
+
 		var me = this;
 		if(this.workflow_state_fieldname) {
 			this.columns.push({
@@ -107,6 +112,7 @@ frappe.views.ListView = Class.extend({
 				content: this.workflow_state_fieldname,
 				type:"select"
 			});
+			this.total_colspans += 3;
 		}
 
 		// overridden
@@ -136,28 +142,24 @@ frappe.views.ListView = Class.extend({
 		}
 
 		var empty_cols = flt(12 - this.total_colspans);
-		this.shift_right = cint(empty_cols * 0.6667);
-		if(this.shift_right < 0) {
-			this.shift_right = 0;
-		} else if (this.shift_right > 1) {
-			// expand each column so that it fills up empty_cols
-			$.each(this.columns, function(i, c) {
-				c.colspan = cint(empty_cols / me.columns.length) + cint(c.colspan);
-			})
+		while(empty_cols > 0) {
+			for(var i=0, l=this.columns.length; i < l && empty_cols > 0; i++) {
+				this.columns[i].colspan = cint(this.columns[i].colspan) + 1;
+				empty_cols = empty_cols - 1;
+			}
 		}
-
 	},
 	add_column: function(df) {
 		// field width
-		var colspan = "3";
+		var colspan = 3;
 		if(in_list(["Int", "Percent", "Select"], df.fieldtype)) {
-			colspan = "2";
+			colspan = 2;
 		} else if(df.fieldtype=="Check") {
-			colspan = "1";
+			colspan = 1;
 		} else if(in_list(["name", "subject", "title"], df.fieldname)) { // subjects are longer
-			colspan = "4";
+			colspan = 4;
 		} else if(df.fieldtype=="Text Editor" || df.fieldtype=="Text") {
-			colspan = "4";
+			colspan = 4;
 		}
 		this.total_colspans += parseInt(colspan);
 		this.columns.push({
@@ -194,7 +196,6 @@ frappe.views.ListView = Class.extend({
 				data: data,
 				columns: this.columns,
 				subject: this.get_avatar_and_id(data, true),
-				subject_cols: 4 + this.shift_right
 			});
 		}
 

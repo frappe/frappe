@@ -24,6 +24,7 @@ frappe.views.ListFactory = frappe.views.Factory.extend({
 	show: function() {
 		this._super();
 		this.set_cur_list();
+		cur_list && cur_list.refresh();
 	},
 	set_cur_list: function() {
 		cur_list = frappe.container.page && frappe.container.page.doclistview;
@@ -49,13 +50,8 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		this.make_page();
 		this.setup();
 
-		var me = this;
-		$(this.parent).on("show", function() {
-			me.refresh();
-		});
-
 		// refresh on init
-		me.refresh();
+		this.refresh();
 	},
 
 	make_page: function() {
@@ -246,6 +242,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 			});
 		}
 		this.last_updated_on = new Date();
+		this.dirty = false;
 		this._super(more);
 	},
 

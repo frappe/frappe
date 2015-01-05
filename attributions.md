@@ -25,7 +25,6 @@
 
 ### Python
 
-- html2text.py - GNU GPL 3, (c) 2004-2008 Aaron Swartz
 - minify.js - MIT License, (c) 2002 Douglas Crockford
 
 ### Icon Fonts

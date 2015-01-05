@@ -47,11 +47,11 @@ frappe.ui.form.Toolbar = Class.extend({
 		if(this.frm.meta.is_submittable && !this.frm.doc.__islocal) {
 			switch(this.frm.doc.docstatus) {
 				case 0:
-					return this.page.set_indicator(__("Draft"), "blue");
+					return this.page.set_indicator(__("Draft"), "red");
 				case 1:
 					return this.page.set_indicator(__("Submitted"), "blue");
 				case 2:
-					return this.page.set_indicator(__("Cancelled"), "red");
+					return this.page.set_indicator(__("Cancelled"), "grey");
 			}
 		} else {
 			this.page.clear_indicator();

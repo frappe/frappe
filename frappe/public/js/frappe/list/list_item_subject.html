@@ -1,5 +1,6 @@
-<i class="icon-star{% if (_starred_by.indexOf(_user)===-1) { %}-empty{% } %}
-    icon-fixed-width star-action text-muted"
+<i class="icon-star {% if (_starred_by.indexOf(_user)===-1) {
+    %}text-extra-muted not-starred{% } else { %}{% }%}
+    icon-fixed-width star-action"
     style="margin-right: 10px; cursor: pointer" data-name="{%= _name %}">
 </i>
 {% if (_checkbox) { %}
@@ -8,14 +9,14 @@
 <a class="grey list-id" style="margin-right: 10px;"
 	href="#Form/{%= _doctype_encoded %}/{%= _name_encoded %}" title="{%= _full_title %}">{%= _title %}</a>
 {% if (_submittable) { %}
-    <span class="docstatus filterable" style="margin-right: 10px;" data-filter="docstatus,=,{%= docstatus %}">
+    <!-- <span class="docstatus filterable" style="margin-right: 10px;" data-filter="docstatus,=,{%= docstatus %}">
     {% if (docstatus===0) { %}
-    	<i class="octicon octicon-pencil" title="{%= __("Draft") %}"></i></span>
+        <i class="octicon octicon-pencil text-muted" title="{%= __("Draft") %}"></i></span>
     {% } else if (docstatus===1) { %}
-    	<i class="octicon octicon-lock" title="{%= __("Submitted") %}"></i></span>
+        <i class="octicon octicon-lock text-muted" title="{%= __("Submitted") %}"></i></span>
     {% } else if (docstatus===2) { %}
-    	<i class="octicon octicon-x" title="{%= __("Cancelled") %}"></i></span>
-    {% } %}
+        <i class="octicon octicon-x text-muted" title="{%= __("Cancelled") %}"></i></span>
+    {% } %} -->
 {% } %}
 {% if (_workflow && !_without_workflow) { %}
 <span class="label label-{%= _workflow.style %} filterable"

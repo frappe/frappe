@@ -1,8 +1,8 @@
 <div class="row doclist-row">
-    <div class="col-xs-10">
+    <div class="col-sm-10 col-xs-8">
         {%= main %}
     </div>
-    <div class="col-xs-2 text-right list-row-right">
+    <div class="col-sm-2 col-xs-4 text-right list-row-right">
         {% if (data._assign_list.length) { %}
     		<span class="filterable"
                 data-filter="_assign,like,%{%= data._assign_list[data._assign_list.length - 1] %}%">
@@ -24,7 +24,10 @@
     {%= comment_when(data.modified) %}
     {% if (data._tags && data._tags.length) { %}
     	<span style="margin-right: 10px;" class="list-tag-preview">
-    		{%= data._tags.join(", ") %}
+            {% for (var i=0, l=data._tags.length; i < l; i++) { %}
+    		    <span class="label label-info filterable"
+                    data-filter="_user_tags,like,%{%= data._tags[i] %}%">{%= data._tags[i] %}</span>
+            {% } %}
         </span>
     {% } %}
 </div>

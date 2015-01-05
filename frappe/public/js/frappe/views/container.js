@@ -89,14 +89,18 @@ frappe.views.Container = Class.extend({
 		if(breadcrumbs.module && breadcrumbs.module != "Desk") {
 			if(in_list(["Core", "Email", "Custom"], breadcrumbs.module))
 				breadcrumbs.module = "Setup";
-			divider();
 			var module_info = frappe.get_module(breadcrumbs.module),
 				icon = module_info && module_info.icon,
 				label = module_info ? module_info.label : breadcrumbs.module;
-			if(icon) {
-				icon = '<span class="'+icon+' text-muted"></span> '
+
+			if(module_info) {
+				divider();
+				if(icon) {
+					icon = '<span class="'+icon+' text-muted"></span> '
+				}
+				$('<li><a href="#Module/'+ breadcrumbs.module +'">'+ icon + __(label) +'</a></li>').appendTo($breadcrumbs);
 			}
-			$('<li><a href="#Module/'+ breadcrumbs.module +'">'+ icon + __(label) +'</a></li>').appendTo($breadcrumbs);
+
 		}
 		if(breadcrumbs.doctype) {
 			divider();

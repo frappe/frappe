@@ -391,7 +391,6 @@ $.extend(frappe.model, {
 		d.set_primary_action(__("Rename"), function() {
 			var args = d.get_values();
 			if(!args) return;
-			d.get_input("rename").set_working();
 			return frappe.call({
 				method:"frappe.model.rename_doc.rename_doc",
 				args: {
@@ -400,8 +399,8 @@ $.extend(frappe.model, {
 					"new": args.new_name,
 					"merge": args.merge
 				},
+				btn: d.get_primary_btn(),
 				callback: function(r,rt) {
-					d.get_input("rename").done_working();
 					if(!r.exc) {
 						$(document).trigger('rename', [doctype, docname,
 							r.message || args.new_name]);

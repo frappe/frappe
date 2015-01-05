@@ -860,7 +860,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 				frappe.set_route("Form", me.get_options(), value);
 		});
 
-		if(this.only_input) this.$input_area.find(".btn-open").remove();
+		if(this.only_input) this.$input_area.find(".link-btn").remove();
 	},
 	open_advanced_search: function() {
 		var doctype = this.get_options();

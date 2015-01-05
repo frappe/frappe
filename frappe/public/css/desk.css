@@ -179,6 +179,12 @@ em.link-option {
 .indicator.orange::before {
   background: #ffa00a;
 }
+.indicator.purple::before {
+  background: #743ee2;
+}
+.indicator.darkgrey::before {
+  background: #b8c2cc;
+}
 /* listing */
 .no-result {
   padding: 15px;
@@ -249,6 +255,15 @@ em.link-option {
 }
 .progress {
   height: 10px;
+}
+.doclist-row {
+  font-size: 12px;
+}
+.doclist-row .list-id {
+  font-size: 14px;
+}
+.doclist-row .docstatus .octicon {
+  font-size: 12px;
 }
 .doclist-row .progress {
   margin-top: 12px;

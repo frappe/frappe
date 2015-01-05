@@ -52,7 +52,7 @@ frappe.ui.form.Layout = Class.extend({
 		setTimeout(function() {
 			me.wrapper.find(".empty-form-alert").remove();
 			if(!(me.wrapper.find(".frappe-control:visible").length)) {
-				$('<div class="alert alert-info empty-form-alert">'+__("This form does not have any input")+'</div>')
+				$('<div class="empty-form-alert text-muted" style="margin: 15px; margin-top: -15px;">'+__("This form does not have any input")+'</div>')
 				.appendTo(me.wrapper)
 			}
 		}, 100);
