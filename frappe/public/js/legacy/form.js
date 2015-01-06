@@ -182,7 +182,7 @@ _f.Frm.prototype.print_doc = function() {
 
 _f.Frm.prototype.hide_print = function() {
 	if(this.setup_done) {
-		this.page.set_view("main");
+		this.page.set_view(this.page.previous_view_name != "print" && this.page.previous_view_name || "main");
 	}
 }
 

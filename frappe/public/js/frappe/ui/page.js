@@ -295,6 +295,10 @@ frappe.ui.Page = Class.extend({
 	set_view: function(name) {
 		this.current_view && this.current_view.toggle(false);
 		this.current_view = this.views[name];
+
+		this.previous_view_name = this.current_view_name;
+		this.current_view_name = name;
+
 		this.views[name].toggle(true);
 	}
 });
