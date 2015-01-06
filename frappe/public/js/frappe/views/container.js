@@ -95,10 +95,10 @@ frappe.views.Container = Class.extend({
 
 			if(module_info) {
 				divider();
-				if(icon) {
-					icon = '<span class="'+icon+' text-muted"></span> '
-				}
-				$('<li><a href="#Module/'+ breadcrumbs.module +'">'+ icon + __(label) +'</a></li>').appendTo($breadcrumbs);
+				// if(icon) {
+				// 	icon = '<span class="'+icon+' text-muted"></span> '
+				// }
+				$('<li><a href="#Module/'+ breadcrumbs.module +'">' + __(label) +'</a></li>').appendTo($breadcrumbs);
 			}
 
 		}

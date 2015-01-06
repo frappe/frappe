@@ -99,11 +99,20 @@ frappe.views.ListView = Class.extend({
 	},
 	set_columns: function() {
 		this.columns = [];
-		this.total_colspans = 4;
 		this.columns.push({
-			colspan: 4,
-			type: "Subject"
+			colspan: this.settings.colwidths && this.settings.colwidths.subject || 6,
+			type: "Subject",
 		});
+		this.total_colspans = this.columns[0].colspan;
+
+		// indicator
+		if(frappe.model.is_submittable(this.doctype) || this.settings.get_indicator) {
+			this.columns.push({
+				colspan: this.settings.colwidths && this.settings.colwidths.indicator || 3,
+				type: "Indicator",
+			});
+			this.total_colspans += this.columns[1].colspan;
+		}
 
 		var me = this;
 		if(this.workflow_state_fieldname) {
@@ -126,17 +135,21 @@ frappe.views.ListView = Class.extend({
 			if(in_list(overridden, d.fieldname) || d.fieldname === me.title_field) {
 				return;
 			}
-			me.add_column(d);
+			if(me.total_colspans < 12) {
+				me.add_column(d);
+			}
 		});
 
 		// additional columns
 		if(this.settings.add_columns) {
 			$.each(this.settings.add_columns, function(i, d) {
-				if(typeof d==="string") {
-					me.add_column(frappe.meta.get_docfield(me.doctype, d));
-				} else {
-					me.columns.push(d);
-					me.total_colspans += parseInt(d.colspan);
+				if(me.total_colspans < 12) {
+					if(typeof d==="string") {
+						me.add_column(frappe.meta.get_docfield(me.doctype, d));
+					} else {
+						me.columns.push(d);
+						me.total_colspans += parseInt(d.colspan);
+					}
 				}
 			});
 		}
@@ -196,6 +209,7 @@ frappe.views.ListView = Class.extend({
 				data: data,
 				columns: this.columns,
 				subject: this.get_avatar_and_id(data, true),
+				me: this
 			});
 		}
 
@@ -238,6 +252,12 @@ frappe.views.ListView = Class.extend({
 	get_avatar_and_id: function(data, without_workflow) {
 		data._without_workflow = without_workflow;
 		return frappe.render_template("list_item_subject", data);
+	},
+
+	get_indicator: function(doc) {
+        var indicator = frappe.get_indicator(doc, this.doctype);
+        return '<span class="indicator '+indicator[1]+' filterable" data-filter="'
+			+indicator[2]+'">'+indicator[0]+'<span>';
 	},
 
 	prepare_data: function(data) {

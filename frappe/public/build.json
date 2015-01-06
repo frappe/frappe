@@ -89,6 +89,7 @@
 		"public/js/frappe/model/create_new.js",
 		"public/js/frappe/model/perm.js",
 		"public/js/frappe/model/workflow.js",
+		"public/js/frappe/model/indicator.js",
 
 		"public/js/frappe/misc/user.js",
 		"public/js/frappe/misc/pretty_date.js",
