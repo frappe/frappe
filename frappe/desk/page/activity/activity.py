@@ -11,3 +11,10 @@ def get_feed(limit_start, limit_page_length):
 		"subject", "owner", "modified", "doc_name", "creation"],
 		limit_start = limit_start, limit_page_length = limit_page_length,
 		order_by="creation desc")
+
+@frappe.whitelist()
+def get_months_activity():
+	return frappe.db.sql("""select date(creation), count(name)
+		from `tabFeed` where date(creation) > subdate(curdate(), interval 1 month)
+		group by date(creation)
+		order by creation asc""", as_list=1)
