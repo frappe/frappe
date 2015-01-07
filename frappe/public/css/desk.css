@@ -801,3 +801,6 @@ th.fc-widget-header {
   margin: 10px;
   display: none;
 }
+.padding {
+  padding: 15px;
+}

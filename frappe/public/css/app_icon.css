@@ -27,12 +27,17 @@
 }
 
 .app-icon svg, .app-icon img {
-	height: 30px;
-	width: 30px;
+	height: 40px;
+	width: 40px;
+	margin-top: -3px;
 }
 
 .app-icon path {
-	fill: #f8f8f8;
+	fill: #8D99A6;
+}
+
+.app-icon:hover path {
+	fill: inherit;
 }
 
 .app-icon-small {

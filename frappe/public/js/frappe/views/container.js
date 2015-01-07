@@ -106,10 +106,6 @@ frappe.views.Container = Class.extend({
 			divider();
 			$('<li><a href="#List/'+ breadcrumbs.doctype +'">'+ __(breadcrumbs.doctype) +'</a></li>').appendTo($breadcrumbs);
 		}
-	},
-	set_full_width: function() {
-		// limit max-width to 970px for most pages
-		$("body").toggleClass("limit-container-width", !$(frappe.container.page).find(".app-page.full-width").length);
 	}
 });
 
