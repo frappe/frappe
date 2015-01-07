@@ -35,7 +35,6 @@ frappe.call = function(opts) {
 		btn: opts.btn,
 		freeze: opts.freeze,
 		show_spinner: !opts.no_spinner,
-		progress_bar: opts.progress_bar,
 		async: opts.async,
 		url: opts.url || frappe.request.url,
 	});
@@ -92,30 +91,6 @@ frappe.request.call = function(opts) {
 	};
 
 	frappe.last_request = ajax_args.data;
-
-	if(opts.progress_bar) {
-		var interval = null;
-		$.extend(ajax_args, {
-			xhr: function() {
-				var xhr = jQuery.ajaxSettings.xhr();
-				interval = setInterval(function() {
-					if(xhr.readyState > 2) {
-				    	var total = parseInt(xhr.getResponseHeader('Original-Length') || 0) ||
-							parseInt(xhr.getResponseHeader('Content-Length'));
-				    	var completed = parseInt(xhr.responseText.length);
-						var percent = (100.0 / total * completed).toFixed(2);
-						opts.progress_bar.css('width', (percent < 10 ? 10 : percent) + '%');
-					}
-				}, 50);
-				frappe.last_xhr = xhr;
-				return xhr;
-			},
-			complete: function() {
-				opts.progress_bar.css('width', '100%');
-				clearInterval(interval);
-			}
-		})
-	}
 
 	return $.ajax(ajax_args)
 		.always(function(data, textStatus, xhr) {

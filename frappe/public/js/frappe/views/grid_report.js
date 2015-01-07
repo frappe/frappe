@@ -6,7 +6,7 @@ frappe.provide("frappe.report_dump");
 $.extend(frappe.report_dump, {
 	data: {},
 	last_modified: {},
-	with_data: function(doctypes, callback, progress_bar) {
+	with_data: function(doctypes, callback) {
 		var pre_loaded = keys(frappe.report_dump.last_modified);
 		return frappe.call({
 			method: "frappe.desk.report_dump.get_data",
@@ -40,8 +40,7 @@ $.extend(frappe.report_dump, {
 				});
 
 				callback();
-			},
-			progress_bar: progress_bar
+			}
 		})
 	},
 	set_data: function(doctype, doctype_data) {
@@ -137,9 +136,6 @@ frappe.views.GridReport = Class.extend({
 	},
 	get_data: function(callback) {
 		var me = this;
-		var progress_bar = null;
-		if(!this.setup_filters_done)
-			progress_bar = this.wrapper.find(".progress .progress-bar");
 
 		frappe.report_dump.with_data(this.doctypes, function() {
 			if(!me.setup_filters_done) {
@@ -147,7 +143,7 @@ frappe.views.GridReport = Class.extend({
 				me.setup_filters_done = true;
 			}
 			callback();
-		}, progress_bar);
+		});
 	},
 	setup_filters: function() {
 		var me = this;
@@ -284,7 +280,7 @@ frappe.views.GridReport = Class.extend({
 		});
 	},
 	make_waiting: function() {
-		this.waiting = frappe.messages.waiting(this.wrapper, __("Loading Report")+"...", '10');
+		this.waiting = frappe.messages.waiting(this.wrapper, __("Loading Report")+"...");
 	},
 	load_filter_values: function() {
 		var me = this;
