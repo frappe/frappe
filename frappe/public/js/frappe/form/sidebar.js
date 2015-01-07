@@ -2,11 +2,15 @@ frappe.provide("frappe.ui.form");
 frappe.ui.form.Sidebar = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
+		var me = this;
 		this.parent.addClass("hidden-xs");
 		this.wrapper = $(frappe.render_template("form_sidebar",
 			{doctype: this.frm.doctype, frm:this.frm}))
 			.appendTo(this.parent);
 		this.$user_actions = this.wrapper.find(".user-actions");
+		this.wrapper.find(".sidebar-section.sidebar-comments").on("click", function() {
+			$(window).scrollTop(me.frm.footer.wrapper.find(".form-comments").offset().top);
+		});
 	},
 	add_user_action: function(label, click) {
 		$('<a>').html(label).appendTo($('<li>')

@@ -387,6 +387,9 @@ em.link-option {
 .sidebar-section h6 .label {
   font-size: 12px;
 }
+.sidebar-section.sidebar-comments {
+  cursor: pointer;
+}
 .user-actions {
   margin-bottom: 15px;
 }
