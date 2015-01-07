@@ -87,7 +87,7 @@ frappe.views.Container = Class.extend({
 		}
 
 		if(breadcrumbs.module && breadcrumbs.module != "Desk") {
-			if(in_list(["Core", "Email", "Custom"], breadcrumbs.module))
+			if(in_list(["Core", "Email", "Custom", "Workflow"], breadcrumbs.module))
 				breadcrumbs.module = "Setup";
 			var module_info = frappe.get_module(breadcrumbs.module),
 				icon = module_info && module_info.icon,

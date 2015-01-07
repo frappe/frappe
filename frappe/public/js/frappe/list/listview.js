@@ -98,6 +98,7 @@ frappe.views.ListView = Class.extend({
 		}
 	},
 	set_columns: function() {
+		var me = this;
 		this.columns = [];
 		this.columns.push({
 			colspan: this.settings.colwidths && this.settings.colwidths.subject || 6,
@@ -105,8 +106,9 @@ frappe.views.ListView = Class.extend({
 		});
 		this.total_colspans = this.columns[0].colspan;
 
-		// indicator
-		if(frappe.model.is_submittable(this.doctype) || this.settings.get_indicator) {
+		if(frappe.model.is_submittable(this.doctype)
+			|| this.settings.get_indicator || this.workflow_state_fieldname) {
+			// indicator
 			this.columns.push({
 				colspan: this.settings.colwidths && this.settings.colwidths.indicator || 3,
 				type: "Indicator",
@@ -114,15 +116,6 @@ frappe.views.ListView = Class.extend({
 			this.total_colspans += this.columns[1].colspan;
 		}
 
-		var me = this;
-		if(this.workflow_state_fieldname) {
-			this.columns.push({
-				colspan: 3,
-				content: this.workflow_state_fieldname,
-				type:"select"
-			});
-			this.total_colspans += 3;
-		}
 
 		// overridden
 		var overridden = $.map(this.settings.add_columns || [], function(d) {
@@ -167,7 +160,7 @@ frappe.views.ListView = Class.extend({
 		var colspan = 3;
 		if(in_list(["Int", "Percent", "Select"], df.fieldtype)) {
 			colspan = 2;
-		} else if(df.fieldtype=="Check") {
+		} else if(in_list(["Check", "Image"], df.fieldtype)) {
 			colspan = 1;
 		} else if(in_list(["name", "subject", "title"], df.fieldname)) { // subjects are longer
 			colspan = 4;

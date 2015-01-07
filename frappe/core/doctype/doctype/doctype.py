@@ -208,7 +208,6 @@ def validate_fields(meta):
 	3. Fields that do have database columns are not mandatory.
 	4. `Link` and `Table` options are valid.
 	5. **Hidden** and **Mandatory** are not set simultaneously.
-	6. Sets default `in_list_view`.
 	7. `Check` type field has default as 0 or 1.
 	8. `Dynamic Links` are correctly defined.
 	9. Precision is set in numeric fields and is between 1 & 6.
@@ -243,14 +242,6 @@ def validate_fields(meta):
 	def check_hidden_and_mandatory(d):
 		if d.hidden and d.reqd and not d.default:
 			frappe.throw(_("Field {0} in row {1} cannot be hidden and mandatory without default").format(d.label, d.idx))
-
-	def check_min_items_in_list(fields):
-		if not meta.get("__islocal"):
-			return
-		if len(filter(lambda d: d.in_list_view, fields))==0:
-			for d in fields[:5]:
-				if d.fieldtype in type_map:
-					d.in_list_view = 1
 
 	def check_width(d):
 		if d.fieldtype == "Currency" and cint(d.width) < 100:
@@ -314,7 +305,6 @@ def validate_fields(meta):
 		check_in_list_view(d)
 		check_illegal_default(d)
 
-	check_min_items_in_list(fields)
 	check_fold(fields)
 	check_search_fields(meta)
 

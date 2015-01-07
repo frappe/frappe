@@ -13,7 +13,7 @@ frappe.ui.form.Sidebar = Class.extend({
 		});
 	},
 	add_user_action: function(label, click) {
-		$('<a>').html(label).appendTo($('<li>')
+		return $('<a>').html(label).appendTo($('<li>')
 			.appendTo(this.$user_actions.removeClass("hide"))).on("click", click);
 	},
 	clear_user_actions: function() {

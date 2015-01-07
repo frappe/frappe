@@ -2,10 +2,6 @@ frappe.provide("frappe.core")
 
 frappe.core.Workflow = frappe.ui.form.Controller.extend({
 	refresh: function(doc) {
-		this.frm.set_intro("");
-		if(doc.is_active) {
-			this.frm.set_intro("This Workflow is active.");
-		}
 		this.update_field_options(doc);
 	},
 	document_type: function(doc) {

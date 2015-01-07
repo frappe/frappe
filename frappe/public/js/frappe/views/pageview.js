@@ -98,23 +98,25 @@ frappe.views.Page = Class.extend({
 })
 
 frappe.show_not_found = function(page_name) {
-	frappe.show_message_page(page_name, '<i class="icon-exclamation-sign"></i> ' + __("Not Found"),
-		__("Sorry we were unable to find what you were looking for."));
+	frappe.show_message_page(page_name, __("Page Not Found"),
+		__("Sorry we were unable to find what you were looking for."), "octicon octicon-circle-slash");
 }
 
 frappe.show_not_permitted = function(page_name) {
-	frappe.show_message_page(page_name, '<i class="icon-exclamation-sign"></i> ' +__("Not Permitted"),
-		__("Sorry you are not permitted to view this page."));
+	frappe.show_message_page(page_name, __("Not Permitted"),
+		__("Sorry you are not permitted to view this page."), "octicon octicon-circle-slash");
 }
 
-frappe.show_message_page = function(page_name, title, message) {
+frappe.show_message_page = function(page_name, title, message, icon) {
 	if(!page_name) page_name = frappe.get_route_str();
 	var page = frappe.pages[page_name] || frappe.container.add_page(page_name);
+	if(icon) {
+		icon = '<span class="'+ icon +' text-extra-muted" style="font-size: 120%;"></span> ';
+	}
 	$(page).html('<div class="page">\
 		<div style="margin: 50px; text-align:center;">\
-			<h3>'+title+'</h3><br>\
-			<p>'+message+'</p><br>\
-			<p><a href="#">Home <i class="icon-home"></i></a></p>\
+			<h2>'+ (icon ? icon : "") + title+'</h2><br><br><br>\
+			<p><a class="btn btn-default btn-sm" href="#">Home</a></p>\
 		</div>\
 		</div>');
 	frappe.container.change_to(page_name);

@@ -29,7 +29,6 @@ frappe.ui.Page = Class.extend({
 		this.views = {};
 
 		this.make();
-		this.setup_iconbar();
 
 	},
 
@@ -64,12 +63,19 @@ frappe.ui.Page = Class.extend({
 
 		this.main = this.wrapper.find(".layout-main-section");
 		this.sidebar = this.wrapper.find(".layout-side-section");
-		this.page_actions = this.wrapper.find(".page-actions");
-		this.menu = this.page_actions.find(".dropdown-menu");
 		this.indicator = this.wrapper.find(".indicator");
-		this.btn_primary = this.page_actions.find(".btn-primary");
+
+		this.page_actions = this.wrapper.find(".page-actions");
+
+		this.btn_primary = this.page_actions.find(".primary-action");
 		this.btn_secondary = this.page_actions.find(".btn-secondary");
-		this.menu_btn_group = this.page_actions.find(".btn-group");
+
+		this.menu = this.page_actions.find(".menu-btn-group .dropdown-menu");
+		this.menu_btn_group = this.page_actions.find(".menu-btn-group");
+
+		this.actions = this.page_actions.find(".actions-btn-group .dropdown-menu");
+		this.actions_btn_group = this.page_actions.find(".actions-btn-group");
+
 		this.page_form = $('<div class="page-form row hide"></div>').prependTo(this.main);
 		this.icon_group = this.page_actions.find(".page-icon-group");
 	},
@@ -109,18 +115,48 @@ frappe.ui.Page = Class.extend({
 		this.icon_group.addClass("hide").empty();
 	},
 
+	//--- Menu --//
+
 	add_menu_item: function(label, click, standard) {
-		this.show_menu();
+		return this.add_dropdown_item(label, click, standard, this.menu);
+	},
+
+	clear_menu: function() {
+		this.clear_btn_group(this.menu);
+	},
+
+	show_menu: function() {
+		this.menu_btn_group.removeClass("hide");
+	},
+
+	hide_menu: function() {
+		this.menu_btn_group.addClass("hide");
+	},
+
+	//--- Actions (workflow) --//
+
+	add_action_item: function(label, click, standard) {
+		return this.add_dropdown_item(label, click, standard, this.actions);
+	},
+
+	clear_actions_menu: function() {
+		this.clear_btn_group(this.actions);
+	},
+
+	//-- Generic --//
+
+	add_dropdown_item: function(label, click, standard, parent) {
+		parent.parent().removeClass("hide");
 
 		var $li = $('<li><a class="grey-link">'+ label +'</a><li>'),
 			$link = $li.find("a").on("click", click);
 
 		if(standard===true) {
-			$li.appendTo(this.menu);
+			$li.appendTo(parent);
 		} else {
-			this.divider = this.menu.find(".divider");
+			this.divider = parent.find(".divider");
 			if(!this.divider.length) {
-				this.divider = $('<li class="divider user-action"></li>').prependTo(this.menu);
+				this.divider = $('<li class="divider user-action"></li>').prependTo(parent);
 			}
 			$li.addClass("user-action").insertBefore(this.divider);
 		}
@@ -128,38 +164,19 @@ frappe.ui.Page = Class.extend({
 		return $link;
 	},
 
+	clear_btn_group: function(parent) {
+		parent.empty();
+		parent.parent().addClass("hide");
+	},
+
 	add_divider: function() {
 		return $('<li class="divider"></li>').appendTo(this.menu);
 	},
 
-	hide_menu: function() {
-		this.menu_btn_group.addClass("hide");
-	},
-
-	show_menu: function() {
-		this.menu_btn_group.removeClass("hide");
-	},
-
-	clear_menu: function() {
-		this.menu.empty();
-		this.hide_menu();
-	},
+	//---//
 
 	clear_user_actions: function() {
 		this.menu.find(".user-action").remove();
-	},
-
-	setup_iconbar: function() {
-		var me = this;
-		this.iconbar = new frappe.ui.IconBar(this.wrapper.find(".page-toolbar .container"), 3);
-		this.iconbar.$wrapper.find(".iconbar-3").addClass("pull-right");
-
-		this.iconbar.$wrapper.on("shown", function() {
-			me.wrapper.find(".page-toolbar").removeClass("hide")
-		})
-		this.iconbar.$wrapper.on("hidden", function() {
-			me.wrapper.find(".page-toolbar").addClass("hide")
-		})
 	},
 
 	// page::title

@@ -62,7 +62,10 @@ $.extend(frappe.model, {
 		return r.docs;
 	},
 	add_to_locals: function(doc) {
-		if(!locals[doc.doctype]) locals[doc.doctype] = {};
+
+		if(!locals[doc.doctype])
+			locals[doc.doctype] = {};
+
 		if(!doc.name && doc.__islocal) { // get name (local if required)
 			if(!doc.parentfield) frappe.model.clear_doc(doc);
 
@@ -70,14 +73,17 @@ $.extend(frappe.model, {
 
 			if(!doc.parentfield) frappe.provide("frappe.model.docinfo." + doc.doctype + "." + doc.name);
 		}
+
 		locals[doc.doctype][doc.name] = doc;
 
+		// add child docs to locals
 		if(!doc.parentfield) {
 			for(var i in doc) {
 				var value = doc[i];
 				if($.isArray(value)) {
 					$.each(value, function(i, d) {
-						if(!d.parent) d.parent = doc.name;
+						if(!d.parent)
+							d.parent = doc.name;
 						frappe.model.add_to_locals(d);
 					});
 				}

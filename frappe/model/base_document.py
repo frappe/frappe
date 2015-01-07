@@ -76,8 +76,8 @@ class BaseDocument(object):
 	def getone(self, key, filters=None):
 		return self.get(key, filters=filters, limit=1)[0]
 
-	def set(self, key, value):
-		if isinstance(value, list):
+	def set(self, key, value, as_value=False):
+		if isinstance(value, list) and not as_value:
 			self.__dict__[key] = []
 			self.extend(key, value)
 		else:

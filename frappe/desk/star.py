@@ -38,6 +38,6 @@ def toggle_star(doctype, name, add=False):
 	except Exception, e:
 		if e.args[0]==1054:
 			add_column(doctype, "_starred_by", "Text")
-			toggle_star(doctype, name)
+			toggle_star(doctype, name, add)
 		else:
 			raise

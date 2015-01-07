@@ -225,14 +225,22 @@ frappe.ui.form.Toolbar = Class.extend({
 		var me = this;
 		$(this.frm.wrapper).on("dirty", function() {
 			me.show_title_as_dirty();
-		})
+
+			// clear workflow actions
+			me.frm.page.clear_actions_menu();
+
+			// enable save action
+			if(!me.frm.save_disabled) {
+				me.set_primary_action(true);
+			}
+		});
 	},
 	show_title_as_dirty: function() {
 		if(this.frm.save_disabled)
 			return;
 
 		if(this.frm.doc.__unsaved) {
-			this.page.set_indicator(__("Not Saved"), "orange")
+			this.page.set_indicator(__("Not Saved"), "orange");
 		}
 
 		$(this.frm.wrapper).attr("data-state", this.frm.doc.__unsaved ? "dirty" : "clean");

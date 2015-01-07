@@ -10,7 +10,7 @@
 			</div>
 			<div class="page-actions text-right col-sm-4">
                 <span class="page-icon-group hide"></span>
-                <div class="btn-group hide">
+                <div class="btn-group menu-btn-group hide">
                     <button type="button" class="btn btn-default btn-sm dropdown-toggle"
                         data-toggle="dropdown" aria-expanded="false">
                     {%= __("Menu") %} <span class="caret"></span>
@@ -19,7 +19,15 @@
                     </ul>
                 </div>
                 <button class="btn btn-secondary btn-default btn-sm hide"></button>
-                <button class="btn btn-primary btn-sm hide"></button>
+                <div class="btn-group actions-btn-group hide">
+                    <button type="button" class="btn btn-primary btn-sm dropdown-toggle"
+                        data-toggle="dropdown" aria-expanded="false">
+                    {%= __("Actions") %} <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu" role="menu">
+                    </ul>
+                </div>
+                <button class="btn btn-primary btn-sm hide primary-action"></button>
 			</div>
 		</div>
 	</div>

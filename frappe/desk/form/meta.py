@@ -140,13 +140,14 @@ class FormMeta(Meta):
 			if not dt in ret:
 				ret[dt] = {"get_parent": True}
 
-		self.set("__linked_with", ret)
+		self.set("__linked_with", ret, as_value=True)
 
 	def load_print_formats(self):
 		print_formats = frappe.db.sql("""select * FROM `tabPrint Format`
 			WHERE doc_type=%s AND docstatus<2 and ifnull(disabled, 0)=0""", (self.name,), as_dict=1,
 			update={"doctype":"Print Format"})
-		self.set("__print_formats", print_formats)
+
+		self.set("__print_formats", print_formats, as_value=True)
 
 	def load_workflows(self):
 		# get active workflow
@@ -160,7 +161,7 @@ class FormMeta(Meta):
 			for d in workflow.get("states"):
 				workflow_docs.append(frappe.get_doc("Workflow State", d.state))
 
-		self.set("__workflow_docs", workflow_docs)
+		self.set("__workflow_docs", workflow_docs, as_value=True)
 
 
 	def load_templates(self):
@@ -182,6 +183,6 @@ class FormMeta(Meta):
 			for content in self.get("__form_grid_templates").values():
 				messages = extract_messages_from_code(content)
 				messages = make_dict_from_messages(messages)
-				self.get("__messages").update(messages)
+				self.get("__messages").update(messages, as_value=True)
 
 

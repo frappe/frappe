@@ -133,7 +133,7 @@ em.link-option {
   border-top: 0px;
 }
 .form-intro-area {
-  padding: 15px 22px;
+  padding: 15px;
 }
 .page-form {
   margin: 0px;
@@ -452,6 +452,13 @@ em.link-option {
   font-size: 32px;
   color: #d1d8dd;
 }
+.missing-image.small {
+  width: 20px;
+  height: 20px;
+}
+.missing-image.small .octicon {
+  font-size: 16px;
+}
 /* form */
 .timeline {
   border: 1px solid #d1d8dd;
@@ -583,6 +590,8 @@ ul.linked-with-list li {
 .grid-heading-row {
   color: #8c99a5;
   font-size: 85%;
+}
+.control-label {
   margin-bottom: 2px;
 }
 .like-disabled-input {

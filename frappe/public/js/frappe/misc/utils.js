@@ -119,7 +119,8 @@ frappe.utils = {
 	},
 	set_footnote: function(me, wrapper, txt) {
 		if(!me.footnote_area) {
-			me.footnote_area = $('<div class="text-muted form-intro-area" style="margin-top: 10px;">')
+			$("<hr>").appendTo(wrapper).css({"margin-bottom": "0px"});
+			me.footnote_area = $('<div class="text-muted form-intro-area small">')
 				.appendTo(wrapper);
 		}
 
@@ -182,10 +183,10 @@ frappe.utils = {
 		var style = default_style || "default";
 		var colour = "darkgrey";
 		if(text) {
-			if(has_words(["Pending", "Review", "Medium"], text)) {
+			if(has_words(["Pending", "Review", "Medium", "Not Approved", "Pending"], text)) {
 				style = "warning";
 				colour = "orange";
-			} else if(has_words(["Open", "Rejected", "Urgent", "High"], text)) {
+			} else if(has_words(["Open", "Urgent", "High"], text)) {
 				style = "danger";
 				colour = "red";
 			} else if(has_words(["Closed", "Finished", "Converted", "Completed", "Confirmed",

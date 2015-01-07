@@ -158,15 +158,15 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 
 			if (or_match_text.length) {
 				frappe.utils.set_footnote(this, this.$page.find(".layout-main-section"),
-					"<p style=\"margin-bottom: 7px;\">"
-						+ __("Additional filters based on User Permissions, having:") + "</p>"
+					'<p>'
+						+ __("Additional filters based on User Permissions:") + "</p>"
 					+ or_match_text.join("<p class=\"strong\" \
 						style=\"margin-left: 40px; margin-top: 7px; margin-bottom: 7px;\">"
 						+ __("or") + "</p>")
-					+ "<p class=\"text-muted\" style=\"margin-top: 15px;\">"
+					+ "<p class=\"text-muted\" style=\"margin-top: 15px; margin-bottom: 0px;\">"
 					+ __("Note: fields having empty value for above criteria are not filtered out.")
 					+ "</p>");
-				$(this.footnote_area).css({"margin-top":"0px", "margin-bottom":"20px"});
+				$(this.footnote_area).css({"margin-top":"0px"});
 			}
 		}
 	},
