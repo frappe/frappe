@@ -6,7 +6,18 @@
 		<span class="avatar avatar-small">
 			<img src="{%= imgsrc %}">
 		</span>
-		<span class="label {%= add_class %} activity-label text-ellipsis">{%= feed_type %}</span>
-		<span class="small">{%= subject %}</span>
+		<span class="small">
+		{% if (feed_type==="Login") { %}
+			{%= __("Logged in") %}
+		{% } else if (feed_type==="Label") { %}
+			{%= __("{0} {1}", ["<strong>" + subject + "</strong>", link]) %}
+		{% } else if (feed_type==="Comment") { %}
+			{%= __("Commented on {0}: {1}", [link, "<strong>" + subject + "</strong>"]) %}
+		{% } else if (!feed_type) { %}
+			{%= __("Updated {0}: {1}", [link, "<strong>" + subject + "</strong>"]) %}
+		{% } else { %}
+			{%= __("{0}: {1}", [link, "<strong>" + subject + "</strong>"]) %}
+		{% } %}
+	</span>
 	</div>
 </div>

@@ -14,6 +14,8 @@ from frappe.model.document import Document
 from frappe.utils.file_manager import delete_file_data_content
 
 class FileData(Document):
+	ignore_feed = True
+
 	def before_insert(self):
 		frappe.local.rollback_observers.append(self)
 

@@ -69,7 +69,7 @@ frappe.form.formatters = {
 			return repl('<a class="grey" href="#Form/%(doctype)s/%(name)s">%(label)s</a>', {
 				doctype: encodeURIComponent(doctype),
 				name: encodeURIComponent(value),
-				label: __(value)
+				label: __(options && options.label || value)
 			});
 		} else {
 			return value;

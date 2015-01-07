@@ -1,5 +1,5 @@
 # Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
-# License: GNU General Public License v3. See license.txt
+# License: See license.txt
 
 from __future__ import unicode_literals
 import frappe
@@ -55,6 +55,7 @@ def update_feed(doc, method=None):
 	"adds a new feed"
 	if frappe.flags.in_patch or frappe.flags.in_install_app or frappe.flags.in_import:
 		return
+
 	if doc.doctype == "Feed":
 		return
 
@@ -62,17 +63,24 @@ def update_feed(doc, method=None):
 		feed = doc.get_feed()
 
 		if feed:
+			if isinstance(feed, basestring):
+				feed = {"subject": feed}
+
+			feed = frappe._dict(feed)
+			doctype = feed.doctype or doc.doctype
+			name = feed.name or doc.name
+
 			# delete earlier feed
 			frappe.db.sql("""delete from tabFeed
 				where doc_type=%s and doc_name=%s
-				and ifnull(feed_type,'') != 'Comment'""", (doc.doctype, doc.name))
+				and ifnull(feed_type,'')=''""", (doctype, name))
 
 			frappe.get_doc({
 				"doctype": "Feed",
-				"feed_type": "",
-				"doc_type": doc.doctype,
-				"doc_name": doc.name,
-				"subject": feed,
+				"feed_type": feed.feed_type or "",
+				"doc_type": doctype,
+				"doc_name": name,
+				"subject": feed.subject,
 				"full_name": get_fullname(doc.owner)
 			}).insert(ignore_permissions=True)
 

@@ -166,14 +166,14 @@ def delete_linked_todos(doc):
 def insert_feed(doc):
 	from frappe.utils import get_fullname
 
-	if frappe.flags.in_install_app or frappe.flags.in_import:
+	if frappe.flags.in_install_app or frappe.flags.in_import or doc.ignore_feed:
 		return
 
 	frappe.get_doc({
 		"doctype": "Feed",
-		"feed_type": "",
+		"feed_type": "Label",
 		"doc_type": doc.doctype,
 		"doc_name": doc.name,
-		"subject": """{0} {1}: <i>{2}</i>""".format(doc.doctype, doc.name, "Deleted"),
+		"subject": _("Deleted"),
 		"full_name": get_fullname(doc.owner)
 	}).insert(ignore_permissions=True)

@@ -1,5 +1,5 @@
 // Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
-// License: GNU General Public License v3. See license.txt
+// License: See license.txt
 
 frappe.pages['activity'].onload = function(wrapper) {
 	var page = frappe.ui.make_app_page({
@@ -46,19 +46,26 @@ frappe.ActivityFeed = Class.extend({
 		if(!data.add_class)
 			data.add_class = "label-default";
 
-		$(row).append(frappe.render_template("activity_row", data));
+		if (data.doc_type && data.doc_name) {
+			data.link = frappe.format(data.doc_name, {fieldtype: "Link", options: data.doc_type},
+				{label: __(data.doc_type) + " " + __(data.doc_name)});
+		}
+
+		$(row)
+			.append(frappe.render_template("activity_row", data))
+			.find("a").addClass("grey");
 	},
 	scrub_data: function(data) {
 		data.by = frappe.user_info(data.owner).fullname;
 		data.imgsrc = frappe.utils.get_file_link(frappe.user_info(data.owner).image);
 
 		data.icon = "icon-flag";
-		if(data.doc_type) {
-			data.feed_type = data.doc_type;
-			data.icon = frappe.boot.doctype_icons[data.doc_type];
-		}
+		// if(data.doc_type) {
+		// 	data.feed_type = data.doc_type;
+		// 	data.icon = frappe.boot.doctype_icons[data.doc_type];
+		// }
 
-		data.feed_type = data.feed_type || "Comment";
+		// data.feed_type = data.feed_type || "Comment";
 
 		// color for comment
 		data.add_class = {
@@ -71,7 +78,7 @@ frappe.ActivityFeed = Class.extend({
 		data.feed_type = __(data.feed_type);
 	},
 	add_date_separator: function(row, data) {
-		var date = dateutil.str_to_obj(data.modified);
+		var date = dateutil.str_to_obj(data.creation);
 		var last = frappe.last_feed_date;
 
 		if((last && dateutil.obj_to_str(last) != dateutil.obj_to_str(date)) || (!last)) {

@@ -13,8 +13,22 @@ class Comment(Document):
 	__doclink__ = "https://frappe.io/docs/models/core/comment"
 	def get_feed(self):
 		"""Returns feed HTML from Comment."""
-		return """<a href="#Form/{0}/{1}">{0} {1}</a>: <i>{2}</i>""".format(self.comment_doctype, self.comment_docname,
-			self.comment)
+		if self.comment_doctype == "Message":
+			return
+
+		if self.comment_type in ("Created", "Submitted", "Cancelled", "Label"):
+			comment_type = "Label"
+		elif self.comment_type == "Comment":
+			comment_type = "Comment"
+		else:
+			comment_type = "Info"
+
+		return {
+			"subject": self.comment,
+			"doctype": self.comment_doctype,
+			"name": self.comment_docname,
+			"feed_type": comment_type
+		}
 
 	def validate(self):
 		"""Raise exception for more than 50 comments."""

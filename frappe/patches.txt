@@ -61,3 +61,4 @@ frappe.patches.v4_3.remove_allow_on_submit_customization
 frappe.patches.v5_0.communication_parent
 frappe.patches.v5_0.clear_website_group_and_notifications
 execute:frappe.db.sql("""update tabComment set comment = substr(comment, 6, locate(":", comment)-6) where comment_type in ("Assigned", "Assignment Completed")""")
+frappe.patches.v5_0.fix_feed

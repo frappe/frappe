@@ -9,7 +9,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Feed Type",
-   "options": "\nComment\nLogin",
+   "options": "\nComment\nLogin\nLabel\nInfo",
    "permlevel": 0
   },
   {
@@ -49,7 +49,7 @@
  ],
  "icon": "icon-rss",
  "idx": 1,
- "modified": "2014-06-18 03:49:10.882588",
+ "modified": "2015-01-07 13:40:10.882588",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Feed",
