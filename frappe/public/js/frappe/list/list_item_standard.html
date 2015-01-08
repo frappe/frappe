@@ -9,6 +9,8 @@
                 {%= subject %}
             {% } else if (col.type==="Indicator") { %}
                 {%= me.get_indicator(data) %}
+            {% } else if (col.render) { %}
+                {%= col.render(data) %}
             {% } else if (col.fieldtype==="Image") { %}
                 {% if(data[col.df.options]) { %}
                 <img src="{%= data[col.df.options] %}" style="max-height: 30px; max-width: 100%;">

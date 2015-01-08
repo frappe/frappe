@@ -168,7 +168,7 @@ frappe.views.ListView = Class.extend({
 			colspan = 4;
 		}
 		this.total_colspans += parseInt(colspan);
-		this.columns.push({
+		var col = {
 			colspan: colspan,
 			content: df.fieldname,
 			type: df.fieldtype,
@@ -176,7 +176,11 @@ frappe.views.ListView = Class.extend({
 			fieldtype: df.fieldtype,
 			fieldname: df.fieldname,
 			title:__(df.label)
-		});
+		};
+		if(this.settings.column_render && this.settings.column_render[df.fieldname]) {
+			col.render = this.settings.column_render[df.fieldname];
+		}
+		this.columns.push(col);
 
 	},
 	render: function(row, data) {

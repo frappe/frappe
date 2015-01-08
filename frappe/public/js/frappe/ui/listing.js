@@ -87,15 +87,6 @@ frappe.ui.Listing = Class.extend({
 			return $button
 		}
 	},
-	show_view: function($btn, $div, $btn_unsel, $div_unsel) {
-		$btn_unsel.removeClass('btn-primary');
-		$btn_unsel.find('i').removeClass('icon-white');
-		$div_unsel.toggle(false);
-
-		$btn.addClass('btn-primary');
-		$btn.find('i').addClass('icon-white');
-		$div.toggle(true);
-	},
 	set_events: function() {
 		var me = this;
 
@@ -106,8 +97,10 @@ frappe.ui.Listing = Class.extend({
 
 		this.$w.find(".btn-group-paging .btn").click(function() {
 			me.page_length = cint($(this).attr("data-value"));
+			me.$w.find(".btn-group-paging .btn-info").removeClass("btn-info");
+			$(this).addClass("btn-info");
 			me.run({append: true});
-		})
+		});
 
 		// title
 		if(this.title) {
