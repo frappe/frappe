@@ -166,7 +166,7 @@ def delete_linked_todos(doc):
 def insert_feed(doc):
 	from frappe.utils import get_fullname
 
-	if frappe.flags.in_install_app or frappe.flags.in_import or doc.ignore_feed:
+	if frappe.flags.in_install_app or frappe.flags.in_import or doc.get("ignore_feed"):
 		return
 
 	frappe.get_doc({

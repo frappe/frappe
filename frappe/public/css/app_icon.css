@@ -18,7 +18,7 @@
 .app-icon i {
 	font-size: 40px;
 	min-width: 40px;
-	color: #8D99A6;
+	color: #36414C;
 	display: inline-block;
 }
 
@@ -33,7 +33,7 @@
 }
 
 .app-icon path {
-	fill: #8D99A6;
+	fill: #36414C;
 }
 
 .app-icon:hover path {
