@@ -29,10 +29,12 @@ bsEditor = Class.extend({
 				me.set_editing();
 			}
 		}).on("mouseup keyup mouseout", function() {
-			if(me.editing) {
+			var html = me.clean_html();
+			if(me.editing && html != me.last_html) {
 				me.toolbar.save_selection();
 				me.toolbar.update();
-				me.options.change && me.options.change(me.clean_html());
+				me.options.change && me.options.change(html);
+				me.last_html = html;
 			}
 		}).data("object", this);
 
@@ -192,7 +194,9 @@ bsEditor = Class.extend({
 	set_input: function(value) {
 		if(this.options.field && this.options.field.inside_change_event)
 			return;
-		this.editor.html(value==null ? "" : value);
+		value = value==null ? "" : value;
+		this.last_html = value;
+		this.editor.html(value);
 	}
 
 })

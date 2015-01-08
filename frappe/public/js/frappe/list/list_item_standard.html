@@ -24,7 +24,7 @@
                 <a class="filterable h6 text-muted grey"
                     data-filter="{%= col.fieldname %},=,{%= value %}">{%= value %}</a>
             {% } else { %}
-                {%= frappe.format(value, col) %}
+                {%= frappe.format(value, col.df, null, data) %}
             {% } %}
         </div>
         {% } %}

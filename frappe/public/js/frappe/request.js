@@ -124,7 +124,7 @@ frappe.request.call = function(opts) {
 // call execute serverside request
 frappe.request.prepare = function(opts) {
 	// btn indicator
-	if(opts.btn) $(opts.btn).set_working();
+	if(opts.btn) $(opts.btn).prop("disabled", true);
 
 	// navbar indicator
 	if(opts.show_spinner) frappe.set_loading();
@@ -154,7 +154,7 @@ frappe.request.prepare = function(opts) {
 
 frappe.request.cleanup = function(opts, r) {
 	// stop button indicator
-	if(opts.btn) $(opts.btn).done_working();
+	if(opts.btn) $(opts.btn).prop("disabled", false);
 
 	// hide button indicator
 	if(opts.show_spinner) frappe.done_loading();

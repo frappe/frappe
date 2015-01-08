@@ -125,8 +125,8 @@ frappe.ui.form.save = function(frm, action, callback, btn) {
 			freeze: true,
 			method: opts.method,
 			args: opts.args,
+			btn: opts.btn,
 			callback: function(r) {
-				$(opts.btn).prop("disabled", false);
 				opts.callback && opts.callback(r);
 			},
 			always: function() {

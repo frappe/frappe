@@ -54,6 +54,7 @@ frappe.ui.form.Control = Class.extend({
 	},
 	parse_validate_and_set_in_model: function(value) {
 		var me = this;
+		if(this.inside_change_event) return;
 		this.inside_change_event = true;
 		if(this.parse) value = this.parse(value);
 

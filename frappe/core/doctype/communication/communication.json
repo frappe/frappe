@@ -20,6 +20,7 @@
   {
    "fieldname": "sent_or_received", 
    "fieldtype": "Select", 
+   "in_list_view": 1, 
    "label": "Sent or Received", 
    "options": "Sent\nReceived", 
    "permlevel": 0, 
@@ -36,7 +37,7 @@
   {
    "fieldname": "subject", 
    "fieldtype": "Data", 
-   "in_list_view": 1, 
+   "in_list_view": 0, 
    "label": "Subject", 
    "permlevel": 0, 
    "reqd": 1
@@ -173,7 +174,7 @@
  "idx": 1, 
  "in_dialog": 0, 
  "issingle": 0, 
- "modified": "2014-09-11 18:53:02.929586", 
+ "modified": "2015-01-08 12:03:33.810290", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Communication", 

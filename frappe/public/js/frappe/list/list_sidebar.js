@@ -51,7 +51,7 @@ frappe.views.ListSidebar = Class.extend({
 	render_stat: function(field, stat) {
 		var me = this;
 		var show_tags =  '<a class="list-tag-preview" style="margin-left: 7px;">'
-			+ '<span class="octicon octicon-pencil" style="font-size: 12px;"></span></a>';
+			+ '<span class="octicon octicon-pencil" style="font-size: 12px;" title="'+__("Edit Tags")+'"></span></a>';
 
 		if(!stat || !stat.length) {
 			if(field==='_user_tags') {
