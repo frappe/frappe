@@ -62,7 +62,14 @@ frappe.dom = {
 	freeze: function() {
 		// blur
 		if(!$('#freeze').length) {
-			$("<div id='freeze'>").appendTo("#body_div").css('opacity', 0.6);
+			$("<div id='freeze' class='modal-backdrop'>")
+				.on("click", function() {
+					if (cur_frm && cur_frm.cur_grid) {
+						cur_frm.cur_grid.toggle_view();
+						return false;
+					}
+				})
+				.appendTo("#body_div");
 		}
 		$('#freeze').toggle(true);
 		frappe.dom.freeze_count++;
@@ -105,26 +112,8 @@ frappe.dom = {
 	}
 }
 
-frappe.get_modal = function(title, body_html) {
-	var modal = $('<div class="modal" style="overflow: auto;" tabindex="-1">\
-		<div class="modal-dialog">\
-			<div class="modal-content">\
-				<div class="modal-header">\
-					<a type="button" class="close"\
-						data-dismiss="modal" aria-hidden="true">&times;</a>\
-					<h4 class="modal-title">'+title+'</h4>\
-				</div>\
-				<div class="modal-body ui-front">'+body_html+'\
-				</div>\
-				<div class="modal-footer hide">\
-					<button type="button" class="btn btn-default" data-dismiss="modal">' + __("Close") + '</button>\
-					<button type="button" class="btn btn-primary">' + __("Confirm") + '</button>\
-				</div>\
-			</div>\
-		</div>\
-		</div>').appendTo(document.body);
-
-	return modal;
+frappe.get_modal = function(title, content) {
+	return $(frappe.render_template("modal", {title:title, content:content})).appendTo(document.body);
 };
 
 var pending_req = 0
@@ -224,4 +213,51 @@ frappe.dom.set_box_shadow = function(ele, spread) {
 	$.fn.done_working = function() {
 		this.prop('disabled', false);
 	}
+})(jQuery);
+
+(function($) {
+    function pasteIntoInput(el, text) {
+        el.focus();
+        if (typeof el.selectionStart == "number") {
+            var val = el.value;
+            var selStart = el.selectionStart;
+            el.value = val.slice(0, selStart) + text + val.slice(el.selectionEnd);
+            el.selectionEnd = el.selectionStart = selStart + text.length;
+        } else if (typeof document.selection != "undefined") {
+            var textRange = document.selection.createRange();
+            textRange.text = text;
+            textRange.collapse(false);
+            textRange.select();
+        }
+    }
+
+    function allowTabChar(el) {
+        $(el).keydown(function(e) {
+            if (e.which == 9) {
+                pasteIntoInput(this, "\t");
+                return false;
+            }
+        });
+
+        // For Opera, which only allows suppression of keypress events, not keydown
+        $(el).keypress(function(e) {
+            if (e.which == 9) {
+                return false;
+            }
+        });
+    }
+
+    $.fn.allowTabs = function() {
+        if (this.jquery) {
+            this.each(function() {
+                if (this.nodeType == 1) {
+                    var nodeName = this.nodeName.toLowerCase();
+                    if (nodeName == "textarea" || (nodeName == "input" && this.type == "text")) {
+                        allowTabChar(this);
+                    }
+                }
+            })
+        }
+        return this;
+    }
 })(jQuery);

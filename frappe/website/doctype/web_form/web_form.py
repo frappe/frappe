@@ -29,7 +29,7 @@ class WebForm(WebsiteGenerator):
 					name = frappe.db.get_value(self.doc_type, {"owner": frappe.session.user},
 						"name")
 					if name:
-						context.doc_name = name
+						frappe.form_dict.name = name
 
 		if frappe.form_dict.name:
 			context.doc = frappe.get_doc(self.doc_type, frappe.form_dict.name)

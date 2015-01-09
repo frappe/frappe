@@ -8,6 +8,8 @@ frappe.request.url = '/';
 
 // generic server call (call page, object)
 frappe.call = function(opts) {
+	if(opts.quiet)
+		opts.no_spinner = true;
 	var args = $.extend({}, opts.args);
 
 	// cmd
@@ -33,7 +35,6 @@ frappe.call = function(opts) {
 		btn: opts.btn,
 		freeze: opts.freeze,
 		show_spinner: !opts.no_spinner,
-		progress_bar: opts.progress_bar,
 		async: opts.async,
 		url: opts.url || frappe.request.url,
 	});
@@ -91,30 +92,6 @@ frappe.request.call = function(opts) {
 
 	frappe.last_request = ajax_args.data;
 
-	if(opts.progress_bar) {
-		var interval = null;
-		$.extend(ajax_args, {
-			xhr: function() {
-				var xhr = jQuery.ajaxSettings.xhr();
-				interval = setInterval(function() {
-					if(xhr.readyState > 2) {
-				    	var total = parseInt(xhr.getResponseHeader('Original-Length') || 0) ||
-							parseInt(xhr.getResponseHeader('Content-Length'));
-				    	var completed = parseInt(xhr.responseText.length);
-						var percent = (100.0 / total * completed).toFixed(2);
-						opts.progress_bar.css('width', (percent < 10 ? 10 : percent) + '%');
-					}
-				}, 50);
-				frappe.last_xhr = xhr;
-				return xhr;
-			},
-			complete: function() {
-				opts.progress_bar.css('width', '100%');
-				clearInterval(interval);
-			}
-		})
-	}
-
 	return $.ajax(ajax_args)
 		.always(function(data, textStatus, xhr) {
 			if(typeof data==="string") {
@@ -147,7 +124,7 @@ frappe.request.call = function(opts) {
 // call execute serverside request
 frappe.request.prepare = function(opts) {
 	// btn indicator
-	if(opts.btn) $(opts.btn).set_working();
+	if(opts.btn) $(opts.btn).prop("disabled", true);
 
 	// navbar indicator
 	if(opts.show_spinner) frappe.set_loading();
@@ -177,7 +154,7 @@ frappe.request.prepare = function(opts) {
 
 frappe.request.cleanup = function(opts, r) {
 	// stop button indicator
-	if(opts.btn) $(opts.btn).done_working();
+	if(opts.btn) $(opts.btn).prop("disabled", false);
 
 	// hide button indicator
 	if(opts.show_spinner) frappe.done_loading();

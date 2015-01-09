@@ -34,6 +34,7 @@ frappe.get_gravatar = function(email_id) {
 }
 
 frappe.ui.set_user_background = function(src, selector, style) {
+	return;
 	if(!selector) selector = "#page-desktop";
 	if(!style) style = "Fill Screen";
 	if(!src) src = "assets/frappe/images/ui/random-polygons.jpg";
@@ -54,7 +55,7 @@ $.extend(frappe.user, {
 	name: (frappe.boot ? frappe.boot.user.name : 'Guest'),
 	full_name: function(uid) {
 		return uid===user ?
-			"You" :
+			__("You") :
 			frappe.user_info(uid).fullname;
 	},
 	image: function(uid) {

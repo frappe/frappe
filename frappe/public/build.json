@@ -3,7 +3,7 @@
 		"public/css/bootstrap.css",
 		"public/css/font-awesome.css",
 		"public/css/nprogress.css",
-		"website/css/website.css"
+		"public/css/website.css"
 	],
 	"js/frappe-web.min.js": [
 		"public/js/lib/bootstrap.min.js",
@@ -13,12 +13,8 @@
 		"public/js/frappe/translate.js",
 		"public/js/frappe/misc/pretty_date.js",
 		"public/js/lib/moment/moment.min.js",
-		"website/js/website.js",
-		"website/js/website_group.js"
-	],
-	"js/canvasResize.min.js": [
-		"website/js/jquery.exif.js",
-		"website/js/jquery.canvasResize.js"
+		"public/js/lib/highlight.pack.js",
+		"website/js/website.js"
 	],
 	"js/editor.min.js": [
 		"public/js/lib/jquery/jquery.hotkeys.js",
@@ -31,12 +27,11 @@
 		"public/js/lib/slickgrid/slick.grid.css",
 		"public/js/lib/slickgrid/slick-default-theme.css",
 
-		"public/css/tag-it.css",
 		"public/css/bootstrap.css",
+		"public/css/tag-it.css",
 		"public/css/font-awesome.css",
 		"public/css/octicons/octicons.css",
 		"public/css/desk.css",
-		"public/css/appframe.css",
 		"public/css/app_icon.css",
 		"public/css/avatar.css",
 		"public/css/navbar.css",
@@ -49,7 +44,6 @@
 		"public/js/lib/jquery/jquery.ui.min.js",
 		"public/js/lib/tag-it.min.js",
 		"public/js/lib/jquery/jquery.hotkeys.js",
-		"public/js/lib/center_image.js",
 		"public/js/lib/bootstrap.min.js",
 		"public/js/lib/nprogress.js",
 		"public/js/lib/beautify-html.js",
@@ -61,8 +55,10 @@
 		"public/js/frappe/class.js",
 		"public/js/frappe/translate.js",
 		"public/js/frappe/assets.js",
+		"public/js/frappe/ui/modal.html",
 		"public/js/frappe/dom.js",
 		"public/js/frappe/ui/messages.js",
+		"public/js/frappe/ui/listing.html",
 		"public/js/frappe/ui/listing.js",
 		"public/js/frappe/request.js",
 		"public/js/frappe/router.js",
@@ -71,7 +67,6 @@
 		"public/js/lib/microtemplate.js",
 
 		"public/html/print_template.html",
-		"public/html/list_info_template.html",
 
 		"public/js/legacy/globals.js",
 		"public/js/legacy/datatype.js",
@@ -79,7 +74,8 @@
 		"public/js/legacy/handler.js",
 		"public/js/legacy/loaders.js",
 
-		"public/js/frappe/ui/appframe.js",
+		"public/js/frappe/ui/page.html",
+		"public/js/frappe/ui/page.js",
 		"public/js/frappe/ui/iconbar.js",
 		"public/js/frappe/form/layout.js",
 		"public/js/frappe/ui/field_group.js",
@@ -93,6 +89,7 @@
 		"public/js/frappe/model/create_new.js",
 		"public/js/frappe/model/perm.js",
 		"public/js/frappe/model/workflow.js",
+		"public/js/frappe/model/indicator.js",
 
 		"public/js/frappe/misc/user.js",
 		"public/js/frappe/misc/pretty_date.js",
@@ -101,18 +98,19 @@
 		"public/js/frappe/misc/datetime.js",
 		"public/js/frappe/misc/number_format.js",
 
+		"public/js/frappe/ui/upload.html",
 		"public/js/frappe/upload.js",
 		"public/js/frappe/ui/filters.js",
 		"public/js/frappe/ui/tree.js",
 		"public/js/frappe/ui/tags.js",
+		"public/js/frappe/ui/star.js",
 
 		"public/js/frappe/views/container.js",
 		"public/js/frappe/views/factory.js",
 		"public/js/frappe/views/pageview.js",
-		"public/js/frappe/views/doclistview.js",
-		"public/js/frappe/views/sidebar_stats.js",
+		"public/js/frappe/views/module_section.html",
+		"public/js/frappe/views/module_sidebar.html",
 		"public/js/frappe/views/moduleview.js",
-		"public/js/frappe/views/listview.js",
 		"public/js/frappe/views/formview.js",
 		"public/js/frappe/views/reportview.js",
 		"public/js/frappe/views/calendar.js",
@@ -123,13 +121,22 @@
 		"public/js/frappe/views/test_runner.js",
 		"public/js/frappe/form/formatters.js",
 
+		"public/js/frappe/list/doclistview.js",
+		"public/js/frappe/list/list_sidebar.js",
+		"public/js/frappe/list/list_sidebar.html",
+		"public/js/frappe/list/list_item_subject.html",
+		"public/js/frappe/list/list_item_row.html",
+		"public/js/frappe/list/list_item_standard.html",
+		"public/js/frappe/list/listview.js",
+
 		"public/js/frappe/ui/toolbar/selector_dialog.js",
 		"public/js/frappe/ui/toolbar/new.js",
-		"public/js/frappe/ui/toolbar/search.js",
+		"public/js/frappe/ui/toolbar/awesome_bar.js",
 		"public/js/frappe/ui/toolbar/report.js",
 		"public/js/frappe/ui/toolbar/recent.js",
 		"public/js/frappe/ui/toolbar/bookmarks.js",
 		"public/js/frappe/ui/toolbar/about.js",
+		"public/js/frappe/ui/toolbar/navbar.html",
 		"public/js/frappe/ui/toolbar/toolbar.js",
 		"public/js/frappe/ui/editor.js",
 
@@ -143,14 +150,22 @@
 		"public/js/frappe/form/script_manager.js",
 		"public/js/frappe/form/control.js",
 		"public/js/frappe/form/link_selector.js",
+		"public/js/frappe/form/grid_form.html",
 		"public/js/frappe/form/grid.js",
-		"public/js/frappe/form/attachments.js",
-		"public/js/frappe/form/footer.js",
-		"public/js/frappe/form/comments.js",
 		"public/js/frappe/form/linked_with.js",
 		"public/js/frappe/form/workflow.js",
-		"public/js/frappe/form/assign_to.js",
-		"public/js/frappe/form/print.js"
+		"public/js/frappe/form/print_layout.html",
+		"public/js/frappe/form/print.js",
+		"public/js/frappe/form/sidebar.js",
+		"public/js/frappe/form/form_sidebar.html",
+
+		"public/js/frappe/form/footer/form_footer.html",
+		"public/js/frappe/form/footer/timeline.html",
+		"public/js/frappe/form/footer/timeline_item.html",
+		"public/js/frappe/form/footer/footer.js",
+		"public/js/frappe/form/footer/attachments.js",
+		"public/js/frappe/form/footer/comments.js",
+		"public/js/frappe/form/footer/assign_to.js"
 	],
 	"js/print_format_v3.min.js": [
 		"public/js/legacy/layout.js",

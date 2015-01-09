@@ -72,7 +72,12 @@ class DatabaseQuery(object):
 					self.fields.append(t + ".name as '%s:name'" % t[4:-1])
 
 		# query dict
-		args.tables = ', '.join(self.tables)
+		args.tables = self.tables[0]
+
+		# left join parent, child tables
+		for tname in self.tables[1:]:
+			args.tables += " left join " + tname + " on " + tname + '.parent = ' + self.tables[0] + '.name'
+
 		if self.or_conditions:
 			self.conditions.append("({0})".format(" or ".join(self.or_conditions)))
 		args.conditions = ' and '.join(self.conditions)
@@ -133,13 +138,13 @@ class DatabaseQuery(object):
 			raise frappe.PermissionError, doctype
 
 	def remove_user_tags(self):
-		"""remove column _user_tags if not in table"""
+		"""Removes optional columns like `_user_tags`, `_comments` etc. if not in table"""
 		columns = frappe.db.get_table_columns(self.doctype)
 
 		# remove from fields
 		to_remove = []
 		for fld in self.fields:
-			for f in ("_user_tags", "_comments", "_assign"):
+			for f in ("_user_tags", "_comments", "_assign", "_starred_by"):
 				if f in fld and not f in columns:
 					to_remove.append(fld)
 
@@ -153,7 +158,7 @@ class DatabaseQuery(object):
 				each = [each]
 
 			for element in each:
-				if element in ("_user_tags", "_comments", "_assign") and element not in columns:
+				if element in ("_user_tags", "_comments", "_assign", "_starred_by") and element not in columns:
 					to_remove.append(each)
 
 		for each in to_remove:
@@ -167,10 +172,6 @@ class DatabaseQuery(object):
 		self.or_conditions = []
 		self.build_filter_conditions(self.filters, self.conditions)
 		self.build_filter_conditions(self.or_filters, self.or_conditions)
-
-		# join parent, child tables
-		for tname in self.tables[1:]:
-			self.conditions.append(tname + '.parent = ' + self.tables[0] + '.name')
 
 		# match conditions
 		if not self.ignore_permissions:
@@ -205,7 +206,7 @@ class DatabaseQuery(object):
 					df = frappe.get_meta(f[0]).get("fields", {"fieldname": f[1]})
 
 					if f[2] == "like" or (isinstance(f[3], basestring) and
-						(not df or df[0].fieldtype not in ["Float", "Int", "Currency", "Percent"])):
+						(not df or df[0].fieldtype not in ["Float", "Int", "Currency", "Percent", "Check"])):
 							if f[2] == "like":
 								# because "like" uses backslash (\) for escaping
 								f[3] = f[3].replace("\\", "\\\\")
@@ -226,10 +227,13 @@ class DatabaseQuery(object):
 		if not isinstance(f, (list, tuple)):
 			frappe.throw("Filter must be a tuple or list (in a list)")
 
-		if len(f) != 4:
+		if len(f) == 3:
+			f = (self.doctype, f[0], f[1], f[2])
+
+		elif len(f) != 4:
 			frappe.throw("Filter must have 4 values (doctype, fieldname, condition, value): " + str(f))
 
-		return f
+		return list(f)
 
 	def build_match_conditions(self, as_condition=True):
 		"""add match conditions if applicable"""

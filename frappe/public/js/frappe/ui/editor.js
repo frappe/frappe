@@ -29,10 +29,12 @@ bsEditor = Class.extend({
 				me.set_editing();
 			}
 		}).on("mouseup keyup mouseout", function() {
-			if(me.editing) {
+			var html = me.clean_html();
+			if(me.editing && html != me.last_html) {
 				me.toolbar.save_selection();
 				me.toolbar.update();
-				me.options.change && me.options.change(me.clean_html());
+				me.options.change && me.options.change(html);
+				me.last_html = html;
 			}
 		}).data("object", this);
 
@@ -97,7 +99,6 @@ bsEditor = Class.extend({
 		},
 		toolbar_selector: '[data-role=editor-toolbar]',
 		command_role: 'edit',
-		active_toolbar_class: 'btn-info',
 		selection_marker: 'edit-focus-marker',
 		selection_color: 'darkgrey',
 		remove_typography: false,
@@ -193,7 +194,9 @@ bsEditor = Class.extend({
 	set_input: function(value) {
 		if(this.options.field && this.options.field.inside_change_event)
 			return;
-		this.editor.html(value==null ? "" : value);
+		value = value==null ? "" : value;
+		this.last_html = value;
+		this.editor.html(value);
 	}
 
 })
@@ -243,15 +246,15 @@ bsEditorToolbar = Class.extend({
 				</div>\
 				<div class="btn-group form-group">\
 					<a class="btn btn-default btn-small" data-edit="bold" title="' + __("Bold (Ctrl/Cmd+B)") + '">\
-						<i class="icon-bold"></i></a>\
+						B</a>\
 					<a class="btn btn-default btn-small" data-edit="insertunorderedlist" title="' + __("Bullet list") + '">\
-						<i class="icon-list-ul"></i></a>\
+						<i class="octicon octicon-list-unordered"></i></a>\
 					<a class="btn btn-default btn-small" data-edit="insertorderedlist" title="' + __("Number list") + '">\
-						<i class="icon-list-ol"></i></a>\
+						<i class="octicon octicon-list-ordered"></i></a>\
 					<a class="btn btn-default btn-small" data-edit="outdent" title="' + __("Reduce indent (Shift+Tab)") + '">\
-						<i class="icon-indent-left"></i></a>\
+						<i class="octicon octicon-move-left"></i></a>\
 					<a class="btn btn-default btn-small" data-edit="indent" title="' + __("Indent (Tab)") + '">\
-						<i class="icon-indent-right"></i></a>\
+						<i class="octicon octicon-move-right"></i></a>\
 				</div>\
 				<div class="btn-group hidden-xs form-group">\
 					<a class="btn btn-default btn-small" data-edit="justifyleft" title="' + __("Align Left (Ctrl/Cmd+L)") + '">\
@@ -263,15 +266,15 @@ bsEditorToolbar = Class.extend({
 					<a class="btn btn-default btn-small" title="' + __("Remove Link") +'" data-edit="unlink">\
 						<i class="icon-unlink"></i></a>\
 					<a class="btn btn-default btn-small btn-insert-img" title="' + __("Insert picture (or just drag & drop)") + '">\
-						<i class="icon-picture"></i></a>\
+						<i class="octicon octicon-file-media"></i></a>\
 					<a class="btn btn-default btn-small" data-edit="insertHorizontalRule" \
-						title="' + __("Horizontal Line Break") + '">─</a>\
+						title="' + __("Horizontal Line Break") + '"><i class="octicon octicon-horizontal-rule"></i></a>\
 				</div>\
 				<div class="btn-group form-group">\
 					<a class="btn btn-default btn-small btn-html" title="' + __("HTML") + '">\
-						<i class="icon-code"></i></a>\
+						<i class="octicon octicon-code"></i></a>\
 					<a class="btn btn-default btn-small btn-success" data-action="Save" title="' + __("Save") + '">\
-						<i class="icon-save"></i></a>\
+						<i class="octicon octicon-check"></i></a>\
 				</div>\
 				<input type="file" data-edit="insertImage" />\
 			</div>').prependTo(parent);
@@ -458,12 +461,14 @@ bsHTMLEditor = Class.extend({
 			<button class="btn btn-primary" style="margin-top: 7px;">' + __("Save") + '</button>');
 		this.modal.addClass("frappe-ignore-click");
 		this.modal.find(".btn-primary").on("click", function() {
-			var html = me.modal.find("textarea").val();
+			me._html = me.modal.find("textarea").val();
+
 			$.each(me.editor.dataurls, function(key, val) {
-				html = html.replace(key, val);
+				me._html = replace_all(me._html, key, val);
 			});
-			var editor = me.editor.data("object")
-			editor.set_input(html)
+
+			var editor = me.editor.data("object");
+			editor.set_input(me._html);
 			editor.options.change && editor.options.change(editor.clean_html());
 			me.modal.modal("hide");
 		});
@@ -478,7 +483,7 @@ bsHTMLEditor = Class.extend({
 		html = html.replace(/<img\s*src=\s*["\'](data:[^,]*),([^"\']*)["\']/g, function(full, g1, g2) {
 			var key = g2.slice(0,5) + "..." + g2.slice(-5);
 			me.editor.dataurls[key] = g1 + "," + g2;
-			return '<img src="'+g1 + "," + key+'"';
+			return '<img src="'+ key+'"';
 		});
 		this.modal.find("textarea").val(html_beautify(html));
 	}

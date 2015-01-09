@@ -20,6 +20,7 @@
    "fieldname": "comment_type", 
    "fieldtype": "Data", 
    "label": "Comment Type", 
+   "options": "Email\nChat\nPhone\nSMS\nCreated\nSubmitted\nCancelled\nAssigned\nAssignment Completed\nComment\nWorkflow\nLabel\nAttachment\nAttachment Removed", 
    "permlevel": 0
   }, 
   {
@@ -106,7 +107,7 @@
  "icon": "icon-comments", 
  "idx": 1, 
  "issingle": 0, 
- "modified": "2014-08-22 05:24:28.072749", 
+ "modified": "2014-11-17 14:07:26.338393", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Comment", 

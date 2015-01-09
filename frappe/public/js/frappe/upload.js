@@ -5,63 +5,29 @@
 frappe.upload = {
 	make: function(opts) {
 		if(!opts.args) opts.args = {};
-		var $upload = $('<div class="file-upload">\
-			<p class="small"><a class="action-attach disabled" href="#"><i class="icon-upload"></i> '
-				+ __('Upload a file') + '</a> | <a class="action-link" href="#"><i class="icon-link"></i> '
-				 + __('Attach as web link') + '</a></p>\
-			<div class="action-attach-input">\
-				<input class="alert alert-info" style="padding: 7px; margin: 7px 0px;" \
-					type="file" name="filedata" />\
-			</div>\
-			<div class="action-link-input" style="display: none; margin-top: 7px;">\
-				<input class="form-control" style="max-width: 300px;" type="text" name="file_url" />\
-				<p class="text-muted">'
-					+ (opts.sample_url || 'e.g. http://example.com/somefile.png') +
-				'</p>\
-			</div>\
-			<button class="btn btn-info btn-upload"><i class="icon-upload"></i> ' +__('Upload')
-				+'</button></div>').appendTo(opts.parent);
+		var $upload = $(frappe.render_template("upload", {opts:opts})).appendTo(opts.parent);
 
+		$upload.find(".attach-as-link").click(function() {
+			var as_link = $(this).prop("checked");
 
-		$upload.find(".action-link").click(function() {
-			$upload.find(".action-attach").removeClass("disabled");
-			$upload.find(".action-link").addClass("disabled");
-			$upload.find(".action-attach-input").toggle(false);
-			$upload.find(".action-link-input").toggle(true);
-			$upload.find(".btn-upload").html('<i class="icon-link"></i> ' +__('Set Link'))
-			return false;
-		})
+			$upload.find(".input-link").toggleClass("hide", !as_link);
+			$upload.find(".input-upload").toggleClass("hide", as_link);
+		});
 
-		$upload.find(".action-attach").click(function() {
-			$upload.find(".action-link").removeClass("disabled");
-			$upload.find(".action-attach").addClass("disabled");
-			$upload.find(".action-link-input").toggle(false);
-			$upload.find(".action-attach-input").toggle(true);
-			$upload.find(".btn-upload").html('<i class="icon-upload"></i> ' +__('Upload'))
-			return false;
-		})
+		if(!opts.btn) {
+			opts.btn = $('<button class="btn btn-default btn-sm">' + __("Attach")
+				+ '</div>').appendTo($upload);
+		} else {
+			$(opts.btn).unbind("click");
+		}
 
 		// get the first file
-		$upload.find(".btn-upload").click(function() {
+		opts.btn.click(function() {
 			// convert functions to values
-			for(key in opts.args) {
-				if(typeof val==="function")
-					opt.args[key] = opts.args[key]();
-			}
 
-			// add other inputs in the div as arguments
-			opts.args.params = {};
-			$upload.find("input[name]").each(function() {
-				var key = $(this).attr("name");
-				var type = $(this).attr("type");
-				if(key!="filedata" && key!="file_url") {
-					if(type === "checkbox") {
-						opts.args.params[key] = $(this).is(":checked");
-					} else {
-						opts.args.params[key] = $(this).val();
-					}
-				}
-			})
+			if(opts.get_params) {
+				opts.args.params = opts.get_params();
+			}
 
 			opts.args.file_url = $upload.find('[name="file_url"]').val();
 

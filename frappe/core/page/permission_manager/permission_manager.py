@@ -6,7 +6,8 @@ import frappe
 import frappe.defaults
 from frappe.modules.import_file import get_file_path, read_doc_from_file
 from frappe.translate import send_translations
-from frappe.core.doctype.notification_count.notification_count import delete_notification_count_for
+from frappe.desk.notifications import delete_notification_count_for
+from frappe.permissions import reset_perms
 
 @frappe.whitelist()
 def get_roles_and_doctypes():
@@ -82,7 +83,7 @@ def validate_and_reset(doctype, for_remove=False):
 @frappe.whitelist()
 def reset(doctype):
 	frappe.only_for("System Manager")
-	frappe.reset_perms(doctype)
+	reset_perms(doctype)
 	clear_doctype_cache(doctype)
 
 def clear_doctype_cache(doctype):

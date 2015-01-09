@@ -66,12 +66,10 @@ frappe.form.formatters = {
 			return repl('<a onclick="%(onclick)s">%(value)s</a>',
 				{onclick: docfield.link_onclick.replace(/"/g, '&quot;'), value:value});
 		} else if(docfield && doctype) {
-			return repl('%(icon)s<a href="#Form/%(doctype)s/%(name)s">%(label)s</a>', {
+			return repl('<a class="grey" href="#Form/%(doctype)s/%(name)s">%(label)s</a>', {
 				doctype: encodeURIComponent(doctype),
 				name: encodeURIComponent(value),
-				label: value,
-				icon: (options && options.no_icon) ? "" :
-					('<i class="icon-fixed-width '+frappe.boot.doctype_icons[doctype]+'"></i> ')
+				label: __(options && options.label || value)
 			});
 		} else {
 			return value;
@@ -98,6 +96,14 @@ frappe.form.formatters = {
 		}
 
 		return frappe.form.formatters.Data(value);
+	},
+	StarredBy: function(value) {
+		var html = "";
+		$.each(JSON.parse(value || "[]"), function(i, v) {
+			if(v) html+= '<span class="avatar avatar-small" \
+				style="margin-right: 3px;"><img src="'+frappe.user_info(v).image+'"></span>';
+		});
+		return html;
 	},
 	Tag: function(value) {
 		var html = "";

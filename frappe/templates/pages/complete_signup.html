@@ -1,0 +1,15 @@
+{% block style %}{% include "templates/includes/login.css" %}{% endblock %}
+
+{% block content %}
+<div class="login-content container" style="max-width: 800px;">
+	<form role="form form-signin" method="POST"
+        action="/api/method/frappe.templates.pages.login.login_oauth_user">
+		<h2 class="form-signin-heading">{{ _("One Last Step") }}</h2>
+        <input type="hidden" name="key" value="{{ frappe.form_dict.key }}">
+		<input type="email" id="email_id" name="email_id"
+			class="form-control" placeholder="{{ _('Email Id') }}" required autofocus>
+		<br>
+		<button class="btn btn-primary btn-complete-signup" type="submit">{{ _("Complete") }}</button>
+	</form>
+</div>
+{% endblock %}

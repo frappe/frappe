@@ -2,9 +2,9 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-import frappe
 
 from frappe.model.document import Document
 
 class DocField(Document):
+	__doclink__ = "https://frappe.io/docs/models/core/docfield"
 	pass

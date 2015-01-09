@@ -116,7 +116,6 @@ def save_file(fname, content, dt, dn, decode=False):
 	content_hash = get_content_hash(content)
 	content_type = mimetypes.guess_type(fname)[0]
 	fname = get_file_name(fname, content_hash[-6:])
-
 	file_data = get_file_data_from_hash(content_hash)
 	if not file_data:
 		method = get_hook_method('write_file', fallback=save_file_on_filesystem)

@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe.core.doctype.notification_count.notification_count import clear_notifications
+from frappe.desk.notifications import clear_notifications
 
 # Note: DefaultValue records are identified by parenttype
 # __default, __global or 'User Permission'
@@ -31,7 +31,7 @@ def get_user_permissions(user=None):
 	return build_user_permissions(user)
 
 def build_user_permissions(user):
-	out = frappe.cache().get_value("user_permissions:" + user)
+	out = frappe.cache().get_value("user_permissions", user=user)
 	if out==None:
 		out = {}
 		for key, value in frappe.db.sql("""select defkey, ifnull(defvalue, '') as defvalue
@@ -42,7 +42,7 @@ def build_user_permissions(user):
 		if user not in out.get("User", []):
 			out.setdefault("User", []).append(user)
 
-		frappe.cache().set_value("user_permissions:" + user, out)
+		frappe.cache().set_value("user_permissions", out, user=user)
 	return out
 
 def get_defaults(user=None):
@@ -75,6 +75,13 @@ def get_global_default(key):
 # Common
 
 def set_default(key, value, parent, parenttype="__default"):
+	"""Override or add a default value.
+	Adds default value in table `tabDefaultValue`.
+
+	:param key: Default key.
+	:param value: Default value.
+	:param parent: Usually, **User** to whom the default belongs.
+	:param parenttype: [optional] default is `__default`."""
 	if frappe.db.sql("""select defkey from `tabDefaultValue` where
 		defkey=%s and parent=%s """, (key, parent)):
 		# update
@@ -97,6 +104,14 @@ def add_default(key, value, parent, parenttype=None):
 	_clear_cache(parent)
 
 def clear_default(key=None, value=None, parent=None, name=None, parenttype=None):
+	"""Clear a default value by any of the given parameters and delete caches.
+
+	:param key: Default key.
+	:param value: Default value.
+	:param parent: User name, or `__global`, `__default`.
+	:param name: Default ID.
+	:param parenttype: Clear defaults table for a particular type e.g. **User**.
+	"""
 	conditions = []
 	values = []
 

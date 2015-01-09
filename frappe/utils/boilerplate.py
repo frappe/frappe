@@ -27,8 +27,7 @@ def make_boilerplate(dest):
 	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, frappe.scrub(hooks.app_title)),
 		with_init=True)
 	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "templates"), with_init=True)
-	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "templates",
-		"statics"))
+	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "www"))
 	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "templates",
 		"pages"), with_init=True)
 	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "templates",
@@ -142,11 +141,11 @@ app_version = "0.0.1"
 # Permissions evaluated in scripted ways
 
 # permission_query_conditions = {{
-# 	"Event": "frappe.core.doctype.event.event.get_permission_query_conditions",
+# 	"Event": "frappe.desk.doctype.event.event.get_permission_query_conditions",
 # }}
 #
 # has_permission = {{
-# 	"Event": "frappe.core.doctype.event.event.has_permission",
+# 	"Event": "frappe.desk.doctype.event.event.has_permission",
 # }}
 
 # Document Events
@@ -191,7 +190,7 @@ app_version = "0.0.1"
 # ------------------------------
 #
 # override_whitelisted_methods = {{
-# 	"frappe.core.doctype.event.event.get_events": "{app_name}.event.get_events"
+# 	"frappe.desk.doctype.event.event.get_events": "{app_name}.event.get_events"
 # }}
 
 """

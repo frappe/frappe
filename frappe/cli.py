@@ -125,6 +125,8 @@ def setup_parser():
 		help="Show verbose output (where applicable)")
 	parser.add_argument("--quiet", default=False, action="store_true",
 		help="Do not show verbose output (where applicable)")
+	parser.add_argument("--args", metavar="pass arguments", nargs="*",
+		help="pass arguments to the method")
 
 	return parser.parse_args()
 
@@ -142,6 +144,8 @@ def setup_install(parser):
 		help="Install a new app")
 	parser.add_argument("--add_to_installed_apps", metavar="APP-NAME", nargs="*",
 		help="Add these app(s) to Installed Apps")
+	parser.add_argument("--remove_from_installed_apps", metavar="APP-NAME", nargs="*",
+		help="Remove these app(s) from Installed Apps")
 	parser.add_argument("--reinstall", default=False, action="store_true",
 		help="Install a fresh app in db_name specified in conf.py")
 	parser.add_argument("--restore", metavar=("DB-NAME", "SQL-FILE"), nargs=2,
@@ -221,7 +225,6 @@ def setup_utilities(parser):
 	parser.add_argument("--smtp", action="store_true", help="Run smtp debug server",
 		dest="smtp_debug_server")
 	parser.add_argument("--python", action="store_true", help="get python shell for a site")
-	parser.add_argument("--flush_memcache", action="store_true", help="flush memcached")
 	parser.add_argument("--ipython", action="store_true", help="get ipython shell for a site")
 	parser.add_argument("--execute", help="execute a function", nargs=1, metavar="FUNCTION")
 	parser.add_argument("--get_site_status", action="store_true", help="Get site details")
@@ -362,9 +365,17 @@ def add_to_installed_apps(*apps):
 	from frappe.installer import add_to_installed_apps
 	frappe.connect()
 	all_apps = frappe.get_all_apps(with_frappe=True)
-	for each in apps:
-		if each in all_apps:
-			add_to_installed_apps(each, rebuild_website=False)
+	for app in apps:
+		if app in all_apps:
+			add_to_installed_apps(app, rebuild_website=False)
+	frappe.destroy()
+
+@cmd
+def remove_from_installed_apps(*apps):
+	from frappe.installer import remove_from_installed_apps
+	frappe.connect()
+	for app in apps:
+		remove_from_installed_apps(app)
 	frappe.destroy()
 
 @cmd
@@ -421,7 +432,7 @@ def latest(rebuild_website=True, quiet=False):
 	import frappe.model.sync
 	from frappe.utils.fixtures import sync_fixtures
 	import frappe.translate
-	from frappe.core.doctype.notification_count.notification_count import clear_notifications
+	from frappe.desk.notifications import clear_notifications
 
 	verbose = not quiet
 
@@ -541,7 +552,7 @@ def make_conf(db_name=None, db_password=None, site_config=None):
 
 @cmd
 def make_custom_server_script(doctype):
-	from frappe.core.doctype.custom_script.custom_script import make_custom_server_script_file
+	from frappe.custom.doctype.custom_script.custom_script import make_custom_server_script_file
 	frappe.connect()
 	make_custom_server_script_file(doctype)
 	frappe.destroy()
@@ -555,7 +566,7 @@ def init_list(doctype):
 @cmd
 def clear_cache():
 	import frappe.sessions
-	from frappe.core.doctype.notification_count.notification_count import clear_notifications
+	from frappe.desk.notifications import clear_notifications
 	frappe.connect()
 	frappe.clear_cache()
 	clear_notifications()
@@ -595,17 +606,21 @@ def sync_statics(force=False):
 
 @cmd
 def reset_perms():
+	from frappe.permissions import reset_perms
 	frappe.connect()
 	for d in frappe.db.sql_list("""select name from `tabDocType`
 		where ifnull(istable, 0)=0 and ifnull(custom, 0)=0"""):
 			frappe.clear_cache(doctype=d)
-			frappe.reset_perms(d)
+			reset_perms(d)
 	frappe.destroy()
 
 @cmd
-def execute(method):
+def execute(method, args=None):
 	frappe.connect()
-	ret = frappe.get_attr(method)()
+	if args:
+		ret = frappe.get_attr(method)(*args)
+	else:
+		ret = frappe.get_attr(method)()
 	frappe.db.commit()
 	frappe.destroy()
 	if ret:
@@ -851,11 +866,6 @@ def resize_images(path):
 	import frappe.utils.image
 	frappe.utils.image.resize_images(path)
 
-@cmd
-def flush_memcache():
-	frappe.cache().flush_all()
-
-
 def replace_code(start, txt1, txt2, extn, search=None, force=False):
 	"""replace all txt1 by txt2 in files with extension (extn)"""
 	import frappe.utils
@@ -930,7 +940,7 @@ def get_site_status(verbose=False):
 
 	# basic usage/progress analytics
 	for doctype in ("Company", "Customer", "Item", "Quotation", "Sales Invoice",
-		"Journal Voucher", "Stock Ledger Entry"):
+		"Journal Entry", "Stock Ledger Entry"):
 			key = doctype.lower().replace(" ", "_") + "_exists"
 			ret[key] = 1 if frappe.db.count(doctype) else 0
 

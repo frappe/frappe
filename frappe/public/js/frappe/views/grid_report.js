@@ -6,10 +6,10 @@ frappe.provide("frappe.report_dump");
 $.extend(frappe.report_dump, {
 	data: {},
 	last_modified: {},
-	with_data: function(doctypes, callback, progress_bar) {
+	with_data: function(doctypes, callback) {
 		var pre_loaded = keys(frappe.report_dump.last_modified);
 		return frappe.call({
-			method: "frappe.widgets.report_dump.get_data",
+			method: "frappe.desk.report_dump.get_data",
 			type: "GET",
 			args: {
 				doctypes: doctypes,
@@ -40,8 +40,7 @@ $.extend(frappe.report_dump, {
 				});
 
 				callback();
-			},
-			progress_bar: progress_bar
+			}
 		})
 	},
 	set_data: function(doctype, doctype_data) {
@@ -103,9 +102,8 @@ frappe.views.GridReport = Class.extend({
 		var me = this;
 		$.extend(this, opts);
 
-		$(this.page).find(".app-page").addClass("full-width");
-		this.wrapper = $('<div>').appendTo(this.parent);
-		this.appframe.parent.find(".appframe").css({"padding-top": "0px"});
+		this.wrapper = $('<div class="grid-report"></div>').appendTo(this.parent);
+		this.parent.find(".page").css({"padding-top": "0px"});
 
 		if(this.filters) {
 			this.make_filters();
@@ -126,7 +124,6 @@ frappe.views.GridReport = Class.extend({
 			// reapply filters on show
 			frappe.cur_grid_report = me;
 			me.get_data_and_refresh();
-			frappe.container.set_full_width();
 		});
 
 	},
@@ -139,9 +136,6 @@ frappe.views.GridReport = Class.extend({
 	},
 	get_data: function(callback) {
 		var me = this;
-		var progress_bar = null;
-		if(!this.setup_filters_done)
-			progress_bar = this.wrapper.find(".progress .progress-bar");
 
 		frappe.report_dump.with_data(this.doctypes, function() {
 			if(!me.setup_filters_done) {
@@ -149,7 +143,7 @@ frappe.views.GridReport = Class.extend({
 				me.setup_filters_done = true;
 			}
 			callback();
-		}, progress_bar);
+		});
 	},
 	setup_filters: function() {
 		var me = this;
@@ -166,17 +160,19 @@ frappe.views.GridReport = Class.extend({
 		});
 
 		// refresh
-		this.filter_inputs.refresh && this.filter_inputs.refresh.click(function() {
+		this.page.set_primary_action(__("Refresh"), function() {
 			me.get_data(function() {
 				me.refresh();
 			});
 		});
 
-		// reset filters
-		this.filter_inputs.reset_filters && this.filter_inputs.reset_filters.click(function() {
-			me.init_filter_values();
-			me.refresh();
-		});
+		// reset filters button
+		if (this.filter_inputs) {
+			this.page.add_menu_item(__("Reset Filters"), function() {
+				me.init_filter_values();
+				me.refresh();
+			}, true);
+		}
 
 		// range
 		this.filter_inputs.range && this.filter_inputs.range.on("change", function() {
@@ -249,24 +245,24 @@ frappe.views.GridReport = Class.extend({
 			v.fieldname = v.fieldname || v.label.replace(/ /g, '_').toLowerCase();
 			var input = null;
 			if(v.fieldtype=='Select') {
-				input = me.appframe.add_select(v.label, v.options || [v.default_value]);
+				input = me.page.add_select(v.label, v.options || [v.default_value]);
 			} else if(v.fieldtype=="Link") {
-				input = me.appframe.add_data(v.label);
+				input = me.page.add_data(v.label);
 				input.autocomplete({
 					source: v.list || [],
 				});
-			} else if(v.fieldtype==='Button' && v.label==="Refresh") {
-				input = me.appframe.set_title_right(v.label, null, v.icon);
+			} else if(v.fieldtype==='Button' && v.label===__("Refresh")) {
+				input = me.page.set_primary_action(v.label, null, v.icon);
 			} else if(v.fieldtype==='Button') {
-				input = me.appframe.add_button(v.label, null, v.icon);
+				input = me.page.add_menu_item(v.label, null, true);
 			} else if(v.fieldtype==='Date') {
-				input = me.appframe.add_date(v.label);
+				input = me.page.add_date(v.label);
 			} else if(v.fieldtype==='Label') {
-				input = me.appframe.add_label(v.label);
+				input = me.page.add_label(v.label);
 			} else if(v.fieldtype==='Data') {
-				input = me.appframe.add_data(v.label);
+				input = me.page.add_data(v.label);
 			} else if(v.fieldtype==='Check') {
-				input = me.appframe.add_check(v.label);
+				input = me.page.add_check(v.label);
 			}
 
 			if(input) {
@@ -284,7 +280,7 @@ frappe.views.GridReport = Class.extend({
 		});
 	},
 	make_waiting: function() {
-		this.waiting = frappe.messages.waiting(this.wrapper, __("Loading Report")+"...", '10');
+		this.waiting = frappe.messages.waiting(this.wrapper, __("Loading Report")+"...");
 	},
 	load_filter_values: function() {
 		var me = this;
@@ -369,10 +365,9 @@ frappe.views.GridReport = Class.extend({
 		var me = this;
 
 		// plot wrapper
-		this.plot_area = $('<div class="plot" style="margin-top: 15px; margin-bottom: 15px; display: none; \
-			height: 300px; width: 100%;"></div>').appendTo(this.wrapper);
+		this.plot_area = $('<div class="plot"></div>').appendTo(this.wrapper);
 
-		this.appframe.add_button(__("Export"), function() { return me.export(); }, "icon-download");
+		this.page.add_menu_item(__("Export"), function() { return me.export(); }, true);
 
 		// grid wrapper
 		this.grid_wrapper = $("<div style='height: 500px; border: 1px solid #aaa; \
@@ -381,9 +376,9 @@ frappe.views.GridReport = Class.extend({
 		this.id = frappe.dom.set_unique_id(this.grid_wrapper.get(0));
 
 		// zero-value check
-		$('<div style="margin: 10px 0px; display: none" class="show-zero">\
-				<input type="checkbox"> '+__('Show rows with zero values')
-			+'</div>').appendTo(this.wrapper);
+		$('<div class="checkbox show-zero">\
+				<label><input type="checkbox"> '+__('Show rows with zero values')
+			+'</label></div>').appendTo(this.wrapper);
 
 		this.bind_show();
 
@@ -883,7 +878,7 @@ frappe.views.TreeGridReport = frappe.views.GridReportWithPlot.extend({
 		var msgbox = msgprint($.format('<p>{0}</p>\
 			<p><input type="checkbox" name="with_groups" checked="checked"> {1}</p>\
 			<p><input type="checkbox" name="with_ledgers" checked="checked"> {2}</p>\
-			<p><button class="btn btn-info"> {3}</button>', [
+			<p><button class="btn btn-primary"> {3}</button>', [
 				__('Select To Download:'),
 				__('With Groups'),
 				__('With Ledgers'),

@@ -76,8 +76,8 @@ class BaseDocument(object):
 	def getone(self, key, filters=None):
 		return self.get(key, filters=filters, limit=1)[0]
 
-	def set(self, key, value):
-		if isinstance(value, list):
+	def set(self, key, value, as_value=False):
+		if isinstance(value, list) and not as_value:
 			self.__dict__[key] = []
 			self.extend(key, value)
 		else:
@@ -168,14 +168,9 @@ class BaseDocument(object):
 				if doc[k] is None:
 					del doc[k]
 
-		if self.get("_user_tags"):
-			doc["_user_tags"] = self.get("_user_tags")
-
-		if self.get("__islocal"):
-			doc["__islocal"] = 1
-
-		elif self.get("__onload"):
-			doc["__onload"] = self.get("__onload")
+		for key in ("_user_tags", "__islocal", "__onload", "_starred_by"):
+			if self.get(key):
+				doc[key] = self.get(key)
 
 		return doc
 
@@ -217,11 +212,20 @@ class BaseDocument(object):
 
 		d = self.get_valid_dict()
 		columns = d.keys()
-		frappe.db.sql("""update `tab{doctype}`
-			set {values} where name=%s""".format(
-				doctype = self.doctype,
-				values = ", ".join(["`"+c+"`=%s" for c in columns])
-			), d.values() + [d.get("name")])
+		try:
+			frappe.db.sql("""update `tab{doctype}`
+				set {values} where name=%s""".format(
+					doctype = self.doctype,
+					values = ", ".join(["`"+c+"`=%s" for c in columns])
+				), d.values() + [d.get("name")])
+		except Exception, e:
+			if e.args[0]==1062:
+				type, value, traceback = sys.exc_info()
+				fieldname = str(e).split("'")[-2]
+				frappe.msgprint(_("{0} must be unique".format(self.meta.get_label(fieldname))))
+				raise frappe.ValidationError, (self.doctype, self.name, e), traceback
+			else:
+				raise
 
 	def db_set(self, fieldname, value):
 		self.set(fieldname, value)

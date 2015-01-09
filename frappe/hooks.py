@@ -3,7 +3,7 @@ app_title = "Frappe Framework"
 app_publisher = "Web Notes Technologies Pvt. Ltd."
 app_description = "Full Stack Web Application Framework in Python"
 app_icon = "assets/frappe/images/frappe.svg"
-app_version = "4.9.2"
+app_version = "5.0.0-alpha"
 app_color = "#3498db"
 app_email = "support@frappe.io"
 
@@ -25,63 +25,68 @@ web_include_css = [
 		"style_settings.css"
 	]
 
-website_clear_cache = "frappe.website.doctype.website_group.website_group.clear_cache"
-
 write_file_keys = ["file_url", "file_name"]
 
 notification_config = "frappe.core.notifications.get_notification_config"
 
 before_tests = "frappe.utils.install.before_tests"
 
-website_generators = ["Web Page", "Blog Post", "Website Group", "Blog Category", "Web Form"]
+website_generators = ["Web Page", "Blog Post", "Blog Category", "Web Form"]
+
+# login
+
+on_session_creation = "frappe.desk.doctype.feed.feed.login_feed"
 
 # permissions
 
 permission_query_conditions = {
-	"Event": "frappe.core.doctype.event.event.get_permission_query_conditions",
-	"ToDo": "frappe.core.doctype.todo.todo.get_permission_query_conditions",
-	"User": "frappe.core.doctype.user.user.get_permission_query_conditions"
+	"Event": "frappe.desk.doctype.event.event.get_permission_query_conditions",
+	"ToDo": "frappe.desk.doctype.todo.todo.get_permission_query_conditions",
+	"User": "frappe.core.doctype.user.user.get_permission_query_conditions",
+	"Feed": "frappe.desk.doctype.feed.feed.get_permission_query_conditions",
+	"Note": "frappe.desk.doctype.note.note.get_permission_query_conditions"
 }
 
 has_permission = {
-	"Event": "frappe.core.doctype.event.event.has_permission",
-	"ToDo": "frappe.core.doctype.todo.todo.has_permission",
-	"User": "frappe.core.doctype.user.user.has_permission"
+	"Event": "frappe.desk.doctype.event.event.has_permission",
+	"ToDo": "frappe.desk.doctype.todo.todo.has_permission",
+	"User": "frappe.core.doctype.user.user.has_permission",
+	"Feed": "frappe.desk.doctype.feed.feed.has_permission",
+	"Note": "frappe.desk.doctype.note.note.has_permission"
 }
 
 doc_events = {
 	"*": {
-		"after_insert": "frappe.core.doctype.email_alert.email_alert.trigger_email_alerts",
-		"validate": "frappe.core.doctype.email_alert.email_alert.trigger_email_alerts",
+		"after_insert": "frappe.email.doctype.email_alert.email_alert.trigger_email_alerts",
+		"validate": "frappe.email.doctype.email_alert.email_alert.trigger_email_alerts",
 		"on_update": [
-			"frappe.core.doctype.notification_count.notification_count.clear_doctype_notifications",
-			"frappe.core.doctype.email_alert.email_alert.trigger_email_alerts"
+			"frappe.desk.notifications.clear_doctype_notifications",
+			"frappe.email.doctype.email_alert.email_alert.trigger_email_alerts",
+			"frappe.desk.doctype.feed.feed.update_feed"
 		],
-		"after_rename": "frappe.core.doctype.notification_count.notification_count.clear_doctype_notifications",
-		"on_submit": "frappe.core.doctype.email_alert.email_alert.trigger_email_alerts",
+		"after_rename": "frappe.desk.notifications.clear_doctype_notifications",
+		"on_submit": [
+			"frappe.email.doctype.email_alert.email_alert.trigger_email_alerts",
+			"frappe.desk.doctype.feed.feed.update_feed"
+		],
 		"on_cancel": [
-			"frappe.core.doctype.notification_count.notification_count.clear_doctype_notifications",
-			"frappe.core.doctype.email_alert.email_alert.trigger_email_alerts"
+			"frappe.desk.notifications.clear_doctype_notifications",
+			"frappe.email.doctype.email_alert.email_alert.trigger_email_alerts"
 		],
-		"on_trash": "frappe.core.doctype.notification_count.notification_count.clear_doctype_notifications"
-	},
-	"Website Route Permission": {
-		"on_update": "frappe.website.doctype.website_group.website_group.clear_cache_on_doc_event"
+		"on_trash": "frappe.desk.notifications.clear_doctype_notifications"
 	}
 }
 
 scheduler_events = {
-	"all": ["frappe.utils.email_lib.bulk.flush"],
-	"daily": [
-		"frappe.utils.email_lib.bulk.clear_outbox",
-		"frappe.core.doctype.notification_count.notification_count.clear_notifications",
-		"frappe.core.doctype.event.event.send_event_digest",
-		"frappe.sessions.clear_expired_sessions",
-		"frappe.core.doctype.email_alert.email_alert.trigger_daily_alerts",
+	"all": [
+		"frappe.email.bulk.flush",
+		"frappe.tasks.pull_from_email_account"
 	],
-	"hourly": [
-		"frappe.website.doctype.website_group.website_group.clear_event_cache"
+	"daily": [
+		"frappe.email.bulk.clear_outbox",
+		"frappe.desk.notifications.clear_notifications",
+		"frappe.desk.doctype.event.event.send_event_digest",
+		"frappe.sessions.clear_expired_sessions",
+		"frappe.email.doctype.email_alert.email_alert.trigger_daily_alerts",
 	]
 }
-
-mail_footer = "frappe.core.doctype.outgoing_email_settings.outgoing_email_settings.get_mail_footer"

@@ -1,10 +1,10 @@
 from frappe import _
-from frappe.widgets.moduleview import add_setup_section
+from frappe.desk.moduleview import add_setup_section
 
 def get_data():
 	data = [
 		{
-			"label": _("Users and Permissions"),
+			"label": _("Users"),
 			"icon": "icon-group",
 			"items": [
 				{
@@ -16,7 +16,13 @@ def get_data():
 					"type": "doctype",
 					"name": "Role",
 					"description": _("User Roles")
-				},
+				}
+			]
+		},
+		{
+			"label": _("Permissions"),
+			"icon": "icon-lock",
+			"items": [
 				{
 					"type": "page",
 					"name": "permission-manager",
@@ -118,8 +124,8 @@ def get_data():
 			"items": [
 				{
 					"type": "doctype",
-					"name": "Outgoing Email Settings",
-					"description": _("Set outgoing mail server.")
+					"name": "Email Account",
+					"description": _("Add / Manage Email Accounts.")
 				},
 				{
 					"type": "doctype",
@@ -134,7 +140,7 @@ def get_data():
 			]
 		},
 		{
-			"label": _("Printing and Branding"),
+			"label": _("Printing"),
 			"icon": "icon-print",
 			"items": [
 				{

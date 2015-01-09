@@ -1,10 +1,7 @@
 .avatar {
 	display: inline-block;
 	vertical-align: middle;
-	border-radius: 5px;
 	overflow: hidden;
-	background-color: #ddd;
-	border: 1px solid #eee;
 	width: 50px;
 	height: 50px;
 }
@@ -12,12 +9,23 @@
 .avatar img {
 	width: 100%;
 	height: auto;
+	border-radius: 4px;
+}
+
+.avatar-empty {
+	border: 1px dashed #d1d8dd;
 }
 
 .avatar-small {
 	margin-right: 5px;
-	width: 30px;
-	height: 30px;
+	width: 24px;
+	height: 24px;
+}
+
+.avatar-medium {
+	margin-right: 5px;
+	width: 36px;
+	height: 36px;
 }
 
 .avatar-large {

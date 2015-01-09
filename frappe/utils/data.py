@@ -533,6 +533,9 @@ def get_url(uri=None, full_address=False):
 
 	return url
 
+def get_host_name():
+	return get_url().rsplit("//", 1)[-1]
+
 def get_url_to_form(doctype, name, label=None):
 	if not label: label = name
 

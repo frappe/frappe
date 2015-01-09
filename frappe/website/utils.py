@@ -8,9 +8,9 @@ def delete_page_cache(path):
 	if not path:
 		path = ""
 	cache = frappe.cache()
-	cache.delete_value("page:" + path)
-	cache.delete_value("page_context:" + path)
-	cache.delete_value("sitemap_options:" + path)
+	cache.delete_keys("page:" + path)
+	cache.delete_keys("page_context:" + path)
+	cache.delete_keys("sitemap_options:" + path)
 
 def scrub_relative_urls(html):
 	"""prepend a slash before a relative url"""
@@ -32,6 +32,7 @@ def get_comment_list(doctype, name):
 	return frappe.db.sql("""select
 		comment, comment_by_fullname, creation, comment_by
 		from `tabComment` where comment_doctype=%s
+		and ifnull(comment_type, "Comment")="Comment"
 		and comment_docname=%s order by creation""", (doctype, name), as_dict=1) or []
 
 def get_home_page():
@@ -54,7 +55,7 @@ def get_home_page():
 
 		return home_page
 
-	return frappe.cache().get_value("home_page:" + frappe.session.user, _get_home_page)
+	return frappe.cache().get_value("home_page", _get_home_page, user=True)
 
 def is_signup_enabled():
 	if getattr(frappe.local, "is_signup_enabled", None) is None:

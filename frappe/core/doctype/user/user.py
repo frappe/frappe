@@ -6,7 +6,7 @@ import frappe
 from frappe.utils import cint, now, get_gravatar
 from frappe import throw, msgprint, _
 from frappe.auth import _update_password
-from frappe.core.doctype.notification_count.notification_count import clear_notifications
+from frappe.desk.notifications import clear_notifications
 import frappe.permissions
 
 STANDARD_USERS = ("Guest", "Administrator")
@@ -25,6 +25,7 @@ class User(Document):
 		if self.name not in STANDARD_USERS:
 			self.validate_email_type(self.email)
 		self.add_system_manager_role()
+		self.validate_system_manager_user_type()
 		self.check_enable_disable()
 		self.update_gravatar()
 		self.ensure_unique_roles()
@@ -56,6 +57,12 @@ class User(Document):
 				"doctype": "UserRole",
 				"role": "System Manager"
 			})
+
+	def validate_system_manager_user_type(self):
+		#if user has system manager role then user type should be system user
+		if ("System Manager" in [user_role.role for user_role in
+			self.get("user_roles")]) and self.get("user_type") != "System User":
+				frappe.throw(_("User with System Manager Role should always have User Type: System User"))
 
 	def email_new_password(self, new_password=None):
 		if new_password and not self.in_insert:
@@ -325,7 +332,8 @@ def sign_up(email, full_name):
 			return _("Already Registered")
 	else:
 		if frappe.db.sql("""select count(*) from tabUser where
-			TIMEDIFF(%s, modified) > '1:00:00' """, now())[0][0] > 200:
+			HOUR(TIMEDIFF(CURRENT_TIMESTAMP, TIMESTAMP(modified)))=1""")[0][0] > 200:
+			frappe.msgprint("Login is closed for sometime, please check back again in an hour.")
 			raise Exception, "Too Many New Users"
 		from frappe.utils import random_string
 		user = frappe.get_doc({
@@ -356,7 +364,7 @@ def reset_password(user):
 		return _("User {0} does not exist").format(user)
 
 def user_query(doctype, txt, searchfield, start, page_len, filters):
-	from frappe.widgets.reportview import get_match_cond
+	from frappe.desk.reportview import get_match_cond
 	txt = "%{}%".format(txt)
 	return frappe.db.sql("""select name, concat_ws(' ', first_name, middle_name, last_name)
 		from `tabUser`

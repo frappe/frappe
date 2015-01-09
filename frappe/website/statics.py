@@ -32,7 +32,7 @@ class sync(object):
 		self.cleanup()
 
 	def sync_for_app(self, app):
-		self.statics_path = frappe.get_app_path(app, "templates", "statics")
+		self.statics_path = frappe.get_app_path(app, "www")
 		if os.path.exists(self.statics_path):
 			for basepath, folders, files in os.walk(self.statics_path):
 				self.sync_folder(basepath, folders, files)

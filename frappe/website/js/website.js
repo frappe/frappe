@@ -358,6 +358,37 @@ $.extend(frappe, {
 		var ready = frappe.page_ready_events[frappe.get_pathname()];
 		ready && ready();
 	},
+	highlight_code_blocks: function() {
+		if(hljs) {
+			$('pre code').each(function(i, block) {
+				hljs.highlightBlock(block);
+			});
+		}
+	},
+	bind_filters: function() {
+		// set in select
+		$(".filter").each(function() {
+			var key = $(this).attr("data-key");
+			var val = get_url_arg(key).replace(/\+/g, " ");
+
+			if(val) $(this).val(val);
+		});
+
+		// search url
+		var search = function() {
+			var args = {};
+			$(".filter").each(function() {
+				var val = $(this).val();
+				if(val) args[$(this).attr("data-key")] = val;
+			});
+
+			window.location.href = location.pathname + "?" + $.param(args);
+		}
+
+		$(".filter").on("change", function() {
+			search();
+		});
+	},
 	make_navbar_active: function() {
 		var pathname = window.location.pathname;
 		$(".navbar a.active").removeClass("active");
@@ -550,5 +581,7 @@ $(document).on("page-change", function() {
 	frappe.datetime.refresh_when();
 	frappe.toggle_template_blocks();
 	frappe.trigger_ready();
+	frappe.bind_filters();
+	frappe.highlight_code_blocks();
 	frappe.make_navbar_active();
 });

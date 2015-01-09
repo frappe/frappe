@@ -5,12 +5,12 @@ frappe.provide('frappe.model');
 
 $.extend(frappe.model, {
 	no_value_type: ['Section Break', 'Column Break', 'HTML', 'Table',
- 	'Button', 'Image', 'Fold'],
+ 	'Button', 'Image', 'Fold', 'Heading'],
 
 	layout_fields: ['Section Break', 'Column Break', 'Fold'],
 
 	std_fields_list: ['name', 'owner', 'creation', 'modified', 'modified_by',
-		'_user_tags', '_comments', '_assign', 'docstatus',
+		'_user_tags', '_comments', '_assign', '_starred_by', 'docstatus',
 		'parent', 'parenttype', 'parentfield', 'idx'],
 
 	std_fields: [
@@ -21,6 +21,7 @@ $.extend(frappe.model, {
 		{fieldname:'modified', fieldtype:'Date', label:__('Last Updated On')},
 		{fieldname:'modified_by', fieldtype:'Data', label:__('Last Updated By')},
 		{fieldname:'_user_tags', fieldtype:'Data', label:__('Tags')},
+		{fieldname:'_starred_by', fieldtype:'Data', label:__('Starred By')},
 		{fieldname:'_comments', fieldtype:'Text', label:__('Comments')},
 		{fieldname:'_assign', fieldtype:'Text', label:__('Assigned To')},
 		{fieldname:'docstatus', fieldtype:'Int', label:__('Document Status')},
@@ -54,7 +55,7 @@ $.extend(frappe.model, {
 				cached_timestamp = cached_doc.modified;
 			}
 			return frappe.call({
-				method:'frappe.widgets.form.load.getdoctype',
+				method:'frappe.desk.form.load.getdoctype',
 				type: "GET",
 				args: {
 					doctype: doctype,
@@ -99,7 +100,7 @@ $.extend(frappe.model, {
 			callback(name);
 		} else {
 			return frappe.call({
-				method: 'frappe.widgets.form.load.getdoc',
+				method: 'frappe.desk.form.load.getdoc',
 				type: "GET",
 				args: {
 					doctype: doctype,
@@ -154,6 +155,16 @@ $.extend(frappe.model, {
 	is_submittable: function(doctype) {
 		if(!doctype) return false;
 		return locals.DocType[doctype] && locals.DocType[doctype].is_submittable;
+	},
+
+	is_table: function(doctype) {
+		if(!doctype) return false;
+		return locals.DocType[doctype] && locals.DocType[doctype].istable;
+	},
+
+	is_single: function(doctype) {
+		if(!doctype) return false;
+		return locals.DocType[doctype] && locals.DocType[doctype].issingle;
 	},
 
 	can_import: function(doctype, frm) {
@@ -375,13 +386,11 @@ $.extend(frappe.model, {
 			fields: [
 				{label:__("New Name"), fieldtype:"Data", reqd:1},
 				{label:__("Merge with existing"), fieldtype:"Check", fieldname:"merge"},
-				{label:__("Rename"), fieldtype: "Button"}
 			]
 		});
-		d.get_input("rename").on("click", function() {
+		d.set_primary_action(__("Rename"), function() {
 			var args = d.get_values();
 			if(!args) return;
-			d.get_input("rename").set_working();
 			return frappe.call({
 				method:"frappe.model.rename_doc.rename_doc",
 				args: {
@@ -390,8 +399,8 @@ $.extend(frappe.model, {
 					"new": args.new_name,
 					"merge": args.merge
 				},
+				btn: d.get_primary_btn(),
 				callback: function(r,rt) {
-					d.get_input("rename").done_working();
 					if(!r.exc) {
 						$(document).trigger('rename', [doctype, docname,
 							r.message || args.new_name]);

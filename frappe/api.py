@@ -5,7 +5,7 @@ import json
 import frappe
 import frappe.handler
 import frappe.client
-import frappe.widgets.reportview
+import frappe.desk.reportview
 from frappe.utils.response import build_response
 from frappe import _
 
@@ -90,7 +90,7 @@ def handle():
 					if frappe.local.form_dict.get('fields'):
 						frappe.local.form_dict['fields'] = json.loads(frappe.local.form_dict['fields'])
 					frappe.local.response.update({
-						"data":  frappe.call(frappe.widgets.reportview.execute,
+						"data":  frappe.call(frappe.client.get_list,
 							doctype, **frappe.local.form_dict)})
 
 				if frappe.local.request.method=="POST":

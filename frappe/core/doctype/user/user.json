@@ -18,7 +18,7 @@
    "default": "1", 
    "fieldname": "enabled", 
    "fieldtype": "Check", 
-   "in_list_view": 1, 
+   "in_list_view": 0, 
    "label": "Enabled", 
    "no_copy": 0, 
    "oldfieldname": "enabled", 
@@ -49,7 +49,7 @@
   {
    "fieldname": "first_name", 
    "fieldtype": "Data", 
-   "in_list_view": 1, 
+   "in_list_view": 0, 
    "label": "First Name", 
    "no_copy": 0, 
    "oldfieldname": "first_name", 
@@ -69,7 +69,7 @@
   {
    "fieldname": "last_name", 
    "fieldtype": "Data", 
-   "in_list_view": 1, 
+   "in_list_view": 0, 
    "label": "Last Name", 
    "oldfieldname": "last_name", 
    "oldfieldtype": "Data", 
@@ -135,22 +135,6 @@
    "hidden": 0, 
    "label": "User Image", 
    "no_copy": 1, 
-   "permlevel": 0
-  }, 
-  {
-   "fieldname": "background_image", 
-   "fieldtype": "Attach", 
-   "hidden": 0, 
-   "label": "Background Image", 
-   "no_copy": 1, 
-   "permlevel": 0
-  }, 
-  {
-   "default": "Fill Screen", 
-   "fieldname": "background_style", 
-   "fieldtype": "Select", 
-   "label": "Background Style", 
-   "options": "Fill Screen\nTile", 
    "permlevel": 0
   }, 
   {
@@ -325,6 +309,7 @@
    "description": "User Type \"System User\" can access Desktop. \"Website User\" can only be logged into the website and portal pages. ", 
    "fieldname": "user_type", 
    "fieldtype": "Select", 
+   "in_list_view": 1, 
    "label": "User Type", 
    "oldfieldname": "user_type", 
    "oldfieldtype": "Select", 
@@ -462,7 +447,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 5, 
- "modified": "2014-09-08 06:07:20.157915", 
+ "modified": "2015-01-08 14:54:46.298736", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "User", 

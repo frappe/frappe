@@ -21,6 +21,26 @@ frappe.utils = {
 		}
 		return true;
 	},
+	strip_whitespace: function(html) {
+		return (html || "").replace(/<p>\s*<\/p>/g, "").replace(/<br>(\s*<br>\s*)+/g, "<br><br>");
+	},
+	strip_original_content: function(txt) {
+		var out = [],
+			part = [],
+			newline = txt.indexOf("<br>")===-1 ? "\n" : "<br>";
+
+		$.each(txt.split(newline), function(i, t) {
+			var tt = strip(t);
+			if(tt && (tt.substr(0,1)===">" || tt.substr(0,4)==="&gt;")) {
+				part.push(t);
+			} else {
+				out.concat(part);
+				out.push(t);
+				part = [];
+			}
+		});
+		return out.join(newline);
+	},
 	is_url: function(txt) {
 		return txt.toLowerCase().substr(0,7)=='http://'
 			|| txt.toLowerCase().substr(0,8)=='https://'
@@ -79,13 +99,19 @@ frappe.utils = {
 			return list;
 		}
 	},
-	set_intro: function(me, wrapper, txt) {
+	set_intro: function(me, wrapper, txt, append, indicator) {
 		if(!me.intro_area) {
-			me.intro_area = $('<div class="alert alert-info form-intro-area">')
+			me.intro_area = $('<div class="form-intro-area">')
 				.prependTo(wrapper);
 		}
+		if(!indicator) {
+			indicator = "grey";
+		}
 		if(txt) {
-			me.intro_area.html(txt);
+			if(!append) {
+				me.intro_area.empty();
+			}
+			me.intro_area.html('<div class="indicator '+indicator+'">'+txt+'</div>')
 		} else {
 			me.intro_area.remove();
 			me.intro_area = null;
@@ -93,7 +119,8 @@ frappe.utils = {
 	},
 	set_footnote: function(me, wrapper, txt) {
 		if(!me.footnote_area) {
-			me.footnote_area = $('<div class="alert alert-info form-intro-area" style="margin-top: 20px;">')
+			$("<hr>").appendTo(wrapper).css({"margin-bottom": "0px"});
+			me.footnote_area = $('<div class="text-muted form-intro-area small">')
 				.appendTo(wrapper);
 		}
 
@@ -152,21 +179,30 @@ frappe.utils = {
 		// test regExp if not null
 		return '' !== val ? regExp.test( val ) : false;
 	},
-	guess_style: function(text, default_style) {
+	guess_style: function(text, default_style, _colour) {
 		var style = default_style || "default";
-		if(!text)
-			return style;
-		if(has_words(["Pending", "Review", "Medium"], text)) {
-			style = "warning";
-		} else if(has_words(["Open", "Rejected", "Urgent", "High"], text)) {
-			style = "danger";
-		} else if(has_words(["Closed", "Finished", "Converted", "Completed", "Confirmed",
-			"Approved", "Yes", "Active"], text)) {
-			style = "success";
-		} else if(has_words(["Submitted"], text)) {
-			style = "info";
+		var colour = "darkgrey";
+		if(text) {
+			if(has_words(["Pending", "Review", "Medium", "Not Approved", "Pending"], text)) {
+				style = "warning";
+				colour = "orange";
+			} else if(has_words(["Open", "Urgent", "High"], text)) {
+				style = "danger";
+				colour = "red";
+			} else if(has_words(["Closed", "Finished", "Converted", "Completed", "Confirmed",
+				"Approved", "Yes", "Active", "Available", "Paid"], text)) {
+				style = "success";
+				colour = "green";
+			} else if(has_words(["Submitted"], text)) {
+				style = "info";
+				colour = "blue";
+			}
 		}
-		return style;
+		return _colour ? colour : style;
+	},
+
+	guess_colour: function(text) {
+		return frappe.utils.guess_style(text, null, true);
 	},
 
 	sort: function(list, key, compare_type, reverse) {

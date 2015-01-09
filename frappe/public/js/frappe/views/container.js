@@ -4,6 +4,7 @@
 // page container
 frappe.provide('frappe.pages');
 frappe.provide('frappe.views');
+frappe.provide('frappe.breadcrumbs');
 
 frappe.views.Container = Class.extend({
 	_intro: "Container contains pages inside `#container` and manages \
@@ -72,12 +73,44 @@ frappe.views.Container = Class.extend({
 		this.page._route = window.location.hash;
 		$(this.page).trigger('show');
 		scroll(0,0);
+		this.update_breadcrumbs();
+
 		return this.page;
 	},
-	set_full_width: function() {
-		// limit max-width to 970px for most pages
-		$("body").toggleClass("limit-container-width", !$(frappe.container.page).find(".app-page.full-width").length);
+	update_breadcrumbs: function() {
+		var breadcrumbs = frappe.breadcrumbs[frappe.get_route_str()];
+		var $breadcrumbs = $("#navbar-breadcrumbs").empty();
+		if(!breadcrumbs) return;
+
+		var divider = function() {
+			$('<li style="padding: 8px 0px" class="hidden-xs"><i class="icon-chevron-right text-muted"></i></li>').appendTo($breadcrumbs);
+		}
+
+		if(breadcrumbs.module && breadcrumbs.module != "Desk") {
+			if(in_list(["Core", "Email", "Custom", "Workflow"], breadcrumbs.module))
+				breadcrumbs.module = "Setup";
+			var module_info = frappe.get_module(breadcrumbs.module),
+				icon = module_info && module_info.icon,
+				label = module_info ? module_info.label : breadcrumbs.module;
+
+			if(module_info) {
+				divider();
+				// if(icon) {
+				// 	icon = '<span class="'+icon+' text-muted"></span> '
+				// }
+				$('<li><a href="#Module/'+ breadcrumbs.module +'">' + __(label) +'</a></li>').appendTo($breadcrumbs);
+			}
+
+		}
+		if(breadcrumbs.doctype) {
+			divider();
+			$('<li><a href="#List/'+ breadcrumbs.doctype +'">'+ __(breadcrumbs.doctype) +'</a></li>').appendTo($breadcrumbs);
+		}
 	}
 });
 
+frappe.add_breadcrumbs = function(module, doctype) {
+	frappe.breadcrumbs[frappe.get_route_str()] = {module:module, doctype:doctype};
+	frappe.container.update_breadcrumbs();
+}
 

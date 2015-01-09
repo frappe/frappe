@@ -10,26 +10,30 @@
 	{% endfor %}
 </div>
 
-<div><button class="btn btn-default add-comment">Add Comment</button></div>
-<div style="display: none; margin-top: 10px; max-width: 400px;"
-	id="comment-form">
-	<div class="alert" style="display:none;"></div>
-	<form>
-		<fieldset>
-			<input class="form-control" name="comment_by_fullname" placeholder="Your Name" type="text"/><br>
-			<input class="form-control" name="comment_by"
-				placeholder="Your Email Id" type="email"/><br>
-			<textarea class="form-control" name="comment" rows=10
-				placeholder="Comment"/>
-			</textarea><br>
-			<button class="btn btn-info" id="submit-comment">Submit</button>
-		</fieldset>
-	</form>
-</div>
-
+{% if login_required and frappe.user=="Guest" %}
+	<div class="alert alert-warning">You must <a href="/login?redirect-to={{ pathname }}">login</a> to comment.</div>
+{% else %}
+	<div><button class="btn btn-default add-comment">Add Comment</button></div>
+	<div style="display: none; margin-top: 10px; max-width: 400px;"
+		id="comment-form">
+		<div class="alert" style="display:none;"></div>
+		<form>
+			<fieldset>
+				<input class="form-control" name="comment_by_fullname" placeholder="Your Name"
+					type="text" {% if login_required %}disabled{% endif %}><br>
+				<input class="form-control" name="comment_by"
+					placeholder="Your Email Id" type="email" {% if login_required %}disabled{% endif %}><br>
+				<textarea class="form-control" name="comment" rows=10
+					placeholder="Comment"/>
+				</textarea><br>
+				<button class="btn btn-primary" id="submit-comment">Submit</button>
+			</fieldset>
+		</form>
+	</div>
+{% endif %}
 
 <script>
-$(document).ready(function() {
+frappe.ready(function() {
 	var n_comments = $(".comment-row").length;
 
 	if(n_comments) {
@@ -54,6 +58,7 @@ $(document).ready(function() {
 			comment: $("[name='comment']").val(),
 			comment_doctype: "{{ doctype }}",
 			comment_docname: "{{ name }}",
+			comment_type: "Comment",
 			page_name: "{{ pathname }}",
 		}
 

@@ -87,22 +87,7 @@ def get_generator_route(path):
 	return process_generators(get_route)
 
 def clear_sitemap():
-	for p in get_pages():
-		delete_page_cache(p.name)
-
-	def clear_generators(doctype, condition_field, order_by):
-		meta = frappe.get_meta(doctype)
-
-		if meta.get_field("parent_website_route"):
-			query = "select page_name, parent_website_route from `tab{0}`"
-		else:
-			query = "select page_name, '' from `tab{0}`"
-
-		for r in frappe.db.sql(query.format(doctype)):
-			if r[0]:
-				delete_page_cache(((r[1] + "/") if r[1] else "") + r[0])
-
-	process_generators(clear_generators)
+	delete_page_cache("*")
 
 def process_generators(func):
 	for app in frappe.get_installed_apps():

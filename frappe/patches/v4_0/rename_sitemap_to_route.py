@@ -9,18 +9,11 @@ def execute():
 			frappe.delete_doc("DocType", doctype, force=1)
 			frappe.db.sql("drop table `tab{}`".format(doctype))
 
-	if "tabWebsite Route Permission" not in tables:
-		frappe.rename_doc("DocType", "Website Sitemap Permission", "Website Route Permission", force=True)
-
-	for d in ("Blog Category", "Blog Post", "Web Page", "Website Group"):
+	for d in ("Blog Category", "Blog Post", "Web Page"):
 		frappe.reload_doc("website", "doctype", frappe.scrub(d))
 		rename_field_if_exists(d, "parent_website_sitemap", "parent_website_route")
 
-	frappe.reload_doc("website", "doctype", "website_route_permission")
-
-	rename_field_if_exists("Website Route Permission", "website_sitemap", "website_route")
-
-	for d in ("blog_category", "blog_post", "web_page", "website_group", "post", "user_vote"):
+	for d in ("blog_category", "blog_post", "web_page", "post", "user_vote"):
 		frappe.reload_doc("website", "doctype", d)
 
 def rename_field_if_exists(doctype, old_fieldname, new_fieldname):

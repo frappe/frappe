@@ -35,6 +35,7 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 		# delete attachments
 		remove_all(doctype, name)
 
+		doc = None
 		if doctype=="DocType":
 			if for_reload:
 
@@ -69,10 +70,14 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 			update_naming_series(doc)
 			delete_from_table(doctype, name, ignore_doctypes, doc)
 
+		if doc:
+			try:
+				insert_feed(doc)
+			except ImportError:
+				pass
+
 		# delete user_permissions
 		frappe.defaults.clear_default(parenttype="User Permission", key=doctype, value=name)
-
-	return 'okay'
 
 def update_naming_series(doc):
 	if doc.meta.autoname:
@@ -98,7 +103,9 @@ def delete_from_table(doctype, name, ignore_doctypes, doc):
 			return frappe.db.sql_list("""select options from `tab{}` where fieldtype='Table'
 				and parent=%s""".format(field_doctype), doctype)
 
-		tables = get_table_fields("DocField") + get_table_fields("Custom Field")
+		tables = get_table_fields("DocField")
+		if not frappe.flags.in_install_app=="frappe":
+			tables += get_table_fields("Custom Field")
 
 	# delete from child tables
 	for t in list(set(tables)):
@@ -131,7 +138,7 @@ def check_if_doc_is_linked(doc, method="Delete"):
 			if item and item.parent != doc.name and ((method=="Delete" and item.docstatus<2) or
 					(method=="Cancel" and item.docstatus==1)):
 				frappe.throw(_("Cannot delete or cancel because {0} {1} is linked with {2} {3}").format(doc.doctype,
-					doc.name, item.parent or item.name, item.parenttype if item.parent else link_dt),
+					doc.name, item.parenttype if item.parent else link_dt, item.parent or item.name),
 					frappe.LinkExistsError)
 
 def check_if_doc_is_dynamically_linked(doc):
@@ -155,3 +162,18 @@ def check_if_doc_is_dynamically_linked(doc):
 def delete_linked_todos(doc):
 	delete_doc("ToDo", frappe.db.sql_list("""select name from `tabToDo`
 		where reference_type=%s and reference_name=%s""", (doc.doctype, doc.name)))
+
+def insert_feed(doc):
+	from frappe.utils import get_fullname
+
+	if frappe.flags.in_install_app or frappe.flags.in_import or doc.get("ignore_feed"):
+		return
+
+	frappe.get_doc({
+		"doctype": "Feed",
+		"feed_type": "Label",
+		"doc_type": doc.doctype,
+		"doc_name": doc.name,
+		"subject": _("Deleted"),
+		"full_name": get_fullname(doc.owner)
+	}).insert(ignore_permissions=True)

@@ -1,5 +1,5 @@
 {
-  "creation": "2013-04-30 12:58:46", 
+ "creation": "2013-04-30 12:58:46", 
  "docstatus": 0, 
  "doctype": "DocType", 
  "document_type": "Other", 
@@ -21,7 +21,7 @@
    "reqd": 0
   }, 
   {
-   "description": "The name of your company / website as you want to appear on browser title bar. All pages will have this as the prefix to the title.", 
+   "description": "", 
    "fieldname": "title_prefix", 
    "fieldtype": "Data", 
    "in_list_view": 1, 
@@ -226,7 +226,7 @@
  "idx": 1, 
  "issingle": 1, 
  "max_attachments": 10, 
- "modified": "2014-08-20 12:55:53.402229", 
+ "modified": "2015-01-01 14:30:06.250845", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Website Settings", 

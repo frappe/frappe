@@ -19,17 +19,21 @@ class WebsiteGenerator(Document):
 			append_number_if_name_exists(self)
 
 	def onload(self):
-		self.get("__onload").website_route = self.get_route()
+		self.get("__onload").update({
+			"is_website_generator": True,
+			"website_route": self.get_route(),
+			"published": self.website_published()
+		})
 
 	def validate(self):
 		self.set_parent_website_route()
 
+		if not self.page_name:
+			self.page_name = self.make_page_name()
+
 		if self.meta.get_field("page_name") and not self.get("__islocal"):
 			current_route = self.get_route()
 			current_page_name = self.page_name
-
-			self.page_name = self.make_page_name()
-
 			# page name changed, rename everything
 			if current_page_name and current_page_name != self.page_name:
 				self.update_routes_of_descendants(current_route)
@@ -134,6 +138,10 @@ class WebsiteGenerator(Document):
 			route.public_read = 1
 
 	def get_parents(self, context):
+		# already set
+		if context.parents:
+			return context.parents
+
 		parents = []
 		parent = self
 		while parent:
@@ -174,7 +182,7 @@ class WebsiteGenerator(Document):
 		if hasattr(self, "parent_website_route_field"):
 			return self.get(self.parent_website_route_field)
 
-	def get_children(self):
+	def get_children(self, context=None):
 		if self.get_route()==get_home_page():
 			return frappe.db.sql("""select url as name, label as page_title,
 			1 as public_read from `tabTop Bar Item` where parentfield='sidebar_items'

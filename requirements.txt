@@ -9,7 +9,6 @@ markupsafe
 mysql-python==1.2.5
 pygeoip
 python-dateutil
-python-memcached
 pytz
 six
 slugify
@@ -24,3 +23,4 @@ selenium
 pdfkit
 babel
 ipython
+html2text

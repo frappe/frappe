@@ -18,15 +18,6 @@
 		{{ _("Login") }}
 	</a>
 </p>
-{% elif (login_required and doc_name and not params.name) %}
-<div class="alert alert-info">
-	{{ _("{0} already exists").format(_(doc_type)) }}
-</div>
-<p>
-	<a href="{{ pathname }}?name={{ doc_name }}" class="btn btn-primary">
-		{{ _("Edit your record") }}
-	</a>
-</p>
 {% elif (login_required and allow_multiple and not params.name and not params.new) %}
 <p>
 	<a href="{{ pathname }}?new=1" class="btn btn-primary">
@@ -50,7 +41,7 @@
 </div>
 {% else %}
 
-{%- macro properties(field) %}name="{{ field.fieldname }}" id="{{ field.fieldname }}" {% if field.placeholder %}placeholder="{{ field.placeholder }}"{% endif %} data-label="{{ field.label }}" data-fieldtype="{{ field.fieldtype }}" {{ field.reqd and "required" or "" }} {{ field.read_only and "disabled" or "" }}{% endmacro -%}
+{%- macro properties(field) %}name="{{ field.fieldname }}" id="{{ field.fieldname }}" {% if field.placeholder %}placeholder="{{ field.placeholder }}"{% endif %} data-label="{{ field.label }}" data-fieldtype="{{ field.fieldtype }}" {{ (field.reqd and field.fieldtype!="Attach") and "required" or "" }} {{ field.read_only and "disabled" or "" }}{% endmacro -%}
 
 {%- macro value(field) -%}{% if doc %}{{ doc.get(field.fieldname) or "" }}{% else %}{{ getCookie(field.options) or "" }}{% endif %}{%- endmacro -%}
 

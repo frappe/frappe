@@ -7,4 +7,5 @@ import frappe
 from frappe.model.document import Document
 
 class DocPerm(Document):
+	__doclink__ = "https://frappe.io/docs/models/v5.x/core/docperm"
 	pass

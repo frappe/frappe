@@ -12,5 +12,5 @@ class TestHooks(unittest.TestCase):
 		self.assertTrue(isinstance(hooks.get("doc_events"), dict))
 		self.assertTrue(isinstance(hooks.get("doc_events").get("*"), dict))
 		self.assertTrue(isinstance(hooks.get("doc_events").get("*"), dict))
-		self.assertTrue("frappe.core.doctype.notification_count.notification_count.clear_doctype_notifications" in
+		self.assertTrue("frappe.desk.notifications.clear_doctype_notifications" in
 			hooks.get("doc_events").get("*").get("on_update"))

@@ -23,14 +23,18 @@ frappe.views.Factory = Class.extend({
 		}
 	},
 	make_page: function(double_column) {
-		var page_name = frappe.get_route_str(),
-			page = frappe.container.add_page(page_name);
-
-		frappe.ui.make_app_page({
-			parent: page,
-			single_column: !double_column
-		});
-		frappe.container.change_to(page_name);
-		return page;
+		return frappe.make_page(double_column);
 	}
 });
+
+frappe.make_page = function(double_column) {
+	var page_name = frappe.get_route_str(),
+		page = frappe.container.add_page(page_name);
+
+	frappe.ui.make_app_page({
+		parent: page,
+		single_column: !double_column
+	});
+	frappe.container.change_to(page_name);
+	return page;
+}

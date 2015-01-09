@@ -10,12 +10,12 @@ frappe.ui.form.InfoBar = Class.extend({
 	make: function() {
 		var me = this;
 
-		this.appframe.iconbar.clear(2);
-		this.$reload = this.appframe.add_icon_btn("2", "icon-refresh", __("Reload Page"),
+		this.page.iconbar.clear(2);
+		this.$reload = this.page.add_icon_btn("2", "icon-refresh", __("Reload Page"),
 			function() { me.frm.reload_doc(); })
 
 
-		this.$timestamp = this.appframe.add_icon_btn("2", "icon-user", __("Creation / Modified By"),
+		this.$timestamp = this.page.add_icon_btn("2", "icon-user", __("Creation / Modified By"),
 			function() {
 				msgprint("Created By: " + frappe.user.full_name(me.frm.doc.owner) + "<br>" +
 					"Created On: " + comment_when(me.frm.doc.creation) + "<br>" +
@@ -23,25 +23,29 @@ frappe.ui.form.InfoBar = Class.extend({
 					"Last Modifed On: " + comment_when(me.frm.doc.modified))
 			});
 
-		this.$comments = this.appframe.add_icon_btn("2", "icon-comments", __("Comments"), function() {
-				me.scroll_to(".form-comments");
+		this.$comments = this.page.add_icon_btn("2", "icon-comments", __("Comments"), function() {
+				me.scroll_to(".form-comments .btn-go");
 			});
 
-		this.$attachments = this.appframe.add_icon_btn("2", "icon-paper-clip", __("Attachments"),  function() {
+		this.$attachments = this.page.add_icon_btn("2", "icon-paper-clip", __("Attachments"),  function() {
 				me.scroll_to(".form-attachments");
 			});
 
-		this.$assignments = this.appframe.add_icon_btn("2", "icon-flag", __("Assignments"),  function() {
-				me.scroll_to(".form-attachments");
+		this.$assignments = this.page.add_icon_btn("2", "icon-flag", __("Assignments"),  function() {
+				me.scroll_to(".form-assignments");
 			});
 
-
-		this.$links = this.appframe.add_icon_btn("2", "icon-link", __("Linked With"),
+		this.$links = this.page.add_icon_btn("2", "icon-link", __("Linked With"),
 				function() { me.frm.toolbar.show_linked_with(); });
+
+		this.$star = this.page.add_icon_btn("2", "icon-star star-action", __("Star this document"),
+				function() {
+					frappe.ui.toggle_star(me.$star, me.frm.doctype,
+						me.frm.doc.name) }).find(".star-action");
 
 		// link to user permissions
 		if(!me.frm.meta.issingle && frappe.model.can_set_user_permissions(me.frm.doctype, me.frm)) {
-			this.$user_properties = this.appframe.add_icon_btn("2", "icon-shield",
+			this.$user_properties = this.page.add_icon_btn("2", "icon-shield",
 				__("User Permissions Manager"), function() {
 					frappe.route_options = {
 						doctype: me.frm.doctype,
@@ -52,20 +56,20 @@ frappe.ui.form.InfoBar = Class.extend({
 		}
 
 		if(frappe.model.can_print(me.frm.doctype, me.frm)) {
-			this.$print = this.appframe.add_icon_btn("2", "icon-print", __("Print"),
+			this.$print = this.page.add_icon_btn("2", "icon-print", __("Print"),
 				function() { me.frm.print_doc(); });
 		}
 
 		if(frappe.model.can_email(me.frm.doctype, me.frm)) {
-			this.$print = this.appframe.add_icon_btn("2", "icon-envelope", __("Email"),
+			this.$print = this.page.add_icon_btn("2", "icon-envelope", __("Email"),
 				function() { me.frm.email_doc(); });
 		}
 
 		if(!this.frm.meta.issingle) {
-			this.$prev = this.appframe.add_icon_btn("2", "icon-arrow-left", __("Previous Record"),
+			this.$prev = this.page.add_icon_btn("2", "icon-arrow-left", __("Previous Record"),
 				function() { me.go_prev_next(true); });
 
-			this.$next = this.appframe.add_icon_btn("2", "icon-arrow-right", __("Next Record"),
+			this.$next = this.page.add_icon_btn("2", "icon-arrow-right", __("Next Record"),
 				function() { me.go_prev_next(false); });
 		}
 
@@ -103,34 +107,52 @@ frappe.ui.form.InfoBar = Class.extend({
 
 		$.each(["comments", "attachments", "assignments"], function(i, v) {
 			if(me.docinfo[v] && me.docinfo[v].length)
-				me["$" + v].addClass("appframe-iconbar-active");
+				me["$" + v].addClass("page-toolbar-active");
 			else
-				me["$" + v].removeClass("appframe-iconbar-active");
-		})
+				me["$" + v].removeClass("page-toolbar-active");
+		});
+
+		// toggle star icon
+		this.$star
+			.attr("data-name", me.frm.doc.name)
+			.removeClass("icon-star")
+			.removeClass("icon-star-empty")
+			.addClass("icon-star" + ((me.frm.doc._starred_by || "").indexOf(user)===-1 ? "-empty" : ""))
 	},
 
 	scroll_to: function(cls) {
 		$('html, body').animate({
-			scrollTop: $(this.frm.wrapper).find(cls).offset().top
-		}, 1000);
+			scrollTop: $(this.frm.wrapper).find(cls).offset().top - 100
+		}, 100);
 	},
 
 	go_prev_next: function(prev) {
 		var me = this,
 			filters = null,
 			order_by = "modified desc",
-			doclistview = frappe.pages["List/" + me.frm.doctype];
+			doclistview_page = frappe.pages["List/" + me.frm.doctype];
 
 		// filters / order defined in listview
+
 		if(doclistview) {
-			filters = doclistview.doclistview.filter_list.get_filters();
-			if(doclistview.doclistview.listview.order_by) {
-				order_by = doclistview.doclistview.listview.order_by;
+			// if existing list, move according to the list
+			var doclistview = doclistview_page.doclistview;
+			for(var i=0, l=doclistview.data.length; i<l-1; i++) {
+				if(doclistview.data[i].name==me.frm.doc.name) {
+					frappe.set_route("Form", me.frm.doctype, doclistview.data[i+1].name);
+					return;
+				}
+			}
+
+			// not in list, apply the same filters
+			filters = doclistview.filter_list.get_filters();
+			if(doclistview.listview.order_by) {
+				order_by = doclistview.listview.order_by;
 			}
 		}
 
 		return frappe.call({
-			method: "frappe.widgets.form.utils.get_next",
+			method: "frappe.desk.form.utils.get_next",
 			args: {
 				doctype: me.frm.doctype,
 				value: me.frm.doc[order_by.split(" ")[0]],

@@ -9,7 +9,8 @@ frappe.provide("frappe.datetime");
 
 $.extend(frappe.datetime, {
 	str_to_obj: function(d) {
-		return moment(d, "YYYY-MM-DD HH:mm:ss")._d;
+		// zone hack to remove timezone diff added by momentjs
+		return moment(d, moment.defaultDatetimeFormat).zone(moment().zone())._d;
 	},
 
 	obj_to_str: function(d) {

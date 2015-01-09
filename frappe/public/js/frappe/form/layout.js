@@ -29,21 +29,6 @@ frappe.ui.form.Layout = Class.extend({
 		this.setup_tabbing();
 		this.render();
 	},
-	add_view: function(label) {
-		var view = $('<div class="form-add-view">').appendTo(this.parent).toggle(false);
-		this.views[label] = view;
-	},
-	set_view: function(label) {
-		if(this.cur_view) this.cur_view.toggle(false);
-		if(label) {
-			this.wrapper.toggle(false);
-			if(!this.views[label])
-				this.add_view(label);
-			this.cur_view = this.views[label].toggle(true);
-		} else {
-			this.wrapper.toggle(true);
-		}
-	},
 	refresh: function(doc) {
 		var me = this;
 		if(doc) this.doc = doc;
@@ -67,7 +52,7 @@ frappe.ui.form.Layout = Class.extend({
 		setTimeout(function() {
 			me.wrapper.find(".empty-form-alert").remove();
 			if(!(me.wrapper.find(".frappe-control:visible").length)) {
-				$('<div class="alert alert-info empty-form-alert">'+__("This form does not have any input")+'</div>')
+				$('<div class="empty-form-alert text-muted" style="margin: 15px; margin-top: -15px;">'+__("This form does not have any input")+'</div>')
 				.appendTo(me.wrapper)
 			}
 		}, 100);
@@ -118,7 +103,14 @@ frappe.ui.form.Layout = Class.extend({
 	make_field: function(df, colspan) {
 		!this.section && this.make_section();
 		!this.column && this.make_column();
-		var fieldobj = make_field(df, this.doctype, this.column.get(0), this.frm);
+
+		var fieldobj = frappe.ui.form.make_control({
+			df: df,
+			doctype: this.doctype,
+			parent: this.column.get(0),
+			frm: this.frm
+		});
+
 		fieldobj.layout = this;
 		this.fields_list.push(fieldobj);
 		this.fields_dict[df.fieldname] = fieldobj;
@@ -128,23 +120,20 @@ frappe.ui.form.Layout = Class.extend({
 	},
 	make_page: function(df) {
 		var me = this,
-			head = $('<div class="form-page-header">\
-				<button class="btn btn-default btn-primary btn-fold">\
-					<span class="octicon octicon-fold"></span>\
-					<span class="text">'+__("View Details")+'</span>\
-				</button>\
+			head = $('<div class="form-page-header text-center">\
+				<a class="btn-fold h6 text-muted">'+__("Show more details")+'</a>\
 			</div>').appendTo(this.wrapper);
 
-		this.page = $('<div class="form-page hide"></div>').appendTo(this.wrapper);
+		this.page = $('<div class="form-page second-page hide"></div>').appendTo(this.wrapper);
 
 		this.fold_btn = head.find(".btn-fold").on("click", function() {
 			var page = $(this).parent().next();
 			if(page.hasClass("hide")) {
-				$(this).removeClass("btn-primary").find(".text").html(__("Hide Details"));
+				$(this).removeClass("btn-fold").html(__("Hide details"));
 				page.removeClass("hide");
 				me.folded = false;
 			} else {
-				$(this).addClass("btn-primary").find(".text").html(__("View Details"));
+				$(this).addClass("btn-fold").html(__("Show more details"));
 				page.addClass("hide");
 				me.folded = true;
 			}
@@ -163,43 +152,16 @@ frappe.ui.form.Layout = Class.extend({
 			this.page = $('<div class="form-page"></div>').appendTo(this.wrapper);
 		}
 
-		this.section = $('<div class="row">')
+		this.section = $('<div class="row form-section">')
 			.appendTo(this.page);
 		this.sections.push(this.section);
 
 		var section = this.section[0];
 		section.df = df;
 		if(df) {
-			if(df.label) {
-				this.labelled_section_count++;
-				var head = $('<h4 class="col-md-12">'
-					+ (df.options ? (' <i class="icon-fixed-width text-muted '+df.options+'"></i> ') : "")
-					+ '<span class="section-count-label">' + __(this.labelled_section_count) + "</span>. "
-					+ __(df.label)
-					+ "</h4>")
-					.css({"margin":"15px 0px"})
-					.appendTo(this.section);
-
-				if(df && df.idx===1)
-					head.css({"margin-top": "0px"})
-			}
-
-			if(df.label || df.show_section_border) {
-				if(this.sections.length > 1) {
-					this.section.css("border-top", "1px solid #eee");
-
-					if (df.label) {
-						this.section.css("margin-top", "15px");
-					} else {
-						this.section.css("padding-top", "15px");
-					}
-				}
-			}
-
 			if(df.description) {
 				$('<div class="col-md-12 small text-muted">' + __(df.description) + '</div>')
-					.css("padding-left", "40px")
-					.appendTo(this.section);
+				.appendTo(this.section);
 			}
 			if(df.label || df.description) {
 				// spacer
@@ -328,7 +290,8 @@ frappe.ui.form.Layout = Class.extend({
 		var doc = me.doc;
 		if (!doc) return;
 
-		var parent = doc.parent ? locals[doc.parenttype][doc.parent] : {};
+		var parent = (doc.parent && doc.parenttype && locals[doc.parenttype]) ?
+			 locals[doc.parenttype][doc.parent] : {};
 
 		// build dependants' dictionary
 		var has_dep = false;
