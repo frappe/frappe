@@ -199,14 +199,18 @@ frappe.views.Calendar = Class.extend({
 		var args = {
 			name: event[this.field_map.id]
 		};
-		args[this.field_map.start]
-			= frappe.datetime.get_datetime_as_string(event.start);
-
-		if(this.field_map.end)
-			args[this.field_map.end] = frappe.datetime.get_datetime_as_string(event.end);
+		args[this.field_map.start] = frappe.datetime.get_datetime_as_string(event.start);
 
 		if(this.field_map.allDay)
 			args[this.field_map.allDay] = event.allDay ? 1 : 0;
+
+		if(this.field_map.end) {
+			if (args[this.field_map.allDay]) {
+				args[this.field_map.end] = frappe.datetime.get_datetime_as_string(event.start);
+			} else {
+				args[this.field_map.end] = frappe.datetime.get_datetime_as_string(event.end);
+			}
+		}
 
 		args.doctype = event.doctype || this.doctype;
 
