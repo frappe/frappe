@@ -113,7 +113,7 @@ frappe.ui.form.Comments = Class.extend({
 		$(frappe.render_template("timeline_item", {data:c}))
 			.appendTo(me.list)
 			.on("click", ".close", function() {
-				var name = $(this).parents(".comment:first").attr("data-name");
+				var name = $(this).parents(".timeline-item:first").attr("data-name");
 				me.delete_comment(name);
 				return false;
 			});

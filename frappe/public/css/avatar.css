@@ -1,9 +1,7 @@
 .avatar {
 	display: inline-block;
 	vertical-align: middle;
-	border-radius: 4px;
 	overflow: hidden;
-	border: 1px solid transparent;
 	width: 50px;
 	height: 50px;
 }
@@ -11,6 +9,7 @@
 .avatar img {
 	width: 100%;
 	height: auto;
+	border-radius: 4px;
 }
 
 .avatar-empty {
@@ -21,6 +20,12 @@
 	margin-right: 5px;
 	width: 24px;
 	height: 24px;
+}
+
+.avatar-medium {
+	margin-right: 5px;
+	width: 36px;
+	height: 36px;
 }
 
 .avatar-large {

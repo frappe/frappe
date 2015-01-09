@@ -17,6 +17,8 @@ frappe.upload = {
 		if(!opts.btn) {
 			opts.btn = $('<button class="btn btn-default btn-sm">' + __("Attach")
 				+ '</div>').appendTo($upload);
+		} else {
+			$(opts.btn).unbind("click");
 		}
 
 		// get the first file

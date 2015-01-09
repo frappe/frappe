@@ -138,22 +138,6 @@
    "permlevel": 0
   }, 
   {
-   "fieldname": "background_image", 
-   "fieldtype": "Attach", 
-   "hidden": 0, 
-   "label": "Background Image", 
-   "no_copy": 1, 
-   "permlevel": 0
-  }, 
-  {
-   "default": "Fill Screen", 
-   "fieldname": "background_style", 
-   "fieldtype": "Select", 
-   "label": "Background Style", 
-   "options": "Fill Screen\nTile", 
-   "permlevel": 0
-  }, 
-  {
    "fieldname": "cb21", 
    "fieldtype": "Column Break", 
    "permlevel": 0
@@ -463,7 +447,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 5, 
- "modified": "2015-01-07 15:54:30.153456", 
+ "modified": "2015-01-08 14:54:46.298736", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "User", 
