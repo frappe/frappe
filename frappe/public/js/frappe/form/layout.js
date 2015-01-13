@@ -98,7 +98,7 @@ frappe.ui.form.Layout = Class.extend({
 		var colspan = cint(12 / this.section.find(".form-column").length);
 		this.section.find(".form-column").removeClass()
 			.addClass("form-column")
-			.addClass("col-md-" + colspan);
+			.addClass("col-sm-" + colspan);
 	},
 	make_field: function(df, colspan) {
 		!this.section && this.make_section();
@@ -160,12 +160,12 @@ frappe.ui.form.Layout = Class.extend({
 		section.df = df;
 		if(df) {
 			if(df.description) {
-				$('<div class="col-md-12 small text-muted">' + __(df.description) + '</div>')
+				$('<div class="col-sm-12 small text-muted">' + __(df.description) + '</div>')
 				.appendTo(this.section);
 			}
 			if(df.label || df.description) {
 				// spacer
-				$('<div class="col-md-12"></div>')
+				$('<div class="col-sm-12"></div>')
 					.appendTo(this.section)
 					.css({"height": "10px"});
 			}

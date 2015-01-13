@@ -181,9 +181,9 @@ frappe.ui.form.Toolbar = Class.extend({
 				if(status == "Cancel") {
 					this.page.set_secondary_action(__(status), function() {
 						me.frm.savecancel(this);
-					});
+					}, "octicon octicon-circle-slash");
 				} else {
-					this.page.set_primary_action(__(status), {
+					var click = {
 						"Save": function() {
 							me.frm.save('Save', null, this);
 						},
@@ -196,7 +196,16 @@ frappe.ui.form.Toolbar = Class.extend({
 						"Amend": function() {
 							me.frm.amend_doc();
 						}
-					}[status]);
+					}[status];
+
+					var icon = {
+						"Save": "octicon octicon-check",
+						"Submit": "octicon octicon-lock",
+						"Update": "octicon octicon-check",
+						"Amend": "octicon octicon-split"
+					}[status];
+
+					this.page.set_primary_action(__(status), click, icon);
 				}
 
 				this.current_status = status;

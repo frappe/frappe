@@ -205,9 +205,8 @@ frappe.ui.Filter = Class.extend({
 		} : {}
 
 		var original_docfield = me.fieldselect.fields_by_name[doctype][fieldname];
-
 		if(!original_docfield) {
-			msgprint(__("Field {0} is not selectable.", [df.label]));
+			msgprint(__("Field {0} is not selectable.", [fieldname]));
 			return;
 		}
 

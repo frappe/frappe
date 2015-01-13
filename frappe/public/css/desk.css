@@ -7,6 +7,9 @@ body {
   margin: 0px;
   padding-top: 44px;
 }
+.page-body {
+  overflow-x: hidden;
+}
 a {
   cursor: pointer;
 }
@@ -21,14 +24,14 @@ a {
   font-size: 12px;
   font-weight: bold;
 }
+.navbar .breadcrumb-divider {
+  margin-top: 8px;
+}
 a.disabled,
 a.disabled:hover {
   color: #888;
   cursor: default;
   text-decoration: none;
-}
-.page-container {
-  padding-bottom: 15px;
 }
 a.grey,
 .sidebar-section a,
@@ -98,19 +101,16 @@ em.link-option {
   padding: 7px;
   border-radius: 3px;
 }
-@media (max-width: 767px) {
-  .layout-side-section {
-    border-top: 1px solid #d1d8dd;
-  }
-}
 /* page */
 .page-head {
   border-bottom: 1px solid #d1d8dd;
   min-height: 70px;
 }
 .page-title h6 {
-  margin: 0px;
   margin-top: -8px;
+}
+.page-title .title-text {
+  margin-right: 7px;
 }
 .page-actions {
   padding-top: 20px;
@@ -157,7 +157,7 @@ em.link-option {
   color: #6c7680;
 }
 .indicator::before {
-  margin: 0 4px 0 8px;
+  margin: 0 4px 0 0px;
   content: '';
   display: inline-block;
   height: 8px;
@@ -201,8 +201,9 @@ em.link-option {
   margin-right: 10px;
 }
 .list-row {
-  padding: 7px 15px 10px 15px;
+  padding: 7px 15px;
   border-bottom: 1px solid #d1d8dd;
+  cursor: pointer;
 }
 .list-row:hover,
 .grid-row:hover {
@@ -279,11 +280,17 @@ em.link-option {
 }
 .list-info-row {
   float: left;
-  margin-top: -3px;
+  margin-top: 1px;
 }
-.list-row-right {
-  margin-top: 8px;
-  margin-bottom: -8px;
+.list-row-left {
+  margin-top: 5px;
+}
+.list-row-right .modified {
+  margin-top: 3px;
+}
+.list-row-right .indicator {
+  margin-left: 10px;
+  margin-right: -5px;
 }
 .side-panel {
   border-bottom: 1px solid #d1d8dd;
@@ -302,6 +309,7 @@ em.link-option {
 }
 .module-item h4 {
   margin-bottom: 2px;
+  display: inline-block;
 }
 .module-item .badge {
   margin-top: -2px;
@@ -317,6 +325,9 @@ em.link-option {
 .module-sidebar-item.active .icon-chevron-right {
   margin-top: 2px;
   display: block !important;
+}
+.module-sidebar-nav {
+  margin-right: -15px;
 }
 .alert-badge {
   margin: 4px 0px;
@@ -579,7 +590,7 @@ ul.linked-with-list li {
 }
 /* form footer */
 .form-footer {
-  padding-bottom: 30px;
+  padding-bottom: 60px;
   /*box-shadow: 0px -1px 6px rgba(0,0,0,0.3);*/
 }
 .form-footer h5 {

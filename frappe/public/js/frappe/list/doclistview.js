@@ -117,7 +117,18 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 					f[0], f[1], f.slice(2).join(","));
 			});
 			added && me.run();
-		})
+		});
+		this.$page.on("click", ".list-row", function(e) {
+			var checkbox = $(this).find("input[type='checkbox']");
+			var star = $(this).find(".icon-star");
+			if ((checkbox.length && e.target === checkbox.get(0)) || (star.length && e.target===star.get(0))) {
+				return;
+			}
+
+			var link = $(this).find("a.list-id").get(0);
+			window.location.href = link.href;
+			return false;
+		});
 	},
 
 	init_filters: function() {
@@ -291,7 +302,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 
 		this.page.set_secondary_action(__("Refresh"), function() {
 			me.run();
-		});
+		}, "octicon octicon-sync");
 
 		if(this.can_delete || this.listview.settings.selectable) {
 			this.page.add_menu_item(__('Select All'), function() {

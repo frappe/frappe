@@ -1,34 +1,39 @@
 <div class="row doclist-row">
-    <div class="col-sm-10 col-xs-8">
+    <div class="col-sm-10 col-xs-9 list-row-left">
         {%= main %}
+
+		<div class="text-muted list-info-row small"
+		    style="padding-left: {% if(data._checkbox) { %}55{% } else { %}31{% } %}px;">
+
+		    {% if (data._full_title !== data.name) { %}
+		    <a class="text-muted" href="#Form/{%= data._doctype_encoded %}/{%= data._name_encoded %}">#{%= data.name %}</a>
+		    {% } %}
+
+			{% if (data._tags && data._tags.length) { %}
+		    	<span style="margin-right: 10px;" class="list-tag-preview">
+		            {% for (var i=0, l=data._tags.length; i < l; i++) { %}
+		    		    <span class="label label-info filterable"
+		                    data-filter="_user_tags,like,%{%= data._tags[i] %}%">{%= data._tags[i] %}</span>
+		            {% } %}
+		        </span>
+		    {% } %}
+		</div>
     </div>
-    <div class="col-sm-2 col-xs-4 text-right list-row-right">
-        {% if (data._assign_list.length) { %}
-    		<span class="filterable"
-                data-filter="_assign,like,%{%= data._assign_list[data._assign_list.length - 1] %}%">
-    			{%= frappe.avatar(data._assign_list[data._assign_list.length - 1]) %}</span>
-        {% } else { %}
-            <span class="avatar avatar-small avatar-empty"></span>
-        {% } %}
-    	<span class="h6 {% if(!data._comments_list.length) { %}text-extra-muted{% } %}">
-    		<i class="octicon octicon-comment-discussion"></i>
-                {%= data._comments_list.length || 0 %}
-        </span>
+    <div class="col-sm-2 col-xs-3 text-right list-row-right">
+		<div class="visible-xs pull-right">{%= me.get_indicator_dot(data) %}</div>
+		<div class="pull-right">
+	        {% if (data._assign_list.length) { %}
+	    		<span class="filterable"
+	                data-filter="_assign,like,%{%= data._assign_list[data._assign_list.length - 1] %}%">
+	    			{%= frappe.avatar(data._assign_list[data._assign_list.length - 1]) %}</span>
+	        {% } else { %}
+	            <span class="avatar avatar-small avatar-empty"></span>
+	        {% } %}
+	    	<span class="h6 {% if(!data._comments_list.length) { %}text-extra-muted{% } %}">
+	    		<i class="octicon octicon-comment-discussion"></i>
+	                {%= data._comments_list.length || 0 %}
+	        </span>
+			<div class="text-muted small modified">{%= comment_when(data.modified) %}</div>
+		</div>
     </div>
 </div>
-<div class="text-muted list-info-row small"
-    style="padding-left: {% if(data._checkbox) { %}55{% } else { %}31{% } %}px;">
-    {% if (data._full_title !== data.name) { %}
-    <a class="text-muted" href="#Form/{%= data._doctype_encoded %}/{%= data._name_encoded %}">#{%= data.name %}</a>
-    {% } %}
-    {%= comment_when(data.modified) %}
-    {% if (data._tags && data._tags.length) { %}
-    	<span style="margin-right: 10px;" class="list-tag-preview">
-            {% for (var i=0, l=data._tags.length; i < l; i++) { %}
-    		    <span class="label label-info filterable"
-                    data-filter="_user_tags,like,%{%= data._tags[i] %}%">{%= data._tags[i] %}</span>
-            {% } %}
-        </span>
-    {% } %}
-</div>
-<div class="clearfix"></div>

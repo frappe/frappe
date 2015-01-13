@@ -38,7 +38,10 @@ frappe.ui.Page = Class.extend({
 		$(frappe.render_template("page", {})).appendTo(this.wrapper);
 
 		if(this.single_column) {
-			this.add_view("main", '<div class="layout-main layout-main-section">');
+			// nesting under col-sm-12 for consistency
+			this.add_view("main", '<div class="row layout-main">\
+					<div class="col-sm-12"><div class="layout-main-section"></div></div>\
+				</div>');
 		} else {
 			var main = this.add_view("main", '<div class="row layout-main">\
 				<div class="col-sm-2 layout-side-section"></div>\
@@ -94,11 +97,23 @@ frappe.ui.Page = Class.extend({
 		return this.indicator.removeClass().addClass("indicator hide");
 	},
 
-	set_primary_action: function(label, click) {
+	get_icon_label: function(icon, label) {
+		return '<i class="visible-xs ' + icon + '"></i><span class="hidden-xs">' + label + '</span>'
+	},
+
+	set_primary_action: function(label, click, icon) {
+		if (icon) {
+			label = this.get_icon_label(icon, label);
+		}
+
 		this.btn_primary.removeClass("hide").prop("disabled", false).html(label).on("click", click);
 	},
 
-	set_secondary_action: function(label, click) {
+	set_secondary_action: function(label, click, icon) {
+		if (icon) {
+			label = this.get_icon_label(icon, label);
+		}
+
 		this.btn_secondary.removeClass("hide").prop("disabled", false).html(label).on("click", click);
 	},
 
@@ -189,7 +204,7 @@ frappe.ui.Page = Class.extend({
 		this.title = txt;
 		document.title = txt.replace(/<[^>]*>/g, "");
 		if(icon) {
-			txt = '<span class="'+ icon +' text-muted" style="font-size: 24px;"></span> ' + txt;
+			txt = '<span class="'+ icon +' text-muted" style="font-size: inherit;"></span> ' + txt;
 		}
 		this.$title_area.find(".title-text").html(txt);
 	},

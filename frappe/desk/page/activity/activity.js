@@ -9,18 +9,20 @@ frappe.pages['activity'].onload = function(wrapper) {
 	frappe.require('assets/frappe/js/lib/flot/jquery.flot.js');
 	frappe.require('assets/frappe/js/lib/flot/jquery.flot.downsample.js');
 
-	var page = frappe.ui.make_app_page({
+	frappe.ui.make_app_page({
 		parent: wrapper,
 		single_column: true
 	});
 
-	page.set_title(__("Activty"), frappe.get_module("Activity").icon);
+	this.page = wrapper.page;
+
+	this.page.set_title(__("Activty"), frappe.get_module("Activity").icon);
 
 	this.page.list = new frappe.ui.Listing({
 		hide_refresh: true,
-		page: wrapper.page,
+		page: this.page,
 		method: 'frappe.desk.page.activity.activity.get_feed',
-		parent: $(wrapper).find(".layout-main"),
+		parent: $("<div></div>").appendTo(this.page.main),
 		render_row: function(row, data) {
 			new frappe.activity.Feed(row, data);
 		}
@@ -28,7 +30,7 @@ frappe.pages['activity'].onload = function(wrapper) {
 
 	this.page.list.run();
 
-	frappe.activity.render_plot(page);
+	frappe.activity.render_plot(this.page);
 
 	this.page.main.on("click", ".activity-message", function() {
 		var doctype = $(this).attr("data-doctype"),
@@ -38,11 +40,11 @@ frappe.pages['activity'].onload = function(wrapper) {
 		}
 	});
 
-	wrapper.page.set_primary_action(__("Refresh"), function() { me.page.list.run(); });
+	this.page.set_primary_action(__("Refresh"), function() { me.page.list.run(); }, "octicon octicon-sync");
 
 	// Build Report Button
 	if(frappe.boot.user.can_get_report.indexOf("Feed")!=-1) {
-		wrapper.page.set_secondary_action(__('Build Report'), function() {
+		this.page.set_secondary_action(__('Build Report'), function() {
 			frappe.set_route('Report', "Feed");
 		}, 'icon-th');
 	}

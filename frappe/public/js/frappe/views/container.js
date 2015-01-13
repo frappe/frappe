@@ -83,7 +83,10 @@ frappe.views.Container = Class.extend({
 		if(!breadcrumbs) return;
 
 		var divider = function() {
-			$('<li style="padding: 8px 0px" class="hidden-xs"><i class="icon-chevron-right text-muted"></i></li>').appendTo($breadcrumbs);
+			$('<li class="breadcrumb-divider">\
+				<i class="icon-chevron-right hidden-xs text-muted"></i>\
+				<i class="icon-chevron-left visible-xs text-muted"></i>\
+			</li>').appendTo($breadcrumbs);
 		}
 
 		if(breadcrumbs.module && breadcrumbs.module != "Desk") {

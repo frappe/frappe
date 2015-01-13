@@ -1,0 +1,69 @@
+@media (max-width: 767px) {
+  .layout-main > div[class^="col-sm-"],
+  .form-section {
+    padding-left: 0px;
+    padding-right: 0px;
+  }
+  .module-sidebar-nav {
+    margin-right: 0px;
+  }
+  .list-sidebar {
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+  .layout-main-section {
+    border-left: none;
+    border-right: none;
+  }
+  .form-intro-area {
+    padding: 15px 0px;
+  }
+  .form-grid {
+    margin-left: -15px;
+    margin-right: -15px;
+    border-left: none;
+    border-right: none;
+    border-radius: none;
+  }
+  .grid-row-open {
+    top: 0;
+  }
+  .page-title h1 {
+    margin-top: 15px;
+  }
+  .page-actions {
+    padding-top: 15px;
+    padding-bottom: 15px;
+  }
+  .page-title .indicator {
+    display: block;
+    margin-top: 5px;
+    margin-bottom: 3px;
+  }
+  .page-title .sub-heading {
+    float: left;
+  }
+  .page-head {
+    min-height: 1px;
+  }
+  .navbar-brand .octicon-home {
+    margin-top: 4px;
+  }
+  .navbar .breadcrumb-divider {
+    margin-top: 14px;
+  }
+  #navbar-breadcrumbs {
+    margin: 0px;
+  }
+  #navbar-breadcrumbs > li {
+    float: left;
+    display: block;
+  }
+  #navbar-breadcrumbs li:not(:nth-last-child(-n+2)) {
+    display: none;
+  }
+  .mobile-module-icon {
+    padding: 17px 15px 0px;
+    margin-bottom: -15px;
+  }
+}

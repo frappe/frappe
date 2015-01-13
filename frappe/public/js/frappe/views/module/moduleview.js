@@ -95,11 +95,22 @@ frappe.views.moduleview.ModuleView = Class.extend({
 		this.activate(this.data.data[0].label);
 	},
 
-	make_sidebar: function() {
+	make_title: function(name) {
+		this.page_title = this.page.wrapper.find(".page-title").addClass("hidden-xs");
+		this.page.wrapper.find(".mobile-title, .mobile-module-icon").remove();
+
+		$(frappe.render_template("module_title", {
+			title: this.page_title.find("h1").html(),
+			section_name: name,
+			data: this.data
+		})).insertAfter(this.page_title);
+	},
+
+	make_sidebar: function(name) {
 		var me = this;
 		$(frappe.render_template("module_sidebar", {data:this.data})).appendTo(this.page.sidebar);
 
-		this.page.sidebar.find(".module-link").on("click", function() {
+		this.page.wrapper.on("click", ".module-link", function() {
 			me.activate($(this).parent().attr("data-label"));
 		});
 	},
@@ -126,6 +137,9 @@ frappe.views.moduleview.ModuleView = Class.extend({
 		// active
 		this.page.sidebar.find("li.active").removeClass("active");
 		this.page.sidebar.find('[data-label="'+ name +'"]').addClass("active");
+
+		// make mobile title
+		this.make_title(name);
 
 		frappe.app.update_notification_count_in_modules();
 	},

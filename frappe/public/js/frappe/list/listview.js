@@ -202,15 +202,17 @@ frappe.views.ListView = Class.extend({
 				list: this
 			});
 		} else {
+			console.log(this);
 			var main = frappe.render_template("list_item_standard", {
 				data: data,
 				columns: this.columns,
 				subject: this.get_avatar_and_id(data, true),
-				me: this
+				me: this,
+				right_column: this.settings.right_column
 			});
 		}
 
-		$(frappe.render_template("list_item_row", {data: data, main: main})).appendTo(row);
+		$(frappe.render_template("list_item_row", {data: data, main: main, me: this})).appendTo(row);
 
 		this.render_tags(row, data);
 
@@ -255,6 +257,14 @@ frappe.views.ListView = Class.extend({
         var indicator = frappe.get_indicator(doc, this.doctype);
         return '<span class="indicator '+indicator[1]+' filterable" data-filter="'
 			+indicator[2]+'">'+indicator[0]+'<span>';
+	},
+
+	get_indicator_dot: function(doc) {
+		var indicator = frappe.get_indicator(doc, this.doctype);
+		if (!indicator) {
+			return "";
+		}
+		return '<span class="indicator '+indicator[1]+'" title="'+indicator[0]+'"></span>';
 	},
 
 	prepare_data: function(data) {
