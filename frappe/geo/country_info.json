@@ -2294,8 +2294,9 @@
   "currency_name": "Syrian Pound",
   "number_format": "#,###.##"
  },
- "Taiwan, Province of China": {
+ "Taiwan": {
   "code": "tw",
+  "currency": "TWD",
   "date_format": "yyyy-mm-dd",
   "number_format": "#,###.##"
  },

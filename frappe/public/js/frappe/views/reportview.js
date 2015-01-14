@@ -92,7 +92,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 			page: this.parent.page,
 			method: 'frappe.desk.reportview.get',
 			get_args: this.get_args,
-			parent: $(this.parent).find('.layout-main'),
+			parent: this.page.main,
 			start: 0,
 			show_filters: true,
 			new_doctype: this.doctype,

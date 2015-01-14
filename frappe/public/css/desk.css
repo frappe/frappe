@@ -7,9 +7,6 @@ body {
   margin: 0px;
   padding-top: 44px;
 }
-.page-body {
-  overflow-x: hidden;
-}
 a {
   cursor: pointer;
 }
@@ -104,7 +101,20 @@ em.link-option {
 /* page */
 .page-head {
   border-bottom: 1px solid #d1d8dd;
-  min-height: 70px;
+  height: 70px;
+  position: fixed;
+  left: 0;
+  right: 0;
+  margin: auto;
+  background-color: #fff;
+  z-index: 1030;
+}
+.sub-heading {
+  display: inline-block;
+  margin-right: 10px;
+}
+.page-body {
+  overflow-x: hidden;
 }
 .page-title h6 {
   margin-top: -8px;
@@ -118,6 +128,9 @@ em.link-option {
 }
 .page-icon-group a {
   margin-right: 7px;
+}
+.layout-main {
+  margin-top: 70px;
 }
 /* show menu aligned to the right border of the dropdown */
 .page-actions .dropdown-menu {
@@ -201,7 +214,7 @@ em.link-option {
   margin-right: 10px;
 }
 .list-row {
-  padding: 7px 15px;
+  padding: 9px 15px;
   border-bottom: 1px solid #d1d8dd;
   cursor: pointer;
 }
@@ -260,9 +273,6 @@ em.link-option {
 .doclist-row {
   font-size: 12px;
 }
-.doclist-row .list-id {
-  font-size: 14px;
-}
 .doclist-row .docstatus .octicon {
   font-size: 12px;
 }
@@ -282,11 +292,12 @@ em.link-option {
   float: left;
   margin-top: 1px;
 }
-.list-row-left {
-  margin-top: 5px;
-}
 .list-row-right .modified {
   margin-top: 3px;
+}
+.list-row-right {
+  margin-top: -2px;
+  margin-bottom: -4px;
 }
 .list-row-right .indicator {
   margin-left: 10px;
@@ -399,6 +410,7 @@ em.link-option {
   text-transform: uppercase;
   color: #8d99a6;
   font-size: 10px;
+  margin-bottom: 0px;
 }
 .sidebar-section h6 .label {
   font-size: 12px;
@@ -829,4 +841,7 @@ th.fc-widget-header {
 }
 .padding {
   padding: 15px;
+}
+.set-filters .btn-xs {
+  padding: 0px 10px 2px;
 }

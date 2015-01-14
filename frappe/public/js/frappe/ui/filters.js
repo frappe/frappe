@@ -337,11 +337,11 @@ frappe.ui.Filter = Class.extend({
 
 		// add a button for new filter if missing
 		this.$btn_group = $('<div class="btn-group">\
-			<button class="btn btn-default btn-sm toggle-filter"\
+			<button class="btn btn-default btn-xs toggle-filter"\
 				title="'+__("Edit Filter")+'">\
 				%(label)s %(condition)s "%(value)s"\
 			</button>\
-			<button class="btn btn-default btn-sm remove-filter"\
+			<button class="btn btn-default btn-xs remove-filter"\
 				title="'+__("Remove Filter")+'">\
 				<i class="icon-remove text-muted"></i>\
 			</button></div>')

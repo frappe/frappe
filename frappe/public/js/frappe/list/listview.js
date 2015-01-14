@@ -212,7 +212,7 @@ frappe.views.ListView = Class.extend({
 			});
 		}
 
-		$(frappe.render_template("list_item_row", {data: data, main: main, me: this})).appendTo(row);
+		$(frappe.render_template("list_item_row", {data: data, main: main, list: this})).appendTo(row);
 
 		this.render_tags(row, data);
 

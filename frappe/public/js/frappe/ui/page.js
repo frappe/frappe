@@ -40,7 +40,9 @@ frappe.ui.Page = Class.extend({
 		if(this.single_column) {
 			// nesting under col-sm-12 for consistency
 			this.add_view("main", '<div class="row layout-main">\
-					<div class="col-sm-12"><div class="layout-main-section"></div></div>\
+					<div class="col-sm-12 layout-main-section-wrapper">\
+						<div class="layout-main-section"></div>\
+					</div>\
 				</div>');
 		} else {
 			var main = this.add_view("main", '<div class="row layout-main">\

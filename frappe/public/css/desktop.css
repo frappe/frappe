@@ -15,8 +15,7 @@
   height: 120px;
 }
 .case-label {
-  font-size: 90%;
-  line-height: 1.1;
+  font-size: 12px;
   text-align: center;
   margin-top: -10px;
   transition: 0.2s;
@@ -25,10 +24,9 @@
 }
 .circle {
   color: #ff5858;
-  margin-top: -2px;
   margin-left: -16px;
   margin-right: 2px;
-  font-size: 14px;
+  font-size: 15px;
 }
 .app-icon {
   /*	border-radius: 5px;*/
@@ -42,7 +40,7 @@
 .app-icon i {
   font-size: 48px;
   min-width: 48px;
-  color: #4b5661;
+  color: #8d99a6;
   display: inline-block;
   transition: 0.2s;
   -webkit-transition: 0.2s;
@@ -54,7 +52,7 @@
   margin-top: -3px;
 }
 .app-icon path {
-  fill: #4b5661;
+  fill: #8d99a6;
   transition: 0.2s;
   -webkit-transition: 0.2s;
 }
@@ -81,6 +79,9 @@
 .app-icon-img img {
   width: 100%;
   height: 100%;
+}
+.rtl {
+  direction: rtl;
 }
 #icon-grid {
   padding-top: 15px;

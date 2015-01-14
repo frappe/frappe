@@ -1,6 +1,6 @@
 @import "variables.less";
 
-@icon-color: #4b5661;
+@icon-color: @text-muted;
 
 #page-desktop {
 	position: absolute;
@@ -21,8 +21,7 @@
 }
 
 .case-label {
-	font-size: 90%;
-	line-height: 1.1;
+	font-size: 12px;
 	text-align: center;
 	margin-top: -10px;
 	transition: 0.2s;
@@ -32,10 +31,9 @@
 
 .circle {
 	color: #ff5858;
-	margin-top: -2px;
 	margin-left : -16px;
 	margin-right: 2px;
-	font-size: 14px;
+	font-size: 15px;
 }
 
 .app-icon {
@@ -97,6 +95,10 @@
 .app-icon-img img {
 	width: 100%;
 	height: 100%;
+}
+
+.rtl {
+	direction: rtl;
 }
 
 #icon-grid {

@@ -77,7 +77,7 @@ frappe.views.moduleview.ModuleView = Class.extend({
 				me.page = me.parent.page;
 				me.parent.moduleview = me;
 				me.page.set_title(__(frappe.modules[me.module]
-					&& frappe.modules[me.module].label || me.module), me.module_info.icon);
+					&& frappe.modules[me.module].label || me.module));
 				me.render();
 			}
 		});
