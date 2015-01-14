@@ -45,7 +45,7 @@ frappe.ui.Page = Class.extend({
 		} else {
 			var main = this.add_view("main", '<div class="row layout-main">\
 				<div class="col-sm-2 layout-side-section"></div>\
-				<div class="col-sm-10">\
+				<div class="col-sm-10 layout-main-section-wrapper">\
 					<div class="layout-main-section"></div>\
 				</div>\
 			</div>');

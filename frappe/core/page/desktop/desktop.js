@@ -1,9 +1,9 @@
 frappe.provide('frappe.desktop');
 
 frappe.pages['desktop'].onload = function(wrapper) {
-	$('<div style="min-height: 500px; background: none; text-align: center; \
+	$('<div style="min-height: 400px; background: none; text-align: center; \
 			margin: 0px auto;">	\
-			<div id="icon-grid" class="container">\
+			<div id="icon-grid">\
 			</div>\
 		</div>\
 		<div style="clear: both"></div>').appendTo(wrapper);
@@ -49,11 +49,12 @@ frappe.desktop.render = function() {
 
 		$module_icon = $(repl('<div id="module-icon-%(_id)s" class="case-wrapper" \
 			data-name="%(name)s" data-link="%(link)s">\
-			<div id="module-count-%(_id)s" class="circle" style="display: None">\
-				<span class="circle-text"></span>\
-			</div>\
 			%(app_icon)s\
-			<div class="case-label">%(_label)s</div>\
+			<div class="case-label text-ellipsis">\
+				<span id="module-count-%(_id)s" class="octicon octicon-primitive-dot circle" style="display: None">\
+				</span>\
+				%(_label)s\
+			</div>\
 		</div>', module)).click(module.link ? function() {
 				var link = $(this).attr("data-link");
 				if(link) {

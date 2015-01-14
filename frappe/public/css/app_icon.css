@@ -1,69 +1,56 @@
 .app-icon {
-	border-radius: 5px;
-	overflow: hidden;
-	padding: 15px;
-	display: inline-block;
-	margin: auto;
-	text-align: center;
-	/*border: 1px solid #36414C;*/
-	border: 1px solid #d1d8dd;
-	background-color: #fff;
+  /*	border-radius: 5px;*/
+  overflow: hidden;
+  padding: 15px;
+  display: inline-block;
+  margin: auto;
+  text-align: center;
+  background-color: #fff;
 }
-
-.app-icon:hover {
-	background-color: #f5f7fa;
-}
-
-
-.app-icon i {
-	font-size: 40px;
-	min-width: 40px;
-	color: #36414C;
-	display: inline-block;
-}
-
 .app-icon:hover i {
-	color: inherit;
+  color: #8d99a6;
 }
-
-.app-icon svg, .app-icon img {
-	height: 40px;
-	width: 40px;
-	margin-top: -3px;
+.app-icon i {
+  font-size: 48px;
+  min-width: 48px;
+  color: #36414c;
+  display: inline-block;
+  transition: 0.2s;
+  -webkit-transition: 0.2s;
 }
-
+.app-icon svg,
+.app-icon img {
+  height: 40px;
+  width: 40px;
+  margin-top: -3px;
+}
 .app-icon path {
-	fill: #36414C;
+  fill: #36414c;
+  transition: 0.2s;
+  -webkit-transition: 0.2s;
 }
-
 .app-icon:hover path {
-	fill: inherit;
+  fill: #8d99a6;
 }
-
 .app-icon-small {
-	padding: 12px;
+  padding: 12px;
 }
-
 .app-icon-img.app-icon-small {
-	padding: 0px;
-	height: 54px;
-	width: 54px;
+  padding: 0px;
+  height: 54px;
+  width: 54px;
 }
-
 .app-icon-img {
-	padding: 0px;
-	height: 70px;
-	width: 70px;
+  padding: 0px;
+  height: 70px;
+  width: 70px;
 }
-
 .app-icon-img img {
-	width: 100%;
-	height: 100%;
+  width: 100%;
+  height: 100%;
 }
-
-
 @media (max-width: 768px) {
-	.app-icon {
-		padding: 12px;
-	}
+  .app-icon {
+    padding: 12px;
+  }
 }

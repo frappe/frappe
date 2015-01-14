@@ -301,15 +301,20 @@ em.link-option {
   color: #ffdb4c;
 }
 /* module */
+.module-section {
+  margin-bottom: 15px;
+}
 .module-item {
   margin: 0px;
-  padding: 5px 0px;
+  padding: 7px;
   border-bottom: 1px solid #d1d8dd;
   cursor: pointer;
 }
 .module-item h4 {
-  margin-bottom: 2px;
   display: inline-block;
+}
+.module-item .module-item-description {
+  margin-top: -5px;
 }
 .module-item .badge {
   margin-top: -2px;
@@ -589,9 +594,8 @@ ul.linked-with-list li {
   border-top: 1px solid #d1d8dd;
 }
 /* form footer */
-.form-footer {
-  padding-bottom: 60px;
-  /*box-shadow: 0px -1px 6px rgba(0,0,0,0.3);*/
+.layout-main-section-wrapper {
+  margin-bottom: 60px;
 }
 .form-footer h5 {
   margin: 15px 0px;

@@ -7,7 +7,7 @@
 			{% if (item.type==="doctype") { %}
 			<span class="open-notification hide" data-doctype="{%= item.name %}"></span>
 			{% } %}
-			<p class="text-muted small">{%= item.description %}</p>
+			<p class="text-muted small module-item-description">{%= item.description %}</p>
 		</div>
 		<div class="col-xs-4 text-muted text-right small" style="padding-top: 5px;">
 			{% if (item.last_modified) { %}
@@ -16,7 +16,7 @@
 		</div>
 		{% } else { %}
 		<div class="col-xs-12">
-			<h5>{%= item.label || item.name %}</h5>
+			<h4>{%= item.label || item.name %}</h4>
 		</div>
 		{% } %}
 	</div>

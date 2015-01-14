@@ -1,0 +1,152 @@
+@import "variables.less";
+
+@icon-color: #4b5661;
+
+#page-desktop {
+	position: absolute;
+	min-width: 100%;
+	min-height: 100%;
+	padding-top: 14px;
+	padding-bottom: 50px;
+	margin-bottom: -50px;
+	border: 0px;
+}
+
+.case-wrapper {
+	position: relative;
+	margin: 0px;
+	float: left;
+	width: 138px;
+	height: 120px;
+}
+
+.case-label {
+	font-size: 90%;
+	line-height: 1.1;
+	text-align: center;
+	margin-top: -10px;
+	transition: 0.2s;
+	-webkit-transition: 0.2s;
+	/*text-shadow: 1px 1px 3px rgba(0, 0, 0, 1), 0px 3px 15px rgba(0, 0, 0, 0.5);*/
+}
+
+.circle {
+	color: #ff5858;
+	margin-top: -2px;
+	margin-left : -16px;
+	margin-right: 2px;
+	font-size: 14px;
+}
+
+.app-icon {
+/*	border-radius: 5px;*/
+	overflow: hidden;
+	padding: 15px;
+	display: inline-block;
+	margin: auto;
+	text-align: center;
+	background-color: #fff;
+}
+
+.app-icon i {
+	font-size: 48px;
+	min-width: 48px;
+	color: @icon-color;
+	display: inline-block;
+	transition: 0.2s;
+	-webkit-transition: 0.2s;
+}
+
+.app-icon svg, .app-icon img {
+	height: 48px;
+	width: 48px;
+	margin-top: -3px;
+}
+
+.app-icon path {
+	fill: @icon-color;
+	transition: 0.2s;
+	-webkit-transition: 0.2s;
+}
+
+.case-wrapper:hover path {
+	fill: @text-color;
+}
+
+.case-wrapper:hover i,
+.case-wrapper:hover {
+	color: @text-color;
+}
+
+.app-icon-small {
+	padding: 12px;
+}
+
+.app-icon-img.app-icon-small {
+	padding: 0px;
+	height: 54px;
+	width: 54px;
+}
+
+.app-icon-img {
+	padding: 0px;
+	height: 70px;
+	width: 70px;
+}
+
+.app-icon-img img {
+	width: 100%;
+	height: 100%;
+}
+
+#icon-grid {
+	padding-top: 15px;
+	padding-bottom: 30px;
+	max-width: 970px;
+	margin: auto;
+}
+
+// mobile
+
+@media (min-width: 768px) and (max-width: 991px) {
+	#icon-grid {
+		max-width: 690px;
+	}
+}
+
+@media (max-width: 767px) {
+	#icon-grid {
+		max-width: 320px;
+	}
+
+	.case-wrapper {
+		width: 80px;
+		height: 90px;
+	}
+
+	.case-label {
+		font-size: 80%;
+	}
+
+	.app-icon i {
+		font-size: 32px;
+		min-width: 32px;
+	}
+
+	.app-icon svg, .app-icon img {
+		height: 32px;
+		width: 32px;
+	}
+
+}
+
+@media (max-width: 320px) {
+	#icon-grid {
+		max-width: 280px;
+	}
+
+	.case-wrapper {
+		width: 70px;
+		height: 90px;
+	}
+}
