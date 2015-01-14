@@ -13,7 +13,7 @@ import frappe
 import frappe.defaults
 import re
 import frappe.model.meta
-from frappe.utils import now, get_datetime
+from frappe.utils import now, get_datetime, cstr
 from frappe import _
 
 class Database:
@@ -643,7 +643,7 @@ class Database:
 				conditions = []
 				for d in dt:
 					if d == 'doctype': continue
-					conditions.append('`%s` = "%s"' % (d, dt[d].replace('"', '\"')))
+					conditions.append('`%s` = "%s"' % (d, cstr(dt[d]).replace('"', '\"')))
 				return self.sql('select name from `tab%s` where %s' % \
 						(dt['doctype'], " and ".join(conditions)))
 			except:
