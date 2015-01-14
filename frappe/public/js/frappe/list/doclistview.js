@@ -95,7 +95,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 	},
 
 	set_sidebar_height: function() {
-		var h_main = this.$page.find(".layout-main-section").height();
+		var h_main = this.page.sidebar.height();
 		var h_side = this.$page.find(".layout-side-section").height();
 		if(h_side > h_main)
 			this.$page.find(".layout-main-section").css({"min-height": h_side});

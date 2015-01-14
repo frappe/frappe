@@ -134,7 +134,7 @@ class User:
 
 	def load_user(self):
 		d = frappe.db.sql("""select email, first_name, last_name, time_zone,
-			email_signature, background_image, background_style, user_type, language
+			email_signature, user_type, language
 			from tabUser where name = %s""", (self.name,), as_dict=1)[0]
 
 		if not self.can_read:

@@ -194,8 +194,11 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 							me.df.on_make(me);
 						}
 					};
-					if(me.doctype && me.docname)
+					if(me.doctype && me.docname) {
 						me.set_input(me.value);
+					} else {
+						me.set_input();
+					}
 				} else {
 					$(me.input_area).toggle(false);
 					$(me.input_area).find("input").prop("disabled", true);
@@ -241,7 +244,6 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 					});
 				} else {
 					set_input(value, parsed);
-
 				}
 			}
 		});
@@ -743,16 +745,21 @@ frappe.ui.form.ControlSelect = frappe.ui.form.ControlData.extend({
 
 		this._super(value);
 
+		var input_value = this.$input.val();
+
 		// not a possible option, repair
 		if(this.doctype && this.docname) {
 			// model value is not an option,
 			// set the default option (displayed)
-			var input_value = this.$input.val();
 			var model_value = frappe.model.get_value(this.doctype, this.docname, this.df.fieldname);
 			if(model_value == null && (input_value || "") != (model_value || "")) {
 				this.set_model_value(input_value);
 			} else {
 				this.last_value = value;
+			}
+		} else {
+			if(value !== input_value) {
+				this.set_value(input_value);
 			}
 		}
 	},
@@ -784,15 +791,22 @@ frappe.ui.form.ControlSelect = frappe.ui.form.ControlData.extend({
 		} else if(typeof this.df.options==="string") {
 			options = this.df.options.split("\n");
 		}
-
 		if(this.in_filter && options[0] != "") {
 			options = add_lists([''], options);
 		}
 
+		// nothing changed
+		if(options.toString() === this.last_options) {
+			return;
+		}
+		this.last_options = options.toString();
+
 		var selected = this.$input.find(":selected").val();
 		this.$input.empty().add_options(options || []);
 
-		if(value===undefined && selected) this.$input.val(selected);
+		if(value===undefined && selected) {
+			this.$input.val(selected);
+		}
 	},
 	get_file_attachment_list: function() {
 		if(!this.frm) return;

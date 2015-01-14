@@ -35,8 +35,6 @@ frappe.Application = Class.extend({
 		// load boot info
 		this.load_bootinfo();
 
-		if(user!="Guest") this.set_user_display_settings();
-
 		// navbar
 		this.make_nav_bar();
 
@@ -69,11 +67,6 @@ frappe.Application = Class.extend({
 		this.start_notification_updates();
 
 		$(document).trigger('app_ready');
-	},
-
-	set_user_display_settings: function() {
-		frappe.ui.set_user_background(frappe.boot.user.background_image, null,
-			frappe.boot.user.background_style);
 	},
 
 	load_bootinfo: function() {

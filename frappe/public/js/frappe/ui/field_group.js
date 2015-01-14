@@ -42,6 +42,9 @@ frappe.ui.FieldGroup = frappe.ui.form.Layout.extend({
 		var field = this.fields_dict[fieldname];
 		return $(field.txt ? field.txt : field.input);
 	},
+	get_field: function(fieldname) {
+		return this.fields_dict[fieldname];
+	},
 	get_values: function() {
 		var ret = {};
 		var errors = [];

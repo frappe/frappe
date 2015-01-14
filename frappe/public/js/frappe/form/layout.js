@@ -47,8 +47,11 @@ frappe.ui.form.Layout = Class.extend({
 			};
 			fieldobj.refresh && fieldobj.refresh();
 		});
-		if(this.frm && this.frm.wrapper)
+		if(this.frm && this.frm.wrapper) {
 			$(this.frm.wrapper).trigger("refresh-fields");
+		}
+
+		// show empty form notification
 		setTimeout(function() {
 			me.wrapper.find(".empty-form-alert").remove();
 			if(!(me.wrapper.find(".frappe-control:visible").length)) {
