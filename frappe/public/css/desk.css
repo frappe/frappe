@@ -38,6 +38,8 @@ a.grey,
   color: inherit;
   border-bottom: 1px solid transparent;
   margin-bottom: 0.4em;
+  transition: 0.2s;
+  -webkit-transition: 0.2s;
 }
 a.grey:hover,
 .sidebar-section a:hover,
@@ -55,6 +57,8 @@ a.grey:hover,
 }
 a.text-muted,
 a.text-extra-muted {
+  transition: 0.2s;
+  -webkit-transition: 0.2s;
   border-bottom: 1px solid transparent;
 }
 a.text-muted:hover,
@@ -217,6 +221,8 @@ em.link-option {
   padding: 9px 15px;
   border-bottom: 1px solid #d1d8dd;
   cursor: pointer;
+  transition: 0.2s;
+  -webkit-transition: 0.2s;
 }
 .list-row:hover,
 .grid-row:hover {
@@ -320,6 +326,8 @@ em.link-option {
   padding: 7px;
   border-bottom: 1px solid #d1d8dd;
   cursor: pointer;
+  transition: 0.2s;
+  -webkit-transition: 0.2s;
 }
 .module-item h4 {
   display: inline-block;
@@ -372,9 +380,6 @@ em.link-option {
 .form-page.second-page {
   border-top: 1px solid #d1d8dd;
 }
-.form-control {
-  padding: 6px 8px;
-}
 .form-dashboard {
   display: none;
   border-bottom: 1px solid #d1d8dd;
@@ -410,7 +415,11 @@ em.link-option {
   text-transform: uppercase;
   color: #8d99a6;
   font-size: 10px;
-  margin-bottom: 0px;
+  margin-bottom: 4px;
+}
+.sidebar-section .close {
+  font-size: 18px;
+  margin-bottom: -2px;
 }
 .sidebar-section h6 .label {
   font-size: 12px;
@@ -501,7 +510,8 @@ em.link-option {
   padding-left: 24px;
   border-left: 8px solid #d8dfe6;
 }
-.timeline-item h6 {
+.timeline-item h6,
+.timeline-head h6 {
   margin-top: 6px;
 }
 .timeline-head {
@@ -541,6 +551,8 @@ ul.linked-with-list li {
 .grid-row {
   padding: 10px 15px;
   border-bottom: 1px solid #d1d8dd;
+  transition: 0.2s;
+  -webkit-transition: 0.2s;
 }
 .grid-row:last-child {
   border: none;
@@ -570,6 +582,10 @@ ul.linked-with-list li {
 }
 .list-id {
   font-weight: bold;
+}
+.list-col {
+  vertical-align: middle;
+  height: 18px;
 }
 .grid-static-col {
   max-height: 200px;

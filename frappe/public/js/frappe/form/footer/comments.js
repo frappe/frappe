@@ -47,9 +47,9 @@ frappe.ui.form.Comments = Class.extend({
 
 		this.wrapper.find(".is-email").prop("checked", last_type==="Email");
 
-		if(scroll_to_end) {
-			scroll(0, $(this.frm.wrapper).find(".form-comments .btn-go").offset().top);
-		}
+		// if(scroll_to_end) {
+		// 	scroll(0, $(this.frm.wrapper).find(".form-comments .btn-go").offset().top);
+		// }
 		this.update_sidebar_comments();
 
 	},

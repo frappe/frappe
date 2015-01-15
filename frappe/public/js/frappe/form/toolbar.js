@@ -31,7 +31,7 @@ frappe.ui.form.Toolbar = Class.extend({
 			if(this.frm.doc.__islocal || title === this.frm.docname || this.frm.meta.autoname==="hash") {
 				this.page.set_title_sub("");
 			} else {
-				this.page.set_title_sub("#" + this.frm.docname);
+				this.page.set_title_sub(this.frm.docname);
 			}
 		} else {
 			var title = __(this.frm.docname);

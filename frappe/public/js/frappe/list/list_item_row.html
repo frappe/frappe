@@ -9,14 +9,14 @@
 
     <!-- id -->
     {% if (list.meta.title_field) { %}
-    <div class="col-sm-2 col-xs-3 text-right text-ellipsis rtl list-row-id">
+    <div class="list-col col-sm-2 col-xs-3 text-right text-ellipsis rtl list-row-id">
         <a class="text-muted" href="#Form/{%= data._doctype_encoded %}/{%= data._name_encoded %}">
             {%= data.name %}</a>
     </div>
     {% } %}
 
     <!-- comment -->
-    <div class="col-sm-2 col-xs-3 text-right list-row-right">
+    <div class="list-col col-sm-2 col-xs-3 text-right list-row-right">
 		<div class="visible-xs pull-right">{%= list.get_indicator_dot(data) %}</div>
 		<div class="pull-right">
             <span class="text-muted" style="margin-right: 10px;">

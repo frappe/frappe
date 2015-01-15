@@ -47,15 +47,8 @@ frappe.desktop.render = function() {
 
 		module.app_icon = frappe.ui.app_icon.get_html(m);
 
-		$module_icon = $(repl('<div id="module-icon-%(_id)s" class="case-wrapper" \
-			data-name="%(name)s" data-link="%(link)s">\
-			%(app_icon)s\
-			<div class="case-label text-ellipsis">\
-				<span id="module-count-%(_id)s" class="octicon octicon-primitive-dot circle" style="display: None">\
-				</span>\
-				%(_label)s\
-			</div>\
-		</div>', module)).click(module.link ? function() {
+		$module_icon = $(frappe.render_template("desktop_module_icon",
+			module)).click(module.link ? function() {
 				var link = $(this).attr("data-link");
 				if(link) {
 					if(link.substr(0, 1)==="/") {
@@ -197,7 +190,7 @@ frappe.desktop.show_pending_notifications = function() {
 			var notifier = $("#module-count-" + frappe.get_module(module)._id);
 			if(notifier.length) {
 				notifier.toggle(sum ? true : false);
-				// notifier.find(".circle-text").html(sum || "");
+				notifier.find(".circle-text").html(sum || "");
 			}
 		}
 	});

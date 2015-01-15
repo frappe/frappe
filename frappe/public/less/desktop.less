@@ -6,7 +6,7 @@
 	position: absolute;
 	min-width: 100%;
 	min-height: 100%;
-	padding-top: 14px;
+	padding-top: 30px;
 	padding-bottom: 50px;
 	margin-bottom: -50px;
 	border: 0px;
@@ -29,21 +29,16 @@
 	/*text-shadow: 1px 1px 3px rgba(0, 0, 0, 1), 0px 3px 15px rgba(0, 0, 0, 0.5);*/
 }
 
-.circle {
-	color: #ff5858;
-	margin-left : -16px;
-	margin-right: 2px;
-	font-size: 15px;
-}
-
 .app-icon {
 /*	border-radius: 5px;*/
 	overflow: hidden;
 	padding: 15px;
 	display: inline-block;
 	margin: auto;
+	margin-bottom: 7px;
 	text-align: center;
-	background-color: #fff;
+	background-color: @btn-bg;
+	border-radius: 5px;
 }
 
 .app-icon i {
@@ -65,6 +60,20 @@
 	fill: @icon-color;
 	transition: 0.2s;
 	-webkit-transition: 0.2s;
+}
+
+.circle {
+	position: absolute;
+	right: 20px;
+	top: -10px;
+	color: #fff;
+	background-color: @indicator-red;
+	padding: 5px;
+	border-radius: 50%;
+	font-size: 12px;
+	line-height: 1;
+	min-width: 22px;
+	text-align: center;
 }
 
 .case-wrapper:hover path {
@@ -108,13 +117,15 @@
 	margin: auto;
 }
 
-// mobile
+// small
 
 @media (min-width: 768px) and (max-width: 991px) {
 	#icon-grid {
 		max-width: 690px;
 	}
 }
+
+// xtra-small
 
 @media (max-width: 767px) {
 	#icon-grid {
@@ -140,7 +151,12 @@
 		width: 32px;
 	}
 
+	.circle {
+		right: 0px;
+	}
 }
+
+// xtra-xtra-small
 
 @media (max-width: 320px) {
 	#icon-grid {
