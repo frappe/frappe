@@ -13,6 +13,9 @@ frappe.views.get_listview = function(doctype, parent) {
 frappe.provide("frappe.listview_settings");
 frappe.provide("frappe.listview_parent_route");
 
+// Renders customized list
+// usually based on `in_list_view` property
+
 frappe.views.ListView = Class.extend({
 	init: function(doclistview, doctype) {
 		this.doclistview = doclistview;
@@ -103,6 +106,7 @@ frappe.views.ListView = Class.extend({
 		this.columns.push({
 			colspan: this.settings.colwidths && this.settings.colwidths.subject || 6,
 			type: "Subject",
+			title: "Title"
 		});
 		this.total_colspans = this.columns[0].colspan;
 
@@ -112,6 +116,7 @@ frappe.views.ListView = Class.extend({
 			this.columns.push({
 				colspan: this.settings.colwidths && this.settings.colwidths.indicator || 3,
 				type: "Indicator",
+				title: "Status"
 			});
 			this.total_colspans += this.columns[1].colspan;
 		}
@@ -196,21 +201,13 @@ frappe.views.ListView = Class.extend({
 		}
 
 
-		if(this.template_name) {
-			var main = frappe.render_template(this.template_name, {
-				doc: frappe.get_format_helper(data),
-				list: this
-			});
-		} else {
-			console.log(this);
-			var main = frappe.render_template("list_item_standard", {
-				data: data,
-				columns: this.columns,
-				subject: this.get_avatar_and_id(data, true),
-				me: this,
-				right_column: this.settings.right_column
-			});
-		}
+		var main = frappe.render_template("list_item_main", {
+			data: data,
+			columns: this.columns,
+			subject: this.get_avatar_and_id(data, true),
+			me: this,
+			right_column: this.settings.right_column
+		});
 
 		$(frappe.render_template("list_item_row", {data: data, main: main, list: this})).appendTo(row);
 

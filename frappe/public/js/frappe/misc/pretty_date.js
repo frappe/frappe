@@ -17,7 +17,7 @@ function prettyDate(time, mini){
 				ret = "~s";
 			} else {
 				var parts = ret.split(" ");
-				if(parts[0]==="a") {
+				if(parts[0]==="a" || parts[0]==="an") {
 					parts[0] = 1;
 				}
 				ret = parts[0] + " " + parts[1].substr(0, 1);

@@ -1,0 +1,21 @@
+<div class="list-row list-row-head hidden-xs">
+    <div class="row doclist-row">
+        <div class="{% if (list.meta.title_field) { %}
+                col-sm-8 col-xs-7
+            {% } else { %}
+                col-sm-10 col-xs-9
+            {% } %} list-row-left">
+            <!-- title + columns -->
+            {%= main %}
+        </div>
+
+        <!-- id -->
+        {% if (list.meta.title_field) { %}
+        <div class="list-col col-sm-2 col-xs-3 text-right">
+        </div>
+        {% } %}
+
+        <!-- comment -->
+        <div class="list-col col-sm-2 col-xs-3 text-right list-row-right"></div>
+    </div>
+</div>

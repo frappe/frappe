@@ -15,6 +15,7 @@
 				hidden-xs
 			{% } %}"
             {% if(col.title) { %}title="{%= col.title + ": " + value %}"{% } %}>
+            {% if(col.type!=="Indicator") { %}<span class="list-value">{% } %}
             {% if (col.type==="Subject") { %}
                 {%= subject %}
             {% } else if (col.type==="Indicator") { %}
@@ -36,6 +37,7 @@
             {% } else { %}
                 {%= frappe.format(value, col.df, null, data) %}
             {% } %}
+            {% if(col.type!=="Indicator") { %}</span>{% } %}
         </div>
         {% } %}
     {% } %}

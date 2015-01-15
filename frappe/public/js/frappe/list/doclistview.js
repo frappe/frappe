@@ -57,15 +57,14 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 	make_page: function() {
 		var me = this;
 		this.parent.doclistview = this;
+		this.page = this.parent.page;
+
 		this.$page = $(this.parent).css({"min-height": "400px"});
 
-		$('<div class="frappe-list-area">\
-			<div class="help">'+__('Loading')+'...</div></div>')
-			.appendTo(this.$page.find(".layout-main-section"));
+		$('<div class="frappe-list-area"></div>')
+			.appendTo(this.page.main);
 
-		this.$page.find(".layout-main-section")
-			.addClass("listview-main-section");
-		this.page = this.parent.page;
+		this.page.main.addClass("listview-main-section");
 		var module = locals.DocType[this.doctype].module;
 
 		this.page.set_title(__("{0} List", [__(this.doctype)]));
@@ -86,6 +85,13 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		this.init_listview();
 		this.setup_filterable();
 		this.init_filters();
+		this.init_headers();
+	},
+
+	init_headers: function() {
+		var main = frappe.render_template("list_item_main_head", {columns: this.listview.columns});
+		$(frappe.render_template("list_item_row_head",
+			{main:main, list:this})).appendTo(this.page.main.find(".list-headers"));
 	},
 
 	init_listview: function() {

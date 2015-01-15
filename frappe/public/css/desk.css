@@ -224,6 +224,10 @@ em.link-option {
   transition: 0.2s;
   -webkit-transition: 0.2s;
 }
+.list-row-head {
+  background-color: #f7fafc;
+  border-bottom: 1px solid #d1d8dd !important;
+}
 .list-row:hover,
 .grid-row:hover {
   background: #f7fafc;
@@ -281,6 +285,10 @@ em.link-option {
 }
 .doclist-row .docstatus .octicon {
   font-size: 12px;
+}
+.list-row .h6 {
+  margin-top: 0px;
+  margin-bottom: 0px;
 }
 .doclist-row .progress {
   margin-top: 12px;
@@ -584,8 +592,10 @@ ul.linked-with-list li {
   font-weight: bold;
 }
 .list-col {
-  vertical-align: middle;
   height: 18px;
+}
+.list-value {
+  vertical-align: middle;
 }
 .grid-static-col {
   max-height: 200px;
