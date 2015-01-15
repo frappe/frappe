@@ -7,6 +7,7 @@
   width: 14px;
   background-repeat: no-repeat;
   background-position: left center;
+  background-image: url(../images/down.gif);
   cursor: pointer;
 
   display: none;

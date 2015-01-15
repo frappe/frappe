@@ -1,4 +1,5 @@
-.slick-column-name {
+.slick-column-name,
+.slick-sort-indicator {
   /**
    * This makes all "float:right" elements after it that spill over to the next line
    * display way below the lower boundary of the column thus hiding them.
