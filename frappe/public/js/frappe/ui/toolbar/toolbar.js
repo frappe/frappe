@@ -63,7 +63,7 @@ frappe.ui.toolbar.update_notifications = function() {
 			$(repl('<li><a>\
 				<span class="badge pull-right">\
 					%(count)s</span> \
-				<i class="icon-fixed-width %(icon)s"></i> %(module)s </a></li>', {
+				%(module)s </a></li>', {
 					module: __(module),
 					count: count,
 					icon: frappe.modules[module].icon
@@ -71,7 +71,6 @@ frappe.ui.toolbar.update_notifications = function() {
 				.appendTo("#navbar-notification")
 					.find("a")
 					.attr("data-module", module)
-					.css({"min-width":"200px"})
 					.on("click", function() {
 						frappe.set_route(frappe.modules[$(this).attr("data-module")].link);
 					});
@@ -89,7 +88,7 @@ frappe.ui.toolbar.update_notifications = function() {
 			$(repl('<li><a>\
 				<span class="badge pull-right">\
 					%(count)s</span> \
-				<i class="icon-fixed-width %(icon)s"></i> %(doctype)s </a></li>', {
+				%(doctype)s </a></li>', {
 					doctype: __(doctype),
 					icon: frappe.boot.doctype_icons[doctype],
 					count: count
@@ -97,7 +96,6 @@ frappe.ui.toolbar.update_notifications = function() {
 				.appendTo("#navbar-notification")
 					.find("a")
 					.attr("data-doctype", doctype)
-					.css({"min-width":"200px"})
 					.on("click", function() {
 						frappe.views.show_open_count_list(this);
 					});

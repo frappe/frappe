@@ -1,0 +1,76 @@
+@import "variables.less";
+
+.navbar .dropdown-toggle {
+	padding-top: 12px;
+	padding-bottom: 12px;
+	line-height: 24px !important;
+}
+
+.navbar a {
+	font-size: 12px;
+	font-weight: bold;
+}
+
+.navbar .breadcrumb-divider {
+	margin-top: 15px;
+}
+
+.navbar .breadcrumb-divider i {
+	color: @breadcrumb-divider-color;
+}
+
+.navbar-icon-home {
+	vertical-align: middle;
+}
+
+.navbar-icon-home:hover,
+.navbar-icon-home:focus,
+.navbar-icon-home:active,
+.navbar-icon-home-hover{
+	opacity:1;
+	Filter:alpha(opacity=100); /* For IE8 and earlier */
+}
+
+.navbar-user-image {
+	width: 24px;
+	height: 24px;
+	margin-top: -2px;
+	margin-right: 3px;
+	border-radius: 4px;
+}
+
+.navbar-new-comments {
+	display: inline-block;
+	min-width: 24px;
+	height: 24px;
+	border-radius: 4px;
+	background-color: @indicator-red;
+	color: #fff;
+	text-align: center;
+	padding: 0px 5px;
+}
+
+#navbar-search {
+	margin-top: 2px;
+	width: 300px;
+}
+
+.navbar .navbar-search-icon {
+	color: @navbar-default-color;
+	font-size: inherit;
+	position: relative;
+	right: 24px;
+	top: 1px;
+}
+
+.navbar .badge {
+	font-weight: normal;
+}
+
+#navbar-notification > li > a& {
+	&:hover .badge,
+	&:focus .badge,
+	&:active .badge {
+		background-color: #D8DFE5;
+	}
+}

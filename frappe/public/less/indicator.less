@@ -1,0 +1,38 @@
+@import "variables.less";
+
+.indicator {
+    background:none;
+    font-size:12px;
+    vertical-align:middle;
+    font-weight:bold;
+    color:#6c7680;
+}
+.indicator::before {
+    margin:0 4px 0 0px;
+    content:'';
+    display:inline-block;
+    height:8px;
+    width:8px;
+    border-radius:8px;
+}
+.indicator.grey::before {
+    background: @btn-bg;
+}
+.indicator.blue::before {
+    background: @indicator-blue;
+}
+.indicator.red::before {
+    background: @indicator-red;
+}
+.indicator.green::before {
+    background: @indicator-green;
+}
+.indicator.orange::before {
+    background: @indicator-orange;
+}
+.indicator.purple::before {
+    background: @indicator-purple;
+}
+.indicator.darkgrey::before {
+    background: @indicator-darkgrey;
+}

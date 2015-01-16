@@ -124,7 +124,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 			});
 			added && me.run();
 		});
-		this.$page.on("click", ".list-row", function(e) {
+		this.$page.on("click", ".doclist-row", function(e) {
 			var checkbox = $(this).find("input[type='checkbox']");
 			var star = $(this).find(".icon-star");
 			if ((checkbox.length && e.target === checkbox.get(0)) || (star.length && e.target===star.get(0))) {

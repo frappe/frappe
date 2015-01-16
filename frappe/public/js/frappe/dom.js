@@ -119,7 +119,6 @@ frappe.get_modal = function(title, content) {
 var pending_req = 0
 frappe.set_loading = function() {
 	pending_req++;
-	//$('#spinner').css('visibility', 'visible');
 	$('body').css('cursor', 'progress').attr("data-ajax-state", "running");
 	NProgress.start();
 	$("body");

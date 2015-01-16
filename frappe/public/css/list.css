@@ -1,0 +1,82 @@
+.no-result {
+  padding: 15px;
+}
+.show_filters {
+  padding: 15px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid #d1d8dd;
+}
+.set-filters .btn {
+  margin-bottom: 10px;
+}
+.set-filters .btn-group {
+  margin-right: 10px;
+}
+.list-row {
+  padding: 9px 15px;
+  border-bottom: 1px solid #d1d8dd;
+  cursor: pointer;
+  transition: 0.2s;
+  -webkit-transition: 0.2s;
+}
+.list-row:hover,
+.grid-row:hover {
+  background: #f7fafc;
+}
+.list-row:last-child {
+  border-bottom: 0px;
+}
+.list-item-col {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  height: 30px;
+  padding-top: 3px;
+}
+.list-paging-area {
+  padding: 10px 15px;
+  border-top: 1px solid #d1d8dd;
+}
+.progress {
+  height: 10px;
+}
+.doclist-row {
+  font-size: 12px;
+}
+.doclist-row .docstatus .octicon {
+  font-size: 12px;
+}
+.doclist-row .progress {
+  margin-top: 12px;
+}
+.stat-label {
+  margin-bottom: 5px;
+}
+.filterable {
+  cursor: pointer;
+}
+.doclist-row .label {
+  margin-right: 8px;
+}
+.list-info-row {
+  float: left;
+  margin-top: 1px;
+}
+.list-row-right .modified {
+  margin-top: 3px;
+}
+.list-row-right {
+  margin-top: -2px;
+  margin-bottom: -4px;
+}
+.list-row-right .indicator {
+  margin-left: 10px;
+  margin-right: -5px;
+}
+.side-panel {
+  border-bottom: 1px solid #d1d8dd;
+  margin: 0px -15px;
+  padding: 5px 15px;
+}
+.star-action.icon-star {
+  color: #ffdb4c;
+}

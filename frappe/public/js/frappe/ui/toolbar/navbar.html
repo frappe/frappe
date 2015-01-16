@@ -1,4 +1,4 @@
-<div class="navbar navbar-default navbar-fixed-top" role="navigation" style="padding: 3px 0px">
+<div class="navbar navbar-default navbar-fixed-top" role="navigation">
 	<div class="container">
 		<div class="navbar-header">
 			<button type="button" class="navbar-toggle" data-toggle="collapse"
@@ -19,9 +19,7 @@
 				<li class="dropdown">
 					<a class="dropdown-toggle" data-toggle="dropdown" href="#"
 						onclick="return false;">
-                    <img src="{%= frappe.user_info().image %}"
-                        style="max-width: 24px; max-height: 24px; margin-top: -4px;
-                            margin-right: 5px; border-radius: 2px;">
+                    <img src="{%= frappe.user_info().image %}" class="navbar-user-image">
                     <span>{%= frappe.user.full_name() %}</span>
                     <b class="caret"></b></a>
 					<ul class="dropdown-menu" id="toolbar-user">
@@ -56,8 +54,8 @@
 	        <form class="navbar-form navbar-right" role="search" onsubmit="return false;">
 	          <div class="form-group form-group-sm">
 	            <input id="navbar-search" type="text" class="form-control"
-					placeholder="{%= __("Search or type a command") %}"
-                    style="width: 300px;">
+					placeholder="{%= __("Search or type a command") %}">
+				<span class="octicon octicon-search navbar-search-icon"></span>
 	          </div>
 	        </form>
 		</div>

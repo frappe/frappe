@@ -1,0 +1,36 @@
+.indicator {
+  background: none;
+  font-size: 12px;
+  vertical-align: middle;
+  font-weight: bold;
+  color: #6c7680;
+}
+.indicator::before {
+  margin: 0 4px 0 0px;
+  content: '';
+  display: inline-block;
+  height: 8px;
+  width: 8px;
+  border-radius: 8px;
+}
+.indicator.grey::before {
+  background: #f0f4f7;
+}
+.indicator.blue::before {
+  background: #5e64ff;
+}
+.indicator.red::before {
+  background: #ff5858;
+}
+.indicator.green::before {
+  background: #98d85b;
+}
+.indicator.orange::before {
+  background: #ffa00a;
+}
+.indicator.purple::before {
+  background: #743ee2;
+}
+.indicator.darkgrey::before {
+  background: #b8c2cc;
+}

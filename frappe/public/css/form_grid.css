@@ -1,0 +1,87 @@
+.form-grid {
+  border: 1px solid #d1d8dd;
+  margin-bottom: 15px;
+  border-radius: 3px;
+}
+.grid-heading-row {
+  border-bottom: 1px solid #d1d8dd;
+  background-color: #f7fafc;
+  font-weight: bold;
+}
+.grid-row {
+  padding: 10px 15px;
+  border-bottom: 1px solid #d1d8dd;
+  transition: 0.2s;
+  -webkit-transition: 0.2s;
+}
+.grid-row:last-child {
+  border: none;
+}
+.rows .grid-row .data-row,
+.rows .grid-row .grid-footer-toolbar,
+.grid-form-heading {
+  cursor: pointer;
+}
+.data-row.row {
+  margin: 0px;
+}
+.grid-body {
+  background-color: #fff;
+}
+.grid-body .data-row {
+  font-size: 12px;
+}
+.grid-footer {
+  padding: 10px 15px;
+  border-top: 1px solid #d1d8dd;
+}
+.grid-empty,
+.list-loading {
+  padding: 10px 15px;
+  color: #d1d8dd;
+}
+.grid-static-col {
+  max-height: 200px;
+  overflow: hidden;
+}
+.row-index {
+  text-align: right;
+  width: 30px;
+  margin-left: -15px;
+  float: left;
+}
+.row-data > .row {
+  margin-left: 15px;
+}
+.grid-row td {
+  vertical-align: top;
+}
+.grid-row p {
+  margin-bottom: 5px;
+}
+.form-in-grid {
+  margin: -10px -15px;
+  z-index: 1021;
+  position: relative;
+  background-color: white;
+}
+.grid-form-heading {
+  padding: 10px 15px;
+  font-size: 120%;
+  border-bottom: 1px solid #d1d8dd;
+}
+.grid-footer-toolbar {
+  padding: 10px 15px;
+  border-top: 1px solid #d1d8dd;
+}
+.grid-overflow-no-ellipsis {
+  word-wrap: break-word;
+  overflow: hidden;
+  padding-right: 0px;
+}
+.grid-overflow-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding-right: 0px;
+}

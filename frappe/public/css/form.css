@@ -1,0 +1,130 @@
+.form-print-wrapper {
+  border: 1px solid #d1d8dd;
+  border-top: none;
+}
+.print-preview-wrapper {
+  padding: 30px 0px;
+  background-color: #f5f7fa;
+}
+.print-toolbar {
+  margin: 0px;
+  padding: 10px 0px;
+  border-bottom: 1px solid #d1d8dd;
+}
+.form-page-header {
+  border-top: 1px solid #d1d8dd;
+  padding: 10px 15px;
+  background-color: #f7fafc;
+}
+.form-page.second-page {
+  border-top: 1px solid #d1d8dd;
+}
+.form-dashboard {
+  display: none;
+  border-bottom: 1px solid #d1d8dd;
+}
+.form-section {
+  margin: 0px;
+  padding: 15px;
+}
+.modal-content .form-section {
+  padding: 0px;
+}
+.form-section:nth-child(even),
+.timeline-item:nth-child(even) {
+  background-color: #fafbfc;
+}
+.help ol {
+  padding-left: 19px;
+}
+.field_description_top {
+  margin-bottom: 3px;
+}
+.sidebar-section li {
+  margin-top: 5px;
+  font-size: 12px;
+}
+.sidebar-section {
+  margin-top: 25px;
+}
+.sidebar-section:last-child {
+  margin-bottom: 20px;
+}
+.sidebar-section h6 {
+  text-transform: uppercase;
+  color: #8d99a6;
+  font-size: 10px;
+  margin-bottom: 4px;
+}
+.sidebar-section .close {
+  font-size: 18px;
+  margin-bottom: -2px;
+}
+.sidebar-section h6 .label {
+  font-size: 12px;
+}
+.sidebar-section.sidebar-comments {
+  cursor: pointer;
+}
+.user-actions {
+  margin-bottom: 15px;
+}
+.user-actions a {
+  font-weight: bold;
+}
+.badge-important {
+  background-color: #e74c3c;
+}
+.comm-header {
+  font-weight: bold;
+  height: 20px;
+  overflow: hidden;
+}
+.comm-header > div {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.timeline {
+  border: 1px solid #d1d8dd;
+  margin: 30px 0px;
+}
+.timeline-item {
+  margin-top: 0px;
+  padding: 15px 30px;
+}
+.timeline-item .reply {
+  margin-top: 20px;
+  padding-left: 24px;
+  border-left: 8px solid #d8dfe6;
+}
+.timeline-item h6,
+.timeline-head h6 {
+  margin-top: 6px;
+}
+.timeline-head {
+  background-color: #fafbfc;
+  padding: 30px 30px 15px 30px;
+  border-bottom: 1px solid #d1d8dd;
+}
+.form-footer h5 {
+  margin: 15px 0px;
+  font-weight: bold;
+}
+.control-label,
+.grid-heading-row {
+  color: #8d99a6;
+  font-size: 85%;
+}
+.control-label {
+  margin-bottom: 2px;
+}
+.like-disabled-input {
+  margin-bottom: 7px;
+  border-radius: 3px;
+  min-height: 30px;
+  font-weight: bold;
+}
+.like-disabled-input.for-description {
+  font-weight: normal;
+}

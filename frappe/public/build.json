@@ -33,13 +33,20 @@
 		"public/css/octicons/octicons.css",
 		"public/css/desk.css",
 		"public/css/mobile.css",
-		"public/css/desktop.css",
+		"public/css/indicator.css",
 		"public/css/avatar.css",
 		"public/css/navbar.css",
+		"public/css/page.css",
+		"public/css/form.css",
+		"public/css/form_grid.css",
+		"public/css/list.css",
+		"public/css/report.css",
+		"public/css/module.css",
 		"public/css/slickgrid.css",
 		"public/css/tree_grid.css",
 		"public/css/tree.css",
-		"public/css/nprogress.css"
+		"public/css/nprogress.css",
+		"public/css/desktop.css"
 	],
 	"js/frappe.min.js": [
 		"public/js/lib/jquery/jquery.ui.min.js",
