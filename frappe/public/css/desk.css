@@ -232,8 +232,6 @@ ul.linked-with-list li {
 kbd {
   color: inherit;
   background-color: #f0f4f7;
-  -webkit-box-shadow: none;
-  box-shadow: none;
 }
 .msg-box {
   padding: 30px 15px;
@@ -253,9 +251,6 @@ kbd {
 .message-box .indicator {
   margin-right: 15px;
   margin-top: 7px;
-}
-.btn.active {
-  box-shadow: none;
 }
 .page-only-label {
   margin-top: 5px;
@@ -278,8 +273,4 @@ kbd {
 }
 .dropdown-menu {
   min-width: 180px;
-}
-.btn-group .dropdown-toggle:active,
-.btn-group.open .dropdown-toggle {
-  box-shadow: none;
 }
