@@ -606,8 +606,8 @@ frappe.ui.ColumnPicker = Class.extend({
 			me.add_column(c);
 		});
 
-		$(this.dialog.body).find('.column-list').sortable({
-			update: function(event, ui) {
+		new Sortable($(this.dialog.body).find('.column-list').get(0), {
+			onUpdate: function(event) {
 				me.columns = [];
 				$.each($(me.dialog.body).find('.column-list .column-list-item'),
 					function(i, ele) {

@@ -22,6 +22,7 @@
 - MomentJS - MIT License, https://github.com/moment/moment
 - JSColor - LGPL, (c) Jan Odvarko, http://jscolor.com
 - FullCalendar - MIT License, (c) 2013 Adam Shaw, http://fullcalendar.io/license/
+- Sortable - MIT License (c) 2013-2015 Lebedev Konstantin http://rubaxa.github.io/Sortable/
 
 ### Python
 

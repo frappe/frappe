@@ -13,8 +13,8 @@ function prettyDate(time, mini){
 			var ret = moment(time).fromNow(mini);
 		}
 		if(mini) {
-			if(ret === "seconds") {
-				ret = "~s";
+			if(ret === "a few seconds") {
+				ret = "now";
 			} else {
 				var parts = ret.split(" ");
 				if(parts[0]==="a" || parts[0]==="an") {

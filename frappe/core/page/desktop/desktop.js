@@ -18,8 +18,8 @@ frappe.pages['desktop'].refresh = function(wrapper) {
 frappe.desktop.refresh = function() {
 	frappe.desktop.render();
 
-	$("#icon-grid").sortable({
-		update: function() {
+	new Sortable($("#icon-grid").get(0), {
+		onUpdate: function(event) {
 			new_order = [];
 			$("#icon-grid .case-wrapper").each(function(i, e) {
 				new_order.push($(this).attr("data-name"));

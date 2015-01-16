@@ -127,10 +127,9 @@ frappe.ui.form.Grid = Class.extend({
 	},
 	make_sortable: function($rows) {
 		var me =this;
-		$rows.sortable({
-			handle: ".data-row, .grid-form-heading",
-			helper: 'clone',
-			update: function(event, ui) {
+		new Sortable($rows.get(0), {
+			handle: ".sortable-handle",
+			onUpdate: function(event, ui) {
 				me.frm.doc[me.df.fieldname] = [];
 				$rows.find(".grid-row").each(function(i, item) {
 					var doc = $(item).data("doc");
@@ -141,6 +140,21 @@ frappe.ui.form.Grid = Class.extend({
 				me.frm.dirty();
 			}
 		});
+
+		// $rows.sortable({
+		// 	handle: ".data-row, .grid-form-heading",
+		// 	helper: 'clone',
+		// 	update: function(event, ui) {
+		// 		me.frm.doc[me.df.fieldname] = [];
+		// 		$rows.find(".grid-row").each(function(i, item) {
+		// 			var doc = $(item).data("doc");
+		// 			doc.idx = i + 1;
+		// 			$(this).find(".row-index").html(i + 1);
+		// 			me.frm.doc[me.df.fieldname].push(doc);
+		// 		});
+		// 		me.frm.dirty();
+		// 	}
+		// });
 	},
 	get_data: function() {
 		var data = this.frm.doc[this.df.fieldname] || [];
@@ -223,7 +237,7 @@ frappe.ui.form.GridRow = Class.extend({
 	make: function() {
 		var me = this;
 		this.wrapper = $('<div class="grid-row"></div>').appendTo(this.parent).data("grid_row", this);
-		this.row = $('<div class="data-row row"></div>').appendTo(this.wrapper)
+		this.row = $('<div class="data-row row sortable-handle"></div>').appendTo(this.wrapper)
 			.on("click", function() {
 				me.toggle_view();
 				return false;
