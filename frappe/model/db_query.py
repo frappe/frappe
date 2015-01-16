@@ -279,7 +279,7 @@ class DatabaseQuery(object):
 					or `tab{doctype}`.`{fieldname}` in ({values}))""".format(
 					doctype=self.doctype,
 					fieldname=df.fieldname,
-					values=", ".join([('"'+v.replace('"', '\"')+'"') for v in user_permissions[df.options]])
+					values=", ".join([('"'+frappe.db.escape(v)+'"') for v in user_permissions[df.options]])
 				))
 				match_filters[df.options] = user_permissions[df.options]
 
