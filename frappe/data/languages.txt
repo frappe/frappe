@@ -22,5 +22,5 @@ ta		தமிழ்
 th		ไทย
 tr		Türk
 vi		việt
-zh-cn	中国（简体）
-zh-tw	中國（繁體）
+zh-cn	中文（中国）
+zh-tw	中文（臺灣）
