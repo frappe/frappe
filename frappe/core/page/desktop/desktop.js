@@ -60,8 +60,8 @@ frappe.desktop.render = function() {
 		$icon_wrapper = $(frappe.render_template("desktop_module_icon",
 			module)).appendTo("#icon-grid");
 
-		$icon_wrapper.click(module.link ? function() {
-				var link = $(this).attr("data-link");
+		$icon_wrapper.find(".app-icon").click(module.link ? function() {
+				var link = $(this).parent().attr("data-link");
 				if(link) {
 					if(link.substr(0, 1)==="/") {
 						window.open(link.substr(1))
