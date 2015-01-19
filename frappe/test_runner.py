@@ -187,11 +187,11 @@ def make_test_objects(doctype, test_records, verbose=None):
 	records = []
 
 	if not frappe.get_meta(doctype).issingle:
-		existing = frappe.get_list(doctype, filters={"name":("like", "_T-" + doctype + "-%")})
+		existing = frappe.get_all(doctype, filters={"name":("like", "_T-" + doctype + "-%")})
 		if existing:
 			return [d.name for d in existing]
 
-		existing = frappe.get_list(doctype, filters={"name":("like", "_Test " + doctype + "%")})
+		existing = frappe.get_all(doctype, filters={"name":("like", "_Test " + doctype + "%")})
 		if existing:
 			return [d.name for d in existing]
 
