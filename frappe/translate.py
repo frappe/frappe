@@ -250,6 +250,7 @@ def get_messages_from_page(name):
 	"""Returns all translatable strings from a :class:`frappe.core.doctype.Page`"""
 	return _get_messages_from_page_or_report("Page", name)
 
+
 def get_messages_from_report(name):
 	"""Returns all translatable strings from a :class:`frappe.core.doctype.Report`"""
 	report = frappe.get_doc("Report", name)
@@ -263,10 +264,15 @@ def get_messages_from_report(name):
 def _get_messages_from_page_or_report(doctype, name, module=None):
 	if not module:
 		module = frappe.db.get_value(doctype, name, "module")
-	file_path = frappe.get_module_path(module, doctype, name, name)
-	messages = get_messages_from_file(file_path + ".js")
-	messages += get_messages_from_file(file_path + ".html")
-	messages += get_messages_from_file(file_path + ".py")
+	doc_path = frappe.get_module_path(module, doctype, name)
+	messages = get_messages_from_file(doc_path + name + ".js")
+	messages += get_messages_from_file(doc_path + name + ".html")
+	messages += get_messages_from_file(doc_path + name +".py")
+
+	if doctype=="Page":
+		for fname in os.listdir(doc_path):
+			if fname.endswith(".html"):
+				messages += get_messages_from_file(doc_path + fname)
 
 	return clean(messages)
 
