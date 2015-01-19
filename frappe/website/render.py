@@ -16,7 +16,7 @@ class PageNotFoundError(Exception): pass
 
 def render(path, http_status_code=None):
 	"""render html page"""
-	path = resolve_path(path.strip("/"))
+	path = resolve_path(path.strip("/ "))
 	frappe.local.path = path
 
 	try:
