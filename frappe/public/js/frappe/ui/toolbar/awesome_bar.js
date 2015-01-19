@@ -186,7 +186,7 @@ frappe.search.verbs = [
 			if(frappe.modules[match].link) {
 				ret.route = [frappe.modules[match].link];
 			} else {
-				ret.route = ["Module", "<b>"+match+"</b>"];
+				ret.route = ["Module", match];
 			}
 			return ret;
 		});

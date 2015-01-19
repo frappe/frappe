@@ -34,7 +34,7 @@ frappe.applications.Installer = Class.extend({
 
 	make_search: function() {
 		var me = this;
-		$('<div class="padding search-wrapper"><div class="form-group">\
+		$('<div class="padding search-wrapper panel-bg"><div class="form-group">\
 			<input type="text" class="form-control app-search" placeholder="Search" name="search"/></div></div>')
 			.appendTo(this.wrapper)
 			.find(".app-search")
@@ -76,7 +76,7 @@ frappe.applications.Installer = Class.extend({
 			args: { name: app_name },
 			callback: function(r) {
 				if(!r.exc) {
-					msgprint("<i class='icon-ok'></i>" + __("Installed"));
+					msgprint(__("Installed"));
 					msgprint(__("Refreshing..."));
 					setTimeout(function() { window.location.reload() }, 2000)
 				}

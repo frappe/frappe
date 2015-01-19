@@ -15,39 +15,41 @@
 }
 .case-label {
   font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 0.4px;
+  color: #fff;
   text-align: center;
   margin-top: -10px;
   transition: 0.2s;
   -webkit-transition: 0.2s;
-  /*text-shadow: 1px 1px 3px rgba(0, 0, 0, 1), 0px 3px 15px rgba(0, 0, 0, 0.5);*/
+  text-shadow: 1px 1px 1px #000000, 0px 1px 5px rgba(0, 0, 0, 0.5);
 }
 .app-icon {
   /*	border-radius: 5px;*/
   overflow: hidden;
-  padding: 15px;
+  padding: 20px;
   display: inline-block;
   margin: auto;
   margin-bottom: 7px;
   text-align: center;
-  background-color: #f0f4f7;
   border-radius: 5px;
 }
 .app-icon i {
-  font-size: 48px;
-  min-width: 48px;
-  color: #8d99a6;
+  font-size: 32px;
+  min-width: 32px;
+  color: #fafbfc;
   display: inline-block;
   transition: 0.2s;
   -webkit-transition: 0.2s;
 }
 .app-icon svg,
 .app-icon img {
-  height: 48px;
-  width: 48px;
+  height: 32px;
+  width: 32px;
   margin-top: -3px;
 }
 .app-icon path {
-  fill: #8d99a6;
+  fill: #fafbfc;
   transition: 0.2s;
   -webkit-transition: 0.2s;
 }
@@ -57,19 +59,20 @@
   top: -10px;
   color: #fff;
   background-color: #ff5858;
-  padding: 5px;
+  padding: 6px;
   border-radius: 50%;
   font-size: 12px;
   line-height: 1;
-  min-width: 22px;
+  min-width: 25px;
   text-align: center;
+  text-shadow: none;
 }
-.case-wrapper:hover path {
-  fill: #36414c;
+.app-icon:hover path {
+  fill: #ffffff;
 }
-.case-wrapper:hover i,
-.case-wrapper:hover {
-  color: #36414c;
+.app-icon:hover i,
+.app-icon:hover {
+  color: #ffffff;
 }
 .app-icon-small {
   padding: 12px;
@@ -112,6 +115,10 @@
   }
   .case-label {
     font-size: 80%;
+    font-weight: normal;
+  }
+  .app-icon {
+    padding: 10px;
   }
   .app-icon i {
     font-size: 32px;

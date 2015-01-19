@@ -1,7 +1,7 @@
 frappe.provide('frappe.desktop');
 
 frappe.pages['desktop'].onload = function(wrapper) {
-	$('<div style="min-height: 400px; background: none; text-align: center; \
+	frappe.desktop.background = $('<div style="background: none; text-align: center; \
 			margin: 0px auto;">	\
 			<div id="icon-grid">\
 			</div>\
@@ -10,6 +10,16 @@ frappe.pages['desktop'].onload = function(wrapper) {
 
 	// load desktop
 	frappe.desktop.refresh();
+
+	$(window).on("resize", function() {
+		frappe.desktop.resize();
+	})
+
+	frappe.desktop.resize = function() {
+		$("#page-desktop").css({"min-height": ($(window).height() - 48) + "px" });
+	}
+
+	frappe.desktop.resize();
 }
 
 frappe.pages['desktop'].refresh = function(wrapper) {
@@ -122,7 +132,7 @@ frappe.desktop.show_all_modules = function() {
 					$(this).toggle($(this).attr("data-label").toLowerCase().indexOf(val)!==-1);
 				})
 			});
-		$('<hr><p class="text-right text-muted text-small">'+__("Checked items shown on desktop")+'</p>')
+		$('<p class="text-right text-muted text-small">'+__("Checked items shown on desktop")+'</p>')
 			.appendTo(d.body);
 		$wrapper = $('<div class="list-group">').appendTo(d.body);
 
@@ -137,7 +147,7 @@ frappe.desktop.show_all_modules = function() {
 				<div class="row">\
 					<div class="col-xs-2"><a href="#%(link)s">%(app_icon)s</a></div>\
 					<div class="col-xs-10" style="padding-top: 14px;">\
-						<a href="#%(link)s">%(label)s</a>\
+						<a class="grey" href="#%(link)s">%(label)s</a>\
 						<input class="pull-right" type="checkbox" data-name="%(name)s" />\
 					</div>\
 				</div>\

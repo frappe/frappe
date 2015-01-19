@@ -1,6 +1,7 @@
 @import "variables.less";
 
-@icon-color: @text-muted;
+@icon-color: @light-bg;
+@icon-hover: #fff;
 
 #page-desktop {
 	position: absolute;
@@ -21,28 +22,31 @@
 
 .case-label {
 	font-size: 12px;
+	font-weight: bold;
+	letter-spacing: 0.4px;
+	color: #fff;
 	text-align: center;
 	margin-top: -10px;
 	transition: 0.2s;
 	-webkit-transition: 0.2s;
-	/*text-shadow: 1px 1px 3px rgba(0, 0, 0, 1), 0px 3px 15px rgba(0, 0, 0, 0.5);*/
+	text-shadow: 1px 1px 1px rgba(0, 0, 0, 1), 0px 1px 5px rgba(0, 0, 0, 0.5);
 }
 
 .app-icon {
 /*	border-radius: 5px;*/
 	overflow: hidden;
-	padding: 15px;
+	padding: 20px;
 	display: inline-block;
 	margin: auto;
 	margin-bottom: 7px;
 	text-align: center;
-	background-color: @btn-bg;
+	// background-color: @btn-bg;
 	border-radius: 5px;
 }
 
 .app-icon i {
-	font-size: 48px;
-	min-width: 48px;
+	font-size: 32px;
+	min-width: 32px;
 	color: @icon-color;
 	display: inline-block;
 	transition: 0.2s;
@@ -50,8 +54,8 @@
 }
 
 .app-icon svg, .app-icon img {
-	height: 48px;
-	width: 48px;
+	height: 32px;
+	width: 32px;
 	margin-top: -3px;
 }
 
@@ -67,21 +71,22 @@
 	top: -10px;
 	color: #fff;
 	background-color: @indicator-red;
-	padding: 5px;
+	padding: 6px;
 	border-radius: 50%;
 	font-size: 12px;
 	line-height: 1;
-	min-width: 22px;
+	min-width: 25px;
 	text-align: center;
+	text-shadow: none;
 }
 
-.case-wrapper:hover path {
-	fill: @text-color;
+.app-icon:hover path {
+	fill: @icon-hover;
 }
 
-.case-wrapper:hover i,
-.case-wrapper:hover {
-	color: @text-color;
+.app-icon:hover i,
+.app-icon:hover {
+	color: @icon-hover;
 }
 
 .app-icon-small {
@@ -138,6 +143,11 @@
 
 	.case-label {
 		font-size: 80%;
+		font-weight: normal;
+	}
+
+	.app-icon {
+		padding: 10px;
 	}
 
 	.app-icon i {

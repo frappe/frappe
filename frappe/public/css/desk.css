@@ -177,6 +177,9 @@ ul.linked-with-list li {
     border-right: 1px solid #d1d8dd;
   }
 }
+.panel-bg {
+  background-color: #f7fafc;
+}
 .modal-backdrop {
   opacity: 0.5;
 }

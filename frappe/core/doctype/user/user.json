@@ -150,6 +150,28 @@
    "permlevel": 0
   }, 
   {
+   "fieldname": "background", 
+   "fieldtype": "Section Break", 
+   "label": "Background", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "background_image", 
+   "fieldtype": "Attach", 
+   "label": "Background Image", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "background_style", 
+   "fieldtype": "Select", 
+   "label": "Background Style", 
+   "options": "Fill Screen\nTile", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
    "fieldname": "short_bio", 
    "fieldtype": "Section Break", 
    "label": "Short Bio", 
@@ -447,7 +469,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 5, 
- "modified": "2015-01-08 14:54:46.298736", 
+ "modified": "2015-01-19 15:01:19.227860", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "User", 

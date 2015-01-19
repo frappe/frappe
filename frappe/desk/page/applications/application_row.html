@@ -2,7 +2,7 @@
 	<div class="media">
 		<div class="pull-right">
 			{% if (app.installed) { %}
-			<button class="btn btn-success" disabled=disabled>{%= __("Installed") %}</button>
+			<button class="btn btn-default" disabled=disabled>{%= __("Installed") %}</button>
 			{% } else { %}
 			<button class="btn btn-primary install" data-app="{%= app.app_name %}">{%= __("Install") %}</button>
 			{% } %}

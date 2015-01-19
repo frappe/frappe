@@ -32,20 +32,12 @@ frappe.Application = Class.extend({
 		}
 	},
 	startup: function() {
-		// load boot info
 		this.load_bootinfo();
-
-		// navbar
+		this.set_user_display_settings();
 		this.make_nav_bar();
-
-		// favicon
 		this.set_favicon();
-
 		this.setup_keyboard_shortcuts();
-
-		// control panel startup code
 		this.run_startup_js();
-
 
 		if(frappe.boot) {
 			if(localStorage.getItem("session_lost_route")) {
@@ -69,6 +61,10 @@ frappe.Application = Class.extend({
 		$(document).trigger('app_ready');
 	},
 
+	set_user_display_settings: function() {
+		frappe.ui.set_user_background(frappe.boot.user.background_image, null,
+			frappe.boot.user.background_style);
+	},
 	load_bootinfo: function() {
 		if(frappe.boot) {
 			frappe.modules = frappe.boot.modules;

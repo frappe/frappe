@@ -42,6 +42,10 @@
 
 - GeoIP: (c) 2014 MaxMind, http://dev.maxmind.com/geoip/geoip2/downloadable/
 
+### Wallpaper
+
+- Version 5 Wallpaper: http://magdeleine.co/photo-nick-west-n-139/ (Public Domain)
+
 ---
 
 Last updated: 1st Jan 2015
