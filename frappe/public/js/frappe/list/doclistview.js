@@ -89,6 +89,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 	},
 
 	init_headers: function() {
+		console.log(this.listview.columns);
 		var main = frappe.render_template("list_item_main_head", {columns: this.listview.columns});
 		$(frappe.render_template("list_item_row_head",
 			{main:main, list:this})).appendTo(this.page.main.find(".list-headers"));

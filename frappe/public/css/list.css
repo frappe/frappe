@@ -26,6 +26,14 @@
 .list-row:last-child {
   border-bottom: 0px;
 }
+.list-row-head {
+  background-color: #f7fafc;
+  border-bottom: 1px solid #d1d8dd !important;
+}
+.list-row .h6 {
+  margin-top: 0px;
+  margin-bottom: 0px;
+}
 .list-item-col {
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -79,4 +87,13 @@
 }
 .star-action.icon-star {
   color: #ffdb4c;
+}
+.list-id {
+  font-weight: bold;
+}
+.list-col {
+  height: 18px;
+}
+.list-value {
+  vertical-align: middle;
 }

@@ -54,8 +54,10 @@
 	        <form class="navbar-form navbar-right" role="search" onsubmit="return false;">
 	          <div class="form-group form-group-sm">
 	            <input id="navbar-search" type="text" class="form-control"
-					placeholder="{%= __("Search or type a command") %}">
+					placeholder="{%= __("Search or type a command") %}" aria-haspopup="true">
 				<span class="octicon octicon-search navbar-search-icon"></span>
+    			<ul class="dropdown-menu" id="navbar-search-results" role="menu"
+					aria-expanded="false" aria-labelledby="NavbarSearchResults"></ul>
 	          </div>
 	        </form>
 		</div>

@@ -6,9 +6,6 @@ body {
   height: 100%;
   margin: 0px;
 }
-a {
-  cursor: pointer;
-}
 a,
 .badge,
 .btn {
@@ -75,9 +72,6 @@ a.form-link {
 }
 em.link-option {
   font-weight: normal;
-}
-.text-small {
-  font-size: 12px;
 }
 .text-ellipsis {
   white-space: nowrap;
@@ -148,12 +142,6 @@ ul.linked-with-list li {
   padding: 5px 0px;
   border-bottom: 1px solid #d1d8dd;
 }
-.list-id {
-  font-weight: bold;
-}
-.list-col {
-  height: 18px;
-}
 /* jquery ui */
 .ui-datepicker select.ui-datepicker-month,
 .ui-datepicker select.ui-datepicker-year {
@@ -167,6 +155,9 @@ ul.linked-with-list li {
   max-height: 200px;
   overflow-y: auto;
   overflow-x: hidden;
+}
+.ui-autocomplete a {
+  transition: none;
 }
 /* z-index hack */
 .ui-datepicker {
@@ -269,8 +260,14 @@ kbd {
   display: inline-block;
 }
 .dropdown-menu > li > a {
-  padding: 12px 17px;
+  padding: 14px;
 }
 .dropdown-menu {
-  min-width: 180px;
+  min-width: 200px;
+  padding: 0px;
+  font-size: 12px;
+  border-radius: 0px 0px 4px 4px;
+}
+.dropdown-menu .divider {
+  margin: 0px;
 }

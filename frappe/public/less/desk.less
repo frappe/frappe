@@ -10,10 +10,6 @@ body {
 	margin: 0px;
 }
 
-a {
-	cursor: pointer;
-}
-
 // transition
 a,
 .badge,
@@ -82,10 +78,6 @@ a.form-link {
 
 em.link-option {
 	font-weight: normal;
-}
-
-.text-small {
-	font-size: 12px;
 }
 
 .text-ellipsis {
@@ -175,14 +167,6 @@ ul.linked-with-list li {
 	border-bottom: 1px solid @border-color;
 }
 
-.list-id {
-	font-weight: bold;
-}
-
-.list-col {
-	height: 18px;
-}
-
 /* jquery ui */
 
 .ui-datepicker select.ui-datepicker-month, .ui-datepicker select.ui-datepicker-year {
@@ -197,6 +181,10 @@ ul.linked-with-list li {
 	max-height: 200px;
 	overflow-y: auto;
 	overflow-x: hidden;
+}
+
+.ui-autocomplete a {
+	transition: none;
 }
 
 /* z-index hack */
@@ -318,11 +306,20 @@ kbd {
 
 // dropdowns
 .dropdown-menu > li > a {
-	padding: 12px 17px;
+	padding: 14px;
 }
 
 .dropdown-menu {
-	min-width: 180px;
+	min-width: 200px;
+	padding: 0px;
+	font-size: 12px;
+
+	// only rounded bottoms
+	border-radius: 0px 0px 4px 4px;
+}
+
+.dropdown-menu .divider {
+	margin: 0px;
 }
 
 // autocomplete

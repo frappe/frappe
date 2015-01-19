@@ -2,7 +2,8 @@
     {% var total_cols=0; for (var i=0, l=columns.length; i < l; i++ ) {
         var col = columns[i]; total_cols += parseInt(col.colspan); %}
         {% if (total_cols <= 12) { %}
-        <div class="col-sm-{%= col.colspan %} list-col text-ellipsis h6 text-muted">
+        <div class="col-sm-{%= col.colspan %} list-col text-ellipsis h6 text-muted
+			{% if(col.df && ["Int", "Float", "Currency", "Percent"].indexOf(col.df.fieldtype)!==-1) { %}text-right{% } %}">
             <span class="list-value">{%= col.title || col.label || "" %}</span>
         </div>
         {% } %}

@@ -42,7 +42,7 @@
   padding: 0px 5px;
 }
 #navbar-search {
-  margin-top: 2px;
+  margin-top: 1px;
   width: 300px;
 }
 .navbar .navbar-search-icon {
@@ -59,4 +59,15 @@
 #navbar-notification > li > a:focus .badge,
 #navbar-notification > li > a:active .badge {
   background-color: #D8DFE5;
+}
+.navbar-form {
+  margin: 8px -15px;
+}
+#navbar-search-results {
+  left: auto;
+  right: inherit;
+  margin-top: -1px;
+  max-height: 300px;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
