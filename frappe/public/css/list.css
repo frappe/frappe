@@ -12,6 +12,11 @@
 .set-filters .btn-group {
   margin-right: 10px;
 }
+.set-filters .btn-group .btn-default {
+  background-color: transparent;
+  border: 1px solid #d1d8dd;
+  color: #8d99a6;
+}
 .list-row {
   padding: 9px 15px;
   border-bottom: 1px solid #d1d8dd;

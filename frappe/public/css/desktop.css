@@ -33,6 +33,7 @@
   margin-bottom: 7px;
   text-align: center;
   border-radius: 5px;
+  cursor: pointer;
 }
 .app-icon i {
   font-size: 32px;

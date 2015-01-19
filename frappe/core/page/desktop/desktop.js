@@ -57,8 +57,10 @@ frappe.desktop.render = function() {
 
 		module.app_icon = frappe.ui.app_icon.get_html(m);
 
-		$module_icon = $(frappe.render_template("desktop_module_icon",
-			module)).click(module.link ? function() {
+		$icon_wrapper = $(frappe.render_template("desktop_module_icon",
+			module)).appendTo("#icon-grid");
+
+		$icon_wrapper.click(module.link ? function() {
 				var link = $(this).attr("data-link");
 				if(link) {
 					if(link.substr(0, 1)==="/") {
@@ -66,9 +68,7 @@ frappe.desktop.render = function() {
 					}
 					frappe.set_route(link);
 				}
-			} : module.onclick).css({
-				cursor:"pointer"
-			}).appendTo("#icon-grid");
+			} : module.onclick);
 	}
 
 	// modules
