@@ -54,9 +54,9 @@ frappe.search = {
 				return false;
 			}
 		}).data('ui-autocomplete')._renderItem = function(ul, d) {
-			var html = "<span class='small'>" + __(d.value) + "</span>";
+			var html = "<span>" + __(d.value) + "</span>";
 			if(d.description && d.value!==d.description) {
-				html += '<br><span class="small text-muted">' + __(d.description) + '</span>';
+				html += '<br><span class="text-muted">' + __(d.description) + '</span>';
 			}
 			return $('<li></li>')
 				.data('item.autocomplete', d)

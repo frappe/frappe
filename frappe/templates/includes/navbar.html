@@ -37,7 +37,7 @@
 								style="min-width: 20px; max-height: 20px; border-radius: 4px"/>
 								<b class="full-name"></b><b class="caret"></b>
 						</a>
-				        <ul class="dropdown-menu">
+				        <ul class="dropdown-menu" role="menu">
 							{%- for child in post_login -%}
 							<li {% if child.label %}data-label="{{ child.label }}" {% endif %}
 								{% if child.class %} class="{{ child.class }}" {% endif %}>

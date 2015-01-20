@@ -14,10 +14,19 @@
 </head>
 <body>
 	<div class="splash">{% include "public/images/frappe.svg" %}</div>
-	<header></header>
-	<div id="body_div">
+
+	<div class="desk-container">
+		<div class="offcanvas">
+			<div class="sidebar-offcanvas sidebar-offcanvas-left visible-xs">something</div>
+			<div class="sidebar-offcanvas sidebar-offcanvas-right visible-xs">something</div>
+			<div class="desk-main-section">
+				<header></header>
+				<div id="body_div"></div>
+				<footer></footer>
+			</div>
+		</div>
 	</div>
-	<footer></footer>
+
 	<script type="text/javascript" src="/assets/frappe/js/lib/jquery/jquery.min.js"></script>
 	<script type="text/javascript">
 	window._version_number = "{{ build_version }}";

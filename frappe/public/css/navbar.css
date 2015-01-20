@@ -1,17 +1,20 @@
 .navbar .dropdown-toggle {
-  padding-top: 12px;
-  padding-bottom: 12px;
-  line-height: 24px !important;
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+.navbar-fixed-top {
+  left: 0px;
+  right: 0px;
 }
 .navbar a {
   font-size: 12px;
   font-weight: bold;
 }
 .navbar .breadcrumb-divider {
-  margin-top: 15px;
+  margin-top: 10px;
 }
 .navbar .breadcrumb-divider i {
-  color: #c0c9d2;
+  color: #9d9d9d;
 }
 .navbar-icon-home {
   vertical-align: middle;
@@ -27,7 +30,6 @@
 .navbar-user-image {
   width: 24px;
   height: 24px;
-  margin-top: -2px;
   margin-right: 3px;
   border-radius: 4px;
 }
@@ -39,10 +41,9 @@
   background-color: #ff5858;
   color: #fff;
   text-align: center;
-  padding: 0px 5px;
+  padding: 1px 5px;
 }
 #navbar-search {
-  margin-top: 1px;
   width: 300px;
 }
 .navbar .navbar-search-icon {
@@ -59,9 +60,6 @@
 #navbar-notification > li > a:focus .badge,
 #navbar-notification > li > a:active .badge {
   background-color: #D8DFE5;
-}
-.navbar-form {
-  margin: 8px -15px;
 }
 #navbar-search-results {
   left: auto;

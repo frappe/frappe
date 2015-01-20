@@ -4,7 +4,17 @@
 
 frappe.ui.toolbar.Toolbar = Class.extend({
 	init: function() {
-		$('header').append(frappe.render_template("navbar", {}));
+		var header = $('header').append(frappe.render_template("navbar", {}));
+
+		header.find(".toggle-sidebar").on("click", function() {
+			$(".offcanvas").toggleClass("active-left").removeClass("active-right");
+			return false;
+		});
+
+		header.find(".toggle-navbar-new-comments").on("click", function() {
+			$(".offcanvas").toggleClass("active-right").removeClass("active-left");
+			return false;
+		});
 
 		$(document).on("notification-update", function() {
 			frappe.ui.toolbar.update_notifications();

@@ -1,9 +1,13 @@
 @import "variables.less";
 
 .navbar .dropdown-toggle {
-	padding-top: 12px;
-	padding-bottom: 12px;
-	line-height: 24px !important;
+	padding-top: 8px;
+	padding-bottom: 8px;
+}
+
+.navbar-fixed-top {
+	left: 0px;
+	right: 0px;
 }
 
 .navbar a {
@@ -12,11 +16,11 @@
 }
 
 .navbar .breadcrumb-divider {
-	margin-top: 15px;
+	margin-top: 10px;
 }
 
 .navbar .breadcrumb-divider i {
-	color: @breadcrumb-divider-color;
+	color: @navbar-inverse-color;
 }
 
 .navbar-icon-home {
@@ -34,7 +38,6 @@
 .navbar-user-image {
 	width: 24px;
 	height: 24px;
-	margin-top: -2px;
 	margin-right: 3px;
 	border-radius: 4px;
 }
@@ -47,11 +50,10 @@
 	background-color: @indicator-red;
 	color: #fff;
 	text-align: center;
-	padding: 0px 5px;
+	padding: 1px 5px;
 }
 
 #navbar-search {
-	margin-top: 1px;
 	width: 300px;
 }
 
@@ -73,10 +75,6 @@
 	&:active .badge {
 		background-color: #D8DFE5;
 	}
-}
-
-.navbar-form {
-	margin: 8px -15px;
 }
 
 #navbar-search-results {

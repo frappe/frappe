@@ -4,7 +4,7 @@
 	{%- if page.child_items -%}
 		<span class="caret"></span>
 	</a>
-		<ul class="dropdown-menu">
+		<ul class="dropdown-menu" role="menu">
 		{%- for child in page.child_items -%}
 			<li data-label='{{ child.label }}'>
 				<a {% if child.indent %} style="padding-left: {{((child.indent|int)+1)*15 }}px"{% endif %}

@@ -6,9 +6,26 @@ body {
   height: 100%;
   margin: 0px;
 }
+html,
+body {
+  overflow-x: hidden;
+  /* Prevent scroll on narrow devices */
+}
+.desk-container {
+  position: absolute;
+  width: 100%;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+.desk-main-section {
+  width: 100%;
+}
 a,
 .badge,
-.btn {
+.btn,
+.ui-menu .ui-menu-item {
   transition: 0.2s;
   -webkit-transition: 0.2s;
 }
@@ -63,7 +80,7 @@ a.form-link {
 }
 .link-btn {
   position: absolute;
-  top: 4px;
+  top: 2px;
   right: 4px;
   background-color: #f5f7fa;
   border-radius: 2px;
@@ -158,6 +175,32 @@ ul.linked-with-list li {
 }
 .ui-autocomplete a {
   transition: none;
+}
+.ui-autocomplete .ui-menu-item a:hover,
+.ui-autocomplete .ui-menu-item a:focus,
+.ui-autocomplete .ui-menu-item a:active {
+  color: inherit;
+}
+.ui-widget-content {
+  border-radius: 0px 0px 4px 4px;
+  box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.176);
+  border-color: #d1d8dd;
+  padding: 0px;
+}
+.ui-widget-content .ui-state-focus,
+.ui-widget-content .ui-state-hover {
+  background-color: #f0f4f7 !important;
+  color: #36414c !important;
+  text-shadow: none !important;
+}
+.ui-widget-content .ui-state-active {
+  background-color: #5e64ff !important;
+  color: #fff !important;
+  text-shadow: none !important;
+}
+.ui-menu .ui-menu-item {
+  padding: 7px;
+  font-size: 12px;
 }
 /* z-index hack */
 .ui-datepicker {

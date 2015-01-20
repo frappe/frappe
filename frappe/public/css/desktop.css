@@ -1,10 +1,11 @@
 #page-desktop {
-  position: absolute;
   min-width: 100%;
-  padding-top: 30px;
-  padding-bottom: 50px;
-  margin-bottom: -50px;
+  padding-top: 40px;
   border: 0px;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  overflow: auto;
 }
 .case-wrapper {
   position: relative;

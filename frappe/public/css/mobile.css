@@ -1,4 +1,4 @@
-@media (max-width: 767px) {
+@media screen and (max-width: 767px) {
   .layout-main > div[class^="col-sm-"],
   .form-section {
     padding-left: 0px;
@@ -46,24 +46,95 @@
   .page-head {
     min-height: 1px;
   }
+  .nav > li > a {
+    padding: 10px 0px;
+  }
+  .toggle-navbar-new-comments {
+    padding: 8px 0px !important;
+  }
+  .navbar > .container > .navbar-header,
+  .navbar > .container > .navbar-left {
+    float: left;
+  }
+  .navbar > .container > .navbar-right {
+    float: right;
+  }
   .navbar-brand .octicon-home {
     margin-top: 4px;
   }
   .navbar .breadcrumb-divider {
-    margin-top: 14px;
+    margin-top: 3px !important;
+    margin-right: 3px;
   }
   #navbar-breadcrumbs {
     margin: 0px;
+    display: inline-block;
   }
   #navbar-breadcrumbs > li {
-    float: left;
-    display: block;
+    display: inline-block;
+    vertical-align: middle;
   }
   #navbar-breadcrumbs li:not(:nth-last-child(-n+2)) {
     display: none;
   }
+  .navbar-nav {
+    margin: 0px;
+  }
   .mobile-module-icon {
     padding: 17px 15px 0px;
     margin-bottom: -15px;
+  }
+  .offcanvas,
+  .page-head,
+  .sidebar-offcanvas-right,
+  .sidebar-offcanvas-left,
+  .navbar-fixed-top {
+    -webkit-transition: 0.25s;
+    -o-transition: 0.25s;
+    transition: 0.25s;
+  }
+  .offcanvas {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+  }
+  .offcanvas.active-left,
+  .offcanvas.active-left .page-head,
+  .offcanvas.active-left .navbar-fixed-top {
+    left: 75%;
+    /* 9 columns */
+    right: -25%;
+  }
+  .offcanvas.active-right,
+  .offcanvas.active-right .page-head,
+  .offcanvas.active-right .navbar-fixed-top {
+    right: 75%;
+    /* 9 columns */
+    left: -25%;
+  }
+  .offcanvas .sidebar-offcanvas {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    width: 75%;
+    /* 9 columns */
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+  .offcanvas .sidebar-offcanvas-right {
+    right: -75%;
+    /* 9 columns */
+  }
+  .offcanvas .sidebar-offcanvas-left {
+    left: -75%;
+    /* 9 columns */
+  }
+  .offcanvas.active-left .sidebar-offcanvas-left {
+    left: 0;
+  }
+  .offcanvas.active-right .sidebar-offcanvas-right {
+    right: 0;
   }
 }

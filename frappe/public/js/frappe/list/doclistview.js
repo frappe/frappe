@@ -89,7 +89,6 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 	},
 
 	init_headers: function() {
-		console.log(this.listview.columns);
 		var main = frappe.render_template("list_item_main_head", {columns: this.listview.columns});
 		$(frappe.render_template("list_item_row_head",
 			{main:main, list:this})).appendTo(this.page.main.find(".list-headers"));
@@ -126,9 +125,10 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 			added && me.run();
 		});
 		this.$page.on("click", ".doclist-row", function(e) {
-			var checkbox = $(this).find("input[type='checkbox']");
-			var star = $(this).find(".icon-star");
-			if ((checkbox.length && e.target === checkbox.get(0)) || (star.length && e.target===star.get(0))) {
+			// don't open in case of checkbox, star, filterable
+			if ((e.target.class || "").indexOf("filterable")!==-1
+				|| (e.target.class || "").indexOf("icon-star")!==-1
+				|| e.target.type==="checkbox") {
 				return;
 			}
 
@@ -354,6 +354,7 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		var me = this;
 		this.$page.on("click", ".star-action", function() {
 			frappe.ui.toggle_star($(this), me.doctype, $(this).attr("data-name"));
+			return false;
 		});
 	},
 

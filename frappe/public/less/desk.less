@@ -10,10 +10,29 @@ body {
 	margin: 0px;
 }
 
+html,
+body {
+  overflow-x: hidden; /* Prevent scroll on narrow devices */
+}
+
+.desk-container {
+	position: absolute;
+	width: 100%;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+}
+
+.desk-main-section {
+	width: 100%;
+}
+
 // transition
 a,
 .badge,
-.btn {
+.btn,
+.ui-menu .ui-menu-item {
 	transition: 0.2s;
 	-webkit-transition: 0.2s;
 }
@@ -68,7 +87,7 @@ a.form-link {
 
 .link-btn {
 	position: absolute;
-	top: 4px;
+	top: 2px;
 	right: 4px;
 	background-color: @navbar-bg;
 	border-radius: 2px;
@@ -187,6 +206,40 @@ ul.linked-with-list li {
 	transition: none;
 }
 
+.ui-autocomplete .ui-menu-item a& {
+	&:hover,
+	&:focus,
+	&:active {
+		color: inherit;
+	}
+}
+
+.ui-widget-content {
+	// only rounded bottoms
+	border-radius: 0px 0px 4px 4px;
+	box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.176);
+	border-color: @border-color;
+	padding: 0px;
+}
+
+.ui-widget-content .ui-state-focus,
+.ui-widget-content .ui-state-hover {
+	background-color: @btn-bg !important;
+	color: @text-color !important;
+	text-shadow: none !important;
+}
+
+.ui-widget-content .ui-state-active {
+	background-color: @brand-primary !important;
+	color: #fff !important;
+	text-shadow: none !important;
+}
+
+.ui-menu .ui-menu-item {
+	padding: 7px;
+	font-size: @font-size-medium;
+}
+
 /* z-index hack */
 .ui-datepicker { z-index: 9999999 !important; }
 .ui-autocomplete {
@@ -237,7 +290,7 @@ ul.linked-with-list li {
 	left: 2px;
     display:inline-block;
     background:#ff5858;
-    font-size:12px;
+    font-size: @font-size-medium;
     line-height:20px;
     padding:0 8px;
     color:#fff;
@@ -316,7 +369,7 @@ kbd {
 .dropdown-menu {
 	min-width: 200px;
 	padding: 0px;
-	font-size: 12px;
+	font-size: @font-size-medium;
 
 	// only rounded bottoms
 	border-radius: 0px 0px 4px 4px;
@@ -325,5 +378,3 @@ kbd {
 .dropdown-menu .divider {
 	margin: 0px;
 }
-
-// autocomplete
