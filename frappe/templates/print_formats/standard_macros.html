@@ -108,11 +108,11 @@
 				else ("#" + doc[doc.meta.title_field or "name"]) }}</h4>
 	</div>
 	{%- if doc.meta.is_submittable and doc.docstatus==0-%}
-	<div class="alert alert-info text-center">
+	<div class="text-center">
 		<h4 style="margin: 0px;">{{ _("DRAFT") }}</h4></div>
 	{%- endif -%}
 	{%- if doc.meta.is_submittable and doc.docstatus==2-%}
-	<div class="alert alert-danger text-center">
+	<div class="text-center">
 		<h4 style="margin: 0px;">{{ _("CANCELLED") }}</h4></div>
 	{%- endif -%}
 	{% if max_pages > 1 %}

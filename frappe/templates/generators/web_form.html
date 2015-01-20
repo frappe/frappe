@@ -10,7 +10,7 @@
 <hr>
 {% endif %}
 {% if login_required and frappe.user=="Guest" %}
-<div class="alert alert-info">
+<div class="text-muted">
 	{{ _("Please login to create a new {0}").format(_(doc_type)) }}
 </div>
 <p>
@@ -54,13 +54,13 @@
 {% macro label(field) %}<label for="{{ field.fieldname }}" class="col-sm-3 control-label">{{ field.label }}</label>{% endmacro %}
 
 
-<div class="form-message alert alert-info hide"></div>
+<div class="form-message text-muted hide"></div>
 <form class="form-horizontal" role="form"
 	data-web-form="{{ name }}">
 	{% if params.name and web_page_link_text %}
 	<div class="row">
 		<div class="col-sm-offset-3 col-sm-9">
-			<div class="alert alert-info">
+			<div class="text-muted">
 				<a href="{{ ('/' + doc.parent_website_route) if doc.parent_website_route else ''  }}/{{ doc.page_name }}">
 					{{ web_page_link_text }}</a>
 			</div>
