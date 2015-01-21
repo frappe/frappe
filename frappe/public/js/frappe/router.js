@@ -47,12 +47,6 @@ frappe.route = function() {
 	if(frappe.route_titles[window.location.hash]) {
 		document.title = frappe.route_titles[window.location.hash];
 	}
-
-	if(frappe._cur_route==="") {
-		$(".navbar").addClass("navbar-inverse");
-	} else {
-		$(".navbar").removeClass("navbar-inverse");
-	}
 }
 
 frappe.get_route = function(route) {

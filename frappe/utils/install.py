@@ -34,7 +34,9 @@ def after_install():
 			"icon": "remove", "style": "Danger"},
 		{'doctype': "Workflow Action", "workflow_action_name": "Approve"},
 		{'doctype': "Workflow Action", "workflow_action_name": "Reject"},
-		{'doctype': "Workflow Action", "workflow_action_name": "Review"}
+		{'doctype': "Workflow Action", "workflow_action_name": "Review"},
+		{'doctype': "Email Account", "email_id": "notifications@example.com", "default_outgoing": 1},
+		{'doctype': "Email Account", "email_id": "replies@example.com", "default_incoming": 1}
 	]
 
 	for d in install_docs:

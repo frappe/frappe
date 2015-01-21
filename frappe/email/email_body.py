@@ -12,10 +12,10 @@ from markdown2 import markdown
 
 def get_email(recipients, sender='', msg='', subject='[No Subject]',
 	text_content = None, footer=None, print_html=None, formatted=None, attachments=None,
-	content=None):
+	content=None, reply_to=None):
 	"""send an html email as multipart with attachments and all"""
 	content = content or msg
-	emailobj = EMail(sender, recipients, subject)
+	emailobj = EMail(sender, recipients, subject, reply_to=reply_to)
 
 	if not content.strip().startswith("<"):
 		content = markdown(content)

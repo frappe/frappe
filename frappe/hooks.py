@@ -80,7 +80,7 @@ doc_events = {
 scheduler_events = {
 	"all": [
 		"frappe.email.bulk.flush",
-		"frappe.tasks.pull_from_email_account"
+		"frappe.email.doctype.email_account.email_account.pull"
 	],
 	"daily": [
 		"frappe.email.bulk.clear_outbox",

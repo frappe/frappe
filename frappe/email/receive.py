@@ -101,7 +101,7 @@ class POP3Server:
 			self.validate_pop(pop_meta)
 			msg = self.pop.retr(msg_num)
 
-			self.latest_messages.append(msg[1])
+			self.latest_messages.append(b'\n'.join(msg[1]))
 
 		except (TotalSizeExceededError, EmailTimeoutError):
 			# propagate this error to break the loop
@@ -197,7 +197,7 @@ class Email:
 	def set_content_and_type(self):
 		self.content, self.content_type = '[Blank Email]', 'text/plain'
 		if self.text_content:
-			self.content, self.content_type = self.text_content, 'text/plain'
+			self.content, self.content_type = self.text_content + "\n\n\n<!-- markdown -->", 'text/plain'
 		else:
 			self.content, self.content_type = self.html_content, 'text/html'
 

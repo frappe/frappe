@@ -97,7 +97,7 @@ class BaseDocument(object):
 			self.__dict__[key].append(value)
 			return value
 		else:
-			raise ValueError
+			raise ValueError, "Document attached to child table must be a dict or BaseDocument, not " + str(type(value))[1:-1]
 
 	def extend(self, key, value):
 		if isinstance(value, list):

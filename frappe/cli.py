@@ -621,8 +621,10 @@ def execute(method, args=None):
 		ret = frappe.get_attr(method)(*args)
 	else:
 		ret = frappe.get_attr(method)()
-	frappe.db.commit()
-	frappe.destroy()
+
+	if frappe.db:
+		frappe.db.commit()
+		frappe.destroy()
 	if ret:
 		print ret
 

@@ -1136,6 +1136,7 @@ frappe.ui.form.ControlTextEditor = frappe.ui.form.ControlCode.extend({
 	},
 	add_type_marker: function(marker) {
 		var opp_marker = marker==="html" ? "markdown" : "html";
+		if(!this.value) this.value = "";
 		if(this.value.indexOf("<!-- " + opp_marker + " -->")!==-1) {
 			// replace opposite marker
 			this.set_value(this.value.split("<!-- " + opp_marker + " -->").join("<!-- " + marker + " -->"));

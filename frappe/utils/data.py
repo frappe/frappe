@@ -327,6 +327,7 @@ def money_in_words(number, main_currency = None, fraction_currency=None):
 	Returns string in words with currency and fraction currency.
 	"""
 	from frappe.utils import get_defaults
+	_ = frappe._
 
 	if not number or flt(number) < 0:
 		return ""
@@ -335,7 +336,7 @@ def money_in_words(number, main_currency = None, fraction_currency=None):
 	if not main_currency:
 		main_currency = d.get('currency', 'INR')
 	if not fraction_currency:
-		fraction_currency = frappe.db.get_value("Currency", main_currency, "fraction") or "Cent"
+		fraction_currency = frappe.db.get_value("Currency", main_currency, "fraction") or _("Cent")
 
 	n = "%.2f" % flt(number)
 	main, fraction = n.split('.')
@@ -350,9 +351,9 @@ def money_in_words(number, main_currency = None, fraction_currency=None):
 
 	out = main_currency + ' ' + in_words(main, in_million).title()
 	if cint(fraction):
-		out = out + ' and ' + in_words(fraction, in_million).title() + ' ' + fraction_currency
+		out = out + ' ' + _('and') + ' ' + in_words(fraction, in_million).title() + ' ' + fraction_currency
 
-	return out + ' only.'
+	return out + ' ' + _('only.')
 
 #
 # convert number to words
@@ -361,6 +362,8 @@ def in_words(integer, in_million=True):
 	"""
 	Returns string in words for the given integer.
 	"""
+	_ = frappe._
+
 	n=int(integer)
 	known = {0: 'zero', 1: 'one', 2: 'two', 3: 'three', 4: 'four', 5: 'five', 6: 'six', 7: 'seven', 8: 'eight', 9: 'nine', 10: 'ten',
 		11: 'eleven', 12: 'twelve', 13: 'thirteen', 14: 'fourteen', 15: 'fifteen', 16: 'sixteen', 17: 'seventeen', 18: 'eighteen',
@@ -380,28 +383,28 @@ def in_words(integer, in_million=True):
 			bestguess= xpsn((n//10)*10, known, xpsn) + '-' + xpsn(n%10, known, xpsn)
 			return bestguess
 		elif n < 1000:
-			bestguess= xpsn(n//100, known, xpsn) + ' ' + 'hundred'
+			bestguess= xpsn(n//100, known, xpsn) + ' ' + _('hundred')
 			remainder = n%100
 		else:
 			if in_million:
 				if n < 1000000:
-					bestguess= xpsn(n//1000, known, xpsn) + ' ' + 'thousand'
+					bestguess= xpsn(n//1000, known, xpsn) + ' ' + _('thousand')
 					remainder = n%1000
 				elif n < 1000000000:
-					bestguess= xpsn(n//1000000, known, xpsn) + ' ' + 'million'
+					bestguess= xpsn(n//1000000, known, xpsn) + ' ' + _('million')
 					remainder = n%1000000
 				else:
-					bestguess= xpsn(n//1000000000, known, xpsn) + ' ' + 'billion'
+					bestguess= xpsn(n//1000000000, known, xpsn) + ' ' + _('billion')
 					remainder = n%1000000000
 			else:
 				if n < 100000:
-					bestguess= xpsn(n//1000, known, xpsn) + ' ' + 'thousand'
+					bestguess= xpsn(n//1000, known, xpsn) + ' ' + _('thousand')
 					remainder = n%1000
 				elif n < 10000000:
-					bestguess= xpsn(n//100000, known, xpsn) + ' ' + 'lakh'
+					bestguess= xpsn(n//100000, known, xpsn) + ' ' + _('lakh')
 					remainder = n%100000
 				else:
-					bestguess= xpsn(n//10000000, known, xpsn) + ' ' + 'crore'
+					bestguess= xpsn(n//10000000, known, xpsn) + ' ' + _('crore')
 					remainder = n%10000000
 		if remainder:
 			if remainder >= 100:

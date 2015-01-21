@@ -54,10 +54,13 @@ def send(recipients=None, sender=None, doctype='User', email_field='email',
 
 		return updated
 
-	if not recipients: recipients = []
+	if not recipients:
+		recipients = []
+
 	if not sender or sender == "Administrator":
 		email_account = get_outgoing_email_account()
 		sender = email_account.get("sender") or email_account.email_id
+
 	check_bulk_limit(len(recipients))
 
 	formatted = get_formatted_html(subject, message)
@@ -91,10 +94,9 @@ def add(email, sender, subject, formatted, text_content=None,
 		# bad email id - don't add to queue
 		return
 
-	e.status = 'Not Sent'
 	e.ref_doctype = ref_doctype
 	e.ref_docname = ref_docname
-	e.save(ignore_permissions=True)
+	e.insert(ignore_permissions=True)
 
 @frappe.whitelist(allow_guest=True)
 def unsubscribe():

@@ -8,6 +8,7 @@ from frappe.model.document import Document
 from frappe.utils import validate_email_add, cint
 from frappe.email.smtp import SMTPServer
 from frappe.email.receive import POP3Server, Email
+from poplib import error_proto
 
 class EmailAccount(Document):
 	def autoname(self):
@@ -28,7 +29,7 @@ class EmailAccount(Document):
 		if frappe.local.flags.in_patch or frappe.local.flags.in_test:
 			return
 
-		if not frappe.locals.flags.in_install and not frappe.locals.flags.in_patch:
+		if not frappe.local.flags.in_install and not frappe.local.flags.in_patch:
 			if self.enable_incoming:
 				self.get_pop3()
 
@@ -54,12 +55,13 @@ class EmailAccount(Document):
 			if not self.smtp_server:
 				frappe.throw(_("{0} is required").format("SMTP Server"))
 
-			SMTPServer(login = self.email_id,
+			server = SMTPServer(login = self.email_id,
 				password = self.password,
 				server = self.smtp_server,
 				port = cint(self.smtp_port),
 				use_ssl = cint(self.use_tls)
 			)
+			server.sess
 
 	def get_pop3(self):
 		args = {
@@ -73,7 +75,11 @@ class EmailAccount(Document):
 			frappe.throw(_("{0} is required").format("POP3 Server"))
 
 		pop3 = POP3Server(frappe._dict(args))
-		pop3.connect()
+		try:
+			pop3.connect()
+		except error_proto, e:
+			frappe.throw(e.message)
+
 		return pop3
 
 	def receive(self, test_mails=None):
@@ -95,7 +101,8 @@ class EmailAccount(Document):
 					"sender_full_name": email.from_real_name,
 					"sender": email.from_email,
 					"recipients": email.mail.get("To"),
-					"email_account": self.name
+					"email_account": self.name,
+					"communication_medium": "Email"
 				})
 
 				self.set_thread(communication, email)
@@ -127,13 +134,19 @@ class EmailAccount(Document):
 		if not parent and self.append_to:
 			# no parent found, but must be tagged
 			# insert parent type doc
-			parent = self.new_doc(self.append_to)
+			parent = frappe.new_doc(self.append_to)
 
 			if parent.meta.get_field("subject"):
 				parent.subject = email.subject
 
 			if parent.meta.get_field("sender"):
 				parent.sender = email.from_email
+
+			if hasattr(parent, "set_subject"):
+				parent.set_subject(email.subject)
+
+			if hasattr(parent, "set_sender"):
+				parent.set_sender(email.from_email)
 
 			parent.ignore_mandatory = True
 			parent.insert(ignore_permissions=True)
@@ -152,6 +165,8 @@ class EmailAccount(Document):
 				bulk=True)
 
 
-def sync_emails(self):
+def pull():
+	import frappe.tasks
 	for email_account in frappe.get_list("Email Account", filters={"enable_incoming": 1}):
-		frappe.tasks.pull_from_email_account.delay(frappe.local.site, email_account.name)
+		#frappe.tasks.pull_from_email_account.delay(frappe.local.site, email_account.name)
+		frappe.tasks.pull_from_email_account(frappe.local.site, email_account.name)

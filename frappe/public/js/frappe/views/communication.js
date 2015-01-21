@@ -33,8 +33,6 @@ frappe.views.CommunicationComposer = Class.extend({
 					fieldname:"sent_or_received"},
 				{label:__("Send"), fieldtype:"Button",
 					fieldname:"send"},
-				{label:__("Send Me A Copy"), fieldtype:"Check",
-					fieldname:"send_me_a_copy"},
 				{label:__("Attach Document Print"), fieldtype:"Check",
 					fieldname:"attach_document_print"},
 				{label:__("Select Print Format"), fieldtype:"Select",
@@ -207,7 +205,6 @@ frappe.views.CommunicationComposer = Class.extend({
 		var fields = this.dialog.fields_dict;
 
 		if(this.attach_document_print) {
-			$(fields.send_me_a_copy.input).click();
 			$(fields.attach_document_print.input).click();
 			$(fields.select_print_format.wrapper).toggle(true);
 		}
@@ -279,7 +276,6 @@ frappe.views.CommunicationComposer = Class.extend({
 				content: form_values.content,
 				doctype: me.doc.doctype,
 				name: me.doc.name,
-				send_me_a_copy: form_values.send_me_a_copy,
 				send_email: form_values.send_email,
 				print_html: print_html,
 				print_format: print_format,

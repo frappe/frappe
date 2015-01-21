@@ -116,5 +116,7 @@ def pull_from_email_account(site, email_account):
 		frappe.connect(site=site)
 		email_account = frappe.get_doc("Email Account", email_account)
 		email_account.receive()
+		frappe.db.commit()
 	finally:
-		frappe.destroy()
+		pass
+		#frappe.destroy()

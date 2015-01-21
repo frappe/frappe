@@ -73,7 +73,7 @@ def get_outgoing_email_account(raise_exception_not_set=True, append_to=None):
 		if not email_account:
 			frappe.throw(_("Please setup default Email Account from Setup > Email > Email Account"))
 
-		frappe.local.outgoing_email_account = frappe.get_doc("Email Account", email_account)
+		frappe.local.outgoing_email_account = email_account
 
 	return frappe.local.outgoing_email_account
 
@@ -145,12 +145,9 @@ class SMTPServer:
 
 		except _socket.error:
 			# Invalid mail server -- due to refusing connection
-			frappe.msgprint(_('Invalid Outgoing Mail Server or Port'))
-			raise
+			frappe.throw(_('Invalid Outgoing Mail Server or Port'))
 		except smtplib.SMTPAuthenticationError:
-			frappe.msgprint(_("Invalid login or password"))
-			raise
+			frappe.throw(_("Invalid login or password"))
 		except smtplib.SMTPException:
 			frappe.msgprint(_('Unable to send emails at this time'))
 			raise
-
