@@ -15,7 +15,10 @@ frappe.views.Container = Class.extend({
 		this.pagewidth = $('#body_div').width();
 		this.pagemargin = 50;
 
-		$(document).on("page-change", this.set_full_width);
+		$(document).on("page-change", function() {
+			// set data-route in body
+			$("body").attr("data-route", frappe.get_route_str());
+		});
 	},
 	add_page: function(label, onshow, onhide) {
 		var page = $('<div class="content page-container"></div>')

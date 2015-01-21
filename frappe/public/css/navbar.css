@@ -57,8 +57,11 @@
 .navbar .badge {
   font-weight: normal;
 }
+#sidebar-notification > li > a:hover .badge,
 #navbar-notification > li > a:hover .badge,
+#sidebar-notification > li > a:focus .badge,
 #navbar-notification > li > a:focus .badge,
+#sidebar-notification > li > a:active .badge,
 #navbar-notification > li > a:active .badge {
   background-color: #D8DFE5;
 }

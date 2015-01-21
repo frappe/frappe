@@ -18,7 +18,7 @@ frappe.ui.toolbar.Search = frappe.ui.toolbar.SelectorDialog.extend({
 
 frappe.search = {
 	setup: function() {
-		$("#navbar-search").autocomplete({
+		$("#navbar-search, #sidebar-search").autocomplete({
 			minLength: 0,
 			source: function(request, response) {
 				var txt = strip(request.term);

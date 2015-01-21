@@ -1,3 +1,8 @@
+body[data-route=""] .navbar-default,
+body[data-route="desktop"] .navbar-default {
+  background-color: rgba(255, 255, 255, 0.5);
+  border-color: transparent;
+}
 #page-desktop {
   min-width: 100%;
   padding-top: 80px;
