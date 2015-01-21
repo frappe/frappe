@@ -17,22 +17,6 @@
    "precision": ""
   }, 
   {
-   "description": "Make this Email Account default for all users", 
-   "fieldname": "is_default", 
-   "fieldtype": "Check", 
-   "label": "Default", 
-   "permlevel": 0, 
-   "precision": ""
-  }, 
-  {
-   "description": "Check this if this is a global email id like \"sales@yourcompany.com\"", 
-   "fieldname": "is_global", 
-   "fieldtype": "Check", 
-   "label": "Global", 
-   "permlevel": 0, 
-   "precision": ""
-  }, 
-  {
    "fieldname": "service", 
    "fieldtype": "Select", 
    "label": "Service", 
@@ -47,7 +31,7 @@
    "hidden": 0, 
    "ignore_user_permissions": 0, 
    "in_filter": 0, 
-   "in_list_view": 1, 
+   "in_list_view": 0, 
    "label": "Email Id", 
    "no_copy": 0, 
    "options": "email", 
@@ -103,6 +87,7 @@
    "description": "Append as communication against this DocType (must have fields, \"Status\", \"Subject\")", 
    "fieldname": "append_to", 
    "fieldtype": "Link", 
+   "in_list_view": 1, 
    "label": "Append To", 
    "options": "DocType", 
    "permlevel": 0, 
@@ -136,7 +121,7 @@
    "hidden": 0, 
    "ignore_user_permissions": 0, 
    "in_filter": 0, 
-   "in_list_view": 1, 
+   "in_list_view": 0, 
    "label": "Enable Incoming", 
    "no_copy": 0, 
    "permlevel": 0, 
@@ -150,13 +135,14 @@
   }, 
   {
    "allow_on_submit": 0, 
+   "depends_on": "enable_incoming", 
    "description": "e.g. pop.gmail.com", 
    "fieldname": "pop3_server", 
    "fieldtype": "Data", 
    "hidden": 0, 
    "ignore_user_permissions": 0, 
    "in_filter": 0, 
-   "in_list_view": 1, 
+   "in_list_view": 0, 
    "label": "POP3 Server", 
    "no_copy": 0, 
    "permlevel": 0, 
@@ -170,12 +156,13 @@
   }, 
   {
    "allow_on_submit": 0, 
+   "depends_on": "enable_incoming", 
    "fieldname": "use_ssl", 
    "fieldtype": "Check", 
    "hidden": 0, 
    "ignore_user_permissions": 0, 
    "in_filter": 0, 
-   "in_list_view": 1, 
+   "in_list_view": 0, 
    "label": "Use SSL", 
    "no_copy": 0, 
    "permlevel": 0, 
@@ -189,10 +176,20 @@
   }, 
   {
    "default": "1", 
+   "depends_on": "enable_incoming", 
    "description": "Ignore attachments over this size", 
    "fieldname": "attachment_limit", 
    "fieldtype": "Int", 
    "label": "Attachment Limit (MB)", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "depends_on": "enable_incoming", 
+   "description": "e.g. replies@yourcomany.com. All replies will come to this inbox.", 
+   "fieldname": "default_incoming", 
+   "fieldtype": "Check", 
+   "label": "Default Incoming", 
    "permlevel": 0, 
    "precision": ""
   }, 
@@ -205,6 +202,7 @@
   }, 
   {
    "default": "1", 
+   "description": "SMTP Settings for outgoing emails", 
    "fieldname": "enable_outgoing", 
    "fieldtype": "Check", 
    "label": "Enable Outgoing", 
@@ -212,6 +210,7 @@
    "precision": ""
   }, 
   {
+   "depends_on": "enable_outgoing", 
    "description": "e.g. smtp.gmail.com", 
    "fieldname": "smtp_server", 
    "fieldtype": "Data", 
@@ -220,6 +219,7 @@
    "precision": ""
   }, 
   {
+   "depends_on": "enable_outgoing", 
    "fieldname": "use_tls", 
    "fieldtype": "Check", 
    "label": "Use TLS", 
@@ -227,10 +227,20 @@
    "precision": ""
   }, 
   {
+   "depends_on": "enable_outgoing", 
    "description": "If non standard port (e.g. 587)", 
    "fieldname": "smtp_port", 
    "fieldtype": "Data", 
    "label": "Port", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "depends_on": "enable_outgoing", 
+   "description": "Notifications and bulk mails will be sent from this outgoing server.", 
+   "fieldname": "default_outgoing", 
+   "fieldtype": "Check", 
+   "label": "Default Outgoing", 
    "permlevel": 0, 
    "precision": ""
   }, 
@@ -362,7 +372,7 @@
  "is_submittable": 0, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-01-07 15:58:10.079334", 
+ "modified": "2015-01-20 12:38:10.322621", 
  "modified_by": "Administrator", 
  "module": "Email", 
  "name": "Email Account", 

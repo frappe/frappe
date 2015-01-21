@@ -1,17 +1,17 @@
 frappe.listview_settings["Email Account"] = {
-	add_fields: ["is_global", "is_default"],
+	add_fields: ["default_incoming", "default_outgoing"],
 	get_indicator: function(doc) {
-		if(doc.is_default && doc.is_global) {
-			return [__("Global Default"), "green", "is_default,=,Yes|is_global,=,Yes"]
+		if(doc.default_incoming && doc.default_outgoing) {
+			return [__("Default Sending and Inbox"), "blue", "default_incoming,=,Yes|default_outgoing,=,Yes"]
 		}
-		else if(doc.is_default) {
-			return [__("Default"), "blue", "is_default,=,Yes"];
+		else if(doc.default_incoming) {
+			return [__("Default Inbox"), "blue", "default_incoming,=,Yes"];
 		}
-		else if(doc.is_global) {
-			return [__("Global"), "green", "is_global,=,Yes"];
+		else if(doc.default_outgoing) {
+			return [__("Default Sending"), "blue", "default_outgoing,=,Yes"];
 		}
-		else  {
-			return [__("Personal"), "darkgrey", "is_global,=,No|is_default=No"];
+		else {
+			return [__("Inbox"), "darkgrey", "is_global,=,No|is_default=No"];
 		}
 	}
 }

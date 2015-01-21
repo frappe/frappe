@@ -1,6 +1,6 @@
 email_defaults = {
 	"GMail": {
-		"pop3_mail_server": "pop.gmail.com",
+		"pop3_server": "pop.gmail.com",
 		"use_ssl": 1,
 		"enable_outgoing": 1,
 		"smtp_server": "smtp.gmail.com",
@@ -8,7 +8,7 @@ email_defaults = {
 		"use_tls": 1
 	},
 	"Outlook.com": {
-		"pop3_mail_server": "pop3.live.com",
+		"pop3_server": "pop3.live.com",
 		"use_ssl": 1,
 		"enable_outgoing": 1,
 		"smtp_server": "smtp.live.com",
@@ -16,7 +16,7 @@ email_defaults = {
 		"use_tls": 1
 	},
 	"Yahoo Mail": {
-		"pop3_mail_server": "pop.mail.yahoo.com ",
+		"pop3_server": "pop.mail.yahoo.com ",
 		"use_ssl": 1,
 		"enable_outgoing": 1,
 		"smtp_server": "smtp.mail.yahoo.com",

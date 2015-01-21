@@ -25,40 +25,32 @@ class EmailAccount(Document):
 			frappe.throw(_("{0} is not a valid email id").format(self.email_id),
 				frappe.InvalidEmailAddressError)
 
-		self.there_must_be_atleast_one_default()
-
 		if frappe.local.flags.in_patch or frappe.local.flags.in_test:
 			return
 
-		if self.enable_incoming:
-			self.get_pop3()
+		if not frappe.locals.flags.in_install and not frappe.locals.flags.in_patch:
+			if self.enable_incoming:
+				self.get_pop3()
 
-		self.check_smtp()
+			self.check_smtp()
 
 	def on_update(self):
 		self.there_must_be_only_one_default()
 
-	def there_must_be_atleast_one_default(self):
-		if not frappe.db.get_value("Email Account", {"is_default": 1}):
-			if not self.is_default and (self.is_global and self.enable_outgoing):
-				self.is_default = 1
-				frappe.msgprint(_("Setting as Default"))
-
 	def there_must_be_only_one_default(self):
-		if self.is_default:
-			for email_account in frappe.get_all("Email Account",
-				{"is_default": 1}):
-				if email_account.name==self.name:
-					continue
-				email_account = frappe.get_doc("Email Account",
-					email_account.name)
-				email_account.is_default = 0
-				email_account.save()
+		for fn in ("default_incoming", "default_outgoing"):
+			if self.get(fn):
+				for email_account in frappe.get_all("Email Account",
+					{fn: 1}):
+					if email_account.name==self.name:
+						continue
+					email_account = frappe.get_doc("Email Account",
+						email_account.name)
+					email_account.set(fn, 0)
+					email_account.save()
 
 	def check_smtp(self):
-		if self.enable_outgoing and self.smtp_server \
-			and not frappe.local.flags.in_patch:
-
+		if self.enable_outgoing:
 			if not self.smtp_server:
 				frappe.throw(_("{0} is required").format("SMTP Server"))
 
@@ -139,6 +131,9 @@ class EmailAccount(Document):
 
 			if parent.meta.get_field("subject"):
 				parent.subject = email.subject
+
+			if parent.meta.get_field("sender"):
+				parent.sender = email.from_email
 
 			parent.ignore_mandatory = True
 			parent.insert(ignore_permissions=True)
