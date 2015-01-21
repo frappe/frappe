@@ -52,9 +52,9 @@
   .toggle-navbar-new-comments {
     padding: 8px 0px !important;
   }
-  .navbar > .container > .navbar-header,
-  .navbar > .container > .navbar-left {
+  .navbar > .container > .navbar-header {
     float: left;
+    width: 80%;
   }
   .navbar > .container > .navbar-right {
     float: right;
@@ -63,7 +63,7 @@
     margin-top: 4px;
   }
   .navbar .breadcrumb-divider {
-    margin-top: 3px !important;
+    margin-top: 2px !important;
     margin-right: 3px;
   }
   #navbar-breadcrumbs {
