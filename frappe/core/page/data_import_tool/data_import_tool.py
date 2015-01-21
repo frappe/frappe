@@ -75,5 +75,5 @@ def import_doc(path, overwrite=False, ignore_links=False, ignore_insert=False, i
 			frappe.modules.import_file.import_file_by_path(f, data_import=True)
 			frappe.flags.mute_emails = False
 		elif f.endswith(".csv"):
-			import_file_by_path(f, ignore_links=ignore_links, overwrite=overwrite, submit=submit, data_import=True)
+			import_file_by_path(f, ignore_links=ignore_links, overwrite=overwrite, submit=submit)
 			frappe.db.commit()
