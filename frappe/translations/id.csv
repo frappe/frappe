@@ -14,7 +14,7 @@
 <i>e.g. <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>,<i> misalnya <strong> (55 + 434) / 4 </ strong> atau <strong> = Math.sin (Math.PI / 2) </ strong> ... </ i>
 <i>module name...</i>,<i> nama modul ... </ i>
 <i>text</i> <b>in</b> <i>document type</i>,teks <i> </ i> <b> di </ b> <i> jenis dokumen </ i>
-A user can be permitted to multiple records of the same DocType.,Seorang pengguna dapat diizinkan untuk beberapa catatan dari DocType sama.
+A user can be permitted to multiple records of the same DocType.,Pengguna diizinkan untuk mengisi banyak entry  dari DocType sama.
 About,Tentang
 About Us Settings,Pengaturan Tetang Kami
 About Us Team Member,Tentang Kami Anggota Tim
@@ -26,44 +26,45 @@ Add A New Rule,Tambah Aturan Baru
 Add A User Permission,Tambah Izin Pengguna
 Add Attachments,Tambahkan Lampiran
 Add Bookmark,Tambahkan Bookmark
-Add CSS,Tambah CSS
-Add Column,Add Column
+Add CSS,Tambahkan CSS
+Add Column,Tambahkan Kolom
 Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,Tambahkan Google Analytics ID: misalnya. UA-89XXX57-1. Silahkan cari bantuan pada Google Analytics untuk informasi lebih lanjut.
 Add Message,Tambahkan Pesan
 Add New Permission Rule,Tambahkan Rule Izin Baru
-Add Reply,Add Reply
+Add Reply,Tambahkan Balasan
 Add Total Row,Tambah Jumlah Row
 Add a New Role,Tambahkan Peran Baru
 Add a banner to the site. (small banners are usually good),Tambahkan iklan ke situs. (Spanduk kecil biasanya lebih baik)
 Add all roles,Tambahkan semua peran
 Add attachment,Tambahkan lampiran
 Add code as &lt;script&gt;,Tambahkan kode sebagai
-Add custom javascript to forms.,Tambahkan kustom javascript untuk bentuk.
-Add fields to forms.,Menambahkan kolom ke bentuk.
+Add custom javascript to forms.,Tambahkan kustom javascript untuk form.
+Add fields to forms.,Menambahkan kolom ke form.
 Add multiple rows,Tambahkan beberapa baris
 Add new row,Tambahkan baris baru
 "Add the name of <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> e.g. ""Open Sans""","Tambahkan nama <a href=""http://google.com/webfonts"" target=""_blank""> Google Font Web </ a> misalnya ""Buka Sans """
 Add to To Do,Tambahkan ke To Do
-Add to To Do List Of,Tambahkan ke To Do List Of
+Add to To Do List Of,"Tambahkan ke Daftar To Do
+"
 Added {0} ({1}),Ditambahkan {0} ({1})
-Adding System Manager to this User as there must be atleast one System Manager,Menambahkan System Manager untuk Pengguna ini karena harus ada minimal satu System Manager
+Adding System Manager to this User as there must be atleast one System Manager,Menambahkan Sistem Manager untuk user ini dikarenakan harus ada minimal satu sistem manager
 Additional Info,Info Tambahan
 Additional Permissions,Izin Tambahan
 Address,Alamat
 Address Line 1,Alamat Baris 1
 Address Line 2,Alamat Baris 2
 Address Title,Alamat Judul
-Address and other legal information you may want to put in the footer.,Alamat dan informasi hukum lainnya Anda mungkin ingin dimasukkan ke dalam footer.
+Address and other legal information you may want to put in the footer.,Alamat dan informasi hukum lainnya yang mungkin Anda ingin masukkan ke dalam footer.
 Admin,Admin
 All Applications,Semua Aplikasi
 All Day,Semua Hari
 All customizations will be removed. Please confirm.,Semua kustomisasi akan terhapus. Silakan konfirmasi.
 "All possible Workflow States and roles of the workflow. <br>Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""","Semua mungkin Workflow Serikat dan peran dari alur kerja. <br> Docstatus Options: 0 adalah ""Tersimpan"", 1 adalah ""Dikirim"" dan 2 ""Dibatalkan"""
-Allow Attach,Izinkan Lampirkan
+Allow Attach,Izinkan untuk Lampiran
 Allow Import,Izinkan Impor
 Allow Import via Data Import Tool,Izinkan Impor via Impor Data Alat
 Allow Rename,Izinkan Rename
-Allow on Submit,Biarkan Submit
+Allow on Submit,Izinkan Submit
 Allow user to login only after this hour (0-24),Memungkinkan pengguna untuk login hanya setelah jam ini (0-24)
 Allow user to login only before this hour (0-24),Memungkinkan pengguna untuk login hanya sebelum jam ini (0-24)
 Allowed,Diizinkan
@@ -119,10 +120,10 @@ Banner Image,Banner Gambar
 Banner is above the Top Menu Bar.,Banner di atas Menu Top Bar.
 Begin this page with a slideshow of images,Mulailah halaman ini dengan slideshow gambar
 Beginning with,Dimulai dengan
-Belongs to,Milik
+Belongs to,Dimiliki oleh
 Bio,Bio
 Birth Date,Lahir Tanggal
-Blog Category,Blog Kategori
+Blog Category,Kategori Blog
 Blog Intro,Blog Intro
 Blog Introduction,Blog Pendahuluan
 Blog Post,Posting Blog
@@ -130,16 +131,16 @@ Blog Settings,Pengaturan Blog
 Blog Title,Judul Blog
 Blogger,Blogger
 Bookmarks,Bookmarks
-Both login and password required,Kedua login dan password yang diperlukan
+Both login and password required,Baik login maupun password keduanya diperlukan
 Brand HTML,Merek HTML
 Bulk Email,Bulk Email
-Bulk email limit {0} crossed,Limit email massal {0} menyeberangi
+Bulk email limit {0} crossed,Limit email massal {0} terlampaui
 Button,Tombol
 By,Oleh
 Calculate,Menghitung
 Calendar,Kalender
 Cancel,Batalkan
-Cancelled,Cancelled
+Cancelled,Dibatalkan
 "Cannot Edit {0} directly: To edit {0} properties, create / update {1}, {2} and {3}","Tidak dapat Mengedit {0} langsung: Untuk mengedit {0} properti, membuat / update {1}, {2} dan {3}"
 Cannot Update: Incorrect / Expired Link.,Tidak bisa Perbarui: salah / Expired Link.
 Cannot Update: Incorrect Password,Tidak bisa Perbarui: Kata sandi salah
@@ -544,7 +545,7 @@ Item cannot be added to its own descendents,Item tidak dapat ditambahkan ke ketu
 JavaScript Format: frappe.query_reports['REPORTNAME'] = {},JavaScript Format: frappe.query_reports ['REPORTNAME'] = {}
 Javascript,Javascript
 Javascript to append to the head section of the page.,Javascript untuk menambahkan ke bagian kepala halaman.
-Key,Kunci
+Key,kunci
 Label,Label
 Label Help,Label Bantuan
 Label and Type,Label dan Jenis
@@ -1237,7 +1238,7 @@ You are not allowed to export the data of: {0}. Downloading empty template.,Anda
 You are not allowed to export this report,Anda tidak diizinkan untuk mengekspor laporan ini
 You are not allowed to print this document,Anda tidak diizinkan untuk mencetak dokumen ini
 You are not allowed to send emails related to this document,Anda tidak diizinkan untuk mengirim email yang berhubungan dengan dokumen ini
-"You can change Submitted documents by cancelling them and then, amending them.","Anda dapat mengubah dokumen Dikirim oleh membatalkan mereka dan kemudian, mengubah mereka."
+"You can change Submitted documents by cancelling them and then, amending them.","Anda dapat mengubah dokumen yang telah terkirim dengan membatalkannya, kemudian mengubahnya."
 You can use Customize Form to set levels on fields.,Anda dapat menggunakan Formulir Customize untuk mengatur tingkat pada bidang.
 You can use wildcard %,Anda dapat menggunakan wildcard%
 You cannot install this app,Anda tidak dapat menginstal aplikasi ini
@@ -1249,7 +1250,7 @@ You seem to have written your name instead of your email. \					Please enter a v
 [Label]:[Field Type]/[Options]:[Width],[Label]: [Field Type] / [Options]: [Lebar]
 [Optional] Send the email X days in advance of the specified date. 0 equals same day.,[Opsional] Kirim hari X email sebelum tanggal yang ditentukan. 0 sama dengan hari yang sama.
 add your own CSS (careful!),menambahkan CSS Anda sendiri (careful!)
-adjust,menyesuaikan
+adjust,penyesuaian
 align-center,menyelaraskan-pusat
 align-justify,menyelaraskan-membenarkan
 align-left,menyelaraskan kiri
@@ -1260,12 +1261,12 @@ arrow-left,panah kiri
 arrow-right,panah kanan
 arrow-up,panah-up
 asterisk,asterisk
-backward,terbelakang
+backward,mundur
 ban-circle,larangan-lingkaran
 barcode,barcode
 beginning with,dimulai dengan
 bell,bel
-bold,berani
+bold,tebal
 book,buku
 bookmark,penanda
 briefcase,tas kantor
@@ -1412,8 +1413,8 @@ volume-up,volume-up
 warning-sign,warning-sign
 wrench,kunci
 yyyy-mm-dd,yyyy-mm-dd
-zoom-in,zoom-in
-zoom-out,zoom-out
+zoom-in,perbesar
+zoom-out,perkecil
 {0} List,{0} Daftar
 {0} added,{0} ditambahkan
 {0} by {1},{0} oleh {1}

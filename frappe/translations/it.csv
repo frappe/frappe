@@ -19,7 +19,7 @@ About,About
 About Us Settings,Chi siamo Impostazioni
 About Us Team Member,Chi Siamo Membri Team
 Action,Azione
-Actions,azioni
+Actions,Azioni
 "Actions for workflow (e.g. Approve, Cancel).","Azioni per il flusso di lavoro ( ad esempio Approva , Annulla ) ."
 Add,Aggiungi
 Add A New Rule,Aggiunge una nuova regola
@@ -106,10 +106,10 @@ Attached To DocType,Allega aDocType
 Attached To Name,Allega a Nome
 Attachments,Allegati
 Auto Email Id,Email ID Auto
-Auto Name,Nome Auto
+Auto Name,Nome Automatico
 Auto generated,Auto generato
 Avatar,Avatar
-Back to Login,Torna alla Login
+Back to Login,Torna al Login
 Background Color,Colore Sfondo
 Background Image,Immagine Sfondo
 Background Style,Stile sfondo
@@ -130,7 +130,7 @@ Blog Settings,Impostazioni Blog
 Blog Title,Titolo Blog
 Blogger,Blogger
 Bookmarks,Segnalibri
-Both login and password required,Sia la login e la password richiesti
+Both login and password required,Sono richiesti login e password
 Brand HTML,Marca HTML
 Bulk Email,Email di Massa
 Bulk email limit {0} crossed,Limite di posta elettronica di massa {0} attraversato
@@ -141,7 +141,7 @@ Calendar,Calendario
 Cancel,Annulla
 Cancelled,Annullato
 "Cannot Edit {0} directly: To edit {0} properties, create / update {1}, {2} and {3}","Impossibile modificare {0} direttamente : Per modificare i {0} proprietà , creare / aggiornare {1} , {2} e {3}"
-Cannot Update: Incorrect / Expired Link.,Impossibile aggiornare : link errato / Scaduta .
+Cannot Update: Incorrect / Expired Link.,Impossibile Aggiornare : Link Errato / Scaduto.
 Cannot Update: Incorrect Password,Impossibile aggiornare : Password errata
 Cannot add more than 50 comments,Impossibile aggiungere più di 50 commenti
 Cannot cancel before submitting. See Transition {0},Impossibile annullare prima della presentazione .
@@ -188,9 +188,9 @@ Code,Codice
 Collapse,crollo
 Column Break,Interruzione Colonna
 Comment,Commento
-Comment By,Commentato da
+Comment By,Commento di
 Comment By Fullname,Commento di Nome Completo
-Comment Date,Data commento
+Comment Date,Data Commento
 Comment Docname,Commento Docname
 Comment Doctype,Commento Doctype
 Comment Time,Tempo Commento
@@ -201,7 +201,7 @@ Company History,Storico Azienda
 Company Introduction,Introduzione Azienda
 Complaint,Reclamo
 Complete By,Completato da
-Condition,Codizione
+Condition,Condizione
 Contact Us Settings,Impostazioni Contattaci
 "Contact options, like ""Sales Query, Support Query"" etc each on a new line or separated by commas.","Opzioni di contatto, come &quot;Query vendite, il supporto delle query&quot;, ecc ciascuno su una nuova riga o separati da virgole."
 Content,Contenuto
@@ -337,7 +337,7 @@ Embed image slideshows in website pages.,Includi slideshow di immagin nellae pag
 Enable,permettere
 Enable Comments,Attiva Commenti
 Enable Scheduled Jobs,Abilita lavori pianificati
-Enabled,Attivo
+Enabled,Attivato
 Ends on,Termina il
 Enter Form Type,Inserisci Tipo Modulo
 Enter Value,Immettere Valore
@@ -358,13 +358,13 @@ Event User,Evento Utente
 Event end must be after start,Fine evento deve essere successiva partenza
 Events,eventi
 Events In Today's Calendar,Eventi nel Calendario di Oggi
-Every Day,Tutti i Giorni
-Every Month,Ogni mese
-Every Week,Ogni settimana
-Every Year,Ogni anno
+Every Day,Ogni Giorno
+Every Month,Ogni Mese
+Every Week,Ogni Settimana
+Every Year,Ogni Anno
 Everyone,Tutti
 Example:,Esempio:
-Expand,espandere
+Expand,Espandi
 Export,Esporta
 Export not allowed. You need {0} role to export.,Export non consentita . È necessario {0} ruolo da esportare.
 Exported,esportato
@@ -638,7 +638,7 @@ Must specify a Query to run,Necessario specificare una query per eseguire
 My Settings,Le mie impostazioni
 Name,Nome
 Name Case,Nome Caso
-Name and Description,Nome e descrizione
+Name and Description,Nome e Descrizione
 Name is required,Il nome è obbligatorio
 Name not permitted,Nome non consentito
 Name not set via Prompt,Nome non impostato tramite Prompt
@@ -651,7 +651,7 @@ New,Nuovo
 New Password,Nuova password
 New Record,Nuovo Record
 New comment on {0} {1},Nuovo commento su {0} {1}
-New password emailed,Nuova password via email
+New password emailed,Nuova password inviata per email
 New value to be set,Nuovo valore da impostare
 New {0},New {0}
 Next Communcation On,Avanti Comunicazione sui
@@ -685,8 +685,8 @@ Not Permitted,Non Consentito
 Not Submitted,Filmografia
 Not a user yet? Sign up,Non sei ancora un utente ? Iscriviti
 Not a valid Comma Separated Value (CSV File),Non è un valido Comma Separated Value ( CSV ​​File )
-Not allowed,non è permesso
-Not allowed from this IP Address,Non è permesso da questo indirizzo IP
+Not allowed,Non consentito
+Not allowed from this IP Address,Non consentito da questo indirizzo IP
 Not allowed to Import,Non è consentito importare
 Not allowed to access {0} with {1} = {2},Non è consentito l'accesso {0} con {1} = {2}
 Not allowed to change {0} after submission,Non è permesso di cambiare {0} dopo la presentazione
@@ -713,7 +713,7 @@ Only Administrator can save a standard report. Please rename and save.,Solo ammi
 Only Allow Edit For,Consenti solo Edit Per
 Only allowed {0} rows in one import,Solo consentiti {0} righe di una importazione
 Oops! Something went wrong,"Spiacenti, Qualcosa è andato storto"
-Open,Aprire
+Open,Aperto
 Open Count,aperto Conte
 Open Sans,Aperte Sans
 Open Source Web Applications for the Web,Open Source applicazioni Web per il Web
@@ -736,7 +736,7 @@ Other,Altro
 Outgoing Email Settings,Impostazioni e-mail in uscita
 Outgoing Mail Server,Server posta in uscita
 Outgoing Mail Server not specified,Server posta in uscita non specificato
-Owner,proprietario
+Owner,Proprietario
 PDF Page Size,Formato pagina PDF
 PDF Settings,Impostazioni PDF
 POP3 Mail Server (e.g. pop.gmail.com),POP3 Mail Server (ad esempio pop.gmail.com)
@@ -1066,14 +1066,14 @@ System Settings,Impostazioni di sistema
 System User,Utente di sistema
 System and Website Users,Sistema e utenti del sito
 System generated mails will be sent from this email id.,Sistema di posta elettronica generati saranno spediti da questa e-mail id.
-Table,Tavolo
-Table {0} cannot be empty,Tabella {0} non può essere vuoto
+Table,Tabella
+Table {0} cannot be empty,La Tabella {0} non può essere vuota
 Tag,Tag
 Tag Name,Nome del tag
 Tags,Tag
 Tahoma,Tahoma
 Target,Obiettivo
-Tasks,compiti
+Tasks,Attività
 Team Members,Membri del Team
 Team Members Heading,Membri del team Rubrica
 Template,Modelli
@@ -1097,15 +1097,15 @@ These values will be automatically updated in transactions and also will be usef
 Third Party Authentication,L'autenticazione di terze parti
 This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>myfieldeval:doc.myfield=='My Value'<br>eval:doc.age>18,Questo campo viene visualizzato solo se il nome del campo definito qui ha valore O le regole sono veri (esempi): <br>  myfield  eval: doc.myfield == 'il mio valore' <br>  eval: doc.age> 18
 This goes above the slideshow.,Questo va al di sopra della presentazione.
-This is PERMANENT action and you cannot undo. Continue?,Questa è l&#39;azione permanente e non può essere annullata. Continuare?
+This is PERMANENT action and you cannot undo. Continue?,Questa è un'azione DEFINITIVA e non può essere annullata. Continui?
 "This is a standard format. To make changes, please copy it make make a new format.","Questo è un formato standard. Per apportare modifiche, ti preghiamo di copiare ne fanno fare un nuovo formato."
 This is permanent action and you cannot undo. Continue?,Questa è l&#39;azione permanente e non può essere annullata. Continuare?
 This must be checked if Style Settings are applicable,Questo deve essere verificato se le impostazioni di stile sono applicabili
 This role update User Permissions for a user,Questo ruolo Autorizzazioni aggiornamento utente per un utente
-Thursday,Giovedi
+Thursday,Giovedì
 Tile,Piastrella
-Time,Volta
-Time Zone,Time Zone
+Time,Tempo
+Time Zone,Fuso Orario
 Timezone,Fuso orario
 Title,Titolo
 Title / headline of your page,Titolo / intestazione della pagina
@@ -1115,7 +1115,7 @@ Title Prefix,Title Prefix
 Title field must be a valid fieldname,Campo del titolo deve essere un nome di campo valido
 Title is required,È necessaria Titolo
 To,A
-To Do,da fare
+To Do,Da Fare
 "To format columns, give column labels in the query.","Per formattare le colonne, dare etichette di colonna nella query."
 "To give acess to a role for only specific records, check the 'Apply User Permissions'. User Permissions are used to limit users with such role to specific records.","Per dare acess ad un ruolo solo per i record specifici , controllare l' ' applicazione delle autorizzazioni degli utenti ' ."
 "To run a test add the module name in the route after '{0}'. For example, {1}","Per eseguire un test di aggiungere il nome del modulo in rotta dopo la ' {0} ' . Ad esempio , {1}"
@@ -1261,7 +1261,7 @@ arrow-left,freccia-sinistra
 arrow-right,freccia-destra
 arrow-up,freccia-up
 asterisk,asterisco
-backward,indietro
+backward,Indietro
 ban-circle,ban-cerchio
 barcode,codice a barre
 beginning with,cominciare
@@ -1392,7 +1392,7 @@ tags,tags
 tasks,compiti
 text-height,text-altezza
 text-width,testo a larghezza
-th,Th
+th,th
 th-large,th-grande
 th-list,th-list
 thumbs-down,pollice in giù

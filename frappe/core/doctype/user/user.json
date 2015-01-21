@@ -229,64 +229,12 @@
    "fieldname": "incoming_email_settings", 
    "fieldtype": "Section Break", 
    "label": "Email Settings", 
-   "permlevel": 1
-  }, 
-  {
-   "fieldname": "cb18", 
-   "fieldtype": "Column Break", 
    "permlevel": 0
   }, 
   {
    "fieldname": "email_signature", 
    "fieldtype": "Small Text", 
    "label": "Email Signature", 
-   "no_copy": 1, 
-   "permlevel": 0
-  }, 
-  {
-   "fieldname": "cb20", 
-   "fieldtype": "Column Break", 
-   "permlevel": 0
-  }, 
-  {
-   "description": "Pull Emails from the Inbox and attach them as Communication records (for known contacts).", 
-   "fieldname": "sync_inbox", 
-   "fieldtype": "Check", 
-   "hidden": 1, 
-   "label": "Sync Inbox", 
-   "no_copy": 1, 
-   "permlevel": 0
-  }, 
-  {
-   "description": "POP3 Mail Server (e.g. pop.gmail.com)", 
-   "fieldname": "email_host", 
-   "fieldtype": "Data", 
-   "hidden": 1, 
-   "label": "Email Host", 
-   "no_copy": 1, 
-   "permlevel": 0
-  }, 
-  {
-   "fieldname": "email_use_ssl", 
-   "fieldtype": "Check", 
-   "hidden": 1, 
-   "label": "Email Use SSL", 
-   "no_copy": 1, 
-   "permlevel": 0
-  }, 
-  {
-   "fieldname": "email_login", 
-   "fieldtype": "Data", 
-   "hidden": 1, 
-   "label": "Email Login", 
-   "no_copy": 1, 
-   "permlevel": 0
-  }, 
-  {
-   "fieldname": "email_password", 
-   "fieldtype": "Password", 
-   "hidden": 1, 
-   "label": "Email Password", 
    "no_copy": 1, 
    "permlevel": 0
   }, 
@@ -462,7 +410,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 5, 
- "modified": "2014-09-08 06:07:20.157915", 
+ "modified": "2015-01-20 11:28:09.395502", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "User", 

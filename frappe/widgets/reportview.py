@@ -15,9 +15,9 @@ def get():
 
 def execute(doctype, query=None, filters=None, fields=None, or_filters=None, docstatus=None,
 		group_by=None, order_by=None, limit_start=0, limit_page_length=20,
-		as_list=False, with_childnames=False, debug=False):
+		as_list=False, with_childnames=False, debug=False, ignore_permissions=False):
 	return DatabaseQuery(doctype).execute(query, filters, fields, or_filters, docstatus, group_by,
-		order_by, limit_start, limit_page_length, as_list, with_childnames, debug)
+		order_by, limit_start, limit_page_length, as_list, with_childnames, debug, ignore_permissions)
 
 def get_form_params():
 	"""Stringify GET request parameters."""

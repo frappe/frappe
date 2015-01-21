@@ -6,6 +6,7 @@ es		español
 fr		français
 hi		हिंदी
 hr		hrvatski
+is		Íslenska
 id		Indonesia
 it		italiano
 ja		日本語

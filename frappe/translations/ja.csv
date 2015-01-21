@@ -132,8 +132,8 @@ Blogger,ブロガー
 Bookmarks,ブックマーク
 Both login and password required,ログインとパスワードの両方が必要
 Brand HTML,ブランドのHTML
-Bulk Email,大量のメール
-Bulk email limit {0} crossed,バルク電子メールの制限{0}交差
+Bulk Email,バルクメール
+Bulk email limit {0} crossed,バルク電子メールの制限{0}交差されました。
 Button,ボタン
 By,によって
 Calculate,計算
@@ -185,12 +185,12 @@ Close,閉じる
 Close: {0},閉じる：{0}
 Closed,閉じました。
 Code,コード
-Collapse,折りたたみ
+Collapse,崩壊
 Column Break,列の区切り
 Comment,コメント
 Comment By,のコメント
-Comment By Fullname,フルネームのコメント
-Comment Date,評価日時
+Comment By Fullname,フルネームでのコメント
+Comment Date,コメント日付
 Comment Docname,DOCNAMEコメント
 Comment Doctype,文書型コメント
 Comment Time,タイムコメント
@@ -400,7 +400,7 @@ File Size,ファイル サイズ
 File URL,ファイルURL
 File not attached,ファイル付属しておりません
 File size exceeded the maximum allowed size of {0} MB,ファイルサイズは{0} MBの最大許容サイズを超えました
-Fill Screen,画面を埋める
+Fill Screen,フルスクリーン
 Filter,フィルター
 Filter records based on User Permissions defined for a user,ユーザーに対して定義されたユーザー権限に基づいてフィルタレコード
 Filters,フィルターを生成する
@@ -462,14 +462,14 @@ Group Name,グループ名
 Group Title,グループタイトル
 Group Type,グループの種類
 Groups,グループ
-HTML for header section. Optional,ヘッダ部分のHTML。オプション
-Have an account? Login,{0} {1}Have an account?{/1} {/0}ログイン
+HTML for header section. Optional,ヘッダー部分のHTML。オプショナル
+Have an account? Login,{0} {1}アカウントをお持ちですかt?{/1} {/0}ログインを確認します。
 Header,ヘッダー
 Heading,見出し
 Heading Text As,テキストの見出しとして
 Help,ヘルプ
 Help on Search,検索のヘルプ
-Helvetica Neue,ヘルベチカノイエ
+Helvetica Neue,ヘルベチカ•ノイエ
 Hidden,非表示
 Hide Actions,アクション隠す
 Hide Copy,コピーを隠す
@@ -544,7 +544,7 @@ Is Task,課題である
 Item cannot be added to its own descendents,アイテムには独自の子孫に追加することはできません
 JavaScript Format: frappe.query_reports['REPORTNAME'] = {},JavaScriptの形式：frappe.query_reports ['REPORTNAME'] = {}
 Javascript,ジャバスプリクト
-Javascript to append to the head section of the page.,Javascriptがページのheadセクションに追加する。
+Javascript to append to the head section of the page.,Javascriptをページの先頭のセクションに追加する。
 Key,キー (key)
 Label,ラベル
 Label Help,ラベルのヘルプ
@@ -640,12 +640,12 @@ Name,名前
 Name Case,名入れ
 Name and Description,名前と説明
 Name is required,名前が必要です
-Name not permitted,名前許可されていません
+Name not permitted,名前が許可されていません。
 Name not set via Prompt,名前プロンプトから設定されていません
-Name of the Document Type (DocType) you want this field to be linked to. e.g. Customer,このフィールドは、リンクしていることがしたい文書の種類（のDocType）の名前。例えば顧客
+Name of the Document Type (DocType) you want this field to be linked to. e.g. Customer,このフィールドが、リンクしたい文書の種類（DocType）の名前。例えば顧客
 Name of {0} cannot be {1},{0}の名前は{1}にすることはできません
 Naming,命名
-Naming Series mandatory,シリーズ必須の命名
+Naming Series mandatory,シリーズに名付けることは必須です。
 Nested set error. Please contact the Administrator.,入れ子集合のエラー。管理者に連絡してください。
 New,新しい
 New Password,新しいパスワード
@@ -661,7 +661,7 @@ Next actions,次のアクション
 No,いいえ
 No Action,何もしない
 No Communication tagged with this ,No Communication tagged with this 
-No Copy,何をコピーしない
+No Copy,コピーしない
 No Permissions set for this criteria.,いいえ権限は、この基準に設定されていません。
 No Report Loaded. Please use query-report/[Report Name] to run a report.,報告はロードされません。レポートを実行するためにクエリレポート/ [レポート名]を使用してください。
 No Results,がありませんでした
@@ -790,7 +790,7 @@ Phone,電話
 Phone No.,電話番号
 Pick Columns,列を選択してください
 Picture URL,画像のURL
-Pincode,PINコード
+Pincode,郵便番号
 Please attach a file first.,最初のファイルを添付してください。
 Please attach a file or set a URL,ファイルを添付またはURLを設定してください
 Please do not change the rows above {0},{0}の上の行を変更しないでください
@@ -873,8 +873,8 @@ Reference Name,参照名
 Reference Type,参照タイプ
 Refresh,リフレッシュ
 Refreshing...,さわやかな...
-Registered but disabled.,登録されているが無効になっています。
-Registration Details Emailed.,登録の詳細電子メールで送信。
+Registered but disabled.,登録されるが、使用不可。
+Registration Details Emailed.,登録の詳細は電子メールで送信。
 Reload Page,ページを再ロード
 Remove Bookmark,ブックマークを削除する
 Remove all customizations?,すべてのカスタマイズを削除しますか？
@@ -1263,14 +1263,14 @@ arrow-right,矢印右
 arrow-up,矢印アップ
 asterisk,アスタリスク
 backward,後方
-ban-circle,BAN-サークル
+ban-circle,BAN-CIRCLE
 barcode,バーコード
 beginning with,で始まる
 bell,鐘
 bold,bold
 book,本
 bookmark,ブックマーク
-briefcase,ブリーフケース
+briefcase,書類鞄
 bullhorn,拡声器
 calendar,経済指標の発表を意識することです
 camera,カメラ
@@ -1315,10 +1315,10 @@ fullscreen,フルスクリーン
 gift,ギフト
 glass,ガラス
 globe,地球
-hand-down,ハンドダウン
+hand-down,簡単に
 hand-left,手で左
 hand-right,手で右
-hand-up,ハンドアップ
+hand-up,手渡す
 hdd,HDD
 headphones,ヘッドフォン
 heart,心

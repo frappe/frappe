@@ -27,8 +27,8 @@ def get_permission_query_conditions(user):
 			`tabEvent Role`.parent=tabEvent.name
 			and `tabEvent Role`.role in ('%(roles)s')))
 		""" % {
-			"user": user,
-			"roles": "', '".join(frappe.get_roles(user))
+			"user": frappe.db.escape(user),
+			"roles": "', '".join([frappe.db.escape(r) for r in frappe.get_roles(user)])
 		}
 
 def has_permission(doc, user):
