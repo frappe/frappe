@@ -14,7 +14,7 @@
   margin-top: 10px;
 }
 .navbar .breadcrumb-divider i {
-  color: #9d9d9d;
+  color: #C0C9D2;
 }
 .navbar-icon-home {
   vertical-align: middle;
@@ -45,6 +45,7 @@
 }
 #navbar-search {
   width: 300px;
+  background-color: rgba(255, 255, 255, 0.9);
 }
 .navbar .navbar-search-icon {
   color: #6c7680;

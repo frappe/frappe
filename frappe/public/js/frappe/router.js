@@ -47,6 +47,9 @@ frappe.route = function() {
 	if(frappe.route_titles[window.location.hash]) {
 		document.title = frappe.route_titles[window.location.hash];
 	}
+
+	// collapse offcanvas sidebars!
+	$(".offcanvas").removeClass("active-left active-right");
 }
 
 frappe.get_route = function(route) {
