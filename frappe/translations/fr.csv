@@ -54,8 +54,8 @@ Address Line 1,Adresse ligne 1
 Address Line 2,Adresse ligne 2
 Address Title,Titre de l'adresse
 Address and other legal information you may want to put in the footer.,Adresse et autres informations juridiques que vous voudriez mettre dans le pied de page.
-Admin,admin
-All Applications,toutes les applications
+Admin,Administrateur
+All Applications,Toutes les applications
 All Day,Toute la journée
 All customizations will be removed. Please confirm.,Toutes les personnalisations seront supprimés. Veuillez confirmer.
 "All possible Workflow States and roles of the workflow. <br>Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""","Tous les états et les rôles possibles du flux de travail. <br> Options de Docstatus: 0 est &quot;Sauver&quot;, 1 signifie «soumis» et 2 est «annulé»"
@@ -170,7 +170,7 @@ Check,Vérifier
 Check / Uncheck roles assigned to the User. Click on the Role to find out what permissions that Role has.,Cochez / Décochez les rôles assignés au profil. Cliquez sur le Rôle de savoir ce que ce rôle comme autorisations.
 Check this if you want to send emails as this id only (in case of restriction by your email provider).,Cochez cette case si vous souhaitez envoyer des emails en tant que cette id seulement (en cas de restriction par votre fournisseur de messagerie).
 Check this to make this the default letter head in all prints,"Cochez cette case pour faire de cette entête de lettre, celle par défaut dans toutes les imprimés"
-Check which Documents are readable by a User,Vérifiez quels documents sont lisibles par un utilisateur
+Check which Documents are readable by a User,Vérifier quels documents sont lisibles pour un utilisateur donné
 Checked items shown on desktop,Les éléments cochés sont indiqués sur le bureau
 Child Tables are shown as a Grid in other DocTypes.,Les tableaux enfants sont présentés comme une grille dans les autres documents.
 City,Ville
@@ -309,7 +309,7 @@ Drag to sort columns,Faites glisser pour trier les colonnes
 Due Date,Due Date
 Duplicate name {0} {1},Dupliquer nom {0} {1}
 Dynamic Link,Lien dynamique
-ERPNext Demo,ERPNext Démo
+ERPNext Demo,Démo ERPNext 
 Edit,Éditer
 Edit Permissions,Modifier les autorisations
 Editable,Editable
@@ -336,7 +336,7 @@ Emails are muted,Les e-mails sont mis en sourdine
 Embed image slideshows in website pages.,Intégrer des diaporamas d&#39;images dans les pages du site.
 Enable,permettre
 Enable Comments,Activer Commentaires
-Enable Scheduled Jobs,Activer tâches planifiées
+Enable Scheduled Jobs,Activer les tâches planifiées
 Enabled,Activé
 Ends on,Se termine le
 Enter Form Type,Entrez le type de formulaire
@@ -376,7 +376,7 @@ Facebook Share,Facebook Partager
 Facebook User ID,Facebook ID utilisateur
 Facebook Username,Facebook Nom d'utilisateur
 FavIcon,FavIcon
-Female,Féminin
+Female,Femme
 Field Description,Champ Description
 Field Name,Nom de domaine
 Field Type,Type de champ
@@ -401,13 +401,13 @@ File URL,URL du fichier
 File not attached,Le fichier n'a pas fixé
 File size exceeded the maximum allowed size of {0} MB,La taille du fichier a dépassé la taille maximale autorisée de {0} Mo
 Fill Screen,Remplir l'écran
-Filter,Filtrez
+Filter,Filtre
 Filter records based on User Permissions defined for a user,Filtrer les enregistrements basés sur les autorisations des utilisateurs définis pour un utilisateur
 Filters,Filtres
 Find {0} in {1},Trouver {0} dans {1}
 First Name,Prénom
 Float,Flotter
-Float Precision,Flotteur de précision
+Float Precision,Nombre de décimales
 Font (Heading),Font (cap)
 Font (Text),Font (texte)
 Font Size,Taille des caractères
@@ -430,7 +430,7 @@ Form,forme
 Forum,Forum
 Forums,Fermer : {0}
 Forward To Email Address,Transférer à l'adresse e-mail
-Frappe Framework,Cadre de Frappe
+Frappe Framework,Framework Frappe 
 Friday,Vendredi
 From Date must be before To Date,Partir de la date doit être antérieure à ce jour
 Full Name,Nom et Prénom
@@ -467,7 +467,7 @@ Have an account? Login,Vous avez un compte? Connexion
 Header,En-tête
 Heading,Titre
 Heading Text As,Intitulé texte que
-Help,Aider
+Help,Aide
 Help on Search,Aide de recherche
 Helvetica Neue,Helvetica Neue
 Hidden,Caché
@@ -478,7 +478,7 @@ Hide Toolbar,Masquer la barre
 Hide the sidebar,Masquer la barre latérale
 High,Haut
 Highlight,Surligner
-History,Histoire
+History,Historique
 Home Page,Page d&#39;accueil
 Home Page is Products,Page d&#39;accueil Produits est
 ID (name) of the entity whose property is to be set,ID (nom) de l&#39;entité dont la propriété doit être définie
@@ -542,7 +542,8 @@ Is Standard,Est-standard
 Is Submittable,Est-Submittable
 Is Task,est Groupe
 Item cannot be added to its own descendents,Article ne peut être ajouté à ses propres descendants
-JavaScript Format: frappe.query_reports['REPORTNAME'] = {},JavaScript Format : frappe.query_reports [' REPORTNAME '] = {}
+JavaScript Format: frappe.query_reports['REPORTNAME'] = {},"JavaScript Format :
+frappe.query_reports [' REPORTNAME '] = {}"
 Javascript,Javascript
 Javascript to append to the head section of the page.,Javascript à ajouter à la section head de la page.
 Key,Clé
@@ -763,9 +764,9 @@ Parent Website Route,Montant de l'impôt après réduction Montant
 Parent Website Sitemap,Parent Plan du site
 Participants,Les participants
 Password,Mot de passe
-Password Updated,Mot de passe Mise à jour
+Password Updated,Mot de passe mise à jour
 Password reset instructions have been sent to your email,Instructions de réinitialisation de mot de passe ont été envoyés à votre adresse email
-Patch,Pièce
+Patch,Correctif
 Patch Log,Connexion Patch
 Percent,Pour cent
 Perm Level,Perm niveau
@@ -848,7 +849,7 @@ Property Type,Type de propriété
 Public,Public
 Published,Publié
 Published On,Publié le
-Published on website at: {0},Publié sur le site Web au: {0}
+Published on website at: {0},Publié sur le site Web le: {0}
 Pull Emails from the Inbox and attach them as Communication records (for known contacts).,Tirez e-mails à partir de la boîte de réception et les attacher comme des enregistrements de communication (pour les contacts connus).
 Query,Requête
 Query Options,Options de requête
@@ -903,7 +904,7 @@ Restrict user from this IP address only. Multiple IP addresses can be added by s
 Right,Droit
 Role,Rôle
 Role Name,Rôle Nom
-Role Permissions Manager,Permission de rôle Gestionnaire
+Role Permissions Manager,Gestion autorisation des rôles
 Role and Level,Rôle et le niveau
 Role exists,rôle existe
 Roles,Rôles
@@ -916,14 +917,14 @@ Row,Rangée
 Row #{0}:,Ligne # {0}:
 Rules defining transition of state in the workflow.,Règles définissant la transition de l&#39;état dans le workflow.
 "Rules for how states are transitions, like next state and which role is allowed to change state etc.","Règles pour la manière dont les États sont des transitions, comme état suivant et dont le rôle est autorisé à changer d&#39;état, etc"
-Run scheduled jobs only if checked,Exécuter les tâches planifiées que si vérifiés
+Run scheduled jobs only if checked,Les tâches planifiées son exécutées qui si coché
 Run the report first,Exécutez le premier rapport
 SMTP Server (e.g. smtp.gmail.com),Serveur SMTP (smtp.gmail.com par exemple)
 Sales,Ventes
 Same file has already been attached to the record,Même fichier a déjà été jointe au dossier
 Sample,Echantillon
 Saturday,Samedi
-Save,sauver
+Save,Enregistrer
 Scheduler Log,Scheduler Connexion
 Script,Scénario
 Script Report,Rapport de Script
@@ -948,7 +949,7 @@ Select Type,Sélectionnez le type de
 Select User or DocType to start.,Sélectionnez l'utilisateur ou Doctype pour commencer.
 Select a Banner Image first.,Choisissez une bannière image première.
 Select an image of approx width 150px with a transparent background for best results.,Sélectionnez une image d&#39;une largeur d&#39;environ 150px avec un fond transparent pour de meilleurs résultats.
-Select dates to create a new ,Select dates to create a new 
+Select dates to create a new ,Sélectionnez les dates pour créer un nouveau
 "Select modules to be shown (based on permission). If hidden, they will be hidden for all users.","Sélectionnez les modules à être affichées ( sur la base de l'autorisation ) . Si caché , ils seront cachés pour tous les utilisateurs ."
 Select or drag across time slots to create a new event.,Sélectionnez ou glisser sur des intervalles de temps pour créer un nouvel événement.
 "Select target = ""_blank"" to open in a new page.","Sélectionnez target = "" _blank "" pour ouvrir dans une nouvelle page ."
@@ -977,25 +978,25 @@ Server,Serveur
 Server & Credentials,Serveur et de vérification des pouvoirs
 Server Error: Please check your server logs or contact tech support.,Erreur de serveur : S'il vous plaît vérifier vos logs du serveur ou contactez le support technique .
 Session Expired. Logging you out,Session a expiré. Vous déconnecter
-Session Expiry,Session d&#39;expiration
-Session Expiry in Hours e.g. 06:00,"Expiration session en heures, par exemple 06:00"
-Session Expiry must be in format {0},Session d'expiration doit être au format {0}
+Session Expiry,Expiration session
+Session Expiry in Hours e.g. 06:00,"Delai d'expiration  d'une session en heures, exp. 06:00"
+Session Expiry must be in format {0},Expiration de session doit être au format {0}
 Set Banner from Image,Réglez bannière de l&#39;image
 Set Link,Réglez Lien
 Set Login and Password if authentication is required.,Set de connexion et mot de passe si l&#39;authentification est requise.
 Set Only Once,Défini qu'une seule fois
 Set Password,définir mot de passe
-Set Permissions on Document Types and Roles,Définir les autorisations sur les types de documents et des rôles
+Set Permissions on Document Types and Roles,Définir les autorisations des rôles sur les types de documents .
 Set Permissions per User,Définir les autorisations par utilisateur
 Set User Permissions,Définir les autorisations des utilisateurs
 Set Value,Définir la valeur
 "Set default format, page size, print style etc.","Format défini par défaut, le format de page, le style d'impression etc"
-Set numbering series for transactions.,Réglez série de numérotation pour les transactions.
+Set numbering series for transactions.,Numérotation pour les divers transactions.
 Set outgoing mail server.,Réglez serveur de courrier sortant .
 Settings,Réglages
 Settings for About Us Page.,Paramètres de la page A propos de nous.
 Settings for Contact Us Page.,Paramètres de la page Contactez-nous.
-Setup,Installation
+Setup,Configuration
 Setup > User,Configuration> utilisateur
 Setup > User Permissions Manager,Configuration> autorisations des utilisateurs Gestionnaire
 Setup Email Alert based on various criteria.,Configuration Alerte Email basée sur différents critères.
@@ -1004,10 +1005,10 @@ Setup of fonts and background.,Configuration des polices et le fond.
 Short Bio,Courte biographie
 Short Name,Nom court
 Shortcut,Raccourci
-Show / Hide Modules,Afficher / Masquer les Modules
+Show / Hide Modules,Gestion Modules
 Show Print First,Montrer Imprimer Première
 Show Tags,Afficher les tags
-Show or hide modules globally.,Afficher ou masquer les modules à l'échelle mondiale .
+Show or hide modules globally.,Afficher ou masquer les modules.
 Show rows with zero values,Afficher lignes avec des valeurs nulles
 Show tags,Afficher mots clés
 Show this field as title,Voir ce domaine que le titre
@@ -1064,7 +1065,7 @@ Sync Inbox,Sync boîte de réception
 System,Système
 System Settings,Paramètres système
 System User,L&#39;utilisateur du système
-System and Website Users,Système et utilisateurs du site Web
+System and Website Users,Utilisateurs système et site Web
 System generated mails will be sent from this email id.,Mails générés par le système seront envoyés à cette id e-mail.
 Table,Table
 Table {0} cannot be empty,Tableau {0} ne peut pas être vide
@@ -1157,7 +1158,7 @@ Upload and Sync,Télécharger et Sync
 Uploading...,Téléchargement ...
 Upvotes,upvotes
 Use TLS,Utilisez TLS
-User,Utilisateur
+User,Utilisateurs
 User Cannot Create,L&#39;utilisateur ne peut pas créer
 User Cannot Search,L&#39;utilisateur ne peut pas effectuer de recherche
 User Defaults,Par défaut le profil
@@ -1165,11 +1166,11 @@ User ID of a blog writer.,ID de l'utilisateur d'un écrivain blog.
 User Image,De l&#39;utilisateur
 User Permission,Permission de l'utilisateur
 User Permissions,Les autorisations des utilisateurs
-User Permissions Manager,Les autorisations des utilisateurs Gestionnaire
-User Roles,Rôles de l'utilisateur
+User Permissions Manager,Gestion autorisations des utilisateurs
+User Roles,Définition des rôles
 User Tags,Nuage de Tags
 User Type,Type d&#39;utilisateur
-"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ","User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. "
+"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ","L'utilisateur type  ""utilisateur système"" peut accéder au bureau. ""utilisateur web"" ne peut être connecté qu'au site Web et pages du portail."
 User Vote,Vote de l'utilisateur
 User not allowed to delete {0}: {1},Utilisateur non autorisé à supprimer {0}: {1}
 User permissions should not apply for this Link,Autorisations de l'utilisateur ne devraient pas s'appliquer pour ce Lien
@@ -1207,7 +1208,7 @@ Website Slideshow,Diaporama site web
 Website Slideshow Item,Point Diaporama site web
 Website User,Utilisateur
 Wednesday,Mercredi
-Welcome email sent,Bienvenue courriel envoyé
+Welcome email sent,Email de bienvenue envoyé
 "When you Amend a document after Cancel and save it, it will get a new number that is a version of the old number.","Lorsque vous modifiez un document après Annuler et enregistrez-le , il va obtenir un nouveau numéro qui est une version de l'ancien numéro ."
 Width,Largeur
 Will be used in url (usually first name).,Sera utilisé dans url (généralement prénom).
@@ -1251,7 +1252,7 @@ You seem to have written your name instead of your email. \					Please enter a v
 [Optional] Send the email X days in advance of the specified date. 0 equals same day.,[Optionnel] Envoyer les emails X jours à l'avance de la date spécifiée. 0 est égal même jour.
 add your own CSS (careful!),ajouter vos propres CSS (prudence!)
 adjust,paramétrer
-align-center,alignez-centre
+align-center,Centrer
 align-justify,alignement justifier
 align-left,alignement à gauche
 align-right,aligner à droite
@@ -1298,7 +1299,7 @@ exclamation-sign,exclamation signe
 eye-close,oeil de près
 eye-open,ouvrir les yeux
 facetime-video,facetime-vidéo
-fast-backward,Recherche rapide arrière
+fast-backward,Retour rapide
 fast-forward,avance rapide
 file,dossier
 film,film
@@ -1310,7 +1311,7 @@ folder-open,dossier-ouvrir
 font,fonte
 forward,avant
 found,trouvé
-fullscreen,fullscreen
+fullscreen,Plein écran
 gift,cadeau
 glass,verre
 globe,globe

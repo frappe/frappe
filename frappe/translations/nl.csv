@@ -112,13 +112,13 @@ Avatar,Avatar
 Back to Login,Terug naar Inloggen
 Background Color,Achtergrondkleur
 Background Image,Achtergrondafbeelding
-Background Style,Achtergrond Style
-Banner,Banier
+Background Style,Achtergrond Stijl
+Banner,Banner
 Banner HTML,Banner HTML
 Banner Image,Banner Afbeelding
 Banner is above the Top Menu Bar.,Banner is boven de top menubalk.
 Begin this page with a slideshow of images,Begin deze pagina met een diavoorstelling van foto&#39;s
-Beginning with,Te beginnen met
+Beginning with,Begint met
 Belongs to,hoort bij
 Bio,Bio
 Birth Date,Geboortedatum
@@ -126,18 +126,18 @@ Blog Category,Blog Categorie
 Blog Intro,Blog Intro
 Blog Introduction,Blog Inleiding
 Blog Post,Blog Post
-Blog Settings,Blog Settings
+Blog Settings,Blog Instellingen
 Blog Title,Blog Titel
 Blogger,Blogger
 Bookmarks,Bladwijzers
 Both login and password required,Zowel de login en wachtwoord vereist
-Brand HTML,Brand HTML
+Brand HTML,Merk HTML
 Bulk Email,Bulk Email
 Bulk email limit {0} crossed,Bulk e-mail limiet {0} gekruist
 Button,Knop
 By,Door
 Calculate,Bereken
-Calendar,Kalender
+Calendar,Agenda
 Cancel,Annuleren
 Cancelled,Geannuleerd
 "Cannot Edit {0} directly: To edit {0} properties, create / update {1}, {2} and {3}","Kan niet bewerken {0} direct : Om {0} eigenschappen te bewerken , aanmaken / bijwerken {1} , {2} en {3}"
@@ -563,7 +563,7 @@ Lato,Lato
 Leave blank to repeat always,Laat leeg om altijd te herhalen
 Left,Links
 Less or equals,Minder of gelijk
-Less than,minder dan
+Less than,Minder dan
 Letter,Brief
 Letter Head,Brief Hoofd
 Letter Head Name,Brief Hoofd Naam
@@ -580,13 +580,13 @@ Linked With,Linked Met
 List,Lijst
 List a document type,Lijst een documenttype
 List of Web Site Forum's Posts.,Lijst van Web Site Forum posts .
-Loading,Het laden
+Loading,Laden
 Loading Report,Laden Rapport
-Loading...,Loading ...
-Localization,lokalisatie
-Location,plaats
+Loading...,Laden ...
+Localization,Lokalisatie
+Location,Lokatie
 Log of error on automated events (scheduler).,Log van fout op geautomatiseerde evenementen ( scheduler ) .
-Login,login
+Login,Login
 Login After,Login Na
 Login Before,Login Voor
 Login Id,Login Id
@@ -618,7 +618,7 @@ Messages,Berichten
 Method,Methode
 Middle Name (Optional),Midden Naam (Optioneel)
 Misc,Misc
-Miscellaneous,Gemengd
+Miscellaneous,Divers
 Missing Values Required,Ontbrekende Vereiste waarden
 Modern,Modern
 Modified by,Aangepast door
@@ -631,7 +631,7 @@ Monday,Maandag
 More,Meer
 More content for the bottom of the page.,Meer inhoud voor de onderkant van de pagina.
 Move Down: {0},Omlaag : {0}
-Move Up: {0},Move Up : {0}
+Move Up: {0},Omhoog : {0}
 Multiple root nodes not allowed.,Meerdere wortel nodes niet toegestaan ​​.
 Must have report permission to access this report.,Moet verslag toestemming om toegang tot dit rapport.
 Must specify a Query to run,Moet een query opgeven om te draaien
@@ -712,9 +712,9 @@ Only Administrator allowed to create Query / Script Reports,Alleen Beheerder toe
 Only Administrator can save a standard report. Please rename and save.,Alleen Beheerder kan een standaard rapport op te slaan. Wijzig de naam en sla.
 Only Allow Edit For,Alleen toestaan ​​Bewerken Voor
 Only allowed {0} rows in one import,Alleen toegestaan ​​{0} rijen in een import
-Oops! Something went wrong,Oops! Er ging iets mis
+Oops! Something went wrong,Oops! Er ging iets mis!
 Open,Open
-Open Count,Open Graaf
+Open Count,Open Telling
 Open Sans,Open Sans
 Open Source Web Applications for the Web,Open Source webapplicaties voor het web
 Open a module or tool,Open een module of gereedschap
@@ -852,7 +852,7 @@ Published on website at: {0},Gepubliceerd op de website op: {0}
 Pull Emails from the Inbox and attach them as Communication records (for known contacts).,Trek E-mails van het Postvak IN en bevestig ze als communicatie-records (voor bekende contacten).
 Query,Vraag
 Query Options,Query-opties
-Query Report,Query Report
+Query Report,Query Rapport
 Query must be a SELECT,Query moet een SELECT te zijn
 Quick Help for Setting Permissions,Snelle hulp voor het instellen van permissies
 Quick Help for User Permissions,Snelle hulp voor de gebruiker Permissions
@@ -919,7 +919,7 @@ Rules defining transition of state in the workflow.,Regels met betrekking tot de
 Run scheduled jobs only if checked,Run geplande taken alleen als gecontroleerd
 Run the report first,Voert u het rapport eerst
 SMTP Server (e.g. smtp.gmail.com),SMTP-server (bijvoorbeeld smtp.gmail.com)
-Sales,Sales
+Sales,Verkoop
 Same file has already been attached to the record,Hetzelfde bestand al is verbonden aan het record
 Sample,Voorbeeld
 Saturday,Zaterdag
@@ -929,7 +929,7 @@ Script,Script
 Script Report,Script Report
 Script Type,Script Type
 Search,Zoek
-Search Fields,Zoeken Velden
+Search Fields,Zoek Velden
 Search in a document type,Zoek in een documenttype
 Search or type a command,Zoek of typ een opdracht
 Section Break,Sectie-einde
@@ -953,7 +953,7 @@ Select dates to create a new ,Select dates to create a new
 Select or drag across time slots to create a new event.,Selecteer of sleep over tijdsloten om een ​​nieuwe gebeurtenis te maken.
 "Select target = ""_blank"" to open in a new page.","Selecteer target = "" _blank "" te openen in een nieuwe pagina ."
 Select the label after which you want to insert new field.,"Selecteer het label, waarna u nieuwe veld wilt invoegen."
-Send,Sturen
+Send,Verstuur
 Send Alert On,Stuur Alert On
 Send As Email,Verstuur als e-mail
 Send Email,E-mail verzenden
@@ -1187,10 +1187,10 @@ Value Change,Wijzigen
 Value Changed,Waarde Veranderd
 Value cannot be changed for {0},Waarde kan niet worden gewijzigd voor {0}
 Value for a check field can be either 0 or 1,Waarde voor een controle veld kan ofwel 0 of 1
-Value missing for,Waarde vermist
+Value missing for,Waarde ontbreekt
 Verdana,Verdana
-Version,versie
-Version restored,versie hersteld
+Version,Versie
+Version restored,Versie hersteld
 View or manage Website Route tree.,Bekijken of beheren Website Route boom.
 Visit,Bezoeken
 Warning,Waarschuwing
@@ -1198,21 +1198,21 @@ Warning: This Print Format is in old style and cannot be generated via the API.,
 Web Page,Webpagina
 Web Site Forum Page.,Website Forum pagina .
 Website,Website
-Website Group,website Group
+Website Group,website Groep
 Website Route,website Sitemap
 Website Route Permission,Website Route Toestemming
 Website Script,Website Script
-Website Settings,Website-instellingen
+Website Settings,Website instellingen
 Website Slideshow,Website Diashow
 Website Slideshow Item,Website Diashow Item
 Website User,Website Gebruiker
 Wednesday,Woensdag
-Welcome email sent,Welkom verzonden e-mail
+Welcome email sent,Welkom e-mail verzonden
 "When you Amend a document after Cancel and save it, it will get a new number that is a version of the old number.","Wanneer u een document na Annuleren en sla het wijzigen , zal het een nieuw nummer dat is een versie van het oude nummer te krijgen ."
 Width,Breedte
 Will be used in url (usually first name).,Wordt gebruikt url (meestal voornaam).
 With Groups,met Groepen
-With Ledgers,met Ledgers
+With Ledgers,met Grootboeken
 With Letterhead,Met briefhoofd
 Workflow,Workflow
 Workflow Action,Workflow Actie
@@ -1233,11 +1233,11 @@ Writers Introduction,Schrijvers Introductie
 Year,Jaar
 Yes,Ja
 Yesterday,Gisteren
-You are not allowed to create / edit reports,U bent niet toegestaan ​​om / bewerken van rapporten
-You are not allowed to export the data of: {0}. Downloading empty template.,Het is niet toegestaan ​​om de gegevens van de te exporteren : {0} . Het downloaden van lege sjabloon .
+You are not allowed to create / edit reports,Niet toegestaan ​​om rapporten te maken of te bewerken
+You are not allowed to export the data of: {0}. Downloading empty template.,Het is niet toegestaan ​​om de gegevens van {0} te exporteren. Er wordt een leeg sjabloon gedownload.
 You are not allowed to export this report,U bent niet bevoegd om dit rapport te exporteren
 You are not allowed to print this document,U bent niet gemachtigd om dit document af te drukken
-You are not allowed to send emails related to this document,Het is niet toegestaan ​​om e-mails met betrekking tot dit document te versturen
+You are not allowed to send emails related to this document,U bent niet bevoegd ​​om e-mails met betrekking tot dit document te versturen
 "You can change Submitted documents by cancelling them and then, amending them.","U kunt Ingezonden documenten wijzigen door deze te annuleren en vervolgens , tot wijziging van hen."
 You can use Customize Form to set levels on fields.,U kunt aanpassen formulier gebruiken om in te stellen op de velden .
 You can use wildcard %,U kunt gebruik maken van wildcard%
@@ -1246,7 +1246,7 @@ You have unsaved changes in this form. Please save before you continue.,Je hebt 
 You need to be logged in and have System Manager Role to be able to access backups.,Je moet ingelogd zijn en hebben System Manager Rol om toegang tot back-ups.
 You need write permission to rename,Je hebt toestemming nodig om te hernoemen schrijven
 You seem to have written your name instead of your email. \					Please enter a valid email address so that we can get back.,"Je lijkt je naam te hebben geschreven in plaats van uw e-mail. \ Vul een geldig e-mailadres, zodat we terug kunnen krijgen."
-"Your download is being built, this may take a few moments...","Uw download wordt gebouwd, kan dit enige tijd duren ..."
+"Your download is being built, this may take a few moments...","Uw download wordt opgezet, kan dit enige tijd duren ..."
 [Label]:[Field Type]/[Options]:[Width],[Label]: [Veld Type] / [Opties]: [Breedte]
 [Optional] Send the email X days in advance of the specified date. 0 equals same day.,[Optioneel] Stuur de e-mail X dagen voor de opgegeven datum. 0 gelijk dezelfde dag.
 add your own CSS (careful!),voeg uw eigen CSS (careful!)
@@ -1266,7 +1266,7 @@ ban-circle,ban-cirkel
 barcode,barcode
 beginning with,beginnend met
 bell,bel
-bold,gedurfd
+bold,Vet
 book,boek
 bookmark,bladwijzer
 briefcase,koffertje
@@ -1408,8 +1408,8 @@ user_image_show,user_image_show
 values and dates,waarden en data
 values separated by commas,waarden gescheiden door komma's
 volume-down,volume-omlaag
-volume-off,volume-off
-volume-up,volume-up
+volume-off,volume-uit
+volume-up,volume-omhoog
 warning-sign,waarschuwing-teken
 wrench,moersleutel
 yyyy-mm-dd,yyyy-mm-dd

@@ -8,7 +8,7 @@
 "<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank"">[?]</a>","<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank"">[?]</a>"
 "<a onclick=""msgprint('<ol>\<li><b>field:[fieldname]</b> - By Field\<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\<li><b>Prompt</b> - Prompt user for a name\<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\</ol>')"">Naming Options</a>","<a onclick=""msgprint('<ol>\<li><b>field:[fieldname]</b> - By Field\<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\<li><b>Prompt</b> - Prompt user for a name\<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\</ol>')"">Naming Options</a>"
 A user can be permitted to multiple records of the same DocType.,A user can be permitted to multiple records of the same DocType.
-About,About
+About,Informacje
 About Us Settings,About Us Settings
 About Us Team Member,About Us Team Member
 Action,Działanie
@@ -19,12 +19,12 @@ Add A New Rule,Add A New Rule
 Add A User Permission,Add A User Permission
 Add Attachments,Add Attachments
 Add Bookmark,Dodaj zakładkę
-Add CSS,Add CSS
+Add CSS,Dodaj arkusz CSS
 Add Column,Dodaj kolumnę
-Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.
+Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,Dodaj Google Analytics ID: np. UA-89XXX57-1. Więcej informacji znajdziesz w pomocy Google Analytics. 
 Add Message,Dodaj wiadomość
 Add New Permission Rule,Add New Permission Rule
-Add Reply,Add Reply
+Add Reply,Dodaj Odpowiedź
 Add Total Row,Add Total Row
 Add a New Role,Add a New Role
 Add a banner to the site. (small banners are usually good),Add a banner to the site. (small banners are usually good)
@@ -32,13 +32,13 @@ Add all roles,Add all roles
 Add attachment,Add attachment
 Add code as &lt;script&gt;,Add code as &lt;script&gt;
 Add custom javascript to forms.,Add custom javascript to forms.
-Add fields to forms.,Add fields to forms.
+Add fields to forms.,Dodaj pola do formularza.
 Add new row,Dodaj nowy wiersz
 "Add the name of <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> e.g. ""Open Sans""","Add the name of <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> e.g. ""Open Sans"""
-Add to To Do,Add to To Do
+Add to To Do,Dodaj do listy To Do (Do Zrobienia)
 Add to To Do List Of,Add to To Do List Of
 Adding System Manager to this User as there must be atleast one System Manager,Adding System Manager to this User as there must be atleast one System Manager
-Additional Info,Additional Info
+Additional Info,Dodatkowe Informacje
 Additional Permissions,Additional Permissions
 Address,Adres
 Address Line 1,Address Line 1
@@ -59,15 +59,15 @@ Allow user to login only before this hour (0-24),Allow user to login only before
 Allowed,Allowed
 "Allowing DocType, DocType. Be careful!","Allowing DocType, DocType. Be careful!"
 Already Registered,Already Registered
-Already in user's To Do list,Already in user's To Do list
+Already in user's To Do list,"Jest już na liście ""To Do"" użytkownika"
 Alternative download link,Alternative download link
 "Alternatively, you can also specify 'auto_email_id' in site_config.json","Alternatively, you can also specify 'auto_email_id' in site_config.json"
 Always use above Login Id as sender,Always use above Login Id as sender
 Amend,Amend
 "An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [<a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a>]","An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [<a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a>]"
-"Another {0} with name {1} exists, select another name","Another {0} with name {1} exists, select another name"
-Anyone Can Read,Anyone Can Read
-Anyone Can Write,Anyone Can Write
+"Another {0} with name {1} exists, select another name","Inny {0} z nazwą {1} istnieje, wybierz inną nazwę"
+Anyone Can Read,Każdy może odczytywać
+Anyone Can Write,Każdy może zapisywać
 "Apart from Role based Permission Rules, you can apply User Permissions based on DocTypes.","Apart from Role based Permission Rules, you can apply User Permissions based on DocTypes."
 "Apart from System Manager, roles with 'Set User Permissions' right can set permissions for other users for that Document Type.","Apart from System Manager, roles with 'Set User Permissions' right can set permissions for other users for that Document Type."
 App Already Installed,App Already Installed
@@ -80,7 +80,7 @@ Apply User Permissions,Apply User Permissions
 Are you sure you want to delete the attachment?,Are you sure you want to delete the attachment?
 Arial,Arial
 "As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User.","As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User."
-Ascending,Ascending
+Ascending,Rosnąco
 Assign To,Assign To
 Assigned By,Przypisane przez
 Assigned To,Przypisane do
@@ -99,7 +99,7 @@ Auto Email Id,Auto Email Id
 Auto Name,Auto Name
 Auto generated,Auto generated
 Avatar,Avatar
-Back to Login,Back to Login
+Back to Login,Wróć do Logowania
 Background Color,Background Color
 Background Image,Background Image
 Banner,Banner
@@ -120,23 +120,23 @@ Blog Title,Blog Title
 Blogger,Blogger
 Bookmarks,Zakładki
 Brand HTML,Brand HTML
-Bulk Email,Bulk Email
-Bulk email limit {0} crossed,Bulk email limit {0} crossed
-Button,Button
+Bulk Email,Korespondencja seryjna (e-mail)
+Bulk email limit {0} crossed,Limit {0} korespondencji e-mail przekroczony
+Button,Przycisk
 By,By
 Calendar,Kalendarz
 Cancel,Anuluj
-Cancelled,Cancelled
+Cancelled,Anulowano
 "Cannot Edit {0} directly: To edit {0} properties, create / update {1}, {2} and {3}","Cannot Edit {0} directly: To edit {0} properties, create / update {1}, {2} and {3}"
 Cannot Update: Incorrect / Expired Link.,Cannot Update: Incorrect / Expired Link.
 Cannot Update: Incorrect Password,Cannot Update: Incorrect Password
-Cannot add more than 50 comments,Cannot add more than 50 comments
+Cannot add more than 50 comments,Nie można dodawać więcej niż 50 komentarzy
 Cannot cancel before submitting. See Transition {0},Cannot cancel before submitting. See Transition {0}
 Cannot change picture,Cannot change picture
 Cannot change state of Cancelled Document. Transition row {0},Cannot change state of Cancelled Document. Transition row {0}
 Cannot change {0},Cannot change {0}
 Cannot delete or cancel because {0} {1} is linked with {2} {3},Cannot delete or cancel because {0} {1} is linked with {2} {3}
-Cannot delete {0} as it has child nodes,Cannot delete {0} as it has child nodes
+Cannot delete {0} as it has child nodes,Nie można skasować {0} ponieważ posiada elementy potomne
 Cannot delete {0} {1} is it is referenced in another record,Cannot delete {0} {1} is it is referenced in another record
 Cannot edit standard fields,Cannot edit standard fields
 Cannot map because following condition fails: ,Cannot map because following condition fails: 
@@ -152,7 +152,7 @@ Category Name,Category Name
 Center,Center
 "Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit.","Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit."
 "Change field properties (hide, readonly, permission etc.)","Change field properties (hide, readonly, permission etc.)"
-Chat,Chat
+Chat,Czat
 Check,Check
 Check / Uncheck roles assigned to the User. Click on the Role to find out what permissions that Role has.,Check / Uncheck roles assigned to the User. Click on the Role to find out what permissions that Role has.
 Check this if you want to send emails as this id only (in case of restriction by your email provider).,Check this if you want to send emails as this id only (in case of restriction by your email provider).
@@ -223,7 +223,7 @@ Customize Form Field,Customize Form Field
 Customized HTML Templates for printing transctions.,Customized HTML Templates for printing transctions.
 Daily Event Digest is sent for Calendar Events where reminders are set.,Daily Event Digest is sent for Calendar Events where reminders are set.
 Danger,Danger
-Data,Data
+Data,Dane
 Data Import / Export Tool,Data Import / Export Tool
 Data Import Tool,Data Import Tool
 Data missing in table,Data missing in table
@@ -244,7 +244,7 @@ Define workflows for forms.,Define workflows for forms.
 Delete,Usuń
 Delete Row,Delete Row
 Depends On,Depends On
-Descending,Descending
+Descending,Malejąco
 Description,Opis
 Description and Status,Description and Status
 "Description for listing page, in plain text, only a couple of lines. (max 140 characters)","Description for listing page, in plain text, only a couple of lines. (max 140 characters)"
@@ -314,11 +314,11 @@ Enable Comments,Enable Comments
 Enabled,Włączony
 Ends on,Ends on
 Enter Form Type,Enter Form Type
-Enter Value,Enter Value
+Enter Value,Wpisz Wartość
 Enter at least one permission row,Enter at least one permission row
 "Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set ""match"" permission rules. To see list of fields, go to <a href=""#Form/Customize Form/Customize Form"">Customize Form</a>.","Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set ""match"" permission rules. To see list of fields, go to <a href=""#Form/Customize Form/Customize Form"">Customize Form</a>."
 "Enter keys to enable login via Facebook, Google, GitHub.","Enter keys to enable login via Facebook, Google, GitHub."
-Equals,Equals
+Equals,Równe
 Error,Błąd
 Error: Document has been modified after you have opened it,Error: Document has been modified after you have opened it
 Event,Event
@@ -329,13 +329,13 @@ Event Roles,Event Roles
 Event Type,Event Type
 Event User,Event User
 Event end must be after start,Event end must be after start
-Events,Events
+Events,Zdarzenia
 Events In Today's Calendar,Events In Today's Calendar
 Every Day,Every Day
 Every Month,Every Month
 Every Week,Every Week
 Every Year,Every Year
-Example:,Example:
+Example:,Przykład:
 Expand,Expand
 Export,Export
 Export not allowed. You need {0} role to export.,Export not allowed. You need {0} role to export.
@@ -416,11 +416,11 @@ Google Plus One,Google Plus One
 Google User ID,Google User ID
 Google Web Font (Heading),Google Web Font (Heading)
 Google Web Font (Text),Google Web Font (Text)
-Greater or equals,Greater or equals
-Greater than,Greater than
-"Group Added, refreshing...","Group Added, refreshing..."
-Group Description,Group Description
-Group Name,Group Name
+Greater or equals,Więcej lub równo
+Greater than,Więcej niż
+"Group Added, refreshing...",Dodano Grupę. Aktualizacja...
+Group Description,Opis Grupy
+Group Name,Nazwa Grupy
 Group Title,Group Title
 Group Type,Group Type
 Groups,Grupy
@@ -498,7 +498,7 @@ Is Active,Jest aktywny
 Is Child Table,Is Child Table
 Is Default,Jest domyślny
 Is Event,Is Event
-Is Mandatory Field,Is Mandatory Field
+Is Mandatory Field,jest polem obowiązkowym
 Is Single,Is Single
 Is Standard,Is Standard
 Is Submittable,Is Submittable
@@ -513,19 +513,19 @@ Label Help,Label Help
 Label and Type,Label and Type
 Label is mandatory,Label is mandatory
 Landing Page,Landing Page
-Language,Language
+Language,Język
 Language preference for user interface (only if available).,Language preference for user interface (only if available).
-"Language, Date and Time settings","Language, Date and Time settings"
-Last IP,Last IP
-Last Login,Last Login
-Last Name,Last Name
+"Language, Date and Time settings","Ustawienia Języka, Daty i Czasu"
+Last IP,Ostatnio używany IP
+Last Login,Ostatnie Logowanie
+Last Name,Nazwisko
 Last updated by,Last updated by
 Lastmod,Lastmod
 Lato,Lato
 Leave blank to repeat always,Leave blank to repeat always
 Left,Left
-Less or equals,Less or equals
-Less than,Less than
+Less or equals,Mniej lub równo
+Less than,Mniej niż
 Letter Head,Letter Head
 Letter Head Name,Letter Head Name
 Letter Head in HTML,Letter Head in HTML
@@ -845,20 +845,20 @@ Rules defining transition of state in the workflow.,Rules defining transition of
 SMTP Server (e.g. smtp.gmail.com),SMTP Server (e.g. smtp.gmail.com)
 Sales,Sprzedaż
 Same file has already been attached to the record,Same file has already been attached to the record
-Saturday,Saturday
+Saturday,Sobota
 Save,Zapisz
 Scheduler Log,Scheduler Log
 Script,Script
 Script Report,Script Report
 Script Type,Script Type
-Search,Search
+Search,Szukaj
 Search Fields,Search Fields
 Section Break,Section Break
 Security,Security
 Security Settings,Security Settings
 Select,Wybierz
-Select All,Select All
-Select Attachments,Select Attachments
+Select All,Wybierz wszystko
+Select Attachments,Wybierz Załączniki
 Select Document Type,Select Document Type
 Select Document Type or Role to start.,Select Document Type or Role to start.
 Select Print Format,Select Print Format
@@ -942,9 +942,9 @@ Social Login Keys,Social Login Keys
 Solid background color (default light gray),Solid background color (default light gray)
 Sorry we were unable to find what you were looking for.,Sorry we were unable to find what you were looking for.
 Sorry you are not permitted to view this page.,Sorry you are not permitted to view this page.
-Sort By,Sort By
+Sort By,Sortowanie wg.
 Sort Field,Sort Field
-Sort Order,Sort Order
+Sort Order,Kolejność
 Standard,Standard
 Standard Print Format cannot be updated,Standard Print Format cannot be updated
 Standard Reports,Raporty standardowe
@@ -974,7 +974,7 @@ Sunday,Niedziela
 Switch to Website,Switch to Website
 Sync Inbox,Sync Inbox
 System,System
-System Settings,System Settings
+System Settings,Ustawienia Systemowe
 System User,System User
 System and Website Users,System and Website Users
 System generated mails will be sent from this email id.,System generated mails will be sent from this email id.
@@ -1148,7 +1148,7 @@ You need to be logged in and have System Manager Role to be able to access backu
 You need write permission to rename,You need write permission to rename
 "Your download is being built, this may take a few moments...","Your download is being built, this may take a few moments..."
 [Label]:[Field Type]/[Options]:[Width],[Label]:[Field Type]/[Options]:[Width]
-add your own CSS (careful!),add your own CSS (careful!)
+add your own CSS (careful!),dodaj własny arkusz CSS (ostrożnie!)
 adjust,adjust
 align-center,align-center
 align-justify,align-justify

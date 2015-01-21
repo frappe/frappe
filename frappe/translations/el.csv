@@ -24,14 +24,14 @@ Actions,δράσεις
 Add,Προσθήκη
 Add A New Rule,Προσθέσετε ένα νέο κανόνα
 Add A User Permission,Προσθέστε μια άδεια χρήστη
-Add Attachments,Προσθήκη Συνημμένα
+Add Attachments,Προσθήκη Συνημμένων
 Add Bookmark,Προσθήκη σελιδοδείκτη
 Add CSS,Προσθήκη CSS
 Add Column,Προσθήκη στήλης
 Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,Προσθέστε το Google Analytics ID: παράδειγμα. UA-89XXX57-1. Παρακαλούμε Ψάξτε στη βοήθεια του Google Analytics για περισσότερες πληροφορίες.
 Add Message,Προσθήκη μηνύματος
 Add New Permission Rule,Προσθέστε νέο κανόνα άδεια
-Add Reply,Προσθέστε Απάντηση
+Add Reply,Προσθήκη Απάντησης
 Add Total Row,Προσθήκη Σύνολο Row
 Add a New Role,Προσθέστε ένα νέο ρόλο
 Add a banner to the site. (small banners are usually good),Προσθέστε ένα banner στο site. (Μικρά πανό είναι συνήθως καλό)
@@ -40,7 +40,7 @@ Add attachment,Προσθήκη συνημμένου
 Add code as &lt;script&gt;,Προσθήκη κώδικα ως &lt;script&gt;
 Add custom javascript to forms.,Προσθήκη προσαρμοσμένων javascript για να τις μορφές .
 Add fields to forms.,Προσθήκη πεδίων σε φόρμες .
-Add multiple rows,Προσθήκη πολλαπλές σειρές
+Add multiple rows,Προσθήκη πολλαπλών σειρών
 Add new row,Προσθήκη νέας γραμμής
 "Add the name of <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> e.g. ""Open Sans""","Προσθέστε το όνομα της <a href=""http://google.com/webfonts"" target=""_blank"">Google Font Web</a> π.χ. &quot;Open Sans&quot;"
 Add to To Do,Προσθήκη στο να κάνει
@@ -51,7 +51,7 @@ Additional Info,Πρόσθετες Πληροφορίες
 Additional Permissions,Πρόσθετα Δικαιώματα
 Address,Διεύθυνση
 Address Line 1,Διεύθυνση 1
-Address Line 2,Γραμμή διεύθυνσης 2
+Address Line 2,Γραμμή Διεύθυνσης 2
 Address Title,Τίτλος Διεύθυνση
 Address and other legal information you may want to put in the footer.,Διεύθυνση και άλλα νομικά στοιχεία που μπορεί να θέλετε να βάλετε στο υποσέλιδο.
 Admin,Διαχειριστής
@@ -59,14 +59,14 @@ All Applications,Όλες οι αιτήσεις θα
 All Day,Ολοήμερο
 All customizations will be removed. Please confirm.,Όλες οι προσαρμογές θα πρέπει να αφαιρεθεί. Παρακαλούμε να επιβεβαιώσετε.
 "All possible Workflow States and roles of the workflow. <br>Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""","Όλες οι πιθανές κράτη Workflow και τους ρόλους της ροής εργασίας. <br> Docstatus Επιλογές: 0 είναι &quot;Saved&quot;, 1 &quot;Υποβλήθηκε&quot; και 2 &quot;Ακυρώθηκε&quot;"
-Allow Attach,Αφήστε Επισυνάψτε
+Allow Attach,Επιτρέπεται Επισύναψη
 Allow Import,Να επιτρέψουν την εισαγωγή
 Allow Import via Data Import Tool,Αφήστε εισαγωγής μέσω Εργαλείο εισαγωγής δεδομένων
 Allow Rename,Αφήστε Μετονομασία
 Allow on Submit,Αφήστε για Υποβολή
 Allow user to login only after this hour (0-24),Επιτρέπει στο χρήστη να συνδεθείτε μόνο μετά από αυτή την ώρα (0-24)
 Allow user to login only before this hour (0-24),Επιτρέπει στο χρήστη να συνδεθείτε μόνο πριν από αυτή την ώρα (0-24)
-Allowed,Επιτρέπονται τα κατοικίδια
+Allowed,Επιτρέπεται
 "Allowing DocType, DocType. Be careful!","Επιτρέποντας DocType , DocType . Να είστε προσεκτικοί !"
 Already Registered,Ήδη Εγγεγραμμένοι
 Already in user's To Do list,Ήδη από το χρήστη να κάνει λίστα
@@ -76,17 +76,17 @@ Always use above Login Id as sender,Πάντα να χρησιμοποιείτε
 Amend,Τροποποιούνται
 "An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [<a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a>]","Ένα αρχείο με το εικονίδιο. Επέκταση ICO. Θα πρέπει να είναι 16 x 16 px. Generated χρησιμοποιώντας μια γεννήτρια favicon. [ <a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a> ]"
 "Another {0} with name {1} exists, select another name","Ένας άλλος {0} με το όνομα {1} υπάρχει, επιλέξτε ένα άλλο όνομα"
-Any existing permission will be deleted / overwritten.,Κάθε υφιστάμενη άδεια θα διαγραφούν / αντικατασταθούν.
+Any existing permission will be deleted / overwritten.,Κάθε υφιστάμενη άδεια θα διαγραφεί / αντικατασταθεί.
 Anyone Can Read,Οποιοσδηποτε μπορεί να διαβάσει
 Anyone Can Write,Οποιοσδήποτε μπορεί να γράψει
 "Apart from Role based Permission Rules, you can apply User Permissions based on DocTypes.","Εκτός από το ρόλο που βασίζονται Κανόνες άδεια , μπορείτε να εφαρμόσετε τα δικαιώματα χρήσης με βάση doctypes ."
 "Apart from System Manager, roles with 'Set User Permissions' right can set permissions for other users for that Document Type.","Εκτός από το Διαχειριστή του Συστήματος , οι ρόλοι με το δικαίωμα 'Ρύθμιση δικαιωμάτων χρήστη » να ορίσετε δικαιώματα για άλλους χρήστες για αυτόν τον τύπο εγγράφου ."
 App Name,Όνομα App
 App not found,App δεν βρέθηκε
-Application Installer,εγκατάστασης εφαρμογών
-Applications,εφαρμογές
+Application Installer,Εγκατάσταση εφαρμογών
+Applications,Εφαρμογές
 Apply Style,Εφαρμογή στυλ
-Apply User Permissions,Εφαρμόστε τα δικαιώματα χρήσης
+Apply User Permissions,Εφαρμογή δικαιωμάτων χρηστών
 Are you sure you want to delete the attachment?,Είστε σίγουροι ότι θέλετε να διαγράψετε το συνημμένο;
 Arial,Arial
 "As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User.","Ως βέλτιστη πρακτική , δεν αποδίδουν το ίδιο σύνολο κανόνα άδεια για διαφορετικούς ρόλους . Αντ 'αυτού , που πολλούς ρόλους στο ίδιο το χρήστη ."
@@ -101,13 +101,13 @@ Assignment Status Changed,Η ανάθεση άλλαξε κατάσταση
 Assignments,Αναθέσεις
 Attach,Επισυνάψτε
 Attach Document Print,Συνδέστε Εκτύπωση εγγράφου
-Attach as web link,Να επισυναφθεί ως σύνδεσμο ιστού
+Attach as web link,Επισύναψη σύνδεσμου ιστού
 Attached To DocType,Που συνδέονται με DOCTYPE
 Attached To Name,Συνδέονται με το όνομα
 Attachments,Συνημμένα
 Auto Email Id,Auto Id Email
 Auto Name,Όνομα Auto
-Auto generated,Παράγεται Auto
+Auto generated,Παράγεται Αυτόματα
 Avatar,Avatar
 Back to Login,Επιστροφή στο Login
 Background Color,Χρώμα φόντου
