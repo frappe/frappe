@@ -1,0 +1,60 @@
+{
+ "creation": "2013-02-22 01:28:08", 
+ "docstatus": 0, 
+ "doctype": "DocType", 
+ "fields": [
+  {
+   "fieldname": "label", 
+   "fieldtype": "Data", 
+   "in_list_view": 1, 
+   "label": "Label", 
+   "permlevel": 0, 
+   "print_width": "120px", 
+   "reqd": 1, 
+   "width": "120px"
+  }, 
+  {
+   "description": "If you set this, this Item will come in a drop-down under the selected parent.", 
+   "fieldname": "parent_label", 
+   "fieldtype": "Select", 
+   "in_list_view": 1, 
+   "label": "Parent Label", 
+   "permlevel": 0
+  }, 
+  {
+   "description": "Link to the page you want to open", 
+   "fieldname": "url", 
+   "fieldtype": "Data", 
+   "in_list_view": 1, 
+   "label": "URL", 
+   "permlevel": 0, 
+   "print_width": "200px", 
+   "reqd": 0, 
+   "width": "200px"
+  }, 
+  {
+   "description": "Select target = \"_blank\" to open in a new page.", 
+   "fieldname": "target", 
+   "fieldtype": "Select", 
+   "in_list_view": 1, 
+   "label": "Target", 
+   "options": "\ntarget = \"_blank\"", 
+   "permlevel": 0
+  }, 
+  {
+   "description": "For top bar", 
+   "fieldname": "right", 
+   "fieldtype": "Check", 
+   "label": "Right", 
+   "permlevel": 0
+  }
+ ], 
+ "idx": 1, 
+ "istable": 1, 
+ "modified": "2014-08-25 02:30:31.523955", 
+ "modified_by": "Administrator", 
+ "module": "Website", 
+ "name": "Top Bar Item", 
+ "owner": "Administrator", 
+ "permissions": []
+}

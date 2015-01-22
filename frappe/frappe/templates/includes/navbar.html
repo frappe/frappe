@@ -1,0 +1,65 @@
+<header>
+	<nav class="navbar navbar-default navbar-main" role="navigation">
+		<div class="container">
+			<div class="navbar-header">
+				<button type="button" class="navbar-toggle" data-toggle="collapse"
+					data-target=".navbar-responsive-collapse">
+					<span class="sr-only">Toggle navigation</span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</button>
+				<a class="navbar-brand ellipsis" href="/">
+					<span>{{ brand_html or (frappe.get_hooks("brand_html") or ["Home"])[0] }}</span>
+				</a>
+			</div>
+			<div class="collapse navbar-collapse navbar-responsive-collapse">
+				{% if top_bar_items -%}
+				<ul class="nav navbar-nav navbar-left">
+					{%- for page in top_bar_items -%}
+					{% if not page.parent_label and not page.right -%}
+					{% include "templates/includes/navbar_link.html" %}
+					{%- endif -%}
+					{%- endfor %}
+				</ul>
+				{%- endif %}
+				<ul class="nav navbar-nav navbar-right">
+					{%- for page in top_bar_items -%}
+					{% if not page.parent_label and page.right -%}
+					{% include "templates/includes/navbar_link.html" %}
+					{%- endif -%}
+					{%- endfor %}
+					<!-- post login tools -->
+					<li class="dropdown logged-in" id="website-post-login"
+						data-label="website-post-login" style="display: none">
+						<a href="#" class="dropdown-toggle" data-toggle="dropdown">
+							<img class="user-picture"
+								style="min-width: 20px; max-height: 20px; border-radius: 4px"/>
+								<b class="full-name"></b><b class="caret"></b>
+						</a>
+				        <ul class="dropdown-menu">
+							{%- for child in post_login -%}
+							<li {% if child.label %}data-label="{{ child.label }}" {% endif %}
+								{% if child.class %} class="{{ child.class }}" {% endif %}>
+
+								{%- if child.url -%}
+									<a href="{{ child.url }}" {{ child.target or '' }}
+										rel="nofollow">
+										{%- if child.icon -%}
+										<i class="icon-fixed-width {{ child.icon }}"></i>
+										{%- endif -%}
+										{{ child.label }}
+									</a>
+								{%- endif -%}
+							</li>
+							{%- endfor -%}
+						</ul>
+					</li>
+					<li class="btn-login-area"><a href="/login">
+						{%- if not disable_signup %}Sign Up / {% endif -%} Login</a></li>
+				</ul>
+			</div>
+		</div>
+	</nav>
+</header>
+<script>$(function() { $('.dropdown-toggle').dropdown(); });</script>

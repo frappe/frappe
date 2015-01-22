@@ -1,0 +1,57 @@
+execute:frappe.db.sql("""update `tabPatch Log` set patch=replace(patch, '.4_0.', '.v4_0.')""") #2014-05-12
+execute:frappe.reload_doc('core', 'doctype', 'doctype', force=True) #2014-01-24
+execute:frappe.reload_doc('core', 'doctype', 'docfield', force=True) #2014-03-01
+execute:frappe.reload_doc('core', 'doctype', 'docperm') #2014-06-04
+execute:frappe.reload_doc('core', 'doctype', 'page') #2013-13-26
+execute:frappe.reload_doc('core', 'doctype', 'report') #2014-06-03
+execute:frappe.reload_doc('core', 'doctype', 'version') #2014-02-21
+execute:frappe.reload_doc('core', 'doctype', 'email_alert') #2014-07-15
+execute:frappe.db.sql("alter table `tabSessions` modify `user` varchar(255), engine=InnoDB")
+execute:frappe.db.sql("delete from `tabDocField` where parent='0'")
+frappe.patches.v4_0.change_varchar_length
+
+frappe.patches.v4_0.webnotes_to_frappe
+execute:frappe.reset_perms("Module Def")
+execute:import frappe.installer;frappe.installer.make_site_dirs() #2014-02-19
+frappe.patches.v4_0.rename_profile_to_user
+frappe.patches.v4_0.deprecate_control_panel
+frappe.patches.v4_0.remove_old_parent
+frappe.patches.v4_0.rename_sitemap_to_route
+frappe.patches.v4_0.website_sitemap_hierarchy
+frappe.patches.v4_0.remove_index_sitemap
+frappe.patches.v4_0.set_website_route_idx
+frappe.patches.v4_0.add_delete_permission
+frappe.patches.v4_0.set_todo_checked_as_closed
+frappe.patches.v4_0.private_backups
+frappe.patches.v4_0.set_module_in_report
+frappe.patches.v4_0.update_datetime
+frappe.patches.v4_0.file_manager_hooks
+execute:frappe.get_doc("User", "Guest").save()
+frappe.patches.v4_0.update_custom_field_insert_after
+frappe.patches.v4_0.deprecate_link_selects
+frappe.patches.v4_0.set_user_gravatar
+frappe.patches.v4_0.set_user_permissions
+frappe.patches.v4_0.create_custom_field_for_owner_match
+frappe.patches.v4_0.enable_scheduler_in_system_settings
+execute:frappe.db.sql("update tabReport set apply_user_permissions=1") #2014-06-03
+frappe.patches.v4_0.replace_deprecated_timezones
+execute:import frappe.website.render; frappe.website.render.clear_cache("login"); #2014-06-10
+frappe.patches.v4_0.fix_attach_field_file_url
+execute:frappe.reset_perms("User") #2014-06-13
+execute:frappe.db.sql("""delete from `tabUserRole` where ifnull(parentfield, '')='' or ifnull(`role`, '')=''""") #2014-08-18
+frappe.patches.v4_0.remove_user_owner_custom_field
+execute:frappe.delete_doc("DocType", "Website Template")
+execute:frappe.db.sql("""update `tabProperty Setter` set property_type='Text' where property in ('options', 'default')""") #2014-06-20
+frappe.patches.v4_1.enable_outgoing_email_settings
+execute:frappe.db.sql("""update `tabSingles` set `value`=`doctype` where `field`='name'""") #2014-07-04
+frappe.patches.v4_1.enable_print_as_pdf #2014-06-17
+execute:frappe.db.sql("""update `tabDocPerm` set email=1 where parent='User' and permlevel=0 and `role`='All' and `read`=1 and apply_user_permissions=1""") #2014-07-15
+execute:frappe.db.sql("""update `tabPrint Format` set print_format_type='Client' where ifnull(print_format_type, '')=''""") #2014-07-28
+frappe.patches.v4_1.file_manager_fix
+frappe.patches.v4_2.print_with_letterhead
+execute:frappe.delete_doc("DocType", "Control Panel", force=1)
+execute:frappe.reload_doc('website', 'doctype', 'web_form') #2014-09-04
+execute:frappe.reload_doc('website', 'doctype', 'web_form_field') #2014-09-04
+frappe.patches.v4_2.refactor_website_routing
+frappe.patches.v4_2.set_assign_in_doc
+frappe.patches.v4_3.remove_allow_on_submit_customization

@@ -1,0 +1,1451 @@
+ by Role ,रोल से
+ is not set,सेट नहीं है
+"""Company History""",&quot;कंपनी इतिहास&quot;
+"""Team Members"" or ""Management""",&quot;टीम के सदस्यों&quot; या &quot;प्रबंधन&quot;
+'In List View' not allowed for type {0} in row {1},' सूची दृश्य में ' की अनुमति नहीं प्रकार के लिए {0} पंक्ति में {1}
+0 - Draft; 1 - Submitted; 2 - Cancelled,0 - ड्राफ्ट; 1 - प्रस्तुत; 2 - रद्द
+0 is highest,0 सर्वोच्च है
+"000 is black, fff is white","000 काला है, fff सफेद है"
+2 days ago,2 दिन पहले
+"<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank"">[?]</a>","<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank""> [? ] </ a >"
+"<a onclick=""msgprint('<ol>\<li><b>field:[fieldname]</b> - By Field\<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\<li><b>Prompt</b> - Prompt user for a name\<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\</ol>')"">Naming Options</a>","<एक onclick = ""msgprint ('<ol> \ <li> <b> क्षेत्र [fieldname] </ b> - क्षेत्र द्वारा \ <li> <b> naming_series: </ B > - श्रृंखला नामकरण द्वारा (naming_series बुलाया क्षेत्र उपस्थित होना चाहिए \ <li> <b> के तत्काल </ b> - एक नाम के लिए उपयोगकर्ता को संकेत \ <li> <b> [श्रृंखला] </ . b> - उपसर्ग (बिन्दु द्वारा अलग) से श्रृंखला है, उदाहरण के लिए पूर्व # # # # # \ </ राजभाषा> ') ""> विकल्प नामकरण </ a>"
+<b>new</b> <i>type of document</i>,दस्तावेज़ के <b> नए </ b> <i> प्रकार </ i>
+"<i>document type...</i>, e.g. <b>customer</b>","<i> दस्तावेज़ प्रकार ... </ i>, जैसे <b> ग्राहक </ b>"
+<i>e.g. <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>,<i> जैसे <strong> (55 + 434) / 4 </ strong> या <strong> = पाप (Math.Pi / 2) </ strong> ... </ मैं>
+<i>module name...</i>,<i> मॉड्यूल नाम ... </ मैं>
+<i>text</i> <b>in</b> <i>document type</i>,<i> पाठ </ i> <b> में </ b> दस्तावेज़ प्रकार </ i> <i>
+A user can be permitted to multiple records of the same DocType.,एक उपयोगकर्ता एक ही टैग के कई रिकॉर्ड करने के लिए अनुमति दी जा सकती .
+About,बारे में
+About Us Settings,हमारे बारे में की सेटिंग्स
+About Us Team Member,हमारे दल के सदस्य के बारे में
+Action,कार्रवाई
+Actions,क्रियाएँ
+"Actions for workflow (e.g. Approve, Cancel).","कार्यप्रवाह के लिए क्रिया (जैसे , स्वीकारें रद्द ) ."
+Add,जोड़ना
+Add A New Rule,एक नया नियम जोड़ें
+Add A User Permission,एक उपयोगकर्ता की अनुमति जोड़ें
+Add Attachments,अनुलग्नकों को जोड़
+Add Bookmark,बुकमार्क जोड़ें
+Add CSS,सीएसएस जोड़ें
+Add Column,कॉलम जोड़ें
+Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,उदाहरण के लिए: गूगल एनालिटिक्स आईडी जोड़ें. यूए-89XXX57-1. अधिक जानकारी के लिए गूगल एनालिटिक्स पर मदद की खोज करें.
+Add Message,संदेश जोड़ें
+Add New Permission Rule,नई अनुमति नियम जोड़ें
+Add Reply,प्रत्युत्तर जोड़ें
+Add Total Row,कुल पंक्ति जोड़ें
+Add a New Role,एक नई भूमिका में जोड़ें
+Add a banner to the site. (small banners are usually good),साइट के लिए एक बैनर जोड़ें. (छोटे बैनर आमतौर पर अच्छा कर रहे हैं)
+Add all roles,सभी भूमिकाओं में जोड़ें
+Add attachment,लगाव जोड़ें
+Add code as &lt;script&gt;,&lt;script&gt; कोड के रूप में जोड़ें
+Add custom javascript to forms.,रूपों के लिए कस्टम जावास्क्रिप्ट जोड़ें .
+Add fields to forms.,रूपों में फ़ील्ड्स जोड़ें .
+Add multiple rows,एकाधिक पंक्तियों में जोड़ें
+Add new row,नई पंक्ति जोड़ें
+"Add the name of <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> e.g. ""Open Sans""","के नाम जोड़ें <a href=""http://google.com/webfonts"" target=""_blank"">Google वेब फ़ॉन्ट</a> उदाहरण के लिए &quot;ओपन सेन्स&quot;"
+Add to To Do,जोड़ें करने के लिए क्या
+Add to To Do List Of,की सूची क्या करने के लिए जोड़ें
+Added {0} ({1}),जोड़ा गया {0} ({1})
+Adding System Manager to this User as there must be atleast one System Manager,कम से कम एक सिस्टम मैनेजर वहाँ होना चाहिए के रूप में इस उपयोगकर्ता के सिस्टम मैनेजर जोड़ना
+Additional Info,अतिरिक्त जानकारी
+Additional Permissions,अतिरिक्त अनुमतियों
+Address,पता
+Address Line 1,पता पंक्ति 1
+Address Line 2,पता पंक्ति 2
+Address Title,पता शीर्षक
+Address and other legal information you may want to put in the footer.,पता और अन्य कानूनी जानकारी आप पाद लेख में डाल सकते हैं.
+Admin,प्रशासन
+All Applications,सभी आवेदनों
+All Day,सभी दिन
+All customizations will be removed. Please confirm.,सभी अनुकूलन हटा दिया जाएगा. कृपया पुष्टि करें.
+"All possible Workflow States and roles of the workflow. <br>Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""","सभी संभव कार्यप्रवाह राज्यों और कार्यप्रवाह की भूमिका. <br> Docstatus विकल्प: 0 &quot;बच&quot;, 1 &quot;प्रस्तुत&quot; है और 2 &quot;रद्द&quot;"
+Allow Attach,अनुमति देते
+Allow Import,आयात की अनुमति दें
+Allow Import via Data Import Tool,डेटा आयात उपकरण के माध्यम से आयात करने की अनुमति दें
+Allow Rename,नाम बदलें की अनुमति दें
+Allow on Submit,भेजें पर अनुमति दें
+Allow user to login only after this hour (0-24),उपयोगकर्ता इस घंटे के बाद ही प्रवेश करने की अनुमति दें (0-24)
+Allow user to login only before this hour (0-24),उपयोगकर्ता इस घंटे से पहले ही प्रवेश करने की अनुमति दें (0-24)
+Allowed,रख सकते है
+"Allowing DocType, DocType. Be careful!","अनुमति दे टैग , टैग . सावधान!"
+Already Registered,पहले से पंजीकृत है
+Already in user's To Do list,पहले से ही उपयोगकर्ता करने के लिए सूची में
+Alternative download link,वैकल्पिक डाउनलोड लिंक
+"Alternatively, you can also specify 'auto_email_id' in site_config.json","वैकल्पिक रूप से , आप भी site_config.json में ' auto_email_id ' निर्दिष्ट कर सकते हैं"
+Always use above Login Id as sender,हमेशा प्रेषक के रूप में लॉगिन आईडी से ऊपर का उपयोग
+Amend,संशोधन करना
+"An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [<a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a>]","Ico विस्तार के साथ एक आइकन फ़ाइल. 16 x 16 पिक्सल होना चाहिए. एक favicon जनरेटर का उपयोग करते हुए उत्पन्न. [ <a href=""http://favicon-generator.org/"" target=""_blank"">favicon generator.org</a> ]"
+"Another {0} with name {1} exists, select another name","एक और {0} नाम के साथ {1} मौजूद है, एक और नाम का चयन करें"
+Any existing permission will be deleted / overwritten.,किसी भी मौजूदा अनुमति / ओवरराइट हटा दिया जाएगा.
+Anyone Can Read,कोई भी पढ़ सकता
+Anyone Can Write,किसी को भी लिख सकते हैं
+"Apart from Role based Permission Rules, you can apply User Permissions based on DocTypes.","इसके अलावा रोल आधारित अनुमति नियमों से , आप doctypes के आधार पर उपयोगकर्ता अनुमतियाँ लागू कर सकते हैं ."
+"Apart from System Manager, roles with 'Set User Permissions' right can set permissions for other users for that Document Type.","इसके अलावा सिस्टम मैनेजर से , 'सेट उपयोगकर्ता अनुमतियाँ ' अधिकार के साथ भूमिकाओं कि दस्तावेज़ प्रकार के अन्य उपयोगकर्ताओं के लिए अनुमतियाँ सेट कर सकते हैं ."
+App Name,App नाम
+App not found,App नहीं मिला
+Application Installer,अनुप्रयोग इंस्टालर
+Applications,ऐप्लकेशन
+Apply Style,शैली लागू करें
+Apply User Permissions,उपयोगकर्ता अनुमतियाँ लागू करें
+Are you sure you want to delete the attachment?,क्या आप सुनिश्चित करें कि आप अनुलग्नक हटाना चाहते हैं?
+Arial,Arial
+"As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User.","एक सबसे अच्छा अभ्यास के रूप में, अलग भूमिकाएं करने की अनुमति शासन के एक ही सेट प्रदान नहीं करते. इसके बजाय , एक ही उपयोगकर्ता के लिए कई भूमिकाओं की स्थापना की."
+Ascending,आरोही
+Assign To,करने के लिए निरुपित
+Assigned By,द्वारा सौंपा
+Assigned To,को सौंपा
+Assigned To Fullname,Fullname को सौंपा
+Assigned To/Owner,/ स्वामी को सौंपा
+Assignment Added,असाइनमेंट जोड़ा गया
+Assignment Status Changed,असाइनमेंट स्थिति बदली
+Assignments,कार्य
+Attach,संलग्न करना
+Attach Document Print,दस्तावेज़ प्रिंट संलग्न
+Attach as web link,वेब लिंक के रूप में संलग्न करें
+Attached To DocType,टैग से जुड़ी
+Attached To Name,नाम से जुड़ी
+Attachments,किए गए अनुलग्नकों के
+Auto Email Id,ऑटो ईमेल आईडी
+Auto Name,ऑटो नाम
+Auto generated,उत्पन्न ऑटो
+Avatar,अवतार
+Back to Login,बार प्रवेश करने के लिए
+Background Color,पृष्ठभूमि रंग
+Background Image,पृष्ठभूमि छवि
+Background Style,पृष्ठभूमि शैली
+Banner,बैनर
+Banner HTML,बैनर HTML
+Banner Image,बैनर छवि
+Banner is above the Top Menu Bar.,बैनर शीर्ष मेनू बार से ऊपर है.
+Begin this page with a slideshow of images,छवियों का एक स्लाइड शो के साथ शुरू इस पृष्ठ
+Beginning with,साथ शुरुआत
+Belongs to,संबंधित
+Bio,जैव
+Birth Date,जन्म तिथि
+Blog Category,ब्लॉग श्रेणी
+Blog Intro,ब्लॉग परिचय
+Blog Introduction,ब्लॉग परिचय
+Blog Post,ब्लॉग पोस्ट
+Blog Settings,ब्लॉग सेटिंग्स
+Blog Title,ब्लॉग शीर्षक
+Blogger,ब्लॉगर
+Bookmarks,बुकमार्क
+Both login and password required,आवश्यक लॉगिन और पासवर्ड दोनों
+Brand HTML,ब्रांड HTML
+Bulk Email,थोक ईमेल
+Bulk email limit {0} crossed,थोक ईमेल सीमा {0} को पार कर गया
+Button,बटन
+By,द्वारा
+Calculate,गणना करें
+Calendar,कैलेंडर
+Cancel,रद्द करें
+Cancelled,रद्द
+"Cannot Edit {0} directly: To edit {0} properties, create / update {1}, {2} and {3}","संपादित नहीं कर सकता {0} सीधे : {0} गुणों को संपादित करने , बनाने / अद्यतन {1} , {2} और {3}"
+Cannot Update: Incorrect / Expired Link.,अद्यतन नहीं कर सकता : समय सीमा समाप्त / गलत लिंक .
+Cannot Update: Incorrect Password,अद्यतन नहीं कर सकता : गलत पासवर्ड
+Cannot add more than 50 comments,50 से अधिक टिप्पणियां नहीं जोड़ सकता
+Cannot cancel before submitting. See Transition {0},प्रस्तुत करने से पहले रद्द नहीं कर सकते .
+Cannot change picture,तस्वीर बदल नहीं सकते
+Cannot change state of Cancelled Document. Transition row {0},रद्द दस्तावेज़ के राज्य को बदल नहीं सकते .
+Cannot change {0},नहीं बदला जा सकता {0}
+Cannot delete or cancel because {0} {1} is linked with {2} {3},"हटाना या {0} {1} के साथ जुड़ा हुआ है , क्योंकि रद्द नहीं कर सकते {2} {3}"
+Cannot delete {0} as it has child nodes,यह बच्चे नोड्स के रूप में {0} को हटा नहीं सकते
+Cannot edit standard fields,मानक फ़ील्ड्स संपादित नहीं कर सकते
+Cannot map because following condition fails: ,निम्न स्थिति में विफल रहता है क्योंकि मैप नहीं कर सकते हैं:
+Cannot open instance when its {0} is open,इसके {0} खुला है जब उदाहरण नहीं खोल सकता
+Cannot open {0} when its instance is open,इसके उदाहरण खुला है जब {0} नहीं खोल सकता
+Cannot print cancelled documents,रद्द दस्तावेज़ मुद्रित नहीं कर सकते
+Cannot remove permission for DocType: {0} and Name: {1},टैग के लिए अनुमति नहीं निकाल सकते हैं: {0} और नाम: {1}
+Cannot reply to a reply,एक उत्तर के लिए नहीं कर सकते उत्तर
+Cannot set Email Alert on Document Type {0},दस्तावेज़ प्रकार पर ईमेल अलर्ट सेट नहीं कर सकता {0}
+Cannot set permission for DocType: {0} and Name: {1},टैग के लिए अनुमति सेट नहीं कर सकता : {0} और नाम: {1}
+Categorize blog posts.,ब्लॉग पोस्ट श्रेणीबद्ध.
+Category,श्रेणी
+Category Name,श्रेणी नाम
+Center,केंद्र
+"Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit.","कुछ दस्तावेजों , एक चालान की तरह , एक बार अंतिम बदला नहीं जाना चाहिए . ऐसे दस्तावेजों के लिए अंतिम अवस्था प्रस्तुत कहा जाता है. आप भूमिकाओं प्रस्तुत कर सकते हैं जो सीमित कर सकते हैं ."
+"Change field properties (hide, readonly, permission etc.)","बदले क्षेत्र गुण (छुपाने , केवल पढ़ने के लिए , अनुमति आदि )"
+Chat,बातचीत
+Check,चेक
+Check / Uncheck roles assigned to the User. Click on the Role to find out what permissions that Role has.,/ अनचेक करें प्रोफ़ाइल को सौंपा भूमिकाओं की जाँच करें. रोल पर क्लिक करें पता लगाने के लिए अनुमति है कि क्या भूमिका है.
+Check this if you want to send emails as this id only (in case of restriction by your email provider).,आप केवल इस आईडी (अपने ईमेल प्रदाता द्वारा प्रतिबंध के मामले में) के रूप में ईमेल भेजना चाहते हैं तो चेक करें.
+Check this to make this the default letter head in all prints,इस जाँच के लिए सभी प्रिंट में इस डिफ़ॉल्ट पत्र सिर
+Check which Documents are readable by a User,दस्तावेज़ किसी उपयोगकर्ता द्वारा पठनीय हैं जो जांच करें
+Checked items shown on desktop,डेस्कटॉप पर दिखाया चेक किए गए आइटम्स
+Child Tables are shown as a Grid in other DocTypes.,बाल टेबल्स अन्य doctypes में एक ग्रिड के रूप में दिखाया जाता है.
+City,शहर
+Classic,क्लासिक
+Clear Cache,साफ़ कैश
+Clear all roles,सभी भूमिकाओं को साफ़
+Click on a link to get options,विकल्प प्राप्त करने के लिए एक लिंक पर क्लिक करें
+Click on row to view / edit.,/ संपादन देखने के लिए पंक्ति पर क्लिक करें .
+Client,ग्राहक
+Client-side formats are now deprecated,क्लाइंट साइड प्रारूपों अब पदावनत कर रहे हैं
+Close,बंद करें
+Close: {0},बंद : {0}
+Closed,बंद
+Code,कोड
+Collapse,संक्षिप्त करें
+Column Break,स्तंभ विराम
+Comment,टिप्पणी
+Comment By,द्वारा टिप्पणी
+Comment By Fullname,Fullname द्वारा टिप्पणी
+Comment Date,तिथि टिप्पणी
+Comment Docname,Docname टिप्पणी
+Comment Doctype,Doctype टिप्पणी
+Comment Time,समय टिप्पणी
+Comments,टिप्पणियां
+Communication,संचार
+Communication Medium,संचार माध्यम
+Company History,कंपनी इतिहास
+Company Introduction,कंपनी का परिचय
+Complaint,शिकायत
+Complete By,द्वारा पूरा करें
+Condition,शर्त
+Contact Us Settings,हमसे सेटिंग्स संपर्क
+"Contact options, like ""Sales Query, Support Query"" etc each on a new line or separated by commas.","संपर्क विकल्प, आदि एक नई लाइन पर प्रत्येक &quot;बिक्री प्रश्न, प्रश्न समर्थन&quot; कोमा से विभाजित."
+Content,सामग्री
+Content Hash,सामग्री हैश
+Content in markdown format that appears on the main side of your page,Markdown प्रारूप में सामग्री है कि अपने पृष्ठ के मुख्य पक्ष पर प्रकट होता है
+Content web page.,सामग्री वेब पेज.
+Controller,नियंत्रक
+Copy,कॉपी करें
+Copyright,सर्वाधिकार
+Core,मूल
+Could not connect to outgoing email server,निवर्तमान ईमेल सर्वर से कनेक्ट नहीं कर सका
+Could not find {0},नहीं मिल सका {0}
+Count,गणना
+Country,देश
+Create,बनाना
+Create a new {0},एक नया {0} बनाएँ
+Created Custom Field {0} in {1},कस्टम क्षेत्र बनाया {0} में {1}
+Created Customer Issue,बनाया ग्राहक के मुद्दे
+Created Opportunity,अवसर पैदा
+Created Support Ticket,बनाया समर्थन टिकट
+Creation / Modified By,निर्माण / द्वारा संशोधित
+Currency,मुद्रा
+Current status,वर्तमान स्थिति
+Custom CSS,कस्टम सीएसएस
+Custom Field,कस्टम फ़ील्ड
+Custom Javascript,कस्टम जावास्क्रिप्ट
+Custom Reports,कस्टम रिपोर्ट
+Custom Script,कस्टम स्क्रिप्ट
+Custom?,कस्टम?
+Customize,को मनपसंद
+Customize Form,प्रपत्र को अनुकूलित
+Customize Form Field,प्रपत्र फ़ील्ड अनुकूलित
+"Customize Label, Print Hide, Default etc.","लेबल, प्रिंट छिपाएँ, Default आदि अनुकूलित"
+Customized HTML Templates for printing transctions.,मुद्रण transctions के लिए स्वनिर्धारित HTML टेम्पलेट्स .
+Daily Event Digest is sent for Calendar Events where reminders are set.,रोज की घटना डाइजेस्ट अनुस्मारक सेट कर रहे हैं जहां कैलेंडर घटनाक्रम के लिए भेज दिया जाता है.
+Danger,खतरा
+Data,डेटा
+Data Import / Export Tool,डेटा आयात / निर्यात उपकरण
+Data Import Tool,डेटा आयात उपकरण
+Data missing in table,तालिका में लापता डेटा
+Date,तारीख
+Date Change,तारीख बदलने
+Date Changed,तिथि परिवर्तित
+Date Format,दिनांक स्वरूप
+Date and Number Format,तिथि और संख्या स्वरूप
+Date must be in format: {0},तिथि प्रारूप में होना चाहिए : {0}
+Datetime,Datetime
+Days in Advance,अग्रिम में दिन
+Dear,प्रिय
+Default,चूक
+Default Print Format,डिफ़ॉल्ट प्रिंट प्रारूप
+Default Value,डिफ़ॉल्ट मान
+Default is system timezone,डिफ़ॉल्ट सिस्टम समय क्षेत्र है
+"Default: ""Contact Us""",डिफ़ॉल्ट: &quot;हमसे संपर्क करें&quot;
+DefaultValue,DefaultValue
+Defaults,डिफ़ॉल्ट्स
+"Define read, write, admin permissions for a Website Page.",", पढ़ा परिभाषित करें लिखना , एक वेबसाइट पृष्ठ के लिए व्यवस्थापक अनुमतियाँ ."
+Define workflows for forms.,प्रपत्रों के लिए वर्कफ़्लोज़ को परिभाषित करें.
+Delete,हटाना
+Delete Row,पंक्ति हटाएँ
+Depends On,पर निर्भर करता है
+Descending,अवरोही
+Description,विवरण
+Description and Status,विवरण और स्थिति
+"Description for listing page, in plain text, only a couple of lines. (max 140 characters)","सादे पाठ में सूची पृष्ठ के लिए विवरण, लाइनों का केवल एक जोड़े. (अधिकतम 140 अक्षर)"
+Description for page header.,पृष्ठ शीर्षक के लिए विवरण.
+Desktop,डेस्कटॉप
+Details,विवरण
+Did not add,जोड़ नहीं था
+Did not cancel,रद्द नहीं किया
+Did not find {0} for {0} ({1}),के लिए {0} नहीं मिला था {0} ({1} )
+Did not load,लोड नहीं किया
+Did not remove,दूर नहीं किया
+Did not save,बचाने के लिए नहीं किया
+"Different ""States"" this document can exist in. Like ""Open"", ""Pending Approval"" etc.","विभिन्न इस दस्तावेज़ &quot;राज्य अमेरिका&quot; की तरह &quot;ओपन&quot; अंदर मौजूद है, &quot;अनुमोदन लंबित&quot; आदि कर सकते हैं"
+Disable Customer Signup link in Login page,लॉगइन पेज में ग्राहक पंजीकरण कड़ी अक्षम
+Disable Signup,पंजीकरण अक्षम
+Disabled,विकलांग
+Display,प्रदर्शन
+Display Settings,सेटिंग्स प्रदर्शित करें
+Display in the sidebar of this Website Route node,इस वेबसाइट ट्रेन नोड के साइडबार में प्रदर्शित
+Do not allow user to change after set the first time,उपयोगकर्ता को बदलने की अनुमति न होने के बाद पहली बार सेट
+Doc Status,डॉक्टर स्थिति
+DocField,DocField
+DocPerm,DocPerm
+DocType,Doctype
+DocType Details,DOCTYPE विवरण
+DocType can not be merged,टैग विलय हो नहीं सकता
+DocType on which this Workflow is applicable.,Doctype जिस पर इस कार्यप्रवाह लागू है.
+DocType or Field,Doctype या फील्ड
+Doclist JSON,डॉकसूची JSON
+Docname,Docname
+Document,दस्तावेज़
+Document Status transition from ,से दस्तावेज स्थिति संक्रमण
+Document Status transition from {0} to {1} is not allowed,{1} के लिए {0} से दस्तावेज स्थिति संक्रमण की अनुमति नहीं है
+Document Type,दस्तावेज़ प्रकार
+Document is only editable by users of role,दस्तावेज़ भूमिका के उपयोगकर्ताओं द्वारा केवल संपादन है
+Documentation,प्रलेखन
+Documents,दस्तावेज़
+Download,डाउनलोड
+Download Backup,बैकअप डाउनलोड
+Download link for your backup will be emailed on the following email address:,आपके बैकअप के लिए डाउनलोड लिंक निम्नलिखित ईमेल पते पर ईमेल किया जाएगा :
+Drafts,ड्राफ्ट्स
+Drag to sort columns,तरह स्तंभों को खींचें
+Due Date,नियत तारीख
+Duplicate name {0} {1},डुप्लिकेट नाम {0} {1}
+Dynamic Link,गतिक कड़ी
+ERPNext Demo,ERPNext डेमो
+Edit,संपादित करें
+Edit Permissions,अनुमतियाँ संपादित करें
+Editable,संपादन
+Email,ईमेल
+Email Alert,ईमेल अलर्ट
+Email Alert Recipient,ईमेल चेतावनी प्राप्तकर्ता
+Email Alert Recipients,ईमेल चेतावनी प्राप्तकर्ता
+Email By Document Field,दस्तावेज़ क्षेत्र द्वारा ईमेल
+Email Footer,ईमेल पाद
+Email Host,ईमेल होस्ट
+Email Id,ईमेल आईडी
+Email Login,ईमेल लॉगइन
+Email Password,ईमेल पासवर्ड
+Email Sent,ईमेल भेजा गया
+Email Settings,ईमेल सेटिंग
+Email Signature,ईमेल हस्ताक्षर
+Email Use SSL,ईमेल में इस्तेमाल SSL
+Email address,ईमेल पता
+"Email addresses, separted by commas","ईमेल पते, अल्पविराम के द्वारा separted"
+Email not verified with {1},ईमेल के साथ सत्यापित नहीं {1}
+Email sent to {0},ईमेल भेजा {0}
+Email...,ईमेल ...
+Emails are muted,ईमेल मौन हैं
+Embed image slideshows in website pages.,वेबसाइट के पन्नों में छवि स्लाइडशो चलाने एम्बेड करें.
+Enable,सक्षम
+Enable Comments,टिप्पणियां सक्षम
+Enable Scheduled Jobs,अनुसूचित नौकरियों सक्षम करें
+Enabled,Enabled
+Ends on,पर समाप्त होता है
+Enter Form Type,प्रपत्र प्रकार दर्ज करें
+Enter Value,मान दर्ज
+Enter at least one permission row,कम से कम एक अनुमति पंक्ति दर्ज
+"Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set ""match"" permission rules. To see list of fields, go to <a href=""#Form/Customize Form/Customize Form"">Customize Form</a>.","डिफ़ॉल्ट मान (कुंजी) क्षेत्रों और मूल्यों दर्ज करें. यदि आप एक क्षेत्र के लिए अनेक मान जोड़ने के लिए, 1 एक उठाया जाएगा. ये चूक भी &quot;मैच&quot; अनुमति नियमों के सेट करने के लिए किया जाता है. क्षेत्रों की सूची देखने के लिए <a href=""#Form/Customize Form/Customize Form"">प्रपत्र को अनुकूलित</a> ."
+"Enter keys to enable login via Facebook, Google, GitHub.","फेसबुक , गूगल, GitHub के माध्यम से प्रवेश के लिए सक्षम करने के लिए कुंजी दर्ज करें ."
+Equals,बराबरी
+Error,त्रुटि
+"Error generating PDF, attachment sent as HTML","HTML के रूप में भेजा त्रुटि पैदा पीडीएफ, लगाव"
+Error: Document has been modified after you have opened it,त्रुटि: आप इसे खोल दिया है के बाद दस्तावेज़ संशोधित किया गया है
+Event,घटना
+Event Datetime,घटना Datetime
+Event Individuals,घटना व्यक्तियों
+Event Role,घटना रोल
+Event Roles,घटना भूमिकाओं
+Event Type,इवेंट प्रकार
+Event User,इवेंट उपयोगकर्ता के
+Event end must be after start,घटना अंत शुरू होने के बाद होना चाहिए
+Events,घटनाक्रम
+Events In Today's Calendar,आज के कैलेंडर में घटनाक्रम
+Every Day,हर दिन
+Every Month,हर महीने
+Every Week,हर हफ्ते
+Every Year,हर साल
+Everyone,हर
+Example:,उदाहरण:
+Expand,विस्तृत करें
+Export,निर्यात
+Export not allowed. You need {0} role to export.,निर्यात की अनुमति नहीं . आप निर्यात करने के लिए {0} भूमिका की जरूरत है.
+Exported,निर्यात किया
+"Expression, Optional","अभिव्यक्ति, वैकल्पिक"
+Facebook,फेसबुक
+Facebook Client ID,फेसबुक ग्राहक आईडी
+Facebook Client Secret,फेसबुक ग्राहकों का सीक्रेट
+Facebook Share,फेसबुक के शेयर
+Facebook User ID,फेसबुक यूजर आईडी
+Facebook Username,फेसबुक यूजर का नाम
+FavIcon,FavIcon
+Female,महिला
+Field Description,फील्ड विवरण
+Field Name,फ़ील्ड का नाम
+Field Type,फ़ील्ड प्रकार
+"Field that represents the Workflow State of the transaction (if field is not present, a new hidden Custom Field will be created)","फील्ड है कि लेन - देन की कार्यप्रवाह राज्य का प्रतिनिधित्व करता है (अगर क्षेत्र मौजूद नहीं है, एक नया छिपा कस्टम फ़ील्ड बनाया जाएगा)"
+Field {0} in row {1} cannot be hidden and mandatory without default,फ़ील्ड {0} पंक्ति में {1} डिफ़ॉल्ट बिना छिपा हुआ है और अनिवार्य नहीं किया जा सकता
+Field {0} is not selectable.,फ़ील्ड {0} चयन नहीं है .
+Field {0} of type {1} cannot be mandatory,फ़ील्ड {0} प्रकार की {1} अनिवार्य नहीं किया जा सकता
+Fieldname,FIELDNAME
+Fieldname is required in row {0},FIELDNAME पंक्ति में आवश्यक है {0}
+Fieldname not set for Custom Field,FIELDNAME कस्टम फ़ील्ड के लिए सेट नहीं
+Fieldname which will be the DocType for this link field.,इस कड़ी क्षेत्र के लिए टैग किया जाएगा जो FIELDNAME.
+Fieldname {0} appears multiple times in rows {1},FIELDNAME {0} पंक्तियों में कई बार प्रकट होता है {1}
+"Fieldname {0} cannot contain letters, numbers or spaces","FIELDNAME {0} अक्षर, संख्या या रिक्तियाँ नहीं हो सकते"
+Fields,फील्ड्स
+"Fields separated by comma (,) will be included in the<br /><b>Search By</b> list of Search dialog box","अल्पविराम (,) द्वारा अलग क्षेत्रों में शामिल किया जाएगा <br /> खोज संवाद बॉक्स की सूची <b>तक खोजें</b>"
+Fieldtype cannot be changed from {0} to {1} in row {2},Fieldtype को {0} से नहीं बदला जा सकता {1} पंक्ति में {2}
+File,फ़ाइल
+File Data,डेटा फ़ाइल
+File Name,फ़ाइल नाम
+File Size,फ़ाइल का आकार
+File URL,फ़ाइल URL
+File not attached,फ़ाइल संलग्न नहीं
+File size exceeded the maximum allowed size of {0} MB,फ़ाइल का आकार {0} एमबी की अधिकतम स्वीकृत आकार से अधिक
+Fill Screen,स्क्रीन को भरने
+Filter,फ़िल्टर
+Filter records based on User Permissions defined for a user,एक उपयोगकर्ता के लिए परिभाषित उपयोगकर्ता अनुमतियाँ के आधार पर फ़िल्टर रिकॉर्ड
+Filters,फ़िल्टर
+Find {0} in {1},में {0} का पता {1}
+First Name,प्रथम नाम
+Float,नाव
+Float Precision,प्रेसिजन फ्लोट
+Font (Heading),फॉन्ट (शीर्षक)
+Font (Text),फ़ॉन्ट (पाठ)
+Font Size,फॉन्ट का आकार
+Font Size (Text),फॉन्ट साइज (पाठ)
+Fonts,फ़ॉन्ट्स
+Footer,पाद लेख
+Footer Background,फुटर (पाद लेख) पृष्ठभूमि
+Footer Items,पाद लेख आइटम
+Footer Text,पाद लेख पाठ
+For DocType,टैग के लिए
+"For Links, enter the DocType as rangeFor Select, enter list of Options separated by comma","लिंक, के लिए सीमा के रूप में टैग दर्ज  चयन के लिए, अल्पविराम के द्वारा अलग विकल्पों की सूची में प्रवेश"
+"For comparative filters, start with","तुलनात्मक फिल्टर करने के लिए, के साथ शुरू"
+For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,उदाहरण के लिए यदि आप रद्द और &#39;INV004&#39; में संशोधन करने के लिए यह एक नया दस्तावेज़ INV004-1 &#39;बन जाएगा. यह आप प्रत्येक संशोधन का ट्रैक रखने में मदद करता है.
+For ranges,श्रेणियों के लिए
+For top bar,शीर्ष पट्टी के लिए
+For {0} at level {1} in {2} in row {3},के लिए {0} स्तर पर {1} में {2} पंक्ति में {3}
+Forgot Password,पासवर्ड भूल गए
+Forgot Password?,पासवर्ड भूल गए ?
+Form,प्रपत्र
+Forum,फोरम
+Forums,मंचों
+Forward To Email Address,फॉरवर्ड ईमेल पते पर
+Frappe Framework,फ्रेपे फ्रेमवर्क
+Friday,शुक्रवार
+From Date must be before To Date,दिनांक से पहले तिथि करने के लिए होना चाहिए
+Full Name,पूरा नाम
+Gantt Chart,Gantt चार्ट
+Gender,लिंग
+Generator,जनरेटर
+Georgia,जॉर्जिया
+Get,जाना
+Get From ,से प्राप्त करें
+"Get your globally recognized avatar from <a href=""https://gravatar.com/"">Gravatar.com</a>","<a Href=""https://gravatar.com/""> Gravatar.com </ a> से अपने विश्व स्तर पर मान्यता प्राप्त अवतार हो जाओ"
+GitHub,GitHub
+GitHub Client ID,GitHub ग्राहक आईडी
+GitHub Client Secret,GitHub ग्राहकों का सीक्रेट
+Github User ID,Github यूजर आईडी
+Github Username,Github यूजर का नाम
+Google,गूगल
+Google Analytics ID,गूगल एनालिटिक्स आईडी
+Google Client ID,गूगल ग्राहक आईडी
+Google Client Secret,गूगल ग्राहक गुप्त
+Google Plus One,गूगल प्लस एक
+Google User ID,गूगल यूजर आईडी
+Google Web Font (Heading),Google वेब फ़ॉन्ट (शीर्षक)
+Google Web Font (Text),Google वेब फ़ॉन्ट (पाठ)
+Greater or equals,ग्रेटर या बराबर होती है
+Greater than,इससे बड़ा
+"Group Added, refreshing...","समूह जोड़ा गया , ताजगी ..."
+Group Description,समूह विवरण
+Group Name,समूह नाम
+Group Title,समूह शीर्षक
+Group Type,समूह प्रकार
+Groups,समूह
+HTML for header section. Optional,हैडर अनुभाग के लिए एचटीएमएल .
+Have an account? Login,एक खाता है? लॉगिन
+Header,हैडर
+Heading,शीर्षक
+Heading Text As,जैसा कि पाठ शीर्षक
+Help,मदद
+Help on Search,खोज पर मदद
+Helvetica Neue,Helvetica Neue
+Hidden,छुपा
+Hide Actions,प्रक्रिया छिपाएँ
+Hide Copy,प्रतिलिपि बनाएँ छिपाएँ
+Hide Heading,शीर्षक छिपाएँ
+Hide Toolbar,टूलबार छिपाएँ
+Hide the sidebar,साइडबार छुपाएं
+High,उच्च
+Highlight,हाइलाइट
+History,इतिहास
+Home Page,मुख पृष्ठ
+Home Page is Products,होम पेज उत्पाद है
+ID (name) of the entity whose property is to be set,इकाई जिनकी संपत्ति को सेट किया जा रहा है की आईडी (नाम)
+Icon,आइकॉन
+Icon will appear on the button,आइकन बटन पर दिखाई देगा
+"If a Role does not have access at Level 0, then higher levels are meaningless.","एक रोल 0 स्तर पर पहुँच नहीं है , तो उच्च स्तर व्यर्थ कर रहे हैं ."
+"If checked, all other workflows become inactive.","अगर जाँच की है, सभी अन्य वर्कफ़्लोज़ निष्क्रिय हो जाते हैं."
+"If checked, the Home page will be the default Item Group for the website.",अगर चेक्ड होम पेज वेबसाइट के लिए डिफ़ॉल्ट आइटम समूह होगा.
+"If image is selected, color will be ignored (attach first)","यदि छवि का चयन किया गया है, रंग (1 देते हैं) पर ध्यान नहीं दिया जाएगा"
+If non standard port (e.g. 587),यदि गैर मानक बंदरगाह (587 जैसे)
+"If these instructions where not helpful, please add in your suggestions on GitHub Issues.","इन निर्देशों जहां मददगार नहीं हैं, GitHub मुद्दे पर अपने सुझाव में जोड़ें."
+"If you set this, this Item will come in a drop-down under the selected parent.","आप यह निर्धारित करते हैं, इस आइटम का चयन माता पिता के नीचे एक ड्रॉप डाउन में आ जाएगा ."
+Ignore User Permissions,उपयोगकर्ता अनुमतियाँ पर ध्यान न दें
+"Ignoring Item {0}, because a group exists with the same name!","उपेक्षा कर मद {0} , एक समूह में एक ही नाम के साथ मौजूद है क्योंकि !"
+Image,छवि
+Image Link,फोटो लिंक
+Import,आयात
+Import / Export Data,आयात / निर्यात डेटा
+Import / Export Data from .csv files.,आयात / निर्यात डेटा से . सीएसवी फाइल.
+In,में
+In Dialog,संवाद में
+In Filter,फिल्टर में
+In List View,सूची दृश्य में
+In Report Filter,रिपोर्ट फिल्टर में
+In points. Default is 9.,अंक में. डिफ़ॉल्ट 9 है.
+In response to,के जवाब में
+Incorrect value in row {0}: {1} must be {2} {3},गलत मान पंक्ति में {0} {1} होना चाहिए {2} {3}
+Incorrect value: {0} must be {1} {2},गलत मूल्य: {0} होना चाहिए {1} {2}
+Index,अनुक्रमणिका
+Individuals,व्यक्तियों
+Info,जानकारी
+Insert After,बाद सम्मिलित करें
+"Insert After field '{0}' mentioned in Custom Field '{1}', does not exist","'{0}' कस्टम फील्ड में उल्लेख किया है '{1} ' मौजूद नहीं है, क्षेत्र के बाद डालें"
+Insert Below,नीचे डालें
+Insert Code,कोड डालने के लिए
+Insert Row,पंक्ति डालें
+Insert Style,शैली सम्मिलित करें
+Install Applications.,आवेदन पत्र स्थापित .
+Installed,स्थापित
+Installer,इंस्टालर
+Int,इंट
+Integrations,एकीकरण
+Introduce your company to the website visitor.,वेबसाइट आगंतुक के लिए अपनी कंपनी शुरू.
+Introduction,परिचय
+Introductory information for the Contact Us Page,हमसे संपर्क करें पृष्ठ के लिए परिचयात्मक जानकारी
+Invalid Email: {0},अवैध ईमेल: {0}
+Invalid Filter: {0},अवैध फिल्टर: {0}
+Invalid Home Page,अवैध होम पेज
+Invalid Login,अवैध प्रवेश
+Invalid Outgoing Mail Server or Port,अवैध जावक मेल सर्वर या पोर्ट
+Invalid login or password,अमान्य लॉगइन या पासवर्ड
+Invalid recipient address,प्राप्तकर्ता का पता अमान्य
+Inverse,उलटा
+Is Active,सक्रिय है
+Is Child Table,चाइल्ड तालिका
+Is Default,डिफ़ॉल्ट है
+Is Event,घटना है
+Is Mandatory Field,अनिवार्य क्षेत्र है
+Is Single,एकल
+Is Standard,मानक है
+Is Submittable,Submittable है
+Is Task,काम है
+Item cannot be added to its own descendents,आइटम अपने खुद के वंशजों को जोड़ा नहीं जा सकता
+JavaScript Format: frappe.query_reports['REPORTNAME'] = {},जावास्क्रिप्ट स्वरूप: frappe.query_reports [' REPORTNAME '] = {}
+Javascript,जावास्क्रिप्ट
+Javascript to append to the head section of the page.,जावास्क्रिप्ट पृष्ठ के सिर अनुभाग को संलग्न करने के लिए.
+Key,कुंजी
+Label,लेबल
+Label Help,लेबल मदद
+Label and Type,लेबल और प्रकार
+Label is mandatory,लेबल अनिवार्य है
+Landing Page,लैंडिंग पेज
+Language,भाषा
+Language preference for user interface (only if available).,उपयोगकर्ता इंटरफ़ेस के लिए भाषा वरीयता (केवल यदि उपलब्ध हो).
+"Language, Date and Time settings","भाषा , दिनांक और समय सेटिंग्स"
+Last IP,अंतिम IP
+Last Login,अंतिम लॉगिन
+Last Name,सरनेम
+Last updated by,अंतिम अद्यतन
+Lastmod,lastmod
+Lato,Lato
+Leave blank to repeat always,हमेशा दोहराने के लिए खाली छोड़ें
+Left,वाम
+Less or equals,कम या बराबर होती है
+Less than,से भी कम
+Letter,patr
+Letter Head,पत्रशीर्ष
+Letter Head Name,लेटर हेड का नाम
+Letter Head in HTML,एचटीएमएल में लेटर हेड
+Level,स्तर
+"Level 0 is for document level permissions, higher levels for field level permissions.","0 स्तर दस्तावेज़ स्तर अनुमतियाँ, क्षेत्र स्तर अनुमति के लिए उच्च स्तर के लिए है."
+Like,जैसा
+Link,लिंक
+"Link that is the website home page. Standard Links (index, login, products, blog, about, contact)","उस वेबसाइट के होम पेज कड़ी . स्टैंडर्ड लिंक (सूचकांक , लॉगिन , उत्पादों , ब्लॉग , के बारे में , संपर्क )"
+Link to other pages in the side bar and next section,साइड बार में अन्य पृष्ठों और अगले अनुभाग लिंक
+Link to the page you want to open,आप खोलना चाहते पेज से लिंक करें
+Linked In Share,शेयर में लिंक्ड
+Linked With,के साथ जुड़ा हुआ
+List,सूची
+List a document type,एक दस्तावेज़ प्रकार सूची
+List of Web Site Forum's Posts.,वेब साइट फोरम के पदों की सूची .
+Loading,लदान
+Loading Report,रिपोर्ट लोड हो रहा है
+Loading...,लोड हो रहा है ...
+Localization,स्थानीयकरण
+Location,स्थान
+Log of error on automated events (scheduler).,स्वचालित घटनाओं ( अनुसूचक ) पर त्रुटि के लॉग ऑन करें.
+Login,लॉगिन
+Login After,बाद कीजिये
+Login Before,इससे पहले कीजिये
+Login Id,आईडी लॉगिन
+Login not allowed at this time,लॉगइन इस समय की अनुमति नहीं
+Logout,लॉगआउट
+Long Text,लंबी पाठ
+Low,निम्न
+Lucida Grande,ल्युसिडा Grande
+Mail Password,मेल पासवर्ड
+Main Section,मुख्य धारा
+Make a new,एक नया
+Make a new record,एक नया रिकॉर्ड बना
+Male,नर
+Manage cloud backups on Dropbox,ड्रॉपबॉक्स पर बादल बैकअप प्रबंधन
+Manage uploaded files.,अपलोड की गई फ़ाइलों की व्यवस्था करें.
+Mandatory,अनिवार्य
+Mandatory fields required in {0},में आवश्यक अनिवार्य क्षेत्रों {0}
+Mandatory filters required:\n,अनिवार्य फिल्टर की आवश्यकता है: \ n
+Master,मास्टर
+Max Attachments,अधिकतम किए गए अनुलग्नकों के
+Max width for type Currency is 100px in row {0},प्रकार मुद्रा के लिए अधिकतम चौड़ाई पंक्ति में 100px है {0}
+"Meaning of Submit, Cancel, Amend","अर्थ की सबमिट रद्द, संशोधन"
+Medium,मध्यम
+"Menu items in the Top Bar. For setting the color of the Top Bar, go to <a href=""#Form/Style Settings"">Style Settings</a>","शीर्ष पट्टी में मेनू आइटम है. शीर्ष पट्टी का रंग की स्थापना के लिए जाना <a href=""#Form/Style Settings"">शैली सेटिंग्स</a>"
+Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node,विलय समूह के लिए समूह या पत्ता नोड से पत्ता नोड के बीच ही संभव है
+Message,संदेश
+Message Examples,संदेश उदाहरण
+Messages,संदेश
+Method,विधि
+Middle Name (Optional),मध्य नाम (वैकल्पिक)
+Misc,विविध
+Miscellaneous,विविध
+Missing Values Required,आवश्यक लापता मूल्यों
+Modern,आधुनिक
+Modified by,के द्वारा जाँचा गया
+Module,मॉड्यूल
+Module Def,मॉड्यूल Def
+Module Name,मॉड्यूल नाम
+Module Not Found,विव नही मिला
+Modules Setup,मॉड्यूल सेटअप
+Monday,सोमवार
+More,अधिक
+More content for the bottom of the page.,पृष्ठ के नीचे के लिए सामग्री.
+Move Down: {0},नीचे ले जाएँ : {0}
+Move Up: {0},ऊपर ले जाएँ : {0}
+Multiple root nodes not allowed.,बहु रूट नोड्स अनुमति नहीं है.
+Must have report permission to access this report.,इस रिपोर्ट का उपयोग करने की रिपोर्ट की अनुमति होनी चाहिए.
+Must specify a Query to run,को चलाने के लिए एक प्रश्न जरूर निर्दिष्ट
+My Settings,मेरी सेटिंग्स
+Name,नाम
+Name Case,नाम प्रकरण
+Name and Description,नाम और विवरण
+Name is required,नाम आवश्यक है
+Name not permitted,अनुमति नहीं नाम
+Name not set via Prompt,प्रॉम्प्ट के माध्यम से निर्धारित नहीं नाम
+Name of the Document Type (DocType) you want this field to be linked to. e.g. Customer,अगर आप इस क्षेत्र से जोड़ा जा करना चाहते दस्तावेज़ प्रकार (टैग) का नाम. जैसे ग्राहक
+Name of {0} cannot be {1},{0} के नाम नहीं हो सकता है {1}
+Naming,नामकरण
+Naming Series mandatory,अनिवार्य श्रृंखला का नामकरण
+Nested set error. Please contact the Administrator.,नेस्ट सेट त्रुटि . व्यवस्थापक से संपर्क करें.
+New,नया
+New Password,नया पासवर्ड
+New Record,नया रिकॉर्ड
+New comment on {0} {1},पर नई टिप्पणी {0} {1}
+New password emailed,नई पासवर्ड ईमेल
+New value to be set,नई करने के लिए सेट किया जा मूल्य
+New {0},नई {0}
+Next Communcation On,अगला कम्युनिकेशन
+Next Record,अगला अभिलेख
+Next State,अगले राज्य
+Next actions,अगली कार्रवाई
+No,नहीं
+No Action,कोई कार्रवाई नहीं
+No Communication tagged with this ,इस के साथ टैग कोई संचार
+No Copy,कोई नकल
+No Permissions set for this criteria.,कोई अनुमतियाँ इस मापदंड के लिए निर्धारित किया है.
+No Report Loaded. Please use query-report/[Report Name] to run a report.,कोई रिपोर्ट भरा हुआ है. उपयोग क्वेरी रिपोर्ट / [रिपोर्ट नाम] की एक रिपोर्ट चलाने के लिए कृपया.
+No Results,कोई परिणाम नहीं
+No Sidebar,कोई साइडबार
+No User Permissions found.,कोई उपयोगकर्ता अनुमतियाँ पाया .
+No data found,पाया कोई डेटा नहीं
+No file attached,नहीं जुड़े फाइल
+No further records,आगे कोई रिकॉर्ड
+No one,कोई नहीं
+No permission to '{0}' {1},करने के लिए कोई अनुमति नहीं '{0} ' {1}
+No permission to edit,संपादित करने के लिए कोई अनुमति नहीं
+No permission to write / remove.,लिखने के लिए कोई अनुमति / हटा दें.
+No records tagged.,कोई रिकॉर्ड टैग.
+No template found at path: {0},पथ पर पाया कोई खाका: {0}
+No {0} permission,कोई {0} अनुमति
+None,कोई नहीं
+None: End of Workflow,कोई नहीं: कार्यप्रवाह समाप्ति
+Not Found,नहीं मिला
+Not Linked to any record.,लिंक्ड कोई रिकॉर्ड नहीं है.
+Not Permitted,अनुमति नहीं
+Not Submitted,सबमिट नहीं
+Not a user yet? Sign up,नहीं अभी तक एक उपयोगकर्ता हैं? साइन अप
+Not a valid Comma Separated Value (CSV File),नहीं एक वैध कॉमा सेपरेटेड वैल्यू ( सीएसवी फाइल )
+Not allowed,अनुमति नहीं
+Not allowed from this IP Address,यह आईपी पते से अनुमति नहीं
+Not allowed to Import,आयात की अनुमति नहीं
+Not allowed to access {0} with {1} = {2},देखने की अनुमति नहीं {0} के साथ {1} = {2}
+Not allowed to change {0} after submission,प्रस्तुत करने के बाद {0} बदलने की अनुमति नहीं
+Not allowed to move,चलने की अनुमति नहीं
+Not allowed to reset the password of {0},{0} के पासवर्ड को रीसेट करने की अनुमति नहीं
+Not enough permission to see links.,पर्याप्त के लिए लिंक को देखने की अनुमति नहीं है.
+Not equals,नहीं के बराबर होती है
+Not found,नहीं मिला
+Not in Developer Mode! Set in site_config.json,नहीं डेवलपर मोड में ! Site_config.json में सेट करें
+Not permitted,अनुमति नहीं
+"Note: For best results, images must be of the same size and width must be greater than height.","नोट: सर्वोत्तम परिणामों के लिए, छवियों को एक ही आकार और चौड़ाई का होना आवश्यक ऊंचाई से अधिक होना चाहिए."
+Note: Other permission rules may also apply,नोट: अन्य अनुमति के नियम भी लागू हो सकता है
+Note: maximum attachment size = 1mb,नोट: अधिकतम कुर्की आकार 1mb =
+Nothing to show,दिखाने के लिए कुछ भी नहीं
+Nothing to show for this selection,इस चयन के लिए दिखाने के लिए कुछ भी नहीं
+Notification Count,अधिसूचना गणना
+Notify by Email,ईमेल द्वारा सूचित करें
+Number Format,संख्या स्वरूप
+Old Parent,पुरानी माता - पिता
+On,पर
+"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).","आप इस सेट करने के बाद , उपयोगकर्ताओं को केवल सक्षम पहुँच दस्तावेजों लिंक मौजूद है, जहां (जैसे ब्लॉग पोस्ट) (जैसे ब्लॉगर ) हो जाएगा ."
+Only Administrator allowed to create Query / Script Reports,केवल प्रशासक प्रश्न / स्क्रिप्ट रिपोर्टें बनाने की अनुमति
+Only Administrator can save a standard report. Please rename and save.,केवल प्रशासक एक मानक रिपोर्ट बचा सकता है. नाम बदलने और बचा लो.
+Only Allow Edit For,केवल के लिए संपादित करें अनुमति दें
+Only allowed {0} rows in one import,एक आयात में केवल अनुमति दी {0} पंक्तियों
+Oops! Something went wrong,ओह! कुछ गलत हो गया है
+Open,खुला
+Open Count,ओपन गणना
+Open Sans,ओपन संस
+Open Source Web Applications for the Web,वेब के लिए ओपन सोर्स वेब एप्लीकेशन
+Open a module or tool,एक मॉड्यूल या उपकरण को खोलें
+Open {0},ओपन {0}
+Optional: Alert will only be sent if value is a valid email id.,"वैकल्पिक: मूल्य एक मान्य ईमेल आईडी है, तो चेतावनी ही भेजा जाएगा."
+Optional: Always send to these ids. Each email id on a new row,वैकल्पिक: हमेशा इन आईडी के लिए भेजें. एक नई पंक्ति पर प्रत्येक ईमेल आईडी
+Optional: The alert will be sent if this expression is true,"वैकल्पिक: यह अभिव्यक्ति सत्य है, तो सतर्क भेजा जाएगा"
+Options,विकल्प
+Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType',क्षेत्र के विकल्प 'डायनामिक लिंक' प्रकार 'टैग' के रूप में विकल्प के साथ एक और कड़ी फील्ड को इंगित करना होगा
+Options Help,विकल्पों की मदद से
+Options for select. Each option on a new line. e.g.: <br>Option 1<br>Option 2<br>Option 3<br>,चयन के लिए विकल्प. एक नई लाइन पर प्रत्येक विकल्प. उदाहरण के लिए: व्यापार विकल्प 1 <br> विकल्प 2 वेयरहाउस विकल्प 3 <br>
+Options must be a valid DocType for field {0} in row {1},विकल्प {0} पंक्ति में {1} क्षेत्र के लिए एक वैध DOCTYPE होना चाहिए
+Options not set for link field {0},विकल्प लिंक क्षेत्र के लिए निर्धारित नहीं {0}
+Options requried for Link or Table type field {0} in row {1},लिंक या टेबल प्रकार क्षेत्र के लिए requried विकल्प {0} पंक्ति में {1}
+Org History,संगठन इतिहास
+Org History Heading,संगठन इतिहास शीर्षक
+Original Message,मूल संदेश
+Other,अन्य
+Outgoing Email Settings,निवर्तमान ईमेल सेटिंग्स
+Outgoing Mail Server,जावक मेल सर्वर
+Outgoing Mail Server not specified,जावक मेल सर्वर निर्दिष्ट नहीं
+Owner,स्वामी
+PDF Page Size,पीडीएफ पृष्ठ आकार
+PDF Settings,पीडीएफ सेटिंग्स
+POP3 Mail Server (e.g. pop.gmail.com),POP3 मेल सर्वर (जैसे pop.gmail.com)
+Page,पेज
+Page #{0} of {1},पृष्ठ # {0} का {1}
+Page Background,पृष्ठ पृष्ठभूमि
+Page HTML,पृष्ठ HTML
+Page Header,पृष्ठ शीर्ष लेख
+Page Header Background,पृष्ठ हैडर पृष्ठभूमि
+Page Header Text,पृष्ठ शीर्ष लेख पाठ
+Page Links,पेज लिंक
+Page Name,पेज का नाम
+Page Role,पृष्ठ रोल
+Page Text,पृष्ठ पाठ
+Page Title,पृष्ठ शीर्षक
+Page content,पृष्ठ सामग्री
+Page not found,पृष्ठ नहीं मिला
+Page or Generator,पेज या जेनरेटर
+Page url name (auto-generated),पृष्ठ URL नाम ( ऑटो उत्पन्न )
+Parent Label,माता - पिता लेबल
+Parent Post,माता पिता के पद
+Parent Website Page,जनक वेबसाइट पृष्ठ
+Parent Website Route,जनक वेबसाइट ट्रेन
+Parent Website Sitemap,जनक वेबसाइट साइटमैप
+Participants,प्रतिभागियों
+Password,पासवर्ड
+Password Updated,पासवर्ड अपडेट
+Password reset instructions have been sent to your email,पासवर्ड रीसेट निर्देश अपने ईमेल पर भेज दिया गया है
+Patch,पैच
+Patch Log,पैच प्रवेश करें
+Percent,प्रतिशत
+Perm Level,स्तर Perm
+Permanently Cancel {0}?,स्थायी रूप से {0} रद्द करें?
+Permanently Submit {0}?,स्थायी रूप से {0} सबमिट करें ?
+Permanently delete {0}?,स्थायी रूप से {0} को हटाने ?
+Permission Level,अनुमति स्तर
+Permission Levels,अनुमति स्तरों
+Permission Rules,अनुमति नियम
+Permission already set,अनुमति पहले से ही सेट
+Permissions,अनुमतियाँ
+Permissions Settings,अनुमतियाँ सेटिंग्स
+Permissions are automatically translated to Standard Reports and Searches.,अनुमतियाँ स्वतः मानक रिपोर्टों और खोजों के लिए अनुवाद कर रहे हैं .
+"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions.","अनुमतियाँ रिपोर्ट , आयात, निर्यात , प्रिंट, ईमेल और सेट उपयोगकर्ता अनुमतियाँ , संशोधन , रद्द , सबमिट करें , हटाएँ , बनाएँ , लिखने , पढ़ने के लिए पसंद अधिकार निर्धारित करके भूमिकाओं और दस्तावेज़ प्रकार ( doctypes कहा जाता है) पर टिकी हैं ."
+Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles.,उच्च स्तर पर अनुमतियाँ ' फील्ड स्तर' अनुमतियाँ हैं .
+"Permissions at level 0 are 'Document Level' permissions, i.e. they are primary for access to the document.","स्तर 0 पर अनुमतियाँ हैं &#39;दस्तावेज़ स्तर&#39; की अनुमति है, यानी वे दस्तावेज़ तक पहुँच के लिए प्राथमिक रहे हैं."
+Permissions get applied on Users based on what Roles they are assigned.,अनुमतियां वे आवंटित कर रहे हैं क्या भूमिका के आधार पर उपयोगकर्ताओं पर लागू हो .
+Permitted Documents For User,उपयोगकर्ता के लिए अनुमति दस्तावेज
+Person,व्यक्ति
+Personal Info,व्यक्तिगत जानकारी
+Phone,फ़ोन
+Phone No.,फोन नंबर
+Pick Columns,स्तंभ उठाओ
+Picture URL,चित्र यूआरएल
+Pincode,Pincode
+Please attach a file first.,पहले एक फ़ाइल संलग्न करें.
+Please attach a file or set a URL,एक फ़ाइल संलग्न या एक यूआरएल निर्धारित करें
+Please do not change the rows above {0},ऊपर पंक्तियों को बदल नहीं है कृपया {0}
+Please enable pop-ups,पॉप अप सक्षम करें
+Please enter Event's Date and Time!,घटना की तिथि और समय दर्ज करें !
+Please enter both your email and message so that we \				can get back to you. Thanks!,अपना ईमेल और संदेश दोनों दाखिल करें ताकि हम \ आप को वापस मिल सकता है. धन्यवाद!
+Please enter some text!,कुछ पाठ दर्ज करें!
+Please enter title!,शीर्षक दर्ज करें !
+Please login to Upvote!,Upvote लॉगिन करें !
+Please make sure that there are no empty columns in the file.,फाइल में कोई रिक्त स्तंभ हैं कि कृपया सुनिश्चित करें.
+Please refresh to get the latest document.,नवीनतम दस्तावेज प्राप्त करने के लिए ताज़ा करें.
+Please reply above this line or remove it if you are replying below it,"इस लाइन से ऊपर उत्तर या आप इसे नीचे जवाब देते हैं, तो यह निकाल दें"
+Please select a file or url,एक फाइल या यूआरएल का चयन करें
+Please select atleast 1 column from {0} to sort,{0} को सॉर्ट करने से कम से कम 1 स्तंभ का चयन करें
+Please set {0} first,पहला {0} सेट करें
+Please specify,कृपया बताएं
+Please specify 'Auto Email Id' in Setup > Outgoing Email Settings,> सेटअप में निवर्तमान ईमेल सेटिंग ' ऑटो ईमेल आईडी ' निर्दिष्ट करें
+Please specify Event date and time,घटना की तारीख और समय निर्दिष्ट करें
+Please specify doctype,टैग निर्दिष्ट करें
+Please specify user,उपयोगकर्ता निर्दिष्ट करें
+Please specify which date field must be checked,जाँच की जानी चाहिए जो दिनांक क्षेत्र निर्दिष्ट करें
+Please specify which value field must be checked,मूल्य क्षेत्र की जाँच की जानी चाहिए जो निर्दिष्ट करें
+Please upload using the same template as download.,डाउनलोड के रूप में एक ही टेम्पलेट का उपयोग कर अपलोड करें.
+Plugin,प्लगइन
+Port,बंदरगाह
+Post,पद
+Post Publicly,सार्वजनिक रूप से पोस्ट
+Post Topic,विषय पोस्ट
+Post already exists. Cannot add again!,पोस्ट पहले से ही मौजूद है. फिर से नहीं जोड़ सकते हैं!
+Post does not exist. Please add post!,डाक मौजूद नहीं है . पोस्ट जोड़ने के लिए धन्यवाद !
+Post to user,उपयोगकर्ता को पोस्ट
+Posts,डाक
+Previous Record,पिछला रिकॉर्ड
+Primary,प्राथमिक
+Print,प्रिंट
+Print Format,प्रारूप प्रिंट
+Print Format Help,छापा स्वरूप मदद
+Print Format Type,प्रारूप टाइप प्रिंट
+Print Format {0} does not exist,छापा प्रारूप {0} मौजूद नहीं है
+Print Format {0} is disabled,छापा प्रारूप {0} अक्षम है
+Print Hide,छिपाएँ प्रिंट
+Print Settings,प्रिंट सेटिंग
+Print Style,मुद्रण शैली
+Print Style Preview,मुद्रण शैली पूर्वावलोकन
+Print Width,प्रिंट चौड़ाई
+"Print with Letterhead, unless unchecked in a particular Document",", लेटरहेड साथ प्रिंट जब तक एक विशेष दस्तावेज़ में अनियंत्रित"
+Print...,प्रिंट ...
+Printing and Branding,मुद्रण और ब्रांडिंग
+Priority,प्राथमिकता
+Private,निजी
+Properties,गुण
+Property,संपत्ति
+Property Setter,संपत्ति सेटर
+Property Type,सम्पत्ती के प्रकार
+Public,सार्वजनिक
+Published,प्रकाशित
+Published On,पर प्रकाशित
+Published on website at: {0},पर वेबसाइट पर प्रकाशित: {0}
+Pull Emails from the Inbox and attach them as Communication records (for known contacts).,ईमेल इनबॉक्स से खींचो और उन्हें संचार रिकॉर्ड (ज्ञात संपर्कों के लिए) के रूप में देते हैं.
+Query,प्रश्न
+Query Options,क्वेरी विकल्प
+Query Report,क्वेरी रिपोर्ट
+Query must be a SELECT,प्रश्न एक का चयन किया जाना चाहिए
+Quick Help for Setting Permissions,अनुमतियाँ सेट करने के लिए त्वरित मदद
+Quick Help for User Permissions,उपयोगकर्ता अनुमतियाँ के लिए त्वरित मदद
+Re-open,पुनः खुला
+Read,पढ़ना
+Read Only,केवल पठनीय
+Received,प्राप्त
+Recipient,प्राप्तकर्ता
+Recipients,प्राप्तकर्ता
+Record does not exist,रिकॉर्ड मौजूद नहीं है
+Ref DocType,रेफरी doctype
+Ref Name,रेफरी नाम
+Ref Type,रेफरी के प्रकार
+Reference,संदर्भ
+Reference DocName,संदर्भ DocName
+Reference DocType,संदर्भ टैग
+Reference Name,संदर्भ नाम
+Reference Type,संदर्भ प्रकार
+Refresh,ताज़ा करना
+Refreshing...,रिफ्रेशिंग ...
+Registered but disabled.,पंजीकृत लेकिन अक्षम.
+Registration Details Emailed.,पंजीकरण विवरण ईमेल किया.
+Reload Page,पृष्ठ पुनः लोड
+Remove Bookmark,बुकमार्क निकालें
+Remove all customizations?,सभी अनुकूलन निकालें ?
+Rename many items by uploading a .csv file.,एक . सीएसवी फाइल को अपलोड करके कई मदों का नाम बदलें .
+Rename...,नाम बदलें ...
+Repeat On,पर दोहराएँ
+Repeat Till,जब तक दोहराएँ
+Repeat this Event,इस इवेंट दोहराएँ
+Replies,पोस्ट किए गए संदेश
+Report,रिपोर्ट
+Report Builder,रिपोर्ट बिल्डर
+Report Builder reports are managed directly by the report builder. Nothing to do.,रिपोर्ट बिल्डर रिपोर्टों रिपोर्ट बिल्डर द्वारा सीधे प्रबंधित कर रहे हैं. ऐसा करने के लिए कुछ भी नहीं है.
+Report Hide,छिपाएँ रिपोर्ट
+Report Name,रिपोर्ट नाम
+Report Type,टाइप रिपोर्ट
+Report an Issue,किसी समस्या की रिपोर्ट
+Report cannot be set for Single types,रिपोर्ट एकल प्रकार के लिए निर्धारित नहीं किया जा सकता
+Report this issue,इस समस्या की रिपोर्ट करें
+Report was not saved (there were errors),रिपोर्ट नहीं बचाया (वहाँ त्रुटियों थे)
+Reqd,Reqd
+Reset Password Key,पासवर्ड को रीसेट
+Reset Permissions for {0}?,{0} के लिए अनुमतियाँ रीसेट ?
+Response,जवाब (प्रतिक्रिया)
+Restrict IP,आईपी ​​प्रतिबंधित करें
+Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111),इस आईपी पते से ही उपयोगकर्ता प्रतिबंधित. एकाधिक आईपी पतों को अल्पविरामों से अलग से जोड़ा जा सकता है. इसके अलावा तरह आंशिक आईपी पते (111.111.111) स्वीकार
+Right,सही
+Role,भूमिका
+Role Name,भूमिका का नाम
+Role Permissions Manager,रोल अनुमतियां प्रबंधक
+Role and Level,रोल और स्तर
+Role exists,रोल मौजूद
+Roles,भूमिकाओं
+Roles Assigned,निरुपित भूमिकाओं
+Roles Assigned To User,उपयोगकर्ता को असाइन भूमिकाओं
+Roles HTML,भूमिकाओं HTML
+Roles can be set for users from their User page.,भूमिकाएँ उनके सदस्य पृष्ठ से उपयोगकर्ताओं के लिए निर्धारित किया जा सकता है .
+Root {0} cannot be deleted,जड़ {0} मिटाया नहीं जा सकता
+Row,पंक्ति
+Row #{0}:,Row # {0}:
+Rules defining transition of state in the workflow.,नियम कार्यप्रवाह में राज्य के संक्रमण को परिभाषित.
+"Rules for how states are transitions, like next state and which role is allowed to change state etc.","कैसे राज्यों बदलाव अगले राज्य और जो भूमिका की तरह कर रहे हैं, के लिए नियम आदि राज्य को बदलने की अनुमति दी है"
+Run scheduled jobs only if checked,जाँच केवल अगर अनुसूचित नौकरियों भागो
+Run the report first,पहली रिपोर्ट चलाएँ
+SMTP Server (e.g. smtp.gmail.com),एसएमटीपी सर्वर (जैसे smtp.gmail.com)
+Sales,विक्रय
+Same file has already been attached to the record,एक ही फाइल पहले से रिकॉर्ड करने के लिए संलग्न किया गया है
+Sample,नमूना
+Saturday,शनिवार
+Save,बचाना
+Scheduler Log,समयबद्धक प्रवेश
+Script,लिपि
+Script Report,स्क्रिप्ट की रिपोर्ट
+Script Type,लिखावट टाइप
+Search,खोजें
+Search Fields,खोज फ़ील्ड्स
+Search in a document type,एक दस्तावेज़ प्रकार मे खोजें
+Search or type a command,एक आदेश में खोजें या लिखें
+Section Break,अनुभाग विराम
+Security,सुरक्षा
+Security Settings,सुरक्षा सेटिंग्स
+Select,चयन
+Select All,सभी का चयन
+Select Attachments,किए गए अनुलग्नकों के चयन करें
+Select Document Type,दस्तावेज़ प्रकार का चयन करें
+Select Document Type or Role to start.,दस्तावेज़ प्रकार या शुरू करने के लिए रोल का चयन करें.
+Select Print Format,प्रिंट प्रारूप का चयन करें
+Select Report Name,रिपोर्ट नाम का चयन करें
+Select Role,रोल का चयन करें
+Select To Download:,डाउनलोड करने के लिए चयन करें:
+Select Type,प्रकार का चयन करें
+Select User or DocType to start.,शुरू करने के लिए प्रयोक्ता या टैग का चयन करें.
+Select a Banner Image first.,पहले एक बैनर छवि का चयन करें.
+Select an image of approx width 150px with a transparent background for best results.,अच्छे परिणाम के लिए एक पारदर्शी पृष्ठभूमि के साथ लगभग चौड़ाई 150px की एक छवि का चयन करें.
+Select dates to create a new ,Select dates to create a new 
+"Select modules to be shown (based on permission). If hidden, they will be hidden for all users.","चयन मॉड्यूल (अनुमति के आधार पर) दिखाया जाएगा . छिपे हुए हैं, वे सभी उपयोगकर्ताओं के लिए छिपा हुआ होगा ."
+Select or drag across time slots to create a new event.,का चयन करें या एक नई घटना बनाने के लिए टाइम स्लॉट भर में खींचें.
+"Select target = ""_blank"" to open in a new page.","चुनने का लक्ष्य एक नया पेज में खोलने के लिए = "" _blank"" ."
+Select the label after which you want to insert new field.,लेबल का चयन करें जिसके बाद आप नए क्षेत्र सम्मिलित करना चाहते हैं.
+Send,भेजें
+Send Alert On,अलर्ट पर भेजें
+Send As Email,ईमेल के रूप में भेजें
+Send Email,ईमेल भेजें
+Send Email Print Attachments as PDF (Recommended),पीडीएफ के रूप में ईमेल प्रिंट अनुलग्नक भेजें (अनुशंसित)
+Send Me A Copy,मुझे एक कॉपी भेज
+Send Password,पासवर्ड भेज
+Send Print as PDF,के रूप में प्रिंट भेजें पीडीएफ
+Send alert if date matches this field's value,"तारीख इस क्षेत्र के मूल्य से मेल खाता है, तो सतर्क भेजें"
+Send alert if this field's value changes,चेतावनी भेजें इस क्षेत्र के मूल्य में परिवर्तन अगर
+Send an email reminder in the morning,सुबह में एक ईमेल अनुस्मारक भेजें
+Send download link of a recent backup to System Managers,सिस्टम प्रबंधक को हाल ही में एक बैकअप के डाउनलोड लिंक भेजें
+Send enquiries to this email address,इस ईमेल पते पर पूछताछ भेजें
+Sender,प्रेषक
+Sent,भेजे गए
+Sent Mail,भेजी गई मेल
+Sent Quotation,भेजे गए कोटेशन
+Sent or Received,भेजा या प्राप्त
+Series,कई
+Series {0} already used in {1},सीरीज {0} पहले से ही प्रयोग किया जाता में {1}
+Server,सेवक
+Server & Credentials,सर्वर और साख
+Server Error: Please check your server logs or contact tech support.,सर्वर त्रुटि : आपके सर्वर लॉग या संपर्क तकनीकी समर्थन की जाँच करें.
+Session Expired. Logging you out,सत्र समाप्त हो गया. आप लॉग आउट
+Session Expiry,सत्र समाप्ति
+Session Expiry in Hours e.g. 06:00,घंटे में सत्र समाप्ति जैसे 06:00
+Session Expiry must be in format {0},सत्र समाप्ति प्रारूप में होना चाहिए {0}
+Set Banner from Image,छवि से बैनर सेट
+Set Link,सेट लिंक
+Set Login and Password if authentication is required.,लॉगिन और पासवर्ड सेट अगर प्रमाणीकरण की आवश्यकता है.
+Set Only Once,केवल एक बार सेट
+Set Password,पासवर्ड सेट
+Set Permissions on Document Types and Roles,दस्तावेज़ प्रकार और भूमिकाओं पर अनुमतियां सेट करें
+Set Permissions per User,प्रति उपयोगकर्ता अनुमतियां सेट करें
+Set User Permissions,सेट उपयोगकर्ता अनुमतियाँ
+Set Value,मूल्य सेट
+"Set default format, page size, print style etc.","सेट डिफ़ॉल्ट स्वरूप, पृष्ठ आकार, मुद्रण शैली आदि"
+Set numbering series for transactions.,लेनदेन के लिए श्रृंखला नंबर सेट करें .
+Set outgoing mail server.,जावक मेल सर्वर सेट करें .
+Settings,सेटिंग्स
+Settings for About Us Page.,हमारे बारे में पृष्ठ के लिए सेटिंग्स.
+Settings for Contact Us Page.,के लिए सेटिंग्स हमसे संपर्क पृष्ठ.
+Setup,व्यवस्था
+Setup > User,सेटअप > उपयोगकर्ता
+Setup > User Permissions Manager,सेटअप > उपयोगकर्ता अनुमतियाँ प्रबंधक
+Setup Email Alert based on various criteria.,सेटअप ईमेल अलर्ट विभिन्न मानदंडों के आधार पर.
+Setup of fonts and background.,फ़ॉन्ट और पृष्ठभूमि का सेटअप.
+"Setup of top navigation bar, footer and logo.","शीर्ष नेविगेशन पट्टी, पाद लेख, और लोगो का सेटअप."
+Short Bio,लघु जैव
+Short Name,संक्षिप्त नाम
+Shortcut,शॉर्टकट
+Show / Hide Modules,दिखाएँ / छिपाएँ मॉड्यूल
+Show Print First,शो के पहले प्रिंट
+Show Tags,दिखाएँ टैग
+Show or hide modules globally.,दिखाएँ या विश्व स्तर पर मॉड्यूल को छिपाने .
+Show rows with zero values,शून्य मान के साथ पंक्तियों दिखाएं
+Show tags,दिखाएँ टैग
+Show this field as title,शीर्षक के रूप में इस क्षेत्र दिखाएं
+Showing only for (if not empty),के लिए ही दिखा रहा है ( नहीं तो खाली )
+Sidebar,साइडबार
+Sidebar Items,साइडबार आइटम
+Sidebar Links for Home Page only,होम पेज के लिए साइडबार लिंक केवल
+Sign Up,साइन अप करें
+Sign in,साइन इन करें
+Sign up,साइन अप
+Single Post (article).,सिंगल पोस्ट (लेख).
+Single Types have only one record no tables associated. Values are stored in tabSingles,सिंगल प्रकार जुड़े केवल एक रिकॉर्ड कोई टेबल है . मान tabSingles में जमा हो जाती है
+Sitemap Browser,साइटमैप ब्राउज़र
+Slideshow,स्लाइड शो
+Slideshow Items,स्लाइड शो आइटम
+Slideshow Name,स्लाइड शो नाम
+Small Text,छोटे पाठ
+Social Login Keys,सामाजिक लॉगइन कुंजी
+Solid background color (default light gray),ठोस पृष्ठभूमि रंग (डिफ़ॉल्ट हल्के भूरे रंग)
+Sorry we were unable to find what you were looking for.,खेद है कि हम खोजने के लिए आप क्या देख रहे थे करने में असमर्थ थे.
+Sorry you are not permitted to view this page.,खेद है कि आपको इस पृष्ठ को देखने की अनुमति नहीं है.
+Sort By,द्वारा क्रमबद्ध करें
+Sort Field,क्रमबद्ध फील्ड
+Sort Order,सॉर्ट क्रम
+Standard,मानक
+Standard Print Format cannot be updated,मानक प्रिंट स्वरूप अद्यतन नहीं किया जा सकता है
+Standard Reply,मानक जवाब
+Standard Reports,मानक रिपोर्ट
+Standard replies to common queries.,मानक सामान्य प्रश्नों का जवाब.
+Start Report For,प्रारंभ लिए रिपोर्ट
+Starts on,पर शुरू होता है
+State,राज्य
+States,राज्य अमेरिका
+"States for workflow (e.g. Draft, Approved, Cancelled).","कार्यप्रवाह के लिए अमेरिका ( जैसे ड्राफ्ट , स्वीकृत , रद्द) ."
+Static File Timestamp,स्थिर फ़ाइल टाइमस्टैम्प
+Status,हैसियत
+Step 1: Set the name and save.,चरण 1: नाम निर्धारित करें और बचाने के लिए.
+Step 2: Set Letterhead content.,चरण 2: लेटरहेड सामग्री निर्धारित करें.
+Style,शैली
+Style Settings,शैली सेटिंग्स
+"Style represents the button color: Success - Green, Danger - Red, Inverse - Black, Primary - Dark Blue, Info - Light Blue, Warning - Orange","- ग्रीन, खतरा - लाल, उलटा - काले, प्राथमिक - डार्क ब्लू जानकारी, लाइट ब्लू, चेतावनी - ऑरेंज सफलता: शैली बटन रंग का प्रतिनिधित्व करता है"
+Sub-domain provided by erpnext.com,Erpnext.com द्वारा प्रदान की उप - डोमेन
+Subdomain,उपडोमेन
+Subject,विषय
+Submit,प्रस्तुत करना
+Submit an Issue,किसी समस्या सबमिट
+Submitted,पेश
+Submitted Document cannot be converted back to draft. Transition row {0},प्रस्तुत दस्तावेज का मसौदा तैयार करने के लिए वापस नहीं बदला जा सकता .
+Success,सफलता
+Suggestion,सुझाव
+Sunday,रविवार
+Switch to Website,वेबसाइट के लिए स्विच
+Sync Inbox,सिंक इनबॉक्स
+System,प्रणाली
+System Settings,सिस्टम सेटिंग्स
+System User,सिस्टम उपयोगकर्ता को
+System and Website Users,सिस्टम और वेबसाइट के उपयोगकर्ताओं
+System generated mails will be sent from this email id.,सिस्टम उत्पन्न मेल इस ईमेल आईडी से भेजा जाएगा.
+Table,तालिका
+Table {0} cannot be empty,टेबल {0} खाली नहीं हो सकता
+Tag,टैग
+Tag Name,टैग का नाम
+Tags,टैग
+Tahoma,Tahoma
+Target,लक्ष्य
+Tasks,कार्य
+Team Members,टीम के सदस्यों को
+Team Members Heading,टीम के सदस्यों शीर्षक
+Template,टेम्पलेट
+Template Pages cannot be moved,साँचा पन्ने स्थानांतरित नहीं किया जा सकता है
+Test,परीक्षण
+Test Runner,परीक्षण धावक
+Text,पाठ
+Text Align,पाठ संरेखित
+Text Editor,पाठ संपादक
+Thank you for your message,अपने संदेश के लिए धन्यवाद
+The name of your company / website as you want to appear on browser title bar. All pages will have this as the prefix to the title.,/ अपनी कंपनी की वेबसाइट के नाम के रूप में आप ब्राउज़र शीर्षक पट्टी पर प्रकट करना चाहते हैं. सभी पृष्ठों शीर्षक उपसर्ग के रूप में होगा.
+The system provides many pre-defined roles. You can add new roles to set finer permissions.,प्रणाली कई पूर्व निर्धारित भूमिकाओं में हैं. आप महीन अनुमति सेट करने के लिए नई भूमिका में जोड़ सकते हैं .
+Then By (optional),तब तक (वैकल्पिक)
+There should remain at least one System Manager,कम से कम एक सिस्टम मैनेजर वहाँ रहना चाहिए
+There were errors,त्रुटियां थीं
+There were errors while sending email. Please try again.,ईमेल भेजने के दौरान त्रुटि . पुन: प्रयास करें .
+"There were some errors setting the name, please contact the administrator","नाम स्थापित करने में कुछ त्रुटियां थीं, व्यवस्थापक से संपर्क करें"
+"These permissions will apply for all transactions where the permitted record is linked. For example, if Company C is added to User Permissions of user X, user X will only be able to see transactions that has company C as a linked value.","इन अनुमतियों की अनुमति रिकॉर्ड जुड़ा हुआ है , जहां सभी लेनदेन के लिए लागू होगी ."
+These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,लेनदेन में इन मूल्यों को स्वचालित रूप से अद्यतन किया जाएगा और भी इन मूल्यों से युक्त लेनदेन पर इस उपयोगकर्ता के लिए अनुमति को प्रतिबंधित करने के लिए उपयोगी हो जाएगा.
+"These will also be set as default values for those links, if only one such permission record is defined.","केवल एक ही तरह की अनुमति रिकॉर्ड में परिभाषित किया जाता है, तो ये भी , उन लिंक्स के लिए डिफ़ॉल्ट मान के रूप में स्थापित किया जाएगा."
+Third Party Authentication,थर्ड पार्टी प्रमाणन
+This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>myfieldeval:doc.myfield=='My Value'<br>eval:doc.age>18,यहाँ परिभाषित fieldname मूल्य या नियमों सच (उदाहरण) कर रहे हैं तभी इस क्षेत्र में दिखाई देगा: <br>  myfield  eval: doc.myfield == 'मेरा मान' <br>  eval: doc.age> 18
+This goes above the slideshow.,इस स्लाइड शो से ऊपर चला जाता है.
+This is PERMANENT action and you cannot undo. Continue?,यह स्थायी कार्रवाई की है और आप पूर्ववत नहीं कर सकते. जारी रखें?
+"This is a standard format. To make changes, please copy it make make a new format.",यह एक मानक प्रारूप है. बदलाव लाने के लिए यह एक नया प्रारूप बनाने कॉपी करें.
+This is permanent action and you cannot undo. Continue?,यह स्थायी कार्रवाई है और आप पूर्ववत नहीं कर सकते. जारी रखें?
+This must be checked if Style Settings are applicable,"शैली सेटिंग्स लागू कर रहे हैं , तो यह जाँच की जानी चाहिए"
+This role update User Permissions for a user,एक उपयोगकर्ता के लिए यह भूमिका अद्यतन उपयोगकर्ता अनुमतियाँ
+Thursday,बृहस्पतिवार
+Tile,टाइल
+Time,समय
+Time Zone,समय क्षेत्र
+Timezone,समय क्षेत्र
+Title,शीर्षक
+Title / headline of your page,शीर्षक / अपने पृष्ठ का शीर्षक
+Title Case,शीर्षक केस
+Title Field,शीर्षक फ़ील्ड
+Title Prefix,शीर्षक उपसर्ग
+Title field must be a valid fieldname,शीर्षक फ़ील्ड एक वैध fieldname होना चाहिए
+Title is required,शीर्षक की आवश्यकता है
+To,से
+To Do,क्या करने के लिए
+"To format columns, give column labels in the query.",", कॉलम प्रारूप क्वेरी में स्तंभ लेबल दे. करने के लिए"
+"To give acess to a role for only specific records, check the 'Apply User Permissions'. User Permissions are used to limit users with such role to specific records.","' उपयोगकर्ता अनुमतियाँ लागू करें' की जांच , केवल विशिष्ट रिकॉर्ड के लिए एक भूमिका को acess देने के लिए."
+"To run a test add the module name in the route after '{0}'. For example, {1}","एक परीक्षण '{0}' के बाद मार्ग में मॉड्यूल नाम जोड़ने को चलाने के लिए . उदाहरण के लिए , {1}"
+ToDo,ToDo
+Too many writes in one request. Please send smaller requests,एक भी कई अनुरोध में लिखते हैं . छोटे से अनुरोध भेजने के लिए धन्यवाद
+Top Bar,शीर्ष बार
+Top Bar Background,शीर्ष बार पृष्ठभूमि
+Top Bar Item,शीर्ष बार आइटम
+Top Bar Items,शीर्ष बार आइटम
+Top Bar Text,शीर्ष बार पाठ
+Top Bar text and background is same color. Please change.,शीर्ष बार पाठ और पृष्ठभूमि एक ही रंग है. बदलाव करें.
+Transaction,लेन - देन
+Transition Rules,संक्रमण नियम
+Tuesday,मंगलवार
+Tweet will be shared via your user account (if specified),(निर्दिष्ट) कलरव अपने उपयोगकर्ता खाते के माध्यम से साझा किया जाएगा
+Twitter Share,Twitter पर साझा
+Twitter Share via,ट्विटर शेयर के माध्यम से
+Type,टाइप
+Unable to find attachment {0},खोजने में असमर्थ लगाव {0}
+Unable to load: {0},लोड करने में असमर्थ : {0}
+Unable to open attached file. Please try again.,संलग्न फाइल को खोलने में असमर्थ . पुन: प्रयास करें .
+Unable to send emails at this time,इस समय ईमेल भेजने में असमर्थ
+Unknown Column: {0},अज्ञात स्तंभ : {0}
+"Unknown file encoding. Tried utf-8, windows-1250, windows-1252.","अज्ञात फाइल एन्कोडिंग . कोशिश की UTF -8 , विंडोज 1250 , विंडोज 1252 ."
+Unread Messages,अपठित संदेशों
+Unsubscribe,ग्राहकी बंद करना
+Unsubscribed,आपकी सदस्यता समाप्त कर दी
+Upcoming Events for Today,आज के लिए आगामी घटनाएँ
+Update,अद्यतन
+Update Field,फील्ड अद्यतन
+Update Value,मूल्य अद्यतन
+Updated,अद्यतित
+Upload,अपलोड
+Upload Attachment,अनुलग्नक अपलोड करें
+Upload CSV file containing all user permissions in the same format as Download.,डाउनलोड के रूप में एक ही प्रारूप में सभी उपयोगकर्ता अनुमतियाँ युक्त सीएसवी फाइल अपलोड करें.
+Upload a file,एक फ़ाइल अपलोड करें
+Upload and Import,अपलोड करें और आयात करें
+Upload and Sync,अपलोड और सिंक
+Uploading...,अपलोड हो रहा है ...
+Upvotes,upvotes
+Use TLS,टीएलएस का प्रयोग करें
+User,उपयोगकर्ता
+User Cannot Create,प्रयोक्ता नहीं बना सकते हैं
+User Cannot Search,प्रयोक्ता नहीं खोज सकते हैं
+User Defaults,प्रोफ़ाइल डिफ़ॉल्ट्स
+User ID of a blog writer.,एक ब्लॉग लेखक के यूजर आईडी .
+User Image,User Image
+User Permission,उपयोगकर्ता की अनुमति
+User Permissions,उपयोगकर्ता अनुमतियाँ
+User Permissions Manager,उपयोगकर्ता अनुमतियाँ प्रबंधक
+User Roles,उपयोगकर्ता भूमिका
+User Tags,उपयोगकर्ता के टैग
+User Type,प्रयोक्ता प्रकार
+"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ","User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. "
+User Vote,उपयोगकर्ता वोट
+User not allowed to delete {0}: {1},उपयोगकर्ता को नष्ट करने की अनुमति नहीं {0} {1}
+User permissions should not apply for this Link,उपयोगकर्ता अनुमतियाँ इस लिंक के लिए आवेदन नहीं करना चाहिए
+User {0} cannot be deleted,प्रयोक्ता {0} मिटाया नहीं जा सकता
+User {0} cannot be disabled,प्रयोक्ता {0} निष्क्रिय नहीं किया जा सकता है
+User {0} cannot be renamed,प्रयोक्ता {0} नाम बदला नहीं जा सकता
+User {0} does not exist,प्रयोक्ता {0} मौजूद नहीं है
+UserRole,UserRole
+Users and Permissions,उपयोगकर्ता और अनुमतियाँ
+Users with role {0}:,भूमिका के साथ उपयोक्ता {0} :
+Valid Login id required.,वैध लॉगिन आईडी की जरूरत है.
+Valid email and name required,आवश्यक मान्य ईमेल और नाम
+Value,मूल्य
+Value Change,मान बदलने
+Value Changed,मान बदल गया
+Value cannot be changed for {0},मूल्य के लिए बदला नहीं जा सकता {0}
+Value for a check field can be either 0 or 1,एक चेक क्षेत्र के लिए मान 0 या 1 या तो किया जा सकता है
+Value missing for,मूल्य के लिए लापता
+Verdana,Verdana
+Version,संस्करण
+Version restored,संस्करण बहाल
+View or manage Website Route tree.,वेबसाइट ट्रेन ट्री दृश्य या प्रबंधन.
+Visit,भेंट
+Warning,चेतावनी
+Warning: This Print Format is in old style and cannot be generated via the API.,चेतावनी: इस प्रिंट प्रारूप पुरानी शैली में है और एपीआई के माध्यम से उत्पन्न नहीं किया जा सकता.
+Web Page,वेब पेज
+Web Site Forum Page.,वेब साइट फोरम पृष्ठ .
+Website,वेबसाइट
+Website Group,वेबसाइट समूह
+Website Route,वेबसाइट साइटमैप
+Website Route Permission,वेबसाइट ट्रेन अनुमति
+Website Script,वेबसाइट स्क्रिप्ट
+Website Settings,वेबसाइट सेटिंग
+Website Slideshow,वेबसाइट स्लाइड शो
+Website Slideshow Item,वेबसाइट स्लाइड शो आइटम
+Website User,वेबसाइट प्रयोक्ता
+Wednesday,बुधवार
+Welcome email sent,स्वागत ईमेल भेजा
+"When you Amend a document after Cancel and save it, it will get a new number that is a version of the old number.","आप के बाद रद्द करें और इसे बचाने के लिए एक दस्तावेज़ में संशोधन , जब वह पुराने नंबर का एक संस्करण है कि एक नया नंबर मिल जाएगा ."
+Width,चौडाई
+Will be used in url (usually first name).,यूआरएल (आम तौर पर पहला नाम) में इस्तेमाल किया जाएगा.
+With Groups,समूह के साथ
+With Ledgers,बहीखाते के साथ
+With Letterhead,लेटरहेड के साथ
+Workflow,कार्यप्रवाह
+Workflow Action,वर्कफ़्लो लड़ाई
+Workflow Action Name,वर्कफ़्लो कार्य का नाम
+Workflow Document State,वर्कफ़्लो दस्तावेज़ राज्य
+Workflow Document States,कार्यप्रवाह दस्तावेज़ राज्य अमेरिका
+Workflow Name,वर्कफ़्लो नाम
+Workflow State,कार्यप्रवाह राज्य
+Workflow State Field,वर्कफ़्लो राज्य फील्ड
+Workflow Transition,वर्कफ़्लो संक्रमण
+Workflow Transitions,कार्यप्रवाह बदलाव
+Workflow will start after saving.,कार्यप्रवाह सहेजने के बाद शुरू कर देंगे.
+Write,लिखना
+Write a Python file in the same folder where this is saved and return column and result.,वही इस सहेजा गया है जहां फ़ोल्डर और बदले स्तंभ और परिणाम में एक अजगर फ़ाइल लिखें.
+Write a SELECT query. Note result is not paged (all data is sent in one go).,एक का चयन करें क्वेरी लिखें. नोट परिणाम (सभी डेटा एक ही बार में भेज दिया जाता है) संपर्क नहीं है.
+Write titles and introductions to your blog.,अपने ब्लॉग के शीर्षक और परिचय लिखें.
+Writers Introduction,राइटर्स परिचय
+Year,वर्ष
+Yes,हां
+Yesterday,कल
+You are not allowed to create / edit reports,आप / संपादित रिपोर्ट बनाने के लिए अनुमति नहीं है
+You are not allowed to export the data of: {0}. Downloading empty template.,आप का डेटा निर्यात करने की अनुमति नहीं है: {0} . खाली टेम्पलेट के डाउनलोड .
+You are not allowed to export this report,आप इस रिपोर्ट को निर्यात करने की अनुमति नहीं है
+You are not allowed to print this document,आप इस दस्तावेज़ मुद्रित करने की अनुमति नहीं है
+You are not allowed to send emails related to this document,आप इस दस्तावेज़ से संबंधित ईमेल भेजने की अनुमति नहीं है
+"You can change Submitted documents by cancelling them and then, amending them.","आप उन्हें में संशोधन , तो उन्हें रद्द करने और द्वारा प्रस्तुत दस्तावेजों को बदल सकते हैं ."
+You can use Customize Form to set levels on fields.,तुम क्षेत्रों पर स्तर सेट करने के लिए अनुकूलित प्रपत्र का उपयोग कर सकते हैं .
+You can use wildcard %,आप वाइल्डकार्ड% का उपयोग कर सकते हैं
+You cannot install this app,आप इस अनुप्रयोग स्थापित नहीं कर सकता
+You have unsaved changes in this form. Please save before you continue.,आप इस प्रपत्र में परिवर्तन सहेजे नहीं गए .
+You need to be logged in and have System Manager Role to be able to access backups.,तुम में लॉग इन और बैकअप का उपयोग करने में सक्षम होने के लिए सिस्टम मैनेजर भूमिका हो जाने की जरूरत है .
+You need write permission to rename,आप का नाम बदलने के लिए अनुमति लिखने की जरूरत
+You seem to have written your name instead of your email. \					Please enter a valid email address so that we can get back.,आप अपने ईमेल की बजाय अपना नाम लिखा है लगता है. \ हम वापस मिल सकता है इतना है कि एक मान्य ईमेल पता दर्ज करें.
+"Your download is being built, this may take a few moments...","आपका डाउनलोड का निर्माण किया जा रहा है, इसमें कुछ समय लग सकता है ..."
+[Label]:[Field Type]/[Options]:[Width],[लेबल] [फील्ड प्रकार] / [विकल्प] [चौड़ाई]
+[Optional] Send the email X days in advance of the specified date. 0 equals same day.,[वैकल्पिक] निर्धारित तिथि के अग्रिम में ईमेल एक्स दिनों भेजें. 0 एक ही दिन के बराबर होती है.
+add your own CSS (careful!),अपने खुद के सीएसएस (careful!) जोड़ें
+adjust,को समायोजित
+align-center,संरेखित करें केंद्र
+align-justify,संरेखित करें - का औचित्य साबित
+align-left,संरेखित करें बाएं
+align-right,संरेखित करें सही
+and,और
+arrow-down,नीचे तीर
+arrow-left,तीर बाएँ
+arrow-right,तीर सही
+arrow-up,तीर अप
+asterisk,तारांकन
+backward,पिछड़ा
+ban-circle,प्रतिबंध चक्र
+barcode,बारकोड
+beginning with,साथ शुरुआत
+bell,घंटी
+bold,बोल्ड
+book,किताब
+bookmark,बुकमार्क
+briefcase,ब्रीफ़केस
+bullhorn,bullhorn
+calendar,कैलेंडर
+camera,कैमरा
+certificate,प्रमाणपत्र
+check,चेक
+chevron-down,शेवरॉन नीचे
+chevron-left,शेवरॉन छोड़ दिया
+chevron-right,शेवरॉन सही
+chevron-up,शहतीर अप
+circle-arrow-down,वृत्त - तीर - नीचे
+circle-arrow-left,वृत्त - तीर बाएँ
+circle-arrow-right,वृत्त - तीर - सही
+circle-arrow-up,वृत्त - तीर अप
+cog,दांत
+comment,टिप्पणी
+comments,टिप्पणियां
+dd-mm-yyyy,डीडी-mm-yyyy
+dd.mm.yyyy,dd.mm.yyyy
+dd/mm/yyyy,dd / mm / yyyy
+download,डाउनलोड
+download-alt,डाउनलोड-Alt
+edit,संपादित करें
+eject,बेदखल करना
+envelope,लिफाफा
+exclamation-sign,विस्मयादिबोधक हस्ताक्षर
+eye-close,आंख को बंद
+eye-open,आंख खोलने के
+facetime-video,FaceTime वीडियो
+fast-backward,तेजी से पिछड़े
+fast-forward,तेजी से आगे
+file,फ़ाइल
+film,फ़िल्म
+filter,फ़िल्टर करने के लिए
+fire,आग
+flag,झंडा
+folder-close,फ़ोल्डर बंद
+folder-open,फ़ोल्डर खोलने के
+font,फॉन्ट
+forward,आगे
+found,पाया
+fullscreen,fullscreen
+gift,उपहार
+glass,कांच
+globe,ग्लोब
+hand-down,हाथ नीचे
+hand-left,हाथ बाएँ
+hand-right,हाथ - सही
+hand-up,हाथ
+hdd,hdd
+headphones,headphones
+heart,दिल
+home,घर
+icon,आइकॉन
+inbox,इनबॉक्स
+indent-left,इंडेंट - बाएँ
+indent-right,इंडेंट सही
+info-sign,जानकारी के संकेत
+is not allowed.,अनुमति नहीं है.
+italic,तिरछा
+leaf,पत्ती
+lft,LFT
+list,सूची
+list-alt,सूची Alt
+lock,ताला
+lowercase,लोअरकेस
+magnet,चुंबक
+map-marker,नक्शा मार्कर
+memcached is not working / stopped. Please start memcached for best results.,memcached काम नहीं कर रहा है / बंद कर दिया . अच्छे परिणाम के लिए memcached शुरू करें.
+minus,ऋण
+minus-sign,ऋण पर हस्ताक्षर
+mm-dd-yyyy,mm-dd-yyyy
+mm/dd/yyyy,dd / mm / yyyy
+move,चाल
+music,संगीत
+none of,से कोई भी
+off,बंद
+ok,ठीक
+ok-circle,ठीक चक्र
+ok-sign,ठीक है पर हस्ताक्षर
+one of,में से एक
+or,या
+pause,ठहराव
+pencil,पेंसिल
+picture,तस्वीर
+plane,विमान
+play,खेल
+play-circle,खेलने सर्कल
+plus,प्लस
+plus-sign,प्लस पर हस्ताक्षर
+print,प्रिंट
+qrcode,qrcode
+question-sign,सवाल संकेत
+random,यादृच्छिक
+refresh,ताज़ा करना
+remove,हटाना
+remove-circle,Remove-वृत्त
+remove-sign,हटाने के हस्ताक्षर
+repeat,दोहराना
+resize-full,का आकार परिवर्तन भरा
+resize-horizontal,का आकार परिवर्तन क्षैतिज
+resize-small,का आकार परिवर्तन छोटे
+resize-vertical,का आकार परिवर्तन खड़ी
+retweet,retweet
+rgt,rgt
+road,सड़क
+screenshot,स्क्रीनशॉट
+search,खोज
+share,शेयर
+share-alt,शेयर Alt
+shopping-cart,शॉपिंग गाड़ी
+signal,संकेत
+star,सितारा
+star-empty,सितारा खाली
+step-backward,कदम से पिछड़े
+step-forward,कदम आगे
+stop,रोक
+tag,टैग
+tags,टैग
+"target = ""_blank""",लक्ष्य = &quot;_blank&quot;
+tasks,कार्यों
+text-height,पाठ ऊंचाई
+text-width,पाठ चौड़ाई
+th,वें
+th-large,वें बड़े
+th-list,वें सूची
+thumbs-down,नीचे अंगूठे
+thumbs-up,अंगूठे अप
+time,समय
+tint,टिंट
+to,से
+trash,कचरा
+upload,अपलोड
+use % as wildcard,वाइल्डकार्ड के रूप में% का उपयोग
+user,उपयोगकर्ता
+user_image_show,user_image_show
+values and dates,मूल्यों और तारीखें
+values separated by commas,अल्पविराम के द्वारा अलग किए गए मान
+volume-down,मात्रा नीचे
+volume-off,वॉल्यूम बंद
+volume-up,मात्रा
+warning-sign,चेतावनी संकेत
+wrench,रिंच
+yyyy-mm-dd,yyyy-mm-dd
+zoom-in,ज़ूम
+zoom-out,ज़ूम आउट
+{0} List,{0} सूची
+{0} added,{0} गयी
+{0} by {1},{0} ने {1}
+{0} cannot be set for Single types,{0} एकल प्रकार के लिए निर्धारित नहीं किया जा सकता
+{0} does not exist in row {1},{0} पंक्ति में मौजूद नहीं है {1}
+{0} in row {1} cannot have both URL and child items,{0} पंक्ति में {1} यूआरएल और बच्चे आइटम दोनों नहीं हो सकता
+{0} is not a valid email id,{0} एक मान्य ईमेल आईडी नहीं है
+{0} is required,{0} के लिए आवश्यक है
+{0} is saved,{0} सहेजा जाता है
+{0} must be one of {1},{0} {1} में से एक होना चाहिए
+{0} must be set first,{0} पहले सेट किया जाना चाहिए
+{0} not a valid State,{0} नहीं एक वैध राज्य
+{0} not allowed in fieldname {1},{0} fieldname में अनुमति नहीं {1}
+{0} not allowed in name,{0} नाम में अनुमति नहीं
+{0} not allowed to be renamed,{0} नाम दिया जा करने की अनुमति नहीं
+{0} updated,{0} अद्यतन
+{0} {1} already exists,{0} {1} पहले से मौजूद है
+"{0} {1} cannot be ""{2}"". It should be one of ""{3}""","{0} {1} नहीं किया जा सकता ""{2}"". यह ""{3}"" में से एक होना चाहिए"
+{0} {1} cannot be a leaf node as it has children,यह बच्चों के रूप में {0} {1} एक पत्ती नोड नहीं हो सकता
+"{0} {1} does not exist, select a new target to merge","{0} {1} मौजूद नहीं है , मर्ज करने के लिए एक नया लक्ष्य का चयन"
+{0} {1} not found,{0} {1} नहीं मिला
+{0} {1}: Submitted Record cannot be deleted.,{0} {1}: प्रेषित रिकार्ड नष्ट नहीं किया जा सकता है.
+{0}: Cannot set Amend without Cancel,{0} : सेट नहीं कर सकता रद्द बिना संशोधन
+{0}: Cannot set Assign Amend if not Submittable,{0} : असाइन संशोधन सेट नहीं कर सकता Submittable यदि नहीं
+{0}: Cannot set Assign Submit if not Submittable,{0} : असाइन सबमिट सेट नहीं कर सकता Submittable यदि नहीं
+{0}: Cannot set Cancel without Submit,{0} : सेट नहीं कर सकता सबमिट बिना रद्द
+{0}: Cannot set Import without Create,{0} : बनाएँ बिना आयात सेट नहीं कर सकता
+"{0}: Cannot set Submit, Cancel, Amend without Write","{0} : लिखने के बिना संशोधन रद्द , सबमिट सेट नहीं कर सकता"
+{0}: Cannot set import as {1} is not importable,{0} {1} आयात योग्य नहीं है के रूप में आयात सेट नहीं कर सकता
+"{0}: Create, Submit, Cancel and Amend only valid at level 0","{0} : बनाएँ, सबमिट करें , रद्द और 0 स्तर पर ही मान्य संशोधन"
+{0}: No basic permissions set,{0} : कोई बुनियादी अनुमति सेट
+"{0}: Only one rule allowed with the same Role, Level and Apply User Permissions","{0} : एक ही रोल , स्तर के साथ अनुमति दी है और उपयोगकर्ता अनुमतियाँ लागू सिर्फ एक ही नियम"
+{0}: Permission at level 0 must be set before higher levels are set,{0} : उच्च स्तर सेट कर रहे हैं पहले स्तर 0 पर अनुमति सेट किया जाना चाहिए
+{app_title},{ app_title }

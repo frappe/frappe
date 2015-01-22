@@ -1,0 +1,33 @@
+{% block title %}{{ title }}{% endblock %}
+
+{% block header %}
+{{ header }}
+{% endblock %}
+
+{% block content %}
+<div class="webpage-content">
+	{% include "templates/includes/slideshow.html" %}
+	<article class="web-page-content" id="{{ name }}">
+	{{ main_section or "" }}
+	</article>
+	{% if enable_comments -%}
+	<hr>
+	<h3>Discuss</h3>
+	{% include 'templates/includes/comments.html' %}
+	{%- endif %}
+</div>
+<script>
+$(function() {
+	if(window.logged_in && getCookie("system_user")==="yes") {
+		frappe.has_permission("Web Page", "{{ docname }}", "write", function(r) {
+			frappe.require("/assets/frappe/js/frappe/website/editable.js");
+			frappe.make_editable($(".web-page-content"), "Web Page", "{{ docname }}", "main_section");
+		});
+	}
+});
+</script>
+{% endblock %}
+
+{% block style %}{{ style or "" }}{% endblock %}
+
+{% block script %}{{ script or "" }}{% endblock %}

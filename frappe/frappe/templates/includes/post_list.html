@@ -1,0 +1,11 @@
+{% if posts %}
+	{% for post in posts %}
+		{% include "templates/includes/inline_post.html" %}
+	{% endfor %}
+{% else %}
+	{% if limit_start %}
+	<div class="no-posts alert alert-info">No more posts.</div>
+	{% else %}
+	<div class="no-posts alert alert-info">Nothing posted yet.</div>
+	{% endif %}
+{% endif %}

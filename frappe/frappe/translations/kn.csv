@@ -1,0 +1,1451 @@
+ by Role , by Role 
+ is not set, is not set
+"""Company History""",""" ಕಂಪೆನಿ ಇತಿಹಾಸ """
+"""Team Members"" or ""Management""","""ತಂಡದ ಸದಸ್ಯರು"" ಅಥವಾ "" ನಿರ್ವಹಣೆ """
+'In List View' not allowed for type {0} in row {1},' ListView ರಲ್ಲಿ ' ಅವಕಾಶ ಮಾದರಿ {0} ಸತತವಾಗಿ {1}
+0 - Draft; 1 - Submitted; 2 - Cancelled,0 - ಡ್ರಾಫ್ಟ್; 1 - ಸಲ್ಲಿಸಲಾಗಿದೆ; 2 - ರದ್ದುಗೊಳಿಸಲಾಗಿದೆ
+0 is highest,0 ಅತಿ
+"000 is black, fff is white","000 ಕಪ್ಪು , fff ಬಿಳಿ"
+2 days ago,2 ದಿನಗಳ ಹಿಂದೆ
+"<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank"">[?]</a>","ಕವಿದ href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target = [ ? ] </ ಒಂದು >"
+"<a onclick=""msgprint('<ol>\<li><b>field:[fieldname]</b> - By Field\<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\<li><b>Prompt</b> - Prompt user for a name\<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\</ol>')"">Naming Options</a>","<ಒಂದು ಅನ್ಕ್ಲಿಕ್ = ""msgprint ('<ol> \ <li> <b> ಕ್ಷೇತ್ರ: [FIELDNAME] </ b> - ಕ್ಷೇತ್ರವು \ <li> <b> naming_series: </ b > - ಸರಣಿ ಹೆಸರಿಸುವ ಮೂಲಕ (naming_series ಎಂಬ ಕ್ಷೇತ್ರದಲ್ಲಿ ಅಸ್ತಿತ್ವದಲ್ಲಿರಬೇಕು \ <li> <b> ಪ್ರಾಂಪ್ಟಿನಲ್ಲಿ </ b> - ಒಂದು ಹೆಸರು ಪ್ರಾಂಪ್ಟಿನಲ್ಲಿ ಬಳಕೆದಾರ \ <li> <b> [ಸರಣಿ] </ . ಬೌ> - ಪೂರ್ವಪ್ರತ್ಯಯ (ಒಂದು ಬಿಂದುವನ್ನು ಬೇರ್ಪಡಿಸಲಾಗಿರುತ್ತದೆ) ಮೂಲಕ ಸರಣಿ; ಉದಾಹರಣೆಗೆ ಪ್ರಿ # # # # # \ </ ol> ') ""> ಆಯ್ಕೆಗಳು ಹೆಸರಿಸುವ </ ಒಂದು>"
+<b>new</b> <i>type of document</i>,ದಸ್ತಾವೇಜಿನ <b> </ b> <i> ರೀತಿಯ </ i>
+"<i>document type...</i>, e.g. <b>customer</b>","<i> ಡಾಕ್ಯುಮೆಂಟ್ ಪ್ರಕಾರ ... </ i>, ಉದಾ <b> ಗ್ರಾಹಕ </ b>"
+<i>e.g. <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>,<i> ಉದಾ <strong> (55 + 434) / 4 </ strong> ಅನ್ನು ಅಥವಾ <strong> = Math.sin (Math.ಪಿಐ / 2) </ strong> ಅನ್ನು ... </ i>
+<i>module name...</i>,<i> ಘಟಕ ಹೆಸರು ... </ i>
+<i>text</i> <b>in</b> <i>document type</i>,<i> ಪಠ್ಯ </ i> <b> </ b> ದಾಖಲೆ ಪ್ರಕಾರ </ i> <i>
+A user can be permitted to multiple records of the same DocType.,ಬಳಕೆದಾರ ಅದೇ doctype ಅನೇಕ ದಾಖಲೆಗಳನ್ನು ಅನುಮತಿ ಮಾಡಬಹುದು .
+About,ಕುರಿತು
+About Us Settings,ನಮ್ಮ ಸೆಟ್ಟಿಂಗ್ಗಳನ್ನು ಬಗ್ಗೆ
+About Us Team Member,ನಮ್ಮ ತಂಡದ ಸದಸ್ಯರು ಬಗ್ಗೆ
+Action,ಕ್ರಿಯೆ
+Actions,ಕ್ರಿಯೆಗಳು
+"Actions for workflow (e.g. Approve, Cancel).","ಕೆಲಸದೊತ್ತಡದ ಕ್ರಿಯೆಗಳು ( ಇ ಜಿ ಅನುಮೋದಿಸಿ , ರದ್ದು ) ."
+Add,ಸೇರಿಸು
+Add A New Rule,ಹೊಸ ನಿಯಮ ಸೇರಿಸಿ
+Add A User Permission,ಎ ಬಳಕೆದಾರರು ಅನುಮತಿ ಸೇರಿಸಲು
+Add Attachments,ಲಗತ್ತುಗಳನ್ನು ಸೇರಿಸಿ
+Add Bookmark,ಸೇರಿಸಿ ಬುಕ್ಮಾರ್ಕ್
+Add CSS,ಸಿಎಸ್ಎಸ್ ಸೇರಿಸಿ
+Add Column,ಅಂಕಣ ಸೇರಿಸಿ
+Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,ಗೂಗಲ್ ಅನಾಲಿಟಿಕ್ಸ್ ID ಸೇರಿಸಿ : ಯುಎ ಉದಾ 89XXX57 - 1 . . ಹೆಚ್ಚಿನ ಮಾಹಿತಿಗಾಗಿ ಗೂಗಲ್ ಅನಾಲಿಟಿಕ್ಸ್ ಸಹಾಯ ಹುಡುಕಲು ದಯವಿಟ್ಟು .
+Add Message,ಸಂದೇಶ ಸೇರಿಸಿ
+Add New Permission Rule,ಒಂದು ಹೊಸ ಅನುಮತಿ ರೂಲ್ ಸೇರಿಸಿ
+Add Reply,ಉತ್ತರಿಸಿ ಸೇರಿಸಿ
+Add Total Row,ಒಟ್ಟು ರೋ ಸೇರಿಸಿ
+Add a New Role,ಹೊಸ ಪಾತ್ರ ಸೇರಿಸಿ
+Add a banner to the site. (small banners are usually good),ಸೈಟ್ ಒಂದು ಬ್ಯಾನರ್ ಸೇರಿಸಿ . ( ಸಣ್ಣ ಬ್ಯಾನರ್ ಸಾಮಾನ್ಯವಾಗಿ ಉತ್ತಮ )
+Add all roles,ಎಲ್ಲಾ ಪಾತ್ರಗಳನ್ನು ಸೇರಿಸಿ
+Add attachment,ಲಗತ್ತು ಸೇರಿಸಿ
+Add code as &lt;script&gt;,<script> ಮಾಹಿತಿ ಕೋಡ್ ಸೇರಿಸಿ
+Add custom javascript to forms.,ಸ್ವರೂಪಗಳಿಗೆ ಕಸ್ಟಮ್ ಜಾವಾಸ್ಕ್ರಿಪ್ಟ್ ಸೇರಿಸಿ .
+Add fields to forms.,ರೂಪಗಳು ಕ್ಷೇತ್ರಗಳಲ್ಲಿ ಸೇರಿಸಿ .
+Add multiple rows,ಅನೇಕ ಸಾಲುಗಳನ್ನು ಸೇರಿಸಿ
+Add new row,ಹೊಸ ಸಾಲನ್ನು ಸೇರಿಸಿ
+"Add the name of <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> e.g. ""Open Sans""","ಕವಿದ href=""http://google.com/webfonts"" target = Google ವೆಬ್ ಫಾಂಟ್ </ ಒಂದು > ಉದಾ ಹೆಸರು ಸೇರಿಸಿ "" ಓಪನ್ ಸಾನ್ಸ್ """
+Add to To Do,ಮಾಡಲು ಸೇರಿಸಿ
+Add to To Do List Of,ಪಟ್ಟಿ ಮಾಡಲು ಸೇರಿಸಿ
+Added {0} ({1}),ಸೇರಿಸಲಾಗಿದೆ {0} ({1})
+Adding System Manager to this User as there must be atleast one System Manager,ಕನಿಷ್ಠ ಒಂದು ವ್ಯವಸ್ಥೆಯ ಮ್ಯಾನೇಜರ್ ಇರಲೇಬೇಕಾಗಿರುವುದರಿಂದ ಈ ಬಳಕೆದಾರರಿಗೆ ಸಿಸ್ಟಮ್ ಮ್ಯಾನೇಜರ್ ಸೇರಿಸುವ
+Additional Info,ಹೆಚ್ಚುವರಿ ಮಾಹಿತಿ
+Additional Permissions,ಹೆಚ್ಚುವರಿ ಅನುಮತಿಗಳು
+Address,ವಿಳಾಸ
+Address Line 1,ಲೈನ್ 1 ವಿಳಾಸ
+Address Line 2,ಲೈನ್ 2 ವಿಳಾಸ
+Address Title,ವಿಳಾಸ ಶೀರ್ಷಿಕೆ
+Address and other legal information you may want to put in the footer.,ವಿಳಾಸ ಮತ್ತು ನೀವು ಜೂನ್ ಅಡಿಟಿಪ್ಪಣಿ ಹಾಕಲು ಬಯಸುವ ಇತರ ಕಾನೂನು ಮಾಹಿತಿ .
+Admin,ಆಡಳಿತ
+All Applications,ಎಲ್ಲಾ ಅನ್ವಯಗಳ
+All Day,ಎಲ್ಲಾ ದಿನ
+All customizations will be removed. Please confirm.,ಎಲ್ಲಾ ಗ್ರಾಹಕೀಕರಣ ತೆಗೆದುಹಾಕಲಾಗುತ್ತದೆ. ಖಚಿತಪಡಿಸಿ.
+"All possible Workflow States and roles of the workflow. <br>Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""","ಎಲ್ಲಾ ಸಾಧ್ಯ ಕೆಲಸದೊತ್ತಡದ ಸ್ಟೇಟ್ಸ್ ಮತ್ತು ಕೆಲಸದೊತ್ತಡದ ಪಾತ್ರಗಳಿಗೆ . <br> DocStatus ಆಯ್ಕೆಗಳು : 0 "" ಉಳಿಸಿದ "" ಆಗಿದೆ , 1 ""ಸಲ್ಲಿಸಿದ"" ಮತ್ತು 2 "" ರದ್ದುಗೊಳಿಸಲಾಗಿದೆ "" ಇದೆ"
+Allow Attach,ಲಗತ್ತಿಸಿ ಅನುಮತಿಸಿ
+Allow Import,ಅನುಮತಿಸಿ ಆಮದು
+Allow Import via Data Import Tool,ಡೇಟಾ ಆಮದು ಟೂಲ್ ಮೂಲಕ ಆಮದು ಅನುಮತಿಸಿ
+Allow Rename,ಮರುಹೆಸರಿಸು ಅನುಮತಿಸಿ
+Allow on Submit,ಸಲ್ಲಿಸಿ ಮೇಲೆ ಅನುಮತಿಸಿ
+Allow user to login only after this hour (0-24),ಬಳಕೆದಾರ ಮಾತ್ರ ಈ ಗಂಟೆ ನಂತರ ( 0-24 ) ಲಾಗಿನ್ ಅನುಮತಿಸಿ
+Allow user to login only before this hour (0-24),ಬಳಕೆದಾರ ಮಾತ್ರ ಈ ಗಂಟೆ ಮೊದಲು ( 0-24 ) ಲಾಗಿನ್ ಅನುಮತಿಸಿ
+Allowed,ಅವಕಾಶ
+"Allowing DocType, DocType. Be careful!",ಅವಕಾಶ doctype doctype . ಎಚ್ಚರಿಕೆ!
+Already Registered,ನೋಂದಾಯಿಸಿದ್ದೀರಾ
+Already in user's To Do list,ಈಗಾಗಲೇ ಬಳಕೆದಾರರ ಪಟ್ಟಿ ಮಾಡಲು ರಲ್ಲಿ
+Alternative download link,ಪರ್ಯಾಯ ಡೌನ್ಲೋಡ್ ಲಿಂಕ್
+"Alternatively, you can also specify 'auto_email_id' in site_config.json","ಪರ್ಯಾಯವಾಗಿ, ನೀವು ಅಂದರೆ site_config.json ರಲ್ಲಿ ' auto_email_id ' ಸೂಚಿಸಬಹುದು"
+Always use above Login Id as sender,ಯಾವಾಗಲೂ ಕಳುಹಿಸುವವರ ಎಂದು ಲಾಗಿನ್ ಐಡಿ ಮೇಲೆ ಬಳಸಲು
+Amend,ತಪ್ಪುಸರಿಪಡಿಸು
+"An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [<a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a>]",". Ico ವಿಸ್ತರಣೆಯೊಂದಿಗೆ ಒಂದು ಐಕಾನ್ ಫೈಲ್ . 16 X 16 px ಇರಬೇಕು . ಒಂದು ಫೆವಿಕಾನ್ ಜನರೇಟರ್ ಬಳಸಿ ರಚಿಸಿದ . [ ಕವಿದ Href=""http://favicon-generator.org/"" target = ಫೆವಿಕಾನ್ - generator.org </ ಒಂದು > ]"
+"Another {0} with name {1} exists, select another name","ಮತ್ತೊಂದು {0} ಹೆಸರಿನ {1} ಅಸ್ತಿತ್ವದಲ್ಲಿದೆ, ಮತ್ತೊಂದು ಹೆಸರನ್ನು ಆಯ್ಕೆ"
+Any existing permission will be deleted / overwritten.,ಯಾವುದೇ ಅಸ್ತಿತ್ವದಲ್ಲಿರುವ ಅನುಮತಿ / ಬರೆಯಲ್ಪಟ್ಟಿತೆಂದರೆ ಅಳಿಸಲ್ಪಡುತ್ತದೆ.
+Anyone Can Read,ಯಾರಾದರೂ ಓದಿ ಕ್ಯಾನ್
+Anyone Can Write,ಯಾರಾದರೂ ಬರೆಯಬಹುದು
+"Apart from Role based Permission Rules, you can apply User Permissions based on DocTypes.","ಹೊರತಾಗಿ ಪಾತ್ರ ಆಧಾರಿತ ಅನುಮತಿಯನ್ನು ನಿಯಮಗಳನ್ನು ರಿಂದ , ನೀವು DOCTYPES ಆಧರಿಸಿ ಬಳಕೆದಾರ ಅನುಮತಿಗಳು ಅನ್ವಯಿಸಬಹುದು."
+"Apart from System Manager, roles with 'Set User Permissions' right can set permissions for other users for that Document Type.","ಹೊರತಾಗಿ ವ್ಯವಸ್ಥೆ ಮ್ಯಾನೇಜರ್ ನಿಂದ , ' ಬಳಕೆದಾರ ಅನುಮತಿಗಳು ' ಬಲ ಪಾತ್ರಗಳನ್ನು ಎಂದು ಡಾಕ್ಯುಮೆಂಟ್ ವಿಧ ಇತರ ಬಳಕೆದಾರರಿಗೆ ಅನುಮತಿಗಳನ್ನು ಹೊಂದಿಸಬಹುದು."
+App Name,ಅಪ್ಲಿಕೇಶನ್ ಹೆಸರು
+App not found,ಅಪ್ಲಿಕೇಶನ್ ಕಂಡುಬಂದಿಲ್ಲ
+Application Installer,ಅಪ್ಲಿಕೇಶನ್ ಅನುಸ್ಥಾಪಕವನ್ನು
+Applications,ಅಪ್ಲಿಕೇಷನ್ಸ್
+Apply Style,ಶೈಲಿ ಅನ್ವಯಿಸು
+Apply User Permissions,ಬಳಕೆದಾರ ಅನುಮತಿಗಳು ಅನ್ವಯಿಸು
+Are you sure you want to delete the attachment?,ನೀವು ಬಾಂಧವ್ಯ ಅಳಿಸಲು ಬಯಸುತ್ತೀರೆ?
+Arial,ಏರಿಯಲ್
+"As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User.","ಒಂದು ಉತ್ತಮ , ವಿವಿಧ ಪಾತ್ರಗಳು ಅನುಮತಿ ಆಡಳಿತದ ಅದೇ ನಿಗದಿಪಡಿಸಿದ್ದಾರೆ ಇಲ್ಲ . ಬದಲಿಗೆ, ಅದೇ ಬಳಕೆದಾರ ಅನೇಕ ಪಾತ್ರಗಳನ್ನು ಸೆಟ್ ."
+Ascending,ಆರೋಹಣ
+Assign To,ನಿಗದಿ
+Assigned By,ಅದಕ್ಕೆ
+Assigned To,ನಿಯೋಜಿಸಲಾಗಿದೆ
+Assigned To Fullname,ಪೂರ್ಣ ಹೆಸರು ನಿಯೋಜಿಸಲಾಗಿದೆ
+Assigned To/Owner,/ ಮಾಲೀಕರನ್ನು ನಿಯೋಜಿಸಲಾಗಿದೆ
+Assignment Added,ನಿಯೋಜನೆ ಸೇರಿಸಲಾಗಿದೆ
+Assignment Status Changed,ನಿಯೋಜನೆ ಸ್ಥಿತಿ ಬದಲಾವಣೆ
+Assignments,ನಿಯೋಜನೆಗಳು
+Attach,ಲಗತ್ತಿಸಿ
+Attach Document Print,ದಸ್ತಾವೇಜನ್ನು ಮುದ್ರಿಸು ಲಗತ್ತಿಸಿ
+Attach as web link,ವೆಬ್ ಲಿಂಕ್ ಲಗತ್ತಿಸಿ
+Attached To DocType,Doctype ಲಗತ್ತಿಸಲಾದ
+Attached To Name,ಹೆಸರು ಲಗತ್ತಿಸಲಾದ
+Attachments,ಲಗತ್ತುಗಳು
+Auto Email Id,ಆಟೋ ಮಿಂಚಂಚೆ
+Auto Name,ಕಾರು ಹೆಸರು
+Auto generated,ಆಟೋ ರಚಿತವಾದ
+Avatar,ಅವತಾರ
+Back to Login,ಬ್ಯಾಕ್ ಲಾಗಿನ್
+Background Color,ಹಿನ್ನೆಲೆ ಬಣ್ಣ
+Background Image,ಹಿನ್ನೆಲೆ ಚಿತ್ರ
+Background Style,ಹಿನ್ನೆಲೆ ಶೈಲಿ
+Banner,ಗಮನಸೆಳೆಯುವ
+Banner HTML,ಬ್ಯಾನರ್ ಎಚ್ಟಿಎಮ್ಎಲ್
+Banner Image,ಬ್ಯಾನರ್ ಚಿತ್ರ
+Banner is above the Top Menu Bar.,ಬ್ಯಾನರ್ ಟಾಪ್ ಮೆನು ಬಾರ್ ಮೇಲೆ
+Begin this page with a slideshow of images,ಚಿತ್ರಗಳ ಸ್ಲೈಡ್ಶೋ ಈ ಪುಟ ಆರಂಭಿಸಲು
+Beginning with,ಆರಂಭಿಸಿ
+Belongs to,ಸೇರುತ್ತದೆ ಗೆ
+Bio,ಬಯೋ
+Birth Date,ಜನನ ದಿನಾಂಕ
+Blog Category,ಬ್ಲಾಗ್ ವರ್ಗ
+Blog Intro,ಪರಿಚಯ ಬ್ಲಾಗ್
+Blog Introduction,ಬ್ಲಾಗ್ ಪರಿಚಯ
+Blog Post,ಬ್ಲಾಗ್ ಪೋಸ್ಟ್
+Blog Settings,ಬ್ಲಾಗ್ ಸೆಟ್ಟಿಂಗ್ಗಳು
+Blog Title,ಬ್ಲಾಗ್ ಶೀರ್ಷಿಕೆ
+Blogger,ಬ್ಲಾಗರ್
+Bookmarks,ಬುಕ್ಮಾರ್ಕ್ಗಳನ್ನು
+Both login and password required,ಅಗತ್ಯವಿದೆ ಲಾಗಿನ್ ಮತ್ತು ಪಾಸ್ವರ್ಡ್ ಎರಡೂ
+Brand HTML,ಬ್ರ್ಯಾಂಡ್ ಎಚ್ಟಿಎಮ್ಎಲ್
+Bulk Email,ದೊಡ್ಡ ಪ್ರಮಾಣದ ಇಮೇಲ್
+Bulk email limit {0} crossed,ದೊಡ್ಡ ಪ್ರಮಾಣದ ಇಮೇಲ್ ಮಿತಿಯನ್ನು {0} ದಾಟಿ
+Button,ಗುಂಡಿ
+By,ಮೂಲಕ
+Calculate,ಲೆಕ್ಕ
+Calendar,ಕ್ಯಾಲೆಂಡರ್
+Cancel,ರದ್ದು
+Cancelled,ರದ್ದುಗೊಳಿಸಲಾಗಿದೆ
+"Cannot Edit {0} directly: To edit {0} properties, create / update {1}, {2} and {3}","ಸಂಪಾದಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ {0} ನೇರವಾಗಿ : {0} ಗುಣಗಳನ್ನು ಸಂಪಾದಿಸಲು , ರಚಿಸಲು / ಅಪ್ಡೇಟ್ {1} , {2} ಮತ್ತು {3}"
+Cannot Update: Incorrect / Expired Link.,ನವೀಕರಿಸಲಾಗುವುದಿಲ್ಲ : ಕೊನೆಗೊಂಡಿದೆ / ತಪ್ಪಾದ ಲಿಂಕ್ .
+Cannot Update: Incorrect Password,ನವೀಕರಿಸಲಾಗುವುದಿಲ್ಲ : ತಪ್ಪಾದ ಪಾಸ್ವರ್ಡ್
+Cannot add more than 50 comments,ಹೆಚ್ಚು 50 ಪ್ರತಿಕ್ರಿಯೆಗಳು ಸೇರಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ
+Cannot cancel before submitting. See Transition {0},ಸಲ್ಲಿಸುವ ಮೊದಲು ರದ್ದುಗೊಳಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ .
+Cannot change picture,ಚಿತ್ರವನ್ನು ಬದಲಾಯಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ
+Cannot change state of Cancelled Document. Transition row {0},ರದ್ದುಗೊಳಿಸಲಾಗಿದೆ ಡಾಕ್ಯುಮೆಂಟ್ ರಾಜ್ಯದ ಬದಲಾಯಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ .
+Cannot change {0},ಬದಲಾಯಿಸಲಾಗುವುದಿಲ್ಲ {0}
+Cannot delete or cancel because {0} {1} is linked with {2} {3},ಅಳಿಸಲು ಅಥವಾ {0} {1} ಸಂಬಂಧ ಕಾರಣ ರದ್ದುಗೊಳಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ {2} {3}
+Cannot delete {0} as it has child nodes,{0} ಆಲ್ಡ್ವಿಚ್ childNodes ಅಳಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ
+Cannot edit standard fields,ಡೀಫಾಲ್ಟ್ ಜಾಗ ಸಂಪಾದಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ
+Cannot map because following condition fails: ,Cannot map because following condition fails: 
+Cannot open instance when its {0} is open,ಅದರ {0} ತೆರೆದಿರುತ್ತದೆ ಉದಾಹರಣೆಗೆ ತೆರೆಯಲು ಸಾಧ್ಯವಾಗಿಲ್ಲ
+Cannot open {0} when its instance is open,ಅದರ ಉದಾಹರಣೆಗೆ ತೆರೆದುಕೊಂಡಿದ್ದಾಗ {0} ತೆರೆಯಲು ಸಾಧ್ಯವಾಗಿಲ್ಲ
+Cannot print cancelled documents,ರದ್ದು ದಾಖಲೆಗಳನ್ನು ಮುದ್ರಿಸಲು ಸಾಧ್ಯವಾಗಿಲ್ಲ
+Cannot remove permission for DocType: {0} and Name: {1},Doctype ಅನುಮತಿ ತೆಗೆದುಹಾಕಲು ಸಾಧ್ಯವಿಲ್ಲ : {0} ಮತ್ತು ಹೆಸರು: {1}
+Cannot reply to a reply,ಒಂದು ಉತ್ತರಿಸಿ ಪ್ರತ್ಯುತ್ತರ
+Cannot set Email Alert on Document Type {0},ಡಾಕ್ಯುಮೆಂಟ್ ಕೌಟುಂಬಿಕತೆ ಮೇಲೆ ಇಮೇಲ್ ಎಚ್ಚರಿಕೆ ಹೊಂದಿಸಲು ಸಾಧ್ಯವಾಗಿಲ್ಲ {0}
+Cannot set permission for DocType: {0} and Name: {1},Doctype ಅನುಮತಿ ಹೊಂದಿಸಲು ಸಾಧ್ಯವಾಗಿಲ್ಲ: {0} ಮತ್ತು ಹೆಸರು: {1}
+Categorize blog posts.,ಬ್ಲಾಗ್ ಪೋಸ್ಟ್ಗಳನ್ನು ವರ್ಗೀಕರಿಸಲು.
+Category,ವರ್ಗ
+Category Name,ವರ್ಗ ಹೆಸರು
+Center,ಕೇಂದ್ರ
+"Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit.","ಕೆಲವು ದಾಖಲೆಗಳನ್ನು , ಒಂದು ಸರಕುಪಟ್ಟಿ ಹಾಗೆ ಒಮ್ಮೆ ಅಂತಿಮ ಬದಲಾಗಿದೆ ಮಾಡಬಾರದು . ಹುಡುಕುವ ದಾಖಲೆಗಳಲ್ಲಿ ಅಂತಿಮ ರಾಜ್ಯದ ಸಲ್ಲಿಸಲಾಗಿದೆ ಎಂದು ಕರೆಯಲಾಗುತ್ತದೆ . ನೀವು ಪಾತ್ರಗಳನ್ನು ಸಲ್ಲಿಸಬಹುದು ಯಾವ ನಿರ್ಬಂಧಿಸಬಹುದು."
+"Change field properties (hide, readonly, permission etc.)","ಬದಲಾಯಿಸಿ ಕ್ಷೇತ್ರ ಗುಣಗಳನ್ನು ( ಮರೆಮಾಡಲು , ಮಾತ್ರ , ಅನುಮತಿ , ಇತ್ಯಾದಿ ಓದಲು )"
+Chat,ಚಾಟಿಂಗ್
+Check,ಪರಿಶೀಲಿಸಿ
+Check / Uncheck roles assigned to the User. Click on the Role to find out what permissions that Role has.,ಚೆಕ್ / ಬಳಕೆದಾರ ನಿಯೋಜಿಸಲಾದ ಪಾತ್ರಗಳನ್ನು ಆರಿಸ ಬೇಡಿ . ಅನುಮತಿಗಳನ್ನು ಪಾತ್ರವನ್ನು ಹೊಂದಿದೆ ಏನು ಕಂಡುಹಿಡಿಯಲು ಪಾತ್ರ ಕ್ಲಿಕ್ ಮಾಡಿ.
+Check this if you want to send emails as this id only (in case of restriction by your email provider).,ನೀವು ಮಾತ್ರ ( ನಿಮ್ಮ ಇಮೇಲ್ ನೀಡುಗರಿಂದ ನಿರ್ಬಂಧದ ಸಂದರ್ಭದಲ್ಲಿ ) ಈ ಐಡಿ ಇಮೇಲ್ಗಳನ್ನು ಕಳುಹಿಸಲು ಬಯಸಿದರೆ ಈ ಪರಿಶೀಲಿಸಿ .
+Check this to make this the default letter head in all prints,ಎಲ್ಲಾ ಮುದ್ರಿತ ಈ ಡೀಫಾಲ್ಟ್ ತಲೆಬರಹ ಮಾಡಲು ಈ ಪರಿಶೀಲಿಸಿ
+Check which Documents are readable by a User,ಡಾಕ್ಯುಮೆಂಟ್ಸ್ ಒಂದು ಬಳಕೆದಾರ ಮೂಲಕ ಓದಬಹುದಾದ ಇದು ಪರಿಶೀಲಿಸಿ
+Checked items shown on desktop,ಡೆಸ್ಕ್ಟಾಪ್ ತೋರಿಸಲಾಗಿದೆ ಪರಿಶೀಲಿಸಿದ ವಸ್ತುಗಳನ್ನು
+Child Tables are shown as a Grid in other DocTypes.,ಮಕ್ಕಳ ಕೋಷ್ಟಕಗಳು ಇತರ DOCTYPES ಗ್ರಿಡ್ ತೋರಿಸಲಾಗಿದೆ .
+City,ನಗರ
+Classic,ಅತ್ಯುತ್ಕೃಷ್ಟ
+Clear Cache,ತೆರವುಗೊಳಿಸಿ ಸಂಗ್ರಹ
+Clear all roles,ಎಲ್ಲಾ ಪಾತ್ರಗಳನ್ನು ತೆರವುಗೊಳಿಸಿ
+Click on a link to get options,ಆಯ್ಕೆಗಳನ್ನು ಪಡೆಯಲು ಲಿಂಕ್ ಮೇಲೆ ಕ್ಲಿಕ್ ಮಾಡಿ
+Click on row to view / edit.,/ ಬದಲಾಯಿಸಿ ವೀಕ್ಷಿಸಲು ಸಾಲು ಕ್ಲಿಕ್ ಮಾಡಿ.
+Client,ಕಕ್ಷಿಗಾರ
+Client-side formats are now deprecated,ಕ್ಲೈಂಟ್ ಸೈಡ್ ಮಾದರಿಗಳು ಈಗ ವಿನಂತಿಸಲಾಗಿದೆ
+Close,ಮುಚ್ಚಿ
+Close: {0},ಮುಚ್ಚಿ : {0}
+Closed,ಮುಚ್ಚಲಾಗಿದೆ
+Code,ಕೋಡ್
+Collapse,ಕುಸಿತ
+Column Break,ಕಾಲಮ್ ಬ್ರೇಕ್
+Comment,ಟಿಪ್ಪಣಿ
+Comment By,ಕಾಮೆಂಟ್
+Comment By Fullname,FULLNAME ನಿಮ್ಮನ್ನು ಕಾಮೆಂಟ್
+Comment Date,ಕಾಮೆಂಟ್ ದಿನಾಂಕ
+Comment Docname,docName ಕಾಮೆಂಟ್
+Comment Doctype,ಕಾಮೆಂಟ್ DOCTYPE
+Comment Time,ಟೈಮ್ ಕಾಮೆಂಟ್
+Comments,ಪ್ರತಿಕ್ರಿಯೆಗಳು
+Communication,ಸಂವಹನ
+Communication Medium,ಸಂವಹನ ಮಧ್ಯಮ
+Company History,ಕಂಪನಿ ಇತಿಹಾಸ
+Company Introduction,ಕಂಪನಿ ಪರಿಚಯ
+Complaint,ದೂರು
+Complete By,ದಿ ಕಂಪ್ಲೀಟ್
+Condition,ಪರಿಸ್ಥಿತಿ
+Contact Us Settings,ಸಂಪರ್ಕಿಸಿ ಸೆಟ್ಟಿಂಗ್ಗಳು
+"Contact options, like ""Sales Query, Support Query"" etc each on a new line or separated by commas.","ಇತ್ಯಾದಿ "" ಮಾರಾಟದ ಪ್ರಶ್ನೆ , ಪ್ರಶ್ನೆ ಬೆಂಬಲ "" ಹೊಸ ಸಾಲಿನಲ್ಲಿ ಪ್ರತಿ ಅಥವಾ ಬೇರ್ಪಡಿಸಲಾಗಿರುತ್ತದೆ ನಂತಹ ಸಂಪರ್ಕ ಆಯ್ಕೆಗಳನ್ನು ."
+Content,ವಿಷಯ
+Content Hash,ವಿಷಯ ಹ್ಯಾಷ್
+Content in markdown format that appears on the main side of your page,Markdown ರೂಪದಲ್ಲಿ ವಿಷಯ ನಿಮ್ಮ ಪುಟ ಮುಖ್ಯ ಬದಿಯಲ್ಲಿ ಕಾಣುತ್ತದೆ ಮಾಡಲಿಲ್ಲ
+Content web page.,ವಿಷಯ ವೆಬ್ ಪುಟ .
+Controller,ನಿಯಂತ್ರಕ
+Copy,ನಕಲು
+Copyright,ಕೃತಿಸ್ವಾಮ್ಯ
+Core,ಕೋರ್
+Could not connect to outgoing email server,ಹೊರಹೋಗುವ ಇಮೇಲ್ ಸರ್ವರ್ ಸಂಪರ್ಕ ಸಾಧ್ಯವಾಗಿಲ್ಲ
+Could not find {0},ಸಿಕ್ಕುತ್ತಿಲ್ಲ {0}
+Count,ಎಣಿಕೆ
+Country,ದೇಶ
+Create,ರಚಿಸಿ
+Create a new {0},ಹೊಸ {0} ರಚಿಸಿ
+Created Custom Field {0} in {1},ಕಸ್ಟಮ್ ಫೀಲ್ಡ್ ರಚಿಸಲಾಗಿದೆ {0} ನಲ್ಲಿ {1}
+Created Customer Issue,ರಚಿಸಲಾಗಿದೆ ಗ್ರಾಹಕ ಸಂಚಿಕೆ
+Created Opportunity,ರಚಿಸಲಾಗಿದೆ ಅವಕಾಶ
+Created Support Ticket,ರಚಿಸಲಾಗಿದೆ ಬೆಂಬಲ ಟಿಕೆಟ್
+Creation / Modified By,ಸೃಷ್ಟಿ / ಬದಲಾಯಿಸಲಾಗಿತ್ತು
+Currency,ಕರೆನ್ಸಿ
+Current status,ಪ್ರಸ್ತುತ ಸ್ಥಿತಿಯನ್ನು
+Custom CSS,ಕಸ್ಟಮ್ CSS
+Custom Field,ಕಸ್ಟಮ್ ಫೀಲ್ಡ್
+Custom Javascript,ಕಸ್ಟಮ್ ಜಾವಾಸ್ಕ್ರಿಪ್ಟ್
+Custom Reports,ಕಸ್ಟಮ್ ವರದಿಗಳು
+Custom Script,ಕಸ್ಟಮ್ ಲಿಪಿ
+Custom?,ಕಸ್ಟಮ್ ?
+Customize,ಕಸ್ಟಮೈಸ್
+Customize Form,ಫಾರ್ಮ್ ಕಸ್ಟಮೈಸ್
+Customize Form Field,ಫಾರ್ಮ್ ಫೀಲ್ಡ್ ಕಸ್ಟಮೈಸ್
+"Customize Label, Print Hide, Default etc.","ಇತ್ಯಾದಿ ಲೇಬಲ್ , ಪ್ರಿಂಟ್ ಅಡಗಿಸು , ಡೀಫಾಲ್ಟ್ ಕಸ್ಟಮೈಸ್"
+Customized HTML Templates for printing transctions.,ಮುದ್ರಣ transctions ಕಸ್ಟಮೈಸ್ ಎಚ್ಟಿಎಮ್ಎಲ್ ಟೆಂಪ್ಲೇಟ್ಗಳು .
+Daily Event Digest is sent for Calendar Events where reminders are set.,ಡೈಲಿ ಡೈಜೆಸ್ಟ್ ಕ್ರಿಯೆಯನ್ನು ಜ್ಞಾಪನೆಗಳನ್ನು ಸೆಟ್ ಅಲ್ಲಿ ಕ್ಯಾಲೆಂಡರ್ ಕ್ರಿಯೆಗಳು ಕಳುಹಿಸಲಾಗುತ್ತದೆ.
+Danger,ಅಪಾಯ
+Data,ಡೇಟಾ
+Data Import / Export Tool,ಡೇಟಾ ಆಮದು / ರಫ್ತು ಉಪಕರಣ
+Data Import Tool,ಡೇಟಾ ಆಮದು ಟೂಲ್
+Data missing in table,ಡೇಟಾ ಕೋಷ್ಟಕದಲ್ಲಿ ಕಾಣೆಯಾಗಿದೆ
+Date,ದಿನಾಂಕ
+Date Change,ದಿನಾಂಕ ಬದಲಾವಣೆ
+Date Changed,ದಿನಾಂಕ ಬದಲಾವಣೆ
+Date Format,ದಿನಾಂಕ ಸ್ವರೂಪ
+Date and Number Format,ದಿನಾಂಕ ಮತ್ತು ಸಂಖ್ಯೆ ಸ್ವರೂಪ
+Date must be in format: {0},ದಿನಾಂಕ ಸ್ವರೂಪದಲ್ಲಿರಬೇಕು : {0}
+Datetime,DATETIME
+Days in Advance,ದಿನಗಳ ಮುಂಚಿತವಾಗಿ
+Dear,ಪ್ರಿಯ
+Default,ಡೀಫಾಲ್ಟ್
+Default Print Format,ಡೀಫಾಲ್ಟ್ ಪ್ರಿಂಟ್ ಫಾರ್ಮ್ಯಾಟ್
+Default Value,ಡೀಫಾಲ್ಟ್ ಮೌಲ್ಯ
+Default is system timezone,ಡೀಫಾಲ್ಟ್ ವ್ಯವಸ್ಥೆಯ ಕಾಲವಲಯವನ್ನು ಆಗಿದೆ
+"Default: ""Contact Us""","ಡೀಫಾಲ್ಟ್ : "" ನಮ್ಮನ್ನು ಸಂಪರ್ಕಿಸಿ """
+DefaultValue,ಡೀಫಾಲ್ಟ್ ಮೌಲ್ಯ
+Defaults,ಡಿಫಾಲ್ಟ್
+"Define read, write, admin permissions for a Website Page.",", ಓದಲು ವಿವರಿಸಿ ಬರೆಯಲು , ಒಂದು ಸೈಟ್ ಪುಟ ನಿರ್ವಾಹಕರಿಂದ ಅನುಮತಿಗಳನ್ನು ."
+Define workflows for forms.,ರೂಪಗಳಲ್ಲಿ ಕಾರ್ಯಗಳಲ್ಲಿ ವಿವರಿಸಿ .
+Delete,ಅಳಿಸಿ
+Delete Row,ಸಾಲು ಅಳಿಸಿ
+Depends On,ಅವಲಂಬಿಸಿರುತ್ತದೆ
+Descending,ಅವರೋಹಣ
+Description,ವಿವರಣೆ
+Description and Status,ವಿವರಣೆ ಮತ್ತು ಸ್ಥಿತಿ
+"Description for listing page, in plain text, only a couple of lines. (max 140 characters)","ಸರಳ ಪಠ್ಯ ಪಟ್ಟಿಗಳನ್ನು ಪುಟ ವಿವರಣೆ , ಸಾಲುಗಳನ್ನು ಕೇವಲ ಒಂದೆರಡು . ( ಮ್ಯಾಕ್ಸ್ 140 ಅಕ್ಷರಗಳು)"
+Description for page header.,ಪುಟ ಶಿರೋಲೇಖ ವಿವರಣೆ .
+Desktop,ಡೆಸ್ಕ್ಟಾಪ್
+Details,ವಿವರಗಳು
+Did not add,ಸೇರಿಸಲು ಮಾಡಲಿಲ್ಲ
+Did not cancel,ನಿಲ್ಲಿಸಲಿಲ್ಲ
+Did not find {0} for {0} ({1}),ಫಾರ್ {0} ಕಾಣಲಿಲ್ಲ {0} ( {1} )
+Did not load,ಲೋಡ್ ಮಾಡಲಿಲ್ಲ
+Did not remove,ತೆಗೆದು ಇಲ್ಲ
+Did not save,ಉಳಿಸಲು ಮಾಡಲಿಲ್ಲ
+"Different ""States"" this document can exist in. Like ""Open"", ""Pending Approval"" etc.","ಇತ್ಯಾದಿ ಈ ದಾಖಲೆಯಂತೆ "" ಓಪನ್ "" ಸೈನ್ ಇರುವಂತಹುದು ವಿವಿಧ "" ಸ್ಟೇಟ್ಸ್ "" , "" ಅನುಮೋದನೆ ಬಾಕಿ "" ,"
+Disable Customer Signup link in Login page,ಲಾಗಿನ್ ಪುಟ ಕಸ್ಟಮರ್ ಸೈನ್ ಅಪ್ ಲಿಂಕ್ ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಿ
+Disable Signup,ಸೈನ್ ಅಪ್ ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಿ
+Disabled,ಅಂಗವಿಕಲ
+Display,ಪ್ರದರ್ಶಿಸು
+Display Settings,ಪ್ರದರ್ಶನ ಸೆಟ್ಟಿಂಗ್ಗಳನ್ನು
+Display in the sidebar of this Website Route node,ಈ ವೆಬ್ಸೈಟ್ ದ ನೋಡ್ ಸೈಡ್ಬಾರ್ನಲ್ಲಿ ಪ್ರದರ್ಶನ
+Do not allow user to change after set the first time,ಬಳಕೆದಾರ ಮೊದಲ ಸೆಟ್ ಸಮಯದ ನಂತರ ಬದಲಾಯಿಸಲು ಅವಕಾಶ ಇಲ್ಲ
+Doc Status,ಡಾಕ್ ಸ್ಥಿತಿ
+DocField,DocField
+DocPerm,DocPerm
+DocType,doctype
+DocType Details,doctype ವಿವರಗಳು
+DocType can not be merged,Doctype ವಿಲೀನಗೊಳಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ
+DocType on which this Workflow is applicable.,ಈ ಕೆಲಸದೊತ್ತಡದ doctype ಅನ್ವಯವಾಗುತ್ತದೆ.
+DocType or Field,Doctype ಅಥವಾ ಫೀಲ್ಡ್
+Doclist JSON,ಡಾಕ್ಲಿಸ್ಟ್ JSON
+Docname,Docname
+Document,ದಾಖಲೆ
+Document Status transition from ,Document Status transition from 
+Document Status transition from {0} to {1} is not allowed,{1} ಗೆ {0} ನಿಂದ ಡಾಕ್ಯುಮೆಂಟ್ ಸ್ಥಿತಿಯನ್ನು ಪರಿವರ್ತನೆ ಅನುಮತಿಸಲಾಗುವುದಿಲ್ಲ
+Document Type,ಡಾಕ್ಯುಮೆಂಟ್ ಪ್ರಕಾರ
+Document is only editable by users of role,ಡಾಕ್ಯುಮೆಂಟ್ ಪಾತ್ರವನ್ನು ಬಳಕೆದಾರರು ಮಾತ್ರ ಸಂಪಾದಿಸಬಹುದು
+Documentation,ದಾಖಲೆ
+Documents,ಡಾಕ್ಯುಮೆಂಟ್ಸ್
+Download,ಡೌನ್ಲೋಡ್
+Download Backup,ಡೌನ್ಲೋಡ್ ಬ್ಯಾಕಪ್
+Download link for your backup will be emailed on the following email address:,ನಿಮ್ಮ ಬ್ಯಾಕ್ಅಪ್ ಡೌನ್ಲೋಡ್ ಲಿಂಕ್ ಕೆಳಗಿನ ಇಮೇಲ್ ವಿಳಾಸಕ್ಕೆ ಇಮೇಲ್ ಮಾಡಲಾಗುತ್ತದೆ :
+Drafts,ಡ್ರಾಫ್ಟ್ಗಳು
+Drag to sort columns,ಕಾಲಮ್ಗಳನ್ನು ವಿಂಗಡಿಸಲು ಎಳೆಯಿರಿ
+Due Date,ಕಾರಣ ದಿನಾಂಕ
+Duplicate name {0} {1},ನಕಲಿ ಹೆಸರು {0} {1}
+Dynamic Link,ಡೈನಾಮಿಕ್ ಲಿಂಕ್
+ERPNext Demo,ERPNext ಡೆಮೊ
+Edit,ಸಂಪಾದಿಸು
+Edit Permissions,ಸಂಪಾದಿಸಿ ಅನುಮತಿಗಳು
+Editable,ಸಂಪಾದಿಸಬಹುದಾದ
+Email,ಗಾಜುಲೇಪ
+Email Alert,ಇಮೇಲ್ ಎಚ್ಚರಿಕೆ
+Email Alert Recipient,ಇಮೇಲ್ ಎಚ್ಚರಿಕೆ ಸ್ವೀಕೃತದಾರ
+Email Alert Recipients,ಇಮೇಲ್ ಎಚ್ಚರಿಕೆ ಸ್ವೀಕೃತದಾರರ
+Email By Document Field,ಡಾಕ್ಯುಮೆಂಟ್ ಕ್ಷೇತ್ರವು ಇಮೇಲ್
+Email Footer,ಇಮೇಲ್ ಅಡಿಟಿಪ್ಪಣಿ
+Email Host,ಇಮೇಲ್ ಹೋಸ್ಟ್
+Email Id,ಮಿಂಚಂಚೆ
+Email Login,ಇಮೇಲ್ ಲಾಗಿನ್
+Email Password,ಇಮೇಲ್ ಪಾಸ್ವರ್ಡ್
+Email Sent,ಕಳುಹಿಸಲಾದ ಇಮೇಲ್
+Email Settings,ಇಮೇಲ್ ಸೆಟ್ಟಿಂಗ್ಗಳನ್ನು
+Email Signature,ಇಮೇಲ್ ಸಹಿ
+Email Use SSL,ಇಮೇಲ್ ಬಳಸಿ ಎಸ್ಎಸ್ಎಲ್
+Email address,ಇಮೇಲ್ ವಿಳಾಸಕ್ಕೆ
+"Email addresses, separted by commas","ಅಲ್ಪವಿರಾಮದಿಂದ separted ಇಮೇಲ್ ವಿಳಾಸಗಳು ,"
+Email not verified with {1},ಇಮೇಲ್ ಪರಿಶೀಲಿತವಾಗಿಲ್ಲ {1}
+Email sent to {0},ಕಳುಹಿಸಲಾಗಿದೆ {0}
+Email...,ಇಮೇಲ್ ...
+Emails are muted,ಇಮೇಲ್ಗಳನ್ನು ಮ್ಯೂಟ್
+Embed image slideshows in website pages.,ವೆಬ್ಸೈಟ್ ಪುಟಗಳಲ್ಲಿ ಎಂಬೆಡ್ ಚಿತ್ರ ಸ್ಲೈಡ್ಶೋಗಳು .
+Enable,ಸಕ್ರಿಯಗೊಳಿಸಿ
+Enable Comments,ಪ್ರತಿಕ್ರಿಯೆಗಳು ಸಕ್ರಿಯಗೊಳಿಸಿ
+Enable Scheduled Jobs,ನಿಗದಿತ ಉದ್ಯೋಗಗಳು ಸಕ್ರಿಯಗೊಳಿಸಿ
+Enabled,ಶಕ್ತಗೊಂಡಿದೆ
+Ends on,ಮೇಲೆ ಎಂಡ್ಸ್
+Enter Form Type,FormTypeName ಯನ್ನು
+Enter Value,ಮೌಲ್ಯ ಯನ್ನು
+Enter at least one permission row,ಕನಿಷ್ಠ ಒಂದು ಅನುಮತಿಯನ್ನು ಸಾಲು ಯನ್ನು
+"Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set ""match"" permission rules. To see list of fields, go to <a href=""#Form/Customize Form/Customize Form"">Customize Form</a>.","DefaultValue ಜಾಗ ( ಕೀಲಿಗಳನ್ನು ) ಮತ್ತು ಮೌಲ್ಯಗಳನ್ನು ನಮೂದಿಸಿ. ನೀವು ಒಂದು ಕ್ಷೇತ್ರಕ್ಕೆ ಬಹು ಮೌಲ್ಯಗಳನ್ನು ಸೇರಿಸಿ, ಮೊದಲ ಒಂದು ಆಯ್ಕೆ ನಡೆಯಲಿದೆ . ಈ ಡಿಫಾಲ್ಟ್ ಆದ್ದರಿಂದ "" ಪಂದ್ಯದಲ್ಲಿ "" ಅನುಮತಿಯನ್ನು ನಿಯಮಗಳನ್ನು ಹೊಂದಿಸಲು ಬಳಸಲಾಗುತ್ತದೆ . ಜಾಗ ಪಟ್ಟಿಯನ್ನು ವೀಕ್ಷಿಸಲು , </ ಒಂದು > href=""#Form/Customize Form/Customize shape""> ಕಸ್ಟಮೈಸ್ ಫಾರ್ಮ್ <a ಹೋಗಿ ."
+"Enter keys to enable login via Facebook, Google, GitHub.","ಫೇಸ್ಬುಕ್, ಗೂಗಲ್ , GitHub ಮೂಲಕ ಲಾಗಿನ್ ಸಕ್ರಿಯಗೊಳಿಸಲು Enter ಕೀಲಿಗಳನ್ನು ."
+Equals,ಸಮ
+Error,ದೋಷ
+"Error generating PDF, attachment sent as HTML","ಎಚ್ಟಿಎಮ್ಎಲ್ ಕಳುಹಿಸಲಾಗುತ್ತದೆ ದೋಷ ಉತ್ಪಾದಿಸುವ ಪಿಡಿಎಫ್, ಬಾಂಧವ್ಯ"
+Error: Document has been modified after you have opened it,ದೋಷ : ನೀವು ತೆರೆದಿದ್ದೀರಿ ನಂತರ ಡಾಕ್ಯುಮೆಂಟ್ ಮಾರ್ಪಡಿಸಲಾಗಿದೆ
+Event,ಈವೆಂಟ್
+Event Datetime,EventDateTime
+Event Individuals,ಇವೆಂಟ್ ವ್ಯಕ್ತಿಗಳು
+Event Role,ಇವೆಂಟ್ ಪಾತ್ರ
+Event Roles,ಇವೆಂಟ್ ಪಾತ್ರಗಳು
+Event Type,ಈವೆಂಟ್ ಕೌಟುಂಬಿಕತೆ
+Event User,ಬಳಕೆದಾರ ಈವೆಂಟ್
+Event end must be after start,ಇವೆಂಟ್ ಕೊನೆಯಲ್ಲಿ ಆರಂಭದ ನಂತರ ಇರಬೇಕು
+Events,ಕ್ರಿಯೆಗಳು
+Events In Today's Calendar,ಇಂದಿನ ಕ್ಯಾಲೆಂಡರ್ ಕ್ರಿಯೆಗಳು
+Every Day,ಪ್ರತಿದಿನ
+Every Month,ಪ್ರತಿ ತಿಂಗಳು
+Every Week,ಪ್ರತಿ ವಾರ
+Every Year,ಪ್ರತಿ ವರ್ಷ
+Everyone,ಪ್ರತಿಯೊಬ್ಬರೂ
+Example:,ಉದಾಹರಣೆ :
+Expand,ವಿಸ್ತರಿಸಿ
+Export,ರಫ್ತು
+Export not allowed. You need {0} role to export.,ರಫ್ತು ಅವಕಾಶ . ನೀವು ರಫ್ತು {0} ಪಾತ್ರದಲ್ಲಿ ಅಗತ್ಯವಿದೆ .
+Exported,ರಫ್ತು
+"Expression, Optional","ಅಭಿವ್ಯಕ್ತಿ, ಐಚ್ಛಿಕ"
+Facebook,ಫೇಸ್ಬುಕ್
+Facebook Client ID,ಫೇಸ್ಬುಕ್ ಕ್ಲೈಂಟ್ ID
+Facebook Client Secret,ಫೇಸ್ಬುಕ್ ಕ್ಲೈಂಟ್ ಸೀಕ್ರೆಟ್
+Facebook Share,ಫೇಸ್ಬುಕ್ ಹಂಚಿಕೊಳ್ಳಿ
+Facebook User ID,ಫೇಸ್ಬುಕ್ ಬಳಕೆದಾರ ID
+Facebook Username,ಫೇಸ್ಬುಕ್ ಬಳಕೆದಾರಹೆಸರು
+FavIcon,ಫೆವಿಕಾನ್
+Female,ಹೆಣ್ಣು
+Field Description,ಫೀಲ್ಡ್ ವಿವರಣೆ
+Field Name,ಕ್ಷೇತ್ರ ಹೆಸರು
+Field Type,ಕ್ಷೇತ್ರ ಪ್ರಕಾರ
+"Field that represents the Workflow State of the transaction (if field is not present, a new hidden Custom Field will be created)","ಫೀಲ್ಡ್ ವ್ಯವಹಾರದ ಕೆಲಸದೊತ್ತಡದ ರಾಜ್ಯ ಪ್ರತಿನಿಧಿಸುತ್ತದೆ ( ಕ್ಷೇತ್ರ ಇಲ್ಲದಿದ್ದಲ್ಲಿ , ಹೊಸ ಗುಪ್ತ ಕಸ್ಟಮ್ ಫೀಲ್ಡ್ ನಿರ್ಮಿಸಲಾಗುತ್ತದೆ ) ಮಾಡಲಿಲ್ಲ"
+Field {0} in row {1} cannot be hidden and mandatory without default,ಫೀಲ್ಡ್ {0} ಸತತವಾಗಿ {1} ಡೀಫಾಲ್ಟ್ ಇಲ್ಲದೆ ಮರೆಮಾಡಲಾಗಿದೆ ಮತ್ತು ಕಡ್ಡಾಯ ಸಾಧ್ಯವಿಲ್ಲ
+Field {0} is not selectable.,ಫೀಲ್ಡ್ {0} ಆಯ್ಕೆಮಾಡಬಹುದಾದ ಅಲ್ಲ.
+Field {0} of type {1} cannot be mandatory,ಫೀಲ್ಡ್ {0} ಬಗೆಯ {1} ಕಡ್ಡಾಯವಾಗಿ ಸಾಧ್ಯವಿಲ್ಲ
+Fieldname,ಕ್ಷೇತ್ರ ಹೆಸರು
+Fieldname is required in row {0},ಕ್ಷೇತ್ರ ಹೆಸರು ಸತತವಾಗಿ ಅಗತ್ಯವಿದೆ {0}
+Fieldname not set for Custom Field,ವಾಡಿಕೆ ಕ್ಷೇತ್ರ ಸೆಟ್ ಕ್ಷೇತ್ರ ಹೆಸರು
+Fieldname which will be the DocType for this link field.,ಈ ಲಿಂಕ್ ಕ್ಷೇತ್ರಕ್ಕೆ doctype ವಾಗಿರುತ್ತದೆ FIELDNAME.
+Fieldname {0} appears multiple times in rows {1},ಕ್ಷೇತ್ರ ಹೆಸರು {0} ಸಾಲುಗಳಲ್ಲಿ ಅನೇಕ ಬಾರಿ ಕಾಣಿಸಿಕೊಳ್ಳುತ್ತದೆ {1}
+"Fieldname {0} cannot contain letters, numbers or spaces","ಕ್ಷೇತ್ರ ಹೆಸರು {0} ಅಕ್ಷರಗಳು, ಸಂಖ್ಯೆಗಳು ಅಥವಾ ಸ್ಥಳಾವಕಾಶಗಳನ್ನು ಒಳಗೊಂಡಿಲ್ಲ"
+Fields,ಫೀಲ್ಡ್ಸ್
+"Fields separated by comma (,) will be included in the<br /><b>Search By</b> list of Search dialog box","ಚಿಹ್ನೆಗಳಿಂದ ಬೇರ್ಪಟ್ಟ ಜಾಗ ( , ) ಹುಡುಕು ಸಂವಾದ ಪೆಟ್ಟಿಗೆಯಲ್ಲಿ </ b> ಪಟ್ಟಿ <br /> <b> ಹುಡುಕಿ ಸೇರಿಸಲಾಗುವುದು"
+Fieldtype cannot be changed from {0} to {1} in row {2},Fieldtype ಗೆ {0} ನಿಂದ ಬದಲಾವಣೆ ಸಾಧ್ಯವಿಲ್ಲ {1} ಸತತವಾಗಿ {2}
+File,ಫೈಲ್
+File Data,ಫೈಲ್ ಡೇಟಾ
+File Name,ಫೈಲ್ ಹೆಸರು
+File Size,ಫೈಲ್ ಗಾತ್ರ
+File URL,ಫೈಲ್ URL ಅನ್ನು
+File not attached,ಫೈಲ್ ಲಗತ್ತಿಸಲಾದ
+File size exceeded the maximum allowed size of {0} MB,ಕಡತ ಗಾತ್ರ {0} ಎಂಬಿ ಗರಿಷ್ಠ ಅವಕಾಶ ಗಾತ್ರ ಮೀರಿದೆ
+Fill Screen,ಪರದೆಯನ್ನು ತುಂಬಿರಿ
+Filter,ಶೋಧಕ
+Filter records based on User Permissions defined for a user,ಒಂದು ಬಳಕೆದಾರ ವ್ಯಾಖ್ಯಾನಿಸಲಾಗಿದೆ ಬಳಕೆದಾರ ಅನುಮತಿಗಳು ಆಧರಿಸಿ ಆಯ್ಕೆ ದಾಖಲೆಗಳು
+Filters,ಶೋಧಕಗಳು
+Find {0} in {1},ರಲ್ಲಿ {0} ಕ್ಲಿಕ್ {1}
+First Name,ಮೊದಲ ಹೆಸರು
+Float,ತೇಲುವುದು
+Float Precision,ನಿಖರವಾದ ತೆಪ್ಪ
+Font (Heading),ಫಾಂಟ್ ( ಶಿರೋನಾಮೆ )
+Font (Text),ಫಾಂಟ್ ( ಪಠ್ಯ )
+Font Size,ಅಕ್ಷರ ಗಾತ್ರ
+Font Size (Text),ಅಕ್ಷರ ಗಾತ್ರ ( ಪಠ್ಯ )
+Fonts,ಫಾಂಟ್ಗಳು
+Footer,ಅಡಿಟಿಪ್ಪಣಿ
+Footer Background,ಅಡಿಟಿಪ್ಪಣಿ ಹಿನ್ನೆಲೆ
+Footer Items,ಅಡಿಟಿಪ್ಪಣಿ ಐಟಂಗಳು
+Footer Text,ಅಡಿಟಿಪ್ಪಣಿ ಪಠ್ಯ
+For DocType,doctype ಫಾರ್
+"For Links, enter the DocType as rangeFor Select, enter list of Options separated by comma","ಕೊಂಡಿಗಳು, ಶ್ರೇಣಿ doctype ನಮೂದಿಸಿ  ಆಯ್ಕೆ ಮಾಡಿ, ಚಿಹ್ನೆಗಳಿಂದ ಬೇರ್ಪಟ್ಟ ಆಯ್ಕೆಗಳು ಪಟ್ಟಿ ನಮೂದಿಸಿ"
+"For comparative filters, start with","ತುಲನಾತ್ಮಕ ಶೋಧಕಗಳ , ಆರಂಭವಾಗಬೇಕು"
+For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,ನೀವು ರದ್ದು ಮತ್ತು ' INV004 ' ತಿದ್ದುಪಡಿ ಉದಾಹರಣೆಗೆ ಇದು ಹೊಸ ದಾಖಲೆ ' INV004 - 1 ' ಪರಿಣಮಿಸುತ್ತದೆ . ನೀವು ಪ್ರತಿ ತಿದ್ದುಪಡಿ ಕಾಪಾಡುವುದು ಮಾಡುತ್ತದೆ.
+For ranges,ಶ್ರೇಣಿಗಳಿಗೆ
+For top bar,ಅಗ್ರ ಬಾರ್
+For {0} at level {1} in {2} in row {3},ಫಾರ್ {0} ಮಟ್ಟದಲ್ಲಿ {1} ಗೆ {2} ಸತತವಾಗಿ {3}
+Forgot Password,ಪಾಸ್ವರ್ಡ್ ಮರೆತಿರಾ
+Forgot Password?,ಪಾಸ್ವರ್ಡ್ ಮರೆತಿರಾ?
+Form,ಫಾರ್ಮ್
+Forum,ಮಾರುಕಟ್ಟೆ
+Forums,ಮಾರುಕಟ್ಟೆ
+Forward To Email Address,ಫಾರ್ವರ್ಡ್ ಇಮೇಲ್ ವಿಳಾಸಕ್ಕೆ
+Frappe Framework,ಫ್ರಾಫೆ ಫ್ರೇಮ್ವರ್ಕ್
+Friday,ಶುಕ್ರವಾರ
+From Date must be before To Date,ದಿನಾಂಕ ಇಲ್ಲಿಯವರೆಗೆ ಮೊದಲು ಇರಬೇಕು
+Full Name,ಪೂರ್ಣ ಹೆಸರು
+Gantt Chart,ಗಂಟ್ ಚಾರ್ಟ್
+Gender,ಲಿಂಗ
+Generator,ಜನರೇಟರ್
+Georgia,ಜಾರ್ಜಿಯಾ
+Get,ಪಡೆಯಿರಿ
+Get From ,Get From 
+"Get your globally recognized avatar from <a href=""https://gravatar.com/"">Gravatar.com</a>","ಕವಿದ href=""https://gravatar.com/""> Gravatar.com </ ಒಂದು> ನಿಮ್ಮ ಜಾಗತಿಕವಾಗಿ ಮಾನ್ಯತೆ ಅವತಾರ ಪಡೆಯಿರಿ"
+GitHub,GitHub
+GitHub Client ID,GitHub ಕ್ಲೈಂಟ್ ID
+GitHub Client Secret,GitHub ಕ್ಲೈಂಟ್ ಸೀಕ್ರೆಟ್
+Github User ID,GitHub ಬಳಕೆದಾರ ID
+Github Username,GitHub ಬಳಕೆದಾರ
+Google,ಗೂಗಲ್
+Google Analytics ID,Google Analytics ID ಯನ್ನು
+Google Client ID,ಗೂಗಲ್ ಕ್ಲೈಂಟ್ ID
+Google Client Secret,ಗೂಗಲ್ ಕ್ಲೈಂಟ್ ಸೀಕ್ರೆಟ್
+Google Plus One,ಗೂಗಲ್ ಪ್ಲಸ್ ಒಂದು
+Google User ID,ಗೂಗಲ್ ಬಳಕೆದಾರ ID
+Google Web Font (Heading),Google ವೆಬ್ ಫಾಂಟ್ ( ಶಿರೋನಾಮೆ )
+Google Web Font (Text),Google ವೆಬ್ ಫಾಂಟ್ ( ಪಠ್ಯ )
+Greater or equals,ಗ್ರೇಟರ್ ಅಥವಾ ಸಮ
+Greater than,ಹೆಚ್ಚು
+"Group Added, refreshing...","ಗುಂಪು ರಿಫ್ರೆಶ್ , ಸೇರಿಸಲಾಗಿದೆ ..."
+Group Description,GroupDescription
+Group Name,ಗುಂಪು ಹೆಸರು
+Group Title,ಗುಂಪು ಶೀರ್ಷಿಕೆ
+Group Type,ಗ್ರೂಪ್ ಪ್ರಕಾರ
+Groups,ಗುಂಪುಗಳು
+HTML for header section. Optional,ಹೆಡರ್ ಭಾಗವನ್ನುತೆರೆದು ಎಚ್ಟಿಎಮ್ಎಲ್ . ಐಚ್ಛಿಕ
+Have an account? Login,ಒಂದು ಖಾತೆಯನ್ನು ಹೊಂದಿಲ್ಲ ? ಲಾಗಿನ್
+Header,ತಲೆಹೊಡೆತ
+Heading,ಶಿರೋನಾಮೆ
+Heading Text As,ಪಠ್ಯ ಶಿರೋನಾಮೆ
+Help,ಸಹಾಯ
+Help on Search,ಹುಡುಕಾಟ ಸಹಾಯ
+Helvetica Neue,ಹೆಲ್ವೆಟಿಕಾ ನ್ಯೂಯೆ
+Hidden,ಹಿಡನ್
+Hide Actions,ಕ್ರಿಯೆಗಳು ಮರೆಮಾಡಿ
+Hide Copy,ನಕಲಿಸಿ ಮರೆಮಾಡಿ
+Hide Heading,ಅಡಗಿಸು ಶಿರೋನಾಮೆ
+Hide Toolbar,ಪರಿಕರ ಪಟ್ಟಿ ಮರೆಮಾಡಿ
+Hide the sidebar,ಸೈಡ್ಬಾರ್ನಲ್ಲಿ ಮರೆಮಾಡಲು
+High,ಎತ್ತರದ
+Highlight,ಹೈಲೈಟ್
+History,ಇತಿಹಾಸ
+Home Page,ಮುಖಪುಟ
+Home Page is Products,ಮುಖಪುಟ ಉತ್ಪನ್ನಗಳು ಆಗಿದೆ
+ID (name) of the entity whose property is to be set,ಅವರ ಆಸ್ತಿ ಸೆಟ್ ಆಗಿದೆ ಘಟಕದ ಆಫ್ ID ( ಹೆಸರು )
+Icon,ವಿಗ್ರಹ
+Icon will appear on the button,ಐಕಾನ್ ಬಟನ್ ಮೇಲೆ ಕಾಣಿಸುತ್ತದೆ
+"If a Role does not have access at Level 0, then higher levels are meaningless.","ಒಂದು ಪಾತ್ರ ಮಟ್ಟದ 0 ಪ್ರವೇಶವನ್ನು ಹೊಂದಿಲ್ಲ ವೇಳೆ , ನಂತರ ಹೆಚ್ಚಿನ ಮಟ್ಟದಲ್ಲಿ ಅರ್ಥಹೀನ."
+"If checked, all other workflows become inactive.","ಪರಿಶೀಲಿಸಿದರೆ, ಎಲ್ಲಾ ಇತರ ಕಾರ್ಯಗಳಲ್ಲಿ ನಿಷ್ಕ್ರಿಯವಾಗುತ್ತವೆ ."
+"If checked, the Home page will be the default Item Group for the website.","ಪರಿಶೀಲಿಸಿದರೆ, ಮುಖಪುಟದಲ್ಲಿ ಐಟಂ ಗುಂಪು ವೆಬ್ಸೈಟ್ ಡೀಫಾಲ್ಟ್ ಆಗಿರುತ್ತದೆ."
+"If image is selected, color will be ignored (attach first)","ಚಿತ್ರ ಆರಿಸಿದರೆ, ಬಣ್ಣ ( ಮೊದಲ ಲಗತ್ತಿಸಬಹುದು ) ನಿರ್ಲಕ್ಷಿಸಲಾಗುತ್ತದೆ"
+If non standard port (e.g. 587),ವೇಳೆ ಅಲ್ಲದ ಪ್ರಮಾಣಿತವಲ್ಲದ ಪೋರ್ಟ್ ( ಇ ಜಿ 587 )
+"If these instructions where not helpful, please add in your suggestions on GitHub Issues.","ಸಂಶ್ಲೇಷಣೆ ಸೂಚನೆಗಳನ್ನು ಅಲ್ಲಿ ಉಪಯುಕ್ತ ಅಲ್ಲ, GitHub ಸಮಸ್ಯೆಗಳು ನಿಮ್ಮ ಸಲಹೆಗಳನ್ನು ಸೇರಿಸಿ ದಯವಿಟ್ಟು ."
+"If you set this, this Item will come in a drop-down under the selected parent.","ನೀವು ಈ ಸೆಟ್ , ಈ ಐಟಂ ಆಯ್ಕೆ ಮೂಲ ಅಡಿಯಲ್ಲಿ ಡ್ರಾಪ್ ಡೌನ್ ಬರುತ್ತವೆ ."
+Ignore User Permissions,ಬಳಕೆದಾರ ಅನುಮತಿಗಳು ನಿರ್ಲಕ್ಷಿಸು
+"Ignoring Item {0}, because a group exists with the same name!","ನಿರ್ಲಕ್ಷಿಸಲಾಗುತ್ತಿದೆ ಐಟಂ {0} , ಗುಂಪು ಅದೇ ಹೆಸರಿನಲ್ಲಿ ಅಸ್ತಿತ್ವದಲ್ಲಿದೆ ಕಾರಣ!"
+Image,ಚಿತ್ರ
+Image Link,ಚಿತ್ರ ಲಿಂಕ್
+Import,ಆಮದು
+Import / Export Data,ಆಮದು / ರಫ್ತು ಡೇಟಾವನ್ನು
+Import / Export Data from .csv files.,. CSV ಫೈಲುಗಳಿಂದ ಆಮದು / ರಫ್ತು ಡೇಟಾವನ್ನು .
+In,ರಲ್ಲಿ
+In Dialog,ಮಾತುಕತೆ
+In Filter,ಶೋಧಕಗಳು ರಲ್ಲಿ
+In List View,ListView ರಲ್ಲಿ
+In Report Filter,ವರದಿ ಫಿಲ್ಟರ್
+In points. Default is 9.,ಅಂಕಗಳನ್ನು. ಡೀಫಾಲ್ಟ್ 9.
+In response to,ಪ್ರತಿಕ್ರಿಯೆಯಾಗಿ
+Incorrect value in row {0}: {1} must be {2} {3},ತಪ್ಪಾದ ಮೌಲ್ಯವನ್ನು ಸತತವಾಗಿ {0} : {1} ಇರಬೇಕು {2} {3}
+Incorrect value: {0} must be {1} {2},ತಪ್ಪಾದ ಮೌಲ್ಯವು: {0} ಇರಬೇಕು {1} {2}
+Index,ಸೂಚಿ
+Individuals,ವ್ಯಕ್ತಿಗಳು
+Info,ಮಾಹಿತಿ
+Insert After,InsertAfter
+"Insert After field '{0}' mentioned in Custom Field '{1}', does not exist","' {0} ' ಕಸ್ಟಮ್ ಫೀಲ್ಡ್ ಉಲ್ಲೇಖಿಸಲಾಗಿದೆ ' {1} ' ಅಸ್ತಿತ್ವದಲ್ಲಿಲ್ಲ, ಕ್ಷೇತ್ರ ನಂತರ ಸೇರಿಸಿ"
+Insert Below,ಕೆಳಗೆ ಸೇರಿಸಿ
+Insert Code,ಕೋಡ್ ಸೇರಿಸಿ
+Insert Row,ಸಾಲನ್ನು ಸೇರಿಸಿ
+Insert Style,ಶೈಲಿ ಸೇರಿಸಿ
+Install Applications.,ಅಪ್ಲಿಕೇಶನ್ಗಳನ್ನು ಇನ್ಸ್ಟಾಲ್ .
+Installed,ಅನುಸ್ಥಾಪಿಸಲಾದ
+Installer,ಅನುಸ್ಥಾಪಕವನ್ನು
+Int,ಇಂಟ್
+Integrations,ಅನುಕಲನ
+Introduce your company to the website visitor.,ವೆಬ್ಸೈಟ್ ಭೇಟಿ ನಿಮ್ಮ ಕಂಪನಿ ಪರಿಚಯಿಸಲು.
+Introduction,ಪರಿಚಯ
+Introductory information for the Contact Us Page,ಸಂಪರ್ಕಿಸಿ ಪೇಜ್ ಪರಿಚಯಾತ್ಮಕ ಮಾಹಿತಿ
+Invalid Email: {0},ಅಮಾನ್ಯವಾದ ಇಮೇಲ್ : {0}
+Invalid Filter: {0},ಅಮಾನ್ಯವಾದ ಫಿಲ್ಟರ್ : {0}
+Invalid Home Page,ಅಮಾನ್ಯವಾದ ಮುಖಪುಟ
+Invalid Login,ಅಮಾನ್ಯ ಲಾಗಿನ್
+Invalid Outgoing Mail Server or Port,ಅಮಾನ್ಯವಾದ ಹೊರಹೋಗುವ ಮೇಲ್ ಸರ್ವರ್ ಅಥವಾ ಪೋರ್ಟ್
+Invalid login or password,ಅಮಾನ್ಯ ಲಾಗಿನ್ ಪ್ರವೇಶಪದವನ್ನು
+Invalid recipient address,ಅಮಾನ್ಯ ಸ್ವೀಕರಿಸುವವರು ವಿಳಾಸಕ್ಕೆ
+Inverse,ವಿಲೋಮ
+Is Active,ಸಕ್ರಿಯವಾಗಿದೆ
+Is Child Table,ChildTable ಈಸ್
+Is Default,ಡೀಫಾಲ್ಟ್
+Is Event,ಘಟನೆಯಾಗಿದೆ
+Is Mandatory Field,ಕಡ್ಡಾಯ ಕ್ಷೇತ್ರವಾಗಿದೆ
+Is Single,ಏಕ
+Is Standard,ಸ್ಟ್ಯಾಂಡರ್ಡ್
+Is Submittable,Submittable ಈಸ್
+Is Task,ಕೆಲಸ
+Item cannot be added to its own descendents,ಐಟಂ ತನ್ನದೇ ಸಂತತಿಯವರು ಸೇರಿಸಲಾಗಿದೆ ಸಾಧ್ಯವಿಲ್ಲ
+JavaScript Format: frappe.query_reports['REPORTNAME'] = {},ಜಾವಾಸ್ಕ್ರಿಪ್ಟ್ ಫಾರ್ಮ್ಯಾಟ್: frappe.query_reports [ 'ವರದಿಯನ್ನು ಹೆಸರು '] = {}
+Javascript,ಜಾವಾಸ್ಕ್ರಿಪ್ಟ್
+Javascript to append to the head section of the page.,ಜಾವಾಸ್ಕ್ರಿಪ್ಟ್ ಪುಟ ತಲೆ ಭಾಗಕ್ಕೆ ಸೇರಿಸಲು .
+Key,ಕೀಲಿಕೈ
+Label,ಚೀಟಿ
+Label Help,ಲೇಬಲ್ ಸಹಾಯ
+Label and Type,ಲೇಬಲ್ ಮತ್ತು ಪ್ರಕಾರ
+Label is mandatory,ಲೇಬಲ್ ಕಡ್ಡಾಯ
+Landing Page,ಲ್ಯಾಂಡಿಂಗ್ ಪುಟ
+Language,ಭಾಷೆ
+Language preference for user interface (only if available).,ಬಳಕೆದಾರ ಇಂಟರ್ಫೇಸ್ ಭಾಷೆಯನ್ನು ಆದ್ಯತೆ ( ಮಾತ್ರ ಲಭ್ಯವಿದ್ದಲ್ಲಿ) .
+"Language, Date and Time settings","ಭಾಷಾ , ದಿನಾಂಕ ಮತ್ತು ಸಮಯ ಸೆಟ್ಟಿಂಗ್ಗಳನ್ನು"
+Last IP,ಕೊನೆಯ ಐಪಿ
+Last Login,ಕೊನೆಯ ಲಾಗಿನ್
+Last Name,ಕೊನೆಯ ಹೆಸರು
+Last updated by,ಕೊನೆಯ ಮೂಲಕ ಅಪ್ಡೇಟ್ಗೊಳಿಸಲಾಗಿದೆ
+Lastmod,Lastmod
+Lato,ಬ್ರಾಡ್
+Leave blank to repeat always,ಯಾವಾಗಲೂ ಪುನರಾವರ್ತಿಸಲು ಖಾಲಿ ಬಿಡಿ
+Left,ಎಡ
+Less or equals,ಕಡಿಮೆ ಸಮ ಅಥವಾ
+Less than,ಕಡಿಮೆ
+Letter,ಅಕ್ಷರಗಳು
+Letter Head,ತಲೆಬರಹ
+Letter Head Name,ತಲೆಬರಹ ಹೆಸರು
+Letter Head in HTML,HTML ನಲ್ಲಿ ತಲೆಬರಹ
+Level,ಮಟ್ಟ
+"Level 0 is for document level permissions, higher levels for field level permissions.","ಹಂತ 0 , ಡಾಕ್ಯುಮೆಂಟ್ ಮಟ್ಟದ ಅನುಮತಿಗಳನ್ನು ಕ್ಷೇತ್ರ ಮಟ್ಟದ ಅನುಮತಿಗಳಿಗಾಗಿ ಮಟ್ಟದ ಆಗಿದೆ ."
+Like,ಲೈಕ್
+Link,ಕೊಂಡಿ
+"Link that is the website home page. Standard Links (index, login, products, blog, about, contact)","ಸಂಪರ್ಕ ಮಾಡಿದರು ವೆಬ್ಸೈಟ್ ಮುಖಪುಟದಲ್ಲಿ ಹೊಂದಿದೆ. ಸ್ಟ್ಯಾಂಡರ್ಡ್ ಕೊಂಡಿಗಳು ( ಸೂಚ್ಯಂಕ , ಲಾಗಿನ್ , ಉತ್ಪನ್ನಗಳು , ಬ್ಲಾಗ್ , ಬಗ್ಗೆ , ಸಂಪರ್ಕ )"
+Link to other pages in the side bar and next section,ಸೈಡ್ ಬಾರ್ ಮತ್ತು ಮುಂದಿನ ವಿಭಾಗದಲ್ಲಿ ಇತರ ಪುಟಗಳಿಗೆ ಲಿಂಕ್
+Link to the page you want to open,ನೀವು ತೆರೆಯಲು ಬಯಸುವ ಪುಟಕ್ಕೆ ಲಿಂಕ್
+Linked In Share,ಹಂಚಿಕೊಳ್ಳಿ ಲಿಂಕ್ಡ್
+Linked With,ಸಂಬಂಧ
+List,ಕುತಂತ್ರ
+List a document type,ಒಂದು ದಾಖಲೆ ಪ್ರಕಾರ ಪಟ್ಟಿ
+List of Web Site Forum's Posts.,ವೆಬ್ ಸೈಟ್ ಫೋರಮ್ ಪೋಸ್ಟ್ಗಳು ಪಟ್ಟಿ .
+Loading,ಲೋಡ್
+Loading Report,ಲೋಡ್ ವರದಿ
+Loading...,ಲೋಡ್ ಆಗುತ್ತಿದೆ ...
+Localization,ಸ್ಥಳೀಕರಣ
+Location,ಸ್ಥಳ
+Log of error on automated events (scheduler).,ಸ್ವಯಂಚಾಲಿತ ಘಟನೆಗಳು ( ಅನುಸೂಚಿಯ ) ಮೇಲೆ ದೋಷ ಲಾಗ್ .
+Login,ಲಾಗಿನ್
+Login After,ನಂತರ ಲಾಗಿನ್
+Login Before,ಮೊದಲು ಲಾಗಿನ್ ಆಗಿ
+Login Id,ಲಾಗಿನ್ ID
+Login not allowed at this time,ಲಾಗಿನ್ ಈ ಸಮಯದಲ್ಲಿ ಅನುಮತಿಸಲಾಗುವುದಿಲ್ಲ
+Logout,ಲಾಗ್ ಔಟ್
+Long Text,ಲಾಂಗ್ ಪಠ್ಯ
+Low,ಕಡಿಮೆ
+Lucida Grande,ಲುಸಿಡಾ ಗ್ರಾಂಡೆ
+Mail Password,ಮೇಲ್ ಪಾಸ್ವರ್ಡ್
+Main Section,ಮುಖ್ಯ ವಿಭಾಗ
+Make a new,ಹೊಸ ಮಾಡಿ
+Make a new record,ಹೊಸ ದಾಖಲೆ ಮಾಡಿ
+Male,ಪುರುಷ
+Manage cloud backups on Dropbox,ಡ್ರಾಪ್ಬಾಕ್ಸ್ ಮೇಲೆ ಮೋಡದ ಬ್ಯಾಕ್ಅಪ್ ನಿರ್ವಹಿಸಿ
+Manage uploaded files.,ಅಪ್ಲೋಡ್ ಫೈಲ್ಗಳನ್ನು ನಿರ್ವಹಿಸಿ .
+Mandatory,ಆಜ್ಞಾಪಕ
+Mandatory fields required in {0},ಅಗತ್ಯವಿದೆ ಕಡ್ಡಾಯ ಜಾಗ {0}
+Mandatory filters required:\n,ಕಡ್ಡಾಯ ಶೋಧಕಗಳು ಅಗತ್ಯವಿದೆ : \ N
+Master,ಯಜಮಾನ
+Max Attachments,ಮ್ಯಾಕ್ಸ್ ಲಗತ್ತುಗಳನ್ನು
+Max width for type Currency is 100px in row {0},ಮಾದರಿ ಕರೆನ್ಸಿ ಮ್ಯಾಕ್ಸ್ ಅಗಲ ಸತತವಾಗಿ 100px {0}
+"Meaning of Submit, Cancel, Amend","ಆಫ್ , ಸಲ್ಲಿಸಿ ರದ್ದು , ಮಾಡಿರಿ ಅರ್ಥ"
+Medium,ಮಧ್ಯಮ
+"Menu items in the Top Bar. For setting the color of the Top Bar, go to <a href=""#Form/Style Settings"">Style Settings</a>","ಉನ್ನತ ಪಟ್ಟಿಯ ಬಣ್ಣದ ಸೆಟ್ ಟಾಪ್ ಬಾರ್ ಮೆನು ಅಂಶಗಳು , ಕವಿದ href=""#Form/Style Settings""> ಶೈಲಿ ಸೆಟ್ಟಿಂಗ್ಗಳು </ a > ಹೋಗಿ"
+Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node,ಮರ್ಜಿಂಗ್ ಗ್ರೂಪ್ ಟು ಗುಂಪು ಅಥವಾ ಲೀಫ್ ನೋಡ್ ಯಾ ನೋಡ್ ಲೀಫ್ ನಡುವೆ ಮಾತ್ರ ಸಾಧ್ಯ
+Message,ಸಂದೇಶ
+Message Examples,ಸಂದೇಶ ಉದಾಹರಣೆಗಳು
+Messages,ಸಂದೇಶಗಳು
+Method,ವಿಧಾನ
+Middle Name (Optional),ಮಧ್ಯ ಹೆಸರು (ಐಚ್ಛಿಕ)
+Misc,ಇತರೆ
+Miscellaneous,ವಿವಿಧ
+Missing Values Required,ಅಗತ್ಯ ELEMENTARY ಸ್ಥಳ
+Modern,ಆಧುನಿಕ
+Modified by,ಮಾರ್ಪಾಡಿಸಲ್ಪಟ್ಟಿದ್ದು
+Module,ಮಾಡ್ಯೂಲ್ಗಳು
+Module Def,ಮಾಡ್ಯೂಲ್ಗಳು ಡೆಫ್
+Module Name,ಮಾಡ್ಯೂಲ್ ಹೆಸರು
+Module Not Found,ಮಾಡ್ಯೂಲ್ ಕಂಡುಬಂದಿಲ್ಲ
+Modules Setup,ಮಾಡ್ಯೂಲ್ಗಳು ಸೆಟಪ್
+Monday,ಸೋಮವಾರ
+More,ಇನ್ನಷ್ಟು
+More content for the bottom of the page.,ಪುಟ ಕೆಳಭಾಗದಲ್ಲಿ ಹೆಚ್ಚು ವಿಷಯ .
+Move Down: {0},ಕೆಳಗೆಚಲಿಸು : {0}
+Move Up: {0},ಮೇಲೆಚಲಿಸು : {0}
+Multiple root nodes not allowed.,ಬಹು ಮೂಲ ಗ್ರಂಥಿಗಳು ಅನುಮತಿಸಲಾಗುವುದಿಲ್ಲ .
+Must have report permission to access this report.,ಈ ವರದಿ ವರದಿ ಪ್ರವೇಶಿಸಲು ಅನುಮತಿ ಕಡ್ಡಾಯ .
+Must specify a Query to run,ಚಲಾಯಿಸಲು ಪ್ರಶ್ನೆಯನ್ನು ಸೂಚಿಸಬೇಕು
+My Settings,ನನ್ನ ಸೆಟ್ಟಿಂಗ್ಗಳನ್ನು
+Name,ಹೆಸರು
+Name Case,ಹೆಸರು ಕೇಸ್
+Name and Description,ಹೆಸರು ಮತ್ತು ವಿವರಣೆ
+Name is required,ಹೆಸರು ಅಗತ್ಯವಿದೆ
+Name not permitted,ಅನುಮತಿ ಹೆಸರು
+Name not set via Prompt,ಪ್ರಾಂಪ್ಟಿನಲ್ಲಿ ಮೂಲಕ ಸೆಟ್ ಹೆಸರು
+Name of the Document Type (DocType) you want this field to be linked to. e.g. Customer,ನೀವು ಈ ಕ್ಷೇತ್ರದಲ್ಲಿ ಲಿಂಕ್ ಬಯಸುವ ಡಾಕ್ಯುಮೆಂಟ್ ಕೌಟುಂಬಿಕತೆ (doctype) ನ ಹೆಸರು. ಉದಾ ಗ್ರಾಹಕ
+Name of {0} cannot be {1},{0} ನ ಹೆಸರು ಸಾಧ್ಯವಿಲ್ಲ {1}
+Naming,ಹೆಸರಿಸುವ
+Naming Series mandatory,ಸರಣಿ ಕಡ್ಡಾಯವಾಗಿ ಹೆಸರಿಸುವ
+Nested set error. Please contact the Administrator.,ನೆಸ್ಟೆಡ್ ಸೆಟ್ ದೋಷ . ನಿರ್ವಾಹಕರನ್ನು ಸಂಪರ್ಕಿಸಿ.
+New,ಹೊಸ
+New Password,ಹೊಸ ಪಾಸ್ವರ್ಡ್
+New Record,ಹೊಸ ದಾಖಲೆ
+New comment on {0} {1},ಹೊಸ ಕಾಮೆಂಟ್ {0} {1}
+New password emailed,ಹೊಸ ಗುಪ್ತಪದವನ್ನು ಇಮೇಲ್
+New value to be set,ಸೆಟ್ ಹೊಸ ಮೌಲ್ಯ
+New {0},ಹೊಸ {0}
+Next Communcation On,ಮುಂದೆ Communcation ರಂದು
+Next Record,ಮುಂದೆ ರೆಕಾರ್ಡ್
+Next State,ಮುಂದೆ ರಾಜ್ಯ
+Next actions,ಮುಂದೆ ಕ್ರಮಗಳು
+No,ಇಲ್ಲ
+No Action,ಯಾವುದೇ ಆಕ್ಷನ್
+No Communication tagged with this ,No Communication tagged with this 
+No Copy,ಯಾವುದೇ ಪ್ರತಿಯನ್ನು
+No Permissions set for this criteria.,ಯಾವುದೇ ಅನುಮತಿಗಳು ಈ ಮಾನದಂಡಗಳನ್ನು ಸೆಟ್ .
+No Report Loaded. Please use query-report/[Report Name] to run a report.,ಯಾವುದೇ ವರದಿ ಲೋಡೆಡ್ . ಒಂದು ವರದಿ ರನ್ ಪ್ರಶ್ನಾವಳಿ ವರದಿ / [ವರದಿ ಹೆಸರು ] ಬಳಸಿ.
+No Results,ಯಾವುದೇ ಫಲಿತಾಂಶಗಳು
+No Sidebar,ಇಲ್ಲ ಪಾರ್ಶ್ವಪಟ್ಟಿ
+No User Permissions found.,ಯಾವುದೇ ಬಳಕೆದಾರ ಅನುಮತಿಗಳು ಕಂಡುಬಂದಿಲ್ಲ .
+No data found,ಯಾವುದೇ ಡೇಟಾ ಕಂಡುಬಂದಿಲ್ಲ
+No file attached,ಲಗತ್ತಿಸಲಾದ ಯಾವುದೇ ಕಡತ
+No further records,ಯಾವುದೇ ದಾಖಲೆಗಳು
+No one,ಯಾರೂ
+No permission to '{0}' {1},ಯಾವುದೇ ಅನುಮತಿಯಿಲ್ಲ ' {0} ' {1}
+No permission to edit,ಸಂಪಾದಿಸಲು ಯಾವುದೇ ಅನುಮತಿಯಿಲ್ಲ
+No permission to write / remove.,/ ತೆಗೆದುಹಾಕಿ ಬರೆಯಲು ಅನುಮತಿ .
+No records tagged.,ಯಾವುದೇ ದಾಖಲೆಗಳು ಟ್ಯಾಗ್ .
+No template found at path: {0},ಮಾರ್ಗ ಕಂಡುಬರುವ ಯಾವುದೇ ಟೆಂಪ್ಲೇಟು: {0}
+No {0} permission,ಯಾವುದೇ {0} ಅನುಮತಿ
+None,ಯಾವುದೂ ಇಲ್ಲ
+None: End of Workflow,ಯಾವುದೂ : ವರ್ಕ್ಫ್ಲೋ ಅಂತ್ಯ
+Not Found,ಕಂಡುಬಂದಿಲ್ಲ
+Not Linked to any record.,ಯಾವುದೇ ದಾಖಲೆ ಲಿಂಕ್ .
+Not Permitted,ಅನುಮತಿಯಿಲ್ಲ
+Not Submitted,ಗ್ರಾಮೀಣರ
+Not a user yet? Sign up,ಇನ್ನೂ ಒಂದು ಬಳಕೆದಾರ ? ಸೈನ್ ಅಪ್ ಮಾಡಿ
+Not a valid Comma Separated Value (CSV File),ಮಾನ್ಯವಾದ ಅಲ್ಪವಿರಾಮದಿಂದ ಬೇರ್ಪಡಿಸಿರುವುದು ಮೌಲ್ಯ ( CSV ​​ಫೈಲ್ )
+Not allowed,ಅನುಮತಿಸಲಾಗುವುದಿಲ್ಲ
+Not allowed from this IP Address,ಈ IP ವಿಳಾಸ ಅನುಮತಿಸಲಾಗುವುದಿಲ್ಲ
+Not allowed to Import,ಆಮದು ಅವಕಾಶ
+Not allowed to access {0} with {1} = {2},ಪ್ರವೇಶಿಸಲು ಅನುಮತಿಯಿಲ್ಲ {0} {1} ಜೊತೆ = {2}
+Not allowed to change {0} after submission,ಸಲ್ಲಿಕೆ ನಂತರ {0} ಬದಲಾಯಿಸಲು ಅನುಮತಿಸಲಾಗುವುದಿಲ್ಲ
+Not allowed to move,ಸರಿಸಲು ಅನುಮತಿಸಲಾಗುವುದಿಲ್ಲ
+Not allowed to reset the password of {0},{0} ಪಾಸ್ವರ್ಡ್ ರೀಸೆಟ್ ಅವಕಾಶ
+Not enough permission to see links.,ಮಾಡಿರುವುದಿಲ್ಲ ಕೊಂಡಿಗಳು ನೋಡಲು ಸಾಕಷ್ಟು ಅನುಮತಿ .
+Not equals,ಸಮ
+Not found,ಕಂಡುಬಂದಿಲ್ಲ
+Not in Developer Mode! Set in site_config.json,ಮಾಡಿರುವುದಿಲ್ಲ ಡೆವೆಲಪರ್ ಮೋಡ್ ! Site_config.json ಹೊಂದಿಸಿ
+Not permitted,ಅನುಮತಿ
+"Note: For best results, images must be of the same size and width must be greater than height.","ಗಮನಿಸಿ : ಉತ್ತಮ ಫಲಿತಾಂಶಗಳನ್ನು , ಚಿತ್ರಗಳನ್ನು ಅದೇ ಗಾತ್ರದ ಇರಬೇಕು ಮತ್ತು ಅಗಲ ಎತ್ತರ ಹೆಚ್ಚು ಬೇಕು ."
+Note: Other permission rules may also apply,ಗಮನಿಸಿ : ಇತರೆ ನಿಯಮಗಳು ಅನುಮತಿ ಜೂನ್ ಆದ್ದರಿಂದ ಅರ್ಜಿ
+Note: maximum attachment size = 1mb,ಗಮನಿಸಿ : ಗರಿಷ್ಠ ಬಾಂಧವ್ಯ ಗಾತ್ರ = 1MB
+Nothing to show,ತೋರಿಸಲು ಏನೂ
+Nothing to show for this selection,ಈ ಆಯ್ಕೆಗೆ ತೋರಿಸಲು ಏನೂ
+Notification Count,ಅಧಿಸೂಚನೆ ನ್ಯಾಷನಲ್
+Notify by Email,ಇಮೇಲ್ ಮೂಲಕ ಸೂಚಿಸಿ
+Number Format,ಸಂಖ್ಯೆ ಸ್ವರೂಪ
+Old Parent,ಓಲ್ಡ್ ಪೋಷಕ
+On,ಮೇಲೆ
+"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).","ನೀವು ಈ ಹೊಂದಿರಬೇಕು, ಬಳಕೆದಾರರು ಮಾತ್ರ ಸಾಧ್ಯವಾಗುತ್ತದೆ ಪ್ರವೇಶ ದಾಖಲೆಗಳನ್ನು ಲಿಂಕ್ ಅಸ್ತಿತ್ವದಲ್ಲಿದೆ ಅಲ್ಲಿ ( ಉದಾ. ಬ್ಲಾಗ್ ಪೋಸ್ಟ್ ) ( ಉದಾ. ಬ್ಲಾಗರ್ ) ಇರುತ್ತದೆ ."
+Only Administrator allowed to create Query / Script Reports,ಕೇವಲ ನಿರ್ವಾಹಕರು ಪ್ರಶ್ನೆ / ಸ್ಕ್ರಿಪ್ಟ್ ವರದಿಗಳು ರಚಿಸಲು ಅವಕಾಶ
+Only Administrator can save a standard report. Please rename and save.,ಕೇವಲ ನಿರ್ವಾಹಕರು ಪ್ರಮಾಣಿತ ವರದಿ ಉಳಿಸಬಹುದು . ಮರುಹೆಸರಿಸು ಮತ್ತು ಉಳಿಸಲು ದಯವಿಟ್ಟು .
+Only Allow Edit For,ಮಾತ್ರ ಸಂಪಾದಿಸಿ ಅವಕಾಶ
+Only allowed {0} rows in one import,ಒಂದು ಆಮದು ಮಾತ್ರ ಅವಕಾಶ {0} ಸಾಲುಗಳನ್ನು
+Oops! Something went wrong,ಅಯ್ಯೋ! ಏನೋ ತಪ್ಪಾಗಿದೆ
+Open,ತೆರೆದ
+Open Count,OpenCount
+Open Sans,ಓಪನ್ ಸಾನ್ಸ್
+Open Source Web Applications for the Web,ವೆಬ್ ತೆರೆದ ಮೂಲ ವೆಬ್ ಅಪ್ಲಿಕೇಶನ್ಸ್
+Open a module or tool,ಒಂದು ಘಟಕ ಅಥವಾ ಉಪಕರಣವನ್ನು ತೆರೆಯಿರಿ
+Open {0},ಓಪನ್ {0}
+Optional: Alert will only be sent if value is a valid email id.,ಐಚ್ಛಿಕ: ಮೌಲ್ಯವು ಮಾನ್ಯವಾದ ಇಮೇಲ್ ಐಡಿ ವೇಳೆ ಎಚ್ಚರಿಕೆ ಮಾತ್ರ ಕಳುಹಿಸಲಾಗುತ್ತದೆ.
+Optional: Always send to these ids. Each email id on a new row,ಐಚ್ಛಿಕ: ಯಾವಾಗಲೂ ಈ ಐಡಿಗಳನ್ನು ಕಳುಹಿಸಿ. ಹೊಸ ಸಾಲಿನಲ್ಲಿ ಪ್ರತಿ ಇಮೇಲ್ ಐಡಿ
+Optional: The alert will be sent if this expression is true,ಐಚ್ಛಿಕ: ಈ ಅಭಿವ್ಯಕ್ತಿ ನಿಜವಾದ ವೇಳೆ ಎಚ್ಚರಿಕೆಯನ್ನು ಕಳುಹಿಸಲಾಗುವುದು
+Options,ಆಯ್ಕೆಗಳು
+Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType',ಕ್ಷೇತ್ರದ ಆಯ್ಕೆಗಳು 'ಡೈನಾಮಿಕ್ ಲಿಂಕ್' ಮಾದರಿ 'doctype' ಎಂದು ಆಯ್ಕೆಗಳು ಮತ್ತೊಂದು ಲಿಂಕ್ ಫೀಲ್ಡ್ ಬೆಟ್ಟು ಮಾಡಬೇಕು
+Options Help,ಆಯ್ಕೆಗಳು ಸಹಾಯ
+Options for select. Each option on a new line. e.g.: <br>Option 1<br>Option 2<br>Option 3<br>,ಆಯ್ದ ಆಯ್ಕೆಗಳು. ಹೊಸ ಸಾಲಿನಲ್ಲಿ ಪ್ರತಿ ಆಯ್ಕೆಯನ್ನು. ಉದಾ: <br> ಆಯ್ಕೆ 1 <br> ಆಯ್ಕೆ 2 <br> ಆಯ್ಕೆ 3 <br>
+Options must be a valid DocType for field {0} in row {1},ಆಯ್ಕೆಗಳು {0} ಸತತವಾಗಿ {1} ಕ್ಷೇತ್ರದಲ್ಲಿ ಒಂದು ಮಾನ್ಯವಾದ DOCTYPE ಇರಬೇಕು
+Options not set for link field {0},ಆಯ್ಕೆಗಳು ಲಿಂಕ್ ಕ್ಷೇತ್ರದಲ್ಲಿ ಸೆಟ್ ಅಲ್ಲ {0}
+Options requried for Link or Table type field {0} in row {1},ಲಿಂಕ್ ಅಥವಾ ಟೇಬಲ್ ಟೈಪ್ ಕ್ಷೇತ್ರಕ್ಕೆ ಅಗತ್ಯವಿರುವ ಆಯ್ಕೆಗಳು {0} ಸತತವಾಗಿ {1}
+Org History,ಆರ್ಗ್ ಇತಿಹಾಸ
+Org History Heading,ಆರ್ಗ್ ಇತಿಹಾಸ ಶಿರೋನಾಮೆ
+Original Message,ಮೂಲ ಸಂದೇಶ
+Other,ಇತರ
+Outgoing Email Settings,ಹೊರಹೋಗುವ ಇಮೇಲ್ ಸೆಟ್ಟಿಂಗ್ಗಳು
+Outgoing Mail Server,ಹೊರಹೋಗುವ ಮೇಲ್ ಸರ್ವರ್
+Outgoing Mail Server not specified,ಹೊರಹೋಗುವ ಮೇಲ್ ಸರ್ವರ್ ನಿರ್ದಿಷ್ಟಪಡಿಸಿಲ್ಲ
+Owner,ಒಡೆಯ
+PDF Page Size,ಪಿಡಿಎಫ್ ಪುಟ ಗಾತ್ರ
+PDF Settings,ಪಿಡಿಎಫ್ ಸೆಟ್ಟಿಂಗ್ಗಳು
+POP3 Mail Server (e.g. pop.gmail.com),POP3 ಮೇಲ್ ಸರ್ವರ್ ( pop.gmail.com ಇ ಜಿ )
+Page,ಪುಟ
+Page #{0} of {1},ಪುಟ # {0} ನ {1}
+Page Background,ಪುಟ ಹಿನ್ನೆಲೆ
+Page HTML,HTML ಪುಟ
+Page Header,ಪುಟ ಶಿರೋಲೇಖ
+Page Header Background,ಪುಟ ಶಿರೋಲೇಖ ಹಿನ್ನೆಲೆ
+Page Header Text,ಪುಟ ಶಿರೋಲೇಖ ಪಠ್ಯ
+Page Links,ಪುಟ ಕೊಂಡಿಗಳು
+Page Name,ಪುಟ ಹೆಸರು
+Page Role,ಪುಟ ಪಾತ್ರ
+Page Text,ಪುಟ ಪಠ್ಯ
+Page Title,ಪುಟ ಶೀರ್ಷಿಕೆ
+Page content,ಪುಟ ವಿಷಯ
+Page not found,ಪುಟ ಸಿಗಲಿಲ್ಲ
+Page or Generator,ಪುಟ ಅಥವಾ ಜನರೇಟರ್
+Page url name (auto-generated),ಪುಟ URL ಹೆಸರು ( ಸ್ವಯಂ ರಚಿತವಾದ )
+Parent Label,ಪೋಷಕ ಲೇಬಲ್
+Parent Post,ಪೋಷಕ ಪೋಸ್ಟ್
+Parent Website Page,ಪೋಷಕ ವೆಬ್ಸೈಟ್ ಪುಟವನ್ನು
+Parent Website Route,ಪೋಷಕ ಸೈಟ್ ಮಾರ್ಗ
+Parent Website Sitemap,ಪೋಷಕ ವೆಬ್ಸೈಟ್ ಸೈಟ್ಮ್ಯಾಪ್
+Participants,ಭಾಗವಹಿಸುವವರು
+Password,ಪಾಸ್ವರ್ಡ್
+Password Updated,ಪಾಸ್ವರ್ಡ್ Updated
+Password reset instructions have been sent to your email,ಪಾಸ್ವರ್ಡ್ ರೀಸೆಟ್ ಸೂಚನೆಗಳನ್ನು ನಿಮ್ಮ ಇಮೇಲ್ ಕಳುಹಿಸಲಾಗಿದೆ
+Patch,ಮಚ್ಚೆ
+Patch Log,ಲಾಗ್ ಪ್ಯಾಚ್
+Percent,ಪರ್ಸೆಂಟ್
+Perm Level,ಪೆರ್ಮ್ ಮಟ್ಟ
+Permanently Cancel {0}?,ಶಾಶ್ವತವಾಗಿ {0} ರದ್ದು ?
+Permanently Submit {0}?,ಶಾಶ್ವತವಾಗಿ {0} ಸಲ್ಲಿಸಿ ?
+Permanently delete {0}?,ಶಾಶ್ವತವಾಗಿ {0} ಅಳಿಸಿ ?
+Permission Level,ಅನುಮತಿ ಮಟ್ಟ
+Permission Levels,ಅನುಮತಿ ಲೆವೆಲ್ಸ್
+Permission Rules,ಅನುಮತಿಯನ್ನು ನಿಯಮಗಳನ್ನು
+Permission already set,ಅನುಮತಿ ಈಗಾಗಲೇ ಸೆಟ್
+Permissions,ಅನುಮತಿಗಳು
+Permissions Settings,ಅನುಮತಿಗಳನ್ನು ಸೆಟ್ಟಿಂಗ್ಗಳನ್ನು
+Permissions are automatically translated to Standard Reports and Searches.,ಅನುಮತಿಗಳು ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಸ್ಟ್ಯಾಂಡರ್ಡ್ ವರದಿಗಳು ಮತ್ತು ಹುಡುಕಾಟಗಳು ಅನುವಾದಿಸಬಹುದು.
+"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions.","ಅನುಮತಿಗಳು ರಿಪೋರ್ಟ್ , ಆಮದು , ರಫ್ತು , ಪ್ರಿಂಟ್ , ಇಮೇಲ್ ಮತ್ತು ಬಳಕೆದಾರ ಅನುಮತಿಗಳು , ಮಾಡಿರಿ , ರದ್ದು , ಸಲ್ಲಿಸಿ , ಅಳಿಸಿ , ರಚಿಸಿ , ಬರೆಯಿರಿ , ಓದಿ ಹಕ್ಕು ಹೊಂದಿಸುವ ಮೂಲಕ ಪಾತ್ರಗಳು ಮತ್ತು ಡಾಕ್ಯುಮೆಂಟ್ ವಿಧಗಳು ( DOCTYPES ಕರೆಯಲಾಗುತ್ತದೆ) ಸೆಟ್ ."
+Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles.,ಮಟ್ಟದ ಅನುಮತಿಗಳು ' ಬದಿಯಿಂದ ' ಅನುಮತಿಗಳನ್ನು ಗಳು .
+"Permissions at level 0 are 'Document Level' permissions, i.e. they are primary for access to the document.","ಮಟ್ಟದ 0 ಅನುಮತಿಗಳು ' ಡಾಕ್ಯುಮೆಂಟ್ ಮಟ್ಟದ ' ಅನುಮತಿಗಳನ್ನು , ಅಂದರೆ ಅವರು ಡಾಕ್ಯುಮೆಂಟ್ ಪ್ರಾಥಮಿಕ ಪ್ರವೇಶಕ್ಕಾಗಿ ಬಯಸುವಿರಾ ."
+Permissions get applied on Users based on what Roles they are assigned.,ಅನುಮತಿಗಳು ಅವರು ವಹಿಸಿಕೊಡಲಾಗುತ್ತದೆ ಏನು ಪಾತ್ರಗಳು ಆಧರಿಸಿ ಅಪ್ಲೈಡ್ ಬಳಕೆದಾರ ಪಡೆಯಲು .
+Permitted Documents For User,ಬಳಕೆದಾರ ಅನುಮತಿ ಡಾಕ್ಯುಮೆಂಟ್ಸ್
+Person,ವ್ಯಕ್ತಿ
+Personal Info,ವೈಯಕ್ತಿಕ ಮಾಹಿತಿ
+Phone,ದೂರವಾಣಿ
+Phone No.,ಫೋನ್ ಯಾವುದೇ .
+Pick Columns,ಕಾಲಮ್ಗಳು ಆರಿಸಿ
+Picture URL,ಚಿತ್ರ URL ಅನ್ನು
+Pincode,ಪಿನ್ ಕೋಡ್
+Please attach a file first.,ಮೊದಲ ಒಂದು ಕಡತ ಲಗತ್ತಿಸಬಹುದು ದಯವಿಟ್ಟು .
+Please attach a file or set a URL,ಒಂದು ಕಡತ ಲಗತ್ತಿಸಬಹುದು ಅಥವಾ URL ಅನ್ನು ದಯವಿಟ್ಟು
+Please do not change the rows above {0},ಮೇಲೆ ಸಾಲುಗಳನ್ನು ಬದಲಾಯಿಸಲು ದಯವಿಟ್ಟು {0}
+Please enable pop-ups,ಪಾಪ್ ಅಪ್ಗಳನ್ನು ಸಕ್ರಿಯಗೊಳಿಸಲು ದಯವಿಟ್ಟು
+Please enter Event's Date and Time!,ಈವೆಂಟ್ ನ ದಿನಾಂಕ ಮತ್ತು ಸಮಯ ನಮೂದಿಸಿ !
+Please enter both your email and message so that we \				can get back to you. Thanks!,ನಿಮ್ಮ ಇಮೇಲ್ ಮತ್ತು ಸಂದೇಶ ಎರಡೂ ನಮೂದಿಸಿ ಆದ್ದರಿಂದ ನಾವು \ ನೀವು ಮರಳಿ ಪಡೆಯಬಹುದು. ಧನ್ಯವಾದಗಳು!
+Please enter some text!,ದಯವಿಟ್ಟು ಕೆಲವು ಪಠ್ಯವನ್ನು ನಮೂದಿಸಿ !
+Please enter title!,ಶೀರ್ಷಿಕೆ ನಮೂದಿಸಿ !
+Please login to Upvote!,Upvote ದಯವಿಟ್ಟು ಲಾಗಿನ್ ಮಾಡಿ !
+Please make sure that there are no empty columns in the file.,ಖಚಿತವಾಗಿ thatthere ಕಡತದಲ್ಲಿ ಯಾವುದೇ ಖಾಲಿ ಕಾಲಮ್ಗಳನ್ನು ಮಾಡಲು ದಯವಿಟ್ಟು .
+Please refresh to get the latest document.,ಇತ್ತೀಚಿನ ಡಾಕ್ಯುಮೆಂಟ್ ಪಡೆಯಲು ರಿಫ್ರೆಶ್ ಮಾಡಿ.
+Please reply above this line or remove it if you are replying below it,ಈ ಲೈನ್ ಮೇಲೆ ಪ್ರತ್ಯುತ್ತರ ಅಥವಾ ನೀವು ಅದನ್ನು ಕೆಳಗೆ ಅಸ್ಪಷ್ಟವಾಗಿ ವೇಳೆ ತೆಗೆದುಹಾಕಿ
+Please select a file or url,ಒಂದು ಕಡತ ಅಥವ URL ಆಯ್ಕೆಮಾಡಿ
+Please select atleast 1 column from {0} to sort,{0} ವಿಂಗಡಿಸಲು ರಿಂದ ಕನಿಷ್ಠ ಒಂದು ಕಾಲಮ್ ಆಯ್ಕೆಮಾಡಿ
+Please set {0} first,ಮೊದಲ {0} ಸೆಟ್ ದಯವಿಟ್ಟು
+Please specify,ಸೂಚಿಸಲು ದಯವಿಟ್ಟು
+Please specify 'Auto Email Id' in Setup > Outgoing Email Settings,> ಸೆಟ್ಟಿಂಗ್ಗಳು ಹೊರಹೋಗುವ ಇಮೇಲ್ ಸಂಯೋಜನೆಗಳು ' ಆಟೋ ಮಿಂಚಂಚೆ ' ಸೂಚಿಸಲು ದಯವಿಟ್ಟು
+Please specify Event date and time,ಇವೆಂಟ್ ದಿನಾಂಕ ಮತ್ತು ಸಮಯ ಸೂಚಿಸಲು ದಯವಿಟ್ಟು
+Please specify doctype,DOCTYPE ಸೂಚಿಸಲು ದಯವಿಟ್ಟು
+Please specify user,ಬಳಕೆದಾರನಿಗಾಗಿ ದಯವಿಟ್ಟು
+Please specify which date field must be checked,ಪರೀಕ್ಷಿಸಬೇಕು ದಿನಾಂಕ ಕ್ಷೇತ್ರದಲ್ಲಿ ನಮೂದಿಸಿ
+Please specify which value field must be checked,ಮೌಲ್ಯದ ಕ್ಷೇತ್ರದಲ್ಲಿ ಪರೀಕ್ಷಿಸಬೇಕು ನಿರ್ದಿಷ್ಟಪಡಿಸಲು ದಯವಿಟ್ಟು
+Please upload using the same template as download.,ಡೌನ್ಲೋಡ್ ಅದೇ ಟೆಂಪ್ಲೇಟ್ ಬಳಸಿ ಅಪ್ಲೋಡ್ ಮಾಡಿ.
+Plugin,ಪ್ಲಗಿನ್
+Port,ರೇವು
+Post,ಪೋಸ್ಟ್
+Post Publicly,ಸಾರ್ವಜನಿಕವಾಗಿ ಪೋಸ್ಟ್
+Post Topic,ಪೋಸ್ಟ್ ವಿಷಯ
+Post already exists. Cannot add again!,ಪೋಸ್ಟ್ ಈಗಾಗಲೇ ಅಸ್ತಿತ್ವದಲ್ಲಿದೆ. ಮತ್ತೆ ಸೇರಿಸಲಾಗುವುದಿಲ್ಲ!
+Post does not exist. Please add post!,ಪೋಸ್ಟ್ ಅಸ್ತಿತ್ವದಲ್ಲಿಲ್ಲ . ಪೋಸ್ಟ್ ಸೇರಿಸಿ ದಯವಿಟ್ಟು !
+Post to user,ಬಳಕೆದಾರ ಪೋಸ್ಟ್
+Posts,ಪೋಸ್ಟ್ಗಳು
+Previous Record,ಹಿಂದಿನ ದಾಖಲೆ
+Primary,ಪ್ರಾಥಮಿಕ
+Print,ಮುದ್ರಣ
+Print Format,ಪ್ರಿಂಟ್ ಫಾರ್ಮ್ಯಾಟ್
+Print Format Help,ಪ್ರಿಂಟ್ ಫಾರ್ಮ್ಯಾಟ್ ಸಹಾಯ
+Print Format Type,ಪ್ರಿಂಟ್ ಫಾರ್ಮ್ಯಾಟ್ ಕೌಟುಂಬಿಕತೆ
+Print Format {0} does not exist,ಪ್ರಿಂಟ್ ಫಾರ್ಮ್ಯಾಟ್ {0} ಅಸ್ತಿತ್ವದಲ್ಲಿಲ್ಲ
+Print Format {0} is disabled,ಪ್ರಿಂಟ್ ಫಾರ್ಮ್ಯಾಟ್ {0} ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಲಾಗಿದೆ
+Print Hide,ಪ್ರಿಂಟ್ ಅಡಗಿಸು
+Print Settings,ಮುದ್ರಣ ಸೆಟ್ಟಿಂಗ್ಗಳನ್ನು
+Print Style,ಮುದ್ರಣ ಶೈಲಿ
+Print Style Preview,ಮುದ್ರಣ ಶೈಲಿ ಮುನ್ನೋಟ
+Print Width,ಪ್ರಿಂಟ್ ಅಗಲ
+"Print with Letterhead, unless unchecked in a particular Document",", ತಲೆಬರಹ ನೊಂದಿಗೆ ಮುದ್ರಿಸಿ ಹೊರತು ನಿರ್ದಿಷ್ಟ ಡಾಕ್ಯುಮೆಂಟ್ ಪರಿಶೀಲಿಸದೆ"
+Print...,ಮುದ್ರಿಸು ...
+Printing and Branding,ಮುದ್ರಣ ಮತ್ತು ಬ್ರ್ಯಾಂಡಿಂಗ್
+Priority,ಆದ್ಯತೆ
+Private,ಖಾಸಗಿ
+Properties,ಪ್ರಾಪರ್ಟೀಸ್
+Property,ಆಸ್ತಿ
+Property Setter,ಆಸ್ತಿ ಸೆಟ್ಟರ್
+Property Type,ಆಸ್ತಿ ಕೌಟುಂಬಿಕತೆ
+Public,ಸಾರ್ವಜನಿಕ
+Published,ಪ್ರಕಟಣೆ
+Published On,ರಂದು ಪ್ರಕಟವಾದ
+Published on website at: {0},ವೆಬ್ಸೈಟ್ನಲ್ಲಿ ಪ್ರಕಟಣೆ: {0}
+Pull Emails from the Inbox and attach them as Communication records (for known contacts).,ಇನ್ಬಾಕ್ಸ್ ಇಮೇಲ್ಗಳನ್ನು ಪುಲ್ ಮತ್ತು ( ಕರೆಯಲಾಗುತ್ತದೆ ಸಂಪರ್ಕಗಳಿಗೆ ) ಸಂವಹನ ದಾಖಲೆಗಳು ಅವುಗಳನ್ನು ಲಗತ್ತಿಸಬಹುದು.
+Query,ಪ್ರಶ್ನೆಯ
+Query Options,ಪ್ರಶ್ನೆಯ ಆಯ್ಕೆಗಳು
+Query Report,ಪ್ರಶ್ನೆಯ ವರದಿ
+Query must be a SELECT,ಪ್ರಶ್ನೆಯು ಆಯ್ಕೆ ಮಾಡಬೇಕು
+Quick Help for Setting Permissions,ಅನುಮತಿಗಳು ಹೊಂದಿಸಲಾಗುತ್ತಿದೆ ತಕ್ಷಣದ ಸಹಾಯ
+Quick Help for User Permissions,ಬಳಕೆದಾರ ಅನುಮತಿಗಳು ತಕ್ಷಣದ ಸಹಾಯ
+Re-open,ಮತ್ತೆತೆರೆಯಿರಿ
+Read,ಓದು
+Read Only,readonly
+Received,ಸ್ವೀಕರಿಸಲಾಗಿದೆ
+Recipient,ಗ್ರಾಹಿ
+Recipients,ಸ್ವೀಕೃತದಾರರ
+Record does not exist,ದಾಖಲೆಯು ಅಸ್ತಿತ್ವದಲ್ಲಿಲ್ಲ
+Ref DocType,ಉಲ್ಲೇಖ doctype
+Ref Name,ಉಲ್ಲೇಖ ಹೆಸರು
+Ref Type,ಉಲ್ಲೇಖ ಪ್ರಕಾರ
+Reference,ರೆಫರೆನ್ಸ್
+Reference DocName,ರೆಫರೆನ್ಸ್ DocName
+Reference DocType,ರೆಫರೆನ್ಸ್ doctype
+Reference Name,ರೆಫರೆನ್ಸ್ ಹೆಸರು
+Reference Type,ರೆಫರೆನ್ಸ್ ಕೌಟುಂಬಿಕತೆ
+Refresh,ರಿಫ್ರೆಶ್
+Refreshing...,ರಿಫ್ರೆಶ್ ...
+Registered but disabled.,ನೋಂದಾಯಿತ ಆದರೆ ಅಂಗವಿಕಲ .
+Registration Details Emailed.,ನೋಂದಣಿ ವಿವರಗಳು ಇಮೇಲ್.
+Reload Page,ಪುಟ ರೀಲೋಡ್
+Remove Bookmark,ಬುಕ್ಮಾರ್ಕ್ ತೆಗೆದುಹಾಕಿ
+Remove all customizations?,ಎಲ್ಲಾ ಗ್ರಾಹಕೀಕರಣ ತೆಗೆದುಹಾಕಿ ?
+Rename many items by uploading a .csv file.,ಒಂದು . CSV ಕಡತ ಅಪ್ಲೋಡ್ ಮೂಲಕ ಅನೇಕ ವಸ್ತುಗಳನ್ನು ಮರುಹೆಸರಿಸು .
+Rename...,ಮರುಹೆಸರಿಸು ...
+Repeat On,ರಂದು ಪುನರಾವರ್ತಿಸಿ
+Repeat Till,ಟಿಲ್ ಪುನರಾವರ್ತಿಸಿ
+Repeat this Event,ಈ ಈವೆಂಟ್ ಪುನರಾವರ್ತನೆಯಾಗುವುದಿಲ್ಲ
+Replies,ಪ್ರತ್ಯುತ್ತರಗಳನ್ನು
+Report,ವರದಿ
+Report Builder,ವರದಿ ಬಿಲ್ಡರ್
+Report Builder reports are managed directly by the report builder. Nothing to do.,ವರದಿ ಬಿಲ್ಡರ್ ವರದಿಗಳು ವರದಿಯನ್ನು ಬಿಲ್ಡರ್ ನೇರವಾಗಿ ನಿರ್ವಹಿಸಲಾಗುತ್ತದೆ. ಏನೂ .
+Report Hide,ವರದಿ ಅಡಗಿಸು
+Report Name,ವರದಿ ಹೆಸರು
+Report Type,ವರದಿ ಪ್ರಕಾರ
+Report an Issue,ಸಮಸ್ಯೆಯನ್ನು ವರದಿಮಾಡಿ
+Report cannot be set for Single types,ವರದಿ ಒಂದೇ ರೀತಿಯ ಹೊಂದಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ
+Report this issue,ಈ ಸಮಸ್ಯೆಯನ್ನು ವರದಿಮಾಡಿ
+Report was not saved (there were errors),ಉಳಿಸಲಾಗಿಲ್ಲ ಎಂಬುದನ್ನು ವರದಿ ( ದೋಷಗಳನ್ನು ಇದ್ದವು )
+Reqd,ಬೇಕಾಗಿದೆ
+Reset Password Key,ಪಾಸ್ವರ್ಡ್ ಕೀ ಕೊಡುಗೆಗಳು
+Reset Permissions for {0}?,{0} ಅನುಮತಿಗಳನ್ನು ಮರುಹೊಂದಿಸಿ ?
+Response,(ರೆಸ್ಪಾನ್ಸ್‌) ಪ್ರತಿಕ್ರಿಯೆ
+Restrict IP,ಐಪಿ ನಿರ್ಬಂಧಿಸಿ
+Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111),ಈ IP ವಿಳಾಸವನ್ನು ಕೇವಲ ಬಳಕೆದಾರರ ನಿರ್ಬಂಧಿಸಿ . ಬಹು IP ವಿಳಾಸಗಳನ್ನು ಕಾಮಾಗಳೊಂದಿಗೆ ಬೇರ್ಪಡಿಸುವ ಮೂಲಕ ಸೇರಿಸಬಹುದು. ಆದ್ದರಿಂದ ಹಾಗೆ ಭಾಗಶಃ IP ವಿಳಾಸಗಳನ್ನು ಸ್ವೀಕರಿಸುತ್ತದೆ (111 111 111)
+Right,ರೈಟ್
+Role,ರೋಲ್
+Role Name,ಪಾತ್ರ ಹೆಸರು
+Role Permissions Manager,ಪಾತ್ರ ಅನುಮತಿಗಳು ಮ್ಯಾನೇಜರ್
+Role and Level,ಪಾತ್ರ ಮತ್ತು ಮಟ್ಟ
+Role exists,ಪಾತ್ರ ಅಸ್ತಿತ್ವದಲ್ಲಿದೆ
+Roles,ಪಾತ್ರಗಳು
+Roles Assigned,ನಿಯೋಜಿಸಲಾಗಿದೆ ಪಾತ್ರಗಳು
+Roles Assigned To User,ಬಳಕೆದಾರ ನಿಯೋಜಿಸಲಾದ ಪಾತ್ರಗಳು
+Roles HTML,ಪಾತ್ರಗಳು ಎಚ್ಟಿಎಮ್ಎಲ್
+Roles can be set for users from their User page.,ಪಾತ್ರಗಳು ಅವರ ಬಳಕೆದಾರ ಪುಟ ಬಳಕೆದಾರರಿಗೆ ಹೊಂದಿಸಬಹುದಾಗಿದೆ.
+Root {0} cannot be deleted,ರೂಟ್ {0} ಅಳಿಸಲಾಗಿಲ್ಲ
+Row,ರೋ
+Row #{0}:,ರೋ # {0}:
+Rules defining transition of state in the workflow.,ಕೆಲಸದೊತ್ತಡದ ರಾಜ್ಯದ ಪರಿವರ್ತನೆ ನಿಯಮಗಳು ಲಕ್ಷಣವನ್ನು .
+"Rules for how states are transitions, like next state and which role is allowed to change state etc.","NextState ಮತ್ತು ಯಾವ ಪಾತ್ರ ಇತ್ಯಾದಿ , ರಾಜ್ಯದ ಬದಲಾಯಿಸಲು ಅವಕಾಶ ರಾಜ್ಯಗಳಲ್ಲಿ , ಪರಿವರ್ತನೆಗಳು ಎಷ್ಟು ನಿಯಮಗಳು"
+Run scheduled jobs only if checked,ಪರೀಕ್ಷಿಸಿದ್ದು ಮಾತ್ರ ನಿಗದಿತ ಉದ್ಯೋಗಗಳು ರನ್
+Run the report first,ಮೊದಲ ವರದಿ ರನ್
+SMTP Server (e.g. smtp.gmail.com),SMTP ಪರಿಚಾರಕ ( smtp.gmail.com ಇ ಜಿ )
+Sales,ಮಾರಾಟದ
+Same file has already been attached to the record,ಅದೇ ಕಡತ ಈಗಾಗಲೇ ದಾಖಲೆ ಜೋಡಿಸಲಾದ ಮಾಡಲಾಗಿದೆ
+Sample,ಮಾದರಿ
+Saturday,ಶನಿವಾರ
+Save,ಉಳಿಸಿ
+Scheduler Log,ವೇಳಾಪಟ್ಟಿಯು ಲಾಗ್
+Script,ಸ್ಕ್ರಿಪ್ಟ್
+Script Report,ಸ್ಕ್ರಿಪ್ಟ್ ವರದಿ
+Script Type,ಸ್ಕ್ರಿಪ್ಟ್ ಕೌಟುಂಬಿಕತೆ
+Search,ಹುಡುಕು
+Search Fields,ಹುಡುಕಾಟ ಜಾಗ
+Search in a document type,ಒಂದು ದಾಖಲೆ ಪ್ರಕಾರ ನಲ್ಲಿ ಹುಡುಕಾಟ
+Search or type a command,ಆಜ್ಞಾ ಹುಡುಕಿ ಅಥವಾ ಟೈಪ್
+Section Break,ವಿಭಾಗ ಬ್ರೇಕ್
+Security,ಭದ್ರತೆ
+Security Settings,ಭದ್ರತಾ ಸೆಟ್ಟಿಂಗ್ಗಳು
+Select,ಆರಿಸು
+Select All,ಎಲ್ಲಾ ಆಯ್ಕೆಮಾಡಿ
+Select Attachments,ಲಗತ್ತುಗಳನ್ನು ಆಯ್ಕೆ
+Select Document Type,ಆಯ್ಕೆ ದಾಖಲೆ ಪ್ರಕಾರ
+Select Document Type or Role to start.,ಆರಂಭಿಸಲು ದಾಖಲೆ ಪ್ರಕಾರ ಅಥವಾ ರೋಲ್ ಮಾಡಿ .
+Select Print Format,ಆಯ್ಕೆ ಪ್ರಿಂಟ್ ಫಾರ್ಮ್ಯಾಟ್
+Select Report Name,ಆಯ್ಕೆ ರಿಪೋರ್ಟ್ ಹೆಸರು
+Select Role,ಆಯ್ಕೆ ಪಾತ್ರ
+Select To Download:,ಡೌನ್ಲೋಡ್ ಮಾಡಿ
+Select Type,ಕೌಟುಂಬಿಕತೆ ಆಯ್ಕೆ
+Select User or DocType to start.,ಆರಂಭಿಸಲು ಬಳಕೆದಾರ ಅಥವಾ doctype ಆಯ್ಕೆ .
+Select a Banner Image first.,ಮೊದಲ ಒಂದು ಬ್ಯಾನರ್ ಚಿತ್ರ ಆಯ್ಕೆಮಾಡಿ .
+Select an image of approx width 150px with a transparent background for best results.,ಉತ್ತಮ ಫಲಿತಾಂಶಗಳಿಗಾಗಿ ಒಂದು ಪಾರದರ್ಶಕ ಹಿನ್ನೆಲೆ ಸುಮಾರು ಅಗಲ 150px ಚಿತ್ರವನ್ನು ಆಯ್ಕೆ .
+Select dates to create a new ,Select dates to create a new 
+"Select modules to be shown (based on permission). If hidden, they will be hidden for all users.","ಆಯ್ಕೆ ಮಾಡ್ಯೂಲ್ ( ಅನುಮತಿ ಆಧರಿಸಿ ) ತೋರಿಸಲಾಗುತ್ತದೆ . ಮರೆಮಾಡಲಾಗಿದೆ ವೇಳೆ , theywill ಎಲ್ಲಾ ಬಳಕೆದಾರರಿಗೆ ಮರೆ ."
+Select or drag across time slots to create a new event.,ಆಯ್ಕೆ ಅಥವಾ ಹೊಸ ಈವೆಂಟ್ ರಚಿಸಲು ಸಮಯಾವಧಿಗಳ ಅಡ್ಡಲಾಗಿ ಎಳೆಯಿರಿ .
+"Select target = ""_blank"" to open in a new page.","ಆಯ್ಕೆ ಗುರಿ ಹೊಸ ಪುಟ ತೆರೆಯಲು = ""_blank"" ."
+Select the label after which you want to insert new field.,ನೀವು ಹೊಸ ಕ್ಷೇತ್ರದಲ್ಲಿ ಸೇರಿಸಲು ಬಯಸುವ afterwhich ಲೇಬಲ್ ಆಯ್ಕೆ .
+Send,ಕಳುಹಿಸು
+Send Alert On,ಜಾಗರೂಕ ಕಳಿಸಿ
+Send As Email,ಇಮೇಲ್ ಕಳುಹಿಸಿ
+Send Email,ಇಮೇಲ್ ಕಳುಹಿಸಿ
+Send Email Print Attachments as PDF (Recommended),ಪಿಡಿಎಫ್ ಇಮೇಲ್ ಮುದ್ರಿಸು ಲಗತ್ತುಗಳು ಕಳುಹಿಸಿ (ಶಿಫಾರಸು)
+Send Me A Copy,ಮಿ ಪ್ರತಿಯನ್ನು ಕಳುಹಿಸಿ
+Send Password,Sendpassword
+Send Print as PDF,ಮುದ್ರಿಸು Send ಪಿಡಿಎಫ್
+Send alert if date matches this field's value,ದಿನಾಂಕ ಈ ಕ್ಷೇತ್ರದಲ್ಲಿ ಮೌಲ್ಯದ ಹೊಂದುತ್ತಿದೆಯೇ ಎಚ್ಚರಿಕೆಯನ್ನು ಕಳಿಸಿ
+Send alert if this field's value changes,ಎಚ್ಚರಿಕೆಯನ್ನು ಕಳುಹಿಸಿ ಈ ಕ್ಷೇತ್ರದಲ್ಲಿ ಮೌಲ್ಯದ ಬದಲಾಯಿಸಿದರೆ
+Send an email reminder in the morning,ಬೆಳಿಗ್ಗೆ ಇಮೇಲ್ ಜ್ಞಾಪನೆಯನ್ನು ಕಳುಹಿಸಿ
+Send download link of a recent backup to System Managers,ಸಿಸ್ಟಂ ಮ್ಯಾನೇಜರ್ ಇತ್ತೀಚಿನ ಬ್ಯಾಕ್ಅಪ್ ಡೌನ್ಲೋಡ್ ಲಿಂಕ್ ಕಳುಹಿಸಿ
+Send enquiries to this email address,ಈ ಇಮೇಲ್ ವಿಳಾಸಕ್ಕೆ ಕಳುಹಿಸಿ ವಿಚಾರಣೆಯಲ್ಲಿ
+Sender,ಪ್ರೇಷಕ
+Sent,ಕಳುಹಿಸಲಾಗಿದೆ
+Sent Mail,ಕಳುಹಿಸಿದ
+Sent Quotation,ಕಳುಹಿಸಲಾಗಿದೆ ನುಡಿಮುತ್ತುಗಳು
+Sent or Received,ಕಳುಹಿಸಿದ ಅಥವಾ ಸ್ವೀಕರಿಸಿದ
+Series,ಸರಣಿ
+Series {0} already used in {1},ಸರಣಿ {0} ಈಗಾಗಲೇ ಬಳಸಲಾಗುತ್ತದೆ {1}
+Server,ಪರಿಚಾರಕ
+Server & Credentials,ಸರ್ವರ್ & ರುಜುವಾತುಗಳು
+Server Error: Please check your server logs or contact tech support.,ಸರ್ವರ್ ದೋಷ : ನಿಮ್ಮ ಸರ್ವರ್ ದಾಖಲೆಗಳು ಅಥವಾ ಸಂಪರ್ಕ ಟೆಕ್ ಬೆಂಬಲ ಪರಿಶೀಲಿಸಿ.
+Session Expired. Logging you out,ಅಧಿವೇಶನ ಮುಗಿದಿದೆ. ನೀವು ನಿರ್ಗಮಿಸುವ
+Session Expiry,ಅಧಿವೇಶನ ಮುಗಿಯುವ
+Session Expiry in Hours e.g. 06:00,ಗಂಟೆಗಳ ಇ ಜಿ ನಲ್ಲಿ ಸೆಷನ್ ಅಂತ್ಯ 06:00
+Session Expiry must be in format {0},ಅಧಿವೇಶನ ಮುಗಿಯುವ ಸ್ವರೂಪದಲ್ಲಿರಬೇಕು {0}
+Set Banner from Image,ಬ್ಯಾನರ್ ಚಿತ್ರ ಹೊಂದಿಸಿ
+Set Link,ಹೊಂದಿಸಿ ಲಿಂಕ್
+Set Login and Password if authentication is required.,ದೃಢೀಕರಣ ಅಗತ್ಯವಿದೆ ವೇಳೆ ಸೆಟ್ ಲಾಗಿನ್ ಮತ್ತು ಪಾಸ್ವರ್ಡ್ .
+Set Only Once,ಕೇವಲ ಒಮ್ಮೆ ಹೊಂದಿಸಿ
+Set Password,ಹೊಂದಿಸಿ ಪಾಸ್ವರ್ಡ್
+Set Permissions on Document Types and Roles,ಡಾಕ್ಯುಮೆಂಟ್ ವಿಧಗಳು ಮತ್ತು ಪಾತ್ರಗಳು ಅನುಮತಿಗಳು
+Set Permissions per User,ಬಳಕೆದಾರ ಪ್ರತಿ ಅನುಮತಿಗಳು
+Set User Permissions,ಬಳಕೆದಾರ ಅನುಮತಿಗಳು
+Set Value,ಸೆಟ್ ಮೌಲ್ಯ
+"Set default format, page size, print style etc.","ಡೀಫಾಲ್ಟ್ ರೂಪದಲ್ಲಿ, ಪುಟ ಗಾತ್ರ, ಮುದ್ರಣ ಶೈಲಿ ಇತ್ಯಾದಿ"
+Set numbering series for transactions.,ವ್ಯವಹಾರಗಳಿಗೆ ಸರಣಿ ಸಂಖ್ಯಾ ಹೊಂದಿಸಿ .
+Set outgoing mail server.,ಹೊರಹೋಗುವ ಮೇಲ್ ಸರ್ವರ್ ಸೆಟ್ .
+Settings,ಸೆಟ್ಟಿಂಗ್ಗಳು
+Settings for About Us Page.,ನಮ್ಮ ಬಗ್ಗೆ ಪುಟ ಸೆಟ್ಟಿಂಗ್ಗಳು.
+Settings for Contact Us Page.,ನಮ್ಮನ್ನು ಪುಟ ಸಂಪರ್ಕಿಸಿ ಸೆಟ್ಟಿಂಗ್ಗಳು.
+Setup,ಸೆಟಪ್
+Setup > User,ಸೆಟಪ್ > ಬಳಕೆದಾರ
+Setup > User Permissions Manager,ಸೆಟಪ್ > ಬಳಕೆದಾರ ಅನುಮತಿಗಳು ಮ್ಯಾನೇಜರ್
+Setup Email Alert based on various criteria.,ಸೆಟಪ್ ಇಮೇಲ್ ಎಚ್ಚರಿಕೆ ವಿವಿಧ ಮಾನದಂಡಗಳನ್ನು ಆಧರಿಸಿ.
+Setup of fonts and background.,ಫಾಂಟ್ಗಳು ಮತ್ತು ಹಿನ್ನೆಲೆ ಸೆಟಪ್ .
+"Setup of top navigation bar, footer and logo.","ಉನ್ನತ ಸಂಚರಣೆ ಬಾರ್ , ಅಡಿಟಿಪ್ಪಣಿ ಮತ್ತು ಲಾಂಛನವನ್ನು ಸೆಟಪ್ ."
+Short Bio,ಸಣ್ಣ ಬಯೋ
+Short Name,ಚಿಕ್ಕ ಹೆಸರು
+Shortcut,ಶಾರ್ಟ್ಕಟ್
+Show / Hide Modules,ತೋರಿಸು / ಮರೆಮಾಡು ಮಾಡ್ಯೂಲ್ಗಳು
+Show Print First,ಪ್ರಿಂಟ್ ಮೊದಲ ಶೋ
+Show Tags,ಶೋ ಟ್ಯಾಗ್ಗಳು
+Show or hide modules globally.,ತೋರಿಸಿ ಅಥವಾ ಜಾಗತಿಕವಾಗಿ ಮಾಡ್ಯೂಲ್ ಮರೆಮಾಡಲು .
+Show rows with zero values,ಶೂನ್ಯ ಮೌಲ್ಯಗಳು ತೋರಿಸಿ ಸಾಲುಗಳನ್ನು
+Show tags,ಶೋ ಟ್ಯಾಗ್ಗಳು
+Show this field as title,ಶೀರ್ಷಿಕೆ ಈ ಕ್ಷೇತ್ರದಲ್ಲಿ ತೋರಿಸು
+Showing only for (if not empty),ಮಾತ್ರ ತೋರಿಸಲಾಗುತ್ತಿದೆ (ಇಲ್ಲದಿದ್ದರೆ ಖಾಲಿ )
+Sidebar,ಪಾರ್ಶ್ವಪಟ್ಟಿ
+Sidebar Items,ಪಾರ್ಶ್ವಪಟ್ಟಿ ಐಟಂಗಳು
+Sidebar Links for Home Page only,ಮುಖಪುಟ ಪಾರ್ಶ್ವಪಟ್ಟಿ ಲಿಂಕ್ಸ್ ಮಾತ್ರ
+Sign Up,ಸೈನ್ ಅಪ್
+Sign in,ಸೈನ್ ಇನ್
+Sign up,ಸೈನ್ ಅಪ್ ಮಾಡಿ
+Single Post (article).,ಒಂದೇ ಪೋಸ್ಟ್ ( ಲೇಖನ ) .
+Single Types have only one record no tables associated. Values are stored in tabSingles,ಏಕ ವಿಧಗಳು ಕೇವಲ ಒಂದು ದಾಖಲೆ ಯಾವುದೇ ಸಂಬಂಧಿಸಿದ ಕೋಷ್ಟಕಗಳು ಹೊಂದಿವೆ. ಮೌಲ್ಯಗಳು tabSingles ಸಂಗ್ರಹಿಸಲಾಗಿದೆ
+Sitemap Browser,ಸೈಟ್ಮ್ಯಾಪ್ ಬ್ರೌಸರ್
+Slideshow,ಸ್ಲೈಡ್ಶೋ
+Slideshow Items,ಸ್ಲೈಡ್ಶೋ ಐಟಂಗಳು
+Slideshow Name,ಸ್ಲೈಡ್ಶೋ ಹೆಸರು
+Small Text,ಸಣ್ಣ ಪಠ್ಯ
+Social Login Keys,ಸಮಾಜ ಲಾಗಿನ್ ಕೀಸ್
+Solid background color (default light gray),ಘನ ಹಿನ್ನೆಲೆ ಬಣ್ಣ ( ಡೀಫಾಲ್ಟ್ ಲೈಟ್ ಗ್ರೇ)
+Sorry we were unable to find what you were looking for.,ಕ್ಷಮಿಸಿ ನಾವು ನೀವು ಹುಡುಕುತ್ತಿರುವ ಏನು ಕಂಡುಹಿಡಿಯಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ .
+Sorry you are not permitted to view this page.,ಕ್ಷಮಿಸಿ ಈ ಪುಟವನ್ನು ವೀಕ್ಷಿಸಲು ಅನುಮತಿ ಇಲ್ಲ .
+Sort By,ವಿಂಗಡಿಸಿ
+Sort Field,ವಿಂಗಡಿಸಿ ಫೀಲ್ಡ್
+Sort Order,ವಿಂಗಡಣಾ ಕ್ರಮ
+Standard,ಸ್ಟ್ಯಾಂಡರ್ಡ್
+Standard Print Format cannot be updated,ಸ್ಟ್ಯಾಂಡರ್ಡ್ ಮುದ್ರಣ ರೂಪದಲ್ಲಿ ಅಪ್ಡೇಟ್ ಸಾಧ್ಯವಿಲ್ಲ
+Standard Reply,ಗುಣಮಟ್ಟದ ಉತ್ತರ
+Standard Reports,ಸ್ಟ್ಯಾಂಡರ್ಡ್ ವರದಿಗಳು
+Standard replies to common queries.,ಸ್ಟ್ಯಾಂಡರ್ಡ್ ಸಾಮಾನ್ಯ ಪ್ರಶ್ನೆಗಳಿಗೆ ಉತ್ತರಿಸುತ್ತಾಳೆ.
+Start Report For,ವರದಿಯ ಪ್ರಾರಂಭಿಸಿ
+Starts on,ರಂದು ಪ್ರಾರಂಭವಾಗುತ್ತದೆ
+State,ರಾಜ್ಯ
+States,ಸ್ಟೇಟ್ಸ್
+"States for workflow (e.g. Draft, Approved, Cancelled).","ಕೆಲಸದೊತ್ತಡದ ಸ್ಟೇಟ್ಸ್ ( ಉದಾ ಡ್ರಾಫ್ಟ್ , ಅನುಮೋದನೆ, ರದ್ದುಗೊಳಿಸಲಾಗಿದೆ ) ."
+Static File Timestamp,ಸ್ಥಾಯೀ Filetimestamp
+Status,ಅಂತಸ್ತು
+Step 1: Set the name and save.,ಹಂತ 1: ಹೆಸರು ಹೊಂದಿಸಿ ಮತ್ತು ಉಳಿಸಲು .
+Step 2: Set Letterhead content.,ಹಂತ 2: ತಲೆಬರಹ ವಿಷಯ ಹೊಂದಿಸಿ .
+Style,ಶೈಲಿ
+Style Settings,ಶೈಲಿ ಸೆಟ್ಟಿಂಗ್ಗಳನ್ನು
+"Style represents the button color: Success - Green, Danger - Red, Inverse - Black, Primary - Dark Blue, Info - Light Blue, Warning - Orange","ಗ್ರೀನ್ , ಡೇಂಜರ್ - - ಕೆಂಪು , ವಿಲೋಮ - ಬ್ಲಾಕ್, ಪ್ರಾಥಮಿಕ - ಡಾರ್ಕ್ ನೀಲಿ, ಮಾಹಿತಿ - ಲೈಟ್ ಬ್ಲೂ , ಎಚ್ಚರಿಕೆ - ಕಿತ್ತಳೆ ಯಶಸ್ಸು : ಶೈಲಿ ಬಟನ್ ಬಣ್ಣ ಪ್ರತಿನಿಧಿಸುತ್ತದೆ"
+Sub-domain provided by erpnext.com,Erpnext.com ಒದಗಿಸಿದ ಉಪ ಡೊಮೇನ್
+Subdomain,ಸಬ್ಡೊಮೈನ್
+Subject,ವಿಷಯ
+Submit,ಸಲ್ಲಿಸಿ
+Submit an Issue,ಸಮಸ್ಯೆಯನ್ನು ಸಲ್ಲಿಸಿ
+Submitted,ಒಪ್ಪಿಸಿದ
+Submitted Document cannot be converted back to draft. Transition row {0},ಸಲ್ಲಿಸಿದ ಡಾಕ್ಯುಮೆಂಟ್ ಕರಡುಪ್ರತಿಯನ್ನು ಪರಿವರ್ತಿಸಬಹುದಾದ ಸಾಧ್ಯವಿಲ್ಲ .
+Success,ಯಶಸ್ಸು
+Suggestion,ಸಲಹೆ
+Sunday,ಭಾನುವಾರ
+Switch to Website,ವೆಬ್ಸೈಟ್ ಬದಲಿಸಿ
+Sync Inbox,ಸಿಂಕ್ ಇನ್ಬಾಕ್ಸ್
+System,ವ್ಯವಸ್ಥೆ
+System Settings,ಸಿಸ್ಟಂ ಸೆಟ್ಟಿಂಗ್ಗಳನ್ನು
+System User,ವ್ಯವಸ್ಥೆಯ ಬಳಕೆದಾರ
+System and Website Users,ವ್ಯವಸ್ಥೆ ಮತ್ತು ವೆಬ್ಸೈಟ್ ಬಳಕೆದಾರರು
+System generated mails will be sent from this email id.,ಸಿಸ್ಟಮ್ ರಚಿತವಾದ ಇಮೇಲ್ಗಳನ್ನು ಈ ಇಮೇಲ್ ಐಡಿ ಕಳುಹಿಸಲಾಗುವುದು .
+Table,ಮೇಜು
+Table {0} cannot be empty,ಟೇಬಲ್ {0} ಖಾಲಿ ಇರುವಂತಿಲ್ಲ
+Tag,ಡೇ
+Tag Name,ಟ್ಯಾಗ್ ಹೆಸರು
+Tags,ದಿನ
+Tahoma,Tahoma
+Target,ಟಾರ್ಗೆಟ್
+Tasks,ಕಾರ್ಯಗಳು
+Team Members,ತಂಡದ ಸದಸ್ಯರು
+Team Members Heading,ಶಿರೋನಾಮೆ ತಂಡದ ಸದಸ್ಯರು
+Template,ಟೆಂಪ್ಲೇಟು
+Template Pages cannot be moved,ಟೆಂಪ್ಲೇಟು ಪುಟಗಳು ತೆರಳಿದರು ಸಾಧ್ಯವಿಲ್ಲ
+Test,ಟೆಸ್ಟ್
+Test Runner,ಟೆಸ್ಟ್ ರನ್ನರ್
+Text,ಪಠ್ಯ
+Text Align,ಪಠ್ಯ align
+Text Editor,ಪಠ್ಯ ಸಂಪಾದಕ
+Thank you for your message,ನಿಮ್ಮ ಸಂದೇಶವನ್ನು ಧನ್ಯವಾದಗಳು
+The name of your company / website as you want to appear on browser title bar. All pages will have this as the prefix to the title.,ನೀವು ಬ್ರೌಸರ್ ಶೀರ್ಷಿಕೆ ಪಟ್ಟಿ ಕಾಣಿಸಿಕೊಳ್ಳುತ್ತವೆ ಬಯಸುವ ನಿಮ್ಮ ಕಂಪನಿ / ವೆಬ್ಸೈಟ್ನ ಹೆಸರು. ಎಲ್ಲ ಪುಟಗಳು ಶೀರ್ಷಿಕೆ ಪೂರ್ವಪ್ರತ್ಯಯವನ್ನು ಈ ಹೊಂದಿರುತ್ತದೆ .
+The system provides many pre-defined roles. You can add new roles to set finer permissions.,ವ್ಯವಸ್ಥೆಯ ಅನೇಕ ಪೂರ್ವ ನಿರ್ಧಾರಿತ ಪಾತ್ರಗಳನ್ನು ಒದಗಿಸುತ್ತದೆ . ನೀವು ಸೂಕ್ಷ್ಮ ಅನುಮತಿಗಳನ್ನು ಹೊಂದಿಸಲು ಹೊಸ ಪಾತ್ರಗಳನ್ನು ಸೇರಿಸಬಹುದು.
+Then By (optional),ನಂತರ ( ಐಚ್ಛಿಕ )
+There should remain at least one System Manager,ಕನಿಷ್ಠ ಒಂದು ಸಿಸ್ಟಮ್ ಮ್ಯಾನೇಜರ್ ಇಲ್ಲ ಉಳಿಯಬೇಕು
+There were errors,ದೋಷಗಳು ಇದ್ದವು
+There were errors while sending email. Please try again.,ಇಮೇಲ್ ಕಳುಹಿಸುವಾಗ ದೋಷಗಳು ಇದ್ದವು. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ .
+"There were some errors setting the name, please contact the administrator","ಹೆಸರು ಹೊಂದಿಸುವ ಕೆಲವು ದೋಷಗಳಿವೆ, ನಿರ್ವಾಹಕರನ್ನು ಸಂಪರ್ಕಿಸಿ"
+"These permissions will apply for all transactions where the permitted record is linked. For example, if Company C is added to User Permissions of user X, user X will only be able to see transactions that has company C as a linked value.",ಈ ಅನುಮತಿಗಳನ್ನು ಅನುಮತಿ ದಾಖಲೆ ಲಿಂಕ್ ಇದೆ ಅಲ್ಲಿ ಎಲ್ಲಾ ವ್ಯವಹಾರಗಳಿಗೆ ಅನ್ವಯಿಸುತ್ತದೆ .
+These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,ಈ ಮೌಲ್ಯಗಳು ಸ್ವಯಂಚಾಲಿತವಾಗಿ ವ್ಯವಹಾರಗಳಲ್ಲಿ ನವೀಕರಿಸಲಾಗುತ್ತದೆ ಹೀಗಾಗಿ ಸಂಶ್ಲೇಷಣೆ ವ್ಯಾಲ್ಯೂಗಳನ್ನುಳ್ಳ ವ್ಯವಹಾರಗಳ ಮೇಲೆ ಈ ಬಳಕೆದಾರ ಅನುಮತಿಗಳನ್ನು ನಿರ್ಬಂಧಿಸಲು ಉಪಯುಕ್ತ .
+"These will also be set as default values for those links, if only one such permission record is defined.","ಅಂತಹ ಅನುಮತಿ ದಾಖಲೆ ವ್ಯಾಖ್ಯಾನಿಸಲಾಗಿದೆ ವೇಳೆ ಈ ಸಹ , ಆ ಕೊಂಡಿಗಳು ಡೀಫಾಲ್ಟ್ ಮೌಲ್ಯಗಳು ಸೆಟ್ ಮಾಡಲಾಗುತ್ತದೆ ."
+Third Party Authentication,ಮೂರನೇ ಪಕ್ಷದ ದೃಢೀಕರಣ
+This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>myfieldeval:doc.myfield=='My Value'<br>eval:doc.age>18,ಇಲ್ಲಿ ವ್ಯಾಖ್ಯಾನಿಸಲಾಗಿದೆ FIELDNAME ಮೌಲ್ಯವನ್ನು ಹೊಂದಿದೆ ಅಥವಾ ನಿಯಮಗಳನ್ನು ನಿಜವಾದ (ಉದಾಹರಣೆಗಳು) ಮಾತ್ರ ಈ ಕ್ಷೇತ್ರದಲ್ಲಿ ಕಾಣಿಸುತ್ತದೆ: <br>  myfield  eval: doc.myfield == 'ನನ್ನ ಮೌಲ್ಯ' <br>  eval: doc.age> 18
+This goes above the slideshow.,ಈ ಸ್ಲೈಡ್ ಮೇಲೆ ಹೋಗುತ್ತದೆ .
+This is PERMANENT action and you cannot undo. Continue?,ಈ ಶಾಶ್ವತವಾಗಿ ಅಳಿಸಿ ಹೋಗುತ್ತದೆ ಮತ್ತು ನೀವು ರದ್ದುಪಡಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ. ಮುಂದುವರಿಸಿ ?
+"This is a standard format. To make changes, please copy it make make a new format.","ಈ ಪ್ರಮಾಣಿತ ಸ್ವರೂಪವಾಗಿದೆ. ಬದಲಾವಣೆಗಳನ್ನು ಮಾಡಲು, ಇದು ಒಂದು ಹೊಸ ರೂಪದಲ್ಲಿ ಮಾಡಲು ನಕಲಿಸಿ ದಯವಿಟ್ಟು."
+This is permanent action and you cannot undo. Continue?,ಇದು ಶಾಶ್ವತ ಆಕ್ಷನ್ ಮತ್ತು ನೀವು ರದ್ದುಪಡಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ. ಮುಂದುವರಿಸಿ ?
+This must be checked if Style Settings are applicable,ಶೈಲಿ ಸೆಟ್ಟಿಂಗ್ಗಳನ್ನು ಅನ್ವಯಿಸುತ್ತದೆ ಈ ಪರೀಕ್ಷಿಸಬೇಕು
+This role update User Permissions for a user,ಒಂದು ಬಳಕೆದಾರ ಈ ಪಾತ್ರವನ್ನು ಅಪ್ಡೇಟ್ ಬಳಕೆದಾರ ಅನುಮತಿಗಳು
+Thursday,ಗುರುವಾರ
+Tile,ಟೈಲ್
+Time,ಟೈಮ್
+Time Zone,ಕಾಲವಲಯವನ್ನು
+Timezone,ಕಾಲವಲಯ
+Title,ಶೀರ್ಷಿಕೆ
+Title / headline of your page,ನಿಮ್ಮ ಪುಟದ ಶೀರ್ಷಿಕೆ / ಶಿರೋನಾಮೆಯನ್ನು
+Title Case,TitleCase
+Title Field,ಶೀರ್ಷಿಕೆ ಫೀಲ್ಡ್
+Title Prefix,ಶೀರ್ಷಿಕೆ ಪೂರ್ವಪ್ರತ್ಯಯ
+Title field must be a valid fieldname,ಶೀರ್ಷಿಕೆ ಕ್ಷೇತ್ರದಲ್ಲಿ ಮಾನ್ಯ ಕ್ಷೇತ್ರ ಹೆಸರು ಇರಬೇಕು
+Title is required,ಶೀರ್ಷಿಕೆ ಅಗತ್ಯವಿದೆ
+To,ಗೆ
+To Do,ಮಾಡಲು
+"To format columns, give column labels in the query.",", ಕಾಲಮ್ಗಳನ್ನು ಫಾರ್ಮಾಟ್ ಪ್ರಶ್ನೆಯಲ್ಲಿ ಕಾಲಮ್ ಲೇಬಲ್ಗಳನ್ನು ನೀಡಿ."
+"To give acess to a role for only specific records, check the 'Apply User Permissions'. User Permissions are used to limit users with such role to specific records.","' ಬಳಕೆದಾರ ಅನುಮತಿಗಳು ಅನ್ವಯಿಸು ' ಪರಿಶೀಲಿಸಿ , ಕೇವಲ ನಿರ್ದಿಷ್ಟ ದಾಖಲೆಗಳನ್ನು ಒಂದು ಪಾತ್ರವನ್ನು acess ನೀಡಲು ."
+"To run a test add the module name in the route after '{0}'. For example, {1}","ಪರೀಕ್ಷಾ ' {0} ' ನಂತರ ಮಾರ್ಗದಲ್ಲಿನ ಘಟಕ ಹೆಸರು ಸೇರಿಸಲು ರನ್ . ಉದಾಹರಣೆಗೆ, {1}"
+ToDo,ಟೊಡೊ
+Too many writes in one request. Please send smaller requests,ಹಲವಾರು ಒಂದು ವಿನಂತಿಯನ್ನು ಬರೆಯುತ್ತಾರೆ. ಸಣ್ಣ ಮನವಿಯನ್ನು ಕಳುಹಿಸಲು ದಯವಿಟ್ಟು
+Top Bar,ಟಾಪ್ ಬಾರ್
+Top Bar Background,ಟಾಪ್ ಬಾರ್ ಹಿನ್ನೆಲೆ
+Top Bar Item,ಟಾಪ್ ಬಾರ್ ಐಟಂ
+Top Bar Items,ಟಾಪ್ ಬಾರ್ ಐಟಂಗಳು
+Top Bar Text,ಟಾಪ್ ಬಾರ್ ಪಠ್ಯ
+Top Bar text and background is same color. Please change.,ಟಾಪ್ ಬಾರ್ ಪಠ್ಯ ಮತ್ತು ಹಿನ್ನೆಲೆ ಬಣ್ಣ ಒಂದೇ. ಬದಲಾಯಿಸಲು ದಯವಿಟ್ಟು .
+Transaction,ಟ್ರಾನ್ಸಾಕ್ಷನ್
+Transition Rules,ಪರಿವರ್ತನೆ ನಿಯಮಗಳು
+Tuesday,ಮಂಗಳವಾರ
+Tweet will be shared via your user account (if specified),( ಸೂಚಿಸಿದ್ದಲ್ಲಿ ) ಪಟ್ಟಿಗಳನ್ನು ಬಳಕೆದಾರ ಖಾತೆಯನ್ನು ಮೂಲಕ ಹಂಚಲಾಗುತ್ತದೆ
+Twitter Share,twitter ಈ
+Twitter Share via,ಟ್ವಿಟರ್ ಮೂಲಕ ಹಂಚಿಕೊಳ್ಳಿ
+Type,ದರ್ಜೆ
+Unable to find attachment {0},ಪತ್ತೆ ಮಾಡಲಾಗಲಿಲ್ಲ ಬಾಂಧವ್ಯ {0}
+Unable to load: {0},ಲೋಡ್ ಮಾಡಲು ಸಾಧ್ಯವಿಲ್ಲ: {0}
+Unable to open attached file. Please try again.,ಲಗತ್ತಿಸಲಾದ ಕಡತವನ್ನು ತೆರೆಯಲು ಸಾಧ್ಯವಾಗಿಲ್ಲ . ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ .
+Unable to send emails at this time,ಈ ಸಮಯದಲ್ಲಿ ಇಮೇಲ್ಗಳನ್ನು ಕಳುಹಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ
+Unknown Column: {0},ಅಪರಿಚಿತ ಅಂಕಣ : {0}
+"Unknown file encoding. Tried utf-8, windows-1250, windows-1252.","ಅಜ್ಞಾತ ಫೈಲ್ ಎನ್ಕೋಡಿಂಗ್ . ಪ್ರಾಮಾಣೀಕೃತ UTF-8 , ವಿಂಡೋಸ್ 1250 , ವಿಂಡೋಸ್ 1252 ."
+Unread Messages,ಓದದ ಸಂದೇಶಗಳು
+Unsubscribe,ಅನ್ಸಬ್ಸ್ಕ್ರೈಬ್
+Unsubscribed,ಅನ್ಸಬ್ಸ್ಕ್ರೈಬ್
+Upcoming Events for Today,ಇಂದು ಮುಂಬರುವ ಕಾರ್ಯಕ್ರಮಗಳು
+Update,ಅಪ್ಡೇಟ್
+Update Field,ಅಪ್ಡೇಟ್ ಫೀಲ್ಡ್
+Update Value,UpdateValue
+Updated,ನವೀಕರಿಸಲಾಗಿದೆ
+Upload,ಅಪ್ಲೋಡ್
+Upload Attachment,ಬಾಂಧವ್ಯ ಅಪ್ಲೋಡ್
+Upload CSV file containing all user permissions in the same format as Download.,ಡೌನ್ಲೋಡ್ ಅದೇ ರೂಪದಲ್ಲಿ ಎಲ್ಲಾ ಬಳಕೆದಾರ ಅನುಮತಿಗಳನ್ನು ಹೊಂದಿರುವ CSV ಕಡತ ಅಪ್ಲೋಡ್.
+Upload a file,ಕಡತ ಸೇರಿಸಿ
+Upload and Import,ಅಪ್ಲೋಡ್ ಮತ್ತು ಆಮದು
+Upload and Sync,ಅಪ್ಲೋಡ್ ಮತ್ತು ಸಿಂಕ್
+Uploading...,ಅಪ್ಲೋಡ್ ...
+Upvotes,Upvotes
+Use TLS,TLS ಅನ್ನು ಬಳಸಿ
+User,ಬಳಕೆದಾರ
+User Cannot Create,ಬಳಕೆದಾರ ರಚಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ
+User Cannot Search,ಬಳಕೆದಾರ ಹುಡುಕಲು ಸಾಧ್ಯವಿಲ್ಲ
+User Defaults,ಬಳಕೆದಾರ ಪೂರ್ವನಿಯೋಜಿತಗಳು
+User ID of a blog writer.,ಬ್ಲಾಗ್ ಬರಹಗಾರ ಬಳಕೆದಾರ id.
+User Image,ಬಳಕೆದಾರ ಚಿತ್ರ
+User Permission,ಬಳಕೆದಾರರು ಅನುಮತಿ
+User Permissions,ಬಳಕೆದಾರ ಅನುಮತಿಗಳು
+User Permissions Manager,ಬಳಕೆದಾರ ಅನುಮತಿಗಳು ಮ್ಯಾನೇಜರ್
+User Roles,ಬಳಕೆದಾರ ಪಾತ್ರಗಳು
+User Tags,ಬಳಕೆದಾರ ಟ್ಯಾಗ್ಗಳು
+User Type,ಬಳಕೆದಾರನ ಪ್ರಕಾರ
+"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ","User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. "
+User Vote,ಬಳಕೆದಾರ ವೋಟ್
+User not allowed to delete {0}: {1},ಬಳಕೆದಾರ ಅಳಿಸಲು ನಿಮಗೆ ಅನುಮತಿ ಇಲ್ಲ {0}: {1}
+User permissions should not apply for this Link,ಬಳಕೆದಾರ ಅನುಮತಿಗಳನ್ನು ಈ ಲಿಂಕ್ ಅರ್ಜಿ ಮಾಡಬಾರದು
+User {0} cannot be deleted,ಬಳಕೆದಾರ {0} ಅಳಿಸಲಾಗಿಲ್ಲ
+User {0} cannot be disabled,ಬಳಕೆದಾರ {0} ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಲಾಗಿದೆ ಸಾಧ್ಯವಿಲ್ಲ
+User {0} cannot be renamed,ಬಳಕೆದಾರ {0} ಮರುನಾಮಕರಣ ಸಾಧ್ಯವಿಲ್ಲ
+User {0} does not exist,ಬಳಕೆದಾರ {0} ಅಸ್ತಿತ್ವದಲ್ಲಿಲ್ಲ
+UserRole,UserRole
+Users and Permissions,ಬಳಕೆದಾರರು ಮತ್ತು ಅನುಮತಿಗಳು
+Users with role {0}:,ಪಾತ್ರ ಬಳಕೆದಾರರು {0} :
+Valid Login id required.,ಮಾನ್ಯ ಲಾಗಿನ್ ಐಡಿ ಅಗತ್ಯವಿದೆ.
+Valid email and name required,ಅಗತ್ಯವಿದೆ ಮಾನ್ಯ ಇಮೇಲ್ ಮತ್ತು ಹೆಸರು
+Value,ಮೌಲ್ಯ
+Value Change,ಮೌಲ್ಯ ಬದಲಾಯಿಸು
+Value Changed,ಮೌಲ್ಯ ಬದಲಾಗಿದೆ
+Value cannot be changed for {0},ಮೌಲ್ಯ ಬದಲಾವಣೆ ಸಾಧ್ಯವಿಲ್ಲ {0}
+Value for a check field can be either 0 or 1,ಒಂದು ಕ್ಷೇತ್ರದಲ್ಲಿ ಚೆಕ್ ಮೌಲ್ಯ 0 ಅಥವಾ 1 ಆಗಿರಬಹುದು
+Value missing for,ಮೌಲ್ಯ ಕಾಣೆಯಾಗಿದೆ
+Verdana,Verdana
+Version,ರೂಪಾಂತರ
+Version restored,ಪುನಃಸ್ಥಾಪಿಸಲು ಆವೃತ್ತಿ
+View or manage Website Route tree.,ಸೈಟ್ ಮಾರ್ಗ ಮರದ ವೀಕ್ಷಿಸಿ ಅಥವಾ ನಿರ್ವಹಿಸಿ .
+Visit,ಭೇಟಿ
+Warning,ಎಚ್ಚರಿಕೆ
+Warning: This Print Format is in old style and cannot be generated via the API.,ಎಚ್ಚರಿಕೆ: ಈ ಪ್ರಿಂಟ್ ಫಾರ್ಮ್ಯಾಟ್ ಹಳೆಯ ಶೈಲಿಯಲ್ಲಿ ಮತ್ತು API ಮೂಲಕ ರಚಿತವಾದ ಸಾಧ್ಯವಿಲ್ಲ.
+Web Page,ವೆಬ್ ಪುಟ
+Web Site Forum Page.,ವೆಬ್ ಸೈಟ್ ವೇದಿಕೆ ಪುಟ .
+Website,ವೆಬ್ಸೈಟ್
+Website Group,ಗ್ರೂಪ್ ವೆಬ್ಸೈಟ್
+Website Route,ವೆಬ್ಸೈಟ್ ದಿಕ್ಕುಗಳು
+Website Route Permission,ಸೈಟ್ ಮಾರ್ಗ ಅನುಮತಿ
+Website Script,ವೆಬ್ಸೈಟ್ ಲಿಪಿಗಳು
+Website Settings,ಸೈಟ್ ಸೆಟ್ಟಿಂಗ್ಗಳು
+Website Slideshow,ವೆಬ್ಸೈಟ್ ಸ್ಲೈಡ್ಶೋ
+Website Slideshow Item,ವೆಬ್ಸೈಟ್ ಸ್ಲೈಡ್ ಶೊ ಐಟಂ
+Website User,ವೆಬ್ಸೈಟ್ ಬಳಕೆದಾರ
+Wednesday,ಬುಧವಾರ
+Welcome email sent,ಕಳುಹಿಸಿದ ಇಮೇಲ್ ಸ್ವಾಗತ
+"When you Amend a document after Cancel and save it, it will get a new number that is a version of the old number.","ನೀವು ನಂತರ ರದ್ದು ಮತ್ತು ಅದನ್ನು ಉಳಿಸಲು ಡಾಕ್ಯುಮೆಂಟ್ ಮಾಡಿರಿ , ಇದು ಹೊಸ ಸಂಖ್ಯೆ ಸಿಗುತ್ತದೆ ಮಾಡಿದರು ಹಳೆಯ ಸಂಖ್ಯೆ ಒಂದು ಆವೃತ್ತಿಯಾಗಿದೆ."
+Width,ಅಗಲ
+Will be used in url (usually first name).,URL ( ಸಾಮಾನ್ಯವಾಗಿ ಅಂಕಿತನಾಮ ) ಬಳಸಲಾಗುತ್ತದೆ .
+With Groups,ಗುಂಪುಗಳು
+With Ledgers,ಲೆಡ್ಜರ್ನೊಂದಿಗೆ
+With Letterhead,ತಲೆಬರಹ ಜೊತೆ
+Workflow,ವರ್ಕ್ಫ್ಲೋ
+Workflow Action,ವರ್ಕ್ಫ್ಲೋ ಆಕ್ಷನ್
+Workflow Action Name,ವರ್ಕ್ಫ್ಲೋ ಆಕ್ಷನ್ ಹೆಸರು
+Workflow Document State,ಡಾಕ್ಯುಮೆಂಟ್ ವರ್ಕ್ಫ್ಲೋ ರಾಜ್ಯ
+Workflow Document States,ಡಾಕ್ಯುಮೆಂಟ್ ವರ್ಕ್ಫ್ಲೋ ಸ್ಟೇಟ್ಸ್
+Workflow Name,ವರ್ಕ್ಫ್ಲೋ ಹೆಸರು
+Workflow State,ವರ್ಕ್ಫ್ಲೋ ರಾಜ್ಯ
+Workflow State Field,ವರ್ಕ್ಫ್ಲೋ ರಾಜ್ಯ ಫೀಲ್ಡ್
+Workflow Transition,ವರ್ಕ್ಫ್ಲೋ ಪರಿವರ್ತನೆ
+Workflow Transitions,ವರ್ಕ್ಫ್ಲೋ ಪರಿವರ್ತನೆಗಳು
+Workflow will start after saving.,ವರ್ಕ್ಫ್ಲೋ ಉಳಿಸುವ ನಂತರ ಪ್ರಾರಂಭವಾಗುತ್ತದೆ .
+Write,ಬರೆ
+Write a Python file in the same folder where this is saved and return column and result.,ಈ ಉಳಿಸಿದ ಅಲ್ಲಿ ಅದೇ ಫೋಲ್ಡರ್ನಲ್ಲಿ ಒಂದು ಪೈಥಾನ್ ಕಡತ ಬರೆಯಿರಿ ಮತ್ತು ಕಾಲಮ್ ಮತ್ತು ಫಲಿತಾಂಶವನ್ನು .
+Write a SELECT query. Note result is not paged (all data is sent in one go).,ಒಂದು ಆಯ್ಕೆ ಪ್ರಶ್ನಾವಳಿ ಬರೆಯಿರಿ . ಸ್ಕೋರ್ ಫಲಿತಾಂಶ ( ಎಲ್ಲಾ ದಶಮಾಂಶ ಒಂದೇ ಕಳುಹಿಸಲಾಗುತ್ತದೆ ) ಪೇಜ್ ಇಲ್ಲ .
+Write titles and introductions to your blog.,ನಿಮ್ಮ ಬ್ಲಾಗ್ಗೆ ಪ್ರಶಸ್ತಿಗಳನ್ನು ಮತ್ತು ಪರಿಚಯಗಳು ಬರೆಯಿರಿ .
+Writers Introduction,ರೈಟರ್ಸ್ ಪರಿಚಯ
+Year,ವರ್ಷ
+Yes,ಹೌದು
+Yesterday,ನಿನ್ನೆ
+You are not allowed to create / edit reports,ನೀವು / ಬದಲಾಯಿಸಿ ವರದಿಗಳು ರಚಿಸಲು ಅನುಮತಿ ಇಲ್ಲ
+You are not allowed to export the data of: {0}. Downloading empty template.,ನೀವು ದಶಮಾಂಶ ರಫ್ತು ಅನುಮತಿ ಇಲ್ಲ : {0} . ಖಾಲಿ ಟೆಂಪ್ಲೇಟ್ ಡೌನ್ಲೋಡ್ .
+You are not allowed to export this report,ನೀವು ಈ ವರದಿಯನ್ನು ರಫ್ತು ಮಾಡಲು ಅನುಮತಿ ಇಲ್ಲ
+You are not allowed to print this document,ನೀವು ಈ ದಸ್ತಾವೇಜನ್ನು ಮುದ್ರಿಸು ಅನುಮತಿ ಇಲ್ಲ
+You are not allowed to send emails related to this document,ಈ ಡಾಕ್ಯುಮೆಂಟ್ಗೆ ಸಂಬಂಧಿಸಿದ ಇಮೇಲ್ಗಳನ್ನು ಕಳುಹಿಸಲು ಅನುಮತಿ ಇಲ್ಲ
+"You can change Submitted documents by cancelling them and then, amending them.","ನೀವು ಅವುಗಳನ್ನು ತಿದ್ದುಪಡಿ , ನಂತರ ಅವುಗಳನ್ನು ರದ್ದು ಮತ್ತು ಸಲ್ಲಿಸಲ್ಪಟ್ಟ ದಾಖಲೆಗಳನ್ನು ಬದಲಾಯಿಸಬಹುದು ."
+You can use Customize Form to set levels on fields.,ನೀವು ಜಾಗ ಮಟ್ಟವನ್ನು ಹೊಂದಿಸಲು ಕಸ್ಟಮೈಸ್ ಫಾರ್ಮ್ ಬಳಸಬಹುದು .
+You can use wildcard %,ನೀವು ವೈಲ್ಡ್ಕಾರ್ಡ್% ಬಳಸಬಹುದು
+You cannot install this app,ಈ ಅಪ್ಲಿಕೇಶನ್ ಅನುಸ್ಥಾಪಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ
+You have unsaved changes in this form. Please save before you continue.,ನೀವು ಈ ರೂಪದಲ್ಲಿ ಬದಲಾವಣೆಗಳನ್ನು ಉಳಿಸಿಲ್ಲ.
+You need to be logged in and have System Manager Role to be able to access backups.,ನೀವು ಲಾಗ್ ಇನ್ ಮತ್ತು ಬ್ಯಾಕ್ಅಪ್ ಪ್ರವೇಶಿಸಲು ಸಾಧ್ಯವಾಗುತ್ತದೆ ವ್ಯವಸ್ಥೆ ಮ್ಯಾನೇಜರ್ ಪಾತ್ರ ಅಗತ್ಯವಿದೆ .
+You need write permission to rename,ನೀವು ಬದಲಾಯಿಸಲು ಅನುಮತಿ ಬರೆಯಲು ಅಗತ್ಯವಿದೆ
+You seem to have written your name instead of your email. \					Please enter a valid email address so that we can get back.,ನಿಮ್ಮ ಇಮೇಲ್ ಬದಲಿಗೆ ನಿಮ್ಮ ಹೆಸರು ಬರೆದ ತೋರುತ್ತದೆ. \ ನಾವು ಮತ್ತೆ ಪಡೆಯುವುದಕ್ಕಾಗಿ ಮಾನ್ಯ ಇಮೇಲ್ ವಿಳಾಸವನ್ನು ನಮೂದಿಸಿ.
+"Your download is being built, this may take a few moments...","ನಿಮ್ಮ ಡೌನ್ಲೋಡ್ ಕಟ್ಟಲಾಗುತ್ತಿದೆ , ಈ ಜೂನ್ ಕೆಲವು ಕ್ಷಣಗಳನ್ನು ತೆಗೆದುಕೊಳ್ಳಬಹುದು ..."
+[Label]:[Field Type]/[Options]:[Width],[ ಲೇಬಲ್ ] : [ FieldType ] / [ ಆಯ್ಕೆಗಳು ] : [ ಅಗಲ ]
+[Optional] Send the email X days in advance of the specified date. 0 equals same day.,[ಐಚ್ಛಿಕ] ನಿಗದಿತ ದಿನಾಂಕದ ಮುಂಚಿತವಾಗಿ ಇಮೇಲ್ ಎಕ್ಸ್ ದಿನಗಳ ಕಳುಹಿಸಿ. 0 ಅದೇ ದಿನ ಸಮನಾಗಿರುತ್ತದೆ.
+add your own CSS (careful!),ನಿಮ್ಮ ಸ್ವಂತ ಸಿಎಸ್ಎಸ್ ಸೇರಿಸಿ (careful!)
+adjust,ಸರಿಹೊಂದಿಸಲು
+align-center,ಸೆಂಟರ್ align
+align-justify,ಸಮರ್ಥಿಸಿಕೊಳ್ಳಲು align
+align-left,ಎಡಕ್ಕೆ
+align-right,align ಬಲ
+and,ಮತ್ತು
+arrow-down,ಬಾಣದ ಡೌನ್
+arrow-left,ಬಾಣದ ಎಡ
+arrow-right,ಬಾಣದ ಬಲ
+arrow-up,ಬಾಣದ ಅಪ್
+asterisk,ನಕ್ಷತ್ರ ಚಿಹ್ನೆ
+backward,ಹಿಮ್ಮೊಗ
+ban-circle,ನಿಷೇಧ ವಲಯವನ್ನು
+barcode,ಬಾರ್ಕೋಡ್
+beginning with,ಆರಂಭಗೊಂಡು
+bell,ಗಂಟೆ
+bold,ದಿಟ್ಟ
+book,ಫೇಸ್ಬುಕ್
+bookmark,ಓದು - ಗುರುತು
+briefcase,ವಕಾಲತ್ತು ಪೆಟ್ಟಿಗೆ
+bullhorn,bullhorn
+calendar,ಕ್ಯಾಲೆಂಡರ್
+camera,ಕ್ಯಾಮರಾ
+certificate,ಪ್ರಮಾಣಪತ್ರ
+check,ಪರಿಶೀಲಿಸಿ
+chevron-down,CHEVRON ಡೌನ್
+chevron-left,CHEVRON ಎಡ
+chevron-right,CHEVRON ಬಲ
+chevron-up,CHEVRON ಅಪ್
+circle-arrow-down,ವೃತ್ತದ ಬಾಣವನ್ನು ಕೆಳಗೆ
+circle-arrow-left,ವೃತ್ತದ ಬಾಣವನ್ನು ಬಿಟ್ಟು
+circle-arrow-right,ವೃತ್ತದ ಬಾಣವನ್ನು ಬಲ
+circle-arrow-up,ಸರ್ಕಲ್ ಬಾಣದ ಅಪ್
+cog,ಗಾಲಿಹುಲ್ಲು
+comment,ಟಿಪ್ಪಣಿ
+comments,ಪ್ರತಿಕ್ರಿಯೆಗಳು
+dd-mm-yyyy,ತಿಂಗಳು - YYYY
+dd.mm.yyyy,dd.mm.yyyy
+dd/mm/yyyy,DD / MM / YYYY
+download,ಡೌನ್ಲೋಡ್
+download-alt,ಡೌನ್ಲೋಡ್ ವಯಸ್ಸಿನ
+edit,ಸಂಪಾದಿಸು
+eject,ದಬ್ಬು
+envelope,ಹೊದಿಕೆ
+exclamation-sign,ಘೋಷಣಾ - ಚಿಹ್ನೆ
+eye-close,ಕಣ್ಣಿನ ಹತ್ತಿರ
+eye-open,ಕಣ್ಣಿನ ಮುಕ್ತ
+facetime-video,ಫೆಸ್ಟೈಮ್ ವೀಡಿಯೊ
+fast-backward,ವೇಗವಾಗಿ ಹಿಂದುಳಿದ
+fast-forward,ಫಾಸ್ಟ್ ಫಾರ್ವರ್ಡ್
+file,ಫೈಲ್
+film,ಚಿತ್ರ
+filter,ಶೋಧಕ
+fire,ಬೆಂಕಿ
+flag,ಧ್ವಜ
+folder-close,ಫೋಲ್ಡರ್ ಹತ್ತಿರದಿಂದ
+folder-open,ಫೋಲ್ಡರ್ ತೆರೆದ
+font,ತೈಲದಾನಿ
+forward,ಮುಂದೆ
+found,ಕಂಡು
+fullscreen,ಫುಲ್ ಸ್ಕ್ರೀನ್
+gift,ವಿಷ
+glass,ಗಾಜು
+globe,ಗೋಳ
+hand-down,ಕೈ ಕೆಳಗೆ
+hand-left,ಕೈ ಎಡ
+hand-right,ಕೈ ಬಲ
+hand-up,ಕೈ ಅಪ್
+hdd,ಎಚ್ಡಿಡಿ
+headphones,ಹೆಡ್ಫೋನ್
+heart,ಹೃದಯ
+home,ಮನೆ
+icon,ವಿಗ್ರಹ
+inbox,ಇನ್ಬಾಕ್ಸ್
+indent-left,ಇಂಡೆಂಟ್ ಎಡ
+indent-right,ಇಂಡೆಂಟ್ ಬಲ
+info-sign,ಮಾಹಿತಿಯನ್ನು - ಚಿಹ್ನೆ
+is not allowed.,ಅನುಮತಿಸಲಾಗುವುದಿಲ್ಲ.
+italic,ಪುರಾತನ ಇಟಲಿಯ
+leaf,ಎಲೆ
+lft,lft
+list,ಕುತಂತ್ರ
+list-alt,ಪಟ್ಟಿ ವಯಸ್ಸಿನ
+lock,ಕರುಳು
+lowercase,ಸಣ್ಣ
+magnet,ಅಯಸ್ಕಾಂತ
+map-marker,ನಕ್ಷೆ ಮಾರ್ಕರ್
+memcached is not working / stopped. Please start memcached for best results.,memcached ಕಾರ್ಯನಿರ್ವಹಿಸದಿದ್ದರೆ / ನಿಲ್ಲಿಸಿತು . ಉತ್ತಮ ಫಲಿತಾಂಶಗಳು memcached ಪ್ರಾರಂಭಿಸಲು ದಯವಿಟ್ಟು .
+minus,ಮೈನಸ್
+minus-sign,ಮೈನಸ್ ಚಿಹ್ನೆ
+mm-dd-yyyy,MM-DD - YYYY
+mm/dd/yyyy,DD / MM / YYYY
+move,ನಡೆಸುವಿಕೆಯನ್ನು
+music,ಸಂಗೀತ
+none of,ಯಾವುದೂ
+off,ಆಫ್
+ok,ಸಮ್ಮತ
+ok-circle,ಸರಿ ವೃತ್ತ
+ok-sign,ಸರಿ ಚಿಹ್ನೆ
+one of,ಒಂದು
+or,ಅಥವಾ
+pause,ಬಿರುಕು
+pencil,ಪೆನ್ಸಿಲ್
+picture,ಚಿತ್ರ
+plane,ಫಿಲ್ಮುಗಳು
+play,ಆಡಲು
+play-circle,ಆಡಲು ವೃತ್ತ
+plus,ಜೊತೆಗೆ
+plus-sign,ಪ್ಲಸ್ ಚಿಹ್ನೆ
+print,ಮುದ್ರಣ
+qrcode,QRCode
+question-sign,ಪ್ರಶ್ನೆ ಚಿಹ್ನೆ
+random,ಯಾದೃಚ್ಛಿಕ
+refresh,ದಣಿವಾರಿಸು
+remove,ತೆಗೆದುಹಾಕುವುದು
+remove-circle,ತೆಗೆದು ವೃತ್ತ
+remove-sign,ತೆಗೆದುಹಾಕಲು ಚಿಹ್ನೆ
+repeat,ಪುನರಾವರ್ತಿತ
+resize-full,ಮರುಗಾತ್ರಗೊಳಿಸಿ - ಪೂರ್ಣ
+resize-horizontal,ಅಡ್ಡಲಾಗಿ ಮರುಗಾತ್ರಗೊಳಿಸಿ
+resize-small,ಮರುಗಾತ್ರಗೊಳಿಸಿ ಸಣ್ಣ
+resize-vertical,ಲಂಬ ಮರುಗಾತ್ರಗೊಳಿಸಿ
+retweet,ರಿಟ್ವೀಟ್
+rgt,rgt
+road,ರಸ್ತೆ
+screenshot,ಸ್ಕ್ರೀನ್ಶಾಟ್
+search,ಹುಡುಕಾಟ
+share,ಪಾಲು
+share-alt,ಷೇರು ಹಳೆಯ
+shopping-cart,ಶಾಪಿಂಗ್ ಕಾರ್ಟ್
+signal,ಸಂಕೇತ
+star,ನಕ್ಷತ್ರ
+star-empty,ನಕ್ಷತ್ರ ಖಾಲಿ
+step-backward,ಹಂತ ಹಿಂದುಳಿದ
+step-forward,ಹಂತ ಮುಂದೆ
+stop,ನಿಲ್ಲಿಸಲು
+tag,ದಿನ
+tags,ದಿನ
+"target = ""_blank""","ಗುರಿ = ""_blank"""
+tasks,ಕಾರ್ಯಗಳನ್ನು
+text-height,ಪಠ್ಯ ಎತ್ತರ
+text-width,ಪಠ್ಯ ಅಗಲ
+th,ನೇ
+th-large,ನೇ ದೊಡ್ಡ
+th-list,ನೇ ಪಟ್ಟಿ
+thumbs-down,ಥಂಬ್ಸ್ ಡೌನ್
+thumbs-up,ಥಂಬ್ಸ್ ಅಪ್
+time,ಸಮಯ
+tint,ಛಾಯೆ
+to,ಗೆ
+trash,ಕಸ
+upload,ಅಪ್ಲೋಡ್
+use % as wildcard,ವೈಲ್ಡ್ಕಾರ್ಡ್ ಮಾಹಿತಿ% ಬಳಸಲು
+user,ಬಳಕೆದಾರ
+user_image_show,user_image_show
+values and dates,ಮೌಲ್ಯಗಳು ಮತ್ತು ದಿನಾಂಕ
+values separated by commas,ಬೇರ್ಪಡಿಸಲಾಗಿರುತ್ತದೆ ಮೌಲ್ಯಗಳನ್ನು
+volume-down,ಪರಿಮಾಣ ಡೌನ್
+volume-off,ಪರಿಮಾಣ ಆಫ್
+volume-up,ಪರಿಮಾಣ ಅಪ್
+warning-sign,ಎಚ್ಚರಿಕೆ ಚಿಹ್ನೆ
+wrench,ಬಲಾತ್ಕಾರವಾಗಿ
+yyyy-mm-dd,YYYY -MM-DD
+zoom-in,ಜೂಮ್ ಇನ್
+zoom-out,ಜೂಮ್ ಔಟ್
+{0} List,{0} ಪಟ್ಟಿ
+{0} added,{0} ಸೇರಿಸಲಾಗಿದೆ
+{0} by {1},{0} ಮೂಲಕ {1}
+{0} cannot be set for Single types,{0} ಏಕ ರೀತಿಯ ಹೊಂದಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ
+{0} does not exist in row {1},{0} ಸತತವಾಗಿ ಅಸ್ತಿತ್ವದಲ್ಲಿಲ್ಲ {1}
+{0} in row {1} cannot have both URL and child items,{0} ಸತತವಾಗಿ {1} URL ಮತ್ತು ಮಗು ಐಟಂಗಳನ್ನು ಎರಡೂ ಸಾಧ್ಯವಿಲ್ಲ
+{0} is not a valid email id,{0} ಒಂದು ಮಾನ್ಯ ಇಮೇಲ್ ಐಡಿ ಅಲ್ಲ
+{0} is required,{0} ಅಗತ್ಯವಿದೆ
+{0} is saved,{0} ಉಳಿಸಲಾಗಿದೆ
+{0} must be one of {1},{0} {1} ಒಂದು ಇರಬೇಕು
+{0} must be set first,{0} ಮೊದಲ ಸೆಟ್ ಮಾಡಬೇಕು
+{0} not a valid State,{0} ಒಂದು ಮಾನ್ಯವಾದ ರಾಜ್ಯ
+{0} not allowed in fieldname {1},{0} ಕ್ಷೇತ್ರದಲ್ಲಿ ಹೆಸರಿನಲ್ಲಿ ಅನುಮತಿಸಲಾಗುವುದಿಲ್ಲ {1}
+{0} not allowed in name,{0} ಹೆಸರಿನಲ್ಲಿ ಅನುಮತಿಸಲಾಗುವುದಿಲ್ಲ
+{0} not allowed to be renamed,{0} ಮರುನಾಮಕರಣ ಮಾಡಲು ಅನುಮತಿ ಇಲ್ಲ
+{0} updated,{0} ಅಪ್ಡೇಟ್ಗೊಳಿಸಲಾಗಿದೆ
+{0} {1} already exists,{0} {1} ಈಗಾಗಲೇ ಅಸ್ತಿತ್ವದಲ್ಲಿದೆ
+"{0} {1} cannot be ""{2}"". It should be one of ""{3}""","{0} {1} ಸಾಧ್ಯವಿಲ್ಲ ""{2}"". ಇದು ""{3}"" ಒಂದು ಆಗಿರಬೇಕು"
+{0} {1} cannot be a leaf node as it has children,{0} {1} ಒಂದು ಲೀಫ್ ನೋಡ್ ಆಲ್ಡ್ವಿಚ್ ಮಕ್ಕಳು ಸಾಧ್ಯವಿಲ್ಲ
+"{0} {1} does not exist, select a new target to merge","{0} {1} ಅಸ್ತಿತ್ವದಲ್ಲಿಲ್ಲ , ವಿಲೀನಗೊಳ್ಳಲು ಹೊಸ ಗುರಿಯನ್ನು ಆಯ್ಕೆ"
+{0} {1} not found,{0} {1} ಕಂಡುಬಂದಿಲ್ಲ
+{0} {1}: Submitted Record cannot be deleted.,{0} {1}: ಸಲ್ಲಿಸಲಾಗಿದೆ ರೆಕಾರ್ಡ್ ಅಳಿಸಲಾಗುವುದಿಲ್ಲ.
+{0}: Cannot set Amend without Cancel,{0} : ರದ್ದು ಮಾಡಿರಿ ಇಲ್ಲದೆ ಹೊಂದಿಸಲು ಸಾಧ್ಯವಾಗಿಲ್ಲ
+{0}: Cannot set Assign Amend if not Submittable,{0} : ನಿಯೋಜನೆ ಮಾಡಿರಿ ಹೊಂದಿಸಲು ಸಾಧ್ಯವಾಗಿಲ್ಲ Submittable ಅಲ್ಲ
+{0}: Cannot set Assign Submit if not Submittable,{0} : ನಿಯೋಜನೆ ಸಲ್ಲಿಸಿ ಹೊಂದಿಸಲು ಸಾಧ್ಯವಾಗಿಲ್ಲ Submittable ಅಲ್ಲ
+{0}: Cannot set Cancel without Submit,{0} : ಸಲ್ಲಿಸಿ ರದ್ದು ಇಲ್ಲದೆ ಹೊಂದಿಸಲು ಸಾಧ್ಯವಾಗಿಲ್ಲ
+{0}: Cannot set Import without Create,{0} : ರಚಿಸಿ ಇಲ್ಲದೆ ಆಮದು ಹೊಂದಿಸಲು ಸಾಧ್ಯವಾಗಿಲ್ಲ
+"{0}: Cannot set Submit, Cancel, Amend without Write","{0} : ಬರೆಯಿರಿ ಇಲ್ಲದೆ ಮಾಡಿರಿ , ರದ್ದು , ಸಲ್ಲಿಸಿ ಹೊಂದಿಸಲು ಸಾಧ್ಯವಾಗಿಲ್ಲ"
+{0}: Cannot set import as {1} is not importable,{0} : {1} importable ಅಲ್ಲ ಆಮದು ಹೊಂದಿಸಲು ಸಾಧ್ಯವಾಗಿಲ್ಲ
+"{0}: Create, Submit, Cancel and Amend only valid at level 0","{0} : , ರಚಿಸಿ ಸಲ್ಲಿಸಿ , ರದ್ದು ಮತ್ತು ಮಟ್ಟದ 0 ಮಾತ್ರ ಮಾನ್ಯ ಮಾಡಿರಿ"
+{0}: No basic permissions set,{0} : ಇಲ್ಲ ಮೂಲಭೂತ ಅನುಮತಿಗಳನ್ನು ಸೆಟ್
+"{0}: Only one rule allowed with the same Role, Level and Apply User Permissions","{0} : ಅದೇ ಪಾತ್ರ , ಮಟ್ಟ ಅವಕಾಶ ಮತ್ತು ಬಳಕೆದಾರ ಅನುಮತಿಗಳು ಅನ್ವಯಿಸಿ ಒಂದೇ ನಿಯಮ"
+{0}: Permission at level 0 must be set before higher levels are set,{0} : ಉನ್ನತ ಮಟ್ಟದ ಸೆಟ್ ಮೊದಲು ಮಟ್ಟದ 0 ಅನುಮತಿಯ ಸೆಟ್ ಮಾಡಬೇಕು
+{app_title},{ App_title }

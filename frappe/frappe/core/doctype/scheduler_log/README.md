@@ -1,0 +1,1 @@
+Log exceptions (errors) raised when executing the scheduler.

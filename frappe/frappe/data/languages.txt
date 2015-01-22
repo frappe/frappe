@@ -1,0 +1,27 @@
+ar		العربية
+de		deutsch
+el		ελληνικά
+en		english
+es		español
+fr		français
+hi		हिंदी
+hr		hrvatski
+is		Íslenska
+id		Indonesia
+it		italiano
+ja		日本語
+kn		ಕನ್ನಡ
+ko		한국의
+nl		nederlands
+pl      polski
+pt		português
+pt-BR	português brasileiro
+ro		român
+ru		русский
+sr		српски
+ta		தமிழ்
+th		ไทย
+tr		Türk
+vi		việt
+zh-cn	中国（简体）
+zh-tw	中國（繁體）

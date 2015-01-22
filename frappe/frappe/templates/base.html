@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<!--
+Built on Frappe.io. Free and Open Source Framework for the Web. https://frappe.io/
+-->
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>{{ title }}</title>
+	<meta name="generator" content="frappe">
+	<script type="text/javascript"
+		src="/assets/frappe/js/lib/jquery/jquery.min.js"></script>
+
+	<link rel="shortcut icon"
+		href="{{ favicon or "/assets/frappe/images/favicon.ico" }}"
+		type="image/x-icon">
+	<link rel="icon"
+		href="{{ favicon or "/assets/frappe/images/favicon.ico" }}"
+		type="image/x-icon">
+	{%- block head_include %}{% endblock -%}
+	{%- block head -%}
+		{% if meta_block is defined %}
+		{{ meta_block }}
+		{% endif %}
+
+		{%- for link in web_include_css %}
+		<link type="text/css" rel="stylesheet" href="{{ link }}">
+		{%- endfor -%}
+
+		{%- block style %}
+			<style data-html-block="style">
+			{%- if style is defined -%}{{ style }}{%- endif -%}
+			</style>
+		{%- endblock -%}
+
+		{%- for link in web_include_js %}
+		<script type="text/javascript" src="{{ link }}"></script>
+		{%- endfor -%}
+	{%- endblock -%}
+</head>
+<body>
+	<div id="wrap">
+		{%- block banner -%}
+		{% include "templates/includes/banner_extension.html" ignore missing %}
+			{% if banner_html -%}
+			<header class="container">{{ banner_html or "" }}</header>
+			{%- endif %}
+		{%- endblock -%}
+
+		{%- block navbar -%}{% include "templates/includes/navbar.html" %}{%- endblock -%}
+		<header class="page-header">
+			<div class="container">
+				<div class="row">
+					<div class="col-sm-9 page-header-left">
+						<a class="visible-xs toggle-sidebar no-decoration pull-right">
+							<i class="icon-chevron-down"></i>
+						</a>
+						<div data-html-block="header">
+							{%- if header is defined -%}{{ header }}{%- endif -%}
+						</div>
+						<div class="page-breadcrumbs" data-html-block="breadcrumbs">
+							{%- if breadcrumbs is defined -%}{{ breadcrumbs }}{%- endif -%}
+						</div>
+					</div>
+					<div class="col-sm-3 text-right">
+						<div class="page-header-right"></div>
+					</div>
+				</div>
+			</div>
+		</header>
+		<div class="content-body" data-html-block="content_body">
+			{{ content_body or "" }}
+		</div>
+		<div class="container page-container" id="page-{{ name or page_name }}">
+			<div class="row">
+				<div class="col-sm-3 col-sm-push-9 page-sidebar hidden-xs" data-html-block="sidebar">
+					{%- block sidebar -%}
+					{%- if sidebar is defined -%}
+						{{ sidebar }}
+						{{ private_pages or "" }}
+					{%- endif -%}
+					{%- endblock -%}
+				</div>
+				<div class="col-sm-9 col-sm-pull-3 page-content" data-html-block="content">
+					{%- block content -%}{{ content or "" }}{%- endblock -%}
+				</div>
+			</div>
+		</div>
+		<footer class="page-footer">
+			<div class="container" data-html-block="footer">
+				{%- if footer is defined -%}{{ footer }}{%- endif -%}
+			</div>
+		</footer>
+	</div>
+	<div id="wrap-footer">
+		{%- block footer -%}{% include "templates/includes/footer.html" %}{%- endblock -%}
+	</div>
+
+	{%- block script %}
+		<script data-html-block="script">
+		{%- if script is defined -%}{{ script }}{%- endif -%}
+		</script>
+	{%- endblock %}
+
+	{%- block script_lib %}
+		<script data-html-block="script_lib" data-path="{{ name }}">
+		{%- if script_lib is defined -%}{{ script_lib }}{%- endif -%}
+		</script>
+	{%- endblock -%}
+</body>
+</html>

@@ -1,0 +1,1 @@
+Overrides standard DocType, DocField properties. The standard application is configured with properties for forms and fields (like, whether they are hidden or not). These can be overridden by a System Manager who can configure DocTypes based on custom requirements.

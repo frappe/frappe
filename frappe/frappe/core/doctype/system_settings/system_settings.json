@@ -1,0 +1,100 @@
+{
+ "creation": "2014-04-17 16:53:52.640856",
+ "docstatus": 0,
+ "doctype": "DocType",
+ "document_type": "System",
+ "fields": [
+  {
+   "fieldname": "localization",
+   "fieldtype": "Section Break",
+   "label": "Localization",
+   "permlevel": 0
+  },
+  {
+   "fieldname": "language",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Language",
+   "options": "Loading...",
+   "permlevel": 0,
+   "reqd": 1,
+   "search_index": 0
+  },
+  {
+   "fieldname": "time_zone",
+   "fieldtype": "Select",
+   "label": "Time Zone",
+   "permlevel": 0,
+   "reqd": 1
+  },
+  {
+   "fieldname": "date_and_number_format",
+   "fieldtype": "Section Break",
+   "label": "Date and Number Format",
+   "permlevel": 0
+  },
+  {
+   "fieldname": "date_format",
+   "fieldtype": "Select",
+   "label": "Date Format",
+   "options": "yyyy-mm-dd\ndd-mm-yyyy\ndd/mm/yyyy\ndd.mm.yyyy\nmm/dd/yyyy\nmm-dd-yyyy",
+   "permlevel": 0,
+   "reqd": 1
+  },
+  {
+   "fieldname": "number_format",
+   "fieldtype": "Select",
+   "label": "Number Format",
+   "options": "#,###.##\n#.###,##\n# ###.##\n# ###,##\n#'###.##\n#, ###.##\n#,##,###.##\n#,###.###\n#.###\n#,###",
+   "permlevel": 0,
+   "reqd": 1
+  },
+  {
+   "fieldname": "float_precision",
+   "fieldtype": "Select",
+   "label": "Float Precision",
+   "options": "\n2\n3\n4\n5\n6",
+   "permlevel": 0
+  },
+  {
+   "fieldname": "security",
+   "fieldtype": "Section Break",
+   "label": "Security",
+   "permlevel": 0
+  },
+  {
+   "default": "06:00",
+   "description": "Session Expiry in Hours e.g. 06:00",
+   "fieldname": "session_expiry",
+   "fieldtype": "Data",
+   "label": "Session Expiry",
+   "options": "",
+   "permlevel": 0
+  },
+  {
+   "description": "Run scheduled jobs only if checked",
+   "fieldname": "enable_scheduler",
+   "fieldtype": "Check",
+   "in_list_view": 0,
+   "label": "Enable Scheduled Jobs",
+   "permlevel": 0
+  }
+ ],
+ "icon": "icon-cog",
+ "issingle": 1,
+ "modified": "2014-06-18 02:09:03.623094",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "System Settings",
+ "name_case": "",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "permlevel": 0,
+   "read": 1,
+   "role": "System Manager",
+   "write": 1
+  }
+ ]
+}

@@ -1,0 +1,60 @@
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+// MIT License. See license.txt
+
+frappe.provide('frappe.views.formview');
+
+frappe.views.FormFactory = frappe.views.Factory.extend({
+	make: function(route) {
+		var me = this,
+			dt = route[1];
+
+		if(!frappe.views.formview[dt]) {
+			me.page = frappe.container.add_page("Form/" + dt);
+			frappe.views.formview[dt] = me.page;
+			frappe.model.with_doctype(dt, function() {
+				me.page.frm = new _f.Frm(dt, me.page, true);
+				me.show_doc(route);
+			});
+		} else {
+			me.show_doc(route);
+		}
+	},
+	show_doc: function(route) {
+		var dt = route[1],
+			dn = route.slice(2).join("/"),
+			me = this;
+
+		if(frappe.model.new_names[dn]) {
+			dn = frappe.model.new_names[dn];
+			frappe.set_route("Form", dt, dn);
+			return;
+		}
+
+		frappe.model.with_doc(dt, dn, function(dn, r) {
+			if(r && r['403']) return; // not permitted
+
+			if(!(locals[dt] && locals[dt][dn])) {
+				// doc not found, but starts with New,
+				// make a new doc and set it
+				var new_str = __("New") + " ";
+				if(dn && dn.substr(0, new_str.length)==new_str) {
+					var new_name = frappe.model.make_new_doc_and_get_name(dt);
+					if(new_name===dn) {
+						me.load(dt, dn);
+					} else {
+						frappe.set_route("Form", dt, new_name)
+					}
+				} else {
+					frappe.show_not_found(route);
+				}
+				return;
+			}
+			me.load(dt, dn);
+		});
+
+	},
+	load: function(dt, dn) {
+		frappe.container.change_to("Form/" + dt);
+		frappe.views.formview[dt].frm.refresh(dn);
+	}
+});

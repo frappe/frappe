@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>{{ title }}</title>
+	<meta name="generator" content="frappe">
+	<link type="text/css" rel="stylesheet" href="/assets/frappe/css/bootstrap.css">
+	<style>
+	{{ css }}
+	</style>
+</head>
+<body>
+	<div class="print-format-gutter">
+	    <div class="print-format">
+		{{ body }}
+	    </div>
+	</div>
+</body>
+{%- if comment -%}
+<!-- {{ comment }} -->
+{%- endif -%}
+</html>

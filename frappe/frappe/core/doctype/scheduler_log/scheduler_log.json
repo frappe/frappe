@@ -1,0 +1,45 @@
+{
+ "autoname": "SCHLOG.#####", 
+ "creation": "2013-01-16 13:09:40.000000", 
+ "description": "Log of Scheduler Errors", 
+ "docstatus": 0, 
+ "doctype": "DocType", 
+ "document_type": "System", 
+ "fields": [
+  {
+   "fieldname": "method", 
+   "fieldtype": "Data", 
+   "in_list_view": 1, 
+   "label": "Method", 
+   "permlevel": 0
+  }, 
+  {
+   "fieldname": "error", 
+   "fieldtype": "Text", 
+   "label": "Error", 
+   "permlevel": 0
+  }
+ ], 
+ "icon": "icon-warning-sign", 
+ "idx": 1, 
+ "modified": "2014-01-20 17:49:26.000000", 
+ "modified_by": "Administrator", 
+ "module": "Core", 
+ "name": "Scheduler Log", 
+ "owner": "Administrator", 
+ "permissions": [
+  {
+   "cancel": 0, 
+   "create": 1, 
+   "delete": 1, 
+   "email": 1, 
+   "permlevel": 0, 
+   "print": 1, 
+   "read": 1, 
+   "report": 1, 
+   "role": "System Manager", 
+   "submit": 0, 
+   "write": 1
+  }
+ ]
+}

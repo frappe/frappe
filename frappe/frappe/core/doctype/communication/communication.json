@@ -1,0 +1,230 @@
+{
+  "allow_import": 1, 
+ "autoname": "naming_series:", 
+ "creation": "2013-01-29 10:47:14", 
+ "description": "Keep a track of all communications", 
+ "docstatus": 0, 
+ "doctype": "DocType", 
+ "document_type": "Master", 
+ "fields": [
+  {
+   "default": "COMM-", 
+   "fieldname": "naming_series", 
+   "fieldtype": "Select", 
+   "hidden": 1, 
+   "label": "Series", 
+   "options": "COMM-", 
+   "permlevel": 0
+  }, 
+  {
+   "fieldname": "sent_or_received", 
+   "fieldtype": "Select", 
+   "label": "Sent or Received", 
+   "options": "Sent\nReceived", 
+   "permlevel": 0, 
+   "reqd": 1
+  }, 
+  {
+   "fieldname": "subject", 
+   "fieldtype": "Data", 
+   "in_list_view": 1, 
+   "label": "Subject", 
+   "permlevel": 0, 
+   "reqd": 1
+  }, 
+  {
+   "fieldname": "content", 
+   "fieldtype": "Text Editor", 
+   "label": "Content", 
+   "permlevel": 0, 
+   "reqd": 0, 
+   "width": "400"
+  }, 
+  {
+   "fieldname": "section_break1", 
+   "fieldtype": "Section Break", 
+   "options": "simple", 
+   "permlevel": 0
+  }, 
+  {
+   "fieldname": "category", 
+   "fieldtype": "Select", 
+   "label": "Category", 
+   "options": "\nSales\nComplaint\nHelp\nSuggestion\nMiscellaneous\nSent Mail", 
+   "permlevel": 0, 
+   "reqd": 0
+  }, 
+  {
+   "fieldname": "column_break2", 
+   "fieldtype": "Column Break", 
+   "permlevel": 0
+  }, 
+  {
+   "fieldname": "next_communication_date", 
+   "fieldtype": "Date", 
+   "label": "Next Communcation On", 
+   "permlevel": 0
+  }, 
+  {
+   "fieldname": "action", 
+   "fieldtype": "Select", 
+   "label": "Action", 
+   "options": "\nCreated Opportunity\nSent Quotation\nCreated Support Ticket\nCreated Customer Issue\nNo Action\nSent Mail", 
+   "permlevel": 0, 
+   "reqd": 0
+  }, 
+  {
+   "fieldname": "additional_info", 
+   "fieldtype": "Section Break", 
+   "label": "Additional Info", 
+   "permlevel": 0
+  }, 
+  {
+   "fieldname": "recipients", 
+   "fieldtype": "Data", 
+   "label": "Recipients", 
+   "permlevel": 0
+  }, 
+  {
+   "fieldname": "sender", 
+   "fieldtype": "Data", 
+   "label": "Sender", 
+   "permlevel": 0
+  }, 
+  {
+   "fieldname": "communication_medium", 
+   "fieldtype": "Select", 
+   "in_list_view": 1, 
+   "label": "Communication Medium", 
+   "options": "\nChat\nPhone\nEmail\nSMS\nVisit\nOther", 
+   "permlevel": 0
+  }, 
+  {
+   "fieldname": "phone_no", 
+   "fieldtype": "Data", 
+   "label": "Phone No.", 
+   "permlevel": 0
+  }, 
+  {
+   "fieldname": "section_break2", 
+   "fieldtype": "Section Break", 
+   "options": "simple", 
+   "permlevel": 0
+  }, 
+  {
+   "fieldname": "column_break4", 
+   "fieldtype": "Column Break", 
+   "label": "By", 
+   "permlevel": 0
+  }, 
+  {
+   "default": "__user", 
+   "fieldname": "user", 
+   "fieldtype": "Link", 
+   "ignore_user_permissions": 1, 
+   "label": "User", 
+   "options": "User", 
+   "permlevel": 0, 
+   "read_only": 1
+  }, 
+  {
+   "fieldname": "column_break5", 
+   "fieldtype": "Column Break", 
+   "label": "On", 
+   "permlevel": 0
+  }, 
+  {
+   "default": "Today", 
+   "fieldname": "communication_date", 
+   "fieldtype": "Datetime", 
+   "label": "Date", 
+   "permlevel": 0
+  }, 
+  {
+   "fieldname": "_user_tags", 
+   "fieldtype": "Data", 
+   "hidden": 1, 
+   "label": "User Tags", 
+   "no_copy": 1, 
+   "permlevel": 0, 
+   "print_hide": 1
+  }
+ ], 
+ "icon": "icon-comment", 
+ "idx": 1, 
+ "in_dialog": 0, 
+ "issingle": 0, 
+ "modified": "2014-08-14 09:39:23.219125", 
+ "modified_by": "Administrator", 
+ "module": "Core", 
+ "name": "Communication", 
+ "owner": "Administrator", 
+ "permissions": [
+  {
+   "amend": 0, 
+   "apply_user_permissions": 0, 
+   "create": 1, 
+   "delete": 1, 
+   "email": 1, 
+   "permlevel": 0, 
+   "print": 1, 
+   "read": 1, 
+   "report": 1, 
+   "role": "Support Team", 
+   "submit": 0, 
+   "write": 1
+  }, 
+  {
+   "amend": 0, 
+   "create": 1, 
+   "delete": 1, 
+   "email": 1, 
+   "permlevel": 0, 
+   "print": 1, 
+   "read": 1, 
+   "report": 1, 
+   "role": "Sales Manager", 
+   "submit": 0, 
+   "write": 1
+  }, 
+  {
+   "amend": 0, 
+   "apply_user_permissions": 0, 
+   "create": 1, 
+   "delete": 1, 
+   "email": 1, 
+   "permlevel": 0, 
+   "print": 1, 
+   "read": 1, 
+   "report": 1, 
+   "role": "Sales User", 
+   "submit": 0, 
+   "write": 1
+  }, 
+  {
+   "create": 1, 
+   "delete": 1, 
+   "email": 1, 
+   "permlevel": 0, 
+   "print": 1, 
+   "read": 1, 
+   "report": 1, 
+   "role": "Support Manager", 
+   "submit": 0, 
+   "write": 1
+  }, 
+  {
+   "create": 1, 
+   "delete": 1, 
+   "email": 1, 
+   "permlevel": 0, 
+   "print": 1, 
+   "read": 1, 
+   "report": 1, 
+   "role": "System Manager", 
+   "submit": 0, 
+   "write": 1
+  }
+ ], 
+ "title_field": "subject"
+}

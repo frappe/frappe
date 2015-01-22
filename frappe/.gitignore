@@ -1,0 +1,10 @@
+*.pyc
+*.py~
+*.comp.js
+*.DS_Store
+locale
+.wnf-lang-status
+*.swp
+*.egg-info
+dist/
+build/

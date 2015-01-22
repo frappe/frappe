@@ -1,0 +1,29 @@
+include MANIFEST.in
+include requirements.txt
+include *.json
+include *.md
+include *.py
+recursive-include frappe *.css
+recursive-include frappe *.dat
+recursive-include frappe *.eot
+recursive-include frappe *.gif
+recursive-include frappe *.html
+recursive-include frappe *.jpg
+recursive-include frappe *.js
+recursive-include frappe *.json
+recursive-include frappe *.md
+recursive-include frappe *.otf
+recursive-include frappe *.png
+recursive-include frappe *.py
+recursive-include frappe *.sql
+recursive-include frappe *.svg
+recursive-include frappe *.swf
+recursive-include frappe *.ttf
+recursive-include frappe *.woff
+recursive-include frappe *.xml
+recursive-include frappe *.csv
+recursive-include frappe *.ico
+recursive-include frappe *.less
+recursive-include frappe *.txt
+recursive-include frappe/public *
+recursive-exclude * *.pyc

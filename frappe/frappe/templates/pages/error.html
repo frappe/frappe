@@ -1,0 +1,13 @@
+{% block title %}Error{% endblock %}
+
+{% block header %}
+<h2 class="text-danger">
+	<i class="icon-exclamation-sign"></i> Oops, a server error has occured
+</h2>
+{% endblock %}
+
+{% block content %}
+<div class="error-content">
+	<pre>{{ error }}</pre>
+</div>
+{% endblock %}

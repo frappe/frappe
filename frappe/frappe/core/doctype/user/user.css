@@ -1,0 +1,20 @@
+.user-role {
+	padding: 5px;
+	width: 45%;
+	float: left;
+}
+
+table.user-perm {
+	border-collapse: collapse;
+    width: 100%;
+    overflow-x: scroll;
+    -webkit-overflow-scrolling: touch;
+    -ms-overflow-style: -ms-autohiding-scrollbar;
+}
+
+table.user-perm td, table.user-perm th {
+	padding: 5px;
+	text-align: center;
+	border-bottom: 1px solid #aaa;
+	min-width: 30px;
+}

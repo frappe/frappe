@@ -1,0 +1,94 @@
+div.tag-line {
+	background-color: transparent;
+}
+
+ul.tagit {
+	margin: 0px 5px;
+	padding: 0px;
+	display: block;
+	border: 0px;
+}
+
+
+ul.tagit li {
+    display: block;
+    float: left;
+    margin: 2px 5px 2px 0;
+	background: none;
+	border: none;
+}
+ul.tagit li.tagit-choice {
+	color: #fff;
+	font-size: 80%;
+    padding: .2em;
+	padding-right: 18px;
+	padding-left: 4px;
+    position: relative;
+	background: none;
+	border: none;
+	box-shadow: none;
+	border-radius: 4px;
+	background-color: #aaa;
+	cursor: pointer;
+}
+
+ul.tagit li.tagit-new {
+    padding: 0 4px 0 0;
+}
+
+ul.tagit li.tagit-choice a.tagit-label {
+    cursor: pointer;
+    text-decoration: none;
+}
+ul.tagit li.tagit-choice .tagit-close {
+    cursor: pointer;
+    position: absolute;
+    right: .1em;
+    top: 50%;
+    margin-top: -8px;
+}
+
+/* used for some custom themes that don't need image icons */
+ul.tagit li.tagit-choice .tagit-close .text-icon {
+    display: none;
+}
+
+ul.tagit li.tagit-choice input {
+    display: block;
+    float: left;
+    margin: 2px 5px 2px 0;
+}
+ul.tagit input[type="text"] {
+    -moz-box-sizing:    border-box;
+    -webkit-box-sizing: border-box;
+    box-sizing:         border-box;
+
+	-moz-transition: none;
+	box-shadow: none;
+    border: none;
+	min-height: 0px;
+    margin: 1px 5px 1px 0;
+    padding: 0.2em;
+    width: inherit;
+	background: none;
+    background-color: transparent;
+    outline: none;
+	font-size: 80%;
+	color: #777;
+}
+
+/* in list */
+
+.list-tag ul.tagit {
+	margin-top: -5px;
+	margin-left: -4px;
+}
+
+.list-tag ul.tagit li.tagit-choice .tagit-close {
+	margin-top: -9px;
+}
+
+.list-tag ul.tagit input[type="text"] {
+	font-size: 85%;
+	margin-top: -1px;
+}
