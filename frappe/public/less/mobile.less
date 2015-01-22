@@ -120,14 +120,23 @@
 		transition: 0.25s;
 	}
 
-	.offcanvas {
-		// position: fixed;
+	.offcanvas,
+	.desk-main-section-overlay {
 		position: absolute;
 		left: 0;
 		right: 0;
 		top: 0;
 		bottom: 0;
 		overflow-y: auto;
+		overflow-x: hidden;
+	}
+
+	.offcanvas.active-left .desk-main-section-overlay,
+	.offcanvas.active-right .desk-main-section-overlay {
+		display: block;
+		background-color: @modal-backdrop-bg;
+		opacity: 0.5;
+		z-index: 1031;
 	}
 
 	.offcanvas.active-left,

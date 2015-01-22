@@ -4,13 +4,13 @@
 @icon-hover: #fff;
 
 body[data-route=""] .navbar-default, body[data-route="desktop"] .navbar-default {
-	background-color: rgba(255, 255, 255, 0.5);
-	border-color: transparent;
+	background-color: rgba(255, 255, 255, 0.9);
+	border-color: rgba(54, 65, 76, 0.1);
 }
 
 #page-desktop {
 	min-width: 100%;
-	padding-top: 80px;
+	padding-top: calc(40px + 15%);
 	margin-top: 0px;
 	border: 0px;
 	position: absolute;
@@ -24,7 +24,7 @@ body[data-route=""] .navbar-default, body[data-route="desktop"] .navbar-default 
 	margin: 0px;
 	float: left;
 	width: 138px;
-	height: 120px;
+	height: 140px;
 }
 
 .case-label {
@@ -33,23 +33,20 @@ body[data-route=""] .navbar-default, body[data-route="desktop"] .navbar-default 
 	letter-spacing: 0.4px;
 	color: #fff;
 	text-align: center;
-	margin-top: -10px;
+	margin-top: 10px;
 	transition: 0.2s;
 	-webkit-transition: 0.2s;
-	text-shadow: 1px 1px 1px rgba(0, 0, 0, 1), 0px 1px 5px rgba(0, 0, 0, 0.5);
+	text-shadow: 0px 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .app-icon {
-/*	border-radius: 5px;*/
-	overflow: hidden;
 	padding: 20px;
 	display: inline-block;
 	margin: auto;
-	margin-bottom: 7px;
 	text-align: center;
-	// background-color: @btn-bg;
-	border-radius: 5px;
+	border-radius: 16px;
 	cursor: pointer;
+	box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15);
 }
 
 .app-icon i {
@@ -80,9 +77,9 @@ body[data-route=""] .navbar-default, body[data-route="desktop"] .navbar-default 
 	color: #fff;
 	background-color: @indicator-red;
 	padding: 6px;
-	border-radius: 50%;
 	font-size: 12px;
 	line-height: 1;
+	border-radius: 25px;
 	min-width: 25px;
 	text-align: center;
 	text-shadow: none;
@@ -152,10 +149,12 @@ body[data-route=""] .navbar-default, body[data-route="desktop"] .navbar-default 
 	.case-label {
 		font-size: 80%;
 		font-weight: normal;
+		margin-top: 7px;
 	}
 
 	.app-icon {
 		padding: 10px;
+		border-radius: 12px;
 	}
 
 	.app-icon i {

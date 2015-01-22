@@ -7,7 +7,8 @@ body {
   margin: 0px;
 }
 html,
-body {
+body,
+.desk-container {
   overflow-x: hidden;
   /* Prevent scroll on narrow devices */
 }
@@ -21,6 +22,10 @@ body {
 }
 .desk-main-section {
   width: 100%;
+}
+.desk-main-section-overlay {
+  display: none;
+  cursor: pointer;
 }
 a,
 .badge,
@@ -225,6 +230,7 @@ ul.linked-with-list li {
 }
 .modal-backdrop {
   opacity: 0.5;
+  position: fixed;
 }
 .form-group {
   margin-bottom: 7px;

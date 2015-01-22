@@ -184,6 +184,15 @@ frappe.Application = Class.extend({
 		if(frappe.boot) {
 			frappe.frappe_toolbar = new frappe.ui.toolbar.Toolbar();
 		}
+
+		// collapse offcanvas sidebars!
+		$(".offcanvas .sidebar").on("click", "a", function() {
+			$(".offcanvas").removeClass("active-left active-right");
+		});
+
+		$(".desk-main-section-overlay").on("click", function() {
+			$(".offcanvas").removeClass("active-left active-right");
+		});
 	},
 	logout: function() {
 		var me = this;
