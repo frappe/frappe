@@ -13,6 +13,6 @@ def update_event(args, field_map):
 	field_map = frappe._dict(json.loads(field_map))
 	w = frappe.get_doc(args.doctype, args.name)
 	w.set(field_map.start, args[field_map.start])
-	w.set(field_map.end, args[field_map.end])
+	w.set(field_map.end, args.get(field_map.end))
 	w.save()
 
