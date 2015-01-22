@@ -1,1 +1,0 @@
-Role with which the event is shared.
