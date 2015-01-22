@@ -169,9 +169,9 @@ def set_content_type(response, data, path):
 	response.headers[b"Content-Type"] = b"text/html; charset: utf-8"
 
 	if "." in path:
-		content_type, encoding = mimetypes.guess_type(path.split(".")[-1])
+		content_type, encoding = mimetypes.guess_type(path)
 		if not content_type:
-			content_type = "text/html"
+			content_type = "text/html; charset: utf-8"
 		response.headers[b"Content-Type"] = content_type.encode("utf-8")
 
 	return data
