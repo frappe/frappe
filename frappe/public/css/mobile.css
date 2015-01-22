@@ -89,12 +89,10 @@
   .sidebar-right,
   .sidebar-left,
   .navbar-fixed-top {
-    -webkit-transition: 0.25s;
-    -o-transition: 0.25s;
     transition: 0.25s;
   }
   .offcanvas {
-    position: fixed;
+    position: absolute;
     left: 0;
     right: 0;
     top: 0;
