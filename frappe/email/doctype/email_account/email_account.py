@@ -9,9 +9,11 @@ from frappe.utils import validate_email_add, cint
 from frappe.email.smtp import SMTPServer
 from frappe.email.receive import POP3Server, Email
 from poplib import error_proto
+import markdown2
 
 class EmailAccount(Document):
 	def autoname(self):
+		"""Set name as `email_account_name` or make title from email id."""
 		if not self.email_account_name:
 			self.email_account_name = self.email_id.split("@", 1)[0]\
 				.replace("_", " ").replace(".", " ").replace("-", " ").title()
@@ -22,6 +24,7 @@ class EmailAccount(Document):
 		self.name = self.email_account_name
 
 	def validate(self):
+		"""Validate email id and check POP3 and SMTP connections is enabled."""
 		if self.email_id and not validate_email_add(self.email_id):
 			frappe.throw(_("{0} is not a valid email id").format(self.email_id),
 				frappe.InvalidEmailAddressError)
@@ -36,9 +39,11 @@ class EmailAccount(Document):
 			self.check_smtp()
 
 	def on_update(self):
+		"""Check there is only one default of each type."""
 		self.there_must_be_only_one_default()
 
 	def there_must_be_only_one_default(self):
+		"""If current Email Account is default, un-default all other accounts."""
 		for fn in ("default_incoming", "default_outgoing"):
 			if self.get(fn):
 				for email_account in frappe.get_all("Email Account",
@@ -51,6 +56,7 @@ class EmailAccount(Document):
 					email_account.save()
 
 	def check_smtp(self):
+		"""Checks SMTP settings."""
 		if self.enable_outgoing:
 			if not self.smtp_server:
 				frappe.throw(_("{0} is required").format("SMTP Server"))
@@ -64,6 +70,7 @@ class EmailAccount(Document):
 			server.sess
 
 	def get_pop3(self):
+		"""Returns logged in POP3 connection object."""
 		args = {
 			"host": self.pop3_server,
 			"use_ssl": self.use_ssl,
@@ -83,6 +90,7 @@ class EmailAccount(Document):
 		return pop3
 
 	def receive(self, test_mails=None):
+		"""Called by scheduler to receive emails from this EMail account using POP3."""
 		if self.enable_incoming:
 			if frappe.local.flags.in_test:
 				incoming_mails = test_mails
@@ -115,7 +123,18 @@ class EmailAccount(Document):
 				if self.enable_auto_reply:
 					self.send_auto_reply(communication)
 
+				# notify all participants of this thread
+				# convert content to HTML - by default text parts of replies are used.
+				communication.content = markdown2.markdown(communication.content)
+				communication.notify(communication.get_email(), except_sender = True)
+
 	def set_thread(self, communication, email):
+		"""Appends communication to parent based on thread ID. Will extract
+		parent communication and will link the communication to the reference of that
+		communication. Also set the status of parent transaction to Open or Replied.
+
+		If no thread id is found and `append_to` is set for the email account,
+		it will create a new parent transaction (e.g. Issue)"""
 		in_reply_to = (email.mail.get("In-Reply-To") or "").strip(" <>")
 		parent = None
 		if in_reply_to:
@@ -156,6 +175,7 @@ class EmailAccount(Document):
 			communication.reference_name = parent.name
 
 	def send_auto_reply(self, communication):
+		"""Send auto reply if set."""
 		if self.auto_reply_message:
 			frappe.sendmail(recipients = [communication.from_email],
 				sender = self.email_id,
@@ -166,6 +186,7 @@ class EmailAccount(Document):
 
 
 def pull():
+	"""Will be called via scheduler, pull emails from all enabled POP3 email accounts."""
 	import frappe.tasks
 	for email_account in frappe.get_list("Email Account", filters={"enable_incoming": 1}):
 		#frappe.tasks.pull_from_email_account.delay(frappe.local.site, email_account.name)

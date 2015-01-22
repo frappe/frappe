@@ -46,6 +46,15 @@ class Communication(Document):
 
 		:param print_html: Send given value as HTML attachment.
 		:param print_format: Attach print format of parent document."""
+
+		self.notify(self.get_email(print_html, print_format, attachments))
+
+	def get_email(self, print_html=None, print_format=None, attachments=None):
+		"""Make multipart MIME Email
+
+		:param print_html: Send given value as HTML attachment.
+		:param print_format: Attach print format of parent document."""
+
 		if print_format:
 			self.content += self.get_attach_link(print_format)
 
@@ -65,13 +74,14 @@ class Communication(Document):
 		if isinstance(attachments, basestring):
 			attachments = json.loads(attachments)
 
-		for a in attachments:
-			try:
-				mail.attach_file(a)
-			except IOError:
-				frappe.throw(_("Unable to find attachment {0}").format(a))
+		if attachments:
+			for a in attachments:
+				try:
+					mail.attach_file(a)
+				except IOError:
+					frappe.throw(_("Unable to find attachment {0}").format(a))
 
-		self.notify(mail)
+		return mail
 
 	def add_to_mail_queue(self, mail):
 		mail = frappe.get_doc({
@@ -83,24 +93,28 @@ class Communication(Document):
 			"ref_docname": self.reference_name
 		}).insert(ignore_permissions=True)
 
-	def notify(self, mail):
+	def notify(self, mail, except_sender=False):
 		for recipient in self.get_recipients():
+			if except_sender and recipient == self.sender:
+				continue
 			mail.recipients = [recipient]
 			self.add_to_mail_queue(mail)
 
 	def get_recipients(self):
 		# Earlier repliers
-		recipients = [d[0] for d in frappe.db.sql("""
+		recipients = frappe.db.sql_list("""
 			select distinct sender
 			from tabCommunication where
-			reference_doctype=%s and reference_name=%s""", (self.reference_doctype, self.reference_name))]
+			reference_doctype=%s and reference_name=%s""",
+				(self.reference_doctype, self.reference_name))
 
 		# Commentors
-		recipients += [d[0] for d in frappe.db.sql("""
+		recipients += frappe.db.sql_list("""
 			select distinct comment_by
 			from tabComment where
 			comment_doctype=%s and comment_docname=%s and
-			ifnull(unsubscribed, 0)=0 and comment_by!='Administrator'""", (self.reference_doctype, self.reference_name))]
+			ifnull(unsubscribed, 0)=0 and comment_by!='Administrator'""",
+				(self.reference_doctype, self.reference_name))
 
 		# Explicit recipients
 		recipients += [s.strip() for s in self.recipients.split(",")]
@@ -109,11 +123,9 @@ class Communication(Document):
 		assigned = frappe.db.get_value("ToDo", {"reference_type": self.reference_doctype,
 			"reference_name": self.reference_name, "status": "Open"}, "owner")
 		if assigned:
-			recipients += assigned
+			recipients.append(assigned)
 
 		recipients = filter(lambda e: e and e!="Administrator", list(set(recipients)))
-
-		print recipients
 
 		return recipients
 

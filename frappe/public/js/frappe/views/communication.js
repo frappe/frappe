@@ -31,19 +31,20 @@ frappe.views.CommunicationComposer = Class.extend({
 				{label:__("Sent or Received"), fieldtype:"Select",
 					options: ["Received", "Sent"],
 					fieldname:"sent_or_received"},
-				{label:__("Send"), fieldtype:"Button",
-					fieldname:"send"},
 				{label:__("Attach Document Print"), fieldtype:"Check",
 					fieldname:"attach_document_print"},
 				{label:__("Select Print Format"), fieldtype:"Select",
 					fieldname:"select_print_format"},
 				{label:__("Select Attachments"), fieldtype:"HTML",
 					fieldname:"select_attachments"}
-			]
+			],
+			primary_action_label: "Send",
+			primary_action: function() {
+				me.send_action();
+			}
 		});
 
 		this.dialog.$wrapper.find("[data-edit='outdent']").remove();
-		this.dialog.get_input("send").addClass("btn-primary");
 
 
 		$(document).on("upload_complete", function(event, attachment) {
@@ -215,39 +216,42 @@ frappe.views.CommunicationComposer = Class.extend({
 		$(fields.send_email.input).click(function() {
 			$(fields.communication_medium.wrapper).toggle(!!!$(this).prop("checked"));
 			$(fields.sent_or_received.wrapper).toggle(!!!$(this).prop("checked"));
-			$(fields.send.input).html($(this).prop("checked") ? "Send" : "Add Communication");
+			me.dialog.get_primary_btn().html($(this).prop("checked") ? "Send" : "Add Communication");
 		});
 
 		// select print format
 		$(fields.communication_medium.wrapper).toggle(false);
 		$(fields.sent_or_received.wrapper).toggle(false);
 
-		$(fields.send.input).click(function() {
-			var btn = this;
-			var form_values = me.dialog.get_values();
-			if(!form_values) return;
+	},
 
-			var selected_attachments = $.map($(me.dialog.wrapper)
-				.find("[data-file-name]:checked"), function(element) {
-					return $(element).attr("data-file-name");
-				})
+	send_action: function() {
+		var me = this,
+			form_values = me.dialog.get_values(),
+			btn = me.dialog.get_primary_btn();
 
-			if(form_values.attach_document_print) {
-				if (cur_frm.print_preview.is_old_style(form_values.select_print_format || "")) {
-					cur_frm.print_preview.with_old_style({
-						format: form_values.select_print_format,
-						callback: function(print_html) {
-							me.send_email(btn, form_values, selected_attachments, print_html);
-						}
-					});
-				} else {
-					me.send_email(btn, form_values, selected_attachments, null, form_values.select_print_format || "");
-				}
+		if(!form_values) return;
 
+		var selected_attachments = $.map($(me.dialog.wrapper)
+			.find("[data-file-name]:checked"), function(element) {
+				return $(element).attr("data-file-name");
+			})
+
+		if(form_values.attach_document_print) {
+			if (cur_frm.print_preview.is_old_style(form_values.select_print_format || "")) {
+				cur_frm.print_preview.with_old_style({
+					format: form_values.select_print_format,
+					callback: function(print_html) {
+						me.send_email(btn, form_values, selected_attachments, print_html);
+					}
+				});
 			} else {
-				me.send_email(btn, form_values, selected_attachments);
+				me.send_email(btn, form_values, selected_attachments, null, form_values.select_print_format || "");
 			}
-		});
+
+		} else {
+			me.send_email(btn, form_values, selected_attachments);
+		}
 	},
 
 	send_email: function(btn, form_values, selected_attachments, print_html, print_format) {
@@ -294,6 +298,8 @@ frappe.views.CommunicationComposer = Class.extend({
 						if (cur_frm.docname && (frappe.last_edited_communication[cur_frm.doctype] || {})[cur_frm.docname]) {
 							delete frappe.last_edited_communication[cur_frm.doctype][cur_frm.docname];
 						}
+						// clear input
+						cur_frm.comments.input.val("");
 						cur_frm.reload_doc();
 					}
 				} else {
@@ -313,7 +319,7 @@ frappe.views.CommunicationComposer = Class.extend({
 		}
 
 		if(this.txt) {
-			this.message = this.txt + "<br><br>" + (this.message || "");
+			this.message = this.txt + (this.message ? ("<br><br>" + this.message) : "");
 		}
 
 		if(this.real_name) {
@@ -322,14 +328,16 @@ frappe.views.CommunicationComposer = Class.extend({
 		}
 
 		var reply = (this.message || "")
-			+ "<p></p>"	+ signature;
+			+ (signature ? ("<br><br>" + signature) : "");
 
 		if(last_email) {
 			fields.content.set_input(reply
-				+ "<br><br>"
-				+"-----"+__("In response to")+"-----"
-				+"<p style='font-size: 11px; color: #888'>"+__("Please reply above this line or remove it if you are replying below it")+"</p><br><br>"
-				+ last_email.comment);
+				+ "<!-- original-reply --><br>"
+				+ '<blockquote>' +
+					'<p>' + __("On {0}, {1} wrote:",
+					[frappe.datetime.global_date_format(last_email.creation) , last_email.comment_by]) + '</p>' +
+					frappe.markdown(last_email.comment) +
+				'<blockquote>');
 		} else {
 			fields.content.set_input(reply);
 		}

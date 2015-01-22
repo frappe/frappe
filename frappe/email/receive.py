@@ -8,6 +8,7 @@ import frappe
 from frappe import _
 from frappe.utils import extract_email_id, convert_utc_to_user_timezone, now, cint
 from frappe.utils.scheduler import log
+from email_reply_parser import EmailReplyParser
 
 class EmailSizeExceededError(frappe.ValidationError): pass
 class EmailTimeoutError(frappe.ValidationError): pass
@@ -156,7 +157,9 @@ class Email:
 		import email, email.utils
 		import datetime
 
-		self.mail = email.message_from_string(content)
+
+		self.raw = content
+		self.mail = email.message_from_string(self.raw)
 
 		self.text_content = ''
 		self.html_content = ''
@@ -197,7 +200,7 @@ class Email:
 	def set_content_and_type(self):
 		self.content, self.content_type = '[Blank Email]', 'text/plain'
 		if self.text_content:
-			self.content, self.content_type = self.text_content + "\n\n\n<!-- markdown -->", 'text/plain'
+			self.content, self.content_type = EmailReplyParser.parse_reply(self.text_content)
 		else:
 			self.content, self.content_type = self.html_content, 'text/html'
 
@@ -215,10 +218,6 @@ class Email:
 
 		if part.get_filename():
 			self.get_attachment(part, charset)
-
-	def get_text_content(self):
-		"""Returns text or html content."""
-		return self.text_content or self.html_content
 
 	def get_charset(self, part):
 		"""Detect chartset."""

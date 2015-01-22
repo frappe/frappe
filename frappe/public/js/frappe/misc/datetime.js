@@ -89,7 +89,12 @@ $.extend(frappe.datetime, {
 	},
 
 	global_date_format: function(d) {
-		return moment(d).format('Do MMMM YYYY');
+		var m = moment(d);
+		if(m._f && m._f.indexOf("HH")!== -1) {
+			return m.format("Do MMMM YYYY, h:mma")
+		} else {
+			return m.format('Do MMMM YYYY');
+		}
 	},
 
 	get_today: function() {

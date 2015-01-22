@@ -19,7 +19,7 @@ frappe.ui.form.Comments = Class.extend({
 				if(me.wrapper.find(".is-email").prop("checked")) {
 					new frappe.views.CommunicationComposer({
 						doc: me.frm.doc,
-						txt: me.input.val(),
+						txt: frappe.markdown(me.input.val()),
 						frm: me.frm
 					})
 				} else {
@@ -28,8 +28,10 @@ frappe.ui.form.Comments = Class.extend({
 			});
 	},
 	refresh: function(scroll_to_end) {
-		var me = this,
-			last_type = "Comment";
+		var me = this;
+
+		this.last_type = "Comment";
+
 		if(this.frm.doc.__islocal) {
 			this.wrapper.toggle(false);
 			return;
@@ -45,11 +47,7 @@ frappe.ui.form.Comments = Class.extend({
 				if(c.comment) me.render_comment(c);
 		});
 
-		this.wrapper.find(".is-email").prop("checked", last_type==="Email");
-
-		// if(scroll_to_end) {
-		// 	scroll(0, $(this.frm.wrapper).find(".form-comments .btn-go").offset().top);
-		// }
+		this.wrapper.find(".is-email").prop("checked", this.last_type==="Email");
 		this.update_sidebar_comments();
 
 	},
@@ -88,7 +86,7 @@ frappe.ui.form.Comments = Class.extend({
 			});
 		} else {
 			if(c.comment_type=="Email") {
-				c.comment = c.comment.split("-----"+__("In response to")+"-----")[0];
+				c.comment = c.comment.split("<!-- original-reply -->")[0];
 				c.comment = frappe.utils.strip_original_content(c.comment);
 				c.comment = frappe.utils.remove_script_and_style(c.comment);
 			}
@@ -119,7 +117,7 @@ frappe.ui.form.Comments = Class.extend({
 			});
 
 		if(c.comment_type==="Email") {
-			last_type = c.comment_type;
+			this.last_type = c.comment_type;
 		}
 
 	},

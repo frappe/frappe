@@ -177,7 +177,7 @@
 		"public/js/frappe/form/footer/timeline_item.html",
 		"public/js/frappe/form/footer/footer.js",
 		"public/js/frappe/form/footer/attachments.js",
-		"public/js/frappe/form/footer/comments.js",
+		"public/js/frappe/form/footer/timeline.js",
 		"public/js/frappe/form/footer/assign_to.js"
 	],
 	"js/print_format_v3.min.js": [

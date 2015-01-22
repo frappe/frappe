@@ -184,18 +184,22 @@ class EMail:
 
 	def make(self):
 		"""build into msg_root"""
-		self.msg_root['Subject'] = self.subject.encode("utf-8")
-		self.msg_root['From'] = self.sender.encode("utf-8")
-		self.msg_root['To'] = ', '.join([r.strip() for r in self.recipients]).encode("utf-8")
-		self.msg_root['Date'] = email.utils.formatdate()
-		if not self.reply_to:
-			self.reply_to = self.sender
-		self.msg_root['Reply-To'] = self.reply_to.encode("utf-8")
-		if self.cc:
-			self.msg_root['CC'] = ', '.join([r.strip() for r in self.cc]).encode("utf-8")
 
-		# add frappe site header
-		self.msg_root.add_header(b'X-Frappe-Site', get_url().encode('utf-8'))
+		headers = {
+			"Subject":        self.subject.encode("utf-8"),
+			"From":           self.sender.encode("utf-8"),
+			"To":             ', '.join([r.strip() for r in self.recipients]).encode("utf-8"),
+			"Date":           email.utils.formatdate(),
+			"Reply-To":       self.reply_to.encode("utf-8") if self.reply_to else None,
+			"CC":             ', '.join([r.strip() for r in self.cc]).encode("utf-8") if self.cc else None,
+			b'X-Frappe-Site': get_url().encode('utf-8')
+		}
+
+		# reset headers as values may be changed.
+		for key, val in headers.iteritems():
+			if self.msg_root.has_key(key):
+				del self.msg_root[key]
+			self.msg_root[key] = val
 
 	def as_string(self):
 		"""validate, build message and convert to string"""

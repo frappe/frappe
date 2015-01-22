@@ -94,9 +94,7 @@
   padding: 15px 30px;
 }
 .timeline-item .reply {
-  margin-top: 20px;
-  padding-left: 24px;
-  border-left: 8px solid #d8dfe6;
+  margin-top: 5px;
 }
 .timeline-item h6,
 .timeline-head h6 {

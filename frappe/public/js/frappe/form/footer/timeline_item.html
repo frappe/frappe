@@ -12,16 +12,15 @@
 			{% if(data.doctype=="Communication" || data.comment_type=="Comment") { %}
                 <h6>
                     <i class="{%= data.icon %} icon-fixed-width"></i>
-                    {%= data.fullname %} <span class="text-muted" style="font-weight: normal;">
+                    {%= data.fullname %}
+                    <span class="text-muted" style="font-weight: normal;">
                         &dash; {%= data.comment_on %}</span>
+                    {% if(data.doctype=="Communication") { %} &dash;
+                    <a href="#Form/{%= data.doctype %}/{%= data.name %}"
+                        class="text-muted">{%= __("Details") %}</a>
+                    {% } %}
                 </h6>
 				<div class="reply">
-                    {% if(data.doctype=="Communication") { %}
-                    <h6>
-                        {%= data.subject %}
-                        <a href="#Form/{%= data.doctype %}/{%= data.name %}">{%= __("Details") %}</a>
-                    </h6>
-                    {% } %}
         			<div>
         				{%= data.comment_html %}
         			</div>
