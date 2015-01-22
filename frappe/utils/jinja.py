@@ -110,7 +110,7 @@ def set_filters(jenv):
 	jenv.filters["flt"] = flt
 
 	# load jenv_filters from hooks.py
-	for app in frappe.get_all_apps(True):
+	for app in frappe.get_installed_apps():
 		for jenv_filter in (frappe.get_hooks(app_name=app).jenv_filter or []):
 			filter_name, filter_function = jenv_filter.split(":")
 			jenv.filters[filter_name] = frappe.get_attr(filter_function)
