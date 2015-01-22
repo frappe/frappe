@@ -138,7 +138,7 @@ class DbTable:
 		fl = frappe.db.sql("SELECT * FROM tabDocField WHERE parent = %s", self.doctype, as_dict = 1)
 		precisions = {}
 
-		if not frappe.flags.in_install_app:
+		if not frappe.flags.in_install:
 			custom_fl = frappe.db.sql("""\
 				SELECT * FROM `tabCustom Field`
 				WHERE dt = %s AND docstatus < 2""", (self.doctype,), as_dict=1)

@@ -53,7 +53,7 @@ def has_permission(doc, user):
 
 def update_feed(doc, method=None):
 	"adds a new feed"
-	if frappe.flags.in_patch or frappe.flags.in_install_app or frappe.flags.in_import:
+	if frappe.flags.in_patch or frappe.flags.in_install or frappe.flags.in_import:
 		return
 
 	if doc.doctype == "Feed":

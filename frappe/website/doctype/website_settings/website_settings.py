@@ -16,7 +16,7 @@ class WebsiteSettings(Document):
 		self.validate_home_page()
 
 	def validate_home_page(self):
-		if frappe.flags.in_install_app:
+		if frappe.flags.in_install:
 			return
 		if self.home_page and not resolve_route(self.home_page):
 			frappe.throw(_("Invalid Home Page") + " (Standard pages - index, login, products, blog, about, contact)")

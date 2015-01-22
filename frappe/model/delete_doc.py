@@ -104,7 +104,7 @@ def delete_from_table(doctype, name, ignore_doctypes, doc):
 				and parent=%s""".format(field_doctype), doctype)
 
 		tables = get_table_fields("DocField")
-		if not frappe.flags.in_install_app=="frappe":
+		if not frappe.flags.in_install=="frappe":
 			tables += get_table_fields("Custom Field")
 
 	# delete from child tables
@@ -166,7 +166,7 @@ def delete_linked_todos(doc):
 def insert_feed(doc):
 	from frappe.utils import get_fullname
 
-	if frappe.flags.in_install_app or frappe.flags.in_import or doc.get("ignore_feed"):
+	if frappe.flags.in_install or frappe.flags.in_import or doc.get("ignore_feed"):
 		return
 
 	frappe.get_doc({

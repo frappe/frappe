@@ -6,7 +6,7 @@ import frappe
 
 @frappe.whitelist()
 def get_notifications():
-	if frappe.flags.in_install_app:
+	if frappe.flags.in_install:
 		return
 
 	config = get_notification_config()

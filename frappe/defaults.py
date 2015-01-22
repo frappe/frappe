@@ -184,7 +184,7 @@ def clear_cache(user=None):
 	to_clear = []
 	if user:
 		to_clear = [user]
-	elif frappe.flags.in_install_app!="frappe":
+	elif frappe.flags.in_install!="frappe":
 		try:
 			to_clear = frappe.db.sql_list("select name from tabUser")
 		except Exception, e:

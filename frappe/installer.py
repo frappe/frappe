@@ -88,7 +88,7 @@ def make_connection(root_login, root_password):
 	return frappe.database.Database(user=root_login, password=root_password)
 
 def install_app(name, verbose=False, set_as_patched=True):
-	frappe.flags.in_install_app = name
+	frappe.flags.in_install = name
 	frappe.clear_cache()
 
 	app_hooks = frappe.get_hooks(app_name=name)
@@ -124,7 +124,7 @@ def install_app(name, verbose=False, set_as_patched=True):
 	print "Installing Fixtures..."
 	sync_fixtures(name)
 
-	frappe.flags.in_install_app = False
+	frappe.flags.in_install = False
 
 def add_to_installed_apps(app_name, rebuild_website=True):
 	installed_apps = frappe.get_installed_apps()
