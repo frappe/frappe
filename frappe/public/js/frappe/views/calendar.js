@@ -207,7 +207,7 @@ frappe.views.Calendar = Class.extend({
 		if(this.field_map.end) {
 			if (args[this.field_map.allDay]) {
 				args[this.field_map.end] = frappe.datetime.get_datetime_as_string(event.start);
-			} else {
+			} else if (event.end) {
 				args[this.field_map.end] = frappe.datetime.get_datetime_as_string(event.end);
 			}
 		}

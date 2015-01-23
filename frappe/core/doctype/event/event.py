@@ -14,6 +14,11 @@ class Event(Document):
 	def validate(self):
 		if self.starts_on and self.ends_on and self.starts_on > self.ends_on:
 			frappe.msgprint(frappe._("Event end must be after start"), raise_exception=True)
+
+		if self.starts_on == self.ends_on:
+			# this scenario doesn't make sense i.e. it starts and ends at the same second!
+			self.ends_on = None
+
 		if self.starts_on and self.ends_on and int(date_diff(self.ends_on.split(" ")[0], self.starts_on.split(" ")[0])) > 0 \
 			and self.repeat_on == "Every Day":
 			frappe.msgprint(frappe._("Every day events should finish on the same day."), raise_exception=True)
