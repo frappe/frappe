@@ -1,15 +1,4 @@
-@font-face {
-  font-family: 'Noto Sans';
-  font-style: normal;
-  font-weight: 400;
-  src: local('Noto Sans'), local('NotoSans'), url({{ frappe.get_url("/assets/frappe/css/font/notosans-400.ttf") }}) format('truetype');
-}
-@font-face {
-  font-family: 'Noto Sans';
-  font-style: normal;
-  font-weight: 700;
-  src: local('Noto Sans Bold'), local('NotoSans-Bold'), url({{ frappe.get_url("/assets/frappe/css/font/notosans-700.ttf")}}) format('truetype');
-}
+{% include "public/css/font/noto_sans/noto_sans.css" %}
 
 @media screen {
 	.print-format-gutter {
