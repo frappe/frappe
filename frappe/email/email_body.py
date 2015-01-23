@@ -171,7 +171,8 @@ class EMail:
 			return email
 
 		if not self.sender:
-			self.sender = get_outgoing_email_account().email_id
+			email_account = get_outgoing_email_account()
+			self.sender = "{0} <{1}>".format(email_account.name, email_account.email_id)
 
 		self.sender = _validate(self.sender)
 		self.reply_to = _validate(self.reply_to)

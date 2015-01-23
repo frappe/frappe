@@ -225,3 +225,7 @@ def get_roles(user=None, with_standard=True):
 		roles = filter(lambda x: x not in ['All', 'Guest', 'Administrator'], roles)
 
 	return roles
+
+def get_enabled_system_users():
+	return frappe.db.sql("""select * from tabUser where
+		user_type='System User' and enabled=1 and name not in ('Administrator', 'Guest')""", as_dict=1)

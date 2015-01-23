@@ -268,7 +268,7 @@ def get_request_header(key, default=None):
 
 def sendmail(recipients=(), sender="", subject="No Subject", message="No Message",
 		as_markdown=False, bulk=False, ref_doctype=None, ref_docname=None,
-		add_unsubscribe_link=False, attachments=None, content=None, doctype=None, name=None):
+		add_unsubscribe_link=False, attachments=None, content=None, doctype=None, name=None, reply_to=None):
 	"""Send email using user's default **Email Account** or global default **Email Account**.
 
 
@@ -282,22 +282,24 @@ def sendmail(recipients=(), sender="", subject="No Subject", message="No Message
 	:param ref_docname: (or `name`) Append as communication to this document name.
 	:param add_unsubscribe_link: Allow user to unsubscribe from these emails.
 	:param attachments: List of attachments.
+	:param reply_to: Reply-To email id.
 	"""
 
 	if bulk:
 		import frappe.email.bulk
 		frappe.email.bulk.send(recipients=recipients, sender=sender,
 			subject=subject, message=content or message, ref_doctype = doctype or ref_doctype,
-			ref_docname = name or ref_docname, add_unsubscribe_link=add_unsubscribe_link, attachments=attachments)
+			ref_docname = name or ref_docname, add_unsubscribe_link=add_unsubscribe_link, attachments=attachments,
+			reply_to=reply_to)
 
 	else:
 		import frappe.email
 		if as_markdown:
 			frappe.email.sendmail_md(recipients, sender=sender,
-				subject=subject, msg=content or message, attachments=attachments)
+				subject=subject, msg=content or message, attachments=attachments, reply_to=reply_to)
 		else:
 			frappe.email.sendmail(recipients, sender=sender,
-				subject=subject, msg=content or message, attachments=attachments)
+				subject=subject, msg=content or message, attachments=attachments, reply_to=reply_to)
 
 logger = None
 whitelisted = []

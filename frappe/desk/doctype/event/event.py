@@ -5,8 +5,8 @@ from __future__ import unicode_literals
 import frappe
 
 from frappe.utils import getdate, cint, add_months, date_diff, add_days, nowdate
-from frappe.core.doctype.user.user import STANDARD_USERS
 from frappe.model.document import Document
+from frappe.utils.user import get_enabled_system_users
 
 weekdays = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
 
@@ -46,11 +46,7 @@ def has_permission(doc, user):
 
 def send_event_digest():
 	today = nowdate()
-	for user in frappe.db.sql("""select name, email, language
-		from tabUser where ifnull(enabled,0)=1
-		and user_type='System User' and name not in ({})""".format(", ".join(["%s"]*len(STANDARD_USERS))),
-		STANDARD_USERS, as_dict=1):
-
+	for user in get_enabled_system_users():
 		events = get_events(today, today, user.name, for_reminder=True)
 		if events:
 			text = ""

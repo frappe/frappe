@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe.desk.notifications import delete_notification_count_for
 from frappe.core.doctype.user.user import STANDARD_USERS
+from frappe.utils.user import get_enabled_system_users
 from frappe.utils import cint
 
 @frappe.whitelist()
@@ -83,9 +84,7 @@ def post(txt, contact, parenttype=None, notify=False, subject=None):
 
 	if notify and cint(notify):
 		if contact==frappe.session.user:
-			_notify([user.name for user in frappe.get_list("User",
-				{"user_type":"System User", "enabled": 1}) \
-					if user.name not in ("Guest", "Administrator")], txt)
+			_notify([user.name for user in get_enabled_system_users()], txt)
 		else:
 			_notify(contact, txt, subject)
 

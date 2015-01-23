@@ -22,7 +22,7 @@
   }, 
   {
    "fieldname": "message", 
-   "fieldtype": "Long Text", 
+   "fieldtype": "Code", 
    "in_list_view": 0, 
    "label": "Message", 
    "permlevel": 0
@@ -64,7 +64,7 @@
  "icon": "icon-envelope", 
  "idx": 1, 
  "in_create": 1, 
- "modified": "2015-01-21 14:41:14.336182", 
+ "modified": "2015-01-23 04:32:39.175147", 
  "modified_by": "Administrator", 
  "module": "Email", 
  "name": "Bulk Email", 
