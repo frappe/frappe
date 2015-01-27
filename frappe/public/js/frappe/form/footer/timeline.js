@@ -48,7 +48,7 @@ frappe.ui.form.Comments = Class.extend({
 		});
 
 		this.wrapper.find(".is-email").prop("checked", this.last_type==="Email");
-		this.update_sidebar_comments();
+		this.frm.sidebar.refresh_comments();
 
 	},
 	render_comment: function(c) {
@@ -163,12 +163,6 @@ frappe.ui.form.Comments = Class.extend({
 		if(!c.icon_fg)
 			c.icon_fg = "#fff";
 
-	},
-	update_sidebar_comments: function() {
-		var comments = $.map(this.get_comments(), function(c) {
-			return (c.comment_type==="Email" || c.comment_type==="Comment") ? c : null;
-		});
-		this.frm.sidebar.wrapper.find(".n-comments").html(comments.length);
 	},
 	get_comments: function() {
 		return this.frm.get_docinfo().comments;

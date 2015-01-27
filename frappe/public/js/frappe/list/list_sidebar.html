@@ -1,20 +1,13 @@
-<div class="list-sidebar hidden-xs">
-    <div class="sidebar-section">
-        <ul class="user-actions list-unstyled hide">
-        </ul>
-        <ul class="standard-actions list-unstyled">
-            <li>
-                <a href="#Report/{%= doctype %}">{%= __("Report") %}</a></li>
-            <li class="hide calendar-link">
-                <a href="#Calendar/{%= doctype %}">{%= __("Calendar") %}</a></li>
-            <li class="hide gantt-link">
-                <a href="#Gantt/{%= doctype %}">{%= __("Gantt") %}</a></li>
-            <li>
-                <a onclick="cur_list.assigned_to_me()">{%= __("Assigned To Me") %}</a></li>
-            <li>
-                <a onclick="cur_list.starred_by_me()">{%= __("Starred By Me") %}</a></li>
-        </ul>
-    </div>
-    <div class="sidebar-section">
-    </div>
-</div>
+<ul class="list-unstyled sidebar-menu user-actions hide">
+	<li class="divider"></li>
+</ul>
+<ul class="list-unstyled sidebar-menu standard-actions">
+	<li class="divider"></li>
+    <li><a href="#Report/{%= doctype %}">{%= __("Report") %}</a></li>
+    <li class="hide calendar-link"><a href="#Calendar/{%= doctype %}">{%= __("Calendar") %}</a></li>
+    <li class="hide gantt-link"><a href="#Gantt/{%= doctype %}">{%= __("Gantt") %}</a></li>
+    <li><a onclick="cur_list.assigned_to_me()">{%= __("Assigned To Me") %}</a></li>
+    <li><a onclick="cur_list.starred_by_me()">{%= __("Starred By Me") %}</a></li>
+</ul>
+
+

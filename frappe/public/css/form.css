@@ -40,32 +40,6 @@
 .field_description_top {
   margin-bottom: 3px;
 }
-.sidebar-section li {
-  margin-top: 5px;
-  font-size: 12px;
-}
-.sidebar-section {
-  margin-top: 25px;
-}
-.sidebar-section:last-child {
-  margin-bottom: 20px;
-}
-.sidebar-section h6 {
-  text-transform: uppercase;
-  color: #8d99a6;
-  font-size: 10px;
-  margin-bottom: 4px;
-}
-.sidebar-section .close {
-  font-size: 18px;
-  margin-bottom: -2px;
-}
-.sidebar-section h6 .label {
-  font-size: 12px;
-}
-.sidebar-section.sidebar-comments {
-  cursor: pointer;
-}
 .user-actions {
   margin-bottom: 15px;
 }

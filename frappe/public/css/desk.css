@@ -1,3 +1,12 @@
+.underline {
+  color: inherit;
+  border-bottom: 1px solid transparent;
+  margin-bottom: 0.4em;
+}
+.underline-hover {
+  border-bottom: 1px solid #212a33;
+  color: #212a33;
+}
 html {
   min-height: 100%;
   position: relative;
@@ -7,18 +16,9 @@ body {
   margin: 0px;
 }
 html,
-body,
-.desk-container {
+body {
   overflow-x: hidden;
   /* Prevent scroll on narrow devices */
-}
-.desk-container {
-  position: absolute;
-  width: 100%;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
 }
 .desk-main-section {
   width: 100%;
@@ -56,6 +56,9 @@ a.grey:hover,
 .data-row a:hover {
   border-bottom: 1px solid #212a33;
   color: #212a33;
+}
+.text-color {
+  color: #36414c !important;
 }
 .text-muted {
   color: #8d99a6 !important;
@@ -322,4 +325,9 @@ kbd {
 }
 .dropdown-menu .divider {
   margin: 0px;
+}
+a.badge-hover:hover .badge,
+a.badge-hover:focus .badge,
+a.badge-hover:active .badge {
+  background-color: #D8DFE5;
 }

@@ -1,0 +1,9 @@
+.underline {
+  color: inherit;
+  border-bottom: 1px solid transparent;
+  margin-bottom: 0.4em;
+}
+.underline-hover {
+  border-bottom: 1px solid #212a33;
+  color: #212a33;
+}

@@ -5,7 +5,7 @@
 frappe.ui.toolbar.Toolbar = Class.extend({
 	init: function() {
 		var header = $('header').append(frappe.render_template("navbar", {}));
-		var sidebar = $('.offcanvas .sidebar-left').append(frappe.render_template("left_sidebar", {}));
+		var sidebar = $('.offcanvas .sidebar-left').append(frappe.render_template("offcanvas_left_sidebar", {}));
 
 		header.find(".toggle-sidebar").on("click", function() {
 			$(".offcanvas").toggleClass("active-left").removeClass("active-right");
@@ -74,7 +74,7 @@ frappe.ui.toolbar.update_notifications = function() {
 	$.each(modules, function(i, module) {
 		var count = frappe.boot.notification_info.open_count_module[module];
 		if(count) {
-			var notification_row = repl('<li><a data-module="%(data_module)s">\
+			var notification_row = repl('<li><a class="badge-hover" data-module="%(data_module)s">\
 				<span class="badge pull-right">\
 					%(count)s</span> \
 				%(module)s </a></li>', {
@@ -100,7 +100,7 @@ frappe.ui.toolbar.update_notifications = function() {
 	$.each(doctypes, function(i, doctype) {
 		var count = frappe.boot.notification_info.open_count_doctype[doctype];
 		if(count) {
-			var notification_row = repl('<li><a data-doctype="%(data_doctype)s">\
+			var notification_row = repl('<li><a class="badge-hover" data-doctype="%(data_doctype)s">\
 				<span class="badge pull-right">\
 					%(count)s</span> \
 				%(doctype)s </a></li>', {

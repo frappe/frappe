@@ -41,7 +41,7 @@
   background-color: #ff5858;
   color: #fff;
   text-align: center;
-  padding: 1px 5px;
+  padding: 2px 5px;
 }
 #navbar-search {
   width: 300px;
@@ -56,14 +56,6 @@
 }
 .navbar .badge {
   font-weight: normal;
-}
-#sidebar-notification > li > a:hover .badge,
-#navbar-notification > li > a:hover .badge,
-#sidebar-notification > li > a:focus .badge,
-#navbar-notification > li > a:focus .badge,
-#sidebar-notification > li > a:active .badge,
-#navbar-notification > li > a:active .badge {
-  background-color: #D8DFE5;
 }
 #navbar-search-results {
   left: auto;

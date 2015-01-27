@@ -403,10 +403,11 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		this.sidebar_stats = new frappe.views.ListSidebar({
 			doctype: this.doctype,
 			stats: this.listview.stats,
-			parent: $('<div>').appendTo(this.$page.find('.layout-side-section')),
+			parent: this.$page.find('.layout-side-section'),
 			set_filter: function(fieldname, label) {
 				me.set_filter(fieldname, label);
 			},
+			page: this.page,
 			doclistview: this
 		})
 	},

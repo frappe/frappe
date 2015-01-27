@@ -87,8 +87,8 @@ frappe.views.Container = Class.extend({
 
 		var divider = function() {
 			$('<li class="breadcrumb-divider">\
-				<i class="icon-chevron-right hidden-xs"></i>\
-				<i class="icon-chevron-left visible-xs"></i>\
+				<i class="icon-chevron-right hidden-xs hidden-sm"></i>\
+				<i class="icon-chevron-left visible-xs visible-sm"></i>\
 			</li>').appendTo($breadcrumbs);
 		}
 

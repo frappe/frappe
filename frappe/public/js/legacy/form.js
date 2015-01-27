@@ -90,10 +90,8 @@ _f.Frm.prototype.setup = function() {
 
 	this.sidebar = new frappe.ui.form.Sidebar({
 		frm: this,
-		parent: this.page.sidebar
+		page: this.page
 	});
-
-	this.page.sidebar = this.sidebar;
 
 	this.toolbar = new frappe.ui.form.Toolbar({
 		frm: this,

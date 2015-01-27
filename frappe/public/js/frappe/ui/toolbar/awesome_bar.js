@@ -18,7 +18,7 @@ frappe.ui.toolbar.Search = frappe.ui.toolbar.SelectorDialog.extend({
 
 frappe.search = {
 	setup: function() {
-		$("#navbar-search, #sidebar-search").autocomplete({
+		var opts = {
 			minLength: 0,
 			source: function(request, response) {
 				var txt = strip(request.term);
@@ -53,7 +53,9 @@ frappe.search = {
 				$(this).val('');
 				return false;
 			}
-		}).data('ui-autocomplete')._renderItem = function(ul, d) {
+		};
+
+		var render_item = function(ul, d) {
 			var html = "<span>" + __(d.value) + "</span>";
 			if(d.description && d.value!==d.description) {
 				html += '<br><span class="text-muted">' + __(d.description) + '</span>';
@@ -63,6 +65,9 @@ frappe.search = {
 				.html('<a><p>' + html + '</p></a>')
 				.appendTo(ul);
 		};
+
+		$("#navbar-search").autocomplete(opts).data('ui-autocomplete')._renderItem = render_item;
+		$("#sidebar-search").autocomplete(opts).data('ui-autocomplete')._renderItem = render_item;
 
 		frappe.search.make_page_title_map();
 	},

@@ -6,9 +6,17 @@
 			<span class="octicon octicon-search navbar-search-icon"></span>
 		</div>
 	</form>
-	<ul class="sidebar-menu">
+	<ul class="list-unstyled sidebar-menu">
 		<li class="divider"></li>
-		<li><a href="#" class="strong">{%= __("All Applications") %}</a></li>
+		<li><a href="#" class="all-applications strong">{%= __("All Applications") %}</a></li>
+	</ul>
+	<div class="form-sidebar" style="display: none">
+
+	</div>
+	<div class="list-sidebar" style="display: none">
+
+	</div>
+	<ul class="desk-sidebar list-unstyled sidebar-menu" style="display: none">
 		<li class="divider"></li>
 		<li><a href="#" onclick="return frappe.ui.toolbar.show_about();">
 			{%= __("About") %}</a></li>

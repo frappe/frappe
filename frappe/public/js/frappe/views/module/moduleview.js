@@ -96,7 +96,7 @@ frappe.views.moduleview.ModuleView = Class.extend({
 	},
 
 	make_title: function(name) {
-		this.page_title = this.page.wrapper.find(".page-title").addClass("hidden-xs");
+		this.page_title = this.page.wrapper.find(".page-title").addClass("hidden-xs hidden-sm");
 		this.page.wrapper.find(".mobile-title, .mobile-module-icon").remove();
 
 		$(frappe.render_template("module_title", {

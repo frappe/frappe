@@ -10,11 +10,11 @@ frappe.ui.form.Attachments = Class.extend({
 	},
 	make: function() {
 		var me = this;
-		this.$list = this.parent.find(".attachment-list");
-
 		this.parent.find(".add-attachment").click(function() {
 			me.new_attachment();
 		});
+		this.add_attachment_wrapper = this.parent.find(".add_attachment").parent();
+		this.attachments_label = this.parent.find(".attachments-label");
 	},
 	max_reached: function() {
 		// no of attachments
@@ -27,24 +27,23 @@ frappe.ui.form.Attachments = Class.extend({
 		return true;
 	},
 	refresh: function() {
-		var doc = this.frm.doc;
-		if(doc.__islocal) {
+		var me = this;
+
+		if(this.frm.doc.__islocal) {
 			this.parent.toggle(false);
 			return;
 		}
 		this.parent.toggle(true);
-		this.parent.find(".btn").toggle(!this.max_reached());
+		this.parent.find(".attachment-row").remove();
 
-		this.$list.empty();
-
-		var attachments = this.get_attachments();
-		var that = this;
-
+		var max_reached = this.max_reached();
+		this.add_attachment_wrapper.toggleClass("hide", !max_reached);
 
 		// add attachment objects
+		var attachments = this.get_attachments();
 		if(attachments.length) {
 			attachments.forEach(function(attachment) {
-				that.add_attachment(attachment)
+				me.add_attachment(attachment)
 			});
 		}
 
@@ -63,15 +62,16 @@ frappe.ui.form.Attachments = Class.extend({
 		}
 
 		var me = this;
-		var $attach = $(repl('<div class="text-ellipsis">\
-				<a href="#" class="close">&times;</a>\
-				<a class="h6" href="%(file_url)s" style="margin-top: 0px;"\
-					target="_blank" title="%(file_name)s">%(file_name)s</a>\
-			</div>', {
+		var $attach = $(repl('<li class="attachment-row">\
+				<a class="close" data-owner="%(owner)s">&times;</a>\
+				<a href="%(file_url)s" target="_blank" title="%(file_name)s" \
+					class="text-ellipsis" style="width: calc(100% - 43px);">\
+					<span>%(file_name)s</span></a>\
+			</li>', {
 				file_name: file_name,
 				file_url: file_url
 			}))
-			.appendTo(this.$list)
+			.insertAfter(this.attachments_label)
 
 		var $close =
 			$attach.find(".close")

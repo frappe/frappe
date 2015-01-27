@@ -1,7 +1,7 @@
 @import "variables.less";
 
-@media(max-width: 767px) {
-	.layout-main > div[class^="col-sm-"],
+@media(max-width: 991px) {
+	// .layout-main > div[class^="col-md-"],
 	.form-section {
 		padding-left: 0px;
 		padding-right: 0px;
@@ -9,11 +9,6 @@
 
 	.module-sidebar-nav {
 		margin-right: 0px;
-	}
-
-	.list-sidebar {
-		padding-left: 15px;
-		padding-right: 15px;
 	}
 
 	.layout-main-section {
@@ -83,7 +78,7 @@
 	}
 
 	.navbar .breadcrumb-divider {
-		margin-top: 2px !important;
+		margin-top: 12px !important;
 		margin-right: 3px;
 	}
 
@@ -95,6 +90,10 @@
 	#navbar-breadcrumbs > li {
 		display: inline-block;
 		vertical-align: middle;
+	}
+
+	#navbar-breadcrumbs > li > a {
+		padding: 10px 0px 0px;
 	}
 
 	// select all except last 2
@@ -116,30 +115,33 @@
 	.page-head,
 	.sidebar-right,
 	.sidebar-left,
-	.navbar-fixed-top {
+	.navbar-fixed-top,
+	.desk-main-section-overlay {
 		transition: 0.25s;
 	}
 
-	.offcanvas,
-	.desk-main-section-overlay {
+	.offcanvas {
 		position: absolute;
 		left: 0;
 		right: 0;
 		top: 0;
 		bottom: 0;
-		overflow-y: auto;
-		overflow-x: hidden;
+	}
+
+	.desk-main-section-overlay {
+		bottom: 0;
+		position: fixed;
 	}
 
 	.offcanvas.active-left .desk-main-section-overlay,
 	.offcanvas.active-right .desk-main-section-overlay {
-		display: block;
-		background-color: @modal-backdrop-bg;
-		opacity: 0.5;
 		z-index: 1031;
+		display: block;
+		bottom: 0;
 	}
 
 	.offcanvas.active-left,
+	.offcanvas.active-left .desk-main-section-overlay,
 	.offcanvas.active-left .page-head,
 	.offcanvas.active-left .navbar-fixed-top {
 		left: 75%; /* 9 columns */
@@ -147,6 +149,7 @@
 	}
 
 	.offcanvas.active-right,
+	.offcanvas.active-right .desk-main-section-overlay,
 	.offcanvas.active-right .page-head,
 	.offcanvas.active-right .navbar-fixed-top {
 		right: 75%; /* 9 columns */
@@ -182,32 +185,8 @@
 		right: 0;
 	}
 
-	.offcanvas .sidebar ul {
-		list-style: outside none none;
-		padding-left: 0px;
-		margin-top: -1px;
-	}
-
-	.offcanvas .sidebar-menu li > a {
-		padding: 12px 14px;
-		display: block;
-		clear: both;
-		whitespace: nowrap;
-		transition: 0.2s;
-	}
-
-	.offcanvas .sidebar li > a& {
-		&:hover,
-		&:focus,
-		&:active {
-			background-color: @btn-bg;
-		}
-	}
-
-	.sidebar .divider {
-	    height: 1px;
-	    overflow: hidden;
-	    background-color: @navbar-default-border;
+	.offcanvas .sidebar-menu {
+		margin-bottom: 0;
 	}
 
 	.sidebar .form-group {
@@ -259,4 +238,5 @@
 	.sidebar .user-menu img {
 		margin-top: -1px;
 	}
+
 }
