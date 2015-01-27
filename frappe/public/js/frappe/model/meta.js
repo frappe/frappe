@@ -7,6 +7,10 @@ frappe.provide('frappe.meta.docfield_list');
 frappe.provide('frappe.meta.doctypes');
 frappe.provide("frappe.meta.precision_map");
 
+frappe.get_meta = function(doctype) {
+	return locals["DocType"][doctype];
+}
+
 $.extend(frappe.meta, {
 	sync: function(doc) {
 		$.each(doc.fields, function(i, df) {

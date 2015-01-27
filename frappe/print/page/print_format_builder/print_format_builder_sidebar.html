@@ -1,0 +1,14 @@
+<div class="panel-bg" style="padding: 10px; margin-right: -30px;">
+    <input type="text" class="form-control input-sm filter-fields" name="filter-fields"
+        placeholder="{%= __("Filter...") %}">
+</div>
+<div class="print-format-builder-fields">
+    {% for (var i=0, l=fields.length; i < l; i++) { var f = fields[i]; %}
+        {% if(!in_list(frappe.model.no_value_types, f.fieldtype)) { %}
+        <div class="print-format-builder-field text-ellipsis">
+            <span class="label label-primary field-label"
+                style="cursor: grab;">{%= f.label %}</span>
+        </div>
+        {% } %}
+    {% } %}
+</div>

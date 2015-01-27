@@ -1,0 +1,19 @@
+<div class="padding">
+    {% for(var i=0; i < data.length; i++) { var section = data[i]; %}
+        <div class="print-format-builder-section row panel-bg">
+            {% for(var j=0; j < section.columns.length; j++) {
+                var column = section.columns[j]; %}
+            <div class="col-md-{%= 12 / section.no_of_columns %}">
+                <div class="print-format-builder-column">
+                    {% for(var k=0; k < column.fields.length; k++) {
+                        var field = column.fields[k]; %}
+                    <div class="print-format-builder-field">
+                        <span class="label label-primary">{%= field.label %}<span>
+                    </div>
+                    {% } %}
+                </div>
+            </div>
+            {% } %}
+        </div>
+    {% } %}
+</div>

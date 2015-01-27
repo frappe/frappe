@@ -15,7 +15,7 @@ from frappe.utils.jinja import render_include
 ######
 
 def get_meta(doctype, cached=True):
-	if cached:
+	if cached and not frappe.conf.developer_mode:
 		meta = frappe.cache().get_value("form_meta:" + doctype, lambda: FormMeta(doctype))
 	else:
 		meta = FormMeta(doctype)

@@ -17,12 +17,13 @@ class PrintFormat(Document):
 		self.old_doc_type = frappe.db.get_value('Print Format',
 				self.name, 'doc_type')
 
-		jenv = frappe.get_jenv()
-		try:
-			jenv.from_string(self.html)
-		except TemplateSyntaxError, e:
-			frappe.msgprint('Line {}: {}'.format(e.lineno, e.message))
-			frappe.throw(frappe._("Syntax error in Jinja template"))
+		if self.html:
+			jenv = frappe.get_jenv()
+			try:
+				jenv.from_string(self.html)
+			except TemplateSyntaxError, e:
+				frappe.msgprint('Line {}: {}'.format(e.lineno, e.message))
+				frappe.throw(frappe._("Syntax error in Jinja template"))
 
 	def on_update(self):
 		if hasattr(self, 'old_doc_type') and self.old_doc_type:
