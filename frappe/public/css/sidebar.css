@@ -90,11 +90,12 @@ body[data-route^="List"] .main-menu .form-sidebar {
   margin-top: 2px;
   margin-bottom: -1px;
 }
-.form-sidebar .assignment-row a.close,
+.form-sidebar a.close {
+  position: absolute;
+  right: 15px;
+}
 .form-sidebar .attachment-row a.close {
-  position: relative;
-  right: 5px;
-  top: 0px;
+  margin-top: -5px;
 }
 .sidebar-left .form-sidebar .form-tags,
 .sidebar-left .form-sidebar .assignment-row,
@@ -110,20 +111,15 @@ body[data-route^="List"] .main-menu .form-sidebar {
   padding-bottom: 0px;
   margin-bottom: 0px;
 }
-.sidebar-left .form-sidebar .assignment-row a.close {
-  top: -10px;
-  right: -10px;
+.sidebar-left .form-sidebar a.close {
+  right: 5px;
 }
-.layout-side-section .form-sidebar .attachment-row a.close {
-  top: -4px;
+.sidebar-left .form-sidebar .assignment-row a.close {
+  margin-top: -12px;
 }
 .layout-side-section .form-sidebar .modified-by,
 .layout-side-section .form-sidebar .created-by {
   margin: 30px 0px;
-}
-.layout-side-section .form-sidebar .assignment-row a.close,
-.layout-side-section .form-sidebar .attachment-row a.close {
-  padding: 0px !important;
 }
 .layout-side-section .list-sidebar {
   margin-top: -15px;

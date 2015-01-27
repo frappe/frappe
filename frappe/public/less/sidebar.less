@@ -114,11 +114,13 @@ body[data-route^="List"] .main-menu {
 		}
 	}
 
-	.assignment-row a.close,
+	a.close {
+		position: absolute;
+		right: 15px;
+	}
+
 	.attachment-row a.close {
-		position: relative;
-		right: 5px;
-		top: 0px;
+		margin-top: -5px;
 	}
 }
 
@@ -139,25 +141,19 @@ body[data-route^="List"] .main-menu {
 		margin-bottom: 0px;
 	}
 
+	a.close {
+		right: 5px;
+	}
+
 	.assignment-row a.close {
-		top: -10px;
-		right: -10px;
+		margin-top: -12px;
 	}
 }
 
 .layout-side-section .form-sidebar {
-	.attachment-row a.close {
-		top: -4px;
-	}
-
 	.modified-by,
 	.created-by {
 		margin: 30px 0px;
-	}
-
-	.assignment-row a.close,
-	.attachment-row a.close {
-		padding: 0px !important;
 	}
 }
 
