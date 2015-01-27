@@ -88,7 +88,8 @@ frappe.ui.form.ControlHTML = frappe.ui.form.Control.extend({
 		this.$wrapper.on("refresh", function() {
 			var content = me.get_content();
 			if(content) me.$wrapper.html(content);
-		})
+			return false;
+		});
 	},
 	get_content: function() {
 		return this.df.options || "";

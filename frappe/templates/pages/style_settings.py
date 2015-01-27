@@ -14,9 +14,7 @@ default_properties = {
 	"page_text": "000000",
 	"page_header_background": "263248",
 	"page_header_color": "ffffff",
-	"font_size": "14px",
-	"google_web_font_for_heading": "Noto Sans",
-	"google_web_font_for_text": "Noto Sans"
+	"font_size": "14px"
 }
 
 
