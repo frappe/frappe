@@ -78,6 +78,9 @@ frappe.ui.FieldGroup = frappe.ui.form.Layout.extend({
 			f.set_input(val);
 		}
 	},
+	set_input: function(key, val) {
+		return this.set_value(key, val);
+	},
 	set_values: function(dict) {
 		for(var key in dict) {
 			if(this.fields_dict[key]) {

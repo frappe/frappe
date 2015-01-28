@@ -4,10 +4,13 @@
 </div>
 <div class="print-format-builder-fields">
     {% for (var i=0, l=fields.length; i < l; i++) { var f = fields[i]; %}
-        {% if(!in_list(frappe.model.no_value_types, f.fieldtype)) { %}
-        <div class="print-format-builder-field text-ellipsis">
-            <span class="label label-primary field-label"
-                style="cursor: grab;">{%= f.label %}</span>
+        {% if(!in_list(["Section Break", "Column Break", "Fold"], f.fieldtype)) { %}
+        <div class="print-format-builder-field-placeholder text-ellipsis"
+            data-fieldname="{%= f.fieldname %}">
+            <span class="label label-default"
+                style="cursor: grab; display: inline-block">
+                {%= f.label %}
+            </span>
         </div>
         {% } %}
     {% } %}

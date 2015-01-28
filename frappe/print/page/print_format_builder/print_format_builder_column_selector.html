@@ -1,0 +1,15 @@
+<p class="text-muted">{%= __("Check columns to select, drag to set order.") %}</p>
+<div class="column-selector-list">
+    {% for (i=0; i < fields.length; i++) { var f = fields[i]; %}
+        {% if(!in_list(["Section Break", "Column Break"]) && f.label) { %}
+        <div class="checkbox">
+            <label>
+                <input type="checkbox"
+                    data-fieldname="{%= f.fieldname %}"
+                    {% if(in_list(columns, f.fieldname)) { %}checked{% } %}>
+                        {%= f.label %}
+            </label>
+        </div>
+        {% } %}
+    {% } %}
+</div>

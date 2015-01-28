@@ -1,0 +1,13 @@
+<div class="print-format-builder-field"
+    data-fieldname="{%= field.fieldname %}"
+    data-label="{%= field.label %}"
+    {% if(field.fieldtype==="Table") { %}
+        data-columns="{%= me.visible_columns[field.options].join(",") %}"
+        data-doctype="{%= field.options %}"
+    {% } %}>
+    <span>{%= field.label %}</span>
+    {% if(field.fieldtype==="Table") { %}
+    <span> ({%= __("Table") %})</span>
+    <a class="pull-right select-columns btn btn-default btn-xs">Select Columns</a>
+    {% } %}
+</div>

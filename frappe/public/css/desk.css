@@ -231,6 +231,9 @@ ul.linked-with-list li {
 .panel-bg {
   background-color: #f7fafc;
 }
+.light-bg {
+  background-color: #fafbfc;
+}
 .modal-backdrop {
   opacity: 0.5;
   position: fixed;

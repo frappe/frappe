@@ -36,9 +36,10 @@ class PrintFormat(Document):
 	def export_doc(self):
 		# export
 		if self.standard == 'Yes' and (frappe.conf.get('developer_mode') or 0) == 1:
+			module = frappe.db.get_value("DocType", self.doc_type, "module")
 			from frappe.modules.export_file import export_to_files
 			export_to_files(record_list=[['Print Format', self.name]],
-				record_module=self.module)
+				record_module= module)
 
 	def on_trash(self):
 		if self.doc_type:

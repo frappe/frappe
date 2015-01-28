@@ -1,7 +1,12 @@
-.print-format-builder-section {
+.print-format-builder-section, .print-format-builder-add-section {
 	border: 1px dashed #d1d8dd;
 	margin: 0px;
 	margin-bottom: 15px;
+}
+.print-format-builder-add-section {
+	text-align: center;
+	padding: 15px;
+	cursor: pointer;
 }
 
 .print-format-builder-column {
@@ -9,12 +14,36 @@
 	padding: 15px;
 	margin: 15px 0px;
 	background-color: white;
+	min-height: 64px;
 }
 
 .print-format-builder-field {
+	padding: 5px;
+	border: 1px solid #d1d8dd;
+	border-radius: 3px;
 	margin-bottom: 10px;
+	height: 34px;
 }
 
 .print-format-builder-field:last-child {
 	margin-bottom: 0px;
+}
+
+.print-format-builder-field-placeholder {
+	margin-bottom: 10px;
+}
+
+.print-format-builder-field-placeholder:last-child {
+	margin-bottom: 0px;
+}
+
+.print-format-builder-column .print-format-builder-field {
+	cursor: move;
+}
+
+
+.print-format-builder-section-head {
+	cursor: move;
+	padding: 10px 15px;
+	border-bottom: 1px dashed #d1d8dd;
 }
