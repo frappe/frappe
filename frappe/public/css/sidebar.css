@@ -7,6 +7,9 @@
   border-bottom: 1px solid #212a33;
   color: #212a33;
 }
+.hide-form-sidebar .form-sidebar {
+  display: none !important;
+}
 body[data-route=""] .main-menu .desk-sidebar,
 body[data-route="desk"] .main-menu .desk-sidebar {
   display: block !important;
@@ -21,24 +24,30 @@ body[data-route^="List"] .main-menu .list-sidebar {
 body[data-route^="List"] .main-menu .form-sidebar {
   display: none !important;
 }
+body[data-route^="Module"] .main-menu .module-sidebar {
+  display: block !important;
+}
+body[data-route^="Module"] .main-menu .form-sidebar {
+  display: none !important;
+}
 .sidebar-padding {
   padding: 12px 14px;
 }
-.sidebar-left .sidebar-menu > li > a {
+.offcanvas .sidebar .sidebar-menu > li > a {
   padding: 12px 14px;
   display: block;
   whitespace: nowrap;
   transition: 0.2s;
 }
-.sidebar-left .divider {
+.offcanvas .sidebar .divider {
   height: 1px;
   overflow: hidden;
   background-color: #ebeff2;
   width: 100%;
 }
-.sidebar-left .sidebar-menu > li > a:hover,
-.sidebar-left .sidebar-menu > li > a:focus,
-.sidebar-left .sidebar-menu > li > a:active {
+.offcanvas .sidebar .sidebar-menu > li > a:hover,
+.offcanvas .sidebar .sidebar-menu > li > a:focus,
+.offcanvas .sidebar .sidebar-menu > li > a:active {
   background-color: #f0f4f7;
 }
 .layout-side-section {
@@ -65,6 +74,7 @@ body[data-route^="List"] .main-menu .form-sidebar {
 .sidebar-menu .badge {
   position: absolute;
   right: 15px;
+  font-weight: normal;
 }
 .sidebar-menu .octicon {
   font-size: 12px;
@@ -143,4 +153,7 @@ a.close:active,
 .list-sidebar .list-tag-preview:focus,
 a.close:focus {
   border-color: transparent !important;
+}
+.layout-side-section .module-sidebar-nav {
+  margin-top: 15px;
 }

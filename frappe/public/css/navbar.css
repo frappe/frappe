@@ -65,3 +65,8 @@
   overflow-y: auto;
   overflow-x: hidden;
 }
+.navbar-center {
+  float: left;
+  font-weight: bold;
+  color: #6c7680;
+}

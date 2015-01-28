@@ -3,9 +3,6 @@
     padding-left: 0px;
     padding-right: 0px;
   }
-  .module-sidebar-nav {
-    margin-right: 0px;
-  }
   .layout-main-section {
     border-left: none;
     border-right: none;
@@ -77,10 +74,6 @@
   }
   .navbar-nav {
     margin: 0px;
-  }
-  .mobile-module-icon {
-    padding: 17px 15px 0px;
-    margin-bottom: -15px;
   }
   .offcanvas,
   .page-head,
@@ -192,5 +185,10 @@
   }
   .sidebar .user-menu img {
     margin-top: -1px;
+  }
+  body[data-route^="Module"] .navbar-center {
+    display: block !important;
+    position: absolute;
+    top: 10px;
   }
 }

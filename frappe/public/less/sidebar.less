@@ -1,15 +1,19 @@
 @import "variables.less";
 @import "mixins.less";
 
+.hide-form-sidebar {
+	.form-sidebar {
+		display: none !important;
+	}
+}
+
 body[data-route=""] .main-menu,
 body[data-route="desk"] .main-menu {
 	.desk-sidebar {
 		display: block !important;
 	}
 
-	.form-sidebar {
-		display: none !important;
-	}
+	.hide-form-sidebar;
 }
 
 body[data-route^="List"] .main-menu {
@@ -17,16 +21,22 @@ body[data-route^="List"] .main-menu {
 		display: block !important;
 	}
 
-	.form-sidebar {
-		display: none !important;
+	.hide-form-sidebar;
+}
+
+body[data-route^="Module"] .main-menu {
+	.module-sidebar {
+		display: block !important;
 	}
+
+	.hide-form-sidebar;
 }
 
 .sidebar-padding {
 	padding: 12px 14px;
 }
 
-.sidebar-left {
+.offcanvas .sidebar {
 	.sidebar-menu > li > a {
 		.sidebar-padding;
 		display: block;
@@ -42,7 +52,7 @@ body[data-route^="List"] .main-menu {
 	}
 }
 
-.sidebar-left .sidebar-menu > li > a& {
+.offcanvas .sidebar .sidebar-menu > li > a& {
 	&:hover,
 	&:focus,
 	&:active {
@@ -79,6 +89,7 @@ body[data-route^="List"] .main-menu {
 	.badge {
 		position: absolute;
 		right: 15px;
+		font-weight: normal;
 	}
 
 	.octicon {
@@ -187,4 +198,9 @@ a.close {
 	&:focus {
 		border-color: transparent !important;
 	}
+}
+
+// module sidebar
+.layout-side-section .module-sidebar-nav {
+	margin-top: 15px;
 }

@@ -57,10 +57,12 @@ frappe.get_module = function(m) {
 frappe.views.moduleview.ModuleView = Class.extend({
 	init: function(module) {
 		this.module = module;
-		this.module_info = frappe.get_module(module);
+		this.module_info = frappe.get_module(module) || {};
+		this.module_label = __(this.module_info.label || this.module);
 		this.sections = {};
 		this.current_section = null;
 		this.make();
+		$(".navbar-center").html(this.module_label);
 	},
 
 	make: function() {
@@ -76,8 +78,6 @@ frappe.views.moduleview.ModuleView = Class.extend({
 				frappe.views.moduleview[me.module] = me.parent;
 				me.page = me.parent.page;
 				me.parent.moduleview = me;
-				me.page.set_title(__(frappe.modules[me.module]
-					&& frappe.modules[me.module].label || me.module));
 				me.render();
 			}
 		});
@@ -95,22 +95,18 @@ frappe.views.moduleview.ModuleView = Class.extend({
 		this.activate(this.data.data[0].label);
 	},
 
-	make_title: function(name) {
-		this.page_title = this.page.wrapper.find(".page-title").addClass("hidden-xs hidden-sm");
-		this.page.wrapper.find(".mobile-title, .mobile-module-icon").remove();
-
-		$(frappe.render_template("module_title", {
-			title: this.page_title.find("h1").html(),
-			section_name: name,
-			data: this.data
-		})).insertAfter(this.page_title);
-	},
-
 	make_sidebar: function(name) {
 		var me = this;
-		$(frappe.render_template("module_sidebar", {data:this.data})).appendTo(this.page.sidebar);
+		var sidebar_content = frappe.render_template("module_sidebar", {data:this.data});
+		var module_sidebar = $(sidebar_content)
+			.addClass("nav nav-pills nav-stacked")
+			.appendTo(this.page.sidebar.addClass("hidden-xs hidden-sm"));
+		var offcanvas_module_sidebar = $(sidebar_content)
+			.addClass("list-unstyled sidebar-menu")
+			.appendTo($(".sidebar-left .module-sidebar"));
 
-		this.page.wrapper.on("click", ".module-link", function() {
+		this.sidebar = offcanvas_module_sidebar.add(module_sidebar);
+		this.sidebar.on("click", ".module-link", function() {
 			me.activate($(this).parent().attr("data-label"));
 		});
 	},
@@ -131,15 +127,18 @@ frappe.views.moduleview.ModuleView = Class.extend({
 				});
 			});
 		}
+
+		// set title
+		this.page.set_title(repl('<span class="hidden-xs hidden-sm">%(module)s</span>\
+			<span class="hidden-md hidden-lg">%(section)s</span>',
+			{module: this.module_label, section: name}));
+
 		this.current_section = this.sections[name];
 		this.current_section.removeClass("hide");
 
 		// active
-		this.page.sidebar.find("li.active").removeClass("active");
-		this.page.sidebar.find('[data-label="'+ name +'"]').addClass("active");
-
-		// make mobile title
-		this.make_title(name);
+		this.sidebar.find("li.active").removeClass("active");
+		this.sidebar.find('[data-label="'+ name +'"]').addClass("active");
 
 		frappe.app.update_notification_count_in_modules();
 	},
