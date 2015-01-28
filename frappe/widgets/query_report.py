@@ -69,7 +69,7 @@ def run(report_name, filters=()):
 		frappe.msgprint(_("Must have report permission to access this report."),
 			raise_exception=True)
 
-	columns, results = [], []
+	columns, result = [], []
 	if report.report_type=="Query Report":
 		if not report.query:
 			frappe.msgprint(_("Must specify a Query to run"), raise_exception=True)
