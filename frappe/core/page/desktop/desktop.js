@@ -28,17 +28,23 @@ frappe.pages['desktop'].refresh = function(wrapper) {
 frappe.desktop.refresh = function() {
 	frappe.desktop.render();
 
-	if (!('ontouchstart' in window)) {
-		new Sortable($("#icon-grid").get(0), {
-			onUpdate: function(event) {
-				new_order = [];
-				$("#icon-grid .case-wrapper").each(function(i, e) {
-					new_order.push($(this).attr("data-name"));
-				});
-				frappe.defaults.set_default("_desktop_items", new_order);
-			}
-		});
+	frappe.desktop.make_sortable();
+}
+
+frappe.desktop.make_sortable = function() {
+	if ('ontouchstart' in window) {
+		return;
 	}
+
+	new Sortable($("#icon-grid").get(0), {
+		onUpdate: function(event) {
+			new_order = [];
+			$("#icon-grid .case-wrapper").each(function(i, e) {
+				new_order.push($(this).attr("data-name"));
+			});
+			frappe.defaults.set_default("_desktop_items", new_order);
+		}
+	});
 }
 
 frappe.desktop.render = function() {

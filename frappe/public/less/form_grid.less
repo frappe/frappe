@@ -13,7 +13,6 @@
 }
 
 .grid-row {
-	padding: 10px 15px;
 	border-bottom: 1px solid @border-color;
 	transition: 0.2s;
 	-webkit-transition: 0.2s;
@@ -33,6 +32,10 @@
 
 .grid-body {
 	background-color: #fff;
+}
+
+.form-grid .data-row {
+	padding: 10px 15px;
 }
 
 .grid-body .data-row {
@@ -74,10 +77,27 @@
 }
 
 .form-in-grid {
-	margin: -10px -15px;
+	background-color: white;
 	z-index: 1021;
 	position: relative;
-	background-color: white;
+	overflow: hidden;
+	max-height: 0;
+
+	transform: scale3d(0.9, 0, 1) translate3d(0, -30px, 0);
+	-webkit-transform: scale3d(0.9, 0, 1) translate3d(0, -30px, 0);
+
+	transform-origin: top;
+	-webkit-transform-origin: top;
+
+	transition: all 0.2s ease;
+	-webkit-transition: all 0.2s ease;
+}
+
+.grid-row-open .form-in-grid {
+	max-height: 1200px;
+
+	transform: scale3d(1, 1, 1) translate3d(0, 0, 0);
+	-webkit-transform: scale3d(1, 1, 1) translate3d(0, 0, 0);
 }
 
 .grid-form-heading {

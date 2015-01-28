@@ -127,6 +127,10 @@ frappe.ui.form.Grid = Class.extend({
 	},
 	make_sortable: function($rows) {
 		var me =this;
+		if ('ontouchstart' in window) {
+			return;
+		}
+
 		new Sortable($rows.get(0), {
 			handle: ".sortable-handle",
 			onUpdate: function(event, ui) {
@@ -405,8 +409,6 @@ frappe.ui.form.GridRow = Class.extend({
 			}
 		}
 
-		this.wrapper.toggleClass("grid-row-open", show);
-
 		if(show) {
 			this.show_form();
 		} else {
@@ -418,12 +420,12 @@ frappe.ui.form.GridRow = Class.extend({
 	},
 	show_form: function() {
 		if(!this.form_panel) {
-			this.form_panel = $('<div class="form-in-grid" style="display: none;"></div>')
+			this.form_panel = $('<div class="form-in-grid"></div>')
 				.appendTo(this.wrapper);
 		}
 		this.render_form();
 		this.row.toggle(false);
-		this.form_panel.toggle(true);
+		// this.form_panel.toggle(true);
 		frappe.dom.freeze();
 		if(this.frm.doc.docstatus===0) {
 			var first = this.form_area.find(":input:first");
@@ -436,14 +438,16 @@ frappe.ui.form.GridRow = Class.extend({
 			}
 		}
 		cur_frm.cur_grid = this;
+		this.wrapper.addClass("grid-row-open");
 	},
 	hide_form: function() {
-		if(this.form_panel)
-			this.form_panel.toggle(false);
+		// if(this.form_panel)
+		// 	this.form_panel.toggle(false);
 		frappe.dom.unfreeze();
 		this.row.toggle(true);
 		this.make_static_display();
 		cur_frm.cur_grid = null;
+		this.wrapper.removeClass("grid-row-open");
 	},
 	open_prev: function() {
 		if(this.grid.grid_rows[this.doc.idx-2]) {
