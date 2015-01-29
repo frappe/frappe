@@ -148,7 +148,7 @@ frappe.views.CommunicationComposer = Class.extend({
 			}
 		}
 
-		this.dialog.onshow = function() {
+		this.dialog.on_page_show = function() {
 			if (cur_frm && cur_frm.docname && !me.txt &&
 				(frappe.last_edited_communication[cur_frm.doctype] || {})[cur_frm.docname]) {
 

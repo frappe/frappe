@@ -19,11 +19,10 @@ frappe.ui.FieldGroup = frappe.ui.form.Layout.extend({
 			this.refresh();
 			// set default
 			$.each(this.fields_list, function(i, f) {
-				if(f.df["default"]) f.set_input(f.df["default"]);
+				if(f.df["default"])
+					f.set_input(f.df["default"]);
 			})
 			if(!this.no_submit_on_enter) {
-				$(this.body).find("[data-fieldtype='Button']").filter(":first")
-					.removeClass("btn-default").addClass("btn-primary");
 				this.catch_enter_as_submit();
 			}
 		}
@@ -33,8 +32,10 @@ frappe.ui.FieldGroup = frappe.ui.form.Layout.extend({
 		var me = this;
 		$(this.body).find('input[type="text"], input[type="password"]').keypress(function(e) {
 			if(e.which==13) {
-				e.preventDefault();
-				$(me.body).find('.btn-primary:first').click();
+				if(this.has_primary_action) {
+					e.preventDefault();
+					this.get_primary_btn().trigger("click");
+				}
 			}
 		});
 	},

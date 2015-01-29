@@ -78,20 +78,18 @@ frappe.views.Page = Class.extend({
 			frappe.dom.set_style(this.pagedoc.style || '');
 		}
 
-		this.trigger('onload');
+		this.trigger_page_event('on_page_load');
 
 		// set events
-		$(this.wrapper).bind('show', function() {
+		$(this.wrapper).on('show', function() {
 			cur_frm = null;
-			me.trigger('onshow');
-			me.trigger('refresh');
+			me.trigger_page_event('on_page_show');
+			me.trigger_page_event('refresh');
 		});
 	},
-	trigger: function(eventname) {
+	trigger_page_event: function(eventname) {
 		var me = this;
-		if(pscript[eventname+'_'+this.name]) {
-			pscript[eventname+'_'+this.name](me.wrapper);
-		} else if(me.wrapper[eventname]) {
+		if(me.wrapper[eventname]) {
 			me.wrapper[eventname](me.wrapper);
 		}
 	}

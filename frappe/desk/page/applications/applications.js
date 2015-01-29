@@ -1,6 +1,6 @@
 frappe.provide("frappe.applications");
 
-frappe.pages['applications'].onload = function(parent) {
+frappe.pages['applications'].on_page_load = function(parent) {
 	frappe.applications.installer = new frappe.applications.Installer(parent);
 };
 

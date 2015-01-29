@@ -84,7 +84,7 @@ $.extend(_p, {
 			);
 		});
 
-		dialog.onshow = function() {
+		dialog.on_page_show = function() {
 			var $print = dialog.fields_dict.print_format.$input;
 			$print.empty().add_options(cur_frm.print_preview.print_formats);
 

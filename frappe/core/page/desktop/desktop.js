@@ -1,6 +1,6 @@
 frappe.provide('frappe.desktop');
 
-frappe.pages['desktop'].onload = function(wrapper) {
+frappe.pages['desktop'].on_page_load = function(wrapper) {
 	frappe.desktop.background = $('<div style="background: none; text-align: center; \
 			margin: 0px auto;">	\
 			<div id="icon-grid">\

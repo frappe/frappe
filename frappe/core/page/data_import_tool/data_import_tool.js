@@ -122,10 +122,10 @@ frappe.DataImportTool = Class.extend({
 	}
 });
 
-frappe.pages['data-import-tool'].onload = function(wrapper) {
+frappe.pages['data-import-tool'].on_page_load = function(wrapper) {
 	frappe.data_import_tool = new frappe.DataImportTool(wrapper);
 }
 
-frappe.pages['data-import-tool'].onshow = function(wrapper) {
+frappe.pages['data-import-tool'].on_page_show = function(wrapper) {
 	frappe.data_import_tool && frappe.data_import_tool.set_route_options();
 }

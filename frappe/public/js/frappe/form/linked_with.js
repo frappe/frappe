@@ -44,7 +44,7 @@ frappe.ui.form.LinkedWith = Class.extend({
 			return;
 		}
 
-		this.dialog.onshow = function() {
+		this.dialog.on_page_show = function() {
 			me.dialog.fields_dict.list.$wrapper.html('<div class="text-muted text-center">'
 				+ __("Loading") + '...</div>');
 

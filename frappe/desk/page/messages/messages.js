@@ -6,7 +6,7 @@
 
 frappe.provide('frappe.desk.pages.messages');
 
-frappe.pages.messages.onload = function(parent) {
+frappe.pages.messages.on_page_load = function(parent) {
 	var page = frappe.ui.make_app_page({
 		parent: parent,
 	});

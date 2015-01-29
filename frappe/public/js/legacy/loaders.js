@@ -32,7 +32,6 @@ function new_doc(doctype, in_form) {
 }
 var newdoc = new_doc;
 
-var pscript={};
 function loadpage(page_name, call_back, no_history) {
 	frappe.set_route(page_name);
 }

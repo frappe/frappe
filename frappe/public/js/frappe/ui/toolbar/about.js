@@ -18,7 +18,7 @@ frappe.ui.misc.about = function() {
 
 		frappe.ui.misc.about_dialog = d;
 
-		frappe.ui.misc.about_dialog.onshow = function() {
+		frappe.ui.misc.about_dialog.on_page_show = function() {
 			if(!frappe.versions) {
 				frappe.call({
 					method: "frappe.get_versions",

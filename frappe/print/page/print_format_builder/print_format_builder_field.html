@@ -1,13 +1,23 @@
 <div class="print-format-builder-field"
     data-fieldname="{%= field.fieldname %}"
     data-label="{%= field.label %}"
+    data-fieldtype="{%= field.fieldtype %}"
     {% if(field.fieldtype==="Table") { %}
-        data-columns="{%= me.visible_columns[field.options].join(",") %}"
+        data-columns="{%= me.get_visible_columns_string(field) %}"
         data-doctype="{%= field.options %}"
     {% } %}>
-    <span>{%= field.label %}</span>
-    {% if(field.fieldtype==="Table") { %}
-    <span> ({%= __("Table") %})</span>
-    <a class="pull-right select-columns btn btn-default btn-xs">Select Columns</a>
+    {% if(field.fieldtype==="Custom HTML") { %}
+        <div class="text-right">
+            <a class="edit-html btn btn-default btn-xs">
+                {%= __("Edit HTML") %}</a>
+        </div>
+        <div class="html-content">{%= field.options || me.get_no_content() %}</div>
+    {% } else { %}
+        <span>{%= field.label %}</span>
+        {% if(field.fieldtype==="Table") { %}
+            <span> ({%= __("Table") %})</span>
+            <a class="pull-right select-columns btn btn-default btn-xs">
+                {%= __("Select Columns") %}</a>
+        {% } %}
     {% } %}
 </div>

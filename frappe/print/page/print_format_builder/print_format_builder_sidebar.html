@@ -1,4 +1,4 @@
-<div class="panel-bg" style="padding: 10px; margin-right: -30px;">
+<div class="panel-bg" style="padding: 10px; margin-right: -15px; margin-bottom: 10px;">
     <input type="text" class="form-control input-sm filter-fields" name="filter-fields"
         placeholder="{%= __("Filter...") %}">
 </div>
@@ -7,7 +7,8 @@
         {% if(!in_list(["Section Break", "Column Break", "Fold"], f.fieldtype)) { %}
         <div class="print-format-builder-field-placeholder text-ellipsis"
             data-fieldname="{%= f.fieldname %}">
-            <span class="label label-default"
+            <span class="btn btn-xs
+                {%= (f.fieldtype==="Custom HTML") ? "btn-info" : "btn-default" %}"
                 style="cursor: grab; display: inline-block">
                 {%= f.label %}
             </span>

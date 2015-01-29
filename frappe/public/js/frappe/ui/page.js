@@ -108,6 +108,7 @@ frappe.ui.Page = Class.extend({
 			label = this.get_icon_label(icon, label);
 		}
 
+		this.clear_primary_action();
 		this.btn_primary.removeClass("hide").prop("disabled", false).html(label).on("click", click);
 	},
 
@@ -120,7 +121,7 @@ frappe.ui.Page = Class.extend({
 	},
 
 	clear_primary_action: function() {
-		this.btn_primary.addClass("hide");
+		this.btn_primary.addClass("hide").unbind("click");
 	},
 
 	clear_actions: function() {

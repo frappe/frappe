@@ -21,7 +21,7 @@ frappe.ui.form.on("Print Format", "edit_format", function(frm) {
 		return;
 	}
 	frappe.route_options = {
-		print_format: frm.doc
+		print_format: frm
 	};
 	frappe.set_route("print-format-builder");
 });

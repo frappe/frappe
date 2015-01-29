@@ -7,10 +7,6 @@ frappe.provide('frappe.utils');
 frappe.provide('frappe.model');
 frappe.provide('frappe.user');
 frappe.provide('frappe.session');
-frappe.provide('_f');
-frappe.provide('_p');
-frappe.provide('_r');
-frappe.provide('_startup_data')
 frappe.provide('locals')
 frappe.provide('locals.DocType')
 
@@ -29,8 +25,6 @@ var user_fullname=null;
 var user_email=null;
 var user_img = {};
 
-var pscript = {};
-
 // Name Spaces
 // ============
 
@@ -43,4 +37,3 @@ var FILTER_SEP = '\1';
 // API globals
 var frms={};
 var cur_frm=null;
-var pscript = {};

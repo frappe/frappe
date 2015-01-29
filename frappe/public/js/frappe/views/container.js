@@ -20,16 +20,12 @@ frappe.views.Container = Class.extend({
 			$("body").attr("data-route", frappe.get_route_str());
 		});
 	},
-	add_page: function(label, onshow, onhide) {
+	add_page: function(label) {
 		var page = $('<div class="content page-container"></div>')
 			.attr('id', "page-" + label)
 			.attr("data-page-route", label)
 			.toggle(false)
 			.appendTo(this.container).get(0);
-		if(onshow)
-			$(page).bind('show', onshow);
-		if(onshow)
-			$(page).bind('hide', onhide);
 		page.label = label;
 		frappe.pages[label] = page;
 

@@ -207,6 +207,9 @@ _f.Frm.prototype.set_value = function(field, value, if_missing) {
 					frappe.model.set_value(me.doctype, me.doc.name, f, v);
 				}
 			}
+		} else {
+			msgprint("Field " + f + " not found.");
+			throw "frm.set_value";
 		}
 	}
 

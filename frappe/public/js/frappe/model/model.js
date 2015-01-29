@@ -243,11 +243,13 @@ $.extend(frappe.model, {
 		if(doc && doc[fieldname] !== value) {
 			doc[fieldname] = value;
 			frappe.model.trigger(fieldname, value, doc);
+			setTimeout(function() { console.log(doc[fieldname]) }, 100);
 			return true;
 		} else {
 			// execute link triggers (want to reselect to execute triggers)
-			if(fieldtype=="Link")
+			if(fieldtype=="Link") {
 				frappe.model.trigger(fieldname, value, doc);
+			}
 		}
 	},
 

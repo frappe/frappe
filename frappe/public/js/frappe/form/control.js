@@ -303,10 +303,15 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 			.attr("data-fieldtype", this.df.fieldtype)
 			.attr("data-fieldname", this.df.fieldname)
 			.attr("placeholder", this.df.placeholder || "")
-		if(this.doctype)
+		if(this.doctype) {
 			this.$input.attr("data-doctype", this.doctype);
-		if(this.df.input_css)
+		}
+		if(this.df.input_css) {
 			this.$input.css(this.df.input_css);
+		}
+		if(this.df.input_class) {
+			this.$input.addClass(this.df.input_class);
+		}
 	},
 	set_input: function(val) {
 		this.$input && this.$input.val(this.format_for_input(val));

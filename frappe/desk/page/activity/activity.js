@@ -3,7 +3,7 @@
 
 frappe.provide("frappe.activity");
 
-frappe.pages['activity'].onload = function(wrapper) {
+frappe.pages['activity'].on_page_load = function(wrapper) {
 	var me = this;
 
 	frappe.require('assets/frappe/js/lib/flot/jquery.flot.js');

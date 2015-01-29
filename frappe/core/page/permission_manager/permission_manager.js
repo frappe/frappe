@@ -1,4 +1,4 @@
-frappe.pages['permission-manager'].onload = function(wrapper) {
+frappe.pages['permission-manager'].on_page_load = function(wrapper) {
 	var page = frappe.ui.make_app_page({
 		parent: wrapper,
 		title: __('Role Permissions Manager'),

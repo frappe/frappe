@@ -56,16 +56,20 @@ frappe.ui.Dialog = frappe.ui.FieldGroup.extend({
 						console.log("Dialog: unable to focus on first input: " + e);
 					}
 				}
-				me.onshow && me.onshow();
+				me.on_page_show && me.on_page_show();
 			})
 
 
 	},
 	get_primary_btn: function() {
-		return this.$wrapper.find(".modal-header .btn-primary").removeClass("hide");
+		return this.$wrapper.find(".modal-header .btn-primary");
 	},
 	set_primary_action: function(label, click) {
-		return this.get_primary_btn().html(label).click(click);
+		this.has_primary_action = true;
+		return this.get_primary_btn()
+			.removeClass("hide")
+			.html(label)
+			.click(click);
 	},
 	make_head: function() {
 		var me = this;
