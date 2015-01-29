@@ -3,6 +3,17 @@
         var col = columns[i]; total_cols += parseInt(col.colspan); %}
         {% if (total_cols <= 12) { %}
         <div class="col-sm-{%= col.colspan %} list-col text-ellipsis h6 text-muted
+            {% if(col.type==="Subject") {
+				if (right_column) { %}
+					col-xs-9
+				{% } else { %}
+					col-xs-12
+				{% } %}
+			{% } else if(right_column && col.fieldname===right_column) { %}
+				col-xs-3
+			{% } else { %}
+				hidden-xs
+			{% } %}
 			{% if(col.df && ["Int", "Float", "Currency", "Percent"].indexOf(col.df.fieldtype)!==-1) { %}text-right{% } %}">
             <span class="list-value">{%= col.title || col.label || "" %}</span>
         </div>

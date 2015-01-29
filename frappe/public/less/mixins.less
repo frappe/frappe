@@ -1,12 +1,38 @@
 @import "variables.less";
 
-.underline {
+.underline() {
 	color: inherit;
 	border-bottom: 1px solid transparent;
 	margin-bottom: 0.4em;
 }
 
-.underline-hover {
+.underline-hover() {
 	border-bottom: 1px solid @grey-link-color;
 	color: @grey-link-color;
+}
+
+.breadcrumb-divider() {
+	font-family: FontAwesome;
+	font-weight: normal;
+	font-style: normal;
+	text-decoration: inherit;
+	-webkit-font-smoothing: antialiased;
+	*margin-right: .3em;
+	display: inline-block;
+	speak: none;
+	color: @breadcrumb-divider-color;
+	font-size: 14px;
+	transition: 0.2s;
+	position: relative;
+	top: 1px;
+}
+
+.breadcrumb-divider-left() {
+	content: "\f053" !important;
+	margin-right: 5px !important;
+}
+
+.breadcrumb-divider-right() {
+	content: "\f054";
+	margin-right: 15px;
 }

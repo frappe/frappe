@@ -89,9 +89,10 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 	},
 
 	init_headers: function() {
-		var main = frappe.render_template("list_item_main_head", {columns: this.listview.columns});
-		$(frappe.render_template("list_item_row_head",
-			{main:main, list:this})).appendTo(this.page.main.find(".list-headers"));
+		var main = frappe.render_template("list_item_main_head",
+			{ columns: this.listview.columns, right_column: this.listview.settings.right_column });
+		$(frappe.render_template("list_item_row_head",{ main:main, list:this }))
+			.appendTo(this.page.main.find(".list-headers"));
 	},
 
 	init_listview: function() {

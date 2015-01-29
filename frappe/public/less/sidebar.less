@@ -50,6 +50,10 @@ body[data-route^="Module"] .main-menu {
 	    background-color: @navbar-default-border;
 		width: 100%;
 	}
+
+	.badge {
+		right: 15px !important;
+	}
 }
 
 .offcanvas .sidebar .sidebar-menu > li > a& {
@@ -62,6 +66,8 @@ body[data-route^="Module"] .main-menu {
 
 .layout-side-section {
 	font-size: @text-medium;
+
+	padding-right: 0px;
 
 	.divider {
 		display: none !important;
@@ -88,8 +94,8 @@ body[data-route^="Module"] .main-menu {
 .sidebar-menu {
 	.badge {
 		position: absolute;
-		right: 15px;
 		font-weight: normal;
+		right: 0px;
 	}
 
 	.octicon {
@@ -127,7 +133,7 @@ body[data-route^="Module"] .main-menu {
 
 	a.close {
 		position: absolute;
-		right: 15px;
+		right: 5px;
 	}
 
 	.attachment-row a.close {

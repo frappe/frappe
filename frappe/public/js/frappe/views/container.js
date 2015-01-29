@@ -81,13 +81,6 @@ frappe.views.Container = Class.extend({
 		var $breadcrumbs = $("#navbar-breadcrumbs").empty();
 		if(!breadcrumbs) return;
 
-		var divider = function() {
-			$('<li class="breadcrumb-divider">\
-				<i class="icon-chevron-right hidden-xs hidden-sm"></i>\
-				<i class="icon-chevron-left visible-xs visible-sm"></i>\
-			</li>').appendTo($breadcrumbs);
-		}
-
 		if(breadcrumbs.module && breadcrumbs.module != "Desk") {
 			if(in_list(["Core", "Email", "Custom", "Workflow"], breadcrumbs.module))
 				breadcrumbs.module = "Setup";
@@ -96,17 +89,16 @@ frappe.views.Container = Class.extend({
 				label = module_info ? module_info.label : breadcrumbs.module;
 
 			if(module_info) {
-				divider();
-				// if(icon) {
-				// 	icon = '<span class="'+icon+' text-muted"></span> '
-				// }
-				$('<li><a href="#Module/'+ breadcrumbs.module +'">' + __(label) +'</a></li>').appendTo($breadcrumbs);
+				$(repl('<li><a href="#Module/%(module)s">%(label)s</a></li>',
+					{ module: breadcrumbs.module, label: __(label) }))
+					.appendTo($breadcrumbs);
 			}
 
 		}
 		if(breadcrumbs.doctype) {
-			divider();
-			$('<li><a href="#List/'+ breadcrumbs.doctype +'">'+ __(breadcrumbs.doctype) +'</a></li>').appendTo($breadcrumbs);
+			$(repl('<li><a href="#List/%(doctype)s">%(label)s</a></li>',
+				{doctype: breadcrumbs.doctype, label: __(breadcrumbs.doctype)}))
+				.appendTo($breadcrumbs);
 		}
 	}
 });

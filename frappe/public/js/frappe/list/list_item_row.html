@@ -1,27 +1,33 @@
 <div class="row doclist-row">
-    <div class="{% if (list.meta.title_field) { %}
-            col-sm-8 col-xs-7
+    <div class="{% if(right_column) { %} col-xs-12 {% } else { %} col-xs-10 {% } %}
+		{% if (list.meta.title_field) { %}
+            col-sm-8
         {% } else { %}
-            col-sm-10 col-xs-9
+            col-sm-10
         {% } %} list-row-left">
         <!-- title + columns -->
         {%= main %}
     </div>
 
     <!-- id -->
-    {% if (list.meta.title_field) { %}
-    <div class="list-col col-sm-2 col-xs-3 text-right text-ellipsis rtl list-row-id">
+    {% if (list.meta.title_field) {
+		var is_different = data.name !== data[list.meta.title_field];
+	%}
+    <div class="list-col col-sm-2 col-xs-10 text-right text-ellipsis rtl list-row-id
+		{% if (!is_different) { %} hidden-xs {% } %}">
+		{% if (is_different) { %}
         <a class="text-muted list-value" href="#Form/{%= data._doctype_encoded %}/{%= data._name_encoded %}">
             {%= data.name %}</a>
+		{% } %}
     </div>
     {% } %}
 
     <!-- comment -->
-    <div class="list-col col-sm-2 col-xs-3 text-right list-row-right">
-		<div class="visible-xs pull-right">{%= list.get_indicator_dot(data) %}</div>
-		<div class="pull-right">
-            <span class="text-muted" style="margin-right: 10px;">
-                {%= comment_when(data.modified, true) %}</span>
+    <div class="list-col col-sm-2 col-xs-2
+		{% if(!right_column) { %} no-right-column {% } %}
+		text-right list-row-right">
+		<div class="visible-xs pull-right list-row-indicator">{%= list.get_indicator_dot(data) %}</div>
+		<div class="hidden-xs pull-right">
 	        {% if (data._assign_list.length) { %}
 	    		<span class="filterable"
 	                data-filter="_assign,like,%{%= data._assign_list[data._assign_list.length - 1] %}%">
@@ -33,6 +39,10 @@
 	    		<i class="octicon octicon-comment-discussion"></i>
 	                {%= data._comments_list.length || 0 %}
 	        </span>
+		</div>
+		<div class="pull-right list-row-modified">
+            <span class="text-muted" style="margin-right: 10px;">
+                {%= comment_when(data.modified, true) %}</span>
 		</div>
     </div>
 </div>

@@ -1,4 +1,5 @@
 @import "variables.less";
+@import "mixins.less";
 
 @media(max-width: 767px) {
 	.layout-main-section-wrapper {
@@ -9,15 +10,10 @@
 		padding-left: 0px !important;
 		padding-right: 0px !important;
 	}
-}
 
-@media(max-width: 991px) {
 	.layout-main-section {
-		border-color: transparent !important;
-	}
-
-	.form-intro-area {
-		padding: 15px 0px;
+		border-left-color: transparent !important;
+		border-right-color: transparent !important;
 	}
 
 	.form-grid {
@@ -28,35 +24,80 @@
 		border-radius: none;
 	}
 
+	// listviews
+	.doclist-row {
+		position: relative;
+		padding-right: 10px;
+
+		.list-row-id {
+			left: 40px;
+			text-align: left;
+			margin-top: 3px;
+			// left: 83.33333333%;
+		}
+
+		.list-row-indicator {
+			position: absolute;
+			right: 0px;
+			margin-top: 2px;
+			top: -19px;
+		}
+
+		.list-row-modified {
+			margin-right: -10px;
+		}
+
+		.list-row-right {
+			float: right;
+		}
+
+		.list-row-right.no-right-column {
+			position: absolute;
+			top: 0;
+			right: 10px;
+			left: -10px;
+			width: 100%;
+
+			.list-row-indicator {
+				top: 0;
+			}
+		}
+	}
+
+}
+
+@media(max-width: 991px) {
+	.form-intro-area {
+		padding: 15px 0px;
+	}
+
 	.grid-row-open {
 		top: 0;
 	}
 
-	.page-title h1 {
-		margin-top: 10px;
-	}
+	body[data-route^="Form"] {
+		.page-title h1 {
+			margin-top: 10px;
+		}
 
-	.page-title .indicator {
-		display: block;
-		margin-top: -5px;
-		margin-bottom: 3px;
-	}
+		.page-title .indicator {
+			display: block;
+			margin-top: -5px;
+			margin-bottom: 3px;
+		}
 
-	.page-head .sub-heading {
-		display: block;
-		position: absolute;
-		bottom: -30px;
-		right: 8px;
-	}
+		.page-actions {
+			padding-top: 10px !important;
+			padding-bottom: 0px !important;
+			padding-left: 0px !important;
+		}
 
-	.page-actions {
-		padding-top: 10px !important;
-		padding-bottom: 0px !important;
-		padding-left: 0px !important;
-	}
-
-	.page-head {
-		min-height: 1px;
+		.page-head .sub-heading {
+			display: block;
+			position: absolute;
+			bottom: -30px;
+			right: 8px;
+		}
 	}
 
 	// navbar & breadcrumbs
@@ -77,13 +118,22 @@
 		float: right;
 	}
 
-	.navbar-brand .octicon-home {
-		margin-top: 4px;
-	}
+	// show home in module page
+	body[data-route^="Module"] .navbar .navbar-home& {
+		display: inline-block !important;
+		padding-left: 0px;
+		margin-left: 0px;
 
-	.navbar .breadcrumb-divider {
-		margin-top: 12px !important;
-		margin-right: 3px;
+		&:before {
+			.breadcrumb-divider();
+			.breadcrumb-divider-left();
+		}
+
+		&:hover:before,
+		&:focus:before,
+		&:active:before {
+			color: @text-color;
+		}
 	}
 
 	#navbar-breadcrumbs {
@@ -91,17 +141,18 @@
 		display: inline-block;
 	}
 
-	#navbar-breadcrumbs > li {
+	#navbar-breadcrumbs > li,
+	#navbar-breadcrumbs > li > a {
 		display: inline-block;
 		vertical-align: middle;
 	}
 
-	#navbar-breadcrumbs > li > a {
-		padding: 10px 0px 0px;
+	#navbar-breadcrumbs > li > a:before {
+		.breadcrumb-divider-left();
 	}
 
 	// select all except last 2
-	#navbar-breadcrumbs li:not(:nth-last-child(-n+2)) {
+	#navbar-breadcrumbs li:not(:nth-last-child(-n+1)) {
 		display: none;
 	}
 
@@ -113,16 +164,15 @@
 	.offcanvas {
 		transition: 0.25s;
 	}
-	// .offcanvas,
-	// .page-head,
-	// .sidebar-right,
-	// .sidebar-left,
-	// .navbar-fixed-top,
-	// .desk-main-section-overlay {
-	// 	transition: 0.25s;
-	// }
 
-	.offcanvas {
+	.desk-main-section-overlay {
+		bottom: 0;
+		position: fixed;
+	}
+
+	.desk-container,
+	.offcanvas,
+	.desk-main-section {
 		position: absolute;
 		left: 0;
 		right: 0;
@@ -130,8 +180,8 @@
 		bottom: 0;
 	}
 
-	.desk-main-section-overlay {
-		bottom: 0;
+	.offcanvas.active-left,
+	.offcanvas.active-right {
 		position: fixed;
 	}
 
@@ -232,7 +282,10 @@
 		.navbar-center {
 			display: block !important;
 			position: absolute;
-			top: 10px;
+			top: 11px;
+			left: 25%;
+			right: 25%;
+			text-align: center;
 		}
 	}
 }

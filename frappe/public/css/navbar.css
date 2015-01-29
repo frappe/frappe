@@ -10,12 +10,6 @@
   font-size: 12px;
   font-weight: bold;
 }
-.navbar .breadcrumb-divider {
-  margin-top: 10px;
-}
-.navbar .breadcrumb-divider i {
-  color: #C0C9D2;
-}
 .navbar-icon-home {
   vertical-align: middle;
 }
@@ -69,4 +63,29 @@
   float: left;
   font-weight: bold;
   color: #6c7680;
+}
+#navbar-breadcrumbs > li > a:before {
+  font-family: FontAwesome;
+  font-weight: normal;
+  font-style: normal;
+  text-decoration: inherit;
+  -webkit-font-smoothing: antialiased;
+  *margin-right: .3em;
+  display: inline-block;
+  speak: none;
+  color: #c0c9d2;
+  font-size: 14px;
+  transition: 0.2s;
+  content: "\f054";
+  margin-right: 15px;
+  position: relative;
+  top: 1px;
+}
+#navbar-breadcrumbs > li > a:hover:before,
+#navbar-breadcrumbs > li > a:focus:before,
+#navbar-breadcrumbs > li > a:active:before {
+  color: #36414c;
+}
+#navbar-breadcrumbs > li > a {
+  padding: 10px 15px 10px 0px;
 }

@@ -1,4 +1,5 @@
 @import "variables.less";
+@import "mixins.less";
 
 .navbar .dropdown-toggle {
 	padding-top: 8px;
@@ -15,13 +16,13 @@
 	font-weight: bold;
 }
 
-.navbar .breadcrumb-divider {
-	margin-top: 10px;
-}
+// .navbar .breadcrumb-divider {
+// 	margin-top: 10px;
+// }
 
-.navbar .breadcrumb-divider i {
-	color: #C0C9D2;
-}
+// .navbar .breadcrumb-divider i {
+// 	color: #C0C9D2;
+// }
 
 .navbar-icon-home {
 	vertical-align: middle;
@@ -84,3 +85,21 @@
 	font-weight: bold;
 	color: @navbar-default-color;
 }
+
+#navbar-breadcrumbs > li > a:before {
+	.breadcrumb-divider();
+	.breadcrumb-divider-right();
+}
+
+#navbar-breadcrumbs > li > a& {
+	&:hover:before,
+	&:focus:before,
+	&:active:before {
+		color: @text-color;
+	}
+}
+
+#navbar-breadcrumbs > li > a {
+	padding: 10px 15px 10px 0px;
+}
+

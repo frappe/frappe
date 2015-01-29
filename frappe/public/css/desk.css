@@ -1,12 +1,3 @@
-.underline {
-  color: inherit;
-  border-bottom: 1px solid transparent;
-  margin-bottom: 0.4em;
-}
-.underline-hover {
-  border-bottom: 1px solid #212a33;
-  color: #212a33;
-}
 html {
   min-height: 100%;
 }
@@ -19,13 +10,6 @@ html,
 body {
   overflow-x: hidden;
   /* Prevent scroll on narrow devices */
-}
-.desk-main-section {
-  width: 100%;
-  position: fixed;
-  top: 0px;
-  bottom: 0px;
-  overflow-y: auto;
 }
 .desk-main-section-overlay {
   display: none;
