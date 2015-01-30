@@ -115,6 +115,14 @@
    "permlevel": 0, 
    "precision": "", 
    "read_only": 0
+  }, 
+  {
+   "fieldname": "print_format_builder", 
+   "fieldtype": "Check", 
+   "hidden": 1, 
+   "label": "Print Format Builder", 
+   "permlevel": 0, 
+   "precision": ""
   }
  ], 
  "hide_heading": 0, 
@@ -126,7 +134,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2015-01-28 00:42:25.948759", 
+ "modified": "2015-01-30 02:15:31.686084", 
  "modified_by": "Administrator", 
  "module": "Print", 
  "name": "Print Format", 

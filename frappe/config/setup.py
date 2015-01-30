@@ -144,6 +144,12 @@ def get_data():
 			"icon": "icon-print",
 			"items": [
 				{
+					"type": "page",
+					"label": "Print Format Builder",
+					"name": "print-format-builder",
+					"description": _("Drag and Drop tool to build and customize Print Formats.")
+				},
+				{
 					"type": "doctype",
 					"name": "Print Settings",
 					"description": _("Set default format, page size, print style etc.")

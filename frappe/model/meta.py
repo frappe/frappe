@@ -88,10 +88,10 @@ class Meta(Document):
 		return { "fields": "DocField", "permissions": "DocPerm"}.get(fieldname)
 
 	def get_field(self, fieldname):
-		if not fieldname in self._fields:
-			fields = self.get("fields", {"fieldname":fieldname})
-			self._fields[fieldname] = fields[0] if fields else frappe._dict()
-		return self._fields[fieldname]
+		if not self._fields:
+			for f in self.get("fields"):
+				self._fields[f.fieldname] = f
+		return self._fields.get(fieldname)
 
 	def get_label(self, fieldname):
 		return self.get_field(fieldname).label

@@ -172,7 +172,7 @@ class BaseDocument(object):
 			if self.get(key):
 				doc[key] = self.get(key)
 
-		return doc
+		return frappe._dict(doc)
 
 	def as_json(self):
 		return json.dumps(self.as_dict(), indent=1, sort_keys=True)

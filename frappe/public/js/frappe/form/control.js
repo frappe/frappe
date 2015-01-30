@@ -20,6 +20,10 @@ frappe.ui.form.Control = Class.extend({
 			frappe.boot.developer_mode===1 && this.$wrapper) {
 				this.$wrapper.attr("title", __(this.df.fieldname));
 		}
+
+		if(this.render_input) {
+			this.refresh();
+		}
 	},
 	make: function() {
 		this.make_wrapper();
@@ -944,21 +948,23 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 					no_spinner: true,
 					args: args,
 					callback: function(r) {
-						if(frappe.model.can_create(doctype)
-							&& me.df.fieldtype !== "Dynamic Link") {
-							// new item
+						if(!me.df.only_select) {
+							if(frappe.model.can_create(doctype)
+								&& me.df.fieldtype !== "Dynamic Link") {
+								// new item
+								r.results.push({
+									value: "<i class='icon-plus'></i> <em class='link-option'>"
+										+ __("Create a new {0}", [__(me.df.options)]) + "</em>",
+									action: me.new_doc
+								});
+							};
+							// advanced search
 							r.results.push({
-								value: "<i class='icon-plus'></i> <em class='link-option'>"
-									+ __("Create a new {0}", [__(me.df.options)]) + "</em>",
-								action: me.new_doc
+								value: "<i class='icon-search'></i> <em class='link-option'>"
+									+ __("Advanced Search") + "</em>",
+								action: me.open_advanced_search
 							});
-						};
-						// advanced search
-						r.results.push({
-							value: "<i class='icon-search'></i> <em class='link-option'>"
-								+ __("Advanced Search") + "</em>",
-							action: me.open_advanced_search
-						});
+						}
 
 						me.$input.cache[doctype][request.term] = r.results;
 						response(r.results);
@@ -1031,6 +1037,11 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 					$.extend(args, q);
 				}
 			}
+		}
+		if(this.df.filters) {
+			set_nulls(this.df.filters);
+			if(!args.filters) args.filters = {};
+			$.extend(args.filters, this.df.filters);
 		}
 	},
 	validate: function(value, callback) {

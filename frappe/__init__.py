@@ -856,7 +856,7 @@ def format_value(value, df, doc=None, currency=None):
 	import frappe.utils.formatters
 	return frappe.utils.formatters.format_value(value, df, doc, currency=currency)
 
-def get_print_format(doctype, name, print_format=None, style=None, as_pdf=False):
+def get_print(doctype, name, print_format=None, style=None, as_pdf=False):
 	"""Get Print Format for given document.
 
 	:param doctype: DocType of document.
@@ -886,12 +886,12 @@ def attach_print(doctype, name, file_name):
 	if int(print_settings.send_print_as_pdf or 0):
 		return {
 			"fname": file_name + ".pdf",
-			"fcontent": get_print_format(doctype, name, as_pdf=True)
+			"fcontent": get_print(doctype, name, as_pdf=True)
 		}
 	else:
 		return {
 			"fname": file_name + ".html",
-			"fcontent": scrub_urls(get_print_format(doctype, name)).encode("utf-8")
+			"fcontent": scrub_urls(get_print(doctype, name)).encode("utf-8")
 		}
 
 logging_setup_complete = False

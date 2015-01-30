@@ -8,6 +8,9 @@ frappe.ui.form.PrintPreview = Class.extend({
 	},
 	make: function() {
 		this.wrapper = this.frm.page.add_view("print", frappe.render_template("print_layout", {}));
+
+		// only system manager can edit
+		this.wrapper.find(".btn-print-edit").toggle(frappe.user.has_role("System Manager"));
 	},
 	bind_events: function() {
 		var me = this;
@@ -60,6 +63,20 @@ frappe.ui.form.PrintPreview = Class.extend({
 				if(!w) {
 					msgprint(__("Please enable pop-ups")); return;
 				}
+			}
+		});
+
+		this.wrapper.find(".btn-print-edit").on("click", function() {
+			var print_format = me.get_print_format();
+			if(print_format && print_format.name) {
+				if(print_format.print_format_builder) {
+					frappe.route_options = print_format;
+					frappe.set_route("print-format-builder");
+				} else {
+					frappe.set_route("Form", "Print Format", print_format.name);
+				}
+			} else {
+				msgprint(__("Standard Format Not Editable"));
 			}
 		});
 	},

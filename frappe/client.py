@@ -42,7 +42,7 @@ def set_value(doctype, name, fieldname, value):
 		frappe.throw(_("Cannot edit standard fields"))
 
 	doc = frappe.db.get_value(doctype, name, ["parenttype", "parent"], as_dict=True)
-	if doc and doc.parent:
+	if doc and doc.parent and doc.parenttype:
 		doc = frappe.get_doc(doc.parenttype, doc.parent)
 		child = doc.getone({"doctype": doctype, "name": name})
 		child.set(fieldname, value)
@@ -59,30 +59,26 @@ def set_value(doctype, name, fieldname, value):
 	return doc.as_dict()
 
 @frappe.whitelist()
-def insert(doclist):
-	if isinstance(doclist, basestring):
-		doclist = json.loads(doclist)
+def insert(doc=None):
+	if isinstance(doc, basestring):
+		doc = json.loads(doc)
 
-	if isinstance(doclist, dict):
-		doclist = [doclist]
-
-	if doclist[0].get("parent") and doclist[0].get("parenttype"):
+	if doc.get("parent") and doc.get("parenttype"):
 		# inserting a child record
-		d = doclist[0]
-		doc = frappe.get_doc(d["parenttype"], d["parent"])
-		doc.append(d)
-		doc.save()
-		return [d]
+		parent = frappe.get_doc(doc.parenttype, doc.parent)
+		parent.append(doc)
+		parent.save()
+		return parent.as_dict()
 	else:
-		doc = frappe.get_doc(doclist).insert()
+		doc = frappe.get_doc(doc).insert()
 		return doc.as_dict()
 
 @frappe.whitelist()
-def save(doclist):
-	if isinstance(doclist, basestring):
-		doclist = json.loads(doclist)
+def save(doc):
+	if isinstance(doc, basestring):
+		doc = json.loads(doc)
 
-	doc = frappe.get_doc(doclist).save()
+	doc = frappe.get_doc(doc).save()
 	return doc.as_dict()
 
 @frappe.whitelist()
@@ -91,14 +87,14 @@ def rename_doc(doctype, old_name, new_name, merge=False):
 	return new_name
 
 @frappe.whitelist()
-def submit(doclist):
-	if isinstance(doclist, basestring):
-		doclist = json.loads(doclist)
+def submit(doc):
+	if isinstance(doc, basestring):
+		doc = json.loads(doc)
 
-	doclistobj = frappe.get_doc(doclist)
-	doclistobj.submit()
+	doc = frappe.get_doc(doc)
+	doc.submit()
 
-	return doclistobj.as_dict()
+	return doc.as_dict()
 
 @frappe.whitelist()
 def cancel(doctype, name):

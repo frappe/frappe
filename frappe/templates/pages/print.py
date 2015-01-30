@@ -68,16 +68,27 @@ def get_html(doc, name=None, print_format=None, meta=None,
 		meta = frappe.get_meta(doc.doctype)
 
 	jenv = frappe.get_jenv()
+	format_data = {}
+
+	# determine template
 	if print_format in ("Standard", standard_format):
-		template = jenv.get_template("templates/print_formats/standard.html")
+		template = "standard"
 	else:
-		template = jenv.from_string(get_print_format(doc.doctype,
-			print_format))
+		print_format = frappe.get_doc("Print Format", print_format)
+		if print_format.format_data:
+			format_data = json.loads(print_format.format_data)
+			template = "standard"
+		else:
+			template = jenv.from_string(get_print_format(doc.doctype,
+				print_format))
+
+	if template == "standard":
+		template = jenv.get_template("templates/print_formats/standard.html")
 
 	args = {
 		"doc": doc,
 		"meta": frappe.get_meta(doc.doctype),
-		"layout": make_layout(doc, meta),
+		"layout": make_layout(doc, meta, format_data),
 		"no_letterhead": no_letterhead,
 		"trigger_print": cint(trigger_print),
 		"letter_head": get_letter_head(doc, no_letterhead)
@@ -89,7 +100,7 @@ def get_html(doc, name=None, print_format=None, meta=None,
 
 @frappe.whitelist()
 def download_pdf(doctype, name, format=None):
-	html = frappe.get_print_format(doctype, name, format)
+	html = frappe.get_print(doctype, name, format)
 	frappe.local.response.filename = "{name}.pdf".format(name=name.replace(" ", "-").replace("/", "-"))
 	frappe.local.response.filecontent = get_pdf(html)
 	frappe.local.response.type = "download"
@@ -111,35 +122,41 @@ def get_letter_head(doc, no_letterhead):
 	else:
 		return frappe.db.get_value("Letter Head", {"is_default": 1}, "content") or ""
 
-def get_print_format(doctype, format_name):
-	if format_name==standard_format:
-		return format_name
-
-	opts = frappe.db.get_value("Print Format", format_name, "disabled", as_dict=True)
-	if not opts:
-		frappe.throw(_("Print Format {0} does not exist").format(format_name), frappe.DoesNotExistError)
-	elif opts.disabled:
-		frappe.throw(_("Print Format {0} is disabled").format(format_name), frappe.DoesNotExistError)
+def get_print_format(doctype, print_format):
+	if print_format.disabled:
+		frappe.throw(_("Print Format {0} is disabled").format(print_format.name),
+			frappe.DoesNotExistError)
 
 	# server, find template
 	path = os.path.join(get_doc_path(frappe.db.get_value("DocType", doctype, "module"),
-		"Print Format", format_name), frappe.scrub(format_name) + ".html")
+		"Print Format", print_format.name), frappe.scrub(print_format.name) + ".html")
 
 	if os.path.exists(path):
 		with open(path, "r") as pffile:
 			return pffile.read()
 	else:
-		html = frappe.db.get_value("Print Format", format_name, "html")
-		if html:
-			return html
+		if print_format.html:
+			return print_format.html
 		else:
 			frappe.throw(_("No template found at path: {0}").format(path),
 				frappe.TemplateNotFoundError)
 
-def make_layout(doc, meta):
+def make_layout(doc, meta, format_data=None):
 	layout, page = [], []
 	layout.append(page)
-	for df in meta.fields:
+	for df in format_data or meta.fields:
+		if format_data:
+			# embellish df with original properties
+			df = frappe._dict(df)
+			if df.fieldname:
+				original = meta.get_field(df.fieldname)
+				if original:
+					newdf = original.as_dict()
+					newdf.update(df)
+					df = newdf
+
+			df.print_hide = 0
+
 		if df.fieldtype=="Section Break" or page==[]:
 			page.append([])
 

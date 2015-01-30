@@ -187,7 +187,7 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 def attach_print(mail, parent_doc, print_html, print_format):
 	name = parent_doc.name if parent_doc else "attachment"
 	if (not print_html) and parent_doc and print_format:
-		print_html = frappe.get_print_format(parent_doc.doctype, parent_doc.name, print_format)
+		print_html = frappe.get_print(parent_doc.doctype, parent_doc.name, print_format)
 
 	print_settings = frappe.db.get_singles_dict("Print Settings")
 	send_print_as_pdf = cint(print_settings.send_print_as_pdf)
