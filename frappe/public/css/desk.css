@@ -226,6 +226,12 @@ ul.linked-with-list li {
   opacity: 0.5;
   position: fixed;
 }
+.modal-header {
+  padding: 10px 15px;
+}
+.modal-title {
+  margin-top: 5px;
+}
 .form-group {
   margin-bottom: 7px;
 }

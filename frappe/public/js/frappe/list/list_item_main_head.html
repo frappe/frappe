@@ -15,6 +15,19 @@
 				hidden-xs
 			{% } %}
 			{% if(col.df && ["Int", "Float", "Currency", "Percent"].indexOf(col.df.fieldtype)!==-1) { %}text-right{% } %}">
+
+			{% if (col.type==="Subject") { %}
+
+			{% if (_checkbox) { %}
+			<input class="list-select-all" type="checkbox" style="margin-right: 7px; margin-top: 2px;"
+				title="{%= __("Select All") %}">
+			{% } %}
+
+			<i class="icon-fixed-width icon-star text-extra-muted not-starred star-action list-starred-by-me"
+				title="{%= __("Starred By Me") %}"></i>
+
+			{% } %}
+
             <span class="list-value">{%= col.title || col.label || "" %}</span>
         </div>
         {% } %}

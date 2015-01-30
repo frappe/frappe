@@ -61,7 +61,6 @@
 }
 .navbar-center {
   float: left;
-  font-weight: bold;
   color: #6c7680;
 }
 #navbar-breadcrumbs > li > a:before {
@@ -76,10 +75,10 @@
   color: #c0c9d2;
   font-size: 14px;
   transition: 0.2s;
-  content: "\f054";
-  margin-right: 15px;
   position: relative;
   top: 1px;
+  content: "\f054";
+  margin-right: 15px;
 }
 #navbar-breadcrumbs > li > a:hover:before,
 #navbar-breadcrumbs > li > a:focus:before,

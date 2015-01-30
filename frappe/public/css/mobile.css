@@ -233,7 +233,7 @@
   body[data-route^="Module"] .navbar-center {
     display: block !important;
     position: absolute;
-    top: 11px;
+    top: 10px;
     left: 25%;
     right: 25%;
     text-align: center;

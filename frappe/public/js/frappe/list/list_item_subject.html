@@ -3,8 +3,7 @@
 {% } %}
 <i class="icon-star {% if (_starred_by.indexOf(_user)===-1) {
     %}text-extra-muted not-starred{% } else { %}{% }%}
-    icon-fixed-width star-action"
-    style="cursor: pointer" data-name="{%= _name %}">
+    icon-fixed-width star-action" data-name="{%= _name %}">
 </i>
 <a class="grey list-id" style="margin-right: 7px;"
 	href="#Form/{%= _doctype_encoded %}/{%= _name_encoded %}" title="{%= _full_title %}">{%= _title %}</a>

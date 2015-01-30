@@ -108,13 +108,17 @@ frappe.ui.Listing = Class.extend({
 		}
 
 		// new
-		if(this.new_doctype) {
-			var make_new_doc = function() { (me.custom_new_doc || me.make_new_doc).apply(me, [me.new_doctype]); };
-			this.page.set_primary_action(__("New"), function() { make_new_doc(); }, "octicon octicon-plus");
-		}
+		this.set_primary_action();
 
 		if(me.no_toolbar || me.hide_toolbar) {
 			me.$w.find('.list-toolbar-wrapper').toggle(false);
+		}
+	},
+
+	set_primary_action: function() {
+		if(this.new_doctype) {
+			var make_new_doc = function() { (me.custom_new_doc || me.make_new_doc).apply(me, [me.new_doctype]); };
+			this.page.set_primary_action(__("New"), function() { make_new_doc(); }, "octicon octicon-plus");
 		}
 	},
 

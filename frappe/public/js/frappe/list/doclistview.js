@@ -80,18 +80,24 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		this.init_list(false);
 		this.init_stats();
 		this.init_menu();
-		this.init_star();
 		this.show_match_help();
 		this.init_listview();
 		this.setup_filterable();
 		this.init_filters();
 		this.init_headers();
+		this.init_star();
+		this.init_select_all();
 	},
 
 	init_headers: function() {
-		var main = frappe.render_template("list_item_main_head",
-			{ columns: this.listview.columns, right_column: this.listview.settings.right_column });
-		$(frappe.render_template("list_item_row_head",{ main:main, list:this }))
+		var main = frappe.render_template("list_item_main_head", {
+			columns: this.listview.columns,
+			right_column: this.listview.settings.right_column,
+			_checkbox: ((frappe.model.can_delete(this.doctype) || this.listview.settings.selectable)
+				&& !this.listview.no_delete)
+		});
+
+		this.list_header = $(frappe.render_template("list_item_row_head", { main:main, list:this }))
 			.appendTo(this.page.main.find(".list-headers"));
 	},
 
@@ -125,15 +131,15 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 			});
 			added && me.run();
 		});
-		this.$page.on("click", ".doclist-row", function(e) {
+		this.$page.find(".result-list").on("click", ".list-row-left", function(e) {
 			// don't open in case of checkbox, star, filterable
-			if ((e.target.class || "").indexOf("filterable")!==-1
-				|| (e.target.class || "").indexOf("icon-star")!==-1
+			if ((e.target.className || "").indexOf("filterable")!==-1
+				|| (e.target.className || "").indexOf("icon-star")!==-1
 				|| e.target.type==="checkbox") {
 				return;
 			}
 
-			var link = $(this).find("a.list-id").get(0);
+			var link = $(this).parent().find("a.list-id").get(0);
 			window.location.href = link.href;
 			return false;
 		});
@@ -260,6 +266,10 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 				me.set_filter(key, val, true);
 			});
 		}
+
+		this.list_header.find(".list-starred-by-me")
+			.toggleClass("text-extra-muted not-starred", !this.is_star_filtered());
+
 		this.last_updated_on = new Date();
 		this.dirty = false;
 		this._super(more);
@@ -304,6 +314,12 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 		this.filter_list.add_filter(this.doctype, "_starred_by", 'like', '%' + user + '%');
 		this.run();
 	},
+	remove_starred_by_me: function() {
+		this.filter_list.get_filter("_starred_by").remove();
+	},
+	is_star_filtered: function() {
+		return this.filter_list.filter_exists(this.doctype, "_starred_by", 'like', '%' + user + '%');
+	},
 	init_menu: function() {
 		var me = this;
 		this.$page.on("click", ".list-tag-preview", function() { me.toggle_tags(); });
@@ -312,15 +328,6 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 			me.run();
 		}, "octicon octicon-sync");
 
-		if(this.can_delete || this.listview.settings.selectable) {
-			this.page.add_menu_item(__('Select All'), function() {
-				me.$page.find('.list-delete').prop("checked",
-					me.$page.find('.list-delete:checked').length ? false : true);
-			}, true);
-			this.page.add_menu_item(__('Delete'),
-				function() { me.delete_items(); }, true);
-		}
-		this.page.add_divider();
 		if(frappe.model.can_import(this.doctype)) {
 			this.page.add_menu_item(__("Import"), function() {
 				frappe.set_route("data-import-tool", {
@@ -353,10 +360,45 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 
 	init_star: function() {
 		var me = this;
-		this.$page.on("click", ".star-action", function() {
+		this.$page.find(".result-list").on("click", ".star-action", function() {
 			frappe.ui.toggle_star($(this), me.doctype, $(this).attr("data-name"));
 			return false;
 		});
+		this.list_header.find(".list-starred-by-me").on("click", function() {
+			if (me.is_star_filtered()) {
+				me.remove_starred_by_me();
+			} else {
+				me.starred_by_me();
+			}
+		});
+	},
+
+	init_select_all: function() {
+		var me = this;
+
+		if(this.can_delete || this.listview.settings.selectable) {
+			this.list_header.find(".list-select-all").on("click", function() {
+				console.log('select all clicked!');
+				me.$page.find('.list-delete').prop("checked", $(this).prop("checked"));
+				me.toggle_delete();
+			});
+
+			this.$page.on("click", ".list-delete", function() {
+				me.toggle_delete();
+			});
+		}
+	},
+
+	toggle_delete: function() {
+		var me = this;
+		if (this.$page.find(".list-delete:checked").length) {
+			this.page.set_primary_action(__("Delete"), function() { me.delete_items() },
+				"octicon octicon-trashcan");
+			this.page.btn_primary.addClass("btn-danger");
+		} else {
+			this.page.btn_primary.removeClass("btn-danger");
+			this.set_primary_action();
+		}
 	},
 
 	toggle_tags: function() {

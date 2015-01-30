@@ -70,8 +70,10 @@ body[data-route="desktop"] .navbar-default {
   line-height: 1;
   border-radius: 25px;
   min-width: 25px;
+  height: 25px;
   text-align: center;
   text-shadow: none;
+  letter-spacing: normal;
 }
 .app-icon:hover path {
   fill: #ffffff;
@@ -149,4 +151,14 @@ body[data-route="desktop"] .navbar-default {
     width: 70px;
     height: 90px;
   }
+}
+.all-applications-dialog .desktop-app-search {
+  margin-bottom: 15px;
+}
+.all-applications-dialog hr {
+  margin: 10px -15px;
+}
+.all-applications-dialog .checkbox {
+  margin-top: 3px;
+  margin-bottom: 3px;
 }

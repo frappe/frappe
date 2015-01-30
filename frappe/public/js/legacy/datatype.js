@@ -144,3 +144,8 @@ function add_lists(l1, l2) {
 function docstring(obj)  {
 	return JSON.stringify(obj);
 }
+
+function remove_from_list(list, val) {
+	list.splice(list.indexOf(val), 1);
+	return list
+}
