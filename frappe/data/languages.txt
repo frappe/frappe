@@ -1,5 +1,6 @@
 ar		العربية
 de		deutsch
+cz		česky
 el		ελληνικά
 en		english
 es		español
