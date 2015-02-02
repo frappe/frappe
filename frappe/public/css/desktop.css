@@ -5,7 +5,6 @@ body[data-route="desktop"] .navbar-default {
 }
 #page-desktop {
   min-width: 100%;
-  padding-top: calc(55px);
   margin-top: 0px;
   border: 0px;
   position: absolute;

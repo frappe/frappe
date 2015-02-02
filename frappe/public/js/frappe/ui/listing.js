@@ -116,6 +116,7 @@ frappe.ui.Listing = Class.extend({
 	},
 
 	set_primary_action: function() {
+		var me = this;
 		if(this.new_doctype) {
 			var make_new_doc = function() { (me.custom_new_doc || me.make_new_doc).apply(me, [me.new_doctype]); };
 			this.page.set_primary_action(__("New"), function() { make_new_doc(); }, "octicon octicon-plus");

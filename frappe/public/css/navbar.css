@@ -73,11 +73,11 @@
   display: inline-block;
   speak: none;
   color: #c0c9d2;
-  font-size: 14px;
+  font-size: 24px;
   transition: 0.2s;
   position: relative;
-  top: 1px;
-  content: "\f054";
+  top: 3px;
+  content: "\f105";
   margin-right: 15px;
 }
 #navbar-breadcrumbs > li > a:hover:before,
@@ -86,5 +86,5 @@
   color: #36414c;
 }
 #navbar-breadcrumbs > li > a {
-  padding: 10px 15px 10px 0px;
+  padding: 6px 15px 10px 0px;
 }

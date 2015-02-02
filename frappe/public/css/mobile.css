@@ -103,11 +103,11 @@
     display: inline-block;
     speak: none;
     color: #c0c9d2;
-    font-size: 14px;
+    font-size: 24px;
     transition: 0.2s;
     position: relative;
-    top: 1px;
-    content: "\f053" !important;
+    top: 3px;
+    content: "\f104" !important;
     margin-right: 5px !important;
   }
   body[data-route^="Module"] .navbar .navbar-home:hover:before,
@@ -125,7 +125,7 @@
     vertical-align: middle;
   }
   #navbar-breadcrumbs > li > a:before {
-    content: "\f053" !important;
+    content: "\f104" !important;
     margin-right: 5px !important;
   }
   #navbar-breadcrumbs li:not(:nth-last-child(-n+1)) {
