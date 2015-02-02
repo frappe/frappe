@@ -102,8 +102,8 @@ frappe.views.GridReport = Class.extend({
 		var me = this;
 		$.extend(this, opts);
 
-		this.wrapper = $('<div class="grid-report"></div>').appendTo(this.parent);
-		this.parent.find(".page").css({"padding-top": "0px"});
+		this.wrapper = $('<div class="grid-report"></div>').appendTo(this.page.main);
+		this.page.main.find(".page").css({"padding-top": "0px"});
 
 		if(this.filters) {
 			this.make_filters();
