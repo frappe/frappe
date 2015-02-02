@@ -83,7 +83,7 @@ a.form-link {
   padding: 3px;
   display: none;
 }
-em.link-option {
+.ui-autocomplete .link-option {
   font-weight: normal;
 }
 .text-ellipsis {

@@ -953,15 +953,19 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 								&& me.df.fieldtype !== "Dynamic Link") {
 								// new item
 								r.results.push({
-									value: "<i class='icon-plus'></i> <em class='link-option'>"
-										+ __("Create a new {0}", [__(me.df.options)]) + "</em>",
+									value: "<span class='text-primary link-option'>"
+										+ "<i class='icon-plus' style='margin-right: 5px;'></i> "
+										+ __("Create a new {0}", [__(me.df.options)])
+										+ "</span>",
 									action: me.new_doc
 								});
 							};
 							// advanced search
 							r.results.push({
-								value: "<i class='icon-search'></i> <em class='link-option'>"
-									+ __("Advanced Search") + "</em>",
+								value: "<span class='text-primary link-option'>"
+									+ "<i class='icon-search' style='margin-right: 5px;'></i> "
+									+ __("Advanced Search")
+									+ "</span>",
 								action: me.open_advanced_search
 							});
 						}

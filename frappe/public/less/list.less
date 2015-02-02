@@ -5,9 +5,12 @@
 }
 
 .show_filters {
-	padding: 15px;
-	padding-bottom: 5px;
+	padding: 15px 15px 0px;
 	border-bottom: 1px solid @border-color;
+}
+
+.set-filters {
+	padding-bottom: 4px;
 }
 
 .set-filters .btn {
@@ -22,6 +25,33 @@
 	background-color: transparent;
 	border: 1px solid @border-color;
 	color: @text-muted;
+}
+
+.filter-box {
+	border-top: 1px solid @border-color;
+	margin: 0px -15px;
+	padding: 10px 15px 3px;
+
+	.remove-filter {
+		margin-top: 6px;
+		margin-left: 15px;
+	}
+
+	.filter_field {
+		padding-right: 15px;
+		width: calc(100% - 36px);
+	}
+}
+
+// for sm and above
+@media (min-width: 768px) {
+	.filter-box .row > div[class*="col-sm-"] {
+		padding-right: 0px;
+	}
+
+	.filter_field {
+		width: 65% !important;
+	}
 }
 
 .list-row {

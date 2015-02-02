@@ -31,7 +31,20 @@ frappe.ui.FilterList = Class.extend({
 
 	add_filter: function(tablename, fieldname, condition, value) {
 		this.$w.find('.show_filters').toggle(true);
-		return this.push_new_filter(tablename, fieldname, condition, value);
+		var is_new_filter = arguments.length===0;
+
+		if (is_new_filter && this.$w.find(".is-new-filter").length) {
+			// only allow 1 new filter at a time!
+			return;
+		}
+
+		var filter = this.push_new_filter(tablename, fieldname, condition, value);
+
+		if (is_new_filter) {
+			filter.$w.addClass("is-new-filter");
+		}
+
+		return filter;
 	},
 
 	push_new_filter: function(tablename, fieldname, condition, value) {
@@ -42,7 +55,7 @@ frappe.ui.FilterList = Class.extend({
 			tablename: tablename,
 			fieldname: fieldname,
 			condition: condition,
-			value: value
+			value: value,
         });
 
 		this.filters.push(filter);
@@ -101,27 +114,7 @@ frappe.ui.Filter = Class.extend({
 		this.set_events();
 	},
 	make: function() {
-		this.$w = $('<div class="msg-box"><div class="list_filter row">\
-		<div class="fieldname_select_area col-sm-4 form-group"></div>\
-		<div class="col-sm-2 form-group">\
-			<select class="condition form-control">\
-				<option value="=">' + __("Equals") + '</option>\
-				<option value="like">' + __("Like") + '</option>\
-				<option value=">=">' + __(">=") + '</option>\
-				<option value="<=">' + __("<=") + '</option>\
-				<option value=">">' + __(">") + '</option>\
-				<option value="<">' + __("<") + '</option>\
-				<option value="in">' + __("In") + '</option>\
-				<option value="!=">' + __("Not equals") + '</option>\
-			</select>\
-		</div>\
-		<div class="filter_field col-sm-4 col-xs-9"></div>\
-		<div class="col-sm-2 col-xs-3">\
-			<a class="set-filter-and-run btn btn-primary pull-left">\
-				<i class="icon-ok"></i></a>\
-			<a class="close remove-filter" style="margin-top: 5px;">&times;</a>\
-		</div>\
-		</div></div>').appendTo(this.flist.$w.find('.filter_area'));
+		this.$w = $(frappe.render_template("edit_filter", {})).appendTo(this.flist.$w.find('.filter_area'));
 	},
 	make_select: function() {
 		var me = this;
@@ -140,11 +133,12 @@ frappe.ui.Filter = Class.extend({
 	set_events: function() {
 		var me = this;
 
-		this.$w.find("a.close").on("click", function() {
+		this.$w.find("a.remove-filter").on("click", function() {
 			me.remove();
 		});
 
 		this.$w.find(".set-filter-and-run").on("click", function() {
+			me.$w.removeClass("is-new-filter");
 			me.flist.listobj.run();
 		});
 

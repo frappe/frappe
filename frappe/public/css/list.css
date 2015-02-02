@@ -2,9 +2,11 @@
   padding: 15px;
 }
 .show_filters {
-  padding: 15px;
-  padding-bottom: 5px;
+  padding: 15px 15px 0px;
   border-bottom: 1px solid #d1d8dd;
+}
+.set-filters {
+  padding-bottom: 4px;
 }
 .set-filters .btn {
   margin-bottom: 10px;
@@ -16,6 +18,27 @@
   background-color: transparent;
   border: 1px solid #d1d8dd;
   color: #8d99a6;
+}
+.filter-box {
+  border-top: 1px solid #d1d8dd;
+  margin: 0px -15px;
+  padding: 10px 15px 3px;
+}
+.filter-box .remove-filter {
+  margin-top: 6px;
+  margin-left: 15px;
+}
+.filter-box .filter_field {
+  padding-right: 15px;
+  width: calc(64%);
+}
+@media (min-width: 768px) {
+  .filter-box .row > div[class*="col-sm-"] {
+    padding-right: 0px;
+  }
+  .filter_field {
+    width: 65% !important;
+  }
 }
 .list-row {
   padding: 9px 15px;

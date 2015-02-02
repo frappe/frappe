@@ -110,7 +110,8 @@
 
 		"public/js/frappe/ui/upload.html",
 		"public/js/frappe/upload.js",
-		"public/js/frappe/ui/filters.js",
+		"public/js/frappe/ui/filters/filters.js",
+		"public/js/frappe/ui/filters/edit_filter.html",
 		"public/js/frappe/ui/tree.js",
 		"public/js/frappe/ui/tags.js",
 		"public/js/frappe/ui/star.js",
