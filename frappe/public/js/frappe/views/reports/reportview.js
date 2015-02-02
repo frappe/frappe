@@ -101,6 +101,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		this.make_delete();
 		this.make_column_picker();
 		this.make_sorter();
+		this.setup_print();
 		this.make_export();
 		this.set_init_columns();
 		this.make_save();
@@ -160,6 +161,14 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		}
 	},
 
+	setup_print: function() {
+		var me = this;
+		this.page.add_menu_item(__("Print"), function() {
+			var title =  __(me.docname || me.doctype);
+			frappe.render_grid({grid:me.grid, title:title});
+		}, true);
+	},
+
 	// build args for query
 	get_args: function() {
 		var me = this;
@@ -215,7 +224,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 				docfield: docfield,
 				name: __(docfield ? docfield.label : toTitle(c[0])),
 				width: (docfield ? cint(docfield.width) : 120) || 120,
-				formatter: function(row, cell, value, columnDef, dataContext) {
+				formatter: function(row, cell, value, columnDef, dataContext, for_print) {
 					var docfield = columnDef.docfield;
 					docfield.fieldtype = {
 						"_user_tags": "Tag",
@@ -229,7 +238,7 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 							repl('frappe.container.page.reportview.set_filter("%(fieldname)s", "%(value)s").page.reportview.run()',
 								{fieldname:docfield.fieldname, value:value});
 					}
-					return frappe.format(value, docfield, null, dataContext);
+					return frappe.format(value, docfield, {for_print: for_print}, dataContext);
 				}
 			}
 			return coldef;
@@ -656,7 +665,6 @@ frappe.ui.ColumnPicker = Class.extend({
 		w.data("fieldselect", fieldselect);
 
 		w.find('.close').data("fieldselect", fieldselect).click(function() {
-			console.log(me.columns.indexOf($(this).data('fieldselect')));
 			delete me.columns[me.columns.indexOf($(this).data('fieldselect'))];
 			$(this).parent().remove();
 		});

@@ -40,7 +40,7 @@ frappe.views.QueryReport = Class.extend({
 	    multiColumnSort: true
 	},
 	make: function() {
-		this.wrapper = $("<div>").appendTo($(this.parent).find(".layout-main"));
+		this.wrapper = $("<div>").appendTo(this.page.main);
 		$('<div class="waiting-area" style="display: none;"></div>\
 		<div class="no-report-area msg-box no-border" style="display: none;">\
 		</div>\
@@ -66,6 +66,8 @@ frappe.views.QueryReport = Class.extend({
 			}
 			frappe.set_route("Form", "Report", me.report_name);
 		}, true);
+
+		this.page.add_menu_item(__("Print"), function() { me.print_report(); }, true);
 
 		this.page.add_menu_item(__('Export'), function() { me.export_report(); },
 			true);
@@ -108,7 +110,7 @@ frappe.views.QueryReport = Class.extend({
 									me.page.set_title(__(me.report_name));
 									frappe.dom.eval(r.message.script || "");
 									me.setup_filters();
-									me.setup_html_format(r.message.html_format);
+									me.html_format = r.message.html_format;
 									frappe.query_reports[me.report_name]["html_format"] = r.message.html_format;
 									me.refresh();
 								}
@@ -129,40 +131,14 @@ frappe.views.QueryReport = Class.extend({
 			this.wrapper.find(".no-report-area").html(msg).toggle(true);
 		}
 	},
-	setup_html_format: function(html_format) {
-		var me = this;
+	print_report: function() {
+		if(this.html_format) {
+			var content = frappe.render(this.html_format,
+				{data: this.dataView.getItems(), filters:this.get_values(), report:this});
 
-		// don't add multiple Print buttons
-		if (this.$print_action) {
-			this.$print_action.remove();
-		}
-
-		if(html_format) {
-			this.$print_action = this.page.add_menu_item(__('Print'), function() {
-				if(!me.data) {
-					msgprint(__("Run the report first"));
-					return;
-				}
-
-				var data = [];
-				// get filtered data
-				for (var i=0, l=me.dataView.getLength(); i<l; i++) {
-					data.push(me.dataView.getItem(i));
-				}
-
-				var content = frappe.render(html_format,
-					{data: data, filters:me.get_values(), report:me});
-
-				var html = frappe.render_template("print_template", {
-					title: __(me.report_name), content: content
-				});
-
-				var w = window.open();
-				w.document.write(html);
-				w.document.close();
-
-			}, true);
-
+			frappe.render_grid({content:content, title:__(this.report_name)});
+		} else {
+			frappe.render_grid({grid:this.grid, title:__(this.report_name)});
 		}
 	},
 	setup_filters: function() {
@@ -367,8 +343,8 @@ frappe.views.QueryReport = Class.extend({
 		return frappe.query_reports[this.report_name] || {};
 	},
 	get_formatter: function() {
-		var formatter = function(row, cell, value, columnDef, dataContext) {
-			var value = frappe.format(value, columnDef.df, null, dataContext);
+		var formatter = function(row, cell, value, columnDef, dataContext, for_print) {
+			var value = frappe.format(value, columnDef.df, {for_print: for_print}, dataContext);
 
 			if (columnDef.df.is_tree) {
 				value = frappe.query_report.tree_formatter(row, cell, value, columnDef, dataContext);

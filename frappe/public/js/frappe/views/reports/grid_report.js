@@ -174,6 +174,10 @@ frappe.views.GridReport = Class.extend({
 			}, true);
 		}
 
+		this.page.add_menu_item(__("Print"), function() {
+			frappe.render_grid({grid: me.grid, title: me.page.title })
+		}, true);
+
 		// range
 		this.filter_inputs.range && this.filter_inputs.range.on("change", function() {
 			me.refresh();
@@ -519,11 +523,15 @@ frappe.views.GridReport = Class.extend({
 		var me = this;
 		$.each(this.dataview_columns, function(i, col) {
 			if(col.link_formatter) {
-				col.formatter = function(row, cell, value, columnDef, dataContext) {
+				col.formatter = function(row, cell, value, columnDef, dataContext, for_print) {
 					// added link and open button to links
 					// link_formatter must have
 					// filter_input, open_btn (true / false), doctype (will be eval'd)
 					if(!value) return "";
+
+					if(for_print) {
+						return value;
+					}
 
 					var me = frappe.cur_grid_report;
 

@@ -45,3 +45,22 @@ frappe.render = function(str, data, name) {
 frappe.render_template = function(name, data) {
 	return frappe.render(frappe.templates[name], data, name);
 }
+frappe.render_grid = function(opts) {
+	// build context
+	if(opts.grid) {
+		opts.columns = opts.grid.getColumns();
+		opts.data = opts.grid.getData().getItems();
+	}
+
+	// render content
+	if(!opts.content) {
+		opts.content = frappe.render_template("print_grid", opts);
+	}
+
+	// render HTML wrapper page
+	var html = frappe.render_template("print_template", opts);
+
+	var w = window.open();
+	w.document.write(html);
+	w.document.close();
+}
