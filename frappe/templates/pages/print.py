@@ -142,8 +142,22 @@ def get_print_format(doctype, print_format):
 				frappe.TemplateNotFoundError)
 
 def make_layout(doc, meta, format_data=None):
+	"""Builds a hierarchical layout object from the fields list to be rendered
+	by `standard.html`
+
+	:param doc: Document to be rendered.
+	:param meta: Document meta object (doctype).
+	:param format_data: Fields sequence and properties defined by Print Format Builder."""
 	layout, page = [], []
 	layout.append(page)
+
+	if format_data:
+		# extract print_heading_template from the first field
+		# and remove the field
+		if format_data[0].get("fieldname") == "print_heading_template":
+			doc.print_heading_template = format_data[0].get("options")
+			format_data = format_data[1:]
+
 	for df in format_data or meta.fields:
 		if format_data:
 			# embellish df with original properties
@@ -234,11 +248,19 @@ def get_print_style(style=None):
 
 	return css
 
-def get_visible_columns(data, table_meta):
+def get_visible_columns(data, table_meta, df):
+	"""Returns list of visible columns based on print_hide and if all columns have value."""
 	columns = []
-	for tdf in table_meta.fields:
-		if is_visible(tdf) and column_has_value(data, tdf.fieldname):
-			columns.append(tdf)
+	if df.get("visible_columns"):
+		# columns specified by column builder
+		for col_df in df.get("visible_columns"):
+			newdf = table_meta.get_field(col_df.get("fieldname")).as_dict().copy()
+			newdf.update(col_df)
+			columns.append(newdf)
+	else:
+		for col_df in table_meta.fields:
+			if is_visible(col_df) and column_has_value(data, col_df.get("fieldname")):
+				columns.append(col_df)
 
 	return columns
 

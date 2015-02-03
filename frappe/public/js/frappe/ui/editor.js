@@ -375,11 +375,8 @@ bsEditorToolbar = Class.extend({
 
 		// edit html
 		this.toolbar.find(".btn-html").on("click", function() {
-			if(!window.bs_html_editor)
-				window.bs_html_editor = new bsHTMLEditor();
-
-			window.bs_html_editor.show(me.editor);
-		})
+			new bsHTMLEditor().show(me.editor);
+		});
 	},
 
 	update: function () {
@@ -457,10 +454,9 @@ bsHTMLEditor = Class.extend({
 		var me = this;
 		this.modal = bs_get_modal("<i class='icon-code'></i> Edit HTML", '<textarea class="form-control" \
 			style="height: 400px; width: 100%; font-family: Monaco, \'Courier New\', monospace; font-size: 11px">\
-			</textarea><br>\
-			<button class="btn btn-primary" style="margin-top: 7px;">' + __("Save") + '</button>');
-		this.modal.addClass("frappe-ignore-click");
-		this.modal.find(".btn-primary").on("click", function() {
+			</textarea>');
+			this.modal.addClass("frappe-ignore-click");
+		this.modal.find(".btn-primary").removeClass("hide").html(__("Update")).on("click", function() {
 			me._html = me.modal.find("textarea").val();
 
 			$.each(me.editor.dataurls, function(key, val) {
@@ -476,7 +472,7 @@ bsHTMLEditor = Class.extend({
 	show: function(editor) {
 		var me = this;
 		this.editor = editor;
-		this.modal.modal("show")
+		this.modal.modal("show");
 		var html = me.editor.html();
 		// pack dataurls so that html display is faster
 		this.editor.dataurls = {}

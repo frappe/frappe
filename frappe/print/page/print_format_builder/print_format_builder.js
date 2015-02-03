@@ -166,12 +166,19 @@ frappe.PrintFormatBuilder = Class.extend({
 			.appendTo(this.page.main);
 		this.setup_sortable();
 		this.setup_add_section();
+		this.setup_edit_heading();
 	},
 	prepare_data: function() {
 		this.data = JSON.parse(this.print_format.format_data || "[]");
 		if(!this.data.length) {
 			// new layout
 			this.data = this.meta.fields;
+		} else {
+			// extract print_heading_template if found
+			if(this.data[0].fieldname==="print_heading_template") {
+				this.print_heading_template = this.data[0].options;
+				this.data = this.data.splice(1);
+			}
 		}
 		this.layout_data = [];
 		var section = null, column = null, me = this;
@@ -242,7 +249,7 @@ frappe.PrintFormatBuilder = Class.extend({
 					!_f.print_hide && f.label) {
 
 					// column names set as fieldname|width
-					f.visible_columns.push({fieldname: _f.fieldname, width: _f.width});
+					f.visible_columns.push({fieldname: _f.fieldname, print_width: (_f.width || "")});
 				}
 			});
 		}
@@ -412,6 +419,14 @@ frappe.PrintFormatBuilder = Class.extend({
 			me.setup_sortable_for_column($section.find(".print-format-builder-column").get(0));
 		});
 	},
+	setup_edit_heading: function() {
+		var me = this;
+		this.page.main.find(".edit-heading").on("click", function() {
+			var $heading = $(this).parents(".print-format-builder-header:first")
+				.find(".print-format-builder-print-heading");
+			var d = me.get_edit_html_dialog(__("Edit Heading"), __("Heading"), $heading);
+		})
+	},
 	setup_column_selector: function() {
 		var me = this;
 		this.page.main.on("click", ".select-columns", function() {
@@ -424,7 +439,7 @@ frappe.PrintFormatBuilder = Class.extend({
 
 			$.each(columns, function(i, v) {
 				var parts = v.split("|");
-				widths[parts[0]] = parts[1];
+				widths[parts[0]] = parts[1] || "";
 			});
 
 			var d = new frappe.ui.Dialog({
@@ -473,7 +488,7 @@ frappe.PrintFormatBuilder = Class.extend({
 		});
 	},
 	get_visible_columns_string: function(f) {
-		return $.map(f.visible_columns, function(v) { return v.fieldname + "|" + v.width }).join(",")
+		return $.map(f.visible_columns, function(v) { return v.fieldname + "|" + (v.print_width || "") }).join(",")
 	},
 	get_no_content: function() {
 		return '<div class="text-extra-muted" data-no-content>'+__("Edit to add content")+'</div>'
@@ -481,38 +496,48 @@ frappe.PrintFormatBuilder = Class.extend({
 	setup_edit_custom_html: function() {
 		var me = this;
 		this.page.main.on("click", ".edit-html", function() {
-			var parent = $(this).parents(".print-format-builder-field:first"),
-				$content = parent.find(".html-content");
-
-			var d = new frappe.ui.Dialog({
-				title: __("Edit Custom HTML"),
+			me.get_edit_html_dialog(__("Edit Custom HTML"), __("Custom HTML"),
+				$(this).parents(".print-format-builder-field:first").find(".html-content"));
+		});
+	},
+	get_edit_html_dialog: function(title, label, $content) {
+		var d = new frappe.ui.Dialog({
+				title: title,
 				fields: [
 					{
 						fieldname: "content",
 						fieldtype: "Text Editor",
-						label: "Custom HTML"
+						label: label
 					}
 				]
 			});
 
-			var content = $content.html();
-			if(content.indexOf("data-no-content")!==-1) content = "";
+		// set existing content in input
+		content = $content.html();
+		if(content.indexOf("data-no-content")!==-1) content = "";
+		d.set_input("content", content);
 
-			d.set_input("content", content);
-
-			d.set_primary_action(__("Update"), function() {
-				$content.html(d.get_value("content"));
-				d.hide();
-			});
-
-			d.show();
-
-			return false;
+		d.set_primary_action(__("Update"), function() {
+			$content.html(d.get_value("content"));
+			d.hide();
 		});
+
+		d.show();
+
+		return d;
 	},
 	save_print_format: function() {
 		var data = [],
 			me = this;
+
+		// add print heading as the first field
+		// this will be removed and set as a doc property
+		// before rendering
+		data.push({"fieldname": "print_heading_template",
+			fieldtype:"HTML",
+			options: this.page.main.find(".print-format-builder-print-heading").html()});
+
+		// add pages
 		this.page.main.find(".print-format-builder-section").each(function() {
 			data.push({"fieldtype": "Section Break"});
 			$(this).find(".print-format-builder-column").each(function() {
@@ -530,7 +555,7 @@ frappe.PrintFormatBuilder = Class.extend({
 						$.each(columns, function(i, c) {
 							var parts = c.split("|");
 							df.visible_columns.push({fieldname:parts[0],
-								width:parts[1]});
+								print_width:parts[1]});
 						});
 					}
 					if(fieldtype==="Custom HTML") {

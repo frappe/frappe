@@ -3,11 +3,14 @@
 	margin: 0px;
 	margin-bottom: 15px;
 }
-.print-format-builder-add-section {
+.print-format-builder-add-section, .print-format-builder-header {
 	border: 1px dashed #d1d8dd;
-	text-align: center;
 	padding: 15px;
 	cursor: pointer;
+}
+
+.print-format-builder-header {
+	margin-bottom: 15px;
 }
 
 .print-format-builder-column {

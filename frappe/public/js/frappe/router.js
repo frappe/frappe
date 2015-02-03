@@ -9,7 +9,7 @@ frappe.route_titles = {};
 frappe.route_history = [];
 frappe.view_factory = {};
 frappe.view_factories = [];
-frappe.route_options = {};
+frappe.route_options = null;
 
 frappe.route = function() {
 	if(frappe.re_route[window.location.hash]) {

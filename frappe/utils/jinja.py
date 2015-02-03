@@ -67,7 +67,8 @@ def get_allowed_functions_for_jenv():
 			"date_format": frappe.db.get_default("date_format") or "yyyy-mm-dd",
 			"get_fullname": frappe.utils.get_fullname,
 			"get_gravatar": frappe.utils.get_gravatar,
-			"full_name": hasattr(frappe.local, "session") and frappe.local.session.data.full_name or "Guest"
+			"full_name": hasattr(frappe.local, "session") and frappe.local.session.data.full_name or "Guest",
+			"render_template": frappe.render_template
 		},
 		"autodoc": {
 			"get_version": get_version,

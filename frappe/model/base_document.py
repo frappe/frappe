@@ -364,6 +364,29 @@ class BaseDocument(object):
 		return format_value(self.get(fieldname), self.meta.get_field(fieldname),
 			doc=doc or self, currency=currency)
 
+	def get_print_template(self, fieldname, parent_doc=None):
+		"""Returns print template for given fieldname if specified in controller
+		or parent controller.
+
+		Templates must be specified as:
+
+			class MyDocType(Document):
+				def __setup__(self):
+					self.print_templates = {
+						"[fieldname]": "templates/includes/template_name.html",
+						"[table fieldname].[fieldname]": "templates/includes/template_name.html"
+					}
+
+		:param fieldname: Field for which template is queried.
+		:param parent_doc: Parent Document, if child doc."""
+		src = self
+		if parent_doc:
+			src = parent_doc
+			fieldname = self.parentfield + "." + fieldname
+		if hasattr(src, "print_templates"):
+			return src.print_templates.get(fieldname)
+
+
 def _filter(data, filters, limit=None):
 	"""pass filters as:
 		{"key": "val", "key": ["!=", "val"],

@@ -21,7 +21,7 @@
             </div>
             <div class="col-sm-6 text-right">
                 <input class="form-control column-width input-sm text-right"
-                    value="{%= widths[f.fieldname] || "" %}"
+                    value="{%= (widths[f.fieldname] || "") %}"
                     data-fieldname="{%= f.fieldname %}"
                     style="width: 100px; display: inline"
                     {%= selected ? "" : "disabled" %}>
