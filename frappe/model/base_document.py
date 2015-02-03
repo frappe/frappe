@@ -197,6 +197,9 @@ class BaseDocument(object):
 				), d.values())
 		except Exception, e:
 			if e.args[0]==1062:
+				if self.meta.autoname=="hash":
+					self.db_insert()
+					return
 				type, value, traceback = sys.exc_info()
 				frappe.msgprint(_("Duplicate name {0} {1}").format(self.doctype, self.name))
 				raise frappe.NameError, (self.doctype, self.name, e), traceback

@@ -1,7 +1,7 @@
 {
  "allow_copy": 0, 
  "allow_rename": 0, 
- "autoname": "TDI.########", 
+ "autoname": "hash", 
  "creation": "2012-07-03 13:30:35", 
  "docstatus": 0, 
  "doctype": "DocType", 
@@ -170,7 +170,7 @@
  "in_dialog": 0, 
  "issingle": 0, 
  "max_attachments": 0, 
- "modified": "2015-01-22 17:54:50.026008", 
+ "modified": "2015-02-02 06:38:35.187657", 
  "modified_by": "Administrator", 
  "module": "Desk", 
  "name": "ToDo", 

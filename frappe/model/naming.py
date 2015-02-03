@@ -76,7 +76,7 @@ def make_autoname(key, doctype=''):
            DE/09/01/0001 where 09 is the year, 01 is the month and 0001 is the series
 	"""
 	if key=="hash":
-		return frappe.generate_hash(doctype)
+		return frappe.generate_hash(doctype)[:7]
 
 	if not "#" in key:
 		key = key + ".#####"
