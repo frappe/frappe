@@ -22,9 +22,12 @@
     padding-right: 10px;
   }
   .doclist-row .list-row-id {
-    left: 40px;
+    left: 18px;
     text-align: left;
     margin-top: 3px;
+  }
+  .doclist-row .doclist-row.has-checkbox .list-row-id {
+    left: 40px;
   }
   .doclist-row .list-row-indicator {
     position: absolute;

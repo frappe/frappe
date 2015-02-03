@@ -1,4 +1,4 @@
-<div class="row doclist-row">
+<div class="row doclist-row {% if (data._checkbox) { %} has-checkbox {% } %}">
     <div class="{% if(right_column) { %} col-xs-12 {% } else { %} col-xs-10 {% } %}
 		{% if (list.meta.title_field) { %}
             col-sm-8

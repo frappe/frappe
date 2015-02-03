@@ -65,7 +65,7 @@ frappe.ui.form.Attachments = Class.extend({
 		var $attach = $(repl('<li class="attachment-row">\
 				<a class="close" data-owner="%(owner)s">&times;</a>\
 				<a href="%(file_url)s" target="_blank" title="%(file_name)s" \
-					class="text-ellipsis" style="width: calc(100% - 43px);">\
+					class="text-ellipsis" style="max-width: calc(100% - 43px);">\
 					<span>%(file_name)s</span></a>\
 			</li>', {
 				file_name: file_name,

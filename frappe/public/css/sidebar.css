@@ -70,6 +70,7 @@ body[data-route^="Module"] .main-menu .form-sidebar {
   position: absolute;
   font-weight: normal;
   right: 0px;
+  padding-bottom: 4px;
 }
 .sidebar-menu .octicon {
   font-size: 12px;

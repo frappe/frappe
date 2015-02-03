@@ -163,7 +163,7 @@ frappe.views.ListView = Class.extend({
 	add_column: function(df) {
 		// field width
 		var colspan = 3;
-		if(in_list(["Int", "Percent", "Select"], df.fieldtype)) {
+		if(in_list(["Int", "Percent"], df.fieldtype)) {
 			colspan = 2;
 		} else if(in_list(["Check", "Image"], df.fieldtype)) {
 			colspan = 1;
