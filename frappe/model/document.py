@@ -411,10 +411,17 @@ class Document(BaseDocument):
 		fn.__name__ = method.encode("utf-8")
 		return Document.hook(fn)(self, *args, **kwargs)
 
+	@staticmethod
+	def whitelist(f):
+		f.whitelisted = True
+		return f
+
+	@whitelist.__func__
 	def submit(self):
 		self.docstatus = 1
 		self.save()
 
+	@whitelist.__func__
 	def cancel(self):
 		self.docstatus = 2
 		self.save()
@@ -451,15 +458,11 @@ class Document(BaseDocument):
 		elif self._action=="update_after_submit":
 			self.run_method("on_update_after_submit")
 
+
 	def check_no_back_links_exist(self):
 		from frappe.model.delete_doc import check_if_doc_is_linked
 		if not self.get("ignore_links"):
 			check_if_doc_is_linked(self, method="Cancel")
-
-	@staticmethod
-	def whitelist(f):
-		f.whitelisted = True
-		return f
 
 	@staticmethod
 	def hook(f):
