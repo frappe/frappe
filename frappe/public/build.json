@@ -32,7 +32,6 @@
 		"public/css/font-awesome.css",
 		"public/css/octicons/octicons.css",
 		"public/css/desk.css",
-		"public/css/mobile.css",
 		"public/css/indicator.css",
 		"public/css/avatar.css",
 		"public/css/navbar.css",
@@ -47,7 +46,8 @@
 		"public/css/tree_grid.css",
 		"public/css/tree.css",
 		"public/css/nprogress.css",
-		"public/css/desktop.css"
+		"public/css/desktop.css",
+		"public/css/mobile.css"
 	],
 	"js/frappe.min.js": [
 		"public/js/lib/jquery/jquery-ui.min.js",

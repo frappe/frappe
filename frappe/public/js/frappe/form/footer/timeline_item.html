@@ -14,8 +14,8 @@
                     <i class="{%= data.icon %} icon-fixed-width"></i>
                     {%= data.fullname %}
                     <span class="text-muted" style="font-weight: normal;">
-                        &dash; {%= data.comment_on %}</span>
-                    {% if(data.doctype=="Communication") { %} &dash;
+                        &ndash; {%= data.comment_on %}</span>
+                    {% if(data.doctype=="Communication") { %} &ndash;
                     <a href="#Form/{%= data.doctype %}/{%= data.name %}"
                         class="text-muted">{%= __("Details") %}</a>
                     {% } %}
@@ -30,14 +30,14 @@
                     <i class="{%= data.icon %} icon-fixed-width"></i>
                         {%= data.comment %}
                         <span class="text-muted" style="font-weight: normal;">
-                        &dash; {%= data.comment_on %}</span>
+                        &ndash; {%= data.comment_on %}</span>
                 </h6>
             {% } else { %}
                 <h6>
                     <i class="{%= data.icon %} icon-fixed-width"></i>
                     {%= data.fullname %} {%= data.comment %}
                         <span class="text-muted" style="font-weight: normal;">
-                        &dash; {%= data.comment_on %}</span>
+                        &ndash; {%= data.comment_on %}</span>
                 </h6>
             {% } %}
 			{% if(data.attachments && data.attachments.length) { %}

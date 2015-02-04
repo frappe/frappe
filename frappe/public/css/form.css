@@ -67,6 +67,9 @@
   margin-top: 0px;
   padding: 15px 30px;
 }
+.timeline-item .icon-fixed-width {
+  text-align: center;
+}
 .timeline-item .reply {
   margin-top: 5px;
 }
@@ -76,7 +79,7 @@
 }
 .timeline-head {
   background-color: #fafbfc;
-  padding: 30px 30px 15px 30px;
+  padding: 15px 30px;
   border-bottom: 1px solid #d1d8dd;
 }
 .form-footer h5 {

@@ -1,6 +1,6 @@
 <div class="timeline">
     <div class="timeline-head">
-        <h6 style="margin-top: -10px;">{%= __("Add a comment") %}</h6>
+        <h6 class="text-muted">{%= __("Add a comment") %}</h6>
         <div>
     		<textarea style="height: 80px" style="margin-top: 10px;"
     			class="form-control"></textarea>
@@ -11,19 +11,17 @@
         	</span>
         	<div class="media-body">
                 <div class="row">
-                    <div class="col-md-6">
+                    <div class="col-xs-4">
                         <h6>{%= __("You") %}</h6>
                     </div>
-                    <div class="col-md-6 text-right">
-                		<button class="btn btn-primary btn-go btn-xs pull-right"
-                            style="margin-right: 10px;">
-                			{%= __("Submit") %}
+                    <div class="col-xs-8 text-right" style="margin-top: 2px;">
+                		<button class="btn btn-primary btn-go btn-xs pull-right">
+                			{%= __("Comment") %}
                 		</button>
                         <div class="checkbox text-muted small pull-right"
-                            style="margin-top: 3px; margin-right: 30px;">
+                            style="margin-top: 3px; margin-right: 15px;">
             			    <label>
-                				<input type="checkbox" class="is-email"
-                					style="margin-top: 1px;">
+                				<input type="checkbox" class="is-email" style="margin-top: 1px;">
                 				{%= __("Email") %}
                 			</label>
                         </div>

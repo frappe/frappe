@@ -62,7 +62,7 @@ frappe.dom = {
 	freeze: function() {
 		// blur
 		if(!$('#freeze').length) {
-			$("<div id='freeze' class='modal-backdrop'>")
+			$("<div id='freeze' class='modal-backdrop' style='display: none;'>")
 				.on("click", function() {
 					if (cur_frm && cur_frm.cur_grid) {
 						cur_frm.cur_grid.toggle_view();
@@ -71,14 +71,14 @@ frappe.dom = {
 				})
 				.appendTo("#body_div");
 		}
-		$('#freeze').toggle(true);
+		$('#freeze').fadeIn();
 		frappe.dom.freeze_count++;
 	},
 	unfreeze: function() {
 		if(!frappe.dom.freeze_count)return; // anything open?
 		frappe.dom.freeze_count--;
 		if(!frappe.dom.freeze_count) {
-			$('#freeze').toggle(false);
+			$('#freeze').fadeOut();
 		}
 	},
 	save_selection: function() {

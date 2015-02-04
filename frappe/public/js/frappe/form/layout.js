@@ -168,7 +168,7 @@ frappe.ui.form.Layout = Class.extend({
 			}
 			if(df.label || df.description) {
 				// spacer
-				$('<div class="col-sm-12"></div>')
+				$('<div class="col-sm-12 hidden-xs"></div>')
 					.appendTo(this.section)
 					.css({"height": "10px"});
 			}

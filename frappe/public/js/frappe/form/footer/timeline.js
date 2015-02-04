@@ -11,11 +11,11 @@ frappe.ui.form.Comments = Class.extend({
 		this.wrapper = $(frappe.render_template("timeline",
 			{ image: frappe.user_info(user).image, fullname: user_fullname })).appendTo(this.parent);
 
-			this.list = this.wrapper.find(".timeline-items");
-
+		this.list = this.wrapper.find(".timeline-items");
 		this.input = this.wrapper.find(".form-control");
+
 		this.button = this.wrapper.find(".btn-go")
-			.click(function() {
+			.on("click", function() {
 				if(me.wrapper.find(".is-email").prop("checked")) {
 					new frappe.views.CommunicationComposer({
 						doc: me.frm.doc,
@@ -24,6 +24,15 @@ frappe.ui.form.Comments = Class.extend({
 					})
 				} else {
 					me.add_comment(this);
+				}
+			});
+
+		this.email_check = this.wrapper.find(".timeline-head input[type='checkbox']")
+			.on("click", function() {
+				if ($(this).prop("checked")) {
+					me.button.html(__("Compose"));
+				} else {
+					me.button.html(__("Comment"));
 				}
 			});
 	},
@@ -130,13 +139,13 @@ frappe.ui.form.Comments = Class.extend({
 			"Created": "octicon octicon-plus",
 			"Submitted": "octicon octicon-lock",
 			"Cancelled": "octicon octicon-x",
-			"Assigned": "octicon octicon-tag",
+			"Assigned": "octicon octicon-person",
 			"Assignment Completed": "octicon octicon-check",
 			"Comment": "octicon octicon-comment-discussion",
 			"Workflow": "octicon octicon-git-branch",
 			"Label": "octicon octicon-tag",
-			"Attachment": "octicon octicon-upload",
-			"Attachment Removed": "octicon octicon-x"
+			"Attachment": "octicon octicon-cloud-upload",
+			"Attachment Removed": "octicon octicon-trashcan"
 		}[c.comment_type]
 
 		c.color = {

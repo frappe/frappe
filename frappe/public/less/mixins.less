@@ -20,7 +20,6 @@
 	*margin-right: .3em;
 	display: inline-block;
 	speak: none;
-	color: @breadcrumb-divider-color;
 	font-size: 24px;
 	transition: 0.2s;
 	position: relative;
@@ -28,11 +27,13 @@
 }
 
 .breadcrumb-divider-left() {
-	content: "\f104" !important;
-	margin-right: 5px !important;
+	content: "\f104";
+	margin-right: 5px;
+	color: @navbar-default-color;
 }
 
 .breadcrumb-divider-right() {
 	content: "\f105";
 	margin-right: 15px;
+	color: @breadcrumb-divider-color;
 }

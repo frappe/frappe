@@ -180,6 +180,8 @@ def compile_less():
 						continue
 
 					timestamps[fpath] = mtime
+
 					print "compiling {0}".format(fpath)
-					os.system("lessc {0} > {1}".format(fpath,
-						os.path.join(path, "public", "css", fname.rsplit(".", 1)[0] + ".css")))
+
+					css_path = os.path.join(path, "public", "css", fname.rsplit(".", 1)[0] + ".css")
+					os.system("lessc {0} > {1}".format(fpath, css_path))

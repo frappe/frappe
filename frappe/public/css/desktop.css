@@ -28,7 +28,7 @@ body[data-route="desktop"] .navbar-default {
   margin-top: 10px;
   transition: 0.2s;
   -webkit-transition: 0.2s;
-  text-shadow: 0px 1px 2px rgba(0, 0, 0, 0.5);
+  text-shadow: 0px 1px 2px rgba(0, 0, 0, 0.5), 0px 1px 5px rgba(0, 0, 0, 0.3);
 }
 .app-icon {
   padding: 20px;
@@ -51,7 +51,6 @@ body[data-route="desktop"] .navbar-default {
 .app-icon img {
   height: 32px;
   width: 32px;
-  margin-top: -3px;
 }
 .app-icon path {
   fill: #fafbfc;

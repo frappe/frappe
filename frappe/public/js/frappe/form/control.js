@@ -40,8 +40,16 @@ frappe.ui.form.Control = Class.extend({
 	get_status: function(explain) {
 		if(!this.doctype)
 			return "Write";
-		return frappe.perm.get_field_display_status(this.df,
+
+		var status = frappe.perm.get_field_display_status(this.df,
 			locals[this.doctype][this.docname], this.perm || this.frm.perm, explain);
+
+		// hide if no value
+		if (status==="Read" && is_null(frappe.model.get_value(this.doctype, this.docname, this.df.fieldname))) {
+			status = "None";
+		}
+
+		return status;
 	},
 	refresh: function() {
 		this.disp_status = this.get_status();
@@ -134,7 +142,7 @@ frappe.ui.form.ControlImage = frappe.ui.form.Control.extend({
 });
 
 frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
-	horizontal: true,
+	// horizontal: true,
 	make: function() {
 		// parent element
 		this._super();
@@ -151,10 +159,10 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 			this.$wrapper = $('<div class="frappe-control">\
 				<div class="form-group" style="margin: 0px">\
 					<label class="control-label" style="padding-right: 0px;"></label>\
-					<div>\
+					<div class="control-input-wrapper">\
 						<div class="control-input"></div>\
 						<div class="control-value like-disabled-input" style="display: none;"></div>\
-						<p class="help-box small text-muted"></p>\
+						<p class="help-box small text-muted hidden-xs"></p>\
 					</div>\
 				</div>\
 			</div>').appendTo(this.parent);
@@ -380,7 +388,7 @@ frappe.ui.form.ControlInt = frappe.ui.form.ControlData.extend({
 		var me = this;
 		this._super();
 		this.$input
-			.css({"text-align": "right"})
+			.addClass("text-right")
 			.on("focus", function() {
 				setTimeout(function() {
 					if(!document.activeElement) return;

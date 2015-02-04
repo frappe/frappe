@@ -72,13 +72,13 @@
   *margin-right: .3em;
   display: inline-block;
   speak: none;
-  color: #c0c9d2;
   font-size: 24px;
   transition: 0.2s;
   position: relative;
   top: 3px;
   content: "\f105";
   margin-right: 15px;
+  color: #c0c9d2;
 }
 #navbar-breadcrumbs > li > a:hover:before,
 #navbar-breadcrumbs > li > a:focus:before,
