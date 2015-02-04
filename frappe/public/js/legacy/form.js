@@ -265,6 +265,13 @@ _f.Frm.prototype.rename_doc = function() {
 	frappe.model.rename_doc(this.doctype, this.docname);
 }
 
+_f.Frm.prototype.share_doc = function() {
+	if(!this.form_share) {
+		this.form_share = new frappe.ui.form.Share({frm: this});
+	}
+	this.form_share.show();
+}
+
 // notify this form of renamed records
 _f.Frm.prototype.rename_notify = function(dt, old, name) {
 	// from form

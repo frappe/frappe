@@ -84,8 +84,8 @@ def get_doc_permissions(doc, verbose=False, user=None):
 
 	# update share permissions
 	role_permissions.update(frappe.db.get_value("DocShare",
-		{"share_type": doc.doctype, "share_name": doc.name, "user": user},
-		["read", "write", "share"], as_dict=True))
+		{"share_doctype": doc.doctype, "share_name": doc.name, "user": user},
+		["read", "write", "share"], as_dict=True) or {})
 
 	return role_permissions
 

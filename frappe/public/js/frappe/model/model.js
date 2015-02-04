@@ -193,6 +193,11 @@ $.extend(frappe.model, {
 		return frappe.boot.user.can_email.indexOf(doctype)!==-1;
 	},
 
+	can_share: function(doctype, frm) {
+		if(frm) return frm.perm[0].share===1;
+		return frappe.boot.user.can_email.indexOf(doctype)!==-1;
+	},
+
 	can_set_user_permissions: function(doctype, frm) {
 		// system manager can always set user permissions
 		if(user_roles.indexOf("System Manager")!==-1) return true;

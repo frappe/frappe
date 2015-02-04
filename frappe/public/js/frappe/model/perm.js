@@ -9,7 +9,7 @@ var SUBMIT = "submit", CANCEL = "cancel", AMEND = "amend";
 
 $.extend(frappe.perm, {
 	rights: ["read", "write", "create", "delete", "submit", "cancel", "amend",
-		"report", "import", "export", "print", "email", "set_user_permissions"],
+		"report", "import", "export", "print", "email", "share", "set_user_permissions"],
 
 	doctype_perm: {},
 

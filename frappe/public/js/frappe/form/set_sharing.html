@@ -1,0 +1,40 @@
+<div class="padding">
+
+    {% if(!shared.length) { %}
+        <p class="text-muted">{%= __("Not shared with anyone yet.") %}</p>
+    {% } else { %}
+        <div class="row">
+            <div class="col-xs-6"><h5>{%= __("User") %}</h5></div>
+            <div class="col-xs-2"><h5>{%= __("Read") %}</h5></div>
+            <div class="col-xs-2"><h5>{%= __("Write") %}</h5></div>
+            <div class="col-xs-2"><h5>{%= __("Share") %}</h5></div>
+        </div>
+
+        {% for (var i=0, l=shared.length; i < l; i++) {
+            var s = shared[i]; %}
+        <div class="row" data-user="{%= s.user %}">
+            <div class="col-xs-6">{%= s.user %}</div>
+            <div class="col-xs-2"><input type="checkbox" name="read"
+                {% if(cint(s.read)) { %}checked{% } %}></div>
+            <div class="col-xs-2"><input type="checkbox" name="write"
+                {% if(cint(s.write)) { %}checked{% } %}></div>
+            <div class="col-xs-2"><input type="checkbox" name="share"
+                {% if(cint(s.share)) { %}checked{% } %}></div>
+        </div>
+        {% } %}
+    {% } %}
+
+    {% if(frappe.model.can_share(null, frm)) { %}
+    <hr>
+    <h5>{%= __("Share this document with:") %}</h5>
+    <div class="row">
+        <div class="col-xs-6 input-wrapper-add-share"></div>
+        <div class="col-xs-2"><input type="checkbox" class="add-share-read" name="read"></div>
+        <div class="col-xs-2"><input type="checkbox" class="add-share-write" name="write"></div>
+        <div class="col-xs-2"><input type="checkbox" class="add-share-share" name="share"></div>
+    </div>
+    <p>
+        <button class="btn btn-primary btn-add-share">{%= __("Add") %}</button>
+    </p>
+    {% } %}
+</div>

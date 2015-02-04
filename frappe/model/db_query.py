@@ -15,6 +15,7 @@ class DatabaseQuery(object):
 		self.doctype = doctype
 		self.tables = []
 		self.conditions = []
+		self.or_conditions = []
 		self.fields = ["`tab{0}`.`name`".format(doctype)]
 		self.user = None
 		self.ignore_permissions = False
@@ -78,9 +79,15 @@ class DatabaseQuery(object):
 		for tname in self.tables[1:]:
 			args.tables += " left join " + tname + " on " + tname + '.parent = ' + self.tables[0] + '.name'
 
-		if self.or_conditions:
-			self.conditions.append("({0})".format(" or ".join(self.or_conditions)))
+		if self.grouped_or_conditions:
+			self.conditions.append("({0})".format(" or ".join(self.grouped_or_conditions)))
+
 		args.conditions = ' and '.join(self.conditions)
+
+		if self.or_conditions:
+			args.conditions += (' or ' if args.conditions else "") + \
+				 ' or '.join(self.or_conditions)
+
 		args.fields = ', '.join(self.fields)
 
 		self.set_order_by(args)
@@ -169,9 +176,9 @@ class DatabaseQuery(object):
 
 	def build_conditions(self):
 		self.conditions = []
-		self.or_conditions = []
+		self.grouped_or_conditions = []
 		self.build_filter_conditions(self.filters, self.conditions)
-		self.build_filter_conditions(self.or_filters, self.or_conditions)
+		self.build_filter_conditions(self.or_filters, self.grouped_or_conditions)
 
 		# match conditions
 		if not self.ignore_permissions:
@@ -287,8 +294,8 @@ class DatabaseQuery(object):
 			return self.match_filters
 
 	def get_share_condition(self):
-		return """`tab{0}`.name in ({1})""".format(self.doctype, ", ".join(["%s"] * len(self.shared))) % \
-			[frappe.db.escape(s) for s in self.shared]
+		return """`tab{0}`.name in ({1})""".format(self.doctype, ", ".join(["'%s'"] * len(self.shared))) % \
+			tuple([frappe.db.escape(s) for s in self.shared])
 
 	def add_user_permissions(self, user_permissions, user_permission_doctypes=None):
 		user_permission_doctypes = frappe.permissions.get_user_permission_doctypes(user_permission_doctypes,
