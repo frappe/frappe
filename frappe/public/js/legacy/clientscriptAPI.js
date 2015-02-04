@@ -217,7 +217,9 @@ _f.Frm.prototype.set_value = function(field, value, if_missing) {
 		_set(field, value)
 	} else if($.isPlainObject(field)) {
 		$.each(field, function(f, v) {
-			_set(f, v);
+			if(me.get_field(f)) {
+				_set(f, v);
+			}
 		})
 	}
 }

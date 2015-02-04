@@ -62,6 +62,7 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 				doc.run_method("on_trash")
 
 				delete_linked_todos(doc)
+				delete_shared(doc)
 				# check if links exist
 				if not force:
 					check_if_doc_is_linked(doc)
@@ -166,7 +167,7 @@ def delete_linked_todos(doc):
 def insert_feed(doc):
 	from frappe.utils import get_fullname
 
-	if frappe.flags.in_install or frappe.flags.in_import or doc.get("ignore_feed"):
+	if frappe.flags.in_install or frappe.flags.in_import or getattr(doc, "no_feed_on_delete", False):
 		return
 
 	frappe.get_doc({
@@ -177,3 +178,7 @@ def insert_feed(doc):
 		"subject": _("Deleted"),
 		"full_name": get_fullname(doc.owner)
 	}).insert(ignore_permissions=True)
+
+def delete_shared(doc):
+	delete_doc("DocShare", frappe.db.sql_list("""select name from `tabDocShare`
+		where share_doctype=%s and share_name=%s""", (doc.doctype, doc.name)))

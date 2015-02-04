@@ -32,21 +32,12 @@
   -webkit-box-sizing: border-box;
      -moz-box-sizing: border-box;
           box-sizing: border-box;
-  padding: 10px;
+  padding: 6px;
   font-size: 16px;
+  margin-bottom: 10px;
 }
 .form-signin .form-control:focus {
   z-index: 2;
-}
-input#login_email, input#signup_fullname {
-  margin-bottom: -1px;
-  border-bottom-right-radius: 0;
-  border-bottom-left-radius: 0;
-}
-input#login_password, input#signup_email {
-  margin-bottom: 10px;
-  border-top-left-radius: 0;
-  border-top-right-radius: 0;
 }
 
 .btn-social {

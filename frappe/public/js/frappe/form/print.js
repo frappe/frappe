@@ -82,6 +82,7 @@ frappe.ui.form.PrintPreview = Class.extend({
 	},
 	preview: function() {
 		var me = this;
+		this.wrapper.find(".btn-print-edit").toggle(this.get_print_format().name);
 		this.get_print_html(function(html) {
 			me.wrapper.find(".print-format").html(html);
 		});

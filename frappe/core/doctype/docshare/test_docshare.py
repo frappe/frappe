@@ -1,0 +1,69 @@
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# See license.txt
+
+import frappe
+import frappe.share
+import unittest
+
+class TestDocShare(unittest.TestCase):
+	def setUp(self):
+		self.user = "test@example.com"
+		self.event = frappe.get_doc({"doctype": "Event",
+			"subject": "test share event",
+			"starts_on": "2015-01-01 10:00:00",
+			"event_type": "Private"}).insert()
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+		self.event.delete()
+
+	def test_add(self):
+		# user not shared
+		self.assertTrue(self.event.name not in frappe.db.get_shared("Event", self.user))
+		frappe.share.add("Event", self.event.name, self.user)
+		self.assertTrue(self.event.name in frappe.db.get_shared("Event", self.user))
+
+	def test_doc_permission(self):
+		frappe.set_user(self.user)
+		self.assertFalse(self.event.has_permission())
+
+		frappe.set_user("Administrator")
+		frappe.share.add("Event", self.event.name, self.user)
+
+		frappe.set_user(self.user)
+		self.assertTrue(self.event.has_permission())
+
+	def test_share_permission(self):
+		frappe.share.add("Event", self.event.name, self.user, share=1)
+
+		frappe.set_user(self.user)
+		self.assertTrue(self.event.has_permission("share"))
+
+		# test cascade
+		self.assertTrue(self.event.has_permission("read"))
+		self.assertTrue(self.event.has_permission("write"))
+
+	def test_set_permission(self):
+		frappe.share.add("Event", self.event.name, self.user)
+
+		frappe.set_user(self.user)
+		self.assertFalse(self.event.has_permission("share"))
+
+		frappe.set_user("Administrator")
+		frappe.share.set_permission("Event", self.event.name, self.user, "share")
+
+		frappe.set_user(self.user)
+		self.assertTrue(self.event.has_permission("share"))
+
+	def test_permission_to_share(self):
+		frappe.set_user(self.user)
+		self.assertRaises(frappe.PermissionError, frappe.share.add, "Event", self.event.name, self.user)
+
+		frappe.set_user("Administrator")
+		frappe.share.add("Event", self.event.name, self.user, share=1)
+
+		# test not raises
+		frappe.set_user(self.user)
+		frappe.share.add("Event", self.event.name, "test1@example.com", share=1)
+
+

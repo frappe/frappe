@@ -199,6 +199,13 @@
    "permlevel": 0
   }, 
   {
+   "fieldname": "share", 
+   "fieldtype": "Check", 
+   "label": "Share", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
    "fieldname": "print", 
    "fieldtype": "Check", 
    "label": "Print", 
@@ -216,7 +223,7 @@
  "idx": 1, 
  "issingle": 0, 
  "istable": 1, 
- "modified": "2014-08-26 01:43:31.499363", 
+ "modified": "2015-02-04 04:34:26.227213", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "DocPerm", 

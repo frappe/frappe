@@ -68,7 +68,7 @@ def get_html(doc, name=None, print_format=None, meta=None,
 		meta = frappe.get_meta(doc.doctype)
 
 	jenv = frappe.get_jenv()
-	format_data = {}
+	format_data, format_data_map = [], {}
 
 	# determine template
 	if print_format in ("Standard", standard_format):
@@ -76,7 +76,16 @@ def get_html(doc, name=None, print_format=None, meta=None,
 	else:
 		print_format = frappe.get_doc("Print Format", print_format)
 		if print_format.format_data:
+			# set format data
 			format_data = json.loads(print_format.format_data)
+			for df in format_data:
+				format_data_map[df.get("fieldname")] = df
+				if "visible_columns" in df:
+					for _df in df.get("visible_columns"):
+						format_data_map[_df.get("fieldname")] = _df
+
+			doc.format_data_map = format_data_map
+
 			template = "standard"
 		else:
 			template = jenv.from_string(get_print_format(doc.doctype,
@@ -180,7 +189,7 @@ def make_layout(doc, meta, format_data=None):
 		if df.fieldtype=="HTML" and df.options:
 			doc.set(df.fieldname, True) # show this field
 
-		if is_visible(df) and has_value(df, doc):
+		if is_visible(df, doc) and has_value(df, doc):
 			page[-1][-1].append(df)
 
 			# if table, add the row info in the field
@@ -208,9 +217,16 @@ def make_layout(doc, meta, format_data=None):
 	layout = [filter(lambda s: any(filter(lambda c: any(c), s)), page) for page in layout]
 	return layout
 
-def is_visible(df):
-	no_display = ("Section Break", "Column Break", "Button")
-	return (df.fieldtype not in no_display) and not df.get("__print_hide") and not df.print_hide
+def is_visible(df, doc):
+	"""Returns True if docfield is visible in print layout and does not have print_hide set."""
+	if df.fieldtype in ("Section Break", "Column Break", "Button"):
+		return False
+
+	if hasattr(doc, "hide_in_print_layout"):
+		if df.fieldname in doc.hide_in_print_layout:
+			return False
+
+	return not doc.is_print_hide(df.fieldname)
 
 def has_value(df, doc):
 	value = doc.get(df.fieldname)
@@ -251,15 +267,22 @@ def get_print_style(style=None):
 def get_visible_columns(data, table_meta, df):
 	"""Returns list of visible columns based on print_hide and if all columns have value."""
 	columns = []
+	doc = data[0] or frappe.new_doc(df.options)
+	def add_column(col_df):
+		return is_visible(col_df, doc) \
+			and column_has_value(data, col_df.get("fieldname"))
+
 	if df.get("visible_columns"):
 		# columns specified by column builder
 		for col_df in df.get("visible_columns"):
+			# load default docfield properties
 			newdf = table_meta.get_field(col_df.get("fieldname")).as_dict().copy()
 			newdf.update(col_df)
-			columns.append(newdf)
+			if add_column(newdf):
+				columns.append(newdf)
 	else:
 		for col_df in table_meta.fields:
-			if is_visible(col_df) and column_has_value(data, col_df.get("fieldname")):
+			if add_column(col_df):
 				columns.append(col_df)
 
 	return columns

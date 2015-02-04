@@ -7,7 +7,7 @@ from frappe import _, msgprint
 from frappe.utils import cint
 
 rights = ("read", "write", "create", "delete", "submit", "cancel", "amend",
-	"print", "email", "report", "import", "export", "set_user_permissions")
+	"print", "email", "report", "import", "export", "set_user_permissions", "share")
 
 def check_admin_or_system_manager(user=None):
 	if not user: user = frappe.session.user
@@ -33,9 +33,17 @@ def has_permission(doctype, ptype="read", doc=None, verbose=True, user=None):
 	if user=="Administrator":
 		return True
 
+	def false_if_not_shared():
+		if doc and ptype in ("read", "write", "share"):
+			shared = frappe.db.get_shared(meta.name, user, [ptype])
+			if doc.name in shared:
+				return True
+
+		return False
+
 	role_permissions = get_role_permissions(meta, user=user)
 	if not role_permissions.get(ptype):
-		return False
+		return false_if_not_shared()
 
 	if doc:
 		if isinstance(doc, basestring):
@@ -44,10 +52,10 @@ def has_permission(doctype, ptype="read", doc=None, verbose=True, user=None):
 		if role_permissions["apply_user_permissions"].get(ptype):
 			if not user_has_permission(doc, verbose=verbose, user=user,
 				user_permission_doctypes=role_permissions.get("user_permission_doctypes")):
-				return False
+				return false_if_not_shared()
 
 		if not has_controller_permissions(doc, ptype, user=user):
-			return False
+			return false_if_not_shared()
 
 	return True
 
@@ -73,6 +81,11 @@ def get_doc_permissions(doc, verbose=False, user=None):
 		for ptype in role_permissions:
 			if role_permissions["apply_user_permissions"].get(ptype):
 				role_permissions[ptype] = 0
+
+	# update share permissions
+	role_permissions.update(frappe.db.get_value("DocShare",
+		{"share_type": doc.doctype, "share_name": doc.name, "user": user},
+		["read", "write", "share"], as_dict=True))
 
 	return role_permissions
 

@@ -240,19 +240,36 @@ class DatabaseQuery(object):
 		self.match_filters = []
 		self.match_conditions = []
 
+		only_if_shared = False
+
 		if not self.tables: self.extract_tables()
 
 		meta = frappe.get_meta(self.doctype)
 		role_permissions = frappe.permissions.get_role_permissions(meta, user=self.user)
-		if not meta.istable and not role_permissions.get("read") and not getattr(self, "ignore_permissions", False):
-			frappe.throw(_("No permission to read {0}").format(self.doctype))
 
-		# apply user permissions?
-		if role_permissions.get("apply_user_permissions", {}).get("read"):
-			# get user permissions
-			user_permissions = frappe.defaults.get_user_permissions(self.user)
-			self.add_user_permissions(user_permissions,
-				user_permission_doctypes=role_permissions.get("user_permission_doctypes"))
+		self.shared = frappe.db.get_shared(self.doctype, self.user)
+
+		if not meta.istable and not role_permissions.get("read") and not getattr(self,
+			"ignore_permissions", False):
+			only_if_shared = True
+			if not self.shared:
+				frappe.throw(_("No permission to read {0}").format(self.doctype))
+			else:
+				self.conditions.append(self.get_share_condition())
+
+		else:
+			# share is an OR condition, if there is a role permission
+			if not only_if_shared and self.shared:
+				self.or_conditions.append(self.get_share_condition())
+
+			# apply user permissions?
+			if not role_permissions.get("apply_user_permissions", {}).get("read"):
+				# get user permissions
+				user_permissions = frappe.defaults.get_user_permissions(self.user)
+				self.add_user_permissions(user_permissions,
+					user_permission_doctypes=role_permissions.get("user_permission_doctypes"))
+
+
 
 		if as_condition:
 			conditions = ""
@@ -268,6 +285,10 @@ class DatabaseQuery(object):
 
 		else:
 			return self.match_filters
+
+	def get_share_condition(self):
+		return """`tab{0}`.name in ({1})""".format(self.doctype, ", ".join(["%s"] * len(self.shared))) % \
+			[frappe.db.escape(s) for s in self.shared]
 
 	def add_user_permissions(self, user_permissions, user_permission_doctypes=None):
 		user_permission_doctypes = frappe.permissions.get_user_permission_doctypes(user_permission_doctypes,

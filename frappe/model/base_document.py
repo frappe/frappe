@@ -7,6 +7,35 @@ from frappe import _
 from frappe.utils import cint, flt, now, cstr, strip_html
 from frappe.model import default_fields
 from frappe.model.naming import set_new_name
+from frappe.modules import load_doctype_module
+
+_classes = {}
+
+def get_controller(doctype):
+	"""Returns the **class** object of the given DocType.
+	For `custom` type, returns `frappe.model.document.Document`.
+
+	:param doctype: DocType name as string."""
+	if not doctype in _classes:
+		module_name, custom = frappe.db.get_value("DocType", doctype, ["module", "custom"]) \
+			or ["Core", False]
+
+		if custom:
+			_class = BaseDocument
+		else:
+			module = load_doctype_module(doctype, module_name)
+			classname = doctype.replace(" ", "").replace("-", "")
+			if hasattr(module, classname):
+				_class = getattr(module, classname)
+				if issubclass(_class, BaseDocument):
+					_class = getattr(module, classname)
+				else:
+					raise ImportError, doctype
+			else:
+				raise ImportError, doctype
+		_classes[doctype] = _class
+
+	return _classes[doctype]
 
 class BaseDocument(object):
 	ignore_in_getter = ("doctype", "_meta", "meta", "_table_fields", "_valid_columns")
@@ -14,6 +43,9 @@ class BaseDocument(object):
 	def __init__(self, d):
 		self.update(d)
 		self.dont_update_if_missing = []
+
+		if hasattr(self, "__setup__"):
+			self.__setup__()
 
 	@property
 	def meta(self):
@@ -95,6 +127,9 @@ class BaseDocument(object):
 				self.__dict__[key] = []
 			value = self._init_child(value, key)
 			self.__dict__[key].append(value)
+
+			# reference parent document
+			value.parent_doc = self
 			return value
 		else:
 			raise ValueError, "Document attached to child table must be a dict or BaseDocument, not " + str(type(value))[1:-1]
@@ -117,7 +152,7 @@ class BaseDocument(object):
 				value["doctype"] = self.get_table_field_doctype(key)
 				if not value["doctype"]:
 					raise AttributeError, key
-			value = BaseDocument(value)
+			value = get_controller(value["doctype"])(value)
 			value.init_valid_columns()
 
 		value.parent = self.name
@@ -364,28 +399,30 @@ class BaseDocument(object):
 		return format_value(self.get(fieldname), self.meta.get_field(fieldname),
 			doc=doc or self, currency=currency)
 
-	def get_print_template(self, fieldname, parent_doc=None):
-		"""Returns print template for given fieldname if specified in controller
-		or parent controller.
+	def is_print_hide(self, fieldname, for_print=True):
+		"""Returns true if fieldname is to be hidden for print.
 
-		Templates must be specified as:
+		Print Hide can be set via the Print Format Builder or in the controller as a list
+		of hidden fields. Example
 
-			class MyDocType(Document):
+			class MyDoc(Document):
 				def __setup__(self):
-					self.print_templates = {
-						"[fieldname]": "templates/includes/template_name.html",
-						"[table fieldname].[fieldname]": "templates/includes/template_name.html"
-					}
+					self.print_hide = ["field1", "field2"]
 
-		:param fieldname: Field for which template is queried.
-		:param parent_doc: Parent Document, if child doc."""
-		src = self
-		if parent_doc:
-			src = parent_doc
-			fieldname = self.parentfield + "." + fieldname
-		if hasattr(src, "print_templates"):
-			return src.print_templates.get(fieldname)
+		:param fieldname: Fieldname to be checked if hidden.
+		"""
+		df = self.meta.get_field(fieldname)
+		return df and (df.get("__print_hide") or df.print_hide)
 
+	def in_format_data(self, fieldname):
+		"""Returns True if shown via Print Format::`format_data` property.
+			Called from within standard print format."""
+		doc = getattr(self, "parent_doc", self)
+
+		if hasattr(doc, "format_data_map"):
+			return fieldname in doc.format_data_map
+		else:
+			return True
 
 def _filter(data, filters, limit=None):
 	"""pass filters as:

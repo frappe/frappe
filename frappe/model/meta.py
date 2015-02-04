@@ -211,10 +211,6 @@ class Meta(Document):
 
 		return fields
 
-	def is_print_hide(self, fieldname):
-		df = self.get_field(fieldname)
-		return df and (df.get("__print_hide") or df.print_hide)
-
 doctype_table_fields = [
 	frappe._dict({"fieldname": "fields", "options": "DocField"}),
 	frappe._dict({"fieldname": "permissions", "options": "DocPerm"})

@@ -83,6 +83,7 @@ CREATE TABLE `tabDocPerm` (
   `report` int(1) DEFAULT NULL,
   `export` int(1) DEFAULT NULL,
   `import` int(1) DEFAULT NULL,
+  `share` int(1) DEFAULT NULL,
   `print` int(1) DEFAULT NULL,
   `email` int(1) DEFAULT NULL,
   `restrict` int(1) DEFAULT NULL,

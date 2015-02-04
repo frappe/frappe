@@ -76,9 +76,10 @@
 {%- endif -%}
 {%- endmacro -%}
 
-{%- macro print_value(df, doc, parent_doc=None) -%}
-    {% if doc.get_print_template(df.fieldname, parent_doc) %}
-        {% include doc.get_print_template(df.fieldname, parent_doc) %}
+{%- macro print_value(df, doc, meta, parent_doc=None) -%}
+    {% if doc.print_templates and
+			doc.print_templates.get(df.fieldname) %}
+        {% include doc.print_templates[df.fieldname] %}
 	{% elif df.fieldtype=="Check" %}
 		<i class="{{ 'icon-check' if doc[df.fieldname] else 'icon-check-empty' }}"></i>
 	{% elif df.fieldtype=="Image" %}

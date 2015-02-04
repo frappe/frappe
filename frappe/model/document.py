@@ -5,8 +5,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _, msgprint
 from frappe.utils import flt, cint, cstr, now
-from frappe.modules import load_doctype_module
-from frappe.model.base_document import BaseDocument
+from frappe.model.base_document import BaseDocument, get_controller
 from frappe.model.naming import set_new_name
 from werkzeug.exceptions import NotFound, Forbidden
 import hashlib
@@ -47,34 +46,6 @@ def get_doc(arg1, arg2=None):
 
 	raise ImportError, arg1
 
-_classes = {}
-
-def get_controller(doctype):
-	"""Returns the **class** object of the given DocType.
-	For `custom` type, returns `frappe.model.document.Document`.
-
-	:param doctype: DocType name as string."""
-	if not doctype in _classes:
-		module_name, custom = frappe.db.get_value("DocType", doctype, ["module", "custom"]) \
-			or ["Core", False]
-
-		if custom:
-			_class = Document
-		else:
-			module = load_doctype_module(doctype, module_name)
-			classname = doctype.replace(" ", "").replace("-", "")
-			if hasattr(module, classname):
-				_class = getattr(module, classname)
-				if issubclass(_class, Document):
-					_class = getattr(module, classname)
-				else:
-					raise ImportError, doctype
-			else:
-				raise ImportError, doctype
-		_classes[doctype] = _class
-
-	return _classes[doctype]
-
 class Document(BaseDocument):
 	"""All controllers inherit from `Document`."""
 	def __init__(self, arg1, arg2=None):
@@ -111,9 +82,6 @@ class Document(BaseDocument):
 		else:
 			# incorrect arguments. let's not proceed.
 			raise frappe.DataError("Document({0}, {1})".format(arg1, arg2))
-
-		if hasattr(self, "__setup__"):
-			self.__setup__()
 
 		self.dont_update_if_missing = []
 
@@ -157,7 +125,7 @@ class Document(BaseDocument):
 		if not self.has_permission(permtype):
 			self.raise_no_permission_to(permlabel or permtype)
 
-	def has_permission(self, permtype):
+	def has_permission(self, permtype="read"):
 		"""Call `frappe.has_permission` if `self.ignore_permissions`
 		is not set.
 
