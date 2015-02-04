@@ -45,6 +45,8 @@ frappe.ui.form.Attachments = Class.extend({
 			attachments.forEach(function(attachment) {
 				me.add_attachment(attachment)
 			});
+		} else {
+			this.attachments_label.removeClass("has-attachments");
 		}
 
 		// refresh select fields with options attach_files:
@@ -71,7 +73,7 @@ frappe.ui.form.Attachments = Class.extend({
 				file_name: file_name,
 				file_url: file_url
 			}))
-			.insertAfter(this.attachments_label)
+			.insertAfter(this.attachments_label.addClass("has-attachments"));
 
 		var $close =
 			$attach.find(".close")

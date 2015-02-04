@@ -401,6 +401,12 @@ frappe.ui.FieldSelect = Class.extend({
 			}
 		});
 
+		this.$select.data('ui-autocomplete')._renderItem = function(ul, item) {
+			return $(repl('<li class="filter-field-select"><p>%(label)s</p></li>', item))
+				.data("item.autocomplete", item)
+				.appendTo(ul);
+		}
+
 		if(this.filter_fields) {
 			for(var i in this.filter_fields)
 				this.add_field_option(this.filter_fields[i])

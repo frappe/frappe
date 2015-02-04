@@ -2,7 +2,6 @@
 
 .form-grid {
 	border: 1px solid @border-color;
-	margin-bottom: 15px;
 	border-radius: 3px;
 }
 
@@ -42,11 +41,6 @@
 	font-size: 12px;
 }
 
-.grid-footer {
-	padding: 10px 15px;
-	border-top: 1px solid @border-color;
-}
-
 .grid-empty, .list-loading {
 	padding: 10px 15px;
 	color: @border-color;
@@ -83,8 +77,8 @@
 	overflow: hidden;
 	max-height: 0;
 
-	transform: scale3d(0.9, 0, 1) translate3d(0, -30px, 0);
-	-webkit-transform: scale3d(0.9, 0, 1) translate3d(0, -30px, 0);
+	transform: scale3d(0.9, 0, 1);
+	-webkit-transform: scale3d(0.9, 0, 1);
 
 	transform-origin: top;
 	-webkit-transform-origin: top;
@@ -95,9 +89,8 @@
 
 .grid-row-open .form-in-grid {
 	max-height: 10000px;
-
-	transform: scale3d(1, 1, 1) translate3d(0, 0, 0);
-	-webkit-transform: scale3d(1, 1, 1) translate3d(0, 0, 0);
+	transform: scale3d(1, 1, 1);
+	-webkit-transform: scale3d(1, 1, 1);
 }
 
 .grid-form-heading {

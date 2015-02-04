@@ -22,6 +22,7 @@ frappe.confirm = function(message, ifyes, ifno) {
 		fields: [
 			{fieldtype:"HTML", options:"<p class='frappe-confirm-message'>" + message + "</p>"}
 		],
+		primary_action_label: __("Yes"),
 		primary_action: function() { d.hide(); ifyes(); }
 	});
 	d.show();

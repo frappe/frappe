@@ -33,7 +33,9 @@ frappe.ui.form.Layout = Class.extend({
 		var me = this;
 		if(doc) this.doc = doc;
 
-		this.wrapper.find(".empty-form-alert").remove();
+		if (this.frm) {
+			this.wrapper.find(".empty-form-alert").remove();
+		}
 
 		$.each(this.fields_list, function(i, fieldobj) {
 			if(me.doc) {
@@ -47,18 +49,21 @@ frappe.ui.form.Layout = Class.extend({
 			};
 			fieldobj.refresh && fieldobj.refresh();
 		});
+
 		if(this.frm && this.frm.wrapper) {
 			$(this.frm.wrapper).trigger("refresh-fields");
 		}
 
-		// show empty form notification
-		setTimeout(function() {
-			me.wrapper.find(".empty-form-alert").remove();
-			if(!(me.wrapper.find(".frappe-control:visible").length)) {
-				$('<div class="empty-form-alert text-muted" style="margin: 15px; margin-top: -15px;">'+__("This form does not have any input")+'</div>')
-				.appendTo(me.wrapper)
-			}
-		}, 100);
+		if (this.frm) {
+			// show empty form notification
+			setTimeout(function() {
+				me.wrapper.find(".empty-form-alert").remove();
+				if(!(me.wrapper.find(".frappe-control:visible").length)) {
+					$('<div class="empty-form-alert text-muted" style="margin: 15px; margin-top: -15px;">'+__("This form does not have any input")+'</div>')
+					.appendTo(me.wrapper)
+				}
+			}, 100);
+		}
 
 		// dependent fields
 		this.refresh_dependency();
@@ -123,7 +128,7 @@ frappe.ui.form.Layout = Class.extend({
 	},
 	make_page: function(df) {
 		var me = this,
-			head = $('<div class="form-page-header text-center">\
+			head = $('<div class="form-clickable-section text-center">\
 				<a class="btn-fold h6 text-muted">'+__("Show more details")+'</a>\
 			</div>').appendTo(this.wrapper);
 
@@ -151,6 +156,7 @@ frappe.ui.form.Layout = Class.extend({
 	},
 
 	make_section: function(df) {
+		var me = this;
 		if(!this.page) {
 			this.page = $('<div class="form-page"></div>').appendTo(this.wrapper);
 		}
@@ -166,12 +172,6 @@ frappe.ui.form.Layout = Class.extend({
 				$('<div class="col-sm-12 small text-muted">' + __(df.description) + '</div>')
 				.appendTo(this.section);
 			}
-			if(df.label || df.description) {
-				// spacer
-				$('<div class="col-sm-12 hidden-xs"></div>')
-					.appendTo(this.section)
-					.css({"height": "10px"});
-			}
 			this.fields_dict[df.fieldname] = section;
 			this.fields_list.push(section);
 		}
@@ -185,7 +185,7 @@ frappe.ui.form.Layout = Class.extend({
 		section.refresh = function() {
 			if(!this.df) return;
 			$(this).toggle(this.df.hidden || this.df.hidden_due_to_dependency
-				? false : (cur_frm ? !!cur_frm.get_perm(this.df.permlevel, "read") : true))
+				? false : (me.frm ? !!me.frm.get_perm(this.df.permlevel, "read") : true));
 		}
 		this.column = null;
 		section.refresh.call(section);

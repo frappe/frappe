@@ -24,10 +24,12 @@ body {
 // transition
 a,
 .badge,
-.btn,
 .ui-menu .ui-menu-item {
-	transition: background-color 0.2s;
-	-webkit-transition: background-color 0.2s;
+	.transition(.2s);
+}
+
+.btn {
+	.transition(background-color .2s);
 }
 
 a.disabled, a.disabled:hover {
@@ -83,7 +85,6 @@ a.form-link {
 	position: absolute;
 	top: 2px;
 	right: 4px;
-	background-color: @navbar-bg;
 	border-radius: 2px;
 	padding: 3px;
 	display: none;
@@ -319,7 +320,12 @@ ul.linked-with-list li {
 
 #freeze {
 	z-index: 1020;
-	bottom: 0;
+	bottom: 0px;
+	opacity: 0;
+}
+
+#freeze.in {
+	opacity: 0.5;
 }
 
 kbd {
@@ -391,5 +397,13 @@ a.badge-hover& {
 	&:focus .badge,
 	&:active .badge {
 		background-color: #D8DFE5;
+	}
+}
+
+.msgprint {
+	text-align: center;
+
+	pre {
+		text-align: left;
 	}
 }

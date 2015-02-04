@@ -111,6 +111,10 @@ body[data-route^="Module"] .main-menu {
 		font-size: @text-small;
 		margin-top: 0px;
 	}
+
+	li {
+		position: relative;
+	}
 }
 
 // form sidebar
@@ -157,8 +161,13 @@ body[data-route^="Module"] .main-menu {
 	.attachments-label,
 	.tags-label {
 		.sidebar-padding;
-		padding-bottom: 0px;
 		margin-bottom: 0px;
+	}
+
+	.assigned-to-label,
+	.tags-label,
+	.attachments-label.has-attachments {
+		padding-bottom: 0px;
 	}
 
 	a.close {

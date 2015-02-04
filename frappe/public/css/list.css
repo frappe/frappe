@@ -32,6 +32,12 @@
   padding-right: 15px;
   width: calc(64%);
 }
+.ui-autocomplete .filter-field-select {
+  cursor: pointer;
+}
+.ui-autocomplete .filter-field-select p {
+  margin: 5px;
+}
 @media (min-width: 768px) {
   .filter-box .row > div[class*="col-sm-"] {
     padding-right: 0px;

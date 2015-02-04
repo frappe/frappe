@@ -16,7 +16,7 @@
 	border-bottom: 1px solid @border-color;
 }
 
-.form-page-header {
+.form-clickable-section {
 	border-top: 1px solid @border-color;
 	padding: 10px 15px;
 	background-color: @panel-bg;
@@ -35,12 +35,19 @@
 	margin: 0px;
 	padding: 15px;
 }
-.modal-content .form-section {
-	padding: 0px;
-}
 
 .form-section:nth-child(even), .timeline-item:nth-child(even) {
 	background-color: @light-bg;
+}
+
+.modal {
+	.form-layout {
+		margin: -15px;
+	}
+
+	.form-section {
+		padding: 7px;
+	}
 }
 
 .help ol {
@@ -81,7 +88,7 @@
 
 .timeline-item {
 	margin-top: 0px;
-	padding: 15px 30px;
+	padding: 15px 30px 7px;
 
 	.icon-fixed-width {
 		text-align: center;
@@ -116,7 +123,7 @@
 }
 
 .control-label {
-	margin-bottom: 2px;
+	margin-bottom: 5px;
 }
 
 .like-disabled-input {
@@ -128,4 +135,8 @@
 
 .like-disabled-input.for-description {
 	font-weight: normal;
+}
+
+.frappe-control {
+	margin-bottom: 10px;
 }

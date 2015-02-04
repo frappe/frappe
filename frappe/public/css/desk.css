@@ -17,10 +17,15 @@ body {
 }
 a,
 .badge,
-.btn,
 .ui-menu .ui-menu-item {
-  transition: background-color 0.2s;
+  -webkit-transition: 0.2s;
+  -o-transition: 0.2s;
+  transition: 0.2s;
+}
+.btn {
   -webkit-transition: background-color 0.2s;
+  -o-transition: background-color 0.2s;
+  transition: background-color 0.2s;
 }
 a.disabled,
 a.disabled:hover {
@@ -78,7 +83,6 @@ a.form-link {
   position: absolute;
   top: 2px;
   right: 4px;
-  background-color: #f5f7fa;
   border-radius: 2px;
   padding: 3px;
   display: none;
@@ -270,7 +274,11 @@ ul.linked-with-list li {
 }
 #freeze {
   z-index: 1020;
-  bottom: 0;
+  bottom: 0px;
+  opacity: 0;
+}
+#freeze.in {
+  opacity: 0.5;
 }
 kbd {
   color: inherit;
@@ -327,4 +335,10 @@ a.badge-hover:hover .badge,
 a.badge-hover:focus .badge,
 a.badge-hover:active .badge {
   background-color: #D8DFE5;
+}
+.msgprint {
+  text-align: center;
+}
+.msgprint pre {
+  text-align: left;
 }

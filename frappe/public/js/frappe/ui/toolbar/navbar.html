@@ -21,7 +21,7 @@
 					<a class="dropdown-toggle" data-toggle="dropdown" href="#"
 						onclick="return false;">
 	                <img src="{%= frappe.user_info().image %}" class="navbar-user-image">
-	                <span>{%= frappe.user.full_name() %}</span>
+	                <span class="toolbar-user-fullname">{%= frappe.user.full_name() %}</span>
 	                <b class="caret"></b></a>
 					<ul class="dropdown-menu" id="toolbar-user" role="menu">
 	                    <li><a href="#Form/User/{%= encodeURIComponent(user) %}">
@@ -53,7 +53,7 @@
 	            </li>
 	        </ul>
 	        <form class="navbar-form navbar-right" role="search" onsubmit="return false;">
-	          <div class="form-group form-group-sm">
+	          <div class="form-group form-group-sm ui-front">
 	            <input id="navbar-search" type="text" class="form-control"
 					placeholder="{%= __("Search or type a command") %}" aria-haspopup="true">
 				<span class="octicon octicon-search navbar-search-icon"></span>

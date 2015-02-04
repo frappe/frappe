@@ -27,6 +27,9 @@ frappe.ui.form.Control = Class.extend({
 	},
 	make: function() {
 		this.make_wrapper();
+		this.$wrapper
+			.addClass("ui-front")
+			.attr("data-fieldtype", this.df.fieldtype);
 		this.wrapper = this.$wrapper.get(0);
 		this.wrapper.fieldobj = this; // reference for event handlers
 	},

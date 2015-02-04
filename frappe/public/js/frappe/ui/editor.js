@@ -234,7 +234,9 @@ bsEditorToolbar = Class.extend({
 			<div class="btn-toolbar" data-role="editor-toolbar" style="margin-bottom: 7px;">\
 				<div class="btn-group form-group">\
 					<a class="btn btn-default btn-small dropdown-toggle" data-toggle="dropdown" \
-						title="' + __("Font Size") + '"><i class="icon-text-height"></i> <b class="caret"></b></a>\
+						title="' + __("Font Size") + '"><i class="icon-text-height"></i> '
+						+ '<small style="margin-left: 5px;" class="hidden-xs">' + __("Font Size") + '</small>'
+						+ ' <b class="caret"></b></a>\
 					<ul class="dropdown-menu" role="menu">\
 						<li><a href="#" data-edit="formatBlock &lt;p&gt;"><p>' + __("Paragraph") + '</p></a></li>\
 						<li><a href="#" data-edit="formatBlock &lt;h1&gt;"><h1>' + __("Heading") + ' 1</h1></a></li>\
@@ -251,27 +253,29 @@ bsEditorToolbar = Class.extend({
 						<i class="octicon octicon-list-unordered"></i></a>\
 					<a class="btn btn-default btn-small" data-edit="insertorderedlist" title="' + __("Number list") + '">\
 						<i class="octicon octicon-list-ordered"></i></a>\
-					<a class="btn btn-default btn-small" data-edit="outdent" title="' + __("Reduce indent (Shift+Tab)") + '">\
-						<i class="octicon octicon-move-left"></i></a>\
-					<a class="btn btn-default btn-small" data-edit="indent" title="' + __("Indent (Tab)") + '">\
-						<i class="octicon octicon-move-right"></i></a>\
+				</div>\
+				<div class="btn-group form-group">\
+					<a class="btn btn-default btn-small btn-insert-img" title="' + __("Insert picture (or just drag & drop)") + '">\
+						<i class="octicon octicon-file-media"></i></a>\
+					<a class="btn btn-default btn-small btn-add-link" title="' + __("Insert Link") + '">\
+						<i class="icon-link"></i></a>\
+					<a class="btn btn-default btn-small" title="' + __("Remove Link") +'" data-edit="unlink">\
+						<i class="icon-unlink"></i></a>\
 				</div>\
 				<div class="btn-group hidden-xs form-group">\
 					<a class="btn btn-default btn-small" data-edit="justifyleft" title="' + __("Align Left (Ctrl/Cmd+L)") + '">\
 						<i class="icon-align-left"></i></a>\
 					<a class="btn btn-default btn-small" data-edit="justifycenter" title="' + __("Center (Ctrl/Cmd+E)") + '">\
 						<i class="icon-align-center"></i></a>\
-					<a class="btn btn-default btn-small btn-add-link" title="' + __("Insert Link") + '">\
-						<i class="icon-link"></i></a>\
-					<a class="btn btn-default btn-small" title="' + __("Remove Link") +'" data-edit="unlink">\
-						<i class="icon-unlink"></i></a>\
-					<a class="btn btn-default btn-small btn-insert-img" title="' + __("Insert picture (or just drag & drop)") + '">\
-						<i class="octicon octicon-file-media"></i></a>\
+					<a class="btn btn-default btn-small" data-edit="outdent" title="' + __("Reduce indent (Shift+Tab)") + '">\
+						<i class="octicon octicon-move-left"></i></a>\
+					<a class="btn btn-default btn-small" data-edit="indent" title="' + __("Indent (Tab)") + '">\
+						<i class="octicon octicon-move-right"></i></a>\
 					<a class="btn btn-default btn-small" data-edit="insertHorizontalRule" \
 						title="' + __("Horizontal Line Break") + '"><i class="octicon octicon-horizontal-rule"></i></a>\
 				</div>\
 				<div class="btn-group form-group">\
-					<a class="btn btn-default btn-small btn-html" title="' + __("HTML") + '">\
+					<a class="btn btn-default btn-small btn-html hidden-xs" title="' + __("HTML") + '">\
 						<i class="octicon octicon-code"></i></a>\
 					<a class="btn btn-default btn-small btn-success" data-action="Save" title="' + __("Save") + '">\
 						<i class="octicon octicon-check"></i></a>\

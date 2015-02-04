@@ -15,14 +15,22 @@ frappe.views.CommunicationComposer = Class.extend({
 			title: __("Add Reply") + ": " + (this.subject || ""),
 			no_submit_on_enter: true,
 			fields: [
-				{label:__("To"), fieldtype:"Data", reqd: 1, fieldname:"recipients",
-					description:__("Email addresses, separted by commas")},
+				{label:__("To"), fieldtype:"Data", reqd: 1, fieldname:"recipients"},
+
+				{fieldtype: "Section Break"},
+				{fieldtype: "Column Break"},
 				{label:__("Subject"), fieldtype:"Data", reqd: 1,
 					fieldname:"subject"},
+				{fieldtype: "Column Break"},
 				{label:__("Standard Reply"), fieldtype:"Link", options:"Standard Reply",
 					fieldname:"standard_reply"},
+
+				{fieldtype: "Section Break"},
 				{label:__("Message"), fieldtype:"Text Editor", reqd: 1,
 					fieldname:"content"},
+
+				{fieldtype: "Section Break"},
+				{fieldtype: "Column Break"},
 				{label:__("Send As Email"), fieldtype:"Check",
 					fieldname:"send_email"},
 				{label:__("Communication Medium"), fieldtype:"Select",
@@ -35,6 +43,7 @@ frappe.views.CommunicationComposer = Class.extend({
 					fieldname:"attach_document_print"},
 				{label:__("Select Print Format"), fieldtype:"Select",
 					fieldname:"select_print_format"},
+				{fieldtype: "Column Break"},
 				{label:__("Select Attachments"), fieldtype:"HTML",
 					fieldname:"select_attachments"}
 			],
@@ -43,9 +52,6 @@ frappe.views.CommunicationComposer = Class.extend({
 				me.send_action();
 			}
 		});
-
-		this.dialog.$wrapper.find("[data-edit='outdent']").remove();
-
 
 		$(document).on("upload_complete", function(event, attachment) {
 			if(me.dialog.display) {
@@ -190,12 +196,17 @@ frappe.views.CommunicationComposer = Class.extend({
 
 		var files = cur_frm.get_files();
 		if(files.length) {
-			$("<p><b>"+__("Add Attachments")+":</b></p>").appendTo(attach.empty());
+			$("<h6 class='text-muted' style='margin-top: 12px;'>"
+				+__("Add Attachments")+"</h6>").appendTo(attach.empty());
 			$.each(files, function(i, f) {
 				if (!f.file_name) return;
 
-				$(repl("<p class='checkbox'><label style='margin-right: 3px;'><input type='checkbox' \
-					data-file-name='%(name)s'> %(file_name)s</label> <a href='%(file_url)s' target='_blank' class='text-muted'> <i class='icon-share'></i></p>", f))
+				$(repl('<p class="checkbox">'
+					+	'<label><span><input type="checkbox" data-file-name="%(name)s"></input></span>'
+					+		'<span class="small">%(file_name)s</span>'
+					+	' <a href="%(file_url)s" target="_blank" class="text-muted small">'
+					+		'<i class="icon-share" style="vertical-align: middle; margin-left: 3px;"></i>'
+					+ '</label></p>', f))
 					.appendTo(attach)
 			});
 		}

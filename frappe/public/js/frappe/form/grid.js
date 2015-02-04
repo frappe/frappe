@@ -26,10 +26,10 @@ frappe.ui.form.Grid = Class.extend({
 			<div class="grid-body">\
 				<div class="rows"></div>\
 				<div class="grid-empty text-center hide">'+__("No Data")+'</div>\
-				<div class="small grid-footer text-center">\
-					<a href="#" class="grid-add-row grey" style="margin-left: 10px;">+ '
+				<div class="small form-clickable-section grid-footer text-center">\
+					<a href="#" class="grid-add-row h6 text-muted" style="margin-left: 10px;">+ '
 						+__("Add new row")+'.</a>\
-					<a href="#" class="grid-add-multiple-rows grey hide" style="margin-left: 10px;">+ '
+					<a href="#" class="grid-add-multiple-rows h6 text-muted hide" style="margin-left: 10px;">+ '
 						+__("Add multiple rows")+'.</a>\
 					<div class="clearfix"></div>\
 				</div>\
@@ -514,9 +514,9 @@ frappe.ui.form.GridRow = Class.extend({
 				return false;
 		})
 		this.form_panel.find(".grid-form-heading, .grid-footer-toolbar").on("click", function() {
-				me.toggle_view();
-				return false;
-			});
+			me.toggle_view();
+			return false;
+		});
 	},
 	set_data: function() {
 		this.wrapper.data({

@@ -14,7 +14,7 @@
 			{% } else { %}
 				hidden-xs
 			{% } %}"
-            {% if(col.title) { %}title="{%= col.title + ": " + value %}"{% } %}>
+            {% if(col.type!=="Indicator" && col.title) { %}title="{%= col.title + ": " + value %}"{% } %}>
             {% if(col.type!=="Indicator") { %}<span class="list-value">{% } %}
             {% if (col.type==="Subject") { %}
                 {%= subject %}
