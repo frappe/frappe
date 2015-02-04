@@ -17,7 +17,7 @@ frappe.ui.TagEditor = Class.extend({
 		this.$tags = $('<ul>').prependTo(this.$w).tagit({
 			animate: false,
 			allowSpaces: true,
-			placeholderText: __('Type to tag' + "..."),
+			placeholderText: __('Add a tag' + "..."),
 			onTagAdded: function(ev, tag) {
 				if(me.initialized && !me.refreshing) {
 					var tag = tag.find('.tagit-label').text();

@@ -38,6 +38,7 @@ body[data-route^="Module"] .main-menu .form-sidebar {
 }
 .offcanvas .sidebar .badge {
   right: 15px !important;
+  top: 11px !important;
 }
 .offcanvas .sidebar .sidebar-menu > li > a:hover,
 .offcanvas .sidebar .sidebar-menu > li > a:focus,
@@ -70,6 +71,7 @@ body[data-route^="Module"] .main-menu .form-sidebar {
   position: absolute;
   font-weight: normal;
   right: 0px;
+  top: 0px;
   padding-bottom: 4px;
 }
 .sidebar-menu .octicon {
