@@ -343,9 +343,12 @@ $.extend(frappe.model, {
 	get_no_copy_list: function(doctype) {
 		var no_copy_list = ['name','amended_from','amendment_date','cancel_reason'];
 
-		$.each(frappe.get_doc("DocType", doctype).fields || [], function(i, df) {
+		var docfields = frappe.get_doc("DocType", doctype).fields || [];
+		for(var i=0, j=docfields.length; i<j; i++) {
+			var df = docfields[i];
 			if(cint(df.no_copy)) no_copy_list.push(df.fieldname);
-		})
+		}
+
 		return no_copy_list;
 	},
 
@@ -412,9 +415,10 @@ $.extend(frappe.model, {
 			fieldnames = frappe.meta.get_fieldnames(doc.doctype, doc.parent,
 				{"fieldtype": ["in", ["Currency", "Float"]]});
 		}
-		$.each(fieldnames, function(i, fieldname) {
+		for(var i=0, j=fieldnames.length; i < j; i++) {
+			var fieldname = fieldnames[i];
 			doc[fieldname] = flt(doc[fieldname], precision(fieldname, doc));
-		});
+		}
 	},
 
 	validate_missing: function(doc, fieldname) {
@@ -428,9 +432,10 @@ $.extend(frappe.model, {
 		var all = [doc];
 		for(key in doc) {
 			if($.isArray(doc[key])) {
-				$.each(doc[key], function(i, d) {
-					all.push(d);
-				});
+				var children = doc[key];
+				for (var i=0, l=children.length; i < l; i++) {
+					all.push(children[i]);
+				}
 			}
 		}
 		return all;

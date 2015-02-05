@@ -142,9 +142,10 @@ frappe.ui.form.Grid = Class.extend({
 	set_column_disp: function(fieldname, show) {
 		if($.isArray(fieldname)) {
 			var me = this;
-			$.each(fieldname, function(i, fname) {
+			for(var i=0, l=fieldname.length; i<l; i++) {
+				var fname = fieldname[i];
 				frappe.meta.get_docfield(me.doctype, fname, me.frm.docname).hidden = show ? 0 : 1;
-			});
+			}
 		} else {
 			frappe.meta.get_docfield(this.doctype, fieldname, this.frm.docname).hidden = show ? 0 : 1;
 		}
@@ -292,17 +293,17 @@ frappe.ui.form.GridRow = Class.extend({
 
 	add_buttons: function() {
 		var me = this;
-		if(this.doc && this.grid.is_editable()) {
-			if(!this.grid.$row_actions) {
-				this.grid.$row_actions = $('<div class="col-xs-1 pull-right" \
+		if(this.doc && this.grid.is_editable() && this.frm.doc[this.doc.parentfield].length <= 50) {
+			if(!this.grid.row_actions) {
+				this.grid.row_actions = '<div class="col-xs-1 pull-right" \
 					style="text-align: right; padding-right: 5px;">\
 					<span class="text-success grid-insert-row" style="padding: 4px;">\
 						<i class="icon icon-plus-sign"></i></span>\
 					<span class="grid-delete-row" style="padding: 4px;">\
 						<i class="icon icon-trash"></i></span>\
-				</div>');
+				</div>';
 			}
-			$col = this.grid.$row_actions.clone().appendTo(this.row);
+			$col = $(this.grid.row_actions).appendTo(this.row);
 
 			if($col.width() < 50) {
 				$col.toggle(false);
@@ -478,9 +479,10 @@ frappe.ui.form.GridRow = Class.extend({
 		this.layout.refresh(this.doc);
 
 		// copy get_query to fields
-		$.each(this.grid.fieldinfo || {}, function(fieldname, fi) {
+		for(var fieldname in (this.grid.fieldinfo || {})) {
+			var fi = this.grid.fieldinfo[fieldname];
 			$.extend(me.fields_dict[fieldname], fi);
-		})
+		}
 
 		this.toggle_add_delete_button_display(this.wrapper.find(".panel:first"));
 

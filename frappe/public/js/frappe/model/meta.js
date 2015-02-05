@@ -41,9 +41,11 @@ $.extend(frappe.meta, {
 		if(!c[doctype][docname])
 			c[doctype][docname] = {};
 
-		$.each(frappe.meta.docfield_list[doctype] || [], function(i, df) {
+		var docfield_list = frappe.meta.docfield_list[doctype] || [];
+		for(var i=0, j=docfield_list.length; i<j; i++) {
+			var df = docfield_list[i];
 			c[doctype][docname][df.fieldname || df.label] = copy_dict(df);
-		})
+		}
 	},
 
 	get_docfield: function(dt, fn, dn) {
