@@ -44,6 +44,13 @@ def get_data():
 					"icon": "icon-eye-open",
 					"name": "Permitted Documents For User",
 					"description": _("Check which Documents are readable by a User")
+				},
+				{
+					"type": "report",
+					"doctype": "DocShare",
+					"icon": "icon-share",
+					"name": "Document Share Report",
+					"description": _("Report of all document shares")
 				}
 			]
 		},

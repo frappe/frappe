@@ -140,14 +140,17 @@ def get_filtered_data(ref_doctype, columns, data):
 	result = []
 	linked_doctypes = get_linked_doctypes(columns, data)
 	match_filters_per_doctype = get_user_match_filters(linked_doctypes, ref_doctype)
+	shared = frappe.share.get_shared(ref_doctype)
 
 	if match_filters_per_doctype:
 		for row in data:
-			if has_match(row, linked_doctypes, match_filters_per_doctype):
+			if shared and row[linked_doctypes[ref_doctype]] in shared:
+				result.append(row)
+
+			elif has_match(row, linked_doctypes, match_filters_per_doctype):
 				result.append(row)
 	else:
-		for row in data:
-			result.append(row)
+		result = data
 
 	return result
 

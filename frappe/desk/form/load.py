@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 import frappe, json
 import frappe.utils
+import frappe.share
 import frappe.defaults
 import frappe.desk.form.meta
 from frappe.permissions import get_doc_permissions
@@ -83,7 +84,8 @@ def get_docinfo(doc=None, doctype=None, name=None):
 		"attachments": get_attachments(doc.doctype, doc.name),
 		"comments": get_comments(doc.doctype, doc.name),
 		"assignments": get_assignments(doc.doctype, doc.name),
-		"permissions": get_doc_permissions(doc)
+		"permissions": get_doc_permissions(doc),
+		"shared": [s.user for s in frappe.share.get_users(doc.doctype, doc.name, "user")]
 	}
 
 def get_user_permissions(meta):

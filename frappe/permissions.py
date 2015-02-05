@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import frappe, copy, json
 from frappe import _, msgprint
 from frappe.utils import cint
+import frappe.share
 
 rights = ("read", "write", "create", "delete", "submit", "cancel", "amend",
 	"print", "email", "report", "import", "export", "set_user_permissions", "share")
@@ -35,7 +36,7 @@ def has_permission(doctype, ptype="read", doc=None, verbose=True, user=None):
 
 	def false_if_not_shared():
 		if doc and ptype in ("read", "write", "share"):
-			shared = frappe.db.get_shared(meta.name, user, [ptype])
+			shared = frappe.share.get_shared(meta.name, user, [ptype])
 			if doc.name in shared:
 				return True
 

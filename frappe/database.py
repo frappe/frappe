@@ -598,24 +598,6 @@ class Database:
 		else:
 			return frappe.defaults.get_defaults(parent)
 
-	def get_shared(self, doctype, user=None, rights=None):
-		"""Get list of shared document names for given user and DocType.
-
-		:param doctype: DocType of which shared names are queried.
-		:param user: User for which shared names are queried.
-		:param rights: List of rights for which the document is shared. List of `read`, `write`, `share`"""
-
-		if not user:
-			user = frappe.session.user
-
-		if not rights:
-			rights = ["read"]
-
-		condition = " and ".join(["`{0}`=1".format(right) for right in rights])
-
-		return self.sql_list("select share_name from tabDocShare where user=%s and share_doctype=%s and {0}".format(condition),
-			(user, doctype))
-
 	def begin(self):
 		return # not required
 

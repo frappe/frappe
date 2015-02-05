@@ -19,9 +19,9 @@ class TestDocShare(unittest.TestCase):
 
 	def test_add(self):
 		# user not shared
-		self.assertTrue(self.event.name not in frappe.db.get_shared("Event", self.user))
+		self.assertTrue(self.event.name not in frappe.share.get_shared("Event", self.user))
 		frappe.share.add("Event", self.event.name, self.user)
-		self.assertTrue(self.event.name in frappe.db.get_shared("Event", self.user))
+		self.assertTrue(self.event.name in frappe.share.get_shared("Event", self.user))
 
 	def test_doc_permission(self):
 		frappe.set_user(self.user)

@@ -66,7 +66,25 @@ def set_permission(doctype, name, user, permission_to, value=1):
 	return share
 
 @frappe.whitelist()
-def get_users(doctype, name):
+def get_users(doctype, name, fields="*"):
 	"""Get list of users with which this document is shared"""
-	return frappe.db.sql("select * from tabDocShare where share_doctype=%s and share_name=%s",
+	return frappe.db.sql("select {0} from tabDocShare where share_doctype=%s and share_name=%s".format(fields),
 		(doctype, name), as_dict=True)
+
+def get_shared(self, doctype, user=None, rights=None):
+	"""Get list of shared document names for given user and DocType.
+
+	:param doctype: DocType of which shared names are queried.
+	:param user: User for which shared names are queried.
+	:param rights: List of rights for which the document is shared. List of `read`, `write`, `share`"""
+
+	if not user:
+		user = frappe.session.user
+
+	if not rights:
+		rights = ["read"]
+
+	condition = " and ".join(["`{0}`=1".format(right) for right in rights])
+
+	return frappe.db.sql_list("select share_name from tabDocShare where user=%s and share_doctype=%s and {0}".format(condition),
+		(user, doctype))

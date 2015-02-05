@@ -7,6 +7,17 @@ frappe.ui.form.Share = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
 	},
+	refresh: function() {
+		this.parent.empty();
+		var shared = this.frm.get_docinfo().shared;
+		for(var i=0; i<shared.length; i++) {
+			var user_info = frappe.user_info(shared[i])
+			$(repl('<span class="avatar avatar-small" title="'
+				+__("Shared with {0}", [user_info.fullname])+'">\
+				<img class="media-object" src="%(image)s"></span>',
+				{image: user_info.image})).appendTo(this.parent);
+		}
+	},
 	show: function() {
 		var me = this;
 		var d = new frappe.ui.Dialog({

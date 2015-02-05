@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 
 import frappe, json
 import frappe.defaults
+import frappe.share
 import frappe.permissions
 from frappe.utils import flt
 from frappe import _
@@ -254,7 +255,7 @@ class DatabaseQuery(object):
 		meta = frappe.get_meta(self.doctype)
 		role_permissions = frappe.permissions.get_role_permissions(meta, user=self.user)
 
-		self.shared = frappe.db.get_shared(self.doctype, self.user)
+		self.shared = frappe.share.get_shared(self.doctype, self.user)
 
 		if not meta.istable and not role_permissions.get("read") and not getattr(self,
 			"ignore_permissions", False):

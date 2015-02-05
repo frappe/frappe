@@ -41,3 +41,4 @@ class DocShare(Document):
 def on_doctype_update():
 	"""Add index in `tabDocShare` for `(user, share_doctype)`"""
 	frappe.db.add_index("DocShare", ["user", "share_doctype"])
+	frappe.db.add_index("DocShare", ["share_doctype", "share_name"])

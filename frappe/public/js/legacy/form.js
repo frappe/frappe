@@ -266,10 +266,7 @@ _f.Frm.prototype.rename_doc = function() {
 }
 
 _f.Frm.prototype.share_doc = function() {
-	if(!this.form_share) {
-		this.form_share = new frappe.ui.form.Share({frm: this});
-	}
-	this.form_share.show();
+	this.shared.show();
 }
 
 // notify this form of renamed records
