@@ -598,3 +598,7 @@ def unique(seq):
 	seen = set()
 	seen_add = seen.add
 	return [ x for x in seq if not (x in seen or seen_add(x)) ]
+
+def strip(val, chars=None):
+	# \ufeff is no-width-break, \u200b is no-width-space
+	return (val or "").replace("\ufeff", "").replace("\u200b", "").strip(chars)

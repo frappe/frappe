@@ -64,7 +64,11 @@ def extract_email_id(email):
 def validate_email_add(email_str):
 	"""Validates the email string"""
 	email = extract_email_id(email_str)
-	return re.match("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", email.lower())
+	match = re.match("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", email.lower())
+	if not match:
+		return False
+
+	return match.group(0)==email.lower()
 
 def random_string(length):
 	"""generate a random string"""

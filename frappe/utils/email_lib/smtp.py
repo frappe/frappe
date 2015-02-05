@@ -23,7 +23,8 @@ def send(email, as_bulk=False):
 				email.reply_to = email.sender
 			email.sender = smtpserver.login
 
-		smtpserver.sess.sendmail(email.sender, email.recipients + (email.cc or []),
+		smtpserver.sess.sendmail(email.sender.encode("utf-8"),
+			[e.encode("utf-8") for e in (email.recipients + (email.cc or []))],
 			email.as_string())
 
 	except smtplib.SMTPSenderRefused:

@@ -490,10 +490,11 @@ def setup_module_map():
 			_cache.set_value("module_app", local.module_app)
 
 def get_file_items(path, raise_not_found=False, ignore_empty_lines=True):
+	import frappe.utils
+
 	content = read_file(path, raise_not_found=raise_not_found)
 	if content:
-		# \ufeff is no-width-break, \u200b is no-width-space
-		content = content.replace("\ufeff", "").replace("\u200b", "").strip()
+		content = frappe.utils.strip(content)
 
 		return [p.strip() for p in content.splitlines() if (not ignore_empty_lines) or (p.strip() and not p.startswith("#"))]
 	else:
