@@ -25,7 +25,7 @@
  ], 
  "icon": "icon-sitemap", 
  "idx": 1, 
- "modified": "2014-06-12 01:00:52.304755", 
+ "modified": "2015-02-05 05:11:41.388856", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Module Def", 
@@ -42,6 +42,7 @@
    "read": 1, 
    "report": 1, 
    "role": "Administrator", 
+   "share": 1, 
    "submit": 0, 
    "write": 1
   }, 

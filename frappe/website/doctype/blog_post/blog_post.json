@@ -97,7 +97,7 @@
  "icon": "icon-quote-left", 
  "idx": 1, 
  "max_attachments": 5, 
- "modified": "2015-01-07 15:40:56.177198", 
+ "modified": "2015-02-05 05:11:34.931739", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Blog Post", 
@@ -113,6 +113,7 @@
    "report": 1, 
    "role": "Website Manager", 
    "set_user_permissions": 1, 
+   "share": 1, 
    "submit": 0, 
    "write": 1
   }, 
@@ -126,6 +127,7 @@
    "read": 1, 
    "report": 1, 
    "role": "Blogger", 
+   "share": 1, 
    "submit": 0, 
    "write": 1
   }, 

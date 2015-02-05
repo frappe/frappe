@@ -230,7 +230,7 @@
  "is_submittable": 0, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-01-07 15:43:22.517391", 
+ "modified": "2015-02-05 05:11:48.897157", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Web Form", 
@@ -252,6 +252,7 @@
    "report": 1, 
    "role": "Website Manager", 
    "set_user_permissions": 0, 
+   "share": 1, 
    "submit": 0, 
    "write": 1
   }

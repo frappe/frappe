@@ -11,9 +11,7 @@ class DocShare(Document):
 	no_feed_on_delete = True
 
 	def validate(self):
-		if not frappe.has_permission(self.share_doctype, "share",
-			frappe.get_doc(self.share_doctype, self.share_name)):
-			frappe.throw(_("Not Allowed"), frappe.PermissionError)
+		self.check_share_permssion()
 		self.cascade_permissions_downwards()
 
 	def cascade_permissions_downwards(self):
@@ -22,11 +20,23 @@ class DocShare(Document):
 		if self.write:
 			self.read = 1
 
+	def get_doc(self):
+		if not getattr(self, "_doc", None):
+			self._doc = frappe.get_doc(self.share_doctype, self.share_name)
+		return self._doc
+
+	def check_share_permssion(self):
+		if not frappe.has_permission(self.share_doctype, "share", self.get_doc()):
+			raise frappe.PermissionError
+
 	def after_insert(self):
-		self.add_comment(_("{0} shared this document with {0}").format(get_fullname(self.owner), get_fullname(self.user)))
+		self.get_doc().add_comment(_("{0} shared this document with {0}").format(get_fullname(self.owner),
+			get_fullname(self.user)))
 
 	def on_trash(self):
-		self.add_comment(_("{0} un-shared this document with {0}").format(get_fullname(self.owner), get_fullname(self.user)))
+		self.check_share_permssion()
+		self.get_doc().add_comment(_("{0} un-shared this document with {0}").format(get_fullname(self.owner),
+			get_fullname(self.user)))
 
 def on_doctype_update():
 	"""Add index in `tabDocShare` for `(user, share_doctype)`"""

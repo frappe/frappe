@@ -1,5 +1,5 @@
 {
- "creation": "2013-03-11 17:48:16.000000", 
+ "creation": "2013-03-11 17:48:16", 
  "description": "Blog Settings", 
  "docstatus": 0, 
  "doctype": "DocType", 
@@ -26,7 +26,7 @@
  "icon": "icon-cog", 
  "idx": 1, 
  "issingle": 1, 
- "modified": "2013-12-20 19:22:56.000000", 
+ "modified": "2015-02-05 05:11:34.999631", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Blog Settings", 
@@ -39,6 +39,7 @@
    "print": 1, 
    "read": 1, 
    "role": "Website Manager", 
+   "share": 1, 
    "write": 1
   }
  ]

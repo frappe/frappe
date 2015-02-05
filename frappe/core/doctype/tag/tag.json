@@ -1,6 +1,6 @@
 {
  "autoname": "field:tag_name", 
- "creation": "2012-07-09 11:17:17.000000", 
+ "creation": "2012-07-09 11:17:17", 
  "docstatus": 0, 
  "doctype": "DocType", 
  "fields": [
@@ -15,7 +15,7 @@
  ], 
  "icon": "icon-tag", 
  "idx": 1, 
- "modified": "2013-12-20 19:24:38.000000", 
+ "modified": "2015-02-05 05:11:47.937816", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Tag", 
@@ -29,6 +29,7 @@
    "print": 1, 
    "read": 1, 
    "role": "System Manager", 
+   "share": 1, 
    "write": 1
   }
  ]

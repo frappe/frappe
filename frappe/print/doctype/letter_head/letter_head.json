@@ -53,7 +53,7 @@
  "icon": "icon-font", 
  "idx": 1, 
  "max_attachments": 3, 
- "modified": "2015-01-15 15:25:02.869899", 
+ "modified": "2015-02-05 05:11:40.906941", 
  "modified_by": "Administrator", 
  "module": "Print", 
  "name": "Letter Head", 
@@ -68,6 +68,7 @@
    "read": 1, 
    "report": 1, 
    "role": "System Manager", 
+   "share": 1, 
    "submit": 0, 
    "write": 1
   }, 

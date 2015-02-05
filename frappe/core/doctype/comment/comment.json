@@ -107,7 +107,7 @@
  "icon": "icon-comments", 
  "idx": 1, 
  "issingle": 0, 
- "modified": "2014-11-17 14:07:26.338393", 
+ "modified": "2015-02-05 05:11:35.564840", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Comment", 
@@ -123,6 +123,7 @@
    "read": 1, 
    "report": 1, 
    "role": "System Manager", 
+   "share": 1, 
    "submit": 0, 
    "write": 1
   }

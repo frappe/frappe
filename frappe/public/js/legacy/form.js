@@ -716,6 +716,25 @@ _f.Frm.prototype.get_docinfo = function() {
 	return frappe.model.docinfo[this.doctype][this.docname];
 }
 
+_f.Frm.prototype.reload_docinfo = function(callback) {
+	var me = this;
+	frappe.call({
+		method: "frappe.desk.form.load.get_docinfo",
+		args: {
+			doctype: me.doctype,
+			name: me.doc.name
+		},
+		callback: function(r) {
+			// docinfo will be synced
+			if(callback) callback(r.docinfo);
+			me.comments.refresh();
+			me.assign_to.refresh();
+			me.attachments.refresh();
+		}
+	})
+}
+
+
 _f.Frm.prototype.get_perm = function(permlevel, access_type) {
 	return this.perm[permlevel] ? this.perm[permlevel][access_type] : null;
 }

@@ -42,7 +42,7 @@
  "icon": "icon-globe", 
  "idx": 1, 
  "in_create": 0, 
- "modified": "2015-01-15 15:24:29.282629", 
+ "modified": "2015-02-05 05:11:36.234753", 
  "modified_by": "Administrator", 
  "module": "Geo", 
  "name": "Country", 
@@ -57,6 +57,7 @@
    "read": 1, 
    "report": 1, 
    "role": "System Manager", 
+   "share": 1, 
    "submit": 0, 
    "write": 1
   }, 

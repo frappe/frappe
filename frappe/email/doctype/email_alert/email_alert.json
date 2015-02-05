@@ -127,7 +127,7 @@
   }
  ], 
  "icon": "icon-envelope", 
- "modified": "2014-12-24 15:23:38.989963", 
+ "modified": "2015-02-05 05:11:37.924396", 
  "modified_by": "Administrator", 
  "module": "Email", 
  "name": "Email Alert", 
@@ -143,6 +143,7 @@
    "read": 1, 
    "report": 1, 
    "role": "System Manager", 
+   "share": 1, 
    "write": 1
   }
  ], 

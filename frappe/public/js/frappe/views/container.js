@@ -15,6 +15,8 @@ frappe.views.Container = Class.extend({
 		this.pagewidth = $('#body_div').width();
 		this.pagemargin = 50;
 
+		var me = this;
+
 		$(document).on("page-change", function() {
 			// set data-route in body
 			$("body").attr("data-route", frappe.get_route_str());
@@ -106,8 +108,8 @@ frappe.views.Container = Class.extend({
 		}
 	},
 	rename_breadcrumbs: function(doctype, old_name, new_name) {
-		var old_route_str = frappe.get_route_str(["Form", doctype, old_name]);
-		var new_route_str = frappe.get_route_str(["Form", doctype, new_name]);
+		var old_route_str = ["Form", doctype, old_name].join("/");
+		var new_route_str = ["Form", doctype, new_name].join("/");
 		frappe.breadcrumbs[new_route_str] = frappe.breadcrumbs[old_route_str];
 		delete frappe.breadcrumbs[old_route_str];
 	}

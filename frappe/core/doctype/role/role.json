@@ -23,7 +23,7 @@
  "idx": 1, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2014-08-05 05:24:42.185395", 
+ "modified": "2015-02-05 05:11:44.831475", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Role", 
@@ -38,6 +38,7 @@
    "read": 1, 
    "report": 1, 
    "role": "System Manager", 
+   "share": 1, 
    "submit": 0, 
    "write": 1
   }, 
@@ -50,6 +51,7 @@
    "read": 1, 
    "report": 1, 
    "role": "Administrator", 
+   "share": 1, 
    "submit": 0, 
    "write": 1
   }, 

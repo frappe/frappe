@@ -77,7 +77,7 @@
  ], 
  "icon": "icon-random", 
  "idx": 1, 
- "modified": "2015-01-15 15:22:35.816167", 
+ "modified": "2015-02-05 05:11:49.280959", 
  "modified_by": "Administrator", 
  "module": "Workflow", 
  "name": "Workflow", 
@@ -92,6 +92,7 @@
    "print": 1, 
    "read": 1, 
    "role": "System Manager", 
+   "share": 1, 
    "submit": 0, 
    "write": 1
   }

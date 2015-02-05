@@ -8,6 +8,7 @@ from frappe import throw, msgprint, _
 from frappe.auth import _update_password
 from frappe.desk.notifications import clear_notifications
 import frappe.permissions
+import frappe.share
 
 STANDARD_USERS = ("Guest", "Administrator")
 
@@ -72,16 +73,25 @@ class User(Document):
 			frappe.msgprint(_("New password emailed"))
 
 	def on_update(self):
-		# owner is always name
-		frappe.db.set(self, 'owner', self.name)
-
 		# clear new password
-		new_password = self.new_password
-		self.db_set("new_password", "")
-
+		self.share_with_self()
+		new_password = self.clear_new_password()
 		clear_notifications(user=self.name)
 		frappe.clear_cache(user=self.name)
+		self.send_password_notifcation(new_password)
 
+	def share_with_self(self):
+		if self.user_type=="System User":
+			frappe.share.add(self.doctype, self.name, self.name, write=1)
+		else:
+			frappe.share.remove(self.doctype, self.name, self.name)
+
+	def clear_new_password(self):
+		new_password = self.new_password
+		self.db_set("new_password", "")
+		return new_password
+
+	def send_password_notifcation(self, new_password):
 		try:
 			if self.in_insert:
 				if self.name not in STANDARD_USERS:
@@ -97,6 +107,7 @@ class User(Document):
 
 		except frappe.OutgoingEmailError:
 			pass # email server not set, don't send email
+
 
 	def update_gravatar(self):
 		if not self.user_image:

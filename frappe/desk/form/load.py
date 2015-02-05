@@ -72,7 +72,13 @@ def get_meta_bundle(doctype):
 			bundle.append(frappe.desk.form.meta.get_meta(df.options, not frappe.conf.developer_mode))
 	return bundle
 
-def get_docinfo(doc):
+@frappe.whitelist()
+def get_docinfo(doc=None, doctype=None, name=None):
+	if not doc:
+		doc = frappe.get_doc(doctype, name)
+		if not doc.has_permission("read"):
+			raise frappe.PermissionError
+
 	frappe.response["docinfo"] = {
 		"attachments": get_attachments(doc.doctype, doc.name),
 		"comments": get_comments(doc.doctype, doc.name),

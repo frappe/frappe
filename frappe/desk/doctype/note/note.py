@@ -3,7 +3,6 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe import _
 from frappe.model.document import Document
 
 class Note(Document):
@@ -22,10 +21,7 @@ def get_permission_query_conditions(user):
 	if user == "Administrator":
 		return ""
 
-	return """(`tabNote`.public=1 or `tabNote`.owner="{user}" or exists (
-		select name from `tabNote User`
-			where `tabNote User`.parent=`tabNote`.name
-			and `tabNote User`.user="{user}"))""".format(user=user)
+	return """(`tabNote`.public=1 or `tabNote`.owner="{user}")""".format(user=user)
 
 def has_permission(doc, ptype, user):
 	if doc.public == 1 or user == "Administrator":
@@ -33,12 +29,5 @@ def has_permission(doc, ptype, user):
 
 	if user == doc.owner:
 		return True
-
-	note_user_map = dict((d.user, d) for d in doc.get("share_with"))
-	if user in note_user_map:
-		if ptype == "read":
-			return True
-		elif note_user_map.get(user).permission == "Edit":
-			return True
 
 	return False

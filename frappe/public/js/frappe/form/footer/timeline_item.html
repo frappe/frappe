@@ -25,7 +25,7 @@
         				{%= data.comment_html %}
         			</div>
                 </div>
-            {% } else if(in_list(["Assignment Completed", "Assigned"], data.comment_type)) { %}
+            {% } else if(in_list(["Assignment Completed", "Assigned", "Shared"], data.comment_type)) { %}
                 <h6>
                     <i class="{%= data.icon %} icon-fixed-width"></i>
                         {%= data.comment %}

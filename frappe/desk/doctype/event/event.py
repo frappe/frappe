@@ -21,8 +21,6 @@ class Event(Document):
 def get_permission_query_conditions(user):
 	if not user: user = frappe.session.user
 	return """(tabEvent.event_type='Public' or tabEvent.owner='%(user)s'
-		or exists(select * from `tabEvent User` where
-			`tabEvent User`.parent=tabEvent.name and `tabEvent User`.person='%(user)s')
 		or exists(select * from `tabEvent Role` where
 			`tabEvent Role`.parent=tabEvent.name
 			and `tabEvent Role`.role in ('%(roles)s')))
@@ -33,9 +31,6 @@ def get_permission_query_conditions(user):
 
 def has_permission(doc, user):
 	if doc.event_type=="Public" or doc.owner==user:
-		return True
-
-	if doc.get("users", {"person": user}):
 		return True
 
 	if doc.get("roles", {"role":("in", frappe.get_roles(user))}):

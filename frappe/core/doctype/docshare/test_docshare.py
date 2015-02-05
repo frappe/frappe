@@ -66,4 +66,12 @@ class TestDocShare(unittest.TestCase):
 		frappe.set_user(self.user)
 		frappe.share.add("Event", self.event.name, "test1@example.com", share=1)
 
+	def test_remove_share(self):
+		frappe.share.add("Event", self.event.name, self.user, share=1)
+
+		self.assertTrue(self.event.has_permission("share"))
+
+		frappe.share.remove("Event", self.event.name, self.user)
+
+		self.assertFalse(self.event.has_permission("share"))
 

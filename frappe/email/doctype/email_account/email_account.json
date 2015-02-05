@@ -372,7 +372,7 @@
  "is_submittable": 0, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-01-20 12:38:10.322621", 
+ "modified": "2015-02-05 05:11:37.814033", 
  "modified_by": "Administrator", 
  "module": "Email", 
  "name": "Email Account", 
@@ -394,6 +394,7 @@
    "report": 0, 
    "role": "System Manager", 
    "set_user_permissions": 1, 
+   "share": 1, 
    "submit": 0, 
    "write": 1
   }

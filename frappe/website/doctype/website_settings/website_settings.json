@@ -226,7 +226,7 @@
  "idx": 1, 
  "issingle": 1, 
  "max_attachments": 10, 
- "modified": "2015-01-01 14:30:06.250845", 
+ "modified": "2015-02-05 05:11:49.131729", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Website Settings", 
@@ -242,6 +242,7 @@
    "read": 1, 
    "report": 0, 
    "role": "Website Manager", 
+   "share": 1, 
    "submit": 0, 
    "write": 1
   }, 

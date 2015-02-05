@@ -170,7 +170,7 @@
  "in_dialog": 0, 
  "issingle": 0, 
  "max_attachments": 0, 
- "modified": "2015-02-02 06:38:35.187657", 
+ "modified": "2015-02-05 05:11:48.421852", 
  "modified_by": "Administrator", 
  "module": "Desk", 
  "name": "ToDo", 
@@ -187,6 +187,7 @@
    "read": 1, 
    "report": 1, 
    "role": "All", 
+   "share": 1, 
    "submit": 0, 
    "write": 1
   }, 
@@ -200,6 +201,7 @@
    "read": 1, 
    "report": 1, 
    "role": "System Manager", 
+   "share": 1, 
    "write": 1
   }
  ], 

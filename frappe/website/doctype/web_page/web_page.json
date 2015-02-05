@@ -173,7 +173,7 @@
  "icon": "icon-file-alt", 
  "idx": 1, 
  "max_attachments": 20, 
- "modified": "2015-01-07 15:39:53.076894", 
+ "modified": "2015-02-05 05:11:48.998913", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Web Page", 
@@ -189,6 +189,7 @@
    "read": 1, 
    "report": 1, 
    "role": "Website Manager", 
+   "share": 1, 
    "submit": 0, 
    "write": 1
   }

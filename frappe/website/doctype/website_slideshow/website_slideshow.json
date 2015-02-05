@@ -1,6 +1,6 @@
 {
-  "autoname": "field:slideshow_name", 
- "creation": "2013-03-07 15:53:15.000000", 
+ "autoname": "field:slideshow_name", 
+ "creation": "2013-03-07 15:53:15", 
  "description": "Slideshow like display for the website", 
  "docstatus": 0, 
  "doctype": "DocType", 
@@ -42,7 +42,7 @@
  "icon": "icon-play", 
  "idx": 1, 
  "max_attachments": 10, 
- "modified": "2014-01-20 17:49:35.000000", 
+ "modified": "2015-02-05 05:11:49.234461", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Website Slideshow", 
@@ -58,6 +58,7 @@
    "read": 1, 
    "report": 1, 
    "role": "Website Manager", 
+   "share": 1, 
    "submit": 0, 
    "write": 1
   }

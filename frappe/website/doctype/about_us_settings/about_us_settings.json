@@ -81,7 +81,7 @@
  "icon": "icon-group", 
  "idx": 1, 
  "issingle": 1, 
- "modified": "2015-01-01 15:01:14.701018", 
+ "modified": "2015-02-05 05:11:33.993407", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "About Us Settings", 
@@ -96,6 +96,7 @@
    "read": 1, 
    "report": 0, 
    "role": "Website Manager", 
+   "share": 1, 
    "submit": 0, 
    "write": 1
   }

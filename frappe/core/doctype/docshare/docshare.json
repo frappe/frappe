@@ -138,7 +138,7 @@
  "is_submittable": 0, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-02-04 06:56:23.939707", 
+ "modified": "2015-02-05 05:11:37.536291", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "DocShare", 
@@ -160,6 +160,7 @@
    "report": 1, 
    "role": "System Manager", 
    "set_user_permissions": 0, 
+   "share": 1, 
    "submit": 0, 
    "write": 1
   }

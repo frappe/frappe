@@ -265,18 +265,16 @@ class DatabaseQuery(object):
 				self.conditions.append(self.get_share_condition())
 
 		else:
-			# share is an OR condition, if there is a role permission
-			if not only_if_shared and self.shared:
-				self.or_conditions.append(self.get_share_condition())
-
 			# apply user permissions?
-			if not role_permissions.get("apply_user_permissions", {}).get("read"):
+			if role_permissions.get("apply_user_permissions", {}).get("read"):
 				# get user permissions
 				user_permissions = frappe.defaults.get_user_permissions(self.user)
 				self.add_user_permissions(user_permissions,
 					user_permission_doctypes=role_permissions.get("user_permission_doctypes"))
 
-
+				# share is an OR condition, if there is a role permission
+				if not only_if_shared and self.shared:
+					self.or_conditions.append(self.get_share_condition())
 
 		if as_condition:
 			conditions = ""

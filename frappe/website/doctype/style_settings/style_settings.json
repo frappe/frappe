@@ -1,5 +1,5 @@
 {
-  "creation": "2013-03-25 16:01:33", 
+ "creation": "2013-03-25 16:01:33", 
  "description": "Set your background color, font and image (tiled)", 
  "docstatus": 0, 
  "doctype": "DocType", 
@@ -217,7 +217,7 @@
  "idx": 1, 
  "issingle": 1, 
  "max_attachments": 1, 
- "modified": "2014-05-28 01:58:45.392210", 
+ "modified": "2015-02-05 05:11:47.350401", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Style Settings", 
@@ -231,6 +231,7 @@
    "read": 1, 
    "report": 0, 
    "role": "Website Manager", 
+   "share": 1, 
    "submit": 0, 
    "write": 1
   }, 

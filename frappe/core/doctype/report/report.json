@@ -111,7 +111,7 @@
  ], 
  "icon": "icon-table", 
  "idx": 1, 
- "modified": "2014-10-06 03:40:35.556364", 
+ "modified": "2015-02-05 05:11:44.753200", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "Report", 
@@ -126,6 +126,7 @@
    "read": 1, 
    "report": 1, 
    "role": "Administrator", 
+   "share": 1, 
    "submit": 0, 
    "write": 1
   }, 
@@ -138,6 +139,7 @@
    "read": 1, 
    "report": 1, 
    "role": "System Manager", 
+   "share": 1, 
    "submit": 0, 
    "write": 1
   }, 
@@ -150,6 +152,7 @@
    "read": 1, 
    "report": 1, 
    "role": "Report Manager", 
+   "share": 1, 
    "submit": 0, 
    "write": 1
   }, 

@@ -134,7 +134,7 @@
  "issingle": 0, 
  "istable": 0, 
  "max_attachments": 0, 
- "modified": "2015-01-30 02:15:31.686084", 
+ "modified": "2015-02-05 05:11:42.667447", 
  "modified_by": "Administrator", 
  "module": "Print", 
  "name": "Print Format", 
@@ -151,6 +151,7 @@
    "read": 1, 
    "report": 1, 
    "role": "System Manager", 
+   "share": 1, 
    "submit": 0, 
    "write": 1
   }
