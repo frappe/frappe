@@ -5,8 +5,8 @@ from __future__ import unicode_literals
 import frappe, json
 from frappe import _
 from frappe.website.render import clear_cache
-
 from frappe.model.document import Document
+from frappe.model.db_schema import add_column
 
 class Comment(Document):
 
@@ -20,39 +20,44 @@ class Comment(Document):
 
 	def update_comment_in_doc(self):
 		if self.comment_doctype and self.comment_docname and self.comment and self.comment_type=="Comment":
-			try:
-				_comments = self.get_comments_from_parent()
-				updated = False
-				for c in _comments:
-					if c.get("name")==self.name:
-						c["comment"] = self.comment
-						updated = True
+			_comments = self.get_comments_from_parent()
+			updated = False
+			for c in _comments:
+				if c.get("name")==self.name:
+					c["comment"] = self.comment
+					updated = True
 
-				if not updated:
-					_comments.append({
-						"comment": self.comment,
-						"by": self.comment_by or self.owner,
-						"name":self.name
-					})
-				self.update_comments_in_parent(_comments)
-			except Exception, e:
-				if e.args[0]==1054:
-					if frappe.flags.in_test:
-						return
-
-					from frappe.model.db_schema import add_column
-					add_column(self.comment_doctype, "_comments", "Text")
-					self.update_comment_in_doc()
-				elif e.args[0]==1146:
-					# no table
-					pass
-				else:
-					raise
+			if not updated:
+				_comments.append({
+					"comment": self.comment,
+					"by": self.comment_by or self.owner,
+					"name":self.name
+				})
+			self.update_comments_in_parent(_comments)
 
 	def get_comments_from_parent(self):
-		_comments = frappe.db.get_value(self.comment_doctype,
-			self.comment_docname, "_comments") or "[]"
-		return json.loads(_comments)
+		try:
+			_comments = frappe.db.get_value(self.comment_doctype,
+				self.comment_docname, "_comments") or "[]"
+
+			return json.loads(_comments)
+
+		except Exception, e:
+
+			if e.args[0]==1054:
+				if frappe.flags.in_test:
+					return
+
+				add_column(self.comment_doctype, "_comments", "Text")
+
+				return self.get_comments_from_parent()
+
+			elif e.args[0]==1146:
+				# no table
+				pass
+
+			else:
+				raise
 
 	def update_comments_in_parent(self, _comments):
 		# use sql, so that we do not mess with the timestamp
@@ -80,3 +85,4 @@ def on_doctype_update():
 		frappe.db.commit()
 		frappe.db.sql("""alter table `tabComment`
 			add index comment_doctype_docname_index(comment_doctype, comment_docname)""")
+
