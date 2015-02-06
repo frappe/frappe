@@ -72,6 +72,7 @@ class WebPage(WebsiteGenerator):
 					raise
 
 	def get_static_content(self, context):
+
 		with open(self.template_path, "r") as contentfile:
 			content = unicode(contentfile.read(), 'utf-8')
 

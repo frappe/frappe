@@ -7,14 +7,14 @@ import frappe, os, time
 def sync_statics(rebuild=False):
 	s = sync()
 	s.verbose = True
-	# s.start(rebuild)
-	# frappe.db.commit()
+	s.start(rebuild)
+	frappe.db.commit()
 
-	while True:
-		s.start(rebuild)
-		frappe.db.commit()
-		time.sleep(2)
-		rebuild = False
+	# while True:
+	# 	s.start(rebuild)
+	# 	frappe.db.commit()
+	# 	time.sleep(2)
+	# 	rebuild = False
 
 class sync(object):
 	def __init__(self, verbose=False):

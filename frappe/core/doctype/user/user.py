@@ -206,7 +206,6 @@ class User(Document):
 		# delete events
 		frappe.db.sql("""delete from `tabEvent` where owner=%s
 			and event_type='Private'""", (self.name,))
-		frappe.db.sql("""delete from `tabEvent User` where person=%s""", (self.name,))
 
 		# delete messages
 		frappe.db.sql("""delete from `tabComment` where comment_doctype='Message'

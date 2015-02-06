@@ -9,4 +9,4 @@ no_sitemap = 1
 
 def get_context(context):
 	print frappe.get_traceback()
-	return {"error": frappe.get_traceback() }
+	return {"error": frappe.get_traceback().replace("<", "&lt;").replace(">", "&gt;") }

@@ -77,8 +77,9 @@ def get_events(start, end, user=None, for_reminder=False):
 		))
 		%(reminder_condition)s
 		and (event_type='Public' or owner='%(user)s'
-		or exists(select * from `tabEvent User` where
-			`tabEvent User`.parent=tabEvent.name and person='%(user)s')
+		or exists(select name from `tabDocShare` where
+			tabDocShare.share_doctype="Event" and `tabDocShare`.share_name=tabEvent.name
+			and tabDocShare.user='%(user)s')
 		or exists(select * from `tabEvent Role` where
 			`tabEvent Role`.parent=tabEvent.name
 			and `tabEvent Role`.role in ('%(roles)s')))
