@@ -44,7 +44,7 @@ def get_notifications():
 						"open_count":result}).insert(ignore_permissions=True)
 
 				except MySQLdb.OperationalError, e:
-					if e.args[0] != 1213:
+					if e.args[0] not in (1213, 1205):
 						raise
 
 					logger.error("Deadlock")
@@ -60,7 +60,7 @@ def get_notifications():
 					"open_count":open_count_module[m]}).insert(ignore_permissions=True)
 
 			except MySQLdb.OperationalError, e:
-				if e.args[0] != 1213:
+				if e.args[0] not in (1213, 1205):
 					raise
 
 				logger.error("Deadlock")
@@ -82,7 +82,7 @@ def clear_notifications(user=None):
 			frappe.db.sql("""delete from `tabNotification Count`""")
 
 	except MySQLdb.OperationalError, e:
-		if e.args[0] != 1213:
+		if e.args[0] not in (1213, 1205):
 			raise
 
 		logger.error("Deadlock")
@@ -94,7 +94,7 @@ def delete_notification_count_for(doctype):
 		frappe.db.sql("""delete from `tabNotification Count` where for_doctype = %s""", (doctype,))
 
 	except MySQLdb.OperationalError, e:
-		if e.args[0] != 1213:
+		if e.args[0] not in (1213, 1205):
 			raise
 
 		logger.error("Deadlock")
