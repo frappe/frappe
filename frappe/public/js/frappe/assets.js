@@ -20,14 +20,14 @@ frappe.require = function(items) {
 frappe.assets = {
 	// keep track of executed assets
 	executed_ : {},
-	
+
 	check: function() {
 		// if version is different then clear localstorage
 		if(window._version_number != localStorage.getItem("_version_number")) {
 			localStorage.clear();
 			console.log("Cleared App Cache.");
 		}
-		
+
 		if(localStorage._last_load) {
 			var not_updated_since = new Date() - new Date(localStorage._last_load);
 			if(not_updated_since < 10000 || not_updated_since > 86400000) {
@@ -38,24 +38,24 @@ frappe.assets = {
 			localStorage.clear();
 			console.log("Cleared localstorage");
 		}
-		
+
 		frappe.assets.init_local_storage();
 	},
-	
+
 	init_local_storage: function() {
 		localStorage._last_load = new Date();
 		localStorage._version_number = window._version_number;
 		if(frappe.boot) localStorage.metadata_version = frappe.boot.metadata_version;
 	},
-	
+
 	// check if the asset exists in
-	// localstorage 
+	// localstorage
 	exists: function(src) {
 		if('localStorage' in window
 			&& localStorage.getItem(src) && (frappe.boot ? !frappe.boot.developer_mode : true))
 			return true;
 	},
-	
+
 	// add the asset to
 	// localstorage
 	add: function(src, txt) {
@@ -66,27 +66,27 @@ frappe.assets = {
 				// if quota is exceeded, clear local storage and set item
 				localStorage.clear();
 				console.log("Local Storage cleared");
-				
+
 				localStorage.setItem(src, txt);
 			}
 		}
 	},
-	
+
 	get: function(src) {
 		return localStorage.getItem(src);
 	},
-	
+
 	extn: function(src) {
 		if(src.indexOf('?')!=-1) {
 			src = src.split('?').slice(-1)[0];
 		}
 		return src.split('.').slice(-1)[0];
 	},
-	
+
 	// load an asset via
 	load: function(src) {
 		// this is virtual page load, only get the the source
-		// *without* the template		
+		// *without* the template
 		frappe.set_loading();
 
 		frappe.call({
@@ -99,10 +99,10 @@ frappe.assets = {
 			},
 			async: false
 		})
-		
+
 		frappe.done_loading();
 	},
-	
+
 	// pass on to the handler to set
 	execute: function(src) {
 		if(!frappe.assets.exists(src)) {
@@ -114,7 +114,7 @@ frappe.assets = {
 			frappe.assets.executed_[src] = 1;
 		}
 	},
-	
+
 	// handle types of assets
 	// and launch them in the
 	// app
@@ -124,6 +124,27 @@ frappe.assets = {
 		},
 		css: function(txt, src) {
 			frappe.dom.set_style(txt);
+		}
+	},
+
+	views: {
+		"List": function() {
+			frappe.require("assets/css/list.min.css");
+			frappe.require("assets/js/list.min.js");
+		},
+		"Form": function() {
+			frappe.assets.views["List"]();
+			frappe.require("assets/css/form.min.css");
+			frappe.require("assets/js/form.min.js");
+		},
+		"Report": function() {
+			frappe.assets.views["List"]();
+			frappe.require("assets/css/report.min.css");
+			frappe.require("assets/js/report.min.js");
+		},
+		"Module": function() {
+			frappe.require("assets/css/module.min.css");
+			frappe.require("assets/js/module.min.js");
 		}
 	}
 };

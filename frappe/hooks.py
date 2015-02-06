@@ -11,19 +11,23 @@ before_install = "frappe.utils.install.before_install"
 after_install = "frappe.utils.install.after_install"
 
 # website
-app_include_js = "assets/js/frappe.min.js"
+app_include_js = [
+	"assets/js/desk.min.js",
+	"assets/js/editor.min.js",
+]
 app_include_css = [
-		"assets/frappe/css/splash.css",
-		"assets/css/frappe.css"
-	]
+	"assets/css/desk.min.css"
+]
+
 web_include_js = [
-		"assets/js/frappe-web.min.js",
-		"website_script.js"
-	]
+	"assets/js/frappe-web.min.js",
+	"website_script.js"
+]
+
 web_include_css = [
-		"assets/css/frappe-web.css",
-		"style_settings.css"
-	]
+	"assets/css/frappe-web.css",
+	"style_settings.css"
+]
 
 write_file_keys = ["file_url", "file_name"]
 

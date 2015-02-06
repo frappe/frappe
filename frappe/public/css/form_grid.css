@@ -62,7 +62,7 @@
   z-index: 1021;
   position: relative;
   overflow: hidden;
-  max-height: 0;
+  height: 0;
   opacity: 0;
   -webkit-transition: opacity 0.2s ease;
   -o-transition: opacity 0.2s ease;
@@ -70,7 +70,7 @@
 }
 .grid-row-open .form-in-grid {
   opacity: 1;
-  max-height: 10000px;
+  height: auto;
 }
 .grid-form-heading {
   padding: 10px 15px;

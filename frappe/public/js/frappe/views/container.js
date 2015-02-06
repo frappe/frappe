@@ -69,7 +69,7 @@ frappe.views.Container = Class.extend({
 		// show new
 		if(!this.page || this.page != page) {
 			this.page = page;
-			//$(this.page).fadeIn();
+			// $(this.page).fadeIn(300);
 			$(this.page).toggle(true);
 		}
 

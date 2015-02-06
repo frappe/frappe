@@ -14,7 +14,8 @@ frappe.ui.TagEditor = Class.extend({
 		$.extend(this, opts);
 		var me = this;
 		this.$w = $('<div class="tag-line">').appendTo(this.parent)
-		this.$tags = $('<ul>').prependTo(this.$w).tagit({
+		this.$tags = $('<ul>').prependTo(this.$w);
+		this.$tags.tagit({
 			animate: false,
 			allowSpaces: true,
 			placeholderText: __('Add a tag' + "..."),

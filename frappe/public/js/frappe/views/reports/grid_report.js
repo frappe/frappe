@@ -94,7 +94,7 @@ $.extend(frappe.report_dump, {
 frappe.provide("frappe.views");
 frappe.views.GridReport = Class.extend({
 	init: function(opts) {
-		frappe.require("assets/js/slickgrid.min.js");
+		frappe.assets.views["Report"]();
 
 		this.filter_inputs = {};
 		this.preset_checks = [];

@@ -1,6 +1,8 @@
 frappe.provide('frappe.desktop');
 
 frappe.pages['desktop'].on_page_load = function(wrapper) {
+	frappe.assets.views["Module"]();
+
 	// load desktop
 	frappe.desktop.refresh(wrapper);
 };

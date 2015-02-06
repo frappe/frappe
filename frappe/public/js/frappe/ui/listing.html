@@ -20,7 +20,7 @@
 	<div class="result">
 		<div class="list-headers"></div>
         <div class="list-loading text-center">
-        	{%= __("Loading") %}...
+        	{%= frappe.messages.get_waiting_message(__("Loading") + "..." ) %}
         </div>
 		<div class="result-list"></div>
 	</div>

@@ -6,7 +6,7 @@ frappe.standard_replies = {};
 
 frappe.views.CommunicationComposer = Class.extend({
 	init: function(opts) {
-		$.extend(this, opts)
+		$.extend(this, opts);
 		this.make();
 	},
 	make: function() {

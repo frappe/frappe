@@ -12,48 +12,6 @@ frappe.views.ModuleFactory = frappe.views.Factory.extend({
 	},
 });
 
-frappe.views.show_open_count_list = function(element) {
-	var doctype = $(element).attr("data-doctype");
-	var condition = frappe.boot.notification_info.conditions[doctype];
-	if(condition) {
-		frappe.route_options = condition;
-		var route = frappe.get_route()
-		if(route[0]==="List" && route[1]===doctype) {
-			frappe.pages["List/" + doctype].doclistview.refresh();
-		} else {
-			frappe.set_route("List", doctype);
-		}
-	}
-}
-
-frappe.get_module = function(m) {
-	var module = frappe.modules[m];
-	if (!module) {
-		return;
-	}
-
-	module.name = m;
-
-	if(module.type==="module" && !module.link) {
-		module.link = "Module/" + m;
-	}
-
-	if(module.link) {
-		module._id = module.link.toLowerCase().replace("/", "-");
-	}
-
-	if(!module.label) {
-		module.label = m;
-	}
-
-	if(!module._label) {
-		module._label = __(module.label || module.name);
-	}
-
-	return module;
-}
-
-
 frappe.views.moduleview.ModuleView = Class.extend({
 	init: function(module) {
 		this.module = module;

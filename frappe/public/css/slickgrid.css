@@ -1,21 +1,43 @@
-.slick-cell { 
-	font-size: 12px; 
-}
-
-.slick-header-column, .slick-cell {
+.slick-header-column,
+.slick-cell {
   -webkit-box-sizing: content-box;
-     -moz-box-sizing: content-box;
-          box-sizing: content-box;
+  -moz-box-sizing: content-box;
+  box-sizing: content-box;
 }
-
+.slick-wrapper,
+.slick-header {
+  border: none !important;
+}
+.slick-headerrow {
+  border: none;
+  border-bottom: 1px solid #d1d8dd;
+}
 .slick-headerrow-column {
-	background: #87ceeb;
-	text-overflow: clip;
+  background-color: #f7fafc !important;
+  text-overflow: clip;
 }
-
 .slick-headerrow-column input {
-	margin: 0;
-	padding: 0;
-	width: 100%;
-	min-height: 20px;
+  border: 1px solid #d1d8dd;
+  border-radius: 3px;
+  font-size: 12px;
+  padding: 0px 3px !important;
+  margin: 0;
+  width: 100%;
+  min-height: 20px;
+}
+.slick-cell {
+  font-size: 12px;
+  border-color: #d1d8dd !important;
+  color: inherit !important;
+}
+.slick-header-column,
+.slick-header-columns {
+  font-size: 12px;
+  font-weight: bold;
+  background-color: #f7fafc;
+  border-color: #d1d8dd !important;
+  color: #8d99a6 !important;
+}
+.slick-row.odd .slick-cell {
+  background-color: #fafbfc;
 }

@@ -274,4 +274,31 @@ frappe.Application = Class.extend({
 		if(frappe.boot.startup_js)
 			eval(frappe.boot.startup_js);
 	}
-})
+});
+
+frappe.get_module = function(m) {
+	var module = frappe.modules[m];
+	if (!module) {
+		return;
+	}
+
+	module.name = m;
+
+	if(module.type==="module" && !module.link) {
+		module.link = "Module/" + m;
+	}
+
+	if(module.link) {
+		module._id = module.link.toLowerCase().replace("/", "-");
+	}
+
+	if(!module.label) {
+		module.label = m;
+	}
+
+	if(!module._label) {
+		module._label = __(module.label || module.name);
+	}
+
+	return module;
+};

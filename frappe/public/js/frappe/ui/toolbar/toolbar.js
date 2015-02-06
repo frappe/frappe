@@ -1,6 +1,7 @@
 // Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
+frappe.provide("frappe.ui.toolbar");
 
 frappe.ui.toolbar.Toolbar = Class.extend({
 	init: function() {
@@ -159,4 +160,18 @@ frappe.ui.toolbar.show_about = function() {
 		console.log(e);
 	}
 	return false;
+}
+
+frappe.views.show_open_count_list = function(element) {
+	var doctype = $(element).attr("data-doctype");
+	var condition = frappe.boot.notification_info.conditions[doctype];
+	if(condition) {
+		frappe.route_options = condition;
+		var route = frappe.get_route()
+		if(route[0]==="List" && route[1]===doctype) {
+			frappe.pages["List/" + doctype].doclistview.refresh();
+		} else {
+			frappe.set_route("List", doctype);
+		}
+	}
 }

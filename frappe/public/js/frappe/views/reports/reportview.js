@@ -14,8 +14,6 @@ frappe.views.ReportViewPage = Class.extend({
 			return;
 		};
 
-		frappe.require("assets/js/slickgrid.min.js");
-
 		this.doctype = doctype;
 		this.docname = docname;
 		this.page_name = frappe.get_route_str();

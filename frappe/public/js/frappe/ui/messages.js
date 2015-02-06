@@ -4,12 +4,14 @@
 frappe.provide("frappe.messages")
 
 frappe.messages.waiting = function(parent, msg) {
-	return $(repl('<div class="msg-box" style="width: 63%; margin: 30px auto;">\
-		<p style="text-align: center;">%(msg)s</p>', {
-			msg: msg
-		}))
+	return $(frappe.messages.get_waiting_message(msg))
 		.appendTo(parent);
 };
+
+frappe.messages.get_waiting_message = function(msg) {
+	return repl('<div class="msg-box" style="width: 63%; margin: 30px auto;">\
+		<p class="text-center">%(msg)s</p></div>', { msg: msg });
+}
 
 frappe.throw = function(msg) {
 	msgprint(msg);

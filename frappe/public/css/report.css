@@ -1,35 +1,3 @@
-.slick-wrapper,
-.slick-header {
-  border: none !important;
-}
-.slick-headerrow {
-  border: none;
-  border-bottom: 1px solid #d1d8dd;
-}
-.slick-headerrow-column {
-  background-color: #f7fafc !important;
-}
-.slick-headerrow-column input {
-  border: 1px solid #d1d8dd;
-  border-radius: 3px;
-  font-size: 12px;
-  padding: 0px 3px !important;
-}
-.slick-cell {
-  border-color: #d1d8dd !important;
-  color: inherit !important;
-}
-.slick-header-column,
-.slick-header-columns {
-  font-size: 12px;
-  font-weight: bold;
-  background-color: #f7fafc;
-  border-color: #d1d8dd !important;
-  color: #8d99a6 !important;
-}
-.slick-row.odd .slick-cell {
-  background-color: #fafbfc;
-}
 .grid-report .plot {
   margin: 15px;
   display: none;
