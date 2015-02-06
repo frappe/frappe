@@ -107,7 +107,7 @@ def extract_images_from_html(doc, fieldname):
 		return '<img src="{file_url}"'.format(file_url=file_url)
 
 	if content:
-		content = re.sub('<img\s*src=\s*["\'](.*?)["\']', _save_file, content)
+		content = re.sub('<img\s*src=\s*["\'](?=data:)(.*?)["\']', _save_file, content)
 		if frappe.flags.has_dataurl:
 			doc.set(fieldname, content)
 
