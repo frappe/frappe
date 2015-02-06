@@ -34,9 +34,12 @@ frappe.views.Calendar = Class.extend({
 		this.parent = frappe.make_page();
 		this.page = this.parent.page;
 		var module = locals.DocType[this.doctype].module;
-		this.page.set_title(__("Calendar") + " - " + __(this.doctype),
-			frappe.get_module("Calendar").icon);
-		frappe.add_breadcrumbs(module==="Core" ? "Calendar" : module, this.doctype)
+		this.page.set_title(__("Calendar") + " - " + __(this.doctype));
+
+		if (module !== "Desk") {
+			frappe.add_breadcrumbs(module, this.doctype)
+		}
+
 		this.page.set_primary_action(__("New"), function() {
 			var doc = frappe.model.get_new_doc(me.doctype);
 			frappe.set_route("Form", me.doctype, doc.name);

@@ -9,8 +9,9 @@
 }
 .grid-row {
   border-bottom: 1px solid #d1d8dd;
-  transition: 0.2s;
   -webkit-transition: 0.2s;
+  -o-transition: 0.2s;
+  transition: 0.2s;
 }
 .grid-row:last-child {
   border: none;
@@ -62,17 +63,14 @@
   position: relative;
   overflow: hidden;
   max-height: 0;
-  transform: scale3d(0.9, 0, 1);
-  -webkit-transform: scale3d(0.9, 0, 1);
-  transform-origin: top;
-  -webkit-transform-origin: top;
-  transition: all 0.2s ease;
-  -webkit-transition: all 0.2s ease;
+  opacity: 0;
+  -webkit-transition: opacity 0.2s ease;
+  -o-transition: opacity 0.2s ease;
+  transition: opacity 0.2s ease;
 }
 .grid-row-open .form-in-grid {
+  opacity: 1;
   max-height: 10000px;
-  transform: scale3d(1, 1, 1);
-  -webkit-transform: scale3d(1, 1, 1);
 }
 .grid-form-heading {
   padding: 10px 15px;

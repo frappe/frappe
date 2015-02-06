@@ -209,25 +209,26 @@ ul.linked-with-list li {
 	}
 }
 
-.ui-widget-content {
+.ui-datepicker,
+.ui-autocomplete {
 	// only rounded bottoms
 	border-radius: 0px 0px 4px 4px;
 	box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.176);
 	border-color: @border-color;
 	padding: 0px;
-}
 
-.ui-widget-content .ui-state-focus,
-.ui-widget-content .ui-state-hover {
-	background-color: @btn-bg !important;
-	color: @text-color !important;
-	text-shadow: none !important;
-}
+	.ui-state-focus,
+	.ui-state-hover {
+		background-color: @btn-bg !important;
+		color: @text-color !important;
+		text-shadow: none !important;
+	}
 
-.ui-widget-content .ui-state-active {
-	background-color: @brand-primary !important;
-	color: #fff !important;
-	text-shadow: none !important;
+	.ui-state-active {
+		background-color: @brand-primary !important;
+		color: #fff !important;
+		text-shadow: none !important;
+	}
 }
 
 .ui-menu .ui-menu-item {

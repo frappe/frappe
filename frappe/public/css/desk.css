@@ -181,19 +181,23 @@ ul.linked-with-list li {
 .ui-autocomplete .ui-menu-item a:active {
   color: inherit;
 }
-.ui-widget-content {
+.ui-datepicker,
+.ui-autocomplete {
   border-radius: 0px 0px 4px 4px;
   box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.176);
   border-color: #d1d8dd;
   padding: 0px;
 }
-.ui-widget-content .ui-state-focus,
-.ui-widget-content .ui-state-hover {
+.ui-datepicker .ui-state-focus,
+.ui-autocomplete .ui-state-focus,
+.ui-datepicker .ui-state-hover,
+.ui-autocomplete .ui-state-hover {
   background-color: #f0f4f7 !important;
   color: #36414c !important;
   text-shadow: none !important;
 }
-.ui-widget-content .ui-state-active {
+.ui-datepicker .ui-state-active,
+.ui-autocomplete .ui-state-active {
   background-color: #5e64ff !important;
   color: #fff !important;
   text-shadow: none !important;

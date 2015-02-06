@@ -591,12 +591,10 @@ frappe.ui.ColumnPicker = Class.extend({
 	},
 	clear: function() {
 		this.columns = [];
-		$(this.dialog.body).html('<div class="help">'+__("Drag to sort columns")+'</div>\
+		$(this.dialog.body).html('<div class="text-muted">'+__("Drag to sort columns")+'</div>\
 			<div class="column-list"></div>\
 			<div><button class="btn btn-default btn-add"><i class="icon-plus"></i>\
-				'+__("Add Column")+'</button></div>\
-			<hr>\
-			<div><button class="btn btn-primary">'+__("Update")+'</div>');
+				'+__("Add Column")+'</button></div>');
 
 	},
 	show: function(columns) {
@@ -604,18 +602,25 @@ frappe.ui.ColumnPicker = Class.extend({
 		if(!this.dialog) {
 			this.dialog = new frappe.ui.Dialog({
 				title: __("Pick Columns"),
-				width: '400'
+				width: '400',
+				primary_action_label: __("Update"),
+				primary_action: function() {
+					me.update_column_selection();
+				}
 			});
+			this.dialog.$wrapper.addClass("column-picker-dialog");
 		}
 
 		this.clear();
+
+		this.column_list = $(this.dialog.body).find('.column-list');
 
 		// show existing
 		$.each(columns, function(i, c) {
 			me.add_column(c);
 		});
 
-		new Sortable($(this.dialog.body).find('.column-list').get(0), {
+		new Sortable(this.column_list.get(0), {
 			onUpdate: function(event) {
 				me.columns = [];
 				$.each($(me.dialog.body).find('.column-list .column-list-item'),
@@ -630,45 +635,40 @@ frappe.ui.ColumnPicker = Class.extend({
 			me.add_column(['name']);
 		});
 
-		// update
-		$(this.dialog.body).find('.btn-primary').click(function() {
-			me.dialog.hide();
-			// selected columns as list of [column_name, table_name]
-			var columns = $.map(me.columns, function(v) {
-				return v ? [[v.selected_fieldname, v.selected_doctype]] : null;
-			});
-
-			frappe.defaults.set_default("_list_settings:" + me.doctype, columns);
-			me.list.columns = columns;
-			me.list.run();
-		});
-
 		this.dialog.show();
 	},
 	add_column: function(c) {
 		if(!c) return;
-		var w = $('<div style="padding: 5px; background-color: #eee; \
-			width: 90%; margin-bottom: 10px; border-radius: 3px; cursor: move;" class="column-list-item">\
-			<img src="assets/frappe/images/ui/drag-handle.png" style="margin-right: 10px;">\
-			<a class="close" style="margin-top: 5px;">&times</a>\
+		var me = this;
+
+		var w = $('<div class="column-list-item">\
+				<i class="icon icon-sort text-muted drag-handle"></i>\
+				<a class="close">&times;</a>\
 			</div>')
-			.appendTo($(this.dialog.body).find('.column-list'));
+			.appendTo(this.column_list);
 
-		var fieldselect = new frappe.ui.FieldSelect({parent:w, doctype:this.doctype}),
-			me = this;
-
-		fieldselect.$select.css({"display": "inline"});
-
-		fieldselect.$select.css({width: '70%', 'margin-top':'5px'})
+		var fieldselect = new frappe.ui.FieldSelect({parent:w, doctype:this.doctype});
 		fieldselect.val((c[1] || this.doctype) + "." + c[0]);
 
 		w.data("fieldselect", fieldselect);
 
-		w.find('.close').data("fieldselect", fieldselect).click(function() {
-			delete me.columns[me.columns.indexOf($(this).data('fieldselect'))];
-			$(this).parent().remove();
-		});
+		w.find('.close').data("fieldselect", fieldselect)
+			.click(function() {
+				delete me.columns[me.columns.indexOf($(this).data('fieldselect'))];
+				$(this).parent().remove();
+			});
 
 		this.columns.push(fieldselect);
+	},
+	update_column_selection: function() {
+		this.dialog.hide();
+		// selected columns as list of [column_name, table_name]
+		var columns = $.map(this.columns, function(v) {
+			return v ? [[v.selected_fieldname, v.selected_doctype]] : null;
+		});
+
+		frappe.defaults.set_default("_list_settings:" + this.doctype, columns);
+		this.list.columns = columns;
+		this.list.run();
 	}
 });

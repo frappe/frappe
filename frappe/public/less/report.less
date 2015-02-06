@@ -126,3 +126,41 @@ th.fc-widget-header {
 	border: 1px solid #E8DDFF !important; /* default BORDER color */
 	background-color: #E8DDFF !important;
 }
+
+// column picker
+.column-picker-dialog {
+	.column-list {
+		margin: 15px -15px;
+		border-top: 1px solid @border-color;
+		border-bottom: 1px solid @border-color;
+
+		.column-list-item {
+			padding: 10px;
+			cursor: move;
+			border-bottom: 1px solid @border-color;
+		}
+
+		.column-list-item:last-child {
+			border-bottom: none;
+		}
+
+		.drag-handle {
+			margin: 0px 7px;
+			position: relative;
+			top: -1px;
+		}
+
+		.form-control {
+			display: inline-block;
+			width: 89%;
+		}
+
+		.close {
+			margin: 2px 7px 0px;
+		}
+	}
+
+	.add-btn {
+		margin-bottom: 2px;
+	}
+}
