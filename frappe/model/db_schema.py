@@ -8,6 +8,7 @@ Syncs a database table to the `DocType` (metadata)
 .. note:: This module is only used internally
 
 """
+import re
 import os
 import frappe
 from frappe import _
@@ -401,8 +402,7 @@ class DbManager:
 
 def validate_column_name(n):
 	n = n.replace(' ','_').strip().lower()
-	import re
-	if re.search("[\W]", n):
+	if re.search("[\W]", n, re.UNICODE):
 		frappe.throw(_("Fieldname {0} cannot contain letters, numbers or spaces").format(n), InvalidColumnName)
 	return n
 
