@@ -35,10 +35,16 @@
 	</div>
 
 	<script type="text/javascript" src="/assets/frappe/js/lib/jquery/jquery.min.js"></script>
+
 	<script type="text/javascript">
 	window._version_number = "{{ build_version }}";
 	// browser support
 	window.app = true;
+
+	if(!window.frappe) window.frappe = {};
+
+	frappe.boot = {{ boot }};
+
 	</script>
 
 	{% for include in include_js -%}

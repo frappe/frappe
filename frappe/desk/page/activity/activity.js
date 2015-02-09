@@ -6,6 +6,7 @@ frappe.provide("frappe.activity");
 frappe.pages['activity'].on_page_load = function(wrapper) {
 	var me = this;
 
+	frappe.assets.views["List"]();
 	frappe.require('assets/frappe/js/lib/flot/jquery.flot.js');
 	frappe.require('assets/frappe/js/lib/flot/jquery.flot.downsample.js');
 

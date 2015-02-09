@@ -73,7 +73,7 @@ def get():
 	"""get session boot info"""
 	from frappe.desk.notifications import \
 		get_notification_info_for_boot, get_notifications
-	from frappe.boot import get_bootinfo, get_startup_js
+	from frappe.boot import get_bootinfo
 
 	bootinfo = None
 	if not getattr(frappe.conf,'disable_session_cache', None):
@@ -81,9 +81,9 @@ def get():
 		bootinfo = frappe.cache().get_value("bootinfo", user=True)
 		if bootinfo:
 			bootinfo['from_cache'] = 1
-			bootinfo["user"]["recent"] = \
-				json.dumps(frappe.cache().get_value("recent", user=True))
 			bootinfo["notification_info"].update(get_notifications())
+			# bootinfo["user"]["recent"] = \
+			# 	json.dumps(frappe.cache().get_value("recent", user=True))
 
 	if not bootinfo:
 
@@ -96,7 +96,6 @@ def get():
 	if not bootinfo["metadata_version"]:
 		bootinfo["metadata_version"] = frappe.reset_metadata_version()
 
-	bootinfo["startup_js"] = get_startup_js()
 	for hook in frappe.get_hooks("extend_bootinfo"):
 		frappe.get_attr(hook)(bootinfo=bootinfo)
 

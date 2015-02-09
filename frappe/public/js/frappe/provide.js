@@ -4,6 +4,7 @@
 // provide a namespace
 if(!window.frappe)
 	window.frappe = {};
+
 frappe.provide = function(namespace) {
 	// docs: create a namespace //
 	var nsl = namespace.split('.');

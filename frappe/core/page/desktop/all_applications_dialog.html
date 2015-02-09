@@ -4,8 +4,8 @@
 <div class="list-group all-applications-list">
 	{% for(var i=0, l=all_modules.length; i < l; i++) {
 		var module_name = all_modules[i];
-		if (desktop_items.indexOf(module_name)===-1 || module_name==="All Applications") { continue; }
 		var module = frappe.get_module(module_name);
+		if (desktop_items.indexOf(module_name)===-1 || module.force_show) { continue; }
 	%}
 	<div class="list-group-item" data-label="{%= module.label %}" data-name="{%= module.name %}">
 		<div class="checkbox">

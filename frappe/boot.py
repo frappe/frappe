@@ -114,12 +114,6 @@ def get_fullnames():
 
 	return d
 
-def get_startup_js():
-	startup_js = []
-	for method in frappe.get_hooks().startup_js or []:
-		startup_js.append(frappe.get_attr(method)() or "")
-	return "\n".join(startup_js)
-
 def get_user(bootinfo):
 	"""get user info"""
 	bootinfo.user = frappe.user.load_user()

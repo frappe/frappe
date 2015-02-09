@@ -80,7 +80,7 @@ $.extend(frappe.user, {
 				// add missing modules - they will be hidden anyways by the view
 				$.each(frappe.modules, function(m, module) {
 					var module = frappe.get_module(m);
-					if(module.link && modules_list.indexOf(m)==-1) {
+					if(modules_list.indexOf(m)==-1) {
 						modules_list.push(m);
 					}
 				});
@@ -96,7 +96,7 @@ $.extend(frappe.user, {
 		if(frappe.boot.hidden_modules && modules_list) {
 			var hidden_list = JSON.parse(frappe.boot.hidden_modules);
 			var modules_list = $.map(modules_list, function(m) {
-				if(hidden_list.indexOf(m)==-1) return m; else return null;
+				if(hidden_list.indexOf(m)==-1 || frappe.modules[m].force_show) return m; else return null;
 			});
 		}
 

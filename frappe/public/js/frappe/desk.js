@@ -13,23 +13,7 @@ frappe.Application = Class.extend({
 	},
 
 	load_startup: function() {
-		var me = this;
-		if(window.app) {
-			return frappe.call({
-				method: 'startup',
-				callback: function(r, rt) {
-					frappe.provide('frappe.boot');
-					frappe.boot = r;
-					if(frappe.boot.user.name==='Guest' || frappe.boot.user.user_type==="Website User") {
-						window.location = 'index';
-						return;
-					}
-					me.startup();
-				}
-			});
-		} else {
-			this.startup();
-		}
+		this.startup();
 	},
 	startup: function() {
 		this.load_bootinfo();
@@ -37,7 +21,6 @@ frappe.Application = Class.extend({
 		this.make_nav_bar();
 		this.set_favicon();
 		this.setup_keyboard_shortcuts();
-		this.run_startup_js();
 
 		if(frappe.boot) {
 			if(localStorage.getItem("session_lost_route")) {
@@ -268,11 +251,6 @@ frappe.Application = Class.extend({
 				frappe.ui.toolbar.clear_cache();
 			});
 
-	},
-
-	run_startup_js: function() {
-		if(frappe.boot.startup_js)
-			eval(frappe.boot.startup_js);
 	}
 });
 
@@ -288,9 +266,12 @@ frappe.get_module = function(m) {
 		module.link = "Module/" + m;
 	}
 
-	if(module.link) {
+	if (!module.link) module.link = "";
+
+	if (!module._id) {
 		module._id = module.link.toLowerCase().replace("/", "-");
 	}
+
 
 	if(!module.label) {
 		module.label = m;

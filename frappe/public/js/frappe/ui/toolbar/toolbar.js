@@ -141,7 +141,7 @@ frappe.ui.toolbar.clear_cache = function() {
 	$c('frappe.sessions.clear',{},function(r,rt){
 		if(!r.exc) {
 			show_alert(r.message);
-			location.reload();
+			location.reload(true);
 		}
 	});
 	return false;

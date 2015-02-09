@@ -23,7 +23,7 @@ $.extend(frappe.desktop, {
 
 		this.wrapper.html(frappe.render_template("desktop_icon_grid", {
 			// all visible icons
-			desktop_items: frappe.user.get_desktop_items(),
+			desktop_items: this.get_desktop_items(),
 
 			// user visible icons
 			user_desktop_items: this.get_user_desktop_items(),
@@ -38,6 +38,25 @@ $.extend(frappe.desktop, {
 		});
 
 		$(document).trigger("desktop-render");
+	},
+
+	get_desktop_items: function() {
+		var me = this;
+
+		frappe.modules["All Applications"] = {
+			icon: "octicon octicon-three-bars",
+			label: "All Applications",
+			_label: __("All Applications"),
+			_id: "all_applications",
+			color: "#4aa3df",
+			link: "",
+			force_show: true,
+			onclick: function() {
+				me.all_applications.show();
+			}
+		}
+
+		return frappe.user.get_desktop_items();
 	},
 
 	get_user_desktop_items: function() {
@@ -56,19 +75,12 @@ $.extend(frappe.desktop, {
 			user_desktop_items.push('Core');
 		}
 
-		frappe.modules["All Applications"] = {
-			icon: "octicon octicon-three-bars",
-			label: "All Applications",
-			_label: __("All Applications"),
-			_id: "all_applications",
-			color: "#4aa3df",
-			link: "",
-			onclick: function() {
-				me.all_applications.show();
+		for (var m in frappe.modules) {
+			var module = frappe.modules[m];
+			if (module.force_show && user_desktop_items.indexOf(m)===-1) {
+				user_desktop_items.push(m);
 			}
 		}
-
-		user_desktop_items.push("All Applications")
 
 		// filter valid icons
 		for (var i=0, l=user_desktop_items.length; i < l; i++) {
@@ -91,10 +103,11 @@ $.extend(frappe.desktop, {
 			var parent = $(this).parent();
 			var link = parent.attr("data-link");
 			if(link) {
-				if(link.substr(0, 1)==="/") {
-					window.open(link.substr(1))
+				if(link.substr(0, 1)==="/" || link.substr(0, 4)==="http") {
+					window.open(link, "_blank");
+				} else {
+					frappe.set_route(link);
 				}
-				frappe.set_route(link);
 				return false;
 			} else {
 				module = frappe.get_module(parent.attr("data-name"));

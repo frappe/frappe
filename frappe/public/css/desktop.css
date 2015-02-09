@@ -46,6 +46,7 @@ body[data-route="desktop"] .navbar-default {
   display: inline-block;
   transition: 0.2s;
   -webkit-transition: 0.2s;
+  text-shadow: -1px 1px 5px rgba(0, 0, 0, 0.15);
 }
 .app-icon svg,
 .app-icon img {
