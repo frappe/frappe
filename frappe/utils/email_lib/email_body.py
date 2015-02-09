@@ -23,8 +23,6 @@ def get_email(recipients, sender='', msg='', subject='[No Subject]',
 	for attach in (attachments or []):
 		emailobj.add_attachment(**attach)
 
-	emailobj.validate()
-
 	return emailobj
 
 class EMail:
