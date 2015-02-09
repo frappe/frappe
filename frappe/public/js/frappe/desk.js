@@ -51,6 +51,7 @@ frappe.Application = Class.extend({
 	load_bootinfo: function() {
 		if(frappe.boot) {
 			frappe.modules = frappe.boot.modules;
+			frappe.model.sync(frappe.boot.docs);
 			this.check_metadata_cache_status();
 			this.set_globals();
 			this.sync_pages();

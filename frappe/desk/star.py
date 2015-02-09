@@ -19,6 +19,15 @@ def toggle_star(doctype, name, add=False):
 	:param doctype: DocType of the document to star
 	:param name: Name of the document to star
 	:param add: `Yes` if star is to be added. If not `Yes` the star will be removed."""
+
+	_toggle_star(doctype, name, add)
+
+def _toggle_star(doctype, name, add=False, user=None):
+	"""Same as toggle_star but hides param `user` from API"""
+
+	if not user:
+		user = frappe.session.user
+
 	try:
 		starred_by = frappe.db.get_value(doctype, name, "_starred_by")
 		if starred_by:
@@ -27,17 +36,18 @@ def toggle_star(doctype, name, add=False):
 			starred_by = []
 
 		if add=="Yes":
-			if frappe.session.user not in starred_by:
-				starred_by.append(frappe.session.user)
+			if user not in starred_by:
+				starred_by.append(user)
 		else:
-			if frappe.session.user in starred_by:
-				starred_by.remove(frappe.session.user)
+			if user in starred_by:
+				starred_by.remove(user)
 
 		frappe.db.sql("""update `tab{0}` set `_starred_by`=%s where name=%s""".format(doctype),
 			(json.dumps(starred_by), name))
+
 	except Exception, e:
 		if e.args[0]==1054:
 			add_column(doctype, "_starred_by", "Text")
-			toggle_star(doctype, name, add)
+			_toggle_star(doctype, name, add, user)
 		else:
 			raise
