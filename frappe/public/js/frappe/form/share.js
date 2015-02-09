@@ -8,14 +8,29 @@ frappe.ui.form.Share = Class.extend({
 		$.extend(this, opts);
 	},
 	refresh: function() {
+		var me = this;
 		this.parent.empty();
-		var shared = this.frm.get_docinfo().shared;
+		if (this.shared) {
+			var shared = $.map(this.shared, function(s) {
+				return s ? s.user : null;
+			});
+		} else {
+			var shared = this.frm.get_docinfo().shared;
+		}
+
 		for(var i=0; i<shared.length; i++) {
 			var user_info = frappe.user_info(shared[i])
 			$(repl('<span class="avatar avatar-small" title="'
 				+__("Shared with {0}", [user_info.fullname])+'">\
 				<img class="media-object" src="%(image)s"></span>',
 				{image: user_info.image})).appendTo(this.parent);
+		}
+		// share
+		if(!me.frm.doc.__islocal) {
+			$(repl('<span><a class="avatar avatar-small avatar-empty share-doc-btn" title="%(title)s">\
+				<i class="octicon octicon-plus text-muted"></i></a></span>', {title: __("Share")}))
+				.appendTo(this.parent)
+				.on("click", function() { me.frm.share_doc(); });
 		}
 	},
 	show: function() {
@@ -110,6 +125,7 @@ frappe.ui.form.Share = Class.extend({
 					me.dirty = true;
 					me.shared.push(r.message);
 					me.render_shared();
+					me.frm.shared.refresh();
 				}
 			});
 		});
@@ -144,6 +160,7 @@ frappe.ui.form.Share = Class.extend({
 					});
 					me.dirty = true;
 					me.render_shared();
+					me.frm.shared.refresh();
 				}
 			});
 		});

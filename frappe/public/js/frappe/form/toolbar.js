@@ -70,12 +70,6 @@ frappe.ui.form.Toolbar = Class.extend({
 				me.frm.email_doc();}, true);
 		}
 
-		// email
-		if(!me.frm.doc.__islocal) {
-			this.page.add_menu_item(__("Share"), function() {
-				me.frm.share_doc();}, true);
-		}
-
 		// Linked With
 		if(!me.frm.doc.__islocal && !me.frm.meta.issingle) {
 			this.page.add_menu_item(__('Links'), function() {

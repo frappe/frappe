@@ -146,27 +146,55 @@ body[data-route^="Module"] .main-menu {
 	.attachment-row a.close {
 		margin-top: -5px;
 	}
+
+	.form-shared {
+		.share-doc-btn {
+			cursor: pointer;
+		}
+
+		.octicon-plus {
+			position: relative;
+			top: 2px;
+			left: 7px;
+		}
+	}
+}
+
+.form-sidebar .form-shared .share-doc-btn& {
+	&:hover,
+	&:focus,
+	&:active {
+		background-color: @btn-bg;
+
+		.octicon-plus {
+			color: @text-color !important;
+		}
+	}
 }
 
 .sidebar-left .form-sidebar {
 	.form-tags,
 	.assignment-row,
+	.form-shared,
 	.modified-by,
 	.created-by,
-	.tags-label {
+	.tags-label,
+	.shared-with-label {
 		.sidebar-padding;
 	}
 
 	.assigned-to-label,
 	.attachments-label,
-	.tags-label {
+	.tags-label,
+	.shared-with-label {
 		.sidebar-padding;
 		margin-bottom: 0px;
 	}
 
 	.assigned-to-label,
 	.tags-label,
-	.attachments-label.has-attachments {
+	.attachments-label.has-attachments,
+	.shared-with-label {
 		padding-bottom: 0px;
 	}
 
