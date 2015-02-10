@@ -146,6 +146,8 @@ function docstring(obj)  {
 }
 
 function remove_from_list(list, val) {
-	list.splice(list.indexOf(val), 1);
+	if(list.indexOf(val)!==-1) {
+		list.splice(list.indexOf(val), 1);
+	}
 	return list
 }

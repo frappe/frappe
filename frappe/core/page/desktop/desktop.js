@@ -87,11 +87,6 @@ $.extend(frappe.desktop, {
 			var m = user_desktop_items[i];
 			var module = frappe.get_module(m);
 
-			var is_invalid_item = (!module || (module.type!=="module" && !module.link && !module.onclick) || module.is_app);
-			if (is_invalid_item) {
-				remove_from_list(user_desktop_items, m);
-			}
-
 			module.app_icon = frappe.ui.app_icon.get_html(m);
 		}
 
