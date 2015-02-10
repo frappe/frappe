@@ -46,7 +46,7 @@ Add new row,Añadir Nueva Fila
 Add to To Do,Añadir a Tareas
 Add to To Do List Of,Agregar a la lista de tareas pendientes
 Added {0} ({1}),Añadido: {0} ({1})
-Adding System Manager to this User as there must be atleast one System Manager,Añadiendo el Administrador del sistema para este usuario ya que debe haber al menos un Administrador de Sistema
+Adding System Manager to this User as there must be atleast one System Manager,Añadiendo como Administrador del sistema a este usuario ya que debe haber al menos un Administrador de Sistema
 Additional Info,Información Adicional
 Additional Permissions,Permisos Adicionales
 Address,Dirección
@@ -80,7 +80,7 @@ Any existing permission will be deleted / overwritten.,Cualquier permiso existen
 Anyone Can Read,Cualquiera puede leer
 Anyone Can Write,Cualquiera puede escribir
 "Apart from Role based Permission Rules, you can apply User Permissions based on DocTypes.","Además de reglas de permisos basado en roles , puede aplicar permisos de usuario basado en DocTypes ."
-"Apart from System Manager, roles with 'Set User Permissions' right can set permissions for other users for that Document Type.","Además de administrador del sistema, papeles con derecho de establecer permisos de usuario ""pueden establecer permisos para otros usuarios de ese tipo de documento ."
+"Apart from System Manager, roles with 'Set User Permissions' right can set permissions for other users for that Document Type.","Además del Administrador del Sistema, los oles con derecho a ""establecer permisos de usuario"" pueden establecer permisos para otros usuarios de ese tipo de documento."
 App Name,Nombre de la Aplicación
 App not found,Aplicación no ​​encontrada
 Application Installer,Instalador de Aplicaciones
@@ -123,15 +123,15 @@ Belongs to,Pertenece A
 Bio,Bio
 Birth Date,Fecha de Nacimiento
 Blog Category,Blog Categoría
-Blog Intro,Intro al  Blog
-Blog Introduction,Presentación del Blog
+Blog Intro,Intro. del Blog
+Blog Introduction,Introducción del Blog
 Blog Post,Entrada en el Blog
 Blog Settings,Configuración del Blog
 Blog Title,Título del Blog
 Blogger,Blogger
 Bookmarks,marcadores
 Both login and password required,Se requiere tanto usuario como contraseña 
-Brand HTML,HTML Marca
+Brand HTML,Marca HTML
 Bulk Email,"Correo Masivo
 "
 Bulk email limit {0} crossed,Límite de correo electrónico masivo {0} sobrepasado 
@@ -281,7 +281,7 @@ Did not save,No guarde
 "Different ""States"" this document can exist in. Like ""Open"", ""Pending Approval"" etc.","Diferente ""Estados"" este documento puede existir pulg Al igual que en ""Abrir "", "" Pendiente de aprobación "", etc"
 Disable Customer Signup link in Login page,Desactivar enlace de registro del cliente en la página de entrada
 Disable Signup,Deshabilitar registro
-Disabled,discapacitado
+Disabled,Deshabilitado
 Display,Visualización
 Display Settings,Configuración de pantalla
 Display in the sidebar of this Website Route node,Visualización en la barra lateral de este nodo Route Sitio web
@@ -605,7 +605,7 @@ Male,Masculino
 Manage cloud backups on Dropbox,Administrar copias de seguridad de nubes en Dropbox
 Manage uploaded files.,Administrar los archivos subidos.
 Mandatory,obligatorio
-Mandatory fields required in {0},Los campos obligatorios requeridos en {0}
+Mandatory fields required in {0},Campos obligatorios requeridos en {0}
 Mandatory filters required:\n,Filtros obligatorios exigidos: \ n
 Master,Maestro
 Max Attachments,Máximo de Adjuntos
@@ -718,7 +718,7 @@ Oops! Something went wrong,Oups! Algo salió mal
 Open,Abierto
 Open Count,Abrir Cuenta
 Open Sans,Abrir Sans
-Open Source Web Applications for the Web,Open Source Aplicaciones Web para la Web
+Open Source Web Applications for the Web,Webapps Open Source para la Web
 Open a module or tool,Abra un Módulo o Herramienta
 Open {0},Abrir {0}
 Optional: Alert will only be sent if value is a valid email id.,Opcional: Alerta sólo se enviará si el valor es un identificador de correo electrónico válida.
@@ -749,26 +749,26 @@ Page HTML,Página HTML
 Page Header,Encabezado de Página
 Page Header Background,Fondo del Encabezado de Página
 Page Header Text,Texto del Encabezado de Página
-Page Links,Página Enlaces
+Page Links,Enlaces de la Página
 Page Name,Nombre de la Página
-Page Role,Página Papel
-Page Text,Página del texto
+Page Role,Rol de la Página
+Page Text,Texto de la Página
 Page Title,Título de la Página
 Page content,Contenido de Página
 Page not found,Página no Encontrada
-Page or Generator,Página o generador
-Page url name (auto-generated),Nombre url Página ( generada automáticamente )
-Parent Label,Etiqueta de Padres
-Parent Post,Mensaje de Padres
-Parent Website Page,Sitio web Padres Page
-Parent Website Route,Padres Website Ruta
-Parent Website Sitemap,Sitio web de Padres Mapa del sitio
+Page or Generator,Página o Generador
+Page url name (auto-generated),Nombre de la url de la Página ( generada automáticamente )
+Parent Label,Etiqueta Principal
+Parent Post,Post Principal
+Parent Website Page,Página Web Principal
+Parent Website Route,Ruta del Website Principal
+Parent Website Sitemap,Sitemap del Website Principal
 Participants,Participantes
 Password,Contraseña
-Password Updated,Contraseña Actualizado
-Password reset instructions have been sent to your email,Instrucciones de restablecimiento de contraseña han sido enviado a su correo electrónico
+Password Updated,Contraseña Actualizada
+Password reset instructions have been sent to your email,Las instrucciones para el restablecimiento de la contraseña han sido enviadas a su correo electrónico
 Patch,Parche
-Patch Log,Patch Entrar
+Patch Log,Registro de Parches
 Percent,Por Ciento
 Perm Level,Nivel Perm
 Permanently Cancel {0}?,Cancelar permanentemente {0} ?
@@ -792,7 +792,7 @@ Phone,Teléfono
 Phone No.,No. de teléfono
 Pick Columns,Elige Columnas
 Picture URL,URL de la Imagen
-Pincode,pincode
+Pincode,Código PIN
 Please attach a file first.,Adjunte un archivo primero .
 Please attach a file or set a URL,"Por favor, adjuntar un archivo o defina una URL"
 Please do not change the rows above {0},"Por favor, no cambiar las filas de arriba {0}"
@@ -840,7 +840,7 @@ Print Style Preview,Vista previa de Estilo de impresión
 Print Width,Ancho de impresión
 "Print with Letterhead, unless unchecked in a particular Document","Imprimir con membrete, a menos que sin comprobar en un documento concreto"
 Print...,Imprimir ...
-Printing and Branding,Prensa y Branding
+Printing and Branding,Impresión y Marcas
 Priority,Prioridad
 Private,Privado
 Properties,Propiedades
@@ -903,7 +903,7 @@ Response,Respuesta
 Restrict IP,Restringir IP
 Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111),Restringir el usuario desde esta dirección IP única . Varias direcciones IP se pueden agregar al separar con comas. También acepta direcciones IP parciales como ( 111.111.111 )
 Right,derecho
-Role,papel
+Role,Rol
 Role Name,Nombre de función
 Role Permissions Manager,Función Permisos Administrador
 Role and Level,"Clases, y Nivel"
@@ -918,7 +918,7 @@ Row,Fila
 Row #{0}:,Fila # {0}:
 Rules defining transition of state in the workflow.,Reglas que definen la transición de estado del flujo de trabajo .
 "Rules for how states are transitions, like next state and which role is allowed to change state etc.","Reglas para cómo los estados son las transiciones , como el siguiente estado y qué papel se le permite cambiar de estado , etc"
-Run scheduled jobs only if checked,Ejecutar los trabajos programados sólo si controladas
+Run scheduled jobs only if checked,Ejecutar las tareas programadas solamente si están comprobadas
 Run the report first,Ejecute el informe primero
 SMTP Server (e.g. smtp.gmail.com),"SMTP Server ( por ejemplo, smtp.gmail.com )"
 Sales,Venta
@@ -1003,7 +1003,7 @@ Setup > User Permissions Manager,Configuración> Permisos de usuario Administrad
 Setup Email Alert based on various criteria.,Configuración de Alerta de E-mail basado en varios criterios.
 Setup of fonts and background.,Configuración de fuentes y el fondo .
 "Setup of top navigation bar, footer and logo.","Configuración de la barra de navegación superior , pie de página y el logotipo."
-Short Bio,Biográfica
+Short Bio,Biografía corta
 Short Name,Nombre corto
 Shortcut,atajo
 Show / Hide Modules,Mostrar / Ocultar Módulos
@@ -1111,9 +1111,9 @@ Time Zone,Huso Horario
 Timezone,Zona horaria
 Title,Título
 Title / headline of your page,Título / Encabezado de su Página
-Title Case,Título Case
+Title Case,Zona de Título
 Title Field,Campo de Título
-Title Prefix,Title Prefix
+Title Prefix,Prefijo del Título
 Title field must be a valid fieldname,Campo Título debe ser un nombre de campo válido
 Title is required,Se requiere título
 To,a
@@ -1212,22 +1212,22 @@ Wednesday,Miércoles
 Welcome email sent,Correo electrónico de bienvenida enviado
 "When you Amend a document after Cancel and save it, it will get a new number that is a version of the old number.","Cuando se modifique un documento después de Cancelar y guardarlo , se obtendrá un nuevo número que es una versión del antiguo número."
 Width,Ancho
-Will be used in url (usually first name).,Se utilizará en url (generalmente primero nombre).
+Will be used in url (usually first name).,Se utilizará en la url (generalmente el primer nombre).
 With Groups,Con Grupos
-With Ledgers,Con Ledgers
+With Ledgers,Con Libros de Contabilidad
 With Letterhead,Con Membrete
-Workflow,Workflow
-Workflow Action,Acción Workflow
-Workflow Action Name,Acción Workflow Nombre
-Workflow Document State,Flujo de trabajo de documentos Estado
-Workflow Document States,Workflow Documento Unidos
+Workflow,Flujo de Trabajo
+Workflow Action,Acción del Flujo de Trabajo
+Workflow Action Name,Nombre de la Acción del Grupo de Trabajo
+Workflow Document State,Estado de los Documentos del Flujo de Trabajo
+Workflow Document States,Estados de los Documentos de los Flujos de Trabajo
 Workflow Name,Nombre de flujo
 Workflow State,Flujo de trabajo Estado
 Workflow State Field,Flujo de trabajo de campo Estado
 Workflow Transition,La transición de flujo de trabajo
 Workflow Transitions,Workflow Transiciones
 Workflow will start after saving.,Flujo de trabajo se iniciará después de guardar .
-Write,escribir
+Write,Escribir
 Write a Python file in the same folder where this is saved and return column and result.,Escriba un archivo de Python en la misma carpeta donde esta se guarda y la columna y el resultado volver.
 Write a SELECT query. Note result is not paged (all data is sent in one go).,Escriba una consulta SELECT. Resultado Nota no se pagina ( todos los datos se envían en una sola vez ) .
 Write titles and introductions to your blog.,Escribe títulos y las introducciones a tu blog .
@@ -1264,14 +1264,14 @@ arrow-right,arrow-right
 arrow-up,flecha hacia arriba
 asterisk,asterisco
 backward,hacia atrás
-ban-circle,Círculo-Prohibición
+ban-circle,Área de Prohibición
 barcode,código de barras
 beginning with,a partir de
 bell,campana
 bold,negrita
 book,libro
 bookmark,marcador
-briefcase,Maletín
+briefcase,Cartera
 bullhorn,megáfono
 calendar,calendario
 camera,Cámara
@@ -1353,7 +1353,7 @@ ok-circle,ok- círculo
 ok-sign,ok- signo
 one of,uno de
 or,o
-pause,Pausa
+pause,pausa
 pencil,Lápiz
 picture,Imagen
 plane,Plano
@@ -1376,7 +1376,7 @@ resize-small,cambiar el tamaño pequeño
 resize-vertical,cambiar el tamaño vertical
 retweet,Retweet
 rgt,RGT
-road,carretera
+road,ruta
 screenshot,Captuta de Pantalla
 search,búsqueda
 share,cuota

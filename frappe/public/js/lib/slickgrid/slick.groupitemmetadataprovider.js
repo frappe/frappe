@@ -33,7 +33,9 @@
       toggleCssClass: "slick-group-toggle",
       toggleExpandedCssClass: "expanded",
       toggleCollapsedCssClass: "collapsed",
-      enableExpandCollapse: true
+      enableExpandCollapse: true,
+      groupFormatter: defaultGroupCellFormatter,
+      totalsFormatter: defaultTotalsCellFormatter
     };
 
     options = $.extend(true, {}, _defaults, options);
@@ -77,6 +79,12 @@
     function handleGridClick(e, args) {
       var item = this.getDataItem(args.row);
       if (item && item instanceof Slick.Group && $(e.target).hasClass(options.toggleCssClass)) {
+        var range = _grid.getRenderedRange();
+        this.getData().setRefreshHints({
+          ignoreDiffsBefore: range.top,
+          ignoreDiffsAfter: range.bottom
+        });
+
         if (item.collapsed) {
           this.getData().expandGroup(item.groupingKey);
         } else {
@@ -95,6 +103,12 @@
         if (activeCell) {
           var item = this.getDataItem(activeCell.row);
           if (item && item instanceof Slick.Group) {
+            var range = _grid.getRenderedRange();
+            this.getData().setRefreshHints({
+              ignoreDiffsBefore: range.top,
+              ignoreDiffsAfter: range.bottom
+            });
+
             if (item.collapsed) {
               this.getData().expandGroup(item.groupingKey);
             } else {
@@ -116,7 +130,7 @@
         columns: {
           0: {
             colspan: "*",
-            formatter: defaultGroupCellFormatter,
+            formatter: options.groupFormatter,
             editor: null
           }
         }
@@ -128,7 +142,7 @@
         selectable: false,
         focusable: options.totalsFocusable,
         cssClasses: options.totalsCssClass,
-        formatter: defaultTotalsCellFormatter,
+        formatter: options.totalsFormatter,
         editor: null
       };
     }

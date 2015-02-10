@@ -248,7 +248,7 @@ Date Changed,Tarihi Değişti
 Date Format,Tarih Biçimi
 Date and Number Format,Tarih ve Sayı Biçimi
 Date must be in format: {0},Tarih format biçiminde olmalıdır:{0}
-Datetime,Datetime
+Datetime,Tarihzaman
 Days in Advance,Avans günleri
 Dear,Sevgili
 Default,Varsayılan
@@ -581,7 +581,7 @@ List,Liste
 List a document type,Bir belge türü Liste
 List of Web Site Forum's Posts.,Web Sitesi Forum'un Mesajlar listesi.
 Loading,Yükleme
-Loading Report,Rapor yükleniyor
+Loading Report,Rapor Yükleniyor
 Loading...,Yükleniyor...
 Localization,Yerelleştirme
 Location,Konum

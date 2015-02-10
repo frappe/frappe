@@ -134,34 +134,34 @@
         return false;
       }
 
+      if (!_grid.getOptions().multiSelect || (
+          !e.ctrlKey && !e.shiftKey && !e.metaKey)) {
+        return false;
+      }
+
       var selection = rangesToRows(_ranges);
       var idx = $.inArray(cell.row, selection);
 
-      if (!e.ctrlKey && !e.shiftKey && !e.metaKey) {
-        return false;
-      }
-      else if (_grid.getOptions().multiSelect) {
-        if (idx === -1 && (e.ctrlKey || e.metaKey)) {
-          selection.push(cell.row);
-          _grid.setActiveCell(cell.row, cell.cell);
-        } else if (idx !== -1 && (e.ctrlKey || e.metaKey)) {
-          selection = $.grep(selection, function (o, i) {
-            return (o !== cell.row);
-          });
-          _grid.setActiveCell(cell.row, cell.cell);
-        } else if (selection.length && e.shiftKey) {
-          var last = selection.pop();
-          var from = Math.min(cell.row, last);
-          var to = Math.max(cell.row, last);
-          selection = [];
-          for (var i = from; i <= to; i++) {
-            if (i !== last) {
-              selection.push(i);
-            }
+      if (idx === -1 && (e.ctrlKey || e.metaKey)) {
+        selection.push(cell.row);
+        _grid.setActiveCell(cell.row, cell.cell);
+      } else if (idx !== -1 && (e.ctrlKey || e.metaKey)) {
+        selection = $.grep(selection, function (o, i) {
+          return (o !== cell.row);
+        });
+        _grid.setActiveCell(cell.row, cell.cell);
+      } else if (selection.length && e.shiftKey) {
+        var last = selection.pop();
+        var from = Math.min(cell.row, last);
+        var to = Math.max(cell.row, last);
+        selection = [];
+        for (var i = from; i <= to; i++) {
+          if (i !== last) {
+            selection.push(i);
           }
-          selection.push(last);
-          _grid.setActiveCell(cell.row, cell.cell);
         }
+        selection.push(last);
+        _grid.setActiveCell(cell.row, cell.cell);
       }
 
       _ranges = rowsToRanges(selection);

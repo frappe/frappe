@@ -37,7 +37,8 @@ frappe.ui.form.Layout = Class.extend({
 			this.wrapper.find(".empty-form-alert").remove();
 		}
 
-		$.each(this.fields_list, function(i, fieldobj) {
+		for(var i=0, l=this.fields_list.length; i<l; i++) {
+			var fieldobj = this.fields_list[i];
 			if(me.doc) {
 				fieldobj.doc = me.doc;
 				fieldobj.doctype = me.doc.doctype;
@@ -48,9 +49,9 @@ frappe.ui.form.Layout = Class.extend({
 				fieldobj.perm = me.frm.perm;
 			};
 			fieldobj.refresh && fieldobj.refresh();
-		});
+		}
 
-		if(this.frm && this.frm.wrapper) {
+		if(this.frm && this.frm.wrapper)
 			$(this.frm.wrapper).trigger("refresh-fields");
 		}
 

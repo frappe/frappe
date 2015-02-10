@@ -54,6 +54,8 @@
         return;
       }
 
+      _grid.focus();
+
       var start = _grid.getCellFromPoint(
           dd.startX - $(_canvas).offset().left,
           dd.startY - $(_canvas).offset().top);

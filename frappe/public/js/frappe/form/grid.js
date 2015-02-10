@@ -168,9 +168,10 @@ frappe.ui.form.Grid = Class.extend({
 	set_column_disp: function(fieldname, show) {
 		if($.isArray(fieldname)) {
 			var me = this;
-			$.each(fieldname, function(i, fname) {
+			for(var i=0, l=fieldname.length; i<l; i++) {
+				var fname = fieldname[i];
 				frappe.meta.get_docfield(me.doctype, fname, me.frm.docname).hidden = show ? 0 : 1;
-			});
+			}
 		} else {
 			frappe.meta.get_docfield(this.doctype, fieldname, this.frm.docname).hidden = show ? 0 : 1;
 		}
@@ -484,9 +485,10 @@ frappe.ui.form.GridRow = Class.extend({
 		this.layout.refresh(this.doc);
 
 		// copy get_query to fields
-		$.each(this.grid.fieldinfo || {}, function(fieldname, fi) {
+		for(var fieldname in (this.grid.fieldinfo || {})) {
+			var fi = this.grid.fieldinfo[fieldname];
 			$.extend(me.fields_dict[fieldname], fi);
-		})
+		}
 
 		this.toggle_add_delete_button_display(this.wrapper.find(".panel:first"));
 

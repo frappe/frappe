@@ -35,7 +35,7 @@ Add Reply,Adicione Responder
 Add Total Row,Adicionar uma Linha de Total
 Add a New Role,Adicionar uma nova regra
 Add a banner to the site. (small banners are usually good),Adicionar um banner para o site. (Pequenos banners são geralmente preferíveis)
-Add all roles,Adicione todos as regras
+Add all roles,Adicione todas as regras
 Add attachment,Adicionar anexo
 Add code as &lt;script&gt;,Adicionar código como &lt;script&gt;
 Add custom javascript to forms.,Adicionar javascript personalizado aos formulários.
@@ -398,10 +398,10 @@ File Data,Dados de arquivo
 File Name,Nome do arquivo
 File Size,Tamanho
 File URL,URL do arquivo
-File not attached,Arquivo não ligado
+File not attached,Arquivo não anexado
 File size exceeded the maximum allowed size of {0} MB,O tamanho do arquivo excedeu o tamanho máximo permitido de {0} MB
-Fill Screen,Preencha Tela
-Filter,Filtre
+Fill Screen,Preencher Ecran
+Filter,Filtro
 Filter records based on User Permissions defined for a user,Filtrar registros com base em permissões de usuário definidos para um usuário
 Filters,Filtros
 Find {0} in {1},Localizar {0} em {1}
@@ -434,9 +434,9 @@ Frappe Framework,Frapê Quadro
 Friday,Sexta-feira
 From Date must be before To Date,A partir da data deve ser anterior a Data
 Full Name,Nome Completo
-Gantt Chart,Gantt
+Gantt Chart,Gráfico Gantt
 Gender,Sexo
-Generator,generator
+Generator,Gerador
 Georgia,Geórgia
 Get,Obter
 Get From ,Obter do
@@ -478,7 +478,7 @@ Hide Toolbar,Ocultar barra de ferramentas
 Hide the sidebar,Ocultar a barra lateral
 High,Alto
 Highlight,Realçar
-History,História
+History,Historial
 Home Page,Home Page
 Home Page is Products,Home Page é produtos
 ID (name) of the entity whose property is to be set,ID (nome) da entidade cuja propriedade está a ser definida
@@ -639,12 +639,12 @@ My Settings,Minhas Configurações
 Name,Nome
 Name Case,Caso Nome
 Name and Description,Nome e descrição
-Name is required,Nome é obrigatório
-Name not permitted,Nome não é permitida
+Name is required,O Nome é obrigatório
+Name not permitted,Nome não é permitido
 Name not set via Prompt,Nome não definido através Prompt
 Name of the Document Type (DocType) you want this field to be linked to. e.g. Customer,"Nome do Tipo de Documento (DocType) pretende que este campo a ser vinculado. por exemplo, o Cliente"
 Name of {0} cannot be {1},Nome de {0} não pode ser {1}
-Naming,Naming
+Naming,Nomeando
 Naming Series mandatory,Nomeando obrigatório Series
 Nested set error. Please contact the Administrator.,Erro conjunto aninhado . Entre em contato com o administrador.
 New,Novo
@@ -919,7 +919,7 @@ Rules defining transition of state in the workflow.,Regras que definem a transi�
 Run scheduled jobs only if checked,Execute as tarefas agendadas somente se verificados
 Run the report first,Execute o primeiro relatório
 SMTP Server (e.g. smtp.gmail.com),"SMTP Server (smtp.gmail.com, por exemplo)"
-Sales,De vendas
+Sales,Vendas
 Same file has already been attached to the record,Mesmo arquivo já foi anexado ao registro
 Sample,Amostra
 Saturday,Sábado
@@ -1237,7 +1237,7 @@ You are not allowed to create / edit reports,Você não tem permissão para cria
 You are not allowed to export the data of: {0}. Downloading empty template.,Você não tem permissão para exportar os dados de : {0} . Baixando modelo vazio .
 You are not allowed to export this report,Você não tem permissão para exportar este relatório
 You are not allowed to print this document,Você não tem permissão para imprimir este documento
-You are not allowed to send emails related to this document,Você não tem permissão para enviar e-mails relacionados a este documento
+You are not allowed to send emails related to this document,Você não tem permissão para enviar e-mails relacionados com este documento
 "You can change Submitted documents by cancelling them and then, amending them.","Você pode alterar documentos apresentados por cancelá-los e , em seguida , altera -los."
 You can use Customize Form to set levels on fields.,Você pode usar Personalizar Formulário para definir os níveis de campos.
 You can use wildcard %,Você pode usar o curinga%
@@ -1405,7 +1405,7 @@ upload,carregar
 use % as wildcard,usar% como curinga
 user,usuário
 user_image_show,user_image_show
-values and dates,valores e as datas
+values and dates,valores e datas
 values separated by commas,valores separados por vírgulas
 volume-down,volume baixo
 volume-off,volume de off-

@@ -912,6 +912,7 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		if(!doctype) return;
 		if(this.frm) {
 			this.frm.new_doc(doctype, this);
+
 		} else {
 			new_doc(doctype);
 		}

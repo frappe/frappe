@@ -6,7 +6,7 @@ import frappe
 from frappe import throw, _
 from frappe.utils.pdf import get_pdf
 from frappe.email.smtp import get_outgoing_email_account
-from frappe.utils import get_url, scrub_urls
+from frappe.utils import get_url, scrub_urls, strip
 import email.utils
 from markdown2 import markdown
 
@@ -46,7 +46,7 @@ class EMail:
 			recipients = recipients.split(',')
 
 		# remove null
-		recipients = filter(None, (r.strip() for r in recipients))
+		recipients = filter(None, (strip(r) for r in recipients))
 
 		self.sender = sender
 		self.reply_to = reply_to or sender
@@ -174,25 +174,27 @@ class EMail:
 			email_account = get_outgoing_email_account()
 			self.sender = "{0} <{1}>".format(email_account.name, email_account.email_id)
 
-		self.sender = _validate(self.sender)
-		self.reply_to = _validate(self.reply_to)
+		self.sender = _validate(strip(self.sender))
+		self.reply_to = _validate(strip(self.reply_to) or self.sender)
+
+		self.recipients = [strip(r) for r in self.recipients]
+		self.cc = [strip(r) for r in self.cc]
 
 		for e in self.recipients + (self.cc or []):
-			_validate(e.strip())
+			_validate(e)
 
 	def set_message_id(self, message_id):
 		self.msg_root["Message-Id"] = "<{0}@{1}>".format(message_id, frappe.local.site)
 
 	def make(self):
 		"""build into msg_root"""
-
 		headers = {
-			"Subject":        self.subject.encode("utf-8"),
+			"Subject":        strip(self.subject).encode("utf-8"),
 			"From":           self.sender.encode("utf-8"),
-			"To":             ', '.join([r.strip() for r in self.recipients]).encode("utf-8"),
+			"To":             ', '.join(self.recipients).encode("utf-8"),
 			"Date":           email.utils.formatdate(),
 			"Reply-To":       self.reply_to.encode("utf-8") if self.reply_to else None,
-			"CC":             ', '.join([r.strip() for r in self.cc]).encode("utf-8") if self.cc else None,
+			"CC":             ', '.join(self.cc).encode("utf-8") if self.cc else None,
 			b'X-Frappe-Site': get_url().encode('utf-8')
 		}
 

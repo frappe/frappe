@@ -457,11 +457,18 @@ class Document(BaseDocument):
 		fn.__name__ = method.encode("utf-8")
 		return Document.hook(fn)(self, *args, **kwargs)
 
+	@staticmethod
+	def whitelist(f):
+		f.whitelisted = True
+		return f
+
+	@whitelist.__func__
 	def submit(self):
 		"""Submit the document. Sets `docstatus` = 1, then saves."""
 		self.docstatus = 1
 		self.save()
 
+	@whitelist.__func__
 	def cancel(self):
 		"""Cancel the document. Sets `docstatus` = 2, then saves."""
 		self.docstatus = 2
@@ -511,6 +518,7 @@ class Document(BaseDocument):
 			self.add_comment("Cancelled")
 		elif self._action=="update_after_submit":
 			self.run_method("on_update_after_submit")
+
 
 	def check_no_back_links_exist(self):
 		"""Check if document links to any active document before Cancel."""

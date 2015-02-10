@@ -77,7 +77,8 @@ def get_permission_query_conditions(user):
 	if "System Manager" in frappe.get_roles(user):
 		return None
 	else:
-		return """(tabToDo.owner = '{user}' or tabToDo.assigned_by = '{user}')""".format(user=user)
+		return """(tabToDo.owner = '{user}' or tabToDo.assigned_by = '{user}')"""\
+			.format(user=frappe.db.escape(user))
 
 def has_permission(doc, user):
 	if "System Manager" in frappe.get_roles(user):

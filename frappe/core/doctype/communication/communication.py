@@ -162,7 +162,9 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 	:param print_format: Print Format name of parent document to be sent as attachment.
 	:param attachments: List of attachments as list of files or JSON string."""
 
-	if doctype and name and not frappe.has_permission(doctype, "email", name):
+	is_error_report = (doctype=="User" and name==frappe.session.user and subject=="Error Report")
+
+	if doctype and name and not is_error_report and not frappe.has_permission(doctype, "email", name):
 		raise frappe.PermissionError("You are not allowed to send emails related to: {doctype} {name}".format(
 			doctype=doctype, name=name))
 
