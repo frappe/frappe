@@ -51,7 +51,7 @@ frappe.ui.form.Layout = Class.extend({
 			fieldobj.refresh && fieldobj.refresh();
 		}
 
-		if(this.frm && this.frm.wrapper)
+		if(this.frm && this.frm.wrapper) {
 			$(this.frm.wrapper).trigger("refresh-fields");
 		}
 
