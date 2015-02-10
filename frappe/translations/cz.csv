@@ -1,0 +1,1694 @@
+ by Role , (kým) rolí
+ for {0}, pro {0}
+ is not set, není nastaveno
+"""Company History""","""Historie organizace"""
+"""Parent"" signifies the parent table in which this row must be added","""Nadřazeno"" znamená, že musí být přidána tabulka, ve které je tento řádek"
+"""Team Members"" or ""Management""","""Členové týmu"" nebo ""vedení"""
+'In List View' not allowed for type {0} in row {1},'V pohledu typu seznam' není povoleno pro typ {0} na řádku {1}
+0 - Draft; 1 - Submitted; 2 - Cancelled,0 - Rozpracováno; 1 - Vloženo; 2 - Zrušeno
+0 is highest,0 je nejvyšší
+"000 is black, fff is white","000 je černá barva, fff je býlá barva"
+2 days ago,Před dvěma dny
+"<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank"">[?]</a>","<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank"">[?]</a>"
+"<a onclick=""msgprint('<ol>\
+<li><b>field:[fieldname]</b> - By Field\
+<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\
+<li><b>Prompt</b> - Prompt user for a name\
+<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\
+</ol>')"">Naming Options</a>","<a onclick=""msgprint('<ol>\
+<li><b>field:[fieldname]</b> - Dle pole\
+<li><b>naming_series:</b> - Dle číselníků (pole snázvem naming_series musí být přítomno\
+<li><b>Prompt</b> - Vyzvat uživatele pro vložení jména\
+<li><b>[series]</b> - Serie dle prefixu (oddělené tečkou); Např.: PRE.#####\
+</ol>')"">Možnosti značení</a>"
+<b>new</b> <i>type of document</i>,<b>nový</b> <i>typ dokumentu</i>
+"<i>document type...</i>, e.g. <b>customer</b>","<i>typ dokumentu...</i>, např.: <b>zákazník</b>"
+<i>e.g. <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>,<i>např.: <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>
+<i>module name...</i>,<i>název modulu...</i>
+<i>text</i> <b>in</b> <i>document type</i>,<i>text</i> <b>v</b> <i>typu dokumentu</i>
+A new account has been created for you,Byl Vám vytvořen nový účet
+"A new task, %s, has been assigned to you by %s. %s","Byla Vám přiřazena nová činnost %s, od %s. %s"
+A user can be permitted to multiple records of the same DocType.,Uživatel může mít povoleno více záznamů na stejném DocType.
+About,O aplikaci
+About Us Settings,Nastavení o nás
+About Us Team Member,O nás – člen týmu
+Action,Akce
+Actions,Akce
+"Actions for workflow (e.g. Approve, Cancel).","Akce toků jako např.: schválit, zrušit."
+Add,Přidat
+Add A New Rule,Přidat nové pravidlo
+Add A User Permission,Přidat uživatelské oprávnění
+Add Attachments,Přidat přílohu
+Add Bookmark,Přidat záložku
+Add CSS,Přidat CSS
+Add Column,Přidat sloupec
+Add Filter,Přidat filtr
+Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,Přidat Google Analytics ID: např.: UA-89XXX57-1. Pro více informací prosím vyhledejte nápovědu na stránkách Google Analytics.
+Add Message,Přidat zprávu
+Add New Permission Rule,Přidat nové pravidlo oprávnění
+Add New User Permission,Přidat nové uživatelské oprávnění
+Add Reply,Přidat odpověď
+Add Tag,Přidat štítek
+Add Total Row,Přidat řádek celkem
+Add a New Role,Přidat novou roli
+Add a banner to the site. (small banners are usually good),Přidat banner na stránku. (malé bannery bývají ok)
+Add all roles,Přidat všechny role
+Add attachment,Přidat komentář
+Add code as &lt;script&gt;,Přidat kód jako &lt;script&gt;
+Add comment,Přidat komentář
+Add custom javascript to forms.,Přidat přizpůsobený javascript do formulářů.
+Add fields to forms.,Přidat pole do formulářů.
+Add multiple rows,Přidat více řádků
+Add new row,Přidat nový řádek
+"Add the name of <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> e.g. ""Open Sans""","Přidat název <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> např.: ""Open Sans"""
+Add to To Do,Přidat do úkolů
+Add to To Do List Of,Přidat do úkolů (komu)
+Added {0},Přidáno: {0}
+Added {0} ({1}),Přidáno: {0} ({1})
+Adding System Manager to this User as there must be atleast one System Manager,Přidávám roli systémového správce tomuto uživateli jelikož musí existovat nejméně jeden systémový správce
+Additional Info,Rozšířené informace
+Additional Permissions,Rozšířená oprávnění
+"Additional filters based on User Permissions, having:","Další filtry na základě uživatelských oprávnění, které mají:"
+Address,Adresy
+Address Line 1,Adresní řádek 1
+Address Line 2,Adresní řádek 2
+Address Title,Označení adresy
+Address and other legal information you may want to put in the footer.,"Adresa a další formální informace, které byste rádi uvedli v zápatí."
+Adds a custom field to a DocType,Přidá přizpůsobené pole do DocType 
+Adds a custom script (client or server) to a DocType,Přidá přizpůsobený skript (klient nebo server) do DocType
+Admin,Admin
+Administrator,Správce
+Advanced,Pokročilé
+Align Left (Ctrl/Cmd+L),Zarovnat vlevo (Ctrl/Cmd+L)
+All,Vše
+All Applications,Všechny aplikace
+All Day,Celý den
+All Tables (Main + Child Tables),Všechny tabulky (Hlavní + podřízené tabulky)
+All customizations will be removed. Please confirm.,Všechna přizpůsobení budou odebrána. Prosím potvrďte.
+"All possible Workflow States and roles of the workflow. <br>Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""","Všechny možné stavy toků (workflow) a role toků. <br>Možnosti stavů dokumentů (Docstatus): 0 je ""Uloženo"", 1 je ""Vloženo"" a 2 je ""Zrušeno"""
+Allow Comments,Povolit komentáře
+Allow Delete,Povolit smazání
+Allow Edit,Povolit úpravu
+Allow Import,Povolit import
+Allow Import via Data Import Tool,Povolit import pomocí nástroje pro import dat
+Allow Multiple,Povolit vícenásobné
+Allow Rename,Povolit přejmenování
+Allow field to remain editable even after submission,Povolit aby pole zůstalo upravovatelné i po vložení
+Allow on Submit,Povolit při vkládání
+Allow user to login only after this hour (0-24),Povolit uživateli se přihlásit pouze po této hodině (0-24)
+Allow user to login only before this hour (0-24),Povolit uživatelům přihlásit pouze před tuto hodinu (0-24)
+Allowed,Povoleno
+"Allowing DocType, DocType. Be careful!","Povoluji DocType, DocType. Buďte opatrní!"
+Already Registered,Již registrováno
+Already in user's To Do list,Je již v uživatelském seznamu úkolů
+Already saving. Please wait a few moments.,Již ukládám. Prosím vyčkejte okamžik.
+Alternative download link,Alternativní odkaz pro stažení
+"Alternatively, you can also specify 'auto_email_id' in site_config.json",Alternativně můžete také specifikovat 'auto_email_id' v site_config.json
+Always use above Login Id as sender,Vždy použít výše zmíněné přihlašovací Id jako odesilatele
+Amend,Změnit
+"An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [<a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a>]","Soubor ikony s příponou *.ico. Měl by být 16 x 16 px. Vygenerováno použitím favicon generator. [<a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a>]"
+"Another {0} with name {1} exists, select another name","Jiné {0} s názvem {1} již existuje, vyberte jiný název"
+Any existing permission will be deleted / overwritten.,Všechna stávající oprávnění budou smazána / přepsána.
+Anyone Can Read,Kdokoli může číst
+Anyone Can Write,Kdokoli může zapsat
+"Apart from Role based Permission Rules, you can apply User Permissions based on DocTypes.","Kromě pravidel oprávnění založených na rolích, můžete aplikovat uživatelská oprávnění založená na DocTypes."
+"Apart from System Manager, roles with 'Set User Permissions' right can set permissions for other users for that Document Type.","Kromě systémového administrátora, role s nastaveným 'Nastavit uživatelská oprávnění' právem mohou nastavit oprávnění pro jiné uživatele pro daný typ dokumentu."
+App Name,Název aplikace
+App not found,Aplikace nenalezena
+Application Installer,Instalátor aplikací
+Applications,Aplikace
+Apply Style,Aplikovat styl
+Apply User Permissions,Použít oprávnění
+Apply User Permissions of these Document Types,Aplikovat oprávnění na tyto typy dokumentů
+Are you sure you want to delete the attachment?,"Jste si jisti, že chcete smazat přílohu?"
+Arial,Arial
+"As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User.",Nejlepší praxí je nepřiřazovat stejnou sadu oprávnění různým rolím. Namísto toho nastavte více rolí stejnému uživateli.
+Ascending,Vzestupně
+Assign To,Přiřazeno (komu)
+Assign a permission level to the field.,Přiřadit úroveň oprávnění poli.
+Assigned By,Přiřazeno (kým)
+Assigned To,Přiřazeno (komu)
+Assigned To Fullname,Přiřazeno celému jménu
+Assigned To Me,Přiřazeno mně
+Assigned To/Owner,Přiřazeno (komu)/Majitel
+Assigned to {0},Přiřazeno (komu) {0}
+Assignment Complete,Přiřazení dokončeno
+Assignment Status Changed,Stav přiřazení změněn
+Assignments,Přiřazení
+Attach,Přiložit
+Attach .csv file to import data,Přiložit .csv soubor pro importování dat
+Attach Document Print,Přiložit formát tisku dokumentu
+Attach as web link,Přiložit jako odkaz
+Attached To DocType,Přiloženo DocType
+Attached To Name,Přiloženo jménu
+Attachments,Přílohy
+Auto Email Id,Automatické Email Id
+Auto Name,Automatický název
+Auto generated,Automaticky generováno
+Avatar,Avatar
+Background Color,Barva pozadí
+Background Image,Obrázek na pozadí
+Background Style,Styl pozadí
+Banner,Banner
+Banner HTML,Banner HTML
+Banner Image,Obrázek banneru
+Banner is above the Top Menu Bar.,Banner je nad horní lištou menu.
+Begin this page with a slideshow of images,Uveďte tuto stránku promítáním obrázků
+Beginning with,Začíná
+Belongs to,Patří (komu)
+Bio,Biografie
+Birth Date,Datum narození
+Blog Category,Kategorie blogu
+Blog Intro,Úvod blogu
+Blog Introduction,Představení blogu
+Blog Post,Příspěvek blogu
+Blog Settings,Nastavení blogu
+Blog Title,Titulek blogu
+Blogger,Blogger
+Bold (Ctrl/Cmd+B),Tučně (Ctrl/Cmd+B)
+Bookmarks,Záložky
+Both login and password required,"Obojí, přihlašovací jméno a heslo je vyžadováno"
+Brand HTML,Brand HTML
+Breadcrumbs,Drobečková navigace (Breadcrumbs)
+Bulk Email,Hromadný Email
+Bulk Email records.,Záznamy hromadných emailů.
+Bulk email limit {0} crossed,Překročen limit {0} hromadných emailů
+Bullet list,Bodový seznam
+Button,Tlačítko
+By,Kým
+Cache Cleared,Vyrovnávací paměť vyčistěna
+Calculate,Vypočítat
+Calendar,Kalendář
+Can not edit Read Only fields,Nemůžete upravovat pole určená pouze pro čtení
+Cancel,Zrušit
+Cancelled,Zrušeno
+"Cannot Edit {0} directly: To edit {0} properties, create / update {1}, {2} and {3}","Nelze přímo změnit: {0}. Pro změnu vlastností: {0}, vytvořte / aktualizujte {1}, {2} a {3}"
+Cannot Update: Incorrect / Expired Link.,Nelze obnovit: Neplatný / prošlý odkaz.
+Cannot Update: Incorrect Password,Nelze obnovit: Nesprávné heslo
+Cannot add more than 50 comments,Nelze přidat více než 50 komentářů
+Cannot cancel before submitting. See Transition {0},Nelze zrušit před vložením. Transakce {0}
+Cannot change picture,Nelze změnit obrázek
+Cannot change state of Cancelled Document. Transition row {0},Nelze změnit stav zrušeného dokumentu. řádek transakce: {0}
+Cannot change {0},Nemůžete změnit: {0}
+Cannot delete or cancel because {0} {1} is linked with {2} {3},Nelze smazat nebo zrušit jelikož: {0} {1} je provázáno s: {2} {3}
+Cannot delete {0} as it has child nodes,Nelze smazat: {0} jelikož to má podřízené uzly
+Cannot edit standard fields,Nelze upravit standardní pole
+Cannot edit templated page,Nelze upravit stránku šablony
+Cannot link cancelled document: {0},Nelze provázat zrušený dokument: {0}
+Cannot map because following condition fails: ,Nelze namapovat jelikož následující podmínka selhala: 
+Cannot open instance when its {0} is open,Nelze otevřít instanci když je otevřeno: {0}
+Cannot open {0} when its instance is open,Nemůžete otevřít: {0} když je otevřena instance
+Cannot print cancelled documents,Nelze vytisknout zrušené dokumenty
+Cannot remove permission for DocType: {0} and Name: {1},Nemůžete odebrat oprávnění pro DocType: {0} a jméno: {1}
+Cannot reply to a reply,Nelze odpovědět na odpověď
+Cannot set Email Alert on Document Type {0},Nelze nastavit emailové upozornění na typu dokumentu {0}
+Cannot set permission for DocType: {0} and Name: {1},Nelze nastavit oprávnění pro DocType: {0} a jméno: {1}
+Categorize blog posts.,Kategorizujte příspěvky blogu.
+Category,Kategorie
+Category Name,Název kategorie
+Center,Centrum
+Center (Ctrl/Cmd+E),Vycentrovat (Ctrl/Cmd+E)
+"Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit.","Některé dokumenty, například faktura, nemůže být změněna pokud je dokončena. Finální stav pro takové dokumenty se nazývá Vloženo. Můžete omezit, které role mohou vkládat."
+"Change field properties (hide, readonly, permission etc.)","Změnit vlastnosti pole (skrýt, jen pro čtení, práva atd.)"
+"Change type of field. (Currently, Type change is \
+allowed among 'Currency and Float')","Změnit typ pole. (Aktuální, typ změny je \
+povolit mezi 'měnou a desetinným číslem')"
+Chat,Povídání (chat)
+Check,Ověření
+Check / Uncheck roles assigned to the User. Click on the Role to find out what permissions that Role has.,"Přidat / odebrat role přiřazené uživateli. Klikněte na roli, abyste zjistili, jaké oprávnění tato role má."
+Check this if you want to send emails as this id only (in case of restriction by your email provider).,Toto zaškrtněte pokud chcete zaslat emaily pouze pod tímto id (v případě omezení Vaším poskytovatelem emailu).
+Check this to make this the default letter head in all prints,Toto zaškrtněte pro vytvoření výchozího záhlaví pro veškerý tisk
+Check which Documents are readable by a User,"Podívejte se, které dokumenty jsou čitelné uživatelem"
+Checked items shown on desktop,Označené položky jsou zobrazovány na pracovní ploše
+Child Tables,Podřízené tabulky
+Child Tables are shown as a Grid in other DocTypes.,Podřízené tabulky jsou zobrazovány jako mřížka v jiných DocTypes.
+City,Místo
+Classic,Klasické
+Clear Cache,Vyčistit mezipaměť
+Clear all roles,Odebrat všechny role
+Click on File -&gt; Save As,Klikněte na soubor -&gt; Uložit jako
+Click on Save,Klikněte na uložit
+Click on row to view / edit.,Klikněte na řádek pro zobrazení / upravení.
+Click on the link below to complete your registration and set a new password,Klikněte na odkaz dole pro dokončení Vaší registrace a nastavení nového hesla
+Client,Zákazník
+Client-side formats are now deprecated,Formáty na straně klienta (client-side) se již nepoužívají
+Close,Zavřít
+Close: {0},Zavřít: {0}
+Closed,Zavřeno
+Code,Kód
+Collapse,Sbalit
+Column Break,Zalomení sloupce
+Column Labels:,Označení sloupce:
+Column Name,Název sloupce
+Comment,Komentář
+Comment By,Komentováno (kým)
+Comment By Fullname,Komentováno celým jménem
+Comment Date,Datum komentáře
+Comment Docname,Komentář Docname
+Comment Doctype,Komentář Doctype
+Comment Time,Čas komentáře
+Comment Type,Typ komentáře
+Comments,Komentáře
+Communication,Komunikace
+Communication Medium,Komunikační médium
+Company History,Historie organizace
+Company Introduction,Představení organizace
+Complaint,Reklamace
+Complete By,Splnit do
+Complete Registration,Dokončit registraci
+Completed,Dokončeno
+Condition,Podmínka
+Confirm,Potvrdit
+Contact Us Settings,Nastavení kontaktujte nás
+"Contact options, like ""Sales Query, Support Query"" etc each on a new line or separated by commas.","Možnosti kontaktu, např.: ""Dotaz prodeje, dotaz podpory"" atd., každý na novém řádku nebo oddělené čárkami."
+Content,Obsah
+Content Hash,Otisk obsahu (hash)
+Content in markdown format that appears on the main side of your page,"Obsah ve značkovacím formátu, který se zobrazí v hlavní části Vaší www stránky"
+Content web page.,Obsah www stránky.
+Copy,Kopie
+Copyright,Copyright
+Core,Jádro
+Could not connect to outgoing email server,Nelze se spojit se serverem odchozí emailové pošty
+Could not find {0},Nemohu najít: {0}
+Count,Počítat
+Country,Země
+Create,Vytvořit
+Create a new {0},Nově Vytvořit: {0}
+Created,Vytvořeno
+Created By,Vytvořeno (kým)
+Created Custom Field {0} in {1},Vytvořit přizpůsobené pole {0} uvnitř {1}
+Created Customer Issue,Vložená stížnost zákazníka
+Created On,Vytvořeno (kdy)
+Created Opportunity,Vložená příležitost
+Created Support Ticket,Vložený případ podpory
+Creation / Modified By,Vytvořeno / upraveno
+Currency,Měna
+Current status,Aktuální stav
+Custom CSS,Přizpůsobené CSS
+Custom Field,Přizpůsobené pole
+Custom Javascript,Přizpůsobený Javascript
+Custom Reports,Přizpůsobené výpisy
+Custom Script,Přizpůsobený skript
+Custom?,Přizpůsobit?
+Customize,Přizpůsobit
+Customize Form,Přizpůsobit formulář
+Customize Form Field,Přizpůsobit formulářové pole
+"Customize Label, Print Hide, Default etc.","Přizpůsobit popisek, skrýt tisk, výchozí atd."
+Customized HTML Templates for printing transctions.,Přizpůsobit HTML šablony pro tiskové transakce.
+Daily Event Digest is sent for Calendar Events where reminders are set.,Denní přehled událostí je zasílán pro kalendářní události kde je nastaveno připomínání.
+Danger,Nebezpečí
+Data,Data
+Data Import / Export Tool,Nástroj importování / exportování dat
+Data Import Template,Šablona importu dat
+Data Import Tool,Nástroj importování dat
+Data missing in table,Data chybí v tabulce
+Date,Datum
+Date Change,Změna data
+Date Changed,Datum změněno
+Date Format,Formát data
+Date and Number Format,Formát čísel a data
+Date must be in format: {0},Datum musí být ve formátu: {0}
+Datetime,Datum a čas
+Days in Advance,Dní předem
+Dear,Vážený (á/é)
+Default,Výchozí
+Default Print Format,Výchozí formát tisku
+Default Value,Výchozí hodnota
+Default for 'Check' type of field must be either '0' or '1',Výchozí hodnota pro  'zaškrtávací' pole musí být '0' nebo '1'
+Default is system timezone,Výchozí Časové pásmo
+"Default: ""Contact Us""","Výchozí: ""Kontaktujte nás"""
+DefaultValue,Výchozí hodnota
+Defaults,Výchozí
+"Define read, write, admin permissions for a Website Page.","Definuje číst, zapsat, administrátorské oprávnění pro www stránku."
+Define workflows for forms.,Vymezuje toky (workflow) pro formuláře.
+Defines actions on states and the next step and allowed roles.,Definuje akce na stavech a další krok a povolené role.
+Defines workflow states and rules for a document.,Vymezuje jednotlivé stavy toků.
+Delete,Vymazat
+Delete Row,Smazat řádek
+Depends On,Závisí na
+Descending,Sestupně
+Description,Popis
+Description and Status,Popis a stav
+"Description for listing page, in plain text, only a couple of lines. (max 140 characters)","Popis pro stránku výpisů, v čistém textu, pouze pár řádek. (max 140 znaků)"
+Description for page header.,Popis pro záhlaví stránky.
+Desktop,Pracovní plocha
+Details,Podrobnosti
+Dialog box to select a Link Value,Dialogové okno pro výběr odkazu hodnoty
+Did not add,Nebylo přidáno
+Did not cancel,Nebylo zrušeno
+Did not find {0} for {0} ({1}),Nenalezeno {0} pro {0} ({1})
+Did not load,Nebylo nahráno
+Did not remove,Nebylo odebráno
+Did not save,Nebylo uloženo
+Did not set,Nebylo nastaveno
+"Different ""States"" this document can exist in. Like ""Open"", ""Pending Approval"" etc.","Mohou existovat různé ""stavy"" tohoto dokumentu. Jako ""Otevřeno"", ""Čeká na schválení"" atd."
+Disable Customer Signup link in Login page,Vypnout odkaz pro přihlašování zákazníků na přihlašovací stránce
+Disable Report,Vypnout výpis
+Disable Signup,Vypnout přihlašování
+Disabled,Vypnuto
+Display,Zobrazit
+Display Settings,Nastavení zobrazení
+Display in the sidebar of this Website Route node,Zobrazit v postranním panelu této cesty uzlu www stránky
+Do not allow user to change after set the first time,Nepovolit uživateli změnu po prvním nastavení
+Doc Status,Doc Status
+DocField,DocField
+DocPerm,DocPerm
+DocType,DocType
+DocType Details,Podrobnosti DocType
+DocType can not be merged,DocType nemůže být sloučen
+DocType is a Table / Form in the application.,DocType je tabulka / formulář v aplikaci
+DocType on which this Workflow is applicable.,DocType na který je aplikovatelný tento tok (workflow).
+DocType or Field,DocType nebo pole
+Doclist JSON,Doclist JSON
+Docname,Docname
+Document,Dokument
+Document Status,Stav dokumentu
+Document Status transition from ,Stav dokumentu přechod z 
+Document Status transition from {0} to {1} is not allowed,Stav dokumentu přechod z {0} na {1} není povolen
+Document Type,Typ dokumentu
+Document Types,Typy dokumentů
+Document is only editable by users of role,Document je upravovatelný pouze pro uživatele s rolí
+Documentation,Dokumentace
+Documents,Dokumenty
+Download,Stáhnout
+Download Backup,Stáhnout zálohu
+Download Template,Stáhnout šablonu
+Download a template for importing a table.,Stáhnout šablonu pro importování tabulky.
+Download link for your backup will be emailed on the following email address:,Odkaz pro stáhnutí vaší zálohy bude poslán na následující emailovou adresu:
+Download with data,Stáhnout včetně dat
+Drag to sort columns,Přetáhnutím třídit sloupce
+Due Date,Datum splatnosti
+Duplicate name {0} {1},Duplicitní jméno {0} {1}
+Dynamic Link,Dynamický odkaz
+Edit,Upravit
+Edit Filter,Upravit filtr
+Edit Permissions,Upravit oprávnění
+Edit Role Permissions,Upravit oprávnění rolí
+Edit your record,Upravit Váš záznam
+Editable,Upravitelné
+Editing Row,Upravujete řádek
+Email,Email
+Email Alert,Upozornění mailem
+Email Alert Recipient,Příjemce upozornění mailem
+Email Alert Recipients,Příjemci upozornění mailem
+Email By Document Field,Email od pole dokumentu
+Email Footer,Zápatí emailu
+Email Sent,Email odeslán
+Email Settings,Nastavení emailu
+Email Settings for Outgoing and Incoming Emails.,Nastavení pošty (email) pro příchozí a odchozí zprávy.
+Email Signature,Zápatí v emailu (podpis)
+"Email addresses, separted by commas","Emailové adresy, oddělené čárkou"
+Email not verified with {1},Email není verifikován s {1}
+Email sent to {0},Email odeslán (komu) {0}
+Email...,Email...
+Emails are muted,Emaily jsou potlačené (muted)
+Embed image slideshows in website pages.,Vloží promítání obrázků do www stránky.
+Enable,Zapnuto
+Enable Comments,Zapnout komentáře
+Enable Report,Zapnout výpis
+Enable Scheduled Jobs,Zapnout plánované operace (cron)
+Enabled,Zapnuto
+Ends on,Končí
+Enter Form Type,Vložte typ formuláře
+Enter Value,Vložte hodnotu
+Enter at least one permission row,Vložte přinejmenším jeden řádek oprávnění
+"Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set ""match"" permission rules. To see list of fields, go to <a href=""#Form/Customize Form/Customize Form"">Customize Form</a>.","Vložit výchozí hodnotová pole (klíče) a hodnoty. Pokud přidáte více hodnot pro pole, bude vybrána první hodnota. Toto výchozí nastavení bude také použito pro nastavení ""shody"" pravidel oprávnění. Pro zobrazení seznamu polí jděte na <a href=""#Form/Customize Form/Customize Form"">přizpůsobit formulář</a>."
+"Enter keys to enable login via Facebook, Google, GitHub.","Vložte klíče, které umožní přihlásit se přes Facebook, Google, GitHub."
+Equals,Je rovno
+Error,Chyba
+"Error generating PDF, attachment sent as HTML","Chyba při generování PDF, příloha odeslána jako HTML"
+Error: Document has been modified after you have opened it,"Chyba: Dokument byl upraven poté, co jste ho otevřeli"
+Event,Událost
+Event Datetime,Událost datum a Čas
+Event Individuals,Osoby události
+Event Role,Role události
+Event Roles,Role události
+Event Type,Typ události
+Event User,Uživatel události
+Event end must be after start,Konec události musí být před začátkem události
+Events,Události
+Events In Today's Calendar,Dnešní události v kalendáři
+Every Day,Denně
+Every Month,Měsíčně
+Every Week,Týdně
+Every Year,Ročně
+Every day events should finish on the same day.,Denní události by měly být dokončené ve stejný den.
+Everyone,Všichni
+Example,Příklad
+Example:,Příklad:
+Expand,Rozbalit
+Export,Exportovat
+Export all rows in CSV fields for re-upload. This is ideal for bulk-editing.,"Exportovat všechna data (řádky) do CSV, pro budoucí znovu nahrání. Toto je vhodné pro hromadné úpravy."
+Export not allowed. You need {0} role to export.,Export není povolen. Potřebujete roli {0} pro exportování.
+Exported,Exportováno
+"Expression, Optional","Výraz, Volitelné"
+Facebook,Facebook
+Facebook Client ID,Facebook ID klienta
+Facebook Client Secret,Facebook tajný klíč klienta
+Facebook Share,Facebook sdílení
+Facebook User ID,Facebook ID uživatele
+Facebook Username,Facebook uživatelské jméno
+FavIcon,FavIcon
+Female,Žena
+Field Description,Popis pole
+Field Name,Název pole
+Field Type,Typ pole
+"Field that represents the Workflow State of the transaction (if field is not present, a new hidden Custom Field will be created)","Pole které reprezentuje stav toku (workflow) transakce (pakliže pole není přítomno, bude vytvořeno nové skryté přizpůsobené pole)"
+Field {0} in row {1} cannot be hidden and mandatory without default,Pole {0} na řádku {1} nemůže být skryté a povinné bez výchozího
+Field {0} is not selectable.,Toto pole: {0} nemůžete zvolit.
+Field {0} of type {1} cannot be mandatory,Toto pole: {0} typu: {1} nemůže být povinné
+Fieldname,Název pole
+Fieldname is required in row {0},Název pole je vyžadován v řádku: {0}
+Fieldname not set for Custom Field,Přizpůsobené pole nemá nastaven název
+Fieldname which will be the DocType for this link field.,Název pole který bude DocType pro toto provázané pole.
+Fieldname {0} appears multiple times in rows {1},Název pole: {0} se vyskytuje vícekrát na řádku: {1}
+"Fieldname {0} cannot contain letters, numbers or spaces","Název pole: {0} nemůže obsahovat písmena (s diakritikou), čísla nebo mezery"
+Fields,Pole
+"Fields separated by comma (,) will be included in the<br /><b>Search By</b> list of Search dialog box","Pole oddělená čárkou (,) budou zahrnuta v dialogu<br /><b>Vyhledat dle</b>"
+Fieldtype,Typ pole
+Fieldtype cannot be changed from {0} to {1} in row {2},Typ pole nemůže být změněn z: {0} na: {1} na řádku: {2}
+File,Soubor
+File Data,Nahrané soubory
+File Name,Název souboru
+"File Name: &lt;your filename&gt;.csv<br />\
+Save as type: Text Documents (*.txt)<br />\
+Encoding: UTF-8","Název souboru: &lt;vas_soubor&gt;.csv<br />\
+Uložit jako: Textový document (*.txt)<br />\
+Kódování: UTF-8"
+File Size,Velikost souboru
+File URL,Adresa URL souboru
+File not attached,Soubor není příloha
+File size exceeded the maximum allowed size of {0} MB,Soubor překročil maximální povolenou velikost v MB: {0}
+Fill Screen,Vyplnit obrazovku
+Filter,Filtr
+Filter records based on User Permissions defined for a user,Filtrovat záznamy za základě uživatelských oprávnění definovaných pro uživatele
+Filters,Filtry
+Find {0} in {1},Hledej: {0} v: {1}
+First Name,Jméno
+First data column must be blank.,První sloupec dat musí být prázdný.
+Float,Desetinné číslo
+Float Precision,Počet desetinných míst
+Fold,Fold
+Fold can not be at the end of the form,Fold nemůže být na konci formuláře
+Fold must come before a labelled Section Break,Fold musí být před označeným zalomením sekce
+Font (Heading),Font (Záhlaví)
+Font (Text),Písmo (Text)
+Font Size,Velikost písma
+Font Size (Text),Velikost písma (Text)
+Fonts,Písma
+Footer,Zápatí
+Footer Background,Pozadí zápatí
+Footer Items,Položky zápatí
+Footer Text,Text zápatí
+For DocType,Pro DocType
+"For Links, enter the DocType as range
+For Select, enter list of Options separated by comma","Pro odkazy, vložte DocType jako rozsah
+Pro výběr, vložte seznam možností oddělených čárkami"
+"For comparative filters, start with","Pro srovnávací filtrování, začněte s"
+For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,Na příklad pokud zrušíte a změníte 'INV004' stane se z něj dokument 'INV004-1'. Takto můžete sledovat všechny změněné dokumenty.
+For ranges,Pro rozsahy
+For top bar,Pro horní panel
+"For updating, you can update only selective columns.","Pro aktualizaci, můžete aktualizovat pouze vybrané sloupce."
+For {0} at level {1} in {2} in row {3},Pro {0} na úrovni {1} v {2} na řádku {3}
+Form,Formulář
+Forum,Fórum
+Forums,Fóra
+Forward To Email Address,Přeposlat na emailovou adresu
+Frappe Framework,Frappe Framework
+Friday,Pátek
+From Date must be before To Date,Datum od musí být dříve než datum do
+Full Name,Celé jméno/název
+Gantt Chart,Pruhový diagram
+Gender,Pohlaví
+Georgia,Georgia
+Get,Získat
+Get From ,Získat z 
+"Get your globally recognized avatar from <a href=""https://gravatar.com/"">Gravatar.com</a>","Pořiďte si celosvětově uznávaný avatar z <a href=""https://gravatar.com/"">Gravatar.com</a>"
+GitHub,GitHub
+GitHub Client ID,GitHub ID klienta
+GitHub Client Secret,GitHub tajný klíč klienta
+Github User ID,Github ID uživatele
+Github Username,Github - uživatelské jméno
+Go to this url after completing the form.,Jít na tuto adresu URL po dokončení formuláře.
+Google,Google
+Google Analytics ID,Google analytics ID
+Google Client ID,Google ID klienta
+Google Client Secret,Google tajný klíč klienta
+Google Plus One,Google Plus One
+Google User ID,Google ID uživatele
+Google Web Font (Heading),Google Web Font (záhlaví)
+Google Web Font (Text),Google Web Font (Text)
+"Group Added, refreshing...","Skupina přidána, obnovuji..."
+Group Description,Popis skupiny
+Group Name,Název skupiny
+Group Title,Titulek skupiny
+Group Type,Typ skupiny
+Groups,Skupiny
+Guest,Host
+HTML for header section. Optional,HTML kód pro záhlaví. Volitelné
+Header,Záhlaví
+Heading,Nadpis
+Heading Text As,Text nadpisu jako
+Help,Nápověda
+Help on Search,Nápověda k vyhledávání
+Help: Field Properties,Nápověda: Vlastnosti pole
+Help: Importing non-English data in Microsoft Excel,"Nápověda: Importovat data, která nejsou v angličtině v programu Microsoft Excel"
+Helvetica Neue,Helvetica Neue
+Hidden,Skryté
+Hide Actions,Skrýt akce
+Hide Copy,Skrýt kopii
+Hide Details,Skrýt podrobnosti
+Hide Heading,Skrýt záhlaví
+Hide Toolbar,Skrýt panel nástrojů
+Hide field in Report Builder,Skrýt pole v konfigurátoru výpisů
+Hide field in Standard Print Format,Skrýt pole ve standardním formátu tisku
+Hide field in form,Skrýt pole ve formuláři
+Hide the sidebar,Skrýt postranní panel
+High,Vysoké
+Highlight,Zvýraznění
+History,Historie
+Home Page,Domovská stránka
+Home Page is Products,Domovskou stránkou je stránka Produkty.
+Horizontal Line Break,Horizontální oddělovač
+ID (name) of the entity whose property is to be set,ID (název) entity jejíž vlastnost bude nastavena
+ID field is required to edit values using Report. Please select the ID field using the Column Picker,ID pole je vyžadováno pro úpravu hodnot použitím výpisu. Prosím zvolte ID pole použitím výběru sloupce
+Icon,Ikona
+Icon will appear on the button,Ikona se zobrazí na tlačítku
+"If a Role does not have access at Level 0, then higher levels are meaningless.","Pakliže role nemá přístup na úrovni 0, pak vyšší úrovně nemají efekt."
+"If checked, all other workflows become inactive.","Pakliže je toto zaškrtnuto, všechny ostatní toky (workflow) se stanou neaktivními."
+"If checked, the Home page will be the default Item Group for the website.","Pakliže je toto zaškrtnuto, domovská stránka se stane výchozí skupinou položek pro www stránku."
+"If image is selected, color will be ignored (attach first)","Pakliže je zvolen obrázek, barva bude ignorována (nejdříve přiložte)"
+If non standard port (e.g. 587),Pakliže není na standardním portu (např.: 587)
+"If these instructions where not helpful, please add in your suggestions on GitHub Issues.","Pakliže tyto instrukce nebyly nápomocné, prosím přidejte Vaše doporučení na GitHub Issues."
+"If you are inserting new records (overwrite not checked) \
+and if you have submit permission, the record will be submitted.","Pokud přidáváte nové záznamy (přepsat není zaškrtnuto) \
+a pokud jste vložili oprávnění, záznam bude vložen."
+"If you are updating, please select ""Overwrite"" else existing rows will not be deleted.","Pakliže aktualizujete, zvolte prosím ""Přepsat"" jinak nebudou existující řádky vymazány."
+"If you are uploading a child table (for example Item Price), the all the entries of that table will be deleted (for that parent record) and new entries will be made.","Pokud nahráváte podřízenou tabulku (například ceny položky), všechny záznamy pro tuto tabulku budou vymazány (pro tento nadřazený záznam) a nové záznamy budou vytvořeny."
+"If you are uploading new records, ""Naming Series"" becomes mandatory, if present.","Pokud nahráváte nové záznamy, ""číselníky"" se stanou povinnými, pakliže jsou zvoleny."
+"If you are uploading new records, leave the ""name"" (ID) column blank.","Pakliže nahráváte nové záznamy, nechte sloupec (ID) ""název/jméno"" prázdný."
+"If you set this, this Item will come in a drop-down under the selected parent.","Pokud je toto nastaveno, tato položka bude v rozevíracím seznamu (drop-down) pod zvoleným nadřazeným uzlem."
+Ignore Encoding Errors,Ignorovat chyby v kódování (UTF-8)
+Ignore User Permissions,Ignorovat uživatelská oprávnění
+"Ignoring Item {0}, because a group exists with the same name!","Položka {0} je ignorována, jelikož existuje skupina se stejným názvem!"
+Image,Obrázek
+Image Link,Odkaz na obrázek
+Import,Importovat
+Import / Export Data,Importovat / exportovat 
+Import / Export Data from .csv files.,Importovat / exportovat informace souborem typu *.csv
+Import Data,Importovat Data
+Import Failed!,Import se nezdařil!
+Import Successful!,Import se zdařil!
+In,V
+In Dialog,V dialogu
+"In Excel, save the file in CSV (Comma Delimited) format","V programu MS Excel, uložte soubor ve formátu CSV (jako oddělovač symbol čárky)"
+In Filter,Ve filtru
+"In JSON as <pre>[{""title"":""Jobs"", ""name"":""jobs""}]</pre>","V JSON jako <pre>[{""title"":""Jobs"", ""name"":""jobs""}]</pre>"
+In List View,V pohledu typu seznam
+In Report Filter,Ve filtru výpisu
+In points. Default is 9.,V bodech. Výchozí je 9.
+In response to,V reakci na
+Incorrect value in row {0}: {1} must be {2} {3},Nesprávná hodnota na řádku {0}: {1} musí být {2} {3}
+Incorrect value: {0} must be {1} {2},Nesprávná hodnota: {0} musí být {1} {2}
+Indent (Tab),Odsazení (Tab)
+Index,Index
+Individuals,Jedinci
+Info,Info
+Info:,Informace:
+Insert,Vložit
+Insert After,Vložit za
+"Insert After field '{0}' mentioned in Custom Field '{1}', does not exist","Vložit za pole '{0}' zmiňováno v přizpůsobeném poli '{1}', neexistuje"
+Insert Below,Vložit pod
+Insert Code,Vložit kód
+Insert Link,Vložit odkaz
+Insert Row,Vložit řádek
+Insert Style,Vložit styl
+Insert picture (or just drag & drop),Vložit obrázek (nebo přetáhni & pust)
+Install Applications.,Instaluje aplikace
+Installed,Instalováno
+Installer,Instalátor
+Int,Celé číslo
+Integrations,Integrace
+Introduce your company to the website visitor.,Představte svoji organizaci návštěvníků internetových stránek.
+Introduction,Úvod
+Introductory information for the Contact Us Page,Úvodní informace na stránce kontaktujte nás
+Invalid Email: {0},Neplatný email: {0}
+Invalid Filter: {0},Neplatný filtr: {0}
+Invalid Home Page,Neplatná domovská stránka
+Invalid Login,Neplatné přihlášení
+Invalid Outgoing Mail Server or Port,Neplatný odchozí Mail Server nebo Port
+Invalid Request,Neplatný požadavek
+Invalid login or password,Neplatné heslo či uživatelské jméno
+Invalid naming series (. missing),Neplatné číselníky (. chybí)
+Invalid recipient address,Neplatná adresa příjemce
+Inverse,Invertovat
+Is Active,Je aktivní
+Is Child Table,Je podřízená tabulka
+Is Default,Je výchozí
+Is Event,Je událost
+Is Mandatory Field,Je povinné pole
+Is Single,Je osamocené
+Is Standard,Je standard
+Is Submittable,Je vložitelné
+Is Task,Je činnost
+Item cannot be added to its own descendents,Položka nemůže být přidána jako svůj vlastní podřízený potomek
+"JSON list of DocTypes used to apply User Permissions. If empty, all linked DocTypes will be used to apply User Permissions.","JSON sezam DocTypes použitých pro aplikování uživatelských oprávnění. Pakliže je prázdný, všechny provázané DocTypes budou použity pro aplikování uživatelských oprávnění."
+JavaScript Format: frappe.query_reports['REPORTNAME'] = {},JavaScript Formát: frappe.query_reports['REPORTNAME'] = {}
+Javascript,Javascript
+Javascript to append to the head section of the page.,Javascript pro přidání hlavičky sekce stránky.
+Keep a track of all communications,Vede přehled o veškeré komunikaci
+Key,klíč
+Label,Popisek
+Label Help,Nápověda popisek
+Label and Type,Popisek a typ
+Label is mandatory,Popisek je vyžadován
+Landing Page,Přistávací stránka
+Language,Jazyk
+Language preference for user interface (only if available).,Jazykové preference pro uživatelské rozhraní (pouze pokud je k dispozici).
+"Language, Date and Time settings","Nastavení jazyka, data a Času"
+Last Comment,Poslední komentář
+Last IP,Poslední IP
+Last Login,Poslední přihlášení
+Last Name,Příjmení
+Last Updated By,Naposledy aktualizováno (kým)
+Last Updated On,Naposledy aktualizováno (kdy)
+Lato,Lato
+Leave blank for new records,Nechte prázdné pro nové záznamy
+Leave blank to repeat always,Nechte prázdné pro opakování vždy
+Left,V levo
+Letter,Letter
+Letter Head,Záhlaví
+Letter Head Name,Letter název záhlaví
+Letter Head in HTML,Letter hlavička v HTML
+Level,úroveň
+"Level 0 is for document level permissions, higher levels for field level permissions.","úroveň 0 je pro úroveň oprávnění dokumentů, vyšší úrovně jsou pro úrovně oprávnění polí."
+Like,Jako
+Link,Odkaz
+"Link that is the website home page. Standard Links (index, login, products, blog, about, contact)","Odkaz na domovskou www stránku. Standardní odkazy (index, přihlášení, produkty, blog, o nás, kontakt)"
+Link to other pages in the side bar and next section,Odkazy na jiné www stránky v postranním panelu a další sekci
+Link to the page you want to open,Odkaz na stánku kterou chcete otevřít
+Linked In Share,Provázáno ve sdílení
+Linked With,Provázáno s
+List,Seznam
+List a document type,Seznam typů dokumentů
+List of Web Site Forum's Posts.,Seznam příspěvků na fóru www stránek.
+List of patches executed,Seznam provedených záplat
+Loading,Nahrávám
+Loading Report,Nahrávám výpis
+Loading...,Nahrávám...
+Localization,Lokalizace
+Location,Místo
+Log of Scheduler Errors,Systémový záznam plánovače.
+Log of error on automated events (scheduler).,Systémový záznam chyb automatických událostí (plánovač).
+Login,Přihlášení
+Login After,Přihlášení po
+Login Before,Přihlášení před
+Login Id,Přihlašovací Id
+Login Required,Přihlášení vyžadováno
+Login not allowed at this time,Přihlášení není povoleno v tuto dobu
+Logout,Odhlásit se
+Long Text,Dlouhý text
+Low,Nízké
+Lucida Grande,Lucida Grande
+Mail Password,Heslo emailu
+Main Section,Hlavní sekce
+Main Table,Hlavní tabulka
+Make New,Vytvořit nový
+Make a new,Nově Vytvořit
+Make a new record,Nově Vytvořit záznam
+Make a new {0},Nově Vytvořit: {0}
+Male,Muž
+Manage cloud backups on Dropbox,Spravuje zálohy na službě Dropbox
+Manage uploaded files.,Spravuje nahrané soubory.
+Mandatory,Povinné
+Mandatory fields required in {0},Povinné pole vyžadována pro {0}
+Mandatory:,Povinné:
+Mark the field as Mandatory,Označit pole jako povinné
+Master,Hlavní
+Max Attachments,Max příloh
+Max width for type Currency is 100px in row {0},Max šířka pro typ měny je 100px na řádku {0}
+Maximum Attachment Limit for this record reached.,Bylo dosaženo maximálního limitu příloh pro tento záznam.
+"Meaning of Submit, Cancel, Amend","Význam pojmů vložit, zrušit, změnit"
+Medium,Střední
+"Menu items in the Top Bar. For setting the color of the Top Bar, go to <a href=""#Form/Style Settings"">Style Settings</a>","Položky menu v horním panelu. Pro nastavení barvy horního panelu, jděte na <a href=""#Form/Style Settings"">Style Settings</a>"
+Merge with existing,Sloučit s existujícím
+Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node,Slučování je možné pouze mezi skupinami (skupina-skupina) nebo mezi uzlem typu stránka a jiným uzlem typu stránka
+Message,Zpráva
+Message Examples,Příklady zpráv
+Message to be displayed on successful completion,"Zpráva, která bude zobrazena po úspěšném dokončení"
+Messages,Zprávy
+Messages from everyone,Zprávy ode všech
+Method,Metoda
+Middle Name (Optional),Druhé jméno (volitelné)
+Misc,Různé
+Miscellaneous,Různé
+Missing Values Required,Chybějící hodnoty vyžadovány
+Modern,Moderní
+Modified by,Upraveno (kým)
+Module,Modul
+Module Def,Vymezení modulů
+Module Name,Název modulu
+Module Not Found,Modul nenalezen
+Modules Setup,Nastavení modulů
+Monday,Pondělí
+Monochrome,Monochromatické
+More,Více
+More content for the bottom of the page.,Více obsahu na spodek stránky.
+Move Down: {0},přesunout dolů: {0}
+Move Up: {0},přesunout nahoru: {0}
+Multiple root nodes not allowed.,Není povoleno více kořenových uzlů (uzlů nejvyšší úrovně).
+Must have report permission to access this report.,Potřebujete práva pro přístup k tomuto výpisu.
+Must specify a Query to run,Musíte specifikovat dotaz pro spuštění
+My Settings,Mé nastavení
+Name,Jméno
+Name Case,Název případu
+Name and Description,Jméno a popis
+Name is required,Jméno je vyžadováno
+Name not permitted,Jméno není povoleno
+Name not set via Prompt,Název není nastaven pomocí prompt
+Name of the Document Type (DocType) you want this field to be linked to. e.g. Customer,Název dokumentu typu (DocType) se kterým chcete provázat toto pole. Např.: Zákazník
+Name of {0} cannot be {1},Název {0} nemůže být {1}
+Naming,Pojmenování
+Naming Series mandatory,číselníky jsou povinné
+Nested set error. Please contact the Administrator.,Ošklivá chyba nastavení. Prosím kontaktujte admina.
+New,Nově
+New Name,Nové jméno
+New Password,Nové heslo
+New Record,Nový záznam
+New comment on {0} {1},Nový komentář: {0} {1}
+New password emailed,Nové heslo zasláno emailem
+New value to be set,Nová hodnota k nastavení
+New {0},Nově: {0}
+Next Communcation On,Příští komunikace (kdy)
+Next Record,Následující záznam
+Next State,Příští stav
+Next actions,Příští akce
+No,Ne
+No Action,Žádná akce
+No Communication tagged with this {0} yet.,Žádná komunikace nebyla doposud registrována s: {0}.
+No Copy,Žádná kopie
+No Permissions set for this criteria.,Žádná oprávnění nastavena pro toto kritérium.
+No Report Loaded. Please use query-report/[Report Name] to run a report.,Žádný výpis nenalezen. Prosím použijte query-report/[název výpisu] pro spuštění výpisu.
+No Results,Žádné výsledky
+No Sidebar,Žádný postranní panel
+No User Permissions found.,Uživatelská oprávnění nebyla nalezena.
+No data found,Nenalezena žádná data
+No file attached,Žádný soubor nepřiložen
+No further records,Žádné další záznamy
+No one,Nikdo
+No permission to '{0}' {1},Bez oprávnění k: '{0}' {1}
+No permission to edit,Bez oprávnění k úpravě
+No permission to read {0},Bez oprávnění číst: {0}
+No permission to write / remove.,Bez oprávnění k zápisu / odebrání.
+No records tagged.,Není oštítkován žádný záznam
+No template found at path: {0},Žádná šablona nenalezena na cestě: {0}
+No {0} found,{0}: nenalezeno
+No {0} permission,Bez oprávnění: {0}
+None,Nic
+None: End of Workflow,Nic: Konec toku
+Not Found,Nenalezeno
+Not Linked to any record.,Není provázáno s žádným záznamem.
+Not Permitted,Není povoleno
+Not Published,Není publikováno
+Not Set,Není nastaveno
+Not Submitted,Není vloženo
+Not a valid Comma Separated Value (CSV File),Není validní CSV soubor (hodnoty oddělené čárkami)
+Not allowed,Není povoleno
+Not allowed from this IP Address,Není povoleno z této IP adresy
+Not allowed to Import,Není povoleno importovat
+Not allowed to access {0} with {1} = {2},Není povoleno přistupovat k {0} s {1} = {2}
+Not allowed to change {0} after submission,Není povoleno změnit {0} po vložení
+Not allowed to reset the password of {0},Není povoleno obnovit heslo pro {0}
+Not enough permission to see links.,Nemáte dostatečná oprávnění pro zobrazení odkazů.
+Not equals,Není rovno
+Not found,Nenalezeno
+Not in Developer Mode! Set in site_config.json,Nejste vy vývojářském módu! Nastavte v site_config.json
+Not permitted,Není povoleno
+"Note: For best results, images must be of the same size and width must be greater than height.","Poznámka: Pro nejlepší výsledky, obrázky musí být stejné velikosti a šířka musí být větší než výška."
+Note: Other permission rules may also apply,Poznámka: Jiná pravidla oprávnění mohou být také aplikována
+Note: fields having empty value for above criteria are not filtered out.,Poznámka: Pole s prázdnou hodnotu pro výše uvedená kritéria nejsou odfiltrována
+Notes:,Poznámky:
+Nothing to show,Není co zobrazit
+Nothing to show for this selection,Pro tento výběr není co zobrazit
+Notification Count,Počet notifikací
+Notify by Email,Upozornit emailem
+Number Format,Formát čísel
+Number list,číselný seznam
+Old Parent,Staré nadřazené
+Old Password,Staré heslo
+On,Kdy
+"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).","Pakliže toto nastavíte, uživatelé budou moci přistoupit pouze na dokumenty (např.: příspěvky blogu), kam existují odkazy (např.: blogger)."
+One of,Jeden z
+Only Administrator allowed to create Query / Script Reports,Pouze administrátor má povoleno vytvářet Dotazy (query) / skriptované výpisy (script reports)
+Only Administrator can save a standard report. Please rename and save.,Pouze administrátor může uložit standardní výpis. Prosím přejmenujte a uložte.
+Only Allow Edit For,Je povolenou pouze upravovat pro
+Only allowed {0} rows in one import,Je povoleno pouze {0} řádků v jednom importu
+Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,Pouze povinná pole jsou potřeba pro nové záznamy. Můžete smazat nepovinné sloupce přejete-li si.
+Oops! Something went wrong,Jejda! Něco nevyšlo dobře :(
+Open,Otevřít
+Open Count,Otevřít počet
+Open Link,Otevrít odkaz
+Open Link in a new Window,Otevřít odkaz v novém okně
+Open Sans,Open Sans
+Open Source Web Applications for the Web,Otevřít zdroj www aplikace pro Web
+Open a module or tool,Otevřít modul nebo nástroj
+Open this saved file in Notepad,Otevřít tento uložený soubor v poznámkovém bloku
+Open {0},Otevřít {0}
+Optional: Alert will only be sent if value is a valid email id.,Volitelné: Upozornění bude zasláno pouze pokud hodnota je validní email id.
+Optional: Always send to these ids. Each email id on a new row,Volitelné: Vždy zaslat na tyto id. Každé email id na novém řádku
+Optional: The alert will be sent if this expression is true,Volitelné: Upozornění bude zasláno pokud je tento výraz pravdivý
+Options,Možnosti
+Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType',Možnosti pole typu 'Dynamický odkaz' musí odkazovat na jiné provázané pole s možnostmi jako 'DocType'
+Options Help,Možnosti nápovědy
+Options for select. Each option on a new line. e.g.: <br>Option 1<br>Option 2<br>Option 3<br>,Možnosti pro výběr. Každá možnost na novém řádku. Např.: <br>Možnost 1<br>Možnost 2<br>Možnost 3<br>
+Options must be a valid DocType for field {0} in row {1},Možnosti musí být validní DocType pro pole{0} na řádku {1}
+Options not set for link field {0},Možnosti nejsou nastaveny pro provázané pole {0}
+Options requried for Link or Table type field {0} in row {1},Možnosti jsou vyžadovány pro odkaz nebo pole typu tabulka {0} na řádku {1}
+Org History,Historie organizace
+Org History Heading,Záhlaví historie organizace
+Original Message,Původní zpráva
+Other,Ostatní
+Outgoing Email Settings,Nastavení pošty (email)
+Outgoing Mail Server,Odchozí Mail Server
+Outgoing Mail Server not specified,Není specifikován server odchozí pošty
+Overwrite,Přepsat
+Owner,Majitel
+PDF Page Size,Velikost stránky PDF
+PDF Settings,Nastavení PDF
+Page,Stránka
+Page Background,Pozadí stránky
+Page HTML,Kód HTML stránky
+Page Header,Záhlaví stránky
+Page Header Background,Pozadí záhlaví stránky
+Page Header Text,Text záhlaví stránky
+Page Links,Odkaz na stránku
+Page Name,Název stránky
+Page Role,Role stránky
+Page Text,Text stránky
+Page content,Obsah stránky
+Page missing or moved,Stránka chybí nebo byla přesunuta
+Page not found,Stránka nenalezena
+"Page to show on the website
+",Stránka k zobrazení na internetových stránkách
+Page url name (auto-generated),Název url stránky (generováno automaticky)
+Paragraph,Odstavec
+Parent,Nadřazeno
+Parent Label,nadřazený popisek
+Parent Post,nadřazený příspěvek
+Parent Table,nadřazená tabulka
+Parent Web Page,nadřazená internetová stránka
+Parent Website Group,nadřazená skupina stránek
+Parent Website Route,nadřazená cesta internetové stránky
+Participants,Účastníci
+Password,Heslo
+Password Reset,Obnovit heslo
+Password Update,Aktualizovat heslo
+Password Update Notification,Oznámení o aktualizování hesla
+Password Updated,Heslo aktualizováno
+Password reset instructions have been sent to your email,Informace o obnově hesla byly zaslány na Váš email
+Patch,Záplata
+Patch Log,Záznam o o záplatách (patch)
+Percent,Procento
+Performing hardcore import process,Provádím hardcore proces importu
+Perm Level,úroveň oprávnění
+Permanently Cancel {0}?,Zrušit na trvalo: {0}?
+Permanently Submit {0}?,Vložit na trvalo: {0}?
+Permanently delete {0}?,Smazat na trvalo: {0}?
+Permission Level,úroveň oprávnění
+Permission Levels,Úrovně oprávnění
+Permission Rules,Pravidla oprávnění
+Permission already set,Oprávnění již bylo nastaveno
+Permissions,Oprávnění
+Permissions Settings,Nastavení oprávnění
+Permissions Updated,Oprávnění aktualizována
+Permissions are automatically translated to Standard Reports and Searches.,Oprávnění jsou automaticky překládána ve standardních výpisech a vyhledávačích.
+"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions.","Oprávnění se nastavují na rolích a typech dokumentů (nazýváme je DocTypes) nastavením práv jako číst, Zapsat, Vytvořit, Smazat, Vložit, Zrušit, Změnit, Výpis, Import, Export, Tisk, Email a Nastavení uživatelských oprávnění."
+Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles.,Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles.
+"Permissions at level 0 are 'Document Level' permissions, i.e. they are primary for access to the document.","Oprávnění na úrovni 0 jsou oprávnění na 'Úrovni dokumentu', tedy jsou především pro přístup k dokumentu."
+Permissions can be managed via Setup &gt; Role Permissions Manager,Oprávnění mohou být spravována přes Nastavení &gt; Správce rolí a oprávnění
+Permissions get applied on Users based on what Roles they are assigned.,Práva se aplikují na uživatele na základě přiřazené role.
+Permitted Documents For User,přístup k dokumentům pro uživatele
+Person,Osoba
+Personal Info,Osobní informace
+Phone,Telefon
+Phone No.,Telefonní číslo
+Pick Columns,Vybrat sloupce
+Picture URL,Adresa URL obrázku
+Pincode,PSČ
+Please attach a file first.,Prosím nejdříve přiložte soubor.
+Please attach a file or set a URL,Prosím přiložte soubor nebo nastavte adresu URL
+Please click on the following link to set your new password,"Prosím klikněte na následující odkaz, pro nastavení nového hesla"
+Please do not change the rows above {0},Prosím neměňte řádky výše: {0}
+Please do not change the template headings.,Prosím neměňte nadpis šablony.
+Please enable pop-ups,Prosím povolte vyskakovací okna
+Please enter Event's Date and Time!,Prosím vložte datum a Čas události!
+"Please enter both your email and message so that we \
+can get back to you. Thanks!","Prosím vložte jak Vaší emailovou adresu tak zprávu. Tak Vás budeme moci \
+Zpětně kontaktovat. Díky!"
+Please enter some text!,Prosím zadejte nějaký text!
+Please enter title!,Prosím zadejte titulek!
+Please login to Upvote!,Prosím přihlašte se pro hlasování!
+Please login to create a new {0},Prosím přihlašte se pro vytvoření nového: {0}
+Please make sure that there are no empty columns in the file.,"Prosím ujistěte se, zda v souboru nejsou prázdné sloupce."
+Please refresh to get the latest document.,Prosím klikněte na obnovit pro získání nejnovějšího dokumentu.
+Please reply above this line or remove it if you are replying below it,Prosím odpovězte nad tímto řádkem nebo ho odeberte pokud odpovídáte pod ním
+Please save before attaching.,Prosím před přiložením je třeba nejprve uložit.
+Please save the document before assignment,Prosím uložte dokument před přiřazením
+Please save the document before removing assignment,Prosím uložte dokument před odebráním přiřazení
+Please select a file or url,Prosím vyberte soubor nebo url
+Please select atleast 1 column from {0} to sort,Prosím vyberte nejméně 1 sloupec z {0} pro třídění
+Please set filters,Prosím nastavte filtry
+Please set {0} first,Prosím nastavte nejdříve: {0}
+Please specify,Prosím specifikujte
+Please specify 'Auto Email Id' in Setup > Outgoing Email Settings,Prosím specifikujte 'Automatické Id emailu' v Nastavení > Nastavení odchozí pošty
+Please specify Event date and time,Prosím specifikujte datum a Čas události
+Please specify doctype,Prosím specifikujte doctype
+Please specify user,Prosím specifikujte uživatele
+Please specify which date field must be checked,Prosím specifikujte které datum musí být prověřeno
+Please specify which value field must be checked,Prosím specifikujte která hodnota musí být prověřena
+Please upload using the same template as download.,Prosím nahrajte s použitím stejné šablony jakou jste stáhli.
+Plugin,Doplněk
+Port,Port
+Post,Příspěvek
+Post Publicly,Publikovat příspěvek
+Post Topic,Publikovat téma
+Post already exists. Cannot add again!,Příspěvek již existuje. Nemůže být přidán znovu!
+Post does not exist. Please add post!,Příspěvek neexistuje. Prosím přidejte příspěvek!
+Post to user,Příspěvek uživateli
+Posts,Příspěvky
+Precision,přesnost
+Precision should be between 1 and 6,přesnost by měla být mezi 1 a 6
+Press Esc to close,Pro zavření zmáčkněte Esc
+Previous Record,Předchozí záznam
+Primary,Primární
+Print,Tisk
+Print Format,Formát tisku
+Print Format Help,Nápověda formát tisku
+Print Format Type,Typ formátu tisku
+Print Format {0} does not exist,Formát tisku: {0} neexistuje
+Print Format {0} is disabled,Formát tisku: {0} je vypnutý
+Print Hide,Skrýt tisk
+Print Settings,Nastavení tisku
+Print Style,Styl tisku
+Print Style Preview,Náhled stylu tisku
+Print Width,šířka tisku
+"Print Width of the field, if the field is a column in a table","Tisková šířka pole, pokud je pole sloupcem v tabulce"
+"Print with Letterhead, unless unchecked in a particular Document","Tisk s hlavičkou Letterhead, pokud není nazaškrtnuté v konkrétním dokumentu"
+Print...,Tisk...
+Printing and Branding,Tisk a identita
+Priority,Priorita
+Private,Soukromé
+Properties,Vlastnosti
+Property,Vlastnost
+Property Setter,Konfigurátor vlastností
+Property Setter overrides a standard DocType or Field property,Konfigurátor vlastností přepisuje standardní DocType nebo vlastnosti pole
+Property Type,Typ vlastnosti
+Public,Veřejné
+Published,Publikováno
+Published On,Publikováno (kdy)
+Published on website at: {0},Publikováno na internetových stránkách (kdy): {0}
+Query,Dotaz
+Query Options,Možnosti dotazu
+Query Report,Výpis dotazu
+Query must be a SELECT,Dotaz musí být SELECT
+Quick Help for Setting Permissions,Rychlá Nápověda pro nastavení oprávnění
+Quick Help for User Permissions,Rychlá Nápověda pro uživatelská oprávnění
+Re-open,Znovu otevřít
+Read,číst
+Read Only,Pouze pro čtení
+Received,Přijato
+Recipient,Příjemce
+Recipients,Příjemci
+Record does not exist,Záznam neexistuje
+Reduce indent (Shift+Tab),Zmenšit odsazení (Shift+Tab)
+Ref DocType,Referenční DocType
+Ref Name,Název reference
+Ref Type,Typ reference
+Reference,Reference
+Reference DocName,Reference DocName
+Reference DocType,Reference DocType
+Reference Name,Název reference
+Reference Type,Typ reference
+Refresh,Obnovit
+Refresh Form,Obnovit formulář
+Refreshing...,Obnovuji...
+Registered but disabled.,Registrováno ale vypnuto.
+Registration Details Emailed.,Podrobnosti o registraci odeslány emailem.
+Reload Page,Obnovit stránku
+Remove Bookmark,Odebrat záložku
+Remove Filter,Odebrat filtr
+Remove Link,Odebrat odkaz
+Remove all customizations?,Odebrat všechna přizpůsobení?
+Removed {0},Odebráno: {0}
+Rename,Přejmenovat
+Rename many items by uploading a .csv file.,Přejmenovat více položek nahráním souboru typu *.csv
+Rename {0},Přejmenovat: {0}
+Rename...,Přejmenovat...
+Repeat On,Opakovat na
+Repeat Till,Opakovat dokud
+Repeat this Event,Opakovat tuto událost
+Replies,Odpovědi
+Report,Výpis
+Report Builder,Konfigurátor výpisů
+Report Builder reports are managed directly by the report builder. Nothing to do.,Výpisy konfigurátoru výpisů jsou spravovány přímo konfigurátorem výpisů. Nelze provést žádnou akci.
+Report Hide,Skrýt výpis
+Report Manager,Manažer výpisů
+Report Name,Název výpisu
+Report Type,Typ výpisu
+Report an Issue,Nahlásit problém
+Report cannot be set for Single types,Výpis nemůže být nastaven pro typy osamocené
+Report this issue,Nahlásit tento problém
+Report was not saved (there were errors),Výpis nebyl uložen (byly tam chyby)
+Report {0} is disabled,Výpis: {0} je vypnutý
+Represents a User in the system.,Představuje uživatele v systému
+Represents the states allowed in one document and role assigned to change the state.,Reprezentuje stavy povolené v jednom dokumentu a přiřazené role pro změnu stavu.
+Reqd,Vyžadováno
+Reset Password,Obnovit heslo
+Reset Password Key,Obnovit heslo klíče
+Reset Permissions for {0}?,Obnovit oprávnění pro: {0}?
+Reset to defaults,Obnovit výchozí
+Response,Odpověď
+Restore Original Permissions,Obnovit původní práva
+Restrict IP,Omezit IP
+Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111),"Omezit přístup uživatele pouze z této IP adresy. Můžete přidat více IP adres, oddělených čárkou. Je možno zadat dílčí IP adresy jako (111.111.111)."
+Right,V pravo
+Role,Role
+Role Name,Název role
+Role Permissions,Oprávnění rolí
+Role Permissions Manager,Správce rolí a oprávnění
+Role and Level,Role a úroveň
+Role exists,Role existuje
+Roles,Role
+Roles Assigned,Přiřazení rolí
+Roles Assigned To User,Role přiřazené uživateli
+Roles HTML,Role HTML
+Roles can be set for users from their User page.,Role uživatelů mohou být nastaveny z jejich uživatelské stránky.
+Root {0} cannot be deleted,Kořen (nejvyšší úroveň): {0} nelze smazat
+Row,řádek
+Row #{0}:,řádek #{0}:
+Row {0}: Not allowed to enable Allow on Submit for standard fields,řádek {0}: Nelze povolit při vkládání pro standardní pole
+Rules defining transition of state in the workflow.,Pravidla definující přechod stavů v tocích (workflow).
+"Rules for how states are transitions, like next state and which role is allowed to change state etc.","Pravidla pro přechod stavů, jako následný stav a která role má povoleno změnit stav atd."
+Run scheduled jobs only if checked,Spouštět plánované operace pouze když je zaškrtnuto
+Run the report first,Spustťe nejdříve výpis
+SMTP Server (e.g. smtp.gmail.com),SMTP Server (např.: smtp.gmail.com)
+Sales,Prodej
+Sales Manager,Manažer prodeje
+Sales User,Uživatel prodeje
+Same file has already been attached to the record,Stejný soubor již byl přiložen k záznamu
+Sample,Vzorek
+Saturday,Sobota
+Save,Uložit
+Saved!,Uloženo!
+Scheduler Log,Systémový záznam plánovače
+Script,Skript
+Script Report,Skriptovaný výpis
+Script Type,Typ skriptu
+Script to attach to all web pages.,Skript pro přidání na všechny www stránky.
+Search,Hledat
+Search Fields,Vyhledávací pole
+Search Fields should contain valid fieldnames,Vyhledávací pole by měla obsahovat validní názvy polí
+Search Filter,Vyhledávací filtr
+Search Link,Odkaz na vyhledávání
+Search in a document type,Hledat v typu dokumentu
+Search or type a command,Vyhledávání nebo zadejte příkaz
+Section Break,Zlom sekce
+Security,Bezpečnost
+Security Settings,Nastavení bezpečnosti
+Select,Zvolit
+Select All,Zvolit vše
+Select Attachments,Zvolte přílohy
+Select DocType,Zvolte DocType
+Select Document Type,Zvolte typ dokumentu
+Select Document Type or Role to start.,Zvolte DocType nebo roli pro zahájení
+Select Document Types,Zvolte typy dokumentů
+Select Document Types to set which User Permissions are used to limit access.,Zvolte typ dokumentu pro nastavení která uživatelská oprávnění budou použita pro omezení přístupu.
+Select Print Format,Vybrat formát tisku
+Select Report Name,Zvolte název výpisu
+Select Role,Vyberte roli
+Select To Download:,Zvolte pro stažení:
+Select Type,Vyberte typ
+Select User,Vyberte uživatele
+Select User or DocType to start.,Vyberte uživatele nebo DocType pro zahájení
+Select a Banner Image first.,Zvolte nejdříve obrázek banneru.
+Select an image of approx width 150px with a transparent background for best results.,Zvolte obrázek s šířkou okolo 150px a s transparentním pozadím pro nejlepší výsledek.
+"Select modules to be shown (based on permission). If hidden, they will be hidden for all users.","Zvolte které moduly budou zobrazeny (na základě oprávnění). Pokud jsou skryté, budou skryté pro všechny uživatele."
+Select or drag across time slots to create a new event.,Nová událost: Zvolte nebo táhněte skrz Časová pole.
+"Select target = ""_blank"" to open in a new page.","Zvolte cíl (target) = ""_blank"" pro otevření na nové stránce."
+Select the label after which you want to insert new field.,"Zvolte popisek, za kterým chcete vložit nové pole."
+Select {0},Vyberte {0}
+Send,Odeslat
+Send Alert On,Odeslat upozornění (kdy)
+Send As Email,Odeslat jako email
+Send Email,Odeslat email
+Send Email Print Attachments as PDF (Recommended),Zvolte tiskové přílohy emailu jako PDF (doporučeno)
+Send Me A Copy,Odeslat kopii Vám
+Send Print as PDF,Odeslat tisk jako PDF
+Send alert if date matches this field's value,Odeslat upozornění pokud datum souhlasí s hodnotou tohoto pole
+Send alert if this field's value changes,"Zaslat upozornění, pakliže se hodnota těchto polí změní"
+Send an email reminder in the morning,Ráno odeslat upozornění emailem
+Send download link of a recent backup to System Managers,Pošle odkaz na stažení vytvořené zálohy systémovým správcům
+Send enquiries to this email address,Odeslat dotazy na tuto emailovou adresu
+Sender,Odesilatel
+Sent,Odesláno
+Sent Mail,Odeslané maily
+Sent Quotation,Odeslat citaci
+Sent or Received,Odesláno či přijato
+Series,Série
+Series {0} already used in {1},Série {0} jsou již použity v {1}
+Server,Server
+Server & Credentials,Server & přihlašovací údaje
+Server Error: Please check your server logs or contact tech support.,Serverová chyba: Prosím zkontrolujte serverové logy nebo kontaktujte technickou podporu.
+Session Expired. Logging you out,Platnost relace vypršela. Odhlašuji Vás
+Session Expiry,Platnost relace
+Session Expiry in Hours e.g. 06:00,Vypršení platnosti relace v hodinách např. 06:00
+Session Expiry must be in format {0},Vypršení platnosti relace musí být ve formátu {0}
+Set,Nastavit
+Set Banner from Image,Nastavit banner z obrázku
+Set Link,Nastavit odkaz
+Set Login and Password if authentication is required.,Nastavit jméno uživatele a heslo pokud je vyžadována autentizace.
+Set Only Once,Nastavit pouze jednou
+Set Password,Nastavit heslo
+Set Permissions on Document Types and Roles,Nastavit role a oprávnění na DocType
+Set Permissions per User,Nastavení oprávnění pro jednotlivé uživatele
+Set User Permissions,Nastavit práva
+Set Value,Nastavit hodnotu
+"Set default format, page size, print style etc.","Nastavit výchozí formát, velikost stránky, styl tisku atd."
+Set non-standard precision for a Float or Currency field,Nastavit nestandardní přesnost pro desetinná čísla nebo pole měny
+Set numbering series for transactions.,Nastavit číselníky pro transakce.
+Set outgoing mail server.,Nastavit server odchozí pošty emailu.
+Set the display label for the field,Nastavit zobrazované označení pole
+"Set your background color, font and image (tiled)","Nastavit barvu pozadí, font a obrázek (dlaždice)"
+Settings,Nastavení
+Settings for About Us Page.,Nastavení pro stránku O nás.
+Settings for Contact Us Page,Nastavení pro stránku Kontaktujte nás
+Settings for Contact Us Page.,Nastavení pro stránku Kontaktujte nás.
+Settings for the About Us Page,Nastavení pro stránku O nás
+Setup,Nastavení
+Setup > User,Nastavení > Uživatel
+Setup > User Permissions Manager,Nastavení > Správce oprávnění
+Setup Email Alert based on various criteria.,Nastavit emailová upozornění za základě různých kritérií.
+Setup of fonts and background.,Nastavení fonty a pozadí.
+"Setup of top navigation bar, footer and logo.","Nastavení horního navigačního panelu, zápatí a loga."
+Short Bio,Stručná biografie
+Short Name,Zkrácené jméno
+Shortcut,Zkratka
+Shortcuts,Zkratky
+Show / Hide Modules,Zobrazit / skrýt moduly
+Show Print First,Zobrazit nejdříve tisk
+Show Tags,Zobrazit štítky
+Show User Permissions,Zobrazit práva uživatele
+Show a description below the field,Zobrazit popis pod polem
+Show or Hide Modules,Skrýt či zobrazit moduly
+Show or hide modules globally.,Zobrazit nebo skrýt moduly globálně.
+Show rows with zero values,Zobrazovat řádky s nulovými hodnotami
+Show tags,Zobrazit štítky
+Show this field as title,Zobrazit toto pole jako titulek
+Sidebar,Postranní panel
+Sidebar Items,Položky postranního panelu
+Sidebar Links for Home Page only,Odkazy postranního panelu pouze pro domovskou stránku
+Single Post (article).,Publikovat jednotlivé příspěvky na blogu (články).
+Single Types have only one record no tables associated. Values are stored in tabSingles,Typy osamocené mají pouze jeden záznam - není asociovaná žádná tabulka. Hodnoty jsou uloženy v tabSingles
+Slideshow,Promítání obrázků
+Slideshow Items,Položky promítání obrázků
+Slideshow Name,Název promítání obrázků
+Slideshow like display for the website,Promítání obrázků (slideshow) pro zobrazení na www stránce
+Small Text,Krátký text
+Social Login Keys,Přihlašování přes sociální služby
+Solid background color (default light gray),Barva výplně pozadí (výchozí světle šedá)
+Sorry we were unable to find what you were looking for.,"Je nám líto, ale nemůžeme najít to, co hledáte."
+Sorry you are not permitted to view this page.,"Je nám líto, ale nemáte povoleno zobrazit tuto stránku."
+Sort By,Řadit dle
+Sort Field,Pole řadit dle
+Sort Order,Pořadí řazení
+Specify a default value,Zadejte výchozí hodnotu
+Specify the value of the field,Zadejte hodnotu pole
+Sr No,Pořadové číslo
+Standard,Standard
+Standard Print Format cannot be updated,Standardní formát tisku nemůže být aktualizován
+Standard Reply,Standardní odpověď
+Standard Reports,Standardní výpisy
+Standard replies to common queries.,Standardní odpovědi na běžné dotazy.
+Start Report For,Zahájit výpis pro
+Start entering data below this line,začněte vkládat data pod tímto řádkem
+Starts on,Začíná
+State,Stav
+States,Stavy
+"States for workflow (e.g. Draft, Approved, Cancelled).","Stavy toků jako např.: Rozpracováno, Schváleno, Zrušeno."
+Status,Stav
+Step 1: Set the name and save.,Krok 1: Nastavit název a uložit.
+Step 2: Set Letterhead content.,Krok 2: Nastavit obsah stránky (Letterhead).
+Style,Styl
+Style Settings,Nastavení stylu
+"Style represents the button color: Success - Green, Danger - Red, Inverse - Black, Primary - Dark Blue, Info - Light Blue, Warning - Orange","Styly reprezentující barvy tlačítek: Úspěch - zelená, Nebezpečí - Červená, Inverze - černá, Hlavní – tmavě modrá, Info – světle modrá, Upozornění – oranžová"
+Sub-domain provided by erpnext.com,Sub doména poskytnutá (kým) erpnext.com
+Subdomain,Sub doména
+Subject,Předmět
+Submit,Vložit
+Submit an Issue,Vložit případ podpory
+Submitted,Vloženo
+Submitted Document cannot be converted back to draft. Transition row {0},Vložený dokument nemůže být konvertován na stav rozpracováno. řádek transkace {0}
+Success,Povedlo se
+Success Message,Zpráva o úspěchu
+Success URL,URL Povedlo se
+Suggestion,Doporučení
+Sunday,Neděle
+Support Manager,Manažer podpory
+Support Team,Tým podpory
+Switch to Website,Přejít na webové stránky
+Syntax error in Jinja template,Syntaxní chyba v šabloně Jinja
+System,Systém
+System Manager,Systémový správce
+System Settings,Systémové nastavení
+System User,Systémový uživatel
+System and Website Users,Systémový a veřejní uživatelé
+System generated mails will be sent from this email id.,Maily generované systémem budou zaslány z tohoto id emailu.
+Table,Tabulka
+Table {0} cannot be empty,Tabulka: {0} nemůže být prázdná
+Tag,Štítek
+Tag Name,Název štítku
+Tags,Štítky
+Tahoma,Tahoma
+Target,Cíl
+Tasks,činnosti
+Team Members,Členové týmu
+Team Members Heading,Záhlaví členů týmu
+Template Path,Cesta šablony
+Test Runner,Spouštěč testů
+Text,Text
+Text Align,Zarovnání textu
+Text Editor,Editor textu
+Text to be displayed for Link to Web Page if this form has a web page. Link route will be automatically generated based on `page_name` and `parent_website_route`,Text k zobrazení k prolinkování www stránky pokud má tento formulář www stránku. Cesta odkazu bude automaticky generována na základě `page_name` a `parent_website_route`
+Thank you,Děkujeme Vám
+Thank you for your message,Děkujeme Vám za zprávu
+The name of your company / website as you want to appear on browser title bar. All pages will have this as the prefix to the title.,Jméno společnosti / www stránky jak bude zobrazeno v titulku prohlížeče. Všechny stránky budou mít tento prefix k titulku.
+The system provides many pre-defined roles. You can add new roles to set finer permissions.,Systém poskytuje mnoho předdefinovaných rolí. Můžete přidat vlastní nové role pro detailnější nastavení oprávnění.
+"The task %s, that you assigned to %s, has been closed by %s.","činnost %s, kterou jste přiřadili (komu) %s, byla uzavřena (kým) %."
+"The task %s, that you assigned to %s, has been closed.","činnost %, kterou jste přiřadili (komu) %, byla uzavřena."
+Then By (optional),Následně dle (volitelné)
+There can be only one Fold in a form,Může být pouze jeden Fold ve formuláři
+There should remain at least one System Manager,Měl by zde zbýt alespoň jeden systémový administrátor
+There were errors,Naskytly se chyby
+There were errors while sending email. Please try again.,Narazili jsme na problémy při odesílání emailu. Prosím zkuste to znovu.
+"There were some errors setting the name, please contact the administrator","Narazili jsme na problémy při nastavování jména, prosím kontaktujte administrátora"
+"These permissions will apply for all transactions where the permitted record is linked. For example, if Company C is added to User Permissions of user X, user X will only be able to see transactions that has company C as a linked value.","These permissions will apply for all transactions where the permitted record is linked. For example, if Company C is added to User Permissions of user X, user X will only be able to see transactions that has company C as a linked value."
+These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,Tyto hodnoty budou automaticky aktualizovány v transakcích a rovněž bude užitečné omezit oprávnění pro tohoto uživatele v transakcích obsahujících tyto hodnoty.
+"These will also be set as default values for those links, if only one such permission record is defined.","Tyto budou rovněž nastaveny jako výchozí hodnoty pro tyto odkazy, pakliže pouze jeden záznam oprávnění je definován."
+Third Party Authentication,Ověření třetí stranou
+"This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>
+myfield
+eval:doc.myfield=='My Value'<br>
+eval:doc.age>18","Toto pole se zobrazí pouze pokud jméno pole je zde definováno a má hodnotu NEBO pravidla jsou pravdivá (Příklady): <br>
+myfield
+eval:doc.myfield=='Moje hodnota'<br>
+eval:doc.age>18"
+This form does not have any input,Tento formulář nemá žádný vstup
+This goes above the slideshow.,Toto přijde nad promítání obrázků.
+This is PERMANENT action and you cannot undo. Continue?,Tato akce je NEVRATNÁ a nemůže ji vrátit zpět. Pokračovat?
+"This is a standard format. To make changes, please copy it make make a new format.","Toto je standardní formát. Pro jeho změnu, prosím zkopírujte ho a vytvořte nový formát."
+This is permanent action and you cannot undo. Continue?,Tato akce je NEVRATNÁ a nemůže ji vrátit zpět. Pokračovat?
+This must be checked if Style Settings are applicable,Toto musí být zaškrtnuto pakliže je nastavení stylů aplikovatelné
+This role update User Permissions for a user,Tato role aktualizuje uživatelská oprávnění pro uživatele
+Thursday,Čtvrtek
+Tile,Dlaždice
+Time,Čas
+Time Zone,Časové pásmo
+Timezone,Časové pásmo
+Title,Titulek
+Title / headline of your page,Titulek / nadpis Vaší stránky
+Title Case,Titulek případu
+Title Field,Titulek pole
+Title Prefix,Title Prefix
+Title field must be a valid fieldname,Titulek musí být validní název pole
+Title is required,Titulek je vyžadován
+To,Do/Komu
+To Do,Úkoly
+"To format columns, give column labels in the query.","Pro formátování sloupců, zadejte označení sloupců v dotazu."
+"To give acess to a role for only specific records, check the 'Apply User Permissions'. User Permissions are used to limit users with such role to specific records.","To give acess to a role for only specific records, check the 'Apply User Permissions'. User Permissions are used to limit users with such role to specific records."
+"To run a test add the module name in the route after '{0}'. For example, {1}","Pro spuštění testu přidejte název modulu v cestě za '{0}'. Na příklad, {1}"
+ToDo,Úkoly
+Too many writes in one request. Please send smaller requests,Velmi mnoho zápisů v jednom požadavku. Prosím pošlete menší požadavek
+Top Bar,Horní panel
+Top Bar Background,Pozadí horního panelu
+Top Bar Item,Položka horního panelu
+Top Bar Items,Položky horního panelu
+Top Bar Text,Text horního panelu
+Top Bar text and background is same color. Please change.,Text horní lišty a pozadí mají stejnou barvu. Prosím změnit.
+Transaction,Transakce
+Transition Rules,Pravidla transakce
+Tuesday,Úterý
+Tweet will be shared via your user account (if specified),Tweet bude sdílen skrze Váš uživatelský účet (pakliže je specifikován)
+Twitter Share,Sdílet Twitter
+Twitter Share via,Sdílet pomocí Twitter
+Type,Typ
+Type:,Typu:
+"Unable to display this tree report, due to missing data. Most likely, it is being filtered out due to permissions.","Nelze zobrazit tento stromový výpis, jelikož chybí data. Pravděpodobně, byla odfiltrována za základě oprávnění."
+Unable to find attachment {0},Nemohu najít přílohu: {0}
+Unable to load: {0},Nemohu nahrát: {0}
+Unable to open attached file. Please try again.,Nemohu otevřít přiložený soubor. Prosím zkuste to znovu.
+Unable to send emails at this time,Nelze odeslat emaily v tomto Čase
+Unknown Column: {0},Neznámý sloupec: {0}
+"Unknown file encoding. Tried utf-8, windows-1250, windows-1252.","Neznámé kódování souboru. Vyzkoušeno utf-8, windows-1250, windows-1252."
+Unread Messages,Nepřečtené zprávy
+Unsubscribe,Odhlásit z odběru
+Unsubscribed,Odhlášen z odběru
+Upcoming Events for Today,Nadcházející události pro dnešek
+Update,Aktualizovat
+Update Field,Aktualizovat pole
+Update Value,Aktualizovat hodnotu
+Updated,Aktualizováno
+Upload,Nahrát
+Upload Attachment,Nahrát přílohu
+Upload CSV file containing all user permissions in the same format as Download.,"Nahrát (upload) soubor CSV obsahující všechna uživatelská oprávnění ve stejném formatu, v jakém jste je stáhli."
+Upload User Permissions,Nahrát (upload) uživatelská oprávnění
+Upload a file,Nahrát soubor
+Upload and Import,Nahrát a importovat
+Upload and Sync,Nahrát a sloučit
+Uploading...,Nahrávám...
+Upvotes,Hlasování
+Use TLS,Použít TLS
+Use the field to filter records,Použijte pole pro filtrování záznamů
+User,Uživatel
+User Cannot Create,Uživatel nemůže Vytvořit
+User Cannot Search,Uživatel nemůže vyhledávat
+User Defaults,Výchozí nastavení uživatele
+User ID of a Blogger,ID uživatele bloggera
+User ID of a blog writer.,ID uživatele přispěvovatele do blogu.
+User Image,Obrázek uživatele (avatar)
+User Permission,Uživatelská oprávnění
+User Permission DocTypes,Uživatelská oprávnění DocTypes
+User Permissions,Uživatelská oprávnění
+User Permissions Manager,Správce oprávnění
+User Roles,Uživatelské role
+User Tags,Uživatelské štítky
+User Type,Typ uživatele
+"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ","Typ uživatele ""systémový uživatel"" má přístup k pracovní ploše ErpNext. ""Vnější uživatel"" se může přihlásit pouze na webové stránky a stránky portálu, nikoli na pracovní plochu."
+User Vote,Hlas uživatele (hlasování)
+User editable form on Website.,Uživatelem přizpůsobitelné formuláře na stránkách.
+User not allowed to delete {0}: {1},Uživatel nemá povoleno mazat {0}: {1}
+User permissions should not apply for this Link,Uživatelská oprávnění by neměla být aplikována na tento odkaz
+User {0} cannot be deleted,Uživatel: {0} nemůže být vymazán
+User {0} cannot be disabled,Uživatel: {0} nemůže být vypnut
+User {0} cannot be renamed,Uživatel: {0} nemůže být přejmenován
+User {0} does not exist,Uživatel: {0} neexistuje
+UserRole,Role uživatele
+Users,Uživatelé
+Users and Permissions,Uživatelé a oprávnění
+Users with role {0}:,Uživatelé s rolí {0}:
+Valid Login id required.,Validní přihlašovací id je vyžadováno.
+Valid email and name required,Validní email a jméno je vyžadován
+Value,Hodnota
+Value Change,Změnit hodnotu
+Value Changed,Hodnota změněna
+Value cannot be changed for {0},Hodnota nemůže být změněna pro {0}
+Value for a check field can be either 0 or 1,Hodnota pro zaškrtávací pole může být 0 nebo 1
+Value missing for,Chybí hodnota pro 
+Verdana,Verdana
+Verify Your Account,Ověřit Váš účet
+Version,Verze
+Version restored,Verze obnovena
+View Details,Zobrazit podrobnosti
+View it in your browser,Zobrazit ve Vašem prohlížeči
+Visit,Návštěva
+Warning,Upozornění
+Warning: This Print Format is in old style and cannot be generated via the API.,Upozornění: tento tiskový formát je ve starém stylu a nemůže být generován skrze API.
+"We are very sorry for this, but the page you are looking for is missing (this could be because of a typo in the address) or moved.","Je nám velmi líto, ale stránka kterou hledáte chybí (může to být typografickou chybou v adresním řádku) nebo mohla být přesunuta."
+Web Form,Webový formulář
+Web Form Field,Pole webového formuláře
+Web Form Fields,Pole webových formulářů
+Web Page,Www stránky
+Web Page Link Text,Text odkazu www stránky
+Web Site Forum Page.,Stránka fóra www stránek.
+Website,Stránky
+Website Group,Webová skupina
+Website Manager,Správce www stránek
+Website Route,Cesta www stránky
+Website Route Permission,Oprávnění cesty www stránky
+Website Script,Skript www stránky
+Website Settings,Nastavení www stránky
+Website Slideshow,Promítání obrázků na www stránce
+Website Slideshow Item,Položka promítání obrázků www stránky
+Website URL,URL stránky
+Website User,Vnější uživatel
+Wednesday,Středa
+Welcome email sent,Uvítací email odeslán
+"When you Amend a document after Cancel and save it, it will get a new number that is a version of the old number.","Pokud změníte dokument po jeho zrušení a uložíte ho, dostane přiřazeno nové číslo. Toto je verze starého čísla."
+While uploading non English files ensure that the encoding is UTF-8.,"Pokud nahráváte data, která nejsou v angličtině, ujistěte se, že mají kódování UTF-8."
+Width,šířka
+Width of the input box,šířka vstupního pole
+Will be used in url (usually first name).,Bude použito v url (obvykle první jméno).
+With Groups,Se skupinami
+With Ledgers,S deníky
+With Letterhead,šířka Letterhead
+Workflow,Toky (workflow)
+Workflow Action,Akce toků
+Workflow Action Master,Akce hlavních toků
+Workflow Action Name,Název akce toku (workflow)
+Workflow Document State,Stav toku (workflow) dokumentu
+Workflow Document States,Stavy toků (workflow) dokumentu
+Workflow Name,Jméno toku
+Workflow State,Stav toků
+Workflow State Field,Pole stavu toku (workflow)
+Workflow Transition,Přechod toku (workflow)
+Workflow Transitions,Přechod toků (workflow)
+Workflow state represents the current state of a document.,Stav toku představuje aktuální stav dokumentu
+Workflow will start after saving.,Tok (workflow) započne po uložení.
+Write,Zapsat
+Write a Python file in the same folder where this is saved and return column and result.,Zapíše soubor Pythonu ve stejném adresáři kde je toto uloženo a vrátí sloupec a výsledek.
+Write a SELECT query. Note result is not paged (all data is sent in one go).,Napište SQL dotaz SELECT. Poznámka: výsledky nebudou stránkovány (všechna data budou odeslána najednou).
+Write titles and introductions to your blog.,Zadejte titulek a úvod pro Váš blog.
+Writers Introduction,Představení přispěvovatelů
+Year,Rok
+Yes,Ano
+Yesterday,Včera
+You are not allowed to create / edit reports,Nemáte povoleno vytvářet / upravovat výpisy
+You are not allowed to export the data of: {0}. Downloading empty template.,Nemáte povoleno exportovat data z: {0}. Stahuji prázdnou šablonu.
+You are not allowed to export this report,Nemáte povoleno exportovat tento výpis
+You are not allowed to print this document,Nemáte povoleno tisknout tento dokument
+You are not allowed to send emails related to this document,Nemáte povoleno odesílat emaily související s tímto dokumentem
+You can also copy-paste this link in your browser,Můžete také kopírovat - vložit tento odkaz do Vašeho prohlížeče
+You can also drag and drop attachments,Přílohu můžete také přetáhnout (táhnout a pustit)
+"You can change Submitted documents by cancelling them and then, amending them.",Můžete upravit vložené dokumenty zrušením a poté jejich změnou.
+You can only upload upto 5000 records in one go. (may be less in some cases),Můžete nahrát nejvýše 5000 záznamů najednou. (může být i méně v některých případech)
+You can use Customize Form to set levels on fields.,Můžete použít přizpůsobené pole pro nastavení úrovní na polích.
+You can use wildcard %,Můžete použít zástupný znak %
+You cannot install this app,Nemůžete instalovat tuto aplikaci
+You don't have access to Report: {0},Nemáte přístup k výpisu: {0}
+You don't have permission to get a report on: {0},Nemáte práva přistoupit k výpisu: {0}
+You have unsaved changes in this form. Please save before you continue.,"V tomto formuláři máte neuložené změny. Prosím, uložte změny než budete pokračovat."
+You must login to submit this form,Musíte se přihlásit pro vložení tohoto formuláře
+You need to be logged in and have System Manager Role to be able to access backups.,"Musíte být přihlášen a mít roli systémového správce, pro přístup k zálohám."
+You need write permission to rename,Potřebujete oprávnění k zápisu pro přejmenování
+"You seem to have written your name instead of your email. \
+Please enter a valid email address so that we can get back.","Vypadá to, že jste napsali své jméno místo svého emailu. \
+Prosím vložte platnou emailovou adresu tak Vás budeme moci zpětně kontaktovat."
+"Your download is being built, this may take a few moments...","Vaše záloha se připravuje pro stažení, tato operace může chvíli trvat v závislosti na objemu dat, trpělivost prosím …"
+Your login id is,Vaše přihlašovací id je
+Your password has been updated. Here is your new password,Vaše heslo bylo aktualizováno. Zde je Vaše nové heslo
+[Label]:[Field Type]/[Options]:[Width],[Označení]:[Typ pole]/[Možnosti]:[šířka]
+[No Subject],[Bez předmětu]
+[Optional] Send the email X days in advance of the specified date. 0 equals same day.,[Volitelné] Odeslat email s předstihem X dní před specifikovaným datem. Žádné ve stejný den.
+[no content],[bez obsahu]
+[unknown sender],[neznámý odesilatel]
+add your own CSS (careful!),přidejte Váš vlastní CSS (Opatrně!)
+adjust,adjust
+align-center,align-center
+align-justify,align-justify
+align-left,align-left
+align-right,align-right
+and,and
+arrow-down,arrow-down
+arrow-left,arrow-left
+arrow-right,arrow-right
+arrow-up,arrow-up
+asterisk,asterisk
+backward,backward
+ban-circle,ban-circle
+barcode,barcode
+beginning with,beginning with
+bell,bell
+bold,bold
+book,book
+bookmark,bookmark
+briefcase,briefcase
+bullhorn,bullhorn
+calendar,calendar
+camera,camera
+certificate,certificate
+check,check
+chevron-down,chevron-down
+chevron-left,chevron-left
+chevron-right,chevron-right
+chevron-up,chevron-up
+circle-arrow-down,circle-arrow-down
+circle-arrow-left,circle-arrow-left
+circle-arrow-right,circle-arrow-right
+circle-arrow-up,circle-arrow-up
+cog,cog
+comment,comment
+dd-mm-yyyy,dd-mm-yyyy
+dd.mm.yyyy,dd.mm.yyyy
+dd/mm/yyyy,dd/mm/yyyy
+download,download
+download-alt,download-alt
+edit,edit
+eject,eject
+envelope,envelope
+exclamation-sign,exclamation-sign
+eye-close,eye-close
+eye-open,eye-open
+facetime-video,facetime-video
+fast-backward,fast-backward
+fast-forward,fast-forward
+file,soubor
+film,film
+filter,filter
+fire,fire
+flag,flag
+folder-close,folder-close
+folder-open,folder-open
+font,font
+forward,forward
+fullscreen,fullscreen
+gift,gift
+glass,glass
+globe,globe
+hand-down,hand-down
+hand-left,hand-left
+hand-right,hand-right
+hand-up,hand-up
+hdd,hdd
+headphones,headphones
+heart,heart
+home,home
+icon,icon
+inbox,inbox
+indent-left,indent-left
+indent-right,indent-right
+info-sign,info-sign
+is not allowed.,není povoleno.
+italic,italic
+leaf,leaf
+lft,lft
+list,list
+list-alt,list-alt
+lock,lock
+lowercase,lowercase
+magnet,magnet
+map-marker,map-marker
+memcached is not working / stopped. Please start memcached for best results.,memcached nepracuje nebo je vypnutý. Prosím nastartujte memcached pro lepší výsledky.
+minus,minus
+minus-sign,minus-sign
+mm-dd-yyyy,mm-dd-yyyy
+mm/dd/yyyy,mm/dd/yyyy
+move,move
+music,music
+none of,none of
+off,off
+ok,ok
+ok-circle,ok-circle
+ok-sign,ok-sign
+one of,one of
+or,or
+pause,pause
+pencil,pencil
+picture,picture
+plane,plane
+play,play
+play-circle,play-circle
+plus,plus
+plus-sign,plus-sign
+print,print
+qrcode,qrcode
+question-sign,question-sign
+random,random
+reference,reference
+refresh,refresh
+remove,remove
+remove-circle,remove-circle
+remove-sign,remove-sign
+repeat,repeat
+resize-full,resize-full
+resize-horizontal,resize-horizontal
+resize-small,resize-small
+resize-vertical,resize-vertical
+retweet,retweet
+rgt,rgt
+road,road
+screenshot,screenshot
+search,search
+share,share
+share-alt,share-alt
+shopping-cart,shopping-cart
+signal,signal
+star,star
+star-empty,star-empty
+step-backward,step-backward
+step-forward,step-forward
+stop,stop
+tag,tag
+tags,tags
+"target = ""_blank""","target = ""_blank"""
+tasks,tasks
+text-height,text-height
+text-width,text-width
+th,th
+th-large,th-large
+th-list,th-list
+thumbs-down,thumbs-down
+thumbs-up,thumbs-up
+time,time
+tint,tint
+to,komu
+to filter values between 5 & 10,pro filtrování hodnot mezi 5 & 10
+trash,trash
+upload,upload
+use % as wildcard,použijete % jako zástupný znak
+user,uživatel
+user_image_show,user_image_show
+value,hodnota
+values and dates,hodnoty a data
+values separated by commas,hodnoty oddělené čárkami
+volume-down,volume-down
+volume-off,volume-off
+volume-up,volume-up
+warning-sign,warning-sign
+wrench,wrench
+yyyy-mm-dd,yyyy-mm-dd
+zoom-in,zoom-in
+zoom-out,zoom-out
+{0} List,Seznam: {0}
+{0} added,{0}: přidáno
+{0} already exists,{0} již existuje
+{0} by {1},{0} x {1}
+{0} cannot be set for Single types,{0} nelze nastavit pro osamocené typy
+{0} does not exist in row {1},{0}: neexistuje na řádku {1}
+{0} in row {1} cannot have both URL and child items,{0} na řádku {1} nemůže mít zároveň URL a podřízené položky
+{0} is not a valid email id,{0} není platné id emailu
+{0} is required,{0} je vyžadováno
+{0} is saved,{0} uloženo
+{0} must be one of {1},{0} musí být jedno ze {1}
+{0} must be set first,{0}: musí být nastaveno první
+{0} not a valid State,{0} není validní stav
+{0} not allowed in fieldname {1},{0}: není povoleno v názvu pole {1}
+{0} not allowed in name,{0}: není povoleno v názvu
+{0} not allowed to be renamed,{0}: není povoleno přejmenovat
+{0} updated,{0}: obnoveno
+{0} {1} already exists,{0} {1} již existuje
+"{0} {1} cannot be ""{2}"". It should be one of ""{3}""","{0} {1} nemůže být ""{2}"". Mělo by být jedno ze ""{3}"""
+{0} {1} cannot be a leaf node as it has children,{0} {1} nemůže být uzel typu stránka jelikož má podřízené uzly
+"{0} {1} does not exist, select a new target to merge","{0} {1} neexistuje, zvolte nový cíl pro sloučení"
+{0} {1} not found,{0} {1} nenalezeno
+{0} {1}: Submitted Record cannot be deleted.,{0} {1}: vložený záznam nemůže být smazán.
+{0}: Cannot set Amend without Cancel,{0}: Nelze nastavit Změnit bez Zrušit
+{0}: Cannot set Assign Amend if not Submittable,{0}: Nelze nastavit přiřadit změněné když není vložitelné
+{0}: Cannot set Assign Submit if not Submittable,{0}: Nelze nastavit přiřadit vložené když není vložitelné
+{0}: Cannot set Cancel without Submit,{0}: Nelze nastavit zrušit bez vložení
+{0}: Cannot set Import without Create,{0}: Nelze nastavit import bez vytvoření
+"{0}: Cannot set Submit, Cancel, Amend without Write","{0}: Nelze nastavit vložit, zrušit, změnit bez zapsat"
+{0}: Cannot set import as {1} is not importable,{0}: Nelze nastavit import jako {1} není importovatelné
+"{0}: Create, Submit, Cancel and Amend only valid at level 0","{0}: Vytvořit, Vložit, Zrušit a Změnit je validní pouze na úrovni 0"
+{0}: No basic permissions set,{0}: Nejsou nastavena základní práva
+"{0}: Only one rule allowed with the same Role, Level and Apply User Permissions","{0}: Pouze jedno pravidlo je povolené s touto rolí, úrovní a aplikování uživatelských oprávnění"
+{0}: Permission at level 0 must be set before higher levels are set,{0}: Oprávnění na úrovni 0 musí být nastaveno před nastavením vyšších úrovní
+{app_title},{app_title}
