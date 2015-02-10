@@ -117,7 +117,6 @@ def import_doc(docdict, force=False, data_import=False):
 		doc.flags.ignore_validate = True
 		doc.flags.ignore_permissions = True
 		doc.flags.ignore_mandatory = True
-		doc.flags.ignore_user_permissions = True
 	doc.insert()
 
 	frappe.flags.in_import = False

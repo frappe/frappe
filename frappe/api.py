@@ -70,10 +70,15 @@ def handle():
 				if frappe.local.request.method=="PUT":
 					data = json.loads(frappe.local.form_dict.data)
 					doc = frappe.get_doc(doctype, name)
+
+					if "flags" in data:
+						del data["flags"]
+
 					# Not checking permissions here because it's checked in doc.save
 					doc.update(data)
+
 					frappe.local.response.update({
-							"data": doc.save().as_dict()
+						"data": doc.save().as_dict()
 					})
 					frappe.db.commit()
 

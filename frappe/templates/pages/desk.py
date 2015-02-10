@@ -20,10 +20,13 @@ def get_context(context):
 		frappe.throw(_("You are not permitted to access this page."), frappe.PermissionError)
 
 	hooks = frappe.get_hooks()
+	boot = frappe.sessions.get()
+
 	return {
 		"build_version": str(os.path.getmtime(os.path.join(frappe.local.sites_path, "assets", "js",
 			"frappe.min.js"))),
 		"include_js": hooks["app_include_js"],
 		"include_css": hooks["app_include_css"],
-		"boot": json.dumps(frappe.sessions.get(), default=json_handler, indent=1, sort_keys=True)
+		"boot": json.dumps(boot, default=json_handler, indent=1, sort_keys=True),
+		"background_image": boot.user.background_image or boot.default_background_image
 	}

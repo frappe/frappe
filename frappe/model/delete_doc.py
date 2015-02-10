@@ -11,7 +11,8 @@ from frappe import _
 from rename_doc import dynamic_link_queries
 from frappe.model.naming import revert_series_if_last
 
-def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reload=False, ignore_permissions=False):
+def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reload=False,
+	ignore_permissions=False, flags=None):
 	"""
 		Deletes a doc(dt, dn) and validates if it is not submitted and not linked in a live record
 	"""
@@ -58,7 +59,14 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 			doc = frappe.get_doc(doctype, name)
 
 			if not for_reload:
-				check_permission_and_not_submitted(doc, ignore_permissions)
+				if ignore_permissions:
+					if not flags: flags = {}
+					flags["ignore_permissions"] = ignore_permissions
+
+				if flags:
+					doc.flags.update(flags)
+
+				check_permission_and_not_submitted(doc)
 				doc.run_method("on_trash")
 
 				delete_linked_todos(doc)
@@ -113,9 +121,9 @@ def delete_from_table(doctype, name, ignore_doctypes, doc):
 		if t not in ignore_doctypes:
 			frappe.db.sql("delete from `tab%s` where parenttype=%s and parent = %s" % (t, '%s', '%s'), (doctype, name))
 
-def check_permission_and_not_submitted(doc, ignore_permissions=False):
+def check_permission_and_not_submitted(doc):
 	# permission
-	if not ignore_permissions and frappe.session.user!="Administrator" and not doc.has_permission("delete"):
+	if frappe.session.user!="Administrator" and not doc.has_permission("delete"):
 		frappe.msgprint(_("User not allowed to delete {0}: {1}").format(doc.doctype, doc.name), raise_exception=True)
 
 	# check if submitted

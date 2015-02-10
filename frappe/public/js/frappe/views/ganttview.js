@@ -26,10 +26,6 @@ frappe.views.GanttFactory = frappe.views.Factory.extend({
 frappe.views.Gantt = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
-
-		frappe.require('assets/frappe/js/lib/jQuery.Gantt/css/style.css');
-		frappe.require('assets/frappe/js/lib/jQuery.Gantt/js/jquery.fn.gantt.js');
-
 		this.make_page();
 		frappe.route_options ?
 			this.set_filters_from_route_options() :

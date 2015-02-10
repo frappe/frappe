@@ -446,7 +446,8 @@ def get_meta(doctype, cached=True):
 	import frappe.model.meta
 	return frappe.model.meta.get_meta(doctype, cached=cached)
 
-def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reload=False, ignore_permissions=False):
+def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reload=False,
+	ignore_permissions=False, flags=None):
 	"""Delete a document. Calls `frappe.model.delete_doc.delete_doc`.
 
 	:param doctype: DocType of document to be delete.
@@ -456,7 +457,8 @@ def delete_doc(doctype=None, name=None, force=0, ignore_doctypes=None, for_reloa
 	:param for_reload: Call `before_reload` trigger before deleting.
 	:param ignore_permissions: Ignore user permissions."""
 	import frappe.model.delete_doc
-	frappe.model.delete_doc.delete_doc(doctype, name, force, ignore_doctypes, for_reload, ignore_permissions)
+	frappe.model.delete_doc.delete_doc(doctype, name, force, ignore_doctypes, for_reload,
+		ignore_permissions, flags)
 
 def delete_doc_if_exists(doctype, name):
 	"""Delete document if exists."""
@@ -682,6 +684,10 @@ def call(fn, *args, **kwargs):
 	for a in fnargs:
 		if a in kwargs:
 			newargs[a] = kwargs.get(a)
+
+	if "flags" in newargs:
+		del newargs["flags"]
+
 	return fn(*args, **newargs)
 
 def make_property_setter(args, ignore_validate=False, validate_fields_for_doctype=True):

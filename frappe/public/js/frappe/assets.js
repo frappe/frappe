@@ -145,6 +145,16 @@ frappe.assets = {
 		"Module": function() {
 			frappe.require("assets/css/module.min.css");
 			frappe.require("assets/js/module.min.js");
-		}
+		},
+		"Calendar": function() {
+			frappe.assets.views["Report"]();
+			frappe.require('assets/frappe/js/lib/fullcalendar/fullcalendar.css');
+			frappe.require('assets/frappe/js/lib/fullcalendar/fullcalendar.js');
+		},
+		"Gantt": function() {
+			frappe.assets.views["Report"]();
+			frappe.require('assets/frappe/js/lib/jQuery.Gantt/css/style.css');
+			frappe.require('assets/frappe/js/lib/jQuery.Gantt/js/jquery.fn.gantt.js');
+		},
 	}
 };

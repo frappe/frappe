@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe
+from frappe.utils import cint
 
 @frappe.whitelist()
 def add(doctype, name, user=None, read=1, write=0, share=0, flags=None):
@@ -14,19 +15,30 @@ def add(doctype, name, user=None, read=1, write=0, share=0, flags=None):
 		"share_doctype": doctype})
 
 	if share_name:
-		frappe.delete_doc("DocShare", share_name)
+		doc = frappe.get_doc("DocShare", share_name)
+	else:
+		doc = frappe.new_doc("DocShare")
+		doc.update({
+			"user": user,
+			"share_doctype": doctype,
+			"share_name": name
+		})
 
-	return frappe.get_doc({
-		"doctype": "DocShare",
-		"user": user,
-		"share_doctype": doctype,
-		"share_name": name,
-		"read": read,
-		"write": write,
-		"share": share
-	}).insert(ignore_permissions=True)
+	if flags:
+		doc.flags.update(flags)
 
-def remove(doctype, name, user):
+	doc.update({
+		# always add read, since you are adding!
+		"read": 1,
+		"write": cint(write),
+		"share": cint(share)
+	})
+
+	doc.save(ignore_permissions=True)
+
+	return doc
+
+def remove(doctype, name, user, flags=None):
 	share_name = frappe.db.get_value("DocShare", {"user": user, "share_name": name,
 		"share_doctype": doctype})
 
@@ -48,6 +60,7 @@ def set_permission(doctype, name, user, permission_to, value=1):
 			pass
 	else:
 		share = frappe.get_doc("DocShare", share_name)
+		share.flags.ignore_permissions = True
 		share.set(permission_to, value)
 
 		if not value:

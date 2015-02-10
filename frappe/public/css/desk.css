@@ -306,12 +306,15 @@ kbd {
   padding: 10px 15px;
 }
 .message-row .indicator {
-  margin-left: -10px;
+  margin-left: -5px;
   margin-right: -20px;
 }
 .message-box .indicator {
   margin-right: 15px;
   margin-top: 7px;
+}
+.message-box .timeline-head {
+  padding-top: 30px;
 }
 .page-only-label {
   margin-top: 5px;

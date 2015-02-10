@@ -22,10 +22,6 @@ frappe.views.CalendarFactory = frappe.views.Factory.extend({
 frappe.views.Calendar = Class.extend({
 	init: function(options) {
 		$.extend(this, options);
-
-		frappe.require('assets/frappe/js/lib/fullcalendar/fullcalendar.css');
-		frappe.require('assets/frappe/js/lib/fullcalendar/fullcalendar.js');
-
 		this.make_page();
 		this.setup_options();
 		this.make();

@@ -36,10 +36,7 @@ frappe.get_gravatar = function(email_id) {
 frappe.ui.set_user_background = function(src, selector, style) {
 	if(!selector) selector = "#page-desktop";
 	if(!style) style = "Fill Screen";
-	if(!src) src = "assets/frappe/images/ui/wallpaper-5.jpg";
-
-	// hack! load background image asap, before page is rendered
-	$('<img src="'+src+'" style="height: 1px; width: 1px; margin-bottom: -1px;">').appendTo("body");
+	if(!src) src = frappe.boot.default_background_image;
 
 	frappe.dom.set_style(repl('%(selector)s { \
 		background: url("%(src)s") center center;\

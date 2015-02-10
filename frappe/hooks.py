@@ -94,3 +94,5 @@ scheduler_events = {
 		"frappe.email.doctype.email_alert.email_alert.trigger_daily_alerts",
 	]
 }
+
+default_background = "/assets/frappe/images/ui/into-the-dawn.jpg"

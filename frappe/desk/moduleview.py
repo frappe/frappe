@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
+from frappe.boot import get_allowed_pages
 
 @frappe.whitelist()
 def get(module):
@@ -31,6 +32,7 @@ def get_data(module):
 		get_report_list(module))
 
 	data = combine_common_sections(data)
+	data = apply_permissions(data)
 
 	set_last_modified(data)
 
@@ -114,6 +116,37 @@ def combine_common_sections(data):
 			sections_dict[each["label"]]["items"] += each["items"]
 
 	return sections
+
+def apply_permissions(data):
+	default_country = frappe.db.get_default("country")
+
+	user = frappe.get_user(frappe.session.user)
+	user.build_permissions()
+
+	allowed_pages = get_allowed_pages()
+
+	new_data = []
+	for section in data:
+		new_items = []
+
+		for item in (section.get("items") or []):
+			item = frappe._dict(item)
+
+			if item.country and item.country!=default_country:
+				continue
+
+			if ((item.type=="doctype" and item.name in user.can_read)
+				or (item.type=="page" and item.name in allowed_pages)
+				or (item.type=="report" and item.doctype in user.can_get_report)):
+
+				new_items.append(item)
+
+		if new_items:
+			new_section = section.copy()
+			new_section["items"] = new_items
+			new_data.append(new_section)
+
+	return new_data
 
 def get_config(app, module):
 	"""Load module info from `[app].config.[module]`."""

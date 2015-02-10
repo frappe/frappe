@@ -90,8 +90,7 @@ def post(txt, contact, parenttype=None, notify=False, subject=None):
 
 @frappe.whitelist()
 def delete(arg=None):
-	frappe.db.sql("""delete from `tabComment` where name=%s""",
-		frappe.form_dict['name']);
+	frappe.get_doc("Comment", frappe.form_dict['name']).delete()
 
 def _notify(contact, txt, subject=None):
 	from frappe.utils import get_fullname, get_url

@@ -105,6 +105,9 @@ class Comment(Document):
 
 	def on_trash(self):
 		"""Removes from `_comments` in parent Document"""
+		if self.comment_doctype == "Message":
+			return
+
 		if (self.comment_type or "Comment") != "Comment":
 			frappe.only_for("System Manager")
 

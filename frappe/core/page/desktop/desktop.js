@@ -4,6 +4,7 @@ frappe.pages['desktop'].on_page_load = function(wrapper) {
 	frappe.assets.views["Module"]();
 
 	// load desktop
+	frappe.desktop.set_background();
 	frappe.desktop.refresh(wrapper);
 };
 
@@ -128,6 +129,11 @@ $.extend(frappe.desktop, {
 				frappe.defaults.set_default("_desktop_items", new_order);
 			}
 		});
+	},
+
+	set_background: function() {
+		frappe.ui.set_user_background(frappe.boot.user.background_image, null,
+			frappe.boot.user.background_style);
 	},
 
 	all_applications: {

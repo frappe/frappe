@@ -18,7 +18,7 @@
         <div class="text-muted">
 			{%= comment_when(data.modified) %}
 		</div>
-        {% if (data.owner==user || data.comment.indexOf("assigned to")!=-1) { %}
+        {% if (data.owner==user /* && !data.comment_type && data.parenttype!="Assignment" */ ) { %}
         <div>
             <a class="delete text-extra-muted" data-name="{%= data.name %}"
                 onclick="frappe.desk.pages.messages.delete(this)">Delete</a>

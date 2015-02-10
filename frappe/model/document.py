@@ -448,6 +448,9 @@ class Document(BaseDocument):
 
 	def run_method(self, method, *args, **kwargs):
 		"""run standard triggers, plus those in hooks"""
+		if "flags" in kwargs:
+			del kwargs["flags"]
+
 		if hasattr(self, method) and hasattr(getattr(self, method), "__call__"):
 			fn = lambda self, *args, **kwargs: getattr(self, method)(*args, **kwargs)
 		else:
@@ -476,7 +479,7 @@ class Document(BaseDocument):
 
 	def delete(self):
 		"""Delete document."""
-		frappe.delete_doc(self.doctype, self.name)
+		frappe.delete_doc(self.doctype, self.name, flags=self.flags)
 
 	def run_before_save_methods(self):
 		"""Run standard methods before  `INSERT` or `UPDATE`. Standard Methods are:

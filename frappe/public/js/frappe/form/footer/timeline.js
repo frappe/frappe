@@ -145,7 +145,9 @@ frappe.ui.form.Comments = Class.extend({
 			"Workflow": "octicon octicon-git-branch",
 			"Label": "octicon octicon-tag",
 			"Attachment": "octicon octicon-cloud-upload",
-			"Attachment Removed": "octicon octicon-trashcan"
+			"Attachment Removed": "octicon octicon-trashcan",
+			"Shared": "octicon octicon-eye",
+			"Unshared": "octicon octicon-circle-slash"
 		}[c.comment_type]
 
 		c.color = {

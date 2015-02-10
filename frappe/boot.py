@@ -45,7 +45,7 @@ def get_bootinfo():
 		tabDocType where ifnull(icon,'')!=''"""))
 	bootinfo.single_types = frappe.db.sql_list("""select name from tabDocType where ifnull(issingle,0)=1""")
 	add_home_page(bootinfo, doclist)
-	add_allowed_pages(bootinfo)
+	bootinfo.page_info = get_allowed_pages()
 	load_translations(bootinfo)
 	add_timezone_info(bootinfo)
 	load_conf_settings(bootinfo)
@@ -65,6 +65,7 @@ def get_bootinfo():
 		bootinfo.lang = unicode(bootinfo.lang)
 
 	bootinfo.error_report_email = frappe.get_hooks("error_report_email")
+	bootinfo.default_background_image = "/assets/frappe/images/ui/into-the-dawn.jpg"
 
 	return bootinfo
 
@@ -73,9 +74,10 @@ def load_conf_settings(bootinfo):
 	for key in ['developer_mode']:
 		if key in conf: bootinfo[key] = conf.get(key)
 
-def add_allowed_pages(bootinfo):
+def get_allowed_pages():
 	roles = frappe.get_roles()
-	bootinfo.page_info = {}
+	page_info = {}
+
 	for p in frappe.db.sql("""select distinct
 		tabPage.name, tabPage.modified, tabPage.title
 		from `tabPage Role`, `tabPage`
@@ -83,7 +85,7 @@ def add_allowed_pages(bootinfo):
 			and `tabPage Role`.parent = `tabPage`.name""" % ', '.join(['%s']*len(roles)),
 				roles, as_dict=True):
 
-		bootinfo.page_info[p.name] = {"modified":p.modified, "title":p.title}
+		page_info[p.name] = {"modified":p.modified, "title":p.title}
 
 	# pages where role is not set are also allowed
 	for p in frappe.db.sql("""select name, modified, title
@@ -91,7 +93,9 @@ def add_allowed_pages(bootinfo):
 			(select count(*) from `tabPage Role`
 				where `tabPage Role`.parent=tabPage.name) = 0""", as_dict=1):
 
-		bootinfo.page_info[p.name] = {"modified":p.modified, "title":p.title}
+		page_info[p.name] = {"modified":p.modified, "title":p.title}
+
+	return page_info
 
 def load_translations(bootinfo):
 	if frappe.local.lang != 'en':
