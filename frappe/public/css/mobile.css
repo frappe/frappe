@@ -128,6 +128,37 @@
   .doclist-row .list-row-right.no-right-column .list-row-indicator {
     top: 0;
   }
+  body[data-route^="messages"] .navbar-center {
+    display: block !important;
+    position: absolute;
+    top: 10px;
+    left: 25%;
+    right: 25%;
+    text-align: center;
+  }
+  #page-messages .layout-side-section {
+    float: left;
+    padding-left: 0px;
+    border-right: 1px solid #d1d8dd;
+  }
+  #page-messages .layout-main-section-wrapper {
+    position: absolute;
+    left: 74px;
+    right: 0px;
+    border-left: 1px solid #d1d8dd;
+  }
+  #page-messages .module-sidebar-item {
+    margin: 0px;
+  }
+  #page-messages .module-sidebar-item .messages-sidebar-link {
+    padding: 15px;
+  }
+  #page-messages .timeline-head {
+    padding: 15px 15px 7px;
+  }
+  #page-messages .list-row {
+    padding: 7px 0px;
+  }
 }
 @media (max-width: 991px) {
   .intro-area,
@@ -155,9 +186,6 @@
     position: absolute;
     bottom: -30px;
     right: 8px;
-  }
-  .nav > li > a {
-    padding: 10px 0px;
   }
   .toggle-navbar-new-comments {
     padding: 8px 0px !important;

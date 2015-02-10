@@ -12,7 +12,11 @@ frappe.pages.messages.on_page_load = function(parent) {
 	var page = frappe.ui.make_app_page({
 		parent: parent,
 	});
-	page.set_title(__("Messages"));
+
+	page.set_title('<span class="hidden-xs">' + __("Messages") + '</span>'
+		+ '<span class="visible-xs message-to"></span>');
+
+	$(".navbar-center").html(__("Messages"));
 
 	frappe.desk.pages.messages = new frappe.desk.pages.messages(parent);
 }
@@ -22,6 +26,10 @@ frappe.desk.pages.messages = Class.extend({
 		this.wrapper = wrapper;
 		this.page = wrapper.page;
 		this.make();
+		this.page.sidebar.addClass("col-sm-3");
+		this.page.wrapper.find(".layout-main-section-wrapper").addClass("col-sm-9");
+		this.page.wrapper.find(".page-title").removeClass("col-xs-6").addClass("col-xs-12");
+		this.page.wrapper.find(".page-actions").removeClass("col-xs-6").addClass("hidden-xs");
 	},
 
 	make: function() {
@@ -94,9 +102,13 @@ frappe.desk.pages.messages = Class.extend({
 			}
 		});
 
+		this.page.wrapper.find(".page-head .message-to").html(frappe.user.full_name(contact));
+
 		this.make_message_list(contact);
 
 		this.list.run();
+
+		scroll(0, 0);
 	},
 
 	make_message_list: function(contact) {

@@ -171,6 +171,42 @@
 			}
 		}
 	}
+
+	// messages
+	body[data-route^="messages"] {
+		.navbar-center-show;
+	}
+
+	#page-messages {
+		.layout-side-section {
+			float: left;
+			padding-left: 0px;
+			border-right: 1px solid @border-color;
+		}
+
+		.layout-main-section-wrapper {
+			position: absolute;
+			left: 74px;
+			right: 0px;
+			border-left: 1px solid @border-color;
+		}
+
+		.module-sidebar-item {
+			margin: 0px;
+
+			.messages-sidebar-link {
+				padding: 15px;
+			}
+		}
+
+		.timeline-head {
+			padding: 15px 15px 7px;
+		}
+
+		.list-row {
+			padding: 7px 0px;
+		}
+	}
 }
 
 @media(max-width: 991px) {
@@ -209,9 +245,9 @@
 	}
 
 	// navbar & breadcrumbs
-	.nav > li > a {
-		padding: 10px 0px;
-	}
+	// .nav > li > a {
+	// 	padding: 10px 0px;
+	// }
 
 	.toggle-navbar-new-comments {
 		padding: 8px 0px !important;
@@ -400,15 +436,8 @@
 		margin-top: -1px;
 	}
 
-	// module view
+	// navbar center
 	body[data-route^="Module"] {
-		.navbar-center {
-			display: block !important;
-			position: absolute;
-			top: 10px;
-			left: 25%;
-			right: 25%;
-			text-align: center;
-		}
+		.navbar-center-show;
 	}
 }
