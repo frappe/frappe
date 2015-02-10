@@ -16,6 +16,12 @@ body {
   cursor: pointer;
 }
 a,
+a:hover,
+a:active,
+a:focus {
+  outline: 0;
+}
+a,
 .badge,
 .ui-menu .ui-menu-item {
   -webkit-transition: 0.2s;

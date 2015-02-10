@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import frappe
 
 from frappe.utils import strip_html
+from frappe import _
 from frappe.website.utils import scrub_relative_urls
 from jinja2.utils import concat
 from jinja2 import meta
@@ -36,11 +37,13 @@ def render_blocks(context):
 	if "title" not in out:
 		out["title"] = context.get("title")
 
-	if "header" not in out and out.get("title"):
-		out["header"] = out["title"]
+
+	if not out.get("header") and "<h1" not in out.get("content", ""):
+		if out.get("title"):
+			out["header"] = out["title"]
 
 	if out.get("header") and not out["header"].startswith("<h"):
-		out["header"] = "<h2>" + out["header"] + "</h2>"
+		out["header"] = "<h1>" + out["header"] + "</h1>"
 
 	if "breadcrumbs" not in out:
 		if context.doc and hasattr(context.doc, "get_parents"):
@@ -64,15 +67,14 @@ def render_blocks(context):
 	if "{index}" in out.get("content", "") and context.get("children"):
 		html = frappe.get_template("templates/includes/static_index.html").render({
 				"items": context["children"]})
+
 		out["content"] = out["content"].replace("{index}", html)
 
 	if "{next}" in out.get("content", ""):
 		next_item = context.doc.get_next()
 		if next_item:
 			if next_item.name[0]!="/": next_item.name = "/" + next_item.name
-			html = '''<p><br><a href="{name}" class="btn btn-primary">
-				{title} <i class="icon-chevron-right"></i></a>
-			</p>'''.format(**next_item)
+			html = '<p><br><a href="{name}">'+_("Next")+': {title}</a></p>'.format(**next_item)
 			out["content"] = out["content"].replace("{next}", html)
 
 	if "sidebar" not in out and not out.get("no_sidebar"):

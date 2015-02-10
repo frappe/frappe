@@ -10,6 +10,12 @@
 a {
   cursor: pointer;
 }
+a,
+a:hover,
+a:active,
+a:focus {
+  outline: 0;
+}
 img {
   max-width: 100%;
 }
@@ -198,6 +204,9 @@ fieldset {
   margin-bottom: 20px;
   padding: 25px 0px;
 }
+.page-container {
+  padding: 0px;
+}
 .page-header h1,
 .page-header h2,
 .page-header h3 {
@@ -208,10 +217,10 @@ fieldset {
 }
 .sidebar-item {
   /*background-color: #f7f7f7;*/
-  border-left: 1px solid #eee;
+  border-left: 1px solid #d1d8dd;
   margin-left: -30px;
   padding: 5px 15px;
-  color: #999;
+  color: #8d99a6;
   font-size: 85%;
 }
 .sidebar-item:first-child {
@@ -221,19 +230,7 @@ fieldset {
   padding-bottom: 10px;
 }
 .sidebar-item a {
-  color: #999;
-  text-decoration: none;
-}
-.sidebar-item a:hover,
-.sidebar-item a:focus,
-.sidebar-item a:active {
-  color: #333;
-  text-decoration: none;
-  /* thanks medium: https://medium.com/designing-medium/crafting-link-underlines-on-medium-7c03a9274f9 */
-  background-image: linear-gradient(to bottom, transparent 50%, rgba(153, 153, 153, 0.5) 50%);
-  background-repeat: repeat-x;
-  background-size: 5% 20%;
-  background-position: 0 100%;
+  color: #8d99a6;
 }
 .sidebar-item a.active {
   color: #000;
@@ -364,13 +361,15 @@ a.active {
 }
 .page-breadcrumbs .breadcrumb {
   padding: 0px;
-  margin-bottom: 2px;
   background-color: transparent;
   border-radius: 0px;
   font-size: 85%;
 }
 .breadcrumb a {
   color: inherit;
+}
+.breadcrumb > .active {
+  color: #8d99a6;
 }
 @media (min-width: 768px) {
   .page-sidebar {
@@ -399,7 +398,6 @@ a.active {
   padding-left: 30px;
 }
 a.grey,
-.sidebar-section a,
 .nav-pills a,
 .control-value a,
 .data-row a {
@@ -408,7 +406,6 @@ a.grey,
   margin-bottom: 0.4em;
 }
 a.grey:hover,
-.sidebar-section a:hover,
 .nav-pills a:hover,
 .control-value a:hover,
 .data-row a:hover {

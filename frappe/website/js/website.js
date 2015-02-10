@@ -199,7 +199,7 @@ $.extend(frappe, {
 		if(frappe.supports_pjax()) {
 			// hack for chrome's onload popstate call
 			window.initial_href = window.location.href
-			$(document).on("click", "#wrap a", frappe.handle_click);
+			$(document).on("click", "a", frappe.handle_click);
 
 			$(window).on("popstate", function(event) {
 				// don't run this on hash change

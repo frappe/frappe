@@ -29,7 +29,6 @@ def main():
 	sites_path = parsed_args.get("sites_path")
 
 	if not parsed_args.get("make_app"):
-
 		if parsed_args.get("site")=="all":
 			for site in get_sites(parsed_args["sites_path"]):
 				print "\nRunning", fn, "for", site
@@ -131,7 +130,7 @@ def setup_parser():
 	return parser.parse_args()
 
 def setup_install(parser):
-	parser.add_argument("--make_app", metavar="DEST", nargs=1,
+	parser.add_argument("--make_app", metavar=("DESTINATION", "APP-NAME"), nargs=2,
 		help="Make a new application with boilerplate")
 	parser.add_argument("--install", metavar="DB-NAME", nargs=1,
 		help="Install a new db")
@@ -296,9 +295,9 @@ def setup_translation(parser):
 
 # methods
 @cmd
-def make_app(destination):
+def make_app(destination, app_name):
 	from frappe.utils.boilerplate import make_boilerplate
-	make_boilerplate(destination)
+	make_boilerplate(destination, app_name)
 
 @cmd
 def use(sites_path):

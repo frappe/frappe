@@ -183,20 +183,19 @@ class WebsiteGenerator(Document):
 			return self.get(self.parent_website_route_field)
 
 	def get_children(self, context=None):
+		children = []
 		if self.get_route()==get_home_page():
-			return frappe.db.sql("""select url as name, label as page_title,
+			children = frappe.db.sql("""select url as name, label as page_title,
 			1 as public_read from `tabTop Bar Item` where parentfield='sidebar_items'
 			order by idx""", as_dict=True)
 
-		if self.meta.get_field("parent_website_route"):
+		if not children and self.meta.get_field("parent_website_route"):
 			children = self.get_children_of(self.get_route())
 
 			if not children and self.parent_website_route:
 				children = self.get_children_of(self.parent_website_route)
 
-			return children
-		else:
-			return []
+		return children
 
 	def get_children_of(self, route):
 		children = frappe.db.sql("""select name, page_name,

@@ -13,6 +13,9 @@
 a {
 	cursor: pointer;
 }
+a, a:hover, a:active, a:focus {
+   outline: 0;
+}
 
 img {
 	max-width: 100%;
@@ -232,7 +235,7 @@ fieldset {
 }
 
 .page-container {
-
+	padding: 0px;
 }
 
 .page-header h1,
@@ -251,10 +254,10 @@ fieldset {
 
 .sidebar-item {
 	/*background-color: #f7f7f7;*/
-	border-left: 1px solid #eee;
+	border-left: 1px solid @border-color;
 	margin-left: -30px;
 	padding: 5px 15px;
-	color: #999;
+	color: @text-muted;
 	font-size: 85%;
 }
 
@@ -266,21 +269,7 @@ fieldset {
 }
 
 .sidebar-item a {
-	color: #999;
-	text-decoration: none;
-}
-
-.sidebar-item a:hover,
-.sidebar-item a:focus,
-.sidebar-item a:active {
-	color: #333;
-	text-decoration: none;
-
-	/* thanks medium: https://medium.com/designing-medium/crafting-link-underlines-on-medium-7c03a9274f9 */
-	background-image: linear-gradient(to bottom, transparent 50%, rgba(153,153,153, 0.5) 50%);
-	background-repeat: repeat-x;
-	background-size: 5% 20%;
-	background-position: 0 100%;
+	color: @text-muted;
 }
 
 .sidebar-item a.active {
@@ -441,7 +430,6 @@ a.active {
 
 .page-breadcrumbs .breadcrumb {
 	padding: 0px;
-	margin-bottom: 2px;
 	background-color: transparent;
 	border-radius: 0px;
 	font-size: 85%;
@@ -449,6 +437,10 @@ a.active {
 
 .breadcrumb a {
 	color: inherit;
+}
+
+.breadcrumb > .active {
+	color: @text-muted;
 }
 
 @media (min-width: 768px) {
@@ -486,13 +478,13 @@ a.active {
 
 // links and text
 
-a.grey, .sidebar-section a, .nav-pills a, .control-value a, .data-row a {
+a.grey, .nav-pills a, .control-value a, .data-row a {
 	color: inherit;
     border-bottom: 1px solid transparent;
     margin-bottom: 0.4em;
 }
 
-a.grey:hover, .sidebar-section a:hover, .nav-pills a:hover, .control-value a:hover, .data-row a:hover {
+a.grey:hover, .nav-pills a:hover, .control-value a:hover, .data-row a:hover {
     border-bottom: 1px solid @grey-link-color;
     color: @grey-link-color;
 }

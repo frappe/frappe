@@ -49,8 +49,8 @@ class WebPage(WebsiteGenerator):
 
 		self.set_metatags(context)
 
-		if not context.header:
-			context.header = self.title
+		# if not context.header:
+		# 	context.header = self.title
 
 		# for sidebar
 		if not context.children:
