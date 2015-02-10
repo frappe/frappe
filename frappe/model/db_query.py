@@ -19,7 +19,7 @@ class DatabaseQuery(object):
 		self.or_conditions = []
 		self.fields = ["`tab{0}`.`name`".format(doctype)]
 		self.user = None
-		self.ignore_permissions = False
+		self.flags = frappe._dict()
 
 	def execute(self, query=None, filters=None, fields=None, or_filters=None,
 		docstatus=None, group_by=None, order_by=None, limit_start=0,
@@ -40,7 +40,7 @@ class DatabaseQuery(object):
 		self.with_childnames = with_childnames
 		self.debug = debug
 		self.as_list = as_list
-		self.ignore_permissions = ignore_permissions
+		self.flags.ignore_permissions = ignore_permissions
 		self.user = user or frappe.session.user
 
 		if query:
@@ -142,7 +142,7 @@ class DatabaseQuery(object):
 	def append_table(self, table_name):
 		self.tables.append(table_name)
 		doctype = table_name[4:-1]
-		if (not self.ignore_permissions) and (not frappe.has_permission(doctype)):
+		if (not self.flags.ignore_permissions) and (not frappe.has_permission(doctype)):
 			raise frappe.PermissionError, doctype
 
 	def remove_user_tags(self):
@@ -182,7 +182,7 @@ class DatabaseQuery(object):
 		self.build_filter_conditions(self.or_filters, self.grouped_or_conditions)
 
 		# match conditions
-		if not self.ignore_permissions:
+		if not self.flags.ignore_permissions:
 			match_conditions = self.build_match_conditions()
 			if match_conditions:
 				self.conditions.append("(" + match_conditions + ")")
@@ -257,8 +257,7 @@ class DatabaseQuery(object):
 
 		self.shared = frappe.share.get_shared(self.doctype, self.user)
 
-		if not meta.istable and not role_permissions.get("read") and not getattr(self,
-			"ignore_permissions", False):
+		if not meta.istable and not role_permissions.get("read") and not self.flags.ignore_permissions:
 			only_if_shared = True
 			if not self.shared:
 				frappe.throw(_("No permission to read {0}").format(self.doctype))

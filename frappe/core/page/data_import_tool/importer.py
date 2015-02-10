@@ -205,12 +205,12 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 				if overwrite and doc["name"] and frappe.db.exists(doctype, doc["name"]):
 					original = frappe.get_doc(doctype, doc["name"])
 					original.update(doc)
-					original.ignore_links = ignore_links
+					original.flags.ignore_links = ignore_links
 					original.save()
 					ret.append('Updated row (#%d) %s' % (row_idx + 1, getlink(original.doctype, original.name)))
 				else:
 					doc = frappe.get_doc(doc)
-					doc.ignore_links = ignore_links
+					doc.flags.ignore_links = ignore_links
 					doc.insert()
 					ret.append('Inserted row (#%d) %s' % (row_idx + 1, getlink(doc.doctype, doc.name)))
 				if submit_after_import:

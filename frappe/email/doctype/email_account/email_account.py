@@ -167,7 +167,7 @@ class EmailAccount(Document):
 			if hasattr(parent, "set_sender"):
 				parent.set_sender(email.from_email)
 
-			parent.ignore_mandatory = True
+			parent.flags.ignore_mandatory = True
 			parent.insert(ignore_permissions=True)
 
 		if parent:

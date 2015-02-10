@@ -54,7 +54,7 @@ def get_html(doc, name=None, print_format=None, meta=None,
 	if isinstance(doc, basestring):
 		doc = frappe.get_doc(json.loads(doc))
 
-	doc.in_print = True
+	doc.flags.in_print = True
 
 	validate_print_permission(doc)
 

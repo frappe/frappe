@@ -136,7 +136,7 @@ def import_doc(d, doctype, overwrite, row_idx, submit=False, ignore_links=False)
 	if d.get("name") and frappe.db.exists(doctype, d['name']):
 		if overwrite:
 			doc = frappe.get_doc(doctype, d['name'])
-			doc.ignore_links = ignore_links
+			doc.flags.ignore_links = ignore_links
 			doc.update(d)
 			if d.get("docstatus") == 1:
 				doc.update_after_submit()
@@ -148,7 +148,7 @@ def import_doc(d, doctype, overwrite, row_idx, submit=False, ignore_links=False)
 				getlink(doctype, d['name']))
 	else:
 		doc = frappe.get_doc(d)
-		doc.ignore_links = ignore_links
+		doc.flags.ignore_links = ignore_links
 		doc.insert()
 
 		if submit:

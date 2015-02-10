@@ -196,7 +196,7 @@ frappe.ui.Filter = Class.extend({
 			fieldname: me.field.df.fieldname,
 			fieldtype: me.field.df.fieldtype,
 			parent: me.field.df.parent,
-		} : {}
+		} : {};
 
 		var original_docfield = me.fieldselect.fields_by_name[doctype][fieldname];
 		if(!original_docfield) {

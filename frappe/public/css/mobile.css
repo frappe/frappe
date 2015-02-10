@@ -130,7 +130,8 @@
   }
 }
 @media (max-width: 991px) {
-  .form-intro-area {
+  .intro-area,
+  .footnote-area {
     padding: 15px 0px;
   }
   .grid-row-open {

@@ -64,7 +64,7 @@ def save_url(file_url, dt, dn):
 		"attached_to_doctype": dt,
 		"attached_to_name": dn
 	})
-	f.ignore_permissions = True
+	f.flags.ignore_permissions = True
 	try:
 		f.insert();
 	except frappe.DuplicateEntryError:
@@ -131,7 +131,7 @@ def save_file(fname, content, dt, dn, decode=False):
 	})
 
 	f = frappe.get_doc(file_data)
-	f.ignore_permissions = True
+	f.flags.ignore_permissions = True
 	try:
 		f.insert();
 	except frappe.DuplicateEntryError:

@@ -96,26 +96,48 @@ frappe.views.Page = Class.extend({
 })
 
 frappe.show_not_found = function(page_name) {
-	frappe.show_message_page(page_name, __("Page Not Found"),
-		__("Sorry we were unable to find what you were looking for."), "octicon octicon-circle-slash");
+	frappe.show_message_page({
+		page_name: page_name,
+		message: __("Sorry! I could not find what you were looking for."),
+		img: "/assets/frappe/images/ui/bubble-tea-sorry.svg"
+	});
 }
 
 frappe.show_not_permitted = function(page_name) {
-	frappe.show_message_page(page_name, __("Not Permitted"),
-		__("Sorry you are not permitted to view this page."), "octicon octicon-circle-slash");
+	frappe.show_message_page({
+		page_name: page_name,
+		message: __("Sorry! You are not permitted to view this page."),
+		img: "/assets/frappe/images/ui/bubble-tea-sorry.svg",
+		// icon: "octicon octicon-circle-slash"
+	});
 }
 
-frappe.show_message_page = function(page_name, title, message, icon) {
-	if(!page_name) page_name = frappe.get_route_str();
-	var page = frappe.pages[page_name] || frappe.container.add_page(page_name);
-	if(icon) {
-		icon = '<span class="'+ icon +' text-extra-muted" style="font-size: 120%;"></span> ';
+frappe.show_message_page = function(opts) {
+	// opts can include `page_name`, `message`, `icon` or `img`
+	if(!opts.page_name) {
+		opts.page_name = frappe.get_route_str();
 	}
-	$(page).html('<div class="page">\
-		<div style="margin: 50px; text-align:center;">\
-			<h2>'+ (icon ? icon : "") + title+'</h2><br><br><br>\
-			<p><a class="btn btn-default btn-sm" href="#">Home</a></p>\
-		</div>\
-		</div>');
-	frappe.container.change_to(page_name);
+
+	if(opts.icon) {
+		opts.img = repl('<span class="%(icon)s message-page-icon"></span> ', opts);
+	} else if (opts.img) {
+		opts.img = repl('<img src="%(img)s" class="message-page-image">', opts);
+	}
+
+	var page = frappe.pages[opts.page_name] || frappe.container.add_page(opts.page_name);
+	$(page).html(
+		repl('<div class="page message-page">\
+			<div class="text-center message-page-content">\
+				%(img)s\
+				<p class="lead">%(message)s</p>\
+				<a class="btn btn-default btn-sm btn-home" href="#">%(home)s</a>\
+			</div>\
+		</div>', {
+			img: opts.img || "",
+			message: opts.message || "",
+			home: __("Home")
+		})
+	);
+
+	frappe.container.change_to(opts.page_name);
 }

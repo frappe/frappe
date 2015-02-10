@@ -31,7 +31,7 @@ def add_comment(args=None):
 		del args["cmd"]
 
 	comment = frappe.get_doc(args)
-	comment.ignore_permissions = True
+	comment.flags.ignore_permissions = True
 	comment.insert()
 
 	# since comments are embedded in the page, clear the web cache

@@ -84,6 +84,7 @@ class Document(BaseDocument):
 			raise frappe.DataError("Document({0}, {1})".format(arg1, arg2))
 
 		self.dont_update_if_missing = []
+		self.flags = frappe._dict()
 
 	def load_from_db(self):
 		"""Load document and children from database and create properties
@@ -126,11 +127,11 @@ class Document(BaseDocument):
 			self.raise_no_permission_to(permlabel or permtype)
 
 	def has_permission(self, permtype="read"):
-		"""Call `frappe.has_permission` if `self.ignore_permissions`
+		"""Call `frappe.has_permission` if `self.flags.ignore_permissions`
 		is not set.
 
 		:param permtype: one of `read`, `write`, `submit`, `cancel`, `delete`"""
-		if getattr(self, "ignore_permissions", False):
+		if self.flags.ignore_permissions:
 			return True
 		return frappe.has_permission(self.doctype, permtype, self)
 
@@ -144,11 +145,11 @@ class Document(BaseDocument):
 		`validate`, `on_update`, `after_insert` methods if they are written.
 
 		:param ignore_permissions: Do not check permissions if True."""
-		if getattr(self, "in_print", False):
+		if self.flags.in_print:
 			return
 
 		if ignore_permissions!=None:
-			self.ignore_permissions = ignore_permissions
+			self.flags.ignore_permissions = ignore_permissions
 
 		self.set("__islocal", True)
 
@@ -192,11 +193,11 @@ class Document(BaseDocument):
 		`validate` before updating, `on_update` after updating triggers.
 
 		:param ignore_permissions: Do not check permissions if True."""
-		if getattr(self, "in_print", False):
+		if self.flags.in_print:
 			return
 
 		if ignore_permissions!=None:
-			self.ignore_permissions = ignore_permissions
+			self.flags.ignore_permissions = ignore_permissions
 
 		if self.get("__islocal") or not self.get("name"):
 			self.insert()
@@ -223,7 +224,7 @@ class Document(BaseDocument):
 
 		# children
 		child_map = {}
-		ignore_children_type = self.get("ignore_children_type") or []
+		ignore_children_type = self.flags.ignore_children_type or []
 
 		for d in self.get_all_children():
 			d.db_update()
@@ -381,7 +382,7 @@ class Document(BaseDocument):
 			d.parenttype = self.doctype
 
 	def validate_update_after_submit(self):
-		if getattr(self, "ignore_validate_update_after_submit", False):
+		if self.flags.ignore_validate_update_after_submit:
 			return
 
 		self._validate_update_after_submit()
@@ -391,7 +392,7 @@ class Document(BaseDocument):
 		# TODO check only allowed values are updated
 
 	def _validate_mandatory(self):
-		if self.get("ignore_mandatory"):
+		if self.flags.ignore_mandatory:
 			return
 
 		missing = self._get_missing_mandatory_fields()
@@ -407,7 +408,7 @@ class Document(BaseDocument):
 		raise frappe.MandatoryError(", ".join((each[0] for each in missing)))
 
 	def _validate_links(self):
-		if self.get("ignore_links"):
+		if self.flags.ignore_links:
 			return
 
 		invalid_links, cancelled_links = self.get_invalid_links()
@@ -477,7 +478,7 @@ class Document(BaseDocument):
 		- `validate`, `before_submit` for **Submit**.
 		- `before_cancel` for **Cancel**
 		- `before_update_after_submit` for **Update after Submit**"""
-		if getattr(self, "ignore_validate", False):
+		if self.flags.ignore_validate:
 			return
 
 		if self._action=="save":
@@ -514,7 +515,7 @@ class Document(BaseDocument):
 	def check_no_back_links_exist(self):
 		"""Check if document links to any active document before Cancel."""
 		from frappe.model.delete_doc import check_if_doc_is_linked
-		if not self.get("ignore_links"):
+		if not self.flags.ignore_links:
 			check_if_doc_is_linked(self, method="Cancel")
 
 	@staticmethod

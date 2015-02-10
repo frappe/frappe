@@ -421,7 +421,7 @@ def make_module_and_roles(doc, perm_fieldname="permissions"):
 		if not frappe.db.exists("Module Def", doc.module):
 			m = frappe.get_doc({"doctype": "Module Def", "module_name": doc.module})
 			m.app_name = frappe.local.module_app[frappe.scrub(doc.module)]
-			m.ignore_mandatory = m.ignore_permissions = True
+			m.flags.ignore_mandatory = m.flags.ignore_permissions = True
 			m.insert()
 
 		default_roles = ["Administrator", "Guest", "All"]
@@ -431,7 +431,7 @@ def make_module_and_roles(doc, perm_fieldname="permissions"):
 			if not frappe.db.exists("Role", role):
 				r = frappe.get_doc({"doctype": "Role", "role_name": role})
 				r.role_name = role
-				r.ignore_mandatory = r.ignore_permissions = True
+				r.flags.ignore_mandatory = r.flags.ignore_permissions = True
 				r.insert()
 	except frappe.DoesNotExistError, e:
 		pass

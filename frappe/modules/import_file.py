@@ -111,13 +111,13 @@ def import_doc(docdict, force=False, data_import=False):
 		# delete old
 		frappe.delete_doc(doc.doctype, doc.name, force=1, ignore_doctypes=ignore, for_reload=True)
 
-	doc.ignore_children_type = ignore
-	doc.ignore_links = True
+	doc.flags.ignore_children_type = ignore
+	doc.flags.ignore_links = True
 	if not data_import:
-		doc.ignore_validate = True
-		doc.ignore_permissions = True
-		doc.ignore_mandatory = True
-		doc.ignore_user_permissions = True
+		doc.flags.ignore_validate = True
+		doc.flags.ignore_permissions = True
+		doc.flags.ignore_mandatory = True
+		doc.flags.ignore_user_permissions = True
 	doc.insert()
 
 	frappe.flags.in_import = False

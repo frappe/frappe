@@ -352,3 +352,10 @@ a.badge-hover:active .badge {
 .msgprint pre {
   text-align: left;
 }
+.intro-area,
+.footnote-area {
+  padding: 15px;
+}
+.footnote-area {
+  border-top: 1px solid #d1d8dd;
+}

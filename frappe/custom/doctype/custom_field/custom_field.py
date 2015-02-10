@@ -30,7 +30,7 @@ class CustomField(Document):
 
 	def on_update(self):
 		frappe.clear_cache(doctype=self.dt)
-		if not getattr(self, "ignore_validate", False):
+		if not self.flags.ignore_validate:
 			# validate field
 			from frappe.core.doctype.doctype.doctype import validate_fields_for_doctype
 			validate_fields_for_doctype(self.dt)

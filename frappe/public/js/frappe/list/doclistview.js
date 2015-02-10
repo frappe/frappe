@@ -9,6 +9,7 @@ frappe.views.ListFactory = frappe.views.Factory.extend({
 	make: function(route) {
 		var me = this,
 			doctype = route[1];
+
 		frappe.model.with_doctype(doctype, function() {
 			if(locals["DocType"][doctype].issingle) {
 				frappe.set_re_route("Form", doctype);
@@ -41,7 +42,13 @@ $(document).on("save", function(event, doc) {
 
 frappe.views.DocListView = frappe.ui.Listing.extend({
 	init: function(opts) {
-		$.extend(this, opts)
+		$.extend(this, opts);
+
+		if(!frappe.model.can_read(this.doctype)) {
+			frappe.show_not_permitted(frappe.get_route_str());
+			return;
+		};
+
 		this.label = __(this.doctype);
 		this.dirty = true;
 		this.tags_shown = false;

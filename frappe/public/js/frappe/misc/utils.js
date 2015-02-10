@@ -101,7 +101,7 @@ frappe.utils = {
 	},
 	set_intro: function(me, wrapper, txt, append, indicator) {
 		if(!me.intro_area) {
-			me.intro_area = $('<div class="form-intro-area">')
+			me.intro_area = $('<div class="intro-area">')
 				.prependTo(wrapper);
 		}
 		if(!indicator) {
@@ -119,8 +119,7 @@ frappe.utils = {
 	},
 	set_footnote: function(me, wrapper, txt) {
 		if(!me.footnote_area) {
-			$("<hr>").appendTo(wrapper).css({"margin-bottom": "0px"});
-			me.footnote_area = $('<div class="text-muted form-intro-area small">')
+			me.footnote_area = $('<div class="text-muted footnote-area small">')
 				.appendTo(wrapper);
 		}
 

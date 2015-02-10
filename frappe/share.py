@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import frappe
 
 @frappe.whitelist()
-def add(doctype, name, user=None, read=1, write=0, share=0):
+def add(doctype, name, user=None, read=1, write=0, share=0, flags=None):
 	"""Share the given document with a user."""
 	if not user:
 		user = frappe.session.user
@@ -71,7 +71,7 @@ def get_users(doctype, name, fields="*"):
 	return frappe.db.sql("select {0} from tabDocShare where share_doctype=%s and share_name=%s".format(fields),
 		(doctype, name), as_dict=True)
 
-def get_shared(self, doctype, user=None, rights=None):
+def get_shared(doctype, user=None, rights=None):
 	"""Get list of shared document names for given user and DocType.
 
 	:param doctype: DocType of which shared names are queried.

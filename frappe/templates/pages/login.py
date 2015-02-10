@@ -241,6 +241,6 @@ def update_oauth_user(user, data, provider):
 		user.github_username = data["login"]
 
 	if save:
-		user.ignore_permissions = True
+		user.flags.ignore_permissions = True
 		user.no_welcome_mail = True
 		user.save()

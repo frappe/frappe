@@ -170,7 +170,7 @@ class CustomizeForm(Document):
 				changed = True
 
 		if changed:
-			custom_field.ignore_validate = True
+			custom_field.flags.ignore_validate = True
 			custom_field.save()
 
 	def delete_custom_fields(self):

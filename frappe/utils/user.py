@@ -110,6 +110,11 @@ class User:
 		self.can_write += self.can_create
 		self.can_write += self.in_create
 		self.can_read += self.can_write
+
+		self.shared = frappe.db.sql_list("""select distinct share_doctype from `tabDocShare`
+			where `user`=%s and `read`=1""", self.name)
+		self.can_read = list(set(self.can_read + self.shared))
+
 		self.all_read += self.can_read
 
 		if "System Manager" in self.roles:

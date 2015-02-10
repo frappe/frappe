@@ -20,7 +20,7 @@ class FileData(Document):
 		frappe.local.rollback_observers.append(self)
 
 	def validate(self):
-		if not getattr(self, "ignore_duplicate_entry_error", False):
+		if not self.flags.ignore_duplicate_entry_error:
 			# check duplicate assignement
 			n_records = frappe.db.sql("""select name from `tabFile Data`
 				where content_hash=%s
@@ -36,7 +36,7 @@ class FileData(Document):
 		if self.attached_to_name:
 			# check persmission
 			try:
-				if not getattr(self, 'ignore_permissions', False) and \
+				if not self.flags.ignore_permissions and \
 					not frappe.has_permission(self.attached_to_doctype, "write", self.attached_to_name):
 
 					frappe.msgprint(frappe._("No permission to write / remove."), raise_exception=True)
