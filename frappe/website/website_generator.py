@@ -142,13 +142,20 @@ class WebsiteGenerator(Document):
 		if context.parents:
 			return context.parents
 
+		home_page = get_home_page()
+
 		parents = []
-		parent = self
-		while parent:
-			_parent_field = getattr(parent, "parent_website_route_field", None)
-			_parent_val = parent.get(_parent_field) if _parent_field else None
+		me = self
+		while me:
+			_parent_field = getattr(me, "parent_website_route_field", None)
+			_parent_val = me.get(_parent_field) if _parent_field else None
+
+			# if no parent and not home page, then parent is home page
+			if not _parent_val and me.get_route() != home_page:
+				_parent_val = home_page
+
 			if _parent_val:
-				df = parent.meta.get_field(_parent_field)
+				df = me.meta.get_field(_parent_field)
 				parent_doc = frappe.get_doc(df.options, _parent_val)
 
 				if not parent_doc.website_published():
@@ -165,15 +172,15 @@ class WebsiteGenerator(Document):
 					raise frappe.ValidationError, "Recursion in parent link"
 
 				parents.append(parent_info)
-				parent = parent_doc
+				me = parent_doc
 			else:
 				# parent route is a page e.g. "blog"
-				if parent.get("parent_website_route"):
-					page_route = get_page_route(parent.parent_website_route)
+				if me.get("parent_website_route"):
+					page_route = get_page_route(me.parent_website_route)
 					if page_route:
 						parents.append(frappe._dict(name = page_route.name,
 							title=page_route.page_title))
-				parent = None
+				me = None
 
 		parents.reverse()
 		return parents

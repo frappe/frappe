@@ -215,13 +215,16 @@ fieldset {
 .page-header .lead {
   margin-bottom: 5px;
 }
+.page-content {
+  padding-bottom: 30px;
+}
 .sidebar-item {
   /*background-color: #f7f7f7;*/
   border-left: 1px solid #d1d8dd;
   margin-left: -30px;
   padding: 5px 15px;
   color: #8d99a6;
-  font-size: 85%;
+  font-size: 12px;
 }
 .sidebar-item:first-child {
   padding-top: 10px;
@@ -363,7 +366,7 @@ a.active {
   padding: 0px;
   background-color: transparent;
   border-radius: 0px;
-  font-size: 85%;
+  font-size: 12px;
 }
 .breadcrumb a {
   color: inherit;
