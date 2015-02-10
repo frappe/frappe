@@ -152,7 +152,9 @@
 	],
 	"css/list.min.css": [
 		"public/css/list.css",
-		"public/css/tag-it.css"
+		"public/css/tag-it.css",
+		"public/css/calendar.css",
+		"public/css/gantt.css"
 	],
 	"js/list.min.js": [
 		"public/js/frappe/ui/listing.html",
@@ -172,7 +174,9 @@
 		"public/js/frappe/list/list_item_main_head.html",
 		"public/js/frappe/list/list_item_row_head.html",
 		"public/js/frappe/list/list_item_subject.html",
-		"public/js/frappe/list/listview.js"
+		"public/js/frappe/list/listview.js",
+		"public/js/frappe/views/calendar.js",
+		"public/js/frappe/views/ganttview.js"
 	],
 	"css/report.min.css": [
 		"public/css/report.css",
@@ -187,8 +191,6 @@
 		"public/js/frappe/views/reports/query_report.js",
 		"public/js/frappe/views/reports/grid_report.js",
 		"public/js/frappe/views/reports/print_grid.html",
-		"public/js/frappe/views/calendar.js",
-		"public/js/frappe/views/ganttview.js",
 
 		"public/js/lib/slickgrid/jquery.event.drag.js",
 		"public/js/lib/slickgrid/plugins/slick.cellrangedecorator.js",

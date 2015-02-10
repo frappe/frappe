@@ -14,7 +14,7 @@ frappe.pages.messages.on_page_load = function(parent) {
 	});
 
 	page.set_title('<span class="hidden-xs">' + __("Messages") + '</span>'
-		+ '<span class="visible-xs message-to"></span>');
+		+ '<span class="hidden-sm hidden-md hidden-lg message-to"></span>');
 
 	$(".navbar-center").html(__("Messages"));
 

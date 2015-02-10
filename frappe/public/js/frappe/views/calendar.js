@@ -60,8 +60,6 @@ frappe.views.Calendar = Class.extend({
 		// 	.html(__("Select dates to create a new ") + __(me.doctype))
 		// 	.appendTo(this.$wrapper);
 
-		console.log(this.$cal);
-
 		this.$cal.fullCalendar(this.cal_options);
 
 		this.set_css();

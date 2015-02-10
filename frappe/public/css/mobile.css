@@ -21,6 +21,10 @@
   .modal .modal-body .form-layout {
     margin: -15px;
   }
+  .page-head .page-title h1 {
+    font-size: 18px;
+    margin-top: 22px;
+  }
   .layout-main-section-wrapper {
     padding: 0px;
   }
@@ -115,6 +119,9 @@
   .doclist-row .list-row-modified {
     margin-right: -10px;
   }
+  .doclist-row .list-row-left {
+    z-index: 1;
+  }
   .doclist-row .list-row-right {
     float: right;
   }
@@ -173,7 +180,7 @@
     top: 0;
   }
   body[data-route^="Form"] .page-title h1 {
-    margin-top: 10px;
+    margin-top: 14px;
   }
   body[data-route^="Form"] .page-title .indicator {
     display: block;

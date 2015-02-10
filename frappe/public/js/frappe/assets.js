@@ -147,10 +147,12 @@ frappe.assets = {
 			frappe.require("assets/js/module.min.js");
 		},
 		"Calendar": function() {
-			frappe.assets.views["Report"]();
+			frappe.assets.views["List"]();
+			// frappe.assets.views["Report"]();
 		},
 		"Gantt": function() {
-			frappe.assets.views["Report"]();
+			frappe.assets.views["List"]();
+			// frappe.assets.views["Report"]();
 		},
 	}
 };
