@@ -127,10 +127,13 @@ frappe.ui.form.ControlImage = frappe.ui.form.Control.extend({
 			.css({"max-width": "600px", "margin": "0px"});
 		this.$body = $("<div></div>").appendTo(this.$wrapper)
 			.css({"margin-bottom": "10px", "max-width": "100%"})
+			
 		this.$wrapper.on("refresh", function() {
 				me.$body.empty();
-				if(me.df.options && me.frm.doc[me.df.options]) {
-					me.$img = $("<img src='"+me.frm.doc[me.df.options]+"' style='max-width: 100%;'>")
+				
+				var doc = frappe.model.get_doc(me.doctype, me.docname);
+				if(me.df.options && doc[me.df.options]) {
+					me.$img = $("<img src='"+doc[me.df.options]+"' style='max-width: 100%;'>")
 						.appendTo(me.$body);
 				} else {
 					me.$buffer = $("<div class='missing-image'><i class='octicon octicon-circle-slash'></i></div>")
