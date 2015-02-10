@@ -6,25 +6,29 @@ from __future__ import unicode_literals
 import frappe, os
 from frappe.utils import touch_file
 
-def make_boilerplate(dest):
+def make_boilerplate(dest, app_name):
 	if not os.path.exists(dest):
 		print "Destination directory does not exist"
 		return
 
 	hooks = frappe._dict()
-	for key in ("App Name", "App Title", "App Description", "App Publisher",
-		"App Icon", "App Color", "App Email", "App URL", "App License"):
-		hook_key = key.lower().replace(" ", "_")
+	hooks.app_name = app_name
+	app_title = hooks.app_name.replace("_", " ").title()
+	for key in ("App Title (defaut: {0})".format(app_title), "App Description", "App Publisher",
+		"App Icon (e.g. 'octicon octicon-zap')", "App Color", "App Email", "App License"):
+		hook_key = key.split(" (")[0].lower().replace(" ", "_")
 		hook_val = None
 		while not hook_val:
 			hook_val = raw_input(key + ": ")
 			if hook_key=="app_name" and hook_val.lower().replace(" ", "_") != hook_val:
 				print "App Name must be all lowercase and without spaces"
 				hook_val = ""
+			elif hook_key=="app_title" and not hook_val:
+				hook_val = app_title
 
 		hooks[hook_key] = hook_val
 
-	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, frappe.scrub(hooks.app_title)),
+	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, hooks.app_title),
 		with_init=True)
 	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "templates"), with_init=True)
 	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "templates",
@@ -94,7 +98,6 @@ app_description = "{app_description}"
 app_icon = "{app_icon}"
 app_color = "{app_color}"
 app_email = "{app_email}"
-app_url = "{app_url}"
 app_version = "0.0.1"
 
 # Includes in <head>
