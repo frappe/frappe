@@ -206,6 +206,11 @@
 		.list-row {
 			padding: 7px 0px;
 		}
+
+		.message-row-right {
+			margin-top: 10px;
+			text-align: left;
+		}
 	}
 }
 
@@ -245,10 +250,6 @@
 	}
 
 	// navbar & breadcrumbs
-	// .nav > li > a {
-	// 	padding: 10px 0px;
-	// }
-
 	.toggle-navbar-new-comments {
 		padding: 8px 0px !important;
 	}
@@ -260,35 +261,6 @@
 
 	.navbar > .container > .navbar-right {
 		float: right;
-	}
-
-	// show home in module page
-	body[data-route^="Module"] .navbar .navbar-home& {
-		display: inline-block !important;
-		padding-left: 0px;
-		margin-left: 0px;
-		padding-top: 6px;
-
-		&:before {
-			.breadcrumb-divider();
-			.breadcrumb-divider-left();
-		}
-
-		&:hover:before,
-		&:focus:before,
-		&:active:before {
-			color: @text-color !important;
-		}
-	}
-
-	body[data-route^="Module"] {
-		.page-title {
-			width: 100%;
-		}
-
-		.page-actions {
-			display: none !important;
-		}
 	}
 
 	.module-item {
@@ -439,5 +411,41 @@
 	// navbar center
 	body[data-route^="Module"] {
 		.navbar-center-show;
+	}
+
+	// show home when no breadcrumbs
+	body.no-breadcrumbs .navbar .navbar-home& {
+		display: inline-block !important;
+		padding-left: 0px;
+		margin-left: 0px;
+		padding-top: 6px;
+
+		&:before {
+			.breadcrumb-divider();
+			.breadcrumb-divider-left();
+		}
+
+		&:hover:before,
+		&:focus:before,
+		&:active:before {
+			color: @text-color !important;
+		}
+	}
+
+	body[data-route=""],
+	body[data-route="desktop"] {
+		.navbar .navbar-home {
+			display: none !important;
+		}
+	}
+
+	body[data-route^="Module"] {
+		.page-title {
+			width: 100%;
+		}
+
+		.page-actions {
+			display: none !important;
+		}
 	}
 }

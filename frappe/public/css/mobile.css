@@ -159,6 +159,10 @@
   #page-messages .list-row {
     padding: 7px 0px;
   }
+  #page-messages .message-row-right {
+    margin-top: 10px;
+    text-align: left;
+  }
 }
 @media (max-width: 991px) {
   .intro-area,
@@ -196,40 +200,6 @@
   }
   .navbar > .container > .navbar-right {
     float: right;
-  }
-  body[data-route^="Module"] .navbar .navbar-home {
-    display: inline-block !important;
-    padding-left: 0px;
-    margin-left: 0px;
-    padding-top: 6px;
-  }
-  body[data-route^="Module"] .navbar .navbar-home:before {
-    font-family: FontAwesome;
-    font-weight: normal;
-    font-style: normal;
-    text-decoration: inherit;
-    -webkit-font-smoothing: antialiased;
-    *margin-right: .3em;
-    display: inline-block;
-    speak: none;
-    font-size: 24px;
-    transition: 0.2s;
-    position: relative;
-    top: 3px;
-    content: "\f104";
-    margin-right: 5px;
-    color: #6c7680;
-  }
-  body[data-route^="Module"] .navbar .navbar-home:hover:before,
-  body[data-route^="Module"] .navbar .navbar-home:focus:before,
-  body[data-route^="Module"] .navbar .navbar-home:active:before {
-    color: #36414c !important;
-  }
-  body[data-route^="Module"] .page-title {
-    width: 100%;
-  }
-  body[data-route^="Module"] .page-actions {
-    display: none !important;
   }
   .module-item {
     padding: 7px 0px !important;
@@ -357,5 +327,43 @@
     left: 25%;
     right: 25%;
     text-align: center;
+  }
+  body.no-breadcrumbs .navbar .navbar-home {
+    display: inline-block !important;
+    padding-left: 0px;
+    margin-left: 0px;
+    padding-top: 6px;
+  }
+  body.no-breadcrumbs .navbar .navbar-home:before {
+    font-family: FontAwesome;
+    font-weight: normal;
+    font-style: normal;
+    text-decoration: inherit;
+    -webkit-font-smoothing: antialiased;
+    *margin-right: .3em;
+    display: inline-block;
+    speak: none;
+    font-size: 24px;
+    transition: 0.2s;
+    position: relative;
+    top: 3px;
+    content: "\f104";
+    margin-right: 5px;
+    color: #6c7680;
+  }
+  body.no-breadcrumbs .navbar .navbar-home:hover:before,
+  body.no-breadcrumbs .navbar .navbar-home:focus:before,
+  body.no-breadcrumbs .navbar .navbar-home:active:before {
+    color: #36414c !important;
+  }
+  body[data-route=""] .navbar .navbar-home,
+  body[data-route="desktop"] .navbar .navbar-home {
+    display: none !important;
+  }
+  body[data-route^="Module"] .page-title {
+    width: 100%;
+  }
+  body[data-route^="Module"] .page-actions {
+    display: none !important;
   }
 }

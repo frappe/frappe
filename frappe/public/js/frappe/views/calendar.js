@@ -7,6 +7,10 @@ frappe.provide("frappe.views.calendars");
 frappe.views.CalendarFactory = frappe.views.Factory.extend({
 	make: function(route) {
 		var me = this;
+
+		frappe.require('assets/frappe/js/lib/fullcalendar/fullcalendar.css');
+		frappe.require('assets/frappe/js/lib/fullcalendar/fullcalendar.js');
+
 		frappe.model.with_doctype(route[1], function() {
 			var options = {
 				doctype: route[1]
@@ -55,6 +59,8 @@ frappe.views.Calendar = Class.extend({
 		// $('<div class="help"></div>')
 		// 	.html(__("Select dates to create a new ") + __(me.doctype))
 		// 	.appendTo(this.$wrapper);
+
+		console.log(this.$cal);
 
 		this.$cal.fullCalendar(this.cal_options);
 

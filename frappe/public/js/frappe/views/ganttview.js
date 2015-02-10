@@ -6,6 +6,10 @@ frappe.provide("frappe.views.calendar");
 frappe.views.GanttFactory = frappe.views.Factory.extend({
 	make: function(route) {
 		var me = this;
+
+		frappe.require('assets/frappe/js/lib/jQuery.Gantt/css/style.css');
+		frappe.require('assets/frappe/js/lib/jQuery.Gantt/js/jquery.fn.gantt.js');
+
 		frappe.model.with_doctype(route[1], function() {
 			var page = me.make_page();
 			$(page).on("show", function() {

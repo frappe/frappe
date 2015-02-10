@@ -148,13 +148,9 @@ frappe.assets = {
 		},
 		"Calendar": function() {
 			frappe.assets.views["Report"]();
-			frappe.require('assets/frappe/js/lib/fullcalendar/fullcalendar.css');
-			frappe.require('assets/frappe/js/lib/fullcalendar/fullcalendar.js');
 		},
 		"Gantt": function() {
 			frappe.assets.views["Report"]();
-			frappe.require('assets/frappe/js/lib/jQuery.Gantt/css/style.css');
-			frappe.require('assets/frappe/js/lib/jQuery.Gantt/js/jquery.fn.gantt.js');
 		},
 	}
 };

@@ -85,7 +85,10 @@ frappe.views.Container = Class.extend({
 	update_breadcrumbs: function() {
 		var breadcrumbs = frappe.breadcrumbs[frappe.get_route_str()];
 		var $breadcrumbs = $("#navbar-breadcrumbs").empty();
-		if(!breadcrumbs) return;
+		if(!breadcrumbs) {
+			$("body").addClass("no-breadcrumbs");
+			return;
+		}
 
 		if(breadcrumbs.module && breadcrumbs.module != "Desk") {
 			if(in_list(["Core", "Email", "Custom", "Workflow"], breadcrumbs.module))
@@ -106,6 +109,8 @@ frappe.views.Container = Class.extend({
 				{doctype: breadcrumbs.doctype, label: __(breadcrumbs.doctype)}))
 				.appendTo($breadcrumbs);
 		}
+
+		$("body").removeClass("no-breadcrumbs");
 	},
 	rename_breadcrumbs: function(doctype, old_name, new_name) {
 		var old_route_str = ["Form", doctype, old_name].join("/");

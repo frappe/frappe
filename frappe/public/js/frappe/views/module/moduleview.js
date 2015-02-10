@@ -61,7 +61,7 @@ frappe.views.moduleview.ModuleView = Class.extend({
 			.appendTo(this.page.sidebar.addClass("hidden-xs hidden-sm"));
 		var offcanvas_module_sidebar = $(sidebar_content)
 			.addClass("list-unstyled sidebar-menu")
-			.appendTo($(".sidebar-left .module-sidebar"));
+			.appendTo($(".sidebar-left .module-sidebar").empty());
 
 		this.sidebar = offcanvas_module_sidebar.add(module_sidebar);
 		this.sidebar.on("click", ".module-link", function() {
