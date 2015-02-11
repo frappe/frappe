@@ -1,11 +1,13 @@
 ar		العربية
 de		deutsch
+ca		català
 el		ελληνικά
 en		english
 es		español
 fr		français
 hi		हिंदी
 hr		hrvatski
+bs		bosanski
 is		Íslenska
 id		Indonesia
 it		italiano
