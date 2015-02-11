@@ -1,15 +1,16 @@
 {% block header %}
-<h2 itemprop="name headline" itemscope itemtype="http://schema.org/BlogPost">
+<h1 itemprop="name headline" itemscope itemtype="http://schema.org/BlogPost">
 	{{ title }}
-</h2>
+</h1>
 {% endblock %}
 
 {% block content %}
 <article class="blog-content" itemscope itemtype="http://schema.org/BlogPost">
 	<!-- begin blog content -->
-	<div class="help" style="color: #aaa">
+	<h6 class="text-muted">
 		<span itemprop="author">{{ blogger_info and blogger_info.full_name or full_name }}</span>,
-		<span itemprop="dateCreated">{{ updated }}</span></div>
+		<span itemprop="dateCreated">{{ updated }}</span>
+    </h6>
 	<br>
 	<div itemprop="articleBody">
 	{{ content }}

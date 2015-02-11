@@ -81,37 +81,3 @@ def clear_blog_cache():
 
 	clear_cache("writers")
 
-@frappe.whitelist(allow_guest=True)
-def get_blog_list(start=0, by=None, category=None):
-	condition = ""
-	if by:
-		condition = " and t1.blogger='%s'" % by.replace("'", "\'")
-	if category:
-		condition += " and t1.blog_category='%s'" % category.replace("'", "\'")
-	query = """\
-		select
-			t1.title, t1.name,
-				concat(t1.parent_website_route, "/", t1.page_name) as page_name,
-				t1.published_on as creation,
-				day(t1.published_on) as day, monthname(t1.published_on) as month,
-				year(t1.published_on) as year,
-				ifnull(t1.blog_intro, t1.content) as content,
-				t2.full_name, t2.avatar, t1.blogger,
-				(select count(name) from `tabComment` where
-					comment_doctype='Blog Post' and comment_docname=t1.name) as comments
-		from `tabBlog Post` t1, `tabBlogger` t2
-		where ifnull(t1.published,0)=1
-		and t1.blogger = t2.name
-		%(condition)s
-		order by published_on desc, name asc
-		limit %(start)s, 20""" % {"start": start, "condition": condition}
-
-	result = frappe.db.sql(query, as_dict=1)
-
-	# strip html tags from content
-	for res in result:
-		res['published'] = global_date_format(res['creation'])
-		res['content'] = res['content'][:140]
-
-	return result
-

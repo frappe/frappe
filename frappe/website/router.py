@@ -47,11 +47,19 @@ def build_route(path):
 	return context
 
 def resolve_route(path):
-	route = get_page_route(path)
-	if route:
-		return route
+	"""Returns the page route object based on searching in pages and generators.
+	The `www` folder is also a part of generator **Web Page**.
 
-	return get_generator_route(path)
+	The only exceptions are `/about` and `/contact` these will be searched in Web Pages
+	first before checking the standard pages."""
+	if path not in ("about", "contact"):
+		route = get_page_route(path)
+		if route: return route
+		return get_generator_route(path)
+	else:
+		route = get_generator_route(path)
+		if route: return route
+		return get_page_route(path)
 
 def get_page_route(path):
 	found = filter(lambda p: p.page_name==path, get_pages())

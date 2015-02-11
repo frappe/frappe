@@ -3,10 +3,6 @@
     border-right: 1px solid #f2f2f2;
   }
 }
-/*h1, h2, h3, h4, h5 {
-	font-weight: bold;
-}
-*/
 a {
   cursor: pointer;
 }
@@ -32,6 +28,18 @@ img {
   width: 112px;
   font-size: 32px;
   color: #888;
+}
+.no-border {
+  border: none !important;
+}
+.light-bg {
+  background-color: #fafbfc;
+}
+.panel-bg {
+  background-color: #f7fafc;
+}
+.navbar-bg {
+  background-color: #f5f7fa;
 }
 .social-icons i {
   font-size: 120%;

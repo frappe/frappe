@@ -28,7 +28,7 @@ def make_boilerplate(dest, app_name):
 
 		hooks[hook_key] = hook_val
 
-	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, hooks.app_title),
+	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, frappe.scrub(hooks.app_title)),
 		with_init=True)
 	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "templates"), with_init=True)
 	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "www"))
@@ -36,6 +36,8 @@ def make_boilerplate(dest, app_name):
 		"pages"), with_init=True)
 	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "templates",
 		"generators"), with_init=True)
+	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "templates",
+		"includes"))
 	frappe.create_folder(os.path.join(dest, hooks.app_name, hooks.app_name, "config"), with_init=True)
 
 	touch_file(os.path.join(dest, hooks.app_name, hooks.app_name, "__init__.py"))

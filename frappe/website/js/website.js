@@ -416,10 +416,12 @@ $.extend(frappe, {
 		// to show full content width, when no sidebar content
 		var sidebar_content = $("[data-html-block='sidebar']").html(),
 			sidebar_has_content = sidebar_content ? !!sidebar_content.trim() : false;
-		$(".page-sidebar, .toggle-sidebar").toggleClass("hidden", !sidebar_has_content);
+
+		$(".page-sidebar, .toggle-sidebar").toggleClass("hide", !sidebar_has_content);
 		$(".page-sidebar").toggleClass("col-sm-push-9", sidebar_has_content);
 		$(".page-content").toggleClass("col-sm-12", !sidebar_has_content);
 		$(".page-content").toggleClass("col-sm-9 col-sm-pull-3", sidebar_has_content);
+		$(".page-content").toggleClass("no-border", !sidebar_has_content);
 
 		// if everything in the sub-header is hidden, hide the sub-header
 		// var hide_sub_header = $(".page-sub-header .row").children().length === $(".page-sub-header .row").find(".hidden").length;

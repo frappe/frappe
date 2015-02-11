@@ -36,6 +36,10 @@ def parse_date(date):
 	"""tries to parse given date to system's format i.e. yyyy-mm-dd. returns a string"""
 	parsed_date = None
 
+	if " " in date:
+		# as date-timestamp, remove the time part
+		date = date.split(" ")[0]
+
 	# why the sorting? checking should be done in a predictable order
 	check_formats = [None] + sorted(dateformats.keys(),
 		reverse=not get_user_date_format().startswith("dd"))

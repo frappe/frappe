@@ -13,14 +13,14 @@
 {% if login_required and frappe.user=="Guest" %}
 	<div class="alert alert-warning">You must <a href="/login?redirect-to={{ pathname }}">login</a> to comment.</div>
 {% else %}
-	<div><button class="btn btn-default add-comment">Add Comment</button></div>
+	<div><a class="add-comment">Add Comment</a></div>
 	<div style="display: none; margin-top: 10px; max-width: 400px;"
 		id="comment-form">
 		<div class="alert" style="display:none;"></div>
 		<form>
 			<fieldset>
 				<input class="form-control" name="comment_by_fullname" placeholder="Your Name"
-					type="text" {% if login_required %}disabled{% endif %}><br>
+					type="text" {% if login_required %}disabled{% endif %}><br><br>
 				<input class="form-control" name="comment_by"
 					placeholder="Your Email Id" type="email" {% if login_required %}disabled{% endif %}><br>
 				<textarea class="form-control" name="comment" rows=10
