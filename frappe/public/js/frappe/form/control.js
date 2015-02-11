@@ -264,6 +264,18 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 			}
 		});
 	},
+	bind_focusout: function() {
+		// on touchscreen devices, scroll to top
+		// so that static navbar and page head don't overlap the input
+		if (frappe.dom.is_touchscreen()) {
+			var me = this;
+			this.$input && this.$input.on("focusout", function() {
+				if (frappe.dom.is_touchscreen()) {
+					frappe.ui.scroll(me.$wrapper);
+				}
+			});
+		}
+	},
 	set_label: function(label) {
 		if(label) this.df.label = label;
 
@@ -312,6 +324,7 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 		this.input = this.$input.get(0);
 		this.has_input = true;
 		this.bind_change_event();
+		this.bind_focusout();
 	},
 	set_input_attributes: function() {
 		this.$input

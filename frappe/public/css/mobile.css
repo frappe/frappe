@@ -113,8 +113,7 @@
   .doclist-row .list-row-indicator {
     position: absolute;
     right: 0px;
-    margin-top: 2px;
-    top: -19px;
+    top: -20px;
   }
   .doclist-row .list-row-modified {
     margin-right: -10px;
@@ -144,15 +143,19 @@
     text-align: center;
   }
   #page-messages .layout-side-section {
-    float: left;
-    padding-left: 0px;
+    position: relative;
+    left: 0px;
     border-right: 1px solid #d1d8dd;
+    padding-left: 0px;
+    float: left;
+    width: 76px;
   }
   #page-messages .layout-main-section-wrapper {
     position: absolute;
-    left: 74px;
+    left: 75px;
     right: 0px;
     border-left: 1px solid #d1d8dd;
+    float: left;
   }
   #page-messages .module-sidebar-item {
     margin: 0px;
@@ -178,6 +181,9 @@
   }
   .grid-row-open {
     top: 0;
+  }
+  .layout-main {
+    position: relative;
   }
   body[data-route^="Form"] .page-title h1 {
     margin-top: 14px;

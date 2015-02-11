@@ -154,8 +154,7 @@
 		.list-row-indicator {
 			position: absolute;
 			right: 0px;
-			margin-top: 2px;
-			top: -19px;
+			top: -20px;
 		}
 
 		.list-row-modified {
@@ -190,16 +189,22 @@
 
 	#page-messages {
 		.layout-side-section {
-			float: left;
-			padding-left: 0px;
+			position: relative;
+			left: 0px;
 			border-right: 1px solid @border-color;
+			padding-left: 0px;
+			float: left;
+
+			// hack! to prevent overlap of borders
+			width: 76px;
 		}
 
 		.layout-main-section-wrapper {
 			position: absolute;
-			left: 74px;
+			left: 75px;
 			right: 0px;
 			border-left: 1px solid @border-color;
+			float: left;
 		}
 
 		.module-sidebar-item {
@@ -233,6 +238,10 @@
 
 	.grid-row-open {
 		top: 0;
+	}
+
+	.layout-main {
+		position: relative;
 	}
 
 	body[data-route^="Form"] {

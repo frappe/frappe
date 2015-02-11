@@ -75,6 +75,14 @@ frappe.desk.pages.messages = Class.extend({
 
 		this.page.main.html($(frappe.render_template("messages_main", { "contact": contact })));
 
+		this.page.main.find(".messages-textarea").on("focusout", function() {
+			// on touchscreen devices, scroll to top
+			// so that static navbar and page head don't overlap the textarea
+			if (frappe.dom.is_touchscreen()) {
+				frappe.ui.scroll($(this).parents(".message-box"));
+			}
+		});
+
 		this.page.main.find(".btn-post").on("click", function() {
 			var btn = $(this);
 			var message_box = btn.parents(".message-box");

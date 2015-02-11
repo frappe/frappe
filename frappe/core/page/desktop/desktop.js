@@ -116,7 +116,7 @@ $.extend(frappe.desktop, {
 	},
 
 	make_sortable: function() {
-		if ('ontouchstart' in window) {
+		if (frappe.dom.is_touchscreen()) {
 			return;
 		}
 

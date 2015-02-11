@@ -32,9 +32,7 @@ frappe.ui.form.Sidebar = Class.extend({
 		// scroll to comments
 		this.comments.on("click", function() {
 			$(".offcanvas").removeClass("active-left active-right");
-
-			$(window).scrollTop(me.frm.footer.wrapper.find(".form-comments").offset().top
-				- $(".navbar").height() - $(".page-head").height());
+			frappe.ui.scroll(me.frm.footer.wrapper.find(".form-comments"));
 		});
 	},
 

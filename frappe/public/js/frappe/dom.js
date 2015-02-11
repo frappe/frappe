@@ -112,6 +112,9 @@ frappe.dom = {
 				savedSel.select();
 			}
 		}
+	},
+	is_touchscreen: function() {
+		return ('ontouchstart' in window)
 	}
 }
 

@@ -337,3 +337,9 @@ frappe.ui.Page = Class.extend({
 		this.views[name].toggle(true);
 	}
 });
+
+frappe.ui.scroll = function(element) {
+	var header_offset = $(".navbar").height() + $(".page-head").height();
+	console.log($(element).offset().top - header_offset);
+	$(window).scrollTop($(element).offset().top - header_offset);
+};
