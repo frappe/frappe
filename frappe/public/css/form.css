@@ -124,3 +124,7 @@
 .linked-with-dialog .form-section {
   padding-top: 15px;
 }
+.attach-missing-image,
+.attach-image-display {
+  cursor: pointer;
+}
