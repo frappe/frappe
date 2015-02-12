@@ -417,10 +417,19 @@ $.extend(frappe, {
 		var sidebar_content = $("[data-html-block='sidebar']").html(),
 			sidebar_has_content = sidebar_content ? !!sidebar_content.trim() : false;
 
+		// hide sidebar if no content
 		$(".page-sidebar, .toggle-sidebar").toggleClass("hide", !sidebar_has_content);
-		$(".page-sidebar").toggleClass("col-sm-push-9", sidebar_has_content);
+
+		// push sidebar to the right if there is content
+		$(".page-sidebar").toggleClass("col-sm-push-" + frappe.page_cols, sidebar_has_content);
+
+		// make page content wide if no sidebar
 		$(".page-content").toggleClass("col-sm-12", !sidebar_has_content);
-		$(".page-content").toggleClass("col-sm-9 col-sm-pull-3", sidebar_has_content);
+
+		// narrow page content if sidebar
+		$(".page-content").toggleClass("col-sm-"+frappe.page_cols+" col-sm-pull-"+frappe.sidebar_cols, sidebar_has_content);
+
+		// no borders if no sidebars
 		$(".page-content").toggleClass("no-border", !sidebar_has_content);
 
 		// if everything in the sub-header is hidden, hide the sub-header
@@ -582,6 +591,8 @@ $(document).ready(function() {
 $(document).on("page-change", function() {
 	$(document).trigger("apply_permissions");
 	frappe.datetime.refresh_when();
+	frappe.sidebar_cols = $(".page-sidebar").hasClass("col-sm-3") ? 3 : 2;
+	frappe.page_cols = 12 - frappe.sidebar_cols;
 	frappe.toggle_template_blocks();
 	frappe.trigger_ready();
 	frappe.bind_filters();

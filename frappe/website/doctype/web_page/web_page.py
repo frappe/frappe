@@ -35,6 +35,10 @@ class WebPage(WebsiteGenerator):
 		if self.enable_comments:
 			context.comment_list = get_comment_list(self.doctype, self.name)
 
+		# for sidebar and breadcrumbs
+		context.children = self.get_children()
+		context.parents = self.get_parents(context)
+
 		if self.template_path:
 			# render dynamic context (if .py file exists)
 			context = self.get_dynamic_context(frappe._dict(context))
@@ -51,10 +55,6 @@ class WebPage(WebsiteGenerator):
 
 		# if not context.header:
 		# 	context.header = self.title
-
-		# for sidebar
-		if not context.children:
-			context.children = self.get_children()
 
 		return context
 

@@ -46,7 +46,7 @@ def get_blog_list(start=0, by=None, category=None):
 
 	for post in posts:
 		post.published = global_date_format(post.creation)
-		post.content = re.sub('\<[/]?p\>', '', post.content[:140])
+		post.content = re.sub('\<[^>]*\>', '', post.content[:140])
 		if not post.comments:
 			post.comment_text = _('No comments yet')
 		elif post.comments==1:
