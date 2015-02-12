@@ -103,30 +103,53 @@ frappe.ui.Page = Class.extend({
 		return '<i class="visible-xs ' + icon + '"></i><span class="hidden-xs">' + label + '</span>'
 	},
 
-	set_primary_action: function(label, click, icon) {
-		if (icon) {
-			label = this.get_icon_label(icon, label);
+	set_action: function(btn, opts) {
+		if (opts.icon) {
+			opts.label = this.get_icon_label(opts.icon, opts.label);
 		}
 
-		this.clear_primary_action();
-		this.btn_primary.removeClass("hide").prop("disabled", false).html(label).on("click", click);
+		this.clear_action_of(btn);
+
+		btn.removeClass("hide").prop("disabled", false).html(opts.label).on("click", opts.click);
+
+		if (opts.working_label) {
+			btn.attr("data-working-label", opts.working_label);
+		}
 	},
 
-	set_secondary_action: function(label, click, icon) {
-		if (icon) {
-			label = this.get_icon_label(icon, label);
-		}
+	set_primary_action: function(label, click, icon, working_label) {
+		this.set_action(this.btn_primary, {
+			label: label,
+			click: click,
+			icon: icon,
+			working_label: working_label
+		});
+	},
 
-		this.btn_secondary.removeClass("hide").prop("disabled", false).html(label).on("click", click);
+	set_secondary_action: function(label, click, icon, working_label) {
+		this.set_action(this.btn_secondary, {
+			label: label,
+			click: click,
+			icon: icon,
+			working_label: working_label
+		});
+	},
+
+	clear_action_of: function(btn) {
+		btn.addClass("hide").unbind("click").removeAttr("data-working-label");
 	},
 
 	clear_primary_action: function() {
-		this.btn_primary.addClass("hide").unbind("click");
+		this.clear_action_of(this.btn_primary);
+	},
+
+	clear_secondary_action: function() {
+		this.clear_action_of(this.btn_secondary);
 	},
 
 	clear_actions: function() {
-		this.btn_primary.addClass("hide").unbind("click");
-		this.btn_secondary.addClass("hide").unbind("click");
+		this.clear_primary_action();
+		this.clear_secondary_action();
 	},
 
 	clear_icons: function() {

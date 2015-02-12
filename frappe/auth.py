@@ -22,10 +22,11 @@ class HTTPRequest:
 		if self.domain and self.domain.startswith('www.'):
 			self.domain = self.domain[4:]
 
-		frappe.local.request_ip = frappe.get_request_header('REMOTE_ADDR') \
-				or frappe.get_request_header('X-Forwarded-For') or '127.0.0.1'
+		frappe.local.request_ip = (frappe.request.remote_addr
+				or frappe.get_request_header('X-Forwarded-For') or '127.0.0.1')
+
 		# language
-		self.set_lang(frappe.get_request_header('HTTP_ACCEPT_LANGUAGE'))
+		self.set_lang(frappe.request.accept_languages.values())
 
 		# load cookies
 		frappe.local.cookie_manager = CookieManager()
@@ -63,9 +64,9 @@ class HTTPRequest:
 			clear_sessions(frappe.session.user, keep_current=True)
 
 
-	def set_lang(self, lang):
-		from frappe.translate import guess_language_from_http_header
-		frappe.local.lang = guess_language_from_http_header(lang)
+	def set_lang(self, lang_codes):
+		from frappe.translate import guess_language
+		frappe.local.lang = guess_language(lang_codes)
 
 	def setup_user(self):
 		frappe.local.user = frappe.utils.user.User()

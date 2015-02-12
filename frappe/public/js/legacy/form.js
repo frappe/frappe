@@ -202,16 +202,17 @@ _f.Frm.prototype.watch_model_updates = function() {
 	})
 
 	// on table fields
-	$.each(frappe.get_children("DocType", me.doctype, "fields", {fieldtype:"Table"}), function(i, df) {
+	var table_fields = frappe.get_children("DocType", me.doctype, "fields", {fieldtype:"Table"});
+	for (var i=0, l=table_fields.length; i < l; i++) {
+		var df = table_fields[i];
 		frappe.model.on(df.options, "*", function(fieldname, value, doc) {
 			if(doc.parent===me.docname && doc.parentfield===df.fieldname) {
 				me.dirty();
 				me.fields_dict[df.fieldname].grid.set_value(fieldname, value, doc);
 				me.script_manager.trigger(fieldname, doc.doctype, doc.name);
 			}
-		})
-	})
-
+		});
+	}
 }
 
 _f.Frm.prototype.onhide = function() {

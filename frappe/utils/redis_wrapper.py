@@ -64,6 +64,7 @@ class RedisWrapper(redis.Redis):
 		for key in keys:
 			if make_keys:
 				key = self.make_key(key)
+
 			self.delete(key)
 			if key in frappe.local.cache:
 				del frappe.local.cache[key]

@@ -14,22 +14,15 @@ import frappe, os, re, codecs, json
 from frappe.utils.jinja import render_include
 from jinja2 import TemplateError
 
-def guess_language_from_http_header(lang):
+def guess_language(lang_codes):
 	"""Set `frappe.local.lang` from HTTP headers at beginning of request"""
-	if not lang:
+	if not lang_codes:
 		return frappe.local.lang
 
 	guess = None
 	lang_list = get_all_languages() or []
 
-	if ";" in lang: # not considering weightage
-		lang = lang.split(";")[0]
-	if "," in lang:
-		lang = lang.split(",")
-	else:
-		lang = [lang]
-
-	for l in lang:
+	for l in lang_codes:
 		code = l.strip()
 		if code in lang_list:
 			guess = code
@@ -80,6 +73,9 @@ def get_lang_dict():
 	"""Returns all languages in dict format, full name is the key e.g. `{"english":"en"}`"""
 	return dict([[a[1], a[0]] for a in [a.split(None, 1) for a in get_lang_info()]])
 
+def get_language_from_code(lang):
+	return dict(a.split(None, 1) for a in get_lang_info()).get(lang)
+
 def get_lang_info():
 	"""Returns a listified version of `apps/languages.txt`"""
 	return frappe.cache().get_value("langinfo",
@@ -115,9 +111,22 @@ def get_dict(fortype, name=None):
 			messages += frappe.db.sql_list("select name from `tabModule Def`")
 
 		translation_assets[asset_key] = make_dict_from_messages(messages)
+		translation_assets[asset_key].update(get_dict_from_hooks(fortype, name))
+
 		cache.set_value(cache_key, translation_assets)
 
 	return translation_assets[asset_key]
+
+def get_dict_from_hooks(fortype, name):
+	translated_dict = {}
+
+	hooks = frappe.get_hooks("get_translated_dict")
+	for (hook_fortype, fortype_name) in hooks:
+		if hook_fortype == fortype and fortype_name == name:
+			for method in hooks[(hook_fortype, fortype_name)]:
+				translated_dict.update(frappe.get_attr(method)())
+
+	return translated_dict
 
 def add_lang_dict(code):
 	"""Extracts messages and returns Javascript code snippet to be appened at the end
@@ -264,15 +273,14 @@ def get_messages_from_report(name):
 def _get_messages_from_page_or_report(doctype, name, module=None):
 	if not module:
 		module = frappe.db.get_value(doctype, name, "module")
-	doc_path = frappe.get_module_path(module, doctype, name)
-	messages = get_messages_from_file(doc_path + name + ".js")
-	messages += get_messages_from_file(doc_path + name + ".html")
-	messages += get_messages_from_file(doc_path + name +".py")
 
-	if doctype=="Page":
-		for fname in os.listdir(doc_path):
-			if fname.endswith(".html"):
-				messages += get_messages_from_file(doc_path + fname)
+	doc_path = frappe.get_module_path(module, doctype, name)
+
+	messages = get_messages_from_file(os.path.join(doc_path, name +".py"))
+
+	for filename in os.listdir(doc_path):
+		if filename.endswith(".js") or filename.endswith(".html"):
+			messages += get_messages_from_file(os.path.join(doc_path, filename))
 
 	return clean(messages)
 
@@ -324,6 +332,7 @@ def extract_messages_from_code(code, is_py=False):
 	messages += re.findall("_\('([^']*)'", code)
 	if is_py:
 		messages += re.findall('_\("{3}([^"]*)"{3}.*\)', code, re.S)
+
 	return clean(messages)
 
 def clean(messages):

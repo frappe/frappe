@@ -745,13 +745,13 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 frappe.ui.form.ControlAttachImage = frappe.ui.form.ControlAttach.extend({
 	make_input: function() {
 		this._super();
-		this.img = $("<img class='img-responsive'>").appendTo($('<div style="margin: 7px 0px;">\
+		this.img = $("<img class='img-responsive attach-image-display'>").appendTo($('<div style="margin: 7px 0px;">\
 			<div class="missing-image"><i class="octicon octicon-circle-slash"></i></div></div>')
 			.prependTo(this.input_area)).toggle(false);
 
 		var me = this;
 		this.$wrapper.on("refresh", function() {
-			if(me.value) {
+			if(me.get_value()) {
 				$(me.input_area).find(".missing-image").toggle(false);
 				me.img.attr("src", me.dataurl ? me.dataurl : me.value).toggle(true);
 			} else {

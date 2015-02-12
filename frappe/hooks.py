@@ -96,3 +96,7 @@ scheduler_events = {
 }
 
 default_background = "/assets/frappe/images/ui/into-the-dawn.jpg"
+
+get_translated_dict = {
+	("doctype", "System Settings"): "frappe.geo.country_info.get_translated_dict"
+}

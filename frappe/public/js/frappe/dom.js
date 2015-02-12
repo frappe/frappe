@@ -59,7 +59,7 @@ frappe.dom = {
 		};
 		return ele;
 	},
-	freeze: function() {
+	freeze: function(msg) {
 		// blur
 		if(!$('#freeze').length) {
 			var freeze = $('<div id="freeze" class="modal-backdrop fade"></div>')
@@ -70,6 +70,11 @@ frappe.dom = {
 					}
 				})
 				.appendTo("#body_div");
+
+			if (msg) {
+				freeze.html(repl('<div class="freeze-message-container"><div class="freeze-message">%(msg)s</div></div>',
+					{msg: msg}));
+			}
 
 			setTimeout(function() { freeze.addClass("in") }, 1);
 		}

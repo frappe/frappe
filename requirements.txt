@@ -7,7 +7,8 @@ jinja2
 markdown2
 markupsafe
 mysql-python==1.2.5
-pygeoip
+python-geoip
+python-geoip-geolite2
 python-dateutil
 pytz
 six

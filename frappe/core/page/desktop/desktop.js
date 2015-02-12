@@ -195,15 +195,18 @@ $.extend(frappe.desktop, {
 		}
 
 		var modules_list = frappe.user.get_desktop_items();
-		$.each(modules_list, function(i, module) {
+		for (var i=0, l=modules_list.length; i < l; i++) {
+			var module = modules_list[i];
+
 			var module_doctypes = frappe.boot.notification_info.module_doctypes[module];
 
 			var sum = 0;
 			if(module_doctypes) {
 				if(frappe.boot.notification_info.open_count_doctype) {
-					$.each(module_doctypes, function(j, doctype) {
+					for (var j=0, k=module_doctypes.length; j < k; j++) {
+						var doctype = module_doctypes[j];
 						sum += (frappe.boot.notification_info.open_count_doctype[doctype] || 0);
-					});
+					}
 				}
 			} else if(frappe.boot.notification_info.open_count_module
 				&& frappe.boot.notification_info.open_count_module[module]!=null) {
@@ -216,6 +219,6 @@ $.extend(frappe.desktop, {
 					notifier.find(".circle-text").html(sum || "");
 				}
 			}
-		});
+		}
 	}
 });
