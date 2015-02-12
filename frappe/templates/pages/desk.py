@@ -24,7 +24,7 @@ def get_context(context):
 
 	return {
 		"build_version": str(os.path.getmtime(os.path.join(frappe.local.sites_path, "assets", "js",
-			"frappe.min.js"))),
+			"desk.min.js"))),
 		"include_js": hooks["app_include_js"],
 		"include_css": hooks["app_include_css"],
 		"boot": json.dumps(boot, default=json_handler, indent=1, sort_keys=True),

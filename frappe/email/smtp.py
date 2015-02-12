@@ -132,7 +132,7 @@ class SMTPServer:
 				self._sess.starttls()
 				self._sess.ehlo()
 
-			if self.login:
+			if self.login and self.password:
 				ret = self._sess.login((self.login or "").encode('utf-8'),
 					(self.password or "").encode('utf-8'))
 

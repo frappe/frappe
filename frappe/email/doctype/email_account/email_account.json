@@ -201,7 +201,7 @@
    "precision": ""
   }, 
   {
-   "default": "1", 
+   "default": "", 
    "description": "SMTP Settings for outgoing emails", 
    "fieldname": "enable_outgoing", 
    "fieldtype": "Check", 
@@ -372,7 +372,7 @@
  "is_submittable": 0, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-02-05 05:11:37.814033", 
+ "modified": "2015-02-12 15:08:21.179683", 
  "modified_by": "Administrator", 
  "module": "Email", 
  "name": "Email Account", 
