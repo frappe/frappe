@@ -10,7 +10,7 @@ class FrappeException(Exception):
 
 class FrappeClient(object):
 	def __init__(self, url, username, password):
-		self.session = requests.Session()
+		self.session = requests.session()
 		self.url = url
 		self.login(username, password)
 
@@ -47,6 +47,7 @@ class FrappeClient(object):
 		if limit_page_length:
 			params["limit_start"] = limit_start
 			params["limit_page_length"] = limit_page_length
+		print self.url
 		res = self.session.get(self.url + "/api/resource/" + doctype, params=params)
 		return self.post_process(res)
 
