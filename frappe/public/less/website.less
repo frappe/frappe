@@ -179,6 +179,10 @@ img {
 	display: inline-block;
 }
 
+.border-bottom {
+	border-bottom: 1px solid @border-color;
+}
+
 .navbar {
 	box-shadow: none;
 	border-radius: 0px;
@@ -267,16 +271,28 @@ fieldset {
 .page-content {
 	padding-bottom: 30px;
 }
+div[data-html-block="content"] {
+	padding-right: 15px;
+}
+.page-content hr {
+	margin-left: -15px;
+	margin-right: -30px;
+}
 
-.sidebar-item {
-	/*background-color: #f7f7f7;*/
+.page-content {
+	border-right: 1px solid @border-color;
+}
+.page-sidebar {
 	border-left: 1px solid @border-color;
-	margin-left: -30px;
-	padding: 5px 15px;
+	padding-left: 15px;
+}
+.sidebar-item {
+	margin: 0px;
+	padding: 5px 0px;
+	border: none;
 	color: @text-muted;
 	font-size: 12px;
 }
-
 .sidebar-item:first-child {
 	padding-top: 10px;
 }
@@ -410,12 +426,6 @@ a.active {
 
 .breadcrumb > .active {
 	color: @text-muted;
-}
-
-@media (min-width: 768px) {
-	.page-sidebar {
-		padding-left: 3em;
-	}
 }
 
 @media (max-width: 767px) {

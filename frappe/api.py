@@ -11,19 +11,26 @@ from frappe import _
 
 def handle():
 	"""
-	/api/method/{methodname} will call a whitelisted method
-	/api/resource/{doctype} will query a table
+	Handler for `/api` methods
+
+	### Examples:
+
+	`/api/method/{methodname}` will call a whitelisted method
+
+	`/api/resource/{doctype}` will query a table
 		examples:
-			?fields=["name", "owner"]
-			?filters=[["Task", "name", "like", "%005"]]
-			?limit_start=0
-			?limit_page_length=20
-	/api/resource/{doctype}/{name} will point to a resource
-		GET will return doclist
-		POST will insert
-		PUT will update
-		DELETE will delete
-	/api/resource/{doctype}/{name}?run_method={method} will run a whitelisted controller method
+		- `?fields=["name", "owner"]`
+		- `?filters=[["Task", "name", "like", "%005"]]`
+		- `?limit_start=0`
+		- `?limit_page_length=20`
+
+	`/api/resource/{doctype}/{name}` will point to a resource
+		`GET` will return doclist
+		`POST` will insert
+		`PUT` will update
+		`DELETE` will delete
+
+	`/api/resource/{doctype}/{name}?run_method={method}` will run a whitelisted controller method
 	"""
 	parts = frappe.request.path[1:].split("/",3)
 	call = doctype = name = None

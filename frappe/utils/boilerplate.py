@@ -64,7 +64,9 @@ def make_boilerplate(dest, app_name):
 	with open(os.path.join(dest, hooks.app_name, "requirements.txt"), "w") as f:
 		f.write("frappe")
 
-	touch_file(os.path.join(dest, hooks.app_name, "README.md"))
+	with open(os.path.join(dest, hooks.app_name, "README.md"), "w") as f:
+		f.write("## {0}\n\n{1}\n\n#### License\n\n{2}".format(hooks.app_title,
+			hooks.app_description, hooks.app_license))
 
 	with open(os.path.join(dest, hooks.app_name, "license.txt"), "w") as f:
 		f.write("License: " + hooks.app_license)

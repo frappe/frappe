@@ -22,8 +22,8 @@ def get_jenv():
 def get_template(path):
 	return get_jenv().get_template(path)
 
-def render_template(template, context):
-	if template.startswith("templates/"):
+def render_template(template, context, is_path=None):
+	if is_path or template.startswith("templates/"):
 		return get_jenv().get_template(template).render(context)
 	else:
 		return get_jenv().from_string(template).render(context)

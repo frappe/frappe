@@ -1,121 +1,137 @@
-"""Automatically setup docs for a project"""
+"""Automatically setup docs for a project
 
-import os, json
+Call from command line:
 
-models_base_path = "apps/frappe_io/frappe_io/www/docs/models"
-api_base_path = "apps/frappe_io/frappe_io/www/docs/api"
-app_path = "apps/frappe/frappe"
-app_name = "frappe"
+	bench frappe --setup_docs app docs_app path
 
-def make_docs():
-	"""Generate source templates for models reference and module API.
+"""
 
-	Must set globals `models_base_path`, `api_base_path` and `app_path`.
-	"""
-	for basepath, folders, files in os.walk(app_path):
-		if "doctype" in folders and not "doctype" in basepath:
-			module = os.path.basename(basepath)
+import os, json, frappe
 
-			module_folder = os.path.join(models_base_path, module)
+class setup_docs(object):
+	def __init__(self, app, docs_app, path):
+		"""Generate source templates for models reference and module API.
 
-			make_folder(module_folder)
-			update_index_txt(module_folder)
+		Must set globals `self.models_base_path`, `self.api_base_path` and `self.app_path`.
+		"""
+		self.app = app
+		self.app_path = frappe.get_app_path(app)
+		if path[0]=="/": path = path[1:]
+		path = frappe.get_app_path(docs_app, path)
+		self.models_base_path = os.path.join(path, "models")
+		self.api_base_path = os.path.join(path, "api")
 
-		if "doctype" in basepath:
-			parts = basepath.split("/")
-			#print parts
-			module, doctype = parts[-3], parts[-1]
+		for basepath, folders, files in os.walk(self.app_path):
+			if "doctype" not in basepath:
+				if "doctype" in folders:
+					module = os.path.basename(basepath)
 
-			if doctype not in ("doctype", "boilerplate"):
-				write_model_file(basepath, module, doctype)
+					module_folder = os.path.join(self.models_base_path, module)
 
-		elif is_py_module(basepath, folders, files):
-			write_modules(basepath, folders, files)
+					self.make_folder(module_folder)
+					self.update_index_txt(module_folder)
 
-def is_py_module(basepath, folders, files):
-	return "__init__.py" in files \
-		and (not "/doctype" in basepath) \
-		and (not "/patches" in basepath) \
-		and (not "/report" in basepath) \
-		and (not "/page" in basepath) \
-		and (not "/templates" in basepath) \
-		and (not "/tests" in basepath) \
-		and (not "doctype" in folders)
+			if "doctype" in basepath:
+				parts = basepath.split("/")
+				#print parts
+				module, doctype = parts[-3], parts[-1]
 
-def write_modules(basepath, folders, files):
-	module_folder = os.path.join(api_base_path, os.path.relpath(basepath, app_path))
-	make_folder(module_folder)
+				if doctype not in ("doctype", "boilerplate"):
+					self.write_model_file(basepath, module, doctype)
 
-	for f in files:
-		if f.endswith(".py"):
-			module_name = os.path.relpath(os.path.join(basepath, f),
-				app_path)[:-3].replace("/", ".").replace(".__init__", "")
+			elif self.is_py_module(basepath, folders, files):
+				self.write_modules(basepath, folders, files)
 
-			module_doc_path = os.path.join(module_folder,
-				app_name + "." + module_name + ".md")
+	def is_py_module(self, basepath, folders, files):
+		return "__init__.py" in files \
+			and (not "/doctype" in basepath) \
+			and (not "/patches" in basepath) \
+			and (not "/change_log" in basepath) \
+			and (not "/report" in basepath) \
+			and (not "/page" in basepath) \
+			and (not "/templates" in basepath) \
+			and (not "/tests" in basepath) \
+			and (not "doctype" in folders)
 
-			make_folder(basepath)
+	def write_modules(self, basepath, folders, files):
+		module_folder = os.path.join(self.api_base_path, os.path.relpath(basepath, self.app_path))
+		self.make_folder(module_folder)
 
-			if not os.path.exists(module_doc_path):
-				print "Writing " + module_doc_path
-				with open(module_doc_path, "w") as f:
-					f.write("""# %s
+		for f in files:
+			if f.endswith(".py"):
+				module_name = os.path.relpath(os.path.join(basepath, f),
+					self.app_path)[:-3].replace("/", ".").replace(".__init__", "")
 
-{%%- from "templates/autodoc/macros.html" import automodule -%%}
+				module_doc_path = os.path.join(module_folder,
+					self.app + "." + module_name + ".html")
 
-{{ automodule("%s") }}""" % (app_name + "." + module_name, app_name + "." + module_name))
+				self.make_folder(basepath)
 
-	update_index_txt(module_folder)
+				if not os.path.exists(module_doc_path):
+					print "Writing " + module_doc_path
+					with open(module_doc_path, "w") as f:
+						f.write("""<h1>%(name)s</h1>
 
-def make_folder(path):
-	if not os.path.exists(path):
-		os.makedirs(path)
+	<!-- title: %(name)s -->
+	{%%- from "templates/autodoc/macros.html" import automodule -%%}
 
-	index_txt_path = os.path.join(path, "index.txt")
-	if not os.path.exists(index_txt_path):
-		print "Writing " + index_txt_path
-		with open(index_txt_path, "w") as f:
-			f.write("")
+	{{ automodule("%(name)s") }}""" % {"name": self.app + "." + module_name})
 
-	index_md_path = os.path.join(path, "index.md")
-	if not os.path.exists(index_md_path):
-		print "Writing " + index_md_path
-		with open(index_md_path, "w") as f:
-			f.write("# {0}\n\n{{index}}".format(os.path.basename(path).title()))
+		self.update_index_txt(module_folder)
 
-def update_index_txt(path):
-	index_txt_path = os.path.join(path, "index.txt")
-	pages = filter(lambda d: d.endswith(".md") and d!="index.md", os.listdir(path))
-	pages = [d[:-3] for d in pages]
+	def make_folder(self, path):
+		if not os.path.exists(path):
+			os.makedirs(path)
 
-	with open(index_txt_path, "r") as f:
-		index_parts = filter(None, f.read().splitlines())
+		index_txt_path = os.path.join(path, "index.txt")
+		if not os.path.exists(index_txt_path):
+			print "Writing " + index_txt_path
+			with open(index_txt_path, "w") as f:
+				f.write("")
 
-	if not set(pages).issubset(set(index_parts)):
-		print "Updating " + index_txt_path
-		with open(index_txt_path, "w") as f:
-			f.write("\n".join(pages))
+		index_md_path = os.path.join(path, "index.html")
+		if not os.path.exists(index_md_path):
+			name = os.path.basename(path)
+			if name==".":
+				name = self.app
+			print "Writing " + index_md_path
+			with open(index_md_path, "w") as f:
+				f.write("""<h1>{0}</h1>
+<!-- title: {0} -->
+{{index}}""".format(name))
 
-def write_model_file(basepath, doctype, module):
-	model_path = os.path.join(models_base_path, module, doctype + ".md")
+	def update_index_txt(self, path):
+		index_txt_path = os.path.join(path, "index.txt")
+		pages = filter(lambda d: (d.endswith(".html") and d!="index.html") \
+			or os.path.isdir(os.path.join(path, d)), os.listdir(path))
+		pages = [d.rsplit(".", 1)[0] for d in pages]
 
-	if not os.path.exists(model_path):
-		model_json_path = os.path.join(basepath, doctype + ".json")
-		if os.path.exists(model_json_path):
-			with open(model_json_path, "r") as j:
-				doctype_real_name = json.loads(j.read()).get("name")
+		with open(index_txt_path, "r") as f:
+			index_parts = filter(None, f.read().splitlines())
 
-			print "Writing " + model_path
+		if not set(pages).issubset(set(index_parts)):
+			print "Updating " + index_txt_path
+			with open(index_txt_path, "w") as f:
+				f.write("\n".join(pages))
 
-			with open(model_path, "w") as f:
-				f.write("""# %s
+	def write_model_file(self, basepath, module, doctype):
+		model_path = os.path.join(self.models_base_path, module, doctype + ".html")
 
-{%% from "templates/autodoc/doctype.html" import render_doctype %%}
+		if not os.path.exists(model_path):
+			model_json_path = os.path.join(basepath, doctype + ".json")
+			if os.path.exists(model_json_path):
+				with open(model_json_path, "r") as j:
+					doctype_real_name = json.loads(j.read()).get("name")
 
-{{ render_doctype("%s") }}
+				print "Writing " + model_path
 
-<!-- jinja --><!-- static -->
-""" % (doctype_real_name, doctype_real_name))
+				with open(model_path, "w") as f:
+					f.write("""<h1>%(doctype)s</h1>
 
-if __name__ == "__main__":
-	make_docs()
+	<!-- title: %(doctype)s -->
+	{%% from "templates/autodoc/doctype.html" import render_doctype %%}
+
+	{{ render_doctype("%(doctype)s") }}
+
+	<!-- jinja --><!-- static -->
+	""" % {"doctype": doctype_real_name})

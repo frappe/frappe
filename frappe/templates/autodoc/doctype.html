@@ -15,10 +15,10 @@
 
 <h3>Fields</h3>
 
-<table class="table table-bordered">
+<table class="table table-bordered" style="table-layout: fixed;">
     <thead>
         <tr>
-            <th style="width: 5%">Index</th>
+            <th style="width: 5%">Sr</th>
             <th style="width: 25%">Fieldname</th>
             <th style="width: 20%">Type</th>
             <th style="width: 25%">Label</th>
@@ -54,7 +54,7 @@
 
     {{ automodule(controller.__module__) }}
     {% set parents = frappe.get_list("DocField",
-        {"options": name, "fieldtype": "Link"}, ["parent"]) %}
+        {"options": name, "fieldtype": "Link"}, ["distinct parent"]) %}
     {% if parents %}
         <h4>Linked In:</h4>
         <ul>

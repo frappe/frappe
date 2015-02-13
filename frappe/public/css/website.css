@@ -153,6 +153,9 @@ img {
   text-overflow: ellipsis;
   display: inline-block;
 }
+.border-bottom {
+  border-bottom: 1px solid #d1d8dd;
+}
 .navbar {
   box-shadow: none;
   border-radius: 0px;
@@ -226,11 +229,24 @@ fieldset {
 .page-content {
   padding-bottom: 30px;
 }
-.sidebar-item {
-  /*background-color: #f7f7f7;*/
+div[data-html-block="content"] {
+  padding-right: 15px;
+}
+.page-content hr {
+  margin-left: -15px;
+  margin-right: -30px;
+}
+.page-content {
+  border-right: 1px solid #d1d8dd;
+}
+.page-sidebar {
   border-left: 1px solid #d1d8dd;
-  margin-left: -30px;
-  padding: 5px 15px;
+  padding-left: 15px;
+}
+.sidebar-item {
+  margin: 0px;
+  padding: 5px 0px;
+  border: none;
   color: #8d99a6;
   font-size: 12px;
 }
@@ -344,11 +360,6 @@ a.active {
 }
 .breadcrumb > .active {
   color: #8d99a6;
-}
-@media (min-width: 768px) {
-  .page-sidebar {
-    padding-left: 3em;
-  }
 }
 @media (max-width: 767px) {
   .page-sidebar {

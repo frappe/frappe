@@ -8,8 +8,50 @@ frappe.utils.autodoc
 Inspect elements of a given module and return its objects
 """
 
-import inspect, importlib, re, frappe
+import inspect, importlib, re, frappe, os, shutil
 from frappe.model.document import get_controller
+from markdown2 import markdown
+
+def build(app):
+	app_path = frappe.get_app_path(app)
+	source = frappe.get_app_path(app, "src")
+	dest = frappe.get_app_path(app, "www")
+	for basepath, folders, files in os.walk(source):
+		destpath = os.path.join(dest, os.path.relpath(basepath, source))
+
+		# make target dir if missing
+		if not os.path.exists(destpath):
+			os.makedirs(destpath)
+
+		# delete removed folders in source from dest
+		for destfolder in os.listdir(destpath):
+			if os.path.isdir(os.path.join(destpath, destfolder)):
+				if destfolder not in folders:
+					os.path.join(destpath, destfolder)
+					shutil.rmtree(os.path.join(destpath, destfolder))
+
+		for fname in files:
+			# delete file
+			if os.path.exists(os.path.join(destpath, fname)):
+				os.remove(os.path.join(destpath, fname))
+
+			print fname
+			if fname.rsplit(".", 1)[-1] in ("md", "html"):
+				# render template and build file
+				with open(os.path.join(destpath, fname.rsplit(".", 1)[0] + ".html"), "w") as destfile:
+					if fname.endswith(".md"):
+						# convert markdown to html before rendering
+						with open(os.path.join(basepath, fname), "r") as template_file:
+							template = markdown(template_file.read())
+						html = frappe.render_template(template, {}).encode("utf-8")
+						destfile.write(html)
+					else:
+						template_path = os.path.relpath(os.path.join(basepath, fname), app_path)
+						html = frappe.render_template(template_path, {}, is_path=True).encode("utf-8")
+						destfile.write(html)
+			else:
+				# not a template, copy
+				shutil.copyfile(os.path.join(basepath, fname), os.path.join(destpath, fname))
 
 def automodule(name):
 	"""Returns a list of attributes for given module string.
@@ -140,9 +182,10 @@ def automodel(doctype):
 
 def get_doclink(name):
 	"""Returns `__doclink__` property of a module or DocType if exists"""
+	if name=="[Select]": return ""
+
 	if "." in name:
 		obj = frappe.get_attr(name)
-
 	else:
 		obj = get_controller(name)
 
