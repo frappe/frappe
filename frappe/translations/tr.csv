@@ -49,14 +49,14 @@ Added {0} ({1}),Eklenen {0} ({1})
 Adding System Manager to this User as there must be atleast one System Manager,"En az bir Sistem Yöneticisi olması gerektiği gibi, bu üyeler için Sistem Yöneticisi ekleme"
 Additional Info,Ek Bilgiler
 Additional Permissions,Ek İzinler
-Address,Adres
+Address,İletişim
 Address Line 1,Adres Satırı 1
 Address Line 2,Adres Satırı 2
 Address Title,Adres Başlığı
 Address and other legal information you may want to put in the footer.,Adres ve diğer yasal bilgileri altbilgi kısmına koyabilirsiniz
 Admin,Yönetici
 All Applications,Tüm Uygulamalar
-All Day,Tüm Gün
+All Day,Bütün Gün
 All customizations will be removed. Please confirm.,Tüm özelleştirmeler silinecektir. Onaylayın.
 "All possible Workflow States and roles of the workflow. <br>Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""","Tüm olası Akışı Devletler ve iş akışının rolleri. <br> Docstatus Seçenekleri: 0 ""Kaydedildi"" olduğunu, 1 ""Ekleyen"" ve 2 ""iptal"" edildi"
 Allow Attach,Ek Eklemeye İzin ver
@@ -187,7 +187,7 @@ Closed,Kapalı
 Code,Kod
 Collapse,Çöküş
 Column Break,Sütun Arası
-Comment,Yorum
+Comment,Yorum yap
 Comment By,Yorum yapan
 Comment By Fullname,Comment By Fullname
 Comment Date,Yorum Tarihi
@@ -260,11 +260,11 @@ DefaultValue,VarsayılanDeğer
 Defaults,Standart Değerler
 "Define read, write, admin permissions for a Website Page.",", Okuma yazma tanımlayın, bir Web Sayfası için yönetici izinleri."
 Define workflows for forms.,Formlar için iş akışlarını tanımlayın.
-Delete,Silmek
+Delete,Sil
 Delete Row,Row Delete
 Depends On,Bağlıdır
 Descending,Azalan
-Description,Tanım
+Description,Açıklama
 Description and Status,Açıklama ve Durum
 "Description for listing page, in plain text, only a couple of lines. (max 140 characters)","Düz metin olarak ilan sayfası Açıklama, çizgilerin sadece bir çift. (Maksimum 140 karakter)"
 Description for page header.,Sayfa başlığında açıklama.
@@ -279,7 +279,7 @@ Did not save,Kaydedilmedi
 "Different ""States"" this document can exist in. Like ""Open"", ""Pending Approval"" etc.","Bu belge içeri var farklı ""Devletleri"" ""Aç"" gibi, ""Onay Bekliyor"" vb"
 Disable Customer Signup link in Login page,Giriş sayfasında Müşteri Kayıt bağlantıyı devre dışı bırakın
 Disable Signup,Üye Olun devre dışı
-Disabled,Pasif
+Disabled,Devredışı
 Display,Görüntü
 Display Settings,Görüntü Ayarları
 Display in the sidebar of this Website Route node,Bu Web Sitesi Rota düğümün kenar çubuğunda görüntüleme
@@ -300,20 +300,20 @@ Document Status transition from {0} to {1} is not allowed,{1} {0} Belge Durum ge
 Document Type,Belge Türü
 Document is only editable by users of role,Belge rolü kullanıcılar tarafından düzenlenebilir
 Documentation,Belgeleme
-Documents,Evraklar
+Documents,Belgeler
 Download,indir
 Download Backup,Yedekleme
 Download link for your backup will be emailed on the following email address:,Yedekleme için download linki aşağıdaki e-posta adresine gönderilecektir olacak:
 Drafts,Taslaklar
 Drag to sort columns,Sütunları sıralamak için sürükleyin
-Due Date,Due Date
+Due Date,Bitiş tarihi
 Duplicate name {0} {1},Çoğaltın adı {0} {1}
 Dynamic Link,Dynamic Link
 ERPNext Demo,ERPNext Demo
 Edit,Düzenle
 Edit Permissions,Düzenleme İzinleri
 Editable,Düzenlenebilir
-Email,E-posta
+Email,E-posta;
 Email Alert,E-posta Uyarısı
 Email Alert Recipient,E-posta Uyarısı Alıcı
 Email Alert Recipients,E-posta Uyarısı Alıcıları
@@ -432,7 +432,7 @@ Forums,Forumlar
 Forward To Email Address,İleri E-posta Adresi
 Frappe Framework,Frappe Çerçeve
 Friday,Cuma
-From Date must be before To Date,Tarih
+From Date must be before To Date,Tarihten itibaren tarihe kadardan önce olmalıdır
 Full Name,Tam Adı
 Gantt Chart,Gantt Şeması
 Gender,Cinsiyet
@@ -532,9 +532,9 @@ Invalid Outgoing Mail Server or Port,Geçersiz Giden Posta Sunucusu veya Liman
 Invalid login or password,Geçersiz giriş ya da şifre
 Invalid recipient address,Geçersiz alıcı adresi
 Inverse,Ters
-Is Active,Aktif mi
+Is Active,Aktif
 Is Child Table,Alt tablo mu
-Is Default,Standart mı
+Is Default,Standart
 Is Event,Olay mı
 Is Mandatory Field,Zorunlu Alan mi
 Is Single,Tek mi
@@ -561,11 +561,11 @@ Last updated by,Son güncelleyen
 Lastmod,Lastmod
 Lato,Lato
 Leave blank to repeat always,Her zaman tekrarlamak için boş bırakın
-Left,Sol
+Left,Bırakmak
 Less or equals,Daha az ya da eşittir
 Less than,küçük
 Letter,Mektup
-Letter Head,Antet
+Letter Head,Antetli Kağıt
 Letter Head Name,Antet Adı
 Letter Head in HTML,HTML Mektubu Başkanı
 Level,Seviye
@@ -636,9 +636,9 @@ Multiple root nodes not allowed.,Çoklu kök düğümler izin verilmiyor.
 Must have report permission to access this report.,Bu rapora erişmek için rapor izni olması gerekir.
 Must specify a Query to run,Çalıştırmak için bir sorgu belirtmek gerekir
 My Settings,Ayarlarım
-Name,Isim
+Name,İsim
 Name Case,İsim Vaka
-Name and Description,Ad ve Açıklama
+Name and Description,İsim ve Tanım
 Name is required,Adı gerekli
 Name not permitted,Izin verilmez Ad
 Name not set via Prompt,İstemi yoluyla girilmedi İsim
@@ -696,7 +696,7 @@ Not enough permission to see links.,Değil linkleri görmek için yeterli izin y
 Not equals,Eşit değildir
 Not found,Bulunamadı
 Not in Developer Mode! Set in site_config.json,Not Geliştirici Modu! Site_config.json Set
-Not permitted,İzin yok
+Not permitted,İzin verilmez
 "Note: For best results, images must be of the same size and width must be greater than height.","Not: En iyi sonuçlar, görsel olarak aynı boyutta olması ve genişlik yükseklikten daha büyük olmalıdır için."
 Note: Other permission rules may also apply,Not: Diğer izni kuralları da geçerli olabilir
 Note: maximum attachment size = 1mb,Not: Maksimum ek boyutu = 1mb
@@ -705,7 +705,7 @@ Nothing to show for this selection,Bu seçim için göstermek için hiçbir şey
 Notification Count,Bildirim Sayısı
 Notify by Email,E-postayla bildir
 Number Format,Sayı Biçimi
-Old Parent,Old Parent
+Old Parent,Eski Ebeveyn
 On,Üzerinde
 "Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).","Bunu ayarladıktan sonra, kullanıcılar sadece mümkün erişim belgeler (örn. olacak Bağlantı var Blog Post) (örn. Blogger)."
 Only Administrator allowed to create Query / Script Reports,Sadece Administrator Sorgu / Script Raporlar oluşturmak için izin
@@ -713,7 +713,7 @@ Only Administrator can save a standard report. Please rename and save.,Sadece Y�
 Only Allow Edit For,Only Allow Edit For
 Only allowed {0} rows in one import,Bir ithalat sadece izin {0} satırlar
 Oops! Something went wrong,Oops Bir şeyler yanlış gitti
-Open,Açık
+Open,Aç
 Open Count,Açık Sayım
 Open Sans,Open Sans
 Open Source Web Applications for the Web,Web için Açık Kaynak Web Uygulamaları
@@ -758,11 +758,11 @@ Page or Generator,Sayfa veya Jeneratör
 Page url name (auto-generated),Sayfa url ismi (otomatik oluşturulmuş)
 Parent Label,Parent Label
 Parent Post,Veli Mesaj
-Parent Website Page,Veli Web Sayfası
-Parent Website Route,Ebeveyn Sitesi Rota
+Parent Website Page,Ana Web Sayfası
+Parent Website Route,Ana Site Rotası
 Parent Website Sitemap,Ebeveyn Sitesi Site haritası
 Participants,Katılımcılar
-Password,Şifre
+Password,Parola
 Password Updated,Şifre Güncelleme
 Password reset instructions have been sent to your email,Parola sıfırlama bilgileri e-posta gönderildi
 Patch,Yama
@@ -790,7 +790,7 @@ Phone,Telefon
 Phone No.,Telefon No
 Pick Columns,Sütunları Seç
 Picture URL,URL resmi
-Pincode,Posta kodu
+Pincode,Pinkodu
 Please attach a file first.,Önce bir dosya ekleyiniz.
 Please attach a file or set a URL,Bir dosya eklemek veya bir URL set edin
 Please do not change the rows above {0},Yukarıdaki satırları lütfen değiştirmeyin {0}
@@ -845,10 +845,10 @@ Properties,Özellikler
 Property,Özellik
 Property Setter,Özellik Belirleyici
 Property Type,Property Type
-Public,Kamu
+Public,Genel
 Published,Yayınlandı
 Published On,Yayınlandı
-Published on website at: {0},De internet sitesinde yayımlanan: {0}
+Published on website at: {0},{0} da internet sitesinde yayınlanmıştır
 Pull Emails from the Inbox and attach them as Communication records (for known contacts).,Gelen e-postalar çekin ve İletişim kayıtları (bilinen kişiler için) olarak ekleyebilirsiniz.
 Query,Sorgu
 Query Options,Sorgu Seçenekleri
@@ -857,7 +857,7 @@ Query must be a SELECT,Sorgu bir SELECT olmalı
 Quick Help for Setting Permissions,İzinlerini Ayarlama için Hızlı Yardım
 Quick Help for User Permissions,Kullanıcı İzinler için Hızlı Yardım
 Re-open,Yeniden açın
-Read,Okumak
+Read,Okundu
 Read Only,Read Only
 Received,Alınan
 Recipient,Alıcı
@@ -919,7 +919,7 @@ Rules defining transition of state in the workflow.,Iş akışında devletin ge�
 Run scheduled jobs only if checked,Kontrol yalnızca zamanlanmış işlerini
 Run the report first,İlk raporu çalıştırın
 SMTP Server (e.g. smtp.gmail.com),SMTP Sunucusu (ör. smtp.gmail.com)
-Sales,Satış
+Sales,Satışlar
 Same file has already been attached to the record,Aynı dosya zaten kayda bağlı olmuştur
 Sample,Örneklem
 Saturday,Cumartesi
@@ -972,7 +972,7 @@ Sent Mail,Gönderilmiş Postalar
 Sent Quotation,Gönderilen Teklif
 Sent or Received,Gönderilmiş veya Alınmış
 Series,Seriler
-Series {0} already used in {1},Series {0} kullanılan {1}
+Series {0} already used in {1},Seriler {0} {1} de zaten kullanılmıştır
 Server,Sunucu
 Server & Credentials,Sunucu ve Sertifikalar
 Server Error: Please check your server logs or contact tech support.,Sunucu Hatası: sunucu günlükleri ya da kontakt teknik destek kontrol edin.
@@ -1008,7 +1008,7 @@ Show / Hide Modules,Modülleri Gizle/Göster
 Show Print First,Yazdır Göster
 Show Tags,Göster Etiketler
 Show or hide modules globally.,Göster ya da küresel modülleri gizlemek.
-Show rows with zero values,Sıfır değerleri olan satırları göster
+Show rows with zero values,Değeri sıfır olan satırları göster
 Show tags,Göster etiketleri
 Show this field as title,Başlık olarak bu alanı göster
 Showing only for (if not empty),Sadece gösteren (yoksa boş)
@@ -1021,7 +1021,7 @@ Sign up,Giriş
 Single Post (article).,Single Post (makale).
 Single Types have only one record no tables associated. Values are stored in tabSingles,Tek Türleri ilişkili tek bir kayıt yok tablolar var. Değerler tabSingles depolanan
 Sitemap Browser,Site haritası Tarayıcı
-Slideshow,Slayt göstersi
+Slideshow,Slayt Gösterisi
 Slideshow Items,Slayt Ürünler
 Slideshow Name,Slayt İsmi
 Small Text,Küçük Metin
@@ -1105,7 +1105,7 @@ This role update User Permissions for a user,Bir kullanıcı için bu rolü gün
 Thursday,Perşembe
 Tile,Kiremit
 Time,Zaman
-Time Zone,Zaman Dilimi
+Time Zone,Saat Dilimi
 Timezone,Timezone
 Title,Başlık
 Title / headline of your page,Başlık / sayfanızın başlığı
@@ -1114,7 +1114,7 @@ Title Field,Başlık Alan
 Title Prefix,Başlık Öneki
 Title field must be a valid fieldname,Başlık alanı geçerli bir fieldname olmalı
 Title is required,Başlık gereklidir
-To,to
+To,(hesaba)
 To Do,To Do
 "To format columns, give column labels in the query.",", Sütunlar biçimlendirmek sorgudaki sütun etiketlerini vermek."
 "To give acess to a role for only specific records, check the 'Apply User Permissions'. User Permissions are used to limit users with such role to specific records.","'Kullanıcı İzinlerini Uygula' kontrol, sadece belirli kayıtları için bir rol acess vermek. Kullanıcı İzinler belirli kayıtları böyle rolü ile kullanıcıların sınırlamak için kullanılır."
@@ -1127,7 +1127,7 @@ Top Bar Item,Top Bar Ürün
 Top Bar Items,Top Bar Ürünleri
 Top Bar Text,Top Bar Metin
 Top Bar text and background is same color. Please change.,Top Bar metin ve arka plan rengi aynıdır. Lütfen değiştirin.
-Transaction,Işlem
+Transaction,İşlem
 Transition Rules,İşlem Kuralları
 Tuesday,Salı
 Tweet will be shared via your user account (if specified),(Belirtilmişse) Tweet kullanıcı hesabı üzerinden paylaştı olacak
@@ -1142,9 +1142,9 @@ Unknown Column: {0},Bilinmeyen Sütun: {0}
 "Unknown file encoding. Tried utf-8, windows-1250, windows-1252.","Bilinmeyen dosya kodlama. Denenmiş utf-8, windows-1250, windows-1252."
 Unread Messages,Okunmamış mesajlar
 Unsubscribe,Üyelikten çık
-Unsubscribed,Üyelikten çıkanlar
+Unsubscribed,Kaydolmamış
 Upcoming Events for Today,Bugün için Gelecek Etkinlikler
-Update,Güncelleştir
+Update,Güncelleme
 Update Field,Update Field
 Update Value,Değer güncelleyin
 Updated,Güncellenmiş
@@ -1421,7 +1421,7 @@ zoom-out,Uzaklaştırın
 {0} cannot be set for Single types,{0} türleri için ayarlanamaz
 {0} does not exist in row {1},{0} aralıksız yoktur {1}
 {0} in row {1} cannot have both URL and child items,{0} üst üste {1} URL ve alt öğeleri hem de olamaz
-{0} is not a valid email id,{0} geçerli bir e-posta id değil
+{0} is not a valid email id,{0} geçerli bir e-posta id değildir
 {0} is required,{0} gereklidir
 {0} is saved,{0} kaydedilir
 {0} must be one of {1},{0} {1} biri olmalı

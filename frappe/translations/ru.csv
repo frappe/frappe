@@ -14,7 +14,7 @@
 <i>e.g. <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>,<i> например <strong> (55 + 434) / 4 </ STRONG> или <strong> = Math.sin (Мф.PI / 2) </ STRONG> ... </ I>
 <i>module name...</i>,<i> имя модуля ... </ I>
 <i>text</i> <b>in</b> <i>document type</i>,<i> текст </ I> <b> в </ B> <i> типа документа </ I>
-A user can be permitted to multiple records of the same DocType.,Пользователю разрешено использовать несколькимо записей DocType.
+A user can be permitted to multiple records of the same DocType.,Пользователю разрешено использовать несколько записей DocType.
 About,О нас
 About Us Settings,"Настройки ""О нас"""
 About Us Team Member,О члене комманды
@@ -43,7 +43,7 @@ Add fields to forms.,Добавление полей в формах.
 Add multiple rows,Добавить несколько строк
 Add new row,Добавить новую строку
 "Add the name of <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> e.g. ""Open Sans""","Добавить имя <a href=""http://google.com/webfonts"" target=""_blank""> Google Web Font </> например ""Открытые Санс """
-Add to To Do,Добавить в делать
+Add to To Do,Добавить в To Do лист
 Add to To Do List Of,Добавить в To Do List Of
 Added {0} ({1}),Добавлено {0} ({1})
 Adding System Manager to this User as there must be atleast one System Manager,"Добавление System Manager для этого пользователя, как должно быть по крайней мере один System Manager"
@@ -52,14 +52,14 @@ Additional Permissions,Дополнительные разрешения
 Address,Адрес
 Address Line 1,Адрес (1-я строка)
 Address Line 2,Адрес (2-я строка)
-Address Title,Адрес Название
+Address Title,Название адреса
 Address and other legal information you may want to put in the footer.,"Адрес и другое юридическое информация, которую вы можете положить в нижней."
 Admin,Администратор
 All Applications,Все приложения
 All Day,Весь день
 All customizations will be removed. Please confirm.,"Все настройки будут удалены. Пожалуйста, подтвердите."
 "All possible Workflow States and roles of the workflow. <br>Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""","Все возможно Workflow Штаты и роли рабочего процесса. <br> Docstatus Опции: 0 ""Сохраненные"", 1 ""Представленные"" и 2 ""Отменено"""
-Allow Attach,Разрешить Прикрепите
+Allow Attach,Разрешить вложение
 Allow Import,Разрешить Импорт
 Allow Import via Data Import Tool,Разрешить Импорт через Data Import Tool
 Allow Rename,Разрешить переименовать
@@ -494,7 +494,7 @@ If non standard port (e.g. 587),"Если, не стандартный порт 
 Ignore User Permissions,Игнорировать разрешеник пользователя
 "Ignoring Item {0}, because a group exists with the same name!","Игнорирование Пункт {0}, потому что группа существует с тем же именем!"
 Image,Изображение
-Image Link,Ссылка на изображения
+Image Link,Ссылка на изображение
 Import,Импорт
 Import / Export Data,Импорт / Экспорт данных
 Import / Export Data from .csv files.,Импорт / Экспорт CSV файлов.
@@ -514,7 +514,7 @@ Insert After,Вставьте После
 "Insert After field '{0}' mentioned in Custom Field '{1}', does not exist","Вставьте После области '{0}' упоминается в настраиваемого поля '{1}', не существует"
 Insert Below,Вставить ниже
 Insert Code,Вставить код
-Insert Row,Вставить ряд
+Insert Row,Вставить строку
 Insert Style,Вставьте стиль
 Install Applications.,Установка приложений.
 Installed,Установлен
@@ -526,8 +526,8 @@ Introduction,Введение
 Introductory information for the Contact Us Page,Вводная информация для страницы контактов
 Invalid Email: {0},Неверный e-mail: {0}
 Invalid Filter: {0},Неверный Фильтр: {0}
-Invalid Home Page,Неверная Главная страница
-Invalid Login,Неправильный Login
+Invalid Home Page,Неверная главная страница
+Invalid Login,Неверный логин
 Invalid Outgoing Mail Server or Port,Неверный Сервер исходящей почты или порт
 Invalid login or password,Неверный логин или пароль
 Invalid recipient address,Неверный адрес получателя
@@ -1046,11 +1046,11 @@ Static File Timestamp,Статический Отметка времени фа�
 Status,Статус
 Step 1: Set the name and save.,Шаг 1: Введите имя и сохраните
 Step 2: Set Letterhead content.,Шаг 2: Введите содержание бланка.
-Style,Стили
+Style,Стиль
 Style Settings,Настройки стилей
 "Style represents the button color: Success - Green, Danger - Red, Inverse - Black, Primary - Dark Blue, Info - Light Blue, Warning - Orange","Стиль представляет цвет кнопки: Успех - Зеленый, Danger - красный, Обратная - черный, Первичная - темно-синий, информация - светло-голубой, Предупреждение - Оранжевый"
 Sub-domain provided by erpnext.com,Суб-домен предоставляется erpnext.com
-Subdomain,Домен
+Subdomain,Субдомен
 Subject,Тема
 Submit,Отправить
 Submit an Issue,Представьте о проблеме

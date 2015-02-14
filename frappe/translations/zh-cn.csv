@@ -8,23 +8,13 @@
 "000 is black, fff is white",000是黑色的，FFF是白色的
 2 days ago,3天前
 "<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank"">[?]</a>","<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank"">[？]</a>"
-"<a onclick=""msgprint('<ol>\
-<li><b>field:[fieldname]</b> - By Field\
-<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\
-<li><b>Prompt</b> - Prompt user for a name\
-<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\
-</ol>')"">Naming Options</a>","<一的onclick =“msgprint（'<OL> \
- <LI> <B>场：[字段名] </ B> - 按字段\
- <LI> <B> naming_series：</ B > - 通过命名系列（场称为naming_series必须存在\
- <LI> <B>提示</ B> - 提示用户输入一个名字\
- <LI> <B> [系列] </ ，B> - 系列由前缀（由点号分隔），例如PRE＃＃＃＃＃\
- </ OL>'）“>命名选项</ a>"
+"<a onclick=""msgprint('<ol>\<li><b>field:[fieldname]</b> - By Field\<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\<li><b>Prompt</b> - Prompt user for a name\<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\</ol>')"">Naming Options</a>",<一的onclick =“msgprint（'<OL> \ <LI> <B>场：[字段名] </ B> - 按字段\ <LI> <B> naming_series：</ B > - 通过命名系列（场称为naming_series必须存在\ <LI> <B>提示</ B> - 提示用户输入一个名字\ <LI> <B> [系列] </ ，B> - 系列由前缀（由点号分隔），例如PRE＃＃＃＃＃\ </ OL>'）“>命名选项</ a>
 <b>new</b> <i>type of document</i>,<B>新</ B> <I>类型的文件</ I>
 "<i>document type...</i>, e.g. <b>customer</b>",<I>文档类型... </ I>，如<B>客户</ B>
 <i>e.g. <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>,<I>如<STRONG>（55 + 434）/ 4 </ strong>或<STRONG> =数学。黄大仙（公式PI / 2）</ STRONG> ... </ I>
 <i>module name...</i>,<I>模块名称... </ I>
 <i>text</i> <b>in</b> <i>document type</i>,<I>文字</ I>（B）在</ B> <I>文档类型</ I>
-A user can be permitted to multiple records of the same DocType.,用户可以被允许同一的DocType的多个记录。
+A user can be permitted to multiple records of the same DocType.,用户可以被授权到同一的DocType的多个记录。
 About,关于
 About Us Settings,关于我们设置
 About Us Team Member,关于我们团队成员
@@ -428,9 +418,7 @@ Footer Background,页脚背景
 Footer Items,页脚项目
 Footer Text,页脚文本
 For DocType,为的DocType
-"For Links, enter the DocType as range
-For Select, enter list of Options separated by comma","对于链接，进入文档类型为范围
-对于选择，进入选项列表以逗号分隔"
+"For Links, enter the DocType as rangeFor Select, enter list of Options separated by comma",对于链接，进入文档类型为范围对于选择，进入选项列表以逗号分隔
 "For comparative filters, start with",对于比较器，开始
 For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,例如，如果你取消及修订“INV004”它将成为一个新的文档&#39;INV004-1&#39;。这可以帮助您跟踪每一项修正案。
 For ranges,对于范围
@@ -808,9 +796,7 @@ Please attach a file or set a URL,请附上一个文件或设置一个URL
 Please do not change the rows above {0},请不要更改上面的行{0}
 Please enable pop-ups,请启用弹出窗口
 Please enter Event's Date and Time!,请输入事件的日期和时间！
-"Please enter both your email and message so that we \
-				can get back to you. Thanks!","请同时输入您的电子邮件和消息，以便我们\
-能尽快给您回复。此致"
+Please enter both your email and message so that we \				can get back to you. Thanks!,请同时输入您的电子邮件和消息，以便我们\能尽快给您回复。此致
 Please enter some text!,请输入一些文字！
 Please enter title!,请输入标题！
 Please login to Upvote!,请登录到的upvote ！
@@ -937,7 +923,7 @@ Sales,销售
 Same file has already been attached to the record,相同的文件已经被连接到记录
 Sample,样品
 Saturday,星期六
-Save,节省
+Save,保存
 Scheduler Log,调度日志
 Script,脚本
 Script Report,脚本报告
@@ -962,7 +948,7 @@ Select Type,选择类型
 Select User or DocType to start.,选择用户或的DocType启动。
 Select a Banner Image first.,首先选择一个横幅图像。
 Select an image of approx width 150px with a transparent background for best results.,选择约宽150像素的透明背景以获得最佳效果的图像。
-Select dates to create a new ,
+Select dates to create a new ,Select dates to create a new 
 "Select modules to be shown (based on permission). If hidden, they will be hidden for all users.",要显示的选择的模块（基于权限）。如果隐藏的，他们会被隐藏于所有用户。
 Select or drag across time slots to create a new event.,选择或拖动整个时隙，以创建一个新的事件。
 "Select target = ""_blank"" to open in a new page.",选择目标=“_blank”在新页面中打开。
@@ -1109,13 +1095,7 @@ There were errors while sending email. Please try again.,还有在发送电子�
 These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,这些值将在交易中自动更新，也将是有益的权限限制在含有这些值交易这个用户。
 "These will also be set as default values for those links, if only one such permission record is defined.",这些也将被设置为这些链接的默认值，如果只有一个这样的许可记录被定义。
 Third Party Authentication,第三方认证
-"This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>
-myfield
-eval:doc.myfield=='My Value'<br>
-eval:doc.age>18","此字段将显示只有这里定义的字段名有值或规则是真实的（例子）：查看
- MyField的
- EVAL：doc.myfield =='我的价值“<BR> 
- EVAL： doc.age> 18"
+This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>myfieldeval:doc.myfield=='My Value'<br>eval:doc.age>18,此字段将显示只有这里定义的字段名有值或规则是真实的（例子）：查看 MyField的 EVAL：doc.myfield =='我的价值“<BR>  EVAL： doc.age> 18
 This goes above the slideshow.,这正好幻灯片上面。
 This is PERMANENT action and you cannot undo. Continue?,这是永久性的行动，你不能撤消。要继续吗？
 "This is a standard format. To make changes, please copy it make make a new format.",这是一个标准的格式。要进行更改，请复制它使做出的新格式。
@@ -1189,7 +1169,7 @@ User Permissions Manager,用户权限管理
 User Roles,用户角色
 User Tags,用户标签
 User Type,用户类型
-"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ",
+"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ","User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. "
 User Vote,用户投票
 User not allowed to delete {0}: {1},用户不得删除{0}：{1}
 User permissions should not apply for this Link,用户权限不应该申请这个链接
@@ -1265,9 +1245,7 @@ You cannot install this app,您无法安装这个程序
 You have unsaved changes in this form. Please save before you continue.,你在本表格未保存的更改。
 You need to be logged in and have System Manager Role to be able to access backups.,您需要先登录，并具有系统管理员角色才能够访问备份。
 You need write permission to rename,你需要写权限来重新命名
-"You seem to have written your name instead of your email. \
-					Please enter a valid email address so that we can get back.","你似乎已经写你的电子邮件你的名字代替。\
-请输入一个有效的电子邮件地址，以便我们能找回。"
+You seem to have written your name instead of your email. \					Please enter a valid email address so that we can get back.,你似乎已经写你的电子邮件你的名字代替。\请输入一个有效的电子邮件地址，以便我们能找回。
 "Your download is being built, this may take a few moments...",您的下载正在修建，这可能需要一些时间......
 [Label]:[Field Type]/[Options]:[Width],[标签]：[字段类型] / [选项]：[宽]
 [Optional] Send the email X days in advance of the specified date. 0 equals same day.,[可选]发送电子邮件X天提前指定日期。 0等于同一天。

@@ -1,1698 +1,1666 @@
-" by Role "," by Role "
-" is not set"," is not set"
+ by Role , by Role 
+ is not set, is not set
 """Company History""","""Company History"""
 """Parent"" signifies the parent table in which this row must be added","""Parent"" signifies the parent table in which this row must be added"
 """Team Members"" or ""Management""","""Team Members"" or ""Management"""
-"'In List View' not allowed for type {0} in row {1}","'In List View' not allowed for type {0} in row {1}"
-"0 - Draft; 1 - Submitted; 2 - Cancelled","0 - Draft; 1 - Submitted; 2 - Cancelled"
-"0 is highest","0 is highest"
+'In List View' not allowed for type {0} in row {1},'In List View' not allowed for type {0} in row {1}
+0 - Draft; 1 - Submitted; 2 - Cancelled,0 - Draft; 1 - Submitted; 2 - Cancelled
+0 is highest,0 is highest
 "000 is black, fff is white","000 is black, fff is white"
-"2 days ago","2 dögum"
+2 days ago,2 dögum
 "<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank"">[?]</a>","<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank"">[?]</a>"
-"<a onclick=""msgprint('<ol>\
-<li><b>field:[fieldname]</b> - By Field\
-<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\
-<li><b>Prompt</b> - Prompt user for a name\
-<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\
-</ol>')"">Naming Options</a>","<a onclick=""msgprint('<ol>\
-<li><b>field:[fieldname]</b> - By Field\
-<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\
-<li><b>Prompt</b> - Prompt user for a name\
-<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\
-</ol>')"">Naming Options</a>"
-"<b>new</b> <i>type of document</i>","<b>new</b> <i>type of document</i>"
+"<a onclick=""msgprint('<ol>\<li><b>field:[fieldname]</b> - By Field\<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\<li><b>Prompt</b> - Prompt user for a name\<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\</ol>')"">Naming Options</a>","<a onclick=""msgprint('<ol>\<li><b>field:[fieldname]</b> - By Field\<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\<li><b>Prompt</b> - Prompt user for a name\<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\</ol>')"">Naming Options</a>"
+<b>new</b> <i>type of document</i>,<b>new</b> <i>type of document</i>
 "<i>document type...</i>, e.g. <b>customer</b>","<i>document type...</i>, e.g. <b>customer</b>"
-"<i>e.g. <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>","<i>e.g. <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>"
-"<i>module name...</i>","<i>module name...</i>"
-"<i>text</i> <b>in</b> <i>document type</i>","<i>text</i> <b>in</b> <i>document type</i>"
-"A new account has been created for you","A new account has been created for you"
+<i>e.g. <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>,<i>e.g. <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>
+<i>module name...</i>,<i>module name...</i>
+<i>text</i> <b>in</b> <i>document type</i>,<i>text</i> <b>in</b> <i>document type</i>
+A new account has been created for you,A new account has been created for you
 "A new task, %s, has been assigned to you by %s. %s","A new task, %s, has been assigned to you by %s. %s"
-"A user can be permitted to multiple records of the same DocType.","A user can be permitted to multiple records of the same DocType."
-"About","Um"
-"About Us Settings","Um okkur stillingar"
-"About Us Team Member","About Us Team Member"
-"Action","Action"
-"Actions","Actions"
+A user can be permitted to multiple records of the same DocType.,A user can be permitted to multiple records of the same DocType.
+About,Um
+About Us Settings,Um okkur stillingar
+About Us Team Member,About Us Team Member
+Action,Action
+Actions,Actions
 "Actions for workflow (e.g. Approve, Cancel).","Actions for workflow (e.g. Approve, Cancel)."
-"Add","Add"
-"Add A New Rule","Add A New Rule"
-"Add A User Permission","Add A User Permission"
-"Add Attachments","Add Attachments"
-"Add Bookmark","Bæta við bókamerki"
-"Add CSS","Bæta við CSS"
-"Add Column","Bæta við dálk"
-"Add Filter","Bæta við síu"
-"Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.","Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information."
-"Add Message","Bæta við skilaboðum"
-"Add New Permission Rule","Bæta við nýrri leyfisreglu"
-"Add New User Permission","Bæta við nýju notendaleyfi"
-"Add Reply","Bæta við svari"
-"Add Tag","Bæta við merki"
-"Add Total Row","Add Total Row"
-"Add a New Role","Add a New Role"
-"Add a banner to the site. (small banners are usually good)","Add a banner to the site. (small banners are usually good)"
-"Add all roles","Bæta við öllum hlutverkum"
-"Add attachment","Add attachment"
-"Add code as &lt;script&gt;","Add code as &lt;script&gt;"
-"Add comment","Add comment"
-"Add custom javascript to forms.","Add custom javascript to forms."
-"Add fields to forms.","Add fields to forms."
-"Add multiple rows","Add multiple rows"
-"Add new row","Add new row"
+Add,Add
+Add A New Rule,Add A New Rule
+Add A User Permission,Add A User Permission
+Add Attachments,Add Attachments
+Add Bookmark,Bæta við bókamerki
+Add CSS,Bæta við CSS
+Add Column,Bæta við dálk
+Add Filter,Bæta við síu
+Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.
+Add Message,Bæta við skilaboðum
+Add New Permission Rule,Bæta við nýrri leyfisreglu
+Add New User Permission,Bæta við nýju notendaleyfi
+Add Reply,Bæta við svari
+Add Tag,Bæta við merki
+Add Total Row,Add Total Row
+Add a New Role,Add a New Role
+Add a banner to the site. (small banners are usually good),Add a banner to the site. (small banners are usually good)
+Add all roles,Bæta við öllum hlutverkum
+Add attachment,Add attachment
+Add code as &lt;script&gt;,Add code as &lt;script&gt;
+Add comment,Add comment
+Add custom javascript to forms.,Add custom javascript to forms.
+Add fields to forms.,Add fields to forms.
+Add multiple rows,Add multiple rows
+Add new row,Add new row
 "Add the name of <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> e.g. ""Open Sans""","Add the name of <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> e.g. ""Open Sans"""
-"Add to To Do","Add to To Do"
-"Add to To Do List Of","Add to To Do List Of"
-"Added {0}","Added {0}"
-"Added {0} ({1})","Added {0} ({1})"
-"Adding System Manager to this User as there must be atleast one System Manager","Adding System Manager to this User as there must be atleast one System Manager"
-"Additional Info","Additional Info"
-"Additional Permissions","Additional Permissions"
+Add to To Do,Add to To Do
+Add to To Do List Of,Add to To Do List Of
+Added {0},Added {0}
+Added {0} ({1}),Added {0} ({1})
+Adding System Manager to this User as there must be atleast one System Manager,Adding System Manager to this User as there must be atleast one System Manager
+Additional Info,Additional Info
+Additional Permissions,Additional Permissions
 "Additional filters based on User Permissions, having:","Additional filters based on User Permissions, having:"
-"Address","Address"
-"Address Line 1","Address Line 1"
-"Address Line 2","Address Line 2"
-"Address Title","Address Title"
-"Address and other legal information you may want to put in the footer.","Address and other legal information you may want to put in the footer."
-"Adds a custom field to a DocType","Adds a custom field to a DocType"
-"Adds a custom script (client or server) to a DocType","Adds a custom script (client or server) to a DocType"
-"Admin","Admin"
-"Administrator","Stjórnandi"
-"Advanced","Advanced"
-"Align Left (Ctrl/Cmd+L)","Align Left (Ctrl/Cmd+L)"
-"All","Allt"
-"All Applications","Öll forrit"
-"All Day","Allan daginn"
-"All Tables (Main + Child Tables)","All Tables (Main + Child Tables)"
-"All customizations will be removed. Please confirm.","All customizations will be removed. Please confirm."
+Address,Address
+Address Line 1,Address Line 1
+Address Line 2,Address Line 2
+Address Title,Address Title
+Address and other legal information you may want to put in the footer.,Address and other legal information you may want to put in the footer.
+Adds a custom field to a DocType,Adds a custom field to a DocType
+Adds a custom script (client or server) to a DocType,Adds a custom script (client or server) to a DocType
+Admin,Admin
+Administrator,Stjórnandi
+Advanced,Advanced
+Align Left (Ctrl/Cmd+L),Align Left (Ctrl/Cmd+L)
+All,Allt
+All Applications,Öll forrit
+All Day,Allan daginn
+All Tables (Main + Child Tables),All Tables (Main + Child Tables)
+All customizations will be removed. Please confirm.,All customizations will be removed. Please confirm.
 "All possible Workflow States and roles of the workflow. <br>Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""","All possible Workflow States and roles of the workflow. <br>Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled"""
-"Allow Comments","Allow Comments"
-"Allow Delete","Allow Delete"
-"Allow Edit","Allow Edit"
-"Allow Import","Allow Import"
-"Allow Import via Data Import Tool","Allow Import via Data Import Tool"
-"Allow Multiple","Allow Multiple"
-"Allow Rename","Allow Rename"
-"Allow field to remain editable even after submission","Allow field to remain editable even after submission"
-"Allow on Submit","Allow on Submit"
-"Allow user to login only after this hour (0-24)","Allow user to login only after this hour (0-24)"
-"Allow user to login only before this hour (0-24)","Allow user to login only before this hour (0-24)"
-"Allowed","Allowed"
+Allow Comments,Allow Comments
+Allow Delete,Allow Delete
+Allow Edit,Allow Edit
+Allow Import,Allow Import
+Allow Import via Data Import Tool,Allow Import via Data Import Tool
+Allow Multiple,Allow Multiple
+Allow Rename,Allow Rename
+Allow field to remain editable even after submission,Allow field to remain editable even after submission
+Allow on Submit,Allow on Submit
+Allow user to login only after this hour (0-24),Allow user to login only after this hour (0-24)
+Allow user to login only before this hour (0-24),Allow user to login only before this hour (0-24)
+Allowed,Allowed
 "Allowing DocType, DocType. Be careful!","Allowing DocType, DocType. Be careful!"
-"Already Registered","Already Registered"
-"Already in user's To Do list","Already in user's To Do list"
-"Alternative download link","Alternative download link"
+Already Registered,Already Registered
+Already in user's To Do list,Already in user's To Do list
+Alternative download link,Alternative download link
 "Alternatively, you can also specify 'auto_email_id' in site_config.json","Alternatively, you can also specify 'auto_email_id' in site_config.json"
-"Always use above Login Id as sender","Always use above Login Id as sender"
-"Amend","Amend"
+Always use above Login Id as sender,Always use above Login Id as sender
+Amend,Amend
 "An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [<a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a>]","An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [<a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a>]"
 "Another {0} with name {1} exists, select another name","Another {0} with name {1} exists, select another name"
-"Any existing permission will be deleted / overwritten.","Any existing permission will be deleted / overwritten."
-"Anyone Can Read","Anyone Can Read"
-"Anyone Can Write","Anyone Can Write"
+Any existing permission will be deleted / overwritten.,Any existing permission will be deleted / overwritten.
+Anyone Can Read,Anyone Can Read
+Anyone Can Write,Anyone Can Write
 "Apart from Role based Permission Rules, you can apply User Permissions based on DocTypes.","Apart from Role based Permission Rules, you can apply User Permissions based on DocTypes."
 "Apart from System Manager, roles with 'Set User Permissions' right can set permissions for other users for that Document Type.","Apart from System Manager, roles with 'Set User Permissions' right can set permissions for other users for that Document Type."
-"App Name","App Name"
-"App not found","App not found"
-"Application Installer","Uppsett kerfi"
-"Applications","Applications"
-"Apply Style","Apply Style"
-"Apply User Permissions","Apply User Permissions"
-"Apply User Permissions of these Document Types","Apply User Permissions of these Document Types"
-"Are you sure you want to delete the attachment?","Are you sure you want to delete the attachment?"
-"Arial","Arial"
+App Name,App Name
+App not found,App not found
+Application Installer,Uppsett kerfi
+Applications,Applications
+Apply Style,Apply Style
+Apply User Permissions,Apply User Permissions
+Apply User Permissions of these Document Types,Apply User Permissions of these Document Types
+Are you sure you want to delete the attachment?,Are you sure you want to delete the attachment?
+Arial,Arial
 "As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User.","As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User."
-"Ascending","Ascending"
-"Assign To","Assign To"
-"Assign a permission level to the field.","Assign a permission level to the field."
-"Assigned By","Assigned By"
-"Assigned To","Assigned To"
-"Assigned To Fullname","Assigned To Fullname"
-"Assigned To Me","Assigned To Me"
-"Assigned To/Owner","Assigned To/Owner"
-"Assigned to {0}","Assigned to {0}"
-"Assignment Complete","Assignment Complete"
-"Assignment Status Changed","Assignment Status Changed"
-"Assignments","Assignments"
-"Attach","Attach"
-"Attach .csv file to import data","Attach .csv file to import data"
-"Attach Document Print","Attach Document Print"
-"Attach as web link","Attach as web link"
-"Attached To DocType","Attached To DocType"
-"Attached To Name","Attached To Name"
-"Attachments","Attachments"
-"Auto Email Id","Auto Email Id"
-"Auto Name","Auto Name"
-"Auto generated","Auto generated"
-"Avatar","Avatar"
-"Background Color","Background Color"
-"Background Image","Background Image"
-"Background Style","Background Style"
-"Banner","Banner"
-"Banner HTML","Banner HTML"
-"Banner Image","Banner Image"
-"Banner is above the Top Menu Bar.","Banner is above the Top Menu Bar."
-"Begin this page with a slideshow of images","Begin this page with a slideshow of images"
-"Beginning with","Beginning with"
-"Belongs to","Belongs to"
-"Bio","Bio"
-"Birth Date","Birth Date"
-"Blog Category","Blog Category"
-"Blog Intro","Blog Intro"
-"Blog Introduction","Blog Introduction"
-"Blog Post","Blog Post"
-"Blog Settings","Blog Settings"
-"Blog Title","Blog Title"
-"Blogger","Blogger"
-"Bold (Ctrl/Cmd+B)","Bold (Ctrl/Cmd+B)"
-"Bookmarks","Bókamerki"
-"Both login and password required","Both login and password required"
-"Brand HTML","Brand HTML"
-"Breadcrumbs","Breadcrumbs"
-"Bulk Email","Magn tölvupóstur"
-"Bulk Email records.","Magn tölvupóstsfærslur"
-"Bulk email limit {0} crossed","Bulk email limit {0} crossed"
-"Bullet list","Áherslumerktur listi"
-"Button","Hnappur"
-"By","By"
-"Cache Cleared","Skyndiminni hreinsað"
-"Calculate","Reikna"
-"Calendar","Dagatal"
-"Can not edit Read Only fields","Get ekki breytt ritvörðum sviðum"
-"Cancel","Hætta við"
-"Cancelled","Hætt við"
+Ascending,Ascending
+Assign To,Assign To
+Assign a permission level to the field.,Assign a permission level to the field.
+Assigned By,Assigned By
+Assigned To,Assigned To
+Assigned To Fullname,Assigned To Fullname
+Assigned To Me,Assigned To Me
+Assigned To/Owner,Assigned To/Owner
+Assigned to {0},Assigned to {0}
+Assignment Complete,Assignment Complete
+Assignment Status Changed,Assignment Status Changed
+Assignments,Assignments
+Attach,Attach
+Attach .csv file to import data,Attach .csv file to import data
+Attach Document Print,Attach Document Print
+Attach as web link,Attach as web link
+Attached To DocType,Attached To DocType
+Attached To Name,Attached To Name
+Attachments,Attachments
+Auto Email Id,Auto Email Id
+Auto Name,Auto Name
+Auto generated,Auto generated
+Avatar,Avatar
+Background Color,Background Color
+Background Image,Background Image
+Background Style,Background Style
+Banner,Banner
+Banner HTML,Banner HTML
+Banner Image,Banner Image
+Banner is above the Top Menu Bar.,Banner is above the Top Menu Bar.
+Begin this page with a slideshow of images,Begin this page with a slideshow of images
+Beginning with,Beginning with
+Belongs to,Belongs to
+Bio,Bio
+Birth Date,Birth Date
+Blog Category,Blog Category
+Blog Intro,Blog Intro
+Blog Introduction,Blog Introduction
+Blog Post,Blog Post
+Blog Settings,Blog Settings
+Blog Title,Blog Title
+Blogger,Blogger
+Bold (Ctrl/Cmd+B),Bold (Ctrl/Cmd+B)
+Bookmarks,Bókamerki
+Both login and password required,Both login and password required
+Brand HTML,Brand HTML
+Breadcrumbs,Breadcrumbs
+Bulk Email,Magn tölvupóstur
+Bulk Email records.,Magn tölvupóstsfærslur
+Bulk email limit {0} crossed,Bulk email limit {0} crossed
+Bullet list,Áherslumerktur listi
+Button,Hnappur
+By,By
+Cache Cleared,Skyndiminni hreinsað
+Calculate,Reikna
+Calendar,Dagatal
+Can not edit Read Only fields,Get ekki breytt ritvörðum sviðum
+Cancel,Hætta við
+Cancelled,Hætt við
 "Cannot Edit {0} directly: To edit {0} properties, create / update {1}, {2} and {3}","Cannot Edit {0} directly: To edit {0} properties, create / update {1}, {2} and {3}"
-"Cannot Update: Incorrect / Expired Link.","Cannot Update: Incorrect / Expired Link."
-"Cannot Update: Incorrect Password","Cannot Update: Incorrect Password"
-"Cannot add more than 50 comments","Cannot add more than 50 comments"
-"Cannot cancel before submitting. See Transition {0}","Cannot cancel before submitting. See Transition {0}"
-"Cannot change picture","Cannot change picture"
-"Cannot change state of Cancelled Document. Transition row {0}","Cannot change state of Cancelled Document. Transition row {0}"
-"Cannot change {0}","Cannot change {0}"
-"Cannot delete or cancel because {0} {1} is linked with {2} {3}","Cannot delete or cancel because {0} {1} is linked with {2} {3}"
-"Cannot delete {0} as it has child nodes","Cannot delete {0} as it has child nodes"
-"Cannot edit standard fields","Cannot edit standard fields"
-"Cannot edit templated page","Cannot edit templated page"
-"Cannot link cancelled document: {0}","Cannot link cancelled document: {0}"
-"Cannot map because following condition fails: ","Cannot map because following condition fails: "
-"Cannot open instance when its {0} is open","Cannot open instance when its {0} is open"
-"Cannot open {0} when its instance is open","Cannot open {0} when its instance is open"
-"Cannot print cancelled documents","Cannot print cancelled documents"
-"Cannot remove permission for DocType: {0} and Name: {1}","Cannot remove permission for DocType: {0} and Name: {1}"
-"Cannot reply to a reply","Cannot reply to a reply"
-"Cannot set Email Alert on Document Type {0}","Cannot set Email Alert on Document Type {0}"
-"Cannot set permission for DocType: {0} and Name: {1}","Cannot set permission for DocType: {0} and Name: {1}"
-"Categorize blog posts.","Categorize blog posts."
-"Category","Category"
-"Category Name","Category Name"
-"Center","Center"
-"Center (Ctrl/Cmd+E)","Center (Ctrl/Cmd+E)"
+Cannot Update: Incorrect / Expired Link.,Cannot Update: Incorrect / Expired Link.
+Cannot Update: Incorrect Password,Cannot Update: Incorrect Password
+Cannot add more than 50 comments,Cannot add more than 50 comments
+Cannot cancel before submitting. See Transition {0},Cannot cancel before submitting. See Transition {0}
+Cannot change picture,Cannot change picture
+Cannot change state of Cancelled Document. Transition row {0},Cannot change state of Cancelled Document. Transition row {0}
+Cannot change {0},Cannot change {0}
+Cannot delete or cancel because {0} {1} is linked with {2} {3},Cannot delete or cancel because {0} {1} is linked with {2} {3}
+Cannot delete {0} as it has child nodes,Cannot delete {0} as it has child nodes
+Cannot edit standard fields,Cannot edit standard fields
+Cannot edit templated page,Cannot edit templated page
+Cannot link cancelled document: {0},Cannot link cancelled document: {0}
+Cannot map because following condition fails: ,Cannot map because following condition fails: 
+Cannot open instance when its {0} is open,Cannot open instance when its {0} is open
+Cannot open {0} when its instance is open,Cannot open {0} when its instance is open
+Cannot print cancelled documents,Cannot print cancelled documents
+Cannot remove permission for DocType: {0} and Name: {1},Cannot remove permission for DocType: {0} and Name: {1}
+Cannot reply to a reply,Cannot reply to a reply
+Cannot set Email Alert on Document Type {0},Cannot set Email Alert on Document Type {0}
+Cannot set permission for DocType: {0} and Name: {1},Cannot set permission for DocType: {0} and Name: {1}
+Categorize blog posts.,Categorize blog posts.
+Category,Category
+Category Name,Category Name
+Center,Center
+Center (Ctrl/Cmd+E),Center (Ctrl/Cmd+E)
 "Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit.","Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit."
 "Change field properties (hide, readonly, permission etc.)","Change field properties (hide, readonly, permission etc.)"
-"Change type of field. (Currently, Type change is \
-						allowed among 'Currency and Float')","Change type of field. (Currently, Type change is \
-						allowed among 'Currency and Float')"
-"Chat","Chat"
-"Check","Check"
-"Check / Uncheck roles assigned to the User. Click on the Role to find out what permissions that Role has.","Check / Uncheck roles assigned to the User. Click on the Role to find out what permissions that Role has."
-"Check this if you want to send emails as this id only (in case of restriction by your email provider).","Check this if you want to send emails as this id only (in case of restriction by your email provider)."
-"Check this to make this the default letter head in all prints","Check this to make this the default letter head in all prints"
-"Check which Documents are readable by a User","Athuga hvaða skjöl notandi getur lesið"
-"Checked items shown on desktop","Checked items shown on desktop"
-"Child Tables","Child Tables"
-"Child Tables are shown as a Grid in other DocTypes.","Child Tables are shown as a Grid in other DocTypes."
-"City","Borg"
-"Classic","Classic"
-"Clear Cache","Clear Cache"
-"Clear all roles","Clear all roles"
-"Click on File -&gt; Save As","Click on File -&gt; Save As"
-"Click on Save","Click on Save"
-"Click on row to view / edit.","Click on row to view / edit."
-"Click on the link below to complete your registration and set a new password","Click on the link below to complete your registration and set a new password"
-"Client","Client"
-"Client-side formats are now deprecated","Client-side formats are now deprecated"
-"Close","Loka"
-"Close: {0}","Loka: {0}"
-"Closed","Lokað"
-"Code","Kóði"
-"Collapse","Fella saman"
-"Column Break","Dálkaskil"
-"Column Labels:","Dálkanöfn:"
-"Column Name","Dálkanafn"
-"Comment","Athugasemd"
-"Comment By","Athugasemd eftir"
-"Comment By Fullname","Athugasemd eftir, fullt nafn"
-"Comment Date","Dagsetning athugasemdar"
-"Comment Docname","Skjalanafn athugasemdar"
-"Comment Doctype","Skjalagerð athugasemdar"
-"Comment Time","Tími athugasemdar"
-"Comment Type","Gerð athugasemdar"
-"Comments","Athugasemdir"
-"Communication","Samskipti"
-"Communication Medium","Samskiptamiðill"
-"Company History","Saga fyrirtækis"
-"Company Introduction","Fyrirtækis kynning"
-"Complaint","Kvörtun"
-"Complete By","Lokið af"
-"Complete Registration","Complete Registration"
-"Completed","Lokið"
-"Condition","Skilyrði"
-"Confirm","Staðfesta"
-"Contact Us Settings","Hafðu samband stillingar"
+"Change type of field. (Currently, Type change is \						allowed among 'Currency and Float')","Change type of field. (Currently, Type change is \						allowed among 'Currency and Float')"
+Chat,Chat
+Check,Check
+Check / Uncheck roles assigned to the User. Click on the Role to find out what permissions that Role has.,Check / Uncheck roles assigned to the User. Click on the Role to find out what permissions that Role has.
+Check this if you want to send emails as this id only (in case of restriction by your email provider).,Check this if you want to send emails as this id only (in case of restriction by your email provider).
+Check this to make this the default letter head in all prints,Check this to make this the default letter head in all prints
+Check which Documents are readable by a User,Athuga hvaða skjöl notandi getur lesið
+Checked items shown on desktop,Checked items shown on desktop
+Child Tables,Child Tables
+Child Tables are shown as a Grid in other DocTypes.,Child Tables are shown as a Grid in other DocTypes.
+City,Borg
+Classic,Classic
+Clear Cache,Clear Cache
+Clear all roles,Clear all roles
+Click on File -&gt; Save As,Click on File -&gt; Save As
+Click on Save,Click on Save
+Click on row to view / edit.,Click on row to view / edit.
+Click on the link below to complete your registration and set a new password,Click on the link below to complete your registration and set a new password
+Client,Client
+Client-side formats are now deprecated,Client-side formats are now deprecated
+Close,Loka
+Close: {0},Loka: {0}
+Closed,Lokað
+Code,Kóði
+Collapse,Fella saman
+Column Break,Dálkaskil
+Column Labels:,Dálkanöfn:
+Column Name,Dálkanafn
+Comment,Athugasemd
+Comment By,Athugasemd eftir
+Comment By Fullname,"Athugasemd eftir, fullt nafn"
+Comment Date,Dagsetning athugasemdar
+Comment Docname,Skjalanafn athugasemdar
+Comment Doctype,Skjalagerð athugasemdar
+Comment Time,Tími athugasemdar
+Comment Type,Gerð athugasemdar
+Comments,Athugasemdir
+Communication,Samskipti
+Communication Medium,Samskiptamiðill
+Company History,Saga fyrirtækis
+Company Introduction,Fyrirtækis kynning
+Complaint,Kvörtun
+Complete By,Lokið af
+Complete Registration,Complete Registration
+Completed,Lokið
+Condition,Skilyrði
+Confirm,Staðfesta
+Contact Us Settings,Hafðu samband stillingar
 "Contact options, like ""Sales Query, Support Query"" etc each on a new line or separated by commas.","Contact options, like ""Sales Query, Support Query"" etc each on a new line or separated by commas."
-"Content","Innihald"
-"Content Hash","Content Hash"
-"Content in markdown format that appears on the main side of your page","Content in markdown format that appears on the main side of your page"
-"Content web page.","Content web page."
-"Copy","Afrita"
-"Copyright","Höfundarréttur"
-"Core","Kjarni"
-"Could not connect to outgoing email server","Get ekki tengst tölvupóst miðlara"
-"Could not find {0}","Get ekki fundið {0}"
-"Count","Telja"
-"Country","Land"
-"Create","Stofna"
-"Create a new {0}","Stofna nýtt {0}"
-"Created","Stofnað"
-"Created By","Stofnað af"
-"Created Custom Field {0} in {1}","Created Custom Field {0} in {1}"
-"Created Customer Issue","Created Customer Issue"
-"Created On","Created On"
-"Created Opportunity","Created Opportunity"
-"Created Support Ticket","Created Support Ticket"
-"Creation / Modified By","Creation / Modified By"
-"Currency","Currency"
-"Current status","Current status"
-"Custom CSS","Custom CSS"
-"Custom Field","Custom Field"
-"Custom Javascript","Custom Javascript"
-"Custom Reports","Custom Reports"
-"Custom Script","Custom Script"
-"Custom?","Custom?"
-"Customize"," Sérsníða"
-"Customize Form","Customize Form"
-"Customize Form Field","Customize Form Field"
+Content,Innihald
+Content Hash,Content Hash
+Content in markdown format that appears on the main side of your page,Content in markdown format that appears on the main side of your page
+Content web page.,Content web page.
+Copy,Afrita
+Copyright,Höfundarréttur
+Core,Kjarni
+Could not connect to outgoing email server,Get ekki tengst tölvupóst miðlara
+Could not find {0},Get ekki fundið {0}
+Count,Telja
+Country,Land
+Create,Stofna
+Create a new {0},Stofna nýtt {0}
+Created,Stofnað
+Created By,Stofnað af
+Created Custom Field {0} in {1},Created Custom Field {0} in {1}
+Created Customer Issue,Created Customer Issue
+Created On,Created On
+Created Opportunity,Created Opportunity
+Created Support Ticket,Created Support Ticket
+Creation / Modified By,Creation / Modified By
+Currency,Currency
+Current status,Current status
+Custom CSS,Custom CSS
+Custom Field,Custom Field
+Custom Javascript,Custom Javascript
+Custom Reports,Custom Reports
+Custom Script,Custom Script
+Custom?,Custom?
+Customize, Sérsníða
+Customize Form,Customize Form
+Customize Form Field,Customize Form Field
 "Customize Label, Print Hide, Default etc.","Customize Label, Print Hide, Default etc."
-"Customized HTML Templates for printing transctions.","Customized HTML Templates for printing transctions."
-"Daily Event Digest is sent for Calendar Events where reminders are set.","Daily Event Digest is sent for Calendar Events where reminders are set."
-"Danger","Hætta"
-"Data","Gagnaflutningur"
-"Data Import / Export Tool","Tól fyrir innsetningu / úttekt gagna"
-"Data Import Template","Sniðmát fyrir innsetningu gagna"
-"Data Import Tool","Tól fyrir innsetningu gagna"
-"Data missing in table","Gögn vantar í töflu"
-"Date","Dagsetning"
-"Date Change","Dagsetning breytt"
-"Date Changed","Dagsetningu breytt"
-"Date Format","Dagsetningarsnið"
-"Date and Number Format","Dagsetninga- og númerasnið"
-"Date must be in format: {0}","Dagsetning verður að vera á sniði: {0}"
-"Datetime","Dagsetningtími"
-"Days in Advance","Daga fyrirvari"
-"Dear","Kær(i/a)"
-"Default","Sjálfgefið"
-"Default Print Format","Sjálfgefið prentsnið"
-"Default Value","Sjálfgildi"
-"Default for 'Check' type of field must be either '0' or '1'","Default for 'Check' type of field must be either '0' or '1'"
-"Default is system timezone","Sjálfgildi er tímabelti kerfis"
+Customized HTML Templates for printing transctions.,Customized HTML Templates for printing transctions.
+Daily Event Digest is sent for Calendar Events where reminders are set.,Daily Event Digest is sent for Calendar Events where reminders are set.
+Danger,Hætta
+Data,Gagnaflutningur
+Data Import / Export Tool,Tól fyrir innsetningu / úttekt gagna
+Data Import Template,Sniðmát fyrir innsetningu gagna
+Data Import Tool,Tól fyrir innsetningu gagna
+Data missing in table,Gögn vantar í töflu
+Date,Dagsetning
+Date Change,Dagsetning breytt
+Date Changed,Dagsetningu breytt
+Date Format,Dagsetningarsnið
+Date and Number Format,Dagsetninga- og númerasnið
+Date must be in format: {0},Dagsetning verður að vera á sniði: {0}
+Datetime,Dagsetningtími
+Days in Advance,Daga fyrirvari
+Dear,Kær(i/a)
+Default,Sjálfgefið
+Default Print Format,Sjálfgefið prentsnið
+Default Value,Sjálfgildi
+Default for 'Check' type of field must be either '0' or '1',Default for 'Check' type of field must be either '0' or '1'
+Default is system timezone,Sjálfgildi er tímabelti kerfis
 "Default: ""Contact Us""","Sjálfgildi: ""hafðu samband"""
-"DefaultValue","Sjálfgildi"
-"Defaults","Sjálfgefið"
+DefaultValue,Sjálfgildi
+Defaults,Sjálfgefið
 "Define read, write, admin permissions for a Website Page.","Define read, write, admin permissions for a Website Page."
-"Define workflows for forms.","Define workflows for forms."
-"Defines actions on states and the next step and allowed roles.","Defines actions on states and the next step and allowed roles."
-"Defines workflow states and rules for a document.","Defines workflow states and rules for a document."
-"Delete","Eyða"
-"Delete Row","Delete Row"
-"Depends On","Depends On"
-"Descending","Descending"
-"Description","Lýsing"
-"Description and Status","Description and Status"
+Define workflows for forms.,Define workflows for forms.
+Defines actions on states and the next step and allowed roles.,Defines actions on states and the next step and allowed roles.
+Defines workflow states and rules for a document.,Defines workflow states and rules for a document.
+Delete,Eyða
+Delete Row,Delete Row
+Depends On,Depends On
+Descending,Descending
+Description,Lýsing
+Description and Status,Description and Status
 "Description for listing page, in plain text, only a couple of lines. (max 140 characters)","Description for listing page, in plain text, only a couple of lines. (max 140 characters)"
-"Description for page header.","Description for page header."
-"Desktop","Desktop"
-"Details","Upplýsingar"
-"Dialog box to select a Link Value","Dialog box to select a Link Value"
-"Did not add","Did not add"
-"Did not cancel","Did not cancel"
-"Did not find {0} for {0} ({1})","Did not find {0} for {0} ({1})"
-"Did not load","Did not load"
-"Did not remove","Did not remove"
-"Did not save","Did not save"
-"Did not set","Did not set"
+Description for page header.,Description for page header.
+Desktop,Desktop
+Details,Upplýsingar
+Dialog box to select a Link Value,Dialog box to select a Link Value
+Did not add,Did not add
+Did not cancel,Did not cancel
+Did not find {0} for {0} ({1}),Did not find {0} for {0} ({1})
+Did not load,Did not load
+Did not remove,Did not remove
+Did not save,Did not save
+Did not set,Did not set
 "Different ""States"" this document can exist in. Like ""Open"", ""Pending Approval"" etc.","Different ""States"" this document can exist in. Like ""Open"", ""Pending Approval"" etc."
-"Disable Customer Signup link in Login page","Disable Customer Signup link in Login page"
-"Disable Report","Disable Report"
-"Disable Signup","Disable Signup"
-"Disabled","Óvirkur"
-"Display","Display"
-"Display Settings","Display Settings"
-"Display in the sidebar of this Website Route node","Display in the sidebar of this Website Route node"
-"Do not allow user to change after set the first time","Do not allow user to change after set the first time"
-"Doc Status","Doc Status"
-"DocField","DocField"
-"DocPerm","DocPerm"
-"DocType","DocType"
-"DocType Details","DocType Details"
-"DocType can not be merged","DocType can not be merged"
-"DocType is a Table / Form in the application.","DocType is a Table / Form in the application."
-"DocType on which this Workflow is applicable.","DocType on which this Workflow is applicable."
-"DocType or Field","DocType or Field"
-"Doclist JSON","Doclist JSON"
-"Docname","Docname"
-"Document","Document"
-"Document Status","Document Status"
-"Document Status transition from ","Document Status transition from "
-"Document Status transition from {0} to {1} is not allowed","Document Status transition from {0} to {1} is not allowed"
-"Document Type","Skjalagerð"
-"Document Types","Document Types"
-"Document is only editable by users of role","Document is only editable by users of role"
-"Documentation","Documentation"
-"Documents","Skjöl"
-"Download","Download"
-"Download Backup","Sækja öryggisafrit"
-"Download Template","Sækja snið"
-"Download a template for importing a table.","Download a template for importing a table."
-"Download link for your backup will be emailed on the following email address:","Download link for your backup will be emailed on the following email address:"
-"Download with data","Download with data"
-"Drag to sort columns","Drag to sort columns"
-"Due Date","Due Date"
-"Duplicate name {0} {1}","Duplicate name {0} {1}"
-"Dynamic Link","Dynamic Link"
-"Edit","Breyta"
-"Edit Filter","Edit Filter"
-"Edit Permissions","Edit Permissions"
-"Edit Role Permissions","Edit Role Permissions"
-"Edit your record","Edit your record"
-"Editable","Editable"
-"Editing Row","Editing Row"
-"Email","Tölvupóstur"
-"Email Alert","Email Alert"
-"Email Alert Recipient","Email Alert Recipient"
-"Email Alert Recipients","Email Alert Recipients"
-"Email By Document Field","Email By Document Field"
-"Email Footer","Email Footer"
-"Email Host","Email Host"
-"Email Login","Email Login"
-"Email Password","Email Password"
-"Email Sent","Email Sent"
-"Email Settings","Email Settings"
-"Email Settings for Outgoing and Incoming Emails.","Tölvupósts stillingar fyrir sendan og móttekin tölvupóst."
-"Email Signature","Email Signature"
-"Email Use SSL","Email Use SSL"
+Disable Customer Signup link in Login page,Disable Customer Signup link in Login page
+Disable Report,Disable Report
+Disable Signup,Disable Signup
+Disabled,Óvirkur
+Display,Display
+Display Settings,Display Settings
+Display in the sidebar of this Website Route node,Display in the sidebar of this Website Route node
+Do not allow user to change after set the first time,Do not allow user to change after set the first time
+Doc Status,Doc Status
+DocField,DocField
+DocPerm,DocPerm
+DocType,DocType
+DocType Details,DocType Details
+DocType can not be merged,DocType can not be merged
+DocType is a Table / Form in the application.,DocType is a Table / Form in the application.
+DocType on which this Workflow is applicable.,DocType on which this Workflow is applicable.
+DocType or Field,DocType or Field
+Doclist JSON,Doclist JSON
+Docname,Docname
+Document,Document
+Document Status,Document Status
+Document Status transition from ,Document Status transition from 
+Document Status transition from {0} to {1} is not allowed,Document Status transition from {0} to {1} is not allowed
+Document Type,Skjalagerð
+Document Types,Document Types
+Document is only editable by users of role,Document is only editable by users of role
+Documentation,Documentation
+Documents,Skjöl
+Download,Download
+Download Backup,Sækja öryggisafrit
+Download Template,Sækja snið
+Download a template for importing a table.,Download a template for importing a table.
+Download link for your backup will be emailed on the following email address:,Download link for your backup will be emailed on the following email address:
+Download with data,Download with data
+Drag to sort columns,Drag to sort columns
+Due Date,Due Date
+Duplicate name {0} {1},Duplicate name {0} {1}
+Dynamic Link,Dynamic Link
+Edit,Breyta
+Edit Filter,Edit Filter
+Edit Permissions,Edit Permissions
+Edit Role Permissions,Edit Role Permissions
+Edit your record,Edit your record
+Editable,Editable
+Editing Row,Editing Row
+Email,Tölvupóstur
+Email Alert,Email Alert
+Email Alert Recipient,Email Alert Recipient
+Email Alert Recipients,Email Alert Recipients
+Email By Document Field,Email By Document Field
+Email Footer,Email Footer
+Email Host,Email Host
+Email Login,Email Login
+Email Password,Email Password
+Email Sent,Email Sent
+Email Settings,Email Settings
+Email Settings for Outgoing and Incoming Emails.,Tölvupósts stillingar fyrir sendan og móttekin tölvupóst.
+Email Signature,Email Signature
+Email Use SSL,Email Use SSL
 "Email addresses, separted by commas","Email addresses, separted by commas"
-"Email not verified with {1}","Email not verified with {1}"
-"Email sent to {0}","Email sent to {0}"
-"Email...","Email..."
-"Emails are muted","Emails are muted"
-"Embed image slideshows in website pages.","Embed image slideshows in website pages."
-"Enable","Enable"
-"Enable Comments","Enable Comments"
-"Enable Report","Enable Report"
-"Enable Scheduled Jobs","Enable Scheduled Jobs"
-"Enabled","Enabled"
-"Ends on","Ends on"
-"Enter Form Type","Enter Form Type"
-"Enter Value","Enter Value"
-"Enter at least one permission row","Enter at least one permission row"
+Email not verified with {1},Email not verified with {1}
+Email sent to {0},Email sent to {0}
+Email...,Email...
+Emails are muted,Emails are muted
+Embed image slideshows in website pages.,Embed image slideshows in website pages.
+Enable,Enable
+Enable Comments,Enable Comments
+Enable Report,Enable Report
+Enable Scheduled Jobs,Enable Scheduled Jobs
+Enabled,Enabled
+Ends on,Ends on
+Enter Form Type,Enter Form Type
+Enter Value,Enter Value
+Enter at least one permission row,Enter at least one permission row
 "Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set ""match"" permission rules. To see list of fields, go to <a href=""#Form/Customize Form/Customize Form"">Customize Form</a>.","Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set ""match"" permission rules. To see list of fields, go to <a href=""#Form/Customize Form/Customize Form"">Customize Form</a>."
 "Enter keys to enable login via Facebook, Google, GitHub.","Enter keys to enable login via Facebook, Google, GitHub."
-"Equals","Equals"
-"Error","Error"
+Equals,Equals
+Error,Error
 "Error generating PDF, attachment sent as HTML","Error generating PDF, attachment sent as HTML"
-"Error: Document has been modified after you have opened it","Error: Document has been modified after you have opened it"
-"Event","Event"
-"Event Datetime","Event Datetime"
-"Event Individuals","Event Individuals"
-"Event Role","Event Role"
-"Event Roles","Event Roles"
-"Event Type","Event Type"
-"Event User","Event User"
-"Event end must be after start","Event end must be after start"
-"Events","Events"
-"Events In Today's Calendar","Events In Today's Calendar"
-"Every Day","Every Day"
-"Every Month","Every Month"
-"Every Week","Every Week"
-"Every Year","Every Year"
-"Everyone","Everyone"
-"Example","Example"
-"Example:","Example:"
-"Expand","Expand"
-"Export","Export"
-"Export all rows in CSV fields for re-upload. This is ideal for bulk-editing.","Export all rows in CSV fields for re-upload. This is ideal for bulk-editing."
-"Export not allowed. You need {0} role to export.","Export not allowed. You need {0} role to export."
-"Exported","Exported"
+Error: Document has been modified after you have opened it,Error: Document has been modified after you have opened it
+Event,Event
+Event Datetime,Event Datetime
+Event Individuals,Event Individuals
+Event Role,Event Role
+Event Roles,Event Roles
+Event Type,Event Type
+Event User,Event User
+Event end must be after start,Event end must be after start
+Events,Events
+Events In Today's Calendar,Events In Today's Calendar
+Every Day,Every Day
+Every Month,Every Month
+Every Week,Every Week
+Every Year,Every Year
+Everyone,Everyone
+Example,Example
+Example:,Example:
+Expand,Expand
+Export,Export
+Export all rows in CSV fields for re-upload. This is ideal for bulk-editing.,Export all rows in CSV fields for re-upload. This is ideal for bulk-editing.
+Export not allowed. You need {0} role to export.,Export not allowed. You need {0} role to export.
+Exported,Exported
 "Expression, Optional","Expression, Optional"
-"Facebook","Facebook"
-"Facebook Client ID","Facebook Client ID"
-"Facebook Client Secret","Facebook Client Secret"
-"Facebook Share","Facebook Share"
-"Facebook User ID","Facebook User ID"
-"Facebook Username","Facebook Username"
-"FavIcon","FavIcon"
-"Female","Female"
-"Field Description","Field Description"
-"Field Name","Field Name"
-"Field Type","Field Type"
+Facebook,Facebook
+Facebook Client ID,Facebook Client ID
+Facebook Client Secret,Facebook Client Secret
+Facebook Share,Facebook Share
+Facebook User ID,Facebook User ID
+Facebook Username,Facebook Username
+FavIcon,FavIcon
+Female,Female
+Field Description,Field Description
+Field Name,Field Name
+Field Type,Field Type
 "Field that represents the Workflow State of the transaction (if field is not present, a new hidden Custom Field will be created)","Field that represents the Workflow State of the transaction (if field is not present, a new hidden Custom Field will be created)"
-"Field {0} in row {1} cannot be hidden and mandatory without default","Field {0} in row {1} cannot be hidden and mandatory without default"
-"Field {0} is not selectable.","Field {0} is not selectable."
-"Field {0} of type {1} cannot be mandatory","Field {0} of type {1} cannot be mandatory"
-"Fieldname","Fieldname"
-"Fieldname is required in row {0}","Fieldname is required in row {0}"
-"Fieldname not set for Custom Field","Fieldname not set for Custom Field"
-"Fieldname which will be the DocType for this link field.","Fieldname which will be the DocType for this link field."
-"Fieldname {0} appears multiple times in rows {1}","Fieldname {0} appears multiple times in rows {1}"
+Field {0} in row {1} cannot be hidden and mandatory without default,Field {0} in row {1} cannot be hidden and mandatory without default
+Field {0} is not selectable.,Field {0} is not selectable.
+Field {0} of type {1} cannot be mandatory,Field {0} of type {1} cannot be mandatory
+Fieldname,Fieldname
+Fieldname is required in row {0},Fieldname is required in row {0}
+Fieldname not set for Custom Field,Fieldname not set for Custom Field
+Fieldname which will be the DocType for this link field.,Fieldname which will be the DocType for this link field.
+Fieldname {0} appears multiple times in rows {1},Fieldname {0} appears multiple times in rows {1}
 "Fieldname {0} cannot contain letters, numbers or spaces","Fieldname {0} cannot contain letters, numbers or spaces"
-"Fields","Fields"
+Fields,Fields
 "Fields separated by comma (,) will be included in the<br /><b>Search By</b> list of Search dialog box","Fields separated by comma (,) will be included in the<br /><b>Search By</b> list of Search dialog box"
-"Fieldtype","Fieldtype"
-"Fieldtype cannot be changed from {0} to {1} in row {2}","Fieldtype cannot be changed from {0} to {1} in row {2}"
-"File","Skrá"
-"File Data","Skráarlisti"
-"File Name","Skráarnafn"
-"File Name: &lt;your filename&gt;.csv<br />\
-						Save as type: Text Documents (*.txt)<br />\
-						Encoding: UTF-8","File Name: &lt;your filename&gt;.csv<br />\
-						Save as type: Text Documents (*.txt)<br />\
-						Encoding: UTF-8"
-"File Size","Skráarstærð"
-"File URL","Veffang skáar"
-"File not attached","File not attached"
-"File size exceeded the maximum allowed size of {0} MB","File size exceeded the maximum allowed size of {0} MB"
-"Fill Screen","Fill Screen"
-"Filter","Filter"
-"Filter records based on User Permissions defined for a user","Filter records based on User Permissions defined for a user"
-"Filters","Filters"
-"Find {0} in {1}","Find {0} in {1}"
-"First Name","First Name"
-"First data column must be blank.","First data column must be blank."
-"Float","Float"
-"Float Precision","Float Precision"
-"Fold","Fold"
-"Fold can not be at the end of the form","Fold can not be at the end of the form"
-"Fold must come before a labelled Section Break","Fold must come before a labelled Section Break"
-"Font (Heading)","Font (Heading)"
-"Font (Text)","Font (Text)"
-"Font Size","Font Size"
-"Font Size (Text)","Font Size (Text)"
-"Fonts","Fonts"
-"Footer","Footer"
-"Footer Background","Footer Background"
-"Footer Items","Footer Items"
-"Footer Text","Footer Text"
-"For DocType","For DocType"
-"For Links, enter the DocType as range
-For Select, enter list of Options separated by comma","For Links, enter the DocType as range
-For Select, enter list of Options separated by comma"
+Fieldtype,Fieldtype
+Fieldtype cannot be changed from {0} to {1} in row {2},Fieldtype cannot be changed from {0} to {1} in row {2}
+File,Skrá
+File Data,Skráarlisti
+File Name,Skráarnafn
+File Name: &lt;your filename&gt;.csv<br />\						Save as type: Text Documents (*.txt)<br />\						Encoding: UTF-8,File Name: &lt;your filename&gt;.csv<br />\						Save as type: Text Documents (*.txt)<br />\						Encoding: UTF-8
+File Size,Skráarstærð
+File URL,Veffang skáar
+File not attached,File not attached
+File size exceeded the maximum allowed size of {0} MB,File size exceeded the maximum allowed size of {0} MB
+Fill Screen,Fill Screen
+Filter,Filter
+Filter records based on User Permissions defined for a user,Filter records based on User Permissions defined for a user
+Filters,Filters
+Find {0} in {1},Find {0} in {1}
+First Name,First Name
+First data column must be blank.,First data column must be blank.
+Float,Float
+Float Precision,Float Precision
+Fold,Fold
+Fold can not be at the end of the form,Fold can not be at the end of the form
+Fold must come before a labelled Section Break,Fold must come before a labelled Section Break
+Font (Heading),Font (Heading)
+Font (Text),Font (Text)
+Font Size,Font Size
+Font Size (Text),Font Size (Text)
+Fonts,Fonts
+Footer,Footer
+Footer Background,Footer Background
+Footer Items,Footer Items
+Footer Text,Footer Text
+For DocType,For DocType
+"For Links, enter the DocType as rangeFor Select, enter list of Options separated by comma","For Links, enter the DocType as rangeFor Select, enter list of Options separated by comma"
 "For comparative filters, start with","For comparative filters, start with"
-"For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.","For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment."
-"For ranges","For ranges"
-"For top bar","For top bar"
+For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.
+For ranges,For ranges
+For top bar,For top bar
 "For updating, you can update only selective columns.","For updating, you can update only selective columns."
-"For {0} at level {1} in {2} in row {3}","For {0} at level {1} in {2} in row {3}"
-"Form","Form"
-"Forum","Forum"
-"Forums","Forums"
-"Forward To Email Address","Forward To Email Address"
-"Frappe Framework","Frappe Framework"
-"Friday","Föstudagur"
-"From Date must be before To Date","From Date must be before To Date"
-"Full Name","Full Name"
-"Gantt Chart","Gantt Chart"
-"Gender","Gender"
-"Georgia","Georgia"
-"Get","Get"
-"Get From ","Get From "
+For {0} at level {1} in {2} in row {3},For {0} at level {1} in {2} in row {3}
+Form,Form
+Forum,Forum
+Forums,Forums
+Forward To Email Address,Forward To Email Address
+Frappe Framework,Frappe Framework
+Friday,Föstudagur
+From Date must be before To Date,From Date must be before To Date
+Full Name,Full Name
+Gantt Chart,Gantt Chart
+Gender,Gender
+Georgia,Georgia
+Get,Get
+Get From ,Get From 
 "Get your globally recognized avatar from <a href=""https://gravatar.com/"">Gravatar.com</a>","Get your globally recognized avatar from <a href=""https://gravatar.com/"">Gravatar.com</a>"
-"GitHub","GitHub"
-"GitHub Client ID","GitHub Client ID"
-"GitHub Client Secret","GitHub Client Secret"
-"Github User ID","Github User ID"
-"Github Username","Github Username"
-"Go to this url after completing the form.","Go to this url after completing the form."
-"Google","Google"
-"Google Analytics ID","Google Analytics ID"
-"Google Client ID","Google Client ID"
-"Google Client Secret","Google Client Secret"
-"Google Plus One","Google Plus One"
-"Google User ID","Google User ID"
-"Google Web Font (Heading)","Google Web Font (Heading)"
-"Google Web Font (Text)","Google Web Font (Text)"
+GitHub,GitHub
+GitHub Client ID,GitHub Client ID
+GitHub Client Secret,GitHub Client Secret
+Github User ID,Github User ID
+Github Username,Github Username
+Go to this url after completing the form.,Go to this url after completing the form.
+Google,Google
+Google Analytics ID,Google Analytics ID
+Google Client ID,Google Client ID
+Google Client Secret,Google Client Secret
+Google Plus One,Google Plus One
+Google User ID,Google User ID
+Google Web Font (Heading),Google Web Font (Heading)
+Google Web Font (Text),Google Web Font (Text)
 "Group Added, refreshing...","Group Added, refreshing..."
-"Group Description","Group Description"
-"Group Name","Group Name"
-"Group Title","Group Title"
-"Group Type","Group Type"
-"Groups","Groups"
-"Guest","Guest"
-"HTML for header section. Optional","HTML for header section. Optional"
-"Header","Header"
-"Heading","Heading"
-"Heading Text As","Heading Text As"
-"Help","Hjálp"
-"Help on Search","Help on Search"
-"Help: Field Properties","Help: Field Properties"
-"Help: Importing non-English data in Microsoft Excel","Help: Importing non-English data in Microsoft Excel"
-"Helvetica Neue","Helvetica Neue"
-"Hidden","Hidden"
-"Hide Actions","Hide Actions"
-"Hide Copy","Hide Copy"
-"Hide Details","Hide Details"
-"Hide Heading","Hide Heading"
-"Hide Toolbar","Hide Toolbar"
-"Hide field in Report Builder","Hide field in Report Builder"
-"Hide field in Standard Print Format","Hide field in Standard Print Format"
-"Hide field in form","Hide field in form"
-"Hide the sidebar","Hide the sidebar"
-"High","High"
-"Highlight","Highlight"
-"History","Saga"
-"Home Page","Home Page"
-"Home Page is Products","Home Page is Products"
-"Horizontal Line Break","Horizontal Line Break"
-"ID (name) of the entity whose property is to be set","ID (name) of the entity whose property is to be set"
-"ID field is required to edit values using Report. Please select the ID field using the Column Picker","ID field is required to edit values using Report. Please select the ID field using the Column Picker"
-"Icon","Icon"
-"Icon will appear on the button","Icon will appear on the button"
+Group Description,Group Description
+Group Name,Group Name
+Group Title,Group Title
+Group Type,Group Type
+Groups,Groups
+Guest,Guest
+HTML for header section. Optional,HTML for header section. Optional
+Header,Header
+Heading,Heading
+Heading Text As,Heading Text As
+Help,Hjálp
+Help on Search,Help on Search
+Help: Field Properties,Help: Field Properties
+Help: Importing non-English data in Microsoft Excel,Help: Importing non-English data in Microsoft Excel
+Helvetica Neue,Helvetica Neue
+Hidden,Hidden
+Hide Actions,Hide Actions
+Hide Copy,Hide Copy
+Hide Details,Hide Details
+Hide Heading,Hide Heading
+Hide Toolbar,Hide Toolbar
+Hide field in Report Builder,Hide field in Report Builder
+Hide field in Standard Print Format,Hide field in Standard Print Format
+Hide field in form,Hide field in form
+Hide the sidebar,Hide the sidebar
+High,High
+Highlight,Highlight
+History,Saga
+Home Page,Home Page
+Home Page is Products,Home Page is Products
+Horizontal Line Break,Horizontal Line Break
+ID (name) of the entity whose property is to be set,ID (name) of the entity whose property is to be set
+ID field is required to edit values using Report. Please select the ID field using the Column Picker,ID field is required to edit values using Report. Please select the ID field using the Column Picker
+Icon,Icon
+Icon will appear on the button,Icon will appear on the button
 "If a Role does not have access at Level 0, then higher levels are meaningless.","If a Role does not have access at Level 0, then higher levels are meaningless."
 "If checked, all other workflows become inactive.","If checked, all other workflows become inactive."
 "If checked, the Home page will be the default Item Group for the website.","If checked, the Home page will be the default Item Group for the website."
 "If image is selected, color will be ignored (attach first)","If image is selected, color will be ignored (attach first)"
-"If non standard port (e.g. 587)","If non standard port (e.g. 587)"
+If non standard port (e.g. 587),If non standard port (e.g. 587)
 "If these instructions where not helpful, please add in your suggestions on GitHub Issues.","If these instructions where not helpful, please add in your suggestions on GitHub Issues."
-"If you are inserting new records (overwrite not checked) \
-			and if you have submit permission, the record will be submitted.","If you are inserting new records (overwrite not checked) \
-			and if you have submit permission, the record will be submitted."
+"If you are inserting new records (overwrite not checked) \			and if you have submit permission, the record will be submitted.","If you are inserting new records (overwrite not checked) \			and if you have submit permission, the record will be submitted."
 "If you are updating, please select ""Overwrite"" else existing rows will not be deleted.","If you are updating, please select ""Overwrite"" else existing rows will not be deleted."
 "If you are uploading a child table (for example Item Price), the all the entries of that table will be deleted (for that parent record) and new entries will be made.","If you are uploading a child table (for example Item Price), the all the entries of that table will be deleted (for that parent record) and new entries will be made."
 "If you are uploading new records, ""Naming Series"" becomes mandatory, if present.","If you are uploading new records, ""Naming Series"" becomes mandatory, if present."
 "If you are uploading new records, leave the ""name"" (ID) column blank.","If you are uploading new records, leave the ""name"" (ID) column blank."
 "If you set this, this Item will come in a drop-down under the selected parent.","If you set this, this Item will come in a drop-down under the selected parent."
-"Ignore Encoding Errors","Ignore Encoding Errors"
-"Ignore User Permissions","Ignore User Permissions"
+Ignore Encoding Errors,Ignore Encoding Errors
+Ignore User Permissions,Ignore User Permissions
 "Ignoring Item {0}, because a group exists with the same name!","Ignoring Item {0}, because a group exists with the same name!"
-"Image","Image"
-"Image Link","Image Link"
-"Import","Import"
-"Import / Export Data","Innsetning / úttekt gagna"
-"Import / Export Data from .csv files.","Innsetning / úttekt gagna frá .csv skrám."
-"Import Data","Innsetning gagna"
-"Import Failed!","Innsetning mistókst!"
-"Import Successful!","Innsetning tókst!"
-"In","In"
-"In Dialog","In Dialog"
+Image,Image
+Image Link,Image Link
+Import,Import
+Import / Export Data,Innsetning / úttekt gagna
+Import / Export Data from .csv files.,Innsetning / úttekt gagna frá .csv skrám.
+Import Data,Innsetning gagna
+Import Failed!,Innsetning mistókst!
+Import Successful!,Innsetning tókst!
+In,In
+In Dialog,In Dialog
 "In Excel, save the file in CSV (Comma Delimited) format","In Excel, save the file in CSV (Comma Delimited) format"
-"In Filter","In Filter"
+In Filter,In Filter
 "In JSON as <pre>[{""title"":""Jobs"", ""name"":""jobs""}]</pre>","In JSON as <pre>[{""title"":""Jobs"", ""name"":""jobs""}]</pre>"
-"In List View","In List View"
-"In Report Filter","In Report Filter"
-"In points. Default is 9.","In points. Default is 9."
-"In response to","In response to"
-"Incorrect value in row {0}: {1} must be {2} {3}","Incorrect value in row {0}: {1} must be {2} {3}"
-"Incorrect value: {0} must be {1} {2}","Incorrect value: {0} must be {1} {2}"
-"Indent (Tab)","Indent (Tab)"
-"Index","Index"
-"Individuals","Individuals"
-"Info","Info"
-"Info:","Info:"
-"Insert","Insert"
-"Insert After","Insert After"
+In List View,In List View
+In Report Filter,In Report Filter
+In points. Default is 9.,In points. Default is 9.
+In response to,In response to
+Incorrect value in row {0}: {1} must be {2} {3},Incorrect value in row {0}: {1} must be {2} {3}
+Incorrect value: {0} must be {1} {2},Incorrect value: {0} must be {1} {2}
+Indent (Tab),Indent (Tab)
+Index,Index
+Individuals,Individuals
+Info,Info
+Info:,Info:
+Insert,Insert
+Insert After,Insert After
 "Insert After field '{0}' mentioned in Custom Field '{1}', does not exist","Insert After field '{0}' mentioned in Custom Field '{1}', does not exist"
-"Insert Below","Insert Below"
-"Insert Code","Insert Code"
-"Insert Link","Insert Link"
-"Insert Row","Insert Row"
-"Insert Style","Insert Style"
-"Insert picture (or just drag & drop)","Insert picture (or just drag & drop)"
-"Install Applications.","Install Applications."
-"Installed","Uppsett"
-"Installer","Uppsetning"
-"Int","Int"
-"Integrations","Integrations"
-"Introduce your company to the website visitor.","Introduce your company to the website visitor."
-"Introduction","Introduction"
-"Introductory information for the Contact Us Page","Introductory information for the Contact Us Page"
-"Invalid Email: {0}","Invalid Email: {0}"
-"Invalid Filter: {0}","Invalid Filter: {0}"
-"Invalid Home Page","Invalid Home Page"
-"Invalid Login","Invalid Login"
-"Invalid Outgoing Mail Server or Port","Invalid Outgoing Mail Server or Port"
-"Invalid Request","Invalid Request"
-"Invalid login or password","Invalid login or password"
-"Invalid recipient address","Invalid recipient address"
-"Inverse","Inverse"
-"Is Active","Er virkur"
-"Is Child Table","Is Child Table"
-"Is Default","Er sjálfgefið"
-"Is Event","Is Event"
-"Is Mandatory Field","Is Mandatory Field"
-"Is Single","Is Single"
-"Is Standard","Is Standard"
-"Is Submittable","Is Submittable"
-"Is Task","Is Task"
-"Item cannot be added to its own descendents","Item cannot be added to its own descendents"
+Insert Below,Insert Below
+Insert Code,Insert Code
+Insert Link,Insert Link
+Insert Row,Insert Row
+Insert Style,Insert Style
+Insert picture (or just drag & drop),Insert picture (or just drag & drop)
+Install Applications.,Install Applications.
+Installed,Uppsett
+Installer,Uppsetning
+Int,Int
+Integrations,Integrations
+Introduce your company to the website visitor.,Introduce your company to the website visitor.
+Introduction,Introduction
+Introductory information for the Contact Us Page,Introductory information for the Contact Us Page
+Invalid Email: {0},Invalid Email: {0}
+Invalid Filter: {0},Invalid Filter: {0}
+Invalid Home Page,Invalid Home Page
+Invalid Login,Invalid Login
+Invalid Outgoing Mail Server or Port,Invalid Outgoing Mail Server or Port
+Invalid Request,Invalid Request
+Invalid login or password,Invalid login or password
+Invalid recipient address,Invalid recipient address
+Inverse,Inverse
+Is Active,Er virkur
+Is Child Table,Is Child Table
+Is Default,Er sjálfgefið
+Is Event,Is Event
+Is Mandatory Field,Is Mandatory Field
+Is Single,Is Single
+Is Standard,Is Standard
+Is Submittable,Is Submittable
+Is Task,Is Task
+Item cannot be added to its own descendents,Item cannot be added to its own descendents
 "JSON list of DocTypes used to apply User Permissions. If empty, all linked DocTypes will be used to apply User Permissions.","JSON list of DocTypes used to apply User Permissions. If empty, all linked DocTypes will be used to apply User Permissions."
-"JavaScript Format: frappe.query_reports['REPORTNAME'] = {}","JavaScript Format: frappe.query_reports['REPORTNAME'] = {}"
-"Javascript","Javascript"
-"Javascript to append to the head section of the page.","Javascript to append to the head section of the page."
-"Keep a track of all communications","Keep a track of all communications"
-"Key","Key"
-"Label","Label"
-"Label Help","Label Help"
-"Label and Type","Label and Type"
-"Label is mandatory","Label is mandatory"
-"Landing Page","Landing Page"
-"Language","Language"
-"Language preference for user interface (only if available).","Language preference for user interface (only if available)."
+JavaScript Format: frappe.query_reports['REPORTNAME'] = {},JavaScript Format: frappe.query_reports['REPORTNAME'] = {}
+Javascript,Javascript
+Javascript to append to the head section of the page.,Javascript to append to the head section of the page.
+Keep a track of all communications,Keep a track of all communications
+Key,Key
+Label,Label
+Label Help,Label Help
+Label and Type,Label and Type
+Label is mandatory,Label is mandatory
+Landing Page,Landing Page
+Language,Language
+Language preference for user interface (only if available).,Language preference for user interface (only if available).
 "Language, Date and Time settings","Tungumál, dags- og tímastillingar"
-"Last Comment","Síðasta athugasemd"
-"Last IP","Síðasta IP tala"
-"Last Login","Síðasta innskráning"
-"Last Name","Eftirnafn"
-"Last Updated By","Síðast uppfært af"
-"Last Updated On","Síðast uppfært á"
-"Lato","Lato"
-"Leave blank for new records","Autt fyrir nýjar færslur"
-"Leave blank to repeat always","Skildu eftir autt til að endurtaka, alltaf"
-"Left","Vinstri"
-"Letter","Letter"
-"Letter Head","Bréfshaus"
-"Letter Head Name","Letter Head Name"
-"Letter Head in HTML","Letter Head in HTML"
-"Level","Stig"
+Last Comment,Síðasta athugasemd
+Last IP,Síðasta IP tala
+Last Login,Síðasta innskráning
+Last Name,Eftirnafn
+Last Updated By,Síðast uppfært af
+Last Updated On,Síðast uppfært á
+Lato,Lato
+Leave blank for new records,Autt fyrir nýjar færslur
+Leave blank to repeat always,"Skildu eftir autt til að endurtaka, alltaf"
+Left,Vinstri
+Letter,Letter
+Letter Head,Bréfshaus
+Letter Head Name,Letter Head Name
+Letter Head in HTML,Letter Head in HTML
+Level,Stig
 "Level 0 is for document level permissions, higher levels for field level permissions.","Stig 0 er fyrir skjalaréttindi, hærra stig fyrir svæðisréttindi."
-"Like","Líkar"
-"Link","Tengill"
+Like,Líkar
+Link,Tengill
 "Link that is the website home page. Standard Links (index, login, products, blog, about, contact)","Tengill sem er heimasíða vefsvæðisins. Staðlaðir tenglar (vísir, innskrá, vörur, blogg, um, tengiliður)"
-"Link to other pages in the side bar and next section","Tengill á aðrar síður á hliðarslá og næsta kafla"
-"Link to the page you want to open","Tengill á síðuna sem þú vilt opna"
-"Linked In Share","Tengd í samnýtingu"
-"Linked With","Tengdur við"
-"List","Listi"
-"List a document type","Lista tegund skjals"
-"List of Web Site Forum's Posts.","Listi yfir spjallborðsumræður"
-"List of patches executed","Listi af uppsettum viðbótum"
-"Loading","Hleð inn"
-"Loading Report","Hleð skýrslu"
-"Loading...","Hleð inn..."
-"Localization","Aðlögun að tungumáli"
-"Location","Staðsetning"
-"Log of Scheduler Errors","Villuannáll verkraðara"
-"Log of error on automated events (scheduler).","Villuannáll á sjálfvirkum atvikum (verkraðari)."
-"Login","Innskrá"
-"Login After","Innskráning eftir"
-"Login Before","Innskráning fyrir"
-"Login Id","Kenni innskráningar"
-"Login Required","Innskráningar krafist"
-"Login not allowed at this time","Innskráning ekki leyfð núna"
-"Logout","Útskrá"
-"Long Text","Langur texti"
-"Low","Lágt"
-"Lucida Grande","Lucida Grande"
-"Mail Password","Lykilorð tölvupósts"
-"Main Section","Main Section"
-"Main Table","Aðal taflan"
-"Make New","Make New"
-"Make a new","Make a new"
-"Make a new record","Búa til nýja færslu"
-"Make a new {0}","Búa til nýja {0}"
-"Male","Karl"
-"Manage cloud backups on Dropbox","Stjórna ský afritun á Dropbox"
-"Manage uploaded files.","Stjórna skrá sem halað hefur verið upp."
-"Mandatory","Skylda"
-"Mandatory fields required in {0}","Skyldusvæði krafist í {0}"
-"Mandatory:","Skylda:"
-"Mark the field as Mandatory","Merktu svæðin sem skyldusvæði"
-"Master","Master"
-"Max Attachments","Max Attachments"
-"Max width for type Currency is 100px in row {0}","Max width for type Currency is 100px in row {0}"
-"Maximum Attachment Limit for this record reached.","Maximum Attachment Limit for this record reached."
+Link to other pages in the side bar and next section,Tengill á aðrar síður á hliðarslá og næsta kafla
+Link to the page you want to open,Tengill á síðuna sem þú vilt opna
+Linked In Share,Tengd í samnýtingu
+Linked With,Tengdur við
+List,Listi
+List a document type,Lista tegund skjals
+List of Web Site Forum's Posts.,Listi yfir spjallborðsumræður
+List of patches executed,Listi af uppsettum viðbótum
+Loading,Hleð inn
+Loading Report,Hleð skýrslu
+Loading...,Hleð inn...
+Localization,Aðlögun að tungumáli
+Location,Staðsetning
+Log of Scheduler Errors,Villuannáll verkraðara
+Log of error on automated events (scheduler).,Villuannáll á sjálfvirkum atvikum (verkraðari).
+Login,Innskrá
+Login After,Innskráning eftir
+Login Before,Innskráning fyrir
+Login Id,Kenni innskráningar
+Login Required,Innskráningar krafist
+Login not allowed at this time,Innskráning ekki leyfð núna
+Logout,Útskrá
+Long Text,Langur texti
+Low,Lágt
+Lucida Grande,Lucida Grande
+Mail Password,Lykilorð tölvupósts
+Main Section,Main Section
+Main Table,Aðal taflan
+Make New,Make New
+Make a new,Make a new
+Make a new record,Búa til nýja færslu
+Make a new {0},Búa til nýja {0}
+Male,Karl
+Manage cloud backups on Dropbox,Stjórna ský afritun á Dropbox
+Manage uploaded files.,Stjórna skrá sem halað hefur verið upp.
+Mandatory,Skylda
+Mandatory fields required in {0},Skyldusvæði krafist í {0}
+Mandatory:,Skylda:
+Mark the field as Mandatory,Merktu svæðin sem skyldusvæði
+Master,Master
+Max Attachments,Max Attachments
+Max width for type Currency is 100px in row {0},Max width for type Currency is 100px in row {0}
+Maximum Attachment Limit for this record reached.,Maximum Attachment Limit for this record reached.
 "Meaning of Submit, Cancel, Amend","Meaning of Submit, Cancel, Amend"
-"Medium","Medium"
+Medium,Medium
 "Menu items in the Top Bar. For setting the color of the Top Bar, go to <a href=""#Form/Style Settings"">Style Settings</a>","Menu items in the Top Bar. For setting the color of the Top Bar, go to <a href=""#Form/Style Settings"">Style Settings</a>"
-"Merge with existing","Merge with existing"
-"Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node","Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node"
-"Message","Skilaboð"
-"Message Examples","Message Examples"
-"Message to be displayed on successful completion","Message to be displayed on successful completion"
-"Messages","Skilaboð"
-"Messages from everyone","Messages from everyone"
-"Method","Method"
-"Middle Name (Optional)","Middle Name (Optional)"
-"Misc","Misc"
-"Miscellaneous","Miscellaneous"
-"Missing Values Required","Missing Values Required"
-"Modern","Nýtískulegur"
-"Modified by","Modified by"
-"Module","Module"
-"Module Def","Module Def"
-"Module Name","Module Name"
-"Module Not Found","Module Not Found"
-"Modules Setup","Modules Setup"
-"Monday","Mánudagur"
-"Monochrome","Monochrome"
-"More","Meira"
-"More content for the bottom of the page.","Meira efni fyrir neðrihluta síðunnar."
-"Move Down: {0}","Fara niður: {0}"
-"Move Up: {0}","Fara upp: {0}"
-"Multiple root nodes not allowed.","Multiple root nodes not allowed."
-"Must have report permission to access this report.","Must have report permission to access this report."
-"Must specify a Query to run","Must specify a Query to run"
-"My Settings","Mínar stillingar"
-"Name","Nafn"
-"Name Case","Name Case"
-"Name and Description","Nafn og lýsing"
-"Name is required","Name is required"
-"Name not permitted","Name not permitted"
-"Name not set via Prompt","Name not set via Prompt"
-"Name of the Document Type (DocType) you want this field to be linked to. e.g. Customer","Name of the Document Type (DocType) you want this field to be linked to. e.g. Customer"
-"Name of {0} cannot be {1}","Name of {0} cannot be {1}"
-"Naming","Naming"
-"Naming Series mandatory","Naming Series mandatory"
-"Nested set error. Please contact the Administrator.","Nested set error. Please contact the Administrator."
-"New","New"
-"New Name","New Name"
-"New Password","New Password"
-"New Record","New Record"
-"New comment on {0} {1}","New comment on {0} {1}"
-"New password emailed","New password emailed"
-"New value to be set","New value to be set"
-"New {0}","New {0}"
-"Next Communcation On","Next Communcation On"
-"Next Record","Next Record"
-"Next State","Next State"
-"Next actions","Next actions"
-"No","Nei"
-"No Action","No Action"
-"No Communication tagged with this {0} yet.","No Communication tagged with this {0} yet."
-"No Copy","No Copy"
-"No Permissions set for this criteria.","No Permissions set for this criteria."
-"No Report Loaded. Please use query-report/[Report Name] to run a report.","No Report Loaded. Please use query-report/[Report Name] to run a report."
-"No Results","No Results"
-"No Sidebar","No Sidebar"
-"No User Permissions found.","No User Permissions found."
-"No data found","No data found"
-"No file attached","No file attached"
-"No further records","No further records"
-"No one","No one"
-"No permission to '{0}' {1}","No permission to '{0}' {1}"
-"No permission to edit","No permission to edit"
-"No permission to read {0}","No permission to read {0}"
-"No permission to write / remove.","No permission to write / remove."
-"No records tagged.","No records tagged."
-"No template found at path: {0}","No template found at path: {0}"
-"No {0} found","No {0} found"
-"No {0} permission","No {0} permission"
-"None","None"
-"None: End of Workflow","None: End of Workflow"
-"Not Found","Not Found"
-"Not Linked to any record.","Not Linked to any record."
-"Not Permitted","Not Permitted"
-"Not Published","Not Published"
-"Not Set","Not Set"
-"Not Submitted","Not Submitted"
-"Not a valid Comma Separated Value (CSV File)","Not a valid Comma Separated Value (CSV File)"
-"Not allowed","Not allowed"
-"Not allowed from this IP Address","Not allowed from this IP Address"
-"Not allowed to Import","Not allowed to Import"
-"Not allowed to access {0} with {1} = {2}","Not allowed to access {0} with {1} = {2}"
-"Not allowed to change {0} after submission","Not allowed to change {0} after submission"
-"Not allowed to reset the password of {0}","Not allowed to reset the password of {0}"
-"Not enough permission to see links.","Not enough permission to see links."
-"Not equals","Not equals"
-"Not found","Not found"
-"Not in Developer Mode! Set in site_config.json","Not in Developer Mode! Set in site_config.json"
-"Not permitted","Not permitted"
+Merge with existing,Merge with existing
+Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node,Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node
+Message,Skilaboð
+Message Examples,Message Examples
+Message to be displayed on successful completion,Message to be displayed on successful completion
+Messages,Skilaboð
+Messages from everyone,Messages from everyone
+Method,Method
+Middle Name (Optional),Middle Name (Optional)
+Misc,Misc
+Miscellaneous,Miscellaneous
+Missing Values Required,Missing Values Required
+Modern,Nýtískulegur
+Modified by,Modified by
+Module,Module
+Module Def,Module Def
+Module Name,Module Name
+Module Not Found,Module Not Found
+Modules Setup,Modules Setup
+Monday,Mánudagur
+Monochrome,Monochrome
+More,Meira
+More content for the bottom of the page.,Meira efni fyrir neðrihluta síðunnar.
+Move Down: {0},Fara niður: {0}
+Move Up: {0},Fara upp: {0}
+Multiple root nodes not allowed.,Multiple root nodes not allowed.
+Must have report permission to access this report.,Must have report permission to access this report.
+Must specify a Query to run,Must specify a Query to run
+My Settings,Mínar stillingar
+Name,Nafn
+Name Case,Name Case
+Name and Description,Nafn og lýsing
+Name is required,Name is required
+Name not permitted,Name not permitted
+Name not set via Prompt,Name not set via Prompt
+Name of the Document Type (DocType) you want this field to be linked to. e.g. Customer,Name of the Document Type (DocType) you want this field to be linked to. e.g. Customer
+Name of {0} cannot be {1},Name of {0} cannot be {1}
+Naming,Naming
+Naming Series mandatory,Naming Series mandatory
+Nested set error. Please contact the Administrator.,Nested set error. Please contact the Administrator.
+New,New
+New Name,New Name
+New Password,New Password
+New Record,New Record
+New comment on {0} {1},New comment on {0} {1}
+New password emailed,New password emailed
+New value to be set,New value to be set
+New {0},New {0}
+Next Communcation On,Next Communcation On
+Next Record,Next Record
+Next State,Next State
+Next actions,Next actions
+No,Nei
+No Action,No Action
+No Communication tagged with this {0} yet.,No Communication tagged with this {0} yet.
+No Copy,No Copy
+No Permissions set for this criteria.,No Permissions set for this criteria.
+No Report Loaded. Please use query-report/[Report Name] to run a report.,No Report Loaded. Please use query-report/[Report Name] to run a report.
+No Results,No Results
+No Sidebar,No Sidebar
+No User Permissions found.,No User Permissions found.
+No data found,No data found
+No file attached,No file attached
+No further records,No further records
+No one,No one
+No permission to '{0}' {1},No permission to '{0}' {1}
+No permission to edit,No permission to edit
+No permission to read {0},No permission to read {0}
+No permission to write / remove.,No permission to write / remove.
+No records tagged.,No records tagged.
+No template found at path: {0},No template found at path: {0}
+No {0} found,No {0} found
+No {0} permission,No {0} permission
+None,None
+None: End of Workflow,None: End of Workflow
+Not Found,Not Found
+Not Linked to any record.,Not Linked to any record.
+Not Permitted,Not Permitted
+Not Published,Not Published
+Not Set,Not Set
+Not Submitted,Not Submitted
+Not a valid Comma Separated Value (CSV File),Not a valid Comma Separated Value (CSV File)
+Not allowed,Not allowed
+Not allowed from this IP Address,Not allowed from this IP Address
+Not allowed to Import,Not allowed to Import
+Not allowed to access {0} with {1} = {2},Not allowed to access {0} with {1} = {2}
+Not allowed to change {0} after submission,Not allowed to change {0} after submission
+Not allowed to reset the password of {0},Not allowed to reset the password of {0}
+Not enough permission to see links.,Not enough permission to see links.
+Not equals,Not equals
+Not found,Not found
+Not in Developer Mode! Set in site_config.json,Not in Developer Mode! Set in site_config.json
+Not permitted,Not permitted
 "Note: For best results, images must be of the same size and width must be greater than height.","Note: For best results, images must be of the same size and width must be greater than height."
-"Note: Other permission rules may also apply","Note: Other permission rules may also apply"
-"Note: fields having empty value for above criteria are not filtered out.","Note: fields having empty value for above criteria are not filtered out."
-"Notes:","Skýringar:"
-"Nothing to show","Nothing to show"
-"Nothing to show for this selection","Nothing to show for this selection"
-"Notification Count","Notification Count"
-"Notify by Email","Notify by Email"
-"Number Format","Number Format"
-"Number list","Number list"
-"Old Parent","Old Parent"
-"Old Password","Old Password"
-"On","On"
+Note: Other permission rules may also apply,Note: Other permission rules may also apply
+Note: fields having empty value for above criteria are not filtered out.,Note: fields having empty value for above criteria are not filtered out.
+Notes:,Skýringar:
+Nothing to show,Nothing to show
+Nothing to show for this selection,Nothing to show for this selection
+Notification Count,Notification Count
+Notify by Email,Notify by Email
+Number Format,Number Format
+Number list,Number list
+Old Parent,Old Parent
+Old Password,Old Password
+On,On
 "Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).","Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger)."
-"One of","One of"
-"Only Administrator allowed to create Query / Script Reports","Only Administrator allowed to create Query / Script Reports"
-"Only Administrator can save a standard report. Please rename and save.","Only Administrator can save a standard report. Please rename and save."
-"Only Allow Edit For","Only Allow Edit For"
-"Only allowed {0} rows in one import","Only allowed {0} rows in one import"
-"Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.","Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish."
-"Oops! Something went wrong","Oops! Something went wrong"
-"Open","Open"
-"Open Count","Open Count"
-"Open Link","Open Link"
-"Open Link in a new Window","Open Link in a new Window"
-"Open Sans","Open Sans"
-"Open Source Web Applications for the Web","Open Source Web Applications for the Web"
-"Open a module or tool","Open a module or tool"
-"Open this saved file in Notepad","Open this saved file in Notepad"
-"Open {0}","Open {0}"
-"Optional: Alert will only be sent if value is a valid email id.","Optional: Alert will only be sent if value is a valid email id."
-"Optional: Always send to these ids. Each email id on a new row","Optional: Always send to these ids. Each email id on a new row"
-"Optional: The alert will be sent if this expression is true","Optional: The alert will be sent if this expression is true"
-"Options","Options"
-"Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType'","Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType'"
-"Options Help","Options Help"
-"Options for select. Each option on a new line. e.g.: <br>Option 1<br>Option 2<br>Option 3<br>","Options for select. Each option on a new line. e.g.: <br>Option 1<br>Option 2<br>Option 3<br>"
-"Options must be a valid DocType for field {0} in row {1}","Options must be a valid DocType for field {0} in row {1}"
-"Options not set for link field {0}","Options not set for link field {0}"
-"Options requried for Link or Table type field {0} in row {1}","Options requried for Link or Table type field {0} in row {1}"
-"Org History","Org History"
-"Org History Heading","Org History Heading"
-"Original Message","Original Message"
-"Other","Other"
-"Outgoing Email Settings","Outgoing Email Settings"
-"Outgoing Mail Server","Outgoing Mail Server"
-"Outgoing Mail Server not specified","Outgoing Mail Server not specified"
-"Overwrite","Overwrite"
-"Owner","Owner"
-"PDF Page Size","PDF Page Size"
-"PDF Settings","PDF Settings"
-"POP3 Mail Server (e.g. pop.gmail.com)","POP3 Mail Server (e.g. pop.gmail.com)"
-"Page","Page"
-"Page Background","Page Background"
-"Page HTML","Page HTML"
-"Page Header","Page Header"
-"Page Header Background","Page Header Background"
-"Page Header Text","Page Header Text"
-"Page Links","Page Links"
-"Page Name","Page Name"
-"Page Role","Síðuhlutverk"
-"Page Text","Page Text"
-"Page content","Page content"
-"Page missing or moved","Page missing or moved"
-"Page not found","Page not found"
-"Page to show on the website
-","Page to show on the website
-"
-"Page url name (auto-generated)","Page url name (auto-generated)"
-"Paragraph","Paragraph"
-"Parent","Parent"
-"Parent Label","Parent Label"
-"Parent Post","Parent Post"
-"Parent Table","Parent Table"
-"Parent Web Page","Parent Web Page"
-"Parent Website Group","Parent Website Group"
-"Parent Website Route","Parent Website Route"
-"Participants","Participants"
-"Password","Password"
-"Password Reset","Password Reset"
-"Password Update","Password Update"
-"Password Update Notification","Password Update Notification"
-"Password Updated","Password Updated"
-"Password reset instructions have been sent to your email","Password reset instructions have been sent to your email"
-"Patch","Patch"
-"Patch Log","Patch Log"
-"Percent","Percent"
-"Performing hardcore import process","Performing hardcore import process"
-"Perm Level","Perm Level"
-"Permanently Cancel {0}?","Permanently Cancel {0}?"
-"Permanently Submit {0}?","Permanently Submit {0}?"
-"Permanently delete {0}?","Permanently delete {0}?"
-"Permission Level","Permission Level"
-"Permission Levels","Permission Levels"
-"Permission Rules","Permission Rules"
-"Permission already set","Permission already set"
-"Permissions","Permissions"
-"Permissions Settings","Permissions Settings"
-"Permissions Updated","Permissions Updated"
-"Permissions are automatically translated to Standard Reports and Searches.","Permissions are automatically translated to Standard Reports and Searches."
+One of,One of
+Only Administrator allowed to create Query / Script Reports,Only Administrator allowed to create Query / Script Reports
+Only Administrator can save a standard report. Please rename and save.,Only Administrator can save a standard report. Please rename and save.
+Only Allow Edit For,Only Allow Edit For
+Only allowed {0} rows in one import,Only allowed {0} rows in one import
+Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.
+Oops! Something went wrong,Oops! Something went wrong
+Open,Open
+Open Count,Open Count
+Open Link,Open Link
+Open Link in a new Window,Open Link in a new Window
+Open Sans,Open Sans
+Open Source Web Applications for the Web,Open Source Web Applications for the Web
+Open a module or tool,Open a module or tool
+Open this saved file in Notepad,Open this saved file in Notepad
+Open {0},Open {0}
+Optional: Alert will only be sent if value is a valid email id.,Optional: Alert will only be sent if value is a valid email id.
+Optional: Always send to these ids. Each email id on a new row,Optional: Always send to these ids. Each email id on a new row
+Optional: The alert will be sent if this expression is true,Optional: The alert will be sent if this expression is true
+Options,Options
+Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType',Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType'
+Options Help,Options Help
+Options for select. Each option on a new line. e.g.: <br>Option 1<br>Option 2<br>Option 3<br>,Options for select. Each option on a new line. e.g.: <br>Option 1<br>Option 2<br>Option 3<br>
+Options must be a valid DocType for field {0} in row {1},Options must be a valid DocType for field {0} in row {1}
+Options not set for link field {0},Options not set for link field {0}
+Options requried for Link or Table type field {0} in row {1},Options requried for Link or Table type field {0} in row {1}
+Org History,Org History
+Org History Heading,Org History Heading
+Original Message,Original Message
+Other,Other
+Outgoing Email Settings,Outgoing Email Settings
+Outgoing Mail Server,Outgoing Mail Server
+Outgoing Mail Server not specified,Outgoing Mail Server not specified
+Overwrite,Overwrite
+Owner,Owner
+PDF Page Size,PDF Page Size
+PDF Settings,PDF Settings
+POP3 Mail Server (e.g. pop.gmail.com),POP3 Mail Server (e.g. pop.gmail.com)
+Page,Page
+Page Background,Page Background
+Page HTML,Page HTML
+Page Header,Page Header
+Page Header Background,Page Header Background
+Page Header Text,Page Header Text
+Page Links,Page Links
+Page Name,Page Name
+Page Role,Síðuhlutverk
+Page Text,Page Text
+Page content,Page content
+Page missing or moved,Page missing or moved
+Page not found,Page not found
+Page to show on the website,Page to show on the website
+Page url name (auto-generated),Page url name (auto-generated)
+Paragraph,Paragraph
+Parent,Parent
+Parent Label,Parent Label
+Parent Post,Parent Post
+Parent Table,Parent Table
+Parent Web Page,Parent Web Page
+Parent Website Group,Parent Website Group
+Parent Website Route,Parent Website Route
+Participants,Participants
+Password,Password
+Password Reset,Password Reset
+Password Update,Password Update
+Password Update Notification,Password Update Notification
+Password Updated,Password Updated
+Password reset instructions have been sent to your email,Password reset instructions have been sent to your email
+Patch,Patch
+Patch Log,Patch Log
+Percent,Percent
+Performing hardcore import process,Performing hardcore import process
+Perm Level,Perm Level
+Permanently Cancel {0}?,Permanently Cancel {0}?
+Permanently Submit {0}?,Permanently Submit {0}?
+Permanently delete {0}?,Permanently delete {0}?
+Permission Level,Permission Level
+Permission Levels,Permission Levels
+Permission Rules,Permission Rules
+Permission already set,Permission already set
+Permissions,Permissions
+Permissions Settings,Permissions Settings
+Permissions Updated,Permissions Updated
+Permissions are automatically translated to Standard Reports and Searches.,Permissions are automatically translated to Standard Reports and Searches.
 "Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions.","Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions."
-"Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles.","Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles."
+Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles.,Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles.
 "Permissions at level 0 are 'Document Level' permissions, i.e. they are primary for access to the document.","Permissions at level 0 are 'Document Level' permissions, i.e. they are primary for access to the document."
-"Permissions can be managed via Setup &gt; Role Permissions Manager","Permissions can be managed via Setup &gt; Role Permissions Manager"
-"Permissions get applied on Users based on what Roles they are assigned.","Permissions get applied on Users based on what Roles they are assigned."
-"Permitted Documents For User","Leyfð skjöl fyrir notanda"
-"Person","Persóna"
-"Personal Info","Persónuupplýsingar"
-"Phone","Sími"
-"Phone No.","Símanúmer."
-"Pick Columns","Velja dálk"
-"Picture URL","Myndaveffang"
-"Pincode","Pinn"
-"Please attach a file first.","Vinsamlegast hengdu skrá við fyrst."
-"Please attach a file or set a URL","Please attach a file or set a URL"
-"Please click on the following link to set your new password","Please click on the following link to set your new password"
-"Please do not change the rows above {0}","Please do not change the rows above {0}"
-"Please do not change the template headings.","Please do not change the template headings."
-"Please enable pop-ups","Please enable pop-ups"
-"Please enter Event's Date and Time!","Please enter Event's Date and Time!"
-"Please enter both your email and message so that we \
-				can get back to you. Thanks!","Please enter both your email and message so that we \
-				can get back to you. Thanks!"
-"Please enter email address","Please enter email address"
-"Please enter some text!","Please enter some text!"
-"Please enter title!","Please enter title!"
-"Please login to Upvote!","Please login to Upvote!"
-"Please login to create a new {0}","Please login to create a new {0}"
-"Please make sure that there are no empty columns in the file.","Please make sure that there are no empty columns in the file."
-"Please refresh to get the latest document.","Please refresh to get the latest document."
-"Please reply above this line or remove it if you are replying below it","Please reply above this line or remove it if you are replying below it"
-"Please save before attaching.","Please save before attaching."
-"Please save the document before assignment","Please save the document before assignment"
-"Please save the document before removing assignment","Please save the document before removing assignment"
-"Please select a file or url","Please select a file or url"
-"Please select atleast 1 column from {0} to sort","Please select atleast 1 column from {0} to sort"
-"Please set filters","Please set filters"
-"Please set {0} first","Please set {0} first"
-"Please specify","Vinsamlegast tilgreindu"
-"Please specify 'Auto Email Id' in Setup > Outgoing Email Settings","Please specify 'Auto Email Id' in Setup > Outgoing Email Settings"
-"Please specify Event date and time","Please specify Event date and time"
-"Please specify doctype","Please specify doctype"
-"Please specify user","Please specify user"
-"Please specify which date field must be checked","Please specify which date field must be checked"
-"Please specify which value field must be checked","Please specify which value field must be checked"
-"Please upload using the same template as download.","Please upload using the same template as download."
-"Plugin","Plugin"
-"Port","Port"
-"Post","Post"
-"Post Publicly","Post Publicly"
-"Post Topic","Post Topic"
-"Post already exists. Cannot add again!","Post already exists. Cannot add again!"
-"Post does not exist. Please add post!","Post does not exist. Please add post!"
-"Post to user","Post to user"
-"Posts","Posts"
-"Precision","Precision"
-"Precision should be between 1 and 6","Precision should be between 1 and 6"
-"Press Esc to close","Press Esc to close"
-"Previous Record","Previous Record"
-"Primary","Primary"
-"Print","Prenta"
-"Print Format","Prentsnið"
-"Print Format Help","Print Format Help"
-"Print Format Type","Print Format Type"
-"Print Format {0} does not exist","Print Format {0} does not exist"
-"Print Format {0} is disabled","Print Format {0} is disabled"
-"Print Hide","Print Hide"
-"Print Settings","Prentstillingar"
-"Print Style","Print Style"
-"Print Style Preview","Print Style Preview"
-"Print Width","Print Width"
+Permissions can be managed via Setup &gt; Role Permissions Manager,Permissions can be managed via Setup &gt; Role Permissions Manager
+Permissions get applied on Users based on what Roles they are assigned.,Permissions get applied on Users based on what Roles they are assigned.
+Permitted Documents For User,Leyfð skjöl fyrir notanda
+Person,Persóna
+Personal Info,Persónuupplýsingar
+Phone,Sími
+Phone No.,Símanúmer.
+Pick Columns,Velja dálk
+Picture URL,Myndaveffang
+Pincode,Pinn
+Please attach a file first.,Vinsamlegast hengdu skrá við fyrst.
+Please attach a file or set a URL,Please attach a file or set a URL
+Please click on the following link to set your new password,Please click on the following link to set your new password
+Please do not change the rows above {0},Please do not change the rows above {0}
+Please do not change the template headings.,Please do not change the template headings.
+Please enable pop-ups,Please enable pop-ups
+Please enter Event's Date and Time!,Please enter Event's Date and Time!
+Please enter both your email and message so that we \				can get back to you. Thanks!,Please enter both your email and message so that we \				can get back to you. Thanks!
+Please enter email address,Please enter email address
+Please enter some text!,Please enter some text!
+Please enter title!,Please enter title!
+Please login to Upvote!,Please login to Upvote!
+Please login to create a new {0},Please login to create a new {0}
+Please make sure that there are no empty columns in the file.,Please make sure that there are no empty columns in the file.
+Please refresh to get the latest document.,Please refresh to get the latest document.
+Please reply above this line or remove it if you are replying below it,Please reply above this line or remove it if you are replying below it
+Please save before attaching.,Please save before attaching.
+Please save the document before assignment,Please save the document before assignment
+Please save the document before removing assignment,Please save the document before removing assignment
+Please select a file or url,Please select a file or url
+Please select atleast 1 column from {0} to sort,Please select atleast 1 column from {0} to sort
+Please set filters,Please set filters
+Please set {0} first,Please set {0} first
+Please specify,Vinsamlegast tilgreindu
+Please specify 'Auto Email Id' in Setup > Outgoing Email Settings,Please specify 'Auto Email Id' in Setup > Outgoing Email Settings
+Please specify Event date and time,Please specify Event date and time
+Please specify doctype,Please specify doctype
+Please specify user,Please specify user
+Please specify which date field must be checked,Please specify which date field must be checked
+Please specify which value field must be checked,Please specify which value field must be checked
+Please upload using the same template as download.,Please upload using the same template as download.
+Plugin,Plugin
+Port,Port
+Post,Post
+Post Publicly,Post Publicly
+Post Topic,Post Topic
+Post already exists. Cannot add again!,Post already exists. Cannot add again!
+Post does not exist. Please add post!,Post does not exist. Please add post!
+Post to user,Post to user
+Posts,Posts
+Precision,Precision
+Precision should be between 1 and 6,Precision should be between 1 and 6
+Press Esc to close,Press Esc to close
+Previous Record,Previous Record
+Primary,Primary
+Print,Prenta
+Print Format,Prentsnið
+Print Format Help,Print Format Help
+Print Format Type,Print Format Type
+Print Format {0} does not exist,Print Format {0} does not exist
+Print Format {0} is disabled,Print Format {0} is disabled
+Print Hide,Print Hide
+Print Settings,Prentstillingar
+Print Style,Print Style
+Print Style Preview,Print Style Preview
+Print Width,Print Width
 "Print Width of the field, if the field is a column in a table","Print Width of the field, if the field is a column in a table"
 "Print with Letterhead, unless unchecked in a particular Document","Print with Letterhead, unless unchecked in a particular Document"
-"Print...","Print..."
-"Printing and Branding","Prentun og vörumerki"
-"Priority","Forgangur"
-"Private","Einka"
-"Properties","Properties"
-"Property","Property"
-"Property Setter","Property Setter"
-"Property Setter overrides a standard DocType or Field property","Property Setter overrides a standard DocType or Field property"
-"Property Type","Property Type"
-"Public","Public"
-"Published","Published"
-"Published On","Published On"
-"Published on website at: {0}","Published on website at: {0}"
-"Pull Emails from the Inbox and attach them as Communication records (for known contacts).","Pull Emails from the Inbox and attach them as Communication records (for known contacts)."
-"Query","Query"
-"Query Options","Query Options"
-"Query Report","Query Report"
-"Query must be a SELECT","Query must be a SELECT"
-"Quick Help for Setting Permissions","Quick Help for Setting Permissions"
-"Quick Help for User Permissions","Quick Help for User Permissions"
-"Re-open","Re-open"
-"Read","Lesa"
-"Read Only","Read Only"
-"Received","Received"
-"Recipient","Recipient"
-"Recipients","Recipients"
-"Record does not exist","Record does not exist"
-"Reduce indent (Shift+Tab)","Reduce indent (Shift+Tab)"
-"Ref DocType","Ref DocType"
-"Ref Name","Ref Name"
-"Ref Type","Ref Type"
-"Reference","Reference"
-"Reference DocName","Reference DocName"
-"Reference DocType","Reference DocType"
-"Reference Name","Reference Name"
-"Reference Type","Reference Type"
-"Refresh","Endurnýja"
-"Refresh Form","Refresh Form"
-"Refreshing...","Refreshing..."
-"Registered but disabled.","Registered but disabled."
-"Registration Details Emailed.","Registration Details Emailed."
-"Reload Page","Reload Page"
-"Remove Bookmark","Remove Bookmark"
-"Remove Filter","Remove Filter"
-"Remove Link","Remove Link"
-"Remove all customizations?","Remove all customizations?"
-"Removed {0}","Removed {0}"
-"Rename","Endurnefna"
-"Rename many items by uploading a .csv file.","Rename many items by uploading a .csv file."
-"Rename {0}","Rename {0}"
-"Rename...","Rename..."
-"Repeat On","Repeat On"
-"Repeat Till","Repeat Till"
-"Repeat this Event","Repeat this Event"
-"Replies","Replies"
-"Report","Skýrsla"
-"Report Builder","Skýrslusmiður"
-"Report Builder reports are managed directly by the report builder. Nothing to do.","Report Builder reports are managed directly by the report builder. Nothing to do."
-"Report Hide","Report Hide"
-"Report Manager","Report Manager"
-"Report Name","Report Name"
-"Report Type","Report Type"
-"Report an Issue","Report an Issue"
-"Report cannot be set for Single types","Report cannot be set for Single types"
-"Report this issue","Report this issue"
-"Report was not saved (there were errors)","Report was not saved (there were errors)"
-"Report {0} is disabled","Report {0} is disabled"
-"Represents a User in the system.","Represents a User in the system."
-"Represents the states allowed in one document and role assigned to change the state.","Represents the states allowed in one document and role assigned to change the state."
-"Reqd","Reqd"
-"Reset Password","Reset Password"
-"Reset Password Key","Reset Password Key"
-"Reset Permissions for {0}?","Reset Permissions for {0}?"
-"Reset to defaults","Reset to defaults"
-"Response","Response"
-"Restore Original Permissions","Restore Original Permissions"
-"Restrict IP","Restrict IP"
-"Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111)","Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111)"
-"Right","Right"
-"Role","Hlutverk"
-"Role Name","Nafn hlutverks"
-"Role Permissions","Hlutverkaréttindi"
-"Role Permissions Manager","Réttindastjóri hlutverka"
-"Role and Level","Hlutverk og gildi"
-"Role exists","Hlutverk er þegar til"
-"Roles","Hlutverk"
-"Roles Assigned","Úthlutuð hlutverk"
-"Roles Assigned To User","Hlutverkum úthlutað til notanda"
-"Roles HTML","HTML hlutverk"
-"Roles can be set for users from their User page.","Hlutverk er hægt að stilla fyrir notendur á þeirra notandasíðu."
-"Root {0} cannot be deleted","Rót {0} er ekki hægt að eyða"
-"Row","Lína"
-"Row #{0}:","Lína #{0}:"
-"Row {0}: Not allowed to enable Allow on Submit for standard fields","Lína {0}: Not allowed to enable Allow on Submit for standard fields"
-"Rules defining transition of state in the workflow.","Reglur sem skilgreina stöðuskipti á ástandi í verkflæði."
+Print...,Print...
+Printing and Branding,Prentun og vörumerki
+Priority,Forgangur
+Private,Einka
+Properties,Properties
+Property,Property
+Property Setter,Property Setter
+Property Setter overrides a standard DocType or Field property,Property Setter overrides a standard DocType or Field property
+Property Type,Property Type
+Public,Public
+Published,Published
+Published On,Published On
+Published on website at: {0},Published on website at: {0}
+Pull Emails from the Inbox and attach them as Communication records (for known contacts).,Pull Emails from the Inbox and attach them as Communication records (for known contacts).
+Query,Query
+Query Options,Query Options
+Query Report,Query Report
+Query must be a SELECT,Query must be a SELECT
+Quick Help for Setting Permissions,Quick Help for Setting Permissions
+Quick Help for User Permissions,Quick Help for User Permissions
+Re-open,Re-open
+Read,Lesa
+Read Only,Read Only
+Received,Received
+Recipient,Recipient
+Recipients,Recipients
+Record does not exist,Record does not exist
+Reduce indent (Shift+Tab),Reduce indent (Shift+Tab)
+Ref DocType,Ref DocType
+Ref Name,Ref Name
+Ref Type,Ref Type
+Reference,Reference
+Reference DocName,Reference DocName
+Reference DocType,Reference DocType
+Reference Name,Reference Name
+Reference Type,Reference Type
+Refresh,Endurnýja
+Refresh Form,Refresh Form
+Refreshing...,Refreshing...
+Registered but disabled.,Registered but disabled.
+Registration Details Emailed.,Registration Details Emailed.
+Reload Page,Reload Page
+Remove Bookmark,Remove Bookmark
+Remove Filter,Remove Filter
+Remove Link,Remove Link
+Remove all customizations?,Remove all customizations?
+Removed {0},Removed {0}
+Rename,Endurnefna
+Rename many items by uploading a .csv file.,Rename many items by uploading a .csv file.
+Rename {0},Rename {0}
+Rename...,Rename...
+Repeat On,Repeat On
+Repeat Till,Repeat Till
+Repeat this Event,Repeat this Event
+Replies,Replies
+Report,Skýrsla
+Report Builder,Skýrslusmiður
+Report Builder reports are managed directly by the report builder. Nothing to do.,Report Builder reports are managed directly by the report builder. Nothing to do.
+Report Hide,Report Hide
+Report Manager,Report Manager
+Report Name,Report Name
+Report Type,Report Type
+Report an Issue,Report an Issue
+Report cannot be set for Single types,Report cannot be set for Single types
+Report this issue,Report this issue
+Report was not saved (there were errors),Report was not saved (there were errors)
+Report {0} is disabled,Report {0} is disabled
+Represents a User in the system.,Represents a User in the system.
+Represents the states allowed in one document and role assigned to change the state.,Represents the states allowed in one document and role assigned to change the state.
+Reqd,Reqd
+Reset Password,Reset Password
+Reset Password Key,Reset Password Key
+Reset Permissions for {0}?,Reset Permissions for {0}?
+Reset to defaults,Reset to defaults
+Response,Response
+Restore Original Permissions,Restore Original Permissions
+Restrict IP,Restrict IP
+Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111),Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111)
+Right,Right
+Role,Hlutverk
+Role Name,Nafn hlutverks
+Role Permissions,Hlutverkaréttindi
+Role Permissions Manager,Réttindastjóri hlutverka
+Role and Level,Hlutverk og gildi
+Role exists,Hlutverk er þegar til
+Roles,Hlutverk
+Roles Assigned,Úthlutuð hlutverk
+Roles Assigned To User,Hlutverkum úthlutað til notanda
+Roles HTML,HTML hlutverk
+Roles can be set for users from their User page.,Hlutverk er hægt að stilla fyrir notendur á þeirra notandasíðu.
+Root {0} cannot be deleted,Rót {0} er ekki hægt að eyða
+Row,Lína
+Row #{0}:,Lína #{0}:
+Row {0}: Not allowed to enable Allow on Submit for standard fields,Lína {0}: Not allowed to enable Allow on Submit for standard fields
+Rules defining transition of state in the workflow.,Reglur sem skilgreina stöðuskipti á ástandi í verkflæði.
 "Rules for how states are transitions, like next state and which role is allowed to change state etc.","Rules for how states are transitions, like next state and which role is allowed to change state etc."
-"Run scheduled jobs only if checked","Run scheduled jobs only if checked"
-"Run the report first","Run the report first"
-"SMTP Server (e.g. smtp.gmail.com)","SMTP Server (e.g. smtp.gmail.com)"
-"Sales","Sala"
-"Sales Manager","Sales Manager"
-"Sales User","Sales User"
-"Same file has already been attached to the record","Same file has already been attached to the record"
-"Sample","Sample"
-"Saturday","Saturday"
-"Save","Vista"
-"Saved!","Vistuð!"
-"Scheduler Log","Verkraðara annáll"
-"Script","Script"
-"Script Report","Script Report"
-"Script Type","Script Type"
-"Script to attach to all web pages.","Script to attach to all web pages."
-"Search","Leita"
-"Search Fields","Leita í svæðum"
-"Search Fields should contain valid fieldnames","Leita í svæðum ætti að innihalda gild svæðisnöfn"
-"Search Filter","Leitarsía"
-"Search Link","Leitartengill"
-"Search in a document type","Leita í tegund skjals"
-"Search or type a command","Leita eða slá inn skipun"
-"Section Break","Section Break"
-"Security","Security"
-"Security Settings","Security Settings"
-"Select","Select"
-"Select All","Select All"
-"Select Attachments","Select Attachments"
-"Select DocType","Select DocType"
-"Select Document Type","Select Document Type"
-"Select Document Type or Role to start.","Select Document Type or Role to start."
-"Select Document Types","Select Document Types"
-"Select Document Types to set which User Permissions are used to limit access.","Select Document Types to set which User Permissions are used to limit access."
-"Select Print Format","Select Print Format"
-"Select Report Name","Select Report Name"
-"Select Role","Veldu hlutverk"
-"Select To Download:","Select To Download:"
-"Select Type","Select Type"
-"Select User","Select User"
-"Select User or DocType to start.","Select User or DocType to start."
-"Select a Banner Image first.","Select a Banner Image first."
-"Select an image of approx width 150px with a transparent background for best results.","Select an image of approx width 150px with a transparent background for best results."
+Run scheduled jobs only if checked,Run scheduled jobs only if checked
+Run the report first,Run the report first
+SMTP Server (e.g. smtp.gmail.com),SMTP Server (e.g. smtp.gmail.com)
+Sales,Sala
+Sales Manager,Sales Manager
+Sales User,Sales User
+Same file has already been attached to the record,Same file has already been attached to the record
+Sample,Sample
+Saturday,Saturday
+Save,Vista
+Saved!,Vistuð!
+Scheduler Log,Verkraðara annáll
+Script,Script
+Script Report,Script Report
+Script Type,Script Type
+Script to attach to all web pages.,Script to attach to all web pages.
+Search,Leita
+Search Fields,Leita í svæðum
+Search Fields should contain valid fieldnames,Leita í svæðum ætti að innihalda gild svæðisnöfn
+Search Filter,Leitarsía
+Search Link,Leitartengill
+Search in a document type,Leita í tegund skjals
+Search or type a command,Leita eða slá inn skipun
+Section Break,Section Break
+Security,Security
+Security Settings,Security Settings
+Select,Select
+Select All,Select All
+Select Attachments,Select Attachments
+Select DocType,Select DocType
+Select Document Type,Select Document Type
+Select Document Type or Role to start.,Select Document Type or Role to start.
+Select Document Types,Select Document Types
+Select Document Types to set which User Permissions are used to limit access.,Select Document Types to set which User Permissions are used to limit access.
+Select Print Format,Select Print Format
+Select Report Name,Select Report Name
+Select Role,Veldu hlutverk
+Select To Download:,Select To Download:
+Select Type,Select Type
+Select User,Select User
+Select User or DocType to start.,Select User or DocType to start.
+Select a Banner Image first.,Select a Banner Image first.
+Select an image of approx width 150px with a transparent background for best results.,Select an image of approx width 150px with a transparent background for best results.
 "Select modules to be shown (based on permission). If hidden, they will be hidden for all users.","Select modules to be shown (based on permission). If hidden, they will be hidden for all users."
-"Select or drag across time slots to create a new event.","Select or drag across time slots to create a new event."
+Select or drag across time slots to create a new event.,Select or drag across time slots to create a new event.
 "Select target = ""_blank"" to open in a new page.","Select target = ""_blank"" to open in a new page."
-"Select the label after which you want to insert new field.","Select the label after which you want to insert new field."
-"Select {0}","Select {0}"
-"Send","Send"
-"Send Alert On","Send Alert On"
-"Send As Email","Send As Email"
-"Send Email","Send Email"
-"Send Email Print Attachments as PDF (Recommended)","Send Email Print Attachments as PDF (Recommended)"
-"Send Me A Copy","Send Me A Copy"
-"Send Print as PDF","Send Print as PDF"
-"Send alert if date matches this field's value","Send alert if date matches this field's value"
-"Send alert if this field's value changes","Send alert if this field's value changes"
-"Send an email reminder in the morning","Send an email reminder in the morning"
-"Send download link of a recent backup to System Managers","Senda niðurhals hlekk nýlegra afrita til kerfisstjórnenda"
-"Send enquiries to this email address","Senda fyrirspurnir á þetta netfang"
-"Sender","Sendandi"
-"Sent","Send"
-"Sent Mail","Sendur póstur"
-"Sent Quotation","Send kostnaðaráætlun"
-"Sent or Received","Send eða móttekin"
-"Series","Röð"
-"Series {0} already used in {1}","Röð {0} er þegar notuð í {1}"
-"Server","Miðlari"
-"Server & Credentials","Miðlari & skilríki"
-"Server Error: Please check your server logs or contact tech support.","Miðlara villa: Vinsamlegast athugaðu villuannálinn eða hafðu samband við þjónustuaðila."
-"Session Expired. Logging you out","Session Expired. Logging you out"
-"Session Expiry","Session Expiry"
-"Session Expiry in Hours e.g. 06:00","Session Expiry in Hours e.g. 06:00"
-"Session Expiry must be in format {0}","Session Expiry must be in format {0}"
-"Set","Set"
-"Set Banner from Image","Set Banner from Image"
-"Set Link","Set Link"
-"Set Login and Password if authentication is required.","Set Login and Password if authentication is required."
-"Set Only Once","Set Only Once"
-"Set Password","Set Password"
-"Set Permissions on Document Types and Roles","Stilla heimildir á skrárgerðir og hlutverk"
-"Set Permissions per User","Stilla heimildir á notanda"
-"Set User Permissions","Stilla notandaheimildir"
-"Set Value","Stilla gildi"
+Select the label after which you want to insert new field.,Select the label after which you want to insert new field.
+Select {0},Select {0}
+Send,Send
+Send Alert On,Send Alert On
+Send As Email,Send As Email
+Send Email,Send Email
+Send Email Print Attachments as PDF (Recommended),Send Email Print Attachments as PDF (Recommended)
+Send Me A Copy,Send Me A Copy
+Send Print as PDF,Send Print as PDF
+Send alert if date matches this field's value,Send alert if date matches this field's value
+Send alert if this field's value changes,Send alert if this field's value changes
+Send an email reminder in the morning,Send an email reminder in the morning
+Send download link of a recent backup to System Managers,Senda niðurhals hlekk nýlegra afrita til kerfisstjórnenda
+Send enquiries to this email address,Senda fyrirspurnir á þetta netfang
+Sender,Sendandi
+Sent,Send
+Sent Mail,Sendur póstur
+Sent Quotation,Send kostnaðaráætlun
+Sent or Received,Send eða móttekin
+Series,Röð
+Series {0} already used in {1},Röð {0} er þegar notuð í {1}
+Server,Miðlari
+Server & Credentials,Miðlari & skilríki
+Server Error: Please check your server logs or contact tech support.,Miðlara villa: Vinsamlegast athugaðu villuannálinn eða hafðu samband við þjónustuaðila.
+Session Expired. Logging you out,Session Expired. Logging you out
+Session Expiry,Session Expiry
+Session Expiry in Hours e.g. 06:00,Session Expiry in Hours e.g. 06:00
+Session Expiry must be in format {0},Session Expiry must be in format {0}
+Set,Set
+Set Banner from Image,Set Banner from Image
+Set Link,Set Link
+Set Login and Password if authentication is required.,Set Login and Password if authentication is required.
+Set Only Once,Set Only Once
+Set Password,Set Password
+Set Permissions on Document Types and Roles,Stilla heimildir á skrárgerðir og hlutverk
+Set Permissions per User,Stilla heimildir á notanda
+Set User Permissions,Stilla notandaheimildir
+Set Value,Stilla gildi
 "Set default format, page size, print style etc.","Set default format, page size, print style etc."
-"Set non-standard precision for a Float or Currency field","Set non-standard precision for a Float or Currency field"
-"Set numbering series for transactions.","Set numbering series for transactions."
-"Set outgoing mail server.","Set outgoing mail server."
-"Set the display label for the field","Set the display label for the field"
+Set non-standard precision for a Float or Currency field,Set non-standard precision for a Float or Currency field
+Set numbering series for transactions.,Set numbering series for transactions.
+Set outgoing mail server.,Set outgoing mail server.
+Set the display label for the field,Set the display label for the field
 "Set your background color, font and image (tiled)","Set your background color, font and image (tiled)"
-"Settings","Stillingar"
-"Settings for About Us Page.","Settings for About Us Page."
-"Settings for Contact Us Page","Settings for Contact Us Page"
-"Settings for Contact Us Page.","Settings for Contact Us Page."
-"Settings for the About Us Page","Settings for the About Us Page"
-"Setup","Uppsetning"
-"Setup > User","Setup > User"
-"Setup > User Permissions Manager","Setup > User Permissions Manager"
-"Setup Email Alert based on various criteria.","Setup Email Alert based on various criteria."
-"Setup of fonts and background.","Setup of fonts and background."
+Settings,Stillingar
+Settings for About Us Page.,Settings for About Us Page.
+Settings for Contact Us Page,Settings for Contact Us Page
+Settings for Contact Us Page.,Settings for Contact Us Page.
+Settings for the About Us Page,Settings for the About Us Page
+Setup,Uppsetning
+Setup > User,Setup > User
+Setup > User Permissions Manager,Setup > User Permissions Manager
+Setup Email Alert based on various criteria.,Setup Email Alert based on various criteria.
+Setup of fonts and background.,Setup of fonts and background.
 "Setup of top navigation bar, footer and logo.","Setup of top navigation bar, footer and logo."
-"Short Bio","Short Bio"
-"Short Name","Short Name"
-"Shortcut","Shortcut"
-"Shortcuts","Shortcuts"
-"Show / Hide Modules","Birta / Fela einingar"
-"Show Print First","Show Print First"
-"Show Tags","Show Tags"
-"Show User Permissions","Show User Permissions"
-"Show a description below the field","Show a description below the field"
-"Show or Hide Modules","Show or Hide Modules"
-"Show or hide modules globally.","Birta eða fela einingar altækt."
-"Show rows with zero values","Show rows with zero values"
-"Show tags","Show tags"
-"Show this field as title","Show this field as title"
-"Sidebar","Sidebar"
-"Sidebar Items","Sidebar Items"
-"Sidebar Links for Home Page only","Sidebar Links for Home Page only"
-"Single Post (article).","Single Post (article)."
-"Single Types have only one record no tables associated. Values are stored in tabSingles","Single Types have only one record no tables associated. Values are stored in tabSingles"
-"Slideshow","Slideshow"
-"Slideshow Items","Slideshow Items"
-"Slideshow Name","Slideshow Name"
-"Slideshow like display for the website","Slideshow like display for the website"
-"Small Text","Small Text"
-"Social Login Keys","Social Login Keys"
-"Solid background color (default light gray)","Solid background color (default light gray)"
-"Sorry we were unable to find what you were looking for.","Sorry we were unable to find what you were looking for."
-"Sorry you are not permitted to view this page.","Sorry you are not permitted to view this page."
-"Sort By","Sort By"
-"Sort Field","Sort Field"
-"Sort Order","Sort Order"
-"Specify a default value","Specify a default value"
-"Specify the value of the field","Specify the value of the field"
-"Sr No","Fylgiskjal nr."
-"Standard","Standard"
-"Standard Print Format cannot be updated","Standard Print Format cannot be updated"
-"Standard Reply","Standard Reply"
-"Standard Reports","Staðlaðar skýrslur"
-"Standard replies to common queries.","Standard replies to common queries."
-"Start Report For","Start Report For"
-"Start entering data below this line","Start entering data below this line"
-"Starts on","Starts on"
-"State","State"
-"States","States"
+Short Bio,Short Bio
+Short Name,Short Name
+Shortcut,Shortcut
+Shortcuts,Shortcuts
+Show / Hide Modules,Birta / Fela einingar
+Show Print First,Show Print First
+Show Tags,Show Tags
+Show User Permissions,Show User Permissions
+Show a description below the field,Show a description below the field
+Show or Hide Modules,Show or Hide Modules
+Show or hide modules globally.,Birta eða fela einingar altækt.
+Show rows with zero values,Show rows with zero values
+Show tags,Show tags
+Show this field as title,Show this field as title
+Sidebar,Sidebar
+Sidebar Items,Sidebar Items
+Sidebar Links for Home Page only,Sidebar Links for Home Page only
+Single Post (article).,Single Post (article).
+Single Types have only one record no tables associated. Values are stored in tabSingles,Single Types have only one record no tables associated. Values are stored in tabSingles
+Slideshow,Slideshow
+Slideshow Items,Slideshow Items
+Slideshow Name,Slideshow Name
+Slideshow like display for the website,Slideshow like display for the website
+Small Text,Small Text
+Social Login Keys,Social Login Keys
+Solid background color (default light gray),Solid background color (default light gray)
+Sorry we were unable to find what you were looking for.,Sorry we were unable to find what you were looking for.
+Sorry you are not permitted to view this page.,Sorry you are not permitted to view this page.
+Sort By,Sort By
+Sort Field,Sort Field
+Sort Order,Sort Order
+Specify a default value,Specify a default value
+Specify the value of the field,Specify the value of the field
+Sr No,Fylgiskjal nr.
+Standard,Standard
+Standard Print Format cannot be updated,Standard Print Format cannot be updated
+Standard Reply,Standard Reply
+Standard Reports,Staðlaðar skýrslur
+Standard replies to common queries.,Standard replies to common queries.
+Start Report For,Start Report For
+Start entering data below this line,Start entering data below this line
+Starts on,Starts on
+State,State
+States,States
 "States for workflow (e.g. Draft, Approved, Cancelled).","States for workflow (e.g. Draft, Approved, Cancelled)."
-"Status","Status"
-"Step 1: Set the name and save.","Step 1: Set the name and save."
-"Step 2: Set Letterhead content.","Step 2: Set Letterhead content."
-"Style","Style"
-"Style Settings","Style Settings"
+Status,Status
+Step 1: Set the name and save.,Step 1: Set the name and save.
+Step 2: Set Letterhead content.,Step 2: Set Letterhead content.
+Style,Style
+Style Settings,Style Settings
 "Style represents the button color: Success - Green, Danger - Red, Inverse - Black, Primary - Dark Blue, Info - Light Blue, Warning - Orange","Style represents the button color: Success - Green, Danger - Red, Inverse - Black, Primary - Dark Blue, Info - Light Blue, Warning - Orange"
-"Sub-domain provided by erpnext.com","Sub-domain provided by erpnext.com"
-"Subdomain","Subdomain"
-"Subject","Subject"
-"Submit","Submit"
-"Submit an Issue","Submit an Issue"
-"Submitted","Submitted"
-"Submitted Document cannot be converted back to draft. Transition row {0}","Submitted Document cannot be converted back to draft. Transition row {0}"
-"Success","Success"
-"Success Message","Success Message"
-"Success URL","Success URL"
-"Suggestion","Suggestion"
-"Sunday","Sunday"
-"Support Manager","Support Manager"
-"Support Team","Support Team"
-"Switch to Website","Skipta yfir á heimasíðu"
-"Sync Inbox","Sync Inbox"
-"System","Kerfi"
-"System Manager","Kerfisstjóri"
-"System Settings","Kerfisstillingar"
-"System User","System User"
-"System and Website Users","Kerfis og vefsíðu notendur"
-"System generated mails will be sent from this email id.","System generated mails will be sent from this email id."
-"Table","Table"
-"Table {0} cannot be empty","Table {0} cannot be empty"
-"Tag","Tag"
-"Tag Name","Tag Name"
-"Tags","Tags"
-"Tahoma","Tahoma"
-"Target","Target"
-"Tasks","Tasks"
-"Team Members","Team Members"
-"Team Members Heading","Team Members Heading"
-"Template Path","Template Path"
-"Test Runner","Test Runner"
-"Text","Text"
-"Text Align","Text Align"
-"Text Editor","Text Editor"
-"Text to be displayed for Link to Web Page if this form has a web page. Link route will be automatically generated based on `page_name` and `parent_website_route`","Text to be displayed for Link to Web Page if this form has a web page. Link route will be automatically generated based on `page_name` and `parent_website_route`"
-"Thank you","Thank you"
-"Thank you for your message","Thank you for your message"
-"The name of your company / website as you want to appear on browser title bar. All pages will have this as the prefix to the title.","The name of your company / website as you want to appear on browser title bar. All pages will have this as the prefix to the title."
-"The system provides many pre-defined roles. You can add new roles to set finer permissions.","The system provides many pre-defined roles. You can add new roles to set finer permissions."
+Sub-domain provided by erpnext.com,Sub-domain provided by erpnext.com
+Subdomain,Subdomain
+Subject,Subject
+Submit,Submit
+Submit an Issue,Submit an Issue
+Submitted,Submitted
+Submitted Document cannot be converted back to draft. Transition row {0},Submitted Document cannot be converted back to draft. Transition row {0}
+Success,Success
+Success Message,Success Message
+Success URL,Success URL
+Suggestion,Suggestion
+Sunday,Sunday
+Support Manager,Support Manager
+Support Team,Support Team
+Switch to Website,Skipta yfir á heimasíðu
+Sync Inbox,Sync Inbox
+System,Kerfi
+System Manager,Kerfisstjóri
+System Settings,Kerfisstillingar
+System User,System User
+System and Website Users,Kerfis og vefsíðu notendur
+System generated mails will be sent from this email id.,System generated mails will be sent from this email id.
+Table,Table
+Table {0} cannot be empty,Table {0} cannot be empty
+Tag,Tag
+Tag Name,Tag Name
+Tags,Tags
+Tahoma,Tahoma
+Target,Target
+Tasks,Tasks
+Team Members,Team Members
+Team Members Heading,Team Members Heading
+Template Path,Template Path
+Test Runner,Test Runner
+Text,Text
+Text Align,Text Align
+Text Editor,Text Editor
+Text to be displayed for Link to Web Page if this form has a web page. Link route will be automatically generated based on `page_name` and `parent_website_route`,Text to be displayed for Link to Web Page if this form has a web page. Link route will be automatically generated based on `page_name` and `parent_website_route`
+Thank you,Thank you
+Thank you for your message,Thank you for your message
+The name of your company / website as you want to appear on browser title bar. All pages will have this as the prefix to the title.,The name of your company / website as you want to appear on browser title bar. All pages will have this as the prefix to the title.
+The system provides many pre-defined roles. You can add new roles to set finer permissions.,The system provides many pre-defined roles. You can add new roles to set finer permissions.
 "The task %s, that you assigned to %s, has been closed by %s.","The task %s, that you assigned to %s, has been closed by %s."
 "The task %s, that you assigned to %s, has been closed.","The task %s, that you assigned to %s, has been closed."
-"Then By (optional)","Then By (optional)"
-"There can be only one Fold in a form","There can be only one Fold in a form"
-"There should remain at least one System Manager","There should remain at least one System Manager"
-"There were errors","There were errors"
-"There were errors while sending email. Please try again.","There were errors while sending email. Please try again."
+Then By (optional),Then By (optional)
+There can be only one Fold in a form,There can be only one Fold in a form
+There should remain at least one System Manager,There should remain at least one System Manager
+There were errors,There were errors
+There were errors while sending email. Please try again.,There were errors while sending email. Please try again.
 "There were some errors setting the name, please contact the administrator","There were some errors setting the name, please contact the administrator"
 "These permissions will apply for all transactions where the permitted record is linked. For example, if Company C is added to User Permissions of user X, user X will only be able to see transactions that has company C as a linked value.","These permissions will apply for all transactions where the permitted record is linked. For example, if Company C is added to User Permissions of user X, user X will only be able to see transactions that has company C as a linked value."
-"These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.","These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values."
+These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.
 "These will also be set as default values for those links, if only one such permission record is defined.","These will also be set as default values for those links, if only one such permission record is defined."
-"Third Party Authentication","Third Party Authentication"
-"This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>
-myfield
-eval:doc.myfield=='My Value'<br>
-eval:doc.age>18","This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>
-myfield
-eval:doc.myfield=='My Value'<br>
-eval:doc.age>18"
-"This form does not have any input","This form does not have any input"
-"This goes above the slideshow.","This goes above the slideshow."
-"This is PERMANENT action and you cannot undo. Continue?","This is PERMANENT action and you cannot undo. Continue?"
+Third Party Authentication,Third Party Authentication
+This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>myfieldeval:doc.myfield=='My Value'<br>eval:doc.age>18,This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>myfieldeval:doc.myfield=='My Value'<br>eval:doc.age>18
+This form does not have any input,This form does not have any input
+This goes above the slideshow.,This goes above the slideshow.
+This is PERMANENT action and you cannot undo. Continue?,This is PERMANENT action and you cannot undo. Continue?
 "This is a standard format. To make changes, please copy it make make a new format.","This is a standard format. To make changes, please copy it make make a new format."
-"This is permanent action and you cannot undo. Continue?","This is permanent action and you cannot undo. Continue?"
-"This must be checked if Style Settings are applicable","This must be checked if Style Settings are applicable"
-"This role update User Permissions for a user","This role update User Permissions for a user"
-"Thursday","Thursday"
-"Tile","Tile"
-"Time","Time"
-"Time Zone","Tímabelti"
-"Timezone","Timezone"
-"Title","Title"
-"Title / headline of your page","Title / headline of your page"
-"Title Case","Title Case"
-"Title Field","Title Field"
-"Title Prefix","Title Prefix"
-"Title field must be a valid fieldname","Title field must be a valid fieldname"
-"Title is required","Title is required"
-"To","To"
-"To Do","Gátlisti"
+This is permanent action and you cannot undo. Continue?,This is permanent action and you cannot undo. Continue?
+This must be checked if Style Settings are applicable,This must be checked if Style Settings are applicable
+This role update User Permissions for a user,This role update User Permissions for a user
+Thursday,Thursday
+Tile,Tile
+Time,Time
+Time Zone,Tímabelti
+Timezone,Timezone
+Title,Title
+Title / headline of your page,Title / headline of your page
+Title Case,Title Case
+Title Field,Title Field
+Title Prefix,Title Prefix
+Title field must be a valid fieldname,Title field must be a valid fieldname
+Title is required,Title is required
+To,To
+To Do,Gátlisti
 "To format columns, give column labels in the query.","To format columns, give column labels in the query."
 "To give acess to a role for only specific records, check the 'Apply User Permissions'. User Permissions are used to limit users with such role to specific records.","To give acess to a role for only specific records, check the 'Apply User Permissions'. User Permissions are used to limit users with such role to specific records."
 "To run a test add the module name in the route after '{0}'. For example, {1}","To run a test add the module name in the route after '{0}'. For example, {1}"
-"ToDo","ToDo"
-"Too many writes in one request. Please send smaller requests","Too many writes in one request. Please send smaller requests"
-"Top Bar","Top Bar"
-"Top Bar Background","Top Bar Background"
-"Top Bar Item","Top Bar Item"
-"Top Bar Items","Top Bar Items"
-"Top Bar Text","Top Bar Text"
-"Top Bar text and background is same color. Please change.","Top Bar text and background is same color. Please change."
-"Transaction","Færsla"
-"Transition Rules","Transition Rules"
-"Tuesday","Þriðjudagur"
-"Tweet will be shared via your user account (if specified)","Tweet will be shared via your user account (if specified)"
-"Twitter Share","Twitter Share"
-"Twitter Share via","Twitter Share via"
-"Type","Gerð"
-"Type:","Type:"
+ToDo,ToDo
+Too many writes in one request. Please send smaller requests,Too many writes in one request. Please send smaller requests
+Top Bar,Top Bar
+Top Bar Background,Top Bar Background
+Top Bar Item,Top Bar Item
+Top Bar Items,Top Bar Items
+Top Bar Text,Top Bar Text
+Top Bar text and background is same color. Please change.,Top Bar text and background is same color. Please change.
+Transaction,Færsla
+Transition Rules,Transition Rules
+Tuesday,Þriðjudagur
+Tweet will be shared via your user account (if specified),Tweet will be shared via your user account (if specified)
+Twitter Share,Twitter Share
+Twitter Share via,Twitter Share via
+Type,Gerð
+Type:,Type:
 "Unable to display this tree report, due to missing data. Most likely, it is being filtered out due to permissions.","Unable to display this tree report, due to missing data. Most likely, it is being filtered out due to permissions."
-"Unable to find attachment {0}","Unable to find attachment {0}"
-"Unable to load: {0}","Unable to load: {0}"
-"Unable to open attached file. Please try again.","Unable to open attached file. Please try again."
-"Unable to send emails at this time","Unable to send emails at this time"
-"Unknown Column: {0}","Unknown Column: {0}"
+Unable to find attachment {0},Unable to find attachment {0}
+Unable to load: {0},Unable to load: {0}
+Unable to open attached file. Please try again.,Unable to open attached file. Please try again.
+Unable to send emails at this time,Unable to send emails at this time
+Unknown Column: {0},Unknown Column: {0}
 "Unknown file encoding. Tried utf-8, windows-1250, windows-1252.","Unknown file encoding. Tried utf-8, windows-1250, windows-1252."
-"Unread Messages","Unread Messages"
-"Unsubscribe","Unsubscribe"
-"Unsubscribed","Unsubscribed"
-"Upcoming Events for Today","Upcoming Events for Today"
-"Update","Update"
-"Update Field","Update Field"
-"Update Value","Update Value"
-"Updated","Updated"
-"Upload","Upload"
-"Upload Attachment","Upload Attachment"
-"Upload CSV file containing all user permissions in the same format as Download.","Upload CSV file containing all user permissions in the same format as Download."
-"Upload User Permissions","Upload User Permissions"
-"Upload a file","Upload a file"
-"Upload and Import","Upload and Import"
-"Upload and Sync","Upload and Sync"
-"Uploading...","Uploading..."
-"Upvotes","Upvotes"
-"Use TLS","Use TLS"
-"Use the field to filter records","Use the field to filter records"
-"User","Notandi"
-"User Cannot Create","User Cannot Create"
-"User Cannot Search","User Cannot Search"
-"User Defaults","User Defaults"
-"User ID of a Blogger","User ID of a Blogger"
-"User ID of a blog writer.","User ID of a blog writer."
-"User Image","User Image"
-"User Permission","User Permission"
-"User Permission DocTypes","User Permission DocTypes"
-"User Permissions","User Permissions"
-"User Permissions Manager","User Permissions Manager"
-"User Roles","Hlutverk notanda"
-"User Tags","User Tags"
-"User Type","User Type"
+Unread Messages,Unread Messages
+Unsubscribe,Unsubscribe
+Unsubscribed,Unsubscribed
+Upcoming Events for Today,Upcoming Events for Today
+Update,Update
+Update Field,Update Field
+Update Value,Update Value
+Updated,Updated
+Upload,Upload
+Upload Attachment,Upload Attachment
+Upload CSV file containing all user permissions in the same format as Download.,Upload CSV file containing all user permissions in the same format as Download.
+Upload User Permissions,Upload User Permissions
+Upload a file,Upload a file
+Upload and Import,Upload and Import
+Upload and Sync,Upload and Sync
+Uploading...,Uploading...
+Upvotes,Upvotes
+Use TLS,Use TLS
+Use the field to filter records,Use the field to filter records
+User,Notandi
+User Cannot Create,User Cannot Create
+User Cannot Search,User Cannot Search
+User Defaults,User Defaults
+User ID of a Blogger,User ID of a Blogger
+User ID of a blog writer.,User ID of a blog writer.
+User Image,User Image
+User Permission,User Permission
+User Permission DocTypes,User Permission DocTypes
+User Permissions,User Permissions
+User Permissions Manager,User Permissions Manager
+User Roles,Hlutverk notanda
+User Tags,User Tags
+User Type,User Type
 "User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ","User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. "
-"User Vote","User Vote"
-"User editable form on Website.","Notandi getur breytt eyðublaði á heimasíðu."
-"User not allowed to delete {0}: {1}","Notanda ekki heimilt að eyða {0}: {1}"
-"User permissions should not apply for this Link","Notendaheimildir eiga ekki við þennan tengil"
-"User {0} cannot be deleted","Notandi {0} er ekki hægt að eyða"
-"User {0} cannot be disabled","Notandi {0} er ekki hægt aö gera óvirkann"
-"User {0} cannot be renamed","Notandi {0} er ekki hægt að endurnefna"
-"User {0} does not exist","Notandi {0} er ekki til"
-"UserRole","Notandahlutverk"
-"Users","Notendur"
-"Users and Permissions","Notendur og heimildir"
-"Users with role {0}:","Notendur með hlutverk {0}:"
-"Valid Login id required.","Valid Login id required."
-"Valid email and name required","Valid email and name required"
-"Value","Value"
-"Value Change","Value Change"
-"Value Changed","Value Changed"
-"Value cannot be changed for {0}","Value cannot be changed for {0}"
-"Value for a check field can be either 0 or 1","Value for a check field can be either 0 or 1"
-"Value missing for","Value missing for"
-"Verdana","Verdana"
-"Verify Your Account","Verify Your Account"
-"Version","Version"
-"Version restored","Version restored"
-"View Details","View Details"
-"View it in your browser","View it in your browser"
-"Visit","Visit"
-"Warning","Warning"
-"Warning: This Print Format is in old style and cannot be generated via the API.","Warning: This Print Format is in old style and cannot be generated via the API."
+User Vote,User Vote
+User editable form on Website.,Notandi getur breytt eyðublaði á heimasíðu.
+User not allowed to delete {0}: {1},Notanda ekki heimilt að eyða {0}: {1}
+User permissions should not apply for this Link,Notendaheimildir eiga ekki við þennan tengil
+User {0} cannot be deleted,Notandi {0} er ekki hægt að eyða
+User {0} cannot be disabled,Notandi {0} er ekki hægt aö gera óvirkann
+User {0} cannot be renamed,Notandi {0} er ekki hægt að endurnefna
+User {0} does not exist,Notandi {0} er ekki til
+UserRole,Notandahlutverk
+Users,Notendur
+Users and Permissions,Notendur og heimildir
+Users with role {0}:,Notendur með hlutverk {0}:
+Valid Login id required.,Valid Login id required.
+Valid email and name required,Valid email and name required
+Value,Value
+Value Change,Value Change
+Value Changed,Value Changed
+Value cannot be changed for {0},Value cannot be changed for {0}
+Value for a check field can be either 0 or 1,Value for a check field can be either 0 or 1
+Value missing for,Value missing for
+Verdana,Verdana
+Verify Your Account,Verify Your Account
+Version,Version
+Version restored,Version restored
+View Details,View Details
+View it in your browser,View it in your browser
+Visit,Visit
+Warning,Warning
+Warning: This Print Format is in old style and cannot be generated via the API.,Warning: This Print Format is in old style and cannot be generated via the API.
 "We are very sorry for this, but the page you are looking for is missing (this could be because of a typo in the address) or moved.","We are very sorry for this, but the page you are looking for is missing (this could be because of a typo in the address) or moved."
-"Web Form","Web Form"
-"Web Form Field","Web Form Field"
-"Web Form Fields","Web Form Fields"
-"Web Page","Web Page"
-"Web Page Link Text","Web Page Link Text"
-"Web Site Forum Page.","Web Site Forum Page."
-"Website","Vefsíða"
-"Website Group","Website Group"
-"Website Manager","Website Manager"
-"Website Route","Website Route"
-"Website Route Permission","Website Route Permission"
-"Website Script","Website Script"
-"Website Settings","Website Settings"
-"Website Slideshow","Website Slideshow"
-"Website Slideshow Item","Website Slideshow Item"
-"Website URL","Website URL"
-"Website User","Website User"
-"Wednesday","Wednesday"
-"Welcome email sent","Welcome email sent"
+Web Form,Web Form
+Web Form Field,Web Form Field
+Web Form Fields,Web Form Fields
+Web Page,Web Page
+Web Page Link Text,Web Page Link Text
+Web Site Forum Page.,Web Site Forum Page.
+Website,Vefsíða
+Website Group,Website Group
+Website Manager,Website Manager
+Website Route,Website Route
+Website Route Permission,Website Route Permission
+Website Script,Website Script
+Website Settings,Website Settings
+Website Slideshow,Website Slideshow
+Website Slideshow Item,Website Slideshow Item
+Website URL,Website URL
+Website User,Website User
+Wednesday,Wednesday
+Welcome email sent,Welcome email sent
 "When you Amend a document after Cancel and save it, it will get a new number that is a version of the old number.","When you Amend a document after Cancel and save it, it will get a new number that is a version of the old number."
-"While uploading non English files ensure that the encoding is UTF-8.","While uploading non English files ensure that the encoding is UTF-8."
-"Width","Width"
-"Width of the input box","Width of the input box"
-"Will be used in url (usually first name).","Will be used in url (usually first name)."
-"With Groups","With Groups"
-"With Ledgers","With Ledgers"
-"With Letterhead","With Letterhead"
-"Workflow","Verkflæði"
-"Workflow Action","Workflow Action"
-"Workflow Action Master","Workflow Action Master"
-"Workflow Action Name","Workflow Action Name"
-"Workflow Document State","Workflow Document State"
-"Workflow Document States","Workflow Document States"
-"Workflow Name","Workflow Name"
-"Workflow State","Workflow State"
-"Workflow State Field","Workflow State Field"
-"Workflow Transition","Workflow Transition"
-"Workflow Transitions","Workflow Transitions"
-"Workflow state represents the current state of a document.","Workflow state represents the current state of a document."
-"Workflow will start after saving.","Workflow will start after saving."
-"Write","Write"
-"Write a Python file in the same folder where this is saved and return column and result.","Write a Python file in the same folder where this is saved and return column and result."
-"Write a SELECT query. Note result is not paged (all data is sent in one go).","Write a SELECT query. Note result is not paged (all data is sent in one go)."
-"Write titles and introductions to your blog.","Write titles and introductions to your blog."
-"Writers Introduction","Writers Introduction"
-"Year","Ár"
-"Yes","Já"
-"Yesterday","Í gær"
-"You are not allowed to create / edit reports","You are not allowed to create / edit reports"
-"You are not allowed to export the data of: {0}. Downloading empty template.","You are not allowed to export the data of: {0}. Downloading empty template."
-"You are not allowed to export this report","You are not allowed to export this report"
-"You are not allowed to print this document","You are not allowed to print this document"
-"You are not allowed to send emails related to this document","You are not allowed to send emails related to this document"
-"You can also copy-paste this link in your browser","You can also copy-paste this link in your browser"
-"You can also drag and drop attachments","You can also drag and drop attachments"
+While uploading non English files ensure that the encoding is UTF-8.,While uploading non English files ensure that the encoding is UTF-8.
+Width,Width
+Width of the input box,Width of the input box
+Will be used in url (usually first name).,Will be used in url (usually first name).
+With Groups,With Groups
+With Ledgers,With Ledgers
+With Letterhead,With Letterhead
+Workflow,Verkflæði
+Workflow Action,Workflow Action
+Workflow Action Master,Workflow Action Master
+Workflow Action Name,Workflow Action Name
+Workflow Document State,Workflow Document State
+Workflow Document States,Workflow Document States
+Workflow Name,Workflow Name
+Workflow State,Workflow State
+Workflow State Field,Workflow State Field
+Workflow Transition,Workflow Transition
+Workflow Transitions,Workflow Transitions
+Workflow state represents the current state of a document.,Workflow state represents the current state of a document.
+Workflow will start after saving.,Workflow will start after saving.
+Write,Write
+Write a Python file in the same folder where this is saved and return column and result.,Write a Python file in the same folder where this is saved and return column and result.
+Write a SELECT query. Note result is not paged (all data is sent in one go).,Write a SELECT query. Note result is not paged (all data is sent in one go).
+Write titles and introductions to your blog.,Write titles and introductions to your blog.
+Writers Introduction,Writers Introduction
+Year,Ár
+Yes,Já
+Yesterday,Í gær
+You are not allowed to create / edit reports,You are not allowed to create / edit reports
+You are not allowed to export the data of: {0}. Downloading empty template.,You are not allowed to export the data of: {0}. Downloading empty template.
+You are not allowed to export this report,You are not allowed to export this report
+You are not allowed to print this document,You are not allowed to print this document
+You are not allowed to send emails related to this document,You are not allowed to send emails related to this document
+You can also copy-paste this link in your browser,You can also copy-paste this link in your browser
+You can also drag and drop attachments,You can also drag and drop attachments
 "You can change Submitted documents by cancelling them and then, amending them.","You can change Submitted documents by cancelling them and then, amending them."
-"You can only upload upto 5000 records in one go. (may be less in some cases)","You can only upload upto 5000 records in one go. (may be less in some cases)"
-"You can use Customize Form to set levels on fields.","You can use Customize Form to set levels on fields."
-"You can use wildcard %","You can use wildcard %"
-"You cannot install this app","You cannot install this app"
-"You don't have access to Report: {0}","You don't have access to Report: {0}"
-"You don't have permission to get a report on: {0}","You don't have permission to get a report on: {0}"
-"You have unsaved changes in this form. Please save before you continue.","You have unsaved changes in this form. Please save before you continue."
-"You must login to submit this form","You must login to submit this form"
-"You need to be logged in and have System Manager Role to be able to access backups.","You need to be logged in and have System Manager Role to be able to access backups."
-"You need write permission to rename","You need write permission to rename"
-"You seem to have written your name instead of your email. \
-					Please enter a valid email address so that we can get back.","You seem to have written your name instead of your email. \
-					Please enter a valid email address so that we can get back."
+You can only upload upto 5000 records in one go. (may be less in some cases),You can only upload upto 5000 records in one go. (may be less in some cases)
+You can use Customize Form to set levels on fields.,You can use Customize Form to set levels on fields.
+You can use wildcard %,You can use wildcard %
+You cannot install this app,You cannot install this app
+You don't have access to Report: {0},You don't have access to Report: {0}
+You don't have permission to get a report on: {0},You don't have permission to get a report on: {0}
+You have unsaved changes in this form. Please save before you continue.,You have unsaved changes in this form. Please save before you continue.
+You must login to submit this form,You must login to submit this form
+You need to be logged in and have System Manager Role to be able to access backups.,You need to be logged in and have System Manager Role to be able to access backups.
+You need write permission to rename,You need write permission to rename
+You seem to have written your name instead of your email. \					Please enter a valid email address so that we can get back.,You seem to have written your name instead of your email. \					Please enter a valid email address so that we can get back.
 "Your download is being built, this may take a few moments...","Your download is being built, this may take a few moments..."
-"Your login id is","Your login id is"
-"Your password has been updated. Here is your new password","Your password has been updated. Here is your new password"
-"[Label]:[Field Type]/[Options]:[Width]","[Label]:[Field Type]/[Options]:[Width]"
-"[No Subject]","[No Subject]"
-"[Optional] Send the email X days in advance of the specified date. 0 equals same day.","[Optional] Send the email X days in advance of the specified date. 0 equals same day."
-"[no content]","[no content]"
-"[unknown sender]","[unknown sender]"
-"add your own CSS (careful!)","add your own CSS (careful!)"
-"adjust","adjust"
-"align-center","align-center"
-"align-justify","align-justify"
-"align-left","align-left"
-"align-right","align-right"
-"and","and"
-"arrow-down","arrow-down"
-"arrow-left","arrow-left"
-"arrow-right","arrow-right"
-"arrow-up","arrow-up"
-"asterisk","asterisk"
-"backward","backward"
-"ban-circle","ban-circle"
-"barcode","barcode"
-"beginning with","beginning with"
-"bell","bell"
-"bold","bold"
-"book","book"
-"bookmark","bookmark"
-"briefcase","briefcase"
-"bullhorn","bullhorn"
-"calendar","calendar"
-"camera","camera"
-"certificate","certificate"
-"check","check"
-"chevron-down","chevron-down"
-"chevron-left","chevron-left"
-"chevron-right","chevron-right"
-"chevron-up","chevron-up"
-"circle-arrow-down","circle-arrow-down"
-"circle-arrow-left","circle-arrow-left"
-"circle-arrow-right","circle-arrow-right"
-"circle-arrow-up","circle-arrow-up"
-"cog","cog"
-"comment","comment"
-"dd-mm-yyyy","dd-mm-yyyy"
-"dd.mm.yyyy","dd.mm.yyyy"
-"dd/mm/yyyy","dd/mm/yyyy"
-"download","download"
-"download-alt","download-alt"
-"edit","edit"
-"eject","eject"
-"envelope","envelope"
-"exclamation-sign","exclamation-sign"
-"eye-close","eye-close"
-"eye-open","eye-open"
-"facetime-video","facetime-video"
-"fast-backward","fast-backward"
-"fast-forward","fast-forward"
-"file","file"
-"film","film"
-"filter","filter"
-"fire","fire"
-"flag","flag"
-"folder-close","folder-close"
-"folder-open","folder-open"
-"font","font"
-"forward","forward"
-"fullscreen","fullscreen"
-"gift","gift"
-"glass","glass"
-"globe","globe"
-"hand-down","hand-down"
-"hand-left","hand-left"
-"hand-right","hand-right"
-"hand-up","hand-up"
-"hdd","hdd"
-"headphones","headphones"
-"heart","heart"
-"home","home"
-"icon","icon"
-"inbox","inbox"
-"indent-left","indent-left"
-"indent-right","indent-right"
-"info-sign","info-sign"
-"is not allowed.","is not allowed."
-"italic","italic"
-"leaf","leaf"
-"lft","lft"
-"list","list"
-"list-alt","list-alt"
-"lock","lock"
-"lowercase","lowercase"
-"magnet","magnet"
-"map-marker","map-marker"
-"memcached is not working / stopped. Please start memcached for best results.","memcached is not working / stopped. Please start memcached for best results."
-"minus","minus"
-"minus-sign","minus-sign"
-"mm-dd-yyyy","mm-dd-yyyy"
-"mm/dd/yyyy","mm/dd/yyyy"
-"move","move"
-"music","music"
-"none of","none of"
-"off","off"
-"ok","ok"
-"ok-circle","ok-circle"
-"ok-sign","ok-sign"
-"one of","one of"
-"or","or"
-"pause","pause"
-"pencil","pencil"
-"picture","picture"
-"plane","plane"
-"play","play"
-"play-circle","play-circle"
-"plus","plus"
-"plus-sign","plus-sign"
-"print","print"
-"qrcode","qrcode"
-"question-sign","question-sign"
-"random","random"
-"reference","reference"
-"refresh","refresh"
-"remove","remove"
-"remove-circle","remove-circle"
-"remove-sign","remove-sign"
-"repeat","repeat"
-"resize-full","resize-full"
-"resize-horizontal","resize-horizontal"
-"resize-small","resize-small"
-"resize-vertical","resize-vertical"
-"retweet","retweet"
-"rgt","rgt"
-"road","road"
-"screenshot","screenshot"
-"search","search"
-"share","share"
-"share-alt","share-alt"
-"shopping-cart","shopping-cart"
-"signal","signal"
-"star","star"
-"star-empty","star-empty"
-"step-backward","step-backward"
-"step-forward","step-forward"
-"stop","stop"
-"tag","tag"
-"tags","tags"
+Your login id is,Your login id is
+Your password has been updated. Here is your new password,Your password has been updated. Here is your new password
+[Label]:[Field Type]/[Options]:[Width],[Label]:[Field Type]/[Options]:[Width]
+[No Subject],[No Subject]
+[Optional] Send the email X days in advance of the specified date. 0 equals same day.,[Optional] Send the email X days in advance of the specified date. 0 equals same day.
+[no content],[no content]
+[unknown sender],[unknown sender]
+add your own CSS (careful!),add your own CSS (careful!)
+adjust,adjust
+align-center,align-center
+align-justify,align-justify
+align-left,align-left
+align-right,align-right
+and,and
+arrow-down,arrow-down
+arrow-left,arrow-left
+arrow-right,arrow-right
+arrow-up,arrow-up
+asterisk,asterisk
+backward,backward
+ban-circle,ban-circle
+barcode,barcode
+beginning with,beginning with
+bell,bell
+bold,bold
+book,book
+bookmark,bookmark
+briefcase,briefcase
+bullhorn,bullhorn
+calendar,calendar
+camera,camera
+certificate,certificate
+check,check
+chevron-down,chevron-down
+chevron-left,chevron-left
+chevron-right,chevron-right
+chevron-up,chevron-up
+circle-arrow-down,circle-arrow-down
+circle-arrow-left,circle-arrow-left
+circle-arrow-right,circle-arrow-right
+circle-arrow-up,circle-arrow-up
+cog,cog
+comment,comment
+dd-mm-yyyy,dd-mm-yyyy
+dd.mm.yyyy,dd.mm.yyyy
+dd/mm/yyyy,dd/mm/yyyy
+download,download
+download-alt,download-alt
+edit,edit
+eject,eject
+envelope,envelope
+exclamation-sign,exclamation-sign
+eye-close,eye-close
+eye-open,eye-open
+facetime-video,facetime-video
+fast-backward,fast-backward
+fast-forward,fast-forward
+file,file
+film,film
+filter,filter
+fire,fire
+flag,flag
+folder-close,folder-close
+folder-open,folder-open
+font,font
+forward,forward
+fullscreen,fullscreen
+gift,gift
+glass,glass
+globe,globe
+hand-down,hand-down
+hand-left,hand-left
+hand-right,hand-right
+hand-up,hand-up
+hdd,hdd
+headphones,headphones
+heart,heart
+home,home
+icon,icon
+inbox,inbox
+indent-left,indent-left
+indent-right,indent-right
+info-sign,info-sign
+is not allowed.,is not allowed.
+italic,italic
+leaf,leaf
+lft,lft
+list,list
+list-alt,list-alt
+lock,lock
+lowercase,lowercase
+magnet,magnet
+map-marker,map-marker
+memcached is not working / stopped. Please start memcached for best results.,memcached is not working / stopped. Please start memcached for best results.
+minus,minus
+minus-sign,minus-sign
+mm-dd-yyyy,mm-dd-yyyy
+mm/dd/yyyy,mm/dd/yyyy
+move,move
+music,music
+none of,none of
+off,off
+ok,ok
+ok-circle,ok-circle
+ok-sign,ok-sign
+one of,one of
+or,or
+pause,pause
+pencil,pencil
+picture,picture
+plane,plane
+play,play
+play-circle,play-circle
+plus,plus
+plus-sign,plus-sign
+print,print
+qrcode,qrcode
+question-sign,question-sign
+random,random
+reference,reference
+refresh,refresh
+remove,remove
+remove-circle,remove-circle
+remove-sign,remove-sign
+repeat,repeat
+resize-full,resize-full
+resize-horizontal,resize-horizontal
+resize-small,resize-small
+resize-vertical,resize-vertical
+retweet,retweet
+rgt,rgt
+road,road
+screenshot,screenshot
+search,search
+share,share
+share-alt,share-alt
+shopping-cart,shopping-cart
+signal,signal
+star,star
+star-empty,star-empty
+step-backward,step-backward
+step-forward,step-forward
+stop,stop
+tag,tag
+tags,tags
 "target = ""_blank""","target = ""_blank"""
-"tasks","tasks"
-"text-height","text-height"
-"text-width","text-width"
-"th","th"
-"th-large","th-large"
-"th-list","th-list"
-"thumbs-down","thumbs-down"
-"thumbs-up","thumbs-up"
-"time","time"
-"tint","tint"
-"to","to"
-"to filter values between 5 & 10","to filter values between 5 & 10"
-"trash","trash"
-"upload","upload"
-"use % as wildcard","use % as wildcard"
-"user","user"
-"user_image_show","user_image_show"
-"value","value"
-"values and dates","values and dates"
-"values separated by commas","values separated by commas"
-"volume-down","volume-down"
-"volume-off","volume-off"
-"volume-up","volume-up"
-"warning-sign","warning-sign"
-"wrench","wrench"
-"yyyy-mm-dd","yyyy-mm-dd"
-"zoom-in","zoom-in"
-"zoom-out","zoom-out"
-"{0} List","{0} List"
-"{0} added","{0} added"
-"{0} already exists","{0} already exists"
-"{0} by {1}","{0} by {1}"
-"{0} cannot be set for Single types","{0} cannot be set for Single types"
-"{0} does not exist in row {1}","{0} does not exist in row {1}"
-"{0} in row {1} cannot have both URL and child items","{0} in row {1} cannot have both URL and child items"
-"{0} is not a valid email id","{0} is not a valid email id"
-"{0} is required","{0} is required"
-"{0} is saved","{0} is saved"
-"{0} must be one of {1}","{0} must be one of {1}"
-"{0} must be set first","{0} must be set first"
-"{0} not a valid State","{0} not a valid State"
-"{0} not allowed in fieldname {1}","{0} not allowed in fieldname {1}"
-"{0} not allowed in name","{0} not allowed in name"
-"{0} not allowed to be renamed","{0} not allowed to be renamed"
-"{0} updated","{0} updated"
-"{0} {1} already exists","{0} {1} already exists"
+tasks,tasks
+text-height,text-height
+text-width,text-width
+th,th
+th-large,th-large
+th-list,th-list
+thumbs-down,thumbs-down
+thumbs-up,thumbs-up
+time,time
+tint,tint
+to,to
+to filter values between 5 & 10,to filter values between 5 & 10
+trash,trash
+upload,upload
+use % as wildcard,use % as wildcard
+user,user
+user_image_show,user_image_show
+value,value
+values and dates,values and dates
+values separated by commas,values separated by commas
+volume-down,volume-down
+volume-off,volume-off
+volume-up,volume-up
+warning-sign,warning-sign
+wrench,wrench
+yyyy-mm-dd,yyyy-mm-dd
+zoom-in,zoom-in
+zoom-out,zoom-out
+{0} List,{0} List
+{0} added,{0} added
+{0} already exists,{0} already exists
+{0} by {1},{0} by {1}
+{0} cannot be set for Single types,{0} cannot be set for Single types
+{0} does not exist in row {1},{0} does not exist in row {1}
+{0} in row {1} cannot have both URL and child items,{0} in row {1} cannot have both URL and child items
+{0} is not a valid email id,{0} is not a valid email id
+{0} is required,{0} is required
+{0} is saved,{0} is saved
+{0} must be one of {1},{0} must be one of {1}
+{0} must be set first,{0} must be set first
+{0} not a valid State,{0} not a valid State
+{0} not allowed in fieldname {1},{0} not allowed in fieldname {1}
+{0} not allowed in name,{0} not allowed in name
+{0} not allowed to be renamed,{0} not allowed to be renamed
+{0} updated,{0} updated
+{0} {1} already exists,{0} {1} already exists
 "{0} {1} cannot be ""{2}"". It should be one of ""{3}""","{0} {1} cannot be ""{2}"". It should be one of ""{3}"""
-"{0} {1} cannot be a leaf node as it has children","{0} {1} cannot be a leaf node as it has children"
+{0} {1} cannot be a leaf node as it has children,{0} {1} cannot be a leaf node as it has children
 "{0} {1} does not exist, select a new target to merge","{0} {1} does not exist, select a new target to merge"
-"{0} {1} not found","{0} {1} not found"
-"{0} {1}: Submitted Record cannot be deleted.","{0} {1}: Submitted Record cannot be deleted."
-"{0}: Cannot set Amend without Cancel","{0}: Cannot set Amend without Cancel"
-"{0}: Cannot set Assign Amend if not Submittable","{0}: Cannot set Assign Amend if not Submittable"
-"{0}: Cannot set Assign Submit if not Submittable","{0}: Cannot set Assign Submit if not Submittable"
-"{0}: Cannot set Cancel without Submit","{0}: Cannot set Cancel without Submit"
-"{0}: Cannot set Import without Create","{0}: Cannot set Import without Create"
+{0} {1} not found,{0} {1} not found
+{0} {1}: Submitted Record cannot be deleted.,{0} {1}: Submitted Record cannot be deleted.
+{0}: Cannot set Amend without Cancel,{0}: Cannot set Amend without Cancel
+{0}: Cannot set Assign Amend if not Submittable,{0}: Cannot set Assign Amend if not Submittable
+{0}: Cannot set Assign Submit if not Submittable,{0}: Cannot set Assign Submit if not Submittable
+{0}: Cannot set Cancel without Submit,{0}: Cannot set Cancel without Submit
+{0}: Cannot set Import without Create,{0}: Cannot set Import without Create
 "{0}: Cannot set Submit, Cancel, Amend without Write","{0}: Cannot set Submit, Cancel, Amend without Write"
-"{0}: Cannot set import as {1} is not importable","{0}: Cannot set import as {1} is not importable"
+{0}: Cannot set import as {1} is not importable,{0}: Cannot set import as {1} is not importable
 "{0}: Create, Submit, Cancel and Amend only valid at level 0","{0}: Create, Submit, Cancel and Amend only valid at level 0"
-"{0}: No basic permissions set","{0}: No basic permissions set"
+{0}: No basic permissions set,{0}: No basic permissions set
 "{0}: Only one rule allowed with the same Role, Level and Apply User Permissions","{0}: Only one rule allowed with the same Role, Level and Apply User Permissions"
-"{0}: Permission at level 0 must be set before higher levels are set","{0}: Permission at level 0 must be set before higher levels are set"
-"{app_title}","{app_title}"
+{0}: Permission at level 0 must be set before higher levels are set,{0}: Permission at level 0 must be set before higher levels are set
+{app_title},{app_title}

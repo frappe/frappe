@@ -80,7 +80,7 @@ Any existing permission will be deleted / overwritten.,Cualquier permiso existen
 Anyone Can Read,Cualquiera puede leer
 Anyone Can Write,Cualquiera puede escribir
 "Apart from Role based Permission Rules, you can apply User Permissions based on DocTypes.","Además de reglas de permisos basado en roles , puede aplicar permisos de usuario basado en DocTypes ."
-"Apart from System Manager, roles with 'Set User Permissions' right can set permissions for other users for that Document Type.","Además del Administrador del Sistema, los oles con derecho a ""establecer permisos de usuario"" pueden establecer permisos para otros usuarios de ese tipo de documento."
+"Apart from System Manager, roles with 'Set User Permissions' right can set permissions for other users for that Document Type.","Además del Administrador del Sistema, Roles con permiso a ""Definir Permisos de Usuario"" pueden establecer permisos para otros usuarios de ese tipo de documento."
 App Name,Nombre de la Aplicación
 App not found,Aplicación no ​​encontrada
 Application Installer,Instalador de Aplicaciones
@@ -117,7 +117,7 @@ Banner,Anuncio
 Banner HTML,Banner HTML
 Banner Image,Imagen del Anuncio
 Banner is above the Top Menu Bar.,Banner está por encima de la barra de menú superior .
-Begin this page with a slideshow of images,Comience esta página con un pase de diapositivas de imágenes
+Begin this page with a slideshow of images,Comience esta página con una presentación de imágenes
 Beginning with,A partir de
 Belongs to,Pertenece A
 Bio,Bio
@@ -129,7 +129,7 @@ Blog Post,Entrada en el Blog
 Blog Settings,Configuración del Blog
 Blog Title,Título del Blog
 Blogger,Blogger
-Bookmarks,marcadores
+Bookmarks,Marcadores
 Both login and password required,Se requiere tanto usuario como contraseña 
 Brand HTML,Marca HTML
 Bulk Email,"Correo Masivo
@@ -143,7 +143,7 @@ Cancel,Cancelar
 Cancelled,Cancelado
 "Cannot Edit {0} directly: To edit {0} properties, create / update {1}, {2} and {3}","No se puede modificar {0} directamente : Para editar {0} propiedades , crear / actualizar {1}, {2} y {3}"
 Cannot Update: Incorrect / Expired Link.,No se puede actualizar : Link incorrecto / caducado .
-Cannot Update: Incorrect Password,No se puede actualizar : Contraseña incorrecta
+Cannot Update: Incorrect Password,No se puede actualizar : Contraseña Incorrecta
 Cannot add more than 50 comments,No se puede añadir más de 50 comentarios
 Cannot cancel before submitting. See Transition {0},No se puede cancelar antes de enviar .
 Cannot change picture,No se puede cambiar la imagen
@@ -158,8 +158,8 @@ Cannot open {0} when its instance is open,No se puede abrir {0} cuando su instan
 Cannot print cancelled documents,No se pueden imprimir documentos cancelados
 Cannot remove permission for DocType: {0} and Name: {1},No se puede quitar el permiso para tipo de documento : {0} y nombre: {1}
 Cannot reply to a reply,No se puede responder a una respuesta
-Cannot set Email Alert on Document Type {0},No se puede establecer una alerta de correo electrónico en Tipo de documento {0}
-Cannot set permission for DocType: {0} and Name: {1},No se puede establecer el permiso de tipo de documento : {0} y nombre: {1}
+Cannot set Email Alert on Document Type {0},No se puede establecer una alerta de correo electrónico en Tipo de Documento {0}
+Cannot set permission for DocType: {0} and Name: {1},No se puede establecer el permiso de Tipo de Documento : {0} y nombre: {1}
 Categorize blog posts.,Clasificar las entradas del blog.
 Category,Categoría
 Category Name,Nombre Categoría
@@ -238,7 +238,7 @@ Customize Form,Personalizar Formulario
 Customize Form Field,Personalizar Campos de Formulario
 "Customize Label, Print Hide, Default etc.","Personaliza etiquetas, impresión Hide , Default , etc"
 Customized HTML Templates for printing transctions.,Plantillas HTML personalizados para imprimir transacciones.
-Daily Event Digest is sent for Calendar Events where reminders are set.,Resumen diario de eventos se envía para Eventos en el Calendario donde se configura recordatorios.
+Daily Event Digest is sent for Calendar Events where reminders are set.,Resumen Diario de Eventos se envía para Eventos en el Calendario donde se configura recordatorios.
 Danger,Peligro
 Data,Datos
 Data Import / Export Tool,Herramienta de importación / exportación de datos
@@ -250,9 +250,9 @@ Date Changed,Fecha Modificado
 Date Format,Formato de la fecha
 Date and Number Format,Formato de Fecha y Número
 Date must be in format: {0},La fecha debe estar en formato : {0}
-Datetime,Fecha y hora
+Datetime,Fecha y Hora
 Days in Advance,Días de anticipación
-Dear,querido
+Dear,Estimado
 Default,defecto
 Default Print Format,Por defecto Formato de impresión
 Default Value,Valor predeterminado
@@ -264,7 +264,7 @@ Defaults,Predeterminados
 Define workflows for forms.,Definir los flujos de trabajo para las formas .
 Delete,Eliminar
 Delete Row,Eliminar Fila
-Depends On,depende del
+Depends On,Depende de
 Descending,descendiente
 Description,Descripción
 Description and Status,Descripción y Estado
@@ -315,7 +315,7 @@ ERPNext Demo,ERPNext demo
 Edit,Editar
 Edit Permissions,Editar permisos
 Editable,Editable
-Email,Email
+Email,Correo Electronico
 Email Alert,Alerta por Email
 Email Alert Recipient,Destinatario Alerta Email
 Email Alert Recipients,Destinatarios Alerta Email
@@ -395,7 +395,7 @@ Fieldname {0} appears multiple times in rows {1},Fieldname {0} aparece varias ve
 Fields,Los campos
 "Fields separated by comma (,) will be included in the<br /><b>Search By</b> list of Search dialog box","Los campos separados por comas (,) se incluirán en el /> <br <b> Buscar por < / b > lista de cuadro de diálogo Buscar"
 Fieldtype cannot be changed from {0} to {1} in row {2},FieldType no se puede cambiar de {0} a {1} en la fila {2}
-File,Expediente
+File,Fichero
 File Data,archivo de datos
 File Name,Nombre del Archivo
 File Size,Tamaño del archivo
@@ -465,29 +465,29 @@ Group Title,Título del Grupo
 Group Type,Tipo de grupo
 Groups,Grupos
 HTML for header section. Optional,HTML para la sección de encabezado. opcional
-Have an account? Login,¿Tienes una cuenta? login
+Have an account? Login,¿Tienes una cuenta? Inicie Sesión
 Header,Encabezado
 Heading,Título
-Heading Text As,Encabezado Texto Como
+Heading Text As,Texto de Encabezado Como
 Help,Ayuda
 Help on Search,Ayuda en la búsqueda
 Helvetica Neue,Helvetica Neue
-Hidden,oculto
-Hide Actions,Ocultar acciones
-Hide Copy,Ocultar Copy
+Hidden,Oculto
+Hide Actions,Ocultar Acciones
+Hide Copy,Copia Ocultar
 Hide Heading,Ocultar Rubro
 Hide Toolbar,Ocultar barra de herramientas
 Hide the sidebar,Ocultar la barra lateral
-High,alto
+High,Alto
 Highlight,punto culminante
-History,historia
-Home Page,Página de inicio
-Home Page is Products,Portada del sitio es Productos
+History,Historia
+Home Page,Página de Inicio
+Home Page is Products,Pagína de Inicio es Productos
 ID (name) of the entity whose property is to be set,Identificación ( nombre) de la entidad cuya propiedad va a establecerse
-Icon,icono
+Icon,Icono
 Icon will appear on the button,Icono aparecerá en el botón
 "If a Role does not have access at Level 0, then higher levels are meaningless.","Si una función no tiene acceso en el Nivel 0, entonces los niveles más altos no tienen sentido ."
-"If checked, all other workflows become inactive.","Si está marcada, todos los otros flujos de trabajo se vuelven inactivas ."
+"If checked, all other workflows become inactive.","Si se selecciona, todos los otros flujos de trabajo se vuelven inactivos ."
 "If checked, the Home page will be the default Item Group for the website.","Si se selecciona, la página de inicio será el grupo de elementos predeterminado para el sitio web."
 "If image is selected, color will be ignored (attach first)","Si se selecciona la imagen , se tendrá en cuenta el color (adjunte primero )"
 If non standard port (e.g. 587),Si el puerto no estándar (por ejemplo 587 )
@@ -879,7 +879,7 @@ Registered but disabled.,"De registro , pero está deshabilitado ."
 Registration Details Emailed.,Detalles del Registro enviadas por Correo Electrónico .
 Reload Page,recargar página
 Remove Bookmark,Retire Bookmark
-Remove all customizations?,Retire todas las personalizaciones ?
+Remove all customizations?,Eliminar todas las personalizaciones ?
 Rename many items by uploading a .csv file.,Cambiar el nombre de muchos artículos mediante la subida de un archivo csv . .
 Rename...,Cambiar el nombre de ...
 Repeat On,Repeat On
@@ -1059,7 +1059,7 @@ Submit an Issue,Presentar un problema
 Submitted,Enviado
 Submitted Document cannot be converted back to draft. Transition row {0},Documento presentado no se puede convertir de nuevo a redactar .
 Success,Exito
-Suggestion,sugerencia
+Suggestion,Sugerencia
 Sunday,Domingo
 Switch to Website,Cambie a la página web
 Sync Inbox,Sync Bandeja de entrada
@@ -1140,11 +1140,11 @@ Unable to find attachment {0},No es posible encontrar adjunto {0}
 Unable to load: {0},No se puede cargar : {0}
 Unable to open attached file. Please try again.,"No se puede abrir el archivo adjunto. Por favor, inténtelo de nuevo."
 Unable to send emails at this time,No se pueden enviar mensajes de correo electrónico en este momento
-Unknown Column: {0},Desconocido Columna: {0}
+Unknown Column: {0},Columna Desconocida: {0}
 "Unknown file encoding. Tried utf-8, windows-1250, windows-1252.","Codificación de archivo desconocido . Intentado utf- 8 , Windows -1250 , windows-1252 ."
 Unread Messages,Mensajes no leídos
-Unsubscribe,Cancelar la suscripción
-Unsubscribed,no suscribirse
+Unsubscribe,Cancelar la Suscripción
+Unsubscribed,No Suscrito
 Upcoming Events for Today,Eventos para Hoy
 Update,Actualización
 Update Field,Actualizar campos
@@ -1183,18 +1183,18 @@ UserRole,UserRole
 Users and Permissions,Usuarios y permisos
 Users with role {0}:,Los usuarios con rol {0}:
 Valid Login id required.,Identificación de usuario válido requerido.
-Valid email and name required,Válido de correo electrónico y el nombre requerido
-Value,valor
+Valid email and name required,Nombre y Correo Electrónico válido requerido
+Value,Valor
 Value Change,Cambio de Valor
 Value Changed,Valor Cambiado
 Value cannot be changed for {0},El valor no puede ser cambiado para {0}
 Value for a check field can be either 0 or 1,Valor para un campo de verificación puede ser 0 o 1
 Value missing for,Falta un valor de
 Verdana,Verdana
-Version,versión
+Version,Versión
 Version restored,Versión restaurada
-View or manage Website Route tree.,Ver o director del árbol Web Ruta .
-Visit,visita
+View or manage Website Route tree.,Ver o Administrar ruta del árbol Web.
+Visit,Visita
 Warning,Advertencia
 Warning: This Print Format is in old style and cannot be generated via the API.,Advertencia: Este formato de impresión es de estilo antiguo y no se puede generar a través de la API.
 Web Page,Página Web
@@ -1231,7 +1231,7 @@ Write,Escribir
 Write a Python file in the same folder where this is saved and return column and result.,Escriba un archivo de Python en la misma carpeta donde esta se guarda y la columna y el resultado volver.
 Write a SELECT query. Note result is not paged (all data is sent in one go).,Escriba una consulta SELECT. Resultado Nota no se pagina ( todos los datos se envían en una sola vez ) .
 Write titles and introductions to your blog.,Escribe títulos y las introducciones a tu blog .
-Writers Introduction,Escritores Introducción
+Writers Introduction,Introducción de los Escritores
 Year,Año
 Yes,Sí
 Yesterday,Ayer
@@ -1244,7 +1244,7 @@ You are not allowed to send emails related to this document,Usted no tiene permi
 You can use Customize Form to set levels on fields.,Usted puede utilizar Personalizar formulario para establecer los niveles de los campos .
 You can use wildcard %,Puede utilizar caracteres comodín%
 You cannot install this app,No se puede instalar esta aplicación
-You have unsaved changes in this form. Please save before you continue.,Usted tiene cambios sin guardar en este formulario. Por favor dale a guardar antes de continuar.
+You have unsaved changes in this form. Please save before you continue.,Usted tiene cambios sin guardar en este formulario. Por favor guardar antes de continuar.
 You need to be logged in and have System Manager Role to be able to access backups.,"Necesitas estar conectado y tener rol de Administrador del Sistema, para poder tener acceso a las copias de seguridad ."
 You need write permission to rename,Usted necesita permiso de escritura para cambiar el nombre
 You seem to have written your name instead of your email. \					Please enter a valid email address so that we can get back.,"Parece que ha escrito su nombre en lugar de su correo electrónico. \ Por favor, introduce una dirección de email válida para que podamos volver a contactarte."
@@ -1269,10 +1269,10 @@ barcode,código de barras
 beginning with,a partir de
 bell,campana
 bold,negrita
-book,libro
+book,Libro
 bookmark,marcador
 briefcase,Cartera
-bullhorn,megáfono
+bullhorn,Megáfono
 calendar,calendario
 camera,Cámara
 certificate,certificado
@@ -1319,7 +1319,7 @@ globe,globo
 hand-down,mano hacia abajo
 hand-left,a mano izquierda
 hand-right,a mano derecha
-hand-up,mano -up
+hand-up,mano hacia arriba
 hdd,hdd
 headphones,Auriculares
 heart,corazón
@@ -1407,7 +1407,7 @@ upload,subir
 use % as wildcard,Use% como comodín
 user,usuario
 user_image_show,user_image_show
-values and dates,valores y fechas
+values and dates,Valores y Fechas
 values separated by commas,valores separados por comas
 volume-down,volumen hacia abajo
 volume-off,volumen de despegue

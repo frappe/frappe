@@ -944,7 +944,7 @@ Select Document Type or Role to start.,Sélectionnez Type de document ou le rôl
 Select Print Format,Sélectionnez Format d&#39;impression
 Select Report Name,Sélectionner Nom du rapport
 Select Role,Sélectionnez rôle
-Select To Download:,Impossible de charge : {0}
+Select To Download:,Selectionner pour télécharger:
 Select Type,Sélectionnez le type de
 Select User or DocType to start.,Sélectionnez l'utilisateur ou Doctype pour commencer.
 Select a Banner Image first.,Choisissez une bannière image première.
@@ -1114,9 +1114,9 @@ Title Case,Case Titre
 Title Field,Titre terrain
 Title Prefix,Title Prefix
 Title field must be a valid fieldname,Champ Titre doit être un nom de champ valide
-Title is required,Titre est nécessaire
+Title is required,Le titre est nécessaire
 To,À
-To Do,pour faire
+To Do,Choses à faire
 "To format columns, give column labels in the query.","Pour formater colonnes, donner des étiquettes de colonne dans la requête."
 "To give acess to a role for only specific records, check the 'Apply User Permissions'. User Permissions are used to limit users with such role to specific records.","Pour donner acess à un rôle pour que les enregistrements spécifiques , cochez la case "" Appliquer les autorisations des utilisateurs ."
 "To run a test add the module name in the route after '{0}'. For example, {1}",Filtre invalide : {0}

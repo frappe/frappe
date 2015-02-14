@@ -10,12 +10,7 @@
 "000 is black, fff is white","000 és negre, fff és blanc"
 2 days ago,Fa 2 dies
 "<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank"">[?]</a>","<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank"">[?]</a>"
-"<a onclick=""msgprint('<ol>\
-<li><b>field:[fieldname]</b> - By Field\
-<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\
-<li><b>Prompt</b> - Prompt user for a name\
-<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\
-</ol>')"">Naming Options</a>",
+"<a onclick=""msgprint('<ol>\<li><b>field:[fieldname]</b> - By Field\<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\<li><b>Prompt</b> - Prompt user for a name\<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\</ol>')"">Naming Options</a>",
 <b>new</b> <i>type of document</i>,
 "<i>document type...</i>, e.g. <b>customer</b>","<i>document type...</i>, e.g. <b>customer</b>"
 <i>e.g. <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>,<i>e.g. <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>
@@ -173,7 +168,7 @@ Button,Botó
 By,
 Cache Cleared,Cache Cleared
 Calculate,Calcular
-Calendar,Calendari
+Calendar,calendari
 Can not edit Read Only fields,
 Cancel,Cancel·la
 Cancelled,
@@ -205,10 +200,9 @@ Center,
 Center (Ctrl/Cmd+E),Center (Ctrl/Cmd+E)
 "Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit.",
 "Change field properties (hide, readonly, permission etc.)",
-"Change type of field. (Currently, Type change is \
-						allowed among 'Currency and Float')",
+"Change type of field. (Currently, Type change is \						allowed among 'Currency and Float')",
 Chat,Chat
-Check,Comprovar
+Check,comprovar
 Check / Uncheck roles assigned to the User. Click on the Role to find out what permissions that Role has.,
 Check this if you want to send emails as this id only (in case of restriction by your email provider).,Seleccioneu aquesta opció si voleu enviar missatges de correu electrònic només a aquest id (en cas de restricció del teu proveïdor de correu electrònic).
 Check this to make this the default letter head in all prints,Marqueu això per fer aquest cap de la carta per defecte en totes les impressions
@@ -464,9 +458,7 @@ Fieldtype cannot be changed from {0} to {1} in row {2},FieldType no es pot canvi
 File,File
 File Data,Arxiu de dades
 File Name,Nom De l'Arxiu
-"File Name: &lt;your filename&gt;.csv<br />\
-						Save as type: Text Documents (*.txt)<br />\
-						Encoding: UTF-8",
+File Name: &lt;your filename&gt;.csv<br />\						Save as type: Text Documents (*.txt)<br />\						Encoding: UTF-8,
 File Size,
 File URL,URL del fitxer
 File not attached,L'arxiu no s'adjunta
@@ -480,7 +472,7 @@ First Name,
 First data column must be blank.,La Primera columna de dades ha d'estar en blanc.
 Float,Float
 Float Precision,Precisió Float
-Fold,Plegar
+Fold,fold
 Fold can not be at the end of the form,La carpeta no pot estar en l'extrem del formulari
 Fold must come before a labelled Section Break,
 Font (Heading),Font (Títol)
@@ -493,8 +485,7 @@ Footer Background,Fons del Peu de pàgina
 Footer Items,
 Footer Text,
 For DocType,
-"For Links, enter the DocType as range
-For Select, enter list of Options separated by comma",
+"For Links, enter the DocType as rangeFor Select, enter list of Options separated by comma",
 "For comparative filters, start with",
 For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,Per exemple si es cancel·la i esmena 'INV004' es convertirà en un nou document 'INV004-1'. Això t'ajuda a mantenir un registre de cada esmena.
 For ranges,Per rangs
@@ -571,8 +562,7 @@ Icon will appear on the button,La icona apareixerà al botó
 "If image is selected, color will be ignored (attach first)","Si es selecciona la imatge, el color s'ignora (primer adjunta'l)"
 If non standard port (e.g. 587),If non standard port (e.g. 587)
 "If these instructions where not helpful, please add in your suggestions on GitHub Issues.","Si aquestes instruccions no són útils, si us plau agreguin en els seus suggeriments sobre qüestions de GitHub."
-"If you are inserting new records (overwrite not checked) \
-			and if you have submit permission, the record will be submitted.",
+"If you are inserting new records (overwrite not checked) \			and if you have submit permission, the record will be submitted.",
 "If you are updating, please select ""Overwrite"" else existing rows will not be deleted.","Si està actualitzant, si us plau seleccioneu ""Sobreescriure"" no s'eliminaran les files existents."
 "If you are uploading a child table (for example Item Price), the all the entries of that table will be deleted (for that parent record) and new entries will be made.","Si estàs carregant una taula secundària (per exemple Preu d'article), s'eliminaran totes les entrades de la taula (per a aquest registre pare) i es faran noves entrades."
 "If you are uploading new records, ""Naming Series"" becomes mandatory, if present.","Siestàs carregant nous registres, ""Naming Series"" és obligatori, si està present."
@@ -878,9 +868,7 @@ Page Text,Text de pàgina
 Page content,Contingut de la pàgina
 Page missing or moved,
 Page not found,Pàgina no trobada
-"Page to show on the website
-","Pàgina per mostrar a la pàgina web 
-"
+Page to show on the website,Pàgina per mostrar a la pàgina web 
 Page url name (auto-generated),Page url name (auto-generated)
 Paragraph,
 Parent,
@@ -933,8 +921,7 @@ Please do not change the rows above {0},
 Please do not change the template headings.,"Si us plau, no canvïis les capçaleres de la plantilla."
 Please enable pop-ups,
 Please enter Event's Date and Time!,"Si us plau, introduïu la data i hora de l'esdeveniment!"
-"Please enter both your email and message so that we \
-				can get back to you. Thanks!",
+Please enter both your email and message so that we \				can get back to you. Thanks!,
 Please enter email address,Introduïu l'adreça de correu electrònic
 Please enter some text!,Introduïu text!
 Please enter title!,Introdueix el títol!
@@ -1015,12 +1002,12 @@ Reduce indent (Shift+Tab),Reduce indent (Shift+Tab)
 Ref DocType,Ref DocType
 Ref Name,Nom Ref
 Ref Type,
-Reference,Referència
+Reference,referència
 Reference DocName,Referència DocName
 Reference DocType,Reference DocType
 Reference Name,Referència Nom
 Reference Type,
-Refresh,Refrescar
+Refresh,refrescar
 Refresh Form,
 Refreshing...,Actualitzant ...
 Registered but disabled.,Registrada però deshabilitat.
@@ -1096,7 +1083,7 @@ Script,
 Script Report,Script Report
 Script Type,Script Type
 Script to attach to all web pages.,Script to attach to all web pages.
-Search,Cerca
+Search,cerca
 Search Fields,Camps de recerca
 Search Fields should contain valid fieldnames,Camps de recerca han de contenir noms de camp vàlids
 Search Filter,Filtre de cerca
@@ -1286,10 +1273,7 @@ There were errors while sending email. Please try again.,"Hi ha hagut errors a l
 These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,Aquests valors s'actualitzaran automàticament en les transaccions i també podrà ser útil restringir els permisos per a aquest usuari en transaccions que contenen aquests valors.
 "These will also be set as default values for those links, if only one such permission record is defined.","Aquests també es poden establir com a valors predeterminats per als enllaços, si no es defineix només un d'aquests registres permís."
 Third Party Authentication,
-"This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>
-myfield
-eval:doc.myfield=='My Value'<br>
-eval:doc.age>18",
+This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>myfieldeval:doc.myfield=='My Value'<br>eval:doc.age>18,
 This form does not have any input,Aquesta formulari no té cap entrada
 This goes above the slideshow.,Això va per sobre de la presentació de diapositives (slideshow)
 This is PERMANENT action and you cannot undo. Continue?,Aquesta és una acció permanent i no es pot desfer. Voleu continuar?
@@ -1299,7 +1283,7 @@ This must be checked if Style Settings are applicable,Això s'ha de marcar si el
 This role update User Permissions for a user,Aquesta actualització de rol canvia permisos d'usuari per a un usuari
 Thursday,Dijous
 Tile,Rajola
-Time,Temps
+Time,temps
 Time Zone,Fus horari
 Timezone,
 Title,Títol
@@ -1467,8 +1451,7 @@ You have unsaved changes in this form. Please save before you continue.,"Hi ha c
 You must login to submit this form,Has d'iniciar sessió per presentar aquest formulari
 You need to be logged in and have System Manager Role to be able to access backups.,
 You need write permission to rename,
-"You seem to have written your name instead of your email. \
-					Please enter a valid email address so that we can get back.",
+You seem to have written your name instead of your email. \					Please enter a valid email address so that we can get back.,
 "Your download is being built, this may take a few moments...",
 Your login id is,El seu nom d'usuari és
 Your password has been updated. Here is your new password,La seva contrasenya s'ha actualitzat. Aquí està la teva nova contrasenya
@@ -1491,7 +1474,7 @@ arrow-up,arrow-up
 asterisk,asterisc
 backward,cap enrere
 ban-circle,
-barcode,codi de barres
+barcode,Codi de barres
 beginning with,
 bell,
 bold,Negreta
@@ -1527,7 +1510,7 @@ eye-open,eye-open
 facetime-video,FaceTime i vídeo
 fast-backward,fast-backward
 fast-forward,avanç ràpid
-file,file
+file,File
 film,film
 filter,filtre
 fire,
@@ -1557,7 +1540,7 @@ is not allowed.,no està permès.
 italic,itàlic
 leaf,
 lft,
-list,llista
+list,Llista
 list-alt,list-alt
 lock,
 lowercase,minúscules
@@ -1612,7 +1595,7 @@ star,
 star-empty,star-empty
 step-backward,pas enrere
 step-forward,
-stop,atura
+stop,Atura
 tag,
 tags,etiquetes
 "target = ""_blank""",
@@ -1629,7 +1612,7 @@ tint,tint
 to,a
 to filter values between 5 & 10,
 trash,escombraries
-upload,pujar
+upload,Pujar
 use % as wildcard,Utilitza % com a comodí
 user,
 user_image_show,user_image_show
