@@ -15,6 +15,7 @@ from frappe.utils import cint, cstr
 import frappe.model.meta
 import frappe.defaults
 import frappe.translate
+import redis
 from urllib import unquote
 
 @frappe.whitelist()
@@ -90,8 +91,17 @@ def get():
 		bootinfo = get_bootinfo()
 		bootinfo["notification_info"] = get_notification_info_for_boot()
 		frappe.cache().set_value("bootinfo", bootinfo, user=True)
+		try:
+			frappe.cache().ping()
+		except redis.exceptions.ConnectionError:
+			message = _("Redis cache server not running. Please contact Administrator / Tech support")
+			if 'messages' in bootinfo:
+				bootinfo['messages'].append(message)
+			else:
+				bootinfo['messages'] = [message]
 
 	bootinfo["metadata_version"] = frappe.cache().get_value("metadata_version")
+
 	if not bootinfo["metadata_version"]:
 		bootinfo["metadata_version"] = frappe.reset_metadata_version()
 

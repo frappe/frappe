@@ -19,7 +19,10 @@ class RedisWrapper(redis.Redis):
 		"""Sets cache value."""
 		key = self.make_key(key, user)
 		frappe.local.cache[key] = val
-		self.set(key, pickle.dumps(val))
+		try:
+			self.set(key, pickle.dumps(val))
+		except redis.exceptions.ConnectionError:
+			return None
 
 	def get_value(self, key, generator=None, user=None):
 		"""Returns cache value. If not found and generator function is
@@ -31,7 +34,10 @@ class RedisWrapper(redis.Redis):
 		key = self.make_key(key, user)
 		val = frappe.local.cache.get(key)
 		if val is None:
-			val = self.get(key)
+			try:
+				val = self.get(key)
+			except redis.exceptions.ConnectionError:
+				pass
 			if val is not None:
 				val = pickle.loads(val)
 			if val is None and generator:
@@ -50,11 +56,17 @@ class RedisWrapper(redis.Redis):
 
 	def get_keys(self, key):
 		"""Return keys with wildcard `*`."""
-		return self.keys(self.make_key(key + "*"))
+		try:
+			return self.keys(self.make_key(key + "*"))
+		except redis.exceptions.ConnectionError:
+			return []
 
 	def delete_keys(self, key):
 		"""Delete keys with wildcard `*`."""
-		self.delete_value(self.get_keys(key), make_keys=False)
+		try:
+			self.delete_value(self.get_keys(key), make_keys=False)
+		except redis.exceptions.ConnectionError:
+			pass
 
 	def delete_value(self, keys, user=None, make_keys=True):
 		"""Delete value, list of values."""
@@ -65,6 +77,10 @@ class RedisWrapper(redis.Redis):
 			if make_keys:
 				key = self.make_key(key)
 
-			self.delete(key)
+			try:
+				self.delete(key)
+			except redis.exceptions.ConnectionError:
+				pass
+
 			if key in frappe.local.cache:
 				del frappe.local.cache[key]
