@@ -28,11 +28,11 @@ Add Attachments,Tambahkan Lampiran
 Add Bookmark,Tambahkan Bookmark
 Add CSS,Tambahkan CSS
 Add Column,Tambahkan Kolom
-Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,Tambahkan Google Analytics ID: misalnya. UA-89XXX57-1. Silahkan cari bantuan pada Google Analytics untuk informasi lebih lanjut.
+Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,Tambahkan ID Google Analytics: misalnya. UA-89XXX57-1. Silahkan cari bantuan pada Google Analytics untuk informasi lebih lanjut.
 Add Message,Tambahkan Pesan
 Add New Permission Rule,Tambahkan Rule Izin Baru
 Add Reply,Tambahkan Balasan
-Add Total Row,Tambah Jumlah Row
+Add Total Row,Tambah Total Baris
 Add a New Role,Tambahkan Peran Baru
 Add a banner to the site. (small banners are usually good),Tambahkan iklan ke situs. (Spanduk kecil biasanya lebih baik)
 Add all roles,Tambahkan semua peran
@@ -43,18 +43,17 @@ Add fields to forms.,Menambahkan kolom ke form.
 Add multiple rows,Tambahkan beberapa baris
 Add new row,Tambahkan baris baru
 "Add the name of <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> e.g. ""Open Sans""","Tambahkan nama <a href=""http://google.com/webfonts"" target=""_blank""> Google Font Web </ a> misalnya ""Buka Sans """
-Add to To Do,Tambahkan ke To Do
-Add to To Do List Of,"Tambahkan ke Daftar To Do
-"
+Add to To Do,Tambahkan ke 'Yang Harus Dilakukan'
+Add to To Do List Of,Tambahkan ke Daftar 'Yang Harus Dilakukan'
 Added {0} ({1}),Ditambahkan {0} ({1})
-Adding System Manager to this User as there must be atleast one System Manager,Menambahkan Sistem Manager untuk user ini dikarenakan harus ada minimal satu sistem manager
+Adding System Manager to this User as there must be atleast one System Manager,Menambahkan Sistem Manager untuk user ini dikarenakan minimal harus ada satu Sistem Manager
 Additional Info,Info Tambahan
 Additional Permissions,Izin Tambahan
 Address,Alamat
 Address Line 1,Alamat Baris 1
 Address Line 2,Alamat Baris 2
-Address Title,Alamat Judul
-Address and other legal information you may want to put in the footer.,Alamat dan informasi hukum lainnya yang mungkin Anda ingin masukkan ke dalam footer.
+Address Title,Judul Alamat
+Address and other legal information you may want to put in the footer.,Alamat dan informasi hukum lainnya yang mungkin Anda ingin masukkan ke dalam catatan kaki.
 Admin,Admin
 All Applications,Semua Aplikasi
 All Day,Semua Hari
@@ -92,28 +91,28 @@ Are you sure you want to delete the attachment?,Apakah Anda yakin ingin menghapu
 Arial,Arial
 "As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User.","Sebagai praktik terbaik, tidak menetapkan set yang sama dari izin aturan untuk Peran yang berbeda. Sebaliknya, mengatur beberapa Peran untuk Pengguna yang sama."
 Ascending,Ascending
-Assign To,Untuk menetapkan
+Assign To,Tugaskan Kepada
 Assigned By,Ditugaskan By
-Assigned To,Ditugaskan Untuk
-Assigned To Fullname,Ditugaskan Untuk Nama Lengkap
+Assigned To,Ditugaskan Kepada
+Assigned To Fullname,Ditugaskan Kepada Nama Lengkap
 Assigned To/Owner,Ditugaskan Untuk / Owner
 Assignment Added,Tugas Ditambahkan
 Assignment Status Changed,Status Tugas Berubah
 Assignments,Tugas
 Attach,Melampirkan
 Attach Document Print,Lampirkan Dokumen Cetak
-Attach as web link,Lampirkan sebagai link web
+Attach as web link,Lampirkan sebagai tautan web
 Attached To DocType,Terlampir Untuk DocType
 Attached To Name,Terlampir Untuk Nama
 Attachments,Lampiran
-Auto Email Id,Auto Email Id
-Auto Name,Name
-Auto generated,Auto dihasilkan
+Auto Email Id,Email Id Otomatis
+Auto Name,Nama Otomatis
+Auto generated,Dibuat secara otomatis
 Avatar,Avatar
 Back to Login,Kembali ke Login
-Background Color,Background Color
-Background Image,Background Image
-Background Style,Background Style
+Background Color,Warna Latar
+Background Image,Gambar Latar
+Background Style,Gaya Latar
 Banner,Spanduk
 Banner HTML,Banner HTML
 Banner Image,Banner Gambar
@@ -1244,22 +1243,22 @@ You can use wildcard %,Anda dapat menggunakan wildcard%
 You cannot install this app,Anda tidak dapat menginstal aplikasi ini
 You have unsaved changes in this form. Please save before you continue.,Anda belum menyimpan perubahan pada formulir ini. Silakan simpan sebelum Anda melanjutkan.
 You need to be logged in and have System Manager Role to be able to access backups.,Anda harus login dan memiliki System Manager Peran untuk dapat mengakses backup.
-You need write permission to rename,Anda perlu menulis izin untuk mengubah nama
+You need write permission to rename,Anda memerlukan izin tulis untuk mengubah nama
 You seem to have written your name instead of your email. \					Please enter a valid email address so that we can get back.,"Anda tampaknya telah menulis nama Anda, bukan email Anda. \ Harap masukkan alamat email yang valid sehingga kami bisa kembali."
-"Your download is being built, this may take a few moments...","Download sedang dibangun, ini mungkin memerlukan beberapa saat ..."
+"Your download is being built, this may take a few moments...","Download sedang dipersiapkan, ini mungkin memerlukan waktu beberapa saat ..."
 [Label]:[Field Type]/[Options]:[Width],[Label]: [Field Type] / [Options]: [Lebar]
 [Optional] Send the email X days in advance of the specified date. 0 equals same day.,[Opsional] Kirim hari X email sebelum tanggal yang ditentukan. 0 sama dengan hari yang sama.
-add your own CSS (careful!),menambahkan CSS Anda sendiri (careful!)
+add your own CSS (careful!),tambahkan CSS Anda sendiri (berhati-hatilah!)
 adjust,penyesuaian
-align-center,menyelaraskan-pusat
-align-justify,menyelaraskan-membenarkan
-align-left,menyelaraskan kiri
-align-right,menyelaraskan kanan
+align-center,rata-tengah
+align-justify,rata-kanan-kiri
+align-left,rata-kiri
+align-right,rata-kanan
 and,Dan
-arrow-down,panah-down
-arrow-left,panah kiri
-arrow-right,panah kanan
-arrow-up,panah-up
+arrow-down,panah-bawah
+arrow-left,panah-kiri
+arrow-right,panah-kanan
+arrow-up,panah-atas
 asterisk,asterisk
 backward,mundur
 ban-circle,larangan-lingkaran

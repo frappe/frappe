@@ -109,7 +109,7 @@ Auto Email Id,自動電子メールID
 Auto Name,自動名前
 Auto generated,自動生成された
 Avatar,アバター
-Back to Login,戻るログインする
+Back to Login,ログインに戻る
 Background Color,背景色
 Background Image,背景画像
 Background Style,背景スタイル
@@ -239,7 +239,7 @@ Customized HTML Templates for printing transctions.,印刷transctions用にカ�
 Daily Event Digest is sent for Calendar Events where reminders are set.,毎日イベントダイジェストはリマインダーが設定されているカレンダーのイベントのために送信されます。
 Danger,危険
 Data,データ
-Data Import / Export Tool,データのインポート/エクスポートツール
+Data Import / Export Tool,データインポート/エクスポートツール
 Data Import Tool,データインポートツール
 Data missing in table,表に不足しているデータ
 Date,日付
@@ -249,78 +249,78 @@ Date Format,日付の表示形式
 Date and Number Format,日付と番号の書式
 Date must be in format: {0},日付が形式である必要があります：{0}
 Datetime,日時
-Days in Advance,事前に日
+Days in Advance,事前日数
 Dear,親愛なる 様
 Default,初期値
-Default Print Format,デフォルトの印刷フォーマット
+Default Print Format,デフォルト印刷フォーマット
 Default Value,デフォルト値
-Default is system timezone,デフォルトでは、システムのタイムゾーンである
+Default is system timezone,デフォルトではシステムのタイムゾーンです
 "Default: ""Contact Us""",デフォルト：「お問い合わせ」
-DefaultValue,のDefaultValue
+DefaultValue,デフォルト値
 Defaults,デフォルト
-"Define read, write, admin permissions for a Website Page.",読み取り、書き込み、ウェブページのための管理者権限を定義します。
+"Define read, write, admin permissions for a Website Page.",ウェブページの閲覧・書き込みのための管理者権限を定義します。
 Define workflows for forms.,フォームのワークフローを定義します。
 Delete,削除
 Delete Row,行を削除する
-Depends On,に依存
+Depends On,依存関係
 Descending,降順
 Description,説明
 Description and Status,説明とステータス
-"Description for listing page, in plain text, only a couple of lines. (max 140 characters)",プレーンテキストで一覧ページの説明、行の唯一のカップル。 （最大140文字）
+"Description for listing page, in plain text, only a couple of lines. (max 140 characters)",一覧ページの説明（最大2行・140文字・プレーンテキストのみ）
 Description for page header.,ページヘッダの説明。
 Desktop,デスクトップ
 Details,詳細
 Did not add,追加しませんでした
 Did not cancel,キャンセルされませんでした
-Did not find {0} for {0} ({1}),（{1}）{0} {0}のために見つけられませんでした
+Did not find {0} for {0} ({1}),{0}（{1}）により{0}が見つかりませんでした
 Did not load,ロードされませんでした
 Did not remove,削除されませんでした。
 Did not save,保存しませんでした。
-"Different ""States"" this document can exist in. Like ""Open"", ""Pending Approval"" etc.",このドキュメントはインチ存在できる異なる「状態」「開く」、「承認待ち」などのような
-Disable Customer Signup link in Login page,ログインページに顧客のサインアップリンクを無効にする
+"Different ""States"" this document can exist in. Like ""Open"", ""Pending Approval"" etc.",このドキュメントには異なる「ステータス」を入れることができます。（「オープン」「承認待ち」など）
+Disable Customer Signup link in Login page,ログインページの顧客の登録リンクを無効にする
 Disable Signup,登録を無効にする
 Disabled,無効にしました。
 Display,表示
 Display Settings,ディスプレイの設定
 Display in the sidebar of this Website Route node,このウェブサイトのルートノードのサイドバーに表示
-Do not allow user to change after set the first time,ユーザーは後の最初の時間を設定変更することはできません
+Do not allow user to change after set the first time,初回設定以降、ユーザーが変更することはできません
 Doc Status,ドキュメントの状態
 DocField,ドキュメントの分野
 DocPerm,ドキュメントの管理
 DocType,ドキュメントタイプ
 DocType Details,ドキュメントタイプの詳細
-DocType can not be merged,ドキュメントタイプが合併することはできません。
+DocType can not be merged,ドキュメントタイプを混在させることはできません。
 DocType on which this Workflow is applicable.,DOCTYPEがどのこのワークフローを適用することができる。
 DocType or Field,ドキュメントタイプまたは分野
 Doclist JSON,ドキュメントリスト、JSON
 Docname,ドキュメント名
 Document,ドキュメント
-Document Status transition from ,Document Status transition from 
-Document Status transition from {0} to {1} is not allowed,{{0}から{1}までのドキュメント・ステータス推移は許可されません。
+Document Status transition from ,ドキュメントのステータスは次のものから変更されました
+Document Status transition from {0} to {1} is not allowed,ドキュメントのステータスを{0}から{1}に変更することはできません
 Document Type,ドキュメントタイプ
-Document is only editable by users of role,文書は、役割のユーザーによって編集可能です。
+Document is only editable by users of role,文書は、ユーザーの役割によって編集可能です。
 Documentation,ドキュメンテーション
 Documents,文書
 Download,ダウンロード
 Download Backup,ダウンロードバックアップ
 Download link for your backup will be emailed on the following email address:,バックアップのダウンロードリンクは、次の電子メールアドレスに電子メールで送信されます。
 Drafts,下書き
-Drag to sort columns,列をソートするには、ドラッグ
+Drag to sort columns,ドラッグして列を並べ替える
 Due Date,期日
-Duplicate name {0} {1},重複する名前{0} {1}
+Duplicate name {0} {1},{0}と{1}は名前が重複しています
 Dynamic Link,動的リンク
 ERPNext Demo,ERPNextデモ
 Edit,編集
-Edit Permissions,認可を編集する
+Edit Permissions,権限を編集
 Editable,編集可能な
 Email,Eメール
 Email Alert,電子メール警告
-Email Alert Recipient,電子メール警告の受信者
-Email Alert Recipients,電子メール警告の受信者
+Email Alert Recipient,メールアラートの受信者
+Email Alert Recipients,メールアラートの受信者
 Email By Document Field,ドキュメントフィールドによって電子メール
-Email Footer,電子メールのフッター
-Email Host,電子メールホスト
-Email Id,EメールのId
+Email Footer,メールフッター
+Email Host,メールホスト
+Email Id,メールID
 Email Login,Eメールログイン
 Email Password,メールアドレスパスワード
 Email Sent,Eメール送信済み
@@ -328,31 +328,31 @@ Email Settings,メール設定
 Email Signature,電子メールの署名
 Email Use SSL,電子メールを使用したSSL
 Email address,メールアドレス
-"Email addresses, separted by commas",カンマでseparted電子メールアドレス、
+"Email addresses, separted by commas",カンマで区切られたメールアドレス
 Email not verified with {1},電子メールは{1}で確認されませんでした。
 Email sent to {0},{0}に送信された電子メール
 Email...,電子メール...
 Emails are muted,メールはミュートされ
-Embed image slideshows in website pages.,ウェブサイトのページ内の画像のスライドショーを埋め込んでください。
+Embed image slideshows in website pages.,ウェブサイトのページ内に画像のスライドショーを埋め込んでください。
 Enable,可能
 Enable Comments,コメントを有効にする
 Enable Scheduled Jobs,スケジュールされたジョブを有効にする
 Enabled,有効
-Ends on,で終了
+Ends on,終了
 Enter Form Type,フォームタイプを入力してください
 Enter Value,値を入力します
 Enter at least one permission row,少なくとも1の許可の行を入力してください
 "Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set ""match"" permission rules. To see list of fields, go to <a href=""#Form/Customize Form/Customize Form"">Customize Form</a>.","デフォルト値フィールド（キー）と値を入力します。あなたがフィールドに複数の値を追加する場合、最初のものが取得されます。これらのデフォルト値は、「マッチ」の許可ルールを設定するために使用される。フィールドのリストを表示するには、<a href=""#Form/Customize Form/Customize Form"">フォームのカスタマイズ</ A>をご覧ください。"
-"Enter keys to enable login via Facebook, Google, GitHub.",フェイスブック、グーグル、GitHubのを経由してログインを可能にするためのキーを入力してください。
+"Enter keys to enable login via Facebook, Google, GitHub.",Facebook・Google・GitHub経由でログインするためのキーを入力してください。
 Equals,等号
 Error,エラー
-"Error generating PDF, attachment sent as HTML",HTMLとして送信されたエラー発生ファイル、添付ファイル
-Error: Document has been modified after you have opened it,エラー：あなたがそれを開いた後に文書が変更されました
+"Error generating PDF, attachment sent as HTML",エラーによりPDFが生成され、添付ファイルはHTMLとして送信されます
+Error: Document has been modified after you have opened it,エラー：あなたが文書を開いた後に変更されています
 Event,イベント
 Event Datetime,イベント日時
 Event Individuals,イベント個人
 Event Role,イベントの役割
-Event Roles,イベントの役割
+Event Roles,イベント役割
 Event Type,イベント タイプ
 Event User,イベントユーザー
 Event end must be after start,イベント終了は開始後でなければなりません
@@ -366,44 +366,44 @@ Everyone,Everyone
 Example:,例：
 Expand,展開
 Export,エクスポート
-Export not allowed. You need {0} role to export.,輸出は許可されていません。あなたがエクスポートする{0}役割を必要としています。
+Export not allowed. You need {0} role to export.,エクスポートは許可されていません。役割{0}を必要とします。
 Exported,エクスポート
-"Expression, Optional",表現、省略可能
-Facebook,フェイスブック
-Facebook Client ID,FacebookのクライアントID
-Facebook Client Secret,Facebookのクライアントの秘密
+"Expression, Optional",（オプション）表現
+Facebook,Facebook
+Facebook Client ID,FacebookのClient ID
+Facebook Client Secret,FacebookのClient Secret 
 Facebook Share,Facebookで共有
 Facebook User ID,FacebookのユーザーID
 Facebook Username,Facebookのユーザー名
-FavIcon,ファビコン
+FavIcon,FavIcon
 Female,女性
 Field Description,フィールド記述
 Field Name,フィールド名
 Field Type,フィールドタイプ
 "Field that represents the Workflow State of the transaction (if field is not present, a new hidden Custom Field will be created)",取引のワークフローの状態を表すフィールド（フィールドが存在しない場合は、新しい隠しカスタムフィールドが作成されます）
-Field {0} in row {1} cannot be hidden and mandatory without default,フィールド{0}行目の{1}は、デフォルトせずに非表示になっ必須することはできません
-Field {0} is not selectable.,フィールド{0}選択できません。
-Field {0} of type {1} cannot be mandatory,フィールド{0}型{1}の必須にすることはできません
+Field {0} in row {1} cannot be hidden and mandatory without default,フィールド{0}の行{1}は、デフォルト以外、非表示・必須とすることはできません
+Field {0} is not selectable.,フィールド{0}は選択できません。
+Field {0} of type {1} cannot be mandatory,フィールド{0}の型{1}は必須にすることはできません
 Fieldname,フィールド名
-Fieldname is required in row {0},フィールド名は、行で必要とされている{0}
-Fieldname not set for Custom Field,フィールド名は、カスタムフィールドに設定されていない
-Fieldname which will be the DocType for this link field.,このリンクフィールドののDocTypeになるフィールド名。
-Fieldname {0} appears multiple times in rows {1},フィールド名は{0}行{1}で複数回表示されます
-"Fieldname {0} cannot contain letters, numbers or spaces",フィールド名は{0}文字、数字やスペースを含めることはできません
+Fieldname is required in row {0},行{0}にはフィールド名が必要です
+Fieldname not set for Custom Field,カスタムフィールドにフィールド名が設定されていません
+Fieldname which will be the DocType for this link field.,このリンクフィールドのDocTypeになるフィールド名。
+Fieldname {0} appears multiple times in rows {1},フィールド名{0}は行{1}で複数回表示されます
+"Fieldname {0} cannot contain letters, numbers or spaces",フィールド名{0}に文字、数字、スペースを含めることはできません
 Fields,フィールド
 "Fields separated by comma (,) will be included in the<br /><b>Search By</b> list of Search dialog box",コンマ（、）で区切られたフィールドには、[検索]ダイアログボックスの</ B>リストによって<brの/>の<B>検索に含まれます
 Fieldtype cannot be changed from {0} to {1} in row {2},FIELDTYPEは{0} {2}行{1}から変更することはできません
-File,綴じ込む
+File,ファイル
 File Data,ファイルデータ
 File Name,ファイル名
 File Size,ファイル サイズ
 File URL,ファイルURL
-File not attached,ファイル付属しておりません
+File not attached,ファイルが添付されていません
 File size exceeded the maximum allowed size of {0} MB,ファイルサイズは{0} MBの最大許容サイズを超えました
 Fill Screen,フルスクリーン
 Filter,フィルター
-Filter records based on User Permissions defined for a user,ユーザーに対して定義されたユーザー権限に基づいてフィルタレコード
-Filters,フィルターを生成する
+Filter records based on User Permissions defined for a user,ユーザーに対して定義された権限に基づくフィルターレコード
+Filters,フィルター
 Find {0} in {1},{0} {1}で見つける
 First Name,お名前（名）
 Float,フロート
@@ -416,115 +416,115 @@ Fonts,フォント
 Footer,フッター
 Footer Background,フッターの背景
 Footer Items,フッター項目
-Footer Text,Footer Text
-For DocType,のDocType用
-"For Links, enter the DocType as rangeFor Select, enter list of Options separated by comma",リンクについては、範囲としてのDocTypeに入る選択して、カンマで区切られたオプションのリストを入力します。
+Footer Text,フッターテキスト
+For DocType,DocType用
+"For Links, enter the DocType as rangeFor Select, enter list of Options separated by comma",リンクについては範囲としてDocTypeを入力し、Selectについては、カンマで区切られたオプションのリストを入力します
 "For comparative filters, start with",比較のフィルタの場合、で始まる
-For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,あなたがキャンセルして「INV004」を改正する場合は、新しいドキュメント 'INV004-1」となります。これにより、各修正案を追跡するのに役立ちます。
+For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,例えば、あなたがキャンセルして「INV004」を修正する場合、新しいドキュメント「INV004-1」となります。これにより、各修正案を追跡するのに役立ちます。
 For ranges,範囲について
-For top bar,トップバーの
+For top bar,トップバー用
 For {0} at level {1} in {2} in row {3},{0}のレベルで{1} {2}の行の{3}
 Forgot Password,パスワードを忘れた方はこちら
 Forgot Password?,パスワードを忘れましたか？
 Form,フォーム
 Forum,フォーラム
 Forums,フォーラム
-Forward To Email Address,前進した電子メールアドレスに
-Frappe Framework,フラッペフレームワーク
+Forward To Email Address,メールアドレスに転送
+Frappe Framework,Frappe Framework
 Friday,金曜日
-From Date must be before To Date,日付から日付の前でなければなりません
+From Date must be before To Date,起点日は終点日より前でなければなりません
 Full Name,氏名
 Gantt Chart,ガントチャート
 Gender,性別
-Generator,発電機
+Generator,ジェネレーター
 Georgia,ジョージア
 Get,ゲット
 Get From ,フォームを取得
 "Get your globally recognized avatar from <a href=""https://gravatar.com/"">Gravatar.com</a>","もし、ごhref=""https://gravatar.com/""> Gravatar.com </ A>から世界的に認知されたアバターを入手"
 GitHub,GitHub
-GitHub Client ID,GitHubのクライアントID
-GitHub Client Secret,GitHubのクライアントの秘密
+GitHub Client ID,GitHubのClient ID 
+GitHub Client Secret,GitHubのClient Secret 
 Github User ID,GitHubのユーザーID
 Github Username,GitHubのユーザー名
 Google,グーグル。
-Google Analytics ID,{0}Google Analytics ID{/0}
-Google Client ID,GoogleのクライアントID
-Google Client Secret,Googleのクライアントの秘密
-Google Plus One,Googleプラスワン
+Google Analytics ID,Google Analytics ID
+Google Client ID,GoogleのClient ID 
+Google Client Secret,GoogleのClient Secret 
+Google Plus One,Google+1
 Google User ID,GoogleのユーザーID
-Google Web Font (Heading),Googleウェブフォント（見出し）
-Google Web Font (Text),Googleウェブフォント（テキスト）
+Google Web Font (Heading),Google Web Font（見出し）
+Google Web Font (Text),Google Web Font（テキスト）
 Greater or equals,大か等しい
 Greater than,より大きい
-"Group Added, refreshing...",グループを追加しました、さわやかな...
+"Group Added, refreshing...",グループを追加し、再読み込み中...
 Group Description,コミュニティの説明
 Group Name,グループ名
 Group Title,グループタイトル
 Group Type,グループの種類
 Groups,グループ
-HTML for header section. Optional,ヘッダー部分のHTML。オプショナル
+HTML for header section. Optional,（オプション）ヘッダー部分のHTML。
 Have an account? Login,{0} {1}アカウントをお持ちですかt?{/1} {/0}ログインを確認します。
 Header,ヘッダー
 Heading,見出し
 Heading Text As,テキストの見出しとして
 Help,ヘルプ
 Help on Search,検索のヘルプ
-Helvetica Neue,ヘルベチカ•ノイエ
+Helvetica Neue,Helvetica Neue
 Hidden,非表示
-Hide Actions,アクション隠す
+Hide Actions,アクションを隠す
 Hide Copy,コピーを隠す
 Hide Heading,見出しを隠す
-Hide Toolbar,ツールバーを非表示に
+Hide Toolbar,ツールバーを隠す
 Hide the sidebar,サイドバーを隠す
 High,高
 Highlight,ハイライト
-History,来歴
+History,履歴
 Home Page,ホームページ
 Home Page is Products,ホームページは、製品である
 ID (name) of the entity whose property is to be set,プロパティが設定されるエンティティのID（名前）
 Icon,アイコン
 Icon will appear on the button,アイコンがボタン上に表示されます
-"If a Role does not have access at Level 0, then higher levels are meaningless.",役割レベル0でのアクセス権を持っていない場合には、より高いレベルには意味がありません。
+"If a Role does not have access at Level 0, then higher levels are meaningless.",「役割」がレベル0のアクセス権を持っていない場合、より高いレベルには意味がありません。
 "If checked, all other workflows become inactive.",チェックすると、他のすべてのワークフローが非アクティブになります。
-"If checked, the Home page will be the default Item Group for the website.",チェックすると、[ホーム]ページは、Webサイトのデフォルトのアイテムグループになります。
-"If image is selected, color will be ignored (attach first)",画像が選択された場合、色が（最初のアタッチ）無視される
+"If checked, the Home page will be the default Item Group for the website.",チェックすると、ホームページは、Webサイトのデフォルトの項目グループになります。
+"If image is selected, color will be ignored (attach first)",画像が選択された場合、色が無視されます（先に添付してください）
 If non standard port (e.g. 587),非標準ポート（例えば587）の場合
-"If these instructions where not helpful, please add in your suggestions on GitHub Issues.",これらの命令はどこに役に立たなかった場合は、GitHubの問題に関するご提案で追加してください。
-"If you set this, this Item will come in a drop-down under the selected parent.",これを設定すると、この項目は選択された親の下にあるドロップダウンになるだろう。
+"If these instructions where not helpful, please add in your suggestions on GitHub Issues.",これらの説明が役に立たなかった場合は、GitHubのIssueにご提案を追加してください。
+"If you set this, this Item will come in a drop-down under the selected parent.",設定すると、この項目は選択された親の下にあるドロップダウンにあらわれます。
 Ignore User Permissions,ユーザー権限を無視
 "Ignoring Item {0}, because a group exists with the same name!",グループは同じ名前で存在しているため、項目{0}を無視して！
-Image,イメージ
+Image,画像
 Image Link,画像リンク
-Import,入力
+Import,インポート
 Import / Export Data,データのインポート/エクスポート
-Import / Export Data from .csv files.,インポート/エクスポートデータからの。CSVファイル。
-In,実際のところ、業界ではテスターより多くのプログラマーをチームにアサインすることが流行っている。つまり、テスターの仕事を開発者に移すことは決して悪いことではないのだ。自分たちのプロセスのボトルネックを解消することにつながるのだから。
-In Dialog,ダイアログで
-In Filter,フィルター中
-In List View,リストビューで
-In Report Filter,Report]フィルタ
+Import / Export Data from .csv files.,CSVファイルからのインポート/エクスポートデータ。
+In,In
+In Dialog,ダイアログ内
+In Filter,フィルター内
+In List View,リストビュー内
+In Report Filter,Reportフィルタ
 In points. Default is 9.,ポイント。デフォルトは9です。
-In response to,に応答して
-Incorrect value in row {0}: {1} must be {2} {3},行の誤った値が{0}：{1} {2} {3}でなければなりません
-Incorrect value: {0} must be {1} {2},不正な値：{0} {1} {2}でなければなりません
+In response to,応答内
+Incorrect value in row {0}: {1} must be {2} {3},行 {0} に誤った値：{1} は {2} {3}でなければなりません
+Incorrect value: {0} must be {1} {2},不正な値：{0} は {1} {2}でなければなりません
 Index,索引
 Individuals,個人
 Info,情報
-Insert After,の後に挿入
+Insert After,後に挿入
 "Insert After field '{0}' mentioned in Custom Field '{1}', does not exist",'{0}'カスタムフィールドに記載されている '{1}'、存在しないフィールドの後に挿入
 Insert Below,下に挿入
-Insert Code,コードを追加
+Insert Code,コードを挿入
 Insert Row,行の挿入
-Insert Style,スタイルを挿入します
+Insert Style,スタイルを挿入
 Install Applications.,アプリケーションをインストールします。
-Installed,インストール済み
+Installed,インストール済
 Installer,インストーラ
 Int,INT
 Integrations,インテグレーション
 Introduce your company to the website visitor.,ウェブサイトの訪問者にあなたの会社をご紹介します。
 Introduction,序論
 Introductory information for the Contact Us Page,お問い合わせページのための入門的な情報
-Invalid Email: {0},無効な電子メール：{0}
+Invalid Email: {0},無効なメール：{0}
 Invalid Filter: {0},無効なフィルタ：{0}
 Invalid Home Page,無効なホームページ
 Invalid Login,無効なログイン
@@ -532,18 +532,18 @@ Invalid Outgoing Mail Server or Port,無効な送信メールサーバーまた�
 Invalid login or password,無効なログインまたはパスワード
 Invalid recipient address,無効な受信者のアドレス
 Inverse,逆元
-Is Active,アクティブである
+Is Active,アクティブ
 Is Child Table,子表です
-Is Default,デフォルトは
+Is Default,デフォルト
 Is Event,イベントで
-Is Mandatory Field,必須フィールドです
+Is Mandatory Field,必須フィールド
 Is Single,シングルです
 Is Standard,規格です
 Is Submittable,Submittableです
 Is Task,課題である
 Item cannot be added to its own descendents,アイテムには独自の子孫に追加することはできません
 JavaScript Format: frappe.query_reports['REPORTNAME'] = {},JavaScriptの形式：frappe.query_reports ['REPORTNAME'] = {}
-Javascript,ジャバスプリクト
+Javascript,Javascript
 Javascript to append to the head section of the page.,Javascriptをページの先頭のセクションに追加する。
 Key,キー (key)
 Label,ラベル
@@ -600,7 +600,7 @@ Main Section,主なセクション
 Make a new,新しいを作成する
 Make a new record,新しいレコードを作る
 Male,男性
-Manage cloud backups on Dropbox,Dropboxの上の雲のバックアップを管理
+Manage cloud backups on Dropbox,Dropboxのクラウドバックアップを管理
 Manage uploaded files.,アップロードされたファイルを管理します。
 Mandatory,必須
 Mandatory fields required in {0},{0}に必要な必須フィールド
@@ -642,17 +642,17 @@ Name and Description,名前と説明
 Name is required,名前が必要です
 Name not permitted,名前が許可されていません。
 Name not set via Prompt,名前プロンプトから設定されていません
-Name of the Document Type (DocType) you want this field to be linked to. e.g. Customer,このフィールドが、リンクしたい文書の種類（DocType）の名前。例えば顧客
+Name of the Document Type (DocType) you want this field to be linked to. e.g. Customer,このフィールドをリンクしたい文書型（DocType）の名前。（例：顧客）
 Name of {0} cannot be {1},{0}の名前は{1}にすることはできません
 Naming,命名
-Naming Series mandatory,シリーズに名付けることは必須です。
+Naming Series mandatory,シリーズ名は必須です
 Nested set error. Please contact the Administrator.,入れ子集合のエラー。管理者に連絡してください。
 New,新しい
 New Password,新しいパスワード
-New Record,新記録
+New Record,新しいレコード
 New comment on {0} {1},{0} {1}上の新しいコメント
-New password emailed,新しいパスワードが電子メールで送信
-New value to be set,新しい値を設定する必要
+New password emailed,新しいパスワードが電子メールで送信されました
+New value to be set,新しい値を設定する必要があります
 New {0},新しい{0}
 Next Communcation On,次のCommuncationで
 Next Record,次のレコード
@@ -707,35 +707,35 @@ Notify by Email,電子メールによる通知
 Number Format,数の書式
 Old Parent,古い親
 On,オン
-"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).",これを設定すると、ユーザーはでき、アクセス書類（例になりますリンクが存在するブログの記事）（例：ブロガー）。
-Only Administrator allowed to create Query / Script Reports,唯一の管理者は、クエリー/スクリプトレポートを作成することができ
-Only Administrator can save a standard report. Please rename and save.,唯一の管理者は、標準的なレポートを保存することができます。名前を変更し、保存してください。
-Only Allow Edit For,編集用のみを許可
-Only allowed {0} rows in one import,1インポートで唯一許可された{0}行
-Oops! Something went wrong,ああ、なんてことだ何かが間違っていた
-Open,位置打开
+"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).",この設定によりユーザーはリンクのあるドキュメント（ブログ記事など）にアクセス可能となります（例：Blogger）。
+Only Administrator allowed to create Query / Script Reports,クエリー/スクリプトレポートを作成することができるのは管理者だけです
+Only Administrator can save a standard report. Please rename and save.,標準レポートを保存することができるのは管理者だけです。名前を変更し、保存してください。
+Only Allow Edit For,編集のみ可
+Only allowed {0} rows in one import,1度にインポートできるのは{0}行までです
+Oops! Something went wrong,わっ！何か問題が起きたようです
+Open,開く
 Open Count,オープンカウント
 Open Sans,オープンサンズ
 Open Source Web Applications for the Web,Web用のオープンソースのWebアプリケーション
 Open a module or tool,モジュールまたはツールを開く
-Open {0},オープン{0}
-Optional: Alert will only be sent if value is a valid email id.,オプション：値が有効な電子メールIDである場合にアラートにのみ送信されます。
-Optional: Always send to these ids. Each email id on a new row,オプション：常にこれらのIDを送信します。新しい行の各電子メールID
-Optional: The alert will be sent if this expression is true,オプション：この式がtrueの場合、アラートが送信されます
+Open {0},{0}を開く
+Optional: Alert will only be sent if value is a valid email id.,（オプション）値が有効なメールIDである場合にのみアラートが送信されます。
+Optional: Always send to these ids. Each email id on a new row,（オプション）常にこれらのIDに送信します。各メールIDは新しい行になります
+Optional: The alert will be sent if this expression is true,（オプション）この式がtrueの場合、アラートが送信されます
 Options,オプション
-Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType',フィールドのオプション「ダイナミック·リンク '型'のDocType」などのオプションを別のリンクフィールドを指している必要があります
+Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType',オプション「ダイナミックリンク」型のフィールドは「DocType」オプションなどの別のリンクフィールドを指している必要があります
 Options Help,オプションのヘルプ
 Options for select. Each option on a new line. e.g.: <br>Option 1<br>Option 2<br>Option 3<br>,選択するためのオプション。新しい行に各オプション。例：検索オプション1検索オプション2検索オプション3検索
-Options must be a valid DocType for field {0} in row {1},オプションは{0}行{1}フィールドの有効なのDocTypeでなければなりません
+Options must be a valid DocType for field {0} in row {1},フィールド{0}行{1}のオプションは有効な文書型でなければなりません
 Options not set for link field {0},リンクフィールド{0}に設定されていないオプション
-Options requried for Link or Table type field {0} in row {1},リンクまたはテーブルタイプフィールド{0}行{1}のためにrequriedオプション
-Org History,ORG歴史
-Org History Heading,ORG歴史見出し
+Options requried for Link or Table type field {0} in row {1},行{1}のリンクまたはテーブル型フィールド{0}にはオプションが必要です
+Org History,沿革
+Org History Heading,沿革見出し
 Original Message,元のメッセージ
 Other,その他
-Outgoing Email Settings,送信電子メール設定
+Outgoing Email Settings,送信メール設定
 Outgoing Mail Server,送信メールサーバー
-Outgoing Mail Server not specified,送信メールサーバー指定されていません
+Outgoing Mail Server not specified,送信メールサーバーが指定されていません
 Owner,所有者
 PDF Page Size,PDFのページサイズ
 PDF Settings,PDF設定
@@ -777,13 +777,15 @@ Permission Levels,アクセス権レベル
 Permission Rules,許可ルール
 Permission already set,許可が既に設定されている
 Permissions,アクセス許可
-Permissions Settings,[アクセス許可の設定]
-Permissions are automatically translated to Standard Reports and Searches.,許可は、自動的に標準レポートおよび検索に変換されます。
-"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions.",許可は、レポート、インポート、エクスポート、印刷、電子メール、および設定ユーザー権限、改正、キャンセル、送信、削除、作成、書き込み、読み出しのような権利を設定することで、役割とドキュメントタイプ（文書型と呼ばれます）に設定されている。
-Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles.,より高いレベルでのアクセス権は、「フィールドレベルの権限である。すべてのフィールドが、それらと権限がフィールドに適用されることで定義されたルールに対して設定する」権限レベルを「持っている。あなたは非表示にしたり、特定のフィールドは読み取り専用に特定のロールのためにしたい場合に便利です。
-"Permissions at level 0 are 'Document Level' permissions, i.e. they are primary for access to the document.",レベル0の権限は、彼らが文書へのアクセスのための主要である。すなわち、「ドキュメントレベルの権限である。
-Permissions get applied on Users based on what Roles they are assigned.,許可は、それらが割り当てられているどのような役割に基づいてユーザーに適用されます。
-Permitted Documents For User,ユーザーに許可文書
+Permissions Settings,アクセス権限設定
+Permissions are automatically translated to Standard Reports and Searches.,アクセス権限は、自動的に標準レポートおよび検索に変換されます。
+"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions.",アクセス権限は、レポート、インポート、エクスポート、印刷、電子メール、および設定ユーザー権限、改正、キャンセル、送信、削除、作成、書き込み、読み出しのような権利を設定することで、役割とドキュメントタイプ（文書型と呼ばれます）に設定されています。
+Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles.,"より高いレベルでのアクセス権限は「フィールドレベル」の権限です。
+すべてのフィールドが、「フィールドレベル」の権限と、フィールドに権限を適用することで定義されたルールに対して設定する「権限レベル」を持っています。
+非表示にしたり、あるフィールドを特定のロールで読み取り専用にする場合に便利です。"
+"Permissions at level 0 are 'Document Level' permissions, i.e. they are primary for access to the document.",レベル0のアクセス権限は「ドキュメントレベル」の権限です。これは文書へアクセスするのための主要な権限です。
+Permissions get applied on Users based on what Roles they are assigned.,アクセス権限は、割り当てられている役割に基づいてユーザーに適用されます。
+Permitted Documents For User,アクセス許可された文書
 Person,人
 Personal Info,個人情報
 Phone,電話
@@ -796,11 +798,11 @@ Please attach a file or set a URL,ファイルを添付またはURLを設定し�
 Please do not change the rows above {0},{0}の上の行を変更しないでください
 Please enable pop-ups,ポップアップを有効にしてください
 Please enter Event's Date and Time!,イベントの日付と時刻を入力してください！
-Please enter both your email and message so that we \				can get back to you. Thanks!,\nあなたに戻って取得することができます|我々は、あなたの電子メールとメッセージの両方を入力してください。よろしくお願いいたします。
+Please enter both your email and message so that we \				can get back to you. Thanks!,メールとメッセージの両方を入力してください。よろしくお願いいたします。
 Please enter some text!,テキストを入力してください！
 Please enter title!,タイトルを入力してください！
-Please login to Upvote!,Upvoteするにはログインしてください！
-Please make sure that there are no empty columns in the file.,空の列がファイル内に存在しないことを確認してください。
+Please login to Upvote!,投票するにはログインしてください！
+Please make sure that there are no empty columns in the file.,空のカラムがファイル内に存在しないことを確認してください。
 Please refresh to get the latest document.,最新のドキュメントを取得するために更新してください。
 Please reply above this line or remove it if you are replying below it,この行の上ご返信や、その下に返信している場合はそれを削除してください
 Please select a file or url,ファイルまたはURLを選択してください
@@ -853,13 +855,13 @@ Pull Emails from the Inbox and attach them as Communication records (for known c
 Query,質問
 Query Options,クエリーオプション
 Query Report,クエリ レポート
-Query must be a SELECT,質問は、セレクトでなければなりません。
+Query must be a SELECT,質問は、選択でなければなりません。
 Quick Help for Setting Permissions,アクセス権を設定するためのクイックヘルプ
 Quick Help for User Permissions,ユーザーのアクセス許可のためのクイックヘルプ
 Re-open,再オープン
 Read,読む
 Read Only,読み取りのみ
-Received,受信
+Received,受領
 Recipient,受信者
 Recipients,受信者
 Record does not exist,レコードが存在しません
@@ -867,18 +869,18 @@ Ref DocType,REFのDocType
 Ref Name,REF名前
 Ref Type,ref型
 Reference,リファレンス
-Reference DocName,リファレンスDOCNAME
+Reference DocName,参照文書名
 Reference DocType,参照文書型
 Reference Name,参照名
 Reference Type,参照タイプ
-Refresh,リフレッシュ
-Refreshing...,さわやかな...
-Registered but disabled.,登録されるが、使用不可。
-Registration Details Emailed.,登録の詳細は電子メールで送信。
+Refresh,再読込
+Refreshing...,再読込しています...
+Registered but disabled.,登録は完了しましたが有効ではありません。
+Registration Details Emailed.,登録の詳細は電子メールで送信しました。
 Reload Page,ページを再ロード
 Remove Bookmark,ブックマークを削除する
 Remove all customizations?,すべてのカスタマイズを削除しますか？
-Rename many items by uploading a .csv file.,csvファイルをアップロードして多くの項目の名前を変更します。
+Rename many items by uploading a .csv file.,csvファイルをアップロードすることで多くの項目の名前を変更します。
 Rename...,名前の変更...
 Repeat On,を繰り返し
 Repeat Till,繰り返しティル
@@ -924,14 +926,14 @@ Same file has already been attached to the record,同じファイルが既に記
 Sample,例
 Saturday,土曜日 
 Save,保存
-Scheduler Log,スケジューラログ
+Scheduler Log,スケジューラーログ
 Script,スクリプト
 Script Report,スクリプトレポート
 Script Type,スクリプトタイプ
 Search,検索
 Search Fields,検索フィールド
 Search in a document type,ドキュメントタイプで検索
-Search or type a command,コマンドを検索または入力し
+Search or type a command,コマンドを検索または入力してください
 Section Break,セクション区切り
 Security,セキュリティ
 Security Settings,セキュリティ設定
@@ -942,7 +944,7 @@ Select Document Type,ドキュメントの種類を選択
 Select Document Type or Role to start.,開始するドキュメントタイプまたはロールを選択します。
 Select Print Format,印刷形式を選択
 Select Report Name,レポート名を選択
-Select Role,[役割
+Select Role,役割を選択
 Select To Download:,ダウンロードを選択：
 Select Type,タイプを選択
 Select User or DocType to start.,開始するにはユーザーまたはのDocTypeを選択します。
@@ -958,39 +960,39 @@ Send Alert On,警戒を送ってください
 Send As Email,電子メールとして送信する
 Send Email,メールを送信
 Send Email Print Attachments as PDF (Recommended),PDFとしてメールで送信パンフレットを印刷添付ファイルを送信する（推奨）
-Send Me A Copy,コピーを送ってください
+Send Me A Copy,自分にコピーを送付
 Send Password,パスワードを送信
 Send Print as PDF,PDFとして印刷を送る
 Send alert if date matches this field's value,日付は、このフィールドの値と一致した場合にアラートを送信
 Send alert if this field's value changes,アラートを送信し、このフィールドの値が変更された場合
 Send an email reminder in the morning,午前中にメールリマインダーを送る
 Send download link of a recent backup to System Managers,システム管理者への最新のバックアップのダウンロードリンクを送信
-Send enquiries to this email address,このメールアドレスに問い合わせ先】
+Send enquiries to this email address,このメールアドレスに問い合わせを送る
 Sender,送信者
 Sent,送信済み
 Sent Mail,送信済みメール
 Sent Quotation,送信された引用
-Sent or Received,送信または受信
+Sent or Received,送受信済み
 Series,シリーズ
-Series {0} already used in {1},シリーズは、{0}はすでに{1}で使用
+Series {0} already used in {1},シリーズは、{0}はすでに{1}で使用されています
 Server,サーバー
 Server & Credentials,サーバー＆資格
 Server Error: Please check your server logs or contact tech support.,サーバーエラー：サーバーのログを確認するか、技術サポートに連絡してください。
-Session Expired. Logging you out,セッションの期限が切れました。あなたをログアウト
+Session Expired. Logging you out,セッションの期限が切れました。ログアウトします
 Session Expiry,セッションの有効期限
 Session Expiry in Hours e.g. 06:00,午前6時00分など時間内のセッションの有効期限
-Session Expiry must be in format {0},セッションの有効期限はフォーマットでなければなりません{0}
+Session Expiry must be in format {0},セッションの有効期限は {0}のようなフォーマットでなければなりません
 Set Banner from Image,画像からバナーを設定
 Set Link,設定されたリンク
 Set Login and Password if authentication is required.,認証が必要な場合は、ログインしてパスワードを設定します。
-Set Only Once,度だけ設定
+Set Only Once,1度だけ設定
 Set Password,パスワードを設定
 Set Permissions on Document Types and Roles,ドキュメントの種類と役割にアクセス許可を設定
 Set Permissions per User,ユーザーごとに設定された権限
 Set User Permissions,設定したユーザーのアクセス権
 Set Value,設定値
 "Set default format, page size, print style etc.",設定されたデフォルトの書式、ページサイズ、印刷スタイル等
-Set numbering series for transactions.,トランザクションのための一連の番号に設定します。
+Set numbering series for transactions.,トランザクションのための連番に設定します。
 Set outgoing mail server.,送信メールサーバーを設定します。
 Settings,設定
 Settings for About Us Page.,会社概要ページの設定。
@@ -998,11 +1000,11 @@ Settings for Contact Us Page.,お問い合わせページの設定。
 Setup,セットアップ
 Setup > User,[設定]> [ユーザー
 Setup > User Permissions Manager,[設定]> [ユーザーのアクセス許可の管理
-Setup Email Alert based on various criteria.,様々な基準に基づいて設定電子メール警告。
+Setup Email Alert based on various criteria.,様々な基準に基づいてメールでの警告をセットアップします。
 Setup of fonts and background.,フォントや背景の設定。
 "Setup of top navigation bar, footer and logo.",上部のナビゲーションバー、フッター、ロゴの設定。
-Short Bio,短いバイオ
-Short Name,略式名
+Short Bio,略歴
+Short Name,略名
 Shortcut,ショートカット
 Show / Hide Modules,表示/非表示モジュール
 Show Print First,まず印刷を表示
@@ -1019,42 +1021,42 @@ Sign Up,登録
 Sign in,ログイン
 Sign up,申込み
 Single Post (article).,シングルポスト（記事）。
-Single Types have only one record no tables associated. Values are stored in tabSingles,シングルタイプはテーブルが関連付けられていない唯一の記録がある。値がtabSinglesに格納されてい
+Single Types have only one record no tables associated. Values are stored in tabSingles,シングルタイプにテーブルが関連付けられていない唯一のレコードがあります。値はtabSinglesに格納されています
 Sitemap Browser,サイトマップブラウザー
-Slideshow,スライドショー（一連の画像を順次表示するもの）
+Slideshow,スライドショー
 Slideshow Items,スライドショー項目
 Slideshow Name,スライドショーの名前
 Small Text,小さなテキスト
-Social Login Keys,社会ログインキー
+Social Login Keys,ソーシャルログインキー
 Solid background color (default light gray),単色の背景色（デフォルトのライトグレー）
-Sorry we were unable to find what you were looking for.,申し訳ありませんが、我々はあなたが探していたものを見つけることができませんでした。
-Sorry you are not permitted to view this page.,申し訳ありませんが、あなたはこのページを表示することはできません。
+Sorry we were unable to find what you were looking for.,申し訳ありませんが、お探しのものは見つかりませんでした。
+Sorry you are not permitted to view this page.,申し訳ありませんが、このページを表示することはできません。
 Sort By,並べ替え
-Sort Field,ソートフィールド
-Sort Order,並び替え順
+Sort Field,並べ替え項目
+Sort Order,並び順
 Standard,スタンダード
 Standard Print Format cannot be updated,標準の印刷フォーマットを更新することはできません
-Standard Reply,標準に返信
+Standard Reply,標準返信
 Standard Reports,標準レポート
 Standard replies to common queries.,標準では、一般的なクエリに応答します。
-Start Report For,のレポートを開始します
-Starts on,で開始
+Start Report For,レポート開始
+Starts on,開始
 State,都道府県
-States,ステート
+States,都道府県
 "States for workflow (e.g. Draft, Approved, Cancelled).",ワークフローの状態（例えばドラフト、承認、キャンセル）。
 Static File Timestamp,静的ファイルのタイムスタンプ
 Status,ステータス
 Step 1: Set the name and save.,ステップ1：名前を設定し、保存します。
-Step 2: Set Letterhead content.,ステップ2：レターの内容を設定します。
+Step 2: Set Letterhead content.,ステップ2：レターヘッドの内容を設定します。
 Style,スタイル
 Style Settings,スタイル設定
 "Style represents the button color: Success - Green, Danger - Red, Inverse - Black, Primary - Dark Blue, Info - Light Blue, Warning - Orange",スタイルはボタンの色を表しています。成功 - グリーン、危険 - 赤、逆 - ブラック、プライマリ - ダークブルー、情報 - ライトブルー、警告 - オレンジ
 Sub-domain provided by erpnext.com,erpnext.comが提供するサブドメイン
 Subdomain,サブドメイン
-Subject,テーマ
+Subject,タイトル
 Submit,送信
 Submit an Issue,問題を送信
-Submitted,提出
+Submitted,提出済
 Submitted Document cannot be converted back to draft. Transition row {0},送信されたドキュメントは、ドラフトに逆変換することができません。遷移行{0}
 Success,成功
 Suggestion,連想
@@ -1116,7 +1118,7 @@ Title field must be a valid fieldname,タイトルフィールド（欄のタイ
 Title is required,題を入力下さい。
 To,"〜宛。
 "
-To Do,するために
+To Do,やることリスト
 "To format columns, give column labels in the query.",フォーマットのコラム（縦の列）に、質問の標識を設ける。
 "To give acess to a role for only specific records, check the 'Apply User Permissions'. User Permissions are used to limit users with such role to specific records.",特定な記録用の任務にアクセスを与えるためには、「ユーザー許可の適用」をチェックして下さい。ユーザー許可は特定の記録用の役割を持っているユーザーだけに使用されます。
 "To run a test add the module name in the route after '{0}'. For example, {1}",テストを実行するには、 '{0}'の後にルートにモジュール名を追加します。たとえば、{1}
@@ -1140,7 +1142,7 @@ Unable to load: {0},{0}を読み取ることが出来ません。
 Unable to open attached file. Please try again.,添付ファイルを開くことができません。もう一度お試しください。
 Unable to send emails at this time,メールを送信することができません。
 Unknown Column: {0},不明なコラム：{0}
-"Unknown file encoding. Tried utf-8, windows-1250, windows-1252.",未知のファイルのエンコーディング（符号化）。UTF-8、Windowsベース1250、Windowsベース1252を試し済み。
+"Unknown file encoding. Tried utf-8, windows-1250, windows-1252.",未知の文字コードです。utf-8・Windows-1250・Windows-1252ではありませんでした。
 Unread Messages,未読メッセージ
 Unsubscribe,購読解除
 Unsubscribed,購読解除
@@ -1150,12 +1152,12 @@ Update Field,フィールド（欄）の更新
 Update Value,値の更新
 Updated,更新済み
 Upload,アップロード（手元のデータをメインのコンピューターに送ること。）
-Upload Attachment,添付ファイルをアップロード（添付ファイルをメインのコンピューターに送信する。）
-Upload CSV file containing all user permissions in the same format as Download.,ダウンロードと同じ形式に、全ユーザーのアクセス許可を含むCSVファイルをアップロードします。
-Upload a file,ファイルのアップロード。（ファイルをメインのコンピューターに送信すること。）
-Upload and Import,アップロード（手元のデータをメインのコンピューターに送信すること。）とインポート（取り込む）
-Upload and Sync,アップロードと同期
-Uploading...,アップロードしています...（手元のコンピューターのデータをメインのコンピューターに送信中）
+Upload Attachment,添付ファイルをアップロード
+Upload CSV file containing all user permissions in the same format as Download.,ダウンロードと同じ形式で全ユーザーのアクセス許可を含むCSVファイルをアップロードします。
+Upload a file,ファイルアップロード
+Upload and Import,アップロード・インポート
+Upload and Sync,アップロード・同期
+Uploading...,アップロードしています...
 Upvotes,Upvotes
 Use TLS,TLS（通信経路を記号化し、デジタル証明書の受け渡しによって相互確認を行う方式）を使用
 User,ユーザー（使用者）
@@ -1188,7 +1190,7 @@ Value Change,値変更
 Value Changed,値を変更済み
 Value cannot be changed for {0},{0}の値は変更することはできません。
 Value for a check field can be either 0 or 1,チェックフィールドの値は0または1のいずれかになります
-Value missing for,の値の記入漏れ。
+Value missing for,値の記入漏れ
 Verdana,ヴァーダナ(視認性向上のために開発された書体）
 Version,バージョン／版
 Version restored,復元版
@@ -1234,7 +1236,7 @@ Writers Introduction,作家紹介
 Year,年
 Yes,はい
 Yesterday,昨日
-You are not allowed to create / edit reports,レポートを作成／編集することが許可されていません。
+You are not allowed to create / edit reports,レポートを作成／編集する許可がありません
 You are not allowed to export the data of: {0}. Downloading empty template.,{0}のデータを出力することはできません。テンプレート（空白の定型書式ファイル）をダウンロードしています。
 You are not allowed to export this report,この記事を出力することが許可されていません。
 You are not allowed to print this document,この文書を印刷することが許可されていません。
@@ -1308,7 +1310,7 @@ fire,火災
 flag,flag
 folder-close,フォルダを閉じる
 folder-open,フォルダを開ける
-font,font
+font,フォント
 forward,まえがき
 found,発見
 fullscreen,フルスクリーン
@@ -1350,11 +1352,11 @@ off,オフ
 ok,OK
 ok-circle,OK-サークル
 ok-sign,OKサイン
-one of,いず
+one of,一部
 or,または
 pause,休止
 pencil,鉛筆
-picture,絵
+picture,画像
 plane,飛行機
 play,再生
 play-circle,演劇サークル
@@ -1379,13 +1381,13 @@ road,道路
 screenshot,スクリーンショット
 search,検索
 share,シェア
-share-alt,株式ALT
+share-alt,共有
 shopping-cart,ショッピング·カート
-signal,signal
-star,スター
-star-empty,星型の空
-step-backward,ステップ後方
-step-forward,ステップフォワード
+signal,信号
+star,星
+star-empty,星（空白）
+step-backward,戻る
+step-forward,進む
 stop,配信の停止
 tag,タグ
 tags,タグ

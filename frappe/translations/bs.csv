@@ -106,7 +106,7 @@ Attached To DocType,U prilogu vrstu dokumenata
 Attached To Name,U prilogu naziv
 Attachments,Privitci
 Auto Email Id,Automatski email ID
-Auto Name,Automatski naziv
+Auto Name,Auto Ime
 Auto generated,Automatski generirano
 Avatar,Avatar
 Back to Login,Natrag na prijavu
@@ -132,8 +132,8 @@ Blogger,Bloger
 Bookmarks,Favoriti
 Both login and password required,Potrebni su i korisničko ime i lozinka
 Brand HTML,Brend HTML
-Bulk Email,Koljektivni email
-Bulk email limit {0} crossed,Kolektivno email ograničenje {0} pređeno
+Bulk Email,Bulk Email
+Bulk email limit {0} crossed,Bulk e-mail granica {0} prešao
 Button,Gumb
 By,Po
 Calculate,Izračunaj
@@ -144,10 +144,10 @@ Cancelled,Otkazano
 Cannot Update: Incorrect / Expired Link.,Ne možete ažurirati : Nepravilan / istekla .
 Cannot Update: Incorrect Password,Ne možete ažurirati : Pogrešna zaporka
 Cannot add more than 50 comments,Ne možete dodati više od 50 komentara
-Cannot cancel before submitting. See Transition {0},Ne može se otkazati prije potvrđivanja. Pogledaj tranziciju.
-Cannot change picture,Ne možeš promijeniti sliku
-Cannot change state of Cancelled Document. Transition row {0},Ne možeš promijeniti stanje poništenog dokumenta.
-Cannot change {0},Ne može se promijeniti {0}
+Cannot cancel before submitting. See Transition {0},Ne može otkazati prije slanja.
+Cannot change picture,Ne mogu promijeniti sliku
+Cannot change state of Cancelled Document. Transition row {0},Ne mogu promijeniti stanje Otkazan dokumentu .
+Cannot change {0},Ne mogu promijeniti {0}
 Cannot delete or cancel because {0} {1} is linked with {2} {3},"Ne možete brisati ili ukinuti , jer {0} {1} je povezan s {2} {3}"
 Cannot delete {0} as it has child nodes,Ne možete brisati {0} kao da ima djece čvorova
 Cannot edit standard fields,Ne možete uređivati ​​standardnih polja
@@ -392,13 +392,13 @@ Fieldname {0} appears multiple times in rows {1},"Podataka, Naziv Polja {0} se p
 "Fieldname {0} cannot contain letters, numbers or spaces","Podataka, Naziv Polja {0} ne može sadržavati slova, brojeva ili prostore"
 Fields,Polja
 "Fields separated by comma (,) will be included in the<br /><b>Search By</b> list of Search dialog box","Polja odvojene zarezom (,) će biti uključen u <br /> <b>Traži po</b> popisu Pretraživanje dijaloškom okviru"
-Fieldtype cannot be changed from {0} to {1} in row {2},Tip polja ne može se mijenjati iz {0} u {1} u redku {2}
-File,Datoteka
-File Data,Datotečni podaci
-File Name,Naziv datoteke
-File Size,Veličina datoteke
+Fieldtype cannot be changed from {0} to {1} in row {2},Fieldtype ne mogu se mijenjati iz {0} u {1} u redu {2}
+File,File
+File Data,File Podaci
+File Name,File Name
+File Size,Veličina
 File URL,URL datoteke
-File not attached,Datoteka nije u prilogu
+File not attached,File nije priključen
 File size exceeded the maximum allowed size of {0} MB,Veličina datoteke prelazi najveću dopuštenu veličinu od {0} MB
 Fill Screen,Ispunite zaslon
 Filter,Filter
@@ -541,7 +541,7 @@ Is Single,Je Samac
 Is Standard,Je Standardni
 Is Submittable,Je Submittable
 Is Task,je Task
-Item cannot be added to its own descendents,Proizvod ne može se dodati u svojim potomcima
+Item cannot be added to its own descendents,Stavka ne može se dodati u svojim potomcima
 JavaScript Format: frappe.query_reports['REPORTNAME'] = {},JavaScript format : frappe.query_reports [ ' REPORTNAME ' ] = { }
 Javascript,Javascript
 Javascript to append to the head section of the page.,Javascript da doda glave dijelu stranice.
@@ -595,18 +595,18 @@ Logout,Odjava
 Long Text,Dugo Tekst
 Low,Nisko
 Lucida Grande,Lucidi Grande
-Mail Password,Zaporka e-maila
-Main Section,Glavno odjeljenje
-Make a new,Napravi novi
-Make a new record,Napravi novi zapis
+Mail Password,Mail Lozinka
+Main Section,Glavni Odjeljak
+Make a new,Napravite novi
+Make a new record,Napravite novi rekord
 Male,Muški
 Manage cloud backups on Dropbox,Upravljanje cloud backup na Dropbox
-Manage uploaded files.,Uredi uvozne datoteke.
-Mandatory,Obavezno
-Mandatory fields required in {0},Obavezna polja potrebna u {0}
-Mandatory filters required:\n,Obvezni filteri potrebni:\n
+Manage uploaded files.,Upravljanje upload datoteka .
+Mandatory,Obavezan
+Mandatory fields required in {0},Obavezna polja potrebni u {0}
+Mandatory filters required:\n,Obvezni filteri potrebni : \ n
 Master,Majstor
-Max Attachments,Maksimalno 5 privitaka
+Max Attachments,Max Privitci
 Max width for type Currency is 100px in row {0},Max širina vrste valute je 100px u redu {0}
 "Meaning of Submit, Cancel, Amend","Značenje Podnijeti, Odustani, Izmijeniti"
 Medium,Srednji
@@ -615,26 +615,26 @@ Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node,Spajan
 Message,Poruka
 Message Examples,Primjeri poruka
 Messages,Poruke
-Method,Metoda
+Method,Način
 Middle Name (Optional),Krsno ime (opcionalno)
 Misc,Ostalo
-Miscellaneous,Razno
+Miscellaneous,Razni
 Missing Values Required,Nedostaje vrijednosti potrebne
-Modern,Moderno
+Modern,Moderna
 Modified by,Izmijenio
 Module,Modul
-Module Def,Definicija modula
-Module Name,Naziv modula
+Module Def,Modul Def
+Module Name,Modul Ime
 Module Not Found,Modul nije pronađen
-Modules Setup,Postavke modula
+Modules Setup,Moduli Setup
 Monday,Ponedjeljak
 More,Više
 More content for the bottom of the page.,Više sadržaja za dnu stranice.
-Move Down: {0},Pomakni dolje: {0}
-Move Up: {0},Pomakni gore: {0}
+Move Down: {0},Pomicanje dolje : {0}
+Move Up: {0},Move Up : {0}
 Multiple root nodes not allowed.,Više korijen čvorovi nisu dopušteni .
 Must have report permission to access this report.,Mora imati izvješće dozvolu za pristup ovom izvješću.
-Must specify a Query to run,Moraš specifirati upit kako bi pokrenuo
+Must specify a Query to run,Mora se odrediti upita za pokretanje
 My Settings,Moje postavke
 Name,Ime
 Name Case,Ime slučaja
@@ -649,7 +649,7 @@ Naming Series mandatory,Obvezno odabrati seriju
 Nested set error. Please contact the Administrator.,Došlo je do pogreške u postavkama. Molimo Vas da kontaktirate administratora.
 New,Nova
 New Password,Nova zaporka
-New Record,Novi zapis
+New Record,Novi rekord
 New comment on {0} {1},Novi komentar na {0} {1}
 New password emailed,Nova zaporka poslana mailom
 New value to be set,Nova vrijednost treba postaviti
@@ -680,9 +680,9 @@ No {0} permission,Ne {0} dopuštenje
 None,Nijedan
 None: End of Workflow,Ništa: Kraj Workflow
 Not Found,Not Found
-Not Linked to any record.,Nije povezan s bilo kojim zapisom.
+Not Linked to any record.,Nije povezan s bilo rekord.
 Not Permitted,Nije dopušteno
-Not Submitted,Nije potvrđeno
+Not Submitted,ne Postavio
 Not a user yet? Sign up,Nekorisnik? Prijavite se
 Not a valid Comma Separated Value (CSV File),Nevrijedi vrijednosti odvojene zarezima ( CSV ​​datoteke )
 Not allowed,nije dopušteno
@@ -696,9 +696,9 @@ Not enough permission to see links.,Nije dovoljno dozvolu za vidjeti linkove.
 Not equals,nisu jednaki
 Not found,nije pronađen
 Not in Developer Mode! Set in site_config.json,Ne u načinu rada za razvojne ! Postavite u site_config.json
-Not permitted,Nije dopušteno
-"Note: For best results, images must be of the same size and width must be greater than height.","Napomena: Za najbolje rezultate, slike moraju biti iste veličine i širina mora biti veća od visine."
-Note: Other permission rules may also apply,Napomena: Ostala pravila ovlasti se također mogu primijeniti
+Not permitted,nije dopušteno
+"Note: For best results, images must be of the same size and width must be greater than height.","Napomena: Za najbolje rezultate, slike moraju biti iste veličine i širine mora biti veća od visine."
+Note: Other permission rules may also apply,Napomena: Ostala pravila dozvole također može primijeniti
 Note: maximum attachment size = 1mb,Napomena: maksimalna veličina privitka = 1MB
 Nothing to show,Ništa pokazati
 Nothing to show for this selection,Ništa za pokazati ovom izboru
@@ -815,7 +815,7 @@ Please specify which date field must be checked,Navedite koji datiraju polje mor
 Please specify which value field must be checked,Navedite što vrijednost polja moraju biti provjereni
 Please upload using the same template as download.,Molimo upload koristeći isti predložak kao download.
 Plugin,plugin
-Port,Port
+Port,luka
 Post,poslije
 Post Publicly,Objavi javno
 Post Topic,Post Tema
@@ -931,7 +931,7 @@ Script Type,Skripta Tip
 Search,Traži
 Search Fields,Polje za pretragu
 Search in a document type,Traži u vrsti dokumenta
-Search or type a command,Traži ili upiši naredbu
+Search or type a command,Traži ili upišite naredbu
 Section Break,Odjeljak Break
 Security,Sigurnost
 Security Settings,Sigurnosne postavke
@@ -995,9 +995,9 @@ Set outgoing mail server.,Postavite poslužitelj odlazne pošte .
 Settings,Postavke
 Settings for About Us Page.,Postavke za O nama Page.
 Settings for Contact Us Page.,Postavke za Kontaktirajte nas stranicu.
-Setup,Postavke
-Setup > User,Postavke > Korisnik
-Setup > User Permissions Manager,Postavke > Upravljanje korisničkih ovlasti
+Setup,Postavljanje
+Setup > User,Postavljanje> User
+Setup > User Permissions Manager,Postavljanje> korisničkim dozvolama Manager
 Setup Email Alert based on various criteria.,Postavljanje Email upozorenja na temelju različitih kriterija.
 Setup of fonts and background.,Postavljanje fontova i pozadine.
 "Setup of top navigation bar, footer and logo.","Postavljanje gornjoj navigacijskoj traci, podnožje i logo."
@@ -1196,16 +1196,16 @@ Visit,Posjetiti
 Warning,Upozorenje
 Warning: This Print Format is in old style and cannot be generated via the API.,Upozorenje: Ovaj format ispisa u starom stilu i ne može biti generiran preko API-ja.
 Web Page,Web stranica
-Web Site Forum Page.,Forum
-Website,Web stranica
-Website Group,Grupa web stranice
+Web Site Forum Page.,Web stranice Forum Page .
+Website,Website
+Website Group,web Group
 Website Route,web stranica Mapa
 Website Route Permission,Web Route Dopuštenje
-Website Script,Web skripta
-Website Settings,Postavke web stranice
-Website Slideshow,Klizač web stranice
-Website Slideshow Item,Slajd proizvoda na web stranici
-Website User,Korisnik web stranice
+Website Script,Web Skripta
+Website Settings,Website Postavke
+Website Slideshow,Web Slideshow
+Website Slideshow Item,Web Slideshow artikla
+Website User,Web User
 Wednesday,Srijeda
 Welcome email sent,Poslao Dobrodošli e-mail
 "When you Amend a document after Cancel and save it, it will get a new number that is a version of the old number.","Kada Izmijeniti dokument nakon Odustani i spasiti ga , on će dobiti novi broj koji jeverzija starog broja ."
@@ -1262,14 +1262,14 @@ arrow-right,Strelica desno
 arrow-up,strelica prema gore
 asterisk,zvjezdica
 backward,Natrag
-ban-circle,Krug zabrane
+ban-circle,zabrana-krug
 barcode,barkod
 beginning with,počevši
 bell,zvono
 bold,odvažan
 book,knjiga
 bookmark,bookmark
-briefcase,Aktovka
+briefcase,aktovka
 bullhorn,bullhorn
 calendar,kalendar
 camera,kamera
@@ -1342,7 +1342,7 @@ minus,minus
 minus-sign,minus znak
 mm-dd-yyyy,dd-mm-yyyy
 mm/dd/yyyy,dd / mm / gggg
-move,premjesti
+move,premjestiti
 music,glazba
 none of,nitko od
 off,isključen

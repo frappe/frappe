@@ -20,7 +20,7 @@ About Us Settings,إعدادات صفحة من نحن
 About Us Team Member,أعضاء فريق صفحة من نحن
 Action,حدث
 Actions,الإجراءات
-"Actions for workflow (e.g. Approve, Cancel).",الإجراءات ل سير العمل ( الموافقة على مثل إلغاء) .
+"Actions for workflow (e.g. Approve, Cancel).","اجراءات سير العمل مثال : الموافقة,الرفض"
 Add,إضافة
 Add A New Rule,إضافة قاعدة جديدة
 Add A User Permission,إضافة صلاحية مستخدم
@@ -118,9 +118,9 @@ Banner HTML,راية HTML
 Banner Image,راية صورة
 Banner is above the Top Menu Bar.,راية فوق أعلى شريط القوائم.
 Begin this page with a slideshow of images,تبدأ هذه الصفحة مع عرض شرائح من الصور
-Beginning with,بدءا
+Beginning with,ابتداءا من
 Belongs to,ينتمي إلى
-Bio,الحيوية
+Bio,نبذة
 Birth Date,تاريخ الميلاد
 Blog Category,بلوق التصنيف
 Blog Intro,بلوق مقدمة

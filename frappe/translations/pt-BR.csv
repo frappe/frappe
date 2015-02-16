@@ -8,28 +8,18 @@
 "000 is black, fff is white","000 é preto, é branco fff"
 2 days ago,Há 2 dias
 "<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank"">[?]</a>","<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank""> [?] </ a>"
-"<a onclick=""msgprint('<ol>\
-<li><b>field:[fieldname]</b> - By Field\
-<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\
-<li><b>Prompt</b> - Prompt user for a name\
-<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\
-</ol>')"">Naming Options</a>","<A onclick = ""msgprint ('<ol> \
- <li> <b> campo: [nome do campo] </ b> - Por Campos \
- <li> <b> naming_series: </ b > - nomeando Series (campo chamado naming_series deve estar presente \
- <li> <b> Prompt </ b> - Avisar usuário para um nome de \
- <li> <b> [série] </ . b> - Series by prefixo (separados por um ponto), por exemplo PRE # # # # # \
- </ ol> ') ""> Naming Opções </ a>"
+"<a onclick=""msgprint('<ol>\<li><b>field:[fieldname]</b> - By Field\<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\<li><b>Prompt</b> - Prompt user for a name\<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\</ol>')"">Naming Options</a>","<A onclick = ""msgprint ('<ol> \ <li> <b> campo: [nome do campo] </ b> - Por Campos \ <li> <b> naming_series: </ b > - nomeando Series (campo chamado naming_series deve estar presente \ <li> <b> Prompt </ b> - Avisar usuário para um nome de \ <li> <b> [série] </ . b> - Series by prefixo (separados por um ponto), por exemplo PRE # # # # # \ </ ol> ') ""> Naming Opções </ a>"
 <b>new</b> <i>type of document</i>,<b> novo </ b> <i> tipo de documento </ i>
 "<i>document type...</i>, e.g. <b>customer</b>","tipo de documento <i> ... </ i>, por exemplo <b> cliente </ b>"
 <i>e.g. <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>,<i> por exemplo <strong> (55 + 434) / 4 </ strong> ou = <strong> Math.sin (Math.PI / 2) </ strong> ... </ i>
 <i>module name...</i>,<i> nome do módulo ... </ i>
 <i>text</i> <b>in</b> <i>document type</i>,texto <i> </ i> <b> em </ b> <i> tipo de documento </ i>
-A user can be permitted to multiple records of the same DocType.,Um usuário pode ter permissão para vários registros do mesmo TipoDoc .
+A user can be permitted to multiple records of the same DocType.,Um usuário pode ter permissão para vários registros do mesmo DocType.
 About,Sobre
 About Us Settings,Configurações do Quem Somos
-About Us Team Member,Sobre Membro da Equipe
+About Us Team Member,Sobre Nós - Membros da Equipe
 Action,Ação
-Actions,ações
+Actions,Ações
 "Actions for workflow (e.g. Approve, Cancel).","Ações para o fluxo de trabalho (por exemplo, Aprovar , Cancelar) ."
 Add,Adicionar
 Add A New Rule,Adicionar uma Nova Regra
@@ -38,51 +28,51 @@ Add Attachments,Adicionar Anexos
 Add Bookmark,Adicionar marcadores
 Add CSS,Adicionar CSS
 Add Column,Adicionar Coluna
-Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,"Adicionar ID do Google Analytics: ex. UA-89XXX57-1. Por favor, procure ajuda no Google Analytics para obter mais informações."
+Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,"Adicione o ID do Google Analytics: ex. UA-89XXX57-1. Por favor, procure ajuda no Google Analytics para obter mais informações."
 Add Message,Adicionar Mensagem
 Add New Permission Rule,Adicionar Nova Regra de Permissão
-Add Reply,Adicione Resposta
+Add Reply,Adicionar Resposta
 Add Total Row,Adicionar Linha de Total
-Add a New Role,Adicionar uma nova função
-Add a banner to the site. (small banners are usually good),Adicionar um banner para o site. (Pequenos banners são geralmente boas)
-Add all roles,Adicione todos os papéis
+Add a New Role,Adicionar um Novo Perfil
+Add a banner to the site. (small banners are usually good),Adicionar um banner para o site. (Pequenos banners geralmente são melhores)
+Add all roles,Adicione todos os perfis
 Add attachment,Adicionar anexo
 Add code as &lt;script&gt;,Adicionar código como &lt;script&gt;
 Add custom javascript to forms.,Adicionar javascript personalizado aos formulários.
-Add fields to forms.,Adicione campos de formulários .
+Add fields to forms.,Adiciona campos de formulários.
 Add multiple rows,Adicionar várias linhas
 Add new row,Adicionar nova linha
 "Add the name of <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> e.g. ""Open Sans""","Adicione o nome do <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> por exemplo, &quot;Sans Abertas&quot;"
 Add to To Do,Adicionar à Lista de Tarefas
 Add to To Do List Of,Adicionar à Lista de tarefas de
 Added {0} ({1}),Adicionado {0} ({1})
-Adding System Manager to this User as there must be atleast one System Manager,Adicionando System Manager para este usuário como deve haver pelo menos um System Manager
+Adding System Manager to this User as there must be atleast one System Manager,Adicionando este usuário como System Manager pois deve haver pelo menos um System Manager
 Additional Info,Informações Adicionais
 Additional Permissions,Permissões adicionais
 Address,Endereço
-Address Line 1,Endereço Linha 1
-Address Line 2,Endereço Linha 2
+Address Line 1,Endereço
+Address Line 2,Complemento
 Address Title,Título do Endereço
-Address and other legal information you may want to put in the footer.,Endereço e outras informações legais que você possa querer colocar no rodapé.
+Address and other legal information you may want to put in the footer.,Endereço e outras informações legais que você pode querer colocar no rodapé.
 Admin,Administrador
 All Applications,Todos os aplicativos
-All Day,Dia de Todos os
+All Day,Todo o Dia
 All customizations will be removed. Please confirm.,Todas as personalizações serão removidos. Por favor confirme.
 "All possible Workflow States and roles of the workflow. <br>Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""","Todos os possíveis Estados de Fluxo de Trabalho e as funções do fluxo de trabalho. <br> Docstatus Opções: 0 é &quot;Salvo&quot;, 1 é &quot;Enviado&quot; e 2 é &quot;Cancelado&quot;"
-Allow Attach,Permitir Anexar
+Allow Attach,Permitir Anexos
 Allow Import,Permitir a importação
 Allow Import via Data Import Tool,Permitir a importação de dados através de ferramenta de importação
 Allow Rename,Permitir Renomear
 Allow on Submit,Permitir ao Enviar
-Allow user to login only after this hour (0-24),Permitir que o usuário faça o login somente após esta hora (0-24)
-Allow user to login only before this hour (0-24),Permitir que o usuário faça o login somente antes desta hora (0-24)
+Allow user to login only after this hour (0-24),Permitir que o usuário faça o login somente após este horário (0-24)
+Allow user to login only before this hour (0-24),Permitir que o usuário faça o login somente antes deste horário (0-24)
 Allowed,Permitido
 "Allowing DocType, DocType. Be careful!","Permitindo DocType , DocType . Tenha cuidado !"
-Already Registered,Já registrado
-Already in user's To Do list,Já no usuário para fazer a lista
-Alternative download link,Link para download Alternativa
-"Alternatively, you can also specify 'auto_email_id' in site_config.json","Alternativamente, você também pode especificar ' auto_email_id ' em site_config.json"
-Always use above Login Id as sender,Use sempre acima ID de login como remetente
+Already Registered,Já está registrado
+Already in user's To Do list,Já está na lista de tarefas do usuário
+Alternative download link,Link alternativo para download
+"Alternatively, you can also specify 'auto_email_id' in site_config.json","De forma alternativa, você também pode especificar 'auto_email_id ' em site_config.json"
+Always use above Login Id as sender,Use sempre ID de login acima como remetente
 Amend,Corrigir
 "An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [<a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a>]","Um arquivo de ícone com extensão .ico. Deve ser de 16 x 16 px. Gerado usando um gerador de favicon. [ <a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a> ]"
 "Another {0} with name {1} exists, select another name","Outra {0} com o nome {1} existe , selecione outro nome"
@@ -90,12 +80,12 @@ Any existing permission will be deleted / overwritten.,Qualquer permissão exist
 Anyone Can Read,Qualquer um pode ler
 Anyone Can Write,Qualquer um pode escrever
 "Apart from Role based Permission Rules, you can apply User Permissions based on DocTypes.","Além de função com base em regras de permissão, você pode aplicar permissões de usuário baseado em doctypes ."
-"Apart from System Manager, roles with 'Set User Permissions' right can set permissions for other users for that Document Type.","Além de System Manager, papéis com direito ' Definir permissões de usuário ""pode ​​definir permissões para outros usuários para esse tipo de documento ."
-App Name,Nome App
+"Apart from System Manager, roles with 'Set User Permissions' right can set permissions for other users for that Document Type.","Além do Administrador do Sistema, perfis com direito 'Definir permissões de usuário' podem ​​definir permissões para outros usuários para esse tipo de documento."
+App Name,Nome do App
 App not found,App não encontrado
-Application Installer,Application Installer
+Application Installer,Instalador de Aplicativos
 Applications,Aplicações
-Apply Style,aplicar Estilo
+Apply Style,Aplicar Estilo
 Apply User Permissions,Aplicar permissões de usuário
 Are you sure you want to delete the attachment?,Tem certeza de que deseja excluir o anexo?
 Arial,Arial
@@ -104,46 +94,46 @@ Ascending,Ascendente
 Assign To,Atribuir a
 Assigned By,Atribuído por
 Assigned To,Atribuído a
-Assigned To Fullname,Atribuído a Fullname
+Assigned To Fullname,Atribuído ao Nome Completo
 Assigned To/Owner,Atribuído a / Proprietário
-Assignment Added,atribuição Adicionado
-Assignment Status Changed,Atribuição Status Alterado
+Assignment Added,Atribuição Adicionado
+Assignment Status Changed,Status de Atribuição Alterado
 Assignments,Atribuições
 Attach,Anexar
 Attach Document Print,Anexar Cópia do Documento
 Attach as web link,Anexar como link da web
-Attached To DocType,Anexado To DOCTYPE
+Attached To DocType,Anexado ao Doctype
 Attached To Name,Anexado Para Nome
 Attachments,Anexos
 Auto Email Id,Endereço dos E-mails Automáticos
-Auto Name,Nome Auto
+Auto Name,Nome Automático
 Auto generated,Gerado Automaticamente
 Avatar,Avatar
 Back to Login,Voltar para o Login
 Background Color,Cor de Fundo
 Background Image,Imagem de Fundo
-Background Style,Estilo Fundo
+Background Style,Estilo do Fundo
 Banner,Faixa
 Banner HTML,Faixa HTML
-Banner Image,Banner Image
-Banner is above the Top Menu Bar.,Bandeira está acima da barra de menu superior.
+Banner Image,Imagem do Banner
+Banner is above the Top Menu Bar.,A faixa está acima da barra de menu superior.
 Begin this page with a slideshow of images,Comece esta página com um slideshow de imagens
 Beginning with,Começando com
-Belongs to,pertence a
+Belongs to,Pertence à
 Bio,Bio
 Birth Date,Data de Nascimento
-Blog Category,Categoria Blog
-Blog Intro,Blog Intro
-Blog Introduction,Blog Introdução
-Blog Post,Blog Mensagem
-Blog Settings,Configurações Blog
-Blog Title,Blog Title
-Blogger,Blogger
+Blog Category,Categoria do Blog
+Blog Intro,Introdução do Blog
+Blog Introduction,Introdução do Blog
+Blog Post,Mensagem do Blog
+Blog Settings,Configurações do Blog
+Blog Title,Título do Blog
+Blogger,Blogueiro
 Bookmarks,Marcadores
-Both login and password required,Ambos login e senha necessária
+Both login and password required,Login e senha necessários
 Brand HTML,Marca HTML
 Bulk Email,E-mail em massa
-Bulk email limit {0} crossed,Limite em massa de e-mail {0} atravessou
+Bulk email limit {0} crossed,Limite de e-mail em massa {0} ultrapassou
 Button,Botão
 By,Por
 Calculate,Calcular
@@ -246,14 +236,14 @@ Customize Form,Personalize Formulário
 Customize Form Field,Personalize campo de formulário
 "Customize Label, Print Hide, Default etc.","Personalize Etiquetas, Cabeçalhos, Padrões, etc"
 Customized HTML Templates for printing transctions.,Templates HTML personalizadas para transctions impressão.
-Daily Event Digest is sent for Calendar Events where reminders are set.,Diariamente Evento Digest é enviado para Calendário de eventos onde os lembretes são definidos.
+Daily Event Digest is sent for Calendar Events where reminders are set.,O resumo de eventos diário é enviado para Calendário de eventos onde os lembretes são definidos.
 Danger,Perigo
 Data,Dados
 Data Import / Export Tool,Ferramenta de importação / exportação de dados
-Data Import Tool,Importação de dados da ferramenta
+Data Import Tool,Ferramenta de Importação de Dados
 Data missing in table,Falta de dados na tabela
 Date,Data
-Date Change,Data Mudança
+Date Change,Mudança de data
 Date Changed,Data Modificada
 Date Format,Formato da data
 Date and Number Format,Data e Formato de número
@@ -317,8 +307,8 @@ Download link for your backup will be emailed on the following email address:,Li
 Drafts,Rascunhos
 Drag to sort columns,Arraste para classificar colunas
 Due Date,Data de Vencimento
-Duplicate name {0} {1},Duplicar nome {0} {1}
-Dynamic Link,Dynamic Link
+Duplicate name {0} {1},Nome duplicado {0} e {1}
+Dynamic Link,Link dinâmico
 ERPNext Demo,ERPNext Demonstração
 Edit,Editar
 Edit Permissions,editar Permissões
@@ -381,10 +371,10 @@ Exported,exportado
 "Expression, Optional","Expressão, Opcional"
 Facebook,Facebook
 Facebook Client ID,Facebook Cliente ID
-Facebook Client Secret,Facebook Cliente Secreto
-Facebook Share,Compartilhar Facebook
-Facebook User ID,Facebook ID de usuário
-Facebook Username,Facebook usuário
+Facebook Client Secret,Facebook Cliente Segredo
+Facebook Share,Compartilhar no Facebook
+Facebook User ID,ID de usuário do Facebook
+Facebook Username,Usuário do Facebook
 FavIcon,FavIcon
 Female,Feminino
 Field Description,Descrição do Campo
@@ -428,9 +418,7 @@ Footer Background,Rodapé Fundo
 Footer Items,Itens do Rodapé
 Footer Text,Rodapé Texto
 For DocType,para TipoDoc
-"For Links, enter the DocType as range
-For Select, enter list of Options separated by comma","Para Links, entrar no DocType como gama 
- Para Select, lista de opções separadas por vírgula entrar"
+"For Links, enter the DocType as rangeFor Select, enter list of Options separated by comma","Para Links, entrar no DocType como gama  Para Select, lista de opções separadas por vírgula entrar"
 "For comparative filters, start with","Para filtros comparativos, comece com"
 For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,"Por exemplo, se você cancelar e alterar &#39;INV004&#39; ele vai se tornar um novo documento &quot;INV004-1&#39;. Isso ajuda você a manter o controle de cada alteração."
 For ranges,Para faixas
@@ -479,7 +467,7 @@ Have an account? Login,Já possui uma conta? login
 Header,Cabeçalho
 Heading,Título
 Heading Text As,Como o texto do título
-Help,Ajudar
+Help,Ajuda
 Help on Search,Ajuda na Pesquisa
 Helvetica Neue,Helvetica Neue
 Hidden,Escondido
@@ -490,7 +478,7 @@ Hide Toolbar,Ocultar barra de ferramentas
 Hide the sidebar,Ocultar a barra lateral
 High,Alto
 Highlight,Realçar
-History,História
+History,Histórico
 Home Page,Página Inicial
 Home Page is Products,Página Inicial é Produtos
 ID (name) of the entity whose property is to be set,ID (nome) da entidade cuja propriedade é para ser definida
@@ -530,7 +518,7 @@ Insert Row,Inserir Linha
 Insert Style,Inserir Estilo
 Install Applications.,Instalar aplicações .
 Installed,instalado
-Installer,Installer
+Installer,Instalador
 Int,Int
 Integrations,Integrações
 Introduce your company to the website visitor.,Apresente sua empresa para o visitante do site.
@@ -610,9 +598,9 @@ Lucida Grande,Lucida Grande
 Mail Password,Senha do E-mail
 Main Section,Seção Principal
 Make a new,Fazer um novo
-Make a new record,Faça um novo recorde
+Make a new record,Criar um novo recorde
 Male,Masculino
-Manage cloud backups on Dropbox,Gerenciar backups em nuvem Dropbox
+Manage cloud backups on Dropbox,Gerenciar backups no Dropbox
 Manage uploaded files.,Gerenciar arquivos enviados.
 Mandatory,Obrigatório
 Mandatory fields required in {0},Os campos obrigatórios exigidos no {0}
@@ -623,7 +611,7 @@ Max width for type Currency is 100px in row {0},Largura máxima para o tipo de m
 "Meaning of Submit, Cancel, Amend","Significado do Enviar, Cancelar, Alterar"
 Medium,Médio
 "Menu items in the Top Bar. For setting the color of the Top Bar, go to <a href=""#Form/Style Settings"">Style Settings</a>","Os itens de menu na barra superior. Para definir a cor da barra superior, vá até <a href=""#Form/Style Settings"">Settings</a>"
-Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node,A fusão só é possível entre o grupo -a- grupo ou Folha nó -a- nó Folha
+Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node,A fusão só é possível entre o grupos 
 Message,Mensagem
 Message Examples,Exemplos de mensagens
 Messages,Mensagens
@@ -638,10 +626,10 @@ Module,Módulo
 Module Def,Módulo Def
 Module Name,Nome do Módulo
 Module Not Found,Módulo não encontrado
-Modules Setup,Instalação Módulos
+Modules Setup,Instalação de módulos
 Monday,Segunda-feira
 More,Mais
-More content for the bottom of the page.,Mais conteúdo para a parte de baixo da página.
+More content for the bottom of the page.,Mais conteúdo na parte de baixo da página.
 Move Down: {0},Mover para baixo : {0}
 Move Up: {0},Mover para cima : {0}
 Multiple root nodes not allowed.,"Vários nós raiz, não é permitido ."
@@ -808,9 +796,7 @@ Please attach a file or set a URL,"Por favor, anexar um arquivo ou definir uma U
 Please do not change the rows above {0},"Por favor, não alterar as linhas acima {0}"
 Please enable pop-ups,Por favor habilite os pop-ups
 Please enter Event's Date and Time!,"Por favor, indique a data ea hora do evento!"
-"Please enter both your email and message so that we \
-				can get back to you. Thanks!","Por favor, digite seu e-mail e ambos mensagem para que \
- pode voltar para você. Obrigado!"
+Please enter both your email and message so that we \				can get back to you. Thanks!,"Por favor, digite seu e-mail e ambos mensagem para que \ pode voltar para você. Obrigado!"
 Please enter some text!,"Por favor, digite algum texto!"
 Please enter title!,"Por favor, indique título!"
 Please login to Upvote!,Por favor login para upvote !
@@ -830,13 +816,13 @@ Please specify which value field must be checked,Por favor especificar qual camp
 Please upload using the same template as download.,"Por favor, fazer o upload usando o mesmo modelo como download."
 Plugin,Plugin
 Port,porto
-Post,cargo
+Post,Postagem
 Post Publicly,Publique publicamente
 Post Topic,Postar Tópico
-Post already exists. Cannot add again!,Publicar já existe. Não é possível adicionar mais uma vez !
+Post already exists. Cannot add again!,Postagem já existe. Não é possível adicionar mais uma vez!
 Post does not exist. Please add post!,"O Post não existe. Por favor, adicione post!"
 Post to user,Publicar para usuário
-Posts,Posts
+Posts,Postagens
 Previous Record,Registro anterior
 Primary,Primário
 Print,impressão
@@ -851,7 +837,7 @@ Print Style,Estilo de impressão
 Print Style Preview,Estilo de visualização de impressão
 Print Width,Largura de impressão
 "Print with Letterhead, unless unchecked in a particular Document","Imprimir com o timbre, a não ser desmarcada em um documento específico"
-Print...,Imprimir ...
+Print...,Imprimir...
 Printing and Branding,Impressão e Branding
 Priority,Prioridade
 Private,Privado
@@ -937,7 +923,7 @@ Sales,Vendas
 Same file has already been attached to the record,Mesmo arquivo já foi anexado ao registro
 Sample,Amostra
 Saturday,Sábado
-Save,salvar
+Save,Salvar
 Scheduler Log,Log do Agendador
 Script,Script
 Script Report,Relatório Script
@@ -962,7 +948,7 @@ Select Type,Selecione o Tipo
 Select User or DocType to start.,Selecione Usuário ou TipoDoc para começar.
 Select a Banner Image first.,Selecione um Banner Image primeiro.
 Select an image of approx width 150px with a transparent background for best results.,Selecione uma imagem de aproximadamente 150px de largura com um fundo transparente para melhores resultados.
-Select dates to create a new ,
+Select dates to create a new ,Select dates to create a new 
 "Select modules to be shown (based on permission). If hidden, they will be hidden for all users.","Selecione os módulos a ser mostrado (com base em permissão) . Se escondido , eles serão escondidos por todos os usuários."
 Select or drag across time slots to create a new event.,Selecione ou arraste intervalos de tempo para criar um novo evento.
 "Select target = ""_blank"" to open in a new page.","Select target = "" _blank"" para abrir em uma nova página."
@@ -1109,13 +1095,7 @@ There were errors while sending email. Please try again.,"Ocorreram erros durant
 These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,Esses valores serão atualizados automaticamente em transações e também serão úteis para restringir as permissões para este usuário em operações que contenham esses valores.
 "These will also be set as default values for those links, if only one such permission record is defined.","Estes também serão definidos como valores padrão para esses links , mesmo que apenas um desses registro permissão é definida."
 Third Party Authentication,Autenticação de Terceiros
-"This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>
-myfield
-eval:doc.myfield=='My Value'<br>
-eval:doc.age>18","Este campo aparecerá apenas se o nome do campo definido aqui tem valor ou as regras são verdadeiros (exemplos): <br> 
- myfield 
- eval: doc.myfield == 'Meu Valor' em 
- eval: doc.age> 18"
+This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>myfieldeval:doc.myfield=='My Value'<br>eval:doc.age>18,Este campo aparecerá apenas se o nome do campo definido aqui tem valor ou as regras são verdadeiros (exemplos): <br>  myfield  eval: doc.myfield == 'Meu Valor' em  eval: doc.age> 18
 This goes above the slideshow.,Isto vai acima do slideshow.
 This is PERMANENT action and you cannot undo. Continue?,Esta é uma ação PERMANENTE e não pode ser desfeita. Continuar?
 "This is a standard format. To make changes, please copy it make make a new format.","Este é um formato padrão. Para fazer alterações, copie-o fazer ganhar um novo formato."
@@ -1135,7 +1115,7 @@ Title Prefix,Prefixo do Título
 Title field must be a valid fieldname,Campo Título deve ser um nome de campo válido
 Title is required,Título é exigido
 To,Para
-To Do,para Fazer
+To Do,Tarefas
 "To format columns, give column labels in the query.","Para formatar colunas, dar rótulos de coluna na consulta."
 "To give acess to a role for only specific records, check the 'Apply User Permissions'. User Permissions are used to limit users with such role to specific records.","Para dar acesso a um papel apenas para registros específicos , verificar a "" Aplicar permissões de usuário ."
 "To run a test add the module name in the route after '{0}'. For example, {1}","Para executar um teste de adicionar o nome do módulo na rota depois de '{0}'. Por exemplo , {1}"
@@ -1189,7 +1169,7 @@ User Permissions Manager,Permissões de usuário Gerente
 User Roles,Funções do Usuário
 User Tags,Etiquetas de Usuários
 User Type,Tipo de Usuário
-"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ",
+"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ","User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. "
 User Vote,Vote Usuário
 User not allowed to delete {0}: {1},Usuário não tem permissão para excluir {0}: {1}
 User permissions should not apply for this Link,As permissões de usuário não deve candidatar-se a este link
@@ -1200,11 +1180,11 @@ User {0} does not exist,Usuário {0} não existe
 UserRole,Função do Usuário
 Users and Permissions,Usuários e Permissões
 Users with role {0}:,Os usuários com papel {0}:
-Valid Login id required.,Válido ID É necessário iniciar sessão.
-Valid email and name required,E-mail válido e nome desejado
+Valid Login id required.,É necessário um usuário válido.
+Valid email and name required,É necessário e-mail válido e nome
 Value,Valor
 Value Change,Valor Variação
-Value Changed,Valor alterado
+Value Changed,Valor Alterado
 Value cannot be changed for {0},O valor não pode ser alterado para {0}
 Value for a check field can be either 0 or 1,Valor para um campo de verificação pode ser 0 ou 1
 Value missing for,Valor em falta para
@@ -1258,25 +1238,23 @@ You are not allowed to export the data of: {0}. Downloading empty template.,Voc�
 You are not allowed to export this report,Você não tem permissão para exportar este relatório
 You are not allowed to print this document,Você não tem permissão para imprimir este documento
 You are not allowed to send emails related to this document,Você não tem permissão para enviar e-mails relacionados a este documento
-"You can change Submitted documents by cancelling them and then, amending them.","Você pode alterar documentos apresentados por cancelá-los e , em seguida , altera -los."
-You can use Customize Form to set levels on fields.,Você pode usar Personalizar Formulário para definir os níveis de campos.
-You can use wildcard %,Você pode usar o curinga%
+"You can change Submitted documents by cancelling them and then, amending them.",Você pode alterar documentos cancelados
+You can use Customize Form to set levels on fields.,"Você pode usar ""Personalizar Formulário"" para definir os níveis de campos."
+You can use wildcard %,Você pode usar o curinga %
 You cannot install this app,Você não pode instalar este aplicativo
 You have unsaved changes in this form. Please save before you continue.,Você tem alterações não salvas neste formulário.
-You need to be logged in and have System Manager Role to be able to access backups.,Você precisa estar conectado e ter System Manager Role para ser capaz de acessar backups.
+You need to be logged in and have System Manager Role to be able to access backups.,Você precisa estar conectado e ter permissão para ser capaz de acessar backups.
 You need write permission to rename,Você precisa escrever permissão para renomear
-"You seem to have written your name instead of your email. \
-					Please enter a valid email address so that we can get back.","Você parece ter escrito o seu nome em vez de seu e-mail. \
- Por favor insira um endereço de e-mail válido para que possamos voltar."
+You seem to have written your name instead of your email. \					Please enter a valid email address so that we can get back.,Você parece ter escrito o seu nome em vez de seu e-mail. \ Por favor insira um endereço de e-mail válido para que possamos voltar.
 "Your download is being built, this may take a few moments...","O seu download está sendo construído, isso pode demorar alguns instantes ..."
 [Label]:[Field Type]/[Options]:[Width],[Label]: [Tipo do Campo] / [Opções]: [Largura]
 [Optional] Send the email X days in advance of the specified date. 0 equals same day.,[Opcional] enviar o email X dias de antecedência da data especificada. 0 é igual mesmo dia.
-add your own CSS (careful!),adicione seu próprio CSS (cuidado!)
+add your own CSS (careful!),adicione seu próprio CSS (seja cuidadoso!)
 adjust,ajustar
 align-center,Centralizar
 align-justify,Justificar
-align-left,alinhar à esquerda
-align-right,alinhar à direita
+align-left,Alinhar à esquerda
+align-right,Alinhar à direita
 and,e
 arrow-down,seta para baixo
 arrow-left,seta para a esquerda
@@ -1309,7 +1287,7 @@ cog,roda dentada
 comment,comentário
 comments,comentários
 dd-mm-yyyy,dd-mm-aaaa
-dd.mm.yyyy,dd.mm.yyyy
+dd.mm.yyyy,dd.mm.aaaa
 dd/mm/yyyy,dd/mm/aaaa
 download,baixar
 download-alt,download-alt
@@ -1434,7 +1412,7 @@ volume-off,mudo
 volume-up,aumentar volume
 warning-sign,sinal de alerta
 wrench,chave inglesa
-yyyy-mm-dd,aaaa-mm-dd
+yyyy-mm-dd,dd/mm/yyyy
 zoom-in,aumentar zoom
 zoom-out,diminuir zoom
 {0} List,{0} Lista
