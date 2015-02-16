@@ -460,8 +460,8 @@ Ignore User Permissions,Ignore User Permissions
 Image,Obrazek
 Image Link,Image Link
 Import,Import
-Import / Export Data,Import / Export Data
-Import / Export Data from .csv files.,Import / Export Data from .csv files.
+Import / Export Data,Importuj / Eksportuj dane
+Import / Export Data from .csv files.,Importuj z / Eksportuj do pliku csv. 
 In,In
 In Dialog,In Dialog
 In Filter,In Filter
@@ -594,7 +594,7 @@ Move Up: {0},Move Up: {0}
 Multiple root nodes not allowed.,Multiple root nodes not allowed.
 Must have report permission to access this report.,Must have report permission to access this report.
 Must specify a Query to run,Must specify a Query to run
-My Settings,My Settings
+My Settings,Moje ustawienia
 Name,Imię
 Name Case,Name Case
 Name and Description,Nazwa i opis
@@ -643,7 +643,7 @@ Not Submitted,Not Submitted
 Not a user yet? Sign up,Not a user yet? Sign up
 Not a valid Comma Separated Value (CSV File),Not a valid Comma Separated Value (CSV File)
 Not allowed,Not allowed
-Not allowed from this IP Address,Not allowed from this IP Address
+Not allowed from this IP Address,Niedostępne z tego adresu IP
 Not allowed to Import,Not allowed to Import
 Not allowed to access {0} with {1} = {2},Not allowed to access {0} with {1} = {2}
 Not allowed to change {0} after submission,Not allowed to change {0} after submission
@@ -879,7 +879,7 @@ Send As Email,Send As Email
 Send Me A Copy,Send Me A Copy
 Send Password,Send Password
 Send Print in Body and Attachment,Send Print in Body and Attachment
-Send an email reminder in the morning,Send an email reminder in the morning
+Send an email reminder in the morning,Wyślij rano e-mail z przypomnieniem 
 Send download link of a recent backup to System Managers,Send download link of a recent backup to System Managers
 Send enquiries to this email address,Send enquiries to this email address
 Sender,Sender
