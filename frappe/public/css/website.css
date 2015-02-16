@@ -297,6 +297,8 @@ body {
 .web-list-item {
   padding: 15px 0px;
   border-bottom: 1px solid #d1d8dd;
+  margin-right: -30px;
+  padding-right: 30px;
 }
 .web-list-item:last-child {
   border-bottom: none;
