@@ -42,8 +42,8 @@ frappe.Application = Class.extend({
 
 		$(document).trigger('app_ready');
 
-		if (frappe.boot.bootmsg) {
-			frappe.msgprint(frappe.boot.bootmsg);
+		if (frappe.boot.messages) {
+			frappe.msgprint(frappe.boot.messages);
 		}
 	},
 

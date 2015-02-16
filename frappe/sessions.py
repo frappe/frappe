@@ -94,7 +94,11 @@ def get():
 		try:
 			frappe.cache().ping()
 		except redis.exceptions.ConnectionError:
-			bootinfo['bootmsg'] = _("Redis cache server not running. Please contact Administrator / Tech support")
+			message = _("Redis cache server not running. Please contact Administrator / Tech support")
+			if 'messages' in bootinfo:
+				bootinfo['messages'].append(message)
+			else:
+				bootinfo['messages'] = [message]
 
 	bootinfo["metadata_version"] = frappe.cache().get_value("metadata_version")
 
