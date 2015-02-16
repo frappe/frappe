@@ -23,11 +23,11 @@ img {
   padding: 0px 20px;
 }
 .missing-image {
-  background-color: #eee;
+  background-color: #f7fafc;
   padding: 40px;
   width: 112px;
   font-size: 32px;
-  color: #888;
+  color: #8d99a6;
 }
 .no-border {
   border: none !important;
@@ -54,6 +54,7 @@ img {
   margin-left: 5px;
 }
 .web-footer {
+  border-top: 1px solid #d1d8dd;
   padding: 20px 0px;
   min-height: 140px;
 }
@@ -61,8 +62,8 @@ img {
   display: inline-block;
   vertical-align: middle;
   overflow: hidden;
-  background-color: #ddd;
-  border: 1px solid #eee;
+  background-color: #f0f4f7;
+  border: 1px solid #d1d8dd;
   background-size: cover;
   background-position: center center;
   background-repeat: no-repeat;
@@ -162,6 +163,7 @@ img {
   margin-bottom: 0px;
   padding-top: 15px;
   padding-bottom: 15px;
+  border-bottom: 1px solid #d1d8dd;
 }
 .navbar-brand {
   padding-right: 30px;
@@ -210,21 +212,8 @@ fieldset {
 .slide-image {
   width: 100%;
 }
-.page-header {
-  margin: 0px;
-  margin-bottom: 20px;
-  padding: 25px 0px;
-}
 .page-container {
   padding: 0px;
-}
-.page-header h1,
-.page-header h2,
-.page-header h3 {
-  margin: 5px auto;
-}
-.page-header .lead {
-  margin-bottom: 5px;
 }
 .page-content {
   padding-bottom: 30px;
@@ -267,22 +256,6 @@ html,
 body {
   height: 100%;
   /* The html and body elements cannot have any padding or margin. */
-}
-/* Wrapper for page content to push down footer */
-#wrap {
-  min-height: 100%;
-  height: auto;
-  /* Negative indent footer by its height */
-  margin: auto;
-  margin: 0 auto -140px;
-  /* Pad bottom by footer height */
-  padding: 0 0 140px;
-}
-/* Set the fixed height of the footer here */
-#wrap-footer {
-  margin-top: 30px;
-  min-height: 140px;
-  background-color: #f5f5f5;
 }
 .page-footer {
   margin: 20px 0px 0px;

@@ -1,6 +1,8 @@
 <div class="data-import-tool">
     <div class="data-import-selector">
-        <h6>{%= __("Select Type of Document to Import") %}</h6>
+        <h3>{%= __("Export Template") %}</h3>
+        <p class="text-muted">{%= __("To import or update records, you must first download the template for importing.") %}</p>
+        <h6>{%= __("Select Type of Document to Download") %}</h6>
     	<div>
             <select class="form-control doctype" style="width: 200px" placeholder="{%= __("Select Type") %}">
                 <option value=""></option>
@@ -9,12 +11,10 @@
                 <option value="{%= doctype %}">{%= __(doctype) %}</option>
                 {% } %}
             </select>
+            <br>
         </div>
     </div>
     <div class="export-import-section hide">
-        <hr>
-        <h3>{%= __("Export") %}</h3>
-        <p class="text-muted">{%= __("To import or update records, you must first download the template for importing.") %}</p>
         <div class="row" style="max-width: 700px;">
             <div class="col-sm-4">
                 <p><a class="btn btn-default btn-sm btn-download-template">
@@ -33,6 +33,8 @@
                 <h6 class="text-muted">{%= __("Recommended bulk editing records via import, or understanding the import format.") %}</h6>
             </div>
         </div>
+    </div>
+    <div>
         <hr>
         <h3>{%= __("Import") %}</h3>
         <p class="text-muted">{%= __("Update the template and save in CSV (Comma Separate Values) format before attaching.") %}</p>

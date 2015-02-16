@@ -39,6 +39,8 @@ class FrappeClient(object):
 
 	def get_list(self, doctype, fields='"*"', filters=None, limit_start=0, limit_page_length=0):
 		"""Returns list of records of a particular type"""
+		if not isinstance(fields, basestring):
+			fields = json.dumps(fields)
 		params = {
 			"fields": fields,
 		}

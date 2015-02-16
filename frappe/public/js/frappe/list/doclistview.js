@@ -339,8 +339,8 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 			this.page.add_menu_item(__("Import"), function() {
 				frappe.set_route("data-import-tool", {
 					doctype: me.doctype
-				}, true)
-			});
+				});
+			}, true);
 		}
 		if(frappe.model.can_set_user_permissions(this.doctype)) {
 			this.page.add_menu_item(__("User Permissions Manager"), function() {

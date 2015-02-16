@@ -35,8 +35,8 @@ class DatabaseQuery(object):
 		self.docstatus = docstatus or []
 		self.group_by = group_by
 		self.order_by = order_by
-		self.limit_start = int(limit_start)
-		self.limit_page_length = int(limit_page_length)
+		self.limit_start = int(limit_start) if limit_start else 0
+		self.limit_page_length = int(limit_page_length) if limit_page_length else 20
 		self.with_childnames = with_childnames
 		self.debug = debug
 		self.as_list = as_list

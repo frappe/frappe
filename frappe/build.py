@@ -15,7 +15,11 @@ import os, frappe, json, shutil, re
 app_paths = None
 def setup():
 	global app_paths
-	pymodules = [frappe.get_module(app) for app in frappe.get_all_apps(True)]
+	pymodules = []
+	for app in frappe.get_all_apps(True):
+		try:
+			pymodules.append(frappe.get_module(app))
+		except ImportError: pass
 	app_paths = [os.path.dirname(pymodule.__file__) for pymodule in pymodules]
 
 def bundle(no_compress, make_copy=False, verbose=False):

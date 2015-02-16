@@ -3,6 +3,8 @@
 {{ doc.at_import }}
 {% endif %}
 
+{% set border_color = border_color %}
+
 body {
 {% if doc.background_image %}
 	background: url("{{ doc.background_image }}") repeat;
@@ -36,17 +38,6 @@ body {
 {% if doc.heading_text_style %}h1, h2, h3, h4, h5 {
 	text-transform: {{ doc.heading_text_style }};
 }{% endif %}
-
-{% if doc.page_header_color -%}
-.page-header h1, .page-header h2, .page-header h3, .page-header h4, .page-header h5, .page-header {
-	color: #{{ doc.page_header_color }};
-}
-{%- endif %}
-{% if doc.page_header_background -%}
-.page-header {
-	background-color: #{{ doc.page_header_background }};
-}
-{%- endif %}
 
 {% if doc.footer_color -%}
 .web-footer, .web-footer a {
@@ -85,7 +76,11 @@ body {
 }
 
 .navbar .navbar-text {
-  color: #999999;
+  color: #{{ doc.top_bar_foreground}};
+}
+
+.navbar {
+	border-bottom: 1px solid #{{ border_color }};
 }
 
 .navbar .nav .active > a,
@@ -193,23 +188,23 @@ body {
 }
 
 .table-bordered {
-	border: 1px solid #{{ doc.background_color | get_hex_shade(15) }};
+	border: 1px solid #{{ border_color }};
 }
 
 .table th,
 .table td {
-  border-top: 1px solid #{{ doc.background_color | get_hex_shade(15) }};
+  border-top: 1px solid #{{ border_color }};
 }
 
 .table-bordered th,
 .table-bordered td {
-	border-left: 1px solid #{{ doc.background_color | get_hex_shade(15) }};
+	border-left: 1px solid #{{ border_color }};
 }
 
 
 
 .hero-unit {
-	background-color: #{{ doc.background_color | get_hex_shade(15) }};
+	background-color: #{{ border_color }};
 }
 
 pre, code {
@@ -217,7 +212,7 @@ pre, code {
 }
 
 hr {
-	border-top: 1px solid #{{ doc.background_color | get_hex_shade(15) }};
+	border-top: 1px solid #{{ border_color }};
 	border-bottom: 1px solid #{{ doc.background_color | get_hex_shade(5) }};
 }
 
