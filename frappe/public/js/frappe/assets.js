@@ -148,11 +148,12 @@ frappe.assets = {
 		},
 		"Calendar": function() {
 			frappe.assets.views["List"]();
-			// frappe.assets.views["Report"]();
 		},
 		"Gantt": function() {
 			frappe.assets.views["List"]();
-			// frappe.assets.views["Report"]();
 		},
+		"query-report": function() {
+			frappe.assets.views["Report"]();
+		}
 	}
 };

@@ -7,8 +7,6 @@ frappe.provide("frappe.query_reports");
 frappe.standard_pages["query-report"] = function() {
 	var wrapper = frappe.container.add_page('query-report');
 
-	frappe.assets.views["Report"]();
-
 	frappe.ui.make_app_page({
 		parent: wrapper,
 		title: __('Query Report'),

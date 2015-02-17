@@ -77,7 +77,7 @@ $.extend(frappe.user, {
 				// add missing modules - they will be hidden anyways by the view
 				$.each(frappe.modules, function(m, module) {
 					var module = frappe.get_module(m);
-					if(modules_list.indexOf(m)==-1) {
+					if(modules_list.indexOf(m)===-1) {
 						modules_list.push(m);
 					}
 				});
