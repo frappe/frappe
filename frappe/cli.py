@@ -442,6 +442,8 @@ def latest(rebuild_website=True, quiet=False):
 	frappe.connect()
 
 	try:
+		prepare_for_update()
+
 		# run patches
 		frappe.modules.patch_handler.run_all()
 		# sync
@@ -455,6 +457,10 @@ def latest(rebuild_website=True, quiet=False):
 			build_website()
 	finally:
 		frappe.destroy()
+
+def prepare_for_update():
+	from frappe.sessions import clear_global_cache
+	clear_global_cache()
 
 @cmd
 def sync_all(force=False, quiet=False):
