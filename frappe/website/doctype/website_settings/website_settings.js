@@ -6,11 +6,11 @@
 frappe.ui.form.on("Website Settings", "refresh", function(frm) {
 	if(user==="Administrator") {
 		frm.add_custom_button("Export to Fixtures", function() {
-			frappe.get_value({fieldname:"app", fieldtype:"Data", label:__("App Name"), reqd:1}, function(app) {
+			frappe.prompt({fieldname:"app", fieldtype:"Data", label:__("App Name"), reqd:1}, function(data) {
 				frappe.call({
 					method: "frappe.core.page.data_import_tool.data_import_tool.export_fixture",
 					args: {
-						app: app,
+						app: data.app,
 						doctype:"Website Settings",
 						name:"Website Settings",
 					},

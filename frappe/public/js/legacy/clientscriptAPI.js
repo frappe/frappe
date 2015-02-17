@@ -190,6 +190,14 @@ _f.Frm.prototype.set_value_if_missing = function(field, value) {
 	this.set_value(field, value, true);
 }
 
+_f.Frm.prototype.clear_table = function(fieldname) {
+	frappe.model.clear_table(this.doc, fieldname);
+}
+
+_f.Frm.prototype.add_child = function(fieldname) {
+	return frappe.model.add_child(this.doc, frappe.meta.get_docfield(this.doctype, fieldname).options, fieldname);
+}
+
 _f.Frm.prototype.set_value = function(field, value, if_missing) {
 	var me = this;
 	var _set = function(f, v) {

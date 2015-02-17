@@ -89,6 +89,10 @@ frappe.ui.form.Toolbar = Class.extend({
 				me.frm.rename_doc();}, true);
 		}
 
+		// reload
+		this.page.add_menu_item(__("Reload"), function() {
+			me.frm.reload_doc();}, true);
+
 		// delete
 		if((cint(me.frm.doc.docstatus) != 1) && !me.frm.doc.__islocal
 			&& frappe.model.can_delete(me.frm.doctype)) {
