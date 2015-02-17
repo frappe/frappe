@@ -599,7 +599,7 @@ class Database:
 			return frappe.defaults.get_defaults(parent)
 
 	def begin(self):
-		return # not required
+		self.sql("start transaction")
 
 	def commit(self):
 		"""Commit current transaction. Calls SQL `COMMIT`."""
@@ -609,6 +609,7 @@ class Database:
 	def rollback(self):
 		"""`ROLLBACK` current transaction."""
 		self.sql("rollback")
+		self.begin()
 		for obj in frappe.local.rollback_observers:
 			if hasattr(obj, "on_rollback"):
 				obj.on_rollback()

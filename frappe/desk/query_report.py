@@ -150,7 +150,7 @@ def get_filtered_data(ref_doctype, columns, data):
 			elif has_match(row, linked_doctypes, match_filters_per_doctype):
 				result.append(row)
 	else:
-		result = data
+		result = list(data)
 
 	return result
 

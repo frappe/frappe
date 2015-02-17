@@ -233,11 +233,14 @@ def get_parent_dt(dt):
 def set_fieldname(field_id, fieldname):
 	frappe.db.set_value('DocField', field_id, 'fieldname', fieldname)
 
-def get_field_currency(df, doc):
+def get_field_currency(df, doc=None):
 	"""get currency based on DocField options and fieldvalue in doc"""
 	currency = None
 
 	if not df.get("options"):
+		return None
+
+	if not doc:
 		return None
 
 	if ":" in cstr(df.get("options")):
@@ -250,7 +253,7 @@ def get_field_currency(df, doc):
 
 	return currency
 
-def get_field_precision(df, doc):
+def get_field_precision(df, doc=None, currency=None):
 	"""get precision based on DocField options and fieldvalue in doc"""
 	from frappe.utils import get_number_format_info
 
@@ -259,7 +262,8 @@ def get_field_precision(df, doc):
 
 	elif df.fieldtype == "Currency":
 		number_format = None
-		currency = get_field_currency(df, doc)
+		if not currency and doc:
+			currency = get_field_currency(df, doc)
 
 		if not currency:
 			# use default currency
