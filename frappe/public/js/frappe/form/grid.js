@@ -397,7 +397,7 @@ frappe.ui.form.GridRow = Class.extend({
 		if (show===undefined) show = !!!open_row;
 
 		// call blur
-		document.activeElement && document.activeElement.blur()
+		document.activeElement && document.activeElement.blur();
 
 		if(show && open_row) {
 			if(open_row==this) {

@@ -71,22 +71,25 @@ frappe.dom = {
 				})
 				.appendTo("#body_div");
 
-			if (msg) {
-				freeze.html(repl('<div class="freeze-message-container"><div class="freeze-message">%(msg)s</div></div>',
-					{msg: msg}));
-			}
+			freeze.html(repl('<div class="freeze-message-container"><div class="freeze-message">%(msg)s</div></div>',
+				{msg: msg || ""}));
 
 			setTimeout(function() { freeze.addClass("in") }, 1);
+
+		} else {
+			$("#freeze").addClass("in");
 		}
 
 		frappe.dom.freeze_count++;
 	},
 	unfreeze: function() {
-		if(!frappe.dom.freeze_count)return; // anything open?
+		if(!frappe.dom.freeze_count) return; // anything open?
 		frappe.dom.freeze_count--;
 		if(!frappe.dom.freeze_count) {
 			var freeze = $('#freeze').removeClass("in");
-			setTimeout(function() { freeze.remove(); }, 150);
+			setTimeout(function() {
+				if(!frappe.dom.freeze_count) { freeze.remove(); }
+			}, 150);
 		}
 	},
 	save_selection: function() {

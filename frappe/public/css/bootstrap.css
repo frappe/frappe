@@ -2558,14 +2558,14 @@ output {
           box-shadow: inset 0 1px 1px rgba(0,0,0,.075), 0 0 3px rgba(206, 213, 219, .6);
 }
 .form-control::-moz-placeholder {
-  color: #999;
+  color: #d1d8dd;
   opacity: 1;
 }
 .form-control:-ms-input-placeholder {
-  color: #999;
+  color: #d1d8dd;
 }
 .form-control::-webkit-input-placeholder {
-  color: #999;
+  color: #d1d8dd;
 }
 .form-control[disabled],
 .form-control[readonly],
@@ -6609,3 +6609,4 @@ h4.modal-title {
 .navbar-search-icon {
   color: #b8c2cb;
 }
+/*# sourceMappingURL=bootstrap.css.map */
