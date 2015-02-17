@@ -141,7 +141,7 @@ frappe.desktop.show_all_modules = function() {
 				<div class="row">\
 					<div class="col-xs-2"><a href="#%(link)s">%(app_icon)s</a></div>\
 					<div class="col-xs-10" style="padding-top: 14px;">\
-						<a href="#%(link)s">%(label)s</a>\
+						%(label)s\
 						<input class="pull-right" type="checkbox" data-name="%(name)s" />\
 					</div>\
 				</div>\
