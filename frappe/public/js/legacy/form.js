@@ -708,7 +708,6 @@ _f.get_value = function(dt, dn, fn) {
 _f.Frm.prototype.dirty = function() {
 	this.doc.__unsaved = 1;
 	$(this.wrapper).trigger('dirty');
-	this.toolbar.set_primary_action(true);
 }
 
 _f.Frm.prototype.get_docinfo = function() {
