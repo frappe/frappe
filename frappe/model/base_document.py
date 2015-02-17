@@ -16,12 +16,13 @@ def get_controller(doctype):
 	For `custom` type, returns `frappe.model.document.Document`.
 
 	:param doctype: DocType name as string."""
+	from frappe.model.document import Document
 	if not doctype in _classes:
 		module_name, custom = frappe.db.get_value("DocType", doctype, ["module", "custom"]) \
 			or ["Core", False]
 
 		if custom:
-			_class = BaseDocument
+			_class = Document
 		else:
 			module = load_doctype_module(doctype, module_name)
 			classname = doctype.replace(" ", "").replace("-", "")
