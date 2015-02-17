@@ -30,10 +30,13 @@
 	min-height: 20px;
 }
 
-.slick-cell {
+.slick-cell,
+.slick-headerrow-column {
 	font-size: 12px;
-	border-color: @border-color !important;
+	border-color: transparent @border-color @border-color transparent !important;
+	border-style: solid;
 	color: inherit !important;
+	margin-top: -1px;
 }
 
 .slick-header-column, .slick-header-columns {

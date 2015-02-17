@@ -1,13 +1,21 @@
 <div class="file-upload">
-    <div class="checkbox" style="margin-top: 0px;">
-        <label class="text-muted">
-            <input type="checkbox" class="attach-as-link"> {%= __("Attach as a web link") %}</label>
-    </div>
-    <div class="input-upload">
-        <input style="margin: 7px 0px;" type="file" name="filedata" />
-    </div>
-    <div class="input-link hide">
-	    <input class="form-control" style="max-width: 300px;" type="text" name="file_url" />
-    	<p class="text-muted">{%= (opts.sample_url || "e.g. http://example.com/somefile.png") %}</p>
-    </div>
+		<div class="input-upload">
+			<input class="input-upload-file hidden" type="file" name="filedata" />
+			<button class="btn btn-default btn-sm btn-browse">{%= __("Browse") %}</button>
+		</div>
+		<div class="uploaded-filename hidden" style="width: calc(100% - 67px);"></div>
+		<div class="web-link-wrapper" style="width: calc(100% - 67px);">
+			<span class="text-muted file-upload-or">{%= __("or") %}</span>
+			<div class="input-link" style="width: calc(100% - 30px);">
+				<div class="input-group">
+					<div class="input-group-addon">
+						<span class="hidden-xs">{%= __("Web Link") %}</span>
+						<i class="icon-link visible-xs"></i>
+					</div>
+					<input class="form-control" type="text" name="file_url"
+						placeholder="{%= (opts.sample_url || "e.g. http://example.com/somefile.png") %}"/>
+				</div>
+			</div>
+		</div>
+	</div>
 </div>

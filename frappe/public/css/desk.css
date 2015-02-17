@@ -394,3 +394,21 @@ a.badge-hover:active .badge {
 .footnote-area {
   border-top: 1px solid #d1d8dd;
 }
+.file-upload .input-group-addon {
+  color: #8d99a6;
+  font-size: 12px;
+}
+.file-upload .file-upload-or {
+  font-size: 12px;
+  margin: 0px 7px;
+}
+.file-upload .uploaded-filename,
+.file-upload .web-link-wrapper,
+.file-upload .input-upload,
+.file-upload .input-link {
+  display: inline-block;
+  vertical-align: middle;
+}
+.file-upload .uploaded-filename-display {
+  max-width: 194px;
+}

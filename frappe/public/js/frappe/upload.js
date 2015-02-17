@@ -6,13 +6,40 @@ frappe.upload = {
 	make: function(opts) {
 		if(!opts.args) opts.args = {};
 		var $upload = $(frappe.render_template("upload", {opts:opts})).appendTo(opts.parent);
+		var $file_input = $upload.find(".input-upload-file");
 
-		$upload.find(".attach-as-link").click(function() {
-			var as_link = $(this).prop("checked");
+		// bind pseudo browse button
+		$upload.find(".btn-browse").on("click",
+			function() { $file_input.click(); });
 
-			$upload.find(".input-link").toggleClass("hide", !as_link);
-			$upload.find(".input-upload").toggleClass("hide", as_link);
+		$file_input.on("change", function() {
+			if (this.files.length > 0) {
+				$upload.find(".web-link-wrapper").addClass("hidden");
+
+				var $uploaded_file_display = $(repl('<div class="btn-group" role="group">\
+					<button type="button" class="btn btn-default btn-sm \
+						text-ellipsis uploaded-filename-display">%(filename)s\
+					</button>\
+					<button type="button" class="btn btn-default btn-sm uploaded-file-remove">\
+						&times;</button>\
+				</div>', {filename: this.files[0].name}))
+				.appendTo($upload.find(".uploaded-filename").removeClass("hidden").empty());
+
+				$uploaded_file_display.find(".uploaded-filename-display").on("click", function() {
+					$file_input.click();
+				});
+
+				$uploaded_file_display.find(".uploaded-file-remove").on("click", function() {
+					$file_input.val("");
+					$file_input.trigger("change");
+				});
+
+			} else {
+				$upload.find(".uploaded-filename").addClass("hidden")
+				$upload.find(".web-link-wrapper").removeClass("hidden");
+			}
 		});
+
 
 		if(!opts.btn) {
 			opts.btn = $('<button class="btn btn-default btn-sm">' + __("Attach")
@@ -33,7 +60,7 @@ frappe.upload = {
 
 			var fileobj = $upload.find(":file").get(0).files[0];
 			frappe.upload.upload_file(fileobj, opts.args, opts);
-		})
+		});
 	},
 	upload_file: function(fileobj, args, opts) {
 		if(!fileobj && !args.file_url) {
