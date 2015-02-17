@@ -3,10 +3,6 @@
     border-right: 1px solid #f2f2f2;
   }
 }
-/*h1, h2, h3, h4, h5 {
-	font-weight: bold;
-}
-*/
 a {
   cursor: pointer;
 }
@@ -32,6 +28,18 @@ img {
   width: 112px;
   font-size: 32px;
   color: #888;
+}
+.no-border {
+  border: none !important;
+}
+.light-bg {
+  background-color: #fafbfc;
+}
+.panel-bg {
+  background-color: #f7fafc;
+}
+.navbar-bg {
+  background-color: #f5f7fa;
 }
 .social-icons i {
   font-size: 120%;
@@ -145,6 +153,9 @@ img {
   text-overflow: ellipsis;
   display: inline-block;
 }
+.border-bottom {
+  border-bottom: 1px solid #d1d8dd;
+}
 .navbar {
   box-shadow: none;
   border-radius: 0px;
@@ -218,11 +229,24 @@ fieldset {
 .page-content {
   padding-bottom: 30px;
 }
-.sidebar-item {
-  /*background-color: #f7f7f7;*/
+div[data-html-block="content"] {
+  padding-right: 15px;
+}
+.page-content hr {
+  margin-left: -15px;
+  margin-right: -30px;
+}
+.page-content {
+  border-right: 1px solid #d1d8dd;
+}
+.page-sidebar {
   border-left: 1px solid #d1d8dd;
-  margin-left: -30px;
-  padding: 5px 15px;
+  padding-left: 15px;
+}
+.sidebar-item {
+  margin: 0px;
+  padding: 5px 0px;
+  border: none;
   color: #8d99a6;
   font-size: 12px;
 }
@@ -270,59 +294,24 @@ body {
   margin-bottom: 15px;
 }
 /* post and post list */
-.post {
+.web-list-item {
   padding: 15px 0px;
-  word-wrap: break-word;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid #d1d8dd;
+  margin-right: -30px;
+  padding-right: 30px;
 }
-.post:first-child {
-  margin-top: 15px !important;
+.web-list-item:last-child {
+  border-bottom: none;
 }
-.post .img-responsive {
-  border-radius: 4px;
+.web-list-item h3 {
+  margin: 0 0 5px 0;
 }
-.post .media-link {
-  display: block;
-  min-width: 50px;
-  min-height: 50px;
-}
-.post .media-object {
-  border-radius: 4px;
-  max-width: 50px;
-}
-.post .media-heading {
-  margin-bottom: 12px;
-}
-.parent-post .post {
-  border: none;
-}
-.child-post {
-  border: 1px solid #eee;
-  padding-left: 15px;
-  background-color: #f8f8f8;
-  margin-top: 0px;
+.web-list-item h3 a {
+  color: inherit !important;
+  text-decoration: none;
 }
 textarea {
   resize: vertical;
-}
-.post-add-textarea {
-  height: 200px !important;
-}
-/* needs review */
-.btn-small,
-.post-editor .btn {
-  padding: 5px;
-  font-size: 90%;
-}
-.btn-right,
-.post-editor .btn {
-  margin-left: 5px;
-}
-.no-posts {
-  margin-top: 15px;
-}
-.full-page {
-  margin: 30px;
 }
 .user-profile {
   min-height: 50px;
@@ -373,11 +362,6 @@ a.active {
 }
 .breadcrumb > .active {
   color: #8d99a6;
-}
-@media (min-width: 768px) {
-  .page-sidebar {
-    padding-left: 3em;
-  }
 }
 @media (max-width: 767px) {
   .page-sidebar {

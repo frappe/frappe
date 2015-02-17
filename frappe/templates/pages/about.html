@@ -1,7 +1,8 @@
-{% block title %} About Us {% endblock %}
+{% block title %}About Us{% endblock %}
 
 {% block content %}
-<div class="about-content">
+<!-- no-sidebar -->
+<article class="about-content">
 	{{ doc.company_introduction or """<p>Some Introduction about your company that you would
 			like your website visitor to know.
 			More people than you think will read your About page.
@@ -36,5 +37,5 @@
 	{% endfor %}
 	{% endif %}
 	{{ doc.footer or "" }}
-</div>
+</article>
 {% endblock %}

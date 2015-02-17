@@ -17,7 +17,9 @@ $.extend(frappe.model, {
 			var last_parent_name = null;
 			var dirty = [];
 
-			$.each(r.docs, function(i, d) {
+			for(var i=0, l=r.docs.length; i<l; i++) {
+				var d = r.docs[i];
+
 				frappe.model.add_to_locals(d);
 
 				d.__last_sync_on = new Date();
@@ -41,7 +43,7 @@ $.extend(frappe.model, {
 						frappe.model.docinfo[d.doctype][d.localname] = undefined;
 					}
 				}
-			});
+			}
 
 			if(cur_frm && dirty.indexOf(cur_frm.doctype)!==-1) cur_frm.dirty();
 
@@ -80,12 +82,16 @@ $.extend(frappe.model, {
 		if(!doc.parentfield) {
 			for(var i in doc) {
 				var value = doc[i];
+
 				if($.isArray(value)) {
-					$.each(value, function(i, d) {
+					for (var x=0, y=value.length; x < y; x++) {
+						var d = value[x];
+
 						if(!d.parent)
 							d.parent = doc.name;
+
 						frappe.model.add_to_locals(d);
-					});
+					}
 				}
 			}
 		}

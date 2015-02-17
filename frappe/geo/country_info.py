@@ -27,6 +27,31 @@ def get_country_timezone_info():
 		"all_timezones": get_all_timezones()
 	}
 
+def get_translated_dict():
+	from babel.dates import get_timezone, get_timezone_name, Locale
+
+	translated_dict = {}
+	locale = Locale(frappe.local.lang)
+
+	# timezones
+	for tz in get_all_timezones():
+		timezone_name = get_timezone_name(get_timezone(tz), locale=frappe.local.lang, width='short')
+		if timezone_name:
+			translated_dict[tz] = timezone_name + ' - ' + tz
+
+	# country names && currencies
+	for country, info in get_all().items():
+		country_name = locale.territories.get((info.get("code") or "").upper())
+		if country_name:
+			translated_dict[country] = country_name
+
+		currency = info.get("currency")
+		currency_name = locale.currencies.get(currency)
+		if currency_name:
+			translated_dict[currency] = currency_name
+
+	return translated_dict
+
 def update():
 	with open(os.path.join(os.path.dirname(__file__), "currency_info.json"), "r") as nformats:
 		nformats = json.loads(nformats.read())

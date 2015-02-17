@@ -88,17 +88,23 @@ def make_connection(root_login, root_password):
 	return frappe.database.Database(user=root_login, password=root_password)
 
 def install_app(name, verbose=False, set_as_patched=True):
-	frappe.flags.in_install = name
-	frappe.clear_cache()
-
 	app_hooks = frappe.get_hooks(app_name=name)
 	installed_apps = frappe.get_installed_apps()
+
+	# install pre-requisites
+	if app_hooks.required_apps:
+		for app in app_hooks.required_apps:
+			install_app(app)
+
+	print "Installing {0}...".format(name)
+	frappe.flags.in_install = name
+	frappe.clear_cache()
 
 	if name not in frappe.get_all_apps(with_frappe=True):
 		raise Exception("App not in apps.txt")
 
 	if name in installed_apps:
-		print "App Already Installed"
+		print "Already installed"
 		frappe.msgprint("App {0} already installed".format(name))
 		return
 
@@ -121,7 +127,7 @@ def install_app(name, verbose=False, set_as_patched=True):
 	for after_install in app_hooks.after_install or []:
 		frappe.get_attr(after_install)()
 
-	print "Installing Fixtures..."
+	print "Installing fixtures..."
 	sync_fixtures(name)
 
 	frappe.flags.in_install = False

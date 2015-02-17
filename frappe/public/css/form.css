@@ -109,6 +109,22 @@
 .frappe-control {
   margin-bottom: 10px;
 }
+.frappe-control .help-box {
+  margin-top: 3px;
+}
 .shared-user {
   margin-bottom: 10px;
+}
+.linked-with-dialog {
+  width: 75%;
+}
+.linked-with-dialog .panel-body {
+  padding: 0px;
+}
+.linked-with-dialog .form-section {
+  padding-top: 15px;
+}
+.attach-missing-image,
+.attach-image-display {
+  cursor: pointer;
 }

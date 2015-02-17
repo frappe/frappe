@@ -138,6 +138,15 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 	def main_doc_empty(row):
 		return not (row and ((len(row) > 1 and row[1]) or (len(row) > 2 and row[2])))
 
+	users = frappe.db.sql_list("select name from tabUser")
+	def prepare_for_insert(doc):
+		# don't block data import if user is not set
+		# migrating from another system
+		if not doc.owner in users:
+			doc.owner = frappe.session.user
+		if not doc.modified_by in users:
+			doc.modified_by = frappe.session.user
+
 	# header
 	if not rows:
 		rows = read_csv_content_from_uploaded_file(ignore_encoding_errors)
@@ -210,6 +219,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 					ret.append('Updated row (#%d) %s' % (row_idx + 1, getlink(original.doctype, original.name)))
 				else:
 					doc = frappe.get_doc(doc)
+					prepare_for_insert(doc)
 					doc.flags.ignore_links = ignore_links
 					doc.insert()
 					ret.append('Inserted row (#%d) %s' % (row_idx + 1, getlink(doc.doctype, doc.name)))

@@ -10,15 +10,16 @@ window.category = null;
 	<p>{{ blog_introduction }}</p>
 	{% endif %}
 	<h3 id="blot-subtitle" style="display:none;"></h3>
-	<br>
-	<div class="text-muted progress">{{ _("Loading") }}...</div>
 	<div id="blog-list">
-		<!-- blog list will be generated dynamically -->
+		{{ posts }}
 	</div>
-	<div style="text-align: center;">
-		<button id="next-page" class="btn btn-default"
-			style="display:none;">More...</button>
-	</div>
+    <div class="blog-footer">
+        <p class="blog-message text-muted"></p>
+    	<div class="text-center">
+    		<button id="next-page" class="btn btn-default"
+    			style="display:none;">More...</button>
+    	</div>
+    </div>
 </div>
 <script>
 	{% include "templates/includes/blog.js" %}

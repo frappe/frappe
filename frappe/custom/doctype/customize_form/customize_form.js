@@ -40,7 +40,6 @@ frappe.ui.form.on("Customize Form", "doc_type", function(frm) {
 
 frappe.ui.form.on("Customize Form", "refresh", function(frm) {
 	frm.disable_save();
-	frm.frm_head.page.iconbar.clear("1");
 
 	if(frm.doc.doc_type) {
 		frm.page.set_primary_action(__("Update"), function() {

@@ -15,6 +15,7 @@ from frappe.utils import cint, cstr
 import frappe.model.meta
 import frappe.defaults
 import frappe.translate
+import redis
 from urllib import unquote
 
 @frappe.whitelist()
@@ -86,13 +87,21 @@ def get():
 			# 	json.dumps(frappe.cache().get_value("recent", user=True))
 
 	if not bootinfo:
-
 		# if not create it
 		bootinfo = get_bootinfo()
 		bootinfo["notification_info"] = get_notification_info_for_boot()
 		frappe.cache().set_value("bootinfo", bootinfo, user=True)
+		try:
+			frappe.cache().ping()
+		except redis.exceptions.ConnectionError:
+			message = _("Redis cache server not running. Please contact Administrator / Tech support")
+			if 'messages' in bootinfo:
+				bootinfo['messages'].append(message)
+			else:
+				bootinfo['messages'] = [message]
 
 	bootinfo["metadata_version"] = frappe.cache().get_value("metadata_version")
+
 	if not bootinfo["metadata_version"]:
 		bootinfo["metadata_version"] = frappe.reset_metadata_version()
 
@@ -127,12 +136,12 @@ class Session:
 		self.data.user = self.user
 		self.data.sid = sid
 		self.data.data.user = self.user
-		self.data.data.session_ip = frappe.get_request_header('REMOTE_ADDR')
+		self.data.data.session_ip = frappe.local.request_ip
 		if self.user != "Guest":
 			self.data.data.last_updated = frappe.utils.now()
 			self.data.data.session_expiry = get_expiry_period()
 			self.data.data.full_name = self.full_name
-		self.data.data.session_country = get_geo_ip_country(frappe.get_request_header('REMOTE_ADDR'))
+		self.data.data.session_country = get_geo_ip_country(frappe.local.request_ip)
 
 		# insert session
 		if self.user!="Guest":
@@ -141,7 +150,7 @@ class Session:
 
 			# update user
 			frappe.db.sql("""UPDATE tabUser SET last_login = %s, last_ip = %s
-				where name=%s""", (frappe.utils.now(), frappe.get_request_header('REMOTE_ADDR'), self.data['user']))
+				where name=%s""", (frappe.utils.now(), frappe.local.request_ip, self.data['user']))
 			frappe.db.commit()
 
 	def insert_session_record(self):
@@ -265,18 +274,14 @@ def get_expiry_period():
 
 	return exp_sec
 
-def get_geo_ip_country(ip_addr):
+def get_geo_from_ip(ip_addr):
 	try:
-		import pygeoip
+		from geoip import geolite2
+		return geolite2.lookup(ip_addr)
 	except ImportError:
 		return
 
-	import os
-
-	try:
-		geo_ip_file = os.path.join(os.path.dirname(frappe.__file__), "data", "GeoIP.dat")
-		geo_ip = pygeoip.GeoIP(geo_ip_file, pygeoip.MEMORY_CACHE)
-		return geo_ip.country_name_by_addr(ip_addr)
-	except Exception:
-		return
-
+def get_geo_ip_country(ip_addr):
+	match = get_geo_from_ip(ip_addr)
+	if match:
+		return match.country

@@ -36,7 +36,8 @@ class EmailAccount(Document):
 			if self.enable_incoming:
 				self.get_pop3()
 
-			self.check_smtp()
+			if self.enable_outgoing:
+				self.check_smtp()
 
 	def on_update(self):
 		"""Check there is only one default of each type."""

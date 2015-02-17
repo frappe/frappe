@@ -6,6 +6,17 @@ frappe.provide("frappe.ui.form");
 frappe.ui.form.save = function(frm, action, callback, btn) {
 	$(btn).prop("disabled", true);
 
+	// specified here because there are keyboard shortcuts to save
+	var working_label = {
+		"Save": __("Saving"),
+		"Submit": __("Submitting"),
+		"Update": __("Updating"),
+		"Amend": __("Amending"),
+		"Cancel": __("Cancelling")
+	}[toTitle(action)];
+
+	var freeze_message = working_label ? '<p class="lead">' + __(working_label) + '</p>' : "";
+
 	var save = function() {
 		check_name();
 		if(check_mandatory()) {
@@ -16,7 +27,8 @@ frappe.ui.form.save = function(frm, action, callback, btn) {
 					$(document).trigger("save", [frm.doc]);
 					callback(r);
 				},
-				btn: btn
+				btn: btn,
+				freeze_message: freeze_message
 			});
 		} else {
 			$(btn).prop("disabled", false);
@@ -31,7 +43,8 @@ frappe.ui.form.save = function(frm, action, callback, btn) {
 				$(document).trigger("save", [frm.doc]);
 				callback(r);
 			},
-			btn: btn
+			btn: btn,
+			freeze_message: freeze_message
 		});
 	};
 
@@ -123,6 +136,7 @@ frappe.ui.form.save = function(frm, action, callback, btn) {
 
 		return frappe.call({
 			freeze: true,
+			freeze_message: opts.freeze_message,
 			method: opts.method,
 			args: opts.args,
 			btn: opts.btn,

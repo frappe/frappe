@@ -41,14 +41,12 @@ frappe.ui.form.Control = Class.extend({
 	// returns "Read", "Write" or "None"
 	// as strings based on permissions
 	get_status: function(explain) {
-		if(!this.doctype)
-			return "Write";
-
 		var status = frappe.perm.get_field_display_status(this.df,
-			locals[this.doctype][this.docname], this.perm || this.frm.perm, explain);
+			frappe.model.get_doc(this.doctype, this.docname), this.perm || (this.frm && this.frm.perm), explain);
 
 		// hide if no value
-		if (status==="Read" && is_null(frappe.model.get_value(this.doctype, this.docname, this.df.fieldname))) {
+		if (this.doctype && status==="Read"
+			&& is_null(frappe.model.get_value(this.doctype, this.docname, this.df.fieldname))) {
 			status = "None";
 		}
 
@@ -620,7 +618,7 @@ frappe.ui.form.ControlButton = frappe.ui.form.ControlData.extend({
 frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 	make_input: function() {
 		var me = this;
-		this.$input = $('<button class="btn btn-default btn-sm">')
+		this.$input = $('<button class="btn btn-default btn-sm btn-attach">')
 			.html(__("Attach"))
 			.prependTo(me.input_area)
 			.on("click", function() {
@@ -744,14 +742,20 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 
 frappe.ui.form.ControlAttachImage = frappe.ui.form.ControlAttach.extend({
 	make_input: function() {
-		this._super();
-		this.img = $("<img class='img-responsive'>").appendTo($('<div style="margin: 7px 0px;">\
-			<div class="missing-image"><i class="octicon octicon-circle-slash"></i></div></div>')
-			.prependTo(this.input_area)).toggle(false);
-
 		var me = this;
+		this._super();
+		this.img_wrapper = $('<div style="margin: 7px 0px;">\
+			<div class="missing-image attach-missing-image"><i class="octicon octicon-circle-slash"></i></div></div>')
+			.prependTo(this.input_area);
+		this.img = $("<img class='img-responsive attach-image-display'>")
+			.appendTo(this.img_wrapper).toggle(false);
+
+		// propagate click to Attach button
+		this.img_wrapper.find(".missing-image").on("click", function() { me.$input.click(); });
+		this.img.on("click", function() { me.$input.click(); });
+
 		this.$wrapper.on("refresh", function() {
-			if(me.value) {
+			if(me.get_value()) {
 				$(me.input_area).find(".missing-image").toggle(false);
 				me.img.attr("src", me.dataurl ? me.dataurl : me.value).toggle(true);
 			} else {

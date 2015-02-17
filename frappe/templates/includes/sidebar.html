@@ -11,7 +11,7 @@
 {%- for child in children -%}
 <div class="sidebar-item">
 	<a href="{{ child.name }}" class="no-decoration {% if (pathname or "")==(child.name or "") %}active{% endif %}">
-		{{  child.title or child.page_title or (child.name or "").replace("_", " ").title() }}
+		{{  child.title or child.page_title or (child.name or "") }}
 	</a>
 </div>
 {%- endfor -%}

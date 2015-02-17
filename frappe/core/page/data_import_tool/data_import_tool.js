@@ -84,7 +84,9 @@ frappe.DataImportTool = Class.extend({
 		this.page.main.find(".import-log").removeClass("hide");
 		var parent = this.page.main.find(".import-log-messages").empty();
 
-		$.each(r.messages, function(i, v) {
+		// TODO render using template!
+		for (var i=0, l=r.messages.length; i<l; i++) {
+			var v = r.messages[i];
 			var $p = $('<p></p>').html(frappe.markdown(v)).appendTo(parent);
 			if(v.substr(0,5)=='Error') {
 				$p.css('color', 'red');
@@ -95,8 +97,7 @@ frappe.DataImportTool = Class.extend({
 			} else if(v.substr(0,5)=='Valid') {
 				$p.css('color', '#777');
 			}
-		});
-
+		}
 	},
 	onerror: function(r) {
 		if(r.message) {

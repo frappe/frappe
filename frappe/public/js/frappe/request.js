@@ -34,6 +34,7 @@ frappe.call = function(opts) {
 		always: opts.always,
 		btn: opts.btn,
 		freeze: opts.freeze,
+		freeze_message: opts.freeze_message,
 		show_spinner: !opts.no_spinner,
 		async: opts.async,
 		url: opts.url || frappe.request.url,
@@ -130,7 +131,7 @@ frappe.request.prepare = function(opts) {
 	if(opts.show_spinner) frappe.set_loading();
 
 	// freeze page
-	if(opts.freeze) frappe.dom.freeze();
+	if(opts.freeze) frappe.dom.freeze(opts.freeze_message);
 
 	// stringify args if required
 	for(key in opts.args) {

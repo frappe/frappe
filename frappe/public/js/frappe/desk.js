@@ -41,6 +41,10 @@ frappe.Application = Class.extend({
 		this.start_notification_updates();
 
 		$(document).trigger('app_ready');
+
+		if (frappe.boot.messages) {
+			frappe.msgprint(frappe.boot.messages);
+		}
 	},
 
 	load_bootinfo: function() {

@@ -238,6 +238,10 @@ def setup_utilities(parser):
 		help="Clear website cache")
 	parser.add_argument("--build_website", default=False, action="store_true",
 		help="Sync statics and clear cache")
+	parser.add_argument("--setup_docs", nargs=3, metavar = ("APP", "TARGET-APP", "PATH-IN-TARGET-APP"),
+		help="Setup docs in target folder of target app")
+	parser.add_argument("--build_docs", nargs=1, metavar = ("APP"),
+		help="Build docs from /src to /www folder in app")
 	parser.add_argument("--sync_statics", default=False, action="store_true",
 		help="Sync files from templates/statics to Web Pages")
 	parser.add_argument("--clear_cache", default=False, action="store_true",
@@ -601,6 +605,20 @@ def sync_statics(force=False):
 	frappe.connect()
 	statics.sync_statics(rebuild = force)
 	frappe.db.commit()
+	frappe.destroy()
+
+@cmd
+def setup_docs(app, docs_app, path):
+	from frappe.utils.setup_docs import setup_docs
+	frappe.connect()
+	setup_docs(app, docs_app, path)
+	frappe.destroy()
+
+@cmd
+def build_docs(app):
+	from frappe.utils.autodoc import build
+	frappe.connect()
+	build(app)
 	frappe.destroy()
 
 @cmd

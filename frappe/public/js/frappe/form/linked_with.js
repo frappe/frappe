@@ -28,13 +28,14 @@ frappe.ui.form.LinkedWith = Class.extend({
 		links = frappe.utils.sort(links, "label");
 
 		this.dialog = new frappe.ui.Dialog({
-			width: 700,
 			hide_on_page_refresh: true,
 			title: __("Linked With"),
 			fields: [
 				{ fieldtype: "HTML", label: "list" }
 			]
 		});
+
+		this.dialog.$wrapper.find(".modal-dialog").addClass("linked-with-dialog");
 
 		if(!links) {
 			this.dialog.fields_dict.list.$wrapper.html("<div class='alert alert-warning'>"
@@ -65,12 +66,11 @@ frappe.ui.form.LinkedWith = Class.extend({
 
 							var wrapper = $('<div class="panel panel-default"><div>').appendTo(parent);
 							$('<div class="panel-heading">').html(__(doctype).bold()).appendTo(wrapper);
-							var body = $('<div class="panel-body">').appendTo(wrapper)
-								.css({"padding-top": "0px", "padding-bottom": "0px"});
+							var body = $('<div class="panel-body">').appendTo(wrapper);
 
 							$.each(r.message[doctype], function(i, d) {
 								d.doctype = doctype;
-								listview.render($("<div>")
+								listview.render($('<div class="list-row"></div>')
 									.appendTo(body), d, me);
 							})
 						})

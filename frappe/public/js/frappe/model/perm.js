@@ -190,7 +190,9 @@ $.extend(frappe.perm, {
 	},
 
 	get_field_display_status: function(df, doc, perm, explain) {
-		if(!doc) return "Write";
+		if(!doc) {
+			return (df && cint(df.hidden)) ? "None": "Write";
+		}
 
 		perm = perm || frappe.perm.get_perm(doc.doctype, doc);
 		if(!df.permlevel) df.permlevel = 0;

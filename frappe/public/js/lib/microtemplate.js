@@ -5,7 +5,7 @@ frappe.template = {compiled: {}, debug:{}};
 frappe.template.compile = function(str, name) {
 	var key = name || str;
 	if(str.indexOf("'")!==-1) {
-		console.log("Warning: Single quotes (') may not work in templates");
+		console.warn("Warning: Single quotes (') may not work in templates");
 	}
 	if(!frappe.template.compiled[key]) {
 		fn_str = "var p=[],print=function(){p.push.apply(p,arguments)};" +

@@ -156,6 +156,8 @@ class WebsiteGenerator(Document):
 
 			if _parent_val:
 				df = me.meta.get_field(_parent_field)
+				if not df:
+					break
 				parent_doc = frappe.get_doc(df.options, _parent_val)
 
 				if not parent_doc.website_published():
@@ -214,7 +216,7 @@ class WebsiteGenerator(Document):
 				doctype = self.doctype,
 				title_field = getattr(self, "page_title_field", "name"),
 				order_by = getattr(self, "order_by", "idx asc")),
-				route, as_dict=True, debug=1)
+				route, as_dict=True)
 
 		for c in children:
 			c.name = make_route(c)

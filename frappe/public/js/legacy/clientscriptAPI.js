@@ -114,7 +114,12 @@ set_missing_values = function(doc, dict) {
 	// dict contains fieldname as key and "default value" as value
 	var fields_to_set = {};
 
-	$.each(dict, function(i, v) { if (!doc[i]) { fields_to_set[i] = v; } });
+	for (var i in dict) {
+		var v = dict[i];
+		if (!doc[i]) {
+			fields_to_set[i] = v;
+		}
+	}
 
 	if (fields_to_set) { set_multiple(doc.doctype, doc.name, fields_to_set); }
 }
@@ -131,15 +136,14 @@ _f.Frm.prototype.field_map = function(fnames, fn) {
 			fnames = [fnames];
 		}
 	}
-	$.each(fnames, function(i,fieldname) {
-		//var field = cur_frm.fields_dict[f]; - much better design
+	for (var i=0, l=fnames.length; i<l; i++) {
+		var fieldname = fnames[i];
 		var field = frappe.meta.get_docfield(cur_frm.doctype, fieldname, cur_frm.docname);
 		if(field) {
 			fn(field);
 			cur_frm.refresh_field(fieldname);
 		};
-	})
-
+	}
 }
 
 _f.Frm.prototype.set_df_property = function(fieldname, property, value) {
@@ -196,13 +200,15 @@ _f.Frm.prototype.set_value = function(field, value, if_missing) {
 
 					frappe.model.clear_table(me.doc, fieldobj.df.fieldname);
 
-					$.each(v, function(i, d) {
+					for (var i=0, j=v.length; i < j; i++) {
+						var d = v[i];
 						var child = frappe.model.add_child(me.doc, fieldobj.df.options,
 							fieldobj.df.fieldname, i+1);
 						$.extend(child, d);
-					});
+					}
 
 					me.refresh_field(f);
+
 				} else {
 					frappe.model.set_value(me.doctype, me.doc.name, f, v);
 				}
@@ -216,11 +222,12 @@ _f.Frm.prototype.set_value = function(field, value, if_missing) {
 	if(typeof field=="string") {
 		_set(field, value)
 	} else if($.isPlainObject(field)) {
-		$.each(field, function(f, v) {
+		for (var f in field) {
+			var v = field[f];
 			if(me.get_field(f)) {
 				_set(f, v);
 			}
-		})
+		}
 	}
 }
 
@@ -268,9 +275,11 @@ _f.Frm.prototype.new_doc = function(doctype, field) {
 
 _f.Frm.prototype.set_read_only = function() {
 	var perm = [];
-	$.each(frappe.perm.get_perm(cur_frm.doc.doctype), function(i, p) {
+	var docperms = frappe.perm.get_perm(cur_frm.doc.doctype);
+	for (var i=0, l=docperms.lenght; i<l; i++) {
+		var p = docperms[i];
 		perm[p.permlevel || 0] = {read:1};
-	});
+	}
 	cur_frm.perm = perm;
 }
 

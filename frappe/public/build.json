@@ -36,6 +36,7 @@
 		"public/css/tree.css",
 		"public/css/nprogress.css",
 		"public/css/desktop.css",
+		"public/css/form.css",
 		"public/css/mobile.css"
 	],
 	"js/desk.min.js": [
@@ -120,7 +121,6 @@
 		"public/js/frappe/views/module/moduleview.js"
 	],
 	"css/form.min.css": [
-		"public/css/form.css",
 		"public/css/form_grid.css"
 	],
 	"js/form.min.js": [

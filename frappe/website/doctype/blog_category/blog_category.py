@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe.website.website_generator import WebsiteGenerator
 from frappe.website.render import clear_cache
-from frappe.templates.pages.blog import get_children
+from frappe.templates.pages.blog import get_context
 
 class BlogCategory(WebsiteGenerator):
 	page_title_field = "title"
@@ -19,9 +19,11 @@ class BlogCategory(WebsiteGenerator):
 		WebsiteGenerator.on_update(self)
 		clear_cache()
 
-	def get_children(self, context=None):
-		return get_children()
-
 	def validate(self):
 		self.parent_website_route = "blog"
 		super(BlogCategory, self).validate()
+
+	def get_context(self, context):
+		"""Build context from `frappe.templates.pages.blog`"""
+		context.category = self.name
+		get_context(context)
