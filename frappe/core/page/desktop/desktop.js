@@ -41,7 +41,7 @@ $.extend(frappe.desktop, {
 		$(document).trigger("desktop-render");
 	},
 
-	get_desktop_items: function() {
+	get_desktop_items: function(global) {
 		var me = this;
 
 		frappe.modules["All Applications"] = {
@@ -57,24 +57,25 @@ $.extend(frappe.desktop, {
 			}
 		}
 
-		return frappe.user.get_desktop_items();
+		var desktop_items = [].concat(frappe.user.get_desktop_items(global));
+
+		remove_from_list(desktop_items, "Setup");
+		if(user_roles.indexOf('System Manager')!=-1) {
+			desktop_items.push('Setup');
+		}
+
+		remove_from_list(desktop_items, "Core");
+		if(user_roles.indexOf('Administrator')!=-1) {
+			desktop_items.push('Core');
+		}
+
+		return desktop_items;
 	},
 
 	get_user_desktop_items: function() {
 		var me = this;
 
 		var user_desktop_items = [].concat(frappe.user.get_user_desktop_items());
-
-		remove_from_list(user_desktop_items, "Setup");
-		remove_from_list(user_desktop_items, "Core");
-
-		if(user_roles.indexOf('System Manager')!=-1) {
-			user_desktop_items.push('Setup');
-		}
-
-		if(user_roles.indexOf('Administrator')!=-1) {
-			user_desktop_items.push('Core');
-		}
 
 		for (var m in frappe.modules) {
 			var module = frappe.modules[m];
@@ -155,8 +156,8 @@ $.extend(frappe.desktop, {
 
 			$(frappe.render_template("all_applications_dialog", {
 				all_modules: keys(frappe.modules).sort(),
-				desktop_items: frappe.user.get_desktop_items(true),
-				user_desktop_items: frappe.user.get_user_desktop_items()
+				desktop_items: frappe.desktop.get_desktop_items(true),
+				user_desktop_items: frappe.desktop.get_user_desktop_items()
 			})).appendTo(this.dialog_body);
 
 			this.bind_events();
