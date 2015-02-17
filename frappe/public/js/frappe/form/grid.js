@@ -20,29 +20,16 @@ frappe.ui.form.Grid = Class.extend({
 	make: function() {
 		var me = this;
 
-		this.wrapper = $('<div>\
-		<div class="form-grid">\
-			<div class="grid-heading-row"></div>\
-			<div class="grid-body">\
-				<div class="rows"></div>\
-				<div class="grid-empty text-center hide">'+__("No Data")+'</div>\
-				<div class="small form-clickable-section grid-footer text-center">\
-					<a href="#" class="grid-add-row h6 text-muted" style="margin-left: 10px;">+ '
-						+__("Add new row")+'.</a>\
-					<a href="#" class="grid-add-multiple-rows h6 text-muted hide" style="margin-left: 10px;">+ '
-						+__("Add multiple rows")+'.</a>\
-					<div class="clearfix"></div>\
-				</div>\
-			</div>\
-		</div>\
-		</div>')
+		this.wrapper = $(frappe.render_template("grid_body", {}))
 			.appendTo(this.parent)
 			.attr("data-fieldname", this.df.fieldname);
 
 		$(this.wrapper).find(".grid-add-row").click(function() {
 			me.add_new_row(null, null, true);
 			return false;
-		})
+		});
+
+		this.setup_allow_bulk_edit();
 
 	},
 	make_head: function() {
@@ -144,21 +131,6 @@ frappe.ui.form.Grid = Class.extend({
 				me.frm.dirty();
 			}
 		});
-
-		// $rows.sortable({
-		// 	handle: ".data-row, .grid-form-heading",
-		// 	helper: 'clone',
-		// 	update: function(event, ui) {
-		// 		me.frm.doc[me.df.fieldname] = [];
-		// 		$rows.find(".grid-row").each(function(i, item) {
-		// 			var doc = $(item).data("doc");
-		// 			doc.idx = i + 1;
-		// 			$(this).find(".row-index").html(i + 1);
-		// 			me.frm.doc[me.df.fieldname].push(doc);
-		// 		});
-		// 		me.frm.dirty();
-		// 	}
-		// });
 	},
 	get_data: function() {
 		var data = this.frm.doc[this.df.fieldname] || [];
@@ -231,6 +203,68 @@ frappe.ui.form.Grid = Class.extend({
 				return false;
 			});
 		this.multiple_set = true;
+	},
+	setup_allow_bulk_edit: function() {
+		var me = this;
+		if(this.frm.get_docfield(this.df.fieldname).allow_bulk_edit) {
+			// download
+			me.setup_download();
+
+			// upload
+			$(this.wrapper).find(".grid-upload").removeClass("hide").on("click", function() {
+				frappe.prompt({fieldtype:"Attach", label:"Upload File"},
+					function(data) {
+						var data = frappe.utils.csv_to_array(frappe.upload.get_string(data.upload_file));
+						// row #2 contains fieldnames;
+						var fieldnames = data[2];
+
+						me.frm.clear_table(me.df.fieldname);
+						$.each(data, function(i, row) {
+							if(i > 4) {
+								var d = me.frm.add_child(me.df.fieldname);
+								$.each(row, function(ci, value) {
+									d[fieldnames[ci]] = value;
+								});
+							}
+						});
+
+						me.frm.refresh_field(me.df.fieldname);
+
+					}, __("Edit via Upload"), __("Update"));
+				return false;
+			});
+		}
+	},
+	setup_download: function() {
+		var me = this;
+		$(this.wrapper).find(".grid-download").removeClass("hide").on("click", function() {
+			var data = [];
+			data.push([__("Bulk Edit {0}", [me.df.label])]);
+			data.push([]);
+			data.push([]);
+			data.push([]);
+			data.push(["------"]);
+			$.each(frappe.get_meta(me.df.options).fields, function(i, df) {
+				if(frappe.model.is_value_type(me.df.fieldtype)) {
+					data[1].push(df.label);
+					data[2].push(df.fieldname);
+					data[3].push(df.description);
+				}
+			});
+
+			// add data
+			$.each(me.frm.doc[me.df.fieldname] || [], function(i, d) {
+				row = [];
+				$.each(data[2], function(i, fieldname) {
+					row.push(d[fieldname] || "");
+				});
+				data.push(row);
+			});
+
+			frappe.tools.downloadify(data, null, me.df.label);
+			return false;
+		});
+
 	}
 });
 

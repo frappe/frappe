@@ -34,6 +34,10 @@ $.extend(frappe.model, {
 	new_names: {},
 	events: {},
 
+	is_value_type: function(fieldtype) {
+		return frappe.model.no_value_type.indexOf(fieldtype)!==-1;
+	},
+
 	get_std_field: function(fieldname) {
 		var docfield = $.map([].concat(frappe.model.std_fields).concat(frappe.model.std_fields_table),
 			function(d) {

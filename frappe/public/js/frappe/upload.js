@@ -116,5 +116,16 @@ frappe.upload = {
 
 			freader.readAsDataURL(fileobj);
 		}
+	},
+	get_string: function(dataURI) {
+		// remove filename
+		var parts = dataURI.split(',');
+		if(parts[0].indexOf(":")===-1) {
+			var a = parts[2];
+		} else {
+			var a = parts[1];
+		}
+
+		return atob(a);
 	}
 }

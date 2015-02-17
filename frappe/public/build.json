@@ -132,6 +132,7 @@
 		"public/js/frappe/form/save.js",
 		"public/js/frappe/form/script_manager.js",
 		"public/js/frappe/form/grid_form.html",
+		"public/js/frappe/form/grid_body.html",
 		"public/js/frappe/form/grid.js",
 		"public/js/frappe/form/linked_with.js",
 		"public/js/frappe/form/workflow.js",

@@ -444,7 +444,7 @@ frappe.views.GridReport = Class.extend({
 	},
 	export: function() {
 		frappe.tools.downloadify(frappe.slickgrid_tools.get_view_data(this.columns, this.dataView),
-			["Report Manager", "System Manager"], this);
+			["Report Manager", "System Manager"], this.title);
 		return false;
 	},
 	apply_filters: function(item) {
@@ -915,7 +915,7 @@ frappe.views.TreeGridReport = frappe.views.GridReportWithPlot.extend({
 					return false;
 			});
 
-			frappe.tools.downloadify(data, ["Report Manager", "System Manager"], me);
+			frappe.tools.downloadify(data, ["Report Manager", "System Manager"], me.title);
 			return false;
 		})
 

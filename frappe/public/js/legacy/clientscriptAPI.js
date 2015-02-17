@@ -146,11 +146,15 @@ _f.Frm.prototype.field_map = function(fnames, fn) {
 	}
 }
 
+_f.Frm.prototype.get_docfield = function(fieldname) {
+	return frappe.meta.get_docfield(this.doctype, fieldname, this.docname);
+}
+
 _f.Frm.prototype.set_df_property = function(fieldname, property, value) {
-	var field = frappe.meta.get_docfield(cur_frm.doctype, fieldname, cur_frm.docname)
+	var field = this.get_docfield(fieldname);
 	if(field) {
 		field[property] = value;
-		cur_frm.refresh_field(fieldname);
+		this.refresh_field(fieldname);
 	};
 }
 

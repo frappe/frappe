@@ -622,7 +622,7 @@ frappe.views.QueryReport = Class.extend({
 				return [row.splice(1)];
 		});
 		this.title = this.report_name;
-		frappe.tools.downloadify(result, null, this);
+		frappe.tools.downloadify(result, null, this.title);
 		return false;
 	}
 })

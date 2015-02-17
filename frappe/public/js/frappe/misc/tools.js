@@ -3,7 +3,7 @@
 
 frappe.provide("frappe.tools");
 
-frappe.tools.downloadify = function(data, roles, me) {
+frappe.tools.downloadify = function(data, roles, title) {
 	if(roles && roles.length && !has_common(roles, user_roles)) {
 		msgprint(__("Export not allowed. You need {0} role to export.", [frappe.utils.comma_or(roles)]));
 		return;
@@ -14,7 +14,7 @@ frappe.tools.downloadify = function(data, roles, me) {
 
 	var download_from_server = function() {
 		open_url_post("/", {
-			args: { data: data, filename: me.title },
+			args: { data: data, filename: title },
 			cmd: "frappe.utils.csvutils.send_csv_to_client"
 		}, true);
 	}
@@ -33,7 +33,7 @@ frappe.tools.downloadify = function(data, roles, me) {
 
 		Downloadify.create(id ,{
 			filename: function(){
-				return me.title + '.csv';
+				return title + '.csv';
 			},
 			data: _get_data,
 			swf: 'assets/frappe/js/lib/downloadify/downloadify.swf',

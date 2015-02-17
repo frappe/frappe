@@ -735,7 +735,7 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 			this.frm.attachments.update_attachment(attachment);
 		} else {
 			this.set_input(this.fileobj.filename, this.dataurl);
-			this.refresh();
+			//this.refresh();
 		}
 	},
 });

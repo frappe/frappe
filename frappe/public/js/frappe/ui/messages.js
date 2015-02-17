@@ -34,13 +34,13 @@ frappe.confirm = function(message, ifyes, ifno) {
 	return d;
 }
 
-frappe.prompt = function(fields, callback) {
+frappe.prompt = function(fields, callback, title, primary_label) {
 	if(!$.isArray(fields)) fields = [fields];
 	var d = new frappe.ui.Dialog({
 		fields: fields,
-		title: __("Enter Value"),
+		title: title || __("Enter Value"),
 	})
-	d.set_primary_action(__("Submit"), function() {
+	d.set_primary_action(primary_label || __("Submit"), function() {
 		var values = d.get_values();
 		if(!values) {
 			return;
