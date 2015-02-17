@@ -21,10 +21,6 @@
   .modal .modal-body .form-layout {
     margin: -15px;
   }
-  .page-head .page-title h1 {
-    font-size: 18px;
-    margin-top: 22px;
-  }
   .layout-main-section-wrapper {
     padding: 0px;
   }
@@ -193,6 +189,10 @@
   }
   .layout-main {
     position: relative;
+  }
+  .page-head .page-title h1 {
+    font-size: 18px;
+    margin-top: 22px;
   }
   body[data-route^="Form"] .page-title h1 {
     margin-top: 14px;
