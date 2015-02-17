@@ -385,12 +385,16 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 
 		if(this.can_delete || this.listview.settings.selectable) {
 			this.list_header.find(".list-select-all").on("click", function() {
-				console.log('select all clicked!');
 				me.$page.find('.list-delete').prop("checked", $(this).prop("checked"));
 				me.toggle_delete();
 			});
 
 			this.$page.on("click", ".list-delete", function() {
+				me.toggle_delete();
+			});
+
+			// after delete, hide delete button
+			this.$w.on("render-complete", function() {
 				me.toggle_delete();
 			});
 		}
