@@ -139,7 +139,7 @@ frappe.desktop.show_all_modules = function() {
 				module.label = __(module.label);
 				$(repl('<div class="list-group-item" data-label="%(name)s">\
 				<div class="row">\
-					<div class="col-xs-2"><a href="#%(link)s">%(app_icon)s</a></div>\
+					<div class="col-xs-2">%(app_icon)s</div>\
 					<div class="col-xs-10" style="padding-top: 14px;">\
 						%(label)s\
 						<input class="pull-right" type="checkbox" data-name="%(name)s" />\
