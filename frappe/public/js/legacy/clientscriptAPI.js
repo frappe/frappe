@@ -295,6 +295,10 @@ _f.Frm.prototype.set_read_only = function() {
 	cur_frm.perm = perm;
 }
 
+_f.Frm.prototype.trigger = function(event) {
+	this.script_manager.trigger(event);
+};
+
 _f.Frm.prototype.get_formatted = function(fieldname) {
 	return frappe.format(this.doc[fieldname],
 			frappe.meta.get_docfield(this.doctype, fieldname, this.docname),

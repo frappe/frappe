@@ -353,7 +353,10 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 	},
 	validate: function(v, callback) {
 		if(this.df.options == 'Phone') {
-			if(v+''=='')return '';
+			if(v+''=='') {
+				callback("");
+				return;
+			}
 			v1 = ''
 			// phone may start with + and must only have numbers later, '-' and ' ' are stripped
 			v = v.replace(/ /g, '').replace(/-/g, '').replace(/\(/g, '').replace(/\)/g, '');
@@ -371,7 +374,10 @@ frappe.ui.form.ControlData = frappe.ui.form.ControlInput.extend({
 			v1 += cint(v) + '';
 			callback(v1);
 		} else if(this.df.options == 'Email') {
-			if(v+''=='')return '';
+			if(v+''=='') {
+				callback("");
+				return;
+			}
 			if(!validate_email(v)) {
 				msgprint(__("Invalid Email: {0}", [v]));
 					callback("");
@@ -588,6 +594,7 @@ frappe.ui.form.ControlButton = frappe.ui.form.ControlData.extend({
 		this.input = this.$input.get(0);
 		this.set_input_attributes();
 		this.has_input = true;
+		this.$wrapper.find(".control-label").addClass("hide");
 	},
 	onclick: function() {
 		if(this.frm && this.frm.doc) {
@@ -603,7 +610,7 @@ frappe.ui.form.ControlButton = frappe.ui.form.ControlData.extend({
 	},
 	set_input_areas: function() {
 		this._super();
-		$(this.disp_area).removeClass();
+		$(this.disp_area).removeClass().addClass("hide");
 	},
 	set_empty_description: function() {
 		this.$wrapper.find(".help-box").empty().toggle(false);

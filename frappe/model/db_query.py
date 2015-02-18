@@ -100,18 +100,23 @@ class DatabaseQuery(object):
 		return args
 
 	def parse_args(self):
-		if isinstance(self.filters, basestring):
-			self.filters = json.loads(self.filters)
 		if isinstance(self.fields, basestring):
 			if self.fields == "*":
 				self.fields = ["*"]
 			else:
 				self.fields = json.loads(self.fields)
-		if isinstance(self.filters, dict):
-			fdict = self.filters
-			self.filters = []
-			for key, value in fdict.iteritems():
-				self.filters.append(self.make_filter_tuple(key, value))
+
+		for filter_name in ["filters", "or_filters"]:
+			filters = getattr(self, filter_name)
+			if isinstance(filters, basestring):
+				filters = json.loads(filters)
+
+			if isinstance(filters, dict):
+				fdict = filters
+				filters = []
+				for key, value in fdict.iteritems():
+					filters.append(self.make_filter_tuple(key, value))
+			setattr(self, filter_name, filters)
 
 	def make_filter_tuple(self, key, value):
 		if isinstance(value, (list, tuple)):

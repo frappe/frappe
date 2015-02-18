@@ -461,6 +461,12 @@ class Database:
 		return frappe._dict(self.sql("""select field, value from
 			tabSingles where doctype=%s""", doctype))
 
+	def get_all(self, *args, **kwargs):
+		return frappe.get_all(*args, **kwargs)
+
+	def get_list(self, *args, **kwargs):
+		return frappe.get_list(*args, **kwargs)
+
 	def get_single_value(self, doctype, fieldname):
 		"""Get property of Single DocType."""
 		val = self.sql("""select value from

@@ -17,8 +17,8 @@ def main(app=None, module=None, doctype=None, verbose=False, tests=(), force=Fal
 	if not frappe.db:
 		frappe.connect()
 
-	if not frappe.conf.get("db_name").startswith("test_"):
-		raise Exception, 'db_name must start with "test_"'
+	# if not frappe.conf.get("db_name").startswith("test_"):
+	# 	raise Exception, 'db_name must start with "test_"'
 
 	# workaround! since there is no separate test db
 	frappe.clear_cache()

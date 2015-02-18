@@ -48,8 +48,8 @@ class Page(Document):
 			# js
 			if not os.path.exists(path + '.js'):
 				with open(path + '.js', 'w') as f:
-					f.write("""frappe.pages['%s'].onload = function(wrapper) {
-	frappe.ui.make_app_page({
+					f.write("""frappe.pages['%s'].on_page_load = function(wrapper) {
+	var page = frappe.ui.make_app_page({
 		parent: wrapper,
 		title: '%s',
 		single_column: true

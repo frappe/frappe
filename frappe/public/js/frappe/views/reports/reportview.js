@@ -105,6 +105,9 @@ frappe.views.ReportView = frappe.ui.Listing.extend({
 		this.make_save();
 		this.make_user_permissions();
 		this.set_tag_and_status_filter();
+		this.page.add_menu_item(__("Refresh"), function() {
+			me.refresh();
+		}, true);
 	},
 
 	set_init_columns: function() {

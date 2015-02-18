@@ -441,6 +441,10 @@ def get_doc(arg1, arg2=None):
 	import frappe.model.document
 	return frappe.model.document.get_doc(arg1, arg2)
 
+def get_single(doctype):
+	"""Return a `frappe.model.document.Document` object of the given Single doctype."""
+	return get_doc(doctype, doctype)
+
 def get_meta(doctype, cached=True):
 	"""Get `frappe.model.meta.Meta` instance of given doctype name."""
 	import frappe.model.meta
