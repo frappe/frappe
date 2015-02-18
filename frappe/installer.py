@@ -217,7 +217,7 @@ def add_module_defs(app):
 		d.save()
 
 def remove_missing_apps():
-	apps = ('frappe_subscription',)
+	apps = ('frappe_subscription', 'shopping_cart')
 	installed_apps = frappe.get_installed_apps()
 	for app in apps:
 		if app in installed_apps:

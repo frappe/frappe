@@ -10,7 +10,7 @@ def execute():
 
 	# every user must have access to his / her own detail
 	for user in frappe.get_all("User", filters={"user_type": "System User"}):
-		frappe.share.add("User", user.name, user.name, write=1)
+		frappe.share.add("User", user.name, user.name, share=1)
 
 	# move event user to shared
 	if frappe.db.exists("DocType", "Event User"):
