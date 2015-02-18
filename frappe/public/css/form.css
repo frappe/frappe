@@ -11,6 +11,11 @@
   padding: 10px 0px;
   border-bottom: 1px solid #d1d8dd;
 }
+.form-inner-toolbar {
+  padding: 10px 15px;
+  background-color: #fafbfc;
+  text-align: right;
+}
 .form-clickable-section {
   border-top: 1px solid #d1d8dd;
   padding: 10px 15px;

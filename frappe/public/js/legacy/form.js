@@ -98,8 +98,6 @@ _f.Frm.prototype.setup = function() {
 		page: this.page
 	});
 
-	this.frm_head = this.toolbar;
-
 	// print layout
 	this.setup_print_layout();
 
@@ -222,8 +220,8 @@ _f.Frm.prototype.onhide = function() {
 
 _f.Frm.prototype.setup_std_layout = function() {
 	this.form_wrapper = $('<div></div>').appendTo(this.layout_main);
-	this.body_header	= $("<div>").appendTo(this.form_wrapper);
-	this.body 			= $("<div>").appendTo(this.form_wrapper);
+	this.inner_toolbar	= $('<div class="form-inner-toolbar hide"></div>').appendTo(this.form_wrapper);
+	this.body 			= $('<div></div>').appendTo(this.form_wrapper);
 
 	// only tray
 	this.meta.section_style='Simple'; // always simple!
@@ -324,9 +322,11 @@ _f.Frm.prototype.refresh_header = function() {
 		frappe.ui.toolbar.recent.add(this.doctype, this.docname, 1);
 
 	// show / hide buttons
-	if(this.frm_head) {
-		this.frm_head.refresh();
+	if(this.toolbar) {
+		this.toolbar.refresh();
 	}
+
+	this.clear_custom_buttons();
 
 	this.show_web_link();
 }
@@ -748,10 +748,13 @@ _f.Frm.prototype.set_footnote = function(txt) {
 
 
 _f.Frm.prototype.add_custom_button = function(label, fn, icon, toolbar_or_class) {
-	this.page.add_menu_item(label, fn);
+	return $('<button class="btn btn-default btn-xs" style="margin-left: 10px;">'+__(label)+'</btn>')
+		.on("click", fn).appendTo(this.inner_toolbar.removeClass("hide"))
+	//return this.page.add_menu_item(label, fn);
 }
 
 _f.Frm.prototype.clear_custom_buttons = function() {
+	this.inner_toolbar.empty().addClass("hide");
 	this.page.clear_user_actions();
 }
 

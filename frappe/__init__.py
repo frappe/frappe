@@ -469,6 +469,10 @@ def delete_doc_if_exists(doctype, name):
 	if db.exists(doctype, name):
 		delete_doc(doctype, name)
 
+def reload_doctype(doctype):
+	"""Reload DocType from model (`[module]/[doctype]/[name]/[name].json`) files."""
+	reload_doc(db.get_value("DocType", doctype, "module"), "doctype", doctype)
+
 def reload_doc(module, dt=None, dn=None, force=False):
 	"""Reload Document from model (`[module]/[doctype]/[name]/[name].json`) files.
 
@@ -477,6 +481,7 @@ def reload_doc(module, dt=None, dn=None, force=False):
 	:param dn: Document name.
 	:param force: Reload even if `modified` timestamp matches.
 	"""
+
 	import frappe.modules
 	return frappe.modules.reload_doc(module, dt, dn, force=force)
 
