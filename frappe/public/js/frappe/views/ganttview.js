@@ -84,6 +84,7 @@ frappe.views.Gantt = Class.extend({
 						scale: "days",
 						minScale: "hours",
 						maxScale: "months",
+						itemsPerPage: 20,
 						onItemClick: function(data) {
 							frappe.set_route('Form', me.doctype, data.name);
 						},

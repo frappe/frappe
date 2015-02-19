@@ -38,6 +38,9 @@ frappe.ui.form.Toolbar = Class.extend({
 		}
 		var me = this;
 		this.page.set_title(title);
+		if(this.frm.meta.title_field) {
+			document.title = title + " - " + this.frm.docname;
+		}
 		this.set_indicator();
 	},
 	get_dropdown_menu: function(label) {

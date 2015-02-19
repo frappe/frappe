@@ -579,6 +579,7 @@ _f.Frm.prototype._save = function(save_action, callback, btn, on_error) {
 		// validate
 		validated = true;
 		this.script_manager.trigger("validate");
+		this.script_manager.trigger("before_save");
 
 		if(!validated) {
 			if(on_error)
@@ -589,6 +590,7 @@ _f.Frm.prototype._save = function(save_action, callback, btn, on_error) {
 
 	var after_save = function(r) {
 		if(!r.exc) {
+			me.script_manager.trigger("after_save");
 			me.refresh();
 		} else {
 			if(on_error)
