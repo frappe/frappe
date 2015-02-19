@@ -29,10 +29,10 @@
   {
    "description": "If image is selected, color will be ignored (attach first)", 
    "fieldname": "background_image", 
-   "fieldtype": "Select", 
+   "fieldtype": "Attach", 
    "in_list_view": 1, 
    "label": "Background Image", 
-   "options": "attach_files:", 
+   "options": "", 
    "permlevel": 0
   }, 
   {
@@ -217,7 +217,7 @@
  "idx": 1, 
  "issingle": 1, 
  "max_attachments": 1, 
- "modified": "2015-02-05 05:11:47.350401", 
+ "modified": "2015-02-19 09:27:51.752971", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Style Settings", 

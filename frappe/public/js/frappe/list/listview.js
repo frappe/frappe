@@ -259,8 +259,12 @@ frappe.views.ListView = Class.extend({
 
 	get_indicator: function(doc) {
         var indicator = frappe.get_indicator(doc, this.doctype);
-        return '<span class="indicator '+indicator[1]+' filterable" data-filter="'
-			+indicator[2]+'">'+indicator[0]+'<span>';
+		if(indicator) {
+	        return '<span class="indicator '+indicator[1]+' filterable" data-filter="'
+				+indicator[2]+'">'+indicator[0]+'<span>';
+		} else {
+			return "";
+		}
 	},
 
 	get_indicator_dot: function(doc) {

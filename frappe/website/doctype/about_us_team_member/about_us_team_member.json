@@ -1,5 +1,5 @@
 {
- "creation": "2013-03-07 11:55:11.000000", 
+ "creation": "2013-03-07 11:55:11", 
  "docstatus": 0, 
  "doctype": "DocType", 
  "fields": [
@@ -14,10 +14,10 @@
   }, 
   {
    "fieldname": "image_link", 
-   "fieldtype": "Select", 
+   "fieldtype": "Attach", 
    "in_list_view": 1, 
    "label": "Image Link", 
-   "options": "attach_files:", 
+   "options": "", 
    "permlevel": 0, 
    "width": "150px"
   }, 
@@ -33,9 +33,10 @@
  ], 
  "idx": 1, 
  "istable": 1, 
- "modified": "2013-12-20 19:22:52.000000", 
+ "modified": "2015-02-19 09:29:46.804175", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "About Us Team Member", 
- "owner": "Administrator"
+ "owner": "Administrator", 
+ "permissions": []
 }

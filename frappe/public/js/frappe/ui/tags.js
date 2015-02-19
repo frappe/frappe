@@ -66,6 +66,8 @@ frappe.ui.TagEditor = Class.extend({
 	refresh: function(user_tags) {
 		var me = this;
 
+		if(!me.initialized) return;
+
 		me.refreshing = true;
 		me.$tags.tagit("removeAll");
 

@@ -118,10 +118,7 @@ def check_record(d):
 				frappe.msgprint(_("{0} is required").format(docfield.label), raise_exception=1)
 
 			if docfield.fieldtype=='Select' and val and docfield.options:
-				if docfield.options == "attach_files:":
-					pass
-
-				elif val not in docfield.options.split('\n'):
+				if val not in docfield.options.split('\n'):
 					frappe.throw(_("{0} must be one of {1}").format(_(docfield.label), comma_or(docfield.options.split("\n"))))
 
 			if val and docfield.fieldtype=='Date':

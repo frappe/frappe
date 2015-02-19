@@ -51,9 +51,9 @@
   {
    "description": "Select an image of approx width 150px with a transparent background for best results.", 
    "fieldname": "banner_image", 
-   "fieldtype": "Select", 
+   "fieldtype": "Attach", 
    "label": "Banner Image", 
-   "options": "attach_files:", 
+   "options": "", 
    "permlevel": 0
   }, 
   {
@@ -195,9 +195,9 @@
   {
    "description": "An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [<a href=\"http://favicon-generator.org/\" target=\"_blank\">favicon-generator.org</a>]", 
    "fieldname": "favicon", 
-   "fieldtype": "Select", 
+   "fieldtype": "Attach", 
    "label": "FavIcon", 
-   "options": "attach_files:", 
+   "options": "", 
    "permlevel": 0
   }, 
   {
@@ -226,7 +226,7 @@
  "idx": 1, 
  "issingle": 1, 
  "max_attachments": 10, 
- "modified": "2015-02-05 05:11:49.131729", 
+ "modified": "2015-02-19 09:29:09.956095", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Website Settings", 

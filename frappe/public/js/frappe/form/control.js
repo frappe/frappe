@@ -127,10 +127,10 @@ frappe.ui.form.ControlImage = frappe.ui.form.Control.extend({
 			.css({"max-width": "600px", "margin": "0px"});
 		this.$body = $("<div></div>").appendTo(this.$wrapper)
 			.css({"margin-bottom": "10px", "max-width": "100%"})
-			
+
 		this.$wrapper.on("refresh", function() {
 				me.$body.empty();
-				
+
 				var doc = frappe.model.get_doc(me.doctype, me.docname);
 				if(me.df.options && doc[me.df.options]) {
 					me.$img = $("<img src='"+doc[me.df.options]+"' style='max-width: 100%;'>")
@@ -782,9 +782,6 @@ frappe.ui.form.ControlSelect = frappe.ui.form.ControlData.extend({
 	make_input: function() {
 		var me = this;
 		this._super();
-		if(this.df.options=="attach_files:") {
-			this.setup_attachment();
-		}
 		this.set_options();
 	},
 	set_input: function(value) {
@@ -811,32 +808,9 @@ frappe.ui.form.ControlSelect = frappe.ui.form.ControlData.extend({
 			}
 		}
 	},
-	setup_attachment: function() {
-		var me = this;
-		$(this.input).css({"width": "85%", "display": "inline-block"});
-		this.$attach = $("<button class='btn btn-default btn-sm' title='"+ __("Add attachment") + "'\
-			style='padding-left: 6px; padding-right: 6px; margin-right: 6px;'>\
-			<i class='icon-plus'></i></button>")
-			.click(function() {
-				me.frm.attachments.new_attachment(me.df.fieldname);
-			})
-			.prependTo(this.input_area);
-
-		$(document).on("upload_complete", function(event, attachment) {
-			if(cur_frm === me.frm) {
-				me.set_options();
-			}
-		})
-
-		this.$wrapper.on("refresh", function() {
-			me.$attach.toggle(!me.frm.doc.__islocal);
-		});
-	},
 	set_options: function(value) {
 		var options = this.df.options || [];
-		if(this.df.options=="attach_files:") {
-			options = this.get_file_attachment_list();
-		} else if(typeof this.df.options==="string") {
+		if(typeof this.df.options==="string") {
 			options = this.df.options.split("\n");
 		}
 		if(this.in_filter && options[0] != "") {

@@ -236,8 +236,7 @@ def get_messages_from_doctype(name):
 	for d in meta.get("fields"):
 		messages.extend([d.label, d.description])
 
-		if d.fieldtype=='Select' and d.options \
-			and not d.options.startswith("attach_files:"):
+		if d.fieldtype=='Select' and d.options:
 			options = d.options.split('\n')
 			if not "icon" in options[0]:
 				messages.extend(options)

@@ -49,8 +49,6 @@ frappe.ui.form.Attachments = Class.extend({
 			this.attachments_label.removeClass("has-attachments");
 		}
 
-		// refresh select fields with options attach_files:
-		this.refresh_attachment_select_fields();
 	},
 	get_attachments: function() {
 		return this.frm.get_docinfo().attachments;
@@ -213,20 +211,5 @@ frappe.ui.form.Attachments = Class.extend({
 		});
 		this.frm.get_docinfo().attachments = new_attachments;
 		this.refresh();
-	},
-	refresh_attachment_select_fields: function() {
-		for(var i=0; i<this.frm.fields.length; i++) {
-			if(this.frm.fields[i].df.options=="attach_files:" && this.frm.fields[i].$input) {
-				var fieldname = this.frm.fields[i].df.fieldname;
-				var selected_option = this.frm.fields[i].$input.find("option:selected").val();
-
-				if(this.frm.doc[fieldname]!=null && selected_option!==this.frm.doc[fieldname]) {
-					this.frm.script_manager.trigger(fieldname);
-					this.frm.set_value(fieldname, "");
-				}
-
-				this.frm.fields[i].refresh();
-			}
-		}
 	}
 });

@@ -1,14 +1,14 @@
 {
-  "creation": "2013-03-07 12:26:33.000000", 
+ "creation": "2013-03-07 12:26:33", 
  "docstatus": 0, 
  "doctype": "DocType", 
  "fields": [
   {
    "fieldname": "image", 
-   "fieldtype": "Select", 
+   "fieldtype": "Attach", 
    "in_list_view": 1, 
    "label": "Image", 
-   "options": "attach_files:", 
+   "options": "", 
    "permlevel": 0
   }, 
   {
@@ -33,9 +33,10 @@
  "idx": 1, 
  "istable": 1, 
  "max_attachments": 10, 
- "modified": "2013-12-20 19:21:55.000000", 
+ "modified": "2015-02-19 09:27:05.003437", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Website Slideshow Item", 
- "owner": "Administrator"
+ "owner": "Administrator", 
+ "permissions": []
 }
