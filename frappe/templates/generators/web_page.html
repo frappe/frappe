@@ -1,7 +1,11 @@
+{% if header -%}
+	{%- block header -%} {{ header }} {%- endblock -%}
+{%- endif %}
+
 {% block content %}
 <div class="webpage-content">
 	{% include "templates/includes/slideshow.html" %}
-	<article class="web-page-content" id="{{ name }}">
+	<article class="web-page-content" id="{{ name }}" {% if text_align -%}style="text-align: {{ text_align }}"{%- endif %}>
 	{{ main_section or "" }}
 	</article>
 	{% if enable_comments -%}

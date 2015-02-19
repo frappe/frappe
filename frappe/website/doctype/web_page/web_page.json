@@ -20,70 +20,12 @@
    "reqd": 1
   }, 
   {
-   "description": "Page url name (auto-generated)", 
-   "fieldname": "page_name", 
-   "fieldtype": "Data", 
-   "in_list_view": 0, 
-   "label": "Page Name", 
-   "no_copy": 1, 
-   "permlevel": 0, 
-   "read_only": 0
-  }, 
-  {
-   "fieldname": "parent_web_page", 
-   "fieldtype": "Link", 
-   "label": "Parent Web Page", 
-   "options": "Web Page", 
-   "permlevel": 0
-  }, 
-  {
-   "fieldname": "parent_website_route", 
-   "fieldtype": "Read Only", 
-   "hidden": 1, 
-   "label": "Parent Website Route", 
-   "no_copy": 1, 
-   "options": "", 
-   "permlevel": 0
-  }, 
-  {
-   "fieldname": "published", 
+   "default": "1", 
+   "fieldname": "show_title", 
    "fieldtype": "Check", 
-   "label": "Published", 
-   "permlevel": 0
-  }, 
-  {
-   "description": "0 is highest", 
-   "fieldname": "idx", 
-   "fieldtype": "Int", 
-   "label": "Priority", 
-   "permlevel": 0
-  }, 
-  {
-   "fieldname": "template_path", 
-   "fieldtype": "Data", 
-   "label": "Template Path", 
+   "label": "Show Title", 
    "permlevel": 0, 
-   "read_only": 1
-  }, 
-  {
-   "fieldname": "cb1", 
-   "fieldtype": "Column Break", 
-   "permlevel": 0, 
-   "width": "50%"
-  }, 
-  {
-   "description": "Description for page header.", 
-   "fieldname": "description", 
-   "fieldtype": "Small Text", 
-   "label": "Description", 
-   "permlevel": 0
-  }, 
-  {
-   "description": "Page content", 
-   "fieldname": "sb1", 
-   "fieldtype": "Section Break", 
-   "label": "Content", 
-   "permlevel": 0
+   "precision": ""
   }, 
   {
    "description": "Begin this page with a slideshow of images", 
@@ -94,6 +36,35 @@
    "permlevel": 0
   }, 
   {
+   "fieldname": "cb1", 
+   "fieldtype": "Column Break", 
+   "permlevel": 0, 
+   "width": "50%"
+  }, 
+  {
+   "description": "Page url name (auto-generated)", 
+   "fieldname": "page_name", 
+   "fieldtype": "Data", 
+   "in_list_view": 0, 
+   "label": "Page Name", 
+   "no_copy": 1, 
+   "permlevel": 0, 
+   "read_only": 0
+  }, 
+  {
+   "fieldname": "published", 
+   "fieldtype": "Check", 
+   "label": "Published", 
+   "permlevel": 0
+  }, 
+  {
+   "description": "Page content", 
+   "fieldname": "sb1", 
+   "fieldtype": "Section Break", 
+   "label": "Content", 
+   "permlevel": 0
+  }, 
+  {
    "description": "Content in markdown format that appears on the main side of your page", 
    "fieldname": "main_section", 
    "fieldtype": "Text Editor", 
@@ -101,32 +72,10 @@
    "permlevel": 0
   }, 
   {
-   "depends_on": "eval:!doc.__islocal", 
-   "description": "Link to other pages in the side bar and next section", 
-   "fieldname": "sb2", 
-   "fieldtype": "Section Break", 
-   "label": "More", 
-   "permlevel": 0
-  }, 
-  {
-   "description": "HTML for header section. Optional", 
-   "fieldname": "header", 
-   "fieldtype": "Text", 
-   "label": "Header", 
-   "permlevel": 0
-  }, 
-  {
-   "fieldname": "enable_comments", 
-   "fieldtype": "Check", 
-   "label": "Enable Comments", 
-   "permlevel": 0
-  }, 
-  {
-   "fieldname": "text_align", 
-   "fieldtype": "Select", 
-   "label": "Text Align", 
-   "options": "Left\nCenter\nRight", 
-   "permlevel": 0
+   "fieldname": "fold_10", 
+   "fieldtype": "Fold", 
+   "permlevel": 0, 
+   "precision": ""
   }, 
   {
    "fieldname": "custom_javascript", 
@@ -168,12 +117,90 @@
    "label": "CSS", 
    "options": "CSS", 
    "permlevel": 0
+  }, 
+  {
+   "fieldname": "section_break_17", 
+   "fieldtype": "Section Break", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "enable_comments", 
+   "fieldtype": "Check", 
+   "label": "Enable Comments", 
+   "permlevel": 0
+  }, 
+  {
+   "fieldname": "text_align", 
+   "fieldtype": "Select", 
+   "label": "Text Align", 
+   "options": "Left\nCenter\nRight", 
+   "permlevel": 0
+  }, 
+  {
+   "fieldname": "column_break_20", 
+   "fieldtype": "Column Break", 
+   "permlevel": 0, 
+   "precision": ""
+  }, 
+  {
+   "fieldname": "parent_web_page", 
+   "fieldtype": "Link", 
+   "label": "Parent Web Page", 
+   "options": "Web Page", 
+   "permlevel": 0
+  }, 
+  {
+   "fieldname": "parent_website_route", 
+   "fieldtype": "Read Only", 
+   "hidden": 1, 
+   "label": "Parent Website Route", 
+   "no_copy": 1, 
+   "options": "", 
+   "permlevel": 0
+  }, 
+  {
+   "description": "0 is highest", 
+   "fieldname": "idx", 
+   "fieldtype": "Int", 
+   "label": "Priority", 
+   "permlevel": 0
+  }, 
+  {
+   "fieldname": "template_path", 
+   "fieldtype": "Data", 
+   "hidden": 0, 
+   "label": "Template Path", 
+   "permlevel": 0, 
+   "read_only": 1
+  }, 
+  {
+   "depends_on": "eval:!doc.__islocal", 
+   "description": "", 
+   "fieldname": "sb2", 
+   "fieldtype": "Section Break", 
+   "label": "", 
+   "permlevel": 0
+  }, 
+  {
+   "description": "Description for search engine optimization.", 
+   "fieldname": "description", 
+   "fieldtype": "Small Text", 
+   "label": "Description", 
+   "permlevel": 0
+  }, 
+  {
+   "description": "HTML for header section. Optional", 
+   "fieldname": "header", 
+   "fieldtype": "Text", 
+   "label": "Header", 
+   "permlevel": 0
   }
  ], 
  "icon": "icon-file-alt", 
  "idx": 1, 
  "max_attachments": 20, 
- "modified": "2015-02-05 05:11:48.998913", 
+ "modified": "2015-02-20 08:30:53.345780", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Web Page", 

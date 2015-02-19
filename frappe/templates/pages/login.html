@@ -1,6 +1,7 @@
 {% block style %}{% include "templates/includes/login.css" %}{% endblock %}
 
 {% block content %}
+<!-- no-header -->
 <div class="login-content container" style="max-width: 800px; padding-top: 30px;">
 	<form class="form-signin form-login" role="form">
 		{%- if social_login -%}
@@ -66,7 +67,6 @@
 		</p>
 
 	</form>
-
 </div>
 {% endblock %}
 

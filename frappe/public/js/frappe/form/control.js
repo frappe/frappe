@@ -128,21 +128,16 @@ frappe.ui.form.ControlImage = frappe.ui.form.Control.extend({
 	make: function() {
 		this._super();
 		var me = this;
-		this.$wrapper = $("<div></div>")
-			.appendTo(this.parent)
-			.css({"max-width": "600px", "margin": "0px"});
+		this.$wrapper.css({"margin": "0px"});
 		this.$body = $("<div></div>").appendTo(this.$wrapper)
-			.css({"margin-bottom": "10px", "max-width": "100%"})
-
+			.css({"margin-bottom": "10px"})
 		this.$wrapper.on("refresh", function() {
 				var doc = null;
 				me.$body.empty();
 
-				if(me.docname) {
-					var doc = frappe.model.get_doc(me.doctype, me.docname);
-				}
+				var doc = me.get_doc();
 				if(doc && me.df.options && doc[me.df.options]) {
-					me.$img = $("<img src='"+doc[me.df.options]+"' style='max-width: 100%;'>")
+					me.$img = $("<img src='"+doc[me.df.options]+"' class='img-responsive'>")
 						.appendTo(me.$body);
 				} else {
 					me.$buffer = $("<div class='missing-image'><i class='octicon octicon-circle-slash'></i></div>")
@@ -155,7 +150,7 @@ frappe.ui.form.ControlImage = frappe.ui.form.Control.extend({
 });
 
 frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
-	// horizontal: true,
+	horizontal: true,
 	make: function() {
 		// parent element
 		this._super();
@@ -194,7 +189,7 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 	},
 	set_max_width: function() {
 		if(this.horizontal) {
-			this.$wrapper.css({"max-width": "600px"});
+			this.$wrapper.addClass("input-max-width");
 		}
 	},
 

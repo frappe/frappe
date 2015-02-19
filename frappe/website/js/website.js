@@ -441,11 +441,6 @@ $.extend(frappe, {
 		if(!$(".page-sidebar").hasClass("hidden-xs")) {
 			$(".toggle-sidebar").trigger("click");
 		}
-
-		// TODO add private pages to sidebar
-		// if(website.private_pages && $(".page-sidebar").length) {
-		// 	$(website.private_pages).prependTo(".page-sidebar");
-		// }
 	}
 });
 
@@ -576,6 +571,11 @@ $(document).ready(function() {
 		$(".toggle-sidebar i").toggleClass("icon-rotate-180");
 	});
 
+	// collapse navbar on click
+	$('.navbar-collapse a').click(function(){
+	    $(".navbar-collapse.collapse.in").collapse('hide');
+	});
+
 	// switch to app link
 	if(getCookie("system_user")==="yes") {
 		$("#website-post-login .dropdown-menu").append('<li class="divider"></li>\
@@ -583,7 +583,7 @@ $(document).ready(function() {
 	}
 
 	frappe.render_user();
-	frappe.setup_push_state()
+	frappe.setup_push_state();
 
 	$(document).trigger("page-change");
 });

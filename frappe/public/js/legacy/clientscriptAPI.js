@@ -289,7 +289,7 @@ _f.Frm.prototype.new_doc = function(doctype, field, opts) {
 _f.Frm.prototype.set_read_only = function() {
 	var perm = [];
 	var docperms = frappe.perm.get_perm(cur_frm.doc.doctype);
-	for (var i=0, l=docperms.lenght; i<l; i++) {
+	for (var i=0, l=docperms.length; i<l; i++) {
 		var p = docperms[i];
 		perm[p.permlevel || 0] = {read:1};
 	}

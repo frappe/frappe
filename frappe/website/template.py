@@ -30,56 +30,63 @@ def render_blocks(context):
 
 	_render_blocks(context["template"])
 
+	out["no_breadcrumbs"] = context.get("no_breadcrumbs", 0) or ("<!-- no-breadcrumbs -->" in out.get("content", ""))
+	out["no_sidebar"] = context.get("no_sidebar", 0) or ("<!-- no-sidebar -->" in out.get("content", ""))
+	out["no_header"] = context.get("no_header", 0) or ("<!-- no-header -->" in out.get("content", ""))
+
 	# default blocks if not found
-	if "title" not in out and out.get("header"):
-		out["title"] = out["header"]
+
+	# title
+	if "<!-- title:" in out.get("content", ""):
+		out["title"] = re.findall('<!-- title:([^>]*) -->', out.get("content"))[0].strip()
 
 	if "title" not in out:
 		out["title"] = context.get("title")
 
+	# header
+	if out["no_header"]:
+		out["header"] = ""
+	else:
+		if "title" not in out and out.get("header"):
+			out["title"] = out["header"]
 
-	if not out.get("header") and "<h1" not in out.get("content", "") \
-		and not "<!-- no-header -->" in out.get("content"):
-		if out.get("title"):
-			out["header"] = out["title"]
+		if not out.get("header") and "<h1" not in out.get("content", ""):
+			if out.get("title"):
+				out["header"] = out["title"]
 
-	if out.get("header") and not out["header"].startswith("<h"):
-		out["header"] = "<h1>" + out["header"] + "</h1>"
+		if out.get("header") and not re.findall("<h.>", out["header"]):
+			out["header"] = "<h1>" + out["header"] + "</h1>"
 
-	if "breadcrumbs" not in out:
+	out["title"] = strip_html(out.get("title") or "")
+
+	# breadcrumbs
+	if not out["no_breadcrumbs"] and "breadcrumbs" not in out:
 		out["breadcrumbs"] = scrub_relative_urls(
 			frappe.get_template("templates/includes/breadcrumbs.html").render(context))
 
+	# sidebar
+	if not out.get("no_sidebar") and "sidebar" not in out:
+		out["sidebar"] = scrub_relative_urls(
+			frappe.get_template("templates/includes/sidebar.html").render(context))
+
+	# meta
 	if "meta_block" not in out:
 		out["meta_block"] = frappe.get_template("templates/includes/meta_block.html").render(context)
 
-
-	out["no_sidebar"] = context.get("no_sidebar", 0)
-
-	if "<!-- no-sidebar -->" in out.get("content", ""):
-		out["no_sidebar"] = 1
-
-	if "<!-- title:" in out.get("content", ""):
-		out["title"] = re.findall('<!-- title:([^>]*) -->', out.get("content"))[0].strip()
-
+	# table of contents
 	if "{index}" in out.get("content", "") and context.get("children"):
 		html = frappe.get_template("templates/includes/static_index.html").render({
 				"items": context["children"]})
 
 		out["content"] = out["content"].replace("{index}", html)
 
+	# next and previous
 	if "{next}" in out.get("content", ""):
 		next_item = context.doc.get_next()
 		if next_item:
 			if next_item.name[0]!="/": next_item.name = "/" + next_item.name
 			html = '<p><br><a href="{name}">'+_("Next")+': {title}</a></p>'.format(**next_item)
 			out["content"] = out["content"].replace("{next}", html)
-
-	if "sidebar" not in out and not out.get("no_sidebar"):
-		out["sidebar"] = scrub_relative_urls(
-			frappe.get_template("templates/includes/sidebar.html").render(context))
-
-	out["title"] = strip_html(out.get("title") or "")
 
 	# remove style and script tags from blocks
 	out["style"] = re.sub("</?style[^<>]*>", "", out.get("style") or "")

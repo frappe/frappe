@@ -36,7 +36,7 @@
    "description": "Select target = \"_blank\" to open in a new page.", 
    "fieldname": "target", 
    "fieldtype": "Select", 
-   "in_list_view": 1, 
+   "in_list_view": 0, 
    "label": "Target", 
    "options": "\ntarget = \"_blank\"", 
    "permlevel": 0
@@ -51,7 +51,7 @@
  ], 
  "idx": 1, 
  "istable": 1, 
- "modified": "2014-08-25 02:30:31.523955", 
+ "modified": "2015-02-19 13:07:34.558311", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Top Bar Item", 

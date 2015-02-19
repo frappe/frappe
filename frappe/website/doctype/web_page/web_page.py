@@ -48,13 +48,19 @@ class WebPage(WebsiteGenerator):
 		else:
 			context.update({
 				"style": self.css or "",
-				"script": self.javascript or ""
+				"script": self.javascript or "",
+				"header": self.header,
+				"title": self.title,
+				"text_align": self.text_align,
 			})
 
-		self.set_metatags(context)
+			if self.description:
+				context.setdefault("metatags", {})["description"] = self.description
 
-		# if not context.header:
-		# 	context.header = self.title
+			if not self.show_title:
+				context["no_header"] = 1
+
+		self.set_metatags(context)
 
 		return context
 

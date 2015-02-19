@@ -31,23 +31,21 @@ frappe.ui.form.ScriptManager = Class.extend({
 		handlers = this.get_handlers(event_name, doctype, name, callback);
 		if(callback) handlers.push(callback);
 
-		$.each(handlers, function(i, fn) {
-			fn();
-		})
+		return $.when.apply($, $.map(handlers, function(fn) { return fn(); }));
 	},
 	get_handlers: function(event_name, doctype, name, callback) {
 		var handlers = [];
 		var me = this;
 		if(frappe.ui.form.handlers[doctype] && frappe.ui.form.handlers[doctype][event_name]) {
 			$.each(frappe.ui.form.handlers[doctype][event_name], function(i, fn) {
-				handlers.push(function() { fn(me.frm, doctype, name) });
+				handlers.push(function() { return fn(me.frm, doctype, name) });
 			});
 		}
 		if(this.frm.cscript[event_name]) {
-			handlers.push(function() { me.frm.cscript[event_name](me.frm.doc, doctype, name); });
+			handlers.push(function() { return me.frm.cscript[event_name](me.frm.doc, doctype, name); });
 		}
 		if(this.frm.cscript["custom_" + event_name]) {
-			handlers.push(function() { me.frm.cscript["custom_" + event_name](me.frm.doc, doctype, name); });
+			handlers.push(function() { return me.frm.cscript["custom_" + event_name](me.frm.doc, doctype, name); });
 		}
 		return handlers;
 	},

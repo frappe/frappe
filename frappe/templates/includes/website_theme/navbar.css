@@ -1,0 +1,69 @@
+.navbar {
+	background-color: {{ theme.top_bar_color }};
+	background-repeat: repeat-x;
+	background-image: none;
+	border: none;
+	border-bottom: 1px solid {{ get_shade(theme.top_bar_color, 10) }};
+}
+
+.navbar .navbar-text,
+.navbar .navbar-brand,
+.navbar .navbar-link,
+.navbar .nav > li > a {
+	color: {{ theme.top_bar_text_color }};
+	text-shadow: none;
+	padding-top: 25px;
+	padding-bottom: 25px;
+}
+
+{# links #}
+.navbar .navbar-brand:hover,
+.navbar .navbar-brand:focus,
+.navbar .navbar-brand:active,
+.navbar .nav .active > a,
+.navbar .nav .active > a:hover,
+.navbar .nav .active > a:focus,
+.navbar .nav .active > a:active,
+.navbar .navbar-link:hover,
+.navbar .navbar-link:focus,
+.navbar .navbar-link:active,
+.navbar .nav > li > a:hover,
+.navbar .nav > li > a:focus,
+.navbar .nav > li > a:active {
+	color: {{ get_shade(theme.top_bar_text_color, 15) }};
+	background-color: transparent;
+    -webkit-box-shadow: none;
+       -moz-box-shadow: none;
+            box-shadow: none;
+}
+
+.navbar-fixed-top,
+.navbar-static-top {
+  -webkit-box-shadow: none;
+     -moz-box-shadow: none;
+          box-shadow: none;
+
+}
+
+.navbar-toggle {
+	margin-top: 7px;
+	margin-bottom: 7px;
+}
+
+.navbar-collapse {
+	border-radius: 0px;
+}
+
+{# navbar brand #}
+.navbar-brand {
+	padding-right: 30px;
+	max-width: 80%;
+	min-height: 20px;
+	height: auto;
+}
+
+@media (min-width: 768px) {
+	.navbar-brand {
+		max-width: 300px;
+	}
+}

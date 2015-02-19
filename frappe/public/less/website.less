@@ -13,6 +13,7 @@
 a {
 	cursor: pointer;
 }
+
 a, a:hover, a:active, a:focus {
    outline: 0;
 }
@@ -54,6 +55,12 @@ img {
 	background-color: @navbar-bg;
 }
 
+.navbar {
+	box-shadow: none;
+	border-radius: 0px;
+	margin-bottom: 0px;
+}
+
 .social-icons i {
 	font-size: 120%;
 }
@@ -69,7 +76,6 @@ img {
 }
 
 .web-footer {
-	border-top: 1px solid @border-color;
 	padding: 20px 0px;
 	min-height: 140px;
 }
@@ -184,32 +190,6 @@ img {
 	border-bottom: 1px solid @border-color;
 }
 
-.navbar {
-	box-shadow: none;
-	border-radius: 0px;
-	margin-bottom: 0px;
-	padding-top: 15px;
-	padding-bottom: 15px;
-	border-bottom: 1px solid @border-color;
-}
-
-.navbar-brand {
-	padding-right: 30px;
-	max-width: 80%;
-	min-height: 20px;
-	height: auto;
-}
-
-.navbar a.active {
-	font-weight: bold;
-}
-
-@media (min-width: 768px) {
-	.navbar-brand {
-		max-width: 300px;
-	}
-}
-
 .panel-container {
 	margin-top: 35px;
 }
@@ -257,9 +237,11 @@ fieldset {
 .page-content {
 	padding-bottom: 30px;
 }
+
 div[data-html-block="content"] {
 	padding-right: 15px;
 }
+
 .page-content hr {
 	margin-left: -15px;
 	margin-right: -30px;
@@ -272,6 +254,7 @@ div[data-html-block="content"] {
 	border-left: 1px solid @border-color;
 	padding-left: 15px;
 }
+
 .sidebar-item {
 	margin: 0px;
 	padding: 5px 0px;
@@ -279,6 +262,7 @@ div[data-html-block="content"] {
 	color: @text-muted;
 	font-size: 12px;
 }
+
 .sidebar-item:first-child {
 	padding-top: 10px;
 }
@@ -302,16 +286,10 @@ body {
 }
 
 .page-footer {
-    margin: 20px 0px 0px;
 	padding: 15px 0px;
-    border-top: 1px solid #eee;
+    border-top: 1px solid @border-color;
 }
 
-
-/* website group */
-.view-selector {
-	margin-bottom: 15px;
-}
 
 /* post and post list */
 
@@ -320,16 +298,19 @@ body {
 	border-bottom: 1px solid @border-color;
 	margin-right: -30px;
 	padding-right: 30px;
+
+	h3 {
+	    margin: 0 0 5px 0;
+
+		a {
+		    color: inherit !important;
+		    text-decoration: none;
+		}
+	}
 }
+
 .web-list-item:last-child {
     border-bottom: none;
-}
-.web-list-item h3 {
-    margin: 0 0 5px 0;
-}
-.web-list-item h3 a {
-    color: inherit !important;
-    text-decoration: none;
 }
 
 textarea {
@@ -349,10 +330,6 @@ textarea {
 	.visible-xs {
 		display: inline-block !important;
 	}
-}
-
-.nav-tabs > li > a {
-	padding: 7px 10px;
 }
 
 .btn-more {
@@ -457,3 +434,4 @@ a.text-extra-muted:focus {
 	color: inherit;
 	border-bottom: 1px solid @text-muted;
 }
+

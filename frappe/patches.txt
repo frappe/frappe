@@ -64,3 +64,4 @@ execute:frappe.db.sql("""update tabComment set comment = substr(comment, 6, loca
 frappe.patches.v5_0.fix_feed
 frappe.patches.v5_0.update_shared
 frappe.patches.v5_0.bookmarks_to_stars
+frappe.patches.v5_0.style_settings_to_website_theme

@@ -42,6 +42,9 @@ class WebsiteSettings(Document):
 			footer_item.parent_label = None
 
 	def on_update(self):
+		self.clear_cache()
+
+	def clear_cache(self):
 		# make js and css
 		# clear web cache (for menus!)
 

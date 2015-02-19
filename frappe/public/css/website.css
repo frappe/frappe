@@ -41,6 +41,11 @@ img {
 .navbar-bg {
   background-color: #f5f7fa;
 }
+.navbar {
+  box-shadow: none;
+  border-radius: 0px;
+  margin-bottom: 0px;
+}
 .social-icons i {
   font-size: 120%;
 }
@@ -54,7 +59,6 @@ img {
   margin-left: 5px;
 }
 .web-footer {
-  border-top: 1px solid #d1d8dd;
   padding: 20px 0px;
   min-height: 140px;
 }
@@ -157,28 +161,6 @@ img {
 .border-bottom {
   border-bottom: 1px solid #d1d8dd;
 }
-.navbar {
-  box-shadow: none;
-  border-radius: 0px;
-  margin-bottom: 0px;
-  padding-top: 15px;
-  padding-bottom: 15px;
-  border-bottom: 1px solid #d1d8dd;
-}
-.navbar-brand {
-  padding-right: 30px;
-  max-width: 80%;
-  min-height: 20px;
-  height: auto;
-}
-.navbar a.active {
-  font-weight: bold;
-}
-@media (min-width: 768px) {
-  .navbar-brand {
-    max-width: 300px;
-  }
-}
 .panel-container {
   margin-top: 35px;
 }
@@ -258,13 +240,8 @@ body {
   /* The html and body elements cannot have any padding or margin. */
 }
 .page-footer {
-  margin: 20px 0px 0px;
   padding: 15px 0px;
-  border-top: 1px solid #eee;
-}
-/* website group */
-.view-selector {
-  margin-bottom: 15px;
+  border-top: 1px solid #d1d8dd;
 }
 /* post and post list */
 .web-list-item {
@@ -273,15 +250,15 @@ body {
   margin-right: -30px;
   padding-right: 30px;
 }
-.web-list-item:last-child {
-  border-bottom: none;
-}
 .web-list-item h3 {
   margin: 0 0 5px 0;
 }
 .web-list-item h3 a {
   color: inherit !important;
   text-decoration: none;
+}
+.web-list-item:last-child {
+  border-bottom: none;
 }
 textarea {
   resize: vertical;
@@ -297,9 +274,6 @@ textarea {
   .visible-xs {
     display: inline-block !important;
   }
-}
-.nav-tabs > li > a {
-  padding: 7px 10px;
 }
 .btn-more {
   margin-top: 15px;

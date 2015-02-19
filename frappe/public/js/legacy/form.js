@@ -126,26 +126,29 @@ _f.Frm.prototype.setup_drag_drop = function() {
 	var me = this;
 	$(this.wrapper).on('dragenter dragover', false)
 		.on('drop', function (e) {
+			var dataTransfer = e.originalEvent.dataTransfer;
+			if (!(dataTransfer && dataTransfer.files && dataTransfer.files.length > 0)) {
+				return;
+			}
+
 			e.stopPropagation();
 			e.preventDefault();
+
 			if(me.doc.__islocal) {
 				msgprint(__("Please save before attaching."));
-				return false;
 				throw "attach error";
 			}
+
 			if(me.attachments.max_reached()) {
 				msgprint(__("Maximum Attachment Limit for this record reached."));
 				throw "attach error";
 			}
 
-			var dataTransfer = e.originalEvent.dataTransfer;
-			if (dataTransfer && dataTransfer.files && dataTransfer.files.length > 0) {
-				frappe.upload.upload_file(dataTransfer.files[0], me.attachments.get_args(), {
-					callback: function(attachment, r) {
-						me.attachments.attachment_uploaded(attachment, r);
-					}
-				});
-			}
+			frappe.upload.upload_file(dataTransfer.files[0], me.attachments.get_args(), {
+				callback: function(attachment, r) {
+					me.attachments.attachment_uploaded(attachment, r);
+				}
+			});
 		});
 }
 
@@ -570,19 +573,6 @@ _f.Frm.prototype._save = function(save_action, callback, btn, on_error) {
 	if((!this.meta.in_dialog || this.in_form) && !this.meta.istable)
 		scroll(0, 0);
 
-	if(save_action != "Update") {
-		// validate
-		validated = true;
-		this.script_manager.trigger("validate");
-		this.script_manager.trigger("before_save");
-
-		if(!validated) {
-			if(on_error)
-				on_error();
-			return;
-		}
-	}
-
 	var after_save = function(r) {
 		if(!r.exc) {
 			me.script_manager.trigger("after_save");
@@ -603,7 +593,25 @@ _f.Frm.prototype._save = function(save_action, callback, btn, on_error) {
 		}
 	}
 
-	frappe.ui.form.save(me, save_action, after_save, btn);
+	if(save_action != "Update") {
+		// validate
+		validated = true;
+		$.when(this.script_manager.trigger("validate"), this.script_manager.trigger("before_save"))
+			.done(function() {
+				// done is called after all ajaxes in validate & before_save are completed :)
+
+				if(!validated) {
+					if(on_error)
+						on_error();
+					return;
+				}
+
+				frappe.ui.form.save(me, save_action, after_save, btn);
+			});
+
+	} else {
+		frappe.ui.form.save(me, save_action, after_save, btn);
+	}
 }
 
 
@@ -612,19 +620,20 @@ _f.Frm.prototype.savesubmit = function(btn, callback, on_error) {
 	this.validate_form_action("Submit");
 	frappe.confirm(__("Permanently Submit {0}?", [this.docname]), function() {
 		validated = true;
-		me.script_manager.trigger("before_submit");
-		if(!validated) {
-			if(on_error)
-				on_error();
-			return;
-		}
-
-		me.save('Submit', function(r) {
-			if(!r.exc) {
-				callback && callback();
-				me.script_manager.trigger("on_submit");
+		me.script_manager.trigger("before_submit").done(function() {
+			if(!validated) {
+				if(on_error)
+					on_error();
+				return;
 			}
-		}, btn, on_error);
+
+			me.save('Submit', function(r) {
+				if(!r.exc) {
+					callback && callback();
+					me.script_manager.trigger("on_submit");
+				}
+			}, btn, on_error);
+		});
 	});
 };
 
@@ -633,23 +642,24 @@ _f.Frm.prototype.savecancel = function(btn, callback, on_error) {
 	this.validate_form_action('Cancel');
 	frappe.confirm(__("Permanently Cancel {0}?", [this.docname]), function() {
 		validated = true;
-		me.script_manager.trigger("before_cancel");
-		if(!validated) {
-			if(on_error)
-				on_error();
-			return;
-		}
-
-		var after_cancel = function(r) {
-			if(!r.exc) {
-				me.refresh();
-				callback && callback();
-				me.script_manager.trigger("after_cancel");
-			} else {
-				on_error();
+		me.script_manager.trigger("before_cancel").done(function() {
+			if(!validated) {
+				if(on_error)
+					on_error();
+				return;
 			}
-		}
-		frappe.ui.form.save(me, "cancel", after_cancel, btn);
+
+			var after_cancel = function(r) {
+				if(!r.exc) {
+					me.refresh();
+					callback && callback();
+					me.script_manager.trigger("after_cancel");
+				} else {
+					on_error();
+				}
+			}
+			frappe.ui.form.save(me, "cancel", after_cancel, btn);
+		});
 	});
 }
 

@@ -74,6 +74,11 @@ def get_data():
 				},
 				{
 					"type": "doctype",
+					"name": "Website Theme",
+					"description": _("List of themes for Website."),
+				},
+				{
+					"type": "doctype",
 					"name": "Social Login Keys",
 					"description": _("Enter keys to enable login via Facebook, Google, GitHub."),
 				}

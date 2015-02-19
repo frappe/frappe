@@ -23,6 +23,8 @@ Built on Frappe.io. Free and Open Source Framework for the Web. https://frappe.i
 		{{ meta_block }}
 		{% endif %}
 
+		<link type="text/css" rel="stylesheet" href="{{ bootstrap }}">
+
 		{%- for link in web_include_css %}
 		<link type="text/css" rel="stylesheet" href="{{ link }}">
 		{%- endfor -%}
@@ -59,7 +61,6 @@ Built on Frappe.io. Free and Open Source Framework for the Web. https://frappe.i
     					{%- block sidebar -%}
     					{%- if sidebar is defined -%}
     						{{ sidebar }}
-    						{{ private_pages or "" }}
     					{%- endif -%}
     					{%- endblock -%}
     				</div>

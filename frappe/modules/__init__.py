@@ -10,7 +10,8 @@ import frappe.utils
 from frappe import _
 
 lower_case_files_for = ['DocType', 'Page', 'Report',
-	"Workflow", 'Module Def', 'Desktop Item', 'Workflow State', 'Workflow Action', 'Print Format']
+	"Workflow", 'Module Def', 'Desktop Item', 'Workflow State', 'Workflow Action', 'Print Format',
+	"Website Theme"]
 
 def scrub(txt):
 	return frappe.scrub(txt)

@@ -26,23 +26,9 @@ def build_route(path):
 	if not context:
 		raise frappe.DoesNotExistError
 
-	if context.controller:
-		module = frappe.get_module(context.controller)
-
-		# get sitemap config fields too
-		for prop in ("base_template_path", "template", "no_cache", "no_sitemap",
-			"condition_field"):
-			if hasattr(module, prop):
-				context[prop] = getattr(module, prop)
-
 	context.doctype = context.ref_doctype
 	context.title = context.page_title
 	context.pathname = path
-
-	# determine templates to be used
-	if not context.base_template_path:
-		app_base = frappe.get_hooks("base_template")
-		context.base_template_path = app_base[0] if app_base else "templates/base.html"
 
 	return context
 

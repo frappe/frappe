@@ -1,6 +1,5 @@
 {
 	"css/frappe-web.css": [
-		"public/css/bootstrap.css",
 		"public/css/font-awesome.css",
 		"public/css/nprogress.css",
 		"public/css/website.css"

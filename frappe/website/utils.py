@@ -66,6 +66,11 @@ def is_signup_enabled():
 
 	return frappe.local.is_signup_enabled
 
+def get_active_theme():
+	website_theme = frappe.db.get_value("Website Settings", "Website Settings", "website_theme")
+	if website_theme:
+		return frappe.get_doc("Website Theme", website_theme)
+
 def cleanup_page_name(title):
 	"""make page name from title"""
 	name = title.lower()
@@ -79,21 +84,12 @@ def cleanup_page_name(title):
 
 	return name
 
-def get_hex_shade(color, percent):
-	def p(c):
-		v = int(c, 16) + int(int('ff', 16) * (float(percent)/100))
-		if v < 0:
-			v=0
-		if v > 255:
-			v=255
-		h = hex(v)[2:]
-		if len(h) < 2:
-			h = "0" + h
-		return h
 
-	r, g, b = color[0:2], color[2:4], color[4:6]
+def get_shade(color, percent):
+	color, color_format = detect_color_format(color)
+	r, g, b, a = color
 
-	avg = (float(int(r, 16) + int(g, 16) + int(b, 16)) / 3)
+	avg = (float(int(r) + int(g) + int(b)) / 3)
 	# switch dark and light shades
 	if avg > 128:
 		percent = -percent
@@ -102,4 +98,66 @@ def get_hex_shade(color, percent):
 	if percent < 25 and avg < 64:
 		percent = percent * 2
 
-	return p(r) + p(g) + p(b)
+	new_color = []
+	for channel_value in (r, g, b):
+		new_color.append(get_shade_for_channel(channel_value, percent))
+
+	r, g, b = new_color
+
+	return format_color(r, g, b, a, color_format)
+
+
+def detect_color_format(color):
+	if color.startswith("rgba"):
+		color_format = "rgba"
+		color = [c.strip() for c in color[5:-1].split(",")]
+
+	elif color.startswith("rgb"):
+		color_format = "rgb"
+		color = [c.strip() for c in color[4:-1].split(",")] + [1]
+
+	else:
+		# assume hex
+		color_format = "hex"
+
+		if color.startswith("#"):
+			color = color[1:]
+
+		if len(color) == 3:
+			# hex in short form like #fff
+			color = "{0}{0}{1}{1}{2}{2}".format(*tuple(color))
+
+		color = [int(color[0:2], 16), int(color[2:4], 16), int(color[4:6], 16), 1]
+
+	return color, color_format
+
+
+def get_shade_for_channel(channel_value, percent):
+	v = int(channel_value) + int(int('ff', 16) * (float(percent)/100))
+	if v < 0:
+		v=0
+	if v > 255:
+		v=255
+
+	return v
+
+
+def format_color(r, g, b, a, color_format):
+	if color_format == "rgba":
+		return "rgba({0}, {1}, {2}, {3})".format(r, g, b, a)
+
+	elif color_format == "rgb":
+		return "rgb({0}, {1}, {2})".format(r, g, b)
+
+	else:
+		# assume hex
+		return "#{0}{1}{2}".format(convert_to_hex(r), convert_to_hex(g), convert_to_hex(b))
+
+
+def convert_to_hex(channel_value):
+	h = hex(channel_value)[2:]
+
+	if len(h) < 2:
+		h = "0" + h
+
+	return h

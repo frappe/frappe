@@ -34,6 +34,7 @@ def get_allowed_functions_for_jenv():
 	import frappe.utils.data
 	from frappe.utils.autodoc import automodule, get_doclink, get_version
 	from frappe.model.document import get_controller
+	from frappe.website.utils import get_shade
 
 	datautils = {}
 	for key, obj in frappe.utils.data.__dict__.items():
@@ -81,33 +82,44 @@ def get_allowed_functions_for_jenv():
 		},
 		"get_visible_columns": \
 			frappe.get_attr("frappe.templates.pages.print.get_visible_columns"),
-		"_": frappe._
+		"_": frappe._,
+		"get_shade": get_shade
 	}
 
 def get_jloader():
 	import frappe
 	if not frappe.local.jloader:
-		from jinja2 import ChoiceLoader, PackageLoader
+		from jinja2 import ChoiceLoader, PackageLoader, PrefixLoader
 
 		apps = frappe.get_installed_apps()
-		apps.remove("frappe")
 
-		frappe.local.jloader = ChoiceLoader([PackageLoader(app, ".") \
-				for app in apps + ["frappe"]])
+		# put frappe at the end
+		apps.remove("frappe")
+		apps.append("frappe")
+
+		frappe.local.jloader = ChoiceLoader(
+			# search for something like app/templates/...
+			[PrefixLoader(dict(
+				(app, PackageLoader(app, ".")) for app in apps
+			))]
+
+			# search for something like templates/...
+			+ [PackageLoader(app, ".") for app in apps]
+		)
 
 	return frappe.local.jloader
 
 def set_filters(jenv):
 	import frappe
 	from frappe.utils import global_date_format, cint, cstr, flt
-	from frappe.website.utils import get_hex_shade
+	from frappe.website.utils import get_shade
 	from markdown2 import markdown
 	from json import dumps
 
 	jenv.filters["global_date_format"] = global_date_format
 	jenv.filters["markdown"] = markdown
 	jenv.filters["json"] = dumps
-	jenv.filters["get_hex_shade"] = get_hex_shade
+	jenv.filters["get_shade"] = get_shade
 	jenv.filters["len"] = len
 	jenv.filters["int"] = cint
 	jenv.filters["str"] = cstr

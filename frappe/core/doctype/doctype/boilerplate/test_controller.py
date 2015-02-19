@@ -1,4 +1,4 @@
-# Copyright (c) 2013, {app_publisher} and Contributors
+# Copyright (c) 2015, {app_publisher} and Contributors
 # See license.txt
 
 import frappe

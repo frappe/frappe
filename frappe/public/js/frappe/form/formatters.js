@@ -94,7 +94,7 @@ frappe.form.formatters = {
 			}
 
 			if(!match) {
-				return replace_newlines(value);
+				value = replace_newlines(value);
 			}
 		}
 
@@ -139,7 +139,7 @@ frappe.form.formatters = {
 		return frappe.form.formatters.Text(value);
 	},
 	TextEditor: function(value) {
-		return frappe.form.formatters.Text(frappe.utils.remove_script_and_style(value));
+		return frappe.form.formatters.Text(value);
 	},
 	Code: function(value) {
 		return "<pre>" + (value==null ? "" : $("<div>").text(value).html()) + "</pre>"
@@ -179,7 +179,12 @@ frappe.format = function(value, df, options, doc) {
 
 	formatter = df.formatter || frappe.form.get_formatter(fieldtype);
 
-	return formatter(value, df, options, doc);
+	var formatted = formatter(value, df, options, doc);
+
+	if (typeof formatted == "string")
+		formatted = frappe.utils.remove_script_and_style(formatted);
+
+	return formatted;
 }
 
 frappe.get_format_helper = function(doc) {
