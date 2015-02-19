@@ -33,7 +33,7 @@ frappe.ui.FilterList = Class.extend({
 		this.$w.find('.show_filters').toggle(true);
 		var is_new_filter = arguments.length===0;
 
-		if (is_new_filter && this.$w.find(".is-new-filter").length) {
+		if (is_new_filter && this.$w.find(".is-new-filter:visible").length) {
 			// only allow 1 new filter at a time!
 			return;
 		}

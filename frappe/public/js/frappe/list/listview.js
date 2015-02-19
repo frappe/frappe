@@ -36,6 +36,8 @@ frappe.views.ListView = Class.extend({
 		this.doclistview.onreset = function() {
 			me.id_list = [];
 		}
+		this.order_by = this.settings.order_by;
+		this.group_by = this.settings.group_by;
 	},
 	set_fields: function() {
 		var me = this;
