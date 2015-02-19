@@ -289,7 +289,7 @@ frappe.ready(function() {
 
 	// import date picker / timepicker if required
 	{% if "Date" in types %}
-	frappe.require("assets/frappe/js/lib/jquery/jquery.ui.min.js");
+	frappe.require("assets/frappe/js/lib/jquery/jquery-ui.min.js");
 	frappe.require("assets/frappe/js/lib/jquery/bootstrap_theme/jquery-ui.selected.css");
 	$form.find("[data-fieldtype='Date']").datepicker({
 		altFormat:'yy-mm-dd',
