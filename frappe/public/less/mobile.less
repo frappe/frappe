@@ -1,5 +1,6 @@
 @import "variables.less";
 @import "mixins.less";
+@import "offcanvas.less";
 
 @media(max-width: 767px) {
 	.modal {
@@ -27,6 +28,32 @@
 
 		.modal-body .form-layout {
 			margin: -15px;
+		}
+
+		.file-upload {
+			.input-upload {
+				width: 100%;
+				text-align: center;
+
+				.btn-browse {
+					width: 100%;
+				}
+			}
+
+			.web-link-wrapper {
+				display: block;
+				width: 100% !important;
+				text-align: center;
+
+				.file-upload-or {
+					display: block;
+					margin: 15px 24px;
+				}
+
+				.input-link {
+					width: 100% !important;
+				}
+			}
 		}
 	}
 
@@ -325,72 +352,7 @@
 		margin: 0px;
 	}
 
-	// Off Canvas
-	.offcanvas {
-		transition: 0.25s;
-	}
-
-	.desk-main-section-overlay {
-		bottom: 0;
-		position: fixed;
-	}
-
-	.desk-container,
-	.offcanvas,
-	.desk-main-section {
-		position: absolute;
-		left: 0;
-		right: 0;
-		top: 0;
-		bottom: 0;
-	}
-
-	.offcanvas.active-left,
-	.offcanvas.active-right {
-		position: fixed;
-	}
-
-	.offcanvas.active-left .desk-main-section-overlay,
-	.offcanvas.active-right .desk-main-section-overlay {
-		z-index: 1031;
-		display: block;
-		bottom: 0;
-	}
-
-	.offcanvas.active-left {
-		-webkit-transform: translate3d(75%, 0, 0);
-		transform: translate3d(75%, 0, 0);
-	}
-
-	.offcanvas.active-right {
-		-webkit-transform: translate3d(-75%, 0, 0);
-		transform: translate3d(-75%, 0, 0);
-	}
-
-	.offcanvas .sidebar {
-		position: fixed;
-		// position: absolute;
-		top: 0;
-		bottom: 0;
-		width: 75%; /* 9 columns */
-		overflow-x: hidden;
-		overflow-y: auto;
-		font-size: 12px;
-	}
-
-	.offcanvas .sidebar-right {
-		left: 100%;
-		border-left: 1px solid @border-color;
-	}
-
-	.offcanvas .sidebar-left {
-		right: 100%;
-		border-right: 1px solid @border-color;
-	}
-
-	.offcanvas .sidebar-menu {
-		margin-bottom: 0;
-	}
+	.offcanvas-mobile-mixin();
 
 	.sidebar .form-group {
 		margin-bottom: 0px;

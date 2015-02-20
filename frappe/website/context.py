@@ -7,7 +7,7 @@ import frappe
 from frappe.website.doctype.website_settings.website_settings import get_website_settings
 from frappe.website.template import render_blocks
 from frappe.website.router import get_route_info
-from frappe.website.utils import can_cache, get_active_theme
+from frappe.website.utils import can_cache
 
 def get_context(path):
 	context = None
@@ -74,8 +74,7 @@ def build_context(context):
 				context.children = module.get_children(context)
 
 	add_metatags(context)
-
-	add_website_theme(context)
+	context.update(frappe.get_hooks("website_context") or {})
 
 	# determine templates to be used
 	if not context.base_template_path:
@@ -100,10 +99,4 @@ def add_metatags(context):
 			tags["og:description"] = tags["twitter:description"] = tags["description"]
 		if tags.get("image"):
 			tags["og:image"] = tags["twitter:image:src"] = tags["image"]
-
-def add_website_theme(context):
-	context.bootstrap = frappe.get_hooks("bootstrap")[0]
-	website_theme = get_active_theme()
-	if website_theme and website_theme.bootstrap:
-		context.bootstrap = website_theme.bootstrap
 

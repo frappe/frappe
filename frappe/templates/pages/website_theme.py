@@ -4,8 +4,7 @@
 from __future__ import unicode_literals
 import re
 import frappe
-from frappe.utils import cint, cstr
-from frappe.website.utils import get_active_theme
+from frappe.website.doctype.website_theme.website_theme import get_active_theme
 
 no_sitemap = 1
 base_template_path = "templates/pages/website_theme.css"

@@ -421,13 +421,13 @@ $.extend(frappe, {
 		$(".page-sidebar, .toggle-sidebar").toggleClass("hide", !sidebar_has_content);
 
 		// push sidebar to the right if there is content
-		$(".page-sidebar").toggleClass("col-sm-push-" + frappe.page_cols, sidebar_has_content);
+		// $(".page-sidebar").toggleClass("col-sm-push-" + frappe.page_cols, sidebar_has_content);
 
 		// make page content wide if no sidebar
 		$(".page-content").toggleClass("col-sm-12", !sidebar_has_content);
 
 		// narrow page content if sidebar
-		$(".page-content").toggleClass("col-sm-"+frappe.page_cols+" col-sm-pull-"+frappe.sidebar_cols, sidebar_has_content);
+		$(".page-content").toggleClass("col-sm-"+frappe.page_cols, sidebar_has_content);
 
 		// no borders if no sidebars
 		$(".page-content").toggleClass("no-border", !sidebar_has_content);
@@ -435,12 +435,6 @@ $.extend(frappe, {
 		// if everything in the sub-header is hidden, hide the sub-header
 		// var hide_sub_header = $(".page-sub-header .row").children().length === $(".page-sub-header .row").find(".hidden").length;
 		// $(".page-sub-header").toggleClass("hidden", hide_sub_header);
-
-
-		// collapse sidebar in mobile view on page change
-		if(!$(".page-sidebar").hasClass("hidden-xs")) {
-			$(".toggle-sidebar").trigger("click");
-		}
 	}
 });
 
@@ -567,13 +561,18 @@ $(document).ready(function() {
 	$("#website-post-login").toggleClass("hide", logged_in ? false : true);
 
 	$(".toggle-sidebar").on("click", function() {
-		$(".page-sidebar").toggleClass("hidden-xs");
-		$(".toggle-sidebar i").toggleClass("icon-rotate-180");
+		$(".offcanvas").addClass("active-right");
+		return false;
 	});
 
-	// collapse navbar on click
-	$('.navbar-collapse a').click(function(){
-	    $(".navbar-collapse.collapse.in").collapse('hide');
+	// collapse offcanvas sidebars!
+	$(".offcanvas .sidebar").on("click", "a", function() {
+		$(".offcanvas").removeClass("active-left active-right");
+	});
+
+	$(".offcanvas-main-section-overlay").on("click", function() {
+		$(".offcanvas").removeClass("active-left active-right");
+		return false;
 	});
 
 	// switch to app link

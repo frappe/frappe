@@ -46,8 +46,8 @@
 }
 
 .navbar-toggle {
-	margin-top: 7px;
-	margin-bottom: 7px;
+	margin-top: 18px;
+	margin-bottom: 18px;
 }
 
 .navbar-collapse {
@@ -62,8 +62,15 @@
 	height: auto;
 }
 
+@media (max-width: 767px) {
+	.toggle-sidebar {
+		padding: 25px 15px;
+	}
+}
+
 @media (min-width: 768px) {
 	.navbar-brand {
 		max-width: 300px;
 	}
 }
+

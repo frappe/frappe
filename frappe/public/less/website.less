@@ -1,21 +1,19 @@
 @import "variables.less";
+@import "offcanvas.less";
 
-@media (min-width: 768px) {
-	.login-wrapper {
-		border-right: 1px solid #f2f2f2;
-	}
+html,
+body {
+	height: 100%;
+	/* The html and body elements cannot have any padding or margin. */
+	overflow-x: hidden; /* Prevent scroll on narrow devices */
 }
-
-// h1, h2, h3, h4, h5 {
-// 	font-weight: 400;
-// }
 
 a {
 	cursor: pointer;
 }
 
 a, a:hover, a:active, a:focus {
-   outline: 0;
+	 outline: 0;
 }
 
 img {
@@ -140,15 +138,15 @@ img {
 }
 
 .carousel-control .icon {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  z-index: 5;
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  margin-top: -10px;
-  margin-left: -10px;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	z-index: 5;
+	display: inline-block;
+	width: 20px;
+	height: 20px;
+	margin-top: -10px;
+	margin-left: -10px;
 }
 
 .hidden-xs-inline, .hidden-xs-inline-block {
@@ -179,6 +177,7 @@ img {
 }
 
 /* the element that this class is applied to, should have a max width for this to work*/
+.text-ellipsis,
 .ellipsis {
 	white-space: nowrap;
 	overflow: hidden;
@@ -205,14 +204,14 @@ fieldset {
 }
 
 .message-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
 	height: 100%;
-    z-index: 1040;
+		z-index: 1040;
 	background-color: #fff;
-    display: table;
+		display: table;
 }
 .message-overlay .content {
 	display: table-cell;
@@ -235,7 +234,7 @@ fieldset {
 }
 
 .page-content {
-	padding-bottom: 30px;
+
 }
 
 div[data-html-block="content"] {
@@ -250,67 +249,64 @@ div[data-html-block="content"] {
 .page-content {
 	border-right: 1px solid @border-color;
 }
+
 .page-sidebar {
 	border-left: 1px solid @border-color;
-	padding-left: 15px;
-}
+	padding: 0px 15px;
+	position: relative;
+	left: -1px;
 
-.sidebar-item {
-	margin: 0px;
-	padding: 5px 0px;
-	border: none;
-	color: @text-muted;
-	font-size: 12px;
-}
+	.sidebar-item {
+		margin: 0px;
+		padding: 5px 0px;
+		border: none;
+		color: @text-muted;
+		font-size: 12px;
+	}
 
-.sidebar-item:first-child {
-	padding-top: 10px;
-}
-.sidebar-item:last-child {
-	padding-bottom: 10px;
-}
+	.sidebar-item:first-child {
+		padding-top: 10px;
+	}
+	.sidebar-item:last-child {
+		padding-bottom: 10px;
+	}
 
-.sidebar-item a {
-	color: @text-muted;
-}
+	.sidebar-item a {
+		color: @text-muted;
+	}
 
-.sidebar-item a.active {
-	color: #000;
-	font-weight: bold;
-}
-
-html,
-body {
-  height: 100%;
-  /* The html and body elements cannot have any padding or margin. */
+	.sidebar-item a.active {
+		color: #000;
+		font-weight: bold;
+	}
 }
 
 .page-footer {
 	padding: 15px 0px;
-    border-top: 1px solid @border-color;
+		border-top: 1px solid @border-color;
 }
 
 
 /* post and post list */
 
 .web-list-item {
-    padding: 15px 0px;
+		padding: 15px 0px;
 	border-bottom: 1px solid @border-color;
 	margin-right: -30px;
 	padding-right: 30px;
 
 	h3 {
-	    margin: 0 0 5px 0;
+			margin: 0 0 5px 0;
 
 		a {
-		    color: inherit !important;
-		    text-decoration: none;
+				color: inherit !important;
+				text-decoration: none;
 		}
 	}
 }
 
 .web-list-item:last-child {
-    border-bottom: none;
+		border-bottom: none;
 }
 
 textarea {
@@ -340,12 +336,6 @@ textarea {
 	margin: 10px 0px;
 }
 
-.assigned-label, .event-label {
-	display: inline-block;
-	padding: .4em .6em .4em;
-	margin-bottom: 7px;
-}
-
 a.no-decoration {
 	text-decoration: none;
 	color: inherit;
@@ -357,7 +347,7 @@ a.active {
 }
 
 :target {
-   background-color: #ffa;
+	 background-color: #ffa;
 }
 
 .page-breadcrumbs .breadcrumb {
@@ -373,18 +363,6 @@ a.active {
 
 .breadcrumb > .active {
 	color: @text-muted;
-}
-
-@media (max-width: 767px) {
-	.page-sidebar {
-		padding-bottom: 15px;
-		margin-bottom: 15px;
-		border-bottom: 1px solid #eee;
-	}
-
-	.page-sidebar .sidebar-item {
-		margin-left: 17px;
-	}
 }
 
 .post:last-child {
@@ -406,13 +384,13 @@ a.active {
 
 a.grey, .nav-pills a, .control-value a, .data-row a {
 	color: inherit;
-    border-bottom: 1px solid transparent;
-    margin-bottom: 0.4em;
+		border-bottom: 1px solid transparent;
+		margin-bottom: 0.4em;
 }
 
 a.grey:hover, .nav-pills a:hover, .control-value a:hover, .data-row a:hover {
-    border-bottom: 1px solid @grey-link-color;
-    color: @grey-link-color;
+		border-bottom: 1px solid @grey-link-color;
+		color: @grey-link-color;
 }
 
 .text-muted {
@@ -434,4 +412,43 @@ a.text-extra-muted:focus {
 	color: inherit;
 	border-bottom: 1px solid @text-muted;
 }
+
+.page-content {
+	min-height: 400px;
+}
+
+@media (max-width: 767px) {
+	.page-content {
+		min-height: 200px;
+		border-right: none !important;
+	}
+
+	.offcanvas-mobile-mixin();
+
+	.offcanvas {
+		ul {
+			margin: 0px;
+		}
+
+		.sidebar-page-sidebar {
+			border-top: 1px solid @border-color;
+		}
+
+		.sidebar-label {
+			text-transform: uppercase;
+			color: @text-muted;
+			font-size: 85%;
+			margin: 0px;
+			font-weight: bold;
+			padding: 10px 15px 0px;
+		}
+	}
+}
+
+@media (min-width: 768px) {
+	.login-wrapper {
+		border-right: 1px solid #f2f2f2;
+	}
+}
+
 

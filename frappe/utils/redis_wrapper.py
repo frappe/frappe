@@ -2,7 +2,7 @@
 # MIT License. See license.txt
 from __future__ import unicode_literals
 
-import redis, frappe, cPickle as pickle
+import redis, frappe, pickle
 
 class RedisWrapper(redis.Redis):
 	"""Redis client that will automatically prefix conf.db_name"""

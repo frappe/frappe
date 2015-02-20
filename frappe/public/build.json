@@ -1,6 +1,7 @@
 {
 	"css/frappe-web.css": [
 		"public/css/font-awesome.css",
+		"public/css/octicons/octicons.css",
 		"public/css/nprogress.css",
 		"public/css/website.css"
 	],

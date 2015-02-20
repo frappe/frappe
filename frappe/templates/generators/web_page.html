@@ -1,6 +1,4 @@
-{% if header -%}
-	{%- block header -%} {{ header }} {%- endblock -%}
-{%- endif %}
+{%- block header -%} {{ header or "" }} {%- endblock -%}
 
 {% block content %}
 <div class="webpage-content">

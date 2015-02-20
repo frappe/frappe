@@ -57,6 +57,9 @@ def render_blocks(context):
 		if out.get("header") and not re.findall("<h.>", out["header"]):
 			out["header"] = "<h1>" + out["header"] + "</h1>"
 
+	if not out.get("header"):
+		out["no_header"] = 1
+
 	out["title"] = strip_html(out.get("title") or "")
 
 	# breadcrumbs
@@ -85,7 +88,7 @@ def render_blocks(context):
 		next_item = context.doc.get_next()
 		if next_item:
 			if next_item.name[0]!="/": next_item.name = "/" + next_item.name
-			html = '<p><br><a href="{name}">'+_("Next")+': {title}</a></p>'.format(**next_item)
+			html = ('<p><br><a href="{name}">'+_("Next")+': {title}</a></p>').format(**next_item)
 			out["content"] = out["content"].replace("{next}", html)
 
 	# remove style and script tags from blocks

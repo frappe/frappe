@@ -9,6 +9,7 @@ from frappe.model.document import Document
 class WebsiteTheme(Document):
 	def validate(self):
 		self.validate_if_customizable()
+		self.validate_colors()
 
 	def on_update(self):
 		if (not self.custom
@@ -33,6 +34,12 @@ class WebsiteTheme(Document):
 		if self.is_standard_and_not_valid_user():
 			frappe.throw(_("Please Duplicate this Website Theme to customize."))
 
+	def validate_colors(self):
+		if (self.top_bar_color or self.top_bar_text_color) and \
+			self.top_bar_color==self.top_bar_text_color:
+				frappe.throw(_("Top Bar Color and Text Color are the same. They should be have good contrast to be readable."))
+
+
 	def export_doc(self):
 		"""Export to standard folder `[module]/website_theme/[name]/[name].json`."""
 		from frappe.modules.export_file import export_to_files
@@ -52,3 +59,20 @@ def use_theme(theme):
 	website_settings = frappe.get_doc("Website Settings", "Website Settings")
 	website_settings.website_theme = theme
 	website_settings.save()
+
+def add_website_theme(context):
+	bootstrap = frappe.get_hooks("bootstrap")[0]
+	website_theme = get_active_theme()
+	if website_theme:
+		if website_theme.bootstrap:
+			bootstrap = website_theme.bootstrap
+
+		context.no_sidebar = website_theme.no_sidebar
+
+	context.web_include_css = [bootstrap] + context.web_include_css
+
+def get_active_theme():
+	website_theme = frappe.db.get_value("Website Settings", "Website Settings", "website_theme")
+	if website_theme:
+		return frappe.get_doc("Website Theme", website_theme)
+

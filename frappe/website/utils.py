@@ -66,11 +66,6 @@ def is_signup_enabled():
 
 	return frappe.local.is_signup_enabled
 
-def get_active_theme():
-	website_theme = frappe.db.get_value("Website Settings", "Website Settings", "website_theme")
-	if website_theme:
-		return frappe.get_doc("Website Theme", website_theme)
-
 def cleanup_page_name(title):
 	"""make page name from title"""
 	name = title.lower()

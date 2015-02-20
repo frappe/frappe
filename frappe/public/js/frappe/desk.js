@@ -173,7 +173,7 @@ frappe.Application = Class.extend({
 			$(".offcanvas").removeClass("active-left active-right");
 		});
 
-		$(".desk-main-section-overlay").on("click", function() {
+		$(".offcanvas-main-section-overlay").on("click", function() {
 			$(".offcanvas").removeClass("active-left active-right");
 		});
 	},

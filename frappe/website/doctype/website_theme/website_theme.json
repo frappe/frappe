@@ -94,6 +94,7 @@
    "precision": ""
   }, 
   {
+   "depends_on": "apply_style", 
    "fieldname": "section_break_14", 
    "fieldtype": "Section Break", 
    "permlevel": 0, 
@@ -153,6 +154,7 @@
    "precision": ""
   }, 
   {
+   "depends_on": "apply_style", 
    "fieldname": "section_break_8", 
    "fieldtype": "Section Break", 
    "permlevel": 0, 
@@ -173,16 +175,9 @@
    "precision": ""
   }, 
   {
-   "fieldname": "page_header_color", 
-   "fieldtype": "Data", 
-   "label": "Page Header Color", 
-   "permlevel": 0, 
-   "precision": ""
-  }, 
-  {
-   "fieldname": "page_header_text_color", 
-   "fieldtype": "Data", 
-   "label": "Page Header Text Color", 
+   "fieldname": "no_sidebar", 
+   "fieldtype": "Check", 
+   "label": "Hide Sidebar", 
    "permlevel": 0, 
    "precision": ""
   }, 
@@ -207,6 +202,7 @@
    "precision": ""
   }, 
   {
+   "depends_on": "apply_style", 
    "fieldname": "section_break_4", 
    "fieldtype": "Section Break", 
    "permlevel": 0, 
@@ -234,12 +230,14 @@
    "precision": ""
   }, 
   {
+   "depends_on": "", 
    "fieldname": "section_break_21", 
    "fieldtype": "Section Break", 
    "permlevel": 0, 
    "precision": ""
   }, 
   {
+   "depends_on": "apply_style", 
    "description": "", 
    "fieldname": "css", 
    "fieldtype": "Code", 
@@ -248,19 +246,11 @@
    "precision": ""
   }, 
   {
-   "fieldname": "section_break_25", 
-   "fieldtype": "Section Break", 
+   "fieldname": "js", 
+   "fieldtype": "Code", 
+   "label": "JavaScript", 
    "permlevel": 0, 
    "precision": ""
-  }, 
-  {
-   "fieldname": "website_theme_templates", 
-   "fieldtype": "Table", 
-   "label": "Website Theme Templates", 
-   "options": "Website Theme Template", 
-   "permlevel": 0, 
-   "precision": "", 
-   "reqd": 0
   }
  ], 
  "hide_heading": 0, 
@@ -270,7 +260,7 @@
  "is_submittable": 0, 
  "issingle": 0, 
  "istable": 0, 
- "modified": "2015-02-19 20:44:42.586242", 
+ "modified": "2015-02-20 11:56:21.252046", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Website Theme", 

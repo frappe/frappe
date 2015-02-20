@@ -1,5 +1,6 @@
 @import "variables.less";
 @import "mixins.less";
+@import "offcanvas.less";
 
 .hide-form-sidebar {
 	.form-sidebar {
@@ -30,39 +31,6 @@ body[data-route^="Module"] .main-menu {
 	}
 
 	.hide-form-sidebar;
-}
-
-.sidebar-padding {
-	padding: 12px 14px;
-}
-
-.offcanvas .sidebar {
-	.sidebar-menu > li > a {
-		.sidebar-padding;
-		display: block;
-		whitespace: nowrap;
-		transition: 0.2s;
-	}
-
-	.divider {
-	    height: 1px;
-	    overflow: hidden;
-	    background-color: @navbar-default-border;
-		width: 100%;
-	}
-
-	.badge {
-		right: 15px !important;
-		top: 11px !important;
-	}
-}
-
-.offcanvas .sidebar .sidebar-menu > li > a& {
-	&:hover,
-	&:focus,
-	&:active {
-		background-color: @btn-bg;
-	}
 }
 
 .layout-side-section {

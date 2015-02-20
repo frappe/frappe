@@ -146,3 +146,8 @@
     padding-right: 15px;
   }
 }
+select.form-control {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}

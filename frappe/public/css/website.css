@@ -1,7 +1,60 @@
-@media (min-width: 768px) {
-  .login-wrapper {
-    border-right: 1px solid #f2f2f2;
-  }
+html,
+body {
+  height: 100%;
+  /* The html and body elements cannot have any padding or margin. */
+  overflow-x: hidden;
+  /* Prevent scroll on narrow devices */
+  margin: 0px;
+  padding: 0px !important;
+}
+.offcanvas-main-section-overlay {
+  display: none;
+  cursor: pointer;
+  opacity: 0.5;
+}
+.sidebar-padding {
+  padding: 12px 14px;
+}
+.offcanvas .sidebar .sidebar-menu > li > a,
+.offcanvas .sidebar .dropdown-menu > li > a {
+  padding: 12px 14px;
+  display: block;
+  whitespace: nowrap;
+  transition: 0.2s;
+  text-decoration: none !important;
+}
+.offcanvas .sidebar .dropdown-menu {
+  padding: 0px;
+  font-size: inherit;
+}
+.offcanvas .sidebar .dropdown-menu > li > a {
+  padding-left: 28px;
+}
+.offcanvas .sidebar .divider {
+  height: 1px;
+  overflow: hidden;
+  background-color: #ebeff2;
+  width: 100%;
+  margin: 0px;
+}
+.offcanvas .sidebar .badge {
+  right: 15px !important;
+  top: 11px !important;
+}
+.offcanvas .sidebar .sidebar-menu > li > a:hover,
+.offcanvas .sidebar .dropdown-menu > li > a:hover,
+.offcanvas .sidebar .sidebar-menu > li > a:focus,
+.offcanvas .sidebar .dropdown-menu > li > a:focus,
+.offcanvas .sidebar .sidebar-menu > li > a:active,
+.offcanvas .sidebar .dropdown-menu > li > a:active {
+  background-color: #f0f4f7;
+}
+html,
+body {
+  height: 100%;
+  /* The html and body elements cannot have any padding or margin. */
+  overflow-x: hidden;
+  /* Prevent scroll on narrow devices */
 }
 a {
   cursor: pointer;
@@ -152,6 +205,7 @@ img {
   }
 }
 /* the element that this class is applied to, should have a max width for this to work*/
+.text-ellipsis,
 .ellipsis {
   white-space: nowrap;
   overflow: hidden;
@@ -197,9 +251,6 @@ fieldset {
 .page-container {
   padding: 0px;
 }
-.page-content {
-  padding-bottom: 30px;
-}
 div[data-html-block="content"] {
   padding-right: 15px;
 }
@@ -212,32 +263,29 @@ div[data-html-block="content"] {
 }
 .page-sidebar {
   border-left: 1px solid #d1d8dd;
-  padding-left: 15px;
+  padding: 0px 15px;
+  position: relative;
+  left: -1px;
 }
-.sidebar-item {
+.page-sidebar .sidebar-item {
   margin: 0px;
   padding: 5px 0px;
   border: none;
   color: #8d99a6;
   font-size: 12px;
 }
-.sidebar-item:first-child {
+.page-sidebar .sidebar-item:first-child {
   padding-top: 10px;
 }
-.sidebar-item:last-child {
+.page-sidebar .sidebar-item:last-child {
   padding-bottom: 10px;
 }
-.sidebar-item a {
+.page-sidebar .sidebar-item a {
   color: #8d99a6;
 }
-.sidebar-item a.active {
+.page-sidebar .sidebar-item a.active {
   color: #000;
   font-weight: bold;
-}
-html,
-body {
-  height: 100%;
-  /* The html and body elements cannot have any padding or margin. */
 }
 .page-footer {
   padding: 15px 0px;
@@ -281,12 +329,6 @@ textarea {
 .post-content img {
   margin: 10px 0px;
 }
-.assigned-label,
-.event-label {
-  display: inline-block;
-  padding: .4em .6em .4em;
-  margin-bottom: 7px;
-}
 a.no-decoration {
   text-decoration: none;
   color: inherit;
@@ -309,16 +351,6 @@ a.active {
 }
 .breadcrumb > .active {
   color: #8d99a6;
-}
-@media (max-width: 767px) {
-  .page-sidebar {
-    padding-bottom: 15px;
-    margin-bottom: 15px;
-    border-bottom: 1px solid #eee;
-  }
-  .page-sidebar .sidebar-item {
-    margin-left: 17px;
-  }
 }
 .post:last-child {
   border-bottom: none;
@@ -362,4 +394,87 @@ a.text-extra-muted:hover,
 a.text-extra-muted:focus {
   color: inherit;
   border-bottom: 1px solid #8d99a6;
+}
+.page-content {
+  min-height: 400px;
+}
+@media (max-width: 767px) {
+  .page-content {
+    min-height: 200px;
+    border-right: none !important;
+  }
+  .offcanvas {
+    transition: 0.25s;
+  }
+  .offcanvas-main-section-overlay {
+    bottom: 0;
+    position: fixed;
+  }
+  .offcanvas-container,
+  .offcanvas,
+  .offcanvas-main-section {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+  }
+  .offcanvas.active-left,
+  .offcanvas.active-right {
+    position: fixed;
+  }
+  .offcanvas.active-left .offcanvas-main-section-overlay,
+  .offcanvas.active-right .offcanvas-main-section-overlay {
+    z-index: 1031;
+    display: block;
+    bottom: 0;
+  }
+  .offcanvas.active-left {
+    -webkit-transform: translate3d(75%, 0, 0);
+    transform: translate3d(75%, 0, 0);
+  }
+  .offcanvas.active-right {
+    -webkit-transform: translate3d(-75%, 0, 0);
+    transform: translate3d(-75%, 0, 0);
+  }
+  .offcanvas .sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    width: 75%;
+    /* 9 columns */
+    overflow-x: hidden;
+    overflow-y: auto;
+    font-size: 12px;
+  }
+  .offcanvas .sidebar-right {
+    left: 100%;
+    border-left: 1px solid #d1d8dd;
+  }
+  .offcanvas .sidebar-left {
+    right: 100%;
+    border-right: 1px solid #d1d8dd;
+  }
+  .offcanvas .sidebar-menu {
+    margin-bottom: 0;
+  }
+  .offcanvas ul {
+    margin: 0px;
+  }
+  .offcanvas .sidebar-page-sidebar {
+    border-top: 1px solid #d1d8dd;
+  }
+  .offcanvas .sidebar-label {
+    text-transform: uppercase;
+    color: #8d99a6;
+    font-size: 85%;
+    margin: 0px;
+    font-weight: bold;
+    padding: 10px 15px 0px;
+  }
+}
+@media (min-width: 768px) {
+  .login-wrapper {
+    border-right: 1px solid #f2f2f2;
+  }
 }

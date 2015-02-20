@@ -59,6 +59,7 @@
   {
    "fieldname": "website_theme_image",
    "fieldtype": "Image",
+   "hidden": 1,
    "label": "Website Theme Image",
    "options": "website_theme_image_link",
    "permlevel": 0,
@@ -132,13 +133,6 @@
    "fieldname": "sidebar",
    "fieldtype": "Section Break",
    "label": "Sidebar",
-   "permlevel": 0
-  },
-  {
-   "description": "Hide the sidebar",
-   "fieldname": "no_sidebar",
-   "fieldtype": "Check",
-   "label": "No Sidebar",
    "permlevel": 0
   },
   {
@@ -263,7 +257,7 @@
  "idx": 1,
  "issingle": 1,
  "max_attachments": 10,
- "modified": "2015-02-19 22:00:27.068967",
+ "modified": "2015-02-21 08:48:35.438463",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Settings",

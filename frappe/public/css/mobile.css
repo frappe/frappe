@@ -1,3 +1,54 @@
+html,
+body {
+  height: 100%;
+  /* The html and body elements cannot have any padding or margin. */
+  overflow-x: hidden;
+  /* Prevent scroll on narrow devices */
+  margin: 0px;
+  padding: 0px !important;
+}
+.offcanvas-main-section-overlay {
+  display: none;
+  cursor: pointer;
+  opacity: 0.5;
+}
+.sidebar-padding {
+  padding: 12px 14px;
+}
+.offcanvas .sidebar .sidebar-menu > li > a,
+.offcanvas .sidebar .dropdown-menu > li > a {
+  padding: 12px 14px;
+  display: block;
+  whitespace: nowrap;
+  transition: 0.2s;
+  text-decoration: none !important;
+}
+.offcanvas .sidebar .dropdown-menu {
+  padding: 0px;
+  font-size: inherit;
+}
+.offcanvas .sidebar .dropdown-menu > li > a {
+  padding-left: 28px;
+}
+.offcanvas .sidebar .divider {
+  height: 1px;
+  overflow: hidden;
+  background-color: #ebeff2;
+  width: 100%;
+  margin: 0px;
+}
+.offcanvas .sidebar .badge {
+  right: 15px !important;
+  top: 11px !important;
+}
+.offcanvas .sidebar .sidebar-menu > li > a:hover,
+.offcanvas .sidebar .dropdown-menu > li > a:hover,
+.offcanvas .sidebar .sidebar-menu > li > a:focus,
+.offcanvas .sidebar .dropdown-menu > li > a:focus,
+.offcanvas .sidebar .sidebar-menu > li > a:active,
+.offcanvas .sidebar .dropdown-menu > li > a:active {
+  background-color: #f0f4f7;
+}
 @media (max-width: 767px) {
   .modal .modal-dialog {
     margin: 0px;
@@ -20,6 +71,25 @@
   }
   .modal .modal-body .form-layout {
     margin: -15px;
+  }
+  .modal .file-upload .input-upload {
+    width: 100%;
+    text-align: center;
+  }
+  .modal .file-upload .input-upload .btn-browse {
+    width: 100%;
+  }
+  .modal .file-upload .web-link-wrapper {
+    display: block;
+    width: 100% !important;
+    text-align: center;
+  }
+  .modal .file-upload .web-link-wrapper .file-upload-or {
+    display: block;
+    margin: 15px 24px;
+  }
+  .modal .file-upload .web-link-wrapper .input-link {
+    width: 100% !important;
   }
   .layout-main-section-wrapper {
     padding: 0px;
@@ -249,13 +319,13 @@
   .offcanvas {
     transition: 0.25s;
   }
-  .desk-main-section-overlay {
+  .offcanvas-main-section-overlay {
     bottom: 0;
     position: fixed;
   }
-  .desk-container,
+  .offcanvas-container,
   .offcanvas,
-  .desk-main-section {
+  .offcanvas-main-section {
     position: absolute;
     left: 0;
     right: 0;
@@ -266,8 +336,8 @@
   .offcanvas.active-right {
     position: fixed;
   }
-  .offcanvas.active-left .desk-main-section-overlay,
-  .offcanvas.active-right .desk-main-section-overlay {
+  .offcanvas.active-left .offcanvas-main-section-overlay,
+  .offcanvas.active-right .offcanvas-main-section-overlay {
     z-index: 1031;
     display: block;
     bottom: 0;

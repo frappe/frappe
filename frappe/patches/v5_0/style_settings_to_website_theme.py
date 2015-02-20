@@ -9,15 +9,19 @@ def execute():
 	frappe.delete_doc("website", "doctype", "style_settings")
 
 def migrate_style_settings():
-	style_settings = frappe.get_doc("Style Settings", "Style Settings")
+	style_settings = frappe.db.get_singles_dict("Style Settings")
 	standard_website_theme = frappe.get_doc("Website Theme", "Standard")
 
 	website_theme = frappe.copy_doc(standard_website_theme)
 	website_theme.custom = 1
 	website_theme.theme = _("Custom")
 
-	map_color_fields(style_settings, website_theme)
-	map_other_fields(style_settings, website_theme)
+	if style_settings:
+		map_color_fields(style_settings, website_theme)
+		map_other_fields(style_settings, website_theme)
+
+	website_settings = frappe.get_doc("Website Settings", "Website Settings")
+	website_theme.no_sidebar = website_settings.no_sidebar
 
 	website_theme.save()
 	website_theme.use_theme()
@@ -28,8 +32,6 @@ def map_color_fields(style_settings, website_theme):
 		"page_links": "link_color",
 		"top_bar_background": "top_bar_color",
 		"top_bar_foreground": "top_bar_text_color",
-		"page_header_background": "page_header_color",
-		"page_header_color": "page_header_text_color",
 		"footer_background": "footer_color",
 		"footer_color": "footer_text_color",
 	}

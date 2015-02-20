@@ -8,6 +8,7 @@ from frappe.utils import get_request_site_address, encode
 from frappe.model.document import Document
 from urllib import quote
 from frappe.website.router import resolve_route
+from frappe.website.doctype.website_theme.website_theme import add_website_theme
 
 class WebsiteSettings(Document):
 	def validate(self):
@@ -47,12 +48,15 @@ class WebsiteSettings(Document):
 	def clear_cache(self):
 		# make js and css
 		# clear web cache (for menus!)
+		from frappe.sessions import clear_cache
+		clear_cache('Guest')
 
 		from frappe.website.render import clear_cache
 		clear_cache()
 
 		# clears role based home pages
 		frappe.clear_cache()
+
 
 def get_website_settings():
 	hooks = frappe.get_hooks()
@@ -89,7 +93,7 @@ def get_website_settings():
 	settings = frappe.get_doc("Website Settings", "Website Settings")
 	for k in ["banner_html", "brand_html", "copyright", "twitter_share_via",
 		"favicon", "facebook_share", "google_plus_one", "twitter_share", "linked_in_share",
-		"disable_signup", "no_sidebar"]:
+		"disable_signup"]:
 		if hasattr(settings, k):
 			context[k] = settings.get(k)
 
@@ -115,4 +119,7 @@ def get_website_settings():
 
 	context.web_include_css = hooks.web_include_css or []
 
+	add_website_theme(context)
+
 	return context
+
