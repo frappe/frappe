@@ -78,6 +78,9 @@ frappe.form.formatters = {
 	Date: function(value) {
 		return value ? dateutil.str_to_user(value) : "";
 	},
+	Datetime: function(value) {
+		return value ? dateutil.str_to_user(value) : "";
+	},
 	Text: function(value) {
 		if(value) {
 			var tags = ["<p", "<div", "<br"];

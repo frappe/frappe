@@ -129,10 +129,13 @@ frappe.ui.form.ControlImage = frappe.ui.form.Control.extend({
 			.css({"margin-bottom": "10px", "max-width": "100%"})
 
 		this.$wrapper.on("refresh", function() {
+				var doc = null;
 				me.$body.empty();
 
-				var doc = frappe.model.get_doc(me.doctype, me.docname);
-				if(me.df.options && doc[me.df.options]) {
+				if(me.docname) {
+					var doc = frappe.model.get_doc(me.doctype, me.docname);
+				}
+				if(doc && me.df.options && doc[me.df.options]) {
 					me.$img = $("<img src='"+doc[me.df.options]+"' style='max-width: 100%;'>")
 						.appendTo(me.$body);
 				} else {
