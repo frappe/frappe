@@ -178,7 +178,8 @@ def load_lang(lang, apps=None):
 		path = os.path.join(frappe.get_pymodule_path(app), "translations", lang + ".csv")
 		if os.path.exists(path):
 			cleaned = dict([(item[1], item[2]) for item in read_csv_file(path) if item[2]])
-			out = cleaned
+			# cleaned = dict([(item[0], item[1]) for item in read_csv_file(path) if item[1]])
+			out.update(cleaned)
 	return out
 
 def clear_cache():
@@ -251,7 +252,7 @@ def get_messages_from_doctype(name):
 			messages.append(d.role)
 
 	messages = [message for message in messages if message]
-	messages = [(None, message) for message in messages if is_translatable(message)]
+	messages = [('DocType: ' + name, message) for message in messages if is_translatable(message)]
 
 	# extract from js, py files
 	doctype_file_path = frappe.get_module_path(meta.module, "doctype", meta.name, meta.name)
@@ -391,7 +392,7 @@ def write_csv_file(path, app_messages, lang_dict):
 			t = lang_dict.get(m, '')
 			# strip whitespaces
 			t = re.sub('{\s?([0-9]+)\s?}', "{\g<1>}", t)
-			w.writerow([p.encode('utf-8') if p else 'None', m.encode('utf-8'), t.encode('utf-8')])
+			w.writerow([p.encode('utf-8') if p else '', m.encode('utf-8'), t.encode('utf-8')])
 
 def get_untranslated(lang, untranslated_file, get_all=False):
 	"""Returns all untranslated strings for a language and writes in a file

@@ -1,1341 +1,1580 @@
- by Role , by Role 
- is not set, is not set
-"""Company History""","""Company History"""
-"""Team Members"" or ""Management""","""Team Members"" or ""Management"""
-'In List View' not allowed for type {0} in row {1},'In List View' not allowed for type {0} in row {1}
-"000 is black, fff is white","000 is black, fff is white"
-2 days ago,2 days ago
-"<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank"">[?]</a>","<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank"">[?]</a>"
-"<a onclick=""msgprint('<ol>\<li><b>field:[fieldname]</b> - By Field\<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\<li><b>Prompt</b> - Prompt user for a name\<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\</ol>')"">Naming Options</a>","<a onclick=""msgprint('<ol>\<li><b>field:[fieldname]</b> - By Field\<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\<li><b>Prompt</b> - Prompt user for a name\<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\</ol>')"">Naming Options</a>"
-A user can be permitted to multiple records of the same DocType.,A user can be permitted to multiple records of the same DocType.
-About,Informacje
-About Us Settings,About Us Settings
-About Us Team Member,About Us Team Member
-Action,Działanie
-Actions,Działania
-"Actions for workflow (e.g. Approve, Cancel).","Actions for workflow (e.g. Approve, Cancel)."
-Add,Dodaj
-Add A New Rule,Add A New Rule
-Add A User Permission,Add A User Permission
-Add Attachments,Add Attachments
-Add Bookmark,Dodaj zakładkę
-Add CSS,Dodaj arkusz CSS
-Add Column,Dodaj kolumnę
-Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,Dodaj Google Analytics ID: np. UA-89XXX57-1. Więcej informacji znajdziesz w pomocy Google Analytics. 
-Add Message,Dodaj wiadomość
-Add New Permission Rule,Add New Permission Rule
-Add Reply,Dodaj Odpowiedź
-Add Total Row,Add Total Row
-Add a New Role,Add a New Role
-Add a banner to the site. (small banners are usually good),Add a banner to the site. (small banners are usually good)
-Add all roles,Add all roles
-Add attachment,Add attachment
-Add code as &lt;script&gt;,Add code as &lt;script&gt;
-Add custom javascript to forms.,Add custom javascript to forms.
-Add fields to forms.,Dodaj pola do formularza.
-Add new row,Dodaj nowy wiersz
-"Add the name of <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> e.g. ""Open Sans""","Add the name of <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> e.g. ""Open Sans"""
-Add to To Do,Dodaj do listy To Do (Do Zrobienia)
-Add to To Do List Of,Add to To Do List Of
-Adding System Manager to this User as there must be atleast one System Manager,Adding System Manager to this User as there must be atleast one System Manager
-Additional Info,Dodatkowe Informacje
-Additional Permissions,Additional Permissions
-Address,Adres
-Address Line 1,Address Line 1
-Address Line 2,Address Line 2
-Address Title,Address Title
-Address and other legal information you may want to put in the footer.,Address and other legal information you may want to put in the footer.
-Admin,Admin
-All Applications,Wszystkie aplikacje
-All Day,All Day
-"All possible Workflow States and roles of the workflow. <br>Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""","All possible Workflow States and roles of the workflow. <br>Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled"""
-Allow Attach,Allow Attach
-Allow Import,Allow Import
-Allow Import via Data Import Tool,Allow Import via Data Import Tool
-Allow Rename,Allow Rename
-Allow on Submit,Allow on Submit
-Allow user to login only after this hour (0-24),Allow user to login only after this hour (0-24)
-Allow user to login only before this hour (0-24),Allow user to login only before this hour (0-24)
-Allowed,Allowed
-"Allowing DocType, DocType. Be careful!","Allowing DocType, DocType. Be careful!"
-Already Registered,Already Registered
-Already in user's To Do list,"Jest już na liście ""To Do"" użytkownika"
-Alternative download link,Alternative download link
-"Alternatively, you can also specify 'auto_email_id' in site_config.json","Alternatively, you can also specify 'auto_email_id' in site_config.json"
-Always use above Login Id as sender,Always use above Login Id as sender
-Amend,Amend
-"An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [<a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a>]","An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [<a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a>]"
-"Another {0} with name {1} exists, select another name","Inny {0} z nazwą {1} istnieje, wybierz inną nazwę"
-Anyone Can Read,Każdy może odczytywać
-Anyone Can Write,Każdy może zapisywać
-"Apart from Role based Permission Rules, you can apply User Permissions based on DocTypes.","Apart from Role based Permission Rules, you can apply User Permissions based on DocTypes."
-"Apart from System Manager, roles with 'Set User Permissions' right can set permissions for other users for that Document Type.","Apart from System Manager, roles with 'Set User Permissions' right can set permissions for other users for that Document Type."
-App Already Installed,App Already Installed
-App Name,App Name
-App not found,App not found
-Application Installer,Application Installer
-Applications,Applications
-Apply Style,Apply Style
-Apply User Permissions,Apply User Permissions
-Are you sure you want to delete the attachment?,Are you sure you want to delete the attachment?
-Arial,Arial
-"As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User.","As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User."
-Ascending,Rosnąco
-Assign To,Assign To
-Assigned By,Przypisane przez
-Assigned To,Przypisane do
-Assigned To Fullname,Assigned To Fullname
-Assigned To/Owner,Assigned To/Owner
-Assignment Added,Assignment Added
-Assignment Status Changed,Assignment Status Changed
-Assignments,Assignments
-Attach,Attach
-Attach Document Print,Attach Document Print
-Attach as web link,Attach as web link
-Attached To DocType,Attached To DocType
-Attached To Name,Attached To Name
-Attachments,Załączniki
-Auto Email Id,Auto Email Id
-Auto Name,Auto Name
-Auto generated,Auto generated
-Avatar,Avatar
-Back to Login,Wróć do Logowania
-Background Color,Background Color
-Background Image,Background Image
-Banner,Banner
-Banner HTML,Banner HTML
-Banner Image,Banner Image
-Banner is above the Top Menu Bar.,Banner is above the Top Menu Bar.
-Base Template Path,Base Template Path
-Begin this page with a slideshow of images,Begin this page with a slideshow of images
-Belongs to,Belongs to
-Bio,Bio
-Birth Date,Birth Date
-Blog Category,Blog Category
-Blog Intro,Blog Intro
-Blog Introduction,Blog Introduction
-Blog Post,Blog Post
-Blog Settings,Blog Settings
-Blog Title,Blog Title
-Blogger,Blogger
-Bookmarks,Zakładki
-Brand HTML,Brand HTML
-Bulk Email,Korespondencja seryjna (e-mail)
-Bulk email limit {0} crossed,Limit {0} korespondencji e-mail przekroczony
-Button,Przycisk
-By,By
-Calendar,Kalendarz
-Cancel,Anuluj
-Cancelled,Anulowano
-"Cannot Edit {0} directly: To edit {0} properties, create / update {1}, {2} and {3}","Cannot Edit {0} directly: To edit {0} properties, create / update {1}, {2} and {3}"
-Cannot Update: Incorrect / Expired Link.,Cannot Update: Incorrect / Expired Link.
-Cannot Update: Incorrect Password,Cannot Update: Incorrect Password
-Cannot add more than 50 comments,Nie można dodawać więcej niż 50 komentarzy
-Cannot cancel before submitting. See Transition {0},Cannot cancel before submitting. See Transition {0}
-Cannot change picture,Cannot change picture
-Cannot change state of Cancelled Document. Transition row {0},Cannot change state of Cancelled Document. Transition row {0}
-Cannot change {0},Cannot change {0}
-Cannot delete or cancel because {0} {1} is linked with {2} {3},Cannot delete or cancel because {0} {1} is linked with {2} {3}
-Cannot delete {0} as it has child nodes,Nie można skasować {0} ponieważ posiada elementy potomne
-Cannot delete {0} {1} is it is referenced in another record,Cannot delete {0} {1} is it is referenced in another record
-Cannot edit standard fields,Cannot edit standard fields
-Cannot map because following condition fails: ,Cannot map because following condition fails: 
-Cannot open instance when its {0} is open,Cannot open instance when its {0} is open
-Cannot open {0} when its instance is open,Cannot open {0} when its instance is open
-Cannot print cancelled documents,Cannot print cancelled documents
-Cannot remove permission for DocType: {0} and Name: {1},Cannot remove permission for DocType: {0} and Name: {1}
-Cannot reply to a reply,Cannot reply to a reply
-Cannot set permission for DocType: {0} and Name: {1},Cannot set permission for DocType: {0} and Name: {1}
-Categorize blog posts.,Categorize blog posts.
-Category,Category
-Category Name,Category Name
-Center,Center
-"Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit.","Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit."
-"Change field properties (hide, readonly, permission etc.)","Change field properties (hide, readonly, permission etc.)"
-Chat,Czat
-Check,Check
-Check / Uncheck roles assigned to the User. Click on the Role to find out what permissions that Role has.,Check / Uncheck roles assigned to the User. Click on the Role to find out what permissions that Role has.
-Check this if you want to send emails as this id only (in case of restriction by your email provider).,Check this if you want to send emails as this id only (in case of restriction by your email provider).
-Check this to make this the default letter head in all prints,Check this to make this the default letter head in all prints
-Checked items shown on desktop,Checked items shown on desktop
-Child Tables are shown as a Grid in other DocTypes.,Child Tables are shown as a Grid in other DocTypes.
-City,Miasto
-Clear Cache,Clear Cache
-Clear all roles,Clear all roles
-Click on a link to get options to expand get options ,Click on a link to get options to expand get options 
-Click on row to view / edit.,Kliknij rząd by wyświetlić/edytować.
-Click to Expand / Collapse,Click to Expand / Collapse
-Client,Client
-Close,Zamknij
-Close: {0},Close: {0}
-Closed,Closed
-Code,Kod
-Collapse,Collapse
-Color,Kolor
-Column Break,Column Break
-Comment,Comment
-Comment By,Comment By
-Comment By Fullname,Comment By Fullname
-Comment Date,Comment Date
-Comment Docname,Comment Docname
-Comment Doctype,Comment Doctype
-Comment Time,Comment Time
-Comments,Komentarze
-Communication,Komunikacja
-Communication Medium,Communication Medium
-Company History,Company History
-Company Introduction,Company Introduction
-Complaint,Complaint
-Complete By,Complete By
-Condition Field,Condition Field
-Contact Us Settings,Contact Us Settings
-"Contact options, like ""Sales Query, Support Query"" etc each on a new line or separated by commas.","Contact options, like ""Sales Query, Support Query"" etc each on a new line or separated by commas."
-Content,Zawartość
-Content Hash,Content Hash
-Content in markdown format that appears on the main side of your page,Content in markdown format that appears on the main side of your page
-Content web page.,Content web page.
-Controller,Controller
-Copy,Copy
-Copyright,Copyright
-Core,Core
-Could not connect to outgoing email server,Could not connect to outgoing email server
-Could not find {0},Could not find {0}
-Count,Count
-Country,Kraj
-Create,Stwórz
-Created Custom Field {0} in {1},Created Custom Field {0} in {1}
-Created Customer Issue,Created Customer Issue
-Created Opportunity,Created Opportunity
-Created Support Ticket,Created Support Ticket
-Creation / Modified By,Creation / Modified By
-Currency,Currency
-Current status,Current status
-Custom CSS,Custom CSS
-Custom Field,Custom Field
-Custom Javascript,Custom Javascript
-Custom Reports,Custom Reports
-Custom Script,Custom Script
-Custom?,Custom?
-Customize,Customize
-Customize Form,Dostosuj formularz
-Customize Form Field,Customize Form Field
-"Customize Label, Print Hide, Default etc.","Customize Label, Print Hide, Default etc."
-Customized HTML Templates for printing transctions.,Customized HTML Templates for printing transctions.
-Daily Event Digest is sent for Calendar Events where reminders are set.,Daily Event Digest is sent for Calendar Events where reminders are set.
-Danger,Danger
-Data,Dane
-Data Import / Export Tool,Data Import / Export Tool
-Data Import Tool,Data Import Tool
-Data missing in table,Data missing in table
-Date,Data
-Date Format,Format daty
-Date and Number Format,Date and Number Format
-Date must be in format: {0},Date must be in format: {0}
-Datetime,Datetime
-Dear,Dear
-Default,Default
-Default Print Format,Default Print Format
-Default Value,Domyślna wartość
-"Default: ""Contact Us""","Default: ""Contact Us"""
-DefaultValue,DefaultValue
-Defaults,Defaults
-"Define read, write, admin permissions for a Website Page.","Define read, write, admin permissions for a Website Page."
-Define workflows for forms.,Define workflows for forms.
-Delete,Usuń
-Delete Row,Delete Row
-Depends On,Depends On
-Descending,Malejąco
-Description,Opis
-Description and Status,Description and Status
-"Description for listing page, in plain text, only a couple of lines. (max 140 characters)","Description for listing page, in plain text, only a couple of lines. (max 140 characters)"
-Description for page header.,Description for page header.
-Desktop,Desktop
-Details,Details
-Did not add,Did not add
-Did not cancel,Did not cancel
-Did not find {0} for {0} ({1}),Did not find {0} for {0} ({1})
-Did not load,Did not load
-Did not remove,Did not remove
-Did not save,Did not save
-"Different ""States"" this document can exist in. Like ""Open"", ""Pending Approval"" etc.","Different ""States"" this document can exist in. Like ""Open"", ""Pending Approval"" etc."
-Disable Customer Signup link in Login page,Disable Customer Signup link in Login page
-Disable Signup,Disable Signup
-Disabled,Nieaktywny
-Display,Display
-Display Settings,Display Settings
-Display in the sidebar of this Website Route node,Display in the sidebar of this Website Route node
-Do not allow user to change after set the first time,Do not allow user to change after set the first time
-Doc Status,Doc Status
-DocField,DocField
-DocPerm,DocPerm
-DocType,DocType
-DocType Details,DocType Details
-DocType can not be merged,DocType can not be merged
-DocType on which this Workflow is applicable.,DocType on which this Workflow is applicable.
-DocType or Field,DocType or Field
-Doclist JSON,Doclist JSON
-Docname,Docname
-Document,Document
-Document Status transition from ,Document Status transition from 
-Document Status transition from {0} to {1} is not allowed,Document Status transition from {0} to {1} is not allowed
-Document Type,Document Type
-Document is only editable by users of role,Document is only editable by users of role
-Documentation,Dokumentacja
-Documents,Dokumenty
-Down,Down
-Download,Ściągnij
-Download Backup,Download Backup
-Download link for your backup will be emailed on the following email address:,Download link for your backup will be emailed on the following email address:
-Drafts,Szkice
-Drag to sort columns,Drag to sort columns
-Due Date,Due Date
-Duplicate name {0} {1},Duplicate name {0} {1}
-Edit,Edytuj
-Edit Permissions,Edytuj uprawnienia
-Editable,Edytowalny
-Email,Email
-Email Host,Email Host
-Email Id,Email Id
-Email Login,Email Login
-Email Password,Email Password
-Email Sent,Email Sent
-Email Settings,Email Settings
-Email Signature,Email Signature
-Email Use SSL,Email Use SSL
-Email address,Email address
-"Email addresses, separted by commas","Email addresses, separted by commas"
-Email not verified with {1},Email not verified with {1}
-Email sent to {0},Email sent to {0}
-Email...,Email...
-Emails are muted,Emails are muted
-Embed image slideshows in website pages.,Embed image slideshows in website pages.
-Enable,Enable
-Enable Comments,Enable Comments
-Enabled,Włączony
-Ends on,Ends on
-Enter Form Type,Enter Form Type
-Enter Value,Wpisz Wartość
-Enter at least one permission row,Enter at least one permission row
-"Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set ""match"" permission rules. To see list of fields, go to <a href=""#Form/Customize Form/Customize Form"">Customize Form</a>.","Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set ""match"" permission rules. To see list of fields, go to <a href=""#Form/Customize Form/Customize Form"">Customize Form</a>."
-"Enter keys to enable login via Facebook, Google, GitHub.","Enter keys to enable login via Facebook, Google, GitHub."
-Equals,Równe
-Error,Błąd
-Error: Document has been modified after you have opened it,Error: Document has been modified after you have opened it
-Event,Event
-Event Datetime,Event Datetime
-Event Individuals,Event Individuals
-Event Role,Event Role
-Event Roles,Event Roles
-Event Type,Event Type
-Event User,Event User
-Event end must be after start,Event end must be after start
-Events,Zdarzenia
-Events In Today's Calendar,Events In Today's Calendar
-Every Day,Every Day
-Every Month,Every Month
-Every Week,Every Week
-Every Year,Every Year
-Example:,Przykład:
-Expand,Expand
-Export,Export
-Export not allowed. You need {0} role to export.,Export not allowed. You need {0} role to export.
-Exported,Exported
-Facebook,Facebook
-Facebook Client ID,Facebook Client ID
-Facebook Client Secret,Facebook Client Secret
-Facebook Share,Facebook Share
-Facebook User ID,Facebook User ID
-Facebook Username,Facebook Username
-FavIcon,FavIcon
-Female,Female
-Field Description,Field Description
-Field Name,Field Name
-Field Type,Field Type
-"Field that represents the Workflow State of the transaction (if field is not present, a new hidden Custom Field will be created)","Field that represents the Workflow State of the transaction (if field is not present, a new hidden Custom Field will be created)"
-Field {0} in row {1} cannot be hidden and mandatory without default,Field {0} in row {1} cannot be hidden and mandatory without default
-Field {0} is not selectable.,Field {0} is not selectable.
-Field {0} of type {1} cannot be mandatory,Field {0} of type {1} cannot be mandatory
-Fieldname,Fieldname
-Fieldname is required in row {0},Fieldname is required in row {0}
-Fieldname not set for Custom Field,Fieldname not set for Custom Field
-Fieldname {0} appears multiple times in rows {1},Fieldname {0} appears multiple times in rows {1}
-"Fieldname {0} cannot contain letters, numbers or spaces","Fieldname {0} cannot contain letters, numbers or spaces"
-Fields,Fields
-"Fields separated by comma (,) will be included in the<br /><b>Search By</b> list of Search dialog box","Fields separated by comma (,) will be included in the<br /><b>Search By</b> list of Search dialog box"
-Fieldtype must be one of {0} in row {1},Fieldtype must be one of {0} in row {1}
-File,Plik
-File Data,File Data
-File Name,Nazwa pliku
-File Size,Rozmiar pliku
-File URL,File URL
-File not attached,File not attached
-File size exceeded the maximum allowed size of {0} MB,File size exceeded the maximum allowed size of {0} MB
-Filter,Filtr
-Filter records based on User Permissions defined for a user,Filter records based on User Permissions defined for a user
-First Name,First Name
-Float,Float
-Float Precision,Float Precision
-Font (Heading),Font (Heading)
-Font (Text),Font (Text)
-Font Size (Text),Font Size (Text)
-Fonts,Czcionki
-Footer,Footer
-Footer Items,Footer Items
-For DocType,For DocType
-"For Links, enter the DocType as rangeFor Select, enter list of Options separated by comma","For Links, enter the DocType as rangeFor Select, enter list of Options separated by comma"
-"For comparative filters, start with","For comparative filters, start with"
-For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.
-For ranges,For ranges
-For top bar,For top bar
-For {0} at level {1} in {2} in row {3},For {0} at level {1} in {2} in row {3}
-Forgot Password,Zapomniałeś hasła
-Forgot Password?,Zapomniałeś hasła?
-Form,Formularz
-Forum,Forum
-Forums,Fora
-Forward To Email Address,Forward To Email Address
-Friday,Piątek
-From Date must be before To Date,From Date must be before To Date
-Full Name,Full Name
-Gantt Chart,Gantt Chart
-Gender,Gender
-Generator,Generator
-Georgia,Georgia
-Get,Get
-Get From ,Get From 
-GitHub,GitHub
-GitHub Client ID,GitHub Client ID
-GitHub Client Secret,GitHub Client Secret
-Github User ID,Github User ID
-Github Username,Github Username
-Google,Google
-Google Analytics ID,Google Analytics ID
-Google Client ID,Google Client ID
-Google Client Secret,Google Client Secret
-Google Plus One,Google Plus One
-Google User ID,Google User ID
-Google Web Font (Heading),Google Web Font (Heading)
-Google Web Font (Text),Google Web Font (Text)
-Greater or equals,Więcej lub równo
-Greater than,Więcej niż
-"Group Added, refreshing...",Dodano Grupę. Aktualizacja...
-Group Description,Opis Grupy
-Group Name,Nazwa Grupy
-Group Title,Group Title
-Group Type,Group Type
-Groups,Grupy
-HTML for header section. Optional,HTML for header section. Optional
-Have an account? Login,Have an account? Login
-Header,Nagłówek
-Heading,Heading
-Heading Text As,Heading Text As
-Help,Pomoc
-Helvetica Neue,Helvetica Neue
-Hey! There should remain at least one System Manager,Hey! There should remain at least one System Manager
-Hidden,Hidden
-Hide Actions,Hide Actions
-Hide Copy,Hide Copy
-Hide Email,Hide Email
-Hide Heading,Hide Heading
-Hide Print,Hide Print
-Hide Toolbar,Hide Toolbar
-High,Wysoki
-Highlight,Highlight
-History,Historia
-Home Page,Strona główna
-Home Page is Products,Home Page is Products
-ID (name) of the entity whose property is to be set,ID (name) of the entity whose property is to be set
-Icon,Ikona
-Icon will appear on the button,Icon will appear on the button
-"If a Role does not have access at Level 0, then higher levels are meaningless.","If a Role does not have access at Level 0, then higher levels are meaningless."
-"If checked, all other workflows become inactive.","If checked, all other workflows become inactive."
-"If checked, an email with an attached HTML format will be added to part of the EMail body as well as attachment. To only send as attachment, uncheck this.","If checked, an email with an attached HTML format will be added to part of the EMail body as well as attachment. To only send as attachment, uncheck this."
-"If checked, the Home page will be the default Item Group for the website.","If checked, the Home page will be the default Item Group for the website."
-"If image is selected, color will be ignored (attach first)","If image is selected, color will be ignored (attach first)"
-If non standard port (e.g. 587),If non standard port (e.g. 587)
-"If these instructions where not helpful, please add in your suggestions on GitHub Issues.","If these instructions where not helpful, please add in your suggestions on GitHub Issues."
-"If you set this, this Item will come in a drop-down under the selected parent.","If you set this, this Item will come in a drop-down under the selected parent."
-Ignore User Permissions,Ignore User Permissions
-"Ignoring Item {0}, because a group exists with the same name!","Ignoring Item {0}, because a group exists with the same name!"
-Image,Obrazek
-Image Link,Image Link
-Import,Import
-Import / Export Data,Import / Export Data
-Import / Export Data from .csv files.,Import / Export Data from .csv files.
-In,In
-In Dialog,In Dialog
-In Filter,In Filter
-In List View,In List View
-In Report Filter,In Report Filter
-In response to,In response to
-Incorrect value in row {0}: {1} must be {2} {3},Incorrect value in row {0}: {1} must be {2} {3}
-Incorrect value: {1} must be {2} {3},Incorrect value: {1} must be {2} {3}
-Index,Index
-Individuals,Individuals
-Info,Info
-Insert After,Insert After
-"Insert After field '{0}' mentioned in Custom Field '{1}', does not exist","Insert After field '{0}' mentioned in Custom Field '{1}', does not exist"
-Insert Below,Insert Below
-Insert Code,Insert Code
-Insert Row,Insert Row
-Insert Style,Insert Style
-Install Applications.,Install Applications.
-Installed,Installed
-Installer,Installer
-Int,Int
-Integrations,Integrations
-Introduce your company to the website visitor.,Introduce your company to the website visitor.
-Introduction,Introduction
-Introductory information for the Contact Us Page,Introductory information for the Contact Us Page
-Invalid Email: {0},Invalid Email: {0}
-Invalid Filter: {0},Invalid Filter: {0}
-Invalid Home Page,Invalid Home Page
-Invalid Outgoing Mail Server or Port,Invalid Outgoing Mail Server or Port
-Invalid login or password,Invalid login or password
-Invalid recipient address,Invalid recipient address
-Inverse,Inverse
-Is Active,Jest aktywny
-Is Child Table,Is Child Table
-Is Default,Jest domyślny
-Is Event,Is Event
-Is Mandatory Field,jest polem obowiązkowym
-Is Single,Is Single
-Is Standard,Is Standard
-Is Submittable,Is Submittable
-Is Task,Is Task
-Item cannot be added to its own descendents,Item cannot be added to its own descendents
-JavaScript Format: frappe.query_reports['REPORTNAME'] = {},JavaScript Format: frappe.query_reports['REPORTNAME'] = {}
-Javascript,Javascript
-Javascript to append to the head section of the page.,Javascript to append to the head section of the page.
-Key,Key
-Label,Label
-Label Help,Label Help
-Label and Type,Label and Type
-Label is mandatory,Label is mandatory
-Landing Page,Landing Page
-Language,Język
-Language preference for user interface (only if available).,Language preference for user interface (only if available).
-"Language, Date and Time settings","Ustawienia Języka, Daty i Czasu"
-Last IP,Ostatnio używany IP
-Last Login,Ostatnie Logowanie
-Last Name,Nazwisko
-Last updated by,Last updated by
-Lastmod,Lastmod
-Lato,Lato
-Leave blank to repeat always,Leave blank to repeat always
-Left,Left
-Less or equals,Mniej lub równo
-Less than,Mniej niż
-Letter Head,Letter Head
-Letter Head Name,Letter Head Name
-Letter Head in HTML,Letter Head in HTML
-Level,Level
-"Level 0 is for document level permissions, higher levels for field level permissions.","Level 0 is for document level permissions, higher levels for field level permissions."
-Like,Like
-Link,Link
-Link Name,Link Name
-"Link that is the website home page. Standard Links (index, login, products, blog, about, contact)","Link that is the website home page. Standard Links (index, login, products, blog, about, contact)"
-Link to other pages in the side bar and next section,Link to other pages in the side bar and next section
-Link to the page you want to open,Link to the page you want to open
-Linked In Share,Linked In Share
-Linked With,Linked With
-List,Lista
-List of Web Site Forum's Posts.,List of Web Site Forum's Posts.
-Loading,Loading
-Loading Report,Loading Report
-Loading...,Loading...
-Localization,Localization
-Location,Location
-Log of error on automated events (scheduler).,Log of error on automated events (scheduler).
-Login,Login
-Login After,Login After
-Login Before,Login Before
-Login Id,Login Id
-Login not allowed at this time,Login not allowed at this time
-Logout,Logout
-Long Text,Long Text
-Low,Low
-Lucida Grande,Lucida Grande
-Mail Password,Mail Password
-Main Section,Main Section
-Make a new,Stwórz
-Male,Male
-Manage cloud backups on Dropbox,Manage cloud backups on Dropbox
-Manage uploaded files.,Manage uploaded files.
-Mandatory,Mandatory
-Mandatory fields required in {0},Mandatory fields required in {0}
-Mandatory filters required:\n,Mandatory filters required:\n
-Master,Master
-Max Attachments,Max Attachments
-Max width for type Currency is 100px in row {0},Max width for type Currency is 100px in row {0}
-"Meaning of Submit, Cancel, Amend","Meaning of Submit, Cancel, Amend"
-Medium,Medium
-"Menu items in the Top Bar. For setting the color of the Top Bar, go to <a href=""#Form/Style Settings"">Style Settings</a>","Menu items in the Top Bar. For setting the color of the Top Bar, go to <a href=""#Form/Style Settings"">Style Settings</a>"
-Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node,Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node
-Message,Wiadomość
-Messages,Wiadomości
-Method,Method
-Middle Name (Optional),Middle Name (Optional)
-Misc,Misc
-Miscellaneous,Miscellaneous
-Missing Values Required,Missing Values Required
-Modified by,Modified by
-Module,Module
-Module Def,Module Def
-Module Name,Module Name
-Module Not Found,Module Not Found
-Modules Setup,Modules Setup
-Monday,Poniedziałek
-More,More
-More content for the bottom of the page.,More content for the bottom of the page.
-Move,Move
-Move Down: {0},Move Down: {0}
-Move Up: {0},Move Up: {0}
-Multiple root nodes not allowed.,Multiple root nodes not allowed.
-Must have report permission to access this report.,Must have report permission to access this report.
-Must specify a Query to run,Must specify a Query to run
-My Settings,My Settings
-Name,Imię
-Name Case,Name Case
-Name and Description,Nazwa i opis
-Name is required,Name is required
-Name not permitted,Name not permitted
-Name not set via Prompt,Name not set via Prompt
-Naming,Naming
-Naming Series mandatory,Naming Series mandatory
-Nested set error. Please contact the Administrator.,Nested set error. Please contact the Administrator.
-New,Nowy
-New Password,Nowe hasło
-New Record,Nowy rekord
-New comment on {0} {1},New comment on {0} {1}
-New password emailed,New password emailed
-New value to be set,New value to be set
-Next Communcation On,Next Communcation On
-Next Record,Next Record
-Next State,Next State
-Next actions,Next actions
-No,Nie
-No Action,No Action
-No Cache,No Cache
-No Communication tagged with this ,No Communication tagged with this 
-No Copy,No Copy
-No Permissions set for this criteria.,No Permissions set for this criteria.
-No Report Loaded. Please use query-report/[Report Name] to run a report.,No Report Loaded. Please use query-report/[Report Name] to run a report.
-No Results,No Results
-No Sidebar,No Sidebar
-No Sitemap,No Sitemap
-No User Permissions found.,No User Permissions found.
-No data found,No data found
-No document selected,No document selected
-No file attached,No file attached
-No further records,No further records
-No one,Nikt
-No permission to '{0}' {1},No permission to '{0}' {1}
-No permission to edit,No permission to edit
-No permission to write / remove.,No permission to write / remove.
-No records tagged.,Brak otagowanych rekordów.
-None,Brak
-None: End of Workflow,None: End of Workflow
-Not Found,Not Found
-Not Linked to any record.,Not Linked to any record.
-Not Permitted,
-Not Submitted,Not Submitted
-Not a user yet? Sign up,Not a user yet? Sign up
-Not a valid Comma Separated Value (CSV File),Not a valid Comma Separated Value (CSV File)
-Not allowed,Not allowed
-Not allowed from this IP Address,Not allowed from this IP Address
-Not allowed to Import,Not allowed to Import
-Not allowed to access {0} with {1} = {2},Not allowed to access {0} with {1} = {2}
-Not allowed to change {0} after submission,Not allowed to change {0} after submission
-Not allowed to move,Not allowed to move
-Not allowed to reset the password of {0},Not allowed to reset the password of {0}
-Not enough permission to see links.,Not enough permission to see links.
-Not equals,Not equals
-Not found,
-Not in Developer Mode! Set in site_config.json,Not in Developer Mode! Set in site_config.json
-Not permitted,Not permitted
-"Note: For best results, images must be of the same size and width must be greater than height.","Note: For best results, images must be of the same size and width must be greater than height."
-Note: Other permission rules may also apply,Note: Other permission rules may also apply
-Note: maximum attachment size = 1mb,Note: maximum attachment size = 1mb
-Nothing to delete,Brak pozycji do usunięcia
-Nothing to show,Brak pozycji
-Nothing to show for this selection,Nothing to show for this selection
-Notification Count,Notification Count
-Notify by Email,Notify by Email
-Number Format,Number Format
-Old Parent,Old Parent
-On,On
-"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).","Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger)."
-Only Administrator allowed to create Query / Script Reports,Only Administrator allowed to create Query / Script Reports
-Only Administrator can save a standard report. Please rename and save.,Only Administrator can save a standard report. Please rename and save.
-Only Allow Edit For,Only Allow Edit For
-Only allowed {0} rows in one import,Only allowed {0} rows in one import
-Open,Otwarty
-Open Count,Open Count
-Open Sans,Open Sans
-Options,Options
-Options Help,Options Help
-Options must be a valid DocType for field {0} in row {1},Options must be a valid DocType for field {0} in row {1}
-Options not set for link field {0},Options not set for link field {0}
-Options requried for Link or Table type field {0} in row {1},Options requried for Link or Table type field {0} in row {1}
-Org History,Org History
-Org History Heading,Org History Heading
-Original Message,Original Message
-Other,Inne
-Outgoing Email Settings,Outgoing Email Settings
-Outgoing Mail Server,Outgoing Mail Server
-Outgoing Mail Server not specified,Outgoing Mail Server not specified
-POP3 Mail Server (e.g. pop.gmail.com),
-Page,Page
-Page Background,Page Background
-Page Border,Page Border
-Page HTML,Page HTML
-Page Headings,Page Headings
-Page Links,Page Links
-Page Name,Page Name
-Page Name Field,Page Name Field
-Page Role,Page Role
-Page Text,Page Text
-Page Title,Page Title
-Page content,Page content
-Page not found,Page not found
-Page or Generator,Page or Generator
-Page url name (auto-generated),Page url name (auto-generated)
-Page with name {0} already exists,Page with name {0} already exists
-Parent Label,Parent Label
-Parent Post,Parent Post
-Parent Website Page,Parent Website Page
-Parent Website Route,Parent Website Route
-Parent Website Sitemap,Parent Website Sitemap
-Participants,Participants
-Password,Password
-Password Updated,Password Updated
-Password reset instructions have been sent to your email,Password reset instructions have been sent to your email
-Patch,Patch
-Patch Log,Patch Log
-Percent,Procent
-Perm Level,Perm Level
-Permanently Cancel {0}?,Permanently Cancel {0}?
-Permanently Submit {0}?,Permanently Submit {0}?
-Permanently delete {0}?,Permanently delete {0}?
-Permission Level,Permission Level
-Permission Levels,Permission Levels
-Permission Rules,Permission Rules
-Permissions,Permissions
-Permissions Settings,Permissions Settings
-Permissions are automatically translated to Standard Reports and Searches.,Permissions are automatically translated to Standard Reports and Searches.
-"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions.","Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions."
-Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles.,Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles.
-"Permissions at level 0 are 'Document Level' permissions, i.e. they are primary for access to the document.","Permissions at level 0 are 'Document Level' permissions, i.e. they are primary for access to the document."
-Permissions get applied on Users based on what Roles they are assigned.,Permissions get applied on Users based on what Roles they are assigned.
-Person,Osoba
-Personal Info,Informacje personalne
-Phone,Telefon
-Phone No.,Nr telefonu
-Pick Columns,Pick Columns
-Picture URL,Picture URL
-Pincode,Kod PIN
-Please attach a file first.,Please attach a file first.
-Please attach a file or set a URL,Please attach a file or set a URL
-Please do not change the rows above {0},Please do not change the rows above {0}
-Please enable pop-ups,Please enable pop-ups
-Please enter Event's Date and Time!,Please enter Event's Date and Time!
-Please enter some text!,Please enter some text!
-Please enter title!,Please enter title!
-Please login to Upvote!,Please login to Upvote!
-Please make sure that there are no empty columns in the file.,Please make sure that there are no empty columns in the file.
-Please refresh to get the latest document.,Please refresh to get the latest document.
-Please select a file or url,Please select a file or url
-Please select atleast 1 column from {0} to sort,Please select atleast 1 column from {0} to sort
-Please specify,Please specify
-Please specify 'Auto Email Id' in Setup > Outgoing Email Settings,Please specify 'Auto Email Id' in Setup > Outgoing Email Settings
-Please specify Event date and time,Please specify Event date and time
-Plugin,Plugin
-Port,Port
-Post,Post
-Post Publicly,Post Publicly
-Post Topic,Post Topic
-Post already exists. Cannot add again!,Post already exists. Cannot add again!
-Post does not exist. Please add post!,Post does not exist. Please add post!
-Post to user,Post to user
-Posts,Posts
-Previous Record,Previous Record
-Primary,Primary
-Print,Drukuj
-Print Format,Format druku
-Print Format Type,Print Format Type
-Print Hide,Print Hide
-Print Width,Print Width
-Print...,Drukuj...
-Printing and Branding,Printing and Branding
-Priority,Priorytet
-Private,Private
-Properties,Properties
-Property,Właściwość
-Property Setter,Property Setter
-Property Type,Property Type
-Public,Public
-Published,Published
-Published On,Published On
-Pull Emails from the Inbox and attach them as Communication records (for known contacts).,Pull Emails from the Inbox and attach them as Communication records (for known contacts).
-Query,Zapytanie
-Query Options,Query Options
-Query Report,Query Report
-Query must be a SELECT,Query must be a SELECT
-Quick Help for Setting Permissions,Quick Help for Setting Permissions
-Quick Help for User Permissions,Quick Help for User Permissions
-Re-open,Re-open
-Read,Read
-Read Only,Read Only
-Received,Received
-Recipient,Recipient
-Recipients,Recipients
-Record does not exist,Record does not exist
-Ref DocType,Ref DocType
-Ref Name,Ref Name
-Ref Type,Ref Type
-Reference,Reference
-Reference DocName,Reference DocName
-Reference DocType,Reference DocType
-Reference Name,Reference Name
-Reference Type,Reference Type
-Refresh,Odśwież
-Refreshing...,Refreshing...
-Registered but disabled.,Registered but disabled.
-Registration Details Emailed.,Registration Details Emailed.
-Reload Page,Reload Page
-Remove,Usuń
-Remove Bookmark,Remove Bookmark
-Remove all customizations?,Remove all customizations?
-Rename many items by uploading a .csv file.,Rename many items by uploading a .csv file.
-Rename...,Zmień nazwę...
-Repeat On,Repeat On
-Repeat Till,Repeat Till
-Repeat this Event,Repeat this Event
-Replies,Replies
-Report,Raport
-Report Builder,Report Builder
-Report Builder reports are managed directly by the report builder. Nothing to do.,Report Builder reports are managed directly by the report builder. Nothing to do.
-Report Hide,Report Hide
-Report Name,Nazwa raportu
-Report Type,Typ raportu
-Report an Issue,Report an Issue
-Report cannot be set for Single types,Report cannot be set for Single types
-Report was not saved (there were errors),Report was not saved (there were errors)
-Reqd,Reqd
-Reset Password Key,Reset Password Key
-Reset Permissions for {0}?,Reset Permissions for {0}?
-Restrict IP,Restrict IP
-Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111),Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111)
-Right,Right
-Role,Rola
-Role Name,Nazwa roli
-Role Permissions Manager,Role Permissions Manager
-Role and Level,Role and Level
-Role exists,Role exists
-Roles,Role
-Roles Assigned,Roles Assigned
-Roles Assigned To User,Roles Assigned To User
-Roles HTML,Roles HTML
-Roles can be set for users from their User page.,Roles can be set for users from their User page.
-Root {0} cannot be deleted,Root {0} cannot be deleted
-Row,Rząd
-Rules defining transition of state in the workflow.,Rules defining transition of state in the workflow.
-"Rules for how states are transitions, like next state and which role is allowed to change state etc.","Rules for how states are transitions, like next state and which role is allowed to change state etc."
-SMTP Server (e.g. smtp.gmail.com),SMTP Server (e.g. smtp.gmail.com)
-Sales,Sprzedaż
-Same file has already been attached to the record,Same file has already been attached to the record
-Saturday,Sobota
-Save,Zapisz
-Scheduler Log,Scheduler Log
-Script,Script
-Script Report,Script Report
-Script Type,Script Type
-Search,Szukaj
-Search Fields,Search Fields
-Section Break,Section Break
-Security,Security
-Security Settings,Security Settings
-Select,Wybierz
-Select All,Wybierz wszystko
-Select Attachments,Wybierz Załączniki
-Select Document Type,Select Document Type
-Select Document Type or Role to start.,Select Document Type or Role to start.
-Select Print Format,Select Print Format
-Select Report Name,Select Report Name
-Select Role,Select Role
-Select To Download:,Select To Download:
-Select Type,Select Type
-Select User or DocType to start.,Select User or DocType to start.
-Select a Banner Image first.,Select a Banner Image first.
-Select an image of approx width 150px with a transparent background for best results.,Select an image of approx width 150px with a transparent background for best results.
-Select dates to create a new ,Select dates to create a new 
-"Select modules to be shown (based on permission). If hidden, they will be hidden for all users.","Select modules to be shown (based on permission). If hidden, they will be hidden for all users."
-Select or drag across time slots to create a new event.,Select or drag across time slots to create a new event.
-"Select target = ""_blank"" to open in a new page.","Select target = ""_blank"" to open in a new page."
-Select the label after which you want to insert new field.,Select the label after which you want to insert new field.
-Send,Wyślij
-Send As Email,Send As Email
-Send Me A Copy,Send Me A Copy
-Send Password,Send Password
-Send Print in Body and Attachment,Send Print in Body and Attachment
-Send an email reminder in the morning,Send an email reminder in the morning
-Send download link of a recent backup to System Managers,Send download link of a recent backup to System Managers
-Send enquiries to this email address,Send enquiries to this email address
-Sender,Sender
-Sent,Wysłano
-Sent Mail,Sent Mail
-Sent Quotation,Sent Quotation
-Sent or Received,Sent or Received
-Series,Seria
-Series {0} already used in {1},Series {0} already used in {1}
-Server,Server
-Server Error: Please check your server logs or contact tech support.,Server Error: Please check your server logs or contact tech support.
-Session Expired. Logging you out,Session Expired. Logging you out
-Session Expiry,Session Expiry
-Session Expiry in Hours e.g. 06:00,Session Expiry in Hours e.g. 06:00
-Session Expiry must be in format {0},Session Expiry must be in format {0}
-Set Banner from Image,Set Banner from Image
-Set Link,Set Link
-Set Login and Password if authentication is required.,Set Login and Password if authentication is required.
-Set Only Once,Set Only Once
-Set Password,Set Password
-Set Permissions on Document Types and Roles,Set Permissions on Document Types and Roles
-Set Permissions per User,Set Permissions per User
-Set User Permissions,Set User Permissions
-Set Value,Set Value
-Set numbering series for transactions.,Set numbering series for transactions.
-Set outgoing mail server.,Set outgoing mail server.
-Settings,Settings
-Settings for About Us Page.,Settings for About Us Page.
-Settings for Contact Us Page.,Settings for Contact Us Page.
-Setup,Ustawienia
-Setup > User,Setup > User
-Setup > User Permissions Manager,Setup > User Permissions Manager
-Setup of fonts and background.,Setup of fonts and background.
-"Setup of top navigation bar, footer and logo.","Setup of top navigation bar, footer and logo."
-Short Bio,Short Bio
-Short Name,Short Name
-Shortcut,Shortcut
-Show / Hide Modules,Show / Hide Modules
-Show Details,Pokaż szczegóły
-Show Print First,Show Print First
-Show Tags,Pokaż tagi
-Show or hide modules globally.,Show or hide modules globally.
-Show rows with zero values,Show rows with zero values
-Show this field as title,Show this field as title
-Showing only for (if not empty),Showing only for (if not empty)
-Sidebar,Sidebar
-Sidebar Items,Sidebar Items
-Sidebar Links for Home Page only,Sidebar Links for Home Page only
-Sign Up,Sign Up
-Sign in,Sign in
-Sign up,
-Single Post (article).,Single Post (article).
-Single Types have only one record no tables associated. Values are stored in tabSingles,Single Types have only one record no tables associated. Values are stored in tabSingles
-Sitemap Browser,Sitemap Browser
-Slideshow,Slideshow
-Slideshow Items,Slideshow Items
-Slideshow Name,Slideshow Name
-Small Text,Small Text
-Social Login Keys,Social Login Keys
-Solid background color (default light gray),Solid background color (default light gray)
-Sorry we were unable to find what you were looking for.,Sorry we were unable to find what you were looking for.
-Sorry you are not permitted to view this page.,Sorry you are not permitted to view this page.
-Sort By,Sortowanie wg.
-Sort Field,Sort Field
-Sort Order,Kolejność
-Standard,Standard
-Standard Print Format cannot be updated,Standard Print Format cannot be updated
-Standard Reports,Raporty standardowe
-Start Report For,Start Report For
-Starts on,Starts on
-State,Stan
-States,States
-"States for workflow (e.g. Draft, Approved, Cancelled).","States for workflow (e.g. Draft, Approved, Cancelled)."
-Static File Timestamp,Static File Timestamp
-Status,Status
-Step 1: Set the name and save.,Step 1: Set the name and save.
-Step 2: Set Letterhead content.,Step 2: Set Letterhead content.
-Style,Style
-Style Settings,Style Settings
-"Style represents the button color: Success - Green, Danger - Red, Inverse - Black, Primary - Dark Blue, Info - Light Blue, Warning - Orange","Style represents the button color: Success - Green, Danger - Red, Inverse - Black, Primary - Dark Blue, Info - Light Blue, Warning - Orange"
-Sub-domain provided by erpnext.com,Sub-domain provided by erpnext.com
-Subdomain,Subdomain
-Subject,Temat
-Submit,Submit
-Submit an Issue,Submit an Issue
-Submitted,Submitted
-Submitted Document cannot be converted back to draft. Transition row {0},Submitted Document cannot be converted back to draft. Transition row {0}
-Submitted Record cannot be deleted,Submitted Record cannot be deleted
-Success,Success
-Suggestion,Suggestion
-Sunday,Niedziela
-Switch to Website,Switch to Website
-Sync Inbox,Sync Inbox
-System,System
-System Settings,Ustawienia Systemowe
-System User,System User
-System and Website Users,System and Website Users
-System generated mails will be sent from this email id.,System generated mails will be sent from this email id.
-Table,Table
-Table {0} cannot be empty,Table {0} cannot be empty
-Tag,Tag
-Tag Name,Tag Name
-Tags,Tagi
-Tahoma,Tahoma
-Target,Target
-Tasks,Tasks
-Team Members,Team Members
-Team Members Heading,Team Members Heading
-Template Pages cannot be moved,Template Pages cannot be moved
-Template Path,Template Path
-Test,Test
-Test Runner,Test Runner
-Text,Text
-Text Align,Text Align
-Text Editor,Text Editor
-The name of your company / website as you want to appear on browser title bar. All pages will have this as the prefix to the title.,The name of your company / website as you want to appear on browser title bar. All pages will have this as the prefix to the title.
-The system provides many pre-defined roles. You can add new roles to set finer permissions.,The system provides many pre-defined roles. You can add new roles to set finer permissions.
-Then By (optional),Then By (optional)
-There were errors,There were errors
-There were errors while sending email. Please try again.,There were errors while sending email. Please try again.
-"These permissions will apply for all transactions where the permitted record is linked. For example, if Company C is added to User Permissions of user X, user X will only be able to see transactions that has company C as a linked value.","These permissions will apply for all transactions where the permitted record is linked. For example, if Company C is added to User Permissions of user X, user X will only be able to see transactions that has company C as a linked value."
-These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.
-"These will also be set as default values for those links, if only one such permission record is defined.","These will also be set as default values for those links, if only one such permission record is defined."
-Third Party Authentication,Third Party Authentication
-This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>myfieldeval:doc.myfield=='My Value'<br>eval:doc.age>18,This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>myfieldeval:doc.myfield=='My Value'<br>eval:doc.age>18
-This goes above the slideshow.,This goes above the slideshow.
-This is PERMANENT action and you cannot undo. Continue?,This is PERMANENT action and you cannot undo. Continue?
-This is permanent action and you cannot undo. Continue?,
-This must be checked if Style Settings are applicable,This must be checked if Style Settings are applicable
-This role update User Permissions for a user,This role update User Permissions for a user
-Thursday,Czwartek
-Time,Time
-Time Zone,Time Zone
-Title,Title
-Title / headline of your page,Title / headline of your page
-Title Case,Title Case
-Title Field,Title Field
-Title Prefix,Title Prefix
-Title field must be a valid fieldname,Title field must be a valid fieldname
-Title is required,Title is required
-To,Do
-To Do,To Do
-"To format columns, give column labels in the query.","To format columns, give column labels in the query."
-"To give acess to a role for only specific records, check the 'Apply User Permissions'. User Permissions are used to limit users with such role to specific records.","To give acess to a role for only specific records, check the 'Apply User Permissions'. User Permissions are used to limit users with such role to specific records."
-"To run a test add the module name in the route after '{0}'. For example, {1}","To run a test add the module name in the route after '{0}'. For example, {1}"
-ToDo,ToDo
-Too many writes in one request. Please send smaller requests,Too many writes in one request. Please send smaller requests
-Top Bar,Top Bar
-Top Bar Background,Top Bar Background
-Top Bar Item,Top Bar Item
-Top Bar Items,Top Bar Items
-Top Bar Text,Top Bar Text
-Top Bar text and background is same color. Please change.,Top Bar text and background is same color. Please change.
-Transaction,Transaction
-Transition Rules,Transition Rules
-Tuesday,Wtorek
-Tweet will be shared via your user account (if specified),Tweet will be shared via your user account (if specified)
-Twitter Share,Twitter Share
-Twitter Share via,Twitter Share via
-Type,Typ
-Unable to find attachment {0},Unable to find attachment {0}
-Unable to load: {0},Unable to load: {0}
-Unable to open attached file. Please try again.,Unable to open attached file. Please try again.
-Unable to send emails at this time,Unable to send emails at this time
-Unknown Column: {0},Unknown Column: {0}
-Unknown Print Format: {0},Unknown Print Format: {0}
-"Unknown file encoding. Tried utf-8, windows-1250, windows-1252.","Unknown file encoding. Tried utf-8, windows-1250, windows-1252."
-Unread Messages,Unread Messages
-Unsubscribe,Unsubscribe
-Unsubscribed,Unsubscribed
-Up,Up
-Upcoming Events for Today,Upcoming Events for Today
-Update,Update
-Update Field,Update Field
-Update Parent,Update Parent
-Update Value,Update Value
-Updated,Updated
-Upload,Prześlij
-Upload Attachment,Prześlij załącznik
-Upload a file,Prześlij plik
-Upload and Import,Prześlij i zaimportuj
-Uploading...,Przesyłanie...
-Upvotes,Upvotes
-Use TLS,Use TLS
-User,Użytkownik
-User Cannot Create,User Cannot Create
-User Cannot Search,User Cannot Search
-User Defaults,User Defaults
-User ID of a blog writer.,User ID of a blog writer.
-User Image,User Image
-User Permission,User Permission
-User Permissions,User Permissions
-User Permissions Manager,User Permissions Manager
-User Roles,User Roles
-User Tags,User Tags
-User Type,User Type
-"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ","User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. "
-User Vote,User Vote
-User not allowed to delete.,User not allowed to delete.
-User permissions should not apply for this Link,User permissions should not apply for this Link
-User {0} cannot be deleted,User {0} cannot be deleted
-User {0} cannot be disabled,User {0} cannot be disabled
-User {0} cannot be renamed,User {0} cannot be renamed
-User {0} does not exist,User {0} does not exist
-UserRole,UserRole
-Users and Permissions,Użytkownicy i uprawnienia
-Users with role {0}:,Users with role {0}:
-Value,Value
-Value cannot be changed for {0},Value cannot be changed for {0}
-Value for a check field can be either 0 or 1,Value for a check field can be either 0 or 1
-Value missing for,Value missing for
-Verdana,Verdana
-Version,Wersja
-Version restored,Version restored
-View or manage Website Route tree.,View or manage Website Route tree.
-Visit,Visit
-Warning,Ostrzeżenie
-Web Page,Strona internetowa
-Web Site Forum Page.,Web Site Forum Page.
-Website,Strona internetowa
-Website Group,Website Group
-Website Route,Website Route
-Website Route Permission,Website Route Permission
-Website Script,Website Script
-Website Settings,Website Settings
-Website Slideshow,Website Slideshow
-Website Slideshow Item,Website Slideshow Item
-Website Template,Website Template
-Website User,Website User
-Wednesday,Środa
-Welcome email sent,Welcome email sent
-"When you Amend a document after Cancel and save it, it will get a new number that is a version of the old number.","When you Amend a document after Cancel and save it, it will get a new number that is a version of the old number."
-Width,Szerokość
-Will be used in url (usually first name).,Will be used in url (usually first name).
-With Groups,With Groups
-With Ledgers,With Ledgers
-Workflow,Workflow
-Workflow Action,Workflow Action
-Workflow Action Name,Workflow Action Name
-Workflow Document State,Workflow Document State
-Workflow Document States,Workflow Document States
-Workflow Name,Workflow Name
-Workflow State,Workflow State
-Workflow State Field,Workflow State Field
-Workflow Transition,Workflow Transition
-Workflow Transitions,Workflow Transitions
-Workflow will start after saving.,Workflow will start after saving.
-Write,Napisz
-Write a Python file in the same folder where this is saved and return column and result.,Write a Python file in the same folder where this is saved and return column and result.
-Write a SELECT query. Note result is not paged (all data is sent in one go).,Write a SELECT query. Note result is not paged (all data is sent in one go).
-Write titles and introductions to your blog.,Write titles and introductions to your blog.
-Writers Introduction,Writers Introduction
-Year,Rok
-Yes,Tak
-Yesterday,Wczoraj
-You are not allowed to create / edit reports,You are not allowed to create / edit reports
-You are not allowed to export the data of: {0}. Downloading empty template.,You are not allowed to export the data of: {0}. Downloading empty template.
-You are not allowed to export this report,You are not allowed to export this report
-You are not allowed to print this document,You are not allowed to print this document
-You are not allowed to send emails related to this document,You are not allowed to send emails related to this document
-"You can change Submitted documents by cancelling them and then, amending them.","You can change Submitted documents by cancelling them and then, amending them."
-You can use Customize Form to set levels on fields.,You can use Customize Form to set levels on fields.
-You cannot install this app,You cannot install this app
-You have unsaved changes in this form. Please save before you continue.,You have unsaved changes in this form. Please save before you continue.
-You need to be logged in and have System Manager Role to be able to access backups.,You need to be logged in and have System Manager Role to be able to access backups.
-You need write permission to rename,You need write permission to rename
-"Your download is being built, this may take a few moments...","Your download is being built, this may take a few moments..."
-[Label]:[Field Type]/[Options]:[Width],[Label]:[Field Type]/[Options]:[Width]
-add your own CSS (careful!),dodaj własny arkusz CSS (ostrożnie!)
-adjust,adjust
-align-center,align-center
-align-justify,align-justify
-align-left,align-left
-align-right,align-right
-and,and
-arrow-down,arrow-down
-arrow-left,arrow-left
-arrow-right,arrow-right
-arrow-up,arrow-up
-asterisk,asterisk
-backward,backward
-ban-circle,ban-circle
-barcode,
-beginning with,beginning with
-bell,bell
-bold,bold
-book,book
-bookmark,bookmark
-briefcase,briefcase
-bullhorn,bullhorn
-calendar,kalendarz
-camera,camera
-certificate,certificate
-check,
-chevron-down,chevron-down
-chevron-left,chevron-left
-chevron-right,chevron-right
-chevron-up,chevron-up
-circle-arrow-down,circle-arrow-down
-circle-arrow-left,circle-arrow-left
-circle-arrow-right,circle-arrow-right
-circle-arrow-up,circle-arrow-up
-cog,cog
-comment,
-comments,
-dd-mm-yyyy,dd-mm-yyyy
-dd/mm/yyyy,dd/mm/yyyy
-download,
-download-alt,download-alt
-edit,edytuj
-eject,eject
-envelope,envelope
-exclamation-sign,exclamation-sign
-eye-close,eye-close
-eye-open,eye-open
-facetime-video,facetime-video
-fast-backward,fast-backward
-fast-forward,fast-forward
-file,
-film,film
-filter,
-fire,fire
-flag,flag
-folder-close,folder-close
-folder-open,folder-open
-font,font
-forward,forward
-found,znaleziono
-fullscreen,fullscreen
-gift,gift
-glass,glass
-globe,globe
-hand-down,hand-down
-hand-left,hand-left
-hand-right,hand-right
-hand-up,hand-up
-hdd,hdd
-headphones,headphones
-heart,heart
-home,
-icon,
-inbox,inbox
-indent-left,indent-left
-indent-right,indent-right
-info-sign,info-sign
-is not allowed.,is not allowed.
-italic,italic
-leaf,leaf
-lft,
-list,lista
-list-alt,list-alt
-lock,lock
-lowercase,lowercase
-magnet,magnet
-map-marker,map-marker
-memcached is not working / stopped. Please start memcached for best results.,memcached is not working / stopped. Please start memcached for best results.
-minus,minus
-minus-sign,minus-sign
-mm-dd-yyyy,mm-dd-yyyy
-mm/dd/yyyy,mm/dd/yyyy
-move,
-music,
-none of,none of
-off,off
-ok,ok
-ok-circle,ok-circle
-ok-sign,ok-sign
-one of,one of
-or,or
-pause,pause
-pencil,pencil
-picture,picture
-plane,plane
-play,play
-play-circle,play-circle
-plus,plus
-plus-sign,plus-sign
-print,
-qrcode,qrcode
-question-sign,question-sign
-random,
-refresh,
-remove,
-remove-circle,remove-circle
-remove-sign,remove-sign
-repeat,repeat
-resize-full,resize-full
-resize-horizontal,resize-horizontal
-resize-small,resize-small
-resize-vertical,resize-vertical
-retweet,retweet
-rgt,
-road,road
-screenshot,screenshot
-search,
-share,
-share-alt,share-alt
-shopping-cart,shopping-cart
-signal,signal
-star,star
-star-empty,star-empty
-step-backward,step-backward
-step-forward,step-forward
-stop,
-tag,
-tags,
-"target = ""_blank""","target = ""_blank"""
-tasks,
-text-height,text-height
-text-width,text-width
-th,th
-th-large,th-large
-th-list,th-list
-thumbs-down,thumbs-down
-thumbs-up,thumbs-up
-time,
-tint,tint
-to,
-trash,trash
-upload,
-user,
-user_image_show,user_image_show
-values and dates,values and dates
-volume-down,volume-down
-volume-off,volume-off
-volume-up,volume-up
-warning-sign,warning-sign
-wrench,wrench
-yyyy-mm-dd,yyyy-mm-dd
-zoom-in,zoom-in
-zoom-out,zoom-out
-{0} by {1},{0} by {1}
-{0} cannot be set for Single types,{0} cannot be set for Single types
-{0} does not exist in row {1},{0} does not exist in row {1}
-{0} in row {1} cannot have both URL and child items,{0} in row {1} cannot have both URL and child items
-{0} is not a valid email id,{0} is not a valid email id
-{0} is required,{0} is required
-{0} is saved,{0} is saved
-{0} must be one of {1},{0} must be one of {1}
-{0} not a valid State,{0} not a valid State
-{0} not allowed in fieldname {1},{0} not allowed in fieldname {1}
-{0} not allowed in name,{0} not allowed in name
-{0} not allowed to be renamed,{0} not allowed to be renamed
-{0} updated,{0} updated
-{0} {1} already exists,{0} {1} already exists
-{0} {1} cannot be a leaf node as it has children,{0} {1} cannot be a leaf node as it has children
-"{0} {1} does not exist, select a new target to merge","{0} {1} does not exist, select a new target to merge"
-{0}: Cannot set Amend without Cancel,{0}: Cannot set Amend without Cancel
-{0}: Cannot set Assign Amend if not Submittable,{0}: Cannot set Assign Amend if not Submittable
-{0}: Cannot set Assign Submit if not Submittable,{0}: Cannot set Assign Submit if not Submittable
-{0}: Cannot set Cancel without Submit,{0}: Cannot set Cancel without Submit
-{0}: Cannot set Import without Create,{0}: Cannot set Import without Create
-"{0}: Cannot set Submit, Cancel, Amend without Write","{0}: Cannot set Submit, Cancel, Amend without Write"
-{0}: Cannot set import as {1} is not importable,{0}: Cannot set import as {1} is not importable
-"{0}: Create, Submit, Cancel and Amend only valid at level 0","{0}: Create, Submit, Cancel and Amend only valid at level 0"
-{0}: No basic permissions set,{0}: No basic permissions set
-"{0}: Only one rule allowed with the same Role, Level and Apply User Permissions","{0}: Only one rule allowed with the same Role, Level and Apply User Permissions"
-{0}: Permission at level 0 must be set before higher levels are set,{0}: Permission at level 0 must be set before higher levels are set
-{app_title},{app_title}
+,Activity,Aktywność
+,Applications,Applications
+,Data Import Tool,Data Import Tool
+,Desktop,Desktop
+,Document Share Report,
+,Messages,Wiadomości
+,Modules Setup,Modules Setup
+,Permitted Documents For User,
+,Role Permissions Manager,Role Permissions Manager
+,User Permissions Manager,User Permissions Manager
+DocType: About Us Settings,"""Company History""","""Company History"""
+DocType: About Us Settings,"""Team Members"" or ""Management""","""Team Members"" or ""Management"""
+DocType: About Us Settings,About Us Settings,About Us Settings
+DocType: About Us Settings,Company Introduction,Company Introduction
+DocType: About Us Settings,Introduce your company to the website visitor.,Introduce your company to the website visitor.
+DocType: About Us Settings,More content for the bottom of the page.,More content for the bottom of the page.
+DocType: About Us Settings,Org History,Org History
+DocType: About Us Settings,Org History Heading,Org History Heading
+DocType: About Us Settings,Settings for the About Us Page,
+DocType: About Us Settings,Team Members,Team Members
+DocType: About Us Settings,Team Members Heading,Team Members Heading
+DocType: About Us Settings,Website,Strona internetowa
+DocType: About Us Settings,Website Manager,
+DocType: About Us Team Member,About Us Team Member,About Us Team Member
+DocType: About Us Team Member,Image Link,Image Link
+DocType: Blog Category,Blog Category,Blog Category
+DocType: Blog Category,Blogger,Blogger
+DocType: Blog Category,Category Name,Category Name
+DocType: Blog Category,Parent Website Route,Parent Website Route
+DocType: Blog Category,Published,Published
+DocType: Blog Post,Blog Intro,Blog Intro
+DocType: Blog Post,Blog Post,Blog Post
+DocType: Blog Post,"Description for listing page, in plain text, only a couple of lines. (max 140 characters)","Description for listing page, in plain text, only a couple of lines. (max 140 characters)"
+DocType: Blog Post,Email Sent,Email Sent
+DocType: Blog Post,Guest,
+DocType: Blog Post,Published On,Published On
+DocType: Blog Settings,Blog Introduction,Blog Introduction
+DocType: Blog Settings,Blog Settings,Blog Settings
+DocType: Blog Settings,Blog Title,Blog Title
+DocType: Blog Settings,Writers Introduction,Writers Introduction
+DocType: Blogger,Avatar,Avatar
+DocType: Blogger,Posts,Posts
+DocType: Blogger,Short Name,Short Name
+DocType: Blogger,User ID of a Blogger,
+DocType: Blogger,Will be used in url (usually first name).,Will be used in url (usually first name).
+DocType: Bulk Email,Bulk Email,Korespondencja seryjna (e-mail)
+DocType: Bulk Email,Bulk Email records.,
+DocType: Bulk Email,Message,Wiadomość
+DocType: Bulk Email,Not Sent,
+DocType: Bulk Email,Recipient,Recipient
+DocType: Bulk Email,Reference DocName,Reference DocName
+DocType: Bulk Email,Sending,
+DocType: Comment,Comment,Comment
+DocType: Comment,Comment By,Comment By
+DocType: Comment,Comment By Fullname,Comment By Fullname
+DocType: Comment,Comment Date,Comment Date
+DocType: Comment,Comment Docname,Comment Docname
+DocType: Comment,Comment Doctype,Comment Doctype
+DocType: Comment,Comment Time,Comment Time
+DocType: Comment,Comment Type,
+DocType: Comment,Core,Core
+DocType: Comment,Post Topic,Post Topic
+DocType: Comment,System Manager,
+DocType: Comment,Unsubscribed,Unsubscribed
+DocType: Communication,Additional Info,Dodatkowe Informacje
+DocType: Communication,Archived,
+DocType: Communication,By,By
+DocType: Communication,Chat,Czat
+DocType: Communication,Communication,Komunikacja
+DocType: Communication,Communication Medium,Communication Medium
+DocType: Communication,Content,Zawartość
+DocType: Communication,Date,Data
+DocType: Communication,Email,Email
+DocType: Communication,Email Account,
+DocType: Communication,Keep a track of all communications,
+DocType: Communication,On,On
+DocType: Communication,Open,Otwarty
+DocType: Communication,Other,Inne
+DocType: Communication,Phone,Telefon
+DocType: Communication,Phone No.,Nr telefonu
+DocType: Communication,Received,Received
+DocType: Communication,Recipients,Recipients
+DocType: Communication,Reference DocType,Reference DocType
+DocType: Communication,Reference Name,Reference Name
+DocType: Communication,Replied,Replied
+DocType: Communication,Sales Manager,
+DocType: Communication,Sales User,
+DocType: Communication,Sender,Sender
+DocType: Communication,Sender Full Name,
+DocType: Communication,Sent,Wysłano
+DocType: Communication,Sent or Received,Sent or Received
+DocType: Communication,Series,Seria
+DocType: Communication,Status,Status
+DocType: Communication,Subject,Temat
+DocType: Communication,Support Manager,
+DocType: Communication,Support Team,
+DocType: Communication,User,Użytkownik
+DocType: Communication,User Tags,User Tags
+DocType: Communication,Visit,Visit
+DocType: Company History,Company History,Company History
+DocType: Company History,Highlight,Highlight
+DocType: Company History,Year,Rok
+DocType: Contact Us Settings,Address,Adres
+DocType: Contact Us Settings,Address Line 1,Address Line 1
+DocType: Contact Us Settings,Address Line 2,Address Line 2
+DocType: Contact Us Settings,Address Title,Address Title
+DocType: Contact Us Settings,City,Miasto
+DocType: Contact Us Settings,Contact Us Settings,Contact Us Settings
+DocType: Contact Us Settings,"Contact options, like ""Sales Query, Support Query"" etc each on a new line or separated by commas.","Contact options, like ""Sales Query, Support Query"" etc each on a new line or separated by commas."
+DocType: Contact Us Settings,"Default: ""Contact Us""","Default: ""Contact Us"""
+DocType: Contact Us Settings,Forward To Email Address,Forward To Email Address
+DocType: Contact Us Settings,Introduction,Introduction
+DocType: Contact Us Settings,Introductory information for the Contact Us Page,Introductory information for the Contact Us Page
+DocType: Contact Us Settings,Pincode,Kod PIN
+DocType: Contact Us Settings,Query Options,Query Options
+DocType: Contact Us Settings,Send enquiries to this email address,Send enquiries to this email address
+DocType: Contact Us Settings,Settings for Contact Us Page,
+DocType: Contact Us Settings,State,Stan
+DocType: Country,Country,Kraj
+DocType: Country,Country Name,Nazwa kraju
+DocType: Country,Geo,
+DocType: Country,Time Zones,Time Zones
+DocType: Currency,**Currency** Master,
+DocType: Currency,"1 Currency = [?] Fraction
+For e.g. 1 USD = 100 Cent",
+DocType: Currency,A symbol for this currency. For e.g. $,Symbol waluty. Np. $
+DocType: Currency,Currency Name,Currency Name
+DocType: Currency,Fraction,Fraction
+DocType: Currency,Fraction Units,Fraction Units
+DocType: Currency,"How should this currency be formatted? If not set, will use system defaults","How should this currency be formatted? If not set, will use system defaults"
+DocType: Currency,"Sub-currency. For e.g. ""Cent""","Sub-currency. For e.g. ""Cent"""
+DocType: Currency,Symbol,Symbol
+DocType: Custom Field,Adds a custom field to a DocType,
+DocType: Custom Field,Custom,Custom
+DocType: Custom Field,Default Value,Domyślna wartość
+DocType: Custom Field,Document,Document
+DocType: Custom Field,Field Description,Field Description
+DocType: Custom Field,Field Type,Field Type
+DocType: Custom Field,Fieldname,Fieldname
+DocType: Custom Field,In Report Filter,In Report Filter
+DocType: Custom Field,Insert After,Insert After
+DocType: Custom Field,Is Mandatory Field,jest polem obowiązkowym
+DocType: Custom Field,Label Help,Label Help
+DocType: Custom Field,Options Help,Options Help
+DocType: Custom Field,Permission Level,Permission Level
+DocType: Custom Field,Properties,Properties
+DocType: Custom Field,Select the label after which you want to insert new field.,Select the label after which you want to insert new field.
+DocType: Custom Field,Unique,
+DocType: Custom Script,Adds a custom script (client or server) to a DocType,
+DocType: Custom Script,Client,Client
+DocType: Custom Script,Sample,
+DocType: Custom Script,Script,Script
+DocType: Custom Script,Script Type,Script Type
+DocType: Customize Form,Customize Form,Dostosuj formularz
+DocType: Customize Form,"Customize Label, Print Hide, Default etc.","Customize Label, Print Hide, Default etc."
+DocType: Customize Form,Enter Form Type,Enter Form Type
+DocType: Customize Form,"Fields separated by comma (,) will be included in the<br /><b>Search By</b> list of Search dialog box","Fields separated by comma (,) will be included in the<br /><b>Search By</b> list of Search dialog box"
+DocType: Customize Form Field,Customize Form Field,Customize Form Field
+DocType: Customize Form Field,"Print Width of the field, if the field is a column in a table",
+DocType: Customize Form Field,"This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>
+myfield
+eval:doc.myfield=='My Value'<br>
+eval:doc.age>18",
+DocType: DefaultValue,DefaultValue,DefaultValue
+DocType: DefaultValue,Key,Key
+DocType: DefaultValue,Value,Value
+DocType: DocField,Allow on Submit,Allow on Submit
+DocType: DocField,Attach,Attach
+DocType: DocField,Button,Przycisk
+DocType: DocField,Check,Check
+DocType: DocField,Code,Kod
+DocType: DocField,Column Break,Column Break
+DocType: DocField,Currency,Currency
+DocType: DocField,Data,Dane
+DocType: DocField,Datetime,Datetime
+DocType: DocField,Default,Default
+DocType: DocField,Depends On,Depends On
+DocType: DocField,Description,Opis
+DocType: DocField,Display,Display
+DocType: DocField,Do not allow user to change after set the first time,Do not allow user to change after set the first time
+DocType: DocField,DocField,DocField
+DocType: DocField,Dynamic Link,
+DocType: DocField,Float,Float
+DocType: DocField,Fold,
+DocType: DocField,"For Links, enter the DocType as range
+For Select, enter list of Options separated by comma",
+DocType: DocField,Heading,Heading
+DocType: DocField,Hidden,Hidden
+DocType: DocField,Ignore User Permissions,Ignore User Permissions
+DocType: DocField,Image,Obrazek
+DocType: DocField,In Filter,In Filter
+DocType: DocField,In List View,In List View
+DocType: DocField,Index,Index
+DocType: DocField,Int,Int
+DocType: DocField,Label,Label
+DocType: DocField,Label and Type,Label and Type
+DocType: DocField,Link,Link
+DocType: DocField,Long Text,Long Text
+DocType: DocField,Mandatory,Mandatory
+DocType: DocField,Name,Imię
+DocType: DocField,No Copy,No Copy
+DocType: DocField,Options,Options
+DocType: DocField,Password,Password
+DocType: DocField,Percent,Procent
+DocType: DocField,Perm Level,Perm Level
+DocType: DocField,Permissions,Permissions
+DocType: DocField,Precision,
+DocType: DocField,Print Hide,Print Hide
+DocType: DocField,Print Width,Print Width
+DocType: DocField,Read Only,Read Only
+DocType: DocField,Report Hide,Report Hide
+DocType: DocField,Section Break,Section Break
+DocType: DocField,Select,Wybierz
+DocType: DocField,Set Only Once,Set Only Once
+DocType: DocField,Set non-standard precision for a Float or Currency field,
+DocType: DocField,Small Text,Small Text
+DocType: DocField,Table,Table
+DocType: DocField,Text,Text
+DocType: DocField,Text Editor,Text Editor
+DocType: DocField,Time,Time
+DocType: DocField,Type,Typ
+DocType: DocField,User permissions should not apply for this Link,User permissions should not apply for this Link
+DocType: DocField,Width,Szerokość
+DocType: DocPerm,Additional Permissions,Additional Permissions
+DocType: DocPerm,Amend,Amend
+DocType: DocPerm,Apply User Permissions,Apply User Permissions
+DocType: DocPerm,Cancel,Anuluj
+DocType: DocPerm,Create,Stwórz
+DocType: DocPerm,Delete,Usuń
+DocType: DocPerm,DocPerm,DocPerm
+DocType: DocPerm,Export,Export
+DocType: DocPerm,Filter records based on User Permissions defined for a user,Filter records based on User Permissions defined for a user
+DocType: DocPerm,Import,Import
+DocType: DocPerm,"JSON list of DocTypes used to apply User Permissions. If empty, all linked DocTypes will be used to apply User Permissions.",
+DocType: DocPerm,Level,Level
+DocType: DocPerm,Print,Drukuj
+DocType: DocPerm,Read,Read
+DocType: DocPerm,Report,Raport
+DocType: DocPerm,Role,Rola
+DocType: DocPerm,Role and Level,Role and Level
+DocType: DocPerm,Set User Permissions,Set User Permissions
+DocType: DocPerm,Share,Podziel się
+DocType: DocPerm,Submit,Submit
+DocType: DocPerm,This role update User Permissions for a user,This role update User Permissions for a user
+DocType: DocPerm,User Permission DocTypes,
+DocType: DocPerm,Write,Napisz
+DocType: DocShare,DocShare,
+DocType: DocShare,Document Name,
+DocType: DocShare,Document Type,Document Type
+DocType: DocShare,Internal record of document shares,
+DocType: DocType,"<a onclick=""msgprint('<ol>\
+<li><b>field:[fieldname]</b> - By Field\
+<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\
+<li><b>Prompt</b> - Prompt user for a name\
+<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\
+</ol>')"">Naming Options</a>",
+DocType: DocType,Administrator,
+DocType: DocType,Allow Import,Allow Import
+DocType: DocType,Allow Import via Data Import Tool,Allow Import via Data Import Tool
+DocType: DocType,Allow Rename,Allow Rename
+DocType: DocType,Auto Name,Auto Name
+DocType: DocType,Child Tables are shown as a Grid in other DocTypes.,Child Tables are shown as a Grid in other DocTypes.
+DocType: DocType,Custom?,Custom?
+DocType: DocType,Default Print Format,Default Print Format
+DocType: DocType,DocType,DocType
+DocType: DocType,DocType Details,DocType Details
+DocType: DocType,DocType is a Table / Form in the application.,
+DocType: DocType,Fields,Fields
+DocType: DocType,Hide Actions,Hide Actions
+DocType: DocType,Hide Copy,Hide Copy
+DocType: DocType,Hide Heading,Hide Heading
+DocType: DocType,Hide Toolbar,Hide Toolbar
+DocType: DocType,Icon,Ikona
+DocType: DocType,In Dialog,In Dialog
+DocType: DocType,Is Child Table,Is Child Table
+DocType: DocType,Is Single,Is Single
+DocType: DocType,Is Submittable,Is Submittable
+DocType: DocType,Master,Master
+DocType: DocType,Max Attachments,Max Attachments
+DocType: DocType,Module,Module
+DocType: DocType,Name Case,Name Case
+DocType: DocType,Naming,Naming
+DocType: DocType,Permission Rules,Permission Rules
+DocType: DocType,Permissions Settings,Permissions Settings
+DocType: DocType,Plugin,Plugin
+DocType: DocType,Search Fields,Search Fields
+DocType: DocType,Show Print First,Show Print First
+DocType: DocType,Show this field as title,Show this field as title
+DocType: DocType,Single Types have only one record no tables associated. Values are stored in tabSingles,Single Types have only one record no tables associated. Values are stored in tabSingles
+DocType: DocType,Sort Field,Sort Field
+DocType: DocType,Sort Order,Kolejność
+DocType: DocType,System,System
+DocType: DocType,Title Case,Title Case
+DocType: DocType,Title Field,Title Field
+DocType: DocType,Transaction,Transaction
+DocType: DocType,User Cannot Create,User Cannot Create
+DocType: DocType,User Cannot Search,User Cannot Search
+DocType: Email Account,Actions,Działania
+DocType: Email Account,Add Signature,
+DocType: Email Account,Append To,
+DocType: Email Account,"Append as communication against this DocType (must have fields, ""Status"", ""Subject"")",
+DocType: Email Account,Attachment Limit (MB),
+DocType: Email Account,Auto Reply,
+DocType: Email Account,Auto Reply Message,
+DocType: Email Account,Check this to pull emails from your mailbox,Check this to pull emails from your mailbox
+DocType: Email Account,Default Incoming,
+DocType: Email Account,Default Outgoing,
+DocType: Email Account,Email Account Name,
+DocType: Email Account,Email Id,Email Id
+DocType: Email Account,Enable Auto Reply,
+DocType: Email Account,Enable Incoming,
+DocType: Email Account,Enable Outgoing,
+DocType: Email Account,Footer,Footer
+DocType: Email Account,GMail,
+DocType: Email Account,If non standard port (e.g. 587),If non standard port (e.g. 587)
+DocType: Email Account,Ignore attachments over this size,
+DocType: Email Account,Incoming Mail Settings,
+DocType: Email Account,Notifications and bulk mails will be sent from this outgoing server.,
+DocType: Email Account,Outgoing Mail Settings,
+DocType: Email Account,Outlook.com,
+DocType: Email Account,POP3 Server,
+DocType: Email Account,Port,Port
+DocType: Email Account,SMTP Server,
+DocType: Email Account,SMTP Settings for outgoing emails,
+DocType: Email Account,Service,Usługa
+DocType: Email Account,Set Footer,
+DocType: Email Account,Signature,Podpis
+DocType: Email Account,Use SSL,Use SSL
+DocType: Email Account,Use TLS,Use TLS
+DocType: Email Account,Yahoo Mail,
+DocType: Email Account,"e.g. ""Support"", ""Sales"", ""Jerry Yang""",
+DocType: Email Account,e.g. pop.gmail.com,
+DocType: Email Account,e.g. replies@yourcomany.com. All replies will come to this inbox.,
+DocType: Email Account,e.g. smtp.gmail.com,
+DocType: Email Alert,Condition,
+DocType: Email Alert,Date Change,
+DocType: Email Alert,Date Changed,
+DocType: Email Alert,Days in Advance,
+DocType: Email Alert,Email Alert,
+DocType: Email Alert,Filters,
+DocType: Email Alert,Message Examples,
+DocType: Email Alert,New,Nowy
+DocType: Email Alert,Optional: The alert will be sent if this expression is true,
+DocType: Email Alert,Save,Zapisz
+DocType: Email Alert,Send Alert On,
+DocType: Email Alert,Send alert if date matches this field's value,
+DocType: Email Alert,Send alert if this field's value changes,
+DocType: Email Alert,Value Change,
+DocType: Email Alert,Value Changed,
+DocType: Email Alert,[Optional] Send the email X days in advance of the specified date. 0 equals same day.,
+DocType: Email Alert Recipient,Email Alert Recipient,
+DocType: Email Alert Recipient,Email By Document Field,
+DocType: Email Alert Recipient,"Expression, Optional",
+DocType: Email Alert Recipient,Optional: Alert will only be sent if value is a valid email id.,
+DocType: Email Alert Recipient,Optional: Always send to these ids. Each email id on a new row,
+DocType: Event,All Day,All Day
+DocType: Event,Desk,
+DocType: Event,Details,Details
+DocType: Event,Ends on,Ends on
+DocType: Event,Event,Event
+DocType: Event,Event Type,Event Type
+DocType: Event,Every Day,Every Day
+DocType: Event,Every Month,Every Month
+DocType: Event,Every Week,Every Week
+DocType: Event,Every Year,Every Year
+DocType: Event,Friday,Piątek
+DocType: Event,Groups,Grupy
+DocType: Event,Leave blank to repeat always,Leave blank to repeat always
+DocType: Event,Monday,Poniedziałek
+DocType: Event,Participants,Participants
+DocType: Event,Private,Private
+DocType: Event,Public,Public
+DocType: Event,Ref Name,Ref Name
+DocType: Event,Ref Type,Ref Type
+DocType: Event,Repeat On,Repeat On
+DocType: Event,Repeat Till,Repeat Till
+DocType: Event,Repeat this Event,Repeat this Event
+DocType: Event,Saturday,Sobota
+DocType: Event,Send an email reminder in the morning,Wyślij rano e-mail z przypomnieniem 
+DocType: Event,Starts on,Starts on
+DocType: Event,Sunday,Niedziela
+DocType: Event,Thursday,Czwartek
+DocType: Event,Tuesday,Wtorek
+DocType: Event,Wednesday,Środa
+DocType: Event Role,Event Role,Event Role
+DocType: Feed,Color,Kolor
+DocType: Feed,Doc Name,Doc Name
+DocType: Feed,Doc Type,Doc Type
+DocType: Feed,Feed,Feed
+DocType: Feed,Feed Type,Feed Type
+DocType: Feed,Full Name,Full Name
+DocType: Feed,Info,Info
+DocType: Feed,Login,Login
+DocType: File Data,Attached To DocType,Attached To DocType
+DocType: File Data,Attached To Name,Attached To Name
+DocType: File Data,Content Hash,Content Hash
+DocType: File Data,File Data,File Data
+DocType: File Data,File Name,Nazwa pliku
+DocType: File Data,File Size,Rozmiar pliku
+DocType: File Data,File URL,File URL
+DocType: Letter Head,Check this to make this the default letter head in all prints,Check this to make this the default letter head in all prints
+DocType: Letter Head,Is Default,Jest domyślny
+DocType: Letter Head,Letter Head,Letter Head
+DocType: Letter Head,Letter Head Name,Letter Head Name
+DocType: Letter Head,Letter Head in HTML,Letter Head in HTML
+DocType: Module Def,App Name,App Name
+DocType: Module Def,Module Def,Module Def
+DocType: Module Def,Module Name,Module Name
+DocType: Note,Everyone can read,Everyone can read
+DocType: Note,"Help: To link to another record in the system, use ""#Form/Note/[Note Name]"" as the Link URL. (don't use ""http://"")","Help: To link to another record in the system, use ""#Form/Note/[Note Name]"" as the Link URL. (don't use ""http://"")"
+DocType: Note,Note,Note
+DocType: Note,Note is a free page where users can share documents / notes,
+DocType: Page,All,
+DocType: Page,No,Nie
+DocType: Page,Page,Page
+DocType: Page,Page HTML,Page HTML
+DocType: Page,Page Name,Page Name
+DocType: Page,Roles,Role
+DocType: Page,Standard,Standard
+DocType: Page,Title,Title
+DocType: Page,Yes,Tak
+DocType: Page,icon,
+DocType: Page Role,Page Role,Page Role
+DocType: Patch Log,List of patches executed,
+DocType: Patch Log,Patch,Patch
+DocType: Patch Log,Patch Log,Patch Log
+DocType: Print Format,Custom Format,
+DocType: Print Format,Edit Format,
+DocType: Print Format,Format Data,
+DocType: Print Format,Print Format,Format druku
+DocType: Print Format,Print Format Builder,
+DocType: Print Format,Print Format Help,
+DocType: Print Format,Print Format Type,Print Format Type
+DocType: Print Format,Server,Server
+DocType: Print Settings,Classic,Klasyczny
+DocType: Print Settings,Font Size,
+DocType: Print Settings,In points. Default is 9.,
+DocType: Print Settings,Letter,
+DocType: Print Settings,Modern,Nowoczesny
+DocType: Print Settings,Monochrome,
+DocType: Print Settings,PDF Page Size,
+DocType: Print Settings,PDF Settings,
+DocType: Print Settings,Print Settings,
+DocType: Print Settings,Print Style,
+DocType: Print Settings,Print Style Preview,
+DocType: Print Settings,"Print with Letterhead, unless unchecked in a particular Document",
+DocType: Print Settings,Send Email Print Attachments as PDF (Recommended),
+DocType: Print Settings,Send Print as PDF,
+DocType: Print Settings,With Letterhead,
+DocType: Property Setter,DocType or Field,DocType or Field
+DocType: Property Setter,Field Name,Field Name
+DocType: Property Setter,ID (name) of the entity whose property is to be set,ID (name) of the entity whose property is to be set
+DocType: Property Setter,New value to be set,New value to be set
+DocType: Property Setter,Property,Właściwość
+DocType: Property Setter,Property Setter overrides a standard DocType or Field property,
+DocType: Property Setter,Property Type,Property Type
+DocType: Property Setter,Set Value,Set Value
+DocType: Report,Add Total Row,Add Total Row
+DocType: Report,Disabled,Nieaktywny
+DocType: Report,Is Standard,Is Standard
+DocType: Report,JavaScript Format: frappe.query_reports['REPORTNAME'] = {},JavaScript Format: frappe.query_reports['REPORTNAME'] = {}
+DocType: Report,Javascript,Javascript
+DocType: Report,Query,Zapytanie
+DocType: Report,Query Report,Query Report
+DocType: Report,Ref DocType,Ref DocType
+DocType: Report,Report Builder,Report Builder
+DocType: Report,Report Manager,
+DocType: Report,Report Name,Nazwa raportu
+DocType: Report,Report Type,Typ raportu
+DocType: Report,Script Report,Script Report
+DocType: Role,Role Name,Nazwa roli
+DocType: Scheduler Log,Error,Błąd
+DocType: Scheduler Log,Log of Scheduler Errors,
+DocType: Scheduler Log,Method,Method
+DocType: Scheduler Log,Scheduler Log,Scheduler Log
+DocType: Social Login Keys,Facebook,Facebook
+DocType: Social Login Keys,Facebook Client ID,Facebook Client ID
+DocType: Social Login Keys,Facebook Client Secret,Facebook Client Secret
+DocType: Social Login Keys,GitHub,GitHub
+DocType: Social Login Keys,GitHub Client ID,GitHub Client ID
+DocType: Social Login Keys,GitHub Client Secret,GitHub Client Secret
+DocType: Social Login Keys,Google,Google
+DocType: Social Login Keys,Google Client ID,Google Client ID
+DocType: Social Login Keys,Google Client Secret,Google Client Secret
+DocType: Social Login Keys,Social Login Keys,Social Login Keys
+DocType: Standard Reply,Owner,Właściciel
+DocType: Standard Reply,Response,
+DocType: Standard Reply,Standard Reply,
+DocType: Style Settings,"000 is black, fff is white","000 is black, fff is white"
+DocType: Style Settings,Add CSS,Dodaj arkusz CSS
+DocType: Style Settings,"Add the name of <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> e.g. ""Open Sans""","Add the name of <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> e.g. ""Open Sans"""
+DocType: Style Settings,Apply Style,Apply Style
+DocType: Style Settings,Arial,Arial
+DocType: Style Settings,Auto generated,Auto generated
+DocType: Style Settings,Background Color,Background Color
+DocType: Style Settings,Custom CSS,Custom CSS
+DocType: Style Settings,Enable,Enable
+DocType: Style Settings,Font (Heading),Font (Heading)
+DocType: Style Settings,Font (Text),Font (Text)
+DocType: Style Settings,Font Size (Text),Font Size (Text)
+DocType: Style Settings,Fonts,Czcionki
+DocType: Style Settings,Footer Background,
+DocType: Style Settings,Footer Text,
+DocType: Style Settings,Georgia,Georgia
+DocType: Style Settings,Google Web Font (Heading),Google Web Font (Heading)
+DocType: Style Settings,Google Web Font (Text),Google Web Font (Text)
+DocType: Style Settings,Heading Text As,Heading Text As
+DocType: Style Settings,Helvetica Neue,Helvetica Neue
+DocType: Style Settings,"If image is selected, color will be ignored (attach first)","If image is selected, color will be ignored (attach first)"
+DocType: Style Settings,Lato,Lato
+DocType: Style Settings,Lucida Grande,Lucida Grande
+DocType: Style Settings,Open Sans,Open Sans
+DocType: Style Settings,Page Background,Page Background
+DocType: Style Settings,Page Header,
+DocType: Style Settings,Page Header Background,
+DocType: Style Settings,Page Header Text,
+DocType: Style Settings,Page Links,Page Links
+DocType: Style Settings,Page Text,Page Text
+DocType: Style Settings,"Set your background color, font and image (tiled)",
+DocType: Style Settings,Solid background color (default light gray),Solid background color (default light gray)
+DocType: Style Settings,Style Settings,Style Settings
+DocType: Style Settings,Tahoma,Tahoma
+DocType: Style Settings,This must be checked if Style Settings are applicable,This must be checked if Style Settings are applicable
+DocType: Style Settings,Top Bar,Top Bar
+DocType: Style Settings,Top Bar Background,Top Bar Background
+DocType: Style Settings,Top Bar Text,Top Bar Text
+DocType: Style Settings,Verdana,Verdana
+DocType: Style Settings,add your own CSS (careful!),dodaj własny arkusz CSS (ostrożnie!)
+DocType: Style Settings,lowercase,lowercase
+DocType: System Settings,Date Format,Format daty
+DocType: System Settings,Date and Number Format,Date and Number Format
+DocType: System Settings,Enable Scheduled Jobs,
+DocType: System Settings,Float Precision,Float Precision
+DocType: System Settings,Language,Język
+DocType: System Settings,Loading...,Loading...
+DocType: System Settings,Localization,Localization
+DocType: System Settings,Number Format,Number Format
+DocType: System Settings,Run scheduled jobs only if checked,
+DocType: System Settings,Security,Security
+DocType: System Settings,Session Expiry,Session Expiry
+DocType: System Settings,Session Expiry in Hours e.g. 06:00,Session Expiry in Hours e.g. 06:00
+DocType: System Settings,System Settings,Ustawienia Systemowe
+DocType: System Settings,Time Zone,Time Zone
+DocType: System Settings,dd-mm-yyyy,dd-mm-yyyy
+DocType: System Settings,dd.mm.yyyy,
+DocType: System Settings,dd/mm/yyyy,dd/mm/yyyy
+DocType: System Settings,mm-dd-yyyy,mm-dd-yyyy
+DocType: System Settings,mm/dd/yyyy,mm/dd/yyyy
+DocType: System Settings,yyyy-mm-dd,yyyy-mm-dd
+DocType: Tag,Tag,Tag
+DocType: Tag,Tag Name,Tag Name
+DocType: ToDo,Assigned By,Przypisane przez
+DocType: ToDo,Assigned To,Przypisane do
+DocType: ToDo,Closed,Closed
+DocType: ToDo,Description and Status,Description and Status
+DocType: ToDo,Due Date,Due Date
+DocType: ToDo,High,Wysoki
+DocType: ToDo,Low,Low
+DocType: ToDo,Medium,Medium
+DocType: ToDo,Priority,Priorytet
+DocType: ToDo,Reference,Reference
+DocType: ToDo,Reference Type,Reference Type
+DocType: ToDo,ToDo,ToDo
+DocType: Top Bar Item,For top bar,For top bar
+DocType: Top Bar Item,"If you set this, this Item will come in a drop-down under the selected parent.","If you set this, this Item will come in a drop-down under the selected parent."
+DocType: Top Bar Item,Link to the page you want to open,Link to the page you want to open
+DocType: Top Bar Item,Parent Label,Parent Label
+DocType: Top Bar Item,Right,Right
+DocType: Top Bar Item,"Select target = ""_blank"" to open in a new page.","Select target = ""_blank"" to open in a new page."
+DocType: Top Bar Item,Target,Target
+DocType: Top Bar Item,Top Bar Item,Top Bar Item
+DocType: Top Bar Item,"target = ""_blank""","target = ""_blank"""
+DocType: User,Allow user to login only after this hour (0-24),Allow user to login only after this hour (0-24)
+DocType: User,Allow user to login only before this hour (0-24),Allow user to login only before this hour (0-24)
+DocType: User,Background,
+DocType: User,Background Image,Background Image
+DocType: User,Background Style,
+DocType: User,Bio,Bio
+DocType: User,Birth Date,Birth Date
+DocType: User,Check / Uncheck roles assigned to the User. Click on the Role to find out what permissions that Role has.,Check / Uncheck roles assigned to the User. Click on the Role to find out what permissions that Role has.
+DocType: User,Default is system timezone,
+DocType: User,Defaults,Defaults
+DocType: User,Display Settings,Display Settings
+DocType: User,Email Host,Email Host
+DocType: User,Email Login,Email Login
+DocType: User,Email Password,Email Password
+DocType: User,Email Settings,Email Settings
+DocType: User,Email Signature,Email Signature
+DocType: User,Email Use SSL,Email Use SSL
+DocType: User,Enabled,Włączony
+DocType: User,"Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set ""match"" permission rules. To see list of fields, go to <a href=""#Form/Customize Form/Customize Form"">Customize Form</a>.","Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set ""match"" permission rules. To see list of fields, go to <a href=""#Form/Customize Form/Customize Form"">Customize Form</a>."
+DocType: User,Facebook User ID,Facebook User ID
+DocType: User,Facebook Username,Facebook Username
+DocType: User,Female,Female
+DocType: User,Fill Screen,
+DocType: User,First Name,First Name
+DocType: User,Gender,Gender
+DocType: User,"Get your globally recognized avatar from <a href=""https://gravatar.com/"">Gravatar.com</a>",
+DocType: User,Github User ID,Github User ID
+DocType: User,Github Username,Github Username
+DocType: User,Google User ID,Google User ID
+DocType: User,Language preference for user interface (only if available).,Language preference for user interface (only if available).
+DocType: User,Last IP,Ostatnio używany IP
+DocType: User,Last Login,Ostatnie Logowanie
+DocType: User,Last Name,Nazwisko
+DocType: User,Location,Location
+DocType: User,Login After,Login After
+DocType: User,Login Before,Login Before
+DocType: User,Male,Male
+DocType: User,Middle Name (Optional),Middle Name (Optional)
+DocType: User,New Password,Nowe hasło
+DocType: User,POP3 Mail Server (e.g. pop.gmail.com),
+DocType: User,Personal Info,Informacje personalne
+DocType: User,Pull Emails from the Inbox and attach them as Communication records (for known contacts).,Pull Emails from the Inbox and attach them as Communication records (for known contacts).
+DocType: User,Represents a User in the system.,
+DocType: User,Reset Password Key,Reset Password Key
+DocType: User,Restrict IP,Restrict IP
+DocType: User,Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111),Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111)
+DocType: User,Roles Assigned,Roles Assigned
+DocType: User,Roles Assigned To User,Roles Assigned To User
+DocType: User,Roles HTML,Roles HTML
+DocType: User,Security Settings,Security Settings
+DocType: User,Set Password,Set Password
+DocType: User,Short Bio,Short Bio
+DocType: User,Sync Inbox,Sync Inbox
+DocType: User,System User,System User
+DocType: User,These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.
+DocType: User,Third Party Authentication,Third Party Authentication
+DocType: User,Tile,
+DocType: User,Timezone,
+DocType: User,User Defaults,User Defaults
+DocType: User,User Image,User Image
+DocType: User,User Type,User Type
+DocType: User,"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ","User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. "
+DocType: User,Website User,Website User
+DocType: User,user_image_show,user_image_show
+DocType: UserRole,UserRole,UserRole
+DocType: Version,Doclist JSON,Doclist JSON
+DocType: Version,Docname,Docname
+DocType: Version,Version,Wersja
+DocType: Web Form,Advanced,
+DocType: Web Form,Allow Comments,
+DocType: Web Form,Allow Delete,
+DocType: Web Form,Allow Edit,
+DocType: Web Form,Allow Multiple,
+DocType: Web Form,Breadcrumbs,
+DocType: Web Form,Go to this url after completing the form.,
+DocType: Web Form,"In JSON as <pre>[{""title"":""Jobs"", ""name"":""jobs""}]</pre>",
+DocType: Web Form,Login Required,
+DocType: Web Form,Message to be displayed on successful completion,
+DocType: Web Form,Select DocType,Select DocType
+DocType: Web Form,Success Message,
+DocType: Web Form,Success URL,
+DocType: Web Form,Text to be displayed for Link to Web Page if this form has a web page. Link route will be automatically generated based on `page_name` and `parent_website_route`,
+DocType: Web Form,Web Form,
+DocType: Web Form,Web Form Fields,
+DocType: Web Form,Web Page Link Text,
+DocType: Web Form,Website URL,
+DocType: Web Form Field,Fieldtype,
+DocType: Web Form Field,Web Form Field,
+DocType: Web Page,0 is highest,
+DocType: Web Page,Add code as &lt;script&gt;,Add code as &lt;script&gt;
+DocType: Web Page,Begin this page with a slideshow of images,Begin this page with a slideshow of images
+DocType: Web Page,Center,Center
+DocType: Web Page,Content in markdown format that appears on the main side of your page,Content in markdown format that appears on the main side of your page
+DocType: Web Page,Custom Javascript,Custom Javascript
+DocType: Web Page,Description for page header.,Description for page header.
+DocType: Web Page,Enable Comments,Enable Comments
+DocType: Web Page,HTML for header section. Optional,HTML for header section. Optional
+DocType: Web Page,Header,Nagłówek
+DocType: Web Page,Insert Code,Insert Code
+DocType: Web Page,Insert Style,Insert Style
+DocType: Web Page,Left,Left
+DocType: Web Page,Link to other pages in the side bar and next section,Link to other pages in the side bar and next section
+DocType: Web Page,Main Section,Main Section
+DocType: Web Page,More,More
+DocType: Web Page,Page content,Page content
+DocType: Web Page,"Page to show on the website
+",
+DocType: Web Page,Page url name (auto-generated),Page url name (auto-generated)
+DocType: Web Page,Parent Web Page,
+DocType: Web Page,Slideshow,Slideshow
+DocType: Web Page,Template Path,Template Path
+DocType: Web Page,Text Align,Text Align
+DocType: Web Page,Title / headline of your page,Title / headline of your page
+DocType: Web Page,Web Page,Strona internetowa
+DocType: Website Script,Script to attach to all web pages.,
+DocType: Website Script,Website Script,Website Script
+DocType: Website Settings,Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,Dodaj Google Analytics ID: np. UA-89XXX57-1. Więcej informacji znajdziesz w pomocy Google Analytics. 
+DocType: Website Settings,Add a banner to the site. (small banners are usually good),Add a banner to the site. (small banners are usually good)
+DocType: Website Settings,Address and other legal information you may want to put in the footer.,Address and other legal information you may want to put in the footer.
+DocType: Website Settings,"An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [<a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a>]","An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [<a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a>]"
+DocType: Website Settings,Banner,Banner
+DocType: Website Settings,Banner HTML,Banner HTML
+DocType: Website Settings,Banner Image,Banner Image
+DocType: Website Settings,Banner is above the Top Menu Bar.,Banner is above the Top Menu Bar.
+DocType: Website Settings,Brand HTML,Brand HTML
+DocType: Website Settings,Copyright,Copyright
+DocType: Website Settings,Disable Customer Signup link in Login page,Disable Customer Signup link in Login page
+DocType: Website Settings,Disable Signup,Disable Signup
+DocType: Website Settings,Facebook Share,Facebook Share
+DocType: Website Settings,FavIcon,FavIcon
+DocType: Website Settings,Footer Items,Footer Items
+DocType: Website Settings,Google Analytics ID,Google Analytics ID
+DocType: Website Settings,Google Plus One,Google Plus One
+DocType: Website Settings,Hide the sidebar,
+DocType: Website Settings,Home Page,Strona główna
+DocType: Website Settings,Home Page is Products,Home Page is Products
+DocType: Website Settings,"If checked, the Home page will be the default Item Group for the website.","If checked, the Home page will be the default Item Group for the website."
+DocType: Website Settings,Integrations,Integrations
+DocType: Website Settings,Landing Page,Landing Page
+DocType: Website Settings,"Link that is the website home page. Standard Links (index, login, products, blog, about, contact)","Link that is the website home page. Standard Links (index, login, products, blog, about, contact)"
+DocType: Website Settings,Linked In Share,Linked In Share
+DocType: Website Settings,"Menu items in the Top Bar. For setting the color of the Top Bar, go to <a href=""#Form/Style Settings"">Style Settings</a>","Menu items in the Top Bar. For setting the color of the Top Bar, go to <a href=""#Form/Style Settings"">Style Settings</a>"
+DocType: Website Settings,Misc,Misc
+DocType: Website Settings,No Sidebar,No Sidebar
+DocType: Website Settings,Select an image of approx width 150px with a transparent background for best results.,Select an image of approx width 150px with a transparent background for best results.
+DocType: Website Settings,Set Banner from Image,Set Banner from Image
+DocType: Website Settings,Sidebar,Sidebar
+DocType: Website Settings,Sidebar Items,Sidebar Items
+DocType: Website Settings,Sidebar Links for Home Page only,Sidebar Links for Home Page only
+DocType: Website Settings,Sub-domain provided by erpnext.com,Sub-domain provided by erpnext.com
+DocType: Website Settings,Subdomain,Subdomain
+DocType: Website Settings,Title Prefix,Title Prefix
+DocType: Website Settings,Top Bar Items,Top Bar Items
+DocType: Website Settings,Tweet will be shared via your user account (if specified),Tweet will be shared via your user account (if specified)
+DocType: Website Settings,Twitter Share,Twitter Share
+DocType: Website Settings,Twitter Share via,Twitter Share via
+DocType: Website Settings,Website Settings,Website Settings
+DocType: Website Slideshow,"Note: For best results, images must be of the same size and width must be greater than height.","Note: For best results, images must be of the same size and width must be greater than height."
+DocType: Website Slideshow,Slideshow Items,Slideshow Items
+DocType: Website Slideshow,Slideshow Name,Slideshow Name
+DocType: Website Slideshow,Slideshow like display for the website,
+DocType: Website Slideshow,This goes above the slideshow.,This goes above the slideshow.
+DocType: Website Slideshow,Website Slideshow,Website Slideshow
+DocType: Website Slideshow Item,Website Slideshow Item,Website Slideshow Item
+DocType: Workflow,"All possible Workflow States and roles of the workflow. <br>Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""","All possible Workflow States and roles of the workflow. <br>Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled"""
+DocType: Workflow,Defines workflow states and rules for a document.,
+DocType: Workflow,"Different ""States"" this document can exist in. Like ""Open"", ""Pending Approval"" etc.","Different ""States"" this document can exist in. Like ""Open"", ""Pending Approval"" etc."
+DocType: Workflow,DocType on which this Workflow is applicable.,DocType on which this Workflow is applicable.
+DocType: Workflow,Document States,
+DocType: Workflow,"Field that represents the Workflow State of the transaction (if field is not present, a new hidden Custom Field will be created)","Field that represents the Workflow State of the transaction (if field is not present, a new hidden Custom Field will be created)"
+DocType: Workflow,"If checked, all other workflows become inactive.","If checked, all other workflows become inactive."
+DocType: Workflow,Is Active,Jest aktywny
+DocType: Workflow,Rules defining transition of state in the workflow.,Rules defining transition of state in the workflow.
+DocType: Workflow,"Rules for how states are transitions, like next state and which role is allowed to change state etc.","Rules for how states are transitions, like next state and which role is allowed to change state etc."
+DocType: Workflow,States,States
+DocType: Workflow,Transition Rules,Transition Rules
+DocType: Workflow,Transitions,
+DocType: Workflow,Workflow,Workflow
+DocType: Workflow,Workflow Name,Workflow Name
+DocType: Workflow,Workflow State Field,Workflow State Field
+DocType: Workflow Action,Workflow Action,Workflow Action
+DocType: Workflow Action,Workflow Action Master,
+DocType: Workflow Action,Workflow Action Name,Workflow Action Name
+DocType: Workflow Document State,0 - Draft; 1 - Submitted; 2 - Cancelled,
+DocType: Workflow Document State,Doc Status,Doc Status
+DocType: Workflow Document State,Only Allow Edit For,Only Allow Edit For
+DocType: Workflow Document State,Represents the states allowed in one document and role assigned to change the state.,
+DocType: Workflow Document State,Update Field,Update Field
+DocType: Workflow Document State,Update Value,Update Value
+DocType: Workflow Document State,Workflow Document State,Workflow Document State
+DocType: Workflow State,Danger,Danger
+DocType: Workflow State,Icon will appear on the button,Icon will appear on the button
+DocType: Workflow State,Inverse,Inverse
+DocType: Workflow State,Primary,Primary
+DocType: Workflow State,Style,Style
+DocType: Workflow State,"Style represents the button color: Success - Green, Danger - Red, Inverse - Black, Primary - Dark Blue, Info - Light Blue, Warning - Orange","Style represents the button color: Success - Green, Danger - Red, Inverse - Black, Primary - Dark Blue, Info - Light Blue, Warning - Orange"
+DocType: Workflow State,Success,Success
+DocType: Workflow State,Warning,Ostrzeżenie
+DocType: Workflow State,Workflow State,Workflow State
+DocType: Workflow State,Workflow state represents the current state of a document.,
+DocType: Workflow State,adjust,adjust
+DocType: Workflow State,align-center,align-center
+DocType: Workflow State,align-justify,align-justify
+DocType: Workflow State,align-left,align-left
+DocType: Workflow State,align-right,align-right
+DocType: Workflow State,arrow-down,arrow-down
+DocType: Workflow State,arrow-left,arrow-left
+DocType: Workflow State,arrow-right,arrow-right
+DocType: Workflow State,arrow-up,arrow-up
+DocType: Workflow State,asterisk,asterisk
+DocType: Workflow State,backward,backward
+DocType: Workflow State,ban-circle,ban-circle
+DocType: Workflow State,barcode,
+DocType: Workflow State,bell,bell
+DocType: Workflow State,bold,bold
+DocType: Workflow State,book,book
+DocType: Workflow State,bookmark,bookmark
+DocType: Workflow State,briefcase,briefcase
+DocType: Workflow State,bullhorn,bullhorn
+DocType: Workflow State,calendar,kalendarz
+DocType: Workflow State,camera,camera
+DocType: Workflow State,certificate,certificate
+DocType: Workflow State,check,
+DocType: Workflow State,chevron-down,chevron-down
+DocType: Workflow State,chevron-left,chevron-left
+DocType: Workflow State,chevron-right,chevron-right
+DocType: Workflow State,chevron-up,chevron-up
+DocType: Workflow State,circle-arrow-down,circle-arrow-down
+DocType: Workflow State,circle-arrow-left,circle-arrow-left
+DocType: Workflow State,circle-arrow-right,circle-arrow-right
+DocType: Workflow State,circle-arrow-up,circle-arrow-up
+DocType: Workflow State,cog,cog
+DocType: Workflow State,comment,
+DocType: Workflow State,download,
+DocType: Workflow State,download-alt,download-alt
+DocType: Workflow State,edit,edytuj
+DocType: Workflow State,eject,eject
+DocType: Workflow State,envelope,envelope
+DocType: Workflow State,exclamation-sign,exclamation-sign
+DocType: Workflow State,eye-close,eye-close
+DocType: Workflow State,eye-open,eye-open
+DocType: Workflow State,facetime-video,facetime-video
+DocType: Workflow State,fast-backward,fast-backward
+DocType: Workflow State,fast-forward,fast-forward
+DocType: Workflow State,file,
+DocType: Workflow State,film,film
+DocType: Workflow State,filter,
+DocType: Workflow State,fire,fire
+DocType: Workflow State,flag,flag
+DocType: Workflow State,folder-close,folder-close
+DocType: Workflow State,folder-open,folder-open
+DocType: Workflow State,font,font
+DocType: Workflow State,forward,forward
+DocType: Workflow State,fullscreen,fullscreen
+DocType: Workflow State,gift,gift
+DocType: Workflow State,glass,glass
+DocType: Workflow State,globe,globe
+DocType: Workflow State,hand-down,hand-down
+DocType: Workflow State,hand-left,hand-left
+DocType: Workflow State,hand-right,hand-right
+DocType: Workflow State,hand-up,hand-up
+DocType: Workflow State,hdd,hdd
+DocType: Workflow State,headphones,headphones
+DocType: Workflow State,heart,heart
+DocType: Workflow State,home,
+DocType: Workflow State,inbox,inbox
+DocType: Workflow State,indent-left,indent-left
+DocType: Workflow State,indent-right,indent-right
+DocType: Workflow State,info-sign,info-sign
+DocType: Workflow State,italic,italic
+DocType: Workflow State,leaf,leaf
+DocType: Workflow State,list,lista
+DocType: Workflow State,list-alt,list-alt
+DocType: Workflow State,lock,lock
+DocType: Workflow State,magnet,magnet
+DocType: Workflow State,map-marker,map-marker
+DocType: Workflow State,minus,minus
+DocType: Workflow State,minus-sign,minus-sign
+DocType: Workflow State,move,
+DocType: Workflow State,music,
+DocType: Workflow State,off,off
+DocType: Workflow State,ok,ok
+DocType: Workflow State,ok-circle,ok-circle
+DocType: Workflow State,ok-sign,ok-sign
+DocType: Workflow State,pause,pause
+DocType: Workflow State,pencil,pencil
+DocType: Workflow State,picture,picture
+DocType: Workflow State,plane,plane
+DocType: Workflow State,play,play
+DocType: Workflow State,play-circle,play-circle
+DocType: Workflow State,plus,plus
+DocType: Workflow State,plus-sign,plus-sign
+DocType: Workflow State,print,
+DocType: Workflow State,qrcode,qrcode
+DocType: Workflow State,question-sign,question-sign
+DocType: Workflow State,random,
+DocType: Workflow State,refresh,
+DocType: Workflow State,remove,
+DocType: Workflow State,remove-circle,remove-circle
+DocType: Workflow State,remove-sign,remove-sign
+DocType: Workflow State,repeat,repeat
+DocType: Workflow State,resize-full,resize-full
+DocType: Workflow State,resize-horizontal,resize-horizontal
+DocType: Workflow State,resize-small,resize-small
+DocType: Workflow State,resize-vertical,resize-vertical
+DocType: Workflow State,retweet,retweet
+DocType: Workflow State,road,road
+DocType: Workflow State,screenshot,screenshot
+DocType: Workflow State,search,
+DocType: Workflow State,share,
+DocType: Workflow State,share-alt,share-alt
+DocType: Workflow State,shopping-cart,shopping-cart
+DocType: Workflow State,signal,signal
+DocType: Workflow State,star,star
+DocType: Workflow State,star-empty,star-empty
+DocType: Workflow State,step-backward,step-backward
+DocType: Workflow State,step-forward,step-forward
+DocType: Workflow State,stop,
+DocType: Workflow State,tag,
+DocType: Workflow State,tags,
+DocType: Workflow State,tasks,
+DocType: Workflow State,text-height,text-height
+DocType: Workflow State,text-width,text-width
+DocType: Workflow State,th,th
+DocType: Workflow State,th-large,th-large
+DocType: Workflow State,th-list,th-list
+DocType: Workflow State,thumbs-down,thumbs-down
+DocType: Workflow State,thumbs-up,thumbs-up
+DocType: Workflow State,time,
+DocType: Workflow State,tint,tint
+DocType: Workflow State,trash,trash
+DocType: Workflow State,upload,
+DocType: Workflow State,user,
+DocType: Workflow State,volume-down,volume-down
+DocType: Workflow State,volume-off,volume-off
+DocType: Workflow State,volume-up,volume-up
+DocType: Workflow State,warning-sign,warning-sign
+DocType: Workflow State,wrench,wrench
+DocType: Workflow State,zoom-in,zoom-in
+DocType: Workflow State,zoom-out,zoom-out
+DocType: Workflow Transition,Action,Działanie
+DocType: Workflow Transition,Allowed,Allowed
+DocType: Workflow Transition,Defines actions on states and the next step and allowed roles.,
+DocType: Workflow Transition,Next State,Next State
+DocType: Workflow Transition,Workflow Transition,Workflow Transition
+apps/frappe/frappe/auth.py +180,Not allowed from this IP Address,Niedostępne z tego adresu IP
+apps/frappe/frappe/auth.py +194,Login not allowed at this time,Login not allowed at this time
+apps/frappe/frappe/client.py +42,Cannot edit standard fields,Cannot edit standard fields
+apps/frappe/frappe/client.py +53,Can not edit Read Only fields,
+apps/frappe/frappe/config/desktop.py +17,Calendar,Kalendarz
+apps/frappe/frappe/config/desktop.py +59,Installer,Installer
+apps/frappe/frappe/config/setup.py +103,Manage uploaded files.,Manage uploaded files.
+apps/frappe/frappe/config/setup.py +114,Define workflows for forms.,Define workflows for forms.
+apps/frappe/frappe/config/setup.py +119,"States for workflow (e.g. Draft, Approved, Cancelled).","States for workflow (e.g. Draft, Approved, Cancelled)."
+apps/frappe/frappe/config/setup.py +124,"Actions for workflow (e.g. Approve, Cancel).","Actions for workflow (e.g. Approve, Cancel)."
+apps/frappe/frappe/config/setup.py +13,System and Website Users,System and Website Users
+apps/frappe/frappe/config/setup.py +135,Add / Manage Email Accounts.,
+apps/frappe/frappe/config/setup.py +140,Setup Email Alert based on various criteria.,
+apps/frappe/frappe/config/setup.py +145,Standard replies to common queries.,
+apps/frappe/frappe/config/setup.py +150,Printing,
+apps/frappe/frappe/config/setup.py +157,Drag and Drop tool to build and customize Print Formats.,
+apps/frappe/frappe/config/setup.py +162,"Set default format, page size, print style etc.",
+apps/frappe/frappe/config/setup.py +167,Customized HTML Templates for printing transctions.,Customized HTML Templates for printing transctions.
+apps/frappe/frappe/config/setup.py +172,Customize,Customize
+apps/frappe/frappe/config/setup.py +178,"Change field properties (hide, readonly, permission etc.)","Change field properties (hide, readonly, permission etc.)"
+apps/frappe/frappe/config/setup.py +18,User Roles,User Roles
+apps/frappe/frappe/config/setup.py +184,Add fields to forms.,Dodaj pola do formularza.
+apps/frappe/frappe/config/setup.py +189,Add custom javascript to forms.,Add custom javascript to forms.
+apps/frappe/frappe/config/setup.py +200,Application Installer,Application Installer
+apps/frappe/frappe/config/setup.py +201,Install Applications.,Install Applications.
+apps/frappe/frappe/config/setup.py +207,Download Backup,Download Backup
+apps/frappe/frappe/config/setup.py +210,Send download link of a recent backup to System Managers,Send download link of a recent backup to System Managers
+apps/frappe/frappe/config/setup.py +216,Manage cloud backups on Dropbox,Manage cloud backups on Dropbox
+apps/frappe/frappe/config/setup.py +222,Log of error on automated events (scheduler).,Log of error on automated events (scheduler).
+apps/frappe/frappe/config/setup.py +31,Set Permissions on Document Types and Roles,Set Permissions on Document Types and Roles
+apps/frappe/frappe/config/setup.py +38,Set Permissions per User,Set Permissions per User
+apps/frappe/frappe/config/setup.py +46,Check which Documents are readable by a User,
+apps/frappe/frappe/config/setup.py +53,Report of all document shares,
+apps/frappe/frappe/config/setup.py +58,Settings,Settings
+apps/frappe/frappe/config/setup.py +65,"Language, Date and Time settings","Ustawienia Języka, Daty i Czasu"
+apps/frappe/frappe/config/setup.py +7,Users,
+apps/frappe/frappe/config/setup.py +71,Show / Hide Modules,Show / Hide Modules
+apps/frappe/frappe/config/setup.py +73,Show or hide modules globally.,Show or hide modules globally.
+apps/frappe/frappe/config/setup.py +78,Set numbering series for transactions.,Set numbering series for transactions.
+apps/frappe/frappe/config/setup.py +90,Import / Export Data,Importuj / Eksportuj dane
+apps/frappe/frappe/config/setup.py +92,Import / Export Data from .csv files.,Importuj z / Eksportuj do pliku csv. 
+apps/frappe/frappe/config/setup.py +97,Rename many items by uploading a .csv file.,Rename many items by uploading a .csv file.
+apps/frappe/frappe/config/website.py +12,Content web page.,Content web page.
+apps/frappe/frappe/config/website.py +17,Single Post (article).,Single Post (article).
+apps/frappe/frappe/config/website.py +22,User editable form on Website.,
+apps/frappe/frappe/config/website.py +27,User ID of a blog writer.,User ID of a blog writer.
+apps/frappe/frappe/config/website.py +32,Embed image slideshows in website pages.,Embed image slideshows in website pages.
+apps/frappe/frappe/config/website.py +37,Setup,Ustawienia
+apps/frappe/frappe/config/website.py +43,"Setup of top navigation bar, footer and logo.","Setup of top navigation bar, footer and logo."
+apps/frappe/frappe/config/website.py +48,Setup of fonts and background.,Setup of fonts and background.
+apps/frappe/frappe/config/website.py +53,Javascript to append to the head section of the page.,Javascript to append to the head section of the page.
+apps/frappe/frappe/config/website.py +58,Write titles and introductions to your blog.,Write titles and introductions to your blog.
+apps/frappe/frappe/config/website.py +6,Documents,Dokumenty
+apps/frappe/frappe/config/website.py +63,Categorize blog posts.,Categorize blog posts.
+apps/frappe/frappe/config/website.py +68,Settings for About Us Page.,Settings for About Us Page.
+apps/frappe/frappe/config/website.py +73,Settings for Contact Us Page.,Settings for Contact Us Page.
+apps/frappe/frappe/config/website.py +78,"Enter keys to enable login via Facebook, Google, GitHub.","Enter keys to enable login via Facebook, Google, GitHub."
+apps/frappe/frappe/core/doctype/comment/comment.py +37,Cannot add more than 50 comments,Nie można dodawać więcej niż 50 komentarzy
+apps/frappe/frappe/core/doctype/communication/communication.js +17,Add To,
+apps/frappe/frappe/core/doctype/communication/communication.py +199,"Error generating PDF, attachment sent as HTML",
+apps/frappe/frappe/core/doctype/communication/communication.py +82,Unable to find attachment {0},Unable to find attachment {0}
+apps/frappe/frappe/core/doctype/docshare/docshare.py +33,{0} shared this document with {0},
+apps/frappe/frappe/core/doctype/docshare/docshare.py +38,{0} un-shared this document with {0},
+apps/frappe/frappe/core/doctype/doctype/boilerplate/controller_list.html +31,Completed,Completed
+apps/frappe/frappe/core/doctype/doctype/doctype.js +20,"Cannot Edit {0} directly: To edit {0} properties, create / update {1}, {2} and {3}","Cannot Edit {0} directly: To edit {0} properties, create / update {1}, {2} and {3}"
+apps/frappe/frappe/core/doctype/doctype/doctype.js +22,Custom Field,Custom Field
+apps/frappe/frappe/core/doctype/doctype/doctype.js +23,Custom Script,Custom Script
+apps/frappe/frappe/core/doctype/doctype/doctype.js +24,Property Setter,Property Setter
+apps/frappe/frappe/core/doctype/doctype/doctype.py +126,DocType can not be merged,DocType can not be merged
+apps/frappe/frappe/core/doctype/doctype/doctype.py +222,{0} not allowed in fieldname {1},{0} not allowed in fieldname {1}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +227,Fieldname {0} appears multiple times in rows {1},Fieldname {0} appears multiple times in rows {1}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +231,Field {0} of type {1} cannot be mandatory,Field {0} of type {1} cannot be mandatory
+apps/frappe/frappe/core/doctype/doctype/doctype.py +236,Options requried for Link or Table type field {0} in row {1},Options requried for Link or Table type field {0} in row {1}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +240,Options must be a valid DocType for field {0} in row {1},Options must be a valid DocType for field {0} in row {1}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +244,Field {0} in row {1} cannot be hidden and mandatory without default,Field {0} in row {1} cannot be hidden and mandatory without default
+apps/frappe/frappe/core/doctype/doctype/doctype.py +248,Max width for type Currency is 100px in row {0},Max width for type Currency is 100px in row {0}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +252,'In List View' not allowed for type {0} in row {1},'In List View' not allowed for type {0} in row {1}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +259,Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType',
+apps/frappe/frappe/core/doctype/doctype/doctype.py +263,Default for 'Check' type of field must be either '0' or '1',
+apps/frappe/frappe/core/doctype/doctype/doctype.py +267,Precision should be between 1 and 6,
+apps/frappe/frappe/core/doctype/doctype/doctype.py +274,There can be only one Fold in a form,
+apps/frappe/frappe/core/doctype/doctype/doctype.py +280,Fold must come before a labelled Section Break,
+apps/frappe/frappe/core/doctype/doctype/doctype.py +282,Fold can not be at the end of the form,
+apps/frappe/frappe/core/doctype/doctype/doctype.py +292,Search Fields should contain valid fieldnames,
+apps/frappe/frappe/core/doctype/doctype/doctype.py +298,Fieldname is required in row {0},Fieldname is required in row {0}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +329,Enter at least one permission row,Enter at least one permission row
+apps/frappe/frappe/core/doctype/doctype/doctype.py +337,For {0} at level {1} in {2} in row {3},For {0} at level {1} in {2} in row {3}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +341,{0}: No basic permissions set,{0}: No basic permissions set
+apps/frappe/frappe/core/doctype/doctype/doctype.py +35,Not in Developer Mode! Set in site_config.json or make 'Custom' DocType.,
+apps/frappe/frappe/core/doctype/doctype/doctype.py +352,"{0}: Only one rule allowed with the same Role, Level and Apply User Permissions","{0}: Only one rule allowed with the same Role, Level and Apply User Permissions"
+apps/frappe/frappe/core/doctype/doctype/doctype.py +363,{0}: Permission at level 0 must be set before higher levels are set,{0}: Permission at level 0 must be set before higher levels are set
+apps/frappe/frappe/core/doctype/doctype/doctype.py +366,"{0}: Create, Submit, Cancel and Amend only valid at level 0","{0}: Create, Submit, Cancel and Amend only valid at level 0"
+apps/frappe/frappe/core/doctype/doctype/doctype.py +370,{0}: Cannot set Cancel without Submit,{0}: Cannot set Cancel without Submit
+apps/frappe/frappe/core/doctype/doctype/doctype.py +373,"{0}: Cannot set Submit, Cancel, Amend without Write","{0}: Cannot set Submit, Cancel, Amend without Write"
+apps/frappe/frappe/core/doctype/doctype/doctype.py +375,{0}: Cannot set Amend without Cancel,{0}: Cannot set Amend without Cancel
+apps/frappe/frappe/core/doctype/doctype/doctype.py +377,{0}: Cannot set Import without Create,{0}: Cannot set Import without Create
+apps/frappe/frappe/core/doctype/doctype/doctype.py +38,{0} not allowed in name,{0} not allowed in name
+apps/frappe/frappe/core/doctype/doctype/doctype.py +384,Report cannot be set for Single types,Report cannot be set for Single types
+apps/frappe/frappe/core/doctype/doctype/doctype.py +394,{0} cannot be set for Single types,{0} cannot be set for Single types
+apps/frappe/frappe/core/doctype/doctype/doctype.py +398,{0}: Cannot set Assign Submit if not Submittable,{0}: Cannot set Assign Submit if not Submittable
+apps/frappe/frappe/core/doctype/doctype/doctype.py +400,{0}: Cannot set Assign Amend if not Submittable,{0}: Cannot set Assign Amend if not Submittable
+apps/frappe/frappe/core/doctype/doctype/doctype.py +404,{0}: Cannot set import as {1} is not importable,{0}: Cannot set import as {1} is not importable
+apps/frappe/frappe/core/doctype/doctype/doctype.py +80,Title field must be a valid fieldname,Title field must be a valid fieldname
+apps/frappe/frappe/core/doctype/doctype/doctype.py +98,Series {0} already used in {1},Series {0} already used in {1}
+apps/frappe/frappe/core/doctype/file_data/file_data.py +33,Same file has already been attached to the record,Same file has already been attached to the record
+apps/frappe/frappe/core/doctype/file_data/file_data.py +42,No permission to write / remove.,No permission to write / remove.
+apps/frappe/frappe/core/doctype/report/report.js +10,[Label]:[Field Type]/[Options]:[Width],[Label]:[Field Type]/[Options]:[Width]
+apps/frappe/frappe/core/doctype/report/report.js +11,Example:,Przykład:
+apps/frappe/frappe/core/doctype/report/report.js +16,Write a Python file in the same folder where this is saved and return column and result.,Write a Python file in the same folder where this is saved and return column and result.
+apps/frappe/frappe/core/doctype/report/report.js +37,Disable Report,
+apps/frappe/frappe/core/doctype/report/report.js +37,Enable Report,
+apps/frappe/frappe/core/doctype/report/report.js +5,Report Builder reports are managed directly by the report builder. Nothing to do.,Report Builder reports are managed directly by the report builder. Nothing to do.
+apps/frappe/frappe/core/doctype/report/report.js +8,Write a SELECT query. Note result is not paged (all data is sent in one go).,Write a SELECT query. Note result is not paged (all data is sent in one go).
+apps/frappe/frappe/core/doctype/report/report.js +9,"To format columns, give column labels in the query.","To format columns, give column labels in the query."
+apps/frappe/frappe/core/doctype/report/report.py +24,Only Administrator can save a standard report. Please rename and save.,Only Administrator can save a standard report. Please rename and save.
+apps/frappe/frappe/core/doctype/report/report.py +29,Only Administrator allowed to create Query / Script Reports,Only Administrator allowed to create Query / Script Reports
+apps/frappe/frappe/core/doctype/role/role.js +9,Edit Permissions,Edytuj uprawnienia
+apps/frappe/frappe/core/doctype/system_settings/system_settings.py +17,Session Expiry must be in format {0},Session Expiry must be in format {0}
+apps/frappe/frappe/core/doctype/user/user.js +117,Add all roles,Add all roles
+apps/frappe/frappe/core/doctype/user/user.js +127,Clear all roles,Clear all roles
+apps/frappe/frappe/core/doctype/user/user.js +282,Role Permissions,
+apps/frappe/frappe/core/doctype/user/user.js +41,Refreshing...,Refreshing...
+apps/frappe/frappe/core/doctype/user/user.js +95,Loading,Loading
+apps/frappe/frappe/core/doctype/user/user.py +103,Welcome email sent,Welcome email sent
+apps/frappe/frappe/core/doctype/user/user.py +141,Password Reset,
+apps/frappe/frappe/core/doctype/user/user.py +144,Password Update,
+apps/frappe/frappe/core/doctype/user/user.py +153,Verify Your Account,
+apps/frappe/frappe/core/doctype/user/user.py +184,There should remain at least one System Manager,
+apps/frappe/frappe/core/doctype/user/user.py +189,User {0} cannot be deleted,User {0} cannot be deleted
+apps/frappe/frappe/core/doctype/user/user.py +221,User {0} cannot be renamed,User {0} cannot be renamed
+apps/frappe/frappe/core/doctype/user/user.py +230,{0} is not a valid email id,{0} is not a valid email id
+apps/frappe/frappe/core/doctype/user/user.py +320,Cannot Update: Incorrect / Expired Link.,Cannot Update: Incorrect / Expired Link.
+apps/frappe/frappe/core/doctype/user/user.py +325,Cannot Update: Incorrect Password,Cannot Update: Incorrect Password
+apps/frappe/frappe/core/doctype/user/user.py +333,Password Updated,Password Updated
+apps/frappe/frappe/core/doctype/user/user.py +340,Registered but disabled.,Registered but disabled.
+apps/frappe/frappe/core/doctype/user/user.py +342,Already Registered,Already Registered
+apps/frappe/frappe/core/doctype/user/user.py +359,Registration Details Emailed.,Registration Details Emailed.
+apps/frappe/frappe/core/doctype/user/user.py +364,Not allowed to reset the password of {0},Not allowed to reset the password of {0}
+apps/frappe/frappe/core/doctype/user/user.py +371,Password reset instructions have been sent to your email,Password reset instructions have been sent to your email
+apps/frappe/frappe/core/doctype/user/user.py +374,User {0} does not exist,User {0} does not exist
+apps/frappe/frappe/core/doctype/user/user.py +40,User {0} cannot be disabled,User {0} cannot be disabled
+apps/frappe/frappe/core/doctype/user/user.py +56,Adding System Manager to this User as there must be atleast one System Manager,Adding System Manager to this User as there must be atleast one System Manager
+apps/frappe/frappe/core/doctype/user/user.py +66,User with System Manager Role should always have User Type: System User,
+apps/frappe/frappe/core/doctype/user/user.py +73,New password emailed,New password emailed
+apps/frappe/frappe/core/doctype/user/user_list.js +12,Active,Aktywny
+apps/frappe/frappe/core/doctype/userrole/userrole.py +14,Role exists,Role exists
+apps/frappe/frappe/core/doctype/version/version.js +10,Version restored,Version restored
+apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +17,"To import or update records, you must first download the template for importing.",
+apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +21,Download Blank Template,
+apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +24,Recommended for inserting new records.,
+apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +3,Select Type of Document to Import,
+apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +30,Download with Data,
+apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +33,"Recommended bulk editing records via import, or understanding the import format.",
+apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +38,Update the template and save in CSV (Comma Separate Values) format before attaching.,
+apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +45,"Always insert, even if ID is given.",
+apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +5,Select Type,Select Type
+apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +51,Submit after importing.,
+apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +57,Ignore encoding errors.,
+apps/frappe/frappe/core/page/data_import_tool/data_import_tool.js +115,Import Failed,
+apps/frappe/frappe/core/page/data_import_tool/data_import_tool.js +74,Import Successful!,Import Successful!
+apps/frappe/frappe/core/page/data_import_tool/data_import_tool.py +13,Start entering data below this line,
+apps/frappe/frappe/core/page/data_import_tool/data_import_tool.py +15,Parent Table,
+apps/frappe/frappe/core/page/data_import_tool/data_import_tool.py +16,Column Name,
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +134,One of,
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +217,Column Labels:,
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +219,Mandatory:,
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +220,Type:,
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +221,Info:,
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +51,Data Import Template,
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +60,Notes:,Notatki:
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +61,Please do not change the template headings.,
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +62,First data column must be blank.,
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +63,"If you are uploading new records, leave the ""name"" (ID) column blank.",
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +64,"If you are uploading new records, ""Naming Series"" becomes mandatory, if present.",
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +65,Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +66,"For updating, you can update only selective columns.",
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +67,You can only upload upto 5000 records in one go. (may be less in some cases),
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +69,"""Parent"" signifies the parent table in which this row must be added",
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +70,"If you are updating, please select ""Overwrite"" else existing rows will not be deleted.",
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +91,Leave blank for new records,
+apps/frappe/frappe/core/page/data_import_tool/importer.py +166,Not allowed to Import,Not allowed to Import
+apps/frappe/frappe/core/page/data_import_tool/importer.py +248,Did not find {0} for {0} ({1}),Did not find {0} for {0} ({1})
+apps/frappe/frappe/core/page/data_import_tool/importer.py +35,Please do not change the rows above {0},Please do not change the rows above {0}
+apps/frappe/frappe/core/page/data_import_tool/importer.py +40,No data found,No data found
+apps/frappe/frappe/core/page/data_import_tool/importer.py +42,Only allowed {0} rows in one import,Only allowed {0} rows in one import
+apps/frappe/frappe/core/page/data_import_tool/importer.py +67,Please make sure that there are no empty columns in the file.,Please make sure that there are no empty columns in the file.
+apps/frappe/frappe/core/page/desktop/all_applications_dialog.html +1,Search Application,
+apps/frappe/frappe/core/page/desktop/all_applications_dialog.html +3,Checked items will be shown on desktop,
+apps/frappe/frappe/core/page/desktop/desktop.js +49,All Applications,Wszystkie aplikacje
+apps/frappe/frappe/core/page/modules_setup/modules_setup.js +18,"Select modules to be shown (based on permission). If hidden, they will be hidden for all users.","Select modules to be shown (based on permission). If hidden, they will be hidden for all users."
+apps/frappe/frappe/core/page/modules_setup/modules_setup.js +5,Show or Hide Modules,
+apps/frappe/frappe/core/page/modules_setup/modules_setup.js +55,There were errors,There were errors
+apps/frappe/frappe/core/page/modules_setup/modules_setup.py +11,Updated,Updated
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +140,Select Document Type or Role to start.,Select Document Type or Role to start.
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +162,No Permissions set for this criteria.,No Permissions set for this criteria.
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +248,Select Document Types,
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +249,Show User Permissions,
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +292,Users with role {0}:,Users with role {0}:
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +316,Did not remove,Did not remove
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +359,Add A New Rule,Add A New Rule
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +363,Add New Permission Rule,Add New Permission Rule
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +371,"Level 0 is for document level permissions, higher levels for field level permissions.","Level 0 is for document level permissions, higher levels for field level permissions."
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +372,Add,Dodaj
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +396,Did not add,Did not add
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +421,Set,Zbiór
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +426,Apply User Permissions of these Document Types,
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +467,Did not set,
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +469,Saved!,
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +47,Document Types,
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +48,Select Document Type,Select Document Type
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +487,Restore Original Permissions,
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +54,Select Role,Select Role
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +95,Reset Permissions for {0}?,Reset Permissions for {0}?
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +10,Permissions are automatically translated to Standard Reports and Searches.,Permissions are automatically translated to Standard Reports and Searches.
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +11,"As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User.","As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User."
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +14,"Meaning of Submit, Cancel, Amend","Meaning of Submit, Cancel, Amend"
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +16,"Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit.","Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit."
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +17,"You can change Submitted documents by cancelling them and then, amending them.","You can change Submitted documents by cancelling them and then, amending them."
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +18,"When you Amend a document after Cancel and save it, it will get a new number that is a version of the old number.","When you Amend a document after Cancel and save it, it will get a new number that is a version of the old number."
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +19,For example if you cancel and amend INV004 it will become a new document INV004-1. This helps you to keep track of each amendment.,
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +22,Permission Levels,Permission Levels
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +24,"Permissions at level 0 are Document Level permissions, i.e. they are primary for access to the document.",
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +25,"If a Role does not have access at Level 0, then higher levels are meaningless.","If a Role does not have access at Level 0, then higher levels are meaningless."
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +26,Permissions at higher levels are Field Level permissions. All Fields have a Permission Level set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles.,
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +27,You can use Customize Form to set levels on fields.,You can use Customize Form to set levels on fields.
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +3,Quick Help for Setting Permissions,Quick Help for Setting Permissions
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +30,User Permissions,User Permissions
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +32,"To give acess to a role for only specific records, check the Apply User Permissions. User Permissions are used to limit users with such role to specific records.",
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +33,Setup > User Permissions Manager,Setup > User Permissions Manager
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +34,Select Document Types to set which User Permissions are used to limit access.,
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +35,"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).","Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger)."
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +36,"Apart from System Manager, roles with Set User Permissions right can set permissions for other users for that Document Type.",
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +38,"If these instructions where not helpful, please add in your suggestions on GitHub Issues.","If these instructions where not helpful, please add in your suggestions on GitHub Issues."
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +39,Submit an Issue,Submit an Issue
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +5,"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions.","Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions."
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +6,Permissions get applied on Users based on what Roles they are assigned.,Permissions get applied on Users based on what Roles they are assigned.
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +7,Roles can be set for users from their User page.,Roles can be set for users from their User page.
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +8,Setup > User,Setup > User
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +9,Add a New Role,Add a New Role
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +9,The system provides many pre-defined roles. You can add new roles to set finer permissions.,The system provides many pre-defined roles. You can add new roles to set finer permissions.
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +127,Upload User Permissions,
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +132,Upload CSV file containing all user permissions in the same format as Download.,
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +133,Any existing permission will be deleted / overwritten.,
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +14,Edit Role Permissions,
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +140,Upload and Sync,
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +149,Permissions Updated,
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +16,Help for User Permissions,
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +19,"Apart from Role based Permission Rules, you can apply User Permissions based on DocTypes.","Apart from Role based Permission Rules, you can apply User Permissions based on DocTypes."
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +193,No User Permissions found.,No User Permissions found.
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +209,Select User or DocType to start.,Select User or DocType to start.
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +23,"These permissions will apply for all transactions where the permitted record is linked. For example, if Company C is added to User Permissions of user X, user X will only be able to see transactions that has company C as a linked value.","These permissions will apply for all transactions where the permitted record is linked. For example, if Company C is added to User Permissions of user X, user X will only be able to see transactions that has company C as a linked value."
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +234,User Permission,User Permission
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +27,"These will also be set as default values for those links, if only one such permission record is defined.","These will also be set as default values for those links, if only one such permission record is defined."
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +285,Add A User Permission,Add A User Permission
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +289,Add New User Permission,
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +31,A user can be permitted to multiple records of the same DocType.,A user can be permitted to multiple records of the same DocType.
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +68,Select User,
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +88,Download,Ściągnij
+apps/frappe/frappe/core/page/user_permissions/user_permissions.py +105,Please upload using the same template as download.,
+apps/frappe/frappe/core/page/user_permissions/user_permissions.py +58,Cannot remove permission for DocType: {0} and Name: {1},Cannot remove permission for DocType: {0} and Name: {1}
+apps/frappe/frappe/core/page/user_permissions/user_permissions.py +66,Cannot set permission for DocType: {0} and Name: {1},Cannot set permission for DocType: {0} and Name: {1}
+apps/frappe/frappe/core/report/permitted_documents_for_user/permitted_documents_for_user.py +25,Please specify user,
+apps/frappe/frappe/core/report/permitted_documents_for_user/permitted_documents_for_user.py +28,Please specify doctype,
+apps/frappe/frappe/core/report/todo/todo.py +21,Assigned To/Owner,Assigned To/Owner
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +52,Name of the Document Type (DocType) you want this field to be linked to. e.g. Customer,
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +55,Options for select. Each option on a new line. e.g.: <br>Option 1<br>Option 2<br>Option 3<br>,
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +58,Fieldname which will be the DocType for this link field.,
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +19,Label is mandatory,Label is mandatory
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +29,Fieldname not set for Custom Field,Fieldname not set for Custom Field
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +61,"Insert After field '{0}' mentioned in Custom Field '{1}', does not exist","Insert After field '{0}' mentioned in Custom Field '{1}', does not exist"
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +123,Help,Pomoc
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +127,Help: Field Properties,
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +135,Set the display label for the field,
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +139,"Change type of field. (Currently, Type change is \
+						allowed among 'Currency and Float')",
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +144,Specify the value of the field,
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +149,Assign a permission level to the field.,
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +150,Permissions can be managed via Setup &gt; Role Permissions Manager,
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +156,Width of the input box,
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +157,Example,
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +161,Reqd,Reqd
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +162,Mark the field as Mandatory,
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +166,Use the field to filter records,
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +170,Hide field in form,
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +174,Hide field in Standard Print Format,
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +178,Hide field in Report Builder,
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +182,Allow field to remain editable even after submission,
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +195,Show a description below the field,
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +199,Specify a default value,
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +205,Press Esc to close,
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +46,Update,Update
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +60,Refresh Form,
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +64,Reset to defaults,
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +65,Remove all customizations?,Remove all customizations?
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +90,All customizations will be removed. Please confirm.,
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +124,Row {0}: Not allowed to enable Allow on Submit for standard fields,
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +247,Fieldtype cannot be changed from {0} to {1} in row {2},
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +96,{0} updated,{0} updated
+apps/frappe/frappe/custom/doctype/property_setter/property_setter.js +7,Value for a check field can be either 0 or 1,Value for a check field can be either 0 or 1
+apps/frappe/frappe/database.py +211,Too many writes in one request. Please send smaller requests,Too many writes in one request. Please send smaller requests
+apps/frappe/frappe/desk/doctype/event/event.py +16,Event end must be after start,Event end must be after start
+apps/frappe/frappe/desk/doctype/event/event.py +19,Every day events should finish on the same day.,
+apps/frappe/frappe/desk/doctype/event/event.py +50,Events In Today's Calendar,Events In Today's Calendar
+apps/frappe/frappe/desk/doctype/event/event.py +57,Daily Event Digest is sent for Calendar Events where reminders are set.,Daily Event Digest is sent for Calendar Events where reminders are set.
+apps/frappe/frappe/desk/doctype/event/event.py +59,Upcoming Events for Today,Upcoming Events for Today
+apps/frappe/frappe/desk/doctype/feed/feed.py +91,{0} logged in,
+apps/frappe/frappe/desk/doctype/note/note_list.js +3,Notes,Notatki
+apps/frappe/frappe/desk/doctype/todo/todo.js +12,Close,Zamknij
+apps/frappe/frappe/desk/doctype/todo/todo.js +20,Re-open,Re-open
+apps/frappe/frappe/desk/doctype/todo/todo.py +14,Assigned to {0},
+apps/frappe/frappe/desk/doctype/todo/todo.py +18,Assignment closed by {0},
+apps/frappe/frappe/desk/doctype/todo/todo_list.js +7,To Do,To Do
+apps/frappe/frappe/desk/form/assign_to.py +112,"The task %s, that you assigned to %s, has been closed.",
+apps/frappe/frappe/desk/form/assign_to.py +118,"The task %s, that you assigned to %s, has been closed by %s.",
+apps/frappe/frappe/desk/form/assign_to.py +126,"A new task, %s, has been assigned to you by %s. %s",
+apps/frappe/frappe/desk/form/assign_to.py +40,Already in user's To Do list,"Jest już na liście ""To Do"" użytkownika"
+apps/frappe/frappe/desk/form/load.py +42,Did not load,Did not load
+apps/frappe/frappe/desk/form/save.py +21,{0} {1} already exists,{0} {1} already exists
+apps/frappe/frappe/desk/form/save.py +29,Did not save,Did not save
+apps/frappe/frappe/desk/form/save.py +43,Did not cancel,Did not cancel
+apps/frappe/frappe/desk/form/utils.py +99,No further records,No further records
+apps/frappe/frappe/desk/moduleview.py +30,Custom Reports,Custom Reports
+apps/frappe/frappe/desk/moduleview.py +55,Module Not Found,Module Not Found
+apps/frappe/frappe/desk/moduleview.py +65,Standard Reports,Raporty standardowe
+apps/frappe/frappe/desk/page/activity/activity.js +153,Apr,
+apps/frappe/frappe/desk/page/activity/activity.js +153,Feb,
+apps/frappe/frappe/desk/page/activity/activity.js +153,Jan,
+apps/frappe/frappe/desk/page/activity/activity.js +153,Jun,
+apps/frappe/frappe/desk/page/activity/activity.js +153,Mar,
+apps/frappe/frappe/desk/page/activity/activity.js +153,May,
+apps/frappe/frappe/desk/page/activity/activity.js +154,Aug,
+apps/frappe/frappe/desk/page/activity/activity.js +154,Dec,
+apps/frappe/frappe/desk/page/activity/activity.js +154,Jul,
+apps/frappe/frappe/desk/page/activity/activity.js +154,Nov,
+apps/frappe/frappe/desk/page/activity/activity.js +154,Oct,
+apps/frappe/frappe/desk/page/activity/activity.js +154,Sep,
+apps/frappe/frappe/desk/page/activity/activity.js +197,{0} on {1},
+apps/frappe/frappe/desk/page/activity/activity.js +20,Activty,
+apps/frappe/frappe/desk/page/activity/activity.js +44,Refresh,Odśwież
+apps/frappe/frappe/desk/page/activity/activity.js +48,Build Report,Build Report
+apps/frappe/frappe/desk/page/activity/activity_row.html +11,Logged in,
+apps/frappe/frappe/desk/page/activity/activity_row.html +15,Commented on {0}: {1},
+apps/frappe/frappe/desk/page/activity/activity_row.html +17,Updated {0}: {1},
+apps/frappe/frappe/desk/page/applications/application_row.html +15,Publisher,
+apps/frappe/frappe/desk/page/applications/application_row.html +5,Installed,Installed
+apps/frappe/frappe/desk/page/applications/application_row.html +7,Install,
+apps/frappe/frappe/desk/page/applications/applications.js +24,No Apps Installed,
+apps/frappe/frappe/desk/page/applications/applications.py +34,You cannot install this app,You cannot install this app
+apps/frappe/frappe/desk/page/messages/messages_main.html +12,Post,Post
+apps/frappe/frappe/desk/page/messages/messages_sidebar.html +6,Everyone,
+apps/frappe/frappe/desk/query_report.py +18,You don't have access to Report: {0},
+apps/frappe/frappe/desk/query_report.py +21,You don't have permission to get a report on: {0},
+apps/frappe/frappe/desk/query_report.py +25,Report {0} is disabled,
+apps/frappe/frappe/desk/query_report.py +69,Must have report permission to access this report.,Must have report permission to access this report.
+apps/frappe/frappe/desk/query_report.py +75,Must specify a Query to run,Must specify a Query to run
+apps/frappe/frappe/desk/query_report.py +79,Query must be a SELECT,Query must be a SELECT
+apps/frappe/frappe/desk/reportview.py +72,{0} is saved,{0} is saved
+apps/frappe/frappe/email/bulk.py +126,Emails are muted,Emails are muted
+apps/frappe/frappe/email/bulk.py +36,Bulk email limit {0} crossed,Limit {0} korespondencji e-mail przekroczony
+apps/frappe/frappe/email/doctype/email_account/email_account.py +182,Re: ,
+apps/frappe/frappe/email/doctype/email_account/email_account.py +62,{0} is required,{0} is required
+apps/frappe/frappe/email/doctype/email_account/email_account_list.js +10,Default Inbox,
+apps/frappe/frappe/email/doctype/email_account/email_account_list.js +14,Default Sending,
+apps/frappe/frappe/email/doctype/email_account/email_account_list.js +18,Inbox,
+apps/frappe/frappe/email/doctype/email_account/email_account_list.js +6,Default Sending and Inbox,
+apps/frappe/frappe/email/doctype/email_alert/email_alert.py +13,Please specify which date field must be checked,
+apps/frappe/frappe/email/doctype/email_alert/email_alert.py +16,Please specify which value field must be checked,
+apps/frappe/frappe/email/doctype/email_alert/email_alert.py +20,Cannot set Email Alert on Document Type {0},
+apps/frappe/frappe/email/receive.py +46,Invalid Mail Server. Please rectify and try again.,Invalid Mail Server. Please rectify and try again.
+apps/frappe/frappe/email/receive.py +50,Invalid User Name or Support Password. Please rectify and try again.,Invalid User Name or Support Password. Please rectify and try again.
+apps/frappe/frappe/email/smtp.py +114,Email Account not setup. Please create a new Email Account from Setup > Email > Email Account,
+apps/frappe/frappe/email/smtp.py +126,Could not connect to outgoing email server,Could not connect to outgoing email server
+apps/frappe/frappe/email/smtp.py +148,Invalid Outgoing Mail Server or Port,Invalid Outgoing Mail Server or Port
+apps/frappe/frappe/email/smtp.py +152,Unable to send emails at this time,Unable to send emails at this time
+apps/frappe/frappe/email/smtp.py +34,Invalid login or password,Invalid login or password
+apps/frappe/frappe/email/smtp.py +37,Invalid recipient address,Invalid recipient address
+apps/frappe/frappe/email/smtp.py +74,Please setup default Email Account from Setup > Email > Email Account,
+apps/frappe/frappe/geo/doctype/currency/currency.js +7,This Currency is disabled. Enable to use in transactions,This Currency is disabled. Enable to use in transactions
+apps/frappe/frappe/model/base_document.py +239,Duplicate name {0} {1},Duplicate name {0} {1}
+apps/frappe/frappe/model/base_document.py +263,{0} must be unique,
+apps/frappe/frappe/model/base_document.py +293,Data missing in table,Data missing in table
+apps/frappe/frappe/model/base_document.py +297,Value missing for,Value missing for
+apps/frappe/frappe/model/base_document.py +328,Options not set for link field {0},Options not set for link field {0}
+apps/frappe/frappe/model/base_document.py +332,{0} must be set first,
+apps/frappe/frappe/model/base_document.py +369,Row #{0}:,
+apps/frappe/frappe/model/base_document.py +373,"{0} {1} cannot be ""{2}"". It should be one of ""{3}""",
+apps/frappe/frappe/model/base_document.py +386,Value cannot be changed for {0},Value cannot be changed for {0}
+apps/frappe/frappe/model/base_document.py +394,Not allowed to change {0} after submission,Not allowed to change {0} after submission
+apps/frappe/frappe/model/db_query.py +263,No permission to read {0},
+apps/frappe/frappe/model/db_query.py +366,Please select atleast 1 column from {0} to sort,Please select atleast 1 column from {0} to sort
+apps/frappe/frappe/model/db_schema.py +406,"Fieldname {0} cannot contain letters, numbers or spaces","Fieldname {0} cannot contain letters, numbers or spaces"
+apps/frappe/frappe/model/delete_doc.py +119,User not allowed to delete {0}: {1},
+apps/frappe/frappe/model/delete_doc.py +123,{0} {1}: Submitted Record cannot be deleted.,
+apps/frappe/frappe/model/delete_doc.py +141,Cannot delete or cancel because {0} {1} is linked with {2} {3},Cannot delete or cancel because {0} {1} is linked with {2} {3}
+apps/frappe/frappe/model/delete_doc.py +178,Deleted,
+apps/frappe/frappe/model/document.py +329,Record does not exist,Record does not exist
+apps/frappe/frappe/model/document.py +339,Error: Document has been modified after you have opened it,Error: Document has been modified after you have opened it
+apps/frappe/frappe/model/document.py +341,Please refresh to get the latest document.,Please refresh to get the latest document.
+apps/frappe/frappe/model/document.py +363,Cannot change docstatus from 0 to 2,
+apps/frappe/frappe/model/document.py +373,Cannot change docstatus from 1 to 0,
+apps/frappe/frappe/model/document.py +376,Cannot edit cancelled document,
+apps/frappe/frappe/model/document.py +423,Could not find {0},Could not find {0}
+apps/frappe/frappe/model/document.py +428,Cannot link cancelled document: {0},
+apps/frappe/frappe/model/document.py +576,one of,one of
+apps/frappe/frappe/model/document.py +577,none of,none of
+apps/frappe/frappe/model/document.py +578,beginning with,beginning with
+apps/frappe/frappe/model/document.py +603,Incorrect value in row {0}: {1} must be {2} {3},Incorrect value in row {0}: {1} must be {2} {3}
+apps/frappe/frappe/model/document.py +605,Incorrect value: {0} must be {1} {2},
+apps/frappe/frappe/model/document.py +614,Table {0} cannot be empty,Table {0} cannot be empty
+apps/frappe/frappe/model/mapper.py +69,Cannot map because following condition fails: ,Cannot map because following condition fails: 
+apps/frappe/frappe/model/naming.py +150,"There were some errors setting the name, please contact the administrator",
+apps/frappe/frappe/model/naming.py +156,Name of {0} cannot be {1},
+apps/frappe/frappe/model/naming.py +35,Naming Series mandatory,Naming Series mandatory
+apps/frappe/frappe/model/naming.py +42,Name not set via Prompt,Name not set via Prompt
+apps/frappe/frappe/model/naming.py +84, for {0},
+apps/frappe/frappe/model/naming.py +84,Invalid naming series (. missing),
+apps/frappe/frappe/model/rename_doc.py +88,"{0} {1} does not exist, select a new target to merge","{0} {1} does not exist, select a new target to merge"
+apps/frappe/frappe/model/rename_doc.py +91,"Another {0} with name {1} exists, select another name","Inny {0} z nazwą {1} istnieje, wybierz inną nazwę"
+apps/frappe/frappe/model/rename_doc.py +94,You need write permission to rename,You need write permission to rename
+apps/frappe/frappe/model/rename_doc.py +97,{0} not allowed to be renamed,{0} not allowed to be renamed
+apps/frappe/frappe/modules/__init__.py +77,App not found,App not found
+apps/frappe/frappe/permissions.py +148,Not allowed to access {0} with {1} = {2},Not allowed to access {0} with {1} = {2}
+apps/frappe/frappe/permissions.py +151,Row,Rząd
+apps/frappe/frappe/permissions.py +202,{0} {1} not found,
+apps/frappe/frappe/permissions.py +206,Permission already set,
+apps/frappe/frappe/print/doctype/letter_head/letter_head.js +7,Step 1: Set the name and save.,Step 1: Set the name and save.
+apps/frappe/frappe/print/doctype/letter_head/letter_head.js +9,Step 2: Set Letterhead content.,Step 2: Set Letterhead content.
+apps/frappe/frappe/print/doctype/print_format/print_format.js +14,Please duplicate this to make changes,
+apps/frappe/frappe/print/doctype/print_format/print_format.js +20,Please select DocType first,
+apps/frappe/frappe/print/doctype/print_format/print_format.py +14,Standard Print Format cannot be updated,Standard Print Format cannot be updated
+apps/frappe/frappe/print/doctype/print_format/print_format.py +26,Syntax error in Jinja template,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +103,Both DocType and Name required,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +158,Custom HTML,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +328,No of Columns,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +334,Remove Section,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +427,Edit Heading,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +446,Select Table Columns for {0},
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +494,Edit to add content,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +499,Edit Custom HTML,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +58,Select Print Format to Edit,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +582,Saved,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +85,Select a DocType to make a new format,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +94,Name of the new Print Format,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_column_selector.html +1,"Check columns to select, drag to set order.",
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_column_selector.html +2,Widths can be set in px or %.,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_column_selector.html +4,Column,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_field.html +12,Edit HTML,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_field.html +20,Select Columns,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_layout.html +11,<span class=text-muted data-no-content=1>,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_layout.html +12,Edit to set heading,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_layout.html +3,Drag elements from the sidebar to add. Drag them back to trash.,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_sidebar.html +3,Filter...,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_start.html +16,Create a New Format,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_start.html +2,Select an existing format to edit or start a new format.,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_start.html +8,Edit,Edytuj
+apps/frappe/frappe/sessions.py +26,Cache Cleared,
+apps/frappe/frappe/templates/emails/auto_reply.html +1,Thank you for your email,
+apps/frappe/frappe/templates/emails/auto_reply.html +2,"Your query has been received. We will back reply shortly. If you have any additional information, please reply to this mail.",
+apps/frappe/frappe/templates/emails/auto_reply.html +4,This is an automatically generated reply,
+apps/frappe/frappe/templates/emails/new_user.html +3,A new account has been created for you,
+apps/frappe/frappe/templates/emails/new_user.html +4,Your login id is,
+apps/frappe/frappe/templates/emails/new_user.html +5,Click on the link below to complete your registration and set a new password,
+apps/frappe/frappe/templates/emails/new_user.html +6,Complete Registration,
+apps/frappe/frappe/templates/emails/new_user.html +8,You can also copy-paste this link in your browser,
+apps/frappe/frappe/templates/emails/new_user.html +9,Thank you,
+apps/frappe/frappe/templates/emails/password_reset.html +4,Please click on the following link to set your new password,
+apps/frappe/frappe/templates/emails/password_update.html +1,Password Update Notification,
+apps/frappe/frappe/templates/emails/password_update.html +3,Your password has been updated. Here is your new password,
+apps/frappe/frappe/templates/emails/print_link.html +2,View this in your browser,
+apps/frappe/frappe/templates/generators/web_form.html +14,Please login to create a new {0},
+apps/frappe/frappe/templates/includes/comments.py +48,{0} by {1},{0} by {1}
+apps/frappe/frappe/templates/includes/comments.py +50,View it in your browser,
+apps/frappe/frappe/templates/includes/comments.py +57,New comment on {0} {1},New comment on {0} {1}
+apps/frappe/frappe/templates/includes/contact.js +11,"Please enter both your email and message so that we \
+				can get back to you. Thanks!",
+apps/frappe/frappe/templates/includes/contact.js +17,"You seem to have written your name instead of your email. \
+					Please enter a valid email address so that we can get back.",
+apps/frappe/frappe/templates/includes/contact.js +30,Thank you for your message,
+apps/frappe/frappe/templates/includes/login.js +119,Invalid Login,
+apps/frappe/frappe/templates/includes/login.js +120,Oops! Something went wrong,
+apps/frappe/frappe/templates/includes/login.js +18,Both login and password required,
+apps/frappe/frappe/templates/includes/login.js +31,Valid email and name required,
+apps/frappe/frappe/templates/includes/login.js +43,Valid Login id required.,
+apps/frappe/frappe/templates/pages/404.html +1,Not Found,Not Found
+apps/frappe/frappe/templates/pages/404.html +11,"We are very sorry for this, but the page you are looking for is missing (this could be because of a typo in the address) or moved.",
+apps/frappe/frappe/templates/pages/404.html +4,Page missing or moved,
+apps/frappe/frappe/templates/pages/desk.py +20,You are not permitted to access this page.,
+apps/frappe/frappe/templates/pages/list.html +1,List,Lista
+apps/frappe/frappe/templates/pages/login.py +158,Email not verified with {1},Email not verified with {1}
+apps/frappe/frappe/templates/pages/print.py +124,No {0} permission,
+apps/frappe/frappe/templates/pages/print.py +136,Print Format {0} is disabled,
+apps/frappe/frappe/templates/pages/print.py +150,No template found at path: {0},
+apps/frappe/frappe/templates/pages/update-password.html +1,Reset Password,
+apps/frappe/frappe/templates/pages/update-password.html +17,Old Password,
+apps/frappe/frappe/utils/backups.py +136,Download link for your backup will be emailed on the following email address: {0},
+apps/frappe/frappe/utils/boilerplate.py +209,{app_title},{app_title}
+apps/frappe/frappe/utils/csvutils.py +125,{0} must be one of {1},{0} must be one of {1}
+apps/frappe/frappe/utils/csvutils.py +24,File not attached,File not attached
+apps/frappe/frappe/utils/csvutils.py +32,Unable to open attached file. Please try again.,Unable to open attached file. Please try again.
+apps/frappe/frappe/utils/csvutils.py +49,"Unknown file encoding. Tried utf-8, windows-1250, windows-1252.","Unknown file encoding. Tried utf-8, windows-1250, windows-1252."
+apps/frappe/frappe/utils/csvutils.py +73,Not a valid Comma Separated Value (CSV File),Not a valid Comma Separated Value (CSV File)
+apps/frappe/frappe/utils/data.py +339,Cent,
+apps/frappe/frappe/utils/data.py +356,only.,
+apps/frappe/frappe/utils/data.py +386,hundred,
+apps/frappe/frappe/utils/data.py +391,thousand,
+apps/frappe/frappe/utils/data.py +394,million,
+apps/frappe/frappe/utils/data.py +397,billion,
+apps/frappe/frappe/utils/data.py +404,lakh,
+apps/frappe/frappe/utils/data.py +407,crore,
+apps/frappe/frappe/utils/file_manager.py +161,File size exceeded the maximum allowed size of {0} MB,File size exceeded the maximum allowed size of {0} MB
+apps/frappe/frappe/utils/file_manager.py +210,Removed {0},
+apps/frappe/frappe/utils/file_manager.py +28,Please select a file or url,Please select a file or url
+apps/frappe/frappe/utils/file_manager.py +40,Added {0},
+apps/frappe/frappe/utils/file_manager.py +83,No file attached,No file attached
+apps/frappe/frappe/utils/nestedset.py +181,Item cannot be added to its own descendents,Item cannot be added to its own descendents
+apps/frappe/frappe/utils/nestedset.py +194,Root {0} cannot be deleted,Root {0} cannot be deleted
+apps/frappe/frappe/utils/nestedset.py +201,Cannot delete {0} as it has child nodes,Nie można skasować {0} ponieważ posiada elementy potomne
+apps/frappe/frappe/utils/nestedset.py +210,Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node,Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node
+apps/frappe/frappe/utils/nestedset.py +221,Multiple root nodes not allowed.,Multiple root nodes not allowed.
+apps/frappe/frappe/utils/nestedset.py +227,{0} {1} cannot be a leaf node as it has children,{0} {1} cannot be a leaf node as it has children
+apps/frappe/frappe/utils/nestedset.py +77,Nested set error. Please contact the Administrator.,Nested set error. Please contact the Administrator.
+apps/frappe/frappe/utils/response.py +108,You need to be logged in and have System Manager Role to be able to access backups.,You need to be logged in and have System Manager Role to be able to access backups.
+apps/frappe/frappe/website/doctype/blog_post/blog_post_list.js +7,Not Published,
+apps/frappe/frappe/website/doctype/style_settings/style_settings.py +21,Top Bar text and background is same color. Please change.,Top Bar text and background is same color. Please change.
+apps/frappe/frappe/website/doctype/web_form/web_form.py +51,Invalid Request,
+apps/frappe/frappe/website/doctype/web_form/web_form.py +85,You must login to submit this form,
+apps/frappe/frappe/website/doctype/web_page/web_page.py +27,Cannot edit templated page,
+apps/frappe/frappe/website/doctype/website_settings/website_settings.js +18,Exported,Exported
+apps/frappe/frappe/website/doctype/website_settings/website_settings.js +73,Select a Banner Image first.,Select a Banner Image first.
+apps/frappe/frappe/website/doctype/website_settings/website_settings.py +22,Invalid Home Page,Invalid Home Page
+apps/frappe/frappe/website/doctype/website_settings/website_settings.py +32,{0} does not exist in row {1},{0} does not exist in row {1}
+apps/frappe/frappe/website/doctype/website_settings/website_settings.py +36,{0} in row {1} cannot have both URL and child items,{0} in row {1} cannot have both URL and child items
+apps/frappe/frappe/website/render.py +65,Not Permitted,
+apps/frappe/frappe/website/template.py +77,Next,Następny
+apps/frappe/frappe/workflow/doctype/workflow/workflow.py +38,Created Custom Field {0} in {1},Created Custom Field {0} in {1}
+apps/frappe/frappe/workflow/doctype/workflow/workflow.py +57,{0} not a valid State,{0} not a valid State
+apps/frappe/frappe/workflow/doctype/workflow/workflow.py +64,Cannot change state of Cancelled Document. Transition row {0},Cannot change state of Cancelled Document. Transition row {0}
+apps/frappe/frappe/workflow/doctype/workflow/workflow.py +67,Submitted Document cannot be converted back to draft. Transition row {0},Submitted Document cannot be converted back to draft. Transition row {0}
+apps/frappe/frappe/workflow/doctype/workflow/workflow.py +70,Cannot cancel before submitting. See Transition {0},Cannot cancel before submitting. See Transition {0}
+apps/frappe/frappe/workflow/doctype/workflow/workflow_list.js +7,Not active,
+sites/assets/js/desk.min.js +108,Confirm,
+sites/assets/js/desk.min.js +148,Enter Value,Wpisz Wartość
+sites/assets/js/desk.min.js +167,Not found,
+sites/assets/js/desk.min.js +167,Not permitted,Not permitted
+sites/assets/js/desk.min.js +168,Server Error: Please check your server logs or contact tech support.,Server Error: Please check your server logs or contact tech support.
+sites/assets/js/desk.min.js +176,Session Expired. Logging you out,Session Expired. Logging you out
+sites/assets/js/desk.min.js +196,Report this issue,
+sites/assets/js/desk.min.js +314,Menu,
+sites/assets/js/desk.min.js +350,This form does not have any input,
+sites/assets/js/desk.min.js +357,Show more details,
+sites/assets/js/desk.min.js +358,Hide details,
+sites/assets/js/desk.min.js +383,Missing Values Required,Missing Values Required
+sites/assets/js/desk.min.js +416,Invalid Email: {0},Invalid Email: {0}
+sites/assets/js/desk.min.js +421,Date must be in format: {0},Date must be in format: {0}
+sites/assets/js/desk.min.js +439,Please save the document before uploading.,
+sites/assets/js/desk.min.js +440,Upload,Prześlij
+sites/assets/js/desk.min.js +446,Add attachment,Add attachment
+sites/assets/js/desk.min.js +452,Please attach a file first.,Please attach a file first.
+sites/assets/js/desk.min.js +456,Open Link,
+sites/assets/js/desk.min.js +465,Create a new {0},
+sites/assets/js/desk.min.js +468,Advanced Search,
+sites/assets/js/desk.min.js +476,Please set {0} first,
+sites/assets/js/desk.min.js +480,Edit as {0},
+sites/assets/js/desk.min.js +480,Markdown,
+sites/assets/js/desk.min.js +480,Rich Text,
+sites/assets/js/desk.min.js +487,Beginning with,
+sites/assets/js/desk.min.js +487,Dialog box to select a Link Value,
+sites/assets/js/desk.min.js +487,Search,Szukaj
+sites/assets/js/desk.min.js +487,Select {0},
+sites/assets/js/desk.min.js +487,You can use wildcard %,
+sites/assets/js/desk.min.js +487,value,
+sites/assets/js/desk.min.js +494,No Results,No Results
+sites/assets/js/desk.min.js +496,Make a new,Stwórz
+sites/assets/js/desk.min.js +497,Added {0} ({1}),
+sites/assets/js/desk.min.js +498,{0} added,
+sites/assets/js/desk.min.js +510,Comments,Komentarze
+sites/assets/js/desk.min.js +510,Created By,Created By
+sites/assets/js/desk.min.js +510,Created On,
+sites/assets/js/desk.min.js +510,Document Status,
+sites/assets/js/desk.min.js +510,Last Updated By,
+sites/assets/js/desk.min.js +510,Last Updated On,
+sites/assets/js/desk.min.js +510,Parent,
+sites/assets/js/desk.min.js +510,Starred By,
+sites/assets/js/desk.min.js +510,Tags,Tagi
+sites/assets/js/desk.min.js +510,Unknown Column: {0},Unknown Column: {0}
+sites/assets/js/desk.min.js +512,Unable to load: {0},Unable to load: {0}
+sites/assets/js/desk.min.js +526,Permanently delete {0}?,Permanently delete {0}?
+sites/assets/js/desk.min.js +527,Merge with existing,
+sites/assets/js/desk.min.js +527,New Name,
+sites/assets/js/desk.min.js +527,Rename,Zmień nazwę
+sites/assets/js/desk.min.js +527,Rename {0},
+sites/assets/js/desk.min.js +530,Please specify,Please specify
+sites/assets/js/desk.min.js +571,You have unsaved changes in this form. Please save before you continue.,You have unsaved changes in this form. Please save before you continue.
+sites/assets/js/desk.min.js +574,Get,Get
+sites/assets/js/desk.min.js +574,Get From ,Get From 
+sites/assets/js/desk.min.js +613,You,
+sites/assets/js/desk.min.js +644,and,and
+sites/assets/js/desk.min.js +644,or,or
+sites/assets/js/desk.min.js +661,Export not allowed. You need {0} role to export.,Export not allowed. You need {0} role to export.
+sites/assets/js/desk.min.js +663,Alternative download link,Alternative download link
+sites/assets/js/desk.min.js +706,Attach as a web link,
+sites/assets/js/desk.min.js +710,Please attach a file or set a URL,Please attach a file or set a URL
+sites/assets/js/desk.min.js +711,Uploading...,Przesyłanie...
+sites/assets/js/desk.min.js +723,Collapse,Collapse
+sites/assets/js/desk.min.js +723,Expand,Expand
+sites/assets/js/desk.min.js +732,Page not found,Page not found
+sites/assets/js/desk.min.js +748,Sorry! I could not find what you were looking for.,
+sites/assets/js/desk.min.js +749,Sorry! You are not permitted to view this page.,
+sites/assets/js/desk.min.js +758,Home,Home
+sites/assets/js/desk.min.js +761,Help on Search,
+sites/assets/js/desk.min.js +762,Make a new record,
+sites/assets/js/desk.min.js +763,<b>new</b> <i>type of document</i>,
+sites/assets/js/desk.min.js +764,List a document type,
+sites/assets/js/desk.min.js +765,"<i>document type...</i>, e.g. <b>customer</b>",
+sites/assets/js/desk.min.js +766,Search in a document type,
+sites/assets/js/desk.min.js +767,<i>text</i> <b>in</b> <i>document type</i>,
+sites/assets/js/desk.min.js +768,Open a module or tool,
+sites/assets/js/desk.min.js +769,<i>module name...</i>,
+sites/assets/js/desk.min.js +770,Calculate,
+sites/assets/js/desk.min.js +771,<i>e.g. <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>,
+sites/assets/js/desk.min.js +774,Find {0} in {1},
+sites/assets/js/desk.min.js +774,New {0},
+sites/assets/js/desk.min.js +774,Open {0},
+sites/assets/js/desk.min.js +774,{0} List,
+sites/assets/js/desk.min.js +777,Frappe Framework,
+sites/assets/js/desk.min.js +779,Open Source Web Applications for the Web,
+sites/assets/js/desk.min.js +790,About,Informacje
+sites/assets/js/desk.min.js +790,Documentation,Dokumentacja
+sites/assets/js/desk.min.js +790,Forums,Fora
+sites/assets/js/desk.min.js +790,Logout,Logout
+sites/assets/js/desk.min.js +790,My Settings,Moje ustawienia
+sites/assets/js/desk.min.js +790,Reload,
+sites/assets/js/desk.min.js +790,Report an Issue,Report an Issue
+sites/assets/js/desk.min.js +790,Search or type a command,
+sites/assets/js/desk.min.js +790,Unread Messages,Unread Messages
+sites/assets/js/desk.min.js +790,View Website,
+sites/assets/js/desk.min.js +804,"Your download is being built, this may take a few moments...","Your download is being built, this may take a few moments..."
+sites/assets/js/desk.min.js +808,Add Reply,Dodaj Odpowiedź
+sites/assets/js/desk.min.js +808,Attach Document Print,Attach Document Print
+sites/assets/js/desk.min.js +808,Select Attachments,Wybierz Załączniki
+sites/assets/js/desk.min.js +808,Select Print Format,Select Print Format
+sites/assets/js/desk.min.js +808,Send As Email,Send As Email
+sites/assets/js/desk.min.js +808,To,Do
+sites/assets/js/desk.min.js +815,Add Attachments,Add Attachments
+sites/assets/js/desk.min.js +824,You are not allowed to send emails related to this document,You are not allowed to send emails related to this document
+sites/assets/js/desk.min.js +826,Email sent to {0},Email sent to {0}
+sites/assets/js/desk.min.js +827,There were errors while sending email. Please try again.,There were errors while sending email. Please try again.
+sites/assets/js/desk.min.js +829,Dear,Dear
+sites/assets/js/desk.min.js +834,"On {0}, {1} wrote:",
+sites/assets/js/editor.min.js +103,Bold (Ctrl/Cmd+B),
+sites/assets/js/editor.min.js +105,Bullet list,
+sites/assets/js/editor.min.js +107,Number list,
+sites/assets/js/editor.min.js +111,Insert picture (or just drag & drop),
+sites/assets/js/editor.min.js +113,Insert Link,
+sites/assets/js/editor.min.js +115,Remove Link,
+sites/assets/js/editor.min.js +119,Align Left (Ctrl/Cmd+L),
+sites/assets/js/editor.min.js +121,Center (Ctrl/Cmd+E),
+sites/assets/js/editor.min.js +123,Reduce indent (Shift+Tab),
+sites/assets/js/editor.min.js +125,Indent (Tab),
+sites/assets/js/editor.min.js +128,Horizontal Line Break,
+sites/assets/js/editor.min.js +152,Open Link in a new Window,
+sites/assets/js/editor.min.js +155,Insert,
+sites/assets/js/editor.min.js +94,Paragraph,
