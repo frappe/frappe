@@ -170,7 +170,7 @@ frappe.ui.form.Layout = Class.extend({
 		section.df = df;
 		if(df) {
 			if(df.label) {
-				$('<div class="col-sm-12 h6 text-muted">' + __(df.label) + '</div>')
+				$('<div class="col-sm-12 text-muted"><h4>' + __(df.label) + '</h4></div>')
 				.appendTo(this.section);
 			}
 			if(df.description) {

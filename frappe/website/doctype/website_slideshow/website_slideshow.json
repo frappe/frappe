@@ -19,7 +19,7 @@
    "description": "Note: For best results, images must be of the same size and width must be greater than height.", 
    "fieldname": "sb0", 
    "fieldtype": "Section Break", 
-   "label": "Slideshow Items", 
+   "label": "", 
    "permlevel": 0
   }, 
   {
@@ -42,7 +42,7 @@
  "icon": "icon-play", 
  "idx": 1, 
  "max_attachments": 10, 
- "modified": "2015-02-05 05:11:49.234461", 
+ "modified": "2015-02-20 05:04:19.614170", 
  "modified_by": "Administrator", 
  "module": "Website", 
  "name": "Website Slideshow", 
