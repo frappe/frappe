@@ -221,7 +221,10 @@ class BaseDocument(object):
 		return fieldname[0] if fieldname else None
 
 	def db_insert(self):
-		set_new_name(self)
+		"""INSERT the document (with valid columns) in the database."""
+		if not self.name:
+			# name will be set by document class in most cases
+			set_new_name(self)
 		d = self.get_valid_dict()
 		columns = d.keys()
 		try:

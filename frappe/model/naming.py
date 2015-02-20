@@ -7,55 +7,59 @@ from frappe import _
 from frappe.utils import now_datetime, cint
 
 def set_new_name(doc):
-	if doc.name:
-		pass
+	"""Sets the `name`` property for the document based on various rules.
 
-	elif getattr(doc, "amended_from", None):
+	1. If amened doc, set suffix.
+	3. If `autoname` method is declared, then call it.
+	4. If `autoname` property is set in the DocType (`meta`), then build it using the `autoname` property.
+	2. If `name` is already defined, use that name
+	5. If no rule defined, use hash.
+
+	#### Note:
+
+	:param doc: Document to be named."""
+
+	autoname = frappe.get_meta(doc.doctype).autoname
+	if getattr(doc, "amended_from", None):
 		_set_amended_name(doc)
+		return
+
+	elif getattr(doc.meta, "issingle", False):
+		doc.name = doc.doctype
 
 	elif hasattr(doc, "autoname"):
 		doc.run_method("autoname")
 
+	elif autoname:
+		if autoname.startswith('field:'):
+			fieldname = autoname[6:]
+			doc.name = (doc.get(fieldname) or "").strip()
+			if not doc.name:
+				frappe.throw(_("{0} is required").format(doc.meta.get_label(fieldname)))
+				raise Exception, 'Name is required'
+		if autoname.startswith("naming_series:"):
+			set_name_by_naming_series(doc)
+		elif "#" in autoname:
+			doc.name = make_autoname(autoname)
+		elif autoname=='Prompt':
+			# set from __newname in save.py
+			if not doc.name:
+				frappe.throw(_("Name not set via Prompt"))
+
 	if not doc.name:
-		autoname = frappe.get_meta(doc.doctype).autoname
-
-		# based on a field
-		if autoname:
-			if autoname.startswith('field:'):
-				n = doc.get(autoname[6:])
-				if not n:
-					raise Exception, 'Name is required'
-				doc.name = n.strip()
-
-			elif autoname.startswith("naming_series:"):
-				if not doc.naming_series:
-					doc.naming_series = get_default_naming_series(doc.doctype)
-
-				if not doc.naming_series:
-					frappe.msgprint(frappe._("Naming Series mandatory"), raise_exception=True)
-				doc.name = make_autoname(doc.naming_series+'.#####')
-
-			# call the method!
-			elif autoname=='Prompt':
-				# set from __newname in save.py
-				if not doc.name:
-					frappe.throw(frappe._("Name not set via Prompt"))
-
-			else:
-				doc.name = make_autoname(autoname, doc.doctype)
-
-		# default name for table
-		elif doc.meta.istable:
-			doc.name = make_autoname('hash', doc.doctype)
-
-		elif doc.meta.issingle:
-			doc.name = doc.doctype
-
-		# unable to determine a name, use global series
-		if not doc.name:
-			doc.name = make_autoname('hash', doc.doctype)
+		doc.name = make_autoname('hash', doc.doctype)
 
 	doc.name = validate_name(doc.doctype, doc.name)
+
+def set_name_by_naming_series(doc):
+	"""Sets name by the `naming_series` property"""
+	if not doc.naming_series:
+		doc.naming_series = get_default_naming_series(doc.doctype)
+
+	if not doc.naming_series:
+		frappe.throw(frappe._("Naming Series mandatory"))
+
+	doc.name = make_autoname(doc.naming_series+'.#####')
 
 def make_autoname(key, doctype=''):
 	"""
