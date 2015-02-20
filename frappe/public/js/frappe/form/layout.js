@@ -169,6 +169,10 @@ frappe.ui.form.Layout = Class.extend({
 		var section = this.section[0];
 		section.df = df;
 		if(df) {
+			if(df.label) {
+				$('<div class="col-sm-12 h6 text-muted">' + __(df.label) + '</div>')
+				.appendTo(this.section);
+			}
 			if(df.description) {
 				$('<div class="col-sm-12 small text-muted">' + __(df.description) + '</div>')
 				.appendTo(this.section);

@@ -4,6 +4,12 @@
   border-radius: none !important;
   margin: 0px auto !important;
 }
+.gantt *,
+.gantt2 * {
+  -webkit-box-sizing: content-box;
+  -moz-box-sizing: content-box;
+  box-sizing: content-box;
+}
 .fn-gantt .leftPanel,
 .fn-gantt .leftPanel .row0,
 .fn-gantt .leftPanel .name,
