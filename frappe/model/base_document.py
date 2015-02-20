@@ -237,6 +237,7 @@ class BaseDocument(object):
 		except Exception, e:
 			if e.args[0]==1062:
 				if self.meta.autoname=="hash":
+					self.name = None
 					self.db_insert()
 					return
 				type, value, traceback = sys.exc_info()
