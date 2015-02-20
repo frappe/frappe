@@ -149,9 +149,8 @@ def make_dict_from_messages(messages, full_dict=None):
 		full_dict = get_full_dict(frappe.local.lang)
 
 	for m in messages:
-		if m in full_dict:
-			out[m] = full_dict[m]
-
+		if m[1] in full_dict:
+			out[m[1]] = full_dict[m[1]]
 	return out
 
 def get_lang_js(fortype, name):
