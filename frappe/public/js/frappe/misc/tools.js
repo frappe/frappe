@@ -10,45 +10,15 @@ frappe.tools.downloadify = function(data, roles, title) {
 	}
 
 	var _get_data = function() { return frappe.tools.to_csv(data); };
-	var flash_disabled = (navigator.mimeTypes["application/x-shockwave-flash"] == undefined);
 
-	var download_from_server = function() {
-		open_url_post("/", {
-			args: { data: data, filename: title },
-			cmd: "frappe.utils.csvutils.send_csv_to_client"
-		}, true);
-	}
+	var a         = document.createElement('a');
+	a.href        = 'data:attachment/csv,' + encodeURIComponent(_get_data());
+	a.target      = '_blank';
+	a.download    = title + '.csv';
 
-	// save file > abt 200 kb using server call
-	if((_get_data().length > 200000) || flash_disabled) {
-		download_from_server();
-	} else {
-		frappe.require("assets/frappe/js/lib/downloadify/downloadify.min.js");
-		frappe.require("assets/frappe/js/lib/downloadify/swfobject.js");
-
-		var id = frappe.dom.set_unique_id();
-		var msgobj = msgprint($.format('<p id="{0}"></p><hr><a id="alternative-download">{1}</a>',[
-					id, __('Alternative download link')]));
-		msgobj.$wrapper.find("#alternative-download").on("click", function() { download_from_server(); });
-
-		Downloadify.create(id ,{
-			filename: function(){
-				return title + '.csv';
-			},
-			data: _get_data,
-			swf: 'assets/frappe/js/lib/downloadify/downloadify.swf',
-			downloadImage: 'assets/frappe/js/lib/downloadify/download.png',
-			onComplete: function(){
-				$(msgobj.msg_area).html("<p>Saved</p>")
-			},
-			onCancel: function(){ msgobj.hide(); },
-			onError: function(){ msgobj.hide(); },
-			width: 100,
-			height: 30,
-			transparent: true,
-			append: false
-		});
-	}
+	document.body.appendChild(a);
+	a.click();
+	$(a).remove();
 };
 
 frappe.markdown = function(txt) {
