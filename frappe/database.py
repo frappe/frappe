@@ -680,6 +680,10 @@ class Database:
 		"""Returns list of column names from given doctype."""
 		return [r[0] for r in self.sql("DESC `tab%s`" % doctype)]
 
+	def has_column(self, doctype, column):
+		"""Returns True if column exists in database."""
+		return column in self.get_table_columns(doctype)
+
 	def add_index(self, doctype, fields, index_name=None):
 		"""Creates an index with given fields if not already created.
 		Index name will be `fieldname1_fieldname2_index`"""

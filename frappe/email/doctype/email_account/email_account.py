@@ -48,7 +48,7 @@ class EmailAccount(Document):
 		for fn in ("default_incoming", "default_outgoing"):
 			if self.get(fn):
 				for email_account in frappe.get_all("Email Account",
-					{fn: 1}):
+					filters={fn: 1}):
 					if email_account.name==self.name:
 						continue
 					email_account = frappe.get_doc("Email Account",

@@ -21,7 +21,7 @@ class DatabaseQuery(object):
 		self.user = None
 		self.flags = frappe._dict()
 
-	def execute(self, query=None, filters=None, fields=None, or_filters=None,
+	def execute(self, query=None, fields=None, filters=None, or_filters=None,
 		docstatus=None, group_by=None, order_by=None, limit_start=0,
 		limit_page_length=20, as_list=False, with_childnames=False, debug=False,
 		ignore_permissions=False, user=None):

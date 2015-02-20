@@ -273,11 +273,10 @@ def validate_fields(meta):
 				if fold_exists:
 					frappe.throw(_("There can be only one Fold in a form"))
 				fold_exists = True
-				if i < len(fields)-2:
+				if i < len(fields)-1:
 					nxt = fields[i+1]
-					if nxt.fieldtype != "Section Break" \
-						or (nxt.fieldtype=="Section Break" and not nxt.label):
-						frappe.throw(_("Fold must come before a labelled Section Break"))
+					if nxt.fieldtype != "Section Break":
+						frappe.throw(_("Fold must come before a Section Break"))
 				else:
 					frappe.throw(_("Fold can not be at the end of the form"))
 
