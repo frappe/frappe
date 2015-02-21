@@ -4,6 +4,7 @@
 frappe.search = {
 	setup: function() {
 		var opts = {
+			autoFocus: true,
 			minLength: 0,
 			source: function(request, response) {
 				var txt = strip(request.term);
