@@ -43,11 +43,11 @@ class TestCustomizeForm(unittest.TestCase):
 
 		d = self.get_customize_form("Event")
 		self.assertEquals(d.doc_type, "Event")
-		self.assertEquals(len(d.get("fields")), 30)
+		self.assertEquals(len(d.get("fields")), 28)
 
 		d = self.get_customize_form("User")
 		self.assertEquals(d.doc_type, "User")
-		self.assertEquals(len(d.get("fields")), 48)
+		self.assertEquals(len(d.get("fields")), 50)
 		self.assertEquals(d.get("fields")[-1].fieldname, "test_custom_field")
 		self.assertEquals(d.get("fields", {"fieldname": "location"})[0].in_list_view, 1)
 

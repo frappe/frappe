@@ -16,8 +16,8 @@
 		"starts_on": "2014-01-01",
 		"subject":"_Test Event 3",
 		"event_type": "Private",
-		"users": [{
-			"person": "test1@example.com"
-		}]
+		"roles": [
+			{"role": "System Manager"}
+		]
 	}
 ]

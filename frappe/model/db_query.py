@@ -8,7 +8,7 @@ import frappe, json
 import frappe.defaults
 import frappe.share
 import frappe.permissions
-from frappe.utils import flt
+from frappe.utils import flt, cint
 from frappe import _
 
 class DatabaseQuery(object):
@@ -22,8 +22,8 @@ class DatabaseQuery(object):
 		self.flags = frappe._dict()
 
 	def execute(self, query=None, fields=None, filters=None, or_filters=None,
-		docstatus=None, group_by=None, order_by=None, limit_start=0,
-		limit_page_length=20, as_list=False, with_childnames=False, debug=False,
+		docstatus=None, group_by=None, order_by=None, limit_start=False,
+		limit_page_length=False, as_list=False, with_childnames=False, debug=False,
 		ignore_permissions=False, user=None):
 		if not ignore_permissions and not frappe.has_permission(self.doctype, "read", user=user):
 			raise frappe.PermissionError, self.doctype
@@ -35,8 +35,8 @@ class DatabaseQuery(object):
 		self.docstatus = docstatus or []
 		self.group_by = group_by
 		self.order_by = order_by
-		self.limit_start = int(limit_start) if limit_start else 0
-		self.limit_page_length = int(limit_page_length) if limit_page_length else 20
+		self.limit_start = 0 if (limit_start is False) else cint(limit_start)
+		self.limit_page_length = 20 if (limit_page_length is False) else cint(limit_page_length)
 		self.with_childnames = with_childnames
 		self.debug = debug
 		self.as_list = as_list

@@ -45,9 +45,9 @@ class TestDocument(unittest.TestCase):
 			"subject":"test-doc-test-event 2",
 			"starts_on": "2014-01-01",
 			"event_type": "Public",
-			"users": [
+			"roles": [
 				{
-					"person": "Administrator"
+					"role": "System Manager"
 				}
 			]
 		})
@@ -57,7 +57,7 @@ class TestDocument(unittest.TestCase):
 			"test-doc-test-event 2")
 
 		d1 = frappe.get_doc("Event", d.name)
-		self.assertTrue(d1.users[0].person, "Administrator")
+		self.assertEquals(d1.roles[0].role, "System Manager")
 
 	def test_update(self):
 		d = self.test_insert()

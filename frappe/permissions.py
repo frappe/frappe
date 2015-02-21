@@ -16,28 +16,33 @@ def check_admin_or_system_manager(user=None):
 	if ("System Manager" not in frappe.get_roles(user)) and (user!="Administrator"):
 		frappe.throw(_("Not permitted"), frappe.PermissionError)
 
-def has_permission(doctype, ptype="read", doc=None, verbose=True, user=None):
+def has_permission(doctype, ptype="read", doc=None, verbose=False, user=None):
 	"""check if user has permission"""
 	if not user: user = frappe.session.user
 
 	if frappe.is_table(doctype):
+		if verbose: print "Table type, always true"
 		return True
 
 	meta = frappe.get_meta(doctype)
 
 	if ptype=="submit" and not cint(meta.is_submittable):
+		if verbose: print "Not submittable"
 		return False
 
 	if ptype=="import" and not cint(meta.allow_import):
+		if verbose: print "Not importable"
 		return False
 
 	if user=="Administrator":
+		if verbose: print "Administrator"
 		return True
 
 	def false_if_not_shared():
 		if doc and ptype in ("read", "write", "share"):
 			shared = frappe.share.get_shared(meta.name, user, [ptype])
 			if doc.name in shared:
+				if verbose: print "Shared"
 				return True
 
 		return False
@@ -53,11 +58,14 @@ def has_permission(doctype, ptype="read", doc=None, verbose=True, user=None):
 		if role_permissions["apply_user_permissions"].get(ptype):
 			if not user_has_permission(doc, verbose=verbose, user=user,
 				user_permission_doctypes=role_permissions.get("user_permission_doctypes")):
+				if verbose: print "No user permission"
 				return false_if_not_shared()
 
 		if not has_controller_permissions(doc, ptype, user=user):
+			if verbose: print "No controller permission"
 			return false_if_not_shared()
 
+	if verbose: print "Has Role"
 	return True
 
 def get_doc_permissions(doc, verbose=False, user=None):

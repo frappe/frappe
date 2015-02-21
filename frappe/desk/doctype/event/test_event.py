@@ -11,37 +11,44 @@ import json
 from frappe.desk.doctype.event.event import get_events
 
 test_records = frappe.get_test_records('Event')
+test_user = "test1@example.com"
+
 
 class TestEvent(unittest.TestCase):
 	# def setUp(self):
-	# 	user = frappe.get_doc("User", "test1@example.com")
+	# 	user = frappe.get_doc("User", test_user)
 	# 	user.add_roles("Website Manager")
+
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
 
 	def test_allowed_public(self):
-		frappe.set_user("test1@example.com")
+		frappe.set_user(test_user)
 		doc = frappe.get_doc("Event", frappe.db.get_value("Event", {"subject":"_Test Event 1"}))
 		self.assertTrue(frappe.has_permission("Event", doc=doc))
 
 	def test_not_allowed_private(self):
-		frappe.set_user("test1@example.com")
+		frappe.set_user(test_user)
 		doc = frappe.get_doc("Event", frappe.db.get_value("Event", {"subject":"_Test Event 2"}))
 		self.assertFalse(frappe.has_permission("Event", doc=doc))
 
 	def test_allowed_private_if_in_event_user(self):
-		frappe.set_user("test1@example.com")
-		doc = frappe.get_doc("Event", frappe.db.get_value("Event", {"subject":"_Test Event 3"}))
+		name = frappe.db.get_value("Event", {"subject":"_Test Event 3"})
+		frappe.share.add("Event", name, test_user, "read")
+		frappe.set_user(test_user)
+		doc = frappe.get_doc("Event", name)
 		self.assertTrue(frappe.has_permission("Event", doc=doc))
+		frappe.set_user("Administrator")
+		frappe.share.remove("Event", name, test_user)
 
 	def test_event_list(self):
-		frappe.set_user("test1@example.com")
+		frappe.set_user(test_user)
 		res = frappe.get_list("Event", filters=[["Event", "subject", "like", "_Test Event%"]], fields=["name", "subject"])
-		self.assertEquals(len(res), 2)
+		self.assertEquals(len(res), 1)
 		subjects = [r.subject for r in res]
 		self.assertTrue("_Test Event 1" in subjects)
-		self.assertTrue("_Test Event 3" in subjects)
+		self.assertFalse("_Test Event 3" in subjects)
 		self.assertFalse("_Test Event 2" in subjects)
 
 	def test_revert_logic(self):
@@ -74,7 +81,7 @@ class TestEvent(unittest.TestCase):
 
 		# add another one
 		add({
-			"assign_to": "test1@example.com",
+			"assign_to": test_user,
 			"doctype": "Event",
 			"name": ev.name,
 			"description": "Test Assignment"
@@ -82,11 +89,11 @@ class TestEvent(unittest.TestCase):
 
 		ev = frappe.get_doc("Event", ev.name)
 
-		self.assertEquals(set(json.loads(ev._assign)), set(["test@example.com", "test1@example.com"]))
+		self.assertEquals(set(json.loads(ev._assign)), set(["test@example.com", test_user]))
 
 		# close an assignment
 		todo = frappe.get_doc("ToDo", {"reference_type": ev.doctype, "reference_name": ev.name,
-			"owner": "test1@example.com"})
+			"owner": test_user})
 		todo.status = "Closed"
 		todo.save()
 

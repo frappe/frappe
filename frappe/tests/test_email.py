@@ -2,7 +2,6 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-import os, sys
 
 import unittest, frappe
 
@@ -17,7 +16,7 @@ class TestEmail(unittest.TestCase):
 
 	def test_send(self):
 		from frappe.email import sendmail
-		#sendmail('test@example.com', subject='Test Mail', msg="Test Content")
+		sendmail('test@example.com', subject='Test Mail', msg="Test Content")
 
 	def test_bulk(self):
 		from frappe.email.bulk import send
@@ -64,7 +63,7 @@ class TestEmail(unittest.TestCase):
 		self.assertTrue('Unsubscribe' in bulk[0]['message'])
 
 	def test_bulk_limit(self):
-		from frappe.email.bulk import unsubscribe, send, BulkLimitCrossedError
+		from frappe.email.bulk import send, BulkLimitCrossedError
 		self.assertRaises(BulkLimitCrossedError, send,
 			recipients=['test@example.com']*1000,
 			sender="admin@example.com",

@@ -378,7 +378,7 @@ def get_user(username):
 	else:
 		return User(username)
 
-def has_permission(doctype, ptype="read", doc=None, user=None):
+def has_permission(doctype, ptype="read", doc=None, user=None, verbose=False):
 	"""Raises `frappe.PermissionError` if not permitted.
 
 	:param doctype: DocType for which permission is to be check.
@@ -386,7 +386,7 @@ def has_permission(doctype, ptype="read", doc=None, user=None):
 	:param doc: [optional] Checks User permissions for given doc.
 	:param user: [optional] Check for given user. Default: current user."""
 	import frappe.permissions
-	return frappe.permissions.has_permission(doctype, ptype, doc, user=user)
+	return frappe.permissions.has_permission(doctype, ptype, doc, verbose=verbose, user=user)
 
 def is_table(doctype):
 	"""Returns True if `istable` property (indicating child Table) is set for given DocType."""
@@ -440,6 +440,14 @@ def get_doc(arg1, arg2=None):
 	"""
 	import frappe.model.document
 	return frappe.model.document.get_doc(arg1, arg2)
+
+def get_last_doc(doctype):
+	"""Get last created document of this type."""
+	d = get_all(doctype, ["name"], order_by="creation desc", limit_page_length=1)
+	if d:
+		return get_doc(doctype, d[0].name)
+	else:
+		raise DoesNotExistError
 
 def get_single(doctype):
 	"""Return a `frappe.model.document.Document` object of the given Single doctype."""

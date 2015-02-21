@@ -11,12 +11,12 @@ from frappe import _
 
 def send(email, as_bulk=False, append_to=None):
 	"""send the message or add it to Outbox Email"""
-	if frappe.flags.mute_emails or frappe.conf.get("mute_emails") or False:
-		frappe.msgprint(_("Emails are muted"))
-		return
-
 	if frappe.flags.in_test:
 		frappe.flags.sent_mail = email.as_string()
+		return
+
+	if frappe.flags.mute_emails or frappe.conf.get("mute_emails") or False:
+		frappe.msgprint(_("Emails are muted"))
 		return
 
 	try:

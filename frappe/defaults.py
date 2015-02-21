@@ -82,14 +82,8 @@ def set_default(key, value, parent, parenttype="__default"):
 	:param value: Default value.
 	:param parent: Usually, **User** to whom the default belongs.
 	:param parenttype: [optional] default is `__default`."""
-	if frappe.db.sql("""select defkey from `tabDefaultValue` where
-		defkey=%s and parent=%s """, (key, parent)):
-		# update
-		frappe.db.sql("""update `tabDefaultValue` set defvalue=%s, parenttype=%s
-			where parent=%s and defkey=%s""", (value, parenttype, parent, key))
-		_clear_cache(parent)
-	else:
-		add_default(key, value, parent)
+	frappe.db.sql("""delete from `tabDefaultValue` where defkey=%s and parent=%s""", (key, parent))
+	add_default(key, value, parent)
 
 def add_default(key, value, parent, parenttype=None):
 	d = frappe.get_doc({
@@ -100,7 +94,7 @@ def add_default(key, value, parent, parenttype=None):
 		"defkey": key,
 		"defvalue": value
 	})
-	d.db_insert()
+	d.insert(ignore_permissions=True)
 	_clear_cache(parent)
 
 def clear_default(key=None, value=None, parent=None, name=None, parenttype=None):
@@ -154,6 +148,7 @@ def get_defaults_for(parent="__default"):
 	"""get all defaults"""
 	defaults = frappe.cache().get_value("__defaults:" + parent)
 	if defaults==None:
+		# sort descending because first default must get preceedence
 		res = frappe.db.sql("""select defkey, defvalue from `tabDefaultValue`
 			where parent = %s order by creation""", (parent,), as_dict=1)
 
@@ -166,6 +161,7 @@ def get_defaults_for(parent="__default"):
 
 				if d.defvalue not in defaults[d.defkey]:
 					defaults[d.defkey].append(d.defvalue)
+
 			elif d.defvalue is not None:
 				defaults[d.defkey] = d.defvalue
 

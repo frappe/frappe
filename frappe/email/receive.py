@@ -200,7 +200,7 @@ class Email:
 	def set_content_and_type(self):
 		self.content, self.content_type = '[Blank Email]', 'text/plain'
 		if self.text_content:
-			self.content, self.content_type = EmailReplyParser.parse_reply(self.text_content)
+			self.content, self.content_type = EmailReplyParser.parse_reply(self.text_content), 'text/plain'
 		else:
 			self.content, self.content_type = self.html_content, 'text/html'
 

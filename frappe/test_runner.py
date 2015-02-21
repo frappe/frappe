@@ -28,6 +28,8 @@ def main(app=None, module=None, doctype=None, verbose=False, tests=(), force=Fal
 	for fn in frappe.get_hooks("before_tests", app_name=app):
 		frappe.get_attr(fn)()
 
+	set_test_email_config()
+
 	if doctype:
 		ret = run_tests_for_doctype(doctype, verbose=verbose, tests=tests, force=force)
 	elif module:
@@ -41,6 +43,15 @@ def main(app=None, module=None, doctype=None, verbose=False, tests=(), force=Fal
 	frappe.clear_cache()
 
 	return ret
+
+def set_test_email_config():
+	frappe.conf.update({
+		"auto_email_id": "test@example.com",
+		"mail_server": "smtp.example.com",
+		"mail_login": "test@example.com",
+		"mail_password": "test",
+		"admin_password": "admin"
+	})
 
 def run_all_tests(app=None, verbose=False):
 	import os

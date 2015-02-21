@@ -47,8 +47,8 @@ class TestEmailAccount(unittest.TestCase):
 		make(subject = "test-mail-000", content="test mail 000", recipients="test_receiver@example.com",
 			send_email=True, sender="test_sender@example.com")
 
-		sent_mail = email.message_from_string(frappe.flags.sent_mail)
-		self.assertTrue("test-mail-000" in sent_mail.get("Subject"))
+		mail = email.message_from_string(frappe.get_last_doc("Bulk Email").message)
+		self.assertTrue("test-mail-000" in mail.get("Subject"))
 
 	def test_sendmail(self):
 		frappe.flags.sent_mail = None
@@ -64,8 +64,7 @@ class TestEmailAccount(unittest.TestCase):
 			content="test mail 001", subject="test-mail-002", doctype="Email Account",
 			name="_Test Email Account 1", print_format="Standard", send_email=True)
 
-		sent_mail = email.message_from_string(frappe.flags.sent_mail)
-
+		sent_mail = email.message_from_string(frappe.get_last_doc("Bulk Email").message)
 		self.assertTrue("test-mail-002" in sent_mail.get("Subject"))
 
 	def test_threading(self):
@@ -77,8 +76,7 @@ class TestEmailAccount(unittest.TestCase):
 			recipients="test_receiver@example.com", sender="test@example.com",
 			send_email=True)
 
-		sent_mail = email.message_from_string(frappe.flags.sent_mail)
-
+		sent_mail = email.message_from_string(frappe.get_last_doc("Bulk Email").message)
 		with open(os.path.join(os.path.dirname(__file__), "test_mails", "reply-1.raw"), "r") as f:
 			raw = f.read()
 			raw = raw.replace("<-- in-reply-to -->", sent_mail.get("Message-Id"))

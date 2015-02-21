@@ -178,8 +178,6 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 	check_data_length()
 	make_column_map()
 
-	frappe.db.begin()
-
 	if overwrite==None:
 		overwrite = params.get('overwrite')
 
