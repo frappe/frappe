@@ -38,6 +38,10 @@ frappe.ui.form.Control = Class.extend({
 		this.$wrapper = $("<div class='frappe-control'></div>").appendTo(this.parent);
 	},
 
+	toggle: function(show) {
+		this.$wrapper.toggleClass("hide-control", !!!show);
+	},
+
 	// returns "Read", "Write" or "None"
 	// as strings based on permissions
 	get_status: function(explain) {
@@ -673,27 +677,60 @@ frappe.ui.form.ControlAttach = frappe.ui.form.ControlData.extend({
 		if(!this.dialog) {
 			this.dialog = new frappe.ui.Dialog({
 				title: __(this.df.label || __("Upload")),
+				fields: [
+					{fieldtype:"HTML", fieldname:"upload_area"},
+					{fieldtype:"HTML", fieldname:"or_attach", options: __("Or")},
+					{fieldtype:"Select", fieldname:"select", label:__("Select from existing attachments") },
+				]
 			});
 		}
 
-		$(this.dialog.body).empty();
+		this.dialog.show();
+
+		this.dialog.get_field("upload_area").$wrapper.empty();
+
+		// select from existing attachments
+		var attachments = this.frm && this.frm.attachments.get_attachments() || [];
+		var select = this.dialog.get_field("select");
+		if(attachments.length) {
+			attachments = $.map(attachments, function(o) { return o.file_url; })
+			select.df.options = [""].concat(attachments);
+			select.toggle(true);
+			this.dialog.get_field("or_attach").toggle(true);
+			select.refresh();
+		} else {
+			this.dialog.get_field("or_attach").toggle(false);
+			select.toggle(false);
+		}
+		select.$input.val("");
 
 		this.set_upload_options();
 		frappe.upload.make(this.upload_options);
-		this.dialog.show();
 	},
 
 	set_upload_options: function() {
 		var me = this;
 		this.upload_options = {
-			parent: this.dialog.body,
+			parent: this.dialog.get_field("upload_area").$wrapper,
 			args: {},
 			max_width: this.df.max_width,
 			max_height: this.df.max_height,
+			options: this.df.options,
 			btn: this.dialog.set_primary_action(__("Upload")),
+			on_no_attach: function() {
+				// if no attachmemts,
+				// check if something is selected
+				var selected = me.dialog.get_field("select").get_value();
+				if(selected) {
+					me.parse_validate_and_set_in_model(selected);
+					me.dialog.hide();
+				} else {
+					msgprint(__("Please attach a file or set a URL"));
+				}
+			},
 			callback: function(attachment, r) {
-				me.dialog.hide();
 				me.on_upload_complete(attachment);
+				me.dialog.hide();
 			},
 			onerror: function() {
 				me.dialog.hide();
@@ -917,10 +954,9 @@ frappe.ui.form.ControlLink = frappe.ui.form.ControlData.extend({
 		var doctype = this.get_options();
 		if(!doctype) return;
 		if(this.frm) {
-			this.frm.new_doc(doctype, this);
-
+			this.frm.new_doc(doctype, this, {"name_field": this.get_value()});
 		} else {
-			new_doc(doctype);
+			new_doc(doctype, {"name_field": this.get_value()});
 		}
 	},
 	setup_autocomplete: function() {

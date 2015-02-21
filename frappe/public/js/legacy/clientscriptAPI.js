@@ -279,9 +279,10 @@ _f.Frm.prototype.get_field = function(field) {
 	return cur_frm.fields_dict[field];
 };
 
-_f.Frm.prototype.new_doc = function(doctype, field) {
-	frappe._from_link = field; frappe._from_link_scrollY = scrollY;
-	new_doc(doctype);
+_f.Frm.prototype.new_doc = function(doctype, field, opts) {
+	frappe._from_link = field;
+	frappe._from_link_scrollY = scrollY;
+	new_doc(doctype, opts);
 }
 
 

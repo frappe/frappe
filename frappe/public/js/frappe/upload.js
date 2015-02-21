@@ -64,7 +64,11 @@ frappe.upload = {
 	},
 	upload_file: function(fileobj, args, opts) {
 		if(!fileobj && !args.file_url) {
-			msgprint(__("Please attach a file or set a URL"));
+			if(opts.on_no_attach) {
+				opts.on_no_attach();
+			} else {
+				msgprint(__("Please attach a file or set a URL"));
+			}
 			return;
 		}
 
@@ -100,6 +104,13 @@ frappe.upload = {
 
 			freader.onload = function() {
 				args.filename = fileobj.name;
+				if(opts.options && opts.options.toLowerCase()=="image") {
+					if(!(/\.(gif|jpg|jpeg|tiff|png|svg)$/i).test(args.filename)) {
+						msgprint(__("Only image extensions (.gif, .jpg, .jpeg, .tiff, .png, .svg) allowed"));
+						return;
+					}
+				}
+
 				if((opts.max_width || opts.max_height) && (/\.(gif|jpg|jpeg|tiff|png)$/i).test(args.filename)) {
 					frappe.utils.resize_image(freader, function(_dataurl) {
 						dataurl = _dataurl;
