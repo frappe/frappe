@@ -164,7 +164,7 @@ def get_data():
 				{
 					"type": "doctype",
 					"name": "Print Format",
-					"description": _("Customized HTML Templates for printing transctions.")
+					"description": _("Customized HTML Templates for printing transactions.")
 				},
 			]
 		},

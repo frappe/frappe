@@ -41,6 +41,11 @@
   border-color: #d1d8dd !important;
   color: #8d99a6 !important;
 }
+.slick-header-column:hover,
+.slick-header-column-active {
+  background-image: none;
+  background-color: #d9e7f1;
+}
 .slick-row.odd .slick-cell {
   background-color: #fafbfc;
 }

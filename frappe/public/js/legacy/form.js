@@ -214,10 +214,6 @@ _f.Frm.prototype.watch_model_updates = function() {
 	});
 }
 
-_f.Frm.prototype.onhide = function() {
-	if(_f.cur_grid_cell) _f.cur_grid_cell.grid.cell_deselect();
-}
-
 _f.Frm.prototype.setup_std_layout = function() {
 	this.form_wrapper = $('<div></div>').appendTo(this.layout_main);
 	this.inner_toolbar	= $('<div class="form-inner-toolbar hide"></div>').appendTo(this.form_wrapper);
@@ -304,11 +300,6 @@ _f.Frm.prototype.setup_meta = function(doctype) {
 	this.meta = frappe.get_doc('DocType',this.doctype);
 	this.perm = frappe.perm.get_perm(this.doctype); // for create
 	if(this.meta.istable) { this.meta.in_dialog = 1 }
-}
-
-_f.Frm.prototype.defocus_rest = function() {
-	// deselect others
-	if(_f.cur_grid_cell) _f.cur_grid_cell.grid.cell_deselect();
 }
 
 _f.Frm.prototype.refresh_header = function() {
@@ -493,6 +484,7 @@ _f.Frm.prototype.setnewdoc = function() {
 	// this.check_doctype_conflict(docname);
 	var me = this;
 
+	// hide any open grid
 	this.script_manager.trigger("before_load", this.doctype, this.docname, function() {
 		me.script_manager.trigger("onload");
 		me.opendocs[me.docname] = true;
@@ -561,6 +553,9 @@ var validated;
 _f.Frm.prototype.save = function(save_action, callback, btn, on_error) {
 	btn && $(btn).prop("disabled", true);
 	$(document.activeElement).blur();
+
+	var open_form = frappe.ui.form.get_open_grid_form();
+	open_form && open_form.hide_form();
 
 	// let any pending js process finish
 	var me = this;

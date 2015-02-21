@@ -57,7 +57,7 @@ frappe.ui.form.Control = Class.extend({
 	refresh: function() {
 		this.disp_status = this.get_status();
 		this.$wrapper
-			&& this.$wrapper.toggle(this.disp_status!="None")
+			&& this.$wrapper.toggleClass("hide-control", this.disp_status=="None")
 			&& this.$wrapper.trigger("refresh");
 	},
 	get_doc: function() {

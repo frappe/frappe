@@ -43,7 +43,11 @@
 	padding: 15px;
 }
 
-.form-section:nth-child(even), .timeline-item:nth-child(even) {
+.empty-section {
+	display: none !important;
+}
+
+.shaded-section, .timeline-item:nth-child(even) {
 	background-color: @light-bg;
 }
 
@@ -123,7 +127,6 @@
 	font-weight: bold;
 }
 
-
 .control-label, .grid-heading-row {
 	color: @text-muted;
 	font-size: 85%;
@@ -150,6 +153,10 @@
 	.help-box {
 		margin-top: 3px;
 	}
+}
+
+.hide-control {
+	display: none !important;
 }
 
 .shared-user {

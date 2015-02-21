@@ -32,7 +32,10 @@
   margin: 0px;
   padding: 15px;
 }
-.form-section:nth-child(even),
+.empty-section {
+  display: none !important;
+}
+.shaded-section,
 .timeline-item:nth-child(even) {
   background-color: #fafbfc;
 }
@@ -116,6 +119,9 @@
 }
 .frappe-control .help-box {
   margin-top: 3px;
+}
+.hide-control {
+  display: none !important;
 }
 .shared-user {
   margin-bottom: 10px;

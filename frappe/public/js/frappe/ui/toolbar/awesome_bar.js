@@ -100,9 +100,14 @@ frappe.search.verbs = [
 	function(txt) {
 		var route = frappe.get_route();
 		if(route[0]==="List" && txt.indexOf(" in") === -1) {
+			// search in title field
+			var meta = frappe.get_meta(frappe.container.page.doclistview.doctype);
+			var search_field = meta.title_field || "name";
+			var options = {};
+			options[search_field] = ["like", "%" + txt + "%"];
 			frappe.search.options.push({
 				value: __('Find {0} in {1}', ["<b>"+txt+"</b>", "<b>" + route[1] + "</b>"]),
-				route_options: {"name": ["like", "%" + txt + "%"]},
+				route_options: options,
 				onclick: function() {
 					frappe.container.page.doclistview.set_route_options();
 				},

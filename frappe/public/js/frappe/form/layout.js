@@ -68,6 +68,9 @@ frappe.ui.form.Layout = Class.extend({
 
 		// dependent fields
 		this.refresh_dependency();
+
+		// refresh sections
+		this.refresh_sections();
 	},
 	render: function() {
 		var me = this;
@@ -188,13 +191,40 @@ frappe.ui.form.Layout = Class.extend({
 			wrapper: section
 		};
 		section.refresh = function() {
-			if(!this.df) return;
-			$(this).toggle(this.df.hidden || this.df.hidden_due_to_dependency
-				? false : (me.frm ? !!me.frm.get_perm(this.df.permlevel, "read") : true));
+			if(!this.df)
+				return;
+
+			// hide if explictly hidden
+			var hide = this.df.hidden || this.df.hidden_due_to_dependency;
+
+			// hide if no perm
+			if(!hide && me.frm && !me.frm.get_perm(this.df.permlevel || 0, "read")) {
+				hide = true;
+			}
+
+			$(this).toggleClass("hide-control", !!hide);
 		}
 		this.column = null;
 		section.refresh.call(section);
 		return this.section;
+	},
+	refresh_sections: function() {
+		var cnt = 0;
+		this.wrapper.find(".form-section:not(.hide-control)").each(function() {
+			var $this = $(this).removeClass("empty-section")
+				.removeClass("visible-section")
+				.removeClass("shaded-section");
+			if(!$(this).find(".frappe-control:not(.hide-control)").length) {
+				// nothing visible, hide the section
+				$(this).addClass("empty-section");
+			} else {
+				$(this).addClass("visible-section");
+				if(cnt % 2) {
+					$(this).addClass("shaded-section");
+				}
+				cnt ++;
+			}
+		});
 	},
 	refresh_section_count: function() {
 		this.wrapper.find(".section-count-label:visible").each(function(i) {
