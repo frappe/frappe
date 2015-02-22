@@ -3,25 +3,24 @@
 
 // update parent select
 
-frappe.ui.form.on("Website Settings", "refresh", function(frm) {
-	if(user==="Administrator") {
-		frm.add_custom_button("Export to Fixtures", function() {
-			frappe.prompt({fieldname:"app", fieldtype:"Data", label:__("App Name"), reqd:1}, function(data) {
-				frappe.call({
-					method: "frappe.core.page.data_import_tool.data_import_tool.export_fixture",
-					args: {
-						app: data.app,
-						doctype:"Website Settings",
-						name:"Website Settings",
-					},
-					callback: function(r) {
-						if(!r.exc) { msgprint(__("Exported")); }
-					}
-				})
-			})
-		}, null, "btn-default")
-	}
-})
+// frappe.ui.form.on("Website Settings", "refresh", function(frm) {
+// 	if(user==="Administrator") {
+// 		frm.add_custom_button("Export to Fixtures", function() {
+// 			frappe.prompt({fieldname:"app", fieldtype:"Data", label:__("App Name"), reqd:1}, function(data) {
+// 				frappe.call({
+// 					method: "frappe.core.page.data_import_tool.data_import_tool.export_fixture",
+// 					args: {
+// 						app: data.app,
+// 						doctype:"Website Settings"
+// 					},
+// 					callback: function(r) {
+// 						if(!r.exc) { msgprint(__("Exported")); }
+// 					}
+// 				})
+// 			})
+// 		}, null, "btn-default")
+// 	}
+// })
 
 $.extend(cur_frm.cscript, {
 	refresh: function(doc) {

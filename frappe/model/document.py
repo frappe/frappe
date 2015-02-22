@@ -405,6 +405,9 @@ class Document(BaseDocument):
 		for fieldname, msg in missing:
 			msgprint(msg)
 
+		if frappe.flags.print_messages:
+			print self.as_dict()
+
 		raise frappe.MandatoryError(", ".join((each[0] for each in missing)))
 
 	def _validate_links(self):

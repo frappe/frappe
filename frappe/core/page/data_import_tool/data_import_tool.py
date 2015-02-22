@@ -43,23 +43,23 @@ def export_csv(doctype, path):
 		get_template(doctype=doctype, all_doctypes="Yes", with_data="Yes")
 		csvfile.write(frappe.response.result.encode("utf-8"))
 
-def export_json(doctype, name, path):
+def export_json(doctype, path):
 	from frappe.utils.response import json_handler
-	docs = frappe.get_list(doctype, fields=["*"], limit_page_length=None)
-	for doc in docs:
-		doc['doctype'] = doctype
+	out = []
+	for doc in frappe.get_all(doctype, fields=["name"], limit_page_length=None):
+		out.append(frappe.get_doc(doctype.doc.name).as_dict())
 	with open(path, "w") as outfile:
-		outfile.write(json.dumps(docs, default=json_handler, indent=1, sort_keys=True))
+		outfile.write(json.dumps(out, default=json_handler, indent=1, sort_keys=True))
 
 @frappe.whitelist()
-def export_fixture(doctype, name, app):
+def export_fixture(doctype, app):
 	if frappe.session.user != "Administrator":
 		raise frappe.PermissionError
 
 	if not os.path.exists(frappe.get_app_path(app, "fixtures")):
 		os.mkdir(frappe.get_app_path(app, "fixtures"))
 
-	export_json(doctype, name, frappe.get_app_path(app, "fixtures", frappe.scrub(name) + ".json"))
+	export_json(doctype, frappe.get_app_path(app, "fixtures", frappe.scrub(doctype) + ".json"))
 
 
 def import_doc(path, overwrite=False, ignore_links=False, ignore_insert=False, insert=False, submit=False):

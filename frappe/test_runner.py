@@ -22,13 +22,12 @@ def main(app=None, module=None, doctype=None, verbose=False, tests=(), force=Fal
 
 	# workaround! since there is no separate test db
 	frappe.clear_cache()
+	set_test_email_config()
 
 	if verbose:
 		print 'Running "before_tests" hooks'
 	for fn in frappe.get_hooks("before_tests", app_name=app):
 		frappe.get_attr(fn)()
-
-	set_test_email_config()
 
 	if doctype:
 		ret = run_tests_for_doctype(doctype, verbose=verbose, tests=tests, force=force)
@@ -209,6 +208,7 @@ def make_test_objects(doctype, test_records, verbose=None):
 			doc["doctype"] = doctype
 
 		d = frappe.copy_doc(doc)
+
 		if doc.get('name'):
 			d.name = doc.get('name')
 
@@ -224,6 +224,8 @@ def make_test_objects(doctype, test_records, verbose=None):
 		docstatus = d.docstatus
 
 		d.docstatus = 0
+		d.run_method("before_test_insert")
+
 		try:
 			d.insert()
 

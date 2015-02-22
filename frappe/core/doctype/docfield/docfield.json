@@ -8,7 +8,7 @@
   {
    "fieldname": "label_and_type", 
    "fieldtype": "Section Break", 
-   "label": "Label and Type", 
+   "label": "", 
    "permlevel": 0
   }, 
   {
@@ -314,7 +314,7 @@
  "in_dialog": 1, 
  "issingle": 0, 
  "istable": 1, 
- "modified": "2015-02-19 01:06:59.836515", 
+ "modified": "2015-02-22 11:31:07.467882", 
  "modified_by": "Administrator", 
  "module": "Core", 
  "name": "DocField", 

@@ -744,6 +744,7 @@ def copy_doc(doc, ignore_no_copy=True):
 		d = doc
 
 	newdoc = get_doc(copy.deepcopy(d))
+
 	newdoc.name = None
 	newdoc.set("__islocal", 1)
 	newdoc.owner = None

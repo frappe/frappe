@@ -271,7 +271,7 @@ def setup_utilities(parser):
 
 	# import/export
 	parser.add_argument("--export_doc", nargs=2, metavar=('"DOCTYPE"', '"DOCNAME"'))
-	parser.add_argument("--export_doclist", nargs=3, metavar=("DOCTYPE", "NAME", "PATH"),
+	parser.add_argument("--export_json", nargs=3, metavar=("DOCTYPE", "NAME", "PATH"),
 		help="""Export doclist as json to the given path, use '-' as name for Singles.""")
 	parser.add_argument("--export_csv", nargs=2, metavar=("DOCTYPE", "PATH"),
 		help="""Dump DocType as csv""")
@@ -699,7 +699,7 @@ def export_doc(doctype, docname):
 	frappe.destroy()
 
 @cmd
-def export_doclist(doctype, name, path):
+def export_json(doctype, name, path):
 	from frappe.core.page.data_import_tool import data_import_tool
 	frappe.connect()
 	data_import_tool.export_json(doctype, name, path)
