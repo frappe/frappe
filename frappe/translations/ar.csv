@@ -1,1451 +1,1580 @@
- by Role ,حسب الصلاحية
- is not set,لم يتم تعيين
-"""Company History""",&quot;نبذة عن تاريخ الشركة&quot;
-"""Team Members"" or ""Management""",&quot;أعضاء الفريق&quot; أو &quot;إدارة&quot;
-'In List View' not allowed for type {0} in row {1},'في قائمة عرض ' لا يسمح لنوع {0} في {1} الصف
-0 - Draft; 1 - Submitted; 2 - Cancelled,0 - مشروع؛ 1 - المقدمة؛ 2 - إلغاء
-0 is highest,0 هو أعلى
-"000 is black, fff is white",000 سوداء، بيضاء FFF
-2 days ago,2 منذ أيام
-"<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank"">[?]</a>","<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank""> [ ؟ ] < / A>"
-"<a onclick=""msgprint('<ol>\<li><b>field:[fieldname]</b> - By Field\<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\<li><b>Prompt</b> - Prompt user for a name\<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\</ol>')"">Naming Options</a>","<وعند _ النقر = ""msgprint ('<ol> \ <li> قم <B> المجال: [fieldname] </ B> - بواسطة فيلد \ <li> قم <B> naming_series: </ ب > - بواسطة تسمية سلسلة (يجب أن يكون حقل يسمى naming_series الحاضر \ <li> قم <B> موجه </ B> - مطالبة المستخدم لاسم \ <li> قم <B> [سلسلة] </ ب> - سلسلة بواسطة البادئة (مفصولة نقطة)، على سبيل المثال PRE # # # # # \ </ OL> ') ""> تسمية خيارات </ A>"
-<b>new</b> <i>type of document</i>,<B> جديدة </ ب> <I> نوع الوثيقة </ ط>
-"<i>document type...</i>, e.g. <b>customer</b>",<I> نوع الوثيقة ... </ ط>، على سبيل المثال <B> العملاء </ B>
-<i>e.g. <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>,<I> على سبيل المثال على <strong> (55 + 434) / 4 </ STRONG> أو على <strong> = الرياضيات. خطيئة (رياضياتPI / 2) </ STRONG> ... </ ط>
-<i>module name...</i>,<I> اسم الوحدة النمطية ... </ ط>
-<i>text</i> <b>in</b> <i>document type</i>,النص <I> </ ط> <B> في </ ب> <I> نوع الوثيقة </ ط>
-A user can be permitted to multiple records of the same DocType.,يمكن أن يسمح للمستخدم ل سجلات متعددة من نفس DOCTYPE .
-About,حول
-About Us Settings,إعدادات صفحة من نحن
-About Us Team Member,أعضاء فريق صفحة من نحن
-Action,حدث
-Actions,الإجراءات
-"Actions for workflow (e.g. Approve, Cancel).",الإجراءات ل سير العمل ( الموافقة على مثل إلغاء) .
-Add,إضافة
-Add A New Rule,إضافة قاعدة جديدة
-Add A User Permission,إضافة صلاحية مستخدم
-Add Attachments,إضافة مرفقات
-Add Bookmark,إضافة للمفضلة
-Add CSS,إضافة CSS
-Add Column,إضافة عمود
-Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,إضافة خدمة Google Analytics ID: على سبيل المثال. UA-89XXX57-1. الرجاء بحث المساعدة على تحليلات جوجل لمزيد من المعلومات.
-Add Message,إضافة رسالة
-Add New Permission Rule,إضافة قاعدة جديدة إذن
-Add Reply,إضافة رد
-Add Total Row,إضافة صف الإجمالي
-Add a New Role,إضافة دور جديد
-Add a banner to the site. (small banners are usually good),إضافة لافتة إلى الموقع. (لافتات صغيرة عادة ما تكون جيدة)
-Add all roles,إضافة كافة الأدوار
-Add attachment,إضافة المرفقات
-Add code as &lt;script&gt;,إضافة التعليمات البرمجية كما &lt;script&gt;
-Add custom javascript to forms.,إضافة إلى أشكال العرف جافا سكريبت .
-Add fields to forms.,إضافة حقول إلى النماذج.
-Add multiple rows,إضافة صفوف متعددة
-Add new row,إضافة صف جديد
-"Add the name of <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> e.g. ""Open Sans""","إضافة اسم <a href=""http://google.com/webfonts"" target=""_blank"">جوجل خط ويب</a> على سبيل المثال &quot;بلا فتح&quot;"
-Add to To Do,إضافة إلى المهام
-Add to To Do List Of,إضافة إلى قائمة المهام من
-Added {0} ({1}),وأضاف {0} ({1})
-Adding System Manager to this User as there must be atleast one System Manager,مضيفا إدارة نظام ل هذا العضو كما يجب أن يكون هناك أتلست إدارة نظام واحد
-Additional Info,معلومات إضافية
-Additional Permissions,ضوابط إضافية
-Address,عنوان
-Address Line 1,العنوان سطر 1
-Address Line 2,العنوان سطر 2
-Address Title,عنوان عنوان
-Address and other legal information you may want to put in the footer.,العنوان وغيرها من المعلومات القانونية قد تحتاج لوضع في تذييل الصفحة.
-Admin,مشرف
-All Applications,جميع التطبيقات
-All Day,كل يوم
-All customizations will be removed. Please confirm.,سيتم إزالة كافة التخصيصات. يرجى تأكيد.
-"All possible Workflow States and roles of the workflow. <br>Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""",جميع الدول سير العمل والأدوار الممكنة لسير العمل. <br> Docstatus خيارات: هو &quot;المحفوظة&quot; 0، يتم &quot;المقدمة&quot; (1) ويتم &quot;إلغاء&quot; 2
-Allow Attach,السماح بالإرفاق
-Allow Import,السماح بالإستيراد
-Allow Import via Data Import Tool,السماح بالإستيراد خلال أداة إستيراد البيانات
-Allow Rename,السماح بإعادة التسمية
-Allow on Submit,السماح بالإعتماد
-Allow user to login only after this hour (0-24),تسمح للمستخدم لتسجيل الدخول فقط بعد هذه الساعة (0-24)
-Allow user to login only before this hour (0-24),تسمح للمستخدم لتسجيل الدخول فقط قبل هذه الساعة (0-24)
-Allowed,سمح
-"Allowing DocType, DocType. Be careful!",السماح DOCTYPE ، DOCTYPE . كن حذرا!
-Already Registered,مسجل بالفعل
-Already in user's To Do list,بالفعل في المستخدم والقيام قائمة
-Alternative download link,رابط تحميل بديل
-"Alternatively, you can also specify 'auto_email_id' in site_config.json","بدلا من ذلك، يمكنك أيضا تحديد "" auto_email_id ' في site_config.json"
-Always use above Login Id as sender,استخدام دائما فوق معرف تسجيل الدخول باسم المرسل
-Amend,تعديل
-"An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [<a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a>]","ملف رمز التمديد مع منظمة البن الدولية. يجب أن تكون 16 × 16 بكسل. تم إنشاؤها باستخدام مولد فافيكون. [ <a href=""http://favicon-generator.org/"" target=""_blank"">فافيكون-generator.org</a> ]"
-"Another {0} with name {1} exists, select another name",آخر {0} مع اسم {1} موجودا، حدد اسم آخر
-Any existing permission will be deleted / overwritten.,سيتم حذف أي إذن الحالية / الكتابة.
-Anyone Can Read,أي شخص يمكنه القراءة
-Anyone Can Write,أي شخص يمكه الكتابة
-"Apart from Role based Permission Rules, you can apply User Permissions based on DocTypes.",وبصرف النظر عن دور أساس القواعد إذن ، يمكنك تطبيق أذونات المستخدم استنادا DocTypes .
-"Apart from System Manager, roles with 'Set User Permissions' right can set permissions for other users for that Document Type.","وبصرف النظر عن إدارة النظام ، يمكن أن الأدوار مع حق "" تعيين أذونات المستخدم تعيين أذونات للمستخدمين الآخرين لذلك نوع الوثيقة ."
-App Name,اسم التطبيق
-App not found,لم يتم العثور على التطبيق
-Application Installer,مثبت التطبيق
-Applications,تطبيقات
-Apply Style,تطبيق نمط
-Apply User Permissions,تطبيق ضوابط العضو
-Are you sure you want to delete the attachment?,هل أنت متأكد أنك تريد حذف المرفق؟
-Arial,ارييل
-"As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User.",باعتبارها أفضل الممارسات ، عدم تعيين نفس مجموعة من الحكم إذن ل أدوار مختلفة. بدلا من ذلك ، تعيين أدوار متعددة ل نفس العضو .
-Ascending,تصاعدي
-Assign To,تكليف إلى
-Assigned By,تكليف بواسطة
-Assigned To,كلف إلى
-Assigned To Fullname,تعيين إلى الاسم بالكامل
-Assigned To/Owner,تعيين ل / المالك
-Assignment Added,أضيفت الاحالة
-Assignment Status Changed,الحالة الاحالة تغيير
-Assignments,تعيينات
-Attach,إرفاق
-Attach Document Print,إرفاق طباعة المستند
-Attach as web link,إرفاق كرابط إنترنت
-Attached To DocType,تعلق على DOCTYPE
-Attached To Name,أرفقت للأسم
-Attachments,المرفقات
-Auto Email Id,البريد الإلكتروني التلقائي
-Auto Name,الإسم التلقائي
-Auto generated,أنشئت تلقائياً
-Avatar,الصورة الرمزية
-Back to Login,العودة إلى تسجيل الدخول
-Background Color,لون الخلفية
-Background Image,صورة الخلفية
-Background Style,خلفية ستايل
-Banner,راية
-Banner HTML,راية HTML
-Banner Image,راية صورة
-Banner is above the Top Menu Bar.,راية فوق أعلى شريط القوائم.
-Begin this page with a slideshow of images,تبدأ هذه الصفحة مع عرض شرائح من الصور
-Beginning with,بدءا
-Belongs to,ينتمي إلى
-Bio,الحيوية
-Birth Date,تاريخ الميلاد
-Blog Category,بلوق التصنيف
-Blog Intro,بلوق مقدمة
-Blog Introduction,بلوق مقدمة
-Blog Post,بلوق وظيفة
-Blog Settings,إعدادات بلوق
-Blog Title,بلوق العنوان
-Blogger,مدون
-Bookmarks,الإشارات المرجعية
-Both login and password required,كل من تسجيل الدخول وكلمة المرور المطلوبة
-Brand HTML,العلامة التجارية HTML
-Bulk Email,الجزء الأكبر البريد الإلكتروني
-Bulk email limit {0} crossed,الحد معظم البريد الإلكتروني {0} عبروا
-Button,زر
-By,بواسطة
-Calculate,إحسب
-Calendar,تقويم
-Cancel,إلغاء
-Cancelled,إلغاء
-"Cannot Edit {0} directly: To edit {0} properties, create / update {1}, {2} and {3}",لا يمكن تحرير {0} مباشرة : لتعديل خصائص {0} ، وإنشاء / تحديث {1} ، {2} {3} و
-Cannot Update: Incorrect / Expired Link.,لا يمكن تحديث : رابط غير الصحيحة / منتهية الصلاحية .
-Cannot Update: Incorrect Password,لا يمكن تحديث : كلمة المرور غير صحيحة
-Cannot add more than 50 comments,لا يمكن إضافة أكثر من 50 تعليقا
-Cannot cancel before submitting. See Transition {0},لا يمكن إلغاء قبل تقديم .
-Cannot change picture,لا يمكن تغيير الصورة
-Cannot change state of Cancelled Document. Transition row {0},لا يمكن تغيير حالة الوثيقة ملغاة .
-Cannot change {0},لا يمكن تغيير {0}
-Cannot delete or cancel because {0} {1} is linked with {2} {3},لا يمكن حذف أو إلغاء ل {0} {1} يرتبط مع {2} {3}
-Cannot delete {0} as it has child nodes,لا يمكن حذف {0} كما أن لديها العقد التابعة
-Cannot edit standard fields,لا تستطيع تعديل الحقول القياسية
-Cannot map because following condition fails: ,لا يمكن تعيين بسبب فشل الشرط التالي:
-Cannot open instance when its {0} is open,لا يمكن فتح المثال عندما ه {0} مفتوح
-Cannot open {0} when its instance is open,لا يمكن فتح {0} عندما مثيل لها مفتوح
-Cannot print cancelled documents,لا يمكن طباعة المستندات إلغاء
-Cannot remove permission for DocType: {0} and Name: {1},لا يمكن إزالة إذن ل DOCTYPE : {0} و اسم : {1}
-Cannot reply to a reply,لا يمكنك الرد على الرد
-Cannot set Email Alert on Document Type {0},لا يمكن تعيين تنبيه بالبريد الالكتروني على نوع الوثيقة {0}
-Cannot set permission for DocType: {0} and Name: {1},لا يمكن تعيين إذن ل DOCTYPE : {0} و اسم : {1}
-Categorize blog posts.,تصنيف بلوق وظيفة.
-Category,فئة
-Category Name,اسم التصنيف
-Center,مركز
-"Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit.",وثائق معينة ، مثل الفاتورة ، لا ينبغي تغييره مرة واحدة نهائية . و دعا الدولة النهائية ل هذه الوثائق المقدمة . يمكنك تقييد الأدوار التي يمكن إرسال.
-"Change field properties (hide, readonly, permission etc.)",تغيير خصائص الحقل (إخفاء ، للقراءة فقط ، إذن الخ )
-Chat,الدردشة
-Check,تحقق
-Check / Uncheck roles assigned to the User. Click on the Role to find out what permissions that Role has.,تحقق أدوار ازل / المسندة إلى الملف. انقر على دور لمعرفة ما الأذونات التي الدور الذي.
-Check this if you want to send emails as this id only (in case of restriction by your email provider).,الاختيار هذا إذا كنت تريد أن ترسل رسائل البريد الإلكتروني في هذا المعرف فقط (في حالة تقييد من قبل مزود البريد الإلكتروني الخاص بك).
-Check this to make this the default letter head in all prints,التحقق من ذلك لجعل هذه الرسالة الافتراضية الرأس في جميع الطبعات
-Check which Documents are readable by a User,تحقق من وثائق قابلة للقراءة من قبل العضو
-Checked items shown on desktop,العناصر المحددة التي تظهر على سطح المكتب
-Child Tables are shown as a Grid in other DocTypes.,وتظهر جداول الطفل بأنه في الشبكة DocTypes أخرى.
-City,مدينة
-Classic,كلاسيكي
-Clear Cache,مسح ذاكرة التخزين المؤقت
-Clear all roles,مسح كافة الأدوار
-Click on a link to get options,انقر على وصلة للحصول على خيارات
-Click on row to view / edit.,انقر على صف لعرض / تحرير .
-Client,عميل	
-Client-side formats are now deprecated,وانتقدت صيغ العميل الآن
-Close,أغلق
-Close: {0},وثيقة : {0}
-Closed,مغلق
-Code,رمز
-Collapse,انهيار
-Column Break,العمود استراحة
-Comment,تعليق
-Comment By,تعليق من جانب
-Comment By Fullname,التعليق بواسطة الاسم بالكامل
-Comment Date,التعليق تاريخ
-Comment Docname,التعليق Docname
-Comment Doctype,التعليق DOCTYPE
-Comment Time,وقت التعليق 
-Comments,تعليقات
-Communication,اتصالات
-Communication Medium,الاتصالات متوسطة
-Company History,نبذة عن تاريخ الشركة
-Company Introduction,الشركة مقدمة
-Complaint,شكوى
-Complete By,الكامل من جانب
-Condition,الحالة
-Contact Us Settings,الاتصال بنا إعدادات
-"Contact options, like ""Sales Query, Support Query"" etc each on a new line or separated by commas.",خيارات الاتصال، مثل &quot;الاستعلام المبيعات والدعم الاستعلام&quot; الخ كل على سطر جديد أو مفصولة بفواصل.
-Content,محتوى
-Content Hash,تجزئة المحتوى
-Content in markdown format that appears on the main side of your page,المحتوى في شكل تخفيض السعر الذي يظهر على الجانب الرئيسي من الصفحة الخاصة بك
-Content web page.,محتوى الويب الصفحة.
-Controller,مراقب
-Copy,نسخ
-Copyright,حق النشر
-Core,جوهر
-Could not connect to outgoing email server,لا يمكن الاتصال بخادم البريد الإلكتروني المنتهية ولايته
-Could not find {0},لا يمكن أن تجد {0}
-Count,عدد
-Country,بلد
-Create,انشاء
-Create a new {0},خلق جديد {0}
-Created Custom Field {0} in {1},إنشاء الحقل المخصص {0} في {1}
-Created Customer Issue,إنشاء مشاكل عميل
-Created Opportunity,إنشاء فرصة
-Created Support Ticket,إنشاء تذكرة دعم
-Creation / Modified By,إنشاء / تم التعديل بواسطة
-Currency,عملة
-Current status,الحالة الحالية
-Custom CSS,العرف CSS
-Custom Field,حقل مخصص
-Custom Javascript,جافا سكريبت مخصصة
-Custom Reports,تقارير مخصصة
-Custom Script,سكربت محصص
-Custom?,مخصص
-Customize,تخصيص
-Customize Form,تخصيص نموذج
-Customize Form Field,تخصيص حقل نموذج
-"Customize Label, Print Hide, Default etc.",تخصيص تسمية، إخفاء طباعة، الخ الافتراضي
-Customized HTML Templates for printing transctions.,قوالب HTML مخصصة ل transctions الطباعة.
-Daily Event Digest is sent for Calendar Events where reminders are set.,يتم إرسالها حدث الموجز اليومي على أحداث التقويم حيث يتم تعيين التذكير.
-Danger,خطر
-Data,معطيات
-Data Import / Export Tool,البيانات أداة استيراد / تصدير
-Data Import Tool,أداة استيراد البيانات
-Data missing in table,البيانات الناقصة في الجدول
-Date,تاريخ
-Date Change,تاريخ التغيير
-Date Changed,تاريخ تغيير
-Date Format,تنسيق التاريخ
-Date and Number Format,تاريخ و صيغة رقم
-Date must be in format: {0},يجب أن تكون الآن في شكل : {0}
-Datetime,التاريخ والوقت
-Days in Advance,أيام مقدما
-Dear,العزيز
-Default,الافتراضي
-Default Print Format,طباعة شكل الافتراضي
-Default Value,القيمة الافتراضية
-Default is system timezone,الافتراضي هو نظام توقيت
-"Default: ""Contact Us""",الافتراضي: &quot;اتصل بنا&quot;
-DefaultValue,الافتراضية
-Defaults,الافتراضات
-"Define read, write, admin permissions for a Website Page.",تعريف القراءة والكتابة و الأذونات المشرف ل صفحة الموقع .
-Define workflows for forms.,تحديد مسارات العمل لل أشكال .
-Delete,حذف
-Delete Row,حذف صف
-Depends On,يعتمد على
-Descending,تنازلي
-Description,وصف
-Description and Status,الوصف و الحالة
-"Description for listing page, in plain text, only a couple of lines. (max 140 characters)",وصف لصفحة القائمة، في نص عادي، فقط بضعة أسطر. (حد أقصى 140 حرف)
-Description for page header.,وصف لرأس الصفحة.
-Desktop,سطح المكتب
-Details,تفاصيل
-Did not add,لم تضف
-Did not cancel,لم إلغاء
-Did not find {0} for {0} ({1}),لم تجد {0} ل {0} ( {1} )
-Did not load,لم يتم تحميل
-Did not remove,لم تقم بإزالة
-Did not save,لم ينقذ
-"Different ""States"" this document can exist in. Like ""Open"", ""Pending Approval"" etc.",مختلفة &quot;الدول&quot; هذه الوثيقة يمكن أن توجد فيها مثل &quot;فتح&quot; و &quot;الموافقة معلقة&quot; الخ.
-Disable Customer Signup link in Login page,تعطيل الرابط اشترك العملاء في صفحة تسجيل الدخول
-Disable Signup,تعطيل الاشتراك
-Disabled,معاق
-Display,عرض
-Display Settings,عرض إعدادات
-Display in the sidebar of this Website Route node,عرض في الشريط الجانبي من هذه العقدة الطريق الموقع
-Do not allow user to change after set the first time,لا تسمح للمستخدم لتغيير بعد تعيين أول مرة
-Doc Status,الحالة ثيقة
-DocField,DocField
-DocPerm,DocPerm
-DocType,DOCTYPE
-DocType Details,DOCTYPE تفاصيل
-DocType can not be merged,لا يمكن دمج DOCTYPE
-DocType on which this Workflow is applicable.,DOCTYPE على سير العمل هذا الذي ينطبق.
-DocType or Field,DOCTYPE أو حقل
-Doclist JSON,Doclist جسون
-Docname,Docname
-Document,وثيقة
-Document Status transition from ,وثيقة الانتقال من الحالة
-Document Status transition from {0} to {1} is not allowed,لا يسمح وضع وثيقة الانتقال من {0} إلى {1}
-Document Type,نوع الوثيقة
-Document is only editable by users of role,الوثيقة للتحرير فقط من قبل المستخدمين من دور
-Documentation,توثيق
-Documents,وثائق
-Download,تحميل
-Download Backup,تحميل النسخ الاحتياطي
-Download link for your backup will be emailed on the following email address:,وسوف تكون عبر البريد الالكتروني وصلة التحميل للنسخ الاحتياطي الخاصة بك على عنوان البريد الإلكتروني التالي :
-Drafts,الداما
-Drag to sort columns,اسحب لفرز الأعمدة
-Due Date,بسبب تاريخ
-Duplicate name {0} {1},تكرار اسم {0} {1}
-Dynamic Link,الارتباط الحيوي
-ERPNext Demo,ERPNext تجريبي
-Edit,تحرير
-Edit Permissions,تحرير ضوابط
-Editable,للتحرير
-Email,البريد الإلكتروني
-Email Alert,تنبيه البريد الإلكتروني
-Email Alert Recipient,مستقبل البريد تنبيه
-Email Alert Recipients,المستلمين تنبيه البريد الإلكتروني
-Email By Document Field,البريد الإلكتروني بواسطة حقل الوثيقة
-Email Footer,البريد الإلكتروني تذييل
-Email Host,البريد الإلكتروني المضيف
-Email Id,البريد الإلكتروني معرف
-Email Login,دخول البريد الالكتروني
-Email Password,البريد الالكتروني كلمة السر
-Email Sent,إرسال البريد الإلكتروني
-Email Settings,إعدادات البريد الإلكتروني
-Email Signature,البريد الإلكتروني التوقيع
-Email Use SSL,إرسال استخدام SSL
-Email address,عنوان البريد الإلكتروني
-"Email addresses, separted by commas",عناوين البريد الإلكتروني، separted بفواصل
-Email not verified with {1},البريد الإلكتروني لم يتم التحقق مع {1}
-Email sent to {0},أرسل بريد إلكتروني إلى {0}
-Email...,البريد الإلكتروني ...
-Emails are muted,رسائل البريد الإلكتروني هي صامتة
-Embed image slideshows in website pages.,تضمين عرض الشرائح صورة في صفحات الموقع.
-Enable,تمكين
-Enable Comments,تمكين تعليقات
-Enable Scheduled Jobs,تمكين المهام المجدولة
-Enabled,تمكين
-Ends on,ينتهي في
-Enter Form Type,أدخل نوع النموذج
-Enter Value,أدخل القيمة
-Enter at least one permission row,يدخل الصف إذن واحد على الأقل
-"Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set ""match"" permission rules. To see list of fields, go to <a href=""#Form/Customize Form/Customize Form"">Customize Form</a>.","الدخول في مجالات القيمة الافتراضية (مفاتيح) والقيم. إذا قمت بإضافة قيم متعددة لحقل، سيتم اختار أول واحد. كما تستخدم هذه الافتراضات لوضع القواعد &quot;مباراة&quot; إذن. لمعرفة قائمة الحقول، انتقل إلى <a href=""#Form/Customize Form/Customize Form"">تخصيص الشكل</a> ."
-"Enter keys to enable login via Facebook, Google, GitHub.",أدخل مفاتيح لتمكين تسجيل الدخول عبر الفيسبوك ، وجوجل، جيثب .
-Equals,تساوي
-Error,خطأ
-"Error generating PDF, attachment sent as HTML",توليد الخطأ PDF، HTML المرفقات إرسالها كما
-Error: Document has been modified after you have opened it,تم تعديل الوثيقة بعد أن كنت قد فتحه: خطأ
-Event,حدث
-Event Datetime,الحدث التاريخ والوقت
-Event Individuals,الحدث الأفراد
-Event Role,الحدث الدور
-Event Roles,الحدث الأدوار
-Event Type,نوع الحدث
-Event User,حدث المستخدم
-Event end must be after start,يجب أن يكون نهاية الحدث بعد بداية
-Events,أحداث
-Events In Today's Calendar,الأحداث في التقويم اليوم
-Every Day,كل يوم
-Every Month,كل شهر
-Every Week,كل أسبوع
-Every Year,كل سنة
-Everyone,كل شخص
-Example:,على سبيل المثال:
-Expand,وسع
-Export,تصدير
-Export not allowed. You need {0} role to export.,الصادرات غير مسموح به. تحتاج {0} دور للتصدير.
-Exported,تصدير
-"Expression, Optional",التعبير والاختياري
-Facebook,الفيسبوك
-Facebook Client ID,الفيسبوك عميل معرف
-Facebook Client Secret,الفيسبوك العميل السري
-Facebook Share,الفيسبوك شارك
-Facebook User ID,الفيسبوك الرقم
-Facebook Username,الفيسبوك اسم المستخدم
-FavIcon,فافيكون
-Female,أنثى
-Field Description,حقل الوصف
-Field Name,حقل الاسم
-Field Type,نوع الحقل
-"Field that represents the Workflow State of the transaction (if field is not present, a new hidden Custom Field will be created)",الحقل الذي يمثل حالة سير العمل للصفقة (إذا حقل غير موجود، سيتم إنشاء حقل مخصص جديد مخفي)
-Field {0} in row {1} cannot be hidden and mandatory without default,الحقل {0} في {1} الصف لا يمكن أن تكون مخفية وإلزامية دون الافتراضي
-Field {0} is not selectable.,الحقل {0} ليس اختيار.
-Field {0} of type {1} cannot be mandatory,الحقل {0} من نوع {1} لا يمكن أن تكون إلزامية
-Fieldname,Fieldname
-Fieldname is required in row {0},مطلوب Fieldname في الصف {0}
-Fieldname not set for Custom Field,Fieldname لم يتم تعيين ل حقل مخصص
-Fieldname which will be the DocType for this link field.,Fieldname التي ستكون DOCTYPE لهذا الحقل الارتباط.
-Fieldname {0} appears multiple times in rows {1},Fieldname {0} تظهر عدة مرات في الصفوف {1}
-"Fieldname {0} cannot contain letters, numbers or spaces",Fieldname {0} لا يمكن أن تحتوي على حروف وأرقام أو مسافات
-Fields,الحقول
-"Fields separated by comma (,) will be included in the<br /><b>Search By</b> list of Search dialog box",وسيتم إدراج حقول مفصولة بفواصل (،) في <br /> <b>البحث حسب</b> قائمة مربع الحوار بحث
-Fieldtype cannot be changed from {0} to {1} in row {2},Fieldtype لا يمكن تغييرها من {0} إلى {1} في {2} الصف
-File,ملف
-File Data,ملف البيانات
-File Name,اسم الملف
-File Size,حجم الملف
-File URL,ملف URL
-File not attached,ملف لا تعلق
-File size exceeded the maximum allowed size of {0} MB,تجاوز حجم الملف الحد الأقصى المسموح به حجم {0} MB
-Fill Screen,ملء الشاشة
-Filter,تصفية
-Filter records based on User Permissions defined for a user,تصفية السجلات استنادا إلى صلاحيات المستخدمين المخصصة للمستخدم
-Filters,فلاتر
-Find {0} in {1},البحث عن {0} في {1}
-First Name,الاسم الأول
-Float,رقم عشري
-Float Precision,دقة الرقم  العشري
-Font (Heading),الخط (العنوان)
-Font (Text),الخط (نص)
-Font Size,حجم الخط
-Font Size (Text),حجم الخط (نص)
-Fonts,الخطوط
-Footer,تذييل
-Footer Background,تذييل الخلفية
-Footer Items,تذييل العناصر
-Footer Text,تذييل النص
-For DocType,ل DOCTYPE
-"For Links, enter the DocType as rangeFor Select, enter list of Options separated by comma",لسريعة، أدخل DOCTYPE عن مجموعة  لتحديد، قائمة خيارات مفصولة بفواصل دخول
-"For comparative filters, start with",للمرشحات النسبية، وتبدأ مع
-For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,على سبيل المثال إذا قمت بإلغاء وتعديل &#39;INV004&#39; سوف تصبح الوثيقة الجديدة &quot;INV004-1&quot;. هذا يساعدك على تتبع كل تعديل.
-For ranges,للنطاقات
-For top bar,الشريط العلوي لل
-For {0} at level {1} in {2} in row {3},ل {0} في {1} مستوى في {2} في {3} الصف
-Forgot Password,نسيت كلمة المرور
-Forgot Password?,نسيت كلمة المرور ؟
-Form,شكل
-Forum,منتدى
-Forums,المنتديات
-Forward To Email Address,انتقل إلى عنوان البريد الإلكتروني
-Frappe Framework,الإطار فرابي
-Friday,الجمعة
-From Date must be before To Date,يجب أن تكون من تاريخ إلى تاريخ قبل
-Full Name,الاسم الكامل
-Gantt Chart,مخطط جانت
-Gender,جنس
-Generator,مولد كهربائي
-Georgia,جورجيا
-Get,الحصول على
-Get From ,عليه من
-"Get your globally recognized avatar from <a href=""https://gravatar.com/"">Gravatar.com</a>","احصل على صورة شخصية معترف بها عالميا من <a href=""https://gravatar.com/""> Gravatar.com </ A>"
-GitHub,جيثب
-GitHub Client ID,جيثب معرف عميل
-GitHub Client Secret,جيثب سر عميل
-Github User ID,جيثب هوية المستخدم
-Github Username,جيثب اسم المستخدم
-Google,جوجل
-Google Analytics ID,جوجل تحليلات ID
-Google Client ID,معرف عميل جوجل
-Google Client Secret,سر عميل جوجل
-Google Plus One,جوجل زائد واحد
-Google User ID,جوجل هوية المستخدم
-Google Web Font (Heading),Google ويب الخط (العنوان)
-Google Web Font (Text),Google ويب الخط (نص)
-Greater or equals,أكبر أو يساوي
-Greater than,أكبر من
-"Group Added, refreshing...",مجموعة المضافة، منعش ...
-Group Description,مجموعة الوصف
-Group Name,اسم المجموعة
-Group Title,عنوان المجموعة
-Group Type,نوع المجموعة
-Groups,مجموعات
-HTML for header section. Optional,HTML ل مقطع الرأس . اختياري
-Have an account? Login,لديك حساب؟ دخول
-Header,رأس
-Heading,عنوان
-Heading Text As,عنوان النص
-Help,مساعدة
-Help on Search,تساعد على البحث
-Helvetica Neue,هلفتيكا نويه
-Hidden,مخفي
-Hide Actions,إخفاء عمليات
-Hide Copy,إخفاء نسخة
-Hide Heading,إخفاء عنوان
-Hide Toolbar,إخفاء شريط الأدوات
-Hide the sidebar,إخفاء الشريط الجانبي
-High,ارتفاع
-Highlight,تسليط الضوء على
-History,تاريخ
-Home Page,الصفحة الرئيسية
-Home Page is Products,الصفحة الرئيسية المنتجات غير
-ID (name) of the entity whose property is to be set,ID (اسم) للكيان الذي هو الملكية التي سيتم تحديدها
-Icon,رمز
-Icon will appear on the button,سوف تظهر أيقونة على زر
-"If a Role does not have access at Level 0, then higher levels are meaningless.",إذا لم يكن لديك الوصول دور في المستوى 0، ثم مستويات أعلى لا معنى لها.
-"If checked, all other workflows become inactive.",إذا تم، جميع مهام سير العمل الأخرى تصبح خاملة.
-"If checked, the Home page will be the default Item Group for the website.",إذا تم، سيكون في الصفحة الرئيسية يجب أن يكون فريق المدينة الافتراضية للموقع.
-"If image is selected, color will be ignored (attach first)",إذا تم تحديد الصورة، سيتم تجاهل اللون (إرفاق الأولى)
-If non standard port (e.g. 587),إذا غير المنفذ القياسي (على سبيل المثال 587)
-"If these instructions where not helpful, please add in your suggestions on GitHub Issues.",إذا هذه التعليمات حيث لم تكن مفيدة ، يرجى إضافة في اقتراحاتكم بشأن قضايا جيثب .
-"If you set this, this Item will come in a drop-down under the selected parent.",إذا قمت بتعيين هذا ، فإن هذا البند تأتي في قائمة منسدلة تحت الأصل المحدد .
-Ignore User Permissions,تجاهل أذونات المستخدم
-"Ignoring Item {0}, because a group exists with the same name!",تجاهل البند {0} ، لأن مجموعة موجودة بنفس الاسم !
-Image,صورة
-Image Link,رابط الصورة
-Import,استيراد
-Import / Export Data,استيراد / تصدير البيانات
-Import / Export Data from .csv files.,استيراد / تصدير البيانات من ملفات CSV.
-In,في
-In Dialog,في مربع حوار
-In Filter,في تصفية
-In List View,في عرض القائمة
-In Report Filter,في تصفية التقرير
-In points. Default is 9.,في نقطة. الافتراضي هو 9.
-In response to,ردا على
-Incorrect value in row {0}: {1} must be {2} {3},قيمة غير صحيحة في الصف {0} : {1} يجب أن يكون {2} {3}
-Incorrect value: {0} must be {1} {2},قيمة غير صحيحة: {0} يجب أن يكون {1} {2}
-Index,مؤشر
-Individuals,الأفراد
-Info,معلومات
-Insert After,إدراج بعد
-"Insert After field '{0}' mentioned in Custom Field '{1}', does not exist",إدراج بعد الحقل '{0}' المذكورة في حقل مخصص '{1}' غير موجود
-Insert Below,إدراج بالأسفل
-Insert Code,إدراج رمز
-Insert Row,إدراج صف
-Insert Style,إدراج شكل
-Install Applications.,تثبيت التطبيقات .
-Installed,تثبيت
-Installer,المثبت
-Int,الباحث
-Integrations,التكاملات
-Introduce your company to the website visitor.,تقديم الشركة للزائر الموقع.
-Introduction,مقدمة
-Introductory information for the Contact Us Page,المعلومات التمهيدية لصفحة اتصل بنا
-Invalid Email: {0},صالح البريد الإلكتروني: {0}
-Invalid Filter: {0},تصفية الباطلة: {0}
-Invalid Home Page,الصفحة الرئيسية غير صالحة
-Invalid Login,تسجيل الدخول غير صالحة
-Invalid Outgoing Mail Server or Port,خادم البريد الصادر غير صالحة أو ميناء
-Invalid login or password,تسجيل الدخول أو كلمة المرور غير صالحة
-Invalid recipient address,عنوان المستلم غير صالحة
-Inverse,معكوس
-Is Active,نشط
-Is Child Table,هو الجدول التابع
-Is Default,افتراضي
-Is Event,هو حدث
-Is Mandatory Field,هو حقل إلزامي
-Is Single,هو واحدة
-Is Standard,هو معيار
-Is Submittable,هو Submittable
-Is Task,هو العمل
-Item cannot be added to its own descendents,البند لا يمكن أن تضاف إلى أحفاد الخاصة
-JavaScript Format: frappe.query_reports['REPORTNAME'] = {},جافا سكريبت الصيغة: frappe.query_reports [' REPORTNAME '] = { }
-Javascript,جافا سكريبت
-Javascript to append to the head section of the page.,جافا سكريبت لإلحاق رئيس قسم من الصفحة.
-Key,مفتاح
-Label,ملصق
-Label Help,التسمية تعليمات
-Label and Type,التسمية و النوع
-Label is mandatory,تسمية إلزامي
-Landing Page,الصفحة المقصودة
-Language,لغة
-Language preference for user interface (only if available).,تفضيل لغة واجهة المستخدم (إلا إذا وجدت).
-"Language, Date and Time settings",اللغة و التاريخ والوقت إعدادات
-Last IP,مشاركة IP
-Last Login,آخر تسجيل دخول
-Last Name,اسم العائلة
-Last updated by,اخر تحديث قام به
-Lastmod,Lastmod
-Lato,اتو
-Leave blank to repeat always,اتركه فارغا لتكرار دائما
-Left,ترك
-Less or equals,أقل أو يساوي
-Less than,أقل من
-Letter,الحرف
-Letter Head,رسالة رئيس
-Letter Head Name,رسالة رئيس الاسم
-Letter Head in HTML,رسالة رئيس في HTML
-Level,مستوى
-"Level 0 is for document level permissions, higher levels for field level permissions.",0 هو مستوى الأذونات لمستوى الوثيقة، مستويات أعلى للحصول على أذونات المستوى الميداني.
-Like,مثل
-Link,رابط
-"Link that is the website home page. Standard Links (index, login, products, blog, about, contact)",ربط هذا هو الصفحة الرئيسية ل موقع الويب. روابط القياسية ( مؤشر ، تسجيل الدخول ، والمنتجات، بلوق ، عن، الاتصال )
-Link to other pages in the side bar and next section,ربط إلى صفحات أخرى في شريط الجانب والمقطع التالي
-Link to the page you want to open,الرابط إلى الصفحة التي تريد فتح
-Linked In Share,ترتبط في حصة
-Linked With,ترتبط
-List,قائمة
-List a document type,قائمة نوع مستند
-List of Web Site Forum's Posts.,قائمة مشاركات المنتدى موقع ويب.
-Loading,تحميل
-Loading Report,تحميل تقرير
-Loading...,تحميل ...
-Localization,التعريب
-Location,موقع
-Log of error on automated events (scheduler).,تسجيل من خطأ على الأحداث الآلي ( جدولة ) .
-Login,دخول
-Login After,بعد الدخول
-Login Before,تسجيل الدخول قبل
-Login Id,الدخول معرف
-Login not allowed at this time,الدخول غير مسموح به في هذا الوقت
-Logout,خروج
-Long Text,نص طويل
-Low,منخفض
-Lucida Grande,سدا غراندي
-Mail Password,كلمة مرور البريد الإلكتروني
-Main Section,القسم العام
-Make a new,جعل جديدة
-Make a new record,جعل رقما قياسيا جديدا
-Male,ذكر
-Manage cloud backups on Dropbox,إدارة النسخ الاحتياطية سحابة على دروببوإكس
-Manage uploaded files.,إدارة الملفات التي تم تحميلها.
-Mandatory,إلزامي
-Mandatory fields required in {0},الحقول الإلزامية المطلوبة في {0}
-Mandatory filters required:\n,مرشحات الإلزامية المطلوبة: \ ن
-Master,سيد
-Max Attachments,المرفقات ماكس
-Max width for type Currency is 100px in row {0},عرض ماكس لنوع العملة هو 100px في الصف {0}
-"Meaning of Submit, Cancel, Amend",معنى تقديم، إلغاء وتعديل
-Medium,متوسط
-"Menu items in the Top Bar. For setting the color of the Top Bar, go to <a href=""#Form/Style Settings"">Style Settings</a>","عناصر القائمة في الشريط العلوي. لتحديد لون الشريط العلوي، انتقل إلى <a href=""#Form/Style Settings"">إعدادات نمط</a>"
-Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node,دمج الممكن الوحيد بين المجموعة إلى المجموعة أو عقدة ورقة إلى ورقة عقدة
-Message,رسالة
-Message Examples,أمثلة رسالة
-Messages,رسائل
-Method,طريقة
-Middle Name (Optional),الاسم الأوسط (اختياري)
-Misc,منوعات
-Miscellaneous,متفرقات
-Missing Values Required,في عداد المفقودين القيم المطلوبة
-Modern,حديث
-Modified by,تعديلها من قبل
-Module,وحدة
-Module Def,وحدة مواطنه
-Module Name,اسم وحدة
-Module Not Found,لم يتم العثور على حدة
-Modules Setup,إعداد وحدات
-Monday,يوم الاثنين
-More,أكثر
-More content for the bottom of the page.,المزيد من المحتوى لأسفل الصفحة.
-Move Down: {0},تحريك لأسفل : {0}
-Move Up: {0},تحريك لأعلى : {0}
-Multiple root nodes not allowed.,العقد الجذرية متعددة غير مسموح به.
-Must have report permission to access this report.,يجب أن يكون لديك إذن للوصول إلى تقرير هذا التقرير.
-Must specify a Query to run,يجب تحديد استعلام لتشغيل
-My Settings,الإعدادات
-Name,اسم
-Name Case,اسم القضية
-Name and Description,الاسم والوصف
-Name is required,مطلوب اسم
-Name not permitted,تسمية غير مسموح
-Name not set via Prompt,الأسم: لم تحدد عن طريق موجه
-Name of the Document Type (DocType) you want this field to be linked to. e.g. Customer,اسم نوع الوثيقة (DOCTYPE) تريد هذا الحقل لتكون مرتبطة. على سبيل المثال العملاء
-Name of {0} cannot be {1},اسم {0} لا يمكن أن يكون {1}
-Naming,تسمية
-Naming Series mandatory,تسمية السلسلة إلزامية
-Nested set error. Please contact the Administrator.,خطأ مجموعة متداخلة . يرجى الاتصال مدير البرنامج.
-New,جديد
-New Password,كلمة مرور جديدة
-New Record,سجل جديد
-New comment on {0} {1},تعليق جديد على {0} {1}
-New password emailed,كلمة مرور جديدة عبر البريد الالكتروني
-New value to be set,القيمة الجديدة التي سيتم تحديدها
-New {0},جديد {0}
-Next Communcation On,وفي المراسلات القادمة
-Next Record,السجل التالي
-Next State,الحالية التالية
-Next actions,الإجراءات التالية
-No,لا
-No Action,بدون إجراء
-No Communication tagged with this ,لا الاتصالات المفتاحية هذه
-No Copy,اي نسخة
-No Permissions set for this criteria.,لم يحدد ضوابط لهذه المعايير.
-No Report Loaded. Please use query-report/[Report Name] to run a report.,أي تقرير المحملة. الرجاء استخدام استعلام تقرير / [اسم التقرير] لتشغيل التقرير.
-No Results,لا نتائج
-No Sidebar,لا الشريط الجانبي
-No User Permissions found.,لم يتم العثور على أذونات المستخدم .
-No data found,لا توجد بيانات
-No file attached,أي ملف مرفق
-No further records,لا توجد سجلات أخرى
-No one,لا أحد
-No permission to '{0}' {1},لا توجد صلاحية ل '{0} ' {1}
-No permission to edit,لا توجد صلاحية ل تعديل
-No permission to write / remove.,لا توجد صلاحية لكتابة / إزالة.
-No records tagged.,لا توجد سجلات معلمة.
-No template found at path: {0},لا توجد في مسار القالب: {0}
-No {0} permission,لا {0} إذن
-None,لا شيء
-None: End of Workflow,لا شيء: نهاية سير العمل
-Not Found,لم يتم العثور على
-Not Linked to any record.,لا يرتبط أي سجل.
-Not Permitted,لا يسمح
-Not Submitted,لم تقدم
-Not a user yet? Sign up,غير مستخدم حتى الآن؟ الاشتراك
-Not a valid Comma Separated Value (CSV File),ليس صالحا القيمة المفصولة بفواصل ( CSV ​​ملف)
-Not allowed,لا يسمح
-Not allowed from this IP Address,لا يسمح من هذا العنوان IP
-Not allowed to Import,لا يسمح ل استيراد
-Not allowed to access {0} with {1} = {2},لا يسمح للوصول إلى {0} مع {1} {2} =
-Not allowed to change {0} after submission,لا يسمح لتغيير {0} بعد تقديم
-Not allowed to move,لا يسمح للتحرك
-Not allowed to reset the password of {0},لا يسمح ل إعادة تعيين كلمة المرور من {0}
-Not enough permission to see links.,لا إذن بما يكفي لرؤية الروابط.
-Not equals,لا يساوي
-Not found,لم يتم العثور على
-Not in Developer Mode! Set in site_config.json,ليس في الوضع المطور ! تعيين في site_config.json
-Not permitted,لا يسمح
-"Note: For best results, images must be of the same size and width must be greater than height.",ملاحظة: للحصول على أفضل النتائج، يجب أن تكون الصور من نفس الحجم والعرض يجب أن تكون أكبر من الارتفاع.
-Note: Other permission rules may also apply,ملاحظة: قد قواعد أخرى إذن تنطبق أيضا
-Note: maximum attachment size = 1mb,ملاحظة: الحد الأقصى لحجم المرفقات 1MB =
-Nothing to show,لا شيء لإظهار
-Nothing to show for this selection,شيء لاظهار هذا الاختيار
-Notification Count,عدد إعلام
-Notify by Email,إعلام عبر البريد الإلكتروني
-Number Format,عدد تنسيق
-Old Parent,العمر الرئيسي
-On,في
-"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).",وبمجرد الانتهاء من تعيين هذه ، سوف يكون المستخدمون قادرين فقط الوصول إلى المستندات (على سبيل المثال مدونة بوست) حيث يوجد رابط (مثل مدون ) .
-Only Administrator allowed to create Query / Script Reports,المسؤول الوحيد المسموح به لإنشاء تقارير الاستعلام / سكربت
-Only Administrator can save a standard report. Please rename and save.,مسؤول فقط يمكن حفظ تقرير القياسية. الرجاء إعادة تسمية وحفظ.
-Only Allow Edit For,السماح فقط للتحرير
-Only allowed {0} rows in one import,فقط يسمح {0} الصفوف في استيراد واحد
-Oops! Something went wrong,عفوًا! ذهب شيئا خاطئا
-Open,فتح
-Open Count,فتح عدد
-Open Sans,مفتوحة بلا
-Open Source Web Applications for the Web,مفتوحة المصدر تطبيقات ويب للويب
-Open a module or tool,فتح وحدة نمطية أو أداة
-Open {0},مفتوحة {0}
-Optional: Alert will only be sent if value is a valid email id.,اختياري: سوف يتم إرسال تنبيه فقط إذا كانت القيمة هي هوية بريد إلكتروني صحيح.
-Optional: Always send to these ids. Each email id on a new row,اختياري: دائما إرسالها إلى هذه الهوية. كل معرف البريد الإلكتروني على صف جديد
-Optional: The alert will be sent if this expression is true,اختياري: التنبيه سيتم إرسال إذا كان هذا التعبير صحيح
-Options,خيارات
-Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType',"'الارتباط الحيوي ""نوع من الخيارات الميدانية يجب أن يشير إلى رابط حقل آخر مع خيارات باسم' DOCTYPE '"
-Options Help,خيارات مساعدة
-Options for select. Each option on a new line. e.g.: <br>Option 1<br>Option 2<br>Option 3<br>,خيارات للاختيار. كل خيار في سطر جديد. على سبيل المثال: <BR> الخيار 1 <BR> الخيار 2 <BR> الخيار 3 <BR>
-Options must be a valid DocType for field {0} in row {1},يجب أن تكون الخيارات ل DOCTYPE صالحة لحقل {0} في {1} الصف
-Options not set for link field {0},خيارات لم يتم تعيين لحقل الرابط {0}
-Options requried for Link or Table type field {0} in row {1},خيارات ريكارد ل ينك أو نوع الجدول الحقل {0} في {1} الصف
-Org History,غزاله التاريخ
-Org History Heading,غزاله التاريخ مداخل
-Original Message,رسالة الأصلي
-Other,آخر
-Outgoing Email Settings,إعدادات البريد الإلكتروني المنتهية ولايته
-Outgoing Mail Server,خادم البريد الصادر
-Outgoing Mail Server not specified,خادم البريد الصادر غير محدد
-Owner,مالك
-PDF Page Size,PDF حجم الصفحة
-PDF Settings,إعدادات PDF
-POP3 Mail Server (e.g. pop.gmail.com),POP3 خادم البريد (على سبيل المثال pop.gmail.com)
-Page,صفحة
-Page #{0} of {1},الصفحة # {0} من {1}
-Page Background,خلفية الصفحة
-Page HTML,صفحة HTML
-Page Header,ترويسة الصفحة
-Page Header Background,خلفية ترويسة الصفحة
-Page Header Text,رأس الصفحة نص
-Page Links,روابط الصفحة
-Page Name,اسم الصفحة
-Page Role,الصفحة الدور
-Page Text,نص الصفحة
-Page Title,صفحة العنوان
-Page content,محتوى الصفحة
-Page not found,لم يتم العثور على الصفحة
-Page or Generator,الصفحة أو مولد
-Page url name (auto-generated),اسم الصفحة رابط ( تم إنشاؤه تلقائيا )
-Parent Label,الأصل تسمية
-Parent Post,الوالد مشاركة
-Parent Website Page,الوالد الموقع الصفحة
-Parent Website Route,الوالد موقع الطريق
-Parent Website Sitemap,الوالد الموقع خريطة الموقع
-Participants,المشاركين
-Password,كلمة السر
-Password Updated,تحديث كلمة السر
-Password reset instructions have been sent to your email,وقد تم إرسال إرشادات إعادة تعيين كلمة المرور إلى بريدك الإلكتروني
-Patch,بقعة
-Patch Log,سجل التصحيح
-Percent,في المئة
-Perm Level,بيرم المستوى
-Permanently Cancel {0}?,الغاء دائم {0} ؟
-Permanently Submit {0}?,إرسال دائم {0} ؟
-Permanently delete {0}?,حذف بشكل دائم {0} ؟
-Permission Level,إذن المستوى
-Permission Levels,إذن مستويات
-Permission Rules,إذن قوانين
-Permission already set,إذن بالفعل تعيين
-Permissions,أذونات
-Permissions Settings,أذونات إعدادات
-Permissions are automatically translated to Standard Reports and Searches.,يتم تحويل أذونات تلقائيا إلى التقارير الموحدة و البحث .
-"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions.",يتم تعيين الأذونات على الأدوار و أنواع المستندات (وتسمى DocTypes ) من خلال وضع حقوق مثل القراءة والكتابة ، إنشاء، حذف، إرسال ، الغاء ، تعديل ، تقرير ، استيراد ، تصدير ، طباعة ، البريد الإلكتروني و تعيين أذونات العضو .
-Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles.,"الأذونات على مستويات أعلى من الأذونات "" على المستوى الميداني ."
-"Permissions at level 0 are 'Document Level' permissions, i.e. they are primary for access to the document.",الأذونات في 0 مستوى الأذونات هي &quot;مستوى الوثيقة، أي أنها الأساسي للوصول إلى المستند.
-Permissions get applied on Users based on what Roles they are assigned.,الحصول على تطبيق الأذونات على المستخدمين على أساس ما الأدوار التي تم تعيينها .
-Permitted Documents For User,المستندات يسمح للمستخدم
-Person,شخص
-Personal Info,معلومات شخصية
-Phone,هاتف
-Phone No.,رقم الهاتف
-Pick Columns,اختيار الأعمدة
-Picture URL,URL الصورة
-Pincode,Pincode
-Please attach a file first.,يرجى إرفاق ملف الأول.
-Please attach a file or set a URL,يرجى إرفاق ملف أو تعيين URL
-Please do not change the rows above {0},من فضلك لا تغيير الصفوف أعلاه {0}
-Please enable pop-ups,يرجى تمكين النوافذ المنبثقة
-Please enter Event's Date and Time!,الرجاء إدخال حدث في التاريخ والوقت !
-Please enter both your email and message so that we \				can get back to you. Thanks!,من فضلك ادخل بريدك الإلكتروني على حد سواء والرسالة حتى نتمكن \ يمكن أن نعود اليكم. شكرا!
-Please enter some text!,الرجاء إدخال النص !
-Please enter title!,يرجى إدخال عنوان !
-Please login to Upvote!,يرجى الدخول إلى Upvote !
-Please make sure that there are no empty columns in the file.,يرجى التأكد من أنه لا توجد أعمدة فارغة في الملف.
-Please refresh to get the latest document.,يرجى تحديث للحصول على أحدث وثيقة.
-Please reply above this line or remove it if you are replying below it,يرجى الرد فوق هذا الخط أو إزالته إذا كنت تقوم بالرد تحته
-Please select a file or url,يرجى تحديد ملف أو URL
-Please select atleast 1 column from {0} to sort,يرجى اختيار العمود 1 من {0} لفرز
-Please set {0} first,الرجاء تعيين {0} الأولى
-Please specify,يرجى تحديد
-Please specify 'Auto Email Id' in Setup > Outgoing Email Settings,"يرجى تحديد "" هوية السيارات البريد الإلكتروني"" في إعداد > إعدادات البريد الإلكتروني المنتهية ولايته"
-Please specify Event date and time,يرجى تحديد تاريخ ووقت الحدث
-Please specify doctype,يرجى تحديد DOCTYPE
-Please specify user,يرجى تحديد المستخدم
-Please specify which date field must be checked,يرجى تحديد أي تاريخ الحقل يجب أن يتم التحقق
-Please specify which value field must be checked,يرجى تحديد أي يجب فحص حقل القيمة
-Please upload using the same template as download.,يرجى تحميل باستخدام نفس القالب التحميل.
-Plugin,المساعد
-Port,ميناء
-Post,بعد
-Post Publicly,أضف علنا
-Post Topic,كتابة موضوع
-Post already exists. Cannot add again!,آخر موجود بالفعل. لا يمكن إضافة مرة أخرى!
-Post does not exist. Please add post!,آخر غير موجود. الرجاء إضافة آخر !
-Post to user,أضف إلى مستخدم
-Posts,المشاركات
-Previous Record,السجل السابق
-Primary,أساسي
-Print,طباعة
-Print Format,طباعة شكل
-Print Format Help,تنسيق الطباعة مساعدة
-Print Format Type,طباعة نوع تنسيق
-Print Format {0} does not exist,تنسيق الطباعة {0} غير موجود
-Print Format {0} is disabled,تنسيق الطباعة {0} تم تعطيل
-Print Hide,طباعة إخفاء
-Print Settings,إعدادات الطباعة
-Print Style,الطباعة ستايل
-Print Style Preview,معاينة قبل الطباعة ستايل
-Print Width,طباعة العرض
-"Print with Letterhead, unless unchecked in a particular Document",طباعة مع رأسية، إلا إذا لم يتم التحقق منه في مستند خاص
-Print...,طباعة ...
-Printing and Branding,الطباعة و العلامات التجارية
-Priority,أفضلية
-Private,خاص
-Properties,خصائص
-Property,ممتلكات
-Property Setter,الملكية واضعة
-Property Type,نوع الملكية
-Public,جمهور
-Published,نشرت
-Published On,نشرت يوم
-Published on website at: {0},نشرت على موقعه على الانترنت على العنوان التالي: {0}
-Pull Emails from the Inbox and attach them as Communication records (for known contacts).,سحب رسائل البريد الإلكتروني من علبة الوارد وإرفاقها كسجلات الاتصالات (الاتصالات المعروفة لل).
-Query,سؤال
-Query Options,خيارات الاستعلام
-Query Report,الاستعلام عن
-Query must be a SELECT,يجب أن يكون الاستعلام SELECT
-Quick Help for Setting Permissions,مساعدة سريعة لوضع ضوابط
-Quick Help for User Permissions,مساعدة سريعة ل ضوابط العضو
-Re-open,إعادة فتح
-Read,قرأ
-Read Only,للقراءة فقط
-Received,تلقى
-Recipient,مستلم
-Recipients,المستلمين
-Record does not exist,سجل غير موجود
-Ref DocType,المرجع DOCTYPE
-Ref Name,المرجع اسم
-Ref Type,المرجع نوع
-Reference,مرجع
-Reference DocName,إشارة DocName
-Reference DocType,إشارة DOCTYPE
-Reference Name,مرجع اسم
-Reference Type,مرجع نوع
-Refresh,تحديث
-Refreshing...,منعش ...
-Registered but disabled.,سجل لكن تعطيل.
-Registration Details Emailed.,تفاصيل التسجيل عبر البريد الالكتروني.
-Reload Page,تحديث الصفحة
-Remove Bookmark,أضف إزالة
-Remove all customizations?,إزالة كافة التخصيصات ؟
-Rename many items by uploading a .csv file.,إعادة تسمية العديد من العناصر عن طريق تحميل ملف CSV .
-Rename...,إعادة تسمية ...
-Repeat On,كرر على
-Repeat Till,تكرار حتى
-Repeat this Event,كرر هذا الحدث
-Replies,ردود
-Report,تقرير
-Report Builder,تقرير منشئ
-Report Builder reports are managed directly by the report builder. Nothing to do.,تدار تقارير منشئ التقرير مباشرة بواسطة منشئ التقرير. لا شيء للقيام به.
-Report Hide,تقرير إخفاء
-Report Name,تقرير الاسم
-Report Type,نوع التقرير
-Report an Issue,أبلغ عن مشكلة
-Report cannot be set for Single types,لا يمكن تعيين التقرير لأنواع واحدة
-Report this issue,بلغ عن هذه المسألة
-Report was not saved (there were errors),لم يتم حفظ التقرير (كانت هناك أخطاء)
-Reqd,Reqd
-Reset Password Key,إعادة تعيين كلمة المرور الرئيسية
-Reset Permissions for {0}?,إعادة تعيين أذونات ل {0} ؟
-Response,الإستجابة
-Restrict IP,تقييد IP
-Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111),تقييد المستخدم من هذا العنوان IP فقط. يمكن إضافة عناوين IP متعددة عن طريق فصل بفواصل. يقبل أيضا عناوين IP جزئية مثل (111.111.111)
-Right,حق
-Role,دور
-Role Name,دور الاسم
-Role Permissions Manager,مدير ضوابط دور
-Role and Level,دور و المستوى
-Role exists,وجود دور
-Roles,الأدوار
-Roles Assigned,الأدوار المسندة
-Roles Assigned To User,الأدوار المسندة إلى المستخدم
-Roles HTML,الأدوار HTML
-Roles can be set for users from their User page.,الأدوار يمكن تعيين للمستخدمين من صفحة المستخدم الخاصة بهم.
-Root {0} cannot be deleted,الجذر {0} لا يمكن حذف
-Row,صف
-Row #{0}:,الصف # {0}:
-Rules defining transition of state in the workflow.,قواعد تحديد الانتقال من الدولة في سير العمل.
-"Rules for how states are transitions, like next state and which role is allowed to change state etc.",ويسمح النظام لكيفية قيام الولايات التحولات، مثل الدولة والتي المقبل دور في تغيير الدولة الخ.
-Run scheduled jobs only if checked,تشغيل المهام المجدولة إلا إذا دققت
-Run the report first,تشغيل التقرير الأول
-SMTP Server (e.g. smtp.gmail.com),خادم SMTP (smtp.gmail.com مثلا)
-Sales,مبيعات
-Same file has already been attached to the record,نفس الملف تم إرفاقه إلى هذا السجل
-Sample,العينة
-Saturday,السبت
-Save,حفظ
-Scheduler Log,جدولة دخول
-Script,سيناريو
-Script Report,تقرير النصي
-Script Type,نوع البرنامج النصي
-Search,البحث
-Search Fields,البحث الحقول
-Search in a document type,بحث في نوع الوثيقة
-Search or type a command,بحث أو كتابة أمر
-Section Break,قسم استراحة
-Security,أمن
-Security Settings,إعدادات الأمان
-Select,حدد
-Select All,حدد كافة
-Select Attachments,حدد المرفقات
-Select Document Type,حدد نوع الوثيقة
-Select Document Type or Role to start.,حدد نوع الوثيقة أو دور للبدء.
-Select Print Format,حدد تنسيق طباعة
-Select Report Name,حدد اسم التقرير
-Select Role,حدد دور
-Select To Download:,اختار ل تحميل :
-Select Type,حدد نوع
-Select User or DocType to start.,حدد العضو أو DOCTYPE للبدء.
-Select a Banner Image first.,تحديد صورة بانر الأول.
-Select an image of approx width 150px with a transparent background for best results.,اختر صورة من تقريبا عرض 150px مع خلفية شفافة للحصول على أفضل النتائج.
-Select dates to create a new ,Select dates to create a new 
-"Select modules to be shown (based on permission). If hidden, they will be hidden for all users.",حدد وحدات ليتم عرضها (على أساس إذن ) . إذا مخفي ، وسوف تكون مخفية لجميع المستخدمين.
-Select or drag across time slots to create a new event.,حدد أو اسحب عبر فتحات الوقت لإنشاء حدث جديد.
-"Select target = ""_blank"" to open in a new page.","حدد الهدف = "" _blank "" لفتح صفحة جديدة في ."
-Select the label after which you want to insert new field.,حدد التسمية بعد الذي تريد إدراج حقل جديد.
-Send,إرسال
-Send Alert On,إرسال تنبيه في
-Send As Email,أرسل للبريد الالكتروني
-Send Email,إرسال البريد الإلكتروني
-Send Email Print Attachments as PDF (Recommended),إرسال البريد الإلكتروني المرفقات طباعة بصيغة PDF (مستحسن)
-Send Me A Copy,أرسل لي نسخة
-Send Password,إرسال كلمة المرور
-Send Print as PDF,إرسال طباعة بصيغة PDF
-Send alert if date matches this field's value,إرسال تنبيه إذا تاريخ مباريات قيمة هذا الحقل
-Send alert if this field's value changes,إرسال تنبيه إذا كانت التغييرات قيمة هذا الحقل
-Send an email reminder in the morning,إرسال رسالة تذكير في الصباح
-Send download link of a recent backup to System Managers,إرسال رابط التحميل من نسخة احتياطية حديثة ل مديري النظام
-Send enquiries to this email address,إرسال الاستفسارات إلى عنوان البريد الإلكتروني هذا
-Sender,مرسل
-Sent,أرسلت
-Sent Mail,إرسال بريد
-Sent Quotation,أرسلت اقتباس
-Sent or Received,المرسلة أو المتلقاة
-Series,سلسلة
-Series {0} already used in {1},سلسلة {0} تستخدم بالفعل في {1}
-Server,خادم
-Server & Credentials,الخادم وثائق التفويض
-Server Error: Please check your server logs or contact tech support.,خطأ الخادم : يرجى مراجعة سجلات الخادم الخاص بك أو الاتصال بالدعم التكنولوجيا .
-Session Expired. Logging you out,انتهى الدورة. تسجيل خروجك
-Session Expiry,الدورة انتهاء الاشتراك
-Session Expiry in Hours e.g. 06:00,انتهاء الاشتراك في الدورة ساعات مثلا 06:00
-Session Expiry must be in format {0},يجب أن تكون الدورة انتهاء الصلاحية في شكل {0}
-Set Banner from Image,تعيين راية من الصورة
-Set Link,تعيين لينك
-Set Login and Password if authentication is required.,تعيين كلمة المرور وتسجيل الدخول إذا كان مطلوبا المصادقة.
-Set Only Once,تعيين مرة واحدة فقط
-Set Password,تعيين كلمة المرور
-Set Permissions on Document Types and Roles,مجموعة ضوابط على أنواع المستندات والأدوار
-Set Permissions per User,مجموعة ضوابط لكل مستخدم
-Set User Permissions,تعيين أذونات المستخدم
-Set Value,تعيين القيمة
-"Set default format, page size, print style etc.",تعيين تنسيق افتراضي، حجم الصفحة، نمط الطباعة الخ
-Set numbering series for transactions.,تعيين ترقيم سلسلة للمعاملات .
-Set outgoing mail server.,تعيين ملقم البريد الصادر .
-Settings,إعدادات
-Settings for About Us Page.,من نحن إعدادات الصفحة.
-Settings for Contact Us Page.,إعدادات الاتصال بنا الصفحة.
-Setup,الإعداد
-Setup > User,الإعداد > العضو
-Setup > User Permissions Manager,الإعداد > ضوابط العضو مدير
-Setup Email Alert based on various criteria.,إعداد تنبيه البريد الإلكتروني استنادا إلى معايير مختلفة.
-Setup of fonts and background.,إعداد الخطوط والخلفية.
-"Setup of top navigation bar, footer and logo.",الإعداد من أعلى الملاحة تذييل وبار والشعار.
-Short Bio,بيو قصيرة
-Short Name,الاسم المختصر
-Shortcut,الاختصار
-Show / Hide Modules,إظهار / إخفاء وحدات
-Show Print First,تظهر أولا طباعة
-Show Tags,إظهار الوسوم
-Show or hide modules globally.,إظهار أو إخفاء وحدات على مستوى العالم.
-Show rows with zero values,عرض الصفوف مع قيم الصفر
-Show tags,تظهر به
-Show this field as title,تظهر هذا المجال كما لقب
-Showing only for (if not empty),تظهر فقط ل (إن لم يكن فارغ)
-Sidebar,الشريط الجانبي
-Sidebar Items,عناصر الشريط الجانبي
-Sidebar Links for Home Page only,روابط الشريط الجانبي ل صفحة الرئيسية فقط
-Sign Up,اشترك
-Sign in,توقيع في
-Sign up,الاشتراك
-Single Post (article).,مشاركة واحدة (المادة).
-Single Types have only one record no tables associated. Values are stored in tabSingles,أنواع واحد يكون سجل واحد فقط لا الجداول المرتبطة . يتم تخزين القيم في tabSingles
-Sitemap Browser,متصفح خريطة الموقع
-Slideshow,عرض الشرائح
-Slideshow Items,عرض الشرائح عناصر
-Slideshow Name,العرض اسم
-Small Text,نص صغير
-Social Login Keys,دخول الاجتماعية كيز
-Solid background color (default light gray),لون الخلفية الصلبة (الافتراضي رمادي فاتح)
-Sorry we were unable to find what you were looking for.,وآسف نتمكن من العثور على ما كنت تبحث عنه.
-Sorry you are not permitted to view this page.,عذرا غير مسموح لك بعرض هذه الصفحة.
-Sort By,فرز حسب
-Sort Field,نوع الحقل
-Sort Order,ترتيب
-Standard,معيار
-Standard Print Format cannot be updated,لا يمكن تحديث تنسيق الطباعة القياسية
-Standard Reply,معيار الرد
-Standard Reports,تقارير قياسية
-Standard replies to common queries.,الردود على الاستفسارات القياسية الشائعة.
-Start Report For,تقرير عن بدء
-Starts on,يبدأ يوم
-State,دولة
-States,الدول
-"States for workflow (e.g. Draft, Approved, Cancelled).",الدول عن سير العمل (على سبيل المثال مشروع ، وافق ، ألغي ) .
-Static File Timestamp,ثابت الطابع الزمني الملف
-Status,حالة
-Step 1: Set the name and save.,الخطوة 1 : تعيين اسم و حفظ.
-Step 2: Set Letterhead content.,الخطوة 2 : تعيين محتوى رأسية .
-Style,أسلوب
-Style Settings,نمط الضبط
-"Style represents the button color: Success - Green, Danger - Red, Inverse - Black, Primary - Dark Blue, Info - Light Blue, Warning - Orange",النمط يمثل لون الزر: النجاح - الخضراء، خطر -، معكوس الأحمر - الأسود، الابتدائية - أزرق داكن، معلومات - أزرق فاتح، تحذير - أورانج
-Sub-domain provided by erpnext.com,النطاق الفرعي المقدمة من erpnext.com
-Subdomain,نطاق فرعي
-Subject,موضوع
-Submit,عرض
-Submit an Issue,يقدم العدد
-Submitted,المقدمة
-Submitted Document cannot be converted back to draft. Transition row {0},الوثيقة المقدمة لا يمكن تحويلها إلى مشروع .
-Success,نجاح
-Suggestion,اقتراح
-Sunday,الأحد
-Switch to Website,التبديل إلى موقع الويب
-Sync Inbox,مزامنة البريد الوارد
-System,نظام
-System Settings,إعدادات النظام
-System User,نظام المستخدم
-System and Website Users,النظام و الموقع الالكتروني للمستخدمين
-System generated mails will be sent from this email id.,سيتم إرسال رسائل نظام المتولدة من هذا المعرف البريد الإلكتروني.
-Table,جدول
-Table {0} cannot be empty,الجدول {0} لا يمكن أن تكون فارغة
-Tag,بطاقة
-Tag Name,علامة الاسم
-Tags,علامات
-Tahoma,تاهوما
-Target,الهدف
-Tasks,المهام
-Team Members,أعضاء الفريق
-Team Members Heading,الأعضاء فريق عنوان
-Template,ال
-Template Pages cannot be moved,قالب الصفحات لا يمكن نقل
-Test,اختبار
-Test Runner,اختبار عداء
-Text,نص
-Text Align,محاذاة النص
-Text Editor,النص محرر
-Thank you for your message,شكرا لرسالتك
-The name of your company / website as you want to appear on browser title bar. All pages will have this as the prefix to the title.,اسم الشركة / الموقع كما تريد أن يظهر على شريط العنوان في المتصفح. وسوف يكون هذا كل الصفحات كما البادئة على اللقب.
-The system provides many pre-defined roles. You can add new roles to set finer permissions.,ويوفر النظام العديد من أدوار محددة مسبقا. يمكنك إضافة أدوار جديدة لتعيين أذونات الدقيقة.
-Then By (optional),ثم (اختياري)
-There should remain at least one System Manager,ينبغي أن تظل هناك إدارة نظام واحد على الأقل
-There were errors,كانت هناك أخطاء
-There were errors while sending email. Please try again.,كانت هناك أخطاء أثناء إرسال البريد الإلكتروني. يرجى المحاولة مرة أخرى.
-"There were some errors setting the name, please contact the administrator",كانت هناك بعض الأخطاء تحديد اسم، يرجى الاتصال بمسؤول
-"These permissions will apply for all transactions where the permitted record is linked. For example, if Company C is added to User Permissions of user X, user X will only be able to see transactions that has company C as a linked value.",سيتم تطبيق هذه الأذونات لجميع المعاملات حيث يتم ربط السجل المسموح بها.
-These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,وسيتم تحديث هذه القيم تلقائيا في المعاملات وأيضا سوف تكون مفيدة لتقييد الأذونات لهذا المستخدم على المعاملات التي تحتوي على هذه القيم.
-"These will also be set as default values for those links, if only one such permission record is defined.",كما سيتم تعيين هذه كقيم الافتراضي ل هذه الروابط ، إذا تم تعريف سجل إذن واحد فقط من هذا القبيل.
-Third Party Authentication,مصادقة طرف ثالث
-This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>myfieldeval:doc.myfield=='My Value'<br>eval:doc.age>18,سيظهر هذا المجال إلا إذا كان تعريف fieldname هنا له قيمة أو قواعد صحيحة (أمثلة): <BR>  myfield  وحدة التقييم: doc.myfield == 'بلدي القيمة' <BR>  وحدة التقييم: doc.age> 18
-This goes above the slideshow.,هذا يذهب فوق عرض الشرائح.
-This is PERMANENT action and you cannot undo. Continue?,هذا هو العمل الدائم ويمكنك التراجع لا. المتابعة؟
-"This is a standard format. To make changes, please copy it make make a new format.",هذه هي صيغة قياسية. لإجراء تغييرات، يرجى نسخه جعل جعل شكل جديد.
-This is permanent action and you cannot undo. Continue?,هذا هو العمل الدائم ويمكنك التراجع لا. المتابعة؟
-This must be checked if Style Settings are applicable,هذا يجب أن يتم التحقق إذا إعدادات نمط قابلة للتطبيق
-This role update User Permissions for a user,هذا الدور ضوابط التحديث العضو لمستخدم
-Thursday,الخميس
-Tile,قرميدة
-Time,مرة
-Time Zone,منطقة زمنية
-Timezone,التوقيت
-Title,لقب
-Title / headline of your page,عنوان / عنوان الصفحة الخاصة بك
-Title Case,عنوان القضية
-Title Field,حقل العنوان
-Title Prefix,عنوان الاختصار
-Title field must be a valid fieldname,يجب أن يكون حقل العنوان ل fieldname صالحة
-Title is required,مطلوب عنوان
-To,إلى
-To Do,قائمة المهام
-"To format columns, give column labels in the query.",لتنسيق الأعمدة، وإعطاء تسميات الأعمدة في الاستعلام.
-"To give acess to a role for only specific records, check the 'Apply User Permissions'. User Permissions are used to limit users with such role to specific records.","لإعطاء رصا إلى دور للسجلات معينة فقط ، والتحقق من ""تطبيق أذونات المستخدم ' ."
-"To run a test add the module name in the route after '{0}'. For example, {1}",لتشغيل اختبار إضافة اسم وحدة في الطريق بعد '{0}'. على سبيل المثال، {1}
-ToDo,قائمة المهام
-Too many writes in one request. Please send smaller requests,الكثير من يكتب في طلب واحد . يرجى إرسال طلبات أصغر
-Top Bar,مقهى الأعلى
-Top Bar Background,الأعلى بار الخلفية
-Top Bar Item,أفضل شريط الإغلاق
-Top Bar Items,قطع الشريط العلوي
-Top Bar Text,الشريط العلوي نص
-Top Bar text and background is same color. Please change.,أعلى نص شريط والخلفية هي نفس اللون. الرجاء تغيير.
-Transaction,صفقة
-Transition Rules,الانتقال قوانين
-Tuesday,الثلاثاء
-Tweet will be shared via your user account (if specified),وسيتم تقاسم تويت عبر حساب المستخدم الخاص بك (في حالة تحديد)
-Twitter Share,تويتر شارك
-Twitter Share via,Twitter المشاركة عبر
-Type,نوع
-Unable to find attachment {0},غير قادر على العثور مرفق {0}
-Unable to load: {0},غير قادر على تحميل: {0}
-Unable to open attached file. Please try again.,غير قادر على فتح الملف المرفق. يرجى المحاولة مرة أخرى.
-Unable to send emails at this time,غير قادر على إرسال رسائل البريد الإلكتروني في هذا الوقت
-Unknown Column: {0},غير معروف العمود: {0}
-"Unknown file encoding. Tried utf-8, windows-1250, windows-1252.",ترميز الملفات غير معروف . حاول UTF- 8 ، ويندوز 1250، ويندوز 1252 .
-Unread Messages,رسائل غير مقروءة
-Unsubscribe,إلغاء الاشتراك
-Unsubscribed,إلغاء اشتراكك
-Upcoming Events for Today,الأحداث القادمة لهذا اليوم
-Update,تحديث
-Update Field,تحديث الميدانية
-Update Value,تحديث القيمة
-Updated,تحديث
-Upload,تحميل
-Upload Attachment,تحميل المرفقات
-Upload CSV file containing all user permissions in the same format as Download.,تحميل ملف CSV يحتوي على جميع أذونات المستخدم في نفس الشكل كما تحميل.
-Upload a file,تحميل ملف
-Upload and Import,تحميل واستيراد
-Upload and Sync,تحميل ومزامنة
-Uploading...,تحميل ...
-Upvotes,Upvotes
-Use TLS,استخدام TLS
-User,مستخدم
-User Cannot Create,لا يمكن للمستخدم إنشاء
-User Cannot Search,لا يمكن للمستخدم البحث
-User Defaults,الملف الشخصي الافتراضيات
-User ID of a blog writer.,هوية المستخدم من بلوق كاتبا.
-User Image,صورة العضو
-User Permission,إذن المستخدم
-User Permissions,ضوابط المستخدم
-User Permissions Manager,مدير ضوابط المستخدم
-User Roles,أدوار المستخدم
-User Tags,الكلمات المستخدم
-User Type,نوع المستخدم
-"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ","User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. "
-User Vote,تصويت المستخدم
-User not allowed to delete {0}: {1},المستخدم لا يسمح لحذف {0}: {1}
-User permissions should not apply for this Link,لا ينبغي تطبيق أذونات المستخدم لهذا الرابط
-User {0} cannot be deleted,المستخدم {0} لا يمكن حذف
-User {0} cannot be disabled,المستخدم {0} لا يمكن تعطيل
-User {0} cannot be renamed,المستخدم {0} لا يمكن إعادة تسمية
-User {0} does not exist,المستخدم {0} غير موجود
-UserRole,UserRole
-Users and Permissions,المستخدمين وأذونات
-Users with role {0}:,المستخدمين مع دور {0} :
-Valid Login id required.,صالحة معرف تسجيل الدخول المطلوبة.
-Valid email and name required, مطلوب بريد إلكتروني صالح واسم صالح 
-Value,قيمة
-Value Change,قيمة التغيير
-Value Changed,قيمة تغيير
-Value cannot be changed for {0},لا يمكن تغيير القيمة ل {0}
-Value for a check field can be either 0 or 1,قيمة لحقل الاختيار يمكن أن يكون إما 0 أو 1
-Value missing for,قيمة مفقودة لل
-Verdana,فيردانا
-Version,الإصدار
-Version restored,النسخة استعادة
-View or manage Website Route tree.,عرض أو إدارة شجرة الموقع الطريق .
-Visit,زيارة
-Warning,تحذير
-Warning: This Print Format is in old style and cannot be generated via the API.,تحذير: هذا تنسيق الطباعة في النمط القديم، ولا يمكن أن تتولد عن طريق API.
-Web Page,صفحة على الإنترنت
-Web Site Forum Page.,الموقع على شبكة الإنترنت المنتدى الصفحة .
-Website,الموقع
-Website Group,موقع مجموعة
-Website Route,خريطة الموقع الموقع
-Website Route Permission,الطريق إذن الموقع
-Website Script,الموقع سكربت
-Website Settings,إعدادات الموقع
-Website Slideshow,موقع عرض الشرائح
-Website Slideshow Item,موقع السلعة عرض شرائح
-Website User,موقع العضو
-Wednesday,الأربعاء
-Welcome email sent,نرحب البريد الإلكتروني المرسلة
-"When you Amend a document after Cancel and save it, it will get a new number that is a version of the old number.",عند تعديل مستند بعد الغاء وحفظه ، وسوف تحصل على عدد جديد هو نسخة من الرقم القديم .
-Width,عرض
-Will be used in url (usually first name).,وسوف تستخدم في رابط (عادة الاسم الأول).
-With Groups,مع المجموعات
-With Ledgers,مع سجلات الحسابات
-With Letterhead,مع رأسية
-Workflow,سير العمل
-Workflow Action,سير العمل العمل
-Workflow Action Name,سير العمل اسم العمل
-Workflow Document State,سير العمل الوثيقة الدولة
-Workflow Document States,سير العمل الوثيقة الدول
-Workflow Name,اسم سير العمل
-Workflow State,الدولة سير العمل
-Workflow State Field,سير العمل الميدانية الدولة
-Workflow Transition,الانتقال سير العمل
-Workflow Transitions,انتقالات سير العمل
-Workflow will start after saving.,سوف تبدأ العمل بعد الحفظ.
-Write,الكتابة
-Write a Python file in the same folder where this is saved and return column and result.,كتابة ملف بيثون في نفس المجلد حيث تم حفظ هذا العمود والعودة والنتيجة.
-Write a SELECT query. Note result is not paged (all data is sent in one go).,كتابة استعلام SELECT. لم يتم ترحيلها علما نتيجة (يتم إرسال جميع البيانات دفعة واحدة).
-Write titles and introductions to your blog.,تكتب العناوين والمقدمات لبلوق الخاص بك.
-Writers Introduction,الكتاب مقدمة
-Year,عام
-Yes,نعم
-Yesterday,أمس
-You are not allowed to create / edit reports,لا يسمح لك لإنشاء تقارير / تحرير
-You are not allowed to export the data of: {0}. Downloading empty template.,لا يسمح لك ل تصدير البيانات من : {0} . تحميل قالب فارغ.
-You are not allowed to export this report,لا يسمح لك لتصدير هذا التقرير
-You are not allowed to print this document,لا يسمح لك طباعة هذه الوثيقة
-You are not allowed to send emails related to this document,لا يسمح لك بإرسال رسائل البريد الإلكتروني ذات الصلة لهذه الوثيقة
-"You can change Submitted documents by cancelling them and then, amending them.",يمكنك تغيير الوثائق المقدمة من إلغائها ، ثم تعديلها .
-You can use Customize Form to set levels on fields.,يمكنك استخدام نموذج تخصيص ل تحديد مستويات على الحقول .
-You can use wildcard %,يمكنك استخدام حرف البدل٪
-You cannot install this app,لا يمكنك تثبيت هذا التطبيق
-You have unsaved changes in this form. Please save before you continue.,لديك تغييرات لم يتم حفظها في هذا النموذج.
-You need to be logged in and have System Manager Role to be able to access backups.,تحتاج إلى أن تقوم بتسجيل الدخول ولها دور مدير النظام أن يكون قادرا على الوصول إلى النسخ الاحتياطي.
-You need write permission to rename,كنت بحاجة إلى كتابة إذن لإعادة تسمية
-You seem to have written your name instead of your email. \					Please enter a valid email address so that we can get back.,يبدو أنك قد كتبت اسمك بدلا من البريد الإلكتروني الخاص بك. \ الرجاء إدخال عنوان بريد إلكتروني صالح حتى نتمكن من الحصول على الظهر.
-"Your download is being built, this may take a few moments...",ويجري بناء التنزيل، وهذا قد يستغرق بضع لحظات ...
-[Label]:[Field Type]/[Options]:[Width],[تسمية]: [نوع الحقل] / [خيارات]: [العرض]
-[Optional] Send the email X days in advance of the specified date. 0 equals same day.,[اختياري] إرسال البريد الإلكتروني X أيام قبل التاريخ المحدد. 0 يساوي نفس اليوم.
-add your own CSS (careful!),إضافة CSS الخاصة بك (careful!)
-adjust,ضبط
-align-center,محاذاة الوسط
-align-justify,محاذاة-تبرير
-align-left,محاذاة يسار
-align-right,محاذاة اليمين
-and,و
-arrow-down,سهم لأسفل
-arrow-left,سهم يسار
-arrow-right,سهم يمين
-arrow-up,سهم لأعلى
-asterisk,النجمة
-backward,الى الوراء
-ban-circle,دائرة الحظر
-barcode,الباركود
-beginning with,بدءا
-bell,جرس
-bold,جريء
-book,كتاب
-bookmark,المرجعية
-briefcase,حقيبة
-bullhorn,البوق
-calendar,تقويم
-camera,كاميرا
-certificate,شهادة
-check,تحقق
-chevron-down,شيفرون لأسفل
-chevron-left,شيفرون يسار
-chevron-right,شيفرون اليمين
-chevron-up,شيفرون المتابعة
-circle-arrow-down,دائرة السهم لأسفل
-circle-arrow-left,دائرة السهم اليسار
-circle-arrow-right,دائرة السهم الأيمن
-circle-arrow-up,دائرة السهم إلى أعلى
-cog,تحكم في
-comment,تعليق
-comments,تعليقات
-dd-mm-yyyy,DD-MM-YYYY
-dd.mm.yyyy,dd.mm.yyyy
-dd/mm/yyyy,اليوم / الشهر / السنة
-download,تحميل
-download-alt,تحميل بديل
-edit,تحرير
-eject,طرد
-envelope,مغلف
-exclamation-sign,تعجب علامة-
-eye-close,إغلاق العين
-eye-open,فتح العين
-facetime-video,فيس تايم عن طريق الفيديو
-fast-backward,سريع إلى الوراء
-fast-forward,سريع إلى الأمام
-file,ملف
-film,فيلم
-filter,تصفية
-fire,حريق
-flag,علم
-folder-close,غلق مجلد
-folder-open,فتح مجلد
-font,الخط
-forward,إلى الأمام
-found,موجود
-fullscreen,ملء الشاشة
-gift,هدية
-glass,زجاج
-globe,العالم
-hand-down,إلى أسفل اليد
-hand-left,اليد اليسرى
-hand-right,ومن جهة اليمين
-hand-up,ومن ناحية المتابعة
-hdd,الأقراص الصلبة
-headphones,سماعة الرأس
-heart,قلب
-home,منزل
-icon,رمز
-inbox,البريد الوارد
-indent-left,المسافة البادئة اليسرى
-indent-right,المسافة البادئة اليمنى
-info-sign,معلومات تسجيل الدخول،
-is not allowed.,غير مسموح به.
-italic,مائل
-leaf,ورق
-lft,LFT
-list,قائمة
-list-alt,قائمة بديل
-lock,قفل
-lowercase,أحرف صغيرة
-magnet,مغناطيس
-map-marker,الخرائط علامة
-memcached is not working / stopped. Please start memcached for best results.,أعطها لا يعمل / توقف . يرجى بدء أعطها للحصول على أفضل النتائج.
-minus,ناقص
-minus-sign,علامة ناقص
-mm-dd-yyyy,MM-DD-YYYY
-mm/dd/yyyy,مم / اليوم / السنة
-move,تحرك
-music,موسيقى
-none of,أيا من
-off,بعيدا
-ok,حسنا
-ok-circle,دائرة OK-
-ok-sign,علامة OK-
-one of,واحدة من
-or,أو
-pause,وقفة
-pencil,قلم رصاص
-picture,صور
-plane,طائرة
-play,لعب
-play-circle,لعب دائرة
-plus,زائد
-plus-sign,زائد توقيع
-print,طباعة
-qrcode,qrcode
-question-sign,علامة سؤال
-random,عشوائي
-refresh,تحديث
-remove,نزع
-remove-circle,إزالة دائرة،
-remove-sign,إزالة التوقيع،
-repeat,كرر
-resize-full,تغيير حجم كامل
-resize-horizontal,تغيير حجم الأفقي،
-resize-small,تغيير حجم صغير
-resize-vertical,تغيير حجم عمودية
-retweet,retweet
-rgt,RGT
-road,طريق
-screenshot,لقطة شاشة
-search,البحث
-share,حصة
-share-alt,حصة بديل
-shopping-cart,عربة التسوق
-signal,إشارة
-star,نجم
-star-empty,النجوم فارغة
-step-backward,خطوة إلى الوراء
-step-forward,خطوة إلى الأمام
-stop,توقف
-tag,بطاقة
-tags,به
-"target = ""_blank""",الهدف = &quot;_blank&quot;
-tasks,المهام
-text-height,ارتفاع النص
-text-width,عرض النص
-th,ال
-th-large,TH-الكبيرة
-th-list,TH-قائمة
-thumbs-down,علامة إستهجان
-thumbs-up,الابهام إلى أعلى
-time,مرة
-tint,لون
-to,إلى
-trash,القمامة
-upload,تحميل
-use % as wildcard,استخدام٪ كما البدل
-user,مستخدم
-user_image_show,user_image_show
-values and dates,القيم والتواريخ
-values separated by commas,قيم مفصولة بفواصل
-volume-down,حجم إلى أسفل
-volume-off,حجم حالا
-volume-up,حجم المتابعة
-warning-sign,علامة إنذار
-wrench,وجع
-yyyy-mm-dd,YYYY-MM-DD
-zoom-in,تكبير
-zoom-out,تكبير المغادرة
-{0} List,{0} قائمة
-{0} added,{0} أضاف
-{0} by {1},{0} بواسطة {1}
-{0} cannot be set for Single types,{0} لا يمكن تعيين لأنواع واحدة
-{0} does not exist in row {1},{0} غير موجود في الصف {1}
-{0} in row {1} cannot have both URL and child items,{0} في {1} الصف لا يمكن أن يكون كل عنوان URL و البنود الأطفال
-{0} is not a valid email id,{0} ليس معرف بريد إلكتروني صحيح
-{0} is required,{0} مطلوب
-{0} is saved,{0} تم حفظها
-{0} must be one of {1},{0} يجب أن يكون واحدا من {1}
-{0} must be set first,{0} يجب تعيين أول
-{0} not a valid State,{0} يست دولة صالحة
-{0} not allowed in fieldname {1},{0} غير مسموح به في fieldname {1}
-{0} not allowed in name,{0} غير مسموح به في الاسم
-{0} not allowed to be renamed,{0} غير مسموح به ويجب إعادة تسميته
-{0} updated,{0} تحديث
-{0} {1} already exists,{0} {1} موجود بالفعل
-"{0} {1} cannot be ""{2}"". It should be one of ""{3}""","{0} {1} لا يمكن أن يكون ""{2}"". ينبغي أن يكون واحدا من ""{3}"""
-{0} {1} cannot be a leaf node as it has children,{0} {1} لا يمكن أن يكون عقدة ورقة كما فعلت الأطفال
-"{0} {1} does not exist, select a new target to merge",{0} {1} غير موجود ، حدد هدفا جديدا لدمج
-{0} {1} not found,{0} {1} غير موجود
-{0} {1}: Submitted Record cannot be deleted.,{0} {1}: لا يمكن حذف سجل نشره.
-{0}: Cannot set Amend without Cancel,{0} : لا يمكن تعيين تعدل دون الغاء
-{0}: Cannot set Assign Amend if not Submittable,{0} : لا يمكن تعيين تعيين يعدل إن لم يكن Submittable
-{0}: Cannot set Assign Submit if not Submittable,{0} : لا يمكن تعيين تعيين إرسال إذا لم Submittable
-{0}: Cannot set Cancel without Submit,{0} : لا يمكن تعيين الغاء دون إرسال
-{0}: Cannot set Import without Create,{0} : لا يمكن تعيين استيراد دون إنشاء
-"{0}: Cannot set Submit, Cancel, Amend without Write",{0} : لا يمكن تعيين إرسال ، الغاء ، تعديل دون كتابة
-{0}: Cannot set import as {1} is not importable,{0} : لا يمكن تعيين استيراد ك {1} ليس ارداتها
-"{0}: Create, Submit, Cancel and Amend only valid at level 0",{0} : إنشاء ، إرسال ، تعديل و الغاء صالحة فقط على مستوى 0
-{0}: No basic permissions set,{0} : لا تعيين أذونات الأساسية
-"{0}: Only one rule allowed with the same Role, Level and Apply User Permissions",{0} : واحد فقط حكم يسمح بنفس الدور ، و مستوى تطبيق ضوابط العضو
-{0}: Permission at level 0 must be set before higher levels are set,{0} : إذن على مستوى 0 يجب تعيين قبل أن يتم تحديد مستويات أعلى
-{app_title},{ app_title }
+,Activity,نشاط
+,Applications,تطبيقات
+,Data Import Tool,أداة استيراد البيانات
+,Desktop,سطح المكتب
+,Document Share Report,
+,Messages,رسائل
+,Modules Setup,إعداد وحدات
+,Permitted Documents For User,المستندات يسمح للمستخدم
+,Role Permissions Manager,مدير ضوابط دور
+,User Permissions Manager,مدير ضوابط المستخدم
+DocType: About Us Settings,"""Company History""",&quot;نبذة عن تاريخ الشركة&quot;
+DocType: About Us Settings,"""Team Members"" or ""Management""",&quot;أعضاء الفريق&quot; أو &quot;إدارة&quot;
+DocType: About Us Settings,About Us Settings,إعدادات صفحة من نحن
+DocType: About Us Settings,Company Introduction,الشركة مقدمة
+DocType: About Us Settings,Introduce your company to the website visitor.,تقديم الشركة للزائر الموقع.
+DocType: About Us Settings,More content for the bottom of the page.,المزيد من المحتوى لأسفل الصفحة.
+DocType: About Us Settings,Org History,غزاله التاريخ
+DocType: About Us Settings,Org History Heading,غزاله التاريخ مداخل
+DocType: About Us Settings,Settings for the About Us Page,
+DocType: About Us Settings,Team Members,أعضاء الفريق
+DocType: About Us Settings,Team Members Heading,الأعضاء فريق عنوان
+DocType: About Us Settings,Website,الموقع
+DocType: About Us Settings,Website Manager,
+DocType: About Us Team Member,About Us Team Member,أعضاء فريق صفحة من نحن
+DocType: About Us Team Member,Image Link,رابط الصورة
+DocType: Blog Category,Blog Category,بلوق التصنيف
+DocType: Blog Category,Blogger,مدون
+DocType: Blog Category,Category Name,اسم التصنيف
+DocType: Blog Category,Parent Website Route,الوالد موقع الطريق
+DocType: Blog Category,Published,نشرت
+DocType: Blog Post,Blog Intro,بلوق مقدمة
+DocType: Blog Post,Blog Post,بلوق وظيفة
+DocType: Blog Post,"Description for listing page, in plain text, only a couple of lines. (max 140 characters)",وصف لصفحة القائمة، في نص عادي، فقط بضعة أسطر. (حد أقصى 140 حرف)
+DocType: Blog Post,Email Sent,إرسال البريد الإلكتروني
+DocType: Blog Post,Guest,
+DocType: Blog Post,Published On,نشرت يوم
+DocType: Blog Settings,Blog Introduction,بلوق مقدمة
+DocType: Blog Settings,Blog Settings,إعدادات بلوق
+DocType: Blog Settings,Blog Title,بلوق العنوان
+DocType: Blog Settings,Writers Introduction,الكتاب مقدمة
+DocType: Blogger,Avatar,الصورة الرمزية
+DocType: Blogger,Posts,المشاركات
+DocType: Blogger,Short Name,الاسم المختصر
+DocType: Blogger,User ID of a Blogger,
+DocType: Blogger,Will be used in url (usually first name).,وسوف تستخدم في رابط (عادة الاسم الأول).
+DocType: Bulk Email,Bulk Email,الجزء الأكبر البريد الإلكتروني
+DocType: Bulk Email,Bulk Email records.,
+DocType: Bulk Email,Message,رسالة
+DocType: Bulk Email,Not Sent,
+DocType: Bulk Email,Recipient,مستلم
+DocType: Bulk Email,Reference DocName,إشارة DocName
+DocType: Bulk Email,Sending,
+DocType: Comment,Comment,تعليق
+DocType: Comment,Comment By,تعليق من جانب
+DocType: Comment,Comment By Fullname,التعليق بواسطة الاسم بالكامل
+DocType: Comment,Comment Date,التعليق تاريخ
+DocType: Comment,Comment Docname,التعليق Docname
+DocType: Comment,Comment Doctype,التعليق DOCTYPE
+DocType: Comment,Comment Time,وقت التعليق 
+DocType: Comment,Comment Type,
+DocType: Comment,Core,جوهر
+DocType: Comment,Post Topic,كتابة موضوع
+DocType: Comment,System Manager,
+DocType: Comment,Unsubscribed,إلغاء اشتراكك
+DocType: Communication,Additional Info,معلومات إضافية
+DocType: Communication,Archived,
+DocType: Communication,By,بواسطة
+DocType: Communication,Chat,الدردشة
+DocType: Communication,Communication,اتصالات
+DocType: Communication,Communication Medium,الاتصالات متوسطة
+DocType: Communication,Content,محتوى
+DocType: Communication,Date,تاريخ
+DocType: Communication,Email,البريد الإلكتروني
+DocType: Communication,Email Account,
+DocType: Communication,Keep a track of all communications,
+DocType: Communication,On,في
+DocType: Communication,Open,فتح
+DocType: Communication,Other,آخر
+DocType: Communication,Phone,هاتف
+DocType: Communication,Phone No.,رقم الهاتف
+DocType: Communication,Received,تلقى
+DocType: Communication,Recipients,المستلمين
+DocType: Communication,Reference DocType,إشارة DOCTYPE
+DocType: Communication,Reference Name,مرجع اسم
+DocType: Communication,Replied,رد
+DocType: Communication,Sales Manager,
+DocType: Communication,Sales User,
+DocType: Communication,Sender,مرسل
+DocType: Communication,Sender Full Name,
+DocType: Communication,Sent,أرسلت
+DocType: Communication,Sent or Received,المرسلة أو المتلقاة
+DocType: Communication,Series,سلسلة
+DocType: Communication,Status,حالة
+DocType: Communication,Subject,موضوع
+DocType: Communication,Support Manager,
+DocType: Communication,Support Team,
+DocType: Communication,User,مستخدم
+DocType: Communication,User Tags,الكلمات المستخدم
+DocType: Communication,Visit,زيارة
+DocType: Company History,Company History,نبذة عن تاريخ الشركة
+DocType: Company History,Highlight,تسليط الضوء على
+DocType: Company History,Year,عام
+DocType: Contact Us Settings,Address,عنوان
+DocType: Contact Us Settings,Address Line 1,العنوان سطر 1
+DocType: Contact Us Settings,Address Line 2,العنوان سطر 2
+DocType: Contact Us Settings,Address Title,عنوان عنوان
+DocType: Contact Us Settings,City,مدينة
+DocType: Contact Us Settings,Contact Us Settings,الاتصال بنا إعدادات
+DocType: Contact Us Settings,"Contact options, like ""Sales Query, Support Query"" etc each on a new line or separated by commas.",خيارات الاتصال، مثل &quot;الاستعلام المبيعات والدعم الاستعلام&quot; الخ كل على سطر جديد أو مفصولة بفواصل.
+DocType: Contact Us Settings,"Default: ""Contact Us""",الافتراضي: &quot;اتصل بنا&quot;
+DocType: Contact Us Settings,Forward To Email Address,انتقل إلى عنوان البريد الإلكتروني
+DocType: Contact Us Settings,Introduction,مقدمة
+DocType: Contact Us Settings,Introductory information for the Contact Us Page,المعلومات التمهيدية لصفحة اتصل بنا
+DocType: Contact Us Settings,Pincode,Pincode
+DocType: Contact Us Settings,Query Options,خيارات الاستعلام
+DocType: Contact Us Settings,Send enquiries to this email address,إرسال الاستفسارات إلى عنوان البريد الإلكتروني هذا
+DocType: Contact Us Settings,Settings for Contact Us Page,
+DocType: Contact Us Settings,State,دولة
+DocType: Country,Country,بلد
+DocType: Country,Country Name,الاسم الدولة
+DocType: Country,Geo,
+DocType: Country,Time Zones,من المناطق الزمنية
+DocType: Currency,**Currency** Master,
+DocType: Currency,"1 Currency = [?] Fraction
+For e.g. 1 USD = 100 Cent",
+DocType: Currency,A symbol for this currency. For e.g. $,رمزا لهذه العملة. على سبيل المثال ل$
+DocType: Currency,Currency Name,اسم العملة
+DocType: Currency,Fraction,جزء
+DocType: Currency,Fraction Units,جزء الوحدات
+DocType: Currency,"How should this currency be formatted? If not set, will use system defaults",كيف ينبغي أن يتم تنسيق هذه العملة؟ إذا لم يتم تعيين و، استخدم افتراضيات النظام
+DocType: Currency,"Sub-currency. For e.g. ""Cent""",شبه العملات. ل &quot;سنت&quot; على سبيل المثال
+DocType: Currency,Symbol,رمز
+DocType: Custom Field,Adds a custom field to a DocType,
+DocType: Custom Field,Custom,عرف
+DocType: Custom Field,Default Value,القيمة الافتراضية
+DocType: Custom Field,Document,وثيقة
+DocType: Custom Field,Field Description,حقل الوصف
+DocType: Custom Field,Field Type,نوع الحقل
+DocType: Custom Field,Fieldname,Fieldname
+DocType: Custom Field,In Report Filter,في تصفية التقرير
+DocType: Custom Field,Insert After,إدراج بعد
+DocType: Custom Field,Is Mandatory Field,هو حقل إلزامي
+DocType: Custom Field,Label Help,التسمية تعليمات
+DocType: Custom Field,Options Help,خيارات مساعدة
+DocType: Custom Field,Permission Level,إذن المستوى
+DocType: Custom Field,Properties,خصائص
+DocType: Custom Field,Select the label after which you want to insert new field.,حدد التسمية بعد الذي تريد إدراج حقل جديد.
+DocType: Custom Field,Unique,
+DocType: Custom Script,Adds a custom script (client or server) to a DocType,
+DocType: Custom Script,Client,عميل	
+DocType: Custom Script,Sample,العينة
+DocType: Custom Script,Script,سيناريو
+DocType: Custom Script,Script Type,نوع البرنامج النصي
+DocType: Customize Form,Customize Form,تخصيص نموذج
+DocType: Customize Form,"Customize Label, Print Hide, Default etc.",تخصيص تسمية، إخفاء طباعة، الخ الافتراضي
+DocType: Customize Form,Enter Form Type,أدخل نوع النموذج
+DocType: Customize Form,"Fields separated by comma (,) will be included in the<br /><b>Search By</b> list of Search dialog box",وسيتم إدراج حقول مفصولة بفواصل (،) في <br /> <b>البحث حسب</b> قائمة مربع الحوار بحث
+DocType: Customize Form Field,Customize Form Field,تخصيص حقل نموذج
+DocType: Customize Form Field,"Print Width of the field, if the field is a column in a table",
+DocType: Customize Form Field,"This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>
+myfield
+eval:doc.myfield=='My Value'<br>
+eval:doc.age>18",
+DocType: DefaultValue,DefaultValue,الافتراضية
+DocType: DefaultValue,Key,مفتاح
+DocType: DefaultValue,Value,قيمة
+DocType: DocField,Allow on Submit,السماح بالإعتماد
+DocType: DocField,Attach,إرفاق
+DocType: DocField,Button,زر
+DocType: DocField,Check,تحقق
+DocType: DocField,Code,رمز
+DocType: DocField,Column Break,العمود استراحة
+DocType: DocField,Currency,عملة
+DocType: DocField,Data,معطيات
+DocType: DocField,Datetime,التاريخ والوقت
+DocType: DocField,Default,الافتراضي
+DocType: DocField,Depends On,يعتمد على
+DocType: DocField,Description,وصف
+DocType: DocField,Display,عرض
+DocType: DocField,Do not allow user to change after set the first time,لا تسمح للمستخدم لتغيير بعد تعيين أول مرة
+DocType: DocField,DocField,DocField
+DocType: DocField,Dynamic Link,الارتباط الحيوي
+DocType: DocField,Float,رقم عشري
+DocType: DocField,Fold,
+DocType: DocField,"For Links, enter the DocType as range
+For Select, enter list of Options separated by comma",
+DocType: DocField,Heading,عنوان
+DocType: DocField,Hidden,مخفي
+DocType: DocField,Ignore User Permissions,تجاهل أذونات المستخدم
+DocType: DocField,Image,صورة
+DocType: DocField,In Filter,في تصفية
+DocType: DocField,In List View,في عرض القائمة
+DocType: DocField,Index,مؤشر
+DocType: DocField,Int,الباحث
+DocType: DocField,Label,ملصق
+DocType: DocField,Label and Type,التسمية و النوع
+DocType: DocField,Link,رابط
+DocType: DocField,Long Text,نص طويل
+DocType: DocField,Mandatory,إلزامي
+DocType: DocField,Name,اسم
+DocType: DocField,No Copy,اي نسخة
+DocType: DocField,Options,خيارات
+DocType: DocField,Password,كلمة السر
+DocType: DocField,Percent,في المئة
+DocType: DocField,Perm Level,بيرم المستوى
+DocType: DocField,Permissions,أذونات
+DocType: DocField,Precision,
+DocType: DocField,Print Hide,طباعة إخفاء
+DocType: DocField,Print Width,طباعة العرض
+DocType: DocField,Read Only,للقراءة فقط
+DocType: DocField,Report Hide,تقرير إخفاء
+DocType: DocField,Section Break,قسم استراحة
+DocType: DocField,Select,حدد
+DocType: DocField,Set Only Once,تعيين مرة واحدة فقط
+DocType: DocField,Set non-standard precision for a Float or Currency field,
+DocType: DocField,Small Text,نص صغير
+DocType: DocField,Table,جدول
+DocType: DocField,Text,نص
+DocType: DocField,Text Editor,النص محرر
+DocType: DocField,Time,مرة
+DocType: DocField,Type,نوع
+DocType: DocField,User permissions should not apply for this Link,لا ينبغي تطبيق أذونات المستخدم لهذا الرابط
+DocType: DocField,Width,عرض
+DocType: DocPerm,Additional Permissions,ضوابط إضافية
+DocType: DocPerm,Amend,تعديل
+DocType: DocPerm,Apply User Permissions,تطبيق ضوابط العضو
+DocType: DocPerm,Cancel,إلغاء
+DocType: DocPerm,Create,انشاء
+DocType: DocPerm,Delete,حذف
+DocType: DocPerm,DocPerm,DocPerm
+DocType: DocPerm,Export,تصدير
+DocType: DocPerm,Filter records based on User Permissions defined for a user,تصفية السجلات استنادا إلى صلاحيات المستخدمين المخصصة للمستخدم
+DocType: DocPerm,Import,استيراد
+DocType: DocPerm,"JSON list of DocTypes used to apply User Permissions. If empty, all linked DocTypes will be used to apply User Permissions.",
+DocType: DocPerm,Level,مستوى
+DocType: DocPerm,Print,طباعة
+DocType: DocPerm,Read,قرأ
+DocType: DocPerm,Report,تقرير
+DocType: DocPerm,Role,دور
+DocType: DocPerm,Role and Level,دور و المستوى
+DocType: DocPerm,Set User Permissions,تعيين أذونات المستخدم
+DocType: DocPerm,Share,حصة
+DocType: DocPerm,Submit,عرض
+DocType: DocPerm,This role update User Permissions for a user,هذا الدور ضوابط التحديث العضو لمستخدم
+DocType: DocPerm,User Permission DocTypes,
+DocType: DocPerm,Write,الكتابة
+DocType: DocShare,DocShare,
+DocType: DocShare,Document Name,
+DocType: DocShare,Document Type,نوع الوثيقة
+DocType: DocShare,Internal record of document shares,
+DocType: DocType,"<a onclick=""msgprint('<ol>\
+<li><b>field:[fieldname]</b> - By Field\
+<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\
+<li><b>Prompt</b> - Prompt user for a name\
+<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\
+</ol>')"">Naming Options</a>",
+DocType: DocType,Administrator,
+DocType: DocType,Allow Import,السماح بالإستيراد
+DocType: DocType,Allow Import via Data Import Tool,السماح بالإستيراد خلال أداة إستيراد البيانات
+DocType: DocType,Allow Rename,السماح بإعادة التسمية
+DocType: DocType,Auto Name,الإسم التلقائي
+DocType: DocType,Child Tables are shown as a Grid in other DocTypes.,وتظهر جداول الطفل بأنه في الشبكة DocTypes أخرى.
+DocType: DocType,Custom?,مخصص
+DocType: DocType,Default Print Format,طباعة شكل الافتراضي
+DocType: DocType,DocType,DOCTYPE
+DocType: DocType,DocType Details,DOCTYPE تفاصيل
+DocType: DocType,DocType is a Table / Form in the application.,
+DocType: DocType,Fields,الحقول
+DocType: DocType,Hide Actions,إخفاء عمليات
+DocType: DocType,Hide Copy,إخفاء نسخة
+DocType: DocType,Hide Heading,إخفاء عنوان
+DocType: DocType,Hide Toolbar,إخفاء شريط الأدوات
+DocType: DocType,Icon,رمز
+DocType: DocType,In Dialog,في مربع حوار
+DocType: DocType,Is Child Table,هو الجدول التابع
+DocType: DocType,Is Single,هو واحدة
+DocType: DocType,Is Submittable,هو Submittable
+DocType: DocType,Master,سيد
+DocType: DocType,Max Attachments,المرفقات ماكس
+DocType: DocType,Module,وحدة
+DocType: DocType,Name Case,اسم القضية
+DocType: DocType,Naming,تسمية
+DocType: DocType,Permission Rules,إذن قوانين
+DocType: DocType,Permissions Settings,أذونات إعدادات
+DocType: DocType,Plugin,المساعد
+DocType: DocType,Search Fields,البحث الحقول
+DocType: DocType,Show Print First,تظهر أولا طباعة
+DocType: DocType,Show this field as title,تظهر هذا المجال كما لقب
+DocType: DocType,Single Types have only one record no tables associated. Values are stored in tabSingles,أنواع واحد يكون سجل واحد فقط لا الجداول المرتبطة . يتم تخزين القيم في tabSingles
+DocType: DocType,Sort Field,نوع الحقل
+DocType: DocType,Sort Order,ترتيب
+DocType: DocType,System,نظام
+DocType: DocType,Title Case,عنوان القضية
+DocType: DocType,Title Field,حقل العنوان
+DocType: DocType,Transaction,صفقة
+DocType: DocType,User Cannot Create,لا يمكن للمستخدم إنشاء
+DocType: DocType,User Cannot Search,لا يمكن للمستخدم البحث
+DocType: Email Account,Actions,الإجراءات
+DocType: Email Account,Add Signature,
+DocType: Email Account,Append To,
+DocType: Email Account,"Append as communication against this DocType (must have fields, ""Status"", ""Subject"")",
+DocType: Email Account,Attachment Limit (MB),
+DocType: Email Account,Auto Reply,
+DocType: Email Account,Auto Reply Message,
+DocType: Email Account,Check this to pull emails from your mailbox,التحقق من ذلك لسحب رسائل البريد الإلكتروني من صندوق البريد
+DocType: Email Account,Default Incoming,
+DocType: Email Account,Default Outgoing,
+DocType: Email Account,Email Account Name,
+DocType: Email Account,Email Id,البريد الإلكتروني معرف
+DocType: Email Account,Enable Auto Reply,
+DocType: Email Account,Enable Incoming,
+DocType: Email Account,Enable Outgoing,
+DocType: Email Account,Footer,تذييل
+DocType: Email Account,GMail,
+DocType: Email Account,If non standard port (e.g. 587),إذا غير المنفذ القياسي (على سبيل المثال 587)
+DocType: Email Account,Ignore attachments over this size,
+DocType: Email Account,Incoming Mail Settings,
+DocType: Email Account,Notifications and bulk mails will be sent from this outgoing server.,
+DocType: Email Account,Outgoing Mail Settings,
+DocType: Email Account,Outlook.com,
+DocType: Email Account,POP3 Server,
+DocType: Email Account,Port,ميناء
+DocType: Email Account,SMTP Server,
+DocType: Email Account,SMTP Settings for outgoing emails,
+DocType: Email Account,Service,خدمة
+DocType: Email Account,Set Footer,
+DocType: Email Account,Signature,توقيع
+DocType: Email Account,Use SSL,استخدام SSL
+DocType: Email Account,Use TLS,استخدام TLS
+DocType: Email Account,Yahoo Mail,
+DocType: Email Account,"e.g. ""Support"", ""Sales"", ""Jerry Yang""",
+DocType: Email Account,e.g. pop.gmail.com,
+DocType: Email Account,e.g. replies@yourcomany.com. All replies will come to this inbox.,
+DocType: Email Account,e.g. smtp.gmail.com,
+DocType: Email Alert,Condition,الحالة
+DocType: Email Alert,Date Change,تاريخ التغيير
+DocType: Email Alert,Date Changed,تاريخ تغيير
+DocType: Email Alert,Days in Advance,أيام مقدما
+DocType: Email Alert,Email Alert,تنبيه البريد الإلكتروني
+DocType: Email Alert,Filters,فلاتر
+DocType: Email Alert,Message Examples,أمثلة رسالة
+DocType: Email Alert,New,جديد
+DocType: Email Alert,Optional: The alert will be sent if this expression is true,اختياري: التنبيه سيتم إرسال إذا كان هذا التعبير صحيح
+DocType: Email Alert,Save,حفظ
+DocType: Email Alert,Send Alert On,إرسال تنبيه في
+DocType: Email Alert,Send alert if date matches this field's value,إرسال تنبيه إذا تاريخ مباريات قيمة هذا الحقل
+DocType: Email Alert,Send alert if this field's value changes,إرسال تنبيه إذا كانت التغييرات قيمة هذا الحقل
+DocType: Email Alert,Value Change,قيمة التغيير
+DocType: Email Alert,Value Changed,قيمة تغيير
+DocType: Email Alert,[Optional] Send the email X days in advance of the specified date. 0 equals same day.,[اختياري] إرسال البريد الإلكتروني X أيام قبل التاريخ المحدد. 0 يساوي نفس اليوم.
+DocType: Email Alert Recipient,Email Alert Recipient,مستقبل البريد تنبيه
+DocType: Email Alert Recipient,Email By Document Field,البريد الإلكتروني بواسطة حقل الوثيقة
+DocType: Email Alert Recipient,"Expression, Optional",التعبير والاختياري
+DocType: Email Alert Recipient,Optional: Alert will only be sent if value is a valid email id.,اختياري: سوف يتم إرسال تنبيه فقط إذا كانت القيمة هي هوية بريد إلكتروني صحيح.
+DocType: Email Alert Recipient,Optional: Always send to these ids. Each email id on a new row,اختياري: دائما إرسالها إلى هذه الهوية. كل معرف البريد الإلكتروني على صف جديد
+DocType: Event,All Day,كل يوم
+DocType: Event,Desk,
+DocType: Event,Details,تفاصيل
+DocType: Event,Ends on,ينتهي في
+DocType: Event,Event,حدث
+DocType: Event,Event Type,نوع الحدث
+DocType: Event,Every Day,كل يوم
+DocType: Event,Every Month,كل شهر
+DocType: Event,Every Week,كل أسبوع
+DocType: Event,Every Year,كل سنة
+DocType: Event,Friday,الجمعة
+DocType: Event,Groups,مجموعات
+DocType: Event,Leave blank to repeat always,اتركه فارغا لتكرار دائما
+DocType: Event,Monday,يوم الاثنين
+DocType: Event,Participants,المشاركين
+DocType: Event,Private,خاص
+DocType: Event,Public,جمهور
+DocType: Event,Ref Name,المرجع اسم
+DocType: Event,Ref Type,المرجع نوع
+DocType: Event,Repeat On,كرر على
+DocType: Event,Repeat Till,تكرار حتى
+DocType: Event,Repeat this Event,كرر هذا الحدث
+DocType: Event,Saturday,السبت
+DocType: Event,Send an email reminder in the morning,إرسال رسالة تذكير في الصباح
+DocType: Event,Starts on,يبدأ يوم
+DocType: Event,Sunday,الأحد
+DocType: Event,Thursday,الخميس
+DocType: Event,Tuesday,الثلاثاء
+DocType: Event,Wednesday,الأربعاء
+DocType: Event Role,Event Role,الحدث الدور
+DocType: Feed,Color,اللون
+DocType: Feed,Doc Name,اسم الوثيقة
+DocType: Feed,Doc Type,نوع الوثيقة
+DocType: Feed,Feed,أطعم
+DocType: Feed,Feed Type,إطعام نوع
+DocType: Feed,Full Name,الاسم الكامل
+DocType: Feed,Info,معلومات
+DocType: Feed,Login,دخول
+DocType: File Data,Attached To DocType,تعلق على DOCTYPE
+DocType: File Data,Attached To Name,أرفقت للأسم
+DocType: File Data,Content Hash,تجزئة المحتوى
+DocType: File Data,File Data,ملف البيانات
+DocType: File Data,File Name,اسم الملف
+DocType: File Data,File Size,حجم الملف
+DocType: File Data,File URL,ملف URL
+DocType: Letter Head,Check this to make this the default letter head in all prints,التحقق من ذلك لجعل هذه الرسالة الافتراضية الرأس في جميع الطبعات
+DocType: Letter Head,Is Default,افتراضي
+DocType: Letter Head,Letter Head,رسالة رئيس
+DocType: Letter Head,Letter Head Name,رسالة رئيس الاسم
+DocType: Letter Head,Letter Head in HTML,رسالة رئيس في HTML
+DocType: Module Def,App Name,اسم التطبيق
+DocType: Module Def,Module Def,وحدة مواطنه
+DocType: Module Def,Module Name,اسم وحدة
+DocType: Note,Everyone can read,يمكن أن يقرأها الجميع
+DocType: Note,"Help: To link to another record in the system, use ""#Form/Note/[Note Name]"" as the Link URL. (don't use ""http://"")",مساعدة: لربط إلى سجل آخر في النظام، استخدم &quot;# نموذج / ملاحظة / [اسم ملاحظة]&quot;، كما URL رابط. (لا تستخدم &quot;الإلكتروني http://&quot;)
+DocType: Note,Note,لاحظ
+DocType: Note,Note is a free page where users can share documents / notes,
+DocType: Page,All,
+DocType: Page,No,لا
+DocType: Page,Page,صفحة
+DocType: Page,Page HTML,صفحة HTML
+DocType: Page,Page Name,اسم الصفحة
+DocType: Page,Roles,الأدوار
+DocType: Page,Standard,معيار
+DocType: Page,Title,لقب
+DocType: Page,Yes,نعم
+DocType: Page,icon,رمز
+DocType: Page Role,Page Role,الصفحة الدور
+DocType: Patch Log,List of patches executed,
+DocType: Patch Log,Patch,بقعة
+DocType: Patch Log,Patch Log,سجل التصحيح
+DocType: Print Format,Custom Format,
+DocType: Print Format,Edit Format,
+DocType: Print Format,Format Data,
+DocType: Print Format,Print Format,طباعة شكل
+DocType: Print Format,Print Format Builder,
+DocType: Print Format,Print Format Help,تنسيق الطباعة مساعدة
+DocType: Print Format,Print Format Type,طباعة نوع تنسيق
+DocType: Print Format,Server,خادم
+DocType: Print Settings,Classic,كلاسيكي
+DocType: Print Settings,Font Size,حجم الخط
+DocType: Print Settings,In points. Default is 9.,في نقطة. الافتراضي هو 9.
+DocType: Print Settings,Letter,الحرف
+DocType: Print Settings,Modern,حديث
+DocType: Print Settings,Monochrome,
+DocType: Print Settings,PDF Page Size,PDF حجم الصفحة
+DocType: Print Settings,PDF Settings,إعدادات PDF
+DocType: Print Settings,Print Settings,إعدادات الطباعة
+DocType: Print Settings,Print Style,الطباعة ستايل
+DocType: Print Settings,Print Style Preview,معاينة قبل الطباعة ستايل
+DocType: Print Settings,"Print with Letterhead, unless unchecked in a particular Document",طباعة مع رأسية، إلا إذا لم يتم التحقق منه في مستند خاص
+DocType: Print Settings,Send Email Print Attachments as PDF (Recommended),إرسال البريد الإلكتروني المرفقات طباعة بصيغة PDF (مستحسن)
+DocType: Print Settings,Send Print as PDF,إرسال طباعة بصيغة PDF
+DocType: Print Settings,With Letterhead,مع رأسية
+DocType: Property Setter,DocType or Field,DOCTYPE أو حقل
+DocType: Property Setter,Field Name,حقل الاسم
+DocType: Property Setter,ID (name) of the entity whose property is to be set,ID (اسم) للكيان الذي هو الملكية التي سيتم تحديدها
+DocType: Property Setter,New value to be set,القيمة الجديدة التي سيتم تحديدها
+DocType: Property Setter,Property,ممتلكات
+DocType: Property Setter,Property Setter overrides a standard DocType or Field property,
+DocType: Property Setter,Property Type,نوع الملكية
+DocType: Property Setter,Set Value,تعيين القيمة
+DocType: Report,Add Total Row,إضافة صف الإجمالي
+DocType: Report,Disabled,معاق
+DocType: Report,Is Standard,هو معيار
+DocType: Report,JavaScript Format: frappe.query_reports['REPORTNAME'] = {},جافا سكريبت الصيغة: frappe.query_reports [' REPORTNAME '] = { }
+DocType: Report,Javascript,جافا سكريبت
+DocType: Report,Query,سؤال
+DocType: Report,Query Report,الاستعلام عن
+DocType: Report,Ref DocType,المرجع DOCTYPE
+DocType: Report,Report Builder,تقرير منشئ
+DocType: Report,Report Manager,
+DocType: Report,Report Name,تقرير الاسم
+DocType: Report,Report Type,نوع التقرير
+DocType: Report,Script Report,تقرير النصي
+DocType: Role,Role Name,دور الاسم
+DocType: Scheduler Log,Error,خطأ
+DocType: Scheduler Log,Log of Scheduler Errors,
+DocType: Scheduler Log,Method,طريقة
+DocType: Scheduler Log,Scheduler Log,جدولة دخول
+DocType: Social Login Keys,Facebook,الفيسبوك
+DocType: Social Login Keys,Facebook Client ID,الفيسبوك عميل معرف
+DocType: Social Login Keys,Facebook Client Secret,الفيسبوك العميل السري
+DocType: Social Login Keys,GitHub,جيثب
+DocType: Social Login Keys,GitHub Client ID,جيثب معرف عميل
+DocType: Social Login Keys,GitHub Client Secret,جيثب سر عميل
+DocType: Social Login Keys,Google,جوجل
+DocType: Social Login Keys,Google Client ID,معرف عميل جوجل
+DocType: Social Login Keys,Google Client Secret,سر عميل جوجل
+DocType: Social Login Keys,Social Login Keys,دخول الاجتماعية كيز
+DocType: Standard Reply,Owner,مالك
+DocType: Standard Reply,Response,الإستجابة
+DocType: Standard Reply,Standard Reply,معيار الرد
+DocType: Style Settings,"000 is black, fff is white",000 سوداء، بيضاء FFF
+DocType: Style Settings,Add CSS,إضافة CSS
+DocType: Style Settings,"Add the name of <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> e.g. ""Open Sans""","إضافة اسم <a href=""http://google.com/webfonts"" target=""_blank"">جوجل خط ويب</a> على سبيل المثال &quot;بلا فتح&quot;"
+DocType: Style Settings,Apply Style,تطبيق نمط
+DocType: Style Settings,Arial,ارييل
+DocType: Style Settings,Auto generated,أنشئت تلقائياً
+DocType: Style Settings,Background Color,لون الخلفية
+DocType: Style Settings,Custom CSS,العرف CSS
+DocType: Style Settings,Enable,تمكين
+DocType: Style Settings,Font (Heading),الخط (العنوان)
+DocType: Style Settings,Font (Text),الخط (نص)
+DocType: Style Settings,Font Size (Text),حجم الخط (نص)
+DocType: Style Settings,Fonts,الخطوط
+DocType: Style Settings,Footer Background,تذييل الخلفية
+DocType: Style Settings,Footer Text,تذييل النص
+DocType: Style Settings,Georgia,جورجيا
+DocType: Style Settings,Google Web Font (Heading),Google ويب الخط (العنوان)
+DocType: Style Settings,Google Web Font (Text),Google ويب الخط (نص)
+DocType: Style Settings,Heading Text As,عنوان النص
+DocType: Style Settings,Helvetica Neue,هلفتيكا نويه
+DocType: Style Settings,"If image is selected, color will be ignored (attach first)",إذا تم تحديد الصورة، سيتم تجاهل اللون (إرفاق الأولى)
+DocType: Style Settings,Lato,اتو
+DocType: Style Settings,Lucida Grande,سدا غراندي
+DocType: Style Settings,Open Sans,مفتوحة بلا
+DocType: Style Settings,Page Background,خلفية الصفحة
+DocType: Style Settings,Page Header,ترويسة الصفحة
+DocType: Style Settings,Page Header Background,خلفية ترويسة الصفحة
+DocType: Style Settings,Page Header Text,رأس الصفحة نص
+DocType: Style Settings,Page Links,روابط الصفحة
+DocType: Style Settings,Page Text,نص الصفحة
+DocType: Style Settings,"Set your background color, font and image (tiled)",
+DocType: Style Settings,Solid background color (default light gray),لون الخلفية الصلبة (الافتراضي رمادي فاتح)
+DocType: Style Settings,Style Settings,نمط الضبط
+DocType: Style Settings,Tahoma,تاهوما
+DocType: Style Settings,This must be checked if Style Settings are applicable,هذا يجب أن يتم التحقق إذا إعدادات نمط قابلة للتطبيق
+DocType: Style Settings,Top Bar,مقهى الأعلى
+DocType: Style Settings,Top Bar Background,الأعلى بار الخلفية
+DocType: Style Settings,Top Bar Text,الشريط العلوي نص
+DocType: Style Settings,Verdana,فيردانا
+DocType: Style Settings,add your own CSS (careful!),إضافة CSS الخاصة بك (careful!)
+DocType: Style Settings,lowercase,أحرف صغيرة
+DocType: System Settings,Date Format,تنسيق التاريخ
+DocType: System Settings,Date and Number Format,تاريخ و صيغة رقم
+DocType: System Settings,Enable Scheduled Jobs,تمكين المهام المجدولة
+DocType: System Settings,Float Precision,دقة الرقم  العشري
+DocType: System Settings,Language,لغة
+DocType: System Settings,Loading...,تحميل ...
+DocType: System Settings,Localization,التعريب
+DocType: System Settings,Number Format,عدد تنسيق
+DocType: System Settings,Run scheduled jobs only if checked,تشغيل المهام المجدولة إلا إذا دققت
+DocType: System Settings,Security,أمن
+DocType: System Settings,Session Expiry,الدورة انتهاء الاشتراك
+DocType: System Settings,Session Expiry in Hours e.g. 06:00,انتهاء الاشتراك في الدورة ساعات مثلا 06:00
+DocType: System Settings,System Settings,إعدادات النظام
+DocType: System Settings,Time Zone,منطقة زمنية
+DocType: System Settings,dd-mm-yyyy,DD-MM-YYYY
+DocType: System Settings,dd.mm.yyyy,dd.mm.yyyy
+DocType: System Settings,dd/mm/yyyy,اليوم / الشهر / السنة
+DocType: System Settings,mm-dd-yyyy,MM-DD-YYYY
+DocType: System Settings,mm/dd/yyyy,مم / اليوم / السنة
+DocType: System Settings,yyyy-mm-dd,YYYY-MM-DD
+DocType: Tag,Tag,بطاقة
+DocType: Tag,Tag Name,علامة الاسم
+DocType: ToDo,Assigned By,تكليف بواسطة
+DocType: ToDo,Assigned To,كلف إلى
+DocType: ToDo,Closed,مغلق
+DocType: ToDo,Description and Status,الوصف و الحالة
+DocType: ToDo,Due Date,بسبب تاريخ
+DocType: ToDo,High,ارتفاع
+DocType: ToDo,Low,منخفض
+DocType: ToDo,Medium,متوسط
+DocType: ToDo,Priority,أفضلية
+DocType: ToDo,Reference,مرجع
+DocType: ToDo,Reference Type,مرجع نوع
+DocType: ToDo,ToDo,قائمة المهام
+DocType: Top Bar Item,For top bar,الشريط العلوي لل
+DocType: Top Bar Item,"If you set this, this Item will come in a drop-down under the selected parent.",إذا قمت بتعيين هذا ، فإن هذا البند تأتي في قائمة منسدلة تحت الأصل المحدد .
+DocType: Top Bar Item,Link to the page you want to open,الرابط إلى الصفحة التي تريد فتح
+DocType: Top Bar Item,Parent Label,الأصل تسمية
+DocType: Top Bar Item,Right,حق
+DocType: Top Bar Item,"Select target = ""_blank"" to open in a new page.","حدد الهدف = "" _blank "" لفتح صفحة جديدة في ."
+DocType: Top Bar Item,Target,الهدف
+DocType: Top Bar Item,Top Bar Item,أفضل شريط الإغلاق
+DocType: Top Bar Item,"target = ""_blank""",الهدف = &quot;_blank&quot;
+DocType: User,Allow user to login only after this hour (0-24),تسمح للمستخدم لتسجيل الدخول فقط بعد هذه الساعة (0-24)
+DocType: User,Allow user to login only before this hour (0-24),تسمح للمستخدم لتسجيل الدخول فقط قبل هذه الساعة (0-24)
+DocType: User,Background,
+DocType: User,Background Image,صورة الخلفية
+DocType: User,Background Style,خلفية ستايل
+DocType: User,Bio,نبذة
+DocType: User,Birth Date,تاريخ الميلاد
+DocType: User,Check / Uncheck roles assigned to the User. Click on the Role to find out what permissions that Role has.,تحقق أدوار ازل / المسندة إلى الملف. انقر على دور لمعرفة ما الأذونات التي الدور الذي.
+DocType: User,Default is system timezone,الافتراضي هو نظام توقيت
+DocType: User,Defaults,الافتراضات
+DocType: User,Display Settings,عرض إعدادات
+DocType: User,Email Host,البريد الإلكتروني المضيف
+DocType: User,Email Login,دخول البريد الالكتروني
+DocType: User,Email Password,البريد الالكتروني كلمة السر
+DocType: User,Email Settings,إعدادات البريد الإلكتروني
+DocType: User,Email Signature,البريد الإلكتروني التوقيع
+DocType: User,Email Use SSL,إرسال استخدام SSL
+DocType: User,Enabled,تمكين
+DocType: User,"Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set ""match"" permission rules. To see list of fields, go to <a href=""#Form/Customize Form/Customize Form"">Customize Form</a>.","الدخول في مجالات القيمة الافتراضية (مفاتيح) والقيم. إذا قمت بإضافة قيم متعددة لحقل، سيتم اختار أول واحد. كما تستخدم هذه الافتراضات لوضع القواعد &quot;مباراة&quot; إذن. لمعرفة قائمة الحقول، انتقل إلى <a href=""#Form/Customize Form/Customize Form"">تخصيص الشكل</a> ."
+DocType: User,Facebook User ID,الفيسبوك الرقم
+DocType: User,Facebook Username,الفيسبوك اسم المستخدم
+DocType: User,Female,أنثى
+DocType: User,Fill Screen,ملء الشاشة
+DocType: User,First Name,الاسم الأول
+DocType: User,Gender,جنس
+DocType: User,"Get your globally recognized avatar from <a href=""https://gravatar.com/"">Gravatar.com</a>","احصل على صورة شخصية معترف بها عالميا من <a href=""https://gravatar.com/""> Gravatar.com </ A>"
+DocType: User,Github User ID,جيثب هوية المستخدم
+DocType: User,Github Username,جيثب اسم المستخدم
+DocType: User,Google User ID,جوجل هوية المستخدم
+DocType: User,Language preference for user interface (only if available).,تفضيل لغة واجهة المستخدم (إلا إذا وجدت).
+DocType: User,Last IP,مشاركة IP
+DocType: User,Last Login,آخر تسجيل دخول
+DocType: User,Last Name,اسم العائلة
+DocType: User,Location,موقع
+DocType: User,Login After,بعد الدخول
+DocType: User,Login Before,تسجيل الدخول قبل
+DocType: User,Male,ذكر
+DocType: User,Middle Name (Optional),الاسم الأوسط (اختياري)
+DocType: User,New Password,كلمة مرور جديدة
+DocType: User,POP3 Mail Server (e.g. pop.gmail.com),POP3 خادم البريد (على سبيل المثال pop.gmail.com)
+DocType: User,Personal Info,معلومات شخصية
+DocType: User,Pull Emails from the Inbox and attach them as Communication records (for known contacts).,سحب رسائل البريد الإلكتروني من علبة الوارد وإرفاقها كسجلات الاتصالات (الاتصالات المعروفة لل).
+DocType: User,Represents a User in the system.,
+DocType: User,Reset Password Key,إعادة تعيين كلمة المرور الرئيسية
+DocType: User,Restrict IP,تقييد IP
+DocType: User,Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111),تقييد المستخدم من هذا العنوان IP فقط. يمكن إضافة عناوين IP متعددة عن طريق فصل بفواصل. يقبل أيضا عناوين IP جزئية مثل (111.111.111)
+DocType: User,Roles Assigned,الأدوار المسندة
+DocType: User,Roles Assigned To User,الأدوار المسندة إلى المستخدم
+DocType: User,Roles HTML,الأدوار HTML
+DocType: User,Security Settings,إعدادات الأمان
+DocType: User,Set Password,تعيين كلمة المرور
+DocType: User,Short Bio,بيو قصيرة
+DocType: User,Sync Inbox,مزامنة البريد الوارد
+DocType: User,System User,نظام المستخدم
+DocType: User,These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,وسيتم تحديث هذه القيم تلقائيا في المعاملات وأيضا سوف تكون مفيدة لتقييد الأذونات لهذا المستخدم على المعاملات التي تحتوي على هذه القيم.
+DocType: User,Third Party Authentication,مصادقة طرف ثالث
+DocType: User,Tile,قرميدة
+DocType: User,Timezone,التوقيت
+DocType: User,User Defaults,الملف الشخصي الافتراضيات
+DocType: User,User Image,صورة العضو
+DocType: User,User Type,نوع المستخدم
+DocType: User,"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ","User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. "
+DocType: User,Website User,موقع العضو
+DocType: User,user_image_show,user_image_show
+DocType: UserRole,UserRole,UserRole
+DocType: Version,Doclist JSON,Doclist جسون
+DocType: Version,Docname,Docname
+DocType: Version,Version,الإصدار
+DocType: Web Form,Advanced,
+DocType: Web Form,Allow Comments,
+DocType: Web Form,Allow Delete,
+DocType: Web Form,Allow Edit,
+DocType: Web Form,Allow Multiple,
+DocType: Web Form,Breadcrumbs,
+DocType: Web Form,Go to this url after completing the form.,
+DocType: Web Form,"In JSON as <pre>[{""title"":""Jobs"", ""name"":""jobs""}]</pre>",
+DocType: Web Form,Login Required,
+DocType: Web Form,Message to be displayed on successful completion,
+DocType: Web Form,Select DocType,حدد DOCTYPE
+DocType: Web Form,Success Message,
+DocType: Web Form,Success URL,
+DocType: Web Form,Text to be displayed for Link to Web Page if this form has a web page. Link route will be automatically generated based on `page_name` and `parent_website_route`,
+DocType: Web Form,Web Form,
+DocType: Web Form,Web Form Fields,
+DocType: Web Form,Web Page Link Text,
+DocType: Web Form,Website URL,
+DocType: Web Form Field,Fieldtype,
+DocType: Web Form Field,Web Form Field,
+DocType: Web Page,0 is highest,0 هو أعلى
+DocType: Web Page,Add code as &lt;script&gt;,إضافة التعليمات البرمجية كما &lt;script&gt;
+DocType: Web Page,Begin this page with a slideshow of images,تبدأ هذه الصفحة مع عرض شرائح من الصور
+DocType: Web Page,Center,مركز
+DocType: Web Page,Content in markdown format that appears on the main side of your page,المحتوى في شكل تخفيض السعر الذي يظهر على الجانب الرئيسي من الصفحة الخاصة بك
+DocType: Web Page,Custom Javascript,جافا سكريبت مخصصة
+DocType: Web Page,Description for page header.,وصف لرأس الصفحة.
+DocType: Web Page,Enable Comments,تمكين تعليقات
+DocType: Web Page,HTML for header section. Optional,HTML ل مقطع الرأس . اختياري
+DocType: Web Page,Header,رأس
+DocType: Web Page,Insert Code,إدراج رمز
+DocType: Web Page,Insert Style,إدراج شكل
+DocType: Web Page,Left,ترك
+DocType: Web Page,Link to other pages in the side bar and next section,ربط إلى صفحات أخرى في شريط الجانب والمقطع التالي
+DocType: Web Page,Main Section,القسم العام
+DocType: Web Page,More,أكثر
+DocType: Web Page,Page content,محتوى الصفحة
+DocType: Web Page,"Page to show on the website
+",
+DocType: Web Page,Page url name (auto-generated),اسم الصفحة رابط ( تم إنشاؤه تلقائيا )
+DocType: Web Page,Parent Web Page,
+DocType: Web Page,Slideshow,عرض الشرائح
+DocType: Web Page,Template Path,
+DocType: Web Page,Text Align,محاذاة النص
+DocType: Web Page,Title / headline of your page,عنوان / عنوان الصفحة الخاصة بك
+DocType: Web Page,Web Page,صفحة على الإنترنت
+DocType: Website Script,Script to attach to all web pages.,
+DocType: Website Script,Website Script,الموقع سكربت
+DocType: Website Settings,Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,إضافة خدمة Google Analytics ID: على سبيل المثال. UA-89XXX57-1. الرجاء بحث المساعدة على تحليلات جوجل لمزيد من المعلومات.
+DocType: Website Settings,Add a banner to the site. (small banners are usually good),إضافة لافتة إلى الموقع. (لافتات صغيرة عادة ما تكون جيدة)
+DocType: Website Settings,Address and other legal information you may want to put in the footer.,العنوان وغيرها من المعلومات القانونية قد تحتاج لوضع في تذييل الصفحة.
+DocType: Website Settings,"An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [<a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a>]","ملف رمز التمديد مع منظمة البن الدولية. يجب أن تكون 16 × 16 بكسل. تم إنشاؤها باستخدام مولد فافيكون. [ <a href=""http://favicon-generator.org/"" target=""_blank"">فافيكون-generator.org</a> ]"
+DocType: Website Settings,Banner,راية
+DocType: Website Settings,Banner HTML,راية HTML
+DocType: Website Settings,Banner Image,راية صورة
+DocType: Website Settings,Banner is above the Top Menu Bar.,راية فوق أعلى شريط القوائم.
+DocType: Website Settings,Brand HTML,العلامة التجارية HTML
+DocType: Website Settings,Copyright,حق النشر
+DocType: Website Settings,Disable Customer Signup link in Login page,تعطيل الرابط اشترك العملاء في صفحة تسجيل الدخول
+DocType: Website Settings,Disable Signup,تعطيل الاشتراك
+DocType: Website Settings,Facebook Share,الفيسبوك شارك
+DocType: Website Settings,FavIcon,فافيكون
+DocType: Website Settings,Footer Items,تذييل العناصر
+DocType: Website Settings,Google Analytics ID,جوجل تحليلات ID
+DocType: Website Settings,Google Plus One,جوجل زائد واحد
+DocType: Website Settings,Hide the sidebar,إخفاء الشريط الجانبي
+DocType: Website Settings,Home Page,الصفحة الرئيسية
+DocType: Website Settings,Home Page is Products,الصفحة الرئيسية المنتجات غير
+DocType: Website Settings,"If checked, the Home page will be the default Item Group for the website.",إذا تم، سيكون في الصفحة الرئيسية يجب أن يكون فريق المدينة الافتراضية للموقع.
+DocType: Website Settings,Integrations,التكاملات
+DocType: Website Settings,Landing Page,الصفحة المقصودة
+DocType: Website Settings,"Link that is the website home page. Standard Links (index, login, products, blog, about, contact)",ربط هذا هو الصفحة الرئيسية ل موقع الويب. روابط القياسية ( مؤشر ، تسجيل الدخول ، والمنتجات، بلوق ، عن، الاتصال )
+DocType: Website Settings,Linked In Share,ترتبط في حصة
+DocType: Website Settings,"Menu items in the Top Bar. For setting the color of the Top Bar, go to <a href=""#Form/Style Settings"">Style Settings</a>","عناصر القائمة في الشريط العلوي. لتحديد لون الشريط العلوي، انتقل إلى <a href=""#Form/Style Settings"">إعدادات نمط</a>"
+DocType: Website Settings,Misc,منوعات
+DocType: Website Settings,No Sidebar,لا الشريط الجانبي
+DocType: Website Settings,Select an image of approx width 150px with a transparent background for best results.,اختر صورة من تقريبا عرض 150px مع خلفية شفافة للحصول على أفضل النتائج.
+DocType: Website Settings,Set Banner from Image,تعيين راية من الصورة
+DocType: Website Settings,Sidebar,الشريط الجانبي
+DocType: Website Settings,Sidebar Items,عناصر الشريط الجانبي
+DocType: Website Settings,Sidebar Links for Home Page only,روابط الشريط الجانبي ل صفحة الرئيسية فقط
+DocType: Website Settings,Sub-domain provided by erpnext.com,النطاق الفرعي المقدمة من erpnext.com
+DocType: Website Settings,Subdomain,نطاق فرعي
+DocType: Website Settings,Title Prefix,عنوان الاختصار
+DocType: Website Settings,Top Bar Items,قطع الشريط العلوي
+DocType: Website Settings,Tweet will be shared via your user account (if specified),وسيتم تقاسم تويت عبر حساب المستخدم الخاص بك (في حالة تحديد)
+DocType: Website Settings,Twitter Share,تويتر شارك
+DocType: Website Settings,Twitter Share via,Twitter المشاركة عبر
+DocType: Website Settings,Website Settings,إعدادات الموقع
+DocType: Website Slideshow,"Note: For best results, images must be of the same size and width must be greater than height.",ملاحظة: للحصول على أفضل النتائج، يجب أن تكون الصور من نفس الحجم والعرض يجب أن تكون أكبر من الارتفاع.
+DocType: Website Slideshow,Slideshow Items,عرض الشرائح عناصر
+DocType: Website Slideshow,Slideshow Name,العرض اسم
+DocType: Website Slideshow,Slideshow like display for the website,
+DocType: Website Slideshow,This goes above the slideshow.,هذا يذهب فوق عرض الشرائح.
+DocType: Website Slideshow,Website Slideshow,موقع عرض الشرائح
+DocType: Website Slideshow Item,Website Slideshow Item,موقع السلعة عرض شرائح
+DocType: Workflow,"All possible Workflow States and roles of the workflow. <br>Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""",جميع الدول سير العمل والأدوار الممكنة لسير العمل. <br> Docstatus خيارات: هو &quot;المحفوظة&quot; 0، يتم &quot;المقدمة&quot; (1) ويتم &quot;إلغاء&quot; 2
+DocType: Workflow,Defines workflow states and rules for a document.,
+DocType: Workflow,"Different ""States"" this document can exist in. Like ""Open"", ""Pending Approval"" etc.",مختلفة &quot;الدول&quot; هذه الوثيقة يمكن أن توجد فيها مثل &quot;فتح&quot; و &quot;الموافقة معلقة&quot; الخ.
+DocType: Workflow,DocType on which this Workflow is applicable.,DOCTYPE على سير العمل هذا الذي ينطبق.
+DocType: Workflow,Document States,
+DocType: Workflow,"Field that represents the Workflow State of the transaction (if field is not present, a new hidden Custom Field will be created)",الحقل الذي يمثل حالة سير العمل للصفقة (إذا حقل غير موجود، سيتم إنشاء حقل مخصص جديد مخفي)
+DocType: Workflow,"If checked, all other workflows become inactive.",إذا تم، جميع مهام سير العمل الأخرى تصبح خاملة.
+DocType: Workflow,Is Active,نشط
+DocType: Workflow,Rules defining transition of state in the workflow.,قواعد تحديد الانتقال من الدولة في سير العمل.
+DocType: Workflow,"Rules for how states are transitions, like next state and which role is allowed to change state etc.",ويسمح النظام لكيفية قيام الولايات التحولات، مثل الدولة والتي المقبل دور في تغيير الدولة الخ.
+DocType: Workflow,States,الدول
+DocType: Workflow,Transition Rules,الانتقال قوانين
+DocType: Workflow,Transitions,
+DocType: Workflow,Workflow,سير العمل
+DocType: Workflow,Workflow Name,اسم سير العمل
+DocType: Workflow,Workflow State Field,سير العمل الميدانية الدولة
+DocType: Workflow Action,Workflow Action,سير العمل العمل
+DocType: Workflow Action,Workflow Action Master,
+DocType: Workflow Action,Workflow Action Name,سير العمل اسم العمل
+DocType: Workflow Document State,0 - Draft; 1 - Submitted; 2 - Cancelled,0 - مشروع؛ 1 - المقدمة؛ 2 - إلغاء
+DocType: Workflow Document State,Doc Status,الحالة ثيقة
+DocType: Workflow Document State,Only Allow Edit For,السماح فقط للتحرير
+DocType: Workflow Document State,Represents the states allowed in one document and role assigned to change the state.,
+DocType: Workflow Document State,Update Field,تحديث الميدانية
+DocType: Workflow Document State,Update Value,تحديث القيمة
+DocType: Workflow Document State,Workflow Document State,سير العمل الوثيقة الدولة
+DocType: Workflow State,Danger,خطر
+DocType: Workflow State,Icon will appear on the button,سوف تظهر أيقونة على زر
+DocType: Workflow State,Inverse,معكوس
+DocType: Workflow State,Primary,أساسي
+DocType: Workflow State,Style,أسلوب
+DocType: Workflow State,"Style represents the button color: Success - Green, Danger - Red, Inverse - Black, Primary - Dark Blue, Info - Light Blue, Warning - Orange",النمط يمثل لون الزر: النجاح - الخضراء، خطر -، معكوس الأحمر - الأسود، الابتدائية - أزرق داكن، معلومات - أزرق فاتح، تحذير - أورانج
+DocType: Workflow State,Success,نجاح
+DocType: Workflow State,Warning,تحذير
+DocType: Workflow State,Workflow State,الدولة سير العمل
+DocType: Workflow State,Workflow state represents the current state of a document.,
+DocType: Workflow State,adjust,ضبط
+DocType: Workflow State,align-center,محاذاة الوسط
+DocType: Workflow State,align-justify,محاذاة-تبرير
+DocType: Workflow State,align-left,محاذاة يسار
+DocType: Workflow State,align-right,محاذاة اليمين
+DocType: Workflow State,arrow-down,سهم لأسفل
+DocType: Workflow State,arrow-left,سهم يسار
+DocType: Workflow State,arrow-right,سهم يمين
+DocType: Workflow State,arrow-up,سهم لأعلى
+DocType: Workflow State,asterisk,النجمة
+DocType: Workflow State,backward,الى الوراء
+DocType: Workflow State,ban-circle,دائرة الحظر
+DocType: Workflow State,barcode,الباركود
+DocType: Workflow State,bell,جرس
+DocType: Workflow State,bold,جريء
+DocType: Workflow State,book,كتاب
+DocType: Workflow State,bookmark,المرجعية
+DocType: Workflow State,briefcase,حقيبة
+DocType: Workflow State,bullhorn,البوق
+DocType: Workflow State,calendar,تقويم
+DocType: Workflow State,camera,كاميرا
+DocType: Workflow State,certificate,شهادة
+DocType: Workflow State,check,تحقق
+DocType: Workflow State,chevron-down,شيفرون لأسفل
+DocType: Workflow State,chevron-left,شيفرون يسار
+DocType: Workflow State,chevron-right,شيفرون اليمين
+DocType: Workflow State,chevron-up,شيفرون المتابعة
+DocType: Workflow State,circle-arrow-down,دائرة السهم لأسفل
+DocType: Workflow State,circle-arrow-left,دائرة السهم اليسار
+DocType: Workflow State,circle-arrow-right,دائرة السهم الأيمن
+DocType: Workflow State,circle-arrow-up,دائرة السهم إلى أعلى
+DocType: Workflow State,cog,تحكم في
+DocType: Workflow State,comment,تعليق
+DocType: Workflow State,download,تحميل
+DocType: Workflow State,download-alt,تحميل بديل
+DocType: Workflow State,edit,تحرير
+DocType: Workflow State,eject,طرد
+DocType: Workflow State,envelope,مغلف
+DocType: Workflow State,exclamation-sign,تعجب علامة-
+DocType: Workflow State,eye-close,إغلاق العين
+DocType: Workflow State,eye-open,فتح العين
+DocType: Workflow State,facetime-video,فيس تايم عن طريق الفيديو
+DocType: Workflow State,fast-backward,سريع إلى الوراء
+DocType: Workflow State,fast-forward,سريع إلى الأمام
+DocType: Workflow State,file,ملف
+DocType: Workflow State,film,فيلم
+DocType: Workflow State,filter,تصفية
+DocType: Workflow State,fire,حريق
+DocType: Workflow State,flag,علم
+DocType: Workflow State,folder-close,غلق مجلد
+DocType: Workflow State,folder-open,فتح مجلد
+DocType: Workflow State,font,الخط
+DocType: Workflow State,forward,إلى الأمام
+DocType: Workflow State,fullscreen,ملء الشاشة
+DocType: Workflow State,gift,هدية
+DocType: Workflow State,glass,زجاج
+DocType: Workflow State,globe,العالم
+DocType: Workflow State,hand-down,إلى أسفل اليد
+DocType: Workflow State,hand-left,اليد اليسرى
+DocType: Workflow State,hand-right,ومن جهة اليمين
+DocType: Workflow State,hand-up,ومن ناحية المتابعة
+DocType: Workflow State,hdd,الأقراص الصلبة
+DocType: Workflow State,headphones,سماعة الرأس
+DocType: Workflow State,heart,قلب
+DocType: Workflow State,home,منزل
+DocType: Workflow State,inbox,البريد الوارد
+DocType: Workflow State,indent-left,المسافة البادئة اليسرى
+DocType: Workflow State,indent-right,المسافة البادئة اليمنى
+DocType: Workflow State,info-sign,معلومات تسجيل الدخول،
+DocType: Workflow State,italic,مائل
+DocType: Workflow State,leaf,ورق
+DocType: Workflow State,list,قائمة
+DocType: Workflow State,list-alt,قائمة بديل
+DocType: Workflow State,lock,قفل
+DocType: Workflow State,magnet,مغناطيس
+DocType: Workflow State,map-marker,الخرائط علامة
+DocType: Workflow State,minus,ناقص
+DocType: Workflow State,minus-sign,علامة ناقص
+DocType: Workflow State,move,تحرك
+DocType: Workflow State,music,موسيقى
+DocType: Workflow State,off,بعيدا
+DocType: Workflow State,ok,حسنا
+DocType: Workflow State,ok-circle,دائرة OK-
+DocType: Workflow State,ok-sign,علامة OK-
+DocType: Workflow State,pause,وقفة
+DocType: Workflow State,pencil,قلم رصاص
+DocType: Workflow State,picture,صور
+DocType: Workflow State,plane,طائرة
+DocType: Workflow State,play,لعب
+DocType: Workflow State,play-circle,لعب دائرة
+DocType: Workflow State,plus,زائد
+DocType: Workflow State,plus-sign,زائد توقيع
+DocType: Workflow State,print,طباعة
+DocType: Workflow State,qrcode,qrcode
+DocType: Workflow State,question-sign,علامة سؤال
+DocType: Workflow State,random,عشوائي
+DocType: Workflow State,refresh,تحديث
+DocType: Workflow State,remove,نزع
+DocType: Workflow State,remove-circle,إزالة دائرة،
+DocType: Workflow State,remove-sign,إزالة التوقيع،
+DocType: Workflow State,repeat,كرر
+DocType: Workflow State,resize-full,تغيير حجم كامل
+DocType: Workflow State,resize-horizontal,تغيير حجم الأفقي،
+DocType: Workflow State,resize-small,تغيير حجم صغير
+DocType: Workflow State,resize-vertical,تغيير حجم عمودية
+DocType: Workflow State,retweet,retweet
+DocType: Workflow State,road,طريق
+DocType: Workflow State,screenshot,لقطة شاشة
+DocType: Workflow State,search,البحث
+DocType: Workflow State,share,حصة
+DocType: Workflow State,share-alt,حصة بديل
+DocType: Workflow State,shopping-cart,عربة التسوق
+DocType: Workflow State,signal,إشارة
+DocType: Workflow State,star,نجم
+DocType: Workflow State,star-empty,النجوم فارغة
+DocType: Workflow State,step-backward,خطوة إلى الوراء
+DocType: Workflow State,step-forward,خطوة إلى الأمام
+DocType: Workflow State,stop,توقف
+DocType: Workflow State,tag,بطاقة
+DocType: Workflow State,tags,به
+DocType: Workflow State,tasks,المهام
+DocType: Workflow State,text-height,ارتفاع النص
+DocType: Workflow State,text-width,عرض النص
+DocType: Workflow State,th,ال
+DocType: Workflow State,th-large,TH-الكبيرة
+DocType: Workflow State,th-list,TH-قائمة
+DocType: Workflow State,thumbs-down,علامة إستهجان
+DocType: Workflow State,thumbs-up,الابهام إلى أعلى
+DocType: Workflow State,time,مرة
+DocType: Workflow State,tint,لون
+DocType: Workflow State,trash,القمامة
+DocType: Workflow State,upload,تحميل
+DocType: Workflow State,user,مستخدم
+DocType: Workflow State,volume-down,حجم إلى أسفل
+DocType: Workflow State,volume-off,حجم حالا
+DocType: Workflow State,volume-up,حجم المتابعة
+DocType: Workflow State,warning-sign,علامة إنذار
+DocType: Workflow State,wrench,وجع
+DocType: Workflow State,zoom-in,تكبير
+DocType: Workflow State,zoom-out,تكبير المغادرة
+DocType: Workflow Transition,Action,حدث
+DocType: Workflow Transition,Allowed,سمح
+DocType: Workflow Transition,Defines actions on states and the next step and allowed roles.,
+DocType: Workflow Transition,Next State,الحالية التالية
+DocType: Workflow Transition,Workflow Transition,الانتقال سير العمل
+apps/frappe/frappe/auth.py +180,Not allowed from this IP Address,لا يسمح من هذا العنوان IP
+apps/frappe/frappe/auth.py +194,Login not allowed at this time,الدخول غير مسموح به في هذا الوقت
+apps/frappe/frappe/client.py +42,Cannot edit standard fields,لا تستطيع تعديل الحقول القياسية
+apps/frappe/frappe/client.py +53,Can not edit Read Only fields,
+apps/frappe/frappe/config/desktop.py +17,Calendar,تقويم
+apps/frappe/frappe/config/desktop.py +59,Installer,المثبت
+apps/frappe/frappe/config/setup.py +103,Manage uploaded files.,إدارة الملفات التي تم تحميلها.
+apps/frappe/frappe/config/setup.py +114,Define workflows for forms.,تحديد مسارات العمل لل أشكال .
+apps/frappe/frappe/config/setup.py +119,"States for workflow (e.g. Draft, Approved, Cancelled).",الدول عن سير العمل (على سبيل المثال مشروع ، وافق ، ألغي ) .
+apps/frappe/frappe/config/setup.py +124,"Actions for workflow (e.g. Approve, Cancel).","اجراءات سير العمل مثال : الموافقة,الرفض"
+apps/frappe/frappe/config/setup.py +13,System and Website Users,النظام و الموقع الالكتروني للمستخدمين
+apps/frappe/frappe/config/setup.py +135,Add / Manage Email Accounts.,
+apps/frappe/frappe/config/setup.py +140,Setup Email Alert based on various criteria.,إعداد تنبيه البريد الإلكتروني استنادا إلى معايير مختلفة.
+apps/frappe/frappe/config/setup.py +145,Standard replies to common queries.,الردود على الاستفسارات القياسية الشائعة.
+apps/frappe/frappe/config/setup.py +150,Printing,
+apps/frappe/frappe/config/setup.py +157,Drag and Drop tool to build and customize Print Formats.,
+apps/frappe/frappe/config/setup.py +162,"Set default format, page size, print style etc.",تعيين تنسيق افتراضي، حجم الصفحة، نمط الطباعة الخ
+apps/frappe/frappe/config/setup.py +167,Customized HTML Templates for printing transctions.,قوالب HTML مخصصة ل transctions الطباعة.
+apps/frappe/frappe/config/setup.py +172,Customize,تخصيص
+apps/frappe/frappe/config/setup.py +178,"Change field properties (hide, readonly, permission etc.)",تغيير خصائص الحقل (إخفاء ، للقراءة فقط ، إذن الخ )
+apps/frappe/frappe/config/setup.py +18,User Roles,أدوار المستخدم
+apps/frappe/frappe/config/setup.py +184,Add fields to forms.,إضافة حقول إلى النماذج.
+apps/frappe/frappe/config/setup.py +189,Add custom javascript to forms.,إضافة إلى أشكال العرف جافا سكريبت .
+apps/frappe/frappe/config/setup.py +200,Application Installer,مثبت التطبيق
+apps/frappe/frappe/config/setup.py +201,Install Applications.,تثبيت التطبيقات .
+apps/frappe/frappe/config/setup.py +207,Download Backup,تحميل النسخ الاحتياطي
+apps/frappe/frappe/config/setup.py +210,Send download link of a recent backup to System Managers,إرسال رابط التحميل من نسخة احتياطية حديثة ل مديري النظام
+apps/frappe/frappe/config/setup.py +216,Manage cloud backups on Dropbox,إدارة النسخ الاحتياطية سحابة على دروببوإكس
+apps/frappe/frappe/config/setup.py +222,Log of error on automated events (scheduler).,تسجيل من خطأ على الأحداث الآلي ( جدولة ) .
+apps/frappe/frappe/config/setup.py +31,Set Permissions on Document Types and Roles,مجموعة ضوابط على أنواع المستندات والأدوار
+apps/frappe/frappe/config/setup.py +38,Set Permissions per User,مجموعة ضوابط لكل مستخدم
+apps/frappe/frappe/config/setup.py +46,Check which Documents are readable by a User,تحقق من وثائق قابلة للقراءة من قبل العضو
+apps/frappe/frappe/config/setup.py +53,Report of all document shares,
+apps/frappe/frappe/config/setup.py +58,Settings,إعدادات
+apps/frappe/frappe/config/setup.py +65,"Language, Date and Time settings",اللغة و التاريخ والوقت إعدادات
+apps/frappe/frappe/config/setup.py +7,Users,
+apps/frappe/frappe/config/setup.py +71,Show / Hide Modules,إظهار / إخفاء وحدات
+apps/frappe/frappe/config/setup.py +73,Show or hide modules globally.,إظهار أو إخفاء وحدات على مستوى العالم.
+apps/frappe/frappe/config/setup.py +78,Set numbering series for transactions.,تعيين ترقيم سلسلة للمعاملات .
+apps/frappe/frappe/config/setup.py +90,Import / Export Data,استيراد / تصدير البيانات
+apps/frappe/frappe/config/setup.py +92,Import / Export Data from .csv files.,استيراد / تصدير البيانات من ملفات CSV.
+apps/frappe/frappe/config/setup.py +97,Rename many items by uploading a .csv file.,إعادة تسمية العديد من العناصر عن طريق تحميل ملف CSV .
+apps/frappe/frappe/config/website.py +12,Content web page.,محتوى الويب الصفحة.
+apps/frappe/frappe/config/website.py +17,Single Post (article).,مشاركة واحدة (المادة).
+apps/frappe/frappe/config/website.py +22,User editable form on Website.,
+apps/frappe/frappe/config/website.py +27,User ID of a blog writer.,هوية المستخدم من بلوق كاتبا.
+apps/frappe/frappe/config/website.py +32,Embed image slideshows in website pages.,تضمين عرض الشرائح صورة في صفحات الموقع.
+apps/frappe/frappe/config/website.py +37,Setup,الإعداد
+apps/frappe/frappe/config/website.py +43,"Setup of top navigation bar, footer and logo.",الإعداد من أعلى الملاحة تذييل وبار والشعار.
+apps/frappe/frappe/config/website.py +48,Setup of fonts and background.,إعداد الخطوط والخلفية.
+apps/frappe/frappe/config/website.py +53,Javascript to append to the head section of the page.,جافا سكريبت لإلحاق رئيس قسم من الصفحة.
+apps/frappe/frappe/config/website.py +58,Write titles and introductions to your blog.,تكتب العناوين والمقدمات لبلوق الخاص بك.
+apps/frappe/frappe/config/website.py +6,Documents,وثائق
+apps/frappe/frappe/config/website.py +63,Categorize blog posts.,تصنيف بلوق وظيفة.
+apps/frappe/frappe/config/website.py +68,Settings for About Us Page.,من نحن إعدادات الصفحة.
+apps/frappe/frappe/config/website.py +73,Settings for Contact Us Page.,إعدادات الاتصال بنا الصفحة.
+apps/frappe/frappe/config/website.py +78,"Enter keys to enable login via Facebook, Google, GitHub.",أدخل مفاتيح لتمكين تسجيل الدخول عبر الفيسبوك ، وجوجل، جيثب .
+apps/frappe/frappe/core/doctype/comment/comment.py +37,Cannot add more than 50 comments,لا يمكن إضافة أكثر من 50 تعليقا
+apps/frappe/frappe/core/doctype/communication/communication.js +17,Add To,
+apps/frappe/frappe/core/doctype/communication/communication.py +199,"Error generating PDF, attachment sent as HTML",توليد الخطأ PDF، HTML المرفقات إرسالها كما
+apps/frappe/frappe/core/doctype/communication/communication.py +82,Unable to find attachment {0},غير قادر على العثور مرفق {0}
+apps/frappe/frappe/core/doctype/docshare/docshare.py +33,{0} shared this document with {0},
+apps/frappe/frappe/core/doctype/docshare/docshare.py +38,{0} un-shared this document with {0},
+apps/frappe/frappe/core/doctype/doctype/boilerplate/controller_list.html +31,Completed,الانتهاء
+apps/frappe/frappe/core/doctype/doctype/doctype.js +20,"Cannot Edit {0} directly: To edit {0} properties, create / update {1}, {2} and {3}",لا يمكن تحرير {0} مباشرة : لتعديل خصائص {0} ، وإنشاء / تحديث {1} ، {2} {3} و
+apps/frappe/frappe/core/doctype/doctype/doctype.js +22,Custom Field,حقل مخصص
+apps/frappe/frappe/core/doctype/doctype/doctype.js +23,Custom Script,سكربت محصص
+apps/frappe/frappe/core/doctype/doctype/doctype.js +24,Property Setter,الملكية واضعة
+apps/frappe/frappe/core/doctype/doctype/doctype.py +126,DocType can not be merged,لا يمكن دمج DOCTYPE
+apps/frappe/frappe/core/doctype/doctype/doctype.py +222,{0} not allowed in fieldname {1},{0} غير مسموح به في fieldname {1}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +227,Fieldname {0} appears multiple times in rows {1},Fieldname {0} تظهر عدة مرات في الصفوف {1}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +231,Field {0} of type {1} cannot be mandatory,الحقل {0} من نوع {1} لا يمكن أن تكون إلزامية
+apps/frappe/frappe/core/doctype/doctype/doctype.py +236,Options requried for Link or Table type field {0} in row {1},خيارات ريكارد ل ينك أو نوع الجدول الحقل {0} في {1} الصف
+apps/frappe/frappe/core/doctype/doctype/doctype.py +240,Options must be a valid DocType for field {0} in row {1},يجب أن تكون الخيارات ل DOCTYPE صالحة لحقل {0} في {1} الصف
+apps/frappe/frappe/core/doctype/doctype/doctype.py +244,Field {0} in row {1} cannot be hidden and mandatory without default,الحقل {0} في {1} الصف لا يمكن أن تكون مخفية وإلزامية دون الافتراضي
+apps/frappe/frappe/core/doctype/doctype/doctype.py +248,Max width for type Currency is 100px in row {0},عرض ماكس لنوع العملة هو 100px في الصف {0}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +252,'In List View' not allowed for type {0} in row {1},'في قائمة عرض ' لا يسمح لنوع {0} في {1} الصف
+apps/frappe/frappe/core/doctype/doctype/doctype.py +259,Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType',"'الارتباط الحيوي ""نوع من الخيارات الميدانية يجب أن يشير إلى رابط حقل آخر مع خيارات باسم' DOCTYPE '"
+apps/frappe/frappe/core/doctype/doctype/doctype.py +263,Default for 'Check' type of field must be either '0' or '1',
+apps/frappe/frappe/core/doctype/doctype/doctype.py +267,Precision should be between 1 and 6,
+apps/frappe/frappe/core/doctype/doctype/doctype.py +274,There can be only one Fold in a form,
+apps/frappe/frappe/core/doctype/doctype/doctype.py +280,Fold must come before a labelled Section Break,
+apps/frappe/frappe/core/doctype/doctype/doctype.py +282,Fold can not be at the end of the form,
+apps/frappe/frappe/core/doctype/doctype/doctype.py +292,Search Fields should contain valid fieldnames,
+apps/frappe/frappe/core/doctype/doctype/doctype.py +298,Fieldname is required in row {0},مطلوب Fieldname في الصف {0}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +329,Enter at least one permission row,يدخل الصف إذن واحد على الأقل
+apps/frappe/frappe/core/doctype/doctype/doctype.py +337,For {0} at level {1} in {2} in row {3},ل {0} في {1} مستوى في {2} في {3} الصف
+apps/frappe/frappe/core/doctype/doctype/doctype.py +341,{0}: No basic permissions set,{0} : لا تعيين أذونات الأساسية
+apps/frappe/frappe/core/doctype/doctype/doctype.py +35,Not in Developer Mode! Set in site_config.json or make 'Custom' DocType.,
+apps/frappe/frappe/core/doctype/doctype/doctype.py +352,"{0}: Only one rule allowed with the same Role, Level and Apply User Permissions",{0} : واحد فقط حكم يسمح بنفس الدور ، و مستوى تطبيق ضوابط العضو
+apps/frappe/frappe/core/doctype/doctype/doctype.py +363,{0}: Permission at level 0 must be set before higher levels are set,{0} : إذن على مستوى 0 يجب تعيين قبل أن يتم تحديد مستويات أعلى
+apps/frappe/frappe/core/doctype/doctype/doctype.py +366,"{0}: Create, Submit, Cancel and Amend only valid at level 0",{0} : إنشاء ، إرسال ، تعديل و الغاء صالحة فقط على مستوى 0
+apps/frappe/frappe/core/doctype/doctype/doctype.py +370,{0}: Cannot set Cancel without Submit,{0} : لا يمكن تعيين الغاء دون إرسال
+apps/frappe/frappe/core/doctype/doctype/doctype.py +373,"{0}: Cannot set Submit, Cancel, Amend without Write",{0} : لا يمكن تعيين إرسال ، الغاء ، تعديل دون كتابة
+apps/frappe/frappe/core/doctype/doctype/doctype.py +375,{0}: Cannot set Amend without Cancel,{0} : لا يمكن تعيين تعدل دون الغاء
+apps/frappe/frappe/core/doctype/doctype/doctype.py +377,{0}: Cannot set Import without Create,{0} : لا يمكن تعيين استيراد دون إنشاء
+apps/frappe/frappe/core/doctype/doctype/doctype.py +38,{0} not allowed in name,{0} غير مسموح به في الاسم
+apps/frappe/frappe/core/doctype/doctype/doctype.py +384,Report cannot be set for Single types,لا يمكن تعيين التقرير لأنواع واحدة
+apps/frappe/frappe/core/doctype/doctype/doctype.py +394,{0} cannot be set for Single types,{0} لا يمكن تعيين لأنواع واحدة
+apps/frappe/frappe/core/doctype/doctype/doctype.py +398,{0}: Cannot set Assign Submit if not Submittable,{0} : لا يمكن تعيين تعيين إرسال إذا لم Submittable
+apps/frappe/frappe/core/doctype/doctype/doctype.py +400,{0}: Cannot set Assign Amend if not Submittable,{0} : لا يمكن تعيين تعيين يعدل إن لم يكن Submittable
+apps/frappe/frappe/core/doctype/doctype/doctype.py +404,{0}: Cannot set import as {1} is not importable,{0} : لا يمكن تعيين استيراد ك {1} ليس ارداتها
+apps/frappe/frappe/core/doctype/doctype/doctype.py +80,Title field must be a valid fieldname,يجب أن يكون حقل العنوان ل fieldname صالحة
+apps/frappe/frappe/core/doctype/doctype/doctype.py +98,Series {0} already used in {1},سلسلة {0} تستخدم بالفعل في {1}
+apps/frappe/frappe/core/doctype/file_data/file_data.py +33,Same file has already been attached to the record,نفس الملف تم إرفاقه إلى هذا السجل
+apps/frappe/frappe/core/doctype/file_data/file_data.py +42,No permission to write / remove.,لا توجد صلاحية لكتابة / إزالة.
+apps/frappe/frappe/core/doctype/report/report.js +10,[Label]:[Field Type]/[Options]:[Width],[تسمية]: [نوع الحقل] / [خيارات]: [العرض]
+apps/frappe/frappe/core/doctype/report/report.js +11,Example:,على سبيل المثال:
+apps/frappe/frappe/core/doctype/report/report.js +16,Write a Python file in the same folder where this is saved and return column and result.,كتابة ملف بيثون في نفس المجلد حيث تم حفظ هذا العمود والعودة والنتيجة.
+apps/frappe/frappe/core/doctype/report/report.js +37,Disable Report,
+apps/frappe/frappe/core/doctype/report/report.js +37,Enable Report,
+apps/frappe/frappe/core/doctype/report/report.js +5,Report Builder reports are managed directly by the report builder. Nothing to do.,تدار تقارير منشئ التقرير مباشرة بواسطة منشئ التقرير. لا شيء للقيام به.
+apps/frappe/frappe/core/doctype/report/report.js +8,Write a SELECT query. Note result is not paged (all data is sent in one go).,كتابة استعلام SELECT. لم يتم ترحيلها علما نتيجة (يتم إرسال جميع البيانات دفعة واحدة).
+apps/frappe/frappe/core/doctype/report/report.js +9,"To format columns, give column labels in the query.",لتنسيق الأعمدة، وإعطاء تسميات الأعمدة في الاستعلام.
+apps/frappe/frappe/core/doctype/report/report.py +24,Only Administrator can save a standard report. Please rename and save.,مسؤول فقط يمكن حفظ تقرير القياسية. الرجاء إعادة تسمية وحفظ.
+apps/frappe/frappe/core/doctype/report/report.py +29,Only Administrator allowed to create Query / Script Reports,المسؤول الوحيد المسموح به لإنشاء تقارير الاستعلام / سكربت
+apps/frappe/frappe/core/doctype/role/role.js +9,Edit Permissions,تحرير ضوابط
+apps/frappe/frappe/core/doctype/system_settings/system_settings.py +17,Session Expiry must be in format {0},يجب أن تكون الدورة انتهاء الصلاحية في شكل {0}
+apps/frappe/frappe/core/doctype/user/user.js +117,Add all roles,إضافة كافة الأدوار
+apps/frappe/frappe/core/doctype/user/user.js +127,Clear all roles,مسح كافة الأدوار
+apps/frappe/frappe/core/doctype/user/user.js +282,Role Permissions,
+apps/frappe/frappe/core/doctype/user/user.js +41,Refreshing...,منعش ...
+apps/frappe/frappe/core/doctype/user/user.js +95,Loading,تحميل
+apps/frappe/frappe/core/doctype/user/user.py +103,Welcome email sent,نرحب البريد الإلكتروني المرسلة
+apps/frappe/frappe/core/doctype/user/user.py +141,Password Reset,
+apps/frappe/frappe/core/doctype/user/user.py +144,Password Update,
+apps/frappe/frappe/core/doctype/user/user.py +153,Verify Your Account,
+apps/frappe/frappe/core/doctype/user/user.py +184,There should remain at least one System Manager,ينبغي أن تظل هناك إدارة نظام واحد على الأقل
+apps/frappe/frappe/core/doctype/user/user.py +189,User {0} cannot be deleted,المستخدم {0} لا يمكن حذف
+apps/frappe/frappe/core/doctype/user/user.py +221,User {0} cannot be renamed,المستخدم {0} لا يمكن إعادة تسمية
+apps/frappe/frappe/core/doctype/user/user.py +230,{0} is not a valid email id,{0} ليس معرف بريد إلكتروني صحيح
+apps/frappe/frappe/core/doctype/user/user.py +320,Cannot Update: Incorrect / Expired Link.,لا يمكن تحديث : رابط غير الصحيحة / منتهية الصلاحية .
+apps/frappe/frappe/core/doctype/user/user.py +325,Cannot Update: Incorrect Password,لا يمكن تحديث : كلمة المرور غير صحيحة
+apps/frappe/frappe/core/doctype/user/user.py +333,Password Updated,تحديث كلمة السر
+apps/frappe/frappe/core/doctype/user/user.py +340,Registered but disabled.,سجل لكن تعطيل.
+apps/frappe/frappe/core/doctype/user/user.py +342,Already Registered,مسجل بالفعل
+apps/frappe/frappe/core/doctype/user/user.py +359,Registration Details Emailed.,تفاصيل التسجيل عبر البريد الالكتروني.
+apps/frappe/frappe/core/doctype/user/user.py +364,Not allowed to reset the password of {0},لا يسمح ل إعادة تعيين كلمة المرور من {0}
+apps/frappe/frappe/core/doctype/user/user.py +371,Password reset instructions have been sent to your email,وقد تم إرسال إرشادات إعادة تعيين كلمة المرور إلى بريدك الإلكتروني
+apps/frappe/frappe/core/doctype/user/user.py +374,User {0} does not exist,المستخدم {0} غير موجود
+apps/frappe/frappe/core/doctype/user/user.py +40,User {0} cannot be disabled,المستخدم {0} لا يمكن تعطيل
+apps/frappe/frappe/core/doctype/user/user.py +56,Adding System Manager to this User as there must be atleast one System Manager,مضيفا إدارة نظام ل هذا العضو كما يجب أن يكون هناك أتلست إدارة نظام واحد
+apps/frappe/frappe/core/doctype/user/user.py +66,User with System Manager Role should always have User Type: System User,
+apps/frappe/frappe/core/doctype/user/user.py +73,New password emailed,كلمة مرور جديدة عبر البريد الالكتروني
+apps/frappe/frappe/core/doctype/user/user_list.js +12,Active,نشط
+apps/frappe/frappe/core/doctype/userrole/userrole.py +14,Role exists,وجود دور
+apps/frappe/frappe/core/doctype/version/version.js +10,Version restored,النسخة استعادة
+apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +17,"To import or update records, you must first download the template for importing.",
+apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +21,Download Blank Template,
+apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +24,Recommended for inserting new records.,
+apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +3,Select Type of Document to Import,
+apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +30,Download with Data,
+apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +33,"Recommended bulk editing records via import, or understanding the import format.",
+apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +38,Update the template and save in CSV (Comma Separate Values) format before attaching.,
+apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +45,"Always insert, even if ID is given.",
+apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +5,Select Type,حدد نوع
+apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +51,Submit after importing.,
+apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +57,Ignore encoding errors.,
+apps/frappe/frappe/core/page/data_import_tool/data_import_tool.js +115,Import Failed,
+apps/frappe/frappe/core/page/data_import_tool/data_import_tool.js +74,Import Successful!,استيراد الناجحة !
+apps/frappe/frappe/core/page/data_import_tool/data_import_tool.py +13,Start entering data below this line,
+apps/frappe/frappe/core/page/data_import_tool/data_import_tool.py +15,Parent Table,
+apps/frappe/frappe/core/page/data_import_tool/data_import_tool.py +16,Column Name,
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +134,One of,
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +217,Column Labels:,
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +219,Mandatory:,
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +220,Type:,
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +221,Info:,
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +51,Data Import Template,
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +60,Notes:,الملاحظات :
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +61,Please do not change the template headings.,
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +62,First data column must be blank.,
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +63,"If you are uploading new records, leave the ""name"" (ID) column blank.",
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +64,"If you are uploading new records, ""Naming Series"" becomes mandatory, if present.",
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +65,Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +66,"For updating, you can update only selective columns.",
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +67,You can only upload upto 5000 records in one go. (may be less in some cases),
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +69,"""Parent"" signifies the parent table in which this row must be added",
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +70,"If you are updating, please select ""Overwrite"" else existing rows will not be deleted.",
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +91,Leave blank for new records,
+apps/frappe/frappe/core/page/data_import_tool/importer.py +166,Not allowed to Import,لا يسمح ل استيراد
+apps/frappe/frappe/core/page/data_import_tool/importer.py +248,Did not find {0} for {0} ({1}),لم تجد {0} ل {0} ( {1} )
+apps/frappe/frappe/core/page/data_import_tool/importer.py +35,Please do not change the rows above {0},من فضلك لا تغيير الصفوف أعلاه {0}
+apps/frappe/frappe/core/page/data_import_tool/importer.py +40,No data found,لا توجد بيانات
+apps/frappe/frappe/core/page/data_import_tool/importer.py +42,Only allowed {0} rows in one import,فقط يسمح {0} الصفوف في استيراد واحد
+apps/frappe/frappe/core/page/data_import_tool/importer.py +67,Please make sure that there are no empty columns in the file.,يرجى التأكد من أنه لا توجد أعمدة فارغة في الملف.
+apps/frappe/frappe/core/page/desktop/all_applications_dialog.html +1,Search Application,
+apps/frappe/frappe/core/page/desktop/all_applications_dialog.html +3,Checked items will be shown on desktop,
+apps/frappe/frappe/core/page/desktop/desktop.js +49,All Applications,جميع التطبيقات
+apps/frappe/frappe/core/page/modules_setup/modules_setup.js +18,"Select modules to be shown (based on permission). If hidden, they will be hidden for all users.",حدد وحدات ليتم عرضها (على أساس إذن ) . إذا مخفي ، وسوف تكون مخفية لجميع المستخدمين.
+apps/frappe/frappe/core/page/modules_setup/modules_setup.js +5,Show or Hide Modules,
+apps/frappe/frappe/core/page/modules_setup/modules_setup.js +55,There were errors,كانت هناك أخطاء
+apps/frappe/frappe/core/page/modules_setup/modules_setup.py +11,Updated,تحديث
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +140,Select Document Type or Role to start.,حدد نوع الوثيقة أو دور للبدء.
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +162,No Permissions set for this criteria.,لم يحدد ضوابط لهذه المعايير.
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +248,Select Document Types,
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +249,Show User Permissions,
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +292,Users with role {0}:,المستخدمين مع دور {0} :
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +316,Did not remove,لم تقم بإزالة
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +359,Add A New Rule,إضافة قاعدة جديدة
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +363,Add New Permission Rule,إضافة قاعدة جديدة إذن
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +371,"Level 0 is for document level permissions, higher levels for field level permissions.",0 هو مستوى الأذونات لمستوى الوثيقة، مستويات أعلى للحصول على أذونات المستوى الميداني.
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +372,Add,إضافة
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +396,Did not add,لم تضف
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +421,Set,مجموعة
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +426,Apply User Permissions of these Document Types,
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +467,Did not set,
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +469,Saved!,
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +47,Document Types,
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +48,Select Document Type,حدد نوع الوثيقة
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +487,Restore Original Permissions,
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +54,Select Role,حدد دور
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +95,Reset Permissions for {0}?,إعادة تعيين أذونات ل {0} ؟
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +10,Permissions are automatically translated to Standard Reports and Searches.,يتم تحويل أذونات تلقائيا إلى التقارير الموحدة و البحث .
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +11,"As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User.",باعتبارها أفضل الممارسات ، عدم تعيين نفس مجموعة من الحكم إذن ل أدوار مختلفة. بدلا من ذلك ، تعيين أدوار متعددة ل نفس العضو .
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +14,"Meaning of Submit, Cancel, Amend",معنى تقديم، إلغاء وتعديل
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +16,"Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit.",وثائق معينة ، مثل الفاتورة ، لا ينبغي تغييره مرة واحدة نهائية . و دعا الدولة النهائية ل هذه الوثائق المقدمة . يمكنك تقييد الأدوار التي يمكن إرسال.
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +17,"You can change Submitted documents by cancelling them and then, amending them.",يمكنك تغيير الوثائق المقدمة من إلغائها ، ثم تعديلها .
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +18,"When you Amend a document after Cancel and save it, it will get a new number that is a version of the old number.",عند تعديل مستند بعد الغاء وحفظه ، وسوف تحصل على عدد جديد هو نسخة من الرقم القديم .
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +19,For example if you cancel and amend INV004 it will become a new document INV004-1. This helps you to keep track of each amendment.,
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +22,Permission Levels,إذن مستويات
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +24,"Permissions at level 0 are Document Level permissions, i.e. they are primary for access to the document.",
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +25,"If a Role does not have access at Level 0, then higher levels are meaningless.",إذا لم يكن لديك الوصول دور في المستوى 0، ثم مستويات أعلى لا معنى لها.
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +26,Permissions at higher levels are Field Level permissions. All Fields have a Permission Level set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles.,
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +27,You can use Customize Form to set levels on fields.,يمكنك استخدام نموذج تخصيص ل تحديد مستويات على الحقول .
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +3,Quick Help for Setting Permissions,مساعدة سريعة لوضع ضوابط
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +30,User Permissions,ضوابط المستخدم
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +32,"To give acess to a role for only specific records, check the Apply User Permissions. User Permissions are used to limit users with such role to specific records.",
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +33,Setup > User Permissions Manager,الإعداد > ضوابط العضو مدير
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +34,Select Document Types to set which User Permissions are used to limit access.,
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +35,"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).",وبمجرد الانتهاء من تعيين هذه ، سوف يكون المستخدمون قادرين فقط الوصول إلى المستندات (على سبيل المثال مدونة بوست) حيث يوجد رابط (مثل مدون ) .
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +36,"Apart from System Manager, roles with Set User Permissions right can set permissions for other users for that Document Type.",
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +38,"If these instructions where not helpful, please add in your suggestions on GitHub Issues.",إذا هذه التعليمات حيث لم تكن مفيدة ، يرجى إضافة في اقتراحاتكم بشأن قضايا جيثب .
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +39,Submit an Issue,يقدم العدد
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +5,"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions.",يتم تعيين الأذونات على الأدوار و أنواع المستندات (وتسمى DocTypes ) من خلال وضع حقوق مثل القراءة والكتابة ، إنشاء، حذف، إرسال ، الغاء ، تعديل ، تقرير ، استيراد ، تصدير ، طباعة ، البريد الإلكتروني و تعيين أذونات العضو .
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +6,Permissions get applied on Users based on what Roles they are assigned.,الحصول على تطبيق الأذونات على المستخدمين على أساس ما الأدوار التي تم تعيينها .
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +7,Roles can be set for users from their User page.,الأدوار يمكن تعيين للمستخدمين من صفحة المستخدم الخاصة بهم.
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +8,Setup > User,الإعداد > العضو
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +9,Add a New Role,إضافة دور جديد
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +9,The system provides many pre-defined roles. You can add new roles to set finer permissions.,ويوفر النظام العديد من أدوار محددة مسبقا. يمكنك إضافة أدوار جديدة لتعيين أذونات الدقيقة.
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +127,Upload User Permissions,
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +132,Upload CSV file containing all user permissions in the same format as Download.,تحميل ملف CSV يحتوي على جميع أذونات المستخدم في نفس الشكل كما تحميل.
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +133,Any existing permission will be deleted / overwritten.,سيتم حذف أي إذن الحالية / الكتابة.
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +14,Edit Role Permissions,
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +140,Upload and Sync,تحميل ومزامنة
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +149,Permissions Updated,
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +16,Help for User Permissions,
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +19,"Apart from Role based Permission Rules, you can apply User Permissions based on DocTypes.",وبصرف النظر عن دور أساس القواعد إذن ، يمكنك تطبيق أذونات المستخدم استنادا DocTypes .
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +193,No User Permissions found.,لم يتم العثور على أذونات المستخدم .
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +209,Select User or DocType to start.,حدد العضو أو DOCTYPE للبدء.
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +23,"These permissions will apply for all transactions where the permitted record is linked. For example, if Company C is added to User Permissions of user X, user X will only be able to see transactions that has company C as a linked value.",سيتم تطبيق هذه الأذونات لجميع المعاملات حيث يتم ربط السجل المسموح بها.
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +234,User Permission,إذن المستخدم
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +27,"These will also be set as default values for those links, if only one such permission record is defined.",كما سيتم تعيين هذه كقيم الافتراضي ل هذه الروابط ، إذا تم تعريف سجل إذن واحد فقط من هذا القبيل.
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +285,Add A User Permission,إضافة صلاحية مستخدم
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +289,Add New User Permission,
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +31,A user can be permitted to multiple records of the same DocType.,يمكن أن يسمح للمستخدم ل سجلات متعددة من نفس DOCTYPE .
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +68,Select User,
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +88,Download,تحميل
+apps/frappe/frappe/core/page/user_permissions/user_permissions.py +105,Please upload using the same template as download.,يرجى تحميل باستخدام نفس القالب التحميل.
+apps/frappe/frappe/core/page/user_permissions/user_permissions.py +58,Cannot remove permission for DocType: {0} and Name: {1},لا يمكن إزالة إذن ل DOCTYPE : {0} و اسم : {1}
+apps/frappe/frappe/core/page/user_permissions/user_permissions.py +66,Cannot set permission for DocType: {0} and Name: {1},لا يمكن تعيين إذن ل DOCTYPE : {0} و اسم : {1}
+apps/frappe/frappe/core/report/permitted_documents_for_user/permitted_documents_for_user.py +25,Please specify user,يرجى تحديد المستخدم
+apps/frappe/frappe/core/report/permitted_documents_for_user/permitted_documents_for_user.py +28,Please specify doctype,يرجى تحديد DOCTYPE
+apps/frappe/frappe/core/report/todo/todo.py +21,Assigned To/Owner,تعيين ل / المالك
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +52,Name of the Document Type (DocType) you want this field to be linked to. e.g. Customer,اسم نوع الوثيقة (DOCTYPE) تريد هذا الحقل لتكون مرتبطة. على سبيل المثال العملاء
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +55,Options for select. Each option on a new line. e.g.: <br>Option 1<br>Option 2<br>Option 3<br>,خيارات للاختيار. كل خيار في سطر جديد. على سبيل المثال: <BR> الخيار 1 <BR> الخيار 2 <BR> الخيار 3 <BR>
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +58,Fieldname which will be the DocType for this link field.,Fieldname التي ستكون DOCTYPE لهذا الحقل الارتباط.
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +19,Label is mandatory,تسمية إلزامي
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +29,Fieldname not set for Custom Field,Fieldname لم يتم تعيين ل حقل مخصص
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +61,"Insert After field '{0}' mentioned in Custom Field '{1}', does not exist",إدراج بعد الحقل '{0}' المذكورة في حقل مخصص '{1}' غير موجود
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +123,Help,مساعدة
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +127,Help: Field Properties,
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +135,Set the display label for the field,
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +139,"Change type of field. (Currently, Type change is \
+						allowed among 'Currency and Float')",
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +144,Specify the value of the field,
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +149,Assign a permission level to the field.,
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +150,Permissions can be managed via Setup &gt; Role Permissions Manager,
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +156,Width of the input box,
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +157,Example,
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +161,Reqd,Reqd
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +162,Mark the field as Mandatory,
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +166,Use the field to filter records,
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +170,Hide field in form,
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +174,Hide field in Standard Print Format,
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +178,Hide field in Report Builder,
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +182,Allow field to remain editable even after submission,
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +195,Show a description below the field,
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +199,Specify a default value,
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +205,Press Esc to close,
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +46,Update,تحديث
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +60,Refresh Form,
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +64,Reset to defaults,
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +65,Remove all customizations?,إزالة كافة التخصيصات ؟
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +90,All customizations will be removed. Please confirm.,سيتم إزالة كافة التخصيصات. يرجى تأكيد.
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +124,Row {0}: Not allowed to enable Allow on Submit for standard fields,
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +247,Fieldtype cannot be changed from {0} to {1} in row {2},Fieldtype لا يمكن تغييرها من {0} إلى {1} في {2} الصف
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +96,{0} updated,{0} تحديث
+apps/frappe/frappe/custom/doctype/property_setter/property_setter.js +7,Value for a check field can be either 0 or 1,قيمة لحقل الاختيار يمكن أن يكون إما 0 أو 1
+apps/frappe/frappe/database.py +211,Too many writes in one request. Please send smaller requests,الكثير من يكتب في طلب واحد . يرجى إرسال طلبات أصغر
+apps/frappe/frappe/desk/doctype/event/event.py +16,Event end must be after start,يجب أن يكون نهاية الحدث بعد بداية
+apps/frappe/frappe/desk/doctype/event/event.py +19,Every day events should finish on the same day.,
+apps/frappe/frappe/desk/doctype/event/event.py +50,Events In Today's Calendar,الأحداث في التقويم اليوم
+apps/frappe/frappe/desk/doctype/event/event.py +57,Daily Event Digest is sent for Calendar Events where reminders are set.,يتم إرسالها حدث الموجز اليومي على أحداث التقويم حيث يتم تعيين التذكير.
+apps/frappe/frappe/desk/doctype/event/event.py +59,Upcoming Events for Today,الأحداث القادمة لهذا اليوم
+apps/frappe/frappe/desk/doctype/feed/feed.py +91,{0} logged in,
+apps/frappe/frappe/desk/doctype/note/note_list.js +3,Notes,ملاحظات
+apps/frappe/frappe/desk/doctype/todo/todo.js +12,Close,أغلق
+apps/frappe/frappe/desk/doctype/todo/todo.js +20,Re-open,إعادة فتح
+apps/frappe/frappe/desk/doctype/todo/todo.py +14,Assigned to {0},
+apps/frappe/frappe/desk/doctype/todo/todo.py +18,Assignment closed by {0},
+apps/frappe/frappe/desk/doctype/todo/todo_list.js +7,To Do,قائمة المهام
+apps/frappe/frappe/desk/form/assign_to.py +112,"The task %s, that you assigned to %s, has been closed.",
+apps/frappe/frappe/desk/form/assign_to.py +118,"The task %s, that you assigned to %s, has been closed by %s.",
+apps/frappe/frappe/desk/form/assign_to.py +126,"A new task, %s, has been assigned to you by %s. %s",
+apps/frappe/frappe/desk/form/assign_to.py +40,Already in user's To Do list,بالفعل في المستخدم والقيام قائمة
+apps/frappe/frappe/desk/form/load.py +42,Did not load,لم يتم تحميل
+apps/frappe/frappe/desk/form/save.py +21,{0} {1} already exists,{0} {1} موجود بالفعل
+apps/frappe/frappe/desk/form/save.py +29,Did not save,لم ينقذ
+apps/frappe/frappe/desk/form/save.py +43,Did not cancel,لم إلغاء
+apps/frappe/frappe/desk/form/utils.py +99,No further records,لا توجد سجلات أخرى
+apps/frappe/frappe/desk/moduleview.py +30,Custom Reports,تقارير مخصصة
+apps/frappe/frappe/desk/moduleview.py +55,Module Not Found,لم يتم العثور على حدة
+apps/frappe/frappe/desk/moduleview.py +65,Standard Reports,تقارير قياسية
+apps/frappe/frappe/desk/page/activity/activity.js +153,Apr,
+apps/frappe/frappe/desk/page/activity/activity.js +153,Feb,
+apps/frappe/frappe/desk/page/activity/activity.js +153,Jan,
+apps/frappe/frappe/desk/page/activity/activity.js +153,Jun,
+apps/frappe/frappe/desk/page/activity/activity.js +153,Mar,
+apps/frappe/frappe/desk/page/activity/activity.js +153,May,
+apps/frappe/frappe/desk/page/activity/activity.js +154,Aug,
+apps/frappe/frappe/desk/page/activity/activity.js +154,Dec,
+apps/frappe/frappe/desk/page/activity/activity.js +154,Jul,
+apps/frappe/frappe/desk/page/activity/activity.js +154,Nov,
+apps/frappe/frappe/desk/page/activity/activity.js +154,Oct,
+apps/frappe/frappe/desk/page/activity/activity.js +154,Sep,
+apps/frappe/frappe/desk/page/activity/activity.js +197,{0} on {1},
+apps/frappe/frappe/desk/page/activity/activity.js +20,Activty,
+apps/frappe/frappe/desk/page/activity/activity.js +44,Refresh,تحديث
+apps/frappe/frappe/desk/page/activity/activity.js +48,Build Report,بناء تقرير
+apps/frappe/frappe/desk/page/activity/activity_row.html +11,Logged in,
+apps/frappe/frappe/desk/page/activity/activity_row.html +15,Commented on {0}: {1},
+apps/frappe/frappe/desk/page/activity/activity_row.html +17,Updated {0}: {1},
+apps/frappe/frappe/desk/page/applications/application_row.html +15,Publisher,
+apps/frappe/frappe/desk/page/applications/application_row.html +5,Installed,تثبيت
+apps/frappe/frappe/desk/page/applications/application_row.html +7,Install,
+apps/frappe/frappe/desk/page/applications/applications.js +24,No Apps Installed,
+apps/frappe/frappe/desk/page/applications/applications.py +34,You cannot install this app,لا يمكنك تثبيت هذا التطبيق
+apps/frappe/frappe/desk/page/messages/messages_main.html +12,Post,بعد
+apps/frappe/frappe/desk/page/messages/messages_sidebar.html +6,Everyone,كل شخص
+apps/frappe/frappe/desk/query_report.py +18,You don't have access to Report: {0},
+apps/frappe/frappe/desk/query_report.py +21,You don't have permission to get a report on: {0},
+apps/frappe/frappe/desk/query_report.py +25,Report {0} is disabled,
+apps/frappe/frappe/desk/query_report.py +69,Must have report permission to access this report.,يجب أن يكون لديك إذن للوصول إلى تقرير هذا التقرير.
+apps/frappe/frappe/desk/query_report.py +75,Must specify a Query to run,يجب تحديد استعلام لتشغيل
+apps/frappe/frappe/desk/query_report.py +79,Query must be a SELECT,يجب أن يكون الاستعلام SELECT
+apps/frappe/frappe/desk/reportview.py +72,{0} is saved,{0} تم حفظها
+apps/frappe/frappe/email/bulk.py +126,Emails are muted,رسائل البريد الإلكتروني هي صامتة
+apps/frappe/frappe/email/bulk.py +36,Bulk email limit {0} crossed,الحد معظم البريد الإلكتروني {0} عبروا
+apps/frappe/frappe/email/doctype/email_account/email_account.py +182,Re: ,
+apps/frappe/frappe/email/doctype/email_account/email_account.py +62,{0} is required,{0} مطلوب
+apps/frappe/frappe/email/doctype/email_account/email_account_list.js +10,Default Inbox,
+apps/frappe/frappe/email/doctype/email_account/email_account_list.js +14,Default Sending,
+apps/frappe/frappe/email/doctype/email_account/email_account_list.js +18,Inbox,
+apps/frappe/frappe/email/doctype/email_account/email_account_list.js +6,Default Sending and Inbox,
+apps/frappe/frappe/email/doctype/email_alert/email_alert.py +13,Please specify which date field must be checked,يرجى تحديد أي تاريخ الحقل يجب أن يتم التحقق
+apps/frappe/frappe/email/doctype/email_alert/email_alert.py +16,Please specify which value field must be checked,يرجى تحديد أي يجب فحص حقل القيمة
+apps/frappe/frappe/email/doctype/email_alert/email_alert.py +20,Cannot set Email Alert on Document Type {0},لا يمكن تعيين تنبيه بالبريد الالكتروني على نوع الوثيقة {0}
+apps/frappe/frappe/email/receive.py +46,Invalid Mail Server. Please rectify and try again.,خادم البريد غير صالحة . يرجى تصحيح و حاول مرة أخرى.
+apps/frappe/frappe/email/receive.py +50,Invalid User Name or Support Password. Please rectify and try again.,اسم المستخدم غير صحيح أو كلمة المرور الدعم . يرجى تصحيح و حاول مرة أخرى.
+apps/frappe/frappe/email/smtp.py +114,Email Account not setup. Please create a new Email Account from Setup > Email > Email Account,
+apps/frappe/frappe/email/smtp.py +126,Could not connect to outgoing email server,لا يمكن الاتصال بخادم البريد الإلكتروني المنتهية ولايته
+apps/frappe/frappe/email/smtp.py +148,Invalid Outgoing Mail Server or Port,خادم البريد الصادر غير صالحة أو ميناء
+apps/frappe/frappe/email/smtp.py +152,Unable to send emails at this time,غير قادر على إرسال رسائل البريد الإلكتروني في هذا الوقت
+apps/frappe/frappe/email/smtp.py +34,Invalid login or password,تسجيل الدخول أو كلمة المرور غير صالحة
+apps/frappe/frappe/email/smtp.py +37,Invalid recipient address,عنوان المستلم غير صالحة
+apps/frappe/frappe/email/smtp.py +74,Please setup default Email Account from Setup > Email > Email Account,
+apps/frappe/frappe/geo/doctype/currency/currency.js +7,This Currency is disabled. Enable to use in transactions,تم تعطيل هذه العملات . تمكين لاستخدامها في المعاملات
+apps/frappe/frappe/model/base_document.py +239,Duplicate name {0} {1},تكرار اسم {0} {1}
+apps/frappe/frappe/model/base_document.py +263,{0} must be unique,
+apps/frappe/frappe/model/base_document.py +293,Data missing in table,البيانات الناقصة في الجدول
+apps/frappe/frappe/model/base_document.py +297,Value missing for,قيمة مفقودة لل
+apps/frappe/frappe/model/base_document.py +328,Options not set for link field {0},خيارات لم يتم تعيين لحقل الرابط {0}
+apps/frappe/frappe/model/base_document.py +332,{0} must be set first,{0} يجب تعيين أول
+apps/frappe/frappe/model/base_document.py +369,Row #{0}:,الصف # {0}:
+apps/frappe/frappe/model/base_document.py +373,"{0} {1} cannot be ""{2}"". It should be one of ""{3}""","{0} {1} لا يمكن أن يكون ""{2}"". ينبغي أن يكون واحدا من ""{3}"""
+apps/frappe/frappe/model/base_document.py +386,Value cannot be changed for {0},لا يمكن تغيير القيمة ل {0}
+apps/frappe/frappe/model/base_document.py +394,Not allowed to change {0} after submission,لا يسمح لتغيير {0} بعد تقديم
+apps/frappe/frappe/model/db_query.py +263,No permission to read {0},
+apps/frappe/frappe/model/db_query.py +366,Please select atleast 1 column from {0} to sort,يرجى اختيار العمود 1 من {0} لفرز
+apps/frappe/frappe/model/db_schema.py +406,"Fieldname {0} cannot contain letters, numbers or spaces",Fieldname {0} لا يمكن أن تحتوي على حروف وأرقام أو مسافات
+apps/frappe/frappe/model/delete_doc.py +119,User not allowed to delete {0}: {1},المستخدم لا يسمح لحذف {0}: {1}
+apps/frappe/frappe/model/delete_doc.py +123,{0} {1}: Submitted Record cannot be deleted.,{0} {1}: لا يمكن حذف سجل نشره.
+apps/frappe/frappe/model/delete_doc.py +141,Cannot delete or cancel because {0} {1} is linked with {2} {3},لا يمكن حذف أو إلغاء ل {0} {1} يرتبط مع {2} {3}
+apps/frappe/frappe/model/delete_doc.py +178,Deleted,
+apps/frappe/frappe/model/document.py +329,Record does not exist,سجل غير موجود
+apps/frappe/frappe/model/document.py +339,Error: Document has been modified after you have opened it,تم تعديل الوثيقة بعد أن كنت قد فتحه: خطأ
+apps/frappe/frappe/model/document.py +341,Please refresh to get the latest document.,يرجى تحديث للحصول على أحدث وثيقة.
+apps/frappe/frappe/model/document.py +363,Cannot change docstatus from 0 to 2,
+apps/frappe/frappe/model/document.py +373,Cannot change docstatus from 1 to 0,
+apps/frappe/frappe/model/document.py +376,Cannot edit cancelled document,
+apps/frappe/frappe/model/document.py +423,Could not find {0},لا يمكن أن تجد {0}
+apps/frappe/frappe/model/document.py +428,Cannot link cancelled document: {0},
+apps/frappe/frappe/model/document.py +576,one of,واحدة من
+apps/frappe/frappe/model/document.py +577,none of,أيا من
+apps/frappe/frappe/model/document.py +578,beginning with,بدءا
+apps/frappe/frappe/model/document.py +603,Incorrect value in row {0}: {1} must be {2} {3},قيمة غير صحيحة في الصف {0} : {1} يجب أن يكون {2} {3}
+apps/frappe/frappe/model/document.py +605,Incorrect value: {0} must be {1} {2},قيمة غير صحيحة: {0} يجب أن يكون {1} {2}
+apps/frappe/frappe/model/document.py +614,Table {0} cannot be empty,الجدول {0} لا يمكن أن تكون فارغة
+apps/frappe/frappe/model/mapper.py +69,Cannot map because following condition fails: ,لا يمكن تعيين بسبب فشل الشرط التالي:
+apps/frappe/frappe/model/naming.py +150,"There were some errors setting the name, please contact the administrator",كانت هناك بعض الأخطاء تحديد اسم، يرجى الاتصال بمسؤول
+apps/frappe/frappe/model/naming.py +156,Name of {0} cannot be {1},اسم {0} لا يمكن أن يكون {1}
+apps/frappe/frappe/model/naming.py +35,Naming Series mandatory,تسمية السلسلة إلزامية
+apps/frappe/frappe/model/naming.py +42,Name not set via Prompt,الأسم: لم تحدد عن طريق موجه
+apps/frappe/frappe/model/naming.py +84, for {0},
+apps/frappe/frappe/model/naming.py +84,Invalid naming series (. missing),
+apps/frappe/frappe/model/rename_doc.py +88,"{0} {1} does not exist, select a new target to merge",{0} {1} غير موجود ، حدد هدفا جديدا لدمج
+apps/frappe/frappe/model/rename_doc.py +91,"Another {0} with name {1} exists, select another name",آخر {0} مع اسم {1} موجودا، حدد اسم آخر
+apps/frappe/frappe/model/rename_doc.py +94,You need write permission to rename,كنت بحاجة إلى كتابة إذن لإعادة تسمية
+apps/frappe/frappe/model/rename_doc.py +97,{0} not allowed to be renamed,{0} غير مسموح به ويجب إعادة تسميته
+apps/frappe/frappe/modules/__init__.py +77,App not found,لم يتم العثور على التطبيق
+apps/frappe/frappe/permissions.py +148,Not allowed to access {0} with {1} = {2},لا يسمح للوصول إلى {0} مع {1} {2} =
+apps/frappe/frappe/permissions.py +151,Row,صف
+apps/frappe/frappe/permissions.py +202,{0} {1} not found,{0} {1} غير موجود
+apps/frappe/frappe/permissions.py +206,Permission already set,إذن بالفعل تعيين
+apps/frappe/frappe/print/doctype/letter_head/letter_head.js +7,Step 1: Set the name and save.,الخطوة 1 : تعيين اسم و حفظ.
+apps/frappe/frappe/print/doctype/letter_head/letter_head.js +9,Step 2: Set Letterhead content.,الخطوة 2 : تعيين محتوى رأسية .
+apps/frappe/frappe/print/doctype/print_format/print_format.js +14,Please duplicate this to make changes,
+apps/frappe/frappe/print/doctype/print_format/print_format.js +20,Please select DocType first,
+apps/frappe/frappe/print/doctype/print_format/print_format.py +14,Standard Print Format cannot be updated,لا يمكن تحديث تنسيق الطباعة القياسية
+apps/frappe/frappe/print/doctype/print_format/print_format.py +26,Syntax error in Jinja template,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +103,Both DocType and Name required,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +158,Custom HTML,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +328,No of Columns,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +334,Remove Section,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +427,Edit Heading,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +446,Select Table Columns for {0},
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +494,Edit to add content,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +499,Edit Custom HTML,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +58,Select Print Format to Edit,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +582,Saved,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +85,Select a DocType to make a new format,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +94,Name of the new Print Format,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_column_selector.html +1,"Check columns to select, drag to set order.",
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_column_selector.html +2,Widths can be set in px or %.,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_column_selector.html +4,Column,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_field.html +12,Edit HTML,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_field.html +20,Select Columns,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_layout.html +11,<span class=text-muted data-no-content=1>,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_layout.html +12,Edit to set heading,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_layout.html +3,Drag elements from the sidebar to add. Drag them back to trash.,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_sidebar.html +3,Filter...,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_start.html +16,Create a New Format,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_start.html +2,Select an existing format to edit or start a new format.,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_start.html +8,Edit,تحرير
+apps/frappe/frappe/sessions.py +26,Cache Cleared,
+apps/frappe/frappe/templates/emails/auto_reply.html +1,Thank you for your email,
+apps/frappe/frappe/templates/emails/auto_reply.html +2,"Your query has been received. We will back reply shortly. If you have any additional information, please reply to this mail.",
+apps/frappe/frappe/templates/emails/auto_reply.html +4,This is an automatically generated reply,
+apps/frappe/frappe/templates/emails/new_user.html +3,A new account has been created for you,
+apps/frappe/frappe/templates/emails/new_user.html +4,Your login id is,
+apps/frappe/frappe/templates/emails/new_user.html +5,Click on the link below to complete your registration and set a new password,
+apps/frappe/frappe/templates/emails/new_user.html +6,Complete Registration,
+apps/frappe/frappe/templates/emails/new_user.html +8,You can also copy-paste this link in your browser,
+apps/frappe/frappe/templates/emails/new_user.html +9,Thank you,
+apps/frappe/frappe/templates/emails/password_reset.html +4,Please click on the following link to set your new password,
+apps/frappe/frappe/templates/emails/password_update.html +1,Password Update Notification,
+apps/frappe/frappe/templates/emails/password_update.html +3,Your password has been updated. Here is your new password,
+apps/frappe/frappe/templates/emails/print_link.html +2,View this in your browser,
+apps/frappe/frappe/templates/generators/web_form.html +14,Please login to create a new {0},
+apps/frappe/frappe/templates/includes/comments.py +48,{0} by {1},{0} بواسطة {1}
+apps/frappe/frappe/templates/includes/comments.py +50,View it in your browser,
+apps/frappe/frappe/templates/includes/comments.py +57,New comment on {0} {1},تعليق جديد على {0} {1}
+apps/frappe/frappe/templates/includes/contact.js +11,"Please enter both your email and message so that we \
+				can get back to you. Thanks!",
+apps/frappe/frappe/templates/includes/contact.js +17,"You seem to have written your name instead of your email. \
+					Please enter a valid email address so that we can get back.",
+apps/frappe/frappe/templates/includes/contact.js +30,Thank you for your message,شكرا لرسالتك
+apps/frappe/frappe/templates/includes/login.js +119,Invalid Login,تسجيل الدخول غير صالحة
+apps/frappe/frappe/templates/includes/login.js +120,Oops! Something went wrong,عفوًا! ذهب شيئا خاطئا
+apps/frappe/frappe/templates/includes/login.js +18,Both login and password required,كل من تسجيل الدخول وكلمة المرور المطلوبة
+apps/frappe/frappe/templates/includes/login.js +31,Valid email and name required, مطلوب بريد إلكتروني صالح واسم صالح 
+apps/frappe/frappe/templates/includes/login.js +43,Valid Login id required.,صالحة معرف تسجيل الدخول المطلوبة.
+apps/frappe/frappe/templates/pages/404.html +1,Not Found,لم يتم العثور على
+apps/frappe/frappe/templates/pages/404.html +11,"We are very sorry for this, but the page you are looking for is missing (this could be because of a typo in the address) or moved.",
+apps/frappe/frappe/templates/pages/404.html +4,Page missing or moved,
+apps/frappe/frappe/templates/pages/desk.py +20,You are not permitted to access this page.,
+apps/frappe/frappe/templates/pages/list.html +1,List,قائمة
+apps/frappe/frappe/templates/pages/login.py +158,Email not verified with {1},البريد الإلكتروني لم يتم التحقق مع {1}
+apps/frappe/frappe/templates/pages/print.py +124,No {0} permission,لا {0} إذن
+apps/frappe/frappe/templates/pages/print.py +136,Print Format {0} is disabled,تنسيق الطباعة {0} تم تعطيل
+apps/frappe/frappe/templates/pages/print.py +150,No template found at path: {0},لا توجد في مسار القالب: {0}
+apps/frappe/frappe/templates/pages/update-password.html +1,Reset Password,
+apps/frappe/frappe/templates/pages/update-password.html +17,Old Password,
+apps/frappe/frappe/utils/backups.py +136,Download link for your backup will be emailed on the following email address: {0},
+apps/frappe/frappe/utils/boilerplate.py +209,{app_title},{ app_title }
+apps/frappe/frappe/utils/csvutils.py +125,{0} must be one of {1},{0} يجب أن يكون واحدا من {1}
+apps/frappe/frappe/utils/csvutils.py +24,File not attached,ملف لا تعلق
+apps/frappe/frappe/utils/csvutils.py +32,Unable to open attached file. Please try again.,غير قادر على فتح الملف المرفق. يرجى المحاولة مرة أخرى.
+apps/frappe/frappe/utils/csvutils.py +49,"Unknown file encoding. Tried utf-8, windows-1250, windows-1252.",ترميز الملفات غير معروف . حاول UTF- 8 ، ويندوز 1250، ويندوز 1252 .
+apps/frappe/frappe/utils/csvutils.py +73,Not a valid Comma Separated Value (CSV File),ليس صالحا القيمة المفصولة بفواصل ( CSV ​​ملف)
+apps/frappe/frappe/utils/data.py +339,Cent,
+apps/frappe/frappe/utils/data.py +356,only.,
+apps/frappe/frappe/utils/data.py +386,hundred,
+apps/frappe/frappe/utils/data.py +391,thousand,
+apps/frappe/frappe/utils/data.py +394,million,
+apps/frappe/frappe/utils/data.py +397,billion,
+apps/frappe/frappe/utils/data.py +404,lakh,
+apps/frappe/frappe/utils/data.py +407,crore,
+apps/frappe/frappe/utils/file_manager.py +161,File size exceeded the maximum allowed size of {0} MB,تجاوز حجم الملف الحد الأقصى المسموح به حجم {0} MB
+apps/frappe/frappe/utils/file_manager.py +210,Removed {0},
+apps/frappe/frappe/utils/file_manager.py +28,Please select a file or url,يرجى تحديد ملف أو URL
+apps/frappe/frappe/utils/file_manager.py +40,Added {0},
+apps/frappe/frappe/utils/file_manager.py +83,No file attached,أي ملف مرفق
+apps/frappe/frappe/utils/nestedset.py +181,Item cannot be added to its own descendents,البند لا يمكن أن تضاف إلى أحفاد الخاصة
+apps/frappe/frappe/utils/nestedset.py +194,Root {0} cannot be deleted,الجذر {0} لا يمكن حذف
+apps/frappe/frappe/utils/nestedset.py +201,Cannot delete {0} as it has child nodes,لا يمكن حذف {0} كما أن لديها العقد التابعة
+apps/frappe/frappe/utils/nestedset.py +210,Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node,دمج الممكن الوحيد بين المجموعة إلى المجموعة أو عقدة ورقة إلى ورقة عقدة
+apps/frappe/frappe/utils/nestedset.py +221,Multiple root nodes not allowed.,العقد الجذرية متعددة غير مسموح به.
+apps/frappe/frappe/utils/nestedset.py +227,{0} {1} cannot be a leaf node as it has children,{0} {1} لا يمكن أن يكون عقدة ورقة كما فعلت الأطفال
+apps/frappe/frappe/utils/nestedset.py +77,Nested set error. Please contact the Administrator.,خطأ مجموعة متداخلة . يرجى الاتصال مدير البرنامج.
+apps/frappe/frappe/utils/response.py +108,You need to be logged in and have System Manager Role to be able to access backups.,تحتاج إلى أن تقوم بتسجيل الدخول ولها دور مدير النظام أن يكون قادرا على الوصول إلى النسخ الاحتياطي.
+apps/frappe/frappe/website/doctype/blog_post/blog_post_list.js +7,Not Published,
+apps/frappe/frappe/website/doctype/style_settings/style_settings.py +21,Top Bar text and background is same color. Please change.,أعلى نص شريط والخلفية هي نفس اللون. الرجاء تغيير.
+apps/frappe/frappe/website/doctype/web_form/web_form.py +51,Invalid Request,
+apps/frappe/frappe/website/doctype/web_form/web_form.py +85,You must login to submit this form,
+apps/frappe/frappe/website/doctype/web_page/web_page.py +27,Cannot edit templated page,
+apps/frappe/frappe/website/doctype/website_settings/website_settings.js +18,Exported,تصدير
+apps/frappe/frappe/website/doctype/website_settings/website_settings.js +73,Select a Banner Image first.,تحديد صورة بانر الأول.
+apps/frappe/frappe/website/doctype/website_settings/website_settings.py +22,Invalid Home Page,الصفحة الرئيسية غير صالحة
+apps/frappe/frappe/website/doctype/website_settings/website_settings.py +32,{0} does not exist in row {1},{0} غير موجود في الصف {1}
+apps/frappe/frappe/website/doctype/website_settings/website_settings.py +36,{0} in row {1} cannot have both URL and child items,{0} في {1} الصف لا يمكن أن يكون كل عنوان URL و البنود الأطفال
+apps/frappe/frappe/website/render.py +65,Not Permitted,لا يسمح
+apps/frappe/frappe/website/template.py +77,Next,التالي
+apps/frappe/frappe/workflow/doctype/workflow/workflow.py +38,Created Custom Field {0} in {1},إنشاء الحقل المخصص {0} في {1}
+apps/frappe/frappe/workflow/doctype/workflow/workflow.py +57,{0} not a valid State,{0} يست دولة صالحة
+apps/frappe/frappe/workflow/doctype/workflow/workflow.py +64,Cannot change state of Cancelled Document. Transition row {0},لا يمكن تغيير حالة الوثيقة ملغاة .
+apps/frappe/frappe/workflow/doctype/workflow/workflow.py +67,Submitted Document cannot be converted back to draft. Transition row {0},الوثيقة المقدمة لا يمكن تحويلها إلى مشروع .
+apps/frappe/frappe/workflow/doctype/workflow/workflow.py +70,Cannot cancel before submitting. See Transition {0},لا يمكن إلغاء قبل تقديم .
+apps/frappe/frappe/workflow/doctype/workflow/workflow_list.js +7,Not active,
+sites/assets/js/desk.min.js +108,Confirm,
+sites/assets/js/desk.min.js +148,Enter Value,أدخل القيمة
+sites/assets/js/desk.min.js +167,Not found,لم يتم العثور على
+sites/assets/js/desk.min.js +167,Not permitted,لا يسمح
+sites/assets/js/desk.min.js +168,Server Error: Please check your server logs or contact tech support.,خطأ الخادم : يرجى مراجعة سجلات الخادم الخاص بك أو الاتصال بالدعم التكنولوجيا .
+sites/assets/js/desk.min.js +176,Session Expired. Logging you out,انتهى الدورة. تسجيل خروجك
+sites/assets/js/desk.min.js +196,Report this issue,بلغ عن هذه المسألة
+sites/assets/js/desk.min.js +314,Menu,
+sites/assets/js/desk.min.js +350,This form does not have any input,
+sites/assets/js/desk.min.js +357,Show more details,
+sites/assets/js/desk.min.js +358,Hide details,
+sites/assets/js/desk.min.js +383,Missing Values Required,في عداد المفقودين القيم المطلوبة
+sites/assets/js/desk.min.js +416,Invalid Email: {0},صالح البريد الإلكتروني: {0}
+sites/assets/js/desk.min.js +421,Date must be in format: {0},يجب أن تكون الآن في شكل : {0}
+sites/assets/js/desk.min.js +439,Please save the document before uploading.,
+sites/assets/js/desk.min.js +440,Upload,تحميل
+sites/assets/js/desk.min.js +446,Add attachment,إضافة المرفقات
+sites/assets/js/desk.min.js +452,Please attach a file first.,يرجى إرفاق ملف الأول.
+sites/assets/js/desk.min.js +456,Open Link,
+sites/assets/js/desk.min.js +465,Create a new {0},خلق جديد {0}
+sites/assets/js/desk.min.js +468,Advanced Search,
+sites/assets/js/desk.min.js +476,Please set {0} first,الرجاء تعيين {0} الأولى
+sites/assets/js/desk.min.js +480,Edit as {0},
+sites/assets/js/desk.min.js +480,Markdown,
+sites/assets/js/desk.min.js +480,Rich Text,
+sites/assets/js/desk.min.js +487,Beginning with,ابتداءا من
+sites/assets/js/desk.min.js +487,Dialog box to select a Link Value,
+sites/assets/js/desk.min.js +487,Search,البحث
+sites/assets/js/desk.min.js +487,Select {0},
+sites/assets/js/desk.min.js +487,You can use wildcard %,يمكنك استخدام حرف البدل٪
+sites/assets/js/desk.min.js +487,value,
+sites/assets/js/desk.min.js +494,No Results,لا نتائج
+sites/assets/js/desk.min.js +496,Make a new,جعل جديدة
+sites/assets/js/desk.min.js +497,Added {0} ({1}),وأضاف {0} ({1})
+sites/assets/js/desk.min.js +498,{0} added,{0} أضاف
+sites/assets/js/desk.min.js +510,Comments,تعليقات
+sites/assets/js/desk.min.js +510,Created By,التي أنشأتها
+sites/assets/js/desk.min.js +510,Created On,
+sites/assets/js/desk.min.js +510,Document Status,
+sites/assets/js/desk.min.js +510,Last Updated By,
+sites/assets/js/desk.min.js +510,Last Updated On,
+sites/assets/js/desk.min.js +510,Parent,
+sites/assets/js/desk.min.js +510,Starred By,
+sites/assets/js/desk.min.js +510,Tags,علامات
+sites/assets/js/desk.min.js +510,Unknown Column: {0},غير معروف العمود: {0}
+sites/assets/js/desk.min.js +512,Unable to load: {0},غير قادر على تحميل: {0}
+sites/assets/js/desk.min.js +526,Permanently delete {0}?,حذف بشكل دائم {0} ؟
+sites/assets/js/desk.min.js +527,Merge with existing,
+sites/assets/js/desk.min.js +527,New Name,
+sites/assets/js/desk.min.js +527,Rename,إعادة تسمية
+sites/assets/js/desk.min.js +527,Rename {0},
+sites/assets/js/desk.min.js +530,Please specify,يرجى تحديد
+sites/assets/js/desk.min.js +571,You have unsaved changes in this form. Please save before you continue.,لديك تغييرات لم يتم حفظها في هذا النموذج.
+sites/assets/js/desk.min.js +574,Get,الحصول على
+sites/assets/js/desk.min.js +574,Get From ,عليه من
+sites/assets/js/desk.min.js +613,You,
+sites/assets/js/desk.min.js +644,and,و
+sites/assets/js/desk.min.js +644,or,أو
+sites/assets/js/desk.min.js +661,Export not allowed. You need {0} role to export.,الصادرات غير مسموح به. تحتاج {0} دور للتصدير.
+sites/assets/js/desk.min.js +663,Alternative download link,رابط تحميل بديل
+sites/assets/js/desk.min.js +706,Attach as a web link,
+sites/assets/js/desk.min.js +710,Please attach a file or set a URL,يرجى إرفاق ملف أو تعيين URL
+sites/assets/js/desk.min.js +711,Uploading...,تحميل ...
+sites/assets/js/desk.min.js +723,Collapse,انهيار
+sites/assets/js/desk.min.js +723,Expand,وسع
+sites/assets/js/desk.min.js +732,Page not found,لم يتم العثور على الصفحة
+sites/assets/js/desk.min.js +748,Sorry! I could not find what you were looking for.,
+sites/assets/js/desk.min.js +749,Sorry! You are not permitted to view this page.,
+sites/assets/js/desk.min.js +758,Home,منزل
+sites/assets/js/desk.min.js +761,Help on Search,تساعد على البحث
+sites/assets/js/desk.min.js +762,Make a new record,جعل رقما قياسيا جديدا
+sites/assets/js/desk.min.js +763,<b>new</b> <i>type of document</i>,<B> جديدة </ ب> <I> نوع الوثيقة </ ط>
+sites/assets/js/desk.min.js +764,List a document type,قائمة نوع مستند
+sites/assets/js/desk.min.js +765,"<i>document type...</i>, e.g. <b>customer</b>",<I> نوع الوثيقة ... </ ط>، على سبيل المثال <B> العملاء </ B>
+sites/assets/js/desk.min.js +766,Search in a document type,بحث في نوع الوثيقة
+sites/assets/js/desk.min.js +767,<i>text</i> <b>in</b> <i>document type</i>,النص <I> </ ط> <B> في </ ب> <I> نوع الوثيقة </ ط>
+sites/assets/js/desk.min.js +768,Open a module or tool,فتح وحدة نمطية أو أداة
+sites/assets/js/desk.min.js +769,<i>module name...</i>,<I> اسم الوحدة النمطية ... </ ط>
+sites/assets/js/desk.min.js +770,Calculate,إحسب
+sites/assets/js/desk.min.js +771,<i>e.g. <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>,<I> على سبيل المثال على <strong> (55 + 434) / 4 </ STRONG> أو على <strong> = الرياضيات. خطيئة (رياضياتPI / 2) </ STRONG> ... </ ط>
+sites/assets/js/desk.min.js +774,Find {0} in {1},البحث عن {0} في {1}
+sites/assets/js/desk.min.js +774,New {0},جديد {0}
+sites/assets/js/desk.min.js +774,Open {0},مفتوحة {0}
+sites/assets/js/desk.min.js +774,{0} List,{0} قائمة
+sites/assets/js/desk.min.js +777,Frappe Framework,الإطار فرابي
+sites/assets/js/desk.min.js +779,Open Source Web Applications for the Web,مفتوحة المصدر تطبيقات ويب للويب
+sites/assets/js/desk.min.js +790,About,حول
+sites/assets/js/desk.min.js +790,Documentation,توثيق
+sites/assets/js/desk.min.js +790,Forums,المنتديات
+sites/assets/js/desk.min.js +790,Logout,خروج
+sites/assets/js/desk.min.js +790,My Settings,الإعدادات
+sites/assets/js/desk.min.js +790,Reload,
+sites/assets/js/desk.min.js +790,Report an Issue,أبلغ عن مشكلة
+sites/assets/js/desk.min.js +790,Search or type a command,بحث أو كتابة أمر
+sites/assets/js/desk.min.js +790,Unread Messages,رسائل غير مقروءة
+sites/assets/js/desk.min.js +790,View Website,
+sites/assets/js/desk.min.js +804,"Your download is being built, this may take a few moments...",ويجري بناء التنزيل، وهذا قد يستغرق بضع لحظات ...
+sites/assets/js/desk.min.js +808,Add Reply,إضافة رد
+sites/assets/js/desk.min.js +808,Attach Document Print,إرفاق طباعة المستند
+sites/assets/js/desk.min.js +808,Select Attachments,حدد المرفقات
+sites/assets/js/desk.min.js +808,Select Print Format,حدد تنسيق طباعة
+sites/assets/js/desk.min.js +808,Send As Email,أرسل للبريد الالكتروني
+sites/assets/js/desk.min.js +808,To,إلى
+sites/assets/js/desk.min.js +815,Add Attachments,إضافة مرفقات
+sites/assets/js/desk.min.js +824,You are not allowed to send emails related to this document,لا يسمح لك بإرسال رسائل البريد الإلكتروني ذات الصلة لهذه الوثيقة
+sites/assets/js/desk.min.js +826,Email sent to {0},أرسل بريد إلكتروني إلى {0}
+sites/assets/js/desk.min.js +827,There were errors while sending email. Please try again.,كانت هناك أخطاء أثناء إرسال البريد الإلكتروني. يرجى المحاولة مرة أخرى.
+sites/assets/js/desk.min.js +829,Dear,العزيز
+sites/assets/js/desk.min.js +834,"On {0}, {1} wrote:",
+sites/assets/js/editor.min.js +103,Bold (Ctrl/Cmd+B),
+sites/assets/js/editor.min.js +105,Bullet list,
+sites/assets/js/editor.min.js +107,Number list,
+sites/assets/js/editor.min.js +111,Insert picture (or just drag & drop),
+sites/assets/js/editor.min.js +113,Insert Link,
+sites/assets/js/editor.min.js +115,Remove Link,
+sites/assets/js/editor.min.js +119,Align Left (Ctrl/Cmd+L),
+sites/assets/js/editor.min.js +121,Center (Ctrl/Cmd+E),
+sites/assets/js/editor.min.js +123,Reduce indent (Shift+Tab),
+sites/assets/js/editor.min.js +125,Indent (Tab),
+sites/assets/js/editor.min.js +128,Horizontal Line Break,
+sites/assets/js/editor.min.js +152,Open Link in a new Window,
+sites/assets/js/editor.min.js +155,Insert,
+sites/assets/js/editor.min.js +94,Paragraph,

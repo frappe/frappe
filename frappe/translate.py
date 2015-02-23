@@ -13,6 +13,7 @@ from __future__ import unicode_literals
 import frappe, os, re, codecs, json
 from frappe.utils.jinja import render_include
 from jinja2 import TemplateError
+import itertools, operator
 
 def guess_language(lang_codes):
 	"""Set `frappe.local.lang` from HTTP headers at beginning of request"""
@@ -134,6 +135,7 @@ def add_lang_dict(code):
 
 	:param code: Javascript code snippet to which translations needs to be appended."""
 	messages = extract_messages_from_code(code)
+	messages = [message for pos, message in messages]
 	code += "\n\n$.extend(frappe._messages, %s)" % json.dumps(make_dict_from_messages(messages))
 	return code
 
@@ -147,9 +149,8 @@ def make_dict_from_messages(messages, full_dict=None):
 		full_dict = get_full_dict(frappe.local.lang)
 
 	for m in messages:
-		if m in full_dict:
-			out[m] = full_dict[m]
-
+		if m[1] in full_dict:
+			out[m[1]] = full_dict[m[1]]
 	return out
 
 def get_lang_js(fortype, name):
@@ -175,9 +176,9 @@ def load_lang(lang, apps=None):
 	for app in (apps or frappe.get_all_apps(True)):
 		path = os.path.join(frappe.get_pymodule_path(app), "translations", lang + ".csv")
 		if os.path.exists(path):
-			cleaned = dict([item for item in dict(read_csv_file(path)).iteritems() if item[1]])
+			cleaned = dict([(item[1], item[2]) for item in read_csv_file(path) if item[2]])
+			# cleaned = dict([(item[0], item[1]) for item in read_csv_file(path) if item[1]])
 			out.update(cleaned)
-
 	return out
 
 def clear_cache():
@@ -203,23 +204,26 @@ def get_messages_for_app(app):
 		# pages
 		for name, title in frappe.db.sql("""select name, title from tabPage
 			where module in ({})""".format(modules)):
-			messages.append(title or name)
+			messages.append((None, title or name))
 			messages.extend(get_messages_from_page(name))
+
 
 		# reports
 		for name in frappe.db.sql_list("""select tabReport.name from tabDocType, tabReport
 			where tabReport.ref_doctype = tabDocType.name
 				and tabDocType.module in ({})""".format(modules)):
-			messages.append(name)
+			messages.append((None, name))
 			messages.extend(get_messages_from_report(name))
+			for i in messages:
+				if not isinstance(i, tuple):
+					raise Exception
 
 	# app_include_files
 	messages.extend(get_messages_from_include_files(app))
 
 	# server_messages
 	messages.extend(get_server_messages(app))
-
-	return list(set(messages))
+	return deduplicate_messages(messages)
 
 def get_messages_from_doctype(name):
 	"""Extract all translatable messages for a doctype. Includes labels, Python code,
@@ -246,13 +250,16 @@ def get_messages_from_doctype(name):
 		if d.role:
 			messages.append(d.role)
 
+	messages = [message for message in messages if message]
+	messages = [('DocType: ' + name, message) for message in messages if is_translatable(message)]
+
 	# extract from js, py files
 	doctype_file_path = frappe.get_module_path(meta.module, "doctype", meta.name, meta.name)
 	messages.extend(get_messages_from_file(doctype_file_path + ".js"))
 	messages.extend(get_messages_from_file(doctype_file_path + "_list.js"))
 	messages.extend(get_messages_from_file(doctype_file_path + "_list.html"))
 	messages.extend(get_messages_from_file(doctype_file_path + "_calendar.js"))
-	return clean(messages)
+	return messages
 
 def get_messages_from_page(name):
 	"""Returns all translatable strings from a :class:`frappe.core.doctype.Page`"""
@@ -264,10 +271,11 @@ def get_messages_from_report(name):
 	report = frappe.get_doc("Report", name)
 	messages = _get_messages_from_page_or_report("Report", name,
 		frappe.db.get_value("DocType", report.ref_doctype, "module"))
+	# TODO position here!
 	if report.query:
-		messages.extend(re.findall('"([^:,^"]*):', report.query))
-	messages.append(report.report_name)
-	return clean(messages)
+		messages.extend([(None, message) for message in re.findall('"([^:,^"]*):', report.query) if is_translatable(message)])
+	messages.append((None,report.report_name))
+	return messages
 
 def _get_messages_from_page_or_report(doctype, name, module=None):
 	if not module:
@@ -281,7 +289,7 @@ def _get_messages_from_page_or_report(doctype, name, module=None):
 		if filename.endswith(".js") or filename.endswith(".html"):
 			messages += get_messages_from_file(os.path.join(doc_path, filename))
 
-	return clean(messages)
+	return messages
 
 def get_server_messages(app):
 	"""Extracts all translatable strings (tagged with :func:`frappe._`) from Python modules inside an app"""
@@ -294,7 +302,7 @@ def get_server_messages(app):
 			if f.endswith(".py") or f.endswith(".html") or f.endswith(".js"):
 				messages.extend(get_messages_from_file(os.path.join(basepath, f)))
 
-	return clean(messages)
+	return messages
 
 def get_messages_from_include_files(app_name=None):
 	"""Extracts all translatable strings from Javascript app files"""
@@ -302,16 +310,18 @@ def get_messages_from_include_files(app_name=None):
 	for file in (frappe.get_hooks("app_include_js", app_name=app_name) or []) + (frappe.get_hooks("web_include_js", app_name=app_name) or []):
 		messages.extend(get_messages_from_file(os.path.join(frappe.local.sites_path, file)))
 
-	return clean(messages)
+	return messages
 
 def get_messages_from_file(path):
 	"""Returns a list of transatable strings from a code file
 
 	:param path: path of the code file
 	"""
+	apps_path = get_bench_dir()
 	if os.path.exists(path):
 		with open(path, 'r') as sourcefile:
-			return extract_messages_from_code(sourcefile.read(), path.endswith(".py"))
+			return [(os.path.relpath(" +".join([path, str(pos)]), apps_path),
+					message) for pos, message in  extract_messages_from_code(sourcefile.read(), path.endswith(".py"))]
 	else:
 		return []
 
@@ -327,23 +337,31 @@ def extract_messages_from_code(code, is_py=False):
 		pass
 
 	messages = []
-	messages += re.findall('_\("([^"]*)"', code)
-	messages += re.findall("_\('([^']*)'", code)
+	messages += [(m.start(), m.groups()[0]) for m in re.compile('_\("([^"]*)"').finditer(code)]
+	messages += [(m.start(), m.groups()[0]) for m in re.compile("_\('([^']*)'").finditer(code)]
 	if is_py:
-		messages += re.findall('_\("{3}([^"]*)"{3}.*\)', code, re.S)
+		messages += [(m.start(), m.groups()[0]) for m in re.compile('_\("{3}([^"]*)"{3}.*\)').finditer(code)]
+	messages = [(pos, message) for pos, message in messages if is_translatable(message)]
+	return pos_to_line_no(messages, code)
 
-	return clean(messages)
+def is_translatable(m):
+	if re.search("[a-z]", m) and not m.startswith("icon-") and not m.endswith("px") and not m.startswith("eval:"):
+		return True
+	return False
 
-def clean(messages):
-	"""Scrub and return list of translatable messages. Strips empty strings, numbers, known CSS classes etc."""
-	l = []
-	messages = list(set(messages))
-	for m in messages:
-		if m:
-			if re.search("[a-z]", m) and not m.startswith("icon-") and not m.endswith("px") and not m.startswith("eval:"):
-				l.append(m)
-	return l
-
+def pos_to_line_no(messages, code):
+	ret = []
+	messages = sorted(messages, key=lambda x: x[0])
+	newlines = [m.start() for m in re.compile('\\n').finditer(code)]
+	line = 1
+	newline_i = 0
+	for pos, message in messages:
+		while newline_i < len(newlines) and pos > newlines[newline_i]:
+			line+=1
+			newline_i+= 1
+		ret.append((line, message))
+	return ret
+			
 def read_csv_file(path):
 	"""Read CSV file and return as list of list
 
@@ -367,13 +385,13 @@ def write_csv_file(path, app_messages, lang_dict):
 	"""
 	app_messages.sort()
 	from csv import writer
-	with open(path, 'w') as msgfile:
-		w = writer(msgfile)
-		for m in app_messages:
+	with open(path, 'wb') as msgfile:
+		w = writer(msgfile, lineterminator='\n')
+		for p, m in app_messages:
 			t = lang_dict.get(m, '')
 			# strip whitespaces
 			t = re.sub('{\s?([0-9]+)\s?}', "{\g<1>}", t)
-			w.writerow([m.encode('utf-8'), t.encode('utf-8')])
+			w.writerow([p.encode('utf-8') if p else '', m.encode('utf-8'), t.encode('utf-8')])
 
 def get_untranslated(lang, untranslated_file, get_all=False):
 	"""Returns all untranslated strings for a language and writes in a file
@@ -389,7 +407,7 @@ def get_untranslated(lang, untranslated_file, get_all=False):
 	for app in apps:
 		messages.extend(get_messages_for_app(app))
 
-	messages = list(set(messages))
+	messages = deduplicate_messages(messages)
 
 	def escape_newlines(s):
 		return (s.replace("\\\n", "|||||")
@@ -401,13 +419,13 @@ def get_untranslated(lang, untranslated_file, get_all=False):
 		with open(untranslated_file, "w") as f:
 			for m in messages:
 				# replace \n with ||| so that internal linebreaks don't get split
-				f.write((escape_newlines(m) + os.linesep).encode("utf-8"))
+				f.write((escape_newlines(m[1]) + os.linesep).encode("utf-8"))
 	else:
 		full_dict = get_full_dict(lang)
 
 		for m in messages:
-			if not full_dict.get(m):
-				untranslated.append(m)
+			if not full_dict.get(m[1]):
+				untranslated.append(m[1])
 
 		if untranslated:
 			print str(len(untranslated)) + " missing translations of " + str(len(messages))
@@ -478,3 +496,14 @@ def send_translations(translation_dict):
 		frappe.local.response["__messages"] = {}
 
 	frappe.local.response["__messages"].update(translation_dict)
+
+def deduplicate_messages(messages):
+	ret = []
+	op = operator.itemgetter(1)
+	messages = sorted(messages, key=op)
+	for k, g in itertools.groupby(messages, op):
+		ret.append(g.next())
+	return ret
+
+def get_bench_dir():
+	return os.path.join(frappe.__file__, '..', '..', '..', '..')

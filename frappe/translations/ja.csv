@@ -1,1452 +1,1580 @@
- by Role , by Role 
- is not set, is not set
-"""Company History""",「会社の歴史」
-"""Team Members"" or ""Management""",「チームメンバー」または「管理」
-'In List View' not allowed for type {0} in row {1},「リスト表示では「許可されていないタイプのため{0}行{1}
-0 - Draft; 1 - Submitted; 2 - Cancelled,0 - ドラフト; 1 - 投稿; 2 - キャンセル
-0 is highest,0が最も高く、
-"000 is black, fff is white",000は黒で、FFFは白です
-2 days ago,2 日前
-"<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank"">[?]</a>","もし、ごhref=""https://en.wikipedia.org/wiki/Transport_Layer_Security""のtarget=""_blank"">を[？] </a>"
-"<a onclick=""msgprint('<ol>\<li><b>field:[fieldname]</b> - By Field\<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\<li><b>Prompt</b> - Prompt user for a name\<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\</ol>')"">Naming Options</a>","<onclickの= ""msgprint（ '<OL> \ <LI> <B>フィールド：[フィールド名] </ B> - フィールドによって\ <LI> <B> naming_series：</ B / <<LI> <B> [シリーズ] \ - \n名前の入力を求めるユーザ<LI> <B>プロンプト</ B> | - >シリーズに名前を付けることで（フィールドと呼ばnaming_seriesが存在しなければならないB> - （ドットで区切られた）接頭辞シリーズ;たとえば、PREのための＃＃＃＃＃\ </ OL> '） ""> </ A> [オプション]を命名。"
-<b>new</b> <i>type of document</i>,ドキュメントの新しい</ B> <I>タイプ</ I> <B>
-"<i>document type...</i>, e.g. <b>customer</b>",<I>ドキュメントタイプ... </ I>、例えば<B>顧客</ B>
-<i>e.g. <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>,<I>例えばある[（55 + 434）/ 4 </ STRONG>またはある[=数学。罪（数PI / 2）</ STRONG> ... </ I>
-<i>module name...</i>,<I>モジュール名... </ I>
-<i>text</i> <b>in</b> <i>document type</i>,<I>テキスト</ I> <B>中の</ B> <I>ドキュメントタイプ</ I>
-A user can be permitted to multiple records of the same DocType.,使用者が同じのDocTypeの複数のレコードを許可することができる。
-About,概要
-About Us Settings,会社の設定について
-About Us Team Member,問い合わせチームメンバーについて
-Action,アクション
-Actions,動作
-"Actions for workflow (e.g. Approve, Cancel).",ワークフローのアクション（例えばキャンセル、ご了承ください）。
-Add,追加メニュー
-Add A New Rule,新しいルールを追加
-Add A User Permission,ユーザー権限を追加
-Add Attachments,添付ファイルを追加
-Add Bookmark,ブックマークを追加
-Add CSS,CSSを追加
-Add Column,列の追加
-Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,Google AnalyticsのIDを追加します。例えば。UA-89XXX57-1。詳細については、Google Analyticsの上でヘルプを検索してください。
-Add Message,メッセージを追加
-Add New Permission Rule,新しいアクセス許可ルールの追加
-Add Reply,返事を追加する
-Add Total Row,合計行を追加
-Add a New Role,新しい役割の追加
-Add a banner to the site. (small banners are usually good),サイトにバナーを追加します。 （小バナーは、通常は良いです）
-Add all roles,すべての役割を追加する
-Add attachment,添付ファイルを追加
-Add code as &lt;script&gt;,<SCRIPT>のようなコードを追加します。
-Add custom javascript to forms.,フォームへのカスタムJavaScriptを追加します。
-Add fields to forms.,フォームにフィールドを追加します。
-Add multiple rows,複数の行を追加します。
-Add new row,新しい行を追加します。
-"Add the name of <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> e.g. ""Open Sans""","もし、ご希望のhref=""http://google.com/webfonts""のtarget=""_blank"">をGoogleウェブフォントの名前を追加する</ A>例えば ""オープンなき """
-Add to To Do,質問するに追加
-Add to To Do List Of,のリストを行うために対象に追加
-Added {0} ({1}),追加された{0}（{1}）
-Adding System Manager to this User as there must be atleast one System Manager,少なくとも1システムマネージャが存在しなければならないように、このユーザにシステムマネージャの追加
-Additional Info,追加情報
-Additional Permissions,追加のアクセス許可
-Address,アドレス
-Address Line 1,住所 1行目
-Address Line 2,住所　2行目
-Address Title,アドレスタイトル
-Address and other legal information you may want to put in the footer.,アドレスやその他の法的情報あなたはフッターに配置することがあります。
-Admin,管理者
-All Applications,すべてのアプリケーション
-All Day,一日中
-All customizations will be removed. Please confirm.,すべてのカスタマイズが削除されます。ご確認下さい。
-"All possible Workflow States and roles of the workflow. <br>Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""","すべての可能なワークフローの米国およびワークフローの役割。検索Docstatusオプション：0 ""が保存された」、1は「提出」され、2が「キャンセル」されている"
-Allow Attach,添付を許可
-Allow Import,許可するインポート
-Allow Import via Data Import Tool,インポートデータインポートツールを使用してできるように
-Allow Rename,名前の変更を許可する
-Allow on Submit,提出で許可
-Allow user to login only after this hour (0-24),（0〜24）は、ユーザーがこれだけ時間後にログインすることができます
-Allow user to login only before this hour (0-24),（0〜24）は、ユーザーがこれだけ時間前にログインすることができます
-Allowed,Allowed
-"Allowing DocType, DocType. Be careful!",許可のDocType、のDocType。気を付けてね！
-Already Registered,既に登録
-Already in user's To Do list,既に行っているために、ユーザのリストの中
-Alternative download link,代替ダウンロードリンク
-"Alternatively, you can also specify 'auto_email_id' in site_config.json",別の方法としては、site_config.jsonで「auto_email_id」を指定することができます
-Always use above Login Id as sender,いつも送信者としてログインIDの上に使用
-Amend,改正する
-"An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [<a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a>]","。ICO拡張子を持つアイコンファイル。16×16 PXでなければなりません。ファビコンジェネレータを使用して生成された。 [<a href=""http://favicon-generator.org/"" target=""_blank"">をファビコン-generator.org </ A>]"
-"Another {0} with name {1} exists, select another name",別の{0}の名前で{1}に存在し、別の名前を選択
-Any existing permission will be deleted / overwritten.,既存のアクセス権は、/上書き消去されます。
-Anyone Can Read,誰もが読むことができます
-Anyone Can Write,誰でも書くことができます
-"Apart from Role based Permission Rules, you can apply User Permissions based on DocTypes.",別にロールベースの権限ルールからは、文書型に基づいてユーザーのアクセス許可を適用することができます。
-"Apart from System Manager, roles with 'Set User Permissions' right can set permissions for other users for that Document Type.",別にシステムマネージャから、「設定したユーザーのアクセス権」権利を持つ役割は、そのドキュメントタイプの他のユーザーに対して権限を設定することができます。
-App Name,アプリケーション名
-App not found,アプリが見つかりません
-Application Installer,アプリケーションインストーラ
-Applications,アプリケーション
-Apply Style,スタイルを適用
-Apply User Permissions,ユーザーのアクセス許可を適用
-Are you sure you want to delete the attachment?,あなたは、添付ファイルを削除してもよろしいですか？
-Arial,Arial
-"As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User.",ベストプラクティスとして、異なる役割にアクセス許可ルールの同じセットを割り当てないでください。代わりに、同じユーザーに複数の役割を設定します。
-Ascending,昇順
-Assign To,に割り当てる
-Assigned By,によって割り当て
-Assigned To,に割り当てられている
-Assigned To Fullname,フルネームに割り当てられている
-Assigned To/Owner,/所有者に割り当て
-Assignment Added,割り当てを追加しました
-Assignment Status Changed,割り当てのステータスが変更されました
-Assignments,割り当て
-Attach,添付
-Attach Document Print,文書印刷を取り付け
-Attach as web link,ウェブリンクとして添付する
-Attached To DocType,のDocTypeに添付
-Attached To Name,名前に添付
-Attachments,添付情報
-Auto Email Id,自動電子メールID
-Auto Name,自動名前
-Auto generated,自動生成された
-Avatar,アバター
-Back to Login,戻るログインする
-Background Color,背景色
-Background Image,背景画像
-Background Style,背景スタイル
-Banner,バナー
-Banner HTML,バナーのHTML
-Banner Image,バナー画像
-Banner is above the Top Menu Bar.,バナーは、上部のメニューバーの上にある。
-Begin this page with a slideshow of images,画像のスライドショーで、このページを開始する
-Beginning with,で始まる
-Belongs to,所属
-Bio,自己紹介
-Birth Date,生年月日
-Blog Category,ブログカテゴリー
-Blog Intro,ブログイントロ
-Blog Introduction,ブログの紹介
-Blog Post,ブログの投稿
-Blog Settings,ブログ設定
-Blog Title,ブログのタイトル
-Blogger,ブロガー
-Bookmarks,ブックマーク
-Both login and password required,ログインとパスワードの両方が必要
-Brand HTML,ブランドのHTML
-Bulk Email,バルクメール
-Bulk email limit {0} crossed,バルク電子メールの制限{0}交差されました。
-Button,ボタン
-By,によって
-Calculate,計算
-Calendar,カレンダー
-Cancel,キャンセル
-Cancelled,キャンセル済み
-"Cannot Edit {0} directly: To edit {0} properties, create / update {1}, {2} and {3}",編集することはできません{0}に直接：{0}のプロパティを編集するには、作成/更新{1}、{2}と{3}
-Cannot Update: Incorrect / Expired Link.,更新することはできません：不適切な/期限切れリンク
-Cannot Update: Incorrect Password,更新することはできません。パスワードが間違っています。
-Cannot add more than 50 comments,50以上のコメントを追加することはできません
-Cannot cancel before submitting. See Transition {0},送信する前にキャンセルすることはできません。トランジション{0}を参照してください。
-Cannot change picture,画像を変更することはできません
-Cannot change state of Cancelled Document. Transition row {0},キャンセルドキュメントの状態を変更することはできません。遷移行{0}
-Cannot change {0},変更することはできません{0}
-Cannot delete or cancel because {0} {1} is linked with {2} {3},{0} {1}が{2} {3}とリンクされているため、削除するか、キャンセルすることはできません
-Cannot delete {0} as it has child nodes,それが子ノードを持っているように{0}を削除することはできません
-Cannot edit standard fields,標準フィールドを編集することはできません
-Cannot map because following condition fails: ,Cannot map because following condition fails: 
-Cannot open instance when its {0} is open,その{0}開いているときに、インスタンスを開くことはできません
-Cannot open {0} when its instance is open,そのインスタンスが開いているときに{0}を開くことはできません
-Cannot print cancelled documents,キャンセルの文書を印刷することはできません
-Cannot remove permission for DocType: {0} and Name: {1},のDocTypeの許可を削除することはできません：{0}と名：{1}
-Cannot reply to a reply,返信に返信することはできません
-Cannot set Email Alert on Document Type {0},ドキュメントの種類に電子メールアラートを設定することはできません{0}
-Cannot set permission for DocType: {0} and Name: {1},のDocTypeの許可を設定することはできません：{0}と名：{1}
-Categorize blog posts.,ブログの記事を分類。
-Category,カテゴリ
-Category Name,カテゴリ名
-Center,中央
-"Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit.",一部のドキュメントには、請求書のように、一回の最終変更すべきではありません。このような文書の最終的な状態が提出と呼ばれています。あなたは役割が送信できるかを制限することができます。
-"Change field properties (hide, readonly, permission etc.)",変更フィールドのプロパティ（非表示、読み取り専用、アクセス権など）
-Chat,チャット
-Check,チェック
-Check / Uncheck roles assigned to the User. Click on the Role to find out what permissions that Role has.,チェック/ユーザーに割り当てられた役割をオフにします。役割が持つアクセス許可を確認する役割をクリックしてください。
-Check this if you want to send emails as this id only (in case of restriction by your email provider).,あなただけ（あなたのメールプロバイダーによる制限の場合）このIDとして電子メールを送信する場合、これをチェックしてください。
-Check this to make this the default letter head in all prints,すべての印刷物に、このデフォルトの手紙ヘッドを作るためにこれをチェック
-Check which Documents are readable by a User,ドキュメントは、ユーザーが読み取り可能であるかを確認
-Checked items shown on desktop,デスクトップに表示されるチェックされた項目
-Child Tables are shown as a Grid in other DocTypes.,子テーブルは、他の文書型のグリッドとして表示されます。
-City,都市
-Classic,クラシック
-Clear Cache,現金をクリア
-Clear all roles,すべての役割をクリア
-Click on a link to get options,オプションを取得するには、リンクをクリックして
-Click on row to view / edit.,/編集]を表示するには、行をクリックしてください。
-Client,顧客
-Client-side formats are now deprecated,クライアント側の書式も推奨されていません
-Close,閉じる
-Close: {0},閉じる：{0}
-Closed,閉じました。
-Code,コード
-Collapse,崩壊
-Column Break,列の区切り
-Comment,コメント
-Comment By,のコメント
-Comment By Fullname,フルネームでのコメント
-Comment Date,コメント日付
-Comment Docname,DOCNAMEコメント
-Comment Doctype,文書型コメント
-Comment Time,タイムコメント
-Comments,コメント
-Communication,コミュニケーション
-Communication Medium,通信メディア
-Company History,社史
-Company Introduction,会社紹介
-Complaint,クレーム
-Complete By,までに完了
-Condition,条件
-Contact Us Settings,お問い合わせの設定
-"Contact options, like ""Sales Query, Support Query"" etc each on a new line or separated by commas.",「セールスクエリ、クエリのサポート」などのような接触オプション、新しい行にそれぞれまたはカンマで区切ります。
-Content,内容
-Content Hash,コンテンツハッシュ
-Content in markdown format that appears on the main side of your page,あなたのページのメイン側に表示されるマークダウン形式のコンテンツ
-Content web page.,コンテンツのWebページ。
-Controller,コントローラ
-Copy,コピー
-Copyright,著作権
-Core,コア
-Could not connect to outgoing email server,送信メールサーバーに接続できませんでした
-Could not find {0},見つけることができませんでした{0}
-Count,カウント
-Country,国
-Create,作成
-Create a new {0},新しい{0}を作成する
-Created Custom Field {0} in {1},{1}で作成したカスタムフィールド{0}
-Created Customer Issue,作成した顧客の問題
-Created Opportunity,作成された機会
-Created Support Ticket,作成されたサポートチケット
-Creation / Modified By,作成/更新者
-Currency,通貨
-Current status,現在の状況
-Custom CSS,カスタムCSS
-Custom Field,カスタムフィールド
-Custom Javascript,カスタムJavaScript
-Custom Reports,カスタム レポート
-Custom Script,カスタムスクリプト
-Custom?,カスタム？
-Customize,カスタマイズ
-Customize Form,フォームをカスタマイズ
-Customize Form Field,フォームフィールドをカスタマイズする
-"Customize Label, Print Hide, Default etc.",などラベル印刷を隠す、デフォルトをカスタマイズ
-Customized HTML Templates for printing transctions.,印刷transctions用にカスタマイズされたHTMLテンプレート。
-Daily Event Digest is sent for Calendar Events where reminders are set.,毎日イベントダイジェストはリマインダーが設定されているカレンダーのイベントのために送信されます。
-Danger,危険
-Data,データ
-Data Import / Export Tool,データのインポート/エクスポートツール
-Data Import Tool,データインポートツール
-Data missing in table,表に不足しているデータ
-Date,日付
-Date Change,日付変更
-Date Changed,日付変更
-Date Format,日付の表示形式
-Date and Number Format,日付と番号の書式
-Date must be in format: {0},日付が形式である必要があります：{0}
-Datetime,日時
-Days in Advance,事前に日
-Dear,親愛なる 様
-Default,初期値
-Default Print Format,デフォルトの印刷フォーマット
-Default Value,デフォルト値
-Default is system timezone,デフォルトでは、システムのタイムゾーンである
-"Default: ""Contact Us""",デフォルト：「お問い合わせ」
-DefaultValue,のDefaultValue
-Defaults,デフォルト
-"Define read, write, admin permissions for a Website Page.",読み取り、書き込み、ウェブページのための管理者権限を定義します。
-Define workflows for forms.,フォームのワークフローを定義します。
-Delete,削除
-Delete Row,行を削除する
-Depends On,に依存
-Descending,降順
-Description,説明
-Description and Status,説明とステータス
-"Description for listing page, in plain text, only a couple of lines. (max 140 characters)",プレーンテキストで一覧ページの説明、行の唯一のカップル。 （最大140文字）
-Description for page header.,ページヘッダの説明。
-Desktop,デスクトップ
-Details,詳細
-Did not add,追加しませんでした
-Did not cancel,キャンセルされませんでした
-Did not find {0} for {0} ({1}),（{1}）{0} {0}のために見つけられませんでした
-Did not load,ロードされませんでした
-Did not remove,削除されませんでした。
-Did not save,保存しませんでした。
-"Different ""States"" this document can exist in. Like ""Open"", ""Pending Approval"" etc.",このドキュメントはインチ存在できる異なる「状態」「開く」、「承認待ち」などのような
-Disable Customer Signup link in Login page,ログインページに顧客のサインアップリンクを無効にする
-Disable Signup,登録を無効にする
-Disabled,無効にしました。
-Display,表示
-Display Settings,ディスプレイの設定
-Display in the sidebar of this Website Route node,このウェブサイトのルートノードのサイドバーに表示
-Do not allow user to change after set the first time,ユーザーは後の最初の時間を設定変更することはできません
-Doc Status,ドキュメントの状態
-DocField,ドキュメントの分野
-DocPerm,ドキュメントの管理
-DocType,ドキュメントタイプ
-DocType Details,ドキュメントタイプの詳細
-DocType can not be merged,ドキュメントタイプが合併することはできません。
-DocType on which this Workflow is applicable.,DOCTYPEがどのこのワークフローを適用することができる。
-DocType or Field,ドキュメントタイプまたは分野
-Doclist JSON,ドキュメントリスト、JSON
-Docname,ドキュメント名
-Document,ドキュメント
-Document Status transition from ,Document Status transition from 
-Document Status transition from {0} to {1} is not allowed,{{0}から{1}までのドキュメント・ステータス推移は許可されません。
-Document Type,ドキュメントタイプ
-Document is only editable by users of role,文書は、役割のユーザーによって編集可能です。
-Documentation,ドキュメンテーション
-Documents,文書
-Download,ダウンロード
-Download Backup,ダウンロードバックアップ
-Download link for your backup will be emailed on the following email address:,バックアップのダウンロードリンクは、次の電子メールアドレスに電子メールで送信されます。
-Drafts,下書き
-Drag to sort columns,列をソートするには、ドラッグ
-Due Date,期日
-Duplicate name {0} {1},重複する名前{0} {1}
-Dynamic Link,動的リンク
-ERPNext Demo,ERPNextデモ
-Edit,編集
-Edit Permissions,認可を編集する
-Editable,編集可能な
-Email,Eメール
-Email Alert,電子メール警告
-Email Alert Recipient,電子メール警告の受信者
-Email Alert Recipients,電子メール警告の受信者
-Email By Document Field,ドキュメントフィールドによって電子メール
-Email Footer,電子メールのフッター
-Email Host,電子メールホスト
-Email Id,EメールのId
-Email Login,Eメールログイン
-Email Password,メールアドレスパスワード
-Email Sent,Eメール送信済み
-Email Settings,メール設定
-Email Signature,電子メールの署名
-Email Use SSL,電子メールを使用したSSL
-Email address,メールアドレス
-"Email addresses, separted by commas",カンマでseparted電子メールアドレス、
-Email not verified with {1},電子メールは{1}で確認されませんでした。
-Email sent to {0},{0}に送信された電子メール
-Email...,電子メール...
-Emails are muted,メールはミュートされ
-Embed image slideshows in website pages.,ウェブサイトのページ内の画像のスライドショーを埋め込んでください。
-Enable,可能
-Enable Comments,コメントを有効にする
-Enable Scheduled Jobs,スケジュールされたジョブを有効にする
-Enabled,有効
-Ends on,で終了
-Enter Form Type,フォームタイプを入力してください
-Enter Value,値を入力します
-Enter at least one permission row,少なくとも1の許可の行を入力してください
-"Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set ""match"" permission rules. To see list of fields, go to <a href=""#Form/Customize Form/Customize Form"">Customize Form</a>.","デフォルト値フィールド（キー）と値を入力します。あなたがフィールドに複数の値を追加する場合、最初のものが取得されます。これらのデフォルト値は、「マッチ」の許可ルールを設定するために使用される。フィールドのリストを表示するには、<a href=""#Form/Customize Form/Customize Form"">フォームのカスタマイズ</ A>をご覧ください。"
-"Enter keys to enable login via Facebook, Google, GitHub.",フェイスブック、グーグル、GitHubのを経由してログインを可能にするためのキーを入力してください。
-Equals,等号
-Error,エラー
-"Error generating PDF, attachment sent as HTML",HTMLとして送信されたエラー発生ファイル、添付ファイル
-Error: Document has been modified after you have opened it,エラー：あなたがそれを開いた後に文書が変更されました
-Event,イベント
-Event Datetime,イベント日時
-Event Individuals,イベント個人
-Event Role,イベントの役割
-Event Roles,イベントの役割
-Event Type,イベント タイプ
-Event User,イベントユーザー
-Event end must be after start,イベント終了は開始後でなければなりません
-Events,イベント
-Events In Today's Calendar,今日のカレンダーのイベント
-Every Day,毎日
-Every Month,毎月
-Every Week,毎週
-Every Year,毎年
-Everyone,Everyone
-Example:,例：
-Expand,展開
-Export,エクスポート
-Export not allowed. You need {0} role to export.,輸出は許可されていません。あなたがエクスポートする{0}役割を必要としています。
-Exported,エクスポート
-"Expression, Optional",表現、省略可能
-Facebook,フェイスブック
-Facebook Client ID,FacebookのクライアントID
-Facebook Client Secret,Facebookのクライアントの秘密
-Facebook Share,Facebookで共有
-Facebook User ID,FacebookのユーザーID
-Facebook Username,Facebookのユーザー名
-FavIcon,ファビコン
-Female,女性
-Field Description,フィールド記述
-Field Name,フィールド名
-Field Type,フィールドタイプ
-"Field that represents the Workflow State of the transaction (if field is not present, a new hidden Custom Field will be created)",取引のワークフローの状態を表すフィールド（フィールドが存在しない場合は、新しい隠しカスタムフィールドが作成されます）
-Field {0} in row {1} cannot be hidden and mandatory without default,フィールド{0}行目の{1}は、デフォルトせずに非表示になっ必須することはできません
-Field {0} is not selectable.,フィールド{0}選択できません。
-Field {0} of type {1} cannot be mandatory,フィールド{0}型{1}の必須にすることはできません
-Fieldname,フィールド名
-Fieldname is required in row {0},フィールド名は、行で必要とされている{0}
-Fieldname not set for Custom Field,フィールド名は、カスタムフィールドに設定されていない
-Fieldname which will be the DocType for this link field.,このリンクフィールドののDocTypeになるフィールド名。
-Fieldname {0} appears multiple times in rows {1},フィールド名は{0}行{1}で複数回表示されます
-"Fieldname {0} cannot contain letters, numbers or spaces",フィールド名は{0}文字、数字やスペースを含めることはできません
-Fields,フィールド
-"Fields separated by comma (,) will be included in the<br /><b>Search By</b> list of Search dialog box",コンマ（、）で区切られたフィールドには、[検索]ダイアログボックスの</ B>リストによって<brの/>の<B>検索に含まれます
-Fieldtype cannot be changed from {0} to {1} in row {2},FIELDTYPEは{0} {2}行{1}から変更することはできません
-File,綴じ込む
-File Data,ファイルデータ
-File Name,ファイル名
-File Size,ファイル サイズ
-File URL,ファイルURL
-File not attached,ファイル付属しておりません
-File size exceeded the maximum allowed size of {0} MB,ファイルサイズは{0} MBの最大許容サイズを超えました
-Fill Screen,フルスクリーン
-Filter,フィルター
-Filter records based on User Permissions defined for a user,ユーザーに対して定義されたユーザー権限に基づいてフィルタレコード
-Filters,フィルターを生成する
-Find {0} in {1},{0} {1}で見つける
-First Name,お名前（名）
-Float,フロート
-Float Precision,float精度
-Font (Heading),フォント（見出し）
-Font (Text),フォント（文字）
-Font Size,フォントサイズ
-Font Size (Text),フォントサイズ（テキスト）
-Fonts,フォント
-Footer,フッター
-Footer Background,フッターの背景
-Footer Items,フッター項目
-Footer Text,Footer Text
-For DocType,のDocType用
-"For Links, enter the DocType as rangeFor Select, enter list of Options separated by comma",リンクについては、範囲としてのDocTypeに入る選択して、カンマで区切られたオプションのリストを入力します。
-"For comparative filters, start with",比較のフィルタの場合、で始まる
-For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,あなたがキャンセルして「INV004」を改正する場合は、新しいドキュメント 'INV004-1」となります。これにより、各修正案を追跡するのに役立ちます。
-For ranges,範囲について
-For top bar,トップバーの
-For {0} at level {1} in {2} in row {3},{0}のレベルで{1} {2}の行の{3}
-Forgot Password,パスワードを忘れた方はこちら
-Forgot Password?,パスワードを忘れましたか？
-Form,フォーム
-Forum,フォーラム
-Forums,フォーラム
-Forward To Email Address,前進した電子メールアドレスに
-Frappe Framework,フラッペフレームワーク
-Friday,金曜日
-From Date must be before To Date,日付から日付の前でなければなりません
-Full Name,氏名
-Gantt Chart,ガントチャート
-Gender,性別
-Generator,発電機
-Georgia,ジョージア
-Get,ゲット
-Get From ,フォームを取得
-"Get your globally recognized avatar from <a href=""https://gravatar.com/"">Gravatar.com</a>","もし、ごhref=""https://gravatar.com/""> Gravatar.com </ A>から世界的に認知されたアバターを入手"
-GitHub,GitHub
-GitHub Client ID,GitHubのクライアントID
-GitHub Client Secret,GitHubのクライアントの秘密
-Github User ID,GitHubのユーザーID
-Github Username,GitHubのユーザー名
-Google,グーグル。
-Google Analytics ID,{0}Google Analytics ID{/0}
-Google Client ID,GoogleのクライアントID
-Google Client Secret,Googleのクライアントの秘密
-Google Plus One,Googleプラスワン
-Google User ID,GoogleのユーザーID
-Google Web Font (Heading),Googleウェブフォント（見出し）
-Google Web Font (Text),Googleウェブフォント（テキスト）
-Greater or equals,大か等しい
-Greater than,より大きい
-"Group Added, refreshing...",グループを追加しました、さわやかな...
-Group Description,コミュニティの説明
-Group Name,グループ名
-Group Title,グループタイトル
-Group Type,グループの種類
-Groups,グループ
-HTML for header section. Optional,ヘッダー部分のHTML。オプショナル
-Have an account? Login,{0} {1}アカウントをお持ちですかt?{/1} {/0}ログインを確認します。
-Header,ヘッダー
-Heading,見出し
-Heading Text As,テキストの見出しとして
-Help,ヘルプ
-Help on Search,検索のヘルプ
-Helvetica Neue,ヘルベチカ•ノイエ
-Hidden,非表示
-Hide Actions,アクション隠す
-Hide Copy,コピーを隠す
-Hide Heading,見出しを隠す
-Hide Toolbar,ツールバーを非表示に
-Hide the sidebar,サイドバーを隠す
-High,高
-Highlight,ハイライト
-History,来歴
-Home Page,ホームページ
-Home Page is Products,ホームページは、製品である
-ID (name) of the entity whose property is to be set,プロパティが設定されるエンティティのID（名前）
-Icon,アイコン
-Icon will appear on the button,アイコンがボタン上に表示されます
-"If a Role does not have access at Level 0, then higher levels are meaningless.",役割レベル0でのアクセス権を持っていない場合には、より高いレベルには意味がありません。
-"If checked, all other workflows become inactive.",チェックすると、他のすべてのワークフローが非アクティブになります。
-"If checked, the Home page will be the default Item Group for the website.",チェックすると、[ホーム]ページは、Webサイトのデフォルトのアイテムグループになります。
-"If image is selected, color will be ignored (attach first)",画像が選択された場合、色が（最初のアタッチ）無視される
-If non standard port (e.g. 587),非標準ポート（例えば587）の場合
-"If these instructions where not helpful, please add in your suggestions on GitHub Issues.",これらの命令はどこに役に立たなかった場合は、GitHubの問題に関するご提案で追加してください。
-"If you set this, this Item will come in a drop-down under the selected parent.",これを設定すると、この項目は選択された親の下にあるドロップダウンになるだろう。
-Ignore User Permissions,ユーザー権限を無視
-"Ignoring Item {0}, because a group exists with the same name!",グループは同じ名前で存在しているため、項目{0}を無視して！
-Image,イメージ
-Image Link,画像リンク
-Import,入力
-Import / Export Data,データのインポート/エクスポート
-Import / Export Data from .csv files.,インポート/エクスポートデータからの。CSVファイル。
-In,実際のところ、業界ではテスターより多くのプログラマーをチームにアサインすることが流行っている。つまり、テスターの仕事を開発者に移すことは決して悪いことではないのだ。自分たちのプロセスのボトルネックを解消することにつながるのだから。
-In Dialog,ダイアログで
-In Filter,フィルター中
-In List View,リストビューで
-In Report Filter,Report]フィルタ
-In points. Default is 9.,ポイント。デフォルトは9です。
-In response to,に応答して
-Incorrect value in row {0}: {1} must be {2} {3},行の誤った値が{0}：{1} {2} {3}でなければなりません
-Incorrect value: {0} must be {1} {2},不正な値：{0} {1} {2}でなければなりません
-Index,索引
-Individuals,個人
-Info,情報
-Insert After,の後に挿入
-"Insert After field '{0}' mentioned in Custom Field '{1}', does not exist",'{0}'カスタムフィールドに記載されている '{1}'、存在しないフィールドの後に挿入
-Insert Below,下に挿入
-Insert Code,コードを追加
-Insert Row,行の挿入
-Insert Style,スタイルを挿入します
-Install Applications.,アプリケーションをインストールします。
-Installed,インストール済み
-Installer,インストーラ
-Int,INT
-Integrations,インテグレーション
-Introduce your company to the website visitor.,ウェブサイトの訪問者にあなたの会社をご紹介します。
-Introduction,序論
-Introductory information for the Contact Us Page,お問い合わせページのための入門的な情報
-Invalid Email: {0},無効な電子メール：{0}
-Invalid Filter: {0},無効なフィルタ：{0}
-Invalid Home Page,無効なホームページ
-Invalid Login,無効なログイン
-Invalid Outgoing Mail Server or Port,無効な送信メールサーバーまたはポート
-Invalid login or password,無効なログインまたはパスワード
-Invalid recipient address,無効な受信者のアドレス
-Inverse,逆元
-Is Active,アクティブである
-Is Child Table,子表です
-Is Default,デフォルトは
-Is Event,イベントで
-Is Mandatory Field,必須フィールドです
-Is Single,シングルです
-Is Standard,規格です
-Is Submittable,Submittableです
-Is Task,課題である
-Item cannot be added to its own descendents,アイテムには独自の子孫に追加することはできません
-JavaScript Format: frappe.query_reports['REPORTNAME'] = {},JavaScriptの形式：frappe.query_reports ['REPORTNAME'] = {}
-Javascript,ジャバスプリクト
-Javascript to append to the head section of the page.,Javascriptをページの先頭のセクションに追加する。
-Key,キー (key)
-Label,ラベル
-Label Help,ラベルのヘルプ
-Label and Type,ラベルとタイプ
-Label is mandatory,ラベルは必須です
-Landing Page,リンク先ページ
-Language,言語
-Language preference for user interface (only if available).,ユーザーインターフェイスの言語設定（のみ利用可能な場合）。
-"Language, Date and Time settings",言語、日付と時刻の設定
-Last IP,最後のIP
-Last Login,最終ログイン
-Last Name,お名前（姓）
-Last updated by,最終更新者
-Lastmod,LASTMOD
-Lato,LATO
-Leave blank to repeat always,常に繰り返す空白のままにします
-Left,左
-Less or equals,以下か同等
-Less than,未満
-Letter,手紙
-Letter Head,レターヘッド（会社名•所在地などを便箋上部に印刷したもの）
-Letter Head Name,レターヘッドの名前
-Letter Head in HTML,HTMLでレターヘッド
-Level,レベル
-"Level 0 is for document level permissions, higher levels for field level permissions.",レベル0は、文書レベルのアクセス権のフィールドレベルのアクセス許可のためのより高いレベルである。
-Like,いいね！
-Link,リンク
-"Link that is the website home page. Standard Links (index, login, products, blog, about, contact)",ウェブサイトのホームページですリンク。標準リンク（インデックス、ログイン、商品、ブログ、約、コンタクト）
-Link to other pages in the side bar and next section,サイドバーとは、次のセクション内の他のページへのリンク
-Link to the page you want to open,開きたいページへのリンク
-Linked In Share,共有リンク
-Linked With,とリンク
-List,リスト
-List a document type,ドキュメントタイプを一覧表示します
-List of Web Site Forum's Posts.,Webサイトのフォーラムの投稿のリスト。
-Loading,読み込み中
-Loading Report,レポートを読み込み中
-Loading...,読み込んでいます...
-Localization,現地化
-Location,位置
-Log of error on automated events (scheduler).,自動化されたイベント（スケジューラ）にエラーのログ。
-Login,ログイン
-Login After,ログイン後
-Login Before,ログインする前に
-Login Id,ログインID
-Login not allowed at this time,この時点でログインは許可されていません。
-Logout,ログアウト
-Long Text,長いテキスト
-Low,低
-Lucida Grande,ルシーダグランデ
-Mail Password,メールパスワード
-Main Section,主なセクション
-Make a new,新しいを作成する
-Make a new record,新しいレコードを作る
-Male,男性
-Manage cloud backups on Dropbox,Dropboxの上の雲のバックアップを管理
-Manage uploaded files.,アップロードされたファイルを管理します。
-Mandatory,必須
-Mandatory fields required in {0},{0}に必要な必須フィールド
-Mandatory filters required:\n,必須フィルタは、必要な：\n
-Master,最上級レベル
-Max Attachments,最大添付ファイル
-Max width for type Currency is 100px in row {0},タイプの通貨のための最大幅は、行の100pxには{0}
-"Meaning of Submit, Cancel, Amend",の、送信キャンセル、改正の意味
-Medium,ふつう
-"Menu items in the Top Bar. For setting the color of the Top Bar, go to <a href=""#Form/Style Settings"">Style Settings</a>","トップバーのメニュー項目。トップバーの色を設定するため、もし、href=""#Form/Style Settings"">スタイル設定</ A>に行く"
-Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node,マージはグループ間またはリーフノードツーリーフノードとの間でのみ可能です
-Message,メッセージ
-Message Examples,メッセージの例
-Messages,メッセージ
-Method,方法
-Middle Name (Optional),ミドルネーム（オプション）
-Misc,その他
-Miscellaneous,その他
-Missing Values Required,必要な欠損値
-Modern,モダン
-Modified by,者
-Module,モジュール
-Module Def,モジュールデフ
-Module Name,モジュール名
-Module Not Found,モジュールが見つかりません
-Modules Setup,モジュールのセットアップ
-Monday,月曜日
-More,質問の
-More content for the bottom of the page.,ページの下のためのより多くのコンテンツ。
-Move Down: {0},下へ移動：{0}
-Move Up: {0},上へ移動：{0}
-Multiple root nodes not allowed.,複数のルートノードが許可されていません。
-Must have report permission to access this report.,このレポートにアクセスするには、レポートの権限が必要です。
-Must specify a Query to run,実行するクエリを指定する必要があります
-My Settings,私の設定
-Name,名前
-Name Case,名入れ
-Name and Description,名前と説明
-Name is required,名前が必要です
-Name not permitted,名前が許可されていません。
-Name not set via Prompt,名前プロンプトから設定されていません
-Name of the Document Type (DocType) you want this field to be linked to. e.g. Customer,このフィールドが、リンクしたい文書の種類（DocType）の名前。例えば顧客
-Name of {0} cannot be {1},{0}の名前は{1}にすることはできません
-Naming,命名
-Naming Series mandatory,シリーズに名付けることは必須です。
-Nested set error. Please contact the Administrator.,入れ子集合のエラー。管理者に連絡してください。
-New,新しい
-New Password,新しいパスワード
-New Record,新記録
-New comment on {0} {1},{0} {1}上の新しいコメント
-New password emailed,新しいパスワードが電子メールで送信
-New value to be set,新しい値を設定する必要
-New {0},新しい{0}
-Next Communcation On,次のCommuncationで
-Next Record,次のレコード
-Next State,次の状態
-Next actions,次のアクション
-No,いいえ
-No Action,何もしない
-No Communication tagged with this ,No Communication tagged with this 
-No Copy,コピーしない
-No Permissions set for this criteria.,いいえ権限は、この基準に設定されていません。
-No Report Loaded. Please use query-report/[Report Name] to run a report.,報告はロードされません。レポートを実行するためにクエリレポート/ [レポート名]を使用してください。
-No Results,がありませんでした
-No Sidebar,いいえサイドバーません
-No User Permissions found.,いいえユーザーのアクセス許可が見つかりませんでした。
-No data found,データーが見つかりません
-No file attached,添付ファイルがありません
-No further records,これ以上のレコードがない
-No one,誰も見ることができない
-No permission to '{0}' {1},権限がありません '{0}' {1}
-No permission to edit,編集する権限がありませんん
-No permission to write / remove.,書き込むための権限がありません/取り外さない。
-No records tagged.,レコードがタグ付けされていません。
-No template found at path: {0},パスに見つかりませんテンプレート：{0}
-No {0} permission,いいえ{0}許可しない
-None,なし
-None: End of Workflow,なし：ワークフローの終了
-Not Found,ページが見つかりません
-Not Linked to any record.,任意のレコードにリンクされていない。
-Not Permitted,許可されていません
-Not Submitted,提出していない
-Not a user yet? Sign up,まだユーザー？申込み
-Not a valid Comma Separated Value (CSV File),いない有効なカンマ区切り値（CSVファイル）
-Not allowed,許可されていない
-Not allowed from this IP Address,このIPアドレスから許可されていません
-Not allowed to Import,インポートするには許可されていません
-Not allowed to access {0} with {1} = {2},{0} {1} = {2}を使用してアクセスすることはできません
-Not allowed to change {0} after submission,提出後{0}を変更することはできません
-Not allowed to move,移動することはできません
-Not allowed to reset the password of {0},{0}のパスワードをリセットすることはできません
-Not enough permission to see links.,リンクを参照しないように十分な権限。
-Not equals,等しくない
-Not found,見つかりませんでした
-Not in Developer Mode! Set in site_config.json,ていない開発者モードで！site_config.jsonで設定
-Not permitted,許可されていません
-"Note: For best results, images must be of the same size and width must be greater than height.",注：最良の結果を得るには、画像が同じ大きさと幅のものでなければならない高さよりも大きくなければなりません。
-Note: Other permission rules may also apply,注意：他の許可ルールも適用される場合があります
-Note: maximum attachment size = 1mb,注：添付ファイルの最大サイズは1メガバイト=
-Nothing to show,表示するものがありません
-Nothing to show for this selection,この選択のために表示することは何もない
-Notification Count,通知回数
-Notify by Email,電子メールによる通知
-Number Format,数の書式
-Old Parent,古い親
-On,オン
-"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).",これを設定すると、ユーザーはでき、アクセス書類（例になりますリンクが存在するブログの記事）（例：ブロガー）。
-Only Administrator allowed to create Query / Script Reports,唯一の管理者は、クエリー/スクリプトレポートを作成することができ
-Only Administrator can save a standard report. Please rename and save.,唯一の管理者は、標準的なレポートを保存することができます。名前を変更し、保存してください。
-Only Allow Edit For,編集用のみを許可
-Only allowed {0} rows in one import,1インポートで唯一許可された{0}行
-Oops! Something went wrong,ああ、なんてことだ何かが間違っていた
-Open,位置打开
-Open Count,オープンカウント
-Open Sans,オープンサンズ
-Open Source Web Applications for the Web,Web用のオープンソースのWebアプリケーション
-Open a module or tool,モジュールまたはツールを開く
-Open {0},オープン{0}
-Optional: Alert will only be sent if value is a valid email id.,オプション：値が有効な電子メールIDである場合にアラートにのみ送信されます。
-Optional: Always send to these ids. Each email id on a new row,オプション：常にこれらのIDを送信します。新しい行の各電子メールID
-Optional: The alert will be sent if this expression is true,オプション：この式がtrueの場合、アラートが送信されます
-Options,オプション
-Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType',フィールドのオプション「ダイナミック·リンク '型'のDocType」などのオプションを別のリンクフィールドを指している必要があります
-Options Help,オプションのヘルプ
-Options for select. Each option on a new line. e.g.: <br>Option 1<br>Option 2<br>Option 3<br>,選択するためのオプション。新しい行に各オプション。例：検索オプション1検索オプション2検索オプション3検索
-Options must be a valid DocType for field {0} in row {1},オプションは{0}行{1}フィールドの有効なのDocTypeでなければなりません
-Options not set for link field {0},リンクフィールド{0}に設定されていないオプション
-Options requried for Link or Table type field {0} in row {1},リンクまたはテーブルタイプフィールド{0}行{1}のためにrequriedオプション
-Org History,ORG歴史
-Org History Heading,ORG歴史見出し
-Original Message,元のメッセージ
-Other,その他
-Outgoing Email Settings,送信電子メール設定
-Outgoing Mail Server,送信メールサーバー
-Outgoing Mail Server not specified,送信メールサーバー指定されていません
-Owner,所有者
-PDF Page Size,PDFのページサイズ
-PDF Settings,PDF設定
-POP3 Mail Server (e.g. pop.gmail.com),POP3メールサーバ（例えばpop.gmail.com）
-Page,ページ
-Page #{0} of {1},ページ＃{0}の{1}
-Page Background,ページの背景
-Page HTML,ページのHTML
-Page Header,ページ見出し
-Page Header Background,ページ見出しの背景
-Page Header Text,ページ見出しテキスト
-Page Links,ページへのリンク
-Page Name,ページ名
-Page Role,ページの役割
-Page Text,ページテキスト
-Page Title,ページ タイトル
-Page content,ページ内容
-Page not found,ページが見つかりません
-Page or Generator,ページまたはジェネレーター
-Page url name (auto-generated),ページURL名（自動生成された）
-Parent Label,親ラベル
-Parent Post,親ポスト
-Parent Website Page,親ウェブサイトのページ
-Parent Website Route,親サイトルート
-Parent Website Sitemap,親ウェブサイトのサイトマップ
-Participants,参加者
-Password,パスワード
-Password Updated,パスワード更新
-Password reset instructions have been sent to your email,パスワードのリセット命令は、あなたの電子メールに送られてきた
-Patch,Patch
-Patch Log,パッチログ
-Percent,割合（%）
-Perm Level,パーマレベル
-Permanently Cancel {0}?,永久に{0}をキャンセルしますか？
-Permanently Submit {0}?,永久に{0}を提出？
-Permanently delete {0}?,永久に{0}を削除しますか？
-Permission Level,権限レベル
-Permission Levels,アクセス権レベル
-Permission Rules,許可ルール
-Permission already set,許可が既に設定されている
-Permissions,アクセス許可
-Permissions Settings,[アクセス許可の設定]
-Permissions are automatically translated to Standard Reports and Searches.,許可は、自動的に標準レポートおよび検索に変換されます。
-"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions.",許可は、レポート、インポート、エクスポート、印刷、電子メール、および設定ユーザー権限、改正、キャンセル、送信、削除、作成、書き込み、読み出しのような権利を設定することで、役割とドキュメントタイプ（文書型と呼ばれます）に設定されている。
-Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles.,より高いレベルでのアクセス権は、「フィールドレベルの権限である。すべてのフィールドが、それらと権限がフィールドに適用されることで定義されたルールに対して設定する」権限レベルを「持っている。あなたは非表示にしたり、特定のフィールドは読み取り専用に特定のロールのためにしたい場合に便利です。
-"Permissions at level 0 are 'Document Level' permissions, i.e. they are primary for access to the document.",レベル0の権限は、彼らが文書へのアクセスのための主要である。すなわち、「ドキュメントレベルの権限である。
-Permissions get applied on Users based on what Roles they are assigned.,許可は、それらが割り当てられているどのような役割に基づいてユーザーに適用されます。
-Permitted Documents For User,ユーザーに許可文書
-Person,人
-Personal Info,個人情報
-Phone,電話
-Phone No.,電話番号
-Pick Columns,列を選択してください
-Picture URL,画像のURL
-Pincode,郵便番号
-Please attach a file first.,最初のファイルを添付してください。
-Please attach a file or set a URL,ファイルを添付またはURLを設定してください
-Please do not change the rows above {0},{0}の上の行を変更しないでください
-Please enable pop-ups,ポップアップを有効にしてください
-Please enter Event's Date and Time!,イベントの日付と時刻を入力してください！
-Please enter both your email and message so that we \				can get back to you. Thanks!,\nあなたに戻って取得することができます|我々は、あなたの電子メールとメッセージの両方を入力してください。よろしくお願いいたします。
-Please enter some text!,テキストを入力してください！
-Please enter title!,タイトルを入力してください！
-Please login to Upvote!,Upvoteするにはログインしてください！
-Please make sure that there are no empty columns in the file.,空の列がファイル内に存在しないことを確認してください。
-Please refresh to get the latest document.,最新のドキュメントを取得するために更新してください。
-Please reply above this line or remove it if you are replying below it,この行の上ご返信や、その下に返信している場合はそれを削除してください
-Please select a file or url,ファイルまたはURLを選択してください
-Please select atleast 1 column from {0} to sort,ソートする{0}から少なくとも1列を選択してください
-Please set {0} first,最初の{0}を設定してください
-Please specify,記入してしてください。
-Please specify 'Auto Email Id' in Setup > Outgoing Email Settings,>セットアップで送信電子メール設定を「自動電子メールID」を指定してください
-Please specify Event date and time,イベントの日付と時刻を指定してください
-Please specify doctype,DOCTYPEを指定してください
-Please specify user,ユーザーを指定してください
-Please specify which date field must be checked,フィールドがチェックされなければならない日付を指定してください
-Please specify which value field must be checked,値フィールドをチェックする必要がありますを指定してください
-Please upload using the same template as download.,ダウンロードとして同じテンプレートを使用してアップロードしてください。
-Plugin,プラグイン
-Port,ポート
-Post,投稿
-Post Publicly,一般公開のバズを投稿
-Post Topic,スレッドを投稿
-Post already exists. Cannot add again!,ポストはすでに存在しています。再び追加することはできません！
-Post does not exist. Please add post!,ポストは存在しません。ポストを追加してください！
-Post to user,ユーザへ投稿
-Posts,投稿
-Previous Record,これまでの記録
-Primary,プライマリー：アップライトロー
-Print,いんｓ
-Print Format,印刷様式
-Print Format Help,印刷形式のヘルプ
-Print Format Type,印刷フォーマットタイプ
-Print Format {0} does not exist,印刷形式は{0}が存在しません
-Print Format {0} is disabled,印刷形式{0}が無効になっています
-Print Hide,印刷隠す
-Print Settings,印刷の設定
-Print Style,印刷スタイル
-Print Style Preview,印刷スタイルプレビュー
-Print Width,印字幅
-"Print with Letterhead, unless unchecked in a particular Document",、レターヘッドに印刷しない限り、特定の文書に含まれる未チェック
-Print...,印刷...
-Printing and Branding,印刷とブランディング
-Priority,優先度
-Private,プライベート
-Properties,プロパティ
-Property,財産
-Property Setter,プロパティセッター
-Property Type,プロパティ タイプ
-Public,一般公開
-Published,公開済み
-Published On,上で公開
-Published on website at: {0},のウェブサイト上で公開：{0}
-Pull Emails from the Inbox and attach them as Communication records (for known contacts).,受信トレイからメールを引いて（知らコンタクト用）通信記録として取り付けます。
-Query,質問
-Query Options,クエリーオプション
-Query Report,クエリ レポート
-Query must be a SELECT,質問は、セレクトでなければなりません。
-Quick Help for Setting Permissions,アクセス権を設定するためのクイックヘルプ
-Quick Help for User Permissions,ユーザーのアクセス許可のためのクイックヘルプ
-Re-open,再オープン
-Read,読む
-Read Only,読み取りのみ
-Received,受信
-Recipient,受信者
-Recipients,受信者
-Record does not exist,レコードが存在しません
-Ref DocType,REFのDocType
-Ref Name,REF名前
-Ref Type,ref型
-Reference,リファレンス
-Reference DocName,リファレンスDOCNAME
-Reference DocType,参照文書型
-Reference Name,参照名
-Reference Type,参照タイプ
-Refresh,リフレッシュ
-Refreshing...,さわやかな...
-Registered but disabled.,登録されるが、使用不可。
-Registration Details Emailed.,登録の詳細は電子メールで送信。
-Reload Page,ページを再ロード
-Remove Bookmark,ブックマークを削除する
-Remove all customizations?,すべてのカスタマイズを削除しますか？
-Rename many items by uploading a .csv file.,csvファイルをアップロードして多くの項目の名前を変更します。
-Rename...,名前の変更...
-Repeat On,を繰り返し
-Repeat Till,繰り返しティル
-Repeat this Event,このイベントを繰り返します
-Replies,返信
-Report,レポート
-Report Builder,レポートビルダ
-Report Builder reports are managed directly by the report builder. Nothing to do.,レポートビルダのレポートは、レポートビルダーによって直接管理されている。何の関係もない。
-Report Hide,レポートを隠す
-Report Name,レポート名
-Report Type,レポート タイプ
-Report an Issue,問題を報告
-Report cannot be set for Single types,報告書は、単一の種類を設定することはできません
-Report this issue,この問題を報告
-Report was not saved (there were errors),報告書は、（エラーが発生した）保存されませんでした
-Reqd,REQD
-Reset Password Key,パスワードキーをリセットする
-Reset Permissions for {0}?,{0}のアクセス許可をリセットしますか？
-Response,レスポンス
-Restrict IP,IPアドレスを制限する
-Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111),このIPアドレスのみからユーザを制限します。複数のIPアドレスは、カンマで区切ることにより追加することができます。また、（111.111.111）のような部分的なIPアドレスを受け入れ
-Right,右
-Role,役割
-Role Name,役割名
-Role Permissions Manager,ロールのパーミッションマネージャ
-Role and Level,役割とレベル
-Role exists,役割が存在します
-Roles,条件設定
-Roles Assigned,割り当てられた役割
-Roles Assigned To User,ユーザーに割り当てられたロール
-Roles HTML,役割のHTML
-Roles can be set for users from their User page.,役割は、ユーザーページからユーザーが設定することができます。
-Root {0} cannot be deleted,ルート{0}を削除することはできません
-Row,行
-Row #{0}:,行番号{0}：
-Rules defining transition of state in the workflow.,ワークフローの状態の遷移を定義するルール。
-"Rules for how states are transitions, like next state and which role is allowed to change state etc.",次の状態と役割、状態をなどを変更することが許可されているような状態は、遷移であるかについての規則
-Run scheduled jobs only if checked,スケジュールされたジョブを実行して確認した場合にのみ
-Run the report first,最初のレポートを実行します。
-SMTP Server (e.g. smtp.gmail.com),SMTPサーバー（例：smtp.gmail.com）
-Sales,販売
-Same file has already been attached to the record,同じファイルが既に記録に添付されています
-Sample,例
-Saturday,土曜日 
-Save,保存
-Scheduler Log,スケジューラログ
-Script,スクリプト
-Script Report,スクリプトレポート
-Script Type,スクリプトタイプ
-Search,検索
-Search Fields,検索フィールド
-Search in a document type,ドキュメントタイプで検索
-Search or type a command,コマンドを検索または入力し
-Section Break,セクション区切り
-Security,セキュリティ
-Security Settings,セキュリティ設定
-Select,選択する
-Select All,すべて選択
-Select Attachments,添付ファイルを選択します。
-Select Document Type,ドキュメントの種類を選択
-Select Document Type or Role to start.,開始するドキュメントタイプまたはロールを選択します。
-Select Print Format,印刷形式を選択
-Select Report Name,レポート名を選択
-Select Role,[役割
-Select To Download:,ダウンロードを選択：
-Select Type,タイプを選択
-Select User or DocType to start.,開始するにはユーザーまたはのDocTypeを選択します。
-Select a Banner Image first.,最初のバナー画像を選択します。
-Select an image of approx width 150px with a transparent background for best results.,最良の結果を得るための透明な背景を持つ約幅150ピクセルの画像を選択します。
-Select dates to create a new ,Select dates to create a new 
-"Select modules to be shown (based on permission). If hidden, they will be hidden for all users.",（許可に基づいて）表示されるようにモジュールを選択します。隠された場合は、すべてのユーザーに対して非表示になります。
-Select or drag across time slots to create a new event.,選択するか、新規イベントを作成するためのタイムスロットをドラッグ。
-"Select target = ""_blank"" to open in a new page.","新しいページで開くように選択し、ターゲット= ""_blank""。"
-Select the label after which you want to insert new field.,新しいフィールドを挿入したい後にラベルを選択します。
-Send,送信
-Send Alert On,警戒を送ってください
-Send As Email,電子メールとして送信する
-Send Email,メールを送信
-Send Email Print Attachments as PDF (Recommended),PDFとしてメールで送信パンフレットを印刷添付ファイルを送信する（推奨）
-Send Me A Copy,コピーを送ってください
-Send Password,パスワードを送信
-Send Print as PDF,PDFとして印刷を送る
-Send alert if date matches this field's value,日付は、このフィールドの値と一致した場合にアラートを送信
-Send alert if this field's value changes,アラートを送信し、このフィールドの値が変更された場合
-Send an email reminder in the morning,午前中にメールリマインダーを送る
-Send download link of a recent backup to System Managers,システム管理者への最新のバックアップのダウンロードリンクを送信
-Send enquiries to this email address,このメールアドレスに問い合わせ先】
-Sender,送信者
-Sent,送信済み
-Sent Mail,送信済みメール
-Sent Quotation,送信された引用
-Sent or Received,送信または受信
-Series,シリーズ
-Series {0} already used in {1},シリーズは、{0}はすでに{1}で使用
-Server,サーバー
-Server & Credentials,サーバー＆資格
-Server Error: Please check your server logs or contact tech support.,サーバーエラー：サーバーのログを確認するか、技術サポートに連絡してください。
-Session Expired. Logging you out,セッションの期限が切れました。あなたをログアウト
-Session Expiry,セッションの有効期限
-Session Expiry in Hours e.g. 06:00,午前6時00分など時間内のセッションの有効期限
-Session Expiry must be in format {0},セッションの有効期限はフォーマットでなければなりません{0}
-Set Banner from Image,画像からバナーを設定
-Set Link,設定されたリンク
-Set Login and Password if authentication is required.,認証が必要な場合は、ログインしてパスワードを設定します。
-Set Only Once,度だけ設定
-Set Password,パスワードを設定
-Set Permissions on Document Types and Roles,ドキュメントの種類と役割にアクセス許可を設定
-Set Permissions per User,ユーザーごとに設定された権限
-Set User Permissions,設定したユーザーのアクセス権
-Set Value,設定値
-"Set default format, page size, print style etc.",設定されたデフォルトの書式、ページサイズ、印刷スタイル等
-Set numbering series for transactions.,トランザクションのための一連の番号に設定します。
-Set outgoing mail server.,送信メールサーバーを設定します。
-Settings,設定
-Settings for About Us Page.,会社概要ページの設定。
-Settings for Contact Us Page.,お問い合わせページの設定。
-Setup,セットアップ
-Setup > User,[設定]> [ユーザー
-Setup > User Permissions Manager,[設定]> [ユーザーのアクセス許可の管理
-Setup Email Alert based on various criteria.,様々な基準に基づいて設定電子メール警告。
-Setup of fonts and background.,フォントや背景の設定。
-"Setup of top navigation bar, footer and logo.",上部のナビゲーションバー、フッター、ロゴの設定。
-Short Bio,短いバイオ
-Short Name,略式名
-Shortcut,ショートカット
-Show / Hide Modules,表示/非表示モジュール
-Show Print First,まず印刷を表示
-Show Tags,表示するタグ
-Show or hide modules globally.,グローバルモジュールの表示と非表示を切り替える。
-Show rows with zero values,ゼロの値を持つ行を表示
-Show tags,表示するタグ
-Show this field as title,タイトルとして、このフィールドを表示する
-Showing only for (if not empty),唯一の（空でない場合）のために表示
-Sidebar,サイドバー
-Sidebar Items,サイドバーのアイテム
-Sidebar Links for Home Page only,ホームページ用のサイドバーのリンクのみ
-Sign Up,登録
-Sign in,ログイン
-Sign up,申込み
-Single Post (article).,シングルポスト（記事）。
-Single Types have only one record no tables associated. Values are stored in tabSingles,シングルタイプはテーブルが関連付けられていない唯一の記録がある。値がtabSinglesに格納されてい
-Sitemap Browser,サイトマップブラウザー
-Slideshow,スライドショー（一連の画像を順次表示するもの）
-Slideshow Items,スライドショー項目
-Slideshow Name,スライドショーの名前
-Small Text,小さなテキスト
-Social Login Keys,社会ログインキー
-Solid background color (default light gray),単色の背景色（デフォルトのライトグレー）
-Sorry we were unable to find what you were looking for.,申し訳ありませんが、我々はあなたが探していたものを見つけることができませんでした。
-Sorry you are not permitted to view this page.,申し訳ありませんが、あなたはこのページを表示することはできません。
-Sort By,並べ替え
-Sort Field,ソートフィールド
-Sort Order,並び替え順
-Standard,スタンダード
-Standard Print Format cannot be updated,標準の印刷フォーマットを更新することはできません
-Standard Reply,標準に返信
-Standard Reports,標準レポート
-Standard replies to common queries.,標準では、一般的なクエリに応答します。
-Start Report For,のレポートを開始します
-Starts on,で開始
-State,都道府県
-States,ステート
-"States for workflow (e.g. Draft, Approved, Cancelled).",ワークフローの状態（例えばドラフト、承認、キャンセル）。
-Static File Timestamp,静的ファイルのタイムスタンプ
-Status,ステータス
-Step 1: Set the name and save.,ステップ1：名前を設定し、保存します。
-Step 2: Set Letterhead content.,ステップ2：レターの内容を設定します。
-Style,スタイル
-Style Settings,スタイル設定
-"Style represents the button color: Success - Green, Danger - Red, Inverse - Black, Primary - Dark Blue, Info - Light Blue, Warning - Orange",スタイルはボタンの色を表しています。成功 - グリーン、危険 - 赤、逆 - ブラック、プライマリ - ダークブルー、情報 - ライトブルー、警告 - オレンジ
-Sub-domain provided by erpnext.com,erpnext.comが提供するサブドメイン
-Subdomain,サブドメイン
-Subject,テーマ
-Submit,送信
-Submit an Issue,問題を送信
-Submitted,提出
-Submitted Document cannot be converted back to draft. Transition row {0},送信されたドキュメントは、ドラフトに逆変換することができません。遷移行{0}
-Success,成功
-Suggestion,連想
-Sunday,日曜日
-Switch to Website,ウェブサイトへの切り替え
-Sync Inbox,同期受信トレイ
-System,システム
-System Settings,システム設定
-System User,システムユーザー
-System and Website Users,システムとウェブサイトユーザー
-System generated mails will be sent from this email id.,システム生成されたメールは、この電子メールIDから送信されます。
-Table,表（テーブル）
-Table {0} cannot be empty,表{0}を空欄にすることはできません。
-Tag,タグ（札／マークする）
-Tag Name,タグ名（札名）
-Tags,タグ（札／マークする）
-Tahoma,MS Pゴシック
-Target,ターゲット／標的／目標
-Tasks,タスク／仕事／任務
-Team Members,チームメンバー
-Team Members Heading,チームメンバーの見出し
-Template,テンプレート（パソコンのデータ版で資料作成時などに役立つ定型的な表や書式のこと）
-Template Pages cannot be moved,テンプレートページを移動することはできません
-Test,テスト
-Test Runner,テストランナー／テストを実行する人。
-Text,文章／メッセージ
-Text Align,文章を行を整える。
-Text Editor,文章の編集。
-Thank you for your message,メッセージをありがとうございました。
-The name of your company / website as you want to appear on browser title bar. All pages will have this as the prefix to the title.,あなたの会社/ウェブサイトの名前は、観覧者のタイトルバーに表示されます。すべてのページにタイトルの接頭辞として、これが付きます。
-The system provides many pre-defined roles. You can add new roles to set finer permissions.,このシステムは、多くの事前定義された機能／役割を提供しています。あなたは細かい権限を設定するための新しい機能／役割を追加することができます。
-Then By (optional),それまでに（オプション／任意の）
-There should remain at least one System Manager,少なくとも1つのシステム·マネージャーが残っているはずです。
-There were errors,エラーが発生しました
-There were errors while sending email. Please try again.,メールの送信中にエラーが発生しました。もう一度お試しください。
-"There were some errors setting the name, please contact the administrator",名前の設定で多少のエラーが発生しました。管理者に連絡してください。
-"These permissions will apply for all transactions where the permitted record is linked. For example, if Company C is added to User Permissions of user X, user X will only be able to see transactions that has company C as a linked value.",これらの権限は許可記録がリンクされているすべての取引に適用されます。例えば、C社がユーザXのユーザー権限に追加された場合、ユーザXだけがC社のリンクされた取引を見ることができます。
-These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,これらの値は自動的に処理の段階で更新され、また取引にこの値が含まれているユーザーの権限を制限するのに役立つでしょう。
-"These will also be set as default values for those links, if only one such permission record is defined.",許可記録が定義されている場合のみ、それらのリンクは既定値として設定される。
-Third Party Authentication,第三者認証
-This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>myfieldeval:doc.myfield=='My Value'<br>eval:doc.age>18,ここで定義されたフィールド名が値を持っているかのルールが真（例）している場合にのみ、このフィールドが表示されます：検索 myFieldという評価：doc.myfield == '私の値'検索評価： doc.age> 18
-This goes above the slideshow.,これは、スライドショーの上にいきます。
-This is PERMANENT action and you cannot undo. Continue?,これは固定された行動／作業であり、あなたが取り消すことはできません。続行しますか？
-"This is a standard format. To make changes, please copy it make make a new format.",これは標準的な形式です。修正する場合は、これをコピーして新しい形式を作成して下さい。
-This is permanent action and you cannot undo. Continue?,これは永久的な行動であり、あなたは元に戻すことはできません。続行しますか。
-This must be checked if Style Settings are applicable,スタイル設定を使用する場合、これは確認して下さい。
-This role update User Permissions for a user,これはユーザーのためにユーザー許可を更新する役割です。
-Thursday,木曜日
-Tile,タイル
-Time,時間
-Time Zone,時間帯
-Timezone,時間帯
-Title,タイトル／題
-Title / headline of your page,あなたのページの題/見出し
-Title Case,見出しの大文字指定
-Title Field,タイトルフィールド／欄のタイトル
-Title Prefix,接頭辞のタイトル
-Title field must be a valid fieldname,タイトルフィールド（欄のタイトル）は、有効なフィールド名（欄名）である必要があります。
-Title is required,題を入力下さい。
-To,"〜宛。
-"
-To Do,するために
-"To format columns, give column labels in the query.",フォーマットのコラム（縦の列）に、質問の標識を設ける。
-"To give acess to a role for only specific records, check the 'Apply User Permissions'. User Permissions are used to limit users with such role to specific records.",特定な記録用の任務にアクセスを与えるためには、「ユーザー許可の適用」をチェックして下さい。ユーザー許可は特定の記録用の役割を持っているユーザーだけに使用されます。
-"To run a test add the module name in the route after '{0}'. For example, {1}",テストを実行するには、 '{0}'の後にルートにモジュール名を追加します。たとえば、{1}
-ToDo,するために／するための
-Too many writes in one request. Please send smaller requests,1つの要求書に記入が多すぎます。要求内容を小さくして送信してください。
-Top Bar,トップバー
-Top Bar Background,トップバーの背景
-Top Bar Item,トップバーの項目
-Top Bar Items,トップバーの項目
-Top Bar Text,トップバーのテキスト
-Top Bar text and background is same color. Please change.,トップバーのテキストと背景が同じ色である。変更してください。
-Transaction,取引
-Transition Rules,移行ルール
-Tuesday,火曜日
-Tweet will be shared via your user account (if specified),（指定されている場合）のつぶやきは、自分のユーザーアカウントを介して共有されます
-Twitter Share,Twitterで共有
-Twitter Share via,Twitterで共有経由
-Type,データ型
-Unable to find attachment {0},添付ファイル{0}が見つかりません
-Unable to load: {0},{0}を読み取ることが出来ません。
-Unable to open attached file. Please try again.,添付ファイルを開くことができません。もう一度お試しください。
-Unable to send emails at this time,メールを送信することができません。
-Unknown Column: {0},不明なコラム：{0}
-"Unknown file encoding. Tried utf-8, windows-1250, windows-1252.",未知のファイルのエンコーディング（符号化）。UTF-8、Windowsベース1250、Windowsベース1252を試し済み。
-Unread Messages,未読メッセージ
-Unsubscribe,購読解除
-Unsubscribed,購読解除
-Upcoming Events for Today,今日すべき事柄。
-Update,更新
-Update Field,フィールド（欄）の更新
-Update Value,値の更新
-Updated,更新済み
-Upload,アップロード（手元のデータをメインのコンピューターに送ること。）
-Upload Attachment,添付ファイルをアップロード（添付ファイルをメインのコンピューターに送信する。）
-Upload CSV file containing all user permissions in the same format as Download.,ダウンロードと同じ形式に、全ユーザーのアクセス許可を含むCSVファイルをアップロードします。
-Upload a file,ファイルのアップロード。（ファイルをメインのコンピューターに送信すること。）
-Upload and Import,アップロード（手元のデータをメインのコンピューターに送信すること。）とインポート（取り込む）
-Upload and Sync,アップロードと同期
-Uploading...,アップロードしています...（手元のコンピューターのデータをメインのコンピューターに送信中）
-Upvotes,Upvotes
-Use TLS,TLS（通信経路を記号化し、デジタル証明書の受け渡しによって相互確認を行う方式）を使用
-User,ユーザー（使用者）
-User Cannot Create,ユーザーは作成できません。
-User Cannot Search,ユーザーが検索することはできません
-User Defaults,ユーザー·デフォルト設定(初期設定）
-User ID of a blog writer.,ブログライターのユーザーID。
-User Image,ユーザー画像（利用者の人物紹介画像）
-User Permission,ユーザーのアクセス許可
-User Permissions,ユーザーのアクセス許可
-User Permissions Manager,ユーザー（利用者）へ許可を与えるの管理人
-User Roles,ユーザーの役割
-User Tags,ユーザータグ(札／マーク付け）
-User Type,ユーザー タイプ（利用者の種類）
-"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ",ユーザータイプ''システムユーザー’’はデスクトップにアクセス（接続）が可能。''ウェブサイトユーザー’’のみメインページへのログイン（入室）が可能。
-User Vote,ユーザー投票
-User not allowed to delete {0}: {1},ユーザーは{0}：{1}を削除することはできません。
-User permissions should not apply for this Link,ユーザー（利用者）はこのリンクへのアクセスを許可されていません。
-User {0} cannot be deleted,ユーザー{0}を削除することはできません
-User {0} cannot be disabled,ユーザー{0}無効にすることはできません
-User {0} cannot be renamed,ユーザー{0}の名前を変更できません
-User {0} does not exist,ユーザー{0}は存在しません
-UserRole,ユーザーの役割（利用者の役割）
-Users and Permissions,ユーザーと許可
-Users with role {0}:,ユーザー（利用者）と役割／任務{0}：
-Valid Login id required.,有効なログインIDが必要です。
-Valid email and name required,有効なメールアドレスと名前が必要です。
-Value,値
-Value Change,値変更
-Value Changed,値を変更済み
-Value cannot be changed for {0},{0}の値は変更することはできません。
-Value for a check field can be either 0 or 1,チェックフィールドの値は0または1のいずれかになります
-Value missing for,の値の記入漏れ。
-Verdana,ヴァーダナ(視認性向上のために開発された書体）
-Version,バージョン／版
-Version restored,復元版
-View or manage Website Route tree.,ウェブサイトの系図経路の表示または管理。
-Visit,観覧／アクセス
-Warning,警告
-Warning: This Print Format is in old style and cannot be generated via the API.,警告：古い印刷書式のため、APIを介して生産することはできません。
-Web Page,ウェブページ
-Web Site Forum Page.,ウェブサイトの掲示板
-Website,ウェブサイト
-Website Group,ウェブサイトのグループ
-Website Route,ウェブルート（経路）
-Website Route Permission,ウェブサイトルートの許可
-Website Script,ウェブサイトのスクリプト(処理手順プログラム）
-Website Settings,Webサイト設定
-Website Slideshow,ウェブサイトのスライドショー
-Website Slideshow Item,ウェブサイトのスライドショーアイテム
-Website User,ウェブサイトのユーザー（利用者）
-Wednesday,水曜日
-Welcome email sent,ウェルカムメール（歓迎メール）が送信されました。
-"When you Amend a document after Cancel and save it, it will get a new number that is a version of the old number.",キャンセル後、書類を訂正し保存することで更新された書類は古い番号から新規の番号を取得します。
-Width,幅
-Will be used in url (usually first name).,URLで使用されます。（通常名前で表記されます）
-With Groups,グループと
-With Ledgers,元帳と
-With Letterhead,レターヘッド付き（会社名•所在地などを便箋上部に印刷したもの。）
-Workflow,作業の流れ
-Workflow Action,ワークフローアクション
-Workflow Action Name,ワークフローアクション名
-Workflow Document State,ワークフロードキュメントの状態
-Workflow Document States,ワークフロードキュメントの状態
-Workflow Name,ワークフロー名
-Workflow State,ワークフローの状態
-Workflow State Field,ワークフローの欄の状態
-Workflow Transition,ワークフロートランジション（仕事の流れの変遷）
-Workflow Transitions,ワークフロートランジション（仕事の流れの変遷）
-Workflow will start after saving.,ワークフローは保存した後に開始されます。
-Write,書き込む
-Write a Python file in the same folder where this is saved and return column and result.,パイソンファイルをそれが保存されている同じフォルダーに保存し、コラム（縦の行）と数値を報告する。
-Write a SELECT query. Note result is not paged (all data is sent in one go).,SELECTクエリ（質問）の記入。結果／返答は一度にまとめて送られてきます。
-Write titles and introductions to your blog.,あなたのブログにタイトルと紹介文を記載して下さい。
-Writers Introduction,作家紹介
-Year,年
-Yes,はい
-Yesterday,昨日
-You are not allowed to create / edit reports,レポートを作成／編集することが許可されていません。
-You are not allowed to export the data of: {0}. Downloading empty template.,{0}のデータを出力することはできません。テンプレート（空白の定型書式ファイル）をダウンロードしています。
-You are not allowed to export this report,この記事を出力することが許可されていません。
-You are not allowed to print this document,この文書を印刷することが許可されていません。
-You are not allowed to send emails related to this document,この書類に関連するメールを送信することが許可されていません。
-"You can change Submitted documents by cancelling them and then, amending them.",書類を取り消し、修正することによって提出した書類を変更することができます。
-You can use Customize Form to set levels on fields.,欄の制限を設定できるカスタマイズフォームを使用することができます。
-You can use wildcard %,ワイルドカードの（％）を使用することができます
-You cannot install this app,このアプリ（プログラム）をインストール（取り込む）することはできません
-You have unsaved changes in this form. Please save before you continue.,この書式に保存されていない変更事項があります。継続する前に、保存してください。
-You need to be logged in and have System Manager Role to be able to access backups.,"ログインして,’’システムマネージャロー（機能）’’でバックアップにアクセス（接続）できるようにする必要があります。"
-You need write permission to rename,名前を変更するために許可書を書く必要があります
-You seem to have written your name instead of your email. \					Please enter a valid email address so that we can get back.,メールアドレスの代わりに自分の名前を書かれているようです。\　連絡が取れる有効なメールアドレスを入力してください。
-"Your download is being built, this may take a few moments...",ダウンロード中。これはしばらくお待ち下さい。
-[Label]:[Field Type]/[Options]:[Width],[ラベル]：[フィールドタイプ] / [オプション]：[幅]
-[Optional] Send the email X days in advance of the specified date. 0 equals same day.,[オプション]指定した日付の前に電子メールのX日に送信します。 0は同じ日に等しい。
-add your own CSS (careful!),独自のCSSを追加（careful!）
-adjust,調整する
-align-center,揃えセンター
-align-justify,揃える詰め
-align-left,揃える左
-align-right,揃え右
-and,そして友人たち！
-arrow-down,矢印ダウン
-arrow-left,矢印左
-arrow-right,矢印右
-arrow-up,矢印アップ
-asterisk,アスタリスク
-backward,後方
-ban-circle,BAN-CIRCLE
-barcode,バーコード
-beginning with,で始まる
-bell,鐘
-bold,bold
-book,本
-bookmark,ブックマーク
-briefcase,書類鞄
-bullhorn,拡声器
-calendar,経済指標の発表を意識することです
-camera,カメラ
-certificate,証明書
-check,小切手
-chevron-down,シェブロンダウン
-chevron-left,シェブロン左
-chevron-right,シェブロンの右
-chevron-up,シェブロンアップ
-circle-arrow-down,サークル矢印ダウン
-circle-arrow-left,サークル矢印左
-circle-arrow-right,円形矢印右
-circle-arrow-up,サークル矢印アップ
-cog,歯
-comment,コメント
-comments,注釈
-dd-mm-yyyy,DD-MM-YYYY
-dd.mm.yyyy,DD.MM.YYYY
-dd/mm/yyyy,yyyy / mm / dd
-download,ダウンロード
-download-alt,ダウンロード-ALT
-edit,編集
-eject,イジェクト
-envelope,封筒
-exclamation-sign,感嘆符記号
-eye-close,目を閉じる
-eye-open,目をオープン
-facetime-video,FaceTimeのビデオ
-fast-backward,早戻し
-fast-forward,早送り
-file,ファイル
-film,フィルム
-filter,filter
-fire,火災
-flag,flag
-folder-close,フォルダを閉じる
-folder-open,フォルダを開ける
-font,font
-forward,まえがき
-found,発見
-fullscreen,フルスクリーン
-gift,ギフト
-glass,ガラス
-globe,地球
-hand-down,簡単に
-hand-left,手で左
-hand-right,手で右
-hand-up,手渡す
-hdd,HDD
-headphones,ヘッドフォン
-heart,心
-home,ホーム
-icon,icon
-inbox,受信トレイ
-indent-left,インデント左
-indent-right,インデント右
-info-sign,インフォサイン
-is not allowed.,許可されていません。
-italic,斜体
-leaf,葉
-lft,LFT
-list,リスト
-list-alt,リスト-ALT
-lock,ロック
-lowercase,小文字
-magnet,マグネット
-map-marker,マップマーカー
-memcached is not working / stopped. Please start memcached for best results.,memcachedが動作していない/停止しました。最良の結果を得るためのmemcachedを起動してください。
-minus,マイナス
-minus-sign,マイナス記号
-mm-dd-yyyy,MM-DD-YYYY
-mm/dd/yyyy,年/月/日
-move,移動
-music,音楽
-none of,のどれも
-off,オフ
-ok,OK
-ok-circle,OK-サークル
-ok-sign,OKサイン
-one of,いず
-or,または
-pause,休止
-pencil,鉛筆
-picture,絵
-plane,飛行機
-play,再生
-play-circle,演劇サークル
-plus,PLUS
-plus-sign,プラス記号
-print,print
-qrcode,QRコード
-question-sign,質問記号
-random,ランダム
-refresh,更新
-remove,削除
-remove-circle,取り外しサークル
-remove-sign,削除記号
-repeat,リピート
-resize-full,サイズ変更、フル
-resize-horizontal,サイズ変更、水平
-resize-small,サイズ変更小
-resize-vertical,サイズ変更、垂直
-retweet,リツイートする
-rgt,RGT
-road,道路
-screenshot,スクリーンショット
-search,検索
-share,シェア
-share-alt,株式ALT
-shopping-cart,ショッピング·カート
-signal,signal
-star,スター
-star-empty,星型の空
-step-backward,ステップ後方
-step-forward,ステップフォワード
-stop,配信の停止
-tag,タグ
-tags,タグ
-"target = ""_blank""","ターゲット= ""空白"""
-tasks,タスク
-text-height,文章の高さ
-text-width,テキスト幅
-th,目
-th-large,TH-ラージ
-th-list,TH-リスト
-thumbs-down,不賛成
-thumbs-up,賛成
-time,time
-tint,色合い／色調
-to,上を以下のように変更します。
-trash,ごみ
-upload,アップロード
-use % as wildcard,ワイルドカードとして％を使用して下さい。
-user,ユーザー
-user_image_show,ユーザー（利用者）画像の表示。
-values and dates,値と日付
-values separated by commas,"カンマ(,)で区切られた値"
-volume-down,音量を落とす
-volume-off,無音／音量を消す。
-volume-up,音量を上げる。
-warning-sign,警告サイン
-wrench,レンチ（ねじ回し）
-yyyy-mm-dd,年／月／日
-zoom-in,ズームアップ
-zoom-out,ズームアウト
-{0} List,{0}リスト
-{0} added,{0}を追加
-{0} by {1},{0}と{1}
-{0} cannot be set for Single types,{0}シングルタイプに設定することはできません
-{0} does not exist in row {1},{0}の行に存在しません{1}
-{0} in row {1} cannot have both URL and child items,{0}行目の{1} URLと子項目の両方を持つことはできません
-{0} is not a valid email id,{0}は有効な電子メールIDはありません
-{0} is required,{0}が必要である
-{0} is saved,{0}に保存されている
-{0} must be one of {1},{0} {1}のいずれかである必要があります
-{0} must be set first,{0}最初に設定する必要があります
-{0} not a valid State,{0}は有効な状態
-{0} not allowed in fieldname {1},{0}フィールド名では許可されていない{1}
-{0} not allowed in name,{0}の名前では使用できません
-{0} not allowed to be renamed,{0}名前を変更することは許されない
-{0} updated,{0}に更新
-{0} {1} already exists,{0} {1}はすでに存在しています
-"{0} {1} cannot be ""{2}"". It should be one of ""{3}""","{0} {1} ""{2}""にすることはできません。それは ""{3}""のいずれかでなければなりません"
-{0} {1} cannot be a leaf node as it has children,それは子供を持っているように{0} {1}リーフノードにすることはできません
-"{0} {1} does not exist, select a new target to merge",{0} {1}が存在しない、マージする新しいターゲットを選択
-{0} {1} not found,{0} {1}が見つかりません
-{0} {1}: Submitted Record cannot be deleted.,{0} {1}：提出レコードを削除することはできません。
-{0}: Cannot set Amend without Cancel,{0}：設定できませんキャンセルせずに改正
-{0}: Cannot set Assign Amend if not Submittable,{0}：Submittableていない場合は、割り当てが改正設定できません
-{0}: Cannot set Assign Submit if not Submittable,{0}：Submittableていない場合は、割り当てが送信設定できません
-{0}: Cannot set Cancel without Submit,{0}：設定できません送信せずにキャンセル
-{0}: Cannot set Import without Create,{0}：登録なしでインポートを設定できません
-"{0}: Cannot set Submit, Cancel, Amend without Write",{0}：書き込みなしに改正、キャンセル、送信設定することはできません
-{0}: Cannot set import as {1} is not importable,{0}：{1}インポート可能ではないので、インポートを設定できません
-"{0}: Create, Submit, Cancel and Amend only valid at level 0",{0}：レベル0でのみ有効の作成、送信、キャンセルおよび改正
-{0}: No basic permissions set,{0}：いいえ、基本的なアクセス権が設定されていません
-"{0}: Only one rule allowed with the same Role, Level and Apply User Permissions",{0}：同じ役割で許可された唯一のルールを、レベルとユーザーのアクセス許可を適用します
-{0}: Permission at level 0 must be set before higher levels are set,{0}：より高いレベルが設定される前に、レベル0の許可が設定されている必要があり
-{app_title},{app_title}
+,Activity,アクティビティ
+,Applications,アプリケーション
+,Data Import Tool,データインポートツール
+,Desktop,デスクトップ
+,Document Share Report,
+,Messages,メッセージ
+,Modules Setup,モジュールのセットアップ
+,Permitted Documents For User,アクセス許可された文書
+,Role Permissions Manager,ロールのパーミッションマネージャ
+,User Permissions Manager,ユーザー権限マネージャー
+DocType: About Us Settings,"""Company History""",「会社の歴史」
+DocType: About Us Settings,"""Team Members"" or ""Management""",「チームメンバー」または「管理」
+DocType: About Us Settings,About Us Settings,会社の設定について
+DocType: About Us Settings,Company Introduction,会社紹介
+DocType: About Us Settings,Introduce your company to the website visitor.,ウェブサイトの訪問者にあなたの会社をご紹介します。
+DocType: About Us Settings,More content for the bottom of the page.,より多くのコンテンツがページ下部にあります。
+DocType: About Us Settings,Org History,沿革
+DocType: About Us Settings,Org History Heading,沿革見出し
+DocType: About Us Settings,Settings for the About Us Page,
+DocType: About Us Settings,Team Members,チームメンバー
+DocType: About Us Settings,Team Members Heading,チームメンバーの見出し
+DocType: About Us Settings,Website,ウェブサイト
+DocType: About Us Settings,Website Manager,
+DocType: About Us Team Member,About Us Team Member,問い合わせチームメンバーについて
+DocType: About Us Team Member,Image Link,画像リンク
+DocType: Blog Category,Blog Category,ブログカテゴリー
+DocType: Blog Category,Blogger,ブロガー
+DocType: Blog Category,Category Name,カテゴリ名
+DocType: Blog Category,Parent Website Route,親サイトルート
+DocType: Blog Category,Published,公開済み
+DocType: Blog Post,Blog Intro,ブログイントロ
+DocType: Blog Post,Blog Post,ブログの投稿
+DocType: Blog Post,"Description for listing page, in plain text, only a couple of lines. (max 140 characters)",一覧ページの説明（最大2行・140文字・プレーンテキストのみ）
+DocType: Blog Post,Email Sent,Eメール送信済み
+DocType: Blog Post,Guest,
+DocType: Blog Post,Published On,上で公開
+DocType: Blog Settings,Blog Introduction,ブログの紹介
+DocType: Blog Settings,Blog Settings,ブログ設定
+DocType: Blog Settings,Blog Title,ブログのタイトル
+DocType: Blog Settings,Writers Introduction,作家紹介
+DocType: Blogger,Avatar,アバター
+DocType: Blogger,Posts,投稿
+DocType: Blogger,Short Name,略名
+DocType: Blogger,User ID of a Blogger,
+DocType: Blogger,Will be used in url (usually first name).,URLで使用されます。（通常名前で表記されます）
+DocType: Bulk Email,Bulk Email,バルクメール
+DocType: Bulk Email,Bulk Email records.,
+DocType: Bulk Email,Message,メッセージ
+DocType: Bulk Email,Not Sent,
+DocType: Bulk Email,Recipient,受信者
+DocType: Bulk Email,Reference DocName,参照文書名
+DocType: Bulk Email,Sending,
+DocType: Comment,Comment,コメント
+DocType: Comment,Comment By,のコメント
+DocType: Comment,Comment By Fullname,フルネームでのコメント
+DocType: Comment,Comment Date,コメント日付
+DocType: Comment,Comment Docname,DOCNAMEコメント
+DocType: Comment,Comment Doctype,文書型コメント
+DocType: Comment,Comment Time,タイムコメント
+DocType: Comment,Comment Type,
+DocType: Comment,Core,コア
+DocType: Comment,Post Topic,スレッドを投稿
+DocType: Comment,System Manager,
+DocType: Comment,Unsubscribed,購読解除
+DocType: Communication,Additional Info,追加情報
+DocType: Communication,Archived,
+DocType: Communication,By,によって
+DocType: Communication,Chat,チャット
+DocType: Communication,Communication,コミュニケーション
+DocType: Communication,Communication Medium,通信メディア
+DocType: Communication,Content,内容
+DocType: Communication,Date,日付
+DocType: Communication,Email,Eメール
+DocType: Communication,Email Account,
+DocType: Communication,Keep a track of all communications,
+DocType: Communication,On,オン
+DocType: Communication,Open,開く
+DocType: Communication,Other,その他
+DocType: Communication,Phone,電話
+DocType: Communication,Phone No.,電話番号
+DocType: Communication,Received,受領
+DocType: Communication,Recipients,受信者
+DocType: Communication,Reference DocType,参照文書型
+DocType: Communication,Reference Name,参照名
+DocType: Communication,Replied,答え
+DocType: Communication,Sales Manager,
+DocType: Communication,Sales User,
+DocType: Communication,Sender,送信者
+DocType: Communication,Sender Full Name,
+DocType: Communication,Sent,送信済み
+DocType: Communication,Sent or Received,送受信済み
+DocType: Communication,Series,シリーズ
+DocType: Communication,Status,ステータス
+DocType: Communication,Subject,タイトル
+DocType: Communication,Support Manager,
+DocType: Communication,Support Team,
+DocType: Communication,User,ユーザー
+DocType: Communication,User Tags,ユーザータグ
+DocType: Communication,Visit,観覧／アクセス
+DocType: Company History,Company History,社史
+DocType: Company History,Highlight,ハイライト
+DocType: Company History,Year,年
+DocType: Contact Us Settings,Address,住所
+DocType: Contact Us Settings,Address Line 1,住所 1行目
+DocType: Contact Us Settings,Address Line 2,住所2行目
+DocType: Contact Us Settings,Address Title,住所タイトル
+DocType: Contact Us Settings,City,都市
+DocType: Contact Us Settings,Contact Us Settings,お問い合わせの設定
+DocType: Contact Us Settings,"Contact options, like ""Sales Query, Support Query"" etc each on a new line or separated by commas.",「セールスクエリ、クエリのサポート」などのような接触オプション、新しい行にそれぞれまたはカンマで区切ります。
+DocType: Contact Us Settings,"Default: ""Contact Us""",デフォルト：「お問い合わせ」
+DocType: Contact Us Settings,Forward To Email Address,メールアドレスに転送
+DocType: Contact Us Settings,Introduction,序論
+DocType: Contact Us Settings,Introductory information for the Contact Us Page,お問い合わせページのための入門的な情報
+DocType: Contact Us Settings,Pincode,郵便番号
+DocType: Contact Us Settings,Query Options,クエリーオプション
+DocType: Contact Us Settings,Send enquiries to this email address,このメールアドレスに問い合わせを送る
+DocType: Contact Us Settings,Settings for Contact Us Page,
+DocType: Contact Us Settings,State,都道府県
+DocType: Country,Country,国
+DocType: Country,Country Name,国名
+DocType: Country,Geo,
+DocType: Country,Time Zones,時間帯
+DocType: Currency,**Currency** Master,
+DocType: Currency,"1 Currency = [?] Fraction
+For e.g. 1 USD = 100 Cent",
+DocType: Currency,A symbol for this currency. For e.g. $,この通貨のシンボル。（例：＄）
+DocType: Currency,Currency Name,通貨名
+DocType: Currency,Fraction,分数
+DocType: Currency,Fraction Units,分数単位
+DocType: Currency,"How should this currency be formatted? If not set, will use system defaults",この通貨はどのようなフォーマットにするべきですか？設定されていない場合は、システムデフォルトを使用します
+DocType: Currency,"Sub-currency. For e.g. ""Cent""",サブ通貨。例「セント」
+DocType: Currency,Symbol,シンボル
+DocType: Custom Field,Adds a custom field to a DocType,
+DocType: Custom Field,Custom,カスタム
+DocType: Custom Field,Default Value,デフォルト値
+DocType: Custom Field,Document,ドキュメント
+DocType: Custom Field,Field Description,フィールド記述
+DocType: Custom Field,Field Type,フィールドタイプ
+DocType: Custom Field,Fieldname,フィールド名
+DocType: Custom Field,In Report Filter,Reportフィルタ
+DocType: Custom Field,Insert After,後に挿入
+DocType: Custom Field,Is Mandatory Field,必須フィールド
+DocType: Custom Field,Label Help,ラベルのヘルプ
+DocType: Custom Field,Options Help,オプションのヘルプ
+DocType: Custom Field,Permission Level,権限レベル
+DocType: Custom Field,Properties,プロパティ
+DocType: Custom Field,Select the label after which you want to insert new field.,新しいフィールドを挿入したい後にラベルを選択します。
+DocType: Custom Field,Unique,
+DocType: Custom Script,Adds a custom script (client or server) to a DocType,
+DocType: Custom Script,Client,顧客
+DocType: Custom Script,Sample,例
+DocType: Custom Script,Script,スクリプト
+DocType: Custom Script,Script Type,スクリプトタイプ
+DocType: Customize Form,Customize Form,フォームをカスタマイズ
+DocType: Customize Form,"Customize Label, Print Hide, Default etc.",などラベル印刷を隠す、デフォルトをカスタマイズ
+DocType: Customize Form,Enter Form Type,フォームタイプを入力してください
+DocType: Customize Form,"Fields separated by comma (,) will be included in the<br /><b>Search By</b> list of Search dialog box",コンマ（、）で区切られたフィールドには、[検索]ダイアログボックスの</ B>リストによって<brの/>の<B>検索に含まれます
+DocType: Customize Form Field,Customize Form Field,フォームフィールドをカスタマイズする
+DocType: Customize Form Field,"Print Width of the field, if the field is a column in a table",
+DocType: Customize Form Field,"This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>
+myfield
+eval:doc.myfield=='My Value'<br>
+eval:doc.age>18",
+DocType: DefaultValue,DefaultValue,デフォルト値
+DocType: DefaultValue,Key,キー (key)
+DocType: DefaultValue,Value,値
+DocType: DocField,Allow on Submit,送信を許可
+DocType: DocField,Attach,添付する
+DocType: DocField,Button,ボタン
+DocType: DocField,Check,チェック
+DocType: DocField,Code,コード
+DocType: DocField,Column Break,列の区切り
+DocType: DocField,Currency,通貨
+DocType: DocField,Data,データ
+DocType: DocField,Datetime,日時
+DocType: DocField,Default,初期値
+DocType: DocField,Depends On,依存関係
+DocType: DocField,Description,説明
+DocType: DocField,Display,表示
+DocType: DocField,Do not allow user to change after set the first time,初回設定以降、ユーザーが変更することはできません
+DocType: DocField,DocField,ドキュメントの分野
+DocType: DocField,Dynamic Link,動的リンク
+DocType: DocField,Float,フロート
+DocType: DocField,Fold,
+DocType: DocField,"For Links, enter the DocType as range
+For Select, enter list of Options separated by comma",
+DocType: DocField,Heading,見出し
+DocType: DocField,Hidden,非表示
+DocType: DocField,Ignore User Permissions,ユーザー権限を無視
+DocType: DocField,Image,画像
+DocType: DocField,In Filter,フィルター内
+DocType: DocField,In List View,リストビュー内
+DocType: DocField,Index,索引
+DocType: DocField,Int,INT
+DocType: DocField,Label,ラベル
+DocType: DocField,Label and Type,ラベルとタイプ
+DocType: DocField,Link,リンク
+DocType: DocField,Long Text,長いテキスト
+DocType: DocField,Mandatory,必須
+DocType: DocField,Name,名前
+DocType: DocField,No Copy,コピーしない
+DocType: DocField,Options,オプション
+DocType: DocField,Password,パスワード
+DocType: DocField,Percent,割合（%）
+DocType: DocField,Perm Level,パーマレベル
+DocType: DocField,Permissions,アクセス許可
+DocType: DocField,Precision,
+DocType: DocField,Print Hide,印刷隠す
+DocType: DocField,Print Width,印字幅
+DocType: DocField,Read Only,読み取りのみ
+DocType: DocField,Report Hide,レポートを隠す
+DocType: DocField,Section Break,セクション区切り
+DocType: DocField,Select,選択する
+DocType: DocField,Set Only Once,1度だけ設定
+DocType: DocField,Set non-standard precision for a Float or Currency field,
+DocType: DocField,Small Text,小さなテキスト
+DocType: DocField,Table,表（テーブル）
+DocType: DocField,Text,文章／メッセージ
+DocType: DocField,Text Editor,文章の編集。
+DocType: DocField,Time,時間
+DocType: DocField,Type,データ型
+DocType: DocField,User permissions should not apply for this Link,このリンクにユーザー権限を反映すべきではありません
+DocType: DocField,Width,幅
+DocType: DocPerm,Additional Permissions,追加のアクセス許可
+DocType: DocPerm,Amend,修正
+DocType: DocPerm,Apply User Permissions,ユーザーのアクセス許可を適用
+DocType: DocPerm,Cancel,キャンセル
+DocType: DocPerm,Create,作成
+DocType: DocPerm,Delete,削除
+DocType: DocPerm,DocPerm,ドキュメントの管理
+DocType: DocPerm,Export,エクスポート
+DocType: DocPerm,Filter records based on User Permissions defined for a user,ユーザーに対して定義された権限に基づくフィルターレコード
+DocType: DocPerm,Import,インポート
+DocType: DocPerm,"JSON list of DocTypes used to apply User Permissions. If empty, all linked DocTypes will be used to apply User Permissions.",
+DocType: DocPerm,Level,レベル
+DocType: DocPerm,Print,いんｓ
+DocType: DocPerm,Read,読む
+DocType: DocPerm,Report,レポート
+DocType: DocPerm,Role,役割
+DocType: DocPerm,Role and Level,役割とレベル
+DocType: DocPerm,Set User Permissions,設定したユーザーのアクセス権
+DocType: DocPerm,Share,共有
+DocType: DocPerm,Submit,送信
+DocType: DocPerm,This role update User Permissions for a user,これはユーザーのためにユーザー許可を更新する役割です。
+DocType: DocPerm,User Permission DocTypes,
+DocType: DocPerm,Write,書き込む
+DocType: DocShare,DocShare,
+DocType: DocShare,Document Name,
+DocType: DocShare,Document Type,ドキュメントタイプ
+DocType: DocShare,Internal record of document shares,
+DocType: DocType,"<a onclick=""msgprint('<ol>\
+<li><b>field:[fieldname]</b> - By Field\
+<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\
+<li><b>Prompt</b> - Prompt user for a name\
+<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\
+</ol>')"">Naming Options</a>",
+DocType: DocType,Administrator,
+DocType: DocType,Allow Import,インポートを許可
+DocType: DocType,Allow Import via Data Import Tool,データインポートツールを使用したインポートを許可
+DocType: DocType,Allow Rename,名前の変更を許可
+DocType: DocType,Auto Name,自動命名
+DocType: DocType,Child Tables are shown as a Grid in other DocTypes.,子テーブルは、他の文書型のグリッドとして表示されます。
+DocType: DocType,Custom?,カスタム？
+DocType: DocType,Default Print Format,デフォルト印刷フォーマット
+DocType: DocType,DocType,ドキュメントタイプ
+DocType: DocType,DocType Details,ドキュメントタイプの詳細
+DocType: DocType,DocType is a Table / Form in the application.,
+DocType: DocType,Fields,フィールド
+DocType: DocType,Hide Actions,アクションを隠す
+DocType: DocType,Hide Copy,コピーを隠す
+DocType: DocType,Hide Heading,見出しを隠す
+DocType: DocType,Hide Toolbar,ツールバーを隠す
+DocType: DocType,Icon,アイコン
+DocType: DocType,In Dialog,ダイアログ内
+DocType: DocType,Is Child Table,子表です
+DocType: DocType,Is Single,シングルです
+DocType: DocType,Is Submittable,Submittableです
+DocType: DocType,Master,マスター
+DocType: DocType,Max Attachments,最大添付ファイル
+DocType: DocType,Module,モジュール
+DocType: DocType,Name Case,名入れ
+DocType: DocType,Naming,命名
+DocType: DocType,Permission Rules,許可ルール
+DocType: DocType,Permissions Settings,アクセス権限設定
+DocType: DocType,Plugin,プラグイン
+DocType: DocType,Search Fields,検索フィールド
+DocType: DocType,Show Print First,まず印刷を表示
+DocType: DocType,Show this field as title,タイトルとして、このフィールドを表示する
+DocType: DocType,Single Types have only one record no tables associated. Values are stored in tabSingles,シングルタイプにテーブルが関連付けられていない唯一のレコードがあります。値はtabSinglesに格納されています
+DocType: DocType,Sort Field,並べ替え項目
+DocType: DocType,Sort Order,並び順
+DocType: DocType,System,システム
+DocType: DocType,Title Case,見出しの大文字指定
+DocType: DocType,Title Field,タイトルフィールド／欄のタイトル
+DocType: DocType,Transaction,取引
+DocType: DocType,User Cannot Create,ユーザーは作成できません。
+DocType: DocType,User Cannot Search,ユーザーが検索することはできません
+DocType: Email Account,Actions,動作
+DocType: Email Account,Add Signature,
+DocType: Email Account,Append To,
+DocType: Email Account,"Append as communication against this DocType (must have fields, ""Status"", ""Subject"")",
+DocType: Email Account,Attachment Limit (MB),
+DocType: Email Account,Auto Reply,
+DocType: Email Account,Auto Reply Message,
+DocType: Email Account,Check this to pull emails from your mailbox,あなたのメールボックスからメールをプルするために、これをチェックする
+DocType: Email Account,Default Incoming,
+DocType: Email Account,Default Outgoing,
+DocType: Email Account,Email Account Name,
+DocType: Email Account,Email Id,メールID
+DocType: Email Account,Enable Auto Reply,
+DocType: Email Account,Enable Incoming,
+DocType: Email Account,Enable Outgoing,
+DocType: Email Account,Footer,フッター
+DocType: Email Account,GMail,
+DocType: Email Account,If non standard port (e.g. 587),非標準ポート（例えば587）の場合
+DocType: Email Account,Ignore attachments over this size,
+DocType: Email Account,Incoming Mail Settings,
+DocType: Email Account,Notifications and bulk mails will be sent from this outgoing server.,
+DocType: Email Account,Outgoing Mail Settings,
+DocType: Email Account,Outlook.com,
+DocType: Email Account,POP3 Server,
+DocType: Email Account,Port,ポート
+DocType: Email Account,SMTP Server,
+DocType: Email Account,SMTP Settings for outgoing emails,
+DocType: Email Account,Service,サービス
+DocType: Email Account,Set Footer,
+DocType: Email Account,Signature,署名
+DocType: Email Account,Use SSL,SSLを使用
+DocType: Email Account,Use TLS,TLSを使用
+DocType: Email Account,Yahoo Mail,
+DocType: Email Account,"e.g. ""Support"", ""Sales"", ""Jerry Yang""",
+DocType: Email Account,e.g. pop.gmail.com,
+DocType: Email Account,e.g. replies@yourcomany.com. All replies will come to this inbox.,
+DocType: Email Account,e.g. smtp.gmail.com,
+DocType: Email Alert,Condition,条件
+DocType: Email Alert,Date Change,日付変更
+DocType: Email Alert,Date Changed,日付変更
+DocType: Email Alert,Days in Advance,事前日数
+DocType: Email Alert,Email Alert,電子メール警告
+DocType: Email Alert,Filters,フィルター
+DocType: Email Alert,Message Examples,メッセージの例
+DocType: Email Alert,New,新しい
+DocType: Email Alert,Optional: The alert will be sent if this expression is true,（オプション）この式がtrueの場合、アラートが送信されます
+DocType: Email Alert,Save,保存
+DocType: Email Alert,Send Alert On,警戒を送ってください
+DocType: Email Alert,Send alert if date matches this field's value,日付は、このフィールドの値と一致した場合にアラートを送信
+DocType: Email Alert,Send alert if this field's value changes,アラートを送信し、このフィールドの値が変更された場合
+DocType: Email Alert,Value Change,値変更
+DocType: Email Alert,Value Changed,値を変更済み
+DocType: Email Alert,[Optional] Send the email X days in advance of the specified date. 0 equals same day.,[オプション]指定した日付の前に電子メールのX日に送信します。 0は同じ日に等しい。
+DocType: Email Alert Recipient,Email Alert Recipient,メールアラートの受信者
+DocType: Email Alert Recipient,Email By Document Field,ドキュメントフィールドによって電子メール
+DocType: Email Alert Recipient,"Expression, Optional",（オプション）表現
+DocType: Email Alert Recipient,Optional: Alert will only be sent if value is a valid email id.,（オプション）値が有効なメールIDである場合にのみアラートが送信されます。
+DocType: Email Alert Recipient,Optional: Always send to these ids. Each email id on a new row,（オプション）常にこれらのIDに送信します。各メールIDは新しい行になります
+DocType: Event,All Day,一日中
+DocType: Event,Desk,
+DocType: Event,Details,詳細
+DocType: Event,Ends on,終了
+DocType: Event,Event,イベント
+DocType: Event,Event Type,イベント タイプ
+DocType: Event,Every Day,毎日
+DocType: Event,Every Month,毎月
+DocType: Event,Every Week,毎週
+DocType: Event,Every Year,毎年
+DocType: Event,Friday,金曜日
+DocType: Event,Groups,グループ
+DocType: Event,Leave blank to repeat always,常に繰り返すには空白のままにします
+DocType: Event,Monday,月曜日
+DocType: Event,Participants,参加者
+DocType: Event,Private,プライベート
+DocType: Event,Public,一般公開
+DocType: Event,Ref Name,REF名前
+DocType: Event,Ref Type,ref型
+DocType: Event,Repeat On,を繰り返し
+DocType: Event,Repeat Till,繰り返しティル
+DocType: Event,Repeat this Event,このイベントを繰り返します
+DocType: Event,Saturday,土曜日 
+DocType: Event,Send an email reminder in the morning,午前中にメールリマインダーを送る
+DocType: Event,Starts on,開始
+DocType: Event,Sunday,日曜日
+DocType: Event,Thursday,木曜日
+DocType: Event,Tuesday,火曜日
+DocType: Event,Wednesday,水曜日
+DocType: Event Role,Event Role,イベントの役割
+DocType: Feed,Color,色
+DocType: Feed,Doc Name,ドキュメント名
+DocType: Feed,Doc Type,ドキュメントタイプ
+DocType: Feed,Feed,フィード
+DocType: Feed,Feed Type,フィードタイプ
+DocType: Feed,Full Name,氏名
+DocType: Feed,Info,情報
+DocType: Feed,Login,ログイン
+DocType: File Data,Attached To DocType,文書タイプに添付
+DocType: File Data,Attached To Name,名前に添付されています
+DocType: File Data,Content Hash,コンテンツハッシュ
+DocType: File Data,File Data,ファイルデータ
+DocType: File Data,File Name,ファイル名
+DocType: File Data,File Size,ファイル サイズ
+DocType: File Data,File URL,ファイルURL
+DocType: Letter Head,Check this to make this the default letter head in all prints,すべての印刷物に、このデフォルトの手紙ヘッドを作るためにこれをチェック
+DocType: Letter Head,Is Default,デフォルト
+DocType: Letter Head,Letter Head,レターヘッド（会社名•所在地などを便箋上部に印刷したもの）
+DocType: Letter Head,Letter Head Name,レターヘッドの名前
+DocType: Letter Head,Letter Head in HTML,HTMLでレターヘッド
+DocType: Module Def,App Name,アプリケーション名
+DocType: Module Def,Module Def,モジュール提議
+DocType: Module Def,Module Name,モジュール名
+DocType: Note,Everyone can read,誰もが読むことができます
+DocType: Note,"Help: To link to another record in the system, use ""#Form/Note/[Note Name]"" as the Link URL. (don't use ""http://"")","ヘルプ：システム内の別のレコードにリンクするには、「＃フォーム/備考/ [名前をメモ]「リンクのURLとして使用します。 （「http:// ""を使用しないでください）"
+DocType: Note,Note,ノート
+DocType: Note,Note is a free page where users can share documents / notes,
+DocType: Page,All,
+DocType: Page,No,いいえ
+DocType: Page,Page,ページ
+DocType: Page,Page HTML,ページのHTML
+DocType: Page,Page Name,ページ名
+DocType: Page,Roles,条件設定
+DocType: Page,Standard,スタンダード
+DocType: Page,Title,タイトル／題
+DocType: Page,Yes,はい
+DocType: Page,icon,icon
+DocType: Page Role,Page Role,ページの役割
+DocType: Patch Log,List of patches executed,
+DocType: Patch Log,Patch,Patch
+DocType: Patch Log,Patch Log,パッチログ
+DocType: Print Format,Custom Format,
+DocType: Print Format,Edit Format,
+DocType: Print Format,Format Data,
+DocType: Print Format,Print Format,印刷様式
+DocType: Print Format,Print Format Builder,
+DocType: Print Format,Print Format Help,印刷形式のヘルプ
+DocType: Print Format,Print Format Type,印刷フォーマットタイプ
+DocType: Print Format,Server,サーバー
+DocType: Print Settings,Classic,クラシック
+DocType: Print Settings,Font Size,フォントサイズ
+DocType: Print Settings,In points. Default is 9.,ポイント。デフォルトは9です。
+DocType: Print Settings,Letter,手紙
+DocType: Print Settings,Modern,モダン
+DocType: Print Settings,Monochrome,
+DocType: Print Settings,PDF Page Size,PDFのページサイズ
+DocType: Print Settings,PDF Settings,PDF設定
+DocType: Print Settings,Print Settings,印刷の設定
+DocType: Print Settings,Print Style,印刷スタイル
+DocType: Print Settings,Print Style Preview,印刷スタイルプレビュー
+DocType: Print Settings,"Print with Letterhead, unless unchecked in a particular Document",、レターヘッドに印刷しない限り、特定の文書に含まれる未チェック
+DocType: Print Settings,Send Email Print Attachments as PDF (Recommended),PDFとしてメールで送信パンフレットを印刷添付ファイルを送信する（推奨）
+DocType: Print Settings,Send Print as PDF,PDFとして印刷を送る
+DocType: Print Settings,With Letterhead,レターヘッド付き
+DocType: Property Setter,DocType or Field,ドキュメントタイプまたは分野
+DocType: Property Setter,Field Name,フィールド名
+DocType: Property Setter,ID (name) of the entity whose property is to be set,プロパティが設定されるエンティティのID（名前）
+DocType: Property Setter,New value to be set,新しい値を設定する必要があります
+DocType: Property Setter,Property,財産
+DocType: Property Setter,Property Setter overrides a standard DocType or Field property,
+DocType: Property Setter,Property Type,プロパティ タイプ
+DocType: Property Setter,Set Value,設定値
+DocType: Report,Add Total Row,合計行を追加
+DocType: Report,Disabled,無効にしました。
+DocType: Report,Is Standard,規格です
+DocType: Report,JavaScript Format: frappe.query_reports['REPORTNAME'] = {},JavaScriptの形式：frappe.query_reports ['REPORTNAME'] = {}
+DocType: Report,Javascript,Javascript
+DocType: Report,Query,質問
+DocType: Report,Query Report,クエリ レポート
+DocType: Report,Ref DocType,REFのDocType
+DocType: Report,Report Builder,レポートビルダ
+DocType: Report,Report Manager,
+DocType: Report,Report Name,レポート名
+DocType: Report,Report Type,レポート タイプ
+DocType: Report,Script Report,スクリプトレポート
+DocType: Role,Role Name,役割名
+DocType: Scheduler Log,Error,エラー
+DocType: Scheduler Log,Log of Scheduler Errors,
+DocType: Scheduler Log,Method,方法
+DocType: Scheduler Log,Scheduler Log,スケジューラーログ
+DocType: Social Login Keys,Facebook,Facebook
+DocType: Social Login Keys,Facebook Client ID,FacebookのClient ID
+DocType: Social Login Keys,Facebook Client Secret,FacebookのClient Secret 
+DocType: Social Login Keys,GitHub,GitHub
+DocType: Social Login Keys,GitHub Client ID,GitHubのClient ID 
+DocType: Social Login Keys,GitHub Client Secret,GitHubのClient Secret 
+DocType: Social Login Keys,Google,グーグル。
+DocType: Social Login Keys,Google Client ID,GoogleのClient ID 
+DocType: Social Login Keys,Google Client Secret,GoogleのClient Secret 
+DocType: Social Login Keys,Social Login Keys,ソーシャルログインキー
+DocType: Standard Reply,Owner,所有者
+DocType: Standard Reply,Response,レスポンス
+DocType: Standard Reply,Standard Reply,標準返信
+DocType: Style Settings,"000 is black, fff is white",000は黒で、FFFは白です
+DocType: Style Settings,Add CSS,CSSを追加
+DocType: Style Settings,"Add the name of <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> e.g. ""Open Sans""","もし、ご希望のhref=""http://google.com/webfonts""のtarget=""_blank"">をGoogleウェブフォントの名前を追加する</ A>例えば ""オープンなき """
+DocType: Style Settings,Apply Style,スタイルを適用
+DocType: Style Settings,Arial,Arial
+DocType: Style Settings,Auto generated,自動生成済
+DocType: Style Settings,Background Color,背景色
+DocType: Style Settings,Custom CSS,カスタムCSS
+DocType: Style Settings,Enable,可能
+DocType: Style Settings,Font (Heading),フォント（見出し）
+DocType: Style Settings,Font (Text),フォント（文字）
+DocType: Style Settings,Font Size (Text),フォントサイズ（テキスト）
+DocType: Style Settings,Fonts,フォント
+DocType: Style Settings,Footer Background,フッターの背景
+DocType: Style Settings,Footer Text,フッターテキスト
+DocType: Style Settings,Georgia,ジョージア
+DocType: Style Settings,Google Web Font (Heading),Google Web Font（見出し）
+DocType: Style Settings,Google Web Font (Text),Google Web Font（テキスト）
+DocType: Style Settings,Heading Text As,テキストの見出しとして
+DocType: Style Settings,Helvetica Neue,Helvetica Neue
+DocType: Style Settings,"If image is selected, color will be ignored (attach first)",画像が選択された場合、色が無視されます（先に添付してください）
+DocType: Style Settings,Lato,LATO
+DocType: Style Settings,Lucida Grande,Lucida Grande 
+DocType: Style Settings,Open Sans,Open Sans 
+DocType: Style Settings,Page Background,ページの背景
+DocType: Style Settings,Page Header,ページ見出し
+DocType: Style Settings,Page Header Background,ページ見出しの背景
+DocType: Style Settings,Page Header Text,ページ見出しテキスト
+DocType: Style Settings,Page Links,ページへのリンク
+DocType: Style Settings,Page Text,ページテキスト
+DocType: Style Settings,"Set your background color, font and image (tiled)",
+DocType: Style Settings,Solid background color (default light gray),単色の背景色（デフォルトのライトグレー）
+DocType: Style Settings,Style Settings,スタイル設定
+DocType: Style Settings,Tahoma,MS Pゴシック
+DocType: Style Settings,This must be checked if Style Settings are applicable,スタイル設定を使用する場合、これは確認して下さい。
+DocType: Style Settings,Top Bar,トップバー
+DocType: Style Settings,Top Bar Background,トップバーの背景
+DocType: Style Settings,Top Bar Text,トップバーのテキスト
+DocType: Style Settings,Verdana,Verdana
+DocType: Style Settings,add your own CSS (careful!),独自のCSSを追加（慎重に！）
+DocType: Style Settings,lowercase,小文字
+DocType: System Settings,Date Format,日付の表示形式
+DocType: System Settings,Date and Number Format,日付と番号の書式
+DocType: System Settings,Enable Scheduled Jobs,スケジュールされたジョブを有効にする
+DocType: System Settings,Float Precision,float精度
+DocType: System Settings,Language,言語
+DocType: System Settings,Loading...,読み込んでいます...
+DocType: System Settings,Localization,現地化
+DocType: System Settings,Number Format,数の書式
+DocType: System Settings,Run scheduled jobs only if checked,スケジュールされたジョブを実行して確認した場合にのみ
+DocType: System Settings,Security,セキュリティ
+DocType: System Settings,Session Expiry,セッションの有効期限
+DocType: System Settings,Session Expiry in Hours e.g. 06:00,午前6時00分など時間内のセッションの有効期限
+DocType: System Settings,System Settings,システム設定
+DocType: System Settings,Time Zone,時間帯
+DocType: System Settings,dd-mm-yyyy,DD-MM-YYYY
+DocType: System Settings,dd.mm.yyyy,DD.MM.YYYY
+DocType: System Settings,dd/mm/yyyy,yyyy / mm / dd
+DocType: System Settings,mm-dd-yyyy,mm-dd-yyyy
+DocType: System Settings,mm/dd/yyyy,mm/dd/yyyy
+DocType: System Settings,yyyy-mm-dd,yyyy-mm-dd
+DocType: Tag,Tag,タグ（札／マークする）
+DocType: Tag,Tag Name,タグ名（札名）
+DocType: ToDo,Assigned By,によって割り当て
+DocType: ToDo,Assigned To,割り当てられている先
+DocType: ToDo,Closed,閉じました。
+DocType: ToDo,Description and Status,説明とステータス
+DocType: ToDo,Due Date,期日
+DocType: ToDo,High,高
+DocType: ToDo,Low,低
+DocType: ToDo,Medium,ふつう
+DocType: ToDo,Priority,優先度
+DocType: ToDo,Reference,リファレンス
+DocType: ToDo,Reference Type,参照タイプ
+DocType: ToDo,ToDo,するために／するための
+DocType: Top Bar Item,For top bar,トップバー用
+DocType: Top Bar Item,"If you set this, this Item will come in a drop-down under the selected parent.",設定すると、この項目は選択された親の下にあるドロップダウンにあらわれます。
+DocType: Top Bar Item,Link to the page you want to open,開きたいページへのリンク
+DocType: Top Bar Item,Parent Label,親ラベル
+DocType: Top Bar Item,Right,右
+DocType: Top Bar Item,"Select target = ""_blank"" to open in a new page.","新しいページで開くように選択し、ターゲット= ""_blank""。"
+DocType: Top Bar Item,Target,ターゲット／標的／目標
+DocType: Top Bar Item,Top Bar Item,トップバーの項目
+DocType: Top Bar Item,"target = ""_blank""","ターゲット= ""空白"""
+DocType: User,Allow user to login only after this hour (0-24),（0-24）以降の時間のみユーザーログインを許可
+DocType: User,Allow user to login only before this hour (0-24),（0-24）以前の時間のみユーザーログインを許可
+DocType: User,Background,
+DocType: User,Background Image,背景画像
+DocType: User,Background Style,背景スタイル
+DocType: User,Bio,自己紹介
+DocType: User,Birth Date,生年月日
+DocType: User,Check / Uncheck roles assigned to the User. Click on the Role to find out what permissions that Role has.,チェック/ユーザーに割り当てられた役割をオフにします。役割が持つアクセス許可を確認する役割をクリックしてください。
+DocType: User,Default is system timezone,デフォルトではシステムのタイムゾーンです
+DocType: User,Defaults,デフォルト
+DocType: User,Display Settings,ディスプレイの設定
+DocType: User,Email Host,メールホスト
+DocType: User,Email Login,Eメールログイン
+DocType: User,Email Password,メールアドレスパスワード
+DocType: User,Email Settings,メール設定
+DocType: User,Email Signature,電子メールの署名
+DocType: User,Email Use SSL,電子メールを使用したSSL
+DocType: User,Enabled,有効
+DocType: User,"Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set ""match"" permission rules. To see list of fields, go to <a href=""#Form/Customize Form/Customize Form"">Customize Form</a>.","デフォルト値フィールド（キー）と値を入力します。あなたがフィールドに複数の値を追加する場合、最初のものが取得されます。これらのデフォルト値は、「マッチ」の許可ルールを設定するために使用される。フィールドのリストを表示するには、<a href=""#Form/Customize Form/Customize Form"">フォームのカスタマイズ</ A>をご覧ください。"
+DocType: User,Facebook User ID,FacebookのユーザーID
+DocType: User,Facebook Username,Facebookのユーザー名
+DocType: User,Female,女性
+DocType: User,Fill Screen,フルスクリーン
+DocType: User,First Name,お名前（名）
+DocType: User,Gender,性別
+DocType: User,"Get your globally recognized avatar from <a href=""https://gravatar.com/"">Gravatar.com</a>","もし、ごhref=""https://gravatar.com/""> Gravatar.com </ A>から世界的に認知されたアバターを入手"
+DocType: User,Github User ID,GitHubのユーザーID
+DocType: User,Github Username,GitHubのユーザー名
+DocType: User,Google User ID,GoogleのユーザーID
+DocType: User,Language preference for user interface (only if available).,ユーザーインターフェイスの言語設定（利用可能な場合のみ）。
+DocType: User,Last IP,最新のIP
+DocType: User,Last Login,最新ログイン
+DocType: User,Last Name,お名前（姓）
+DocType: User,Location,場所
+DocType: User,Login After,ログイン後
+DocType: User,Login Before,ログイン前
+DocType: User,Male,男性
+DocType: User,Middle Name (Optional),ミドルネーム（オプション）
+DocType: User,New Password,新しいパスワード
+DocType: User,POP3 Mail Server (e.g. pop.gmail.com),POP3メールサーバ（例えばpop.gmail.com）
+DocType: User,Personal Info,個人情報
+DocType: User,Pull Emails from the Inbox and attach them as Communication records (for known contacts).,受信トレイからメールを引いて（知らコンタクト用）通信記録として取り付けます。
+DocType: User,Represents a User in the system.,
+DocType: User,Reset Password Key,パスワードキーをリセットする
+DocType: User,Restrict IP,IPアドレスを制限する
+DocType: User,Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111),このIPアドレスのみからユーザを制限します。複数のIPアドレスは、カンマで区切ることにより追加することができます。また、（111.111.111）のような部分的なIPアドレスを受け入れ
+DocType: User,Roles Assigned,割り当てられた役割
+DocType: User,Roles Assigned To User,ユーザーに割り当てられたロール
+DocType: User,Roles HTML,役割のHTML
+DocType: User,Security Settings,セキュリティ設定
+DocType: User,Set Password,パスワードを設定
+DocType: User,Short Bio,略歴
+DocType: User,Sync Inbox,同期受信トレイ
+DocType: User,System User,システムユーザー
+DocType: User,These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,これらの値は自動的に処理の段階で更新され、また取引にこの値が含まれているユーザーの権限を制限するのに役立つでしょう。
+DocType: User,Third Party Authentication,第三者認証
+DocType: User,Tile,タイル
+DocType: User,Timezone,時間帯
+DocType: User,User Defaults,ユーザーデフォルト
+DocType: User,User Image,ユーザー画像
+DocType: User,User Type,ユーザー タイプ
+DocType: User,"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ",ユーザータイプ「システムユーザー」はデスクトップにアクセスが可能です。「ウェブサイトユーザー」はウェブサイト・ポータルページへのログインのみ可能です。
+DocType: User,Website User,ウェブサイトのユーザー
+DocType: User,user_image_show,ユーザー画像の表示
+DocType: UserRole,UserRole,ユーザーの役割
+DocType: Version,Doclist JSON,ドキュメントリスト、JSON
+DocType: Version,Docname,ドキュメント名
+DocType: Version,Version,バージョン
+DocType: Web Form,Advanced,
+DocType: Web Form,Allow Comments,
+DocType: Web Form,Allow Delete,
+DocType: Web Form,Allow Edit,
+DocType: Web Form,Allow Multiple,
+DocType: Web Form,Breadcrumbs,
+DocType: Web Form,Go to this url after completing the form.,
+DocType: Web Form,"In JSON as <pre>[{""title"":""Jobs"", ""name"":""jobs""}]</pre>",
+DocType: Web Form,Login Required,
+DocType: Web Form,Message to be displayed on successful completion,
+DocType: Web Form,Select DocType,のDocTypeを選択
+DocType: Web Form,Success Message,
+DocType: Web Form,Success URL,
+DocType: Web Form,Text to be displayed for Link to Web Page if this form has a web page. Link route will be automatically generated based on `page_name` and `parent_website_route`,
+DocType: Web Form,Web Form,
+DocType: Web Form,Web Form Fields,
+DocType: Web Form,Web Page Link Text,
+DocType: Web Form,Website URL,
+DocType: Web Form Field,Fieldtype,
+DocType: Web Form Field,Web Form Field,
+DocType: Web Page,0 is highest,0が最も高く、
+DocType: Web Page,Add code as &lt;script&gt;,&#060;script&#062;としてコード追加
+DocType: Web Page,Begin this page with a slideshow of images,画像のスライドショーで、このページを開始する
+DocType: Web Page,Center,中央
+DocType: Web Page,Content in markdown format that appears on the main side of your page,あなたのページのメイン側に表示されるマークダウン形式のコンテンツ
+DocType: Web Page,Custom Javascript,カスタムJavaScript
+DocType: Web Page,Description for page header.,ページヘッダの説明。
+DocType: Web Page,Enable Comments,コメントを有効にする
+DocType: Web Page,HTML for header section. Optional,（オプション）ヘッダー部分のHTML。
+DocType: Web Page,Header,ヘッダー
+DocType: Web Page,Insert Code,コードを挿入
+DocType: Web Page,Insert Style,スタイルを挿入
+DocType: Web Page,Left,左
+DocType: Web Page,Link to other pages in the side bar and next section,サイドバーと次のセクション内の、他のページへのリンク
+DocType: Web Page,Main Section,メインセクション
+DocType: Web Page,More,続き
+DocType: Web Page,Page content,ページ内容
+DocType: Web Page,"Page to show on the website
+",
+DocType: Web Page,Page url name (auto-generated),ページURL名（自動生成された）
+DocType: Web Page,Parent Web Page,
+DocType: Web Page,Slideshow,スライドショー
+DocType: Web Page,Template Path,
+DocType: Web Page,Text Align,文章を行を整える。
+DocType: Web Page,Title / headline of your page,あなたのページの題/見出し
+DocType: Web Page,Web Page,ウェブページ
+DocType: Website Script,Script to attach to all web pages.,
+DocType: Website Script,Website Script,ウェブサイトのスクリプト
+DocType: Website Settings,Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,Google AnalyticsのIDを追加します（例：UA-89XXX57-1）。詳細については、Google Analyticsのヘルプを検索してください。
+DocType: Website Settings,Add a banner to the site. (small banners are usually good),サイトにバナーを追加します。（通常は小バナーでよいです）
+DocType: Website Settings,Address and other legal information you may want to put in the footer.,住所やその他の法的情報（フッターに配置するなど）
+DocType: Website Settings,"An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [<a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a>]","。ICO拡張子を持つアイコンファイル。16×16 PXでなければなりません。ファビコンジェネレータを使用して生成された。 [<a href=""http://favicon-generator.org/"" target=""_blank"">をファビコン-generator.org </ A>]"
+DocType: Website Settings,Banner,バナー
+DocType: Website Settings,Banner HTML,バナーのHTML
+DocType: Website Settings,Banner Image,バナー画像
+DocType: Website Settings,Banner is above the Top Menu Bar.,バナーは、上部のメニューバーの上にある。
+DocType: Website Settings,Brand HTML,ブランドのHTML
+DocType: Website Settings,Copyright,著作権
+DocType: Website Settings,Disable Customer Signup link in Login page,ログインページの顧客の登録リンクを無効にする
+DocType: Website Settings,Disable Signup,登録を無効にする
+DocType: Website Settings,Facebook Share,Facebookで共有
+DocType: Website Settings,FavIcon,FavIcon
+DocType: Website Settings,Footer Items,フッター項目
+DocType: Website Settings,Google Analytics ID,Google Analytics ID
+DocType: Website Settings,Google Plus One,Google+1
+DocType: Website Settings,Hide the sidebar,サイドバーを隠す
+DocType: Website Settings,Home Page,ホームページ
+DocType: Website Settings,Home Page is Products,ホームページは、製品である
+DocType: Website Settings,"If checked, the Home page will be the default Item Group for the website.",チェックすると、ホームページは、Webサイトのデフォルトの項目グループになります。
+DocType: Website Settings,Integrations,インテグレーション
+DocType: Website Settings,Landing Page,ランディングページ
+DocType: Website Settings,"Link that is the website home page. Standard Links (index, login, products, blog, about, contact)",ウェブサイトのホームページですリンク。標準リンク（インデックス、ログイン、商品、ブログ、約、コンタクト）
+DocType: Website Settings,Linked In Share,共有リンク
+DocType: Website Settings,"Menu items in the Top Bar. For setting the color of the Top Bar, go to <a href=""#Form/Style Settings"">Style Settings</a>","トップバーのメニュー項目。トップバーの色を設定するため、もし、href=""#Form/Style Settings"">スタイル設定</ A>に行く"
+DocType: Website Settings,Misc,その他
+DocType: Website Settings,No Sidebar,サイドバーがありません
+DocType: Website Settings,Select an image of approx width 150px with a transparent background for best results.,最良の結果を得るための透明な背景を持つ約幅150ピクセルの画像を選択します。
+DocType: Website Settings,Set Banner from Image,画像からバナーを設定
+DocType: Website Settings,Sidebar,サイドバー
+DocType: Website Settings,Sidebar Items,サイドバーのアイテム
+DocType: Website Settings,Sidebar Links for Home Page only,ホームページ用のサイドバーのリンクのみ
+DocType: Website Settings,Sub-domain provided by erpnext.com,erpnext.comが提供するサブドメイン
+DocType: Website Settings,Subdomain,サブドメイン
+DocType: Website Settings,Title Prefix,接頭辞のタイトル
+DocType: Website Settings,Top Bar Items,トップバーの項目
+DocType: Website Settings,Tweet will be shared via your user account (if specified),（指定されている場合）のつぶやきは、自分のユーザーアカウントを介して共有されます
+DocType: Website Settings,Twitter Share,Twitterで共有
+DocType: Website Settings,Twitter Share via,Twitterで共有経由
+DocType: Website Settings,Website Settings,Webサイト設定
+DocType: Website Slideshow,"Note: For best results, images must be of the same size and width must be greater than height.",注：最良の結果を得るには、画像が同じ大きさと幅のものでなければならない高さよりも大きくなければなりません。
+DocType: Website Slideshow,Slideshow Items,スライドショー項目
+DocType: Website Slideshow,Slideshow Name,スライドショーの名前
+DocType: Website Slideshow,Slideshow like display for the website,
+DocType: Website Slideshow,This goes above the slideshow.,これは、スライドショーの上にいきます。
+DocType: Website Slideshow,Website Slideshow,ウェブサイトのスライドショー
+DocType: Website Slideshow Item,Website Slideshow Item,ウェブサイトのスライドショーアイテム
+DocType: Workflow,"All possible Workflow States and roles of the workflow. <br>Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""","すべての可能なワークフローの米国およびワークフローの役割。検索Docstatusオプション：0 ""が保存された」、1は「提出」され、2が「キャンセル」されている"
+DocType: Workflow,Defines workflow states and rules for a document.,
+DocType: Workflow,"Different ""States"" this document can exist in. Like ""Open"", ""Pending Approval"" etc.",このドキュメントには異なる「ステータス」を入れることができます。（「オープン」「承認待ち」など）
+DocType: Workflow,DocType on which this Workflow is applicable.,DOCTYPEがどのこのワークフローを適用することができる。
+DocType: Workflow,Document States,
+DocType: Workflow,"Field that represents the Workflow State of the transaction (if field is not present, a new hidden Custom Field will be created)",取引のワークフローの状態を表すフィールド（フィールドが存在しない場合は、新しい隠しカスタムフィールドが作成されます）
+DocType: Workflow,"If checked, all other workflows become inactive.",チェックすると、他のすべてのワークフローが非アクティブになります。
+DocType: Workflow,Is Active,アクティブ
+DocType: Workflow,Rules defining transition of state in the workflow.,ワークフローの状態の遷移を定義するルール。
+DocType: Workflow,"Rules for how states are transitions, like next state and which role is allowed to change state etc.",次の状態と役割、状態をなどを変更することが許可されているような状態は、遷移であるかについての規則
+DocType: Workflow,States,都道府県
+DocType: Workflow,Transition Rules,移行ルール
+DocType: Workflow,Transitions,
+DocType: Workflow,Workflow,作業の流れ
+DocType: Workflow,Workflow Name,ワークフロー名
+DocType: Workflow,Workflow State Field,ワークフローステータスのフィールド
+DocType: Workflow Action,Workflow Action,ワークフローアクション
+DocType: Workflow Action,Workflow Action Master,
+DocType: Workflow Action,Workflow Action Name,ワークフローアクション名
+DocType: Workflow Document State,0 - Draft; 1 - Submitted; 2 - Cancelled,0 - ドラフト; 1 - 投稿; 2 - キャンセル
+DocType: Workflow Document State,Doc Status,ドキュメントの状態
+DocType: Workflow Document State,Only Allow Edit For,編集のみ可
+DocType: Workflow Document State,Represents the states allowed in one document and role assigned to change the state.,
+DocType: Workflow Document State,Update Field,フィールド（欄）の更新
+DocType: Workflow Document State,Update Value,値の更新
+DocType: Workflow Document State,Workflow Document State,ワークフロー文書のステータス
+DocType: Workflow State,Danger,危険
+DocType: Workflow State,Icon will appear on the button,アイコンがボタン上に表示されます
+DocType: Workflow State,Inverse,逆元
+DocType: Workflow State,Primary,プライマリー：アップライトロー
+DocType: Workflow State,Style,スタイル
+DocType: Workflow State,"Style represents the button color: Success - Green, Danger - Red, Inverse - Black, Primary - Dark Blue, Info - Light Blue, Warning - Orange",スタイルはボタンの色を表しています。成功 - グリーン、危険 - 赤、逆 - ブラック、プライマリ - ダークブルー、情報 - ライトブルー、警告 - オレンジ
+DocType: Workflow State,Success,成功
+DocType: Workflow State,Warning,警告
+DocType: Workflow State,Workflow State,ワークフローの状態
+DocType: Workflow State,Workflow state represents the current state of a document.,
+DocType: Workflow State,adjust,調整する
+DocType: Workflow State,align-center,中央寄せ
+DocType: Workflow State,align-justify,均等割付
+DocType: Workflow State,align-left,左寄せ
+DocType: Workflow State,align-right,右寄せ
+DocType: Workflow State,arrow-down,下矢印
+DocType: Workflow State,arrow-left,左矢印
+DocType: Workflow State,arrow-right,右矢印
+DocType: Workflow State,arrow-up,上矢印
+DocType: Workflow State,asterisk,アスタリスク
+DocType: Workflow State,backward,後方
+DocType: Workflow State,ban-circle,BAN-CIRCLE
+DocType: Workflow State,barcode,バーコード
+DocType: Workflow State,bell,鐘
+DocType: Workflow State,bold,bold
+DocType: Workflow State,book,本
+DocType: Workflow State,bookmark,ブックマーク
+DocType: Workflow State,briefcase,書類鞄
+DocType: Workflow State,bullhorn,拡声器
+DocType: Workflow State,calendar,経済指標の発表を意識することです
+DocType: Workflow State,camera,カメラ
+DocType: Workflow State,certificate,証明書
+DocType: Workflow State,check,小切手
+DocType: Workflow State,chevron-down,シェブロンダウン
+DocType: Workflow State,chevron-left,シェブロン左
+DocType: Workflow State,chevron-right,シェブロンの右
+DocType: Workflow State,chevron-up,シェブロンアップ
+DocType: Workflow State,circle-arrow-down,サークル矢印ダウン
+DocType: Workflow State,circle-arrow-left,サークル矢印左
+DocType: Workflow State,circle-arrow-right,円形矢印右
+DocType: Workflow State,circle-arrow-up,サークル矢印アップ
+DocType: Workflow State,cog,歯
+DocType: Workflow State,comment,コメント
+DocType: Workflow State,download,ダウンロード
+DocType: Workflow State,download-alt,ダウンロード-ALT
+DocType: Workflow State,edit,編集
+DocType: Workflow State,eject,イジェクト
+DocType: Workflow State,envelope,封筒
+DocType: Workflow State,exclamation-sign,感嘆符記号
+DocType: Workflow State,eye-close,目を閉じる
+DocType: Workflow State,eye-open,目をオープン
+DocType: Workflow State,facetime-video,FaceTimeのビデオ
+DocType: Workflow State,fast-backward,早戻し
+DocType: Workflow State,fast-forward,早送り
+DocType: Workflow State,file,ファイル
+DocType: Workflow State,film,フィルム
+DocType: Workflow State,filter,filter
+DocType: Workflow State,fire,火災
+DocType: Workflow State,flag,flag
+DocType: Workflow State,folder-close,フォルダを閉じる
+DocType: Workflow State,folder-open,フォルダを開ける
+DocType: Workflow State,font,フォント
+DocType: Workflow State,forward,まえがき
+DocType: Workflow State,fullscreen,フルスクリーン
+DocType: Workflow State,gift,ギフト
+DocType: Workflow State,glass,ガラス
+DocType: Workflow State,globe,地球
+DocType: Workflow State,hand-down,簡単に
+DocType: Workflow State,hand-left,手で左
+DocType: Workflow State,hand-right,手で右
+DocType: Workflow State,hand-up,手渡す
+DocType: Workflow State,hdd,HDD
+DocType: Workflow State,headphones,ヘッドフォン
+DocType: Workflow State,heart,心
+DocType: Workflow State,home,ホーム
+DocType: Workflow State,inbox,受信トレイ
+DocType: Workflow State,indent-left,インデント左
+DocType: Workflow State,indent-right,インデント右
+DocType: Workflow State,info-sign,インフォサイン
+DocType: Workflow State,italic,斜体
+DocType: Workflow State,leaf,葉
+DocType: Workflow State,list,リスト
+DocType: Workflow State,list-alt,リスト-ALT
+DocType: Workflow State,lock,ロック
+DocType: Workflow State,magnet,マグネット
+DocType: Workflow State,map-marker,マップマーカー
+DocType: Workflow State,minus,マイナス
+DocType: Workflow State,minus-sign,マイナス記号
+DocType: Workflow State,move,移動
+DocType: Workflow State,music,音楽
+DocType: Workflow State,off,オフ
+DocType: Workflow State,ok,OK
+DocType: Workflow State,ok-circle,OKマーク
+DocType: Workflow State,ok-sign,OKサイン
+DocType: Workflow State,pause,休止
+DocType: Workflow State,pencil,鉛筆
+DocType: Workflow State,picture,画像
+DocType: Workflow State,plane,飛行機
+DocType: Workflow State,play,再生
+DocType: Workflow State,play-circle,演劇サークル
+DocType: Workflow State,plus,PLUS
+DocType: Workflow State,plus-sign,プラス記号
+DocType: Workflow State,print,print
+DocType: Workflow State,qrcode,QRコード
+DocType: Workflow State,question-sign,質問記号
+DocType: Workflow State,random,ランダム
+DocType: Workflow State,refresh,更新
+DocType: Workflow State,remove,削除
+DocType: Workflow State,remove-circle,取り外しサークル
+DocType: Workflow State,remove-sign,削除記号
+DocType: Workflow State,repeat,リピート
+DocType: Workflow State,resize-full,サイズ変更、フル
+DocType: Workflow State,resize-horizontal,サイズ変更、水平
+DocType: Workflow State,resize-small,サイズ変更小
+DocType: Workflow State,resize-vertical,サイズ変更、垂直
+DocType: Workflow State,retweet,リツイートする
+DocType: Workflow State,road,道路
+DocType: Workflow State,screenshot,スクリーンショット
+DocType: Workflow State,search,検索
+DocType: Workflow State,share,シェア
+DocType: Workflow State,share-alt,共有
+DocType: Workflow State,shopping-cart,ショッピング·カート
+DocType: Workflow State,signal,信号
+DocType: Workflow State,star,星
+DocType: Workflow State,star-empty,星（空白）
+DocType: Workflow State,step-backward,戻る
+DocType: Workflow State,step-forward,進む
+DocType: Workflow State,stop,配信の停止
+DocType: Workflow State,tag,タグ
+DocType: Workflow State,tags,タグ
+DocType: Workflow State,tasks,タスク
+DocType: Workflow State,text-height,文章の高さ
+DocType: Workflow State,text-width,テキスト幅
+DocType: Workflow State,th,目
+DocType: Workflow State,th-large,TH-ラージ
+DocType: Workflow State,th-list,TH-リスト
+DocType: Workflow State,thumbs-down,不賛成
+DocType: Workflow State,thumbs-up,賛成
+DocType: Workflow State,time,time
+DocType: Workflow State,tint,色合い／色調
+DocType: Workflow State,trash,ごみ
+DocType: Workflow State,upload,アップロード
+DocType: Workflow State,user,ユーザー
+DocType: Workflow State,volume-down,音量を下げる
+DocType: Workflow State,volume-off,無音
+DocType: Workflow State,volume-up,音量を上げる
+DocType: Workflow State,warning-sign,警告サイン
+DocType: Workflow State,wrench,レンチ（ねじ回し）
+DocType: Workflow State,zoom-in,ズームアップ
+DocType: Workflow State,zoom-out,ズームアウト
+DocType: Workflow Transition,Action,アクション
+DocType: Workflow Transition,Allowed,許可されている
+DocType: Workflow Transition,Defines actions on states and the next step and allowed roles.,
+DocType: Workflow Transition,Next State,次の状態
+DocType: Workflow Transition,Workflow Transition,ワークフロートランジション（仕事の流れの変遷）
+apps/frappe/frappe/auth.py +180,Not allowed from this IP Address,このIPアドレスからは許可されていません
+apps/frappe/frappe/auth.py +194,Login not allowed at this time,この時点でログインは許可されていません。
+apps/frappe/frappe/client.py +42,Cannot edit standard fields,標準フィールドを編集することはできません
+apps/frappe/frappe/client.py +53,Can not edit Read Only fields,
+apps/frappe/frappe/config/desktop.py +17,Calendar,カレンダー
+apps/frappe/frappe/config/desktop.py +59,Installer,インストーラ
+apps/frappe/frappe/config/setup.py +103,Manage uploaded files.,アップロードされたファイルを管理します。
+apps/frappe/frappe/config/setup.py +114,Define workflows for forms.,フォームのワークフローを定義します。
+apps/frappe/frappe/config/setup.py +119,"States for workflow (e.g. Draft, Approved, Cancelled).",ワークフローの状態（例えばドラフト、承認、キャンセル）。
+apps/frappe/frappe/config/setup.py +124,"Actions for workflow (e.g. Approve, Cancel).",ワークフローのアクション（例えばキャンセル、ご了承ください）。
+apps/frappe/frappe/config/setup.py +13,System and Website Users,システムとウェブサイトユーザー
+apps/frappe/frappe/config/setup.py +135,Add / Manage Email Accounts.,
+apps/frappe/frappe/config/setup.py +140,Setup Email Alert based on various criteria.,様々な基準に基づいてメールでの警告をセットアップします。
+apps/frappe/frappe/config/setup.py +145,Standard replies to common queries.,標準では、一般的なクエリに応答します。
+apps/frappe/frappe/config/setup.py +150,Printing,
+apps/frappe/frappe/config/setup.py +157,Drag and Drop tool to build and customize Print Formats.,
+apps/frappe/frappe/config/setup.py +162,"Set default format, page size, print style etc.",設定されたデフォルトの書式、ページサイズ、印刷スタイル等
+apps/frappe/frappe/config/setup.py +167,Customized HTML Templates for printing transctions.,印刷transctions用にカスタマイズされたHTMLテンプレート。
+apps/frappe/frappe/config/setup.py +172,Customize,カスタマイズ
+apps/frappe/frappe/config/setup.py +178,"Change field properties (hide, readonly, permission etc.)",変更フィールドのプロパティ（非表示、読み取り専用、アクセス権など）
+apps/frappe/frappe/config/setup.py +18,User Roles,ユーザーの役割
+apps/frappe/frappe/config/setup.py +184,Add fields to forms.,フォームにフィールドを追加。
+apps/frappe/frappe/config/setup.py +189,Add custom javascript to forms.,フォームへのカスタムJavaScriptを追加します。
+apps/frappe/frappe/config/setup.py +200,Application Installer,アプリケーションインストーラ
+apps/frappe/frappe/config/setup.py +201,Install Applications.,アプリケーションをインストールします。
+apps/frappe/frappe/config/setup.py +207,Download Backup,ダウンロードバックアップ
+apps/frappe/frappe/config/setup.py +210,Send download link of a recent backup to System Managers,システム管理者への最新のバックアップのダウンロードリンクを送信
+apps/frappe/frappe/config/setup.py +216,Manage cloud backups on Dropbox,Dropboxのクラウドバックアップを管理
+apps/frappe/frappe/config/setup.py +222,Log of error on automated events (scheduler).,自動化されたイベント（スケジューラ）のエラーログ。
+apps/frappe/frappe/config/setup.py +31,Set Permissions on Document Types and Roles,ドキュメントの種類と役割にアクセス許可を設定
+apps/frappe/frappe/config/setup.py +38,Set Permissions per User,ユーザーごとに設定された権限
+apps/frappe/frappe/config/setup.py +46,Check which Documents are readable by a User,ドキュメントは、ユーザーが読み取り可能であるかを確認
+apps/frappe/frappe/config/setup.py +53,Report of all document shares,
+apps/frappe/frappe/config/setup.py +58,Settings,設定
+apps/frappe/frappe/config/setup.py +65,"Language, Date and Time settings",言語、日付と時刻の設定
+apps/frappe/frappe/config/setup.py +7,Users,
+apps/frappe/frappe/config/setup.py +71,Show / Hide Modules,表示/非表示モジュール
+apps/frappe/frappe/config/setup.py +73,Show or hide modules globally.,グローバルモジュールの表示と非表示を切り替える。
+apps/frappe/frappe/config/setup.py +78,Set numbering series for transactions.,トランザクションのための連番に設定します。
+apps/frappe/frappe/config/setup.py +90,Import / Export Data,データのインポート/エクスポート
+apps/frappe/frappe/config/setup.py +92,Import / Export Data from .csv files.,CSVファイルからのインポート/エクスポートデータ。
+apps/frappe/frappe/config/setup.py +97,Rename many items by uploading a .csv file.,csvファイルをアップロードすることで多くの項目の名前を変更します。
+apps/frappe/frappe/config/website.py +12,Content web page.,コンテンツのWebページ。
+apps/frappe/frappe/config/website.py +17,Single Post (article).,シングルポスト（記事）。
+apps/frappe/frappe/config/website.py +22,User editable form on Website.,
+apps/frappe/frappe/config/website.py +27,User ID of a blog writer.,ブログライターのユーザーID。
+apps/frappe/frappe/config/website.py +32,Embed image slideshows in website pages.,ウェブサイトのページ内に画像のスライドショーを埋め込んでください。
+apps/frappe/frappe/config/website.py +37,Setup,セットアップ
+apps/frappe/frappe/config/website.py +43,"Setup of top navigation bar, footer and logo.",上部のナビゲーションバー、フッター、ロゴの設定。
+apps/frappe/frappe/config/website.py +48,Setup of fonts and background.,フォントや背景の設定。
+apps/frappe/frappe/config/website.py +53,Javascript to append to the head section of the page.,Javascriptをページの先頭のセクションに追加する。
+apps/frappe/frappe/config/website.py +58,Write titles and introductions to your blog.,あなたのブログにタイトルと紹介文を記載してください。
+apps/frappe/frappe/config/website.py +6,Documents,文書
+apps/frappe/frappe/config/website.py +63,Categorize blog posts.,ブログの記事を分類。
+apps/frappe/frappe/config/website.py +68,Settings for About Us Page.,会社概要ページの設定。
+apps/frappe/frappe/config/website.py +73,Settings for Contact Us Page.,お問い合わせページの設定。
+apps/frappe/frappe/config/website.py +78,"Enter keys to enable login via Facebook, Google, GitHub.",Facebook・Google・GitHub経由でログインするためのキーを入力してください。
+apps/frappe/frappe/core/doctype/comment/comment.py +37,Cannot add more than 50 comments,50以上のコメントを追加することはできません
+apps/frappe/frappe/core/doctype/communication/communication.js +17,Add To,
+apps/frappe/frappe/core/doctype/communication/communication.py +199,"Error generating PDF, attachment sent as HTML",エラーによりPDFが生成され、添付ファイルはHTMLとして送信されます
+apps/frappe/frappe/core/doctype/communication/communication.py +82,Unable to find attachment {0},添付ファイル{0}が見つかりません
+apps/frappe/frappe/core/doctype/docshare/docshare.py +33,{0} shared this document with {0},
+apps/frappe/frappe/core/doctype/docshare/docshare.py +38,{0} un-shared this document with {0},
+apps/frappe/frappe/core/doctype/doctype/boilerplate/controller_list.html +31,Completed,完了
+apps/frappe/frappe/core/doctype/doctype/doctype.js +20,"Cannot Edit {0} directly: To edit {0} properties, create / update {1}, {2} and {3}",編集することはできません{0}に直接：{0}のプロパティを編集するには、作成/更新{1}、{2}と{3}
+apps/frappe/frappe/core/doctype/doctype/doctype.js +22,Custom Field,カスタムフィールド
+apps/frappe/frappe/core/doctype/doctype/doctype.js +23,Custom Script,カスタムスクリプト
+apps/frappe/frappe/core/doctype/doctype/doctype.js +24,Property Setter,プロパティセッター
+apps/frappe/frappe/core/doctype/doctype/doctype.py +126,DocType can not be merged,ドキュメントタイプを混在させることはできません。
+apps/frappe/frappe/core/doctype/doctype/doctype.py +222,{0} not allowed in fieldname {1},{0}フィールド名では許可されていない{1}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +227,Fieldname {0} appears multiple times in rows {1},フィールド名{0}は行{1}で複数回表示されます
+apps/frappe/frappe/core/doctype/doctype/doctype.py +231,Field {0} of type {1} cannot be mandatory,フィールド{0}の型{1}は必須にすることはできません
+apps/frappe/frappe/core/doctype/doctype/doctype.py +236,Options requried for Link or Table type field {0} in row {1},行{1}のリンクまたはテーブル型フィールド{0}にはオプションが必要です
+apps/frappe/frappe/core/doctype/doctype/doctype.py +240,Options must be a valid DocType for field {0} in row {1},フィールド{0}行{1}のオプションは有効な文書型でなければなりません
+apps/frappe/frappe/core/doctype/doctype/doctype.py +244,Field {0} in row {1} cannot be hidden and mandatory without default,フィールド{0}の行{1}は、デフォルト以外、非表示・必須とすることはできません
+apps/frappe/frappe/core/doctype/doctype/doctype.py +248,Max width for type Currency is 100px in row {0},行{0}の通貨表記の最大幅は100pxです
+apps/frappe/frappe/core/doctype/doctype/doctype.py +252,'In List View' not allowed for type {0} in row {1},「リスト表示では「許可されていないタイプのため{0}行{1}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +259,Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType',オプション「ダイナミックリンク」型のフィールドは「DocType」オプションなどの別のリンクフィールドを指している必要があります
+apps/frappe/frappe/core/doctype/doctype/doctype.py +263,Default for 'Check' type of field must be either '0' or '1',
+apps/frappe/frappe/core/doctype/doctype/doctype.py +267,Precision should be between 1 and 6,
+apps/frappe/frappe/core/doctype/doctype/doctype.py +274,There can be only one Fold in a form,
+apps/frappe/frappe/core/doctype/doctype/doctype.py +280,Fold must come before a labelled Section Break,
+apps/frappe/frappe/core/doctype/doctype/doctype.py +282,Fold can not be at the end of the form,
+apps/frappe/frappe/core/doctype/doctype/doctype.py +292,Search Fields should contain valid fieldnames,
+apps/frappe/frappe/core/doctype/doctype/doctype.py +298,Fieldname is required in row {0},行{0}にはフィールド名が必要です
+apps/frappe/frappe/core/doctype/doctype/doctype.py +329,Enter at least one permission row,少なくとも1の許可の行を入力してください
+apps/frappe/frappe/core/doctype/doctype/doctype.py +337,For {0} at level {1} in {2} in row {3},{0}のレベルで{1} {2}の行の{3}
+apps/frappe/frappe/core/doctype/doctype/doctype.py +341,{0}: No basic permissions set,{0}：いいえ、基本的なアクセス権が設定されていません
+apps/frappe/frappe/core/doctype/doctype/doctype.py +35,Not in Developer Mode! Set in site_config.json or make 'Custom' DocType.,
+apps/frappe/frappe/core/doctype/doctype/doctype.py +352,"{0}: Only one rule allowed with the same Role, Level and Apply User Permissions",{0}：同じ役割で許可された唯一のルールを、レベルとユーザーのアクセス許可を適用します
+apps/frappe/frappe/core/doctype/doctype/doctype.py +363,{0}: Permission at level 0 must be set before higher levels are set,{0}：より高いレベルが設定される前に、レベル0の許可が設定されている必要があり
+apps/frappe/frappe/core/doctype/doctype/doctype.py +366,"{0}: Create, Submit, Cancel and Amend only valid at level 0",{0}：レベル0でのみ有効の作成、送信、キャンセルおよび改正
+apps/frappe/frappe/core/doctype/doctype/doctype.py +370,{0}: Cannot set Cancel without Submit,{0}：設定できません送信せずにキャンセル
+apps/frappe/frappe/core/doctype/doctype/doctype.py +373,"{0}: Cannot set Submit, Cancel, Amend without Write",{0}：書き込みなしに改正、キャンセル、送信設定することはできません
+apps/frappe/frappe/core/doctype/doctype/doctype.py +375,{0}: Cannot set Amend without Cancel,{0}：設定できませんキャンセルせずに改正
+apps/frappe/frappe/core/doctype/doctype/doctype.py +377,{0}: Cannot set Import without Create,{0}：登録なしでインポートを設定できません
+apps/frappe/frappe/core/doctype/doctype/doctype.py +38,{0} not allowed in name,{0}の名前では使用できません
+apps/frappe/frappe/core/doctype/doctype/doctype.py +384,Report cannot be set for Single types,報告書は、単一の種類を設定することはできません
+apps/frappe/frappe/core/doctype/doctype/doctype.py +394,{0} cannot be set for Single types,{0}シングルタイプに設定することはできません
+apps/frappe/frappe/core/doctype/doctype/doctype.py +398,{0}: Cannot set Assign Submit if not Submittable,{0}：Submittableていない場合は、割り当てが送信設定できません
+apps/frappe/frappe/core/doctype/doctype/doctype.py +400,{0}: Cannot set Assign Amend if not Submittable,{0}：Submittableていない場合は、割り当てが改正設定できません
+apps/frappe/frappe/core/doctype/doctype/doctype.py +404,{0}: Cannot set import as {1} is not importable,{0}：{1}インポート可能ではないので、インポートを設定できません
+apps/frappe/frappe/core/doctype/doctype/doctype.py +80,Title field must be a valid fieldname,タイトルフィールド（欄のタイトル）は、有効なフィールド名（欄名）である必要があります。
+apps/frappe/frappe/core/doctype/doctype/doctype.py +98,Series {0} already used in {1},シリーズは、{0}はすでに{1}で使用されています
+apps/frappe/frappe/core/doctype/file_data/file_data.py +33,Same file has already been attached to the record,同じファイルが既に記録に添付されています
+apps/frappe/frappe/core/doctype/file_data/file_data.py +42,No permission to write / remove.,書き込み／削除の権限がありません
+apps/frappe/frappe/core/doctype/report/report.js +10,[Label]:[Field Type]/[Options]:[Width],[ラベル]：[フィールドタイプ] / [オプション]：[幅]
+apps/frappe/frappe/core/doctype/report/report.js +11,Example:,例：
+apps/frappe/frappe/core/doctype/report/report.js +16,Write a Python file in the same folder where this is saved and return column and result.,パイソンファイルをそれが保存されている同じフォルダーに保存し、コラム（縦の行）と数値を報告する。
+apps/frappe/frappe/core/doctype/report/report.js +37,Disable Report,
+apps/frappe/frappe/core/doctype/report/report.js +37,Enable Report,
+apps/frappe/frappe/core/doctype/report/report.js +5,Report Builder reports are managed directly by the report builder. Nothing to do.,レポートビルダのレポートは、レポートビルダーによって直接管理されている。何の関係もない。
+apps/frappe/frappe/core/doctype/report/report.js +8,Write a SELECT query. Note result is not paged (all data is sent in one go).,SELECTクエリを書き込んでください。結果はページングされない（全データが1度に返却）ことに注意してください。
+apps/frappe/frappe/core/doctype/report/report.js +9,"To format columns, give column labels in the query.",フォーマットのコラム（縦の列）に、質問の標識を設ける。
+apps/frappe/frappe/core/doctype/report/report.py +24,Only Administrator can save a standard report. Please rename and save.,標準レポートを保存することができるのは管理者だけです。名前を変更し、保存してください。
+apps/frappe/frappe/core/doctype/report/report.py +29,Only Administrator allowed to create Query / Script Reports,クエリー/スクリプトレポートを作成することができるのは管理者だけです
+apps/frappe/frappe/core/doctype/role/role.js +9,Edit Permissions,権限を編集
+apps/frappe/frappe/core/doctype/system_settings/system_settings.py +17,Session Expiry must be in format {0},セッションの有効期限は {0}のようなフォーマットでなければなりません
+apps/frappe/frappe/core/doctype/user/user.js +117,Add all roles,すべての役割を追加する
+apps/frappe/frappe/core/doctype/user/user.js +127,Clear all roles,すべての役割をクリア
+apps/frappe/frappe/core/doctype/user/user.js +282,Role Permissions,
+apps/frappe/frappe/core/doctype/user/user.js +41,Refreshing...,再読込しています...
+apps/frappe/frappe/core/doctype/user/user.js +95,Loading,読み込み中
+apps/frappe/frappe/core/doctype/user/user.py +103,Welcome email sent,ウェルカムメールが送信されました。
+apps/frappe/frappe/core/doctype/user/user.py +141,Password Reset,
+apps/frappe/frappe/core/doctype/user/user.py +144,Password Update,
+apps/frappe/frappe/core/doctype/user/user.py +153,Verify Your Account,
+apps/frappe/frappe/core/doctype/user/user.py +184,There should remain at least one System Manager,少なくとも1つのシステム·マネージャーが残っているはずです。
+apps/frappe/frappe/core/doctype/user/user.py +189,User {0} cannot be deleted,ユーザー{0}を削除することはできません
+apps/frappe/frappe/core/doctype/user/user.py +221,User {0} cannot be renamed,ユーザー{0}の名前を変更できません
+apps/frappe/frappe/core/doctype/user/user.py +230,{0} is not a valid email id,{0}は有効な電子メールIDはありません
+apps/frappe/frappe/core/doctype/user/user.py +320,Cannot Update: Incorrect / Expired Link.,更新することはできません：不適切な/期限切れリンク
+apps/frappe/frappe/core/doctype/user/user.py +325,Cannot Update: Incorrect Password,更新することはできません。パスワードが間違っています。
+apps/frappe/frappe/core/doctype/user/user.py +333,Password Updated,パスワード更新
+apps/frappe/frappe/core/doctype/user/user.py +340,Registered but disabled.,登録は完了しましたが有効ではありません。
+apps/frappe/frappe/core/doctype/user/user.py +342,Already Registered,既に登録されています
+apps/frappe/frappe/core/doctype/user/user.py +359,Registration Details Emailed.,登録の詳細は電子メールで送信しました。
+apps/frappe/frappe/core/doctype/user/user.py +364,Not allowed to reset the password of {0},{0}のパスワードをリセットすることはできません
+apps/frappe/frappe/core/doctype/user/user.py +371,Password reset instructions have been sent to your email,パスワードのリセット命令は、あなたの電子メールに送られてきた
+apps/frappe/frappe/core/doctype/user/user.py +374,User {0} does not exist,ユーザー{0}は存在しません
+apps/frappe/frappe/core/doctype/user/user.py +40,User {0} cannot be disabled,ユーザー{0}無効にすることはできません
+apps/frappe/frappe/core/doctype/user/user.py +56,Adding System Manager to this User as there must be atleast one System Manager,少なくとも1システムマネージャーが存在しなければならないものとして、このユーザにシステムマネージャーの追加
+apps/frappe/frappe/core/doctype/user/user.py +66,User with System Manager Role should always have User Type: System User,
+apps/frappe/frappe/core/doctype/user/user.py +73,New password emailed,新しいパスワードが電子メールで送信されました
+apps/frappe/frappe/core/doctype/user/user_list.js +12,Active,アクティブ
+apps/frappe/frappe/core/doctype/userrole/userrole.py +14,Role exists,役割が存在します
+apps/frappe/frappe/core/doctype/version/version.js +10,Version restored,復元版
+apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +17,"To import or update records, you must first download the template for importing.",
+apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +21,Download Blank Template,
+apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +24,Recommended for inserting new records.,
+apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +3,Select Type of Document to Import,
+apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +30,Download with Data,
+apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +33,"Recommended bulk editing records via import, or understanding the import format.",
+apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +38,Update the template and save in CSV (Comma Separate Values) format before attaching.,
+apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +45,"Always insert, even if ID is given.",
+apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +5,Select Type,タイプを選択
+apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +51,Submit after importing.,
+apps/frappe/frappe/core/page/data_import_tool/data_import_main.html +57,Ignore encoding errors.,
+apps/frappe/frappe/core/page/data_import_tool/data_import_tool.js +115,Import Failed,
+apps/frappe/frappe/core/page/data_import_tool/data_import_tool.js +74,Import Successful!,インポート成功！
+apps/frappe/frappe/core/page/data_import_tool/data_import_tool.py +13,Start entering data below this line,
+apps/frappe/frappe/core/page/data_import_tool/data_import_tool.py +15,Parent Table,
+apps/frappe/frappe/core/page/data_import_tool/data_import_tool.py +16,Column Name,
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +134,One of,
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +217,Column Labels:,
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +219,Mandatory:,
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +220,Type:,
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +221,Info:,
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +51,Data Import Template,
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +60,Notes:,注意事項:
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +61,Please do not change the template headings.,
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +62,First data column must be blank.,
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +63,"If you are uploading new records, leave the ""name"" (ID) column blank.",
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +64,"If you are uploading new records, ""Naming Series"" becomes mandatory, if present.",
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +65,Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +66,"For updating, you can update only selective columns.",
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +67,You can only upload upto 5000 records in one go. (may be less in some cases),
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +69,"""Parent"" signifies the parent table in which this row must be added",
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +70,"If you are updating, please select ""Overwrite"" else existing rows will not be deleted.",
+apps/frappe/frappe/core/page/data_import_tool/exporter.py +91,Leave blank for new records,
+apps/frappe/frappe/core/page/data_import_tool/importer.py +166,Not allowed to Import,インポートは許可されていません
+apps/frappe/frappe/core/page/data_import_tool/importer.py +248,Did not find {0} for {0} ({1}),{0}（{1}）により{0}が見つかりませんでした
+apps/frappe/frappe/core/page/data_import_tool/importer.py +35,Please do not change the rows above {0},{0}の上の行を変更しないでください
+apps/frappe/frappe/core/page/data_import_tool/importer.py +40,No data found,データが見つかりません
+apps/frappe/frappe/core/page/data_import_tool/importer.py +42,Only allowed {0} rows in one import,1度にインポートできるのは{0}行までです
+apps/frappe/frappe/core/page/data_import_tool/importer.py +67,Please make sure that there are no empty columns in the file.,空のカラムがファイル内に存在しないことを確認してください。
+apps/frappe/frappe/core/page/desktop/all_applications_dialog.html +1,Search Application,
+apps/frappe/frappe/core/page/desktop/all_applications_dialog.html +3,Checked items will be shown on desktop,
+apps/frappe/frappe/core/page/desktop/desktop.js +49,All Applications,全てのアプリケーション
+apps/frappe/frappe/core/page/modules_setup/modules_setup.js +18,"Select modules to be shown (based on permission). If hidden, they will be hidden for all users.",（許可に基づいて）表示されるようにモジュールを選択します。隠された場合は、すべてのユーザーに対して非表示になります。
+apps/frappe/frappe/core/page/modules_setup/modules_setup.js +5,Show or Hide Modules,
+apps/frappe/frappe/core/page/modules_setup/modules_setup.js +55,There were errors,エラーが発生しました
+apps/frappe/frappe/core/page/modules_setup/modules_setup.py +11,Updated,更新済み
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +140,Select Document Type or Role to start.,開始するドキュメントタイプまたはロールを選択します。
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +162,No Permissions set for this criteria.,この条件には権限が設定されていません。
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +248,Select Document Types,
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +249,Show User Permissions,
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +292,Users with role {0}:,役割{0}を持つユーザー：
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +316,Did not remove,削除されませんでした。
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +359,Add A New Rule,新しいルールを追加
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +363,Add New Permission Rule,新しいアクセス許可ルールの追加
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +371,"Level 0 is for document level permissions, higher levels for field level permissions.",レベル0は文書レベルの権限において、フィールドレベル権限のより高いレベルです。
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +372,Add,追加メニュー
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +396,Did not add,追加しませんでした
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +421,Set,セット
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +426,Apply User Permissions of these Document Types,
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +467,Did not set,
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +469,Saved!,
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +47,Document Types,
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +48,Select Document Type,ドキュメントの種類を選択
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +487,Restore Original Permissions,
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +54,Select Role,役割を選択
+apps/frappe/frappe/core/page/permission_manager/permission_manager.js +95,Reset Permissions for {0}?,{0}のアクセス許可をリセットしますか？
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +10,Permissions are automatically translated to Standard Reports and Searches.,アクセス権限は、自動的に標準レポートおよび検索に変換されます。
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +11,"As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User.",ベストプラクティスとして、異なる役割に対して同じセットのアクセス許可ルールを割り当てないでください。代わりに、同じユーザーに複数の役割を設定します。
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +14,"Meaning of Submit, Cancel, Amend",送信、キャンセル、修正の意味
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +16,"Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit.",一部のドキュメントには、請求書のように、一回の最終変更すべきではありません。このような文書の最終的な状態が提出と呼ばれています。あなたは役割が送信できるかを制限することができます。
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +17,"You can change Submitted documents by cancelling them and then, amending them.",送信した書類は、取り消し、修正することによって変更することができます。
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +18,"When you Amend a document after Cancel and save it, it will get a new number that is a version of the old number.",キャンセル後に書類を修正・保存した場合、その書類には新規の番号が付与されます。
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +19,For example if you cancel and amend INV004 it will become a new document INV004-1. This helps you to keep track of each amendment.,
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +22,Permission Levels,アクセス権レベル
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +24,"Permissions at level 0 are Document Level permissions, i.e. they are primary for access to the document.",
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +25,"If a Role does not have access at Level 0, then higher levels are meaningless.",「役割」がレベル0のアクセス権を持っていない場合、より高いレベルには意味がありません。
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +26,Permissions at higher levels are Field Level permissions. All Fields have a Permission Level set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles.,
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +27,You can use Customize Form to set levels on fields.,カスタマイズフォームを使用してフィールドの制限を設定できます
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +3,Quick Help for Setting Permissions,アクセス権を設定するためのクイックヘルプ
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +30,User Permissions,ユーザーのアクセス許可
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +32,"To give acess to a role for only specific records, check the Apply User Permissions. User Permissions are used to limit users with such role to specific records.",
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +33,Setup > User Permissions Manager,[設定]> [ユーザーのアクセス許可の管理
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +34,Select Document Types to set which User Permissions are used to limit access.,
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +35,"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).",この設定によりユーザーはリンクのあるドキュメント（ブログ記事など）にアクセス可能となります（例：Blogger）。
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +36,"Apart from System Manager, roles with Set User Permissions right can set permissions for other users for that Document Type.",
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +38,"If these instructions where not helpful, please add in your suggestions on GitHub Issues.",これらの説明が役に立たなかった場合は、GitHubのIssueにご提案を追加してください。
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +39,Submit an Issue,問題を送信
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +5,"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions.",アクセス権限は、レポート、インポート、エクスポート、印刷、電子メール、および設定ユーザー権限、改正、キャンセル、送信、削除、作成、書き込み、読み出しのような権利を設定することで、役割とドキュメントタイプ（文書型と呼ばれます）に設定されています。
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +6,Permissions get applied on Users based on what Roles they are assigned.,アクセス権限は、割り当てられている役割に基づいてユーザーに適用されます。
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +7,Roles can be set for users from their User page.,役割は、ユーザーページからユーザーが設定することができます。
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +8,Setup > User,[設定]> [ユーザー
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +9,Add a New Role,新しい役割の追加
+apps/frappe/frappe/core/page/permission_manager/permission_manager_help.html +9,The system provides many pre-defined roles. You can add new roles to set finer permissions.,このシステムは、多くの事前定義された機能／役割を提供しています。あなたは細かい権限を設定するための新しい機能／役割を追加することができます。
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +127,Upload User Permissions,
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +132,Upload CSV file containing all user permissions in the same format as Download.,ダウンロードと同じ形式で全ユーザーのアクセス許可を含むCSVファイルをアップロードします。
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +133,Any existing permission will be deleted / overwritten.,既存のアクセス権は消去／上書きされます。
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +14,Edit Role Permissions,
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +140,Upload and Sync,アップロード・同期
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +149,Permissions Updated,
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +16,Help for User Permissions,
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +19,"Apart from Role based Permission Rules, you can apply User Permissions based on DocTypes.",役割に基づく権限ルールとは別に、文書タイプに基づいてユーザーのアクセス許可を適用することができます。
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +193,No User Permissions found.,ユーザーのアクセス許可が見つかりません
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +209,Select User or DocType to start.,開始するにはユーザーまたはのDocTypeを選択します。
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +23,"These permissions will apply for all transactions where the permitted record is linked. For example, if Company C is added to User Permissions of user X, user X will only be able to see transactions that has company C as a linked value.",これらの権限は許可記録がリンクされているすべての取引に適用されます。例えば、C社がユーザXのユーザー権限に追加された場合、ユーザXだけがC社のリンクされた取引を見ることができます。
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +234,User Permission,ユーザーのアクセス許可
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +27,"These will also be set as default values for those links, if only one such permission record is defined.",許可記録が定義されている場合のみ、それらのリンクは既定値として設定される。
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +285,Add A User Permission,ユーザー権限を追加
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +289,Add New User Permission,
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +31,A user can be permitted to multiple records of the same DocType.,ユーザーは同じ文書タイプの複数のレコードへのアクセス許可を得ることができます。
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +68,Select User,
+apps/frappe/frappe/core/page/user_permissions/user_permissions.js +88,Download,ダウンロード
+apps/frappe/frappe/core/page/user_permissions/user_permissions.py +105,Please upload using the same template as download.,ダウンロードとして同じテンプレートを使用してアップロードしてください。
+apps/frappe/frappe/core/page/user_permissions/user_permissions.py +58,Cannot remove permission for DocType: {0} and Name: {1},文書タイプ{0}・文書名{1}の権限を削除することはできません
+apps/frappe/frappe/core/page/user_permissions/user_permissions.py +66,Cannot set permission for DocType: {0} and Name: {1},のDocTypeの許可を設定することはできません：{0}と名：{1}
+apps/frappe/frappe/core/report/permitted_documents_for_user/permitted_documents_for_user.py +25,Please specify user,ユーザーを指定してください
+apps/frappe/frappe/core/report/permitted_documents_for_user/permitted_documents_for_user.py +28,Please specify doctype,DOCTYPEを指定してください
+apps/frappe/frappe/core/report/todo/todo.py +21,Assigned To/Owner,所有者に割り当て
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +52,Name of the Document Type (DocType) you want this field to be linked to. e.g. Customer,このフィールドをリンクしたい文書型（DocType）の名前。（例：顧客）
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +55,Options for select. Each option on a new line. e.g.: <br>Option 1<br>Option 2<br>Option 3<br>,選択するためのオプション。新しい行に各オプション。例：検索オプション1検索オプション2検索オプション3検索
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.js +58,Fieldname which will be the DocType for this link field.,このリンクフィールドのDocTypeになるフィールド名。
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +19,Label is mandatory,ラベルは必須です
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +29,Fieldname not set for Custom Field,カスタムフィールドにフィールド名が設定されていません
+apps/frappe/frappe/custom/doctype/custom_field/custom_field.py +61,"Insert After field '{0}' mentioned in Custom Field '{1}', does not exist",'{0}'カスタムフィールドに記載されている '{1}'、存在しないフィールドの後に挿入
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +123,Help,ヘルプ
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +127,Help: Field Properties,
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +135,Set the display label for the field,
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +139,"Change type of field. (Currently, Type change is \
+						allowed among 'Currency and Float')",
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +144,Specify the value of the field,
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +149,Assign a permission level to the field.,
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +150,Permissions can be managed via Setup &gt; Role Permissions Manager,
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +156,Width of the input box,
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +157,Example,
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +161,Reqd,REQD
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +162,Mark the field as Mandatory,
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +166,Use the field to filter records,
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +170,Hide field in form,
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +174,Hide field in Standard Print Format,
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +178,Hide field in Report Builder,
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +182,Allow field to remain editable even after submission,
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +195,Show a description below the field,
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +199,Specify a default value,
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +205,Press Esc to close,
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +46,Update,更新
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +60,Refresh Form,
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +64,Reset to defaults,
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +65,Remove all customizations?,すべてのカスタマイズを削除しますか？
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.js +90,All customizations will be removed. Please confirm.,全てのカスタマイズが削除されます。ご確認ください。
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +124,Row {0}: Not allowed to enable Allow on Submit for standard fields,
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +247,Fieldtype cannot be changed from {0} to {1} in row {2},FIELDTYPEは{0} {2}行{1}から変更することはできません
+apps/frappe/frappe/custom/doctype/customize_form/customize_form.py +96,{0} updated,{0}に更新
+apps/frappe/frappe/custom/doctype/property_setter/property_setter.js +7,Value for a check field can be either 0 or 1,チェックフィールドの値は0か1のどちらかです
+apps/frappe/frappe/database.py +211,Too many writes in one request. Please send smaller requests,1つの要求書に記入が多すぎます。要求内容を小さくして送信してください。
+apps/frappe/frappe/desk/doctype/event/event.py +16,Event end must be after start,イベント終了は開始後でなければなりません
+apps/frappe/frappe/desk/doctype/event/event.py +19,Every day events should finish on the same day.,
+apps/frappe/frappe/desk/doctype/event/event.py +50,Events In Today's Calendar,今日のカレンダーのイベント
+apps/frappe/frappe/desk/doctype/event/event.py +57,Daily Event Digest is sent for Calendar Events where reminders are set.,毎日イベントダイジェストはリマインダーが設定されているカレンダーのイベントのために送信されます。
+apps/frappe/frappe/desk/doctype/event/event.py +59,Upcoming Events for Today,今日すべき事柄。
+apps/frappe/frappe/desk/doctype/feed/feed.py +91,{0} logged in,
+apps/frappe/frappe/desk/doctype/note/note_list.js +3,Notes,ノート
+apps/frappe/frappe/desk/doctype/todo/todo.js +12,Close,閉じる
+apps/frappe/frappe/desk/doctype/todo/todo.js +20,Re-open,再オープン
+apps/frappe/frappe/desk/doctype/todo/todo.py +14,Assigned to {0},
+apps/frappe/frappe/desk/doctype/todo/todo.py +18,Assignment closed by {0},
+apps/frappe/frappe/desk/doctype/todo/todo_list.js +7,To Do,やることリスト
+apps/frappe/frappe/desk/form/assign_to.py +112,"The task %s, that you assigned to %s, has been closed.",
+apps/frappe/frappe/desk/form/assign_to.py +118,"The task %s, that you assigned to %s, has been closed by %s.",
+apps/frappe/frappe/desk/form/assign_to.py +126,"A new task, %s, has been assigned to you by %s. %s",
+apps/frappe/frappe/desk/form/assign_to.py +40,Already in user's To Do list,既にユーザのやることリストに存在します
+apps/frappe/frappe/desk/form/load.py +42,Did not load,ロードされませんでした
+apps/frappe/frappe/desk/form/save.py +21,{0} {1} already exists,{0} {1}はすでに存在しています
+apps/frappe/frappe/desk/form/save.py +29,Did not save,保存しませんでした。
+apps/frappe/frappe/desk/form/save.py +43,Did not cancel,キャンセルされませんでした
+apps/frappe/frappe/desk/form/utils.py +99,No further records,これ以上のレコードはありません
+apps/frappe/frappe/desk/moduleview.py +30,Custom Reports,カスタム レポート
+apps/frappe/frappe/desk/moduleview.py +55,Module Not Found,モジュールが見つかりません
+apps/frappe/frappe/desk/moduleview.py +65,Standard Reports,標準レポート
+apps/frappe/frappe/desk/page/activity/activity.js +153,Apr,
+apps/frappe/frappe/desk/page/activity/activity.js +153,Feb,
+apps/frappe/frappe/desk/page/activity/activity.js +153,Jan,
+apps/frappe/frappe/desk/page/activity/activity.js +153,Jun,
+apps/frappe/frappe/desk/page/activity/activity.js +153,Mar,
+apps/frappe/frappe/desk/page/activity/activity.js +153,May,
+apps/frappe/frappe/desk/page/activity/activity.js +154,Aug,
+apps/frappe/frappe/desk/page/activity/activity.js +154,Dec,
+apps/frappe/frappe/desk/page/activity/activity.js +154,Jul,
+apps/frappe/frappe/desk/page/activity/activity.js +154,Nov,
+apps/frappe/frappe/desk/page/activity/activity.js +154,Oct,
+apps/frappe/frappe/desk/page/activity/activity.js +154,Sep,
+apps/frappe/frappe/desk/page/activity/activity.js +197,{0} on {1},
+apps/frappe/frappe/desk/page/activity/activity.js +20,Activty,
+apps/frappe/frappe/desk/page/activity/activity.js +44,Refresh,再読込
+apps/frappe/frappe/desk/page/activity/activity.js +48,Build Report,レポートを作成
+apps/frappe/frappe/desk/page/activity/activity_row.html +11,Logged in,
+apps/frappe/frappe/desk/page/activity/activity_row.html +15,Commented on {0}: {1},
+apps/frappe/frappe/desk/page/activity/activity_row.html +17,Updated {0}: {1},
+apps/frappe/frappe/desk/page/applications/application_row.html +15,Publisher,
+apps/frappe/frappe/desk/page/applications/application_row.html +5,Installed,インストール済
+apps/frappe/frappe/desk/page/applications/application_row.html +7,Install,
+apps/frappe/frappe/desk/page/applications/applications.js +24,No Apps Installed,
+apps/frappe/frappe/desk/page/applications/applications.py +34,You cannot install this app,このアプリケーションをインストールすることはできません
+apps/frappe/frappe/desk/page/messages/messages_main.html +12,Post,投稿
+apps/frappe/frappe/desk/page/messages/messages_sidebar.html +6,Everyone,Everyone
+apps/frappe/frappe/desk/query_report.py +18,You don't have access to Report: {0},
+apps/frappe/frappe/desk/query_report.py +21,You don't have permission to get a report on: {0},
+apps/frappe/frappe/desk/query_report.py +25,Report {0} is disabled,
+apps/frappe/frappe/desk/query_report.py +69,Must have report permission to access this report.,このレポートにアクセスするには、レポートの権限が必要です。
+apps/frappe/frappe/desk/query_report.py +75,Must specify a Query to run,実行するクエリを指定する必要があります
+apps/frappe/frappe/desk/query_report.py +79,Query must be a SELECT,質問は、選択でなければなりません。
+apps/frappe/frappe/desk/reportview.py +72,{0} is saved,{0}に保存されている
+apps/frappe/frappe/email/bulk.py +126,Emails are muted,メールはミュートされ
+apps/frappe/frappe/email/bulk.py +36,Bulk email limit {0} crossed,バルク電子メールの制限{0}交差されました。
+apps/frappe/frappe/email/doctype/email_account/email_account.py +182,Re: ,
+apps/frappe/frappe/email/doctype/email_account/email_account.py +62,{0} is required,{0}が必要である
+apps/frappe/frappe/email/doctype/email_account/email_account_list.js +10,Default Inbox,
+apps/frappe/frappe/email/doctype/email_account/email_account_list.js +14,Default Sending,
+apps/frappe/frappe/email/doctype/email_account/email_account_list.js +18,Inbox,
+apps/frappe/frappe/email/doctype/email_account/email_account_list.js +6,Default Sending and Inbox,
+apps/frappe/frappe/email/doctype/email_alert/email_alert.py +13,Please specify which date field must be checked,フィールドがチェックされなければならない日付を指定してください
+apps/frappe/frappe/email/doctype/email_alert/email_alert.py +16,Please specify which value field must be checked,値フィールドをチェックする必要がありますを指定してください
+apps/frappe/frappe/email/doctype/email_alert/email_alert.py +20,Cannot set Email Alert on Document Type {0},ドキュメントの種類に電子メールアラートを設定することはできません{0}
+apps/frappe/frappe/email/receive.py +46,Invalid Mail Server. Please rectify and try again.,無効なメールサーバ。修正してからもう一度やり直してください。
+apps/frappe/frappe/email/receive.py +50,Invalid User Name or Support Password. Please rectify and try again.,無効なユーザー名またはサポートパスワード。修正してからもう一度やり直してください。
+apps/frappe/frappe/email/smtp.py +114,Email Account not setup. Please create a new Email Account from Setup > Email > Email Account,
+apps/frappe/frappe/email/smtp.py +126,Could not connect to outgoing email server,送信メールサーバーに接続できませんでした
+apps/frappe/frappe/email/smtp.py +148,Invalid Outgoing Mail Server or Port,無効な送信メールサーバーまたはポート
+apps/frappe/frappe/email/smtp.py +152,Unable to send emails at this time,メールを送信することができません。
+apps/frappe/frappe/email/smtp.py +34,Invalid login or password,無効なログインまたはパスワード
+apps/frappe/frappe/email/smtp.py +37,Invalid recipient address,無効な受信者のアドレス
+apps/frappe/frappe/email/smtp.py +74,Please setup default Email Account from Setup > Email > Email Account,
+apps/frappe/frappe/geo/doctype/currency/currency.js +7,This Currency is disabled. Enable to use in transactions,この通貨は無効になっています。処理で使用可能にすることが出来ます。
+apps/frappe/frappe/model/base_document.py +239,Duplicate name {0} {1},{0}と{1}は名前が重複しています
+apps/frappe/frappe/model/base_document.py +263,{0} must be unique,
+apps/frappe/frappe/model/base_document.py +293,Data missing in table,表に不足しているデータ
+apps/frappe/frappe/model/base_document.py +297,Value missing for,値の記入漏れ
+apps/frappe/frappe/model/base_document.py +328,Options not set for link field {0},リンクフィールド{0}に設定されていないオプション
+apps/frappe/frappe/model/base_document.py +332,{0} must be set first,{0}最初に設定する必要があります
+apps/frappe/frappe/model/base_document.py +369,Row #{0}:,行番号{0}：
+apps/frappe/frappe/model/base_document.py +373,"{0} {1} cannot be ""{2}"". It should be one of ""{3}""","{0} {1} ""{2}""にすることはできません。それは ""{3}""のいずれかでなければなりません"
+apps/frappe/frappe/model/base_document.py +386,Value cannot be changed for {0},{0}の値は変更することはできません。
+apps/frappe/frappe/model/base_document.py +394,Not allowed to change {0} after submission,送信後{0}を変更することはできません
+apps/frappe/frappe/model/db_query.py +263,No permission to read {0},
+apps/frappe/frappe/model/db_query.py +366,Please select atleast 1 column from {0} to sort,ソートする{0}から少なくとも1列を選択してください
+apps/frappe/frappe/model/db_schema.py +406,"Fieldname {0} cannot contain letters, numbers or spaces",フィールド名{0}に文字、数字、スペースを含めることはできません
+apps/frappe/frappe/model/delete_doc.py +119,User not allowed to delete {0}: {1},ユーザーは{0}：{1}を削除することはできません。
+apps/frappe/frappe/model/delete_doc.py +123,{0} {1}: Submitted Record cannot be deleted.,{0} {1}：提出レコードを削除することはできません。
+apps/frappe/frappe/model/delete_doc.py +141,Cannot delete or cancel because {0} {1} is linked with {2} {3},{0} {1}が{2} {3}とリンクされているため、削除するか、キャンセルすることはできません
+apps/frappe/frappe/model/delete_doc.py +178,Deleted,
+apps/frappe/frappe/model/document.py +329,Record does not exist,レコードが存在しません
+apps/frappe/frappe/model/document.py +339,Error: Document has been modified after you have opened it,エラー：あなたが文書を開いた後に変更されています
+apps/frappe/frappe/model/document.py +341,Please refresh to get the latest document.,最新のドキュメントを取得するために更新してください。
+apps/frappe/frappe/model/document.py +363,Cannot change docstatus from 0 to 2,
+apps/frappe/frappe/model/document.py +373,Cannot change docstatus from 1 to 0,
+apps/frappe/frappe/model/document.py +376,Cannot edit cancelled document,
+apps/frappe/frappe/model/document.py +423,Could not find {0},見つけることができませんでした{0}
+apps/frappe/frappe/model/document.py +428,Cannot link cancelled document: {0},
+apps/frappe/frappe/model/document.py +576,one of,一部
+apps/frappe/frappe/model/document.py +577,none of,のどれも
+apps/frappe/frappe/model/document.py +578,beginning with,で始まる
+apps/frappe/frappe/model/document.py +603,Incorrect value in row {0}: {1} must be {2} {3},行 {0} に誤った値：{1} は {2} {3}でなければなりません
+apps/frappe/frappe/model/document.py +605,Incorrect value: {0} must be {1} {2},不正な値：{0} は {1} {2}でなければなりません
+apps/frappe/frappe/model/document.py +614,Table {0} cannot be empty,表{0}を空欄にすることはできません。
+apps/frappe/frappe/model/mapper.py +69,Cannot map because following condition fails: ,Cannot map because following condition fails: 
+apps/frappe/frappe/model/naming.py +150,"There were some errors setting the name, please contact the administrator",名前の設定で多少のエラーが発生しました。管理者に連絡してください。
+apps/frappe/frappe/model/naming.py +156,Name of {0} cannot be {1},{0}の名前は{1}にすることはできません
+apps/frappe/frappe/model/naming.py +35,Naming Series mandatory,シリーズ名は必須です
+apps/frappe/frappe/model/naming.py +42,Name not set via Prompt,プロンプトから名前が設定されていません
+apps/frappe/frappe/model/naming.py +84, for {0},
+apps/frappe/frappe/model/naming.py +84,Invalid naming series (. missing),
+apps/frappe/frappe/model/rename_doc.py +88,"{0} {1} does not exist, select a new target to merge",{0} {1}が存在しない、マージする新しいターゲットを選択
+apps/frappe/frappe/model/rename_doc.py +91,"Another {0} with name {1} exists, select another name",{1} という名前の別の {0} が存在しますので、別の名前を選択してください
+apps/frappe/frappe/model/rename_doc.py +94,You need write permission to rename,名前を変更するための権限が必要です
+apps/frappe/frappe/model/rename_doc.py +97,{0} not allowed to be renamed,{0}名前を変更することは許されない
+apps/frappe/frappe/modules/__init__.py +77,App not found,アプリケーションが見つかりません
+apps/frappe/frappe/permissions.py +148,Not allowed to access {0} with {1} = {2},{0} {1} = {2}を使用してアクセスすることはできません
+apps/frappe/frappe/permissions.py +151,Row,行
+apps/frappe/frappe/permissions.py +202,{0} {1} not found,{0} {1}が見つかりません
+apps/frappe/frappe/permissions.py +206,Permission already set,許可が既に設定されている
+apps/frappe/frappe/print/doctype/letter_head/letter_head.js +7,Step 1: Set the name and save.,ステップ1：名前を設定し、保存します。
+apps/frappe/frappe/print/doctype/letter_head/letter_head.js +9,Step 2: Set Letterhead content.,ステップ2：レターヘッドの内容を設定します。
+apps/frappe/frappe/print/doctype/print_format/print_format.js +14,Please duplicate this to make changes,
+apps/frappe/frappe/print/doctype/print_format/print_format.js +20,Please select DocType first,
+apps/frappe/frappe/print/doctype/print_format/print_format.py +14,Standard Print Format cannot be updated,標準の印刷フォーマットを更新することはできません
+apps/frappe/frappe/print/doctype/print_format/print_format.py +26,Syntax error in Jinja template,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +103,Both DocType and Name required,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +158,Custom HTML,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +328,No of Columns,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +334,Remove Section,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +427,Edit Heading,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +446,Select Table Columns for {0},
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +494,Edit to add content,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +499,Edit Custom HTML,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +58,Select Print Format to Edit,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +582,Saved,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +85,Select a DocType to make a new format,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder.js +94,Name of the new Print Format,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_column_selector.html +1,"Check columns to select, drag to set order.",
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_column_selector.html +2,Widths can be set in px or %.,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_column_selector.html +4,Column,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_field.html +12,Edit HTML,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_field.html +20,Select Columns,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_layout.html +11,<span class=text-muted data-no-content=1>,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_layout.html +12,Edit to set heading,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_layout.html +3,Drag elements from the sidebar to add. Drag them back to trash.,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_sidebar.html +3,Filter...,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_start.html +16,Create a New Format,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_start.html +2,Select an existing format to edit or start a new format.,
+apps/frappe/frappe/print/page/print_format_builder/print_format_builder_start.html +8,Edit,編集
+apps/frappe/frappe/sessions.py +26,Cache Cleared,
+apps/frappe/frappe/templates/emails/auto_reply.html +1,Thank you for your email,
+apps/frappe/frappe/templates/emails/auto_reply.html +2,"Your query has been received. We will back reply shortly. If you have any additional information, please reply to this mail.",
+apps/frappe/frappe/templates/emails/auto_reply.html +4,This is an automatically generated reply,
+apps/frappe/frappe/templates/emails/new_user.html +3,A new account has been created for you,
+apps/frappe/frappe/templates/emails/new_user.html +4,Your login id is,
+apps/frappe/frappe/templates/emails/new_user.html +5,Click on the link below to complete your registration and set a new password,
+apps/frappe/frappe/templates/emails/new_user.html +6,Complete Registration,
+apps/frappe/frappe/templates/emails/new_user.html +8,You can also copy-paste this link in your browser,
+apps/frappe/frappe/templates/emails/new_user.html +9,Thank you,
+apps/frappe/frappe/templates/emails/password_reset.html +4,Please click on the following link to set your new password,
+apps/frappe/frappe/templates/emails/password_update.html +1,Password Update Notification,
+apps/frappe/frappe/templates/emails/password_update.html +3,Your password has been updated. Here is your new password,
+apps/frappe/frappe/templates/emails/print_link.html +2,View this in your browser,
+apps/frappe/frappe/templates/generators/web_form.html +14,Please login to create a new {0},
+apps/frappe/frappe/templates/includes/comments.py +48,{0} by {1},{0}と{1}
+apps/frappe/frappe/templates/includes/comments.py +50,View it in your browser,
+apps/frappe/frappe/templates/includes/comments.py +57,New comment on {0} {1},{0} {1}上の新しいコメント
+apps/frappe/frappe/templates/includes/contact.js +11,"Please enter both your email and message so that we \
+				can get back to you. Thanks!",
+apps/frappe/frappe/templates/includes/contact.js +17,"You seem to have written your name instead of your email. \
+					Please enter a valid email address so that we can get back.",
+apps/frappe/frappe/templates/includes/contact.js +30,Thank you for your message,メッセージをありがとうございました。
+apps/frappe/frappe/templates/includes/login.js +119,Invalid Login,無効なログイン
+apps/frappe/frappe/templates/includes/login.js +120,Oops! Something went wrong,わっ！何か問題が起きたようです
+apps/frappe/frappe/templates/includes/login.js +18,Both login and password required,ログインとパスワードの両方が必要
+apps/frappe/frappe/templates/includes/login.js +31,Valid email and name required,有効なメールアドレスと名前が必要です。
+apps/frappe/frappe/templates/includes/login.js +43,Valid Login id required.,有効なログインIDが必要です。
+apps/frappe/frappe/templates/pages/404.html +1,Not Found,ページが見つかりません
+apps/frappe/frappe/templates/pages/404.html +11,"We are very sorry for this, but the page you are looking for is missing (this could be because of a typo in the address) or moved.",
+apps/frappe/frappe/templates/pages/404.html +4,Page missing or moved,
+apps/frappe/frappe/templates/pages/desk.py +20,You are not permitted to access this page.,
+apps/frappe/frappe/templates/pages/list.html +1,List,リスト
+apps/frappe/frappe/templates/pages/login.py +158,Email not verified with {1},電子メールは{1}で確認されませんでした。
+apps/frappe/frappe/templates/pages/print.py +124,No {0} permission,{0}権限はありません
+apps/frappe/frappe/templates/pages/print.py +136,Print Format {0} is disabled,印刷形式{0}が無効になっています
+apps/frappe/frappe/templates/pages/print.py +150,No template found at path: {0},テンプレートが次のパスに見つかりません：{0}
+apps/frappe/frappe/templates/pages/update-password.html +1,Reset Password,
+apps/frappe/frappe/templates/pages/update-password.html +17,Old Password,
+apps/frappe/frappe/utils/backups.py +136,Download link for your backup will be emailed on the following email address: {0},
+apps/frappe/frappe/utils/boilerplate.py +209,{app_title},{app_title}
+apps/frappe/frappe/utils/csvutils.py +125,{0} must be one of {1},{0} {1}のいずれかである必要があります
+apps/frappe/frappe/utils/csvutils.py +24,File not attached,ファイルが添付されていません
+apps/frappe/frappe/utils/csvutils.py +32,Unable to open attached file. Please try again.,添付ファイルを開くことができません。もう一度お試しください。
+apps/frappe/frappe/utils/csvutils.py +49,"Unknown file encoding. Tried utf-8, windows-1250, windows-1252.",未知の文字コードです。utf-8・Windows-1250・Windows-1252ではありませんでした。
+apps/frappe/frappe/utils/csvutils.py +73,Not a valid Comma Separated Value (CSV File),有効なカンマ区切り値（CSVファイル）がありません
+apps/frappe/frappe/utils/data.py +339,Cent,
+apps/frappe/frappe/utils/data.py +356,only.,
+apps/frappe/frappe/utils/data.py +386,hundred,
+apps/frappe/frappe/utils/data.py +391,thousand,
+apps/frappe/frappe/utils/data.py +394,million,
+apps/frappe/frappe/utils/data.py +397,billion,
+apps/frappe/frappe/utils/data.py +404,lakh,
+apps/frappe/frappe/utils/data.py +407,crore,
+apps/frappe/frappe/utils/file_manager.py +161,File size exceeded the maximum allowed size of {0} MB,ファイルサイズは{0} MBの最大許容サイズを超えました
+apps/frappe/frappe/utils/file_manager.py +210,Removed {0},
+apps/frappe/frappe/utils/file_manager.py +28,Please select a file or url,ファイルまたはURLを選択してください
+apps/frappe/frappe/utils/file_manager.py +40,Added {0},
+apps/frappe/frappe/utils/file_manager.py +83,No file attached,添付ファイルがありません
+apps/frappe/frappe/utils/nestedset.py +181,Item cannot be added to its own descendents,アイテムには独自の子孫に追加することはできません
+apps/frappe/frappe/utils/nestedset.py +194,Root {0} cannot be deleted,ルート{0}を削除することはできません
+apps/frappe/frappe/utils/nestedset.py +201,Cannot delete {0} as it has child nodes,それが子ノードを持っているように{0}を削除することはできません
+apps/frappe/frappe/utils/nestedset.py +210,Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node,マージはグループ同士またはリーフノード同士でのみ可能です
+apps/frappe/frappe/utils/nestedset.py +221,Multiple root nodes not allowed.,複数のルートノードは許可されていません。
+apps/frappe/frappe/utils/nestedset.py +227,{0} {1} cannot be a leaf node as it has children,それは子供を持っているように{0} {1}リーフノードにすることはできません
+apps/frappe/frappe/utils/nestedset.py +77,Nested set error. Please contact the Administrator.,入れ子集合のエラー。管理者に連絡してください。
+apps/frappe/frappe/utils/response.py +108,You need to be logged in and have System Manager Role to be able to access backups.,バックアップにアクセスするには、ログインしていること、システムマネージャーの役割を持っていることが必要です
+apps/frappe/frappe/website/doctype/blog_post/blog_post_list.js +7,Not Published,
+apps/frappe/frappe/website/doctype/style_settings/style_settings.py +21,Top Bar text and background is same color. Please change.,トップバーのテキストと背景が同じ色である。変更してください。
+apps/frappe/frappe/website/doctype/web_form/web_form.py +51,Invalid Request,
+apps/frappe/frappe/website/doctype/web_form/web_form.py +85,You must login to submit this form,
+apps/frappe/frappe/website/doctype/web_page/web_page.py +27,Cannot edit templated page,
+apps/frappe/frappe/website/doctype/website_settings/website_settings.js +18,Exported,エクスポート
+apps/frappe/frappe/website/doctype/website_settings/website_settings.js +73,Select a Banner Image first.,最初のバナー画像を選択します。
+apps/frappe/frappe/website/doctype/website_settings/website_settings.py +22,Invalid Home Page,無効なホームページ
+apps/frappe/frappe/website/doctype/website_settings/website_settings.py +32,{0} does not exist in row {1},{0}の行に存在しません{1}
+apps/frappe/frappe/website/doctype/website_settings/website_settings.py +36,{0} in row {1} cannot have both URL and child items,{0}行目の{1} URLと子項目の両方を持つことはできません
+apps/frappe/frappe/website/render.py +65,Not Permitted,許可されていません
+apps/frappe/frappe/website/template.py +77,Next,次
+apps/frappe/frappe/workflow/doctype/workflow/workflow.py +38,Created Custom Field {0} in {1},{1}で作成したカスタムフィールド{0}
+apps/frappe/frappe/workflow/doctype/workflow/workflow.py +57,{0} not a valid State,{0}は有効な状態
+apps/frappe/frappe/workflow/doctype/workflow/workflow.py +64,Cannot change state of Cancelled Document. Transition row {0},キャンセルドキュメントの状態を変更することはできません。遷移行{0}
+apps/frappe/frappe/workflow/doctype/workflow/workflow.py +67,Submitted Document cannot be converted back to draft. Transition row {0},送信されたドキュメントは、ドラフトに逆変換することができません。遷移行{0}
+apps/frappe/frappe/workflow/doctype/workflow/workflow.py +70,Cannot cancel before submitting. See Transition {0},送信する前にキャンセルすることはできません。トランジション{0}を参照してください。
+apps/frappe/frappe/workflow/doctype/workflow/workflow_list.js +7,Not active,
+sites/assets/js/desk.min.js +108,Confirm,
+sites/assets/js/desk.min.js +148,Enter Value,値を入力します
+sites/assets/js/desk.min.js +167,Not found,見つかりませんでした
+sites/assets/js/desk.min.js +167,Not permitted,許可されていません
+sites/assets/js/desk.min.js +168,Server Error: Please check your server logs or contact tech support.,サーバーエラー：サーバーのログを確認するか、技術サポートに連絡してください。
+sites/assets/js/desk.min.js +176,Session Expired. Logging you out,セッションの期限が切れました。ログアウトします
+sites/assets/js/desk.min.js +196,Report this issue,この問題を報告
+sites/assets/js/desk.min.js +314,Menu,
+sites/assets/js/desk.min.js +350,This form does not have any input,
+sites/assets/js/desk.min.js +357,Show more details,
+sites/assets/js/desk.min.js +358,Hide details,
+sites/assets/js/desk.min.js +383,Missing Values Required,欠損値が必要です
+sites/assets/js/desk.min.js +416,Invalid Email: {0},無効なメール：{0}
+sites/assets/js/desk.min.js +421,Date must be in format: {0},日付が形式である必要があります：{0}
+sites/assets/js/desk.min.js +439,Please save the document before uploading.,
+sites/assets/js/desk.min.js +440,Upload,アップロード（手元のデータをメインのコンピューターに送ること。）
+sites/assets/js/desk.min.js +446,Add attachment,添付ファイルを追加
+sites/assets/js/desk.min.js +452,Please attach a file first.,最初のファイルを添付してください。
+sites/assets/js/desk.min.js +456,Open Link,
+sites/assets/js/desk.min.js +465,Create a new {0},新しい{0}を作成する
+sites/assets/js/desk.min.js +468,Advanced Search,
+sites/assets/js/desk.min.js +476,Please set {0} first,最初の{0}を設定してください
+sites/assets/js/desk.min.js +480,Edit as {0},
+sites/assets/js/desk.min.js +480,Markdown,
+sites/assets/js/desk.min.js +480,Rich Text,
+sites/assets/js/desk.min.js +487,Beginning with,で始まる
+sites/assets/js/desk.min.js +487,Dialog box to select a Link Value,
+sites/assets/js/desk.min.js +487,Search,検索
+sites/assets/js/desk.min.js +487,Select {0},
+sites/assets/js/desk.min.js +487,You can use wildcard %,ワイルドカード（％）を使用することができます
+sites/assets/js/desk.min.js +487,value,
+sites/assets/js/desk.min.js +494,No Results,結果がありません
+sites/assets/js/desk.min.js +496,Make a new,新しいを作成する
+sites/assets/js/desk.min.js +497,Added {0} ({1}),追加された{0}（{1}）
+sites/assets/js/desk.min.js +498,{0} added,{0}を追加
+sites/assets/js/desk.min.js +510,Comments,コメント
+sites/assets/js/desk.min.js +510,Created By,によって作成された
+sites/assets/js/desk.min.js +510,Created On,
+sites/assets/js/desk.min.js +510,Document Status,
+sites/assets/js/desk.min.js +510,Last Updated By,
+sites/assets/js/desk.min.js +510,Last Updated On,
+sites/assets/js/desk.min.js +510,Parent,
+sites/assets/js/desk.min.js +510,Starred By,
+sites/assets/js/desk.min.js +510,Tags,タグ（札／マークする）
+sites/assets/js/desk.min.js +510,Unknown Column: {0},不明なコラム：{0}
+sites/assets/js/desk.min.js +512,Unable to load: {0},{0}がロードできません
+sites/assets/js/desk.min.js +526,Permanently delete {0}?,永久に{0}を削除しますか？
+sites/assets/js/desk.min.js +527,Merge with existing,
+sites/assets/js/desk.min.js +527,New Name,
+sites/assets/js/desk.min.js +527,Rename,名前を変更
+sites/assets/js/desk.min.js +527,Rename {0},
+sites/assets/js/desk.min.js +530,Please specify,記入してしてください。
+sites/assets/js/desk.min.js +571,You have unsaved changes in this form. Please save before you continue.,この書式に保存されていない変更事項があります。継続する前に、保存してください。
+sites/assets/js/desk.min.js +574,Get,ゲット
+sites/assets/js/desk.min.js +574,Get From ,フォームを取得
+sites/assets/js/desk.min.js +613,You,
+sites/assets/js/desk.min.js +644,and,＆
+sites/assets/js/desk.min.js +644,or,または
+sites/assets/js/desk.min.js +661,Export not allowed. You need {0} role to export.,エクスポートは許可されていません。役割{0}を必要とします。
+sites/assets/js/desk.min.js +663,Alternative download link,代替ダウンロードリンク
+sites/assets/js/desk.min.js +706,Attach as a web link,
+sites/assets/js/desk.min.js +710,Please attach a file or set a URL,ファイルを添付またはURLを設定してください
+sites/assets/js/desk.min.js +711,Uploading...,アップロードしています...
+sites/assets/js/desk.min.js +723,Collapse,崩壊
+sites/assets/js/desk.min.js +723,Expand,展開
+sites/assets/js/desk.min.js +732,Page not found,ページが見つかりません
+sites/assets/js/desk.min.js +748,Sorry! I could not find what you were looking for.,
+sites/assets/js/desk.min.js +749,Sorry! You are not permitted to view this page.,
+sites/assets/js/desk.min.js +758,Home,ホーム
+sites/assets/js/desk.min.js +761,Help on Search,検索のヘルプ
+sites/assets/js/desk.min.js +762,Make a new record,新しいレコードを作る
+sites/assets/js/desk.min.js +763,<b>new</b> <i>type of document</i>,ドキュメントの新しい</ B> <I>タイプ</ I> <B>
+sites/assets/js/desk.min.js +764,List a document type,ドキュメントタイプを一覧表示します
+sites/assets/js/desk.min.js +765,"<i>document type...</i>, e.g. <b>customer</b>",<I>ドキュメントタイプ... </ I>、例えば<B>顧客</ B>
+sites/assets/js/desk.min.js +766,Search in a document type,ドキュメントタイプで検索
+sites/assets/js/desk.min.js +767,<i>text</i> <b>in</b> <i>document type</i>,<I>テキスト</ I> <B>中の</ B> <I>ドキュメントタイプ</ I>
+sites/assets/js/desk.min.js +768,Open a module or tool,モジュールまたはツールを開く
+sites/assets/js/desk.min.js +769,<i>module name...</i>,<I>モジュール名... </ I>
+sites/assets/js/desk.min.js +770,Calculate,計算
+sites/assets/js/desk.min.js +771,<i>e.g. <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>,<I>例えばある[（55 + 434）/ 4 </ STRONG>またはある[=数学。罪（数PI / 2）</ STRONG> ... </ I>
+sites/assets/js/desk.min.js +774,Find {0} in {1},{0} {1}で見つける
+sites/assets/js/desk.min.js +774,New {0},新しい{0}
+sites/assets/js/desk.min.js +774,Open {0},{0}を開く
+sites/assets/js/desk.min.js +774,{0} List,{0}リスト
+sites/assets/js/desk.min.js +777,Frappe Framework,Frappe Framework
+sites/assets/js/desk.min.js +779,Open Source Web Applications for the Web,Web用のオープンソースのWebアプリケーション
+sites/assets/js/desk.min.js +790,About,概要
+sites/assets/js/desk.min.js +790,Documentation,ドキュメンテーション
+sites/assets/js/desk.min.js +790,Forums,フォーラム
+sites/assets/js/desk.min.js +790,Logout,ログアウト
+sites/assets/js/desk.min.js +790,My Settings,私の設定
+sites/assets/js/desk.min.js +790,Reload,
+sites/assets/js/desk.min.js +790,Report an Issue,問題を報告
+sites/assets/js/desk.min.js +790,Search or type a command,コマンドを検索または入力してください
+sites/assets/js/desk.min.js +790,Unread Messages,未読メッセージ
+sites/assets/js/desk.min.js +790,View Website,
+sites/assets/js/desk.min.js +804,"Your download is being built, this may take a few moments...",ダウンロード準備中です。しばらくお待ちください…
+sites/assets/js/desk.min.js +808,Add Reply,返事を追加する
+sites/assets/js/desk.min.js +808,Attach Document Print,文書印刷を添付
+sites/assets/js/desk.min.js +808,Select Attachments,添付ファイルを選択します。
+sites/assets/js/desk.min.js +808,Select Print Format,印刷形式を選択
+sites/assets/js/desk.min.js +808,Send As Email,電子メールとして送信する
+sites/assets/js/desk.min.js +808,To,"〜宛。,"
+sites/assets/js/desk.min.js +815,Add Attachments,添付ファイルを追加
+sites/assets/js/desk.min.js +824,You are not allowed to send emails related to this document,この書類に関連するメールを送信することが許可されていません。
+sites/assets/js/desk.min.js +826,Email sent to {0},{0}に送信された電子メール
+sites/assets/js/desk.min.js +827,There were errors while sending email. Please try again.,メールの送信中にエラーが発生しました。もう一度お試しください。
+sites/assets/js/desk.min.js +829,Dear,親愛なる 様
+sites/assets/js/desk.min.js +834,"On {0}, {1} wrote:",
+sites/assets/js/editor.min.js +103,Bold (Ctrl/Cmd+B),
+sites/assets/js/editor.min.js +105,Bullet list,
+sites/assets/js/editor.min.js +107,Number list,
+sites/assets/js/editor.min.js +111,Insert picture (or just drag & drop),
+sites/assets/js/editor.min.js +113,Insert Link,
+sites/assets/js/editor.min.js +115,Remove Link,
+sites/assets/js/editor.min.js +119,Align Left (Ctrl/Cmd+L),
+sites/assets/js/editor.min.js +121,Center (Ctrl/Cmd+E),
+sites/assets/js/editor.min.js +123,Reduce indent (Shift+Tab),
+sites/assets/js/editor.min.js +125,Indent (Tab),
+sites/assets/js/editor.min.js +128,Horizontal Line Break,
+sites/assets/js/editor.min.js +152,Open Link in a new Window,
+sites/assets/js/editor.min.js +155,Insert,
+sites/assets/js/editor.min.js +94,Paragraph,
