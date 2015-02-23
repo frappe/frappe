@@ -43,11 +43,11 @@ def export_csv(doctype, path):
 		get_template(doctype=doctype, all_doctypes="Yes", with_data="Yes")
 		csvfile.write(frappe.response.result.encode("utf-8"))
 
-def export_json(doctype, path):
+def export_json(doctype, path, filters=None):
 	from frappe.utils.response import json_handler
 	out = []
-	for doc in frappe.get_all(doctype, fields=["name"], limit_page_length=None):
-		out.append(frappe.get_doc(doctype.doc.name).as_dict())
+	for doc in frappe.get_all(doctype, fields=["name"], filters=filters, limit_page_length=0, order_by="creation asc"):
+		out.append(frappe.get_doc(doctype, doc.name).as_dict())
 	with open(path, "w") as outfile:
 		outfile.write(json.dumps(out, default=json_handler, indent=1, sort_keys=True))
 

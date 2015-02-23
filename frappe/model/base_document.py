@@ -211,7 +211,8 @@ class BaseDocument(object):
 		return frappe._dict(doc)
 
 	def as_json(self):
-		return json.dumps(self.as_dict(), indent=1, sort_keys=True)
+		from frappe.utils.response import json_handler
+		return json.dumps(self.as_dict(), indent=1, sort_keys=True, default=json_handler)
 
 	def get_table_field_doctype(self, fieldname):
 		return self.meta.get_field(fieldname).options

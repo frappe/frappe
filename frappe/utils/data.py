@@ -8,17 +8,20 @@ import frappe
 import operator
 import re, urllib, datetime, math
 import babel.dates
+from dateutil import parser
+
+DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S.%f"
 
 # datetime functions
 def getdate(string_date):
 	"""
 		 Coverts string date (yyyy-mm-dd) to datetime.date object
 	"""
-	if isinstance(string_date, datetime.date):
-		return string_date
-
-	elif isinstance(string_date, datetime.datetime):
+	if isinstance(string_date, datetime.datetime):
 		return string_date.date()
+
+	elif isinstance(string_date, datetime.date):
+		return string_date
 
 	if " " in string_date:
 		string_date = string_date.split(" ")[0]
@@ -27,7 +30,15 @@ def getdate(string_date):
 
 def add_to_date(date, years=0, months=0, days=0):
 	"""Adds `days` to the given date"""
-	format = isinstance(date, basestring)
+
+	# save time part
+	with_time = False
+	as_string = isinstance(date, basestring)
+	if as_string:
+		if " " in date: with_time = date.split()[1]
+	elif isinstance(date, datetime.datetime):
+		with_time = date.time().strftime(DATETIME_FORMAT.split()[1])
+
 	if date:
 		date = getdate(date)
 	else:
@@ -36,8 +47,9 @@ def add_to_date(date, years=0, months=0, days=0):
 	from dateutil.relativedelta import relativedelta
 	date += relativedelta(years=years, months=months, days=days)
 
-	if format:
-		return date.strftime("%Y-%m-%d")
+	if as_string:
+		date = date.strftime("%Y-%m-%d")
+		return (date + " " + with_time) if with_time else date
 	else:
 		return date
 
@@ -89,7 +101,7 @@ def now():
 		return getdate(frappe.local.current_date).strftime("%Y-%m-%d") + " " + \
 			now_datetime().strftime('%H:%M:%S.%f')
 	else:
-		return now_datetime().strftime('%Y-%m-%d %H:%M:%S.%f')
+		return now_datetime().strftime(DATETIME_FORMAT)
 
 def nowdate():
 	"""return current date as yyyy-mm-dd"""
@@ -124,7 +136,7 @@ def get_last_day(dt):
 
 def get_datetime(datetime_str):
 	try:
-		return datetime.datetime.strptime(datetime_str, '%Y-%m-%d %H:%M:%S.%f')
+		return datetime.datetime.strptime(datetime_str, DATETIME_FORMAT)
 
 	except TypeError:
 		if isinstance(datetime_str, datetime.datetime):
@@ -138,11 +150,19 @@ def get_datetime(datetime_str):
 
 		return datetime.datetime.strptime(datetime_str, '%Y-%m-%d %H:%M:%S')
 
+
+def get_time(time_str):
+	if isinstance(time_str, datetime.datetime):
+		return time_str.time()
+	elif isinstance(time_str, datetime.time):
+		return time_str
+	return parser.parse(time_str).time()
+
 def get_datetime_str(datetime_obj):
 	if isinstance(datetime_obj, basestring):
 		datetime_obj = get_datetime(datetime_obj)
 
-	return datetime_obj.strftime('%Y-%m-%d %H:%M:%S.%f')
+	return datetime_obj.strftime(DATETIME_FORMAT)
 
 def formatdate(string_date=None, format_string=None):
 	"""
@@ -453,8 +473,8 @@ def pretty_date(iso_datetime):
 	import math
 
 	if isinstance(iso_datetime, basestring):
-		iso_datetime = datetime.datetime.strptime(iso_datetime, '%Y-%m-%d %H:%M:%S.%f')
-	now_dt = datetime.datetime.strptime(now(), '%Y-%m-%d %H:%M:%S.%f')
+		iso_datetime = datetime.datetime.strptime(iso_datetime, DATETIME_FORMAT)
+	now_dt = datetime.datetime.strptime(now(), DATETIME_FORMAT)
 	dt_diff = now_dt - iso_datetime
 
 	# available only in python 2.7+

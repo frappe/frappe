@@ -1256,15 +1256,6 @@ frappe.ui.form.ControlTable = frappe.ui.form.Control.extend({
 		this._super();
 
 		// add title if prev field is not column / section heading or html
-		var prev_fieldtype = "";
-		if(this.df.idx > 1) {
-			var prev_fieldtype = cur_frm.meta.fields[this.df.idx - 2].fieldtype;
-		}
-
-		if(frappe.model.layout_fields.indexOf(prev_fieldtype)===-1) {
-			$("<label>" + __(this.df.label) + "<label>").appendTo(this.wrapper);
-		}
-
 		this.grid = new frappe.ui.form.Grid({
 			frm: this.frm,
 			df: this.df,

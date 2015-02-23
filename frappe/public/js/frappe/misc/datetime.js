@@ -101,6 +101,10 @@ $.extend(frappe.datetime, {
 		return moment().format();
 	},
 
+	nowdate: function() {
+		return frappe.datetime.get_today();
+	},
+
 	now_time: function() {
 		return moment().format("HH:mm:ss");
 	},

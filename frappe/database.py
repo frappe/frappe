@@ -308,6 +308,8 @@ class Database:
 		* ifnull(`fieldname`, default_value) = %(fieldname)s
 		* `fieldname` [=, !=, >, >=, <, <=] %(fieldname)s
 		"""
+		conditions = []
+		values = {}
 		def _build_condition(key):
 			"""
 				filter's key is passed by map function
@@ -317,25 +319,38 @@ class Database:
 			"""
 			_operator = "="
 			value = filters.get(key)
+			values[key] = value
 			if isinstance(value, (list, tuple)):
 				_operator = value[0]
-				filters[key] = value[1]
+				values[key] = value[1]
+				if isinstance(value[1], (tuple, list)):
+					inner_list = []
+					for i, v in enumerate(value[1]):
+						inner_key = "{0}_{1}".format(key, i)
+						values[inner_key] = v
+						inner_list.append("%({0})s".format(inner_key))
 
-			if _operator not in ["=", "!=", ">", ">=", "<", "<=", "like"]:
+					values[key] = "({0})".format(", ".join(inner_list))
+
+			if _operator not in ["=", "!=", ">", ">=", "<", "<=", "like", "in", "not in"]:
 				_operator = "="
 
 			if "[" in key:
 				split_key = key.split("[")
-				return "ifnull(`" + split_key[0] + "`, " + split_key[1][:-1] + ") " \
+				condition = "ifnull(`" + split_key[0] + "`, " + split_key[1][:-1] + ") " \
 					+ _operator + " %(" + key + ")s"
 			else:
-				return "`" + key + "` " + _operator + " %(" + key + ")s"
+				condition = "`" + key + "` " + _operator + " %(" + key + ")s"
+
+			conditions.append(condition)
 
 		if isinstance(filters, basestring):
 			filters = { "name": filters }
-		conditions = map(_build_condition, filters)
 
-		return " and ".join(conditions), filters
+		for f in filters:
+			_build_condition(f)
+
+		return " and ".join(conditions), values
 
 	def get(self, doctype, filters=None, as_dict=True):
 		"""Returns `get_value` with fieldname='*'"""
@@ -487,12 +502,12 @@ class Database:
 			if fields=="*":
 				as_dict = True
 
-		conditions, filters = self.build_conditions(filters)
+		conditions, values = self.build_conditions(filters)
 
 		order_by = ("order by " + order_by) if order_by else ""
 
-		r = self.sql("select %s from `tab%s` where %s %s" % (fl, doctype,
-			conditions, order_by), filters, as_dict=as_dict, debug=debug, update=update)
+		r = self.sql("select {0} from `tab{1}` where {2} {3}".format(fl, doctype,
+			conditions, order_by), values, as_dict=as_dict, debug=debug, update=update)
 
 		return r
 
