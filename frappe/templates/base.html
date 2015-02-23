@@ -50,9 +50,9 @@ Built on Frappe.io. Free and Open Source Framework for the Web. https://frappe.i
 						{%- endif %}
 					{%- endblock -%}
 
-					{%- block navbar -%}{% include "templates/includes/navbar.html" %}{%- endblock -%}
+					{%- block navbar -%}{% include "templates/includes/navbar/navbar.html" %}{%- endblock -%}
 			        <div class="container">
-			    		<div class="page-container" id="page-{{ name or page_name }}">
+			    		<div class="page-container" id="page-{{ name or page_name }}" data-path="{{ pathname }}">
 			    			<div class="row">
 			    				<div class="col-sm-10 col-xs-12 page-content">
 			            			<div data-html-block="header">
@@ -61,7 +61,7 @@ Built on Frappe.io. Free and Open Source Framework for the Web. https://frappe.i
 			                		<div class="page-breadcrumbs" data-html-block="breadcrumbs">
 			                			{%- if breadcrumbs is defined -%}{{ breadcrumbs }}{%- endif -%}
 			                		</div>
-			                        <div class="" data-html-block="content">
+			                        <div class="page-content-block" data-html-block="content">
 			    					{%- block content -%}{{ content or "" }}{%- endblock -%}
 			                        </div>
 			    				</div>
@@ -82,14 +82,14 @@ Built on Frappe.io. Free and Open Source Framework for the Web. https://frappe.i
 					</footer>
 				</div>
 				<div>
-					{%- block footer -%}{% include "templates/includes/footer.html" %}{%- endblock -%}
+					{%- block footer -%}{% include "templates/includes/footer/footer.html" %}{%- endblock -%}
 				</div>
 			</div>
 			<div class="modal-backdrop offcanvas-main-section-overlay"></div>
 			<div class="sidebar sidebar-right visible-xs">
 				{% block offcanvas_sidebar -%}
 				<div class="sidebar-navbar-items">
-					{% include "frappe/templates/includes/navbar_items.html" %}
+					{% include "templates/includes/navbar/navbar_items.html" %}
 				</div>
 				<div class="sidebar-page-sidebar" data-html-block="sidebar">
 					{%- if sidebar is defined -%}

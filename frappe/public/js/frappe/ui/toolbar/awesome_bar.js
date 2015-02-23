@@ -212,11 +212,12 @@ frappe.search.verbs = [
 
 			try {
 				var val = eval(txt);
+				var formatted_value = $.format('{0} = {1}', [txt, "<b>"+val+"</b>"]);
 				frappe.search.options.push({
-					value: $.format('{0} = {1}', [txt, "<b>"+val+"</b>"]),
+					value: formatted_value,
 					match: val,
 					onclick: function(match) {
-						msgprint(match, "Result");
+						msgprint(formatted_value, "Result");
 					}
 				});
 			} catch(e) {

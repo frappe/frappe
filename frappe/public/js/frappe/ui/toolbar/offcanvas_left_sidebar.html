@@ -36,7 +36,7 @@
 <div class="user-menu clearfix">
 	<div class="pull-left text-ellipsis" style="max-width: 75%;">
 		<a href="#Form/User/{%= encodeURIComponent(user) %}">
-			<img src="{%= frappe.user_info().image %}" class="navbar-user-image">
+			<img src="{%= frappe.user_info().image %}" class="navbar-user-image" alt="{%= frappe.user.abbr() %}">
 			<span>{%= frappe.user.full_name() %}</span>
 		</a>
 	</div>

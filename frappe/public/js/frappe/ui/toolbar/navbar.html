@@ -20,7 +20,7 @@
 				<li class="dropdown">
 					<a class="dropdown-toggle" data-toggle="dropdown" href="#"
 						onclick="return false;">
-	                <img src="{%= frappe.user_info().image %}" class="navbar-user-image">
+	                <img src="{%= frappe.user_info().image %}" class="navbar-user-image" alt="{%= frappe.user.abbr() %}">
 	                <span class="toolbar-user-fullname">{%= frappe.user.full_name() %}</span>
 	                <b class="caret"></b></a>
 					<ul class="dropdown-menu" id="toolbar-user" role="menu">

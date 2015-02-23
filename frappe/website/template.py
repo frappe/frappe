@@ -26,7 +26,8 @@ def render_blocks(context):
 
 		template = frappe.get_template(template_path)
 		for block, render in template.blocks.items():
-			out[block] = scrub_relative_urls(concat(render(template.new_context(context))))
+			new_context = template.new_context(context)
+			out[block] = scrub_relative_urls(concat(render(new_context)))
 
 	_render_blocks(context["template"])
 

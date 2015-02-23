@@ -51,7 +51,7 @@ frappe.ui.form.AssignTo = Class.extend({
 					<a class="close" data-owner="%(owner)s">&times;</a>\
 					<div class="text-ellipsis" style="width: 80%">\
 						<div class="avatar avatar-small">\
-							<img class="media-object" src="%(image)s">\
+							<img class="media-object" src="%(image)s" alt="%(fullname)s">\
 						</div>\
 						<span>%(fullname)s</span>\
 					</div>\

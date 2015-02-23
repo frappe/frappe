@@ -6,7 +6,7 @@
 
 <div itemscope itemtype="http://schema.org/UserComments" id="comment-list">
 	{% for comment in comment_list %}
-	{% include "templates/includes/comment.html" %}
+	{% include "templates/includes/comments/comment.html" %}
 	{% endfor %}
 </div>
 
@@ -75,7 +75,7 @@ frappe.ready(function() {
 		frappe.call({
 			btn: this,
 			type: "POST",
-			method: "frappe.templates.includes.comments.add_comment",
+			method: "frappe.templates.includes.comments.comments.add_comment",
 			args: args,
 			callback: function(r) {
 				if(r.exc) {

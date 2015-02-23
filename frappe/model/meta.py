@@ -91,6 +91,7 @@ class Meta(Document):
 		if not self._fields:
 			for f in self.get("fields"):
 				self._fields[f.fieldname] = f
+
 		return self._fields.get(fieldname)
 
 	def get_label(self, fieldname):
@@ -306,3 +307,17 @@ def clear_cache(doctype=None):
 			frappe.cache().delete_keys(p + ":")
 
 	frappe.cache().delete_value("is_table")
+
+def get_default_df(fieldname):
+	if fieldname in default_fields:
+		if fieldname in ("creation", "modified"):
+			return frappe._dict(
+				fieldname = fieldname,
+				fieldtype = "Datetime"
+			)
+
+		else:
+			return frappe._dict(
+				fieldname = fieldname,
+				fieldtype = "Data"
+			)

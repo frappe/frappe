@@ -23,7 +23,7 @@ class DatabaseQuery(object):
 
 	def execute(self, query=None, fields=None, filters=None, or_filters=None,
 		docstatus=None, group_by=None, order_by=None, limit_start=False,
-		limit_page_length=False, as_list=False, with_childnames=False, debug=False,
+		limit_page_length=None, as_list=False, with_childnames=False, debug=False,
 		ignore_permissions=False, user=None):
 		if not ignore_permissions and not frappe.has_permission(self.doctype, "read", user=user):
 			raise frappe.PermissionError, self.doctype
@@ -36,7 +36,7 @@ class DatabaseQuery(object):
 		self.group_by = group_by
 		self.order_by = order_by
 		self.limit_start = 0 if (limit_start is False) else cint(limit_start)
-		self.limit_page_length = 20 if (limit_page_length is False) else cint(limit_page_length)
+		self.limit_page_length = cint(limit_page_length) if limit_page_length else None
 		self.with_childnames = with_childnames
 		self.debug = debug
 		self.as_list = as_list

@@ -388,6 +388,22 @@ def has_permission(doctype, ptype="read", doc=None, user=None, verbose=False):
 	import frappe.permissions
 	return frappe.permissions.has_permission(doctype, ptype, doc, verbose=verbose, user=user)
 
+def has_website_permission(doctype, ptype="read", doc=None, user=None, verbose=False):
+	"""Raises `frappe.PermissionError` if not permitted.
+
+	:param doctype: DocType for which permission is to be check.
+	:param ptype: Permission type (`read`, `write`, `create`, `submit`, `cancel`, `amend`). Default: `read`.
+	:param doc: Checks User permissions for given doc.
+	:param user: [optional] Check for given user. Default: current user."""
+
+	if not user: user = session.user
+
+	for method in get_hooks("has_website_permission").get(doctype, []):
+		if not call(get_attr(method), doc=doc, ptype=ptype, user=user, verbose=verbose):
+			return False
+
+	return True
+
 def is_table(doctype):
 	"""Returns True if `istable` property (indicating child Table) is set for given DocType."""
 	tables = cache().get_value("is_table")

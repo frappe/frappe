@@ -6,10 +6,35 @@
 frappe.user_info = function(uid) {
 	if(!uid)
 		uid = user;
+
 	if(!(frappe.boot.user_info && frappe.boot.user_info[uid])) {
-		return {fullname: toTitle(uid.split("@")[0]) || "Unknown"};
+		var user_info = {fullname: toTitle(uid.split("@")[0]) || "Unknown"};
+	} else {
+		var user_info = frappe.boot.user_info[uid];
 	}
-	return frappe.boot.user_info[uid];
+
+	user_info.abbr = get_abbr(user_info.fullname);
+
+	return user_info;
+}
+
+var get_abbr = function(txt, max_length) {
+	if (!txt) return "";
+	var abbr = "";
+	$.each(txt.split(" "), function(i, w) {
+		if (abbr.length >= (max_length || 2)) {
+			// break
+			return false;
+
+		} else if (!w.trim().length) {
+			// continue
+			return true;
+		}
+
+		abbr += w.trim()[0];
+	});
+
+	return abbr || "?";
 }
 
 frappe.avatar = function(user, css_class, title) {
@@ -17,9 +42,10 @@ frappe.avatar = function(user, css_class, title) {
 	if(!title) title = frappe.user_info(user).fullname;
 
 	return repl('<span class="avatar %(css_class)s" title="%(title)s">\
-		<img src="%(image)s"></span>', {
+		<img src="%(image)s" alt="%(abbr)s"></span>', {
 			image: image,
 			title: title,
+			abbr: frappe.user_info(user).abbr,
 			css_class: css_class || "avatar-small"
 		});
 }
@@ -56,6 +82,9 @@ $.extend(frappe.user, {
 	},
 	image: function(uid) {
 		return frappe.user_info(uid).image;
+	},
+	abbr: function(uid) {
+		return frappe.user_info(uid).abbr;
 	},
 	has_role: function(rl) {
 		if(typeof rl=='string')

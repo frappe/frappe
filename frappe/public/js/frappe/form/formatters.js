@@ -104,7 +104,7 @@ frappe.form.formatters = {
 		var html = "";
 		$.each(JSON.parse(value || "[]"), function(i, v) {
 			if(v) html+= '<span class="avatar avatar-small" \
-				style="margin-right: 3px;"><img src="'+frappe.user_info(v).image+'"></span>';
+				style="margin-right: 3px;"><img src="'+frappe.user_info(v).image+'" alt="'+ frappe.user_info(v).abbr +'"></span>';
 		});
 		return html;
 	},

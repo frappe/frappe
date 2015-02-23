@@ -1,8 +1,10 @@
 from __future__ import unicode_literals
 import frappe
 from frappe import _
+from frappe.utils import cint
 
 def execute():
+	frappe.reload_doctype("Website Settings")
 	frappe.reload_doc("website", "doctype", "website_theme")
 	frappe.reload_doc("website", "website_theme", "standard")
 	migrate_style_settings()
@@ -20,8 +22,7 @@ def migrate_style_settings():
 		map_color_fields(style_settings, website_theme)
 		map_other_fields(style_settings, website_theme)
 
-	website_settings = frappe.get_doc("Website Settings", "Website Settings")
-	website_theme.no_sidebar = website_settings.no_sidebar
+	website_theme.no_sidebar = cint(frappe.db.get_single_value("Website Settings", "no_sidebar"))
 
 	website_theme.save()
 	website_theme.use_theme()

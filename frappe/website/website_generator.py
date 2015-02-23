@@ -12,7 +12,10 @@ from frappe.modules import get_module_name
 from frappe.website.router import get_page_route
 
 class WebsiteGenerator(Document):
-	page_title_field = "name"
+	website = frappe._dict(
+		page_title_field = "name"
+	)
+
 	def autoname(self):
 		if self.meta.autoname != "hash":
 			self.name = self.get_page_name()
@@ -77,15 +80,16 @@ class WebsiteGenerator(Document):
 		clear_cache(self.get_route())
 
 	def website_published(self):
-		if hasattr(self, "condition_field"):
-			return self.get(self.condition_field) and True or False
+		if self.website.condition_field:
+			return self.get(self.website.condition_field) and True or False
 		else:
 			return True
 
 	def set_parent_website_route(self):
-		if hasattr(self, "parent_website_route_field"):
-			field = self.meta.get_field(self.parent_website_route_field)
-			parent = self.get(self.parent_website_route_field)
+		parent_website_route_field = self.website.parent_website_route_field
+		if parent_website_route_field:
+			field = self.meta.get_field(parent_website_route_field)
+			parent = self.get(parent_website_route_field)
 			if parent:
 				self.parent_website_route = frappe.get_doc(field.options,
 					parent).get_route()
@@ -121,10 +125,12 @@ class WebsiteGenerator(Document):
 			"docname": self.name,
 			"page_name": self.get_page_name(),
 			"controller": get_module_name(self.doctype, self.meta.module),
-			"template": self.template,
-			"parent_website_route": self.get("parent_website_route", ""),
-			"page_title": getattr(self, "page_title", None) or self.get(self.page_title_field)
 		})
+
+		route.update(self.website)
+
+		if not route.page_title:
+			route.page_title = self.get(self.website.page_title_field)
 
 		self.update_permissions(route)
 
@@ -147,7 +153,7 @@ class WebsiteGenerator(Document):
 		parents = []
 		me = self
 		while me:
-			_parent_field = getattr(me, "parent_website_route_field", None)
+			_parent_field = me.website.parent_website_route_field
 			_parent_val = me.get(_parent_field) if _parent_field else None
 
 			# if no parent and not home page, then parent is home page
@@ -165,7 +171,7 @@ class WebsiteGenerator(Document):
 
 				if parent_doc:
 					parent_info = frappe._dict(name = parent_doc.get_route(),
-						title= parent_doc.get(getattr(parent_doc, "page_title_field", "name")))
+						title= parent_doc.get(parent_doc.website.page_title_field or "name"))
 				else:
 					parent_info = frappe._dict(name=self.parent_website_route,
 						title=self.parent_website_route.replace("_", " ").title())
@@ -188,8 +194,9 @@ class WebsiteGenerator(Document):
 		return parents
 
 	def get_parent(self):
-		if hasattr(self, "parent_website_route_field"):
-			return self.get(self.parent_website_route_field)
+		parent_website_route_field = self.website.parent_website_route_field
+		if parent_website_route_field:
+			return self.get(parent_website_route_field)
 
 	def get_children(self, context=None):
 		children = []
@@ -214,9 +221,9 @@ class WebsiteGenerator(Document):
 			where ifnull(parent_website_route,'')=%s
 			order by {order_by}""".format(
 				doctype = self.doctype,
-				title_field = getattr(self, "page_title_field", "name"),
-				order_by = getattr(self, "order_by", "idx asc")),
-				route, as_dict=True)
+				title_field = self.website.page_title_field or "name",
+				order_by = self.website.order_by or "idx asc"
+			), route, as_dict=True)
 
 		for c in children:
 			c.name = make_route(c)

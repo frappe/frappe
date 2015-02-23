@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 
 import frappe, json
+from frappe import _dict
 
 class User:
 	"""
@@ -30,6 +31,7 @@ class User:
 		self.can_set_user_permissions = []
 		self.allow_modules = []
 		self.in_create = []
+		self.doc = frappe.get_doc("User", self.name)
 
 	def get_roles(self):
 		"""get list of roles"""
@@ -167,10 +169,10 @@ def get_user_fullname(user):
 def get_fullname_and_avatar(user):
 	first_name, last_name, avatar = frappe.db.get_value("User",
 		user, ["first_name", "last_name", "user_image"])
-	return {
+	return _dict({
 		"fullname": " ".join(filter(None, [first_name, last_name])),
 		"avatar": avatar
-	}
+	})
 
 def get_system_managers(only_name=False):
 	"""returns all system manager's user details"""
@@ -234,3 +236,6 @@ def get_roles(user=None, with_standard=True):
 def get_enabled_system_users():
 	return frappe.db.sql("""select * from tabUser where
 		user_type='System User' and enabled=1 and name not in ('Administrator', 'Guest')""", as_dict=1)
+
+def is_website_user(user):
+	return frappe.get_user(user).doc.user_type == "Website User"

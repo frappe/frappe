@@ -1,59 +1,6 @@
 @import "variables.less";
 @import "mixins.less";
-
-a, a:hover, a:active, a:focus {
-   outline: 0;
-}
-
-// transition
-a,
-.badge,
-.ui-menu .ui-menu-item {
-	.transition(.2s);
-}
-
-.btn {
-	.transition(background-color .2s);
-}
-
-a.disabled, a.disabled:hover {
-	color: #888;
-	cursor: default;
-	text-decoration: none;
-}
-
-a.grey, .sidebar-section a, .nav-pills a, .control-value a, .data-row a {
-	.underline;
-}
-
-a.grey:hover, .sidebar-section a:hover, .nav-pills a:hover, .control-value a:hover, .data-row a:hover {
-    .underline-hover;
-}
-
-.text-color {
-	color: @text-color !important;
-}
-
-.text-muted {
-	color: @text-muted !important;
-}
-
-.text-extra-muted {
-	color: @border-color !important;
-}
-
-a.text-muted, a.text-extra-muted {
-	border-bottom: 1px solid transparent;
-}
-
-a.text-muted:hover,
-a.text-muted:focus,
-a.text-extra-muted:hover,
-a.text-extra-muted:focus {
-	color: inherit;
-	border-bottom: 1px solid @text-muted;
-}
-
+@import "common.less";
 
 .nav-pills a, .nav-pills a:hover {
 	border-bottom: none;
@@ -76,12 +23,6 @@ a.form-link {
 
 .ui-autocomplete .link-option {
 	font-weight: normal;
-}
-
-.text-ellipsis {
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
 }
 
 .scroll-to-top {
@@ -264,12 +205,6 @@ ul.linked-with-list li {
 	margin-bottom: 7px;
 }
 
-
-.bold,
-.strong {
-	font-weight: bold;
-}
-
 .print-preview {
 	padding: 0px;
 	max-width: 8.3in;
@@ -340,11 +275,6 @@ ul.linked-with-list li {
 	opacity: 0.5;
 }
 
-kbd {
-	color: inherit;
-	background-color: @btn-bg;
-}
-
 .msg-box {
 	padding: 30px 15px;
 	text-align: center;
@@ -380,50 +310,8 @@ kbd {
 	text-align: center;
 }
 
-.padding {
-	padding: 15px;
-}
-
 .set-filters .btn-xs {
 	padding: 0px 10px 2px;
-}
-
-.btn [class^="icon-"], .nav [class^="icon-"], .btn [class*=" icon-"], .nav [class*=" icon-"] {
-	display: inline-block;
-}
-
-// dropdowns
-.dropdown-menu > li > a {
-	padding: 14px;
-}
-
-.dropdown-menu {
-	min-width: 200px;
-	padding: 0px;
-	font-size: @text-medium;
-
-	// only rounded bottoms
-	border-radius: 0px 0px 4px 4px;
-}
-
-.dropdown-menu .divider {
-	margin: 0px;
-}
-
-a.badge-hover& {
-	&:hover .badge,
-	&:focus .badge,
-	&:active .badge {
-		background-color: #D8DFE5;
-	}
-}
-
-.msgprint {
-	text-align: center;
-
-	pre {
-		text-align: left;
-	}
 }
 
 .intro-area,

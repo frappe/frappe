@@ -14,10 +14,12 @@ from jinja2.exceptions import TemplateSyntaxError
 
 class WebPage(WebsiteGenerator):
 	save_versions = True
-	template = "templates/generators/web_page.html"
-	condition_field = "published"
-	page_title_field = "title"
-	parent_website_route_field = "parent_web_page"
+	website = frappe._dict(
+		template = "templates/generators/web_page.html",
+		condition_field = "published",
+		page_title_field = "title",
+		parent_website_route_field = "parent_web_page"
+	)
 
 	def get_feed(self):
 		return self.title

@@ -8,10 +8,12 @@ from frappe import _
 from frappe.utils.file_manager import save_file, remove_file_by_url
 
 class WebForm(WebsiteGenerator):
-	template = "templates/generators/web_form.html"
-	condition_field = "published"
-	page_title_field = "title"
-	no_cache = 1
+	website = frappe._dict(
+		template = "templates/generators/web_form.html",
+		condition_field = "published",
+		page_title_field = "title",
+		no_cache = 1
+	)
 
 	def get_context(self, context):
 		context.params = frappe.form_dict

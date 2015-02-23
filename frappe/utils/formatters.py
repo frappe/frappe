@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 import frappe
-from frappe.utils import formatdate, fmt_money, flt, cstr, cint
+from frappe.utils import formatdate, fmt_money, flt, cstr, cint, format_datetime
 from frappe.model.meta import get_field_currency, get_field_precision
 import re
 
@@ -11,9 +11,12 @@ def format_value(value, df, doc=None, currency=None):
 	# Convert dict to object if necessary
 	if (isinstance(df, dict)):
 		df = frappe._dict(df)
-	
+
 	if df.get("fieldtype")=="Date":
 		return formatdate(value)
+
+	elif df.get("fieldtype")=="Datetime":
+		return format_datetime(value)
 
 	elif df.get("fieldtype") == "Currency" or (df.get("fieldtype")=="Float" and (df.options or "").strip()):
 		return fmt_money(value, precision=get_field_precision(df, doc),

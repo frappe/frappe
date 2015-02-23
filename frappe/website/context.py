@@ -46,6 +46,7 @@ def build_context(context):
 	# provide doc
 	if context.doc:
 		context.update(context.doc.as_dict())
+		context.update(context.doc.website)
 		if hasattr(context.doc, "get_context"):
 			ret = context.doc.get_context(context)
 			if ret:

@@ -29,6 +29,10 @@ web_include_css = [
 	"assets/css/frappe-web.css",
 	"website_theme.css"
 ]
+website_route_rules = [
+	{"from_route": "/blog", "to_route": "Blog Post"},
+	{"from_route": "/blog/<category>", "to_route": "Blog Post"}
+]
 
 write_file_keys = ["file_url", "file_name"]
 

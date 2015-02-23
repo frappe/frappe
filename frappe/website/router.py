@@ -28,7 +28,7 @@ def build_route(path):
 
 	context.doctype = context.ref_doctype
 	context.title = context.page_title
-	context.pathname = path
+	context.pathname = frappe.local.path
 
 	return context
 

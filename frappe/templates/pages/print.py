@@ -120,7 +120,9 @@ def validate_print_permission(doc):
 			return
 
 	for ptype in ("read", "print"):
-		if not frappe.has_permission(doc.doctype, ptype, doc):
+		if (not frappe.has_permission(doc.doctype, ptype, doc)
+			and not frappe.has_website_permission(doc.doctype, ptype, doc)):
+
 			raise frappe.PermissionError(_("No {0} permission").format(ptype))
 
 def get_letter_head(doc, no_letterhead):

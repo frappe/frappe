@@ -7,6 +7,7 @@ from frappe import _
 from frappe.utils import cstr
 import mimetypes, json
 from werkzeug.wrappers import Response
+from werkzeug.routing import Map, Rule, NotFound
 
 from frappe.website.context import get_context
 from frappe.website.utils import scrub_relative_urls, get_home_page, can_cache, delete_page_cache
@@ -17,7 +18,6 @@ class PageNotFoundError(Exception): pass
 def render(path, http_status_code=None):
 	"""render html page"""
 	path = resolve_path(path.strip("/ "))
-	frappe.local.path = path
 
 	try:
 		data = render_page(path)
@@ -157,6 +157,28 @@ def resolve_path(path):
 
 	if path == "index":
 		path = get_home_page()
+
+	frappe.local.path = path
+
+	if path != "index":
+		path = resolve_from_map(path)
+
+	return path
+
+def resolve_from_map(path):
+	m = Map([Rule(r["from_route"], endpoint=r["to_route"], defaults=r.get("defaults"))
+		for r in frappe.get_hooks("website_route_rules")])
+	urls = m.bind_to_environ(frappe.local.request.environ)
+	try:
+		endpoint, args = urls.match("/" + path)
+		path = endpoint
+		if args:
+			# don't cache when there's a query string!
+			frappe.local.no_cache = 1
+			frappe.local.form_dict.update(args)
+
+	except NotFound:
+		pass
 
 	return path
 

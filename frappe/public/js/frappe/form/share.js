@@ -22,8 +22,8 @@ frappe.ui.form.Share = Class.extend({
 			var user_info = frappe.user_info(shared[i])
 			$(repl('<span class="avatar avatar-small" title="'
 				+__("Shared with {0}", [user_info.fullname])+'">\
-				<img class="media-object" src="%(image)s"></span>',
-				{image: user_info.image})).appendTo(this.parent);
+				<img class="media-object" src="%(image)s" alt="%(fullname)s"></span>',
+				{image: user_info.image, fullname: user_info.fullname})).appendTo(this.parent);
 		}
 		// share
 		if(!me.frm.doc.__islocal) {

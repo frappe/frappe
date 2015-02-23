@@ -2,7 +2,7 @@
 <ul class="nav navbar-nav navbar-left">
 	{%- for page in top_bar_items -%}
 	{% if not page.parent_label and not page.right -%}
-	{% include "templates/includes/navbar_link.html" %}
+	{% include "templates/includes/navbar/navbar_link.html" %}
 	{%- endif -%}
 	{%- endfor %}
 </ul>
@@ -10,16 +10,15 @@
 <ul class="nav navbar-nav navbar-right">
 	{%- for page in top_bar_items -%}
 	{% if not page.parent_label and page.right -%}
-	{% include "templates/includes/navbar_link.html" %}
+	{% include "templates/includes/navbar/navbar_link.html" %}
 	{%- endif -%}
 	{%- endfor %}
 	<!-- post login tools -->
 	<li class="dropdown logged-in" id="website-post-login"
 		data-label="website-post-login" style="display: none">
 		<a href="#" class="dropdown-toggle" data-toggle="dropdown">
-			<img class="user-picture"
-				style="min-width: 20px; max-height: 20px; border-radius: 4px"/>
-				<b class="full-name"></b><b class="caret"></b>
+			<span class="avatar avatar-small user-image-wrapper"><img class="user-image"/></span>
+			<span class="visible-xs full-name"></span>
 		</a>
         <ul class="dropdown-menu" role="menu">
 			{%- for child in post_login -%}
@@ -29,9 +28,6 @@
 				{%- if child.url -%}
 					<a href="{{ child.url }}" {{ child.target or '' }}
 						rel="nofollow">
-						{%- if child.icon -%}
-						<i class="icon-fixed-width {{ child.icon }}"></i>
-						{%- endif -%}
 						{{ child.label }}
 					</a>
 				{%- endif -%}
@@ -40,5 +36,5 @@
 		</ul>
 	</li>
 	<li class="btn-login-area"><a href="/login">
-		{%- if not disable_signup %}Sign Up / {% endif -%} Login</a></li>
+		{%- if not disable_signup %}{{ _("Sign Up") }} / {% endif -%} {{ _("Login") }}</a></li>
 </ul>

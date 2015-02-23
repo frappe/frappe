@@ -85,8 +85,9 @@ def get_website_settings():
 			where parent='Website Settings' and parentfield='footer_items'
 			order by idx asc""", as_dict=1),
 		"post_login": [
-			{"label": "Reset Password", "url": "update-password", "icon": "icon-key"},
-			{"label": "Logout", "url": "/?cmd=web_logout", "icon": "icon-signout"}
+			{"label": "My Account", "url": "/me"},
+			{"class": "divider"},
+			{"label": "Logout", "url": "/?cmd=web_logout"}
 		]
 	})
 
@@ -112,8 +113,8 @@ def get_website_settings():
 
 	context.encoded_title = quote(encode(context.title or ""), str(""))
 
-	for update_website_context in hooks.update_website_context or []:
-		frappe.get_attr(update_website_context)(context)
+	for update_website_params in hooks.update_website_params or []:
+		frappe.get_attr(update_website_params)(context)
 
 	context.web_include_js = hooks.web_include_js or []
 

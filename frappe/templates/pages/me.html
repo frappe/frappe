@@ -1,0 +1,55 @@
+{% block title %}{{ _("My Account") }}{% endblock %}
+
+{% block content %}
+<!-- no-header -->
+<div class="row">
+	<div class="col-sm-3">
+		<div class="your-account-info">
+			<div class="avatar avatar-large">
+				<a href="/user"><img class="user-image" src="{{ user_image }}" /></a>
+			</div>
+			<div>
+				<h4><a href="/user">{{ fullname }}</a></h4>
+				<ul class="list-unstyled small user-options">
+					<li><a href="">{{ _("Reset Password") }}</a></li>
+					<li><a href="">{{ _("Logout") }}</a></li>
+				</ul>
+			</div>
+		</div>
+	</div>
+	<div class="col-sm-9">
+		<ul class="list-unstyled my-account-list">
+			{% for opts in my_account_list -%}
+			<li><a href="{{ opts.url }}">{{ opts.label }}</a></li>
+			{%- endfor %}
+		</ul>
+	</div>
+</div>
+{% endblock %}
+
+{% block style %}
+<style>
+.your-account-info {
+	margin: 15px 0px;
+}
+
+.my-account-list {
+	margin: 0px 0px 15px;
+}
+
+.my-account-list > li > a {
+	margin: 15px 0px;
+	display: inline-block;
+}
+
+.user-options {
+	margin-top: 15px;
+}
+
+.user-options > li > a {
+	margin: 5px 0px;
+	display: inline-block;
+}
+
+</style>
+{% endblock %}

@@ -42,7 +42,7 @@
 					{# powered #}
 					<p class="text-right footer-powered">
 					{% block powered %}
-						{% include "templates/includes/footer_powered.html" %}
+						{% include "templates/includes/footer/footer_powered.html" %}
 					{% endblock %}
 					</p>
 				</div>
@@ -50,6 +50,6 @@
 		</div>
 	</section>
 	<section>
-		{% block extension %}{% include "templates/includes/footer_extension.html" %}{% endblock %}
+		{% block extension %}{% include "templates/includes/footer/footer_extension.html" %}{% endblock %}
 	</section>
 </footer>

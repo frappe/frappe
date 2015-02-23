@@ -164,6 +164,12 @@ def get_datetime_str(datetime_obj):
 
 	return datetime_obj.strftime(DATETIME_FORMAT)
 
+def get_user_format():
+	if getattr(frappe.local, "user_format", None) is None:
+		frappe.local.user_format = frappe.db.get_default("date_format")
+
+	return frappe.local.user_format or "yyyy-mm-dd"
+
 def formatdate(string_date=None, format_string=None):
 	"""
 	 	Convers the given string date to :data:`user_format`
@@ -176,21 +182,20 @@ def formatdate(string_date=None, format_string=None):
 		 * dd/mm/yyyy
 	"""
 	date = getdate(string_date) if string_date else now_datetime().date()
+	if not format_string:
+		format_string = get_user_format().replace("mm", "MM")
 
-	if format_string:
-		return babel.dates.format_date(date, format_string or "medium", locale=(frappe.local.lang or "").replace("-", "_"))
-	else:
-		if getattr(frappe.local, "user_format", None) is None:
-			frappe.local.user_format = frappe.db.get_default("date_format")
+	return babel.dates.format_date(date, format_string, locale=(frappe.local.lang or "").replace("-", "_"))
 
-		out = frappe.local.user_format or "yyyy-mm-dd"
+def format_datetime(datetime_string, format_string=None):
+	if not datetime_string:
+		return
 
-		try:
-			return out.replace("dd", date.strftime("%d"))\
-				.replace("mm", date.strftime("%m"))\
-				.replace("yyyy", date.strftime("%Y"))
-		except ValueError, e:
-			raise frappe.ValidationError, str(e)
+	datetime = get_datetime(datetime_string)
+	if not format_string:
+		format_string = get_user_format().replace("mm", "MM") + " hh:mm:ss"
+
+	return babel.dates.format_datetime(datetime, format_string, locale=(frappe.local.lang or "").replace("-", "_"))
 
 def global_date_format(date):
 	"""returns date as 1 January 2012"""
