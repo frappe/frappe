@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 app_name = "frappe"
 app_title = "Frappe Framework"
 app_publisher = "Web Notes Technologies Pvt. Ltd."
