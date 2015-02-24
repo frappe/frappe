@@ -24,7 +24,7 @@ type_map = {
 	,'Small Text':	('text', '')
 	,'Long Text':	('longtext', '')
 	,'Code':		('text', '')
-	,'Text Editor':	('text', '')
+	,'Text Editor':	('longtext', '')
 	,'Date':		('date', '')
 	,'Datetime':	('datetime', '6')
 	,'Time':		('time', '6')
