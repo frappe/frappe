@@ -4,13 +4,12 @@
 from __future__ import unicode_literals
 import frappe
 import json
-import urllib
 from email.utils import formataddr
 from frappe.website.utils import is_signup_enabled
 from frappe.utils import get_url, cstr
 from frappe.utils.email_lib.email_body import get_email
 from frappe.utils.email_lib.smtp import send
-from frappe.utils import scrub_urls, cint
+from frappe.utils import scrub_urls, cint, quoted
 from frappe import _
 
 from frappe.model.document import Document
@@ -167,14 +166,13 @@ def attach_print(mail, sent_via, print_html, print_format):
 
 def set_portal_link(sent_via, comm):
 	"""set portal link in footer"""
-
 	footer = ""
 
 	if is_signup_enabled():
 		is_valid_recipient = cstr(sent_via.get("email") or sent_via.get("email_id") or
 			sent_via.get("contact_email")) in comm.recipients
 		if is_valid_recipient:
-			url = "%s/%s/%s" % (get_url(), urllib.quote(sent_via.doctype), urllib.quote(sent_via.name))
+			url = quoted("%s/%s/%s" % (get_url(), sent_via.doctype, sent_via.name))
 			footer = """<!-- Portal Link -->
 					<p><a href="%s" target="_blank">View this on our website</a></p>""" % url
 
