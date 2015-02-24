@@ -1,4 +1,5 @@
 # get data for moment.js
+from __future__ import unicode_literals
 def update(tz, out):
 	ltz = data["links"].get(tz, tz)
 	zone = data["zones"].get(ltz)

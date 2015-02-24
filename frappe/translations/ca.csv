@@ -1,0 +1,1664 @@
+ by Role ,
+ for {0},
+ is not set,
+"""Company History""","""Història de l'empresa"""
+"""Parent"" signifies the parent table in which this row must be added","""Pare"" significa la taula principal en la qual cal afegir aquesta fila"
+"""Team Members"" or ""Management""",
+'In List View' not allowed for type {0} in row {1},
+0 - Draft; 1 - Submitted; 2 - Cancelled,0 - Esborrany; 1 - Presentat; 2 - Cancel·lat
+0 is highest,0 és el més alt
+"000 is black, fff is white","000 és negre, fff és blanc"
+2 days ago,Fa 2 dies
+"<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank"">[?]</a>","<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank"">[?]</a>"
+"<a onclick=""msgprint('<ol>\<li><b>field:[fieldname]</b> - By Field\<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\<li><b>Prompt</b> - Prompt user for a name\<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\</ol>')"">Naming Options</a>",
+<b>new</b> <i>type of document</i>,
+"<i>document type...</i>, e.g. <b>customer</b>","<i>document type...</i>, e.g. <b>customer</b>"
+<i>e.g. <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>,<i>e.g. <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>
+<i>module name...</i>,
+<i>text</i> <b>in</b> <i>document type</i>,<i>text</i> <b>in</b> <i>document type</i>
+A new account has been created for you,S'ha creat un nou compte per a vost'e
+"A new task, %s, has been assigned to you by %s. %s","Se li ha assignat una nova tasca,%s, de%s. %s"
+A user can be permitted to multiple records of the same DocType.,A user can be permitted to multiple records of the same DocType.
+About,
+About Us Settings,Ajustaments del Sobre nosaltres
+About Us Team Member,
+Action,Acció
+Actions,
+"Actions for workflow (e.g. Approve, Cancel).",
+Add,Afegir
+Add A New Rule,Afegir una nova regla
+Add A User Permission,Afegir un Permís d'usuari
+Add Attachments,Addició d'arxius adjunts
+Add Bookmark,Add Bookmark
+Add CSS,
+Add Column,Afegir columna
+Add Filter,Afegeix un filtre
+Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,"Afegir Google Analytics ID: per exemple. UA-89XXX57-1. Si us plau, busca ajuda sobre Google Analytics per obtenir més informació."
+Add Message,Afegir Missatge
+Add New Permission Rule,Afegir nova regla de permís
+Add New User Permission,
+Add Reply,Afegir resposta
+Add Tag,Afegir etiqueta
+Add Total Row,Afegir total de Fila
+Add a New Role,
+Add a banner to the site. (small banners are usually good),
+Add all roles,Afegir tots els rols
+Add attachment,Afegir adjunt
+Add code as &lt;script&gt;,Add code as &lt;script&gt;
+Add comment,Afegir comentari
+Add custom javascript to forms.,Add custom javascript to forms.
+Add fields to forms.,Afegir camps als formularis.
+Add multiple rows,
+Add new row,Afegir nova fila
+"Add the name of <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> e.g. ""Open Sans""","Afegeix el nom de <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> e.g. ""Open Sans"""
+Add to To Do,Afegir a la llista de coses per fer
+Add to To Do List Of,
+Added {0},Afegit {0}
+Added {0} ({1}),
+Adding System Manager to this User as there must be atleast one System Manager,Afegint l'Administrador del sistema a aquest usuari ja que hi ha d'haver almenys un gestor de sistema
+Additional Info,Informació addicional
+Additional Permissions,
+"Additional filters based on User Permissions, having:","Filtres addicionals basats en permisos d'usuari, que té:"
+Address,Adreça
+Address Line 1,Adreça Línia 1
+Address Line 2,Adreça Línia 2
+Address Title,
+Address and other legal information you may want to put in the footer.,Podeu posar l'adreça i la informació legal al peu de pàgina.
+Adds a custom field to a DocType,Afegeix un camp personalitzat a un DocType
+Adds a custom script (client or server) to a DocType,Afegeix una seqüència de comandaments personalitzada (client o servidor) a un DocType
+Admin,Administració
+Administrator,Administrador
+Advanced,Avançat
+Align Left (Ctrl/Cmd+L),Alinear a l'esquerra (Ctrl / Cmd + L)
+All,Tots
+All Applications,Totes les aplicacions
+All Day,Tot el dia
+All Tables (Main + Child Tables),
+All customizations will be removed. Please confirm.,S'eliminaran totes les personalitzacions. Si us plau confirma-ho
+"All possible Workflow States and roles of the workflow. <br>Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""",
+Allow Comments,
+Allow Delete,Permetre Esborrar
+Allow Edit,Permetre Editar
+Allow Import,Permetre la importació
+Allow Import via Data Import Tool,Permetre la importació a través de l'eina d'importació de dades
+Allow Multiple,Permetre múltiple
+Allow Rename,Permetre Renombrar
+Allow field to remain editable even after submission,Permetre al camp ser editable fins i tot després de la presentació
+Allow on Submit,Permetre al presentar
+Allow user to login only after this hour (0-24),Permetre l'accés a l'usuari només després d'aquesta hora (0-24)
+Allow user to login only before this hour (0-24),
+Allowed,
+"Allowing DocType, DocType. Be careful!",
+Already Registered,Ja està registrat
+Already in user's To Do list,Ja està a la llista de tasques pendents de l'usuari
+Already saving. Please wait a few moments.,"Desat. Si us plau, espereu uns instants."
+Alternative download link,
+"Alternatively, you can also specify 'auto_email_id' in site_config.json","Alternativament, podeu també especificar 'auto_email_id' a site_config.json"
+Always use above Login Id as sender,Utilitzar sempre el vostre usuari com a remitent
+Amend,Esmenar
+"An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [<a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a>]","Arxiu d'cona amb extensió .ico. Ha de ser de 16 x 16 píxels. Generat usant un generador de favicon. [<a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a>]"
+"Another {0} with name {1} exists, select another name",
+Any existing permission will be deleted / overwritten.,
+Anyone Can Read,
+Anyone Can Write,Qualsevol pot escriure
+"Apart from Role based Permission Rules, you can apply User Permissions based on DocTypes.","A part de regles de permisos basats en funcions, pot aplicar permisos d'usuari basat en doctypes."
+"Apart from System Manager, roles with 'Set User Permissions' right can set permissions for other users for that Document Type.","A part de l'administrador del sistema, rols amb ""dret d'establir permisos d'usuari"" poden establir permisos per a altres usuaris per aquest DocumentType."
+App Name,
+App not found,App not found
+Application Installer,
+Applications,Aplicacions
+Apply Style,Aplicar Estil
+Apply User Permissions,Aplicar permisos d'usuari
+Apply User Permissions of these Document Types,Aplicar permisos d'usuari d'aquests tipus de documents
+Are you sure you want to delete the attachment?,Segur que vols eliminar l'adjunt?
+Arial,Arial
+"As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User.",
+Ascending,Ascendent
+Assign To,Assignar a
+Assign a permission level to the field.,Assignar un nivell de permisos per al camp.
+Assigned By,Assignat per
+Assigned To,Assignat a
+Assigned To Fullname,
+Assigned To Me,
+Assigned To/Owner,
+Assigned to {0},Assignat a {0}
+Assignment Complete,Assignació completa
+Assignment Status Changed,Estat d'Assignació canviat
+Assignments,Assignments
+Attach,Adjuntar
+Attach .csv file to import data,Adjuntar arxiu .csv per importar dades
+Attach Document Print,Attach Document Print
+Attach as web link,Adjuntar com a enllaç web
+Attached To DocType,Attached To DocType
+Attached To Name,Associat A Nom
+Attachments,
+Auto Email Id,Id d'email automàtic
+Auto Name,Nom Automàtic
+Auto generated,
+Avatar,
+Background Color,Color de fons
+Background Image,Imatge de fons
+Background Style,Estil del fons
+Banner,
+Banner HTML,
+Banner Image,Imatge del banner
+Banner is above the Top Menu Bar.,
+Begin this page with a slideshow of images,
+Beginning with,
+Belongs to,Pertany a
+Bio,Bio
+Birth Date,
+Blog Category,Categoria Blog
+Blog Intro,
+Blog Introduction,Introducció del blog
+Blog Post,Post Blog
+Blog Settings,Ajustaments de blog
+Blog Title,Títol del blog
+Blogger,
+Bold (Ctrl/Cmd+B),
+Bookmarks,Marcadors
+Both login and password required,Es requereix usuari i contrassenya
+Brand HTML,
+Breadcrumbs,Breadcrumbs
+Bulk Email,
+Bulk Email records.,
+Bulk email limit {0} crossed,Límit de correu electrònic {0} superat
+Bullet list,Bullet list
+Button,Botó
+By,
+Cache Cleared,Cache Cleared
+Calculate,Calcular
+Calendar,calendari
+Can not edit Read Only fields,
+Cancel,Cancel·la
+Cancelled,
+"Cannot Edit {0} directly: To edit {0} properties, create / update {1}, {2} and {3}","No es pot Editar {0} directament: Per editar {0} propietats, crear / actualitza {1}, {2} i {3}"
+Cannot Update: Incorrect / Expired Link.,No es pot actualitzar: Enllaç Incorrecte o caducat.
+Cannot Update: Incorrect Password,No es pot actualitzar: Contrasenya incorrecta
+Cannot add more than 50 comments,
+Cannot cancel before submitting. See Transition {0},No es pot cancel·lar abans de presentar Veure Transició {0}
+Cannot change picture,No es pot canviar la imatge
+Cannot change state of Cancelled Document. Transition row {0},No es pot canviar l'estat de Document Cancel·lat. Transition row {0}
+Cannot change {0},No es pot canviar {0}
+Cannot delete or cancel because {0} {1} is linked with {2} {3},No es pot eliminar o cancel·lar a causa de {0} {1} està vinculat amb {2} {3}
+Cannot delete {0} as it has child nodes,No es pot eliminar {0} ja que té nodes secundaris
+Cannot edit standard fields,No es poden editar els camps estàndard
+Cannot edit templated page,No es pot editar la pàgina feta amb plantilla
+Cannot link cancelled document: {0},No es pot vincular document anul·lat: {0}
+Cannot map because following condition fails: ,
+Cannot open instance when its {0} is open,
+Cannot open {0} when its instance is open,No es pot obrir {0} quan la instància està oberta
+Cannot print cancelled documents,No es pot imprimir documents cancel·lats
+Cannot remove permission for DocType: {0} and Name: {1},
+Cannot reply to a reply,
+Cannot set Email Alert on Document Type {0},No es pot establir alerta de correu electrònic pel Tipus de document {0}
+Cannot set permission for DocType: {0} and Name: {1},No es pot establir el permís per DOCTYPE: {0} i Nom: {1}
+Categorize blog posts.,Classificar les entrades del blog.
+Category,
+Category Name,Nom de categoria
+Center,
+Center (Ctrl/Cmd+E),Center (Ctrl/Cmd+E)
+"Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit.",
+"Change field properties (hide, readonly, permission etc.)",
+"Change type of field. (Currently, Type change is \						allowed among 'Currency and Float')",
+Chat,Chat
+Check,comprovar
+Check / Uncheck roles assigned to the User. Click on the Role to find out what permissions that Role has.,
+Check this if you want to send emails as this id only (in case of restriction by your email provider).,Seleccioneu aquesta opció si voleu enviar missatges de correu electrònic només a aquest id (en cas de restricció del teu proveïdor de correu electrònic).
+Check this to make this the default letter head in all prints,Marqueu això per fer aquest cap de la carta per defecte en totes les impressions
+Check which Documents are readable by a User,Comproveu que els documents són llegibles per un usuari
+Checked items shown on desktop,Els elements marcats que es mostren a l'escriptori
+Child Tables,Taules filles
+Child Tables are shown as a Grid in other DocTypes.,Les Taules fill es mostren com una quadrícula en altres DocTypes.
+City,
+Classic,
+Clear Cache,
+Clear all roles,
+Click on File -&gt; Save As,Click on File -&gt; Save As
+Click on Save,Feu clic a Desa
+Click on row to view / edit.,Feu clic a la fila per veure / editar.
+Click on the link below to complete your registration and set a new password,
+Client,Client
+Client-side formats are now deprecated,
+Close,Close
+Close: {0},Tancar: {0}
+Closed,Tancat
+Code,Codi
+Collapse,Col·lapsa
+Column Break,
+Column Labels:,
+Column Name,Nom de la columna
+Comment,
+Comment By,Comentari de
+Comment By Fullname,
+Comment Date,
+Comment Docname,
+Comment Doctype,
+Comment Time,Comment Time
+Comment Type,Tipus Comentari
+Comments,Comentaris
+Communication,Comunicació
+Communication Medium,Mitjà Comunicació
+Company History,Història de la Companyia
+Company Introduction,Introducció de la companyia
+Complaint,Queixa
+Complete By,Completat per
+Complete Registration,
+Completed,Acabat
+Condition,
+Confirm,
+Contact Us Settings,Ajustaments del Contacti'ns
+"Contact options, like ""Sales Query, Support Query"" etc each on a new line or separated by commas.","Opcions de contacte, com ""Consulta comercial, Suport"" etc cadascun en una nova línia o separades per comes."
+Content,Contingut
+Content Hash,
+Content in markdown format that appears on the main side of your page,Content in markdown format that appears on the main side of your page
+Content web page.,Contingut de la pàgina web.
+Copy,
+Copyright,Drets d'autor
+Core,Nucli
+Could not connect to outgoing email server,No s'ha pogut connectar amb el servidor de correu electrònic sortint
+Could not find {0},No s'ha pogut trobar {0}
+Count,
+Country,
+Create,Crear
+Create a new {0},Crear un nou {0}
+Created,
+Created By,Creat per
+Created Custom Field {0} in {1},Creat camp personalitzat {0} a {1}
+Created Customer Issue,
+Created On,Creat el
+Created Opportunity,
+Created Support Ticket,Tiquet Creat
+Creation / Modified By,Creat/Modificat per
+Currency,
+Current status,Situació actual
+Custom CSS,
+Custom Field,Camp personalitzat
+Custom Javascript,Custom Javascript
+Custom Reports,Informes personalitzats
+Custom Script,Custom Script
+Custom?,Personalitzada?
+Customize,Personalitza
+Customize Form,Personalitza el Formulari
+Customize Form Field,
+"Customize Label, Print Hide, Default etc.","Personalitza etiquetes, amaga impressió, defecte etc."
+Customized HTML Templates for printing transctions.,Plantilles HTML personalitzades per transaccions impreses.
+Daily Event Digest is sent for Calendar Events where reminders are set.,
+Danger,Perill
+Data,Dades
+Data Import / Export Tool,
+Data Import Template,Plantilla d'importació de dades
+Data Import Tool,Eina d'importació de dades
+Data missing in table,falten dades a la taula
+Date,Data
+Date Change,Canvi de data
+Date Changed,Data canviada
+Date Format,Format de data
+Date and Number Format,Format de Data i nombres
+Date must be in format: {0},La data ha de tenir el format: {0}
+Datetime,Data i hora
+Days in Advance,
+Dear,Estimat
+Default,Defecte
+Default Print Format,Format d'impressió predeterminat
+Default Value,
+Default for 'Check' type of field must be either '0' or '1',"Valor predeterminat pels tipus ""Check"" ha de ser '0' o '1'"
+Default is system timezone,
+"Default: ""Contact Us""","""Contacte"" predeterminat"
+DefaultValue,
+Defaults,Predeterminats
+"Define read, write, admin permissions for a Website Page.",
+Define workflows for forms.,Definir els fluxos de treball per a les formes.
+Defines actions on states and the next step and allowed roles.,Defineix les accions dels estats i el següent pas i rols permesos.
+Defines workflow states and rules for a document.,Defineix els fluxes i les regles per a un document.
+Delete,Esborrar
+Delete Row,Eliminar fila
+Depends On,Depèn de
+Descending,
+Description,Descripció
+Description and Status,Descripció i Estat
+"Description for listing page, in plain text, only a couple of lines. (max 140 characters)","Descripció de pàgina de llistat, en text, només un parell de línies. (Màxim 140 caràcters)"
+Description for page header.,Descripció de capçalera de la pàgina.
+Desktop,Escriptori
+Details,
+Dialog box to select a Link Value,Quadre de diàleg per a seleccionar un valor d'Enllaç
+Did not add,No s'ha afegit
+Did not cancel,
+Did not find {0} for {0} ({1}),No s'ha trobat {0} per {0} ({1})
+Did not load,No carregar
+Did not remove,No treure
+Did not save,No guardar
+Did not set,No establert
+"Different ""States"" this document can exist in. Like ""Open"", ""Pending Approval"" etc.",
+Disable Customer Signup link in Login page,Desactivar l'enllaç d'inscripció del client a la pàgina d'Inici de sessió
+Disable Report,Desactivar Informe
+Disable Signup,
+Disabled,Deshabilitat
+Display,Visualització
+Display Settings,
+Display in the sidebar of this Website Route node,Pantalla a la barra lateral d'aquest node Lloc Web Ruta
+Do not allow user to change after set the first time,No permetre que l'usuari pugui canviar després d'establir la primera vegada
+Doc Status,
+DocField,DocField
+DocPerm,DocPerm
+DocType,
+DocType Details,
+DocType can not be merged,DocType can not be merged
+DocType is a Table / Form in the application.,
+DocType on which this Workflow is applicable.,
+DocType or Field,DocType or Field
+Doclist JSON,
+Docname,Docname
+Document,
+Document Status,Estat del document
+Document Status transition from ,
+Document Status transition from {0} to {1} is not allowed,Transició estat del document de {0} a {1} no està permès
+Document Type,Tipus de document
+Document Types,Tipus de document
+Document is only editable by users of role,
+Documentation,Documentació
+Documents,
+Download,
+Download Backup,
+Download Template,Descarregar plantilla
+Download a template for importing a table.,
+Download link for your backup will be emailed on the following email address:,L'enllaç de descàrrega per a la còpia de seguretat serà enviat per correu electrònic a l'adreça electrònica següent:
+Download with data,Descàrrega amb dades
+Drag to sort columns,Arrossega per ordenar les columnes
+Due Date,
+Duplicate name {0} {1},Nom duplicat {0} {1}
+Dynamic Link,Enllaç Dinàmic
+Edit,Edita
+Edit Filter,Editar el filtre
+Edit Permissions,Edita permisos
+Edit Role Permissions,Edita permisos de rol
+Edit your record,Edita el registre
+Editable,Editable
+Editing Row,Edició Fila
+Email,
+Email Alert,Alerta per correu electrònic
+Email Alert Recipient,Receptor d'Alerta de correu electrònic
+Email Alert Recipients,
+Email By Document Field,Email By Document Field
+Email Footer,
+Email Sent,
+Email Settings,Configuració del correu electrònic
+Email Settings for Outgoing and Incoming Emails.,
+Email Signature,Signatura de correu electrònic
+"Email addresses, separted by commas","Adreces de correu electrònic, separades per comes"
+Email not verified with {1},Correu electrònic no verificat amb {1}
+Email sent to {0},Correu electrònic enviat a {0}
+Email...,
+Emails are muted,
+Embed image slideshows in website pages.,Embed image slideshows in website pages.
+Enable,Permetre
+Enable Comments,Habilita Comentaris
+Enable Report,
+Enable Scheduled Jobs,Habilita Treballs programats
+Enabled,Activat
+Ends on,Finalitza en
+Enter Form Type,Introduïu el tipus de formulari
+Enter Value,
+Enter at least one permission row,Introduïu almenys un permís de fila
+"Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set ""match"" permission rules. To see list of fields, go to <a href=""#Form/Customize Form/Customize Form"">Customize Form</a>.",
+"Enter keys to enable login via Facebook, Google, GitHub.","Introduïu les claus per permetre inici de sessió a través de Facebook, Google, GitHub."
+Equals,
+Error,Error
+"Error generating PDF, attachment sent as HTML",
+Error: Document has been modified after you have opened it,Error: Document ha estat modificat després de que l'hagis obert
+Event,
+Event Datetime,Data i hora de l'Esdeveniment
+Event Individuals,Esdeveniments individuals
+Event Role,Event Role
+Event Roles,Rols d'esdeveniments
+Event Type,Tipus d'esdeveniment
+Event User,
+Event end must be after start,
+Events,Esdeveniments
+Events In Today's Calendar,Esdeveniments A l'Agenda d'avui
+Every Day,Cada Dia
+Every Month,
+Every Week,
+Every Year,
+Every day events should finish on the same day.,Cada dia els esdeveniments han d'acabar en el mateix dia.
+Everyone,Tothom
+Example,Exemple
+Example:,
+Expand,
+Export,
+Export all rows in CSV fields for re-upload. This is ideal for bulk-editing.,Export all rows in CSV fields for re-upload. This is ideal for bulk-editing.
+Export not allowed. You need {0} role to export.,No es pot exportar. Cal el rol {0} per a exportar.
+Exported,Exportat
+"Expression, Optional","Expressió, opcional"
+Facebook,Facebook
+Facebook Client ID,Facebook Client ID
+Facebook Client Secret,
+Facebook Share,Facebook Share
+Facebook User ID,Facebook User ID
+Facebook Username,Facebook Username
+FavIcon,FavIcon
+Female,Dona
+Field Description,Descripció del camp
+Field Name,Nom del camp
+Field Type,Tipus de camp
+"Field that represents the Workflow State of the transaction (if field is not present, a new hidden Custom Field will be created)",
+Field {0} in row {1} cannot be hidden and mandatory without default,El camp {0} a la fila {1} no pot ser ocultat i obligatori sense valor predeterminat
+Field {0} is not selectable.,El camp {0} no es pot seleccionar.
+Field {0} of type {1} cannot be mandatory,El camp {0} de tipus {1} no pot ser obligatori
+Fieldname,FIELDNAME
+Fieldname is required in row {0},FIELDNAME es requereix a la fila {0}
+Fieldname not set for Custom Field,
+Fieldname which will be the DocType for this link field.,Fieldname which will be the DocType for this link field.
+Fieldname {0} appears multiple times in rows {1},El camp {0} apareix diverses vegades en les files {1}
+"Fieldname {0} cannot contain letters, numbers or spaces","FIELDNAME {0} no pot contenir lletres, nombres o espais"
+Fields,
+"Fields separated by comma (,) will be included in the<br /><b>Search By</b> list of Search dialog box","Els camps separats per coma (,) s'inclouran a la <br/> <b> Cerca per </b> llista de quadre de diàleg Cerca"
+Fieldtype,FieldType
+Fieldtype cannot be changed from {0} to {1} in row {2},FieldType no es pot canviar de {0} a {1} a la fila {2}
+File,File
+File Data,Arxiu de dades
+File Name,Nom De l'Arxiu
+File Name: &lt;your filename&gt;.csv<br />\						Save as type: Text Documents (*.txt)<br />\						Encoding: UTF-8,
+File Size,
+File URL,URL del fitxer
+File not attached,L'arxiu no s'adjunta
+File size exceeded the maximum allowed size of {0} MB,La mida del fitxer supera la mida màxima permesa de {0} MB
+Fill Screen,Omplir pantalla
+Filter,
+Filter records based on User Permissions defined for a user,
+Filters,Filtres
+Find {0} in {1},Troba {0} a {1}
+First Name,
+First data column must be blank.,La Primera columna de dades ha d'estar en blanc.
+Float,Float
+Float Precision,Precisió Float
+Fold,fold
+Fold can not be at the end of the form,La carpeta no pot estar en l'extrem del formulari
+Fold must come before a labelled Section Break,
+Font (Heading),Font (Títol)
+Font (Text),
+Font Size,
+Font Size (Text),
+Fonts,Fonts
+Footer,
+Footer Background,Fons del Peu de pàgina
+Footer Items,
+Footer Text,
+For DocType,
+"For Links, enter the DocType as rangeFor Select, enter list of Options separated by comma",
+"For comparative filters, start with",
+For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,Per exemple si es cancel·la i esmena 'INV004' es convertirà en un nou document 'INV004-1'. Això t'ajuda a mantenir un registre de cada esmena.
+For ranges,Per rangs
+For top bar,Per a la barra superior
+"For updating, you can update only selective columns.","Per a l'actualització, pot actualitzar només les columnes seleccionades."
+For {0} at level {1} in {2} in row {3},
+Form,Form
+Forum,
+Forums,
+Forward To Email Address,Reenviar al Correu Electrònic
+Frappe Framework,Framework Frappe
+Friday,
+From Date must be before To Date,
+Full Name,Nom complet
+Gantt Chart,Diagrama de Gantt
+Gender,
+Georgia,Geòrgia
+Get,
+Get From ,
+"Get your globally recognized avatar from <a href=""https://gravatar.com/"">Gravatar.com</a>","Pots aconseguir el teu avatar global <a href=""https://gravatar.com/""> Gravatar.com</a>"
+GitHub,
+GitHub Client ID,GitHub Client ID
+GitHub Client Secret,GitHub Client Secret
+Github User ID,ID d'usuari a Github
+Github Username,Github Username
+Go to this url after completing the form.,Aneu a aquesta url després de completar el formulari.
+Google,Google
+Google Analytics ID,
+Google Client ID,Google Client ID
+Google Client Secret,Google Client Secret
+Google Plus One,Google Plus One
+Google User ID,Google User ID
+Google Web Font (Heading),
+Google Web Font (Text),
+"Group Added, refreshing...","Grup Afegit, refrescant ..."
+Group Description,
+Group Name,
+Group Title,
+Group Type,Tipus de grup
+Groups,Grups
+Guest,Convidat
+HTML for header section. Optional,HTML for header section. Opcional
+Header,Encapçalament
+Heading,
+Heading Text As,Heading Text As
+Help,Ajuda
+Help on Search,Ajuda i Recerca
+Help: Field Properties,
+Help: Importing non-English data in Microsoft Excel,Help: Importing non-English data in Microsoft Excel
+Helvetica Neue,
+Hidden,Ocult
+Hide Actions,Amaga accions
+Hide Copy,Amaga Copiar
+Hide Details,Ocultar Detalls
+Hide Heading,
+Hide Toolbar,
+Hide field in Report Builder,Amaga el camp en el Generador d'informes
+Hide field in Standard Print Format,Amaga el camp en el Format d'impressió estàndard
+Hide field in form,Hide field in form
+Hide the sidebar,
+High,
+Highlight,Destacat
+History,Història
+Home Page,Home Page
+Home Page is Products,Home Page is Products
+Horizontal Line Break,Salt de línia Horitzontal
+ID (name) of the entity whose property is to be set,ID (name) of the entity whose property is to be set
+ID field is required to edit values using Report. Please select the ID field using the Column Picker,
+Icon,
+Icon will appear on the button,La icona apareixerà al botó
+"If a Role does not have access at Level 0, then higher levels are meaningless.","Si un paper no té accés al nivell 0, els nivells més alts llavors no tenen sentit."
+"If checked, all other workflows become inactive.","Si se selecciona, tots els altres fluxos de treball es tornen inactius."
+"If checked, the Home page will be the default Item Group for the website.",
+"If image is selected, color will be ignored (attach first)","Si es selecciona la imatge, el color s'ignora (primer adjunta'l)"
+If non standard port (e.g. 587),If non standard port (e.g. 587)
+"If these instructions where not helpful, please add in your suggestions on GitHub Issues.","Si aquestes instruccions no són útils, si us plau agreguin en els seus suggeriments sobre qüestions de GitHub."
+"If you are inserting new records (overwrite not checked) \			and if you have submit permission, the record will be submitted.",
+"If you are updating, please select ""Overwrite"" else existing rows will not be deleted.","Si està actualitzant, si us plau seleccioneu ""Sobreescriure"" no s'eliminaran les files existents."
+"If you are uploading a child table (for example Item Price), the all the entries of that table will be deleted (for that parent record) and new entries will be made.","Si estàs carregant una taula secundària (per exemple Preu d'article), s'eliminaran totes les entrades de la taula (per a aquest registre pare) i es faran noves entrades."
+"If you are uploading new records, ""Naming Series"" becomes mandatory, if present.","Siestàs carregant nous registres, ""Naming Series"" és obligatori, si està present."
+"If you are uploading new records, leave the ""name"" (ID) column blank.","Si has de carregar nous registres, deixa en blanc la columna ""name"" (ID)"
+"If you set this, this Item will come in a drop-down under the selected parent.","Establint aquest, aquest article vindrà en un desplegable sota el pare seleccionat."
+Ignore Encoding Errors,No feu cas d'errors de codificació
+Ignore User Permissions,Ignora els permisos d'usuari
+"Ignoring Item {0}, because a group exists with the same name!","S'ignorarà l'article {0}, perquè hi ha un grup amb el mateix nom!"
+Image,Imatge
+Image Link,Enllaç a la imatge
+Import,Importació
+Import / Export Data,
+Import / Export Data from .csv files.,
+Import Data,Importar dades
+Import Failed!,
+Import Successful!,Importació correcta!
+In,A
+In Dialog,En diàleg
+"In Excel, save the file in CSV (Comma Delimited) format",
+In Filter,
+"In JSON as <pre>[{""title"":""Jobs"", ""name"":""jobs""}]</pre>","In JSON as <pre>[{""title"":""Jobs"", ""name"":""jobs""}]</pre>"
+In List View,Vista de llista
+In Report Filter,En Filtre d'informe
+In points. Default is 9.,En punts. El valor per defecte és de 9.
+In response to,
+Incorrect value in row {0}: {1} must be {2} {3},Valor incorrecte a la fila {0}: {1} ha de ser {2} {3}
+Incorrect value: {0} must be {1} {2},Valor incorrecte: {0} ha de ser {1} {2}
+Indent (Tab),Sangria (Tab)
+Index,
+Individuals,
+Info,Info
+Info:,Info:
+Insert,
+Insert After,
+"Insert After field '{0}' mentioned in Custom Field '{1}', does not exist","Inseriu Després del camp '{0}' esmentat en camp personalitzat '{1}', no existeix"
+Insert Below,Insert Below
+Insert Code,Insereix Codi
+Insert Link,Inserir enllaç
+Insert Row,
+Insert Style,Inserir Estil
+Insert picture (or just drag & drop),Inserir imatge (o simplement arrossegar i deixar anar)
+Install Applications.,
+Installed,Instal·lat
+Installer,Instal·lador
+Int,Int
+Integrations,Integracions
+Introduce your company to the website visitor.,Presenta la teva empresa al visitant del lloc web.
+Introduction,Introducció
+Introductory information for the Contact Us Page,Informació de presentació per la pàgina de contacte
+Invalid Email: {0},
+Invalid Filter: {0},Filtre no vàlid: {0}
+Invalid Home Page,Home Page no vàlida
+Invalid Login,Identificació no vàlida
+Invalid Outgoing Mail Server or Port,
+Invalid Request,La sol·licitud no és vàlida
+Invalid login or password,Usuari o contrasenya no vàlids
+Invalid naming series (. missing),Numeració de sèries no vàlid (falta .)
+Invalid recipient address,Direcció del destinatari no vàlid
+Inverse,Invers
+Is Active,Està actiu
+Is Child Table,És Taula fill
+Is Default,
+Is Event,
+Is Mandatory Field,És un camp obligatori
+Is Single,És Individual
+Is Standard,És Standard
+Is Submittable,
+Is Task,
+Item cannot be added to its own descendents,L'article no es pot afegir als seus propis descendents
+"JSON list of DocTypes used to apply User Permissions. If empty, all linked DocTypes will be used to apply User Permissions.","JSON list of DocTypes used to apply User Permissions. If empty, all linked DocTypes will be used to apply User Permissions."
+JavaScript Format: frappe.query_reports['REPORTNAME'] = {},JavaScript Format: frappe.query_reports['REPORTNAME'] = {}
+Javascript,Javascript
+Javascript to append to the head section of the page.,Javascript to append to the head section of the page.
+Keep a track of all communications,Mantenir un registre de totes les comunicacions
+Key,Clau
+Label,Etiqueta
+Label Help,Label Help
+Label and Type,
+Label is mandatory,Etiqueta obligatòria
+Landing Page,La pàgina de destinació
+Language,Idioma
+Language preference for user interface (only if available).,
+"Language, Date and Time settings","Ajustaments d'idioma, data i hora"
+Last Comment,
+Last IP,
+Last Login,
+Last Name,Cognoms
+Last Updated By,
+Last Updated On,Darrera actualització
+Lato,Lato
+Leave blank for new records,Deixar en blanc per als nous registres
+Leave blank to repeat always,
+Left,Esquerra
+Letter,
+Letter Head,Capçalera de la carta
+Letter Head Name,
+Letter Head in HTML,
+Level,Nivell
+"Level 0 is for document level permissions, higher levels for field level permissions.","El nivell 0 és per als permisos de nivell de document, els nivells més alts per als permisos de nivell de camp."
+Like,
+Link,
+"Link that is the website home page. Standard Links (index, login, products, blog, about, contact)",
+Link to other pages in the side bar and next section,Link to other pages in the side bar and next section
+Link to the page you want to open,Enllaç a la pàgina que voleu obrir
+Linked In Share,Linked In Compartir
+Linked With,Vinculat Amb
+List,Llista
+List a document type,Llista un tipus de document
+List of Web Site Forum's Posts.,List of Web Site Forum's Posts.
+List of patches executed,
+Loading,Carregant
+Loading Report,Carregant Informe
+Loading...,Carregant ...
+Localization,Localització
+Location,Ubicació
+Log of Scheduler Errors,Registre d'errors de planificació
+Log of error on automated events (scheduler).,Registre d'errors d'esdeveniments automatitzats (Scheduler).
+Login,Iniciar Sessió
+Login After,Entrada Després
+Login Before,Identifica't abans
+Login Id,
+Login Required,
+Login not allowed at this time,Login no permès en aquest moment
+Logout,Tancar sessió
+Long Text,
+Low,
+Lucida Grande,Lucida Grande
+Mail Password,Mail Password
+Main Section,Secció Principal
+Main Table,
+Make New,Fer nou
+Make a new,Fer una nova
+Make a new record,Fer un nou registre
+Make a new {0},
+Male,Home
+Manage cloud backups on Dropbox,
+Manage uploaded files.,Administrar els fitxers enviats.
+Mandatory,Obligatori
+Mandatory fields required in {0},Camps obligatoris requerits a {0}
+Mandatory:,
+Mark the field as Mandatory,Marqueu el camp com obligatori
+Master,Mestre
+Max Attachments,
+Max width for type Currency is 100px in row {0},
+Maximum Attachment Limit for this record reached.,Maximum Attachment Limit for this record reached.
+"Meaning of Submit, Cancel, Amend","Significat de Presentar, anul·lar, modificar"
+Medium,Medium
+"Menu items in the Top Bar. For setting the color of the Top Bar, go to <a href=""#Form/Style Settings"">Style Settings</a>","Elements de menú a la barra superior. Per ajustar el color de la barra superior aneu a <a href=""#Form/Style Settings"">Style Settings</a>"
+Merge with existing,Combinar amb existent
+Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node,
+Message,Missatge
+Message Examples,Exemples de missatges
+Message to be displayed on successful completion,Missatge que es mostra a la finalització amb èxit
+Messages,Missatges
+Messages from everyone,Missatges de tothom
+Method,Mètode
+Middle Name (Optional),Segon Nom (Opcional)
+Misc,
+Miscellaneous,
+Missing Values Required,
+Modern,Modern
+Modified by,Modificat per
+Module,Mòdul
+Module Def,
+Module Name,
+Module Not Found,Mòdul no trobat
+Modules Setup,
+Monday,Dilluns
+Monochrome,
+More,Més
+More content for the bottom of the page.,Més contingut per la part inferior de la pàgina.
+Move Down: {0},Baixar: {0}
+Move Up: {0},Pujar: {0}
+Multiple root nodes not allowed.,
+Must have report permission to access this report.,
+Must specify a Query to run,Must specify a Query to run
+My Settings,
+Name,Nom
+Name Case,
+Name and Description,Nom i descripció
+Name is required,El nom és necessari
+Name not permitted,Nom no permès
+Name not set via Prompt,Nom no establert a través de Prompt
+Name of the Document Type (DocType) you want this field to be linked to. e.g. Customer,"Nom del tipus de document (DOCTYPE) que vols vincular a aquest camp,per exemple al Client"
+Name of {0} cannot be {1},
+Naming,
+Naming Series mandatory,
+Nested set error. Please contact the Administrator.,Nested set error. Please contact the Administrator.
+New,Nou
+New Name,
+New Password,Nova Contrasenya
+New Record,Nou registre
+New comment on {0} {1},Nou comentari a {0} {1}
+New password emailed,S'ha enviat una nova contrassenya per correu electrònic
+New value to be set,Nou valor a configurar
+New {0},Nova {0}
+Next Communcation On,Següent Communcation el
+Next Record,Registre
+Next State,
+Next actions,
+No,No
+No Action,Cap acció
+No Communication tagged with this {0} yet.,No hi ha comunicació etiquetats amb aquest {0} encara.
+No Copy,No Copy
+No Permissions set for this criteria.,
+No Report Loaded. Please use query-report/[Report Name] to run a report.,
+No Results,
+No Sidebar,Sense barra lateral
+No User Permissions found.,No hi ha permisos d'usuari
+No data found,No s'ha trobat dades
+No file attached,
+No further records,
+No one,
+No permission to '{0}' {1},No té permís per '{0}' {1}
+No permission to edit,No té permís per editar
+No permission to read {0},No tens permís per llegir {0}
+No permission to write / remove.,No té permís per escriure/esborrar.
+No records tagged.,No hi ha registres etiquetats.
+No template found at path: {0},No es troba la plantillaen a : {0}
+No {0} found,{0} no trobat
+No {0} permission,
+None,Cap
+None: End of Workflow,Cap: Final de flux de treball
+Not Found,
+Not Linked to any record.,
+Not Permitted,No permès
+Not Published,
+Not Set,
+Not Submitted,No presentat
+Not a valid Comma Separated Value (CSV File),No és un fitxer de valors separats per comes vàlid (fitxer CSV)
+Not allowed,
+Not allowed from this IP Address,
+Not allowed to Import,No es permet importar
+Not allowed to access {0} with {1} = {2},No es permet l'accés {0} per {1} = {2}
+Not allowed to change {0} after submission,No es pot canviar {0} després de ser presentat
+Not allowed to reset the password of {0},
+Not enough permission to see links.,No tens prou permisos per veure enllaços.
+Not equals,
+Not found,No trobat
+Not in Developer Mode! Set in site_config.json,Not in Developer Mode! Set in site_config.json
+Not permitted,No permès
+"Note: For best results, images must be of the same size and width must be greater than height.","Nota: Per obtenir els millors resultats, les imatges han de ser de la mateixa mida i l'ample ha de ser més gran que l'altura."
+Note: Other permission rules may also apply,
+Note: fields having empty value for above criteria are not filtered out.,
+Notes:,Notes:
+Nothing to show,No hi ha res a mostrar
+Nothing to show for this selection,No hi ha res a mostrar per aquesta selecció
+Notification Count,Comte de Notificació
+Notify by Email,
+Number Format,
+Number list,
+Old Parent,Antic Pare
+Old Password,Contrasenya Anterior
+On,
+"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).","Un cop establert, els usuaris només tindran accés als documents (per exemple. Blog) on hi hagil'enllaç (per exemple. Blogger)."
+One of,Un de
+Only Administrator allowed to create Query / Script Reports,Només l'Administrador té permís per crear QUERY/SCRIPT Reports
+Only Administrator can save a standard report. Please rename and save.,"Només l'administrador pot guardar un informe estàndard. Si us plau, canvia-li el nom i desa'l"
+Only Allow Edit For,
+Only allowed {0} rows in one import,Només es poden importar {0} files cada vegada
+Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,"Només els camps obligatoris són necessaris per als nous registres. Pots eliminar columnes de caràcter no obligatori, si ho desitges."
+Oops! Something went wrong,
+Open,Obert
+Open Count,Obrir Comte
+Open Link,Obre l'enllaç
+Open Link in a new Window,Obrir enllaç en una finestra nova
+Open Sans,Open Sans
+Open Source Web Applications for the Web,
+Open a module or tool,Obre un mòdul o eina
+Open this saved file in Notepad,
+Open {0},Obrir {0}
+Optional: Alert will only be sent if value is a valid email id.,
+Optional: Always send to these ids. Each email id on a new row,
+Optional: The alert will be sent if this expression is true,Opcional: L'alerta s'enviat si aquesta expressió és veritable
+Options,Opcions
+Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType',Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType'
+Options Help,
+Options for select. Each option on a new line. e.g.: <br>Option 1<br>Option 2<br>Option 3<br>,Opcions per seleccioar. Cada opció en una nova línia. Per exemple: <br>Option 1<br>Option 2<br>Option 3<br>
+Options must be a valid DocType for field {0} in row {1},Les opcions han de ser un tipus de document vàlid per al camp {0} a la fila {1}
+Options not set for link field {0},Opcions no establertes per a camp d'enllaç {0}
+Options requried for Link or Table type field {0} in row {1},Opcions requried d'Enllaç o camp de Taula {0} a la fila {1}
+Org History,Org History
+Org History Heading,Org History Heading
+Original Message,Missatge Original
+Other,Un altre
+Outgoing Email Settings,Configuració del correu electrònic sortint
+Outgoing Mail Server,Servidor de correu sortint
+Outgoing Mail Server not specified,
+Overwrite,
+Owner,Propietari
+PDF Page Size,Mida de pàgina PDF
+PDF Settings,
+Page,
+Page Background,
+Page HTML,Pàgina HTML
+Page Header,
+Page Header Background,Page Header Background
+Page Header Text,Capçalera de la pàgina del text
+Page Links,Enllaços de Pàgina
+Page Name,Nom de pàgina
+Page Role,Rol de pàgina
+Page Text,Text de pàgina
+Page content,Contingut de la pàgina
+Page missing or moved,
+Page not found,Pàgina no trobada
+Page to show on the website,Pàgina per mostrar a la pàgina web 
+Page url name (auto-generated),Page url name (auto-generated)
+Paragraph,
+Parent,
+Parent Label,
+Parent Post,
+Parent Table,Taula Pare
+Parent Web Page,
+Parent Website Group,Parent Website Group
+Parent Website Route,Parent Website Route
+Participants,Participants
+Password,
+Password Reset,Restablir contrasenya
+Password Update,Actualitzar Contrasenya
+Password Update Notification,
+Password Updated,Contrasenya Actualitzada
+Password reset instructions have been sent to your email,Les Instruccions de restabliment de contrasenya han estat enviades al seu correu electrònic
+Patch,Pedàs
+Patch Log,
+Percent,Per cent
+Performing hardcore import process,
+Perm Level,Perm Level
+Permanently Cancel {0}?,Cancel·lar Permanentment {0}?
+Permanently Submit {0}?,Presentar permanentment {0}?
+Permanently delete {0}?,
+Permission Level,
+Permission Levels,Nivells de permisos
+Permission Rules,Regles de permisos
+Permission already set,
+Permissions,
+Permissions Settings,Ajust dels permisos
+Permissions Updated,Permisos Actualitzats
+Permissions are automatically translated to Standard Reports and Searches.,Els permisos es tradueixen automàticament als informes estàndard i recerques.
+"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions.","Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions."
+Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles.,
+"Permissions at level 0 are 'Document Level' permissions, i.e. they are primary for access to the document.","Els permisos de nivell 0 són permisos 'Nivell de Document', és a dir, que són primaris per accedir al document."
+Permissions can be managed via Setup &gt; Role Permissions Manager,
+Permissions get applied on Users based on what Roles they are assigned.,Permisos d'aconseguir aplicar en usuaris amb base en el rols que se'ls assigna.
+Permitted Documents For User,Documents permesos Per Usuari
+Person,Persona
+Personal Info,Informació personal
+Phone,
+Phone No.,Número de Telèfon
+Pick Columns,
+Picture URL,URL d'Imatge
+Pincode,Codi PIN
+Please attach a file first.,
+Please attach a file or set a URL,Si us plau adjunta un fitxer o una URL
+Please click on the following link to set your new password,"Si us plau, feu clic al següent enllaç per configurar la nova contrasenya"
+Please do not change the rows above {0},
+Please do not change the template headings.,"Si us plau, no canvïis les capçaleres de la plantilla."
+Please enable pop-ups,
+Please enter Event's Date and Time!,"Si us plau, introduïu la data i hora de l'esdeveniment!"
+Please enter both your email and message so that we \				can get back to you. Thanks!,
+Please enter email address,Introduïu l'adreça de correu electrònic
+Please enter some text!,Introduïu text!
+Please enter title!,Introdueix el títol!
+Please login to Upvote!,Inicia sessió per Upvote!
+Please login to create a new {0},Si us plau registreu-vos per crear un nou {0}
+Please make sure that there are no empty columns in the file.,"Si us plau, assegureu-vos que no hi ha columnes buides a l'arxiu."
+Please refresh to get the latest document.,"Si us plau, actualitza per obtenir l'últim document."
+Please reply above this line or remove it if you are replying below it,"Si us plau, respongui per sobre d'aquesta línia o treure'l si està responent per sota d'ella"
+Please save before attaching.,
+Please save the document before assignment,"Si us plau, guardi el document abans de l'assignació"
+Please save the document before removing assignment,"Si us plau, guardi el document abans de treure l'assignació"
+Please select a file or url,Seleccioneu un arxiu o URL
+Please select atleast 1 column from {0} to sort,
+Please set filters,"Si us plau, estableix els filtres"
+Please set {0} first,"Si us plau, estableix {0} primer"
+Please specify,
+Please specify 'Auto Email Id' in Setup > Outgoing Email Settings,Please specify 'Auto Email Id' in Setup > Outgoing Email Settings
+Please specify Event date and time,
+Please specify doctype,"Si us plau, especifiqui tipus de document"
+Please specify user,"Si us plau, especifiqui l'usuari"
+Please specify which date field must be checked,Si us plau especificar quin camp de data ha de ser verificat
+Please specify which value field must be checked,Si us plau especificar quin valor del camp ha de ser verificat
+Please upload using the same template as download.,
+Plugin,Plugin
+Port,Port
+Post,Post
+Post Publicly,Publicar per a tothom
+Post Topic,Publicar Tema
+Post already exists. Cannot add again!,El Post ja existeix. No es pot afegir de nou!
+Post does not exist. Please add post!,"El Post no existeix. Si us plau, afegeix-lo!"
+Post to user,Post to user
+Posts,Posts
+Precision,Precisió
+Precision should be between 1 and 6,Precisió ha d'estar entre 1 i 6
+Press Esc to close,Prem Esc per tancar
+Previous Record,Registre anterior
+Primary,Primari
+Print,
+Print Format,Format d'impressió
+Print Format Help,
+Print Format Type,
+Print Format {0} does not exist,El format d'impressió {0} no existeix
+Print Format {0} is disabled,
+Print Hide,
+Print Settings,
+Print Style,Estil d'impressió
+Print Style Preview,Vista prèvia de l'estil d'impressió
+Print Width,Ample d'impressió
+"Print Width of the field, if the field is a column in a table","Print Width of the field, if the field is a column in a table"
+"Print with Letterhead, unless unchecked in a particular Document","Imprimir amb capçalera, llevat que no estigui marcat en un document concret"
+Print...,
+Printing and Branding,Printing and Branding
+Priority,Prioritat
+Private,
+Properties,
+Property,Propietat
+Property Setter,Ajusts de Propietats
+Property Setter overrides a standard DocType or Field property,Property Setter overrides a standard DocType or Field property
+Property Type,Tipus de propietat
+Public,
+Published,
+Published On,Publicat a
+Published on website at: {0},
+Query,Query
+Query Options,Opcions de consulta
+Query Report,Query Report
+Query must be a SELECT,
+Quick Help for Setting Permissions,
+Quick Help for User Permissions,Ajuda Ràpida per als permisos d'usuari
+Re-open,Torna a obrir
+Read,Llegir
+Read Only,
+Received,Rebut
+Recipient,Receptor
+Recipients,Destinataris
+Record does not exist,El registre no existeix
+Reduce indent (Shift+Tab),Reduce indent (Shift+Tab)
+Ref DocType,Ref DocType
+Ref Name,Nom Ref
+Ref Type,
+Reference,referència
+Reference DocName,Referència DocName
+Reference DocType,Reference DocType
+Reference Name,Referència Nom
+Reference Type,
+Refresh,refrescar
+Refresh Form,
+Refreshing...,Actualitzant ...
+Registered but disabled.,Registrada però deshabilitat.
+Registration Details Emailed.,
+Reload Page,Recarregar Pàgina
+Remove Bookmark,
+Remove Filter,Treure filtre
+Remove Link,Esborrar vincle
+Remove all customizations?,
+Removed {0},Eliminat {0}
+Rename,Canviar el nom
+Rename many items by uploading a .csv file.,Canviar el nom de molts articles mitjançant la pujada d'un arxiu .csv.
+Rename {0},Canviar el nom {0}
+Rename...,
+Repeat On,
+Repeat Till,Repeteix Fins
+Repeat this Event,Repetir aquest esdeveniment
+Replies,Respostes
+Report,Informe
+Report Builder,Generador d'informes
+Report Builder reports are managed directly by the report builder. Nothing to do.,Informes de Report Builder són gestionats directament pel generador d'informes. Res a fer.
+Report Hide,Amaga Informe
+Report Manager,Administrador d'informes
+Report Name,
+Report Type,
+Report an Issue,Informa d'un problema
+Report cannot be set for Single types,
+Report this issue,Informar sobre aquesta incidència
+Report was not saved (there were errors),L'Informe no s'ha guardat (hi ha errors)
+Report {0} is disabled,L'Informe {0} està deshabilitat
+Represents a User in the system.,
+Represents the states allowed in one document and role assigned to change the state.,Representa els estats permesos en un sol document i el rol assignat a canviar l'estat.
+Reqd,Reqd
+Reset Password,Restablir contrasenya
+Reset Password Key,Restabliment de contrasenya
+Reset Permissions for {0}?,Restablir permisos per {0}?
+Reset to defaults,Torna als valors inicials
+Response,Resposta
+Restore Original Permissions,Restaurar permisos originals
+Restrict IP,Restringir IP
+Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111),
+Right,Dreta
+Role,Rol
+Role Name,Nom de rol
+Role Permissions,
+Role Permissions Manager,Administrador de Permisos de rols
+Role and Level,Rols i Nivell
+Role exists,El Rol ja existeix
+Roles,Rols
+Roles Assigned,
+Roles Assigned To User,Rols assignats a usuari
+Roles HTML,Rols HTML
+Roles can be set for users from their User page.,Els usuaris poden ajustar els rols a la seva pàgina d'usuari.
+Root {0} cannot be deleted,Root {0} cannot be deleted
+Row,
+Row #{0}:,
+Row {0}: Not allowed to enable Allow on Submit for standard fields,
+Rules defining transition of state in the workflow.,Regles que defineixen la transició d'estat del flux de treball.
+"Rules for how states are transitions, like next state and which role is allowed to change state etc.","Normes de com els estats són transicions, com pròxim estat i a quin rol se li permet canviar l'estat, etc."
+Run scheduled jobs only if checked,
+Run the report first,
+SMTP Server (e.g. smtp.gmail.com),"SMTP Server (per exemple, smtp.gmail.com)"
+Sales,
+Sales Manager,Gerent De Vendes
+Sales User,Usuari de vendes
+Same file has already been attached to the record,El mateix arxiu ja s'ha adjuntat a l'expedient
+Sample,Mostra
+Saturday,
+Save,Guardar
+Saved!,Desat!
+Scheduler Log,Scheduler Log
+Script,
+Script Report,Script Report
+Script Type,Script Type
+Script to attach to all web pages.,Script to attach to all web pages.
+Search,cerca
+Search Fields,Camps de recerca
+Search Fields should contain valid fieldnames,Camps de recerca han de contenir noms de camp vàlids
+Search Filter,Filtre de cerca
+Search Link,Cercar Enllaç
+Search in a document type,Cercar en un tipus de document
+Search or type a command,Busca o escriu una ordre
+Section Break,
+Security,Seguretat
+Security Settings,Configuració de seguretat
+Select,
+Select All,
+Select Attachments,Seleccionar adjunts
+Select DocType,
+Select Document Type,Seleccionar tipus de document
+Select Document Type or Role to start.,
+Select Document Types,Seleccioneu els tipus de document
+Select Document Types to set which User Permissions are used to limit access.,
+Select Print Format,Seleccionar el format d'impressió
+Select Report Name,Selecciona el Nom de l'informe
+Select Role,Seleccioneu Rol
+Select To Download:,Seleccioneu per descarregar:
+Select Type,Seleccionar tipus
+Select User,
+Select User or DocType to start.,Seleccionar usuari o DOCTYPE per començar.
+Select a Banner Image first.,Seleccioneu primer una imatge pel banner.
+Select an image of approx width 150px with a transparent background for best results.,Seleccioneu una imatge d'ample aprox 150px amb fons transparent per obtenir millors resultats.
+"Select modules to be shown (based on permission). If hidden, they will be hidden for all users.",
+Select or drag across time slots to create a new event.,Seleccioneu o arrossegament a través de caselles de temps per crear un nou esdeveniment.
+"Select target = ""_blank"" to open in a new page.",
+Select the label after which you want to insert new field.,Selecciona l'etiqueta després de la qual vols inserir el nou camp.
+Select {0},Seleccioneu {0}
+Send,
+Send Alert On,Enviar Alerta Sobre
+Send As Email,Enviar com a correu electrònic
+Send Email,
+Send Email Print Attachments as PDF (Recommended),Enviar els arxius adjunts deels correus electrònics com a PDF (Recomanat)
+Send Me A Copy,
+Send Print as PDF,Envia la impressió com a PDF
+Send alert if date matches this field's value,Enviar alerta si la data coincideix amb el valor d'aquest camp
+Send alert if this field's value changes,Enviar alerta si canvia el valor d'aquest camp
+Send an email reminder in the morning,Enviar un recordatori per correu electrònic el matí
+Send download link of a recent backup to System Managers,Enviar enllaç de descàrrega d'una còpia de seguretat recent als gestors del sistema
+Send enquiries to this email address,Envieu les seves consultes a la següent adreça de correu electrònic
+Sender,
+Sent,
+Sent Mail,
+Sent Quotation,Oferta enviada
+Sent or Received,Enviat o rebut
+Series,Sèrie
+Series {0} already used in {1},La sèrie {0} ja s'utilitza a {1}
+Server,Servidor
+Server & Credentials,Servidor i Credencials
+Server Error: Please check your server logs or contact tech support.,Error de servidor: Es recomana consultar els registres del servidor o contactar amb Suport Tècnic.
+Session Expired. Logging you out,
+Session Expiry,Caducitat Sessió
+Session Expiry in Hours e.g. 06:00,"Caducitat de la sessió en hores, per exemple: 06:00"
+Session Expiry must be in format {0},
+Set,Setembre
+Set Banner from Image,
+Set Link,Establir Enllaç
+Set Login and Password if authentication is required.,
+Set Only Once,Ajusta només una vegada
+Set Password,Establir contrasenya
+Set Permissions on Document Types and Roles,
+Set Permissions per User,Establir permisos per usuari
+Set User Permissions,Establir permisos d'usuari
+Set Value,Valor seleccionat
+"Set default format, page size, print style etc.","Establir format predeterminat, mida de pàgina, l'estil d'impressió, etc."
+Set non-standard precision for a Float or Currency field,Ajusta una precisió no estàndard per a un camp Float o moneda
+Set numbering series for transactions.,
+Set outgoing mail server.,Establir servidor de correu sortint.
+Set the display label for the field,Defineix l'etiqueta de visualització per al camp
+"Set your background color, font and image (tiled)",
+Settings,Ajustos
+Settings for About Us Page.,
+Settings for Contact Us Page,
+Settings for Contact Us Page.,Configuració de pàgina de contacte.
+Settings for the About Us Page,
+Setup,Ajustos
+Setup > User,
+Setup > User Permissions Manager,
+Setup Email Alert based on various criteria.,
+Setup of fonts and background.,Configuració de fonts i el fons.
+"Setup of top navigation bar, footer and logo.","Configuració de barra de navegació superior, peu de pàgina i el logo."
+Short Bio,
+Short Name,Nom curt
+Shortcut,Drecera
+Shortcuts,Accessos directes
+Show / Hide Modules,
+Show Print First,Show Print First
+Show Tags,
+Show User Permissions,Mostrar permisos d'usuari
+Show a description below the field,Mostrar una descripció sota del camp
+Show or Hide Modules,Mostrar o ocultar els Mòduls
+Show or hide modules globally.,Mostrar o amagar mòduls globals.
+Show rows with zero values,
+Show tags,Mostrar etiquetes
+Show this field as title,
+Sidebar,Sidebar
+Sidebar Items,Sidebar Items
+Sidebar Links for Home Page only,
+Single Post (article).,
+Single Types have only one record no tables associated. Values are stored in tabSingles,
+Slideshow,Slideshow
+Slideshow Items,
+Slideshow Name,Nom Slideshow
+Slideshow like display for the website,
+Small Text,Text petit
+Social Login Keys,
+Solid background color (default light gray),
+Sorry we were unable to find what you were looking for.,Ho sentim no hem pogut trobar el que estaves buscant.
+Sorry you are not permitted to view this page.,Ho sentim que no està autoritzat per veure aquesta pàgina.
+Sort By,Ordenar Per
+Sort Field,Ordenar Camp
+Sort Order,Ordre de Classificació
+Specify a default value,Introdueix un valor per defecte
+Specify the value of the field,Especifica el valor del camp
+Sr No,Número de sèrie
+Standard,Estàndard
+Standard Print Format cannot be updated,
+Standard Reply,Resposta predefinida
+Standard Reports,Informes estàndard
+Standard replies to common queries.,
+Start Report For,Informe Iniciar Per
+Start entering data below this line,Comenceu a introduir dades per sota d'aquesta línia
+Starts on,Comença en
+State,
+States,
+"States for workflow (e.g. Draft, Approved, Cancelled).","Estats de flux de treball (per exemple, Projecte, Aprovat, cancel·lat)."
+Status,
+Step 1: Set the name and save.,Pas 1: Establir el nom i desar.
+Step 2: Set Letterhead content.,Pas 2: Establir el contingut de capçalera de carta
+Style,Estil
+Style Settings,
+"Style represents the button color: Success - Green, Danger - Red, Inverse - Black, Primary - Dark Blue, Info - Light Blue, Warning - Orange","Estil representa el color del botó: Èxit - Verd, Perill - vermell, Inverse - Negre, Primària - Blau Fosc, Informació - blau clar, Advertència - Orange"
+Sub-domain provided by erpnext.com,
+Subdomain,Subdomini
+Subject,
+Submit,Presentar
+Submit an Issue,
+Submitted,
+Submitted Document cannot be converted back to draft. Transition row {0},
+Success,
+Success Message,Missatge d'èxit
+Success URL,Success URL
+Suggestion,
+Sunday,
+Support Manager,Gerent de Suport
+Support Team,Equip de suport
+Switch to Website,Saltar a la pàgina web
+Syntax error in Jinja template,
+System,Sistema
+System Manager,Administrador del sistema
+System Settings,
+System User,Usuari de Sistema
+System and Website Users,Usuaris de sistema i lloc web
+System generated mails will be sent from this email id.,Des d'aquest compte de correu s'enviaran mails automàtics
+Table,Taula
+Table {0} cannot be empty,
+Tag,Etiqueta
+Tag Name,Tag Name
+Tags,
+Tahoma,
+Target,Objectiu
+Tasks,
+Team Members,Membres de l'equip
+Team Members Heading,Team Members Heading
+Template Path,
+Test Runner,Comprovador
+Text,Text
+Text Align,
+Text Editor,Editor de text
+Text to be displayed for Link to Web Page if this form has a web page. Link route will be automatically generated based on `page_name` and `parent_website_route`,El text que es mostra per enllaçar a la pàgina web si aquest formulari disposa d'una pàgina web. Ruta Enllaç automàticament es genera sobre la base de `page_name` i ` parent_website_route`
+Thank you,
+Thank you for your message,
+The name of your company / website as you want to appear on browser title bar. All pages will have this as the prefix to the title.,El nom de la seva empresa / lloc web com desitgeu que aparegui a la barra de títol del navegador. Totes les pàgines tindran això com el prefix per al títol.
+The system provides many pre-defined roles. You can add new roles to set finer permissions.,
+"The task %s, that you assigned to %s, has been closed by %s.",
+"The task %s, that you assigned to %s, has been closed.","La tasca %s, que ha assignat a %s, s'ha tancat."
+Then By (optional),Llavors per (opcional)
+There can be only one Fold in a form,Només hi pot haver un plec en el formulari
+There should remain at least one System Manager,Ha de quedar almenys un administrador del sistema
+There were errors,Hi van haver errors
+There were errors while sending email. Please try again.,"Hi ha hagut errors a l'enviar el correu electrònic. Si us plau, torna a intentar-ho."
+"There were some errors setting the name, please contact the administrator","Hi havia alguns errors de configuració del nom, si us plau poseu-vos en contacte amb l'administrador"
+"These permissions will apply for all transactions where the permitted record is linked. For example, if Company C is added to User Permissions of user X, user X will only be able to see transactions that has company C as a linked value.","Aquests permisos s'aplicaran a totes les transaccions en què es vincula el registre permès. Per exemple, si la Companyia C s'afegeix als permisos d'usuari d'usuari X, l'usuari X només serà capaç de veure les transaccions que té l'empresa C com un valor vinculat."
+These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,Aquests valors s'actualitzaran automàticament en les transaccions i també podrà ser útil restringir els permisos per a aquest usuari en transaccions que contenen aquests valors.
+"These will also be set as default values for those links, if only one such permission record is defined.","Aquests també es poden establir com a valors predeterminats per als enllaços, si no es defineix només un d'aquests registres permís."
+Third Party Authentication,
+This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>myfieldeval:doc.myfield=='My Value'<br>eval:doc.age>18,
+This form does not have any input,Aquesta formulari no té cap entrada
+This goes above the slideshow.,Això va per sobre de la presentació de diapositives (slideshow)
+This is PERMANENT action and you cannot undo. Continue?,Aquesta és una acció permanent i no es pot desfer. Voleu continuar?
+"This is a standard format. To make changes, please copy it make make a new format.","Es tracta d'un format estàndard. Per fer canvis, si us plau copieu fer fer un nou format."
+This is permanent action and you cannot undo. Continue?,
+This must be checked if Style Settings are applicable,Això s'ha de marcar si els Ajustaments d'estil són aplicables
+This role update User Permissions for a user,Aquesta actualització de rol canvia permisos d'usuari per a un usuari
+Thursday,Dijous
+Tile,Rajola
+Time,temps
+Time Zone,Fus horari
+Timezone,
+Title,Títol
+Title / headline of your page,Title / headline de la teva pàgina
+Title Case,Títol del Cas
+Title Field,Title Field
+Title Prefix,
+Title field must be a valid fieldname,El Camp Títol ha de ser un nom de camp vàlid
+Title is required,
+To,
+To Do,
+"To format columns, give column labels in the query.",
+"To give acess to a role for only specific records, check the 'Apply User Permissions'. User Permissions are used to limit users with such role to specific records.",
+"To run a test add the module name in the route after '{0}'. For example, {1}","Per executar una prova afegeix el nom del mòdul en la ruta després de '{0}'. Per exemple, {1}"
+ToDo,
+Too many writes in one request. Please send smaller requests,
+Top Bar,Top Bar
+Top Bar Background,Top Bar Antecedents
+Top Bar Item,Element de barra superior
+Top Bar Items,Elements de la barra superior
+Top Bar Text,Text de la Barra superior
+Top Bar text and background is same color. Please change.,Text barra superior i el fons és el mateix color. Si us plau canvia-ho.
+Transaction,Transacció
+Transition Rules,
+Tuesday,Dimarts
+Tweet will be shared via your user account (if specified),El Tweet es compartirà a través del seu compte d'usuari (si s'especifica)
+Twitter Share,
+Twitter Share via,Compartir per Twitter
+Type,Tipus
+Type:,
+"Unable to display this tree report, due to missing data. Most likely, it is being filtered out due to permissions.","No es pot mostrar aquest informe d'arbre, a causa de dades que insuficients El més probable és que queden filtrats pels permisos."
+Unable to find attachment {0},Incapaç de trobar adjunt {0}
+Unable to load: {0},No es pot carregar: {0}
+Unable to open attached file. Please try again.,
+Unable to send emails at this time,No es poden enviar missatges de correu electrònic en aquest moment
+Unknown Column: {0},Columna desconeguda : {0}
+"Unknown file encoding. Tried utf-8, windows-1250, windows-1252.",
+Unread Messages,
+Unsubscribe,Donar-se de baixa
+Unsubscribed,
+Upcoming Events for Today,
+Update,
+Update Field,
+Update Value,
+Updated,
+Upload,Pujar
+Upload Attachment,
+Upload CSV file containing all user permissions in the same format as Download.,
+Upload User Permissions,Puja Permisos d'usuari
+Upload a file,Carrega un fitxer
+Upload and Import,
+Upload and Sync,
+Uploading...,Pujant ...
+Upvotes,
+Use TLS,Utilitza TLS
+Use the field to filter records,
+User,
+User Cannot Create,L'usuari no pot crear
+User Cannot Search,L'usuari no pot Cercar
+User Defaults,
+User ID of a Blogger,
+User ID of a blog writer.,
+User Image,Imatge d'Usuari
+User Permission,Permís d'usuari
+User Permission DocTypes,Permisos d'usuaris de Doctypes
+User Permissions,Permisos d'usuari
+User Permissions Manager,Administrador de Permisos d'usuari
+User Roles,Rols d'usuari
+User Tags,User Tags
+User Type,Tipus d'usuari
+"User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ",
+User Vote,Vot d'usuari
+User editable form on Website.,Formulari d'edició d'Usuari en el Lloc Web.
+User not allowed to delete {0}: {1},
+User permissions should not apply for this Link,
+User {0} cannot be deleted,L'usuari {0} no es pot eliminar
+User {0} cannot be disabled,L'usuari {0} no es pot desactivar
+User {0} cannot be renamed,
+User {0} does not exist,L'usuari {0} no existeix
+UserRole,
+Users,Usuaris
+Users and Permissions,
+Users with role {0}:,
+Valid Login id required.,Es requereix un nom d'usuari vàlid
+Valid email and name required,Es requereix un nom i correu electrònic vàlid
+Value,Valor
+Value Change,Canvi de valor
+Value Changed,
+Value cannot be changed for {0},El valor no pot ser canviat per {0}
+Value for a check field can be either 0 or 1,El valor per a un camp de verificació pot ser 0 o 1
+Value missing for,Falta a
+Verdana,Verdana
+Verify Your Account,Verifica el teu compte
+Version,Versió
+Version restored,Versió restaurada
+View Details,
+View it in your browser,Veure-ho al navegador
+Visit,Visita
+Warning,
+Warning: This Print Format is in old style and cannot be generated via the API.,Advertència: Aquest format d'impressió és d'estil antic i no es pot generar a través de l'API.
+"We are very sorry for this, but the page you are looking for is missing (this could be because of a typo in the address) or moved.","Ho sentim molt, però la pàgina que cerca no s'ha troba (això podria ser a causa d'un error tipogràfic en la direcció) o s'ha mogut."
+Web Form,Formulari Web
+Web Form Field,
+Web Form Fields,Web Form Fields
+Web Page,Pàgina Web
+Web Page Link Text,Text del link a la Pàgina Web
+Web Site Forum Page.,
+Website,Lloc web
+Website Group,Website Group
+Website Manager,Gestor de la Pàgina web
+Website Route,Ruta del Lloc web
+Website Route Permission,Website Route Permission
+Website Script,Website Script
+Website Settings,Configuració del lloc web
+Website Slideshow,Website Slideshow
+Website Slideshow Item,Website Slideshow Item
+Website URL,URL del lloc web
+Website User,Lloc web de l'usuari
+Wednesday,
+Welcome email sent,Correu electrònic de benvinguda enviat
+"When you Amend a document after Cancel and save it, it will get a new number that is a version of the old number.","Quan es modifiqui un document després de cancelar-lo i guardar-lo, tindrà un nou número que és una versió de l'antic nombre."
+While uploading non English files ensure that the encoding is UTF-8.,
+Width,Ample
+Width of the input box,
+Will be used in url (usually first name).,Will be used in url (usually first name).
+With Groups,
+With Ledgers,With Ledgers
+With Letterhead,
+Workflow,Workflow
+Workflow Action,
+Workflow Action Master,Mestre d'accions de Flux de treball
+Workflow Action Name,Nom de l'acció del flux de treball (Workflow)
+Workflow Document State,
+Workflow Document States,
+Workflow Name,
+Workflow State,Estat de flux de treball (workflow)
+Workflow State Field,Campd d'estat de flux de treball (workflow)
+Workflow Transition,Transició de workflow
+Workflow Transitions,Transicions del Workflow
+Workflow state represents the current state of a document.,
+Workflow will start after saving.,El worflow s'iniciarà després de desar.
+Write,Escriure
+Write a Python file in the same folder where this is saved and return column and result.,Write a Python file in the same folder where this is saved and return column and result.
+Write a SELECT query. Note result is not paged (all data is sent in one go).,Write a SELECT query. Note result is not paged (all data is sent in one go).
+Write titles and introductions to your blog.,Escriure títols i les introduccions al teu blog.
+Writers Introduction,
+Year,Any
+Yes,Sí
+Yesterday,
+You are not allowed to create / edit reports,
+You are not allowed to export the data of: {0}. Downloading empty template.,
+You are not allowed to export this report,
+You are not allowed to print this document,
+You are not allowed to send emails related to this document,No et permet enviar missatges de correu electrònic relacionats amb aquest document
+You can also copy-paste this link in your browser,
+You can also drag and drop attachments,També podeu arrossegar i deixar fitxers adjunts
+"You can change Submitted documents by cancelling them and then, amending them.","Podeu canviar els documents presentats, cancel·lant-los i després esmenant-los."
+You can only upload upto 5000 records in one go. (may be less in some cases),Només es pot carregar fins a 5.000 registres d'una sola vegada. (Pot ser inferior en alguns casos)
+You can use Customize Form to set levels on fields.,
+You can use wildcard %,Podeu utilitzar comodins %
+You cannot install this app,No es pot instal·lar aquesta aplicació
+You don't have access to Report: {0},No tens accés a l'informe: {0}
+You don't have permission to get a report on: {0},No té permís per obtenir un informe sobre: ​​{0}
+You have unsaved changes in this form. Please save before you continue.,"Hi ha canvis sense desar en aquest formulari. Si us plau, guarda abans de continuar."
+You must login to submit this form,Has d'iniciar sessió per presentar aquest formulari
+You need to be logged in and have System Manager Role to be able to access backups.,
+You need write permission to rename,
+You seem to have written your name instead of your email. \					Please enter a valid email address so that we can get back.,
+"Your download is being built, this may take a few moments...",
+Your login id is,El seu nom d'usuari és
+Your password has been updated. Here is your new password,La seva contrasenya s'ha actualitzat. Aquí està la teva nova contrasenya
+[Label]:[Field Type]/[Options]:[Width],[Etiqueta]: [Tipus de camp] / [Opcions]: [Ample]
+[No Subject],
+[Optional] Send the email X days in advance of the specified date. 0 equals same day.,[Optional] Send the email X days in advance of the specified date. 0 equals same day.
+[no content],[Sense contingut]
+[unknown sender],[Remitent desconegut]
+add your own CSS (careful!),
+adjust,ajustar
+align-center,alinear-centre
+align-justify,align-justify
+align-left,
+align-right,
+and,i
+arrow-down,arrow-down
+arrow-left,
+arrow-right,
+arrow-up,arrow-up
+asterisk,asterisc
+backward,cap enrere
+ban-circle,
+barcode,Codi de barres
+beginning with,
+bell,
+bold,Negreta
+book,
+bookmark,marcador
+briefcase,briefcase
+bullhorn,
+calendar,calendari
+camera,
+certificate,
+check,comprovar
+chevron-down,Chevron-down
+chevron-left,chevron-left
+chevron-right,
+chevron-up,
+circle-arrow-down,circle-arrow-down
+circle-arrow-left,circle-arrow-left
+circle-arrow-right,circle-arrow-right
+circle-arrow-up,
+cog,cog
+comment,
+dd-mm-yyyy,dd-mm-aaaa
+dd.mm.yyyy,dd.mm.aaaa
+dd/mm/yyyy,dd/mm/aaaa
+download,
+download-alt,
+edit,
+eject,expulsar
+envelope,embolcall
+exclamation-sign,Signe d'exclamació
+eye-close,
+eye-open,eye-open
+facetime-video,FaceTime i vídeo
+fast-backward,fast-backward
+fast-forward,avanç ràpid
+file,File
+film,film
+filter,filtre
+fire,
+flag,bandera
+folder-close,folder-close
+folder-open,-Carpeta oberta
+font,font
+forward,
+fullscreen,pantalla completa
+gift,regal
+glass,vidre
+globe,
+hand-down,hand-down
+hand-left,hand-left
+hand-right,
+hand-up,hand-up
+hdd,hdd
+headphones,auriculars
+heart,cor
+home,
+icon,icona
+inbox,safata d'entrada
+indent-left,
+indent-right,guió-dreta
+info-sign,
+is not allowed.,no està permès.
+italic,itàlic
+leaf,
+lft,
+list,Llista
+list-alt,list-alt
+lock,
+lowercase,minúscules
+magnet,imant
+map-marker,
+memcached is not working / stopped. Please start memcached for best results.,memcached no està funcionant / aturat. Si us plau iniciar memcached per obtenir millors resultats.
+minus,menys
+minus-sign,signe menys
+mm-dd-yyyy,mm-dd-aaaa
+mm/dd/yyyy,mm/dd/aaaa
+move,
+music,músic
+none of,cap de
+off,
+ok,ok
+ok-circle,ok-circle
+ok-sign,ok-sign
+one of,
+or,o
+pause,
+pencil,
+picture,imatge
+plane,avió
+play,jugar
+play-circle,
+plus,més
+plus-sign,signe més
+print,impressió
+qrcode,qrcode
+question-sign,question-sign
+random,aleatori
+reference,referència
+refresh,refrescar
+remove,suprimir
+remove-circle,remove-circle
+remove-sign,
+repeat,
+resize-full,resize-full
+resize-horizontal,resize-horizontal
+resize-small,
+resize-vertical,
+retweet,retweet
+rgt,
+road,carretera
+screenshot,captura de pantalla
+search,cerca
+share,share
+share-alt,share-alt
+shopping-cart,carro de la compra
+signal,
+star,
+star-empty,star-empty
+step-backward,pas enrere
+step-forward,
+stop,Atura
+tag,
+tags,etiquetes
+"target = ""_blank""",
+tasks,tasques
+text-height,text-height
+text-width,text-width
+th,th
+th-large,th-large
+th-list,
+thumbs-down,thumbs-down
+thumbs-up,thumbs-up
+time,temps
+tint,tint
+to,a
+to filter values between 5 & 10,
+trash,escombraries
+upload,Pujar
+use % as wildcard,Utilitza % com a comodí
+user,
+user_image_show,user_image_show
+value,
+values and dates,
+values separated by commas,valors separats per comes
+volume-down,
+volume-off,volum-off
+volume-up,
+warning-sign,warning-sign
+wrench,wrench
+yyyy-mm-dd,aaaa-mm-dd
+zoom-in,zoom-in
+zoom-out,zoom-out
+{0} List,{0} Llista
+{0} added,{0} afegits
+{0} already exists,{0} ja existeix
+{0} by {1},{0} per {1}
+{0} cannot be set for Single types,
+{0} does not exist in row {1},
+{0} in row {1} cannot have both URL and child items,
+{0} is not a valid email id,{0} no és un correu electrònicvàlid
+{0} is required,{0} és necessari
+{0} is saved,
+{0} must be one of {1},{0} ha de ser una de {1}
+{0} must be set first,{0} s'ha d'establir primer
+{0} not a valid State,
+{0} not allowed in fieldname {1},
+{0} not allowed in name,{0} no es permet en nom
+{0} not allowed to be renamed,
+{0} updated,{0} actualitzat
+{0} {1} already exists,{0} {1} ja existeix
+"{0} {1} cannot be ""{2}"". It should be one of ""{3}""","{0} {1} no pot ser ""{2}"". Ha de ser un de ""{3}"""
+{0} {1} cannot be a leaf node as it has children,{0} {1} no pot ser un node fulla perquè té descendents
+"{0} {1} does not exist, select a new target to merge","{0} {1} no existeix, seleccioneu un nou objectiu per unir"
+{0} {1} not found,{0} {1} no trobat
+{0} {1}: Submitted Record cannot be deleted.,
+{0}: Cannot set Amend without Cancel,{0}: No es pot establir a Corregir sense Cancel·lar abans
+{0}: Cannot set Assign Amend if not Submittable,
+{0}: Cannot set Assign Submit if not Submittable,
+{0}: Cannot set Cancel without Submit,
+{0}: Cannot set Import without Create,
+"{0}: Cannot set Submit, Cancel, Amend without Write","{0}: No es pot establir a Presentat, Anul·lat, Modificat sense escriptura"
+{0}: Cannot set import as {1} is not importable,
+"{0}: Create, Submit, Cancel and Amend only valid at level 0","{0}: Crear, Presentar, Cancelar i Modificar només és vàlid en el nivell 0"
+{0}: No basic permissions set,{0}: No s'ha establert cap conjunt permisos bàsic
+"{0}: Only one rule allowed with the same Role, Level and Apply User Permissions","{0}: Només s'admet una regla amb el mateix rol, nivell i permisos d'usuari"
+{0}: Permission at level 0 must be set before higher levels are set,{0}: El permís al nivell 0 s'ha d'establir abans de fixar nivells més alts
+{app_title},{app_title}
