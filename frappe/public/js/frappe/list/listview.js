@@ -10,9 +10,6 @@ frappe.views.get_listview = function(doctype, parent) {
 	return listview;
 }
 
-frappe.provide("frappe.listview_settings");
-frappe.provide("frappe.listview_parent_route");
-
 // Renders customized list
 // usually based on `in_list_view` property
 

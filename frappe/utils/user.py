@@ -31,7 +31,8 @@ class User:
 		self.can_set_user_permissions = []
 		self.allow_modules = []
 		self.in_create = []
-		self.doc = frappe.get_doc("User", self.name)
+		if not frappe.flags.in_install_db:
+			self.doc = frappe.get_doc("User", self.name)
 
 	def get_roles(self):
 		"""get list of roles"""

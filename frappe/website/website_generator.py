@@ -65,7 +65,7 @@ class WebsiteGenerator(Document):
 		return page_name
 
 	def make_page_name(self):
-		return cleanup_page_name(self.get(self.page_title_field))
+		return cleanup_page_name(self.get(self.website.page_title_field or "name"))
 
 	def before_rename(self, oldname, name, merge):
 		self._local = self.get_route()
@@ -130,7 +130,7 @@ class WebsiteGenerator(Document):
 		route.update(self.website)
 
 		if not route.page_title:
-			route.page_title = self.get(self.website.page_title_field)
+			route.page_title = self.get(self.website.page_title_field or "name")
 
 		self.update_permissions(route)
 

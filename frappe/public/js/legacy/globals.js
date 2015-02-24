@@ -10,6 +10,10 @@ frappe.provide('frappe.session');
 frappe.provide('locals')
 frappe.provide('locals.DocType')
 
+// for listviews
+frappe.provide("frappe.listview_settings");
+frappe.provide("frappe.listview_parent_route");
+
 // setup custom binding for history
 frappe.settings.no_history = 1;
 

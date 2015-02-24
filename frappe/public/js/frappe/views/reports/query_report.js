@@ -115,10 +115,6 @@ frappe.views.QueryReport = Class.extend({
 							});
 						} else {
 							me.setup_filters();
-
-							// setup a fresh print action
-							me.setup_html_format(frappe.query_reports[me.report_name]["html_format"]);
-
 							me.refresh();
 						}
 					});
