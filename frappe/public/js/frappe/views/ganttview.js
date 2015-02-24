@@ -27,7 +27,7 @@ frappe.views.GanttFactory = frappe.views.Factory.extend({
 	}
 });
 
-frappe.views.Gantt = Class.extend({
+frappe.views.Gantt = frappe.views.CalendarBase.extend({
 	init: function(opts) {
 		$.extend(this, opts);
 		this.make_page();
@@ -52,12 +52,7 @@ frappe.views.Gantt = Class.extend({
 		this.page.add_field({fieldtype:"Date", label:"To",
 			fieldname:"end", "default": frappe.datetime.month_end(), input_css: {"z-index": 3}});
 
-		if(this.filters) {
-			$.each(this.filters, function(i, df) {
-				me.page.add_field(df);
-			});
-		}
-
+		this.add_filters();
 		this.wrapper = $("<div></div>").appendTo(this.page.main);
 
 	},
@@ -96,27 +91,6 @@ frappe.views.Gantt = Class.extend({
 			}
 		})
 
-	},
-	set_filter: function(doctype, value) {
-		var me = this;
-		if(this.filters) {
-			$.each(this.filters, function(i, df) {
-				if(df.options===value)
-					me.page.fields_dict[df.fieldname].set_input(value);
-					return false;
-			});
-		}
-	},
-	get_filters: function() {
-		var filter_vals = {},
-			me = this;
-		if(this.filters) {
-			$.each(this.filters, function(i, df) {
-				filter_vals[df.fieldname || df.label] =
-					me.page.fields_dict[df.fieldname || df.label].get_parsed_value();
-			});
-		}
-		return filter_vals;
 	},
 	get_source: function(r) {
 		var source = [],
@@ -158,18 +132,5 @@ frappe.views.Gantt = Class.extend({
 			}
 		});
 		return source
-	},
-	set_filters_from_route_options: function() {
-		var me = this;
-		if(frappe.route_options) {
-			$.each(frappe.route_options, function(k, value) {
-				if(me.page.fields_dict[k]) {
-					me.page.fields_dict[k].set_input(value);
-				};
-			})
-			frappe.route_options = null;
-			me.refresh();
-			return false;
-		}
 	}
 });

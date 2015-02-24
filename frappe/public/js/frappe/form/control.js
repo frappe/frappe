@@ -246,6 +246,11 @@ frappe.ui.form.ControlInput = frappe.ui.form.Control.extend({
 	bind_change_event: function() {
 		var me = this;
 		this.$input && this.$input.on("change", this.change || function(e) {
+			if(me.df.change) {
+				// onchange event specified in df
+				me.df.change.apply(this, e);
+				return;
+			}
 			if(me.doctype && me.docname && me.get_value) {
 				me.parse_validate_and_set_in_model(me.get_value());
 			} else {

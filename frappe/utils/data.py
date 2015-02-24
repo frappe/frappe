@@ -28,6 +28,22 @@ def getdate(string_date):
 
 	return datetime.datetime.strptime(string_date, "%Y-%m-%d").date()
 
+def get_datetime(datetime_str):
+	if isinstance(datetime_str, datetime.datetime):
+		return datetime_str
+
+	elif isinstance(datetime_str, datetime.date):
+		return datetime.datetime.combine(datetime_str, datetime.time())
+
+	try:
+		return datetime.datetime.strptime(datetime_str, DATETIME_FORMAT)
+
+	except ValueError:
+		if datetime_str=='0000-00-00 00:00:00.000000':
+			return None
+
+		return datetime.datetime.strptime(datetime_str, '%Y-%m-%d %H:%M:%S')
+
 def add_to_date(date, years=0, months=0, days=0):
 	"""Adds `days` to the given date"""
 
@@ -133,22 +149,6 @@ def get_last_day(dt):
 	 `get_first_day(dt, 0, 1) + datetime.timedelta(-1)`
 	"""
 	return get_first_day(dt, 0, 1) + datetime.timedelta(-1)
-
-def get_datetime(datetime_str):
-	try:
-		return datetime.datetime.strptime(datetime_str, DATETIME_FORMAT)
-
-	except TypeError:
-		if isinstance(datetime_str, datetime.datetime):
-			return datetime_str.replace(tzinfo=None)
-		else:
-			raise
-
-	except ValueError:
-		if datetime_str=='0000-00-00 00:00:00.000000':
-			return None
-
-		return datetime.datetime.strptime(datetime_str, '%Y-%m-%d %H:%M:%S')
 
 
 def get_time(time_str):

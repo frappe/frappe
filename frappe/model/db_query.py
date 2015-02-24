@@ -8,7 +8,7 @@ import frappe, json
 import frappe.defaults
 import frappe.share
 import frappe.permissions
-from frappe.utils import flt, cint
+from frappe.utils import flt, cint, getdate, get_datetime, get_time
 from frappe import _
 
 class DatabaseQuery(object):
@@ -217,9 +217,22 @@ class DatabaseQuery(object):
 						tname=tname, fname=f[1], operator=f[2], value=f[3]))
 				else:
 					df = frappe.get_meta(f[0]).get("fields", {"fieldname": f[1]})
+					df = df[0] if df else None
 
-					if f[2] == "like" or (isinstance(f[3], basestring) and
-						(not df or df[0].fieldtype not in ["Float", "Int", "Currency", "Percent", "Check"])):
+					if df and df.fieldtype=="Date":
+						value, default_val = '"{0}"'.format(frappe.db.escape(getdate(f[3]).strftime("%Y-%m-%d"))), \
+							"'0000-00-00'"
+
+					elif df and df.fieldtype=="Datetime":
+						value, default_val = '"{0}"'.format(frappe.db.escape(get_datetime(f[3]).strftime("%Y-%m-%d %H:%M:%S.%f"))), \
+							"'0000-00-00 00:00:00'"
+
+					elif df and df.fieldtype=="Time":
+						value, default_val = '"{0}"'.format(frappe.db.escape(get_time(f[3]).strftime("%H:%M:%S.%f"))), \
+							"'00:00:00'"
+
+					elif f[2] == "like" or (isinstance(f[3], basestring) and
+						(not df or df.fieldtype not in ["Float", "Int", "Currency", "Percent", "Check"])):
 							if f[2] == "like":
 								# because "like" uses backslash (\) for escaping
 								f[3] = f[3].replace("\\", "\\\\")

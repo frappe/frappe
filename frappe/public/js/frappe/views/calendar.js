@@ -23,7 +23,7 @@ frappe.views.CalendarFactory = frappe.views.Factory.extend({
 });
 
 
-frappe.views.Calendar = Class.extend({
+frappe.views.Calendar = frappe.views.CalendarBase.extend({
 	init: function(options) {
 		$.extend(this, options);
 		this.make_page();
@@ -31,7 +31,13 @@ frappe.views.Calendar = Class.extend({
 		this.make();
 	},
 	make_page: function() {
+		var me = this;
 		this.parent = frappe.make_page();
+
+		$(this.parent).on("show", function() {
+			me.set_filters_from_route_options();
+		});
+
 		this.page = this.parent.page;
 		var module = locals.DocType[this.doctype].module;
 		this.page.set_title(__("Calendar") + " - " + __(this.doctype));
@@ -39,6 +45,17 @@ frappe.views.Calendar = Class.extend({
 		if (module !== "Desk") {
 			frappe.add_breadcrumbs(module, this.doctype)
 		}
+
+		this.add_filters();
+
+		this.page.add_field({fieldtype:"Date", label:"Date",
+			fieldname:"selected",
+			"default": frappe.datetime.month_start(),
+			input_css: {"z-index": 1},
+			change: function() {
+				me.$cal.fullCalendar("gotoDate", $(this).val());
+			}
+		});
 
 		this.page.set_primary_action(__("New"), function() {
 			var doc = frappe.model.get_new_doc(me.doctype);
@@ -50,6 +67,7 @@ frappe.views.Calendar = Class.extend({
 			me.$cal.fullCalendar("refetchEvents");
 		})
 	},
+
 	make: function() {
 		var me = this;
 		this.$wrapper = this.page.main;
@@ -61,7 +79,6 @@ frappe.views.Calendar = Class.extend({
 		// 	.appendTo(this.$wrapper);
 
 		this.$cal.fullCalendar(this.cal_options);
-
 		this.set_css();
 	},
 	set_css: function() {
@@ -179,11 +196,16 @@ frappe.views.Calendar = Class.extend({
 		}
 	},
 	get_args: function(start, end) {
-		return {
+		var args = {
 			doctype: this.doctype,
 			start: frappe.datetime.get_datetime_as_string(start),
-			end: frappe.datetime.get_datetime_as_string(end)
-		}
+			end: frappe.datetime.get_datetime_as_string(end),
+			filters: this.get_filters()
+		};
+		return args;
+	},
+	refresh: function() {
+		this.$cal.fullCalendar('refetchEvents');
 	},
 	prepare_events: function(events) {
 		var me = this;
