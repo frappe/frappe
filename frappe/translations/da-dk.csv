@@ -2,12 +2,12 @@
  for {0},
  is not set,
 """Company History""","""Virksomhedshistorie"""
-"""Parent"" signifies the parent table in which this row must be added",Start
+"""Parent"" signifies the parent table in which this row must be added","""Forældre"" angiver den overordnede tabel i hvortil kommer denne række"
 """Team Members"" or ""Management""","""Team medlemmer"" eller ""Management"""
-'In List View' not allowed for type {0} in row {1},TDS (Løn)
-0 - Draft; 1 - Submitted; 2 - Cancelled,resize-vandret
-0 is highest,Bloker Days
-"000 is black, fff is white","000 er sort, fff er hvid"
+'In List View' not allowed for type {0} in row {1},»I Listevisning 'ikke tilladt for type {0} i række {1}
+0 - Draft; 1 - Submitted; 2 - Cancelled,0 - Udkast; 1 - Tilmeldt; 2 - Annulleret
+0 is highest,0 er højest
+"000 is black, fff is white","000 er sort, fff hvidt"
 2 days ago,2 dage siden
 "<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank"">[?]</a>","<a href=""https://en.wikipedia.org/wiki/Transport_Layer_Security"" target=""_blank""> [?]</a>"
 "<a onclick=""msgprint('<ol>\
@@ -16,1684 +16,1681 @@
 <li><b>Prompt</b> - Prompt user for a name\
 <li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\
 </ol>')"">Naming Options</a>","<a onclick=""msgprint('<ol> \
- <li> <b> felt: [Feltnavn] </ b> - Af Felt \
+ <li> <b> felt: [Feltnavn] </ b> - Af Field \
  <li> <b> naming_series: </ b > - ved at navngive serien (felt kaldet naming_series skal være til stede \
  <li> <b> Prompt </ b> - Spørg brugeren om et navn \
  <li> <b> [serie] </ . b> - serien ved præfiks (adskilt af et punktum), for eksempel PRE ##### \
- </ ol> ') ""> navngivning Options </a>"
-<b>new</b> <i>type of document</i>,ID felt er påkrævet for at redigere værdier ved hjælp af rapporten. Vælg ID-feltet ved hjælp af kolonne Picker
+ </ ol> ') ""> Navngivning Options </a>"
+<b>new</b> <i>type of document</i>,<B> nye </ b> <i> type dokument </ i>
 "<i>document type...</i>, e.g. <b>customer</b>","Typen <i> dokument ... </ i>, f.eks <b> kunde </ b>"
-<i>e.g. <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>,<i>f.eks. <strong>(55+434)/4</strong> eller <strong>=Math.sin(Math.PI/2)</strong> ... </i>
-<i>module name...</i>,Produktion Plan kundeordre
-<i>text</i> <b>in</b> <i>document type</i>,Rabat (%)
+<i>e.g. <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>,<I> fx <strong> (55 + 434) / 4 </ strong> eller <strong> = Math.sin (Math.PI / 2) </ strong> ... </ i>
+<i>module name...</i>,<I> modul navn ... </ i>
+<i>text</i> <b>in</b> <i>document type</i>,<I> tekst </ i> <b> i </ b> <i> dokumenttype </ i>
 A new account has been created for you,En ny konto er blevet oprettet til dig
 "A new task, %s, has been assigned to you by %s. %s","En ny opgave,% s, er blevet tildelt til dig af% s. % S"
-A user can be permitted to multiple records of the same DocType.,Definerer workflow stater og regler for et dokument.
-About,Backup lige nu
-About Us Settings,minus-tegn
-About Us Team Member,Må ikke komme i kontakt
-Action,Filer Folder ID
-Actions,Komplet Registrering
-"Actions for workflow (e.g. Approve, Cancel).",Punkt Beskrivelse
+A user can be permitted to multiple records of the same DocType.,En bruger kan få lov til at flere poster af samme DocType.
+About,Cirka
+About Us Settings,Om Os Indstillinger
+About Us Team Member,Om os Team Member
+Action,Action
+Actions,Handlinger
+"Actions for workflow (e.g. Approve, Cancel).",Initiativer for workflow (f.eks godkende Annuller).
 Add,Tilføje
-Add A New Rule,Vis tags
+Add A New Rule,Tilføj en ny regel
 Add A User Permission,Tilføj en bruger tilladelse
 Add Attachments,Tilføj Vedhæftede
-Add Bookmark,"Indtast email id adskilt af kommaer, vil ordren blive sendt automatisk på bestemt dato"
-Add CSS,Tilføjet {0} ({1})
-Add Column,"Fejl: Dokument er blevet ændret, efter at du har åbnet det"
-Add Filter,Vil du virkelig ønsker at indsende alle lønseddel for måned {0} og år {1}
-Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,Skift start / aktuelle sekvensnummer af en eksisterende serie.
-Add Message,Forhandler Target
-Add New Permission Rule,"Print Bredde af feltet, hvis feltet er en søjle i en tabel"
-Add New User Permission,Ikke authroized da {0} overskrider grænser
-Add Reply,Dette er en root-konto og kan ikke redigeres.
-Add Tag,Tilføj mærke
+Add Bookmark,Tilføj bogmærke
+Add CSS,Tilføj CSS
+Add Column,Tilføj kolonne
+Add Filter,Tilføj filter
+Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,Læg Google Analytics ID: F.eks. UA-89XXX57-1. Venligst søg hjælp på Google Analytics for at få flere oplysninger.
+Add Message,Tilføj Message
+Add New Permission Rule,Tilføj ny Tilladelse regel
+Add New User Permission,Tilføj ny bruger Tilladelse
+Add Reply,Tilføj Svar
+Add Tag,Tilføj tag
 Add Total Row,Tilføj Total Row
 Add a New Role,Tilføj en ny rolle
-Add a banner to the site. (small banners are usually good),Elektricitet pris pr time
-Add all roles,Medarbejder Records at være oprettet af
+Add a banner to the site. (small banners are usually good),Tilføj et banner til webstedet. (Små bannere er normalt god)
+Add all roles,Tilføj alle roller
 Add attachment,Tilføj vedhæftet fil
-Add code as &lt;script&gt;,Afvist Løbenummer
+Add code as &lt;script&gt;,Tilføj kode som & lt; script & gt;
 Add comment,Tilføj kommentar
 Add custom javascript to forms.,Tilføj brugerdefinerede JavaScript til formularer.
-Add fields to forms.,Registreret men deaktiveret.
-Add multiple rows,Faktura Dato
-Add new row,"Hvis du opdaterer, skal du vælge ""Overskriv"" vil ellers eksisterende linjer ikke slettes."
-"Add the name of <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> e.g. ""Open Sans""",Vælg Charge Type først
-Add to To Do,På lager
-Add to To Do List Of,Gentag Kunder
-Added {0},Pris
-Added {0} ({1}),Sendt
-Adding System Manager to this User as there must be atleast one System Manager,Angiv bruger
-Additional Info,Kvittering Tendenser
-Additional Permissions,** Regnskabsår ** repræsenterer et regnskabsår. Alle regnskabsposteringer og andre større registreringer spores mod ** Regnskabsår **.
+Add fields to forms.,Tilføj felter til formularer.
+Add multiple rows,Tilføj flere rækker
+Add new row,Tilføj ny række
+"Add the name of <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> e.g. ""Open Sans""","Tilføj navnet på <a href=""http://google.com/webfonts"" target=""_blank""> Google Web Font </a> fx ""Åbne Sans """
+Add to To Do,Tilføj til To Do
+Add to To Do List Of,Tilføj til opgaveliste Of
+Added {0},Tilføjet {0}
+Added {0} ({1}),Tilføjet {0} ({1})
+Adding System Manager to this User as there must be atleast one System Manager,Tilføjelse System Manager til denne Bruger da der skal være mindst én System Manager
+Additional Info,Yderligere info
+Additional Permissions,Yderligere Tilladelser
 "Additional filters based on User Permissions, having:","Yderligere filtre baseret på Bruger Tilladelser, der har:"
 Address,Adresse
-Address Line 1,Udgift / Forskel konto ({0}) skal være en »resultatet« konto
-Address Line 2,Leverandør Adresser og kontaktpersoner
-Address Title,Tilføj ny bruger Tilladelse
-Address and other legal information you may want to put in the footer.,Report Builder rapporter forvaltes direkte af rapporten bygherre. Intet at gøre.
-Adds a custom field to a DocType,Læg Google Analytics ID: F.eks. UA-89XXX57-1. Venligst søg hjælp på Google Analytics for at få flere oplysninger.
-Adds a custom script (client or server) to a DocType,Fravær af typen {0} må ikke være længere end {1}
-Admin,Antal besøg
-Administrator,"Hvis du uploader nye rekorder, forlader ""navn"" (ID) søjle tom."
-Advanced,ERPNext Setup
-Align Left (Ctrl/Cmd+L),Venstrestil (Ctrl / Cmd + L)
+Address Line 1,Adresselinje 1
+Address Line 2,Adresselinje 2
+Address Title,Adresse Titel
+Address and other legal information you may want to put in the footer.,Adresse og andre juridiske oplysninger kan du sætte i sidefoden.
+Adds a custom field to a DocType,Tilføjer en brugerdefineret felt til et DocType
+Adds a custom script (client or server) to a DocType,Tilføjer en brugerdefineret script (klient eller server) til en DocType
+Admin,Admin
+Administrator,Administrator
+Advanced,Avanceret
+Align Left (Ctrl/Cmd+L),Juster Venstre (Ctrl / Cmd + L)
 All,Alle
 All Applications,Alle Programmer
-All Day,vare Website Specifikationer
-All Tables (Main + Child Tables),Nettovægten af denne pakke. (Beregnes automatisk som summen af nettovægt poster)
-All customizations will be removed. Please confirm.,Brand
-"All possible Workflow States and roles of the workflow. <br>Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""",Konverter til Group
-Allow Comments,"Vis alle de enkelte elementer, der leveres med de vigtigste punkter"
-Allow Delete,Kontakt Desc
-Allow Edit,Konto: {0} ikke fundet i systemet
-Allow Import,Tillad Bruger
-Allow Import via Data Import Tool,Ingen varer at pakke
+All Day,All Day
+All Tables (Main + Child Tables),Alle tabeller (+ barn borde)
+All customizations will be removed. Please confirm.,Alle tilpasninger vil blive fjernet. Bekræft.
+"All possible Workflow States and roles of the workflow. <br>Docstatus Options: 0 is""Saved"", 1 is ""Submitted"" and 2 is ""Cancelled""","Alle mulige Workflow stater og roller arbejdsgangen. Salg Docstatus Valg: 0 er ""frelst"", 1 ""indsendt"" og 2 ""Annulleret"""
+Allow Comments,Tillad kommentarer
+Allow Delete,Tillad Slet
+Allow Edit,Tillad Edit
+Allow Import,Tillad Import
+Allow Import via Data Import Tool,Tillade import via data Import Tool
 Allow Multiple,Tillad flere
-Allow Rename,Parent Website Route
+Allow Rename,Tillad Omdøb
 Allow field to remain editable even after submission,Lad feltet forblive redigerbare selv efter indsendelse
-Allow on Submit,Denne valuta er deaktiveret. Aktiver til brug for registreringer
-Allow user to login only after this hour (0-24),Bruger kan kun logge ind efter kl. (0-24)
-Allow user to login only before this hour (0-24),klokke
-Allowed,Konto med eksisterende posteringer kan ikke konverteres til gruppe.
-"Allowing DocType, DocType. Be careful!",Ingen resultater
-Already Registered,Primær
-Already in user's To Do list,Figur af omkostningssteder
-Already saving. Please wait a few moments.,Private Equity
-Alternative download link,Standard Firma
-"Alternatively, you can also specify 'auto_email_id' in site_config.json",Avanceret
-Always use above Login Id as sender,Fjernsyn
-Amend,Level
-"An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [<a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a>]",FeltType
-"Another {0} with name {1} exists, select another name",Beregn baseret på
+Allow on Submit,Tillad på Send
+Allow user to login only after this hour (0-24),Tillad brugeren at logge ind først efter denne time (0-24)
+Allow user to login only before this hour (0-24),"Tillad brugeren at logge ind først, før denne time (0-24)"
+Allowed,Tilladt
+"Allowing DocType, DocType. Be careful!","At tillade DocType, DocType. Vær forsigtig!"
+Already Registered,Allerede Registreret
+Already in user's To Do list,Allerede i brugerens opgaveliste
+Already saving. Please wait a few moments.,Allerede gemme. Vent et øjeblik.
+Alternative download link,Alternativ download-link
+"Alternatively, you can also specify 'auto_email_id' in site_config.json","Alternativt kan du også angive ""auto_email_id 'i site_config.json"
+Always use above Login Id as sender,Brug altid over Login-id som afsender
+Amend,Ændres
+"An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [<a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a>]","Et ikon fil med .ico forlængelse. Skal være 16 x 16 px. Genereres ved anvendelse af en favicon generator. [<a Href=""http://favicon-generator.org/"" target=""_blank""> favicon-generator.org </a>]"
+"Another {0} with name {1} exists, select another name","En anden {0} med navn {1} eksisterer, skal du vælge et andet navn"
 Any existing permission will be deleted / overwritten.,Enhver eksisterende tilladelse vil blive slettet / overskrevet.
-Anyone Can Read,Kunden {0} tilhører ikke projicere {1}
+Anyone Can Read,Alle kan Læs
 Anyone Can Write,Alle kan Skriv
-"Apart from Role based Permission Rules, you can apply User Permissions based on DocTypes.",Leverandør master.
-"Apart from System Manager, roles with 'Set User Permissions' right can set permissions for other users for that Document Type.",Standard Kontantkonto
-App Name,Den første bruger: Du
-App not found,At Producere
-Application Installer,Leverandør Detaljer
-Applications,All Day
-Apply Style,Closing Dato
+"Apart from Role based Permission Rules, you can apply User Permissions based on DocTypes.","Udover rollebaseret Tilladelse regler, kan du anvende Bruger Tilladelser baseret på doctypes."
+"Apart from System Manager, roles with 'Set User Permissions' right can set permissions for other users for that Document Type.","Bortset fra System Manager, kan roller med 'sæt Bruger Tilladelser ret angive tilladelser for andre brugere til at Dokumenttype."
+App Name,App Name
+App not found,App ikke fundet
+Application Installer,Application Installer
+Applications,Ansøgninger
+Apply Style,Anvend typografi
 Apply User Permissions,Anvend brugertilladelser
-Apply User Permissions of these Document Types,fly
-Are you sure you want to delete the attachment?,"Hastighed, hvormed kundens valuta omregnes til virksomhedens basisvaluta"
-Arial,Udgivet On
-"As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User.","Som en bedste praksis, ikke tildele samme sæt tilladelse bestemmelse anvendes på forskellige roller. I stedet ændre flere roller til den samme bruger."
-Ascending,Hvis årligt budget overskredet
-Assign To,Vandret linjeskift
-Assign a permission level to the field.,Analytiker
+Apply User Permissions of these Document Types,Påfør brugertilladelser i disse dokumenttyper
+Are you sure you want to delete the attachment?,Er du sikker på at du vil slette den vedhæftede fil?
+Arial,Arial
+"As a best practice, do not assign the same set of permission rule to different Roles. Instead, set multiple Roles to the same User.","Som en bedste praksis, ikke tildele samme sæt tilladelse bestemmelse anvendes på forskellige roller. I stedet indstille flere roller til den samme bruger."
+Ascending,Stigende
+Assign To,Tildel Til
+Assign a permission level to the field.,Tildel et tilladelsesniveau til feltet.
 Assigned By,Tildelt af
-Assigned To,Konto {0} er ikke aktiv eller slutningen af livet er nået
-Assigned To Fullname,Bestilte varer skal leveres
-Assigned To Me,Direkte udgifter
+Assigned To,Tildelt til
+Assigned To Fullname,Tildelt fullname
+Assigned To Me,Tildelt mig
 Assigned To/Owner,Tildelt til / ejer
-Assigned to {0},"Hvis du har oprettet en standard skabelon i 'Skatter og Afgifter', skal du vælge en af disse. Klik derefter på knappen nedenfor."
-Assignment Complete,System til styring af sikkerhedskopier
-Assignment Status Changed,Ansøger navn
-Assignments,Person
-Attach,Reqd Efter dato
+Assigned to {0},Tildelt til {0}
+Assignment Complete,Opgave Complete
+Assignment Status Changed,Opgave er ændret
+Assignments,Opgaver
+Attach,Vedhæft
 Attach .csv file to import data,Vedhæft .csv-fil til at importere data
-Attach Document Print,Udgiftskonto er obligatorisk for punkt {0}
-Attach as web link,Næste Kontakt Dato
-Attached To DocType,Email Alert Modtager
-Attached To Name,Tillad Import
-Attachments,Opret kreditnota
-Auto Email Id,"Bemærk: Sikkerhedskopier og filer slettes ikke fra Dropbox, skal du slette dem manuelt."
-Auto Name,Kommunikation log.
+Attach Document Print,Vedhæft dokument Print
+Attach as web link,Vedhæft som web link
+Attached To DocType,Knyttet til DocType
+Attached To Name,Knyttet til navn
+Attachments,Vedhæftede filer
+Auto Email Id,Auto email id
+Auto Name,Auto Navn
 Auto generated,Auto genereret
 Avatar,Avatar
-Background Color,"Den dag i måneden, hvor auto ordre vil blive genereret f.eks 05, 28 osv"
-Background Image,Medarbejder Uddannelse
+Background Color,Baggrundsfarve
+Background Image,Baggrundsbillede
 Background Style,Baggrund Style
 Banner,Banner
-Banner HTML,Personer
-Banner Image,Ændres
-Banner is above the Top Menu Bar.,Skærmindstillinger
-Begin this page with a slideshow of images,Kilde
-Beginning with,Administrer Customer Group Tree.
-Belongs to,{0} dage fra {1}
-Bio,Bin
-Birth Date,"Råvarer, der leveres Cost"
-Blog Category,Markér dette for at forbyde fraktioner. (For NOS)
-Blog Intro,Få
-Blog Introduction,Medarbejder Intern arbejde historie
+Banner HTML,Banner HTML
+Banner Image,Banner Billede
+Banner is above the Top Menu Bar.,Banner er over den øverste menubjælke.
+Begin this page with a slideshow of images,Begynd denne side med et diasshow med billeder
+Beginning with,Begyndende med
+Belongs to,Tilhører
+Bio,Bio
+Birth Date,Fødselsdato
+Blog Category,Blog Kategori
+Blog Intro,Blog Intro
+Blog Introduction,Blog Indledning
 Blog Post,Blog-indlæg
-Blog Settings,Indsæt link
-Blog Title,Udgiftbilag afvises Meddelelse
-Blogger,Indtast vare kode.
-Bold (Ctrl/Cmd+B),Sidste Salg Order Date
+Blog Settings,Blog Indstillinger
+Blog Title,Blog Titel
+Blogger,Blogger
+Bold (Ctrl/Cmd+B),Bold (Ctrl / Cmd + B)
 Bookmarks,Bogmærker
-Both login and password required,Allokeret
-Brand HTML,»meddelelse Email Adresser 'er ikke angivet for tilbagevendende% s
-Breadcrumbs,Hurtig hjælp til Bruger Tilladelser
-Bulk Email,Ny konto
-Bulk Email records.,Bredde af indtastningsfeltet
-Bulk email limit {0} crossed,Projektnavn
+Both login and password required,"Både login og adgangskode, der kræves"
+Brand HTML,Brand HTML
+Breadcrumbs,Breadcrumbs
+Bulk Email,Bulk Email
+Bulk Email records.,Bulk Email Records.
+Bulk email limit {0} crossed,Bulk email grænse {0} krydsede
 Bullet list,Bullet list
-Button,Imod salgsfaktura
+Button,Knap
 By,Ved
-Cache Cleared,Min Antal kan ikke være større end Max Antal
-Calculate,{0} List
-Calendar,Tidszone
-Can not edit Read Only fields,Send mig en kopi
-Cancel,Regler for at tilføje forsendelsesomkostninger.
-Cancelled,Referencenummer & Reference Dato er påkrævet for {0}
-"Cannot Edit {0} directly: To edit {0} properties, create / update {1}, {2} and {3}",Følgeseddel
-Cannot Update: Incorrect / Expired Link.,I alt (Antal)
+Cache Cleared,Cache Ryddet
+Calculate,Beregn
+Calendar,Kalender
+Can not edit Read Only fields,Kan ikke redigere Læs Kun felter
+Cancel,Afbestille
+Cancelled,Aflyste
+"Cannot Edit {0} directly: To edit {0} properties, create / update {1}, {2} and {3}","Kan ikke Rediger {0} direkte: Hvis du vil redigere {0} egenskaber, oprette / opdatere {1}, {2} og {3}"
+Cannot Update: Incorrect / Expired Link.,Kan ikke opdatere: Forkert / Udløbet Link.
 Cannot Update: Incorrect Password,Kan ikke opdatere: Forkert kodeord
-Cannot add more than 50 comments,Bruger {0} er deaktiveret
+Cannot add more than 50 comments,Kan ikke tilføje mere end 50 kommentarer
 Cannot cancel before submitting. See Transition {0},Kan ikke annullere inden fremlæggelsen. Se Overgang {0}
-Cannot change picture,Ingen post med Barkode {0}
-Cannot change state of Cancelled Document. Transition row {0},Kan ikke ændre status på et Annulleret dokument. Overgangs linje {0}
-Cannot change {0},Modtager
-Cannot delete or cancel because {0} {1} is linked with {2} {3},Vælg {0}
+Cannot change picture,Kan ikke ændre billede
+Cannot change state of Cancelled Document. Transition row {0},Kan ikke ændre tilstand af Annulleret dokument. Overgang rækken {0}
+Cannot change {0},Kan ikke ændre {0}
+Cannot delete or cancel because {0} {1} is linked with {2} {3},Kan ikke slette eller annullere fordi {0} {1} er forbundet med {2} {3}
 Cannot delete {0} as it has child nodes,Kan ikke slette {0} som det har barn noder
-Cannot edit standard fields,Omdøb
-Cannot edit templated page,{0} af {1}
-Cannot link cancelled document: {0},Kan ikke linke annulleret dokument: {0}
+Cannot edit standard fields,Kan ikke redigere standardfelter
+Cannot edit templated page,Kan ikke redigere template side
+Cannot link cancelled document: {0},Kan ikke linke aflyst dokument: {0}
 Cannot map because following condition fails: ,
-Cannot open instance when its {0} is open,Underskrift
-Cannot open {0} when its instance is open,Kan ikke åbne {0} når den er åben i andet dokument
-Cannot print cancelled documents,Lægemidler
-Cannot remove permission for DocType: {0} and Name: {1},Kan ikke fjerne tilladelse til DocType: {0} og navn: {1}
-Cannot reply to a reply,Til dato skal ligge inden for regnskabsåret. Under antagelse til dato = {0}
-Cannot set Email Alert on Document Type {0},Mail kodeord
-Cannot set permission for DocType: {0} and Name: {1},Slet linje
-Categorize blog posts.,Hjælp
-Category,Bruger Bemærkning
-Category Name,Kategori navn
-Center,Bemærk: Andre regler tilladelse kan også gælde
-Center (Ctrl/Cmd+E),Dette er en rod territorium og kan ikke redigeres.
-"Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit.","Indtast ""underentreprise"" som Ja eller Nej"
-"Change field properties (hide, readonly, permission etc.)",Alle kan læse
+Cannot open instance when its {0} is open,Kan ikke åbne eksempel når dens {0} er åben
+Cannot open {0} when its instance is open,Kan ikke åbne {0} når dens forekomst er åben
+Cannot print cancelled documents,Kan ikke udskrive aflyste dokumenter
+Cannot remove permission for DocType: {0} and Name: {1},Kan ikke fjerne tilladelse til DocType: {0} og Navn: {1}
+Cannot reply to a reply,Kan ikke besvare et svar
+Cannot set Email Alert on Document Type {0},Kan ikke sætte Email Alert på Dokumenttype {0}
+Cannot set permission for DocType: {0} and Name: {1},Kan ikke sætte tilladelse til DocType: {0} og Navn: {1}
+Categorize blog posts.,Kategoriser blogindlæg.
+Category,Kategori
+Category Name,Kategori Navn
+Center,Center
+Center (Ctrl/Cmd+E),Center (Ctrl / Cmd + E)
+"Certain documents, like an Invoice, should not be changed once final. The final state for such documents is called Submitted. You can restrict which roles can Submit.","Visse dokumenter, som en faktura, bør ikke ændres, når endelig. Den endelige tilstand for sådanne dokumenter kaldes Tilmeldt. Du kan begrænse, hvilke roller kan indsende."
+"Change field properties (hide, readonly, permission etc.)","Skift feltegenskaber (skjul, skrivebeskyttet, tilladelse etc.)"
 "Change type of field. (Currently, Type change is \
-						allowed among 'Currency and Float')",Faktiske Antal: Mængde til rådighed på lageret.
-Chat,Møde-Roller
+						allowed among 'Currency and Float')","Ændre type felt. (I øjeblikket er Type ændring \
+ tilladt blandt ""Valuta og Float"")"
+Chat,Chat
 Check,Check
-Check / Uncheck roles assigned to the User. Click on the Role to find out what permissions that Role has.,Ikke leveret
-Check this if you want to send emails as this id only (in case of restriction by your email provider).,Indstillinger
+Check / Uncheck roles assigned to the User. Click on the Role to find out what permissions that Role has.,"Check / afmarkere roller til brugeren. Klik på rolle for at finde ud af, hvad tilladelser, Rolle har."
+Check this if you want to send emails as this id only (in case of restriction by your email provider).,Markér dette hvis du ønsker at sende e-mails som kun denne id (i tilfælde af begrænsning af din e-mail-udbyder).
 Check this to make this the default letter head in all prints,Markér dette for at gøre dette til standard brev hovedet i alle udskrifter
-Check which Documents are readable by a User,Anvend typografi
-Checked items shown on desktop,"Indsæt Efter feltet '{0}' er nævnt i Custom Felt '{1}', ikke eksisterer"
-Child Tables,Er obligatorisk Felt
-Child Tables are shown as a Grid in other DocTypes.,Konsulent
-City,View Ledger
-Classic,Bestilt
-Clear Cache,Mængde for vare nummer {0} skal være mindre end {1}
+Check which Documents are readable by a User,"Kontroller, hvilke dokumenter der kan læses af en bruger"
+Checked items shown on desktop,"Kontrolleret elementer, der vises på skrivebordet"
+Child Tables,Barn borde
+Child Tables are shown as a Grid in other DocTypes.,Barn borde vises som et gitter i andre doctypes.
+City,By
+Classic,Klassisk
+Clear Cache,Ryd cache
 Clear all roles,Ryd alle roller
-Click on File -&gt; Save As,Brugerdefineret Meddelelse
-Click on Save,Klik på 'Gem'
-Click on row to view / edit.,Grand Total (Standard valuta)
-Click on the link below to complete your registration and set a new password,Salg Order {0} er stoppet
-Client,Kontoudtog
-Client-side formats are now deprecated,Planlagt Antal
+Click on File -&gt; Save As,Klik på Filer - & gt; Gem som
+Click on Save,Klik på Gem
+Click on row to view / edit.,Klik på rækken for at se / redigere.
+Click on the link below to complete your registration and set a new password,Klik på linket nedenfor for at fuldføre din registrering og angive en ny adgangskode
+Client,Client
+Client-side formats are now deprecated,Client-side formater nu forældet
 Close,Luk
-Close: {0},{0} er nu standard regnskabsår. Opdater venligst din browser for at ændringen kan træde i kraft.
-Closed,Vedligeholdelse Time
+Close: {0},Luk: {0}
+Closed,Lukket
 Code,Kode
-Collapse,Medium
-Column Break,Juridiske enhed / Datterselskab med en separat Kontoplan tilhører organisationen.
-Column Labels:,TDS (Udlejes)
-Column Name,Kolonne navn
-Comment,Bank Afstemning Detaljer
-Comment By,fed
-Comment By Fullname,UOM Conversion Detaljer
-Comment Date,"Punkter, som ikke findes i vare skabelon kan også indtastes på kundens anmodning"
-Comment Docname,"Kan ikke kort, fordi følgende betingelse mislykkes:"
-Comment Doctype,"f.eks. ""My Firma LLC """
+Collapse,Collapse
+Column Break,Kolonne Break
+Column Labels:,Kolonne Etiketter:
+Column Name,Kolonne Navn
+Comment,Kommentar
+Comment By,Kommentar af
+Comment By Fullname,Kommentar af fullname
+Comment Date,Kommentar Dato
+Comment Docname,Kommentar Docname
+Comment Doctype,Kommentar DOCTYPE
 Comment Time,Kommentar Time
-Comment Type,Kundeservice
-Comments,Indsæt Style
-Communication,zoome ind
-Communication Medium,"Indtast Skabelon navn, når kontoen er oprettet."
-Company History,Term Detaljer
-Company Introduction,"Beklager vi kunne ikke finde det, du søgte."
-Complaint,Du har ikke tilladelse til at sende e-mails i forbindelse med dette dokument
-Complete By,"Hvis kontoen er frossen, bliver poster lov til begrænsede brugere."
-Complete Registration,Medarbejder Fravær Godkender
-Completed,Auto Materiale Request
+Comment Type,Kommentar Type
+Comments,Kommentarer
+Communication,Kommunikation
+Communication Medium,Kommunikationsmedie
+Company History,Virksomhedshistorie
+Company Introduction,Firma Indledning
+Complaint,Klage
+Complete By,Fuldstændig ved
+Complete Registration,Komplet Registrering
+Completed,Afsluttet
 Condition,Betingelse
-Confirm,Vis / Skjul moduler
-Contact Us Settings,Indstillinger for Kontakt Os
-"Contact options, like ""Sales Query, Support Query"" etc each on a new line or separated by commas.","Kontakt muligheder, som ""Salg Query, Support Query"" etc hver på en ny linje eller adskilt af kommaer."
-Content,"Vælg ""Ja"", hvis denne post anvendes for nogle interne formål i din virksomhed."
-Content Hash,Skole / Universitet
-Content in markdown format that appears on the main side of your page,billede
+Confirm,Bekræfte
+Contact Us Settings,Kontakt os Indstillinger
+"Contact options, like ""Sales Query, Support Query"" etc each on a new line or separated by commas.","Kontakt muligheder, som ""Sales Query, Support Query"" etc hver på en ny linje eller adskilt af kommaer."
+Content,Indhold
+Content Hash,Indhold Hash
+Content in markdown format that appears on the main side of your page,"Indhold i markdown format, der vises på de vigtigste side af din side"
 Content web page.,Indhold webside.
-Copy,Vælg salgsordrer
-Copyright,Betragtes som Opening Balance
-Core,"<H4> standardskabelon </ h4> 
- <p> Bruger <a href=""http://jinja.pocoo.org/docs/templates/""> Jinja Templatering </a> alle områderne adresse ( herunder brugerdefinerede felter hvis nogen) vil være tilgængelig </ p> 
- <pre> <kode> {{address_line1}} & lt; br & gt; 
- {%, hvis address_line2%} {{address_line2}} & lt; br & gt; { % endif -%} 
- {{city}} & lt; br & gt; 
- {%, hvis staten%} {{tilstand}} & lt; br & gt; {% endif -%} 
- {%, hvis pinkode%} PIN: {{pinkode}} & lt; br & gt; {% endif -%} 
- {{land}} & lt; br & gt; 
- {%, hvis telefonen%} Telefon: {{telefon}} & lt; br & gt; { % endif -%} 
- {%, hvis fax%} Fax: {{fax}} & lt; br & gt; {% endif -%} 
- {%, hvis email_id%} E-mail: {{email_id}} & lt; br & gt {% endif -%} 
- </ kode> </ pre>"
-Could not connect to outgoing email server,Imod
-Could not find {0},Team Members Udgifts-
-Count,Tilbud Lost Årsag
+Copy,Kopi
+Copyright,Copyright
+Core,Core
+Could not connect to outgoing email server,Kunne ikke forbinde til udgående e-mail-server
+Could not find {0},Kunne ikke finde {0}
+Count,Tæl
 Country,Land
-Create,Midlertidige Forpligtelser
+Create,Opret
 Create a new {0},Opret en ny {0}
-Created,"Gem venligst dokumentet, før du fjerner opgaven"
-Created By,Varelager Forventet Antal
-Created Custom Field {0} in {1},Oprettet tilpasset felt {0} i {1}
-Created Customer Issue,Du kan bruge Tilpas formular til at ændre niveauet på markerne.
+Created,Oprettet
+Created By,Lavet af
+Created Custom Field {0} in {1},Oprettet Tilpasset felt {0} i {1}
+Created Customer Issue,Oprettet Customer Issue
 Created On,Oprettet den
-Created Opportunity,Afstemning HTML
-Created Support Ticket,Skift til Website
+Created Opportunity,Oprettet Opportunity
+Created Support Ticket,Oprettet Support Ticket
 Creation / Modified By,Creation / Ændret af
-Currency,Alt for mange skriver i en anmodning. Send venligst mindre anmodninger
-Current status,Hey! Gå videre og tilføje en adresse
-Custom CSS,Lav
-Custom Field,Tilpasset Felt
-Custom Javascript,Fra Firma
-Custom Reports,Yderligere info
-Custom Script,Skriv venligst noget i emne og budskab!
-Custom?,Under garanti
-Customize,Varelager forsoning skabelon
-Customize Form,"Disse tilladelser vil gælde for alle registreringer, hvor den tilladte rekord er forbundet med. For eksempel, hvis Virksomhed C sættes til Bruger Tilladelser for bruger X, bruger X vil kun kunne se registreringer, der har selskab C som tilknyttet værdi."
-Customize Form Field,Pris List ikke valgt
-"Customize Label, Print Hide, Default etc.",Tildelingskvotient bør være lig med 100%
-Customized HTML Templates for printing transctions.,Godkendelse Rolle kan ikke være samme som rolle reglen gælder for
-Daily Event Digest is sent for Calendar Events where reminders are set.,vare kode og Lager bør allerede findes.
+Currency,Valuta
+Current status,Aktuel status
+Custom CSS,Brugerdefineret CSS
+Custom Field,Tilpasset Field
+Custom Javascript,Brugerdefineret Javascript
+Custom Reports,Tilpassede rapporter
+Custom Script,Brugerdefineret Script
+Custom?,Brugerdefineret?
+Customize,Tilpas
+Customize Form,Tilpas Form
+Customize Form Field,Tilpas Form Field
+"Customize Label, Print Hide, Default etc.","Tilpas Label, Print Skjul, Standard etc."
+Customized HTML Templates for printing transctions.,Tilpassede HTML-skabeloner til udskrivning transctions.
+Daily Event Digest is sent for Calendar Events where reminders are set.,Daglig begivenhed Digest sendes til Kalender Events hvor påmindelser er indstillet.
 Danger,Fare
-Data,Indlæg
-Data Import / Export Tool,Aktiver Indkøbskurv
-Data Import Template,Løbenummer {0} findes ikke
-Data Import Tool,Sikkerhed
-Data missing in table,Afholdt den
-Date,Betaling kan ikke ske for tom vogn
-Date Change,1. For at opretholde kundens kloge post kode og gøre dem søgbare baseret på deres kode brug denne mulighed
-Date Changed,Website Slideshow vare
-Date Format,Samlet Indtjening
-Date and Number Format,Hvis forskelligt end kunde adresse
-Date must be in format: {0},Dato skal have formatet: {0}
-Datetime,Rabat%
-Days in Advance,"Sub-domæne, som erpnext.com"
-Dear,Vedhæft som web link
-Default,Implementering Partner
-Default Print Format,Dette er en rod kundegruppe og kan ikke redigeres.
-Default Value,Godkendt
-Default for 'Check' type of field must be either '0' or '1',Log over aktiviteter udført af brugere. Opgaver der kan bruges til sporing af tid og fakturering.
+Data,Data
+Data Import / Export Tool,Data Import / Export Tool
+Data Import Template,Dataimport skabelon
+Data Import Tool,Dataimport Tool
+Data missing in table,Manglende data i tabel
+Date,Dato
+Date Change,Dato Change
+Date Changed,Date Changed
+Date Format,Dato Format
+Date and Number Format,Dato og nummer Format
+Date must be in format: {0},Dato skal være i format: {0}
+Datetime,Datetime
+Days in Advance,Dage i forvejen
+Dear,Kære
+Default,Standard
+Default Print Format,Standard Print Format
+Default Value,Standardværdi
+Default for 'Check' type of field must be either '0' or '1',"Standard for ""Kontrollér"" type felt skal være enten 0 eller 1"
 Default is system timezone,Standard er systemets tidszone
-"Default: ""Contact Us""",Billed Beløb
-DefaultValue,Rapportnavn
-Defaults,"Hvis markeret, Total nej. af Arbejdsdage vil omfatte ferie, og dette vil reducere værdien af Løn Per Day"
-"Define read, write, admin permissions for a Website Page.","Navn på ny konto. Bemærk: Du må ikke oprette konti for kunder og leverandører, bliver de oprettet automatisk fra Kunden og Leverandøren skabelon"
-Define workflows for forms.,Dette går over diasshowet.
-Defines actions on states and the next step and allowed roles.,Lager hvor du vedligeholder lager af afviste varer
-Defines workflow states and rules for a document.,Få Forskud modtaget
-Delete,Investeringer
-Delete Row,"I ord vil være synlige, når du gemmer indkøbsordren."
-Depends On,Skat
-Descending,Opret kundeordre
+"Default: ""Contact Us""","Standard: ""Kontakt os"""
+DefaultValue,StandardVærdi
+Defaults,Standardindstillinger
+"Define read, write, admin permissions for a Website Page.","Definer læse, skrive, tilladelser Admin for en webside."
+Define workflows for forms.,Definer arbejdsgange for formularer.
+Defines actions on states and the next step and allowed roles.,Definerer handlinger på stater og det næste skridt og tilladte roller.
+Defines workflow states and rules for a document.,Definerer workflow stater og regler for et dokument.
+Delete,Slet
+Delete Row,Slet række
+Depends On,Afhænger On
+Descending,Faldende
 Description,Beskrivelse
-Description and Status,Mere info
-"Description for listing page, in plain text, only a couple of lines. (max 140 characters)",{0} oprettet
-Description for page header.,vare skabelon.
+Description and Status,Beskrivelse og status
+"Description for listing page, in plain text, only a couple of lines. (max 140 characters)","Beskrivelse til notering side, i almindelig tekst, kun et par linjer. (max 140 tegn)"
+Description for page header.,Beskrivelse til side header.
 Desktop,Desktop
-Details,Ref
-Dialog box to select a Link Value,Breadcrumbs
+Details,Detaljer
+Dialog box to select a Link Value,Dialog boksen for at vælge et link Value
 Did not add,Fandt ikke tilføje
 Did not cancel,Ikke annullere
-Did not find {0} for {0} ({1}),Annonce
-Did not load,Antal til Fremstilling
-Did not remove,Aktionærer Funds
-Did not save,Materiale forespørgsel Nej
-Did not set,Vælg måned og år
-"Different ""States"" this document can exist in. Like ""Open"", ""Pending Approval"" etc.",Total Sanktioneret Beløb
-Disable Customer Signup link in Login page,Underentreprise
-Disable Report,Tildelt til {0}
-Disable Signup,Udgifter Udstedte Varer
-Disabled,Agent
-Display,Ejendom Setter
-Display Settings,Du skal installere dropbox python-modul
-Display in the sidebar of this Website Route node,Vis i sidebjælken for denne web-node
-Do not allow user to change after set the first time,Tillad ikke brugeren at ændre profil efter oprettelse
-Doc Status,Mængde af post opnået efter fremstilling / ompakning fra givne mængder råvarer
-DocField,Investment Banking
+Did not find {0} for {0} ({1}),Fandt du ikke {0} for {0} ({1})
+Did not load,Fandt ikke indlæse
+Did not remove,Fandt ikke fjerne
+Did not save,Fandt ikke gemme
+Did not set,Ikke indstillet
+"Different ""States"" this document can exist in. Like ""Open"", ""Pending Approval"" etc.","Forskellige ""stater"" dette dokument kan eksistere i. Ligesom ""Åbn"", ""Afventer godkendelse"" osv"
+Disable Customer Signup link in Login page,Deaktiver Customer Tilmelding link Login side
+Disable Report,Deaktiver rapport
+Disable Signup,Deaktiver Tilmelding
+Disabled,Handicappet
+Display,Udstilling
+Display Settings,Skærmindstillinger
+Display in the sidebar of this Website Route node,Vis på indholdsoversigten af denne Hjemmeside Route node
+Do not allow user to change after set the first time,Tillad ikke brugeren at ændre sig efter indstille den første gang
+Doc Status,Doc status
+DocField,DocField
 DocPerm,DocPerm
-DocType,Brugere og tilladelser
+DocType,DocType
 DocType Details,DocType Detaljer
-DocType can not be merged,"Specialtegn undtagen ""-"" og ""/"" ikke er tilladt i navngivning serie"
-DocType is a Table / Form in the application.,Vælg dokumenttype eller rolle at starte.
-DocType on which this Workflow is applicable.,Tilbud Series
-DocType or Field,tekst højde
-Doclist JSON,Kunder ikke køber siden lang tid
-Docname,Query rapport
-Document,Standard bankkonto
+DocType can not be merged,DocType kan ikke slås sammen
+DocType is a Table / Form in the application.,DocType er en tabel / Form i ansøgningen.
+DocType on which this Workflow is applicable.,DocType som denne Workflow er relevant.
+DocType or Field,DocType eller Field
+Doclist JSON,Doclist JSON
+Docname,Docname
+Document,Dokument
 Document Status,Dokumentstatus
 Document Status transition from ,
-Document Status transition from {0} to {1} is not allowed,Ikke tilladt adgang {0} med {1} = {2}
-Document Type,Grundlæggende sats
+Document Status transition from {0} to {1} is not allowed,Dokumentstatus overgang fra {0} til {1} er ikke tilladt
+Document Type,Dokumenttype
 Document Types,Dokumenttyper
-Document is only editable by users of role,Sidebar Links for kun Home Side
-Documentation,"Hvis du vil tilføje barn noder, udforske træet og klik på noden, hvor du ønsker at tilføje flere noder."
+Document is only editable by users of role,Dokument er kun redigeres af brugere af rolle
+Documentation,Dokumentation
 Documents,Dokumenter
-Download,Serie-number Serier
-Download Backup,"Blade skal afsættes i mangefold af 0,5"
+Download,Hent
+Download Backup,Hent Backup
 Download Template,Hent skabelon
-Download a template for importing a table.,Batch Tidsregistrerings for fakturering.
-Download link for your backup will be emailed on the following email address:,Bilag #
-Download with data,Server til udgående post
-Drag to sort columns,Opret regler for at begrænse registreringer baseret på værdier.
-Due Date,{0} tillades ikke omdøbes
-Duplicate name {0} {1},Fra Opportunity
-Dynamic Link,Indkøb manager
-Edit,Mass Mailing
-Edit Filter,Skatter og afgifter Tilføjet (Standard valuta)
-Edit Permissions,Tillad Omdøb
-Edit Role Permissions,Rediger rolle-rettigheder
-Edit your record,"{0} skal reduceres med {1}, eller du bør øge overløb tolerance"
-Editable,Aging Dato
-Editing Row,Plan for vedligeholdelse besøg.
-Email,Log ind med din nye bruger-id
+Download a template for importing a table.,Download en skabelon til at importere en tabel.
+Download link for your backup will be emailed on the following email address:,Download-link til din backup vil blive sendt på følgende e-mailadresse:
+Download with data,Hent med data
+Drag to sort columns,Træk for at sortere kolonner
+Due Date,Due Date
+Duplicate name {0} {1},Duplicate navn {0} {1}
+Dynamic Link,Dynamic Link
+Edit,Edit
+Edit Filter,Rediger filter
+Edit Permissions,Rediger tilladelser
+Edit Role Permissions,Rediger Rolle Tilladelser
+Edit your record,Rediger din rekord
+Editable,Redigerbar
+Editing Row,Redigering Row
+Email,Email
 Email Alert,Email Alert
-Email Alert Recipient,Baggrundsbillede
-Email Alert Recipients,Trin 2: Sæt brevhoved indhold.
-Email By Document Field,Email ved dokument Felt
-Email Footer,Row # {0}:
-Email Sent,Skat og andre lønfradrag.
-Email Settings,Reading 5
-Email Settings for Outgoing and Incoming Emails.,Imod købsfaktura
-Email Signature,En vare eller tjenesteydelse
-"Email addresses, separted by commas",Print Format
+Email Alert Recipient,Email Alert Modtager
+Email Alert Recipients,E-mail Alert Modtagere
+Email By Document Field,Email ved dokument Field
+Email Footer,Email Footer
+Email Sent,E-mail sendt
+Email Settings,E-mail-indstillinger
+Email Settings for Outgoing and Incoming Emails.,E-mail-indstillinger for udgående og indgående e-mails.
+Email Signature,Email Signature
+"Email addresses, separted by commas","E-mail-adresser, separted af kommaer"
 Email not verified with {1},Email ikke verificeres med {1}
-Email sent to {0},Track fører med Industry Type.
-Email...,Tilladelse Level
-Emails are muted,Upload en .csv-fil med to kolonner: det gamle navn og det nye navn. Max 500 linjer.
-Embed image slideshows in website pages.,Alle produkter eller tjenesteydelser.
+Email sent to {0},Email sendt til {0}
+Email...,Email ...
+Emails are muted,E-mails er slået fra
+Embed image slideshows in website pages.,Integrer billede slideshows i websider.
 Enable,Aktiver
-Enable Comments,Oversigt
-Enable Report,"Beløb, der ikke afspejles i systemet"
-Enable Scheduled Jobs,Grundlæggende oplysninger
-Enabled,Beløb (Standard valuta)
+Enable Comments,Aktiver Kommentarer
+Enable Report,Aktiver rapport
+Enable Scheduled Jobs,Aktiver Planlagte Jobs
+Enabled,Aktiveret
 Ends on,Slutter på
-Enter Form Type,Enkeltværelse
-Enter Value,Minimum Inventory Level
-Enter at least one permission row,Indtast mindst én tilladelse linje
-"Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set ""match"" permission rules. To see list of fields, go to <a href=""#Form/Customize Form/Customize Form"">Customize Form</a>.",bruger
+Enter Form Type,Indtast Formulartype
+Enter Value,Indtast Value
+Enter at least one permission row,Indtast mindst én tilladelse række
+"Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set ""match"" permission rules. To see list of fields, go to <a href=""#Form/Customize Form/Customize Form"">Customize Form</a>.","Indtast standard værdifelter (nøgler) og værdier. Hvis du tilføjer flere værdier for et felt, vil den første blive plukket. Disse standarder er også bruges til at indstille ""match"" regler tilladelse. For at se listen over felter, skal du gå til <a href=""#Form/Customize Form/Customize Form""> Tilpas Form </a>."
 "Enter keys to enable login via Facebook, Google, GitHub.","Enter for at aktivere login via Facebook, Google, GitHub."
-Equals,Ignorer Pricing Regel
+Equals,Lig
 Error,Fejl
 "Error generating PDF, attachment sent as HTML","Fejl genererer PDF, vedhæftet sendt som HTML"
-Error: Document has been modified after you have opened it,webside link
+Error: Document has been modified after you have opened it,"Fejl: Dokument er blevet ændret, efter at du har åbnet det"
 Event,Begivenhed
 Event Datetime,Begivenhed datotid
-Event Individuals,Møde-deltagere
-Event Role,Kunde-id
-Event Roles,Opdater skema
+Event Individuals,Event Personer
+Event Role,Begivenhed Rolle
+Event Roles,Event-Roller
 Event Type,Hændelsestype
-Event User,Re-Order Level
-Event end must be after start,Journal Kuponer {0} er un-forbundet
-Events,Log af Planr fejl
+Event User,Begivenhed Bruger
+Event end must be after start,Begivenhed ende skal være efter start
+Events,Begivenheder
 Events In Today's Calendar,Begivenheder i dagens kalender
-Every Day,Skjul Copy
-Every Month,Imod Journal Bilag {0} er allerede justeret mod nogle andre kupon
+Every Day,Hver dag
+Every Month,Hver måned
 Every Week,Hver uge
-Every Year,"Indtast navnet på kampagnen, hvis kilden undersøgelsesudvalg er kampagne"
-Every day events should finish on the same day.,Reading 9
-Everyone,"Medarbejder betegnelse (f.eks CEO, direktør osv)."
-Example,Varelager Balance
+Every Year,Hver år
+Every day events should finish on the same day.,Hver dag begivenheder bør slutte på samme dag.
+Everyone,Alle
+Example,Eksempel
 Example:,Eksempel:
-Expand,Opret Betalings Posteringer mod ordrer eller fakturaer.
-Export,Tilgodehavender / Gæld
-Export all rows in CSV fields for re-upload. This is ideal for bulk-editing.,Eksporter alle linjer i CSV felter for gen-indlæsning. Anbefales ved ændring af mange mange data. Dette er ideelt for bulk-redigering.
-Export not allowed. You need {0} role to export.,Porto
+Expand,Udvid
+Export,Eksport
+Export all rows in CSV fields for re-upload. This is ideal for bulk-editing.,Eksporter alle rækker i CSV felter til ny upload. Dette er ideelt for bulk-redigering.
+Export not allowed. You need {0} role to export.,Export ikke tilladt. Du har brug for {0} rolle eksport.
 Exported,Eksporterede
-"Expression, Optional",Github Brugernavn
-Facebook,Ekstern
+"Expression, Optional","Expression, Valgfri"
+Facebook,Facebook
 Facebook Client ID,Facebook klient-id
 Facebook Client Secret,Facebook Client Secret
-Facebook Share,Forbrugt Antal
-Facebook User ID,Er Carry Forward
-Facebook Username,Salg Faktura
-FavIcon,Tilføj kode som & lt; script & gt;
-Female,Fremad til email-adresse
-Field Description,Ingen tilladelse til at redigere
-Field Name,Standardindstillinger for salgsregistrering.
-Field Type,Lønseddel Fradrag
-"Field that represents the Workflow State of the transaction (if field is not present, a new hidden Custom Field will be created)","Felt, der repræsenterer Arbejdsproces stat for registreringen (hvis feltet ikke er til stede, en ny skjult Tilpasset felt vil blive oprettet)"
-Field {0} in row {1} cannot be hidden and mandatory without default,Følgeseddel Tendenser
-Field {0} is not selectable.,Budget Distribution Detaljer
-Field {0} of type {1} cannot be mandatory,Vælg dokumenttyper at ændre hvilke Bruger Tilladelser til at begrænse adgangen.
-Fieldname,Ejer
-Fieldname is required in row {0},HR-indstillinger
-Fieldname not set for Custom Field,Underret via e-mail
-Fieldname which will be the DocType for this link field.,Payroll Indstillinger
-Fieldname {0} appears multiple times in rows {1},Henter Rapport
+Facebook Share,Facebook Del
+Facebook User ID,Facebook bruger-id
+Facebook Username,Facebook Brugernavn
+FavIcon,Favicon
+Female,Kvinde
+Field Description,Felt Beskrivelse
+Field Name,Feltnavn
+Field Type,Felt Type
+"Field that represents the Workflow State of the transaction (if field is not present, a new hidden Custom Field will be created)","Felt, der repræsenterer Workflow stat for transaktionen (hvis feltet ikke er til stede, en ny skjult Tilpasset felt vil blive oprettet)"
+Field {0} in row {1} cannot be hidden and mandatory without default,Felt {0} i række {1} kan ikke skjules og obligatorisk uden standard
+Field {0} is not selectable.,Felt {0} kan ikke vælges.
+Field {0} of type {1} cannot be mandatory,Felt {0} af typen {1} kan ikke være obligatorisk
+Fieldname,Feltnavn
+Fieldname is required in row {0},Feltnavn kræves i række {0}
+Fieldname not set for Custom Field,Feltnavn ikke indstillet til Tilpasset felt
+Fieldname which will be the DocType for this link field.,Feltnavn som vil være DOCTYPE for dette link felt.
+Fieldname {0} appears multiple times in rows {1},Feltnavn {0} forekommer flere gange i rækker {1}
 "Fieldname {0} cannot contain letters, numbers or spaces","Feltnavn {0} kan ikke indeholde bogstaver, tal eller mellemrum"
 Fields,Felter
-"Fields separated by comma (,) will be included in the<br /><b>Search By</b> list of Search dialog box",Send Email Print Vedhæftede som PDF (anbefales)
-Fieldtype,Sæt
-Fieldtype cannot be changed from {0} to {1} in row {2},Opret Maint. Besøg
-File,Batch-Wise Balance Historie
+"Fields separated by comma (,) will be included in the<br /><b>Search By</b> list of Search dialog box","Felter adskilt af komma (,) vil indgå i <br /> <b> Søg Ved </ b> liste over Search dialogboksen"
+Fieldtype,FieldType
+Fieldtype cannot be changed from {0} to {1} in row {2},FieldType kan ikke ændres fra {0} til {1} i række {2}
+File,Fil
 File Data,Fil data
 File Name,Filnavn
 "File Name: &lt;your filename&gt;.csv<br />\
 						Save as type: Text Documents (*.txt)<br />\
-						Encoding: UTF-8",Forventet leveringsdato
-File Size,Medarbejder Records.
-File URL,Udgiftbilag afvist
+						Encoding: UTF-8","Filnavn: & lt; filnavnet & gt; .csv <br /> \
+ Filtype: Tekst Dokumenter (* .txt) <br /> \
+ Indkodning: UTF-8"
+File Size,Filstørrelse
+File URL,Fil URL
 File not attached,Fil ikke knyttet
 File size exceeded the maximum allowed size of {0} MB,Filstørrelse overskredet den maksimalt tilladte størrelse af {0} MB
-Fill Screen,Login Før
-Filter,Åbn denne gemte fil i Notesblok
+Fill Screen,Udfyld skærm
+Filter,Filter
 Filter records based on User Permissions defined for a user,Filter optegnelser baseret på brugernes Tilladelser defineret for en bruger
 Filters,Filtre
 Find {0} in {1},Find {0} i {1}
-First Name,Regler til at beregne forsendelse beløb for et salg
-First data column must be blank.,Quality Inspection Readings
-Float,Kvalitet
+First Name,Fornavn
+First data column must be blank.,Første data kolonne skal være tom.
+Float,Float
 Float Precision,Float Precision
-Fold,er ikke tilladt.
-Fold can not be at the end of the form,Rapporter et problem
-Fold must come before a labelled Section Break,Der vil blive oprettet sepasats produktionsordre for hver færdigvare god post.
+Fold,Fold
+Fold can not be at the end of the form,Fold kan ikke være i slutningen af formularen
+Fold must come before a labelled Section Break,Fold skal komme før en mærket sektionsskift
 Font (Heading),Font (Overskrift)
 Font (Text),Font (Tekst)
-Font Size,Batch
-Font Size (Text),Tilføj Child
-Fonts,Udgående e-mail-indstillinger
-Footer,Center
-Footer Background,Få Specifikation Detaljer
-Footer Items,Patch Log
-Footer Text,volumen-up
-For DocType,Tilbud Meddelelse
+Font Size,Skriftstørrelse
+Font Size (Text),Skriftstørrelse (Tekst)
+Fonts,Skrifttyper
+Footer,Sidefod
+Footer Background,Footer Baggrund
+Footer Items,Footer Varer
+Footer Text,Footer tekst
+For DocType,For DocType
 "For Links, enter the DocType as range
-For Select, enter list of Options separated by comma",Ingen standard BOM eksisterer for vare nummer {0}
+For Select, enter list of Options separated by comma","For links, indtaste DOCTYPE som interval 
+ For Vælg, indtast liste over indstillinger adskilt af komma"
 "For comparative filters, start with","Ved sammenlignende filtre, starter med"
-For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,E-mail-Digest-indstillinger
-For ranges,"For eksempel, hvis du annullerer og ændre 'INV004 ""det vil blive et nyt dokument"" INV004-1 «. Dette hjælper dig med at holde styr på hver ændring."
-For top bar,For top-boks
-"For updating, you can update only selective columns.","Ved opdatering, kan du kun opdatere udvalgte felter."
-For {0} at level {1} in {2} in row {3},For {0} på niveau {1} i {2} i linje {3}
+For example if you cancel and amend 'INV004' it will become a new document 'INV004-1'. This helps you to keep track of each amendment.,"For eksempel, hvis du annullerer og ændre 'INV004 ""det vil blive et nyt dokument"" INV004-1 «. Dette hjælper dig med at holde styr på hver ændring."
+For ranges,For intervaller
+For top bar,For top bar
+"For updating, you can update only selective columns.","Til opdatering, kan du opdatere kun selektive kolonner."
+For {0} at level {1} in {2} in row {3},For {0} på niveau {1} i {2} i række {3}
 Form,Form
-Forum,Klik på linket nedenfor for at fuldføre din registrering og angive en ny adgangskode
-Forums,Dage i forvejen
-Forward To Email Address,fjerne
-Frappe Framework,Leverandør Lager
+Forum,Forum
+Forums,Forums
+Forward To Email Address,Fremad til email-adresse
+Frappe Framework,Frappe Framework
 Friday,Fredag
-From Date must be before To Date,Genererer HTML til at omfatte valgte billede i beskrivelsen
-Full Name,Arbejde Detaljer
+From Date must be before To Date,Fra dato skal være før til dato
+Full Name,Fulde navn
 Gantt Chart,Gantt Chart
-Gender,Salgsteam Detaljer
-Georgia,Kan godkendes af {0}
-Get,Om os Team Member
+Gender,Køn
+Georgia,Georgien
+Get,Få
 Get From ,
-"Get your globally recognized avatar from <a href=""https://gravatar.com/"">Gravatar.com</a>",vare Skat Row {0} skal have højde for typen Skat eller indtægter eller omkostninger eller Afgiftspligig
-GitHub,Tillad kommentarer
+"Get your globally recognized avatar from <a href=""https://gravatar.com/"">Gravatar.com</a>","Få din globalt anerkendt avatar fra <a href=""https://gravatar.com/""> Gravatar.com </a>"
+GitHub,GitHub
 GitHub Client ID,GitHub Client ID
-GitHub Client Secret,Kvittering Nødvendig
-Github User ID,Samlet besked (er)
-Github Username,Fraktion Enheder
-Go to this url after completing the form.,Faktiske dato
-Google,Lagre.
-Google Analytics ID,Begyndende med
-Google Client ID,At diskutere
+GitHub Client Secret,GitHub Client Secret
+Github User ID,Github bruger-id
+Github Username,Github Brugernavn
+Go to this url after completing the form.,Gå til denne url efter at udfylde formularen.
+Google,Google
+Google Analytics ID,Google Analytics-id
+Google Client ID,Google Client ID
 Google Client Secret,Google Client Secret
-Google Plus One,Database Folder ID
-Google User ID,Ikke tilladt
-Google Web Font (Heading),Logo og brev hoveder
-Google Web Font (Text),(Half Day)
+Google Plus One,Google Plus One
+Google User ID,Google bruger-id
+Google Web Font (Heading),Google Web Font (udgiftsområde)
+Google Web Font (Text),Google Web Font (Tekst)
 "Group Added, refreshing...","Gruppe Tilføjet, forfriskende ..."
-Group Description,Henvisning Type
+Group Description,Gruppe Beskrivelse
 Group Name,Gruppenavn
-Group Title,Gem nyhedsbrevet før afsendelse
-Group Type,skubbe
-Groups,Indtast Godkendelse Rolle eller godkender Bruger
-Guest,Brugerdefineret Javascript
+Group Title,Gruppe Titel
+Group Type,Gruppe Type
+Groups,Grupper
+Guest,Gæst
 HTML for header section. Optional,HTML til header sektion. Valgfri
-Header,Civilstand
-Heading,Underret via e-mail på oprettelse af automatiske Materiale Request
+Header,Header
+Heading,Tekst
 Heading Text As,Overskrift tekst som
-Help,Henvisning navn
-Help on Search,Logon
+Help,Hjælp
+Help on Search,Hjælp til søgning
 Help: Field Properties,Help: Feltegenskaber
-Help: Importing non-English data in Microsoft Excel,Mere indhold til bunden af siden.
+Help: Importing non-English data in Microsoft Excel,Help: Importere ikke-engelske data i Microsoft Excel
 Helvetica Neue,Helvetica Neue
-Hidden,Få udestående fakturaer
-Hide Actions,Tilføj filter
-Hide Copy,Vælg handel
-Hide Details,Dato og nummer Format
+Hidden,Skjult
+Hide Actions,Skjul Handlinger
+Hide Copy,Skjul Copy
+Hide Details,Skjul detaljer
 Hide Heading,Skjul Overskrift
-Hide Toolbar,Vælg alt
-Hide field in Report Builder,Sæt som Lost
-Hide field in Standard Print Format,Skjul feltet i Standard-udskrift-format
-Hide field in form,Vedhæft Brevpapir
-Hide the sidebar,Ulæste meddelelser
-High,Pakning List
-Highlight,Action
-History,Opret regnskabspost for enhver Varelager Movement
-Home Page,Home Side
+Hide Toolbar,Skjul værktøjslinje
+Hide field in Report Builder,Skjul felt i Report Builder
+Hide field in Standard Print Format,Skjul feltet i Standard Print Format
+Hide field in form,Skjul felt i formular
+Hide the sidebar,Skjul sidelinjen
+High,Høj
+Highlight,Fremhæv
+History,Historie
+Home Page,Home Page
 Home Page is Products,Hjemmeside er Produkter
-Horizontal Line Break,På forrige linje alt
-ID (name) of the entity whose property is to be set,"ID (navn) på den virksomhed, hvis ejendommen skal ændres"
-ID field is required to edit values using Report. Please select the ID field using the Column Picker,"Indstil din baggrundsfarve, skrifttype og billede (flisebelagt)"
-Icon,Ingen
-Icon will appear on the button,Kvarter
+Horizontal Line Break,Vandret linjeskift
+ID (name) of the entity whose property is to be set,"ID (navn) på den virksomhed, hvis ejendommen skal indstilles"
+ID field is required to edit values using Report. Please select the ID field using the Column Picker,ID felt er påkrævet for at redigere værdier ved hjælp af rapporten. Vælg ID-feltet ved hjælp af kolonne Picker
+Icon,Ikon
+Icon will appear on the button,Ikon vises på knappen
 "If a Role does not have access at Level 0, then higher levels are meaningless.","Hvis en rolle ikke har adgang på niveau 0, så højere niveauer er meningsløse."
-"If checked, all other workflows become inactive.",Angiv DOCTYPE
-"If checked, the Home page will be the default Item Group for the website.",Ikke ligemænd
-"If image is selected, color will be ignored (attach first)",Shipping Regel Betingelse
-If non standard port (e.g. 587),Fjernlagre
-"If these instructions where not helpful, please add in your suggestions on GitHub Issues.",Lager kan kun ændres via Varelager Indgang / Følgeseddel / kvittering
+"If checked, all other workflows become inactive.","Hvis markeret, alle andre arbejdsgange bliver inaktive."
+"If checked, the Home page will be the default Item Group for the website.","Hvis markeret, vil hjemmesiden være standard varegruppe for hjemmesiden."
+"If image is selected, color will be ignored (attach first)","Hvis der vælges billede, vil farve blive ignoreret (vedlæg først)"
+If non standard port (e.g. 587),Hvis ikke standard port (f.eks 587)
+"If these instructions where not helpful, please add in your suggestions on GitHub Issues.","Hvis denne vejledning, hvor ikke nyttigt, skal du tilføje i dine forslag på GitHub Issues."
 "If you are inserting new records (overwrite not checked) \
-			and if you have submit permission, the record will be submitted.",Vil du virkelig ønsker at UNSTOP dette materiale Request?
-"If you are updating, please select ""Overwrite"" else existing rows will not be deleted.",Referencenummer
-"If you are uploading a child table (for example Item Price), the all the entries of that table will be deleted (for that parent record) and new entries will be made.","Kan ikke vælge charge type som 'On forrige linje Beløb ""eller"" On forrige linje alt «for første linje"
-"If you are uploading new records, ""Naming Series"" becomes mandatory, if present.",Tekst
-"If you are uploading new records, leave the ""name"" (ID) column blank.",Indtast venligst et gyldigt personlige e-mail
-"If you set this, this Item will come in a drop-down under the selected parent.",I alt i ord
-Ignore Encoding Errors,Ignorer indkodnings-fejl
+			and if you have submit permission, the record will be submitted.","Hvis du indsætter nye rekorder (overskrive ikke markeret) \
+ og hvis du har indsende tilladelse, vil posten blive forelagt."
+"If you are updating, please select ""Overwrite"" else existing rows will not be deleted.","Hvis du opdaterer, skal du vælge ""Overskriv"" vil ellers eksisterende rækker ikke slettes."
+"If you are uploading a child table (for example Item Price), the all the entries of that table will be deleted (for that parent record) and new entries will be made.","Hvis du uploader et barn bord (f.eks Item Pris), vil alle registreringer tabellen slettes (for denne forælder record) og nye opslag vil blive foretaget."
+"If you are uploading new records, ""Naming Series"" becomes mandatory, if present.","Hvis du uploader nye rekorder, ""Navngivning Series"" bliver obligatorisk, hvis den findes."
+"If you are uploading new records, leave the ""name"" (ID) column blank.","Hvis du uploader nye rekorder, forlader ""navn"" (ID) søjle tom."
+"If you set this, this Item will come in a drop-down under the selected parent.","Hvis du angiver denne, vil denne konto kommer i en drop-down under den valgte forælder."
+Ignore Encoding Errors,Ignorer indkodningsfejl
 Ignore User Permissions,Ignorer brugertilladelser
-"Ignoring Item {0}, because a group exists with the same name!","Ignorerer Enheden {0}, fordi en gruppe eksisterer med samme navn!"
-Image,Køber af varer og tjenesteydelser.
+"Ignoring Item {0}, because a group exists with the same name!","Ignorerer Item {0}, fordi en gruppe eksisterer med samme navn!"
+Image,Billede
 Image Link,Billede Link
-Import,Varians
-Import / Export Data,Send nu
-Import / Export Data from .csv files.,"Følgesedler {0} skal annulleres, før den annullerer denne kundeordre"
+Import,Import
+Import / Export Data,Import / Export data
+Import / Export Data from .csv files.,Import / Export data fra .csv-filer.
 Import Data,Importer data
 Import Failed!,Import mislykkedes!
-Import Successful!,Antal
-In,Tildel Til
-In Dialog,Rediger filter
-"In Excel, save the file in CSV (Comma Delimited) format",Som reaktion på
-In Filter,handicappet bruger
-"In JSON as <pre>[{""title"":""Jobs"", ""name"":""jobs""}]</pre>",Ingen af Sent SMS
-In List View,Vælg Rolle
-In Report Filter,I rapport filter
-In points. Default is 9.,"Forskel Der skal være et ansvar »type konto, da dette Varelager Forsoning er en åbning indtastning"
-In response to,Bulk Email
-Incorrect value in row {0}: {1} must be {2} {3},Top Bar vare
-Incorrect value: {0} must be {1} {2},Tilføj / rediger Skatter og Afgifter
-Indent (Tab),Indrykning (Tab)
-Index,Indtast 'Gentag på dag i måneden »felt værdi
-Individuals,Installation status
-Info,"Alternativt kan du også angive ""auto_email_id 'i site_config.json"
-Info:,Farve
-Insert,Indtast url parameter for besked
-Insert After,Fratræk
-"Insert After field '{0}' mentioned in Custom Field '{1}', does not exist",Forventet leveringsdato kan ikke være før indkøbsordre Dato
-Insert Below,Omdøb {0}
+Import Successful!,Import lykkedes!
+In,I
+In Dialog,I Dialog
+"In Excel, save the file in CSV (Comma Delimited) format","I Excel, skal du gemme filen i CSV (kommasepareret) format"
+In Filter,I Filter
+"In JSON as <pre>[{""title"":""Jobs"", ""name"":""jobs""}]</pre>","I JSON som <pre> [{""title"": ""Jobs"", ""navn"": ""job""}] </ pre>"
+In List View,I Listevisning
+In Report Filter,I rapporten Filter
+In points. Default is 9.,I point. Standard er 9.
+In response to,Som reaktion på
+Incorrect value in row {0}: {1} must be {2} {3},Forkert værdi i række {0}: {1} skal være {2} {3}
+Incorrect value: {0} must be {1} {2},Forkert værdi: {0} skal være {1} {2}
+Indent (Tab),Led (Tab)
+Index,Indeks
+Individuals,Personer
+Info,Info
+Info:,Info:
+Insert,Indsæt
+Insert After,Indsæt Efter
+"Insert After field '{0}' mentioned in Custom Field '{1}', does not exist","Indsæt Efter feltet '{0}' er nævnt i Custom Field '{1}', ikke eksisterer"
+Insert Below,Indsæt Nedenfor
 Insert Code,Indsæt kode
-Insert Link,Creation Dokument nr
-Insert Row,POP3 mail-indstillinger
-Insert Style,Nyhedsbrev Content
-Insert picture (or just drag & drop),Svar
+Insert Link,Indsæt link
+Insert Row,Indsæt række
+Insert Style,Indsæt Style
+Insert picture (or just drag & drop),Indsæt billede (eller bare træk og slip)
 Install Applications.,Installer Programmer.
-Installed,Print Style Eksempel
-Installer,Tilbuder er modtaget fra leverandører.
-Int,Permanent Annuller {0}?
-Integrations,"Tidspunkt, hvor materialer blev modtaget"
-Introduce your company to the website visitor.,Excise Duty @ 4
-Introduction,"<a href=""#Salg Browser/Territory""> Tilføj / Rediger </a>"
-Introductory information for the Contact Us Page,Energi
-Invalid Email: {0},Tilføj CSS
-Invalid Filter: {0},Total feriedage
-Invalid Home Page,Download med data
-Invalid Login,kuvert
-Invalid Outgoing Mail Server or Port,Awesome Services
-Invalid Request,Vælg {0}
-Invalid login or password,"Købsordre aktiver, der modtages"
-Invalid naming series (. missing),Sikkerhedsindstillinger
+Installed,Installeret
+Installer,Installer
+Int,Int
+Integrations,Integrationer
+Introduce your company to the website visitor.,Indføre din virksomhed til hjemmesiden besøgende.
+Introduction,Introduktion
+Introductory information for the Contact Us Page,Indledende informationer til siden Kontakt os
+Invalid Email: {0},Ugyldig E-mail: {0}
+Invalid Filter: {0},Ugyldig Filter: {0}
+Invalid Home Page,Ugyldig Forside
+Invalid Login,Ugyldigt login
+Invalid Outgoing Mail Server or Port,Ugyldig Server til udgående post eller Port
+Invalid Request,Ugyldig Request
+Invalid login or password,Ugyldig login eller kodeord
+Invalid naming series (. missing),Ugyldig navngivning serien (. Mangler)
 Invalid recipient address,Ugyldig modtageradresse
-Inverse,Deltagelse fra dato
+Inverse,Inverse
 Is Active,Er aktiv
-Is Child Table,Anmodning om information
-Is Default,Konti Browser
-Is Event,Writers Indledning
-Is Mandatory Field,Skjul felt i Report Builder
+Is Child Table,Er Child Table
+Is Default,Er Standard
+Is Event,Er Begivenhed
+Is Mandatory Field,Er obligatorisk Field
 Is Single,Er Single
-Is Standard,Rejst af
-Is Submittable,"»Posteringer"" kan ikke være tomt"
+Is Standard,Er Standard
+Is Submittable,Er Submittable
 Is Task,Er Opgave
-Item cannot be added to its own descendents,Fradrag
-"JSON list of DocTypes used to apply User Permissions. If empty, all linked DocTypes will be used to apply User Permissions.","Kun obligatoriske felter er nødvendige for nye poster. Du kan slette ikke-obligatoriske kolonner, hvis du ønsker."
-JavaScript Format: frappe.query_reports['REPORTNAME'] = {},JavaScript format: frappe.query_reports ['REPORTNAME'] = {}
+Item cannot be added to its own descendents,Vare kan ikke føjes til sine egne efterkommere
+"JSON list of DocTypes used to apply User Permissions. If empty, all linked DocTypes will be used to apply User Permissions.","JSON liste over doctypes der anvendes til at anvende Bruger Tilladelser. Hvis tom, vil alle tilknyttede doctypes anvendes til at anvende Bruger Tilladelser."
+JavaScript Format: frappe.query_reports['REPORTNAME'] = {},JavaScript Format: frappe.query_reports ['rapportnavn'] = {}
 Javascript,Javascript
-Javascript to append to the head section of the page.,"Klik på ""Generer Plan"" for at hente Løbenummer tilføjet for vare nummer {0}"
+Javascript to append to the head section of the page.,Javascript skal føjes til hovedafsnittet på siden.
 Keep a track of all communications,Hold styr på al kommunikation
-Key,"Beklager, kan Serial nr ikke sammenlægges"
+Key,Nøgle
 Label,Label
-Label Help,Opgave Detaljer
-Label and Type,F.eks. smsgateway.com/api/send_sms.cgi
+Label Help,Label Hjælp
+Label and Type,Label og type
 Label is mandatory,Label er obligatorisk
-Landing Page,Landing Side
-Language,Opret Installation Bemærk
+Landing Page,Landing Page
+Language,Sprog
 Language preference for user interface (only if available).,Sprog præference for brugergrænseflade (kun hvis tilgængelig).
 "Language, Date and Time settings","Sprog, dato og klokkeslæt"
-Last Comment,Serienavne obligatorisk
+Last Comment,Sidste kommentar
 Last IP,Sidste IP
-Last Login,UOM Conversion Detaljer
-Last Name,Indtast modbilag manuelt
+Last Login,Sidste login
+Last Name,Efternavn
 Last Updated By,Sidst opdateret af
 Last Updated On,Senest opdateret
-Lato,Fuldstændig ved
-Leave blank for new records,Salg Email-indstillinger
-Leave blank to repeat always,Hver år
-Left,Gruppe Type
-Letter,Actual
-Letter Head,Få Betingelser
-Letter Head Name,Sender
-Letter Head in HTML,Indkøbsordre {0} er ikke oprettet
-Level,Indlejret sæt fejl. Kontakt venligst administratoren.
+Lato,Lato
+Leave blank for new records,Lad stå tomt for nye poster
+Leave blank to repeat always,Lad stå tomt for at gentage altid
+Left,Venstre
+Letter,Brev
+Letter Head,Brev hoved
+Letter Head Name,Brev hoved Name
+Letter Head in HTML,Brev Leder i HTML
+Level,Level
 "Level 0 is for document level permissions, higher levels for field level permissions.","Niveau 0 er for tilladelser dokument niveau, højere niveauer for tilladelser marken."
 Like,Lignende
-Link,Antal til Modtag
-"Link that is the website home page. Standard Links (index, login, products, blog, about, contact)",Salg Analytics
-Link to other pages in the side bar and next section,Indlæg Frientligt
+Link,Link
+"Link that is the website home page. Standard Links (index, login, products, blog, about, contact)","Link, der er hjemmesiden startside. Standard Links (indeks, login, produkter, blog, omkring, kontakt)"
+Link to other pages in the side bar and next section,Link til andre sider i side baren og næste afsnit
 Link to the page you want to open,"Link til den side, du vil åbne"
-Linked In Share,Del på LinkedIn
-Linked With,Bemærkninger:
-List,Brugerdefineret Script
-List a document type,Verified by
-List of Web Site Forum's Posts.,Google bruger-id
-List of patches executed,Utility Udgifter
-Loading,Liste denne vare i flere grupper på webstedet.
-Loading Report,Skrifttyper
-Loading...,Test Runner
-Localization,tekst bredde
-Location,vare Priser
-Log of Scheduler Errors,memcached fungerer ikke / stoppet. Start venligst memcached for de bedste resultater.
-Log of error on automated events (scheduler).,Log af fejl på automatiserede begivenheder (Planr).
-Login,"Standard Indkøb konto, hvor kostpris vil blive debiteret."
-Login After,Target Distribution
-Login Before,Henvisning # {0} dateret {1}
-Login Id,Du har ikke tilladelse til at eksportere denne rapport
-Login Required,Begivenhed ende skal være efter start
+Linked In Share,Linked In Share
+Linked With,Forbundet med
+List,Liste
+List a document type,Liste en dokumenttype
+List of Web Site Forum's Posts.,Liste over web-stedet Forums Stillinger.
+List of patches executed,Liste over patches henrettet
+Loading,Loading
+Loading Report,Loading Rapport
+Loading...,Indlæser ...
+Localization,Lokalisering
+Location,Beliggenhed
+Log of Scheduler Errors,Log af Scheduler fejl
+Log of error on automated events (scheduler).,Log af fejl på automatiserede begivenheder (scheduler).
+Login,Logon
+Login After,Login Efter
+Login Before,Login Før
+Login Id,Login-id
+Login Required,Login Required
 Login not allowed at this time,Log ind ikke tilladt på dette tidspunkt
-Logout,Personlig
-Long Text,Roller
-Low,Musik
-Lucida Grande,Indstillinger
-Mail Password,Forventet startdato
-Main Section,Primær Del
-Main Table,Ugyldig E-mail: {0}
-Make New,Opret Ny
-Make a new,Linje {0}: {1} er ikke et gyldigt {2}
-Make a new record,Ingen handling
-Make a new {0},{0} budget for konto {1} mod omkostningssted {2} vil ved overstige {3}
-Male,Købspris List
-Manage cloud backups on Dropbox,Leverandør Type / leverandør
-Manage uploaded files.,Fil administration.
-Mandatory,Indtast url parameter for receiver nos
-Mandatory fields required in {0},Varelager Justering
-Mandatory:,Fra dato ikke kan være større end til dato
-Mark the field as Mandatory,Detaljer & Wholesale
-Master,Forbundet med
-Max Attachments,SO Afventer Antal
-Max width for type Currency is 100px in row {0},Opdatering Series Nummer
-Maximum Attachment Limit for this record reached.,Brugeren kan ikke søge
-"Meaning of Submit, Cancel, Amend",Sport
-Medium,Mere
-"Menu items in the Top Bar. For setting the color of the Top Bar, go to <a href=""#Form/Style Settings"">Style Settings</a>",Begivenheder
-Merge with existing,Target lager i linjen {0} skal være samme som produktionsordre
+Logout,Log af
+Long Text,Lang tekst
+Low,Lav
+Lucida Grande,Lucida Grande
+Mail Password,Mail Password
+Main Section,Main Section
+Main Table,Hovedtabellen
+Make New,Gør Ny
+Make a new,Lav en ny
+Make a new record,Lav en ny rekord
+Make a new {0},Lav en ny {0}
+Male,Mand
+Manage cloud backups on Dropbox,Administrer cloud sikkerhedskopier på Dropbox
+Manage uploaded files.,Administrer uploadede filer.
+Mandatory,Obligatorisk
+Mandatory fields required in {0},Obligatoriske felter er nødvendige i {0}
+Mandatory:,Obligatorisk:
+Mark the field as Mandatory,Markér feltet som obligatoriske
+Master,Master
+Max Attachments,Max Tilbehør
+Max width for type Currency is 100px in row {0},Max bredde for type Valuta er 100px i række {0}
+Maximum Attachment Limit for this record reached.,Maksimal Attachment for denne rekord nået.
+"Meaning of Submit, Cancel, Amend","Betydning af Submit, Annuller, Amend"
+Medium,Medium
+"Menu items in the Top Bar. For setting the color of the Top Bar, go to <a href=""#Form/Style Settings"">Style Settings</a>","Menupunkter i øverste linje. Til indstilling af farven på Top Bar, gå til <a href=""#Form/Style Settings""> Style indstillinger </a>"
+Merge with existing,Flet med eksisterende
 Merging is only possible between Group-to-Group or Leaf Node-to-Leaf Node,Fletning er kun mulig mellem Group-til-koncernen eller Leaf Knude-til-Leaf Node
 Message,Besked
-Message Examples,Hjælp til søgning
-Message to be displayed on successful completion,Besked der skal vises efter transaktioner uden fejl
+Message Examples,Besked Eksempler
+Message to be displayed on successful completion,Besked der skal vises på en vellykket afslutning
 Messages,Meddelelser
-Messages from everyone,Ugyldig Request
-Method,f.eks. moms
-Middle Name (Optional),Acceptkriterier
-Misc,"Opdater yderligere omkostninger til at beregne, prisen for varer"
-Miscellaneous,Kunde / Lead Adresse
+Messages from everyone,Beskeder fra alle
+Method,Metode
+Middle Name (Optional),Middle Name (valgfri)
+Misc,Misc
+Miscellaneous,Diverse
 Missing Values Required,"Manglende værdier, der kræves"
 Modern,Moderne
-Modified by,[Vælg]
-Module,Sæsonudsving til indstilling budgetter.
-Module Def,Produktionsordre status er {0}
+Modified by,Ændret af
+Module,Modul
+Module Def,Modul Def
 Module Name,Modul navn
 Module Not Found,Modul ikke fundet
 Modules Setup,Moduler Setup
-Monday,Deltagelse fra dato og fremmøde til dato er obligatorisk
-Monochrome,"Definer læse, skrive, tilladelser Admin for en webside."
-More,Medarbejder {0} er allerede ansøgt om {1} mellem {2} og {3}
-More content for the bottom of the page.,Måned
-Move Down: {0},Opsætning indgående server til support email id. (F.eks support@example.com)
-Move Up: {0},"Skabelon navn er obligatorisk, hvis kontotype er Lager"
-Multiple root nodes not allowed.,Vælg Regnskabsår
-Must have report permission to access this report.,{0}: Kan ikke sætte annullere uden Indsend
-Must specify a Query to run,Købsordre Varer skal faktureres
-My Settings,Vare-wise Salg History
-Name,Selskab
-Name Case,Unstop indkøbsordre
-Name and Description,Årlig
-Name is required,Standardindstillinger til køb registreringer.
-Name not permitted,Direktør
-Name not set via Prompt,Navn er ikke sat i indtastning
-Name of the Document Type (DocType) you want this field to be linked to. e.g. Customer,Indtast omkostningssted
-Name of {0} cannot be {1},Alle forhandler Kontakt
-Naming,Alder
-Naming Series mandatory,Kategori
-Nested set error. Please contact the Administrator.,"Klik på ""Generer Plan '"
-New,Medarbejder
+Monday,Mandag
+Monochrome,Monochrome
+More,Mere
+More content for the bottom of the page.,Mere indhold til bunden af siden.
+Move Down: {0},Flyt ned: {0}
+Move Up: {0},Flyt op: {0}
+Multiple root nodes not allowed.,Flere root knudepunkter ikke tilladt.
+Must have report permission to access this report.,Skal have rapport adgang til denne rapport.
+Must specify a Query to run,Du skal angive en forespørgsel til at køre
+My Settings,Mine indstillinger
+Name,Navn
+Name Case,Navn Case
+Name and Description,Navn og beskrivelse
+Name is required,Navn er påkrævet
+Name not permitted,Navn ikke tilladt
+Name not set via Prompt,"Navn, der ikke indstilles via Prompt"
+Name of the Document Type (DocType) you want this field to be linked to. e.g. Customer,"Navn på Dokumenttype (DocType), du vil dette felt for at være knyttet til. f.eks Kunde"
+Name of {0} cannot be {1},Navn {0} kan ikke være {1}
+Naming,Navngivning
+Naming Series mandatory,Navngivning Series obligatorisk
+Nested set error. Please contact the Administrator.,Indlejret sæt fejl. Kontakt venligst administratoren.
+New,Ny
 New Name,Nyt navn
-New Password,År for Passing
-New Record,Lato
+New Password,Ny adgangskode
+New Record,New Record
 New comment on {0} {1},Ny kommentar til {0} {1}
 New password emailed,Ny adgangskode emailet
-New value to be set,"Ny værdi, der skal ændres"
-New {0},Lead status
-Next Communcation On,Næste kontakt den
+New value to be set,"Ny værdi, der skal indstilles"
+New {0},New {0}
+Next Communcation On,Næste Kommunikationsnet On
 Next Record,Næste post
-Next State,Forældre Indlæg
-Next actions,Tildelt fullnavn
+Next State,Næste stat
+Next actions,Næste handlinger
 No,Ingen
-No Action,Bruger-ID
+No Action,Ingen handling
 No Communication tagged with this {0} yet.,Ingen kommunikation mærket med dette {0} endnu.
 No Copy,Ingen Copy
 No Permissions set for this criteria.,Ingen Tilladelser fastsat for dette kriterium.
-No Report Loaded. Please use query-report/[Report Name] to run a report.,Omsætningsaktiver
-No Results,vare kode kræves på Row Nej {0}
-No Sidebar,Vil du virkelig ønsker at UNSTOP
-No User Permissions found.,Sideskift
+No Report Loaded. Please use query-report/[Report Name] to run a report.,Ingen Rapport Loaded. Brug venligst forespørgsel-rapport / [Forkert navn] for at køre en rapport.
+No Results,Ingen resultater
+No Sidebar,Ingen Sidebar
+No User Permissions found.,Ingen brugertilladelser fundet.
 No data found,Ingen data fundet
 No file attached,Ingen fil vedhæftet
-No further records,Opret nye POS Setting
-No one,Spor denne følgeseddel mod enhver Project
-No permission to '{0}' {1},Tilføj Løbenummer
-No permission to edit,Firma Indledning
-No permission to read {0},"Gå til den relevante gruppe (som regel finansieringskilde> Aktuelle Passiver> skatter og afgifter samt oprette en ny konto Ledger (ved at klikke på Tilføj barn) af typen ""Skat"", og nævner skattesatsen."
+No further records,Ingen yderligere poster
+No one,Ingen
+No permission to '{0}' {1},Ingen tilladelse til at '{0}' {1}
+No permission to edit,Ingen tilladelse til at redigere
+No permission to read {0},Ingen tilladelse til at læse {0}
 No permission to write / remove.,Ingen tilladelse til at skrive / fjern.
 No records tagged.,Ingen poster tagget.
-No template found at path: {0},hovedtelefoner
-No {0} found,Send SMS
+No template found at path: {0},Ingen skabelon fundet på sti: {0}
+No {0} found,Nr {0} fundet
 No {0} permission,Nr {0} tilladelse
-None,Sidebar varer
-None: End of Workflow,Fra Lead
-Not Found,Linje {0}: Konto {1} matcher ikke med {2} {3} konto
-Not Linked to any record.,"Hvis du indsætter nye rekorder (overskrive ikke markeret) \
- og hvis du har indsende tilladelse, vil posten blive forelagt."
-Not Permitted,Maksimal Attachment for denne rekord nået.
+None,Ingen
+None: End of Workflow,Ingen: Slut på Workflow
+Not Found,Ikke fundet
+Not Linked to any record.,Ikke forbundet med nogen rekord.
+Not Permitted,Ikke tilladt
 Not Published,Ikke Udgivet
-Not Set,Leverandør af varer eller tjenesteydelser.
+Not Set,Ikke indstillet
 Not Submitted,Ikke Tilmeldt
-Not a valid Comma Separated Value (CSV File),Antal pr Varelager UOM
-Not allowed,Rolle tilladelse til at redigere frossen lager
-Not allowed from this IP Address,Underentreprise
+Not a valid Comma Separated Value (CSV File),Ikke en gyldig kommaseparerede værdier (CSV fil)
+Not allowed,Ikke tilladt
+Not allowed from this IP Address,Ikke tilladt fra denne IP-adresse
 Not allowed to Import,Ikke lov til at importere
-Not allowed to access {0} with {1} = {2},Party Detaljer
-Not allowed to change {0} after submission,Løn-forskud
+Not allowed to access {0} with {1} = {2},Ikke tilladt adgang {0} med {1} = {2}
+Not allowed to change {0} after submission,Ikke tilladt at ændre {0} efter indsendelsen
 Not allowed to reset the password of {0},Ikke tilladt at nulstille adgangskoden for {0}
-Not enough permission to see links.,Batch nr
-Not equals,Direkte Indkomst
+Not enough permission to see links.,Ikke nok tilladelse til at se links.
+Not equals,Ikke ligemænd
 Not found,Ikke fundet
-Not in Developer Mode! Set in site_config.json,Brugeren kan ikke oprette
+Not in Developer Mode! Set in site_config.json,Ikke i Developer mode! Set i site_config.json
 Not permitted,Ikke tilladt
-"Note: For best results, images must be of the same size and width must be greater than height.",Billed
-Note: Other permission rules may also apply,Varelager registreringer før {0} er frosset
-Note: fields having empty value for above criteria are not filtered out.,Opret Materiale Anmodninger
-Notes:,Valuta kurs master.
-Nothing to show,"Vælg ""Ja"", hvis du leverer råvarer til din leverandør til at fremstille dette element."
-Nothing to show for this selection,Website Group
-Notification Count,Bilag Detaljer Nej
-Notify by Email,Forlad Application
-Number Format,Sidefod
-Number list,Afhænger LWP
-Old Parent,Indsend til bruger
+"Note: For best results, images must be of the same size and width must be greater than height.","Bemærk: Det bedste resultat opnås, skal billederne være af samme størrelse og bredde skal være større end højden."
+Note: Other permission rules may also apply,Bemærk: Andre regler tilladelse kan også gælde
+Note: fields having empty value for above criteria are not filtered out.,"Bemærk: felter, der har tomme værdi for ovennævnte kriterier, ikke filtreret fra."
+Notes:,Bemærkninger:
+Nothing to show,Intet at vise
+Nothing to show for this selection,Intet at vise for dette valg
+Notification Count,Meddelelse Count
+Notify by Email,Underret via e-mail
+Number Format,Number Format
+Number list,Nummerliste
+Old Parent,Gamle Parent
 Old Password,Gammel adgangskode
-On,Krav på selskabets regning.
-"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).","Hvis du indlæser nye poster, bliver ""Serienavne"" obligatorisk, hvis den findes."
-One of,En af
-Only Administrator allowed to create Query / Script Reports,Opret Bank Gavekort til den samlede løn for de ovenfor valgte kriterier
-Only Administrator can save a standard report. Please rename and save.,Kun Administrator kan gemme en standard rapport. Omdøb og gem.
-Only Allow Edit For,"Det element, der repræsenterer Package. Denne vare skal have ""Er lagervare"" som ""Nej"" og ""Er Salg vare"" som ""Ja"""
-Only allowed {0} rows in one import,Kundefeedback
-Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,Hour sats
+On,På
+"Once you have set this, the users will only be able access documents (eg. Blog Post) where the link exists (eg. Blogger).","Når du har indstillet dette, vil brugerne kun kunne få adgang til dokumenter (f.eks. Blog Post) hvor linket eksisterer (f.eks. Blogger)."
+One of,Et af
+Only Administrator allowed to create Query / Script Reports,Kun Administrator lov til at oprette Query / Script Reports
+Only Administrator can save a standard report. Please rename and save.,Kun Administrator kan spare en standard rapport. Omdøb og gem.
+Only Allow Edit For,Tillad kun Edit For
+Only allowed {0} rows in one import,Kun tilladt {0} rækker i en import
+Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.,"Kun obligatoriske felter er nødvendige for nye poster. Du kan slette ikke-obligatoriske kolonner, hvis du ønsker."
 Oops! Something went wrong,Ups! Noget gik galt
-Open,Først svarede den
-Open Count,"I ord vil være synlige, når du gemmer købsfakturaen."
+Open,Åbent
+Open Count,Åbent Grev
 Open Link,Åbn link
-Open Link in a new Window,Grupper
-Open Sans,Skriv venligst noget
-Open Source Web Applications for the Web,Hent Backup
-Open a module or tool,Varelager UOM Udskift Utility
-Open this saved file in Notepad,Bilag Type
-Open {0},Udstationering Time
+Open Link in a new Window,Åbn link i nyt vindue
+Open Sans,Åbne Sans
+Open Source Web Applications for the Web,Open Source Web Applications til internettet
+Open a module or tool,Åbn et modul eller værktøj
+Open this saved file in Notepad,Åbn denne gemte fil i Notesblok
+Open {0},Open {0}
 Optional: Alert will only be sent if value is a valid email id.,"Valgfrit: Alert vil kun blive sendt, hvis værdien er en gyldig e-mail-id."
-Optional: Always send to these ids. Each email id on a new row,Client-side formater nu forældet
-Optional: The alert will be sent if this expression is true,Milepæle
-Options,Har Batch nr
-Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType',Kan ikke ændre billede
-Options Help,Opsætning> Bruger Tilladelser manager
-Options for select. Each option on a new line. e.g.: <br>Option 1<br>Option 2<br>Option 3<br>,vare Wise Skat Detaljer
-Options must be a valid DocType for field {0} in row {1},Tilføj kolonne
-Options not set for link field {0},E-mail-id'er adskilt af kommaer.
-Options requried for Link or Table type field {0} in row {1},Nødvendige valg for 'Link' eller 'Tabel' felt {0} i linje {1}
-Org History,Milestone Dato
+Optional: Always send to these ids. Each email id on a new row,Valgfrit: Send altid til disse id'er. Hver e-mail-id på en ny række
+Optional: The alert will be sent if this expression is true,"Valgfrit: Alarmen vil blive sendt, hvis dette udtryk er sandt"
+Options,Indstillinger
+Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType',Valg 'Dynamic Link' type område skal pege på et andet link Field med muligheder som 'DocType'
+Options Help,Indstillinger Hjælp
+Options for select. Each option on a new line. e.g.: <br>Option 1<br>Option 2<br>Option 3<br>,Indstillinger for at vælge. Hver option på en ny linje. fx: <br> Mulighed 1 <br> Mulighed 2 <br> Mulighed 3 <br>
+Options must be a valid DocType for field {0} in row {1},Indstillinger skal være en gyldig DocType for feltet {0} i række {1}
+Options not set for link field {0},Indstillinger ikke indstillet til link feltet {0}
+Options requried for Link or Table type field {0} in row {1},Indstillinger kraevede for Link eller felt Tabel typen {0} i række {1}
+Org History,Org History
 Org History Heading,Org Historie Tekst
-Original Message,Kontosaldo
-Other,Gælder for (Bruger)
-Outgoing Email Settings,"Standard for ""Kontrollér"" type felt skal være enten 0 eller 1"
-Outgoing Mail Server,"For at sætte dette regnskabsår som standard-regnskab, skal du klikke på 'Vælg som standard'"
-Outgoing Mail Server not specified,"Et produkt eller en tjeneste, der er købt, solgt eller på lager."
+Original Message,Original Message
+Other,Andre
+Outgoing Email Settings,Udgående e-mail-indstillinger
+Outgoing Mail Server,Server til udgående post
+Outgoing Mail Server not specified,Server til udgående post ikke specificeret
 Overwrite,Overskriv
-Owner,[Ukendt afsender]
-PDF Page Size,Modtaget dato
-PDF Settings,Due Date
+Owner,Ejer
+PDF Page Size,PDF-sidestørrelse
+PDF Settings,PDF-indstillinger
 Page,Side
-Page Background,Opret Tilbud
+Page Background,Side Baggrund
 Page HTML,Side HTML
-Page Header,Mængde og Pris
-Page Header Background,"Kun Lad Applikationer med status ""Godkendt"" kan indsendes"
-Page Header Text,Sideoverskrift indhold
-Page Links,Budget Detaljer
-Page Name,Side navn
-Page Role,ok
+Page Header,Page Header
+Page Header Background,Page Header Baggrund
+Page Header Text,Page Header Tekst
+Page Links,Side links
+Page Name,Page Name
+Page Role,Page Rolle
 Page Text,Side Tekst
-Page content,Vare-wise Købshistorik
-Page missing or moved,Forsendelse Regel Label
-Page not found,fullscreen
+Page content,Sideindhold
+Page missing or moved,Side mangler eller flyttes
+Page not found,Siden blev ikke fundet
 "Page to show on the website
-",Telefon No.
-Page url name (auto-generated),henvisning
-Paragraph,Opret Løn Struktur
-Parent,Lad Tildeling Værktøj
+","Side for at vise på hjemmesiden 
+"
+Page url name (auto-generated),Side url navn (auto-genereret)
+Paragraph,Stk
+Parent,Forældre
 Parent Label,Forældre Label
-Parent Post,Bruger standardindstillinger
-Parent Table,Overordnet tabel
-Parent Web Page,Miscelleneous
+Parent Post,Forældre Indlæg
+Parent Table,Overordnede tabel
+Parent Web Page,Forældre webside
 Parent Website Group,Moderselskab Website Group
-Parent Website Route,hånd-up
-Participants,"Discount Felts vil være tilgængelig i Indkøbsordre, kvittering, købsfaktura"
+Parent Website Route,Parent Website Route
+Participants,Deltagere
 Password,Adgangskode
-Password Reset,Indstil {0} først
-Password Update,Slet
-Password Update Notification,By
+Password Reset,Nulstil adgangskode
+Password Update,Password Opdatering
+Password Update Notification,Password Update Notification
 Password Updated,Password Opdateret
-Password reset instructions have been sent to your email,Instruktion i nulstilling af adgangskoden er sendt til den oplyste email
+Password reset instructions have been sent to your email,Nulstilling af adgangskode instruktioner er sendt til din email
 Patch,Patch
-Patch Log,Anvendelse
+Patch Log,Patch Log
 Percent,Procent
 Performing hardcore import process,Udførelse hardcore import proces
-Perm Level,Imod Bilag Type
-Permanently Cancel {0}?,Tilgodehavender
-Permanently Submit {0}?,"System Bruger (login) ID. Hvis sat, vil det blive standard for alle HR-formularer."
-Permanently delete {0}?,Navngivning
-Permission Level,Forhandler
-Permission Levels,Quality Management
-Permission Rules,Log installation- eller idriftsættelses-relateret arbejde
-Permission already set,Opløsning Detaljer
-Permissions,Egenskaber
-Permissions Settings,Tilladelses-indstillinger
-Permissions Updated,{0} kan ikke købes ved hjælp Indkøbskurv
-Permissions are automatically translated to Standard Reports and Searches.,Allerede i brugerens opgaveliste
-"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions.",Vis I Website
-Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles.,Side Overskrift
-"Permissions at level 0 are 'Document Level' permissions, i.e. they are primary for access to the document.",Enten target antal eller målbeløbet er obligatorisk.
-Permissions can be managed via Setup &gt; Role Permissions Manager,{0} ikke en gyldig tilstand
-Permissions get applied on Users based on what Roles they are assigned.,Løbenummer
-Permitted Documents For User,Anlægsaktiver
-Person,Feltnavn {0} forekommer flere gange i linje {1}
+Perm Level,Perm Level
+Permanently Cancel {0}?,Permanent Annuller {0}?
+Permanently Submit {0}?,Permanent Indsend {0}?
+Permanently delete {0}?,Permanent slette {0}?
+Permission Level,Tilladelse Level
+Permission Levels,Tilladelsesniveauer
+Permission Rules,Tilladelse Regler
+Permission already set,Tilladelse allerede
+Permissions,Tilladelser
+Permissions Settings,Tilladelsesindstillingerne
+Permissions Updated,Tilladelser Opdateret
+Permissions are automatically translated to Standard Reports and Searches.,Tilladelser oversættes automatisk til standardrapporter og søgninger.
+"Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions.","Tilladelser er indstillet på Roller og dokumenttyper (kaldet doctypes) ved at indstille rettigheder ligesom læse, skrive, oprette, slette, Send, Annuller, ændre, Report, import, eksport, Print, E-mail og Set User Tilladelser."
+Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles.,"Tilladelser på højere niveauer er tilladelser 'Field plan «. Alle felter har en ""Tilladelsesniveau 'sæt mod dem, og de regler, der er defineret ved, at tilladelser anvendelse på. Dette er nyttigt, hvis du ønsker at skjule eller foretage visse felt skrivebeskyttet for bestemte roller."
+"Permissions at level 0 are 'Document Level' permissions, i.e. they are primary for access to the document.","Tilladelser på niveau 0 er tilladelser ""Document Level"", dvs. de er primært for adgang til dokumentet."
+Permissions can be managed via Setup &gt; Role Permissions Manager,Tilladelser kan styres via Setup & gt; Rolle Tilladelser manager
+Permissions get applied on Users based on what Roles they are assigned.,"Tilladelser bliver anvendt på brugere baseret på, hvad roller, de er tildelt."
+Permitted Documents For User,Tilladte dokumenter til Bruger
+Person,Person
 Personal Info,Personlig Info
-Phone,Customer master.
-Phone No.,Afgifter er opdateret i kvittering hvis varerne
+Phone,Telefon
+Phone No.,Telefon No.
 Pick Columns,Pick kolonner
 Picture URL,Billede URL
-Pincode,Kontorleje
+Pincode,Pinkode
 Please attach a file first.,Vedlæg en fil først.
-Please attach a file or set a URL,"Vælg en ""Image"" først"
-Please click on the following link to set your new password,Indkøbsordre nummer kræves for vare nummer {0}
-Please do not change the rows above {0},Du må ikke ændre linjerne over {0}
-Please do not change the template headings.,Liste et par af dine leverandører. De kunne være organisationer eller enkeltpersoner.
+Please attach a file or set a URL,Vedlæg en fil eller indstille en URL
+Please click on the following link to set your new password,Klik på følgende link for at indstille din nye adgangskode
+Please do not change the rows above {0},Du må ikke ændre rækkerne over {0}
+Please do not change the template headings.,Du må ikke ændre skabelonen overskrifter.
 Please enable pop-ups,Slå pop-ups
-Please enter Event's Date and Time!,Dataimport Værktøj
+Please enter Event's Date and Time!,Indtast begivenhedens Dato og tid!
 "Please enter both your email and message so that we \
-				can get back to you. Thanks!",Kunde Adresser og kontakter
+				can get back to you. Thanks!","Indtast venligst både din email og budskab, så vi \
+ kan komme tilbage til dig. Tak!"
 Please enter email address,Indtast e-mail-adresse
-Please enter some text!,Indlæg
-Please enter title!,Vælg Dokumenttype
-Please login to Upvote!,Projekt status
-Please login to create a new {0},Leverandør Type
-Please make sure that there are no empty columns in the file.,Debet Amt
-Please refresh to get the latest document.,"Du skal gemme formularen, før du fortsætter"
-Please reply above this line or remove it if you are replying below it,Slideshow navn
-Please save before attaching.,Sendt den
-Please save the document before assignment,Passiv
-Please save the document before removing assignment,Siden blev ikke fundet
+Please enter some text!,Indtast venligst en tekst!
+Please enter title!,Indtast titel!
+Please login to Upvote!,Log ind for at upvote!
+Please login to create a new {0},Log ind for at oprette en ny {0}
+Please make sure that there are no empty columns in the file.,"Sørg for, at der ikke er nogen tomme kolonner i filen."
+Please refresh to get the latest document.,Opdater venligst at hente den nyeste dokument.
+Please reply above this line or remove it if you are replying below it,"Besvar venligst over denne linje, eller fjerne det, hvis du besvarer nedenunder"
+Please save before attaching.,Gem før fastgørelse.
+Please save the document before assignment,Gem venligst dokumentet før opgaven
+Please save the document before removing assignment,"Gem venligst dokumentet, før du fjerner opgaven"
 Please select a file or url,Vælg en fil eller url
-Please select atleast 1 column from {0} to sort,BOM Arbejdet
-Please set filters,Konto {0}: Forældre-konto {1} findes ikke
-Please set {0} first,Knyttet til navn
+Please select atleast 1 column from {0} to sort,Vælg mindst 1 kolonne fra {0} til at sortere
+Please set filters,Sæt venligst filtre
+Please set {0} first,Indstil {0} først
 Please specify,Angiv venligst
-Please specify 'Auto Email Id' in Setup > Outgoing Email Settings,"Angiv ""Auto email id"" i Opsætning => Indstillinger for udgående mail."
-Please specify Event date and time,Tilføj til opgaveliste Of
-Please specify doctype,Dato for Vær med
-Please specify user,Ikke en gyldig kommaseparerede værdier (CSV fil)
-Please specify which date field must be checked,Resten af verden
-Please specify which value field must be checked,Standard BOM
-Please upload using the same template as download.,Varelager balance i Batch {0} bliver negativ {1} for vare nummer {2} på Lager {3}
-Plugin,"Regler, der definerer overgang stat i arbejdsgangen."
-Port,Kredit til
-Post,Dato
-Post Publicly,Der er flere helligdage end arbejdsdage i denne måned.
-Post Topic,E-mail-indstillinger
+Please specify 'Auto Email Id' in Setup > Outgoing Email Settings,"Angiv ""Auto email id"" i Opsætning> udgående e-mail-indstillinger"
+Please specify Event date and time,Angiv venligst event dato og tid
+Please specify doctype,Angiv DOCTYPE
+Please specify user,Angiv bruger
+Please specify which date field must be checked,Angiv hvilken dato felt skal kontrolleres
+Please specify which value field must be checked,Angiv hvilken værdi felt skal kontrolleres
+Please upload using the same template as download.,Upload ved hjælp af den samme skabelon som download.
+Plugin,Plugin
+Port,Port
+Post,Indlæg
+Post Publicly,Indlæg Offentligt
+Post Topic,Indlæg Emne
 Post already exists. Cannot add again!,Indlæg findes allerede. Kan ikke tilføje igen!
-Post does not exist. Please add post!,Fremstilling mod kundeordre
-Post to user,stoppe
-Posts,Er du sikker på at du vil slette den vedhæftede fil?
-Precision,mappe
-Precision should be between 1 and 6,Betaling Beløb
-Press Esc to close,fold
-Previous Record,Target Detaljer
-Primary,Auto-raise Materiale Request hvis mængde går under genbestille niveau i et lager
-Print,arrow-venstre
-Print Format,Indkøbskurv Indstillinger
-Print Format Help,"Henvis ikke af besøg, der kræves"
-Print Format Type,Tilføj flere linjer
-Print Format {0} does not exist,Google
-Print Format {0} is disabled,Tildelt mig
-Print Hide,Angivelser
-Print Settings,"Kan henvise linjen, hvis afgiften type er 'On forrige linje Beløb ""eller"" forrige linje alt """
-Print Style,Sr
-Print Style Preview,"""Fra dato"" skal være efter ""Til dato"""
-Print Width,Channel Partner
-"Print Width of the field, if the field is a column in a table",Time
+Post does not exist. Please add post!,Indlæg findes ikke. Tilføj venligst indlæg!
+Post to user,Indsend til bruger
+Posts,Indlæg
+Precision,Precision
+Precision should be between 1 and 6,Precision skal være mellem 1 og 6
+Press Esc to close,Tryk på Esc for at lukke
+Previous Record,Tidligere rekord
+Primary,Primær
+Print,Print
+Print Format,Print Format
+Print Format Help,Print Format Hjælp
+Print Format Type,Print Format Type
+Print Format {0} does not exist,Print Format {0} findes ikke
+Print Format {0} is disabled,Print Format {0} er deaktiveret
+Print Hide,Print Skjul
+Print Settings,Udskriftsindstillinger
+Print Style,Print Style
+Print Style Preview,Print Style Eksempel
+Print Width,Print Bredde
+"Print Width of the field, if the field is a column in a table","Print Bredde af feltet, hvis feltet er en søjle i en tabel"
 "Print with Letterhead, unless unchecked in a particular Document","Print med brevhoved, medmindre ukontrolleret i et bestemt dokument"
-Print...,Løbenummer {0} er allerede blevet modtaget
-Printing and Branding,"Dette skal kontrolleres, hvis stil indstillinger gælder"
-Priority,Kan ikke annullere fordi Medarbejder {0} er allerede godkendt til {1}
+Print...,Print ...
+Printing and Branding,Trykning og Branding
+Priority,Prioritet
 Private,Privat
-Properties,Lønseddel
-Property,"Brugere, der kan godkende en bestemt medarbejders orlov applikationer"
-Property Setter,"Et ikon fil med .ico forlængelse. Skal være 16 x 16 px. Genereres ved anvendelse af en favicon generator. [<a Href=""http://favicon-generator.org/"" target=""_blank""> favicon-generator.org </a>]"
-Property Setter overrides a standard DocType or Field property,Sæt venligst filtre
-Property Type,Tidligst
-Public,Juridiske Udgifter
-Published,Dette er et eksempel website automatisk genereret fra ERPNext
-Published On,Fraktion
-Published on website at: {0},Leveres
-Query,Materiale Request vare
-Query Options,Valgmuligheder for forespørgsel
-Query Report,Omdøb mange elementer ved at uploade en .csv-fil.
+Properties,Egenskaber
+Property,Ejendom
+Property Setter,Ejendom Setter
+Property Setter overrides a standard DocType or Field property,Ejendom Setter tilsidesætter en standard DocType eller Field ejendom
+Property Type,Ejendom Type
+Public,Offentlig
+Published,Udgivet
+Published On,Udgivet On
+Published on website at: {0},Udgivet den hjemmeside: {0}
+Query,Query
+Query Options,Query Options
+Query Report,Query rapport
 Query must be a SELECT,Query skal være en SELECT
-Quick Help for Setting Permissions,Hurtig hjælp til at ændre tilladelser
-Quick Help for User Permissions,Tilhører
-Re-open,Kommunikation
+Quick Help for Setting Permissions,Hurtig hjælp til at indstille tilladelser
+Quick Help for User Permissions,Hurtig hjælp til Bruger Tilladelser
+Re-open,Re-open
 Read,Læs
-Read Only,Short Bio
-Received,"Bly skal ændres, hvis Opportunity er lavet af Lead"
-Recipient,Værdi kan ikke ændres for {0}
-Recipients,Mængde kan ikke være en brøkdel i linje {0}
-Record does not exist,Inspiceres af
-Reduce indent (Shift+Tab),PR Detaljer
-Ref DocType,"Vi er meget ked af det, men den side, du er på udkig efter mangler (dette kunne være på grund af en tastefejl i adressen) eller flyttes."
-Ref Name,Chart navn
-Ref Type,Hvis du har salgsteam og udsalg Partners (kanalpartnere) de kan mærkes og vedligeholde deres bidrag i salgsprocessen aktivitet
+Read Only,Skrivebeskyttet
+Received,Modtaget
+Recipient,Modtager
+Recipients,Modtagere
+Record does not exist,Record findes ikke
+Reduce indent (Shift+Tab),Reducer led (Shift + Tab)
+Ref DocType,Ref DocType
+Ref Name,Ref Navn
+Ref Type,Ref Type
 Reference,Reference
-Reference DocName,Henvis til 'DokumentNavn'
-Reference DocType,Salg Register
-Reference Name,{0} {1} mod Bill {2} af {3}
-Reference Type,DocType som denne Arbejdsproces er relevant.
+Reference DocName,Henvisning DocName
+Reference DocType,Henvisning DocType
+Reference Name,Henvisning Navn
+Reference Type,Henvisning Type
 Refresh,Opdater
 Refresh Form,Opdater Form
-Refreshing...,Opdaterer ...
-Registered but disabled.,Valutakursen
-Registration Details Emailed.,Forventet Afslutning Dato kan ikke være mindre end Project startdato
-Reload Page,Reload Side
-Remove Bookmark,Indsæt linje
+Refreshing...,Forfriskende ...
+Registered but disabled.,Registreret men deaktiveret.
+Registration Details Emailed.,Registreringsoplysninger Emailet.
+Reload Page,Reload Page
+Remove Bookmark,Fjern bogmærke
 Remove Filter,Fjern filter
-Remove Link,Customer navn
-Remove all customizations?,Samlede ordre Anses
-Removed {0},Hjem
-Rename,Tillad Bill of Materials bør være ja. Fordi et eller mange aktive styklister stede denne post
-Rename many items by uploading a .csv file.,Website Route
-Rename {0},Journaloptegnelser
+Remove Link,Fjern link
+Remove all customizations?,Fjern alle tilpasninger?
+Removed {0},Fjernet {0}
+Rename,Omdøb
+Rename many items by uploading a .csv file.,Omdøb mange elementer ved at uploade en .csv-fil.
+Rename {0},Omdøb {0}
 Rename...,Omdøb ...
-Repeat On,Aktuel værdi
-Repeat Till,Materiale Request
-Repeat this Event,Begræns IP
-Replies,De samlede skatter og afgifter
+Repeat On,Gentag On
+Repeat Till,Gentag Till
+Repeat this Event,Gentag dette event
+Replies,Svar
 Report,Rapport
-Report Builder,Kunde Problem mod Serie nummer
-Report Builder reports are managed directly by the report builder. Nothing to do.,Producerede mængde
-Report Hide,Skjul rapport
-Report Manager,En Bly med denne e-mail-id skal eksistere
-Report Name,Fraværende
-Report Type,BOM {0} for vare nummer {1} i linje {2} er inaktive eller ikke oprettet
-Report an Issue,Følgeseddel Nødvendig
-Report cannot be set for Single types,"Efter tabel viser værdier, hvis elementer er sub - kontrakt. Disse værdier vil blive hentet fra føreren af ""Bill of Materials"" af sub - kontrakt poster."
-Report this issue,Varegruppe
-Report was not saved (there were errors),Fuld tid
+Report Builder,Report Builder
+Report Builder reports are managed directly by the report builder. Nothing to do.,Report Builder rapporter forvaltes direkte af rapporten bygherre. Intet at gøre.
+Report Hide,Rapport Skjul
+Report Manager,Rapportstyring
+Report Name,Rapportnavn
+Report Type,Rapporttype
+Report an Issue,Rapporter et problem
+Report cannot be set for Single types,Rapport kan ikke indstilles for Single typer
+Report this issue,Rapporter dette spørgsmål
+Report was not saved (there were errors),Rapport blev ikke gemt (der var fejl)
 Report {0} is disabled,Rapport {0} er deaktiveret
 Represents a User in the system.,Repræsenterer en bruger i systemet.
 Represents the states allowed in one document and role assigned to change the state.,"Repræsenterer de stater, der er tilladt i ét dokument og rolle, ændre tilstanden."
-Reqd,Frappe Framework
-Reset Password,Vi sælger denne Vare
-Reset Password Key,Komplet
-Reset Permissions for {0}?,Indstil kodeord
-Reset to defaults,Underentreprise
-Response,Integrer billede slideshows i websider.
-Restore Original Permissions,Gruppe eller Ledger
-Restrict IP,Serie Liste for denne registrering
-Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111),Feed Type
-Right,Vælg bruger eller DocType at starte.
-Role,Gruppe Node
-Role Name,Rolle navn
-Role Permissions,Tak
-Role Permissions Manager,Varelager Poster og GL Posteringer er reposted for de valgte købskvitteringer
-Role and Level,Gæst
-Role exists,Dropbox Access Secret
+Reqd,Reqd
+Reset Password,Nulstil adgangskode
+Reset Password Key,Nulstil adgangskode Key
+Reset Permissions for {0}?,Nulstil Tilladelser for {0}?
+Reset to defaults,Gendan standardindstillinger
+Response,Svar
+Restore Original Permissions,Gendannelse af oprindelige tilladelser
+Restrict IP,Begræns IP
+Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111),Begræns bruger fra denne IP eneste adresse. Flere IP-adresser kan tilføjes ved at adskille med komma. Accepterer også delvise IP-adresser lignende (111.111.111)
+Right,Højre
+Role,Rolle
+Role Name,Rolle Navn
+Role Permissions,Rolle Tilladelser
+Role Permissions Manager,Rolle Tilladelser manager
+Role and Level,Rolle og Level
+Role exists,Rolle eksisterer
 Roles,Roller
-Roles Assigned,Få ikke-afstemte Posteringer
-Roles Assigned To User,TDS (Kommissionen)
-Roles HTML,Obligatoriske felter er nødvendige i {0}
-Roles can be set for users from their User page.,KRE
-Root {0} cannot be deleted,Varer
-Row,Se Detaljer
-Row #{0}:,Projektmilepæle
-Row {0}: Not allowed to enable Allow on Submit for standard fields,Linje {0}: Ikke tilladt at aktivere Tillad på Send til standard felter
-Rules defining transition of state in the workflow.,Batched til fakturering
-"Rules for how states are transitions, like next state and which role is allowed to change state etc.",For {0} kan kun krediteringer være knyttet mod en anden debet post
-Run scheduled jobs only if checked,Rolle Tilladelser
-Run the report first,Google Analytics-id
-SMTP Server (e.g. smtp.gmail.com),"Råvarer, der leveres"
-Sales,Sender navn
-Sales Manager,Salg Prisliste
-Sales User,BOM rekursion: {0} kan ikke være forælder eller barn af {2}
+Roles Assigned,Roller
+Roles Assigned To User,Roller udsendes til brugervirksomheder
+Roles HTML,Roller HTML
+Roles can be set for users from their User page.,Kan indstilles roller for brugere fra deres brugerside.
+Root {0} cannot be deleted,Root {0} kan ikke slettes
+Row,Row
+Row #{0}:,Row # {0}:
+Row {0}: Not allowed to enable Allow on Submit for standard fields,Række {0}: Ikke tilladt at aktivere Tillad på Send til standard felter
+Rules defining transition of state in the workflow.,"Regler, der definerer overgang stat i arbejdsgangen."
+"Rules for how states are transitions, like next state and which role is allowed to change state etc.","Regler for, hvordan stater er overgange, ligesom næste tilstand og hvilken rolle får lov til at skifte tilstand etc."
+Run scheduled jobs only if checked,"Kør planlagte job, hvis markeret"
+Run the report first,Kør rapporten først
+SMTP Server (e.g. smtp.gmail.com),SMTP-server (f.eks smtp.gmail.com)
+Sales,Salg
+Sales Manager,Sales Manager
+Sales User,Salg Bruger
 Same file has already been attached to the record,Samme fil er allerede knyttet til posten
-Sample,Bank Saldoopgørelsen
-Saturday,Advarsel: Lad ansøgning indeholder følgende blok datoer
-Save,Indlæg Emne
+Sample,Prøve
+Saturday,Lørdag
+Save,Gem
 Saved!,Gemt!
-Scheduler Log,Din regnskabsår slutter den
-Script,Feltnavn ikke ændret til Tilpasset felt
-Script Report,Roller udsendes til brugervirksomheder
-Script Type,Script type
-Script to attach to all web pages.,Indsæt script i alle web dokumenter
+Scheduler Log,Scheduler Log
+Script,Script
+Script Report,Script Report
+Script Type,Script Type
+Script to attach to all web pages.,Script til at knytte til alle websider.
 Search,Søg
-Search Fields,Venligst setup nummerering serie til Deltagelse via Setup> Nummerering Series
-Search Fields should contain valid fieldnames,Rådgivning
+Search Fields,Søgefelter
+Search Fields should contain valid fieldnames,Søgefelter bør indeholde gyldige fieldnames
 Search Filter,Søg Filter
-Search Link,Søge-link
-Search in a document type,Issue Detaljer
+Search Link,Søg Link
+Search in a document type,Søg i en dokumenttype
 Search or type a command,Søg eller indtast en kommando
-Section Break,"Skat Kategori kan ikke være ""Værdiansættelse"" eller ""Værdiansættelse og alt« som alle elementer er ikke-lagervarer"
-Security,Globale indstillinger
-Security Settings,QRkode
-Select,Løbenummer {0} ikke fundet
-Select All,Samlet point for alle mål skal være 100. Det er {0}
-Select Attachments,Denne formular har ikke noget input
-Select DocType,Kræves af
-Select Document Type,Vælg type
-Select Document Type or Role to start.,Konto {0}: Du kan ikke tildele sig selv som forælder konto
+Section Break,Sektionsskift
+Security,Sikkerhed
+Security Settings,Sikkerhedsindstillinger
+Select,Vælg
+Select All,Vælg alt
+Select Attachments,Vælg Tilbehør
+Select DocType,Vælg DocType
+Select Document Type,Vælg Dokumenttype
+Select Document Type or Role to start.,Vælg dokumenttype eller rolle at starte.
 Select Document Types,Vælg dokumenttyper
-Select Document Types to set which User Permissions are used to limit access.,Sæt som standard
-Select Print Format,Forfaldne:
-Select Report Name,Fra Pakke No.
-Select Role,Ignorer
-Select To Download:,Download valg:
-Select Type,Indtast Produktion vare først
+Select Document Types to set which User Permissions are used to limit access.,Vælg dokumenttyper at indstille hvilke Bruger Tilladelser til at begrænse adgangen.
+Select Print Format,Vælg Udskriv Format
+Select Report Name,Vælg Rapportnavn
+Select Role,Vælg Rolle
+Select To Download:,Vælger at overføre:
+Select Type,Vælg type
 Select User,Vælg bruger
-Select User or DocType to start.,I alt Fast Cost
-Select a Banner Image first.,Produktion Mængde
-Select an image of approx width 150px with a transparent background for best results.,"For at tildele problemet ved at bruge knappen ""Tildel"" i sidebjælken."
-"Select modules to be shown (based on permission). If hidden, they will be hidden for all users.",Priser Regel
-Select or drag across time slots to create a new event.,0 - Udkast; 1 - Tilmeldt; 2 - Annulleret
-"Select target = ""_blank"" to open in a new page.",Quality Inspection Reading
-Select the label after which you want to insert new field.,Angiv en standard værdi
-Select {0},Der er ikke nok orlov balance for Fravær Type {0}
-Send,Party Account
-Send Alert On,Beskeder fra alle
+Select User or DocType to start.,Vælg bruger eller DocType at starte.
+Select a Banner Image first.,Vælg et banner billede først.
+Select an image of approx width 150px with a transparent background for best results.,Vælg et billede på ca bredde 150px med en gennemsigtig baggrund for de bedste resultater.
+"Select modules to be shown (based on permission). If hidden, they will be hidden for all users.","Vælg moduler, der skal vises (baseret på tilladelse). Hvis skjult, vil de være skjult for alle brugere."
+Select or drag across time slots to create a new event.,Vælg eller trække hen tidsintervaller at oprette en ny begivenhed.
+"Select target = ""_blank"" to open in a new page.","Vælg target = ""_blank"" for at åbne i en ny side."
+Select the label after which you want to insert new field.,"Vælg den etiket, hvorefter du vil indsætte nyt felt."
+Select {0},Vælg {0}
+Send,Sende
+Send Alert On,Send Alert On
 Send As Email,Send som e-mail
-Send Email,E-mail-indstillinger for udgående og indgående e-mails.
-Send Email Print Attachments as PDF (Recommended),Sub forsamlinger
-Send Me A Copy,Imod Journal labels {0} ikke har nogen uovertruffen {1} indgang
-Send Print as PDF,Indtast mængde for vare nummer {0}
+Send Email,Send Email
+Send Email Print Attachments as PDF (Recommended),Send Email Print Vedhæftede som PDF (anbefales)
+Send Me A Copy,Send mig en kopi
+Send Print as PDF,Send Print som PDF
 Send alert if date matches this field's value,"Send advarsel, hvis dato kampe denne feltets værdi"
 Send alert if this field's value changes,"Send advarsel, hvis denne feltets værdiændringer"
-Send an email reminder in the morning,Lad Blokeret
-Send download link of a recent backup to System Managers,Brugere med denne rolle får lov til at sætte indefrosne konti og oprette / ændre bogføring mod indefrosne konti
-Send enquiries to this email address,Udstilling
-Sender,Opgave
-Sent,ToDo
-Sent Mail,Der var ingen opdateringer i de valgte for denne Digest poster.
-Sent Quotation,Telefon udgifter
-Sent or Received,Website Slideshow
-Series,Reading 3
-Series {0} already used in {1},I ORD
-Server,Upload
-Server & Credentials,Tilpassede HTML-skabeloner til udskrivning transctions.
-Server Error: Please check your server logs or contact tech support.,Aldring Baseret på
-Session Expired. Logging you out,eye-close
-Session Expiry,Dokument Beskrivelse
-Session Expiry in Hours e.g. 06:00,Indtast Planlagt Antal for vare nummer {0} på linjen {1}
-Session Expiry must be in format {0},Fold skal komme før en mærket sektionsskift
-Set,fjern-cirkel
-Set Banner from Image,{0} '{1}' ikke i regnskabsåret {2}
-Set Link,Sendt eller modtaget
+Send an email reminder in the morning,Send en e-mail påmindelse om morgenen
+Send download link of a recent backup to System Managers,Send downloadlink af en nyere sikkerhedskopi til System Managers
+Send enquiries to this email address,Send forespørgsler til denne e-mail-adresse
+Sender,Sender
+Sent,Sendt
+Sent Mail,Sendte e-mails
+Sent Quotation,Sendt Citat
+Sent or Received,Sendt eller modtaget
+Series,Series
+Series {0} already used in {1},Series {0} allerede anvendt i {1}
+Server,Server
+Server & Credentials,Server & legitimationsoplysninger
+Server Error: Please check your server logs or contact tech support.,Server Error: Kontroller dine serverlogfiler eller kontakt teknisk support.
+Session Expired. Logging you out,Session udløbet. Logger dig ud
+Session Expiry,Session Udløb
+Session Expiry in Hours e.g. 06:00,Session Udløb i Hours fx 06:00
+Session Expiry must be in format {0},Session Udløb skal være i formatet {0}
+Set,Sæt
+Set Banner from Image,Set Banner fra billede
+Set Link,Indstil Link
 Set Login and Password if authentication is required.,"Set login og adgangskode, hvis godkendelse er påkrævet."
 Set Only Once,Angives én gang
-Set Password,År Startdato
-Set Permissions on Document Types and Roles,Brugernavn
-Set Permissions per User,{0} {1} findes allerede
+Set Password,Indstil kodeord
+Set Permissions on Document Types and Roles,Angiv tilladelser på dokumenttyper og roller
+Set Permissions per User,Angiv tilladelser per bruger
 Set User Permissions,Indstil brugertilladelser
-Set Value,Forventet leveringsdato kan ikke være før kundeordre Dato
-"Set default format, page size, print style etc.","For nemheds af kunder, kan disse koder bruges i trykte formater som fakturaer og følgesedler"
-Set non-standard precision for a Float or Currency field,Pinkode
-Set numbering series for transactions.,RGT
-Set outgoing mail server.,Felt Beskrivelse
+Set Value,Set Value
+"Set default format, page size, print style etc.","Sæt standard format, sidestørrelse, print stil etc."
+Set non-standard precision for a Float or Currency field,Sæt ikke-standard præcision for en Float eller valuta felt
+Set numbering series for transactions.,Sæt nummerering serie for transaktioner.
+Set outgoing mail server.,Indstil udgående mailserver.
 Set the display label for the field,Indstil displayet etiket for feltet
-"Set your background color, font and image (tiled)",Aflyste
-Settings,Materiale Request For Lager
-Settings for About Us Page.,Balance
-Settings for Contact Us Page,Arbejdsproces Document State
-Settings for Contact Us Page.,Installation Bemærk vare
-Settings for the About Us Page,Indstillinger for os Side
+"Set your background color, font and image (tiled)","Indstil din baggrundsfarve, skrifttype og billede (flisebelagt)"
+Settings,Indstillinger
+Settings for About Us Page.,Indstillinger for Om os siden.
+Settings for Contact Us Page,Indstillinger for Kontakt os Side
+Settings for Contact Us Page.,Indstillinger for Kontakt os siden.
+Settings for the About Us Page,Indstillinger for os Page
 Setup,Opsætning
-Setup > User,Salg Person
-Setup > User Permissions Manager,Aktiv: Vil udtrække e-mails fra
-Setup Email Alert based on various criteria.,Tilbud vare
+Setup > User,Opsætning> Bruger
+Setup > User Permissions Manager,Opsætning> Bruger Tilladelser manager
+Setup Email Alert based on various criteria.,Setup E-mail Alert baseret på forskellige kriterier.
 Setup of fonts and background.,Opsætning af skrifttyper og baggrund.
-"Setup of top navigation bar, footer and logo.",Liste
-Short Bio,Forventet dato kan ikke være før Material Request Dato
-Short Name,"Job profil, kvalifikationer kræves etc."
-Shortcut,Nettoløn kan ikke være negativ
-Shortcuts,stjerne-tom
-Show / Hide Modules,Bold (Ctrl / Cmd + B)
-Show Print First,Post Graduate
-Show Tags,Til Value
-Show User Permissions,Arbejdsproces State Felt
-Show a description below the field,År Lukket
-Show or Hide Modules,Fjernet {0}
+"Setup of top navigation bar, footer and logo.","Opsætning af øverste navigationslinje, footer og logo."
+Short Bio,Short Bio
+Short Name,Kort navn
+Shortcut,Genvej
+Shortcuts,Genveje
+Show / Hide Modules,Vis / Skjul moduler
+Show Print First,Vis Print First
+Show Tags,Vis Tags
+Show User Permissions,Vis brugertilladelser
+Show a description below the field,Vis en beskrivelse under feltet
+Show or Hide Modules,Vis eller skjul moduler
 Show or hide modules globally.,Vis eller skjul moduler globalt.
-Show rows with zero values,E-mail Alert Modtagere
-Show tags,Blog Kategori
+Show rows with zero values,Vis rækker med nul værdier
+Show tags,Vis tags
 Show this field as title,Vis dette felt som titel
-Sidebar,"Hvis denne vejledning, hvor ikke nyttigt, skal du tilføje i dine forslag på GitHub Issues."
-Sidebar Items,DocType kan ikke slås sammen
-Sidebar Links for Home Page only,"Vedligeholdelse Besøg {0} skal annulleres, før den annullerer denne kundeordre"
-Single Post (article).,Indgående
+Sidebar,Sidebar
+Sidebar Items,Sidebar varer
+Sidebar Links for Home Page only,Sidebar Links for kun Home Page
+Single Post (article).,Single Post (article).
 Single Types have only one record no tables associated. Values are stored in tabSingles,"Enkelte typer har kun én post ingen tabeller, der er forbundet. Værdierne lagres i tabSingles"
 Slideshow,Slideshow
-Slideshow Items,Begivenhed Bruger
-Slideshow Name,Aerospace
-Slideshow like display for the website,Foretrukne Faktureringsadresse
-Small Text,"»Forventet startdato"" kan ikke være større end 'Forventet slutdato'"
-Social Login Keys,Form for betaling
-Solid background color (default light gray),Kontant eller bankkonto er obligatorisk for at gøre betaling post
-Sorry we were unable to find what you were looking for.,"{0} serienumre, der kræves for vare nummer {0}. Kun {0} billede."
-Sorry you are not permitted to view this page.,tilfældig
-Sort By,"Gem venligst dokumentet, før generere vedligeholdelsesplan"
-Sort Field,Sortering
-Sort Order,Import Log
-Specify a default value,Projekt Value
-Specify the value of the field,Vælg venligst præfiks først
+Slideshow Items,Dias Varer
+Slideshow Name,Slideshow Name
+Slideshow like display for the website,Slideshow lignende skærm til hjemmesiden
+Small Text,Lille tekst
+Social Login Keys,Social Login Keys
+Solid background color (default light gray),Solid baggrundsfarve (standard lysegrå)
+Sorry we were unable to find what you were looking for.,"Beklager vi kunne ikke finde det, du søgte."
+Sorry you are not permitted to view this page.,"Beklager, du har ikke tilladelse til at se denne side."
+Sort By,Sorter efter
+Sort Field,Sort Field
+Sort Order,Sorteringsrækkefølge
+Specify a default value,Angiv en standard værdi
+Specify the value of the field,Angiv værdien af feltet
 Sr No,Sr Nej
 Standard,Standard
-Standard Print Format cannot be updated,Fra dato
-Standard Reply,Sidebar
-Standard Reports,Vælg Rapportnavn
-Standard replies to common queries.,Upload HTML
-Start Report For,Kundedatabase.
-Start entering data below this line,Sidde stramt mens systemet er ved at blive setup. Det kan tage et øjeblik.
-Starts on,Fra Valuta
-State,Kan ikke producere mere vare nummer {0} end kundeordre mængde {1}
+Standard Print Format cannot be updated,Standard Print Format kan ikke opdateres
+Standard Reply,Standard Svar
+Standard Reports,Standardrapporter
+Standard replies to common queries.,Standard svar på ofte stillede spørgsmål.
+Start Report For,Start Rapport for
+Start entering data below this line,Begynd at indtaste data under denne linje
+Starts on,Starter på
+State,Stat
 States,Stater
-"States for workflow (e.g. Draft, Approved, Cancelled).","Proces-status (f.eks Kladde, Godkendt, Annulleret)."
-Status,Send fra
+"States for workflow (e.g. Draft, Approved, Cancelled).","Stater for workflow (f.eks Draft, Godkendt, Annulleret)."
+Status,Status
 Step 1: Set the name and save.,Trin 1: Sæt navn og gemme.
-Step 2: Set Letterhead content.,Test email id
-Style,Tidsregistrering
-Style Settings,Opret Modtager List
-"Style represents the button color: Success - Green, Danger - Red, Inverse - Black, Primary - Dark Blue, Info - Light Blue, Warning - Orange",Ingen tilladelse til at læse {0}
-Sub-domain provided by erpnext.com,"Hvis markeret, vil hjemmesiden være standard varegruppe for hjemmesiden."
-Subdomain,Email Signature
-Subject,Ingen adresse tilføjet endnu.
-Submit,Løbenummer kræves for Serialized vare nummer {0}
+Step 2: Set Letterhead content.,Trin 2: Sæt brevhoved indhold.
+Style,Stil
+Style Settings,Style-indstillinger
+"Style represents the button color: Success - Green, Danger - Red, Inverse - Black, Primary - Dark Blue, Info - Light Blue, Warning - Orange","Style repræsenterer knap farve: Succes - Green, Danger - Rød, Inverse - Sort, Primary - Mørkeblå, Info - Lyseblå, Advarsel - Orange"
+Sub-domain provided by erpnext.com,"Sub-domæne, som erpnext.com"
+Subdomain,Subdomæne
+Subject,Emne
+Submit,Indsend
 Submit an Issue,Indsend en Issue
 Submitted,Tilmeldt
-Submitted Document cannot be converted back to draft. Transition row {0},oprettet dokument kan ikke konverteres tilbage til at udarbejde. Overgang linjen {0}
-Success,Brev
-Success Message,Succes Meddelelse
-Success URL,Dato for anmeldelse
+Submitted Document cannot be converted back to draft. Transition row {0},Indsendt dokument kan ikke konverteres tilbage til at udarbejde. Overgang rækken {0}
+Success,Succes
+Success Message,Succes Message
+Success URL,Succes URL
 Suggestion,Forslag
 Sunday,Søndag
 Support Manager,Support manager
 Support Team,Support Team
-Switch to Website,Kundeordre
+Switch to Website,Skift til Website
 Syntax error in Jinja template,Syntaks fejl i Jinja skabelon
-System,Ingen bogføring i de følgende lagre
-System Manager,Indirekte omkostninger
-System Settings,Vælg Firma ...
-System User,kalender
-System and Website Users,Sync Support mails
-System generated mails will be sent from this email id.,System genererede mails vil blive sendt fra denne email-id.
-Table,"Der opstod en fejl. En sandsynlig årsag kan være, at du ikke har gemt formularen. Kontakt venligst support@erpnext.com hvis problemet fortsætter."
-Table {0} cannot be empty,træk
-Tag,Standard købsomkostninger center
-Tag Name,`Frys Lagre Ældre Than` bør være mindre end% d dage.
-Tags,TDS (renter)
-Tahoma,"Den dag (e), hvor du ansøger om orlov er ferie. Du skal ikke søge om orlov."
-Target,Punktafgifter Edu Cess 2
-Tasks,Arbejdsproces Handling
+System,System
+System Manager,System Manager
+System Settings,Systemindstillinger
+System User,System Bruger
+System and Website Users,System og hjemmeside brugere
+System generated mails will be sent from this email id.,System genererede mails vil blive sendt fra denne e-mail-id.
+Table,Bord
+Table {0} cannot be empty,Tabel {0} kan ikke være tom
+Tag,Tag
+Tag Name,Tag Name
+Tags,Tags
+Tahoma,Tahoma
+Target,Target
+Tasks,Opgaver
 Team Members,Team Members
-Team Members Heading,Receiver er tom. Opret Modtager List
+Team Members Heading,Team Members Udgifts-
 Template Path,Skabelon Path
-Test Runner,Vælg Medarbejder for hvem du opretter vurderingen.
-Text,Kvittering for udlagte indkøb
+Test Runner,Test Runner
+Text,Tekst
 Text Align,Tekst Juster
-Text Editor,Transfer Materiale
-Text to be displayed for Link to Web Page if this form has a web page. Link route will be automatically generated based on `page_name` and `parent_website_route`,Du kan ikke installere denne app
-Thank you,Alle kontakter.
+Text Editor,Text Editor
+Text to be displayed for Link to Web Page if this form has a web page. Link route will be automatically generated based on `page_name` and `parent_website_route`,"Tekst, der skal vises for Link til webside, hvis denne form har en webside. Link rute vil blive genereret automatisk ud fra `page_name` og` parent_website_route`"
+Thank you,Tak
 Thank you for your message,Tak for din besked
-The name of your company / website as you want to appear on browser title bar. All pages will have this as the prefix to the title.,Aktiver Kommentarer
-The system provides many pre-defined roles. You can add new roles to set finer permissions.,Kan ikke åbne eksempel når dens {0} er åben
+The name of your company / website as you want to appear on browser title bar. All pages will have this as the prefix to the title.,"Navnet på din virksomhed / hjemmeside, som du ønsker skal vises på browser titellinjen. Alle sider vil have dette som præfiks til titlen."
+The system provides many pre-defined roles. You can add new roles to set finer permissions.,Systemet giver mange foruddefinerede roller. Du kan tilføje nye roller for at indstille finere tilladelser.
 "The task %s, that you assigned to %s, has been closed by %s.","Opgaven% s, som du har tildelt til% s er blevet lukket af% s."
-"The task %s, that you assigned to %s, has been closed.",Søg i en dokumenttype
-Then By (optional),Projekt Costing
+"The task %s, that you assigned to %s, has been closed.","Opgaven% s, som du har tildelt til% s, er blevet lukket."
+Then By (optional),Derefter ved (valgfrit)
 There can be only one Fold in a form,Der kan kun være én Fold i en form
-There should remain at least one System Manager,"Kontroller, primær adresse"
-There were errors,Gem venligst dokumentet før opgaven
-There were errors while sending email. Please try again.,"Udskift en bestemt BOM i alle andre styklister, hvor det bruges. Det skal erstatte det gamle BOM link, opdatere omkostninger og regenerere ""BOM Explosion vare"" tabel som pr ny BOM"
-"There were some errors setting the name, please contact the administrator",Vis Print First
-"These permissions will apply for all transactions where the permitted record is linked. For example, if Company C is added to User Permissions of user X, user X will only be able to see transactions that has company C as a linked value.",By / Town
-These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,Reserveret Lager i kundeordre / færdigvarer Lager
-"These will also be set as default values for those links, if only one such permission record is defined.","Disse vil blive sat som standard værdier for disse forbindelser, hvis kun én tilladelse er defineret."
-Third Party Authentication,Overgangsregler
+There should remain at least one System Manager,Der bør være mindst én System Manager
+There were errors,Der opstod fejl
+There were errors while sending email. Please try again.,Der opstod fejl under afsendelse af e-mail. Prøv venligst igen.
+"There were some errors setting the name, please contact the administrator","Der var nogle fejl indstilling navnet, skal du kontakte administratoren"
+"These permissions will apply for all transactions where the permitted record is linked. For example, if Company C is added to User Permissions of user X, user X will only be able to see transactions that has company C as a linked value.","Disse tilladelser vil gælde for alle transaktioner, hvor den tilladte rekord er forbundet med. For eksempel, hvis Virksomhed C sættes til Bruger Tilladelser for bruger X, bruger X vil kun kunne se transaktioner, der har selskab C som tilknyttet værdi."
+These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,"Disse værdier vil automatisk blive opdateret i transaktioner, og også vil være nyttigt at begrænse tilladelser for denne bruger om transaktioner, der indeholder disse værdier."
+"These will also be set as default values for those links, if only one such permission record is defined.","Disse vil også blive valgt som standard værdier for disse forbindelser, hvis kun en sådan tilladelse rekord er defineret."
+Third Party Authentication,Tredjepartscertificering Authentication
 "This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>
 myfield
 eval:doc.myfield=='My Value'<br>
-eval:doc.age>18",Row #
-This form does not have any input,Stil
-This goes above the slideshow.,"Vedligeholdelsesplan ikke genereres for alle poster. Klik på ""Generer Plan '"
-This is PERMANENT action and you cannot undo. Continue?,"Dette er permanent handling, og den kan ikke fortrydes. Fortsæt?"
-"This is a standard format. To make changes, please copy it make make a new format.",Navn er påkrævet
-This is permanent action and you cannot undo. Continue?,Ikon
-This must be checked if Style Settings are applicable,PO Dato
-This role update User Permissions for a user,Denne rolle kan ændre tilladelser for en bruger
+eval:doc.age>18","Dette felt vises kun, hvis feltnavn defineres her har værdi eller reglerne er sande (eksempler): <br> 
+ myfield 
+ EVAL: doc.myfield == 'My God ""<br> 
+ EVAL: doc.age> 18"
+This form does not have any input,Denne formular har ikke noget input
+This goes above the slideshow.,Dette går over diasshowet.
+This is PERMANENT action and you cannot undo. Continue?,"Dette er permanent handling, og du kan ikke fortryde. Fortsæt?"
+"This is a standard format. To make changes, please copy it make make a new format.","Dette er en standard format. Hvis du vil foretage ændringer, skal du kopiere det gør gøre et nyt format."
+This is permanent action and you cannot undo. Continue?,"Dette er permanent handling, og du kan ikke fortryde. Fortsæt?"
+This must be checked if Style Settings are applicable,"Dette skal kontrolleres, hvis stil indstillinger gælder"
+This role update User Permissions for a user,Denne rolle opdatering Bruger Tilladelser for en bruger
 Thursday,Torsdag
-Tile,Bruger Tilladelser
-Time,% Milepæle Opnået
-Time Zone,"Oprette og administrere daglige, ugentlige og månedlige email fordøjer."
-Timezone,Redigering Row
+Tile,Tile
+Time,Tid
+Time Zone,Time Zone
+Timezone,Tidszone
 Title,Titel
 Title / headline of your page,Titel / overskrift på din side
 Title Case,Titel Case
-Title Field,Telefonsalg
-Title Prefix,Alle Medarbejder (Active)
-Title field must be a valid fieldname,Prøve
-Title is required,For {0} kan kun debiteringer knyttes mod en anden kredit post
-To,Series er obligatorisk
-To Do,Grundlæggende Info
-"To format columns, give column labels in the query.",Alle adresser.
+Title Field,Titel Field
+Title Prefix,Titel præfiks
+Title field must be a valid fieldname,Titel felt skal være en gyldig feltnavn
+Title is required,Titel er påkrævet
+To,Til
+To Do,To Do
+"To format columns, give column labels in the query.","Hvis du vil formatere kolonner, giver kolonneetiketter i forespørgslen."
 "To give acess to a role for only specific records, check the 'Apply User Permissions'. User Permissions are used to limit users with such role to specific records.","At give acess til en rolle for kun specifikke poster, skal du kontrollere ""Anvend User Permissions"". Bruger Tilladelser til at begrænse brugere med sådan rolle til specifikke poster."
 "To run a test add the module name in the route after '{0}'. For example, {1}",Hvis du vil køre en test tilføje modulnavnet i ruten efter '{0}'. For eksempel {1}
-ToDo,Excise Duty @ 8
-Too many writes in one request. Please send smaller requests,Kan ikke åbne vedhæftede fil. Prøv venligst igen.
-Top Bar,Oprettet
+ToDo,ToDo
+Too many writes in one request. Please send smaller requests,Alt for mange skriver i en anmodning. Send venligst mindre anmodninger
+Top Bar,Top Bar
 Top Bar Background,Top Bar Baggrund
-Top Bar Item,Påfør brugertilladelser i disse dokumenttyper
-Top Bar Items,Elementer i top-bjælke
-Top Bar Text,Anmodning om.
-Top Bar text and background is same color. Please change.,Feltnavn kræves i linje {0}
-Transaction,Registrering
-Transition Rules,Meddelelse (dage)
-Tuesday,Efternavn
-Tweet will be shared via your user account (if specified),Konto {0} ikke fundet
-Twitter Share,Indtægt / omkostning
+Top Bar Item,Top Bar Item
+Top Bar Items,Top bar elementer
+Top Bar Text,Top Bar tekst
+Top Bar text and background is same color. Please change.,Top Bar tekst og baggrund er samme farve. Venligst ændre sig.
+Transaction,Transaktion
+Transition Rules,Overgangsregler
+Tuesday,Tirsdag
+Tweet will be shared via your user account (if specified),Tweet vil blive delt via din brugerkonto (hvis angivet)
+Twitter Share,Twitter Del
 Twitter Share via,Twitter Del via
 Type,Type
 Type:,Type:
-"Unable to display this tree report, due to missing data. Most likely, it is being filtered out due to permissions.",Indkøb Common
-Unable to find attachment {0},"Når du ændre et dokument, efter Annuller og gemme den, vil den få et nyt nummer, der er en version af det gamle nummer."
+"Unable to display this tree report, due to missing data. Most likely, it is being filtered out due to permissions.",Kan ikke vise dette træ rapport på grund af manglende data. Mest sandsynligt er det blevet filtreret ud på grund af tilladelser.
+Unable to find attachment {0},Kan ikke finde fastgørelse {0}
 Unable to load: {0},Kan ikke indlæse: {0}
-Unable to open attached file. Please try again.,Titel er påkrævet
-Unable to send emails at this time,ikon
+Unable to open attached file. Please try again.,Kan ikke åbne vedhæftede fil. Prøv venligst igen.
+Unable to send emails at this time,Kan ikke sende e-mails på dette tidspunkt
 Unknown Column: {0},Ukendt Kolonne: {0}
-"Unknown file encoding. Tried utf-8, windows-1250, windows-1252.",Organisation gren master.
-Unread Messages,"Skift feltegenskaber (skjul, skrivebeskyttet, tilladelse etc.)"
+"Unknown file encoding. Tried utf-8, windows-1250, windows-1252.","Ukendt fil kodning. Prøvede utf-8, Windows-1250, vinduer-1252."
+Unread Messages,Ulæste meddelelser
 Unsubscribe,Afmeld
 Unsubscribed,Afmeldt
 Upcoming Events for Today,Kommende arrangementer i dag
-Update,vare navngivning Af
-Update Field,Opdatering Felt
-Update Value,brand
-Updated,Advance beløb
-Upload,Tryk på Esc for at lukke
-Upload Attachment,Har Løbenummer
-Upload CSV file containing all user permissions in the same format as Download.,Sektionsskift
-Upload User Permissions,Vedligeholdelsesplaner
-Upload a file,Indstil standard Kontant eller bankkonto i form for betaling {0}
+Update,Opdatering
+Update Field,Opdatering Field
+Update Value,Opdatering Value
+Updated,Opdateret
+Upload,Upload
+Upload Attachment,Upload Attachment
+Upload CSV file containing all user permissions in the same format as Download.,"Upload CSV-fil, der indeholder alle brugerrettigheder i samme format som download."
+Upload User Permissions,Upload brugertilladelser
+Upload a file,Upload en fil
 Upload and Import,Upload og Import
-Upload and Sync,Godtgørelse Procent
+Upload and Sync,Upload og Sync
 Uploading...,Uploader ...
-Upvotes,Antal til bestilling
-Use TLS,PL eller BS
-Use the field to filter records,Genbestilling Level
-User,Køb Rabatter
-User Cannot Create,Andre
-User Cannot Search,Leverandør (Betales) Konto
-User Defaults,Bemærk: Konto {0} indtastet flere gange
-User ID of a Blogger,Udstedelsesdagen
-User ID of a blog writer.,Series opdateret
+Upvotes,Upvotes
+Use TLS,Brug TLS
+Use the field to filter records,Brug feltet for at filtrere poster
+User,Bruger
+User Cannot Create,Brugeren kan ikke oprette
+User Cannot Search,Brugeren kan ikke søge
+User Defaults,Bruger standardindstillinger
+User ID of a Blogger,Bruger ID for en Blogger
+User ID of a blog writer.,Bruger ID på en blog skribent.
 User Image,Bruger Billede
 User Permission,Bruger Tilladelse
-User Permission DocTypes,Kommunikationsmedie
-User Permissions,"""Forældre"" angiver den overordnede tabel i hvortil kommer denne linje"
-User Permissions Manager,Løn Struktur
-User Roles,"Den dato, hvor næste faktura vil blive genereret. Det genereres på send.
-"
-User Tags,'Opdater Varelager «for Salg Invoice {0} skal ændres
-User Type,Lager og reference
+User Permission DocTypes,Brugerens tilladelse doctypes
+User Permissions,Bruger Tilladelser
+User Permissions Manager,Bruger Tilladelser manager
+User Roles,Bruger Roller
+User Tags,Bruger Tags
+User Type,Bruger type
 "User Type ""System User"" can access Desktop. ""Website User"" can only be logged into the website and portal pages. ",
-User Vote,"Listeelementer, der danner pakken."
-User editable form on Website.,Tilpasning af formularer på hjemmeside.
-User not allowed to delete {0}: {1},"Den dag i måneden, hvor auto faktura vil blive genereret f.eks 05, 28 osv"
+User Vote,Bruger Stem
+User editable form on Website.,Bruger redigerbare formular på hjemmesiden.
+User not allowed to delete {0}: {1},Ikke tilladt brugeren at slette {0}: {1}
 User permissions should not apply for this Link,Bruger tilladelser bør ikke gælde for denne link
 User {0} cannot be deleted,Bruger {0} kan ikke slettes
-User {0} cannot be disabled,Fulde navn
-User {0} cannot be renamed,Kan ikke vende tilbage mere end {0} for vare nummer {1}
+User {0} cannot be disabled,Bruger {0} kan ikke deaktiveres
+User {0} cannot be renamed,Bruger {0} kan ikke omdøbes
 User {0} does not exist,Bruger {0} findes ikke
-UserRole,Opret lønseddel
-Users,Angiv værdien af feltet
-Users and Permissions,Indgående sats
-Users with role {0}:,Gentag Kunde Omsætning
+UserRole,UserRole
+Users,Brugere
+Users and Permissions,Brugere og tilladelser
+Users with role {0}:,Brugere med rollen {0}:
 Valid Login id required.,Gyldig login id påkrævet.
-Valid email and name required,En gyldig e-mail og navn er nødvendigt
-Value,"Nyhedsbreve til kontakter, fører."
-Value Change,Få elementer fra Indkøb Kvitteringer
-Value Changed,"Angive standardværdier som Firma, Valuta, indeværende finansår, etc."
-Value cannot be changed for {0},trash
-Value for a check field can be either 0 or 1,Værdi for et check felt kan være enten 0 eller 1
+Valid email and name required,Gyldig e-mail og navn påkrævet
+Value,Value
+Value Change,Value Change
+Value Changed,Value Ændret
+Value cannot be changed for {0},Værdi kan ikke ændres for {0}
+Value for a check field can be either 0 or 1,Værdi for en check felt kan være enten 0 eller 1
 Value missing for,Værdi mangler for
 Verdana,Verdana
 Verify Your Account,Bekræft din konto
 Version,Version
 Version restored,Version gendannet
-View Details,Forums
-View it in your browser,Kunde navngivning Af
-Visit,"Hvis du angiver denne, vil denne konto kommer i en drop-down under den valgte forælder."
+View Details,Se Detaljer
+View it in your browser,Se den i din browser
+Visit,Besøg
 Warning,Advarsel
-Warning: This Print Format is in old style and cannot be generated via the API.,"Beregnes automatisk, når du indtaster detaljerne"
-"We are very sorry for this, but the page you are looking for is missing (this could be because of a typo in the address) or moved.",Import lykkedes!
-Web Form,{0} er obligatorisk
-Web Form Field,Brokerage
+Warning: This Print Format is in old style and cannot be generated via the API.,Advarsel: Dette Print Format er i gammel stil og ikke kan genereres via API.
+"We are very sorry for this, but the page you are looking for is missing (this could be because of a typo in the address) or moved.","Vi er meget ked af det, men den side, du er på udkig efter mangler (dette kunne være på grund af en tastefejl i adressen) eller flyttes."
+Web Form,Web Form
+Web Form Field,Web Form Field
 Web Form Fields,Felter webformular
-Web Page,Bestil Type
+Web Page,Webside
 Web Page Link Text,Hjemmeside link Tekst
-Web Site Forum Page.,Debitering til
+Web Site Forum Page.,Web site Forum Side.
 Website,Websted
-Website Group,Købsfaktura
-Website Manager,Opdatering Value
-Website Route,"Angiv en liste over områder, hvor der er dette Skatter Skabelon er gyldig"
-Website Route Permission,Website-rute adgangsregel
-Website Script,Tag
-Website Settings,Betaling Type
-Website Slideshow,Top Bar
-Website Slideshow Item,Standard Lager
-Website URL,indkøbs-vogn
-Website User,Kvinde
-Wednesday,Modtager List
+Website Group,Website Group
+Website Manager,Website manager
+Website Route,Website Route
+Website Route Permission,Website Rute Tilladelse
+Website Script,Website Script
+Website Settings,Hjemmesideindstillinger
+Website Slideshow,Website Slideshow
+Website Slideshow Item,Website Slideshow Item
+Website URL,Website URL
+Website User,Website Bruger
+Wednesday,Onsdag
 Welcome email sent,Velkommen e-mail sendt
-"When you Amend a document after Cancel and save it, it will get a new number that is a version of the old number.",Target lageret er obligatorisk for linjen {0}
-While uploading non English files ensure that the encoding is UTF-8.,Fra vedligeholdelsesplan
-Width,Kommentarer
-Width of the input box,Footer tekst
-Will be used in url (usually first name).,Der opstod fejl
-With Groups,Arbejdsproces navn
-With Ledgers,Salg styklistevare
-With Letterhead,Velkommen til ERPNext. Vælg dit sprog for at starte installationsguiden.
-Workflow,Arbejdsproces
-Workflow Action,For DocType
-Workflow Action Master,Print Format {0} findes ikke
-Workflow Action Name,Modtagere
-Workflow Document State,Ugyldig Barkode eller Løbenummer
-Workflow Document States,Bemærk: Der henvises Dato {0} er efter faktura forfaldsdato {1}
-Workflow Name,Klasse / Procent
-Workflow State,Arbejdsproces stat
-Workflow State Field,musik
-Workflow Transition,Duplicate navn {0} {1}
-Workflow Transitions,Value Change
-Workflow state represents the current state of a document.,Konto {0} er allerede blevet returneret
-Workflow will start after saving.,Arbejdsproces begynder efter tryk på Gem.
-Write,Opgaver
-Write a Python file in the same folder where this is saved and return column and result.,Afstemning af data
-Write a SELECT query. Note result is not paged (all data is sent in one go).,Afventer Beløb
+"When you Amend a document after Cancel and save it, it will get a new number that is a version of the old number.","Når du ændre et dokument, efter Annuller og gemme den, vil den få et nyt nummer, der er en version af det gamle nummer."
+While uploading non English files ensure that the encoding is UTF-8.,"Under upload ikke engelsk filer sikre, at kodning er UTF-8."
+Width,Bredde
+Width of the input box,Bredde af indtastningsfeltet
+Will be used in url (usually first name).,Vil blive anvendt i URL (sædvanligvis fornavn).
+With Groups,Med Grupper
+With Ledgers,Med Ledgers
+With Letterhead,Med Brevpapir
+Workflow,Workflow
+Workflow Action,Workflow Handling
+Workflow Action Master,Workflow Action Master
+Workflow Action Name,Workflow Action Name
+Workflow Document State,Workflow Document State
+Workflow Document States,Workflow Document stater
+Workflow Name,Workflow Navn
+Workflow State,Workflow stat
+Workflow State Field,Workflow State Field
+Workflow Transition,Workflow Transition
+Workflow Transitions,Workflow Overgange
+Workflow state represents the current state of a document.,Workflow tilstand repræsenterer den aktuelle tilstand af et dokument.
+Workflow will start after saving.,Workflow starter efter at spare.
+Write,Skrive
+Write a Python file in the same folder where this is saved and return column and result.,"Skriv en Python-fil i den samme mappe, hvor det er gemt og returnere kolonne og resultat."
+Write a SELECT query. Note result is not paged (all data is sent in one go).,Skriv en SELECT forespørgsel. Bemærk resultat ikke søges (alle data sendes på én gang).
 Write titles and introductions to your blog.,Skriv titler og introduktioner til din blog.
-Writers Introduction,En kunde eksisterer med samme navn
+Writers Introduction,Writers Indledning
 Year,År
-Yes,Indsæt Nedenfor
+Yes,Ja
 Yesterday,I går
 You are not allowed to create / edit reports,Du har ikke tilladelse til at oprette / redigere rapporter
-You are not allowed to export the data of: {0}. Downloading empty template.,bullhorn
-You are not allowed to export this report,Intern
-You are not allowed to print this document,Oprettet Customer Issue
-You are not allowed to send emails related to this document,Total Blade Allokeret
+You are not allowed to export the data of: {0}. Downloading empty template.,Du er ikke tilladt at eksportere data fra: {0}. Downloading tom skabelon.
+You are not allowed to export this report,Du har ikke tilladelse til at eksportere denne rapport
+You are not allowed to print this document,Du har ikke tilladelse til at udskrive dette dokument
+You are not allowed to send emails related to this document,Du har ikke tilladelse til at sende e-mails i forbindelse med dette dokument
 You can also copy-paste this link in your browser,Du kan også kopiere-indsætte dette link i din browser
-You can also drag and drop attachments,"Journal Bilag {0} er forbundet mod Order {1}, kontrollere, om det skal tlinjes forhånd i denne faktura."
-"You can change Submitted documents by cancelling them and then, amending them.",Opsætning ...
-You can only upload upto 5000 records in one go. (may be less in some cases),Nødvendigt antal
-You can use Customize Form to set levels on fields.,Et symbol for denne valuta. For eksempel $
-You can use wildcard %,Leje Omkostninger
-You cannot install this app,Hvis du vil spore varen i salgs- og købsdokumenter baseret på deres løbenr. Det er også bruges til at spore detaljer om garantien af produktet.
-You don't have access to Report: {0},Vælg eller tlinje hen tidsintervaller at oprette en ny begivenhed.
-You don't have permission to get a report on: {0},Du har ikke tilladelse til rapportudskrift om: {0}
-You have unsaved changes in this form. Please save before you continue.,Indtast venligst en tekst!
-You must login to submit this form,Bruger Roller
-You need to be logged in and have System Manager Role to be able to access backups.,Leverandør database.
-You need write permission to rename,{0} mod kundeordre {1}
+You can also drag and drop attachments,Du kan også trække og slippe filer
+"You can change Submitted documents by cancelling them and then, amending them.","Du kan ændre Indsendte dokumenter ved at annullere dem og derefter, om ændring af dem."
+You can only upload upto 5000 records in one go. (may be less in some cases),Du kan kun uploade op 5000 poster på én gang. (Kan være mindre i nogle tilfælde)
+You can use Customize Form to set levels on fields.,Du kan bruge Tilpas formular til at indstille niveauet på markerne.
+You can use wildcard %,Du kan bruge jokertegn%
+You cannot install this app,Du kan ikke installere denne app
+You don't have access to Report: {0},Du har ikke adgang til Rapporter: {0}
+You don't have permission to get a report on: {0},Du har ikke tilladelse til at få en rapport om: {0}
+You have unsaved changes in this form. Please save before you continue.,Du har ikke-gemte ændringer i denne form. Gem før du fortsætter.
+You must login to submit this form,Du skal logge ind for at indsende denne formular
+You need to be logged in and have System Manager Role to be able to access backups.,Du skal være logget ind og have System Manager Rolle at kunne få adgang til sikkerhedskopier.
+You need write permission to rename,Du har brug for at skrive tilladelse til at omdøbe
 "You seem to have written your name instead of your email. \
 					Please enter a valid email address so that we can get back.","Du synes at have skrevet dit navn i stedet for din e-mail. \
  Indtast en gyldig e-mail-adresse, så vi kan komme tilbage."
 "Your download is being built, this may take a few moments...","Din download bliver bygget, kan det tage et øjeblik ..."
-Your login id is,Forslag Skrivning
-Your password has been updated. Here is your new password,og
-[Label]:[Field Type]/[Options]:[Width],Indtast firmanavn først
-[No Subject],Print Skjul
-[Optional] Send the email X days in advance of the specified date. 0 equals same day.,[Valgfrit] sende e-mail X dage før den fastsatte dato. 0 er lig samme dag.
-[no content],Salg BOM
-[unknown sender],Kan ikke sætte Email rapport på Dokumenttype {0}
-add your own CSS (careful!),Skatter
-adjust,Dato gentages
-align-center,Genvej
-align-justify,HUN CESS på Excise
-align-left,Indkøb Register
-align-right,Tags
-and,Kan ikke henvise linje tal større end eller lig med aktuelle linje nummer for denne Charge typen
-arrow-down,Gennemsnitlig Kommissionens sats
-arrow-left,Faktureringsadresse
-arrow-right,'Har Løbenummer' kan ikke være 'Ja' for ikke-lagervare
-arrow-up,Udgivelse
-asterisk,Skjul felt i formular
+Your login id is,Dit login-id er
+Your password has been updated. Here is your new password,Dit password er blevet opdateret. Her er din nye adgangskode
+[Label]:[Field Type]/[Options]:[Width],[Label]: [Field Type] / [Options]: [Width]
+[No Subject],[Intet emne]
+[Optional] Send the email X days in advance of the specified date. 0 equals same day.,[Valgfrit] sende e-mailen X dage før den fastsatte dato. 0 er lig samme dag.
+[no content],[Intet indhold]
+[unknown sender],[Ukendt afsender]
+add your own CSS (careful!),tilføje din egen CSS (forsigtig!)
+adjust,justere
+align-center,ALIGN-center
+align-justify,tilpasse-retfærdiggøre
+align-left,ALIGN-venstre
+align-right,ALIGN-ret
+and,og
+arrow-down,arrow-down
+arrow-left,arrow-venstre
+arrow-right,arrow-højre
+arrow-up,arrow-up
+asterisk,stjerne
 backward,tilbage
-ban-circle,Betaling Afventer
-barcode,Status skal være en af {0}
-beginning with,Den nye stykliste efter udskiftning
-bell,Finansiel / regnskabsår.
-bold,Skilt
+ban-circle,Ban-cirkel
+barcode,stregkode
+beginning with,begyndende med
+bell,klokke
+bold,fed
 book,bog
-bookmark,Mandag
-briefcase,"Sæt standard format, sidestørrelse, print stil etc."
-bullhorn,Vellykket:
-calendar,I alt udgifter til råvarer
-camera,Skjul Valuta Symbol
-certificate,Status
-check,Synkroniser med Google Drev
+bookmark,bogmærke
+briefcase,mappe
+bullhorn,bullhorn
+calendar,kalender
+camera,kamera
+certificate,certifikat
+check,kontrollere
 chevron-down,chevron-down
-chevron-left,chevron venstre
-chevron-right,Kredit Controller
+chevron-left,chevron-left
+chevron-right,chevron-right
 chevron-up,chevron-up
-circle-arrow-down,retweet
-circle-arrow-left,LR Dato
-circle-arrow-right,Reading 4
-circle-arrow-up,cirkel-pil-up
-cog,Gælder for (Betegnelse)
-comment,Koster
-dd-mm-yyyy,Bilag Detaljer nummer
+circle-arrow-down,circle-arrow-down
+circle-arrow-left,circle-arrow-left
+circle-arrow-right,circle-arrow-right
+circle-arrow-up,circle-arrow-up
+cog,tandhjul
+comment,kommentar
+dd-mm-yyyy,dd-mm-åååå
 dd.mm.yyyy,dd.mm.åååå
 dd/mm/yyyy,dd / mm / åååå
-download,Rejseudgifter
-download-alt,Tillad produktionsordre
-edit,Fjern alle tilpasninger?
-eject,Kommissionen
-envelope,andel
-exclamation-sign,LFT
-eye-close,Kunde Adresse
-eye-open,Ms
-facetime-video,% Installeret
-fast-backward,Kan ikke direkte sat beløb. For »faktiske« afgift typen Brug feltet sats
-fast-forward,Holiday listenavn
+download,Download
+download-alt,Download-alt
+edit,edit
+eject,skubbe
+envelope,kuvert
+exclamation-sign,udråbstegn-skilt
+eye-close,eye-close
+eye-open,eye-open
+facetime-video,FaceTime-video
+fast-backward,hurtigt tilbage
+fast-forward,hurtigt fremad
 file,fil
 film,film
 filter,filter
-fire,Ikke tilladt fra denne IP-adresse
-flag,Tillad på Send
-folder-close,"Standard: ""Kontakt os"""
-folder-open,folder-open
-font,Projekt vil blive gemt og vil være søgbare med projektnavn givet
-forward,vare tabel kan ikke være tomt
-fullscreen,Side Overskrift Baggrund
+fire,brand
+flag,flag
+folder-close,mappe-close
+folder-open,mappe-open
+font,font
+forward,fremad
+fullscreen,fullscreen
 gift,gave
 glass,glas
-globe,Du kan indtaste et hvilket som helst tidspunkt manuelt
-hand-down,Varelager Aktiver
+globe,kloden
+hand-down,hånd-down
 hand-left,hånd venstre
 hand-right,hånd højre
-hand-up,Kan ikke fortsætte {0}
-hdd,Faktiske antal er obligatorisk
-headphones,Standard Print Format
-heart,"Forfaldsdato kan ikke være, før du sender Dato"
+hand-up,hånd-up
+hdd,hdd
+headphones,hovedtelefoner
+heart,hjerte
 home,hjem
-icon,Ingen tilladelse til at '{0}' {1}
+icon,ikon
 inbox,indbakke
 indent-left,led-venstre
-indent-right,Parent Salg Person
-info-sign,Materiale Request bruges til at gøre denne Varelager indgang
-is not allowed.,Vis nulværdier
+indent-right,led-højre
+info-sign,info-skilt
+is not allowed.,er ikke tilladt.
 italic,kursiv
 leaf,blad
-lft,Kommentar af fullnavn
+lft,LFT
 list,liste
-list-alt,Tilbagevendende Id
-lock,Kolonne Etiketter:
-lowercase,Seneste
+list-alt,liste-alt
+lock,låse
+lowercase,små bogstaver
 magnet,magnet
-map-marker,Medicinsk
-memcached is not working / stopped. Please start memcached for best results.,Varer skal ansøges
+map-marker,map-markør
+memcached is not working / stopped. Please start memcached for best results.,memcached fungerer ikke / stoppet. Start venligst memcached for de bedste resultater.
 minus,minus
-minus-sign,Target Lager
-mm-dd-yyyy,Du kan ikke indtaste både følgeseddel Nej og salgsfaktura No. Angiv nogen.
-mm/dd/yyyy,Standard Leverandør
-move,"Kræves ""Fra dato"""
-music,vare skal fremstilles eller forarbejdes
+minus-sign,minus-tegn
+mm-dd-yyyy,mm-dd-åååå
+mm/dd/yyyy,dd / mm / åååå
+move,træk
+music,musik
 none of,ingen af
 off,af
-ok,Brugerdefineret?
-ok-circle,Send til denne liste
-ok-sign,Perm Level
-one of,Taget
+ok,ok
+ok-circle,ok-cirkel
+ok-sign,ok-tegn
+one of,en af
 or,eller
-pause,Download en skabelon til at importere en tabel.
-pencil,Tilladt
-picture,Tilpas Form
-plane,Jobs Email-indstillinger
-play,Kan ikke sætte autorisation på baggrund af Rabat for {0}
-play-circle,Du har ikke tilladelse til at udskrive dette dokument
-plus,Indsend alle lønsedler for ovenstående valgte kriterier
-plus-sign,{0} findes allerede
-print,Rediger din rekord
-qrcode,Fakturering Adresse navn
-question-sign,Forbrugt Mængde
-random,Nuværende Varelager
-reference,Branch
-refresh,volumen-off
-remove,Check Dato
-remove-circle,Value
-remove-sign,Gentag på Dag Måned
+pause,pause
+pencil,blyant
+picture,billede
+plane,fly
+play,spille
+play-circle,play-cirkel
+plus,plus
+plus-sign,plus-tegnet
+print,print
+qrcode,QRCode
+question-sign,spørgsmål-tegn
+random,tilfældig
+reference,henvisning
+refresh,opdateringshastighed
+remove,fjerne
+remove-circle,fjern-cirkel
+remove-sign,fjern-skilt
 repeat,gentagelse
-resize-full,Bank A / C No.
-resize-horizontal,Midlertidige Konti (aktiver)
-resize-small,Side Baggrund
-resize-vertical,Ansøgninger om orlov.
-retweet,Afrundet alt
-rgt,"Fødevarer, drikkevarer og tobak"
+resize-full,resize-fuld
+resize-horizontal,resize-vandret
+resize-small,resize-small
+resize-vertical,resize-lodret
+retweet,retweet
+rgt,RGT
 road,vej
-screenshot,Opret Leverandør Tilbud
-search,Fradrag
-share,HR Manager
-share-alt,Float
-shopping-cart,Fraværs ansøgninger pr. afdeling.
-signal,"Link, der er hjemmesiden startside. Standard Links (indeks, login, produkter, blog, omkring, kontakt)"
+screenshot,screenshot
+search,søgning
+share,andel
+share-alt,aktie-alt
+shopping-cart,shopping-cart
+signal,signal
 star,stjerne
-star-empty,Forskud
-step-backward,step-backward
-step-forward,Opnået
-stop,cirkel-pil-venstre
-tag,Bemærkning
-tags,"{0} ({1}) skal have rollen bekostning Godkender """
-"target = ""_blank""",Tilpas Form Felt
-tasks,Script Report
-text-height,Flyt op: {0}
-text-width,Kommissionens sats (%)
+star-empty,stjerne-tom
+step-backward,trin-bagud
+step-forward,trin-frem
+stop,stoppe
+tag,tag
+tags,tags
+"target = ""_blank""","target = ""_blank"""
+tasks,opgaver
+text-height,tekst højde
+text-width,tekst bredde
 th,th
 th-large,th-large
-th-list,Tilfældig
-thumbs-down,"Email Id hvor en jobansøger vil emaile f.eks. ""jobs@example.com"""
-thumbs-up,Imod Journal Bilag
+th-list,TH-liste
+thumbs-down,thumbs-down
+thumbs-up,thumbs-up
 time,tid
-tint,Kontrakt Slutdato skal være større end Dato for Sammenføjning
+tint,toning
 to,til
 to filter values between 5 & 10,at filtrere værdier mellem 5 & 10
-trash,Med Arbejdets
+trash,trash
 upload,upload
-use % as wildcard,Søgefelter bør indeholde gyldige fieldnavns
-user,Begræns bruger fra denne IP eneste adresse. Flere IP-adresser kan tilføjes ved at adskille med komma. Accepterer også delvise IP-adresser lignende (111.111.111)
-user_image_show,Gross Profit%
-value,Månedlige lønseddel.
-values and dates,"Kontroller, om tilbagevendende faktura, skal du fjerne markeringen for at stoppe tilbagevendende eller sætte ordentlig Slutdato"
+use % as wildcard,bruge% som wildcard
+user,bruger
+user_image_show,user_image_show
+value,værdi
+values and dates,værdier og datoer
 values separated by commas,værdier adskilt med komma
-volume-down,Excise Duty 10
-volume-off,Næste email vil blive sendt på:
-volume-up,Gæld Group
-warning-sign,Faktura nummer
-wrench,Blog Indledning
-yyyy-mm-dd,Firma registreringsnumre til din reference. Eksempel: MOMSREGISTRERINGSNUMRE mv
-zoom-in,søgning
-zoom-out,vare TAX1
-{0} List,Allerede gemme. Vent et øjeblik.
-{0} added,Er Standard
-{0} already exists,Konto: {0} kan kun opdateres via lagerregistreringer
-{0} by {1},{0} kan ikke være negativ
-{0} cannot be set for Single types,Indsæt
-{0} does not exist in row {1},Nye Tilbuder
-{0} in row {1} cannot have both URL and child items,Aktuel Antal
+volume-down,volumen-down
+volume-off,volumen-off
+volume-up,volumen-up
+warning-sign,advarsel-skilt
+wrench,skruenøgle
+yyyy-mm-dd,yyyy-mm-dd
+zoom-in,zoome ind
+zoom-out,zoom-out
+{0} List,{0} List
+{0} added,{0} tilføjet
+{0} already exists,{0} findes allerede
+{0} by {1},{0} af {1}
+{0} cannot be set for Single types,{0} kan ikke indstilles til Single typer
+{0} does not exist in row {1},{0} findes ikke i rækken {1}
+{0} in row {1} cannot have both URL and child items,{0} i række {1} kan ikke have både URL og barn poster
 {0} is not a valid email id,{0} er ikke en gyldig e-mail-id
-{0} is required,Succes URL
-{0} is saved,Imod DOCTYPE
+{0} is required,{0} er påkrævet
+{0} is saved,{0} er gemt
 {0} must be one of {1},{0} skal være en af {1}
-{0} must be set first,Imod leverandørfaktura {0} dateret {1}
-{0} not a valid State,Vare Leverandør
+{0} must be set first,{0} skal indstilles først
+{0} not a valid State,{0} ikke en gyldig tilstand
 {0} not allowed in fieldname {1},{0} er ikke tilladt i feltnavn {1}
-{0} not allowed in name,Varegrupper i Detaljer
-{0} not allowed to be renamed,"Fletning er kun muligt, hvis følgende egenskaber er ens i begge poster. Gruppe eller Ledger, Root Type, Firma"
-{0} updated,"Liste over brugere, der kan redigere en bestemt note"
-{0} {1} already exists,Træ finanial konti.
-"{0} {1} cannot be ""{2}"". It should be one of ""{3}""",Timer
-{0} {1} cannot be a leaf node as it has children,{0} {1} ikke kan være en blad-node da den har under-noder
-"{0} {1} does not exist, select a new target to merge",{0} {1} eksisterer ikke. Du skal vælge et nyt mål for sammenlægningen
-{0} {1} not found,Projekt-id
-{0} {1}: Submitted Record cannot be deleted.,{0} {1}: oprettet Record kan ikke slettes.
-{0}: Cannot set Amend without Cancel,vare er opdateret
-{0}: Cannot set Assign Amend if not Submittable,Ny Løbenummer kan ikke have Lager. Lager skal ændres af Varelager indtastning eller kvittering
-{0}: Cannot set Assign Submit if not Submittable,Potentielle muligheder for at sælge.
-{0}: Cannot set Cancel without Submit,Kreditnota
-{0}: Cannot set Import without Create,"At tillade DocType, DocType. Vær forsigtig!"
-"{0}: Cannot set Submit, Cancel, Amend without Write",Kreditkort
-{0}: Cannot set import as {1} is not importable,Support Analtyics
-"{0}: Create, Submit, Cancel and Amend only valid at level 0",Indstil {0}
-{0}: No basic permissions set,Succesfuld Afstemt
-"{0}: Only one rule allowed with the same Role, Level and Apply User Permissions",Ugyldig login eller kodeord
-{0}: Permission at level 0 must be set before higher levels are set,Send downloadlink af en nyere sikkerhedskopi til System Managers
-{app_title},{app_title}
+{0} not allowed in name,{0} er ikke tilladt i navn
+{0} not allowed to be renamed,{0} tillades ikke omdøbes
+{0} updated,{0} opdateret
+{0} {1} already exists,{0} {1} findes allerede
+"{0} {1} cannot be ""{2}"". It should be one of ""{3}""","{0} {1} kan ikke være ""{2}"". Det bør være en af ""{3}"""
+{0} {1} cannot be a leaf node as it has children,{0} {1} ikke kan være et blad node som det har børn
+"{0} {1} does not exist, select a new target to merge","{0} {1} eksisterer ikke, skal du vælge et nyt mål for at fusionere"
+{0} {1} not found,{0} {1} ikke fundet
+{0} {1}: Submitted Record cannot be deleted.,{0} {1}: Indsendt Record kan ikke slettes.
+{0}: Cannot set Amend without Cancel,{0}: Kan ikke sætte Amend uden Annuller
+{0}: Cannot set Assign Amend if not Submittable,{0}: Kan ikke sætte Tildel ændres hvis ikke Submittable
+{0}: Cannot set Assign Submit if not Submittable,{0}: Kan ikke sætte Tildel Indsend hvis ikke Submittable
+{0}: Cannot set Cancel without Submit,{0}: Kan ikke sætte annullere uden Indsend
+{0}: Cannot set Import without Create,{0}: Kan ikke sætte Import uden Opret
+"{0}: Cannot set Submit, Cancel, Amend without Write","{0}: Kan ikke sætte Indsend, Annuller, ændres uden Write"
+{0}: Cannot set import as {1} is not importable,{0}: Kan ikke sætte import som {1} er ikke kan indføres
+"{0}: Create, Submit, Cancel and Amend only valid at level 0","{0}: Opret, Send, Annuller og ændres kun gældende på niveau 0"
+{0}: No basic permissions set,{0}: Ingen grundlæggende tilladelser sæt
+"{0}: Only one rule allowed with the same Role, Level and Apply User Permissions","{0}: Kun én tilladt med den samme rolle, Level regel og Anvend Bruger Tilladelser"
+{0}: Permission at level 0 must be set before higher levels are set,"{0}: Tilladelse på niveau 0 skal indstilles, før der er sat højere niveauer"
+{app_title},{App_title}

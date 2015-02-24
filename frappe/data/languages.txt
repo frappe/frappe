@@ -1,6 +1,7 @@
 ar		العربية
 de		deutsch
 ca		català
+da-dk	dansk
 el		ελληνικά
 en		english
 es		español
