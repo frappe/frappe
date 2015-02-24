@@ -1,7 +1,6 @@
-{%- set footer_border_color = get_shade(theme.footer_color, 10) -%}
 .web-footer {
 	background-color: {{ theme.footer_color }};
-	border-top: 1px solid {{ footer_border_color }};
+	border-top: 1px solid {{ theme.footer_border_color }};
 }
 
 .web-footer,
@@ -16,5 +15,5 @@
 }
 
 .web-footer input {
-	border: 1px solid {{ footer_border_color }};
+	border: 1px solid {{ theme.footer_border_color }};
 }

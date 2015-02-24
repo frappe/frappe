@@ -64,7 +64,7 @@ def add_website_theme(context):
 	bootstrap = frappe.get_hooks("bootstrap")[0]
 	website_theme = get_active_theme()
 	if website_theme:
-		context.website_theme = website_theme
+		context.theme = website_theme
 
 		if website_theme.bootstrap:
 			bootstrap = website_theme.bootstrap

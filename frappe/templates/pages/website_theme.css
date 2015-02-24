@@ -2,7 +2,6 @@
 
 {%- set font_family_sans_serif = '"Helvetica Neue", Helvetica, Arial, sans-serif' -%}
 {%- set heading_selectors = "h1, h2, h3, h4, h5, h6" -%}
-{%- set border_color = get_shade(theme.background_color, 10) -%}
 
 {{ theme.webfont_import or "" }}
 

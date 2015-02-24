@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 import re
 import frappe
+from frappe.website.utils import get_shade
 from frappe.website.doctype.website_theme.website_theme import get_active_theme
 
 no_sitemap = 1
@@ -34,6 +35,9 @@ def prepare(theme):
 	for d in default_properties:
 		if not theme.get(d):
 			theme.set(d, default_properties[d])
+
+	theme.footer_border_color = get_shade(theme.footer_color, 10)
+	theme.border_color = get_shade(theme.background_color, 10)
 
 	webfonts = list(set(theme.get(key)
 		for key in ("heading_webfont", 'text_webfont') if theme.get(key)))

@@ -181,9 +181,15 @@
 }
 
 @media (min-width: 768px) {
-	.form-column.col-sm-12 > form > .input-max-width {
+	.layout-main .form-column.col-sm-12 > form > .input-max-width {
 		max-width: 50%;
 		padding-right: 15px;
+	}
+
+	// don't max-width when in form-grid with half width
+	.col-sm-6 .form-grid .form-column.col-sm-12 > form > .input-max-width {
+		max-width: none;
+		padding-right: 0px;
 	}
 }
 

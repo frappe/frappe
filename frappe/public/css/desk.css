@@ -111,10 +111,11 @@ a.badge-hover:active .badge {
   text-align: left;
 }
 .centered {
-  position: relative;
+  position: absolute;
+  top: 50%;
   left: 50%;
-  transform: translate(-50%, 0);
-  -webkit-transform: translate(-50%, 0);
+  transform: translate(-50%, -50%);
+  -webkit-transform: translate(-50%, -50%);
 }
 .border-top {
   border-top: 1px solid #d1d8dd;
