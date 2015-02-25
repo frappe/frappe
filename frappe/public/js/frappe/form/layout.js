@@ -143,6 +143,7 @@ frappe.ui.form.Layout = Class.extend({
 			if(page.hasClass("hide")) {
 				$(this).removeClass("btn-fold").html(__("Hide details"));
 				page.removeClass("hide");
+				frappe.ui.scroll($(this), true, 30);
 				me.folded = false;
 			} else {
 				$(this).addClass("btn-fold").html(__("Show more details"));

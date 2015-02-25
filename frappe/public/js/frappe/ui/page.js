@@ -361,8 +361,13 @@ frappe.ui.Page = Class.extend({
 	}
 });
 
-frappe.ui.scroll = function(element) {
+frappe.ui.scroll = function(element, animate, additional_offset) {
 	var header_offset = $(".navbar").height() + $(".page-head").height();
-	console.log($(element).offset().top - header_offset);
-	$(window).scrollTop($(element).offset().top - header_offset);
+	var top = $(element).offset().top - header_offset - cint(additional_offset);
+	if (animate) {
+		$("html, body").animate({ scrollTop: top });
+	} else {
+		$(window).scrollTop(top);
+	}
+
 };
