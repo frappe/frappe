@@ -50,6 +50,7 @@
    "search_index": 0
   }, 
   {
+   "default": "Data", 
    "fieldname": "fieldtype", 
    "fieldtype": "Select", 
    "in_filter": 1, 
@@ -275,7 +276,7 @@
  ], 
  "icon": "icon-glass", 
  "idx": 1, 
- "modified": "2015-02-05 05:11:36.425019", 
+ "modified": "2015-02-25 03:39:23.573928", 
  "modified_by": "Administrator", 
  "module": "Custom", 
  "name": "Custom Field", 

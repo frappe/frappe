@@ -402,11 +402,11 @@ class DbManager:
 
 def validate_column_name(n):
 	n = n.replace(' ','_').strip().lower()
-	if re.search("[\W]", n, re.UNICODE):
-		frappe.throw(_("Fieldname {0} cannot contain letters, numbers or spaces").format(n), InvalidColumnName)
+	special_characters = re.findall("[\W]", n, re.UNICODE)
+	if special_characters:
+		special_characters = ", ".join('"{0}"'.format(c) for c in special_characters)
+		frappe.throw(_("Fieldname {0} cannot have special characters like {1}").format(cstr(n), special_characters), InvalidColumnName)
 	return n
-
-
 
 def remove_all_foreign_keys():
 	frappe.db.sql("set foreign_key_checks = 0")

@@ -26,13 +26,20 @@ def get_notifications():
 			if d in notification_count:
 				open_count_doctype[d] = notification_count[d]
 			else:
-				result = frappe.get_list(d, fields=["count(*)"],
-					filters=condition, as_list=True)[0][0]
+				try:
+					result = frappe.get_list(d, fields=["count(*)"],
+						filters=condition, as_list=True)[0][0]
 
-				open_count_doctype[d] = result
+				except Exception, e:
+					# OperationalError: (1412, 'Table definition has changed, please retry transaction')
+					if e.args[0]!=1412:
+						raise
 
-				cache.set_value("notification_count:" + frappe.session.user + ":" + d,
-					result)
+				else:
+					open_count_doctype[d] = result
+
+					cache.set_value("notification_count:" + frappe.session.user + ":" + d,
+						result)
 
 	for m in config.for_module:
 		if m in notification_count:

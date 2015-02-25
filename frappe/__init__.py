@@ -202,21 +202,22 @@ def msgprint(msg, small=0, raise_exception=0, as_table=False):
 	:param raise_exception: [optional] Raise given exception and show message.
 	:param as_table: [optional] If `msg` is a list of lists, render as HTML table.
 	"""
+	from utils import cstr, encode
+
 	def _raise_exception():
 		if raise_exception:
 			if flags.rollback_on_exception:
 				db.rollback()
 			import inspect
 			if inspect.isclass(raise_exception) and issubclass(raise_exception, Exception):
-				raise raise_exception, msg
+				raise raise_exception, encode(msg)
 			else:
-				raise ValidationError, msg
+				raise ValidationError, encode(msg)
 
 	if flags.mute_messages:
 		_raise_exception()
 		return
 
-	from utils import cstr
 	if as_table and type(msg) in (list, tuple):
 		msg = '<table border="1px" style="border-collapse: collapse" cellpadding="2px">' + ''.join(['<tr>'+''.join(['<td>%s</td>' % c for c in r])+'</tr>' for r in msg]) + '</table>'
 
