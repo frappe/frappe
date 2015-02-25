@@ -389,8 +389,19 @@ frappe.views.DocListView = frappe.ui.Listing.extend({
 				me.toggle_delete();
 			});
 
-			this.$page.on("click", ".list-delete", function() {
+			this.$page.on("click", ".list-delete", function(event) {
 				me.toggle_delete();
+
+				// multi-select using shift key
+				var $this = $(this);
+				if (event.shiftKey && $this.prop("checked")) {
+					var $end_row = $this.parents(".list-row");
+					var $start_row = $end_row.prevAll(".list-row")
+						.find(".list-delete:checked").last().parents(".list-row");
+					if ($start_row) {
+						$start_row.nextUntil($end_row).find(".list-delete").prop("checked", true);
+					}
+				}
 			});
 
 			// after delete, hide delete button
