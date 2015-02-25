@@ -50,8 +50,8 @@
   padding: 9px 15px;
   border-bottom: 1px solid #d1d8dd;
   cursor: pointer;
-  transition: 0.2s;
-  -webkit-transition: 0.2s;
+  transition: color 0.2s;
+  -webkit-transition: color 0.2s;
 }
 .list-row .h6 {
   margin-top: 0px;

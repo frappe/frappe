@@ -4,7 +4,8 @@ a {
 a,
 a:hover,
 a:active,
-a:focus {
+a:focus,
+.btn {
   outline: 0;
 }
 img {

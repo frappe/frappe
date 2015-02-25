@@ -5,7 +5,10 @@ a,
 a:hover,
 a:active,
 a:focus,
-.btn {
+.btn,
+.btn:hover,
+.btn:active,
+.btn:focus {
   outline: 0;
 }
 img {
