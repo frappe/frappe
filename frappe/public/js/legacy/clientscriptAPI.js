@@ -305,3 +305,8 @@ _f.Frm.prototype.get_formatted = function(fieldname) {
 			frappe.meta.get_docfield(this.doctype, fieldname, this.docname),
 			{no_icon:true}, this.doc);
 }
+
+_f.Frm.prototype.open_grid_row = function() {
+	return frappe.ui.form.get_open_grid_form();
+}
+

@@ -222,6 +222,12 @@ class Document(BaseDocument):
 		else:
 			self.db_update()
 
+		self.update_children()
+		self.run_post_save_methods()
+
+		return self
+
+	def update_children(self):
 		# children
 		child_map = {}
 		ignore_children_type = self.flags.ignore_children_type or []
@@ -240,10 +246,6 @@ class Document(BaseDocument):
 				else:
 					frappe.db.sql("""delete from `tab%s` where parent=%s and parenttype=%s""" \
 						% (df.options, '%s', '%s'), (self.name, self.doctype))
-
-		self.run_post_save_methods()
-
-		return self
 
 	def set_new_name(self):
 		"""Calls `frappe.naming.se_new_name` for parent and child docs."""

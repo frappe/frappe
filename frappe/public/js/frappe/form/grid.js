@@ -454,6 +454,7 @@ frappe.ui.form.GridRow = Class.extend({
 		return this;
 	},
 	show_form: function() {
+		var me = this;
 		if(!this.form_panel) {
 			this.form_panel = $('<div class="form-in-grid"></div>')
 				.appendTo(this.wrapper);
@@ -474,6 +475,7 @@ frappe.ui.form.GridRow = Class.extend({
 		}
 		cur_frm.cur_grid = this;
 		this.wrapper.addClass("grid-row-open");
+		me.frm.script_manager.trigger(me.doc.parentfield + "_on_form_rendered");
 	},
 	hide_form: function() {
 		// if(this.form_panel)
@@ -527,7 +529,6 @@ frappe.ui.form.GridRow = Class.extend({
 		this.toggle_add_delete_button_display(this.wrapper);
 
 		this.grid.open_grid_row = this;
-		this.frm.script_manager.trigger(this.doc.parentfield + "_on_form_rendered", this);
 	},
 	make_form: function() {
 		if(!this.form_area) {
@@ -581,5 +582,17 @@ frappe.ui.form.GridRow = Class.extend({
 			return visible ? df : null;
 		});
 		return visible_columns;
+	},
+	toggle_reqd: function(fieldname, reqd) {
+		var field = this.fields_dict[fieldname];
+		field.df.reqd = reqd ? 1 : 0;
+		field.refresh();
+		this.layout.refresh_sections();
+	},
+	toggle_display: function(fieldname, show) {
+		var field = this.fields_dict[fieldname];
+		field.df.hidden = show ? 0 : 1;
+		field.refresh();
+		this.layout.refresh_sections();
 	}
 });
