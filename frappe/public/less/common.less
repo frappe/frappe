@@ -63,10 +63,14 @@ a.text-extra-muted:focus {
 	border-bottom: 1px solid @text-muted;
 }
 
-.text-ellipsis {
+/* the element that this class is applied to, should have a max width for this to work*/
+.text-ellipsis,
+.ellipsis {
+	max-width: 100%;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
+	display: inline-block;
 }
 
 .bold,

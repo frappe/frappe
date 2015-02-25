@@ -5,7 +5,10 @@ a,
 a:hover,
 a:active,
 a:focus,
-.btn {
+.btn,
+.btn:hover,
+.btn:active,
+.btn:focus {
   outline: 0;
 }
 img {
@@ -66,10 +69,14 @@ a.text-extra-muted:focus {
   color: inherit;
   border-bottom: 1px solid #8d99a6;
 }
-.text-ellipsis {
+/* the element that this class is applied to, should have a max width for this to work*/
+.text-ellipsis,
+.ellipsis {
+  max-width: 100%;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  display: inline-block;
 }
 .bold,
 .strong {
