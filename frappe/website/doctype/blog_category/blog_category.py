@@ -5,7 +5,6 @@ from __future__ import unicode_literals
 import frappe
 from frappe.website.website_generator import WebsiteGenerator
 from frappe.website.render import clear_cache
-from frappe.templates.pages.blog import get_context
 
 class BlogCategory(WebsiteGenerator):
 	def autoname(self):
