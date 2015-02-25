@@ -4,13 +4,27 @@
 frappe.provide("frappe.ui.form.handlers");
 
 frappe.ui.form.on = frappe.ui.form.on_change = function(doctype, fieldname, handler) {
-	if(!frappe.ui.form.handlers[doctype]) {
-		frappe.ui.form.handlers[doctype] = {};
+	var add_handler = function(fieldname, handler) {
+		if(!frappe.ui.form.handlers[doctype]) {
+			frappe.ui.form.handlers[doctype] = {};
+		}
+		if(!frappe.ui.form.handlers[doctype][fieldname]) {
+			frappe.ui.form.handlers[doctype][fieldname] = [];
+		}
+		frappe.ui.form.handlers[doctype][fieldname].push(handler);
 	}
-	if(!frappe.ui.form.handlers[doctype][fieldname]) {
-		frappe.ui.form.handlers[doctype][fieldname] = [];
+
+	if (!handler && $.isPlainObject(fieldname)) {
+		// a dict of handlers {fieldname: handler, ...}
+		for (var key in fieldname) {
+			var fn = fieldname[key];
+			if (typeof fn === "function") {
+				add_handler(key, fn);
+			}
+		}
+	} else {
+		add_handler(fieldname, handler);
 	}
-	frappe.ui.form.handlers[doctype][fieldname].push(handler)
 }
 
 frappe.ui.form.trigger = function(doctype, fieldname, callback) {
@@ -70,6 +84,7 @@ frappe.ui.form.ScriptManager = Class.extend({
 
 		// css
 		doctype.__css && frappe.dom.set_style(doctype.__css);
+
 	},
 	log_error: function(caller, e) {
 		show_alert("Error in Client Script.");

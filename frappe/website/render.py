@@ -135,6 +135,9 @@ def build_json(path):
 	return get_context(path).data
 
 def build_page(path):
+	if not hasattr(frappe.local, "path"):
+		frappe.local.path = path
+
 	context = get_context(path)
 
 	html = frappe.get_template(context.base_template_path).render(context)

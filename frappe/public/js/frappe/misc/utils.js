@@ -403,5 +403,9 @@ frappe.utils = {
 
         // Return the parsed data.
         return( arrData );
-    }
+    },
+
+	warn_page_name_change: function(frm) {
+		frappe.msgprint("Note: Changing the Page Name will break previous URL to this page.");
+	},
 };
