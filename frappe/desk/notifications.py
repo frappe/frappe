@@ -22,13 +22,12 @@ def get_notifications():
 	for d in config.for_doctype:
 		if d in can_read:
 			condition = config.for_doctype[d]
-			key = condition.keys()[0]
 
 			if d in notification_count:
 				open_count_doctype[d] = notification_count[d]
 			else:
 				result = frappe.get_list(d, fields=["count(*)"],
-					filters=[[d, key, "=", condition[key]]], as_list=True)[0][0]
+					filters=condition, as_list=True)[0][0]
 
 				open_count_doctype[d] = result
 
