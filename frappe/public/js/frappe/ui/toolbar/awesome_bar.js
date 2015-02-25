@@ -8,20 +8,30 @@ frappe.search = {
 			minLength: 0,
 			source: function(request, response) {
 				var txt = strip(request.term);
-				if(!txt) return;
-				var lower = strip(txt.toLowerCase());
 				frappe.search.options = [];
-				$.each(frappe.search.verbs, function(i, action) {
-					action(lower);
-				});
+				if(!txt) {
+					// search recent
+					frappe.search.verbs[1]("");
+				} else {
+					var lower = strip(txt.toLowerCase());
+					$.each(frappe.search.verbs, function(i, action) {
+						action(lower);
+					});
+				}
 
 				// sort options
 				frappe.search.options.sort(function(a, b) {
-					return a.match.length - b.match.length; });
+					return (a.match || "").length - (b.match || "").length; });
 
 				frappe.search.add_help();
 
 				response(frappe.search.options);
+			},
+			open: function() {
+				frappe.search.autocomplete_open = true;
+			},
+			close: function() {
+				frappe.search.autocomplete_open = false;
 			},
 			focus: function(event, ui) {
 				return false;
@@ -52,10 +62,22 @@ frappe.search = {
 				.appendTo(ul);
 		};
 
-		$("#navbar-search").autocomplete(opts).data('ui-autocomplete')._renderItem = render_item;
-		$("#sidebar-search").autocomplete(opts).data('ui-autocomplete')._renderItem = render_item;
+		var open_recent = function() {
+			if (!frappe.search.autocomplete_open) {
+				$(this).autocomplete("search", "");
+			}
+		}
+
+		$("#navbar-search")
+			.on("focus", open_recent)
+			.autocomplete(opts).data('ui-autocomplete')._renderItem = render_item;
+
+		$("#sidebar-search")
+			.on("focus", open_recent)
+			.autocomplete(opts).data('ui-autocomplete')._renderItem = render_item;
 
 		frappe.search.make_page_title_map();
+		frappe.search.setup_recent();
 	},
 	add_help: function() {
 		frappe.search.options.push({
@@ -83,6 +105,17 @@ frappe.search = {
 			frappe.search.pages[p.title] = p;
 			p.name = name;
 		});
+	},
+	setup_recent: function() {
+		var recent = JSON.parse(frappe.boot.user.recent || "[]");
+		frappe.search.recent = {};
+		for (var i=0, l=recent.length; i < l; i++) {
+			var d = recent[i];
+			if (!frappe.search.recent[d[0]]) {
+				frappe.search.recent[d[0]] = [];
+			}
+			frappe.search.recent[d[0]].push(d[1]);
+		}
 	},
 	find: function(list, txt, process) {
 		$.each(list, function(i, item) {
@@ -119,11 +152,14 @@ frappe.search.verbs = [
 
 	// recent
 	function(txt) {
-		for(var doctype in locals) {
+		var doctypes = frappe.utils.unique(keys(locals).concat(keys(frappe.search.recent)));
+		for(var i in doctypes) {
+			var doctype = doctypes[i];
 			if(doctype[0]!==":" && !frappe.model.is_table(doctype)
 				&& !in_list(frappe.boot.single_types, doctype)
-				&& doctype !== "DocType") {
-				var ret = frappe.search.find(keys(locals[doctype]), txt, function(match) {
+				&& !in_list(["DocType", "DocField", "DocPerm"], doctype)) {
+				var values = frappe.utils.unique(keys(locals[doctype]).concat(frappe.search.recent[doctype] || []));
+				var ret = frappe.search.find(values, txt, function(match) {
 					return {
 						value: __(doctype) + " <b>" + match + "</b>",
 						route: ["Form", doctype, match]

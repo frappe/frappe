@@ -70,8 +70,6 @@ frappe.ui.toolbar.update_notifications = function() {
 	var navbar_notification = $("#navbar-notification").empty();
 	var sidebar_notification = $("#sidebar-notification").empty();
 
-
-
 	$.each(modules, function(i, module) {
 		var count = frappe.boot.notification_info.open_count_module[module];
 		if(count) {
