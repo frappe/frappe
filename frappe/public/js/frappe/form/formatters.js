@@ -54,7 +54,7 @@ frappe.form.formatters = {
 			? "" : format_currency(value, currency, docfield.precision || null), options);
 	},
 	Check: function(value) {
-		return value ? "<i class='icon-check'></i>" : "<i class='icon-check-empty'></i>";
+		return value ? "<i class='icon-ok'></i>" : "<i class='icon-remove'></i>";
 	},
 	Link: function(value, docfield, options) {
 		var doctype = docfield._options || docfield.options;
