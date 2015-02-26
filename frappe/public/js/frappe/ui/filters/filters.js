@@ -145,13 +145,13 @@ frappe.ui.Filter = Class.extend({
 		// add help for "in" codition
 		me.$w.find('.condition').change(function() {
 			var condition = $(this).val();
-			if(in_list(["in", "like"], condition)) {
+			if(in_list(["in", "like", "not in"], condition)) {
 				me.set_field(me.field.df.parent, me.field.df.fieldname, 'Data', condition);
 				if(!me.field.desc_area) {
 					me.field.desc_area = $('<div class="text-muted small">').appendTo(me.field.wrapper);
 				}
 				// set description
-				me.field.desc_area.html((condition==="in"
+				me.field.desc_area.html((in_list(["in", "not in"], condition)==="in"
 					? __("values separated by commas")
 					: __("use % as wildcard"))+'</div>');
 			} else {
@@ -310,7 +310,9 @@ frappe.ui.Filter = Class.extend({
 			if ((val.length === 0) || (val.lastIndexOf("%") !== (val.length - 1))) {
 				val = (val || "") + '%';
 			}
-		} else if(val === '%') val = "";
+		} else if(in_list(["in", "not in"], this.get_condition())) {
+			val = $.map(val.split(","), function(v) { return strip(v); });
+		} if(val === '%') val = "";
 
 		return val;
 	},
