@@ -27,7 +27,7 @@ class FrappeClient(object):
 			'pwd': password
 		})
 
-		if r.json().get('message') == "Logged In":
+		if r.status_code==200 and r.json().get('message') == "Logged In":
 			return r.json()
 		else:
 			raise AuthError
@@ -49,7 +49,6 @@ class FrappeClient(object):
 		if limit_page_length:
 			params["limit_start"] = limit_start
 			params["limit_page_length"] = limit_page_length
-		print self.url
 		res = self.session.get(self.url + "/api/resource/" + doctype, params=params)
 		return self.post_process(res)
 
@@ -151,6 +150,9 @@ class FrappeClient(object):
 
 		print "inserting " + doctype
 		for doc in docs:
+			if not doc.get("owner"):
+				doc["owner"] = "Administrator"
+
 			if not frappe.db.exists("User", doc.get("owner")):
 				frappe.get_doc({"doctype": "User", "email": doc.get("owner"),
 					"first_name": doc.get("owner").split("@")[0] }).insert()

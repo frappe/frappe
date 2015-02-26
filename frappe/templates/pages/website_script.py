@@ -13,7 +13,7 @@ def get_context(context):
 	script_context = { "javascript": frappe.db.get_value('Website Script', None, 'javascript') }
 
 	theme = get_active_theme()
-	js = strip(theme.js or "")
+	js = strip(theme and theme.js or "")
 	if js:
 		script_context["javascript"] += "\n" + js
 
