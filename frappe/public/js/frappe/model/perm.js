@@ -105,6 +105,12 @@ $.extend(frappe.perm, {
 				delete perm[0][key];
 			}
 		});
+
+		$.each(perm, function(i, v) {
+			if(v===undefined) {
+				perm[i] = {};
+			}
+		});
 	},
 
 	get_match_rules: function(doctype, ptype) {
