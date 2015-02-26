@@ -167,7 +167,7 @@ Center,Centre
 "Change field properties (hide, readonly, permission etc.)","Modification des propriétés de champ (masquer , en lecture seule , permission etc )"
 Chat,Chat
 Check,Vérifier
-Check / Uncheck roles assigned to the User. Click on the Role to find out what permissions that Role has.,Cochez / Décochez les rôles assignés au profil. Cliquez sur le Rôle de savoir ce que ce rôle comme autorisations.
+Check / Uncheck roles assigned to the User. Click on the Role to find out what permissions that Role has.,Cochez / Décochez les rôles assignés au profil. Cliquez sur le rôle de savoir ce qu'il a comme autorisations.
 Check this if you want to send emails as this id only (in case of restriction by your email provider).,Cochez cette case si vous souhaitez envoyer des emails en tant que cette id seulement (en cas de restriction par votre fournisseur de messagerie).
 Check this to make this the default letter head in all prints,"Cochez cette case pour faire de cette entête de lettre, celle par défaut dans toutes les imprimés"
 Check which Documents are readable by a User,Vérifier quels documents sont lisibles pour un utilisateur donné
@@ -301,7 +301,7 @@ Document Type,Type de document
 Document is only editable by users of role,Document est modifiable uniquement par les utilisateurs de rôle
 Documentation,Documentation
 Documents,Documents
-Download,Supprimer définitivement {0} ?
+Download,Télécharger
 Download Backup,Télécharger Backup
 Download link for your backup will be emailed on the following email address:,Le lien de téléchargement de votre sauvegarde sera envoyé sur l'adresse email suivante :
 Drafts,Brouillons
@@ -394,7 +394,7 @@ Fields,Champs
 "Fields separated by comma (,) will be included in the<br /><b>Search By</b> list of Search dialog box","Les champs séparés par des virgules (,) seront inclus dans le <br /> <b>Recherche par</b> liste de la boîte de dialogue Rechercher"
 Fieldtype cannot be changed from {0} to {1} in row {2},"FieldType peut pas être modifié à partir de {0} {1}, à la ligne {2}"
 File,Fichier
-File Data,Fichier de données
+File Data,Fichiers de données
 File Name,Nom du fichier
 File Size,Taille du fichier
 File URL,URL du fichier
@@ -492,12 +492,12 @@ If non standard port (e.g. 587),Si non port standard (par exemple 587)
 "If these instructions where not helpful, please add in your suggestions on GitHub Issues.","Si ces instructions où pas utile , s'il vous plaît ajouter vos suggestions sur les questions GitHub ."
 "If you set this, this Item will come in a drop-down under the selected parent.","Si vous définissez cette , cet article va venir dans un menu déroulant dans le cadre du parent sélectionné ."
 Ignore User Permissions,Ignorer les autorisations des utilisateurs
-"Ignoring Item {0}, because a group exists with the same name!",Nom interdite
+"Ignoring Item {0}, because a group exists with the same name!","Elements  ignoré {0}, un groupe avec le même nom exist !"
 Image,Image
 Image Link,Lien vers l&#39;image
 Import,Importer
 Import / Export Data,Import / Export de données
-Import / Export Data from .csv files.,Import / Export de données de fichiers. Csv .
+Import / Export Data from .csv files.,Import / Export de données de fichiers CSV .
 In,dans
 In Dialog,Dans la boîte de dialogue
 In Filter,Dans filtre
@@ -585,7 +585,7 @@ Loading,Chargement
 Loading Report,Chargement rapport
 Loading...,Chargement en cours ...
 Localization,localisation
-Location,emplacement
+Location,Emplacement
 Log of error on automated events (scheduler).,Connexion d'erreur sur les événements automatiques ( scheduler ) .
 Login,Connexion
 Login After,Après Connexion
@@ -602,7 +602,7 @@ Make a new,Faire une nouvelle
 Make a new record,Faire un nouveau record
 Male,Masculin
 Manage cloud backups on Dropbox,Gérer les sauvegardes de nuage sur Dropbox
-Manage uploaded files.,Gérer les fichiers téléchargés .
+Manage uploaded files.,Gérer les fichiers chargés.
 Mandatory,Obligatoire
 Mandatory fields required in {0},Courriel invalide : {0}
 Mandatory filters required:\n,Filtres obligatoires requises: \ n
@@ -659,7 +659,7 @@ Next Communcation On,Suivant Communcation sur
 Next Record,Prochaine ligne
 Next State,État Suivant
 Next actions,Prochaines actions
-No,Non
+No,Aucun
 No Action,Aucune action
 No Communication tagged with this ,Aucune communication étiqueté avec cette
 No Copy,Pas de copie
@@ -791,12 +791,12 @@ Phone,Téléphone
 Phone No.,N ° de téléphone
 Pick Columns,Choisissez Colonnes
 Picture URL,URL de la photo
-Pincode,Le code PIN
+Pincode,Code Postal
 Please attach a file first.,S&#39;il vous plaît joindre un fichier en premier.
 Please attach a file or set a URL,S&#39;il vous plaît joindre un fichier ou définir une URL
 Please do not change the rows above {0},S'il vous plaît ne pas modifier les lignes ci-dessus {0}
 Please enable pop-ups,S'il vous plaît autoriser les pop -ups
-Please enter Event's Date and Time!,Ou créés par
+Please enter Event's Date and Time!,Veuillez entrer la date et l'heure de l'événement !
 Please enter both your email and message so that we \				can get back to you. Thanks!,S'il vous plaît entrer votre e-mail à la fois et le message afin que nous \ peut revenir à vous. Merci !
 Please enter some text!,missions
 Please enter title!,Vous n'êtes pas autorisé à créer {0}
@@ -857,7 +857,7 @@ Query Report,Rapport de requêtes
 Query must be a SELECT,Requête doit être un SELECT
 Quick Help for Setting Permissions,Aide rapide pour Définition des autorisations
 Quick Help for User Permissions,Aide rapide pour les autorisations des utilisateurs
-Re-open,Re - ouvert
+Re-open,réouvrir
 Read,Lire
 Read Only,Lecture seule
 Received,reçu
@@ -876,10 +876,10 @@ Refresh,Rafraîchir
 Refreshing...,Rafraîchissant ...
 Registered but disabled.,Inscrit mais désactivé.
 Registration Details Emailed.,Modalités d&#39;inscription envoyé par courriel.
-Reload Page,Inconnu Format d'impression : {0}
+Reload Page,Recharger page
 Remove Bookmark,Supprimer le signet
 Remove all customizations?,Retirez toutes les personnalisations ?
-Rename many items by uploading a .csv file.,Renommer de nombreux articles en téléchargeant un fichier . Csv.
+Rename many items by uploading a .csv file.,Renommer de nombreux éléments en chargeant un fichier CVS.
 Rename...,Renommer ...
 Repeat On,Répéter l&#39;opération sur
 Repeat Till,Répétez Till
@@ -918,7 +918,7 @@ Row #{0}:,Ligne # {0}:
 Rules defining transition of state in the workflow.,Règles définissant la transition de l&#39;état dans le workflow.
 "Rules for how states are transitions, like next state and which role is allowed to change state etc.","Règles pour la manière dont les États sont des transitions, comme état suivant et dont le rôle est autorisé à changer d&#39;état, etc"
 Run scheduled jobs only if checked,Les tâches planifiées son exécutées qui si coché
-Run the report first,Exécutez le premier rapport
+Run the report first,Exécutez le rapport en premier
 SMTP Server (e.g. smtp.gmail.com),Serveur SMTP (smtp.gmail.com par exemple)
 Sales,Ventes
 Same file has already been attached to the record,Même fichier a déjà été jointe au dossier
@@ -985,7 +985,7 @@ Set Banner from Image,Réglez bannière de l&#39;image
 Set Link,Réglez Lien
 Set Login and Password if authentication is required.,Set de connexion et mot de passe si l&#39;authentification est requise.
 Set Only Once,Défini qu'une seule fois
-Set Password,définir mot de passe
+Set Password,Définir mot de passe
 Set Permissions on Document Types and Roles,Définir les autorisations des rôles sur les types de documents .
 Set Permissions per User,Définir les autorisations par utilisateur
 Set User Permissions,Définir les autorisations des utilisateurs
@@ -1060,7 +1060,7 @@ Submitted Document cannot be converted back to draft. Transition row {0},Documen
 Success,Succès
 Suggestion,Suggestion
 Sunday,Dimanche
-Switch to Website,effondrement
+Switch to Website,Consulter site web
 Sync Inbox,Sync boîte de réception
 System,Système
 System Settings,Paramètres système
@@ -1104,7 +1104,7 @@ This is permanent action and you cannot undo. Continue?,Il s&#39;agit d&#39;une 
 This must be checked if Style Settings are applicable,Ceci doit être vérifié si les paramètres de style sont applicables
 This role update User Permissions for a user,Ce rôle Permission mise à jour de l'utilisateur pour un utilisateur
 Thursday,Jeudi
-Tile,Titre
+Tile,Mosaïque
 Time,Temps
 Time Zone,Fuseau horaire
 Timezone,Fuseau horaire
@@ -1289,7 +1289,7 @@ comment,commenter
 comments,commentaires
 dd-mm-yyyy,jj-mm-aaaa
 dd.mm.yyyy,dd.mm.yyyy
-dd/mm/yyyy,jj / mm / aaaa
+dd/mm/yyyy,jj/mm/aaaa
 download,télécharger
 download-alt,Télécharger alt-
 edit,éditer

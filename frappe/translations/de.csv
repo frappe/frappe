@@ -30,7 +30,7 @@ Add Column,Spalte hinzufügen
 Add Filter,Filter hinzufügen
 Add Google Analytics ID: eg. UA-89XXX57-1. Please search help on Google Analytics for more information.,Google Analytics-ID hinzufügen: z. B. UA-89XXX57-1. Weitere Informationen finden Sie bei Google Analytics.
 Add Message,Nachricht hinzufügen
-Add New Permission Rule,Neue Berechtigungsregel hinzufügen
+Add New Permission Rule,Zusätzliche Berechtigungsregel erzeugen
 Add Reply,Antwort hinzufügen
 Add Tag,Stichwort hinzufügen
 Add Total Row,Summenzeile hinzufügen
@@ -40,10 +40,10 @@ Add all roles,Alle Rollen hinzufügen
 Add attachment,Anhang hinzufügen
 Add code as &lt;script&gt;,Hinzufügen von Code als &lt;script&gt;
 Add comment,Kommentar hinzufügen
-Add custom javascript to forms.,"Fügen Sie benutzerdefinierte Javascript, um Formen ."
-Add fields to forms.,Feld zu Formular hinzufügen.
-Add multiple rows,In mehreren Reihen
-Add new row,Neue Zeile hinzufügen
+Add custom javascript to forms.,Javascript hinzufügen
+Add fields to forms.,Felder hinzufügen
+Add multiple rows,Mehrere Einträge erzeugen
+Add new row,Zusätzlichen Eintrag erzeugen
 "Add the name of <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> e.g. ""Open Sans""","Den Namen von <a href=""http://google.com/webfonts"" target=""_blank"">Google Web Font</a> hinzufügen, z. B. ""Open Sans"""
 Add to To Do,Zur Aufgabenliste hinzufügen
 Add to To Do List Of,Zur Aufgabenliste hinzufügen von
@@ -85,8 +85,8 @@ Amend,Abändern
 "An icon file with .ico extension. Should be 16 x 16 px. Generated using a favicon generator. [<a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a>]","Eine Symboldatei mit der Erweiterung .ico. Sollte 16 x 16 px sein. Generiert mit einem Favicon-Generator. [<a href=""http://favicon-generator.org/"" target=""_blank"">favicon-generator.org</a>]"
 "Another {0} with name {1} exists, select another name","Ein weiterer {0} mit dem Namen {1} existiert, wählen Sie einen anderen Namen"
 Any existing permission will be deleted / overwritten.,Alle vorhandenen Genehmigung wird gelöscht / überschrieben werden.
-Anyone Can Read,Jeder kann lesen
-Anyone Can Write,Jeder kann schreiben
+Anyone Can Read,Leseberechtigung
+Anyone Can Write,Schreibberechtigung
 "Apart from Role based Permission Rules, you can apply User Permissions based on DocTypes.","Neben Rollenbasierte Berechtigungsregeln , können Sie Benutzerberechtigungen auf der Grundlage DocTypes gelten ."
 "Apart from System Manager, roles with 'Set User Permissions' right can set permissions for other users for that Document Type.","Neben System-Manager können Rollen mit Recht "" Set User -Berechtigungen "" die Berechtigungen für andere Benutzer für diesen Dokumenttyp festgelegt ."
 App Name,App-Name
@@ -228,7 +228,7 @@ Content in markdown format that appears on the main side of your page,"Inhalt in
 Content web page.,Inhalt der Webseite
 Copy,Kopie
 Copyright,Urheberrecht
-Core,Kern
+Core,Einstellungen
 Could not connect to outgoing email server,"Konnte nicht , um ausgehende E-Mail -Server verbinden"
 Could not find {0},Konnte nicht gefunden {0}
 Count,zählen
@@ -493,7 +493,7 @@ Group Title,Gruppe Titel
 Group Type,Gruppentyp
 Groups,Gruppen
 Guest,Gast
-HTML for header section. Optional,HTML für Header-Bereich . fakultativ
+HTML for header section. Optional,HTML für Header-Bereich - Optional
 Header,Kopfzeile
 Heading,Überschrift
 Heading Text As,Überschriftstext als
@@ -512,7 +512,7 @@ High,Hoch
 Highlight,Hervorheben
 History,Historie
 Home Page,Homepage
-Home Page is Products,Homepage ist Produkte
+Home Page is Products,Startseite zeigt Produkte
 ID (name) of the entity whose property is to be set,"ID (Name) der Einheit, deren Eigenschaft festgelegt werden muss"
 ID field is required to edit values using Report. Please select the ID field using the Column Picker,ID Feld muss zur Bearbeitung der Werte in Berichten angegeben werden. Bitte wählen Sie die ID aus der Spaltenauswahl aus.
 Icon,Symbol
@@ -638,7 +638,7 @@ Low,Niedrig
 Lucida Grande,Lucida Grande
 Mail Password,Mail-Passwort
 Main Section,Hauptbereich
-Make New, erstelle neuen Eintrag
+Make New,Neu erstellen
 Make a new,erstellen Sie einen neuen Eintrag für:
 Make a new record,Einen neuen Datensatz erstellen
 Make a new {0}, neu erstellen: {0}
