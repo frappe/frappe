@@ -583,10 +583,13 @@ def expand_relative_urls(html):
 
 	return re.sub('(href|src){1}([\s]*=[\s]*[\'"]?)((?!http)[^\'" >]+)([\'"]?)', _expand_relative_urls, html)
 
+def quoted(url):
+	return cstr(urllib.quote(encode(url), safe=b"~@#$&()*!+=:;,.?/'"))
+
 def quote_urls(html):
 	def _quote_url(match):
 		groups = list(match.groups())
-		groups[2] = urllib.quote(groups[2].encode("utf-8"), safe=b"~@#$&()*!+=:;,.?/'").decode("utf-8")
+		groups[2] = quoted(groups[2])
 		return "".join(groups)
 	return re.sub('(href|src){1}([\s]*=[\s]*[\'"]?)((?:http)[^\'">]+)([\'"]?)',
 		_quote_url, html)

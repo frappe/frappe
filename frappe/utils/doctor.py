@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 import json, base64, os
 import frappe.cli
 from frappe.celery_app import get_celery

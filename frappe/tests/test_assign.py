@@ -1,5 +1,6 @@
 # Copyright (c) 2014, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
+from __future__ import unicode_literals
 
 import frappe, unittest
 import frappe.widgets.form.assign_to
