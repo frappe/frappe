@@ -1360,8 +1360,7 @@ play-circle,играть круга
 plus,А ТАКЖЕ
 plus-sign,знак плюс
 print,print
-qrcode,"QR код
-"
+qrcode,QR код
 question-sign,Вопрос-знак
 random,random
 refresh,обновить
@@ -1418,7 +1417,7 @@ zoom-in,приблизить
 zoom-out,отдалить
 {0} List,{0} Список
 {0} added,{0} добавил
-{0} by {1},{0} по {0}
+{0} by {1},
 {0} cannot be set for Single types,{0} не может быть установлена для отдельных видов
 {0} does not exist in row {1},{0} не существует в строке {1}
 {0} in row {1} cannot have both URL and child items,{0} в строке {1} не может иметь как URL и дочерние элементы
@@ -1446,7 +1445,7 @@ zoom-out,отдалить
 "{0}: Cannot set Submit, Cancel, Amend without Write","{0}: Не удается установить Представьте, Отменить, Изменить без Write"
 {0}: Cannot set import as {1} is not importable,{0}: Не удается установить импорт как {1} не является ввозу
 "{0}: Create, Submit, Cancel and Amend only valid at level 0","{0}: Создание, Отправить, Отмена и Изменить действительны только на уровне 0"
-{0}: No basic permissions set,{Не 0}: Нет базовый набор разрешений
+{0}: No basic permissions set,
 "{0}: Only one rule allowed with the same Role, Level and Apply User Permissions","{0}: Только одно правило допускается с ту же роль, уровень и Применить разрешений пользователя"
 {0}: Permission at level 0 must be set before higher levels are set,{0}: введенное на уровне 0 должны быть установлены до более высоких уровней устанавливаются
 {app_title},{App_title}

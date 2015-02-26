@@ -144,16 +144,16 @@ Cancelled,Annulé
 Cannot Update: Incorrect / Expired Link.,Vous ne pouvez pas mettre à jour : Lien Mauvais ou périmée .
 Cannot Update: Incorrect Password,Vous ne pouvez pas mettre à jour : Mot de passe incorrect
 Cannot add more than 50 comments,Vous ne pouvez pas ajouter plus de 50 commentaires
-Cannot cancel before submitting. See Transition {0},Vous ne pouvez pas annuler avant de soumettre .
+Cannot cancel before submitting. See Transition {0},
 Cannot change picture,Impossible de changer l'image
-Cannot change state of Cancelled Document. Transition row {0},Vous ne pouvez pas changer l'état du document annulé .
+Cannot change state of Cancelled Document. Transition row {0},
 Cannot change {0},Vous ne pouvez pas modifier {0}
 Cannot delete or cancel because {0} {1} is linked with {2} {3},Vous ne pouvez pas supprimer ou annuler parce que {0} {1} est lié à {2} {3}
 Cannot delete {0} as it has child nodes,Vous ne pouvez pas supprimer {0} car il possède des nœuds enfant
 Cannot edit standard fields,Vous ne pouvez pas modifier les champs standards
 Cannot map because following condition fails: ,Impossible de mapper parce condition suivante échoue:
-Cannot open instance when its {0} is open,Création / modification par
-Cannot open {0} when its instance is open,pas trouvé
+Cannot open instance when its {0} is open,
+Cannot open {0} when its instance is open,
 Cannot print cancelled documents,Impossible d'imprimer les documents annulés
 Cannot remove permission for DocType: {0} and Name: {1},Vous ne pouvez pas retirer l'autorisation de DocType : {0} et Nom : {1}
 Cannot reply to a reply,Vous ne pouvez pas répondre à une réponse
@@ -167,7 +167,7 @@ Center,Centre
 "Change field properties (hide, readonly, permission etc.)","Modification des propriétés de champ (masquer , en lecture seule , permission etc )"
 Chat,Chat
 Check,Vérifier
-Check / Uncheck roles assigned to the User. Click on the Role to find out what permissions that Role has.,Cochez / Décochez les rôles assignés au profil. Cliquez sur le Rôle de savoir ce que ce rôle comme autorisations.
+Check / Uncheck roles assigned to the User. Click on the Role to find out what permissions that Role has.,Cochez / Décochez les rôles assignés au profil. Cliquez sur le rôle de savoir ce qu'il a comme autorisations.
 Check this if you want to send emails as this id only (in case of restriction by your email provider).,Cochez cette case si vous souhaitez envoyer des emails en tant que cette id seulement (en cas de restriction par votre fournisseur de messagerie).
 Check this to make this the default letter head in all prints,"Cochez cette case pour faire de cette entête de lettre, celle par défaut dans toutes les imprimés"
 Check which Documents are readable by a User,Vérifier quels documents sont lisibles pour un utilisateur donné
@@ -296,12 +296,12 @@ Doclist JSON,DocList JSON
 Docname,docname
 Document,Document
 Document Status transition from ,transition de l&#39;état du document de
-Document Status transition from {0} to {1} is not allowed,non autorisé
+Document Status transition from {0} to {1} is not allowed,
 Document Type,Type de document
 Document is only editable by users of role,Document est modifiable uniquement par les utilisateurs de rôle
 Documentation,Documentation
 Documents,Documents
-Download,Supprimer définitivement {0} ?
+Download,Télécharger
 Download Backup,Télécharger Backup
 Download link for your backup will be emailed on the following email address:,Le lien de téléchargement de votre sauvegarde sera envoyé sur l'adresse email suivante :
 Drafts,Brouillons
@@ -330,7 +330,7 @@ Email Use SSL,Envoyer par SSL
 Email address,Adresse e-mail
 "Email addresses, separted by commas","Adresses e-mail par des virgules, separted"
 Email not verified with {1},Envoyer à pas vérifié avec {1}
-Email sent to {0},entrer une valeur
+Email sent to {0},
 Email...,Adresse e-mail ...
 Emails are muted,Les e-mails sont mis en sourdine
 Embed image slideshows in website pages.,Intégrer des diaporamas d&#39;images dans les pages du site.
@@ -366,7 +366,7 @@ Everyone,Tout le monde
 Example:,Exemple:
 Expand,S'il vous plaît entrer un texte !
 Export,Exporter
-Export not allowed. You need {0} role to export.,Vider le cache
+Export not allowed. You need {0} role to export.,
 Exported,exporté
 "Expression, Optional","Expression, option"
 Facebook,Facebook
@@ -394,7 +394,7 @@ Fields,Champs
 "Fields separated by comma (,) will be included in the<br /><b>Search By</b> list of Search dialog box","Les champs séparés par des virgules (,) seront inclus dans le <br /> <b>Recherche par</b> liste de la boîte de dialogue Rechercher"
 Fieldtype cannot be changed from {0} to {1} in row {2},"FieldType peut pas être modifié à partir de {0} {1}, à la ligne {2}"
 File,Fichier
-File Data,Fichier de données
+File Data,Fichiers de données
 File Name,Nom du fichier
 File Size,Taille du fichier
 File URL,URL du fichier
@@ -492,12 +492,12 @@ If non standard port (e.g. 587),Si non port standard (par exemple 587)
 "If these instructions where not helpful, please add in your suggestions on GitHub Issues.","Si ces instructions où pas utile , s'il vous plaît ajouter vos suggestions sur les questions GitHub ."
 "If you set this, this Item will come in a drop-down under the selected parent.","Si vous définissez cette , cet article va venir dans un menu déroulant dans le cadre du parent sélectionné ."
 Ignore User Permissions,Ignorer les autorisations des utilisateurs
-"Ignoring Item {0}, because a group exists with the same name!",Nom interdite
+"Ignoring Item {0}, because a group exists with the same name!","Elements  ignoré {0}, un groupe avec le même nom exist !"
 Image,Image
 Image Link,Lien vers l&#39;image
 Import,Importer
 Import / Export Data,Import / Export de données
-Import / Export Data from .csv files.,Import / Export de données de fichiers. Csv .
+Import / Export Data from .csv files.,Import / Export de données de fichiers CSV .
 In,dans
 In Dialog,Dans la boîte de dialogue
 In Filter,Dans filtre
@@ -524,7 +524,7 @@ Integrations,Intégrations
 Introduce your company to the website visitor.,Présentez votre entreprise sur le visiteur du site.
 Introduction,Introduction
 Introductory information for the Contact Us Page,Information préliminaire pour la page Contactez-nous
-Invalid Email: {0},S'il vous plaît entrer le titre !
+Invalid Email: {0},
 Invalid Filter: {0},Descendre : {0}
 Invalid Home Page,Invalid Page d'accueil
 Invalid Login,Mot de passe incorrect
@@ -542,8 +542,7 @@ Is Standard,Est-standard
 Is Submittable,Est-Submittable
 Is Task,est Groupe
 Item cannot be added to its own descendents,Article ne peut être ajouté à ses propres descendants
-JavaScript Format: frappe.query_reports['REPORTNAME'] = {},"JavaScript Format :
-frappe.query_reports [' REPORTNAME '] = {}"
+JavaScript Format: frappe.query_reports['REPORTNAME'] = {},JavaScript Format :frappe.query_reports [' REPORTNAME '] = {}
 Javascript,Javascript
 Javascript to append to the head section of the page.,Javascript à ajouter à la section head de la page.
 Key,Clé
@@ -585,7 +584,7 @@ Loading,Chargement
 Loading Report,Chargement rapport
 Loading...,Chargement en cours ...
 Localization,localisation
-Location,emplacement
+Location,Emplacement
 Log of error on automated events (scheduler).,Connexion d'erreur sur les événements automatiques ( scheduler ) .
 Login,Connexion
 Login After,Après Connexion
@@ -602,7 +601,7 @@ Make a new,Faire une nouvelle
 Make a new record,Faire un nouveau record
 Male,Masculin
 Manage cloud backups on Dropbox,Gérer les sauvegardes de nuage sur Dropbox
-Manage uploaded files.,Gérer les fichiers téléchargés .
+Manage uploaded files.,Gérer les fichiers chargés.
 Mandatory,Obligatoire
 Mandatory fields required in {0},Courriel invalide : {0}
 Mandatory filters required:\n,Filtres obligatoires requises: \ n
@@ -632,7 +631,7 @@ Monday,Lundi
 More,Plus
 More content for the bottom of the page.,Plus de contenu pour le bas de la page.
 Move Down: {0},"Ignorant article {0} , car un groupe ayant le même nom !"
-Move Up: {0},construit sur
+Move Up: {0},
 Multiple root nodes not allowed.,Plusieurs nœuds racines ne peuvent pas .
 Must have report permission to access this report.,Doit avoir rapport autorisation d&#39;accéder à ce rapport.
 Must specify a Query to run,Vous devez spécifier une requête pour exécuter
@@ -659,7 +658,7 @@ Next Communcation On,Suivant Communcation sur
 Next Record,Prochaine ligne
 Next State,État Suivant
 Next actions,Prochaines actions
-No,Non
+No,Aucun
 No Action,Aucune action
 No Communication tagged with this ,Aucune communication étiqueté avec cette
 No Copy,Pas de copie
@@ -770,8 +769,8 @@ Patch,Correctif
 Patch Log,Connexion Patch
 Percent,Pour cent
 Perm Level,Perm niveau
-Permanently Cancel {0}?,enregistrement suivant
-Permanently Submit {0}?,Forums
+Permanently Cancel {0}?,
+Permanently Submit {0}?,
 Permanently delete {0}?,Champ {0} n'est pas sélectionnable.
 Permission Level,Niveau d&#39;autorisation
 Permission Levels,Niveaux d&#39;autorisation
@@ -791,12 +790,12 @@ Phone,Téléphone
 Phone No.,N ° de téléphone
 Pick Columns,Choisissez Colonnes
 Picture URL,URL de la photo
-Pincode,Le code PIN
+Pincode,Code Postal
 Please attach a file first.,S&#39;il vous plaît joindre un fichier en premier.
 Please attach a file or set a URL,S&#39;il vous plaît joindre un fichier ou définir une URL
 Please do not change the rows above {0},S'il vous plaît ne pas modifier les lignes ci-dessus {0}
 Please enable pop-ups,S'il vous plaît autoriser les pop -ups
-Please enter Event's Date and Time!,Ou créés par
+Please enter Event's Date and Time!,Veuillez entrer la date et l'heure de l'événement !
 Please enter both your email and message so that we \				can get back to you. Thanks!,S'il vous plaît entrer votre e-mail à la fois et le message afin que nous \ peut revenir à vous. Merci !
 Please enter some text!,missions
 Please enter title!,Vous n'êtes pas autorisé à créer {0}
@@ -857,7 +856,7 @@ Query Report,Rapport de requêtes
 Query must be a SELECT,Requête doit être un SELECT
 Quick Help for Setting Permissions,Aide rapide pour Définition des autorisations
 Quick Help for User Permissions,Aide rapide pour les autorisations des utilisateurs
-Re-open,Re - ouvert
+Re-open,réouvrir
 Read,Lire
 Read Only,Lecture seule
 Received,reçu
@@ -876,10 +875,10 @@ Refresh,Rafraîchir
 Refreshing...,Rafraîchissant ...
 Registered but disabled.,Inscrit mais désactivé.
 Registration Details Emailed.,Modalités d&#39;inscription envoyé par courriel.
-Reload Page,Inconnu Format d'impression : {0}
+Reload Page,Recharger page
 Remove Bookmark,Supprimer le signet
 Remove all customizations?,Retirez toutes les personnalisations ?
-Rename many items by uploading a .csv file.,Renommer de nombreux articles en téléchargeant un fichier . Csv.
+Rename many items by uploading a .csv file.,Renommer de nombreux éléments en chargeant un fichier CVS.
 Rename...,Renommer ...
 Repeat On,Répéter l&#39;opération sur
 Repeat Till,Répétez Till
@@ -918,7 +917,7 @@ Row #{0}:,Ligne # {0}:
 Rules defining transition of state in the workflow.,Règles définissant la transition de l&#39;état dans le workflow.
 "Rules for how states are transitions, like next state and which role is allowed to change state etc.","Règles pour la manière dont les États sont des transitions, comme état suivant et dont le rôle est autorisé à changer d&#39;état, etc"
 Run scheduled jobs only if checked,Les tâches planifiées son exécutées qui si coché
-Run the report first,Exécutez le premier rapport
+Run the report first,Exécutez le rapport en premier
 SMTP Server (e.g. smtp.gmail.com),Serveur SMTP (smtp.gmail.com par exemple)
 Sales,Ventes
 Same file has already been attached to the record,Même fichier a déjà été jointe au dossier
@@ -973,7 +972,7 @@ Sent Mail,Messages envoyés
 Sent Quotation,Devis envoyé
 Sent or Received,Envoyés ou reçus
 Series,série
-Series {0} already used in {1},La date à laquelle la prochaine facture sera générée . Il est généré lors de la soumission .
+Series {0} already used in {1},
 Server,Serveur
 Server & Credentials,Serveur et de vérification des pouvoirs
 Server Error: Please check your server logs or contact tech support.,Erreur de serveur : S'il vous plaît vérifier vos logs du serveur ou contactez le support technique .
@@ -985,7 +984,7 @@ Set Banner from Image,Réglez bannière de l&#39;image
 Set Link,Réglez Lien
 Set Login and Password if authentication is required.,Set de connexion et mot de passe si l&#39;authentification est requise.
 Set Only Once,Défini qu'une seule fois
-Set Password,définir mot de passe
+Set Password,Définir mot de passe
 Set Permissions on Document Types and Roles,Définir les autorisations des rôles sur les types de documents .
 Set Permissions per User,Définir les autorisations par utilisateur
 Set User Permissions,Définir les autorisations des utilisateurs
@@ -1056,11 +1055,11 @@ Subject,Sujet
 Submit,Soumettre
 Submit an Issue,Envoyer un problème
 Submitted,Soumis
-Submitted Document cannot be converted back to draft. Transition row {0},Document soumis ne peut pas être reconverti à rédiger.
+Submitted Document cannot be converted back to draft. Transition row {0},
 Success,Succès
 Suggestion,Suggestion
 Sunday,Dimanche
-Switch to Website,effondrement
+Switch to Website,Consulter site web
 Sync Inbox,Sync boîte de réception
 System,Système
 System Settings,Paramètres système
@@ -1104,7 +1103,7 @@ This is permanent action and you cannot undo. Continue?,Il s&#39;agit d&#39;une 
 This must be checked if Style Settings are applicable,Ceci doit être vérifié si les paramètres de style sont applicables
 This role update User Permissions for a user,Ce rôle Permission mise à jour de l'utilisateur pour un utilisateur
 Thursday,Jeudi
-Tile,Titre
+Tile,Mosaïque
 Time,Temps
 Time Zone,Fuseau horaire
 Timezone,Fuseau horaire
@@ -1119,7 +1118,7 @@ To,À
 To Do,Choses à faire
 "To format columns, give column labels in the query.","Pour formater colonnes, donner des étiquettes de colonne dans la requête."
 "To give acess to a role for only specific records, check the 'Apply User Permissions'. User Permissions are used to limit users with such role to specific records.","Pour donner acess à un rôle pour que les enregistrements spécifiques , cochez la case "" Appliquer les autorisations des utilisateurs ."
-"To run a test add the module name in the route after '{0}'. For example, {1}",Filtre invalide : {0}
+"To run a test add the module name in the route after '{0}'. For example, {1}",
 ToDo,ToDo
 Too many writes in one request. Please send smaller requests,Trop écrit en une seule requête . S'il vous plaît envoyer des demandes plus petites
 Top Bar,Top Bar
@@ -1136,10 +1135,10 @@ Twitter Share,Partager Twitter
 Twitter Share via,Twitter Partager via
 Type,Type
 Unable to find attachment {0},Impossible de trouver l'attachement {0}
-Unable to load: {0},Vous n'êtes pas autorisé à imprimer ce document
+Unable to load: {0},
 Unable to open attached file. Please try again.,Impossible d'ouvrir le fichier joint . S'il vous plaît essayez de nouveau .
 Unable to send emails at this time,Impossible d' envoyer des emails en ce moment
-Unknown Column: {0},Ajoutez à cela les restrictions de l'utilisateur
+Unknown Column: {0},
 "Unknown file encoding. Tried utf-8, windows-1250, windows-1252.","Inconnu encodage du fichier . Utf-8 essayé , windows- 1250 , windows- 1252 ."
 Unread Messages,Messages non lus
 Unsubscribe,Se désabonner
@@ -1289,7 +1288,7 @@ comment,commenter
 comments,commentaires
 dd-mm-yyyy,jj-mm-aaaa
 dd.mm.yyyy,dd.mm.yyyy
-dd/mm/yyyy,jj / mm / aaaa
+dd/mm/yyyy,jj/mm/aaaa
 download,télécharger
 download-alt,Télécharger alt-
 edit,éditer
@@ -1422,7 +1421,7 @@ zoom-out,Réduire
 {0} cannot be set for Single types,{0} ne peut pas être réglé pour les types simples
 {0} does not exist in row {1},{0} n'existe pas dans la ligne {1}
 {0} in row {1} cannot have both URL and child items,{0} à la ligne {1} ne peut pas avoir à la fois l'URL et articles pour enfants
-{0} is not a valid email id,S'il vous plaît sélectionner la valeur de groupe ou Ledger
+{0} is not a valid email id,
 {0} is required,{0} ne peut pas être acheté en utilisant Panier
 {0} is saved,{0} est sauvé
 {0} must be one of {1},{0} doit être l'un des {1}

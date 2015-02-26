@@ -144,9 +144,9 @@ Cancelled,Ακυρώθηκε
 Cannot Update: Incorrect / Expired Link.,Δεν είναι δυνατή η ενημέρωση : Εσφαλμένη / Έληξε σύνδεσης .
 Cannot Update: Incorrect Password,Δεν είναι δυνατή η ενημέρωση : Λάθος Κωδικός
 Cannot add more than 50 comments,Δεν μπορείτε να προσθέσετε περισσότερες από 50 σχόλια
-Cannot cancel before submitting. See Transition {0},Δεν μπορείτε να ακυρώσετε πριν από την υποβολή .
+Cannot cancel before submitting. See Transition {0},
 Cannot change picture,Δεν μπορεί να αλλάξει την εικόνα
-Cannot change state of Cancelled Document. Transition row {0},Δεν μπορεί να αλλάξει κατάσταση Ακυρώθηκε εγγράφου .
+Cannot change state of Cancelled Document. Transition row {0},
 Cannot change {0},Δεν μπορεί να αλλάξει {0}
 Cannot delete or cancel because {0} {1} is linked with {2} {3},Δεν είναι δυνατή η διαγραφή ή ακύρωση επειδή {0} {1} συνδέεται με {2} {3}
 Cannot delete {0} as it has child nodes,"Δεν είναι δυνατή η διαγραφή {0} , όπως έχει κόμβους του παιδιού"
@@ -1055,7 +1055,7 @@ Subject,Θέμα
 Submit,Υποβολή
 Submit an Issue,Υποβολή προβλήματος
 Submitted,Υποβλήθηκε
-Submitted Document cannot be converted back to draft. Transition row {0},Υποβλήθηκε έγγραφο δεν μπορεί να μετατραπεί ξανά να συντάξει .
+Submitted Document cannot be converted back to draft. Transition row {0},
 Success,Επιτυχία
 Suggestion,Πρόταση
 Sunday,Κυριακή

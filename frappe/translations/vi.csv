@@ -1422,7 +1422,7 @@ zoom-out,Zoom-out
 {0} does not exist in row {1},{0} không tồn tại trong hàng {1}
 {0} in row {1} cannot have both URL and child items,{0} trong hàng {1} không thể có cả hai URL và các mục con
 {0} is not a valid email id,{0} không phải là một id email hợp lệ
-{0} is required,Cho phép Giỏ hàng
+{0} is required,
 {0} is saved,{0} được lưu
 {0} must be one of {1},{0} phải là một trong {1}
 {0} must be set first,{0} phải được thiết lập đầu tiên

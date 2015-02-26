@@ -144,9 +144,9 @@ Cancelled,ರದ್ದುಗೊಳಿಸಲಾಗಿದೆ
 Cannot Update: Incorrect / Expired Link.,ನವೀಕರಿಸಲಾಗುವುದಿಲ್ಲ : ಕೊನೆಗೊಂಡಿದೆ / ತಪ್ಪಾದ ಲಿಂಕ್ .
 Cannot Update: Incorrect Password,ನವೀಕರಿಸಲಾಗುವುದಿಲ್ಲ : ತಪ್ಪಾದ ಪಾಸ್ವರ್ಡ್
 Cannot add more than 50 comments,ಹೆಚ್ಚು 50 ಪ್ರತಿಕ್ರಿಯೆಗಳು ಸೇರಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ
-Cannot cancel before submitting. See Transition {0},ಸಲ್ಲಿಸುವ ಮೊದಲು ರದ್ದುಗೊಳಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ .
+Cannot cancel before submitting. See Transition {0},
 Cannot change picture,ಚಿತ್ರವನ್ನು ಬದಲಾಯಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ
-Cannot change state of Cancelled Document. Transition row {0},ರದ್ದುಗೊಳಿಸಲಾಗಿದೆ ಡಾಕ್ಯುಮೆಂಟ್ ರಾಜ್ಯದ ಬದಲಾಯಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ .
+Cannot change state of Cancelled Document. Transition row {0},
 Cannot change {0},ಬದಲಾಯಿಸಲಾಗುವುದಿಲ್ಲ {0}
 Cannot delete or cancel because {0} {1} is linked with {2} {3},ಅಳಿಸಲು ಅಥವಾ {0} {1} ಸಂಬಂಧ ಕಾರಣ ರದ್ದುಗೊಳಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ {2} {3}
 Cannot delete {0} as it has child nodes,{0} ಆಲ್ಡ್ವಿಚ್ childNodes ಅಳಿಸಲು ಸಾಧ್ಯವಿಲ್ಲ
@@ -1055,7 +1055,7 @@ Subject,ವಿಷಯ
 Submit,ಸಲ್ಲಿಸಿ
 Submit an Issue,ಸಮಸ್ಯೆಯನ್ನು ಸಲ್ಲಿಸಿ
 Submitted,ಒಪ್ಪಿಸಿದ
-Submitted Document cannot be converted back to draft. Transition row {0},ಸಲ್ಲಿಸಿದ ಡಾಕ್ಯುಮೆಂಟ್ ಕರಡುಪ್ರತಿಯನ್ನು ಪರಿವರ್ತಿಸಬಹುದಾದ ಸಾಧ್ಯವಿಲ್ಲ .
+Submitted Document cannot be converted back to draft. Transition row {0},
 Success,ಯಶಸ್ಸು
 Suggestion,ಸಲಹೆ
 Sunday,ಭಾನುವಾರ
