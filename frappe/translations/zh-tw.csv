@@ -144,9 +144,9 @@ Cancelled,註銷
 Cannot Update: Incorrect / Expired Link.,無法更新：不正確的／過期的鏈接。
 Cannot Update: Incorrect Password,無法更新：不正確的密碼
 Cannot add more than 50 comments,無法添加超過50評論
-Cannot cancel before submitting. See Transition {0},可以在提交之前不會取消。
+Cannot cancel before submitting. See Transition {0},
 Cannot change picture,不能改變圖片
-Cannot change state of Cancelled Document. Transition row {0},不能改變註銷文件的狀態。
+Cannot change state of Cancelled Document. Transition row {0},
 Cannot change {0},不能改變{0}
 Cannot delete or cancel because {0} {1} is linked with {2} {3},不能刪除或取消，因為{0} {1}以連結到{2} {3}
 Cannot delete {0} as it has child nodes,無法刪除{0} ，因為它有子節點
@@ -711,7 +711,7 @@ On,開啟
 Only Administrator allowed to create Query / Script Reports,只有管​​理員可以創建查詢／腳本的報告
 Only Administrator can save a standard report. Please rename and save.,只有管​​理員可以保存一個標準的報告。請重新命名並保存。
 Only Allow Edit For,只允許編輯
-Only allowed {0} rows in one import,一次匯入只允許一列
+Only allowed {0} rows in one import,
 Oops! Something went wrong,糟糕！出事了
 Open,開
 Open Count,打開計數
@@ -1055,7 +1055,7 @@ Subject,主題
 Submit,提交
 Submit an Issue,提交問題
 Submitted,提交
-Submitted Document cannot be converted back to draft. Transition row {0},提交的文件不能被轉換回起草。
+Submitted Document cannot be converted back to draft. Transition row {0},
 Success,成功
 Suggestion,建議
 Sunday,星期天

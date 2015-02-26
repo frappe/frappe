@@ -780,9 +780,7 @@ Permissions,アクセス許可
 Permissions Settings,アクセス権限設定
 Permissions are automatically translated to Standard Reports and Searches.,アクセス権限は、自動的に標準レポートおよび検索に変換されます。
 "Permissions are set on Roles and Document Types (called DocTypes) by setting rights like Read, Write, Create, Delete, Submit, Cancel, Amend, Report, Import, Export, Print, Email and Set User Permissions.",アクセス権限は、レポート、インポート、エクスポート、印刷、電子メール、および設定ユーザー権限、改正、キャンセル、送信、削除、作成、書き込み、読み出しのような権利を設定することで、役割とドキュメントタイプ（文書型と呼ばれます）に設定されています。
-Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles.,"より高いレベルでのアクセス権限は「フィールドレベル」の権限です。
-すべてのフィールドが、「フィールドレベル」の権限と、フィールドに権限を適用することで定義されたルールに対して設定する「権限レベル」を持っています。
-非表示にしたり、あるフィールドを特定のロールで読み取り専用にする場合に便利です。"
+Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them and the rules defined at that permissions apply to the field. This is useful in case you want to hide or make certain field read-only for certain Roles.,より高いレベルでのアクセス権限は「フィールドレベル」の権限です。すべてのフィールドが、「フィールドレベル」の権限と、フィールドに権限を適用することで定義されたルールに対して設定する「権限レベル」を持っています。非表示にしたり、あるフィールドを特定のロールで読み取り専用にする場合に便利です。
 "Permissions at level 0 are 'Document Level' permissions, i.e. they are primary for access to the document.",レベル0のアクセス権限は「ドキュメントレベル」の権限です。これは文書へアクセスするのための主要な権限です。
 Permissions get applied on Users based on what Roles they are assigned.,アクセス権限は、割り当てられている役割に基づいてユーザーに適用されます。
 Permitted Documents For User,アクセス許可された文書
@@ -1082,7 +1080,7 @@ Template,テンプレート（パソコンのデータ版で資料作成時な�
 Template Pages cannot be moved,テンプレートページを移動することはできません
 Test,テスト
 Test Runner,テストランナー／テストを実行する人。
-Text,文章／メッセージ
+Text,文章／メッセージ
 Text Align,文章を行を整える。
 Text Editor,文章の編集。
 Thank you for your message,メッセージをありがとうございました。
@@ -1093,13 +1091,13 @@ There should remain at least one System Manager,少なくとも1つのシステ�
 There were errors,エラーが発生しました
 There were errors while sending email. Please try again.,メールの送信中にエラーが発生しました。もう一度お試しください。
 "There were some errors setting the name, please contact the administrator",名前の設定で多少のエラーが発生しました。管理者に連絡してください。
-"These permissions will apply for all transactions where the permitted record is linked. For example, if Company C is added to User Permissions of user X, user X will only be able to see transactions that has company C as a linked value.",これらの権限は許可記録がリンクされているすべての取引に適用されます。例えば、C社がユーザXのユーザー権限に追加された場合、ユーザXだけがC社のリンクされた取引を見ることができます。
+"These permissions will apply for all transactions where the permitted record is linked. For example, if Company C is added to User Permissions of user X, user X will only be able to see transactions that has company C as a linked value.",これらの権限は許可記録がリンクされているすべての取引に適用されます。例えば、C社がユーザXのユーザー権限に追加された場合、ユーザXだけがC社のリンクされた取引を見ることができます。
 These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.,これらの値は自動的に処理の段階で更新され、また取引にこの値が含まれているユーザーの権限を制限するのに役立つでしょう。
-"These will also be set as default values for those links, if only one such permission record is defined.",許可記録が定義されている場合のみ、それらのリンクは既定値として設定される。
+"These will also be set as default values for those links, if only one such permission record is defined.",許可記録が定義されている場合のみ、それらのリンクは既定値として設定される。
 Third Party Authentication,第三者認証
 This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>myfieldeval:doc.myfield=='My Value'<br>eval:doc.age>18,ここで定義されたフィールド名が値を持っているかのルールが真（例）している場合にのみ、このフィールドが表示されます：検索 myFieldという評価：doc.myfield == '私の値'検索評価： doc.age> 18
 This goes above the slideshow.,これは、スライドショーの上にいきます。
-This is PERMANENT action and you cannot undo. Continue?,これは固定された行動／作業であり、あなたが取り消すことはできません。続行しますか？
+This is PERMANENT action and you cannot undo. Continue?,これは固定された行動／作業であり、あなたが取り消すことはできません。続行しますか？
 "This is a standard format. To make changes, please copy it make make a new format.",これは標準的な形式です。修正する場合は、これをコピーして新しい形式を作成して下さい。
 This is permanent action and you cannot undo. Continue?,これは永久的な行動であり、あなたは元に戻すことはできません。続行しますか。
 This must be checked if Style Settings are applicable,スタイル設定を使用する場合、これは確認して下さい。
@@ -1116,8 +1114,7 @@ Title Field,タイトルフィールド／欄のタイトル
 Title Prefix,接頭辞のタイトル
 Title field must be a valid fieldname,タイトルフィールド（欄のタイトル）は、有効なフィールド名（欄名）である必要があります。
 Title is required,題を入力下さい。
-To,"〜宛。
-"
+To,〜宛。
 To Do,やることリスト
 "To format columns, give column labels in the query.",フォーマットのコラム（縦の列）に、質問の標識を設ける。
 "To give acess to a role for only specific records, check the 'Apply User Permissions'. User Permissions are used to limit users with such role to specific records.",特定な記録用の任務にアクセスを与えるためには、「ユーザー許可の適用」をチェックして下さい。ユーザー許可は特定の記録用の役割を持っているユーザーだけに使用されます。

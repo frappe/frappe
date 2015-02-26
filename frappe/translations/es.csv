@@ -132,8 +132,7 @@ Blogger,Blogger
 Bookmarks,Marcadores
 Both login and password required,Se requiere tanto usuario como contraseña 
 Brand HTML,Marca HTML
-Bulk Email,"Correo Masivo
-"
+Bulk Email,Correo Masivo
 Bulk email limit {0} crossed,Límite de correo electrónico masivo {0} sobrepasado 
 Button,Botón
 By,por
@@ -145,9 +144,9 @@ Cancelled,Cancelado
 Cannot Update: Incorrect / Expired Link.,No se puede actualizar : Link incorrecto / caducado .
 Cannot Update: Incorrect Password,No se puede actualizar : Contraseña Incorrecta
 Cannot add more than 50 comments,No se puede añadir más de 50 comentarios
-Cannot cancel before submitting. See Transition {0},No se puede cancelar antes de enviar .
+Cannot cancel before submitting. See Transition {0},
 Cannot change picture,No se puede cambiar la imagen
-Cannot change state of Cancelled Document. Transition row {0},No se puede cambiar el estado de Documento Cancelado .
+Cannot change state of Cancelled Document. Transition row {0},
 Cannot change {0},No se puede cambiar {0}
 Cannot delete or cancel because {0} {1} is linked with {2} {3},No se puede eliminar o cancelar porque {0} {1} está vinculado con {2} {3}
 Cannot delete {0} as it has child nodes,"No se puede eliminar {0} , ya que tiene nodos secundarios"
@@ -191,8 +190,7 @@ Column Break,Salto de columna
 Comment,Comentario
 Comment By,Comentado por
 Comment By Fullname,Comentado Por Nombre completo
-Comment Date,"Fecha de Comentario
-"
+Comment Date,Fecha de Comentario
 Comment Docname,Docname del Comentario
 Comment Doctype,Doctype Comentario
 Comment Time,Tiempo Comentario
@@ -1057,7 +1055,7 @@ Subject,Sujeto
 Submit,presentar
 Submit an Issue,Presentar un problema
 Submitted,Enviado
-Submitted Document cannot be converted back to draft. Transition row {0},Documento presentado no se puede convertir de nuevo a redactar .
+Submitted Document cannot be converted back to draft. Transition row {0},
 Success,Exito
 Suggestion,Sugerencia
 Sunday,Domingo

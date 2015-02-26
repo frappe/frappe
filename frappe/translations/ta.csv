@@ -144,9 +144,9 @@ Cancelled,ரத்து
 Cannot Update: Incorrect / Expired Link.,புதுப்பிக்க முடியாது : காலாவதியான / தவறான இணைப்பு .
 Cannot Update: Incorrect Password,புதுப்பிக்க முடியாது : தவறான கடவுச்சொல்
 Cannot add more than 50 comments,50 க்கும் மேற்பட்ட கருத்துக்கள் சேர்க்க முடியாது
-Cannot cancel before submitting. See Transition {0},சமர்ப்பிக்கும் முன் ரத்து செய்ய முடியாது .
+Cannot cancel before submitting. See Transition {0},
 Cannot change picture,படத்தை மாற்ற முடியாது
-Cannot change state of Cancelled Document. Transition row {0},ரத்து ஆவண மாநில மாற்ற முடியாது.
+Cannot change state of Cancelled Document. Transition row {0},
 Cannot change {0},மாற்ற முடியாது {0}
 Cannot delete or cancel because {0} {1} is linked with {2} {3},அழிக்கவோ அல்லது {0} {1} இணைக்கப்பட்டுள்ளது ஏனெனில் ரத்து செய்ய முடியாது {2} {3}
 Cannot delete {0} as it has child nodes,அது குழந்தை முனைகள் என {0} நீக்க முடியாது
@@ -1055,7 +1055,7 @@ Subject,பொருள்
 Submit,Submit &#39;
 Submit an Issue,ஒரு Issue சமர்ப்பிக்கவும்
 Submitted,சமர்ப்பிக்கப்பட்டது
-Submitted Document cannot be converted back to draft. Transition row {0},இந்த ஆவணத்தின் வரைவு மீண்டும் மாற்ற முடியாது .
+Submitted Document cannot be converted back to draft. Transition row {0},
 Success,வெற்றி
 Suggestion,யோசனை
 Sunday,ஞாயிற்றுக்கிழமை

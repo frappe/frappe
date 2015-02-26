@@ -144,9 +144,9 @@ Cancelled,إلغاء
 Cannot Update: Incorrect / Expired Link.,لا يمكن تحديث : رابط غير الصحيحة / منتهية الصلاحية .
 Cannot Update: Incorrect Password,لا يمكن تحديث : كلمة المرور غير صحيحة
 Cannot add more than 50 comments,لا يمكن إضافة أكثر من 50 تعليقا
-Cannot cancel before submitting. See Transition {0},لا يمكن إلغاء قبل تقديم .
+Cannot cancel before submitting. See Transition {0},
 Cannot change picture,لا يمكن تغيير الصورة
-Cannot change state of Cancelled Document. Transition row {0},لا يمكن تغيير حالة الوثيقة ملغاة .
+Cannot change state of Cancelled Document. Transition row {0},
 Cannot change {0},لا يمكن تغيير {0}
 Cannot delete or cancel because {0} {1} is linked with {2} {3},لا يمكن حذف أو إلغاء ل {0} {1} يرتبط مع {2} {3}
 Cannot delete {0} as it has child nodes,لا يمكن حذف {0} كما أن لديها العقد التابعة
@@ -1055,7 +1055,7 @@ Subject,موضوع
 Submit,عرض
 Submit an Issue,يقدم العدد
 Submitted,المقدمة
-Submitted Document cannot be converted back to draft. Transition row {0},الوثيقة المقدمة لا يمكن تحويلها إلى مشروع .
+Submitted Document cannot be converted back to draft. Transition row {0},
 Success,نجاح
 Suggestion,اقتراح
 Sunday,الأحد
