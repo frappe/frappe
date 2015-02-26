@@ -1,9 +1,11 @@
-<div class="media">
-	<a class="pull-left" href="#">
-		<img class="media-object" style="width: 48px;" src="{{ frappe.get_gravatar(comment.comment_by) }}" alt="{{ comment.comment_by_fullname }}">
-	</a>
-	<div class="media-body">
-		<h5 class="media-heading" itemprop="name">{{ comment.comment_by_fullname }}</h5>
+<div class="blog-comment-row">
+	<div class="inline-block" style="vertical-align: top">
+		<div class="avatar avatar-large" style="margin-top: 10px;">
+			<img itemprop="thumbnailUrl" src="{{ frappe.get_gravatar(comment.comment_by) }}" />
+		</div>
+	</div>
+	<div class="inline-block" style="width: calc(100% - 100px)">
+		<h4 itemprop="name">{{ comment.comment_by_fullname }}</h4>
 		<p class="text-muted small">
 			<span itemprop="commentTime">{{ comment.creation|global_date_format }}</span>
 		</p>

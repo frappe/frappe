@@ -14,6 +14,9 @@ a:focus,
 img {
   max-width: 100%;
 }
+p {
+  margin: 10px 0px;
+}
 .text-color {
   color: #36414c !important;
 }
@@ -447,18 +450,47 @@ fieldset {
 .web-list-item {
   padding: 15px 0px;
   border-bottom: 1px solid #d1d8dd;
-  margin-right: -30px;
-  padding-right: 30px;
 }
+.web-list-item h1,
+.web-list-item h2,
 .web-list-item h3 {
-  margin: 0 0 5px 0;
+  margin-top: 10px;
 }
+.web-list-item h1 a,
+.web-list-item h2 a,
 .web-list-item h3 a {
   color: inherit !important;
   text-decoration: none;
 }
+.web-list-item:first-child {
+  margin-top: -1px;
+  border-top: 1px solid #d1d8dd;
+}
 .web-list-item:last-child {
-  border-bottom: none;
+  margin-bottom: -1px;
+}
+.blog-footer {
+  padding: 5px 15px;
+  border-top: 1px solid #d1d8dd;
+  margin: 0px -15px -20px -15px;
+}
+.blogger {
+  padding: 10px 15px;
+  border-top: 1px solid #d1d8dd;
+  margin: 0px -15px;
+}
+.blog-comments {
+  margin: 0px -15px;
+  border-top: 1px solid #d1d8dd;
+  padding: 5px 15px 15px;
+}
+.blog-comment-row {
+  margin: 0px -15px;
+  padding: 15px;
+  border-bottom: 1px solid #d1d8dd;
+}
+.add-comment-section {
+  padding-top: 15px;
 }
 textarea {
   resize: vertical;
@@ -476,7 +508,7 @@ textarea {
   }
 }
 .btn-more {
-  margin-top: 15px;
+  margin: 15px;
 }
 .post-content img {
   margin: 10px 0px;

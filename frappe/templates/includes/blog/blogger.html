@@ -1,10 +1,10 @@
-<div class="row">
-	<div class="col-md-2">
-		<div class="avatar avatar-large">
+<div class="blogger">
+	<div class="inline-block" style="vertical-align: top">
+		<div class="avatar avatar-large" style="margin-top: 10px;">
 			<img itemprop="thumbnailUrl" src="{{ blogger_info.avatar }}" />
 		</div>
 	</div>
-	<div class="col-md-10">
+	<div class="inline-block" style="width: calc(100% - 100px)">
 		<h4>{{ blogger_info.full_name }}</h4>
 		<p class="text-muted">{{ blogger_info.bio }}</p>
 		<p><a href="/blog?by={{ blogger_info.name }}&by_name={{ blogger_info.full_name }}">

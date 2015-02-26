@@ -1,26 +1,23 @@
 {% block title %}{{ blog_title or "Blog" }}{% endblock %}
 
-{% block script %}
-window.category = null;
-{% endblock %}
-
-{% block content %}
-<div class="blog-list-content">
-	{% if blog_introduction %}
-	<p class="blog-introduction">{{ blog_introduction }}</p>
-	{% endif %}
-	<h3 id="blot-subtitle" class="hide"></h3>
-	<div id="blog-list">
-		{% include "templates/includes/list/list.html" %}
-	</div>
-    <div class="blog-footer">
-        <p class="blog-message text-muted"></p>
-    	<div class="text-center">
-    		<button id="next-page" class="btn btn-default"
-    			style="display:none;">More...</button>
-    	</div>
-    </div>
+{% block header %}
+<div style="padding-bottom: 10px;">
+	{% if blog_title -%} <h1>{{ blog_title }}</h1> {%- endif %}
+	{% if blog_subtitle -%} <h3>{{ blog_subtitle }}</h3> {%- endif %}
 </div>
 {% endblock %}
 
-{% block footer %}{% include 'templates/includes/blog/blog_footer.html' %}{% endblock %}
+{% block content %}
+{% if not (blog_title or blog_subtitle) -%} <!-- no-header --> {%- endif %}
+<div class="blog-list-content">
+	{% if not blog_subtitle and blog_introduction %}
+	<p class="blog-introduction">{{ blog_introduction }}</p>
+	{% endif %}
+	<div id="blog-list">
+		{% include "templates/includes/list/list.html" %}
+	</div>
+	{% include 'templates/includes/blog/blog_footer.html' %}
+</div>
+{% endblock %}
+
+{% block script %}{% include "templates/includes/list/list.js" %}{% endblock %}

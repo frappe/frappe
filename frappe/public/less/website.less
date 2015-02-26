@@ -193,11 +193,9 @@ fieldset {
 .web-list-item {
 	padding: 15px 0px;
 	border-bottom: 1px solid @border-color;
-	margin-right: -30px;
-	padding-right: 30px;
 
-	h3 {
-		margin: 0 0 5px 0;
+	h1, h2, h3 {
+		margin-top: 10px;
 
 		a {
 			color: inherit !important;
@@ -206,8 +204,41 @@ fieldset {
 	}
 }
 
+.web-list-item:first-child {
+	margin-top: -1px;
+	border-top: 1px solid @border-color;
+}
+
 .web-list-item:last-child {
-		border-bottom: none;
+	margin-bottom: -1px;
+}
+
+.blog-footer {
+	padding: 5px 15px;
+	border-top: 1px solid @border-color;
+	margin: 0px -15px -20px -15px;
+}
+
+.blogger {
+	padding: 10px 15px;
+	border-top: 1px solid @border-color;
+	margin: 0px -15px;
+}
+
+.blog-comments {
+    margin: 0px -15px;
+    border-top: 1px solid @border-color;
+    padding: 5px 15px 15px;
+}
+
+.blog-comment-row {
+	margin: 0px -15px;
+	padding: 15px;
+	border-bottom: 1px solid @border-color;
+}
+
+.add-comment-section {
+	padding-top: 15px;
 }
 
 textarea {
@@ -230,7 +261,7 @@ textarea {
 }
 
 .btn-more {
-	margin-top: 15px;
+	margin: 15px;
 }
 
 .post-content img {

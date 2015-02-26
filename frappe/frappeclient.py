@@ -126,16 +126,16 @@ class FrappeClient(object):
 		}
 		return self.post_request(params)
 
-	def migrate_doctype(self, doctype, filters={}):
+	def migrate_doctype(self, doctype, filters=None, update=None, verbose=1):
 		"""Migrate records from another doctype"""
 		meta = frappe.get_meta(doctype)
 		tables = {}
 		for df in meta.get_table_fields():
-			print "getting " + df.options
+			if verbose: print "getting " + df.options
 			tables[df.fieldname] = self.get_list(df.options, limit_page_length=999999)
 
 		# get links
-		print "getting " + doctype
+		if verbose: print "getting " + doctype
 		docs = self.get_list(doctype, limit_page_length=999999, filters=filters)
 
 		# build - attach children to parents
@@ -148,7 +148,7 @@ class FrappeClient(object):
 				for child in tables[fieldname]:
 					docs_map[child.parent].append(fieldname, child)
 
-		print "inserting " + doctype
+		if verbose: print "inserting " + doctype
 		for doc in docs:
 			if not doc.get("owner"):
 				doc["owner"] = "Administrator"
@@ -157,11 +157,16 @@ class FrappeClient(object):
 				frappe.get_doc({"doctype": "User", "email": doc.get("owner"),
 					"first_name": doc.get("owner").split("@")[0] }).insert()
 
-			doc["doctype"] = doctype
-			frappe.get_doc(doc).insert()
+			if update:
+				doc.update(update)
 
-		if doctype != "Comment":
-			self.migrate_doctype("Comment", {"comment_doctype": doctype})
+			doc["doctype"] = doctype
+			new_doc = frappe.get_doc(doc)
+			new_doc.insert()
+
+			if doctype != "Comment" and not meta.istable:
+				self.migrate_doctype("Comment", {"comment_doctype": doctype, "comment_docname": doc["name"]},
+					update={"comment_docname": new_doc.name}, verbose=0)
 
 	def migrate_single(self, doctype):
 		doc = self.get_doc(doctype, doctype)

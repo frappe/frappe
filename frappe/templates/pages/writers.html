@@ -7,9 +7,13 @@
 	{% endif %}
 	{% for blogger_info in bloggers %}
 	{% include "templates/includes/blog/blogger.html" %}
-	{% if not loop.last %}<hr>{% endif %}
 	{% endfor %}
+	{% include "templates/includes/blog/blog_footer.html" %}
 </div>
 {% endblock %}
 
-{% block footer %}{% include "templates/includes/blog/blog_footer.html" %}{% endblock %}
+{% block style %}
+<style>
+
+</style>
+{% endblock %}

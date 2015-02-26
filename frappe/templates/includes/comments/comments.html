@@ -10,12 +10,13 @@
 	{% endfor %}
 </div>
 
+<div class="add-comment-section">
 {% if login_required and frappe.user=="Guest" %}
 	<div class="alert alert-warning">You must <a href="/login?redirect-to={{ pathname }}">login</a> to comment.</div>
 {% else %}
-	<div><a class="add-comment">Add Comment</a></div>
-	<div style="display: none; margin-top: 10px; max-width: 400px;"
-		id="comment-form">
+	<p><a class="add-comment">Add Comment</a></p>
+	<div style="display: none;" id="comment-form">
+		<p>Add Comment</p>
 		<div class="alert" style="display:none;"></div>
 		<form>
 			<fieldset>
@@ -30,6 +31,7 @@
 			</fieldset>
 		</form>
 	</div>
+</div>
 {% endif %}
 
 <script>

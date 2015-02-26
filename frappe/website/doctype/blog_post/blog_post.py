@@ -68,12 +68,12 @@ class BlogPost(WebsiteGenerator):
 		if image:
 			context.metatags["image"] = image
 
-		context.categories = frappe.db.sql_list("""select name from
-			`tabBlog Category` order by name""")
-
 		context.comment_list = get_comment_list(self.doctype, self.name)
 
 		context.children = get_children()
+
+		category = frappe.db.get_value("Blog Category", context.doc.blog_category, ["title", "page_name"], as_dict=1)
+		context.parents = [{"title": category.title, "name": "blog/{0}".format(category.page_name)}]
 
 	@staticmethod
 	def get_list_context(context=None):
@@ -85,13 +85,26 @@ class BlogPost(WebsiteGenerator):
 			hide_filters = True,
 			children = get_children()
 		)
+
+		if frappe.local.form_dict.category:
+			list_context.blog_subtitle = _("Posts filed under {0}").format(get_blog_category(frappe.local.form_dict.category))
+			list_context.parents = [{ "name": "blog", "title": _("Blog") }]
+
+		elif frappe.local.form_dict.by:
+			blogger = frappe.db.get_value("Blogger", {"name": frappe.local.form_dict.by}, "full_name")
+			list_context.blog_subtitle = _("Posts by {0}").format(blogger)
+			list_context.parents = [{ "name": "blog", "title": _("Blog") }]
+
 		list_context.update(frappe.get_doc("Blog Settings", "Blog Settings").as_dict())
 		return list_context
 
 def get_children():
 	return frappe.db.sql("""select concat("blog/", page_name) as name,
 		title from `tabBlog Category`
-		where ifnull(published, 0) = 1 order by title asc""", as_dict=1)
+		where ifnull(published, 0) = 1
+		and exists (select name from `tabBlog Post`
+			where `tabBlog Post`.blog_category=`tabBlog Category`.name and ifnull(published, 0)=1)
+		order by title asc""", as_dict=1)
 
 def clear_blog_cache():
 	for blog in frappe.db.sql_list("""select page_name from
@@ -100,13 +113,16 @@ def clear_blog_cache():
 
 	clear_cache("writers")
 
+def get_blog_category(page_name):
+	return frappe.db.get_value("Blog Category", {"page_name": page_name }) or page_name
+
 def get_blog_list(doctype, txt=None, filters=None, limit_start=0, limit_page_length=20):
 	condition = ""
 	if filters:
 		if filters.by:
-			condition = " and t1.blogger='%s'" % filters.by.replace("'", "\'")
+			condition = ' and t1.blogger="%s"' % filters.by
 		if filters.category:
-			condition += " and t1.blog_category='%s'" % filters.category.replace("'", "\'")
+			condition += ' and t1.blog_category="%s"' % get_blog_category(filters.category)
 
 		if condition:
 			frappe.local.no_cache = 1

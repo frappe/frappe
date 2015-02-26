@@ -14,6 +14,9 @@ a:focus,
 img {
   max-width: 100%;
 }
+p {
+  margin: 10px 0px;
+}
 .text-color {
   color: #36414c !important;
 }

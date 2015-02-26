@@ -12,7 +12,8 @@
 {%- for child in children -%}
 <ul class="list-unstyled sidebar-menu sidebar-item">
 	<li>
-		<a href="{{ child.name }}" class="no-decoration {% if (pathname or "")==(child.name or "") %}active{% endif %}">
+		<a href="{{ child.name }}" class="no-decoration
+			{% if (pathname or "")==(child.name or "") or (pathname and child.name and pathname.startswith(child.name)) -%} active {%- endif %}">
 			{{  child.title or child.page_title or (child.name or "") }}
 		</a>
 	</li>
