@@ -144,9 +144,9 @@ Cancelled,Отказан
 Cannot Update: Incorrect / Expired Link.,Не могу Упдате : Погрешна / Линк Истекло .
 Cannot Update: Incorrect Password,Не могу Упдате : Погрешна лозинка
 Cannot add more than 50 comments,Не можете добавить более 50 комментариев
-Cannot cancel before submitting. See Transition {0},Не може отказати пре слања .
+Cannot cancel before submitting. See Transition {0},
 Cannot change picture,Невозможно изменить картину
-Cannot change state of Cancelled Document. Transition row {0},Не могу променити стање Отказан Документа .
+Cannot change state of Cancelled Document. Transition row {0},
 Cannot change {0},Невозможно изменить {0}
 Cannot delete or cancel because {0} {1} is linked with {2} {3},"Не удается удалить или отменить, потому что {0} {1} связан с {2} {3}"
 Cannot delete {0} as it has child nodes,"Не удается удалить {0} , поскольку он имеет дочерние узлы"
@@ -1055,7 +1055,7 @@ Subject,Предмет
 Submit,Поднети
 Submit an Issue,Представьте о проблеме
 Submitted,Поднет
-Submitted Document cannot be converted back to draft. Transition row {0},Поднет документ не може да се конвертује у изради .
+Submitted Document cannot be converted back to draft. Transition row {0},
 Success,Успех
 Suggestion,Сугестија
 Sunday,Недеља
@@ -1445,7 +1445,7 @@ zoom-out,зоом-оут
 "{0}: Cannot set Submit, Cancel, Amend without Write","{0} : Не удается установить Представьте , Отменить , Изменить без Write"
 {0}: Cannot set import as {1} is not importable,{0} : Не удается установить импорт как {1} не является ввозу
 "{0}: Create, Submit, Cancel and Amend only valid at level 0","{0} : Создание , Представьте , Отмена и Изменить действительны только на уровне 0"
-{0}: No basic permissions set,{ Не 0}: Нет базовый набор разрешений
+{0}: No basic permissions set,
 "{0}: Only one rule allowed with the same Role, Level and Apply User Permissions","{0} : Само једно правило дозвољено уз исту улогу , ниво и корисника Аппли Пермиссионс"
 {0}: Permission at level 0 must be set before higher levels are set,{0} : введенное на уровне 0 должны быть установлены до более высоких уровней устанавливаются
 {app_title},{ app_title }

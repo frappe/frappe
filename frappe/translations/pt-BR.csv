@@ -144,9 +144,9 @@ Cancelled,Cancelado
 Cannot Update: Incorrect / Expired Link.,Não é possível atualizar : Link incorreto / expirado.
 Cannot Update: Incorrect Password,Não é possível atualizar : Senha incorreta
 Cannot add more than 50 comments,Não é possível adicionar mais de 50 comentários
-Cannot cancel before submitting. See Transition {0},Não pode cancelar antes de enviar.
+Cannot cancel before submitting. See Transition {0},
 Cannot change picture,Não é possível alterar a imagem
-Cannot change state of Cancelled Document. Transition row {0},Não é possível alterar o estado de Documento Cancelado .
+Cannot change state of Cancelled Document. Transition row {0},
 Cannot change {0},Não é possível alterar {0}
 Cannot delete or cancel because {0} {1} is linked with {2} {3},Não é possível excluir ou cancelar porque {0} {1} está ligada a {2} {3}
 Cannot delete {0} as it has child nodes,"Não é possível excluir {0} , pois tem nós filhos"
@@ -1055,7 +1055,7 @@ Subject,Assunto
 Submit,Enviar
 Submit an Issue,Enviar um tema
 Submitted,Enviado
-Submitted Document cannot be converted back to draft. Transition row {0},Documento apresentado não pode ser convertido de volta para rascunho.
+Submitted Document cannot be converted back to draft. Transition row {0},
 Success,Sucesso
 Suggestion,Sugestão
 Sunday,Domingo

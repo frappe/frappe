@@ -144,9 +144,9 @@ Cancelled,रद्द
 Cannot Update: Incorrect / Expired Link.,अद्यतन नहीं कर सकता : समय सीमा समाप्त / गलत लिंक .
 Cannot Update: Incorrect Password,अद्यतन नहीं कर सकता : गलत पासवर्ड
 Cannot add more than 50 comments,50 से अधिक टिप्पणियां नहीं जोड़ सकता
-Cannot cancel before submitting. See Transition {0},प्रस्तुत करने से पहले रद्द नहीं कर सकते .
+Cannot cancel before submitting. See Transition {0},
 Cannot change picture,तस्वीर बदल नहीं सकते
-Cannot change state of Cancelled Document. Transition row {0},रद्द दस्तावेज़ के राज्य को बदल नहीं सकते .
+Cannot change state of Cancelled Document. Transition row {0},
 Cannot change {0},नहीं बदला जा सकता {0}
 Cannot delete or cancel because {0} {1} is linked with {2} {3},"हटाना या {0} {1} के साथ जुड़ा हुआ है , क्योंकि रद्द नहीं कर सकते {2} {3}"
 Cannot delete {0} as it has child nodes,यह बच्चे नोड्स के रूप में {0} को हटा नहीं सकते
@@ -1055,7 +1055,7 @@ Subject,विषय
 Submit,प्रस्तुत करना
 Submit an Issue,किसी समस्या सबमिट
 Submitted,पेश
-Submitted Document cannot be converted back to draft. Transition row {0},प्रस्तुत दस्तावेज का मसौदा तैयार करने के लिए वापस नहीं बदला जा सकता .
+Submitted Document cannot be converted back to draft. Transition row {0},
 Success,सफलता
 Suggestion,सुझाव
 Sunday,रविवार

@@ -144,9 +144,9 @@ Cancelled,ยกเลิก
 Cannot Update: Incorrect / Expired Link.,ไม่สามารถ อัปเดต : ไม่ถูกต้อง Link / หมดอายุ
 Cannot Update: Incorrect Password,ไม่สามารถ อัปเดต : รหัสผ่าน ไม่ถูกต้อง
 Cannot add more than 50 comments,ไม่สามารถเพิ่ม มากขึ้นกว่า 50 ความเห็น
-Cannot cancel before submitting. See Transition {0},ไม่สามารถยกเลิก ก่อนที่จะส่ง
+Cannot cancel before submitting. See Transition {0},
 Cannot change picture,ไม่สามารถเปลี่ยน ภาพ
-Cannot change state of Cancelled Document. Transition row {0},ไม่สามารถ เปลี่ยนสถานะ ของ เอกสาร ยกเลิก
+Cannot change state of Cancelled Document. Transition row {0},
 Cannot change {0},ไม่สามารถเปลี่ยน {0}
 Cannot delete or cancel because {0} {1} is linked with {2} {3},ไม่สามารถลบ หรือยกเลิก เพราะ {0} {1} การเชื่อมโยงกับ {2} {3}
 Cannot delete {0} as it has child nodes,ไม่สามารถลบ {0} เนื่องจากมี ต่อมน้ำเด็ก
@@ -1055,7 +1055,7 @@ Subject,เรื่อง
 Submit,เสนอ
 Submit an Issue,ส่ง ออก
 Submitted,Submitted
-Submitted Document cannot be converted back to draft. Transition row {0},ส่ง เอกสาร ไม่สามารถแปลง กลับไปที่ ร่าง
+Submitted Document cannot be converted back to draft. Transition row {0},
 Success,ความสำเร็จ
 Suggestion,ข้อเสนอแนะ
 Sunday,วันอาทิตย์

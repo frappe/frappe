@@ -16,7 +16,7 @@
 <i>e.g. <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>,<i>e.g. <strong>(55 + 434) / 4</strong> or <strong>=Math.sin(Math.PI/2)</strong>...</i>
 <i>module name...</i>,
 <i>text</i> <b>in</b> <i>document type</i>,<i>text</i> <b>in</b> <i>document type</i>
-A new account has been created for you,S'ha creat un nou compte per a vost'e
+A new account has been created for you,S'ha creat un nou compte per a tu
 "A new task, %s, has been assigned to you by %s. %s","Se li ha assignat una nova tasca,%s, de%s. %s"
 A user can be permitted to multiple records of the same DocType.,A user can be permitted to multiple records of the same DocType.
 About,
@@ -28,7 +28,7 @@ Actions,
 Add,Afegir
 Add A New Rule,Afegir una nova regla
 Add A User Permission,Afegir un Permís d'usuari
-Add Attachments,Addició d'arxius adjunts
+Add Attachments,Afegeix arxius adjunts
 Add Bookmark,Add Bookmark
 Add CSS,
 Add Column,Afegir columna
@@ -63,7 +63,7 @@ Address,Adreça
 Address Line 1,Adreça Línia 1
 Address Line 2,Adreça Línia 2
 Address Title,
-Address and other legal information you may want to put in the footer.,Podeu posar l'adreça i la informació legal al peu de pàgina.
+Address and other legal information you may want to put in the footer.,Adreça i informació legal que vols posar al peu de pàgina.
 Adds a custom field to a DocType,Afegeix un camp personalitzat a un DocType
 Adds a custom script (client or server) to a DocType,Afegeix una seqüència de comandaments personalitzada (client o servidor) a un DocType
 Admin,Administració
@@ -1510,7 +1510,7 @@ eye-open,eye-open
 facetime-video,FaceTime i vídeo
 fast-backward,fast-backward
 fast-forward,avanç ràpid
-file,File
+file,Arxiu
 film,film
 filter,filtre
 fire,
@@ -1589,7 +1589,7 @@ screenshot,captura de pantalla
 search,cerca
 share,share
 share-alt,share-alt
-shopping-cart,carro de la compra
+shopping-cart,Cistella de la compra
 signal,
 star,
 star-empty,star-empty
