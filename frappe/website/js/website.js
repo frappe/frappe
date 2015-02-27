@@ -626,4 +626,10 @@ $(document).on("page-change", function() {
 	frappe.bind_filters();
 	frappe.highlight_code_blocks();
 	frappe.make_navbar_active();
+
+	// scroll to hash
+	if (window.location.hash) {
+		var element = document.getElementById(window.location.hash.substring(1));
+		element && element.scrollIntoView(true);
+	}
 });

@@ -55,7 +55,7 @@ Built on Frappe.io. Free and Open Source Framework for the Web. https://frappe.i
 			    		<div class="page-container" id="page-{{ name or page_name }}" data-path="{{ pathname }}">
 			    			<div class="row">
 			    				<div class="col-sm-10 col-xs-12 page-content">
-			            			<div data-html-block="header">
+			            			<div class="page-header-block" data-html-block="header">
 			            				{%- if header is defined -%}{% if header %}{{ header }}{% endif %}{%- endif -%}
 			            			</div>
 			                		<div class="page-breadcrumbs" data-html-block="breadcrumbs">
