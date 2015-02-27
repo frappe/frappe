@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe.model.base_document import get_controller
 from frappe.utils import cint
+from frappe.website.render import resolve_path
 
 no_cache = 1
 no_sitemap = 1
@@ -30,7 +31,14 @@ def get(doctype, txt=None, limit_start=0, **kwargs):
 	limit_start = cint(limit_start)
 	limit_page_length = 20
 	next_start = limit_start + limit_page_length
+
 	filters = frappe._dict(kwargs)
+	if filters.pathname:
+		# resolve additional filters from path
+		resolve_path(filters.pathname)
+		for key, val in frappe.local.form_dict.items():
+			if not (key in ("doctype", "txt", "limit_start") and key in filters):
+				filters[key] = val
 
 	controller = get_controller(doctype)
 	meta = frappe.get_meta(doctype)

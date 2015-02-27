@@ -521,9 +521,6 @@ a.active {
   pointer-events: none;
   cursor: default;
 }
-:target {
-  background-color: #ffa;
-}
 .page-breadcrumbs .breadcrumb {
   padding: 0px;
   background-color: transparent;
@@ -546,9 +543,6 @@ a.active {
 }
 .docs-attr-desc {
   padding-left: 30px;
-}
-.page-content {
-  min-height: 400px;
 }
 @media (max-width: 767px) {
   .page-content {

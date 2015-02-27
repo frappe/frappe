@@ -569,14 +569,21 @@ def get_all_apps(with_frappe=False, with_internal_apps=True, sites_path=None):
 	if with_internal_apps:
 		apps.extend(get_file_items(os.path.join(local.site_path, "apps.txt")))
 	if with_frappe:
+		if "frappe" in apps:
+			apps.remove("frappe")
 		apps.insert(0, 'frappe')
 	return apps
 
-def get_installed_apps():
+def get_installed_apps(sort=False):
 	"""Get list of installed apps in current site."""
 	if getattr(flags, "in_install_db", True):
 		return []
+
 	installed = json.loads(db.get_global("installed_apps") or "[]")
+
+	if sort:
+		installed = [app for app in get_all_apps(True) if app in installed]
+
 	return installed
 
 @whitelist()
@@ -715,8 +722,8 @@ def call(fn, *args, **kwargs):
 		fnargs, varargs, varkw, defaults = inspect.getargspec(fn)
 
 	newargs = {}
-	for a in fnargs:
-		if a in kwargs:
+	for a in kwargs:
+		if (a in fnargs) or varkw:
 			newargs[a] = kwargs.get(a)
 
 	if "flags" in newargs:

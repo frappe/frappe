@@ -3,13 +3,16 @@ frappe.ready(function() {
 	var result_wrapper = $(".website-list .result");
 
 	$(".website-list .btn-more").on("click", function() {
+		var data = $.extend(get_query_params(), {
+			doctype: "{{ doctype }}",
+			txt: "{{ txt or '' }}",
+			limit_start: next_start,
+			pathname: location.pathname
+		});
+
 		return $.ajax({
 			url:"/api/method/frappe.templates.pages.list.get",
-			data: {
-				doctype: "{{ doctype }}",
-				txt: "{{ txt or '' }}",
-				limit_start: next_start
-			},
+			data: data,
 			statusCode: {
 				200: function(data) {
 					var data = data.message;
@@ -28,4 +31,4 @@ frappe.ready(function() {
 			$(".website-list .more-block").addClass("hide");
 		}
 	};
-})
+});

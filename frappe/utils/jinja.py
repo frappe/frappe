@@ -91,11 +91,8 @@ def get_jloader():
 	if not frappe.local.jloader:
 		from jinja2 import ChoiceLoader, PackageLoader, PrefixLoader
 
-		apps = frappe.get_installed_apps()
-
-		# put frappe at the end
-		apps.remove("frappe")
-		apps.append("frappe")
+		apps = frappe.get_installed_apps(sort=True)
+		apps.reverse()
 
 		frappe.local.jloader = ChoiceLoader(
 			# search for something like app/templates/...
