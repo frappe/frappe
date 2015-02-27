@@ -176,8 +176,12 @@ def load_lang(lang, apps=None):
 	for app in (apps or frappe.get_all_apps(True)):
 		path = os.path.join(frappe.get_pymodule_path(app), "translations", lang + ".csv")
 		if os.path.exists(path):
-			cleaned = dict([(item[1], item[2]) for item in read_csv_file(path) if item[2]])
-			# cleaned = dict([(item[0], item[1]) for item in read_csv_file(path) if item[1]])
+			csv_content = read_csv_file(path)
+			try:
+				# with file and line numbers
+				cleaned = dict([(item[1], item[2]) for item in csv_content if item[2]])
+			except IndexError:
+				cleaned = dict([(item[0], item[1]) for item in csv_content if item[1]])
 			out.update(cleaned)
 	return out
 
@@ -361,7 +365,7 @@ def pos_to_line_no(messages, code):
 			newline_i+= 1
 		ret.append((line, message))
 	return ret
-			
+
 def read_csv_file(path):
 	"""Read CSV file and return as list of list
 
