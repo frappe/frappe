@@ -39,8 +39,9 @@ def reload_doc(module, dt=None, dn=None, force=True):
 def export_doc(doctype, name, module=None):
 	"""Write a doc to standard path."""
 	from frappe.modules.export_file import write_document_file
+	print doctype, name
 
-	if not module: module = frappe.db.get_value(doctype, name, 'module')
+	if not module: module = frappe.db.get_value('DocType', name, 'module')
 	write_document_file(frappe.get_doc(doctype, name), module)
 
 def get_doctype_module(doctype):

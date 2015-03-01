@@ -1,0 +1,714 @@
+# Copyright (c) 2015, Web Notes Technologies Pvt. Ltd. and Contributors
+# MIT License. See license.txt
+
+from __future__ import unicode_literals
+import sys
+import os
+import subprocess
+import frappe
+import json
+from frappe.utils import cint
+from distutils.spawn import find_executable
+from functools import wraps
+
+import click
+
+def pass_context(f):
+	@wraps(f)
+	def _func(ctx, *args, **kwargs):
+		return f(frappe._dict(ctx.obj), *args, **kwargs)
+	return click.pass_context(_func)
+
+def get_single_site(context):
+	if not len(context.sites) == 1:
+		print 'please select a site'
+		sys.exit(1)
+	site = context.sites[0]
+	return site
+
+@click.command('new-site')
+@click.argument('db-name')
+@click.argument('site')
+@click.option('--mariadb-root-username', default='root', help='Root username for MariaDB')
+@click.option('--mariadb-root-password', help='Root password for MariaDB')
+@click.option('--admin-password', help='Administrator password for new site', prompt=True)
+@click.option('--verbose', is_flag=True, default=False, help='Verbose')
+@click.option('--force', help='Force restore if site/database already exists', is_flag=True, default=False)
+@click.option('--source_sql', help='Initiate database with a SQL file')
+@click.option('--install-app', multiple=True, help='Install app after installation')
+def new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=None, admin_password=None, verbose=False, install_apps=None, source_sql=None, force=None, install_app=None):
+	"Install a new site"
+	frappe.init(site=site)
+	_new_site(db_name, site, mariadb_root_username=mariadb_root_username, mariadb_root_password=mariadb_root_password, admin_password=admin_password, verbose=verbose, install_apps=install_app, source_sql=source_sql, force=force)
+	pass
+
+def _new_site(db_name, site, mariadb_root_username=None, mariadb_root_password=None, admin_password=None, verbose=False, install_apps=None, source_sql=None,force=False, reinstall=False):
+	"Install a new Frappe site"
+	from frappe.installer import install_db, make_site_dirs
+	from frappe.installer import install_app as _install_app
+	import frappe.utils.scheduler
+
+	frappe.init(site=site)
+	# enable scheduler post install?
+	enable_scheduler = _is_scheduler_enabled()
+
+	install_db(root_login=mariadb_root_username, root_password=mariadb_root_password, db_name=db_name, admin_password=admin_password, verbose=verbose, source_sql=source_sql,force=force, reinstall=reinstall)
+	make_site_dirs()
+	_install_app("frappe", verbose=verbose, set_as_patched=not source_sql)
+
+	if frappe.conf.get("install_apps"):
+		for app in frappe.conf.install_apps:
+			install_app(app, verbose=verbose, set_as_patched=not source_sql)
+
+	if install_apps:
+		for app in install_apps:
+			_install_app(app, verbose=verbose, set_as_patched=not source_sql)
+
+	frappe.utils.scheduler.toggle_scheduler(enable_scheduler)
+	scheduler_status = "disabled" if frappe.utils.scheduler.is_scheduler_disabled() else "enabled"
+	print "*** Scheduler is", scheduler_status, "***"
+	frappe.destroy()
+
+def _is_scheduler_enabled():
+	enable_scheduler = False
+	try:
+		frappe.connect()
+		enable_scheduler = cint(frappe.db.get_default("enable_scheduler"))
+	except:
+		pass
+	finally:
+		frappe.db.close()
+
+	return enable_scheduler
+
+@click.command('restore')
+@click.argument('sql-file-path')
+@click.argument('site')
+@click.option('--mariadb-root-username', default='root', help='Root username for MariaDB')
+@click.option('--mariadb-root-password', help='Root password for MariaDB')
+@click.option('--db-name', help='Database name for site in case it is a new one')
+@click.option('--admin-password', help='Administrator password for new site', prompt=True)
+@click.option('--verbose', is_flag=True, default=False, help='Verbose')
+@click.option('--force', help='Force restore if site already exists', is_flag=True, default=False)
+@click.option('--install-app', multiple=True, help='Install app after installation')
+def restore(sql_file_path, site, mariadb_root_username=None, mariadb_root_password=None, db_name=None, verbose=None, install_app=None, admin_password=None, force=None):
+	"Restore site database from an sql file"
+	frappe.init(site=site)
+	if not db_name:
+		db_name = frappe.conf.db_name
+	_new_site(db_name, site, mariadb_root_username=mariadb_root_username, mariadb_root_password=mariadb_root_password, admin_password=admin_password, verbose=verbose, install_apps=install_app, source_sql=sql_file_path, force=force)
+
+
+@click.command('reinstall')
+@pass_context
+def reinstall(context):
+	"Reinstall site ie. wipe all data and start over"
+	site = get_single_site(context)
+	try:
+		frappe.init(site=site)
+		frappe.connect()
+		installed = frappe.get_installed_apps()
+		frappe.clear_cache()
+	except:
+		installed = []
+	finally:
+		frappe.db.close()
+
+	_new_site(frappe.conf.db_name, site, verbose=context.verbose, force=True, reinstall=True, install_apps=installed)
+
+@click.command('install-app')
+@click.argument('app')
+@pass_context
+def install_app(context, app):
+	"Install a new app to site"
+	from frappe.installer import install_app
+	for site in context.sites:
+		frappe.init(site=site)
+		frappe.connect()
+		try:
+			install_app(app, verbose=context.verbose)
+		finally:
+			frappe.destroy()
+
+@click.command('add-system-manager')
+@click.argument('email')
+@click.option('--first-name')
+@click.option('--last-name')
+@pass_context
+def add_system_manager(context, email, first_name, last_name):
+	"Add a new system manager to a site"
+	import frappe.utils.user
+	for site in context.sites:
+		frappe.connect(site=site)
+		try:
+			frappe.utils.user.add_system_manager(email, first_name, last_name)
+			frappe.db.commit()
+		finally:
+			frappe.destroy()
+
+@click.command('migrate')
+@click.option('--rebuild-website', help="Rebuild webpages after migration")
+@pass_context
+def migrate(context, rebuild_website=False):
+	"Run patches, sync schema and rebuild files/translations"
+	import frappe.modules.patch_handler
+	import frappe.model.sync
+	from frappe.utils.fixtures import sync_fixtures
+	import frappe.translate
+	from frappe.desk.notifications import clear_notifications
+
+	verbose = context.verbose
+
+	for site in context.sites:
+		print 'Migrating', site
+		frappe.init(site=site)
+		frappe.connect()
+
+		try:
+			prepare_for_update()
+
+			# run patches
+			frappe.modules.patch_handler.run_all()
+			# sync
+			frappe.model.sync.sync_all(verbose=context.verbose)
+			frappe.translate.clear_cache()
+			sync_fixtures()
+
+			clear_notifications()
+
+			if rebuild_website:
+				build_website()
+		finally:
+			frappe.destroy()
+
+def prepare_for_update():
+	from frappe.sessions import clear_global_cache
+	clear_global_cache()
+
+@click.command('run-patch')
+@click.argument('module')
+@click.pass_context
+def run_patch(context, module):
+	"Run a particular patch"
+	import frappe.modules.patch_handler
+	for site in context.sites:
+		frappe.init(site=site)
+		try:
+			frappe.connect()
+			frappe.modules.patch_handler.run_single(patch_module, force=context.force)
+		finally:
+			frappe.destroy()
+
+@click.command('reload-doc')
+@click.argument('module')
+@click.argument('doctype')
+@click.argument('docname')
+@pass_context
+def reload_doc(context, module, doctype, docname):
+	"Reload schema for a DocType"
+	for site in context.sites:
+		try:
+			frappe.init(site=site)
+			frappe.connect()
+			frappe.reload_doc(module, doctype, docname, force=context.force)
+			frappe.db.commit()
+		finally:
+			frappe.destroy()
+
+@click.command('build')
+@click.option('--make-copy', is_flag=True, default=False, help='Copy the files instead of symlinking')
+@click.option('--verbose', is_flag=True, default=False, help='Verbose')
+def build(make_copy=False, verbose=False):
+	"Minify + concatenate JS and CSS files, build translations"
+	import frappe.build
+	import frappe
+	frappe.init('')
+	frappe.build.bundle(False, make_copy=make_copy, verbose=verbose)
+
+@click.command('watch')
+def watch():
+	"Watch and concatenate JS and CSS files as and when they change"
+	import frappe.build
+	frappe.init('')
+	frappe.build.watch(True)
+
+@click.command('clear-cache')
+@pass_context
+def clear_cache(context):
+	"Clear cache, doctype cache and defaults"
+	import frappe.sessions
+	from frappe.desk.notifications import clear_notifications
+	for site in context.sites:
+		try:
+			frappe.init(site=site)
+			frappe.connect()
+			frappe.clear_cache()
+			clear_notifications()
+		finally:
+			frappe.destroy()
+
+@click.command('clear-website-cache')
+@pass_context
+def clear_website_cache(context):
+	"Clear website cache"
+	import frappe.website.render
+	for site in context.sites:
+		try:
+			frappe.init(site=site)
+			frappe.connect()
+			frappe.website.render.clear_cache()
+		finally:
+			frappe.destroy()
+
+@click.command('destroy-all-sessions')
+@pass_context
+def destroy_all_sessions(context):
+	"Clear sessions of all users (logs them out)"
+	import frappe.sessions
+	for site in context.sites:
+		try:
+			frappe.init(site=site)
+			frappe.connect()
+			frappe.sessions.clear_all_sessions()
+			frappe.db.commit()
+		finally:
+			frappe.destroy()
+
+@click.command('sync-www')
+@pass_context
+def sync_www(context):
+	"Sync files from static pages from www directory to Web Pages"
+	from frappe.website import statics
+	for site in context.sites:
+		try:
+			frappe.init(site=site)
+			frappe.connect()
+			statics.sync_statics(rebuild=context.force)
+			frappe.db.commit()
+		finally:
+			frappe.destroy()
+
+@click.command('build-website')
+@pass_context
+def build_website(context):
+	"Sync statics and clear cache"
+	from frappe.website import render, statics
+	for site in context.sites:
+		try:
+			frappe.init(site=site)
+			frappe.connect()
+			render.clear_cache()
+			statics.sync(verbose=context.verbose).start(True)
+			frappe.db.commit()
+		finally:
+			frappe.destroy()
+
+@click.command('setup-docs')
+@click.argument('app')
+@click.argument('docs-app')
+@click.argument('path')
+@pass_context
+def setup_docs(context,app, docs_app, path):
+	"Setup docs in target folder of target app"
+	from frappe.utils.setup_docs import setup_docs
+	for site in context.sites:
+		try:
+			frappe.init(site=site)
+			frappe.connect()
+			setup_docs(app, docs_app, path)
+		finally:
+			frappe.destroy()
+
+@click.command('build-docs')
+@pass_context
+def build_docs(context):
+	"Build docs from /src to /www folder in app"
+	from frappe.utils.autodoc import build
+	frappe.destroy()
+	for site in context.sites:
+		try:
+			frappe.init(site=site)
+			build(app)
+		finally:
+			frappe.destroy()
+
+@click.command('reset-perms')
+@pass_context
+def reset_perms(context):
+	"Reset permissions for all doctypes"
+	from frappe.permissions import reset_perms
+	for site in context.sites:
+		try:
+			frappe.init(site=site)
+			frappe.connect()
+			for d in frappe.db.sql_list("""select name from `tabDocType`
+				where ifnull(istable, 0)=0 and ifnull(custom, 0)=0"""):
+					frappe.clear_cache(doctype=d)
+					reset_perms(d)
+		finally:
+			frappe.destroy()
+
+@click.command('execute')
+@pass_context
+def execute(context):
+	"execute a function"
+	for site in context.sites:
+		try:
+			frappe.init(site=site)
+			ret = frappe.get_attr(method)()
+
+			if frappe.db:
+				frappe.db.commit()
+		finally:
+			frappe.destroy()
+		if ret:
+			print ret
+
+@click.command('celery')
+@click.argument('args')
+def celery(args):
+	"Run a celery command"
+	python = sys.executable
+	os.execv(python, [python, "-m", "frappe.celery_app"] + args.split())
+
+@click.command('trigger-scheduler-event')
+@click.argument('event')
+@pass_context
+def trigger_scheduler_event(context, event):
+	"Trigger a scheduler event"
+	import frappe.utils.scheduler
+	for site in context.sites:
+		try:
+			frappe.init(site=site)
+			frappe.connect()
+			frappe.utils.scheduler.trigger(site, event, now=context.force)
+		finally:
+			frappe.destroy()
+
+@click.command('enable-scheduler')
+@pass_context
+def enable_scheduler(context):
+	"Enable scheduler"
+	import frappe.utils.scheduler
+	for site in context.sites:
+		try:
+			frappe.init(site=site)
+			frappe.connect()
+			frappe.utils.scheduler.enable_scheduler()
+			frappe.db.commit()
+			print "Enabled for", site
+		finally:
+			frappe.destroy()
+
+@click.command('disable-scheduler')
+@pass_context
+def disable_scheduler(context):
+	"Disable scheduler"
+	import frappe.utils.scheduler
+	for site in context.sites:
+		try:
+			frappe.init(site=site)
+			frappe.connect()
+			frappe.utils.scheduler.disable_scheduler()
+			frappe.db.commit()
+			print "Disabled for", site
+		finally:
+			frappe.destroy()
+
+@click.command('export-doc')
+@click.argument('doctype')
+@click.argument('docname')
+@pass_context
+def export_doc(context, doctype, docname):
+	"Export a single document to csv"
+	import frappe.modules
+	for site in context.sites:
+		try:
+			frappe.init(site=site)
+			frappe.connect()
+			frappe.modules.export_doc(doctype, docname)
+		finally:
+			frappe.destroy()
+
+@click.command('export-json')
+@click.argument('doctype')
+@click.argument('name')
+@click.argument('path')
+@pass_context
+def export_json(context, doctype, name, path):
+	"Export doclist as json to the given path, use '-' as name for Singles."
+	from frappe.core.page.data_import_tool import data_import_tool
+	for site in context.sites:
+		try:
+			frappe.init(site=site)
+			frappe.connect()
+			data_import_tool.export_json(doctype, name, path)
+		finally:
+			frappe.destroy()
+
+@click.command('export-csv')
+@click.argument('doctype')
+@click.argument('path')
+@pass_context
+def export_csv(context, doctype, path):
+	"Dump DocType as csv"
+	from frappe.core.page.data_import_tool import data_import_tool
+	for site in context.sites:
+		try:
+			frappe.init(site=site)
+			frappe.connect()
+			data_import_tool.export_csv(doctype, path)
+		finally:
+			frappe.destroy()
+
+@click.command('export-fixtures')
+@pass_context
+def export_fixtures(context):
+	"export fixtures"
+	from frappe.utils.fixtures import export_fixtures
+	for site in context.sites:
+		try:
+			frappe.init(site=site)
+			frappe.connect()
+			export_fixtures()
+		finally:
+			frappe.destroy()
+
+@click.command('import-doc')
+@click.argument('path')
+@pass_context
+def import_doc(context, path, force=False):
+	"Import (insert/update) doclist. If the argument is a directory, all files ending with .json are imported"
+	from frappe.core.page.data_import_tool import data_import_tool
+	for site in context.sites:
+		try:
+			frappe.init(site=site)
+			frappe.connect()
+			data_import_tool.import_doc(path, overwrite=context.force)
+		finally:
+			frappe.destroy()
+
+# translation
+@click.command('build-message-files')
+@pass_context
+def build_message_files(context):
+	"Build message files for translation"
+	import frappe.translate
+	for site in context.sites:
+		try:
+			frappe.init(site=site)
+			frappe.connect()
+			frappe.translate.rebuild_all_translation_files()
+		finally:
+			frappe.destroy()
+
+@click.command('get-untranslated')
+@click.argument('lang')
+@click.argument('untranslated_file')
+@click.option('--all', default=False, is_flag=True, help='Get all message strings')
+@pass_context
+def get_untranslated(context, lang, untranslated_file, all=None):
+	"Get untranslated strings for language"
+	import frappe.translate
+	site = get_single_site(context)
+	try:
+		frappe.init(site=site)
+		frappe.connect()
+		frappe.translate.get_untranslated(lang, untranslated_file, get_all=all)
+	finally:
+		frappe.destroy()
+
+@click.command('update-translations')
+@click.argument('lang')
+@click.argument('untranslated_file')
+@click.argument('translated-file')
+@pass_context
+def update_translations(context, lang, untranslated_file, translated_file):
+	"Update translated strings"
+	import frappe.translate
+	site = get_single_site(context)
+	try:
+		frappe.init(site=site)
+		frappe.connect()
+		frappe.translate.update_translations(lang, untranslated_file, translated_file)
+	finally:
+		frappe.destroy()
+
+@click.command('set-admin-password')
+@click.argument('admin-password')
+@pass_context
+def set_admin_password(context, admin_password):
+	"Set Administrator password for a site"
+	import getpass
+
+	for site in context.sites:
+		try:
+			frappe.init(site=site)
+
+			while not admin_password:
+				admin_password = getpass.getpass("Administrator's password for {0}: ".format(site))
+
+			frappe.connect()
+			frappe.db.sql("""update __Auth set `password`=password(%s)
+				where user='Administrator'""", (admin_password,))
+			frappe.db.commit()
+			admin_password = None
+		finally:
+			frappe.destroy()
+
+@click.command('mysql')
+@pass_context
+def mysql(context):
+	"Start Mariadb console for a site"
+	site = get_single_site(context)
+	frappe.init(site=site)
+	msq = find_executable('mysql')
+	os.execv(msq, [msq, '-u', frappe.conf.db_name, '-p'+frappe.conf.db_password, frappe.conf.db_name, '-h', frappe.conf.db_host or "localhost", "-A"])
+
+@click.command('console')
+@pass_context
+def console(context):
+	"Start ipython console for a site"
+	site = get_single_site(context)
+	import frappe
+	frappe.init(site=site)
+	frappe.connect()
+	import IPython
+	IPython.embed()
+
+@click.command('run-tests')
+@click.option('--app')
+@click.option('--doctype')
+@click.option('--test', multiple=True)
+@click.option('--driver')
+@pass_context
+def run_tests(context, app=None, module=None, doctype=None, test=(), driver=None):
+	"Run tests"
+	import frappe.test_runner
+	from frappe.utils import sel
+	tests = test
+	site = get_single_site(context)
+
+	# sel.start(verbose, driver)
+
+	try:
+		frappe.init(site=site)
+		ret = frappe.test_runner.main(app and app[0], module and module[0], doctype and doctype[0], context.verbose,
+			tests=tests, force=context.force)
+		if len(ret.failures) == 0 and len(ret.errors) == 0:
+			ret = 0
+	finally:
+		pass
+		# sel.close()
+
+	return ret
+
+@click.command('serve')
+@click.option('--port', default=8000)
+@click.option('--profile', is_flag=True, default=False)
+@pass_context
+def serve(context, port=None, profile=False, sites_path='.', site=None):
+	"Start development web server"
+	if not context.sites:
+		site = None
+	else:
+		site = context.sites[0]
+	import frappe.app
+	frappe.app.serve(port=port, profile=profile, site=site, sites_path='.')
+
+@click.command('request')
+@click.argument('args')
+@pass_context
+def request(context, args):
+	"Run a request as an admin"
+	import frappe.handler
+	import frappe.api
+	for site in context.sites:
+		try:
+			frappe.init(site=site)
+			frappe.connect()
+			if "?" in args:
+				frappe.local.form_dict = frappe._dict([a.split("=") for a in args.split("?")[-1].split("&")])
+			else:
+				frappe.local.form_dict = frappe._dict()
+
+			if args.startswith("/api/method"):
+				frappe.local.form_dict.cmd = args.split("?")[0].split("/")[-1]
+
+			frappe.handler.execute_cmd(frappe.form_dict.cmd)
+
+			print frappe.response
+		finally:
+			frappe.destroy()
+
+@click.command('doctor')
+def doctor():
+	"Get untranslated strings for lang."
+	from frappe.utils.doctor import doctor as _doctor
+	frappe.init('')
+	return _doctor()
+
+@click.command('purge-all-tasks')
+def purge_all_tasks():
+	"Purge any pending periodic tasks of 'all' event. Doesn't purge hourly, daily and weekly"
+	from frappe.utils.doctor import purge_pending_tasks
+	count = purge_pending_tasks()
+	print "Purged {} tasks".format(count)
+
+@click.command('dump-queue-status')
+def dump_queue_status():
+	"Dump detailed diagnostic infomation for task queues in JSON format"
+	from frappe.utils.doctor import dump_queue_status as _dump_queue_status
+	print json.dumps(_dump_queue_status(), indent=1)
+
+# commands = [
+# 	new_site,
+# 	restore,
+# 	install_app,
+# 	run_patch,
+# 	migrate,
+# 	add_system_manager,
+# 	celery
+# ]
+commands = [
+	new_site,
+	restore,
+	reinstall,
+	install_app,
+	add_system_manager,
+	migrate,
+	run_patch,
+	reload_doc,
+	build,
+	watch,
+	clear_cache,
+	clear_website_cache,
+	destroy_all_sessions,
+	sync_www,
+	build_website,
+	setup_docs,
+	build_docs,
+	reset_perms,
+	execute,
+	celery,
+	trigger_scheduler_event,
+	enable_scheduler,
+	disable_scheduler,
+	export_doc,
+	export_json,
+	export_csv,
+	export_fixtures,
+	import_doc,
+	build_message_files,
+	get_untranslated,
+	update_translations,
+	set_admin_password,
+	mysql,
+	run_tests,
+	serve,
+	request,
+	doctor,
+	purge_all_tasks,
+	dump_queue_status,
+	console,
+]
