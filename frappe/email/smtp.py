@@ -26,6 +26,8 @@ def send(email, as_bulk=False, append_to=None):
 			if not email.reply_to:
 				email.reply_to = email.sender
 			email.sender = smtpserver.login
+		else:
+			email.sender = smtpserver.sender
 
 		smtpserver.sess.sendmail(email.sender, email.recipients + (email.cc or []),
 			email.as_string())
@@ -63,7 +65,7 @@ def get_outgoing_email_account(raise_exception_not_set=True, append_to=None):
 				"use_tls": cint(frappe.conf.get("use_ssl") or 0),
 				"email_id": frappe.conf.get("mail_login"),
 				"password": frappe.conf.get("mail_password"),
-				"sender": frappe.conf.get("auto_email_id")
+				"sender": frappe.conf.get("auto_email_id", "notifications@example.com")
 			})
 			email_account.from_site_config = True
 
@@ -101,6 +103,7 @@ class SMTPServer:
 			self.password = self.email_account.password
 			self.port = self.email_account.smtp_port
 			self.use_ssl = self.email_account.use_tls
+			self.sender = self.email_account.sender
 
 
 	@property
@@ -110,7 +113,7 @@ class SMTPServer:
 			return self._sess
 
 		# check if email server specified
-		if not self.server:
+		if not getattr(self, 'server'):
 			err_msg = _('Email Account not setup. Please create a new Email Account from Setup > Email > Email Account')
 			frappe.msgprint(err_msg)
 			raise frappe.OutgoingEmailError, err_msg

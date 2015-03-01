@@ -61,7 +61,8 @@ class Communication(Document):
 		default_incoming = frappe.db.get_value("Email Account", {"default_incoming": 1}, "email_id")
 		default_outgoing = frappe.db.get_value("Email Account", {"default_outgoing": 1}, "email_id")
 
-		self.sender = "{0} <{1}>".format(frappe.session.data.full_name or "Notification", default_outgoing)
+		if not self.sender:
+			self.sender = "{0} <{1}>".format(frappe.session.data.full_name or "Notification", default_outgoing)
 
 		mail = get_email(self.recipients, sender=self.sender, subject=self.subject,
 			content=self.content, reply_to=default_incoming)
@@ -146,7 +147,7 @@ def on_doctype_update():
 @frappe.whitelist()
 def make(doctype=None, name=None, content=None, subject=None, sent_or_received = "Sent",
 	sender=None, recipients=None, communication_medium="Email", send_email=False,
-	print_html=None, print_format=None, attachments='[]'):
+	print_html=None, print_format=None, attachments='[]', ignore_doctype_permissions=False):
 	"""Make a new communication.
 
 	:param doctype: Reference DocType.
@@ -164,7 +165,7 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 
 	is_error_report = (doctype=="User" and name==frappe.session.user and subject=="Error Report")
 
-	if doctype and name and not is_error_report and not frappe.has_permission(doctype, "email", name):
+	if doctype and name and not is_error_report and not frappe.has_permission(doctype, "email", name) and not ignore_doctype_permissions:
 		raise frappe.PermissionError("You are not allowed to send emails related to: {doctype} {name}".format(
 			doctype=doctype, name=name))
 
