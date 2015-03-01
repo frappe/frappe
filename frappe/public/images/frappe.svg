@@ -1,3 +1,75 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="frappe_icon" x="0px" y="0px" width="100px" height="100px" viewBox="0 0 100 100" enable-background="new 0 0 100 100" xml:space="preserve">
-<path d="M74.842,21.937C74.345,21.383,73.636,21,72.893,21H54.047L62.21,6.317l11.66,0.112l0.035-5.22L60.689,1.128  c-0.972-0.016-1.845,0.449-2.309,1.288L48.061,21H26.112c-0.744,0-1.452,0.383-1.949,0.937s-0.735,1.325-0.655,2.064l7.856,72.578  C31.508,97.908,32.631,99,33.968,99h31.068c1.337,0,2.459-1.075,2.604-2.404l5.534-51.099c0.055-0.21,0.093-0.445,0.093-0.672  c0-0.036-0.009-0.077-0.011-0.112l2.24-20.707C75.576,23.266,75.338,22.49,74.842,21.937z M69.975,26l-1.714,16H30.744l-1.714-16  H69.975z M62.686,94H36.318l-5.007-47h36.381L62.686,94z"/>
-</svg>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Generator: Adobe Illustrator 16.0.4, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   version="1.1"
+   id="Layer_1"
+   x="0px"
+   y="0px"
+   width="260px"
+   height="260px"
+   viewBox="0 0 260 260"
+   enable-background="new 0 0 260 260"
+   xml:space="preserve"
+   inkscape:version="0.91 r13725"
+   sodipodi:docname="frappe.svg"><metadata
+     id="metadata73"><rdf:RDF><cc:Work
+         rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" /><dc:title /></cc:Work></rdf:RDF></metadata><defs
+     id="defs71" /><sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1160"
+     inkscape:window-height="676"
+     id="namedview69"
+     showgrid="false"
+     inkscape:zoom="0.90769231"
+     inkscape:cx="-189.49152"
+     inkscape:cy="130"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="g3" /><g
+     id="g3"><g
+       id="g5"
+       transform="translate(5.5084746,2.2033898)"><g
+         id="g7"><path
+           d="m 223.463,82.762 c 27.129,55.638 0.525,91.039 -60.914,120.997 C 101.111,233.715 56.835,232.875 29.705,177.238 2.578,121.601 29.182,86.199 90.62,56.242 152.06,26.284 196.335,27.126 223.463,82.762 Z"
+           id="path9"
+           inkscape:connector-curvature="0"
+           style="fill:#ffdd8c" />
+	   <animateTransform
+           attributeName="transform"
+           begin="0s"
+           dur="10s"
+           type="rotate"
+           from="0 125 135"
+		   to="360 125 135"
+		   additive="sum"
+		   repeatCount="indefinite" />
+		   </g></g><text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:40px;line-height:125%;font-family:Sans;letter-spacing:0px;word-spacing:0px;fill:#223a4e;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;"
+       x="3.3050849"
+       y="153.1356"
+       id="text3365"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan3367"
+         x="3.3050849"
+         y="153.1356"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:90px;font-family:Omnes;-inkscape-font-specification:Omnes;fill:#223a4e;fill-opacity:1;">frappé</tspan></text>
+</g></svg>

@@ -14,13 +14,12 @@
 		href="{{ favicon or "/assets/frappe/images/favicon.ico" }}" type="image/x-icon">
 	<link rel="icon"
 		href="{{ favicon or "/assets/frappe/images/favicon.ico" }}" type="image/x-icon">
-	<style>{% include "public/css/splash.css" %}</style>
 	{% for include in include_css -%}
 	<link type="text/css" rel="stylesheet" href="{{ include }}">
 	{%- endfor -%}
 </head>
 <body>
-	<div class="splash">{% include "public/images/frappe.svg" %}</div>
+	<div class="centered splash">{% include "public/images/frappe.svg" %}</div>
 	<div class="offcanvas-container">
 		<div class="offcanvas">
 			<div class="offcanvas-main-section">

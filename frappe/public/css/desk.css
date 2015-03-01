@@ -69,7 +69,7 @@ a.text-muted:hover,
 a.text-muted:focus,
 a.text-extra-muted:hover,
 a.text-extra-muted:focus {
-  color: inherit;
+  color: inherit !important;
   border-bottom: 1px solid #8d99a6;
 }
 /* the element that this class is applied to, should have a max width for this to work*/
