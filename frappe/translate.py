@@ -289,9 +289,10 @@ def _get_messages_from_page_or_report(doctype, name, module=None):
 
 	messages = get_messages_from_file(os.path.join(doc_path, name +".py"))
 
-	for filename in os.listdir(doc_path):
-		if filename.endswith(".js") or filename.endswith(".html"):
-			messages += get_messages_from_file(os.path.join(doc_path, filename))
+	if os.path.exists(doc_path):
+		for filename in os.listdir(doc_path):
+			if filename.endswith(".js") or filename.endswith(".html"):
+				messages += get_messages_from_file(os.path.join(doc_path, filename))
 
 	return messages
 
