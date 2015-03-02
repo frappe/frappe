@@ -28,7 +28,12 @@ frappe.views.ListFactory = frappe.views.Factory.extend({
 		cur_list && cur_list.refresh();
 	},
 	set_cur_list: function() {
+		var route = frappe.get_route();
 		cur_list = frappe.container.page && frappe.container.page.doclistview;
+		if(cur_list && cur_list.doctype!==route[1]) {
+			// changing...
+			cur_list = null;
+		}
 	}
 });
 

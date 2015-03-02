@@ -126,6 +126,7 @@ frappe.ui.toolbar.update_notifications = function() {
 				frappe.views.show_open_count_list(this);
 			}
 		}
+		return false;
 	});
 
 	$(".navbar-new-comments")
@@ -165,7 +166,7 @@ frappe.views.show_open_count_list = function(element) {
 	var condition = frappe.boot.notification_info.conditions[doctype];
 	if(condition) {
 		frappe.route_options = condition;
-		var route = frappe.get_route()
+		var route = frappe.get_route();
 		if(route[0]==="List" && route[1]===doctype) {
 			frappe.pages["List/" + doctype].doclistview.refresh();
 		} else {
