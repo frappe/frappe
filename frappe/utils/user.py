@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 
 import frappe, json
 from frappe import _dict
+import frappe.share
 
 class User:
 	"""
@@ -72,10 +73,14 @@ class User:
 		"""
 		self.build_doctype_map()
 		self.build_perm_map()
+		user_shared = frappe.share.get_shared_doctypes()
 
 		for dt in self.doctype_map:
 			dtp = self.doctype_map[dt]
 			p = self.perm_map.get(dt, {})
+
+			if not p.get("read") and (dt in user_shared):
+				p["read"] = 1
 
 			if not dtp.get('istable'):
 				if p.get('create') and not dtp.get('issingle'):

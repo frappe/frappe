@@ -387,7 +387,7 @@ def has_permission(doctype, ptype="read", doc=None, user=None, verbose=False):
 	:param doc: [optional] Checks User permissions for given doc.
 	:param user: [optional] Check for given user. Default: current user."""
 	import frappe.permissions
-	return frappe.permissions.has_permission(doctype, ptype, doc, verbose=verbose, user=user)
+	return frappe.permissions.has_permission(doctype, ptype, doc=doc, verbose=verbose, user=user)
 
 def has_website_permission(doctype, ptype="read", doc=None, user=None, verbose=False):
 	"""Raises `frappe.PermissionError` if not permitted.

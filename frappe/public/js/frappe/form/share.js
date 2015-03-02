@@ -10,20 +10,18 @@ frappe.ui.form.Share = Class.extend({
 	refresh: function() {
 		var me = this;
 		this.parent.empty();
-		if (this.shared) {
-			var shared = $.map(this.shared, function(s) {
-				return s ? s.user : null;
-			});
-		} else {
-			var shared = this.frm.get_docinfo().shared;
-		}
+		var shared = $.map(this.shared || this.frm.get_docinfo().shared, function(s) {
+			return s ? s.user : null;
+		});
 
 		for(var i=0; i<shared.length; i++) {
 			var user_info = frappe.user_info(shared[i])
 			$(repl('<span class="avatar avatar-small" title="'
 				+__("Shared with {0}", [user_info.fullname])+'">\
 				<img class="media-object" src="%(image)s" alt="%(fullname)s"></span>',
-				{image: user_info.image, fullname: user_info.fullname})).appendTo(this.parent);
+				{image: user_info.image, fullname: user_info.fullname}))
+				.appendTo(this.parent)
+				.on("click", function() { me.frm.share_doc(); });;
 		}
 		// share
 		if(!me.frm.doc.__islocal) {

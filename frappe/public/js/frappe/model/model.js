@@ -119,6 +119,10 @@ $.extend(frappe.model, {
 		return frappe.model.docinfo[doctype] && frappe.model.docinfo[doctype][name] || null;
 	},
 
+	get_shared: function(doctype, name) {
+		return frappe.model.get_docinfo(doctype, name).shared;
+	},
+
 	get_server_module_name: function(doctype) {
 		var dt = frappe.model.scrub(doctype);
 		var module = frappe.model.scrub(locals.DocType[doctype].module);
@@ -198,8 +202,10 @@ $.extend(frappe.model, {
 	},
 
 	can_share: function(doctype, frm) {
-		if(frm) return frm.perm[0].share===1;
-		return frappe.boot.user.can_email.indexOf(doctype)!==-1;
+		if(frm) {
+			return frm.perm[0].share===1;
+		}
+		return frappe.boot.user.can_share.indexOf(doctype)!==-1;
 	},
 
 	can_set_user_permissions: function(doctype, frm) {

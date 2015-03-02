@@ -59,6 +59,24 @@ $.extend(frappe.perm, {
 					perm[0][ptype] = val;
 				});
 			}
+
+			// apply permissions from shared
+			if(docinfo.shared) {
+				for(var i=0; i<docinfo.shared; i++) {
+					var s = docinfo.shared[i];
+					if(s.user===user) {
+						perm[0]["read"] = s.read;
+						perm[0]["write"] = s.write;
+						perm[0]["share"] = s.share;
+
+					}
+				}
+			}
+		}
+
+		if(frappe.model.can_read(doctype) && !perm[0].read) {
+			// read via sharing
+			perm[0].read = 1;
 		}
 
 		return perm;

@@ -4,10 +4,10 @@
         <p class="text-muted">{%= __("Not shared with anyone yet.") %}</p>
     {% } else { %}
         <div class="row">
-            <div class="col-xs-6"><h5>{%= __("User") %}</h5></div>
-            <div class="col-xs-2"><h5>{%= __("Read") %}</h5></div>
-            <div class="col-xs-2"><h5>{%= __("Write") %}</h5></div>
-            <div class="col-xs-2"><h5>{%= __("Share") %}</h5></div>
+            <div class="col-xs-6"><h6>{%= __("User") %}</h6></div>
+            <div class="col-xs-2"><h6>{%= __("Can Read") %}</h6></div>
+            <div class="col-xs-2"><h6>{%= __("Can Write") %}</h6></div>
+            <div class="col-xs-2"><h6>{%= __("Can Share") %}</h6></div>
         </div>
 
         {% for (var i=0, l=shared.length; i < l; i++) {
